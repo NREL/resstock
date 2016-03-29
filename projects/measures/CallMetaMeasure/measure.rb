@@ -33,23 +33,11 @@ class CallMetaMeasure < OpenStudio::Ruleset::ModelUserScript
     parameter_name.setDescription("The name of the parameter.")
     args << parameter_name
     
-    measure_dir = OpenStudio::Ruleset::OSArgument.makeStringArgument("measure_dir", true)
-    measure_dir.setDisplayName("MeasureDir")
-    measure_dir.setDescription("The name of the measure folder. Leave blank if no measure to call. (Note: The path to this folder's parent directory is currently hardcoded.)")
-    measure_dir.setDefaultValue("")
-    args << measure_dir
-    
     probability_file = OpenStudio::Ruleset::OSArgument.makeStringArgument("probability_file", true)
     probability_file.setDisplayName("ProbabilityDistributionsFile.txt")
     probability_file.setDescription("The name of the file that provides probability distributions. (Note: The path to this file's parent directory is currently hardcoded.)")
     args << probability_file
 
-    dependencies = OpenStudio::Ruleset::OSArgument.makeStringArgument("dependencies", true)
-    dependencies.setDisplayName("Dependencies")
-    dependencies.setDescription("The list of parameter name dependencies for this parameter, using a \"|\" as the delimiter. Leave blank if no dependencies.")
-    dependencies.setDefaultValue("")
-    args << dependencies
-    
     sample_value = OpenStudio::Ruleset::OSArgument.makeDoubleArgument("sample_value", true)
     sample_value.setDisplayName("Sample Value")
     sample_value.setDescription("The sample value determined by the OpenStudio sampling algorithm.")
@@ -68,9 +56,7 @@ class CallMetaMeasure < OpenStudio::Ruleset::ModelUserScript
     end
     
     parameter_name = runner.getStringArgumentValue("parameter_name",user_arguments)
-    measure_dir = runner.getStringArgumentValue("measure_dir",user_arguments)
     probability_file = runner.getStringArgumentValue("probability_file",user_arguments)
-    dependencies = runner.getStringArgumentValue("dependencies",user_arguments).split("|")
     sample_value = runner.getDoubleArgumentValue("sample_value",user_arguments)
     
     # FIXME: Hardcoded values
@@ -87,6 +73,11 @@ class CallMetaMeasure < OpenStudio::Ruleset::ModelUserScript
         return false
     end
     
+    dependencies = get_dependencies(runner, full_probability_path)
+    if dependencies.nil?
+        return false
+    end
+    
     dependency_values = get_dependency_values_from_runner(runner, dependencies)
     if dependency_values.nil?
         return false
@@ -97,16 +88,16 @@ class CallMetaMeasure < OpenStudio::Ruleset::ModelUserScript
         return false
     end
     
-    if not measure_dir.nil? and not measure_dir.empty? and measure_dir.size > 0
+    measure_dir, measure_args = get_measure_args_from_name(lookup_file, option_name, parameter_name, runner)
+    if measure_args.nil?
+        return false
+    end
+
+    if not measure_dir.nil?
         # Gather measure arguments and call measure
         
         full_measure_path = check_file_exists(parent_measure_path, measure_dir + "\\measure.rb", runner)
         if full_measure_path.nil?
-            return false
-        end
-        
-        measure_args = get_measure_args_from_name(lookup_file, option_name, parameter_name, runner)
-        if measure_args.nil?
             return false
         end
         
@@ -134,6 +125,20 @@ class CallMetaMeasure < OpenStudio::Ruleset::ModelUserScript
 
   end
   
+  def get_dependencies(runner, full_probability_path)
+    dependencies = []
+    CSV.foreach(full_probability_path, { :col_sep => "\t" }) do |row|
+        row.each do |val|
+            if not val.nil? and val.downcase.start_with?("dependency=")
+                val = val.downcase.sub("dependency=","").strip
+                dependencies << val
+            end
+        end
+        break
+    end
+    return dependencies
+  end
+  
   def check_file_exists(parent_path, file_name, runner)
     full_path = parent_path + "\\" + file_name
     if not File.exist?(full_path)
@@ -151,12 +156,13 @@ class CallMetaMeasure < OpenStudio::Ruleset::ModelUserScript
     # FIXME: Need Ry's help to retrieve runner values
     # Currently hard-coding...
     dependencies.each do |dep|
-        if dep == "Location"
+        if dep.downcase == "location"
             dependency_values[dep] = "USA_FL_Jacksonville.Intl.AP.722060_TMY3.epw"
-        elsif dep == "Vintage"
+        elsif dep.downcase == "vintage"
             dependency_values[dep] = "pre-1950"
         else
             runner.registerError("Could not find dependency value for #{dep.to_s}.")
+            return nil
         end
     end
     return dependency_values
@@ -186,7 +192,7 @@ class CallMetaMeasure < OpenStudio::Ruleset::ModelUserScript
                 col_s = "Dependency=#{dep.to_s}"
                 dep_col = -1
                 for col in 0..(header_line.size-1)
-                    if header_line[col] == col_s
+                    if header_line[col].strip.downcase == col_s.downcase
                         dep_col = col
                         break
                     end
@@ -195,7 +201,7 @@ class CallMetaMeasure < OpenStudio::Ruleset::ModelUserScript
                     runner.registerError("Could not find column '#{col_s.to_s}' in #{probability_file.to_s}.")
                     return option_name
                 end
-                if row[dep_col] == dep_val
+                if row[dep_col].downcase == dep_val.downcase
                     num_deps_matched += 1
                 end
             end
@@ -249,11 +255,13 @@ class CallMetaMeasure < OpenStudio::Ruleset::ModelUserScript
   
   def get_measure_args_from_name(lookup_file, option_name, parameter_name, runner)
     found = false
+    measure_dir = nil
     measure_args = {}
     CSV.foreach(lookup_file, { :col_sep => "\t" }) do |row|
-        if row[0] == parameter_name and row[1] == option_name
-            for col in 2..(row.size-1)
-                next if row[col].nil? or row[col].empty? or not row[col].include?("=")
+        if row[0].downcase == parameter_name.downcase and row[1].downcase == option_name.downcase
+            measure_dir = row[2]
+            for col in 3..(row.size-1)
+                next if row[col].nil? or not row[col].include?("=")
                 data = row[col].split("=")
                 arg_name = data[0]
                 arg_val = data[1]
@@ -264,9 +272,9 @@ class CallMetaMeasure < OpenStudio::Ruleset::ModelUserScript
     end
     if not found
         runner.registerError("Could not find measure arguments for parameter #{parameter_name.to_s} and option #{option_name.to_s}.")
-        return nil
+        return nil, nil
     end
-    return measure_args
+    return measure_dir, measure_args
   end
   
   def print_info(measure_args, measure_dir, option_name, runner)
