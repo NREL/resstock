@@ -16,25 +16,20 @@ class CallMetaMeasure < OpenStudio::Ruleset::ModelUserScript
 
   # human readable description
   def description
-    return ""
+    return "Measure that calls a child measure based on the sample value and probability distribution file provided."
   end
 
   # human readable description of modeling approach
   def modeler_description
-    return ""
+    return "Based on the sample value provided by the sampling algorithm and the housing characteristics probability distribution file, a child measure will be called with appropriate arguments. This measure also handles any upstream dependencies that have been previously set."
   end
 
   # define the arguments that the user will input
   def arguments(model)
     args = OpenStudio::Ruleset::OSArgumentVector.new
 
-    parameter_name = OpenStudio::Ruleset::OSArgument.makeStringArgument("parameter_name", true)
-    parameter_name.setDisplayName("ParameterName")
-    parameter_name.setDescription("The name of the parameter.")
-    args << parameter_name
-    
     probability_file = OpenStudio::Ruleset::OSArgument.makeStringArgument("probability_file", true)
-    probability_file.setDisplayName("ProbabilityDistributionsFile.txt")
+    probability_file.setDisplayName("ProbabilityDistributionFile.txt")
     probability_file.setDescription("The name of the file that provides probability distributions. (Note: The path to this file's parent directory is currently hardcoded.)")
     args << probability_file
 
@@ -55,7 +50,6 @@ class CallMetaMeasure < OpenStudio::Ruleset::ModelUserScript
       return false
     end
     
-    parameter_name = runner.getStringArgumentValue("parameter_name",user_arguments)
     probability_file = runner.getStringArgumentValue("probability_file",user_arguments)
     sample_value = runner.getDoubleArgumentValue("sample_value",user_arguments)
     
@@ -64,21 +58,21 @@ class CallMetaMeasure < OpenStudio::Ruleset::ModelUserScript
     # analysis_json = runner.get_analysis
     # analysis_json[:analysis][:problem][:number_of_samples]
     total_num_samples = 100
-    lookup_file = "C:\\Users\\shorowit\\Documents\\GitHub\\OpenStudio-ResStock\\input\\national scale\\_options_lookup.txt"
-    parent_probability_path = "C:\\Users\\shorowit\\Documents\\GitHub\\OpenStudio-ResStock\\input\\national scale"
+    parent_probability_path = "C:\\Users\\shorowit\\Documents\\GitHub\\OpenStudio-ResStock\\projects\\national scale\\inputs"
     parent_measure_path = "C:\\Users\\shorowit\\Documents\\GitHub\\OpenStudio-Beopt\\measures"
+    lookup_file = "#{parent_probability_path}\\_options_lookup.txt"
 
     full_probability_path = check_file_exists(parent_probability_path, probability_file, runner)
     if full_probability_path.nil?
         return false
     end
     
-    dependencies = get_dependencies(runner, full_probability_path)
-    if dependencies.nil?
+    parameter_name, dependencies = get_parameter_name_and_dependencies(full_probability_path, runner)
+    if parameter_name.nil? or dependencies.nil?
         return false
     end
     
-    dependency_values = get_dependency_values_from_runner(runner, dependencies)
+    dependency_values = get_dependency_values_from_runner(dependencies, runner)
     if dependency_values.nil?
         return false
     end
@@ -101,15 +95,18 @@ class CallMetaMeasure < OpenStudio::Ruleset::ModelUserScript
             return false
         end
         
-        print_info(measure_args, measure_dir, option_name, runner)
-        
         measure = get_measure_instance(full_measure_path, runner)
         if measure.nil?
             return false
         end
         
-        argument_map = get_argument_map(model, measure, measure_args)
+        argument_map = get_argument_map(model, measure, measure_args, lookup_file, parameter_name, runner)
+        if argument_map.nil?
+            return false
+        end
         
+        print_info(measure_args, measure_dir, option_name, runner)
+
         if not run_measure(model, measure, argument_map, runner)
             return false
         end
@@ -125,9 +122,20 @@ class CallMetaMeasure < OpenStudio::Ruleset::ModelUserScript
 
   end
   
-  def get_dependencies(runner, full_probability_path)
+  def get_parameter_name_and_dependencies(full_probability_path, runner)
+    parameter_name = nil
     dependencies = []
     CSV.foreach(full_probability_path, { :col_sep => "\t" }) do |row|
+        if parameter_name.nil?
+            # First line should be parameter name
+            if row.nil? or not row[0].downcase.start_with?("parametername=")
+                runner.registerError("Could not find parameter name in #{full_probability_path.to_s}.")
+                return parameter_name, dependencies
+            end
+            val = row[0].downcase.sub("parametername=","").strip
+            parameter_name = val
+            next
+        end
         row.each do |val|
             if not val.nil? and val.downcase.start_with?("dependency=")
                 val = val.downcase.sub("dependency=","").strip
@@ -136,7 +144,7 @@ class CallMetaMeasure < OpenStudio::Ruleset::ModelUserScript
         end
         break
     end
-    return dependencies
+    return parameter_name, dependencies
   end
   
   def check_file_exists(parent_path, file_name, runner)
@@ -148,7 +156,7 @@ class CallMetaMeasure < OpenStudio::Ruleset::ModelUserScript
     return full_path
   end
   
-  def get_dependency_values_from_runner(runner, dependencies)
+  def get_dependency_values_from_runner(dependencies, runner)
     # Return hash of dependencies with their values from the runner (from
     # previous meta-measure calls).
     
@@ -172,13 +180,13 @@ class CallMetaMeasure < OpenStudio::Ruleset::ModelUserScript
     # Retrieve option name from probability file based on sample value
     
     option_name = nil
-    header_line = nil
+    header_lines = []
     
     CSV.foreach(full_probability_path, { :col_sep => "\t" }) do |row|
     
-        # Store single header line
-        if header_line.nil?
-            header_line = row
+        # Store two header lines
+        if header_lines.size < 2
+            header_lines << row
             next
         end
     
@@ -191,8 +199,8 @@ class CallMetaMeasure < OpenStudio::Ruleset::ModelUserScript
             dependency_values.each do |dep,dep_val|
                 col_s = "Dependency=#{dep.to_s}"
                 dep_col = -1
-                for col in 0..(header_line.size-1)
-                    if header_line[col].strip.downcase == col_s.downcase
+                for col in 0..(header_lines[1].size-1)
+                    if header_lines[1][col].strip.downcase == col_s.downcase
                         dep_col = col
                         break
                     end
@@ -234,7 +242,7 @@ class CallMetaMeasure < OpenStudio::Ruleset::ModelUserScript
             rowsum += rowval.to_f
             #runner.registerInfo("index #{index.to_s} rowval #{rowval.to_s} rowsum #{rowsum.to_s} sampleval #{(sample_value/total_num_samples.to_f).to_s}")
             if rowsum > sample_value/total_num_samples.to_f
-                option_name = header_line[index+dependency_values.size]
+                option_name = header_lines[1][index+dependency_values.size]
                 break
             end
         end
@@ -311,16 +319,30 @@ class CallMetaMeasure < OpenStudio::Ruleset::ModelUserScript
     return measure
   end
   
-  def get_argument_map(model, measure, measure_args)
-    # Get arguments
-    arguments = measure.arguments(model)
-    argument_map = OpenStudio::Ruleset.convertOSArgumentVectorToMap(arguments)
-    
-    # Default/overwrite arguments as appropriate
+  def get_argument_map(model, measure, measure_args, lookup_file, parameter_name, runner)
+    # Get default arguments
     args_hash = default_args_hash(model, measure)
+    
+    # Verify all arguments have been provided
+    args_hash.each do |k,v|
+        next if measure_args.keys.include?(k)
+        runner.registerError("Argument '#{k}' not provided in #{File.basename(lookup_file).to_s} for parameter '#{parameter_name.to_s}'.")
+        return nil
+    end
+    measure_args.each do |k,v|
+        next if args_hash.keys.include?(k)
+        runner.registerError("Extra argument '#{k}' specified in #{File.basename(lookup_file).to_s} for parameter '#{parameter_name.to_s}'.")
+        return nil
+    end
+    
+    # Overwrite with specified arguments
     measure_args.each do |k,v|
         args_hash[k] = v
     end
+    
+    # Convert to argument map needed by OS
+    arguments = measure.arguments(model)
+    argument_map = OpenStudio::Ruleset.convertOSArgumentVectorToMap(arguments)
     arguments.each do |arg|
         temp_arg_var = arg.clone
         if args_hash[arg.name]
