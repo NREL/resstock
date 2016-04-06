@@ -53,14 +53,19 @@ class CallMetaMeasure < OpenStudio::Ruleset::ModelUserScript
     probability_file = runner.getStringArgumentValue("probability_file",user_arguments)
     sample_value = runner.getDoubleArgumentValue("sample_value",user_arguments)
     
+    # Get mode and corresponding subdirectory (as found in the MetaMeasure resources dir)
+    mode = "National" # FIXME: Retrieve from runner.past_results
+    subdir_hash = {"National"=>"_inputs_national", "Pacific Northwest"=>"_inputs_pnw"}
+    subdir = subdir_hash[mode]
+    
     # FIXME: Hardcoded values
     # According to Ry, can get total num samples by:
     # analysis_json = runner.get_analysis
     # analysis_json[:analysis][:problem][:number_of_samples]
     total_num_samples = 100
-    parent_probability_path = "C:\\Users\\shorowit\\Documents\\GitHub\\OpenStudio-ResStock\\projects\\national scale\\inputs"
-    parent_measure_path = "C:\\Users\\shorowit\\Documents\\GitHub\\OpenStudio-Beopt\\measures"
-    lookup_file = "#{parent_probability_path}\\_options_lookup.txt"
+    parent_probability_path = File.expand_path("../resources/#{subdir}/", __FILE__)
+    parent_measure_path = File.expand_path("../resources/measures/", __FILE__)
+    lookup_file = "#{parent_probability_path}/_options_lookup.txt"
 
     full_probability_path = check_file_exists(parent_probability_path, probability_file, runner)
     if full_probability_path.nil?
@@ -161,7 +166,7 @@ class CallMetaMeasure < OpenStudio::Ruleset::ModelUserScript
     # previous meta-measure calls).
     
     dependency_values = {}
-    # FIXME: Need Ry's help to retrieve runner values
+    # FIXME: Retrieve runner.past_results
     # Currently hard-coding...
     dependencies.each do |dep|
         if dep.downcase == "location"
