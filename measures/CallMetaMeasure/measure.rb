@@ -135,7 +135,7 @@ class CallMetaMeasure < OpenStudio::Ruleset::ModelUserScript
             end
         end
     end
-    runner.registerError("Could not find registered value for #{key_lookup.to_s}.")
+    runner.registerError("Could not find dependency value for '#{key_lookup.to_s}'.")
     return nil
   end
   
@@ -220,6 +220,7 @@ class CallMetaMeasure < OpenStudio::Ruleset::ModelUserScript
                     runner.registerError("Could not find column '#{col_s.to_s}' in #{probability_file.to_s}.")
                     return option_name
                 end
+                next if row[dep_col].nil?
                 if row[dep_col].downcase == dep_val.downcase
                     num_deps_matched += 1
                 end
@@ -288,7 +289,7 @@ class CallMetaMeasure < OpenStudio::Ruleset::ModelUserScript
         end
     end
     if not found
-        runner.registerError("Could not find measure arguments for parameter #{parameter_name.to_s} and option #{option_name.to_s}.")
+        runner.registerError("Could not find measure arguments for parameter '#{parameter_name.to_s}' and option '#{option_name.to_s}'.")
         return nil, nil
     end
     return measure_dir, measure_args
@@ -365,26 +366,26 @@ class CallMetaMeasure < OpenStudio::Ruleset::ModelUserScript
   def default_args_hash(model, measure)
     args_hash = {}
     arguments = measure.arguments(model)
-	arguments.each do |arg|	
-		if arg.hasDefaultValue
-			type = arg.type.valueName
-			case type.downcase
-			when "boolean"
-				args_hash[arg.name] = arg.defaultValueAsBool
-			when "double"
-				args_hash[arg.name] = arg.defaultValueAsDouble
-			when "integer"
-				args_hash[arg.name] = arg.defaultValueAsInteger
-			when "string"
-				args_hash[arg.name] = arg.defaultValueAsString
-			when "choice"
-				args_hash[arg.name] = arg.defaultValueAsString
-			end
-		else
-			args_hash[arg.name] = nil
-		end
-	end
-	return args_hash
+    arguments.each do |arg| 
+        if arg.hasDefaultValue
+            type = arg.type.valueName
+            case type.downcase
+            when "boolean"
+                args_hash[arg.name] = arg.defaultValueAsBool
+            when "double"
+                args_hash[arg.name] = arg.defaultValueAsDouble
+            when "integer"
+                args_hash[arg.name] = arg.defaultValueAsInteger
+            when "string"
+                args_hash[arg.name] = arg.defaultValueAsString
+            when "choice"
+                args_hash[arg.name] = arg.defaultValueAsString
+            end
+        else
+            args_hash[arg.name] = nil
+        end
+    end
+    return args_hash
   end
   
   def run_measure(model, measure, argument_map, runner)

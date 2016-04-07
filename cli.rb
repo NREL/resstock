@@ -434,6 +434,7 @@ begin
   @analysis_id = @server_api.run("#{temp_filepath}.json","#{temp_filepath}.zip",aws_instance_options[:analysis_type])
 ensure
   #Ensure resource cleanup
+  #Temporarily disabled due to known error on Windows
   #FileUtils.rm_r '.temp'
 end
 
