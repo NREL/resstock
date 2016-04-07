@@ -434,7 +434,7 @@ begin
   @analysis_id = @server_api.run("#{temp_filepath}.json","#{temp_filepath}.zip",aws_instance_options[:analysis_type])
 ensure
   #Ensure resource cleanup
-  FileUtils.rm_r '.temp'
+  #FileUtils.rm_r '.temp'
 end
 
 # Determine if there are queued tasks
