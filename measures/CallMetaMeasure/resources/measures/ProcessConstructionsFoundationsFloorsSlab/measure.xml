@@ -1,0 +1,167 @@
+<measure>
+  <schema_version>3.0</schema_version>
+  <name>process_constructions_foundations_floors_slab</name>
+  <uid>4fd36916-5b69-43d2-a7bb-e7fad34508db</uid>
+  <version_id>148b9efc-fd79-486d-b4b8-43264483dba6</version_id>
+  <version_modified>20160406T002313Z</version_modified>
+  <xml_checksum>1E963D9C</xml_checksum>
+  <class_name>ProcessConstructionsFoundationsFloorsSlab</class_name>
+  <display_name>Set Residential Foundations/Floors - Slab Construction</display_name>
+  <description>This measure assigns a construction to slabs-on-grade.</description>
+  <modeler_description>Calculates and assigns material layer properties of slab constructions for floors between above-grade finished space and the ground.</modeler_description>
+  <arguments>
+    <argument>
+      <name>perim_r</name>
+      <display_name>Perimeter Insulation Nominal R-value</display_name>
+      <description>Perimeter insulation is placed horizontally below the perimeter of the slab.</description>
+      <type>Double</type>
+      <units>hr-ft^2-R/Btu</units>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>0</default_value>
+    </argument>
+    <argument>
+      <name>perim_width</name>
+      <display_name>Perimeter Insulation Width</display_name>
+      <description>The distance from the perimeter of the house where the perimeter insulation ends.</description>
+      <type>Double</type>
+      <units>ft</units>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>0</default_value>
+    </argument>
+    <argument>
+      <name>whole_r</name>
+      <display_name>Whole Slab Insulation Nominal R-value</display_name>
+      <description>Whole slab insulation is placed horizontally below the entire slab.</description>
+      <type>Double</type>
+      <units>hr-ft^2-R/Btu</units>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>0</default_value>
+    </argument>
+    <argument>
+      <name>gap_r</name>
+      <display_name>Gap Insulation Nominal R-value</display_name>
+      <description>Gap insulation is placed vertically between the edge of the slab and the foundation wall.</description>
+      <type>Double</type>
+      <units>hr-ft^2-R/Btu</units>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>0</default_value>
+    </argument>
+    <argument>
+      <name>ext_r</name>
+      <display_name>Exterior Insulation Nominal R-value</display_name>
+      <description>Exterior insulation is placed vertically on the exterior of the foundation wall.</description>
+      <type>Double</type>
+      <units>hr-ft^2-R/Btu</units>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>0</default_value>
+    </argument>
+    <argument>
+      <name>ext_depth</name>
+      <display_name>Exterior Insulation Depth</display_name>
+      <description>The depth of the exterior foundation insulation.</description>
+      <type>Double</type>
+      <units>ft</units>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>0</default_value>
+    </argument>
+    <argument>
+      <name>mass_thick_in</name>
+      <display_name>Mass Thickness</display_name>
+      <description>Thickness of the slab foundation mass.</description>
+      <type>Double</type>
+      <units>in</units>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>4</default_value>
+    </argument>
+    <argument>
+      <name>mass_cond</name>
+      <display_name>Mass Conductivity</display_name>
+      <description>Conductivity of the slab foundation mass.</description>
+      <type>Double</type>
+      <units>Btu-in/h-ft^2-R</units>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>9.1</default_value>
+    </argument>
+    <argument>
+      <name>mass_dens</name>
+      <display_name>Mass Density</display_name>
+      <description>Density of the slab foundation mass.</description>
+      <type>Double</type>
+      <units>lb/ft^3</units>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>140</default_value>
+    </argument>
+    <argument>
+      <name>mass_specheat</name>
+      <display_name>Mass Specific Heat</display_name>
+      <description>Specific heat of the slab foundation mass.</description>
+      <type>Double</type>
+      <units>Btu/lb-R</units>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>0.2</default_value>
+    </argument>
+  </arguments>
+  <provenances/>
+  <tags>
+    <tag>Envelope.Opaque</tag>
+  </tags>
+  <attributes>
+    <attribute>
+      <name>Measure Type</name>
+      <value>ModelMeasure</value>
+      <datatype>string</datatype>
+    </attribute>
+    <attribute>
+      <name>Uses SketchUp API</name>
+      <value>false</value>
+      <datatype>boolean</datatype>
+    </attribute>
+  </attributes>
+  <files>
+    <file>
+      <filename>ProcessConstructionsSlab_Test.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>test</usage_type>
+      <checksum>C3EC7191</checksum>
+    </file>
+    <file>
+      <filename>geometry.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>84F0F9A9</checksum>
+    </file>
+    <file>
+      <version>
+        <software_program>OpenStudio</software_program>
+        <identifier>1.3.0</identifier>
+        <min_compatible>1.3.0</min_compatible>
+      </version>
+      <filename>measure.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>script</usage_type>
+      <checksum>F2D70D2F</checksum>
+    </file>
+    <file>
+      <filename>constants.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>AE77F58D</checksum>
+    </file>
+    <file>
+      <filename>util.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>EAAAB264</checksum>
+    </file>
+  </files>
+</measure>
