@@ -9,6 +9,8 @@ TODO: Add information here on how to get setup.
 
 ## Running simulations
 
-Currently simulations will only run on the nrel24b server as they make use of OS 2.0 capabilities only available there. Here's an example of running the national-scale simulations:
+There is a run.rb script that wraps around OpenStudio's cli.rb and simplifies the process for us. It also performs a number of integrity checks to reduce the possibility of submitting jobs only to find out something went wrong. To use the script, simply execute:
 
-```bundle exec ruby cli.rb -t nrel24b -p projects/res_stock_national.xlsx -c```
+```ruby run.rb```
+
+By default, the script will 1) check for errors, 2) select our national-scale analysis (not, e.g., PNW analysis), 3) use the 'nrel24b' server, and 4) download the resulting CSV files. See `ruby run.rb -h` for other uses.
