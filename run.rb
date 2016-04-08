@@ -89,7 +89,7 @@ def perform_integrity_checks(project_file, rsmode)
         dependencies.each do |dep|
             next if parameters_processed.include?(dep)
             puts "ERROR: Parameter '#{parameter_name}' has a dependency '#{dep}' that was not already assigned."
-            fail 1
+            exit
         end
     
         # Store info

@@ -363,6 +363,6 @@ def register_error(msg, runner=nil)
         runner.registerError(msg)
     else
         puts "ERROR: #{msg}"
-        fail 1
+        exit
     end
 end
