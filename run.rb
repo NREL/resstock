@@ -95,12 +95,13 @@ def perform_integrity_checks(project_file, rsmode)
         # Store info
         parameters_processed << parameter_name
         parameter_dependencies[parameter_name] = dependencies
-        parameter_option_names[parameter_name] = get_all_option_names(pdfile, nil)
+        headers, rows = get_file_data(pdfile)
+        parameter_option_names[parameter_name] = get_all_option_names(pdfile, headers, rows, nil)
     
         # Test all possible combinations of dependency value combinations
         combo_hashes = get_combination_hashes(parameter_option_names, dependencies)
         combo_hashes.each do |combo_hash|
-            get_option_name_from_sample_value(0, combo_hash, pdfile, nil, checkonly=true)
+            get_option_name_from_sample_value(1.0, combo_hash, pdfile, headers, rows, nil)
         end
     
         # Checks for option_lookup.txt

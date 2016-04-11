@@ -83,7 +83,8 @@ class CallMetaMeasure < OpenStudio::Ruleset::ModelUserScript
         return false
     end
     
-    option_name = get_option_name_from_sample_value(sample_value, dependency_values, full_probability_path, runner)
+    headers, rows = get_file_data(full_probability_path)
+    option_name = get_option_name_from_sample_value(sample_value, dependency_values, full_probability_path, headers, rows, runner)
     if option_name.nil?
         return false
     end

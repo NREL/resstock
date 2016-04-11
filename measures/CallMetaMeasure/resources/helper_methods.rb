@@ -60,27 +60,37 @@ def get_dependency_values_from_runner(dependencies, runner)
     return dependency_values
 end
 
-def get_all_option_names(full_probability_path, runner=nil)
-
-    option_names = []
-    header_lines = []
+def get_file_data(full_probability_path)
     
+    headers = []
+    rows = []
     CSV.foreach(full_probability_path, { :col_sep => "\t" }) do |row|
-    
-        # Skip one header line
-        if header_lines.size < 1
-            header_lines << row
+
+        row.delete_if {|x| x.nil? or x.size == 0} # purge trailing empty fields
+
+        # Store two header lines
+        if headers.size < 2
+            headers << row
             next
         end
-        
-        # Return option names on third row that aren't
-        row.each do |d|
+
+        rows << row
+    end
+    
+    return headers, rows
+end
+
+def get_all_option_names(full_probability_path, headers, rows, runner=nil)
+
+    option_names = []
+
+    # Return option names on second header row that aren't dependencies
+    if headers.size >= 2
+        headers[1].each do |d|
             next if d.nil?
             next if d.strip.downcase.start_with?("dependency=")
             option_names << d.strip
         end
-        
-        break
     end
     
     if option_names.size == 0
@@ -90,19 +100,13 @@ def get_all_option_names(full_probability_path, runner=nil)
     return option_names
 end
 
-def get_option_name_from_sample_value(sample_value, dependency_values, full_probability_path, runner=nil, checkonly=false)
+def get_option_name_from_sample_value(sample_value, dependency_values, full_probability_path, headers, rows, runner=nil)
     # Retrieve option name from probability file based on sample value
     
+    all_option_names = get_all_option_names(full_probability_path, headers, rows, runner)
     option_name = nil
-    header_lines = []
     
-    CSV.foreach(full_probability_path, { :col_sep => "\t" }) do |row|
-    
-        # Store two header lines
-        if header_lines.size < 2
-            header_lines << row
-            next
-        end
+    rows.each do |row|
     
         # Find appropriate row by matching dependency values
         found_row = false
@@ -113,8 +117,8 @@ def get_option_name_from_sample_value(sample_value, dependency_values, full_prob
             dependency_values.each do |dep,dep_val|
                 col_s = "Dependency=#{dep.to_s}"
                 dep_col = -1
-                for col in 0..(header_lines[1].size-1)
-                    if header_lines[1][col].strip.downcase == col_s.downcase
+                for col in 0..(headers[1].size-1)
+                    if headers[1][col].strip.downcase == col_s.downcase
                         dep_col = col
                         break
                     end
@@ -154,18 +158,20 @@ def get_option_name_from_sample_value(sample_value, dependency_values, full_prob
         rowsum = 0
         rowvals.each_with_index do |rowval, index|
             rowsum += rowval.to_f
+            # Ensure we don't fail due to rounding
+            if (index + 1 == rowvals.size and rowsum > 0.99999)
+                rowsum = 1.0
+            end
             if rowsum >= sample_value
-                option_name = header_lines[1][index+dependency_values.size]
+                option_name = all_option_names[index]
                 break
             end
         end
     end
     
-    if option_name.nil?
+    if option_name.nil? or option_name.size == 0
         deps_s = hash_to_string(dependency_values)
-        if checkonly
-            register_error("Could not find row in #{full_probability_path.to_s} with dependencies: #{deps_s.to_s}.")
-        elsif deps_s.size > 0
+        if deps_s.size > 0
             register_error("Could not determine appropriate option in #{full_probability_path.to_s} for sample value #{sample_value.to_s} with dependencies: #{deps_s.to_s}.", runner)
         else
             register_error("Could not determine appropriate option in #{full_probability_path.to_s} for sample value #{sample_value.to_s}.", runner)
