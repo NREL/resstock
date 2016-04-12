@@ -1,0 +1,158 @@
+<measure>
+  <schema_version>3.0</schema_version>
+  <name>residential_clothes_dryer</name>
+  <uid>0b112141-4e2e-4dad-b2fd-2d1f629391f0</uid>
+  <version_id>2c159e27-d9d9-455a-bede-ac35ba9766fe</version_id>
+  <version_modified>20160412T151417Z</version_modified>
+  <xml_checksum>126F1C43</xml_checksum>
+  <class_name>ResidentialClothesDryer</class_name>
+  <display_name>Set Residential Electric Clothes Dryer</display_name>
+  <description>Adds (or replaces) a residential clothes dryer with the specified efficiency, operation, and schedule in the given space.</description>
+  <modeler_description>Since there is no Clothes Dryer object in OpenStudio/EnergyPlus, we look for an ElectricEquipment or GasEquipment object with the name that denotes it is a residential clothes dryer. If one is found, it is replaced with the specified properties. Otherwise, a new such object is added to the model. Note: This measure requires the number of bedrooms/bathrooms to have already been assigned.</modeler_description>
+  <arguments>
+    <argument>
+      <name>cd_ef</name>
+      <display_name>Energy Factor</display_name>
+      <description>The Energy Factor, for electric or gas systems.</description>
+      <type>Double</type>
+      <units>lb/kWh</units>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>3.1</default_value>
+    </argument>
+    <argument>
+      <name>cd_mult</name>
+      <display_name>Occupancy Energy Multiplier</display_name>
+      <description>Appliance energy use is multiplied by this factor to account for occupancy usage that differs from the national average.</description>
+      <type>Double</type>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>1</default_value>
+    </argument>
+    <argument>
+      <name>cd_weekday_sch</name>
+      <display_name>Weekday schedule</display_name>
+      <description>Specify the 24-hour weekday schedule.</description>
+      <type>String</type>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>0.010, 0.006, 0.004, 0.002, 0.004, 0.006, 0.016, 0.032, 0.048, 0.068, 0.078, 0.081, 0.074, 0.067, 0.057, 0.061, 0.055, 0.054, 0.051, 0.051, 0.052, 0.054, 0.044, 0.024</default_value>
+    </argument>
+    <argument>
+      <name>cd_weekend_sch</name>
+      <display_name>Weekend schedule</display_name>
+      <description>Specify the 24-hour weekend schedule.</description>
+      <type>String</type>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>0.010, 0.006, 0.004, 0.002, 0.004, 0.006, 0.016, 0.032, 0.048, 0.068, 0.078, 0.081, 0.074, 0.067, 0.057, 0.061, 0.055, 0.054, 0.051, 0.051, 0.052, 0.054, 0.044, 0.024</default_value>
+    </argument>
+    <argument>
+      <name>cd_monthly_sch</name>
+      <display_name>Month schedule</display_name>
+      <description>Specify the 12-month schedule.</description>
+      <type>String</type>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0</default_value>
+    </argument>
+    <argument>
+      <name>cw_mef</name>
+      <display_name>Clothes Washer Energy Factor</display_name>
+      <description>The Modified Energy Factor (MEF) is the quotient of the capacity of the clothes container, C, divided by the total clothes washer energy consumption per cycle, with such energy consumption expressed as the sum of the machine electrical energy consumption, M, the hot water energy consumption, E, and the energy required for removal of the remaining moisture in the wash load, D. The higher the value, the more efficient the clothes washer is. Procedures to test MEF are defined by the Department of Energy (DOE) in 10 Code of Federal Regulations Part 430, Appendix J to Subpart B.</description>
+      <type>Double</type>
+      <units>ft^3/kWh-cycle</units>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>1.41</default_value>
+    </argument>
+    <argument>
+      <name>cw_rated_annual_energy</name>
+      <display_name>Clothes Washer Rated Annual Consumption</display_name>
+      <description>The annual energy consumed by the clothes washer, as rated, obtained from the EnergyGuide label. This includes both the appliance electricity consumption and the energy required for water heating.</description>
+      <type>Double</type>
+      <units>kWh</units>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>387</default_value>
+    </argument>
+    <argument>
+      <name>cw_drum_volume</name>
+      <display_name>Clothes Washer Drum Volume</display_name>
+      <description>Volume of the washer drum.  Obtained from the EnergyStar website or the manufacturer's literature.</description>
+      <type>Double</type>
+      <units>ft^3</units>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>3.5</default_value>
+    </argument>
+    <argument>
+      <name>space</name>
+      <display_name>Location</display_name>
+      <description>Select the space where the clothes dryer is located</description>
+      <type>Choice</type>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>living space</default_value>
+      <choices>
+        <choice>
+          <value>living space</value>
+          <display_name>living space</display_name>
+        </choice>
+      </choices>
+    </argument>
+  </arguments>
+  <provenances/>
+  <tags>
+    <tag>Equipment.Electric Equipment</tag>
+  </tags>
+  <attributes>
+    <attribute>
+      <name>Measure Type</name>
+      <value>ModelMeasure</value>
+      <datatype>string</datatype>
+    </attribute>
+    <attribute>
+      <name>Uses SketchUp API</name>
+      <value>false</value>
+      <datatype>boolean</datatype>
+    </attribute>
+  </attributes>
+  <files>
+    <file>
+      <filename>ResidentialClothesWasherandDryer_Test.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>test</usage_type>
+      <checksum>C0A8F5D4</checksum>
+    </file>
+    <file>
+      <filename>schedules.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>430DF459</checksum>
+    </file>
+    <file>
+      <version>
+        <software_program>OpenStudio</software_program>
+        <identifier>1.4.0</identifier>
+        <min_compatible>1.4.0</min_compatible>
+      </version>
+      <filename>measure.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>script</usage_type>
+      <checksum>5B00CF27</checksum>
+    </file>
+    <file>
+      <filename>constants.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>04FF2C49</checksum>
+    </file>
+    <file>
+      <filename>geometry.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>4267896A</checksum>
+    </file>
+  </files>
+</measure>

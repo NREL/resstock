@@ -56,9 +56,6 @@ class CallMetaMeasure < OpenStudio::Ruleset::ModelUserScript
     
     # Get mode and corresponding subdirectory (as found in the MetaMeasure resources dir)
     res_stock_mode = get_value_from_runner_past_results("res_stock_mode", runner)
-    if res_stock_mode.nil?
-        return false
-    end
     
     # Get file/dir paths
     resources_dir = File.absolute_path(File.join(File.dirname(__FILE__), "resources"))
@@ -69,58 +66,35 @@ class CallMetaMeasure < OpenStudio::Ruleset::ModelUserScript
     lookup_file = File.join(resources_dir, "options_lookup.txt")
     
     full_probability_path = File.join(inputs_dir, probability_file)
-    if not check_file_exists(full_probability_path, runner)
-        return false
-    end
+    check_file_exists(full_probability_path, runner)
     
-    parameter_name, dependencies = get_parameter_name_and_dependencies(full_probability_path, runner)
-    if parameter_name.nil? or dependencies.nil?
-        return false
-    end
+    # Get file data including parameter name, dependency columns, and option names
+    headers, rows, parameter_name, all_option_names, dependency_cols = get_probability_file_data(full_probability_path, runner)
     
-    dependency_values = get_dependency_values_from_runner(dependencies, runner)
-    if dependency_values.nil?
-        return false
-    end
+    # Get dependency values from previous meta-measure calls
+    dependency_values = get_dependency_values_from_runner(dependency_cols, runner)
     
-    headers, rows = get_file_data(full_probability_path)
-    option_name = get_option_name_from_sample_value(sample_value, dependency_values, full_probability_path, headers, rows, runner)
-    if option_name.nil?
-        return false
-    end
+    # Get option name given the sample value and dependency values
+    option_name, matched_row_num = get_option_name_from_sample_value(sample_value, dependency_values, full_probability_path, dependency_cols, all_option_names, headers, rows, runner)
     
+    # Get measure name and arguments associated with the option name
     measure_subdir, measure_args = get_measure_args_from_name(lookup_file, option_name, parameter_name, runner)
-    if measure_args.nil?
-        return false
-    end
 
     if not measure_subdir.nil?
         # Gather measure arguments and call measure
         
         full_measure_path = File.join(measures_dir, measure_subdir, "measure.rb")
-        if not check_file_exists(full_measure_path, runner)
-            return false
-        end
+        check_file_exists(full_measure_path, runner)
         
         measure = get_measure_instance(full_measure_path)
-        if measure.nil?
-            return false
-        end
-        
         argument_map = get_argument_map(model, measure, measure_args, lookup_file, parameter_name, option_name, runner)
-        if argument_map.nil?
-            return false
-        end
-        
         print_info(measure_args, measure_subdir, option_name, runner)
 
         if not run_measure(model, measure, argument_map, runner)
             return false
         end
     else
-    
         print_info(nil, nil, option_name, runner)
-    
     end
     
     register_value(runner, parameter_name, option_name)

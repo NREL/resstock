@@ -1,6 +1,12 @@
 # These methods are here so that they are easily used by both
 # the CallMetaMeasure measure and run.rb
 
+def check_file_exists(full_path, runner=nil)
+    if not File.exist?(full_path)
+        register_error("Cannot find file #{full_path.to_s}.", runner)
+    end
+end
+  
 def get_value_from_runner_past_results(key_lookup, runner=nil)
     runner.past_results.each do |measure, values|
         values.each do |k, v|
@@ -10,57 +16,20 @@ def get_value_from_runner_past_results(key_lookup, runner=nil)
         end
     end
     register_error("Could not find dependency value for '#{key_lookup.to_s}'.", runner)
-    return nil
 end
-  
-def get_parameter_name_and_dependencies(full_probability_path, runner=nil)
-    parameter_name = nil
-    dependencies = []
-    CSV.foreach(full_probability_path, { :col_sep => "\t" }) do |row|
-        if parameter_name.nil?
-            # First line should be parameter name
-            if row.nil? or not row[0].downcase.start_with?("parametername=")
-                register_error("Could not find parameter name in #{full_probability_path.to_s}.", runner)
-                return parameter_name, dependencies
-            end
-            val = row[0].downcase.sub("parametername=","").strip
-            parameter_name = val
-            next
-        end
-        row.each do |val|
-            if not val.nil? and val.downcase.start_with?("dependency=")
-                val = val.downcase.sub("dependency=","").strip
-                dependencies << val
-            end
-        end
-        break
-    end
-    return parameter_name, dependencies
-end
-  
-def check_file_exists(full_path, runner=nil)
-    if not File.exist?(full_path)
-        register_error("Cannot find file #{full_path.to_s}.", runner)
-        return false
-    end
-    return true
-end
-  
-def get_dependency_values_from_runner(dependencies, runner)
+
+def get_dependency_values_from_runner(dependency_cols, runner)
     # Return hash of dependencies with their values from the runner (from
     # previous meta-measure calls).
     dependency_values = {}
-    dependencies.each do |dep|
+    dependency_cols.keys.each do |dep|
         val = get_value_from_runner_past_results(dep, runner)
-        if val.nil?
-            return nil
-        end
         dependency_values[dep] = val
     end
     return dependency_values
 end
 
-def get_file_data(full_probability_path)
+def get_probability_file_data(full_probability_path, runner)
     
     headers = []
     rows = []
@@ -77,36 +46,47 @@ def get_file_data(full_probability_path)
         rows << row
     end
     
-    return headers, rows
-end
-
-def get_all_option_names(full_probability_path, headers, rows, runner=nil)
-
-    option_names = []
-
-    # Return option names on second header row that aren't dependencies
-    if headers.size >= 2
-        headers[1].each do |d|
-            next if d.nil?
-            next if d.strip.downcase.start_with?("dependency=")
-            option_names << d.strip
-        end
+    if headers.size != 2
+        register_error("Could not find two header rows in #{full_probability_path.to_s}.", runner)
     end
     
-    if option_names.size == 0
+    # Get parameter name on first header row
+    if headers[0].nil? or not headers[0][0].strip.downcase.start_with?("parametername=")
+        register_error("Could not find parameter name in #{full_probability_path.to_s}.", runner)
+    end
+    val = headers[0][0].downcase.sub("parametername=","").strip
+    parameter_name = val
+    
+    # Get option names on second header row that aren't dependencies
+    all_option_names = []
+    headers[1].each do |d|
+        next if d.nil?
+        next if d.strip.downcase.start_with?("dependency=")
+        all_option_names << d.strip
+    end
+    if all_option_names.size == 0
         register_error("No options found in #{File.basename(full_probability_path).to_s}.", runner)
     end
-
-    return option_names
+    
+    # Get all dependencies and corresponding column numbers on second row
+    dependency_cols = {}
+    headers[1].each_with_index do |d, col|
+        next if d.nil?
+        next if not d.strip.downcase.start_with?("dependency=")
+        val = d.strip.downcase.sub("dependency=","").strip
+        dependency_cols[val] = col
+    end
+    
+    return headers, rows, parameter_name, all_option_names, dependency_cols
 end
 
-def get_option_name_from_sample_value(sample_value, dependency_values, full_probability_path, headers, rows, runner=nil)
+def get_option_name_from_sample_value(sample_value, dependency_values, full_probability_path, dependency_cols, all_option_names, headers, rows, runner=nil)
     # Retrieve option name from probability file based on sample value
     
-    all_option_names = get_all_option_names(full_probability_path, headers, rows, runner)
     option_name = nil
+    matched_row_num = nil
     
-    rows.each do |row|
+    rows.each_with_index do |row, rownum|
     
         # Find appropriate row by matching dependency values
         found_row = false
@@ -115,25 +95,14 @@ def get_option_name_from_sample_value(sample_value, dependency_values, full_prob
         else
             num_deps_matched = 0
             dependency_values.each do |dep,dep_val|
-                col_s = "Dependency=#{dep.to_s}"
-                dep_col = -1
-                for col in 0..(headers[1].size-1)
-                    if headers[1][col].strip.downcase == col_s.downcase
-                        dep_col = col
+                next if row[dependency_cols[dep]].nil?
+                if row[dependency_cols[dep]].downcase == dep_val.downcase
+                    num_deps_matched += 1
+                    if num_deps_matched == dependency_values.size
+                        found_row = true
                         break
                     end
                 end
-                if dep_col == -1
-                    register_error("Could not find column '#{col_s.to_s}' in #{full_probability_path.to_s}.", runner)
-                    return option_name
-                end
-                next if row[dep_col].nil?
-                if row[dep_col].downcase == dep_val.downcase
-                    num_deps_matched += 1
-                end
-            end
-            if num_deps_matched == dependency_values.size
-                found_row = true
             end
         end
         next if not found_row
@@ -141,29 +110,34 @@ def get_option_name_from_sample_value(sample_value, dependency_values, full_prob
         # Convert data to numeric row values
         rowvals = []
         for col in (dependency_values.size)..(row.size-1)
+            if not row[col].is_number?
+                register_error("Field '#{row[col].to_s}' in #{full_probability_path.to_s} must be numeric.", runner)
+            end
             rowvals << row[col].to_f
         end
         
         # Sum of values within 5%?
         sum_rowvals = rowvals.reduce(:+)
         if sum_rowvals < 0.95 or sum_rowvals > 1.05
-            register_error("Values in #{full_probability_path.to_s} incorrectly sum to #{sum_rowvals.to_s}", runner)
-            return option_name
+            register_error("Values in #{full_probability_path.to_s} incorrectly sum to #{sum_rowvals.to_s}.", runner)
         end
         
         # If values don't exactly sum to 1, normalize them
-        rowvals = rowvals.collect { |n| n / sum_rowvals }
+        if sum_rowvals != 1.0
+            rowvals = rowvals.collect { |n| n / sum_rowvals }
+        end
         
         # Find appropriate value
         rowsum = 0
         rowvals.each_with_index do |rowval, index|
-            rowsum += rowval.to_f
+            rowsum += rowval
             # Ensure we don't fail due to rounding
-            if (index + 1 == rowvals.size and rowsum > 0.99999)
+            if (index  == rowvals.size-1 and rowsum > 0.99999)
                 rowsum = 1.0
             end
             if rowsum >= sample_value
                 option_name = all_option_names[index]
+                matched_row_num = rownum
                 break
             end
         end
@@ -179,7 +153,7 @@ def get_option_name_from_sample_value(sample_value, dependency_values, full_prob
         return option_name
     end
     
-    return option_name
+    return option_name, matched_row_num
 end
   
 def get_measure_args_from_name(lookup_file, option_name, parameter_name, runner=nil)
@@ -201,7 +175,6 @@ def get_measure_args_from_name(lookup_file, option_name, parameter_name, runner=
     end
     if not found
         register_error("Could not find parameter '#{parameter_name.to_s}' and option '#{option_name.to_s}' in #{lookup_file.to_s}.", runner)
-        return nil, nil
     end
     return measure_dir, measure_args
 end
@@ -247,23 +220,18 @@ def validate_measure_args(args1, args2, lookup_file, parameter_name, option_name
     args1.each do |k|
         next if args2.include?(k)
         register_error("Argument '#{k}' not provided in #{lookup_file.to_s} for parameter '#{parameter_name.to_s}' and option '#{option_name.to_s}'.", runner)
-        return false
     end
     args2.each do |k|
         next if args1.include?(k)
         register_error("Extra argument '#{k}' specified in #{lookup_file.to_s} for parameter '#{parameter_name.to_s}' and option '#{option_name.to_s}'.", runner)
-        return false
     end
-    return true
 end
   
 def get_argument_map(model, measure, measure_args, lookup_file, parameter_name, option_name, runner=nil)
     # Get default arguments
     args_hash = default_args_hash(model, measure)
     
-    if not validate_measure_args(args_hash.keys, measure_args.keys, lookup_file, parameter_name, option_name, runner)
-        return nil
-    end
+    validate_measure_args(args_hash.keys, measure_args.keys, lookup_file, parameter_name, option_name, runner)
     
     # Overwrite with specified arguments
     measure_args.each do |k,v|
@@ -367,8 +335,15 @@ end
 def register_error(msg, runner=nil)
     if not runner.nil?
         runner.registerError(msg)
+        fail msg # OS 2.0 will handle this more gracefully
     else
         puts "ERROR: #{msg}"
         exit
     end
+end
+
+class String
+  def is_number?
+    true if Float(self) rescue false
+  end
 end

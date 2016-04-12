@@ -1,0 +1,132 @@
+{
+  "classname": "ResidentialClothesWasherandDryer",
+  "name": "residential_clothes_washerand_dryer",
+  "display_name": "Residential Clothes Washerand Dryer",
+  "measure_type": "RubyMeasure",
+  "arguments": [
+    {
+      "local_variable": "selected_cd",
+      "variable_type": "Choice",
+      "name": "selected_cd",
+      "display_name": "Clothes Dryer Energy Consumption Option",
+      "units": null,
+      "description": null,
+      "choices": [
+        "Benchmark",
+        "Detailed",
+        "Gas",
+        "Electricity"
+      ]
+    },
+    {
+      "local_variable": "cd_fuel",
+      "variable_type": "Choice",
+      "name": "cd_fuel",
+      "display_name": "Clothes Dryer Fuel",
+      "units": null,
+      "description": null,
+      "default_value": "Electricity",
+      "choices": [
+        "Gas",
+        "Electricity"
+      ]
+    },
+    {
+      "local_variable": "bab_mult_cd",
+      "variable_type": "Double",
+      "name": "BAB_mult_cd",
+      "display_name": "Clothes Dryer Building America Benchmark Multipler",
+      "units": null,
+      "description": null,
+      "default_value": 1.0
+    },
+    {
+      "local_variable": "num_br",
+      "variable_type": "Integer",
+      "name": "Num_Br",
+      "display_name": "Number of Bedrooms",
+      "units": null,
+      "description": null,
+      "default_value": 1
+    },
+    {
+      "local_variable": "ef_cd",
+      "variable_type": "Double",
+      "name": "EF_cd",
+      "display_name": "Clothes Dryer Energy Factor",
+      "units": null,
+      "description": null,
+      "default_value": 3.1
+    },
+    {
+      "local_variable": "selected_cw",
+      "variable_type": "Choice",
+      "name": "selected_cw",
+      "display_name": "Clothes Washer Energy Consumption Option",
+      "units": null,
+      "description": null,
+      "choices": [
+        "Benchmark",
+        "Detailed",
+        "Gas",
+        "Electricity"
+      ]
+    },
+    {
+      "local_variable": "bab_mult_cw",
+      "variable_type": "Double",
+      "name": "BAB_mult_cw",
+      "display_name": "Clothes Washer Building America Benchmark Multipler",
+      "units": null,
+      "description": null,
+      "default_value": 1.0
+    },
+    {
+      "local_variable": "ef_cw",
+      "variable_type": "Double",
+      "name": "EF_cw",
+      "display_name": "Clothes Washer Energy Factor",
+      "units": null,
+      "description": null,
+      "default_value": 1.41
+    },
+    {
+      "local_variable": "dv_cw",
+      "variable_type": "Double",
+      "name": "DV_cw",
+      "display_name": "Clothes Washer Drum Volume",
+      "units": "ft^3",
+      "description": null,
+      "default_value": 3.5
+    },
+    {
+      "local_variable": "cw_td",
+      "variable_type": "Integer",
+      "name": "CW_testdate",
+      "display_name": "Clothes Washer Test Date",
+      "units": null,
+      "description": null,
+      "default_value": 2007
+    },
+    {
+      "local_variable": "space_type",
+      "variable_type": "Choice",
+      "name": "space_type",
+      "display_name": "Select the space where the clothes washer and dryer are located",
+      "units": null,
+      "description": null,
+      "default_value": "*None*",
+      "choices": [
+        "*None*"
+      ]
+    }
+  ],
+  "name_xml": "residential_clothes_washerand_dryer",
+  "uid": "0b112141-4e2e-4dad-b2fd-2d1f629391f0",
+  "version_id": "5b57858f-ea7a-4cdc-acc4-c3aace5df7c6",
+  "modeler_description": "Adds or replaces equipment objects. The dryer can be either gas or electric, and will add the appropriate \"GasEquipment\" and/or \"ElectricEquipment\" objects. The washer is always electric. The schedules used are based on the BA HSP.",
+  "description": "This measure adds a residential clothes washer and dryer. The user can specify how the energy consumption is calculated (using benchmark assumptions or a detailed calculation methond). Users must also specify which space the washer and dryer are installed in (the are assumed to be colocated).",
+  "tags": [
+    "Equipment.Electric Equipment"
+  ]
+}

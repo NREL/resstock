@@ -1,0 +1,111 @@
+{
+  "classname": "ResidentialCookingRange",
+  "name": "residential_cooking_range",
+  "display_name": "Residential Cooking Range",
+  "measure_type": "RubyMeasure",
+  "arguments": [
+    {
+      "local_variable": "selected_range",
+      "variable_type": "Choice",
+      "name": "selected_range",
+      "display_name": "Cooking Range Energy Consumption Option",
+      "units": null,
+      "description": null,
+      "choices": [
+        "Benchmark",
+        "Detailed",
+        "Simple",
+        "Gas",
+        "Electricity"
+      ]
+    },
+    {
+      "local_variable": "range_fuel",
+      "variable_type": "Choice",
+      "name": "range_fuel",
+      "display_name": "Cooking Range Fuel",
+      "units": null,
+      "description": null,
+      "default_value": "false",
+      "choices": [
+        "Gas",
+        "Electricity",
+        "false"
+      ]
+    },
+    {
+      "local_variable": "range_E",
+      "variable_type": "Double",
+      "name": "range_E",
+      "display_name": "Simple Range Annual Energy Consumption",
+      "units": "kWh/yr or therms/yr",
+      "description": null,
+      "default_value": 0.0
+    },
+    {
+      "local_variable": "bab_mult",
+      "variable_type": "Double",
+      "name": "BAB_mult",
+      "display_name": "Building America Benchmark Multipler",
+      "units": null,
+      "description": null,
+      "default_value": 1.0
+    },
+    {
+      "local_variable": "num_br",
+      "variable_type": "Integer",
+      "name": "Num_Br",
+      "display_name": "Number of Bedrooms",
+      "units": null,
+      "description": null,
+      "default_value": 1
+    },
+    {
+      "local_variable": "o_ef",
+      "variable_type": "Double",
+      "name": "O_ef",
+      "display_name": "Oven Energy Factor",
+      "units": null,
+      "description": null,
+      "default_value": 0.0
+    },
+    {
+      "local_variable": "c_ef",
+      "variable_type": "Double",
+      "name": "C_ef",
+      "display_name": "Cooktop Energy Factor",
+      "units": null,
+      "description": null,
+      "default_value": 0.0
+    },
+    {
+      "local_variable": "glo_bar",
+      "variable_type": "Bool",
+      "name": "Glo_Bar",
+      "display_name": "Has glo bar ignition",
+      "units": null,
+      "description": null,
+      "default_value": false
+    },
+    {
+      "local_variable": "space_type",
+      "variable_type": "Choice",
+      "name": "space_type",
+      "display_name": "Select the space where the cooking range is located",
+      "units": null,
+      "description": null,
+      "default_value": "*None*",
+      "choices": [
+        "*None*"
+      ]
+    }
+  ],
+  "name_xml": "residential_cooking_range",
+  "uid": "246da4be-4924-41f5-8de0-177b42b7d6b5",
+  "version_id": "b62ff24d-48bf-4aa2-9d1d-93a92f33d7f2",
+  "modeler_description": "Adds a new Electric Equipment or Gas Equipment object with a typical range schedule (the default defined in the Building America House Simulation Protocols: http://energy.gov/sites/prod/files/2014/03/f13/house_simulation_protocols_2014.pdf). If a gas range with a glo bar is selected, the model will have a separate Electric Equipment object to capture it's energy consumption.",
+  "description": "Adds a cooking range to the building. The range can use either gas or electricity. If there is already a gas or electric range in the building, it is replaced with the user selected range. Users can specify either the annual energy use (in kWh/yr), Benchmark multiplier, or the cooktop and oven energy factors. Users can also sepcify if the gas range uses a glo bar for ignition. Energy use for cases other than simple depends on the number of bedrooms as a way to determine how often the range is use. From BEopt, typical oven and cooktop energy factors for a typical electric range are O_EF = 0.11, C_EF = 0.74. For an induction range, O_EF = 0.11, C_EF = 0.84. For a gas range, O_EF = 0.058, C_EF = 0.4.",
+  "tags": [
+    "Equipment.Electric Equipment"
+  ]
+}

@@ -1,0 +1,306 @@
+<measure>
+  <schema_version>3.0</schema_version>
+  <name>residential_clothes_washer</name>
+  <uid>640bfdca-ba67-461e-b517-1a7291c22b22</uid>
+  <version_id>c44c2f70-d03f-41df-9d2f-134d00b419b5</version_id>
+  <version_modified>20160412T151418Z</version_modified>
+  <xml_checksum>126F1C43</xml_checksum>
+  <class_name>ResidentialClothesWasher</class_name>
+  <display_name>Set Residential Clothes Washer</display_name>
+  <description>Adds (or replaces) a residential clothes washer with the specified efficiency, operation, and schedule in the given space.</description>
+  <modeler_description>Since there is no Clothes Washer object in OpenStudio/EnergyPlus, we look for an ElectricEquipment object with the name that denotes it is a residential clothes washer. If one is found, it is replaced with the specified properties. Otherwise, a new such object is added to the model. Note: This measure requires the number of bedrooms/bathrooms to have already been assigned.</modeler_description>
+  <arguments>
+    <argument>
+      <name>cw_mef</name>
+      <display_name>Energy Factor</display_name>
+      <description>The Modified Energy Factor (MEF) is the quotient of the capacity of the clothes container, C, divided by the total clothes washer energy consumption per cycle, with such energy consumption expressed as the sum of the machine electrical energy consumption, M, the hot water energy consumption, E, and the energy required for removal of the remaining moisture in the wash load, D. The higher the value, the more efficient the clothes washer is. Procedures to test MEF are defined by the Department of Energy (DOE) in 10 Code of Federal Regulations Part 430, Appendix J to Subpart B.</description>
+      <type>Double</type>
+      <units>ft^3/kWh-cycle</units>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>1.41</default_value>
+    </argument>
+    <argument>
+      <name>cw_rated_annual_energy</name>
+      <display_name>Rated Annual Consumption</display_name>
+      <description>The annual energy consumed by the clothes washer, as rated, obtained from the EnergyGuide label. This includes both the appliance electricity consumption and the energy required for water heating.</description>
+      <type>Double</type>
+      <units>kWh</units>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>387</default_value>
+    </argument>
+    <argument>
+      <name>cw_annual_cost</name>
+      <display_name>Annual Cost with Gas DHW</display_name>
+      <description>The annual cost of using the system under test conditions.  Input is obtained from the EnergyGuide label.</description>
+      <type>Double</type>
+      <units>$</units>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>24</default_value>
+    </argument>
+    <argument>
+      <name>cw_test_date</name>
+      <display_name>Test Date</display_name>
+      <description>Input obtained from EnergyGuide labels.  The new E-guide labels state that the test was performed under the 2004 DOE procedure, otherwise use year &lt; 2004.</description>
+      <type>Integer</type>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>2007</default_value>
+    </argument>
+    <argument>
+      <name>cw_drum_volume</name>
+      <display_name>Drum Volume</display_name>
+      <description>Volume of the washer drum.  Obtained from the EnergyStar website or the manufacturer's literature.</description>
+      <type>Double</type>
+      <units>ft^3</units>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>3.5</default_value>
+    </argument>
+    <argument>
+      <name>cw_cold_cycle</name>
+      <display_name>Use Cold Cycle Only</display_name>
+      <description>The washer is operated using only the cold cycle.</description>
+      <type>Boolean</type>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>false</default_value>
+      <choices>
+        <choice>
+          <value>true</value>
+          <display_name>true</display_name>
+        </choice>
+        <choice>
+          <value>false</value>
+          <display_name>false</display_name>
+        </choice>
+      </choices>
+    </argument>
+    <argument>
+      <name>cw_thermostatic_control</name>
+      <display_name>Thermostatic Control</display_name>
+      <description>The clothes washer uses hot and cold water inlet valves to control temperature (varies hot water volume to control wash temperature).  Use this option for machines that use hot and cold inlet valves to control wash water temperature or machines that use both inlet valves AND internal electric heaters to control temperature of the wash water.  Input obtained from the manufacturer's literature.</description>
+      <type>Boolean</type>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>true</default_value>
+      <choices>
+        <choice>
+          <value>true</value>
+          <display_name>true</display_name>
+        </choice>
+        <choice>
+          <value>false</value>
+          <display_name>false</display_name>
+        </choice>
+      </choices>
+    </argument>
+    <argument>
+      <name>cw_internal_heater</name>
+      <display_name>Has Internal Heater Adjustment</display_name>
+      <description>The washer uses an internal electric heater to adjust the temperature of wash water.  Use this option for washers that have hot and cold water connections but use an internal electric heater to adjust the wash water temperature.  Obtain the input from the manufacturer's literature.</description>
+      <type>Boolean</type>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>false</default_value>
+      <choices>
+        <choice>
+          <value>true</value>
+          <display_name>true</display_name>
+        </choice>
+        <choice>
+          <value>false</value>
+          <display_name>false</display_name>
+        </choice>
+      </choices>
+    </argument>
+    <argument>
+      <name>cw_fill_sensor</name>
+      <display_name>Has Water Level Fill Sensor</display_name>
+      <description>The washer has a vertical axis and water level fill sensor.  Input obtained from the manufacturer's literature.</description>
+      <type>Boolean</type>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>false</default_value>
+      <choices>
+        <choice>
+          <value>true</value>
+          <display_name>true</display_name>
+        </choice>
+        <choice>
+          <value>false</value>
+          <display_name>false</display_name>
+        </choice>
+      </choices>
+    </argument>
+    <argument>
+      <name>cw_mult_e</name>
+      <display_name>Occupancy Energy Multiplier</display_name>
+      <description>Appliance energy use is multiplied by this factor to account for occupancy usage that differs from the national average.</description>
+      <type>Double</type>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>1</default_value>
+    </argument>
+    <argument>
+      <name>cw_mult_hw</name>
+      <display_name>Occupancy Hot Water Multiplier</display_name>
+      <description>Appliance hot water use is multiplied by this factor to account for occupancy usage that differs from the national average. This should generally be equal to the Occupancy Energy Multiplier.</description>
+      <type>Double</type>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>1</default_value>
+    </argument>
+    <argument>
+      <name>space</name>
+      <display_name>Location</display_name>
+      <description>Select the space where the clothes washer is located</description>
+      <type>Choice</type>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>living space</default_value>
+      <choices>
+        <choice>
+          <value>living space</value>
+          <display_name>living space</display_name>
+        </choice>
+      </choices>
+    </argument>
+    <argument>
+      <name>plant_loop</name>
+      <display_name>Plant Loop</display_name>
+      <description>Select the plant loop for the clothes washer</description>
+      <type>Choice</type>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>Domestic Hot Water Loop</default_value>
+      <choices>
+        <choice>
+          <value>Domestic Hot Water Loop</value>
+          <display_name>Domestic Hot Water Loop</display_name>
+        </choice>
+      </choices>
+    </argument>
+  </arguments>
+  <provenances/>
+  <tags>
+    <tag>Equipment.Electric Equipment</tag>
+  </tags>
+  <attributes>
+    <attribute>
+      <name>Measure Type</name>
+      <value>ModelMeasure</value>
+      <datatype>string</datatype>
+    </attribute>
+    <attribute>
+      <name>Uses SketchUp API</name>
+      <value>false</value>
+      <datatype>boolean</datatype>
+    </attribute>
+  </attributes>
+  <files>
+    <file>
+      <filename>ResidentialClothesWasherandDryer_Test.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>test</usage_type>
+      <checksum>C0A8F5D4</checksum>
+    </file>
+    <file>
+      <filename>ClothesWasherSchedule_1bed_unit0.csv</filename>
+      <filetype>csv</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>DA07D0A2</checksum>
+    </file>
+    <file>
+      <filename>ClothesWasherSchedule_2bed_unit0.csv</filename>
+      <filetype>csv</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>2A9F7257</checksum>
+    </file>
+    <file>
+      <filename>ClothesWasherSchedule_3bed_unit0.csv</filename>
+      <filetype>csv</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>80C3E022</checksum>
+    </file>
+    <file>
+      <filename>ClothesWasherSchedule_4bed_unit0.csv</filename>
+      <filetype>csv</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>2E9F6FB4</checksum>
+    </file>
+    <file>
+      <filename>ClothesWasherSchedule_5bed_unit0.csv</filename>
+      <filetype>csv</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>A840BD15</checksum>
+    </file>
+    <file>
+      <filename>MinuteDrawProfilesMaxFlows.csv</filename>
+      <filetype>csv</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>63BE98ED</checksum>
+    </file>
+    <file>
+      <filename>unit_conversions.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>DCBEF242</checksum>
+    </file>
+    <file>
+      <version>
+        <software_program>OpenStudio</software_program>
+        <identifier>1.4.0</identifier>
+        <min_compatible>1.4.0</min_compatible>
+      </version>
+      <filename>measure.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>script</usage_type>
+      <checksum>B2829374</checksum>
+    </file>
+    <file>
+      <filename>waterheater.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>B516C87F</checksum>
+    </file>
+    <file>
+      <filename>weather.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>79B0EC38</checksum>
+    </file>
+    <file>
+      <filename>schedules.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>430DF459</checksum>
+    </file>
+    <file>
+      <filename>psychrometrics.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>640596F1</checksum>
+    </file>
+    <file>
+      <filename>constants.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>04FF2C49</checksum>
+    </file>
+    <file>
+      <filename>geometry.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>4267896A</checksum>
+    </file>
+    <file>
+      <filename>util.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>0C810B8C</checksum>
+    </file>
+  </files>
+</measure>

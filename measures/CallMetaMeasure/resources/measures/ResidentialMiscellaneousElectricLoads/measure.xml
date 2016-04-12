@@ -1,0 +1,102 @@
+<measure>
+  <schema_version>3.0</schema_version>
+  <name>residential_miscellaneous_electric_loads</name>
+  <uid>3ac41688-ef52-4679-b79c-8cbdf7cbd0e7</uid>
+  <version_id>6540d900-549d-4467-8599-f94260ad9972</version_id>
+  <version_modified>20160412T151418Z</version_modified>
+  <xml_checksum>126F1C43</xml_checksum>
+  <class_name>ResidentialMiscellaneousElectricLoads</class_name>
+  <display_name>Set Residential Plug Loads</display_name>
+  <description>Adds (or replaces) residential plug loads with the specified efficiency and schedule in all finished spaces.</description>
+  <modeler_description>Since there is no Plug Loads object in OpenStudio/EnergyPlus, we look for an ElectricEquipment object with the name that denotes it is residential plug loads. If one is found, it is replaced with the specified properties. Otherwise, a new such object is added to the model. Note: This measure requires the number of bedrooms/bathrooms to have already been assigned.</modeler_description>
+  <arguments>
+    <argument>
+      <name>mult</name>
+      <display_name>Building America Benchmark Multipler</display_name>
+      <type>Double</type>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>1</default_value>
+    </argument>
+    <argument>
+      <name>weekday_sch</name>
+      <display_name>Weekday schedule</display_name>
+      <description>Specify the 24-hour weekday schedule.</description>
+      <type>String</type>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>0.04, 0.037, 0.037, 0.036, 0.033, 0.036, 0.043, 0.047, 0.034, 0.023, 0.024, 0.025, 0.024, 0.028, 0.031, 0.032, 0.039, 0.053, 0.063, 0.067, 0.071, 0.069, 0.059, 0.05</default_value>
+    </argument>
+    <argument>
+      <name>weekend_sch</name>
+      <display_name>Weekend schedule</display_name>
+      <description>Specify the 24-hour weekend schedule.</description>
+      <type>String</type>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>0.04, 0.037, 0.037, 0.036, 0.033, 0.036, 0.043, 0.047, 0.034, 0.023, 0.024, 0.025, 0.024, 0.028, 0.031, 0.032, 0.039, 0.053, 0.063, 0.067, 0.071, 0.069, 0.059, 0.05</default_value>
+    </argument>
+    <argument>
+      <name>monthly_sch</name>
+      <display_name>Month schedule</display_name>
+      <description>Specify the 12-month schedule.</description>
+      <type>String</type>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>1.248, 1.257, 0.993, 0.989, 0.993, 0.827, 0.821, 0.821, 0.827, 0.99, 0.987, 1.248</default_value>
+    </argument>
+  </arguments>
+  <provenances/>
+  <tags>
+    <tag>Equipment.Electric Equipment</tag>
+  </tags>
+  <attributes>
+    <attribute>
+      <name>Measure Type</name>
+      <value>ModelMeasure</value>
+      <datatype>string</datatype>
+    </attribute>
+    <attribute>
+      <name>Uses SketchUp API</name>
+      <value>false</value>
+      <datatype>boolean</datatype>
+    </attribute>
+  </attributes>
+  <files>
+    <file>
+      <filename>ResidentialMiscellaneousElectricLoads_Test.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>test</usage_type>
+      <checksum>0EF85E09</checksum>
+    </file>
+    <file>
+      <filename>schedules.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>430DF459</checksum>
+    </file>
+    <file>
+      <version>
+        <software_program>OpenStudio</software_program>
+        <identifier>1.4.0</identifier>
+        <min_compatible>1.4.0</min_compatible>
+      </version>
+      <filename>measure.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>script</usage_type>
+      <checksum>5268D256</checksum>
+    </file>
+    <file>
+      <filename>constants.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>04FF2C49</checksum>
+    </file>
+    <file>
+      <filename>geometry.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>4267896A</checksum>
+    </file>
+  </files>
+</measure>

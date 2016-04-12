@@ -1,0 +1,85 @@
+{
+  "classname": "ResidentialMiscellaneousElectricLoads",
+  "name": "residential_miscellaneous_electric_loads",
+  "display_name": "Residential Miscellaneous Electric Loads",
+  "measure_type": "RubyMeasure",
+  "arguments": [
+    {
+      "local_variable": "selected_mel",
+      "variable_type": "Choice",
+      "name": "selected_mel",
+      "display_name": "MEL Energy Consumption Option",
+      "units": null,
+      "description": null,
+      "choices": [
+        "Benchmark",
+        "Simple"
+      ]
+    },
+    {
+      "local_variable": "mel_E",
+      "variable_type": "Double",
+      "name": "mel_E",
+      "display_name": "Simple MEL Annual Energy Consumption",
+      "units": "kWh/yr",
+      "description": null,
+      "default_value": 0.0
+    },
+    {
+      "local_variable": "cfa",
+      "variable_type": "Double",
+      "name": "CondFA",
+      "display_name": "Living Space Floor Area",
+      "units": "ft^2",
+      "description": null,
+      "default_value": 1800.0
+    },
+    {
+      "local_variable": "bab_mult",
+      "variable_type": "Double",
+      "name": "BAB_mult",
+      "display_name": "Building America Benchmark Multipler",
+      "units": null,
+      "description": null,
+      "default_value": 1.0
+    },
+    {
+      "local_variable": "num_br",
+      "variable_type": "Integer",
+      "name": "Num_Br",
+      "display_name": "Number of Bedrooms",
+      "units": null,
+      "description": null,
+      "default_value": 1
+    },
+    {
+      "local_variable": "#has_cf",
+      "variable_type": "Bool",
+      "name": "Has_fan",
+      "display_name": "Has a ceiling fan",
+      "units": null,
+      "description": null,
+      "default_value": false
+    },
+    {
+      "local_variable": "space_type",
+      "variable_type": "Choice",
+      "name": "space_type",
+      "display_name": "Select the space where the miscellaneous electric loads are located",
+      "units": null,
+      "description": null,
+      "default_value": "*None*",
+      "choices": [
+        "*None*"
+      ]
+    }
+  ],
+  "name_xml": "residential_miscellaneous_electric_loads",
+  "uid": "3ac41688-ef52-4679-b79c-8cbdf7cbd0e7",
+  "version_id": "6ad4df7c-c954-46fc-82d8-f82d93fa8ac3",
+  "modeler_description": "Adds a new electric equipment object and the appropriate schedules.",
+  "description": "Adds miscellaneous electric equipment (TV, computers, etc.) to the building. Users either specify the annual energy consumption (in kWh/yr) or a multipler for the Building America Benchmark assumption (http://energy.gov/sites/prod/files/2014/03/f13/house_simulation_protocols_2014.pdf). The Building America MELs energy consumption is (in kWh/yr) 1108.1 + 180.2 * Num_br + 0.278 * Floor_area. Users must also specify the the space type where the MELs are applied to.",
+  "tags": [
+    "Equipment.Electric Equipment"
+  ]
+}

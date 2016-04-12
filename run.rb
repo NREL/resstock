@@ -77,46 +77,41 @@ def perform_integrity_checks(project_file, rsmode)
   
     # Perform various checks on each probability distribution file
     parameters_processed = []
-    parameter_dependencies = {}
     parameter_option_names = {}
   
     pdfiles.each do |pdfile|
         puts "Checking for issues with #{File.basename(pdfile)}..."
         check_file_exists(pdfile, nil)
-        parameter_name, dependencies = get_parameter_name_and_dependencies(pdfile, nil)
+        headers, rows, parameter_name, parameter_option_names[parameter_name], dependency_cols = get_probability_file_data(pdfile, nil)
     
         # Check all dependencies have already been processed
-        dependencies.each do |dep|
+        dependency_cols.keys.each do |dep|
             next if parameters_processed.include?(dep)
-            puts "ERROR: Parameter '#{parameter_name}' has a dependency '#{dep}' that was not already assigned."
+            puts "ERROR: Parameter '#{parameter_name}' has a dependency '#{dep}' that was not already processed."
             exit
         end
-    
-        # Store info
         parameters_processed << parameter_name
-        parameter_dependencies[parameter_name] = dependencies
-        headers, rows = get_file_data(pdfile)
-        parameter_option_names[parameter_name] = get_all_option_names(pdfile, headers, rows, nil)
     
         # Test all possible combinations of dependency value combinations
-        combo_hashes = get_combination_hashes(parameter_option_names, dependencies)
+        combo_hashes = get_combination_hashes(parameter_option_names, dependency_cols.keys)
         combo_hashes.each do |combo_hash|
-            get_option_name_from_sample_value(1.0, combo_hash, pdfile, headers, rows, nil)
+            option_name, matched_row_num = get_option_name_from_sample_value(1.0, combo_hash, pdfile, dependency_cols, parameter_option_names[parameter_name], headers, rows, nil)
+            rows.delete_at(matched_row_num) # speed up subsequent combo_hash searches
         end
     
         # Checks for option_lookup.txt
-        measure_args_from_xml = nil
+        measure_args_from_xml = {}
         parameter_option_names[parameter_name].each do |option_name|
             # Check for (parameter, option) names
             measure_subdir, measure_args = get_measure_args_from_name(lookup_file, option_name, parameter_name, nil)
-            # Check for valid measure arguments
+            # Check that all measure arguments are provided
             next if measure_subdir.nil?
-            if measure_args_from_xml.nil?
+            if not measure_args_from_xml.keys.include?(measure_subdir)
                 measurerb_path = File.absolute_path(File.join(File.dirname(lookup_file), 'measures', measure_subdir, "measure.rb"))
                 check_file_exists(measurerb_path, nil)
-                measure_args_from_xml = get_measure_args_from_xml(measurerb_path.sub(".rb",".xml"))
+                measure_args_from_xml[measure_subdir] = get_measure_args_from_xml(measurerb_path.sub(".rb",".xml"))
             end
-            validate_measure_args(measure_args_from_xml, measure_args.keys, lookup_file, parameter_name, option_name, nil)
+            validate_measure_args(measure_args_from_xml[measure_subdir], measure_args.keys, lookup_file, parameter_name, option_name, nil)
         end
     end
     
