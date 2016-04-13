@@ -78,22 +78,23 @@ class CallMetaMeasure < OpenStudio::Ruleset::ModelUserScript
     option_name, matched_row_num = get_option_name_from_sample_value(sample_value, dependency_values, full_probability_path, dependency_cols, all_option_names, headers, rows, runner)
     
     # Get measure name and arguments associated with the option name
-    measure_subdir, measure_args = get_measure_args_from_name(lookup_file, option_name, parameter_name, runner)
+    measure_args = get_measure_args_from_option_name(lookup_file, option_name, parameter_name, runner)
 
-    if not measure_subdir.nil?
+    measure_args.keys.each do |measure_subdir|
         # Gather measure arguments and call measure
-        
         full_measure_path = File.join(measures_dir, measure_subdir, "measure.rb")
         check_file_exists(full_measure_path, runner)
         
         measure = get_measure_instance(full_measure_path)
-        argument_map = get_argument_map(model, measure, measure_args, lookup_file, parameter_name, option_name, runner)
-        print_info(measure_args, measure_subdir, option_name, runner)
+        argument_map = get_argument_map(model, measure, measure_args[measure_subdir], lookup_file, parameter_name, option_name, runner)
+        print_info(measure_args[measure_subdir], measure_subdir, option_name, runner)
 
         if not run_measure(model, measure, argument_map, runner)
             return false
         end
-    else
+    end
+    
+    if measure_args.empty?
         print_info(nil, nil, option_name, runner)
     end
     

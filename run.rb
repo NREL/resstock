@@ -103,15 +103,16 @@ def perform_integrity_checks(project_file, rsmode)
         measure_args_from_xml = {}
         parameter_option_names[parameter_name].each do |option_name|
             # Check for (parameter, option) names
-            measure_subdir, measure_args = get_measure_args_from_name(lookup_file, option_name, parameter_name, nil)
-            # Check that all measure arguments are provided
-            next if measure_subdir.nil?
-            if not measure_args_from_xml.keys.include?(measure_subdir)
-                measurerb_path = File.absolute_path(File.join(File.dirname(lookup_file), 'measures', measure_subdir, "measure.rb"))
-                check_file_exists(measurerb_path, nil)
-                measure_args_from_xml[measure_subdir] = get_measure_args_from_xml(measurerb_path.sub(".rb",".xml"))
+            measure_args = get_measure_args_from_option_name(lookup_file, option_name, parameter_name, nil)
+            # Check that measures exist and all measure arguments are provided
+            measure_args.keys.each do |measure_subdir|
+                if not measure_args_from_xml.keys.include?(measure_subdir)
+                    measurerb_path = File.absolute_path(File.join(File.dirname(lookup_file), 'measures', measure_subdir, "measure.rb"))
+                    check_file_exists(measurerb_path, nil)
+                    measure_args_from_xml[measure_subdir] = get_measure_args_from_xml(measurerb_path.sub(".rb",".xml"))
+                end
+                validate_measure_args(measure_args_from_xml[measure_subdir], measure_args[measure_subdir].keys, lookup_file, parameter_name, option_name, nil)
             end
-            validate_measure_args(measure_args_from_xml[measure_subdir], measure_args.keys, lookup_file, parameter_name, option_name, nil)
         end
     end
     

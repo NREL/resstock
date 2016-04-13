@@ -156,27 +156,53 @@ def get_option_name_from_sample_value(sample_value, dependency_values, full_prob
     return option_name, matched_row_num
 end
   
-def get_measure_args_from_name(lookup_file, option_name, parameter_name, runner=nil)
-    found = false
-    measure_dir = nil
+def get_measure_args_from_option_name(lookup_file, option_name, parameter_name, runner=nil)
+    found_option = false
     measure_args = {}
     CSV.foreach(lookup_file, { :col_sep => "\t" }) do |row|
-        if row[0].downcase == parameter_name.downcase and row[1].downcase == option_name.downcase
-            measure_dir = row[2]
-            for col in 3..(row.size-1)
-                next if row[col].nil? or not row[col].include?("=")
-                data = row[col].split("=")
-                arg_name = data[0]
-                arg_val = data[1]
-                measure_args[arg_name] = arg_val
+        next if row.size < 2
+        if not found_option
+            # Found option row?
+            if not row[0].nil? and not row[1].nil? and row[0].downcase == parameter_name.downcase and row[1].downcase == option_name.downcase
+                found_option = true
+                if row.size >= 3 and not row[2].nil?
+                    measure_dir = row[2]
+                    args = {}
+                    for col in 3..(row.size-1)
+                        next if row[col].nil? or not row[col].include?("=")
+                        data = row[col].split("=")
+                        arg_name = data[0]
+                        arg_val = data[1]
+                        args[arg_name] = arg_val
+                    end
+                    measure_args[measure_dir] = args
+                end
+                next
             end
-            found = true
+        else
+            # Additional rows for option?
+            if row[0].nil? and row[1].nil?
+                if row.size >= 3 and not row[2].nil?
+                    measure_dir = row[2]
+                    args = {}
+                    for col in 3..(row.size-1)
+                        next if row[col].nil? or not row[col].include?("=")
+                        data = row[col].split("=")
+                        arg_name = data[0]
+                        arg_val = data[1]
+                        args[arg_name] = arg_val
+                    end
+                    measure_args[measure_dir] = args
+                end
+            else
+                break # we're done searching
+            end
         end
     end
-    if not found
+    if not found_option
         register_error("Could not find parameter '#{parameter_name.to_s}' and option '#{option_name.to_s}' in #{lookup_file.to_s}.", runner)
     end
-    return measure_dir, measure_args
+    return measure_args
 end
   
 def print_info(measure_args, measure_dir, option_name, runner)
