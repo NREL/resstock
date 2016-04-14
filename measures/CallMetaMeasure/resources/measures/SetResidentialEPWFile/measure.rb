@@ -1,22 +1,24 @@
 # see the URL below for information on how to write OpenStudio measures
 # http://nrel.github.io/OpenStudio-user-documentation/measures/measure_writing_guide/
 
+require "#{File.dirname(__FILE__)}/resources/weather"
+
 # start the measure
 class SetResidentialEPWFile < OpenStudio::Ruleset::ModelUserScript
 
   # human readable name
   def name
-    return "Set Residential Weather File"
+    return "Set Residential Location"
   end
 
   # human readable description
   def description
-    return ""
+    return "Sets the EPW weather file (EPW) and supplemental data specific to the location."
   end
 
   # human readable description of modeling approach
   def modeler_description
-    return ""
+    return "Sets the weather file, site information (e.g., latitude, longitude, elevation, timezone), design day information (from the DDY file), and the mains water temperature using the correlation method."
   end
 
   # define the arguments that the user will input
@@ -26,13 +28,13 @@ class SetResidentialEPWFile < OpenStudio::Ruleset::ModelUserScript
     arg = OpenStudio::Ruleset::OSArgument.makeStringArgument('weather_directory', true)
     arg.setDisplayName("Weather Directory")
     arg.setDescription("Absolute (or relative) directory to weather files.")
-	arg.setDefaultValue("../../../../OpenStudio-Beopt/OpenStudio-analysis-spreadsheet/weather")
+    arg.setDefaultValue("../../../../OpenStudio-Beopt/OpenStudio-analysis-spreadsheet/weather")
     args << arg
 
     arg = OpenStudio::Ruleset::OSArgument.makeStringArgument('weather_file_name', true)
     arg.setDisplayName("Weather File Name")
-    arg.setDescription("Name of the weather file to assign.")
-	arg.setDefaultValue("USA_CO_Denver.Intl.AP.725650_TMY3.epw")
+    arg.setDescription("Name of the EPW weather file to assign. The corresponding DDY file must also be in the same directory.")
+    arg.setDefaultValue("USA_CO_Denver.Intl.AP.725650_TMY3.epw")
     args << arg
 
     return args
@@ -51,12 +53,15 @@ class SetResidentialEPWFile < OpenStudio::Ruleset::ModelUserScript
     weather_directory = runner.getStringArgumentValue("weather_directory", user_arguments)
     weather_file_name = runner.getStringArgumentValue("weather_file_name", user_arguments)
 
-    #Add Weather File
+    # ----------------
+    # Set weather file
+    # ----------------
+    
     unless (Pathname.new weather_directory).absolute?
       weather_directory = File.expand_path(File.join(File.dirname(__FILE__), weather_directory))
     end
     weather_file = File.join(weather_directory, weather_file_name)
-    if File.exists?(weather_file) and weather_file_name.downcase.include? ".epw"
+    if File.exists?(weather_file) and weather_file_name.downcase.end_with? ".epw"
         epw_file = OpenStudio::EpwFile.new(weather_file)
     else
       runner.registerError("'#{weather_file}' does not exist or is not an .epw file.")
@@ -65,6 +70,10 @@ class SetResidentialEPWFile < OpenStudio::Ruleset::ModelUserScript
 
     OpenStudio::Model::WeatherFile.setWeatherFile(model, epw_file).get
     runner.registerInfo("Setting weather file.")
+    
+    # -------------------
+    # Set model site data
+    # -------------------
     
     weather_name = "#{epw_file.city}_#{epw_file.stateProvinceRegion}_#{epw_file.country}"
     weather_lat = epw_file.latitude
@@ -80,6 +89,10 @@ class SetResidentialEPWFile < OpenStudio::Ruleset::ModelUserScript
     site.setTimeZone(weather_time)
     site.setElevation(weather_elev)
     runner.registerInfo("Setting site data.")
+
+    # -------------------
+    # Set design day info
+    # -------------------
 
     # Remove all the Design Day objects that are in the file
     model.getObjectsByType("OS:SizingPeriod:DesignDay".to_IddObjectType).each { |d| d.remove }
@@ -101,6 +114,33 @@ class SetResidentialEPWFile < OpenStudio::Ruleset::ModelUserScript
       runner.registerError("Could not find DDY file for #{ddy_file}.")
       return false
     end
+    
+    # ----------------------------
+    # Set mains water temperatures
+    # ----------------------------
+    
+    weather = WeatherProcess.new(model,runner)
+    if weather.error?
+      return false
+    end
+
+	avgOAT = OpenStudio::convert(weather.data.AnnualAvgDrybulb,"F","C").get
+	monthlyOAT = weather.data.MonthlyAvgDrybulbs
+	
+	min_temp = monthlyOAT.min
+	max_temp = monthlyOAT.max
+	
+	maxDiffOAT = OpenStudio::convert(max_temp,"F","C").get - OpenStudio::convert(min_temp,"F","C").get
+	
+	#Calc annual average mains temperature to report
+	daily_mains, monthly_mains, annual_mains = WeatherProcess._calc_mains_temperature(weather.data, weather.header)
+		
+    swmt = model.getSiteWaterMainsTemperature
+        
+    swmt.setCalculationMethod "Correlation"
+    swmt.setAnnualAverageOutdoorAirTemperature avgOAT
+    swmt.setMaximumDifferenceInMonthlyAverageOutdoorAirTemperatures maxDiffOAT
+    runner.registerInfo("Setting Site:MainsWaterTemperature object with an average temperature of #{annual_mains.round(1)} F.")
 
     # report final condition
     final_design_days = model.getDesignDays

@@ -2,12 +2,13 @@
   <schema_version>3.0</schema_version>
   <name>set_residential_epw_file</name>
   <uid>16ac2c0c-6177-4bf2-91a5-1b6e8de4e85b</uid>
-  <version_id>f09f4284-626f-4104-836e-0ea4218628fc</version_id>
+  <version_id>0b6185e4-c6f4-4e6b-b7b2-f96afd2f75d1</version_id>
+  <version_modified>20160413T215246Z</version_modified>
   <xml_checksum>D8922A73</xml_checksum>
   <class_name>SetResidentialEPWFile</class_name>
-  <display_name>Set Residential Weather File</display_name>
-  <description></description>
-  <modeler_description></modeler_description>
+  <display_name>Set Residential Location</display_name>
+  <description>Sets the EPW weather file (EPW) and supplemental data specific to the location.</description>
+  <modeler_description>Sets the weather file, site information (e.g., latitude, longitude, elevation, timezone), design day information (from the DDY file), and the mains water temperature using the correlation method.</modeler_description>
   <arguments>
     <argument>
       <name>weather_directory</name>
@@ -21,7 +22,7 @@
     <argument>
       <name>weather_file_name</name>
       <display_name>Weather File Name</display_name>
-      <description>Name of the weather file to assign.</description>
+      <description>Name of the EPW weather file to assign. The corresponding DDY file must also be in the same directory.</description>
       <type>String</type>
       <required>true</required>
       <model_dependent>false</model_dependent>
@@ -68,6 +69,36 @@
       <checksum>C4F35230</checksum>
     </file>
     <file>
+      <filename>constants.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>D28DC6BC</checksum>
+    </file>
+    <file>
+      <filename>psychrometrics.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>640596F1</checksum>
+    </file>
+    <file>
+      <filename>unit_conversions.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>DCBEF242</checksum>
+    </file>
+    <file>
+      <filename>util.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>0C810B8C</checksum>
+    </file>
+    <file>
+      <filename>weather.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>5168907D</checksum>
+    </file>
+    <file>
       <version>
         <software_program>OpenStudio</software_program>
         <identifier>1.9.0</identifier>
@@ -76,7 +107,7 @@
       <filename>measure.rb</filename>
       <filetype>rb</filetype>
       <usage_type>script</usage_type>
-      <checksum>71E76B9D</checksum>
+      <checksum>DBB1615E</checksum>
     </file>
   </files>
 </measure>

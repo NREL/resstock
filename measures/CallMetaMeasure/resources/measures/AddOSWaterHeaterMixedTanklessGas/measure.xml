@@ -1,0 +1,147 @@
+<measure>
+  <schema_version>3.0</schema_version>
+  <name>add_os_water_heater_mixed_tankless_gas</name>
+  <uid>caf92375-4c0c-47d1-9fe1-7aa5d3b1a734</uid>
+  <version_id>0f2102e6-d5f0-4892-996a-4561fb86fa33</version_id>
+  <version_modified>20160412T151414Z</version_modified>
+  <xml_checksum>9882CBDB</xml_checksum>
+  <class_name>AddOSWaterHeaterMixedTanklessGas</class_name>
+  <display_name>Set Residential Gas Tankless Water Heater</display_name>
+  <description>This measure adds a new residential gas tankless water heater to the model based on user inputs. If there is already an existing residential water heater in the model, it is replaced.</description>
+  <modeler_description>The measure will create a new instance of the OS:WaterHeater:Mixed object representing a gas tankless water heater. The measure will be placed on the plant loop 'Domestic Hot Water Loop'. If this loop already exists, any water heater on that loop will be removed and replaced with a water heater consistent with this measure. If it doesn't exist, it will be created.</modeler_description>
+  <arguments>
+    <argument>
+      <name>dhw_setpoint_temperature</name>
+      <display_name>Setpoint</display_name>
+      <description>Water heater setpoint temperature.</description>
+      <type>Double</type>
+      <units>F</units>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>125</default_value>
+    </argument>
+    <argument>
+      <name>water_heater_location</name>
+      <display_name>Location</display_name>
+      <description>Thermal zone where the water heater is located.</description>
+      <type>Choice</type>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>living zone</default_value>
+      <choices>
+        <choice>
+          <value>living zone</value>
+          <display_name>living zone</display_name>
+        </choice>
+      </choices>
+    </argument>
+    <argument>
+      <name>water_heater_capacity</name>
+      <display_name>Input Capacity</display_name>
+      <description>The maximum energy input rating of the water heater.</description>
+      <type>String</type>
+      <units>kBtu/hr</units>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>1000000.0</default_value>
+    </argument>
+    <argument>
+      <name>rated_energy_factor</name>
+      <display_name>Rated Energy Factor</display_name>
+      <description>For water heaters, Energy Factor is the ratio of useful energy output from the water heater to the total amount of energy delivered from the water heater. The higher the EF is, the more efficient the water heater. Procesdures to thes the EF of water heaters are defined by the Department of Energy in 10 Code of Federal Regulation Part 430, Appendix E to Subpart B.</description>
+      <type>String</type>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>0.82</default_value>
+    </argument>
+    <argument>
+      <name>water_heater_cycling_derate</name>
+      <display_name>Cycling Derate</display_name>
+      <description>Annual energy derate for cycling inefficiencies -- accounts for the impact of thermal cycling and small hot water draws on the heat exchanger. CEC's 2008 Title24 implemented an 8% derate for tankless water heaters. </description>
+      <type>Double</type>
+      <units>Frac</units>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>0.08</default_value>
+    </argument>
+    <argument>
+      <name>offcyc_power</name>
+      <display_name>Parasitic Electric Power</display_name>
+      <description>Off cycle electric power draw for controls, etc.</description>
+      <type>Double</type>
+      <units>W</units>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>5</default_value>
+    </argument>
+    <argument>
+      <name>oncyc_power</name>
+      <display_name>Forced Draft Fan Power</display_name>
+      <description>On cycle electric power draw from the forced draft fan motor.</description>
+      <type>Double</type>
+      <units>W</units>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>65</default_value>
+    </argument>
+  </arguments>
+  <provenances/>
+  <tags>
+    <tag>Service Water Heating.Water Heating</tag>
+  </tags>
+  <attributes>
+    <attribute>
+      <name>Measure Type</name>
+      <value>ModelMeasure</value>
+      <datatype>string</datatype>
+    </attribute>
+    <attribute>
+      <name>Uses SketchUp API</name>
+      <value>false</value>
+      <datatype>boolean</datatype>
+    </attribute>
+  </attributes>
+  <files>
+    <file>
+      <filename>AddOSWaterHeaterMixedTanklessGas_Test.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>test</usage_type>
+      <checksum>62EF04AD</checksum>
+    </file>
+    <file>
+      <filename>waterheater.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>B516C87F</checksum>
+    </file>
+    <file>
+      <version>
+        <software_program>OpenStudio</software_program>
+        <identifier>1.4.1</identifier>
+        <min_compatible>1.4.1</min_compatible>
+      </version>
+      <filename>measure.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>script</usage_type>
+      <checksum>7A4EDD78</checksum>
+    </file>
+    <file>
+      <filename>constants.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>04FF2C49</checksum>
+    </file>
+    <file>
+      <filename>util.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>0C810B8C</checksum>
+    </file>
+    <file>
+      <filename>geometry.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>4267896A</checksum>
+    </file>
+  </files>
+</measure>

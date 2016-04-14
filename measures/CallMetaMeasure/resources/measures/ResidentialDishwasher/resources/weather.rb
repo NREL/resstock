@@ -322,6 +322,9 @@ class WeatherProcess
         end
       end
     end
+    if deg_days.size == 0
+        return WeatherProcess._fmt(0.0, 0)
+    end
     deg_days = deg_days.inject{ |sum, n| sum + n }
     return WeatherProcess._fmt(1.8 * deg_days, 0)
 
