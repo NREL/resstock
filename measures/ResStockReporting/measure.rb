@@ -22,8 +22,20 @@ class ResStockReporting < OpenStudio::Ruleset::ReportingUserScript
       return false
     end
 
-    runner.registerInfo("past_results: #{runner.past_results.to_s}")
-    runner.registerValue("test_value", "foo")
+    # Uncomment the line below to debug:
+    #runner.registerInfo("past_results: #{runner.past_results.to_s}")
+
+    # Register any key/value pairs other than the keys ignored below.
+    # These values will show up in the results CSV file when added to 
+    # the analysis spreadsheet's Outputs worksheet.
+    ignore_keys = [:source, :applicable, :sample_value, :probability_file, :standard_reports]
+    runner.past_results.each do |key,hash|
+        next if ignore_keys.include?(key)
+        hash.each do |k,v|
+            next if ignore_keys.include?(k)
+            runner.registerValue(k.to_s, v.to_s)
+        end
+    end
 
     return true
 
