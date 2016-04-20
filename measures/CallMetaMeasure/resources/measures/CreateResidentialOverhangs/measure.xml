@@ -1,0 +1,161 @@
+<measure>
+  <schema_version>3.0</schema_version>
+  <name>create_residential_overhangs</name>
+  <uid>0821dae4-c0b6-4295-a7a5-ccaf9407dc77</uid>
+  <version_id>cff14b15-91a1-4710-a68d-d0cff6700de7</version_id>
+  <version_modified>20160420T141623Z</version_modified>
+  <xml_checksum>9C8A26EB</xml_checksum>
+  <class_name>CreateResidentialOverhangs</class_name>
+  <display_name>Set Residential Overhangs</display_name>
+  <description>Sets presence/dimensions of overhangs for windows on the specified building facade(s).</description>
+  <modeler_description>Creates overhang shading surfaces for windows on the specified building facade(s) and specified depth/offset. Any existing overhang shading surfaces are removed.</modeler_description>
+  <arguments>
+    <argument>
+      <name>depth</name>
+      <display_name>Depth</display_name>
+      <description>Depth of the overhang. The distance from the wall surface in the direction normal to the wall surface.</description>
+      <type>Double</type>
+      <units>ft</units>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>2</default_value>
+    </argument>
+    <argument>
+      <name>offset</name>
+      <display_name>Offset</display_name>
+      <description>Height of the overhangs above windows, relative to the top of the window framing.</description>
+      <type>Double</type>
+      <units>ft</units>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>0.5</default_value>
+    </argument>
+    <argument>
+      <name>front_facade</name>
+      <display_name>Front Facade</display_name>
+      <description>Specifies the presence of overhangs for windows on the front facade.</description>
+      <type>Boolean</type>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>true</default_value>
+      <choices>
+        <choice>
+          <value>true</value>
+          <display_name>true</display_name>
+        </choice>
+        <choice>
+          <value>false</value>
+          <display_name>false</display_name>
+        </choice>
+      </choices>
+    </argument>
+    <argument>
+      <name>back_facade</name>
+      <display_name>Back Facade</display_name>
+      <description>Specifies the presence of overhangs for windows on the back facade.</description>
+      <type>Boolean</type>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>true</default_value>
+      <choices>
+        <choice>
+          <value>true</value>
+          <display_name>true</display_name>
+        </choice>
+        <choice>
+          <value>false</value>
+          <display_name>false</display_name>
+        </choice>
+      </choices>
+    </argument>
+    <argument>
+      <name>left_facade</name>
+      <display_name>Left Facade</display_name>
+      <description>Specifies the presence of overhangs for windows on the left facade.</description>
+      <type>Boolean</type>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>true</default_value>
+      <choices>
+        <choice>
+          <value>true</value>
+          <display_name>true</display_name>
+        </choice>
+        <choice>
+          <value>false</value>
+          <display_name>false</display_name>
+        </choice>
+      </choices>
+    </argument>
+    <argument>
+      <name>right_facade</name>
+      <display_name>Right Facade</display_name>
+      <description>Specifies the presence of overhangs for windows on the right facade.</description>
+      <type>Boolean</type>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>true</default_value>
+      <choices>
+        <choice>
+          <value>true</value>
+          <display_name>true</display_name>
+        </choice>
+        <choice>
+          <value>false</value>
+          <display_name>false</display_name>
+        </choice>
+      </choices>
+    </argument>
+  </arguments>
+  <provenances/>
+  <tags>
+    <tag>Envelope.Fenestration</tag>
+  </tags>
+  <attributes>
+    <attribute>
+      <name>Measure Type</name>
+      <value>ModelMeasure</value>
+      <datatype>string</datatype>
+    </attribute>
+    <attribute>
+      <name>Intended Software Tool</name>
+      <value>Apply Measure Now</value>
+      <datatype>string</datatype>
+    </attribute>
+    <attribute>
+      <name>Intended Software Tool</name>
+      <value>OpenStudio Application</value>
+      <datatype>string</datatype>
+    </attribute>
+    <attribute>
+      <name>Intended Software Tool</name>
+      <value>Parametric Analysis Tool</value>
+      <datatype>string</datatype>
+    </attribute>
+  </attributes>
+  <files>
+    <file>
+      <filename>create_residential_overhangs_test.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>test</usage_type>
+      <checksum>5DDF54C4</checksum>
+    </file>
+    <file>
+      <filename>example_model.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>C4F35230</checksum>
+    </file>
+    <file>
+      <version>
+        <software_program>OpenStudio</software_program>
+        <identifier>1.9.0</identifier>
+        <min_compatible>1.9.0</min_compatible>
+      </version>
+      <filename>measure.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>script</usage_type>
+      <checksum>D17603F6</checksum>
+    </file>
+  </files>
+</measure>
