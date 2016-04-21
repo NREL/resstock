@@ -260,7 +260,7 @@ class AddOSWaterHeaterMixedTanklessElectric < OpenStudio::Ruleset::ModelUserScri
         cap = cap.to_f
 
         if cap <= 0
-            runner.registerError("Electric tankless water heater nominal capacity must be greater than 0 kBtu/hr. Make sure that the entered capacity is a number greater than 0 or #{Constants.Auto}.")
+            runner.registerError("Electric tankless water heater nominal capacity must be greater than 0 kBtu/hr. Make sure that the entered capacity is a number greater than 0 or '#{Constants.Auto}'.")
             return nil
         end
         if cap < 120

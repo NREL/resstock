@@ -428,6 +428,9 @@ class Constants
   def self.ObjectNameMiscPlugLoads
     return 'residential misc plug loads'
   end
+  def self.ObjectNameOccupants
+    return 'residential occupants'
+  end
   def self.ObjectNamePoolHeater
     return 'residential pool heater'
   end

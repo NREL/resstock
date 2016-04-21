@@ -21,7 +21,7 @@ class ResidentialClothesDryer < OpenStudio::Ruleset::ModelUserScript
   def arguments(model)
     args = OpenStudio::Ruleset::OSArgumentVector.new
     
-	#TODO: New argument for demand response for cdss (alternate schedules if automatic DR control is specified)
+	#TODO: New argument for demand response for cds (alternate schedules if automatic DR control is specified)
 
 	#make a double argument for Energy Factor
 	cd_ef = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("cd_ef",true)
@@ -89,13 +89,15 @@ class ResidentialClothesDryer < OpenStudio::Ruleset::ModelUserScript
     spaces.each do |space|
         space_args << space.name.to_s
     end
-    if not space_args.include?(Constants.LivingSpace(1))
+    if space_args.empty?
         space_args << Constants.LivingSpace(1)
     end
     space = OpenStudio::Ruleset::OSArgument::makeChoiceArgument("space", space_args, true)
     space.setDisplayName("Location")
     space.setDescription("Select the space where the clothes dryer is located")
-    space.setDefaultValue(Constants.LivingSpace(1))
+    if space_args.include?(Constants.LivingSpace(1))
+        space.setDefaultValue(Constants.LivingSpace(1))
+    end
     args << space
     
     return args

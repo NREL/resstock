@@ -116,41 +116,34 @@ class ResidentialMiscellaneousElectricLoads < OpenStudio::Ruleset::ModelUserScri
 		return false
 	end
     
-    model.getSpaces.each do |space|
-        if space.thermalZone.is_initialized
-            if Geometry.zone_is_finished(space.thermalZone.get)
-                obj_name_space = obj_name + space.name.to_s
-                space_energy_ann = mel_ann * space.floorArea/ffa
-                space_design_level = sch.calcDesignLevelFromDailykWh(space_energy_ann/365.0)
-                #add mels to each finished space
-                has_elec_mel = 0
-                replace_mel = 0
-                space_equipments = space.electricEquipment
-                space_equipments.each do |space_equipment|
-                    if space_equipment.electricEquipmentDefinition.name.get.to_s == obj_name_space
-                        has_elec_mel = 1
-                        runner.registerWarning("This space (#{space.name}) already has misc plug loads, the existing plug loads will be replaced with the specific misc plug loads.")
-                        space_equipment.electricEquipmentDefinition.setDesignLevel(space_design_level)
-                        sch.setSchedule(space_equipment)
-                        replace_mel = 1
-                    end
-                end
-                if has_elec_mel == 0 
-                    has_elec_mel = 1
-
-                    #Add electric equipment for the mel
-                    mel_def = OpenStudio::Model::ElectricEquipmentDefinition.new(model)
-                    mel = OpenStudio::Model::ElectricEquipment.new(mel_def)
-                    mel.setName(obj_name_space)
-                    mel.setSpace(space)
-                    mel_def.setName(obj_name_space)
-                    mel_def.setDesignLevel(space_design_level)
-                    mel_def.setFractionRadiant(mel_rad)
-                    mel_def.setFractionLatent(mel_lat)
-                    mel_def.setFractionLost(mel_lost)
-                    sch.setSchedule(mel)
-                end
+    Geometry.get_finished_spaces(model).each do |space|
+        obj_name_space = "#{obj_name} #{space.name.to_s}"
+        space_energy_ann = mel_ann * OpenStudio.convert(space.floorArea, "m^2", "ft^2").get/ffa
+        space_design_level = sch.calcDesignLevelFromDailykWh(space_energy_ann/365.0)
+        #add mels to each finished space
+        has_elec_mel = 0
+        space.electricEquipment.each do |space_equipment|
+            if space_equipment.electricEquipmentDefinition.name.get.to_s == obj_name_space
+                has_elec_mel = 1
+                runner.registerWarning("This space (#{space.name}) already has misc plug loads, the existing plug loads will be replaced with the specific misc plug loads.")
+                space_equipment.electricEquipmentDefinition.setDesignLevel(space_design_level)
+                sch.setSchedule(space_equipment)
             end
+        end
+        if has_elec_mel == 0 
+            has_elec_mel = 1
+
+            #Add electric equipment for the mel
+            mel_def = OpenStudio::Model::ElectricEquipmentDefinition.new(model)
+            mel = OpenStudio::Model::ElectricEquipment.new(mel_def)
+            mel.setName(obj_name_space)
+            mel.setSpace(space)
+            mel_def.setName(obj_name_space)
+            mel_def.setDesignLevel(space_design_level)
+            mel_def.setFractionRadiant(mel_rad)
+            mel_def.setFractionLatent(mel_lat)
+            mel_def.setFractionLost(mel_lost)
+            sch.setSchedule(mel)
         end
     end
 	

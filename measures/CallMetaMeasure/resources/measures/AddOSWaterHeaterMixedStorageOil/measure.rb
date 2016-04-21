@@ -37,7 +37,7 @@ class AddOSWaterHeaterMixedStorageOil < OpenStudio::Ruleset::ModelUserScript
         # make an argument for the storage tank volume
         storage_tank_volume = osargument::makeStringArgument("storage_tank_volume", true)
         storage_tank_volume.setDisplayName("Tank Volume")
-        storage_tank_volume.setDescription("Nominal volume of the of the water heater tank. Set to #{Constants.Auto} to have volume autosized.")
+        storage_tank_volume.setDescription("Nominal volume of the of the water heater tank. Set to '#{Constants.Auto}' to have volume autosized.")
         storage_tank_volume.setUnits("gal")
         storage_tank_volume.setDefaultValue(Constants.Auto)
         args << storage_tank_volume
@@ -74,7 +74,7 @@ class AddOSWaterHeaterMixedStorageOil < OpenStudio::Ruleset::ModelUserScript
         # make an argument for the rated energy factor
         rated_energy_factor = osargument::makeDoubleArgument("rated_energy_factor", true)
         rated_energy_factor.setDisplayName("Rated Energy Factor")
-        rated_energy_factor.setDescription("For water heaters, Energy Factor is the ratio of useful energy output from the water heater to the total amount of energy delivered from the water heater. The higher the EF is, the more efficient the water heater. Procesdures to thes the EF of water heaters are defined by the Department of Energy in 10 Code of Federal Regulation Part 430, Appendix E to Subpart B. Enter #{Constants.Auto} for a water heater that meets the minimum federal efficiency requirements.")
+        rated_energy_factor.setDescription("For water heaters, Energy Factor is the ratio of useful energy output from the water heater to the total amount of energy delivered from the water heater. The higher the EF is, the more efficient the water heater. Procesdures to thes the EF of water heaters are defined by the Department of Energy in 10 Code of Federal Regulation Part 430, Appendix E to Subpart B. Enter '#{Constants.Auto}' for a water heater that meets the minimum federal efficiency requirements.")
         rated_energy_factor.setDefaultValue(0.62)
         args << rated_energy_factor
 
@@ -257,7 +257,7 @@ class AddOSWaterHeaterMixedStorageOil < OpenStudio::Ruleset::ModelUserScript
         return true if (vol == Constants.Auto)  # flag for autosizing
         vol = vol.to_f
         if vol <= 0
-            runner.registerError("Storage tank volume must be greater than 0 gallons. Make sure that the volume entered is a number > 0 or #{Constants.Auto}.")   
+            runner.registerError("Storage tank volume must be greater than 0 gallons. Make sure that the volume entered is a number > 0 or '#{Constants.Auto}'.")   
             return nil
         end
         if vol < 25
@@ -275,7 +275,7 @@ class AddOSWaterHeaterMixedStorageOil < OpenStudio::Ruleset::ModelUserScript
             return nil
         end
         if (ef <= 0)
-            runner.registerError("Rated energy factor must be greater than 0. Make sure that the entered value is a number > 0 or #{Constants.Auto}.")
+            runner.registerError("Rated energy factor must be greater than 0. Make sure that the entered value is a number > 0 or '#{Constants.Auto}'.")
             return nil
         end
         if (ef >0.82)
@@ -307,7 +307,7 @@ class AddOSWaterHeaterMixedStorageOil < OpenStudio::Ruleset::ModelUserScript
 
     def validate_water_heater_capacity(cap, runner)
         if cap <= 0
-            runner.registerError("Oil storage water heater nominal capacity must be greater than 0 kBtu/hr. Make sure that the entered capacity is a number greater than 0 or #{Constants.Auto}.")
+            runner.registerError("Oil storage water heater nominal capacity must be greater than 0 kBtu/hr. Make sure that the entered capacity is a number greater than 0 or '#{Constants.Auto}'.")
             return nil
         end
         if cap < 70

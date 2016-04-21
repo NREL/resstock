@@ -7,15 +7,6 @@ require "#{File.dirname(__FILE__)}/resources/geometry"
 # start the measure
 class CreateResidentialDoorArea < OpenStudio::Ruleset::ModelUserScript
 
-  def make_rectangle(pt1, pt2, pt3, pt4)
-    p = OpenStudio::Point3dVector.new
-    p << pt1
-    p << pt2
-	p << pt3
-    p << pt4
-    return p
-  end
-
   # human readable name
   def name
     return "Set Residential Door Area"
@@ -23,12 +14,12 @@ class CreateResidentialDoorArea < OpenStudio::Ruleset::ModelUserScript
 
   # human readable description
   def description
-    return ""
+    return "Sets the opaque door area for the building. Doors with glazing should be set as window area."
   end
 
   # human readable description of modeling approach
   def modeler_description
-    return ""
+    return "Sets the opaque door area for the lowest above-grade front surface of the building attached to living space. Any existing doors are removed."
   end
 
   # define the arguments that the user will input
@@ -43,21 +34,6 @@ class CreateResidentialDoorArea < OpenStudio::Ruleset::ModelUserScript
     userdefineddoorarea.setDefaultValue(20.0)
     args << userdefineddoorarea
 
-    #make a choice argument for space
-    spaces = model.getSpaces
-    space_args = OpenStudio::StringVector.new
-    spaces.each do |space|
-        space_args << space.name.to_s
-    end
-    if not space_args.include?(Constants.LivingSpace(1))
-        space_args << Constants.LivingSpace(1)
-    end
-    space = OpenStudio::Ruleset::OSArgument::makeChoiceArgument("space", space_args, true)
-    space.setDisplayName("Location")
-    space.setDescription("Select the space where the door area is located")
-    space.setDefaultValue(Constants.LivingSpace(1))
-    args << space
-
     return args
   end
 
@@ -71,21 +47,16 @@ class CreateResidentialDoorArea < OpenStudio::Ruleset::ModelUserScript
     end
 	
     door_area = OpenStudio::convert(runner.getDoubleArgumentValue("userdefineddoorarea",user_arguments),"ft^2","m^2").get
-    space_r = runner.getStringArgumentValue("space",user_arguments)
 
-    #Get space
-    space = Geometry.get_space_from_string(model, space_r, runner)
-    if space.nil?
-        return false
-    end
-
-    space.surfaces.each do |surface|
-      surface.subSurfaces.each do |sub_surface|
-        if sub_surface.subSurfaceType == "Door"
-          sub_surface.remove
-          runner.registerInfo("Removed #{sub_surface.name}.")
+    model.getSpaces.each do |space|
+        space.surfaces.each do |surface|
+            next if not (surface.surfaceType.downcase == "wall" and surface.outsideBoundaryCondition.downcase == "outdoors")
+            surface.subSurfaces.each do |sub_surface|
+                next if sub_surface.subSurfaceType != "Door"
+                sub_surface.remove
+                runner.registerInfo("Removed #{sub_surface.name}.")
+            end    
         end
-      end    
     end
     
     # error checking
@@ -104,16 +75,32 @@ class CreateResidentialDoorArea < OpenStudio::Ruleset::ModelUserScript
     building_orientation = model.getBuilding.northAxis.round
 	
     # get the front wall on the first story
-    first_story_front_wall = nil
-    space.surfaces.each do |surface|
-        next if not ( surface.surfaceType.downcase == "wall" and surface.outsideBoundaryCondition.downcase == "outdoors" )
-        # get surface azimuth to determine facade
-        wall_azimuth = OpenStudio::Quantity.new(surface.azimuth, OpenStudio::createSIAngle)
-        wall_orientation = (OpenStudio.convert(wall_azimuth, OpenStudio::createIPAngle).get.value + building_orientation).round			
-        if wall_orientation - 180 == building_orientation
-            first_story_front_wall = surface
-            break
+    front_walls = []
+    Geometry.get_finished_spaces(model).each do |space|
+        next if Geometry.space_is_below_grade(space)
+        space.surfaces.each do |surface|
+            next if not (surface.surfaceType.downcase == "wall" and surface.outsideBoundaryCondition.downcase == "outdoors")
+            wall_azimuth = OpenStudio::Quantity.new(surface.azimuth, OpenStudio::createSIAngle)
+            wall_orientation = (OpenStudio.convert(wall_azimuth, OpenStudio::createIPAngle).get.value + building_orientation).round			
+            next if wall_orientation - 180 != building_orientation
+            front_walls << surface
         end
+    end
+    
+    first_story_front_wall = nil
+    first_story_front_wall_minz = 99999
+    front_walls.each do |front_wall|
+        zvalues = Geometry.getSurfaceZValues([front_wall])
+        minz = zvalues.min + front_wall.space.get.zOrigin
+        if minz < first_story_front_wall_minz
+            first_story_front_wall = front_wall
+            first_story_front_wall_minz = minz
+        end
+    end
+    
+    if first_story_front_wall.nil?
+        runner.registerError("Could not find appropriate surface for the door.")
+        return false
     end
     
     front_wall_least_x = 10000
@@ -139,7 +126,7 @@ class CreateResidentialDoorArea < OpenStudio::Ruleset::ModelUserScript
     door_ne_point = OpenStudio::Point3d.new(sw_point.x + door_offset + (door_area / door_height), sw_point.y, sw_point.z + door_height)
     door_se_point = OpenStudio::Point3d.new(sw_point.x + door_offset + (door_area / door_height), sw_point.y, sw_point.z)	
     
-    door_polygon = make_rectangle(door_sw_point, door_se_point, door_ne_point, door_nw_point)
+    door_polygon = Geometry.make_polygon(door_sw_point, door_se_point, door_ne_point, door_nw_point)
     
     door_sub_surface = OpenStudio::Model::SubSurface.new(door_polygon, model)
     door_sub_surface.setName("#{first_story_front_wall.name} - Front Door")

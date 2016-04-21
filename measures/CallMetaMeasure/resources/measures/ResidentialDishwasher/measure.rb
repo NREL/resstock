@@ -100,13 +100,15 @@ class ResidentialDishwasher < OpenStudio::Ruleset::ModelUserScript
     spaces.each do |space|
         space_args << space.name.to_s
     end
-    if not space_args.include?(Constants.LivingSpace(1))
+    if space_args.empty?
         space_args << Constants.LivingSpace(1)
     end
     space = OpenStudio::Ruleset::OSArgument::makeChoiceArgument("space", space_args, true)
     space.setDisplayName("Location")
     space.setDescription("Select the space where the dishwasher is located")
-    space.setDefaultValue(Constants.LivingSpace(1))
+    if space_args.include?(Constants.LivingSpace(1))
+        space.setDefaultValue(Constants.LivingSpace(1))
+    end
     args << space
     
     #make a choice argument for plant loop
@@ -115,13 +117,15 @@ class ResidentialDishwasher < OpenStudio::Ruleset::ModelUserScript
     plant_loops.each do |plant_loop|
         plant_loop_args << plant_loop.name.to_s
     end
-    if not plant_loop_args.include?(Constants.PlantLoopDomesticWater)
+    if plant_loop_args.empty?
         plant_loop_args << Constants.PlantLoopDomesticWater
     end
     plant_loop = OpenStudio::Ruleset::OSArgument::makeChoiceArgument("plant_loop", plant_loop_args, true)
     plant_loop.setDisplayName("Plant Loop")
     plant_loop.setDescription("Select the plant loop for the clothes washer")
-    plant_loop.setDefaultValue(Constants.PlantLoopDomesticWater)
+    if plant_loop_args.include?(Constants.PlantLoopDomesticWater)
+        plant_loop.setDefaultValue(Constants.PlantLoopDomesticWater)
+    end
 	args << plant_loop
 
     return args
@@ -379,7 +383,7 @@ class ResidentialDishwasher < OpenStudio::Ruleset::ModelUserScript
 	end
 	
 	obj_name = Constants.ObjectNameDishwasher
-    sch = HotWaterSchedule.new(runner, model, nbeds, 0, "Dishwasher", obj_name, wh_setpoint)
+    sch = HotWaterSchedule.new(runner, model, nbeds, 0, "Dishwasher", obj_name, wh_setpoint, File.dirname(__FILE__))
 	if not sch.validated?
 		return false
 	end

@@ -119,11 +119,50 @@ class Geometry
     
     def self.zone_is_finished(zone)
         # FIXME: Ugly hack until we can get finished zones from OS
-        if zone.name.to_s == Constants.LivingZone or zone.name.to_s == Constants.FinishedBasementZone
+        # if zone.name.to_s == Constants.LivingZone or zone.name.to_s == Constants.FinishedBasementZone
+        if zone.name.to_s == Constants.LivingZone or zone.name.to_s == Constants.FinishedBasementZone or zone.name.to_s.include? "Story" # URBANopt hack: zone.name.to_s.include? "Story" ensures always finished zone
             return true
         end
         return false
     end
+    
+    def self.get_living_and_basement_zones(model)
+      living_zones = []
+      basement_zones = []
+      model.getThermalZones.each do |thermal_zone|
+        next unless Geometry.zone_is_finished(thermal_zone)
+        next if Geometry.zone_is_below_grade(thermal_zone)
+        living_zones << thermal_zone
+      end
+      model.getThermalZones.each do |thermal_zone|
+        next unless Geometry.zone_is_finished(thermal_zone)
+        next if Geometry.zone_is_above_grade(thermal_zone)
+        basement_zones << thermal_zone
+      end
+      return living_zones, basement_zones
+    end
+    
+    def self.get_master_and_slave_zones(model)
+      master_zones = []
+      slave_zones = []
+      model.getThermalZones.each do |thermal_zone|
+        next unless Geometry.zone_is_finished(thermal_zone)
+        if thermal_zone.thermostatSetpointDualSetpoint.is_initialized
+          master_zones << thermal_zone
+        else
+          slave_zones << thermal_zone
+        end
+      end
+      return master_zones, slave_zones
+    end
+    
+    def self.get_building_type(model)
+      building_type = nil
+      unless model.getBuilding.standardsBuildingType.empty?
+        building_type = model.getBuilding.standardsBuildingType.get.downcase
+      end
+      return building_type
+   end
     
     def self.space_is_unfinished(space)
         return !Geometry.space_is_finished(space)
@@ -152,6 +191,23 @@ class Geometry
         return false
     end
     
+    # Returns true if all spaces in zone are fully above grade
+    def self.zone_is_above_grade(zone)
+      spaces_are_above_grade = []
+      zone.spaces.each do |space|
+        spaces_are_above_grade << space_is_above_grade(space)
+      end
+      if spaces_are_above_grade.all?
+        return true
+      end
+      return false
+    end
+
+    # Returns true if all spaces in zone are either fully or partially below grade
+    def self.zone_is_below_grade(zone)
+      return !Geometry.zone_is_above_grade(zone)
+    end    
+    
     def self.space_has_roof(space)
         space.surfaces.each do |surface|
             next if surface.surfaceType.downcase != "roofceiling"
@@ -175,13 +231,17 @@ class Geometry
     end
 
     def self.get_default_space(model, runner=nil)
+        # FIXME: Can we eventually get rid of this method?
         space = nil
         model.getSpaces.each do |s|
-            if s.name.to_s == Constants.LivingSpace(1) # Try to return our living space
+            if s.name.to_s == Constants.LivingSpace(1) # Prioritize returning our standard living space
                 return s
-            elsif space.nil? # Return first space in list if our living space not found
+            elsif space.nil? and Geometry.space_is_finished(s) and Geometry.space_is_above_grade(s) # Return first above-grade conditioned space in list if our living space not found
                 space = s
             end
+        end
+        if space.nil and model.getSpaces.size > 0
+            space = model.getSpaces[0]
         end
         if space.nil? and not runner.nil?
             runner.registerError("Could not find any spaces in the model.")

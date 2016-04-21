@@ -2,38 +2,11 @@
 # http://nrel.github.io/OpenStudio-user-documentation/measures/measure_writing_guide/
 
 require "#{File.dirname(__FILE__)}/resources/constants"
+require "#{File.dirname(__FILE__)}/resources/geometry"
 
 # start the measure
 class CreateBasicGeometry < OpenStudio::Ruleset::ModelUserScript
 
-  def make_triangle(pt1, pt2, pt3)
-    p = OpenStudio::Point3dVector.new
-    p << pt1
-    p << pt2
-    p << pt3
-    return p  
-  end
-  
-  def make_rectangle(pt1, pt2, pt3, pt4)
-    p = OpenStudio::Point3dVector.new
-    p << pt1
-    p << pt2
-    p << pt3
-    p << pt4
-    return p
-  end
-  
-  def make_hexagon(pt1, pt2, pt3, pt4, pt5, pt6)
-    p = OpenStudio::Point3dVector.new
-    p << pt1
-    p << pt2
-    p << pt3
-    p << pt4
-    p << pt5
-    p << pt6
-    return p
-  end
-  
   # human readable name
   def name
     return "Create Residential Geometry"
@@ -141,7 +114,7 @@ class CreateBasicGeometry < OpenStudio::Ruleset::ModelUserScript
     attic_type_display_names << Constants.UnfinishedAtticSpace
     attic_type_display_names << Constants.FinishedAtticSpace
 	
-    #make a choice argument for roof type
+    #make a choice argument for attic type
     attic_type = OpenStudio::Ruleset::OSArgument::makeChoiceArgument("attic_type", attic_type_display_names, true)
     attic_type.setDisplayName("Attic Type")
     attic_type.setDescription("The attic type of the building.")
@@ -280,13 +253,13 @@ class CreateBasicGeometry < OpenStudio::Ruleset::ModelUserScript
           garage_nw_point = OpenStudio::Point3d.new(length-garage_width,garage_depth,z)
           garage_ne_point = OpenStudio::Point3d.new(length,garage_depth,z)
           garage_se_point = OpenStudio::Point3d.new(length,0,z)
-          garage_polygon = make_rectangle(garage_sw_point, garage_nw_point, garage_ne_point, garage_se_point)		
+          garage_polygon = Geometry.make_polygon(garage_sw_point, garage_nw_point, garage_ne_point, garage_se_point)		
         elsif garage_pos == "Left"
           garage_sw_point = OpenStudio::Point3d.new(0,0,z)
           garage_nw_point = OpenStudio::Point3d.new(0,garage_depth,z)
           garage_ne_point = OpenStudio::Point3d.new(garage_width,garage_depth,z)
           garage_se_point = OpenStudio::Point3d.new(garage_width,0,z)
-          garage_polygon = make_rectangle(garage_sw_point, garage_nw_point, garage_ne_point, garage_se_point)			
+          garage_polygon = Geometry.make_polygon(garage_sw_point, garage_nw_point, garage_ne_point, garage_se_point)			
         end
         
         # make space
@@ -314,22 +287,22 @@ class CreateBasicGeometry < OpenStudio::Ruleset::ModelUserScript
             sw_point = OpenStudio::Point3d.new(0,0,z)
             nw_point = OpenStudio::Point3d.new(0,width,z)
             ne_point = OpenStudio::Point3d.new(length,width,z)
-            living_polygon = make_hexagon(sw_point, nw_point, ne_point, garage_ne_point, garage_nw_point, garage_sw_point)
+            living_polygon = Geometry.make_polygon(sw_point, nw_point, ne_point, garage_ne_point, garage_nw_point, garage_sw_point)
           else # 4 points
             sw_point = OpenStudio::Point3d.new(0,0,z)	
             nw_point = OpenStudio::Point3d.new(0,width,z)
-            living_polygon = make_rectangle(sw_point, nw_point, garage_nw_point, garage_sw_point)
+            living_polygon = Geometry.make_polygon(sw_point, nw_point, garage_nw_point, garage_sw_point)
           end
         elsif garage_pos == "Left" and garage_area > 0
           if garage_depth < width # 6 points
             nw_point = OpenStudio::Point3d.new(0,width,z)	
             ne_point = OpenStudio::Point3d.new(length,width,z)
             se_point = OpenStudio::Point3d.new(length,0,z)
-            living_polygon = make_hexagon(garage_nw_point, nw_point, ne_point, se_point, garage_se_point, garage_ne_point)
+            living_polygon = Geometry.make_polygon(garage_nw_point, nw_point, ne_point, se_point, garage_se_point, garage_ne_point)
           else # 4 points
             ne_point = OpenStudio::Point3d.new(length,width,z)				
             se_point = OpenStudio::Point3d.new(length,0,z)
-            living_polygon = make_rectangle(garage_se_point, garage_ne_point, ne_point, se_point)
+            living_polygon = Geometry.make_polygon(garage_se_point, garage_ne_point, ne_point, se_point)
           end
         end
         foundation_polygon_with_wrong_zs = living_polygon			
@@ -339,7 +312,7 @@ class CreateBasicGeometry < OpenStudio::Ruleset::ModelUserScript
         nw_point = OpenStudio::Point3d.new(0,width,z)
         ne_point = OpenStudio::Point3d.new(length,width,z)
         se_point = OpenStudio::Point3d.new(length,0,z)
-        living_polygon = make_rectangle(sw_point, nw_point, ne_point, se_point)
+        living_polygon = Geometry.make_polygon(sw_point, nw_point, ne_point, se_point)
         if z == foundation_offset
           foundation_polygon_with_wrong_zs = living_polygon
         end
@@ -393,40 +366,40 @@ class CreateBasicGeometry < OpenStudio::Ruleset::ModelUserScript
       roof_sw_point = OpenStudio::Point3d.new(0,0,z)	
       
       # make polygons
-      polygon_floor = make_rectangle(roof_nw_point, roof_ne_point, roof_se_point, roof_sw_point)	
+      polygon_floor = Geometry.make_polygon(roof_nw_point, roof_ne_point, roof_se_point, roof_sw_point)	
       side_type = nil
       if roof_type == Constants.RoofTypeGable
         if length >= width
           roof_w_point = OpenStudio::Point3d.new(0,width/2.0,z+attic_height)
           roof_e_point = OpenStudio::Point3d.new(length,width/2.0,z+attic_height)			
-          polygon_s_roof = make_rectangle(roof_e_point, roof_w_point, roof_sw_point, roof_se_point)
-          polygon_n_roof = make_rectangle(roof_w_point, roof_e_point, roof_ne_point, roof_nw_point)
-          polygon_w_wall = make_triangle(roof_w_point, roof_nw_point, roof_sw_point)
-          polygon_e_wall = make_triangle(roof_e_point, roof_se_point, roof_ne_point)		
+          polygon_s_roof = Geometry.make_polygon(roof_e_point, roof_w_point, roof_sw_point, roof_se_point)
+          polygon_n_roof = Geometry.make_polygon(roof_w_point, roof_e_point, roof_ne_point, roof_nw_point)
+          polygon_w_wall = Geometry.make_polygon(roof_w_point, roof_nw_point, roof_sw_point)
+          polygon_e_wall = Geometry.make_polygon(roof_e_point, roof_se_point, roof_ne_point)		
         else
           roof_w_point = OpenStudio::Point3d.new(length/2.0,0,z+attic_height)
           roof_e_point = OpenStudio::Point3d.new(length/2.0,width,z+attic_height)		
-          polygon_s_roof = make_rectangle(roof_e_point, roof_w_point, roof_se_point, roof_ne_point)
-          polygon_n_roof = make_rectangle(roof_w_point, roof_e_point, roof_nw_point, roof_sw_point)
-          polygon_w_wall = make_triangle(roof_w_point, roof_se_point, roof_sw_point)
-          polygon_e_wall = make_triangle(roof_e_point, roof_ne_point, roof_nw_point)
+          polygon_s_roof = Geometry.make_polygon(roof_e_point, roof_w_point, roof_se_point, roof_ne_point)
+          polygon_n_roof = Geometry.make_polygon(roof_w_point, roof_e_point, roof_nw_point, roof_sw_point)
+          polygon_w_wall = Geometry.make_polygon(roof_w_point, roof_sw_point, roof_se_point)
+          polygon_e_wall = Geometry.make_polygon(roof_e_point, roof_ne_point, roof_nw_point)
         end
         side_type = "Wall"
       elsif roof_type == Constants.RoofTypeHip
         if length >= width
           roof_w_point = OpenStudio::Point3d.new(width/2.0,width/2.0,z+attic_height)
           roof_e_point = OpenStudio::Point3d.new(length-width/2.0,width/2.0,z+attic_height)			
-          polygon_s_roof = make_rectangle(roof_e_point, roof_w_point, roof_sw_point, roof_se_point)
-          polygon_n_roof = make_rectangle(roof_w_point, roof_e_point, roof_ne_point, roof_nw_point)
-          polygon_w_wall = make_triangle(roof_w_point, roof_nw_point, roof_sw_point)
-          polygon_e_wall = make_triangle(roof_e_point, roof_se_point, roof_ne_point)		
+          polygon_s_roof = Geometry.make_polygon(roof_e_point, roof_w_point, roof_sw_point, roof_se_point)
+          polygon_n_roof = Geometry.make_polygon(roof_w_point, roof_e_point, roof_ne_point, roof_nw_point)
+          polygon_w_wall = Geometry.make_polygon(roof_w_point, roof_nw_point, roof_sw_point)
+          polygon_e_wall = Geometry.make_polygon(roof_e_point, roof_se_point, roof_ne_point)		
         else
           roof_w_point = OpenStudio::Point3d.new(length/2.0,length/2.0,z+attic_height)
-          roof_e_point = OpenStudio::Point3d.new(length/2.0,width-length/2.0,z+attic_height)				
-          polygon_s_roof = make_rectangle(roof_e_point, roof_w_point, roof_se_point, roof_ne_point)
-          polygon_n_roof = make_rectangle(roof_w_point, roof_e_point, roof_nw_point, roof_sw_point)
-          polygon_w_wall = make_triangle(roof_w_point, roof_se_point, roof_sw_point)
-          polygon_e_wall = make_triangle(roof_e_point, roof_ne_point, roof_nw_point)	
+          roof_e_point = OpenStudio::Point3d.new(length/2.0,width-length/2.0,z+attic_height)
+          polygon_s_roof = Geometry.make_polygon(roof_e_point, roof_w_point, roof_se_point, roof_ne_point)
+          polygon_n_roof = Geometry.make_polygon(roof_w_point, roof_e_point, roof_nw_point, roof_sw_point)
+          polygon_w_wall = Geometry.make_polygon(roof_w_point, roof_sw_point, roof_se_point)
+          polygon_e_wall = Geometry.make_polygon(roof_e_point, roof_ne_point, roof_nw_point)	
         end
         side_type = "RoofCeiling"
       end
@@ -489,7 +462,14 @@ class CreateBasicGeometry < OpenStudio::Ruleset::ModelUserScript
       
       # create foundation zone
       foundation_zone = OpenStudio::Model::ThermalZone.new(model)
-      foundation_zone.setName(foundation_type)
+      if foundation_type == Constants.CrawlSpace
+        foundation_zone_name = Constants.CrawlZone
+      elsif foundation_type == Constants.UnfinishedBasementSpace
+        foundation_zone_name = Constants.UnfinishedBasementZone
+      elsif foundation_type == Constants.FinishedBasementSpace
+        foundation_zone_name = Constants.FinishedBasementZone
+      end
+      foundation_zone.setName(foundation_zone_name)
 
       # make polygons
       p = OpenStudio::Point3dVector.new

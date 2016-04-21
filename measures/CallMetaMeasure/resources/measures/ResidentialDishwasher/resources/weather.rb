@@ -59,7 +59,7 @@ class WeatherProcess
         
     # try model second
     if !epw_path
-      if model.weatherFile.is_initialized
+      if model.respond_to?("weatherFile") and model.weatherFile.is_initialized
         test = model.weatherFile.get.path
         if test.is_initialized
           # have a file name from the model

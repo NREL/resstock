@@ -1,0 +1,149 @@
+<measure>
+  <schema_version>3.0</schema_version>
+  <name>process_heatingand_cooling_setpoints</name>
+  <uid>2b167665-f760-462d-8c9d-1d909da7b628</uid>
+  <version_id>e81651d5-2772-40df-aff1-df12259f5be7</version_id>
+  <version_modified>20160421T142244Z</version_modified>
+  <xml_checksum>2C877DEB</xml_checksum>
+  <class_name>ProcessHeatingandCoolingSetpoints</class_name>
+  <display_name>Set Residential Heating/Cooling Setpoints and Schedules</display_name>
+  <description>This measure creates the heating season and cooling season schedules based on weather data, and the heating setpoint and cooling setpoint schedules.</description>
+  <modeler_description>This measure creates HeatingSeasonSchedule and CoolingSeasonSchedule ruleset objects. Schedule values are populated based on information contained in the EPW file. This measure also creates HeatingSetPoint and CoolingSetPoint ruleset objects. Schedule values are populated based on information input by the user as well as contained in the HeatingSeasonSchedule and CoolingSeasonSchedule. The heating and cooling setpoint schedules are added to the living zone's thermostat.</modeler_description>
+  <arguments>
+    <argument>
+      <name>userdefinedhsp</name>
+      <display_name>Heating Set Point: Constant Setpoint</display_name>
+      <description>Constant heating setpoint for every hour.</description>
+      <type>Double</type>
+      <units>degrees F</units>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+      <default_value>71</default_value>
+    </argument>
+    <argument>
+      <name>userdefinedcsp</name>
+      <display_name>Cooling Set Point: Constant Setpoint</display_name>
+      <description>Constant cooling setpoint for every hour.</description>
+      <type>Double</type>
+      <units>degrees F</units>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+      <default_value>76</default_value>
+    </argument>
+    <argument>
+      <name>selectedheating</name>
+      <display_name>Has Heating Equipment</display_name>
+      <description>Indicates whether the house has heating equipment.</description>
+      <type>Boolean</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+      <default_value>true</default_value>
+      <choices>
+        <choice>
+          <value>true</value>
+          <display_name>true</display_name>
+        </choice>
+        <choice>
+          <value>false</value>
+          <display_name>false</display_name>
+        </choice>
+      </choices>
+    </argument>
+    <argument>
+      <name>selectedcooling</name>
+      <display_name>Has Cooling Equipment</display_name>
+      <description>Indicates whether the house has cooling equipment.</description>
+      <type>Boolean</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+      <default_value>true</default_value>
+      <choices>
+        <choice>
+          <value>true</value>
+          <display_name>true</display_name>
+        </choice>
+        <choice>
+          <value>false</value>
+          <display_name>false</display_name>
+        </choice>
+      </choices>
+    </argument>
+  </arguments>
+  <provenances/>
+  <tags>
+    <tag>HVAC.HVAC Controls</tag>
+  </tags>
+  <attributes>
+    <attribute>
+      <name>Measure Type</name>
+      <value>ModelMeasure</value>
+      <datatype>string</datatype>
+    </attribute>
+    <attribute>
+      <name>Uses SketchUp API</name>
+      <value>false</value>
+      <datatype>boolean</datatype>
+    </attribute>
+  </attributes>
+  <files>
+    <file>
+      <filename>ProcessHeatingandCoolingSetpoints_Test.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>test</usage_type>
+      <checksum>7C73784F</checksum>
+    </file>
+    <file>
+      <filename>unit_conversions.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>DCBEF242</checksum>
+    </file>
+    <file>
+      <filename>psychrometrics.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>640596F1</checksum>
+    </file>
+    <file>
+      <filename>constants.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>D28DC6BC</checksum>
+    </file>
+    <file>
+      <filename>constants.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>D28DC6BC</checksum>
+    </file>
+    <file>
+      <filename>util.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>5D8C22C7</checksum>
+    </file>
+    <file>
+      <filename>weather.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>C2265CC0</checksum>
+    </file>
+    <file>
+      <version>
+        <software_program>OpenStudio</software_program>
+        <identifier>1.4.0</identifier>
+        <min_compatible>1.4.0</min_compatible>
+      </version>
+      <filename>measure.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>script</usage_type>
+      <checksum>269A7731</checksum>
+    </file>
+    <file>
+      <filename>geometry.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>01DB9ED4</checksum>
+    </file>
+  </files>
+</measure>
