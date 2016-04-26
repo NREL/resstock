@@ -9,7 +9,7 @@ end
 class WeatherData
   def initialize
   end
-  attr_accessor(:AnnualAvgDrybulb, :AnnualMinDrybulb, :AnnualMaxDrybulb, :CDD50F, :CDD65F, :HDD50F, :HDD64F, :HDD65F, :HDD66F, :DailyAvgDrybulbs, :DailyMaxDrybulbs, :DailyMinDrybulbs, :AnnualAvgWindspeed, :MonthlyAvgDrybulbs)
+  attr_accessor(:AnnualAvgDrybulb, :AnnualMinDrybulb, :AnnualMaxDrybulb, :CDD50F, :CDD65F, :HDD50F, :HDD64F, :HDD65F, :HDD66F, :DailyAvgDrybulbs, :DailyMaxDrybulbs, :DailyMinDrybulbs, :AnnualAvgWindspeed, :MonthlyAvgDrybulbs, :MainsDailyTemps, :MainsMonthlyTemps, :MainsAvgTemp)
 end
 
 class WeatherDesign
@@ -21,12 +21,12 @@ end
 class WeatherProcess
 
   def initialize(model, runner, header_only=false)
-    epw_path = WeatherProcess._get_epw_path(model, runner)
+    epw_path = _get_epw_path(model, runner)
     if epw_path.nil?
       @error = true
     else
       @error = false
-      @header, @data, @design = WeatherProcess._process_epw_text(epw_path, runner, header_only)
+      @header, @data, @design = _process_epw_text(epw_path, runner, header_only)
     end
   end
 
@@ -34,19 +34,9 @@ class WeatherProcess
     return @error
   end
   
-  def header
-    return @header
-  end
-
-  def data
-    return @data
-  end
-
-  def design
-    return @design
-  end
+  attr_accessor(:header, :data, :design)
   
-  def self._get_epw_path(model, runner)
+  def _get_epw_path(model, runner)
     # code below copied from https://gist.github.com/nllong/1e5616ac4edb2f05b7fa
   
     # try runner first
@@ -92,11 +82,7 @@ class WeatherProcess
     return epw_path.to_s
   end
 
-  def self._process_epw_text(epwfile, runner, header_only)
-  
-    # if not os.path.exists(epwfile):
-    #     raise IOError("Cannot find file " + epwfile)
-	
+  def _process_epw_text(epwfile, runner, header_only)
     epwlines = []
     File.open(epwfile) do |file|
       file.each do |line|
@@ -112,20 +98,18 @@ class WeatherProcess
     header.Country = headerline[3]
     header.DataSource = headerline[4]
     header.Station = headerline[5]
-    header.Latitude = WeatherProcess._fmt(headerline[6],3)
-    header.Longitude = WeatherProcess._fmt(headerline[7],3)
+    header.Latitude = headerline[6].to_f
+    header.Longitude = headerline[7].to_f
     header.Timezone = headerline[8].to_f
-    header.Altitude = WeatherProcess._fmt(OpenStudio::convert(headerline[9].to_f,"m","ft").get,4)
+    header.Altitude = OpenStudio::convert(headerline[9].to_f,"m","ft").get
     header.LocalPressure = Math::exp(-0.0000368 * header.Altitude) # atm
+    
+    # header.WSF = _get_ashrae_622_wsf(header.Station, runner) TODO: getting utf-8 byte error on linux server when parsing this csv
     
     if header_only
         return header, nil, nil
     end
 
-	# self._get_climate_zones_ba(self.header.Station)
-	# self._get_states_in_ba_zone(self.zones.BA)
-	# header.WSF = WeatherProcess._get_ashrae_622_wsf(header.Station, runner) TODO: getting utf-8 byte error on linux server when parsing this csv
-	
     # Design data line:
 
     design = WeatherDesign.new
@@ -133,20 +117,20 @@ class WeatherProcess
     epwHasDesignData = false
     if designData.length > 5
       begin
-        design.HeatingDrybulb = WeatherProcess._fmt(OpenStudio::convert(designData[7].to_f,"C","F").get, 2)
+        design.HeatingDrybulb = OpenStudio::convert(designData[7].to_f,"C","F").get
         design.HeatingWindspeed = designData[16].to_f
 
-        design.CoolingDrybulb = WeatherProcess._fmt(OpenStudio::convert(designData[25].to_f,"C","F").get, 2)
-        design.CoolingWetbulb = WeatherProcess._fmt(OpenStudio::convert(designData[26].to_f,"C","F").get, 2)
+        design.CoolingDrybulb = OpenStudio::convert(designData[25].to_f,"C","F").get
+        design.CoolingWetbulb = OpenStudio::convert(designData[26].to_f,"C","F").get
         std_press = Psychrometrics.Pstd_fZ(header.Altitude)
-        design.CoolingHumidityRatio = WeatherProcess._fmt(Psychrometrics.w_fT_Twb_P(design.CoolingDrybulb, design.CoolingWetbulb, std_press), 4)
+        design.CoolingHumidityRatio = Psychrometrics.w_fT_Twb_P(design.CoolingDrybulb, design.CoolingWetbulb, std_press)
         design.CoolingWindspeed = designData[35].to_f
 
-        design.DailyTemperatureRange = WeatherProcess._fmt(OpenStudio::convert(designData[22].to_f,"C","F").get, 2)
+        design.DailyTemperatureRange = OpenStudio::convert(designData[22].to_f,"C","F").get
 
-        dehum02per_dp = WeatherProcess._fmt(OpenStudio::convert(designData[43].to_f,"C","F").get, 2)
-        design.DehumidDrybulb = WeatherProcess._fmt(OpenStudio::convert(designData[45].to_f,"C","F").get, 2)
-        design.DehumidHumidityRatio = WeatherProcess._fmt(Psychrometrics.w_fT_Twb_P(dehum02per_dp, dehum02per_dp, std_press), 4)
+        dehum02per_dp = OpenStudio::convert(designData[43].to_f,"C","F").get
+        design.DehumidDrybulb = OpenStudio::convert(designData[45].to_f,"C","F").get
+        design.DehumidHumidityRatio = Psychrometrics.w_fT_Twb_P(dehum02per_dp, dehum02per_dp, std_press)
 
         epwHasDesignData = true
       rescue
@@ -154,7 +138,7 @@ class WeatherProcess
       end
     end
 
-    epwlines = WeatherProcess._remove_non_hourly_lines(epwlines)
+    epwlines = _remove_non_hourly_lines(epwlines)
 
     # Read data:
     hourdata = []
@@ -204,16 +188,17 @@ class WeatherProcess
     end
 
     data = WeatherData.new
-    data = WeatherProcess._calc_annual_drybulbs(data, hourdata)
-    data = WeatherProcess._calc_monthly_drybulbs(data, hourdata)
-    data = WeatherProcess._calc_heat_cool_degree_days(data, hourdata, dailydbs)
-    data = WeatherProcess._calc_avg_windspeed(data, hourdata)
+    data = _calc_annual_drybulbs(data, hourdata)
+    data = _calc_monthly_drybulbs(data, hourdata)
+    data = _calc_heat_cool_degree_days(data, hourdata, dailydbs)
+    data = _calc_avg_windspeed(data, hourdata)
+    data = _calc_mains_temperature(data, header)
 
     return header, data, design
 
   end
 
-  def self._remove_non_hourly_lines(epwlines)
+  def _remove_non_hourly_lines(epwlines)
     # Strips header lines until we get to the hourly data
     epwlines.each do |epwline|
       data = epwline.split(',')
@@ -228,16 +213,11 @@ class WeatherProcess
     return epwlines[0..8760] # Exclude any text beyond the 8760th line
   end
 
-  def self._fmt(num, dec)
-    # Formats number to the specified number of decimal places
-    return sprintf("%.#{dec}f", num.to_f).to_f
-  end
-
   def _calc_design_info
 
   end
 
-  def self._calc_annual_drybulbs(data, hd)
+  def _calc_annual_drybulbs(data, hd)
     # Calculates and stores annual average, minimum, and maximum drybulbs
     db = []
     mindict = hd[0]
@@ -252,17 +232,17 @@ class WeatherProcess
       db << x['db']
     end
 
-    data.AnnualAvgDrybulb = WeatherProcess._fmt(OpenStudio::convert(db.inject{ |sum, n| sum + n } / 8760.0,"C","F").get, 2)
+    data.AnnualAvgDrybulb = OpenStudio::convert(db.inject{ |sum, n| sum + n } / 8760.0,"C","F").get
 
     # Peak temperatures:
-    data.AnnualMinDrybulb = WeatherProcess._fmt(OpenStudio::convert(mindict['db'],"C","F").get, 2)
-    data.AnnualMaxDrybulb = WeatherProcess._fmt(OpenStudio::convert(maxdict['db'],"C","F").get, 2)
+    data.AnnualMinDrybulb = OpenStudio::convert(mindict['db'],"C","F").get
+    data.AnnualMaxDrybulb = OpenStudio::convert(maxdict['db'],"C","F").get
 
     return data
 
   end
 
-  def self._calc_monthly_drybulbs(data, hd)
+  def _calc_monthly_drybulbs(data, hd)
     # Calculates and stores monthly average drybulbs
     data.MonthlyAvgDrybulbs = []
     (1...13).to_a.each do |month|
@@ -274,37 +254,37 @@ class WeatherProcess
       end
       month_dbtotal = y.inject{ |sum, n| sum + n }
       month_hours = y.length
-      data.MonthlyAvgDrybulbs << WeatherProcess._fmt(OpenStudio::convert(month_dbtotal / month_hours,"C","F").get, 2)
+      data.MonthlyAvgDrybulbs << OpenStudio::convert(month_dbtotal / month_hours,"C","F").get
     end
 
     return data
   end
 
-  def self._calc_avg_windspeed(data, hd)
+  def _calc_avg_windspeed(data, hd)
     # Calculates and stores annual average windspeed
     ws = []
     hd.each do |x|
       ws << x['ws']
     end
-    avgws = WeatherProcess._fmt(ws.inject{ |sum, n| sum + n } / 8760.0, 1)
+    avgws = ws.inject{ |sum, n| sum + n } / 8760.0
     data.AnnualAvgWindspeed = avgws
     return data
   end
 
-  def self._calc_heat_cool_degree_days(data, hd, dailydbs)
+  def _calc_heat_cool_degree_days(data, hd, dailydbs)
     # Calculates and stores heating/cooling degree days
-    data.CDD50F = WeatherProcess._calc_degree_days(dailydbs, 50, false)
-    data.CDD65F = WeatherProcess._calc_degree_days(dailydbs, 65, false)
-    data.HDD50F = WeatherProcess._calc_degree_days(dailydbs, 50, true)
-    data.HDD64F = WeatherProcess._calc_degree_days(dailydbs, 64, true)
-    data.HDD65F = WeatherProcess._calc_degree_days(dailydbs, 65, true)
-    data.HDD66F = WeatherProcess._calc_degree_days(dailydbs, 66, true)
+    data.CDD50F = _calc_degree_days(dailydbs, 50, false)
+    data.CDD65F = _calc_degree_days(dailydbs, 65, false)
+    data.HDD50F = _calc_degree_days(dailydbs, 50, true)
+    data.HDD64F = _calc_degree_days(dailydbs, 64, true)
+    data.HDD65F = _calc_degree_days(dailydbs, 65, true)
+    data.HDD66F = _calc_degree_days(dailydbs, 66, true)
 
     return data
 
   end
 
-  def self._calc_degree_days(daily_dbs, base_temp_f, is_heating)
+  def _calc_degree_days(daily_dbs, base_temp_f, is_heating)
     # Calculates and returns degree days from a base temperature for either heating or cooling
     base_temp_c = OpenStudio::convert(base_temp_f,"F","C").get
 
@@ -323,124 +303,87 @@ class WeatherProcess
       end
     end
     if deg_days.size == 0
-        return WeatherProcess._fmt(0.0, 0)
+        return 0.0
     end
     deg_days = deg_days.inject{ |sum, n| sum + n }
-    return WeatherProcess._fmt(1.8 * deg_days, 0)
+    return 1.8 * deg_days
 
   end
 
-  def self._calc_mains_temperature(data, header)
+  def _calc_mains_temperature(data, header)
     #Calculates and returns the annual average, daily, and monthly mains water temperature
-  	avgOAT = data.AnnualAvgDrybulb
-	monthlyOAT = data.MonthlyAvgDrybulbs
-	
-	min_temp = monthlyOAT.min
-	max_temp = monthlyOAT.max
+    avgOAT = data.AnnualAvgDrybulb
+    monthlyOAT = data.MonthlyAvgDrybulbs
+    
+    min_temp = monthlyOAT.min
+    max_temp = monthlyOAT.max
 
-	pi = Math::PI
-	deg_rad = pi/180
-	mains_daily_temp = Array.new(365, 0)
-	mains_monthly_temp = Array.new(12, 0)
-	tmains_ratio = 0.4 + 0.01*(avgOAT - 44)
-	tmains_lag = 35 - (avgOAT - 44)
-	lat = header.Latitude
-	if lat < 0
-		sign = 1
-	else
-		sign = -1
-	end
-	
-	mains_avg_temp = 0
-	#Calculate daily and annual
-	for d in 1..365
-		mains_daily_temp[d-1] = avgOAT + 6 + tmains_ratio * (max_temp - min_temp) / 2 * Math.sin(deg_rad * (0.986 * (d - 15 - tmains_lag) + sign * 90))
-		mains_avg_temp += mains_daily_temp[d-1] / 365.0
-	end
-	#Calculate monthly
-	for m in 1..12
-		mains_monthly_temp[m-1] = avgOAT + 6 + tmains_ratio * (max_temp - min_temp) / 2 * Math.sin(deg_rad * (0.986 * ((m * 30 - 15) - 15 - tmains_lag) + sign * 90))
-	end
-	
-	return mains_daily_temp, mains_monthly_temp, mains_avg_temp
-	
+    pi = Math::PI
+    deg_rad = pi/180
+    data.MainsDailyTemps = Array.new(365, 0)
+    data.MainsMonthlyTemps = Array.new(12, 0)
+    data.MainsAvgTemp = 0
+
+    tmains_ratio = 0.4 + 0.01*(avgOAT - 44)
+    tmains_lag = 35 - (avgOAT - 44)
+    lat = header.Latitude
+    if lat < 0
+        sign = 1
+    else
+        sign = -1
+    end
+    
+    #Calculate daily and annual
+    for d in 1..365
+        data.MainsDailyTemps[d-1] = avgOAT + 6 + tmains_ratio * (max_temp - min_temp) / 2 * Math.sin(deg_rad * (0.986 * (d - 15 - tmains_lag) + sign * 90))
+        data.MainsAvgTemp += data.MainsDailyTemps[d-1] / 365.0
+    end
+    #Calculate monthly
+    for m in 1..12
+        data.MainsMonthlyTemps[m-1] = avgOAT + 6 + tmains_ratio * (max_temp - min_temp) / 2 * Math.sin(deg_rad * (0.986 * ((m * 30 - 15) - 15 - tmains_lag) + sign * 90))
+    end
+    
+    return data
   end
-
   
-  def _calc_avg_highs_lows
-
-  end
-
-  def _calc_clearness_indices
-
-  end
-
-  def _calc_clearness_index
-
-  end
-
-  def _calc_design_solar_radiation
-
-  end
-
-  def self._get_ashrae_622_wsf(wmo, runner)
+  def _get_ashrae_622_wsf(wmo, runner)
     # Looks up the ASHRAE 62.2 weather and sheilding factor from ASHRAE622WSF
     # for the specified WMO station number. If not found, uses the average value 
     # in the file.
         
     # Sets the WSF value.
     
-	runner.registerInfo("Getting ASHRAE 62.2 WSF...")
-	
-	ashrae_csv = File.absolute_path(File.join(__FILE__, '..', 'ASHRAE622WSF.csv'))
-	ashrae_csvlines = []
-	File.open(ashrae_csv) do |file|
-		# if not os.path.exists(ashrae_csv):
-		#    raise IOError("Cannot find file " + ashrae_csv)
-		file.each do |line|
-			line = line.strip.chomp.chomp(',').chomp # remove RHS whitespace and extra comma
-			ashrae_csvlines << line
-		end
-	end
-	
-	keys = ashrae_csvlines.delete_at(0).split(',')
-	ashrae_dict = []
-	ashrae_csvlines.each do |line|
-		line = line.split(',')
-		ashrae_dict << Hash[keys.zip(line)]
-	end
-		
-	wsfs = []
-	ashrae_dict.each do |adict|
-		if adict['TMY3'] == wmo
-			return adict['wsf'].to_f
-		end
-		wsfs << adict['wsf'].to_f
-	end
-	
-	# Value not found, use average
-	return wsfs.inject{ |sum, n| sum + n } / wsfs.length
-		
+    runner.registerInfo("Getting ASHRAE 62.2 WSF...")
+    
+    ashrae_csv = File.absolute_path(File.join(__FILE__, '..', 'ASHRAE622WSF.csv'))
+    ashrae_csvlines = []
+    File.open(ashrae_csv) do |file|
+      # if not os.path.exists(ashrae_csv):
+      #    raise IOError("Cannot find file " + ashrae_csv)
+      file.each do |line|
+        line = line.strip.chomp.chomp(',').chomp # remove RHS whitespace and extra comma
+        ashrae_csvlines << line
+      end
+    end
+    
+    keys = ashrae_csvlines.delete_at(0).split(',')
+    ashrae_dict = []
+    ashrae_csvlines.each do |line|
+      line = line.split(',')
+      ashrae_dict << Hash[keys.zip(line)]
+    end
+      
+    wsfs = []
+    ashrae_dict.each do |adict|
+      if adict['TMY3'] == wmo
+        return adict['wsf'].to_f
+      end
+      wsfs << adict['wsf'].to_f
+    end
+    
+    # Value not found, use average
+    return wsfs.inject{ |sum, n| sum + n } / wsfs.length
+        
   end
   
-  def _get_climate_zones_ba
-
-  end
-
-  def _get_climate_zones_iecc
-
-  end
-
-  def _calc_iecc_cz_intl
-
-  end
-
-  def _calc_iecc_cz_is_marine
-
-  end
-
-  def _get_states_in_ba_zone
-
-  end
-
 end

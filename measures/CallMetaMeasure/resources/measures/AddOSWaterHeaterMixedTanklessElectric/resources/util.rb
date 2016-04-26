@@ -54,58 +54,236 @@ class HelperMethods
         end
     end
     
-    def self.remove_existing_hvac_equipment_except_for_specified_object(model, runner, thermal_zone, excepted_object=nil)
-        htg_coil = nil
-        clg_coil = nil
-        airLoopHVACs = model.getAirLoopHVACs
-        airLoopHVACs.each do |airLoopHVAC|
-          thermalZones = airLoopHVAC.thermalZones
-          thermalZones.each do |thermalZone|
-            if thermal_zone.handle.to_s == thermalZone.handle.to_s
-              supplyComponents = airLoopHVAC.supplyComponents
-              supplyComponents.each do |supplyComponent|
-                if supplyComponent.to_AirLoopHVACUnitarySystem.is_initialized
-                  air_loop_unitary = supplyComponent.to_AirLoopHVACUnitarySystem.get
-                  if excepted_object == "Furnace"
-                      if air_loop_unitary.heatingCoil.is_initialized
-                        htg_coil = air_loop_unitary.heatingCoil.get
-                        if htg_coil.to_CoilHeatingGas.is_initialized
-                          htg_coil = htg_coil.clone
-                          htg_coil = htg_coil.to_CoilHeatingGas.get
-                        end
-                        if htg_coil.to_CoilHeatingElectric.is_initialized
-                          htg_coil = htg_coil.clone
-                          htg_coil = htg_coil.to_CoilHeatingElectric.get
-                        end
-                      end
-                  elsif excepted_object == "Central Air Conditioner"
-                      if air_loop_unitary.coolingCoil.is_initialized
-                        clg_coil = air_loop_unitary.coolingCoil.get
-                        if clg_coil.to_CoilCoolingDXSingleSpeed.is_initialized
-                          clg_coil = clg_coil.clone
-                          clg_coil = clg_coil.to_CoilCoolingDXSingleSpeed.get
-                        end
-                        if clg_coil.to_CoilCoolingDXMultiSpeed.is_initialized
-                          clg_coil = clg_coil.clone
-                          clg_coil = clg_coil.to_CoilCoolingDXMultiSpeed.get
-                        end
-                      end
-                  end
-                end
-                runner.registerInfo("Removed '#{supplyComponent.name}' from air loop '#{airLoopHVAC.name}'")
-                supplyComponent.remove
+    def self.has_central_air_conditioner(model, runner, thermal_zone, remove=false)
+      model.getAirLoopHVACs.each do |air_loop|
+        air_loop.thermalZones.each do |thermalZone|
+          next unless thermal_zone.handle.to_s == thermalZone.handle.to_s
+          air_loop.supplyComponents.each do |supply_component|
+            next unless supply_component.to_AirLoopHVACUnitarySystem.is_initialized
+            air_loop_unitary = supply_component.to_AirLoopHVACUnitarySystem.get
+            next unless air_loop_unitary.coolingCoil.is_initialized and not air_loop_unitary.heatingCoil.is_initialized
+            clg_coil = air_loop_unitary.coolingCoil.get
+            next unless clg_coil.to_CoilCoolingDXSingleSpeed.is_initialized or clg_coil.to_CoilCoolingDXMultiSpeed.is_initialized
+            if remove
+              runner.registerInfo("Removed '#{clg_coil.name}' (Central Air Conditioner) from air loop '#{air_loop.name}'")
+              clg_coil.remove
+              runner.registerInfo("Removed air loop '#{air_loop.name}'")
+              air_loop.remove
+            else
+              clg_coil = clg_coil.clone
+              if clg_coil.to_CoilCoolingDXSingleSpeed.is_initialized
+                clg_coil = clg_coil.to_CoilCoolingDXSingleSpeed.get
+              elsif clg_coil.to_CoilCoolingDXMultiSpeed.is_initialized
+                clg_coil = clg_coil.to_CoilCoolingDXMultiSpeed.get
               end
-              runner.registerInfo("Removed air loop '#{airLoopHVAC.name}'")
-              airLoopHVAC.remove
+              runner.registerInfo("Removed air loop '#{air_loop.name}'")
+              air_loop.remove              
+              return clg_coil
             end
           end
-        end     
-        unless htg_coil.nil?
-            return htg_coil
         end
-        unless clg_coil.nil?
-            return clg_coil
+      end
+      return nil
+    end
+    
+    def self.has_room_air_conditioner(model, runner, thermal_zone, remove=false)
+      model.getZoneHVACPackagedTerminalAirConditioners.each do |ptac|
+        next unless thermal_zone.handle.to_s == ptac.thermalZone.get.handle.to_s
+        if remove
+          runner.registerInfo("Removed '#{ptac.name}' (Room Air Conditioner)")
+          ptac.remove
+        else
+          return true
         end
+      end
+      return nil
+    end
+    
+    def self.has_furnace(model, runner, thermal_zone, remove=false)
+      model.getAirLoopHVACs.each do |air_loop|
+        air_loop.thermalZones.each do |thermalZone|
+          next unless thermal_zone.handle.to_s == thermalZone.handle.to_s
+          air_loop.supplyComponents.each do |supply_component|
+            next unless supply_component.to_AirLoopHVACUnitarySystem.is_initialized
+            air_loop_unitary = supply_component.to_AirLoopHVACUnitarySystem.get
+            next unless air_loop_unitary.heatingCoil.is_initialized
+            htg_coil = air_loop_unitary.heatingCoil.get
+            next unless htg_coil.to_CoilHeatingGas.is_initialized or htg_coil.to_CoilHeatingElectric.is_initialized
+            if remove
+              runner.registerInfo("Removed '#{htg_coil.name}' (Furnace) from air loop '#{air_loop.name}'")
+              htg_coil.remove
+              runner.registerInfo("Removed air loop '#{air_loop.name}'")
+              air_loop.remove
+            else
+              htg_coil = htg_coil.clone
+              if htg_coil.to_CoilHeatingGas.is_initialized
+                htg_coil = htg_coil.to_CoilHeatingGas.get
+              elsif htg_coil.to_CoilHeatingElectric.is_initialized
+                htg_coil = htg_coil.to_CoilHeatingElectric.get
+              end
+              runner.registerInfo("Removed air loop '#{air_loop.name}'")
+              air_loop.remove
+              return htg_coil
+            end
+          end
+        end
+      end
+      return nil
+    end
+    
+    def self.has_boiler(model, runner, thermal_zone, remove=false)
+      model.getZoneHVACBaseboardConvectiveWaters.each do |baseboard|
+        next unless thermal_zone.handle.to_s == baseboard.thermalZone.get.handle.to_s
+        if remove
+          runner.registerInfo("Removed '#{baseboard.name}' (Boiler)")
+          baseboard.remove
+        else
+          return true
+        end
+      end
+      return nil
+    end
+    
+    def self.has_electric_baseboard(model, runner, thermal_zone, remove=false)
+      model.getZoneHVACBaseboardConvectiveElectrics.each do |baseboard|
+        next unless thermal_zone.handle.to_s == baseboard.thermalZone.get.handle.to_s
+        if remove
+          runner.registerInfo("Removed '#{baseboard.name}' (Electric Baseboard)")
+          baseboard.remove
+        else
+          return true
+        end
+      end
+      return nil
+    end
+    
+    def self.has_air_source_heat_pump(model, runner, thermal_zone, remove=false)
+      model.getAirLoopHVACs.each do |air_loop|
+        air_loop.thermalZones.each do |thermalZone|
+          next unless thermal_zone.handle.to_s == thermalZone.handle.to_s
+          air_loop.supplyComponents.each do |supply_component|
+            next unless supply_component.to_AirLoopHVACUnitarySystem.is_initialized or supply_component.to_AirLoopHVACUnitaryHeatPumpAirToAirMultiSpeed.is_initialized
+            case supply_component.to_AirLoopHVACUnitarySystem.is_initialized
+            when true
+              air_loop_unitary = supply_component.to_AirLoopHVACUnitarySystem.get
+              next unless air_loop_unitary.coolingCoil.is_initialized and air_loop_unitary.heatingCoil.is_initialized
+              clg_coil = air_loop_unitary.coolingCoil.get
+              htg_coil = air_loop_unitary.heatingCoil.get              
+            when false
+              air_loop_unitary = supply_component.to_AirLoopHVACUnitaryHeatPumpAirToAirMultiSpeed.get
+              clg_coil = air_loop_unitary.coolingCoil
+              htg_coil = air_loop_unitary.heatingCoil                
+            end
+            next unless ( clg_coil.to_CoilCoolingDXSingleSpeed.is_initialized and htg_coil.to_CoilHeatingDXSingleSpeed.is_initialized ) or ( clg_coil.to_CoilCoolingDXMultiSpeed.is_initialized and htg_coil.to_CoilHeatingDXMultiSpeed.is_initialized )
+            if remove
+              runner.registerInfo("Removed '#{clg_coil.name}' and '#{htg_coil.name}' (Heat Pump)")
+              htg_coil.remove
+              clg_coil.remove
+              runner.registerInfo("Removed air loop '#{air_loop.name}'")
+              air_loop.remove
+            else
+              return true
+            end
+          end
+        end
+      end
+      return nil
+    end
+    
+    def self.has_mini_split_heat_pump(model, runner, thermal_zone, remove=false)
+      model.getAirLoopHVACs.each do |air_loop|
+        air_loop.thermalZones.each do |thermalZone|
+          next unless thermal_zone.handle.to_s == thermalZone.handle.to_s
+          air_loop.supplyComponents.each do |supply_component|
+            next unless supply_component.to_AirLoopHVACUnitaryHeatPumpAirToAirMultiSpeed.is_initialized
+            air_loop_unitary = supply_component.to_AirLoopHVACUnitaryHeatPumpAirToAirMultiSpeed.get
+            clg_coil = air_loop_unitary.coolingCoil
+            htg_coil = air_loop_unitary.heatingCoil
+            next unless clg_coil.to_CoilCoolingDXMultiSpeed.is_initialized and htg_coil.to_CoilHeatingDXMultiSpeed.is_initialized
+            if remove
+              runner.registerInfo("Removed '#{clg_coil.name}' and '#{htg_coil.name}' (Heat Pump)")
+              htg_coil.remove
+              clg_coil.remove
+              runner.registerInfo("Removed air loop '#{air_loop.name}'")
+              air_loop.remove            
+            else
+              return true
+            end
+          end
+        end
+      end
+      return nil
+    end
+    
+    def self.remove_existing_hvac_equipment(model, runner, new_equip, thermal_zone)
+      counterpart_equip = nil
+      case new_equip
+      when "Central Air Conditioner"
+        counterpart_equip = HelperMethods.has_furnace(model, runner, thermal_zone)
+        HelperMethods.has_central_air_conditioner(model, runner, thermal_zone, true)
+        HelperMethods.has_room_air_conditioner(model, runner, thermal_zone, true)
+        HelperMethods.has_air_source_heat_pump(model, runner, thermal_zone, true)
+        HelperMethods.has_mini_split_heat_pump(model, runner, thermal_zone, true)
+      when "Room Air Conditioner"
+        HelperMethods.has_room_air_conditioner(model, runner, thermal_zone, true)
+        HelperMethods.has_central_air_conditioner(model, runner, thermal_zone, true)
+        HelperMethods.has_air_source_heat_pump(model, runner, thermal_zone, true)
+        HelperMethods.has_mini_split_heat_pump(model, runner, thermal_zone, true)
+      when "Furnace"
+        counterpart_equip = HelperMethods.has_central_air_conditioner(model, runner, thermal_zone)
+        HelperMethods.has_furnace(model, runner, thermal_zone, true)        
+        HelperMethods.has_boiler(model, runner, thermal_zone, true)
+        HelperMethods.has_electric_baseboard(model, runner, thermal_zone, true)
+        HelperMethods.has_air_source_heat_pump(model, runner, thermal_zone, true)
+        HelperMethods.has_mini_split_heat_pump(model, runner, thermal_zone, true)
+      when "Boiler"
+        HelperMethods.has_boiler(model, runner, thermal_zone, true)
+        HelperMethods.has_furnace(model, runner, thermal_zone, true)
+        HelperMethods.has_electric_baseboard(model, runner, thermal_zone, true)
+        HelperMethods.has_air_source_heat_pump(model, runner, thermal_zone, true)
+        HelperMethods.has_mini_split_heat_pump(model, runner, thermal_zone, true)      
+      when "Electric Baseboard"
+        HelperMethods.has_electric_baseboard(model, runner, thermal_zone, true)
+        HelperMethods.has_furnace(model, runner, thermal_zone, true)
+        HelperMethods.has_boiler(model, runner, thermal_zone, true)
+        HelperMethods.has_air_source_heat_pump(model, runner, thermal_zone, true)
+        HelperMethods.has_mini_split_heat_pump(model, runner, thermal_zone, true)    
+      when "Air Source Heat Pump"
+        HelperMethods.has_air_source_heat_pump(model, runner, thermal_zone, true)
+        HelperMethods.has_central_air_conditioner(model, runner, thermal_zone, true)
+        HelperMethods.has_room_air_conditioner(model, runner, thermal_zone, true)
+        HelperMethods.has_furnace(model, runner, thermal_zone, true)
+        HelperMethods.has_boiler(model, runner, thermal_zone, true)
+        HelperMethods.has_electric_baseboard(model, runner, thermal_zone, true)
+        HelperMethods.has_mini_split_heat_pump(model, runner, thermal_zone, true)        
+      when "Mini-Split Heat Pump"
+        HelperMethods.has_mini_split_heat_pump(model, runner, thermal_zone, true)
+        HelperMethods.has_central_air_conditioner(model, runner, thermal_zone, true)
+        HelperMethods.has_room_air_conditioner(model, runner, thermal_zone, true)
+        HelperMethods.has_furnace(model, runner, thermal_zone, true)
+        HelperMethods.has_boiler(model, runner, thermal_zone, true)
+        HelperMethods.has_electric_baseboard(model, runner, thermal_zone, true)
+        HelperMethods.has_air_source_heat_pump(model, runner, thermal_zone, true)           
+      end
+      unless counterpart_equip.nil?
+        return counterpart_equip
+      end
+    end
+    
+    def self.remove_hot_water_loop(model, runner)
+      model.getPlantLoops.each do |plantLoop|
+        remove = true
+        supplyComponents = plantLoop.supplyComponents
+        supplyComponents.each do |supplyComponent|
+          if supplyComponent.to_WaterHeaterMixed.is_initialized or supplyComponent.to_WaterHeaterStratified.is_initialized # don't remove the dhw
+            remove = false
+          end
+        end
+        if remove
+          runner.registerInfo("Removed plant loop #{plantLoop.name}.")
+          plantLoop.remove
+        end
+      end
     end
     
     def self.get_heating_or_cooling_season_schedule_object(model, runner, name)

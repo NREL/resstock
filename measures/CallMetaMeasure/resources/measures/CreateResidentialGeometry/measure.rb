@@ -14,12 +14,12 @@ class CreateBasicGeometry < OpenStudio::Ruleset::ModelUserScript
 
   # human readable description
   def description
-    return ""
+    return "Sets the basic geometry for the building. Building is limited to one foundation type. Garage is tucked within the building, on the front left or front right corners of the building."
   end
 
   # human readable description of modeling approach
   def modeler_description
-    return ""
+    return "Gathers living space area, wall height per floor, number of floors, aspect ratio, garage width and depth, garage position, foundation type and wall height, attic and roof type, and roof pitch. Constructs building by calculating footprint and performing a series of affine transformations into living, foundation, and attic spaces."
   end
 
   # define the arguments that the user will input
@@ -27,12 +27,12 @@ class CreateBasicGeometry < OpenStudio::Ruleset::ModelUserScript
     args = OpenStudio::Ruleset::OSArgumentVector.new
 
     #make an argument for total living space floor area
-    total_bldg_area = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("total_bldg_area",true)
-    total_bldg_area.setDisplayName("Living Space Area")
-    total_bldg_area.setUnits("ft^2")
-    total_bldg_area.setDescription("The total area of the living space above grade.")
-    total_bldg_area.setDefaultValue(2000.0)
-    args << total_bldg_area
+    total_ffa = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("total_ffa",true)
+    total_ffa.setDisplayName("Total Finished Floor Area")
+    total_ffa.setUnits("ft^2")
+    total_ffa.setDescription("The total floor area of the finished space (including any finished basement floor area).")
+    total_ffa.setDefaultValue(2000.0)
+    args << total_ffa
 	
     #make an argument for living space height
     living_height = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("living_height",true)
@@ -46,7 +46,7 @@ class CreateBasicGeometry < OpenStudio::Ruleset::ModelUserScript
     num_floors = OpenStudio::Ruleset::OSArgument::makeIntegerArgument("num_floors",true)
     num_floors.setDisplayName("Num Floors")
     num_floors.setUnits("#")
-    num_floors.setDescription("The number of living space floors above grade.")
+    num_floors.setDescription("The number of floors above grade.")
     num_floors.setDefaultValue(2)
     args << num_floors
 	
@@ -168,7 +168,7 @@ class CreateBasicGeometry < OpenStudio::Ruleset::ModelUserScript
       return false
     end
 
-    total_bldg_area = OpenStudio.convert(runner.getDoubleArgumentValue("total_bldg_area",user_arguments),"ft^2","m^2").get
+    total_ffa = OpenStudio.convert(runner.getDoubleArgumentValue("total_ffa",user_arguments),"ft^2","m^2").get
     living_height = OpenStudio.convert(runner.getDoubleArgumentValue("living_height",user_arguments),"ft","m").get
     num_floors = runner.getIntegerArgumentValue("num_floors",user_arguments)
     aspect_ratio = runner.getDoubleArgumentValue("aspect_ratio",user_arguments)
@@ -205,7 +205,12 @@ class CreateBasicGeometry < OpenStudio::Ruleset::ModelUserScript
     
     # calculate the footprint of the building
     garage_area = garage_width * garage_depth
-    footprint = (total_bldg_area + garage_area) / num_floors
+    if foundation_type == Constants.FinishedBasementSpace
+        # 2*garage_area handles the slab under the garage
+        footprint = (total_ffa + 2 * garage_area) / (num_floors + 1)
+    else
+        footprint = (total_ffa + garage_area) / num_floors
+    end
 	
     # calculate the dimensions of the building
     width = Math.sqrt(footprint / aspect_ratio)
@@ -230,10 +235,6 @@ class CreateBasicGeometry < OpenStudio::Ruleset::ModelUserScript
       foundation_type = Constants.CrawlSpace
       foundation_offset = foundation_height
     end
-	
-    # stories
-    story_hash = Hash.new
-    story_hash = {0=>"First", 1=>"Second", 2=>"Third", 3=>"Fourth", 4=>"Fifth", 5=>"Sixth"}
 	
     # loop through the number of floors
     foundation_polygon_with_wrong_zs = nil
@@ -318,16 +319,11 @@ class CreateBasicGeometry < OpenStudio::Ruleset::ModelUserScript
         end
       end		
 		
-      # make story
-      story = OpenStudio::Model::BuildingStory.new(model)
-      story.setName(story_hash[floor])
-      
       # make space
       living_space = OpenStudio::Model::Space::fromFloorPrint(living_polygon, living_height, model)
       living_space = living_space.get
       living_space_name = Constants.LivingSpace(floor+1)
       living_space.setName(living_space_name)
-      living_space.setBuildingStory(story)
       runner.registerInfo("Set #{living_space_name}.")
       
       # set these to the living zone

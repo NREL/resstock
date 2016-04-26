@@ -332,10 +332,9 @@ class ResidentialDishwasher < OpenStudio::Ruleset::ModelUserScript
         if weather.error?
             return false
         end
-        daily_mains, monthly_mains, annual_mains = WeatherProcess._calc_mains_temperature(weather.data, weather.header)
 
         monthly_dishwasher_energy = Array.new(12, 0)
-		monthly_mains.each_with_index do |monthly_main, i|
+		weather.data.MainsMonthlyTemps.each_with_index do |monthly_main, i|
 			# Adjust for monthly variation in Tmains vs. test cold
 			# water supply temperature.
 			actual_dw_elec_use_per_cycle = test_dw_elec_use_per_cycle + \

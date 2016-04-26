@@ -333,12 +333,11 @@ class ResidentialClothesWasher < OpenStudio::Ruleset::ModelUserScript
     if weather.error?
         return false
     end
-    daily_mains, monthly_mains, annual_mains = WeatherProcess._calc_mains_temperature(weather.data, weather.header)
 
     # Set actual clothes washer water temperature for calculations below.
     if cw_cold_cycle
         # To model occupant behavior of using only a cold cycle.
-        cw_water_temp = monthly_mains.inject(:+)/12 # degF
+        cw_water_temp = weather.data.MainsMonthlyTemps.inject(:+)/12 # degF
     elsif cw_thermostatic_control
         # Washer is being operated "normally" - at the same temperature as in the test.
         cw_water_temp = mixed_cycle_temperature_test # degF
@@ -368,7 +367,7 @@ class ResidentialClothesWasher < OpenStudio::Ruleset::ModelUserScript
     monthly_clothes_washer_dhw = Array.new(12, 0)
     monthly_clothes_washer_energy = Array.new(12, 0)
 
-    monthly_mains.each_with_index do |monthly_main, i|
+    weather.data.MainsMonthlyTemps.each_with_index do |monthly_main, i|
 
         # Adjust per-cycle DHW amount.
         if cw_thermostatic_control

@@ -122,6 +122,9 @@ class Constants
   def self.BoreTypeVertical
     return 'vertical bore'
   end
+  def self.BuildingAmericaClimateZone
+    return 'Building America'
+  end
   def self.CollectorTypeClosedLoop
     return 'closed loop'
   end

@@ -131,11 +131,7 @@ def get_option_name_from_sample_value(sample_value, dependency_values, full_prob
         rowsum = 0
         rowvals.each_with_index do |rowval, index|
             rowsum += rowval
-            # Ensure we don't fail due to rounding
-            if (index  == rowvals.size-1 and rowsum > 0.99999)
-                rowsum = 1.0
-            end
-            if rowsum >= sample_value
+            if rowsum + 0.00001 >= sample_value
                 option_name = all_option_names[index]
                 matched_row_num = rownum
                 break

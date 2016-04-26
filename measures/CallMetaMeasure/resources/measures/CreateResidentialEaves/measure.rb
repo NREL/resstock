@@ -94,12 +94,12 @@ class CreateResidentialEaves < OpenStudio::Ruleset::ModelUserScript
 
   # human readable description
   def description
-    return ""
+    return "Sets the eaves for the building."
   end
 
   # human readable description of modeling approach
   def modeler_description
-    return ""
+    return "Performs a series of affine transformations on the roof decks into shading surfaces."
   end
 
   # define the arguments that the user will input

@@ -215,14 +215,14 @@ class ProcessHeatingandCoolingSetpoints < OpenStudio::Ruleset::ModelUserScript
     # Process the heating and cooling setpoints
     heatingSetpointSchedule, heatingSetpointWeekday, heatingSetpointWeekend, coolingSetpointSchedule, coolingSetpointWeekday, coolingSetpointWeekend, controlType = _processHeatingCoolingSetpoints(heatingSetpointConstantSetpoint, coolingSetpointConstantSetpoint, selectedheating, selectedcooling)
 
-    conditioned_zones = []
+    finished_zones = []
     model.getThermalZones.each do |thermal_zone|
       if Geometry.zone_is_finished(thermal_zone)
-        conditioned_zones << thermal_zone
+        finished_zones << thermal_zone
       end
     end
     
-    conditioned_zones.each do |conditioned_zone|
+    finished_zones.each do |finished_zone|
     
       thermostatsetpointdualsetpoint = OpenStudio::Model::ThermostatSetpointDualSetpoint.new(model)
       thermostatsetpointdualsetpoint.setName("Living Zone Temperature SP")
@@ -379,14 +379,14 @@ class ProcessHeatingandCoolingSetpoints < OpenStudio::Ruleset::ModelUserScript
 
       end
 
-      conditioned_zone.setThermostatSetpointDualSetpoint(thermostatsetpointdualsetpoint)
+      finished_zone.setThermostatSetpointDualSetpoint(thermostatsetpointdualsetpoint)
 
       if controlType == 4
-        runner.registerInfo("Set the thermostat '#{conditioned_zone.thermostatSetpointDualSetpoint.get.name}' for thermal zone '#{conditioned_zone.name}' with heating setpoint schedule '#{heatingsetpoint.name}' and cooling setpoint schedule '#{coolingsetpoint.name}'")
+        runner.registerInfo("Set the thermostat '#{finished_zone.thermostatSetpointDualSetpoint.get.name}' for thermal zone '#{finished_zone.name}' with heating setpoint schedule '#{heatingsetpoint.name}' and cooling setpoint schedule '#{coolingsetpoint.name}'")
       elsif controlType == 2
-        runner.registerInfo("Set the thermostat '#{conditioned_zone.thermostatSetpointDualSetpoint.get.name}' for thermal zone '#{conditioned_zone.name}' with cooling setpoint schedule '#{coolingsetpoint.name}'")
+        runner.registerInfo("Set the thermostat '#{finished_zone.thermostatSetpointDualSetpoint.get.name}' for thermal zone '#{finished_zone.name}' with cooling setpoint schedule '#{coolingsetpoint.name}'")
       elsif controlType == 1
-        runner.registerInfo("Set the thermostat '#{conditioned_zone.thermostatSetpointDualSetpoint.get.name}' for thermal zone '#{conditioned_zone.name}' with heating setpoint schedule '#{heatingsetpoint.name}'")
+        runner.registerInfo("Set the thermostat '#{finished_zone.thermostatSetpointDualSetpoint.get.name}' for thermal zone '#{finished_zone.name}' with heating setpoint schedule '#{heatingsetpoint.name}'")
       end   
     
     end

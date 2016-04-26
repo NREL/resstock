@@ -2,18 +2,18 @@
   <schema_version>3.0</schema_version>
   <name>create_basic_geometry</name>
   <uid>a1248ef4-c1ef-46ed-a9ea-4d8fbf719b6f</uid>
-  <version_id>e83bdc07-497f-4fc3-a0f1-70b2ce895a24</version_id>
-  <version_modified>20160421T142344Z</version_modified>
+  <version_id>9a097b33-8ed1-4491-b7fc-60d43aef4363</version_id>
+  <version_modified>20160426T173502Z</version_modified>
   <xml_checksum>2AF3A68E</xml_checksum>
   <class_name>CreateBasicGeometry</class_name>
   <display_name>Create Residential Geometry</display_name>
-  <description></description>
-  <modeler_description></modeler_description>
+  <description>Sets the basic geometry for the building. Building is limited to one foundation type. Garage is tucked within the building, on the front left or front right corners of the building.</description>
+  <modeler_description>Gathers living space area, wall height per floor, number of floors, aspect ratio, garage width and depth, garage position, foundation type and wall height, attic and roof type, and roof pitch. Constructs building by calculating footprint and performing a series of affine transformations into living, foundation, and attic spaces.</modeler_description>
   <arguments>
     <argument>
-      <name>total_bldg_area</name>
-      <display_name>Living Space Area</display_name>
-      <description>The total area of the living space above grade.</description>
+      <name>total_ffa</name>
+      <display_name>Total Finished Floor Area</display_name>
+      <description>The total floor area of the finished space (including any finished basement floor area).</description>
       <type>Double</type>
       <units>ft^2</units>
       <required>true</required>
@@ -33,7 +33,7 @@
     <argument>
       <name>num_floors</name>
       <display_name>Num Floors</display_name>
-      <description>The number of living space floors above grade.</description>
+      <description>The number of floors above grade.</description>
       <type>Integer</type>
       <units>#</units>
       <required>true</required>
@@ -272,10 +272,16 @@
       <checksum>C4F35230</checksum>
     </file>
     <file>
+      <filename>geometry.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>1B4BF46B</checksum>
+    </file>
+    <file>
       <filename>constants.rb</filename>
       <filetype>rb</filetype>
       <usage_type>resource</usage_type>
-      <checksum>D28DC6BC</checksum>
+      <checksum>CDA42DE8</checksum>
     </file>
     <file>
       <version>
@@ -286,13 +292,7 @@
       <filename>measure.rb</filename>
       <filetype>rb</filetype>
       <usage_type>script</usage_type>
-      <checksum>41BD685B</checksum>
-    </file>
-    <file>
-      <filename>geometry.rb</filename>
-      <filetype>rb</filetype>
-      <usage_type>resource</usage_type>
-      <checksum>01DB9ED4</checksum>
+      <checksum>01F2E6EB</checksum>
     </file>
   </files>
 </measure>
