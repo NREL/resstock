@@ -73,7 +73,8 @@ class CreateResidentialNeighbors < OpenStudio::Ruleset::ModelUserScript
     front_neighbor_offset = OpenStudio::convert(runner.getDoubleArgumentValue("front_neighbor_offset",user_arguments),"ft","m").get
 	
     if left_neighbor_offset < 0 or right_neighbor_offset < 0 or back_neighbor_offset < 0 or front_neighbor_offset < 0
-      runner.registerWarning("You've positioned one or more of the neighbors to be too close to your house.")
+      runner.registerError("Neighbor offsets must be greater than or equal to 0.")
+      return false
     end
     
     least_x = 1000
@@ -81,8 +82,13 @@ class CreateResidentialNeighbors < OpenStudio::Ruleset::ModelUserScript
     least_y = 1000
     greatest_y = -1000
 	
-    # get x and y minima and maxima of wall surfaces
     surfaces = model.getSurfaces
+    if surfaces.size == 0
+      runner.registerAsNotApplicable("No surfaces found to copy for neighboring buildings.")
+      return true
+    end
+    
+    # get x and y minima and maxima of wall surfaces
     surfaces.each do |surface|
       if surface.surfaceType.downcase == "wall"
         vertices = surface.vertices

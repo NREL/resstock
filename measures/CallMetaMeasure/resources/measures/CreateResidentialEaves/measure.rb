@@ -147,6 +147,8 @@ class CreateResidentialEaves < OpenStudio::Ruleset::ModelUserScript
       return false
     end
     
+    surfaces_modified = false
+    
     case roof_type
     when Constants.RoofTypeGable
       
@@ -154,6 +156,7 @@ class CreateResidentialEaves < OpenStudio::Ruleset::ModelUserScript
       
       model.getSurfaces.each do |surface|
         next unless ( surface.surfaceType.downcase == "roofceiling" or surface.surfaceType.downcase == "wall" ) and surface.outsideBoundaryCondition.downcase == "outdoors"      
+        surfaces_modified = true
         
         # Truss, Cantilever
         if roof_structure == Constants.RoofStructureTrussCantilever
@@ -616,6 +619,11 @@ class CreateResidentialEaves < OpenStudio::Ruleset::ModelUserScript
         
       end
       
+    end
+    
+    if not surfaces_modified
+      runner.registerAsNotApplicable("No surfaces found for adding eaves.")
+      return true
     end
    
     return true

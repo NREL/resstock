@@ -118,6 +118,8 @@ class CreateResidentialOverhangs < OpenStudio::Ruleset::ModelUserScript
         return true
     end
     
+    windows_found = false
+    
     # get building orientation
     building_orientation = model.getBuilding.northAxis.round
         
@@ -125,6 +127,8 @@ class CreateResidentialOverhangs < OpenStudio::Ruleset::ModelUserScript
     subsurfaces.each do |subsurface|
         
         next if not subsurface.subSurfaceType.downcase.include? "window"
+        
+        windows_found = true
     
         # get subsurface azimuth to determine facade
         window_azimuth = OpenStudio::Quantity.new(subsurface.azimuth, OpenStudio::createSIAngle)
@@ -149,6 +153,11 @@ class CreateResidentialOverhangs < OpenStudio::Ruleset::ModelUserScript
         
         runner.registerInfo("#{overhang.get.name.to_s} added.")
 
+    end
+    
+    if not windows_found
+      runner.registerAsNotApplicable("No windows found for adding overhangs.")
+      return true
     end
     
     return true

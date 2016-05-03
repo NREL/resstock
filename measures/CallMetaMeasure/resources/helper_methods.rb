@@ -80,7 +80,78 @@ def get_probability_file_data(full_probability_path, runner)
     return headers, rows, parameter_name, all_option_names, dependency_cols
 end
 
-def get_option_name_from_sample_value(sample_value, dependency_values, full_probability_path, dependency_cols, all_option_names, headers, rows, runner=nil)
+def binary_search(arr, value)
+    if arr.nil? or arr.size == 0
+        return 0
+    end
+    lo = 0
+    hi = arr.size - 1
+    m = 0
+    while lo < hi
+        m = (hi + lo) / 2
+        if arr[m] > value
+            lo = m + 1
+        else
+            hi = m - 1
+        end
+    end
+    if arr[lo] > value
+        lo += 1
+    end
+    return lo
+end
+
+def sample_probability_distribution(sample_number, prob_dist, runner=nil)
+    # sample_number - integer between 1 and total number of samples
+    # prob_dist - array of arrays where the inner arrays are of the
+    #             form [option_name, probability]
+    # Returns the appropriate option name based on the probability
+    # distribution and the sample number. Uses quota-based sampling.
+    
+    # Sort array in descending order
+    prob_dist.sort! {|a,b| b[1] <=> a[1]}
+    
+    if sample_number == 1
+        return prob_dist[0][0]
+    end
+    
+    # We'll never choose to sample an item beyond the first 
+    # sample_number number of items, so discard the rest.
+    if prob_dist.size > sample_number
+        prob_dist.slice!(sample_number..prob_dist.size-1)
+    end
+    
+    sum = prob_dist.transpose[1].inject(0, :+)
+    remaining_samples = sample_number
+    while remaining_samples > 0
+        # Choose highest probability item (first in array) 
+        max_item = prob_dist[0]
+        
+        # Calculate new probability
+        target_num_samples = remaining_samples * max_item[1] / sum
+        new_probability = (target_num_samples - 1) / target_num_samples * max_item[1]
+        
+        # Remove item, insert back into the appropriate sorted
+        # position based on its new probability value
+        prob_dist.delete_at(0)
+        index = binary_search(prob_dist.transpose[1], new_probability)
+        prob_dist.insert(index, [max_item[0], new_probability])
+        
+        # Update sum and remaining_samples
+        sum += (new_probability - max_item[1])
+        remaining_samples -= 1
+        
+        # We'll never choose to sample an item beyond the first 
+        # remaining_samples number of items, so discard the rest.
+        if prob_dist.size > remaining_samples
+            prob_dist.pop
+        end
+    end
+    
+    return max_item[0]
+end
+
+def get_option_name_from_sample_number(sample_number, total_samples, dependency_values, full_probability_path, dependency_cols, all_option_names, headers, rows, runner=nil)
     # Retrieve option name from probability file based on sample value
     
     option_name = nil
@@ -122,29 +193,21 @@ def get_option_name_from_sample_value(sample_value, dependency_values, full_prob
             register_error("Values in #{full_probability_path.to_s} incorrectly sum to #{sum_rowvals.to_s}.", runner)
         end
         
-        # If values don't exactly sum to 1, normalize them
-        if sum_rowvals != 1.0
-            rowvals = rowvals.collect { |n| n / sum_rowvals }
+        # Find appropriate option
+        prob_dist = []
+        rowvals.each_with_index do |rowval, i|
+            prob_dist << [all_option_names[i], rowval]
         end
-        
-        # Find appropriate value
-        rowsum = 0
-        rowvals.each_with_index do |rowval, index|
-            rowsum += rowval
-            if rowsum + 0.00001 >= sample_value
-                option_name = all_option_names[index]
-                matched_row_num = rownum
-                break
-            end
-        end
+        option_name = sample_probability_distribution(sample_number, prob_dist, runner)
+        matched_row_num = rownum
     end
     
     if option_name.nil? or option_name.size == 0
         deps_s = hash_to_string(dependency_values)
         if deps_s.size > 0
-            register_error("Could not determine appropriate option in #{full_probability_path.to_s} for sample value #{sample_value.to_s} with dependencies: #{deps_s.to_s}.", runner)
+            register_error("Could not determine appropriate option in #{full_probability_path.to_s} for sample number #{sample_number.to_s} with dependencies: #{deps_s.to_s}.", runner)
         else
-            register_error("Could not determine appropriate option in #{full_probability_path.to_s} for sample value #{sample_value.to_s}.", runner)
+            register_error("Could not determine appropriate option in #{full_probability_path.to_s} for sample number #{sample_number.to_s}.", runner)
         end
         return option_name
     end

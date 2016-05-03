@@ -19,7 +19,7 @@ class SetResStockMode < OpenStudio::Ruleset::ModelUserScript
 
   # human readable description of modeling approach
   def modeler_description
-    return "Based on the mode specified, the Meta-Measure will use the appropriate probability distribution files (as found in its resources subdirectory)."
+    return "Probability distribution files found in ./resources/mode/ will be used."
   end
 
   # define the arguments that the user will input
@@ -27,8 +27,8 @@ class SetResStockMode < OpenStudio::Ruleset::ModelUserScript
     args = OpenStudio::Ruleset::OSArgumentVector.new
 
     res_stock_modes = OpenStudio::StringVector.new
-    res_stock_modes << "National"
-    res_stock_modes << "Pacific Northwest"
+    res_stock_modes << "national"
+    res_stock_modes << "pnw"
     
     res_stock_mode = OpenStudio::Ruleset::OSArgument.makeChoiceArgument("res_stock_mode", res_stock_modes, true)
     res_stock_mode.setDisplayName("Res Stock Mode")

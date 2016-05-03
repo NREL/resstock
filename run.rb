@@ -95,7 +95,7 @@ def perform_integrity_checks(project_file, rsmode)
         # Test all possible combinations of dependency value combinations
         combo_hashes = get_combination_hashes(parameter_option_names, dependency_cols.keys)
         combo_hashes.each do |combo_hash|
-            option_name, matched_row_num = get_option_name_from_sample_value(1.0, combo_hash, pdfile, dependency_cols, parameter_option_names[parameter_name], headers, rows, nil)
+            option_name, matched_row_num = get_option_name_from_sample_number(1, 1, combo_hash, pdfile, dependency_cols, parameter_option_names[parameter_name], headers, rows, nil)
             rows.delete_at(matched_row_num) # speed up subsequent combo_hash searches
         end
     

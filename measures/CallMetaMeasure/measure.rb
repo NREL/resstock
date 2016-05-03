@@ -54,15 +54,17 @@ class CallMetaMeasure < OpenStudio::Ruleset::ModelUserScript
     probability_file = runner.getStringArgumentValue("probability_file",user_arguments)
     sample_value = runner.getDoubleArgumentValue("sample_value",user_arguments)
     
+    # Translate sample_value into sample number.
+    total_samples = runner.analysis[:analysis][:problem][:algorithm][:number_of_samples].to_f
+    sample_number = [(sample_value * total_samples).ceil, 1].max
+    
     # Get mode and corresponding subdirectory (as found in the MetaMeasure resources dir)
     res_stock_mode = get_value_from_runner_past_results("res_stock_mode", runner)
     
     # Get file/dir paths
     resources_dir = File.absolute_path(File.join(File.dirname(__FILE__), "resources"))
     measures_dir = File.join(resources_dir, "measures")
-    subdir_hash = {"National" => File.join("inputs","national"), 
-                   "Pacific Northwest" => File.join("inputs","pnw")}
-    inputs_dir = File.join(resources_dir, subdir_hash[res_stock_mode])
+    inputs_dir = File.join(resources_dir, "inputs", res_stock_mode)
     lookup_file = File.join(resources_dir, "options_lookup.txt")
     
     full_probability_path = File.join(inputs_dir, probability_file)
@@ -75,7 +77,7 @@ class CallMetaMeasure < OpenStudio::Ruleset::ModelUserScript
     dependency_values = get_dependency_values_from_runner(dependency_cols, runner)
     
     # Get option name given the sample value and dependency values
-    option_name, matched_row_num = get_option_name_from_sample_value(sample_value, dependency_values, full_probability_path, dependency_cols, all_option_names, headers, rows, runner)
+    option_name, matched_row_num = get_option_name_from_sample_number(sample_number, total_samples, dependency_values, full_probability_path, dependency_cols, all_option_names, headers, rows, runner)
     
     # Get measure name and arguments associated with the option name
     measure_args = get_measure_args_from_option_name(lookup_file, option_name, parameter_name, runner)
