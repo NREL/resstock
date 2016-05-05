@@ -37,6 +37,7 @@ class ResStockReporting < OpenStudio::Ruleset::ReportingUserScript
             report_name = File.basename(probability_file,File.extname(probability_file)) # Strip off file extension
             report_value = v.to_s
             
+            runner.registerInfo("Registering #{report_value} for #{report_name}.")
             runner.registerValue(report_name, report_value)
         end
     end

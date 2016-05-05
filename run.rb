@@ -127,7 +127,7 @@ options = {}
 optparse = OptionParser.new do |opts|
     opts.banner = 'Usage:    ruby run.rb [-t] <target> [-m] <mode> [-r] [-k] [-n]'
 
-    options[:target] = 'nrel24b'
+    options[:target] = 'nrel24a'
     opts.on( '-t', '--target <target_alias>', 'target OpenStudio-Server instance') do |server|
         options[:target] = server
     end

@@ -16,7 +16,6 @@ CLEAN.include('*.pem', '*.pub', './projects/*.json', '*.json', 'faraday.log')
 
 # Command-line arguments in Rake: http://viget.com/extend/protip-passing-parameters-to-your-rake-tasks
 def get_project(excel_file = '')
-   puts "DEPRICATION WARNING -- Rakefile interface is being depricated for running analyses. Please begin to use the cli. For help type 'bundle exec ruby cli.rb -h'.".red
   # If excel_file is not pre-specified, request it as input
   unless excel_file && !excel_file.empty?
     # Determine the project file to run.  This will list out all the xlsx files and give you a
@@ -24,7 +23,7 @@ def get_project(excel_file = '')
     puts
     puts 'Select which project to run from the list below:'.cyan.underline
     puts 'Note: if this list is too long, simply remove xlsx files from the ./projects directory'.cyan
-    projects = Dir.glob('./projects/*.xlsx').reject { |i| i =~ /~\$.*/ }
+    projects = Dir['./projects/*.{xlsx,csv}'].reject { |i| i =~ /~\$.*/ }
     projects.each_index do |i|
       puts "  #{i + 1}) #{File.basename(projects[i])}".green
     end
@@ -40,74 +39,109 @@ def get_project(excel_file = '')
     excel_file = projects[n_i - 1]
   end
 
-  # Open it
-  excel = nil
+  # Open the file
+  analysis = nil
+  run_options = nil
   if excel_file && File.exist?(excel_file)
-    excel = OpenStudio::Analysis::Translator::Excel.new(excel_file)
-    excel.process
+    if File.extname(excel_file) == '.xlsx'
+      excel = OpenStudio::Analysis::Translator::Excel.new(excel_file)
+      excel.process
+
+      # Ideally there would be no difference between excel and the csv,
+      # but as you can tell, there is. ugh-ly.
+      analysis = excel.analysis
+      run_options = excel.settings
+      run_options.delete('aws_tag')
+      run_options['aws_tags'] = excel.aws_tags
+      run_options.merge!(excel.run_setup)
+      run_options['analysis_type'] = excel.problem['analysis_type']
+
+    elsif File.extname(excel_file) == '.csv'
+      csv = OpenStudio::Analysis::Translator::Datapoints.new(excel_file)
+      csv.process
+
+      analysis = csv.analysis
+      run_options = {}
+      run_options['cluster_name'] = csv.cluster_name
+
+      # AWS settings
+      run_options['openstudio_server_version'] = csv.settings[:os_server_version]
+      run_options['server_instance_type'] = csv.run_setup[:server_instance_type]
+      run_options['worker_instance_type'] = csv.run_setup[:worker_instance_type]
+      run_options['worker_nodes'] = csv.settings[:worker_node_number]
+      run_options['aws_tags'] = csv.settings[:aws_tags]
+      run_options['user_id'] = csv.settings[:user_id]
+      run_options['proxy_port'] = csv.settings[:proxy_port]
+
+      run_options['run_data_point_filename'] = 'run_openstudio_workflow_monthly.rb'
+      run_options['simulate_data_point_filename'] = 'simulate_data_point.rb'
+      run_options['analysis_type'] = csv.settings[:analysis_type]
+    end
   else
     puts "Could not find input excel file: #{excel_file}".red
     exit 1
   end
 
-  excel
+  [analysis, run_options]
 end
 
-def create_cluster(excel)
-  if File.exist?("#{excel.cluster_name}.json")
+def create_cluster(options)
+  # Verify that all the data are needed to create the cluster
+  fail 'No cluster name in options' if options['cluster_name'].nil?
+  fail 'No worker node count defined in options' if options['worker_nodes'].nil?
+  fail 'No OpenStudio server version defined in options' if options['openstudio_server_version'].nil?
+  fail 'No user id defined in options' if options['user_id'].nil?
+  fail 'No server instance type defined in options' if options['server_instance_type'].nil?
+  fail 'No worker instance type defined in options' if options['worker_instance_type'].nil?
+  fail 'No worker instance type defined in options' if options['aws_tags'].nil?
+
+  if File.exist?("#{options['cluster_name']}.json")
     puts
-    puts "It appears that a cluster for #{excel.cluster_name} is already running. \
-If this is not the case then delete ./#{excel.cluster_name}.json file. \
+    puts "It appears that a cluster for #{options['cluster_name']} is already running. \
+If this is not the case then delete ./#{ options['cluster_name']}.json file. \
 Or run `rake clean`".red
     puts 'Will try to continue'.cyan
   else
-    puts "Creating cluster for #{excel.cluster_name}".cyan
+    puts "Creating cluster for #{options['cluster_name']}".cyan
     puts 'Validating cluster options'.cyan
 
-    if excel.settings['worker_nodes'].to_i == 0
+    if options['worker_nodes'].to_i.to_i == 0
       puts 'Number of workers set to zero... will continue'.cyan
     end
 
-    puts "Number of worker nodes set to #{excel.settings['worker_nodes'].to_i}".cyan
+    puts "Number of worker nodes set to #{options['worker_nodes'].to_i}".cyan
     puts 'Starting cluster...'.cyan
 
     # Don't use the old API (Version 1)
     aws_options = {
         ami_lookup_version: 2,
-        openstudio_server_version: excel.settings['openstudio_server_version']
+        openstudio_server_version: options['openstudio_server_version']
     }
     aws = OpenStudio::Aws::Aws.new(aws_options)
 
     server_options = {
-        instance_type: excel.settings['server_instance_type'],
-        user_id: excel.settings['user_id'],
-        tags: excel.aws_tags
-        # aws_key_pair_name: 'custom_key',
-        # private_key_file_name: File.expand_path('~/.ssh/private_key')
-        # optional -- will default later
-        # ebs_volume_id: nil,
+        instance_type: options['server_instance_type'],
+        user_id: options['user_id'],
+        tags: options['aws_tags']
     }
 
     worker_options = {
-        instance_type: excel.settings['worker_instance_type'],
-        user_id: excel.settings['user_id'],
-        tags: excel.aws_tags
-        # aws_key_pair_name: 'custom_key',
-        # private_key_file_name: File.expand_path('~/.ssh/private_key')
+        instance_type: options['worker_instance_type'],
+        user_id: options['user_id'],
+        tags: options['aws_tags']
     }
 
     start_time = Time.now
 
     # Create the server & worker
     aws.create_server(server_options)
-    aws.save_cluster_info "#{excel.cluster_name}.json"
+    aws.save_cluster_info "#{options['cluster_name']}.json"
     aws.print_connection_info
 
-    aws.create_workers(excel.settings['worker_nodes'].to_i, worker_options)
-    aws.save_cluster_info "#{excel.cluster_name}.json"
+    aws.create_workers(options['worker_nodes'].to_i, worker_options)
+    aws.save_cluster_info "#{options['cluster_name']}.json"
     aws.print_connection_info
 
-    # This saves off a file called named #{excelfile}.json that can be used to read in to run the
     server_dns = "http://#{aws.os_aws.server.data.dns}"
 
     puts "Cluster setup in #{(Time.now - start_time).round} seconds. Awaiting analyses.".cyan
@@ -115,7 +149,7 @@ Or run `rake clean`".red
   end
 end
 
-def configure_target_server(excel, target)
+def configure_target_server(cluster_name, target)
   # Choose target server and return the DNS
   server_dns = nil
   case target.downcase
@@ -125,11 +159,15 @@ def configure_target_server(excel, target)
       server_dns = 'http://bball-130553.nrel.gov:8080'
     when 'nrel24b'
       server_dns = 'http://bball-130590.nrel.gov:8080'
-    when "nrel24"
-      server_dns = "http://bball-130449.nrel.gov:8080"
+    when 'nrel24'
+      server_dns = 'http://bball-130449.nrel.gov:8080'
+    when 'local_development'
+      server_dns = 'http://localhost:3000'
+    when 'local'
+      server_dns = 'http://localhost:3000'
     when 'aws'
-      if File.exist?("#{excel.cluster_name}.json")
-        json = JSON.parse(File.read("#{excel.cluster_name}.json"), symbolize_names: true)
+      if File.exist?("#{cluster_name}.json")
+        json = JSON.parse(File.read("#{cluster_name}.json"), symbolize_names: true)
         server_dns = "http://#{json[:server][:dns]}"
       end
   end
@@ -150,204 +188,181 @@ def unzip_archive(archive, dest)
   end
 end
 
-def run_analysis(excel, target = 'aws', download = false)
+def run_analysis(analysis, run_options, target = 'aws', download = false)
+  puts 'Running the analysis'
+
+  server_dns = configure_target_server(run_options['cluster_name'], target)
+
+  unless server_dns
+    puts "There doesn't appear to be a cluster running for this project #{run_options['cluster_name']}"
+    exit 1
+  end
+
+  formulation_file = "./analysis/#{File.basename(analysis.name)}.json"
+  analysis_zip_file = "./analysis/#{File.basename(analysis.name)}.zip"
+
+  # Project data
+  options = {hostname: server_dns}
+  api = OpenStudio::Analysis::ServerApi.new(options)
+
+  if run_options[:batch_run_method]
+    analysis_id = api.run(formulation_file,
+                          analysis_zip_file,
+                          run_options['analysis_type'],
+                          { batch_run_method: run_options[:batch_run_method]}
+    )
+  else
+    analysis_id = api.run(formulation_file,
+                          analysis_zip_file,
+                          run_options['analysis_type']
+    )
+  end
+
+
+  # Report some useful info
+  puts
+  puts "Analysis type is: #{run_options['analysis_type']}".bold.cyan
+  puts "Server URL is: #{server_dns}".bold.cyan
+
+  # If download option selected:
+  # a. Monitor for completiong
+  # b. Download results (R data frame and data point .zips) to ./results/#{analysis_id}
+  # c. Clean up by deleting the analysis on the server
+  if download
+    puts
+    puts 'Waiting to download analysis results... '.cyan
+
+    # These are hard coded for now...
+    check_interval = 15 # sec
+    max_time = 3600 # sec
+
+    Timeout.timeout(max_time) do
+      begin
+        # Monitor the server and wait for it to respond
+        loop do
+          print '.'
+          status = api.get_analysis_status(analysis_id, 'batch_run')
+          if status && status == 'completed'
+            puts 'analysis completed!'
+
+            out_dir = "./results/#{analysis_id}"
+            FileUtils.mkdir_p(out_dir)
+            puts "Download directory is: #{out_dir}"
+
+            # Download R data frame
+            puts
+            puts 'Downloading R data frame...'.cyan
+            ok, f = api.download_dataframe(analysis_id, out_dir)
+            if ok
+              puts 'Downloaded R data frame succesfully.'
+            else
+              puts 'Error downloading R data frame.'
+            end
+
+            # Download all the datapoints
+            data_points = api.get_datapoint_status(analysis_id, 'completed')
+            puts
+            puts 'Downloading all data points...'.cyan
+            if data_points.nil? || data_points.empty?
+              puts "\tNo completed data points found even though the analysis completed!"
+
+            else
+              data_points.each do |dp|
+                if dp[:final_message] == 'completed normal'
+                  puts "\tDownloading data point #{dp[:_id]}"
+                  ok, f = api.download_datapoint(dp[:_id], out_dir)
+
+                  if ok
+                    puts "\tExtracting data point #{dp[:_id]}"
+                    dest = File.join(File.dirname(f), File.basename(f, '.zip'))
+                    unzip_archive(f, dest)
+                    File.delete(f)
+                  else
+                    puts "\tError downloading data point #{dp[:_id]}"
+                  end
+
+                else
+                  puts "\tError found in data point #{dp[:_id]}"
+                end
+              end
+            end
+
+            # Clean up project
+            puts
+            puts 'Cleaning up...'.cyan
+            api.delete_project(project_id)
+
+            break
+          end
+
+          sleep check_interval
+        end
+
+          # On timeout...
+      rescue TimeoutError => e
+        puts 'Time expired before analysis completed! Download aborted.'.bold.red
+      end
+    end
+  end
+
+  # Final stuff
+  if target.downcase == 'aws'
+    puts
+    puts 'Make sure to check the AWS console (N. Virginia Region) and terminate any OpenStudio instances when you are finished!'.bold.red
+  end
+end
+
+# Run multiple analyses using the models in the Excel file. This needs to be
+# deprecated.
+def run_analyses(excel, target = 'aws', download = false)
   puts 'Running the analysis'
 
   # Which server?
   server_dns = configure_target_server(excel, target)
 
-  # Run the analysis
-  if server_dns
-    # for each model in the excel file submit the analysis
-    excel.models.each do |model|
-      # parse the file and check if the instance appears to be up
-
-      file_name = nil
-      if excel.models.size > 1
-        file_name = "#{excel.name.snake_case} #{model[:name]}".snake_case
-      else
-        file_name = "#{excel.name.snake_case}".snake_case
-      end
-
-      formulation_file = "./analysis/#{file_name}.json"
-      analysis_zip_file = "./analysis/#{file_name}.zip"
-
-      # Project data
-      options = {hostname: server_dns}
-      api = OpenStudio::Analysis::ServerApi.new(options)
-
-      analysis_id = api.run(formulation_file, analysis_zip_file, excel.problem['analysis_type'],
-                            excel.run_setup['allow_multiple_jobs'], true, excel.run_setup['run_data_point_filename'])
-
-      # Report some useful info
-      puts
-      puts "Analysis type is: #{excel.problem['analysis_type']}".bold.cyan
-      puts "Server URL is: #{server_dns}".bold.cyan
-
-      # If download option selected:
-      # a. Monitor for completiong
-      # b. Download results (R data frame and data point .zips) to ./results/#{analysis_id}
-      # c. Clean up by deleting the analysis on the server
-      if download
-        puts
-        puts 'Waiting to download analysis results... '.cyan
-
-        # These are hard coded for now...
-        check_interval = 15 # sec
-        max_time = 3600 # sec
-
-        Timeout.timeout(max_time) do
-          begin
-            # Monitor the server and wait for it to respond
-            loop do
-              print '.'
-              status = api.get_analysis_status(analysis_id, 'batch_run')
-              if status && status == 'completed'
-                puts 'analysis completed!'
-
-                out_dir = "./results/#{analysis_id}"
-                FileUtils.mkdir_p(out_dir)
-                puts "Download directory is: #{out_dir}"
-
-                # Download R data frame
-                puts
-                puts 'Downloading R data frame...'.cyan
-                ok, f = api.download_dataframe(analysis_id, out_dir)
-                if ok
-                  puts 'Downloaded R data frame succesfully.'
-                else
-                  puts 'Error downloading R data frame.'
-                end
-
-                # Download all the datapoints
-                data_points = api.get_datapoint_status(analysis_id, 'completed')
-                puts
-                puts 'Downloading all data points...'.cyan
-                if data_points.nil? || data_points.empty?
-                  puts "\tNo completed data points found even though the analysis completed!"
-
-                else
-                  data_points.each do |dp|
-                    if dp[:final_message] == 'completed normal'
-                      puts "\tDownloading data point #{dp[:_id]}"
-                      ok, f = api.download_datapoint(dp[:_id], out_dir)
-
-                      if ok
-                        puts "\tExtracting data point #{dp[:_id]}"
-                        dest = File.join(File.dirname(f), File.basename(f, '.zip'))
-                        unzip_archive(f, dest)
-                        File.delete(f)
-                      else
-                        puts "\tError downloading data point #{dp[:_id]}"
-                      end
-
-                    else
-                      puts "\tError found in data point #{dp[:_id]}"
-                    end
-                  end
-                end
-
-                # Clean up project
-                puts
-                puts 'Cleaning up...'.cyan
-                api.delete_project(project_id)
-
-                break
-              end
-
-              sleep check_interval
-            end
-
-              # On timeout...
-          rescue TimeoutError => e
-            puts 'Time expired before analysis completed! Download aborted.'.bold.red
-          end
-        end
-      end
-    end
-
-    # Final stuff
-    if target.downcase == 'aws'
-      puts
-      puts 'Make sure to check the AWS console (N. Virginia Region) and terminate any OpenStudio instances when you are finished!'.bold.red
-    end
-  else
+  unless server_dns
     puts "There doesn't appear to be a cluster running for this project #{excel.cluster_name}"
+    exit 1
+  end
+
+  # for each model in the excel file submit the analysis
+  excel.models.each do |model|
+    # parse the file and check if the instance appears to be up
+
+    file_name = nil
+    if excel.models.size > 1
+      file_name = "#{excel.name.snake_case} #{model[:name]}".snake_case
+    else
+      file_name = "#{excel.name.snake_case}".snake_case
+    end
+
+    run_analysis(file_name, server_dns, download)
   end
 end
 
+def save_analysis(analysis)
+  analysis.save "analysis/#{analysis.name}.json"
+  analysis.save_zip "analysis/#{analysis.name}.zip"
+end
+
+
+# ********************* Start List of Tasks ***********************************
 desc 'create the analysis files with more output'
 task :setup do
-  excel = get_project
-
-  puts 'Seed models are:'.cyan
-  excel.models.each do |model|
-    puts "  #{model}".green
-  end
-
-  puts 'Weather files to bundle are are:'.cyan
-  excel.weather_files.each do |wf|
-    puts "  #{wf}".green
-  end
-
-  puts 'Saving the analysis JSONS and zips'.cyan
-  excel.save_analysis # directory is define in the setup
-
-  puts 'Finished saving analysis into the analysis directory'.cyan
-end
-
-desc 'test the creation of the cluster'
-task :create_cluster do
-  excel = get_project
-
-  create_cluster(excel)
-end
-
-desc 'setup problem, start cluster, and run analysis (will submit another job if cluster is already running)'
-task :run do
-  excel = get_project
-  excel.save_analysis
-  create_cluster(excel)
-  run_analysis(excel, 'aws')
-end
-
-desc 'run vagrant'
-task :run_vagrant do
-  excel = get_project
-  excel.save_analysis
-  run_analysis(excel, 'vagrant')
-end
-
-desc 'run NREL24a'
-task :run_NREL24a do
-  excel = get_project
-  excel.save_analysis
-  run_analysis(excel, 'nrel24a')
-end
-
-desc 'run NREL24b'
-task :run_NREL24b do
-  excel = get_project
-  excel.save_analysis
-  run_analysis(excel, 'nrel24b')
-end
-
-desc "run NREL24"
-task :run_NREL24 do
-  excel = get_project
-  excel.save_analysis
-  run_analysis(excel, 'nrel24')
+  analysis, _run_options = get_project
+  save_analysis(analysis)
 end
 
 desc "run analysis with customized options"
-task :run_custom, [:target, :project, :download] do |t, args|
-  args.with_defaults(target: 'aws', project: nil, download: false)
-  excel = get_project(args[:project])
-  excel.save_analysis
+task :run_custom, [:target, :project, :download, :batch_run_method] do |t, args|
+  args.with_defaults(target: 'aws', project: nil, download: false, batch_run_method: 'batch_run' )
+  analysis, run_options = get_project(args[:project])
+  run_options[:batch_run_method] = args[:batch_run_method]
+  save_analysis(analysis)
   if args[:target].downcase == 'aws'
-    create_cluster(excel)
+    create_cluster(run_options)
   end
-  run_analysis(excel, args[:target], args[:download])
+  run_analysis(analysis, run_options, args[:target], args[:download])
 end
 
 desc "terminate running aws instances"
@@ -361,7 +376,7 @@ task :terminate do
     aws.load_instance_info_from_file(json)
 
     puts "AWS server instance found with IP: #{aws.os_aws.server.ip}"
-    puts "AWS worker instances found with IPs: #{aws.os_aws.workers.map{|w| w.ip}.join(', ')}"
+    puts "AWS worker instances found with IPs: #{aws.os_aws.workers.map { |w| w.ip }.join(', ')}"
 
     if aws.os_aws.server.ip
       print "Do you want to terminate the AWS instances node [Y/N]? "
@@ -506,4 +521,40 @@ task :update_measures do
     puts "Deleting test file #{file}"
     FileUtils.rm_rf(file)
   end
+end
+
+desc 'setup problem, start cluster, and run analysis (will submit another job if cluster is already running)'
+task :run do
+  task(:run_custom).invoke('aws')
+end
+
+desc 'run vagrant'
+task :run_vagrant do
+  task(:run_custom).invoke('vagrant')
+end
+
+desc 'run local (localhost:8080)'
+task :run_local do
+  task(:run_custom).invoke('local')
+end
+
+desc 'run local development (localhost:3000)'
+task :run_local_development do
+  # task(:run_custom).invoke('local_development', nil, nil, 'batch_run' )
+  task(:run_custom).invoke('local_development', nil, nil, 'batch_run_local' )
+end
+
+desc 'run NREL24a'
+task :run_NREL24a do
+  task(:run_custom).invoke('nrel24a')
+end
+
+desc 'run NREL24b'
+task :run_NREL24b do
+  task(:run_custom).invoke('nrel24b')
+end
+
+desc "run NREL24"
+task :run_NREL24 do |t, args|
+  task(:run_custom).invoke('nrel24')
 end

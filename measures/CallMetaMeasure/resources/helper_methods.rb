@@ -101,8 +101,9 @@ def binary_search(arr, value)
     return lo
 end
 
-def sample_probability_distribution(sample_number, prob_dist, runner=nil)
+def sample_probability_distribution(sample_number, total_samples, prob_dist, runner=nil)
     # sample_number - integer between 1 and total number of samples
+    # total_samples - integer for total number of samples
     # prob_dist - array of arrays where the inner arrays are of the
     #             form [option_name, probability]
     # Returns the appropriate option name based on the probability
@@ -122,7 +123,7 @@ def sample_probability_distribution(sample_number, prob_dist, runner=nil)
     end
     
     sum = prob_dist.transpose[1].inject(0, :+)
-    remaining_samples = sample_number
+    remaining_samples = total_samples
     while remaining_samples > 0
         # Choose highest probability item (first in array) 
         max_item = prob_dist[0]
@@ -145,6 +146,10 @@ def sample_probability_distribution(sample_number, prob_dist, runner=nil)
         # remaining_samples number of items, so discard the rest.
         if prob_dist.size > remaining_samples
             prob_dist.pop
+        end
+        
+        if remaining_samples == total_samples - sample_number
+            break
         end
     end
     
@@ -198,7 +203,7 @@ def get_option_name_from_sample_number(sample_number, total_samples, dependency_
         rowvals.each_with_index do |rowval, i|
             prob_dist << [all_option_names[i], rowval]
         end
-        option_name = sample_probability_distribution(sample_number, prob_dist, runner)
+        option_name = sample_probability_distribution(sample_number, total_samples, prob_dist, runner)
         matched_row_num = rownum
     end
     

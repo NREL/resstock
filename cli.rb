@@ -8,6 +8,7 @@ require 'fileutils'
 require 'pp'
 require 'colored'
 
+# TODO: this is already in the workflow gem Openstudio::Workflow.extract_archive
 # Unzip an archive to a destination directory using Rubyzip gem
 #
 # @param archive [:string] archive path for extraction
