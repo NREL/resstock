@@ -77,7 +77,7 @@ results_data[0].each do |col_header|
     if dep_options.size > 0
         dep_combos = dep_options.first.product(*dep_options[1..-1])
     else
-        dep_combos = []
+        dep_combos = [[]]
     end
     
     # Get sampling percentages for each option for each combination
