@@ -57,7 +57,7 @@ class WeatherProcess
             epw_path = test.get
           else
             # If this is an always-run Measure, need to check for file in different path
-            alt_weath_path = File.expand_path(File.join(File.dirname(__FILE__), "../../../resources"))
+            alt_weath_path = File.expand_path(File.join(File.dirname(__FILE__), "./resources"))
             alt_epw_path = File.expand_path(File.join(alt_weath_path, test.get.to_s))
             server_epw_path = File.expand_path(File.join(File.dirname(__FILE__), "../../../weather/#{File.basename(test.get.to_s)}"))
             if File.exist?(alt_epw_path)

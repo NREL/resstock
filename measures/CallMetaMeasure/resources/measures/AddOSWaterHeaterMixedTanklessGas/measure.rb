@@ -45,13 +45,11 @@ class AddOSWaterHeaterMixedTanklessGas < OpenStudio::Ruleset::ModelUserScript
         # make an argument for water_heater_location
         thermal_zones = model.getThermalZones
         thermal_zone_names = thermal_zones.select { |tz| not tz.name.empty?}.collect{|tz| tz.name.get }
-        if not thermal_zone_names.include?(Constants.LivingZone)
-            thermal_zone_names << Constants.LivingZone
-        end
+        thermal_zone_names << Constants.Auto
         water_heater_location = osargument::makeChoiceArgument("water_heater_location",thermal_zone_names, true)
-        water_heater_location.setDefaultValue(Constants.LivingZone)
+        water_heater_location.setDefaultValue(Constants.Auto)
         water_heater_location.setDisplayName("Location")
-        water_heater_location.setDescription("Thermal zone where the water heater is located.")
+        water_heater_location.setDescription("Thermal zone where the water heater is located. #{Constants.Auto} will locate the water heater according the BA House Simulation Protocols: A garage (if available) or the living space in hot-dry and hot-humid climates, a basement (finished or unfinished, if available) or living space in all other climates")
 	
         args << water_heater_location
 
@@ -60,7 +58,7 @@ class AddOSWaterHeaterMixedTanklessGas < OpenStudio::Ruleset::ModelUserScript
         water_heater_capacity.setDisplayName("Input Capacity")
         water_heater_capacity.setDescription("The maximum energy input rating of the water heater.")
         water_heater_capacity.setUnits("kBtu/hr")
-        water_heater_capacity.setDefaultValue("1000000.0")
+        water_heater_capacity.setDefaultValue("199.0")
         args << water_heater_capacity
 
         # make an argument for the rated energy factor
@@ -139,7 +137,16 @@ class AddOSWaterHeaterMixedTanklessGas < OpenStudio::Ruleset::ModelUserScript
 	    if valid_epar.nil?
             return false
         end
-    
+        
+        #If location is Auto, get the location
+        if water_heater_tz == Constants.Auto
+            water_heater_tz = Waterheater.get_water_heater_location_auto(model, runner)
+            if water_heater_tz.nil?
+                return false
+            else
+                runner.registerInfo("Water heater is located in #{water_heater_tz} thermal zone")
+            end
+        end
         
         # Get number of bedrooms/bathrooms
         nbeds, nbaths = Geometry.get_bedrooms_bathrooms(model, runner)
@@ -282,7 +289,7 @@ class AddOSWaterHeaterMixedTanklessGas < OpenStudio::Ruleset::ModelUserScript
         cap = cap.to_f
 
         if cap <= 0
-            runner.registerError("Gas tankless water heater nominal capacity must be greater than 0 kBtu/hr. Make sure that the entered capacity is a number greater than 0 or '#{Constants.Auto}'.")
+            runner.registerError("Gas tankless water heater nominal capacity must be greater than 0 kBtu/hr. Make sure that the entered capacity is a number greater than 0 or #{Constants.Auto}.")
             return nil
         end
         if cap < 120

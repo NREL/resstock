@@ -195,16 +195,16 @@ class Constants
     return 'moisture'
   end
   def self.FacadeFront
-    return 'front'
+    return 'Front'
   end
   def self.FacadeBack
-    return 'back'
+    return 'Back'
   end
   def self.FacadeLeft
-    return 'left'
+    return 'Left'
   end
   def self.FacadeRight
-    return 'right'
+    return 'Right'
   end
   def self.FanControlSmart
     return 'smart'

@@ -1,6 +1,8 @@
 # see the URL below for information on how to write OpenStudio measures
 # http://nrel.github.io/OpenStudio-user-documentation/measures/measure_writing_guide/
 
+require "#{File.dirname(__FILE__)}/resources/constants"
+
 # start the measure
 class CreateResidentialOverhangs < OpenStudio::Ruleset::ModelUserScript
 
@@ -75,10 +77,10 @@ class CreateResidentialOverhangs < OpenStudio::Ruleset::ModelUserScript
     offset = OpenStudio.convert(runner.getDoubleArgumentValue("offset",user_arguments), "ft", "m").get
     # width_extension = OpenStudio.convert(runner.getDoubleArgumentValue("width_extension",user_arguments), "ft", "m").get
     facade_bools = OpenStudio::StringVector.new
-    facade_bools << "Front Facade"
-    facade_bools << "Back Facade"
-    facade_bools << "Left Facade"    
-    facade_bools << "Right Facade"
+    facade_bools << "#{Constants.FacadeFront} Facade"
+    facade_bools << "#{Constants.FacadeBack} Facade"
+    facade_bools << "#{Constants.FacadeLeft} Facade"    
+    facade_bools << "#{Constants.FacadeRight} Facade"
     facade_bools_hash = Hash.new
     facade_bools.each do |facade_bool|
         facade_bools_hash[facade_bool] = runner.getBoolArgumentValue(facade_bool.downcase.gsub(" ", "_"),user_arguments)
@@ -120,28 +122,16 @@ class CreateResidentialOverhangs < OpenStudio::Ruleset::ModelUserScript
     
     windows_found = false
     
-    # get building orientation
-    building_orientation = model.getBuilding.northAxis.round
-        
     subsurfaces = model.getSubSurfaces
     subsurfaces.each do |subsurface|
         
         next if not subsurface.subSurfaceType.downcase.include? "window"
         
         windows_found = true
-    
-        # get subsurface azimuth to determine facade
-        window_azimuth = OpenStudio::Quantity.new(subsurface.azimuth, OpenStudio::createSIAngle)
-        window_orientation = (OpenStudio.convert(window_azimuth, OpenStudio::createIPAngle).get.value + building_orientation).round
-            
-        if window_orientation - 180 == building_orientation
-            facade = "Front"
-        elsif window_orientation - 90 == building_orientation
-            facade = "Right"
-        elsif window_orientation - 0 == building_orientation
-            facade = "Back"
-        elsif window_orientation - 270 == building_orientation
-            facade = "Left"
+        facade = Geometry.get_facade_from_surface_azimuth(subsurface.azimuth, model)
+        
+        if facade.nil?
+            next
         end
         
         unless facade_bools_hash["#{facade} Facade"]

@@ -560,6 +560,8 @@ Geometry	4500+ sqft; 3+ Stories; Slab Foundation; FIXME: Garage	CreateResidentia
 Orientation	North	CreateResidentialOrientation	orientation=180												
 Eaves	2 ft	CreateResidentialEaves	"roof_structure=truss, cantilever"	eaves_depth=2											
 Overhangs	None	CreateResidentialOverhangs	depth=0	offset=0	front_facade=false	back_facade=false	left_facade=false	right_facade=false							
+Door Area	20 ft^2	CreateResidentialDoorArea	userdefineddoorarea=20												
+Window Areas	F15 B15 L15 R15	CreateResidentialWindowArea	front_wwr=0.15	back_wwr=0.15	left_wwr=0.15	right_wwr=0.15	aspect_ratio=1.333								
 Neighbors	Left/Right at 15ft	CreateResidentialNeighbors	left_neighbor_offset=15	right_neighbor_offset=15	back_neighbor_offset=0	front_neighbor_offset=0									
 Orientation	South	CreateResidentialOrientation	orientation=0												
 Orientation	East	CreateResidentialOrientation	orientation=270												
@@ -617,8 +619,13 @@ Floor Mass	Wood Surface	ProcessConstructionsFoundationsFloorsThermalMass	thick_i
 Exterior Wall Mass	1/2 in. Drywall	ProcessConstructionsWallsExteriorThermalMass	thick_in1=0.5	thick_in2=	cond1=1.1112	cond2=	dens1=50.0	dens2=	specheat1=0.2	specheat2=					
 Partition Wall Mass	1/2 in. Drywall	ProcessConstructionsWallsPartitionThermalMass	frac=1.0	thick_in1=0.5	thick_in2=	cond1=1.1112	cond2=	dens1=50.0	dens2=	specheat1=0.2	specheat2=				
 Ceiling Mass	1/2 in. Drywall	ProcessConstructionsCeilingsRoofsThermalMass	thick_in1=0.5	thick_in2=	cond1=1.1112	cond2=	dens1=50.0	dens2=	specheat1=0.2	specheat2=					
-Door Area	20 ft^2	CreateResidentialDoorArea	userdefineddoorarea=20												
-Doors	Fiberglass	ProcessConstructionsDoors	selecteddoor=Fiberglass												
+Doors	Fiberglass	ProcessConstructionsDoors	door_uvalue=0.2												
+Windows	"Clear, Single, Metal"	ProcessConstructionsWindows	ufactor=1.16	shgc=0.76	userdefinedintshadeheatingmult=0.7	userdefinedintshadecoolingmult=0.7									
+Windows	"Clear, Single, Non-metal"	ProcessConstructionsWindows	ufactor=0.84	shgc=0.63	userdefinedintshadeheatingmult=0.7	userdefinedintshadecoolingmult=0.7									
+Windows	"Clear, Double, Metal, Air"	ProcessConstructionsWindows	ufactor=0.76	shgc=0.67	userdefinedintshadeheatingmult=0.7	userdefinedintshadecoolingmult=0.7									
+Windows	"Clear, Double, Non-metal, Air"	ProcessConstructionsWindows	ufactor=0.49	shgc=0.56	userdefinedintshadeheatingmult=0.7	userdefinedintshadecoolingmult=0.7									
+Windows	"Low-E, Double, Non-metal, Air, L-Gain"	ProcessConstructionsWindows	ufactor=0.37	shgc=0.3	userdefinedintshadeheatingmult=0.7	userdefinedintshadecoolingmult=0.7									
+Windows	"Low-E, Triple, Non-metal, Air, L-Gain"	ProcessConstructionsWindows	ufactor=0.29	shgc=0.26	userdefinedintshadeheatingmult=0.7	userdefinedintshadecoolingmult=0.7									
 Water Heater	Electric Standard	AddOSWaterHeaterMixedStorageElectric	storage_tank_volume=auto	dhw_setpoint_temperature=125	water_heater_location=living zone	water_heater_capacity=4.5	rated_energy_factor=0.92								
 Water Heater	Electric Premium	AddOSWaterHeaterMixedStorageElectric	storage_tank_volume=auto	dhw_setpoint_temperature=125	water_heater_location=living zone	water_heater_capacity=5.5	rated_energy_factor=0.95								
 Water Heater	Electric Tankless	AddOSWaterHeaterMixedTanklessElectric	dhw_setpoint_temperature=125	water_heater_location=living zone	water_heater_capacity=12	rated_energy_factor=0.99	water_heater_cycling_derate=0.08								

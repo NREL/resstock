@@ -37,7 +37,7 @@ class AddOSWaterHeaterMixedStorageGas < OpenStudio::Ruleset::ModelUserScript
         # make an argument for the storage tank volume
         storage_tank_volume = osargument::makeStringArgument("storage_tank_volume", true)
         storage_tank_volume.setDisplayName("Tank Volume")
-        storage_tank_volume.setDescription("Nominal volume of the of the water heater tank. Set to '#{Constants.Auto}' to have volume autosized.")
+        storage_tank_volume.setDescription("Nominal volume of the of the water heater tank. Set to #{Constants.Auto} to have volume autosized.")
         storage_tank_volume.setUnits("gal")
         storage_tank_volume.setDefaultValue(Constants.Auto)
         args << storage_tank_volume
@@ -53,20 +53,18 @@ class AddOSWaterHeaterMixedStorageGas < OpenStudio::Ruleset::ModelUserScript
         # make an argument for water_heater_location
         thermal_zones = model.getThermalZones
         thermal_zone_names = thermal_zones.select { |tz| not tz.name.empty?}.collect{|tz| tz.name.get }
-        if not thermal_zone_names.include?(Constants.LivingZone)
-            thermal_zone_names << Constants.LivingZone
-        end
+        thermal_zone_names << Constants.Auto
         water_heater_location = osargument::makeChoiceArgument("water_heater_location",thermal_zone_names, true)
-        water_heater_location.setDefaultValue(Constants.LivingZone)
+        water_heater_location.setDefaultValue(Constants.Auto)
         water_heater_location.setDisplayName("Location")
-        water_heater_location.setDescription("Thermal zone where the water heater is located.")
+        water_heater_location.setDescription("Thermal zone where the water heater is located. #{Constants.Auto} will locate the water heater according the BA House Simulation Protocols: A garage (if available) or the living space in hot-dry and hot-humid climates, a basement (finished or unfinished, if available) or living space in all other climates.")
 	
         args << water_heater_location
 
         # make an argument for water_heater_capacity
         water_heater_capacity = osargument::makeStringArgument("water_heater_capacity", true)
         water_heater_capacity.setDisplayName("Input Capacity")
-        water_heater_capacity.setDescription("The maximum energy input rating of the water heater. Set to '#{Constants.Auto}' to have this field autosized.")
+        water_heater_capacity.setDescription("The maximum energy input rating of the water heater. Set to #{Constants.Auto} to have this field autosized.")
         water_heater_capacity.setUnits("kBtu/hr")
         water_heater_capacity.setDefaultValue("40.0")
         args << water_heater_capacity
@@ -74,7 +72,7 @@ class AddOSWaterHeaterMixedStorageGas < OpenStudio::Ruleset::ModelUserScript
         # make an argument for the rated energy factor
         rated_energy_factor = osargument::makeStringArgument("rated_energy_factor", true)
         rated_energy_factor.setDisplayName("Rated Energy Factor")
-        rated_energy_factor.setDescription("For water heaters, Energy Factor is the ratio of useful energy output from the water heater to the total amount of energy delivered from the water heater. The higher the EF is, the more efficient the water heater. Procesdures to thes the EF of water heaters are defined by the Department of Energy in 10 Code of Federal Regulation Part 430, Appendix E to Subpart B. Enter '#{Constants.Auto}' for a water heater that meets the minimum federal efficiency requirements.")
+        rated_energy_factor.setDescription("For water heaters, Energy Factor is the ratio of useful energy output from the water heater to the total amount of energy delivered from the water heater. The higher the EF is, the more efficient the water heater. Procesdures to thes the EF of water heaters are defined by the Department of Energy in 10 Code of Federal Regulation Part 430, Appendix E to Subpart B. Enter #{Constants.Auto} for a water heater that meets the minimum federal efficiency requirements.")
         rated_energy_factor.setDefaultValue("0.59")
         args << rated_energy_factor
 
@@ -149,6 +147,16 @@ class AddOSWaterHeaterMixedStorageGas < OpenStudio::Ruleset::ModelUserScript
         valid_epar = validate_parasitic_elec(oncycle_p, offcycle_p, runner)
 	    if valid_epar.nil?
             return false
+        end
+        
+        #If location is Auto, get the location
+        if water_heater_tz == Constants.Auto
+            water_heater_tz = Waterheater.get_water_heater_location_auto(model, runner)
+            if water_heater_tz.nil?
+                return false
+            else
+                runner.registerInfo("Water heater is located in #{water_heater_tz} thermal zone")
+            end
         end
     
         
@@ -258,7 +266,7 @@ class AddOSWaterHeaterMixedStorageGas < OpenStudio::Ruleset::ModelUserScript
         vol = vol.to_f
 
         if vol <= 0
-            runner.registerError("Storage tank volume must be greater than 0 gallons. Make sure that the volume entered is a number > 0 or '#{Constants.Auto}'.")   
+            runner.registerError("Storage tank volume must be greater than 0 gallons. Make sure that the volume entered is a number > 0 or #{Constants.Auto}.")   
             return nil
         end
         if vol < 25
@@ -279,7 +287,7 @@ class AddOSWaterHeaterMixedStorageGas < OpenStudio::Ruleset::ModelUserScript
             return nil
         end
         if (ef <= 0)
-            runner.registerError("Rated energy factor must be greater than 0. Make sure that the entered value is a number > 0 or '#{Constants.Auto}'.")
+            runner.registerError("Rated energy factor must be greater than 0. Make sure that the entered value is a number > 0 or #{Constants.Auto}.")
             return nil
         end
         if (ef >0.82)
@@ -314,7 +322,7 @@ class AddOSWaterHeaterMixedStorageGas < OpenStudio::Ruleset::ModelUserScript
         cap = cap.to_f
 
         if cap <= 0
-            runner.registerError("Gas storage water heater nominal capacity must be greater than 0 kBtu/hr. Make sure that the entered capacity is a number greater than 0 or '#{Constants.Auto}'.")
+            runner.registerError("Gas storage water heater nominal capacity must be greater than 0 kBtu/hr. Make sure that the entered capacity is a number greater than 0 or #{Constants.Auto}.")
             return nil
         end
         if cap < 25

@@ -2,36 +2,23 @@
   <schema_version>3.0</schema_version>
   <name>process_constructions_doors</name>
   <uid>b78f10fa-b38d-4de2-86e9-344a78e68847</uid>
-  <version_id>7f6076a5-75ea-4cf8-9058-b72c297661ae</version_id>
-  <version_modified>20160422T224002Z</version_modified>
+  <version_id>cdc10304-937e-4e85-8d67-61f34ed2ecfb</version_id>
+  <version_modified>20160510T220843Z</version_modified>
   <xml_checksum>6FAFA9DE</xml_checksum>
   <class_name>ProcessConstructionsDoors</class_name>
   <display_name>Set Residential Door Construction</display_name>
   <description>This measure assigns a construction to exterior doors adjacent to finished or unfinished space.</description>
-  <modeler_description>Calculates material layer properties of constructions for door sub-surfaces between 1) finished space and outside or 2) unfinished space and outside.</modeler_description>
+  <modeler_description>Calculates material layer properties of constructions for exterior door sub-surfaces adjacent to 1) finished space or 2) unfinished space.</modeler_description>
   <arguments>
     <argument>
-      <name>selecteddoor</name>
-      <display_name>Door Type</display_name>
-      <description>The front door type.</description>
-      <type>Choice</type>
+      <name>door_uvalue</name>
+      <display_name>U-Value for Finished Space Doors</display_name>
+      <description>The heat transfer coefficient of the doors adjacent to finished space.</description>
+      <type>Double</type>
+      <units>Btu/hr-ft^2-R</units>
       <required>true</required>
       <model_dependent>false</model_dependent>
-      <default_value>Fiberglass</default_value>
-      <choices>
-        <choice>
-          <value>Wood</value>
-          <display_name>Wood</display_name>
-        </choice>
-        <choice>
-          <value>Steel</value>
-          <display_name>Steel</display_name>
-        </choice>
-        <choice>
-          <value>Fiberglass</value>
-          <display_name>Fiberglass</display_name>
-        </choice>
-      </choices>
+      <default_value>0.2</default_value>
     </argument>
   </arguments>
   <provenances/>
@@ -58,6 +45,12 @@
       <checksum>BA787397</checksum>
     </file>
     <file>
+      <filename>util.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>FFB87057</checksum>
+    </file>
+    <file>
       <version>
         <software_program>OpenStudio</software_program>
         <identifier>1.4.0</identifier>
@@ -66,25 +59,19 @@
       <filename>measure.rb</filename>
       <filetype>rb</filetype>
       <usage_type>script</usage_type>
-      <checksum>487CD270</checksum>
+      <checksum>863CAF52</checksum>
     </file>
     <file>
       <filename>constants.rb</filename>
       <filetype>rb</filetype>
       <usage_type>resource</usage_type>
-      <checksum>DFE4EFD1</checksum>
+      <checksum>0A95F3D7</checksum>
     </file>
     <file>
       <filename>geometry.rb</filename>
       <filetype>rb</filetype>
       <usage_type>resource</usage_type>
-      <checksum>1B4BF46B</checksum>
-    </file>
-    <file>
-      <filename>util.rb</filename>
-      <filetype>rb</filetype>
-      <usage_type>resource</usage_type>
-      <checksum>2032AE44</checksum>
+      <checksum>C8823B7F</checksum>
     </file>
   </files>
 </measure>

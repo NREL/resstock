@@ -106,7 +106,7 @@ class Geometry
         zvalues = Geometry.getSurfaceZValues(space.surfaces)
         minz = zvalues.min
         maxz = zvalues.max
-        return OpenStudio.convert(maxz - minz, "m", "ft").get
+        return maxz - minz
     end
     
     # Calculates the surface height as the max z coordinate minus the min z coordinate
@@ -114,7 +114,7 @@ class Geometry
         zvalues = Geometry.getSurfaceZValues([surface])
         minz = zvalues.min
         maxz = zvalues.max
-        return OpenStudio.convert(maxz - minz, "m", "ft").get
+        return maxz - minz
     end
     
     def self.zone_is_finished(zone)
@@ -331,18 +331,39 @@ class Geometry
         return thermal_zone
     end     
     
+    # Return an array of x values for surfaces passed in. The values will be relative to the parent origin. This was intended for spaces.
+    def self.getSurfaceXValues(surfaceArray)
+        xValueArray = []
+        surfaceArray.each do |surface|
+            surface.vertices.each do |vertex|
+                xValueArray << OpenStudio.convert(vertex.x, "m", "ft").get
+            end
+        end
+        return xValueArray
+    end
+
+    # Return an array of y values for surfaces passed in. The values will be relative to the parent origin. This was intended for spaces.
+    def self.getSurfaceYValues(surfaceArray)
+        yValueArray = []
+        surfaceArray.each do |surface|
+            surface.vertices.each do |vertex|
+                yValueArray << OpenStudio.convert(vertex.y, "m", "ft").get
+            end
+        end
+        return yValueArray
+    end
+    
     # Return an array of z values for surfaces passed in. The values will be relative to the parent origin. This was intended for spaces.
     def self.getSurfaceZValues(surfaceArray)
         zValueArray = []
         surfaceArray.each do |surface|
             surface.vertices.each do |vertex|
-                zValueArray << vertex.z
+                zValueArray << OpenStudio.convert(vertex.z, "m", "ft").get
             end
         end
-        result = zValueArray
-        return result
+        return zValueArray
     end
-    
+
     # Takes in a list of spaces and returns the average space height
     def self.spaces_avg_height(spaces)
         sum_height = 0
@@ -563,6 +584,17 @@ class Geometry
         return spaces
     end
     
+    def self.get_garage_spaces(model) #unfinished, above grade spaces without a finished space below
+        spaces = []
+        model.getSpaces.each do |space|
+            next if Geometry.space_is_finished(space)
+            next if Geometry.space_is_below_grade(space)
+            next if Geometry.space_below_is_finished(space, model)
+            spaces << space
+        end
+        return spaces
+    end
+    
     def self.get_non_attic_unfinished_roof_spaces(model)
         spaces = []
         model.getSpaces.each do |space|
@@ -573,5 +605,77 @@ class Geometry
         end
         return spaces
     end
+    
+    def self.get_facade_from_surface_azimuth(azimuth, model)
+        building_orientation = model.getBuilding.northAxis.round
+        surf_azimuth = OpenStudio::Quantity.new(azimuth, OpenStudio::createSIAngle)
+        surf_orientation = (OpenStudio.convert(surf_azimuth, OpenStudio::createIPAngle).get.value + building_orientation).round
+            
+        facade = nil
+        if surf_orientation - 180 == building_orientation
+            facade = Constants.FacadeFront
+        elsif surf_orientation - 90 == building_orientation
+            facade = Constants.FacadeRight
+        elsif surf_orientation - 0 == building_orientation
+            facade = Constants.FacadeBack
+        elsif surf_orientation - 270 == building_orientation
+            facade = Constants.FacadeLeft
+        end
+        return facade
+    end
+    
+    def self.get_surface_length(surface)
+        xvalues = Geometry.getSurfaceXValues([surface])
+        yvalues = Geometry.getSurfaceYValues([surface])
+        xrange = xvalues.max - xvalues.min
+        yrange = yvalues.max - yvalues.min
+        if xrange > yrange
+            return xrange
+        end
+        return yrange
+   end
+   
+   def self.get_surface_height(surface) 
+        zvalues = Geometry.getSurfaceZValues([surface])
+        zrange = zvalues.max - zvalues.min
+        return zrange
+   end
+   
+   def self.is_gable_wall(surface)
+        if (surface.surfaceType.downcase != "wall" or surface.outsideBoundaryCondition.downcase != "outdoors")
+            return false
+        end
+        if surface.vertices.size != 3
+            return false
+        end
+        if not surface.space.is_initialized
+            return false
+        end
+        space = surface.space.get
+        if not Geometry.space_has_roof(space)
+            return false
+        end
+        return true
+   end
+   
+   def self.is_rectangular_wall(surface)
+        if (surface.surfaceType.downcase != "wall" or surface.outsideBoundaryCondition.downcase != "outdoors")
+            return false
+        end
+        if surface.vertices.size != 4
+            return false
+        end        
+        xvalues = Geometry.getSurfaceXValues([surface])
+        yvalues = Geometry.getSurfaceYValues([surface])
+        zvalues = Geometry.getSurfaceZValues([surface])
+        if not ((xvalues.uniq.size == 1 and yvalues.uniq.size == 2) or
+                (xvalues.uniq.size == 2 and yvalues.uniq.size == 1))
+            return false
+        end
+        if not zvalues.uniq.size == 2
+            return false
+        end
+        return true
+   end
     
 end

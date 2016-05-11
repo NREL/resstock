@@ -1,6 +1,8 @@
 # Add classes or functions here than can be used across a variety of our python classes and modules.
 require "#{File.dirname(__FILE__)}/constants"
 require "#{File.dirname(__FILE__)}/util"
+require "#{File.dirname(__FILE__)}/weather"
+require "#{File.dirname(__FILE__)}/geometry"
 
 class Waterheater
 	def self.calc_nom_tankvol(vol, fuel, num_beds, num_baths)
@@ -269,8 +271,7 @@ class Waterheater
 		new_heater.setOffCycleLossFractiontoThermalZone(skinlossfrac)
 		new_heater.setOnCycleLossFractiontoThermalZone(1.0)
 
-		thermal_zone = model.getThermalZones.find{|tz| tz.name.get == loc}
-		
+		thermal_zone = model.getThermalZones.find{|tz| tz.name.get == loc.to_s}
 		new_heater.setAmbientTemperatureThermalZone(thermal_zone)
 		ua_w_k = OpenStudio::convert(ua, "Btu/hr*R", "W/K").get
 		new_heater.setOnCycleLossCoefficienttoAmbientTemperature(ua_w_k)
@@ -332,5 +333,41 @@ class Waterheater
             runner.registerWarning("Water heater setpoint is not constant. Using average setpoint temperature of #{wh_setpoint.round} F.")
         end
         return wh_setpoint
+    end
+    
+    def self.get_water_heater_location_auto(model, runner)
+        #If auto is picked, get the BA climate zone, 
+        #check if the building has a garage/basement, 
+        #and assign the water heater location appropriately
+        weather = WeatherProcess.new(model,runner)
+        climateZones = model.getClimateZones
+        living = Geometry.get_default_space(model)
+        wh_tz = nil
+        climateZones.climateZones.each do |ba_cz|
+            ba_cz_name = ba_cz.value.to_s
+            if ba_cz_name == "Subarctic" or ba_cz_name == "Very Cold" or ba_cz_name == "Cold" or ba_cz_name == "Mixed-Dry" or ba_cz_name == "Mixed-Humid" or ba_cz_name == "Marine"
+                #check if the building has a basement
+                fin_basement = Geometry.get_finished_basement_spaces(model)
+                unfin_basement = Geometry.get_unfinished_basement_spaces(model)
+                #FIXME: always locating the water heater in the first unconditioned space, what if there's multiple
+                if fin_basement.length > 0
+                    wh_tz = fin_basement[0].thermalZone.get.name
+                elsif unfin_basement.length > 0
+                    wh_tz = unfin_basement[0].thermalZone.get.name
+                else #no basement, in living space
+                    wh_tz = living.thermalZone.get.name
+                end
+            elsif ba_cz_name == "Hot-Dry" or ba_cz_name == "Hot-Humid"
+                garage = Geometry.get_garage_spaces(model)
+                #check if the building has a garage
+                if garage.length > 0
+                    wh_tz = garage[0].thermalZone.get.name
+                else #no garage, in living space
+                    wh_tz = living.thermalZone.get.name
+                end
+            end
+        end
+        
+        return wh_tz
     end
 end

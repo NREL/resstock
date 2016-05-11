@@ -51,11 +51,15 @@ class CreateResidentialDoorArea < OpenStudio::Ruleset::ModelUserScript
     model.getSpaces.each do |space|
         space.surfaces.each do |surface|
             next if not (surface.surfaceType.downcase == "wall" and surface.outsideBoundaryCondition.downcase == "outdoors")
+            door_removed = false
             surface.subSurfaces.each do |sub_surface|
-                next if sub_surface.subSurfaceType != "Door"
+                next if sub_surface.subSurfaceType.downcase != "door"
                 sub_surface.remove
-                runner.registerInfo("Removed #{sub_surface.name}.")
+                door_removed = true
             end    
+            if door_removed
+                runner.registerInfo("Removed door(s) from #{surface.name}.")
+            end
         end
     end
     

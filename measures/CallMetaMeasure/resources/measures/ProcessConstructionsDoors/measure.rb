@@ -24,25 +24,20 @@ class ProcessConstructionsDoors < OpenStudio::Ruleset::ModelUserScript
   end
   
   def modeler_description
-    return "Calculates material layer properties of constructions for door sub-surfaces between 1) finished space and outside or 2) unfinished space and outside."
+    return "Calculates material layer properties of constructions for exterior door sub-surfaces adjacent to 1) finished space or 2) unfinished space."
   end
   
   #define the arguments that the user will input
   def arguments(model)
     args = OpenStudio::Ruleset::OSArgumentVector.new
 
-    #make a choice argument for model objects
-    doors_display_names = OpenStudio::StringVector.new
-    doors_display_names << "Wood"
-    doors_display_names << "Steel"
-    doors_display_names << "Fiberglass"
-    
     #make a string argument for wood stud size of wall cavity
-    selected_door = OpenStudio::Ruleset::OSArgument::makeChoiceArgument("selecteddoor", doors_display_names, true)
-    selected_door.setDisplayName("Door Type")
-    selected_door.setDescription("The front door type.")
-    selected_door.setDefaultValue("Fiberglass")
-    args << selected_door   
+    door_uvalue = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("door_uvalue", true)
+    door_uvalue.setDisplayName("U-Value for Finished Space Doors")
+    door_uvalue.setUnits("Btu/hr-ft^2-R")
+    door_uvalue.setDescription("The heat transfer coefficient of the doors adjacent to finished space.")
+    door_uvalue.setDefaultValue("0.2")
+    args << door_uvalue   
 
     return args
   end #end the arguments method
@@ -54,6 +49,12 @@ class ProcessConstructionsDoors < OpenStudio::Ruleset::ModelUserScript
     #use the built-in error checking 
     if not runner.validateUserArguments(arguments(model), user_arguments)
       return false
+    end
+
+    doorUvalue = runner.getDoubleArgumentValue("door_uvalue",user_arguments)
+    if doorUvalue <= 0.0
+        runner.registerError("U-Value must be greater than 0.")
+        return false
     end
 
     # Sub-surface between finished space and outdoors
@@ -89,14 +90,11 @@ class ProcessConstructionsDoors < OpenStudio::Ruleset::ModelUserScript
     
     if not finished_sub_surfaces.empty?
         # Define materials
-        selected_door = runner.getStringArgumentValue("selecteddoor",user_arguments)
-        doorUvalue = {"Wood"=>0.48, "Steel"=>0.2, "Fiberglass"=>0.2}[selected_door]
         door_Uvalue_air_to_air = doorUvalue
         door_Rvalue_air_to_air = 1.0 / door_Uvalue_air_to_air
         door_Rvalue = door_Rvalue_air_to_air - Material.AirFilmOutside.rvalue - Material.AirFilmVertical.rvalue
-        door_Uvalue = 1.0 / door_Rvalue
         door_thickness = 1.75 # in
-        fin_door_mat = Material.new(name="DoorMaterial", thick_in=door_thickness, mat_base=BaseMaterial.Wood, k_in=door_Uvalue * door_thickness)
+        fin_door_mat = Material.new(name="DoorMaterial", thick_in=door_thickness, mat_base=BaseMaterial.Wood, k_in=1.0 / door_Rvalue * door_thickness)
         
         # Set paths
         path_fracs = [1]
@@ -116,9 +114,8 @@ class ProcessConstructionsDoors < OpenStudio::Ruleset::ModelUserScript
         garage_door_Uvalue_air_to_air = 0.2 # Btu/hr*ft^2*F, R-values typically vary from R5 to R10, from the Home Depot website
         garage_door_Rvalue_air_to_air = 1.0 / garage_door_Uvalue_air_to_air
         garage_door_Rvalue = garage_door_Rvalue_air_to_air - Material.AirFilmOutside.rvalue - Material.AirFilmVertical.rvalue
-        garage_door_Uvalue = 1.0 / garage_door_Rvalue
         garage_door_thickness = 2.5 # in
-        unfin_door_mat = Material.new(name="GarageDoorMaterial", thick_in=garage_door_thickness, mat_base=BaseMaterial.Wood, k_in=garage_door_Uvalue * garage_door_thickness)
+        unfin_door_mat = Material.new(name="GarageDoorMaterial", thick_in=garage_door_thickness, mat_base=BaseMaterial.Wood, k_in=1.0 / garage_door_Rvalue * garage_door_thickness)
         
         # Set paths
         path_fracs = [1]

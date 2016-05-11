@@ -2,8 +2,8 @@
   <schema_version>3.0</schema_version>
   <name>add_os_water_heater_mixed_storage_electric</name>
   <uid>cfbe1e78-78db-4902-aba3-95d23310802e</uid>
-  <version_id>7c78a313-468e-4271-aaff-feb042048c46</version_id>
-  <version_modified>20160422T224001Z</version_modified>
+  <version_id>6fc622fc-8f5d-4508-a842-05fbaf2caf36</version_id>
+  <version_modified>20160511T135421Z</version_modified>
   <xml_checksum>9882CBDB</xml_checksum>
   <class_name>AddOSWaterHeaterMixedStorageElectric</class_name>
   <display_name>Set Residential Electric Tank Water Heater</display_name>
@@ -13,7 +13,7 @@
     <argument>
       <name>storage_tank_volume</name>
       <display_name>Tank Volume</display_name>
-      <description>Nominal volume of the of the water heater tank. Set to 'auto' to have volume autosized.</description>
+      <description>Nominal volume of the of the water heater tank. Set to auto to have volume autosized.</description>
       <type>String</type>
       <units>gal</units>
       <required>true</required>
@@ -33,22 +33,22 @@
     <argument>
       <name>water_heater_location</name>
       <display_name>Location</display_name>
-      <description>Thermal zone where the water heater is located.</description>
+      <description>Thermal zone where the water heater is located. auto will locate the water heater according the BA House Simulation Protocols: A garage (if available) or the living space in hot-dry and hot-humid climates, a basement (finished or unfinished, if available) or living space in all other climates.</description>
       <type>Choice</type>
       <required>true</required>
       <model_dependent>false</model_dependent>
-      <default_value>living zone</default_value>
+      <default_value>auto</default_value>
       <choices>
         <choice>
-          <value>living zone</value>
-          <display_name>living zone</display_name>
+          <value>auto</value>
+          <display_name>auto</display_name>
         </choice>
       </choices>
     </argument>
     <argument>
       <name>water_heater_capacity</name>
       <display_name>Input Capacity</display_name>
-      <description>The maximum energy input rating of the water heater. Set to 'auto' to have this field autosized.</description>
+      <description>The maximum energy input rating of the water heater. Set to auto to have this field autosized.</description>
       <type>String</type>
       <units>kW</units>
       <required>true</required>
@@ -58,7 +58,7 @@
     <argument>
       <name>rated_energy_factor</name>
       <display_name>Rated Energy Factor</display_name>
-      <description>For water heaters, Energy Factor is the ratio of useful energy output from the water heater to the total amount of energy delivered from the water heater. The higher the EF is, the more efficient the water heater. Procesdures to thes the EF of water heaters are defined by the Department of Energy in 10 Code of Federal Regulation Part 430, Appendix E to Subpart B. Enter 'auto' for a water heater that meets the minimum federal efficiency requirements.</description>
+      <description>For water heaters, Energy Factor is the ratio of useful energy output from the water heater to the total amount of energy delivered from the water heater. The higher the EF is, the more efficient the water heater. Procesdures to thes the EF of water heaters are defined by the Department of Energy in 10 Code of Federal Regulation Part 430, Appendix E to Subpart B. Enter auto for a water heater that meets the minimum federal efficiency requirements.</description>
       <type>String</type>
       <required>true</required>
       <model_dependent>false</model_dependent>
@@ -95,6 +95,24 @@
       <checksum>B516C87F</checksum>
     </file>
     <file>
+      <filename>util.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>FFB87057</checksum>
+    </file>
+    <file>
+      <filename>constants.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>0A95F3D7</checksum>
+    </file>
+    <file>
+      <filename>geometry.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>C8823B7F</checksum>
+    </file>
+    <file>
       <version>
         <software_program>OpenStudio</software_program>
         <identifier>1.4.1</identifier>
@@ -103,25 +121,7 @@
       <filename>measure.rb</filename>
       <filetype>rb</filetype>
       <usage_type>script</usage_type>
-      <checksum>8F4003C6</checksum>
-    </file>
-    <file>
-      <filename>constants.rb</filename>
-      <filetype>rb</filetype>
-      <usage_type>resource</usage_type>
-      <checksum>DFE4EFD1</checksum>
-    </file>
-    <file>
-      <filename>geometry.rb</filename>
-      <filetype>rb</filetype>
-      <usage_type>resource</usage_type>
-      <checksum>1B4BF46B</checksum>
-    </file>
-    <file>
-      <filename>util.rb</filename>
-      <filetype>rb</filetype>
-      <usage_type>resource</usage_type>
-      <checksum>2032AE44</checksum>
+      <checksum>646821F9</checksum>
     </file>
   </files>
 </measure>
