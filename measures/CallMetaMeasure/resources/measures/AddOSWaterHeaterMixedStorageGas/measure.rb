@@ -153,6 +153,7 @@ class AddOSWaterHeaterMixedStorageGas < OpenStudio::Ruleset::ModelUserScript
         if water_heater_tz == Constants.Auto
             water_heater_tz = Waterheater.get_water_heater_location_auto(model, runner)
             if water_heater_tz.nil?
+                runner.registerError("The water heater cannot be automatically assigned to a thermal zone. Please manually select which zone the water heater should be located in.")
                 return false
             else
                 runner.registerInfo("Water heater is located in #{water_heater_tz} thermal zone")

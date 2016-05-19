@@ -2,7 +2,7 @@ require 'csv'
 require File.join(File.dirname(__FILE__), 'measures', 'CallMetaMeasure', 'resources', 'helper_methods')
 
 # This is where results will be located
-results_dir = File.join(File.dirname(__FILE__), "sampling_results")
+results_dir = File.join(File.dirname(__FILE__), "results", "national")
 results_vis_dir = File.join(results_dir, "visualizations")
 results_data_dir = File.join(results_dir, "data")
 if not File.exists? results_dir
@@ -16,7 +16,7 @@ if not File.exists? results_data_dir
 end
 
 # Read all data from results csv file
-results_file = File.join(File.dirname(__FILE__), "analysis_results", "resstock.csv")
+results_file = File.join(results_dir, "resstock.csv")
 check_file_exists(results_file)
 results_data = CSV.read(results_file)
 if results_data.size == 0
@@ -113,7 +113,8 @@ results_data[0].each do |col_header|
             sum_option_samples += sample_results[index]
         end
         if sum_option_samples != num_samples
-            sys.exit("Num samples doesn't match.")
+            puts "Num samples doesn't match for #{param_name}."
+            exit
         end
         
         # Convert num samples to percentage
