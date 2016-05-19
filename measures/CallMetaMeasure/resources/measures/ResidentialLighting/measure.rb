@@ -8,6 +8,8 @@
 # http://openstudio.nrel.gov/sites/openstudio.nrel.gov/files/nv_data/cpp_documentation_it/model/html/namespaces.html
 
 require "#{File.dirname(__FILE__)}/resources/geometry"
+require "#{File.dirname(__FILE__)}/resources/schedules"
+require "#{File.dirname(__FILE__)}/resources/weather"
 
 #start the measure
 class ResidentialLighting < OpenStudio::Ruleset::ModelUserScript
@@ -187,11 +189,13 @@ class ResidentialLighting < OpenStudio::Ruleset::ModelUserScript
     ltg_total = ltg_ann + garage_ann + outside_ann
     
     # Calculate the lighting schedule
-    site = model.getSite
-    weather = site.weatherFile.get
-    lat = site.latitude
-    long = site.longitude
-    tz = site.timeZone
+    weather = WeatherProcess.new(model, runner)
+    if weather.error?
+        return false
+    end
+    lat = weather.header.Latitude
+    long = weather.header.Longitude
+    tz = weather.header.Timezone
     std_long = -tz*15
     pi = Math::PI
     
