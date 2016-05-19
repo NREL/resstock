@@ -124,46 +124,40 @@ class ResidentialGasGrill < OpenStudio::Ruleset::ModelUserScript
     gg_lost = 1 - gg_lat - gg_rad - gg_conv
 	
 	obj_name = Constants.ObjectNameGasGrill
-	sch = MonthHourSchedule.new(weekday_sch, weekend_sch, monthly_sch, model, obj_name, runner)
+	sch = MonthWeekdayWeekendSchedule.new(weekday_sch, weekend_sch, monthly_sch, model, obj_name, runner)
 	if not sch.validated?
 		return false
 	end
 	design_level = sch.calcDesignLevelFromDailyTherm(gg_ann_g/365.0)
 	
-	#add grill to an arbitrary space (there are no space gains)
-	has_gg = 0
-	replace_gg = 0
     space = Geometry.get_default_space(model, runner)
     if space.nil?
         return false
     end
-    space_equipments_g = space.gasEquipment
-    space_equipments_g.each do |space_equipment_g| #check for an existing gas heater
-        if space_equipment_g.gasEquipmentDefinition.name.get.to_s == obj_name
-            has_gg = 1
-            runner.registerInfo("There is already a gas grill. The existing gas grill will be replaced with the specified gas grill.")
-            space_equipment_g.gasEquipmentDefinition.setDesignLevel(design_level)
-            sch.setSchedule(space_equipment_g)
-            replace_gg = 1
+
+    # Remove any existing gas grill
+    gg_removed = false
+    space.gasEquipment.each do |space_equipment|
+        if space_equipment.name.to_s == obj_name
+            space_equipment.remove
+            gg_removed = true
         end
     end
-
-    if has_gg == 0 
-        has_gg = 1
-        
-        #Add gas equipment for the grill
-        gg_def = OpenStudio::Model::GasEquipmentDefinition.new(model)
-        gg = OpenStudio::Model::GasEquipment.new(gg_def)
-        gg.setName(obj_name)
-        gg.setSpace(space)
-        gg_def.setName(obj_name)
-        gg_def.setDesignLevel(design_level)
-        gg_def.setFractionRadiant(gg_rad)
-        gg_def.setFractionLatent(gg_lat)
-        gg_def.setFractionLost(gg_lost)
-        sch.setSchedule(gg)
-        
+    if gg_removed
+        runner.registerInfo("Removed existing gas grill.")
     end
+    
+    #Add gas equipment for the grill
+    gg_def = OpenStudio::Model::GasEquipmentDefinition.new(model)
+    gg = OpenStudio::Model::GasEquipment.new(gg_def)
+    gg.setName(obj_name)
+    gg.setSpace(space)
+    gg_def.setName(obj_name)
+    gg_def.setDesignLevel(design_level)
+    gg_def.setFractionRadiant(gg_rad)
+    gg_def.setFractionLatent(gg_lat)
+    gg_def.setFractionLost(gg_lost)
+    sch.setSchedule(gg)
 	
     #reporting final condition of model
     runner.registerFinalCondition("A gas grill has been set with #{gg_ann_g.round} therms annual energy consumption.")

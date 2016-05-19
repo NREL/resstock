@@ -1,43 +1,154 @@
-class MonthHourSchedule
+# TODO: Need to handle vacations
 
-    # FIXME: Need to handle vacation multiplier
+# Annual schedule defined by 12 24-hour values
+class HourlyByMonthSchedule
+
+    def initialize(month_by_hour_values, model, sch_name, runner)
+        @validated = true
+        @model = model
+        @runner = runner
+        @sch_name = sch_name
+        @month_by_hour_values = validateValues(month_by_hour_values, 12, 24)
+        if not @validated
+            return
+        end
+        @maxval = calcMaxval()
+        @schedule = createSchedule()
+    end
+    
+    def validated?
+        return @validated
+    end
+    
+    def calcDesignLevel(val)
+        return val * 1000
+    end
+
+    def setSchedule(obj)
+        # Helper method to set (or replace) the object's schedule
+        if not obj.schedule.empty?
+            sch = obj.schedule.get
+            sch.remove
+        end
+        obj.setSchedule(@schedule)
+    end
+
+    private 
+    
+        def validateValues(vals, num_outter_values, num_inner_values)
+            begin
+                if vals.length != num_outter_values
+                    @runner.registerError("#{num_outter_values.to_s} lists of #{num_inner_values.to_s} numbers must be entered for the schedule.")
+                    @validated = false
+                    return nil
+                end
+                vals.each do |val|
+                    if val.length != num_inner_values
+                        @runner.registerError("#{num_outter_values.to_s} lists of #{num_inner_values.to_s} numbers must be entered for the schedule.")
+                        @validated = false
+                        return nil
+                    end
+                end
+            rescue
+                @runner.registerError("#{num_outter_values.to_s} lists of #{num_inner_values.to_s} numbers must be entered for the schedule.")
+                @validated = false
+                return nil
+            end
+            return vals
+        end
+
+        def calcMaxval()
+            return @month_by_hour_values.flatten.max
+        end
+        
+        def createSchedule()
+            wkdy = []
+            wknd = []
+            day_endm = [0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334, 365]
+            day_startm = [0, 1, 32, 60, 91, 121, 152, 182, 213, 244, 274, 305, 335]
+            
+            time = []
+            for h in 1..24
+                time[h] = OpenStudio::Time.new(0,h,0,0)
+            end
+
+            schedule = OpenStudio::Model::ScheduleRuleset.new(@model)
+            schedule.setName(@sch_name + " annual schedule")
+            
+            for m in 1..12
+                date_s = OpenStudio::Date::fromDayOfYear(day_startm[m])
+                date_e = OpenStudio::Date::fromDayOfYear(day_endm[m])
+
+                wkdy_rule = OpenStudio::Model::ScheduleRule.new(schedule)
+                wkdy_rule.setName(@sch_name + " weekday ruleset#{m}")
+                wkdy[m] = wkdy_rule.daySchedule
+                wkdy[m].setName(@sch_name + " weekday#{m}")
+                for h in 1..24
+                    val = (@month_by_hour_values[m-1][h-1].to_f)/@maxval
+                    wkdy[m].addValue(time[h],val)
+                end
+                wkdy_rule.setApplySunday(true)
+                wkdy_rule.setApplyMonday(true)
+                wkdy_rule.setApplyTuesday(true)
+                wkdy_rule.setApplyWednesday(true)
+                wkdy_rule.setApplyThursday(true)
+                wkdy_rule.setApplyFriday(true)
+                wkdy_rule.setApplySaturday(true)
+                wkdy_rule.setStartDate(date_s)
+                wkdy_rule.setEndDate(date_e)
+            end
+            
+            sumDesSch = wkdy[6] # TODO: Where did this come from?
+            sumDesSch.setName(@sch_name + " summer")
+            winDesSch = wkdy[1] # TODO: Where did this come from?
+            winDesSch.setName(@sch_name + " winter")
+            schedule.setSummerDesignDaySchedule(sumDesSch)
+            schedule.setWinterDesignDaySchedule(winDesSch)
+            
+            return schedule
+        end
+    
+end
+
+# Annual schedule defined by 24 weekday hourly values, 24 weekend hourly values, and 12 monthly values
+class MonthWeekdayWeekendSchedule
 
     def initialize(weekday_hourly_values, weekend_hourly_values, monthly_values, model, sch_name, runner,
                    mult_weekday=1.0, mult_weekend=1.0)
-		@validated = true
-		@model = model
+        @validated = true
+        @model = model
         @runner = runner
-		@sch_name = sch_name
+        @sch_name = sch_name
         @mult_weekday = mult_weekday
         @mult_weekend = mult_weekend
         @weekday_hourly_values = validateValues(weekday_hourly_values, 24, "weekday")
-	    @weekend_hourly_values = validateValues(weekend_hourly_values, 24, "weekend")
-	    @monthly_values = validateValues(monthly_values, 12, "monthly")
-		if not @validated
-			return
-		end
-		@weekday_hourly_values = normalizeSumToOne(@weekday_hourly_values)
-		@weekend_hourly_values = normalizeSumToOne(@weekend_hourly_values)
-		@monthly_values = normalizeAvgToOne(@monthly_values)
-		@maxval = calcMaxval()
-		@schadjust = calcSchadjust()
-		@schedule = createSchedule()
+        @weekend_hourly_values = validateValues(weekend_hourly_values, 24, "weekend")
+        @monthly_values = validateValues(monthly_values, 12, "monthly")
+        if not @validated
+            return
+        end
+        @weekday_hourly_values = normalizeSumToOne(@weekday_hourly_values)
+        @weekend_hourly_values = normalizeSumToOne(@weekend_hourly_values)
+        @monthly_values = normalizeAvgToOne(@monthly_values)
+        @maxval = calcMaxval()
+        @schadjust = calcSchadjust()
+        @schedule = createSchedule()
     end
   
-	def validated?
-		return @validated
-	end
-	
-	def calcDesignLevelFromDailykWh(daily_kwh)
-		return daily_kwh * @maxval * 1000 * @schadjust
-	end
+    def validated?
+        return @validated
+    end
+    
+    def calcDesignLevelFromDailykWh(daily_kwh)
+        return daily_kwh * @maxval * 1000 * @schadjust
+    end
 
-	def calcDesignLevelFromDailyTherm(daily_therm)
-		return calcDesignLevelFromDailykWh(OpenStudio.convert(daily_therm, "therm", "kWh").get)
-	end
+    def calcDesignLevelFromDailyTherm(daily_therm)
+        return calcDesignLevelFromDailykWh(OpenStudio.convert(daily_therm, "therm", "kWh").get)
+    end
 
-	def setSchedule(obj)
-		# Helper method to set (or replace) the object's schedule
+    def setSchedule(obj)
+        # Helper method to set (or replace) the object's schedule
         if obj.is_a? OpenStudio::Model::People
             if not obj.numberofPeopleSchedule.empty?
                 sch = obj.numberofPeopleSchedule.get
@@ -51,138 +162,141 @@ class MonthHourSchedule
             end
             obj.setSchedule(@schedule)
         end
-	end
+    end
     
-	private 
-	
-		def validateValues(values_str, num_values, sch_name)
-			begin
-				vals = values_str.split(",")
-				vals.each do |val|
-					if not valid_float?(val)
-						@runner.registerError(num_values.to_s + " comma-separated numbers must be entered for the " + sch_name + " schedule.")
-						@validated = false
-					end
-				end
-				floats = vals.map {|i| i.to_f}
-				if floats.length != num_values
-					@runner.registerError(num_values.to_s + " comma-separated numbers must be entered for the " + sch_name + " schedule.")
-					@validated = false
-				end
-			rescue
-				@runner.registerError(num_values.to_s + " comma-separated numbers must be entered for the " + sch_name + " schedule.")
-				@validated = false
-			end
-			return floats
-		end
+    private 
+    
+        def validateValues(values_str, num_values, sch_name)
+            begin
+                vals = values_str.split(",")
+                vals.each do |val|
+                    if not valid_float?(val)
+                        @runner.registerError(num_values.to_s + " comma-separated numbers must be entered for the " + sch_name + " schedule.")
+                        @validated = false
+                        return nil
+                    end
+                end
+                floats = vals.map {|i| i.to_f}
+                if floats.length != num_values
+                    @runner.registerError(num_values.to_s + " comma-separated numbers must be entered for the " + sch_name + " schedule.")
+                    @validated = false
+                    return nil
+                end
+            rescue
+                @runner.registerError(num_values.to_s + " comma-separated numbers must be entered for the " + sch_name + " schedule.")
+                @validated = false
+                return nil
+            end
+            return floats
+        end
 
-		def valid_float?(str)
-			!!Float(str) rescue false
-		end
+        def valid_float?(str)
+            !!Float(str) rescue false
+        end
 
-		def normalizeSumToOne(values)
-			sum = values.reduce(:+).to_f
-			return values.map{|val| val/sum}
-		end
-		
-		def normalizeAvgToOne(values)
-			avg = values.reduce(:+).to_f/values.size
-			return values.map{|val| val/avg}
-		end
+        def normalizeSumToOne(values)
+            sum = values.reduce(:+).to_f
+            return values.map{|val| val/sum}
+        end
+        
+        def normalizeAvgToOne(values)
+            avg = values.reduce(:+).to_f/values.size
+            return values.map{|val| val/avg}
+        end
 
-		def calcMaxval()
-			if @weekday_hourly_values.max > @weekend_hourly_values.max
-			  return @monthly_values.max * @weekday_hourly_values.max * @mult_weekday
-			else
-			  return @monthly_values.max * @weekend_hourly_values.max * @mult_weekend
-			end
-		end
-		
-		def calcSchadjust()
-			#if sum != 1, normalize to get correct max val
-			sum_wkdy = 0
-			sum_wknd = 0
-			@weekday_hourly_values.each do |v|
-				sum_wkdy = sum_wkdy + v
-			end
-			@weekend_hourly_values.each do |v|
-				sum_wknd = sum_wknd + v
-			end
-			if sum_wkdy < sum_wknd
-				return 1/sum_wknd
-			end
-			return 1/sum_wkdy
-		end
-		
-		def createSchedule()
-			wkdy = []
-			wknd = []
-			day_endm = [0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334, 365]
-			day_startm = [0, 1, 32, 60, 91, 121, 152, 182, 213, 244, 274, 305, 335]
-			
-			time = ['0' '0' '0' '0' '0' '0' '0' '0' '0' '0' '0' '0' '0' '0' '0' '0' '0' '0' '0' '0' '0' '0' '0' '0']
-			for h in 1..24
-				time[h] = OpenStudio::Time.new(0,h,0,0)
-			end
+        def calcMaxval()
+            if @weekday_hourly_values.max > @weekend_hourly_values.max
+              return @monthly_values.max * @weekday_hourly_values.max * @mult_weekday
+            else
+              return @monthly_values.max * @weekend_hourly_values.max * @mult_weekend
+            end
+        end
+        
+        def calcSchadjust()
+            #if sum != 1, normalize to get correct max val
+            sum_wkdy = 0
+            sum_wknd = 0
+            @weekday_hourly_values.each do |v|
+                sum_wkdy = sum_wkdy + v
+            end
+            @weekend_hourly_values.each do |v|
+                sum_wknd = sum_wknd + v
+            end
+            if sum_wkdy < sum_wknd
+                return 1/sum_wknd
+            end
+            return 1/sum_wkdy
+        end
+        
+        def createSchedule()
+            wkdy = []
+            wknd = []
+            day_endm = [0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334, 365]
+            day_startm = [0, 1, 32, 60, 91, 121, 152, 182, 213, 244, 274, 305, 335]
+            
+            time = []
+            for h in 1..24
+                time[h] = OpenStudio::Time.new(0,h,0,0)
+            end
 
-			schedule = OpenStudio::Model::ScheduleRuleset.new(@model)
-			schedule.setName(@sch_name + "_annual_schedule")
-			
-			for m in 1..12
-				date_s = OpenStudio::Date::fromDayOfYear(day_startm[m])
-				date_e = OpenStudio::Date::fromDayOfYear(day_endm[m])
-				for w in 1..2
-					if w == 1
-						wkdy_rule = OpenStudio::Model::ScheduleRule.new(schedule)
-						wkdy_rule.setName(@sch_name + "_weekday_ruleset#{m}")
-						wkdy[m] = wkdy_rule.daySchedule
-						wkdy[m].setName(@sch_name + "_weekday#{m}")
-						for h in 1..24
-							val = (@monthly_values[m-1].to_f*@weekday_hourly_values[h-1].to_f*@mult_weekday)/@maxval
-							wkdy[m].addValue(time[h],val)
-						end
-						wkdy_rule.setApplySunday(false)
-						wkdy_rule.setApplyMonday(true)
-						wkdy_rule.setApplyTuesday(true)
-						wkdy_rule.setApplyWednesday(true)
-						wkdy_rule.setApplyThursday(true)
-						wkdy_rule.setApplyFriday(true)
-						wkdy_rule.setApplySaturday(false)
-						wkdy_rule.setStartDate(date_s)
-						wkdy_rule.setEndDate(date_e)
-						
-					elsif w == 2
-						wknd_rule = OpenStudio::Model::ScheduleRule.new(schedule)
-						wknd_rule.setName(@sch_name + "_weekend_ruleset#{m}")
-						wknd[m] = wknd_rule.daySchedule
-						wknd[m].setName(@sch_name + "_weekend#{m}")
-						for h in 1..24
-							val = (@monthly_values[m-1].to_f*@weekend_hourly_values[h-1].to_f*@mult_weekend)/@maxval
-							wknd[m].addValue(time[h],val)
-						end
-						wknd_rule.setApplySunday(true)
-						wknd_rule.setApplyMonday(false)
-						wknd_rule.setApplyTuesday(false)
-						wknd_rule.setApplyWednesday(false)
-						wknd_rule.setApplyThursday(false)
-						wknd_rule.setApplyFriday(false)
-						wknd_rule.setApplySaturday(true)
-						wknd_rule.setStartDate(date_s)
-						wknd_rule.setEndDate(date_e)
-					end
-				end
-			end
-			
-			sumDesSch = wkdy[6] # TODO: Where did this come from?
-			sumDesSch.setName(@sch_name + "_summer")
-			winDesSch = wkdy[1] # TODO: Where did this come from?
-			winDesSch.setName(@sch_name + "_winter")
-			schedule.setSummerDesignDaySchedule(sumDesSch)
-			schedule.setWinterDesignDaySchedule(winDesSch)
-			
-			return schedule
-		end
-	
+            schedule = OpenStudio::Model::ScheduleRuleset.new(@model)
+            schedule.setName(@sch_name + " annual schedule")
+            
+            for m in 1..12
+                date_s = OpenStudio::Date::fromDayOfYear(day_startm[m])
+                date_e = OpenStudio::Date::fromDayOfYear(day_endm[m])
+                for w in 1..2
+                    if w == 1
+                        wkdy_rule = OpenStudio::Model::ScheduleRule.new(schedule)
+                        wkdy_rule.setName(@sch_name + " weekday ruleset#{m}")
+                        wkdy[m] = wkdy_rule.daySchedule
+                        wkdy[m].setName(@sch_name + " weekday#{m}")
+                        for h in 1..24
+                            val = (@monthly_values[m-1].to_f*@weekday_hourly_values[h-1].to_f*@mult_weekday)/@maxval
+                            wkdy[m].addValue(time[h],val)
+                        end
+                        wkdy_rule.setApplySunday(false)
+                        wkdy_rule.setApplyMonday(true)
+                        wkdy_rule.setApplyTuesday(true)
+                        wkdy_rule.setApplyWednesday(true)
+                        wkdy_rule.setApplyThursday(true)
+                        wkdy_rule.setApplyFriday(true)
+                        wkdy_rule.setApplySaturday(false)
+                        wkdy_rule.setStartDate(date_s)
+                        wkdy_rule.setEndDate(date_e)
+                        
+                    elsif w == 2
+                        wknd_rule = OpenStudio::Model::ScheduleRule.new(schedule)
+                        wknd_rule.setName(@sch_name + " weekend ruleset#{m}")
+                        wknd[m] = wknd_rule.daySchedule
+                        wknd[m].setName(@sch_name + " weekend#{m}")
+                        for h in 1..24
+                            val = (@monthly_values[m-1].to_f*@weekend_hourly_values[h-1].to_f*@mult_weekend)/@maxval
+                            wknd[m].addValue(time[h],val)
+                        end
+                        wknd_rule.setApplySunday(true)
+                        wknd_rule.setApplyMonday(false)
+                        wknd_rule.setApplyTuesday(false)
+                        wknd_rule.setApplyWednesday(false)
+                        wknd_rule.setApplyThursday(false)
+                        wknd_rule.setApplyFriday(false)
+                        wknd_rule.setApplySaturday(true)
+                        wknd_rule.setStartDate(date_s)
+                        wknd_rule.setEndDate(date_e)
+                    end
+                end
+            end
+            
+            sumDesSch = wkdy[6] # TODO: Where did this come from?
+            sumDesSch.setName(@sch_name + " summer")
+            winDesSch = wkdy[1] # TODO: Where did this come from?
+            winDesSch.setName(@sch_name + " winter")
+            schedule.setSummerDesignDaySchedule(sumDesSch)
+            schedule.setWinterDesignDaySchedule(winDesSch)
+            
+            return schedule
+        end
+    
 end
 
 class HotWaterSchedule
@@ -209,8 +323,8 @@ class HotWaterSchedule
     end
 
     def validated?
-		return @validated
-	end
+        return @validated
+    end
     
     def calcDesignLevelFromDailykWh(daily_kWh)
         return OpenStudio.convert(daily_kWh*365*60/(365*@totflow/@maxflow), "kW", "W").get
@@ -220,14 +334,14 @@ class HotWaterSchedule
         return OpenStudio.convert(@maxflow * daily_water / @totflow, "gal/min", "m^3/s").get
     end
 
-	def setSchedule(obj)
-		# Helper method to set (or replace) the object's electric equipment schedule
-		if not obj.schedule.empty?
-			sch = obj.schedule.get
-			sch.remove
-		end
-		obj.setSchedule(@schedule)
-	end
+    def setSchedule(obj)
+        # Helper method to set (or replace) the object's electric equipment schedule
+        if not obj.schedule.empty?
+            sch = obj.schedule.get
+            sch.remove
+        end
+        obj.setSchedule(@schedule)
+    end
     
     def setWaterSchedule(obj)
         # Helper method to set (or replace) the object's water use equipment schedule

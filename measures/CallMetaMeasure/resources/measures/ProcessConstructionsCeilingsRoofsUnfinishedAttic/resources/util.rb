@@ -50,7 +50,7 @@ class HelperMethods
         elsif fuel == Constants.FuelTypeOil
             return "FuelOil#1"
         elsif fuel == Constants.FuelTypePropane
-            return "Propane"
+            return "PropaneGas"
         end
     end
     

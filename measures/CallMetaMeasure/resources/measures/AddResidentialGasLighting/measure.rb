@@ -124,46 +124,40 @@ class ResidentialGasLighting < OpenStudio::Ruleset::ModelUserScript
     gl_lost = 1 - gl_lat - gl_rad - gl_conv
 	
 	obj_name = Constants.ObjectNameGasLighting
-	sch = MonthHourSchedule.new(weekday_sch, weekend_sch, monthly_sch, model, obj_name, runner)
+	sch = MonthWeekdayWeekendSchedule.new(weekday_sch, weekend_sch, monthly_sch, model, obj_name, runner)
 	if not sch.validated?
 		return false
 	end
 	design_level = sch.calcDesignLevelFromDailyTherm(gl_ann_g/365.0)
 	
-	#add lighting to an arbitrary space (there are no space gains)
-	has_gl = 0
-	replace_gl = 0
     space = Geometry.get_default_space(model, runner)
     if space.nil?
         return false
     end
-    space_equipments_g = space.gasEquipment
-    space_equipments_g.each do |space_equipment_g| #check for existing gas lighting
-        if space_equipment_g.gasEquipmentDefinition.name.get.to_s == obj_name
-            has_gl = 1
-            runner.registerInfo("There is already gas lighting. The existing gas lighting will be replaced with the specified gas lighting.")
-            space_equipment_g.gasEquipmentDefinition.setDesignLevel(design_level)
-            sch.setSchedule(space_equipment_g)
-            replace_gl = 1
+
+    # Remove any existing gas lighting
+    gl_removed = false
+    space.gasEquipment.each do |space_equipment|
+        if space_equipment.name.to_s == obj_name
+            space_equipment.remove
+            gl_removed = true
         end
     end
-
-    if has_gl == 0 
-        has_gl = 1
-        
-        #Add gas equipment for the lighting
-        gl_def = OpenStudio::Model::GasEquipmentDefinition.new(model)
-        gl = OpenStudio::Model::GasEquipment.new(gl_def)
-        gl.setName(obj_name)
-        gl.setSpace(space)
-        gl_def.setName(obj_name)
-        gl_def.setDesignLevel(design_level)
-        gl_def.setFractionRadiant(gl_rad)
-        gl_def.setFractionLatent(gl_lat)
-        gl_def.setFractionLost(gl_lost)
-        sch.setSchedule(gl)
-        
+    if gl_removed
+        runner.registerInfo("Removed existing gas lighting.")
     end
+    
+    #Add gas equipment for the lighting
+    gl_def = OpenStudio::Model::GasEquipmentDefinition.new(model)
+    gl = OpenStudio::Model::GasEquipment.new(gl_def)
+    gl.setName(obj_name)
+    gl.setSpace(space)
+    gl_def.setName(obj_name)
+    gl_def.setDesignLevel(design_level)
+    gl_def.setFractionRadiant(gl_rad)
+    gl_def.setFractionLatent(gl_lat)
+    gl_def.setFractionLost(gl_lost)
+    sch.setSchedule(gl)
 	
     #reporting final condition of model
     runner.registerFinalCondition("Gas lighting has been set with #{gl_ann_g.round} therms annual energy consumption.")

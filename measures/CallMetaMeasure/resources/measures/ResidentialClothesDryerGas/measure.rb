@@ -246,7 +246,7 @@ class ResidentialClothesDryerGas < OpenStudio::Ruleset::ModelUserScript
     obj_name_e = Constants.ObjectNameClothesDryer + "_" + Constants.FuelTypeElectric
     obj_name_g = Constants.ObjectNameClothesDryer + "_" + Constants.FuelTypeGas
     obj_name_g_e = Constants.ObjectNameClothesDryer + "_" + Constants.FuelTypeGas + "_electricity"
-	sch = MonthHourSchedule.new(cd_weekday_sch, cd_weekend_sch, cd_monthly_sch, model, obj_name, runner,
+	sch = MonthWeekdayWeekendSchedule.new(cd_weekday_sch, cd_weekend_sch, cd_monthly_sch, model, obj_name, runner,
                                 mult_weekday, mult_weekend)
 	if not sch.validated?
 		return false
@@ -254,58 +254,46 @@ class ResidentialClothesDryerGas < OpenStudio::Ruleset::ModelUserScript
 	design_level_e = sch.calcDesignLevelFromDailykWh(daily_energy_elec)
     design_level_g = sch.calcDesignLevelFromDailyTherm(daily_energy_gas)
 
-	#add cd to the selected space
-	has_gas_cd = 0
-	replace_gas_cd = 0
-	replace_e_cd = 0
-    space_equipments_g = space.gasEquipment
-    space_equipments_g.each do |space_equipment_g| #check for an existing gas cd
-        if space_equipment_g.gasEquipmentDefinition.name.get.to_s == obj_name_g
-            has_gas_cd = 1
-            runner.registerInfo("This space already has a gas dryer. The existing gas dryer will be replaced with the specified gas dryer.")
-            space_equipment_g.gasEquipmentDefinition.setDesignLevel(design_level_g)
-            sch.setSchedule(space_equipment_g)
-            replace_gas_cd = 1
+    # Remove any existing clothes dryer
+    cd_removed = false
+    space.electricEquipment.each do |space_equipment|
+        if space_equipment.name.to_s == obj_name_e or space_equipment.name.to_s == obj_name_g_e
+            space_equipment.remove
+            cd_removed = true
         end
     end
-    space_equipments_e = space.electricEquipment
-    space_equipments_e.each do |space_equipment_e| #check for an existing elec cd
-        if space_equipment_e.electricEquipmentDefinition.name.get.to_s == obj_name_e
-            runner.registerInfo("This space already has an electric dryer. The existing dryer will be replaced with the specified gas dryer.")
-            space_equipment_e.remove
-            replace_e_cd = 1
-        elsif space_equipment_e.electricEquipmentDefinition.name.get.to_s == obj_name_g_e
-            space_equipment_e.electricEquipmentDefinition.setDesignLevel(design_level_e)
-            sch.setSchedule(space_equipment_e)
+    space.gasEquipment.each do |space_equipment|
+        if space_equipment.name.to_s == obj_name_g
+            space_equipment.remove
+            cd_removed = true
         end
+    end
+    if cd_removed
+        runner.registerInfo("Removed existing clothes dryer.")
     end
     
-    if has_gas_cd == 0
-        has_gas_cd = 1
-            
-        #Add equipment for the cd
-        cd_def = OpenStudio::Model::GasEquipmentDefinition.new(model)
-        cd = OpenStudio::Model::GasEquipment.new(cd_def)
-        cd.setName(obj_name_g)
-        cd.setSpace(space)
-        cd_def.setName(obj_name_g)
-        cd_def.setDesignLevel(design_level_g)
-        cd_def.setFractionRadiant(cd_rad_g)
-        cd_def.setFractionLatent(cd_lat_g)
-        cd_def.setFractionLost(cd_lost_g)
-        sch.setSchedule(cd)
-        
-        cd_def = OpenStudio::Model::ElectricEquipmentDefinition.new(model)
-        cd = OpenStudio::Model::ElectricEquipment.new(cd_def)
-        cd.setName(obj_name_g_e)
-        cd.setSpace(space)
-        cd_def.setName(obj_name_g_e)
-        cd_def.setDesignLevel(design_level_e)
-        cd_def.setFractionRadiant(cd_rad_g_e)
-        cd_def.setFractionLatent(cd_lat_g_e)
-        cd_def.setFractionLost(cd_lost_g_e)
-        sch.setSchedule(cd)
-    end
+    #Add equipment for the cd
+    cd_def = OpenStudio::Model::GasEquipmentDefinition.new(model)
+    cd = OpenStudio::Model::GasEquipment.new(cd_def)
+    cd.setName(obj_name_g)
+    cd.setSpace(space)
+    cd_def.setName(obj_name_g)
+    cd_def.setDesignLevel(design_level_g)
+    cd_def.setFractionRadiant(cd_rad_g)
+    cd_def.setFractionLatent(cd_lat_g)
+    cd_def.setFractionLost(cd_lost_g)
+    sch.setSchedule(cd)
+    
+    cd_def = OpenStudio::Model::ElectricEquipmentDefinition.new(model)
+    cd = OpenStudio::Model::ElectricEquipment.new(cd_def)
+    cd.setName(obj_name_g_e)
+    cd.setSpace(space)
+    cd_def.setName(obj_name_g_e)
+    cd_def.setDesignLevel(design_level_e)
+    cd_def.setFractionRadiant(cd_rad_g_e)
+    cd_def.setFractionLatent(cd_lat_g_e)
+    cd_def.setFractionLost(cd_lost_g_e)
+    sch.setSchedule(cd)
 	
 	#reporting final condition of model
     runner.registerFinalCondition("A gas dryer has been set with #{cd_ann_g.round} therms and #{cd_ann_e.round} kWhs annual energy consumption.")

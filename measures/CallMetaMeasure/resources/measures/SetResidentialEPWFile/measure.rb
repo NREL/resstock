@@ -40,11 +40,13 @@ class SetResidentialEPWFile < OpenStudio::Ruleset::ModelUserScript
 
     arg = OpenStudio::Ruleset::OSArgument.makeStringArgument("dst_start_date", true)
     arg.setDisplayName("Daylight Saving Start Date")
+    arg.setDescription("Set to 'NA' if no daylight saving.")
     arg.setDefaultValue("April 7")
     args << arg
     
     arg = OpenStudio::Ruleset::OSArgument.makeStringArgument("dst_end_date", true)
     arg.setDisplayName("Daylight Saving End Date")
+    arg.setDescription("Set to 'NA' if no daylight saving.")
     arg.setDefaultValue("October 26")
     args << arg      
     
@@ -65,19 +67,6 @@ class SetResidentialEPWFile < OpenStudio::Ruleset::ModelUserScript
     weather_file_name = runner.getStringArgumentValue("weather_file_name", user_arguments)
     dst_start_date = runner.getStringArgumentValue("dst_start_date", user_arguments)
     dst_end_date = runner.getStringArgumentValue("dst_end_date", user_arguments)
-    
-    # ----------------
-    # Set daylight saving time
-    # ----------------    
-    
-    dst_start_date_month = OpenStudio::monthOfYear(dst_start_date.split[0])
-    dst_start_date_day = dst_start_date.split[1].to_i
-    dst_end_date_month = OpenStudio::monthOfYear(dst_end_date.split[0])
-    dst_end_date_day = dst_end_date.split[1].to_i    
-    
-    dst = model.getRunPeriodControlDaylightSavingTime
-    dst.setStartDate(dst_start_date_month, dst_start_date_day)
-    dst.setEndDate(dst_end_date_month, dst_end_date_day)    
     
     # ----------------
     # Set weather file
@@ -164,15 +153,38 @@ class SetResidentialEPWFile < OpenStudio::Ruleset::ModelUserScript
     swmt.setCalculationMethod "Correlation"
     swmt.setAnnualAverageOutdoorAirTemperature avgOAT
     swmt.setMaximumDifferenceInMonthlyAverageOutdoorAirTemperatures maxDiffOAT
-    runner.registerInfo("Setting Site:MainsWaterTemperature object with an average temperature of #{weather.data.MainsAvgTemp.round(1)} F.")
+    runner.registerInfo("Setting mains water temperature profile with an average temperature of #{weather.data.MainsAvgTemp.round(1)} F.")
+
+    # ----------------
+    # Set daylight saving time
+    # ----------------    
+    
+    if not (dst_start_date.downcase == 'na' and dst_end_date.downcase == 'na')
+        begin
+            dst_start_date_month = OpenStudio::monthOfYear(dst_start_date.split[0])
+            dst_start_date_day = dst_start_date.split[1].to_i
+            dst_end_date_month = OpenStudio::monthOfYear(dst_end_date.split[0])
+            dst_end_date_day = dst_end_date.split[1].to_i    
+            
+            dst = model.getRunPeriodControlDaylightSavingTime
+            dst.setStartDate(dst_start_date_month, dst_start_date_day)
+            dst.setEndDate(dst_end_date_month, dst_end_date_day)  
+            runner.registerInfo("Set daylight saving time from #{dst.startDate.to_s} to #{dst.endDate.to_s}.")
+        rescue
+            runner.registerError("Invalid daylight saving date specified.")
+            return false
+        end
+    else
+        runner.registerInfo("No daylight saving time set.")
+    end
 
     # report final condition
     final_design_days = model.getDesignDays
     if site.weatherFile.is_initialized
       weather = site.weatherFile.get
-      runner.registerFinalCondition("The final weather file path was '#{weather.path.get}' and the model has #{final_design_days.size} design days.")
+      runner.registerFinalCondition("The weather file path is '#{weather.path.get}'.")
     else
-      runner.registerFinalCondition("The final weather file has not been set and the model has #{final_design_days.size} design days.")
+      runner.registerFinalCondition("The weather file has not been set.")
     end    
 
     return true

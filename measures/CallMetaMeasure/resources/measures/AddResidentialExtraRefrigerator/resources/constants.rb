@@ -80,6 +80,9 @@ class Constants
   def self.BAZoneMixedHumid
     return 'Mixed-Humid'
   end
+  def self.BAZoneMixedDry
+    return 'Mixed-Dry'
+  end
   def self.BAZoneMarine
     return 'Marine'
   end
@@ -427,6 +430,9 @@ class Constants
   end
   def self.ObjectNameHotTubPump
     return 'residential hot tub pump'
+  end
+  def self.ObjectNameLighting
+    return 'residential lighting'
   end
   def self.ObjectNameMiscPlugLoads
     return 'residential misc plug loads'

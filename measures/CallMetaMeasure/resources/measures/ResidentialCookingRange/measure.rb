@@ -141,53 +141,41 @@ class ResidentialCookingRange < OpenStudio::Ruleset::ModelUserScript
 	obj_name_e = obj_name + "_" + Constants.FuelTypeElectric
 	obj_name_g = obj_name + "_" + Constants.FuelTypeGas
 	obj_name_i = obj_name + "_" + Constants.FuelTypeElectric + "_ignition"
-	sch = MonthHourSchedule.new(weekday_sch, weekend_sch, monthly_sch, model, obj_name, runner)
+	sch = MonthWeekdayWeekendSchedule.new(weekday_sch, weekend_sch, monthly_sch, model, obj_name, runner)
 	if not sch.validated?
 		return false
 	end
     design_level_e = sch.calcDesignLevelFromDailykWh(range_ann_e/365.0)
 
-	#add range to the selected space
-	has_elec_range = 0
-	replace_elec_range = 0
-	replace_g_range = 0
-    space_equipments_g = space.gasEquipment
-    space_equipments_g.each do |space_equipment_g| #check for an existing gas range
-        if space_equipment_g.gasEquipmentDefinition.name.get.to_s == obj_name_g
-            runner.registerInfo("This space already has a gas range. The existing gas range will be replaced with the specified electric range.")
-            space_equipment_g.remove
-            replace_g_range = 1
+    # Remove any existing cooking range
+    cr_removed = false
+    space.electricEquipment.each do |space_equipment|
+        if space_equipment.name.to_s == obj_name_e or space_equipment.name.to_s == obj_name_i
+            space_equipment.remove
+            cr_removed = true
         end
     end
-    space_equipments_e = space.electricEquipment
-    space_equipments_e.each do |space_equipment_e| #check for an existing elec range
-        if space_equipment_e.electricEquipmentDefinition.name.get.to_s == obj_name_e
-            has_elec_range = 1
-            runner.registerInfo("This space already has an electric range. The existing range will be replaced with the specified electric range.")
-            space_equipment_e.electricEquipmentDefinition.setDesignLevel(design_level_e)
-            sch.setSchedule(space_equipment_e)
-            replace_elec_range = 1
-        elsif space_equipment_e.electricEquipmentDefinition.name.get.to_s == obj_name_i
-            space_equipment_e.remove
+    space.gasEquipment.each do |space_equipment|
+        if space_equipment.name.to_s == obj_name_g
+            space_equipment.remove
+            cr_removed = true
         end
+    end
+    if cr_removed
+        runner.registerInfo("Removed existing cooking range.")
     end
     
-    if has_elec_range == 0
-
-        has_elec_range = 1
-        
-        #Add equipment for the range
-        rng_def = OpenStudio::Model::ElectricEquipmentDefinition.new(model)
-        rng = OpenStudio::Model::ElectricEquipment.new(rng_def)
-        rng.setName(obj_name_e)
-        rng.setSpace(space)
-        rng_def.setName(obj_name_e)
-        rng_def.setDesignLevel(design_level_e)
-        rng_def.setFractionRadiant(range_rad_e)
-        rng_def.setFractionLatent(range_lat_e)
-        rng_def.setFractionLost(range_lost_e)
-        sch.setSchedule(rng)
-    end
+    #Add equipment for the range
+    rng_def = OpenStudio::Model::ElectricEquipmentDefinition.new(model)
+    rng = OpenStudio::Model::ElectricEquipment.new(rng_def)
+    rng.setName(obj_name_e)
+    rng.setSpace(space)
+    rng_def.setName(obj_name_e)
+    rng_def.setDesignLevel(design_level_e)
+    rng_def.setFractionRadiant(range_rad_e)
+    rng_def.setFractionLatent(range_lat_e)
+    rng_def.setFractionLost(range_lost_e)
+    sch.setSchedule(rng)
 
     #reporting final condition of model
     runner.registerFinalCondition("An electric range has been set with #{range_ann_e.round} kWhs annual energy consumption.")

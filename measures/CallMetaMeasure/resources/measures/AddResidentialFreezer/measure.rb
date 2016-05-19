@@ -122,41 +122,35 @@ class ResidentialFreezer < OpenStudio::Ruleset::ModelUserScript
     freezer_lost = 1 - freezer_lat - freezer_rad - freezer_conv
 	
 	obj_name = Constants.ObjectNameFreezer
-	sch = MonthHourSchedule.new(weekday_sch, weekend_sch, monthly_sch, model, obj_name, runner)
+	sch = MonthWeekdayWeekendSchedule.new(weekday_sch, weekend_sch, monthly_sch, model, obj_name, runner)
 	if not sch.validated?
 		return false
 	end
 	design_level = sch.calcDesignLevelFromDailykWh(freezer_ann/365.0)
 	
-	#add freezer to the selected space
-	has_freezer = 0
-	replace_freezer = 0
-    space_equipments = space.electricEquipment
-    space_equipments.each do |space_equipment|
-        if space_equipment.electricEquipmentDefinition.name.get.to_s == obj_name
-            has_freezer = 1
-            runner.registerInfo("This space already has a freezer, the existing freezer will be replaced with the specified freezer.")
-            space_equipment.electricEquipmentDefinition.setDesignLevel(design_level)
-            sch.setSchedule(space_equipment)
-            replace_freezer = 1
+    # Remove any existing freezer
+    frz_removed = false
+    space.electricEquipment.each do |space_equipment|
+        if space_equipment.name.to_s == obj_name
+            space_equipment.remove
+            frz_removed = true
         end
     end
-    if has_freezer == 0 
-        has_freezer = 1
-        
-        #Add electric equipment for the freezer
-        frz_def = OpenStudio::Model::ElectricEquipmentDefinition.new(model)
-        frz = OpenStudio::Model::ElectricEquipment.new(frz_def)
-        frz.setName(obj_name)
-        frz.setSpace(space)
-        frz_def.setName(obj_name)
-        frz_def.setDesignLevel(design_level)
-        frz_def.setFractionRadiant(freezer_rad)
-        frz_def.setFractionLatent(freezer_lat)
-        frz_def.setFractionLost(freezer_lost)
-        sch.setSchedule(frz)
-        
+    if frz_removed
+        runner.registerInfo("Removed existing freezer.")
     end
+    
+    #Add electric equipment for the freezer
+    frz_def = OpenStudio::Model::ElectricEquipmentDefinition.new(model)
+    frz = OpenStudio::Model::ElectricEquipment.new(frz_def)
+    frz.setName(obj_name)
+    frz.setSpace(space)
+    frz_def.setName(obj_name)
+    frz_def.setDesignLevel(design_level)
+    frz_def.setFractionRadiant(freezer_rad)
+    frz_def.setFractionLatent(freezer_lat)
+    frz_def.setFractionLost(freezer_lost)
+    sch.setSchedule(frz)
 	
     #reporting final condition of model
     runner.registerFinalCondition("A freezer has been set with #{freezer_ann.round} kWhs annual energy consumption.")

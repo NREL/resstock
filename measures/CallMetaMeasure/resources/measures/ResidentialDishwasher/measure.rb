@@ -388,74 +388,55 @@ class ResidentialDishwasher < OpenStudio::Ruleset::ModelUserScript
 	end
 	design_level = sch.calcDesignLevelFromDailykWh(daily_energy)
     peak_flow = sch.calcPeakFlowFromDailygpm(daily_dishwasher_water)
-
-	#add dw to the selected space
-	has_elec_dw = 0
-	replace_dw = 0
-    space_equipments = space.electricEquipment
-    space_equipments.each do |space_equipment|
-        if space_equipment.electricEquipmentDefinition.name.get.to_s == obj_name
-            has_elec_dw = 1
-            runner.registerInfo("This space already has an dishwasher, the existing dishwasher will be replaced with the specified dishwasher.")
-            space_equipment.electricEquipmentDefinition.setDesignLevel(design_level)
-            sch.setSchedule(space_equipment)
-            replace_dw = 1
+    
+    # Remove any existing dishwasher
+    dw_removed = false
+    space.electricEquipment.each do |space_equipment|
+        if space_equipment.name.to_s == obj_name
+            space_equipment.remove
+            dw_removed = true
         end
     end
-    if replace_dw == 1
-        # Also update water use equipment
-        plant_loop.demandComponents.each do |component|
-            next unless component.to_WaterUseConnections.is_initialized
-            connection = component.to_WaterUseConnections.get
-            connection.waterUseEquipment.each do |equipment|
-                if equipment.waterUseEquipmentDefinition.name.get.to_s == obj_name
-                    equipment.waterUseEquipmentDefinition.setPeakFlowRate(peak_flow)
-                    sch.setWaterSchedule(equipment)
-                end
-            end
-        end
+    if dw_removed
+        runner.registerInfo("Removed existing misc plug loads.")
     end
-    if has_elec_dw == 0
-        has_elec_dw = 1
-
-        #Add electric equipment for the dw
-        dw_def = OpenStudio::Model::ElectricEquipmentDefinition.new(model)
-        dw = OpenStudio::Model::ElectricEquipment.new(dw_def)
-        dw.setName(obj_name)
-        dw.setSpace(space)
-        dw_def.setName(obj_name)
-        dw_def.setDesignLevel(design_level)
-        dw_def.setFractionRadiant(dw_rad)
-        dw_def.setFractionLatent(dw_lat)
-        dw_def.setFractionLost(dw_lost)
-        sch.setSchedule(dw)
-        
-        #Add water use equipment for the dw
-        dw_def2 = OpenStudio::Model::WaterUseEquipmentDefinition.new(model)
-        dw2 = OpenStudio::Model::WaterUseEquipment.new(dw_def2)
-        dw2.setName(obj_name)
-        dw2.setSpace(space)
-        dw_def2.setName(obj_name)
-        dw_def2.setPeakFlowRate(peak_flow)
-        dw_def2.setEndUseSubcategory("Domestic Hot Water")
-        sch.setWaterSchedule(dw2)
-        
-        #Reuse existing water use connection if possible
-        equip_added = false
-        plant_loop.demandComponents.each do |component|
-            next unless component.to_WaterUseConnections.is_initialized
-            connection = component.to_WaterUseConnections.get
-            connection.addWaterUseEquipment(dw2)
-            equip_added = true
-            break
-        end
-        if not equip_added
-            #Need new water heater connection
-            connection = OpenStudio::Model::WaterUseConnections.new(model)
-            connection.addWaterUseEquipment(dw2)
-            plant_loop.addDemandBranchForComponent(connection)
-        end
-        
+    
+    #Add electric equipment for the dw
+    dw_def = OpenStudio::Model::ElectricEquipmentDefinition.new(model)
+    dw = OpenStudio::Model::ElectricEquipment.new(dw_def)
+    dw.setName(obj_name)
+    dw.setSpace(space)
+    dw_def.setName(obj_name)
+    dw_def.setDesignLevel(design_level)
+    dw_def.setFractionRadiant(dw_rad)
+    dw_def.setFractionLatent(dw_lat)
+    dw_def.setFractionLost(dw_lost)
+    sch.setSchedule(dw)
+    
+    #Add water use equipment for the dw
+    dw_def2 = OpenStudio::Model::WaterUseEquipmentDefinition.new(model)
+    dw2 = OpenStudio::Model::WaterUseEquipment.new(dw_def2)
+    dw2.setName(obj_name)
+    dw2.setSpace(space)
+    dw_def2.setName(obj_name)
+    dw_def2.setPeakFlowRate(peak_flow)
+    dw_def2.setEndUseSubcategory("Domestic Hot Water")
+    sch.setWaterSchedule(dw2)
+    
+    #Reuse existing water use connection if possible
+    equip_added = false
+    plant_loop.demandComponents.each do |component|
+        next unless component.to_WaterUseConnections.is_initialized
+        connection = component.to_WaterUseConnections.get
+        connection.addWaterUseEquipment(dw2)
+        equip_added = true
+        break
+    end
+    if not equip_added
+        #Need new water heater connection
+        connection = OpenStudio::Model::WaterUseConnections.new(model)
+        connection.addWaterUseEquipment(dw2)
+        plant_loop.addDemandBranchForComponent(connection)
     end
 
     #reporting final condition of model

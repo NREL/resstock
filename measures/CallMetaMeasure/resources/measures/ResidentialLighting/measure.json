@@ -1,0 +1,218 @@
+{
+  "classname": "ResidentialLighting",
+  "name": "residential_lighting",
+  "display_name": "Residential Lighting",
+  "measure_type": "RubyMeasure",
+  "arguments": [
+    {
+      "local_variable": "selected_ltg",
+      "variable_type": "Choice",
+      "name": "selected_ltg",
+      "display_name": "Lighting Energy Consumption Option",
+      "units": null,
+      "description": null,
+      "choices": [
+        "Benchmark",
+        "Simple",
+        "Detailed"
+      ]
+    },
+    {
+      "local_variable": "ltg_E",
+      "variable_type": "Double",
+      "name": "ltg_E",
+      "display_name": "Simple Interior Lighting Annual Energy Consumption",
+      "units": "kWh/yr",
+      "description": null,
+      "default_value": 0.0
+    },
+    {
+      "local_variable": "outside_ltg",
+      "variable_type": "Bool",
+      "name": "outside_ltg",
+      "display_name": "Building has exterior lighting",
+      "units": null,
+      "description": null,
+      "default_value": true
+    },
+    {
+      "local_variable": "garage_ltg",
+      "variable_type": "Bool",
+      "name": "garage_ltg",
+      "display_name": "Building has a garage",
+      "units": null,
+      "description": null,
+      "default_value": true
+    },
+    {
+      "local_variable": "fb_ltg",
+      "variable_type": "Bool",
+      "name": "fb_ltg",
+      "display_name": "Building has a finished basement",
+      "units": null,
+      "description": null,
+      "default_value": true
+    },
+    {
+      "local_variable": "cfa",
+      "variable_type": "Double",
+      "name": "cfa",
+      "display_name": "Conditioned Floor Area",
+      "units": "including basement if finished",
+      "description": null,
+      "default_value": 1800.0
+    },
+    {
+      "local_variable": "gfa",
+      "variable_type": "Double",
+      "name": "gfa",
+      "display_name": "Garage Floor Area",
+      "units": "ft^2",
+      "description": null,
+      "default_value": 240.0
+    },
+    {
+      "local_variable": "fbfa",
+      "variable_type": "Double",
+      "name": "fbfa",
+      "display_name": "Finished Basement Floor Area",
+      "units": "ft^2",
+      "description": null,
+      "default_value": 900.0
+    },
+    {
+      "local_variable": "hw_cfl",
+      "variable_type": "Double",
+      "name": "hw_cfl",
+      "display_name": "Hardwired Fraction CFL",
+      "units": null,
+      "description": null,
+      "default_value": 0.0
+    },
+    {
+      "local_variable": "hw_led",
+      "variable_type": "Double",
+      "name": "hw_led",
+      "display_name": "Hardwired Fraction LED",
+      "units": null,
+      "description": null,
+      "default_value": 0.0
+    },
+    {
+      "local_variable": "hw_lfl",
+      "variable_type": "Double",
+      "name": "hw_lfl",
+      "display_name": "Hardwired Fraction LFL",
+      "units": null,
+      "description": null,
+      "default_value": 0.0
+    },
+    {
+      "local_variable": "pg_cfl",
+      "variable_type": "Double",
+      "name": "pg_cfl",
+      "display_name": "Plugin Fraction CFL",
+      "units": null,
+      "description": null,
+      "default_value": 0.0
+    },
+    {
+      "local_variable": "pg_led",
+      "variable_type": "Double",
+      "name": "pg_led",
+      "display_name": "Plugin Fraction LED",
+      "units": null,
+      "description": null,
+      "default_value": 0.0
+    },
+    {
+      "local_variable": "pg_lfl",
+      "variable_type": "Double",
+      "name": "pg_lfl",
+      "display_name": "Plugin Fraction LFL",
+      "units": null,
+      "description": null,
+      "default_value": 0.0
+    },
+    {
+      "local_variable": "in_eff",
+      "variable_type": "Double",
+      "name": "in_eff",
+      "display_name": "Incandescent Efficacy )",
+      "units": "lm/W",
+      "description": null,
+      "default_value": 15.0
+    },
+    {
+      "local_variable": "cfl_eff",
+      "variable_type": "Double",
+      "name": "cfl_eff",
+      "display_name": "CFL Efficacy )",
+      "units": "lm/W",
+      "description": null,
+      "default_value": 55.0
+    },
+    {
+      "local_variable": "led_eff",
+      "variable_type": "Double",
+      "name": "led_eff",
+      "display_name": "LED Efficacy )",
+      "units": "lm/W",
+      "description": null,
+      "default_value": 50.0
+    },
+    {
+      "local_variable": "lfl_eff",
+      "variable_type": "Double",
+      "name": "lfl_eff",
+      "display_name": "LFL Efficacy )",
+      "units": "lm/W",
+      "description": null,
+      "default_value": 88.0
+    },
+    {
+      "local_variable": "space_type",
+      "variable_type": "Choice",
+      "name": "space_type",
+      "display_name": "Select the space where the interior lighting is located",
+      "units": null,
+      "description": null,
+      "default_value": "*None*",
+      "choices": [
+        "*None*"
+      ]
+    },
+    {
+      "local_variable": "grg_space_type",
+      "variable_type": "Choice",
+      "name": "grg_space_type",
+      "display_name": "Select the garage space",
+      "units": null,
+      "description": null,
+      "default_value": "*None*",
+      "choices": [
+        "*None*"
+      ]
+    },
+    {
+      "local_variable": "fb_space_type",
+      "variable_type": "Choice",
+      "name": "fb_space_type",
+      "display_name": "Select the finished basement space",
+      "units": null,
+      "description": null,
+      "default_value": "*None*",
+      "choices": [
+        "*None*"
+      ]
+    }
+  ],
+  "name_xml": "residential_lighting",
+  "uid": "2c69a60e-501a-4516-a253-725d23808b2d",
+  "version_id": "237ec694-5580-4be8-ba5f-e636c40641bd",
+  "modeler_description": "Adds a new lighting object that uses the Building America Benchmark schedule.",
+  "description": "Adds lighting to the building model. The lighting annual energy consumption can either be specified by the kWh/yr it consumes, the Building America Benchmark, or using more detailed inputs. More detailed inputs use the hardwired fraction, plugin fraction, and efficacy for CFLs, LED, and LFL. The schedule used for lighting is based on the Building America Benchmark and changes based on location. ",
+  "tags": [
+    "Electric Lighting.Lighting Equipment"
+  ]
+}

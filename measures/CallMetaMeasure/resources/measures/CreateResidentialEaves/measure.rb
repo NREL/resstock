@@ -198,7 +198,7 @@ class CreateResidentialEaves < OpenStudio::Ruleset::ModelUserScript
 
           # Attic Walls
           elsif surface.surfaceType.downcase == "wall" and surface.vertices.length == 3
-
+            
             # raise the attic walls
             x_s = []
             y_s = []
@@ -212,15 +212,29 @@ class CreateResidentialEaves < OpenStudio::Ruleset::ModelUserScript
             max_z = z_s.each_with_index.max
             top_pt = OpenStudio::Point3d.new(x_s[max_z[1]], y_s[max_z[1]], z_s[max_z[1]] + attic_increase)
             if x_s.uniq.size == 1 # orientation of this wall is along y-axis
-              min_y = y_s.each_with_index.min
-              max_y = y_s.each_with_index.max 
-              min_pt = OpenStudio::Point3d.new(x_s[min_y[1]], y_s[min_y[1]] - eaves_depth, z_s[min_y[1]])
-              max_pt = OpenStudio::Point3d.new(x_s[max_y[1]], y_s[max_y[1]] + eaves_depth, z_s[max_y[1]])
+              if top_pt.x == 0
+                min_y = y_s.each_with_index.min
+                max_y = y_s.each_with_index.max 
+                max_pt = OpenStudio::Point3d.new(x_s[min_y[1]], y_s[min_y[1]] - eaves_depth, z_s[min_y[1]])
+                min_pt = OpenStudio::Point3d.new(x_s[max_y[1]], y_s[max_y[1]] + eaves_depth, z_s[max_y[1]])
+              else
+                min_y = y_s.each_with_index.min
+                max_y = y_s.each_with_index.max 
+                min_pt = OpenStudio::Point3d.new(x_s[min_y[1]], y_s[min_y[1]] - eaves_depth, z_s[min_y[1]])
+                max_pt = OpenStudio::Point3d.new(x_s[max_y[1]], y_s[max_y[1]] + eaves_depth, z_s[max_y[1]])              
+              end
             else # orientation of this wall is along the x-axis
-              min_x = x_s.each_with_index.min
-              max_x = x_s.each_with_index.max 
-              min_pt = OpenStudio::Point3d.new(x_s[min_x[1]] - eaves_depth, y_s[min_x[1]], z_s[min_x[1]])
-              max_pt = OpenStudio::Point3d.new(x_s[max_x[1]] + eaves_depth, y_s[max_x[1]], z_s[max_x[1]])						
+              if top_pt.y == 0
+                min_x = x_s.each_with_index.min
+                max_x = x_s.each_with_index.max 
+                min_pt = OpenStudio::Point3d.new(x_s[min_x[1]] - eaves_depth, y_s[min_x[1]], z_s[min_x[1]])
+                max_pt = OpenStudio::Point3d.new(x_s[max_x[1]] + eaves_depth, y_s[max_x[1]], z_s[max_x[1]])						
+              else
+                min_x = x_s.each_with_index.min
+                max_x = x_s.each_with_index.max 
+                max_pt = OpenStudio::Point3d.new(x_s[min_x[1]] - eaves_depth, y_s[min_x[1]], z_s[min_x[1]])
+                min_pt = OpenStudio::Point3d.new(x_s[max_x[1]] + eaves_depth, y_s[max_x[1]], z_s[max_x[1]])						
+              end
             end
             new_vertices = OpenStudio::Point3dVector.new
             new_vertices << top_pt

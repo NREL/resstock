@@ -122,41 +122,35 @@ class ResidentialRefrigerator < OpenStudio::Ruleset::ModelUserScript
     fridge_lost = 1 - fridge_lat - fridge_rad - fridge_conv
 	
 	obj_name = Constants.ObjectNameRefrigerator
-	sch = MonthHourSchedule.new(weekday_sch, weekend_sch, monthly_sch, model, obj_name, runner)
+	sch = MonthWeekdayWeekendSchedule.new(weekday_sch, weekend_sch, monthly_sch, model, obj_name, runner)
 	if not sch.validated?
 		return false
 	end
 	design_level = sch.calcDesignLevelFromDailykWh(fridge_ann/365.0)
 	
-	#add refrigerator to the selected space
-	has_fridge = 0
-	replace_fridge = 0
-    space_equipments = space.electricEquipment
-    space_equipments.each do |space_equipment|
-        if space_equipment.electricEquipmentDefinition.name.get.to_s == obj_name
-            has_fridge = 1
-            runner.registerInfo("This space already has a refrigerator, the existing refrigerator will be replaced with the specified refrigerator.")
-            space_equipment.electricEquipmentDefinition.setDesignLevel(design_level)
-            sch.setSchedule(space_equipment)
-            replace_fridge = 1
+    # Remove any existing refrigerator
+    frg_removed = false
+    space.electricEquipment.each do |space_equipment|
+        if space_equipment.name.to_s == obj_name
+            space_equipment.remove
+            frg_removed = true
         end
     end
-    if has_fridge == 0 
-        has_fridge = 1
-        
-        #Add electric equipment for the fridge
-        frg_def = OpenStudio::Model::ElectricEquipmentDefinition.new(model)
-        frg = OpenStudio::Model::ElectricEquipment.new(frg_def)
-        frg.setName(obj_name)
-        frg.setSpace(space)
-        frg_def.setName(obj_name)
-        frg_def.setDesignLevel(design_level)
-        frg_def.setFractionRadiant(fridge_rad)
-        frg_def.setFractionLatent(fridge_lat)
-        frg_def.setFractionLost(fridge_lost)
-        sch.setSchedule(frg)
-        
+    if frg_removed
+        runner.registerInfo("Removed existing refrigerator.")
     end
+    
+    #Add electric equipment for the fridge
+    frg_def = OpenStudio::Model::ElectricEquipmentDefinition.new(model)
+    frg = OpenStudio::Model::ElectricEquipment.new(frg_def)
+    frg.setName(obj_name)
+    frg.setSpace(space)
+    frg_def.setName(obj_name)
+    frg_def.setDesignLevel(design_level)
+    frg_def.setFractionRadiant(fridge_rad)
+    frg_def.setFractionLatent(fridge_lat)
+    frg_def.setFractionLost(fridge_lost)
+    sch.setSchedule(frg)
 	
     #reporting final condition of model
     runner.registerFinalCondition("A fridge has been set with #{fridge_ann.round} kWhs annual energy consumption.")

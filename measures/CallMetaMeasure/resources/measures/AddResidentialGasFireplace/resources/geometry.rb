@@ -101,6 +101,14 @@ class Geometry
         return floor_area
     end
     
+    def self.get_building_garage_floor_area(model)
+        floor_area = 0
+        Geometry.get_garage_spaces(model).each do |space|
+            floor_area += OpenStudio.convert(space.floorArea,"m^2","ft^2").get
+        end
+        return floor_area
+    end
+    
     # Calculates the space height as the max z coordinate minus the min z coordinate
     def self.space_height(space)
         zvalues = Geometry.getSurfaceZValues(space.surfaces)

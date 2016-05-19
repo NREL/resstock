@@ -136,57 +136,50 @@ class ResidentialGasFireplace < OpenStudio::Ruleset::ModelUserScript
         constant = ann_g/2
         nbr_coef = ann_g/4/3
         ffa_coef = ann_g/4/1920
-        gg_ann_g = constant + nbr_coef * nbeds + ffa_coef * ffa # therm/yr
+        gf_ann_g = constant + nbr_coef * nbeds + ffa_coef * ffa # therm/yr
     else
-        gg_ann_g = ann_g # therm/yr
+        gf_ann_g = ann_g # therm/yr
     end
 
     #hard coded convective, radiative, latent, and lost fractions
-    gg_lat = 0.1
-    gg_rad = 0.3
-    gg_conv = 0.2
-    gg_lost = 1 - gg_lat - gg_rad - gg_conv
+    gf_lat = 0.1
+    gf_rad = 0.3
+    gf_conv = 0.2
+    gf_lost = 1 - gf_lat - gf_rad - gf_conv
 	
 	obj_name = Constants.ObjectNameGasFireplace
-	sch = MonthHourSchedule.new(weekday_sch, weekend_sch, monthly_sch, model, obj_name, runner)
+	sch = MonthWeekdayWeekendSchedule.new(weekday_sch, weekend_sch, monthly_sch, model, obj_name, runner)
 	if not sch.validated?
 		return false
 	end
-	design_level = sch.calcDesignLevelFromDailyTherm(gg_ann_g/365.0)
+	design_level = sch.calcDesignLevelFromDailyTherm(gf_ann_g/365.0)
 	
-	#add fireplace to the space
-	has_gg = 0
-	replace_gg = 0
-    space_equipments_g = space.gasEquipment
-    space_equipments_g.each do |space_equipment_g| #check for an existing gas fireplace
-        if space_equipment_g.gasEquipmentDefinition.name.get.to_s == obj_name
-            has_gg = 1
-            runner.registerInfo("There is already a gas fireplace. The existing gas fireplace will be replaced with the specified gas fireplace.")
-            space_equipment_g.gasEquipmentDefinition.setDesignLevel(design_level)
-            sch.setSchedule(space_equipment_g)
-            replace_gg = 1
+    # Remove any existing gas fireplace
+    gf_removed = false
+    space.gasEquipment.each do |space_equipment|
+        if space_equipment.name.to_s == obj_name
+            space_equipment.remove
+            gf_removed = true
         end
     end
-
-    if has_gg == 0 
-        has_gg = 1
-        
-        #Add gas equipment for the fireplace
-        gg_def = OpenStudio::Model::GasEquipmentDefinition.new(model)
-        gg = OpenStudio::Model::GasEquipment.new(gg_def)
-        gg.setName(obj_name)
-        gg.setSpace(space)
-        gg_def.setName(obj_name)
-        gg_def.setDesignLevel(design_level)
-        gg_def.setFractionRadiant(gg_rad)
-        gg_def.setFractionLatent(gg_lat)
-        gg_def.setFractionLost(gg_lost)
-        sch.setSchedule(gg)
-        
+    if gf_removed
+        runner.registerInfo("Removed existing gas fireplace.")
     end
+    
+    #Add gas equipment for the fireplace
+    gf_def = OpenStudio::Model::GasEquipmentDefinition.new(model)
+    gf = OpenStudio::Model::GasEquipment.new(gf_def)
+    gf.setName(obj_name)
+    gf.setSpace(space)
+    gf_def.setName(obj_name)
+    gf_def.setDesignLevel(design_level)
+    gf_def.setFractionRadiant(gf_rad)
+    gf_def.setFractionLatent(gf_lat)
+    gf_def.setFractionLost(gf_lost)
+    sch.setSchedule(gf)
 	
     #reporting final condition of model
-    runner.registerFinalCondition("A gas fireplace has been set with #{gg_ann_g.round} therms annual energy consumption.")
+    runner.registerFinalCondition("A gas fireplace has been set with #{gf_ann_g.round} therms annual energy consumption.")
 	
     return true
  

@@ -131,6 +131,14 @@ class AddOSWaterHeaterMixedStorageElectric < OpenStudio::Ruleset::ModelUserScrip
         # Get number of bedrooms/bathrooms
         nbeds, nbaths = Geometry.get_bedrooms_bathrooms(model, runner)
         if nbeds.nil? or nbaths.nil?
+            runner.registerError("Number of bedrooms and bathrooms must be set before adding a water heater")
+            return false
+        end
+        
+        #Check if mains temperature has been set
+        t_mains = model.getSiteWaterMainsTemperature
+        if t_mains.calculationMethod.nil?
+            runner.registerError("Mains water temperature must be set before adding a water heater")
             return false
         end
 	

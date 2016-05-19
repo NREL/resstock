@@ -126,55 +126,46 @@ class ResidentialPoolHeater < OpenStudio::Ruleset::ModelUserScript
 	obj_name = Constants.ObjectNamePoolHeater
 	obj_name_e = obj_name + "_" + Constants.FuelTypeElectric
 	obj_name_g = obj_name + "_" + Constants.FuelTypeGas
-	sch = MonthHourSchedule.new(weekday_sch, weekend_sch, monthly_sch, model, obj_name_g, runner)
+	sch = MonthWeekdayWeekendSchedule.new(weekday_sch, weekend_sch, monthly_sch, model, obj_name_g, runner)
 	if not sch.validated?
 		return false
 	end
 	design_level = sch.calcDesignLevelFromDailyTherm(ph_ann_g/365.0)
 	
-	#add pool heater to an arbitrary space (there are no space gains)
-	has_gas_ph = 0
-	replace_gas_ph = 0
-    replace_elec_ph = 0
     space = Geometry.get_default_space(model, runner)
     if space.nil?
         return false
     end
-    space_equipments_g = space.gasEquipment
-    space_equipments_g.each do |space_equipment_g| #check for an existing gas heater
-        if space_equipment_g.gasEquipmentDefinition.name.get.to_s == obj_name_g
-            has_gas_ph = 1
-            runner.registerInfo("There is already a pool gas heater. The existing pool gas heater will be replaced with the specified pool gas heater.")
-            space_equipment_g.gasEquipmentDefinition.setDesignLevel(design_level)
-            sch.setSchedule(space_equipment_g)
-            replace_gas_ph = 1
-        end
-    end
-    space_equipments_e = space.electricEquipment
-    space_equipments_e.each do |space_equipment_e|
-        if space_equipment_e.electricEquipmentDefinition.name.get.to_s == obj_name_e
-            runner.registerInfo("There is already a pool electric heater. The existing heater will be replaced with the specified pool gas heater.")
-            space_equipment_e.remove
-            replace_elec_ph = 1
-        end
-    end
 
-    if has_gas_ph == 0 
-        has_gas_ph = 1
-        
-        #Add gas equipment for the pool heater
-        ph_def = OpenStudio::Model::GasEquipmentDefinition.new(model)
-        ph = OpenStudio::Model::GasEquipment.new(ph_def)
-        ph.setName(obj_name_g)
-        ph.setSpace(space)
-        ph_def.setName(obj_name_g)
-        ph_def.setDesignLevel(design_level)
-        ph_def.setFractionRadiant(ph_rad)
-        ph_def.setFractionLatent(ph_lat)
-        ph_def.setFractionLost(ph_lost)
-        sch.setSchedule(ph)
-        
+    # Remove any existing pool heater
+    ph_removed = false
+    space.electricEquipment.each do |space_equipment|
+        if space_equipment.name.to_s == obj_name_e
+            space_equipment.remove
+            ph_removed = true
+        end
     end
+    space.gasEquipment.each do |space_equipment|
+        if space_equipment.name.to_s == obj_name_g
+            space_equipment.remove
+            ph_removed = true
+        end
+    end
+    if ph_removed
+        runner.registerInfo("Removed existing pool heater.")
+    end
+    
+    #Add gas equipment for the pool heater
+    ph_def = OpenStudio::Model::GasEquipmentDefinition.new(model)
+    ph = OpenStudio::Model::GasEquipment.new(ph_def)
+    ph.setName(obj_name_g)
+    ph.setSpace(space)
+    ph_def.setName(obj_name_g)
+    ph_def.setDesignLevel(design_level)
+    ph_def.setFractionRadiant(ph_rad)
+    ph_def.setFractionLatent(ph_lat)
+    ph_def.setFractionLost(ph_lost)
+    sch.setSchedule(ph)
 	
     #reporting final condition of model
     runner.registerFinalCondition("A pool gas heater has been set with #{ph_ann_g.round} therms annual energy consumption.")

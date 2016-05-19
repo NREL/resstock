@@ -126,55 +126,46 @@ class ResidentialHotTubHeater < OpenStudio::Ruleset::ModelUserScript
 	obj_name = Constants.ObjectNameHotTubHeater
 	obj_name_e = obj_name + "_" + Constants.FuelTypeElectric
 	obj_name_g = obj_name + "_" + Constants.FuelTypeGas
-	sch = MonthHourSchedule.new(weekday_sch, weekend_sch, monthly_sch, model, obj_name_g, runner)
+	sch = MonthWeekdayWeekendSchedule.new(weekday_sch, weekend_sch, monthly_sch, model, obj_name_g, runner)
 	if not sch.validated?
 		return false
 	end
 	design_level = sch.calcDesignLevelFromDailyTherm(hth_ann_g/365.0)
 	
-	#add hot tub heater to an arbitrary space (there are no space gains)
-	has_gas_hth = 0
-	replace_gas_hth = 0
-    replace_elec_hth = 0
     space = Geometry.get_default_space(model, runner)
     if space.nil?
         return false
     end
-    space_equipments_g = space.gasEquipment
-    space_equipments_g.each do |space_equipment_g| #check for an existing gas heater
-        if space_equipment_g.gasEquipmentDefinition.name.get.to_s == obj_name_g
-            has_gas_hth = 1
-            runner.registerInfo("There is already a hot tub gas heater. The existing hot tub gas heater will be replaced with the specified hot tub gas heater.")
-            space_equipment_g.gasEquipmentDefinition.setDesignLevel(design_level)
-            sch.setSchedule(space_equipment_g)
-            replace_gas_hth = 1
-        end
-    end
-    space_equipments_e = space.electricEquipment
-    space_equipments_e.each do |space_equipment_e|
-        if space_equipment_e.electricEquipmentDefinition.name.get.to_s == obj_name_e
-            runner.registerInfo("There is already a hot tub electric heater. The existing heater will be replaced with the specified hot tub gas heater.")
-            space_equipment_e.remove
-            replace_elec_hth = 1
-        end
-    end
 
-    if has_gas_hth == 0 
-        has_gas_hth = 1
-        
-        #Add gas equipment for the hot tub heater
-        hth_def = OpenStudio::Model::GasEquipmentDefinition.new(model)
-        hth = OpenStudio::Model::GasEquipment.new(hth_def)
-        hth.setName(obj_name_g)
-        hth.setSpace(space)
-        hth_def.setName(obj_name_g)
-        hth_def.setDesignLevel(design_level)
-        hth_def.setFractionRadiant(hth_rad)
-        hth_def.setFractionLatent(hth_lat)
-        hth_def.setFractionLost(hth_lost)
-        sch.setSchedule(hth)
-        
+    # Remove any existing hot tub heater
+    hth_removed = false
+    space.electricEquipment.each do |space_equipment|
+        if space_equipment.name.to_s == obj_name_e
+            space_equipment.remove
+            hth_removed = true
+        end
     end
+    space.gasEquipment.each do |space_equipment|
+        if space_equipment.name.to_s == obj_name_g
+            space_equipment.remove
+            hth_removed = true
+        end
+    end
+    if hth_removed
+        runner.registerInfo("Removed existing hot tub heater.")
+    end
+    
+    #Add gas equipment for the hot tub heater
+    hth_def = OpenStudio::Model::GasEquipmentDefinition.new(model)
+    hth = OpenStudio::Model::GasEquipment.new(hth_def)
+    hth.setName(obj_name_g)
+    hth.setSpace(space)
+    hth_def.setName(obj_name_g)
+    hth_def.setDesignLevel(design_level)
+    hth_def.setFractionRadiant(hth_rad)
+    hth_def.setFractionLatent(hth_lat)
+    hth_def.setFractionLost(hth_lost)
+    sch.setSchedule(hth)
 	
     #reporting final condition of model
     runner.registerFinalCondition("A hot tub gas heater has been set with #{hth_ann_g.round} therms annual energy consumption.")

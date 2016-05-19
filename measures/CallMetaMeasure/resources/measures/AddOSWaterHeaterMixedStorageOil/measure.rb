@@ -165,6 +165,13 @@ class AddOSWaterHeaterMixedStorageOil < OpenStudio::Ruleset::ModelUserScript
         if nbeds.nil? or nbaths.nil?
             return false
         end
+        
+        #Check if mains temperature has been set
+        t_mains = model.getSiteWaterMainsTemperature
+        if t_mains.calculationMethod.nil?
+            runner.registerError("Mains water temperature must be set before adding a water heater")
+            return false
+        end
 	
         #Check if a DHW plant loop already exists, if not add it
         loop = nil

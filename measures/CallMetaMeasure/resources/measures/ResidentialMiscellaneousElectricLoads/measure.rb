@@ -111,40 +111,45 @@ class ResidentialMiscellaneousElectricLoads < OpenStudio::Ruleset::ModelUserScri
 	mel_lost = 1 - mel_lat - mel_rad - mel_conv
 
     obj_name = Constants.ObjectNameMiscPlugLoads
-	sch = MonthHourSchedule.new(weekday_sch, weekend_sch, monthly_sch, model, obj_name, runner)
+	sch = MonthWeekdayWeekendSchedule.new(weekday_sch, weekend_sch, monthly_sch, model, obj_name, runner)
 	if not sch.validated?
 		return false
 	end
     
-    Geometry.get_finished_spaces(model).each do |space|
+    spaces = Geometry.get_finished_spaces(model)
+    
+    # Remove any existing mels
+    mels_removed = false
+    spaces.each do |space|
+        obj_name_space = "#{obj_name} #{space.name.to_s}"
+        space.electricEquipment.each do |space_equipment|
+            if space_equipment.name.to_s == obj_name_space
+                space_equipment.remove
+                mels_removed = true
+            end
+        end
+    end
+    if mels_removed
+        runner.registerInfo("Removed existing misc plug loads.")
+    end
+    
+    # Add specified mels
+    spaces.each do |space|
         obj_name_space = "#{obj_name} #{space.name.to_s}"
         space_energy_ann = mel_ann * OpenStudio.convert(space.floorArea, "m^2", "ft^2").get/ffa
         space_design_level = sch.calcDesignLevelFromDailykWh(space_energy_ann/365.0)
-        #add mels to each finished space
-        has_elec_mel = 0
-        space.electricEquipment.each do |space_equipment|
-            if space_equipment.electricEquipmentDefinition.name.get.to_s == obj_name_space
-                has_elec_mel = 1
-                runner.registerWarning("This space (#{space.name}) already has misc plug loads, the existing plug loads will be replaced with the specific misc plug loads.")
-                space_equipment.electricEquipmentDefinition.setDesignLevel(space_design_level)
-                sch.setSchedule(space_equipment)
-            end
-        end
-        if has_elec_mel == 0 
-            has_elec_mel = 1
 
-            #Add electric equipment for the mel
-            mel_def = OpenStudio::Model::ElectricEquipmentDefinition.new(model)
-            mel = OpenStudio::Model::ElectricEquipment.new(mel_def)
-            mel.setName(obj_name_space)
-            mel.setSpace(space)
-            mel_def.setName(obj_name_space)
-            mel_def.setDesignLevel(space_design_level)
-            mel_def.setFractionRadiant(mel_rad)
-            mel_def.setFractionLatent(mel_lat)
-            mel_def.setFractionLost(mel_lost)
-            sch.setSchedule(mel)
-        end
+        #Add electric equipment for the mel
+        mel_def = OpenStudio::Model::ElectricEquipmentDefinition.new(model)
+        mel = OpenStudio::Model::ElectricEquipment.new(mel_def)
+        mel.setName(obj_name_space)
+        mel.setSpace(space)
+        mel_def.setName(obj_name_space)
+        mel_def.setDesignLevel(space_design_level)
+        mel_def.setFractionRadiant(mel_rad)
+        mel_def.setFractionLatent(mel_lat)
+        mel_def.setFractionLost(mel_lost)
+        sch.setSchedule(mel)
     end
 	
     #reporting final condition of model

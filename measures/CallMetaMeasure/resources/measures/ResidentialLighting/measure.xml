@@ -1,0 +1,155 @@
+<measure>
+  <schema_version>3.0</schema_version>
+  <name>residential_lighting</name>
+  <uid>2c69a60e-501a-4516-a253-725d23808b2d</uid>
+  <version_id>ee61e38f-ec17-4db9-b579-fe7bd6c606a4</version_id>
+  <version_modified>20160518T190710Z</version_modified>
+  <xml_checksum>2DDDDD82</xml_checksum>
+  <class_name>ResidentialLighting</class_name>
+  <display_name>Set Residential Lighting</display_name>
+  <description>Adds lighting to the building model. The lighting annual energy consumption can either be specified by the kWh/yr it consumes, the Building America Benchmark, or using more detailed inputs. More detailed inputs use the hardwired fraction, plugin fraction, and efficacy for CFLs, LED, and LFL. The schedule used for lighting is based on the Building America Benchmark and changes based on location. </description>
+  <modeler_description>Adds a new lighting object that uses the Building America Benchmark schedule.</modeler_description>
+  <arguments>
+    <argument>
+      <name>hw_cfl</name>
+      <display_name>Hardwired Fraction CFL</display_name>
+      <description>Fraction of all hardwired lamps (interior, garage, and exterior) that are compact fluorescent. Hardwired lighting not specified as CFL, LED, or LFL is assumed to be incandescent.</description>
+      <type>Double</type>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>0.34</default_value>
+    </argument>
+    <argument>
+      <name>hw_led</name>
+      <display_name>Hardwired Fraction LED</display_name>
+      <description>Fraction of all hardwired lamps (interior, garage, and exterior) that are LED. Hardwired lighting not specified as CFL, LED, or LFL is assumed to be incandescent.</description>
+      <type>Double</type>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>0</default_value>
+    </argument>
+    <argument>
+      <name>hw_lfl</name>
+      <display_name>Hardwired Fraction LFL</display_name>
+      <description>Fraction of all hardwired lamps (interior, garage, and exterior) that are linear fluorescent. Hardwired lighting not specified as CFL, LED, or LFL is assumed to be incandescent.</description>
+      <type>Double</type>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>0</default_value>
+    </argument>
+    <argument>
+      <name>pg_cfl</name>
+      <display_name>Plugin Fraction CFL</display_name>
+      <description>Fraction of all plugin lamps that are compact fluorescent. Plugin lighting not specified as CFL, LED, or LFL is assumed to be incandescent.</description>
+      <type>Double</type>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>0.34</default_value>
+    </argument>
+    <argument>
+      <name>pg_led</name>
+      <display_name>Plugin Fraction LED</display_name>
+      <description>Fraction of all plugin lamps that are LED. Plugin lighting not specified as CFL, LED, or LFL is assumed to be incandescent.</description>
+      <type>Double</type>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>0</default_value>
+    </argument>
+    <argument>
+      <name>pg_lfl</name>
+      <display_name>Plugin Fraction LFL</display_name>
+      <description>Fraction of all plugin lamps that are linear fluorescent. Plugin lighting not specified as CFL, LED, or LFL is assumed to be incandescent.</description>
+      <type>Double</type>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>0</default_value>
+    </argument>
+    <argument>
+      <name>in_eff</name>
+      <display_name>Incandescent Efficacy</display_name>
+      <description>The ratio of light output from an incandescent lamp to the electric power it consumes.</description>
+      <type>Double</type>
+      <units>lm/W</units>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>15</default_value>
+    </argument>
+    <argument>
+      <name>cfl_eff</name>
+      <display_name>CFL Efficacy</display_name>
+      <description>The ratio of light output from a CFL lamp to the electric power it consumes.</description>
+      <type>Double</type>
+      <units>lm/W</units>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>55</default_value>
+    </argument>
+    <argument>
+      <name>led_eff</name>
+      <display_name>LED Efficacy</display_name>
+      <description>The ratio of light output from a LED lamp to the electric power it consumes.</description>
+      <type>Double</type>
+      <units>lm/W</units>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>80</default_value>
+    </argument>
+    <argument>
+      <name>lfl_eff</name>
+      <display_name>LFL Efficacy</display_name>
+      <description>The ratio of light output from a LFL lamp to the electric power it consumes.</description>
+      <type>Double</type>
+      <units>lm/W</units>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>88</default_value>
+    </argument>
+  </arguments>
+  <provenances/>
+  <tags>
+    <tag>Electric Lighting.Lighting Equipment</tag>
+  </tags>
+  <attributes>
+    <attribute>
+      <name>Measure Type</name>
+      <value>ModelMeasure</value>
+      <datatype>string</datatype>
+    </attribute>
+    <attribute>
+      <name>Uses SketchUp API</name>
+      <value>false</value>
+      <datatype>boolean</datatype>
+    </attribute>
+  </attributes>
+  <files>
+    <file>
+      <filename>ResidentialLighting_Test.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>test</usage_type>
+      <checksum>74335D8E</checksum>
+    </file>
+    <file>
+      <filename>constants.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>A31A08D6</checksum>
+    </file>
+    <file>
+      <filename>geometry.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>0A49920B</checksum>
+    </file>
+    <file>
+      <version>
+        <software_program>OpenStudio</software_program>
+        <identifier>1.4.0</identifier>
+        <min_compatible>1.4.0</min_compatible>
+      </version>
+      <filename>measure.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>script</usage_type>
+      <checksum>21807358</checksum>
+    </file>
+  </files>
+</measure>

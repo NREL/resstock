@@ -126,45 +126,40 @@ class ResidentialHotTubPump < OpenStudio::Ruleset::ModelUserScript
     htp_lost = 1 - htp_lat - htp_rad - htp_conv
 	
 	obj_name = Constants.ObjectNameHotTubPump
-	sch = MonthHourSchedule.new(weekday_sch, weekend_sch, monthly_sch, model, obj_name, runner)
+	sch = MonthWeekdayWeekendSchedule.new(weekday_sch, weekend_sch, monthly_sch, model, obj_name, runner)
 	if not sch.validated?
 		return false
 	end
 	design_level = sch.calcDesignLevelFromDailykWh(htp_ann/365.0)
 	
-	#add hot tub pump to an arbitrary space (there are no space gains)
-	has_htp = 0
-	replace_htp = 0
     space = Geometry.get_default_space(model, runner)
     if space.nil?
         return false
     end
-    space_equipments = space.electricEquipment
-    space_equipments.each do |space_equipment|
-        if space_equipment.electricEquipmentDefinition.name.get.to_s == obj_name
-            has_htp = 1
-            runner.registerInfo("There is already a hot tub pump, the existing hot tub pump will be replaced with the specified hot tub pump.")
-            space_equipment.electricEquipmentDefinition.setDesignLevel(design_level)
-            sch.setSchedule(space_equipment)
-            replace_htp = 1
+
+    # Remove any existing hot tub pump
+    htp_removed = false
+    space.electricEquipment.each do |space_equipment|
+        if space_equipment.name.to_s == obj_name
+            space_equipment.remove
+            htp_removed = true
         end
     end
-    if has_htp == 0 
-        has_htp = 1
-        
-        #Add electric equipment for the hot tub pump
-        htp_def = OpenStudio::Model::ElectricEquipmentDefinition.new(model)
-        htp = OpenStudio::Model::ElectricEquipment.new(htp_def)
-        htp.setName(obj_name)
-        htp.setSpace(space)
-        htp_def.setName(obj_name)
-        htp_def.setDesignLevel(design_level)
-        htp_def.setFractionRadiant(htp_rad)
-        htp_def.setFractionLatent(htp_lat)
-        htp_def.setFractionLost(htp_lost)
-        sch.setSchedule(htp)
-        
+    if htp_removed
+        runner.registerInfo("Removed existing hot tub pump.")
     end
+    
+    #Add electric equipment for the hot tub pump
+    htp_def = OpenStudio::Model::ElectricEquipmentDefinition.new(model)
+    htp = OpenStudio::Model::ElectricEquipment.new(htp_def)
+    htp.setName(obj_name)
+    htp.setSpace(space)
+    htp_def.setName(obj_name)
+    htp_def.setDesignLevel(design_level)
+    htp_def.setFractionRadiant(htp_rad)
+    htp_def.setFractionLatent(htp_lat)
+    htp_def.setFractionLost(htp_lost)
+    sch.setSchedule(htp)
 	
     #reporting final condition of model
     runner.registerFinalCondition("A hot tub pump has been set with #{htp_ann.round} kWhs annual energy consumption.")
