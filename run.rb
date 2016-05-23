@@ -127,13 +127,13 @@ options = {}
 optparse = OptionParser.new do |opts|
     opts.banner = 'Usage:    ruby run.rb [-t] <target> [-m] <mode> [-r] [-k] [-n]'
 
-    options[:target] = 'nrel24a'
+    options[:target] = 'aws'
     opts.on( '-t', '--target <target_alias>', 'target OpenStudio-Server instance') do |server|
         options[:target] = server
     end
 
     options[:rsmode] = 'national'
-    opts.on('-m', '--mode <res_stock_mode>', 'national or pnw') do |mode_type|
+    opts.on('-m', '--mode <res_stock_mode>', 'national|pnw') do |mode_type|
         options[:rsmode] = mode_type
     end
 
