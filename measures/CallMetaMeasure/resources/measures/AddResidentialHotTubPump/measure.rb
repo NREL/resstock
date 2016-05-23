@@ -126,7 +126,7 @@ class ResidentialHotTubPump < OpenStudio::Ruleset::ModelUserScript
     htp_lost = 1 - htp_lat - htp_rad - htp_conv
 	
 	obj_name = Constants.ObjectNameHotTubPump
-	sch = MonthWeekdayWeekendSchedule.new(weekday_sch, weekend_sch, monthly_sch, model, obj_name, runner)
+	sch = MonthWeekdayWeekendSchedule.new(model, runner, obj_name + " schedule", weekday_sch, weekend_sch, monthly_sch)
 	if not sch.validated?
 		return false
 	end

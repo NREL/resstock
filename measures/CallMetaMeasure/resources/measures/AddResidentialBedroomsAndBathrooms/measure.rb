@@ -178,7 +178,7 @@ class AddResidentialBedroomsAndBathrooms < OpenStudio::Ruleset::ModelUserScript
     occ_sens = occ_rad + occ_conv
 
     obj_name = Constants.ObjectNameOccupants
-    people_sch = MonthWeekdayWeekendSchedule.new(weekday_sch, weekend_sch, monthly_sch, model, obj_name, runner)
+    people_sch = MonthWeekdayWeekendSchedule.new(model, runner, obj_name + " schedule", weekday_sch, weekend_sch, monthly_sch)
     if not people_sch.validated?
         return false
     end

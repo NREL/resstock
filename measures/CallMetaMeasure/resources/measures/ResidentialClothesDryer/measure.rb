@@ -223,11 +223,10 @@ class ResidentialClothesDryer < OpenStudio::Ruleset::ModelUserScript
     mult_weekday = 0.94
 
     obj_name = Constants.ObjectNameClothesDryer
-    obj_name_e = Constants.ObjectNameClothesDryer + "_" + Constants.FuelTypeElectric
-    obj_name_g = Constants.ObjectNameClothesDryer + "_" + Constants.FuelTypeGas
-    obj_name_g_e = Constants.ObjectNameClothesDryer + "_" + Constants.FuelTypeGas + "_electricity"
-	sch = MonthWeekdayWeekendSchedule.new(cd_weekday_sch, cd_weekend_sch, cd_monthly_sch, model, obj_name, runner,
-                                mult_weekday, mult_weekend)
+    obj_name_e = Constants.FuelTypeElectric + " " + Constants.ObjectNameClothesDryer
+    obj_name_g = Constants.FuelTypeGas + " " + Constants.ObjectNameClothesDryer
+    obj_name_g_e = Constants.FuelTypeGas + " " + Constants.ObjectNameClothesDryer + " electricity"
+	sch = MonthWeekdayWeekendSchedule.new(model, runner, obj_name + " schedule", cd_weekday_sch, cd_weekend_sch, cd_monthly_sch, mult_weekday, mult_weekend)
 	if not sch.validated?
 		return false
 	end

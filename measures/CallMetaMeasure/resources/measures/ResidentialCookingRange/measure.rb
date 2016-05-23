@@ -138,10 +138,10 @@ class ResidentialCookingRange < OpenStudio::Ruleset::ModelUserScript
 	range_lost_e = 1 - range_lat_e - range_conv_e - range_rad_e
 
 	obj_name = Constants.ObjectNameCookingRange
-	obj_name_e = obj_name + "_" + Constants.FuelTypeElectric
-	obj_name_g = obj_name + "_" + Constants.FuelTypeGas
-	obj_name_i = obj_name + "_" + Constants.FuelTypeElectric + "_ignition"
-	sch = MonthWeekdayWeekendSchedule.new(weekday_sch, weekend_sch, monthly_sch, model, obj_name, runner)
+	obj_name_e = Constants.FuelTypeElectric + " " + obj_name
+	obj_name_g = Constants.FuelTypeGas + " " + obj_name
+	obj_name_i = Constants.FuelTypeElectric + " " + obj_name + " ignition"
+	sch = MonthWeekdayWeekendSchedule.new(model, runner, obj_name + " schedule", weekday_sch, weekend_sch, monthly_sch)
 	if not sch.validated?
 		return false
 	end

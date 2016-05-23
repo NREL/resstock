@@ -126,7 +126,7 @@ class ResidentialPoolPump < OpenStudio::Ruleset::ModelUserScript
     pp_lost = 1 - pp_lat - pp_rad - pp_conv
 	
 	obj_name = Constants.ObjectNamePoolPump
-	sch = MonthWeekdayWeekendSchedule.new(weekday_sch, weekend_sch, monthly_sch, model, obj_name, runner)
+	sch = MonthWeekdayWeekendSchedule.new(model, runner, obj_name + " schedule", weekday_sch, weekend_sch, monthly_sch)
 	if not sch.validated?
 		return false
 	end

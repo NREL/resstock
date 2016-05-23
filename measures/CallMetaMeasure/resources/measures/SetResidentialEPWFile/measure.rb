@@ -178,6 +178,25 @@ class SetResidentialEPWFile < OpenStudio::Ruleset::ModelUserScript
         runner.registerInfo("No daylight saving time set.")
     end
 
+    # ----------------
+    # Set ground temperatures
+    # ----------------  
+    
+    # This correlation is the same that is used in DOE-2's src\WTH.f file, subroutine GTEMP.
+    monthly_temps = weather.data.MonthlyAvgDrybulbs
+    annual_temp = weather.data.AnnualAvgDrybulb    
+    annual_temps = Array.new(12, annual_temp)
+    annual_temps = annual_temps.map {|i| OpenStudio::convert(i,"F","C").get}
+    
+    ground_temps = weather._getGroundTemperatures(monthly_temps, annual_temp)
+    ground_temps = ground_temps.map {|i| OpenStudio::convert(i,"F","C").get}
+    
+    s_gt_bs = OpenStudio::Model::SiteGroundTemperatureBuildingSurface.new(model)
+    s_gt_bs.setAllMonthlyTemperatures(ground_temps)
+    
+    s_gt_d = OpenStudio::Model::SiteGroundTemperatureDeep.new(model)
+    s_gt_d.setAllMonthlyTemperatures(annual_temps)
+    
     # report final condition
     final_design_days = model.getDesignDays
     if site.weatherFile.is_initialized

@@ -407,6 +407,12 @@ class Constants
   def self.ObjectNameCookingRange
     return 'residential range'
   end
+  def self.ObjectNameCoolingSeason
+    return 'residential cooling season'
+  end
+  def self.ObjectNameCoolingSetpoint
+    return 'residential cooling setpoint'
+  end
   def self.ObjectNameDishwasher
     return 'residential dishwasher'
   end
@@ -424,6 +430,12 @@ class Constants
   end
   def self.ObjectNameGasLighting
     return 'residential gas lighting'
+  end
+  def self.ObjectNameHeatingSeason
+    return 'residential heating season'
+  end
+  def self.ObjectNameHeatingSetpoint
+    return 'residential heating setpoint'
   end
   def self.ObjectNameHotTubHeater
     return 'residential hot tub heater'

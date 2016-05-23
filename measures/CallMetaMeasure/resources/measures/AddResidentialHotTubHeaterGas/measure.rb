@@ -124,9 +124,9 @@ class ResidentialHotTubHeater < OpenStudio::Ruleset::ModelUserScript
     hth_lost = 1 - hth_lat - hth_rad - hth_conv
 	
 	obj_name = Constants.ObjectNameHotTubHeater
-	obj_name_e = obj_name + "_" + Constants.FuelTypeElectric
-	obj_name_g = obj_name + "_" + Constants.FuelTypeGas
-	sch = MonthWeekdayWeekendSchedule.new(weekday_sch, weekend_sch, monthly_sch, model, obj_name_g, runner)
+	obj_name_e = Constants.FuelTypeElectric + " " + obj_name
+	obj_name_g = Constants.FuelTypeGas + " " + obj_name
+	sch = MonthWeekdayWeekendSchedule.new(model, runner, obj_name_g + " schedule", weekday_sch, weekend_sch, monthly_sch)
 	if not sch.validated?
 		return false
 	end

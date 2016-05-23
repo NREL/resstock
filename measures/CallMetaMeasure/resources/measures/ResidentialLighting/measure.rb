@@ -332,7 +332,7 @@ class ResidentialLighting < OpenStudio::Ruleset::ModelUserScript
     end
 
     obj_name = Constants.ObjectNameLighting
-    sch = HourlyByMonthSchedule.new(lighting_sch, model, obj_name, runner)
+    sch = HourlyByMonthSchedule.new(model, runner, obj_name + " schedule", lighting_sch)
     if not sch.validated?
         return false
     end

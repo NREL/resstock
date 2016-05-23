@@ -488,7 +488,7 @@ class ResidentialClothesWasher < OpenStudio::Ruleset::ModelUserScript
     cw_ann_e = daily_energy * 365
     
     obj_name = Constants.ObjectNameClothesWasher
-    sch = HotWaterSchedule.new(runner, model, nbeds, 0, "ClothesWasher", obj_name, cw_water_temp, File.dirname(__FILE__))
+    sch = HotWaterSchedule.new(model, runner, obj_name + " schedule", obj_name + " temperature schedule", nbeds, 0, "ClothesWasher", cw_water_temp, File.dirname(__FILE__))
 	if not sch.validated?
 		return false
 	end

@@ -122,7 +122,7 @@ class ResidentialRefrigerator < OpenStudio::Ruleset::ModelUserScript
     fridge_lost = 1 - fridge_lat - fridge_rad - fridge_conv
 	
 	obj_name = Constants.ObjectNameRefrigerator
-	sch = MonthWeekdayWeekendSchedule.new(weekday_sch, weekend_sch, monthly_sch, model, obj_name, runner)
+	sch = MonthWeekdayWeekendSchedule.new(model, runner, obj_name + " schedule", weekday_sch, weekend_sch, monthly_sch)
 	if not sch.validated?
 		return false
 	end

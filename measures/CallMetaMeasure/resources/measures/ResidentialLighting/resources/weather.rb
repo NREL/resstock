@@ -386,4 +386,33 @@ class WeatherProcess
         
   end
   
+  def _getGroundTemperatures(monthly_temps, annual_temp)
+    # Return monthly ground temperatures.
+
+    amon = [15.0, 46.0, 74.0, 95.0, 135.0, 166.0, 196.0, 227.0, 258.0, 288.0, 319.0, 349.0]
+    po = 0.6
+    dif = 0.025
+    p = OpenStudio::convert(1.0,"yr","hr").get
+
+    beta = Math::sqrt(Math::PI / (p * dif)) * 10.0
+    x = Math::exp(-beta)
+    x2 = x * x
+    s = Math::sin(beta)
+    c = Math::cos(beta)
+    y = (x2 - 2.0 * x * c + 1.0) / (2.0 * beta ** 2.0)
+    gm = Math::sqrt(y)
+    z = (1.0 - x * (c + s)) / (1.0 - x * (c - s))
+    phi = Math::atan(z)
+    bo = (monthly_temps.max - monthly_temps.min) * 0.5
+
+    ground_temps = []
+    (0...12).to_a.each do |i|
+      theta = amon[i] * 24.0
+      ground_temps << OpenStudio::convert(annual_temp - bo * Math::cos(2.0 * Math::PI / p * theta - po - phi) * gm + 460.0,"R","F").get
+    end
+
+    return ground_temps
+
+  end  
+  
 end

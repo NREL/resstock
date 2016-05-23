@@ -126,7 +126,7 @@ class ResidentialWellPump < OpenStudio::Ruleset::ModelUserScript
     wp_lost = 1 - wp_lat - wp_rad - wp_conv
 	
 	obj_name = Constants.ObjectNameWellPump
-	sch = MonthWeekdayWeekendSchedule.new(weekday_sch, weekend_sch, monthly_sch, model, obj_name, runner)
+	sch = MonthWeekdayWeekendSchedule.new(model, runner, obj_name + " schedule", weekday_sch, weekend_sch, monthly_sch)
 	if not sch.validated?
 		return false
 	end

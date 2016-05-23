@@ -124,7 +124,7 @@ class ResidentialGasLighting < OpenStudio::Ruleset::ModelUserScript
     gl_lost = 1 - gl_lat - gl_rad - gl_conv
 	
 	obj_name = Constants.ObjectNameGasLighting
-	sch = MonthWeekdayWeekendSchedule.new(weekday_sch, weekend_sch, monthly_sch, model, obj_name, runner)
+	sch = MonthWeekdayWeekendSchedule.new(model, runner, obj_name + " schedule", weekday_sch, weekend_sch, monthly_sch)
 	if not sch.validated?
 		return false
 	end

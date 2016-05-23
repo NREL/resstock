@@ -126,9 +126,9 @@ class ResidentialPoolHeater < OpenStudio::Ruleset::ModelUserScript
     ph_lost = 1 - ph_lat - ph_rad - ph_conv
 	
 	obj_name = Constants.ObjectNamePoolHeater
-	obj_name_e = obj_name + "_" + Constants.FuelTypeElectric
-	obj_name_g = obj_name + "_" + Constants.FuelTypeGas
-	sch = MonthWeekdayWeekendSchedule.new(weekday_sch, weekend_sch, monthly_sch, model, obj_name_e, runner)
+	obj_name_e = Constants.FuelTypeElectric + " " + obj_name
+	obj_name_g = Constants.FuelTypeGas + " " + obj_name
+	sch = MonthWeekdayWeekendSchedule.new(model, runner, obj_name_e + " schedule", weekday_sch, weekend_sch, monthly_sch)
 	if not sch.validated?
 		return false
 	end

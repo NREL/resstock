@@ -148,7 +148,7 @@ class ResidentialGasFireplace < OpenStudio::Ruleset::ModelUserScript
     gf_lost = 1 - gf_lat - gf_rad - gf_conv
 	
 	obj_name = Constants.ObjectNameGasFireplace
-	sch = MonthWeekdayWeekendSchedule.new(weekday_sch, weekend_sch, monthly_sch, model, obj_name, runner)
+	sch = MonthWeekdayWeekendSchedule.new(model, runner, obj_name + " schedule", weekday_sch, weekend_sch, monthly_sch)
 	if not sch.validated?
 		return false
 	end
