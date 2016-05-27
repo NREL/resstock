@@ -189,7 +189,7 @@ class ResidentialLighting < OpenStudio::Ruleset::ModelUserScript
     ltg_total = ltg_ann + garage_ann + outside_ann
     
     # Calculate the lighting schedule
-    weather = WeatherProcess.new(model, runner)
+    weather = WeatherProcess.new(model, runner, header_only=true)
     if weather.error?
         return false
     end

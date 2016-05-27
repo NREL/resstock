@@ -10,4 +10,4 @@ gem 'bcl', '~> 0.5.5'
 # gem "bcl", :path => "../bcl-gem"
 
 gem 'openstudio-aws', '~> 0.4.2'
-gem 'openstudio-analysis', :github => 'NREL/openstudio-analysis-gem', :branch => 'zip-upload-timeout'
+gem 'openstudio-analysis', :github => 'NREL/openstudio-analysis-gem', :branch => 'develop'

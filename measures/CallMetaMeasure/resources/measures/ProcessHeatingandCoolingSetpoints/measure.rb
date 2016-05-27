@@ -108,7 +108,10 @@ class ProcessHeatingandCoolingSetpoints < OpenStudio::Ruleset::ModelUserScript
       return false
     end
     
-    heating_season, cooling_season = HelperMethods.calc_heating_and_cooling_seasons(weather)
+    heating_season, cooling_season = HelperMethods.calc_heating_and_cooling_seasons(model, weather, runner)
+    if heating_season.nil? or cooling_season.nil?
+        return false
+    end
     
     heatingseasonschedule = MonthWeekdayWeekendSchedule.new(model, runner, Constants.ObjectNameHeatingSeason, Array.new(24, 1).join(", "), Array.new(24, 1).join(", "), heating_season.join(", "), mult_weekday=1.0, mult_weekend=1.0, normalize_values=false)
     coolingseasonschedule = MonthWeekdayWeekendSchedule.new(model, runner, Constants.ObjectNameCoolingSeason, Array.new(24, 1).join(", "), Array.new(24, 1).join(", "), cooling_season.join(", "), mult_weekday=1.0, mult_weekend=1.0, normalize_values=false)  

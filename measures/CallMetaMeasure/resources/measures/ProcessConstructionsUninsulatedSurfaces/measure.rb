@@ -110,9 +110,10 @@ class ProcessConstructionsUninsulatedSurfaces < OpenStudio::Ruleset::ModelUserSc
             next if surface.outsideBoundaryCondition.downcase != "adiabatic"
             if surface.surfaceType.downcase == "wall"
                 wall_surfaces << surface
-            elsif surface.surfaceType.downcase == "roofceiling"
+            elsif surface.surfaceType.downcase == "roofceiling" and surface.outsideBoundaryCondition.downcase == "outdoors"
                 roof_surfaces << surface
-            elsif surface.surfaceType.downcase == "floor"
+                roof_spaces << space
+            elsif surface.surfaceType.downcase == "floor" or surface.surfaceType.downcase == "roofceiling"
                 if Geometry.space_is_finished(space)
                     finished_floor_surfaces << surface
                 else

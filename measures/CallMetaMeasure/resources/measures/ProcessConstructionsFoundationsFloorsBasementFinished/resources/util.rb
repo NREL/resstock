@@ -490,10 +490,25 @@ class HelperMethods
         return z
     end
     
+    def self.get_design_day_temperature(model, runner, dd_name)
+        model.getDesignDays.each do |d|
+            if d.name.get =~ /#{dd_name}/
+                return OpenStudio::convert(d.maximumDryBulbTemperature, "C", "F").get
+            end
+        end
+        runner.registerError("Could not find design day temperature.")
+        return nil
+    end
+    
     # Calculates heating/cooling seasons from BAHSP definition
-    def self.calc_heating_and_cooling_seasons(weather)
+    def self.calc_heating_and_cooling_seasons(model, weather, runner=nil)
         monthly_temps = weather.data.MonthlyAvgDrybulbs
-        heat_design_db = weather.design.HeatingDrybulb
+        
+        # Look up heating design db from model
+        heat_design_db = HelperMethods.get_design_day_temperature(model, runner, Constants.DDYHtgDrybulb)
+        if heat_design_db.nil?
+            return nil, nil
+        end
 
         # create basis lists with zero for every month
         cooling_season_temp_basis = Array.new(monthly_temps.length, 0.0)

@@ -107,13 +107,10 @@ class ProcessConstructionsWindows < OpenStudio::Ruleset::ModelUserScript
     
     # Process the windows
 
-    #if not intShadeCoolingMonths.nil?
-    #  cooling_season = intShadeCoolingMonths.item # TODO: what is this?
-    #else
-    #  cooling_season = [0.0, 0.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 0.0]
-    #end
-
-    heating_season, cooling_season = HelperMethods.calc_heating_and_cooling_seasons(weather)
+    heating_season, cooling_season = HelperMethods.calc_heating_and_cooling_seasons(model, weather, runner)
+    if heating_season.nil? or cooling_season.nil?
+        return false
+    end
 
     window_shade_multiplier = []
     (0...Constants.MonthNames.length).to_a.each do |i|

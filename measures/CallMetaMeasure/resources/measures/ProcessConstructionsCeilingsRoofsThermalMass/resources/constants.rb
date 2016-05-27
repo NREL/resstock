@@ -182,6 +182,15 @@ class Constants
   def self.DayTypeVacation
     return 'vacation'
   end
+  def self.DDYHtgDrybulb
+    return 'Htg 99.6. Condns DB'
+  end
+  def self.DDYClgDrybulb
+    return 'Clg .4. Condns WB=>MDB'
+  end
+  def self.DDYClgWetbulb
+    return 'Clg .4. Condns DB=>MWB'
+  end
   def self.DRControlAuto
     return 'automatic'
   end

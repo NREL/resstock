@@ -322,21 +322,25 @@ class Geometry
     end
 
     def self.get_thermal_zone_from_string_from_idf(workspace, thermalzone_s, runner, print_err=true)
-        thermal_zone = nil
-        workspace.getObjectsByType("Zone".to_IddObjectType).each do |tz|
-            if tz.getString(0).to_s == thermalzone_s
-                thermal_zone = tz
-                break
-            end
+        unless thermalzone_s.empty?
+          thermal_zone = nil
+          workspace.getObjectsByType("Zone".to_IddObjectType).each do |tz|
+              if tz.getString(0).to_s == thermalzone_s
+                  thermal_zone = tz
+                  break
+              end
+          end
+          if thermal_zone.nil?
+              if print_err
+                  runner.registerError("Could not find thermal zone with the name '#{thermalzone_s}'.")
+              else
+                  runner.registerWarning("Could not find thermal zone with the name '#{thermalzone_s}'.")
+              end
+          end
+          return thermal_zone
+        else
+          return nil
         end
-        if thermal_zone.nil?
-            if print_err
-                runner.registerError("Could not find thermal zone with the name '#{thermalzone_s}'.")
-            else
-                runner.registerWarning("Could not find thermal zone with the name '#{thermalzone_s}'.")
-            end
-        end
-        return thermal_zone
     end     
     
     # Return an array of x values for surfaces passed in. The values will be relative to the parent origin. This was intended for spaces.
