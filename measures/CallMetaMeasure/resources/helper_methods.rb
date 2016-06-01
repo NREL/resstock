@@ -347,7 +347,7 @@ end
 def hash_to_string(hash, delim="=", separator=",")
     hash_s = ""
     hash.each do |k,v|
-        hash_s += "#{k.to_s}#{delim.to_s}#{v.to_s}#{separator.to_s}"
+        hash_s << "#{k.to_s}#{delim.to_s}#{v.to_s}#{separator.to_s}"
     end
     if hash_s.size > 0
         hash_s = hash_s.chomp(separator.to_s)

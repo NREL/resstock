@@ -176,8 +176,19 @@ def validate_sampling(mode)
         rows = all_prob_dist_data[param_name]["rows"]
         prob_dist_file = all_prob_dist_data[param_name]["prob_dist_file"]
         dep_cols = all_prob_dist_data[param_name]["dep_cols"]
+        headers = all_prob_dist_data[param_name]["headers"]
+        
+        # Uses a series for each option so that the series legend/color can be assigned
+        num_data_series = headers[1].size - dep_cols.size
+        
+        if num_data_series > 20
+            puts "Skipping visualization for #{capitalize_string(param_name)} (too large)..."
+            next
+        end
+        puts "Generating visualization for #{capitalize_string(param_name)}..."
         
         # Adopted from https://developers.google.com/chart/interactive/docs/gallery/scatterchart
+        # See https://developers.google.com/chart/interactive/docs/points#customizing-individual-points for customizing individual points
         html_text = %{
     <html>
       <head>
@@ -187,19 +198,34 @@ def validate_sampling(mode)
           google.charts.setOnLoadCallback(drawChart);
           function drawChart() {
             var data = google.visualization.arrayToDataTable([
-              ['Input', 'Output'],
-              // Sample code
-              //[ 8,      12],
-              //[ 4,      5.5],
-              //[ 11,     14]
-              <TABLE_HERE>
+              // ['X', 'Y', {'type': 'string', 'role': 'style'}],
+              // [1, 3, null],
+              // [2, 2.5, null],
+              // [3, 3, null],
+              // [4, 4, null],
+              // [5, 4, null],
+              // [6, 3, 'point { size: 18; shape-type: star; fill-color: #a52714; }'],
+              // [7, 2.5, null],
+              // [8, 3, null]
+              <TABLE_HEADER_HERE>,
+              <TABLE_DATA_HERE>
             ]);
 
             var options = {
               title: '<TITLE_HERE>',
-              hAxis: {title: 'Input', minValue: 0, maxValue: 1},
-              vAxis: {title: 'Output', minValue: 0, maxValue: 1},
-              legend: 'none'
+              hAxis: {title: 'Input (Data)', minValue: 0, maxValue: 1, gridlines: {count: 6} },
+              vAxis: {title: 'Output (Models)', minValue: 0, maxValue: 1, gridlines: {count: 6} },
+              dataOpacity: 0.6,
+              trendlines: { 
+                #{num_data_series}: {type: 'linear', color: 'black', lineWidth: 2, opacity: 0.3, showR2: false, visibleInLegend: false, tooltip: false}, // Line of perfect agreement
+                #{num_data_series+1}: {type: 'linear', color: 'grey', lineWidth: 1, opacity: 0.3, showR2: false, visibleInLegend: false, tooltip: false}, // Line + 20%
+                #{num_data_series+2}: {type: 'linear', color: 'grey', lineWidth: 1, opacity: 0.3, showR2: false, visibleInLegend: false, tooltip: false} // Line - 20%
+              },
+              series: { 
+                #{num_data_series}: {visibleInLegend: false, pointsVisible: false, labelInLegend: false}, // Line of perfect agreement
+                #{num_data_series+1}: {visibleInLegend: false, pointsVisible: false, labelInLegend: false}, // Line + 20%
+                #{num_data_series+2}: {visibleInLegend: false, pointsVisible: false, labelInLegend: false} // Line - 20%
+              }
             };
 
             var chart = new google.visualization.ScatterChart(document.getElementById('chart_div'));
@@ -209,30 +235,76 @@ def validate_sampling(mode)
         </script>
       </head>
       <body>
-        <div id="chart_div" style="width: 900px; height: 500px;"></div>
+        <div id="chart_div" style="width: 100%; height: 100%;"></div>
       </body>
     </html>
     }
 
-        # Replace <TABLE_HERE> with javascript array based on actual data
-        table_html = ""
+        # Determine sizes of points
+        # FIXME: This should come from the inputs, not outputs
+        max_point_size = 15 # pixels
+        min_point_size = 5 # pixels
+        num_samples = []
+        all_samples_results[col_header].each do |result|
+            num_samples << result[-1]
+        end
+        max_num_samples = num_samples.max.to_f
+        
+        # Replace <TABLE_HEADER_HERE> with the appropriate header
+        table_header_html = "['Input', "
+        (1..num_data_series).each do |series_num|
+            series_name = headers[1][series_num+dep_cols.size-1].to_s
+            table_header_html << "'#{series_name}', {'type': 'string', 'role': 'style'},"
+        end
+        table_header_html << "'Line','Line +20%','Line -20%']"
+        html_text.sub!("<TABLE_HEADER_HERE>", table_header_html)
+    
+        # Replace <TABLE_DATA_HERE> with javascript array based on actual data
+        table_data_html = ""
         rows.each_with_index do |row, i|
             next if row.size == 0
+            point_size = (num_samples[i]/max_num_samples * (max_point_size.to_f - min_point_size.to_f)).ceil + min_point_size
             row[dep_cols.size..row.size-1].each_with_index do |value, j|
                 next if all_samples_results[col_header][i].nil? 
-                table_html += "\n[ #{value.to_s}  , #{all_samples_results[col_header][i][j+dep_cols.size].to_s} ],"
+                xval = value
+                yval = all_samples_results[col_header][i][j+dep_cols.size]
+                table_data_html << add_datapoint(xval, yval, j+1, num_data_series, point_size, i)
             end
         end
-        html_text.sub!("<TABLE_HERE>", table_html.chop)
+        html_text.sub!("<TABLE_DATA_HERE>", table_data_html.chop)
         
         # Replace <TITLE_HERE> with parameter name
-        html_text.sub!("<TITLE_HERE>", param_name)
+        html_text.sub!("<TITLE_HERE>", capitalize_string(param_name))
         
         outfile = File.join(results_vis_dir, prob_dist_file.sub(".txt",".html"))
         File.write(outfile, html_text)
-        
     end
 end 
+
+def add_datapoint(xval, yval, series_position, num_data_series, point_size, point_num)
+    s = "\n[ #{xval}, "
+    (1..num_data_series).each do |series_num|
+        if series_num == series_position
+            s << "#{yval},'point {size: #{point_size};}',"
+        else
+            s << "null,null,"
+        end
+    end
+    xval_plus20 = xval.to_f+0.2
+    if xval_plus20 > 1.0
+        xval_plus20 = "null" # Prevent y-axis scale max value from being above 1
+    end
+    xval_minus20 = xval.to_f-0.2
+    if xval_minus20 < 0.0
+        xval_minus20 = "null" # Prevent x-axis scale min value from being below 0
+    end
+    s << "#{xval},#{xval_plus20.to_s},#{xval_minus20.to_s}],"
+    return s
+end
+
+def capitalize_string(s)
+    return s.split.map(&:capitalize).join(' ')
+end
     
 # Initialize optionsParser ARGV hash
 options = {}
