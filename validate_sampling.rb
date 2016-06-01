@@ -6,17 +6,11 @@ def validate_sampling(mode)
 
     # This is where results will be located
     results_dir = File.join(File.dirname(__FILE__), "results", mode)
-    results_vis_dir = File.join(results_dir, "visualizations")
-    results_data_dir = File.join(results_dir, "data")
     if not File.exists? results_dir
         Dir.mkdir(results_dir)
     end
-    if not File.exists? results_vis_dir
-        Dir.mkdir(results_vis_dir)
-    end
-    if not File.exists? results_data_dir
-        Dir.mkdir(results_data_dir)
-    end
+    
+    puts "Processing data..."
 
     # Read all data from results csv file
     results_file = File.join(results_dir, "resstock.csv")
@@ -49,6 +43,24 @@ def validate_sampling(mode)
         
     end
 
+    # Data
+    results_data_dir = File.join(results_dir, "data")
+    if not File.exists? results_data_dir
+        Dir.mkdir(results_data_dir)
+    end
+    all_samples_results = generate_data_output(results_data, param_names, all_prob_dist_data, results_data_dir, key_prefix)
+    generate_data_input(results_data, param_names, all_prob_dist_data, results_data_dir)
+    
+    # Visualization
+    results_vis_dir = File.join(results_dir, "visualizations")
+    if not File.exists? results_vis_dir
+        Dir.mkdir(results_vis_dir)
+    end
+    html_filenames = generate_visualizations(results_data, param_names, all_prob_dist_data, results_vis_dir, all_samples_results)
+    generate_visualizations_index(results_data, param_names, results_vis_dir, html_filenames)
+end 
+
+def generate_data_output(results_data, param_names, all_prob_dist_data, results_data_dir, key_prefix)
     # Create map of parameter names to results_file columns
     results_file_cols = {}
     all_prob_dist_data.keys.each do |param_name|
@@ -148,7 +160,10 @@ def validate_sampling(mode)
         
         all_samples_results[col_header] = samples_results
     end
+    return all_samples_results
+end
 
+def generate_data_input(results_data, param_names, all_prob_dist_data, results_data_dir)
     # Generate probability distribution inputs in compatible form
     results_data[0].each do |col_header|
         next if not param_names.keys.include?(col_header)
@@ -167,8 +182,11 @@ def validate_sampling(mode)
             end
         end
     end
+end
 
+def generate_visualizations(results_data, param_names, all_prob_dist_data, results_vis_dir, all_samples_results)
     # Generate html visualizations via Google
+    html_filenames = {}
     results_data[0].each do |col_header|
         next if not param_names.keys.include?(col_header)
         
@@ -192,6 +210,7 @@ def validate_sampling(mode)
         html_text = %{
     <html>
       <head>
+      <title>ResStock Visualization: <TITLE_HERE></title>
         <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
         <script type="text/javascript">
           google.charts.load('current', {'packages':['corechart']});
@@ -212,7 +231,7 @@ def validate_sampling(mode)
             ]);
 
             var options = {
-              title: '<TITLE_HERE>',
+              title: '<CHART_TITLE_HERE>',
               hAxis: {title: 'Input (Data)', minValue: 0, maxValue: 1, gridlines: {count: 6} },
               vAxis: {title: 'Output (Models)', minValue: 0, maxValue: 1, gridlines: {count: 6} },
               dataOpacity: 0.6,
@@ -239,6 +258,9 @@ def validate_sampling(mode)
       </body>
     </html>
     }
+
+        # Replace <TITLE_HERE> with html title
+        html_text.sub!("<TITLE_HERE>", capitalize_string(param_name))
 
         # Determine sizes of points
         # FIXME: This should come from the inputs, not outputs
@@ -268,20 +290,31 @@ def validate_sampling(mode)
                 next if all_samples_results[col_header][i].nil? 
                 xval = value
                 yval = all_samples_results[col_header][i][j+dep_cols.size]
-                table_data_html << add_datapoint(xval, yval, j+1, num_data_series, point_size, i)
+                table_data_html << add_datapoint(xval, yval, j+1, num_data_series, point_size)
             end
         end
+        # Add line for perfect agreement
+        table_data_html << add_datapoint(0.0, 0, 0, num_data_series, 0, xval_equal=0.0, xval_plus20="null", xval_minus20="null")
+        table_data_html << add_datapoint(1.0, 0, 0, num_data_series, 0, xval_equal=1.0, xval_plus20="null", xval_minus20="null")
+        # Add line for +20%
+        table_data_html << add_datapoint(0.0, 0, 0, num_data_series, 0, xval_equal="null", xval_plus20=0.2, xval_minus20="null")
+        table_data_html << add_datapoint(0.8, 0, 0, num_data_series, 0, xval_equal="null", xval_plus20=1.0, xval_minus20="null")
+        # Add line for -20%
+        table_data_html << add_datapoint(0.2, 0, 0, num_data_series, 0, xval_equal="null", xval_plus20="null", xval_minus20=0.0)
+        table_data_html << add_datapoint(1.0, 0, 0, num_data_series, 0, xval_equal="null", xval_plus20="null", xval_minus20=0.8)
         html_text.sub!("<TABLE_DATA_HERE>", table_data_html.chop)
         
-        # Replace <TITLE_HERE> with parameter name
-        html_text.sub!("<TITLE_HERE>", capitalize_string(param_name))
+        # Replace <CHART_TITLE_HERE> with parameter name
+        html_text.sub!("<CHART_TITLE_HERE>", capitalize_string(param_name))
         
         outfile = File.join(results_vis_dir, prob_dist_file.sub(".txt",".html"))
         File.write(outfile, html_text)
+        html_filenames[col_header] = File.basename(outfile)
     end
-end 
+    return html_filenames
+end
 
-def add_datapoint(xval, yval, series_position, num_data_series, point_size, point_num)
+def add_datapoint(xval, yval, series_position, num_data_series, point_size, xval_equal="null", xval_plus20="null", xval_minus20="null")
     s = "\n[ #{xval}, "
     (1..num_data_series).each do |series_num|
         if series_num == series_position
@@ -290,20 +323,26 @@ def add_datapoint(xval, yval, series_position, num_data_series, point_size, poin
             s << "null,null,"
         end
     end
-    xval_plus20 = xval.to_f+0.2
-    if xval_plus20 > 1.0
-        xval_plus20 = "null" # Prevent y-axis scale max value from being above 1
-    end
-    xval_minus20 = xval.to_f-0.2
-    if xval_minus20 < 0.0
-        xval_minus20 = "null" # Prevent x-axis scale min value from being below 0
-    end
-    s << "#{xval},#{xval_plus20.to_s},#{xval_minus20.to_s}],"
+    s << "#{xval_equal},#{xval_plus20},#{xval_minus20}],"
     return s
 end
 
 def capitalize_string(s)
     return s.split.map(&:capitalize).join(' ')
+end
+
+def generate_visualizations_index(results_data, param_names, results_vis_dir, html_filenames)
+    # Create index.html file
+    outfile = File.join(results_vis_dir, "index.html")
+    html_text = "<html><head><title>ResStock Visualizations</title></head><body><ul>"
+    results_data[0].each do |col_header|
+        next if not html_filenames.include?(col_header)
+        param_name = param_names[col_header]
+        html_text << "<li><a href='#{html_filenames[col_header]}'>#{capitalize_string(param_name)}</a></li>"
+    end
+    html_text << "</ul></body></html>"
+    File.write(outfile, html_text)
+    puts "Generating #{File.basename(outfile)} for visualizations..."
 end
     
 # Initialize optionsParser ARGV hash
@@ -332,3 +371,4 @@ if not (options[:rsmode] == 'national' or options[:rsmode] == 'pnw')
 end
 
 validate_sampling(options[:rsmode])
+puts "Done!"
