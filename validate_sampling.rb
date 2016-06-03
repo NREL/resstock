@@ -83,14 +83,14 @@ def generate_data_output(results_data, param_names, all_prob_dist_data, results_
         option_names = all_prob_dist_data[param_name]["option_names"]
         dep_cols = all_prob_dist_data[param_name]["dep_cols"]
         prob_dist_file = all_prob_dist_data[param_name]["prob_dist_file"]
+        rows = all_prob_dist_data[param_name]["rows"]
         
         # Generate combinations of dependency options
-        dep_options = []
-        dep_cols.keys.each do |dep|
-            dep_options << all_prob_dist_data[dep]["option_names"]
-        end
-        if dep_options.size > 0
-            dep_combos = dep_options.first.product(*dep_options[1..-1])
+        if dep_cols.size > 0
+            dep_combos = []
+            rows.each do |row|
+                dep_combos << row[0..dep_cols.size-1]
+            end
         else
             dep_combos = [[]]
         end
@@ -110,14 +110,14 @@ def generate_data_output(results_data, param_names, all_prob_dist_data, results_
             results_data[1..-1].each do |row|
                 row_match = true
                 dep_cols.keys.each_with_index do |dep_col, index|
-                    if row[results_file_cols[dep_col]] != dep_combo[index]
+                    if row[results_file_cols[dep_col]].downcase != dep_combo[index].downcase
                         row_match = false
                     end
                 end
                 next if not row_match
                 num_samples += 1
                 option_names.each_with_index do |option_name, index|
-                    next if option_name != row[results_file_cols[param_name]]
+                    next if option_name.downcase != row[results_file_cols[param_name]].downcase
                     sample_results[index] += 1
                 end
             end
@@ -263,7 +263,7 @@ def generate_visualizations(results_data, param_names, all_prob_dist_data, resul
         html_text.sub!("<TITLE_HERE>", capitalize_string(param_name))
 
         # Determine sizes of points
-        # FIXME: This should come from the inputs, not outputs
+        # FIXME: Weighting should be calculated based on the inputs, not outputs
         max_point_size = 15 # pixels
         min_point_size = 5 # pixels
         num_samples = []
@@ -285,7 +285,11 @@ def generate_visualizations(results_data, param_names, all_prob_dist_data, resul
         table_data_html = ""
         rows.each_with_index do |row, i|
             next if row.size == 0
-            point_size = (num_samples[i]/max_num_samples * (max_point_size.to_f - min_point_size.to_f)).ceil + min_point_size
+            if num_samples[i] == 0
+                point_size = 0
+            else
+                point_size = (num_samples[i]/max_num_samples * (max_point_size.to_f - min_point_size.to_f)).ceil + min_point_size
+            end
             row[dep_cols.size..row.size-1].each_with_index do |value, j|
                 next if all_samples_results[col_header][i].nil? 
                 xval = value
