@@ -56,8 +56,7 @@ def validate_sampling(mode)
     if not File.exists? results_vis_dir
         Dir.mkdir(results_vis_dir)
     end
-    html_filenames = generate_visualizations(results_data, param_names, all_prob_dist_data, results_vis_dir, all_samples_results)
-    generate_visualizations_index(results_data, param_names, results_vis_dir, html_filenames)
+    generate_visualizations(results_data, param_names, all_prob_dist_data, results_vis_dir, all_samples_results)
 end 
 
 def generate_data_output(results_data, param_names, all_prob_dist_data, results_data_dir, key_prefix)
@@ -254,6 +253,15 @@ def generate_visualizations(results_data, param_names, all_prob_dist_data, resul
         </script>
       </head>
       <body>
+        <div style="display:inline-block; width: 100%; text-align:center;">
+            <PREV_BUTTON_HERE>
+            <form style="display: inline-block">
+                <select name="select" onChange="window.open(this.options[this.selectedIndex].value,'_self')" onKeyPress="window.open(this.options[this.selectedIndex].value,'_self')">
+                    <OPTIONS_HERE>
+                </select>
+            </form>
+            <NEXT_BUTTON_HERE>
+        </div>
         <div id="chart_div" style="width: 100%; height: 100%;"></div>
       </body>
     </html>
@@ -313,9 +321,44 @@ def generate_visualizations(results_data, param_names, all_prob_dist_data, resul
         
         outfile = File.join(results_vis_dir, prob_dist_file.sub(".txt",".html"))
         File.write(outfile, html_text)
-        html_filenames[col_header] = File.basename(outfile)
+        html_filenames[capitalize_string(param_name)] = File.basename(outfile)
     end
-    return html_filenames
+    
+    # Update select dropdowns and buttons in each file
+    sorted_params = html_filenames.keys.sort
+    html_filenames.keys.sort.each_with_index do |param_name, index|
+        # Select dropdown
+        options_html = ""
+        html_filenames.keys.sort.each do |param_name2|
+            if param_name == param_name2
+                options_html << "<option value=\"#{html_filenames[param_name2]}\" selected=\"selected\">#{param_name2}</option>"
+            else
+                options_html << "<option value=\"#{html_filenames[param_name2]}\">#{param_name2}</option>"
+            end
+        end
+        full_filename = File.join(results_vis_dir, html_filenames[param_name])
+        File.write(full_filename,File.open(full_filename,&:read).gsub("<OPTIONS_HERE>",options_html))
+        
+        # Prev button
+        if index > 0
+            prev_html = "<form action=\"#{html_filenames[sorted_params[index-1]]}\" style=\"display: inline-block\"><input type=\"submit\" value=\"<<\" title=\"#{sorted_params[index-1]}\"></form>"
+        else
+            prev_html = "<form style=\"display: inline-block\"><input type=\"submit\" value=\"<<\" disabled=\"disabled\"></form>"
+        end
+        File.write(full_filename,File.open(full_filename,&:read).gsub("<PREV_BUTTON_HERE>",prev_html))
+        
+        # Next button
+        if index < html_filenames.size-1
+            next_html = "<form action=\"#{html_filenames[sorted_params[index+1]]}\" style=\"display: inline-block\"><input type=\"submit\" value=\">>\" title=\"#{sorted_params[index+1]}\"></form>"
+        else
+            next_html = "<form style=\"display: inline-block\"><input type=\"submit\" value=\">>\" disabled=\"disabled\"></form>"
+        end
+        File.write(full_filename,File.open(full_filename,&:read).gsub("<NEXT_BUTTON_HERE>",next_html))
+    end
+    
+    first_param = html_filenames.keys.sort[0]
+    puts "Launching visualization for #{first_param}..."
+    %x{call #{File.absolute_path(File.join(results_vis_dir, html_filenames[first_param]))}}
 end
 
 def add_datapoint(xval, yval, series_position, num_data_series, point_size, xval_equal="null", xval_plus20="null", xval_minus20="null")
@@ -335,20 +378,6 @@ def capitalize_string(s)
     return s.split.map(&:capitalize).join(' ')
 end
 
-def generate_visualizations_index(results_data, param_names, results_vis_dir, html_filenames)
-    # Create index.html file
-    outfile = File.join(results_vis_dir, "index.html")
-    html_text = "<html><head><title>ResStock Visualizations</title></head><body><ul>"
-    results_data[0].each do |col_header|
-        next if not html_filenames.include?(col_header)
-        param_name = param_names[col_header]
-        html_text << "<li><a href='#{html_filenames[col_header]}'>#{capitalize_string(param_name)}</a></li>"
-    end
-    html_text << "</ul></body></html>"
-    File.write(outfile, html_text)
-    puts "Generating #{File.basename(outfile)} for visualizations..."
-end
-    
 # Initialize optionsParser ARGV hash
 options = {}
 
