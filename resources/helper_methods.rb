@@ -6,6 +6,12 @@ def check_file_exists(full_path, runner=nil)
         register_error("Cannot find file #{full_path.to_s}.", runner)
     end
 end
+
+def check_dir_exists(full_path, runner=nil)
+    if not Dir.exist?(full_path)
+        register_error("Cannot find directory #{full_path.to_s}.", runner)
+    end
+end
   
 def get_value_from_runner_past_results(key_lookup, runner=nil)
     runner.past_results.each do |measure, values|

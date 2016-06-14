@@ -5,7 +5,6 @@
 # https://github.com/NREL/OpenStudio-measures/blob/develop/NREL%20working%20measures/measure_picker/measure.rb
 
 require 'csv'
-require File.join(File.dirname(__FILE__), 'resources', 'helper_methods')
 
 # start the measure
 class CallMetaMeasure < OpenStudio::Ruleset::ModelUserScript
@@ -54,19 +53,25 @@ class CallMetaMeasure < OpenStudio::Ruleset::ModelUserScript
     probability_file = runner.getStringArgumentValue("probability_file",user_arguments)
     sample_value = runner.getDoubleArgumentValue("sample_value",user_arguments)
     
-    # Get mode and corresponding subdirectory (as found in the MetaMeasure resources dir)
-    res_stock_mode = get_value_from_runner_past_results("res_stock_mode", runner)
-    
     # Get file/dir paths
-    resources_dir = File.absolute_path(File.join(File.dirname(__FILE__), "resources"))
+    resources_dir = File.absolute_path(File.join(File.dirname(__FILE__), "../../lib/resources/")) # Should have been uploaded per 'Other Library Files' in analysis spreadsheet
+    helper_methods_file = File.join(resources_dir, "helper_methods.rb")
     measures_dir = File.join(resources_dir, "measures")
-    inputs_dir = File.join(resources_dir, "inputs", res_stock_mode)
     lookup_file = File.join(resources_dir, "options_lookup.txt")
     
-    full_probability_path = File.join(inputs_dir, probability_file)
-    check_file_exists(full_probability_path, runner)
-    
+    # Load helper_methods
+    require File.join(File.dirname(helper_methods_file), File.basename(helper_methods_file, File.extname(helper_methods_file)))
+
+    # Check file/dir paths exist
+    check_dir_exists(measures_dir, runner)
+    check_file_exists(lookup_file, runner)
+
+    # Get mode
+    res_stock_mode = get_value_from_runner_past_results("res_stock_mode", runner)
+
     # Get file data including parameter name, dependency columns, and option names
+    full_probability_path = File.join(resources_dir, "inputs", res_stock_mode, probability_file)
+    check_file_exists(full_probability_path, runner)
     headers, rows, parameter_name, all_option_names, dependency_cols = get_probability_file_data(full_probability_path, runner)
     
     # Get dependency values from previous meta-measure calls
