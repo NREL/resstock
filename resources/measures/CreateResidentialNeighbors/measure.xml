@@ -2,13 +2,13 @@
   <schema_version>3.0</schema_version>
   <name>create_residential_neighbors</name>
   <uid>11051b4a-4f5b-43b5-8c78-6303e084dbd9</uid>
-  <version_id>dcb13213-5747-4dc1-bc8f-f6a43a442d22</version_id>
-  <version_modified>20160426T214109Z</version_modified>
+  <version_id>ceda0ad9-a22f-4fa7-ab65-2c53b6574adf</version_id>
+  <version_modified>20160602T152640Z</version_modified>
   <xml_checksum>2AF3A68E</xml_checksum>
   <class_name>CreateResidentialNeighbors</class_name>
   <display_name>Set Residential Neighbors</display_name>
-  <description>Sets the neighbors of the building.</description>
-  <modeler_description>Performs a series of affine transformations on the building's surfaces into shading surfaces.</modeler_description>
+  <description>Sets the neighbors (front, back, left, and/or right) of the building for shading purposes. Neighboring buildings will have the same geometry as the model building.</description>
+  <modeler_description>Creates shading surfaces by shifting the building's exterior surfaces in the specified directions (front, back, left, and/or right).</modeler_description>
   <arguments>
     <argument>
       <name>left_neighbor_offset</name>
@@ -43,7 +43,7 @@
     <argument>
       <name>front_neighbor_offset</name>
       <display_name>Front Neighbor Offset</display_name>
-      <description>The minimum distance between the simulated house and the neighboring house to the lront (not including eaves). A value of zero indicates no neighbors.</description>
+      <description>The minimum distance between the simulated house and the neighboring house to the front (not including eaves). A value of zero indicates no neighbors.</description>
       <type>Double</type>
       <units>ft</units>
       <required>false</required>
@@ -99,7 +99,7 @@
       <filename>measure.rb</filename>
       <filetype>rb</filetype>
       <usage_type>script</usage_type>
-      <checksum>26EAE3C0</checksum>
+      <checksum>F38D42FB</checksum>
     </file>
   </files>
 </measure>

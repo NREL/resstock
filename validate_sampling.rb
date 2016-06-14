@@ -1,5 +1,5 @@
 require 'csv'
-require File.join(File.dirname(__FILE__), 'measures', 'CallMetaMeasure', 'resources', 'helper_methods')
+require File.join(File.dirname(__FILE__), 'resources', 'helper_methods')
 require 'optparse'
 
 def validate_sampling(mode)
@@ -25,7 +25,7 @@ def validate_sampling(mode)
     all_prob_dist_data = {}
     param_names = {}
     key_prefix = "res_stock_reporting."
-    prob_dist_dir = File.join(File.dirname(__FILE__), "measures", "CallMetaMeasure", "resources", "inputs", mode)
+    prob_dist_dir = File.join(File.dirname(__FILE__), "resources", "inputs", mode)
     results_data[0].each do |col_header|
         next if not col_header.start_with?(key_prefix)
         

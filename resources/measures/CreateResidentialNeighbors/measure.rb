@@ -11,12 +11,12 @@ class CreateResidentialNeighbors < OpenStudio::Ruleset::ModelUserScript
 
   # human readable description
   def description
-    return "Sets the neighbors of the building."
+    return "Sets the neighbors (front, back, left, and/or right) of the building for shading purposes. Neighboring buildings will have the same geometry as the model building."
   end
 
   # human readable description of modeling approach
   def modeler_description
-    return "Performs a series of affine transformations on the building's surfaces into shading surfaces."
+    return "Creates shading surfaces by shifting the building's exterior surfaces in the specified directions (front, back, left, and/or right)."
   end
 
   # define the arguments that the user will input
@@ -51,7 +51,7 @@ class CreateResidentialNeighbors < OpenStudio::Ruleset::ModelUserScript
     front_neighbor_offset = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("front_neighbor_offset", false)
     front_neighbor_offset.setDisplayName("Front Neighbor Offset")
     front_neighbor_offset.setUnits("ft")
-    front_neighbor_offset.setDescription("The minimum distance between the simulated house and the neighboring house to the lront (not including eaves). A value of zero indicates no neighbors.")
+    front_neighbor_offset.setDescription("The minimum distance between the simulated house and the neighboring house to the front (not including eaves). A value of zero indicates no neighbors.")
     front_neighbor_offset.setDefaultValue(0.0)
     args << front_neighbor_offset
 
@@ -114,11 +114,12 @@ class CreateResidentialNeighbors < OpenStudio::Ruleset::ModelUserScript
     right_offset = -((greatest_x - least_x) + right_neighbor_offset) # TODO: why does negative x in the transformation result in a pos x translation?
     back_offset = -((greatest_y - least_y) + back_neighbor_offset) # TODO: why does negative y in the transformation result in a pos y translation?
     front_offset = ((greatest_y - least_y) + front_neighbor_offset) # TODO: why does positive y in the transformation result in a neg y translation?
-				
-    spaces = model.getSpaces
-    spaces.each do |space|
-      shading_surface_group = OpenStudio::Model::ShadingSurfaceGroup.new(model)
-      [["Left", left_neighbor_offset, left_offset, 0], ["Right", right_neighbor_offset, right_offset, 0], ["Back", back_neighbor_offset, 0, back_offset], ["Front", front_neighbor_offset, 0, front_offset]].each do |dir, neighbor_offset, x_offset, y_offset|
+			
+    directions = [["Left", left_neighbor_offset, left_offset, 0], ["Right", right_neighbor_offset, right_offset, 0], ["Back", back_neighbor_offset, 0, back_offset], ["Front", front_neighbor_offset, 0, front_offset]]
+            
+    shading_surface_group = OpenStudio::Model::ShadingSurfaceGroup.new(model)
+    model.getSpaces.each do |space|
+      directions.each do |dir, neighbor_offset, x_offset, y_offset|
         if neighbor_offset != 0
           new_space = space.clone.to_Space.get
           m = OpenStudio::Matrix.new(4,4,0)
@@ -139,24 +140,6 @@ class CreateResidentialNeighbors < OpenStudio::Ruleset::ModelUserScript
             end
             surface.remove
           end
-          # m = OpenStudio::Matrix.new(4,4,0)
-          # m[0,0] = 1
-          # m[1,1] = 1
-          # m[2,2] = 1
-          # m[3,3] = 1
-          # m[0,3] = -x_offset # TODO: figure out why this must be opposite the regular surfaces
-          # m[1,3] = -y_offset # TODO: figure out why this must be opposite the regular surfaces			
-          # m[2,3] = space.zOrigin # TODO: figure out why shading surfaces don't transform in the z-direction like regular surfaces (the clone has them all going back to z=0)
-          # new_space.shadingSurfaceGroups.each do |shadingSurfaceGroup|
-            # shadingSurfaceGroup.shadingSurfaces.each do |shadingSurface|					
-              # shading_surface = OpenStudio::Model::ShadingSurface.new(OpenStudio::Transformation.new(m) * shadingSurface.vertices, model)
-              # shading_surface.setName("#{dir} Neighbor")
-              # shading_surface.setShadingSurfaceGroup(shading_surface_group)
-              # runner.registerInfo("Created shading surface #{shading_surface.name} from surface #{shadingSurface.name}.")
-              # shadingSurface.remove
-            # end
-            # shadingSurfaceGroup.remove
-          # end
           new_space.remove
         end
       end

@@ -38,7 +38,7 @@ class ProcessHeatingandCoolingSetpoints < OpenStudio::Ruleset::ModelUserScript
     htg_wkdy.setDisplayName("Weekday Heating Setpoint Schedule")
     htg_wkdy.setDescription("Specify the 24-hour weekday heating schedule.")
     htg_wkdy.setUnits("degrees F")
-    htg_wkdy.setDefaultValue("65.0, 65.0, 65.0, 65.0, 65.0, 65.0, 71.0, 71.0, 71.0, 71.0, 71.0, 71.0, 71.0, 71.0, 71.0, 71.0, 71.0, 71.0, 71.0, 71.0, 71.0, 71.0, 71.0, 65.0,")
+    htg_wkdy.setDefaultValue("65.0, 65.0, 65.0, 65.0, 65.0, 65.0, 71.0, 71.0, 71.0, 71.0, 71.0, 71.0, 71.0, 71.0, 71.0, 71.0, 71.0, 71.0, 71.0, 71.0, 71.0, 71.0, 71.0, 65.0")
     args << htg_wkdy
 
    	#Make a string argument for 24 weekend heating set point values
@@ -46,7 +46,7 @@ class ProcessHeatingandCoolingSetpoints < OpenStudio::Ruleset::ModelUserScript
     htg_wked.setDisplayName("Weekend Heating Setpoint Schedule")
     htg_wked.setDescription("Specify the 24-hour weekend heating schedule.")
     htg_wked.setUnits("degrees F")
-    htg_wked.setDefaultValue("65.0, 65.0, 65.0, 65.0, 65.0, 65.0, 71.0, 71.0, 71.0, 71.0, 71.0, 71.0, 71.0, 71.0, 71.0, 71.0, 71.0, 71.0, 71.0, 71.0, 71.0, 71.0, 71.0, 65.0,")
+    htg_wked.setDefaultValue("65.0, 65.0, 65.0, 65.0, 65.0, 65.0, 71.0, 71.0, 71.0, 71.0, 71.0, 71.0, 71.0, 71.0, 71.0, 71.0, 71.0, 71.0, 71.0, 71.0, 71.0, 71.0, 71.0, 65.0")
     args << htg_wked  
   
    	#Make a string argument for 24 weekday cooling set point values
@@ -116,6 +116,10 @@ class ProcessHeatingandCoolingSetpoints < OpenStudio::Ruleset::ModelUserScript
     heatingseasonschedule = MonthWeekdayWeekendSchedule.new(model, runner, Constants.ObjectNameHeatingSeason, Array.new(24, 1).join(", "), Array.new(24, 1).join(", "), heating_season.join(", "), mult_weekday=1.0, mult_weekend=1.0, normalize_values=false)
     coolingseasonschedule = MonthWeekdayWeekendSchedule.new(model, runner, Constants.ObjectNameCoolingSeason, Array.new(24, 1).join(", "), Array.new(24, 1).join(", "), cooling_season.join(", "), mult_weekday=1.0, mult_weekend=1.0, normalize_values=false)  
     
+    if not heatingseasonschedule.validated? or not coolingseasonschedule.validated?
+      return false
+    end    
+
     htg_wkdy = htg_wkdy.split(",").map {|i| OpenStudio::convert(i.to_f,"F","C").get}
     htg_wked = htg_wked.split(",").map {|i| OpenStudio::convert(i.to_f,"F","C").get}
     clg_wkdy = clg_wkdy.split(",").map {|i| OpenStudio::convert(i.to_f,"F","C").get}

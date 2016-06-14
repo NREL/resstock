@@ -275,6 +275,9 @@ class Constants
   def self.GarageSpace
     return 'garage space'
   end
+  def self.GarageAtticSpace
+    return 'garage attic space'
+  end
   def self.GarageSpaceType
     return 'garage space type'
   end
@@ -431,6 +434,9 @@ class Constants
   def self.ObjectNameFreezer
     return 'residential freezer'
   end
+  def self.ObjectNameFurniture
+    return 'residential furniture'
+  end
   def self.ObjectNameGasFireplace
     return 'residential gas fireplace'
   end
@@ -472,6 +478,9 @@ class Constants
   end
   def self.ObjectNameWellPump
     return 'residential well pump'
+  end
+  def self.ObjectNameWindowShading
+    return 'residential window shading'
   end
   def self.PierBeamSpace
     return 'pier and beam space'

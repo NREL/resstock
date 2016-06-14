@@ -10,6 +10,7 @@
 require "#{File.dirname(__FILE__)}/resources/util"
 require "#{File.dirname(__FILE__)}/resources/constants"
 require "#{File.dirname(__FILE__)}/resources/weather"
+require "#{File.dirname(__FILE__)}/resources/schedules"
 
 #start the measure
 class ProcessConstructionsWindows < OpenStudio::Ruleset::ModelUserScript
@@ -145,45 +146,11 @@ class ProcessConstructionsWindows < OpenStudio::Ruleset::ModelUserScript
     sched_type.setLowerLimitValue(0)
     sched_type.setUpperLimitValue(1)
     sched_type.setNumericType("Continuous")
-
-    ish_ruleset = OpenStudio::Model::ScheduleRuleset.new(model)
-    ish_ruleset.setName("WindowShadingSchedule")
-
-    ish_ruleset.setScheduleTypeLimits(sched_type)
-
-    ish_rule_days = []
-    for m in 1..12
-        date_s = OpenStudio::Date::fromDayOfYear(day_startm[m])
-        date_e = OpenStudio::Date::fromDayOfYear(day_endm[m])
-        ish_rule = OpenStudio::Model::ScheduleRule.new(ish_ruleset)
-        ish_rule.setName("WindowShadingSchedule%02d" % m.to_s)
-        ish_rule_day = ish_rule.daySchedule
-        ish_rule_day.setName("WindowShadingSchedule%02dd" % m.to_s)
-        for h in 1..24
-            time = OpenStudio::Time.new(0,h,0,0)
-            val = cooling_season[m - 1]
-            ish_rule_day.addValue(time,val)
-        end
-        ish_rule_days << ish_rule_day
-        ish_rule.setApplySunday(true)
-        ish_rule.setApplyMonday(true)
-        ish_rule.setApplyTuesday(true)
-        ish_rule.setApplyWednesday(true)
-        ish_rule.setApplyThursday(true)
-        ish_rule.setApplyFriday(true)
-        ish_rule.setApplySaturday(true)
-        ish_rule.setStartDate(date_s)
-        ish_rule.setEndDate(date_e)
+    
+    sch = MonthWeekdayWeekendSchedule.new(model, runner, Constants.ObjectNameWindowShading + " schedule", Array.new(24, 1).join(", "), Array.new(24, 1).join(", "), cooling_season.join(", "))
+    if not sch.validated?
+        return false
     end
-
-    sumDesSch = ish_rule_days[6]
-    winDesSch = ish_rule_days[0]
-    ish_ruleset.setSummerDesignDaySchedule(sumDesSch)
-    ish_summer = ish_ruleset.summerDesignDaySchedule
-    ish_summer.setName("WindowShadingScheduleSummer")
-    ish_ruleset.setWinterDesignDaySchedule(winDesSch)
-    ish_winter = ish_ruleset.winterDesignDaySchedule
-    ish_winter.setName("WindowShadingScheduleWinter")
 
     # CoolingShade
     sm = OpenStudio::Model::Shade.new(model)
@@ -208,53 +175,7 @@ class ProcessConstructionsWindows < OpenStudio::Ruleset::ModelUserScript
     sc.setName("WindowShadingControl")
     sc.setShadingType("InteriorShade")
     sc.setShadingControlType("OnIfScheduleAllows")
-    sc.setSchedule(ish_ruleset)
-
-    # WindowShades
-    sched_type = OpenStudio::Model::ScheduleTypeLimits.new(model)
-    sched_type.setName("MULTIPLIER")
-    #sched_type.setLowerLimitValue(0)
-    #sched_type.setUpperLimitValue(1)
-    sched_type.setNumericType("Continuous")
-
-    ish_ruleset = OpenStudio::Model::ScheduleRuleset.new(model)
-    ish_ruleset.setName("WindowShades")
-
-    ish_ruleset.setScheduleTypeLimits(sched_type)
-
-    ish_rule_days = []
-    for m in 1..12
-        date_s = OpenStudio::Date::fromDayOfYear(day_startm[m])
-        date_e = OpenStudio::Date::fromDayOfYear(day_endm[m])
-        ish_rule = OpenStudio::Model::ScheduleRule.new(ish_ruleset)
-        ish_rule.setName("WindowShades%02d" % m.to_s)
-        ish_rule_day = ish_rule.daySchedule
-        ish_rule_day.setName("WindowShades%02dd" % m.to_s)
-        for h in 1..24
-            time = OpenStudio::Time.new(0,h,0,0)
-            val = window_shade_multiplier[m - 1]
-            ish_rule_day.addValue(time,val)
-        end
-        ish_rule_days << ish_rule_day
-        ish_rule.setApplySunday(true)
-        ish_rule.setApplyMonday(true)
-        ish_rule.setApplyTuesday(true)
-        ish_rule.setApplyWednesday(true)
-        ish_rule.setApplyThursday(true)
-        ish_rule.setApplyFriday(true)
-        ish_rule.setApplySaturday(true)
-        ish_rule.setStartDate(date_s)
-        ish_rule.setEndDate(date_e)
-    end
-
-    sumDesSch = ish_rule_days[6]
-    winDesSch = ish_rule_days[0]
-    ish_ruleset.setSummerDesignDaySchedule(sumDesSch)
-    ish_summer = ish_ruleset.summerDesignDaySchedule
-    ish_summer.setName("WindowShadesSummer")
-    ish_ruleset.setWinterDesignDaySchedule(winDesSch)
-    ish_winter = ish_ruleset.winterDesignDaySchedule
-    ish_winter.setName("WindowShadesWinter")
+    sch.setSchedule(sc)
 
     # Define materials
     glaz_mat = GlazingMaterial.new(name="GlazingMaterial", ufactor=ufactor, shgc=shgc * intShadeHeatingMultiplier)
