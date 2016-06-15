@@ -45,12 +45,13 @@ class RebuildExistingModel < OpenStudio::Ruleset::ModelUserScript
     sample_value = runner.getDoubleArgumentValue("sample_value",user_arguments)
     
     # Get file/dir paths
-    resources_dir = File.absolute_path(File.join(File.dirname(__FILE__), "../../lib/resources/")) # Should have been uploaded per 'Other Library Files' in analysis spreadsheet
+    resources_dir = File.absolute_path(File.join(File.dirname(__FILE__), "..", "..", "lib", "resources")) # Should have been uploaded per 'Other Library Files' in analysis spreadsheet
     helper_methods_file = File.join(resources_dir, "helper_methods.rb")
     measures_dir = File.join(resources_dir, "measures")
     lookup_file = File.join(resources_dir, "options_lookup.txt")
-    resstock_csv = File.absolute_path(File.join(File.dirname(__FILE__), "../../lib/existing_results/resstock.csv")) # Should have been uploaded per 'Other Library Files' in analysis spreadsheet
-    resstock_metadata_csv = File.absolute_path(File.join(File.dirname(__FILE__), "../../lib/existing_results/resstock_metadata.csv")) # Should have been uploaded per 'Other Library Files' in analysis spreadsheet
+    resstock_csv = File.absolute_path(File.join(File.dirname(__FILE__), "..", "..", "lib", "existing_results", "resstock.csv")) # Should have been uploaded per 'Other Library Files' in analysis spreadsheet
+    resstock_metadata_csv = File.absolute_path(File.join(File.dirname(__FILE__), "..", "..", "lib", "existing_results", "resstock_metadata.csv")) # Should have been uploaded per 'Other Library Files' in analysis spreadsheet
+    resstock_order_csv = File.absolute_path(File.join(File.dirname(__FILE__), "..", "..", "lib", "existing_results", "resstock_order.csv")) # Should have been uploaded per 'Other Library Files' in analysis spreadsheet
     
     # Load helper_methods
     require File.join(File.dirname(helper_methods_file), File.basename(helper_methods_file, File.extname(helper_methods_file)))
@@ -73,10 +74,10 @@ class RebuildExistingModel < OpenStudio::Ruleset::ModelUserScript
     bldg_data = get_data_for_sample(resstock_csv, sample_number)
     
     # Retrieve order of parameters to run
-    key_prefix = "res_stock_reporting."
-    parameters_ordered = get_parameters_ordered(resstock_metadata_csv, key_prefix)
+    parameters_ordered = get_parameters_ordered(resstock_order_csv)
 
     # Call each measure for sample to build up model
+    key_prefix = "res_stock_reporting."
     parameters_ordered.each do |parameter|
         prob_dist_file = File.join(resources_dir, "inputs", res_stock_mode, parameter + ".txt")
         check_file_exists(prob_dist_file)
@@ -124,13 +125,8 @@ class RebuildExistingModel < OpenStudio::Ruleset::ModelUserScript
     fail msg
   end
   
-  def get_parameters_ordered(resstock_metadata_csv, key_prefix)
-    parameters = []
-    CSV.foreach(resstock_metadata_csv, headers:true) do |row|
-        next if not row['name'].start_with?(key_prefix)
-        parameters << row['name'].sub(key_prefix, "")
-    end
-    return parameters
+  def get_parameters_ordered(resstock_order_csv)
+    return CSV.open(resstock_order_csv, 'r') { |csv| csv.first }
   end
   
 end

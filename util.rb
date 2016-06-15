@@ -41,20 +41,6 @@ def get_probability_distribution_files_from_analysis(analysis, resources_dir, di
     return files
 end
 
-def json_get_probability_distribution_files(json, dirname)
-    
-    files = []
-    json['analysis']['problem']['workflow'].each do |w|
-        next if w['measure_definition_class_name'] != 'CallMetaMeasure'
-        dir = w['measure_definition_directory']
-        w['arguments'].each do |a|
-            next if a['name'] != 'probability_file'
-            files << File.absolute_path(File.join(dir, 'resources', 'inputs', dirname, a['value']))
-        end
-    end
-    return files
-end
-
 def get_combination_hashes(parameter_option_names, dependencies)
     combos_hashes = []
 
@@ -151,19 +137,28 @@ def perform_integrity_checks(project_file, dirname, is_upgrades)
         end
     
     else # is_upgrades
-        #FIXME: Temporarily commented out
-        #existing_csv = get_existing_csv_path_from_analysis(analysis)
-        #check_file_exists(existing_csv)
-        #num_samples = get_number_of_samples_from_analysis(analysis)
-        #num_models = get_num_models(existing_csv)
-        #if num_samples != num_models
-        #    puts "ERROR: Number of samples specified in #{File.basename(project_file)} (#{num_samples.to_s}) does not match number of models found in #{File.basename(existing_csv)} (#{num_models.to_s})."
-        #    exit
-        #end
+        existing_csv = File.join(get_existing_csv_path_from_analysis(analysis), "resstock.csv")
+        check_file_exists(existing_csv)
+        num_samples = get_number_of_samples_from_analysis(analysis)
+        num_models = get_num_models(existing_csv)
+        if num_samples != num_models
+            puts "ERROR: Number of samples specified in #{File.basename(project_file)} (#{num_samples.to_s}) does not match number of models found in #{File.basename(existing_csv)} (#{num_models.to_s})."
+            exit
+        end
     end
     
     # If we got this far...
     puts "ALL INTEGRITY CHECKS PASSED."
+    
+    return pdfiles
+end
+
+def generate_parameter_order_file(output_csv, pdfiles)
+    text = ""
+    pdfiles.each do |pdfile|
+        text << "#{File.basename(pdfile, File.extname(pdfile))},"
+    end
+    File.write(output_csv, text.chomp(','))
 end
 
 def run(project_type, caller_rb)
@@ -214,10 +209,6 @@ def run(project_type, caller_rb)
     # Execute ARGV parsing into options hash holding sybolized key values
     optparse.parse!
 
-    if options[:runonly] and options[:checkonly]
-        fail "ERROR: Both -k and -r entered. Please specify one or the other."
-    end
-
     is_upgrades = false
     if project_type == "upgrades"
         is_upgrades = true
@@ -230,31 +221,36 @@ def run(project_type, caller_rb)
     project_file = nil
     if options[:rsmode] == 'national'
         if is_upgrades
-            project_file = File.join(File.dirname(__FILE__),'projects/res_stock_national_upgrades.xlsx')
+            project_file = File.join(File.dirname(__FILE__),'projects', 'res_stock_national_upgrades.xlsx')
         else
-            project_file = File.join(File.dirname(__FILE__),'projects/res_stock_national_existing.xlsx')
+            project_file = File.join(File.dirname(__FILE__),'projects', 'res_stock_national_existing.xlsx')
         end
     elsif options[:rsmode] == 'pnw'
         if is_upgrades
-            project_file = File.join(File.dirname(__FILE__),'projects/res_stock_pnw_upgrades.xlsx')
+            project_file = File.join(File.dirname(__FILE__),'projects', 'res_stock_pnw_upgrades.xlsx')
         else
-            project_file = File.join(File.dirname(__FILE__),'projects/res_stock_pnw_existing.xlsx')
+            project_file = File.join(File.dirname(__FILE__),'projects', 'res_stock_pnw_existing.xlsx')
         end
     end
+    results_path = File.join(File.dirname(__FILE__), "results", options[:rsmode])
 
     # Perform various checks to look for problems
-    if options[:checkonly] or not options[:runonly]
-        perform_integrity_checks(project_file, options[:rsmode], is_upgrades)
-    end
+    pdfiles = perform_integrity_checks(project_file, options[:rsmode], is_upgrades)
+    
+    if not options[:checkonly]
+        # Generate order of parameters called for existing buildings; will be reused by upgrade runs
+        # to rebuild up the model.
+        if not is_upgrades
+            generate_parameter_order_file(File.join(results_path, 'resstock_order.csv'), pdfiles)
+        end
 
-    # Call cli.rb with appropriate args
-    if options[:runonly] or not options[:checkonly]
+        # Call cli.rb with appropriate args
         c_arg = '-c'
         if options[:nocsv]
             c_arg = ''
         end
         wait_arg = "--analysis-wait #{options[:analysis_wait].to_s}"
-        Kernel.exec("bundle exec ruby cli.rb -t #{options[:target].to_s} -p '#{project_file}' #{wait_arg} #{c_arg} -d ./results/#{options[:rsmode]}")
+        Kernel.exec("bundle exec ruby cli.rb -t #{options[:target].to_s} -p '#{project_file}' #{wait_arg} #{c_arg} -d #{results_path}")
     end
 
 end
