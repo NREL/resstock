@@ -10,8 +10,6 @@ def validate_sampling(mode)
         Dir.mkdir(results_dir)
     end
     
-    puts "Processing data..."
-
     # Read all data from results csv file
     results_file = File.join(results_dir, "resstock.csv")
     check_file_exists(results_file)
@@ -84,10 +82,13 @@ def generate_data_output(results_data, param_names, all_prob_dist_data, results_
         prob_dist_file = all_prob_dist_data[param_name]["prob_dist_file"]
         rows = all_prob_dist_data[param_name]["rows"]
         
+        puts "Processing data for #{capitalize_string(param_name)}..."
+
         # Generate combinations of dependency options
         if dep_cols.size > 0
             dep_combos = []
             rows.each do |row|
+                next if row.size == 0
                 dep_combos << row[0..dep_cols.size-1]
             end
         else
@@ -273,7 +274,7 @@ def generate_visualizations(results_data, param_names, all_prob_dist_data, resul
         # Determine sizes of points
         # FIXME: Weighting should be calculated based on the inputs, not outputs
         max_point_size = 15 # pixels
-        min_point_size = 5 # pixels
+        min_point_size = 1 # pixels
         num_samples = []
         all_samples_results[col_header].each do |result|
             num_samples << result[-1]

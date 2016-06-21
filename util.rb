@@ -232,7 +232,12 @@ def run(project_type, caller_rb)
             project_file = File.join(File.dirname(__FILE__),'projects', 'res_stock_pnw_existing.xlsx')
         end
     end
+    
     results_path = File.join(File.dirname(__FILE__), "results", options[:rsmode])
+    if not Dir.exists?(results_path)
+        require 'fileutils'
+        FileUtils.mkdir_p(results_path)
+    end
 
     # Perform various checks to look for problems
     pdfiles = perform_integrity_checks(project_file, options[:rsmode], is_upgrades)
