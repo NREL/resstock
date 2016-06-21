@@ -1,0 +1,67 @@
+
+    <html>
+      <head>
+      <title>ResStock Visualization: Well Pump</title>
+        <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+        <script type="text/javascript">
+          google.charts.load('current', {'packages':['corechart']});
+          google.charts.setOnLoadCallback(drawChart);
+          function drawChart() {
+            var data = google.visualization.arrayToDataTable([
+              // ['X', 'Y', {'type': 'string', 'role': 'style'}],
+              // [1, 3, null],
+              // [2, 2.5, null],
+              // [3, 3, null],
+              // [4, 4, null],
+              // [5, 4, null],
+              // [6, 3, 'point { size: 18; shape-type: star; fill-color: #a52714; }'],
+              // [7, 2.5, null],
+              // [8, 3, null]
+              ['Input', 'National Average', {'type': 'string', 'role': 'style'},'Line','Line +20%','Line -20%'],
+              
+[ 1, 1.0,'point {size: 15;}',null,null,null],
+[ 0.0, null,null,0.0,null,null],
+[ 1.0, null,null,1.0,null,null],
+[ 0.0, null,null,null,0.2,null],
+[ 0.8, null,null,null,1.0,null],
+[ 0.2, null,null,null,null,0.0],
+[ 1.0, null,null,null,null,0.8]
+            ]);
+
+            var options = {
+              title: 'Well Pump',
+              hAxis: {title: 'Input (Data)', minValue: 0, maxValue: 1, gridlines: {count: 6} },
+              vAxis: {title: 'Output (Models)', minValue: 0, maxValue: 1, gridlines: {count: 6} },
+              dataOpacity: 0.6,
+              trendlines: { 
+                1: {type: 'linear', color: 'black', lineWidth: 2, opacity: 0.3, showR2: false, visibleInLegend: false, tooltip: false}, // Line of perfect agreement
+                2: {type: 'linear', color: 'grey', lineWidth: 1, opacity: 0.3, showR2: false, visibleInLegend: false, tooltip: false}, // Line + 20%
+                3: {type: 'linear', color: 'grey', lineWidth: 1, opacity: 0.3, showR2: false, visibleInLegend: false, tooltip: false} // Line - 20%
+              },
+              series: { 
+                1: {visibleInLegend: false, pointsVisible: false, labelInLegend: false}, // Line of perfect agreement
+                2: {visibleInLegend: false, pointsVisible: false, labelInLegend: false}, // Line + 20%
+                3: {visibleInLegend: false, pointsVisible: false, labelInLegend: false} // Line - 20%
+              }
+            };
+
+            var chart = new google.visualization.ScatterChart(document.getElementById('chart_div'));
+
+            chart.draw(data, options);
+          }
+        </script>
+      </head>
+      <body>
+        <div style="display:inline-block; width: 100%; text-align:center;">
+            <form action="water_heater.html" style="display: inline-block"><input type="submit" value="<<" title="Water Heater"></form>
+            <form style="display: inline-block">
+                <select name="select" onChange="window.open(this.options[this.selectedIndex].value,'_self')" onKeyPress="window.open(this.options[this.selectedIndex].value,'_self')">
+                    <option value="mass_ceiling.html">Ceiling Mass</option><option value="clothes_dryer.html">Clothes Dryer</option><option value="clothes_washer.html">Clothes Washer</option><option value="cooking_range.html">Cooking Range</option><option value="dishwasher.html">Dishwasher</option><option value="door_area.html">Door Area</option><option value="doors.html">Doors</option><option value="eaves.html">Eaves</option><option value="exterior_finish.html">Exterior Finish</option><option value="mass_exterior_wall.html">Exterior Wall Mass</option><option value="misc_extra_refrigerator.html">Extra Refrigerator</option><option value="floor_covering.html">Floor Covering</option><option value="mass_floor.html">Floor Mass</option><option value="geometry_foundation_type.html">Foundation Type</option><option value="misc_freezer.html">Freezer</option><option value="geometry_garage.html">Garage</option><option value="misc_gas_fireplace.html">Gas Fireplace</option><option value="misc_gas_grill.html">Gas Grill</option><option value="misc_gas_lighting.html">Gas Lighting</option><option value="heating_fuel.html">Heating Fuel</option><option value="misc_hot_tub_spa.html">Hot Tub/spa</option><option value="geometry_size.html">House Size</option><option value="insulation_crawlspace.html">Insulation Crawl</option><option value="insulation_basement_finished.html">Insulation Finished Basement</option><option value="insulation_floor_interzonal.html">Insulation Floors Interzonal</option><option value="insulation_slab.html">Insulation Slab</option><option value="insulation_unfinished_attic.html">Insulation Unfinished Attic</option><option value="insulation_basement_unfinished.html">Insulation Unfinished Basement</option><option value="insulation_wall.html">Insulation Walls</option><option value="insulation_wall_interzonal.html">Insulation Walls Interzonal</option><option value="lighting.html">Lighting</option><option value="location_epw.html">Location Epw</option><option value="location_region.html">Location Region</option><option value="neighbors.html">Neighbors</option><option value="orientation.html">Orientation</option><option value="overhangs.html">Overhangs</option><option value="mass_partition_wall.html">Partition Wall Mass</option><option value="plug_loads.html">Plug Loads</option><option value="misc_pool.html">Pool</option><option value="refrigerator.html">Refrigerator</option><option value="roof_material.html">Roof Material</option><option value="geometry_stories.html">Stories</option><option value="uninsulated_surfaces.html">Uninsulated Surfaces</option><option value="usage_level.html">Usage Level</option><option value="vintage.html">Vintage</option><option value="wall_sheathing.html">Wall Sheathing</option><option value="water_heater.html">Water Heater</option><option value="misc_well_pump.html" selected="selected">Well Pump</option><option value="window_areas.html">Window Areas</option><option value="windows.html">Windows</option>
+                </select>
+            </form>
+            <form action="window_areas.html" style="display: inline-block"><input type="submit" value=">>" title="Window Areas"></form>
+        </div>
+        <div id="chart_div" style="width: 100%; height: 100%;"></div>
+      </body>
+    </html>
+    
