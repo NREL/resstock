@@ -1,0 +1,205 @@
+<measure>
+  <schema_version>3.0</schema_version>
+  <name>process_room_air_conditioner</name>
+  <uid>eae61440-6574-4568-88d7-c735f9c3ea9f</uid>
+  <version_id>4fc3db08-ef10-458e-b0af-feeff17634f2</version_id>
+  <version_modified>20160618T170350Z</version_modified>
+  <xml_checksum>D48F381B</xml_checksum>
+  <class_name>ProcessRoomAirConditioner</class_name>
+  <display_name>Set Residential Room Air Conditioner</display_name>
+  <description>This measure removes any existing HVAC cooling components from the building and adds a room air conditioner.</description>
+  <modeler_description>This measure parses the IDF for the residential cooling season. Any cooling components are removed from any existing air loops or zones. Any existing air loops are also removed. An HVAC packaged terminal air conditioner is added to the living zone.</modeler_description>
+  <arguments>
+    <argument>
+      <name>roomaceer</name>
+      <display_name>EER</display_name>
+      <description>This is a measure of the instantaneous energy efficiency of the cooling equipment.</description>
+      <type>Double</type>
+      <units>Btu/W-h</units>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>8.5</default_value>
+    </argument>
+    <argument>
+      <name>roomacshr</name>
+      <display_name>Rated SHR</display_name>
+      <description>The sensible heat ratio (ratio of the sensible portion of the load to the total load) at the nominal rated capacity.</description>
+      <type>Double</type>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>0.65</default_value>
+    </argument>
+    <argument>
+      <name>roomacairflow</name>
+      <display_name>Airflow</display_name>
+      <type>Double</type>
+      <units>cfm/ton</units>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>350</default_value>
+    </argument>
+    <argument>
+      <name>selectedaccap</name>
+      <display_name>Cooling Output Capacity</display_name>
+      <type>Choice</type>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>Autosize</default_value>
+      <choices>
+        <choice>
+          <value>Autosize</value>
+          <display_name>Autosize</display_name>
+        </choice>
+        <choice>
+          <value>0.5 tons</value>
+          <display_name>0.5 tons</display_name>
+        </choice>
+        <choice>
+          <value>1.0 tons</value>
+          <display_name>1.0 tons</display_name>
+        </choice>
+        <choice>
+          <value>1.5 tons</value>
+          <display_name>1.5 tons</display_name>
+        </choice>
+        <choice>
+          <value>2.0 tons</value>
+          <display_name>2.0 tons</display_name>
+        </choice>
+        <choice>
+          <value>2.5 tons</value>
+          <display_name>2.5 tons</display_name>
+        </choice>
+        <choice>
+          <value>3.0 tons</value>
+          <display_name>3.0 tons</display_name>
+        </choice>
+        <choice>
+          <value>3.5 tons</value>
+          <display_name>3.5 tons</display_name>
+        </choice>
+        <choice>
+          <value>4.0 tons</value>
+          <display_name>4.0 tons</display_name>
+        </choice>
+        <choice>
+          <value>4.5 tons</value>
+          <display_name>4.5 tons</display_name>
+        </choice>
+        <choice>
+          <value>5.0 tons</value>
+          <display_name>5.0 tons</display_name>
+        </choice>
+        <choice>
+          <value>5.5 tons</value>
+          <display_name>5.5 tons</display_name>
+        </choice>
+        <choice>
+          <value>6.0 tons</value>
+          <display_name>6.0 tons</display_name>
+        </choice>
+        <choice>
+          <value>6.5 tons</value>
+          <display_name>6.5 tons</display_name>
+        </choice>
+        <choice>
+          <value>7.0 tons</value>
+          <display_name>7.0 tons</display_name>
+        </choice>
+        <choice>
+          <value>7.5 tons</value>
+          <display_name>7.5 tons</display_name>
+        </choice>
+        <choice>
+          <value>8.0 tons</value>
+          <display_name>8.0 tons</display_name>
+        </choice>
+        <choice>
+          <value>8.5 tons</value>
+          <display_name>8.5 tons</display_name>
+        </choice>
+        <choice>
+          <value>9.0 tons</value>
+          <display_name>9.0 tons</display_name>
+        </choice>
+        <choice>
+          <value>9.5 tons</value>
+          <display_name>9.5 tons</display_name>
+        </choice>
+        <choice>
+          <value>10.0 tons</value>
+          <display_name>10.0 tons</display_name>
+        </choice>
+      </choices>
+    </argument>
+  </arguments>
+  <provenances/>
+  <tags>
+    <tag>HVAC.Cooling</tag>
+  </tags>
+  <attributes>
+    <attribute>
+      <name>Measure Type</name>
+      <value>ModelMeasure</value>
+      <datatype>string</datatype>
+    </attribute>
+    <attribute>
+      <name>Intended Software Tool</name>
+      <value>Apply Measure Now</value>
+      <datatype>string</datatype>
+    </attribute>
+    <attribute>
+      <name>Intended Software Tool</name>
+      <value>OpenStudio Application</value>
+      <datatype>string</datatype>
+    </attribute>
+    <attribute>
+      <name>Intended Software Tool</name>
+      <value>Parametric Analysis Tool</value>
+      <datatype>string</datatype>
+    </attribute>
+  </attributes>
+  <files>
+    <file>
+      <filename>process_room_air_conditioner_test.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>test</usage_type>
+      <checksum>C5D59E9B</checksum>
+    </file>
+    <file>
+      <filename>example_model.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>C4F35230</checksum>
+    </file>
+    <file>
+      <version>
+        <software_program>OpenStudio</software_program>
+        <identifier>1.9.0</identifier>
+        <min_compatible>1.9.0</min_compatible>
+      </version>
+      <filename>measure.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>script</usage_type>
+      <checksum>CDE9D0D6</checksum>
+    </file>
+    <file>
+      <filename>util.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>E4784B5E</checksum>
+    </file>
+    <file>
+      <filename>geometry.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>2285CA0B</checksum>
+    </file>
+    <file>
+      <filename>constants.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>6FEC70C2</checksum>
+    </file>
+  </files>
+</measure>
