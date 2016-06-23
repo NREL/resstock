@@ -169,7 +169,7 @@ class ProcessMinisplit < OpenStudio::Ruleset::ModelUserScript
     
     #make a choice argument for minisplit cooling output capacity
     cap_display_names = OpenStudio::StringVector.new
-    cap_display_names << "Autosize"
+    cap_display_names << Constants.SizingAuto
     (0.5..10.0).step(0.5) do |tons|
       cap_display_names << "#{tons} tons"
     end
@@ -177,13 +177,13 @@ class ProcessMinisplit < OpenStudio::Ruleset::ModelUserScript
     #make a string argument for minisplit cooling output capacity
     miniSplitCoolingOutputCapacity = OpenStudio::Ruleset::OSArgument::makeChoiceArgument("miniSplitCoolingOutputCapacity", cap_display_names, true)
     miniSplitCoolingOutputCapacity.setDisplayName("Cooling Output Capacity")
-    miniSplitCoolingOutputCapacity.setDefaultValue("Autosize")
+    miniSplitCoolingOutputCapacity.setDefaultValue(Constants.SizingAuto)
     args << miniSplitCoolingOutputCapacity
 
     #make a choice argument for supplemental heating output capacity
     cap_display_names = OpenStudio::StringVector.new
     cap_display_names << "NO SUPP HEAT"
-    cap_display_names << "Autosize"
+    cap_display_names << Constants.SizingAuto
     (5..150).step(5) do |kbtu|
       cap_display_names << "#{kbtu} kBtu/hr"
     end
@@ -191,7 +191,7 @@ class ProcessMinisplit < OpenStudio::Ruleset::ModelUserScript
     #make a string argument for minisplit supplemental heating output capacity
     miniSplitSupplementalHeatingOutputCapacity = OpenStudio::Ruleset::OSArgument::makeChoiceArgument("miniSplitSupplementalHeatingOutputCapacity", cap_display_names, true)
     miniSplitSupplementalHeatingOutputCapacity.setDisplayName("Supplemental Heating Output Capacity")
-    miniSplitSupplementalHeatingOutputCapacity.setDefaultValue("Autosize")
+    miniSplitSupplementalHeatingOutputCapacity.setDefaultValue(Constants.SizingAuto)
     args << miniSplitSupplementalHeatingOutputCapacity    
     
     return args
@@ -226,12 +226,12 @@ class ProcessMinisplit < OpenStudio::Ruleset::ModelUserScript
     miniSplitHPMinT = runner.getDoubleArgumentValue("miniSplitHPMinT",user_arguments) 
     miniSplitHPIsColdClimate = runner.getBoolArgumentValue("miniSplitHPIsColdClimate",user_arguments)    
     miniSplitCoolingOutputCapacity = runner.getStringArgumentValue("miniSplitCoolingOutputCapacity",user_arguments)
-    unless miniSplitCoolingOutputCapacity == "Autosize"
+    unless miniSplitCoolingOutputCapacity == Constants.SizingAuto
       miniSplitCoolingOutputCapacity = OpenStudio::convert(miniSplitCoolingOutputCapacity.split(" ")[0].to_f,"ton","Btu/h").get
       miniSplitHeatingOutputCapacity = miniSplitCoolingOutputCapacity + miniSplitHPHeatingCapacityOffset
     end
     miniSplitSupplementalHeatingOutputCapacity = runner.getStringArgumentValue("miniSplitSupplementalHeatingOutputCapacity",user_arguments)
-    if not miniSplitSupplementalHeatingOutputCapacity == "Autosize" and not miniSplitSupplementalHeatingOutputCapacity == "NO SUPP HEAT"
+    if not miniSplitSupplementalHeatingOutputCapacity == Constants.SizingAuto and not miniSplitSupplementalHeatingOutputCapacity == "NO SUPP HEAT"
       miniSplitSupplementalHeatingOutputCapacity = OpenStudio::convert(miniSplitSupplementalHeatingOutputCapacity.split(" ")[0].to_f,"kBtu/h","Btu/h").get
     end
     
@@ -338,7 +338,7 @@ class ProcessMinisplit < OpenStudio::Ruleset::ModelUserScript
         hp_heat_plf_fplr.setMaximumCurveOutput(1)        
         
         stage_data = OpenStudio::Model::CoilHeatingDXMultiSpeedStageData.new(model, hp_heat_cap_ft, hp_heat_cap_fff, hp_heat_eir_ft, hp_heat_eir_fff, hp_heat_plf_fplr, const_biquadratic)
-        if miniSplitCoolingOutputCapacity != "Autosize"
+        if miniSplitCoolingOutputCapacity != Constants.SizingAuto
           stage_data.setGrossRatedHeatingCapacity(OpenStudio::convert(miniSplitHeatingOutputCapacity,"Btu/h","W").get * supply.Capacity_Ratio_Heating[i])
           stage_data.setRatedAirFlowRate(OpenStudio::convert(supply.HeatingCFMs[i] * OpenStudio::convert(miniSplitHeatingOutputCapacity,"Btu/h","ton").get,"cfm","m^3/s").get)
         end
@@ -408,7 +408,7 @@ class ProcessMinisplit < OpenStudio::Ruleset::ModelUserScript
         cool_plf_fplr.setMaximumCurveOutput(1)        
         
         stage_data = OpenStudio::Model::CoilCoolingDXMultiSpeedStageData.new(model, cool_cap_ft, cool_cap_fff, cool_eir_ft, cool_eir_fff, cool_plf_fplr, const_biquadratic)
-        if miniSplitCoolingOutputCapacity != "Autosize"
+        if miniSplitCoolingOutputCapacity != Constants.SizingAuto
           stage_data.setGrossRatedTotalCoolingCapacity(OpenStudio::convert(miniSplitCoolingOutputCapacity,"Btu/h","W").get * supply.Capacity_Ratio_Cooling[i])
           stage_data.setRatedAirFlowRate(OpenStudio::convert(supply.CoolingCFMs[i] * OpenStudio::convert(miniSplitCoolingOutputCapacity,"Btu/h","ton").get,"cfm","m^3/s").get)
           stage_data.setGrossRatedSensibleHeatRatio(supply.SHR_Rated[i])
@@ -469,7 +469,7 @@ class ProcessMinisplit < OpenStudio::Ruleset::ModelUserScript
       supp_htg_coil.setEfficiency(1)
       if miniSplitSupplementalHeatingOutputCapacity == "NO SUPP HEAT"
         supp_htg_coil.setNominalCapacity(0)
-      elsif miniSplitSupplementalHeatingOutputCapacity != "Autosize"
+      elsif miniSplitSupplementalHeatingOutputCapacity != Constants.SizingAuto
         supp_htg_coil.setNominalCapacity(OpenStudio::convert(miniSplitHeatingOutputCapacity,"Btu/h","W").get)
       end
      

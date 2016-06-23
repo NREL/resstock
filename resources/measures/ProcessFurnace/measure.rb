@@ -87,7 +87,7 @@ class ProcessFurnace < OpenStudio::Ruleset::ModelUserScript
     selected_furnacefuel = OpenStudio::Ruleset::OSArgument::makeChoiceArgument("selectedfurnacefuel", fuel_display_names, true)
     selected_furnacefuel.setDisplayName("Fuel Type")
     selected_furnacefuel.setDescription("Type of fuel used for heating.")
-    selected_furnacefuel.setDefaultValue("gas")
+    selected_furnacefuel.setDefaultValue(Constants.FuelTypeGas)
     args << selected_furnacefuel
 	
     #make an argument for entering furnace installed afue
@@ -100,7 +100,7 @@ class ProcessFurnace < OpenStudio::Ruleset::ModelUserScript
 
     #make a choice argument for furnace heating output capacity
     cap_display_names = OpenStudio::StringVector.new
-    cap_display_names << "Autosize"
+    cap_display_names << Constants.SizingAuto
     (5..150).step(5) do |kbtu|
       cap_display_names << "#{kbtu} kBtu/hr"
     end
@@ -108,7 +108,7 @@ class ProcessFurnace < OpenStudio::Ruleset::ModelUserScript
     #make a string argument for furnace heating output capacity
     selected_furnacecap = OpenStudio::Ruleset::OSArgument::makeChoiceArgument("selectedfurnacecap", cap_display_names, true)
     selected_furnacecap.setDisplayName("Heating Output Capacity")
-    selected_furnacecap.setDefaultValue("Autosize")
+    selected_furnacecap.setDefaultValue(Constants.SizingAuto)
     args << selected_furnacecap
 
     #make an argument for entering furnace max supply temp
@@ -142,7 +142,7 @@ class ProcessFurnace < OpenStudio::Ruleset::ModelUserScript
     furnaceFuelType = runner.getStringArgumentValue("selectedfurnacefuel",user_arguments)
     furnaceInstalledAFUE = runner.getDoubleArgumentValue("userdefinedafue",user_arguments)
     furnaceOutputCapacity = runner.getStringArgumentValue("selectedfurnacecap",user_arguments)
-    if not furnaceOutputCapacity == "Autosize"
+    if not furnaceOutputCapacity == Constants.SizingAuto
       furnaceOutputCapacity = OpenStudio::convert(furnaceOutputCapacity.split(" ")[0].to_f,"kBtu/h","Btu/h").get
     end
     furnaceMaxSupplyTemp = runner.getDoubleArgumentValue("userdefinedmaxtemp",user_arguments)
@@ -214,7 +214,7 @@ class ProcessFurnace < OpenStudio::Ruleset::ModelUserScript
         htg_coil = OpenStudio::Model::CoilHeatingElectric.new(model, heatingseasonschedule)
         htg_coil.setName("Furnace Heating Coil")
         htg_coil.setEfficiency(1.0 / furnace.hir)
-        if furnaceOutputCapacity != "Autosize"
+        if furnaceOutputCapacity != Constants.SizingAuto
           htg_coil.setNominalCapacity(OpenStudio::convert(furnaceOutputCapacity,"Btu/h","W").get)
         end
 
@@ -223,7 +223,7 @@ class ProcessFurnace < OpenStudio::Ruleset::ModelUserScript
         htg_coil = OpenStudio::Model::CoilHeatingGas.new(model, heatingseasonschedule)
         htg_coil.setName("Furnace Heating Coil")
         htg_coil.setGasBurnerEfficiency(1.0 / furnace.hir)
-        if furnaceOutputCapacity != "Autosize"
+        if furnaceOutputCapacity != Constants.SizingAuto
           htg_coil.setNominalCapacity(OpenStudio::convert(furnaceOutputCapacity,"Btu/h","W").get)
         end
 

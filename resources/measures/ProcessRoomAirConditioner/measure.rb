@@ -63,7 +63,7 @@ class ProcessRoomAirConditioner < OpenStudio::Ruleset::ModelUserScript
     
     #make a choice argument for room air cooling output capacity
     cap_display_names = OpenStudio::StringVector.new
-    cap_display_names << "Autosize"
+    cap_display_names << Constants.SizingAuto
     (0.5..10.0).step(0.5) do |tons|
       cap_display_names << "#{tons} tons"
     end
@@ -71,7 +71,7 @@ class ProcessRoomAirConditioner < OpenStudio::Ruleset::ModelUserScript
     #make a string argument for room air cooling output capacity
     selected_accap = OpenStudio::Ruleset::OSArgument::makeChoiceArgument("selectedaccap", cap_display_names, true)
     selected_accap.setDisplayName("Cooling Output Capacity")
-    selected_accap.setDefaultValue("Autosize")
+    selected_accap.setDefaultValue(Constants.SizingAuto)
     args << selected_accap  
 
     return args
@@ -99,7 +99,7 @@ class ProcessRoomAirConditioner < OpenStudio::Ruleset::ModelUserScript
     supply.shr_Rated = runner.getDoubleArgumentValue("roomacshr",user_arguments)
     supply.coolingCFMs = runner.getDoubleArgumentValue("roomacairflow",user_arguments)
     acOutputCapacity = runner.getStringArgumentValue("selectedaccap",user_arguments)
-    unless acOutputCapacity == "Autosize"
+    unless acOutputCapacity == Constants.SizingAuto
       acOutputCapacity = OpenStudio::convert(acOutputCapacity.split(" ")[0].to_f,"ton","Btu/h").get
     end     
     
@@ -180,7 +180,7 @@ class ProcessRoomAirConditioner < OpenStudio::Ruleset::ModelUserScript
     
       clg_coil = OpenStudio::Model::CoilCoolingDXSingleSpeed.new(model, coolingseasonschedule, roomac_cap_ft, roomac_cap_fff, roomac_eir_ft, roomcac_eir_fff, roomac_plf_fplr)
       clg_coil.setName("WindowAC Coil")
-      if acOutputCapacity != "Autosize"
+      if acOutputCapacity != Constants.SizingAuto
         clg_coil.setRatedTotalCoolingCapacity(OpenStudio::convert(acOutputCapacity,"Btu/h","W").get)
         clg_coil.setRatedAirFlowRate(supply.cfm_TON_Rated[0] * acOutputCapacity * OpenStudio::convert(1.0,"Btu/h","ton").get * OpenStudio::convert(1.0,"cfm","m^3/s").get)
         clg_coil.setRatedSensibleHeatRatio(supply.shr_Rated)

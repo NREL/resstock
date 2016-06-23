@@ -234,7 +234,7 @@ class ProcessCentralAirConditioner < OpenStudio::Ruleset::ModelUserScript
     
     #make a choice argument for central air cooling output capacity
     cap_display_names = OpenStudio::StringVector.new
-    cap_display_names << "Autosize"
+    cap_display_names << Constants.SizingAuto
     (0.5..10.0).step(0.5) do |tons|
       cap_display_names << "#{tons} tons"
     end
@@ -242,7 +242,7 @@ class ProcessCentralAirConditioner < OpenStudio::Ruleset::ModelUserScript
     #make a string argument for central air cooling output capacity
     acCoolingOutputCapacity = OpenStudio::Ruleset::OSArgument::makeChoiceArgument("acCoolingOutputCapacity", cap_display_names, true)
     acCoolingOutputCapacity.setDisplayName("Cooling Output Capacity")
-    acCoolingOutputCapacity.setDefaultValue("Autosize")
+    acCoolingOutputCapacity.setDefaultValue(Constants.SizingAuto)
     args << acCoolingOutputCapacity    
     
     return args
@@ -276,7 +276,7 @@ class ProcessCentralAirConditioner < OpenStudio::Ruleset::ModelUserScript
     acEERCapacityDerateFactor5ton = runner.getDoubleArgumentValue("acEERCapacityDerateFactor5ton",user_arguments)
     acEERCapacityDerateFactor = [acEERCapacityDerateFactor1ton, acEERCapacityDerateFactor2ton, acEERCapacityDerateFactor3ton, acEERCapacityDerateFactor4ton, acEERCapacityDerateFactor5ton]
     acOutputCapacity = runner.getStringArgumentValue("acCoolingOutputCapacity",user_arguments)
-    unless acOutputCapacity == "Autosize"
+    unless acOutputCapacity == Constants.SizingAuto
       acOutputCapacity = OpenStudio::convert(acOutputCapacity.split(" ")[0].to_f,"ton","Btu/h").get
     end
 
@@ -350,17 +350,17 @@ class ProcessCentralAirConditioner < OpenStudio::Ruleset::ModelUserScript
 
         clg_coil = OpenStudio::Model::CoilCoolingDXSingleSpeed.new(model, coolingseasonschedule, clg_coil_stage_data[0].totalCoolingCapacityFunctionofTemperatureCurve, clg_coil_stage_data[0].totalCoolingCapacityFunctionofFlowFractionCurve, clg_coil_stage_data[0].energyInputRatioFunctionofTemperatureCurve, clg_coil_stage_data[0].energyInputRatioFunctionofFlowFractionCurve, clg_coil_stage_data[0].partLoadFractionCorrelationCurve)
         clg_coil.setName("DX Cooling Coil")
-        if acOutputCapacity != "Autosize"
+        if acOutputCapacity != Constants.SizingAuto
           clg_coil.setRatedTotalCoolingCapacity(OpenStudio::convert(acOutputCapacity,"Btu/h","W").get)
         end
         if air_conditioner.hasIdealAC
-          if acOutputCapacity != "Autosize"
+          if acOutputCapacity != Constants.SizingAuto
             clg_coil.setRatedSensibleHeatRatio(0.8)
             clg_coil.setRatedAirFlowRate(supply.CFM_TON_Rated[0] * acOutputCapacity * OpenStudio::convert(1.0,"Btu/h","ton").get * OpenStudio::convert(1.0,"cfm","m^3/s").get)
           end
           clg_coil.setRatedCOP(OpenStudio::OptionalDouble.new(1.0))
         else
-          if acOutputCapacity != "Autosize"
+          if acOutputCapacity != Constants.SizingAuto
             clg_coil.setRatedSensibleHeatRatio(supply.SHR_Rated[0])
             clg_coil.setRatedAirFlowRate(supply.CFM_TON_Rated[0] * acOutputCapacity * OpenStudio::convert(1.0,"Btu/h","ton").get * OpenStudio::convert(1.0,"cfm","m^3/s").get)
           end
@@ -480,7 +480,7 @@ class ProcessCentralAirConditioner < OpenStudio::Ruleset::ModelUserScript
             if nominalCapacity.is_initialized
               nominalCapacity = nominalCapacity.get
             else
-              nominalCapacity = "Autosize"
+              nominalCapacity = Constants.SizingAuto
             end
             htg_coil_stage_data = _processCurvesFurnaceForMultiSpeedAC(model, supply, nominalCapacity, htg_coil.gasBurnerEfficiency)
           elsif htg_coil.to_CoilHeatingElectric.is_initialized
@@ -489,7 +489,7 @@ class ProcessCentralAirConditioner < OpenStudio::Ruleset::ModelUserScript
             if nominalCapacity.is_initialized
               nominalCapacity = nominalCapacity.get
             else
-              nominalCapacity = "Autosize"
+              nominalCapacity = Constants.SizingAuto
             end
             htg_coil_stage_data = _processCurvesFurnaceForMultiSpeedAC(model, supply, nominalCapacity, htg_coil.efficiency)
           end                
@@ -610,7 +610,7 @@ class ProcessCentralAirConditioner < OpenStudio::Ruleset::ModelUserScript
       const_cubic.setMaximumCurveOutput(1)
 
       stage_data = OpenStudio::Model::CoilHeatingDXMultiSpeedStageData.new(model, hp_heat_cap_ft, const_cubic, hp_heat_eir_ft, const_cubic, const_cubic, HVAC._processCurvesSupplyFan(model))
-      if outputCapacity != "Autosize"
+      if outputCapacity != Constants.SizingAuto
         stage_data.setGrossRatedHeatingCapacity(outputCapacity)
         stage_data.setRatedAirFlowRate(outputCapacity * 0.00005)
       end

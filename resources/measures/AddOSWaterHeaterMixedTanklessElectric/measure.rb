@@ -64,7 +64,7 @@ class AddOSWaterHeaterMixedTanklessElectric < OpenStudio::Ruleset::ModelUserScri
         # make an argument for the rated energy factor
         rated_energy_factor = osargument::makeStringArgument("rated_energy_factor", true)
         rated_energy_factor.setDisplayName("Rated Energy Factor")
-        rated_energy_factor.setDescription("For water heaters, Energy Factor is the ratio of useful energy output from the water heater to the total amount of energy delivered from the water heater. The higher the EF is, the more efficient the water heater. Procesdures to thes the EF of water heaters are defined by the Department of Energy in 10 Code of Federal Regulation Part 430, Appendix E to Subpart B.")
+        rated_energy_factor.setDescription("For water heaters, Energy Factor is the ratio of useful energy output from the water heater to the total amount of energy delivered from the water heater. The higher the EF is, the more efficient the water heater. Procedures to test the EF of water heaters are defined by the Department of Energy in 10 Code of Federal Regulation Part 430, Appendix E to Subpart B.")
         rated_energy_factor.setDefaultValue("0.99")
         args << rated_energy_factor
 
@@ -155,22 +155,21 @@ class AddOSWaterHeaterMixedTanklessElectric < OpenStudio::Ruleset::ModelUserScri
                     if wh.to_WaterHeaterMixed.is_initialized
                         waterHeater = wh.to_WaterHeaterMixed.get
                         waterHeater.remove
-                        runner.registerInfo("The existing mixed water heater has been removed and will be replaced with the new user specified water heater")
+                        runner.registerInitialCondition("The existing mixed water heater has been removed and will be replaced with the new user specified water heater")
                     elsif wh.to_WaterHeaterStratified.is_initialized
                         waterHeater = wh.to_WaterHeaterStratified.get
                         waterHeater.remove
-                        runner.registerInfo("The existing stratified water heater has been removed and will be replaced with the new user specified water heater")
+                        runner.registerInitialCondition("The existing stratified water heater has been removed and will be replaced with the new user specified water heater")
                     end
                 end
             end
         end
-
+        
         if loop.nil?
             runner.registerInfo("A new plant loop for DHW will be added to the model")
+            runner.registerInitialCondition("No water heater model currently exists")
             loop = Waterheater.create_new_loop(model)
         end
-
-        register_initial_conditions(model, runner)
 
         if loop.components(OSM::PumpConstantSpeed::iddObjectType).empty?
             new_pump = Waterheater.create_new_pump(model)
@@ -181,12 +180,10 @@ class AddOSWaterHeaterMixedTanklessElectric < OpenStudio::Ruleset::ModelUserScri
             new_manager = create_new_schedule_manager(t_set, model)
             new_manager.addToNode(loop.supplyOutletNode)
         end
-	
-			
+
         new_heater = Waterheater.create_new_heater(cap, Constants.FuelTypeElectric, 1, nbeds, nbaths, ef, 0, t_set, water_heater_tz, 0, 0, tanktype, cd, model, runner)
 	
         loop.addSupplyBranchForComponent(new_heater)
-        
         register_final_conditions(runner, model)
   
         return true
@@ -199,15 +196,6 @@ class AddOSWaterHeaterMixedTanklessElectric < OpenStudio::Ruleset::ModelUserScri
         new_schedule = Waterheater.create_new_schedule_ruleset("DHW Temp", "DHW Temp Default", t_set, model)
         OSM::SetpointManagerScheduled.new(model, new_schedule)
     end 
-  
-    def register_initial_conditions(model, runner)
-        initial_condition = list_water_heaters(model, runner).join("\n")
-        if initial_condition.empty?
-            initial_condition = "No water heaters in initial model"
-        end
-    
-        runner.registerInitialCondition(initial_condition)
-    end
 
     def register_final_conditions(runner, model)
         final_condition = list_water_heaters(model, runner).join("\n")
@@ -219,6 +207,7 @@ class AddOSWaterHeaterMixedTanklessElectric < OpenStudio::Ruleset::ModelUserScri
 
         existing_heaters = model.getWaterHeaterMixeds
         for heater in existing_heaters do
+            runner.registerInfo("Heater exists and it's named #{heater.name.get}")
             heatername = heater.name.get
             loopname = heater.plantLoop.get.name.get
 
@@ -246,8 +235,8 @@ class AddOSWaterHeaterMixedTanklessElectric < OpenStudio::Ruleset::ModelUserScri
             runner.registerError("Rated energy factor must be greater than 0. Make sure that the entered value is a number > 0.0")
             return nil
         end
-        if (ef <0.82)
-            runner.registerWarning("Rated energy factor for commercially available electric tankless water heaters should be greater than 0.82")
+        if (ef <0.96)
+            runner.registerWarning("Rated energy factor for commercially available electric tankless water heaters should be greater than 0.96")
         end    
         return true
     end
@@ -278,8 +267,8 @@ class AddOSWaterHeaterMixedTanklessElectric < OpenStudio::Ruleset::ModelUserScri
             runner.registerError("Electric tankless water heater nominal capacity must be greater than 0 kBtu/hr. Make sure that the entered capacity is a number greater than 0 or #{Constants.Auto}.")
             return nil
         end
-        if cap < 120
-            runner.registerWarning("Commercially available residential electric tankless water heaters should have a nominal capacity greater than 120 kBtu/h.")
+        if cap < 2.4
+            runner.registerWarning("Commercially available residential electric tankless water heaters should have a nominal capacity greater than 2.4 kW.")
         end
         return true
     end

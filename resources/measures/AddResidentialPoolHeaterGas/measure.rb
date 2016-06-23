@@ -117,25 +117,13 @@ class ResidentialPoolHeater < OpenStudio::Ruleset::ModelUserScript
         ph_ann_g = ann_g # therm/yr
     end
 
-    #hard coded convective, radiative, latent, and lost fractions
-    ph_lat = 0
-    ph_rad = 0
-    ph_conv = 0
-    ph_lost = 1 - ph_lat - ph_rad - ph_conv
-	
-	obj_name = Constants.ObjectNamePoolHeater
-	obj_name_e = Constants.FuelTypeElectric + " " + obj_name
-	obj_name_g = Constants.FuelTypeGas + " " + obj_name
-	sch = MonthWeekdayWeekendSchedule.new(model, runner, obj_name_g + " schedule", weekday_sch, weekend_sch, monthly_sch)
-	if not sch.validated?
-		return false
-	end
-	design_level = sch.calcDesignLevelFromDailyTherm(ph_ann_g/365.0)
-	
     space = Geometry.get_default_space(model, runner)
     if space.nil?
         return false
     end
+
+    obj_name_e = Constants.ObjectNamePoolHeater(Constants.FuelTypeElectric)
+    obj_name_g = Constants.ObjectNamePoolHeater(Constants.FuelTypeGas)
 
     # Remove any existing pool heater
     ph_removed = false
@@ -154,23 +142,37 @@ class ResidentialPoolHeater < OpenStudio::Ruleset::ModelUserScript
     if ph_removed
         runner.registerInfo("Removed existing pool heater.")
     end
-    
-    #Add gas equipment for the pool heater
-    ph_def = OpenStudio::Model::GasEquipmentDefinition.new(model)
-    ph = OpenStudio::Model::GasEquipment.new(ph_def)
-    ph.setName(obj_name_g)
-    ph.setSpace(space)
-    ph_def.setName(obj_name_g)
-    ph_def.setDesignLevel(design_level)
-    ph_def.setFractionRadiant(ph_rad)
-    ph_def.setFractionLatent(ph_lat)
-    ph_def.setFractionLost(ph_lost)
-    sch.setSchedule(ph)
-	
-    #reporting final condition of model
-    runner.registerFinalCondition("A pool gas heater has been set with #{ph_ann_g.round} therms annual energy consumption.")
-	
-    return true
+
+    if ph_ann_g > 0
+        #hard coded convective, radiative, latent, and lost fractions
+        ph_lat = 0
+        ph_rad = 0
+        ph_conv = 0
+        ph_lost = 1 - ph_lat - ph_rad - ph_conv
+        
+        sch = MonthWeekdayWeekendSchedule.new(model, runner, obj_name_g + " schedule", weekday_sch, weekend_sch, monthly_sch)
+        if not sch.validated?
+            return false
+        end
+        design_level = sch.calcDesignLevelFromDailyTherm(ph_ann_g/365.0)
+        
+        #Add gas equipment for the pool heater
+        ph_def = OpenStudio::Model::GasEquipmentDefinition.new(model)
+        ph = OpenStudio::Model::GasEquipment.new(ph_def)
+        ph.setName(obj_name_g)
+        ph.setSpace(space)
+        ph_def.setName(obj_name_g)
+        ph_def.setDesignLevel(design_level)
+        ph_def.setFractionRadiant(ph_rad)
+        ph_def.setFractionLatent(ph_lat)
+        ph_def.setFractionLost(ph_lost)
+        sch.setSchedule(ph)
+        
+        #reporting final condition of model
+        runner.registerFinalCondition("A pool gas heater has been set with #{ph_ann_g.round} therms annual energy consumption.")
+        
+        return true
+    end
  
   end #end the run method
 

@@ -119,23 +119,12 @@ class ResidentialWellPump < OpenStudio::Ruleset::ModelUserScript
         wp_ann = ann_elec # kWh/yr
     end
 
-    #hard coded convective, radiative, latent, and lost fractions
-    wp_lat = 0
-    wp_rad = 0
-    wp_conv = 0
-    wp_lost = 1 - wp_lat - wp_rad - wp_conv
-	
-	obj_name = Constants.ObjectNameWellPump
-	sch = MonthWeekdayWeekendSchedule.new(model, runner, obj_name + " schedule", weekday_sch, weekend_sch, monthly_sch)
-	if not sch.validated?
-		return false
-	end
-	design_level = sch.calcDesignLevelFromDailykWh(wp_ann/365.0)
-    
     space = Geometry.get_default_space(model, runner)
     if space.nil?
         return false
     end
+
+    obj_name = Constants.ObjectNameWellPump
 
     # Remove any existing well pump
     wp_removed = false
@@ -149,20 +138,34 @@ class ResidentialWellPump < OpenStudio::Ruleset::ModelUserScript
         runner.registerInfo("Removed existing well pump.")
     end
     
-    #Add electric equipment for the well pump
-    wp_def = OpenStudio::Model::ElectricEquipmentDefinition.new(model)
-    wp = OpenStudio::Model::ElectricEquipment.new(wp_def)
-    wp.setName(obj_name)
-    wp.setSpace(space)
-    wp_def.setName(obj_name)
-    wp_def.setDesignLevel(design_level)
-    wp_def.setFractionRadiant(wp_rad)
-    wp_def.setFractionLatent(wp_lat)
-    wp_def.setFractionLost(wp_lost)
-    sch.setSchedule(wp)
-	
-    #reporting final condition of model
-    runner.registerFinalCondition("A well pump has been set with #{wp_ann.round} kWhs annual energy consumption.")
+    if wp_ann > 0
+        #hard coded convective, radiative, latent, and lost fractions
+        wp_lat = 0
+        wp_rad = 0
+        wp_conv = 0
+        wp_lost = 1 - wp_lat - wp_rad - wp_conv
+        
+        sch = MonthWeekdayWeekendSchedule.new(model, runner, obj_name + " schedule", weekday_sch, weekend_sch, monthly_sch)
+        if not sch.validated?
+            return false
+        end
+        design_level = sch.calcDesignLevelFromDailykWh(wp_ann/365.0)
+                
+        #Add electric equipment for the well pump
+        wp_def = OpenStudio::Model::ElectricEquipmentDefinition.new(model)
+        wp = OpenStudio::Model::ElectricEquipment.new(wp_def)
+        wp.setName(obj_name)
+        wp.setSpace(space)
+        wp_def.setName(obj_name)
+        wp_def.setDesignLevel(design_level)
+        wp_def.setFractionRadiant(wp_rad)
+        wp_def.setFractionLatent(wp_lat)
+        wp_def.setFractionLost(wp_lost)
+        sch.setSchedule(wp)
+        
+        #reporting final condition of model
+        runner.registerFinalCondition("A well pump has been set with #{wp_ann.round} kWhs annual energy consumption.")
+    end
 	
     return true
  

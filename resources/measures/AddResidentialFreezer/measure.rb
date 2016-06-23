@@ -112,22 +112,8 @@ class ResidentialFreezer < OpenStudio::Ruleset::ModelUserScript
         return false
     end
 
-	#Calculate freezer daily energy use
-	freezer_ann = freezer_E*mult
+    obj_name = Constants.ObjectNameFreezer
 
-    #hard coded convective, radiative, latent, and lost fractions
-    freezer_lat = 0
-    freezer_rad = 0
-    freezer_conv = 1
-    freezer_lost = 1 - freezer_lat - freezer_rad - freezer_conv
-	
-	obj_name = Constants.ObjectNameFreezer
-	sch = MonthWeekdayWeekendSchedule.new(model, runner, obj_name + " schedule", weekday_sch, weekend_sch, monthly_sch)
-	if not sch.validated?
-		return false
-	end
-	design_level = sch.calcDesignLevelFromDailykWh(freezer_ann/365.0)
-	
     # Remove any existing freezer
     frz_removed = false
     space.electricEquipment.each do |space_equipment|
@@ -139,21 +125,38 @@ class ResidentialFreezer < OpenStudio::Ruleset::ModelUserScript
     if frz_removed
         runner.registerInfo("Removed existing freezer.")
     end
-    
-    #Add electric equipment for the freezer
-    frz_def = OpenStudio::Model::ElectricEquipmentDefinition.new(model)
-    frz = OpenStudio::Model::ElectricEquipment.new(frz_def)
-    frz.setName(obj_name)
-    frz.setSpace(space)
-    frz_def.setName(obj_name)
-    frz_def.setDesignLevel(design_level)
-    frz_def.setFractionRadiant(freezer_rad)
-    frz_def.setFractionLatent(freezer_lat)
-    frz_def.setFractionLost(freezer_lost)
-    sch.setSchedule(frz)
-	
-    #reporting final condition of model
-    runner.registerFinalCondition("A freezer has been set with #{freezer_ann.round} kWhs annual energy consumption.")
+
+    #Calculate freezer daily energy use
+	freezer_ann = freezer_E*mult
+
+    if freezer_ann > 0
+        #hard coded convective, radiative, latent, and lost fractions
+        freezer_lat = 0
+        freezer_rad = 0
+        freezer_conv = 1
+        freezer_lost = 1 - freezer_lat - freezer_rad - freezer_conv
+        
+        sch = MonthWeekdayWeekendSchedule.new(model, runner, obj_name + " schedule", weekday_sch, weekend_sch, monthly_sch)
+        if not sch.validated?
+            return false
+        end
+        design_level = sch.calcDesignLevelFromDailykWh(freezer_ann/365.0)
+        
+        #Add electric equipment for the freezer
+        frz_def = OpenStudio::Model::ElectricEquipmentDefinition.new(model)
+        frz = OpenStudio::Model::ElectricEquipment.new(frz_def)
+        frz.setName(obj_name)
+        frz.setSpace(space)
+        frz_def.setName(obj_name)
+        frz_def.setDesignLevel(design_level)
+        frz_def.setFractionRadiant(freezer_rad)
+        frz_def.setFractionLatent(freezer_lat)
+        frz_def.setFractionLost(freezer_lost)
+        sch.setSchedule(frz)
+        
+        #reporting final condition of model
+        runner.registerFinalCondition("A freezer has been set with #{freezer_ann.round} kWhs annual energy consumption.")
+    end
 	
     return true
  

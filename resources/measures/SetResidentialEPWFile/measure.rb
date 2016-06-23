@@ -196,10 +196,12 @@ class SetResidentialEPWFile < OpenStudio::Ruleset::ModelUserScript
     ground_temps = weather.data.GroundMonthlyTemps
     ground_temps = ground_temps.map {|i| OpenStudio::convert(i,"F","C").get}
     
-    s_gt_bs = OpenStudio::Model::SiteGroundTemperatureBuildingSurface.new(model)
+    s_gt_bs = model.getSiteGroundTemperatureBuildingSurface
+    s_gt_bs.resetAllMonths
     s_gt_bs.setAllMonthlyTemperatures(ground_temps)
     
-    s_gt_d = OpenStudio::Model::SiteGroundTemperatureDeep.new(model)
+    s_gt_d = model.getSiteGroundTemperatureDeep
+    s_gt_d.resetAllMonths
     s_gt_d.setAllMonthlyTemperatures(annual_temps)
     
     # report final condition

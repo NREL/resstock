@@ -83,7 +83,7 @@ class ResidentialHotTubHeater < OpenStudio::Ruleset::ModelUserScript
 	weekday_sch = runner.getStringArgumentValue("weekday_sch",user_arguments)
 	weekend_sch = runner.getStringArgumentValue("weekend_sch",user_arguments)
 	monthly_sch = runner.getStringArgumentValue("monthly_sch",user_arguments)
-    
+
     #check for valid inputs
     if base_energy < 0
 		runner.registerError("Base energy use must be greater than or equal to 0.")
@@ -117,25 +117,13 @@ class ResidentialHotTubHeater < OpenStudio::Ruleset::ModelUserScript
         hth_ann_g = ann_g # therm/yr
     end
 
-    #hard coded convective, radiative, latent, and lost fractions
-    hth_lat = 0
-    hth_rad = 0
-    hth_conv = 0
-    hth_lost = 1 - hth_lat - hth_rad - hth_conv
-	
-	obj_name = Constants.ObjectNameHotTubHeater
-	obj_name_e = Constants.FuelTypeElectric + " " + obj_name
-	obj_name_g = Constants.FuelTypeGas + " " + obj_name
-	sch = MonthWeekdayWeekendSchedule.new(model, runner, obj_name_g + " schedule", weekday_sch, weekend_sch, monthly_sch)
-	if not sch.validated?
-		return false
-	end
-	design_level = sch.calcDesignLevelFromDailyTherm(hth_ann_g/365.0)
-	
     space = Geometry.get_default_space(model, runner)
     if space.nil?
         return false
     end
+
+    obj_name_e = Constants.ObjectNameHotTubHeater(Constants.FuelTypeElectric)
+	obj_name_g = Constants.ObjectNameHotTubHeater(Constants.FuelTypeGas)
 
     # Remove any existing hot tub heater
     hth_removed = false
@@ -154,21 +142,35 @@ class ResidentialHotTubHeater < OpenStudio::Ruleset::ModelUserScript
     if hth_removed
         runner.registerInfo("Removed existing hot tub heater.")
     end
-    
-    #Add gas equipment for the hot tub heater
-    hth_def = OpenStudio::Model::GasEquipmentDefinition.new(model)
-    hth = OpenStudio::Model::GasEquipment.new(hth_def)
-    hth.setName(obj_name_g)
-    hth.setSpace(space)
-    hth_def.setName(obj_name_g)
-    hth_def.setDesignLevel(design_level)
-    hth_def.setFractionRadiant(hth_rad)
-    hth_def.setFractionLatent(hth_lat)
-    hth_def.setFractionLost(hth_lost)
-    sch.setSchedule(hth)
-	
-    #reporting final condition of model
-    runner.registerFinalCondition("A hot tub gas heater has been set with #{hth_ann_g.round} therms annual energy consumption.")
+
+    if hth_ann_g > 0
+        #hard coded convective, radiative, latent, and lost fractions
+        hth_lat = 0
+        hth_rad = 0
+        hth_conv = 0
+        hth_lost = 1 - hth_lat - hth_rad - hth_conv
+        
+        sch = MonthWeekdayWeekendSchedule.new(model, runner, obj_name_g + " schedule", weekday_sch, weekend_sch, monthly_sch)
+        if not sch.validated?
+            return false
+        end
+        design_level = sch.calcDesignLevelFromDailyTherm(hth_ann_g/365.0)
+        
+        #Add gas equipment for the hot tub heater
+        hth_def = OpenStudio::Model::GasEquipmentDefinition.new(model)
+        hth = OpenStudio::Model::GasEquipment.new(hth_def)
+        hth.setName(obj_name_g)
+        hth.setSpace(space)
+        hth_def.setName(obj_name_g)
+        hth_def.setDesignLevel(design_level)
+        hth_def.setFractionRadiant(hth_rad)
+        hth_def.setFractionLatent(hth_lat)
+        hth_def.setFractionLost(hth_lost)
+        sch.setSchedule(hth)
+        
+        #reporting final condition of model
+        runner.registerFinalCondition("A hot tub gas heater has been set with #{hth_ann_g.round} therms annual energy consumption.")
+    end
 	
     return true
  

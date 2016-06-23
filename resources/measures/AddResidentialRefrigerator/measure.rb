@@ -111,23 +111,9 @@ class ResidentialRefrigerator < OpenStudio::Ruleset::ModelUserScript
     if space.nil?
         return false
     end
+    
+    obj_name = Constants.ObjectNameRefrigerator
 
-	#Calculate fridge daily energy use
-	fridge_ann = fridge_E*mult
-
-    #hard coded convective, radiative, latent, and lost fractions
-    fridge_lat = 0
-    fridge_rad = 0
-    fridge_conv = 1
-    fridge_lost = 1 - fridge_lat - fridge_rad - fridge_conv
-	
-	obj_name = Constants.ObjectNameRefrigerator
-	sch = MonthWeekdayWeekendSchedule.new(model, runner, obj_name + " schedule", weekday_sch, weekend_sch, monthly_sch)
-	if not sch.validated?
-		return false
-	end
-	design_level = sch.calcDesignLevelFromDailykWh(fridge_ann/365.0)
-	
     # Remove any existing refrigerator
     frg_removed = false
     space.electricEquipment.each do |space_equipment|
@@ -139,21 +125,38 @@ class ResidentialRefrigerator < OpenStudio::Ruleset::ModelUserScript
     if frg_removed
         runner.registerInfo("Removed existing refrigerator.")
     end
-    
-    #Add electric equipment for the fridge
-    frg_def = OpenStudio::Model::ElectricEquipmentDefinition.new(model)
-    frg = OpenStudio::Model::ElectricEquipment.new(frg_def)
-    frg.setName(obj_name)
-    frg.setSpace(space)
-    frg_def.setName(obj_name)
-    frg_def.setDesignLevel(design_level)
-    frg_def.setFractionRadiant(fridge_rad)
-    frg_def.setFractionLatent(fridge_lat)
-    frg_def.setFractionLost(fridge_lost)
-    sch.setSchedule(frg)
-	
-    #reporting final condition of model
-    runner.registerFinalCondition("A fridge has been set with #{fridge_ann.round} kWhs annual energy consumption.")
+
+	#Calculate fridge daily energy use
+	fridge_ann = fridge_E*mult
+
+    if fridge_ann > 0
+        #hard coded convective, radiative, latent, and lost fractions
+        fridge_lat = 0
+        fridge_rad = 0
+        fridge_conv = 1
+        fridge_lost = 1 - fridge_lat - fridge_rad - fridge_conv
+        
+        sch = MonthWeekdayWeekendSchedule.new(model, runner, obj_name + " schedule", weekday_sch, weekend_sch, monthly_sch)
+        if not sch.validated?
+            return false
+        end
+        design_level = sch.calcDesignLevelFromDailykWh(fridge_ann/365.0)
+        
+        #Add electric equipment for the fridge
+        frg_def = OpenStudio::Model::ElectricEquipmentDefinition.new(model)
+        frg = OpenStudio::Model::ElectricEquipment.new(frg_def)
+        frg.setName(obj_name)
+        frg.setSpace(space)
+        frg_def.setName(obj_name)
+        frg_def.setDesignLevel(design_level)
+        frg_def.setFractionRadiant(fridge_rad)
+        frg_def.setFractionLatent(fridge_lat)
+        frg_def.setFractionLost(fridge_lost)
+        sch.setSchedule(frg)
+        
+        #reporting final condition of model
+        runner.registerFinalCondition("A fridge has been set with #{fridge_ann.round} kWhs annual energy consumption.")
+    end
 	
     return true
  

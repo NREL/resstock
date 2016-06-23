@@ -213,7 +213,7 @@ class CreateResidentialEaves < OpenStudio::Ruleset::ModelUserScript
         if roof_structure == Constants.RoofStructureTrussCantilever
         
           # Roof Decks
-          if surface.surfaceType.downcase == "roofceiling" and not surface.space.get.name.to_s.downcase.include? "garage"
+          if surface.surfaceType.downcase == "roofceiling"
 
             # raise the roof decks
             m = initialize_transformation_matrix(OpenStudio::Matrix.new(4,4,0))
@@ -223,8 +223,8 @@ class CreateResidentialEaves < OpenStudio::Ruleset::ModelUserScript
             new_vertices = transformation * vertices
             surface.setVertices(new_vertices)
 
-          # Attic Walls          
-          elsif surface.surfaceType.downcase == "wall" and surface.vertices.length == 3 and not surface.space.get.name.to_s.downcase.include? "garage"
+          # Attic Walls
+          elsif surface.surfaceType.downcase == "wall" and surface.vertices.length == 3
             
             # raise the attic walls
             x_s = []
@@ -793,18 +793,15 @@ class CreateResidentialEaves < OpenStudio::Ruleset::ModelUserScript
         if roof_structure == Constants.RoofStructureTrussCantilever
         
           # Roof Decks
-          if not surface.space.get.name.to_s.downcase.include? "garage"
           
-            # raise the roof decks
-            m = initialize_transformation_matrix(OpenStudio::Matrix.new(4,4,0))
-            m[2,3] = attic_increase
-            transformation = OpenStudio::Transformation.new(m)
-            vertices = surface.vertices
-            new_vertices = transformation * vertices
-            surface.setVertices(new_vertices)
-            
-          end
-        
+          # raise the roof decks
+          m = initialize_transformation_matrix(OpenStudio::Matrix.new(4,4,0))
+          m[2,3] = attic_increase
+          transformation = OpenStudio::Transformation.new(m)
+          vertices = surface.vertices
+          new_vertices = transformation * vertices
+          surface.setVertices(new_vertices)
+                    
         end  
         
         # Eaves
@@ -907,11 +904,7 @@ class CreateResidentialEaves < OpenStudio::Ruleset::ModelUserScript
             end
             
             m_left_lower[0,3] = -eaves_depth
-            if not surface.space.get.name.to_s.downcase.include? "garage"
-              m_left_lower[1,3] = eaves_depth
-            else
-              m_left_lower[1,3] = 0
-            end
+            m_left_lower[1,3] = eaves_depth
             m_left_lower[2,3] = -attic_increase + z_offset
 
             m_left_upper[0,3] = 0
@@ -919,11 +912,7 @@ class CreateResidentialEaves < OpenStudio::Ruleset::ModelUserScript
             m_left_upper[2,3] = z_offset
 
             m_right_lower[0,3] = -eaves_depth
-            if not surface.space.get.name.to_s.downcase.include? "garage"
-              m_right_lower[1,3] = -eaves_depth
-            else
-              m_right_lower[1,3] = 0
-            end
+            m_right_lower[1,3] = -eaves_depth
             m_right_lower[2,3] = -attic_increase + z_offset
 
             m_right_upper[0,3] = 0
@@ -954,11 +943,7 @@ class CreateResidentialEaves < OpenStudio::Ruleset::ModelUserScript
             end
             
             m_left_lower[0,3] = eaves_depth
-            if not surface.space.get.name.to_s.downcase.include? "garage"
-              m_left_lower[1,3] = -eaves_depth
-            else
-              m_left_lower[1,3] = 0
-            end
+            m_left_lower[1,3] = -eaves_depth
             m_left_lower[2,3] = -attic_increase + z_offset
 
             m_left_upper[0,3] = 0
@@ -966,11 +951,7 @@ class CreateResidentialEaves < OpenStudio::Ruleset::ModelUserScript
             m_left_upper[2,3] = z_offset
 
             m_right_lower[0,3] = eaves_depth
-            if not surface.space.get.name.to_s.downcase.include? "garage"
-              m_right_lower[1,3] = eaves_depth
-            else
-              m_right_lower[1,3] = 0
-            end
+            m_right_lower[1,3] = eaves_depth
             m_right_lower[2,3] = -attic_increase + z_offset
 
             m_right_upper[0,3] = 0

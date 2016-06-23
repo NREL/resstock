@@ -119,23 +119,12 @@ class ResidentialHotTubPump < OpenStudio::Ruleset::ModelUserScript
         htp_ann = ann_elec # kWh/yr
     end
 
-    #hard coded convective, radiative, latent, and lost fractions
-    htp_lat = 0
-    htp_rad = 0
-    htp_conv = 0
-    htp_lost = 1 - htp_lat - htp_rad - htp_conv
-	
-	obj_name = Constants.ObjectNameHotTubPump
-	sch = MonthWeekdayWeekendSchedule.new(model, runner, obj_name + " schedule", weekday_sch, weekend_sch, monthly_sch)
-	if not sch.validated?
-		return false
-	end
-	design_level = sch.calcDesignLevelFromDailykWh(htp_ann/365.0)
-	
     space = Geometry.get_default_space(model, runner)
     if space.nil?
         return false
     end
+
+    obj_name = Constants.ObjectNameHotTubPump
 
     # Remove any existing hot tub pump
     htp_removed = false
@@ -148,21 +137,35 @@ class ResidentialHotTubPump < OpenStudio::Ruleset::ModelUserScript
     if htp_removed
         runner.registerInfo("Removed existing hot tub pump.")
     end
-    
-    #Add electric equipment for the hot tub pump
-    htp_def = OpenStudio::Model::ElectricEquipmentDefinition.new(model)
-    htp = OpenStudio::Model::ElectricEquipment.new(htp_def)
-    htp.setName(obj_name)
-    htp.setSpace(space)
-    htp_def.setName(obj_name)
-    htp_def.setDesignLevel(design_level)
-    htp_def.setFractionRadiant(htp_rad)
-    htp_def.setFractionLatent(htp_lat)
-    htp_def.setFractionLost(htp_lost)
-    sch.setSchedule(htp)
-	
-    #reporting final condition of model
-    runner.registerFinalCondition("A hot tub pump has been set with #{htp_ann.round} kWhs annual energy consumption.")
+
+    if htp_ann > 0
+        #hard coded convective, radiative, latent, and lost fractions
+        htp_lat = 0
+        htp_rad = 0
+        htp_conv = 0
+        htp_lost = 1 - htp_lat - htp_rad - htp_conv
+        
+        sch = MonthWeekdayWeekendSchedule.new(model, runner, obj_name + " schedule", weekday_sch, weekend_sch, monthly_sch)
+        if not sch.validated?
+            return false
+        end
+        design_level = sch.calcDesignLevelFromDailykWh(htp_ann/365.0)
+        
+        #Add electric equipment for the hot tub pump
+        htp_def = OpenStudio::Model::ElectricEquipmentDefinition.new(model)
+        htp = OpenStudio::Model::ElectricEquipment.new(htp_def)
+        htp.setName(obj_name)
+        htp.setSpace(space)
+        htp_def.setName(obj_name)
+        htp_def.setDesignLevel(design_level)
+        htp_def.setFractionRadiant(htp_rad)
+        htp_def.setFractionLatent(htp_lat)
+        htp_def.setFractionLost(htp_lost)
+        sch.setSchedule(htp)
+        
+        #reporting final condition of model
+        runner.registerFinalCondition("A hot tub pump has been set with #{htp_ann.round} kWhs annual energy consumption.")
+    end
 	
     return true
  

@@ -100,6 +100,7 @@ class ResidentialGasFireplace < OpenStudio::Ruleset::ModelUserScript
 	weekday_sch = runner.getStringArgumentValue("weekday_sch",user_arguments)
 	weekend_sch = runner.getStringArgumentValue("weekend_sch",user_arguments)
 	monthly_sch = runner.getStringArgumentValue("monthly_sch",user_arguments)
+	space_r = runner.getStringArgumentValue("space",user_arguments)
 
     #check for valid inputs
     if base_energy < 0
@@ -111,8 +112,7 @@ class ResidentialGasFireplace < OpenStudio::Ruleset::ModelUserScript
 		return false
     end
 
-	# Space
-	space_r = runner.getStringArgumentValue("space",user_arguments)
+    #Get space
     space = Geometry.get_space_from_string(model, space_r, runner)
     if space.nil?
         return false
@@ -140,20 +140,9 @@ class ResidentialGasFireplace < OpenStudio::Ruleset::ModelUserScript
     else
         gf_ann_g = ann_g # therm/yr
     end
+    
+    obj_name = Constants.ObjectNameGasFireplace
 
-    #hard coded convective, radiative, latent, and lost fractions
-    gf_lat = 0.1
-    gf_rad = 0.3
-    gf_conv = 0.2
-    gf_lost = 1 - gf_lat - gf_rad - gf_conv
-	
-	obj_name = Constants.ObjectNameGasFireplace
-	sch = MonthWeekdayWeekendSchedule.new(model, runner, obj_name + " schedule", weekday_sch, weekend_sch, monthly_sch)
-	if not sch.validated?
-		return false
-	end
-	design_level = sch.calcDesignLevelFromDailyTherm(gf_ann_g/365.0)
-	
     # Remove any existing gas fireplace
     gf_removed = false
     space.gasEquipment.each do |space_equipment|
@@ -166,20 +155,34 @@ class ResidentialGasFireplace < OpenStudio::Ruleset::ModelUserScript
         runner.registerInfo("Removed existing gas fireplace.")
     end
     
-    #Add gas equipment for the fireplace
-    gf_def = OpenStudio::Model::GasEquipmentDefinition.new(model)
-    gf = OpenStudio::Model::GasEquipment.new(gf_def)
-    gf.setName(obj_name)
-    gf.setSpace(space)
-    gf_def.setName(obj_name)
-    gf_def.setDesignLevel(design_level)
-    gf_def.setFractionRadiant(gf_rad)
-    gf_def.setFractionLatent(gf_lat)
-    gf_def.setFractionLost(gf_lost)
-    sch.setSchedule(gf)
-	
-    #reporting final condition of model
-    runner.registerFinalCondition("A gas fireplace has been set with #{gf_ann_g.round} therms annual energy consumption.")
+    if gf_ann_g > 0
+        #hard coded convective, radiative, latent, and lost fractions
+        gf_lat = 0.1
+        gf_rad = 0.3
+        gf_conv = 0.2
+        gf_lost = 1 - gf_lat - gf_rad - gf_conv
+        
+        sch = MonthWeekdayWeekendSchedule.new(model, runner, obj_name + " schedule", weekday_sch, weekend_sch, monthly_sch)
+        if not sch.validated?
+            return false
+        end
+        design_level = sch.calcDesignLevelFromDailyTherm(gf_ann_g/365.0)
+
+        #Add gas equipment for the fireplace
+        gf_def = OpenStudio::Model::GasEquipmentDefinition.new(model)
+        gf = OpenStudio::Model::GasEquipment.new(gf_def)
+        gf.setName(obj_name)
+        gf.setSpace(space)
+        gf_def.setName(obj_name)
+        gf_def.setDesignLevel(design_level)
+        gf_def.setFractionRadiant(gf_rad)
+        gf_def.setFractionLatent(gf_lat)
+        gf_def.setFractionLost(gf_lost)
+        sch.setSchedule(gf)
+
+        #reporting final condition of model
+        runner.registerFinalCondition("A gas fireplace has been set with #{gf_ann_g.round} therms annual energy consumption.")
+    end
 	
     return true
  

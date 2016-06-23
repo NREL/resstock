@@ -361,7 +361,7 @@ class ProcessAirSourceHeatPump < OpenStudio::Ruleset::ModelUserScript
     
     #make a choice argument for ashp cooling/heating output capacity
     cap_display_names = OpenStudio::StringVector.new
-    cap_display_names << "Autosize"
+    cap_display_names << Constants.SizingAuto
     (0.5..10.0).step(0.5) do |tons|
       cap_display_names << "#{tons} tons"
     end
@@ -369,12 +369,12 @@ class ProcessAirSourceHeatPump < OpenStudio::Ruleset::ModelUserScript
     #make a string argument for ashp cooling/heating output capacity
     selected_hpcap = OpenStudio::Ruleset::OSArgument::makeChoiceArgument("selectedhpcap", cap_display_names, true)
     selected_hpcap.setDisplayName("Cooling/Heating Output Capacity")
-    selected_hpcap.setDefaultValue("Autosize")
+    selected_hpcap.setDefaultValue(Constants.SizingAuto)
     args << selected_hpcap
 
     #make a choice argument for supplemental heating output capacity
     cap_display_names = OpenStudio::StringVector.new
-    cap_display_names << "Autosize"
+    cap_display_names << Constants.SizingAuto
     (5..150).step(5) do |kbtu|
       cap_display_names << "#{kbtu} kBtu/hr"
     end
@@ -382,7 +382,7 @@ class ProcessAirSourceHeatPump < OpenStudio::Ruleset::ModelUserScript
     #make a string argument for supplemental heating output capacity
     selected_supcap = OpenStudio::Ruleset::OSArgument::makeChoiceArgument("selectedsupcap", cap_display_names, true)
     selected_supcap.setDisplayName("Supplemental Heating Output Capacity")
-    selected_supcap.setDefaultValue("Autosize")
+    selected_supcap.setDefaultValue(Constants.SizingAuto)
     args << selected_supcap 
     
     return args
@@ -428,11 +428,11 @@ class ProcessAirSourceHeatPump < OpenStudio::Ruleset::ModelUserScript
     hpCOPCapacityDerateFactor = [hpCOPCapacityDerateFactor1ton, hpCOPCapacityDerateFactor2ton, hpCOPCapacityDerateFactor3ton, hpCOPCapacityDerateFactor4ton, hpCOPCapacityDerateFactor5ton]
     hpIsColdClimate = runner.getBoolArgumentValue("ashpIsColdClimate",user_arguments)    
     hpOutputCapacity = runner.getStringArgumentValue("selectedhpcap",user_arguments)
-    unless hpOutputCapacity == "Autosize"
+    unless hpOutputCapacity == Constants.SizingAuto
       hpOutputCapacity = OpenStudio::convert(hpOutputCapacity.split(" ")[0].to_f,"ton","Btu/h").get
     end
     supplementalOutputCapacity = runner.getStringArgumentValue("selectedsupcap",user_arguments)
-    unless supplementalOutputCapacity == "Autosize"
+    unless supplementalOutputCapacity == Constants.SizingAuto
       supplementalOutputCapacity = OpenStudio::convert(supplementalOutputCapacity.split(" ")[0].to_f,"kBtu/h","Btu/h").get
     end   
 
@@ -529,7 +529,7 @@ class ProcessAirSourceHeatPump < OpenStudio::Ruleset::ModelUserScript
 
         htg_coil = OpenStudio::Model::CoilHeatingDXSingleSpeed.new(model, heatingseasonschedule, htg_coil_stage_data[0].heatingCapacityFunctionofTemperatureCurve, htg_coil_stage_data[0].heatingCapacityFunctionofFlowFractionCurve, htg_coil_stage_data[0].energyInputRatioFunctionofTemperatureCurve, htg_coil_stage_data[0].energyInputRatioFunctionofFlowFractionCurve, htg_coil_stage_data[0].partLoadFractionCorrelationCurve)
         htg_coil.setName("DX Heating Coil")
-        if hpOutputCapacity != "Autosize"
+        if hpOutputCapacity != Constants.SizingAuto
           htg_coil.setRatedTotalHeatingCapacity(OpenStudio::convert(hpOutputCapacity,"Btu/h","W").get)
         end
         htg_coil.setRatedCOP(1.0 / supply.HeatingEIR[0])
@@ -567,7 +567,7 @@ class ProcessAirSourceHeatPump < OpenStudio::Ruleset::ModelUserScript
       supp_htg_coil = OpenStudio::Model::CoilHeatingElectric.new(model, heatingseasonschedule)
       supp_htg_coil.setName("HeatPump Supp Heater")
       supp_htg_coil.setEfficiency(1)
-      if supplementalOutputCapacity != "Autosize"
+      if supplementalOutputCapacity != Constants.SizingAuto
         supp_htg_coil.setNominalCapacity(OpenStudio::convert(supplementalOutputCapacity,"Btu/h","W").get)
       end
       
@@ -577,17 +577,17 @@ class ProcessAirSourceHeatPump < OpenStudio::Ruleset::ModelUserScript
 
         clg_coil = OpenStudio::Model::CoilCoolingDXSingleSpeed.new(model, coolingseasonschedule, clg_coil_stage_data[0].totalCoolingCapacityFunctionofTemperatureCurve, clg_coil_stage_data[0].totalCoolingCapacityFunctionofFlowFractionCurve, clg_coil_stage_data[0].energyInputRatioFunctionofTemperatureCurve, clg_coil_stage_data[0].energyInputRatioFunctionofFlowFractionCurve, clg_coil_stage_data[0].partLoadFractionCorrelationCurve)
         clg_coil.setName("DX Cooling Coil")
-        if hpOutputCapacity != "Autosize"
+        if hpOutputCapacity != Constants.SizingAuto
           clg_coil.setRatedTotalCoolingCapacity(OpenStudio::convert(hpOutputCapacity,"Btu/h","W").get)
         end
         if air_conditioner.hasIdealAC
-          if hpOutputCapacity != "Autosize"
+          if hpOutputCapacity != Constants.SizingAuto
             clg_coil.setRatedSensibleHeatRatio(0.8)
             clg_coil.setRatedAirFlowRate(supply.CFM_TON_Rated[0] * hpOutputCapacity * OpenStudio::convert(1.0,"Btu/h","ton").get * OpenStudio::convert(1.0,"cfm","m^3/s").get)
           end
           clg_coil.setRatedCOP(OpenStudio::OptionalDouble.new(1.0))
         else
-          if hpOutputCapacity != "Autosize"
+          if hpOutputCapacity != Constants.SizingAuto
             clg_coil.setRatedSensibleHeatRatio(supply.SHR_Rated[0])
             clg_coil.setRatedAirFlowRate(supply.CFM_TON_Rated[0] * hpOutputCapacity * OpenStudio::convert(1.0,"Btu/h","ton").get * OpenStudio::convert(1.0,"cfm","m^3/s").get)
           end

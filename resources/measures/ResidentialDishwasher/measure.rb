@@ -122,7 +122,7 @@ class ResidentialDishwasher < OpenStudio::Ruleset::ModelUserScript
     end
     plant_loop = OpenStudio::Ruleset::OSArgument::makeChoiceArgument("plant_loop", plant_loop_args, true)
     plant_loop.setDisplayName("Plant Loop")
-    plant_loop.setDescription("Select the plant loop for the clothes washer")
+    plant_loop.setDescription("Select the plant loop for the dishwasher")
     if plant_loop_args.include?(Constants.PlantLoopDomesticWater)
         plant_loop.setDefaultValue(Constants.PlantLoopDomesticWater)
     end
@@ -398,7 +398,7 @@ class ResidentialDishwasher < OpenStudio::Ruleset::ModelUserScript
         end
     end
     if dw_removed
-        runner.registerInfo("Removed existing misc plug loads.")
+        runner.registerInfo("Removed existing dishwasher.")
     end
     
     #Add electric equipment for the dw

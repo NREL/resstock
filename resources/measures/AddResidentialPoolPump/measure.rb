@@ -119,23 +119,12 @@ class ResidentialPoolPump < OpenStudio::Ruleset::ModelUserScript
         pp_ann = ann_elec # kWh/yr
     end
 
-    #hard coded convective, radiative, latent, and lost fractions
-    pp_lat = 0
-    pp_rad = 0
-    pp_conv = 0
-    pp_lost = 1 - pp_lat - pp_rad - pp_conv
-	
-	obj_name = Constants.ObjectNamePoolPump
-	sch = MonthWeekdayWeekendSchedule.new(model, runner, obj_name + " schedule", weekday_sch, weekend_sch, monthly_sch)
-	if not sch.validated?
-		return false
-	end
-	design_level = sch.calcDesignLevelFromDailykWh(pp_ann/365.0)
-    
     space = Geometry.get_default_space(model, runner)
     if space.nil?
         return false
     end
+
+    obj_name = Constants.ObjectNamePoolPump
 
     # Remove any existing pool pump
     pp_removed = false
@@ -148,21 +137,35 @@ class ResidentialPoolPump < OpenStudio::Ruleset::ModelUserScript
     if pp_removed
         runner.registerInfo("Removed existing pool pump.")
     end
-    
-    #Add electric equipment for the pool pump
-    pp_def = OpenStudio::Model::ElectricEquipmentDefinition.new(model)
-    pp = OpenStudio::Model::ElectricEquipment.new(pp_def)
-    pp.setName(obj_name)
-    pp.setSpace(space)
-    pp_def.setName(obj_name)
-    pp_def.setDesignLevel(design_level)
-    pp_def.setFractionRadiant(pp_rad)
-    pp_def.setFractionLatent(pp_lat)
-    pp_def.setFractionLost(pp_lost)
-    sch.setSchedule(pp)
-	
-    #reporting final condition of model
-    runner.registerFinalCondition("A pool pump has been set with #{pp_ann.round} kWhs annual energy consumption.")
+
+    if pp_ann > 0
+        #hard coded convective, radiative, latent, and lost fractions
+        pp_lat = 0
+        pp_rad = 0
+        pp_conv = 0
+        pp_lost = 1 - pp_lat - pp_rad - pp_conv
+        
+        sch = MonthWeekdayWeekendSchedule.new(model, runner, obj_name + " schedule", weekday_sch, weekend_sch, monthly_sch)
+        if not sch.validated?
+            return false
+        end
+        design_level = sch.calcDesignLevelFromDailykWh(pp_ann/365.0)
+                
+        #Add electric equipment for the pool pump
+        pp_def = OpenStudio::Model::ElectricEquipmentDefinition.new(model)
+        pp = OpenStudio::Model::ElectricEquipment.new(pp_def)
+        pp.setName(obj_name)
+        pp.setSpace(space)
+        pp_def.setName(obj_name)
+        pp_def.setDesignLevel(design_level)
+        pp_def.setFractionRadiant(pp_rad)
+        pp_def.setFractionLatent(pp_lat)
+        pp_def.setFractionLost(pp_lost)
+        sch.setSchedule(pp)
+        
+        #reporting final condition of model
+        runner.registerFinalCondition("A pool pump has been set with #{pp_ann.round} kWhs annual energy consumption.")
+    end
 	
     return true
  

@@ -355,7 +355,7 @@ class Waterheater
             #check if the building has a garage
             if garage.length > 0
                 wh_tz = garage[0].thermalZone.get.name
-            else #no garage, in living space
+            elsif not living.nil? #no garage, in living space
                 wh_tz = living.thermalZone.get.name
             end
         elsif ba_cz_name == Constants.BAZoneMarine or ba_cz_name == Constants.BAZoneMixedHumid or ba_cz_name == Constants.BAZoneMixedHumid or ba_cz_name == Constants.BAZoneCold or ba_cz_name == Constants.BAZoneVeryCold or ba_cz_name == Constants.BAZoneSubarctic
@@ -364,11 +364,11 @@ class Waterheater
                 wh_tz = fin_basement[0].thermalZone.get.name
             elsif unfin_basement.length > 0
                 wh_tz = unfin_basement[0].thermalZone.get.name
-            else #no basement, in living space
+            elsif not living.nil? #no basement, in living space
                 wh_tz = living.thermalZone.get.name
             end
         else
-            runner.registerWarning("No Building America climate zone has been assigned. The water heater water heater location will be chosen with the following priority: basement > garage > living")
+            runner.registerWarning("No Building America climate zone has been assigned. The water heater location will be chosen with the following priority: basement > garage > living")
             #check for suitable WH locations
             #FIXME: in BEopt, priority goes living>fin attic. Since we always assign a zone as the living space in OS, this is the final location.
             #If geometry.rb is changed to better identify living zones, update this code to differentiate between living tz and fin attic tz
@@ -378,7 +378,7 @@ class Waterheater
                 wh_tz = unfin_basement[0].thermalZone.get.name
             elsif garage.length > 0
                 wh_tz = garage[0].thermalZone.get.name
-            else #no basement or garage, in living space
+            elsif not living.nil? #no basement or garage, in living space
                 wh_tz = living.thermalZone.get.name
             end
         end

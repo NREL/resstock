@@ -4,91 +4,123 @@ require 'minitest/autorun'
 require_relative '../measure.rb'
 require 'fileutils'
 
-class CreateBasicGeometryTest < MiniTest::Unit::TestCase
+class CreateBasicGeometryTest < MiniTest::Test
 
-  # def setup
-  # end
-
-  # def teardown
-  # end
-
-  def test_number_of_arguments_and_argument_names
-    # create an instance of the measure
-    measure = CreateBasicGeometry.new
-
-    # make an empty model
-    model = OpenStudio::Model::Model.new
-
-    # get arguments and test that they are what we are expecting
-    arguments = measure.arguments(model)
-    assert_equal(1, arguments.size)
-    assert_equal("space_name", arguments[0].name)
-  end
-
-  def test_bad_argument_values
-    # create an instance of the measure
-    measure = CreateBasicGeometry.new
-
-    # create an instance of a runner
-    runner = OpenStudio::Ruleset::OSRunner.new
-
-    # make an empty model
-    model = OpenStudio::Model::Model.new
-
-    # get arguments
-    arguments = measure.arguments(model)
-    argument_map = OpenStudio::Ruleset.convertOSArgumentVectorToMap(arguments)
-
-    # create hash of argument values
+  def test_error_existing_geometry
     args_hash = {}
-    args_hash["space_name"] = ""
-
-    # populate argument with specified hash value if specified
-    arguments.each do |arg|
-      temp_arg_var = arg.clone
-      if args_hash[arg.name]
-        assert(temp_arg_var.setValue(args_hash[arg.name]))
-      end
-      argument_map[arg.name] = temp_arg_var
-    end
-
-    # run the measure
-    measure.run(model, runner, argument_map)
-    result = runner.result
-
-    # show the output
-    show_output(result)
-
-    # assert that it ran correctly
+    result = _test_error("2000sqft_2story_FB_GRG_UA.osm", args_hash)
+    assert(result.errors.size == 1)
+    assert_equal("Fail", result.value.valueName)    
+    assert_equal(result.errors[0].logMessage, "Starting model is not empty.")
+  end
+  
+  def test_argument_error_aspect_ratio_invalid
+    args_hash = {}
+    args_hash["aspect_ratio"] = -1.0
+    result = _test_error("EmptySeedModel.osm", args_hash)
+    assert(result.errors.size == 1)
     assert_equal("Fail", result.value.valueName)
+    assert_equal(result.errors[0].logMessage, "Invalid aspect ratio entered.")
   end
-
-  def test_good_argument_values
+  
+  def test_argument_error_basement_height_invalid
+    args_hash = {}
+    args_hash["foundation_type"] = Constants.FinishedBasementSpace
+    result = _test_error("EmptySeedModel.osm", args_hash)
+    assert(result.errors.size == 1)
+    assert_equal("Fail", result.value.valueName)
+    assert_equal(result.errors[0].logMessage, "Currently the basement height is restricted to 8 ft.")
+  end
+  
+  def test_argument_error_crawl_height_invalid
+    args_hash = {}
+    args_hash["foundation_type"] = Constants.CrawlSpace
+    result = _test_error("EmptySeedModel.osm", args_hash)
+    assert(result.errors.size == 1)
+    assert_equal("Fail", result.value.valueName)
+    assert_equal(result.errors[0].logMessage, "The crawlspace height can be set between 1.5 and 5 ft.")
+  end  
+  
+  def test_argument_error_pierbeam_height_invalid
+    args_hash = {}
+    args_hash["foundation_type"] = Constants.PierBeamSpace
+    result = _test_error("EmptySeedModel.osm", args_hash)
+    assert(result.errors.size == 1)
+    assert_equal("Fail", result.value.valueName)
+    assert_equal(result.errors[0].logMessage, "The pier & beam height can be set between 0.5 and 8 ft.")
+  end  
+  
+  def test_argument_error_num_floors_invalid
+    args_hash = {}
+    args_hash["num_floors"] = 7
+    result = _test_error("EmptySeedModel.osm", args_hash)
+    assert(result.errors.size == 1)
+    assert_equal("Fail", result.value.valueName)
+    assert_equal(result.errors[0].logMessage, "Too many floors.")
+  end
+  
+  def test_argument_error_garage_protrusion_invalid
+    args_hash = {}
+    args_hash["garage_protrusion"] = 2
+    result = _test_error("EmptySeedModel.osm", args_hash)
+    assert(result.errors.size == 1)
+    assert_equal("Fail", result.value.valueName)
+    assert_equal(result.errors[0].logMessage, "Invalid garage protrusion value entered.")
+  end
+  
+  def test_argument_error_hip_roof_and_garage_protrudes
+    args_hash = {}
+    args_hash["garage_protrusion"] = 0.5
+    args_hash["roof_type"] = Constants.RoofTypeHip
+    result = _test_error("EmptySeedModel.osm", args_hash)
+    assert(result.errors.size == 1)
+    assert_equal("Fail", result.value.valueName)
+    assert_equal(result.errors[0].logMessage, "Cannot handle protruding garage and hip roof.")
+  end
+  
+  def test_argument_error_living_and_garage_ridges_are_parallel
+    args_hash = {}
+    args_hash["garage_protrusion"] = 0.5
+    args_hash["aspect_ratio"] = 0.75
+    result = _test_error("EmptySeedModel.osm", args_hash)
+    assert(result.errors.size == 1)
+    assert_equal("Fail", result.value.valueName)
+    assert_equal(result.errors[0].logMessage, "Cannot handle protruding garage and attic ridge running from front to back.")
+  end
+  
+  def test_argument_error_garage_width_exceeds_living_width
+    args_hash = {}
+    args_hash["garage_width"] = 10000
+    result = _test_error("EmptySeedModel.osm", args_hash)
+    assert(result.errors.size == 1)
+    assert_equal("Fail", result.value.valueName)
+    assert_equal(result.errors[0].logMessage, "Invalid living space and garage dimensions.")  
+  end
+  
+  def test_argument_error_garage_depth_exceeds_living_depth
+    args_hash = {}
+    args_hash["garage_width"] = 12
+    args_hash["garage_depth"] = 10000
+    result = _test_error("EmptySeedModel.osm", args_hash)
+    assert(result.errors.size == 1)
+    assert_equal("Fail", result.value.valueName)
+    assert_equal(result.errors[0].logMessage, "Invalid living space and garage dimensions.")  
+  end
+  
+  private
+  
+  def _test_error(osm_file, args_hash)
     # create an instance of the measure
     measure = CreateBasicGeometry.new
 
     # create an instance of a runner
     runner = OpenStudio::Ruleset::OSRunner.new
 
-    # load the test model
-    translator = OpenStudio::OSVersion::VersionTranslator.new
-    path = OpenStudio::Path.new(File.dirname(__FILE__) + "/example_model.osm")
-    model = translator.loadModel(path)
-    assert((not model.empty?))
-    model = model.get
-
-    # store the number of spaces in the seed model
-    num_spaces_seed = model.getSpaces.size
+    model = _get_model(osm_file)
 
     # get arguments
     arguments = measure.arguments(model)
     argument_map = OpenStudio::Ruleset.convertOSArgumentVectorToMap(arguments)
-
-    # create hash of argument values.
-    # If the argument has a default that you want to use, you don't need it in the hash
-    args_hash = {}
-    args_hash["space_name"] = "New Space"
-    # using defaults values from measure.rb for other arguments
 
     # populate argument with specified hash value if specified
     arguments.each do |arg|
@@ -102,21 +134,24 @@ class CreateBasicGeometryTest < MiniTest::Unit::TestCase
     # run the measure
     measure.run(model, runner, argument_map)
     result = runner.result
-
-    # show the output
-    show_output(result)
-
-    # assert that it ran correctly
-    assert_equal("Success", result.value.valueName)
-    assert(result.info.size == 1)
-    assert(result.warnings.size == 0)
-
-    # check that there is now 1 space
-    assert_equal(1, model.getSpaces.size - num_spaces_seed)
-
-    # save the model to test output directory
-    output_file_path = OpenStudio::Path.new(File.dirname(__FILE__) + "/output/test_output.osm")
-    model.save(output_file_path,true)
+      
+    return result
+    
   end
+  
+  def _get_model(osm_file)
+    if osm_file.nil?
+        # make an empty model
+        model = OpenStudio::Model::Model.new
+    else
+        # load the test model
+        translator = OpenStudio::OSVersion::VersionTranslator.new
+        path = OpenStudio::Path.new(File.join(File.dirname(__FILE__), osm_file))
+        model = translator.loadModel(path)
+        assert((not model.empty?))
+        model = model.get
+    end
+    return model
+  end  
 
 end

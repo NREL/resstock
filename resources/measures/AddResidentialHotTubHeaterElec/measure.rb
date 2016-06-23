@@ -129,25 +129,13 @@ class ResidentialHotTubHeater < OpenStudio::Ruleset::ModelUserScript
         hth_ann = ann_elec # kWh/yr
     end
 
-    #hard coded convective, radiative, latent, and lost fractions
-    hth_lat = 0
-    hth_rad = 0
-    hth_conv = 0
-    hth_lost = 1 - hth_lat - hth_rad - hth_conv
-	
-	obj_name = Constants.ObjectNameHotTubHeater
-	obj_name_e = Constants.FuelTypeElectric + " " + obj_name
-	obj_name_g = Constants.FuelTypeGas + " " + obj_name
-	sch = MonthWeekdayWeekendSchedule.new(model, runner, obj_name_e + " schedule", weekday_sch, weekend_sch, monthly_sch)
-	if not sch.validated?
-		return false
-	end
-	design_level = sch.calcDesignLevelFromDailykWh(hth_ann/365.0)
-	
     space = Geometry.get_default_space(model, runner)
     if space.nil?
         return false
     end
+
+    obj_name_e = Constants.ObjectNameHotTubHeater(Constants.FuelTypeElectric)
+    obj_name_g = Constants.ObjectNameHotTubHeater(Constants.FuelTypeGas)
 
     # Remove any existing hot tub heater
     hth_removed = false
@@ -166,21 +154,35 @@ class ResidentialHotTubHeater < OpenStudio::Ruleset::ModelUserScript
     if hth_removed
         runner.registerInfo("Removed existing hot tub heater.")
     end
-    
-    #Add electric equipment for the hot tub heater
-    hth_def = OpenStudio::Model::ElectricEquipmentDefinition.new(model)
-    hth = OpenStudio::Model::ElectricEquipment.new(hth_def)
-    hth.setName(obj_name_e)
-    hth.setSpace(space)
-    hth_def.setName(obj_name_e)
-    hth_def.setDesignLevel(design_level)
-    hth_def.setFractionRadiant(hth_rad)
-    hth_def.setFractionLatent(hth_lat)
-    hth_def.setFractionLost(hth_lost)
-    sch.setSchedule(hth)
-	
-    #reporting final condition of model
-    runner.registerFinalCondition("A hot tub electric heater has been set with #{hth_ann.round} kWhs annual energy consumption.")
+
+    if hth_ann > 0
+        #hard coded convective, radiative, latent, and lost fractions
+        hth_lat = 0
+        hth_rad = 0
+        hth_conv = 0
+        hth_lost = 1 - hth_lat - hth_rad - hth_conv
+        
+        sch = MonthWeekdayWeekendSchedule.new(model, runner, obj_name_e + " schedule", weekday_sch, weekend_sch, monthly_sch)
+        if not sch.validated?
+            return false
+        end
+        design_level = sch.calcDesignLevelFromDailykWh(hth_ann/365.0)
+                
+        #Add electric equipment for the hot tub heater
+        hth_def = OpenStudio::Model::ElectricEquipmentDefinition.new(model)
+        hth = OpenStudio::Model::ElectricEquipment.new(hth_def)
+        hth.setName(obj_name_e)
+        hth.setSpace(space)
+        hth_def.setName(obj_name_e)
+        hth_def.setDesignLevel(design_level)
+        hth_def.setFractionRadiant(hth_rad)
+        hth_def.setFractionLatent(hth_lat)
+        hth_def.setFractionLost(hth_lost)
+        sch.setSchedule(hth)
+        
+        #reporting final condition of model
+        runner.registerFinalCondition("A hot tub electric heater has been set with #{hth_ann.round} kWhs annual energy consumption.")
+    end
 	
     return true
  

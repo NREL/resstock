@@ -160,7 +160,7 @@ class ProcessBoiler < OpenStudio::Ruleset::ModelUserScript
     
     #make a choice argument for furnace heating output capacity
     cap_display_names = OpenStudio::StringVector.new
-    cap_display_names << "Autosize"
+    cap_display_names << Constants.SizingAuto
     (5..150).step(5) do |kbtu|
       cap_display_names << "#{kbtu} kBtu/hr"
     end
@@ -168,7 +168,7 @@ class ProcessBoiler < OpenStudio::Ruleset::ModelUserScript
     #make a string argument for furnace heating output capacity
     boilerOutputCapacity = OpenStudio::Ruleset::OSArgument::makeChoiceArgument("boilerOutputCapacity", cap_display_names, true)
     boilerOutputCapacity.setDisplayName("Heating Output Capacity")
-    boilerOutputCapacity.setDefaultValue("Autosize")
+    boilerOutputCapacity.setDefaultValue(Constants.SizingAuto)
     args << boilerOutputCapacity  
 
     return args
@@ -196,7 +196,7 @@ class ProcessBoiler < OpenStudio::Ruleset::ModelUserScript
     boilerOATLowHWST = runner.getOptionalDoubleArgumentValue("boilerOATLowHWST", user_arguments)
     boilerOATLowHWST.is_initialized ? boilerOATLowHWST = boilerOATLowHWST.get : boilerOATLowHWST = nil      
     boilerOutputCapacity = runner.getStringArgumentValue("boilerOutputCapacity",user_arguments)
-    if not boilerOutputCapacity == "Autosize"
+    if not boilerOutputCapacity == Constants.SizingAuto
       boilerOutputCapacity = OpenStudio::convert(boilerOutputCapacity.split(" ")[0].to_f,"kBtu/h","Btu/h").get
     end
     boilerDesignTemp = runner.getDoubleArgumentValue("boilerDesignTemp",user_arguments)
@@ -232,7 +232,7 @@ class ProcessBoiler < OpenStudio::Ruleset::ModelUserScript
         
     if hydronic_heating.BoilerOATResetEnabled
       if hydronic_heating.BoilerOATHigh.nil? or hydronic_heating.BoilerOATLow.nil? or hydronic_heating.BoilerOATLowHWST.nil? or hydronic_heating.BoilerOATHighHWST.nil?
-        runner.registerWarning("Boiler outdoor air temperature (OAT) reset is enabled but no setpoints were specified so OAT reset is being disabled.")
+        runner.registerWarning("Boiler outdoor air temperature (OAT) reset is neabled but no setpoints were specified so OAT reset is being disabled.")
         hydronic_heating.BoilerOATResetEnabled = false
       end
     end
@@ -267,7 +267,7 @@ class ProcessBoiler < OpenStudio::Ruleset::ModelUserScript
     
     pump = OpenStudio::Model::PumpConstantSpeed.new(model)
     pump.setName("HydronicPump")
-    if boilerOutputCapacity != "Autosize"
+    if boilerOutputCapacity != Constants.SizingAuto
       pump.setRatedFlowRate(OpenStudio::convert(boilerOutputCapacity/20.0/500.0,"gal/min","m^3/s").get)
     end
     pump.setRatedPumpHead(179352)
@@ -278,7 +278,7 @@ class ProcessBoiler < OpenStudio::Ruleset::ModelUserScript
     boiler = OpenStudio::Model::BoilerHotWater.new(model)
     boiler.setName("Boiler")
     boiler.setFuelType(HelperMethods.eplus_fuel_map(hydronic_heating.BoilerFuelType))
-    if boilerOutputCapacity != "Autosize"
+    if boilerOutputCapacity != Constants.SizingAuto
       boiler.setNominalCapacity(OpenStudio::convert(boilerOutputCapacity,"Btu/h","W").get)
     end
     if hydronic_heating.BoilerType == Constants.BoilerTypeCondensing
@@ -351,7 +351,7 @@ class ProcessBoiler < OpenStudio::Ruleset::ModelUserScript
     
       baseboard_coil = OpenStudio::Model::CoilHeatingWaterBaseboard.new(model)
       baseboard_coil.setName("Living Water Baseboard Coil")
-      if boilerOutputCapacity != "Autosize"
+      if boilerOutputCapacity != Constants.SizingAuto
         bb_UA = OpenStudio::convert(boilerOutputCapacity,"Btu/h","W").get / (OpenStudio::convert(hydronic_heating.BoilerDesignTemp - 10.0 - 95.0,"R","K").get) * 3
         bb_max_flow = OpenStudio::convert(boilerOutputCapacity,"Btu/h","W").get / OpenStudio::convert(20.0,"R","K").get / 4.186 / 998.2 / 1000 * 2.0    
         baseboard_coil.setUFactorTimesAreaValue(bb_UA)
@@ -373,7 +373,7 @@ class ProcessBoiler < OpenStudio::Ruleset::ModelUserScript
       
         baseboard_coil = OpenStudio::Model::CoilHeatingWaterBaseboard.new(model)
         baseboard_coil.setName("FBsmt Water Baseboard Coil")
-        if boilerOutputCapacity != "Autosize"
+        if boilerOutputCapacity != Constants.SizingAuto
           bb_UA = OpenStudio::convert(boilerOutputCapacity,"Btu/h","W").get / (OpenStudio::convert(hydronic_heating.BoilerDesignTemp - 10.0 - 95.0,"R","K").get) * 3
           bb_max_flow = OpenStudio::convert(boilerOutputCapacity,"Btu/h","W").get / OpenStudio::convert(20.0,"R","K").get / 4.186 / 998.2 / 1000 * 2.0    
           baseboard_coil.setUFactorTimesAreaValue(bb_UA)
