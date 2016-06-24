@@ -115,7 +115,11 @@ def find_or_create_target(target_type, aws_instance_options)
       puts 'Starting cluster...'
 
       # Don't use the old API (Version 1)
-      aws = OpenStudio::Aws::Aws.new
+      aws_options = {
+        ami_lookup_version: 2,
+        openstudio_server_version: options['openstudio_server_version']
+      }
+      aws = OpenStudio::Aws::Aws.new(aws_options)
 
       server_options = {
         instance_type: aws_instance_options[:server_instance_type],
