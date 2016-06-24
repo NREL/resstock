@@ -78,15 +78,15 @@ class RebuildExistingModel < OpenStudio::Ruleset::ModelUserScript
 
     # Call each measure for sample to build up model
     key_prefix = "res_stock_reporting."
-    parameters_ordered.each do |parameter|
-        prob_dist_file = File.join(resources_dir, "inputs", res_stock_mode, parameter + ".txt")
+    parameters_ordered.each do |parameter_name|
+        prob_dist_file = File.join(resources_dir, "inputs", res_stock_mode, parameter_name + ".tsv")
         check_file_exists(prob_dist_file)
         
         # Get file data including parameter name, dependency columns, and option names
-        headers, rows, parameter_name, all_option_names, dependency_cols = get_probability_file_data(prob_dist_file, runner)
+        rows, option_names, dependency_cols, header = get_probability_file_data(prob_dist_file, runner)
         
         # Get measure name and arguments associated with the option name
-        option_name = bldg_data[key_prefix + parameter]
+        option_name = bldg_data[key_prefix + parameter_name]
         measure_args = get_measure_args_from_option_name(lookup_file, option_name, parameter_name, runner)
         
         measure_args.keys.each do |measure_subdir|

@@ -1,6 +1,7 @@
 require 'csv'
 require File.join(File.dirname(__FILE__), 'resources', 'helper_methods')
 require 'optparse'
+require 'fileutils'
 
 def validate_sampling(mode)
 
@@ -21,68 +22,61 @@ def validate_sampling(mode)
     # Get data from all probability distribution files; store in all_prob_dist_data hash
     # Also generate col_header=>param_name hash
     all_prob_dist_data = {}
-    param_names = {}
     key_prefix = "res_stock_reporting."
     prob_dist_dir = File.join(File.dirname(__FILE__), "resources", "inputs", mode)
     results_data[0].each do |col_header|
         next if not col_header.start_with?(key_prefix)
+        param_name = col_header.sub(key_prefix, "")
         
         # Get all data from this probability distribution file
-        prob_dist_file = File.join(prob_dist_dir, col_header.sub(key_prefix, "") + ".txt")
-        headers, rows, param_name, option_names, dep_cols = get_probability_file_data(prob_dist_file, nil)
+        prob_dist_file = File.join(prob_dist_dir, col_header.sub(key_prefix, "") + ".tsv")
+        rows, option_names, dep_cols, header = get_probability_file_data(prob_dist_file, nil)
         
         # Store data
-        all_prob_dist_data[param_name] = {"headers"=>headers, 
+        all_prob_dist_data[param_name] = {"header"=>header, 
                                           "rows"=>rows, 
                                           "option_names"=>option_names, 
                                           "dep_cols"=>dep_cols,
                                           "prob_dist_file"=>File.basename(prob_dist_file)}
-        param_names[col_header] = param_name
-        
     end
 
     # Data
     results_data_dir = File.join(results_dir, "data")
-    if not File.exists? results_data_dir
-        Dir.mkdir(results_data_dir)
-    end
-    all_samples_results = generate_data_output(results_data, param_names, all_prob_dist_data, results_data_dir, key_prefix)
-    generate_data_input(results_data, param_names, all_prob_dist_data, results_data_dir)
+    FileUtils.rm_rf("#{results_data_dir}/.", secure: true)
+    Dir.mkdir(results_data_dir)
+    all_samples_results = generate_data_output(results_data, all_prob_dist_data, results_data_dir, key_prefix)
+    generate_data_input(results_data, all_prob_dist_data, results_data_dir, key_prefix)
     
     # Visualization
     results_vis_dir = File.join(results_dir, "visualizations")
-    if not File.exists? results_vis_dir
-        Dir.mkdir(results_vis_dir)
-    end
-    generate_visualizations(results_data, param_names, all_prob_dist_data, results_vis_dir, all_samples_results)
+    FileUtils.rm_rf("#{results_vis_dir}/.", secure: true)
+    Dir.mkdir(results_vis_dir)
+    generate_visualizations(results_data, all_prob_dist_data, results_vis_dir, all_samples_results, key_prefix)
 end 
 
-def generate_data_output(results_data, param_names, all_prob_dist_data, results_data_dir, key_prefix)
+def generate_data_output(results_data, all_prob_dist_data, results_data_dir, key_prefix)
     # Create map of parameter names to results_file columns
     results_file_cols = {}
     all_prob_dist_data.keys.each do |param_name|
         results_data[0].each_with_index do |col_header, index|
-            next if not param_names.keys.include?(col_header)
-            
-            if col_header == key_prefix + all_prob_dist_data[param_name]["prob_dist_file"].sub(".txt","")
-                results_file_cols[param_name] = index
-            end
+            next if col_header != key_prefix + param_name
+            results_file_cols[param_name] = index
         end
     end
 
     # Generate sample results output for each reported column in the results csv file
     all_samples_results = {}
     results_data[0].each do |col_header|
-        next if not param_names.keys.include?(col_header)
+        next if not col_header.start_with?(key_prefix)
+        param_name = col_header.sub(key_prefix, "")
         
-        param_name = param_names[col_header]
-        headers = all_prob_dist_data[param_name]["headers"]
+        header = all_prob_dist_data[param_name]["header"]
         option_names = all_prob_dist_data[param_name]["option_names"]
         dep_cols = all_prob_dist_data[param_name]["dep_cols"]
         prob_dist_file = all_prob_dist_data[param_name]["prob_dist_file"]
         rows = all_prob_dist_data[param_name]["rows"]
         
-        puts "Processing data for #{capitalize_string(param_name)}..."
+        puts "Processing data for #{param_name}..."
 
         # Generate combinations of dependency options
         if dep_cols.size > 0
@@ -150,9 +144,9 @@ def generate_data_output(results_data, param_names, all_prob_dist_data, results_
         end
         
         # Write *_output.csv
-        outfile = File.join(results_data_dir, prob_dist_file.sub(".txt","_output.csv"))
+        outfile = File.join(results_data_dir, prob_dist_file.sub(File.extname(prob_dist_file),"_output.csv"))
         CSV.open(outfile, "wb") do |csv|
-            csv << headers[1] + ["# Samples"]
+            csv << header + ["# Samples"]
             samples_results.each do |sample_results|
                 csv << sample_results
             end
@@ -163,20 +157,20 @@ def generate_data_output(results_data, param_names, all_prob_dist_data, results_
     return all_samples_results
 end
 
-def generate_data_input(results_data, param_names, all_prob_dist_data, results_data_dir)
+def generate_data_input(results_data, all_prob_dist_data, results_data_dir, key_prefix)
     # Generate probability distribution inputs in compatible form
     results_data[0].each do |col_header|
-        next if not param_names.keys.include?(col_header)
+        next if not col_header.start_with?(key_prefix)
+        param_name = col_header.sub(key_prefix, "")
         
-        param_name = param_names[col_header]
-        headers = all_prob_dist_data[param_name]["headers"]
+        header = all_prob_dist_data[param_name]["header"]
         rows = all_prob_dist_data[param_name]["rows"]
         prob_dist_file = all_prob_dist_data[param_name]["prob_dist_file"]
         
         # Write *_input.csv
-        outfile = File.join(results_data_dir, prob_dist_file.sub(".txt","_input.csv"))
+        outfile = File.join(results_data_dir, prob_dist_file.sub(File.extname(prob_dist_file),"_input.csv"))
         CSV.open(outfile, "wb") do |csv|
-            csv << headers[1]
+            csv << header
             rows.each do |row|
                 csv << row
             end
@@ -184,26 +178,27 @@ def generate_data_input(results_data, param_names, all_prob_dist_data, results_d
     end
 end
 
-def generate_visualizations(results_data, param_names, all_prob_dist_data, results_vis_dir, all_samples_results)
+def generate_visualizations(results_data, all_prob_dist_data, results_vis_dir, all_samples_results, key_prefix)
     # Generate html visualizations via Google
+
     html_filenames = {}
     results_data[0].each do |col_header|
-        next if not param_names.keys.include?(col_header)
+        next if not col_header.start_with?(key_prefix)
+        param_name = col_header.sub(key_prefix, "")
         
-        param_name = param_names[col_header]
         rows = all_prob_dist_data[param_name]["rows"]
         prob_dist_file = all_prob_dist_data[param_name]["prob_dist_file"]
         dep_cols = all_prob_dist_data[param_name]["dep_cols"]
-        headers = all_prob_dist_data[param_name]["headers"]
+        header = all_prob_dist_data[param_name]["header"]
         
         # Uses a series for each option so that the series legend/color can be assigned
-        num_data_series = headers[1].size - dep_cols.size
+        num_data_series = header.size - dep_cols.size
         
         if num_data_series > 20
-            puts "Skipping visualization for #{capitalize_string(param_name)} (too large)..."
+            puts "Skipping visualization for #{param_name} (too large)..."
             next
         end
-        puts "Generating visualization for #{capitalize_string(param_name)}..."
+        puts "Generating visualization for #{param_name}..."
         
         # Adopted from https://developers.google.com/chart/interactive/docs/gallery/scatterchart
         # See https://developers.google.com/chart/interactive/docs/points#customizing-individual-points for customizing individual points
@@ -269,7 +264,7 @@ def generate_visualizations(results_data, param_names, all_prob_dist_data, resul
     }
 
         # Replace <TITLE_HERE> with html title
-        html_text.sub!("<TITLE_HERE>", capitalize_string(param_name))
+        html_text.sub!("<TITLE_HERE>", param_name)
 
         # Determine sizes of points
         # FIXME: Weighting should be calculated based on the inputs, not outputs
@@ -284,7 +279,7 @@ def generate_visualizations(results_data, param_names, all_prob_dist_data, resul
         # Replace <TABLE_HEADER_HERE> with the appropriate header
         table_header_html = "['Input', "
         (1..num_data_series).each do |series_num|
-            series_name = headers[1][series_num+dep_cols.size-1].to_s
+            series_name = header[series_num+dep_cols.size-1].to_s
             table_header_html << "'#{series_name}', {'type': 'string', 'role': 'style'},"
         end
         table_header_html << "'Line','Line +20%','Line -20%']"
@@ -318,11 +313,11 @@ def generate_visualizations(results_data, param_names, all_prob_dist_data, resul
         html_text.sub!("<TABLE_DATA_HERE>", table_data_html.chop)
         
         # Replace <CHART_TITLE_HERE> with parameter name
-        html_text.sub!("<CHART_TITLE_HERE>", capitalize_string(param_name))
+        html_text.sub!("<CHART_TITLE_HERE>", param_name)
         
-        outfile = File.join(results_vis_dir, prob_dist_file.sub(".txt",".html"))
+        outfile = File.join(results_vis_dir, prob_dist_file.sub(File.extname(prob_dist_file),".html"))
         File.write(outfile, html_text)
-        html_filenames[capitalize_string(param_name)] = File.basename(outfile)
+        html_filenames[param_name] = File.basename(outfile)
     end
     
     # Update select dropdowns and buttons in each file
@@ -359,7 +354,7 @@ def generate_visualizations(results_data, param_names, all_prob_dist_data, resul
     
     first_param = html_filenames.keys.sort[0]
     puts "Launching visualization for #{first_param}..."
-    %x{call #{File.absolute_path(File.join(results_vis_dir, html_filenames[first_param]))}}
+    %x{call "#{File.absolute_path(File.join(results_vis_dir, html_filenames[first_param]))}"}
 end
 
 def add_datapoint(xval, yval, series_position, num_data_series, point_size, xval_equal="null", xval_plus20="null", xval_minus20="null")
@@ -373,10 +368,6 @@ def add_datapoint(xval, yval, series_position, num_data_series, point_size, xval
     end
     s << "#{xval_equal},#{xval_plus20},#{xval_minus20}],"
     return s
-end
-
-def capitalize_string(s)
-    return s.split.map(&:capitalize).join(' ')
 end
 
 # Initialize optionsParser ARGV hash

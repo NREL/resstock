@@ -29,8 +29,8 @@ class CallMetaMeasure < OpenStudio::Ruleset::ModelUserScript
     args = OpenStudio::Ruleset::OSArgumentVector.new
 
     probability_file = OpenStudio::Ruleset::OSArgument.makeStringArgument("probability_file", true)
-    probability_file.setDisplayName("ProbabilityDistributionFile.txt")
-    probability_file.setDescription("The name of the file that provides probability distributions. (Note: The path to this file's parent directory is currently hardcoded.)")
+    probability_file.setDisplayName("Probability DistributionFile.tsv")
+    probability_file.setDescription("The name of the file that provides probability distributions. The file's directory is currently hard-coded.")
     args << probability_file
 
     sample_value = OpenStudio::Ruleset::OSArgument.makeDoubleArgument("sample_value", true)
@@ -52,6 +52,7 @@ class CallMetaMeasure < OpenStudio::Ruleset::ModelUserScript
     
     probability_file = runner.getStringArgumentValue("probability_file",user_arguments)
     sample_value = runner.getDoubleArgumentValue("sample_value",user_arguments)
+    parameter_name = File.basename(probability_file, File.extname(probability_file))
     
     # Get file/dir paths
     resources_dir = File.absolute_path(File.join(File.dirname(__FILE__), "../../lib/resources/")) # Should have been uploaded per 'Other Library Files' in analysis spreadsheet
@@ -72,13 +73,13 @@ class CallMetaMeasure < OpenStudio::Ruleset::ModelUserScript
     # Get file data including parameter name, dependency columns, and option names
     full_probability_path = File.join(resources_dir, "inputs", res_stock_mode, probability_file)
     check_file_exists(full_probability_path, runner)
-    headers, rows, parameter_name, all_option_names, dependency_cols = get_probability_file_data(full_probability_path, runner)
+    rows, option_names, dependency_cols, header = get_probability_file_data(full_probability_path, runner)
     
     # Get dependency values from previous meta-measure calls
     dependency_values = get_dependency_values_from_runner(dependency_cols, runner)
     
     # Get option name given the sample value and dependency values
-    option_name, matched_row_num = get_option_name_from_sample_number(sample_value, dependency_values, full_probability_path, dependency_cols, all_option_names, headers, rows, runner)
+    option_name, matched_row_num = get_option_name_from_sample_number(sample_value, dependency_values, full_probability_path, dependency_cols, option_names, rows, runner)
     
     # Get measure name and arguments associated with the option name
     measure_args = get_measure_args_from_option_name(lookup_file, option_name, parameter_name, runner)

@@ -36,57 +36,49 @@ def get_dependency_values_from_runner(dependency_cols, runner)
 end
 
 def get_probability_file_data(full_probability_path, runner)
-    
-    headers = []
+    header = nil
     rows = []
     CSV.foreach(full_probability_path, { :col_sep => "\t" }) do |row|
 
         row.delete_if {|x| x.nil? or x.size == 0} # purge trailing empty fields
 
-        # Store two header lines
-        if headers.size < 2
-            headers << row
+        # Store one header line
+        if header.nil?
+            header = row
             next
         end
 
         rows << row
     end
     
-    if headers.size != 2
-        register_error("Could not find two header rows in #{full_probability_path.to_s}.", runner)
+    if header.nil?
+        register_error("Could not find header row in #{full_probability_path.to_s}.", runner)
     end
     
-    # Get parameter name on first header row
-    if headers[0].nil? or not headers[0][0].strip.downcase.start_with?("parametername=")
-        register_error("Could not find parameter name in #{full_probability_path.to_s}.", runner)
-    end
-    val = headers[0][0].downcase.sub("parametername=","").strip
-    parameter_name = val
-    
-    # Get option names on second header row that aren't dependencies
-    all_option_names = []
-    headers[1].each do |d|
+    # Get option names on header row
+    option_names = []
+    header.each do |d|
         next if d.nil?
-        next if d.strip.downcase.start_with?("dependency=")
-        all_option_names << d.strip
+        next if d.strip.start_with?("Dependency=")
+        option_names << d.strip
     end
-    if all_option_names.size == 0
+    if option_names.size == 0
         register_error("No options found in #{File.basename(full_probability_path).to_s}.", runner)
     end
     
     # Get all dependencies and corresponding column numbers on second row
     dependency_cols = {}
-    headers[1].each_with_index do |d, col|
+    header.each_with_index do |d, col|
         next if d.nil?
-        next if not d.strip.downcase.start_with?("dependency=")
-        val = d.strip.downcase.sub("dependency=","").strip
+        next if not d.strip.start_with?("Dependency=")
+        val = d.strip.sub("Dependency=","").strip
         dependency_cols[val] = col
     end
-    
-    return headers, rows, parameter_name, all_option_names, dependency_cols
+
+    return rows, option_names, dependency_cols, header
 end
 
-def get_option_name_from_sample_number(sample_value, dependency_values, full_probability_path, dependency_cols, all_option_names, headers, rows, runner=nil)
+def get_option_name_from_sample_number(sample_value, dependency_values, full_probability_path, dependency_cols, option_names, rows, runner=nil)
     # Retrieve option name from probability file based on sample value
     
     option_name = nil
@@ -137,8 +129,8 @@ def get_option_name_from_sample_number(sample_value, dependency_values, full_pro
         rowsum = 0
         rowvals.each_with_index do |rowval, index|
             rowsum += rowval
-            if rowsum + 0.00001 >= sample_value
-                option_name = all_option_names[index]
+            if rowsum >= sample_value or (index == rowvals.size-1 and rowsum + 0.00001 >= sample_value)
+                option_name = option_names[index]
                 matched_row_num = rownum
                 break
             end
