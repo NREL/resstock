@@ -14,14 +14,14 @@ def check_dir_exists(full_path, runner=nil)
 end
   
 def get_value_from_runner_past_results(key_lookup, runner=nil)
-    runner.past_results.each do |measure, values|
-        values.each do |k, v|
+    runner.past_results.each do |measure, measure_hash|
+        measure_hash.each do |k, v|
             if k.to_s == key_lookup.to_s
                 return v.to_s
             end
         end
     end
-    register_error("Could not find dependency value for '#{key_lookup.to_s}'.", runner)
+    register_error("Could not find past value for '#{key_lookup.to_s}'.", runner)
 end
 
 def get_dependency_values_from_runner(dependency_cols, runner)
@@ -29,7 +29,16 @@ def get_dependency_values_from_runner(dependency_cols, runner)
     # previous meta-measure calls).
     dependency_values = {}
     dependency_cols.keys.each do |dep|
-        val = get_value_from_runner_past_results(dep, runner)
+        val = nil
+        runner.past_results.each do |measure, measure_hash|
+            next if not measure_hash.keys.include?(:"ResStock Parameter Name")
+            next if measure_hash[:"ResStock Parameter Name"] != dep
+            val = measure_hash[:"ResStock Option Name"]
+            break
+        end
+        if val.nil?
+            register_error("Could not find past value for '#{dep.to_s}'.", runner)
+        end
         dependency_values[dep] = val
     end
     return dependency_values

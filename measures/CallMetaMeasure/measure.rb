@@ -102,7 +102,8 @@ class CallMetaMeasure < OpenStudio::Ruleset::ModelUserScript
         print_info(nil, nil, option_name, runner)
     end
     
-    register_value(runner, parameter_name, option_name)
+    register_value(runner, "ResStock Parameter Name", parameter_name)
+    register_value(runner, "ResStock Option Name", option_name)
     
     return true
 

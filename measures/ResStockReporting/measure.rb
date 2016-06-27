@@ -23,22 +23,27 @@ class ResStockReporting < OpenStudio::Ruleset::ReportingUserScript
     end
 
     # Uncomment the line below to debug:
-    #runner.registerInfo("past_results: #{runner.past_results.to_s}")
+    runner.registerInfo("past_results: #{runner.past_results.to_s}")
 
     # These values will show up in the results CSV file when added to 
     # the analysis spreadsheet's Outputs worksheet.
-    runner.past_results.each do |key,hash|
-        next if not hash.keys.include?(:probability_file)
-        
-        hash.each do |k,v|
-            next if [:source, :applicable, :sample_value, :probability_file].include?(k) # Ignore these keys
+    if runner.past_results.keys.include?(:rebuild_existing_models)
+        # Results for upgrades
+        measure_hash = runner.past_results[:rebuild_existing_models]
+        measure_hash.each do |k,v|
+            runner.registerInfo("Registering #{v.to_s} for #{k.to_s}.")
+            runner.registerValue(k.to_s, v.to_s)
+        end
+    else
+        # Results for existing housing stock
+        # FIXME: Improve this
+        runner.past_results.each do |measure, measure_hash|
+            next if not measure_hash.keys.include?(:"ResStock Parameter Name")
             
-            probability_file = hash[:probability_file].to_s
-            report_name = File.basename(probability_file,File.extname(probability_file)) # Strip off file extension
-            report_value = v.to_s
-            
-            runner.registerInfo("Registering #{report_value} for #{report_name}.")
-            runner.registerValue(report_name, report_value)
+            parameter_name = measure_hash[:"ResStock Parameter Name"]
+            option_name = measure_hash[:"ResStock Option Name"]
+            runner.registerInfo("Registering #{option_name} for #{parameter_name}.")
+            runner.registerValue(parameter_name, option_name)
         end
     end
 
