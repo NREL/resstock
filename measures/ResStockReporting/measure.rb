@@ -5,6 +5,10 @@ class ResStockReporting < OpenStudio::Ruleset::ReportingUserScript
   def name
     "Res Stock Reporting"
   end
+  
+  def description
+    "For the existing housing stock, reports the option name for each parameter. For upgrades, reports the existing building datapoint name associated with each simulation."
+  end
 
   #define the arguments that the user will input
   def arguments
@@ -23,7 +27,7 @@ class ResStockReporting < OpenStudio::Ruleset::ReportingUserScript
     end
 
     # Uncomment the line below to debug:
-    runner.registerInfo("past_results: #{runner.past_results.to_s}")
+    #runner.registerInfo("past_results: #{runner.past_results.to_s}")
 
     # These values will show up in the results CSV file when added to 
     # the analysis spreadsheet's Outputs worksheet.
