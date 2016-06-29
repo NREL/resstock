@@ -144,7 +144,7 @@ class ProcessAirSourceHeatPump < OpenStudio::Ruleset::ModelUserScript
   end
   
   def modeler_description
-    return "This measure parses the OSM for the #{Constants.ObjectNameHeatingSeason} and #{Constants.ObjectNameCoolingSeason}. Any supply components or baseboard convective electrics/waters are removed from any existing air/plant loops or zones. Any existing air/plant loops are also removed. A heating DX coil, cooling DX coil, electric supplemental heating coil, and an on/off supply fan are added to a unitary air loop. The unitary air loop is added to the supply inlet node of the air loop. This air loop is added to a branch for the living zone. A diffuser is added to the branch for the living zone as well as for the finished basement if it exists."
+    return "Any supply components or baseboard convective electrics/waters are removed from any existing air/plant loops or zones. Any existing air/plant loops are also removed. A heating DX coil, cooling DX coil, electric supplemental heating coil, and an on/off supply fan are added to a unitary air loop. The unitary air loop is added to the supply inlet node of the air loop. This air loop is added to a branch for the living zone. A diffuser is added to the branch for the living zone as well as for the finished basement if it exists."
   end   
   
   #define the arguments that the user will input
@@ -445,13 +445,6 @@ class ProcessAirSourceHeatPump < OpenStudio::Ruleset::ModelUserScript
       runner.registerError("Entered wrong length for EER, COP, Rated SHR, Capacity Ratio, or Fan Speed Ratio given the Number of Speeds.")
       return false
     end
-      
-    heatingseasonschedule = HelperMethods.get_heating_or_cooling_season_schedule_object(model, runner, Constants.ObjectNameHeatingSeason)
-    coolingseasonschedule = HelperMethods.get_heating_or_cooling_season_schedule_object(model, runner, Constants.ObjectNameCoolingSeason)
-    if heatingseasonschedule.nil? or coolingseasonschedule.nil?
-        runner.registerError("A heating season schedule named '#{Constants.ObjectNameHeatingSeason}' and/or cooling season schedule named '#{Constants.ObjectNameCoolingSeason}' has not yet been assigned. Apply the 'Set Residential Heating/Cooling Setpoints and Schedules' measure first.")
-        return false
-    end
     
     # Create the material class instances
     air_conditioner = AirConditioner.new(nil)
@@ -527,7 +520,7 @@ class ProcessAirSourceHeatPump < OpenStudio::Ruleset::ModelUserScript
       
       if supply.compressor_speeds == 1.0
 
-        htg_coil = OpenStudio::Model::CoilHeatingDXSingleSpeed.new(model, heatingseasonschedule, htg_coil_stage_data[0].heatingCapacityFunctionofTemperatureCurve, htg_coil_stage_data[0].heatingCapacityFunctionofFlowFractionCurve, htg_coil_stage_data[0].energyInputRatioFunctionofTemperatureCurve, htg_coil_stage_data[0].energyInputRatioFunctionofFlowFractionCurve, htg_coil_stage_data[0].partLoadFractionCorrelationCurve)
+        htg_coil = OpenStudio::Model::CoilHeatingDXSingleSpeed.new(model, model.alwaysOnDiscreteSchedule, htg_coil_stage_data[0].heatingCapacityFunctionofTemperatureCurve, htg_coil_stage_data[0].heatingCapacityFunctionofFlowFractionCurve, htg_coil_stage_data[0].energyInputRatioFunctionofTemperatureCurve, htg_coil_stage_data[0].energyInputRatioFunctionofFlowFractionCurve, htg_coil_stage_data[0].partLoadFractionCorrelationCurve)
         htg_coil.setName("DX Heating Coil")
         if hpOutputCapacity != Constants.SizingAuto
           htg_coil.setRatedTotalHeatingCapacity(OpenStudio::convert(hpOutputCapacity,"Btu/h","W").get)
@@ -547,7 +540,6 @@ class ProcessAirSourceHeatPump < OpenStudio::Ruleset::ModelUserScript
 
         htg_coil = OpenStudio::Model::CoilHeatingDXMultiSpeed.new(model)
         htg_coil.setName("DX Heating Coil")
-        htg_coil.setAvailabilitySchedule(heatingseasonschedule)
         htg_coil.setMinimumOutdoorDryBulbTemperatureforCompressorOperation(OpenStudio::convert(supply.min_hp_temp,"F","C").get)
         htg_coil.setCrankcaseHeaterCapacity(OpenStudio::convert(supply.Crankcase,"kW","W").get)
         htg_coil.setMaximumOutdoorDryBulbTemperatureforCrankcaseHeaterOperation(OpenStudio::convert(supply.Crankcase_MaxT,"F","C").get)
@@ -564,7 +556,7 @@ class ProcessAirSourceHeatPump < OpenStudio::Ruleset::ModelUserScript
 
       end
       
-      supp_htg_coil = OpenStudio::Model::CoilHeatingElectric.new(model, heatingseasonschedule)
+      supp_htg_coil = OpenStudio::Model::CoilHeatingElectric.new(model, model.alwaysOnDiscreteSchedule)
       supp_htg_coil.setName("HeatPump Supp Heater")
       supp_htg_coil.setEfficiency(1)
       if supplementalOutputCapacity != Constants.SizingAuto
@@ -575,7 +567,7 @@ class ProcessAirSourceHeatPump < OpenStudio::Ruleset::ModelUserScript
       
       if supply.compressor_speeds == 1.0
 
-        clg_coil = OpenStudio::Model::CoilCoolingDXSingleSpeed.new(model, coolingseasonschedule, clg_coil_stage_data[0].totalCoolingCapacityFunctionofTemperatureCurve, clg_coil_stage_data[0].totalCoolingCapacityFunctionofFlowFractionCurve, clg_coil_stage_data[0].energyInputRatioFunctionofTemperatureCurve, clg_coil_stage_data[0].energyInputRatioFunctionofFlowFractionCurve, clg_coil_stage_data[0].partLoadFractionCorrelationCurve)
+        clg_coil = OpenStudio::Model::CoilCoolingDXSingleSpeed.new(model, model.alwaysOnDiscreteSchedule, clg_coil_stage_data[0].totalCoolingCapacityFunctionofTemperatureCurve, clg_coil_stage_data[0].totalCoolingCapacityFunctionofFlowFractionCurve, clg_coil_stage_data[0].energyInputRatioFunctionofTemperatureCurve, clg_coil_stage_data[0].energyInputRatioFunctionofFlowFractionCurve, clg_coil_stage_data[0].partLoadFractionCorrelationCurve)
         clg_coil.setName("DX Cooling Coil")
         if hpOutputCapacity != Constants.SizingAuto
           clg_coil.setRatedTotalCoolingCapacity(OpenStudio::convert(hpOutputCapacity,"Btu/h","W").get)
@@ -620,7 +612,6 @@ class ProcessAirSourceHeatPump < OpenStudio::Ruleset::ModelUserScript
 
         clg_coil = OpenStudio::Model::CoilCoolingDXMultiSpeed.new(model)
         clg_coil.setName("DX Cooling Coil")
-        clg_coil.setAvailabilitySchedule(coolingseasonschedule)
         clg_coil.setCondenserType(supply.CondenserType)
         clg_coil.setApplyPartLoadFractiontoSpeedsGreaterthan1(false)
         clg_coil.setApplyLatentDegradationtoSpeedsGreaterthan1(false)        

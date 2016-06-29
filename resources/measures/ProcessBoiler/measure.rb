@@ -72,7 +72,7 @@ class ProcessBoiler < OpenStudio::Ruleset::ModelUserScript
 
   # human readable description of modeling approach
   def modeler_description
-    return "This measure parses the OSM for the #{Constants.ObjectNameHeatingSeason}. Any heating components or baseboard convective electrics/waters are removed from any existing air/plant loops or zones. A boiler along with constant speed pump and water baseboard coils are added to a hot water plant loop."
+    return "Any heating components or baseboard convective electrics/waters are removed from any existing air/plant loops or zones. A boiler along with constant speed pump and water baseboard coils are added to a hot water plant loop."
   end
 
   # define the arguments that the user will input
@@ -200,12 +200,6 @@ class ProcessBoiler < OpenStudio::Ruleset::ModelUserScript
       boilerOutputCapacity = OpenStudio::convert(boilerOutputCapacity.split(" ")[0].to_f,"kBtu/h","Btu/h").get
     end
     boilerDesignTemp = runner.getDoubleArgumentValue("boilerDesignTemp",user_arguments)
-
-    heatingseasonschedule = HelperMethods.get_heating_or_cooling_season_schedule_object(model, runner, Constants.ObjectNameHeatingSeason)
-    if heatingseasonschedule.nil?
-        runner.registerError("A heating season schedule named '#{Constants.ObjectNameHeatingSeason}' has not yet been assigned. Apply the 'Set Residential Heating/Cooling Setpoints and Schedules' measure first.")
-        return false
-    end 
     
     # Create the material class instances
     hydronic_heating = Boiler.new(boilerFuelType, boilerType, boilerInstalledAFUE, boilerOATResetEnabled, boilerOATHigh, boilerOATLow, boilerOATLowHWST, boilerOATHighHWST, boilerDesignTemp)
@@ -359,7 +353,7 @@ class ProcessBoiler < OpenStudio::Ruleset::ModelUserScript
       end
       baseboard_coil.setConvergenceTolerance(0.001)
       
-      living_baseboard_heater = OpenStudio::Model::ZoneHVACBaseboardConvectiveWater.new(model, heatingseasonschedule, baseboard_coil)
+      living_baseboard_heater = OpenStudio::Model::ZoneHVACBaseboardConvectiveWater.new(model, model.alwaysOnDiscreteSchedule, baseboard_coil)
       living_baseboard_heater.setName("Living Zone Baseboards")
       living_baseboard_heater.addToThermalZone(control_zone)
       runner.registerInfo("Added baseboard convective water '#{living_baseboard_heater.name}' to thermal zone '#{control_zone.name}'")
@@ -381,7 +375,7 @@ class ProcessBoiler < OpenStudio::Ruleset::ModelUserScript
         end
         baseboard_coil.setConvergenceTolerance(0.001)
       
-        fbasement_baseboard_heater = OpenStudio::Model::ZoneHVACBaseboardConvectiveWater.new(model, heatingseasonschedule, baseboard_coil)
+        fbasement_baseboard_heater = OpenStudio::Model::ZoneHVACBaseboardConvectiveWater.new(model, model.alwaysOnDiscreteSchedule, baseboard_coil)
         fbasement_baseboard_heater.setName("FBsmt Zone Baseboards")
         fbasement_baseboard_heater.addToThermalZone(slave_zone)
         runner.registerInfo("Added baseboard convective water '#{fbasement_baseboard_heater.name}' to thermal zone '#{slave_zone.name}'")

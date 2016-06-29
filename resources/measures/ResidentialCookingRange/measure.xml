@@ -2,8 +2,8 @@
   <schema_version>3.0</schema_version>
   <name>residential_cooking_range</name>
   <uid>246da4be-4924-41f5-8de0-177b42b7d6b5</uid>
-  <version_id>6c1bab39-7f4d-43f0-a5f4-65adb90978d2</version_id>
-  <version_modified>20160618T170351Z</version_modified>
+  <version_id>0eec4769-da78-42d2-97cf-20ccb5703254</version_id>
+  <version_modified>20160627T204951Z</version_modified>
   <xml_checksum>126F1C43</xml_checksum>
   <class_name>ResidentialCookingRange</class_name>
   <display_name>Set Residential Electric Cooking Range</display_name>
@@ -11,7 +11,7 @@
   <modeler_description>Since there is no Cooking Range object in OpenStudio/EnergyPlus, we look for an ElectricEquipment or GasEquipment object with the name that denotes it is a residential cooking range. If one is found, it is replaced with the specified properties. Otherwise, a new such object is added to the model. Note: This measure requires the number of bedrooms/bathrooms to have already been assigned.</modeler_description>
   <arguments>
     <argument>
-      <name>C_ef</name>
+      <name>c_ef</name>
       <display_name>Cooktop Energy Factor</display_name>
       <description>Cooktop energy factor determined by DOE test procedures for cooking appliances (DOE 1997).</description>
       <type>Double</type>
@@ -20,7 +20,7 @@
       <default_value>0.74</default_value>
     </argument>
     <argument>
-      <name>O_ef</name>
+      <name>o_ef</name>
       <display_name>Oven Energy Factor</display_name>
       <description>Oven energy factor determined by DOE test procedures for cooking appliances (DOE 1997).</description>
       <type>Double</type>
@@ -98,10 +98,22 @@
   </attributes>
   <files>
     <file>
-      <filename>ResidentialCookingRange_Test.rb</filename>
+      <filename>geometry.rb</filename>
       <filetype>rb</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>2285CA0B</checksum>
+    </file>
+    <file>
+      <filename>2000sqft_2story_FB_GRG_UA.osm</filename>
+      <filetype>osm</filetype>
       <usage_type>test</usage_type>
-      <checksum>8CE5D019</checksum>
+      <checksum>A2C693E7</checksum>
+    </file>
+    <file>
+      <filename>2000sqft_2story_FB_GRG_UA_3Beds_2Baths.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>CBEE7249</checksum>
     </file>
     <file>
       <version>
@@ -112,25 +124,37 @@
       <filename>measure.rb</filename>
       <filetype>rb</filetype>
       <usage_type>script</usage_type>
-      <checksum>9E1F1C0B</checksum>
-    </file>
-    <file>
-      <filename>geometry.rb</filename>
-      <filetype>rb</filetype>
-      <usage_type>resource</usage_type>
-      <checksum>2285CA0B</checksum>
-    </file>
-    <file>
-      <filename>schedules.rb</filename>
-      <filetype>rb</filetype>
-      <usage_type>resource</usage_type>
-      <checksum>CFF29151</checksum>
+      <checksum>0A5CE155</checksum>
     </file>
     <file>
       <filename>constants.rb</filename>
       <filetype>rb</filetype>
       <usage_type>resource</usage_type>
-      <checksum>6FEC70C2</checksum>
+      <checksum>6857D963</checksum>
+    </file>
+    <file>
+      <filename>ResidentialCookingRange_Test.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>test</usage_type>
+      <checksum>B6BEBD4C</checksum>
+    </file>
+    <file>
+      <filename>2000sqft_2story_FB_GRG_UA_3Beds_2Baths_GasCookingRangeWithElecIgnition.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>AA12F32B</checksum>
+    </file>
+    <file>
+      <filename>2000sqft_2story_FB_GRG_UA_3Beds_2Baths_GasCookingRange.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>E51B17C2</checksum>
+    </file>
+    <file>
+      <filename>schedules.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>3FEC7DD1</checksum>
     </file>
   </files>
 </measure>

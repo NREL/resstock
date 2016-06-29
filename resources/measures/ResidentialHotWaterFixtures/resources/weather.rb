@@ -26,6 +26,13 @@ class WeatherProcess
       else
         epw_path = wf.url.to_s.sub("file:///","")
       end
+      # Allow relative paths in OSMs for unit tests
+      if not File.exist?(epw_path)
+        epw_path_unit_tests = File.join(File.dirname(__FILE__), "..", "tests", epw_path)
+        if File.exist?(epw_path_unit_tests)
+          epw_path = epw_path_unit_tests
+        end
+      end
       @header, @data = process_epw(epw_path, header_only)
     elsif not model.respond_to?("weatherFile") and runner.lastEpwFilePath.is_initialized
       # EnergyPlus measures

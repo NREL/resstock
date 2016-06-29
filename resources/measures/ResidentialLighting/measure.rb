@@ -122,6 +122,56 @@ class ResidentialLighting < OpenStudio::Ruleset::ModelUserScript
     cfl_eff = runner.getDoubleArgumentValue("cfl_eff",user_arguments)
     led_eff = runner.getDoubleArgumentValue("led_eff",user_arguments)
     lfl_eff = runner.getDoubleArgumentValue("lfl_eff",user_arguments)
+    
+    #Check for valid inputs
+    if hw_cfl < 0 or hw_cfl > 1
+        runner.registerError("Hardwired Fraction CFL must be greater than or equal to 0 and less than or equal to 1.")
+        return false
+    end
+    if hw_led < 0 or hw_led > 1
+        runner.registerError("Hardwired Fraction LED must be greater than or equal to 0 and less than or equal to 1.")
+        return false
+    end
+    if hw_lfl < 0 or hw_lfl > 1
+        runner.registerError("Hardwired Fraction LFL must be greater than or equal to 0 and less than or equal to 1.")
+        return false
+    end
+    if hw_cfl + hw_led + hw_lfl > 1
+        runner.registerError("Sum of CFL, LED, and LFL Hardwired Fractions must be less than or equal to 1.")
+        return false
+    end
+    if pg_cfl < 0 or pg_cfl > 1
+        runner.registerError("Plugin Fraction CFL must be greater than or equal to 0 and less than or equal to 1.")
+        return false
+    end
+    if pg_led < 0 or pg_led > 1
+        runner.registerError("Plugin Fraction LED must be greater than or equal to 0 and less than or equal to 1.")
+        return false
+    end
+    if pg_lfl < 0 or pg_lfl > 1
+        runner.registerError("Plugin Fraction LFL must be greater than or equal to 0 and less than or equal to 1.")
+        return false
+    end
+    if pg_cfl + pg_led + pg_lfl > 1
+        runner.registerError("Sum of CFL, LED, and LFL Plugin Fractions must be less than or equal to 1.")
+        return false
+    end
+    if in_eff <= 0
+        runner.registerError("Incandescent Efficacy must be greater than 0.")
+        return false
+    end
+    if cfl_eff <= 0
+        runner.registerError("CFL Efficacy must be greater than 0.")
+        return false
+    end
+    if led_eff <= 0
+        runner.registerError("LED Efficacy must be greater than 0.")
+        return false
+    end
+    if lfl_eff <= 0
+        runner.registerError("LFL Efficacy must be greater than 0.")
+        return false
+    end
 
     # Get FFA and garage floor area
     ffa = Geometry.get_building_finished_floor_area(model, runner)
@@ -317,15 +367,13 @@ class ResidentialLighting < OpenStudio::Ruleset::ModelUserScript
     
     # Remove all existing lighting
     ltg_removed = false
-    model.getFacility.exteriorLights.each do |exterior_light|
+    model.getExteriorLightss.each do |exterior_light|
         exterior_light.remove
         ltg_removed = true
     end
-    model.getSpaces.each do |space|
-        space.lights.each do |light|
-            light.remove
-            ltg_removed = true
-        end
+    model.getLightss.each do |light|
+        light.remove
+        ltg_removed = true
     end
     if ltg_removed
         runner.registerInfo("Removed existing interior/exterior lighting.")

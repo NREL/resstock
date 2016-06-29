@@ -32,7 +32,7 @@ class ProcessRoomAirConditioner < OpenStudio::Ruleset::ModelUserScript
 
   # human readable description of modeling approach
   def modeler_description
-    return "This measure parses the IDF for the #{Constants.ObjectNameCoolingSeason}. Any cooling components are removed from any existing air loops or zones. Any existing air loops are also removed. An HVAC packaged terminal air conditioner is added to the living zone."
+    return "Any cooling components are removed from any existing air loops or zones. Any existing air loops are also removed. An HVAC packaged terminal air conditioner is added to the living zone."
   end
 
   # define the arguments that the user will input
@@ -88,12 +88,6 @@ class ProcessRoomAirConditioner < OpenStudio::Ruleset::ModelUserScript
     
     supply = Supply.new
     curves = Curves.new
-
-    coolingseasonschedule = HelperMethods.get_heating_or_cooling_season_schedule_object(model, runner, Constants.ObjectNameCoolingSeason)
-    if coolingseasonschedule.nil?
-        runner.registerError("A cooling season schedule named '#{Constants.ObjectNameCoolingSeason}' has not yet been assigned. Apply the 'Set Residential Heating/Cooling Setpoints and Schedules' measure first.")
-        return false
-    end
     
     roomaceer = runner.getDoubleArgumentValue("roomaceer",user_arguments)
     supply.shr_Rated = runner.getDoubleArgumentValue("roomacshr",user_arguments)
@@ -178,7 +172,7 @@ class ProcessRoomAirConditioner < OpenStudio::Ruleset::ModelUserScript
     
       # _processSystemRoomAC
     
-      clg_coil = OpenStudio::Model::CoilCoolingDXSingleSpeed.new(model, coolingseasonschedule, roomac_cap_ft, roomac_cap_fff, roomac_eir_ft, roomcac_eir_fff, roomac_plf_fplr)
+      clg_coil = OpenStudio::Model::CoilCoolingDXSingleSpeed.new(model, model.alwaysOnDiscreteSchedule, roomac_cap_ft, roomac_cap_fff, roomac_eir_ft, roomcac_eir_fff, roomac_plf_fplr)
       clg_coil.setName("WindowAC Coil")
       if acOutputCapacity != Constants.SizingAuto
         clg_coil.setRatedTotalCoolingCapacity(OpenStudio::convert(acOutputCapacity,"Btu/h","W").get)
@@ -209,7 +203,7 @@ class ProcessRoomAirConditioner < OpenStudio::Ruleset::ModelUserScript
       htg_coil = OpenStudio::Model::CoilHeatingElectric.new(model, model.alwaysOffDiscreteSchedule())
       htg_coil.setName("Always Off Heating Coil for PTAC")
       
-      ptac = OpenStudio::Model::ZoneHVACPackagedTerminalAirConditioner.new(model, coolingseasonschedule, fan_onoff, htg_coil, clg_coil)
+      ptac = OpenStudio::Model::ZoneHVACPackagedTerminalAirConditioner.new(model, model.alwaysOnDiscreteSchedule, fan_onoff, htg_coil, clg_coil)
       ptac.setName("Window AC")
       ptac.setOutdoorAirMixerName("WindowAC Mixer")
       ptac.setSupplyAirFanOperatingModeSchedule(supply_fan_operation)

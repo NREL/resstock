@@ -4,33 +4,33 @@ require 'minitest/autorun'
 require_relative '../measure.rb'
 require 'fileutils'
 
-class NewMeasureTest < MiniTest::Test
+class ResidentialGasGrillTest < MiniTest::Test
 
   def test_new_construction_none1
     # Using annual energy
     args_hash = {}
     args_hash["base_energy"] = 0.0
-    _test_new_construction("2000sqft_2story_FB_GRG_UA_3Beds_2Baths.osm", args_hash, false)
+    _test_measure("2000sqft_2story_FB_GRG_UA_3Beds_2Baths.osm", args_hash)
   end
   
   def test_new_construction_none2
     # Using energy multiplier
     args_hash = {}
     args_hash["mult"] = 0.0
-    _test_new_construction("2000sqft_2story_FB_GRG_UA_3Beds_2Baths.osm", args_hash, false)
+    _test_measure("2000sqft_2story_FB_GRG_UA_3Beds_2Baths.osm", args_hash)
   end
   
   def test_new_construction_gas
     args_hash = {}
     args_hash["base_energy"] = 30.0
-    _test_new_construction("2000sqft_2story_FB_GRG_UA_3Beds_2Baths.osm", args_hash, true, _scale_energy(30.0, 3, 2000))
+    _test_measure("2000sqft_2story_FB_GRG_UA_3Beds_2Baths.osm", args_hash, 0, 1, _scale_energy(30.0, 3, 2000))
   end
   
   def test_new_construction_mult_0_029
     args_hash = {}
     args_hash["base_energy"] = 30.0
     args_hash["mult"] = 0.029
-    _test_new_construction("2000sqft_2story_FB_GRG_UA_3Beds_2Baths.osm", args_hash, true, _scale_energy(0.87, 3, 2000))
+    _test_measure("2000sqft_2story_FB_GRG_UA_3Beds_2Baths.osm", args_hash, 0, 1, _scale_energy(0.87, 3, 2000))
   end
   
   def test_new_construction_modified_schedule
@@ -39,32 +39,32 @@ class NewMeasureTest < MiniTest::Test
     args_hash["weekday_sch"] = "1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24"
     args_hash["weekend_sch"] = "1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24"
     args_hash["monthly_sch"] = "1,2,3,4,5,6,7,8,9,10,11,12"
-    _test_new_construction("2000sqft_2story_FB_GRG_UA_3Beds_2Baths.osm", args_hash, true, _scale_energy(30.0, 3, 2000))
+    _test_measure("2000sqft_2story_FB_GRG_UA_3Beds_2Baths.osm", args_hash, 0, 1, _scale_energy(30.0, 3, 2000))
   end
 
   def test_new_construction_no_scale_energy
     args_hash = {}
     args_hash["base_energy"] = 30.0
     args_hash["scale_energy"] = "false" # FIXME: Why does this need to be a string?
-    _test_new_construction("2000sqft_2story_FB_GRG_UA_3Beds_2Baths.osm", args_hash, true, 30.0)
+    _test_measure("2000sqft_2story_FB_GRG_UA_3Beds_2Baths.osm", args_hash, 0, 1, 30.0)
   end
 
   def test_retrofit_replace
     args_hash = {}
     args_hash["base_energy"] = 30.0
-    model = _test_new_construction("2000sqft_2story_FB_GRG_UA_3Beds_2Baths.osm", args_hash, true, _scale_energy(30.0, 3, 2000))
+    model = _test_measure("2000sqft_2story_FB_GRG_UA_3Beds_2Baths.osm", args_hash, 0, 1, _scale_energy(30.0, 3, 2000))
     args_hash = {}
     args_hash["base_energy"] = 15.0
-    _test_retrofit(model, args_hash, true, _scale_energy(15.0, 3, 2000))
+    _test_measure(model, args_hash, 1, 1, _scale_energy(15.0, 3, 2000))
   end
   
   def test_retrofit_remove
     args_hash = {}
     args_hash["base_energy"] = 30.0
-    model = _test_new_construction("2000sqft_2story_FB_GRG_UA_3Beds_2Baths.osm", args_hash, true, _scale_energy(30.0, 3, 2000))
+    model = _test_measure("2000sqft_2story_FB_GRG_UA_3Beds_2Baths.osm", args_hash, 0, 1, _scale_energy(30.0, 3, 2000))
     args_hash = {}
     args_hash["base_energy"] = 0.0
-    _test_retrofit(model, args_hash, false)
+    _test_measure(model, args_hash, 1, 0)
   end
   
   def test_argument_error_base_energy_negative
@@ -165,14 +165,14 @@ class NewMeasureTest < MiniTest::Test
     assert(result.errors.size == 1)
   end
 
-  def _test_new_construction(osm_file, args_hash, expected_new_object, expected_annual_therm=nil)
+  def _test_measure(osm_file_or_model, args_hash, expected_num_del_objects=0, expected_num_new_objects=0, expected_annual_therm=0.0)
     # create an instance of the measure
     measure = ResidentialGasGrill.new
 
     # create an instance of a runner
     runner = OpenStudio::Ruleset::OSRunner.new
-
-    model = _get_model(osm_file)
+    
+    model = _get_model(osm_file_or_model)
 
     # store the original equipment in the seed model
     orig_equip = model.getElectricEquipments + model.getGasEquipments
@@ -199,80 +199,11 @@ class NewMeasureTest < MiniTest::Test
 
     # assert that it ran correctly
     assert_equal("Success", result.value.valueName)
-    assert(result.info.size == 0)
-    assert(result.warnings.size == 0)
-    
-    # get new/deleted equipment objects
-    new_objects = []
-    (model.getElectricEquipments + model.getGasEquipments).each do |equip|
-        next if orig_equip.include?(equip)
-        new_objects << equip
-    end
-    del_objects = []
-    orig_equip.each do |equip|
-        next if model.getElectricEquipments.include?(equip) or model.getGasEquipments.include?(equip)
-        del_objects << equip
-    end
-
-    if expected_new_object
-        # check that 1 equipment object was created; 0 deleted
-        assert_equal(1, new_objects.size)
-        assert_equal(0, del_objects.size)
-        new_object = new_objects[0]
-        
-        # check that the new object has the correct name
-        assert_equal(new_object.name.to_s, Constants.ObjectNameGasGrill)
-        
-        # check new object has no internal gains
-        assert_equal(new_object.gasEquipmentDefinition.fractionLost, 1.0)
-
-        # check for the correct annual energy consumption
-        full_load_hrs = Schedule.annual_equivalent_full_load_hrs(model, new_object.schedule.get)
-        actual_annual_therm = OpenStudio.convert(full_load_hrs * new_object.designLevel.get * new_object.multiplier, "Wh", "therm").get
-        assert_in_epsilon(expected_annual_therm, actual_annual_therm, 0.01)
+    if expected_num_del_objects > 0
+        assert(result.info.size == 1)
     else
-        # check that no equipment object was deleted or created
-        assert_equal(0, new_objects.size)
-        assert_equal(0, del_objects.size)
+        assert(result.info.size == 0)
     end
-    
-    return model
-    
-  end
-  
-  def _test_retrofit(model, args_hash, expected_new_object, expected_annual_therm=nil)
-    # create an instance of the measure
-    measure = ResidentialGasGrill.new
-
-    # create an instance of a runner
-    runner = OpenStudio::Ruleset::OSRunner.new
-
-    # store the original equipment in the seed model
-    orig_equip = model.getElectricEquipments + model.getGasEquipments
-
-    # get arguments
-    arguments = measure.arguments(model)
-    argument_map = OpenStudio::Ruleset.convertOSArgumentVectorToMap(arguments)
-
-    # populate argument with specified hash value if specified
-    arguments.each do |arg|
-      temp_arg_var = arg.clone
-      if args_hash[arg.name]
-        assert(temp_arg_var.setValue(args_hash[arg.name]))
-      end
-      argument_map[arg.name] = temp_arg_var
-    end
-
-    # run the measure
-    measure.run(model, runner, argument_map)
-    result = runner.result
-
-    # show the output
-    #show_output(result)
-
-    # assert that it ran correctly
-    assert_equal("Success", result.value.valueName)
-    assert(result.info.size == 1)
     assert(result.warnings.size == 0)
     
     # get new/deleted equipment objects
@@ -287,20 +218,12 @@ class NewMeasureTest < MiniTest::Test
         del_objects << equip
     end
     
-    if not expected_new_object
-        # check that 1 equipment object was deleted; 0 created
-        assert_equal(1, del_objects.size)
-        assert_equal(0, new_objects.size)
-        del_object = del_objects[0]
-        
-        # check that the deleted object had the correct name
-        assert_equal(del_object.name.to_s, Constants.ObjectNameGasGrill)
-    else # replaced object
-        # check that 1 equipment object was deleted; 1 created
-        assert_equal(1, del_objects.size)
-        assert_equal(1, new_objects.size)
-        new_object = new_objects[0]
-        
+    # check for num new/del objects
+    assert_equal(expected_num_del_objects, del_objects.size)
+    assert_equal(expected_num_new_objects, new_objects.size)
+    
+    actual_annual_therm = 0.0
+    new_objects.each do |new_object|
         # check that the new object has the correct name
         assert_equal(new_object.name.to_s, Constants.ObjectNameGasGrill)
         
@@ -309,20 +232,24 @@ class NewMeasureTest < MiniTest::Test
         
         # check for the correct annual energy consumption
         full_load_hrs = Schedule.annual_equivalent_full_load_hrs(model, new_object.schedule.get)
-        actual_annual_therm = OpenStudio.convert(full_load_hrs * new_object.designLevel.get * new_object.multiplier, "Wh", "therm").get
-        assert_in_epsilon(expected_annual_therm, actual_annual_therm, 0.01)
+        actual_annual_therm += OpenStudio.convert(full_load_hrs * new_object.designLevel.get * new_object.multiplier, "Wh", "therm").get
     end
+    assert_in_epsilon(expected_annual_therm, actual_annual_therm, 0.01)
 
+    return model
   end
   
-  def _get_model(osm_file)
-    if osm_file.nil?
+  def _get_model(osm_file_or_model)
+    if osm_file_or_model.is_a?(OpenStudio::Model::Model)
+        # nothing to do
+        model = osm_file_or_model
+    elsif osm_file_or_model.nil?
         # make an empty model
         model = OpenStudio::Model::Model.new
     else
         # load the test model
         translator = OpenStudio::OSVersion::VersionTranslator.new
-        path = OpenStudio::Path.new(File.join(File.dirname(__FILE__), osm_file))
+        path = OpenStudio::Path.new(File.join(File.dirname(__FILE__), osm_file_or_model))
         model = translator.loadModel(path)
         assert((not model.empty?))
         model = model.get

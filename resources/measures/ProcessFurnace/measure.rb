@@ -71,7 +71,7 @@ class ProcessFurnace < OpenStudio::Ruleset::ModelUserScript
   end
   
   def modeler_description
-    return "This measure parses the OSM for the #{Constants.ObjectNameHeatingSeason}. Any heating components or baseboard convective electrics/waters are removed from any existing air/plant loops or zones. Any existing air/plant loops are also removed. An electric or gas heating coil and an on/off supply fan are added to a unitary air loop. The unitary air loop is added to the supply inlet node of the air loop. This air loop is added to a branch for the living zone. A diffuser is added to the branch for the living zone as well as for the finished basement if it exists."
+    return "Any heating components or baseboard convective electrics/waters are removed from any existing air/plant loops or zones. Any existing air/plant loops are also removed. An electric or gas heating coil and an on/off supply fan are added to a unitary air loop. The unitary air loop is added to the supply inlet node of the air loop. This air loop is added to a branch for the living zone. A diffuser is added to the branch for the living zone as well as for the finished basement if it exists."
   end   
   
   #define the arguments that the user will input
@@ -146,13 +146,7 @@ class ProcessFurnace < OpenStudio::Ruleset::ModelUserScript
       furnaceOutputCapacity = OpenStudio::convert(furnaceOutputCapacity.split(" ")[0].to_f,"kBtu/h","Btu/h").get
     end
     furnaceMaxSupplyTemp = runner.getDoubleArgumentValue("userdefinedmaxtemp",user_arguments)
-    furnaceInstalledSupplyFanPower = runner.getDoubleArgumentValue("userdefinedfanpower",user_arguments)
-
-    heatingseasonschedule = HelperMethods.get_heating_or_cooling_season_schedule_object(model, runner, Constants.ObjectNameHeatingSeason)
-    if heatingseasonschedule.nil?
-      runner.registerError("A heating season schedule named '#{Constants.ObjectNameHeatingSeason}' has not yet been assigned. Apply the 'Set Residential Heating/Cooling Setpoints and Schedules' measure first.")
-      return false
-    end    
+    furnaceInstalledSupplyFanPower = runner.getDoubleArgumentValue("userdefinedfanpower",user_arguments) 
     
     # Create the material class instances
     furnace = Furnace.new(furnaceInstalledAFUE, furnaceMaxSupplyTemp, furnaceFuelType, furnaceInstalledSupplyFanPower)
@@ -211,7 +205,7 @@ class ProcessFurnace < OpenStudio::Ruleset::ModelUserScript
       
       if furnace.FurnaceFuelType == Constants.FuelTypeElectric
 
-        htg_coil = OpenStudio::Model::CoilHeatingElectric.new(model, heatingseasonschedule)
+        htg_coil = OpenStudio::Model::CoilHeatingElectric.new(model)
         htg_coil.setName("Furnace Heating Coil")
         htg_coil.setEfficiency(1.0 / furnace.hir)
         if furnaceOutputCapacity != Constants.SizingAuto
@@ -220,7 +214,7 @@ class ProcessFurnace < OpenStudio::Ruleset::ModelUserScript
 
       elsif furnace.FurnaceFuelType != Constants.FuelTypeElectric
 
-        htg_coil = OpenStudio::Model::CoilHeatingGas.new(model, heatingseasonschedule)
+        htg_coil = OpenStudio::Model::CoilHeatingGas.new(model)
         htg_coil.setName("Furnace Heating Coil")
         htg_coil.setGasBurnerEfficiency(1.0 / furnace.hir)
         if furnaceOutputCapacity != Constants.SizingAuto

@@ -288,12 +288,6 @@ class ProcessCentralAirConditioner < OpenStudio::Ruleset::ModelUserScript
     unless ( acNumberSpeeds == acCoolingEER.length and acNumberSpeeds == acSHRRated.length and acNumberSpeeds == acCapacityRatio.length and acNumberSpeeds == acFanspeedRatio.length )
       runner.registerError("Entered wrong length for EER, Rated SHR, Capacity Ratio, or Fan Speed Ratio given the Number of Speeds.")
       return false
-    end
-      
-    coolingseasonschedule = HelperMethods.get_heating_or_cooling_season_schedule_object(model, runner, Constants.ObjectNameCoolingSeason)
-    if coolingseasonschedule.nil?
-        runner.registerError("A cooling season schedule named '#{Constants.ObjectNameCoolingSeason}' has not yet been assigned. Apply the 'Set Residential Heating/Cooling Setpoints and Schedules' measure first.")
-        return false
     end   
     
     # Create the material class instances
@@ -348,7 +342,7 @@ class ProcessCentralAirConditioner < OpenStudio::Ruleset::ModelUserScript
       
       if supply.compressor_speeds == 1.0
 
-        clg_coil = OpenStudio::Model::CoilCoolingDXSingleSpeed.new(model, coolingseasonschedule, clg_coil_stage_data[0].totalCoolingCapacityFunctionofTemperatureCurve, clg_coil_stage_data[0].totalCoolingCapacityFunctionofFlowFractionCurve, clg_coil_stage_data[0].energyInputRatioFunctionofTemperatureCurve, clg_coil_stage_data[0].energyInputRatioFunctionofFlowFractionCurve, clg_coil_stage_data[0].partLoadFractionCorrelationCurve)
+        clg_coil = OpenStudio::Model::CoilCoolingDXSingleSpeed.new(model, model.alwaysOnDiscreteSchedule, clg_coil_stage_data[0].totalCoolingCapacityFunctionofTemperatureCurve, clg_coil_stage_data[0].totalCoolingCapacityFunctionofFlowFractionCurve, clg_coil_stage_data[0].energyInputRatioFunctionofTemperatureCurve, clg_coil_stage_data[0].energyInputRatioFunctionofFlowFractionCurve, clg_coil_stage_data[0].partLoadFractionCorrelationCurve)
         clg_coil.setName("DX Cooling Coil")
         if acOutputCapacity != Constants.SizingAuto
           clg_coil.setRatedTotalCoolingCapacity(OpenStudio::convert(acOutputCapacity,"Btu/h","W").get)
@@ -396,7 +390,6 @@ class ProcessCentralAirConditioner < OpenStudio::Ruleset::ModelUserScript
 
         clg_coil = OpenStudio::Model::CoilCoolingDXMultiSpeed.new(model)
         clg_coil.setName("DX Cooling Coil")
-        clg_coil.setAvailabilitySchedule(coolingseasonschedule)
         clg_coil.setCondenserType(supply.CondenserType)
         clg_coil.setApplyPartLoadFractiontoSpeedsGreaterthan1(false)
         clg_coil.setApplyLatentDegradationtoSpeedsGreaterthan1(false)

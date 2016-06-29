@@ -3,7 +3,7 @@ require "#{File.dirname(__FILE__)}/resources/constants"
 require "#{File.dirname(__FILE__)}/resources/geometry"
 
 #start the measure
-class ResidentialCookingRange < OpenStudio::Ruleset::ModelUserScript
+class ResidentialCookingRangeGas < OpenStudio::Ruleset::ModelUserScript
   
   def name
     return "Set Residential Gas Cooking Range"
@@ -22,14 +22,14 @@ class ResidentialCookingRange < OpenStudio::Ruleset::ModelUserScript
     args = OpenStudio::Ruleset::OSArgumentVector.new
     
 	#make a double argument for cooktop EF
-	c_ef = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("C_ef", true)
+	c_ef = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("c_ef", true)
 	c_ef.setDisplayName("Cooktop Energy Factor")
 	c_ef.setDescription("Cooktop energy factor determined by DOE test procedures for cooking appliances (DOE 1997).")
 	c_ef.setDefaultValue(0.4)
 	args << c_ef
 
 	#make a double argument for oven EF
-	o_ef = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("O_ef", true)
+	o_ef = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("o_ef", true)
 	o_ef.setDisplayName("Oven Energy Factor")
 	o_ef.setDescription("Oven energy factor determined by DOE test procedures for cooking appliances (DOE 1997).")
 	o_ef.setDefaultValue(0.058)
@@ -100,8 +100,8 @@ class ResidentialCookingRange < OpenStudio::Ruleset::ModelUserScript
     end
 
     #assign the user inputs to variables
-	c_ef = runner.getDoubleArgumentValue("C_ef",user_arguments)
-	o_ef = runner.getDoubleArgumentValue("O_ef",user_arguments)
+	c_ef = runner.getDoubleArgumentValue("c_ef",user_arguments)
+	o_ef = runner.getDoubleArgumentValue("o_ef",user_arguments)
 	e_ignition = runner.getBoolArgumentValue("e_ignition",user_arguments)
 	mult = runner.getDoubleArgumentValue("mult",user_arguments)
 	weekday_sch = runner.getStringArgumentValue("weekday_sch",user_arguments)
@@ -109,12 +109,6 @@ class ResidentialCookingRange < OpenStudio::Ruleset::ModelUserScript
 	monthly_sch = runner.getStringArgumentValue("monthly_sch",user_arguments)
 	space_r = runner.getStringArgumentValue("space",user_arguments)
 	
-    #Get space
-    space = Geometry.get_space_from_string(model, space_r, runner)
-    if space.nil?
-        return false
-    end
-
     # Get number of bedrooms/bathrooms
     nbeds, nbaths = Geometry.get_bedrooms_bathrooms(model, runner)
     if nbeds.nil? or nbaths.nil?
@@ -122,11 +116,12 @@ class ResidentialCookingRange < OpenStudio::Ruleset::ModelUserScript
     end
 	
 	#if oef or cef is defined, must be > 0
-	if o_ef <= 0
-		runner.registerError("Oven energy factor must be greater than zero.")
+	if o_ef <= 0 or o_ef > 1
+		runner.registerError("Oven energy factor must be greater than 0 and less than or equal to 1.")
 		return false
-	elsif c_ef <= 0
-		runner.registerError("Cooktop energy factor must be greater than zero.")
+    end
+	if c_ef <= 0 or c_ef > 1
+		runner.registerError("Cooktop energy factor must be greater than 0 and less than or equal to 1.")
 		return false
 	end
     if mult < 0
@@ -142,27 +137,16 @@ class ResidentialCookingRange < OpenStudio::Ruleset::ModelUserScript
         range_ann_i = 0
     end
 	
-    #hard coded convective, radiative, latent, and lost fractions
-	range_lat_e = 0.3
-	range_conv_e = 0.16
-	range_rad_e = 0.24
-	range_lost_e = 1 - range_lat_e - range_conv_e - range_rad_e
-	range_lat_g = 0.2
-	range_conv_g = 0.12
-	range_rad_g = 0.18
-	range_lost_g = 1 - range_lat_g - range_conv_g - range_rad_g
+    #Get space
+    space = Geometry.get_space_from_string(model, space_r, runner)
+    if space.nil?
+        return false
+    end
 
-	obj_name = Constants.ObjectNameCookingRange
-	obj_name_e = Constants.FuelTypeElectric + " " + obj_name
-	obj_name_g = Constants.FuelTypeGas + " " + obj_name
-	obj_name_i = Constants.FuelTypeElectric + " " + obj_name + " ignition"
-	sch = MonthWeekdayWeekendSchedule.new(model, runner, obj_name + " schedule", weekday_sch, weekend_sch, monthly_sch)
-	if not sch.validated?
-		return false
-	end
-    design_level_g = sch.calcDesignLevelFromDailyTherm(range_ann_g/365.0)
-    design_level_i = sch.calcDesignLevelFromDailykWh(range_ann_i/365.0)
-    
+    obj_name_e = Constants.ObjectNameCookingRange(Constants.FuelTypeElectric)
+    obj_name_g = Constants.ObjectNameCookingRange(Constants.FuelTypeGas)
+    obj_name_i = Constants.ObjectNameCookingRange(Constants.FuelTypeElectric, true)
+
     # Remove any existing cooking range
     cr_removed = false
     space.electricEquipment.each do |space_equipment|
@@ -181,43 +165,62 @@ class ResidentialCookingRange < OpenStudio::Ruleset::ModelUserScript
         runner.registerInfo("Removed existing cooking range.")
     end
 
-    #Add equipment for the range
-    rng_def = OpenStudio::Model::GasEquipmentDefinition.new(model)
-    rng = OpenStudio::Model::GasEquipment.new(rng_def)
-    rng.setName(obj_name_g)
-    rng.setSpace(space)
-    rng_def.setName(obj_name_g)
-    rng_def.setDesignLevel(design_level_g)
-    rng_def.setFractionRadiant(range_rad_g)
-    rng_def.setFractionLatent(range_lat_g)
-    rng_def.setFractionLost(range_lost_g)
-    sch.setSchedule(rng)
-    
-    if e_ignition == true
-        rng_def2 = OpenStudio::Model::ElectricEquipmentDefinition.new(model)
-        rng2 = OpenStudio::Model::ElectricEquipment.new(rng_def2)
-        rng2.setName(obj_name_i)
-        rng2.setSpace(space)
-        rng_def2.setName(obj_name_i)
-        rng_def2.setDesignLevel(design_level_i)
-        rng_def2.setFractionRadiant(range_rad_e)
-        rng_def2.setFractionLatent(range_lat_e)
-        rng_def2.setFractionLost(range_lost_e)
-        sch.setSchedule(rng2)
-    end
+    if range_ann_g > 0
+        #hard coded convective, radiative, latent, and lost fractions
+        range_lat_e = 0.3
+        range_conv_e = 0.16
+        range_rad_e = 0.24
+        range_lost_e = 1 - range_lat_e - range_conv_e - range_rad_e
+        range_lat_g = 0.2
+        range_conv_g = 0.12
+        range_rad_g = 0.18
+        range_lost_g = 1 - range_lat_g - range_conv_g - range_rad_g
 
-    #reporting final condition of model
-    if e_ignition == true
-        runner.registerFinalCondition("A gas range has been set with #{range_ann_g.round} therms and #{range_ann_i.round} kWhs annual energy consumption.")
-    else
-        runner.registerFinalCondition("A gas range has been set with #{range_ann_g.round} therms annual energy consumption.")
+        sch = MonthWeekdayWeekendSchedule.new(model, runner, obj_name_g + " schedule", weekday_sch, weekend_sch, monthly_sch)
+        if not sch.validated?
+            return false
+        end
+        design_level_g = sch.calcDesignLevelFromDailyTherm(range_ann_g/365.0)
+        design_level_i = sch.calcDesignLevelFromDailykWh(range_ann_i/365.0)
+        
+        #Add equipment for the range
+        rng_def = OpenStudio::Model::GasEquipmentDefinition.new(model)
+        rng = OpenStudio::Model::GasEquipment.new(rng_def)
+        rng.setName(obj_name_g)
+        rng.setSpace(space)
+        rng_def.setName(obj_name_g)
+        rng_def.setDesignLevel(design_level_g)
+        rng_def.setFractionRadiant(range_rad_g)
+        rng_def.setFractionLatent(range_lat_g)
+        rng_def.setFractionLost(range_lost_g)
+        sch.setSchedule(rng)
+        
+        if e_ignition == true
+            rng_def2 = OpenStudio::Model::ElectricEquipmentDefinition.new(model)
+            rng2 = OpenStudio::Model::ElectricEquipment.new(rng_def2)
+            rng2.setName(obj_name_i)
+            rng2.setSpace(space)
+            rng_def2.setName(obj_name_i)
+            rng_def2.setDesignLevel(design_level_i)
+            rng_def2.setFractionRadiant(range_rad_e)
+            rng_def2.setFractionLatent(range_lat_e)
+            rng_def2.setFractionLost(range_lost_e)
+            sch.setSchedule(rng2)
+        end
+
+        #reporting final condition of model
+        if e_ignition == true
+            runner.registerFinalCondition("A gas range has been set with #{range_ann_g.round} therms and #{range_ann_i.round} kWhs annual energy consumption.")
+        else
+            runner.registerFinalCondition("A gas range has been set with #{range_ann_g.round} therms annual energy consumption.")
+        end
+        
+        return true
     end
-	
-    return true
  
   end #end the run method
 
 end #end the measure
 
 #this allows the measure to be use by the application
-ResidentialCookingRange.new.registerWithApplication
+ResidentialCookingRangeGas.new.registerWithApplication

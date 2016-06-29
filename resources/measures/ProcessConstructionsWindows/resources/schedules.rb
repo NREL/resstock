@@ -159,28 +159,30 @@ class MonthWeekdayWeekendSchedule
     def setSchedule(obj)
         # Helper method to set (or replace) the object's schedule
         if obj.is_a? OpenStudio::Model::People
-            if not obj.numberofPeopleSchedule.empty?
+            unless obj.numberofPeopleSchedule.empty?
                 sch = obj.numberofPeopleSchedule.get
                 sch.remove
             end
             obj.setNumberofPeopleSchedule(@schedule)
         elsif obj.is_a? OpenStudio::Model::ThermostatSetpointDualSetpoint
             if @schedule.name.to_s.downcase.include? "heating"
-              if not obj.heatingSetpointTemperatureSchedule.empty?
+              unless obj.heatingSetpointTemperatureSchedule.empty?
                   sch = obj.heatingSetpointTemperatureSchedule.get
                   sch.remove
               end
               obj.setHeatingSetpointTemperatureSchedule(@schedule)
             end
             if @schedule.name.to_s.downcase.include? "cooling"
-              if not obj.coolingSetpointTemperatureSchedule.empty?
+              unless obj.coolingSetpointTemperatureSchedule.empty?
                   sch = obj.coolingSetpointTemperatureSchedule.get
                   sch.remove
               end
               obj.setCoolingSetpointTemperatureSchedule(@schedule)
             end
+        elsif obj.is_a? OpenStudio::Model::CoilHeatingGas or obj.is_a? OpenStudio::Model::CoilHeatingElectric or obj.is_a? OpenStudio::Model::CoilCoolingDXSingleSpeed or obj.is_a? OpenStudio::Model::CoilCoolingDXMultiSpeed or obj.is_a? OpenStudio::Model::ZoneHVACBaseboardConvectiveWater or obj.is_a? OpenStudio::Model::ZoneHVACPackagedTerminalAirConditioner or obj.is_a? OpenStudio::Model::ZoneHVACBaseboardConvectiveElectric or obj.is_a? OpenStudio::Model::CoilHeatingDXSingleSpeed or obj.is_a? OpenStudio::Model::CoilHeatingDXMultiSpeed
+            obj.setAvailabilitySchedule(@schedule)
         else
-            if not obj.schedule.empty?
+            unless obj.schedule.empty?
                 sch = obj.schedule.get
                 sch.remove
             end
@@ -537,6 +539,12 @@ class Schedule
 
   # return [Double] The total number of full load hours for this schedule.
   def self.annual_equivalent_full_load_hrs(model, schedule)
+
+    if schedule.to_ScheduleInterval.is_initialized
+        timeSeries = schedule.to_ScheduleInterval.get.timeSeries
+        annual_flh = timeSeries.averageValue * 8760
+        return annual_flh
+    end
 
     if not schedule.to_ScheduleRuleset.is_initialized
       return nil

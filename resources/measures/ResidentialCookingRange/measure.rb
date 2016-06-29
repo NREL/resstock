@@ -24,14 +24,14 @@ class ResidentialCookingRange < OpenStudio::Ruleset::ModelUserScript
 	#TODO: New argument for demand response for ranges (alternate schedules if automatic DR control is specified)
 	
 	#make a double argument for cooktop EF
-	c_ef = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("C_ef", true)
+	c_ef = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("c_ef", true)
 	c_ef.setDisplayName("Cooktop Energy Factor")
 	c_ef.setDescription("Cooktop energy factor determined by DOE test procedures for cooking appliances (DOE 1997).")
 	c_ef.setDefaultValue(0.74)
 	args << c_ef
 
 	#make a double argument for oven EF
-	o_ef = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("O_ef", true)
+	o_ef = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("o_ef", true)
 	o_ef.setDisplayName("Oven Energy Factor")
 	o_ef.setDescription("Oven energy factor determined by DOE test procedures for cooking appliances (DOE 1997).")
 	o_ef.setDefaultValue(0.11)
@@ -95,32 +95,21 @@ class ResidentialCookingRange < OpenStudio::Ruleset::ModelUserScript
     end
 
     #assign the user inputs to variables
-	c_ef = runner.getDoubleArgumentValue("C_ef",user_arguments)
-	o_ef = runner.getDoubleArgumentValue("O_ef",user_arguments)
+	c_ef = runner.getDoubleArgumentValue("c_ef",user_arguments)
+	o_ef = runner.getDoubleArgumentValue("o_ef",user_arguments)
 	mult = runner.getDoubleArgumentValue("mult",user_arguments)
 	weekday_sch = runner.getStringArgumentValue("weekday_sch",user_arguments)
 	weekend_sch = runner.getStringArgumentValue("weekend_sch",user_arguments)
 	monthly_sch = runner.getStringArgumentValue("monthly_sch",user_arguments)
 	space_r = runner.getStringArgumentValue("space",user_arguments)
 	
-    #Get space
-    space = Geometry.get_space_from_string(model, space_r, runner)
-    if space.nil?
-        return false
-    end
-
-    # Get number of bedrooms/bathrooms
-    nbeds, nbaths = Geometry.get_bedrooms_bathrooms(model, runner)
-    if nbeds.nil? or nbaths.nil?
-        return false
-    end
-	
 	#if oef or cef is defined, must be > 0
-	if o_ef <= 0
-		runner.registerError("Oven energy factor must be greater than zero.")
+	if o_ef <= 0 or o_ef > 1
+		runner.registerError("Oven energy factor must be greater than 0 and less than or equal to 1.")
 		return false
-	elsif c_ef <= 0
-		runner.registerError("Cooktop energy factor must be greater than zero.")
+    end
+	if c_ef <= 0 or c_ef > 1
+		runner.registerError("Cooktop energy factor must be greater than 0 and less than or equal to 1.")
 		return false
 	end
     if mult < 0
@@ -128,25 +117,25 @@ class ResidentialCookingRange < OpenStudio::Ruleset::ModelUserScript
 		return false
     end
     
+    # Get number of bedrooms/bathrooms
+    nbeds, nbaths = Geometry.get_bedrooms_bathrooms(model, runner)
+    if nbeds.nil? or nbaths.nil?
+        return false
+    end
+
 	#Calculate electric range daily energy use
     range_ann_e = ((86.5 + 28.9 * nbeds) / c_ef + (14.6 + 4.9 * nbeds) / o_ef)*mult #kWh/yr
+
+    #Get space
+    space = Geometry.get_space_from_string(model, space_r, runner)
+    if space.nil?
+        return false
+    end
+
+    obj_name_e = Constants.ObjectNameCookingRange(Constants.FuelTypeElectric)
+    obj_name_g = Constants.ObjectNameCookingRange(Constants.FuelTypeGas)
+    obj_name_i = Constants.ObjectNameCookingRange(Constants.FuelTypeElectric, true)
 	
-    #hard coded convective, radiative, latent, and lost fractions
-	range_lat_e = 0.3
-	range_conv_e = 0.16
-	range_rad_e = 0.24
-	range_lost_e = 1 - range_lat_e - range_conv_e - range_rad_e
-
-	obj_name = Constants.ObjectNameCookingRange
-	obj_name_e = Constants.FuelTypeElectric + " " + obj_name
-	obj_name_g = Constants.FuelTypeGas + " " + obj_name
-	obj_name_i = Constants.FuelTypeElectric + " " + obj_name + " ignition"
-	sch = MonthWeekdayWeekendSchedule.new(model, runner, obj_name + " schedule", weekday_sch, weekend_sch, monthly_sch)
-	if not sch.validated?
-		return false
-	end
-    design_level_e = sch.calcDesignLevelFromDailykWh(range_ann_e/365.0)
-
     # Remove any existing cooking range
     cr_removed = false
     space.electricEquipment.each do |space_equipment|
@@ -164,21 +153,35 @@ class ResidentialCookingRange < OpenStudio::Ruleset::ModelUserScript
     if cr_removed
         runner.registerInfo("Removed existing cooking range.")
     end
-    
-    #Add equipment for the range
-    rng_def = OpenStudio::Model::ElectricEquipmentDefinition.new(model)
-    rng = OpenStudio::Model::ElectricEquipment.new(rng_def)
-    rng.setName(obj_name_e)
-    rng.setSpace(space)
-    rng_def.setName(obj_name_e)
-    rng_def.setDesignLevel(design_level_e)
-    rng_def.setFractionRadiant(range_rad_e)
-    rng_def.setFractionLatent(range_lat_e)
-    rng_def.setFractionLost(range_lost_e)
-    sch.setSchedule(rng)
 
-    #reporting final condition of model
-    runner.registerFinalCondition("An electric range has been set with #{range_ann_e.round} kWhs annual energy consumption.")
+    if range_ann_e > 0
+        #hard coded convective, radiative, latent, and lost fractions
+        range_lat_e = 0.3
+        range_conv_e = 0.16
+        range_rad_e = 0.24
+        range_lost_e = 1 - range_lat_e - range_conv_e - range_rad_e
+
+        sch = MonthWeekdayWeekendSchedule.new(model, runner, obj_name_e + " schedule", weekday_sch, weekend_sch, monthly_sch)
+        if not sch.validated?
+            return false
+        end
+        design_level_e = sch.calcDesignLevelFromDailykWh(range_ann_e/365.0)
+
+        #Add equipment for the range
+        rng_def = OpenStudio::Model::ElectricEquipmentDefinition.new(model)
+        rng = OpenStudio::Model::ElectricEquipment.new(rng_def)
+        rng.setName(obj_name_e)
+        rng.setSpace(space)
+        rng_def.setName(obj_name_e)
+        rng_def.setDesignLevel(design_level_e)
+        rng_def.setFractionRadiant(range_rad_e)
+        rng_def.setFractionLatent(range_lat_e)
+        rng_def.setFractionLost(range_lost_e)
+        sch.setSchedule(rng)
+
+        #reporting final condition of model
+        runner.registerFinalCondition("An electric range has been set with #{range_ann_e.round} kWhs annual energy consumption.")
+    end
 	
     return true
  

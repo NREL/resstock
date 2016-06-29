@@ -419,8 +419,12 @@ class Constants
   def self.ObjectNameClothesDryer
     return 'residential clothes dryer'
   end
-  def self.ObjectNameCookingRange
-    return 'residential range'
+  def self.ObjectNameCookingRange(fueltype, ignition=false)
+    s_ignition = ""
+    if ignition
+        s_ignition = " ignition"
+    end
+    return "residential range #{fueltype}#{s_ignition}"
   end
   def self.ObjectNameCoolingSeason
     return 'residential cooling season'

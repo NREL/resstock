@@ -1,0 +1,111 @@
+<measure>
+  <schema_version>3.0</schema_version>
+  <name>process_heating_setpoints</name>
+  <uid>2b167665-f760-462d-8c9d-1d909da7b628</uid>
+  <version_id>1643f437-fb2f-445c-8591-0e48061b5f5e</version_id>
+  <version_modified>20160629T183656Z</version_modified>
+  <xml_checksum>2C877DEB</xml_checksum>
+  <class_name>ProcessHeatingSetpoints</class_name>
+  <display_name>Set Residential Heating Setpoints and Schedules</display_name>
+  <description>This measure creates the heating season schedules based on weather data, and the heating setpoint schedules.</description>
+  <modeler_description>This measure creates residential heating season ruleset objects. Schedule values are populated based on information contained in the EPW file. This measure also creates residential heating setpoint ruleset objects. Schedule values are populated based on information input by the user as well as contained in the residential heating season. The heating setpoint schedules are added to the living zone's thermostat.</modeler_description>
+  <arguments>
+    <argument>
+      <name>htg_wkdy</name>
+      <display_name>Weekday Setpoint</display_name>
+      <description>Specify a single heating setpoint or a 24-hour heating schedule for the weekdays.</description>
+      <type>String</type>
+      <units>degrees F</units>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+      <default_value>71</default_value>
+    </argument>
+    <argument>
+      <name>htg_wked</name>
+      <display_name>Weekend Setpoint</display_name>
+      <description>Specify a single heating setpoint or a 24-hour heating schedule for the weekend.</description>
+      <type>String</type>
+      <units>degrees F</units>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+      <default_value>71</default_value>
+    </argument>
+  </arguments>
+  <provenances/>
+  <tags>
+    <tag>HVAC.HVAC Controls</tag>
+  </tags>
+  <attributes>
+    <attribute>
+      <name>Measure Type</name>
+      <value>ModelMeasure</value>
+      <datatype>string</datatype>
+    </attribute>
+    <attribute>
+      <name>Uses SketchUp API</name>
+      <value>false</value>
+      <datatype>boolean</datatype>
+    </attribute>
+  </attributes>
+  <files>
+    <file>
+      <filename>ProcessHeatingandCoolingSetpoints_Test.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>test</usage_type>
+      <checksum>7C73784F</checksum>
+    </file>
+    <file>
+      <filename>unit_conversions.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>DCBEF242</checksum>
+    </file>
+    <file>
+      <filename>psychrometrics.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>640596F1</checksum>
+    </file>
+    <file>
+      <filename>geometry.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>2285CA0B</checksum>
+    </file>
+    <file>
+      <filename>weather.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>CD8BC1A0</checksum>
+    </file>
+    <file>
+      <filename>util.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>7367BD96</checksum>
+    </file>
+    <file>
+      <filename>constants.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>6857D963</checksum>
+    </file>
+    <file>
+      <filename>schedules.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>3FEC7DD1</checksum>
+    </file>
+    <file>
+      <version>
+        <software_program>OpenStudio</software_program>
+        <identifier>1.4.0</identifier>
+        <min_compatible>1.4.0</min_compatible>
+      </version>
+      <filename>measure.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>script</usage_type>
+      <checksum>2E3D72E9</checksum>
+    </file>
+  </files>
+</measure>

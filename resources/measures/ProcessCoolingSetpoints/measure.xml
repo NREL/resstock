@@ -1,0 +1,127 @@
+<measure>
+  <schema_version>3.0</schema_version>
+  <name>process_cooling_setpoints</name>
+  <uid>2daa9d28-8891-4074-a1d1-bce3cb3d7ac6</uid>
+  <version_id>29c061e9-9819-46c7-b4e4-3f6ea162f035</version_id>
+  <version_modified>20160629T183656Z</version_modified>
+  <xml_checksum>356BE47F</xml_checksum>
+  <class_name>ProcessCoolingSetpoints</class_name>
+  <display_name>Set Residential Cooling Setpoints and Schedules</display_name>
+  <description>This measure creates the cooling season schedules based on weather data, and the cooling setpoint schedules.</description>
+  <modeler_description>This measure creates residential cooling season ruleset objects. Schedule values are populated based on information contained in the EPW file. This measure also creates residential cooling setpoint ruleset objects. Schedule values are populated based on information input by the user as well as contained in the residential cooling season. The cooling setpoint schedules are added to the living zone's thermostat.</modeler_description>
+  <arguments>
+    <argument>
+      <name>clg_wkdy</name>
+      <display_name>Weekday Setpoint</display_name>
+      <description>Specify a single cooling setpoint or a 24-hour cooling schedule for the weekdays.</description>
+      <type>String</type>
+      <units>degrees F</units>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+      <default_value>76</default_value>
+    </argument>
+    <argument>
+      <name>clg_wked</name>
+      <display_name>Weekend Setpoint</display_name>
+      <description>Specify a single cooling setpoint or a 24-hour cooling schedule for the weekend.</description>
+      <type>String</type>
+      <units>degrees F</units>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+      <default_value>76</default_value>
+    </argument>
+  </arguments>
+  <provenances/>
+  <tags>
+    <tag>HVAC.HVAC Controls</tag>
+  </tags>
+  <attributes>
+    <attribute>
+      <name>Measure Type</name>
+      <value>ModelMeasure</value>
+      <datatype>string</datatype>
+    </attribute>
+    <attribute>
+      <name>Intended Software Tool</name>
+      <value>Apply Measure Now</value>
+      <datatype>string</datatype>
+    </attribute>
+    <attribute>
+      <name>Intended Software Tool</name>
+      <value>OpenStudio Application</value>
+      <datatype>string</datatype>
+    </attribute>
+    <attribute>
+      <name>Intended Software Tool</name>
+      <value>Parametric Analysis Tool</value>
+      <datatype>string</datatype>
+    </attribute>
+  </attributes>
+  <files>
+    <file>
+      <filename>process_cooling_setpoints_test.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>test</usage_type>
+      <checksum>958A02FB</checksum>
+    </file>
+    <file>
+      <filename>example_model.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>C4F35230</checksum>
+    </file>
+    <file>
+      <filename>geometry.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>2285CA0B</checksum>
+    </file>
+    <file>
+      <filename>psychrometrics.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>640596F1</checksum>
+    </file>
+    <file>
+      <filename>unit_conversions.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>DCBEF242</checksum>
+    </file>
+    <file>
+      <filename>weather.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>CD8BC1A0</checksum>
+    </file>
+    <file>
+      <filename>util.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>7367BD96</checksum>
+    </file>
+    <file>
+      <filename>constants.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>6857D963</checksum>
+    </file>
+    <file>
+      <filename>schedules.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>3FEC7DD1</checksum>
+    </file>
+    <file>
+      <version>
+        <software_program>OpenStudio</software_program>
+        <identifier>1.11.5</identifier>
+        <min_compatible>1.11.5</min_compatible>
+      </version>
+      <filename>measure.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>script</usage_type>
+      <checksum>120DD1D0</checksum>
+    </file>
+  </files>
+</measure>

@@ -25,7 +25,7 @@ class ProcessElectricBaseboard < OpenStudio::Ruleset::ModelUserScript
   end
   
   def modeler_description
-    return "This measure parses the OSM for the #{Constants.ObjectNameHeatingSeason}. Any heating components or baseboard convective electrics/waters are removed from any existing air/plant loops or zones. An HVAC baseboard convective electric is added to the living zone, as well as to the finished basement if it exists."
+    return "Any heating components or baseboard convective electrics/waters are removed from any existing air/plant loops or zones. An HVAC baseboard convective electric is added to the living zone, as well as to the finished basement if it exists."
   end   
   
   #define the arguments that the user will input
@@ -70,12 +70,6 @@ class ProcessElectricBaseboard < OpenStudio::Ruleset::ModelUserScript
     if not baseboardOutputCapacity == Constants.SizingAuto
       baseboardOutputCapacity = OpenStudio::convert(baseboardOutputCapacity.split(" ")[0].to_f,"kBtu/h","Btu/h").get
     end
-
-    heatingseasonschedule = HelperMethods.get_heating_or_cooling_season_schedule_object(model, runner, Constants.ObjectNameHeatingSeason)
-    if heatingseasonschedule.nil?
-        runner.registerError("A heating season schedule named '#{Constants.ObjectNameHeatingSeason}' has not yet been assigned. Apply the 'Set Residential Heating/Cooling Setpoints and Schedules' measure first.")
-        return false
-    end
    
     # Check if has equipment
     HelperMethods.remove_hot_water_loop(model, runner)   
@@ -88,7 +82,6 @@ class ProcessElectricBaseboard < OpenStudio::Ruleset::ModelUserScript
     
       htg_coil = OpenStudio::Model::ZoneHVACBaseboardConvectiveElectric.new(model)
       htg_coil.setName("Living Zone Electric Baseboards")
-      htg_coil.setAvailabilitySchedule(heatingseasonschedule)
       if baseboardOutputCapacity != Constants.SizingAuto
           htg_coil.setNominalCapacity(OpenStudio::convert(baseboardOutputCapacity,"Btu/h","W").get)
       end
@@ -104,7 +97,6 @@ class ProcessElectricBaseboard < OpenStudio::Ruleset::ModelUserScript
       
         htg_coil = OpenStudio::Model::ZoneHVACBaseboardConvectiveElectric.new(model)
         htg_coil.setName("FBsmt Zone Electric Baseboards")
-        htg_coil.setAvailabilitySchedule(heatingseasonschedule)
         if baseboardOutputCapacity != Constants.SizingAuto
             htg_coil.setNominalCapacity(OpenStudio::convert(baseboardOutputCapacity,"Btu/h","W").get)
         end

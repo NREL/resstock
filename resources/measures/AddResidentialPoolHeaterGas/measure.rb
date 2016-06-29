@@ -3,7 +3,7 @@ require "#{File.dirname(__FILE__)}/resources/constants"
 require "#{File.dirname(__FILE__)}/resources/geometry"
 
 #start the measure
-class ResidentialPoolHeater < OpenStudio::Ruleset::ModelUserScript
+class ResidentialPoolHeaterGas < OpenStudio::Ruleset::ModelUserScript
   
   def name
     return "Set Residential Pool Gas Heater"
@@ -179,4 +179,4 @@ class ResidentialPoolHeater < OpenStudio::Ruleset::ModelUserScript
 end #end the measure
 
 #this allows the measure to be use by the application
-ResidentialPoolHeater.new.registerWithApplication
+ResidentialPoolHeaterGas.new.registerWithApplication

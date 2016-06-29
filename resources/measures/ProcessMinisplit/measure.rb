@@ -34,7 +34,7 @@ class ProcessMinisplit < OpenStudio::Ruleset::ModelUserScript
 
   # human readable description of modeling approach
   def modeler_description
-    return "This measure parses the OSM for the #{Constants.ObjectNameHeatingSeason} and #{Constants.ObjectNameCoolingSeason}. Any supply components or baseboard convective electrics/waters are removed from any existing air/plant loops or zones. Any existing air/plant loops are also removed. A heating DX coil, cooling DX coil, electric supplemental heating coil, and an on/off supply fan are added to a unitary air loop. The unitary air loop is added to the supply inlet node of the air loop. This air loop is added to a branch for the living zone. A diffuser is added to the branch for the living zone as well as for the finished basement if it exists."
+    return "Any supply components or baseboard convective electrics/waters are removed from any existing air/plant loops or zones. Any existing air/plant loops are also removed. A heating DX coil, cooling DX coil, electric supplemental heating coil, and an on/off supply fan are added to a unitary air loop. The unitary air loop is added to the supply inlet node of the air loop. This air loop is added to a branch for the living zone. A diffuser is added to the branch for the living zone as well as for the finished basement if it exists."
   end
 
   # define the arguments that the user will input
@@ -233,13 +233,6 @@ class ProcessMinisplit < OpenStudio::Ruleset::ModelUserScript
     miniSplitSupplementalHeatingOutputCapacity = runner.getStringArgumentValue("miniSplitSupplementalHeatingOutputCapacity",user_arguments)
     if not miniSplitSupplementalHeatingOutputCapacity == Constants.SizingAuto and not miniSplitSupplementalHeatingOutputCapacity == "NO SUPP HEAT"
       miniSplitSupplementalHeatingOutputCapacity = OpenStudio::convert(miniSplitSupplementalHeatingOutputCapacity.split(" ")[0].to_f,"kBtu/h","Btu/h").get
-    end
-    
-    heatingseasonschedule = HelperMethods.get_heating_or_cooling_season_schedule_object(model, runner, Constants.ObjectNameHeatingSeason)
-    coolingseasonschedule = HelperMethods.get_heating_or_cooling_season_schedule_object(model, runner, Constants.ObjectNameCoolingSeason)
-    if heatingseasonschedule.nil? or coolingseasonschedule.nil?
-        runner.registerError("A heating season schedule named '#{Constants.ObjectNameHeatingSeason}' and/or cooling season schedule named '#{Constants.ObjectNameCoolingSeason}' has not yet been assigned. Apply the 'Set Residential Heating/Cooling Setpoints and Schedules' measure first.")
-        return false
     end
         
     # _processAirSystem       
@@ -449,7 +442,6 @@ class ProcessMinisplit < OpenStudio::Ruleset::ModelUserScript
       
       htg_coil = OpenStudio::Model::CoilHeatingDXMultiSpeed.new(model)
       htg_coil.setName("DX Heating Coil")
-      htg_coil.setAvailabilitySchedule(heatingseasonschedule)
       htg_coil.setMinimumOutdoorDryBulbTemperatureforCompressorOperation(OpenStudio::convert(supply.min_hp_temp,"F","C").get)
       htg_coil.setCrankcaseHeaterCapacity(0)
       htg_coil.setDefrostEnergyInputRatioFunctionofTemperatureCurve(defrosteir)
@@ -464,7 +456,7 @@ class ProcessMinisplit < OpenStudio::Ruleset::ModelUserScript
           htg_coil.addStage(htg_coil_stage_data[i])    
       end
      
-      supp_htg_coil = OpenStudio::Model::CoilHeatingElectric.new(model, heatingseasonschedule)
+      supp_htg_coil = OpenStudio::Model::CoilHeatingElectric.new(model, model.alwaysOnDiscreteSchedule)
       supp_htg_coil.setName("HeatPump Supp Heater")
       supp_htg_coil.setEfficiency(1)
       if miniSplitSupplementalHeatingOutputCapacity == "NO SUPP HEAT"
@@ -477,7 +469,6 @@ class ProcessMinisplit < OpenStudio::Ruleset::ModelUserScript
       
       clg_coil = OpenStudio::Model::CoilCoolingDXMultiSpeed.new(model)
       clg_coil.setName("DX Cooling Coil")
-      clg_coil.setAvailabilitySchedule(coolingseasonschedule)
       clg_coil.setCondenserType("AirCooled")
       clg_coil.setApplyPartLoadFractiontoSpeedsGreaterthan1(false)
       clg_coil.setApplyLatentDegradationtoSpeedsGreaterthan1(false)
