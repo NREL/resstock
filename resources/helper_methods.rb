@@ -69,7 +69,8 @@ def get_probability_file_data(full_probability_path, runner)
     header.each do |d|
         next if d.nil?
         next if d.strip.start_with?("Dependency=")
-        option_names << d.strip
+        next if not d.strip.start_with?("Option=")
+        option_names << d.strip.sub("Option=","").strip
     end
     if option_names.size == 0
         register_error("No options found in #{File.basename(full_probability_path).to_s}.", runner)
