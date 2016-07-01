@@ -19,9 +19,9 @@ def validate_sampling(mode)
         exit
     end
 
-    # Get data from all probability distribution files; store in all_prob_dist_data hash
+    # Get data from all probability distribution files; store in tsvfiles hash
     # Also generate col_header=>param_name hash
-    all_prob_dist_data = {}
+    tsvfiles = {}
     key_prefix = "res_stock_reporting."
     prob_dist_dir = File.join(File.dirname(__FILE__), "resources", "inputs", mode)
     results_data[0].each do |col_header|
@@ -30,34 +30,30 @@ def validate_sampling(mode)
         
         # Get all data from this probability distribution file
         prob_dist_file = File.join(prob_dist_dir, col_header.sub(key_prefix, "") + ".tsv")
-        rows, option_names, dep_cols, header = get_probability_file_data(prob_dist_file, nil)
+        tsvfile = TsvFile.new(prob_dist_file, nil)
         
         # Store data
-        all_prob_dist_data[param_name] = {"header"=>header, 
-                                          "rows"=>rows, 
-                                          "option_names"=>option_names, 
-                                          "dep_cols"=>dep_cols,
-                                          "prob_dist_file"=>File.basename(prob_dist_file)}
+        tsvfiles[param_name] = tsvfile
     end
 
     # Data
     results_data_dir = File.join(results_dir, "data")
     FileUtils.rm_rf("#{results_data_dir}/.", secure: true)
     Dir.mkdir(results_data_dir)
-    all_samples_results = generate_data_output(results_data, all_prob_dist_data, results_data_dir, key_prefix)
-    generate_data_input(results_data, all_prob_dist_data, results_data_dir, key_prefix)
+    all_samples_results = generate_data_output(results_data, tsvfiles, results_data_dir, key_prefix)
+    generate_data_input(results_data, tsvfiles, results_data_dir, key_prefix)
     
     # Visualization
     results_vis_dir = File.join(results_dir, "visualizations")
     FileUtils.rm_rf("#{results_vis_dir}/.", secure: true)
     Dir.mkdir(results_vis_dir)
-    generate_visualizations(results_data, all_prob_dist_data, results_vis_dir, all_samples_results, key_prefix)
+    generate_visualizations(results_data, tsvfiles, results_vis_dir, all_samples_results, key_prefix)
 end 
 
-def generate_data_output(results_data, all_prob_dist_data, results_data_dir, key_prefix)
+def generate_data_output(results_data, tsvfiles, results_data_dir, key_prefix)
     # Create map of parameter names to results_file columns
     results_file_cols = {}
-    all_prob_dist_data.keys.each do |param_name|
+    tsvfiles.keys.each do |param_name|
         results_data[0].each_with_index do |col_header, index|
             next if col_header != key_prefix + param_name
             results_file_cols[param_name] = index
@@ -70,20 +66,19 @@ def generate_data_output(results_data, all_prob_dist_data, results_data_dir, key
         next if not col_header.start_with?(key_prefix)
         param_name = col_header.sub(key_prefix, "")
         
-        header = all_prob_dist_data[param_name]["header"]
-        option_names = all_prob_dist_data[param_name]["option_names"]
-        dep_cols = all_prob_dist_data[param_name]["dep_cols"]
-        prob_dist_file = all_prob_dist_data[param_name]["prob_dist_file"]
-        rows = all_prob_dist_data[param_name]["rows"]
-        
+        tsvfile = tsvfiles[param_name]
         puts "Processing data for #{param_name}..."
 
         # Generate combinations of dependency options
-        if dep_cols.size > 0
+        if tsvfile.dependency_cols.size > 0
             dep_combos = []
-            rows.each do |row|
+            tsvfile.rows.each do |row|
                 next if row.size == 0
-                dep_combos << row[0..dep_cols.size-1]
+                dep_combo = []
+                tsvfile.dependency_cols.each do |dep_name, dep_col|
+                    dep_combo << row[dep_col]
+                end
+                dep_combos << dep_combo
             end
         else
             dep_combos = [[]]
@@ -95,7 +90,7 @@ def generate_data_output(results_data, all_prob_dist_data, results_data_dir, key
         
             # Init results for this combo
             sample_results = []
-            option_names.each do |option_name|
+            tsvfile.option_cols.each do |option_name|
                 sample_results << 0
             end
             num_samples = 0
@@ -103,14 +98,14 @@ def generate_data_output(results_data, all_prob_dist_data, results_data_dir, key
             # Calculate results for this combo
             results_data[1..-1].each do |row|
                 row_match = true
-                dep_cols.keys.each_with_index do |dep_col, index|
-                    if row[results_file_cols[dep_col]].downcase != dep_combo[index].downcase
+                tsvfile.dependency_cols.each_with_index do |(dep_name, dep_col), index|
+                    if row[results_file_cols[dep_name]].downcase != dep_combo[index].downcase
                         row_match = false
                     end
                 end
                 next if not row_match
                 num_samples += 1
-                option_names.each_with_index do |option_name, index|
+                tsvfile.option_cols.each_with_index do |(option_name, option_col), index|
                     next if option_name.downcase != row[results_file_cols[param_name]].downcase
                     sample_results[index] += 1
                 end
@@ -118,7 +113,7 @@ def generate_data_output(results_data, all_prob_dist_data, results_data_dir, key
             
             # Error check that sum of option sample numbers equals total number of samples for this combo
             sum_option_samples = 0
-            option_names.each_with_index do |option_name, index|
+            tsvfile.option_cols.each_with_index do |(option_name, option_col), index|
                 sum_option_samples += sample_results[index]
             end
             if sum_option_samples != num_samples
@@ -128,13 +123,13 @@ def generate_data_output(results_data, all_prob_dist_data, results_data_dir, key
             
             # Convert num samples to percentage
             if num_samples > 0
-                option_names.each_with_index do |option_name, index|
+                tsvfile.option_cols.each_with_index do |(option_name, option_col), index|
                     sample_results[index] = sample_results[index]/num_samples.to_f
                 end 
             end
             
             # Insert dependency option names
-            dep_cols.keys.each_with_index do |dep_col, index|
+            tsvfile.dependency_cols.each_with_index do |(dep_name, dep_col), index|
                 sample_results.insert(index, dep_combo[index])
             end
             
@@ -144,9 +139,9 @@ def generate_data_output(results_data, all_prob_dist_data, results_data_dir, key
         end
         
         # Write *_output.csv
-        outfile = File.join(results_data_dir, prob_dist_file.sub(File.extname(prob_dist_file),"_output.csv"))
+        outfile = File.join(results_data_dir, tsvfile.filename.sub(File.extname(tsvfile.filename),"_output.csv"))
         CSV.open(outfile, "wb") do |csv|
-            csv << header + ["# Samples"]
+            csv << tsvfile.header + ["# Samples"]
             samples_results.each do |sample_results|
                 csv << sample_results
             end
@@ -157,28 +152,31 @@ def generate_data_output(results_data, all_prob_dist_data, results_data_dir, key
     return all_samples_results
 end
 
-def generate_data_input(results_data, all_prob_dist_data, results_data_dir, key_prefix)
+def generate_data_input(results_data, tsvfiles, results_data_dir, key_prefix)
     # Generate probability distribution inputs in compatible form
     results_data[0].each do |col_header|
         next if not col_header.start_with?(key_prefix)
         param_name = col_header.sub(key_prefix, "")
         
-        header = all_prob_dist_data[param_name]["header"]
-        rows = all_prob_dist_data[param_name]["rows"]
-        prob_dist_file = all_prob_dist_data[param_name]["prob_dist_file"]
+        tsvfile = tsvfiles[param_name]
         
         # Write *_input.csv
-        outfile = File.join(results_data_dir, prob_dist_file.sub(File.extname(prob_dist_file),"_input.csv"))
+        outfile = File.join(results_data_dir, tsvfile.filename.sub(File.extname(tsvfile.filename),"_input.csv"))
         CSV.open(outfile, "wb") do |csv|
-            csv << header
-            rows.each do |row|
-                csv << row
+            csv << tsvfile.header
+            tsvfile.rows.each do |row|
+                rowdata = []
+                row.each_with_index do |val, col|
+                    next if not tsvfile.option_cols.values.include?(col) and not tsvfile.dependency_cols.values.include?(col)
+                    rowdata << val
+                end
+                csv << rowdata
             end
         end
     end
 end
 
-def generate_visualizations(results_data, all_prob_dist_data, results_vis_dir, all_samples_results, key_prefix)
+def generate_visualizations(results_data, tsvfiles, results_vis_dir, all_samples_results, key_prefix)
     # Generate html visualizations via Google
 
     html_filenames = {}
@@ -186,13 +184,10 @@ def generate_visualizations(results_data, all_prob_dist_data, results_vis_dir, a
         next if not col_header.start_with?(key_prefix)
         param_name = col_header.sub(key_prefix, "")
         
-        rows = all_prob_dist_data[param_name]["rows"]
-        prob_dist_file = all_prob_dist_data[param_name]["prob_dist_file"]
-        dep_cols = all_prob_dist_data[param_name]["dep_cols"]
-        header = all_prob_dist_data[param_name]["header"]
+        tsvfile = tsvfiles[param_name]
         
         # Uses a series for each option so that the series legend/color can be assigned
-        num_data_series = header.size - dep_cols.size
+        num_data_series = tsvfile.option_cols.size
         
         if num_data_series > 20
             puts "Skipping visualization for #{param_name} (too large)..."
@@ -279,7 +274,7 @@ def generate_visualizations(results_data, all_prob_dist_data, results_vis_dir, a
         # Replace <TABLE_HEADER_HERE> with the appropriate header
         table_header_html = "['Input', "
         (1..num_data_series).each do |series_num|
-            series_name = header[series_num+dep_cols.size-1].to_s
+            series_name = tsvfile.header[series_num+tsvfile.dependency_cols.size-1].to_s
             table_header_html << "'#{series_name}', {'type': 'string', 'role': 'style'},"
         end
         table_header_html << "'Line','Line +20%','Line -20%']"
@@ -287,17 +282,17 @@ def generate_visualizations(results_data, all_prob_dist_data, results_vis_dir, a
     
         # Replace <TABLE_DATA_HERE> with javascript array based on actual data
         table_data_html = ""
-        rows.each_with_index do |row, i|
+        tsvfile.rows.each_with_index do |row, i|
             next if row.size == 0
             if num_samples[i] == 0
                 point_size = 0
             else
                 point_size = (num_samples[i]/max_num_samples * (max_point_size.to_f - min_point_size.to_f)).ceil + min_point_size
             end
-            row[dep_cols.size..row.size-1].each_with_index do |value, j|
+            tsvfile.option_cols.each_with_index do |(option_name, option_col), j|
                 next if all_samples_results[col_header][i].nil? 
-                xval = value
-                yval = all_samples_results[col_header][i][j+dep_cols.size]
+                xval = row[option_col]
+                yval = all_samples_results[col_header][i][j+tsvfile.dependency_cols.size]
                 table_data_html << add_datapoint(xval, yval, j+1, num_data_series, point_size)
             end
         end
@@ -315,7 +310,7 @@ def generate_visualizations(results_data, all_prob_dist_data, results_vis_dir, a
         # Replace <CHART_TITLE_HERE> with parameter name
         html_text.sub!("<CHART_TITLE_HERE>", param_name)
         
-        outfile = File.join(results_vis_dir, prob_dist_file.sub(File.extname(prob_dist_file),".html"))
+        outfile = File.join(results_vis_dir, tsvfile.filename.sub(File.extname(tsvfile.filename),".html"))
         File.write(outfile, html_text)
         html_filenames[param_name] = File.basename(outfile)
     end

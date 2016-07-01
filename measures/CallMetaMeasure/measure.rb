@@ -58,7 +58,7 @@ class CallMetaMeasure < OpenStudio::Ruleset::ModelUserScript
     resources_dir = File.absolute_path(File.join(File.dirname(__FILE__), "../../lib/resources/")) # Should have been uploaded per 'Other Library Files' in analysis spreadsheet
     helper_methods_file = File.join(resources_dir, "helper_methods.rb")
     measures_dir = File.join(resources_dir, "measures")
-    lookup_file = File.join(resources_dir, "options_lookup.txt")
+    lookup_file = File.join(resources_dir, "options_lookup.tsv")
     
     # Load helper_methods
     require File.join(File.dirname(helper_methods_file), File.basename(helper_methods_file, File.extname(helper_methods_file)))
@@ -70,16 +70,16 @@ class CallMetaMeasure < OpenStudio::Ruleset::ModelUserScript
     # Get mode
     res_stock_mode = get_value_from_runner_past_results("res_stock_mode", runner)
 
-    # Get file data including parameter name, dependency columns, and option names
+    # Get probability file data including parameter name, dependency columns, and option names
     full_probability_path = File.join(resources_dir, "inputs", res_stock_mode, probability_file)
     check_file_exists(full_probability_path, runner)
-    rows, option_names, dependency_cols, header = get_probability_file_data(full_probability_path, runner)
+    tsvfile = TsvFile.new(full_probability_path, runner)
     
     # Get dependency values from previous meta-measure calls
-    dependency_values = get_dependency_values_from_runner(dependency_cols, runner)
+    dependency_values = get_dependency_values_from_runner(tsvfile.dependency_cols, runner)
     
     # Get option name given the sample value and dependency values
-    option_name, matched_row_num = get_option_name_from_sample_number(sample_value, dependency_values, full_probability_path, dependency_cols, option_names, rows, runner)
+    option_name, matched_row_num = tsvfile.get_option_name_from_sample_number(sample_value, dependency_values)
     
     # Get measure name and arguments associated with the option name
     measure_args = get_measure_args_from_option_name(lookup_file, option_name, parameter_name, runner)

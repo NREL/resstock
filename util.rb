@@ -41,13 +41,13 @@ def get_probability_distribution_files_from_analysis(analysis, resources_dir, di
     return files
 end
 
-def get_combination_hashes(parameter_option_names, dependencies)
+def get_combination_hashes(tsvfiles, dependencies)
     combos_hashes = []
 
     # Construct array of dependency value arrays
     depval_array = []
     dependencies.each do |dep|
-        depval_array << parameter_option_names[dep]
+        depval_array << tsvfiles[dep].option_cols.keys
     end
     
     if depval_array.size == 0
@@ -92,22 +92,24 @@ def perform_integrity_checks(project_file, dirname, is_upgrades)
     
     if not is_upgrades
         pdfiles = get_probability_distribution_files_from_analysis(analysis, resources_dir, dirname)
-        lookup_file = File.join(resources_dir, 'options_lookup.txt')
+        lookup_file = File.join(resources_dir, 'options_lookup.tsv')
         check_file_exists(lookup_file, nil)
       
         # Perform various checks on each probability distribution file
         parameters_processed = []
         option_names = {}
+        tsvfiles = {}
       
         pdfiles.each do |pdfile|
             parameter_name = File.basename(pdfile, File.extname(pdfile))
         
             puts "Checking for issues with #{File.basename(pdfile)}..."
             check_file_exists(pdfile, nil)
-            rows, option_names[parameter_name], dependency_cols, header = get_probability_file_data(pdfile, nil)
+            tsvfile = TsvFile.new(pdfile, nil)
+            tsvfiles[parameter_name] = tsvfile
         
             # Check all dependencies have already been processed
-            dependency_cols.keys.each do |dep|
+            tsvfile.dependency_cols.keys.each do |dep|
                 next if parameters_processed.include?(dep)
                 puts "ERROR: #{File.basename(pdfile)} has a dependency '#{dep}' that was not found."
                 exit
@@ -115,15 +117,15 @@ def perform_integrity_checks(project_file, dirname, is_upgrades)
             parameters_processed << parameter_name
         
             # Test all possible combinations of dependency value combinations
-            combo_hashes = get_combination_hashes(option_names, dependency_cols.keys)
+            combo_hashes = get_combination_hashes(tsvfiles, tsvfile.dependency_cols.keys)
             combo_hashes.each do |combo_hash|
-                option_name, matched_row_num = get_option_name_from_sample_number(1.0, combo_hash, pdfile, dependency_cols, option_names[parameter_name], rows, nil)
-                rows.delete_at(matched_row_num) # speed up subsequent combo_hash searches
+                _matched_option_name, matched_row_num = tsvfile.get_option_name_from_sample_number(1.0, combo_hash)
+                tsvfile.rows.delete_at(matched_row_num) # speed up subsequent combo_hash searches
             end
         
             # Checks for option_lookup.txt
             measure_args_from_xml = {}
-            option_names[parameter_name].each do |option_name|
+            tsvfiles[parameter_name].option_cols.keys.each do |option_name|
                 # Check for (parameter, option) names
                 measure_args = get_measure_args_from_option_name(lookup_file, option_name, parameter_name, nil)
                 # Check that measures exist and all measure arguments are provided

@@ -1,6 +1,140 @@
 # These methods are here so that they are easily used by both
 # the CallMetaMeasure measure and run.rb
 
+class TsvFile
+
+    def initialize(full_path, runner)
+        @full_path = full_path
+        @filename = File.basename(full_path)
+        @runner = runner
+        @rows, @option_cols, @dependency_cols, @full_header, @header = get_file_data()
+    end
+    
+    attr_accessor :dependency_cols, :rows, :option_cols, :header, :filename
+
+    def get_file_data()
+        option_key = "Option="
+        dep_key = "Dependency="
+    
+        full_header = nil
+        rows = []
+        CSV.foreach(@full_path, { :col_sep => "\t" }) do |row|
+
+            row.delete_if {|x| x.nil? or x.size == 0} # purge trailing empty fields
+
+            # Store one header line
+            if full_header.nil?
+                full_header = row
+                next
+            end
+
+            rows << row
+        end
+        
+        if full_header.nil?
+            register_error("Could not find header row in #{@full_path.to_s}.", @runner)
+        end
+        
+        # Strip out everything but options and dependencies from header
+        header = full_header.select { |el| el.start_with?(option_key) or el.start_with?(dep_key) }
+        
+        # Get all option names/dependencies and corresponding column numbers on header row
+        option_cols = {}
+        dependency_cols = {}
+        full_header.each_with_index do |d, col|
+            next if d.nil?
+            if d.strip.start_with?(option_key)
+                val = d.strip.sub(option_key,"").strip
+                option_cols[val] = col
+            elsif d.strip.start_with?(dep_key)
+                val = d.strip.sub(dep_key,"").strip
+                dependency_cols[val] = col
+            end
+        end
+        if option_cols.size == 0
+            register_error("No options found in #{File.basename(@full_path).to_s}.", @runner)
+        end
+        
+        return rows, option_cols, dependency_cols, full_header, header
+    end
+
+    def get_option_name_from_sample_number(sample_value, dependency_values)
+        # Retrieve option name from probability file based on sample value
+        
+        matched_option_name = nil
+        matched_row_num = nil
+        
+        @rows.each_with_index do |row, rownum|
+        
+            # Find appropriate row by matching dependency values
+            found_row = false
+            if dependency_values.nil? or dependency_values.size == 0
+                found_row = true
+            else
+                num_deps_matched = 0
+                dependency_values.each do |dep,dep_val|
+                    next if row[@dependency_cols[dep]].nil?
+                    if row[@dependency_cols[dep]].downcase == dep_val.downcase
+                        num_deps_matched += 1
+                        if num_deps_matched == dependency_values.size
+                            found_row = true
+                            break
+                        end
+                    end
+                end
+            end
+            next if not found_row
+        
+            # Convert data to numeric row values
+            rowvals = {}
+            @option_cols.each do |option_name, option_col|
+                if not row[option_col].is_number?
+                    register_error("Field '#{row[option_col].to_s}' in #{@full_path.to_s} must be numeric.", @runner)
+                end
+                rowvals[option_name] = row[option_col].to_f
+            end
+            
+            # Sum of values within 2%?
+            sum_rowvals = rowvals.values.reduce(:+)
+            if sum_rowvals < 0.98 or sum_rowvals > 1.02
+                register_error("Values in #{@full_path.to_s} incorrectly sum to #{sum_rowvals.to_s}.", @runner)
+            end
+            
+            # If values don't exactly sum to 1, normalize them
+            if sum_rowvals != 1.0
+                rowvals.each do |option_name, rowval|
+                    rowvals[option_name] = rowval / sum_rowvals
+                end
+            end
+            
+            # Find appropriate value
+            rowsum = 0
+            @option_cols.each_with_index do |(option_name, option_col), index|
+                rowsum += rowvals[option_name]
+                if rowsum >= sample_value or (index == @option_cols.size-1 and rowsum + 0.00001 >= sample_value)
+                    matched_option_name = option_name
+                    matched_row_num = rownum
+                    break
+                end
+            end
+            
+        end
+        
+        if matched_option_name.nil? or matched_option_name.size == 0
+            deps_s = hash_to_string(dependency_values)
+            if deps_s.size > 0
+                register_error("Could not determine appropriate option in #{@full_path.to_s} for sample value #{sample_value.to_s} with dependencies: #{deps_s.to_s}.", @runner)
+            else
+                register_error("Could not determine appropriate option in #{@full_path.to_s} for sample value #{sample_value.to_s}.", @runner)
+            end
+            return matched_option_name
+        end
+        
+        return matched_option_name, matched_row_num
+    end
+    
+end
+
 def check_file_exists(full_path, runner=nil)
     if not File.exist?(full_path)
         register_error("Cannot find file #{full_path.to_s}.", runner)
@@ -44,123 +178,6 @@ def get_dependency_values_from_runner(dependency_cols, runner)
     return dependency_values
 end
 
-def get_probability_file_data(full_probability_path, runner)
-    header = nil
-    rows = []
-    CSV.foreach(full_probability_path, { :col_sep => "\t" }) do |row|
-
-        row.delete_if {|x| x.nil? or x.size == 0} # purge trailing empty fields
-
-        # Store one header line
-        if header.nil?
-            header = row
-            next
-        end
-
-        rows << row
-    end
-    
-    if header.nil?
-        register_error("Could not find header row in #{full_probability_path.to_s}.", runner)
-    end
-    
-    # Get option names on header row
-    option_names = []
-    header.each do |d|
-        next if d.nil?
-        next if d.strip.start_with?("Dependency=")
-        next if not d.strip.start_with?("Option=")
-        option_names << d.strip.sub("Option=","").strip
-    end
-    if option_names.size == 0
-        register_error("No options found in #{File.basename(full_probability_path).to_s}.", runner)
-    end
-    
-    # Get all dependencies and corresponding column numbers on second row
-    dependency_cols = {}
-    header.each_with_index do |d, col|
-        next if d.nil?
-        next if not d.strip.start_with?("Dependency=")
-        val = d.strip.sub("Dependency=","").strip
-        dependency_cols[val] = col
-    end
-
-    return rows, option_names, dependency_cols, header
-end
-
-def get_option_name_from_sample_number(sample_value, dependency_values, full_probability_path, dependency_cols, option_names, rows, runner=nil)
-    # Retrieve option name from probability file based on sample value
-    
-    option_name = nil
-    matched_row_num = nil
-    
-    rows.each_with_index do |row, rownum|
-    
-        # Find appropriate row by matching dependency values
-        found_row = false
-        if dependency_values.nil? or dependency_values.size == 0
-            found_row = true
-        else
-            num_deps_matched = 0
-            dependency_values.each do |dep,dep_val|
-                next if row[dependency_cols[dep]].nil?
-                if row[dependency_cols[dep]].downcase == dep_val.downcase
-                    num_deps_matched += 1
-                    if num_deps_matched == dependency_values.size
-                        found_row = true
-                        break
-                    end
-                end
-            end
-        end
-        next if not found_row
-    
-        # Convert data to numeric row values
-        rowvals = []
-        for col in (dependency_values.size)..(row.size-1)
-            if not row[col].is_number?
-                register_error("Field '#{row[col].to_s}' in #{full_probability_path.to_s} must be numeric.", runner)
-            end
-            rowvals << row[col].to_f
-        end
-        
-        # Sum of values within 5%?
-        sum_rowvals = rowvals.reduce(:+)
-        if sum_rowvals < 0.95 or sum_rowvals > 1.05
-            register_error("Values in #{full_probability_path.to_s} incorrectly sum to #{sum_rowvals.to_s}.", runner)
-        end
-        
-        # If values don't exactly sum to 1, normalize them
-        if sum_rowvals != 1.0
-            rowvals = rowvals.collect { |n| n / sum_rowvals }
-        end
-        
-        # Find appropriate value
-        rowsum = 0
-        rowvals.each_with_index do |rowval, index|
-            rowsum += rowval
-            if rowsum >= sample_value or (index == rowvals.size-1 and rowsum + 0.00001 >= sample_value)
-                option_name = option_names[index]
-                matched_row_num = rownum
-                break
-            end
-        end
-        
-    end
-    
-    if option_name.nil? or option_name.size == 0
-        deps_s = hash_to_string(dependency_values)
-        if deps_s.size > 0
-            register_error("Could not determine appropriate option in #{full_probability_path.to_s} for sample value #{sample_value.to_s} with dependencies: #{deps_s.to_s}.", runner)
-        else
-            register_error("Could not determine appropriate option in #{full_probability_path.to_s} for sample value #{sample_value.to_s}.", runner)
-        end
-        return option_name
-    end
-    
-    return option_name, matched_row_num
-end
-  
 def get_measure_args_from_option_name(lookup_file, option_name, parameter_name, runner=nil)
     found_option = false
     measure_args = {}
