@@ -101,30 +101,6 @@ class Constants
   def self.BoilerTypeSteam
     return 'steam'
   end
-  def self.BoreConfigSingle
-    return 'single'
-  end
-  def self.BoreConfigLine
-    return 'line'
-  end
-  def self.BoreConfigLconfig
-    return 'l-config'
-  end
-  def self.BoreConfigRectangle
-    return 'rectangle'
-  end
-  def self.BoreConfigUconfig
-    return 'u-config'
-  end
-  def self.BoreConfigL2config
-    return 'l2-config'
-  end
-  def self.BoreConfigOpenRectangle
-    return 'open-rectangle'
-  end
-  def self.BoreTypeVertical
-    return 'vertical bore'
-  end
   def self.BuildingAmericaClimateZone
     return 'Building America'
   end
@@ -133,24 +109,6 @@ class Constants
   end
   def self.CollectorTypeICS
     return 'ics'
-  end
-  def self.ColorWhite
-    return 'white'
-  end
-  def self.ColorMedium
-    return 'medium'
-  end
-  def self.ColorDark
-    return 'dark'
-  end
-  def self.ColorLight
-    return 'light'
-  end
-  def self.CoordRelative
-    return 'relative'
-  end
-  def self.CoordAbsolute
-    return 'absolute'
   end
   def self.CondenserTypeWater
     return 'watercooled'
@@ -167,21 +125,6 @@ class Constants
   def self.CrawlZone
     return 'crawl zone'
   end
-  def self.DehumidDucted
-    return 'ducted'
-  end
-  def self.DehumidStandalone
-    return 'standalone'
-  end
-  def self.DayTypeWeekend
-    return 'weekend'
-  end
-  def self.DayTypeWeekday
-    return 'weekday'
-  end
-  def self.DayTypeVacation
-    return 'vacation'
-  end
   def self.DDYHtgDrybulb
     return 'Htg 99.6. Condns DB'
   end
@@ -190,21 +133,6 @@ class Constants
   end
   def self.DDYClgWetbulb
     return 'Clg .4. Condns DB=>MWB'
-  end
-  def self.DRControlAuto
-    return 'automatic'
-  end
-  def self.DRControlManual
-    return 'manual'
-  end
-  def self.DryerTerminationTimer
-    return 'timer'
-  end
-  def self.DryerTerminationTemperature
-    return 'temperature'
-  end
-  def self.DryerTerminationMoisture
-    return 'moisture'
   end
   def self.FacadeFront
     return 'Front'
@@ -217,9 +145,6 @@ class Constants
   end
   def self.FacadeRight
     return 'Right'
-  end
-  def self.FanControlSmart
-    return 'smart'
   end
   def self.FinishedAtticSpace
     return 'finished attic space'
@@ -248,12 +173,6 @@ class Constants
   def self.FluidEthyleneGlycol
     return 'ethylene-glycol'
   end
-  def self.FoundationCalcSimple
-    return 'simple'
-  end
-  def self.FoundationCalcPreProcess
-    return 'preprocess'
-  end
   def self.FuelTypeElectric
     return 'electric'
   end
@@ -266,12 +185,6 @@ class Constants
   def self.FuelTypeOil
     return 'oil'
   end
-  def self.FurnTypeLight
-    return 'LIGHT'
-  end
-  def self.FurnTypeHeavy
-    return 'HEAVY'
-  end
   def self.GarageSpace
     return 'garage space'
   end
@@ -283,18 +196,6 @@ class Constants
   end
   def self.GarageZone
     return 'garage zone'
-  end
-  def self.HeatTransferMethodCTF
-    return 'ctf'
-  end
-  def self.HeatTransferMethodCondFD
-    return 'confd'
-  end
-  def self.HERSReference
-    return 'ReferenceHome'
-  end
-  def self.HERSRated
-    return 'RatedHome'
   end
   def self.InfMethodSG
     return 'S-G'
@@ -510,12 +411,6 @@ class Constants
   def self.PipeTypeHomeRun
     return 'homerun'
   end
-  def self.PCMtypeDistributed
-    return 'distributed'
-  end
-  def self.PCMtypeConcentrated
-    return 'concentrated'
-  end
   def self.PlantLoopDomesticWater
     return 'Domestic Hot Water Loop'
   end
@@ -527,51 +422,6 @@ class Constants
   end
   def self.RecircTypeDemand
     return 'demand' 
-  end
-  def self.ReportDeliveredHeating
-    return 'Heating Delivered'
-  end
-  def self.ReportDeliveredCooling
-    return 'Cooling Delivered'
-  end
-  def self.ReportDeliveredHotWater
-    return 'Hot Water Delivered'
-  end
-  def self.ReportDeliveredHotWaterCommon
-    return 'Common Hot Water Delivered'
-  end
-  def self.ReportCooling
-    return 'Cooling Energy'
-  end
-  def self.ReportHeating
-    return 'Heating Energy'
-  end
-  def self.ReportCoolFanPump
-    return 'Cooling Fan Pump Energy'
-  end
-  def self.ReportHeatFanPump
-    return 'Heating Fan Pump Energy'
-  end
-  def self.ReportHotWater
-    return 'Hot Water Energy'
-  end
-  def self.ReportHotWaterSupp
-    return 'Electric Element Usage'
-  end
-  def self.ReportLighting
-    return 'Lighting Energy'
-  end
-  def self.ReportAppliances
-    return 'Large Appliance Energy'
-  end
-  def self.ReportVentFans
-    return 'Vent Fan Energy'
-  end
-  def self.ReportMisc
-    return 'Misc Energy'
-  end
-  def self.ReportPV
-    return 'PV Energy'
   end
   def self.RoofStructureRafter
     return 'rafter'
@@ -587,27 +437,6 @@ class Constants
   end
   def self.RoofTypeHip
     return 'hip'
-  end
-  def self.ScheduleTypeTemperature
-    return 'TEMPERATURE'
-  end
-  def self.ScheduleTypeFraction
-    return 'FRACTION'
-  end
-  def self.ScheduleTypeMultiplier
-    return 'MULTIPLIER'
-  end
-  def self.ScheduleTypeFlag
-    return 'FLAG'
-  end
-  def self.ScheduleTypeOnOff
-    return 'ON/OFF'
-  end
-  def self.ScheduleTypeNumber
-    return 'NUMBER'
-  end
-  def self.ScheduleTypeMonth
-    return 'MONTH'
   end
   def self.SeasonHeating
     return 'Heating'
@@ -630,12 +459,6 @@ class Constants
   def self.SlabSpaceType
     return 'slab space type'
   end
-  def self.TankTypeStratified
-    return 'Stratified'
-  end
-  def self.TankTypeMixed
-    return 'Mixed'
-  end
   def self.TerrainOcean
     return 'ocean'
   end
@@ -650,39 +473,6 @@ class Constants
   end
   def self.TerrainCity
     return 'city'
-  end
-  def self.TestBldgMinimal
-    return 'minimal'
-  end
-  def self.TestBldgTypical
-    return 'typical'
-  end
-  def self.TestBldgExisting
-    return 'existing'
-  end
-  def self.TestTypeStandard
-    return 'standard'
-  end
-  def self.TestTypeSEEMValidation
-    return 'seem'
-  end
-  def self.TestTypeTendrilValidation
-    return 'tendril'
-  end
-  def self.TiltPitch
-    return 'pitch'
-  end
-  def self.TiltLatitude
-    return 'latitude'
-  end
-  def self.TubeSpacingB
-    return 'b'
-  end
-  def self.TubeSpacingC
-    return 'c'
-  end
-  def self.TubeSpacingAS
-    return 'as'
   end
   def self.UnfinishedAtticSpace
     return 'unfinished attic space'
@@ -711,27 +501,6 @@ class Constants
   def self.VentTypeBalanced
     return 'balanced'
   end
-  def self.WallTypeWoodStud
-    return 'woodstud'
-  end
-  def self.WallTypeDoubleStud
-    return 'doublestud'
-  end
-  def self.WallTypeSteelStud
-    return 'steelstud'
-  end
-  def self.WallTypeCMU
-    return 'cmus'
-  end
-  def self.WallTypeSIP
-    return 'sips'
-  end
-  def self.WallTypeICF
-    return 'icfs'
-  end
-  def self.WallTypeMisc
-    return 'misc'
-  end
   def self.WaterHeaterTypeTankless
     return 'tankless'
   end
@@ -740,51 +509,6 @@ class Constants
   end
   def self.WaterHeaterTypeHeatPump
     return 'heatpump'
-  end
-  def self.WaterHeaterTypeHeatPumpStratified
-    return 'heatpump_strat'
-  end
-  def self.WindowClear
-    return 'clear'
-  end
-  def self.WindowHighSHGCLowe
-    return 'high-gain low-e'
-  end
-  def self.WindowLowSHGCLowe
-    return 'low-gain low-e'
-  end
-  def self.WindowMedSHGCLowe
-    return 'medium-gain low-e'
-  end
-  def self.WindowFrameInsulated
-    return 'insulated'
-  end
-  def self.WindowFrameMTB
-    return 'metal with thermal breaks'
-  end
-  def self.WindowFrameNonMetal
-    return 'non-metal'
-  end
-  def self.WindowFrameMetal
-    return 'metal'
-  end
-  def self.WindowTypeSingleCasement  
-    return 'single casement'
-  end
-  def self.WindowTypeDoubleCasement  
-    return 'double casement'
-  end
-  def self.WindowTypeHorizontalSlider
-    return 'horizontal slider'
-  end
-  def self.WindowTypeVerticalSlider  
-    return 'vertical slider'
-  end
-  def self.WindowTypeFixedPicture    
-    return 'fixed'
-  end
-  def self.WindowTypeDoor            
-    return 'door'
   end
     
 end

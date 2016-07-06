@@ -96,16 +96,6 @@ class ResidentialHotTubHeaterElec < OpenStudio::Ruleset::ModelUserScript
 		return false
     end
     
-    #check for valid inputs
-    if base_energy < 0
-		runner.registerError("Base energy use must be greater than or equal to 0.")
-		return false
-    end
-    if mult < 0
-		runner.registerError("Occupancy energy multiplier must be greater than or equal to 0.")
-		return false
-    end
-
     # Get FFA and number of bedrooms/bathrooms
     ffa = Geometry.get_building_finished_floor_area(model, runner)
     if ffa.nil?

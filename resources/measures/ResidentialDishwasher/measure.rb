@@ -46,7 +46,7 @@ class ResidentialDishwasher < OpenStudio::Ruleset::ModelUserScript
 	#make a bool argument for internal heater adjustment
 	int_htr = OpenStudio::Ruleset::OSArgument::makeBoolArgument("int_htr",true)
 	int_htr.setDisplayName("Internal Heater Adjustment")
-	int_htr.setDescription("Does the system use an internal electric heater to adjust water temperature?   Input obtained from manufacturer's literature.")
+	int_htr.setDescription("Does the system use an internal electric heater to adjust water temperature? Input obtained from manufacturer's literature.")
 	int_htr.setDefaultValue("true")
 	args << int_htr
 
@@ -61,7 +61,7 @@ class ResidentialDishwasher < OpenStudio::Ruleset::ModelUserScript
 	cold_use = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("cold_use",true)
 	cold_use.setDisplayName("Cold Water Conn Use Per Cycle")
 	cold_use.setUnits("gal/cycle")
-	cold_use.setDescription("Volume of water per cycle used if there is only a cold water inlet connection, for the dishwasher.   Input obtained from manufacturer's literature.")
+	cold_use.setDescription("Volume of water per cycle used if there is only a cold water inlet connection, for the dishwasher. Input obtained from manufacturer's literature.")
 	cold_use.setDefaultValue(0)
 	args << cold_use
 
@@ -366,6 +366,7 @@ class ResidentialDishwasher < OpenStudio::Ruleset::ModelUserScript
 	else
 
 		# Dishwasher has no internal heater
+        actual_dw_elec_use_per_cycle = test_dw_elec_use_per_cycle # kWh/cycle
 		daily_energy = actual_dw_elec_use_per_cycle * \
 				actual_dw_cycles_per_year / 365 # kWh/day
 	
@@ -386,6 +387,12 @@ class ResidentialDishwasher < OpenStudio::Ruleset::ModelUserScript
     # Remove any existing dishwasher
     dw_removed = false
     space.electricEquipment.each do |space_equipment|
+        if space_equipment.name.to_s == obj_name
+            space_equipment.remove
+            dw_removed = true
+        end
+    end
+    space.waterUseEquipment.each do |space_equipment|
         if space_equipment.name.to_s == obj_name
             space_equipment.remove
             dw_removed = true

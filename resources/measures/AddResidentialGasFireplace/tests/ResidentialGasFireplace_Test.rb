@@ -1,3 +1,4 @@
+require_relative '../../../test/minitest_helper'
 require 'openstudio'
 require 'openstudio/ruleset/ShowRunnerOutput'
 require 'minitest/autorun'
@@ -6,31 +7,39 @@ require 'fileutils'
 
 class ResidentialGasFireplaceTest < MiniTest::Test
 
+  def osm_geo
+    return "2000sqft_2story_FB_GRG_UA.osm"
+  end
+
+  def osm_geo_beds
+    return "2000sqft_2story_FB_GRG_UA_3Beds_2Baths.osm"
+  end
+  
   def test_new_construction_none1
     # Using annual energy
     args_hash = {}
     args_hash["base_energy"] = 0.0
-    _test_measure("2000sqft_2story_FB_GRG_UA_3Beds_2Baths.osm", args_hash)
+    _test_measure(osm_geo_beds, args_hash)
   end
   
   def test_new_construction_none2
     # Using energy multiplier
     args_hash = {}
     args_hash["mult"] = 0.0
-    _test_measure("2000sqft_2story_FB_GRG_UA_3Beds_2Baths.osm", args_hash)
+    _test_measure(osm_geo_beds, args_hash)
   end
   
   def test_new_construction_gas
     args_hash = {}
     args_hash["base_energy"] = 60.0
-    _test_measure("2000sqft_2story_FB_GRG_UA_3Beds_2Baths.osm", args_hash, 0, 1, _scale_energy(60.0, 3, 2000))
+    _test_measure(osm_geo_beds, args_hash, 0, 1, _scale_energy(60.0, 3, 2000))
   end
   
   def test_new_construction_mult_0_032
     args_hash = {}
     args_hash["base_energy"] = 60.0
     args_hash["mult"] = 0.032
-    _test_measure("2000sqft_2story_FB_GRG_UA_3Beds_2Baths.osm", args_hash, 0, 1, _scale_energy(1.92, 3, 2000))
+    _test_measure(osm_geo_beds, args_hash, 0, 1, _scale_energy(1.92, 3, 2000))
   end
   
   def test_new_construction_modified_schedule
@@ -39,27 +48,27 @@ class ResidentialGasFireplaceTest < MiniTest::Test
     args_hash["weekday_sch"] = "1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24"
     args_hash["weekend_sch"] = "1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24"
     args_hash["monthly_sch"] = "1,2,3,4,5,6,7,8,9,10,11,12"
-    _test_measure("2000sqft_2story_FB_GRG_UA_3Beds_2Baths.osm", args_hash, 0, 1, _scale_energy(60.0, 3, 2000))
+    _test_measure(osm_geo_beds, args_hash, 0, 1, _scale_energy(60.0, 3, 2000))
   end
 
   def test_new_construction_no_scale_energy
     args_hash = {}
     args_hash["base_energy"] = 60.0
     args_hash["scale_energy"] = "false" # FIXME: Why does this need to be a string?
-    _test_measure("2000sqft_2story_FB_GRG_UA_3Beds_2Baths.osm", args_hash, 0, 1, 60.0)
+    _test_measure(osm_geo_beds, args_hash, 0, 1, 60.0)
   end
 
   def test_new_construction_basement
     args_hash = {}
     args_hash["base_energy"] = 60.0
     args_hash["space"] = Constants.FinishedBasementSpace
-    _test_measure("2000sqft_2story_FB_GRG_UA_3Beds_2Baths.osm", args_hash, 0, 1, 60.0)
+    _test_measure(osm_geo_beds, args_hash, 0, 1, 60.0)
   end
 
   def test_retrofit_replace
     args_hash = {}
     args_hash["base_energy"] = 60.0
-    model = _test_measure("2000sqft_2story_FB_GRG_UA_3Beds_2Baths.osm", args_hash, 0, 1, _scale_energy(60.0, 3, 2000))
+    model = _test_measure(osm_geo_beds, args_hash, 0, 1, _scale_energy(60.0, 3, 2000))
     args_hash = {}
     args_hash["base_energy"] = 30.0
     _test_measure(model, args_hash, 1, 1, _scale_energy(30.0, 3, 2000))
@@ -68,7 +77,7 @@ class ResidentialGasFireplaceTest < MiniTest::Test
   def test_retrofit_remove
     args_hash = {}
     args_hash["base_energy"] = 60.0
-    model = _test_measure("2000sqft_2story_FB_GRG_UA_3Beds_2Baths.osm", args_hash, 0, 1, _scale_energy(60.0, 3, 2000))
+    model = _test_measure(osm_geo_beds, args_hash, 0, 1, _scale_energy(60.0, 3, 2000))
     args_hash = {}
     args_hash["base_energy"] = 0.0
     _test_measure(model, args_hash, 1, 0)
@@ -77,54 +86,54 @@ class ResidentialGasFireplaceTest < MiniTest::Test
   def test_argument_error_base_energy_negative
     args_hash = {}
     args_hash["base_energy"] = -1.0
-    _test_error("2000sqft_2story_FB_GRG_UA_3Beds_2Baths.osm", args_hash)
+    _test_error(osm_geo_beds, args_hash)
   end
   
   def test_argument_error_mult_negative
     args_hash = {}
     args_hash["mult"] = -1.0
-    _test_error("2000sqft_2story_FB_GRG_UA_3Beds_2Baths.osm", args_hash)
+    _test_error(osm_geo_beds, args_hash)
   end
   
   def test_argument_error_weekday_sch_wrong_number_of_values
     args_hash = {}
     args_hash["weekday_sch"] = "1,1"
-    _test_error("2000sqft_2story_FB_GRG_UA_3Beds_2Baths.osm", args_hash)
+    _test_error(osm_geo_beds, args_hash)
   end
   
   def test_argument_error_weekday_sch_not_number
     args_hash = {}
     args_hash["weekday_sch"] = "str,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1"
-    _test_error("2000sqft_2story_FB_GRG_UA_3Beds_2Baths.osm", args_hash)
+    _test_error(osm_geo_beds, args_hash)
   end
     
   def test_argument_error_weekend_sch_wrong_number_of_values
     args_hash = {}
     args_hash["weekend_sch"] = "1,1"
-    _test_error("2000sqft_2story_FB_GRG_UA_3Beds_2Baths.osm", args_hash)
+    _test_error(osm_geo_beds, args_hash)
   end
     
   def test_argument_error_weekend_sch_not_number
     args_hash = {}
     args_hash["weekend_sch"] = "str,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1"
-    _test_error("2000sqft_2story_FB_GRG_UA_3Beds_2Baths.osm", args_hash)
+    _test_error(osm_geo_beds, args_hash)
   end
   
   def test_argument_error_monthly_sch_wrong_number_of_values  
     args_hash = {}
     args_hash["monthly_sch"] = "1,1"
-    _test_error("2000sqft_2story_FB_GRG_UA_3Beds_2Baths.osm", args_hash)
+    _test_error(osm_geo_beds, args_hash)
   end
   
   def test_argument_error_monthly_sch_not_number
     args_hash = {}
     args_hash["monthly_sch"] = "str,1,1,1,1,1,1,1,1,1,1,1"
-    _test_error("2000sqft_2story_FB_GRG_UA_3Beds_2Baths.osm", args_hash)
+    _test_error(osm_geo_beds, args_hash)
   end
   
   def test_error_missing_beds
     args_hash = {}
-    _test_error("2000sqft_2story_FB_GRG_UA.osm", args_hash)
+    _test_error(osm_geo, args_hash)
   end
     
   def test_error_missing_geometry

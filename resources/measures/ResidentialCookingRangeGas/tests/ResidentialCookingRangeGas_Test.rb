@@ -1,3 +1,4 @@
+require_relative '../../../test/minitest_helper'
 require 'openstudio'
 require 'openstudio/ruleset/ShowRunnerOutput'
 require 'minitest/autorun'
@@ -6,18 +7,30 @@ require 'fileutils'
 
 class ResidentialCookingRangeGasTest < MiniTest::Test
 
+  def osm_geo
+    return "2000sqft_2story_FB_GRG_UA.osm"
+  end
+
+  def osm_geo_beds
+    return "2000sqft_2story_FB_GRG_UA_3Beds_2Baths.osm"
+  end
+  
+  def osm_geo_beds_elecrange
+    return "2000sqft_2story_FB_GRG_UA_3Beds_2Baths_ElecCookingRange.osm"
+  end
+
   def test_new_construction_none
     # Using energy multiplier
     args_hash = {}
     args_hash["mult"] = 0.0
-    _test_measure("2000sqft_2story_FB_GRG_UA_3Beds_2Baths.osm", args_hash)
+    _test_measure(osm_geo_beds, args_hash)
   end
   
   def test_new_construction_gas
     args_hash = {}
     args_hash["c_ef"] = 0.4
     args_hash["o_ef"] = 0.058
-    _test_measure("2000sqft_2story_FB_GRG_UA_3Beds_2Baths.osm", args_hash, 0, 2, 28.5, 80)
+    _test_measure(osm_geo_beds, args_hash, 0, 2, 28.5, 80)
   end
   
   def test_new_construction_no_elec_ignition
@@ -25,7 +38,7 @@ class ResidentialCookingRangeGasTest < MiniTest::Test
     args_hash["c_ef"] = 0.4
     args_hash["o_ef"] = 0.058
     args_hash["e_ignition"] = "false"
-    _test_measure("2000sqft_2story_FB_GRG_UA_3Beds_2Baths.osm", args_hash, 0, 1, 28.5, 0)
+    _test_measure(osm_geo_beds, args_hash, 0, 1, 28.5, 0)
   end
 
   def test_new_construction_mult_0_80
@@ -33,7 +46,7 @@ class ResidentialCookingRangeGasTest < MiniTest::Test
     args_hash["c_ef"] = 0.4
     args_hash["o_ef"] = 0.058
     args_hash["mult"] = 0.80
-    _test_measure("2000sqft_2story_FB_GRG_UA_3Beds_2Baths.osm", args_hash, 0, 2, 22.8, 64)
+    _test_measure(osm_geo_beds, args_hash, 0, 2, 22.8, 64)
   end
   
   def test_new_construction_modified_schedule
@@ -43,7 +56,7 @@ class ResidentialCookingRangeGasTest < MiniTest::Test
     args_hash["weekday_sch"] = "1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24"
     args_hash["weekend_sch"] = "1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24"
     args_hash["monthly_sch"] = "1,2,3,4,5,6,7,8,9,10,11,12"
-    _test_measure("2000sqft_2story_FB_GRG_UA_3Beds_2Baths.osm", args_hash, 0, 2, 28.5, 80)
+    _test_measure(osm_geo_beds, args_hash, 0, 2, 28.5, 80)
   end
 
   def test_new_construction_basement
@@ -51,14 +64,14 @@ class ResidentialCookingRangeGasTest < MiniTest::Test
     args_hash["c_ef"] = 0.4
     args_hash["o_ef"] = 0.058
     args_hash["space"] = Constants.FinishedBasementSpace
-    _test_measure("2000sqft_2story_FB_GRG_UA_3Beds_2Baths.osm", args_hash, 0, 2, 28.5, 80)
+    _test_measure(osm_geo_beds, args_hash, 0, 2, 28.5, 80)
   end
   
   def test_retrofit_replace
     args_hash = {}
     args_hash["c_ef"] = 0.4
     args_hash["o_ef"] = 0.058
-    model = _test_measure("2000sqft_2story_FB_GRG_UA_3Beds_2Baths.osm", args_hash, 0, 2, 28.5, 80)
+    model = _test_measure(osm_geo_beds, args_hash, 0, 2, 28.5, 80)
     args_hash = {}
     args_hash["c_ef"] = 0.2
     args_hash["o_ef"] = 0.02
@@ -70,7 +83,7 @@ class ResidentialCookingRangeGasTest < MiniTest::Test
     args_hash["c_ef"] = 0.4
     args_hash["o_ef"] = 0.058
     args_hash["e_ignition"] = "false"
-    model = _test_measure("2000sqft_2story_FB_GRG_UA_3Beds_2Baths.osm", args_hash, 0, 1, 28.5, 0)
+    model = _test_measure(osm_geo_beds, args_hash, 0, 1, 28.5, 0)
     args_hash = {}
     args_hash["c_ef"] = 0.2
     args_hash["o_ef"] = 0.02
@@ -83,7 +96,7 @@ class ResidentialCookingRangeGasTest < MiniTest::Test
     args_hash["c_ef"] = 0.4
     args_hash["o_ef"] = 0.058
     args_hash["e_ignition"] = "true"
-    model = _test_measure("2000sqft_2story_FB_GRG_UA_3Beds_2Baths.osm", args_hash, 0, 2, 28.5, 80)
+    model = _test_measure(osm_geo_beds, args_hash, 0, 2, 28.5, 80)
     args_hash = {}
     args_hash["c_ef"] = 0.2
     args_hash["o_ef"] = 0.02
@@ -92,7 +105,7 @@ class ResidentialCookingRangeGasTest < MiniTest::Test
   end
 
   def test_retrofit_replace_elec_cooking_range
-    model = _get_model("2000sqft_2story_FB_GRG_UA_3Beds_2Baths_ElecCookingRange.osm")
+    model = _get_model(osm_geo_beds_elecrange)
     args_hash = {}
     args_hash["c_ef"] = 0.4
     args_hash["o_ef"] = 0.058
@@ -103,7 +116,7 @@ class ResidentialCookingRangeGasTest < MiniTest::Test
     args_hash = {}
     args_hash["c_ef"] = 0.4
     args_hash["o_ef"] = 0.058
-    model = _test_measure("2000sqft_2story_FB_GRG_UA_3Beds_2Baths.osm", args_hash, 0, 2, 28.5, 80)
+    model = _test_measure(osm_geo_beds, args_hash, 0, 2, 28.5, 80)
     args_hash = {}
     args_hash["mult"] = 0.0
     _test_measure(model, args_hash, 2, 0)
@@ -112,84 +125,84 @@ class ResidentialCookingRangeGasTest < MiniTest::Test
   def test_argument_error_c_ef_lt_0
     args_hash = {}
     args_hash["c_ef"] = -1.0
-    _test_error("2000sqft_2story_FB_GRG_UA_3Beds_2Baths.osm", args_hash)
+    _test_error(osm_geo_beds, args_hash)
   end
   
   def test_argument_error_c_ef_eq_0
     args_hash = {}
     args_hash["c_ef"] = 0.0
-    _test_error("2000sqft_2story_FB_GRG_UA_3Beds_2Baths.osm", args_hash)
+    _test_error(osm_geo_beds, args_hash)
   end
   
   def test_argument_error_c_ef_gt_1
     args_hash = {}
     args_hash["c_ef"] = 1.1
-    _test_error("2000sqft_2story_FB_GRG_UA_3Beds_2Baths.osm", args_hash)
+    _test_error(osm_geo_beds, args_hash)
   end
   
   def test_argument_error_o_ef_lt_0
     args_hash = {}
     args_hash["o_ef"] = -1.0
-    _test_error("2000sqft_2story_FB_GRG_UA_3Beds_2Baths.osm", args_hash)
+    _test_error(osm_geo_beds, args_hash)
   end
   
   def test_argument_error_o_ef_eq_0
     args_hash = {}
     args_hash["o_ef"] = 0.0
-    _test_error("2000sqft_2story_FB_GRG_UA_3Beds_2Baths.osm", args_hash)
+    _test_error(osm_geo_beds, args_hash)
   end
   
   def test_argument_error_o_ef_gt_1
     args_hash = {}
     args_hash["o_ef"] = 1.1
-    _test_error("2000sqft_2story_FB_GRG_UA_3Beds_2Baths.osm", args_hash)
+    _test_error(osm_geo_beds, args_hash)
   end
   
   def test_argument_error_mult_negative
     args_hash = {}
     args_hash["mult"] = -1.0
-    _test_error("2000sqft_2story_FB_GRG_UA_3Beds_2Baths.osm", args_hash)
+    _test_error(osm_geo_beds, args_hash)
   end
   
   def test_argument_error_weekday_sch_wrong_number_of_values
     args_hash = {}
     args_hash["weekday_sch"] = "1,1"
-    _test_error("2000sqft_2story_FB_GRG_UA_3Beds_2Baths.osm", args_hash)
+    _test_error(osm_geo_beds, args_hash)
   end
   
   def test_argument_error_weekday_sch_not_number
     args_hash = {}
     args_hash["weekday_sch"] = "str,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1"
-    _test_error("2000sqft_2story_FB_GRG_UA_3Beds_2Baths.osm", args_hash)
+    _test_error(osm_geo_beds, args_hash)
   end
     
   def test_argument_error_weekend_sch_wrong_number_of_values
     args_hash = {}
     args_hash["weekend_sch"] = "1,1"
-    _test_error("2000sqft_2story_FB_GRG_UA_3Beds_2Baths.osm", args_hash)
+    _test_error(osm_geo_beds, args_hash)
   end
     
   def test_argument_error_weekend_sch_not_number
     args_hash = {}
     args_hash["weekend_sch"] = "str,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1"
-    _test_error("2000sqft_2story_FB_GRG_UA_3Beds_2Baths.osm", args_hash)
+    _test_error(osm_geo_beds, args_hash)
   end
   
   def test_argument_error_monthly_sch_wrong_number_of_values  
     args_hash = {}
     args_hash["monthly_sch"] = "1,1"
-    _test_error("2000sqft_2story_FB_GRG_UA_3Beds_2Baths.osm", args_hash)
+    _test_error(osm_geo_beds, args_hash)
   end
   
   def test_argument_error_monthly_sch_not_number
     args_hash = {}
     args_hash["monthly_sch"] = "str,1,1,1,1,1,1,1,1,1,1,1"
-    _test_error("2000sqft_2story_FB_GRG_UA_3Beds_2Baths.osm", args_hash)
+    _test_error(osm_geo_beds, args_hash)
   end
   
   def test_error_missing_beds
     args_hash = {}
-    _test_error("2000sqft_2story_FB_GRG_UA.osm", args_hash)
+    _test_error(osm_geo, args_hash)
   end
     
   def test_error_missing_geometry

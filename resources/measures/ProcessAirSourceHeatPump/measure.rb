@@ -653,7 +653,7 @@ class ProcessAirSourceHeatPump < OpenStudio::Ruleset::ModelUserScript
         air_loop_unitary.setCoolingCoil(clg_coil)
         air_loop_unitary.setSupplementalHeatingCoil(supp_htg_coil)
         air_loop_unitary.setSupplyAirFlowRateWhenNoCoolingorHeatingisRequired(0)
-        air_loop_unitary.setMaximumSupplyAirTemperature(OpenStudio::convert(supply.supp_htg_max_supply_temp,"F","C").get) # TODO: is this the same as AirLoopHVACUnitaryHeatPumpAirToAir's setMaximumSupplyAirTemperaturefromSupplementalHeater?
+        air_loop_unitary.setMaximumSupplyAirTemperature(OpenStudio::convert(supply.supp_htg_max_supply_temp,"F","C").get)
         air_loop_unitary.setMaximumOutdoorDryBulbTemperatureforSupplementalHeaterOperation(OpenStudio::convert(supply.supp_htg_max_outdoor_temp,"F","C").get)      
         air_loop_unitary.setFanPlacement("BlowThrough")
         air_loop_unitary.setSupplyAirFanOperatingModeSchedule(supply_fan_operation)

@@ -5,6 +5,14 @@ require "#{File.dirname(__FILE__)}/weather"
 require "#{File.dirname(__FILE__)}/geometry"
 
 class Waterheater
+    def self.deadband(tank_type)
+        if tank_type == Constants.WaterHeaterTypeTank
+            return 2.0 # deg-C
+        else
+            return 0.0 # deg-C
+        end
+    end
+    
 	def self.calc_nom_tankvol(vol, fuel, num_beds, num_baths)
 		#Calculates the volume of a water heater
 		if vol == Constants.Auto
@@ -210,10 +218,10 @@ class Waterheater
 		new_heater.setMaximumTemperatureLimit(99.0)
         if tanktype == Constants.WaterHeaterTypeTankless
             new_heater.setHeaterControlType("Modulate")
-            new_heater.setDeadbandTemperatureDifference(0)
+            new_heater.setDeadbandTemperatureDifference(self.deadband(tanktype))
         else
             new_heater.setHeaterControlType("Cycle")
-            new_heater.setDeadbandTemperatureDifference(2)
+            new_heater.setDeadbandTemperatureDifference(self.deadband(tanktype))
 		end
         
 		vol_m3 = OpenStudio::convert(act_vol, "gal", "m^3").get
@@ -281,11 +289,7 @@ class Waterheater
 	end 
   
     def self.configure_setpoint_schedule(new_heater, t_set, tanktype, model, runner)
-        if tanktype == Constants.WaterHeaterTypeTankless
-            set_temp = OpenStudio::convert(t_set,"F","C").get #Half the deadband (for tank water heaters) to account for E+ deadband
-        else
-            set_temp = OpenStudio::convert(t_set,"F","C").get + 1 #Half the deadband (for tank water heaters) to account for E+ deadband
-		end
+        set_temp = OpenStudio::convert(t_set,"F","C").get + self.deadband(tanktype)/2.0 #Half the deadband to account for E+ deadband
         new_schedule = self.create_new_schedule_ruleset("DHW Set Temp", "DHW Set Temp", set_temp, model)
 		new_heater.setSetpointTemperatureSchedule(new_schedule)
 		runner.registerInfo("A schedule named DHW Set Temp was created and applied to the gas water heater, using a constant temperature of #{t_set.to_s} F for generating domestic hot water.")
@@ -307,7 +311,7 @@ class Waterheater
 		
 		return loop
 	end
-	
+    
 	def self.get_water_heater_setpoint(model, plant_loop, runner)
         waterHeater = nil
         plant_loop.supplyComponents.each do |wh|
@@ -328,11 +332,12 @@ class Waterheater
             return nil
         end
         min_max_result = Schedule.getMinMaxAnnualProfileValue(model, waterHeater.setpointTemperatureSchedule.get)
-        wh_setpoint = OpenStudio.convert((min_max_result['min'] + min_max_result['max'])/2.0, "C", "F").get
+        wh_setpoint = (min_max_result['min'] + min_max_result['max'])/2.0
+        wh_setpoint -= waterHeater.deadbandTemperatureDifference/2.0
         if min_max_result['min'] != min_max_result['max']
             runner.registerWarning("Water heater setpoint is not constant. Using average setpoint temperature of #{wh_setpoint.round} F.")
         end
-        return wh_setpoint
+        return OpenStudio.convert(wh_setpoint, "C", "F").get
     end
     
     def self.get_water_heater_location_auto(model, runner)

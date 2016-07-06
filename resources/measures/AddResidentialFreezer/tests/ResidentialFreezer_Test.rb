@@ -1,3 +1,4 @@
+require_relative '../../../test/minitest_helper'
 require 'openstudio'
 require 'openstudio/ruleset/ShowRunnerOutput'
 require 'minitest/autorun'
@@ -6,38 +7,42 @@ require 'fileutils'
 
 class ResidentialFreezerTest < MiniTest::Test
 
+  def osm_geo
+    return "2000sqft_2story_FB_GRG_UA.osm"
+  end
+
   def test_new_construction_none1
     # Using rated annual consumption
     args_hash = {}
     args_hash["freezer_E"] = 0.0
-    _test_measure("2000sqft_2story_FB_GRG_UA.osm", args_hash)
+    _test_measure(osm_geo, args_hash)
   end
   
   def test_new_construction_none2
     # Using energy multiplier
     args_hash = {}
     args_hash["mult"] = 0.0
-    _test_measure("2000sqft_2story_FB_GRG_UA.osm", args_hash)
+    _test_measure(osm_geo, args_hash)
   end
   
   def test_new_construction_ef_12
     args_hash = {}
     args_hash["freezer_E"] = 935.0
-    _test_measure("2000sqft_2story_FB_GRG_UA.osm", args_hash, 0, 1, 935.0)
+    _test_measure(osm_geo, args_hash, 0, 1, 935.0)
   end
   
   def test_new_construction_mult_0_95
     args_hash = {}
     args_hash["freezer_E"] = 935.0
     args_hash["mult"] = 0.95
-    _test_measure("2000sqft_2story_FB_GRG_UA.osm", args_hash, 0, 1, 888.25)
+    _test_measure(osm_geo, args_hash, 0, 1, 888.25)
   end
   
   def test_new_construction_mult_1_05
     args_hash = {}
     args_hash["freezer_E"] = 935.0
     args_hash["mult"] = 1.05
-    _test_measure("2000sqft_2story_FB_GRG_UA.osm", args_hash, 0, 1, 981.75)
+    _test_measure(osm_geo, args_hash, 0, 1, 981.75)
   end
   
   def test_new_construction_modified_schedule
@@ -46,20 +51,20 @@ class ResidentialFreezerTest < MiniTest::Test
     args_hash["weekday_sch"] = "1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24"
     args_hash["weekend_sch"] = "1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24"
     args_hash["monthly_sch"] = "1,2,3,4,5,6,7,8,9,10,11,12"
-    _test_measure("2000sqft_2story_FB_GRG_UA.osm", args_hash, 0, 1, 935.0)
+    _test_measure(osm_geo, args_hash, 0, 1, 935.0)
   end
 
   def test_new_construction_basement
     args_hash = {}
     args_hash["freezer_E"] = 935.0
     args_hash["space"] = Constants.FinishedBasementSpace
-    _test_measure("2000sqft_2story_FB_GRG_UA.osm", args_hash, 0, 1, 935.0)
+    _test_measure(osm_geo, args_hash, 0, 1, 935.0)
   end
 
   def test_retrofit_replace
     args_hash = {}
     args_hash["freezer_E"] = 935.0
-    model = _test_measure("2000sqft_2story_FB_GRG_UA.osm", args_hash, 0, 1, 935.0)
+    model = _test_measure(osm_geo, args_hash, 0, 1, 935.0)
     args_hash = {}
     args_hash["freezer_E"] = 417.0
     _test_measure(model, args_hash, 1, 1, 417.0)
@@ -68,7 +73,7 @@ class ResidentialFreezerTest < MiniTest::Test
   def test_retrofit_remove
     args_hash = {}
     args_hash["freezer_E"] = 935.0
-    model = _test_measure("2000sqft_2story_FB_GRG_UA.osm", args_hash, 0, 1, 935.0)
+    model = _test_measure(osm_geo, args_hash, 0, 1, 935.0)
     args_hash = {}
     args_hash["freezer_E"] = 0.0
     _test_measure(model, args_hash, 1, 0)
@@ -77,49 +82,49 @@ class ResidentialFreezerTest < MiniTest::Test
   def test_argument_error_freezer_E_negative
     args_hash = {}
     args_hash["freezer_E"] = -1.0
-    _test_error("2000sqft_2story_FB_GRG_UA.osm", args_hash)
+    _test_error(osm_geo, args_hash)
   end
   
   def test_argument_error_mult_negative
     args_hash = {}
     args_hash["mult"] = -1.0
-    _test_error("2000sqft_2story_FB_GRG_UA.osm", args_hash)
+    _test_error(osm_geo, args_hash)
   end
   
   def test_argument_error_weekday_sch_wrong_number_of_values
     args_hash = {}
     args_hash["weekday_sch"] = "1,1"
-    _test_error("2000sqft_2story_FB_GRG_UA.osm", args_hash)
+    _test_error(osm_geo, args_hash)
   end
   
   def test_argument_error_weekday_sch_not_number
     args_hash = {}
     args_hash["weekday_sch"] = "str,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1"
-    _test_error("2000sqft_2story_FB_GRG_UA.osm", args_hash)
+    _test_error(osm_geo, args_hash)
   end
     
   def test_argument_error_weekend_sch_wrong_number_of_values
     args_hash = {}
     args_hash["weekend_sch"] = "1,1"
-    _test_error("2000sqft_2story_FB_GRG_UA.osm", args_hash)
+    _test_error(osm_geo, args_hash)
   end
     
   def test_argument_error_weekend_sch_not_number
     args_hash = {}
     args_hash["weekend_sch"] = "str,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1"
-    _test_error("2000sqft_2story_FB_GRG_UA.osm", args_hash)
+    _test_error(osm_geo, args_hash)
   end
   
   def test_argument_error_monthly_sch_wrong_number_of_values  
     args_hash = {}
     args_hash["monthly_sch"] = "1,1"
-    _test_error("2000sqft_2story_FB_GRG_UA.osm", args_hash)
+    _test_error(osm_geo, args_hash)
   end
   
   def test_argument_error_monthly_sch_not_number
     args_hash = {}
     args_hash["monthly_sch"] = "str,1,1,1,1,1,1,1,1,1,1,1"
-    _test_error("2000sqft_2story_FB_GRG_UA.osm", args_hash)
+    _test_error(osm_geo, args_hash)
   end
     
   def test_error_missing_geometry

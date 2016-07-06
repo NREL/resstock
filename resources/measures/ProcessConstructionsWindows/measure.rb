@@ -147,7 +147,8 @@ class ProcessConstructionsWindows < OpenStudio::Ruleset::ModelUserScript
     sched_type.setUpperLimitValue(1)
     sched_type.setNumericType("Continuous")
     
-    sch = MonthWeekdayWeekendSchedule.new(model, runner, Constants.ObjectNameWindowShading + " schedule", Array.new(24, 1).join(", "), Array.new(24, 1).join(", "), cooling_season.join(", "))
+    # FIXME: Should the line below reference window_shade_multiplier instead of cooling_season?
+    sch = MonthWeekdayWeekendSchedule.new(model, runner, Constants.ObjectNameWindowShading + " schedule", Array.new(24, 1), Array.new(24, 1), cooling_season)
     if not sch.validated?
         return false
     end
