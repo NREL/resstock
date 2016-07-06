@@ -34,11 +34,28 @@ class HourlyByMonthSchedule
 
     def setSchedule(obj)
         # Helper method to set (or replace) the object's schedule
-        if not obj.schedule.empty?
-            sch = obj.schedule.get
-            sch.remove
+        if obj.is_a? OpenStudio::Model::ThermostatSetpointDualSetpoint
+            if @schedule.name.to_s.downcase.include? "heating"
+              unless obj.heatingSetpointTemperatureSchedule.empty?
+                  sch = obj.heatingSetpointTemperatureSchedule.get
+                  sch.remove
+              end
+              obj.setHeatingSetpointTemperatureSchedule(@schedule)
+            end
+            if @schedule.name.to_s.downcase.include? "cooling"
+              unless obj.coolingSetpointTemperatureSchedule.empty?
+                  sch = obj.coolingSetpointTemperatureSchedule.get
+                  sch.remove
+              end
+              obj.setCoolingSetpointTemperatureSchedule(@schedule)
+            end
+        else
+          unless obj.schedule.empty?
+              sch = obj.schedule.get
+              sch.remove
+          end
+          obj.setSchedule(@schedule)
         end
-        obj.setSchedule(@schedule)
     end
 
     private 

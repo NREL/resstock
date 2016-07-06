@@ -558,3 +558,33 @@ desc "run NREL24"
 task :run_NREL24 do |t, args|
   task(:run_custom).invoke('nrel24')
 end
+
+desc 'Copy measures from OpenStudio-Beopt repo'
+task :copy_beopt_measures do
+  require 'fileutils'
+
+  beopt_measures_dir = File.join(File.dirname(__FILE__), "..", "OpenStudio-Beopt", "measures")
+  resstock_measures_dir = File.join(File.dirname(__FILE__), "resources", "measures")
+  if not Dir.exist?(beopt_measures_dir)
+    puts "Cannot find OpenStudio-Beopt measures dir at #{beopt_measures_dir}."
+  end
+  
+  puts "Deleting #{resstock_measures_dir}..."
+  while Dir.exist?(resstock_measures_dir)
+    FileUtils.rm_rf("#{resstock_measures_dir}/.", secure: true)
+    sleep 1
+  end
+  FileUtils.makedirs(resstock_measures_dir)
+  
+  Dir.foreach(beopt_measures_dir) do |item|
+    next if item == '.' or item == '..'
+    beopt_measure_dir = File.join(beopt_measures_dir, item)
+    next if not Dir.exist?(beopt_measure_dir)
+    puts "Copying #{item} measure..."
+    FileUtils.cp_r(beopt_measure_dir, resstock_measures_dir)
+    resstock_measure_test_dir = File.join(resstock_measures_dir, item, "tests")
+    if Dir.exist?(resstock_measure_test_dir)
+      FileUtils.rm_rf("#{resstock_measure_test_dir}/.", secure: true)
+    end
+  end
+end
