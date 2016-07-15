@@ -365,48 +365,48 @@ class CreateBasicGeometry < OpenStudio::Ruleset::ModelUserScript
           garage_se_point = OpenStudio::Point3d.new(garage_se_point.x, garage_se_point.y, living_height * floor + foundation_offset)
           garage_sw_point = OpenStudio::Point3d.new(garage_sw_point.x, garage_sw_point.y, living_height * floor + foundation_offset)        
           if garage_pos == "Right"
-            if ( garage_depth < width or garage_protrusion > 0 ) and garage_protrusion < 1 # 6 points
-              if garage_protrusion > 0
+            if ( garage_depth < width or garage_protrusion > 0 ) # garage is neither fully within nor outside living space
+              if garage_protrusion > 0 # garage protrudes
                 sw_point = OpenStudio::Point3d.new(0,0,z)
                 nw_point = OpenStudio::Point3d.new(0,width,z)
                 ne_point = OpenStudio::Point3d.new(length,width,z)
                 l_se_point = OpenStudio::Point3d.new(length-garage_width,0,z)
                 living_polygon = Geometry.make_polygon(sw_point, nw_point, ne_point, garage_se_point, garage_sw_point, l_se_point)
-              else
+              else # garage does not protrude
                 sw_point = OpenStudio::Point3d.new(0,0,z)	
                 nw_point = OpenStudio::Point3d.new(0,width,z)
                 ne_point = OpenStudio::Point3d.new(length,width,z)
                 se_point = OpenStudio::Point3d.new(length,0,z)
                 living_polygon = Geometry.make_polygon(sw_point, nw_point, ne_point, se_point)              
               end
-            else # 4 points
-              sw_point = OpenStudio::Point3d.new(0,0,z)	
+            else # garage is outside living space
+              sw_point = OpenStudio::Point3d.new(0,0,z)
               nw_point = OpenStudio::Point3d.new(0,width,z)
               ne_point = OpenStudio::Point3d.new(length,width,z)
-              se_point = OpenStudio::Point3d.new(length,0,z)
-              living_polygon = Geometry.make_polygon(sw_point, nw_point, ne_point, se_point)      
+              l_se_point = OpenStudio::Point3d.new(length-garage_width,0,z)
+              living_polygon = Geometry.make_polygon(sw_point, nw_point, ne_point, garage_se_point, garage_sw_point, l_se_point)     
             end
           elsif garage_pos == "Left"
-            if ( garage_depth < width or garage_protrusion > 0 ) and garage_protrusion < 1 # 6 points
-              if garage_protrusion > 0
+            if ( garage_depth < width or garage_protrusion > 0 ) and garage_protrusion < 1 # garage is neither fully within nor outside living space
+              if garage_protrusion > 0 # garage protrudes
                 nw_point = OpenStudio::Point3d.new(0,width,z)	
                 ne_point = OpenStudio::Point3d.new(length,width,z)
                 se_point = OpenStudio::Point3d.new(length,0,z)
                 l_sw_point = OpenStudio::Point3d.new(garage_width,0,z)
                 living_polygon = Geometry.make_polygon(garage_sw_point, nw_point, ne_point, se_point, l_sw_point, garage_se_point)
-              else
+              else # garage does not protrude
                 sw_point = OpenStudio::Point3d.new(0,0,z)	
                 nw_point = OpenStudio::Point3d.new(0,width,z)
                 ne_point = OpenStudio::Point3d.new(length,width,z)
                 se_point = OpenStudio::Point3d.new(length,0,z)
                 living_polygon = Geometry.make_polygon(sw_point, nw_point, ne_point, se_point)              
               end
-            else # 4 points
+            else # garage is outside living space
+              nw_point = OpenStudio::Point3d.new(0,width,z)	
               ne_point = OpenStudio::Point3d.new(length,width,z)
               se_point = OpenStudio::Point3d.new(length,0,z)
-              sw_point = OpenStudio::Point3d.new(0,0,z)
-              nw_point = OpenStudio::Point3d.new(0,width,z)
-              living_polygon = Geometry.make_polygon(sw_point, nw_point, ne_point, se_point)          
+              l_sw_point = OpenStudio::Point3d.new(garage_width,0,z)
+              living_polygon = Geometry.make_polygon(garage_sw_point, nw_point, ne_point, se_point, l_sw_point, garage_se_point)          
             end
           end
         

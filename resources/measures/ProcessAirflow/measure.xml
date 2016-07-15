@@ -2,8 +2,8 @@
   <schema_version>3.0</schema_version>
   <name>process_airflow</name>
   <uid>c4dde5f8-45aa-4381-93dc-e598f7c31155</uid>
-  <version_id>d8aff25e-ff26-4f05-9a67-9bebd1d26859</version_id>
-  <version_modified>20160705T142229Z</version_modified>
+  <version_id>67f2a359-1e61-4ce2-993f-6c6c212400ea</version_id>
+  <version_modified>20160715T180519Z</version_modified>
   <xml_checksum>2AC0F979</xml_checksum>
   <class_name>ProcessAirflow</class_name>
   <display_name>Set Residential Airflow</display_name>
@@ -111,23 +111,14 @@
       <default_value>7</default_value>
     </argument>
     <argument>
-      <name>userdefinedconstinflivingspace</name>
-      <display_name>Air Leakage: Above-Grade Living Space Constant ACH</display_name>
-      <description>Air exchange rate, in natural Air Changes per Hour (ACH), for above-grade living space. Using this variable will override the AIM-2 calculation method with a constant air exchange rate.</description>
+      <name>userdefinedinfgarage</name>
+      <display_name>Garage: ACH50</display_name>
+      <description>Air exchange rate, in Air Changes per Hour at 50 Pascals (ACH50), for the garage.</description>
       <type>Double</type>
       <units>1/hr</units>
       <required>false</required>
       <model_dependent>false</model_dependent>
-      <default_value>0</default_value>
-    </argument>
-    <argument>
-      <name>userdefinedinfsheltercoef</name>
-      <display_name>Air Leakage: Shelter Coefficient</display_name>
-      <description>The local shelter coefficient (AIM-2 infiltration model) accounts for nearby buildings, trees and obstructions.</description>
-      <type>String</type>
-      <required>false</required>
-      <model_dependent>false</model_dependent>
-      <default_value>auto</default_value>
+      <default_value>7</default_value>
     </argument>
     <argument>
       <name>userdefinedinffbsmt</name>
@@ -167,6 +158,15 @@
       <required>false</required>
       <model_dependent>false</model_dependent>
       <default_value>0.00333</default_value>
+    </argument>
+    <argument>
+      <name>userdefinedinfsheltercoef</name>
+      <display_name>Air Leakage: Shelter Coefficient</display_name>
+      <description>The local shelter coefficient (AIM-2 infiltration model) accounts for nearby buildings, trees and obstructions.</description>
+      <type>String</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+      <default_value>auto</default_value>
     </argument>
     <argument>
       <name>userdefinedhomeage</name>
@@ -656,6 +656,12 @@
       <checksum>7367BD96</checksum>
     </file>
     <file>
+      <filename>constants.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>5DA42BED</checksum>
+    </file>
+    <file>
       <version>
         <software_program>OpenStudio</software_program>
         <identifier>1.4.0</identifier>
@@ -664,13 +670,7 @@
       <filename>measure.rb</filename>
       <filetype>rb</filetype>
       <usage_type>script</usage_type>
-      <checksum>33D05982</checksum>
-    </file>
-    <file>
-      <filename>constants.rb</filename>
-      <filetype>rb</filetype>
-      <usage_type>resource</usage_type>
-      <checksum>5DA42BED</checksum>
+      <checksum>201A6873</checksum>
     </file>
   </files>
 </measure>

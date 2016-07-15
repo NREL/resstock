@@ -62,7 +62,7 @@ class ProcessHeatingSetpoints < OpenStudio::Ruleset::ModelUserScript
     end
 
     htg_wkdy = runner.getStringArgumentValue("htg_wkdy",user_arguments)
-    htg_wked = runner.getStringArgumentValue("htg_wked",user_arguments)    
+    htg_wked = runner.getStringArgumentValue("htg_wked",user_arguments)
     
     weather = WeatherProcess.new(model,runner)
     if weather.error?
@@ -126,7 +126,7 @@ class ProcessHeatingSetpoints < OpenStudio::Ruleset::ModelUserScript
     end
 
     htg_wkdy = htg_wkdy.split(",").map {|i| OpenStudio::convert(i.to_f,"F","C").get}
-    htg_wked = htg_wked.split(",").map {|i| OpenStudio::convert(i.to_f,"F","C").get}
+    htg_wked = htg_wked.split(",").map {|i| OpenStudio::convert(i.to_f,"F","C").get}   
     
     finished_zones = []
     model.getThermalZones.each do |thermal_zone|
@@ -180,7 +180,7 @@ class ProcessHeatingSetpoints < OpenStudio::Ruleset::ModelUserScript
             htg_wked_monthly << htg_wked
             clg_wkdy_monthly << Array.new(24, 10000)
             clg_wked_monthly << Array.new(24, 10000)
-          elsif cooling_season[i] == 1
+          else
             htg_wkdy_monthly << Array.new(24, -10000)
             htg_wked_monthly << Array.new(24, -10000)
             clg_wkdy_monthly << clg_wkdy

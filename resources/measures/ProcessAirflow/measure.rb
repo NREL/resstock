@@ -21,12 +21,16 @@ require "#{File.dirname(__FILE__)}/resources/unit_conversions"
 class ProcessAirflow < OpenStudio::Ruleset::WorkspaceUserScript
 
   class Ducts
-    def initialize(ductTotalLeakage, ductNormLeakageToOutside, ductSupplySurfaceAreaMultiplier, ductReturnSurfaceAreaMultiplier, ductUnconditionedRvalue)
+    def initialize(ductTotalLeakage, ductNormLeakageToOutside, ductSupplySurfaceAreaMultiplier, ductReturnSurfaceAreaMultiplier, ductUnconditionedRvalue, ductSupplyLeakageFractionOfTotal, ductReturnLeakageFractionOfTotal, ductAHSupplyLeakageFractionOfTotal, ductAHReturnLeakageFractionOfTotal)
       @ductTotalLeakage = ductTotalLeakage
       @ductNormLeakageToOutside = ductNormLeakageToOutside
       @ductSupplySurfaceAreaMultiplier = ductSupplySurfaceAreaMultiplier
       @ductReturnSurfaceAreaMultiplier = ductReturnSurfaceAreaMultiplier
       @ductUnconditionedRvalue = ductUnconditionedRvalue
+      @ductSupplyLeakageFractionOfTotal = ductSupplyLeakageFractionOfTotal
+      @ductReturnLeakageFractionOfTotal = ductReturnLeakageFractionOfTotal
+      @ductAHSupplyLeakageFractionOfTotal = ductAHSupplyLeakageFractionOfTotal
+      @ductAHReturnLeakageFractionOfTotal = ductAHReturnLeakageFractionOfTotal
     end
     
     attr_accessor(:DuctLocation, :has_ducts, :ducts_not_in_living, :num_stories, :num_stories_for_ducts, :DuctLocationFrac, :DuctLocationFracLeakage, :DuctLocationFracConduction, :DuctSupplyLeakageFractionOfTotal, :DuctReturnLeakageFractionOfTotal, :DuctAHSupplyLeakageFractionOfTotal, :DuctAHReturnLeakageFractionOfTotal, :DuctSupplyLeakage, :DuctReturnLeakage, :DuctAHSupplyLeakage, :DuctAHReturnLeakage, :DuctNumReturns, :supply_duct_surface_area, :return_duct_surface_area, :unconditioned_duct_area, :supply_duct_r, :return_duct_r, :unconditioned_duct_ua, :return_duct_ua, :supply_duct_volume, :return_duct_volume, :direct_oa_supply_duct_loss, :supply_duct_loss, :return_duct_loss, :supply_leak_oper, :return_leak_oper, :ah_supply_leak_oper, :ah_return_leak_oper, :total_duct_unbalance, :frac_oa, :oa_duct_makeup)
@@ -51,13 +55,28 @@ class ProcessAirflow < OpenStudio::Ruleset::WorkspaceUserScript
       return @ductUnconditionedRvalue
     end
     
+    def DuctSupplyLeakageFractionOfTotal
+      return @ductSupplyLeakageFractionOfTotal
+    end
+    
+    def DuctReturnLeakageFractionOfTotal
+      return @ductReturnLeakageFractionOfTotal
+    end
+    
+    def DuctAHSupplyLeakageFractionOfTotal
+      return @ductAHSupplyLeakageFractionOfTotal
+    end
+    
+    def DuctAHReturnLeakageFractionOfTotal
+      return @ductAHReturnLeakageFractionOfTotal
+    end
+    
   end
 
   class Infiltration
-    def initialize(infiltrationLivingSpaceACH50, infiltrationShelterCoefficient, infiltrationLivingSpaceConstantACH, infiltrationGarageACH50)
+    def initialize(infiltrationLivingSpaceACH50, infiltrationShelterCoefficient, infiltrationGarageACH50)
       @infiltrationLivingSpaceACH50 = infiltrationLivingSpaceACH50
       @infiltrationShelterCoefficient = infiltrationShelterCoefficient
-      @infiltrationLivingSpaceConstantACH = infiltrationLivingSpaceConstantACH
       @infiltrationGarageACH50 = infiltrationGarageACH50
     end
 
@@ -65,10 +84,6 @@ class ProcessAirflow < OpenStudio::Ruleset::WorkspaceUserScript
 
     def InfiltrationLivingSpaceACH50
       return @infiltrationLivingSpaceACH50
-    end
-
-    def InfiltrationLivingSpaceConstantACH
-      return @infiltrationLivingSpaceConstantACH
     end
 
     def InfiltrationShelterCoefficient
@@ -145,26 +160,6 @@ class ProcessAirflow < OpenStudio::Ruleset::WorkspaceUserScript
     def initialize
     end
     attr_accessor(:height, :terrain_multiplier, :terrain_exponent, :ashrae_terrain_thickness, :ashrae_terrain_exponent, :site_terrain_multiplier, :site_terrain_exponent, :ashrae_site_terrain_thickness, :ashrae_site_terrain_exponent, :S_wo, :shielding_coef)
-  end
-
-  class Neighbors
-    def initialize(min_nonzero_offset)
-      @min_nonzero_offset = min_nonzero_offset
-    end
-
-    def min_nonzero_offset
-      return @min_nonzero_offset
-    end
-  end
-
-  class Site
-    def initialize(terrainType)
-      @terrainType = terrainType
-    end
-
-    def TerrainType
-      return @terrainType
-    end
   end
 
   class MechanicalVentilation
@@ -308,18 +303,6 @@ class ProcessAirflow < OpenStudio::Ruleset::WorkspaceUserScript
     def initialize
     end
     attr_accessor(:MechanicalVentilationEnergy, :MechanicalVentilation, :BathExhaust, :ClothesDryerExhaust, :RangeHood, :NatVentProbability, :NatVentAvailability, :NatVentTemp)
-  end
-
-  class HeatingSetpoint
-    def initialize
-    end
-    attr_accessor(:HeatingSetpointWeekday, :HeatingSetpointWeekend)
-  end
-
-  class CoolingSetpoint
-    def initialize
-    end
-    attr_accessor(:CoolingSetpointWeekday, :CoolingSetpointWeekend)
   end
 
   #define the name that a user will see, this method may be deprecated as
@@ -497,20 +480,13 @@ class ProcessAirflow < OpenStudio::Ruleset::WorkspaceUserScript
     userdefined_inflivingspace.setDefaultValue(7)
     args << userdefined_inflivingspace
 
-    #make a double argument for constant infiltration of living space
-    userdefined_constinflivingspace = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("userdefinedconstinflivingspace", false)
-    userdefined_constinflivingspace.setDisplayName("Air Leakage: Above-Grade Living Space Constant ACH")
-    userdefined_constinflivingspace.setUnits("1/hr")
-    userdefined_constinflivingspace.setDescription("Air exchange rate, in natural Air Changes per Hour (ACH), for above-grade living space. Using this variable will override the AIM-2 calculation method with a constant air exchange rate.")
-    userdefined_constinflivingspace.setDefaultValue(0)
-    args << userdefined_constinflivingspace
-
-    #make a double argument for shelter coefficient
-    userdefined_infsheltercoef = OpenStudio::Ruleset::OSArgument::makeStringArgument("userdefinedinfsheltercoef", false)
-    userdefined_infsheltercoef.setDisplayName("Air Leakage: Shelter Coefficient")
-    userdefined_infsheltercoef.setDescription("The local shelter coefficient (AIM-2 infiltration model) accounts for nearby buildings, trees and obstructions.")
-    userdefined_infsheltercoef.setDefaultValue("auto")
-    args << userdefined_infsheltercoef
+    #make a double argument for infiltration of garage
+    userdefined_garage = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("userdefinedinfgarage", false)
+    userdefined_garage.setDisplayName("Garage: ACH50")
+    userdefined_garage.setUnits("1/hr")
+    userdefined_garage.setDescription("Air exchange rate, in Air Changes per Hour at 50 Pascals (ACH50), for the garage.")
+    userdefined_garage.setDefaultValue(7)
+    args << userdefined_garage
 
     #make a double argument for infiltration of finished basement
     userdefined_inffbsmt = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("userdefinedinffbsmt", false)
@@ -542,6 +518,13 @@ class ProcessAirflow < OpenStudio::Ruleset::WorkspaceUserScript
     userdefined_infunfinattic.setDescription("Ratio of the effective leakage area (infiltration and/or ventilation) in the unfinished attic to the total floor area of the attic.")
     userdefined_infunfinattic.setDefaultValue(0.00333)
     args << userdefined_infunfinattic
+
+    #make a double argument for shelter coefficient
+    userdefined_infsheltercoef = OpenStudio::Ruleset::OSArgument::makeStringArgument("userdefinedinfsheltercoef", false)
+    userdefined_infsheltercoef.setDisplayName("Air Leakage: Shelter Coefficient")
+    userdefined_infsheltercoef.setDescription("The local shelter coefficient (AIM-2 infiltration model) accounts for nearby buildings, trees and obstructions.")
+    userdefined_infsheltercoef.setDefaultValue("auto")
+    args << userdefined_infsheltercoef
 
     # Age of Home
 
@@ -844,7 +827,12 @@ class ProcessAirflow < OpenStudio::Ruleset::WorkspaceUserScript
       return false
     end
     
-    model = runner.lastOpenStudioModel.get
+    model = runner.lastOpenStudioModel
+    if model.empty?
+      runner.registerError("Could not load last OpenStudio model, cannot apply measure.")
+      return false
+    end
+    model = model.get
 
     # Zones
     living_thermal_zone_r = runner.getOptionalStringArgumentValue("living_thermal_zone",user_arguments)
@@ -900,12 +888,12 @@ class ProcessAirflow < OpenStudio::Ruleset::WorkspaceUserScript
     workspace = HelperMethods.remove_object_from_idf_based_on_name(workspace, ["SupplySensibleLeakageToLiving", "SupplyLatentLeakageToLiving", "SupplyDuctConductionToLiving", "SupplyDuctConductionToAHZone", "ReturnDuctConductionToPlenum", "ReturnDuctConductionTOAHZone", "SupplySensibleLeakageToAHZone", "SupplyLatentLeakageToAHZone", "ReturnSensibleLeakageEquip", "ReturnLatentLeakageEquip"], "OtherEquipment", runner)
     
     infiltrationLivingSpaceACH50 = runner.getDoubleArgumentValue("userdefinedinflivingspace",user_arguments)
-    infiltrationLivingSpaceConstantACH = runner.getDoubleArgumentValue("userdefinedconstinflivingspace",user_arguments)
-    infiltrationShelterCoefficient = runner.getStringArgumentValue("userdefinedinfsheltercoef",user_arguments)
+    infiltrationGarageACH50 = runner.getDoubleArgumentValue("userdefinedinfgarage",user_arguments)
     crawlACH = runner.getDoubleArgumentValue("userdefinedinfcrawl",user_arguments)
     fbsmtACH = runner.getDoubleArgumentValue("userdefinedinffbsmt",user_arguments)
     ufbsmtACH = runner.getDoubleArgumentValue("userdefinedinfufbsmt",user_arguments)
     uaSLA = runner.getDoubleArgumentValue("userdefinedinfunfinattic",user_arguments)
+    infiltrationShelterCoefficient = runner.getStringArgumentValue("userdefinedinfsheltercoef",user_arguments)
     terrainType = runner.getStringArgumentValue("selectedterraintype",user_arguments)
     mechVentType = runner.getStringArgumentValue("selectedventtype",user_arguments)
     mechVentInfilCredit = runner.getBoolArgumentValue("selectedinfilcredit",user_arguments)
@@ -975,20 +963,13 @@ class ProcessAirflow < OpenStudio::Ruleset::WorkspaceUserScript
 	
     if infiltrationLivingSpaceACH50 == 0
       infiltrationLivingSpaceACH50 = nil
-      infiltrationGarageACH50 = 15.0
     end
-    if infiltrationLivingSpaceConstantACH == 0
-      infiltrationLivingSpaceConstantACH = nil
-      infiltrationGarageACH50 = infiltrationLivingSpaceACH50
-    end
-    if infiltrationGarageACH50 == nil
-      infiltrationLivingSpaceACH50 = 0.0
-      infiltrationGarageACH50 = 0.0
-      infiltrationShelterCoefficient = Constants.Auto
+    if infiltrationGarageACH50 == 0
+      infiltrationGarageACH50 = nil
     end
 	
     # Create the material class instances
-    si = Infiltration.new(infiltrationLivingSpaceACH50, infiltrationShelterCoefficient, infiltrationLivingSpaceConstantACH, infiltrationGarageACH50)
+    si = Infiltration.new(infiltrationLivingSpaceACH50, infiltrationShelterCoefficient, infiltrationGarageACH50)
     living_space = LivingSpace.new
     garage = Garage.new
     finished_basement = FinBasement.new(fbsmtACH)
@@ -996,16 +977,13 @@ class ProcessAirflow < OpenStudio::Ruleset::WorkspaceUserScript
     crawlspace = Crawl.new(crawlACH)
     unfinished_attic = UnfinAttic.new(uaSLA)
     wind_speed = WindSpeed.new
-    neighbors = Neighbors.new(get_least_neighbor_offset(workspace))
-    site = Site.new(terrainType)
+    neighbors_min_nonzero_offset = get_least_neighbor_offset(workspace)
     vent = MechanicalVentilation.new(mechVentType, mechVentInfilCredit, mechVentTotalEfficiency, mechVentFractionOfASHRAE, mechVentHouseFanPower, mechVentSensibleEfficiency, mechVentASHRAEStandard)
     clothes_dryer = ClothesDryer.new(dryerExhaust)
     geometry = Geom.new(nbeds, nbaths)
     nv = NaturalVentilation.new(natVentHtgSsnSetpointOffset, natVentClgSsnSetpointOffset, natVentOvlpSsnSetpointOffset, natVentHeatingSeason, natVentCoolingSeason, natVentOverlapSeason, natVentNumberWeekdays, natVentNumberWeekendDays, natVentFractionWindowsOpen, natVentFractionWindowAreaOpen, natVentMaxOAHumidityRatio, natVentMaxOARelativeHumidity)
     schedules = Schedules.new
-    cooling_set_point = CoolingSetpoint.new
-    heating_set_point = HeatingSetpoint.new
-    d = Ducts.new(ductTotalLeakage, ductNormLeakageToOutside, ductSupplySurfaceAreaMultiplier, ductReturnSurfaceAreaMultiplier, ductUnconditionedRvalue)
+    d = Ducts.new(ductTotalLeakage, ductNormLeakageToOutside, ductSupplySurfaceAreaMultiplier, ductReturnSurfaceAreaMultiplier, ductUnconditionedRvalue, ductSupplyLeakageFractionOfTotal, ductReturnLeakageFractionOfTotal, ductAHSupplyLeakageFractionOfTotal, ductAHReturnLeakageFractionOfTotal)
     
     zones = workspace.getObjectsByType("Zone".to_IddObjectType)
     zones.each do |zone|
@@ -1070,50 +1048,50 @@ class ProcessAirflow < OpenStudio::Ruleset::WorkspaceUserScript
       duct_location = "none"
     end
   
-    heating_set_point.HeatingSetpointWeekday = Array.new
-    cooling_set_point.CoolingSetpointWeekday = Array.new
-    heating_set_point.HeatingSetpointWeekend = Array.new
-    cooling_set_point.CoolingSetpointWeekend = Array.new    
+    heatingSetpointWeekday = Array.new
+    coolingSetpointWeekday = Array.new
+    heatingSetpointWeekend = Array.new
+    coolingSetpointWeekend = Array.new    
     schedule_days = workspace.getObjectsByType("Schedule:Day:Interval".to_IddObjectType)
     (1..12).to_a.each do |m|
       schedule_days.each do |schedule_day|
         schedule_day_name = schedule_day.getString(0).to_s # Name
         if schedule_day_name == "#{Constants.ObjectNameHeatingSetpoint} weekday#{m}"
           unless schedule_day.getString(4).get.to_f < -1000
-            if heating_set_point.HeatingSetpointWeekday.empty?
+            if heatingSetpointWeekday.empty?
               (4..50).step(2) do |x|
                 deg = OpenStudio::convert(schedule_day.getString(x).get.to_f,"C","F").get
-                heating_set_point.HeatingSetpointWeekday << deg
+                heatingSetpointWeekday << deg
               end
             end
           end
         end
         if schedule_day_name == "#{Constants.ObjectNameCoolingSetpoint} weekday#{m}"
           unless schedule_day.getString(4).get.to_f > 1000
-            if cooling_set_point.CoolingSetpointWeekday.empty?
+            if coolingSetpointWeekday.empty?
               (4..50).step(2) do |x|
                 deg = OpenStudio::convert(schedule_day.getString(x).get.to_f,"C","F").get
-                cooling_set_point.CoolingSetpointWeekday << deg
+                coolingSetpointWeekday << deg
               end
             end
           end
         end
         if schedule_day_name == "#{Constants.ObjectNameHeatingSetpoint} weekend#{m}"
           unless schedule_day.getString(4).get.to_f < -1000
-            if heating_set_point.HeatingSetpointWeekend.empty?
+            if heatingSetpointWeekend.empty?
               (4..50).step(2) do |x|
                 deg = OpenStudio::convert(schedule_day.getString(x).get.to_f,"C","F").get
-                heating_set_point.HeatingSetpointWeekend << deg
+                heatingSetpointWeekend << deg
               end
             end
           end
         end
         if schedule_day_name == "#{Constants.ObjectNameCoolingSetpoint} weekend#{m}"
           unless schedule_day.getString(4).get.to_f > 1000
-            if cooling_set_point.CoolingSetpointWeekend.empty?
+            if coolingSetpointWeekend.empty?
               (4..50).step(2) do |x|
                 deg = OpenStudio::convert(schedule_day.getString(x).get.to_f,"C","F").get
-                cooling_set_point.CoolingSetpointWeekend << deg
+                coolingSetpointWeekend << deg
               end
             end
           end
@@ -1121,39 +1099,39 @@ class ProcessAirflow < OpenStudio::Ruleset::WorkspaceUserScript
       end
     end
     
-    if heating_set_point.HeatingSetpointWeekday.empty?
+    if heatingSetpointWeekday.empty?
       (0..23).to_a.each do |x|
-        heating_set_point.HeatingSetpointWeekday << -10000
+        heatingSetpointWeekday << -10000
       end
     end
-    if cooling_set_point.CoolingSetpointWeekday.empty?
+    if coolingSetpointWeekday.empty?
       (0..23).to_a.each do |x|
-        cooling_set_point.CoolingSetpointWeekday << 10000
+        coolingSetpointWeekday << 10000
       end
     end
-    if heating_set_point.HeatingSetpointWeekend.empty?
+    if heatingSetpointWeekend.empty?
       (0..23).to_a.each do |x|
-        heating_set_point.HeatingSetpointWeekend << -10000
+        heatingSetpointWeekend << -10000
       end
     end
-    if cooling_set_point.CoolingSetpointWeekend.empty?
+    if coolingSetpointWeekend.empty?
       (0..23).to_a.each do |x|
-        cooling_set_point.CoolingSetpointWeekend << 10000
+        coolingSetpointWeekend << 10000
       end
     end
     
     # Create the sim object
-    @weather = WeatherProcess.new(workspace, runner)
+    @weather = WeatherProcess.new(model, runner)
     if @weather.error?
         return false
     end
 	
     # Process the infiltration
-    si, living_space, wind_speed, garage, fb, ub, cs, ua = _processInfiltration(si, living_space, garage, finished_basement, space_unfinished_basement, crawlspace, unfinished_attic, garage_thermal_zone, fbasement_thermal_zone, ufbasement_thermal_zone, crawl_thermal_zone, ufattic_thermal_zone, wind_speed, neighbors, site, geometry)
+    si, living_space, wind_speed, garage, fb, ub, cs, ua = _processInfiltration(si, living_space, garage, finished_basement, space_unfinished_basement, crawlspace, unfinished_attic, garage_thermal_zone, fbasement_thermal_zone, ufbasement_thermal_zone, crawl_thermal_zone, ufattic_thermal_zone, wind_speed, neighbors_min_nonzero_offset, terrainType, geometry)
     # Process the mechanical ventilation
     vent, schedules = _processMechanicalVentilation(si, vent, ageOfHome, clothes_dryer, geometry, living_space, schedules)
     # Process the natural ventilation
-    nv, schedules = _processNaturalVentilation(workspace, nv, living_space, wind_speed, si, schedules, geometry, cooling_set_point, heating_set_point)
+    nv, schedules = _processNaturalVentilation(workspace, nv, living_space, wind_speed, si, schedules, geometry, coolingSetpointWeekday, coolingSetpointWeekend, heatingSetpointWeekday, heatingSetpointWeekend)
 
     ems = []
 
@@ -1819,7 +1797,7 @@ class ProcessAirflow < OpenStudio::Ruleset::WorkspaceUserScript
     if d.DuctNormLeakageToOutside.nil?
       # Normalize values in case user inadvertently entered values that add up to the total duct leakage, 
       # as opposed to adding up to 1
-      sumFractionOfTotal = (ductSupplyLeakageFractionOfTotal + ductReturnLeakageFractionOfTotal + ductAHSupplyLeakageFractionOfTotal + ductAHReturnLeakageFractionOfTotal)
+      sumFractionOfTotal = (d.DuctSupplyLeakageFractionOfTotal + d.DuctReturnLeakageFractionOfTotal + d.DuctAHSupplyLeakageFractionOfTotal + d.DuctAHReturnLeakageFractionOfTotal)
       if sumFractionOfTotal > 0
         d.DuctSupplyLeakageFractionOfTotal = ductSupplyLeakageFractionOfTotal / sumFractionOfTotal
         d.DuctReturnLeakageFractionOfTotal = ductReturnLeakageFractionOfTotal / sumFractionOfTotal
@@ -2796,7 +2774,7 @@ class ProcessAirflow < OpenStudio::Ruleset::WorkspaceUserScript
     return d
   end
   
-  def _processInfiltration(si, living_space, garage, finished_basement, space_unfinished_basement, crawlspace, unfinished_attic, selected_garage, selected_fbsmt, selected_ufbsmt, selected_crawl, selected_unfinattic, wind_speed, neighbors, site, geometry)
+  def _processInfiltration(si, living_space, garage, finished_basement, space_unfinished_basement, crawlspace, unfinished_attic, selected_garage, selected_fbsmt, selected_ufbsmt, selected_crawl, selected_unfinattic, wind_speed, neighbors_min_nonzero_offset, terrainType, geometry)
     # Infiltration calculations.
 
     # loop thru all the spaces
@@ -2957,20 +2935,10 @@ class ProcessAirflow < OpenStudio::Ruleset::WorkspaceUserScript
           
       end
           
-    elsif not si.InfiltrationLivingSpaceConstantACH.nil?
-
-      # Used for constant ACH
-      living_space.inf_method = Constants.InfMethodRes
-      # ACH; Air exchange rate of above-grade conditioned spaces, due to natural ventilation
-      living_space.ACH = si.InfiltrationLivingSpaceConstantACH
-
-      # Convert living space ACH to cfm
-      living_space.inf_flow = living_space.ACH / OpenStudio::convert(1.0,"hr","min").get * living_space.volume # cfm
-
     end
 
     unless selected_garage.nil?
-
+    
       garage.inf_method = Constants.InfMethodSG
       garage.hor_leak_frac = 0.4 # DOE-2 Default
       garage.neutral_level = 0.5 # DOE-2 Default
@@ -2978,7 +2946,7 @@ class ProcessAirflow < OpenStudio::Ruleset::WorkspaceUserScript
       garage.ACH = get_infiltration_ACH_from_SLA(garage.SLA, 1.0, @weather)
       # Convert ACH to cfm:
       garage.inf_flow = garage.ACH / OpenStudio::convert(1.0,"hr","min").get * garage.volume # cfm
-
+          
     end
 
     unless selected_fbsmt.nil?
@@ -3023,7 +2991,7 @@ class ProcessAirflow < OpenStudio::Ruleset::WorkspaceUserScript
 
     end
 
-    ws = _processWindSpeedCorrection(wind_speed, site, si, neighbors, geometry)
+    ws = _processWindSpeedCorrection(wind_speed, terrainType, si, neighbors_min_nonzero_offset, geometry)
 
     spaces.each do |space|
     
@@ -3409,29 +3377,29 @@ class ProcessAirflow < OpenStudio::Ruleset::WorkspaceUserScript
 
   end
 
-  def _processNaturalVentilation(workspace, nv, living_space, wind_speed, infiltration, schedules, geometry, cooling_set_point, heating_set_point)
+  def _processNaturalVentilation(workspace, nv, living_space, wind_speed, infiltration, schedules, geometry, coolingSetpointWeekday, coolingSetpointWeekend, heatingSetpointWeekday, heatingSetpointWeekend)
     # Natural Ventilation
 
     # Specify an array of hourly lower-temperature-limits for natural ventilation
     nv.htg_ssn_hourly_temp = Array.new
-    cooling_set_point.CoolingSetpointWeekday.each do |x|
+    coolingSetpointWeekday.each do |x|
       nv.htg_ssn_hourly_temp << OpenStudio::convert(x - nv.NatVentHtgSsnSetpointOffset,"F","C").get
     end
     nv.htg_ssn_hourly_weekend_temp = Array.new
-    cooling_set_point.CoolingSetpointWeekend.each do |x|
+    coolingSetpointWeekend.each do |x|
       nv.htg_ssn_hourly_weekend_temp << OpenStudio::convert(x - nv.NatVentHtgSsnSetpointOffset,"F","C").get
     end
 
     nv.clg_ssn_hourly_temp = Array.new
-    heating_set_point.HeatingSetpointWeekday.each do |x|
+    heatingSetpointWeekday.each do |x|
       nv.clg_ssn_hourly_temp << OpenStudio::convert(x + nv.NatVentClgSsnSetpointOffset,"F","C").get
     end
     nv.clg_ssn_hourly_weekend_temp = Array.new
-    heating_set_point.HeatingSetpointWeekend.each do |x|
+    heatingSetpointWeekend.each do |x|
       nv.clg_ssn_hourly_weekend_temp << OpenStudio::convert(x + nv.NatVentClgSsnSetpointOffset,"F","C").get
     end
 
-    nv.ovlp_ssn_hourly_temp = Array.new(24, OpenStudio::convert([heating_set_point.HeatingSetpointWeekday.max, heating_set_point.HeatingSetpointWeekend.max].max + nv.NatVentOvlpSsnSetpointOffset,"F","C").get)
+    nv.ovlp_ssn_hourly_temp = Array.new(24, OpenStudio::convert([heatingSetpointWeekday.max, heatingSetpointWeekend.max].max + nv.NatVentOvlpSsnSetpointOffset,"F","C").get)
     nv.ovlp_ssn_hourly_weekend_temp = nv.ovlp_ssn_hourly_temp
 
     # Natural Ventilation Probability Schedule (DOE2, not E+)
@@ -3857,7 +3825,7 @@ class ProcessAirflow < OpenStudio::Ruleset::WorkspaceUserScript
 
   end  
   
-  def _processWindSpeedCorrection(wind_speed, site, infiltration, neighbors, geometry)
+  def _processWindSpeedCorrection(wind_speed, terrainType, infiltration, neighbors_min_nonzero_offset, geometry)
     # Wind speed correction
     wind_speed.height = 32.8 # ft (Standard weather station height)
     
@@ -3867,27 +3835,27 @@ class ProcessAirflow < OpenStudio::Ruleset::WorkspaceUserScript
     wind_speed.ashrae_terrain_thickness = 270
     wind_speed.ashrae_terrain_exponent = 0.14
     
-    if site.TerrainType == Constants.TerrainOcean
+    if terrainType == Constants.TerrainOcean
       wind_speed.site_terrain_multiplier = 1.30 # Used for DOE-2's correlation
       wind_speed.site_terrain_exponent = 0.10 # Used for DOE-2's correlation
       wind_speed.ashrae_site_terrain_thickness = 210 # Ocean, Bayou flat country
       wind_speed.ashrae_site_terrain_exponent = 0.10 # Ocean, Bayou flat country
-    elsif site.TerrainType == Constants.TerrainPlains
+    elsif terrainType == Constants.TerrainPlains
       wind_speed.site_terrain_multiplier = 1.00 # Used for DOE-2's correlation
       wind_speed.site_terrain_exponent = 0.15 # Used for DOE-2's correlation
       wind_speed.ashrae_site_terrain_thickness = 270 # Flat, open country
       wind_speed.ashrae_site_terrain_exponent = 0.14 # Flat, open country
-    elsif site.TerrainType == Constants.TerrainRural
+    elsif terrainType == Constants.TerrainRural
       wind_speed.site_terrain_multiplier = 0.85 # Used for DOE-2's correlation
       wind_speed.site_terrain_exponent = 0.20 # Used for DOE-2's correlation
       wind_speed.ashrae_site_terrain_thickness = 270 # Flat, open country
       wind_speed.ashrae_site_terrain_exponent = 0.14 # Flat, open country
-    elsif site.TerrainType == Constants.TerrainSuburban
+    elsif terrainType == Constants.TerrainSuburban
       wind_speed.site_terrain_multiplier = 0.67 # Used for DOE-2's correlation
       wind_speed.site_terrain_exponent = 0.25 # Used for DOE-2's correlation
       wind_speed.ashrae_site_terrain_thickness = 370 # Rough, wooded country, suburbs
       wind_speed.ashrae_site_terrain_exponent = 0.22 # Rough, wooded country, suburbs
-    elsif site.TerrainType == Constants.TerrainCity
+    elsif terrainType == Constants.TerrainCity
       wind_speed.site_terrain_multiplier = 0.47 # Used for DOE-2's correlation
       wind_speed.site_terrain_exponent = 0.35 # Used for DOE-2's correlation
       wind_speed.ashrae_site_terrain_thickness = 460 # Towns, city outskirs, center of large cities
@@ -3896,10 +3864,10 @@ class ProcessAirflow < OpenStudio::Ruleset::WorkspaceUserScript
     
     # Local Shielding
     if infiltration.InfiltrationShelterCoefficient == Constants.Auto
-      if neighbors.min_nonzero_offset == 0
+      if neighbors_min_nonzero_offset == 0
         # Typical shelter for isolated rural house
         wind_speed.S_wo = 0.90
-      elsif neighbors.min_nonzero_offset > geometry.building_height
+      elsif neighbors_min_nonzero_offset > geometry.building_height
         # Typical shelter caused by other building across the street
         wind_speed.S_wo = 0.70
       else

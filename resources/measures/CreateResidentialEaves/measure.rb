@@ -101,6 +101,7 @@ class CreateResidentialEaves < OpenStudio::Ruleset::ModelUserScript
       if roof_deck.vertices.length == 3
         return Constants.RoofTypeHip
       else
+        next unless roof_deck.vertices.length == 4
         lengths_of_sides = []
         lengths_of_sides << Math.sqrt((roof_deck.vertices[0].x - roof_deck.vertices[1].x) ** 2 + (roof_deck.vertices[0].y - roof_deck.vertices[1].y) ** 2 + (roof_deck.vertices[0].z - roof_deck.vertices[1].z) ** 2)
         lengths_of_sides << Math.sqrt((roof_deck.vertices[1].x - roof_deck.vertices[2].x) ** 2 + (roof_deck.vertices[1].y - roof_deck.vertices[2].y) ** 2 + (roof_deck.vertices[1].z - roof_deck.vertices[2].z) ** 2)
@@ -120,26 +121,30 @@ class CreateResidentialEaves < OpenStudio::Ruleset::ModelUserScript
       z_s << vertex.z
     end      
     bot_z = z_s.min
-    lower_pts = OpenStudio::Point3dVector.new
-    top_pt = nil
+    top_z = z_s.max
+    lower_pts = []
+    upper_pts = []
     surface.vertices.each do |vertex|
       if vertex.z == bot_z
         lower_pts << OpenStudio::Point3d.new(vertex.x, vertex.y, vertex.z)
-      else
-        top_pt = vertex
+      elsif vertex.z == top_z
+        upper_pts << OpenStudio::Point3d.new(vertex.x, vertex.y, vertex.z)
       end        
     end
+    if lower_pts.length == 3
+      lower_pts.delete_at(1)
+    end
     slope_dir = nil
-    if lower_pts[0].x == lower_pts[1].x and lower_pts[0].x > top_pt.x
+    if lower_pts[0].x == lower_pts[1].x and lower_pts[0].x > upper_pts[0].x
       slope_dir = "pos_x"
-    elsif lower_pts[0].x == lower_pts[1].x and lower_pts[0].x < top_pt.x
+    elsif lower_pts[0].x == lower_pts[1].x and lower_pts[0].x < upper_pts[0].x
       slope_dir = "neg_x"
-    elsif lower_pts[0].y == lower_pts[1].y and lower_pts[0].y > top_pt.y
+    elsif lower_pts[0].y == lower_pts[1].y and lower_pts[0].y > upper_pts[0].y
       slope_dir = "pos_y"
-    elsif lower_pts[0].y == lower_pts[1].y and lower_pts[0].y < top_pt.y
+    elsif lower_pts[0].y == lower_pts[1].y and lower_pts[0].y < upper_pts[0].y
       slope_dir = "neg_y"
     end
-    return slope_dir, lower_pts
+    return slope_dir, lower_pts, upper_pts
   end
   
   # human readable name
@@ -206,14 +211,19 @@ class CreateResidentialEaves < OpenStudio::Ruleset::ModelUserScript
       attic_increase = get_attic_height_increase(eaves_depth, model.getSurfaces)
       
       model.getSurfaces.each do |surface|
-        next unless ( surface.surfaceType.downcase == "roofceiling" or surface.surfaceType.downcase == "wall" ) and surface.outsideBoundaryCondition.downcase == "outdoors"
+        if surface.surfaceType.downcase == "roofceiling" and surface.outsideBoundaryCondition.downcase == "outdoors" # roof decks
+        elsif surface.surfaceType.downcase == "wall" and surface.outsideBoundaryCondition.downcase == "outdoors" and surface.vertices.length == 3 # attic walls
+        elsif surface.surfaceType.downcase == "roofceiling" and surface.vertices.length == 3 # wall between living and garage attics
+        else
+          next
+        end
         surfaces_modified = true
         
         # Truss, Cantilever
         if roof_structure == Constants.RoofStructureTrussCantilever
         
           # Roof Decks
-          if surface.surfaceType.downcase == "roofceiling"
+          if surface.surfaceType.downcase == "roofceiling" # roof decks and wall between living and garage attics
 
             # raise the roof decks
             m = initialize_transformation_matrix(OpenStudio::Matrix.new(4,4,0))
@@ -222,9 +232,15 @@ class CreateResidentialEaves < OpenStudio::Ruleset::ModelUserScript
             vertices = surface.vertices
             new_vertices = transformation * vertices
             surface.setVertices(new_vertices)
+            if surface.vertices.length == 3 # wall between living and garage attics
+              adjacentSurface = surface.adjacentSurface.get             
+              vertices = adjacentSurface.vertices
+              new_vertices = transformation * vertices
+              adjacentSurface.setVertices(new_vertices)
+            end
 
           # Attic Walls
-          elsif surface.surfaceType.downcase == "wall" and surface.vertices.length == 3
+          elsif surface.surfaceType.downcase == "wall" # attic walls
             
             # raise the attic walls
             x_s = []
@@ -272,174 +288,387 @@ class CreateResidentialEaves < OpenStudio::Ruleset::ModelUserScript
           end
           
         end
-        
+                
         # Eaves
         shading_surface_group = OpenStudio::Model::ShadingSurfaceGroup.new(model)
-        if surface.surfaceType.downcase == "roofceiling"
+        if surface.surfaceType.downcase == "roofceiling" and surface.vertices.length > 3
           new_surface = surface.clone.to_Surface.get
           z_offset = surface.space.get.zOrigin # shift the z coordinates of the vertices up by the z origin of the space
-          m_left_lower = initialize_transformation_matrix(OpenStudio::Matrix.new(4,4,0))
-          m_left_upper = initialize_transformation_matrix(OpenStudio::Matrix.new(4,4,0))
-          m_right_lower = initialize_transformation_matrix(OpenStudio::Matrix.new(4,4,0))
-          m_right_upper = initialize_transformation_matrix(OpenStudio::Matrix.new(4,4,0))
-          slope_dir, lower_pts = get_slope_direction_and_lower_points(surface)
+          m_left_lower_out = initialize_transformation_matrix(OpenStudio::Matrix.new(4,4,0))
+          m_left_mid_out = initialize_transformation_matrix(OpenStudio::Matrix.new(4,4,0))
+          m_left_mid_in = initialize_transformation_matrix(OpenStudio::Matrix.new(4,4,0))
+          m_left_upper_out = initialize_transformation_matrix(OpenStudio::Matrix.new(4,4,0))
+          m_left_upper_in = initialize_transformation_matrix(OpenStudio::Matrix.new(4,4,0))
+          m_right_lower_out = initialize_transformation_matrix(OpenStudio::Matrix.new(4,4,0))
+          m_right_mid_out = initialize_transformation_matrix(OpenStudio::Matrix.new(4,4,0))
+          m_right_mid_in = initialize_transformation_matrix(OpenStudio::Matrix.new(4,4,0))
+          m_right_upper_out = initialize_transformation_matrix(OpenStudio::Matrix.new(4,4,0))
+          m_right_upper_in = initialize_transformation_matrix(OpenStudio::Matrix.new(4,4,0))
+          slope_dir, lower_pts, upper_pts = get_slope_direction_and_lower_points(surface)
           
           if slope_dir == "neg_y"
             if lower_pts[0].x < lower_pts[1].x
-              left = lower_pts[0]
-              right = lower_pts[1]
+              left_lower = lower_pts[0]
+              right_lower = lower_pts[1]
             else
-              left = lower_pts[1]
-              right = lower_pts[0]
+              left_lower = lower_pts[1]
+              right_lower = lower_pts[0]
             end
+            if upper_pts[0].x < upper_pts[1].x
+              left_upper = upper_pts[0]
+              right_upper = upper_pts[1]
+            else
+              left_upper = upper_pts[1]
+              right_upper = upper_pts[0]
+            end            
+
+            m_left_lower_out[0,3] = -eaves_depth
+            m_left_lower_out[1,3] = -eaves_depth
+            m_left_lower_out[2,3] = -attic_increase + z_offset
+
+            m_left_mid_out[0,3] = -eaves_depth
+            m_left_mid_out[1,3] = 0
+            m_left_mid_out[2,3] = z_offset            
             
-            m_left_lower[0,3] = 0 
-            m_left_lower[1,3] = -eaves_depth
-            m_left_lower[2,3] = -attic_increase + z_offset
+            m_left_mid_in[0,3] = 0
+            m_left_mid_in[1,3] = 0
+            m_left_mid_in[2,3] = z_offset              
+            
+            m_left_upper_out[0,3] = -eaves_depth
+            m_left_upper_out[1,3] = 0
+            m_left_upper_out[2,3] = z_offset
+            
+            m_left_upper_in[0,3] = 0
+            m_left_upper_in[1,3] = 0
+            m_left_upper_in[2,3] = z_offset            
 
-            m_left_upper[0,3] = 0
-            m_left_upper[1,3] = 0
-            m_left_upper[2,3] = z_offset
+            m_right_lower_out[0,3] = eaves_depth
+            m_right_lower_out[1,3] = -eaves_depth
+            m_right_lower_out[2,3] = -attic_increase + z_offset
 
-            m_right_lower[0,3] = 0
-            m_right_lower[1,3] = -eaves_depth
-            m_right_lower[2,3] = -attic_increase + z_offset
-
-            m_right_upper[0,3] = 0
-            m_right_upper[1,3] = 0
-            m_right_upper[2,3] = z_offset     
+            m_right_mid_out[0,3] = eaves_depth
+            m_right_mid_out[1,3] = 0
+            m_right_mid_out[2,3] = z_offset            
+            
+            m_right_mid_in[0,3] = 0
+            m_right_mid_in[1,3] = 0
+            m_right_mid_in[2,3] = z_offset             
+            
+            m_right_upper_out[0,3] = eaves_depth
+            m_right_upper_out[1,3] = 0
+            m_right_upper_out[2,3] = z_offset
+            
+            m_right_upper_in[0,3] = 0
+            m_right_upper_in[1,3] = 0
+            m_right_upper_in[2,3] = z_offset            
                         
-            transformation_left_lower = OpenStudio::Transformation.new(m_left_lower)
-            transformation_left_upper = OpenStudio::Transformation.new(m_left_upper)
-            transformation_right_lower = OpenStudio::Transformation.new(m_right_lower)
-            transformation_right_upper = OpenStudio::Transformation.new(m_right_upper)
+            # lower eave
             new_vertices = OpenStudio::Point3dVector.new
-            new_vertices << transformation_left_lower * left
-            new_vertices << transformation_left_upper * left
-            new_vertices << transformation_right_upper * right
-            new_vertices << transformation_right_lower * right
+            new_vertices << OpenStudio::Transformation.new(m_left_mid_out) * left_lower
+            new_vertices << OpenStudio::Transformation.new(m_right_mid_out) * right_lower
+            new_vertices << OpenStudio::Transformation.new(m_right_lower_out) * right_lower
+            new_vertices << OpenStudio::Transformation.new(m_left_lower_out) * left_lower
             new_surface.setVertices(new_vertices)		
             shading_surface = OpenStudio::Model::ShadingSurface.new(new_surface.vertices, model)
             shading_surface.setName("eaves")
-            shading_surface.setShadingSurfaceGroup(shading_surface_group)								
-            new_surface.remove
+            shading_surface.setShadingSurfaceGroup(shading_surface_group)
+
+            # left eave
+            new_vertices = OpenStudio::Point3dVector.new
+            new_vertices << OpenStudio::Transformation.new(m_left_upper_out) * left_upper
+            new_vertices << OpenStudio::Transformation.new(m_left_upper_in) * left_upper
+            new_vertices << OpenStudio::Transformation.new(m_left_mid_in) * left_lower
+            new_vertices << OpenStudio::Transformation.new(m_left_mid_out) * left_lower
+            new_surface.setVertices(new_vertices)		
+            shading_surface = OpenStudio::Model::ShadingSurface.new(new_surface.vertices, model)
+            shading_surface.setName("eaves")
+            shading_surface.setShadingSurfaceGroup(shading_surface_group)
             
+            # right eave
+            new_vertices = OpenStudio::Point3dVector.new
+            new_vertices << OpenStudio::Transformation.new(m_right_upper_out) * right_upper
+            new_vertices << OpenStudio::Transformation.new(m_right_mid_out) * right_lower
+            new_vertices << OpenStudio::Transformation.new(m_right_mid_in) * right_lower
+            new_vertices << OpenStudio::Transformation.new(m_right_upper_in) * right_upper
+            new_surface.setVertices(new_vertices)		
+            shading_surface = OpenStudio::Model::ShadingSurface.new(new_surface.vertices, model)
+            shading_surface.setName("eaves")
+            shading_surface.setShadingSurfaceGroup(shading_surface_group)            
+
+            new_surface.remove
           elsif slope_dir == "pos_y"
             if lower_pts[0].x < lower_pts[1].x
-              left = lower_pts[1]
-              right = lower_pts[0]
+              left_lower = lower_pts[0]
+              right_lower = lower_pts[1]
             else
-              left = lower_pts[0]
-              right = lower_pts[1]
+              left_lower = lower_pts[1]
+              right_lower = lower_pts[0]
             end
+            if upper_pts[0].x < upper_pts[1].x
+              left_upper = upper_pts[0]
+              right_upper = upper_pts[1]
+            else
+              left_upper = upper_pts[1]
+              right_upper = upper_pts[0]
+            end            
+
+            m_left_lower_out[0,3] = -eaves_depth
+            m_left_lower_out[1,3] = eaves_depth
+            m_left_lower_out[2,3] = -attic_increase + z_offset
+
+            m_left_mid_out[0,3] = -eaves_depth
+            m_left_mid_out[1,3] = 0
+            m_left_mid_out[2,3] = z_offset            
             
-            m_left_lower[0,3] = 0 
-            m_left_lower[1,3] = eaves_depth
-            m_left_lower[2,3] = -attic_increase + z_offset
+            m_left_mid_in[0,3] = 0
+            m_left_mid_in[1,3] = 0
+            m_left_mid_in[2,3] = z_offset              
+            
+            m_left_upper_out[0,3] = -eaves_depth
+            m_left_upper_out[1,3] = 0
+            m_left_upper_out[2,3] = z_offset
+            
+            m_left_upper_in[0,3] = 0
+            m_left_upper_in[1,3] = 0
+            m_left_upper_in[2,3] = z_offset            
 
-            m_left_upper[0,3] = 0
-            m_left_upper[1,3] = 0
-            m_left_upper[2,3] = z_offset
+            m_right_lower_out[0,3] = eaves_depth
+            m_right_lower_out[1,3] = eaves_depth
+            m_right_lower_out[2,3] = -attic_increase + z_offset
 
-            m_right_lower[0,3] = 0
-            m_right_lower[1,3] = eaves_depth
-            m_right_lower[2,3] = -attic_increase + z_offset
-
-            m_right_upper[0,3] = 0
-            m_right_upper[1,3] = 0
-            m_right_upper[2,3] = z_offset     
+            m_right_mid_out[0,3] = eaves_depth
+            m_right_mid_out[1,3] = 0
+            m_right_mid_out[2,3] = z_offset            
+            
+            m_right_mid_in[0,3] = 0
+            m_right_mid_in[1,3] = 0
+            m_right_mid_in[2,3] = z_offset             
+            
+            m_right_upper_out[0,3] = eaves_depth
+            m_right_upper_out[1,3] = 0
+            m_right_upper_out[2,3] = z_offset
+            
+            m_right_upper_in[0,3] = 0
+            m_right_upper_in[1,3] = 0
+            m_right_upper_in[2,3] = z_offset            
                         
-            transformation_left_lower = OpenStudio::Transformation.new(m_left_lower)
-            transformation_left_upper = OpenStudio::Transformation.new(m_left_upper)
-            transformation_right_lower = OpenStudio::Transformation.new(m_right_lower)
-            transformation_right_upper = OpenStudio::Transformation.new(m_right_upper)
+            # lower eave
             new_vertices = OpenStudio::Point3dVector.new
-            new_vertices << transformation_left_lower * left
-            new_vertices << transformation_left_upper * left
-            new_vertices << transformation_right_upper * right
-            new_vertices << transformation_right_lower * right
+            new_vertices << OpenStudio::Transformation.new(m_left_lower_out) * left_lower
+            new_vertices << OpenStudio::Transformation.new(m_right_lower_out) * right_lower
+            new_vertices << OpenStudio::Transformation.new(m_right_mid_out) * right_lower
+            new_vertices << OpenStudio::Transformation.new(m_left_mid_out) * left_lower
             new_surface.setVertices(new_vertices)		
             shading_surface = OpenStudio::Model::ShadingSurface.new(new_surface.vertices, model)
             shading_surface.setName("eaves")
-            shading_surface.setShadingSurfaceGroup(shading_surface_group)								
-            new_surface.remove            
+            shading_surface.setShadingSurfaceGroup(shading_surface_group)
+
+            # left eave
+            new_vertices = OpenStudio::Point3dVector.new
+            new_vertices << OpenStudio::Transformation.new(m_left_mid_out) * left_lower
+            new_vertices << OpenStudio::Transformation.new(m_left_mid_in) * left_lower
+            new_vertices << OpenStudio::Transformation.new(m_left_upper_in) * left_upper
+            new_vertices << OpenStudio::Transformation.new(m_left_upper_out) * left_upper
+            new_surface.setVertices(new_vertices)		
+            shading_surface = OpenStudio::Model::ShadingSurface.new(new_surface.vertices, model)
+            shading_surface.setName("eaves")
+            shading_surface.setShadingSurfaceGroup(shading_surface_group)
+            
+            # right eave
+            new_vertices = OpenStudio::Point3dVector.new
+            new_vertices << OpenStudio::Transformation.new(m_right_upper_in) * right_upper
+            new_vertices << OpenStudio::Transformation.new(m_right_mid_in) * right_lower
+            new_vertices << OpenStudio::Transformation.new(m_right_mid_out) * right_lower
+            new_vertices << OpenStudio::Transformation.new(m_right_upper_out) * right_upper
+            new_surface.setVertices(new_vertices)		
+            shading_surface = OpenStudio::Model::ShadingSurface.new(new_surface.vertices, model)
+            shading_surface.setName("eaves")
+            shading_surface.setShadingSurfaceGroup(shading_surface_group)            
+
+            new_surface.remove
           elsif slope_dir == "neg_x"
-            if lower_pts[0].y < lower_pts[1].y
-              left = lower_pts[1]
-              right = lower_pts[0]
+            if lower_pts[0].y > lower_pts[1].y
+              left_lower = lower_pts[0]
+              right_lower = lower_pts[1]
             else
-              left = lower_pts[0]
-              right = lower_pts[1]
+              left_lower = lower_pts[1]
+              right_lower = lower_pts[0]
             end
+            if upper_pts[0].y > upper_pts[1].y
+              left_upper = upper_pts[0]
+              right_upper = upper_pts[1]
+            else
+              left_upper = upper_pts[1]
+              right_upper = upper_pts[0]
+            end            
+
+            m_left_lower_out[0,3] = -eaves_depth
+            m_left_lower_out[1,3] = eaves_depth
+            m_left_lower_out[2,3] = -attic_increase + z_offset
+
+            m_left_mid_out[0,3] = 0
+            m_left_mid_out[1,3] = eaves_depth
+            m_left_mid_out[2,3] = z_offset            
             
-            m_left_lower[0,3] = -eaves_depth 
-            m_left_lower[1,3] = 0
-            m_left_lower[2,3] = -attic_increase + z_offset
+            m_left_mid_in[0,3] = 0
+            m_left_mid_in[1,3] = 0
+            m_left_mid_in[2,3] = z_offset              
+            
+            m_left_upper_out[0,3] = 0
+            m_left_upper_out[1,3] = eaves_depth
+            m_left_upper_out[2,3] = z_offset
+            
+            m_left_upper_in[0,3] = 0
+            m_left_upper_in[1,3] = 0
+            m_left_upper_in[2,3] = z_offset            
 
-            m_left_upper[0,3] = 0
-            m_left_upper[1,3] = 0
-            m_left_upper[2,3] = z_offset
+            m_right_lower_out[0,3] = -eaves_depth
+            m_right_lower_out[1,3] = -eaves_depth
+            m_right_lower_out[2,3] = -attic_increase + z_offset
 
-            m_right_lower[0,3] = -eaves_depth
-            m_right_lower[1,3] = 0
-            m_right_lower[2,3] = -attic_increase + z_offset
-
-            m_right_upper[0,3] = 0
-            m_right_upper[1,3] = 0
-            m_right_upper[2,3] = z_offset     
+            m_right_mid_out[0,3] = 0
+            m_right_mid_out[1,3] = -eaves_depth
+            m_right_mid_out[2,3] = z_offset            
+            
+            m_right_mid_in[0,3] = 0
+            m_right_mid_in[1,3] = 0
+            m_right_mid_in[2,3] = z_offset             
+            
+            m_right_upper_out[0,3] = 0
+            m_right_upper_out[1,3] = -eaves_depth
+            m_right_upper_out[2,3] = z_offset
+            
+            m_right_upper_in[0,3] = 0
+            m_right_upper_in[1,3] = 0
+            m_right_upper_in[2,3] = z_offset            
                         
-            transformation_left_lower = OpenStudio::Transformation.new(m_left_lower)
-            transformation_left_upper = OpenStudio::Transformation.new(m_left_upper)
-            transformation_right_lower = OpenStudio::Transformation.new(m_right_lower)
-            transformation_right_upper = OpenStudio::Transformation.new(m_right_upper)
+            # lower eave
             new_vertices = OpenStudio::Point3dVector.new
-            new_vertices << transformation_left_lower * left
-            new_vertices << transformation_left_upper * left
-            new_vertices << transformation_right_upper * right
-            new_vertices << transformation_right_lower * right
+            new_vertices << OpenStudio::Transformation.new(m_left_mid_out) * left_lower
+            new_vertices << OpenStudio::Transformation.new(m_right_mid_out) * right_lower
+            new_vertices << OpenStudio::Transformation.new(m_right_lower_out) * right_lower
+            new_vertices << OpenStudio::Transformation.new(m_left_lower_out) * left_lower
             new_surface.setVertices(new_vertices)		
             shading_surface = OpenStudio::Model::ShadingSurface.new(new_surface.vertices, model)
             shading_surface.setName("eaves")
-            shading_surface.setShadingSurfaceGroup(shading_surface_group)								
-            new_surface.remove            
+            shading_surface.setShadingSurfaceGroup(shading_surface_group)
+
+            # left eave
+            unless surface.space.get.name.to_s.downcase.include? "garage"
+              new_vertices = OpenStudio::Point3dVector.new
+              new_vertices << OpenStudio::Transformation.new(m_left_upper_out) * left_upper
+              new_vertices << OpenStudio::Transformation.new(m_left_upper_in) * left_upper
+              new_vertices << OpenStudio::Transformation.new(m_left_mid_in) * left_lower
+              new_vertices << OpenStudio::Transformation.new(m_left_mid_out) * left_lower
+              new_surface.setVertices(new_vertices)		
+              shading_surface = OpenStudio::Model::ShadingSurface.new(new_surface.vertices, model)
+              shading_surface.setName("eaves")
+              shading_surface.setShadingSurfaceGroup(shading_surface_group)
+            end
+            
+            # right eave
+            new_vertices = OpenStudio::Point3dVector.new
+            new_vertices << OpenStudio::Transformation.new(m_right_upper_out) * right_upper
+            new_vertices << OpenStudio::Transformation.new(m_right_mid_out) * right_lower
+            new_vertices << OpenStudio::Transformation.new(m_right_mid_in) * right_lower
+            new_vertices << OpenStudio::Transformation.new(m_right_upper_in) * right_upper
+            new_surface.setVertices(new_vertices)		
+            shading_surface = OpenStudio::Model::ShadingSurface.new(new_surface.vertices, model)
+            shading_surface.setName("eaves")
+            shading_surface.setShadingSurfaceGroup(shading_surface_group)            
+
+            new_surface.remove           
           elsif slope_dir == "pos_x"
-            if lower_pts[0].y < lower_pts[1].y
-              left = lower_pts[0]
-              right = lower_pts[1]
+            if lower_pts[0].y > lower_pts[1].y
+              left_lower = lower_pts[0]
+              right_lower = lower_pts[1]
             else
-              left = lower_pts[1]
-              right = lower_pts[0]
+              left_lower = lower_pts[1]
+              right_lower = lower_pts[0]
             end
+            if upper_pts[0].y > upper_pts[1].y
+              left_upper = upper_pts[0]
+              right_upper = upper_pts[1]
+            else
+              left_upper = upper_pts[1]
+              right_upper = upper_pts[0]
+            end            
+
+            m_left_lower_out[0,3] = eaves_depth
+            m_left_lower_out[1,3] = eaves_depth
+            m_left_lower_out[2,3] = -attic_increase + z_offset
+
+            m_left_mid_out[0,3] = 0
+            m_left_mid_out[1,3] = eaves_depth
+            m_left_mid_out[2,3] = z_offset            
             
-            m_left_lower[0,3] = eaves_depth 
-            m_left_lower[1,3] = 0
-            m_left_lower[2,3] = -attic_increase + z_offset
+            m_left_mid_in[0,3] = 0
+            m_left_mid_in[1,3] = 0
+            m_left_mid_in[2,3] = z_offset              
+            
+            m_left_upper_out[0,3] = 0
+            m_left_upper_out[1,3] = eaves_depth
+            m_left_upper_out[2,3] = z_offset
+            
+            m_left_upper_in[0,3] = 0
+            m_left_upper_in[1,3] = 0
+            m_left_upper_in[2,3] = z_offset            
 
-            m_left_upper[0,3] = 0
-            m_left_upper[1,3] = 0
-            m_left_upper[2,3] = z_offset
+            m_right_lower_out[0,3] = eaves_depth
+            m_right_lower_out[1,3] = -eaves_depth
+            m_right_lower_out[2,3] = -attic_increase + z_offset
 
-            m_right_lower[0,3] = eaves_depth
-            m_right_lower[1,3] = 0
-            m_right_lower[2,3] = -attic_increase + z_offset
-
-            m_right_upper[0,3] = 0
-            m_right_upper[1,3] = 0
-            m_right_upper[2,3] = z_offset     
+            m_right_mid_out[0,3] = 0
+            m_right_mid_out[1,3] = -eaves_depth
+            m_right_mid_out[2,3] = z_offset            
+            
+            m_right_mid_in[0,3] = 0
+            m_right_mid_in[1,3] = 0
+            m_right_mid_in[2,3] = z_offset             
+            
+            m_right_upper_out[0,3] = 0
+            m_right_upper_out[1,3] = -eaves_depth
+            m_right_upper_out[2,3] = z_offset
+            
+            m_right_upper_in[0,3] = 0
+            m_right_upper_in[1,3] = 0
+            m_right_upper_in[2,3] = z_offset            
                         
-            transformation_left_lower = OpenStudio::Transformation.new(m_left_lower)
-            transformation_left_upper = OpenStudio::Transformation.new(m_left_upper)
-            transformation_right_lower = OpenStudio::Transformation.new(m_right_lower)
-            transformation_right_upper = OpenStudio::Transformation.new(m_right_upper)
+            # lower eave
             new_vertices = OpenStudio::Point3dVector.new
-            new_vertices << transformation_left_lower * left
-            new_vertices << transformation_left_upper * left
-            new_vertices << transformation_right_upper * right
-            new_vertices << transformation_right_lower * right
+            new_vertices << OpenStudio::Transformation.new(m_left_lower_out) * left_lower
+            new_vertices << OpenStudio::Transformation.new(m_right_lower_out) * right_lower
+            new_vertices << OpenStudio::Transformation.new(m_right_mid_out) * right_lower
+            new_vertices << OpenStudio::Transformation.new(m_left_mid_out) * left_lower
             new_surface.setVertices(new_vertices)		
             shading_surface = OpenStudio::Model::ShadingSurface.new(new_surface.vertices, model)
             shading_surface.setName("eaves")
-            shading_surface.setShadingSurfaceGroup(shading_surface_group)								
+            shading_surface.setShadingSurfaceGroup(shading_surface_group)
+
+            # left eave
+            unless surface.space.get.name.to_s.downcase.include? "garage"
+              new_vertices = OpenStudio::Point3dVector.new
+              new_vertices << OpenStudio::Transformation.new(m_left_mid_out) * left_lower
+              new_vertices << OpenStudio::Transformation.new(m_left_mid_in) * left_lower
+              new_vertices << OpenStudio::Transformation.new(m_left_upper_in) * left_upper
+              new_vertices << OpenStudio::Transformation.new(m_left_upper_out) * left_upper
+              new_surface.setVertices(new_vertices)		
+              shading_surface = OpenStudio::Model::ShadingSurface.new(new_surface.vertices, model)
+              shading_surface.setName("eaves")
+              shading_surface.setShadingSurfaceGroup(shading_surface_group)
+            end
+            
+            # right eave
+            new_vertices = OpenStudio::Point3dVector.new
+            new_vertices << OpenStudio::Transformation.new(m_right_upper_in) * right_upper
+            new_vertices << OpenStudio::Transformation.new(m_right_mid_in) * right_lower
+            new_vertices << OpenStudio::Transformation.new(m_right_mid_out) * right_lower
+            new_vertices << OpenStudio::Transformation.new(m_right_upper_out) * right_upper
+            new_surface.setVertices(new_vertices)		
+            shading_surface = OpenStudio::Model::ShadingSurface.new(new_surface.vertices, model)
+            shading_surface.setName("eaves")
+            shading_surface.setShadingSurfaceGroup(shading_surface_group)
+
             new_surface.remove
           end
           

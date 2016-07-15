@@ -275,9 +275,9 @@ def validate_measure_args(args1, args2, lookup_file, parameter_name, option_name
     end
 end
   
-def get_argument_map(model, measure, measure_args, lookup_file, parameter_name, option_name, runner=nil)
+def get_argument_map(model_or_workspace, measure, measure_args, lookup_file, parameter_name, option_name, runner=nil)
     # Get default arguments
-    args_hash = default_args_hash(model, measure)
+    args_hash = default_args_hash(model_or_workspace, measure)
     
     validate_measure_args(args_hash.keys, measure_args.keys, lookup_file, parameter_name, option_name, runner)
     
@@ -287,7 +287,7 @@ def get_argument_map(model, measure, measure_args, lookup_file, parameter_name, 
     end
     
     # Convert to argument map needed by OS
-    arguments = measure.arguments(model)
+    arguments = measure.arguments(model_or_workspace)
     argument_map = OpenStudio::Ruleset.convertOSArgumentVectorToMap(arguments)
     arguments.each do |arg|
         temp_arg_var = arg.clone
@@ -299,9 +299,9 @@ def get_argument_map(model, measure, measure_args, lookup_file, parameter_name, 
     return argument_map
 end
   
-def default_args_hash(model, measure)
+def default_args_hash(model_or_workspace, measure)
     args_hash = {}
-    arguments = measure.arguments(model)
+    arguments = measure.arguments(model_or_workspace)
     arguments.each do |arg| 
         if arg.hasDefaultValue
             type = arg.type.valueName
@@ -324,12 +324,15 @@ def default_args_hash(model, measure)
     return args_hash
 end
   
-def run_measure(model, measure, argument_map, runner)
+def run_measure(model_or_workspace, measure, argument_map, runner)
     begin
 
       # run the measure
       runner_child = OpenStudio::Ruleset::OSRunner.new
-      measure.run(model, runner_child, argument_map)
+      if model_or_workspace.instance_of? OpenStudio::Workspace
+        runner_child.setLastOpenStudioModel(runner.lastOpenStudioModel.get)
+      end
+      measure.run(model_or_workspace, runner_child, argument_map)
       result_child = runner_child.result
 
       # get initial and final condition

@@ -159,16 +159,16 @@ class ProcessCoolingSetpoints < OpenStudio::Ruleset::ModelUserScript
             htg_wked_monthly << htg_wked.zip(clg_wked).map {|h, c| c < h ? (h + c) / 2.0 : h}
             clg_wkdy_monthly << htg_wkdy.zip(clg_wkdy).map {|h, c| c < h ? (h + c) / 2.0 : c}
             clg_wked_monthly << htg_wked.zip(clg_wked).map {|h, c| c < h ? (h + c) / 2.0 : c}
-          elsif heating_season[i] == 1
-            htg_wkdy_monthly << htg_wkdy
-            htg_wked_monthly << htg_wked
-            clg_wkdy_monthly << Array.new(24, 10000)
-            clg_wked_monthly << Array.new(24, 10000)
           elsif cooling_season[i] == 1
             htg_wkdy_monthly << Array.new(24, -10000)
             htg_wked_monthly << Array.new(24, -10000)
             clg_wkdy_monthly << clg_wkdy
-            clg_wked_monthly << clg_wked
+            clg_wked_monthly << clg_wked          
+          else
+            htg_wkdy_monthly << htg_wkdy
+            htg_wked_monthly << htg_wked
+            clg_wkdy_monthly << Array.new(24, 10000)
+            clg_wked_monthly << Array.new(24, 10000)
           end          
         end
         

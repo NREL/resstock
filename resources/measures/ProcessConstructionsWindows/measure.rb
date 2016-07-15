@@ -73,7 +73,7 @@ class ProcessConstructionsWindows < OpenStudio::Ruleset::ModelUserScript
     if not runner.validateUserArguments(arguments(model), user_arguments)
       return false
     end
-
+    
     # loop thru all the spaces
     sub_surfaces = []
     spaces = model.getSpaces
@@ -91,11 +91,18 @@ class ProcessConstructionsWindows < OpenStudio::Ruleset::ModelUserScript
       return true
     end    
     
-    userdefined_ufactor = runner.getDoubleArgumentValue("ufactor",user_arguments)
-    userdefined_shgc = runner.getDoubleArgumentValue("shgc",user_arguments)
+    ufactor = OpenStudio::convert(runner.getDoubleArgumentValue("ufactor",user_arguments),"Btu/hr*ft^2*R","W/m^2*K").get
+    shgc = runner.getDoubleArgumentValue("shgc",user_arguments)
 
-    ufactor = OpenStudio::convert(userdefined_ufactor,"Btu/hr*ft^2*R","W/m^2*K").get
-    shgc = userdefined_shgc
+    #error checking
+    if ufactor <= 0
+      runner.registerError("Invalid window U-value.")
+      return false
+    end
+    if shgc <= 0
+      runner.registerError("Invalid window SHGC.")
+      return false
+    end
 
     intShadeCoolingMonths = nil # FIXME: Implement
     intShadeHeatingMultiplier = runner.getDoubleArgumentValue("userdefinedintshadeheatingmult",user_arguments)
@@ -106,24 +113,12 @@ class ProcessConstructionsWindows < OpenStudio::Ruleset::ModelUserScript
         return false
     end
     
-    # Process the windows
-
     heating_season, cooling_season = HelperMethods.calc_heating_and_cooling_seasons(model, weather, runner)
     if heating_season.nil? or cooling_season.nil?
         return false
     end
 
-    window_shade_multiplier = []
-    (0...Constants.MonthNames.length).to_a.each do |i|
-      if cooling_season[i] == 1.0
-        window_shade_multiplier << intShadeCoolingMultiplier
-      else
-        window_shade_multiplier << intShadeHeatingMultiplier
-      end
-    end
-
-    # Shades
-
+    # _processConstructionsWindows
     # EnergyPlus doesn't like shades that absorb no heat, transmit no heat or reflect no heat.
     if intShadeCoolingMultiplier == 1
         intShadeCoolingMultiplier = 0.999
@@ -147,7 +142,7 @@ class ProcessConstructionsWindows < OpenStudio::Ruleset::ModelUserScript
     sched_type.setUpperLimitValue(1)
     sched_type.setNumericType("Continuous")
     
-    # FIXME: Should the line below reference window_shade_multiplier instead of cooling_season?
+    # Interior Shading Schedule
     sch = MonthWeekdayWeekendSchedule.new(model, runner, Constants.ObjectNameWindowShading + " schedule", Array.new(24, 1), Array.new(24, 1), cooling_season)
     if not sch.validated?
         return false
