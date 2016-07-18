@@ -26,13 +26,13 @@ class SetResidentialEPWFile < OpenStudio::Ruleset::ModelUserScript
   def arguments(model)
     args = OpenStudio::Ruleset::OSArgumentVector.new
 
-    arg = OpenStudio::Ruleset::OSArgument.makeStringArgument('weather_directory', true)
+    arg = OpenStudio::Ruleset::OSArgument.makeStringArgument("weather_directory", true)
     arg.setDisplayName("Weather Directory")
     arg.setDescription("Absolute (or relative) directory to weather files.")
     arg.setDefaultValue("./resources")
     args << arg
 
-    arg = OpenStudio::Ruleset::OSArgument.makeStringArgument('weather_file_name', true)
+    arg = OpenStudio::Ruleset::OSArgument.makeStringArgument("weather_file_name", true)
     arg.setDisplayName("Weather File Name")
     arg.setDescription("Name of the EPW weather file to assign. The corresponding DDY file must also be in the same directory.")
     arg.setDefaultValue("USA_CO_Denver_Intl_AP_725650_TMY3.epw")
@@ -89,7 +89,7 @@ class SetResidentialEPWFile < OpenStudio::Ruleset::ModelUserScript
     OpenStudio::Model::WeatherFile.setWeatherFile(model, epw_file).get
     runner.registerInfo("Setting weather file.")
 
-    weather = WeatherProcess.new(model,runner)
+    weather = WeatherProcess.new(model, runner, File.dirname(__FILE__))
     if weather.error?
       return false
     end

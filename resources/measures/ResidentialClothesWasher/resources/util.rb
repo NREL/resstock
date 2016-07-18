@@ -2078,13 +2078,14 @@ class Construction
         
         # Returns true if the material was assigned
         def assign_material(constr, material, surface, remove_non_std_layers, runner)
-            num_layers = constr.numLayers
             
             if not surface.respond_to?("surfaceType")
-                constr.insertLayer(num_layers, material)
+                remove_material(constr, material.name.to_s, runner)
+                constr.insertLayer(constr.numLayers, material)
                 return true
             end
             
+            num_layers = constr.numLayers
             # Note: We determine types of layers (exterior finish, etc.) by name.
             # The code below defines the target layer positions for the materials when the 
             # construction is complete.

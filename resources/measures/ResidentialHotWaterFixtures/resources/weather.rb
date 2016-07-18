@@ -14,29 +14,22 @@ end
 
 class WeatherProcess
 
-  def initialize(model, runner, header_only=false)
+  def initialize(model, runner, measure_dir, header_only=false)
     @model = model
     @runner = runner
-    if model.respond_to?("weatherFile") and model.weatherFile.is_initialized
+    @measure_dir = measure_dir
+    if model.weatherFile.is_initialized
       # OpenStudio measures
       wf = model.weatherFile.get
       # Sometimes path is available, sometimes just url. Should be improved in OS 2.0.
       if wf.path.is_initialized
         epw_path = wf.path.get.to_s
       else
-        epw_path = wf.url.to_s.sub("file:///","")
+        epw_path = wf.url.to_s.sub("file:///","").sub("file://","").sub("file:","")
       end
-      # Allow relative paths in OSMs for unit tests
-      if not File.exist?(epw_path)
-        epw_path_unit_tests = File.join(File.dirname(__FILE__), "..", "tests", epw_path)
-        if File.exist?(epw_path_unit_tests)
-          epw_path = epw_path_unit_tests
-        end
+      if not File.exist? epw_path # Handle relative paths for unit tests
+        epw_path = File.join(measure_dir, "resources", epw_path)
       end
-      @header, @data = process_epw(epw_path, header_only)
-    elsif not model.respond_to?("weatherFile") and runner.lastEpwFilePath.is_initialized
-      # EnergyPlus measures
-      epw_path = runner.lastEpwFilePath.get.to_s
       @header, @data = process_epw(epw_path, header_only)
     else
       runner.registerError("Model has not been assigned a weather file.")
@@ -265,7 +258,7 @@ class WeatherProcess
       end
       
       def get_ashrae_622_wsf(wmo)
-        # Looks up the ASHRAE 62.2 weather and sheilding factor from ASHRAE622WSF
+        # Looks up the ASHRAE 62.2 weather and shielding factor from ASHRAE622WSF
         # for the specified WMO station number. If not found, uses the average value 
         # in the file.
             
@@ -273,7 +266,7 @@ class WeatherProcess
         
         @runner.registerInfo("Getting ASHRAE 62.2 WSF...")
         
-        ashrae_csv = File.absolute_path(File.join(__FILE__, '..', 'ASHRAE622WSF.csv'))
+        ashrae_csv = File.join(measure_dir, "resources", 'ASHRAE622WSF.csv')
         ashrae_csvlines = []
         File.open(ashrae_csv) do |file|
           # if not os.path.exists(ashrae_csv):

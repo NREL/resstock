@@ -586,5 +586,9 @@ task :copy_beopt_measures do
     if Dir.exist?(resstock_measure_test_dir)
       FileUtils.rm_rf("#{resstock_measure_test_dir}/.", secure: true)
     end
+    resstock_measure_cov_dir = File.join(resstock_measures_dir, item, "coverage")
+    if Dir.exist?(resstock_measure_cov_dir)
+      FileUtils.rm_rf("#{resstock_measure_cov_dir}/.", secure: true)
+    end
   end
 end

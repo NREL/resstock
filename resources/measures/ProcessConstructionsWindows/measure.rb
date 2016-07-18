@@ -108,7 +108,7 @@ class ProcessConstructionsWindows < OpenStudio::Ruleset::ModelUserScript
     intShadeHeatingMultiplier = runner.getDoubleArgumentValue("userdefinedintshadeheatingmult",user_arguments)
     intShadeCoolingMultiplier = runner.getDoubleArgumentValue("userdefinedintshadecoolingmult",user_arguments)
 
-    weather = WeatherProcess.new(model,runner)
+    weather = WeatherProcess.new(model, runner, File.dirname(__FILE__))
     if weather.error?
         return false
     end

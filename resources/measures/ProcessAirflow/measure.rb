@@ -1121,7 +1121,7 @@ class ProcessAirflow < OpenStudio::Ruleset::WorkspaceUserScript
     end
     
     # Create the sim object
-    @weather = WeatherProcess.new(model, runner)
+    @weather = WeatherProcess.new(model, runner, File.dirname(__FILE__))
     if @weather.error?
         return false
     end

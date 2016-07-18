@@ -328,7 +328,7 @@ class ResidentialDishwasher < OpenStudio::Ruleset::ModelUserScript
 	# Also convert from per-cycle to daily electricity usage amounts.
 	if dw_is_cold_water_inlet_only
 
-        weather = WeatherProcess.new(model,runner)
+        weather = WeatherProcess.new(model, runner, File.dirname(__FILE__))
         if weather.error?
             return false
         end

@@ -64,7 +64,7 @@ class ProcessHeatingSetpoints < OpenStudio::Ruleset::ModelUserScript
     htg_wkdy = runner.getStringArgumentValue("htg_wkdy",user_arguments)
     htg_wked = runner.getStringArgumentValue("htg_wked",user_arguments)
     
-    weather = WeatherProcess.new(model,runner)
+    weather = WeatherProcess.new(model, runner, File.dirname(__FILE__))
     if weather.error?
       return false
     end

@@ -329,7 +329,7 @@ class ResidentialClothesWasher < OpenStudio::Ruleset::ModelUserScript
     # the ratio of hot and cold water can vary with thermostatic control (see below).
     actual_cw_total_per_cycle_water_use = cw_dhw_use_per_cycle_test / hot_water_vol_frac_test # gal/cycle
 
-    weather = WeatherProcess.new(model, runner)
+    weather = WeatherProcess.new(model, runner, File.dirname(__FILE__))
     if weather.error?
         return false
     end
