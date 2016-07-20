@@ -16,12 +16,12 @@ class CallMetaMeasureEnergyPlus < OpenStudio::Ruleset::WorkspaceUserScript
 
   # human readable description
   def description
-    return "Measure that calls a child measure based on the sample value and probability distribution file provided."
+    return "Measure that calls one or more child measures based on the sample value and probability distribution file provided."
   end
 
   # human readable description of modeling approach
   def modeler_description
-    return "Based on the sample value provided by the sampling algorithm and the housing characteristics probability distribution file, a child measure will be called with appropriate arguments. This measure also handles any upstream dependencies that have been previously set."
+    return "Based on the sample value provided by the sampling algorithm and the housing characteristics probability distribution file, one or more child measures will be called with appropriate arguments. This measure also handles any upstream dependencies that have been previously set."
   end
 
   # define the arguments that the user will input

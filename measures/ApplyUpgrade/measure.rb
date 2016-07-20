@@ -7,36 +7,45 @@
 require 'csv'
 
 # start the measure
-class CallMetaMeasure < OpenStudio::Ruleset::ModelUserScript
+class ApplyUpgrade < OpenStudio::Ruleset::ModelUserScript
 
   # human readable name
   def name
-    return "Call Meta Measure"
+    return "Apply Upgrade"
   end
 
   # human readable description
   def description
-    return "Measure that calls one or more child measures based on the sample value and probability distribution file provided."
+    return "Measure that applies an upgrade (one or more child measures) to a building model based on the specified logic."
   end
 
   # human readable description of modeling approach
   def modeler_description
-    return "Based on the sample value provided by the sampling algorithm and the housing characteristics probability distribution file, one or more child measures will be called with appropriate arguments. This measure also handles any upstream dependencies that have been previously set."
+    return "Determines if the upgrade should apply to a given building model. If so, calls one or more child measures with the appropriate arguments."
   end
 
   # define the arguments that the user will input
   def arguments(model)
     args = OpenStudio::Ruleset::OSArgumentVector.new
 
-    probability_file = OpenStudio::Ruleset::OSArgument.makeStringArgument("probability_file", true)
-    probability_file.setDisplayName("Probability DistributionFile.tsv")
-    probability_file.setDescription("The name of the file that provides probability distributions. The file's directory is currently hard-coded.")
-    args << probability_file
+    # Make integer arg to run measure [1 is run, 0 is no run]
+    run_measure = OpenStudio::Ruleset::OSArgument::makeIntegerArgument("run_measure",true)
+    run_measure.setDisplayName("Run Measure")
+    run_measure.setDescription("integer argument to run measure [1 is run, 0 is no run]")
+    run_measure.setDefaultValue(1)
+    args << run_measure 
+    
+    parameter_name = OpenStudio::Ruleset::OSArgument.makeStringArgument("parameter_name", true)
+    parameter_name.setDescription("The name of the parameter, as specified in resources\options_lookup.tsv.")
+    args << parameter_name
 
-    sample_value = OpenStudio::Ruleset::OSArgument.makeDoubleArgument("sample_value", true)
-    sample_value.setDisplayName("Sample Value")
-    sample_value.setDescription("The sample value determined by the OpenStudio sampling algorithm.")
-    args << sample_value
+    option_name = OpenStudio::Ruleset::OSArgument.makeStringArgument("option_name", true)
+    option_name.setDescription("The name of the option for the given parameter, as specified in resources\options_lookup.tsv.")
+    args << option_name
+
+    apply_logic = OpenStudio::Ruleset::OSArgument.makeStringArgument("apply_logic", false)
+    apply_logic.setDescription("The logic that specifies whether the upgrade should apply to a given building. If no logic is provided, the upgrade will be applied to all buildings.")
+    args << apply_logic
     
     return args
   end
@@ -50,9 +59,16 @@ class CallMetaMeasure < OpenStudio::Ruleset::ModelUserScript
       return false
     end
     
-    probability_file = runner.getStringArgumentValue("probability_file",user_arguments)
-    sample_value = runner.getDoubleArgumentValue("sample_value",user_arguments)
-    parameter_name = File.basename(probability_file, File.extname(probability_file))
+    # Return N/A if not selected to run
+    run_measure = runner.getIntegerArgumentValue("run_measure",user_arguments)
+    if run_measure == 0
+      runner.registerAsNotApplicable("Run Measure set to #{run_measure}.")
+      return true     
+    end
+
+    parameter_name = runner.getStringArgumentValue("parameter_name",user_arguments)
+    option_name = runner.getStringArgumentValue("option_name",user_arguments)
+    apply_logic = runner.getStringArgumentValue("apply_logic",user_arguments)
     
     # Get file/dir paths
     resources_dir = File.absolute_path(File.join(File.dirname(__FILE__), "../../lib/resources/")) # Should have been uploaded per 'Other Library Files' in analysis spreadsheet
@@ -64,23 +80,8 @@ class CallMetaMeasure < OpenStudio::Ruleset::ModelUserScript
     require File.join(File.dirname(helper_methods_file), File.basename(helper_methods_file, File.extname(helper_methods_file)))
 
     # Check file/dir paths exist
-    check_dir_exists(measures_dir, runner)
     check_file_exists(lookup_file, runner)
 
-    # Get mode
-    res_stock_mode = get_value_from_runner_past_results("res_stock_mode", runner)
-
-    # Get probability file data including parameter name, dependency columns, and option names
-    full_probability_path = File.join(resources_dir, "inputs", res_stock_mode, probability_file)
-    check_file_exists(full_probability_path, runner)
-    tsvfile = TsvFile.new(full_probability_path, runner)
-    
-    # Get dependency values from previous meta-measure calls
-    dependency_values = get_dependency_values_from_runner(tsvfile.dependency_cols, runner)
-    
-    # Get option name given the sample value and dependency values
-    option_name, matched_row_num = tsvfile.get_option_name_from_sample_number(sample_value, dependency_values)
-    
     # Get measure name and arguments associated with the option name
     measure_args = get_measure_args_from_option_name(lookup_file, option_name, parameter_name, runner)
 
@@ -101,10 +102,7 @@ class CallMetaMeasure < OpenStudio::Ruleset::ModelUserScript
     if measure_args.empty?
         print_info(nil, nil, option_name, runner)
     end
-    
-    register_value(runner, "ResStock Parameter Name", parameter_name)
-    register_value(runner, "ResStock Option Name", option_name)
-    
+
     return true
 
   end
@@ -112,4 +110,4 @@ class CallMetaMeasure < OpenStudio::Ruleset::ModelUserScript
 end
 
 # register the measure to be used by the application
-CallMetaMeasure.new.registerWithApplication
+ApplyUpgrade.new.registerWithApplication
