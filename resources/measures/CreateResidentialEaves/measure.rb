@@ -270,13 +270,13 @@ class CreateResidentialEaves < OpenStudio::Ruleset::ModelUserScript
               if top_pt.y == 0
                 min_x = x_s.each_with_index.min
                 max_x = x_s.each_with_index.max 
-                min_pt = OpenStudio::Point3d.new(x_s[min_x[1]] - eaves_depth, y_s[min_x[1]], z_s[min_x[1]])
-                max_pt = OpenStudio::Point3d.new(x_s[max_x[1]] + eaves_depth, y_s[max_x[1]], z_s[max_x[1]])						
-              else
-                min_x = x_s.each_with_index.min
-                max_x = x_s.each_with_index.max 
                 max_pt = OpenStudio::Point3d.new(x_s[min_x[1]] - eaves_depth, y_s[min_x[1]], z_s[min_x[1]])
                 min_pt = OpenStudio::Point3d.new(x_s[max_x[1]] + eaves_depth, y_s[max_x[1]], z_s[max_x[1]])						
+              else
+                min_x = x_s.each_with_index.min
+                max_x = x_s.each_with_index.max
+                min_pt = OpenStudio::Point3d.new(x_s[min_x[1]] - eaves_depth, y_s[min_x[1]], z_s[min_x[1]])
+                max_pt = OpenStudio::Point3d.new(x_s[max_x[1]] + eaves_depth, y_s[max_x[1]], z_s[max_x[1]])
               end
             end
             new_vertices = OpenStudio::Point3dVector.new

@@ -60,6 +60,7 @@ class ResidentialClothesDryer < OpenStudio::Ruleset::ModelUserScript
 	args << cd_monthly_sch
 
 	#make a double argument for Clothes Washer Modified Energy Factor
+    #TODO: Remove when clothes washer info available
 	cw_mef = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("cw_mef",true)
 	cw_mef.setDisplayName("Clothes Washer Energy Factor")
     cw_mef.setUnits("ft^3/kWh-cycle")
@@ -68,6 +69,7 @@ class ResidentialClothesDryer < OpenStudio::Ruleset::ModelUserScript
 	args << cw_mef
     
     #make a double argument for Clothes Washer Rated Annual Consumption
+    #TODO: Remove when clothes washer info available
     cw_rated_annual_energy = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("cw_rated_annual_energy",true)
 	cw_rated_annual_energy.setDisplayName("Clothes Washer Rated Annual Consumption")
     cw_rated_annual_energy.setUnits("kWh")
@@ -76,6 +78,7 @@ class ResidentialClothesDryer < OpenStudio::Ruleset::ModelUserScript
 	args << cw_rated_annual_energy
     
 	#make a double argument for Clothes Washer Drum Volume
+    #TODO: Remove when clothes washer info available
 	cw_drum_volume = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("cw_drum_volume",true)
 	cw_drum_volume.setDisplayName("Clothes Washer Drum Volume")
     cw_drum_volume.setUnits("ft^3")
@@ -219,23 +222,13 @@ class ResidentialClothesDryer < OpenStudio::Ruleset::ModelUserScript
 
     cd_ann_e = daily_energy_elec * 365.0 # kWh/yr
 
-    mult_weekend = 1.15
-    mult_weekday = 0.94
-
-    obj_name = Constants.ObjectNameClothesDryer
-    obj_name_e = Constants.FuelTypeElectric + " " + Constants.ObjectNameClothesDryer
-    obj_name_g = Constants.FuelTypeGas + " " + Constants.ObjectNameClothesDryer
-    obj_name_g_e = Constants.FuelTypeGas + " " + Constants.ObjectNameClothesDryer + " electricity"
-	sch = MonthWeekdayWeekendSchedule.new(model, runner, obj_name + " schedule", cd_weekday_sch, cd_weekend_sch, cd_monthly_sch, mult_weekday, mult_weekend)
-	if not sch.validated?
-		return false
-	end
-	design_level_e = sch.calcDesignLevelFromDailykWh(daily_energy_elec)
-
+    obj_name_e = Constants.ObjectNameClothesDryer(Constants.FuelTypeElectric)
+    obj_name_g = Constants.ObjectNameClothesDryer(Constants.FuelTypeGas)
+    
     # Remove any existing clothes dryer
     cd_removed = false
     space.electricEquipment.each do |space_equipment|
-        if space_equipment.name.to_s == obj_name_e or space_equipment.name.to_s == obj_name_g_e
+        if space_equipment.name.to_s == obj_name_e
             space_equipment.remove
             cd_removed = true
         end
@@ -249,21 +242,32 @@ class ResidentialClothesDryer < OpenStudio::Ruleset::ModelUserScript
     if cd_removed
         runner.registerInfo("Removed existing clothes dryer.")
     end
-    
-	#Add equipment for the cd
-    cd_def = OpenStudio::Model::ElectricEquipmentDefinition.new(model)
-    cd = OpenStudio::Model::ElectricEquipment.new(cd_def)
-    cd.setName(obj_name_e)
-    cd.setSpace(space)
-    cd_def.setName(obj_name_e)
-    cd_def.setDesignLevel(design_level_e)
-    cd_def.setFractionRadiant(cd_rad_e)
-    cd_def.setFractionLatent(cd_lat_e)
-    cd_def.setFractionLost(cd_lost_e)
-    sch.setSchedule(cd)
-	
-	#reporting final condition of model
-    runner.registerFinalCondition("An electric dryer has been set with #{cd_ann_e.round} kWhs annual energy consumption.")
+
+    if cd_ann_e > 0
+        mult_weekend = 1.15
+        mult_weekday = 0.94
+
+        sch = MonthWeekdayWeekendSchedule.new(model, runner, obj_name_e + " schedule", cd_weekday_sch, cd_weekend_sch, cd_monthly_sch, mult_weekday, mult_weekend)
+        if not sch.validated?
+            return false
+        end
+        design_level_e = sch.calcDesignLevelFromDailykWh(daily_energy_elec)
+
+        #Add equipment for the cd
+        cd_def = OpenStudio::Model::ElectricEquipmentDefinition.new(model)
+        cd = OpenStudio::Model::ElectricEquipment.new(cd_def)
+        cd.setName(obj_name_e)
+        cd.setSpace(space)
+        cd_def.setName(obj_name_e)
+        cd_def.setDesignLevel(design_level_e)
+        cd_def.setFractionRadiant(cd_rad_e)
+        cd_def.setFractionLatent(cd_lat_e)
+        cd_def.setFractionLost(cd_lost_e)
+        sch.setSchedule(cd)
+        
+        #reporting final condition of model
+        runner.registerFinalCondition("An electric dryer has been set with #{cd_ann_e.round} kWhs annual energy consumption.")
+    end
 	
     return true
 	

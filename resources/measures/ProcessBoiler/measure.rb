@@ -9,11 +9,10 @@ require "#{File.dirname(__FILE__)}/resources/geometry"
 class ProcessBoiler < OpenStudio::Ruleset::ModelUserScript
 
   class Boiler
-    def initialize(boilerFuelType, boilerType, boilerInstalledAFUE, boilerOATResetEnabled, boilerOATHigh, boilerOATLow, boilerOATHighHWST, boilerOATLowHWST, boilerDesignTemp)
+    def initialize(boilerFuelType, boilerType, boilerInstalledAFUE, boilerOATHigh, boilerOATLow, boilerOATHighHWST, boilerOATLowHWST, boilerDesignTemp)
       @boilerFuelType = boilerFuelType
       @boilerType = boilerType
       @boilerInstalledAFUE = boilerInstalledAFUE
-      @boilerOATResetEnabled = boilerOATResetEnabled
       @boilerOATHigh = boilerOATHigh
       @boilerOATLow = boilerOATLow
       @boilerOATHighHWST = boilerOATHighHWST
@@ -21,7 +20,7 @@ class ProcessBoiler < OpenStudio::Ruleset::ModelUserScript
       @boilerDesignTemp = boilerDesignTemp
     end
 
-    attr_accessor(:boiler_hir, :CondensingBlr_TE_FT_coefficients, :boiler_aux)
+    attr_accessor(:boiler_hir, :CondensingBlr_TE_FT_coefficients, :boiler_aux, :BoilerOATResetEnabled)
 
     def BoilerType
       return @boilerType
@@ -33,10 +32,6 @@ class ProcessBoiler < OpenStudio::Ruleset::ModelUserScript
     
     def BoilerInstalledAFUE
       return @boilerInstalledAFUE
-    end
-    
-    def BoilerOATResetEnabled
-      return @boilerOATResetEnabled
     end
     
     def BoilerOATHigh
@@ -53,7 +48,7 @@ class ProcessBoiler < OpenStudio::Ruleset::ModelUserScript
     
     def BoilerOATLowHWST
       return @boilerOATLowHWST
-    end
+    end    
     
     def BoilerDesignTemp
       return @boilerDesignTemp
@@ -202,7 +197,8 @@ class ProcessBoiler < OpenStudio::Ruleset::ModelUserScript
     boilerDesignTemp = runner.getDoubleArgumentValue("boilerDesignTemp",user_arguments)
     
     # Create the material class instances
-    hydronic_heating = Boiler.new(boilerFuelType, boilerType, boilerInstalledAFUE, boilerOATResetEnabled, boilerOATHigh, boilerOATLow, boilerOATLowHWST, boilerOATHighHWST, boilerDesignTemp)
+    hydronic_heating = Boiler.new(boilerFuelType, boilerType, boilerInstalledAFUE, boilerOATHigh, boilerOATLow, boilerOATLowHWST, boilerOATHighHWST, boilerDesignTemp)
+    hydronic_heating.BoilerOATResetEnabled = boilerOATResetEnabled
     
     hasBoilerCondensing = false
     if hydronic_heating.BoilerType == Constants.BoilerTypeCondensing

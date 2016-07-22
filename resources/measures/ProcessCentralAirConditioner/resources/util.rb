@@ -1155,7 +1155,7 @@ class HVAC
         end
     end
   
-    def self._processAirSystemCoolingCoil(number_Speeds, coolingEER, coolingSEER, supplyFanPower, supplyFanPower_Rated, shr_Rated, capacity_Ratio, fanspeed_Ratio, condenserType, crankcase, crankcase_MaxT, eer_CapacityDerateFactor, air_conditioner, supply, hasHeatPump)
+    def self._processAirSystemCoolingCoil(runner, number_Speeds, coolingEER, coolingSEER, supplyFanPower, supplyFanPower_Rated, shr_Rated, capacity_Ratio, fanspeed_Ratio, condenserType, crankcase, crankcase_MaxT, eer_CapacityDerateFactor, air_conditioner, supply, hasHeatPump)
 
     # if len(Capacity_Ratio) > len(set(Capacity_Ratio)):
     #     SimError("Capacity Ratio values must be unique ({})".format(Capacity_Ratio))
@@ -1164,7 +1164,7 @@ class HVAC
     supply.Number_Speeds = number_Speeds
 
     if air_conditioner.hasIdealAC
-      supply = HVAC.get_cooling_coefficients(supply.Number_Speeds, true, nil, supply)
+      supply = HVAC.get_cooling_coefficients(runner, supply.Number_Speeds, true, nil, supply)
     end
 
     supply.CoolingEIR = Array.new

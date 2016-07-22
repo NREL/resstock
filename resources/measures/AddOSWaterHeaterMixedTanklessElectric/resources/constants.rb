@@ -317,8 +317,8 @@ class Constants
   def self.ObjectNameClothesWasher
     return 'residential clothes washer'
   end
-  def self.ObjectNameClothesDryer
-    return 'residential clothes dryer'
+  def self.ObjectNameClothesDryer(fueltype)
+    return "residential clothes dryer #{fueltype}"
   end
   def self.ObjectNameCookingRange(fueltype, ignition=false)
     s_ignition = ""

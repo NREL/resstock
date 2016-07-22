@@ -73,6 +73,7 @@ class CreateResidentialDoorArea < OpenStudio::Ruleset::ModelUserScript
     end    
     
     door_height = 2.1336 # 7 ft
+    door_width = door_area / door_height
     door_offset = 0.5
 
     # get building orientation
@@ -132,11 +133,16 @@ class CreateResidentialDoorArea < OpenStudio::Ruleset::ModelUserScript
           sw_point = vertex
         end
       end
+      
+      if (door_offset + door_width) * door_height > first_story_front_wall.grossArea
+        # Reduce door offset to fit door on surface
+        door_offset = 0
+      end
 
       door_sw_point = OpenStudio::Point3d.new(sw_point.x + door_offset, sw_point.y, sw_point.z)
       door_nw_point = OpenStudio::Point3d.new(sw_point.x + door_offset, sw_point.y, sw_point.z + door_height)
-      door_ne_point = OpenStudio::Point3d.new(sw_point.x + door_offset + (door_area / door_height), sw_point.y, sw_point.z + door_height)
-      door_se_point = OpenStudio::Point3d.new(sw_point.x + door_offset + (door_area / door_height), sw_point.y, sw_point.z)	
+      door_ne_point = OpenStudio::Point3d.new(sw_point.x + door_offset + door_width, sw_point.y, sw_point.z + door_height)
+      door_se_point = OpenStudio::Point3d.new(sw_point.x + door_offset + door_width, sw_point.y, sw_point.z)	
       
       door_polygon = Geometry.make_polygon(door_sw_point, door_se_point, door_ne_point, door_nw_point)
       door_sub_surface = OpenStudio::Model::SubSurface.new(door_polygon, model)

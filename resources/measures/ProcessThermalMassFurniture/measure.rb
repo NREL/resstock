@@ -165,6 +165,7 @@ class ProcessThermalMassFurniture < OpenStudio::Ruleset::ModelUserScript
         
         next if furnAreaFraction.nil?
         next if furnAreaFraction <= 0
+        next if space.floorArea <= 0
         
         mat_obj_name_space = "#{Constants.ObjectNameFurniture} material #{space.name.to_s}"
         constr_obj_name_space = "#{Constants.ObjectNameFurniture} construction #{space.name.to_s}"

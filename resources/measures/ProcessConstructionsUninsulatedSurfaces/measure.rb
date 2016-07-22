@@ -15,7 +15,7 @@ class ProcessConstructionsUninsulatedSurfaces < OpenStudio::Ruleset::ModelUserSc
   end
   
   def description
-    return "This measure assigns an uninsulated constructions to 1) above-grade exterior walls adjacent to unfinished space, 2) slabs under unfinished space, 3) roofs above unfinished space, 4) floors between two unfinished (or two finished) spaces, or 5) adiabatic surfaecs."
+    return "This measure assigns an uninsulated constructions to 1) exterior surfaces adjacent to unfinished space, 2) surfaces between two unfinished (or two finished) spaces, or 3) adiabatic surfaces."
   end
   
   def modeler_description
@@ -38,15 +38,43 @@ class ProcessConstructionsUninsulatedSurfaces < OpenStudio::Ruleset::ModelUserSc
       return false
     end
 
-    # Above-grade wall between unfinished space and outdoors
-    wall_surfaces = []
+    # Above-grade walls between unfinished space and outdoors
+    ext_wall_surfaces = []
     model.getSpaces.each do |space|
         next if Geometry.space_is_finished(space)
         next if Geometry.space_is_below_grade(space)
         space.surfaces.each do |surface|
             next if surface.surfaceType.downcase != "wall"
             next if surface.outsideBoundaryCondition.downcase != "outdoors"
-            wall_surfaces << surface
+            ext_wall_surfaces << surface
+        end
+    end
+    
+    # Walls between two finished spaces
+    finished_wall_surfaces = []
+    model.getSpaces.each do |space|
+        next if Geometry.space_is_unfinished(space)
+        space.surfaces.each do |surface|
+            next if surface.surfaceType.downcase != "wall"
+            next if not surface.adjacentSurface.is_initialized
+            next if not surface.adjacentSurface.get.space.is_initialized
+            adjacent_space = surface.adjacentSurface.get.space.get
+            next if Geometry.space_is_unfinished(adjacent_space)
+            finished_wall_surfaces << surface
+        end
+    end
+    
+    # Walls between two unfinished spaces
+    unfinished_wall_surfaces = []
+    model.getSpaces.each do |space|
+        next if Geometry.space_is_finished(space)
+        space.surfaces.each do |surface|
+            next if surface.surfaceType.downcase != "wall"
+            next if not surface.adjacentSurface.is_initialized
+            next if not surface.adjacentSurface.get.space.is_initialized
+            adjacent_space = surface.adjacentSurface.get.space.get
+            next if Geometry.space_is_finished(adjacent_space)
+            unfinished_wall_surfaces << surface
         end
     end
     
@@ -109,11 +137,15 @@ class ProcessConstructionsUninsulatedSurfaces < OpenStudio::Ruleset::ModelUserSc
         space.surfaces.each do |surface|
             next if surface.outsideBoundaryCondition.downcase != "adiabatic"
             if surface.surfaceType.downcase == "wall"
-                wall_surfaces << surface
-            elsif surface.surfaceType.downcase == "roofceiling" and surface.outsideBoundaryCondition.downcase == "outdoors"
+                if Geometry.space_is_finished(space)
+                    finished_wall_surfaces << surface
+                else
+                    unfinished_wall_surfaces << surface
+                end
+            elsif surface.surfaceType.downcase == "roofceiling"
                 roof_surfaces << surface
                 roof_spaces << space
-            elsif surface.surfaceType.downcase == "floor" or surface.surfaceType.downcase == "roofceiling"
+            elsif surface.surfaceType.downcase == "floor"
                 if Geometry.space_is_finished(space)
                     finished_floor_surfaces << surface
                 else
@@ -124,13 +156,13 @@ class ProcessConstructionsUninsulatedSurfaces < OpenStudio::Ruleset::ModelUserSc
     end
 
     # Continue if no applicable surfaces
-    if wall_surfaces.empty? and finished_floor_surfaces.empty? and unfinished_floor_surfaces.empty? and slab_surfaces.empty? and roof_surfaces.empty?
+    if ext_wall_surfaces.empty? and finished_floor_surfaces.empty? and unfinished_floor_surfaces.empty? and slab_surfaces.empty? and roof_surfaces.empty? and finished_wall_surfaces.empty? and unfinished_wall_surfaces.empty?
         runner.registerAsNotApplicable("Measure not applied because no applicable surfaces were found.")
         return true
     end    
 
-    # Process the walls
-    if not wall_surfaces.empty?
+    # Process the exterior walls
+    if not ext_wall_surfaces.empty?
         # Define materials
         mat_cavity = Material.AirCavityClosed(Material.Stud2x4.thick_in)
         mat_framing = Material.new(name=nil, thick_in=Material.Stud2x4.thick_in, mat_base=BaseMaterial.Wood)
@@ -147,8 +179,36 @@ class ProcessConstructionsUninsulatedSurfaces < OpenStudio::Ruleset::ModelUserSc
         wall.add_layer(Material.AirFilmOutside, false)
 
         # Create and assign construction to wall surfaces
-        if not wall.create_and_assign_constructions(wall_surfaces, runner, model, name="ExtUninsUnfinWall")
+        if not wall.create_and_assign_constructions(ext_wall_surfaces, runner, model, name="ExtUninsUnfinWall")
             return false
+        end
+    end
+    
+    # Process the finished/unfinished walls
+    if not finished_wall_surfaces.empty? or not unfinished_wall_surfaces.empty?
+        # Define materials
+        mat_cavity = Material.AirCavityClosed(Material.Stud2x4.thick_in)
+        mat_framing = Material.new(name=nil, thick_in=Material.Stud2x4.thick_in, mat_base=BaseMaterial.Wood)
+        
+        # Set paths
+        path_fracs = [Constants.DefaultFramingFactorInterior, 1 - Constants.DefaultFramingFactorInterior]
+        
+        # Define construction
+        wall = Construction.new(path_fracs)
+        wall.add_layer([mat_framing, mat_cavity], true, "IntStudAndAirWall")
+    
+        if not finished_wall_surfaces.empty?
+            # Create and apply construction to finished surfaces
+            if not wall.create_and_assign_constructions(finished_wall_surfaces, runner, model, name="FinUninsFinWall")
+                return false
+            end
+        end
+        
+        if not unfinished_wall_surfaces.empty?
+            # Create and apply construction to unfinished surfaces
+            if not wall.create_and_assign_constructions(unfinished_wall_surfaces, runner, model, name="UnfinUninsUnfinWall")
+                return false
+            end
         end
     end
     

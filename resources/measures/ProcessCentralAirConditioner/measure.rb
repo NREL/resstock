@@ -317,7 +317,7 @@ class ProcessCentralAirConditioner < OpenStudio::Ruleset::ModelUserScript
       supply = HVAC.get_cooling_coefficients(runner, air_conditioner.ACNumberSpeeds, false, false, supply)
     end
     supply.CFM_TON_Rated = HVAC.calc_cfm_ton_rated(air_conditioner.ACRatedAirFlowRate, air_conditioner.ACFanspeedRatio, air_conditioner.ACCapacityRatio)
-    supply = HVAC._processAirSystemCoolingCoil(air_conditioner.ACNumberSpeeds, air_conditioner.ACCoolingEER, air_conditioner.ACCoolingInstalledSEER, air_conditioner.ACSupplyFanPowerInstalled, air_conditioner.ACSupplyFanPowerRated, air_conditioner.ACSHRRated, air_conditioner.ACCapacityRatio, air_conditioner.ACFanspeedRatio, air_conditioner.ACCondenserType, air_conditioner.ACCrankcase, air_conditioner.ACCrankcaseMaxT, air_conditioner.ACEERCapacityDerateFactor, air_conditioner, supply, false)
+    supply = HVAC._processAirSystemCoolingCoil(runner, air_conditioner.ACNumberSpeeds, air_conditioner.ACCoolingEER, air_conditioner.ACCoolingInstalledSEER, air_conditioner.ACSupplyFanPowerInstalled, air_conditioner.ACSupplyFanPowerRated, air_conditioner.ACSHRRated, air_conditioner.ACCapacityRatio, air_conditioner.ACFanspeedRatio, air_conditioner.ACCondenserType, air_conditioner.ACCrankcase, air_conditioner.ACCrankcaseMaxT, air_conditioner.ACEERCapacityDerateFactor, air_conditioner, supply, false)
         
     # Determine if the compressor is multi-speed (in our case 2 speed).
     # If the minimum flow ratio is less than 1, then the fan and
@@ -379,8 +379,8 @@ class ProcessCentralAirConditioner < OpenStudio::Ruleset::ModelUserScript
         else
           clg_coil.setCondenserType("EvaporativelyCooled")
           clg_coil.setEvaporativeCondenserEffectiveness(OpenStudio::OptionalDouble.new(1))
-          clg_coil.setEvaporativeCondenserAirFlowRate(OpenStudio::OptionalDouble.new(OpenStudio::convert(850.0,"cfm","m^3/s").get * sizing.cooling_cap))
-          clg_coil.setEvaporativeCondenserPumpRatePowerConsumption(OpenStudio::OptionalDouble.new(0))
+          clg_coil.setEvaporativeCondenserAirFlowRate(OpenStudio::OptionalDouble.new(OpenStudio::convert(850.0,"cfm","m^3/s").get * acOutputCapacity))
+          clg_coil.setEvaporativeCondenserPumpRatedPowerConsumption(OpenStudio::OptionalDouble.new(0))
         end
 
         clg_coil.setCrankcaseHeaterCapacity(OpenStudio::OptionalDouble.new(OpenStudio::convert(supply.Crankcase,"kW","W").get))

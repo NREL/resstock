@@ -462,7 +462,7 @@ class ProcessMinisplit < OpenStudio::Ruleset::ModelUserScript
       if miniSplitSupplementalHeatingOutputCapacity == "NO SUPP HEAT"
         supp_htg_coil.setNominalCapacity(0)
       elsif miniSplitSupplementalHeatingOutputCapacity != Constants.SizingAuto
-        supp_htg_coil.setNominalCapacity(OpenStudio::convert(miniSplitHeatingOutputCapacity,"Btu/h","W").get)
+        supp_htg_coil.setNominalCapacity(OpenStudio::convert(miniSplitSupplementalHeatingOutputCapacity,"Btu/h","W").get)
       end
      
       # _processSystemCoolingCoil

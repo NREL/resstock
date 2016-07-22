@@ -470,7 +470,7 @@ class ProcessAirSourceHeatPump < OpenStudio::Ruleset::ModelUserScript
     # Cooling Coil
     supply = HVAC.get_cooling_coefficients(runner, heat_pump.HPNumberSpeeds, false, true, supply)
     supply.CFM_TON_Rated = HVAC.calc_cfm_ton_rated(heat_pump.HPRatedAirFlowRateCooling, heat_pump.HPFanspeedRatioCooling, heat_pump.HPCapacityRatio)
-    supply = HVAC._processAirSystemCoolingCoil(heat_pump.HPNumberSpeeds, heat_pump.HPCoolingEER, heat_pump.HPCoolingInstalledSEER, heat_pump.HPSupplyFanPowerInstalled, heat_pump.HPSupplyFanPowerRated, heat_pump.HPSHRRated, heat_pump.HPCapacityRatio, heat_pump.HPFanspeedRatioCooling, heat_pump.HPCondenserType, heat_pump.HPCrankcase, heat_pump.HPCrankcaseMaxT, heat_pump.HPEERCapacityDerateFactor, air_conditioner, supply, true)
+    supply = HVAC._processAirSystemCoolingCoil(runner, heat_pump.HPNumberSpeeds, heat_pump.HPCoolingEER, heat_pump.HPCoolingInstalledSEER, heat_pump.HPSupplyFanPowerInstalled, heat_pump.HPSupplyFanPowerRated, heat_pump.HPSHRRated, heat_pump.HPCapacityRatio, heat_pump.HPFanspeedRatioCooling, heat_pump.HPCondenserType, heat_pump.HPCrankcase, heat_pump.HPCrankcaseMaxT, heat_pump.HPEERCapacityDerateFactor, air_conditioner, supply, true)
 
     # Heating Coil
     has_cchp = hpIsColdClimate
@@ -604,8 +604,8 @@ class ProcessAirSourceHeatPump < OpenStudio::Ruleset::ModelUserScript
         else
           clg_coil.setCondenserType("EvaporativelyCooled")
           clg_coil.setEvaporativeCondenserEffectiveness(OpenStudio::OptionalDouble.new(1))
-          clg_coil.setEvaporativeCondenserAirFlowRate(OpenStudio::OptionalDouble.new(OpenStudio::convert(850.0,"cfm","m^3/s").get * sizing.cooling_cap))
-          clg_coil.setEvaporativeCondenserPumpRatePowerConsumption(OpenStudio::OptionalDouble.new(0))
+          clg_coil.setEvaporativeCondenserAirFlowRate(OpenStudio::OptionalDouble.new(OpenStudio::convert(850.0,"cfm","m^3/s").get * hpOutputCapacity))
+          clg_coil.setEvaporativeCondenserPumpRatedPowerConsumption(OpenStudio::OptionalDouble.new(0))
         end
 
       else
