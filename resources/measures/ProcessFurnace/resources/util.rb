@@ -2206,7 +2206,7 @@ class Construction
             num_layers = constr.numLayers
             constr.layers.reverse.each_with_index do |layer, index|
                 layer_index = num_layers - 1 - index
-                if layer.name.to_s.start_with? material_name
+                if layer.name.to_s.start_with?(material_name) or material_name.start_with?(layer.name.to_s)
                     constr.eraseLayer(layer_index)
                     return true
                 end
