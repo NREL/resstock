@@ -1,7 +1,7 @@
 OpenStudio-ResStock
 ===================
 
-ResStock, built on the OpenStudio platform, is a project geared at modeling the residential building stock for, e.g., the entire U.S. Nation or the Pacific Northwest region. As part of this project:
+ResStock, built on the OpenStudio platform, is a project geared at modeling the residential building stock for, e.g., National or Pacific Northwest analysis. As part of this project:
 * Multiple data sources for building characteristics (e.g., [EIA RECS](http://www.eia.gov/consumption/residential/), [RBSA](http://neea.org/resource-center/regional-data-resources/residential-building-stock-assessment), [NAHB](http://www.homeinnovation.com/trends_and_reports/data/new_construction), [ACS](https://www.census.gov/programs-surveys/acs/)) have been combined into conditional probability distributions for [National](https://github.com/NREL/OpenStudio-ResStock/tree/master/resources/inputs/national) and [Pacific Northwest](https://github.com/NREL/OpenStudio-ResStock/tree/master/resources/inputs/pnw) analyses for, e.g., location, vintage, equipment types and efficiency levels, envelope insulation levels, etc.
 * A sampling technique is used to generate thousands (up to hundreds of thousands) of OpenStudio models via OpenStudio measures.
 * OpenStudio models are run through the [EnergyPlus simulation engine](http://energyplus.net) via [Amazon cloud computing](https://aws.amazon.com) or other resources.
@@ -18,8 +18,8 @@ TODO: Add information here on how to get setup.
 
 Simply execute:
 
-```bundle exec ruby cli.rb -p projects/resstock_national.xlsx -t aws -c``` for National analysis
-```bundle exec ruby cli.rb -p projects/resstock_pnw.xlsx -t aws -c``` for Pacific Northwest analysis
+* National analysis: `bundle exec ruby cli.rb -p projects/resstock_national.xlsx -t aws -c`
+* Pacific Northwest analysis: `bundle exec ruby cli.rb -p projects/resstock_pnw.xlsx -t aws -c`
 
 The commands above will use Amazon cloud computing and download the results in a CSV file. See `bundle exec ruby cli.rb -h` for other uses.
 
