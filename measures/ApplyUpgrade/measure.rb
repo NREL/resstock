@@ -35,15 +35,18 @@ class ApplyUpgrade < OpenStudio::Ruleset::ModelUserScript
     run_measure.setDefaultValue(1)
     args << run_measure 
     
-    parameter_name = OpenStudio::Ruleset::OSArgument.makeStringArgument("parameter_name", true)
-    parameter_name.setDescription("The name of the parameter, as specified in resources\options_lookup.tsv.")
-    args << parameter_name
+    parameter_names = OpenStudio::Ruleset::OSArgument.makeStringArgument("parameter_names", true)
+    parameter_names.setDisplayName("Parameter Name(s)")
+    parameter_names.setDescription("The name(s) of the parameter, as specified in resources\options_lookup.tsv. Multiple names can be listed with a '|' between them.")
+    args << parameter_names
 
-    option_name = OpenStudio::Ruleset::OSArgument.makeStringArgument("option_name", true)
-    option_name.setDescription("The name of the option for the given parameter, as specified in resources\options_lookup.tsv.")
-    args << option_name
+    option_names = OpenStudio::Ruleset::OSArgument.makeStringArgument("option_names", true)
+    option_names.setDisplayName("Option Name(s)")
+    option_names.setDescription("The name(s) of the option for the corresponding parameter, as specified in resources\options_lookup.tsv. Multiple names can be listed with a '|' between them.")
+    args << option_names
 
     apply_logic = OpenStudio::Ruleset::OSArgument.makeStringArgument("apply_logic", false)
+    apply_logic.setDisplayName("Apply Logic")
     apply_logic.setDescription("The logic that specifies whether the upgrade should apply to a given building. If no logic is provided, the upgrade will be applied to all buildings.")
     args << apply_logic
     
@@ -66,9 +69,16 @@ class ApplyUpgrade < OpenStudio::Ruleset::ModelUserScript
       return true     
     end
 
-    parameter_name = runner.getStringArgumentValue("parameter_name",user_arguments)
-    option_name = runner.getStringArgumentValue("option_name",user_arguments)
+    parameter_names = runner.getStringArgumentValue("parameter_names",user_arguments)
+    option_names = runner.getStringArgumentValue("option_names",user_arguments)
     apply_logic = runner.getStringArgumentValue("apply_logic",user_arguments)
+    
+    parameters = parameter_names.split("|")
+    options = option_names.split("|")
+    if parameters.size != options.size
+        runner.registerError("The number of options (#{options.size.to_s}) did not match the number of parameters (#{parameters.size.to_s}).")
+        return false
+    end
     
     # Get file/dir paths
     resources_dir = File.absolute_path(File.join(File.dirname(__FILE__), "../../lib/resources/")) # Should have been uploaded per 'Other Library Files' in analysis spreadsheet
@@ -79,30 +89,37 @@ class ApplyUpgrade < OpenStudio::Ruleset::ModelUserScript
     # Load helper_methods
     require File.join(File.dirname(helper_methods_file), File.basename(helper_methods_file, File.extname(helper_methods_file)))
 
-    # Check file/dir paths exist
-    check_file_exists(lookup_file, runner)
+    parameters.zip(options).each do |parameter_name, option_name|
+    
+        # Register this option so that it replaces the existing building option in the results csv file
+        register_value(runner, parameter_name, option_name)
 
-    # Get measure name and arguments associated with the option name
-    measure_args = get_measure_args_from_option_name(lookup_file, option_name, parameter_name, runner)
+        # Check file/dir paths exist
+        check_file_exists(lookup_file, runner)
 
-    measure_args.keys.each do |measure_subdir|
-        # Gather measure arguments and call measure
-        full_measure_path = File.join(measures_dir, measure_subdir, "measure.rb")
-        check_file_exists(full_measure_path, runner)
-        
-        measure = get_measure_instance(full_measure_path)
-        argument_map = get_argument_map(model, measure, measure_args[measure_subdir], lookup_file, parameter_name, option_name, runner)
-        print_info(measure_args[measure_subdir], measure_subdir, option_name, runner)
+        # Get measure name and arguments associated with the option name
+        measure_args = get_measure_args_from_option_name(lookup_file, option_name, parameter_name, runner)
 
-        if not run_measure(model, measure, argument_map, runner)
-            return false
+        measure_args.keys.each do |measure_subdir|
+            # Gather measure arguments and call measure
+            full_measure_path = File.join(measures_dir, measure_subdir, "measure.rb")
+            check_file_exists(full_measure_path, runner)
+            
+            measure = get_measure_instance(full_measure_path)
+            argument_map = get_argument_map(model, measure, measure_args[measure_subdir], lookup_file, parameter_name, option_name, runner)
+            print_info(measure_args[measure_subdir], measure_subdir, option_name, runner)
+
+            if not run_measure(model, measure, argument_map, runner)
+                return false
+            end
         end
+        
+        if measure_args.empty?
+            print_info(nil, nil, option_name, runner)
+        end
+        
     end
     
-    if measure_args.empty?
-        print_info(nil, nil, option_name, runner)
-    end
-
     return true
 
   end

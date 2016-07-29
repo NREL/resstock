@@ -18,18 +18,17 @@ def validate_sampling(mode)
     if results_data.size == 0
         exit
     end
+    
+    skip_headers = ['Building']
 
     # Get data from all probability distribution files; store in tsvfiles hash
-    # Also generate col_header=>param_name hash
     tsvfiles = {}
-    key_prefix = "res_stock_reporting."
     prob_dist_dir = File.join(File.dirname(__FILE__), "resources", "inputs", mode)
-    results_data[0].each do |col_header|
-        next if not col_header.start_with?(key_prefix)
-        param_name = col_header.sub(key_prefix, "")
+    results_data[0].each do |param_name|
+        next if skip_headers.include?(param_name)
         
         # Get all data from this probability distribution file
-        prob_dist_file = File.join(prob_dist_dir, col_header.sub(key_prefix, "") + ".tsv")
+        prob_dist_file = File.join(prob_dist_dir, param_name + ".tsv")
         tsvfile = TsvFile.new(prob_dist_file, nil)
         
         # Store data
@@ -40,31 +39,30 @@ def validate_sampling(mode)
     results_data_dir = File.join(results_dir, "data")
     FileUtils.rm_rf("#{results_data_dir}/.", secure: true)
     Dir.mkdir(results_data_dir)
-    all_samples_results = generate_data_output(results_data, tsvfiles, results_data_dir, key_prefix)
-    generate_data_input(results_data, tsvfiles, results_data_dir, key_prefix)
+    all_samples_results = generate_data_output(results_data, tsvfiles, results_data_dir, skip_headers)
+    generate_data_input(results_data, tsvfiles, results_data_dir, skip_headers)
     
     # Visualization
     results_vis_dir = File.join(results_dir, "visualizations")
     FileUtils.rm_rf("#{results_vis_dir}/.", secure: true)
     Dir.mkdir(results_vis_dir)
-    generate_visualizations(results_data, tsvfiles, results_vis_dir, all_samples_results, key_prefix)
+    generate_visualizations(results_data, tsvfiles, results_vis_dir, all_samples_results, skip_headers)
 end 
 
-def generate_data_output(results_data, tsvfiles, results_data_dir, key_prefix)
+def generate_data_output(results_data, tsvfiles, results_data_dir, skip_headers)
     # Create map of parameter names to results_file columns
     results_file_cols = {}
     tsvfiles.keys.each do |param_name|
         results_data[0].each_with_index do |col_header, index|
-            next if col_header != key_prefix + param_name
+            next if col_header != param_name
             results_file_cols[param_name] = index
         end
     end
 
     # Generate sample results output for each reported column in the results csv file
     all_samples_results = {}
-    results_data[0].each do |col_header|
-        next if not col_header.start_with?(key_prefix)
-        param_name = col_header.sub(key_prefix, "")
+    results_data[0].each do |param_name|
+        next if skip_headers.include?(param_name)
         
         tsvfile = tsvfiles[param_name]
         puts "Processing data for #{param_name}..."
@@ -147,16 +145,15 @@ def generate_data_output(results_data, tsvfiles, results_data_dir, key_prefix)
             end
         end
         
-        all_samples_results[col_header] = samples_results
+        all_samples_results[param_name] = samples_results
     end
     return all_samples_results
 end
 
-def generate_data_input(results_data, tsvfiles, results_data_dir, key_prefix)
+def generate_data_input(results_data, tsvfiles, results_data_dir, skip_headers)
     # Generate probability distribution inputs in compatible form
-    results_data[0].each do |col_header|
-        next if not col_header.start_with?(key_prefix)
-        param_name = col_header.sub(key_prefix, "")
+    results_data[0].each do |param_name|
+        next if skip_headers.include?(param_name)
         
         tsvfile = tsvfiles[param_name]
         
@@ -176,13 +173,12 @@ def generate_data_input(results_data, tsvfiles, results_data_dir, key_prefix)
     end
 end
 
-def generate_visualizations(results_data, tsvfiles, results_vis_dir, all_samples_results, key_prefix)
+def generate_visualizations(results_data, tsvfiles, results_vis_dir, all_samples_results, skip_headers)
     # Generate html visualizations via Google
 
     html_filenames = {}
-    results_data[0].each do |col_header|
-        next if not col_header.start_with?(key_prefix)
-        param_name = col_header.sub(key_prefix, "")
+    results_data[0].each do |param_name|
+        next if skip_headers.include?(param_name)
         
         tsvfile = tsvfiles[param_name]
         
@@ -266,7 +262,7 @@ def generate_visualizations(results_data, tsvfiles, results_vis_dir, all_samples
         max_point_size = 15 # pixels
         min_point_size = 1 # pixels
         num_samples = []
-        all_samples_results[col_header].each do |result|
+        all_samples_results[param_name].each do |result|
             num_samples << result[-1]
         end
         max_num_samples = num_samples.max.to_f
@@ -290,9 +286,9 @@ def generate_visualizations(results_data, tsvfiles, results_vis_dir, all_samples
                 point_size = (num_samples[i]/max_num_samples * (max_point_size.to_f - min_point_size.to_f)).ceil + min_point_size
             end
             tsvfile.option_cols.each_with_index do |(option_name, option_col), j|
-                next if all_samples_results[col_header][i].nil? 
+                next if all_samples_results[param_name][i].nil? 
                 xval = row[option_col]
-                yval = all_samples_results[col_header][i][j+tsvfile.dependency_cols.size]
+                yval = all_samples_results[param_name][i][j+tsvfile.dependency_cols.size]
                 table_data_html << add_datapoint(xval, yval, j+1, num_data_series, point_size)
             end
         end
