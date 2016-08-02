@@ -97,14 +97,6 @@ class ProcessHeatingSetpoints < OpenStudio::Ruleset::ModelUserScript
           supp_htg_coil = supp_htg_coil.to_CoilHeatingElectric.get
           heatingseasonschedule.setSchedule(supp_htg_coil)           
           runner.registerInfo("Added availability schedule to #{supp_htg_coil.name}.")
-        elsif htg_coil.is_a? OpenStudio::Model::AirLoopHVACUnitaryHeatPumpAirToAirMultiSpeed
-          air_loop_unitary = htg_coil
-          htg_coil = air_loop_unitary.heatingCoil
-          htg_coil = htg_coil.to_CoilHeatingDXMultiSpeed.get
-          supp_htg_coil = air_loop_unitary.supplementalHeatingCoil
-          supp_htg_coil = supp_htg_coil.to_CoilHeatingElectric.get
-          heatingseasonschedule.setSchedule(supp_htg_coil)          
-          runner.registerInfo("Added availability schedule to #{supp_htg_coil.name}.")
         end
         heatingseasonschedule.setSchedule(htg_coil)
         runner.registerInfo("Added availability schedule to #{htg_coil.name}.")

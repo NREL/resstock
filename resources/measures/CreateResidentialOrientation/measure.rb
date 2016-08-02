@@ -28,7 +28,7 @@ class CreateResidentialOrientation < OpenStudio::Ruleset::ModelUserScript
 	orientation.setDisplayName("Azimuth")
 	orientation.setUnits("degrees")
 	orientation.setDescription("The house's azimuth is measured clockwise from due south when viewed from above (e.g., South=0, West=90, North=180, East=270).")
-    orientation.setDefaultValue(180.0)
+  orientation.setDefaultValue(180.0)
 	args << orientation
 	
 	return args
@@ -43,17 +43,20 @@ class CreateResidentialOrientation < OpenStudio::Ruleset::ModelUserScript
       return false
     end
 
-	orientation = runner.getDoubleArgumentValue("orientation",user_arguments)
+    orientation = runner.getDoubleArgumentValue("orientation",user_arguments)
 	
     if orientation > 360 or orientation < 0
       runner.registerError("Invalid orientation entered.")
 	  return false
     end	
 
-	building = model.getBuilding
-	runner.registerInitialCondition("The building's initial orientation was #{building.northAxis} azimuth.")
-	building.setNorthAxis(orientation) # the shading surfaces representing neighbors have ShadingSurfaceType=Building, and so are oriented along with the building
-	runner.registerFinalCondition("The building's final orientation was #{building.northAxis} azimuth.")
+    building = model.getBuilding
+    unless building.northAxis == orientation
+      runner.registerInfo("The orientation of the building has changed.")
+    end
+    runner.registerInitialCondition("The building's initial orientation was #{building.northAxis} azimuth.")
+    building.setNorthAxis(orientation) # the shading surfaces representing neighbors have ShadingSurfaceType=Building, and so are oriented along with the building
+    runner.registerFinalCondition("The building's final orientation was #{building.northAxis} azimuth.")
 	
     return true
 

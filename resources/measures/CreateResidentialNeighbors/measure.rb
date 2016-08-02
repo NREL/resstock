@@ -88,6 +88,17 @@ class CreateResidentialNeighbors < OpenStudio::Ruleset::ModelUserScript
       return true
     end
     
+    # remove existing neighbors
+    existing_neighbors = false
+    model.getShadingSurfaces.each do |shading_surface|
+      next unless shading_surface.name.to_s.downcase.include? "neighbor"
+      existing_neighbors = true
+      shading_surface.remove
+    end
+    if existing_neighbors
+      runner.registerInfo("Removed existing neighbors.")
+    end
+    
     # get x and y minima and maxima of wall surfaces
     surfaces.each do |surface|
       if surface.surfaceType.downcase == "wall"

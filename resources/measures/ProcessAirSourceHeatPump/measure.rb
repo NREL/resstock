@@ -154,16 +154,16 @@ class ProcessAirSourceHeatPump < OpenStudio::Ruleset::ModelUserScript
     #make a string argument for ashp installed seer
     ashpInstalledSEER = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("ashpInstalledSEER", true)
     ashpInstalledSEER.setDisplayName("Installed SEER")
-	ashpInstalledSEER.setUnits("Btu/W-h")
-	ashpInstalledSEER.setDescription("The installed Seasonal Energy Efficiency Ratio (SEER) of the heat pump, and the installed Heating Seasonal Performance Factor (HSPF) of the heat pump.")
+    ashpInstalledSEER.setUnits("Btu/W-h")
+    ashpInstalledSEER.setDescription("The installed Seasonal Energy Efficiency Ratio (SEER) of the heat pump, and the installed Heating Seasonal Performance Factor (HSPF) of the heat pump.")
     ashpInstalledSEER.setDefaultValue(13.0)
     args << ashpInstalledSEER
     
     #make a string argument for ashp installed hspf
     ashpInstalledHSPF = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("ashpInstalledHSPF", true)
     ashpInstalledHSPF.setDisplayName("Installed HSPF")
-	ashpInstalledHSPF.setUnits("Btu/W-h")
-	ashpInstalledHSPF.setDescription("The installed Seasonal Energy Efficiency Ratio (SEER) of the heat pump, and the installed Heating Seasonal Performance Factor (HSPF) of the heat pump.")
+    ashpInstalledHSPF.setUnits("Btu/W-h")
+    ashpInstalledHSPF.setDescription("The installed Seasonal Energy Efficiency Ratio (SEER) of the heat pump, and the installed Heating Seasonal Performance Factor (HSPF) of the heat pump.")
     ashpInstalledHSPF.setDefaultValue(7.7)
     args << ashpInstalledHSPF
     
@@ -642,40 +642,20 @@ class ProcessAirSourceHeatPump < OpenStudio::Ruleset::ModelUserScript
       supply_fan_operation.setValue(0)     
       
       # _processSystemAir
-
-      if supply.compressor_speeds == 1
-
-        air_loop_unitary = OpenStudio::Model::AirLoopHVACUnitarySystem.new(model)
-        air_loop_unitary.setName("Forced Air System")
-        air_loop_unitary.setAvailabilitySchedule(model.alwaysOnDiscreteSchedule)
-        air_loop_unitary.setSupplyFan(fan)
-        air_loop_unitary.setHeatingCoil(htg_coil)
-        air_loop_unitary.setCoolingCoil(clg_coil)
-        air_loop_unitary.setSupplementalHeatingCoil(supp_htg_coil)
-        air_loop_unitary.setSupplyAirFlowRateWhenNoCoolingorHeatingisRequired(0)
-        air_loop_unitary.setMaximumSupplyAirTemperature(OpenStudio::convert(supply.supp_htg_max_supply_temp,"F","C").get)
-        air_loop_unitary.setMaximumOutdoorDryBulbTemperatureforSupplementalHeaterOperation(OpenStudio::convert(supply.supp_htg_max_outdoor_temp,"F","C").get)      
-        air_loop_unitary.setFanPlacement("BlowThrough")
-        air_loop_unitary.setSupplyAirFanOperatingModeSchedule(supply_fan_operation)
+               
+      air_loop_unitary = OpenStudio::Model::AirLoopHVACUnitarySystem.new(model)
+      air_loop_unitary.setName("Forced Air System")
+      air_loop_unitary.setAvailabilitySchedule(model.alwaysOnDiscreteSchedule)
+      air_loop_unitary.setSupplyFan(fan)
+      air_loop_unitary.setHeatingCoil(htg_coil)
+      air_loop_unitary.setCoolingCoil(clg_coil)
+      air_loop_unitary.setSupplementalHeatingCoil(supp_htg_coil)
+      air_loop_unitary.setFanPlacement("BlowThrough")
+      air_loop_unitary.setSupplyAirFanOperatingModeSchedule(supply_fan_operation)
+      air_loop_unitary.setMaximumSupplyAirTemperature(OpenStudio::convert(supply.supp_htg_max_supply_temp,"F","C").get)
+      air_loop_unitary.setMaximumOutdoorDryBulbTemperatureforSupplementalHeaterOperation(OpenStudio::convert(supply.supp_htg_max_outdoor_temp,"F","C").get)
+      air_loop_unitary.setSupplyAirFlowRateWhenNoCoolingorHeatingisRequired(0)
         
-      elsif supply.compressor_speeds > 1
-      
-        air_loop_unitary = OpenStudio::Model::AirLoopHVACUnitaryHeatPumpAirToAirMultiSpeed.new(model, fan, htg_coil, clg_coil, supp_htg_coil)
-        air_loop_unitary.setName("Forced Air System")
-        air_loop_unitary.setAvailabilitySchedule(model.alwaysOnDiscreteSchedule)
-        air_loop_unitary.setSupplyAirFanPlacement("BlowThrough")
-        air_loop_unitary.setSupplyAirFanOperatingModeSchedule(supply_fan_operation)
-        air_loop_unitary.setMinimumOutdoorDryBulbTemperatureforCompressorOperation(OpenStudio::convert(supply.min_hp_temp,"F","C").get)
-        air_loop_unitary.setMaximumSupplyAirTemperaturefromSupplementalHeater(OpenStudio::convert(supply.supp_htg_max_supply_temp,"F","C").get)
-        air_loop_unitary.setMaximumOutdoorDryBulbTemperatureforSupplementalHeaterOperation(OpenStudio::convert(supply.supp_htg_max_outdoor_temp,"F","C").get)
-        air_loop_unitary.setAuxiliaryOnCycleElectricPower(0)
-        air_loop_unitary.setAuxiliaryOffCycleElectricPower(0)
-        air_loop_unitary.setSupplyAirFlowRateWhenNoCoolingorHeatingisNeeded(0)
-        air_loop_unitary.setNumberofSpeedsforHeating(supply.Number_Speeds.to_i)
-        air_loop_unitary.setNumberofSpeedsforCooling(supply.Number_Speeds.to_i)      
-        
-      end
-
       air_loop = OpenStudio::Model::AirLoopHVAC.new(model)
       air_loop.setName("Central Air System")
       air_supply_inlet_node = air_loop.supplyInletNode

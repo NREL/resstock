@@ -453,7 +453,7 @@ class ProcessMinisplit < OpenStudio::Ruleset::ModelUserScript
       
       heating_indices = curves.mshp_indices
       heating_indices.each do |i|
-          htg_coil.addStage(htg_coil_stage_data[i])    
+          htg_coil.addStage(htg_coil_stage_data[i])
       end
      
       supp_htg_coil = OpenStudio::Model::CoilHeatingElectric.new(model, model.alwaysOnDiscreteSchedule)
@@ -500,19 +500,18 @@ class ProcessMinisplit < OpenStudio::Ruleset::ModelUserScript
       
       # _processSystemAir
       
-      air_loop_unitary = OpenStudio::Model::AirLoopHVACUnitaryHeatPumpAirToAirMultiSpeed.new(model, fan, htg_coil, clg_coil, supp_htg_coil)
+      air_loop_unitary = OpenStudio::Model::AirLoopHVACUnitarySystem.new(model)
       air_loop_unitary.setName("Forced Air System")
       air_loop_unitary.setAvailabilitySchedule(model.alwaysOnDiscreteSchedule)
-      air_loop_unitary.setSupplyAirFanPlacement("BlowThrough")
+      air_loop_unitary.setSupplyFan(fan)
+      air_loop_unitary.setHeatingCoil(htg_coil)
+      air_loop_unitary.setCoolingCoil(clg_coil)
+      air_loop_unitary.setSupplementalHeatingCoil(supp_htg_coil)
+      air_loop_unitary.setFanPlacement("BlowThrough")
       air_loop_unitary.setSupplyAirFanOperatingModeSchedule(supply_fan_operation)
-      air_loop_unitary.setMinimumOutdoorDryBulbTemperatureforCompressorOperation(OpenStudio::convert(supply.min_hp_temp,"F","C").get)
-      air_loop_unitary.setMaximumSupplyAirTemperaturefromSupplementalHeater(OpenStudio::convert(supply.supp_htg_max_supply_temp,"F","C").get)
+      air_loop_unitary.setMaximumSupplyAirTemperature(OpenStudio::convert(supply.supp_htg_max_supply_temp,"F","C").get)
       air_loop_unitary.setMaximumOutdoorDryBulbTemperatureforSupplementalHeaterOperation(OpenStudio::convert(supply.supp_htg_max_outdoor_temp,"F","C").get)
-      air_loop_unitary.setAuxiliaryOnCycleElectricPower(0)
-      air_loop_unitary.setAuxiliaryOffCycleElectricPower(0)
-      air_loop_unitary.setSupplyAirFlowRateWhenNoCoolingorHeatingisNeeded(0)
-      air_loop_unitary.setNumberofSpeedsforHeating(4)
-      air_loop_unitary.setNumberofSpeedsforCooling(4)
+      air_loop_unitary.setSupplyAirFlowRateWhenNoCoolingorHeatingisRequired(0)      
       
       air_loop = OpenStudio::Model::AirLoopHVAC.new(model)
       air_loop.setName("Central Air System")

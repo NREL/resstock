@@ -6,7 +6,7 @@ require "#{File.dirname(__FILE__)}/resources/geometry"
 
 # start the measure
 class CreateBasicGeometry < OpenStudio::Ruleset::ModelUserScript
-
+    
   # human readable name
   def name
     return "Create Residential Geometry"
@@ -252,10 +252,6 @@ class CreateBasicGeometry < OpenStudio::Ruleset::ModelUserScript
     # error checking
     if (garage_width > length and garage_depth > 0) or (((1.0 - garage_protrusion) * garage_depth) > width and garage_width > 0) or (((1.0 - garage_protrusion) * garage_depth) == width and garage_width == length)
       runner.registerError("Invalid living space and garage dimensions.")
-      return false
-    end
-    if garage_width > width and garage_protrusion > 0 and roof_type != Constants.RoofTypeFlat
-      runner.registerError("Cannot handle garage ridge height greater than house ridge height.")
       return false
     end    
 	
@@ -630,9 +626,16 @@ class CreateBasicGeometry < OpenStudio::Ruleset::ModelUserScript
           sw_point = OpenStudio::Point3d.new(sw_point.x, sw_point.y, living_space.zOrigin+sw_point.z)
           se_point = OpenStudio::Point3d.new(se_point.x, se_point.y, living_space.zOrigin+se_point.z)
           
-          attic_height = (ne_point.x - nw_point.x)/2 * roof_pitch
-          roof_n_point = OpenStudio::Point3d.new((nw_point.x + ne_point.x)/2, nw_point.y+attic_height/roof_pitch, living_space.zOrigin+living_height+attic_height)
-          roof_s_point = OpenStudio::Point3d.new((sw_point.x + se_point.x)/2, sw_point.y, living_space.zOrigin+living_height+attic_height)
+          garage_attic_height = (ne_point.x - nw_point.x)/2 * roof_pitch
+          garage_roof_pitch = roof_pitch
+          if garage_attic_height > attic_height
+            garage_attic_height = attic_height
+            garage_roof_pitch = garage_attic_height / garage_width
+            runner.registerWarning("The garage pitch was changed to accommodate garage ridge > house ridge (from #{roof_pitch.round(2)} to #{garage_roof_pitch.round(2)}).")
+          end
+
+          roof_n_point = OpenStudio::Point3d.new((nw_point.x + ne_point.x)/2, nw_point.y+garage_attic_height/roof_pitch, living_space.zOrigin+living_height+garage_attic_height)
+          roof_s_point = OpenStudio::Point3d.new((sw_point.x + se_point.x)/2, sw_point.y, living_space.zOrigin+living_height+garage_attic_height)
           
           polygon_w_roof = Geometry.make_polygon(nw_point, sw_point, roof_s_point, roof_n_point)
           polygon_e_roof = Geometry.make_polygon(ne_point, roof_n_point, roof_s_point, se_point)
@@ -685,13 +688,15 @@ class CreateBasicGeometry < OpenStudio::Ruleset::ModelUserScript
     OpenStudio::Model.matchSurfaces(spaces)
     
     # changes surface between unfinished attic and garage attic from roofceiling to wall
-    attic_space.surfaces.each do |surface|
-      next if surface.surfaceType.downcase != "roofceiling"
-      next unless surface.adjacentSurface.is_initialized
-      next if surface.adjacentSurface.get.surfaceType.downcase != "wall"
-      surface.setSurfaceType("Wall")
-      break
-    end    
+    unless attic_space.nil?
+      attic_space.surfaces.each do |surface|
+        next if surface.surfaceType.downcase != "roofceiling"
+        next unless surface.adjacentSurface.is_initialized
+        next if surface.adjacentSurface.get.surfaceType.downcase != "wall"
+        surface.setSurfaceType("Wall")
+        break
+      end
+    end
   
     # reporting final condition of model
     runner.registerFinalCondition("The building finished with #{model.getSpaces.size} spaces.")	

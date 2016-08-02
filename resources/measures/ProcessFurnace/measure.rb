@@ -194,7 +194,7 @@ class ProcessFurnace < OpenStudio::Ruleset::ModelUserScript
     
     # Check if has equipment
     HelperMethods.remove_hot_water_loop(model, runner)    
-    
+
     control_slave_zones_hash = Geometry.get_control_and_slave_zones(model)
     control_slave_zones_hash.each do |control_zone, slave_zones|
     
@@ -250,16 +250,17 @@ class ProcessFurnace < OpenStudio::Ruleset::ModelUserScript
       air_loop_unitary.setName("Forced Air System")
       air_loop_unitary.setAvailabilitySchedule(model.alwaysOnDiscreteSchedule)
       air_loop_unitary.setHeatingCoil(htg_coil)
-      air_loop_unitary.setMaximumSupplyAirTemperature(OpenStudio::convert(supply.htg_supply_air_temp,"F","C").get)
-      air_loop_unitary.setSupplyFan(fan)
-      air_loop_unitary.setFanPlacement("BlowThrough")
-      air_loop_unitary.setSupplyAirFanOperatingModeSchedule(supply_fan_operation)
       if not clg_coil.nil?
         # Add the existing DX central air back in
         air_loop_unitary.setCoolingCoil(clg_coil)
       else
         air_loop_unitary.setSupplyAirFlowRateDuringCoolingOperation(0.0000001) # this is when there is no cooling present
-      end    
+      end
+      air_loop_unitary.setSupplyFan(fan)
+      air_loop_unitary.setFanPlacement("BlowThrough")
+      air_loop_unitary.setSupplyAirFanOperatingModeSchedule(supply_fan_operation)
+      air_loop_unitary.setMaximumSupplyAirTemperature(OpenStudio::convert(supply.htg_supply_air_temp,"F","C").get)      
+      air_loop_unitary.setSupplyAirFlowRateWhenNoCoolingorHeatingisRequired(0)      
 
       air_loop = OpenStudio::Model::AirLoopHVAC.new(model)
       air_loop.setName("Central Air System")

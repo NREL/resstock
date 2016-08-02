@@ -423,91 +423,24 @@ class ProcessCentralAirConditioner < OpenStudio::Ruleset::ModelUserScript
       supply_fan_operation.setValue(0)    
     
       # _processSystemAir
-      
-      if supply.compressor_speeds == 1
-      
-        air_loop_unitary = OpenStudio::Model::AirLoopHVACUnitarySystem.new(model)
-        air_loop_unitary.setName("Forced Air System")
-        air_loop_unitary.setAvailabilitySchedule(model.alwaysOnDiscreteSchedule)
-        air_loop_unitary.setCoolingCoil(clg_coil)
-        air_loop_unitary.setSupplyAirFanOperatingModeSchedule(supply_fan_operation)
-        air_loop_unitary.setMaximumSupplyAirTemperature(OpenStudio::convert(120.0,"F","C").get)
-        air_loop_unitary.setSupplyAirFlowRateWhenNoCoolingorHeatingisRequired(0.0)
-        air_loop_unitary.setSupplyFan(fan)
-        air_loop_unitary.setFanPlacement("BlowThrough")
-        if not htg_coil.nil?
-          # Add the existing furnace back in
-          air_loop_unitary.setHeatingCoil(htg_coil)
-        else
-          air_loop_unitary.setSupplyAirFlowRateDuringHeatingOperation(0.0000001) # this is when there is no heating present
-        end
-      
-      elsif supply.compressor_speeds > 1
-      
-        supp_htg_coil = OpenStudio::Model::CoilHeatingElectric.new(model, model.alwaysOffDiscreteSchedule)
-        supp_htg_coil.setName("Furnace Heating Coil")
-        supp_htg_coil.setEfficiency(1)
-        supp_htg_coil.setNominalCapacity(0.001)
-        
-        new_htg_coil = OpenStudio::Model::CoilHeatingDXMultiSpeed.new(model)
-        new_htg_coil.setName("DX Heating Coil")
-        new_htg_coil.setMinimumOutdoorDryBulbTemperatureforCompressorOperation(-20)
-        new_htg_coil.setCrankcaseHeaterCapacity(OpenStudio::convert(supply.Crankcase,"kW","W").get)
-        new_htg_coil.setMaximumOutdoorDryBulbTemperatureforCrankcaseHeaterOperation(OpenStudio::convert(supply.Crankcase_MaxT,"F","C").get)
-        new_htg_coil.setMaximumOutdoorDryBulbTemperatureforDefrostOperation(0)
-        new_htg_coil.setDefrostStrategy("Resistive")
-        new_htg_coil.setDefrostControl("Timed")
-        new_htg_coil.setDefrostTimePeriodFraction(0)
-        new_htg_coil.setResistiveDefrostHeaterCapacity(0)
-        new_htg_coil.setApplyPartLoadFractiontoSpeedsGreaterthan1(false)
-        if htg_coil.nil?
-          new_htg_coil.setAvailabilitySchedule(model.alwaysOffDiscreteSchedule)
-          new_htg_coil.setFuelType("Electricity")
-          htg_coil_stage_data = _processCurvesFurnaceForMultiSpeedAC(model, supply, 1.0, 1.0)
-        else
-          # TODO: figure out how to handle the EMS with adding back in the furnace with multispeed ACs
-          new_htg_coil.setAvailabilitySchedule(htg_coil.availabilitySchedule)
-          if htg_coil.to_CoilHeatingGas.is_initialized
-            new_htg_coil.setFuelType("NaturalGas")
-            nominalCapacity = htg_coil.nominalCapacity
-            if nominalCapacity.is_initialized
-              nominalCapacity = nominalCapacity.get
-            else
-              nominalCapacity = Constants.SizingAuto
-            end
-            htg_coil_stage_data = _processCurvesFurnaceForMultiSpeedAC(model, supply, nominalCapacity, htg_coil.gasBurnerEfficiency)
-          elsif htg_coil.to_CoilHeatingElectric.is_initialized
-            new_htg_coil.setFuelType("Electricity")
-            nominalCapacity = htg_coil.nominalCapacity
-            if nominalCapacity.is_initialized
-              nominalCapacity = nominalCapacity.get
-            else
-              nominalCapacity = Constants.SizingAuto
-            end
-            htg_coil_stage_data = _processCurvesFurnaceForMultiSpeedAC(model, supply, nominalCapacity, htg_coil.efficiency)
-          end                
-          htg_coil.remove
-        end
-        (0...supply.Number_Speeds).each do |i|
-            new_htg_coil.addStage(htg_coil_stage_data[0])    
-        end
-        
-        air_loop_unitary = OpenStudio::Model::AirLoopHVACUnitaryHeatPumpAirToAirMultiSpeed.new(model, fan, new_htg_coil, clg_coil, supp_htg_coil)
-        air_loop_unitary.setName("Forced Air System")
-        air_loop_unitary.setAvailabilitySchedule(model.alwaysOnDiscreteSchedule)
-        air_loop_unitary.setSupplyAirFanPlacement("BlowThrough")
-        air_loop_unitary.setSupplyAirFanOperatingModeSchedule(supply_fan_operation)
-        air_loop_unitary.setMinimumOutdoorDryBulbTemperatureforCompressorOperation(-20)
-        air_loop_unitary.setMaximumSupplyAirTemperaturefromSupplementalHeater(OpenStudio::convert(120.0,"F","C").get)
-        air_loop_unitary.setMaximumOutdoorDryBulbTemperatureforSupplementalHeaterOperation(21)
-        air_loop_unitary.setAuxiliaryOnCycleElectricPower(0)
-        air_loop_unitary.setAuxiliaryOffCycleElectricPower(0)
-        air_loop_unitary.setSupplyAirFlowRateWhenNoCoolingorHeatingisNeeded(0)
-        air_loop_unitary.setNumberofSpeedsforHeating(supply.Number_Speeds.to_i)
-        air_loop_unitary.setNumberofSpeedsforCooling(supply.Number_Speeds.to_i)
-      
+            
+      air_loop_unitary = OpenStudio::Model::AirLoopHVACUnitarySystem.new(model)
+      air_loop_unitary.setName("Forced Air System")
+      air_loop_unitary.setAvailabilitySchedule(model.alwaysOnDiscreteSchedule)
+      air_loop_unitary.setCoolingCoil(clg_coil)      
+      if not htg_coil.nil?
+        # Add the existing furnace back in
+        puts htg_coil.name.to_s
+        air_loop_unitary.setHeatingCoil(htg_coil)
+      else
+        air_loop_unitary.setSupplyAirFlowRateDuringHeatingOperation(0.0000001) # this is when there is no heating present
       end
-
+      air_loop_unitary.setSupplyFan(fan)
+      air_loop_unitary.setFanPlacement("BlowThrough")
+      air_loop_unitary.setSupplyAirFanOperatingModeSchedule(supply_fan_operation)
+      air_loop_unitary.setMaximumSupplyAirTemperature(OpenStudio::convert(120.0,"F","C").get)
+      air_loop_unitary.setSupplyAirFlowRateWhenNoCoolingorHeatingisRequired(0)      
+      
       air_loop = OpenStudio::Model::AirLoopHVAC.new(model)
       air_loop.setName("Central Air System")
       air_supply_inlet_node = air_loop.supplyInletNode
@@ -557,63 +490,7 @@ class ProcessCentralAirConditioner < OpenStudio::Ruleset::ModelUserScript
     return true
  
   end #end the run method
-  
-  def _processCurvesFurnaceForMultiSpeedAC(model, supply, outputCapacity, efficiency)
-    # Simulate the furnace using a heat pump for multi-speed AC simulations.
-    # This object gets created in all situations when a 2 speed
-    # AC is used (w/ furnace, boiler, or no heat).  
-    htg_coil_stage_data = []
-    (0...1).to_a.each do |speed|
-    
-      hp_heat_cap_ft = OpenStudio::Model::CurveBiquadratic.new(model)
-      hp_heat_cap_ft.setName("HP_Heat-Cap-fT")
-      hp_heat_cap_ft.setCoefficient1Constant(1)
-      hp_heat_cap_ft.setCoefficient2x(0)
-      hp_heat_cap_ft.setCoefficient3xPOW2(0)
-      hp_heat_cap_ft.setCoefficient4y(0)
-      hp_heat_cap_ft.setCoefficient5yPOW2(0)
-      hp_heat_cap_ft.setCoefficient6xTIMESY(0)
-      hp_heat_cap_ft.setMinimumValueofx(-100)
-      hp_heat_cap_ft.setMaximumValueofx(100)
-      hp_heat_cap_ft.setMinimumValueofy(-100)
-      hp_heat_cap_ft.setMaximumValueofy(100)
 
-      hp_heat_eir_ft = OpenStudio::Model::CurveBiquadratic.new(model)
-      hp_heat_eir_ft.setName("HP_Heat-EIR-fT")
-      hp_heat_eir_ft.setCoefficient1Constant(1)
-      hp_heat_eir_ft.setCoefficient2x(0)
-      hp_heat_eir_ft.setCoefficient3xPOW2(0)
-      hp_heat_eir_ft.setCoefficient4y(0)
-      hp_heat_eir_ft.setCoefficient5yPOW2(0)
-      hp_heat_eir_ft.setCoefficient6xTIMESY(0)
-      hp_heat_eir_ft.setMinimumValueofx(-100)
-      hp_heat_eir_ft.setMaximumValueofx(100)
-      hp_heat_eir_ft.setMinimumValueofy(-100)
-      hp_heat_eir_ft.setMaximumValueofy(100)
-
-      const_cubic = OpenStudio::Model::CurveCubic.new(model)
-      const_cubic.setName("ConstantCubic")
-      const_cubic.setCoefficient1Constant(1)
-      const_cubic.setCoefficient2x(0)
-      const_cubic.setCoefficient3xPOW2(0)
-      const_cubic.setCoefficient4xPOW3(0)
-      const_cubic.setMinimumValueofx(0)
-      const_cubic.setMaximumValueofx(1)
-      const_cubic.setMinimumCurveOutput(0.7)
-      const_cubic.setMaximumCurveOutput(1)
-
-      stage_data = OpenStudio::Model::CoilHeatingDXMultiSpeedStageData.new(model, hp_heat_cap_ft, const_cubic, hp_heat_eir_ft, const_cubic, const_cubic, HVAC._processCurvesSupplyFan(model))
-      if outputCapacity != Constants.SizingAuto
-        stage_data.setGrossRatedHeatingCapacity(outputCapacity)
-        stage_data.setRatedAirFlowRate(outputCapacity * 0.00005)
-      end
-      stage_data.setGrossRatedHeatingCOP(efficiency)
-      stage_data.setRatedWasteHeatFractionofPowerInput(0.00000001)
-      htg_coil_stage_data[speed] = stage_data
-    end
-    return htg_coil_stage_data
-  end  
-  
 end #end the measure
 
 #this allows the measure to be use by the application
