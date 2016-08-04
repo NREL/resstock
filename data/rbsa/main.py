@@ -869,7 +869,7 @@ def add_option_prefix(df):
 
 if __name__ == '__main__':
     
-    datafiles_dir = 'data/query output'
+    datafiles_dir = '../../resources/inputs/pnw'
     heatmaps_dir = 'heatmaps'
     
     dfs = Create_DFs('rbsa.sqlite')
