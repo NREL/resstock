@@ -153,10 +153,25 @@ def assign_ceiling(df):
     rval_area = []
     for index, row in df.iterrows():
         for atticceiling in row.object.sfatticceiling:
-            if atticceiling.atticinslvl is not None and atticceiling.atticarea is not None:
-                rval_area.append((index, row.created, row.object, row['Dependency=Vintage'], row['Dependency=Location Region'], rvalkey[atticceiling.atticinslvl], float(atticceiling.atticarea)))
+            if atticceiling.atticinslvl is not None:
+                rval_area.append((index, row.created, row.object, row['Dependency=Vintage'], row['Dependency=Location Region'], rvalkey[atticceiling.atticinslvl]))
 
-    return pd.DataFrame(rval_area, columns=['siteid', 'created', 'object', 'Dependency=Vintage', 'Dependency=Location Region', 'rval', 'area']).set_index('siteid')
+    return pd.DataFrame(rval_area, columns=['siteid', 'created', 'object', 'Dependency=Vintage', 'Dependency=Location Region', 'rval']).set_index('siteid')
+    
+def assign_ceiling_2(df):
+    
+    with open('data/rbsa to beopt mapping/Ceiling.csv', 'rU') as file:
+        reader = csv.reader(file, delimiter=',')
+        reader.next()
+        rvalkey = {row[0]:row[1] for row in reader}      
+    
+    rval_area = []
+    for index, row in df.iterrows():
+        for atticceiling in row.object.sfatticceiling:
+            if atticceiling.atticinslvl is not None:
+                rval_area.append((index, row.created, row.object, row['Dependency=Vintage'], row['Dependency=State'], rvalkey[atticceiling.atticinslvl]))
+
+    return pd.DataFrame(rval_area, columns=['siteid', 'created', 'object', 'Dependency=Vintage', 'Dependency=State', 'rval']).set_index('siteid')    
     
 def assign_wall(df):
     
@@ -168,12 +183,12 @@ def assign_wall(df):
     rval_area = []
     for index, row in df.iterrows():
         for framedwall in row.object.sfframedwall:
-            if framedwall.framedinslvl is not None and framedwall.framedwallarea is not None:
+            if framedwall.framedinslvl is not None:
                 if rvalkey[framedwall.framedinslvl] == 'NaN':
                     continue
-                rval_area.append((index, row.created, row.object, row['Dependency=Vintage'], row['Dependency=Location Region'], rvalkey[framedwall.framedinslvl], float(framedwall.framedwallarea)))
+                rval_area.append((index, row.created, row.object, row['Dependency=Vintage'], row['Dependency=Location Region'], rvalkey[framedwall.framedinslvl]))
         
-    return pd.DataFrame(rval_area, columns=['siteid', 'created', 'object', 'Dependency=Vintage', 'Dependency=Location Region', 'rval', 'area']).set_index('siteid')
+    return pd.DataFrame(rval_area, columns=['siteid', 'created', 'object', 'Dependency=Vintage', 'Dependency=Location Region', 'rval']).set_index('siteid')
 
 def assign_wall_2(df):
     
@@ -188,9 +203,9 @@ def assign_wall_2(df):
             if framedwall.framedinslvl is not None and framedwall.framedwallarea is not None:
                 if rvalkey[framedwall.framedinslvl] == 'NaN':
                     continue
-                rval_area.append((index, row.created, row.object, row['Dependency=Vintage'], row['Dependency=State'], rvalkey[framedwall.framedinslvl], float(framedwall.framedwallarea)))
+                rval_area.append((index, row.created, row.object, row['Dependency=Vintage'], row['Dependency=State'], rvalkey[framedwall.framedinslvl]))
         
-    return pd.DataFrame(rval_area, columns=['siteid', 'created', 'object', 'Dependency=Vintage', 'Dependency=State', 'rval', 'area']).set_index('siteid')
+    return pd.DataFrame(rval_area, columns=['siteid', 'created', 'object', 'Dependency=Vintage', 'Dependency=State', 'rval']).set_index('siteid')
 
 def assign_foundation_type(df):
     
@@ -311,42 +326,42 @@ def assign_slab(df):
     rval_area = []
     for index, row in df.iterrows():
         for slab in row.object.sfflslab:
-            if slab.uslabperimfloor is not None and slab.stdarea is not None:
+            if slab.uslabperimfloor is not None:
                 if row['Dependency=Geometry Foundation Type'] != 'Slab':
-                    rval_area.append((index, row.created, row.object, row['Dependency=Vintage'], row['Dependency=Location Region'], row['Dependency=Geometry Foundation Type'], 'None', float(slab.stdarea)))                
+                    rval_area.append((index, row.created, row.object, row['Dependency=Vintage'], row['Dependency=Location Region'], row['Dependency=Geometry Foundation Type'], 'None'))                
                 else:
                     if slab.uslabperimfloor >= 0.73:
-                        rval_area.append((index, row.created, row.object, row['Dependency=Vintage'], row['Dependency=Location Region'], row['Dependency=Geometry Foundation Type'], 'Uninsulated', float(slab.stdarea)))
+                        rval_area.append((index, row.created, row.object, row['Dependency=Vintage'], row['Dependency=Location Region'], row['Dependency=Geometry Foundation Type'], 'Uninsulated'))
                     elif slab.uslabperimfloor > 0.67 and slab.uslabperimfloor < 0.73:
-                        rval_area.append((index, row.created, row.object, row['Dependency=Vintage'], row['Dependency=Location Region'], row['Dependency=Geometry Foundation Type'], '4ft R5 Perimeter, R5 Gap', float(slab.stdarea)))
+                        rval_area.append((index, row.created, row.object, row['Dependency=Vintage'], row['Dependency=Location Region'], row['Dependency=Geometry Foundation Type'], '4ft R5 Perimeter, R5 Gap'))
                     elif slab.uslabperimfloor <= 0.67:
-                        rval_area.append((index, row.created, row.object, row['Dependency=Vintage'], row['Dependency=Location Region'], row['Dependency=Geometry Foundation Type'], 'R10 Whole Slab, R5 Gap', float(slab.stdarea)))
+                        rval_area.append((index, row.created, row.object, row['Dependency=Vintage'], row['Dependency=Location Region'], row['Dependency=Geometry Foundation Type'], 'R10 Whole Slab, R5 Gap'))
 
-    return pd.DataFrame(rval_area, columns=['siteid', 'created', 'object', 'Dependency=Vintage', 'Dependency=Location Region', 'Dependency=Geometry Foundation Type', 'rval', 'area']).set_index('siteid')
+    return pd.DataFrame(rval_area, columns=['siteid', 'created', 'object', 'Dependency=Vintage', 'Dependency=Location Region', 'Dependency=Geometry Foundation Type', 'rval']).set_index('siteid')
 
 def assign_crawl(df):
     
     rval_area = []
     for index, row in df.iterrows():
         for crawl in row.object.sfflcrawl:
-            if crawl.ucrawlfloor is not None and crawl.ucrawlwall is not None and crawl.crawlarea is not None:
+            if crawl.ucrawlfloor is not None and crawl.ucrawlwall is not None:
                 if row['Dependency=Geometry Foundation Type'] != 'Crawl':
-                    rval_area.append((index, row.created, row.object, row['Dependency=Vintage'], row['Dependency=Location Region'], row['Dependency=Geometry Foundation Type'], 'None', float(crawl.crawlarea)))
+                    rval_area.append((index, row.created, row.object, row['Dependency=Vintage'], row['Dependency=Location Region'], row['Dependency=Geometry Foundation Type'], 'None'))
                 else:
                     if crawl.ucrawlfloor >= 0.23 and crawl.ucrawlwall <= 3.1:
-                        rval_area.append((index, row.created, row.object, row['Dependency=Vintage'], row['Dependency=Location Region'], row['Dependency=Geometry Foundation Type'], 'Uninsulated, Vented', float(crawl.crawlarea)))
+                        rval_area.append((index, row.created, row.object, row['Dependency=Vintage'], row['Dependency=Location Region'], row['Dependency=Geometry Foundation Type'], 'Uninsulated, Vented'))
                     elif crawl.ucrawlfloor >= 0.23 and crawl.ucrawlwall > 3.1 and crawl.ucrawlwall <= 5.0:
-                        rval_area.append((index, row.created, row.object, row['Dependency=Vintage'], row['Dependency=Location Region'], row['Dependency=Geometry Foundation Type'], 'Uninsulated, Unvented', float(crawl.crawlarea)))
+                        rval_area.append((index, row.created, row.object, row['Dependency=Vintage'], row['Dependency=Location Region'], row['Dependency=Geometry Foundation Type'], 'Uninsulated, Unvented'))
                     elif crawl.ucrawlfloor >= 0.23 and crawl.ucrawlwall > 5.0:
-                        rval_area.append((index, row.created, row.object, row['Dependency=Vintage'], row['Dependency=Location Region'], row['Dependency=Geometry Foundation Type'], 'Wall R-13, Unvented', float(crawl.crawlarea)))
+                        rval_area.append((index, row.created, row.object, row['Dependency=Vintage'], row['Dependency=Location Region'], row['Dependency=Geometry Foundation Type'], 'Wall R-13, Unvented'))
                     elif crawl.ucrawlfloor < 0.23 and crawl.ucrawlfloor > 0.06:
-                        rval_area.append((index, row.created, row.object, row['Dependency=Vintage'], row['Dependency=Location Region'], row['Dependency=Geometry Foundation Type'], 'Ceiling R-13, Vented', float(crawl.crawlarea)))
+                        rval_area.append((index, row.created, row.object, row['Dependency=Vintage'], row['Dependency=Location Region'], row['Dependency=Geometry Foundation Type'], 'Ceiling R-13, Vented'))
                     elif crawl.ucrawlfloor <= 0.06 and crawl.ucrawlfloor >= 0.04:
-                        rval_area.append((index, row.created, row.object, row['Dependency=Vintage'], row['Dependency=Location Region'], row['Dependency=Geometry Foundation Type'], 'Ceiling R-19, Vented', float(crawl.crawlarea)))
+                        rval_area.append((index, row.created, row.object, row['Dependency=Vintage'], row['Dependency=Location Region'], row['Dependency=Geometry Foundation Type'], 'Ceiling R-19, Vented'))
                     elif crawl.ucrawlfloor < 0.04:
-                        rval_area.append((index, row.created, row.object, row['Dependency=Vintage'], row['Dependency=Location Region'], row['Dependency=Geometry Foundation Type'], 'Ceiling R-30, Vented', float(crawl.crawlarea)))
+                        rval_area.append((index, row.created, row.object, row['Dependency=Vintage'], row['Dependency=Location Region'], row['Dependency=Geometry Foundation Type'], 'Ceiling R-30, Vented'))
 
-    return pd.DataFrame(rval_area, columns=['siteid', 'created', 'object', 'Dependency=Vintage', 'Dependency=Location Region', 'Dependency=Geometry Foundation Type', 'rval', 'area']).set_index('siteid')
+    return pd.DataFrame(rval_area, columns=['siteid', 'created', 'object', 'Dependency=Vintage', 'Dependency=Location Region', 'Dependency=Geometry Foundation Type', 'rval']).set_index('siteid')
 
 def assign_ufbsmt(df):
     
@@ -363,40 +378,22 @@ def assign_ufbsmt(df):
             if not bsmt.basementconditioned:
                 if bsmt.basementfloorinsulation and not bsmt.basementfloorinsulation == 'None':
                     if bsmt.basementfloorinsulationcond > 0:
-                        if bsmt.basementfloorarea and bsmt.basementfloorarea > 0:
-                            if row['Dependency=Geometry Foundation Type'] != 'Unheated Basement':
-                                rval_area.append((index, row.created, row.object, row['Dependency=Vintage'], row['Dependency=Location Region'], row['Dependency=Geometry Foundation Type'], 'None', float(bsmt.basementfloorarea) * float(bsmt.basementfloorinsulationcond)))                            
-                            else:
-                                rval_area.append((index, row.created, row.object, row['Dependency=Vintage'], row['Dependency=Location Region'], row['Dependency=Geometry Foundation Type'], ceilinstypekey[bsmt.basementfloorinsulation], float(bsmt.basementfloorarea) * float(bsmt.basementfloorinsulationcond)))
+                        if row['Dependency=Geometry Foundation Type'] != 'Unheated Basement':
+                            rval_area.append((index, row.created, row.object, row['Dependency=Vintage'], row['Dependency=Location Region'], row['Dependency=Geometry Foundation Type'], 'None'))
                         else:
-                            if row['Dependency=Geometry Foundation Type'] != 'Unheated Basement':
-                                rval_area.append((index, row.created, row.object, row['Dependency=Vintage'], row['Dependency=Location Region'], row['Dependency=Geometry Foundation Type'], 'None', float(bsmt.basementslabarea) * float(bsmt.basementfloorinsulationcond)))
-                            else:
-                                rval_area.append((index, row.created, row.object, row['Dependency=Vintage'], row['Dependency=Location Region'], row['Dependency=Geometry Foundation Type'], ceilinstypekey[bsmt.basementfloorinsulation], float(bsmt.basementslabarea) * float(bsmt.basementfloorinsulationcond)))
+                            rval_area.append((index, row.created, row.object, row['Dependency=Vintage'], row['Dependency=Location Region'], row['Dependency=Geometry Foundation Type'], ceilinstypekey[bsmt.basementfloorinsulation]))
                     else:
-                        if bsmt.basementfloorarea and bsmt.basementfloorarea > 0:
-                            if row['Dependency=Geometry Foundation Type'] != 'Unheated Basement':
-                                rval_area.append((index, row.created, row.object, row['Dependency=Vintage'], row['Dependency=Location Region'], row['Dependency=Geometry Foundation Type'], 'None', float(bsmt.basementfloorarea)))                            
-                            else:
-                                rval_area.append((index, row.created, row.object, row['Dependency=Vintage'], row['Dependency=Location Region'], row['Dependency=Geometry Foundation Type'], 'Uninsulated', float(bsmt.basementfloorarea)))
+                        if row['Dependency=Geometry Foundation Type'] != 'Unheated Basement':
+                            rval_area.append((index, row.created, row.object, row['Dependency=Vintage'], row['Dependency=Location Region'], row['Dependency=Geometry Foundation Type'], 'None'))                            
                         else:
-                            if row['Dependency=Geometry Foundation Type'] != 'Unheated Basement':
-                                rval_area.append((index, row.created, row.object, row['Dependency=Vintage'], row['Dependency=Location Region'], row['Dependency=Geometry Foundation Type'], 'None', float(bsmt.basementslabarea)))                            
-                            else:
-                                rval_area.append((index, row.created, row.object, row['Dependency=Vintage'], row['Dependency=Location Region'], row['Dependency=Geometry Foundation Type'], 'Uninsulated', float(bsmt.basementslabarea)))                    
+                            rval_area.append((index, row.created, row.object, row['Dependency=Vintage'], row['Dependency=Location Region'], row['Dependency=Geometry Foundation Type'], 'Uninsulated'))                    
                 else:
-                    if bsmt.basementfloorarea and bsmt.basementfloorarea > 0:
-                        if row['Dependency=Geometry Foundation Type'] != 'Unheated Basement':
-                            rval_area.append((index, row.created, row.object, row['Dependency=Vintage'], row['Dependency=Location Region'], row['Dependency=Geometry Foundation Type'], 'None', float(bsmt.basementfloorarea)))                        
-                        else:
-                            rval_area.append((index, row.created, row.object, row['Dependency=Vintage'], row['Dependency=Location Region'], row['Dependency=Geometry Foundation Type'], 'Uninsulated', float(bsmt.basementfloorarea)))
+                    if row['Dependency=Geometry Foundation Type'] != 'Unheated Basement':
+                        rval_area.append((index, row.created, row.object, row['Dependency=Vintage'], row['Dependency=Location Region'], row['Dependency=Geometry Foundation Type'], 'None'))                        
                     else:
-                        if row['Dependency=Geometry Foundation Type'] != 'Unheated Basement':
-                            rval_area.append((index, row.created, row.object, row['Dependency=Vintage'], row['Dependency=Location Region'], row['Dependency=Geometry Foundation Type'], 'None', float(bsmt.basementslabarea)))                        
-                        else:
-                            rval_area.append((index, row.created, row.object, row['Dependency=Vintage'], row['Dependency=Location Region'], row['Dependency=Geometry Foundation Type'], 'Uninsulated', float(bsmt.basementslabarea)))
+                        rval_area.append((index, row.created, row.object, row['Dependency=Vintage'], row['Dependency=Location Region'], row['Dependency=Geometry Foundation Type'], 'Uninsulated'))
 
-    return pd.DataFrame(rval_area, columns=['siteid', 'created', 'object', 'Dependency=Vintage', 'Dependency=Location Region', 'Dependency=Geometry Foundation Type', 'rval', 'area']).set_index('siteid')
+    return pd.DataFrame(rval_area, columns=['siteid', 'created', 'object', 'Dependency=Vintage', 'Dependency=Location Region', 'Dependency=Geometry Foundation Type', 'rval']).set_index('siteid')
 
 def assign_fbsmt(df):
     
@@ -411,70 +408,89 @@ def assign_fbsmt(df):
     for index, row in df.iterrows():
         for bsmt in row.object.sfflbasement:            
             if bsmt.basementconditioned:                
-                if bsmt.basementfloorinsulation is not None and bsmt.basementfloorarea is not None:
+                if bsmt.basementfloorinsulation is not None:
                     if bsmt.basementfloorarea is not None:
-                        if bsmt.basementfloorarea > 0:
-                            if row['Dependency=Geometry Foundation Type'] != 'Heated Basement':
-                                rval_area.append((index, row.created, row.object, row['Dependency=Vintage'], row['Dependency=Location Region'], row['Dependency=Geometry Foundation Type'], 'None', float(bsmt.basementfloorarea) * float(bsmt.basementfloorinsulationcond)))                            
-                            else:
-                                rval_area.append((index, row.created, row.object, row['Dependency=Vintage'], row['Dependency=Location Region'], row['Dependency=Geometry Foundation Type'], wallinstypekey[bsmt.basementfloorinsulation], float(bsmt.basementfloorarea) * float(bsmt.basementfloorinsulationcond)))
+                        if row['Dependency=Geometry Foundation Type'] != 'Heated Basement':
+                            rval_area.append((index, row.created, row.object, row['Dependency=Vintage'], row['Dependency=Location Region'], row['Dependency=Geometry Foundation Type'], 'None'))
                         else:
-                            if row['Dependency=Geometry Foundation Type'] != 'Heated Basement':
-                                rval_area.append((index, row.created, row.object, row['Dependency=Vintage'], row['Dependency=Location Region'], row['Dependency=Geometry Foundation Type'], 'None', float(bsmt.basementslabarea) * float(bsmt.basementfloorinsulationcond)))
-                            else:
-                                rval_area.append((index, row.created, row.object, row['Dependency=Vintage'], row['Dependency=Location Region'], row['Dependency=Geometry Foundation Type'], wallinstypekey[bsmt.basementfloorinsulation], float(bsmt.basementslabarea) * float(bsmt.basementfloorinsulationcond)))
+                            rval_area.append((index, row.created, row.object, row['Dependency=Vintage'], row['Dependency=Location Region'], row['Dependency=Geometry Foundation Type'], wallinstypekey[bsmt.basementfloorinsulation]))
                     else:
                         if row['Dependency=Geometry Foundation Type'] != 'Heated Basement':
-                            rval_area.append((index, row.created, row.object, row['Dependency=Vintage'], row['Dependency=Location Region'], row['Dependency=Geometry Foundation Type'], 'None', float(bsmt.basementslabarea)))                        
+                            rval_area.append((index, row.created, row.object, row['Dependency=Vintage'], row['Dependency=Location Region'], row['Dependency=Geometry Foundation Type'], 'None'))                        
                         else:
-                            rval_area.append((index, row.created, row.object, row['Dependency=Vintage'], row['Dependency=Location Region'], row['Dependency=Geometry Foundation Type'], 'Uninsulated', float(bsmt.basementslabarea)))
+                            rval_area.append((index, row.created, row.object, row['Dependency=Vintage'], row['Dependency=Location Region'], row['Dependency=Geometry Foundation Type'], 'Uninsulated'))
                 else:
                     if row['Dependency=Geometry Foundation Type'] != 'Heated Basement':
-                        rval_area.append((index, row.created, row.object, row['Dependency=Vintage'], row['Dependency=Location Region'], row['Dependency=Geometry Foundation Type'], 'None', float(bsmt.basementslabarea)))                    
+                        rval_area.append((index, row.created, row.object, row['Dependency=Vintage'], row['Dependency=Location Region'], row['Dependency=Geometry Foundation Type'], 'None'))                    
                     else:
-                        rval_area.append((index, row.created, row.object, row['Dependency=Vintage'], row['Dependency=Location Region'], row['Dependency=Geometry Foundation Type'], 'Uninsulated', float(bsmt.basementslabarea)))      
+                        rval_area.append((index, row.created, row.object, row['Dependency=Vintage'], row['Dependency=Location Region'], row['Dependency=Geometry Foundation Type'], 'Uninsulated'))
 
-    return pd.DataFrame(rval_area, columns=['siteid', 'created', 'object', 'Dependency=Vintage', 'Dependency=Location Region', 'Dependency=Geometry Foundation Type', 'rval', 'area']).set_index('siteid')
+    return pd.DataFrame(rval_area, columns=['siteid', 'created', 'object', 'Dependency=Vintage', 'Dependency=Location Region', 'Dependency=Geometry Foundation Type', 'rval']).set_index('siteid')
 
 def assign_intfloor(df):
     
     rval_area = []
     for index, row in df.iterrows():
         for intfloor in row.object.sfflooroverarea:
-            if intfloor.uoverareafloor is not None and intfloor.floorarea is not None:
+            if intfloor.uoverareafloor is not None:
                 if intfloor.uoverareafloor >= 0.23:
-                    rval_area.append((index, row.created, row.object, row['Dependency=Vintage'], row['Dependency=Location Region'], 'Uninsulated', float(intfloor.floorarea)))
+                    rval_area.append((index, row.created, row.object, row['Dependency=Vintage'], row['Dependency=Location Region'], 'Uninsulated'))
                 elif intfloor.uoverareafloor > 0.04 and intfloor.uoverareafloor < 0.23:
-                    rval_area.append((index, row.created, row.object, row['Dependency=Vintage'], row['Dependency=Location Region'], 'R-13', float(intfloor.floorarea)))
+                    rval_area.append((index, row.created, row.object, row['Dependency=Vintage'], row['Dependency=Location Region'], 'R-13'))
                 elif intfloor.uoverareafloor <= 0.04:
-                    rval_area.append((index, row.created, row.object, row['Dependency=Vintage'], row['Dependency=Location Region'], 'R-19', float(intfloor.floorarea)))
+                    rval_area.append((index, row.created, row.object, row['Dependency=Vintage'], row['Dependency=Location Region'], 'R-19'))
 
-    return pd.DataFrame(rval_area, columns=['siteid', 'created', 'object', 'Dependency=Vintage', 'Dependency=Location Region', 'rval', 'area']).set_index('siteid')
+    return pd.DataFrame(rval_area, columns=['siteid', 'created', 'object', 'Dependency=Vintage', 'Dependency=Location Region', 'rval']).set_index('siteid')
 
 def assign_win(df):
     
     rval_area = []
     for index, row in df.iterrows():
         for win in row.object.sfwindow:
-            if win.uwindow is not None and win.windowarea is not None:
+            if win.uwindow is not None:
                 if win.uwindow in [1.1]:
-                    rval_area.append((index, row.created, row.object, row['Dependency=Vintage'], row['Dependency=Location Region'], 'Clear, Single, Metal', float(win.windowarea)))
+                    rval_area.append((index, row.created, row.object, row['Dependency=Vintage'], row['Dependency=Location Region'], 'Clear, Single, Metal'))
                 elif win.uwindow in [0.9, 0.95]:
-                    rval_area.append((index, row.created, row.object, row['Dependency=Vintage'], row['Dependency=Location Region'], 'Clear, Single, Non-metal', float(win.windowarea)))
+                    rval_area.append((index, row.created, row.object, row['Dependency=Vintage'], row['Dependency=Location Region'], 'Clear, Single, Non-metal'))
                 elif win.uwindow in [0.8, 0.85]:
-                    rval_area.append((index, row.created, row.object, row['Dependency=Vintage'], row['Dependency=Location Region'], 'Clear, Double, Metal, Air', float(win.windowarea)))
+                    rval_area.append((index, row.created, row.object, row['Dependency=Vintage'], row['Dependency=Location Region'], 'Clear, Double, Metal, Air'))
                 elif win.uwindow in [0.75]:
-                    rval_area.append((index, row.created, row.object, row['Dependency=Vintage'], row['Dependency=Location Region'], 'Clear, Double, Thermal-Break, Air', float(win.windowarea)))
+                    rval_area.append((index, row.created, row.object, row['Dependency=Vintage'], row['Dependency=Location Region'], 'Clear, Double, Thermal-Break, Air'))
                 elif win.uwindow in [0.55, 0.6, 0.65, 0.7]:
-                    rval_area.append((index, row.created, row.object, row['Dependency=Vintage'], row['Dependency=Location Region'], 'Clear, Double, Non-metal, Air', float(win.windowarea)))
+                    rval_area.append((index, row.created, row.object, row['Dependency=Vintage'], row['Dependency=Location Region'], 'Clear, Double, Non-metal, Air'))
                 elif win.uwindow in [0.4, 0.45, 0.5]:
-                    rval_area.append((index, row.created, row.object, row['Dependency=Vintage'], row['Dependency=Location Region'], 'Low-E, Double, Non-metal, Air, M-Gain', float(win.windowarea)))
+                    rval_area.append((index, row.created, row.object, row['Dependency=Vintage'], row['Dependency=Location Region'], 'Low-E, Double, Non-metal, Air, M-Gain'))
                 elif win.uwindow in [0.22, 0.35]:
-                    rval_area.append((index, row.created, row.object, row['Dependency=Vintage'], row['Dependency=Location Region'], 'Low-E, Triple, Non-metal, Air, L-Gain', float(win.windowarea)))
+                    rval_area.append((index, row.created, row.object, row['Dependency=Vintage'], row['Dependency=Location Region'], 'Low-E, Triple, Non-metal, Air, L-Gain'))
                 else:
                     print index, win.uwindow
 
-    return pd.DataFrame(rval_area, columns=['siteid', 'created', 'object', 'Dependency=Vintage', 'Dependency=Location Region', 'rval', 'area']).set_index('siteid')
+    return pd.DataFrame(rval_area, columns=['siteid', 'created', 'object', 'Dependency=Vintage', 'Dependency=Location Region', 'rval']).set_index('siteid')
+
+def assign_win_2(df):
+    
+    rval_area = []
+    for index, row in df.iterrows():
+        for win in row.object.sfwindow:
+            if win.uwindow is not None:
+                if win.uwindow in [1.1]:
+                    rval_area.append((index, row.created, row.object, row['Dependency=Vintage'], row['Dependency=State'], 'Clear, Single, Metal'))
+                elif win.uwindow in [0.9, 0.95]:
+                    rval_area.append((index, row.created, row.object, row['Dependency=Vintage'], row['Dependency=State'], 'Clear, Single, Non-metal'))
+                elif win.uwindow in [0.8, 0.85]:
+                    rval_area.append((index, row.created, row.object, row['Dependency=Vintage'], row['Dependency=State'], 'Clear, Double, Metal, Air'))
+                elif win.uwindow in [0.75]:
+                    rval_area.append((index, row.created, row.object, row['Dependency=Vintage'], row['Dependency=State'], 'Clear, Double, Thermal-Break, Air'))
+                elif win.uwindow in [0.55, 0.6, 0.65, 0.7]:
+                    rval_area.append((index, row.created, row.object, row['Dependency=Vintage'], row['Dependency=State'], 'Clear, Double, Non-metal, Air'))
+                elif win.uwindow in [0.4, 0.45, 0.5]:
+                    rval_area.append((index, row.created, row.object, row['Dependency=Vintage'], row['Dependency=State'], 'Low-E, Double, Non-metal, Air, M-Gain'))
+                elif win.uwindow in [0.22, 0.35]:
+                    rval_area.append((index, row.created, row.object, row['Dependency=Vintage'], row['Dependency=State'], 'Low-E, Triple, Non-metal, Air, L-Gain'))
+                else:
+                    print index, win.uwindow
+
+    return pd.DataFrame(rval_area, columns=['siteid', 'created', 'object', 'Dependency=Vintage', 'Dependency=State', 'rval']).set_index('siteid')
 
 def assign_inf(df):
     
@@ -765,7 +781,11 @@ def assign_wh(df):
             pass
         for wh in row.object.sfwheater:
             if wh.whheatpump and wh.whfuel == 'Electric':
-                wheater.append((index, row.created, row.object, row['Dependency=Heating Fuel'], 'Electric HPWH'))
+                pass
+            elif wh.whfuel == 'Oil' and wh.waterheatertype == 'Tankless':
+                pass
+            elif wh.whfuel == 'Electric' and wh.waterheatertype == 'Tankless':
+                pass
             else:
                 if not wh.whfuel and not wh.waterheatertype:
                     pass
