@@ -205,9 +205,7 @@ class ProcessRoomAirConditioner < OpenStudio::Ruleset::ModelUserScript
       
       ptac = OpenStudio::Model::ZoneHVACPackagedTerminalAirConditioner.new(model, model.alwaysOnDiscreteSchedule, fan_onoff, htg_coil, clg_coil)
       ptac.setName("Window AC")
-      ptac.setOutdoorAirMixerName("WindowAC Mixer")
       ptac.setSupplyAirFanOperatingModeSchedule(supply_fan_operation)
-      # ptac.setFanPlacement("BlowThrough")
       ptac.addToThermalZone(control_zone)
       runner.registerInfo("Added packaged terminal air conditioner '#{ptac.name}' to thermal zone '#{control_zone.name}'")
     

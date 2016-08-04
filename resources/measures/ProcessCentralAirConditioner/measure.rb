@@ -430,7 +430,6 @@ class ProcessCentralAirConditioner < OpenStudio::Ruleset::ModelUserScript
       air_loop_unitary.setCoolingCoil(clg_coil)      
       if not htg_coil.nil?
         # Add the existing furnace back in
-        puts htg_coil.name.to_s
         air_loop_unitary.setHeatingCoil(htg_coil)
       else
         air_loop_unitary.setSupplyAirFlowRateDuringHeatingOperation(0.0000001) # this is when there is no heating present

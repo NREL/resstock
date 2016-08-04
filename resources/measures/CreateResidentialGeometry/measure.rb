@@ -626,12 +626,13 @@ class CreateBasicGeometry < OpenStudio::Ruleset::ModelUserScript
           sw_point = OpenStudio::Point3d.new(sw_point.x, sw_point.y, living_space.zOrigin+sw_point.z)
           se_point = OpenStudio::Point3d.new(se_point.x, se_point.y, living_space.zOrigin+se_point.z)
           
-          garage_attic_height = (ne_point.x - nw_point.x)/2 * roof_pitch
+          garage_attic_height = (ne_point.x - nw_point.x)/2 * roof_pitch          
+          
           garage_roof_pitch = roof_pitch
-          if garage_attic_height > attic_height
-            garage_attic_height = attic_height
-            garage_roof_pitch = garage_attic_height / garage_width
-            runner.registerWarning("The garage pitch was changed to accommodate garage ridge > house ridge (from #{roof_pitch.round(2)} to #{garage_roof_pitch.round(2)}).")
+          if garage_attic_height >= attic_height
+            garage_attic_height = attic_height - 0.01 # garage attic height slightly below attic height so that we don't get any roof decks with only three vertices
+            garage_roof_pitch = garage_attic_height / ( garage_width / 2 )
+            runner.registerWarning("The garage pitch was changed to accommodate garage ridge >= house ridge (from #{roof_pitch.round(3)} to #{garage_roof_pitch.round(3)}).")
           end
 
           roof_n_point = OpenStudio::Point3d.new((nw_point.x + ne_point.x)/2, nw_point.y+garage_attic_height/roof_pitch, living_space.zOrigin+living_height+garage_attic_height)
