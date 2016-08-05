@@ -12,39 +12,24 @@ class RunSampling
         
         resources_dir = File.absolute_path(File.join(File.dirname(__FILE__), '..', 'resources'))
         
-        params = get_parameters(resources_dir)
+        params = get_parameters_ordered_from_options_lookup_tsv(resources_dir)
         
         tsvfiles = {}
         params.each do |param|
             tsvpath = File.join(resources_dir, 'inputs', mode, param + ".tsv")
-            next if not File.exist?(tsvpath)
+            next if not File.exist?(tsvpath) # Not every parameter used by every mode
             tsvfile = TsvFile.new(tsvpath, nil)
             tsvfiles[param] = tsvfile
         end
         params = tsvfiles.keys
+        if params.size == 0
+            register_error("No parameters found, aborting...", nil)
+        end
 
         params = update_parameter_dependencies(params, tsvfiles)
-        sample_results = perform_sampling(params, num_samples, tsvfiles).transpose
-        write_csv(sample_results)
-    end
-
-    def get_parameters(resources_dir)
-        # Obtain full list of parameters and their order
-        params_file = File.join(resources_dir, 'options_lookup.tsv')
-        if not File.exist?(params_file)
-            fail "ERROR: Cannot find #{params_file}."
-        end
-        params = []
-        CSV.foreach(params_file, { :col_sep => "\t" }) do |row|
-            next if row.size < 2
-            next if row[0].nil? or row[0].downcase == "parameter name" or row[1].nil?
-            if not params.include?(row[0])
-                params << row[0]
-            end
-        end
-        # Remove any parameters for which we don't have tsvfiles
-        
-        return params
+        sample_results = perform_sampling(params, num_samples, tsvfiles, mode).transpose
+        out_file = write_csv(sample_results)
+        return out_file
     end
 
     def update_parameter_dependencies(params, tsvfiles)
@@ -56,7 +41,7 @@ class RunSampling
         return params_with_deps
     end
 
-    def perform_sampling(params, num_samples, tsvfiles)
+    def perform_sampling(params, num_samples, tsvfiles, mode)
         results_data = []
         results_data_cols = {}
         
@@ -79,7 +64,7 @@ class RunSampling
                     end
                 end
                 
-                puts "Processing #{param}..."
+                puts "Sampling #{mode}/#{param}..."
                 
                 results_data_param = [param] + [nil]*num_samples
                 tsvfile = tsvfiles[param]
@@ -105,13 +90,13 @@ class RunSampling
                     end
                     # Ensure correct number of buildings were processed
                     if bldgs_processed != num_samples
-                        fail "ERROR: Sampling failed."
+                        register_error("Sampling algorithm unexpectedly failed.", nil)
                     end
                 end
                 
                 # Ensure no missing values
                 if results_data_param.include?(nil)
-                    fail "ERROR: Sampling failed."
+                    register_error("Sampling algorithm unexpectedly failed.", nil)
                 end
                 
                 # Add results for this parameter
@@ -122,40 +107,6 @@ class RunSampling
         end
         
         return results_data
-    end
-
-    def get_combination_hashes(tsvfiles, dependencies)
-        # Returns an array with hashes that include each combination of 
-        # dependency values for the given dependencies.
-        combos_hashes = []
-
-        # Construct array of dependency value arrays
-        depval_array = []
-        dependencies.each do |dep|
-            depval_array << tsvfiles[dep].option_cols.keys
-        end
-        
-        if depval_array.size == 0
-            return combos_hashes
-        end
-        
-        # Create combinations
-        combos = depval_array.first.product(*depval_array[1..-1])
-        
-        # Convert to combinations of hashes
-        combos.each do |combo|
-            # Convert to hash
-            combo_hash = {}
-            if combo.is_a?(String)
-                combo_hash[dependencies[0]] = combo
-            else
-                dependencies.each_with_index do |dep, i|
-                    combo_hash[dep] = combo[i]
-                end
-            end
-            combos_hashes << combo_hash
-        end
-        return combos_hashes
     end
 
     def get_bldgs_by_dependency_values(results_data, dep_hashes, num_samples, results_data_cols)
@@ -202,7 +153,7 @@ class RunSampling
                 return tsvrow
             end
         end
-        fail "ERROR: Could not find row in #{tsvfile.filename} with dependency values: #{dep_hash.to_s}."
+        register_error("Could not find row in #{tsvfile.filename} with dependency values: #{dep_hash.to_s}.", nil)
     end
 
     def binary_search(arr, value)
@@ -308,7 +259,7 @@ class RunSampling
         return_samples.delete_if{|k,v| v == 0}
         
         if return_samples.values.reduce(:+) != num_samples
-            fail "ERROR: Sampling algorithm failed."
+            register_error("Sampling algorithm unexpectedly failed.", nil)
         end
         
         return return_samples
@@ -337,7 +288,8 @@ class RunSampling
             csv_object << sample_result
           end
         end
-        puts "Wrote output file #{out_file}."
+        puts "Wrote output file #{File.basename(out_file)}."
+        return out_file
     end
 
 end

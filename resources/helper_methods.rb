@@ -31,7 +31,7 @@ class TsvFile
         end
         
         if full_header.nil?
-            register_error("Could not find header row in #{@full_path.to_s}.", @runner)
+            register_error("Could not find header row in #{@filename.to_s}.", @runner)
         end
         
         # Strip out everything but options and dependencies from header
@@ -51,7 +51,7 @@ class TsvFile
             end
         end
         if option_cols.size == 0
-            register_error("No options found in #{File.basename(@full_path).to_s}.", @runner)
+            register_error("No options found in #{@filename.to_s}.", @runner)
         end
         
         return rows, option_cols, dependency_cols, full_header, header
@@ -88,15 +88,15 @@ class TsvFile
             rowvals = {}
             @option_cols.each do |option_name, option_col|
                 if not row[option_col].is_number?
-                    register_error("Field '#{row[option_col].to_s}' in #{@full_path.to_s} must be numeric.", @runner)
+                    register_error("Field '#{row[option_col].to_s}' in #{@filename.to_s} must be numeric.", @runner)
                 end
                 rowvals[option_name] = row[option_col].to_f
             end
             
-            # Sum of values within 2%?
+            # Sum of values within 2% of 100%?
             sum_rowvals = rowvals.values.reduce(:+)
             if sum_rowvals < 0.98 or sum_rowvals > 1.02
-                register_error("Values in #{@full_path.to_s} incorrectly sum to #{sum_rowvals.to_s}.", @runner)
+                register_error("Values in #{@filename.to_s} incorrectly sum to #{sum_rowvals.to_s}.", @runner)
             end
             
             # If values don't exactly sum to 1, normalize them
@@ -122,9 +122,9 @@ class TsvFile
         if matched_option_name.nil? or matched_option_name.size == 0
             deps_s = hash_to_string(dependency_values)
             if deps_s.size > 0
-                register_error("Could not determine appropriate option in #{@full_path.to_s} for sample value #{sample_value.to_s} with dependencies: #{deps_s.to_s}.", @runner)
+                register_error("Could not determine appropriate option in #{@filename.to_s} for sample value #{sample_value.to_s} with dependencies: #{deps_s.to_s}.", @runner)
             else
-                register_error("Could not determine appropriate option in #{@full_path.to_s} for sample value #{sample_value.to_s}.", @runner)
+                register_error("Could not determine appropriate option in #{@filename.to_s} for sample value #{sample_value.to_s}.", @runner)
             end
             return matched_option_name
         end
@@ -144,6 +144,58 @@ def check_dir_exists(full_path, runner=nil)
     if not Dir.exist?(full_path)
         register_error("Cannot find directory #{full_path.to_s}.", runner)
     end
+end
+  
+def get_parameters_ordered_from_options_lookup_tsv(resources_dir)
+    # Obtain full list of parameters and their order
+    params_file = File.join(resources_dir, 'options_lookup.tsv')
+    if not File.exist?(params_file)
+        fail "ERROR: Cannot find #{params_file}."
+    end
+    params = []
+    CSV.foreach(params_file, { :col_sep => "\t" }) do |row|
+        next if row.size < 2
+        next if row[0].nil? or row[0].downcase == "parameter name" or row[1].nil?
+        if not params.include?(row[0])
+            params << row[0]
+        end
+    end
+    
+    return params
+end
+  
+def get_combination_hashes(tsvfiles, dependencies)
+    # Returns an array with hashes that include each combination of 
+    # dependency values for the given dependencies.
+    combos_hashes = []
+
+    # Construct array of dependency value arrays
+    depval_array = []
+    dependencies.each do |dep|
+        depval_array << tsvfiles[dep].option_cols.keys
+    end
+    
+    if depval_array.size == 0
+        return combos_hashes
+    end
+    
+    # Create combinations
+    combos = depval_array.first.product(*depval_array[1..-1])
+    
+    # Convert to combinations of hashes
+    combos.each do |combo|
+        # Convert to hash
+        combo_hash = {}
+        if combo.is_a?(String)
+            combo_hash[dependencies[0]] = combo
+        else
+            dependencies.each_with_index do |dep, i|
+                combo_hash[dep] = combo[i]
+            end
+        end
+        combos_hashes << combo_hash
+    end
+    return combos_hashes
 end
   
 def get_value_from_runner_past_results(key_lookup, runner=nil)
