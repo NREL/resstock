@@ -431,11 +431,15 @@ class HotWaterSchedule
     end
     
     def calcDesignLevelFromDailykWh(daily_kWh)
-        return OpenStudio.convert(daily_kWh*365*60/(365*@totflow/@maxflow), "kW", "W").get
+        return OpenStudio.convert(daily_kWh * 365 * 60 / (365 * @totflow / @maxflow), "kW", "W").get
     end
     
     def calcPeakFlowFromDailygpm(daily_water)
         return OpenStudio.convert(@maxflow * daily_water / @totflow, "gal/min", "m^3/s").get
+    end
+    
+    def calcDailyGpmFromPeakFlow(peak_flow)
+        return OpenStudio.convert(@totflow * peak_flow / @maxflow, "m^3/s", "gal/min").get 
     end
 
     def setSchedule(obj)

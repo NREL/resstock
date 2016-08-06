@@ -26,6 +26,9 @@ class Constants
   def self.g
     return 32.174    # gravity (ft/s2)
   end
+  def self.MixedUseT
+    return 110 # F
+  end
   def self.MinimumBasementHeight
     return 7 # ft
   end
@@ -248,6 +251,9 @@ class Constants
   def self.LocationExterior
     return 'exterior'
   end
+  def self.MaterialCopper
+    return 'copper'
+  end
   def self.MaterialGypcrete
     return 'crete'
   end
@@ -256,6 +262,9 @@ class Constants
   end
   def self.MaterialOSB
     return 'osb'
+  end
+  def self.MaterialPEX
+    return 'pex'
   end
   def self.MaterialCeilingMass
     return 'ResCeilingMass1'
@@ -313,6 +322,9 @@ class Constants
   end
   def self.ObjectNameBath
     return 'residential bath'
+  end
+  def self.ObjectNameBathDist
+    return 'residential bath dist'
   end
   def self.ObjectNameClothesWasher
     return 'residential clothes washer'
@@ -387,8 +399,14 @@ class Constants
   def self.ObjectNameShower
     return 'residential shower'
   end
+    def self.ObjectNameShowerDist
+    return 'residential shower dist'
+  end
   def self.ObjectNameSink
     return 'residential sink'
+  end
+      def self.ObjectNameSinkDist
+    return 'residential sink dist'
   end
   def self.ObjectNameWellPump
     return 'residential well pump'
@@ -406,10 +424,10 @@ class Constants
     return 'pier and beam space type'
   end
   def self.PipeTypeTrunkBranch
-    return 'trunkbranch'
+    return 'trunk and branch'
   end
   def self.PipeTypeHomeRun
-    return 'homerun'
+    return 'home run'
   end
   def self.PlantLoopDomesticWater
     return 'Domestic Hot Water Loop'
@@ -422,6 +440,9 @@ class Constants
   end
   def self.RecircTypeDemand
     return 'demand' 
+  end
+  def self.RecircTypeNone
+    return 'none'
   end
   def self.RoofStructureRafter
     return 'rafter'
