@@ -62,6 +62,7 @@ class TsvFile
         
         matched_option_name = nil
         matched_row_num = nil
+        deps_s = hash_to_string(dependency_values)
         
         @rows.each_with_index do |row, rownum|
         
@@ -84,6 +85,15 @@ class TsvFile
             end
             next if not found_row
         
+            # Is this our second match?
+            if not matched_row_num.nil?
+                if deps_s.size > 0
+                    register_error("Multiple rows (#{matched_row_num+2}, #{rownum+2}) found in #{@filename.to_s} with dependencies: #{deps_s.to_s}.", @runner)
+                else
+                    register_error("Multiple rows (#{matched_row_num+2}, #{rownum+2}) found in #{@filename.to_s}.", @runner)
+                end
+            end
+
             # Convert data to numeric row values
             rowvals = {}
             @option_cols.each do |option_name, option_col|
@@ -120,7 +130,6 @@ class TsvFile
         end
         
         if matched_option_name.nil? or matched_option_name.size == 0
-            deps_s = hash_to_string(dependency_values)
             if deps_s.size > 0
                 register_error("Could not determine appropriate option in #{@filename.to_s} for sample value #{sample_value.to_s} with dependencies: #{deps_s.to_s}.", @runner)
             else

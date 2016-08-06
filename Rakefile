@@ -87,7 +87,6 @@ task :integrity_check do
       combo_hashes = get_combination_hashes(tsvfiles, tsvfile.dependency_cols.keys)
       combo_hashes.each do |combo_hash|
         _matched_option_name, matched_row_num = tsvfile.get_option_name_from_sample_number(1.0, combo_hash)
-        tsvfile.rows.delete_at(matched_row_num) # speed up subsequent combo_hash searches
       end
       
       # Integrity checks for option_lookup.txt
