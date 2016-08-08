@@ -713,7 +713,7 @@ def assign_ducts(df):
     
     def ductrval(sfducts):
         if len(sfducts) == 0:
-            return 'None'
+            pass
         for ducts in sfducts:
             if ducts.ductinsulationtype:
                 return sfductsRval[ducts.ductinsulationtype]

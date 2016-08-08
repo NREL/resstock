@@ -1053,7 +1053,7 @@ class Create_DFs():
             df_new['Weight'] = 0
             df = df.append(df_new)
         df = add_option_prefix(df)
-        df = df[['Option=7.5% Leakage, Uninsulated', 'Option=7.5% Leakage, R-4', 'Option=7.5% Leakage, R-6', 'Option=7.5% Leakage, R-8', 'Option=10% Leakage, Uninsulated', 'Option=10% Leakage, R-4', 'Option=10% Leakage, R-6', 'Option=10% Leakage, R-8', 'Option=15% Leakage, Uninsulated', 'Option=15% Leakage, R-4', 'Option=15% Leakage, R-6', 'Option=15% Leakage, R-8', 'Option=20% Leakage, Uninsulated', 'Option=20% Leakage, R-4', 'Option=20% Leakage, R-6', 'Option=20% Leakage, R-8', 'Option=30% Leakage, Uninsulated', 'Option=30% Leakage, R-4', 'Option=30% Leakage, R-6', 'Option=30% Leakage, R-8', 'Option=In Finished Space', 'Option=None', 'Count', 'Weight']]
+        df = df[['Option=7.5% Leakage, Uninsulated', 'Option=7.5% Leakage, R-4', 'Option=7.5% Leakage, R-6', 'Option=7.5% Leakage, R-8', 'Option=10% Leakage, Uninsulated', 'Option=10% Leakage, R-4', 'Option=10% Leakage, R-6', 'Option=10% Leakage, R-8', 'Option=15% Leakage, Uninsulated', 'Option=15% Leakage, R-4', 'Option=15% Leakage, R-6', 'Option=15% Leakage, R-8', 'Option=20% Leakage, Uninsulated', 'Option=20% Leakage, R-4', 'Option=20% Leakage, R-6', 'Option=20% Leakage, R-8', 'Option=30% Leakage, Uninsulated', 'Option=30% Leakage, R-4', 'Option=30% Leakage, R-6', 'Option=30% Leakage, R-8', 'Option=In Finished Space', 'Count', 'Weight']]
         df = df.reset_index()
         df['Dependency=Vintage'] = pd.Categorical(df['Dependency=Vintage'], ['<1950', '1950s', '1960s', '1970s', '1980s', '1990s', '2000s'])
         df = df.sort_values(by=['Dependency=Geometry Foundation Type', 'Dependency=Vintage']).set_index(['Dependency=Geometry Foundation Type', 'Dependency=Vintage'])
@@ -1102,7 +1102,7 @@ class Create_DFs():
         df['Count'] = count
         df['Weight'] = weight
         df = add_option_prefix(df)
-        df = df[['Option=Electric, 100% Usage', 'Option=Gas, 100% Usage', 'Option=None', 'Count', 'Weight']]
+        df = df[['Option=Electric, 100% Usage', 'Option=Gas, 100% Usage', 'Option=FIXME Propane, 100% Usage', 'Option=None', 'Count', 'Weight']]
         return df               
         
     def clothes_dryer(self):
@@ -1117,7 +1117,7 @@ class Create_DFs():
         df['Count'] = count
         df['Weight'] = weight
         df = add_option_prefix(df)
-        df = df[['Option=Electric, 100% Usage', 'Option=Gas, 100% Usage', 'Option=None', 'Count', 'Weight']]
+        df = df[['Option=Electric, 100% Usage', 'Option=Gas, 100% Usage', 'Option=FIXME Propane, 100% Usage', 'Option=None', 'Count', 'Weight']]
         return df
 
 def to_figure(df, file):
@@ -1145,7 +1145,7 @@ if __name__ == '__main__':
     dfs = Create_DFs('rbsa.sqlite')
     
 #    for category in ['Location Region', 'Vintage', 'Heating Fuel', 'Geometry Foundation Type', 'Geometry House Size', 'Geometry Stories', 'Insulation Unfinished Attic', 'Insulation Wall', 'Heating Setpoint', 'Cooling Setpoint', 'Insulation Slab', 'Insulation Crawlspace', 'Insulation Unfinished Basement', 'Insulation Finished Basement', 'Insulation Interzonal Floor', 'Windows', 'Infiltration', 'HVAC System Combined', 'HVAC System Heating', 'HVAC System Cooling', 'HVAC System Is Combined', 'Ducts', 'Water Heater', 'Lighting', 'Cooking Range', 'Clothes Dryer', 'Insulation Wall H1', 'Insulation Wall H2', 'Insulation Wall H3', 'Insulation Unfinished Attic H1', 'Insulation Unfinished Attic H2', 'Insulation Unfinished Attic H3', 'Windows H1', 'Windows H2', 'Windows H3']:
-    for category in ['Cooking Range', 'Clothes Dryer', 'Insulation Wall H1', 'Insulation Wall H2', 'Insulation Wall H3', 'Insulation Unfinished Attic H1', 'Insulation Unfinished Attic H2', 'Insulation Unfinished Attic H3', 'Windows H1', 'Windows H2', 'Windows H3']:
+    for category in ['Ducts']:
         print category
         method = getattr(dfs, category.lower().replace(' ', '_'))
         df = method()
