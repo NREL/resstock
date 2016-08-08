@@ -6,26 +6,50 @@ require 'fileutils'
 def validate_sampling(mode)
 
     # This is where results will be located
-    results_dir = File.join(File.dirname(__FILE__), "results", mode)
+    results_dir = File.join(File.dirname(__FILE__), "analysis_results")
     if not File.exists? results_dir
         Dir.mkdir(results_dir)
     end
     
     # Read all data from results csv file
-    results_file = File.join(results_dir, "resstock.csv")
+    results_file = File.join(results_dir, "resstock_#{mode}.csv")
     check_file_exists(results_file)
     results_data = CSV.read(results_file)
     if results_data.size == 0
         exit
     end
     
+    # Remove any data results for upgrades
+    upgrade_cols = []
+    results_data[0].each_with_index do |col_name, col_num|
+        if col_name.end_with?('.run_measure')
+            upgrade_cols << col_num
+        end
+    end
+    new_results_data = [results_data[0]]
+    results_data[1..-1].each do |row|
+        has_upgrade = false
+        upgrade_cols.each do |col_num|
+            if row[col_num].to_i == 1
+                has_upgrade = true
+                break
+            end
+        end
+        next if has_upgrade
+        new_results_data << row
+    end
+    results_data = new_results_data
+    
     skip_headers = ['Building']
+    report_name = 'building_characteristics_report.'
 
     # Get data from all probability distribution files; store in tsvfiles hash
     tsvfiles = {}
     prob_dist_dir = File.join(File.dirname(__FILE__), "resources", "inputs", mode)
     results_data[0].each do |param_name|
         next if skip_headers.include?(param_name)
+        next if !param_name.start_with?(report_name)
+        param_name = param_name.sub(report_name,'')
         
         # Get all data from this probability distribution file
         prob_dist_file = File.join(prob_dist_dir, param_name + ".tsv")
@@ -36,24 +60,26 @@ def validate_sampling(mode)
     end
 
     # Data
-    results_data_dir = File.join(results_dir, "data")
+    results_data_dir = File.join(results_dir, mode, "data")
     FileUtils.rm_rf("#{results_data_dir}/.", secure: true)
-    Dir.mkdir(results_data_dir)
-    all_samples_results = generate_data_output(results_data, tsvfiles, results_data_dir, skip_headers)
-    generate_data_input(results_data, tsvfiles, results_data_dir, skip_headers)
+    FileUtils.mkpath(results_data_dir)
+    all_samples_results = generate_data_output(results_data, tsvfiles, results_data_dir, skip_headers, report_name)
+    generate_data_input(results_data, tsvfiles, results_data_dir, skip_headers, report_name)
     
     # Visualization
-    results_vis_dir = File.join(results_dir, "visualizations")
+    results_vis_dir = File.join(results_dir, mode, "visualizations")
     FileUtils.rm_rf("#{results_vis_dir}/.", secure: true)
-    Dir.mkdir(results_vis_dir)
-    generate_visualizations(results_data, tsvfiles, results_vis_dir, all_samples_results, skip_headers)
+    FileUtils.mkpath(results_vis_dir)
+    generate_visualizations(results_data, tsvfiles, results_vis_dir, all_samples_results, skip_headers, report_name)
 end 
 
-def generate_data_output(results_data, tsvfiles, results_data_dir, skip_headers)
+def generate_data_output(results_data, tsvfiles, results_data_dir, skip_headers, report_name)
     # Create map of parameter names to results_file columns
     results_file_cols = {}
     tsvfiles.keys.each do |param_name|
         results_data[0].each_with_index do |col_header, index|
+            next if !col_header.start_with?(report_name)
+            col_header = col_header.sub(report_name,'')
             next if col_header != param_name
             results_file_cols[param_name] = index
         end
@@ -63,10 +89,12 @@ def generate_data_output(results_data, tsvfiles, results_data_dir, skip_headers)
     all_samples_results = {}
     results_data[0].each do |param_name|
         next if skip_headers.include?(param_name)
+        next if !param_name.start_with?(report_name)
+        param_name = param_name.sub(report_name,'')
         
         tsvfile = tsvfiles[param_name]
         puts "Processing data for #{param_name}..."
-
+        
         # Generate combinations of dependency options
         if tsvfile.dependency_cols.size > 0
             dep_combos = []
@@ -150,10 +178,12 @@ def generate_data_output(results_data, tsvfiles, results_data_dir, skip_headers)
     return all_samples_results
 end
 
-def generate_data_input(results_data, tsvfiles, results_data_dir, skip_headers)
+def generate_data_input(results_data, tsvfiles, results_data_dir, skip_headers, report_name)
     # Generate probability distribution inputs in compatible form
     results_data[0].each do |param_name|
         next if skip_headers.include?(param_name)
+        next if !param_name.start_with?(report_name)
+        param_name = param_name.sub(report_name,'')
         
         tsvfile = tsvfiles[param_name]
         
@@ -173,12 +203,14 @@ def generate_data_input(results_data, tsvfiles, results_data_dir, skip_headers)
     end
 end
 
-def generate_visualizations(results_data, tsvfiles, results_vis_dir, all_samples_results, skip_headers)
+def generate_visualizations(results_data, tsvfiles, results_vis_dir, all_samples_results, skip_headers, report_name)
     # Generate html visualizations via Google
 
     html_filenames = {}
     results_data[0].each do |param_name|
         next if skip_headers.include?(param_name)
+        next if !param_name.start_with?(report_name)
+        param_name = param_name.sub(report_name,'')
         
         tsvfile = tsvfiles[param_name]
         
