@@ -851,7 +851,7 @@ def assign_cd(df):
                    'Other': 'Other Fuel',
                    'Oil': 'Oil',
                    'Pellets': 'Other Fuel',
-                   None: 'Other Fuel'}    
+                   None: 'Other Fuel'}
     
     cd = []
     for index, row in df.iterrows():
