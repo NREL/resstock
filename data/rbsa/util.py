@@ -703,8 +703,8 @@ def assign_ducts(df):
                    'R7-R11 Metal; R4 Flex': 'R-8',
                    'R7-R11 Metal; R6 Flex': 'R-8',
                    'R7-R11 Metal; R8 Flex': 'R-8',
-                   '1" Ductboard': 'Uninsulated',
-                   '2" Ductboard': 'Uninsulated',
+                   '1" Ductboard': 'R-4',
+                   '2" Ductboard': 'R-8',
                    '1" Ductboard; R4 Flex': 'R-4',
                    '1" Ductboard; R6 Flex': 'R-6',
                    '1" Ductboard; R8 Flex': 'R-8',
@@ -718,21 +718,21 @@ def assign_ducts(df):
             if ducts.ductinsulationtype:
                 return sfductsRval[ducts.ductinsulationtype]
             else:
-                return 'Uninsulated'
+                return 'Uninsulated' # FIXME: Change to 'None'
             
     def ductleak(sfducttesting_dbase):
         if len(sfducttesting_dbase) == 0:
             return 'In Finished Space'
         for ducts in sfducttesting_dbase:
-            if ducts.supq25calc or ducts.retq25calc:
+            if ducts.slfhalfplen or ducts.rlfhalfplen:
                 try:
-                    frac = (ducts.supq25calc + ducts.retq25calc) / 1200.0
-                except:
+                    frac = (ducts.slfhalfplen + ducts.rlfhalfplen)
+                except: # FIXME: Incorrect assumption that NULL is zero
                     try:
-                        frac = ducts.supq25calc / 1200.0
+                        frac = ducts.slfhalfplen
                     except:
                         try:
-                            frac = ducts.retq25calc / 1200.0
+                            frac = ducts.slfhalfplen
                         except:
                             pass
                 if frac < .0875:
@@ -746,7 +746,7 @@ def assign_ducts(df):
                 elif frac >= .25:
                     return '30% Leakage'
             else:
-                return 'In Finished Space' # shouldn't assume this
+                return 'In Finished Space' # FIXME: Change to 'None'
     
     def ductname(rval, leak):
         if rval == 'None':
@@ -754,8 +754,8 @@ def assign_ducts(df):
         elif not leak == 'In Finished Space':
             return '{leak}, {rval}'.format(leak=leak, rval=rval)
         else:
-            return 'In Finished Space'
-        
+            return 'In Finished Space' # FIXME: Change to 'None'
+
     df['ductrval'] = df.apply(lambda x: ductrval(x.object.sfducts), axis=1)
     df['ductleak'] = df.apply(lambda x: ductleak(x.object.sfducttestingdbase), axis=1)
     df = df.dropna(subset=['ductleak'])
