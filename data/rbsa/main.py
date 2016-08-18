@@ -83,7 +83,7 @@ class Create_DFs():
             df_new['Weight'] = 0
             df = df.append(df_new)
         df = add_option_prefix(df)
-        df = df[['Option=Electricity', 'Option=Natural Gas', 'Option=Fuel Oil', 'Option=Propane/LPG', 'Option=Other Fuel', 'Option=None', 'Count', 'Weight']]
+        df = df[['Option=Electricity', 'Option=Natural Gas', 'Option=Fuel Oil', 'Option=Propane/LPG', 'Option=Wood', 'Count', 'Weight']]
         df = df.reset_index()
         df['Dependency=Vintage'] = pd.Categorical(df['Dependency=Vintage'], ['<1950', '1950s', '1960s', '1970s', '1980s', '1990s', '2000s'])        
         df = df.sort_values(by=['Dependency=Location Region', 'Dependency=Vintage']).set_index(['Dependency=Location Region', 'Dependency=Vintage'])        
@@ -1145,7 +1145,7 @@ if __name__ == '__main__':
     dfs = Create_DFs('rbsa.sqlite')
     
 #    for category in ['Location Region', 'Vintage', 'Heating Fuel', 'Geometry Foundation Type', 'Geometry House Size', 'Geometry Stories', 'Insulation Unfinished Attic', 'Insulation Wall', 'Heating Setpoint', 'Cooling Setpoint', 'Insulation Slab', 'Insulation Crawlspace', 'Insulation Unfinished Basement', 'Insulation Finished Basement', 'Insulation Interzonal Floor', 'Windows', 'Infiltration', 'HVAC System Combined', 'HVAC System Heating', 'HVAC System Cooling', 'HVAC System Is Combined', 'Ducts', 'Water Heater', 'Lighting', 'Cooking Range', 'Clothes Dryer', 'Insulation Wall H1', 'Insulation Wall H2', 'Insulation Wall H3', 'Insulation Unfinished Attic H1', 'Insulation Unfinished Attic H2', 'Insulation Unfinished Attic H3', 'Windows H1', 'Windows H2', 'Windows H3']:
-    for category in ['Ducts']:
+    for category in ['Heating Fuel']:
         print category
         method = getattr(dfs, category.lower().replace(' ', '_'))
         df = method()

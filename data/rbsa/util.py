@@ -125,10 +125,12 @@ def assign_heating_fuel(df):
                    'Gas': 'Natural Gas',
                    'Oil/Kerosene': 'Fuel Oil',
                    'Propane': 'Propane/LPG',
-                   'Wood': 'Other Fuel',
-                   'Other': 'Other Fuel',
+                   'Wood': 'Wood',
                    'Oil': 'Fuel Oil',
-                   'Pellets': 'Other Fuel'}
+                   'Pellets': 'Wood'}
+    
+    # skip None
+    # and rename Other Fuel To Wood (there are no primary Other in RBSA)
     
     def fuel(hvacheating):
         for eq in hvacheating:
@@ -139,7 +141,7 @@ def assign_heating_fuel(df):
                     return None
     
     df['Dependency=Heating Fuel'] = df.apply(lambda x: fuel(x.object.hvacheating), axis=1)
-    df['Dependency=Heating Fuel'] = df['Dependency=Heating Fuel'].fillna('None')
+    df = df[pd.notnull(df['Dependency=Heating Fuel'])]
 
     return df
 
