@@ -864,7 +864,7 @@ class Create_DFs():
         df, cols = util.categories_to_columns(df, 'htg_and_clg')
         df = df.groupby(['Dependency=Location Region', 'Dependency=Vintage', 'Dependency=Heating Fuel', 'Dependency=HVAC System Is Combined'])
         missing_groups = []
-        for group in itertools.product(*[['H1C1 OR', 'H1C1 WA', 'H1C2', 'H1C3', 'H2', 'H3'], ['<1950', '1950s', '1960s', '1970s', '1980s', '1990s', '2000s'], ['Electricity', 'Fuel Oil', 'Natural Gas', 'None', 'Other Fuel', 'Propane/LPG'], ['Yes', 'No']]):
+        for group in itertools.product(*[['H1C1 OR', 'H1C1 WA', 'H1C2', 'H1C3', 'H2', 'H3'], ['<1950', '1950s', '1960s', '1970s', '1980s', '1990s', '2000s'], ['Electricity', 'Fuel Oil', 'Natural Gas', 'Propane/LPG', 'Wood'], ['Yes', 'No']]):
             if not group in list(df.groups):
                 missing_groups.append(dict(zip(['Dependency=Location Region', 'Dependency=Vintage', 'Dependency=Heating Fuel', 'Dependency=HVAC System Is Combined'], group)))            
         count = df.agg(['count']).ix[:, 0]
@@ -877,14 +877,10 @@ class Create_DFs():
         columns.remove('Weight')       
         for group in missing_groups:
             if group['Dependency=Heating Fuel'] == 'Electricity' and group['Dependency=HVAC System Is Combined'] == 'Yes':
-                columns.remove('None')
                 data = dict(group.items() + dict(zip(columns, [1.0/len(columns)] * len(columns))).items())
-                columns.append('None')
-                data['None'] = 0
                 df_new = pd.DataFrame(data=data, index=[0]).set_index(['Dependency=Location Region', 'Dependency=Vintage', 'Dependency=Heating Fuel', 'Dependency=HVAC System Is Combined'])
             else:
                 data = dict(group.items() + dict(zip(columns, [0] * len(columns))).items())
-                data['None'] = 1
                 df_new = pd.DataFrame(data=data, index=[0]).set_index(['Dependency=Location Region', 'Dependency=Vintage', 'Dependency=Heating Fuel', 'Dependency=HVAC System Is Combined'])
             df_new['Count'] = 0
             df_new['Weight'] = 0
@@ -907,7 +903,7 @@ class Create_DFs():
         df, cols = util.categories_to_columns(df, 'Dependency=HVAC System Is Combined')
         df = df.groupby(['Dependency=Location Region', 'Dependency=Vintage', 'Dependency=Heating Fuel'])
         missing_groups = []
-        for group in itertools.product(*[['H1C1 OR', 'H1C1 WA', 'H1C2', 'H1C3', 'H2', 'H3'], ['<1950', '1950s', '1960s', '1970s', '1980s', '1990s', '2000s'], ['Electricity', 'Fuel Oil', 'Natural Gas', 'None', 'Other Fuel', 'Propane/LPG']]):
+        for group in itertools.product(*[['H1C1 OR', 'H1C1 WA', 'H1C2', 'H1C3', 'H2', 'H3'], ['<1950', '1950s', '1960s', '1970s', '1980s', '1990s', '2000s'], ['Electricity', 'Fuel Oil', 'Natural Gas', 'Propane/LPG', 'Wood']]):
             if not group in list(df.groups):
                 missing_groups.append(dict(zip(['Dependency=Location Region', 'Dependency=Vintage', 'Dependency=Heating Fuel'], group)))
         count = df.agg(['count']).ix[:, 0]
@@ -924,7 +920,6 @@ class Create_DFs():
                 df_new = pd.DataFrame(data=data, index=[0]).set_index(['Dependency=Location Region', 'Dependency=Vintage', 'Dependency=Heating Fuel'])
             else:
                 data = dict(group.items() + dict(zip(columns, [0] * len(columns))).items())
-                data['No'] = 1
                 df_new = pd.DataFrame(data=data, index=[0]).set_index(['Dependency=Location Region', 'Dependency=Vintage', 'Dependency=Heating Fuel'])
             df_new['Count'] = 0
             df_new['Weight'] = 0
@@ -948,7 +943,7 @@ class Create_DFs():
         df, cols = util.categories_to_columns(df, 'htg')
         df = df.groupby(['Dependency=Location Region', 'Dependency=Vintage', 'Dependency=Heating Fuel', 'Dependency=HVAC System Is Combined'])
         missing_groups = []
-        for group in itertools.product(*[['H1C1 OR', 'H1C1 WA', 'H1C2', 'H1C3', 'H2', 'H3'], ['<1950', '1950s', '1960s', '1970s', '1980s', '1990s', '2000s'], ['Electricity', 'Fuel Oil', 'Natural Gas', 'None', 'Other Fuel', 'Propane/LPG'], ['Yes', 'No']]):
+        for group in itertools.product(*[['H1C1 OR', 'H1C1 WA', 'H1C2', 'H1C3', 'H2', 'H3'], ['<1950', '1950s', '1960s', '1970s', '1980s', '1990s', '2000s'], ['Electricity', 'Fuel Oil', 'Natural Gas', 'Propane/LPG', 'Wood'], ['Yes', 'No']]):
             if not group in list(df.groups):
                 missing_groups.append(dict(zip(['Dependency=Location Region', 'Dependency=Vintage', 'Dependency=Heating Fuel', 'Dependency=HVAC System Is Combined'], group)))           
         count = df.agg(['count']).ix[:, 0]
@@ -960,15 +955,11 @@ class Create_DFs():
         columns.remove('Count')
         columns.remove('Weight')       
         for group in missing_groups:
-            if group['Dependency=HVAC System Is Combined'] == 'No' and not group['Dependency=Heating Fuel'] == 'None':
-                columns.remove('None')
+            if group['Dependency=HVAC System Is Combined'] == 'No':
                 data = dict(group.items() + dict(zip(columns, [1.0/len(columns)] * len(columns))).items())
-                columns.append('None')
-                data['None'] = 0
                 df_new = pd.DataFrame(data=data, index=[0]).set_index(['Dependency=Location Region', 'Dependency=Vintage', 'Dependency=Heating Fuel', 'Dependency=HVAC System Is Combined'])
             else:
                 data = dict(group.items() + dict(zip(columns, [0] * len(columns))).items())
-                data['None'] = 1
                 df_new = pd.DataFrame(data=data, index=[0]).set_index(['Dependency=Location Region', 'Dependency=Vintage', 'Dependency=Heating Fuel', 'Dependency=HVAC System Is Combined'])
             df_new['Count'] = 0
             df_new['Weight'] = 0
@@ -993,7 +984,7 @@ class Create_DFs():
         df, cols = util.categories_to_columns(df, 'clg')
         df = df.groupby(['Dependency=Location Region', 'Dependency=Vintage', 'Dependency=Heating Fuel', 'Dependency=HVAC System Is Combined'])
         missing_groups = []
-        for group in itertools.product(*[['H1C1 OR', 'H1C1 WA', 'H1C2', 'H1C3', 'H2', 'H3'], ['<1950', '1950s', '1960s', '1970s', '1980s', '1990s', '2000s'], ['Electricity', 'Fuel Oil', 'Natural Gas', 'None', 'Other Fuel', 'Propane/LPG'], ['Yes', 'No']]):
+        for group in itertools.product(*[['H1C1 OR', 'H1C1 WA', 'H1C2', 'H1C3', 'H2', 'H3'], ['<1950', '1950s', '1960s', '1970s', '1980s', '1990s', '2000s'], ['Electricity', 'Fuel Oil', 'Natural Gas', 'Propane/LPG', 'Wood'], ['Yes', 'No']]):
             if not group in list(df.groups):
                 missing_groups.append(dict(zip(['Dependency=Location Region', 'Dependency=Vintage', 'Dependency=Heating Fuel', 'Dependency=HVAC System Is Combined'], group)))           
         count = df.agg(['count']).ix[:, 0]
@@ -1006,14 +997,10 @@ class Create_DFs():
         columns.remove('Weight')       
         for group in missing_groups:
             if group['Dependency=HVAC System Is Combined'] == 'No':
-                columns.remove('None')
                 data = dict(group.items() + dict(zip(columns, [1.0/len(columns)] * len(columns))).items())
-                columns.append('None')
-                data['None'] = 0
                 df_new = pd.DataFrame(data=data, index=[0]).set_index(['Dependency=Location Region', 'Dependency=Vintage', 'Dependency=Heating Fuel', 'Dependency=HVAC System Is Combined'])
             else:
                 data = dict(group.items() + dict(zip(columns, [0] * len(columns))).items())
-                data['None'] = 1
                 df_new = pd.DataFrame(data=data, index=[0]).set_index(['Dependency=Location Region', 'Dependency=Vintage', 'Dependency=Heating Fuel', 'Dependency=HVAC System Is Combined'])
             df_new['Count'] = 0
             df_new['Weight'] = 0
