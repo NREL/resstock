@@ -877,10 +877,14 @@ class Create_DFs():
         columns.remove('Weight')       
         for group in missing_groups:
             if group['Dependency=Heating Fuel'] == 'Electricity' and group['Dependency=HVAC System Is Combined'] == 'Yes':
+                columns.remove('None')
                 data = dict(group.items() + dict(zip(columns, [1.0/len(columns)] * len(columns))).items())
+                columns.append('None')
+                data['None'] = 0
                 df_new = pd.DataFrame(data=data, index=[0]).set_index(['Dependency=Location Region', 'Dependency=Vintage', 'Dependency=Heating Fuel', 'Dependency=HVAC System Is Combined'])
             else:
                 data = dict(group.items() + dict(zip(columns, [0] * len(columns))).items())
+                data['None'] = 1
                 df_new = pd.DataFrame(data=data, index=[0]).set_index(['Dependency=Location Region', 'Dependency=Vintage', 'Dependency=Heating Fuel', 'Dependency=HVAC System Is Combined'])
             df_new['Count'] = 0
             df_new['Weight'] = 0
@@ -920,6 +924,7 @@ class Create_DFs():
                 df_new = pd.DataFrame(data=data, index=[0]).set_index(['Dependency=Location Region', 'Dependency=Vintage', 'Dependency=Heating Fuel'])
             else:
                 data = dict(group.items() + dict(zip(columns, [0] * len(columns))).items())
+                data['No'] = 1
                 df_new = pd.DataFrame(data=data, index=[0]).set_index(['Dependency=Location Region', 'Dependency=Vintage', 'Dependency=Heating Fuel'])
             df_new['Count'] = 0
             df_new['Weight'] = 0
@@ -956,10 +961,14 @@ class Create_DFs():
         columns.remove('Weight')       
         for group in missing_groups:
             if group['Dependency=HVAC System Is Combined'] == 'No':
+                columns.remove('None')
                 data = dict(group.items() + dict(zip(columns, [1.0/len(columns)] * len(columns))).items())
+                columns.append('None')
+                data['None'] = 0
                 df_new = pd.DataFrame(data=data, index=[0]).set_index(['Dependency=Location Region', 'Dependency=Vintage', 'Dependency=Heating Fuel', 'Dependency=HVAC System Is Combined'])
             else:
                 data = dict(group.items() + dict(zip(columns, [0] * len(columns))).items())
+                data['None'] = 1
                 df_new = pd.DataFrame(data=data, index=[0]).set_index(['Dependency=Location Region', 'Dependency=Vintage', 'Dependency=Heating Fuel', 'Dependency=HVAC System Is Combined'])
             df_new['Count'] = 0
             df_new['Weight'] = 0
@@ -997,10 +1006,14 @@ class Create_DFs():
         columns.remove('Weight')       
         for group in missing_groups:
             if group['Dependency=HVAC System Is Combined'] == 'No':
+                columns.remove('None')
                 data = dict(group.items() + dict(zip(columns, [1.0/len(columns)] * len(columns))).items())
+                columns.append('None')
+                data['None'] = 0
                 df_new = pd.DataFrame(data=data, index=[0]).set_index(['Dependency=Location Region', 'Dependency=Vintage', 'Dependency=Heating Fuel', 'Dependency=HVAC System Is Combined'])
             else:
                 data = dict(group.items() + dict(zip(columns, [0] * len(columns))).items())
+                data['None'] = 1
                 df_new = pd.DataFrame(data=data, index=[0]).set_index(['Dependency=Location Region', 'Dependency=Vintage', 'Dependency=Heating Fuel', 'Dependency=HVAC System Is Combined'])
             df_new['Count'] = 0
             df_new['Weight'] = 0
