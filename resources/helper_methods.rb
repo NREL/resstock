@@ -384,15 +384,17 @@ def run_measure(model, measure, argument_map, runner)
       end
 
       # log messages
-      result_child.errors.each do |error|
-        runner.registerError(error.logMessage)
-        return false
-      end
       result_child.warnings.each do |warning|
         runner.registerWarning(warning.logMessage)
       end
       result_child.info.each do |info|
         runner.registerInfo(info.logMessage)
+      end
+      result_child.errors.each do |error|
+        runner.registerError(error.logMessage)
+      end
+      if result_child.errors.size > 0
+        return false
       end
 
       # convert a return false in the measure to a return false and error here.

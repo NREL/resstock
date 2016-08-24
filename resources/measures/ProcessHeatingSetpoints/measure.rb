@@ -36,7 +36,7 @@ class ProcessHeatingSetpoints < OpenStudio::Ruleset::ModelUserScript
    	#Make a string argument for 24 weekday heating set point values
     htg_wkdy = OpenStudio::Ruleset::OSArgument::makeStringArgument("htg_wkdy", false)
     htg_wkdy.setDisplayName("Weekday Setpoint")
-    htg_wkdy.setDescription("Specify a single heating setpoint or a 24-hour heating schedule for the weekdays.")
+    htg_wkdy.setDescription("Specify a single heating setpoint or a 24-hour comma-separated heating schedule for the weekdays.")
     htg_wkdy.setUnits("degrees F")
     htg_wkdy.setDefaultValue("71")
     args << htg_wkdy
@@ -44,7 +44,7 @@ class ProcessHeatingSetpoints < OpenStudio::Ruleset::ModelUserScript
    	#Make a string argument for 24 weekend heating set point values
     htg_wked = OpenStudio::Ruleset::OSArgument::makeStringArgument("htg_wked", false)
     htg_wked.setDisplayName("Weekend Setpoint")
-    htg_wked.setDescription("Specify a single heating setpoint or a 24-hour heating schedule for the weekend.")
+    htg_wked.setDescription("Specify a single heating setpoint or a 24-hour comma-separated heating schedule for the weekend.")
     htg_wked.setUnits("degrees F")
     htg_wked.setDefaultValue("71")
     args << htg_wked
@@ -75,7 +75,7 @@ class ProcessHeatingSetpoints < OpenStudio::Ruleset::ModelUserScript
     end
     
     heatingseasonschedule = MonthWeekdayWeekendSchedule.new(model, runner, Constants.ObjectNameHeatingSeason, Array.new(24, 1), Array.new(24, 1), heating_season, mult_weekday=1.0, mult_weekend=1.0, normalize_values=false)
-    
+        
     unless heatingseasonschedule.validated?
       return false
     end
@@ -83,7 +83,7 @@ class ProcessHeatingSetpoints < OpenStudio::Ruleset::ModelUserScript
     # assign the availability schedules to the equipment objects
     htg_equip = false
     model.getThermalZones.each do |thermal_zone|
-    htg_coil = HelperMethods.existing_heating_equipment(model, runner, thermal_zone)
+      htg_coil = HelperMethods.existing_heating_equipment(model, runner, thermal_zone)
       unless htg_coil.nil?
         if htg_coil.is_a? OpenStudio::Model::AirLoopHVACUnitarySystem
           air_loop_unitary = htg_coil

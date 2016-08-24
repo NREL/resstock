@@ -2,116 +2,36 @@
   <schema_version>3.0</schema_version>
   <name>add_residential_bedrooms_and_bathrooms</name>
   <uid>fbcd41af-eace-4695-a5a4-b017acfe1f99</uid>
-  <version_id>eb28686f-b24e-4f05-bd6f-901067dc3260</version_id>
-  <version_modified>20160806T150900Z</version_modified>
-  <xml_checksum>57232789</xml_checksum>
+  <version_id>5fa4b206-52cc-4b9b-9855-fcac6db91b0d</version_id>
+  <version_modified>20160823T203138Z</version_modified>
+  <xml_checksum>2AF3A68E</xml_checksum>
   <class_name>AddResidentialBedroomsAndBathrooms</class_name>
-  <display_name>Set Residential Number of Beds, Baths, and Occupants</display_name>
-  <description>Sets the number of bedrooms and bathrooms in the building as well as the number/schedule of occupants.</description>
-  <modeler_description>Sets (or replaces) dummy ElectricEquipment objects that store the number of bedrooms and bathrooms associated with the model. Also sets the People object for each finished space in the model.</modeler_description>
+  <display_name>Set Residential Number of Beds and Baths</display_name>
+  <description>Sets the number of bedrooms and bathrooms in the building. For multifamily buildings, the bedrooms/bathrooms can be set for all units of the building.</description>
+  <modeler_description>Sets (or replaces) dummy ElectricEquipment objects that store the number of bedrooms and bathrooms associated with the model.</modeler_description>
   <arguments>
     <argument>
       <name>Num_Br</name>
       <display_name>Number of Bedrooms</display_name>
-      <description>Used to determine the energy usage of appliances and plug loads, hot water usage, mechanical ventilation rate, etc.</description>
-      <type>Choice</type>
-      <required>true</required>
+      <description>Specify the number of bedrooms. For a multifamily building, specify one value for all units or a comma-separated set of values (in the correct order) for each unit. Used to determine the energy usage of appliances and plug loads, hot water usage, mechanical ventilation rate, etc.</description>
+      <type>String</type>
+      <required>false</required>
       <model_dependent>false</model_dependent>
       <default_value>3</default_value>
-      <choices>
-        <choice>
-          <value>1</value>
-          <display_name>1</display_name>
-        </choice>
-        <choice>
-          <value>2</value>
-          <display_name>2</display_name>
-        </choice>
-        <choice>
-          <value>3</value>
-          <display_name>3</display_name>
-        </choice>
-        <choice>
-          <value>4</value>
-          <display_name>4</display_name>
-        </choice>
-        <choice>
-          <value>5+</value>
-          <display_name>5+</display_name>
-        </choice>
-      </choices>
     </argument>
     <argument>
       <name>Num_Ba</name>
       <display_name>Number of Bathrooms</display_name>
-      <description>Used to determine the hot water usage, etc.</description>
-      <type>Choice</type>
-      <required>true</required>
-      <model_dependent>false</model_dependent>
-      <default_value>2</default_value>
-      <choices>
-        <choice>
-          <value>1</value>
-          <display_name>1</display_name>
-        </choice>
-        <choice>
-          <value>1.5</value>
-          <display_name>1.5</display_name>
-        </choice>
-        <choice>
-          <value>2</value>
-          <display_name>2</display_name>
-        </choice>
-        <choice>
-          <value>2.5</value>
-          <display_name>2.5</display_name>
-        </choice>
-        <choice>
-          <value>3+</value>
-          <display_name>3+</display_name>
-        </choice>
-      </choices>
-    </argument>
-    <argument>
-      <name>occupants</name>
-      <display_name>Number of Occupants</display_name>
-      <description>Use 'auto' to calculate the average number of occupants from the number of bedrooms. Only used to specify the internal gains from people.</description>
+      <description>Specify the number of bathrooms. For a multifamily building, specify one value for all units or a comma-separated set of values (in the correct order) for each unit. Used to determine the hot water usage, etc.</description>
       <type>String</type>
       <required>false</required>
       <model_dependent>false</model_dependent>
-      <default_value>auto</default_value>
-    </argument>
-    <argument>
-      <name>weekday_sch</name>
-      <display_name>Weekday schedule</display_name>
-      <description>Specify the 24-hour weekday schedule.</description>
-      <type>String</type>
-      <required>true</required>
-      <model_dependent>false</model_dependent>
-      <default_value>1.00000, 1.00000, 1.00000, 1.00000, 1.00000, 1.00000, 1.00000, 0.88310, 0.40861, 0.24189, 0.24189, 0.24189, 0.24189, 0.24189, 0.24189, 0.24189, 0.29498, 0.55310, 0.89693, 0.89693, 0.89693, 1.00000, 1.00000, 1.00000</default_value>
-    </argument>
-    <argument>
-      <name>weekend_sch</name>
-      <display_name>Weekend schedule</display_name>
-      <description>Specify the 24-hour weekend schedule.</description>
-      <type>String</type>
-      <required>true</required>
-      <model_dependent>false</model_dependent>
-      <default_value>1.00000, 1.00000, 1.00000, 1.00000, 1.00000, 1.00000, 1.00000, 0.88310, 0.40861, 0.24189, 0.24189, 0.24189, 0.24189, 0.24189, 0.24189, 0.24189, 0.29498, 0.55310, 0.89693, 0.89693, 0.89693, 1.00000, 1.00000, 1.00000</default_value>
-    </argument>
-    <argument>
-      <name>monthly_sch</name>
-      <display_name>Month schedule</display_name>
-      <description>Specify the 12-month schedule.</description>
-      <type>String</type>
-      <required>true</required>
-      <model_dependent>false</model_dependent>
-      <default_value>1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0</default_value>
+      <default_value>2</default_value>
     </argument>
   </arguments>
   <provenances/>
   <tags>
-    <tag>People.Characteristics</tag>
+    <tag>Envelope.Form</tag>
   </tags>
   <attributes>
     <attribute>
@@ -137,6 +57,54 @@
   </attributes>
   <files>
     <file>
+      <filename>util.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>2792E40D</checksum>
+    </file>
+    <file>
+      <filename>2000sqft_2story_FB_GRG_UA.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>94E03665</checksum>
+    </file>
+    <file>
+      <filename>multifamily_3_units.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>F0401975</checksum>
+    </file>
+    <file>
+      <filename>multifamily_urbanopt.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>F0F23347</checksum>
+    </file>
+    <file>
+      <filename>2000sqft_2story_FB_GRG_UA_no_spaces_in_unit.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>57B74851</checksum>
+    </file>
+    <file>
+      <filename>EmptySeedModel.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>94409751</checksum>
+    </file>
+    <file>
+      <filename>multifamily_4_units_listed_3_units_defined.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>2B310635</checksum>
+    </file>
+    <file>
+      <filename>BedroomsAndBathrooms_Test.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>test</usage_type>
+      <checksum>92592FE3</checksum>
+    </file>
+    <file>
       <version>
         <software_program>OpenStudio</software_program>
         <identifier>1.9.0</identifier>
@@ -145,31 +113,19 @@
       <filename>measure.rb</filename>
       <filetype>rb</filetype>
       <usage_type>script</usage_type>
-      <checksum>D07F898E</checksum>
-    </file>
-    <file>
-      <filename>geometry.rb</filename>
-      <filetype>rb</filetype>
-      <usage_type>resource</usage_type>
-      <checksum>2285CA0B</checksum>
-    </file>
-    <file>
-      <filename>util.rb</filename>
-      <filetype>rb</filetype>
-      <usage_type>resource</usage_type>
-      <checksum>2792E40D</checksum>
-    </file>
-    <file>
-      <filename>schedules.rb</filename>
-      <filetype>rb</filetype>
-      <usage_type>resource</usage_type>
-      <checksum>49A218DA</checksum>
+      <checksum>FC1794EB</checksum>
     </file>
     <file>
       <filename>constants.rb</filename>
       <filetype>rb</filetype>
       <usage_type>resource</usage_type>
-      <checksum>1AB9292D</checksum>
+      <checksum>A5CA5B20</checksum>
+    </file>
+    <file>
+      <filename>geometry.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>239A6D5F</checksum>
     </file>
   </files>
 </measure>

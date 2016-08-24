@@ -190,13 +190,12 @@ class Waterheater
 		return pump
 	end
 	
-	def self.create_new_schedule_ruleset(name, schedule_name, t_set, model)
+	def self.create_new_schedule_ruleset(name, schedule_name, t_set_c, model)
 		#Create a setpoint schedule for the water heater
 		new_schedule = OpenStudio::Model::ScheduleRuleset.new(model)
-		t_set_c = OpenStudio::convert(t_set,"F","C").get
 		new_schedule.setName(name)
 		new_schedule.defaultDaySchedule.setName(schedule_name)
-		new_schedule.defaultDaySchedule.addValue(OpenStudio::Time.new("24:00:00"), t_set)
+		new_schedule.defaultDaySchedule.addValue(OpenStudio::Time.new("24:00:00"), t_set_c)
 		return new_schedule
 	end
 	
@@ -289,8 +288,8 @@ class Waterheater
 	end 
   
     def self.configure_setpoint_schedule(new_heater, t_set, tanktype, model, runner)
-        set_temp = OpenStudio::convert(t_set,"F","C").get + self.deadband(tanktype)/2.0 #Half the deadband to account for E+ deadband
-        new_schedule = self.create_new_schedule_ruleset("DHW Set Temp", "DHW Set Temp", set_temp, model)
+        set_temp_c = OpenStudio::convert(t_set,"F","C").get + self.deadband(tanktype)/2.0 #Half the deadband to account for E+ deadband
+        new_schedule = self.create_new_schedule_ruleset("DHW Set Temp", "DHW Set Temp", set_temp_c, model)
 		new_heater.setSetpointTemperatureSchedule(new_schedule)
 		runner.registerInfo("A schedule named DHW Set Temp was created and applied to the gas water heater, using a constant temperature of #{t_set.to_s} F for generating domestic hot water.")
 	end
@@ -351,7 +350,7 @@ class Waterheater
                 ba_cz_name = climateZone.value.to_s
             end
         end
-        living = Geometry.get_default_space(model)
+        living = Geometry.get_unit_default_finished_space(Geometry.get_finished_spaces(model), runner)
         garage = Geometry.get_garage_spaces(model)
         fin_basement = Geometry.get_finished_basement_spaces(model)
         unfin_basement = Geometry.get_unfinished_basement_spaces(model)

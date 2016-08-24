@@ -293,3 +293,6 @@ class RunSampling
     end
 
 end
+
+#r = RunSampling.new
+#r.run('pnw',1000)

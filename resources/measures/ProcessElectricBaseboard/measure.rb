@@ -21,7 +21,7 @@ class ProcessElectricBaseboard < OpenStudio::Ruleset::ModelUserScript
   end
   
   def description
-    return "This measure removes any existing electric baseboards from the building and adds electric baseboards."
+    return "This measure removes any existing electric baseboards from the building and adds electric baseboards. For multifamily buildings, the electric baseboard can be set for all units of the building."
   end
   
   def modeler_description
@@ -74,39 +74,52 @@ class ProcessElectricBaseboard < OpenStudio::Ruleset::ModelUserScript
     # Check if has equipment
     HelperMethods.remove_hot_water_loop(model, runner)   
    
-    control_slave_zones_hash = Geometry.get_control_and_slave_zones(model)
-    control_slave_zones_hash.each do |control_zone, slave_zones|
+    num_units = Geometry.get_num_units(model, runner)
+    if num_units.nil?
+        return false
+    end
     
-      # Remove existing equipment
-      HelperMethods.remove_existing_hvac_equipment(model, runner, "Electric Baseboard", control_zone)
-    
-      htg_coil = OpenStudio::Model::ZoneHVACBaseboardConvectiveElectric.new(model)
-      htg_coil.setName("Living Zone Electric Baseboards")
-      if baseboardOutputCapacity != Constants.SizingAuto
-          htg_coil.setNominalCapacity(OpenStudio::convert(baseboardOutputCapacity,"Btu/h","W").get)
+    (1..num_units).to_a.each do |unit_num|
+      _nbeds, _nbaths, unit_spaces = Geometry.get_unit_beds_baths_spaces(model, unit_num, runner)
+      thermal_zones = Geometry.get_thermal_zones_from_unit_spaces(unit_spaces)
+      if thermal_zones.length > 1
+        runner.registerInfo("Unit #{unit_num} spans more than one thermal zone.")
       end
-      htg_coil.setEfficiency(baseboardEfficiency)
-
-      htg_coil.addToThermalZone(control_zone)
-      runner.registerInfo("Added baseboard convective electric '#{htg_coil.name}' to thermal zone '#{control_zone.name}'")
-
-      slave_zones.each do |slave_zone|
-
+      control_slave_zones_hash = Geometry.get_control_and_slave_zones(thermal_zones)
+      control_slave_zones_hash.each do |control_zone, slave_zones|
+    
         # Remove existing equipment
-        HelperMethods.remove_existing_hvac_equipment(model, runner, "Electric Baseboard", slave_zone)    
+        HelperMethods.remove_existing_hvac_equipment(model, runner, "Electric Baseboard", control_zone)
       
         htg_coil = OpenStudio::Model::ZoneHVACBaseboardConvectiveElectric.new(model)
-        htg_coil.setName("FBsmt Zone Electric Baseboards")
+        htg_coil.setName("Living Zone Electric Baseboards")
         if baseboardOutputCapacity != Constants.SizingAuto
             htg_coil.setNominalCapacity(OpenStudio::convert(baseboardOutputCapacity,"Btu/h","W").get)
         end
         htg_coil.setEfficiency(baseboardEfficiency)
 
-        htg_coil.addToThermalZone(slave_zone)
-        runner.registerInfo("Added baseboard convective electric '#{htg_coil.name}' to thermal zone '#{slave_zone.name}'")
+        htg_coil.addToThermalZone(control_zone)
+        runner.registerInfo("Added baseboard convective electric '#{htg_coil.name}' to thermal zone '#{control_zone.name}' of unit #{unit_num}")
 
-      end    
-    
+        slave_zones.each do |slave_zone|
+        
+          # Remove existing equipment
+          HelperMethods.remove_existing_hvac_equipment(model, runner, "Electric Baseboard", slave_zone)    
+        
+          htg_coil = OpenStudio::Model::ZoneHVACBaseboardConvectiveElectric.new(model)
+          htg_coil.setName("FBsmt Zone Electric Baseboards")
+          if baseboardOutputCapacity != Constants.SizingAuto
+              htg_coil.setNominalCapacity(OpenStudio::convert(baseboardOutputCapacity,"Btu/h","W").get)
+          end
+          htg_coil.setEfficiency(baseboardEfficiency)
+
+          htg_coil.addToThermalZone(slave_zone)
+          runner.registerInfo("Added baseboard convective electric '#{htg_coil.name}' to thermal zone '#{slave_zone.name}' of unit #{unit_num}")
+
+        end    
+      
+      end
+      
     end
 	
     return true

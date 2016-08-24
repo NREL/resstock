@@ -10,7 +10,7 @@ class ResidentialCookingRange < OpenStudio::Ruleset::ModelUserScript
   end
   
   def description
-    return "Adds (or replaces) a residential cooking range with the specified efficiency, operation, and schedule in the given space."
+    return "Adds (or replaces) a residential cooking range with the specified efficiency, operation, and schedule. For multifamily buildings, the cooking range can be set for all units of the building."
   end
   
   def modeler_description
@@ -68,18 +68,14 @@ class ResidentialCookingRange < OpenStudio::Ruleset::ModelUserScript
     #make a choice argument for space
     spaces = model.getSpaces
     space_args = OpenStudio::StringVector.new
+    space_args << Constants.Default
     spaces.each do |space|
         space_args << space.name.to_s
     end
-    if space_args.empty?
-        space_args << Constants.LivingSpace(1)
-    end
     space = OpenStudio::Ruleset::OSArgument::makeChoiceArgument("space", space_args, true)
     space.setDisplayName("Location")
-    space.setDescription("Select the space where the cooking range is located")
-    if space_args.include?(Constants.LivingSpace(1))
-        space.setDefaultValue(Constants.LivingSpace(1))
-    end
+    space.setDescription("Select the space where the cooking range is located. '#{Constants.Default}' will choose the lowest above-grade finished space available (e.g., first story living space), or a below-grade finished space as last resort. For multifamily buildings, '#{Constants.Default}' will choose a space for each unit of the building.")
+    space.setDefaultValue(Constants.Default)
     args << space
 
     return args
@@ -103,7 +99,7 @@ class ResidentialCookingRange < OpenStudio::Ruleset::ModelUserScript
 	monthly_sch = runner.getStringArgumentValue("monthly_sch",user_arguments)
 	space_r = runner.getStringArgumentValue("space",user_arguments)
 	
-	#if oef or cef is defined, must be > 0
+	#check for valid inputs
 	if o_ef <= 0 or o_ef > 1
 		runner.registerError("Oven energy factor must be greater than 0 and less than or equal to 1.")
 		return false
@@ -117,70 +113,112 @@ class ResidentialCookingRange < OpenStudio::Ruleset::ModelUserScript
 		return false
     end
     
-    # Get number of bedrooms/bathrooms
-    nbeds, nbaths = Geometry.get_bedrooms_bathrooms(model, runner)
-    if nbeds.nil? or nbaths.nil?
+    num_units = Geometry.get_num_units(model, runner)
+    if num_units.nil?
         return false
     end
-
-	#Calculate electric range daily energy use
-    range_ann_e = ((86.5 + 28.9 * nbeds) / c_ef + (14.6 + 4.9 * nbeds) / o_ef)*mult #kWh/yr
-
-    #Get space
-    space = Geometry.get_space_from_string(model, space_r, runner)
-    if space.nil?
-        return false
+    
+    # Will we be setting multiple objects?
+    set_multiple_objects = false
+    if num_units > 1 and space_r == Constants.Default
+        set_multiple_objects = true
     end
 
-    obj_name_e = Constants.ObjectNameCookingRange(Constants.FuelTypeElectric)
-    obj_name_g = Constants.ObjectNameCookingRange(Constants.FuelTypeGas)
-    obj_name_i = Constants.ObjectNameCookingRange(Constants.FuelTypeElectric, true)
-	
-    # Remove any existing cooking range
-    cr_removed = false
-    space.electricEquipment.each do |space_equipment|
-        if space_equipment.name.to_s == obj_name_e or space_equipment.name.to_s == obj_name_i
-            space_equipment.remove
-            cr_removed = true
-        end
-    end
-    space.gasEquipment.each do |space_equipment|
-        if space_equipment.name.to_s == obj_name_g
-            space_equipment.remove
-            cr_removed = true
-        end
-    end
-    if cr_removed
-        runner.registerInfo("Removed existing cooking range.")
-    end
-
-    if range_ann_e > 0
-        #hard coded convective, radiative, latent, and lost fractions
-        range_lat_e = 0.3
-        range_conv_e = 0.16
-        range_rad_e = 0.24
-        range_lost_e = 1 - range_lat_e - range_conv_e - range_rad_e
-
-        sch = MonthWeekdayWeekendSchedule.new(model, runner, obj_name_e + " schedule", weekday_sch, weekend_sch, monthly_sch)
-        if not sch.validated?
+    #hard coded convective, radiative, latent, and lost fractions
+    range_lat_e = 0.3
+    range_conv_e = 0.16
+    range_rad_e = 0.24
+    range_lost_e = 1 - range_lat_e - range_conv_e - range_rad_e
+    
+    tot_range_ann_e = 0
+    single_space = nil
+    sch = nil
+    (1..num_units).to_a.each do |unit_num|
+        nbeds, nbaths, unit_spaces = Geometry.get_unit_beds_baths_spaces(model, unit_num, runner)
+        if unit_spaces.nil?
+            runner.registerError("Could not determine the spaces associated with unit #{unit_num}.")
             return false
         end
-        design_level_e = sch.calcDesignLevelFromDailykWh(range_ann_e/365.0)
+        if nbeds.nil? or nbaths.nil?
+            runner.registerError("Could not determine number of bedrooms or bathrooms. Run the 'Add Residential Bedrooms And Bathrooms' measure first.")
+            return false
+        end
+        
+        # Get space
+        space = Geometry.get_space_from_string(unit_spaces, space_r)
+        if space.nil? and space_r != Constants.Default
+            return false
+        end
+        next if space.nil?
 
-        #Add equipment for the range
-        rng_def = OpenStudio::Model::ElectricEquipmentDefinition.new(model)
-        rng = OpenStudio::Model::ElectricEquipment.new(rng_def)
-        rng.setName(obj_name_e)
-        rng.setSpace(space)
-        rng_def.setName(obj_name_e)
-        rng_def.setDesignLevel(design_level_e)
-        rng_def.setFractionRadiant(range_rad_e)
-        rng_def.setFractionLatent(range_lat_e)
-        rng_def.setFractionLost(range_lost_e)
-        sch.setSchedule(rng)
+        unit_obj_name_e = Constants.ObjectNameCookingRange(Constants.FuelTypeElectric, false, unit_num)
+        unit_obj_name_g = Constants.ObjectNameCookingRange(Constants.FuelTypeGas, false, unit_num)
+        unit_obj_name_i = Constants.ObjectNameCookingRange(Constants.FuelTypeElectric, true, unit_num)
 
-        #reporting final condition of model
-        runner.registerFinalCondition("An electric range has been set with #{range_ann_e.round} kWhs annual energy consumption.")
+        # Remove any existing cooking range
+        cr_removed = false
+        space.electricEquipment.each do |space_equipment|
+            if space_equipment.name.to_s == unit_obj_name_e or space_equipment.name.to_s == unit_obj_name_i
+                space_equipment.remove
+                cr_removed = true
+            end
+        end
+        space.gasEquipment.each do |space_equipment|
+            if space_equipment.name.to_s == unit_obj_name_g
+                space_equipment.remove
+                cr_removed = true
+            end
+        end
+        if cr_removed
+            runner.registerInfo("Removed existing cooking range from space #{space.name.to_s}.")
+        end
+        
+        #Calculate electric range daily energy use
+        range_ann_e = ((86.5 + 28.9 * nbeds) / c_ef + (14.6 + 4.9 * nbeds) / o_ef)*mult #kWh/yr
+        
+        if range_ann_e > 0
+            if sch.nil?
+                # Create schedule
+                sch = MonthWeekdayWeekendSchedule.new(model, runner, Constants.ObjectNameCookingRange(Constants.FuelTypeElectric, false) + " schedule", weekday_sch, weekend_sch, monthly_sch)
+                if not sch.validated?
+                    return false
+                end
+            end
+
+            design_level_e = sch.calcDesignLevelFromDailykWh(range_ann_e/365.0)
+            
+            #Add equipment for the range
+            rng_def = OpenStudio::Model::ElectricEquipmentDefinition.new(model)
+            rng = OpenStudio::Model::ElectricEquipment.new(rng_def)
+            rng.setName(unit_obj_name_e)
+            rng.setSpace(space)
+            rng_def.setName(unit_obj_name_e)
+            rng_def.setDesignLevel(design_level_e)
+            rng_def.setFractionRadiant(range_rad_e)
+            rng_def.setFractionLatent(range_lat_e)
+            rng_def.setFractionLost(range_lost_e)
+            sch.setSchedule(rng)
+            
+            if set_multiple_objects
+                # Report each assignment plus final condition
+                runner.registerInfo("A cooking range with #{range_ann_e.round} kWhs annual energy consumption has been assigned to space '#{space.name.to_s}'.")
+            end
+            
+            tot_range_ann_e += range_ann_e
+            single_space = space
+        end
+        
+    end
+    
+    #reporting final condition of model
+    if tot_range_ann_e > 0
+        if set_multiple_objects
+            runner.registerFinalCondition("The building has been assigned cooking ranges totaling #{tot_range_ann_e.round} kWhs annual energy consumption across #{num_units} units.")
+        else
+            runner.registerFinalCondition("A cooking range with #{tot_range_ann_e.round} kWhs annual energy consumption has been assigned to space '#{single_space.name.to_s}'.")
+        end
+    else
+        runner.registerFinalCondition("No cooking range has been assigned.")
     end
 	
     return true

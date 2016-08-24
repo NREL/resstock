@@ -152,7 +152,7 @@ class ResidentialShowersSinksBaths < OpenStudio::Ruleset::ModelUserScript
         end
         
         #Get space
-        space = Geometry.get_space_from_string(model, ssb_loc, runner)
+        space = Geometry.get_space_from_string(model.getSpaces, ssb_loc, runner)
         if space.nil?
             return false
         end
@@ -164,8 +164,9 @@ class ResidentialShowersSinksBaths < OpenStudio::Ruleset::ModelUserScript
         end
         
         # Get number of bedrooms/bathrooms
-        nbeds, nbaths = Geometry.get_bedrooms_bathrooms(model, runner)
+        nbeds, nbaths, unit_spaces = Geometry.get_unit_beds_baths_spaces(model, 1, runner)
         if nbeds.nil? or nbaths.nil?
+            runner.registerError("Could not determine number of bedrooms or bathrooms. Run the 'Add Residential Bedrooms And Bathrooms' measure first.")
             return false
         end
         

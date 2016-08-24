@@ -161,8 +161,9 @@ class AddOSWaterHeaterMixedStorageOil < OpenStudio::Ruleset::ModelUserScript
         end
         
         # Get number of bedrooms/bathrooms
-        nbeds, nbaths = Geometry.get_bedrooms_bathrooms(model, runner)
+        nbeds, nbaths, unit_spaces = Geometry.get_unit_beds_baths_spaces(model, 1, runner)
         if nbeds.nil? or nbaths.nil?
+            runner.registerError("Could not determine number of bedrooms or bathrooms. Run the 'Add Residential Bedrooms And Bathrooms' measure first.")
             return false
         end
         
@@ -228,7 +229,7 @@ class AddOSWaterHeaterMixedStorageOil < OpenStudio::Ruleset::ModelUserScript
     private
 
     def create_new_schedule_manager(t_set, model)
-        new_schedule = Waterheater.create_new_schedule_ruleset("DHW Temp", "DHW Temp Default", t_set, model)
+        new_schedule = Waterheater.create_new_schedule_ruleset("DHW Temp", "DHW Temp Default", OpenStudio::convert(t_set,"F","C").get, model)
         OSM::SetpointManagerScheduled.new(model, new_schedule)
     end 
 

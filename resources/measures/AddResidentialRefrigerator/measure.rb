@@ -10,7 +10,7 @@ class ResidentialRefrigerator < OpenStudio::Ruleset::ModelUserScript
   end
   
   def description
-    return "Adds (or replaces) a residential refrigerator with the specified efficiency, operation, and schedule in the given space."
+    return "Adds (or replaces) a residential refrigerator with the specified efficiency, operation, and schedule. For multifamily buildings, the refrigerator can be set for all units of the building."
   end
   
   def modeler_description
@@ -62,18 +62,14 @@ class ResidentialRefrigerator < OpenStudio::Ruleset::ModelUserScript
     #make a choice argument for space
     spaces = model.getSpaces
     space_args = OpenStudio::StringVector.new
+    space_args << Constants.Default
     spaces.each do |space|
         space_args << space.name.to_s
     end
-    if space_args.empty?
-        space_args << Constants.LivingSpace(1)
-    end
     space = OpenStudio::Ruleset::OSArgument::makeChoiceArgument("space", space_args, true)
     space.setDisplayName("Location")
-    space.setDescription("Select the space where the refrigerator is located")
-    if space_args.include?(Constants.LivingSpace(1))
-        space.setDefaultValue(Constants.LivingSpace(1))
-    end
+    space.setDescription("Select the space where the refrigerator is located. '#{Constants.Default}' will choose the lowest above-grade finished space available (e.g., first story living space), or a below-grade finished space as last resort. For multifamily buildings, '#{Constants.Default}' will choose a space for each unit of the building.")
+    space.setDefaultValue(Constants.Default)
     args << space
 
     return args
@@ -106,56 +102,100 @@ class ResidentialRefrigerator < OpenStudio::Ruleset::ModelUserScript
 		return false
     end
     
-    #Get space
-    space = Geometry.get_space_from_string(model, space_r, runner)
-    if space.nil?
+    num_units = Geometry.get_num_units(model, runner)
+    if num_units.nil?
         return false
     end
     
-    obj_name = Constants.ObjectNameRefrigerator
-
-    # Remove any existing refrigerator
-    frg_removed = false
-    space.electricEquipment.each do |space_equipment|
-        if space_equipment.name.to_s == obj_name
-            space_equipment.remove
-            frg_removed = true
-        end
-    end
-    if frg_removed
-        runner.registerInfo("Removed existing refrigerator.")
+    # Will we be setting multiple objects?
+    set_multiple_objects = false
+    if num_units > 1 and space_r == Constants.Default
+        set_multiple_objects = true
     end
 
-	#Calculate fridge daily energy use
+	# Calculate fridge daily energy use
 	fridge_ann = fridge_E*mult
 
-    if fridge_ann > 0
-        #hard coded convective, radiative, latent, and lost fractions
-        fridge_lat = 0
-        fridge_rad = 0
-        fridge_conv = 1
-        fridge_lost = 1 - fridge_lat - fridge_rad - fridge_conv
-        
-        sch = MonthWeekdayWeekendSchedule.new(model, runner, obj_name + " schedule", weekday_sch, weekend_sch, monthly_sch)
-        if not sch.validated?
+    #hard coded convective, radiative, latent, and lost fractions
+    fridge_lat = 0
+    fridge_rad = 0
+    fridge_conv = 1
+    fridge_lost = 1 - fridge_lat - fridge_rad - fridge_conv
+
+    tot_fridge_ann = 0
+    single_space = nil
+    sch = nil
+    (1..num_units).to_a.each do |unit_num|
+        _nbeds, _nbaths, unit_spaces = Geometry.get_unit_beds_baths_spaces(model, unit_num, runner)
+        if unit_spaces.nil?
+            runner.registerError("Could not determine the spaces associated with unit #{unit_num}.")
             return false
         end
-        design_level = sch.calcDesignLevelFromDailykWh(fridge_ann/365.0)
         
-        #Add electric equipment for the fridge
-        frg_def = OpenStudio::Model::ElectricEquipmentDefinition.new(model)
-        frg = OpenStudio::Model::ElectricEquipment.new(frg_def)
-        frg.setName(obj_name)
-        frg.setSpace(space)
-        frg_def.setName(obj_name)
-        frg_def.setDesignLevel(design_level)
-        frg_def.setFractionRadiant(fridge_rad)
-        frg_def.setFractionLatent(fridge_lat)
-        frg_def.setFractionLost(fridge_lost)
-        sch.setSchedule(frg)
+        # Get space
+        space = Geometry.get_space_from_string(unit_spaces, space_r)
+        if space.nil? and space_r != Constants.Default
+            return false
+        end
+        next if space.nil?
         
-        #reporting final condition of model
-        runner.registerFinalCondition("A fridge has been set with #{fridge_ann.round} kWhs annual energy consumption.")
+        unit_obj_name = Constants.ObjectNameRefrigerator(unit_num)
+
+        # Remove any existing refrigerator
+        frg_removed = false
+        space.electricEquipment.each do |space_equipment|
+            if space_equipment.name.to_s == unit_obj_name
+                space_equipment.remove
+                frg_removed = true
+            end
+        end
+        if frg_removed
+            runner.registerInfo("Removed existing refrigerator from space #{space.name.to_s}.")
+        end
+
+        if fridge_ann > 0
+            if sch.nil?
+                # Create schedule
+                sch = MonthWeekdayWeekendSchedule.new(model, runner, Constants.ObjectNameRefrigerator + " schedule", weekday_sch, weekend_sch, monthly_sch)
+                if not sch.validated?
+                    return false
+                end
+            end
+            
+            design_level = sch.calcDesignLevelFromDailykWh(fridge_ann/365.0)
+            
+            #Add electric equipment for the fridge
+            frg_def = OpenStudio::Model::ElectricEquipmentDefinition.new(model)
+            frg = OpenStudio::Model::ElectricEquipment.new(frg_def)
+            frg.setName(unit_obj_name)
+            frg.setSpace(space)
+            frg_def.setName(unit_obj_name)
+            frg_def.setDesignLevel(design_level)
+            frg_def.setFractionRadiant(fridge_rad)
+            frg_def.setFractionLatent(fridge_lat)
+            frg_def.setFractionLost(fridge_lost)
+            sch.setSchedule(frg)
+            
+            if set_multiple_objects
+                # Report each assignment plus final condition
+                runner.registerInfo("A refrigerator with #{fridge_ann.round} kWhs annual energy consumption has been assigned to space '#{space.name.to_s}'.")
+            end
+            
+            tot_fridge_ann += fridge_ann
+            single_space = space
+        end
+
+    end
+
+    #reporting final condition of model
+    if tot_fridge_ann > 0
+        if set_multiple_objects
+            runner.registerFinalCondition("The building has been assigned refrigerators totaling #{tot_fridge_ann.round} kWhs annual energy consumption across #{num_units} units.")
+        else
+            runner.registerFinalCondition("A refrigerator with #{tot_fridge_ann.round} kWhs annual energy consumption has been assigned to space '#{single_space.name.to_s}'.")
+        end
+    else
+        runner.registerFinalCondition("No refrigerator has been assigned.")
     end
 	
     return true

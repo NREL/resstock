@@ -2,12 +2,12 @@
   <schema_version>3.0</schema_version>
   <name>residential_cooking_range_gas</name>
   <uid>33d8c300-8f2b-4d36-b6cc-545422c7b407</uid>
-  <version_id>44830083-58ac-49e2-bdd5-07de6cd1bc77</version_id>
-  <version_modified>20160806T150906Z</version_modified>
+  <version_id>e72c2310-e1bb-4805-b9e4-54d3443b4f97</version_id>
+  <version_modified>20160823T203146Z</version_modified>
   <xml_checksum>25A40D75</xml_checksum>
   <class_name>ResidentialCookingRangeGas</class_name>
   <display_name>Set Residential Gas Cooking Range</display_name>
-  <description>Adds (or replaces) a residential cooking range with the specified efficiency, operation, and schedule in the given space.</description>
+  <description>Adds (or replaces) a residential cooking range with the specified efficiency, operation, and schedule. For multifamily buildings, the cooking range can be set for all units of the building.</description>
   <modeler_description>Since there is no Cooking Range object in OpenStudio/EnergyPlus, we look for a GasEquipment or ElectricEquipment object with the name that denotes it is a residential cooking range. If one is found, it is replaced with the specified properties. Otherwise, a new such object is added to the model. Note: This measure requires the number of bedrooms/bathrooms to have already been assigned.</modeler_description>
   <arguments>
     <argument>
@@ -86,15 +86,15 @@
     <argument>
       <name>space</name>
       <display_name>Location</display_name>
-      <description>Select the space where the cooking range is located</description>
+      <description>Select the space where the cooking range is located. 'Default' will choose the lowest above-grade finished space available (e.g., first story living space), or a below-grade finished space as last resort. For multifamily buildings, 'Default' will choose a space for each unit of the building.</description>
       <type>Choice</type>
       <required>true</required>
       <model_dependent>false</model_dependent>
-      <default_value>living space</default_value>
+      <default_value>Default</default_value>
       <choices>
         <choice>
-          <value>living space</value>
-          <display_name>living space</display_name>
+          <value>Default</value>
+          <display_name>Default</display_name>
         </choice>
       </choices>
     </argument>
@@ -117,22 +117,34 @@
   </attributes>
   <files>
     <file>
-      <filename>geometry.rb</filename>
+      <filename>schedules.rb</filename>
       <filetype>rb</filetype>
       <usage_type>resource</usage_type>
-      <checksum>2285CA0B</checksum>
+      <checksum>4F0FB841</checksum>
     </file>
     <file>
       <filename>2000sqft_2story_FB_GRG_UA.osm</filename>
       <filetype>osm</filetype>
       <usage_type>test</usage_type>
-      <checksum>A2C693E7</checksum>
+      <checksum>94E03665</checksum>
+    </file>
+    <file>
+      <filename>ResidentialCookingRangeGas_Test.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>test</usage_type>
+      <checksum>CF9ABF1C</checksum>
     </file>
     <file>
       <filename>2000sqft_2story_FB_GRG_UA_3Beds_2Baths.osm</filename>
       <filetype>osm</filetype>
       <usage_type>test</usage_type>
-      <checksum>CBEE7249</checksum>
+      <checksum>85107701</checksum>
+    </file>
+    <file>
+      <filename>2000sqft_2story_FB_GRG_UA_3Beds_2Baths_ElecCookingRange.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>B8029928</checksum>
     </file>
     <file>
       <version>
@@ -143,31 +155,43 @@
       <filename>measure.rb</filename>
       <filetype>rb</filetype>
       <usage_type>script</usage_type>
-      <checksum>701067EB</checksum>
-    </file>
-    <file>
-      <filename>2000sqft_2story_FB_GRG_UA_3Beds_2Baths_ElecCookingRange.osm</filename>
-      <filetype>osm</filetype>
-      <usage_type>test</usage_type>
-      <checksum>A9BD0CD3</checksum>
-    </file>
-    <file>
-      <filename>ResidentialCookingRangeGas_Test.rb</filename>
-      <filetype>rb</filetype>
-      <usage_type>test</usage_type>
-      <checksum>1823A075</checksum>
-    </file>
-    <file>
-      <filename>schedules.rb</filename>
-      <filetype>rb</filetype>
-      <usage_type>resource</usage_type>
-      <checksum>49A218DA</checksum>
+      <checksum>4EC4F1C8</checksum>
     </file>
     <file>
       <filename>constants.rb</filename>
       <filetype>rb</filetype>
       <usage_type>resource</usage_type>
-      <checksum>1AB9292D</checksum>
+      <checksum>A5CA5B20</checksum>
+    </file>
+    <file>
+      <filename>geometry.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>239A6D5F</checksum>
+    </file>
+    <file>
+      <filename>multifamily_3_units.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>F0401975</checksum>
+    </file>
+    <file>
+      <filename>multifamily_3_units_3Beds_2Baths.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>1DFEE0BF</checksum>
+    </file>
+    <file>
+      <filename>multifamily_urbanopt.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>F0F23347</checksum>
+    </file>
+    <file>
+      <filename>multifamily_urbanopt_3Beds_2Baths.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>4527BBA1</checksum>
     </file>
   </files>
 </measure>

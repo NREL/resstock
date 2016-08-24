@@ -9,50 +9,149 @@ class Geometry
         end
         return p
     end
-
-    # Retrieves the number of bedrooms and bathrooms from the space type
-    # They are assigned in the SetResidentialBedroomsAndBathrooms measure.
-    def self.get_bedrooms_bathrooms(model, runner=nil)
-        nbeds = nil
-        nbaths = nil
-        model.getSpaces.each do |space|
-            space_equipments = space.electricEquipment
-            space_equipments.each do |space_equipment|
-                name = space_equipment.electricEquipmentDefinition.name.get.to_s
-                br_regexpr = /(?<br>\d+\.\d+)\s+Bedrooms/.match(name)
-                ba_regexpr = /(?<ba>\d+\.\d+)\s+Bathrooms/.match(name)  
-                if br_regexpr
-                    nbeds = br_regexpr[:br].to_f
-                elsif ba_regexpr
-                    nbaths = ba_regexpr[:ba].to_f
-                end
+    
+    def self.get_num_units(model, runner)
+        if not model.getBuilding.standardsNumberOfLivingUnits.is_initialized
+            runner.registerError("Cannot determine number of building units; Building::standardsNumberOfLivingUnits has not been set.")
+            return nil
+        end
+        num_units = model.getBuilding.standardsNumberOfLivingUnits.get
+        # Check that this matches the number of unit specifications
+        units_found = []
+        model.getElectricEquipments.each do |ee|
+            next if !ee.name.to_s.start_with?("unit=")
+            ee.name.to_s.split("|").each do |data|
+                next if !data.start_with?("unit=")
+                vals = data.split("=")
+                units_found << vals[1].to_i
             end
         end
-        if nbeds.nil? or nbaths.nil?
-            if not runner.nil?
-                runner.registerError("Could not determine number of bedrooms or bathrooms. Run the 'Add Residential Bedrooms And Bathrooms' measure first.")
-            end
+        if num_units != units_found.size
+            runner.registerError("Cannot determine number of building units; inconsistent number of units defined in the model.")
+            return nil
         end
-        return [nbeds, nbaths]
+        return num_units
     end
     
-    # Removes the number of bedrooms and bathrooms in the model
-    def self.remove_bedrooms_bathrooms(model)
-        model.getSpaces.each do |space|
-            space_equipments = space.electricEquipment
-            space_equipments.each do |space_equipment|
-                name = space_equipment.electricEquipmentDefinition.name.get.to_s
-                br_regexpr = /(?<br>\d+\.\d+)\s+Bedrooms/.match(name)
-                ba_regexpr = /(?<ba>\d+\.\d+)\s+Bathrooms/.match(name)  
-                if br_regexpr
-                    space_equipment.electricEquipmentDefinition.remove
-                elsif ba_regexpr
-                    space_equipment.electricEquipmentDefinition.remove
+    def self.set_unit_beds_baths_spaces(model, unit_num, spaces_list, nbeds=nil, nbaths=nil)
+        # Information temporarily stored in the name of a dummy ElectricEquipment object.
+        # This method sets or updates the dummy object.
+        if nbeds.nil?
+          nbeds = "nil"
+        end
+        if nbaths.nil?
+          nbaths = "nil"
+        end
+        
+        str = "unit=#{unit_num}|bed=#{nbeds}|bath=#{nbaths}"
+        spaces_list.each do |space|
+            str += "|space=#{space.handle.to_s}"
+        end
+        
+        # Update existing object?
+        model.getElectricEquipments.each do |ee|
+            next if !ee.name.to_s.start_with?("unit=#{unit_num}|")
+            ee.setName(str)
+            ee.electricEquipmentDefinition.setName(str)
+            return
+        end
+        
+        # No existing object, create a new one
+        eed = OpenStudio::Model::ElectricEquipmentDefinition.new(model)
+        eed.setName(str)
+        sch = OpenStudio::Model::ScheduleRuleset.new(model, 0)
+        sch.setName('empty_schedule')
+        ee = OpenStudio::Model::ElectricEquipment.new(eed)
+        ee.setName(str)
+        ee.setSchedule(sch)
+    end
+    
+    def self.get_unit_beds_baths_spaces(model, unit_num, runner)
+        # Retrieves information temporarily stored in the name of a dummy ElectricEquipment object.
+        # Returns a vector with #beds, #baths, and a list of spaces
+        nbeds = nil
+        nbaths = nil
+        spaces_list = nil
+        
+        model.getElectricEquipments.each do |ee|
+            next if !ee.name.to_s.start_with?("unit=#{unit_num}|")
+            ee.name.to_s.split("|").each do |data|
+                if data.start_with?("bed=") and !data.end_with?("nil")
+                    vals = data.split("=")
+                    nbeds = vals[1].to_f
+                elsif data.start_with?("bath=") and !data.end_with?("nil")
+                    vals = data.split("=")
+                    nbaths = vals[1].to_f
+                elsif data.start_with?("space=")
+                    vals = data.split("=")
+                    space_handle_s = vals[1].to_s
+                    space_found = false
+                    model.getSpaces.each do |space|
+                        next if space.handle.to_s != space_handle_s
+                        if spaces_list.nil?
+                            spaces_list = []
+                        end
+                        spaces_list << space
+                        space_found = true
+                        break # found space
+                    end
+                    if !runner.nil? and !space_found
+                        runner.registerError("Could not find the space '#{space_handle_s}' associated with unit #{unit_num}.")
+                        return [nil, nil, nil]
+                    end
+                end
+            end
+            break # found unit
+        end
+        return [nbeds, nbaths, spaces_list]
+    end
+    
+    def self.set_unit_space_association(model, unit_num, runner)
+        model.getElectricEquipments.each do |ee|
+            next if !ee.name.to_s.start_with?("unit=#{unit_num}|")
+            ee.name.to_s.split("|").each do |data|
+                if data.include?("space")
+                    vals = data.split("=")
+                    space_handle_s = vals[1].to_s
+                    model.getSpaces.each do |space|
+                        next if space.handle.to_s != space_handle_s
+                        ee.setSpace(space)
+                        return
+                    end
                 end
             end
         end
-    end 
-
+    end
+    
+    def self.get_unit_default_finished_space(unit_spaces, runner)
+        # For the specified unit, chooses an arbitrary finished space on the lowest above-grade story.
+        # If no above-grade finished spaces are available, reverts to an arbitrary below-grade finished space.
+        space = nil
+        # Get lowest above-grade space
+        bldg_min_z = 100000
+        unit_spaces.each do |s|
+            next if Geometry.space_is_below_grade(s)
+            next if Geometry.space_is_unfinished(s)
+            space_min_z = Geometry.getSurfaceZValues(s.surfaces).min + OpenStudio::convert(s.zOrigin,"m","ft").get
+            next if space_min_z >= bldg_min_z
+            bldg_min_z = space_min_z
+            space = s
+        end
+        if space.nil?
+            # Try below-grade space
+            unit_spaces.each do |s|
+                next if Geometry.space_is_above_grade(s)
+                next if Geometry.space_is_unfinished(s)
+                space = s
+                break
+            end
+        end
+        if space.nil?
+            runner.registerError("Could not find a finished space for unit #{unit_num}.")
+        end
+        return space
+    end
+    
     # Retrieves the finished floor area for the building
     def self.get_building_finished_floor_area(model, runner=nil)
         floor_area = 0
@@ -67,6 +166,24 @@ class Geometry
         end
         return floor_area
     end
+    
+    # Retrieves the finished floor area for a unit
+    def self.get_unit_finished_floor_area(model, unit_spaces, runner=nil)
+        floor_area = 0
+        model.getThermalZones.each do |zone|
+          zone.spaces.each do |space|
+            next unless unit_spaces.include? space
+            if self.zone_is_finished(zone)
+                floor_area += OpenStudio.convert(zone.floorArea,"m^2","ft^2").get
+            end            
+          end
+        end
+        if floor_area == 0 and not runner.nil?
+            runner.registerError("Could not find any finished floor area.")
+            return nil
+        end
+        return floor_area
+    end    
     
     def self.get_building_above_grade_finished_floor_area(model, runner=nil)
       floor_area = 0
@@ -120,6 +237,7 @@ class Geometry
       return maxzs.max - minzs.min
     end
     
+    # FIXME: Switch to using StandardsNumberOfStories and StandardsNumberOfAboveGroundStories instead
     def self.get_building_stories(spaces)
       space_min_zs = []
       spaces.each do |space|
@@ -144,8 +262,7 @@ class Geometry
     
     def self.zone_is_finished(zone)
         # FIXME: Ugly hack until we can get finished zones from OS
-        # if zone.name.to_s == Constants.LivingZone or zone.name.to_s == Constants.FinishedBasementZone
-        if zone.name.to_s == Constants.LivingZone or zone.name.to_s == Constants.FinishedBasementZone or zone.name.to_s.include? "Story" # URBANopt hack: zone.name.to_s.include? "Story" ensures always finished zone
+        if zone.name.to_s.start_with?(Constants.LivingZone) or zone.name.to_s.start_with?(Constants.FinishedBasementZone) or zone.name.to_s.include?("Story") # URBANopt hack: zone.name.to_s.include? "Story" ensures always finished zone
             return true
         end
         return false
@@ -168,10 +285,10 @@ class Geometry
       return !Geometry.zone_is_above_grade(zone)
     end       
     
-    def self.get_finished_above_and_below_grade_zones(model)
+    def self.get_finished_above_and_below_grade_zones(thermal_zones)
       finished_living_zones = []
       finished_basement_zones = []
-      model.getThermalZones.each do |thermal_zone|
+      thermal_zones.each do |thermal_zone|
         next unless Geometry.zone_is_finished(thermal_zone)
         if Geometry.zone_is_above_grade(thermal_zone)
           finished_living_zones << thermal_zone
@@ -182,29 +299,35 @@ class Geometry
       return finished_living_zones, finished_basement_zones
     end
     
-    def self.get_control_and_slave_zones(model)
+    def self.get_control_and_slave_zones(thermal_zones)
       control_slave_zones_hash = {}
-      finished_above_grade_zones, finished_below_grade_zones = Geometry.get_finished_above_and_below_grade_zones(model)
-      building_type = Geometry.get_building_type(model)
-      if building_type.nil? or building_type == "single-family" # Single-family
-        control_zone = nil
-        slave_zones = []
-        [finished_above_grade_zones, finished_below_grade_zones].each do |finished_zones| # Preference to above-grade zone as control zone
-          finished_zones.each do |finished_zone|
-            if control_zone.nil?
-              control_zone = finished_zone
-            else
-              slave_zones << finished_zone
-            end
+      finished_above_grade_zones, finished_below_grade_zones = Geometry.get_finished_above_and_below_grade_zones(thermal_zones)
+      control_zone = nil
+      slave_zones = []
+      [finished_above_grade_zones, finished_below_grade_zones].each do |finished_zones| # Preference to above-grade zone as control zone
+        finished_zones.each do |finished_zone|
+          if control_zone.nil?
+            control_zone = finished_zone
+          else
+            slave_zones << finished_zone
           end
         end
+      end
+      unless control_zone.nil?
         control_slave_zones_hash[control_zone] = slave_zones
-      else # Multifamily
-        (finished_above_grade_zones + finished_below_grade_zones).each do |finished_zone|
-          control_slave_zones_hash[finished_zone] = [] # All zones are control zones, no slave zones
-        end
       end
       return control_slave_zones_hash
+    end
+    
+    def self.get_thermal_zones_from_unit_spaces(unit_spaces)
+      thermal_zones = []
+      unit_spaces.each do |space|
+        next unless space.thermalZone.is_initialized
+        unless thermal_zones.include? space.thermalZone.get
+          thermal_zones << space.thermalZone.get
+        end
+      end
+      return thermal_zones
     end
     
     def self.get_building_type(model)
@@ -264,39 +387,19 @@ class Geometry
         return false
     end
 
-    def self.get_default_space(model, runner=nil)
-        # FIXME: Can we eventually get rid of this method?
+    def self.get_space_from_string(spaces, space_s, runner=nil)
+        if space_s == Constants.Default
+            return Geometry.get_unit_default_finished_space(spaces, runner)
+        end
         space = nil
-        model.getSpaces.each do |s|
-            if s.name.to_s == Constants.LivingSpace(1) # Prioritize returning our standard living space
-                return s
-            elsif space.nil? and Geometry.space_is_finished(s) and Geometry.space_is_above_grade(s) # Return first above-grade conditioned space in list if our living space not found
-                space = s
-            end
-        end
-        if space.nil? and model.getSpaces.size > 0
-            space = model.getSpaces[0]
-        end
-        if space.nil? and not runner.nil?
-            runner.registerError("Could not find any spaces in the model.")
-        end
-        return space
-    end
-
-    def self.get_space_from_string(model, space_s, runner, print_err=true)
-        space = nil
-        model.getSpaces.each do |s|
+        spaces.each do |s|
             if s.name.to_s == space_s
                 space = s
                 break
             end
         end
-        if space.nil?
-            if print_err
-                runner.registerError("Could not find space with the name '#{space_s}'.")
-            else
-                runner.registerWarning("Could not find space with the name '#{space_s}'.")
-            end
+        if space.nil? and !runner.nil?
+            runner.registerError("Could not find space with the name '#{space_s}'.")
         end
         return space
     end
@@ -523,13 +626,13 @@ class Geometry
         return spaces
     end
     
-    def self.get_finished_spaces(model)
-        spaces = []
-        model.getSpaces.each do |space|
+    def self.get_finished_spaces(model, spaces=model.getSpaces)
+        finished_spaces = []
+        spaces.each do |space|
             next if Geometry.space_is_unfinished(space)
-            spaces << space
+            finished_spaces << space
         end
-        return spaces
+        return finished_spaces
     end
     
     def self.get_finished_basement_spaces(model)

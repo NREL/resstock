@@ -5,11 +5,11 @@ require "#{File.dirname(__FILE__)}/resources/constants"
 require "#{File.dirname(__FILE__)}/resources/geometry"
 
 # start the measure
-class CreateBasicGeometry < OpenStudio::Ruleset::ModelUserScript
+class CreateResidentialSingleFamilyDetachedGeometry < OpenStudio::Ruleset::ModelUserScript
     
   # human readable name
   def name
-    return "Create Residential Geometry"
+    return "Create Residential Single-Family Detached Geometry"
   end
 
   # human readable description
@@ -698,6 +698,18 @@ class CreateBasicGeometry < OpenStudio::Ruleset::ModelUserScript
         break
       end
     end
+    
+    # Store dwelling unit information (for consistency with multifamily buildings)
+    model.getBuilding.setStandardsNumberOfLivingUnits(1)
+    unit_spaces = []
+    living_zone.spaces.each do |living_space| # includes finished attic
+      unit_spaces << living_space
+    end
+    if foundation_type == Constants.FinishedBasementSpace
+      unit_spaces << foundation_space
+    end
+    Geometry.set_unit_beds_baths_spaces(model, 1, unit_spaces)
+    Geometry.set_unit_space_association(model, 1, runner)
   
     # reporting final condition of model
     runner.registerFinalCondition("The building finished with #{model.getSpaces.size} spaces.")	
@@ -709,4 +721,4 @@ class CreateBasicGeometry < OpenStudio::Ruleset::ModelUserScript
 end #end the measure
 
 # register the measure to be used by the application
-CreateBasicGeometry.new.registerWithApplication
+CreateResidentialSingleFamilyDetachedGeometry.new.registerWithApplication

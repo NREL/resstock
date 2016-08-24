@@ -2,12 +2,12 @@
   <schema_version>3.0</schema_version>
   <name>residential_refrigerator</name>
   <uid>f0259bdc-1391-41eb-80eb-efc10bd1bc02</uid>
-  <version_id>aed919ef-e54a-48e7-b99a-10a5bbefe9a5</version_id>
-  <version_modified>20160806T150901Z</version_modified>
+  <version_id>9a78a384-83f7-4572-bf57-edcd9e54e072</version_id>
+  <version_modified>20160823T203140Z</version_modified>
   <xml_checksum>126F1C43</xml_checksum>
   <class_name>ResidentialRefrigerator</class_name>
   <display_name>Set Residential Refrigerator</display_name>
-  <description>Adds (or replaces) a residential refrigerator with the specified efficiency, operation, and schedule in the given space.</description>
+  <description>Adds (or replaces) a residential refrigerator with the specified efficiency, operation, and schedule. For multifamily buildings, the refrigerator can be set for all units of the building.</description>
   <modeler_description>Since there is no Refrigerator object in OpenStudio/EnergyPlus, we look for an ElectricEquipment object with the name that denotes it is a residential refrigerator. If one is found, it is replaced with the specified properties. Otherwise, a new such object is added to the model.</modeler_description>
   <arguments>
     <argument>
@@ -59,15 +59,15 @@
     <argument>
       <name>space</name>
       <display_name>Location</display_name>
-      <description>Select the space where the refrigerator is located</description>
+      <description>Select the space where the refrigerator is located. 'Default' will choose the lowest above-grade finished space available (e.g., first story living space), or a below-grade finished space as last resort. For multifamily buildings, 'Default' will choose a space for each unit of the building.</description>
       <type>Choice</type>
       <required>true</required>
       <model_dependent>false</model_dependent>
-      <default_value>living space</default_value>
+      <default_value>Default</default_value>
       <choices>
         <choice>
-          <value>living space</value>
-          <display_name>living space</display_name>
+          <value>Default</value>
+          <display_name>Default</display_name>
         </choice>
       </choices>
     </argument>
@@ -90,10 +90,34 @@
   </attributes>
   <files>
     <file>
-      <filename>geometry.rb</filename>
+      <filename>2000sqft_2story_FB_GRG_UA.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>94E03665</checksum>
+    </file>
+    <file>
+      <filename>multifamily_3_units.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>F0401975</checksum>
+    </file>
+    <file>
+      <filename>schedules.rb</filename>
       <filetype>rb</filetype>
       <usage_type>resource</usage_type>
-      <checksum>2285CA0B</checksum>
+      <checksum>4F0FB841</checksum>
+    </file>
+    <file>
+      <filename>multifamily_urbanopt.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>F0F23347</checksum>
+    </file>
+    <file>
+      <filename>ResidentialRefrigerator_Test.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>test</usage_type>
+      <checksum>2F7C8C2A</checksum>
     </file>
     <file>
       <version>
@@ -104,31 +128,19 @@
       <filename>measure.rb</filename>
       <filetype>rb</filetype>
       <usage_type>script</usage_type>
-      <checksum>DEA17C00</checksum>
-    </file>
-    <file>
-      <filename>2000sqft_2story_FB_GRG_UA.osm</filename>
-      <filetype>osm</filetype>
-      <usage_type>test</usage_type>
-      <checksum>A2C693E7</checksum>
-    </file>
-    <file>
-      <filename>ResidentialRefrigerator_Test.rb</filename>
-      <filetype>rb</filetype>
-      <usage_type>test</usage_type>
-      <checksum>7060784D</checksum>
-    </file>
-    <file>
-      <filename>schedules.rb</filename>
-      <filetype>rb</filetype>
-      <usage_type>resource</usage_type>
-      <checksum>49A218DA</checksum>
+      <checksum>98C72CEC</checksum>
     </file>
     <file>
       <filename>constants.rb</filename>
       <filetype>rb</filetype>
       <usage_type>resource</usage_type>
-      <checksum>1AB9292D</checksum>
+      <checksum>A5CA5B20</checksum>
+    </file>
+    <file>
+      <filename>geometry.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>239A6D5F</checksum>
     </file>
   </files>
 </measure>

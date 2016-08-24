@@ -27,7 +27,7 @@ class ProcessRoomAirConditioner < OpenStudio::Ruleset::ModelUserScript
 
   # human readable description
   def description
-    return "This measure removes any existing HVAC cooling components from the building and adds a room air conditioner."
+    return "This measure removes any existing HVAC cooling components from the building and adds a room air conditioner. For multifamily buildings, the room air conditioner can be set for all units of the building."
   end
 
   # human readable description of modeling approach
@@ -162,53 +162,66 @@ class ProcessRoomAirConditioner < OpenStudio::Ruleset::ModelUserScript
     roomac_plf_fplr.setMinimumCurveOutput(0)
     roomac_plf_fplr.setMaximumCurveOutput(1)    
     
-    control_slave_zones_hash = Geometry.get_control_and_slave_zones(model)
-    control_slave_zones_hash.each do |control_zone, slave_zones|
+    num_units = Geometry.get_num_units(model, runner)
+    if num_units.nil?
+        return false
+    end    
     
-      next unless Geometry.zone_is_above_grade(control_zone)
-
-      # Remove existing equipment
-      HelperMethods.remove_existing_hvac_equipment(model, runner, "Room Air Conditioner", control_zone)    
-    
-      # _processSystemRoomAC
-    
-      clg_coil = OpenStudio::Model::CoilCoolingDXSingleSpeed.new(model, model.alwaysOnDiscreteSchedule, roomac_cap_ft, roomac_cap_fff, roomac_eir_ft, roomcac_eir_fff, roomac_plf_fplr)
-      clg_coil.setName("WindowAC Coil")
-      if acOutputCapacity != Constants.SizingAuto
-        clg_coil.setRatedTotalCoolingCapacity(OpenStudio::convert(acOutputCapacity,"Btu/h","W").get)
-        clg_coil.setRatedAirFlowRate(supply.cfm_TON_Rated[0] * acOutputCapacity * OpenStudio::convert(1.0,"Btu/h","ton").get * OpenStudio::convert(1.0,"cfm","m^3/s").get)
-        clg_coil.setRatedSensibleHeatRatio(supply.shr_Rated)
+    (1..num_units).to_a.each do |unit_num|
+      _nbeds, _nbaths, unit_spaces = Geometry.get_unit_beds_baths_spaces(model, unit_num, runner)
+      thermal_zones = Geometry.get_thermal_zones_from_unit_spaces(unit_spaces)
+      if thermal_zones.length > 1
+        runner.registerInfo("Unit #{unit_num} spans more than one thermal zone.")
       end
-      clg_coil.setRatedCOP(OpenStudio::OptionalDouble.new(OpenStudio::convert(roomaceer, "Btu/h", "W").get))
-      clg_coil.setRatedEvaporatorFanPowerPerVolumeFlowRate(OpenStudio::OptionalDouble.new(773.3))
-      clg_coil.setEvaporativeCondenserEffectiveness(OpenStudio::OptionalDouble.new(0.9))
-      clg_coil.setMaximumOutdoorDryBulbTemperatureForCrankcaseHeaterOperation(OpenStudio::OptionalDouble.new(10))
-      clg_coil.setBasinHeaterSetpointTemperature(OpenStudio::OptionalDouble.new(2))
-      
-      supply_fan_availability = OpenStudio::Model::ScheduleConstant.new(model)
-      supply_fan_availability.setName("SupplyFanAvailability")
-      supply_fan_availability.setValue(1)    
-      
-      fan_onoff = OpenStudio::Model::FanOnOff.new(model, supply_fan_availability)
-      fan_onoff.setName("WindowAC Fan")
-      fan_onoff.setFanEfficiency(1)
-      fan_onoff.setPressureRise(0)
-      fan_onoff.setMotorEfficiency(1)
-      fan_onoff.setMotorInAirstreamFraction(0)
-      
-      supply_fan_operation = OpenStudio::Model::ScheduleConstant.new(model)
-      supply_fan_operation.setName("SupplyFanOperation")
-      supply_fan_operation.setValue(0)
-      
-      htg_coil = OpenStudio::Model::CoilHeatingElectric.new(model, model.alwaysOffDiscreteSchedule())
-      htg_coil.setName("Always Off Heating Coil for PTAC")
-      
-      ptac = OpenStudio::Model::ZoneHVACPackagedTerminalAirConditioner.new(model, model.alwaysOnDiscreteSchedule, fan_onoff, htg_coil, clg_coil)
-      ptac.setName("Window AC")
-      ptac.setSupplyAirFanOperatingModeSchedule(supply_fan_operation)
-      ptac.addToThermalZone(control_zone)
-      runner.registerInfo("Added packaged terminal air conditioner '#{ptac.name}' to thermal zone '#{control_zone.name}'")
+      control_slave_zones_hash = Geometry.get_control_and_slave_zones(thermal_zones)
+      control_slave_zones_hash.each do |control_zone, slave_zones|
     
+        next unless Geometry.zone_is_above_grade(control_zone)
+
+        # Remove existing equipment
+        HelperMethods.remove_existing_hvac_equipment(model, runner, "Room Air Conditioner", control_zone)    
+      
+        # _processSystemRoomAC
+      
+        clg_coil = OpenStudio::Model::CoilCoolingDXSingleSpeed.new(model, model.alwaysOnDiscreteSchedule, roomac_cap_ft, roomac_cap_fff, roomac_eir_ft, roomcac_eir_fff, roomac_plf_fplr)
+        clg_coil.setName("WindowAC Coil")
+        if acOutputCapacity != Constants.SizingAuto
+          clg_coil.setRatedTotalCoolingCapacity(OpenStudio::convert(acOutputCapacity,"Btu/h","W").get)
+          clg_coil.setRatedAirFlowRate(supply.cfm_TON_Rated[0] * acOutputCapacity * OpenStudio::convert(1.0,"Btu/h","ton").get * OpenStudio::convert(1.0,"cfm","m^3/s").get)
+          clg_coil.setRatedSensibleHeatRatio(supply.shr_Rated)
+        end
+        clg_coil.setRatedCOP(OpenStudio::OptionalDouble.new(OpenStudio::convert(roomaceer, "Btu/h", "W").get))
+        clg_coil.setRatedEvaporatorFanPowerPerVolumeFlowRate(OpenStudio::OptionalDouble.new(773.3))
+        clg_coil.setEvaporativeCondenserEffectiveness(OpenStudio::OptionalDouble.new(0.9))
+        clg_coil.setMaximumOutdoorDryBulbTemperatureForCrankcaseHeaterOperation(OpenStudio::OptionalDouble.new(10))
+        clg_coil.setBasinHeaterSetpointTemperature(OpenStudio::OptionalDouble.new(2))
+        
+        supply_fan_availability = OpenStudio::Model::ScheduleConstant.new(model)
+        supply_fan_availability.setName("SupplyFanAvailability")
+        supply_fan_availability.setValue(1)    
+        
+        fan_onoff = OpenStudio::Model::FanOnOff.new(model, supply_fan_availability)
+        fan_onoff.setName("WindowAC Fan")
+        fan_onoff.setFanEfficiency(1)
+        fan_onoff.setPressureRise(0)
+        fan_onoff.setMotorEfficiency(1)
+        fan_onoff.setMotorInAirstreamFraction(0)
+        
+        supply_fan_operation = OpenStudio::Model::ScheduleConstant.new(model)
+        supply_fan_operation.setName("SupplyFanOperation")
+        supply_fan_operation.setValue(0)
+        
+        htg_coil = OpenStudio::Model::CoilHeatingElectric.new(model, model.alwaysOffDiscreteSchedule())
+        htg_coil.setName("Always Off Heating Coil for PTAC")
+        
+        ptac = OpenStudio::Model::ZoneHVACPackagedTerminalAirConditioner.new(model, model.alwaysOnDiscreteSchedule, fan_onoff, htg_coil, clg_coil)
+        ptac.setName("Window AC")
+        ptac.setSupplyAirFanOperatingModeSchedule(supply_fan_operation)
+        ptac.addToThermalZone(control_zone)
+        runner.registerInfo("Added packaged terminal air conditioner '#{ptac.name}' to thermal zone '#{control_zone.name}' of unit #{unit_num}")
+      
+      end
+      
     end
     
     return true

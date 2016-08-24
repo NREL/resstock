@@ -2,12 +2,12 @@
   <schema_version>3.0</schema_version>
   <name>process_boiler</name>
   <uid>a0f299ce-b90b-43f6-8794-03ef3ba24f0e</uid>
-  <version_id>c153f894-f553-489c-a66b-c86fc5c69816</version_id>
-  <version_modified>20160806T150902Z</version_modified>
+  <version_id>1eac3e1f-ee45-4ccc-b285-189cdef27e52</version_id>
+  <version_modified>20160823T203141Z</version_modified>
   <xml_checksum>470FC630</xml_checksum>
   <class_name>ProcessBoiler</class_name>
   <display_name>Set Residential Boiler</display_name>
-  <description>This measure removes any existing HVAC heating components from the building and adds a boiler along with constant speed pump and water baseboard coils to a hot water plant loop.</description>
+  <description>This measure removes any existing HVAC heating components from the building and adds a boiler along with constant speed pump and water baseboard coils to a hot water plant loop. For multifamily buildings, the boiler can be set for all units of the building.</description>
   <modeler_description>Any heating components or baseboard convective electrics/waters are removed from any existing air/plant loops or zones. A boiler along with constant speed pump and water baseboard coils are added to a hot water plant loop.</modeler_description>
   <arguments>
     <argument>
@@ -302,24 +302,6 @@
   </attributes>
   <files>
     <file>
-      <filename>geometry.rb</filename>
-      <filetype>rb</filetype>
-      <usage_type>resource</usage_type>
-      <checksum>2285CA0B</checksum>
-    </file>
-    <file>
-      <filename>default_geometry_location.osm</filename>
-      <filetype>osm</filetype>
-      <usage_type>test</usage_type>
-      <checksum>F80B0C46</checksum>
-    </file>
-    <file>
-      <filename>finished_basement_geometry_location.osm</filename>
-      <filetype>osm</filetype>
-      <usage_type>test</usage_type>
-      <checksum>6718C36A</checksum>
-    </file>
-    <file>
       <filename>USA_CO_Denver_Intl_AP_725650_TMY3.ddy</filename>
       <filetype>ddy</filetype>
       <usage_type>test</usage_type>
@@ -332,6 +314,114 @@
       <checksum>E23378AA</checksum>
     </file>
     <file>
+      <filename>util.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>2792E40D</checksum>
+    </file>
+    <file>
+      <filename>process_boiler_test.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>test</usage_type>
+      <checksum>52011C2D</checksum>
+    </file>
+    <file>
+      <filename>multifamily_3_units_location.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>C441B0F6</checksum>
+    </file>
+    <file>
+      <filename>multifamily_urbanopt_location.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>DDBF85D7</checksum>
+    </file>
+    <file>
+      <filename>singlefamily_fbsmt_location.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>87221C09</checksum>
+    </file>
+    <file>
+      <filename>singlefamily_fbsmt_location_ashp.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>0224A68C</checksum>
+    </file>
+    <file>
+      <filename>singlefamily_fbsmt_location_boiler.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>FFC14C0A</checksum>
+    </file>
+    <file>
+      <filename>singlefamily_fbsmt_location_boiler_central_air_conditioner.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>447D5E87</checksum>
+    </file>
+    <file>
+      <filename>singlefamily_fbsmt_location_boiler_room_air_conditioner.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>2DC3E704</checksum>
+    </file>
+    <file>
+      <filename>singlefamily_fbsmt_location_central_air_conditioner.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>A8A3D253</checksum>
+    </file>
+    <file>
+      <filename>singlefamily_fbsmt_location_electric_baseboard.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>3CE12A3B</checksum>
+    </file>
+    <file>
+      <filename>singlefamily_fbsmt_location_electric_baseboard_central_air_conditioner.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>493D2E0F</checksum>
+    </file>
+    <file>
+      <filename>singlefamily_fbsmt_location_electric_baseboard_room_air_conditioner.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>D150A4B0</checksum>
+    </file>
+    <file>
+      <filename>singlefamily_fbsmt_location_furnace.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>AB2385F2</checksum>
+    </file>
+    <file>
+      <filename>singlefamily_fbsmt_location_furnace_central_air_conditioner.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>AABC0517</checksum>
+    </file>
+    <file>
+      <filename>singlefamily_fbsmt_location_furnace_room_air_conditioner.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>A95B4E9F</checksum>
+    </file>
+    <file>
+      <filename>singlefamily_fbsmt_location_mshp.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>FF14F9F9</checksum>
+    </file>
+    <file>
+      <filename>singlefamily_fbsmt_location_room_air_conditioner.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>2910049D</checksum>
+    </file>
+    <file>
       <version>
         <software_program>OpenStudio</software_program>
         <identifier>1.10.6</identifier>
@@ -340,103 +430,19 @@
       <filename>measure.rb</filename>
       <filetype>rb</filetype>
       <usage_type>script</usage_type>
-      <checksum>CA8B029E</checksum>
-    </file>
-    <file>
-      <filename>default_geometry_location_ashp.osm</filename>
-      <filetype>osm</filetype>
-      <usage_type>test</usage_type>
-      <checksum>D0C604FF</checksum>
-    </file>
-    <file>
-      <filename>default_geometry_location_boiler.osm</filename>
-      <filetype>osm</filetype>
-      <usage_type>test</usage_type>
-      <checksum>02654FDB</checksum>
-    </file>
-    <file>
-      <filename>default_geometry_location_boiler_central_air_conditioner.osm</filename>
-      <filetype>osm</filetype>
-      <usage_type>test</usage_type>
-      <checksum>E4A9CF35</checksum>
-    </file>
-    <file>
-      <filename>default_geometry_location_boiler_room_air_conditioner.osm</filename>
-      <filetype>osm</filetype>
-      <usage_type>test</usage_type>
-      <checksum>81BEFC08</checksum>
-    </file>
-    <file>
-      <filename>default_geometry_location_electric_baseboard.osm</filename>
-      <filetype>osm</filetype>
-      <usage_type>test</usage_type>
-      <checksum>545514EB</checksum>
-    </file>
-    <file>
-      <filename>default_geometry_location_electric_baseboard_central_air_conditioner.osm</filename>
-      <filetype>osm</filetype>
-      <usage_type>test</usage_type>
-      <checksum>D65526A2</checksum>
-    </file>
-    <file>
-      <filename>default_geometry_location_electric_baseboard_room_air_conditioner.osm</filename>
-      <filetype>osm</filetype>
-      <usage_type>test</usage_type>
-      <checksum>E9A8077E</checksum>
-    </file>
-    <file>
-      <filename>default_geometry_location_furnace.osm</filename>
-      <filetype>osm</filetype>
-      <usage_type>test</usage_type>
-      <checksum>E934FD35</checksum>
-    </file>
-    <file>
-      <filename>default_geometry_location_furnace_central_air_conditioner.osm</filename>
-      <filetype>osm</filetype>
-      <usage_type>test</usage_type>
-      <checksum>F20181E3</checksum>
-    </file>
-    <file>
-      <filename>default_geometry_location_furnace_room_air_conditioner.osm</filename>
-      <filetype>osm</filetype>
-      <usage_type>test</usage_type>
-      <checksum>6DBE40A3</checksum>
-    </file>
-    <file>
-      <filename>default_geometry_location_mshp.osm</filename>
-      <filetype>osm</filetype>
-      <usage_type>test</usage_type>
-      <checksum>E6DC2842</checksum>
-    </file>
-    <file>
-      <filename>process_boiler_test.rb</filename>
-      <filetype>rb</filetype>
-      <usage_type>test</usage_type>
-      <checksum>94682E27</checksum>
-    </file>
-    <file>
-      <filename>default_geometry_location_central_air_conditioner.osm</filename>
-      <filetype>osm</filetype>
-      <usage_type>test</usage_type>
-      <checksum>C0A4D94B</checksum>
-    </file>
-    <file>
-      <filename>default_geometry_location_room_air_conditioner.osm</filename>
-      <filetype>osm</filetype>
-      <usage_type>test</usage_type>
-      <checksum>8929A3ED</checksum>
-    </file>
-    <file>
-      <filename>util.rb</filename>
-      <filetype>rb</filetype>
-      <usage_type>resource</usage_type>
-      <checksum>2792E40D</checksum>
+      <checksum>C26B8630</checksum>
     </file>
     <file>
       <filename>constants.rb</filename>
       <filetype>rb</filetype>
       <usage_type>resource</usage_type>
-      <checksum>1AB9292D</checksum>
+      <checksum>A5CA5B20</checksum>
+    </file>
+    <file>
+      <filename>geometry.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>239A6D5F</checksum>
     </file>
   </files>
 </measure>
