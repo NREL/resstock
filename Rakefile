@@ -6,8 +6,8 @@ require 'rake/clean'
 
 CLEAN.include('*.pem', '*.pub', './projects/*.json', '*.json', 'faraday.log')
 
-desc 'Copy measures from OpenStudio-Beopt repo'
-task :copy_beopt_measures do
+desc 'Copy measures/osms from OpenStudio-Beopt repo'
+task :copy_beopt_files do
   require 'fileutils'
 
   beopt_measures_dir = File.join(File.dirname(__FILE__), "..", "OpenStudio-Beopt", "measures")
@@ -15,6 +15,13 @@ task :copy_beopt_measures do
   if not Dir.exist?(beopt_measures_dir)
     puts "Cannot find OpenStudio-Beopt measures dir at #{beopt_measures_dir}."
   end
+  
+  empty_osm = "EmptySeedModel.osm"
+  puts "Copying #{empty_osm}..."
+  beopt_empty_seed_model = File.join(File.dirname(__FILE__), "..", "OpenStudio-Beopt", "geometries", empty_osm)
+  resstock_empty_seed_model = File.join(File.dirname(__FILE__), "seeds", empty_osm)
+  FileUtils.rm(resstock_empty_seed_model)
+  FileUtils.cp(beopt_empty_seed_model, resstock_empty_seed_model)
   
   puts "Deleting #{resstock_measures_dir}..."
   while Dir.exist?(resstock_measures_dir)
