@@ -10,7 +10,7 @@ class ResidentialHotTubPump < OpenStudio::Ruleset::ModelUserScript
   end
   
   def description
-    return "Adds (or replaces) a residential hot tub pump with the specified efficiency and schedule. The hot tub is assumed to be outdoors."
+    return "Adds (or replaces) a residential hot tub pump with the specified efficiency and schedule. The hot tub is assumed to be outdoors. For multifamily buildings, the hot tub pump is set for all units of the building."
   end
   
   def modeler_description
@@ -96,78 +96,121 @@ class ResidentialHotTubPump < OpenStudio::Ruleset::ModelUserScript
 		return false
     end
     
-    # Get FFA and number of bedrooms/bathrooms
-    ffa = Geometry.get_building_finished_floor_area(model, runner)
-    if ffa.nil?
+    # Get number of units
+    num_units = Geometry.get_num_units(model, runner)
+    if num_units.nil?
         return false
     end
-    nbeds, nbaths, unit_spaces = Geometry.get_unit_beds_baths_spaces(model, 1, runner)
-    if nbeds.nil? or nbaths.nil?
-        runner.registerError("Could not determine number of bedrooms or bathrooms. Run the 'Add Residential Bedrooms And Bathrooms' measure first.")
-        return false
+
+    # Will we be setting multiple objects?
+    set_multiple_objects = false
+    if num_units > 1
+        set_multiple_objects = true
     end
+
+    #hard coded convective, radiative, latent, and lost fractions
+    htp_lat = 0
+    htp_rad = 0
+    htp_conv = 0
+    htp_lost = 1 - htp_lat - htp_rad - htp_conv
     
-	#Calculate annual energy use
-    ann_elec = base_energy * mult # kWh/yr
+    tot_htp_ann = 0
+    sch = nil
+    (1..num_units).to_a.each do |unit_num|
     
-    if scale_energy
-        #Scale energy use by num beds and floor area
-        constant = ann_elec/2
-        nbr_coef = ann_elec/4/3
-        ffa_coef = ann_elec/4/1920
-        htp_ann = constant + nbr_coef * nbeds + ffa_coef * ffa # kWh/yr
-    else
-        htp_ann = ann_elec # kWh/yr
-    end
-
-    space = Geometry.get_unit_default_finished_space(Geometry.get_finished_spaces(model), runner)
-    if space.nil?
-        return false
-    end
-
-    obj_name = Constants.ObjectNameHotTubPump
-
-    # Remove any existing hot tub pump
-    htp_removed = false
-    space.electricEquipment.each do |space_equipment|
-        if space_equipment.name.to_s == obj_name
-            space_equipment.remove
-            htp_removed = true
-        end
-    end
-    if htp_removed
-        runner.registerInfo("Removed existing hot tub pump.")
-    end
-
-    if htp_ann > 0
-        #hard coded convective, radiative, latent, and lost fractions
-        htp_lat = 0
-        htp_rad = 0
-        htp_conv = 0
-        htp_lost = 1 - htp_lat - htp_rad - htp_conv
-        
-        sch = MonthWeekdayWeekendSchedule.new(model, runner, obj_name + " schedule", weekday_sch, weekend_sch, monthly_sch)
-        if not sch.validated?
+        # Get unit beds/baths/spaces
+        nbeds, nbaths, unit_spaces = Geometry.get_unit_beds_baths_spaces(model, unit_num, runner)
+        if unit_spaces.nil?
+            runner.registerError("Could not determine the spaces associated with unit #{unit_num}.")
             return false
         end
-        design_level = sch.calcDesignLevelFromDailykWh(htp_ann/365.0)
+        if nbeds.nil? or nbaths.nil?
+            runner.registerError("Could not determine number of bedrooms or bathrooms. Run the 'Add Residential Bedrooms And Bathrooms' measure first.")
+            return false
+        end
         
-        #Add electric equipment for the hot tub pump
-        htp_def = OpenStudio::Model::ElectricEquipmentDefinition.new(model)
-        htp = OpenStudio::Model::ElectricEquipment.new(htp_def)
-        htp.setName(obj_name)
-        htp.setSpace(space)
-        htp_def.setName(obj_name)
-        htp_def.setDesignLevel(design_level)
-        htp_def.setFractionRadiant(htp_rad)
-        htp_def.setFractionLatent(htp_lat)
-        htp_def.setFractionLost(htp_lost)
-        sch.setSchedule(htp)
+        # Get unit ffa
+        ffa = Geometry.get_unit_finished_floor_area(model, unit_spaces, runner)
+        if ffa.nil?
+            return false
+        end
         
-        #reporting final condition of model
-        runner.registerFinalCondition("A hot tub pump has been set with #{htp_ann.round} kWhs annual energy consumption.")
+        # Get space
+        space = Geometry.get_space_from_string(unit_spaces, Constants.Auto)
+        next if space.nil?
+
+        unit_obj_name = Constants.ObjectNameHotTubPump(unit_num)
+    
+        # Remove any existing hot tub pump
+        htp_removed = false
+        space.electricEquipment.each do |space_equipment|
+            if space_equipment.name.to_s == unit_obj_name
+                space_equipment.remove
+                htp_removed = true
+            end
+        end
+        if htp_removed
+            runner.registerInfo("Removed existing hot tub pump from outside.")
+        end
+
+        #Calculate annual energy use
+        ann_elec = base_energy * mult # kWh/yr
+        
+        if scale_energy
+            #Scale energy use by num beds and floor area
+            constant = ann_elec/2
+            nbr_coef = ann_elec/4/3
+            ffa_coef = ann_elec/4/1920
+            htp_ann = constant + nbr_coef * nbeds + ffa_coef * ffa # kWh/yr
+        else
+            htp_ann = ann_elec # kWh/yr
+        end
+
+        if htp_ann > 0
+            
+            if sch.nil?
+                # Create schedule
+                sch = MonthWeekdayWeekendSchedule.new(model, runner, Constants.ObjectNameHotTubPump + " schedule", weekday_sch, weekend_sch, monthly_sch)
+                if not sch.validated?
+                    return false
+                end
+            end
+            
+            design_level = sch.calcDesignLevelFromDailykWh(htp_ann/365.0)
+            
+            #Add electric equipment for the hot tub pump
+            htp_def = OpenStudio::Model::ElectricEquipmentDefinition.new(model)
+            htp = OpenStudio::Model::ElectricEquipment.new(htp_def)
+            htp.setName(unit_obj_name)
+            htp.setSpace(space)
+            htp_def.setName(unit_obj_name)
+            htp_def.setDesignLevel(design_level)
+            htp_def.setFractionRadiant(htp_rad)
+            htp_def.setFractionLatent(htp_lat)
+            htp_def.setFractionLost(htp_lost)
+            sch.setSchedule(htp)
+            
+            if set_multiple_objects
+                # Report each assignment plus final condition
+                runner.registerInfo("A hot tub heater with #{htp_ann.round} kWhs annual energy consumption has been assigned to outside.")
+            end
+            
+            tot_htp_ann += htp_ann
+        end
+        
     end
 	
+    #reporting final condition of model
+    if tot_htp_ann > 0
+        if set_multiple_objects
+            runner.registerFinalCondition("The building has been assigned hot tub heaters totaling #{tot_htp_ann.round} kWhs annual energy consumption across #{num_units} units.")
+        else
+            runner.registerFinalCondition("A hot tub heater with #{tot_htp_ann.round} kWhs annual energy consumption has been assigned to outside.")
+        end
+    else
+        runner.registerFinalCondition("No hot tub heater has been assigned.")
+    end
+    
     return true
  
   end #end the run method

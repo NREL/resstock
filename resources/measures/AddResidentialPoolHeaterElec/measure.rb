@@ -10,7 +10,7 @@ class ResidentialPoolHeaterElec < OpenStudio::Ruleset::ModelUserScript
   end
   
   def description
-    return "Adds (or replaces) a residential pool heater with the specified efficiency and schedule. The pool is assumed to be outdoors."
+    return "Adds (or replaces) a residential pool heater with the specified efficiency and schedule. The pool is assumed to be outdoors. For multifamily buildings, the pool heater is set for all units of the building."
   end
   
   def modeler_description
@@ -96,87 +96,130 @@ class ResidentialPoolHeaterElec < OpenStudio::Ruleset::ModelUserScript
 		return false
     end
     
-    # Get FFA and number of bedrooms/bathrooms
-    ffa = Geometry.get_building_finished_floor_area(model, runner)
-    if ffa.nil?
+    # Get number of units
+    num_units = Geometry.get_num_units(model, runner)
+    if num_units.nil?
         return false
     end
-    nbeds, nbaths, unit_spaces = Geometry.get_unit_beds_baths_spaces(model, 1, runner)
-    if nbeds.nil? or nbaths.nil?
-        runner.registerError("Could not determine number of bedrooms or bathrooms. Run the 'Add Residential Bedrooms And Bathrooms' measure first.")
-        return false
+
+    # Will we be setting multiple objects?
+    set_multiple_objects = false
+    if num_units > 1
+        set_multiple_objects = true
     end
+
+    #hard coded convective, radiative, latent, and lost fractions
+    ph_lat = 0
+    ph_rad = 0
+    ph_conv = 0
+    ph_lost = 1 - ph_lat - ph_rad - ph_conv
     
-	#Calculate annual energy use
-    ann_elec = base_energy * mult # kWh/yr
-
-    if scale_energy
-        #Scale energy use by num beds and floor area
-        constant = ann_elec/2
-        nbr_coef = ann_elec/4/3
-        ffa_coef = ann_elec/4/1920
-        ph_ann = constant + nbr_coef * nbeds + ffa_coef * ffa # kWh/yr
-    else
-        ph_ann = ann_elec # kWh/yr
-    end
-
-    space = Geometry.get_unit_default_finished_space(Geometry.get_finished_spaces(model), runner)
-    if space.nil?
-        return false
-    end
-
-    obj_name_e = Constants.ObjectNamePoolHeater(Constants.FuelTypeElectric)
-    obj_name_g = Constants.ObjectNamePoolHeater(Constants.FuelTypeGas)
-
-    # Remove any existing pool heater
-    ph_removed = false
-    space.electricEquipment.each do |space_equipment|
-        if space_equipment.name.to_s == obj_name_e
-            space_equipment.remove
-            ph_removed = true
-        end
-    end
-    space.gasEquipment.each do |space_equipment|
-        if space_equipment.name.to_s == obj_name_g
-            space_equipment.remove
-            ph_removed = true
-        end
-    end
-    if ph_removed
-        runner.registerInfo("Removed existing pool heater.")
-    end
+    tot_ph_ann = 0
+    sch = nil
+    (1..num_units).to_a.each do |unit_num|
     
-    if ph_ann > 0
-        #hard coded convective, radiative, latent, and lost fractions
-        ph_lat = 0
-        ph_rad = 0
-        ph_conv = 0
-        ph_lost = 1 - ph_lat - ph_rad - ph_conv
-        
-        sch = MonthWeekdayWeekendSchedule.new(model, runner, obj_name_e + " schedule", weekday_sch, weekend_sch, monthly_sch)
-        if not sch.validated?
+        # Get unit beds/baths/spaces
+        nbeds, nbaths, unit_spaces = Geometry.get_unit_beds_baths_spaces(model, unit_num, runner)
+        if unit_spaces.nil?
+            runner.registerError("Could not determine the spaces associated with unit #{unit_num}.")
             return false
         end
-        design_level = sch.calcDesignLevelFromDailykWh(ph_ann/365.0)
+        if nbeds.nil? or nbaths.nil?
+            runner.registerError("Could not determine number of bedrooms or bathrooms. Run the 'Add Residential Bedrooms And Bathrooms' measure first.")
+            return false
+        end
         
-        #Add electric equipment for the pool heater
-        ph_def = OpenStudio::Model::ElectricEquipmentDefinition.new(model)
-        ph = OpenStudio::Model::ElectricEquipment.new(ph_def)
-        ph.setName(obj_name_e)
-        ph.setSpace(space)
-        ph_def.setName(obj_name_e)
-        ph_def.setDesignLevel(design_level)
-        ph_def.setFractionRadiant(ph_rad)
-        ph_def.setFractionLatent(ph_lat)
-        ph_def.setFractionLost(ph_lost)
-        sch.setSchedule(ph)
+        # Get unit ffa
+        ffa = Geometry.get_unit_finished_floor_area(model, unit_spaces, runner)
+        if ffa.nil?
+            return false
+        end
         
-        #reporting final condition of model
-        runner.registerFinalCondition("A pool electric heater has been set with #{ph_ann.round} kWhs annual energy consumption.")
-        
-        return true
-     end
+        # Get space
+        space = Geometry.get_space_from_string(unit_spaces, Constants.Auto)
+        next if space.nil?
+
+        unit_obj_name_e = Constants.ObjectNamePoolHeater(Constants.FuelTypeElectric, unit_num)
+        unit_obj_name_g = Constants.ObjectNamePoolHeater(Constants.FuelTypeGas, unit_num)
+    
+        # Remove any existing pool heater
+        ph_removed = false
+        space.electricEquipment.each do |space_equipment|
+            if space_equipment.name.to_s == unit_obj_name_e
+                space_equipment.remove
+                ph_removed = true
+            end
+        end
+        space.gasEquipment.each do |space_equipment|
+            if space_equipment.name.to_s == unit_obj_name_g
+                space_equipment.remove
+                ph_removed = true
+            end
+        end
+        if ph_removed
+            runner.registerInfo("Removed existing pool heater from outside.")
+        end
+    
+        #Calculate annual energy use
+        ann_elec = base_energy * mult # kWh/yr
+
+        if scale_energy
+            #Scale energy use by num beds and floor area
+            constant = ann_elec/2
+            nbr_coef = ann_elec/4/3
+            ffa_coef = ann_elec/4/1920
+            ph_ann = constant + nbr_coef * nbeds + ffa_coef * ffa # kWh/yr
+        else
+            ph_ann = ann_elec # kWh/yr
+        end
+
+        if ph_ann > 0
+            
+            if sch.nil?
+                # Create schedule
+                sch = MonthWeekdayWeekendSchedule.new(model, runner, Constants.ObjectNamePoolHeater(Constants.FuelTypeElectric) + " schedule", weekday_sch, weekend_sch, monthly_sch)
+                if not sch.validated?
+                    return false
+                end
+            end
+            
+            design_level = sch.calcDesignLevelFromDailykWh(ph_ann/365.0)
+            
+            #Add electric equipment for the pool heater
+            ph_def = OpenStudio::Model::ElectricEquipmentDefinition.new(model)
+            ph = OpenStudio::Model::ElectricEquipment.new(ph_def)
+            ph.setName(unit_obj_name_e)
+            ph.setSpace(space)
+            ph_def.setName(unit_obj_name_e)
+            ph_def.setDesignLevel(design_level)
+            ph_def.setFractionRadiant(ph_rad)
+            ph_def.setFractionLatent(ph_lat)
+            ph_def.setFractionLost(ph_lost)
+            sch.setSchedule(ph)
+            
+            if set_multiple_objects
+                # Report each assignment plus final condition
+                runner.registerInfo("A pool heater with #{ph_ann.round} kWhs annual energy consumption has been assigned to outside.")
+            end
+            
+            tot_ph_ann += ph_ann
+        end
+         
+    end
  
+    #reporting final condition of model
+    if tot_ph_ann > 0
+        if set_multiple_objects
+            runner.registerFinalCondition("The building has been assigned pool heaters totaling #{tot_ph_ann.round} kWhs annual energy consumption across #{num_units} units.")
+        else
+            runner.registerFinalCondition("A pool heater with #{tot_ph_ann.round} kWhs annual energy consumption has been assigned to outside.")
+        end
+    else
+        runner.registerFinalCondition("No pool heater has been assigned.")
+    end
+
+    return true
+
   end #end the run method
 
 end #end the measure

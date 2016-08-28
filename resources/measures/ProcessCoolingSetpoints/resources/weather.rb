@@ -3,13 +3,13 @@ require "#{File.dirname(__FILE__)}/psychrometrics"
 class WeatherHeader
   def initialize
   end
-  attr_accessor(:City, :State, :Country, :DataSource, :Station, :Latitude, :Longitude, :Timezone, :Altitude, :WSF, :LocalPressure)
+  attr_accessor(:City, :State, :Country, :DataSource, :Station, :Latitude, :Longitude, :Timezone, :Altitude, :LocalPressure)
 end
 
 class WeatherData
   def initialize
   end
-  attr_accessor(:AnnualAvgDrybulb, :AnnualMinDrybulb, :AnnualMaxDrybulb, :CDD50F, :CDD65F, :HDD50F, :HDD65F, :DailyAvgDrybulbs, :DailyMaxDrybulbs, :DailyMinDrybulbs, :AnnualAvgWindspeed, :MonthlyAvgDrybulbs, :MainsDailyTemps, :MainsMonthlyTemps, :MainsAvgTemp, :GroundMonthlyTemps)
+  attr_accessor(:AnnualAvgDrybulb, :AnnualMinDrybulb, :AnnualMaxDrybulb, :CDD50F, :CDD65F, :HDD50F, :HDD65F, :DailyAvgDrybulbs, :DailyMaxDrybulbs, :DailyMinDrybulbs, :AnnualAvgWindspeed, :MonthlyAvgDrybulbs, :MainsDailyTemps, :MainsMonthlyTemps, :MainsAvgTemp, :GroundMonthlyTemps, :WSF)
 end
 
 class WeatherProcess
@@ -68,8 +68,6 @@ class WeatherProcess
         header.Altitude = OpenStudio::convert(epw_file.elevation,"m","ft").get
         header.LocalPressure = Math::exp(-0.0000368 * header.Altitude) # atm
         
-        # header.WSF = get_ashrae_622_wsf(header.Station) TODO: getting utf-8 byte error on linux server when parsing this csv
-        
         if header_only
             return header, nil
         end
@@ -125,7 +123,8 @@ class WeatherProcess
         data = calc_avg_windspeed(data, hourdata)
         data = calc_mains_temperature(data, header)
         data = calc_ground_temperatures(data)
-
+        data.WSF = get_ashrae_622_wsf(header.Station)
+        
         return header, data
 
       end
@@ -264,9 +263,11 @@ class WeatherProcess
             
         # Sets the WSF value.
         
-        @runner.registerInfo("Getting ASHRAE 62.2 WSF...")
+        ashrae_csv = File.join(@measure_dir, "resources", 'ASHRAE622WSF.csv')
+        if not File.exists?(ashrae_csv)
+            return nil
+        end
         
-        ashrae_csv = File.join(measure_dir, "resources", 'ASHRAE622WSF.csv')
         ashrae_csvlines = []
         File.open(ashrae_csv) do |file|
           # if not os.path.exists(ashrae_csv):
@@ -293,7 +294,9 @@ class WeatherProcess
         end
         
         # Value not found, use average
-        return wsfs.inject{ |sum, n| sum + n } / wsfs.length
+        wsf_avg = wsfs.inject{ |sum, n| sum + n } / wsfs.length
+        @runner.registerWarning("ASHRAE 62.2 WSF not found for station number #{wmo.to_s}, using the national average value of #{wsf_avg.round(3).to_s} instead.")
+        return wsf_avg
             
       end
       

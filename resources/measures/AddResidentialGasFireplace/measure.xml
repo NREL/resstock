@@ -2,12 +2,12 @@
   <schema_version>3.0</schema_version>
   <name>residential_gas_fireplace</name>
   <uid>0565d3b2-593b-480b-a742-a6ec7058d3c4</uid>
-  <version_id>a50d604d-d862-4481-8998-88c8e245adbe</version_id>
-  <version_modified>20160823T203139Z</version_modified>
+  <version_id>60b61233-55be-422b-ac50-eeab93af4774</version_id>
+  <version_modified>20160826T214222Z</version_modified>
   <xml_checksum>25A40D75</xml_checksum>
   <class_name>ResidentialGasFireplace</class_name>
   <display_name>Set Residential Gas Fireplace</display_name>
-  <description>Adds (or replaces) a residential gas fireplace with the specified efficiency and schedule in the given space.</description>
+  <description>Adds (or replaces) a residential gas fireplace with the specified efficiency and schedule. For multifamily buildings, the fireplace can be set for all units of the building.</description>
   <modeler_description>Since there is no Gas Fireplace object in OpenStudio/EnergyPlus, we look for a GasEquipment object with the name that denotes it is a residential gas fireplace. If one is found, it is replaced with the specified properties. Otherwise, a new such object is added to the model. Note: This measure requires the number of bedrooms/bathrooms to have already been assigned.</modeler_description>
   <arguments>
     <argument>
@@ -78,15 +78,15 @@
     <argument>
       <name>space</name>
       <display_name>Location</display_name>
-      <description>Select the space where the fireplace is located.</description>
+      <description>Select the space where the cooking range is located. 'auto' will choose the lowest above-grade finished space available (e.g., first story living space), or a below-grade finished space as last resort. For multifamily buildings, 'auto' will choose a space for each unit of the building.</description>
       <type>Choice</type>
       <required>true</required>
       <model_dependent>false</model_dependent>
-      <default_value>living space</default_value>
+      <default_value>auto</default_value>
       <choices>
         <choice>
-          <value>living space</value>
-          <display_name>living space</display_name>
+          <value>auto</value>
+          <display_name>auto</display_name>
         </choice>
       </choices>
     </argument>
@@ -109,22 +109,40 @@
   </attributes>
   <files>
     <file>
+      <filename>schedules.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>4F0FB841</checksum>
+    </file>
+    <file>
+      <filename>geometry.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>A91122C3</checksum>
+    </file>
+    <file>
+      <filename>multifamily_3_units.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>F0401975</checksum>
+    </file>
+    <file>
+      <filename>multifamily_3_units_Beds_Baths.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>9E636226</checksum>
+    </file>
+    <file>
       <filename>2000sqft_2story_FB_GRG_UA.osm</filename>
       <filetype>osm</filetype>
       <usage_type>test</usage_type>
-      <checksum>A2C693E7</checksum>
-    </file>
-    <file>
-      <filename>ResidentialGasFireplace_Test.rb</filename>
-      <filetype>rb</filetype>
-      <usage_type>test</usage_type>
-      <checksum>C07D0D18</checksum>
+      <checksum>BD2CE49B</checksum>
     </file>
     <file>
       <filename>2000sqft_2story_FB_GRG_UA_3Beds_2Baths.osm</filename>
       <filetype>osm</filetype>
       <usage_type>test</usage_type>
-      <checksum>4EDB9566</checksum>
+      <checksum>22260550</checksum>
     </file>
     <file>
       <version>
@@ -135,25 +153,19 @@
       <filename>measure.rb</filename>
       <filetype>rb</filetype>
       <usage_type>script</usage_type>
-      <checksum>AB0E0E0F</checksum>
-    </file>
-    <file>
-      <filename>schedules.rb</filename>
-      <filetype>rb</filetype>
-      <usage_type>resource</usage_type>
-      <checksum>4F0FB841</checksum>
+      <checksum>37F76146</checksum>
     </file>
     <file>
       <filename>constants.rb</filename>
       <filetype>rb</filetype>
       <usage_type>resource</usage_type>
-      <checksum>A5CA5B20</checksum>
+      <checksum>3CF748BE</checksum>
     </file>
     <file>
-      <filename>geometry.rb</filename>
+      <filename>ResidentialGasFireplace_Test.rb</filename>
       <filetype>rb</filetype>
-      <usage_type>resource</usage_type>
-      <checksum>239A6D5F</checksum>
+      <usage_type>test</usage_type>
+      <checksum>E1CB543B</checksum>
     </file>
   </files>
 </measure>

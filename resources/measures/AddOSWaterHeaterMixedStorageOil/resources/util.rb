@@ -150,7 +150,7 @@ class HelperMethods
       return nil
     end    
     
-    def self.has_central_air_conditioner(model, runner, thermal_zone, remove=false)
+    def self.has_central_air_conditioner(model, runner, thermal_zone, remove=false, reset_air_loop=true)
       model.getAirLoopHVACs.each do |air_loop|
         air_loop.thermalZones.each do |thermalZone|
           next unless thermal_zone.handle.to_s == thermalZone.handle.to_s
@@ -166,15 +166,19 @@ class HelperMethods
               clg_coil.remove
               return true
             else
-              cloned_clg_coil = clg_coil.clone
-              air_loop_unitary.resetCoolingCoil
-              clg_coil.remove
-              if cloned_clg_coil.to_CoilCoolingDXSingleSpeed.is_initialized
-                cloned_clg_coil = cloned_clg_coil.to_CoilCoolingDXSingleSpeed.get
-              elsif cloned_clg_coil.to_CoilCoolingDXMultiSpeed.is_initialized
-                cloned_clg_coil = cloned_clg_coil.to_CoilCoolingDXMultiSpeed.get
-              end        
-              return cloned_clg_coil
+              if reset_air_loop
+                cloned_clg_coil = clg_coil.clone
+                air_loop_unitary.resetCoolingCoil
+                clg_coil.remove
+                if cloned_clg_coil.to_CoilCoolingDXSingleSpeed.is_initialized
+                  cloned_clg_coil = cloned_clg_coil.to_CoilCoolingDXSingleSpeed.get
+                elsif cloned_clg_coil.to_CoilCoolingDXMultiSpeed.is_initialized
+                  cloned_clg_coil = cloned_clg_coil.to_CoilCoolingDXMultiSpeed.get
+                end        
+                return cloned_clg_coil
+              else
+                return true
+              end
             end
           end
         end
@@ -194,7 +198,7 @@ class HelperMethods
       return nil
     end
     
-    def self.has_furnace(model, runner, thermal_zone, remove=false)
+    def self.has_furnace(model, runner, thermal_zone, remove=false, reset_air_loop=true)
       model.getAirLoopHVACs.each do |air_loop|
         air_loop.thermalZones.each do |thermalZone|
           next unless thermal_zone.handle.to_s == thermalZone.handle.to_s
@@ -210,15 +214,19 @@ class HelperMethods
               htg_coil.remove
               return true
             else
-              cloned_htg_coil = htg_coil.clone
-              air_loop_unitary.resetHeatingCoil
-              htg_coil.remove
-              if cloned_htg_coil.to_CoilHeatingGas.is_initialized
-                cloned_htg_coil = cloned_htg_coil.to_CoilHeatingGas.get
-              elsif cloned_htg_coil.to_CoilHeatingElectric.is_initialized
-                cloned_htg_coil = cloned_htg_coil.to_CoilHeatingElectric.get
+              if reset_air_loop
+                cloned_htg_coil = htg_coil.clone
+                air_loop_unitary.resetHeatingCoil
+                htg_coil.remove
+                if cloned_htg_coil.to_CoilHeatingGas.is_initialized
+                  cloned_htg_coil = cloned_htg_coil.to_CoilHeatingGas.get
+                elsif cloned_htg_coil.to_CoilHeatingElectric.is_initialized
+                  cloned_htg_coil = cloned_htg_coil.to_CoilHeatingElectric.get
+                end
+                return cloned_htg_coil
+              else
+                return true
               end
-              return cloned_htg_coil
             end
           end
         end
@@ -268,6 +276,8 @@ class HelperMethods
               htg_coil.remove
               clg_coil.remove
               return true
+            else
+              return true
             end
           end
         end
@@ -287,11 +297,13 @@ class HelperMethods
             htg_coil = air_loop_unitary.heatingCoil.get
             next unless clg_coil.to_CoilCoolingDXMultiSpeed.is_initialized and htg_coil.to_CoilHeatingDXMultiSpeed.is_initialized
             if remove
-              runner.registerInfo("Removed '#{clg_coil.name}' and '#{htg_coil.name}' from air loop '#{air_loop.name}'")
-              air_loop_unitary.resetHeatingCoil
-              air_loop_unitary.resetCoolingCoil              
-              htg_coil.remove
-              clg_coil.remove
+                runner.registerInfo("Removed '#{clg_coil.name}' and '#{htg_coil.name}' from air loop '#{air_loop.name}'")
+                air_loop_unitary.resetHeatingCoil
+                air_loop_unitary.resetCoolingCoil              
+                htg_coil.remove
+                clg_coil.remove
+                return true
+            else
               return true
             end
           end

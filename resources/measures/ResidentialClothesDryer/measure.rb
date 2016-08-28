@@ -10,7 +10,7 @@ class ResidentialClothesDryer < OpenStudio::Ruleset::ModelUserScript
   end
 
   def description
-    return "Adds (or replaces) a residential clothes dryer with the specified efficiency, operation, and schedule in the given space."
+    return "Adds (or replaces) a residential clothes dryer with the specified efficiency, operation, and schedule. For multifamily buildings, the clothes dryer can be set for all units of the building."
   end
   
   def modeler_description
@@ -87,20 +87,19 @@ class ResidentialClothesDryer < OpenStudio::Ruleset::ModelUserScript
 	args << cw_drum_volume
     
     #make a choice argument for space
-    spaces = model.getSpaces
+    spaces = Geometry.get_all_unit_spaces(model)
+    if spaces.nil?
+        spaces = []
+    end
     space_args = OpenStudio::StringVector.new
+    space_args << Constants.Auto
     spaces.each do |space|
         space_args << space.name.to_s
     end
-    if space_args.empty?
-        space_args << Constants.LivingSpace(1)
-    end
     space = OpenStudio::Ruleset::OSArgument::makeChoiceArgument("space", space_args, true)
     space.setDisplayName("Location")
-    space.setDescription("Select the space where the clothes dryer is located")
-    if space_args.include?(Constants.LivingSpace(1))
-        space.setDefaultValue(Constants.LivingSpace(1))
-    end
+    space.setDescription("Select the space where the cooking range is located. '#{Constants.Auto}' will choose the lowest above-grade finished space available (e.g., first story living space), or a below-grade finished space as last resort. For multifamily buildings, '#{Constants.Auto}' will choose a space for each unit of the building.")
+    space.setDefaultValue(Constants.Auto)
     args << space
     
     return args
@@ -125,20 +124,7 @@ class ResidentialClothesDryer < OpenStudio::Ruleset::ModelUserScript
     cw_rated_annual_energy = runner.getDoubleArgumentValue("cw_rated_annual_energy",user_arguments)
 	cw_drum_volume = runner.getDoubleArgumentValue("cw_drum_volume",user_arguments)
 	space_r = runner.getStringArgumentValue("space",user_arguments)
-
-    #Get space
-    space = Geometry.get_space_from_string(model.getSpaces, space_r, runner)
-    if space.nil?
-        return false
-    end
-
-    # Get number of bedrooms/bathrooms
-    nbeds, nbaths, unit_spaces = Geometry.get_unit_beds_baths_spaces(model, 1, runner)
-    if nbeds.nil? or nbaths.nil?
-        runner.registerError("Could not determine number of bedrooms or bathrooms. Run the 'Add Residential Bedrooms And Bathrooms' measure first.")
-        return false
-    end
-
+    
     #Check for valid inputs
 	if cd_ef <= 0
 		runner.registerError("Energy factor must be greater than 0.0.")
@@ -161,115 +147,168 @@ class ResidentialClothesDryer < OpenStudio::Ruleset::ModelUserScript
         return false
     end
 
-	
-    #hard coded convective, radiative, latent, and lost fractions for clothes dryer
+    # Get number of units
+    num_units = Geometry.get_num_units(model, runner)
+    if num_units.nil?
+        return false
+    end
+    
+    # Will we be setting multiple objects?
+    set_multiple_objects = false
+    if num_units > 1 and space_r == Constants.Auto
+        set_multiple_objects = true
+    end
+
+    #hard coded convective, radiative, latent, and lost fractions
 	cd_lat_e = 0.05
 	cd_rad_e = 0.09
 	cd_conv_e = 0.06
 	cd_lost_e = 1 - cd_lat_e - cd_rad_e - cd_conv_e
-
-    # Energy Use is based on "Method for Evaluating Energy Use of Dishwashers, Clothes 
-    # Washers, and Clothes Dryers" by Eastment and Hendron, Conference Paper NREL/CP-550-39769, 
-    # August 2006. Their paper is in part based on the energy use calculations presented in the 
-    # 10CFR Part 430, Subpt. B, App. D (DOE 1999),
-    # http://ecfr.gpoaccess.gov/cgi/t/text/text-idx?c=ecfr&tpl=/ecfrbrowse/Title10/10cfr430_main_02.tpl
-    # Eastment and Hendron present a method for estimating the energy consumption per cycle 
-    # based on the dryer's energy factor.
-
-    # Set some intermediate variables. An experimentally determined value for the percent 
-    # reduction in the moisture content of the test load, expressed here as a fraction 
-    # (DOE 10CFR Part 430, Subpt. B, App. D, Section 4.1)
-    dryer_nominal_reduction_in_moisture_content = 0.66
-    # The fraction of washer loads dried in a clothes dryer (DOE 10CFR Part 430, Subpt. B, 
-    # App. J1, Section 4.3)
-    dryer_usage_factor = 0.84
-    load_adjustment_factor = 0.52
-
-    # Set the number of cycles per year for test conditions
-    cw_cycles_per_year_test = 392 # (see Eastment and Hendron, NREL/CP-550-39769, 2006)
-
-    # Calculate test load weight (correlation based on data in Table 5.1 of 10CFR Part 430,
-    # Subpt. B, App. J1, DOE 1999)
-    cw_test_load = 4.103003337 * cw_drum_volume + 0.198242492 # lb
-
-    # Eq. 10 of Eastment and Hendron, NREL/CP-550-39769, 2006.
-    dryer_energy_factor_std = 0.5 # Nominal drying energy required, kWh/lb dry cloth
-    dryer_elec_per_year = (cw_cycles_per_year_test * cw_drum_volume / cw_mef - 
-                          cw_rated_annual_energy) # kWh
-    dryer_elec_per_cycle = dryer_elec_per_year / cw_cycles_per_year_test # kWh
-    remaining_moisture_after_spin = (dryer_elec_per_cycle / (load_adjustment_factor * 
-                                    dryer_energy_factor_std * dryer_usage_factor * 
-                                    cw_test_load) + 0.04) # lb water/lb dry cloth
-    cw_remaining_water = cw_test_load * remaining_moisture_after_spin
-
-    # Use the dryer energy factor and remaining water from the clothes washer to calculate 
-    # total energy use per cycle (eq. 7 Eastment and Hendron, NREL/CP-550-39769, 2006).
-    actual_cd_energy_use_per_cycle = (cw_remaining_water / (cd_ef *
-                                     dryer_nominal_reduction_in_moisture_content)) # kWh/cycle
-                                     
-    # All energy use is electric.
-    actual_cd_elec_use_per_cycle = actual_cd_energy_use_per_cycle # kWh/cycle
-
-    # (eq. 14 Eastment and Hendron, NREL/CP-550-39769, 2006)
-    actual_cw_cycles_per_year = (cw_cycles_per_year_test * (0.5 + nbeds / 6) * 
-                                (12.5 / cw_test_load)) # cycles/year
-
-    # eq. 15 of Eastment and Hendron, NREL/CP-550-39769, 2006
-    actual_cd_cycles_per_year = dryer_usage_factor * actual_cw_cycles_per_year # cycles/year
     
-    daily_energy_elec = actual_cd_cycles_per_year * actual_cd_elec_use_per_cycle / 365 # kWh/day
+    tot_cd_ann_e = 0
+    last_space = nil
+    sch = nil
+    (1..num_units).to_a.each do |unit_num|
     
-    daily_energy_elec = daily_energy_elec * cd_mult
-
-    cd_ann_e = daily_energy_elec * 365.0 # kWh/yr
-
-    obj_name_e = Constants.ObjectNameClothesDryer(Constants.FuelTypeElectric)
-    obj_name_g = Constants.ObjectNameClothesDryer(Constants.FuelTypeGas)
-    
-    # Remove any existing clothes dryer
-    cd_removed = false
-    space.electricEquipment.each do |space_equipment|
-        if space_equipment.name.to_s == obj_name_e
-            space_equipment.remove
-            cd_removed = true
-        end
-    end
-    space.gasEquipment.each do |space_equipment|
-        if space_equipment.name.to_s == obj_name_g
-            space_equipment.remove
-            cd_removed = true
-        end
-    end
-    if cd_removed
-        runner.registerInfo("Removed existing clothes dryer.")
-    end
-
-    if cd_ann_e > 0
-        mult_weekend = 1.15
-        mult_weekday = 0.94
-
-        sch = MonthWeekdayWeekendSchedule.new(model, runner, obj_name_e + " schedule", cd_weekday_sch, cd_weekend_sch, cd_monthly_sch, mult_weekday, mult_weekend)
-        if not sch.validated?
+        # Get unit beds/baths/spaces
+        nbeds, nbaths, unit_spaces = Geometry.get_unit_beds_baths_spaces(model, unit_num, runner)
+        if unit_spaces.nil?
+            runner.registerError("Could not determine the spaces associated with unit #{unit_num}.")
             return false
         end
-        design_level_e = sch.calcDesignLevelFromDailykWh(daily_energy_elec)
-
-        #Add equipment for the cd
-        cd_def = OpenStudio::Model::ElectricEquipmentDefinition.new(model)
-        cd = OpenStudio::Model::ElectricEquipment.new(cd_def)
-        cd.setName(obj_name_e)
-        cd.setSpace(space)
-        cd_def.setName(obj_name_e)
-        cd_def.setDesignLevel(design_level_e)
-        cd_def.setFractionRadiant(cd_rad_e)
-        cd_def.setFractionLatent(cd_lat_e)
-        cd_def.setFractionLost(cd_lost_e)
-        sch.setSchedule(cd)
+        if nbeds.nil? or nbaths.nil?
+            runner.registerError("Could not determine number of bedrooms or bathrooms. Run the 'Add Residential Bedrooms And Bathrooms' measure first.")
+            return false
+        end
         
-        #reporting final condition of model
-        runner.registerFinalCondition("An electric dryer has been set with #{cd_ann_e.round} kWhs annual energy consumption.")
+        # Get space
+        space = Geometry.get_space_from_string(unit_spaces, space_r)
+        next if space.nil?
+
+        unit_obj_name_e = Constants.ObjectNameClothesDryer(Constants.FuelTypeElectric, unit_num)
+        unit_obj_name_g = Constants.ObjectNameClothesDryer(Constants.FuelTypeGas, unit_num)
+    
+        # Remove any existing clothes dryer
+        cd_removed = false
+        space.electricEquipment.each do |space_equipment|
+            if space_equipment.name.to_s == unit_obj_name_e
+                space_equipment.remove
+                cd_removed = true
+            end
+        end
+        space.gasEquipment.each do |space_equipment|
+            if space_equipment.name.to_s == unit_obj_name_g
+                space_equipment.remove
+                cd_removed = true
+            end
+        end
+        if cd_removed
+            runner.registerInfo("Removed existing clothes dryer from space #{space.name.to_s}.")
+        end
+
+        # Energy Use is based on "Method for Evaluating Energy Use of Dishwashers, Clothes 
+        # Washers, and Clothes Dryers" by Eastment and Hendron, Conference Paper NREL/CP-550-39769, 
+        # August 2006. Their paper is in part based on the energy use calculations presented in the 
+        # 10CFR Part 430, Subpt. B, App. D (DOE 1999),
+        # http://ecfr.gpoaccess.gov/cgi/t/text/text-idx?c=ecfr&tpl=/ecfrbrowse/Title10/10cfr430_main_02.tpl
+        # Eastment and Hendron present a method for estimating the energy consumption per cycle 
+        # based on the dryer's energy factor.
+
+        # Set some intermediate variables. An experimentally determined value for the percent 
+        # reduction in the moisture content of the test load, expressed here as a fraction 
+        # (DOE 10CFR Part 430, Subpt. B, App. D, Section 4.1)
+        dryer_nominal_reduction_in_moisture_content = 0.66
+        # The fraction of washer loads dried in a clothes dryer (DOE 10CFR Part 430, Subpt. B, 
+        # App. J1, Section 4.3)
+        dryer_usage_factor = 0.84
+        load_adjustment_factor = 0.52
+
+        # Set the number of cycles per year for test conditions
+        cw_cycles_per_year_test = 392 # (see Eastment and Hendron, NREL/CP-550-39769, 2006)
+
+        # Calculate test load weight (correlation based on data in Table 5.1 of 10CFR Part 430,
+        # Subpt. B, App. J1, DOE 1999)
+        cw_test_load = 4.103003337 * cw_drum_volume + 0.198242492 # lb
+
+        # Eq. 10 of Eastment and Hendron, NREL/CP-550-39769, 2006.
+        dryer_energy_factor_std = 0.5 # Nominal drying energy required, kWh/lb dry cloth
+        dryer_elec_per_year = (cw_cycles_per_year_test * cw_drum_volume / cw_mef - 
+                              cw_rated_annual_energy) # kWh
+        dryer_elec_per_cycle = dryer_elec_per_year / cw_cycles_per_year_test # kWh
+        remaining_moisture_after_spin = (dryer_elec_per_cycle / (load_adjustment_factor * 
+                                        dryer_energy_factor_std * dryer_usage_factor * 
+                                        cw_test_load) + 0.04) # lb water/lb dry cloth
+        cw_remaining_water = cw_test_load * remaining_moisture_after_spin
+
+        # Use the dryer energy factor and remaining water from the clothes washer to calculate 
+        # total energy use per cycle (eq. 7 Eastment and Hendron, NREL/CP-550-39769, 2006).
+        actual_cd_energy_use_per_cycle = (cw_remaining_water / (cd_ef *
+                                         dryer_nominal_reduction_in_moisture_content)) # kWh/cycle
+                                         
+        # All energy use is electric.
+        actual_cd_elec_use_per_cycle = actual_cd_energy_use_per_cycle # kWh/cycle
+
+        # (eq. 14 Eastment and Hendron, NREL/CP-550-39769, 2006)
+        actual_cw_cycles_per_year = (cw_cycles_per_year_test * (0.5 + nbeds / 6) * 
+                                    (12.5 / cw_test_load)) # cycles/year
+
+        # eq. 15 of Eastment and Hendron, NREL/CP-550-39769, 2006
+        actual_cd_cycles_per_year = dryer_usage_factor * actual_cw_cycles_per_year # cycles/year
+
+        daily_energy_elec = actual_cd_cycles_per_year * actual_cd_elec_use_per_cycle / 365 # kWh/day
+
+        daily_energy_elec = daily_energy_elec * cd_mult
+
+        cd_ann_e = daily_energy_elec * 365.0 # kWh/yr
+
+        if cd_ann_e > 0
+        
+            if sch.nil?
+                # Create schedule
+                mult_weekend = 1.15
+                mult_weekday = 0.94
+                sch = MonthWeekdayWeekendSchedule.new(model, runner, Constants.ObjectNameClothesDryer(Constants.FuelTypeElectric) + " schedule", cd_weekday_sch, cd_weekend_sch, cd_monthly_sch, mult_weekday, mult_weekend)
+                if not sch.validated?
+                    return false
+                end
+            end
+
+            design_level_e = sch.calcDesignLevelFromDailykWh(daily_energy_elec)
+
+            #Add equipment for the cd
+            cd_def = OpenStudio::Model::ElectricEquipmentDefinition.new(model)
+            cd = OpenStudio::Model::ElectricEquipment.new(cd_def)
+            cd.setName(unit_obj_name_e)
+            cd.setSpace(space)
+            cd_def.setName(unit_obj_name_e)
+            cd_def.setDesignLevel(design_level_e)
+            cd_def.setFractionRadiant(cd_rad_e)
+            cd_def.setFractionLatent(cd_lat_e)
+            cd_def.setFractionLost(cd_lost_e)
+            sch.setSchedule(cd)
+            
+            if set_multiple_objects
+                # Report each assignment plus final condition
+                runner.registerInfo("A clothes dryer with #{cd_ann_e.round} kWhs annual energy consumption has been assigned to space '#{space.name.to_s}'.")
+            end
+            
+            tot_cd_ann_e += cd_ann_e
+            last_space = space
+        end
+        
     end
 	
+    #reporting final condition of model
+    if tot_cd_ann_e > 0
+        if set_multiple_objects
+            runner.registerFinalCondition("The building has been assigned clothes dryers totaling #{tot_cd_ann_e.round} kWhs annual energy consumption across #{num_units} units.")
+        else
+            runner.registerFinalCondition("A clothes dryer with #{tot_cd_ann_e.round} kWhs annual energy consumption has been assigned to space '#{last_space.name.to_s}'.")
+        end
+    else
+        runner.registerFinalCondition("No clothes dryer has been assigned.")
+    end
+    
     return true
 	
   end

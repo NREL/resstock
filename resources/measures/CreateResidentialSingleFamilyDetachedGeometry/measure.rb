@@ -701,15 +701,7 @@ class CreateResidentialSingleFamilyDetachedGeometry < OpenStudio::Ruleset::Model
     
     # Store dwelling unit information (for consistency with multifamily buildings)
     model.getBuilding.setStandardsNumberOfLivingUnits(1)
-    unit_spaces = []
-    living_zone.spaces.each do |living_space| # includes finished attic
-      unit_spaces << living_space
-    end
-    if foundation_type == Constants.FinishedBasementSpace
-      unit_spaces << foundation_space
-    end
-    Geometry.set_unit_beds_baths_spaces(model, 1, unit_spaces)
-    Geometry.set_unit_space_association(model, 1, runner)
+    Geometry.set_unit_beds_baths_spaces(model, 1, model.getSpaces)
   
     # reporting final condition of model
     runner.registerFinalCondition("The building finished with #{model.getSpaces.size} spaces.")	

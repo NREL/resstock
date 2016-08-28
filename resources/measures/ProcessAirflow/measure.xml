@@ -2,104 +2,14 @@
   <schema_version>3.0</schema_version>
   <name>process_airflow</name>
   <uid>c4dde5f8-45aa-4381-93dc-e598f7c31155</uid>
-  <version_id>29c6e6fa-178c-4b49-b8c1-8816160ad748</version_id>
-  <version_modified>20160823T203141Z</version_modified>
+  <version_id>0e7439c4-8d45-4e2c-a02b-0f86fb60722d</version_id>
+  <version_modified>20160826T180401Z</version_modified>
   <xml_checksum>2AC0F979</xml_checksum>
   <class_name>ProcessAirflow</class_name>
   <display_name>Set Residential Airflow</display_name>
   <description>This measure processes infiltration for the living space, garage, finished basement, unfinished basement, crawlspace, and unfinished attic. It also processes mechanical ventilation and natural ventilation for the living space.</description>
   <modeler_description>Using EMS code, this measure processes the building's airflow (infiltration, mechanical ventilation, and natural ventilation). Note: This measure requires the number of bedrooms/bathrooms to have already been assigned.</modeler_description>
   <arguments>
-    <argument>
-      <name>living_thermal_zone</name>
-      <display_name>Living thermal zone</display_name>
-      <description>Select the living thermal zone</description>
-      <type>Choice</type>
-      <required>false</required>
-      <model_dependent>false</model_dependent>
-      <default_value>living zone</default_value>
-      <choices>
-        <choice>
-          <value>living zone</value>
-          <display_name>living zone</display_name>
-        </choice>
-      </choices>
-    </argument>
-    <argument>
-      <name>garage_thermal_zone</name>
-      <display_name>Garage thermal zone</display_name>
-      <description>Select the garage thermal zone</description>
-      <type>Choice</type>
-      <required>false</required>
-      <model_dependent>false</model_dependent>
-      <default_value>garage zone</default_value>
-      <choices>
-        <choice>
-          <value>garage zone</value>
-          <display_name>garage zone</display_name>
-        </choice>
-      </choices>
-    </argument>
-    <argument>
-      <name>fbasement_thermal_zone</name>
-      <display_name>Finished Basement thermal zone</display_name>
-      <description>Select the finished basement thermal zone</description>
-      <type>Choice</type>
-      <required>false</required>
-      <model_dependent>false</model_dependent>
-      <default_value>finished basement zone</default_value>
-      <choices>
-        <choice>
-          <value>finished basement zone</value>
-          <display_name>finished basement zone</display_name>
-        </choice>
-      </choices>
-    </argument>
-    <argument>
-      <name>ufbasement_thermal_zone</name>
-      <display_name>Unfinished Basement thermal zone</display_name>
-      <description>Select the unfinished basement thermal zone</description>
-      <type>Choice</type>
-      <required>false</required>
-      <model_dependent>false</model_dependent>
-      <default_value>unfinished basement zone</default_value>
-      <choices>
-        <choice>
-          <value>unfinished basement zone</value>
-          <display_name>unfinished basement zone</display_name>
-        </choice>
-      </choices>
-    </argument>
-    <argument>
-      <name>crawl_thermal_zone</name>
-      <display_name>Crawlspace thermal zone</display_name>
-      <description>Select the crawlspace thermal zone</description>
-      <type>Choice</type>
-      <required>false</required>
-      <model_dependent>false</model_dependent>
-      <default_value>crawl zone</default_value>
-      <choices>
-        <choice>
-          <value>crawl zone</value>
-          <display_name>crawl zone</display_name>
-        </choice>
-      </choices>
-    </argument>
-    <argument>
-      <name>ufattic_thermal_zone</name>
-      <display_name>Unfinished Attic thermal zone</display_name>
-      <description>Select the unfinished attic thermal zone</description>
-      <type>Choice</type>
-      <required>false</required>
-      <model_dependent>false</model_dependent>
-      <default_value>unfinished attic zone</default_value>
-      <choices>
-        <choice>
-          <value>unfinished attic zone</value>
-          <display_name>unfinished attic zone</display_name>
-        </choice>
-      </choices>
-    </argument>
     <argument>
       <name>userdefinedinflivingspace</name>
       <display_name>Air Leakage: Above-Grade Living Space ACH50</display_name>
@@ -642,16 +552,94 @@
       <checksum>640596F1</checksum>
     </file>
     <file>
-      <filename>weather.rb</filename>
-      <filetype>rb</filetype>
-      <usage_type>resource</usage_type>
-      <checksum>129640D9</checksum>
+      <filename>USA_CO_Denver_Intl_AP_725650_TMY3.ddy</filename>
+      <filetype>ddy</filetype>
+      <usage_type>test</usage_type>
+      <checksum>FB253570</checksum>
+    </file>
+    <file>
+      <filename>USA_CO_Denver_Intl_AP_725650_TMY3.epw</filename>
+      <filetype>epw</filetype>
+      <usage_type>test</usage_type>
+      <checksum>E23378AA</checksum>
+    </file>
+    <file>
+      <filename>singlefamily_slab_location_neighbors_beds_furnace_central_air_conditioner.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>B2DEB4B1</checksum>
+    </file>
+    <file>
+      <filename>singlefamily_slab_location_beds_electric_baseboard.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>8B7D787A</checksum>
+    </file>
+    <file>
+      <filename>singlefamily_slab_location_beds_furnace_clothes_dryer.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>A3CDCEF8</checksum>
     </file>
     <file>
       <filename>util.rb</filename>
       <filetype>rb</filetype>
       <usage_type>resource</usage_type>
-      <checksum>2792E40D</checksum>
+      <checksum>0F260377</checksum>
+    </file>
+    <file>
+      <filename>geometry.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>A91122C3</checksum>
+    </file>
+    <file>
+      <filename>singlefamily_garage_location_beds_furnace_central_air_conditioner.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>70BF22DE</checksum>
+    </file>
+    <file>
+      <filename>singlefamily_ufbasement_location_beds_furnace_central_air_conditioner.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>66D9CFCB</checksum>
+    </file>
+    <file>
+      <filename>singlefamily_crawl_location_beds_furnace_central_air_conditioner.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>BCC6011F</checksum>
+    </file>
+    <file>
+      <filename>singlefamily_fbasement_location_beds_furnace_central_air_conditioner.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>C3D08AA7</checksum>
+    </file>
+    <file>
+      <filename>singlefamily_slab_location_beds_furnace_central_air_conditioner.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>59B6EBD7</checksum>
+    </file>
+    <file>
+      <filename>singlefamily_slab_location_beds_mshp.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>C52E2B76</checksum>
+    </file>
+    <file>
+      <filename>airflow_test.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>test</usage_type>
+      <checksum>299CD3E0</checksum>
+    </file>
+    <file>
+      <filename>weather.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>9D657C02</checksum>
     </file>
     <file>
       <version>
@@ -662,19 +650,19 @@
       <filename>measure.rb</filename>
       <filetype>rb</filetype>
       <usage_type>script</usage_type>
-      <checksum>FAA0FCA1</checksum>
+      <checksum>6694D72C</checksum>
+    </file>
+    <file>
+      <filename>ASHRAE622WSF.csv</filename>
+      <filetype>csv</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>308F75BA</checksum>
     </file>
     <file>
       <filename>constants.rb</filename>
       <filetype>rb</filetype>
       <usage_type>resource</usage_type>
-      <checksum>A5CA5B20</checksum>
-    </file>
-    <file>
-      <filename>geometry.rb</filename>
-      <filetype>rb</filetype>
-      <usage_type>resource</usage_type>
-      <checksum>239A6D5F</checksum>
+      <checksum>3CF748BE</checksum>
     </file>
   </files>
 </measure>

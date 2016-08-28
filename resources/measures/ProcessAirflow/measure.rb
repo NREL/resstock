@@ -205,20 +205,10 @@ class ProcessAirflow < OpenStudio::Ruleset::WorkspaceUserScript
   end
 
   class Geom
-    def initialize(nbeds, nbaths)
-	  @nbeds = nbeds
-	  @nbaths = nbaths
+    def initialize
     end
 	
-	attr_accessor(:finished_floor_area, :above_grade_finished_floor_area, :building_height, :stories, :window_area, :num_units)
-	
-	def num_bedrooms
-	  return @nbeds
-	end
-	
-	def num_bathrooms
-	  return @nbaths
-	end
+    attr_accessor(:finished_floor_area, :above_grade_finished_floor_area, :building_height, :stories, :window_area, :num_units, :num_bedrooms, :num_bathrooms)
     
   end
 
@@ -351,114 +341,6 @@ class ProcessAirflow < OpenStudio::Ruleset::WorkspaceUserScript
   #define the arguments that the user will input
   def arguments(workspace)
     args = OpenStudio::Ruleset::OSArgumentVector.new
-
-    #make a choice argument for living thermal zone
-    thermal_zones = workspace.getObjectsByType("Zone".to_IddObjectType)
-    thermal_zone_args = OpenStudio::StringVector.new
-    thermal_zones.each do |thermal_zone|
-      zone_arg_name = thermal_zone.getString(0) # Name
-      thermal_zone_args << zone_arg_name.to_s
-    end
-    if thermal_zone_args.empty?
-      thermal_zone_args << Constants.LivingZone
-    end
-    living_thermal_zone = OpenStudio::Ruleset::OSArgument::makeChoiceArgument("living_thermal_zone", thermal_zone_args, false)
-    living_thermal_zone.setDisplayName("Living thermal zone")
-    living_thermal_zone.setDescription("Select the living thermal zone")
-    if thermal_zone_args.include?(Constants.LivingZone)
-      living_thermal_zone.setDefaultValue(Constants.LivingZone)
-    end
-    args << living_thermal_zone		
-	
-    #make a choice argument for garage thermal zone
-    thermal_zones = workspace.getObjectsByType("Zone".to_IddObjectType)
-    thermal_zone_args = OpenStudio::StringVector.new
-    thermal_zones.each do |thermal_zone|
-      zone_arg_name = thermal_zone.getString(0) # Name
-      thermal_zone_args << zone_arg_name.to_s
-    end
-    if thermal_zone_args.empty?
-      thermal_zone_args << Constants.GarageZone
-    end
-    garage_thermal_zone = OpenStudio::Ruleset::OSArgument::makeChoiceArgument("garage_thermal_zone", thermal_zone_args, false)
-    garage_thermal_zone.setDisplayName("Garage thermal zone")
-    garage_thermal_zone.setDescription("Select the garage thermal zone")
-    if thermal_zone_args.include?(Constants.GarageZone)
-      garage_thermal_zone.setDefaultValue(Constants.GarageZone)
-    end
-    args << garage_thermal_zone	
-
-    #make a choice argument for finished basement thermal zone
-    thermal_zones = workspace.getObjectsByType("Zone".to_IddObjectType)
-    thermal_zone_args = OpenStudio::StringVector.new
-    thermal_zones.each do |thermal_zone|
-      zone_arg_name = thermal_zone.getString(0) # Name
-      thermal_zone_args << zone_arg_name.to_s
-    end
-    if thermal_zone_args.empty?
-      thermal_zone_args << Constants.FinishedBasementZone
-    end
-    fbasement_thermal_zone = OpenStudio::Ruleset::OSArgument::makeChoiceArgument("fbasement_thermal_zone", thermal_zone_args, false)
-    fbasement_thermal_zone.setDisplayName("Finished Basement thermal zone")
-    fbasement_thermal_zone.setDescription("Select the finished basement thermal zone")
-    if thermal_zone_args.include?(Constants.FinishedBasementZone)
-      fbasement_thermal_zone.setDefaultValue(Constants.FinishedBasementZone)
-    end
-    args << fbasement_thermal_zone	
-
-    #make a choice argument for unfinished basement thermal zone
-    thermal_zones = workspace.getObjectsByType("Zone".to_IddObjectType)
-    thermal_zone_args = OpenStudio::StringVector.new
-    thermal_zones.each do |thermal_zone|
-      zone_arg_name = thermal_zone.getString(0) # Name
-      thermal_zone_args << zone_arg_name.to_s
-    end
-    if thermal_zone_args.empty?
-      thermal_zone_args << Constants.UnfinishedBasementZone
-    end
-    ufbasement_thermal_zone = OpenStudio::Ruleset::OSArgument::makeChoiceArgument("ufbasement_thermal_zone", thermal_zone_args, false)
-    ufbasement_thermal_zone.setDisplayName("Unfinished Basement thermal zone")
-    ufbasement_thermal_zone.setDescription("Select the unfinished basement thermal zone")
-    if thermal_zone_args.include?(Constants.UnfinishedBasementZone)
-        ufbasement_thermal_zone.setDefaultValue(Constants.UnfinishedBasementZone)
-    end
-    args << ufbasement_thermal_zone	
-
-    #make a choice argument for crawl thermal zone
-    thermal_zones = workspace.getObjectsByType("Zone".to_IddObjectType)
-    thermal_zone_args = OpenStudio::StringVector.new
-    thermal_zones.each do |thermal_zone|
-      zone_arg_name = thermal_zone.getString(0) # Name
-      thermal_zone_args << zone_arg_name.to_s
-    end
-    if thermal_zone_args.empty?
-      thermal_zone_args << Constants.CrawlZone
-    end
-    crawl_thermal_zone = OpenStudio::Ruleset::OSArgument::makeChoiceArgument("crawl_thermal_zone", thermal_zone_args, false)
-    crawl_thermal_zone.setDisplayName("Crawlspace thermal zone")
-    crawl_thermal_zone.setDescription("Select the crawlspace thermal zone")
-    if thermal_zone_args.include?(Constants.CrawlZone)
-      crawl_thermal_zone.setDefaultValue(Constants.CrawlZone)
-    end
-    args << crawl_thermal_zone	
-	
-    #make a choice argument for ufattic thermal zone
-    thermal_zones = workspace.getObjectsByType("Zone".to_IddObjectType)
-    thermal_zone_args = OpenStudio::StringVector.new
-    thermal_zones.each do |thermal_zone|
-      zone_arg_name = thermal_zone.getString(0) # Name
-      thermal_zone_args << zone_arg_name.to_s
-    end
-    if thermal_zone_args.empty?
-      thermal_zone_args << Constants.UnfinishedAtticZone
-    end
-    ufattic_thermal_zone = OpenStudio::Ruleset::OSArgument::makeChoiceArgument("ufattic_thermal_zone", thermal_zone_args, false)
-    ufattic_thermal_zone.setDisplayName("Unfinished Attic thermal zone")
-    ufattic_thermal_zone.setDescription("Select the unfinished attic thermal zone")
-    if thermal_zone_args.include?(Constants.UnfinishedAtticZone)
-      ufattic_thermal_zone.setDefaultValue(Constants.UnfinishedAtticZone)
-    end
-    args << ufattic_thermal_zone    
     
     # Air Leakage
 
@@ -825,35 +707,6 @@ class ProcessAirflow < OpenStudio::Ruleset::WorkspaceUserScript
     end
     model = model.get
 
-    # Zones
-    living_thermal_zone_r = runner.getOptionalStringArgumentValue("living_thermal_zone",user_arguments)
-    living_thermal_zone_r.is_initialized ? living_thermal_zone_r.get : living_thermal_zone_r = nil
-    living_thermal_zone_r = living_thermal_zone_r.to_s
-    living_thermal_zone = Geometry.get_thermal_zone_from_string(model, living_thermal_zone_r, runner)
-    if living_thermal_zone.nil?
-        return false
-    end
-    garage_thermal_zone_r = runner.getOptionalStringArgumentValue("garage_thermal_zone",user_arguments)
-    garage_thermal_zone_r.is_initialized ? garage_thermal_zone_r.get : garage_thermal_zone_r = nil
-    garage_thermal_zone_r = garage_thermal_zone_r.to_s
-    garage_thermal_zone = Geometry.get_thermal_zone_from_string(model, garage_thermal_zone_r, runner)
-    fbasement_thermal_zone_r = runner.getOptionalStringArgumentValue("fbasement_thermal_zone",user_arguments)
-    fbasement_thermal_zone_r.is_initialized ? fbasement_thermal_zone_r.get : fbasement_thermal_zone_r = nil
-    fbasement_thermal_zone_r = fbasement_thermal_zone_r.to_s
-    fbasement_thermal_zone = Geometry.get_thermal_zone_from_string(model, fbasement_thermal_zone_r, runner)
-    ufbasement_thermal_zone_r = runner.getOptionalStringArgumentValue("ufbasement_thermal_zone",user_arguments)
-    ufbasement_thermal_zone_r.is_initialized ? ufbasement_thermal_zone_r.get : ufbasement_thermal_zone_r = nil
-    ufbasement_thermal_zone_r = ufbasement_thermal_zone_r.to_s
-    ufbasement_thermal_zone = Geometry.get_thermal_zone_from_string(model, ufbasement_thermal_zone_r, runner)
-    crawl_thermal_zone_r = runner.getOptionalStringArgumentValue("crawl_thermal_zone",user_arguments)
-    crawl_thermal_zone_r.is_initialized ? crawl_thermal_zone_r.get : crawl_thermal_zone_r = nil
-    crawl_thermal_zone_r = crawl_thermal_zone_r.to_s
-    crawl_thermal_zone = Geometry.get_thermal_zone_from_string(model, crawl_thermal_zone_r, runner)
-    ufattic_thermal_zone_r = runner.getOptionalStringArgumentValue("ufattic_thermal_zone",user_arguments)
-    ufattic_thermal_zone_r.is_initialized ? ufattic_thermal_zone_r.get : ufattic_thermal_zone_r = nil
-    ufattic_thermal_zone_r = ufattic_thermal_zone_r.to_s
-    ufattic_thermal_zone = Geometry.get_thermal_zone_from_string(model, ufattic_thermal_zone_r, runner)
-
     # Remove existing airflow objects
     workspace = HelperMethods.remove_object_from_idf_based_on_name(workspace, ["NatVentProbability"], "Schedule:Constant", runner)
     workspace = HelperMethods.remove_object_from_idf_based_on_name(workspace, ["MechanicalVentilationEnergyWk", "MechanicalVentilationWk", "BathExhaustWk", "ClothesDryerExhaustWk", "RangeHoodWk", "NatVentOffSeason-Week", "NatVent-Week", "NatVentClgSsnTempWeek", "NatVentHtgSsnTempWeek", "NatVentOvlpSsnTempWeek"], "Schedule:Week:Compact", runner)
@@ -900,25 +753,6 @@ class ProcessAirflow < OpenStudio::Ruleset::WorkspaceUserScript
       mechVentSensibleEfficiency = 0.0
     end
     dryerExhaust = runner.getDoubleArgumentValue("userdefineddryerexhaust",user_arguments)
-    has_cd = false
-    electricEquipments = workspace.getObjectsByType("ElectricEquipment".to_IddObjectType)
-    electricEquipments.each do |electricEquipment|
-      electricEquipment_name = electricEquipment.getString(0).to_s # Name
-      if electricEquipment_name == Constants.ObjectNameClothesDryer(Constants.FuelTypeElectric)
-        has_cd = true
-      end
-    end
-    gasEquipments = workspace.getObjectsByType("GasEquipment".to_IddObjectType)
-    gasEquipments.each do |gasEquipment|
-      gasEquipment_name = gasEquipment.getString(0).to_s # Name
-      if gasEquipment_name == Constants.ObjectNameClothesDryer(Constants.FuelTypeGas)
-        has_cd = true
-      end
-    end
-    if not has_cd and dryerExhaust > 0
-      runner.registerWarning("No clothes dryer object was found but the clothes dryer exhaust specified is non-zero. Overriding clothes dryer exhaust to be zero.")
-      dryerExhaust = 0
-    end
 
     ageOfHome = runner.getDoubleArgumentValue("userdefinedhomeage",user_arguments)
 
@@ -952,19 +786,9 @@ class ProcessAirflow < OpenStudio::Ruleset::WorkspaceUserScript
     ductSupplySurfaceAreaMultiplier = runner.getDoubleArgumentValue("supply_surface_area_multiplier",user_arguments)
     ductReturnSurfaceAreaMultiplier = runner.getDoubleArgumentValue("return_surface_area_multiplier",user_arguments)
     ductUnconditionedRvalue = runner.getDoubleArgumentValue("duct_unconditioned_rvalue",user_arguments)
-
-    # Get number of bedrooms/bathrooms
-    nbeds, nbaths, unit_spaces = Geometry.get_unit_beds_baths_spaces(model, 1, runner)
-    if nbeds.nil? or nbaths.nil?
-        runner.registerError("Could not determine number of bedrooms or bathrooms. Run the 'Add Residential Bedrooms And Bathrooms' measure first.")
-        return false
-    end
 	
     if infiltrationLivingSpaceACH50 == 0
       infiltrationLivingSpaceACH50 = nil
-    end
-    if infiltrationGarageACH50 == 0
-      infiltrationGarageACH50 = nil
     end
 	
     # Create the material class instances
@@ -978,74 +802,10 @@ class ProcessAirflow < OpenStudio::Ruleset::WorkspaceUserScript
     wind_speed = WindSpeed.new
     neighbors_min_nonzero_offset = get_least_neighbor_offset(workspace)
     vent = MechanicalVentilation.new(mechVentType, mechVentInfilCredit, mechVentTotalEfficiency, mechVentFractionOfASHRAE, mechVentHouseFanPower, mechVentSensibleEfficiency, mechVentASHRAEStandard)
-    geometry = Geom.new(nbeds, nbaths)
+    geometry = Geom.new
     nv = NaturalVentilation.new(natVentHtgSsnSetpointOffset, natVentClgSsnSetpointOffset, natVentOvlpSsnSetpointOffset, natVentHeatingSeason, natVentCoolingSeason, natVentOverlapSeason, natVentNumberWeekdays, natVentNumberWeekendDays, natVentFractionWindowsOpen, natVentFractionWindowAreaOpen, natVentMaxOAHumidityRatio, natVentMaxOARelativeHumidity)
     schedules = Schedules.new
     d = Ducts.new(ductTotalLeakage, ductNormLeakageToOutside, ductSupplySurfaceAreaMultiplier, ductReturnSurfaceAreaMultiplier, ductUnconditionedRvalue, ductSupplyLeakageFractionOfTotal, ductReturnLeakageFractionOfTotal, ductAHSupplyLeakageFractionOfTotal, ductAHReturnLeakageFractionOfTotal)
-    
-    zones = workspace.getObjectsByType("Zone".to_IddObjectType)
-    zones.each do |zone|
-      zone_name = zone.getString(0).to_s
-      if zone_name == living_thermal_zone_r
-        living_space.coord_z = OpenStudio::convert(zone.getString(4).get.to_f,"m","ft").get # Z Origin {m}
-      elsif zone_name == garage_thermal_zone_r
-        garage.coord_z = OpenStudio::convert(zone.getString(4).get.to_f,"m","ft").get # Z Origin {m}
-      elsif zone_name == fbasement_thermal_zone_r
-        finished_basement.coord_z = OpenStudio::convert(zone.getString(4).get.to_f,"m","ft").get # Z Origin {m}
-      elsif zone_name == ufbasement_thermal_zone_r
-        space_unfinished_basement.coord_z = OpenStudio::convert(zone.getString(4).get.to_f,"m","ft").get # Z Origin {m}
-      elsif zone_name == crawl_thermal_zone_r
-        crawlspace.coord_z = OpenStudio::convert(zone.getString(4).get.to_f,"m","ft").get # Z Origin {m}
-      elsif zone_name == ufattic_thermal_zone_r
-        unfinished_attic.coord_z = OpenStudio::convert(zone.getString(4).get.to_f,"m","ft").get # Z Origin {m}
-      end
-    end    
-    
-    geometry.finished_floor_area = Geometry.get_building_finished_floor_area(model, runner)
-    if geometry.finished_floor_area.nil?
-      return false
-    end
-    geometry.above_grade_finished_floor_area = Geometry.get_building_above_grade_finished_floor_area(model, runner)
-    if geometry.above_grade_finished_floor_area.nil?
-      return false
-    end
-    geometry.building_height = Geometry.get_building_height(model.getSpaces)
-    geometry.stories = Geometry.get_building_stories(model.getSpaces)
-    geometry.window_area = Geometry.get_building_window_area(model, runner)
-    geometry.num_units = 1 # TODO: determine number of multifamily units
-    living_space.height = Geometry.get_building_height(living_thermal_zone.spaces)
-    living_space.area = OpenStudio::convert(living_thermal_zone.floorArea,"m^2","ft^2").get
-    living_space.volume = living_space.height * living_space.area
-    unless ufattic_thermal_zone.nil?
-      unfinished_attic.height = Geometry.get_building_height(ufattic_thermal_zone.spaces)
-      unfinished_attic.area = OpenStudio::convert(ufattic_thermal_zone.floorArea,"m^2","ft^2").get
-      unfinished_attic.volume = unfinished_attic.height * unfinished_attic.area
-    end
-    unless crawl_thermal_zone.nil?
-      crawlspace.height = Geometry.get_building_height(crawl_thermal_zone.spaces)
-      crawlspace.area = OpenStudio::convert(crawl_thermal_zone.floorArea,"m^2","ft^2").get
-      crawlspace.volume = crawlspace.height * crawlspace.area
-    end
-    unless garage_thermal_zone.nil?
-      garage.height = Geometry.get_building_height(garage_thermal_zone.spaces)
-      garage.area = OpenStudio::convert(garage_thermal_zone.floorArea,"m^2","ft^2").get
-      garage.volume = garage.height * garage.area
-    end
-    unless fbasement_thermal_zone.nil?
-      finished_basement.height = Geometry.get_building_height(fbasement_thermal_zone.spaces)
-      finished_basement.area = OpenStudio::convert(fbasement_thermal_zone.floorArea,"m^2","ft^2").get
-      finished_basement.volume = finished_basement.height * finished_basement.area   
-    end
-    unless ufbasement_thermal_zone.nil?
-      space_unfinished_basement.height = Geometry.get_building_height(ufbasement_thermal_zone.spaces)
-      space_unfinished_basement.area = OpenStudio::convert(ufbasement_thermal_zone.floorArea,"m^2","ft^2").get
-      space_unfinished_basement.volume = space_unfinished_basement.height * space_unfinished_basement.area
-    end
-  
-    if duct_location != "none" and HelperMethods.has_central_air_conditioner(model, runner, living_thermal_zone).nil? and HelperMethods.has_furnace(model, runner, living_thermal_zone).nil? and HelperMethods.has_air_source_heat_pump(model, runner, living_thermal_zone).nil?
-      runner.registerWarning("No ducted HVAC equipment was found but ducts were specified. Overriding duct specification.")
-      duct_location = "none"
-    end
   
     heatingSetpointWeekday = Array.new
     coolingSetpointWeekday = Array.new
@@ -1124,17 +884,9 @@ class ProcessAirflow < OpenStudio::Ruleset::WorkspaceUserScript
     if @weather.error?
         return false
     end
-	
-    # Process the infiltration
-    si, living_space, wind_speed, garage, fb, ub, cs, ua = _processInfiltration(si, living_space, garage, finished_basement, space_unfinished_basement, crawlspace, unfinished_attic, garage_thermal_zone, fbasement_thermal_zone, ufbasement_thermal_zone, crawl_thermal_zone, ufattic_thermal_zone, wind_speed, neighbors_min_nonzero_offset, terrainType, geometry)
-    # Process the mechanical ventilation
-    vent, schedules = _processMechanicalVentilation(si, vent, ageOfHome, dryerExhaust, geometry, living_space, schedules)
-    # Process the natural ventilation
-    nv, schedules = _processNaturalVentilation(workspace, nv, living_space, wind_speed, si, schedules, geometry, coolingSetpointWeekday, coolingSetpointWeekend, heatingSetpointWeekday, heatingSetpointWeekend)
 
     ems = []
 
-    # Schedules
     sch = "
     ScheduleTypeLimits,
       Fraction,                     !- Name
@@ -1163,1515 +915,1676 @@ class ProcessAirflow < OpenStudio::Ruleset::WorkspaceUserScript
       AlwaysOn,                     !- Name
       FRACTION,                     !- Schedule Type
       1;                            !- Hourly Value"
-    ems << sch
-
-    schedules.MechanicalVentilationEnergy.each do |sch|
-      ems << sch
-    end
-    schedules.MechanicalVentilation.each do |sch|
-      ems << sch
-    end
-    schedules.BathExhaust.each do |sch|
-      ems << sch
-    end
-    schedules.ClothesDryerExhaust.each do |sch|
-      ems << sch
-    end
-    schedules.RangeHood.each do |sch|
-      ems << sch
-    end
-    schedules.NatVentProbability.each do |sch|
-      ems << sch
-    end
-    schedules.NatVentAvailability.each do |sch|
-      ems << sch
-    end
-    schedules.NatVentTemp.each do |sch|
-      ems << sch
-    end
-
-    # _processZoneLiving
-
-    # Infiltration (Overridden by EMS. Values here are arbitrary)
-    # Living Infiltration
-    ems << "
-    ZoneInfiltration:FlowCoefficient,
-      Living Infiltration,                                        !- Name
-      #{living_thermal_zone_r},                                   !- Zone Name
-      AlwaysOn,                                                   !- Schedule Name
-      1,                                                          !- Flow Coefficient {m/s-Pa^n}
-      1,                                                          !- Stack Coefficient {Pa^n/K^n}
-      1,                                                          !- Pressure Exponent
-      1,                                                          !- Wind Coefficient {Pa^n-s^n/m^n}
-      1;                                                          !- Shelter Factor (From Walker and Wilson (1998) (eq. 16))"
-
-    # The ventilation flow rate from this object is overriden by EMS language
-    # Natural Ventilation
-    ems << "
-    ZoneVentilation:DesignFlowRate,
-      Natural Ventilation,                                        !- Name
-      #{living_thermal_zone_r},                                   !- Zone Name
-      NatVent,                                                    !- Schedule Name
-      Flow/Zone,                                                  !- Design Flow Rate Calculation Method
-      0.001,                                                      !- Design Flow rate {m^3/s}
-      ,                                                           !- Flow Rate per Zone Floor Area {m/s-m}
-      ,                                                           !- Flow Rate per Person {m/s-person}
-      ,                                                           !- Air Changes per Hour {1/hr}
-      Natural,                                                    !- Ventilation Type
-      0,                                                          !- Fan Pressure Rise {Pa} (Fan Energy is accounted for in Fan:ZoneExhaust)
-      1,                                                          !- Fan Total Efficiency
-      1,                                                          !- Constant Term Coefficient
-      0,                                                          !- Temperature Term Coefficient
-      0,                                                          !- Velocity Term Coefficient
-      0;                                                          !- Velocity Squared Term Coefficient"
-
-    # Sensors
-
-    # Tout
-    ems << "
-    EnergyManagementSystem:Sensor,
-      Tout,                                                       !- Name
-      #{living_thermal_zone_r},                                   !- Output:Variable or Output:Meter Index Key Name
-      Zone Outdoor Air Drybulb Temperature;                       !- Output:Variable or Output:Meter Index Key Name"
-
-    # Hout
-    ems << "
-    EnergyManagementSystem:Sensor,
-      Hout,                                                       !- Name
-      ,                                                           !- Output:Variable or Output:Meter Index Key Name
-      Site Outdoor Air Enthalpy;                                  !- Output:Variable or Output:Meter Index Key Name"
-
-    # Pbar
-    ems << "
-    EnergyManagementSystem:Sensor,
-      Pbar,                                                       !- Name
-      ,                                                           !- Output:Variable or Output:Meter Index Key Name
-      Site Outdoor Air Barometric Pressure;                       !- Output:Variable or Output:Meter Index Key Name"
-
-    # Tin
-    ems << "
-    EnergyManagementSystem:Sensor,
-      Tin,                                                        !- Name
-      #{living_thermal_zone_r},                                   !- Output:Variable or Output:Meter Index Key Name
-      Zone Mean Air Temperature;                                  !- Output:Variable or Output:Meter Index Key Name"
-
-    # Phiin
-    ems << "
-    EnergyManagementSystem:Sensor,
-      Phiin,                                                      !- Name
-      #{living_thermal_zone_r},                                   !- Output:Variable or Output:Meter Index Key Name
-      Zone Air Relative Humidity;                                 !- Output:Variable or Output:Meter Index Key Name"	  
-	  
-    # Win
-    ems << "
-    EnergyManagementSystem:Sensor,
-      Win,                                                        !- Name
-      #{living_thermal_zone_r},                                   !- Output:Variable or Output:Meter Index Key Name
-      Zone Mean Air Humidity Ratio;                               !- Output:Variable or Output:Meter Index Key Name"
-
-    # Wout
-    ems << "
-    EnergyManagementSystem:Sensor,
-      Wout,                                                       !- Name
-      ,                                                           !- Output:Variable or Output:Meter Index Key Name
-      Site Outdoor Air Humidity Ratio;                            !- Output:Variable or Output:Meter Index Key Name"
-
-    # Vwind
-    ems << "
-    EnergyManagementSystem:Sensor,
-      Vwind,                                                      !- Name
-      ,                                                           !- Output:Variable or Output:Meter Index Key Name
-      Site Wind Speed;                                            !- Output:Variable or Output:Meter Index Key Name"
-
-    # WH_sch
-    ems << "
-    EnergyManagementSystem:Sensor,
-      WH_sch,                                                     !- Name
-      AlwaysOn,                                                   !- Output:Variable or Output:Meter Index Key Name
-      Schedule Value;                                             !- Output:Variable or Output:Meter Index Key Name"
-
-    # Range_sch
-    ems << "
-    EnergyManagementSystem:Sensor,
-      Range_sch,                                                  !- Name
-      RangeHood,                                                  !- Output:Variable or Output:Meter Index Key Name
-      Schedule Value;                                             !- Output:Variable or Output:Meter Index Key Name"
-
-    # Bath_sch
-    ems << "
-    EnergyManagementSystem:Sensor,
-      Bath_sch,                                                   !- Name
-      BathExhaust,                                                !- Output:Variable or Output:Meter Index Key Name
-      Schedule Value;                                             !- Output:Variable or Output:Meter Index Key Name"
-
-    # Clothes_dryer_sch
-    ems << "
-    EnergyManagementSystem:Sensor,
-      Clothes_dryer_sch,                                          !- Name
-      ClothesDryerExhaust,                                        !- Output:Variable or Output:Meter Index Key Name
-      Schedule Value;                                             !- Output:Variable or Output:Meter Index Key Name"
-
-    # NVAvail
-    ems << "
-    EnergyManagementSystem:Sensor,
-      NVAvail,                                                    !- Name
-      NatVent,                                                    !- Output:Variable or Output:Meter Index Key Name
-      Schedule Value;                                             !- Output:Variable or Output:Meter Index Key Name"
-
-    # NVSP
-    ems << "
-    EnergyManagementSystem:Sensor,
-      NVSP,                                                       !- Name
-      NatVentTemp,                                                !- Output:Variable or Output:Meter Index Key Name
-      Schedule Value;                                             !- Output:Variable or Output:Meter Index Key Name"
-
-    # Actuators
-
-    # NatVentFlow
-    ems << "
-    EnergyManagementSystem:Actuator,
-      NatVentFlow,                                                !- Name
-      Natural Ventilation,                                        !- Actuated Component Unique Name
-      Zone Ventilation,                                           !- Actuated Component Type
-      Air Exchange Flow Rate;                                     !- Actuated Component Control Type"
-
-    # InfilFlow
-    ems << "
-    EnergyManagementSystem:Actuator,
-      InfilFlow,                                                  !- Name
-      Living Infiltration,                                        !- Actuated Component Unique Name
-      Zone Infiltration,                                          !- Actuated Component Type
-      Air Exchange Flow Rate;                                     !- Actuated Component Control Type"
-
-    # Program
-
-    # InfiltrationProgram
-    ems_program = "
-    EnergyManagementSystem:Program,
-      InfiltrationProgram,                                        !- Name
-	    Set p_m = #{wind_speed.ashrae_terrain_exponent},
-		Set p_s = #{wind_speed.ashrae_site_terrain_exponent},
-		Set s_m = #{wind_speed.ashrae_terrain_thickness},
-		Set s_s = #{wind_speed.ashrae_site_terrain_thickness},
-		Set z_m = #{OpenStudio::convert(wind_speed.height,"ft","m").get},
-		Set z_s = #{OpenStudio::convert(living_space.height,"ft","m").get},
-		Set f_t = (((s_m/z_m)^p_m)*((z_s/s_s)^p_s)),
-		Set VwindL = (f_t*Vwind),"
-    if living_space.inf_method == Constants.InfMethodASHRAE
-      if living_space.SLA > 0
-        inf = si
-        ems_program += "
-          Set Tdiff = Tin - Tout,
-          Set DeltaT = @Abs Tdiff,
-          Set c = #{(OpenStudio::convert(inf.C_i,"cfm","m^3/s").get / (249.1 ** inf.n_i))},
-          Set Cs = #{inf.stack_coef * (448.4 ** inf.n_i)},
-          Set Cw = #{inf.wind_coef * (1246.0 ** inf.n_i)},
-          Set n = #{inf.n_i},
-          Set sft = (f_t*#{(((wind_speed.S_wo * (1.0 - inf.Y_i)) + (inf.S_wflue * (1.5 * inf.Y_i))))}),
-          Set Qn = (((c*Cs*(DeltaT^n))^2)+(((c*Cw)*((sft*Vwind)^(2*n)))^2))^0.5,"
-      else
-        ems_program += "
-          Set Qn = 0,"
-      end
-    elsif living_space.inf_method == Constants.InfMethodRes
-      ems_program += "
-      Set Qn = #{living_space.ACH * OpenStudio::convert(living_space.volume,"ft^3","m^3").get / OpenStudio::convert(1.0,"hr","s").get},"
-    end
-
-    ems_program += "
-      Set Tdiff = Tin - Tout,
-      Set DeltaT = @Abs Tdiff,"
-
-    ems_program += "
-      Set QWHV = WH_sch*#{OpenStudio::convert(vent.whole_house_vent_rate,"cfm","m^3/s").get},
-      Set Qrange = Range_sch*#{OpenStudio::convert(vent.range_hood_hour_avg_exhaust,"cfm","m^3/s").get},
-      Set Qdryer = Clothes_dryer_sch*#{OpenStudio::convert(vent.clothes_dryer_hour_avg_exhaust,"cfm","m^3/s").get},
-      Set Qbath = Bath_sch*#{OpenStudio::convert(vent.bathroom_hour_avg_exhaust,"cfm","m^3/s").get},
-      Set QhpwhOut = 0,
-      Set QhpwhIn = 0,
-      Set QductsOut = DuctLeakExhaustFanEquivalent,
-      Set QductsIn = DuctLeakSupplyFanEquivalent,"
-
-    if vent.MechVentType == Constants.VentTypeBalanced
-      ems_program += "
-        Set Qout = Qrange+Qbath+Qdryer+QhpwhOut+QductsOut,          !- Exhaust flows
-        Set Qin = QhpwhIn+QductsIn,                                 !- Supply flows
-        Set Qu = (@Abs (Qout - Qin)),                               !- Unbalanced flow
-        Set Qb = QWHV + (@Min Qout Qin),                            !- Balanced flow"
-    else
-      if vent.MechVentType == Constants.VentTypeExhaust
-        ems_program += "
-          Set Qout = QWHV+Qrange+Qbath+Qdryer+QhpwhOut+QductsOut,    !- Exhaust flows
-          Set Qin = QhpwhIn+QductsIn,                                !- Supply flows
-          Set Qu = (@Abs (Qout - Qin)),                              !- Unbalanced flow
-          Set Qb = (@Min Qout Qin),                                  !- Balanced flow"
-      else #vent.MechVentType == Constants.VentTypeSupply:
-        ems_program += "
-          Set Qout = Qrange+Qbath+Qdryer+QhpwhOut+QductsOut,         !- Exhaust flows
-          Set Qin = QWHV+QhpwhIn+QductsIn,                            !- Supply flows
-          Set Qu = @Abs (Qout - Qin),                                !- QductOA
-          Set Qb = (@Min Qout Qin),                                  !- Balanced flow"
-      end
-
-      if vent.MechVentHouseFanPower != 0
-        ems_program += "
-          Set faneff_wh = #{OpenStudio::convert(300.0 / vent.MechVentHouseFanPower,"cfm","m^3/s").get},      !- Fan Efficiency"
-      else
-        ems_program += "
-          Set faneff_wh = 1,"
-      end
-      ems_program += "
-        Set WholeHouseFanPowerOverride= (QWHV*300)/faneff_wh,"
-    end
-    if vent.MechVentSpotFanPower != 0
-      ems_program += "
-        Set faneff_sp = #{OpenStudio::convert(300.0 / vent.MechVentSpotFanPower,"cfm","m^3/s").get},        !- Fan Efficiency"
-    else
-      ems_program += "
-        Set faneff_sp = 1,"
-    end
-
-    ems_program += "
-      Set RangeHoodFanPowerOverride = (Qrange*300)/faneff_sp,
-      Set BathExhaustFanPowerOverride = (Qbath*300)/faneff_sp,
-      Set Q_acctd_for_elsewhere = QhpwhOut + QhpwhIn + QductsOut + QductsIn,
-	  Set InfilFlow = (((Qu^2) + (Qn^2))^0.5) - Q_acctd_for_elsewhere,
-	  Set InfilFlow = (@Max InfilFlow 0),
-	  Set InfilFlow_display = (((Qu^2) + (Qn^2))^0.5) - Qu,
-      Set InfMechVent = Qb + InfilFlow;"
-
-    ems << ems_program
-
-    # OutputVariable
-
-    # Zone Infil/MechVent Flow Rate
-    ems << "
-    EnergyManagementSystem:OutputVariable,
-      Zone Infil/MechVent Flow Rate,                                  !- Name
-      InfMechVent,                                                    !- EMS Variable Name
-      Averaged,                                                       !- Type of Data in Variable
-      ZoneTimestep,                                                   !- Update Frequency
-      InfiltrationProgram,                                            !- EMS Program or Subroutine Name
-      m3/s;                                                           !- Units"
-
-    # Whole House Fan Vent Flow Rate
-    ems << "
-    EnergyManagementSystem:OutputVariable,
-      Whole House Fan Vent Flow Rate,                                 !- Name
-      QWHV,                                                           !- EMS Variable Name
-      Averaged,                                                       !- Type of Data in Variable
-      ZoneTimestep,                                                   !- Update Frequency
-      InfiltrationProgram,                                            !- EMS Program or Subroutine Name
-      m3/s;                                                           !- Units"
-
-    # Range Hood Fan Vent Flow Rate
-    ems << "
-    EnergyManagementSystem:OutputVariable,
-      Range Hood Fan Vent Flow Rate,                                  !- Name
-      Qrange,                                                         !- EMS Variable Name
-      Averaged,                                                       !- Type of Data in Variable
-      ZoneTimestep,                                                   !- Update Frequency
-      InfiltrationProgram,                                            !- EMS Program or Subroutine Name
-      m3/s;                                                           !- Units"
-
-    # Bath Exhaust Fan Vent Flow Rate
-    ems << "
-    EnergyManagementSystem:OutputVariable,
-      Bath Exhaust Fan Vent Flow Rate,                                !- Name
-      Qbath,                                                          !- EMS Variable Name
-      Averaged,                                                       !- Type of Data in Variable
-      ZoneTimestep,                                                   !- Update Frequency
-      InfiltrationProgram,                                            !- EMS Program or Subroutine Name
-      m3/s;                                                           !- Units"
-
-    # Clothes Dryer Exhaust Fan Vent Flow Rate
-    ems << "
-    EnergyManagementSystem:OutputVariable,
-      Clothes Dryer Exhaust Fan Vent Flow Rate,                       !- Name
-      Qdryer,                                                         !- EMS Variable Name
-      Averaged,                                                       !- Type of Data in Variable
-      ZoneTimestep,                                                   !- Update Frequency
-      InfiltrationProgram,                                            !- EMS Program or Subroutine Name
-      m3/s;                                                           !- Units"
-
-    # Local Wind Speed
-    ems << "
-    EnergyManagementSystem:OutputVariable,
-      Local Wind Speed,                                               !- Name
-      VwindL,                                                         !- EMS Variable Name
-      Averaged,                                                       !- Type of Data in Variable
-      ZoneTimestep,                                                   !- Update Frequency
-      InfiltrationProgram,                                            !- EMS Program or Subroutine Name
-      m/s;                                                            !- Units"
-
-    # Program
-
-    # NaturalVentilationProgram
-    ems << "
-    EnergyManagementSystem:Program,
-      NaturalVentilationProgram,                                      !- Name
-      Set Tdiff = Tin - Tout,
-      Set DeltaT = (@Abs Tdiff),
-      Set Phiout = (@RhFnTdbWPb Tout Wout Pbar),
-      Set Hin = (@HFnTdbRhPb Tin Phiin Pbar),
-      Set NVArea = #{929.0304 * nv.area},
-      Set Cs = #{0.001672 * nv.C_s},
-      Set Cw = #{0.01 * nv.C_w},
-      Set MaxNV = #{OpenStudio::convert(nv.max_flow_rate,"cfm","m^3/s").get},
-      Set MaxHR = #{nv.NatVentMaxOAHumidityRatio},
-      Set MaxRH = #{nv.NatVentMaxOARelativeHumidity},
-      Set SGNV = (NVAvail*NVArea)*((((Cs*DeltaT)+(Cw*(Vwind^2)))^0.5)/1000),
-      If (Wout < MaxHR) && (Phiout < MaxRH) && (Tin > NVSP),
-        Set NVadj1 = (Tin - NVSP)/(Tin - Tout),
-        Set NVadj2 = (@Min NVadj1 1),
-        Set NVadj3 = (@Max NVadj2 0),
-        Set NVadj = SGNV*NVadj3,
-        Set NatVentFlow = (@Min NVadj MaxNV),
-      Else,
-        Set NatVentFlow = 0,
-      EndIf;"
-
-    # OutputVariable
-
-    # Zone Natural Ventilation Flow Rate
-    ems << "
-    EnergyManagementSystem:OutputVariable,
-      Zone Natural Ventilation Flow Rate,                             !- Name
-      NatVentFlow,                                                    !- EMS Variable Name
-      Averaged,                                                       !- Type of Data in Variable
-      ZoneTimestep,                                                   !- Update Frequency
-      NaturalVentilationProgram,                                      !- EMS Program or Subroutine Name
-      m3/s;                                                           !- Units"
-
-    # ProgramCallingManager
-
-    # AirflowCalculator
-    ems << "
-    EnergyManagementSystem:ProgramCallingManager,
-      AirflowCalculator,                                              !- Name
-      BeginTimestepBeforePredictor,                                   !- EnergyPlus Model Calling Point
-      InfiltrationProgram,                                            !- Program Name 1
-      NaturalVentilationProgram;                                      !- Program Name 2"
-
-    # Mechanical Ventilation
-    if vent.MechVentType == Constants.VentTypeBalanced # TODO: will need to complete _processSystemVentilationNodes for this to work
-
-      ems << "
-      Fan:OnOff,
-        ERV Supply Fan,                                                               !- Name
-        AlwaysOn,                                                                     !- Availability Schedule Name
-        #{OpenStudio::convert(300.0 / vent.MechVentHouseFanPower,"cfm","m^3/s").get}, !- Fan Efficiency
-        300,                                                                          !- Pressure Rise {Pa}
-        #{OpenStudio::convert(vent.whole_house_vent_rate,"cfm","m^3/s").get},         !- Maximum Flow rate {m^3/s}
-        1,                                                                            !- Motor Efficiency
-        1,                                                                            !- Motor in Airstream Fraction
-        ERV Supply Fan Inlet Node,                                                    !- Air Inlet Node Name
-        ERV Supply Fan Outlet Node,                                                   !- Air Outlet Node Name
-        Fan-EIR-fPLR,                                                                 !- Fan Power Ratio Function of Speed Ratio Curve Name
-        ,                                                                             !- Fan Efficiency Ratio Function of Speed Ratio Curve Name
-        VentFans;                                                                     !- End-Use Subcategory"
-
-      # TODO: Fan-EIR-fPLR has not been added so does not show up in IDF (does it need to?)
-
-      ems << "
-      Fan:OnOff,
-        ERV Exhaust Fan,                                                              !- Name
-        AlwaysOn,                                                                     !- Availability Schedule Name
-        #{OpenStudio::convert(300.0 / vent.MechVentHouseFanPower,"cfm","m^3/s").get}, !- Fan Efficiency
-        300,                                                                          !- Pressure Rise {Pa}
-        #{OpenStudio::convert(vent.whole_house_vent_rate,"cfm","m^3/s").get},         !- Maximum Flow rate {m^3/s}
-        1,                                                                            !- Motor Efficiency
-        0,                                                                            !- Motor in Airstream Fraction
-        ERV Exhaust Fan Inlet Node,                                                   !- Air Inlet Node Name
-        ERV Exhaust Fan Outlet Node,                                                  !- Air Outlet Node Name
-        Fan-EIR-fPLR,                                                                 !- Fan Power Ratio Function of Speed Ratio Curve Name
-        ,                                                                             !- Fan Efficiency Ratio Function of Speed Ratio Curve Name
-        VentFans;                                                                     !- End-Use Subcategory"
-
-      # TODO: Fan-EIR-fPLR has not been added so does not show up in IDF (does it need to?)
-
-      ems << "
-      ZoneHVAC:EnergyRecoveryVentilator:Controller,
-        ERV Controller,                                                         !- Name
-        ,                                                                       !- Temperature High Limit {C}
-        ,                                                                       !- Temperature Low Limit {C}
-        ,                                                                       !- Enthalpy High Limit {J/kg}
-        ,                                                                       !- Dewpoint Temperature Limit {C}
-        ,                                                                       !- Electronic Enthalpy Limit Curve Name
-        NoExhaustAirTemperatureLimit,                                           !- Exhaust Air Temperature Limit
-        NoExhaustAirEnthalpyLimit,                                              !- Exhaust Air Enthalpy Limit
-        AlwaysOff,                                                              !- Time of Day Economizer Flow Control Schedule Name
-        No;                                                                     !- High Humidity Control Flag"
-
-      ems << "
-      OutdoorAir:Node,
-        ERV Outside Air Inlet Node,                                             !- Name
-        #{OpenStudio::convert(living_space.height,"ft","m").get / 2.0};         !- Height Above Ground"
-
-      ems << "
-      HeatExchanger:AirToAir:SensibleAndLatent,
-        ERV Heat Exchanger,                                                     !- Name
-        AlwaysOn,                                                               !- Availability Schedule Name
-        #{OpenStudio::convert(vent.whole_house_vent_rate,"cfm","m^3/s").get},   !- Nominal Supply Air Flow Rate
-        #{vent.MechVentHXCoreSensibleEffectiveness},                            !- Sensible Effectiveness at 100% Heating Air Flow
-        #{vent.MechVentLatentEffectiveness},                                    !- Latent Effectiveness at 100% Heating Air Flow
-        #{vent.MechVentHXCoreSensibleEffectiveness},                            !- Sensible Effectiveness at 75% Heating Air Flow
-        #{vent.MechVentLatentEffectiveness},                                    !- Latent Effectiveness at 75% Heating Air Flow
-        #{vent.MechVentHXCoreSensibleEffectiveness},                            !- Sensible Effectiveness at 100% Cooling Air Flow
-        #{vent.MechVentLatentEffectiveness},                                    !- Latent Effectiveness at 100% Cooling Air Flow
-        #{vent.MechVentHXCoreSensibleEffectiveness},                            !- Sensible Effectiveness at 75% Cooling Air Flow
-        #{vent.MechVentLatentEffectiveness},                                    !- Latent Effectiveness at 75% Cooling Air Flow
-        ERV Outside Air Inlet Node,                                             !- Supply Air Inlet Node Name
-        ERV Supply Fan Inlet Node,                                              !- Supply Air Outlet Node Name
-        Living Exhaust Node,                                                    !- Exhaust Air Inlet Node Name
-        ERV Exhaust Fan Inlet Node;                                             !- Exhaust Air Outlet Node Name"
-
-      ems << "
-      ZoneHVAC:EnergyRecoveryVentilator,
-        ERV,                                                                    !- Name
-        AlwaysOn,                                                               !- Availability Schedule Name
-        ERV Heat Exchanger,                                                     !- Heat Exchanger Name
-        #{OpenStudio::convert(vent.whole_house_vent_rate,"cfm","m^3/s").get},   !- Supply Air Flow rate {m^3/s}
-        #{OpenStudio::convert(vent.whole_house_vent_rate,"cfm","m^3/s").get},   !- Exhaust Air Flor rate {m^3/s}
-        ERV Supply Fan,                                                         !- Supply Air Fan Name
-        ERV Exhaust Fan,                                                        !- Exhaust Air Fan Name
-        ERV Controller;                                                         !- Controller Name"
-
-    end
-
-    hasGarage = false
-    hasFinishedBasement = false
-    hasUnfinishedBasement = false
-    hasCrawl = false
-    hasUnfinAttic = false
-    if not garage_thermal_zone.nil?
-      hasGarage = true
-    end
-    if not fbasement_thermal_zone.nil?
-      hasFinishedBasement = true
-    end
-    if not ufbasement_thermal_zone.nil?
-      hasUnfinishedBasement = true
-    end
-    if not crawl_thermal_zone.nil?
-      hasCrawl = true
-    end
-    if not ufattic_thermal_zone.nil?
-      hasUnfinAttic = true
-    end
-
-    # _processZoneGarage
-    if hasGarage
-      if garage.SLA > 0
-        # Infiltration
-        ems << "
-        ZoneInfiltration:EffectiveLeakageArea,
-          GarageInfiltration,                                                         !- Name
-          #{garage_thermal_zone_r},                                                   !- Zone Name
-          AlwaysOn,                                                                   !- Schedule Name
-          #{OpenStudio::convert(garage.ELA,"ft^2","cm^2").get * 10.0},                !- Effective Air Leakage Area {cm}
-          #{0.001672 * garage.C_s_SG},                                                !- Stack Coefficient {(L/s)/(cm^4-K)}
-          #{0.01 * garage.C_w_SG};                                                    !- Wind Coefficient {(L/s)/(cm^4-(m/s))}"
-      end
-    end
-
-    # _processZoneFinishedBasement
-    if hasFinishedBasement
-      #--- Infiltration
-      if fb.inf_method == Constants.InfMethodRes
-        if fb.ACH > 0
-          ems << "
-          ZoneInfiltration:DesignFlowRate,
-            FBsmtInfiltration,                                                        !- Name
-            #{fbasement_thermal_zone_r},                                              !- Zone Name
-            AlwaysOn,                                                                 !- Schedule Name
-            AirChanges/Hour,                                                          !- Design Flow Rate Calculation Method
-            ,                                                                         !- Design Flow rate {m^3/s}
-            ,                                                                         !- Flow per Zone Floor Area {m/s-m}
-            ,                                                                         !- Flow per Exterior Surface Area {m/s-m}
-            #{fb.ACH},                                                                !- Air Changes per Hour {1/hr}
-            1,                                                                        !- Constant Term Coefficient
-            0,                                                                        !- Temperature Term Coefficient
-            0,                                                                        !- Velocity Term Coefficient
-            0;                                                                        !- Velocity Squared Term Coefficient"
-        end
-      end
-    end
-
-    # _processZoneUnfinishedBasement
-    if hasUnfinishedBasement
-      #--- Infiltration
-      if ub.inf_method == Constants.InfMethodRes
-        if ub.ACH > 0
-          ems << "
-          ZoneInfiltration:DesignFlowRate,
-            UBsmtInfiltration,                                                        !- Name
-            #{ufbasement_thermal_zone_r},                                             !- Zone Name
-            AlwaysOn,                                                                 !- Schedule Name
-            AirChanges/Hour,                                                          !- Design Flow Rate Calculation Method
-            ,                                                                         !- Design Flow rate {m^3/s}
-            ,                                                                         !- Flow per Zone Floor Area {m/s-m}
-            ,                                                                         !- Flow per Exterior Surface Area {m/s-m}
-            #{ub.ACH},                                                                !- Air Changes per Hour {1/hr}
-            1,                                                                        !- Constant Term Coefficient
-            0,                                                                        !- Temperature Term Coefficient
-            0,                                                                        !- Velocity Term Coefficient
-            0;                                                                        !- Velocity Squared Term Coefficient"
-        end
-      end
-    end
-
-    # _processZoneCrawlspace
-    if hasCrawl
-      #--- Infiltration
-      ems << "
-      ZoneInfiltration:DesignFlowRate,
-        UBsmtInfiltration,                                                            !- Name
-        #{crawl_thermal_zone_r},                                                      !- Zone Name
-        AlwaysOn,                                                                     !- Schedule Name
-        AirChanges/Hour,                                                              !- Design Flow Rate Calculation Method
-        ,                                                                             !- Design Flow rate {m^3/s}
-        ,                                                                             !- Flow per Zone Floor Area {m/s-m}
-        ,                                                                             !- Flow per Exterior Surface Area {m/s-m}
-        #{cs.ACH},                                                                    !- Air Changes per Hour {1/hr}
-        1,                                                                            !- Constant Term Coefficient
-        0,                                                                            !- Temperature Term Coefficient
-        0,                                                                            !- Velocity Term Coefficient
-        0;                                                                            !- Velocity Squared Term Coefficient"
-    end
-
-    # _processZoneUnfinishedAttic
-    if hasUnfinAttic
-      #--- Infiltration
-      if ua.ELA > 0
-        ems << "
-        ZoneInfiltration:EffectiveLeakageArea,
-        UAtcInfiltration,                                                             !- Name
-        #{ufattic_thermal_zone_r},                                                    !- Zone Name
-        AlwaysOn,                                                                     !- Schedule Name
-        #{OpenStudio::convert(ua.ELA,"ft^2","cm^2").get * 10.0},                      !- Effective Air Leakage Area {cm}
-        #{0.001672 * ua.C_s_SG},                                                      !- Stack Coefficient {(L/s)/(cm^4-K)}
-        #{0.01 * ua.C_w_SG};                                                          !- Wind Coefficient {(L/s)/(cm^4-(m/s))}"
-      end
-    end
-
-    # _processDuctwork
-    d.DuctLocation = get_duct_location(duct_location, garage_thermal_zone, fbasement_thermal_zone, ufbasement_thermal_zone, crawl_thermal_zone, ufattic_thermal_zone)
-    # Disallow placing ducts in locations that don't exist, and handle
-    # exception for no ducts (in DuctLocation = None).    
-    
-    d.has_ducts = true  
-    if d.DuctLocation == "none"
-        d.DuctLocation = Constants.LivingZone
-        d.has_ducts = false
-    end
-    
-    has_mini_split_hp = false # TODO: will need to update when mini split measure is available
-    if has_mini_split_hp and ( d.DuctLocation != (Constants.LivingZone or nil) )
-      d.DuctLocation = Constants.LivingZone
-      d.has_ducts = false
-      runner.registerWarning("Duct losses are currently neglected when simulating mini-split heat pumps. Set Ducts to None or In Finished Space to avoid this warning message.")
-    end    
-    
-    # Set has_uncond_ducts to False if ducts are in a conditioned space,
-    # otherwise True    
-    if d.DuctLocation == Constants.LivingZone or d.DuctLocation == Constants.FinishedAtticZone
-        d.ducts_not_in_living = false
-    elsif d.DuctLocation == Constants.FinishedBasementZone or d.DuctLocation == Constants.UnfinishedBasementZone or d.DuctLocation == Constants.CrawlZone or d.DuctLocation == Constants.GarageZone or d.DuctLocation == Constants.UnfinishedAtticZone
-        d.ducts_not_in_living = true
-    end
-    
-    # unless d.DuctSystemEfficiency.nil?
-        # d.ducts_not_in_living = true
-        # d.has_ducts = true
-    # end
-    
-    d.num_stories_for_ducts = geometry.stories
-    unless fbasement_thermal_zone.nil?
-      d.num_stories_for_ducts += 1
-    end
-    
-    d.num_stories = d.num_stories_for_ducts
-    
-    if d.DuctNormLeakageToOutside.nil?
-      # Normalize values in case user inadvertently entered values that add up to the total duct leakage, 
-      # as opposed to adding up to 1
-      sumFractionOfTotal = (d.DuctSupplyLeakageFractionOfTotal + d.DuctReturnLeakageFractionOfTotal + d.DuctAHSupplyLeakageFractionOfTotal + d.DuctAHReturnLeakageFractionOfTotal)
-      if sumFractionOfTotal > 0
-        d.DuctSupplyLeakageFractionOfTotal = ductSupplyLeakageFractionOfTotal / sumFractionOfTotal
-        d.DuctReturnLeakageFractionOfTotal = ductReturnLeakageFractionOfTotal / sumFractionOfTotal
-        d.DuctAHSupplyLeakageFractionOfTotal = ductAHSupplyLeakageFractionOfTotal / sumFractionOfTotal
-        d.DuctAHReturnLeakageFractionOfTotal = ductAHReturnLeakageFractionOfTotal / sumFractionOfTotal
-      end
-      
-      # Calculate actual leakages from percentages
-      d.DuctSupplyLeakage = d.DuctSupplyLeakageFractionOfTotal * d.DuctTotalLeakage
-      d.DuctReturnLeakage = d.DuctReturnLeakageFractionOfTotal * d.DuctTotalLeakage
-      d.DuctAHSupplyLeakage = d.DuctAHSupplyLeakageFractionOfTotal * d.DuctTotalLeakage
-      d.DuctAHReturnLeakage = d.DuctAHReturnLeakageFractionOfTotal * d.DuctTotalLeakage     
-    end
-    
-    # Fraction of ducts in primary duct location (remaining ducts are in above-grade conditioned space).
-    if duct_location_frac == Constants.Auto
-      # Duct location fraction per 2010 BA Benchmark
-      if d.num_stories == 1
-        d.DuctLocationFrac = 1
-      else
-        d.DuctLocationFrac = 0.65
-      end
-    else
-      d.DuctLocationFrac = duct_location_frac.to_f
-    end    
-    
-    d.DuctLocationFracLeakage = d.DuctLocationFrac
-    d.DuctLocationFracConduction = d.DuctLocationFrac
-    
-    d.supply_duct_surface_area = get_duct_supply_surface_area(d.DuctSupplySurfaceAreaMultiplier, geometry, d.num_stories)
-    
-    d.DuctNumReturns = get_duct_num_returns(duct_num_returns, d.num_stories)
-    
-    d.return_duct_surface_area = get_duct_return_surface_area(d.DuctReturnSurfaceAreaMultiplier, geometry, d.num_stories, d.DuctNumReturns)
-   
-    ducts_total_duct_surface_area = d.supply_duct_surface_area + d.return_duct_surface_area
-     
-    # Calculate Duct UA value
-    if d.ducts_not_in_living
-      d.unconditioned_duct_area = d.supply_duct_surface_area * d.DuctLocationFracConduction
-      d.supply_duct_r = get_duct_insulation_rvalue(d.DuctUnconditionedRvalue, true)
-      d.return_duct_r = get_duct_insulation_rvalue(d.DuctUnconditionedRvalue, false)
-      d.unconditioned_duct_ua = d.unconditioned_duct_area / d.supply_duct_r
-      d.return_duct_ua = d.return_duct_surface_area / d.return_duct_r
-    else
-      d.DuctLocationFracConduction = 0
-      d.unconditioned_duct_ua = 0
-      d.return_duct_ua = 0
-    end
-    
-    # Calculate Duct Volume
-    if d.ducts_not_in_living
-      # Assume ducts are 3 ft by 1 ft, (8 is the perimeter)
-      d.supply_duct_volume = (d.unconditioned_duct_area / 8.0) * 3.0
-      d.return_duct_volume = (d.return_duct_surface_area / 8.0) * 3.0
-    else
-      d.supply_duct_volume = 0
-      d.return_duct_volume = 0
-    end
-    
-    # This can't be zero. A value of zero causes weird sizing issues in DOE-2.
-    d.direct_oa_supply_duct_loss = 0.000001    
-    
-    # Only if using the Fractional Leakage Option Type:
-    if d.DuctNormLeakageToOutside.nil?
-      d.supply_duct_loss = (d.DuctLocationFracLeakage * (d.DuctSupplyLeakage - d.direct_oa_supply_duct_loss) + (d.DuctAHSupplyLeakage + d.direct_oa_supply_duct_loss))
-      d.return_duct_loss = d.DuctReturnLeakage + d.DuctAHReturnLeakage
-    end
-    
-    # _processDuctLeakage
-    unless d.DuctNormLeakageToOutside.nil?
-      d = calc_duct_leakage_from_test(geometry.finished_floor_area, supply.FanAirFlowRate) # TODO: if DuctNormLeakageToOutside is specified, this will error because we don't calculate FanAirFlowRate
-    end
-    
-    d.total_duct_unbalance = (d.supply_duct_loss - d.return_duct_loss).abs
-    
-    if not d.DuctLocation == Constants.LivingZone and not d.DuctLocation == "none" and d.supply_duct_loss > 0
-      # Calculate d.frac_oa = fraction of unbalanced make-up air that is outside air
-      if d.total_duct_unbalance <= 0
-        # Handle the exception for if there is no leakage unbalance.
-        d.frac_oa = 0
-      elsif [Constants.FinishedBasementZone, Constants.UnfinishedBasementZone].include? d.DuctLocation or (d.DuctLocation == Constants.CrawlZone and crawlACH == 0) or (d.DuctLocation == Constants.UnfinishedAtticZone and uaSLA == 0)         
-        d.frac_oa = d.direct_oa_supply_duct_loss / d.total_duct_unbalance
-      else
-        # Assume that all of the unbalanced make-up air is driven infiltration from outdoors.
-        # This assumes that the holes for attic ventilation are much larger than any attic bypasses.      
-        d.frac_oa = 1
-      end
-      # d.oa_duct_makeup =  fraction of the supply duct air loss that is made up by outside air (via return leakage)
-      d.oa_duct_makeup = [d.frac_oa * d.total_duct_unbalance / [d.supply_duct_loss,d.return_duct_loss].max, 1].min
-    else
-      d.frac_oa = 0
-      d.oa_duct_makeup = 0
-    end
+    ems << sch    
     
     hasForcedAirEquipment = false
     if workspace.getObjectsByType("AirLoopHVAC".to_IddObjectType).length > 0
       hasForcedAirEquipment = true
+    end    
+    
+    duct_locations = {}
+
+    num_units = Geometry.get_num_units(model, runner)
+    if num_units.nil?
+        return false
     end
 
-    if not d.DuctLocation == Constants.LivingZone and not d.DuctLocation == "none" and hasForcedAirEquipment
-    
-      # _processMaterials
-      ems << "
-      Material:NoMass,
-        Adiabatic,                                                          !- Name
-        Rough,                                                              !- Roughness
-        176.1;                                                              !- Thermal Resistance {m2-K/W}"   
-    
-      # _processConstructionsAdiabatic
-      # Adiabatic Constructions are used for interior underground surfaces
-      ems << "
-      Construction,
-        AdiabaticConst,                                                     !- Name
-        Adiabatic;                                                          !- Outside Layer"
-    
-      # _processZoneReturnPlenum
-      # Return Plenum Zone and Duct Leakage Objects
+    (1..num_units).to_a.each do |unit_num|
+      _nbeds, _nbaths, unit_spaces = Geometry.get_unit_beds_baths_spaces(model, unit_num, runner)
+      geometry.num_bedrooms = _nbeds
+      geometry.num_bathrooms = _nbaths
+      thermal_zones = Geometry.get_thermal_zones_from_unit_spaces(unit_spaces)
+      if thermal_zones.length > 1
+        runner.registerInfo("Unit #{unit_num} spans more than one thermal zone.")
+      end
       
-      ems << "
-      Zone,
-        RA Duct Zone,                                                       !- Name
-        0,                                                                  !- Direction of Relative North {deg}
-        0,                                                                  !- X Origin {m}
-        0,                                                                  !- Y Origin {m}
-        0,                                                                  !- Z Origin {m}
-        ,                                                                   !- Type
-        ,                                                                   !- Multiplier
-        0,                                                                  !- Ceiling Height {m}
-        #{OpenStudio::convert(d.return_duct_volume,"ft^3","m^3").get},      !- Volume {m3}
-        0;                                                                  !- Floor Area {m2}"    
-      
-      ems << "
-      Wall:Adiabatic,
-        RADuctWall_N,                                                       !- Name
-        AdiabaticConst,                                                     !- Construction Name
-        RA Duct Zone,                                                       !- RA Duct Zone
-        0,                                                                  !- Azimuth
-        90,                                                                 !- Tilt
-        0,                                                                  !- Vertex 1 X-Coordinate
-        75,                                                                 !- Vertex 1 Y-Coordinate
-        0,                                                                  !- Vertex 1 Z-Coordinate
-        1,                                                                  !- Length
-        1;                                                                  !- Height"      
-      
-      ems << "
-      Wall:Adiabatic,
-        RADuctWall_E,                                                       !- Name
-        AdiabaticConst,                                                     !- Construction Name
-        RA Duct Zone,                                                       !- RA Duct Zone
-        90,                                                                 !- Azimuth
-        90,                                                                 !- Tilt
-        0,                                                                  !- Vertex 1 X-Coordinate
-        74,                                                                 !- Vertex 1 Y-Coordinate
-        0,                                                                  !- Vertex 1 Z-Coordinate
-        1,                                                                  !- Length
-        1;                                                                  !- Height" 
- 
-      ems << "
-      Wall:Adiabatic,
-        RADuctWall_S,                                                       !- Name
-        AdiabaticConst,                                                     !- Construction Name
-        RA Duct Zone,                                                       !- RA Duct Zone
-        180,                                                                !- Azimuth
-        90,                                                                 !- Tilt
-        -1,                                                                 !- Vertex 1 X-Coordinate
-        74,                                                                 !- Vertex 1 Y-Coordinate
-        0,                                                                  !- Vertex 1 Z-Coordinate
-        1,                                                                  !- Length
-        1;                                                                  !- Height"
- 
-      ems << "
-      Wall:Adiabatic,
-        RADuctWall_W,                                                       !- Name
-        AdiabaticConst,                                                     !- Construction Name
-        RA Duct Zone,                                                       !- RA Duct Zone
-        270,                                                                !- Azimuth
-        90,                                                                 !- Tilt
-        -1,                                                                 !- Vertex 1 X-Coordinate
-        75,                                                                 !- Vertex 1 Y-Coordinate
-        0,                                                                  !- Vertex 1 Z-Coordinate
-        1,                                                                  !- Length
-        1;                                                                  !- Height"
-
-      ems << "
-      Ceiling:Adiabatic,
-        RADuctCeiling,                                                      !- Name
-        AdiabaticConst,                                                     !- Construction Name
-        RA Duct Zone,                                                       !- RA Duct Zone
-        0,                                                                  !- Azimuth
-        90,                                                                 !- Tilt
-        0,                                                                  !- Vertex 1 X-Coordinate
-        75,                                                                 !- Vertex 1 Y-Coordinate
-        1,                                                                  !- Vertex 1 Z-Coordinate
-        1,                                                                  !- Length
-        1;                                                                  !- Height"
-        
-      ems << "
-      Floor:Adiabatic,
-        RADuctFloor,                                                        !- Name
-        AdiabaticConst,                                                     !- Construction Name
-        RA Duct Zone,                                                       !- RA Duct Zone
-        0,                                                                  !- Azimuth
-        180,                                                                !- Tilt
-        0,                                                                  !- Vertex 1 X-Coordinate
-        74,                                                                 !- Vertex 1 Y-Coordinate
-        0,                                                                  !- Vertex 1 Z-Coordinate
-        1,                                                                  !- Length
-        1;                                                                  !- Height"        
-       
-      # Two objects are required to model the air exchange between the air handler zone and the living space since
-      # ZoneMixing objects can not account for direction of air flow (both are controlled by EMS)
-
-      # Accounts for leaks from the AH zone to the Living zone
-      ems << "
-      ZoneMixing,
-        AHZoneToLivingZoneMixing,                                           !- Name
-        #{Constants.LivingZone},                                            !- Zone Name
-        AlwaysOn,                                                           !- Schedule Name
-        Flow/Zone,                                                          !- Design Flow Rate Calculation Method
-        0,                                                                  !- Design Flow Rate (set by EMS)
-        ,                                                                   !- Flow Rate per Zone Floor Area
-        ,                                                                   !- Flow Rate per Person
-        ,                                                                   !- Air Changes per Hour
-        #{d.DuctLocation};                                                  !- Source Zone Name"
-            
-      # Accounts for leaks from the Living zone to the AH Zone
-      ems << "
-      ZoneMixing,
-        LivingZoneToAHZoneMixing,                                           !- Name
-        #{d.DuctLocation},                                                  !- Zone Name
-        AlwaysOn,                                                           !- Schedule Name
-        Flow/Zone,                                                          !- Design Flow Rate Calculation Method
-        0,                                                                  !- Design Flow Rate (set by EMS)
-        ,                                                                   !- Flow Rate per Zone Floor Area
-        ,                                                                   !- Flow Rate per Person
-        ,                                                                   !- Air Changes per Hour
-        #{Constants.LivingZone};                                            !- Source Zone Name"      
-     
-      ems << "
-      SurfaceProperty:ConvectionCoefficients,
-        RADuctWall_N,                                                       !- Surface Name
-        Inside,                                                             !- Convection Coefficient 1 Location
-        Value,                                                              !- Convection Coefficient 1 Type
-        999;                                                                !- Convection Coefficient 1 {W/m2-K}"        
-
-      ems << "
-      SurfaceProperty:ConvectionCoefficients,
-        RADuctWall_S,                                                       !- Surface Name
-        Inside,                                                             !- Convection Coefficient 1 Location
-        Value,                                                              !- Convection Coefficient 1 Type
-        999;                                                                !- Convection Coefficient 1 {W/m2-K}" 
- 
-      ems << "
-      SurfaceProperty:ConvectionCoefficients,
-        RADuctWall_E,                                                       !- Surface Name
-        Inside,                                                             !- Convection Coefficient 1 Location
-        Value,                                                              !- Convection Coefficient 1 Type
-        999;                                                                !- Convection Coefficient 1 {W/m2-K}" 
-
-      ems << "
-      SurfaceProperty:ConvectionCoefficients,
-        RADuctWall_W,                                                       !- Surface Name
-        Inside,                                                             !- Convection Coefficient 1 Location
-        Value,                                                              !- Convection Coefficient 1 Type
-        999;                                                                !- Convection Coefficient 1 {W/m2-K}"  
- 
-      ems << "
-      SurfaceProperty:ConvectionCoefficients,
-        RADuctCeiling,                                                      !- Surface Name
-        Inside,                                                             !- Convection Coefficient 1 Location
-        Value,                                                              !- Convection Coefficient 1 Type
-        999;                                                                !- Convection Coefficient 1 {W/m2-K}"  
-        
-      ems << "
-      SurfaceProperty:ConvectionCoefficients,
-        RADuctFloor,                                                        !- Surface Name
-        Inside,                                                             !- Convection Coefficient 1 Location
-        Value,                                                              !- Convection Coefficient 1 Type
-        999;                                                                !- Convection Coefficient 1 {W/m2-K}"
-    
-      # _processSystemDemandSideAir
-      
-      living_zone_return_air_node_name = nil
-      fbasement_zone_return_air_node_name = nil
-      workspace.getObjectsByType("ZoneHVAC:EquipmentConnections".to_IddObjectType).each do |zonehvac|
-        if zonehvac.getString(0).to_s == Constants.LivingZone
-          living_zone_return_air_node_name = zonehvac.getString(5)
-        elsif zonehvac.getString(0).to_s == Constants.FinishedBasementZone
-          fbasement_zone_return_air_node_name = zonehvac.getString(5)
+      living_thermal_zone_r = nil
+      garage_thermal_zone_r = nil
+      fbasement_thermal_zone_r = nil
+      ufbasement_thermal_zone_r = nil
+      crawl_thermal_zone_r = nil
+      ufattic_thermal_zone_r = nil
+      model.getThermalZones.each do |thermal_zone|
+        if thermal_zone.name.to_s.start_with? Constants.GarageZone or thermal_zone.name.to_s.start_with? Constants.UnfinishedBasementZone or thermal_zone.name.to_s.start_with? Constants.CrawlZone or thermal_zone.name.to_s.start_with? Constants.UnfinishedAtticZone
+          thermal_zones << thermal_zone
+        end
+      end      
+      thermal_zones.each do |thermal_zone|
+        if thermal_zone.name.to_s.start_with? Constants.LivingZone
+          living_thermal_zone_r = thermal_zone.name.to_s
+        elsif thermal_zone.name.to_s.start_with? Constants.GarageZone
+          garage_thermal_zone_r = thermal_zone.name.to_s          
+        elsif thermal_zone.name.to_s.start_with? Constants.FinishedBasementZone
+          fbasement_thermal_zone_r = thermal_zone.name.to_s          
+        elsif thermal_zone.name.to_s.start_with? Constants.UnfinishedBasementZone
+          ufbasement_thermal_zone_r = thermal_zone.name.to_s          
+        elsif thermal_zone.name.to_s.start_with? Constants.CrawlZone
+          crawl_thermal_zone_r = thermal_zone.name.to_s          
+        elsif thermal_zone.name.to_s.start_with? Constants.UnfinishedAtticZone
+          ufattic_thermal_zone_r = thermal_zone.name.to_s
         end
       end
+        
+      living_thermal_zone = Geometry.get_thermal_zone_from_string(model, living_thermal_zone_r.to_s, runner)
+      if living_thermal_zone.nil?
+          return false
+      end      
+      garage_thermal_zone = Geometry.get_thermal_zone_from_string(model, garage_thermal_zone_r.to_s, runner)
+      fbasement_thermal_zone = Geometry.get_thermal_zone_from_string(model, fbasement_thermal_zone_r.to_s, runner)
+      ufbasement_thermal_zone = Geometry.get_thermal_zone_from_string(model, ufbasement_thermal_zone_r.to_s, runner)
+      crawl_thermal_zone = Geometry.get_thermal_zone_from_string(model, crawl_thermal_zone_r.to_s, runner)
+      ufattic_thermal_zone = Geometry.get_thermal_zone_from_string(model, ufattic_thermal_zone_r.to_s, runner)
 
-      demand_side_outlet_node_name = nil
-      demand_side_inlet_node_names = nil
-      workspace.getObjectsByType("AirLoopHVAC".to_IddObjectType).each do |airloop|
-        if airloop.getString(0).to_s.include? "Central Air System"
-          demand_side_outlet_node_name = airloop.getString(7).to_s
-          demand_side_inlet_node_names = airloop.getString(8).to_s
+      if duct_location != "none" and HelperMethods.has_central_air_conditioner(model, runner, living_thermal_zone, false, false).nil? and HelperMethods.has_furnace(model, runner, living_thermal_zone, false, false).nil? and HelperMethods.has_air_source_heat_pump(model, runner, living_thermal_zone, false).nil?
+        runner.registerWarning("No ducted HVAC equipment was found but ducts were specified. Overriding duct specification.")
+        duct_location = "none"
+      end
+
+      zones = workspace.getObjectsByType("Zone".to_IddObjectType)
+      zones.each do |zone|
+        zone_name = zone.getString(0).to_s
+        if zone_name == living_thermal_zone_r
+          living_space.coord_z = OpenStudio::convert(zone.getString(4).get.to_f,"m","ft").get # Z Origin {m}
+        elsif zone_name == garage_thermal_zone_r
+          garage.coord_z = OpenStudio::convert(zone.getString(4).get.to_f,"m","ft").get # Z Origin {m}
+        elsif zone_name == fbasement_thermal_zone_r
+          finished_basement.coord_z = OpenStudio::convert(zone.getString(4).get.to_f,"m","ft").get # Z Origin {m}
+        elsif zone_name == ufbasement_thermal_zone_r
+          space_unfinished_basement.coord_z = OpenStudio::convert(zone.getString(4).get.to_f,"m","ft").get # Z Origin {m}
+        elsif zone_name == crawl_thermal_zone_r
+          crawlspace.coord_z = OpenStudio::convert(zone.getString(4).get.to_f,"m","ft").get # Z Origin {m}
+        elsif zone_name == ufattic_thermal_zone_r
+          unfinished_attic.coord_z = OpenStudio::convert(zone.getString(4).get.to_f,"m","ft").get # Z Origin {m}
+        end
+      end    
+      
+      geometry.finished_floor_area = Geometry.get_unit_finished_floor_area(model, unit_spaces, runner)
+      if geometry.finished_floor_area.nil?
+        return false
+      end
+      geometry.above_grade_finished_floor_area = Geometry.get_unit_above_grade_finished_floor_area(model, unit_spaces, runner)
+      if geometry.above_grade_finished_floor_area.nil?
+        return false
+      end
+      geometry.building_height = Geometry.get_building_height(model.getSpaces)
+      geometry.stories = Geometry.get_building_stories(model.getSpaces)
+      geometry.window_area = Geometry.get_building_window_area(model, runner)
+      geometry.num_units = num_units
+      living_space.height = Geometry.get_building_height(living_thermal_zone.spaces)
+      living_space.area = OpenStudio::convert(living_thermal_zone.floorArea,"m^2","ft^2").get
+      living_space.volume = living_space.height * living_space.area
+      unless ufattic_thermal_zone.nil?
+        unfinished_attic.height = Geometry.get_building_height(ufattic_thermal_zone.spaces)
+        unfinished_attic.area = OpenStudio::convert(ufattic_thermal_zone.floorArea,"m^2","ft^2").get
+        unfinished_attic.volume = unfinished_attic.height * unfinished_attic.area
+      end
+      unless crawl_thermal_zone.nil?
+        crawlspace.height = Geometry.get_building_height(crawl_thermal_zone.spaces)
+        crawlspace.area = OpenStudio::convert(crawl_thermal_zone.floorArea,"m^2","ft^2").get
+        crawlspace.volume = crawlspace.height * crawlspace.area
+      end
+      unless garage_thermal_zone.nil?
+        garage.height = Geometry.get_building_height(garage_thermal_zone.spaces)
+        garage.area = OpenStudio::convert(garage_thermal_zone.floorArea,"m^2","ft^2").get
+        garage.volume = garage.height * garage.area
+      end
+      unless fbasement_thermal_zone.nil?
+        finished_basement.height = Geometry.get_building_height(fbasement_thermal_zone.spaces)
+        finished_basement.area = OpenStudio::convert(fbasement_thermal_zone.floorArea,"m^2","ft^2").get
+        finished_basement.volume = finished_basement.height * finished_basement.area   
+      end
+      unless ufbasement_thermal_zone.nil?
+        space_unfinished_basement.height = Geometry.get_building_height(ufbasement_thermal_zone.spaces)
+        space_unfinished_basement.area = OpenStudio::convert(ufbasement_thermal_zone.floorArea,"m^2","ft^2").get
+        space_unfinished_basement.volume = space_unfinished_basement.height * space_unfinished_basement.area
+      end        
+
+      has_cd = false
+      (workspace.getObjectsByType("ElectricEquipment".to_IddObjectType) + workspace.getObjectsByType("GasEquipment".to_IddObjectType)).each do |equipment|
+        if equipment.getString(1).to_s == living_thermal_zone_r
+          has_cd = true
         end
       end
+      unit_dryer_exhaust = dryerExhaust
+      if not has_cd and dryerExhaust > 0
+        runner.registerWarning("No clothes dryer object was found in unit #{unit_num} but the clothes dryer exhaust specified is non-zero. Overriding clothes dryer exhaust to be zero.")
+        unit_dryer_exhaust = 0
+      end
       
-      demand_side_inlet_node_name = nil
-      workspace.getObjectsByType("NodeList".to_IddObjectType).each do |nodelist|
-        if nodelist.getString(0).to_s == demand_side_inlet_node_names
-          demand_side_inlet_node_name = nodelist.getString(1).to_s
+      si, living_space, wind_speed, garage, fb, ub, cs, ua = _processInfiltration(si, living_space, garage, finished_basement, space_unfinished_basement, crawlspace, unfinished_attic, garage_thermal_zone, fbasement_thermal_zone, ufbasement_thermal_zone, crawl_thermal_zone, ufattic_thermal_zone, wind_speed, neighbors_min_nonzero_offset, terrainType, geometry)
+      vent, schedules = _processMechanicalVentilation(unit_num, si, vent, ageOfHome, unit_dryer_exhaust, geometry, living_space, schedules)
+      nv, schedules = _processNaturalVentilation(workspace, unit_num, nv, living_space, wind_speed, si, schedules, geometry, coolingSetpointWeekday, coolingSetpointWeekend, heatingSetpointWeekday, heatingSetpointWeekend)
+
+      schedules.MechanicalVentilationEnergy.each do |sch|
+        ems << sch
+      end
+      schedules.MechanicalVentilation.each do |sch|
+        ems << sch
+      end
+      schedules.BathExhaust.each do |sch|
+        ems << sch
+      end
+      schedules.ClothesDryerExhaust.each do |sch|
+        ems << sch
+      end
+      schedules.RangeHood.each do |sch|
+        ems << sch
+      end
+      schedules.NatVentProbability.each do |sch|
+        ems << sch
+      end
+      schedules.NatVentAvailability.each do |sch|
+        ems << sch
+      end
+      schedules.NatVentTemp.each do |sch|
+        ems << sch
+      end      
+
+      # _processZoneLiving
+
+      # Infiltration (Overridden by EMS. Values here are arbitrary)
+      # Living Infiltration
+      ems << "
+      ZoneInfiltration:FlowCoefficient,
+        Living Infiltration_#{unit_num},                            !- Name
+        #{living_thermal_zone_r},                                   !- Zone Name
+        AlwaysOn,                                                   !- Schedule Name
+        1,                                                          !- Flow Coefficient {m/s-Pa^n}
+        1,                                                          !- Stack Coefficient {Pa^n/K^n}
+        1,                                                          !- Pressure Exponent
+        1,                                                          !- Wind Coefficient {Pa^n-s^n/m^n}
+        1;                                                          !- Shelter Factor (From Walker and Wilson (1998) (eq. 16))"
+
+      # The ventilation flow rate from this object is overriden by EMS language
+      # Natural Ventilation
+      ems << "
+      ZoneVentilation:DesignFlowRate,
+        Natural Ventilation_#{unit_num},                            !- Name
+        #{living_thermal_zone_r},                                   !- Zone Name
+        NatVent_#{unit_num},                                      !- Schedule Name
+        Flow/Zone,                                                  !- Design Flow Rate Calculation Method
+        0.001,                                                      !- Design Flow rate {m^3/s}
+        ,                                                           !- Flow Rate per Zone Floor Area {m/s-m}
+        ,                                                           !- Flow Rate per Person {m/s-person}
+        ,                                                           !- Air Changes per Hour {1/hr}
+        Natural,                                                    !- Ventilation Type
+        0,                                                          !- Fan Pressure Rise {Pa} (Fan Energy is accounted for in Fan:ZoneExhaust)
+        1,                                                          !- Fan Total Efficiency
+        1,                                                          !- Constant Term Coefficient
+        0,                                                          !- Temperature Term Coefficient   
+        0,                                                          !- Velocity Term Coefficient
+        0;                                                          !- Velocity Squared Term Coefficient"      
+      
+      # Sensors
+
+      # Tout
+      ems << "
+      EnergyManagementSystem:Sensor,
+        Tout_#{unit_num},                                           !- Name
+        #{living_thermal_zone_r},                                   !- Output:Variable or Output:Meter Index Key Name
+        Zone Outdoor Air Drybulb Temperature;                       !- Output:Variable or Output:Meter Index Key Name"
+
+      # Hout
+      ems << "
+      EnergyManagementSystem:Sensor,
+        Hout_#{unit_num},                                           !- Name
+        ,                                                           !- Output:Variable or Output:Meter Index Key Name
+        Site Outdoor Air Enthalpy;                                  !- Output:Variable or Output:Meter Index Key Name"
+
+      # Pbar
+      ems << "
+      EnergyManagementSystem:Sensor,
+        Pbar_#{unit_num},                                           !- Name
+        ,                                                           !- Output:Variable or Output:Meter Index Key Name
+        Site Outdoor Air Barometric Pressure;                       !- Output:Variable or Output:Meter Index Key Name"
+
+      # Tin
+      ems << "
+      EnergyManagementSystem:Sensor,
+        Tin_#{unit_num},                                            !- Name
+        #{living_thermal_zone_r},                                   !- Output:Variable or Output:Meter Index Key Name
+        Zone Mean Air Temperature;                                  !- Output:Variable or Output:Meter Index Key Name"
+
+      # Phiin
+      ems << "
+      EnergyManagementSystem:Sensor,
+        Phiin_#{unit_num},                                          !- Name
+        #{living_thermal_zone_r},                                   !- Output:Variable or Output:Meter Index Key Name
+        Zone Air Relative Humidity;                                 !- Output:Variable or Output:Meter Index Key Name"	  
+      
+      # Win
+      ems << "
+      EnergyManagementSystem:Sensor,
+        Win_#{unit_num},                                            !- Name
+        #{living_thermal_zone_r},                                   !- Output:Variable or Output:Meter Index Key Name
+        Zone Mean Air Humidity Ratio;                               !- Output:Variable or Output:Meter Index Key Name"
+
+      # Wout
+      ems << "
+      EnergyManagementSystem:Sensor,
+        Wout_#{unit_num},                                           !- Name
+        ,                                                           !- Output:Variable or Output:Meter Index Key Name
+        Site Outdoor Air Humidity Ratio;                            !- Output:Variable or Output:Meter Index Key Name"
+
+      # Vwind
+      ems << "
+      EnergyManagementSystem:Sensor,
+        Vwind_#{unit_num},                                          !- Name
+        ,                                                           !- Output:Variable or Output:Meter Index Key Name
+        Site Wind Speed;                                            !- Output:Variable or Output:Meter Index Key Name"
+
+      # WH_sch
+      ems << "
+      EnergyManagementSystem:Sensor,
+        WH_sch_#{unit_num},                                         !- Name
+        AlwaysOn,                                                   !- Output:Variable or Output:Meter Index Key Name
+        Schedule Value;                                             !- Output:Variable or Output:Meter Index Key Name"
+
+      # Range_sch
+      ems << "
+      EnergyManagementSystem:Sensor,
+        Range_sch_#{unit_num},                                      !- Name
+        RangeHood_#{unit_num},                                      !- Output:Variable or Output:Meter Index Key Name
+        Schedule Value;                                             !- Output:Variable or Output:Meter Index Key Name"
+
+      # Bath_sch
+      ems << "
+      EnergyManagementSystem:Sensor,
+        Bath_sch_#{unit_num},                                       !- Name
+        BathExhaust_#{unit_num},                                    !- Output:Variable or Output:Meter Index Key Name
+        Schedule Value;                                             !- Output:Variable or Output:Meter Index Key Name"
+
+      # Clothes_dryer_sch
+      ems << "
+      EnergyManagementSystem:Sensor,
+        Clothes_dryer_sch_#{unit_num},                              !- Name
+        ClothesDryerExhaust_#{unit_num},                            !- Output:Variable or Output:Meter Index Key Name
+        Schedule Value;                                             !- Output:Variable or Output:Meter Index Key Name"
+
+      # NVAvail
+      ems << "
+      EnergyManagementSystem:Sensor,
+        NVAvail_#{unit_num},                                        !- Name
+        NatVent_#{unit_num},                                        !- Output:Variable or Output:Meter Index Key Name
+        Schedule Value;                                             !- Output:Variable or Output:Meter Index Key Name"
+
+      # NVSP
+      ems << "
+      EnergyManagementSystem:Sensor,
+        NVSP_#{unit_num},                                           !- Name
+        NatVentTemp_#{unit_num},                                    !- Output:Variable or Output:Meter Index Key Name
+        Schedule Value;                                             !- Output:Variable or Output:Meter Index Key Name"
+
+      # Actuators
+
+      # NatVentFlow
+      ems << "
+      EnergyManagementSystem:Actuator,
+        NatVentFlow_#{unit_num},                                    !- Name
+        Natural Ventilation_#{unit_num},                            !- Actuated Component Unique Name
+        Zone Ventilation,                                           !- Actuated Component Type
+        Air Exchange Flow Rate;                                     !- Actuated Component Control Type"
+
+      # InfilFlow
+      ems << "
+      EnergyManagementSystem:Actuator,
+        InfilFlow_#{unit_num},                                      !- Name
+        Living Infiltration_#{unit_num},                            !- Actuated Component Unique Name
+        Zone Infiltration,                                          !- Actuated Component Type
+        Air Exchange Flow Rate;                                     !- Actuated Component Control Type"      
+      
+      # Program
+
+      # InfiltrationProgram
+      ems_program = "
+      EnergyManagementSystem:Program,
+        InfiltrationProgram_#{unit_num},                            !- Name
+        Set p_m = #{wind_speed.ashrae_terrain_exponent},
+        Set p_s = #{wind_speed.ashrae_site_terrain_exponent},
+        Set s_m = #{wind_speed.ashrae_terrain_thickness},
+        Set s_s = #{wind_speed.ashrae_site_terrain_thickness},
+        Set z_m = #{OpenStudio::convert(wind_speed.height,"ft","m").get},
+        Set z_s = #{OpenStudio::convert(living_space.height,"ft","m").get},
+        Set f_t = (((s_m/z_m)^p_m)*((z_s/s_s)^p_s)),
+        Set VwindL_#{unit_num} = (f_t*Vwind_#{unit_num}),"
+      if living_space.inf_method == Constants.InfMethodASHRAE
+        if living_space.SLA > 0
+          inf = si
+          ems_program += "
+            Set Tdiff = Tin_#{unit_num} - Tout_#{unit_num},
+            Set DeltaT = @Abs Tdiff,
+            Set c = #{(OpenStudio::convert(inf.C_i,"cfm","m^3/s").get / (249.1 ** inf.n_i))},
+            Set Cs = #{inf.stack_coef * (448.4 ** inf.n_i)},
+            Set Cw = #{inf.wind_coef * (1246.0 ** inf.n_i)},
+            Set n = #{inf.n_i},
+            Set sft = (f_t*#{(((wind_speed.S_wo * (1.0 - inf.Y_i)) + (inf.S_wflue * (1.5 * inf.Y_i))))}),
+            Set Qn = (((c*Cs*(DeltaT^n))^2)+(((c*Cw)*((sft*Vwind)^(2*n)))^2))^0.5,"
+        else
+          ems_program += "
+            Set Qn = 0,"
         end
+      elsif living_space.inf_method == Constants.InfMethodRes
+        ems_program += "
+        Set Qn = #{living_space.ACH * OpenStudio::convert(living_space.volume,"ft^3","m^3").get / OpenStudio::convert(1.0,"hr","s").get},"
       end
-            
-      # Return Air
-      ems_returnplenum = "
-      AirLoopHVAC:ReturnPlenum,
-        Return Plenum,                                                      !- Name
-        RA Duct Zone,                                                       !- Zone Name
-        RA Plenum Air Node,                                                 !- Zone Node Name
-        #{demand_side_outlet_node_name},                                    !- Outlet Node Name" "Demand Side Outlet Node Name of AirLoopHVAC
-        ,                                                                   !- Induced Air Outlet Node or NodeList Name"
-        
-      if not fbasement_thermal_zone.nil?
-        ems_returnplenum += "
-        #{living_zone_return_air_node_name},                                !- Inlet 1 Node Name
-        #{fbasement_zone_return_air_node_name};                             !- Inlet 2 Node Name"
+
+      ems_program += "
+        Set Tdiff = Tin_#{unit_num} - Tout_#{unit_num},
+        Set DeltaT = @Abs Tdiff,"
+
+      ems_program += "
+        Set QWHV_#{unit_num} = WH_sch_#{unit_num}*#{OpenStudio::convert(vent.whole_house_vent_rate,"cfm","m^3/s").get},
+        Set Qrange_#{unit_num} = Range_sch_#{unit_num}*#{OpenStudio::convert(vent.range_hood_hour_avg_exhaust,"cfm","m^3/s").get},
+        Set Qdryer_#{unit_num} = Clothes_dryer_sch_#{unit_num}*#{OpenStudio::convert(vent.clothes_dryer_hour_avg_exhaust,"cfm","m^3/s").get},
+        Set Qbath_#{unit_num} = Bath_sch_#{unit_num}*#{OpenStudio::convert(vent.bathroom_hour_avg_exhaust,"cfm","m^3/s").get},
+        Set QhpwhOut = 0,
+        Set QhpwhIn = 0,
+        Set QductsOut = DuctLeakExhaustFanEquivalent_#{unit_num},
+        Set QductsIn = DuctLeakSupplyFanEquivalent_#{unit_num},"
+
+      if vent.MechVentType == Constants.VentTypeBalanced
+        ems_program += "
+          Set Qout = Qrange_#{unit_num}+Qbath_#{unit_num + 1}+Qdryer_#{unit_num}+QhpwhOut+QductsOut,          !- Exhaust flows
+          Set Qin = QhpwhIn+QductsIn,                                 !- Supply flows
+          Set Qu = (@Abs (Qout - Qin)),                               !- Unbalanced flow
+          Set Qb = QWHV_#{unit_num} + (@Min Qout Qin),                !- Balanced flow"
       else
-        ems_returnplenum += "
-        #{living_zone_return_air_node_name};                                !- Inlet 1 Node Name"
+        if vent.MechVentType == Constants.VentTypeExhaust
+          ems_program += "
+            Set Qout = QWHV_#{unit_num}+Qrange_#{unit_num}+Qbath_#{unit_num}+Qdryer_#{unit_num}+QhpwhOut+QductsOut,    !- Exhaust flows
+            Set Qin = QhpwhIn+QductsIn,                                !- Supply flows
+            Set Qu = (@Abs (Qout - Qin)),                              !- Unbalanced flow
+            Set Qb = (@Min Qout Qin),                                  !- Balanced flow"
+        else #vent.MechVentType == Constants.VentTypeSupply:
+          ems_program += "
+            Set Qout = Qrange_#{unit_num}+Qbath_#{unit_num}+Qdryer_#{unit_num}+QhpwhOut+QductsOut,         !- Exhaust flows
+            Set Qin = QWHV_#{unit_num}+QhpwhIn+QductsIn,               !- Supply flows
+            Set Qu = @Abs (Qout - Qin),                                !- QductOA
+            Set Qb = (@Min Qout Qin),                                  !- Balanced flow"
+        end
+
+        if vent.MechVentHouseFanPower != 0
+          ems_program += "
+            Set faneff_wh = #{OpenStudio::convert(300.0 / vent.MechVentHouseFanPower,"cfm","m^3/s").get},  !- Fan Efficiency"
+        else
+          ems_program += "
+            Set faneff_wh = 1,"
+        end
+        ems_program += "
+          Set WholeHouseFanPowerOverride_#{unit_num} = (QWHV_#{unit_num}*300)/faneff_wh,"
       end
-      
-      ems << ems_returnplenum
-    
-      # Other equipment objects to cancel out the supply air leakage directly into the return plenum
-      ems << "
-      OtherEquipment,
-        SupplySensibleLeakageToLiving,                                      !- Name
-        #{Constants.LivingZone},                                            !- Zone Name
-        AlwaysOn,                                                           !- Schedule Name
-        EquipmentLevel,                                                     !- Design Level Calculation Method
-        0,                                                                  !- Design Level {W}
-        ,                                                                   !- Power per Zone Floor Area {W/m}
-        ,                                                                   !- Power per Person {W/person}
-        0,                                                                  !- Fraction Latent
-        0,                                                                  !- Fraction Radiant
-        0;                                                                  !- Fraction Lost"
-
-      ems << "
-      OtherEquipment,
-        SupplyLatentLeakageToLiving,                                        !- Name
-        #{Constants.LivingZone},                                            !- Zone Name
-        AlwaysOn,                                                           !- Schedule Name
-        EquipmentLevel,                                                     !- Design Level Calculation Method
-        0,                                                                  !- Design Level {W}
-        ,                                                                   !- Power per Zone Floor Area {W/m}
-        ,                                                                   !- Power per Person {W/person}
-        0,                                                                  !- Fraction Latent
-        0,                                                                  !- Fraction Radiant
-        0;                                                                  !- Fraction Lost"
-
-      # Supply duct conduction load added to the living space
-      ems << "
-      OtherEquipment,
-        SupplyDuctConductionToLiving,                                       !- Name
-        #{Constants.LivingZone},                                            !- Zone Name
-        AlwaysOn,                                                           !- Schedule Name
-        EquipmentLevel,                                                     !- Design Level Calculation Method
-        0,                                                                  !- Design Level {W}
-        ,                                                                   !- Power per Zone Floor Area {W/m}
-        ,                                                                   !- Power per Person {W/person}
-        0,                                                                  !- Fraction Latent
-        0,                                                                  !- Fraction Radiant
-        0;                                                                  !- Fraction Lost"        
-        
-      # Supply duct conduction impact on the air handler zone.
-      ems << "
-      OtherEquipment,
-        SupplyDuctConductionToAHZone,                                       !- Name
-        #{d.DuctLocation},                                                  !- Zone Name
-        AlwaysOn,                                                           !- Schedule Name
-        EquipmentLevel,                                                     !- Design Level Calculation Method
-        0,                                                                  !- Design Level {W}
-        ,                                                                   !- Power per Zone Floor Area {W/m}
-        ,                                                                   !- Power per Person {W/person}
-        0,                                                                  !- Fraction Latent
-        0,                                                                  !- Fraction Radiant
-        0;                                                                  !- Fraction Lost"  
-      
-      # Return duct conduction load added to the return plenum zone
-      ems << "
-      OtherEquipment,
-        ReturnDuctConductionToPlenum,                                       !- Name
-        RA Duct Zone,                                                       !- Zone Name
-        AlwaysOn,                                                           !- Schedule Name
-        EquipmentLevel,                                                     !- Design Level Calculation Method
-        0,                                                                  !- Design Level {W}
-        ,                                                                   !- Power per Zone Floor Area {W/m}
-        ,                                                                   !- Power per Person {W/person}
-        0,                                                                  !- Fraction Latent
-        0,                                                                  !- Fraction Radiant
-        0;                                                                  !- Fraction Lost"        
-      
-      # Return duct conduction impact on the air handler zone.
-      ems << "
-      OtherEquipment,
-        ReturnDuctConductionToAHZone,                                       !- Name
-        #{d.DuctLocation},                                                  !- Zone Name
-        AlwaysOn,                                                           !- Schedule Name
-        EquipmentLevel,                                                     !- Design Level Calculation Method
-        0,                                                                  !- Design Level {W}
-        ,                                                                   !- Power per Zone Floor Area {W/m}
-        ,                                                                   !- Power per Person {W/person}
-        0,                                                                  !- Fraction Latent
-        0,                                                                  !- Fraction Radiant
-        0;                                                                  !- Fraction Lost"        
-      
-      # Supply duct sensible leakage impact on the air handler zone.
-      ems << "
-      OtherEquipment,
-        SupplySensibleLeakageToAHZone,                                      !- Name
-        #{d.DuctLocation},                                                  !- Zone Name
-        AlwaysOn,                                                           !- Schedule Name
-        EquipmentLevel,                                                     !- Design Level Calculation Method
-        0,                                                                  !- Design Level {W}
-        ,                                                                   !- Power per Zone Floor Area {W/m}
-        ,                                                                   !- Power per Person {W/person}
-        0,                                                                  !- Fraction Latent
-        0,                                                                  !- Fraction Radiant
-        0;                                                                  !- Fraction Lost"        
-      
-      # Supply duct latent leakage impact on the air handler zone.
-      ems << "
-      OtherEquipment,
-        SupplyLatentLeakageToAHZone,                                        !- Name
-        #{d.DuctLocation},                                                  !- Zone Name
-        AlwaysOn,                                                           !- Schedule Name
-        EquipmentLevel,                                                     !- Design Level Calculation Method
-        0,                                                                  !- Design Level {W}
-        ,                                                                   !- Power per Zone Floor Area {W/m}
-        ,                                                                   !- Power per Person {W/person}
-        0,                                                                  !- Fraction Latent
-        0,                                                                  !- Fraction Radiant
-        0;                                                                  !- Fraction Lost"        
-      
-      # Return duct sensible leakage impact on the return plenum
-      ems << "
-      OtherEquipment,
-        ReturnSensibleLeakageEquip,                                         !- Name
-        RA Duct Zone,                                                       !- Zone Name
-        AlwaysOn,                                                           !- Schedule Name
-        EquipmentLevel,                                                     !- Design Level Calculation Method
-        0,                                                                  !- Design Level {W}
-        ,                                                                   !- Power per Zone Floor Area {W/m}
-        ,                                                                   !- Power per Person {W/person}
-        0,                                                                  !- Fraction Latent
-        0,                                                                  !- Fraction Radiant
-        0;                                                                  !- Fraction Lost"        
-      
-      # Return duct latent leakage impact on the return plenum
-      ems << "
-      OtherEquipment,
-        ReturnLatentLeakageEquip,                                           !- Name
-        RA Duct Zone,                                                       !- Zone Name
-        AlwaysOn,                                                           !- Schedule Name
-        EquipmentLevel,                                                     !- Design Level Calculation Method
-        0,                                                                  !- Design Level {W}
-        ,                                                                   !- Power per Zone Floor Area {W/m}
-        ,                                                                   !- Power per Person {W/person}
-        0,                                                                  !- Fraction Latent
-        0,                                                                  !- Fraction Radiant
-        0;                                                                  !- Fraction Lost"      
-      
-      # Sensor to report the air handler mass flow rate
-      ems << "
-      EnergyManagementSystem:Sensor,
-        AH_MFR_Sensor,                                                      !- Name
-        #{demand_side_inlet_node_name},                                     !- Output:Variable or Output:Meter Index Key Name
-        System Node Mass Flow Rate;                                         !- Output:Variable or Output:Meter Index Key Name"      
-    
-      # Sensor to report the supply fan runtime fraction
-      ems << "
-      EnergyManagementSystem:Sensor,
-        Fan_RTF_Sensor,                                                     !- Name
-        Supply Fan,                                                         !- Output:Variable or Output:Meter Index Key Name
-        Fan Runtime Fraction;                                               !- Output:Variable or Output:Meter Index Key Name"     
-    
-      # Sensor to report the air handler volume flow rate
-      ems << "
-      EnergyManagementSystem:Sensor,
-        AH_VFR_Sensor,                                                      !- Name
-        #{demand_side_inlet_node_name},                                     !- Output:Variable or Output:Meter Index Key Name
-        System Node Current Density Volume Flow Rate;                       !- Output:Variable or Output:Meter Index Key Name"       
-      
-      # Sensor to report the air handler outlet temperature
-      ems << "
-      EnergyManagementSystem:Sensor,
-        AH_Tout_Sensor,                                                     !- Name
-        #{demand_side_inlet_node_name},                                     !- Output:Variable or Output:Meter Index Key Name
-        System Node Temperature;                                            !- Output:Variable or Output:Meter Index Key Name"       
-      
-      # Sensor to report the air handler outlet humidity ratio
-      ems << "
-      EnergyManagementSystem:Sensor,
-        AH_Wout_Sensor,                                                     !- Name
-        #{demand_side_inlet_node_name},                                     !- Output:Variable or Output:Meter Index Key Name
-        System Node Humidity Ratio;                                         !- Output:Variable or Output:Meter Index Key Name" 
-    
-      # Sensor to report the return air temperature (assumed to be the living zone return temperature)
-      ems << "
-      EnergyManagementSystem:Sensor,
-        RA_T_Sensor,                                                        !- Name
-        #{living_zone_return_air_node_name},                                !- Output:Variable or Output:Meter Index Key Name
-        System Node Temperature;                                            !- Output:Variable or Output:Meter Index Key Name"      
-      
-      # Sensor to report the return air humidity ratio (assumed to be the living zone return temperature)
-      ems << "
-      EnergyManagementSystem:Sensor,
-        RA_W_Sensor,                                                        !- Name
-        #{living_zone_return_air_node_name},                                !- Output:Variable or Output:Meter Index Key Name
-        System Node Humidity Ratio;                                         !- Output:Variable or Output:Meter Index Key Name"    
-    
-      ems << "
-      EnergyManagementSystem:Sensor,
-        AHZone_T_Sensor,                                                    !- Name
-        #{d.DuctLocation},                                                  !- Output:Variable or Output:Meter Index Key Name
-        Zone Air Temperature;                                               !- Output:Variable or Output:Meter Index Key Name"    
-    
-      ems << "
-      EnergyManagementSystem:Sensor,
-        AHZone_W_Sensor,                                                    !- Name
-        #{d.DuctLocation},                                                  !- Output:Variable or Output:Meter Index Key Name
-        Zone Mean Air Humidity Ratio;                                       !- Output:Variable or Output:Meter Index Key Name"    
-    
-      # Global variable to store the air handler mass flow rate
-      ems << "
-      EnergyManagementSystem:GlobalVariable,
-        AH_MFR;                                                             !- Name"
-    
-      # Global variable to store the supply fan runtime fraction
-      ems << "
-      EnergyManagementSystem:GlobalVariable,
-        Fan_RTF;                                                            !- Name"    
-    
-      # Global variable to store the air handler volume flow rate
-      ems << "
-      EnergyManagementSystem:GlobalVariable,
-        AH_VFR;                                                             !- Name"      
-    
-      # Global variable to store the air handler outlet temperature
-      ems << "
-      EnergyManagementSystem:GlobalVariable,
-        AH_Tout;                                                            !- Name"    
-    
-      # Global variable to store the air handler outlet humidity ratio
-      ems << "
-      EnergyManagementSystem:GlobalVariable,
-        AH_Wout;                                                            !- Name"      
-      
-      # Global variable to store the return air temperature (assumed to be the living zone return temperature)
-      ems << "
-      EnergyManagementSystem:GlobalVariable,
-        RA_T;                                                               !- Name"      
-      
-      # Global variable to store the return air humidity ratio (assumed to be the living zone return temperature)
-      ems << "
-      EnergyManagementSystem:GlobalVariable,
-        RA_W;                                                               !- Name"      
-      
-      # Global variable to store the air handlder zone temperature
-      ems << "
-      EnergyManagementSystem:GlobalVariable,
-        AHZone_T;                                                           !- Name"      
-      
-      # Global variable to store the air handler zone humidity ratio
-      ems << "
-      EnergyManagementSystem:GlobalVariable,
-        AHZone_W;                                                           !- Name"
-      
-      ems << "
-      EnergyManagementSystem:GlobalVariable,
-        SupplyLeakSensibleLoad;                                             !- Name"      
-      
-      ems << "
-      EnergyManagementSystem:GlobalVariable,
-        SupplyLeakLatentLoad;                                               !- Name"       
-      
-      ems << "
-      EnergyManagementSystem:GlobalVariable,
-        SupplyDuctLoadToLiving;                                             !- Name" 
-
-      ems << "
-      EnergyManagementSystem:GlobalVariable,
-        ConductionToAHZone;                                                 !- Name" 
-
-      ems << "
-      EnergyManagementSystem:GlobalVariable,
-        ReturnConductionToAHZone;                                           !- Name" 
-
-      ems << "
-      EnergyManagementSystem:GlobalVariable,
-        ReturnDuctLoadToPlenum;                                             !- Name" 
-
-      ems << "
-      EnergyManagementSystem:GlobalVariable,
-        SensibleLeakageToAHZone;                                            !- Name" 
-
-      ems << "
-      EnergyManagementSystem:GlobalVariable,
-        LatentLeakageToAHZone;                                              !- Name" 
-
-      ems << "
-      EnergyManagementSystem:GlobalVariable,
-        AHZoneToLivingFlowRate;                                             !- Name" 
-
-      ems << "
-      EnergyManagementSystem:GlobalVariable,
-        LivingToAHZoneFlowRate;                                             !- Name" 
-
-      ems << "
-      EnergyManagementSystem:GlobalVariable,
-        ReturnSensibleLeakage;                                              !- Name" 
-
-      ems << "
-      EnergyManagementSystem:GlobalVariable,
-        ReturnLatentLeakage;                                                !- Name"         
-    
-      ems << "
-      EnergyManagementSystem:Actuator,
-        SupplyLeakSensibleActuator,                                         !- Name
-        SupplySensibleLeakageToLiving,                                      !- Actuated Component Unique Name
-        OtherEquipment,                                                     !- Actuated Component Type
-        Power Level;                                                        !- Actuated Component Control Type"    
-    
-      ems << "
-      EnergyManagementSystem:Actuator,
-        SupplyLeakLatentActuator,                                           !- Name
-        SupplyLatentLeakageToLiving,                                        !- Actuated Component Unique Name
-        OtherEquipment,                                                     !- Actuated Component Type
-        Power Level;                                                        !- Actuated Component Control Type"     
-    
-      # Actuator to account for the load of the supply duct conduction on the living space
-      ems << "
-      EnergyManagementSystem:Actuator,
-        SupplyDuctLoadToLivingActuator,                                     !- Name
-        SupplyDuctConductionToLiving,                                       !- Actuated Component Unique Name
-        OtherEquipment,                                                     !- Actuated Component Type
-        Power Level;                                                        !- Actuated Component Control Type"       
-      
-      # Actuator to account for the load of the supply duct conduction on the air handler zone
-      ems << "
-      EnergyManagementSystem:Actuator,
-        ConductionToAHZoneActuator,                                         !- Name
-        SupplyDuctConductionToAHZone,                                       !- Actuated Component Unique Name
-        OtherEquipment,                                                     !- Actuated Component Type
-        Power Level;                                                        !- Actuated Component Control Type"       
-      
-      # Actuator to account for the load of the return duct conduction on the return plenum
-      ems << "
-      EnergyManagementSystem:Actuator,
-        ReturnDuctLoadToPlenumActuator,                                     !- Name
-        ReturnDuctConductionToPlenum,                                       !- Actuated Component Unique Name
-        OtherEquipment,                                                     !- Actuated Component Type
-        Power Level;                                                        !- Actuated Component Control Type"             
-      
-      # Actuator to account for the load of the return duct conduction on the air handler zone
-      ems << "
-      EnergyManagementSystem:Actuator,
-        ReturnConductionToAHZoneActuator,                                   !- Name
-        ReturnDuctConductionToAHZone,                                       !- Actuated Component Unique Name
-        OtherEquipment,                                                     !- Actuated Component Type
-        Power Level;                                                        !- Actuated Component Control Type"       
-      
-      # Actuator to account for the sensible leakage from the supply duct to the AH zone
-      ems << "
-      EnergyManagementSystem:Actuator,
-        SensibleLeakageToAHZoneActuator,                                    !- Name
-        SupplySensibleLeakageToAHZone,                                      !- Actuated Component Unique Name
-        OtherEquipment,                                                     !- Actuated Component Type
-        Power Level;                                                        !- Actuated Component Control Type"       
-      
-      # Actuator to account for the latent leakage from the supply duct to the AH zone
-      ems << "
-      EnergyManagementSystem:Actuator,
-        LatentLeakageToAHZoneActuator,                                      !- Name
-        SupplyLatentLeakageToAHZone,                                        !- Actuated Component Unique Name
-        OtherEquipment,                                                     !- Actuated Component Type
-        Power Level;                                                        !- Actuated Component Control Type"     
-    
-      # Actuator to account fot the sensible leakage from the AH zone to the return plenum
-      ems << "
-      EnergyManagementSystem:Actuator,
-        ReturnSensibleLeakageActuator,                                      !- Name
-        ReturnSensibleLeakageEquip,                                         !- Actuated Component Unique Name
-        OtherEquipment,                                                     !- Actuated Component Type
-        Power Level;                                                        !- Actuated Component Control Type"             
-      
-      # Actuator to account fot the latent leakage from the AH zone to the return plenum
-      ems << "
-      EnergyManagementSystem:Actuator,
-        ReturnLatentLeakageActuator,                                        !- Name
-        ReturnLatentLeakageEquip,                                           !- Actuated Component Unique Name
-        OtherEquipment,                                                     !- Actuated Component Type
-        Power Level;                                                        !- Actuated Component Control Type"       
-      
-      ems << "
-      EnergyManagementSystem:Actuator,
-        AHZoneToLivingFlowRateActuator,                                     !- Name
-        AHZoneToLivingZoneMixing,                                           !- Actuated Component Unique Name
-        ZoneMixing,                                                         !- Actuated Component Type
-        Air Exchange Flow Rate;                                             !- Actuated Component Control Type"       
-      
-      ems << "
-      EnergyManagementSystem:Actuator,
-        LivingToAHZoneFlowRateActuator,                                     !- Name
-        LivingZoneToAHZoneMixing,                                           !- Actuated Component Unique Name
-        ZoneMixing,                                                         !- Actuated Component Type
-        Air Exchange Flow Rate;                                             !- Actuated Component Control Type"       
-      
-      ems << "
-      EnergyManagementSystem:GlobalVariable,
-        DuctLeakSupplyFanEquivalent,                                        !- Name
-        DuctLeakExhaustFanEquivalent;                                       !- Name"
-      
-      ems_subroutine = "
-      EnergyManagementSystem:Subroutine,
-        CalculateDuctLeakage,                                         
-        Set f_sup = #{d.supply_duct_loss},
-        Set f_ret = #{d.return_duct_loss},
-        Set f_OA = #{d.frac_oa * d.total_duct_unbalance},
-        Set OAFlowRate = f_OA * AH_VFR,
-        Set SupplyLeakFlowRate = f_sup * AH_VFR,
-        Set ReturnLeakFlowRate = f_ret * AH_VFR,"
-
-      if d.return_duct_loss > d.supply_duct_loss
-        # Supply air flow rate is greater than return flow rate
-        # Living zone is pressurized in this case      
-        ems_subroutine += "
-          Set LivingToAHZoneFlowRate = (@Abs (ReturnLeakFlowRate - SupplyLeakFlowRate - OAFlowRate)),
-          Set AHZoneToLivingFlowRate = 0,
-          Set DuctLeakSupplyFanEquivalent = OAFlowRate,
-          Set DuctLeakExhaustFanEquivalent = 0,"
+      if vent.MechVentSpotFanPower != 0
+        ems_program += "
+          Set faneff_sp = #{OpenStudio::convert(300.0 / vent.MechVentSpotFanPower,"cfm","m^3/s").get},     !- Fan Efficiency"
       else
-        # Living zone is depressurized in this case
-        ems_subroutine += "
-        Set AHZoneToLivingFlowRate = (@Abs (SupplyLeakFlowRate - ReturnLeakFlowRate - OAFlowRate)),
-        Set LivingToAHZoneFlowRate = 0,
-        Set DuctLeakSupplyFanEquivalent = 0,
-        Set DuctLeakExhaustFanEquivalent = OAFlowRate,"        
+        ems_program += "
+          Set faneff_sp = 1,"
       end
-      
-      if d.ducts_not_in_living
-        ems_subroutine += "
-        Set h_SA = (@HFnTdbW AH_Tout AH_Wout),
-        Set h_AHZone = (@HFnTdbW AHZone_T AHZone_W),
-        Set h_RA = (@HFnTdbW RA_T RA_W),
-        Set h_fg = (@HfgAirFnWTdb AH_Wout AH_Tout),
-        Set SALeakageQtot = f_sup * AH_MFR * (h_RA - h_SA),
-        Set SupplyLeakLatentLoad = f_sup * AH_MFR * h_fg * (RA_W - AH_Wout),
-        Set SupplyLeakSensibleLoad = SALeakageQtot - SupplyLeakLatentLoad,
-        Set expTerm = (Fan_RTF / (AH_MFR * 1006.0)) * #{OpenStudio::convert(d.unconditioned_duct_ua,"Btu/hr*R","W/K").get},
-        Set expTerm = 0 - expTerm,
-        Set Tsupply = AHZone_T + ((AH_Tout - AHZone_T) * (@Exp expTerm)),
-        Set SupplyDuctLoadToLiving = AH_MFR * 1006.0 * (Tsupply - AH_Tout),
-        Set ConductionToAHZone = 0 - SupplyDuctLoadToLiving,
-        Set expTerm = (Fan_RTF / (AH_MFR * 1006.0)) * #{OpenStudio::convert(d.return_duct_ua,"Btu/hr*R","W/K").get},
-        Set expTerm = 0 - expTerm,
-        Set Treturn = AHZone_T + ((RA_T - AHZone_T) * (@Exp expTerm)),
-        Set ReturnDuctLoadToPlenum = AH_MFR * 1006.0 * (Treturn - RA_T),
-        Set ReturnConductionToAHZone = 0 - ReturnDuctLoadToPlenum,
-        Set ReturnLatentLeakage = 0,
-        Set ReturnSensibleLeakage = f_ret * AH_MFR * 1006.0 * (AHZone_T - RA_T),
-        Set QtotLeakageToAHZone = f_sup * AH_MFR * (h_SA - h_AHZone),
-        Set LatentLeakageToAHZone = f_sup * AH_MFR * h_fg * (AH_Wout - AHZone_W),
-        Set SensibleLeakageToAHZone = QtotLeakageToAHZone - LatentLeakageToAHZone;"
-      else
-        ems_subroutine += "
-        Set SupplyLeakLatentLoad = 0,
-        Set SupplyLeakSensibleLoad = 0,
-        Set SupplyDuctLoadToLiving = 0,
-        Set ConductionToAHZone = 0,
-        Set ReturnDuctLoadToPlenum = 0,
-        Set ReturnConductionToAHZone = 0,
-        Set ReturnLatentLeakage = 0,
-        Set ReturnSensibleLeakage = 0,
-        Set LatentLeakageToAHZone = 0,
-        Set SensibleLeakageToAHZone = 0;"
-      end
-      
-      ems << ems_subroutine      
-      
+
+      ems_program += "
+        Set RangeHoodFanPowerOverride_#{unit_num} = (Qrange*300)/faneff_sp,
+        Set BathExhaustFanPowerOverride_#{unit_num} = (Qbath*300)/faneff_sp,
+        Set Q_acctd_for_elsewhere = QhpwhOut + QhpwhIn + QductsOut + QductsIn,
+        Set InfilFlow_#{unit_num} = (((Qu^2) + (Qn^2))^0.5) - Q_acctd_for_elsewhere,
+        Set InfilFlow_#{unit_num} = (@Max InfilFlow_#{unit_num} 0),
+        Set InfilFlow_display_#{unit_num} = (((Qu^2) + (Qn^2))^0.5) - Qu,
+        Set InfMechVent_#{unit_num} = Qb + InfilFlow_#{unit_num};"
+
+      ems << ems_program      
+
+      # OutputVariable
+
+      # Zone Infil/MechVent Flow Rate
+      ems << "
+      EnergyManagementSystem:OutputVariable,
+        Zone Infil/MechVent Flow Rate_#{unit_num},                      !- Name
+        InfMechVent_#{unit_num},                                        !- EMS Variable Name
+        Averaged,                                                       !- Type of Data in Variable
+        ZoneTimestep,                                                   !- Update Frequency
+        InfiltrationProgram_#{unit_num},                                !- EMS Program or Subroutine Name
+        m3/s;                                                           !- Units"
+
+      # Whole House Fan Vent Flow Rate
+      ems << "
+      EnergyManagementSystem:OutputVariable,
+        Whole House Fan Vent Flow Rate_#{unit_num},                     !- Name
+        QWHV_#{unit_num},                                               !- EMS Variable Name
+        Averaged,                                                       !- Type of Data in Variable
+        ZoneTimestep,                                                   !- Update Frequency
+        InfiltrationProgram_#{unit_num},                                !- EMS Program or Subroutine Name
+        m3/s;                                                           !- Units"
+
+      # Range Hood Fan Vent Flow Rate
+      ems << "
+      EnergyManagementSystem:OutputVariable,
+        Range Hood Fan Vent Flow Rate_#{unit_num},                      !- Name
+        Qrange_#{unit_num},                                             !- EMS Variable Name
+        Averaged,                                                       !- Type of Data in Variable
+        ZoneTimestep,                                                   !- Update Frequency
+        InfiltrationProgram_#{unit_num},                                !- EMS Program or Subroutine Name
+        m3/s;                                                           !- Units"
+
+      # Bath Exhaust Fan Vent Flow Rate
+      ems << "
+      EnergyManagementSystem:OutputVariable,
+        Bath Exhaust Fan Vent Flow Rate_#{unit_num},                    !- Name
+        Qbath_#{unit_num},                                              !- EMS Variable Name
+        Averaged,                                                       !- Type of Data in Variable
+        ZoneTimestep,                                                   !- Update Frequency
+        InfiltrationProgram_#{unit_num},                                !- EMS Program or Subroutine Name
+        m3/s;                                                           !- Units"
+
+      # Clothes Dryer Exhaust Fan Vent Flow Rate
+      ems << "
+      EnergyManagementSystem:OutputVariable,
+        Clothes Dryer Exhaust Fan Vent Flow Rate_#{unit_num},           !- Name
+        Qdryer_#{unit_num},                                             !- EMS Variable Name
+        Averaged,                                                       !- Type of Data in Variable
+        ZoneTimestep,                                                   !- Update Frequency
+        InfiltrationProgram_#{unit_num},                                !- EMS Program or Subroutine Name
+        m3/s;                                                           !- Units"
+
+      # Local Wind Speed
+      ems << "
+      EnergyManagementSystem:OutputVariable,
+        Local Wind Speed_#{unit_num},                                   !- Name
+        VwindL_#{unit_num},                                             !- EMS Variable Name
+        Averaged,                                                       !- Type of Data in Variable
+        ZoneTimestep,                                                   !- Update Frequency
+        InfiltrationProgram_#{unit_num},                                !- EMS Program or Subroutine Name
+        m/s;                                                            !- Units"
+
+      # Program
+
+      # NaturalVentilationProgram
       ems << "
       EnergyManagementSystem:Program,
-        DuctLeakageProgram,                                         
-        Set AH_MFR = AH_MFR_Sensor,                              
-        Set Fan_RTF = Fan_RTF_Sensor,
-        Set AH_VFR = AH_VFR_Sensor,
-        Set AH_Tout = AH_Tout_Sensor,
-        Set AH_Wout = AH_Wout_Sensor,
-        Set RA_T = RA_T_Sensor,
-        Set RA_W = RA_W_Sensor,
-        Set AHZone_T = AHZone_T_Sensor,
-        Set AHZone_W = AHZone_W_Sensor,
-        Run CalculateDuctLeakage,
-        Set SupplyLeakSensibleActuator = SupplyLeakSensibleLoad,
-        Set SupplyLeakLatentActuator = SupplyLeakLatentLoad,
-        Set SupplyDuctLoadToLivingActuator = SupplyDuctLoadToLiving,
-        Set ConductionToAHZoneActuator = ConductionToAHZone,
-        Set SensibleLeakageToAHZoneActuator = SensibleLeakageToAHZone,
-        Set LatentLeakageToAHZoneActuator = LatentLeakageToAHZone,
-        Set ReturnSensibleLeakageActuator = ReturnSensibleLeakage,
-        Set ReturnLatentLeakageActuator = ReturnLatentLeakage,
-        Set ReturnDuctLoadToPlenumActuator = ReturnDuctLoadToPlenum,
-        Set ReturnConductionToAHZoneActuator = ReturnConductionToAHZone,
-        Set AHZoneToLivingFlowRateActuator = AHZoneToLivingFlowRate,
-        Set LivingToAHZoneFlowRateActuator = LivingToAHZoneFlowRate;"       
-      
+        NaturalVentilationProgram_#{unit_num},                          !- Name
+        Set Tdiff = Tin_#{unit_num + 1} - Tout_#{unit_num},
+        Set DeltaT = (@Abs Tdiff),
+        Set Phiout = (@RhFnTdbWPb Tout_#{unit_num} Wout_#{unit_num} Pbar_#{unit_num}),
+        Set Hin = (@HFnTdbRhPb Tin_#{unit_num} Phiin_#{unit_num} Pbar_#{unit_num}),
+        Set NVArea = #{929.0304 * nv.area},
+        Set Cs = #{0.001672 * nv.C_s},
+        Set Cw = #{0.01 * nv.C_w},
+        Set MaxNV = #{OpenStudio::convert(nv.max_flow_rate,"cfm","m^3/s").get},
+        Set MaxHR = #{nv.NatVentMaxOAHumidityRatio},
+        Set MaxRH = #{nv.NatVentMaxOARelativeHumidity},
+        Set SGNV = (NVAvail_#{unit_num}*NVArea)*((((Cs*DeltaT)+(Cw*(Vwind_#{unit_num}^2)))^0.5)/1000),
+        If (Wout_#{unit_num} < MaxHR) && (Phiout < MaxRH) && (Tin_#{unit_num} > NVSP_#{unit_num}),
+          Set NVadj1 = (Tin_#{unit_num} - NVSP_#{unit_num})/(Tin_#{unit_num} - Tout_#{unit_num}),
+          Set NVadj2 = (@Min NVadj1 1),
+          Set NVadj3 = (@Max NVadj2 0),
+          Set NVadj = SGNV*NVadj3,
+          Set NatVentFlow_#{unit_num} = (@Min NVadj MaxNV),
+        Else,
+          Set NatVentFlow_#{unit_num} = 0,
+        EndIf;"
+          
+      # OutputVariable
+
+      # Zone Natural Ventilation Flow Rate
+      ems << "
+      EnergyManagementSystem:OutputVariable,
+        Zone Natural Ventilation Flow Rate_#{unit_num},                 !- Name
+        NatVentFlow_#{unit_num},                                        !- EMS Variable Name
+        Averaged,                                                       !- Type of Data in Variable
+        ZoneTimestep,                                                   !- Update Frequency
+        NaturalVentilationProgram_#{unit_num},                          !- EMS Program or Subroutine Name
+        m3/s;                                                           !- Units"        
+        
+      # ProgramCallingManager
+
+      # AirflowCalculator
       ems << "
       EnergyManagementSystem:ProgramCallingManager,
-        DuctLeakageCallingManager,                                          !- Name
-        EndOfSystemTimestepAfterHVACReporting,                              !- EnergyPlus Model Calling Point
-        DuctLeakageProgram;                                                 !- Program Name 1"
+        AirflowCalculator_#{unit_num},                                  !- Name
+        BeginTimestepBeforePredictor,                                   !- EnergyPlus Model Calling Point
+        InfiltrationProgram_#{unit_num},                                !- Program Name 1
+        NaturalVentilationProgram_#{unit_num};                          !- Program Name 2"
+
+      # Mechanical Ventilation
+      if vent.MechVentType == Constants.VentTypeBalanced # TODO: will need to complete _processSystemVentilationNodes for this to work
+
+        ems << "
+        Fan:OnOff,
+          ERV Supply Fan_#{unit_num},                                                   !- Name
+          AlwaysOn,                                                                     !- Availability Schedule Name
+          #{OpenStudio::convert(300.0 / vent.MechVentHouseFanPower,"cfm","m^3/s").get}, !- Fan Efficiency
+          300,                                                                          !- Pressure Rise {Pa}
+          #{OpenStudio::convert(vent.whole_house_vent_rate,"cfm","m^3/s").get},         !- Maximum Flow rate {m^3/s}
+          1,                                                                            !- Motor Efficiency
+          1,                                                                            !- Motor in Airstream Fraction
+          ERV Supply Fan Inlet Node_#{unit_num},                                        !- Air Inlet Node Name
+          ERV Supply Fan Outlet Node_#{unit_num},                                       !- Air Outlet Node Name
+          Fan-EIR-fPLR,                                                                 !- Fan Power Ratio Function of Speed Ratio Curve Name
+          ,                                                                             !- Fan Efficiency Ratio Function of Speed Ratio Curve Name
+          VentFans_#{unit_num};                                                         !- End-Use Subcategory"
+
+        # TODO: Fan-EIR-fPLR has not been added so does not show up in IDF (does it need to?)
+
+        ems << "
+        Fan:OnOff,
+          ERV Exhaust Fan_#{unit_num},                                                  !- Name
+          AlwaysOn,                                                                     !- Availability Schedule Name
+          #{OpenStudio::convert(300.0 / vent.MechVentHouseFanPower,"cfm","m^3/s").get}, !- Fan Efficiency
+          300,                                                                          !- Pressure Rise {Pa}
+          #{OpenStudio::convert(vent.whole_house_vent_rate,"cfm","m^3/s").get},         !- Maximum Flow rate {m^3/s}
+          1,                                                                            !- Motor Efficiency
+          0,                                                                            !- Motor in Airstream Fraction
+          ERV Exhaust Fan Inlet Node_#{unit_num},                                       !- Air Inlet Node Name
+          ERV Exhaust Fan Outlet Node_#{unit_num},                                      !- Air Outlet Node Name
+          Fan-EIR-fPLR,                                                                 !- Fan Power Ratio Function of Speed Ratio Curve Name
+          ,                                                                             !- Fan Efficiency Ratio Function of Speed Ratio Curve Name
+          VentFans_#{unit_num};                                                         !- End-Use Subcategory"
+
+        # TODO: Fan-EIR-fPLR has not been added so does not show up in IDF (does it need to?)
+
+        ems << "
+        ZoneHVAC:EnergyRecoveryVentilator:Controller,
+          ERV Controller_#{unit_num},                                             !- Name
+          ,                                                                       !- Temperature High Limit {C}
+          ,                                                                       !- Temperature Low Limit {C}
+          ,                                                                       !- Enthalpy High Limit {J/kg}
+          ,                                                                       !- Dewpoint Temperature Limit {C}
+          ,                                                                       !- Electronic Enthalpy Limit Curve Name
+          NoExhaustAirTemperatureLimit,                                           !- Exhaust Air Temperature Limit
+          NoExhaustAirEnthalpyLimit,                                              !- Exhaust Air Enthalpy Limit
+          AlwaysOff,                                                              !- Time of Day Economizer Flow Control Schedule Name
+          No;                                                                     !- High Humidity Control Flag"
+
+        ems << "
+        OutdoorAir:Node,
+          ERV Outside Air Inlet Node_#{unit_num},                                 !- Name
+          #{OpenStudio::convert(living_space.height,"ft","m").get / 2.0};         !- Height Above Ground"
+
+        ems << "
+        HeatExchanger:AirToAir:SensibleAndLatent,
+          ERV Heat Exchanger_#{unit_num},                                         !- Name
+          AlwaysOn,                                                               !- Availability Schedule Name
+          #{OpenStudio::convert(vent.whole_house_vent_rate,"cfm","m^3/s").get},   !- Nominal Supply Air Flow Rate
+          #{vent.MechVentHXCoreSensibleEffectiveness},                            !- Sensible Effectiveness at 100% Heating Air Flow
+          #{vent.MechVentLatentEffectiveness},                                    !- Latent Effectiveness at 100% Heating Air Flow
+          #{vent.MechVentHXCoreSensibleEffectiveness},                            !- Sensible Effectiveness at 75% Heating Air Flow
+          #{vent.MechVentLatentEffectiveness},                                    !- Latent Effectiveness at 75% Heating Air Flow
+          #{vent.MechVentHXCoreSensibleEffectiveness},                            !- Sensible Effectiveness at 100% Cooling Air Flow
+          #{vent.MechVentLatentEffectiveness},                                    !- Latent Effectiveness at 100% Cooling Air Flow
+          #{vent.MechVentHXCoreSensibleEffectiveness},                            !- Sensible Effectiveness at 75% Cooling Air Flow
+          #{vent.MechVentLatentEffectiveness},                                    !- Latent Effectiveness at 75% Cooling Air Flow
+          ERV Outside Air Inlet Node_#{unit_num},                                 !- Supply Air Inlet Node Name
+          ERV Supply Fan Inlet Node_#{unit_num},                                  !- Supply Air Outlet Node Name
+          Living Exhaust Node_#{unit_num},                                        !- Exhaust Air Inlet Node Name
+          ERV Exhaust Fan Inlet Node_#{unit_num};                                 !- Exhaust Air Outlet Node Name"
+
+        ems << "
+        ZoneHVAC:EnergyRecoveryVentilator,
+          ERV_#{unit_num},                                                        !- Name
+          AlwaysOn,                                                               !- Availability Schedule Name
+          ERV Heat Exchanger_#{unit_num},                                         !- Heat Exchanger Name
+          #{OpenStudio::convert(vent.whole_house_vent_rate,"cfm","m^3/s").get},   !- Supply Air Flow rate {m^3/s}
+          #{OpenStudio::convert(vent.whole_house_vent_rate,"cfm","m^3/s").get},   !- Exhaust Air Flor rate {m^3/s}
+          ERV Supply Fan_#{unit_num},                                             !- Supply Air Fan Name
+          ERV Exhaust Fan_#{unit_num},                                            !- Exhaust Air Fan Name
+          ERV Controller_#{unit_num};                                             !- Controller Name"
+
+      end        
+
+      hasGarage = false
+      hasFinishedBasement = false
+      hasUnfinishedBasement = false
+      hasCrawl = false
+      hasUnfinAttic = false
+      if not garage_thermal_zone.nil?
+        hasGarage = true
+      end
+      if not fbasement_thermal_zone.nil?
+        hasFinishedBasement = true
+      end
+      if not ufbasement_thermal_zone.nil?
+        hasUnfinishedBasement = true
+      end
+      if not crawl_thermal_zone.nil?
+        hasCrawl = true
+      end
+      if not ufattic_thermal_zone.nil?
+        hasUnfinAttic = true
+      end
+
+      # _processZoneGarage
+      if hasGarage
+        if garage.SLA > 0
+          # Infiltration
+          ems << "
+          ZoneInfiltration:EffectiveLeakageArea,
+            GarageInfiltration,                                                         !- Name
+            #{garage_thermal_zone_r},                                                   !- Zone Name
+            AlwaysOn,                                                                   !- Schedule Name
+            #{OpenStudio::convert(garage.ELA,"ft^2","cm^2").get * 10.0},                !- Effective Air Leakage Area {cm}
+            #{0.001672 * garage.C_s_SG},                                                !- Stack Coefficient {(L/s)/(cm^4-K)}
+            #{0.01 * garage.C_w_SG};                                                    !- Wind Coefficient {(L/s)/(cm^4-(m/s))}"
+        end
+      end
+
+      # _processZoneFinishedBasement
+      if hasFinishedBasement
+        #--- Infiltration
+        if fb.inf_method == Constants.InfMethodRes
+          if fb.ACH > 0
+            ems << "
+            ZoneInfiltration:DesignFlowRate,
+              FBsmtInfiltration_#{unit_num},                                            !- Name
+              #{fbasement_thermal_zone_r},                                              !- Zone Name
+              AlwaysOn,                                                                 !- Schedule Name
+              AirChanges/Hour,                                                          !- Design Flow Rate Calculation Method
+              ,                                                                         !- Design Flow rate {m^3/s}
+              ,                                                                         !- Flow per Zone Floor Area {m/s-m}
+              ,                                                                         !- Flow per Exterior Surface Area {m/s-m}
+              #{fb.ACH},                                                                !- Air Changes per Hour {1/hr}
+              1,                                                                        !- Constant Term Coefficient
+              0,                                                                        !- Temperature Term Coefficient
+              0,                                                                        !- Velocity Term Coefficient
+              0;                                                                        !- Velocity Squared Term Coefficient"
+          end
+        end
+      end
+
+      # _processZoneUnfinishedBasement
+      if hasUnfinishedBasement
+        #--- Infiltration
+        if ub.inf_method == Constants.InfMethodRes
+          if ub.ACH > 0
+            ems << "
+            ZoneInfiltration:DesignFlowRate,
+              UBsmtInfiltration,                                                        !- Name
+              #{ufbasement_thermal_zone_r},                                             !- Zone Name
+              AlwaysOn,                                                                 !- Schedule Name
+              AirChanges/Hour,                                                          !- Design Flow Rate Calculation Method
+              ,                                                                         !- Design Flow rate {m^3/s}
+              ,                                                                         !- Flow per Zone Floor Area {m/s-m}
+              ,                                                                         !- Flow per Exterior Surface Area {m/s-m}
+              #{ub.ACH},                                                                !- Air Changes per Hour {1/hr}
+              1,                                                                        !- Constant Term Coefficient
+              0,                                                                        !- Temperature Term Coefficient
+              0,                                                                        !- Velocity Term Coefficient
+              0;                                                                        !- Velocity Squared Term Coefficient"
+          end
+        end
+      end
+
+      # _processZoneCrawlspace
+      if hasCrawl
+        #--- Infiltration
+        ems << "
+        ZoneInfiltration:DesignFlowRate,
+          CSInfiltration,                                                               !- Name
+          #{crawl_thermal_zone_r},                                                      !- Zone Name
+          AlwaysOn,                                                                     !- Schedule Name
+          AirChanges/Hour,                                                              !- Design Flow Rate Calculation Method
+          ,                                                                             !- Design Flow rate {m^3/s}
+          ,                                                                             !- Flow per Zone Floor Area {m/s-m}
+          ,                                                                             !- Flow per Exterior Surface Area {m/s-m}
+          #{cs.ACH},                                                                    !- Air Changes per Hour {1/hr}
+          1,                                                                            !- Constant Term Coefficient
+          0,                                                                            !- Temperature Term Coefficient
+          0,                                                                            !- Velocity Term Coefficient
+          0;                                                                            !- Velocity Squared Term Coefficient"
+      end
+
+      # _processZoneUnfinishedAttic
+      if hasUnfinAttic
+        #--- Infiltration
+        if ua.ELA > 0
+          ems << "
+          ZoneInfiltration:EffectiveLeakageArea,
+          UAtcInfiltration,                                                             !- Name
+          #{ufattic_thermal_zone_r},                                                    !- Zone Name
+          AlwaysOn,                                                                     !- Schedule Name
+          #{OpenStudio::convert(ua.ELA,"ft^2","cm^2").get * 10.0},                      !- Effective Air Leakage Area {cm}
+          #{0.001672 * ua.C_s_SG},                                                      !- Stack Coefficient {(L/s)/(cm^4-K)}
+          #{0.01 * ua.C_w_SG};                                                          !- Wind Coefficient {(L/s)/(cm^4-(m/s))}"
+        end
+      end
+      
+      # _processDuctwork
+      d.DuctLocation = get_duct_location(runner, duct_location, living_thermal_zone, garage_thermal_zone, fbasement_thermal_zone, ufbasement_thermal_zone, crawl_thermal_zone, ufattic_thermal_zone)
+      # Disallow placing ducts in locations that don't exist, and handle
+      # exception for no ducts (in DuctLocation = None).    
+      if !d.DuctLocation
+        runner.registerError("Duct location is basement, but the building does not have a basement.")
+        return false
+      end
+      
+      d.has_ducts = true  
+      if d.DuctLocation == "none"
+          d.DuctLocation = living_thermal_zone_r
+          d.has_ducts = false
+      end
+      
+      has_mini_split_hp = false
+      unless HelperMethods.has_mini_split_heat_pump(model, runner, living_thermal_zone, false).nil?
+        has_mini_split_hp = true
+      end
+      if has_mini_split_hp and ( d.DuctLocation != (living_thermal_zone_r or "none") )
+        d.DuctLocation = living_thermal_zone_r
+        d.has_ducts = false
+        runner.registerWarning("Duct losses are currently neglected when simulating mini-split heat pumps. Set Ducts to None or In Finished Space to avoid this warning message.")
+      end    
+      
+      # Set has_uncond_ducts to False if ducts are in a conditioned space,
+      # otherwise True    
+      if d.DuctLocation == living_thermal_zone_r
+          d.ducts_not_in_living = false
+      elsif d.DuctLocation == fbasement_thermal_zone_r or d.DuctLocation == ufbasement_thermal_zone_r or d.DuctLocation == crawl_thermal_zone_r or d.DuctLocation == garage_thermal_zone_r or d.DuctLocation == ufattic_thermal_zone_r
+          d.ducts_not_in_living = true
+      end
+      
+      # unless d.DuctSystemEfficiency.nil?
+          # d.ducts_not_in_living = true
+          # d.has_ducts = true
+      # end
+      
+      d.num_stories_for_ducts = geometry.stories
+      unless fbasement_thermal_zone.nil?
+        d.num_stories_for_ducts += 1
+      end
+      
+      d.num_stories = d.num_stories_for_ducts
+      
+      if d.DuctNormLeakageToOutside.nil?
+        # Normalize values in case user inadvertently entered values that add up to the total duct leakage, 
+        # as opposed to adding up to 1
+        sumFractionOfTotal = (d.DuctSupplyLeakageFractionOfTotal + d.DuctReturnLeakageFractionOfTotal + d.DuctAHSupplyLeakageFractionOfTotal + d.DuctAHReturnLeakageFractionOfTotal)
+        if sumFractionOfTotal > 0
+          d.DuctSupplyLeakageFractionOfTotal = ductSupplyLeakageFractionOfTotal / sumFractionOfTotal
+          d.DuctReturnLeakageFractionOfTotal = ductReturnLeakageFractionOfTotal / sumFractionOfTotal
+          d.DuctAHSupplyLeakageFractionOfTotal = ductAHSupplyLeakageFractionOfTotal / sumFractionOfTotal
+          d.DuctAHReturnLeakageFractionOfTotal = ductAHReturnLeakageFractionOfTotal / sumFractionOfTotal
+        end
         
-    end  
-    
+        # Calculate actual leakages from percentages
+        d.DuctSupplyLeakage = d.DuctSupplyLeakageFractionOfTotal * d.DuctTotalLeakage
+        d.DuctReturnLeakage = d.DuctReturnLeakageFractionOfTotal * d.DuctTotalLeakage
+        d.DuctAHSupplyLeakage = d.DuctAHSupplyLeakageFractionOfTotal * d.DuctTotalLeakage
+        d.DuctAHReturnLeakage = d.DuctAHReturnLeakageFractionOfTotal * d.DuctTotalLeakage     
+      end
+      
+      # Fraction of ducts in primary duct location (remaining ducts are in above-grade conditioned space).
+      if duct_location_frac == Constants.Auto
+        # Duct location fraction per 2010 BA Benchmark
+        if d.num_stories == 1
+          d.DuctLocationFrac = 1
+        else
+          d.DuctLocationFrac = 0.65
+        end
+      else
+        d.DuctLocationFrac = duct_location_frac.to_f
+      end    
+      
+      d.DuctLocationFracLeakage = d.DuctLocationFrac
+      d.DuctLocationFracConduction = d.DuctLocationFrac
+      
+      d.supply_duct_surface_area = get_duct_supply_surface_area(d.DuctSupplySurfaceAreaMultiplier, geometry, d.num_stories)
+      
+      d.DuctNumReturns = get_duct_num_returns(duct_num_returns, d.num_stories)
+      
+      d.return_duct_surface_area = get_duct_return_surface_area(d.DuctReturnSurfaceAreaMultiplier, geometry, d.num_stories, d.DuctNumReturns)
+     
+      ducts_total_duct_surface_area = d.supply_duct_surface_area + d.return_duct_surface_area
+       
+      # Calculate Duct UA value
+      if d.ducts_not_in_living
+        d.unconditioned_duct_area = d.supply_duct_surface_area * d.DuctLocationFracConduction
+        d.supply_duct_r = get_duct_insulation_rvalue(d.DuctUnconditionedRvalue, true)
+        d.return_duct_r = get_duct_insulation_rvalue(d.DuctUnconditionedRvalue, false)
+        d.unconditioned_duct_ua = d.unconditioned_duct_area / d.supply_duct_r
+        d.return_duct_ua = d.return_duct_surface_area / d.return_duct_r
+      else
+        d.DuctLocationFracConduction = 0
+        d.unconditioned_duct_ua = 0
+        d.return_duct_ua = 0
+      end
+      
+      # Calculate Duct Volume
+      if d.ducts_not_in_living
+        # Assume ducts are 3 ft by 1 ft, (8 is the perimeter)
+        d.supply_duct_volume = (d.unconditioned_duct_area / 8.0) * 3.0
+        d.return_duct_volume = (d.return_duct_surface_area / 8.0) * 3.0
+      else
+        d.supply_duct_volume = 0
+        d.return_duct_volume = 0
+      end
+      
+      # This can't be zero. A value of zero causes weird sizing issues in DOE-2.
+      d.direct_oa_supply_duct_loss = 0.000001    
+      
+      # Only if using the Fractional Leakage Option Type:
+      if d.DuctNormLeakageToOutside.nil?
+        d.supply_duct_loss = (d.DuctLocationFracLeakage * (d.DuctSupplyLeakage - d.direct_oa_supply_duct_loss) + (d.DuctAHSupplyLeakage + d.direct_oa_supply_duct_loss))
+        d.return_duct_loss = d.DuctReturnLeakage + d.DuctAHReturnLeakage
+      end
+      
+      # _processDuctLeakage
+      unless d.DuctNormLeakageToOutside.nil?
+        runner.registerError("Duct leakage to outside was specified by we don't calculate fan air flow rate.")
+        return false
+        d = calc_duct_leakage_from_test(geometry.finished_floor_area, supply.FanAirFlowRate) # TODO: if DuctNormLeakageToOutside is specified, this will error because we don't calculate FanAirFlowRate
+      end
+      
+      d.total_duct_unbalance = (d.supply_duct_loss - d.return_duct_loss).abs
+      
+      if not d.DuctLocation == living_thermal_zone_r and not d.DuctLocation == "none" and d.supply_duct_loss > 0
+        # Calculate d.frac_oa = fraction of unbalanced make-up air that is outside air
+        if d.total_duct_unbalance <= 0
+          # Handle the exception for if there is no leakage unbalance.
+          d.frac_oa = 0
+        elsif [fbasement_thermal_zone_r, ufbasement_thermal_zone_r].include? d.DuctLocation or (d.DuctLocation == crawl_thermal_zone_r and crawlACH == 0) or (d.DuctLocation == ufattic_thermal_zone_r and uaSLA == 0)         
+          d.frac_oa = d.direct_oa_supply_duct_loss / d.total_duct_unbalance
+        else
+          # Assume that all of the unbalanced make-up air is driven infiltration from outdoors.
+          # This assumes that the holes for attic ventilation are much larger than any attic bypasses.      
+          d.frac_oa = 1
+        end
+        # d.oa_duct_makeup =  fraction of the supply duct air loss that is made up by outside air (via return leakage)
+        d.oa_duct_makeup = [d.frac_oa * d.total_duct_unbalance / [d.supply_duct_loss,d.return_duct_loss].max, 1].min
+      else
+        d.frac_oa = 0
+        d.oa_duct_makeup = 0
+      end
+
+      duct_locations[unit_num] = d.DuctLocation
+      if not d.DuctLocation == living_thermal_zone_r and not d.DuctLocation == "none" and hasForcedAirEquipment
+      
+        # _processMaterials
+        ems << "
+        Material:NoMass,
+          Adiabatic,                                                          !- Name
+          Rough,                                                              !- Roughness
+          176.1;                                                              !- Thermal Resistance {m2-K/W}"   
+      
+        # _processConstructionsAdiabatic
+        # Adiabatic Constructions are used for interior underground surfaces
+        ems << "
+        Construction,
+          AdiabaticConst,                                                     !- Name
+          Adiabatic;                                                          !- Outside Layer"
+      
+        # _processZoneReturnPlenum
+        # Return Plenum Zone and Duct Leakage Objects
+        
+        ems << "
+        Zone,
+          RA Duct Zone_#{unit_num},                                           !- Name
+          0,                                                                  !- Direction of Relative North {deg}
+          0,                                                                  !- X Origin {m}
+          0,                                                                  !- Y Origin {m}
+          0,                                                                  !- Z Origin {m}
+          ,                                                                   !- Type
+          ,                                                                   !- Multiplier
+          0,                                                                  !- Ceiling Height {m}
+          #{OpenStudio::convert(d.return_duct_volume,"ft^3","m^3").get},      !- Volume {m3}
+          0;                                                                  !- Floor Area {m2}"    
+        
+        ems << "
+        Wall:Adiabatic,
+          RADuctWall_N_#{unit_num},                                           !- Name
+          AdiabaticConst,                                                     !- Construction Name
+          RA Duct Zone_#{unit_num},                                           !- RA Duct Zone
+          0,                                                                  !- Azimuth
+          90,                                                                 !- Tilt
+          0,                                                                  !- Vertex 1 X-Coordinate
+          75,                                                                 !- Vertex 1 Y-Coordinate
+          0,                                                                  !- Vertex 1 Z-Coordinate
+          1,                                                                  !- Length
+          1;                                                                  !- Height"      
+        
+        ems << "
+        Wall:Adiabatic,
+          RADuctWall_E_#{unit_num},                                           !- Name
+          AdiabaticConst,                                                     !- Construction Name
+          RA Duct Zone_#{unit_num},                                           !- RA Duct Zone
+          90,                                                                 !- Azimuth
+          90,                                                                 !- Tilt
+          0,                                                                  !- Vertex 1 X-Coordinate
+          74,                                                                 !- Vertex 1 Y-Coordinate
+          0,                                                                  !- Vertex 1 Z-Coordinate
+          1,                                                                  !- Length
+          1;                                                                  !- Height" 
+   
+        ems << "
+        Wall:Adiabatic,
+          RADuctWall_S_#{unit_num},                                           !- Name
+          AdiabaticConst,                                                     !- Construction Name
+          RA Duct Zone_#{unit_num},                                           !- RA Duct Zone
+          180,                                                                !- Azimuth
+          90,                                                                 !- Tilt
+          -1,                                                                 !- Vertex 1 X-Coordinate
+          74,                                                                 !- Vertex 1 Y-Coordinate
+          0,                                                                  !- Vertex 1 Z-Coordinate
+          1,                                                                  !- Length
+          1;                                                                  !- Height"
+   
+        ems << "
+        Wall:Adiabatic,
+          RADuctWall_W_#{unit_num},                                           !- Name
+          AdiabaticConst,                                                     !- Construction Name
+          RA Duct Zone_#{unit_num},                                           !- RA Duct Zone
+          270,                                                                !- Azimuth
+          90,                                                                 !- Tilt
+          -1,                                                                 !- Vertex 1 X-Coordinate
+          75,                                                                 !- Vertex 1 Y-Coordinate
+          0,                                                                  !- Vertex 1 Z-Coordinate
+          1,                                                                  !- Length
+          1;                                                                  !- Height"
+
+        ems << "
+        Ceiling:Adiabatic,
+          RADuctCeiling_#{unit_num},                                          !- Name
+          AdiabaticConst,                                                     !- Construction Name
+          RA Duct Zone_#{unit_num},                                           !- RA Duct Zone
+          0,                                                                  !- Azimuth
+          90,                                                                 !- Tilt
+          0,                                                                  !- Vertex 1 X-Coordinate
+          75,                                                                 !- Vertex 1 Y-Coordinate
+          1,                                                                  !- Vertex 1 Z-Coordinate
+          1,                                                                  !- Length
+          1;                                                                  !- Height"
+          
+        ems << "
+        Floor:Adiabatic,
+          RADuctFloor_#{unit_num},                                            !- Name
+          AdiabaticConst,                                                     !- Construction Name
+          RA Duct Zone_#{unit_num},                                           !- RA Duct Zone
+          0,                                                                  !- Azimuth
+          180,                                                                !- Tilt
+          0,                                                                  !- Vertex 1 X-Coordinate
+          74,                                                                 !- Vertex 1 Y-Coordinate
+          0,                                                                  !- Vertex 1 Z-Coordinate
+          1,                                                                  !- Length
+          1;                                                                  !- Height"        
+         
+        # Two objects are required to model the air exchange between the air handler zone and the living space since
+        # ZoneMixing objects can not account for direction of air flow (both are controlled by EMS)
+
+        # Accounts for leaks from the AH zone to the Living zone
+        ems << "
+        ZoneMixing,
+          AHZoneToLivingZoneMixing_#{unit_num},                               !- Name
+          #{living_thermal_zone_r},                                           !- Zone Name
+          AlwaysOn,                                                           !- Schedule Name
+          Flow/Zone,                                                          !- Design Flow Rate Calculation Method
+          0,                                                                  !- Design Flow Rate (set by EMS)
+          ,                                                                   !- Flow Rate per Zone Floor Area
+          ,                                                                   !- Flow Rate per Person
+          ,                                                                   !- Air Changes per Hour
+          #{d.DuctLocation};                                                  !- Source Zone Name"
+              
+        # Accounts for leaks from the Living zone to the AH Zone
+        ems << "
+        ZoneMixing,
+          LivingZoneToAHZoneMixing_#{unit_num},                               !- Name
+          #{d.DuctLocation},                                                  !- Zone Name
+          AlwaysOn,                                                           !- Schedule Name
+          Flow/Zone,                                                          !- Design Flow Rate Calculation Method
+          0,                                                                  !- Design Flow Rate (set by EMS)
+          ,                                                                   !- Flow Rate per Zone Floor Area
+          ,                                                                   !- Flow Rate per Person
+          ,                                                                   !- Air Changes per Hour
+          #{living_thermal_zone_r};                                           !- Source Zone Name"      
+       
+        ems << "
+        SurfaceProperty:ConvectionCoefficients,
+          RADuctWall_N_#{unit_num},                                           !- Surface Name
+          Inside,                                                             !- Convection Coefficient 1 Location
+          Value,                                                              !- Convection Coefficient 1 Type
+          999;                                                                !- Convection Coefficient 1 {W/m2-K}"        
+
+        ems << "
+        SurfaceProperty:ConvectionCoefficients,
+          RADuctWall_S_#{unit_num},                                           !- Surface Name
+          Inside,                                                             !- Convection Coefficient 1 Location
+          Value,                                                              !- Convection Coefficient 1 Type
+          999;                                                                !- Convection Coefficient 1 {W/m2-K}" 
+   
+        ems << "
+        SurfaceProperty:ConvectionCoefficients,
+          RADuctWall_E_#{unit_num},                                           !- Surface Name
+          Inside,                                                             !- Convection Coefficient 1 Location
+          Value,                                                              !- Convection Coefficient 1 Type
+          999;                                                                !- Convection Coefficient 1 {W/m2-K}" 
+
+        ems << "
+        SurfaceProperty:ConvectionCoefficients,
+          RADuctWall_W_#{unit_num},                                           !- Surface Name
+          Inside,                                                             !- Convection Coefficient 1 Location
+          Value,                                                              !- Convection Coefficient 1 Type
+          999;                                                                !- Convection Coefficient 1 {W/m2-K}"  
+   
+        ems << "
+        SurfaceProperty:ConvectionCoefficients,
+          RADuctCeiling_#{unit_num},                                          !- Surface Name
+          Inside,                                                             !- Convection Coefficient 1 Location
+          Value,                                                              !- Convection Coefficient 1 Type
+          999;                                                                !- Convection Coefficient 1 {W/m2-K}"  
+          
+        ems << "
+        SurfaceProperty:ConvectionCoefficients,
+          RADuctFloor_#{unit_num},                                            !- Surface Name
+          Inside,                                                             !- Convection Coefficient 1 Location
+          Value,                                                              !- Convection Coefficient 1 Type
+          999;                                                                !- Convection Coefficient 1 {W/m2-K}"
+      
+        # _processSystemDemandSideAir
+        
+        living_zone_return_air_node_name = nil
+        fbasement_zone_return_air_node_name = nil
+        workspace.getObjectsByType("ZoneHVAC:EquipmentConnections".to_IddObjectType).each do |zonehvac|
+          if zonehvac.getString(0).to_s == living_thermal_zone_r
+            living_zone_return_air_node_name = zonehvac.getString(5)
+          elsif zonehvac.getString(0).to_s == fbasement_thermal_zone_r
+            fbasement_zone_return_air_node_name = zonehvac.getString(5)
+          end
+        end
+
+        demand_side_outlet_node_name = nil
+        demand_side_inlet_node_names = nil
+        workspace.getObjectsByType("AirLoopHVAC".to_IddObjectType).each do |airloop|
+          if airloop.getString(0).to_s.include? "Central Air System_#{unit_num}"
+            demand_side_outlet_node_name = airloop.getString(7).to_s
+            demand_side_inlet_node_names = airloop.getString(8).to_s
+          end
+        end
+        
+        demand_side_inlet_node_name = nil
+        workspace.getObjectsByType("NodeList".to_IddObjectType).each do |nodelist|
+          if nodelist.getString(0).to_s == demand_side_inlet_node_names
+            demand_side_inlet_node_name = nodelist.getString(1).to_s
+          end
+        end
+              
+        # Return Air
+        ems_returnplenum = "
+        AirLoopHVAC:ReturnPlenum,
+          Return Plenum_#{unit_num},                                          !- Name
+          RA Duct Zone_#{unit_num},                                           !- Zone Name
+          RA Plenum Air Node_#{unit_num},                                     !- Zone Node Name
+          #{demand_side_outlet_node_name},                                    !- Outlet Node Name" "Demand Side Outlet Node Name of AirLoopHVAC
+          ,                                                                   !- Induced Air Outlet Node or NodeList Name"
+          
+        if not fbasement_thermal_zone.nil?
+          ems_returnplenum += "
+          #{living_zone_return_air_node_name},                                !- Inlet 1 Node Name
+          #{fbasement_zone_return_air_node_name};                             !- Inlet 2 Node Name"
+        else
+          ems_returnplenum += "
+          #{living_zone_return_air_node_name};                                !- Inlet 1 Node Name"
+        end
+        
+        ems << ems_returnplenum
+      
+        # Other equipment objects to cancel out the supply air leakage directly into the return plenum
+        ems << "
+        OtherEquipment,
+          SupplySensibleLeakageToLiving_#{unit_num},                          !- Name
+          #{living_thermal_zone_r},                                           !- Zone Name
+          AlwaysOn,                                                           !- Schedule Name
+          EquipmentLevel,                                                     !- Design Level Calculation Method
+          0,                                                                  !- Design Level {W}
+          ,                                                                   !- Power per Zone Floor Area {W/m}
+          ,                                                                   !- Power per Person {W/person}
+          0,                                                                  !- Fraction Latent
+          0,                                                                  !- Fraction Radiant
+          0;                                                                  !- Fraction Lost"
+
+        ems << "
+        OtherEquipment,
+          SupplyLatentLeakageToLiving_#{unit_num},                            !- Name
+          #{living_thermal_zone_r},                                           !- Zone Name
+          AlwaysOn,                                                           !- Schedule Name
+          EquipmentLevel,                                                     !- Design Level Calculation Method
+          0,                                                                  !- Design Level {W}
+          ,                                                                   !- Power per Zone Floor Area {W/m}
+          ,                                                                   !- Power per Person {W/person}
+          0,                                                                  !- Fraction Latent
+          0,                                                                  !- Fraction Radiant
+          0;                                                                  !- Fraction Lost"
+
+        # Supply duct conduction load added to the living space
+        ems << "
+        OtherEquipment,
+          SupplyDuctConductionToLiving_#{unit_num},                           !- Name
+          #{living_thermal_zone_r},                                           !- Zone Name
+          AlwaysOn,                                                           !- Schedule Name
+          EquipmentLevel,                                                     !- Design Level Calculation Method
+          0,                                                                  !- Design Level {W}
+          ,                                                                   !- Power per Zone Floor Area {W/m}
+          ,                                                                   !- Power per Person {W/person}
+          0,                                                                  !- Fraction Latent
+          0,                                                                  !- Fraction Radiant
+          0;                                                                  !- Fraction Lost"        
+          
+        # Supply duct conduction impact on the air handler zone.
+        ems << "
+        OtherEquipment,
+          SupplyDuctConductionToAHZone_#{unit_num},                           !- Name
+          #{d.DuctLocation},                                                  !- Zone Name
+          AlwaysOn,                                                           !- Schedule Name
+          EquipmentLevel,                                                     !- Design Level Calculation Method
+          0,                                                                  !- Design Level {W}
+          ,                                                                   !- Power per Zone Floor Area {W/m}
+          ,                                                                   !- Power per Person {W/person}
+          0,                                                                  !- Fraction Latent
+          0,                                                                  !- Fraction Radiant
+          0;                                                                  !- Fraction Lost"  
+        
+        # Return duct conduction load added to the return plenum zone
+        ems << "
+        OtherEquipment,
+          ReturnDuctConductionToPlenum_#{unit_num},                           !- Name
+          RA Duct Zone_#{unit_num},                                           !- Zone Name
+          AlwaysOn,                                                           !- Schedule Name
+          EquipmentLevel,                                                     !- Design Level Calculation Method
+          0,                                                                  !- Design Level {W}
+          ,                                                                   !- Power per Zone Floor Area {W/m}
+          ,                                                                   !- Power per Person {W/person}
+          0,                                                                  !- Fraction Latent
+          0,                                                                  !- Fraction Radiant
+          0;                                                                  !- Fraction Lost"        
+        
+        # Return duct conduction impact on the air handler zone.
+        ems << "
+        OtherEquipment,
+          ReturnDuctConductionToAHZone_#{unit_num},                           !- Name
+          #{d.DuctLocation},                                                  !- Zone Name
+          AlwaysOn,                                                           !- Schedule Name
+          EquipmentLevel,                                                     !- Design Level Calculation Method
+          0,                                                                  !- Design Level {W}
+          ,                                                                   !- Power per Zone Floor Area {W/m}
+          ,                                                                   !- Power per Person {W/person}
+          0,                                                                  !- Fraction Latent
+          0,                                                                  !- Fraction Radiant
+          0;                                                                  !- Fraction Lost"        
+        
+        # Supply duct sensible leakage impact on the air handler zone.
+        ems << "
+        OtherEquipment,
+          SupplySensibleLeakageToAHZone_#{unit_num},                          !- Name
+          #{d.DuctLocation},                                                  !- Zone Name
+          AlwaysOn,                                                           !- Schedule Name
+          EquipmentLevel,                                                     !- Design Level Calculation Method
+          0,                                                                  !- Design Level {W}
+          ,                                                                   !- Power per Zone Floor Area {W/m}
+          ,                                                                   !- Power per Person {W/person}
+          0,                                                                  !- Fraction Latent
+          0,                                                                  !- Fraction Radiant
+          0;                                                                  !- Fraction Lost"        
+        
+        # Supply duct latent leakage impact on the air handler zone.
+        ems << "
+        OtherEquipment,
+          SupplyLatentLeakageToAHZone_#{unit_num},                            !- Name
+          #{d.DuctLocation},                                                  !- Zone Name
+          AlwaysOn,                                                           !- Schedule Name
+          EquipmentLevel,                                                     !- Design Level Calculation Method
+          0,                                                                  !- Design Level {W}
+          ,                                                                   !- Power per Zone Floor Area {W/m}
+          ,                                                                   !- Power per Person {W/person}
+          0,                                                                  !- Fraction Latent
+          0,                                                                  !- Fraction Radiant
+          0;                                                                  !- Fraction Lost"        
+        
+        # Return duct sensible leakage impact on the return plenum
+        ems << "
+        OtherEquipment,
+          ReturnSensibleLeakageEquip_#{unit_num},                             !- Name
+          RA Duct Zone_#{unit_num},                                           !- Zone Name
+          AlwaysOn,                                                           !- Schedule Name
+          EquipmentLevel,                                                     !- Design Level Calculation Method
+          0,                                                                  !- Design Level {W}
+          ,                                                                   !- Power per Zone Floor Area {W/m}
+          ,                                                                   !- Power per Person {W/person}
+          0,                                                                  !- Fraction Latent
+          0,                                                                  !- Fraction Radiant
+          0;                                                                  !- Fraction Lost"        
+        
+        # Return duct latent leakage impact on the return plenum
+        ems << "
+        OtherEquipment,
+          ReturnLatentLeakageEquip_#{unit_num},                               !- Name
+          RA Duct Zone_#{unit_num},                                           !- Zone Name
+          AlwaysOn,                                                           !- Schedule Name
+          EquipmentLevel,                                                     !- Design Level Calculation Method
+          0,                                                                  !- Design Level {W}
+          ,                                                                   !- Power per Zone Floor Area {W/m}
+          ,                                                                   !- Power per Person {W/person}
+          0,                                                                  !- Fraction Latent
+          0,                                                                  !- Fraction Radiant
+          0;                                                                  !- Fraction Lost"      
+        
+        # Sensor to report the air handler mass flow rate
+        ems << "
+        EnergyManagementSystem:Sensor,
+          AH_MFR_Sensor_#{unit_num},                                          !- Name
+          #{demand_side_inlet_node_name},                                   !- Output:Variable or Output:Meter Index Key Name
+          System Node Mass Flow Rate;                                         !- Output:Variable or Output:Meter Index Key Name"      
+      
+        # Sensor to report the supply fan runtime fraction
+        ems << "
+        EnergyManagementSystem:Sensor,
+          Fan_RTF_Sensor_#{unit_num},                                         !- Name
+          Supply Fan_#{unit_num},                                             !- Output:Variable or Output:Meter Index Key Name
+          Fan Runtime Fraction;                                               !- Output:Variable or Output:Meter Index Key Name"     
+      
+        # Sensor to report the air handler volume flow rate
+        ems << "
+        EnergyManagementSystem:Sensor,
+          AH_VFR_Sensor_#{unit_num},                                          !- Name
+          #{demand_side_inlet_node_name},                                     !- Output:Variable or Output:Meter Index Key Name
+          System Node Current Density Volume Flow Rate;                       !- Output:Variable or Output:Meter Index Key Name"       
+        
+        # Sensor to report the air handler outlet temperature
+        ems << "
+        EnergyManagementSystem:Sensor,
+          AH_Tout_Sensor_#{unit_num},                                         !- Name
+          #{demand_side_inlet_node_name},                                     !- Output:Variable or Output:Meter Index Key Name
+          System Node Temperature;                                            !- Output:Variable or Output:Meter Index Key Name"       
+        
+        # Sensor to report the air handler outlet humidity ratio
+        ems << "
+        EnergyManagementSystem:Sensor,
+          AH_Wout_Sensor_#{unit_num},                                         !- Name
+          #{demand_side_inlet_node_name},                                     !- Output:Variable or Output:Meter Index Key Name
+          System Node Humidity Ratio;                                         !- Output:Variable or Output:Meter Index Key Name" 
+      
+        # Sensor to report the return air temperature (assumed to be the living zone return temperature)
+        ems << "
+        EnergyManagementSystem:Sensor,
+          RA_T_Sensor_#{unit_num},                                            !- Name
+          #{living_zone_return_air_node_name},                                !- Output:Variable or Output:Meter Index Key Name
+          System Node Temperature;                                            !- Output:Variable or Output:Meter Index Key Name"      
+        
+        # Sensor to report the return air humidity ratio (assumed to be the living zone return temperature)
+        ems << "
+        EnergyManagementSystem:Sensor,
+          RA_W_Sensor_#{unit_num},                                            !- Name
+          #{living_zone_return_air_node_name},                                !- Output:Variable or Output:Meter Index Key Name
+          System Node Humidity Ratio;                                         !- Output:Variable or Output:Meter Index Key Name"    
+      
+        ems << "
+        EnergyManagementSystem:Sensor,
+          AHZone_T_Sensor_#{unit_num},                                        !- Name
+          #{d.DuctLocation},                                                  !- Output:Variable or Output:Meter Index Key Name
+          Zone Air Temperature;                                               !- Output:Variable or Output:Meter Index Key Name"    
+      
+        ems << "
+        EnergyManagementSystem:Sensor,
+          AHZone_W_Sensor_#{unit_num},                                        !- Name
+          #{d.DuctLocation},                                                  !- Output:Variable or Output:Meter Index Key Name
+          Zone Mean Air Humidity Ratio;                                       !- Output:Variable or Output:Meter Index Key Name"    
+      
+        # Global variable to store the air handler mass flow rate
+        ems << "
+        EnergyManagementSystem:GlobalVariable,
+          AH_MFR_#{unit_num};                                                 !- Name"
+      
+        # Global variable to store the supply fan runtime fraction
+        ems << "
+        EnergyManagementSystem:GlobalVariable,
+          Fan_RTF_#{unit_num};                                                !- Name"    
+      
+        # Global variable to store the air handler volume flow rate
+        ems << "
+        EnergyManagementSystem:GlobalVariable,
+          AH_VFR_#{unit_num};                                                 !- Name"      
+      
+        # Global variable to store the air handler outlet temperature
+        ems << "
+        EnergyManagementSystem:GlobalVariable,
+          AH_Tout_#{unit_num};                                                !- Name"    
+      
+        # Global variable to store the air handler outlet humidity ratio
+        ems << "
+        EnergyManagementSystem:GlobalVariable,
+          AH_Wout_#{unit_num};                                                !- Name"      
+        
+        # Global variable to store the return air temperature (assumed to be the living zone return temperature)
+        ems << "
+        EnergyManagementSystem:GlobalVariable,
+          RA_T_#{unit_num};                                                   !- Name"      
+        
+        # Global variable to store the return air humidity ratio (assumed to be the living zone return temperature)
+        ems << "
+        EnergyManagementSystem:GlobalVariable,
+          RA_W_#{unit_num};                                                   !- Name"      
+        
+        # Global variable to store the air handlder zone temperature
+        ems << "
+        EnergyManagementSystem:GlobalVariable,
+          AHZone_T_#{unit_num};                                               !- Name"      
+        
+        # Global variable to store the air handler zone humidity ratio
+        ems << "
+        EnergyManagementSystem:GlobalVariable,
+          AHZone_W_#{unit_num};                                               !- Name"
+        
+        ems << "
+        EnergyManagementSystem:GlobalVariable,
+          SupplyLeakSensibleLoad_#{unit_num};                                 !- Name"      
+        
+        ems << "
+        EnergyManagementSystem:GlobalVariable,
+          SupplyLeakLatentLoad_#{unit_num};                                   !- Name"       
+        
+        ems << "
+        EnergyManagementSystem:GlobalVariable,
+          SupplyDuctLoadToLiving_#{unit_num};                                 !- Name" 
+
+        ems << "
+        EnergyManagementSystem:GlobalVariable,
+          ConductionToAHZone_#{unit_num};                                     !- Name" 
+
+        ems << "
+        EnergyManagementSystem:GlobalVariable,
+          ReturnConductionToAHZone_#{unit_num};                               !- Name" 
+
+        ems << "
+        EnergyManagementSystem:GlobalVariable,
+          ReturnDuctLoadToPlenum_#{unit_num};                                 !- Name" 
+
+        ems << "
+        EnergyManagementSystem:GlobalVariable,
+          SensibleLeakageToAHZone_#{unit_num};                                !- Name" 
+
+        ems << "
+        EnergyManagementSystem:GlobalVariable,
+          LatentLeakageToAHZone_#{unit_num};                                  !- Name" 
+
+        ems << "
+        EnergyManagementSystem:GlobalVariable,
+          AHZoneToLivingFlowRate_#{unit_num};                                 !- Name" 
+
+        ems << "
+        EnergyManagementSystem:GlobalVariable,
+          LivingToAHZoneFlowRate_#{unit_num};                                 !- Name" 
+
+        ems << "
+        EnergyManagementSystem:GlobalVariable,
+          ReturnSensibleLeakage_#{unit_num};                                  !- Name" 
+
+        ems << "
+        EnergyManagementSystem:GlobalVariable,
+          ReturnLatentLeakage_#{unit_num};                                    !- Name"         
+      
+        ems << "
+        EnergyManagementSystem:Actuator,
+          SupplyLeakSensibleActuator_#{unit_num},                             !- Name
+          SupplySensibleLeakageToLiving_#{unit_num},                          !- Actuated Component Unique Name
+          OtherEquipment,                                                     !- Actuated Component Type
+          Power Level;                                                        !- Actuated Component Control Type"    
+      
+        ems << "
+        EnergyManagementSystem:Actuator,
+          SupplyLeakLatentActuator_#{unit_num},                               !- Name
+          SupplyLatentLeakageToLiving_#{unit_num},                            !- Actuated Component Unique Name
+          OtherEquipment,                                                     !- Actuated Component Type
+          Power Level;                                                        !- Actuated Component Control Type"     
+      
+        # Actuator to account for the load of the supply duct conduction on the living space
+        ems << "
+        EnergyManagementSystem:Actuator,
+          SupplyDuctLoadToLivingActuator_#{unit_num},                         !- Name
+          SupplyDuctConductionToLiving_#{unit_num},                           !- Actuated Component Unique Name
+          OtherEquipment,                                                     !- Actuated Component Type
+          Power Level;                                                        !- Actuated Component Control Type"       
+        
+        # Actuator to account for the load of the supply duct conduction on the air handler zone
+        ems << "
+        EnergyManagementSystem:Actuator,
+          ConductionToAHZoneActuator_#{unit_num},                             !- Name
+          SupplyDuctConductionToAHZone_#{unit_num},                           !- Actuated Component Unique Name
+          OtherEquipment,                                                     !- Actuated Component Type
+          Power Level;                                                        !- Actuated Component Control Type"       
+        
+        # Actuator to account for the load of the return duct conduction on the return plenum
+        ems << "
+        EnergyManagementSystem:Actuator,
+          ReturnDuctLoadToPlenumActuator_#{unit_num},                         !- Name
+          ReturnDuctConductionToPlenum_#{unit_num},                           !- Actuated Component Unique Name
+          OtherEquipment,                                                     !- Actuated Component Type
+          Power Level;                                                        !- Actuated Component Control Type"             
+        
+        # Actuator to account for the load of the return duct conduction on the air handler zone
+        ems << "
+        EnergyManagementSystem:Actuator,
+          ReturnConductionToAHZoneActuator_#{unit_num},                       !- Name
+          ReturnDuctConductionToAHZone_#{unit_num},                           !- Actuated Component Unique Name
+          OtherEquipment,                                                     !- Actuated Component Type
+          Power Level;                                                        !- Actuated Component Control Type"       
+        
+        # Actuator to account for the sensible leakage from the supply duct to the AH zone
+        ems << "
+        EnergyManagementSystem:Actuator,
+          SensibleLeakageToAHZoneActuator_#{unit_num},                        !- Name
+          SupplySensibleLeakageToAHZone_#{unit_num},                          !- Actuated Component Unique Name
+          OtherEquipment,                                                     !- Actuated Component Type
+          Power Level;                                                        !- Actuated Component Control Type"       
+        
+        # Actuator to account for the latent leakage from the supply duct to the AH zone
+        ems << "
+        EnergyManagementSystem:Actuator,
+          LatentLeakageToAHZoneActuator_#{unit_num},                          !- Name
+          SupplyLatentLeakageToAHZone_#{unit_num},                            !- Actuated Component Unique Name
+          OtherEquipment,                                                     !- Actuated Component Type
+          Power Level;                                                        !- Actuated Component Control Type"     
+      
+        # Actuator to account fot the sensible leakage from the AH zone to the return plenum
+        ems << "
+        EnergyManagementSystem:Actuator,
+          ReturnSensibleLeakageActuator_#{unit_num},                          !- Name
+          ReturnSensibleLeakageEquip_#{unit_num},                             !- Actuated Component Unique Name
+          OtherEquipment,                                                     !- Actuated Component Type
+          Power Level;                                                        !- Actuated Component Control Type"             
+        
+        # Actuator to account fot the latent leakage from the AH zone to the return plenum
+        ems << "
+        EnergyManagementSystem:Actuator,
+          ReturnLatentLeakageActuator_#{unit_num},                            !- Name
+          ReturnLatentLeakageEquip_#{unit_num},                               !- Actuated Component Unique Name
+          OtherEquipment,                                                     !- Actuated Component Type
+          Power Level;                                                        !- Actuated Component Control Type"       
+        
+        ems << "
+        EnergyManagementSystem:Actuator,
+          AHZoneToLivingFlowRateActuator_#{unit_num},                         !- Name
+          AHZoneToLivingZoneMixing_#{unit_num},                               !- Actuated Component Unique Name
+          ZoneMixing,                                                         !- Actuated Component Type
+          Air Exchange Flow Rate;                                             !- Actuated Component Control Type"       
+        
+        ems << "
+        EnergyManagementSystem:Actuator,
+          LivingToAHZoneFlowRateActuator_#{unit_num},                         !- Name
+          LivingZoneToAHZoneMixing_#{unit_num},                               !- Actuated Component Unique Name
+          ZoneMixing,                                                         !- Actuated Component Type
+          Air Exchange Flow Rate;                                             !- Actuated Component Control Type"       
+        
+        ems << "
+        EnergyManagementSystem:GlobalVariable,
+          DuctLeakSupplyFanEquivalent_#{unit_num},                            !- Name
+          DuctLeakExhaustFanEquivalent_#{unit_num};                           !- Name"
+        
+        ems_subroutine = "
+        EnergyManagementSystem:Subroutine,
+          CalculateDuctLeakage_#{unit_num},                                         
+          Set f_sup = #{d.supply_duct_loss},
+          Set f_ret = #{d.return_duct_loss},
+          Set f_OA = #{d.frac_oa * d.total_duct_unbalance},
+          Set OAFlowRate = f_OA * AH_VFR_#{unit_num},
+          Set SupplyLeakFlowRate = f_sup * AH_VFR_#{unit_num},
+          Set ReturnLeakFlowRate = f_ret * AH_VFR_#{unit_num},"
+
+        if d.return_duct_loss > d.supply_duct_loss
+          # Supply air flow rate is greater than return flow rate
+          # Living zone is pressurized in this case      
+          ems_subroutine += "
+            Set LivingToAHZoneFlowRate_#{unit_num} = (@Abs (ReturnLeakFlowRate - SupplyLeakFlowRate - OAFlowRate)),
+            Set AHZoneToLivingFlowRate_#{unit_num} = 0,
+            Set DuctLeakSupplyFanEquivalent_#{unit_num} = OAFlowRate,
+            Set DuctLeakExhaustFanEquivalent_#{unit_num} = 0,"
+        else
+          # Living zone is depressurized in this case
+          ems_subroutine += "
+          Set AHZoneToLivingFlowRate_#{unit_num} = (@Abs (SupplyLeakFlowRate - ReturnLeakFlowRate - OAFlowRate)),
+          Set LivingToAHZoneFlowRate_#{unit_num} = 0,
+          Set DuctLeakSupplyFanEquivalent_#{unit_num} = 0,
+          Set DuctLeakExhaustFanEquivalent_#{unit_num} = OAFlowRate,"        
+        end
+        
+        if d.ducts_not_in_living
+          ems_subroutine += "
+          Set h_SA = (@HFnTdbW AH_Tout_#{unit_num} AH_Wout_#{unit_num}),
+          Set h_AHZone = (@HFnTdbW AHZone_T_#{unit_num} AHZone_W_#{unit_num}),
+          Set h_RA = (@HFnTdbW RA_T RA_W),
+          Set h_fg = (@HfgAirFnWTdb AH_Wout_#{unit_num} AH_Tout_#{unit_num}),
+          Set SALeakageQtot = f_sup * AH_MFR_#{unit_num} * (h_RA - h_SA),
+          Set SupplyLeakLatentLoad_#{unit_num} = f_sup * AH_MFR_#{unit_num} * h_fg * (RA_W_#{unit_num} - AH_Wout_#{unit_num}),
+          Set SupplyLeakSensibleLoad_#{unit_num} = SALeakageQtot - SupplyLeakLatentLoad_#{unit_num},
+          Set expTerm = (Fan_RTF_#{unit_num} / (AH_MFR_#{unit_num} * 1006.0)) * #{OpenStudio::convert(d.unconditioned_duct_ua,"Btu/hr*R","W/K").get},
+          Set expTerm = 0 - expTerm,
+          Set Tsupply = AHZone_T_#{unit_num} + ((AH_Tout_#{unit_num} - AHZone_T_#{unit_num}) * (@Exp expTerm)),
+          Set SupplyDuctLoadToLiving_#{unit_num} = AH_MFR_#{unit_num} * 1006.0 * (Tsupply - AH_Tout_#{unit_num}),
+          Set ConductionToAHZone_#{unit_num} = 0 - SupplyDuctLoadToLiving_#{unit_num},
+          Set expTerm = (Fan_RTF_#{unit_num} / (AH_MF_#{unit_num}R * 1006.0)) * #{OpenStudio::convert(d.return_duct_ua,"Btu/hr*R","W/K").get},
+          Set expTerm = 0 - expTerm,
+          Set Treturn = AHZone_T_#{unit_num} + ((RA_T_#{unit_num} - AHZone_T_#{unit_num}) * (@Exp expTerm)),
+          Set ReturnDuctLoadToPlenum_#{unit_num} = AH_MFR_#{unit_num} * 1006.0 * (Treturn - RA_T_#{unit_num}),
+          Set ReturnConductionToAHZone_#{unit_num} = 0 - ReturnDuctLoadToPlenum_#{unit_num},
+          Set ReturnLatentLeakage_#{unit_num} = 0,
+          Set ReturnSensibleLeakage_#{unit_num} = f_ret * AH_MFR_#{unit_num} * 1006.0 * (AHZone_T_#{unit_num} - RA_T_#{unit_num}),
+          Set QtotLeakageToAHZone = f_sup * AH_MFR_#{unit_num} * (h_SA - h_AHZone),
+          Set LatentLeakageToAHZone_#{unit_num} = f_sup * AH_MFR_#{unit_num} * h_fg * (AH_Wout_#{unit_num} - AHZone_W_#{unit_num}),
+          Set SensibleLeakageToAHZone_#{unit_num} = QtotLeakageToAHZone - LatentLeakageToAHZone_#{unit_num};"
+        else
+          ems_subroutine += "
+          Set SupplyLeakLatentLoad_#{unit_num} = 0,
+          Set SupplyLeakSensibleLoad_#{unit_num} = 0,
+          Set SupplyDuctLoadToLiving_#{unit_num} = 0,
+          Set ConductionToAHZone_#{unit_num} = 0,
+          Set ReturnDuctLoadToPlenum_#{unit_num} = 0,
+          Set ReturnConductionToAHZone_#{unit_num} = 0,
+          Set ReturnLatentLeakage_#{unit_num} = 0,
+          Set ReturnSensibleLeakage_#{unit_num} = 0,
+          Set LatentLeakageToAHZone_#{unit_num} = 0,
+          Set SensibleLeakageToAHZone_#{unit_num} = 0;"
+        end
+        
+        ems << ems_subroutine      
+        
+        ems << "
+        EnergyManagementSystem:Program,
+          DuctLeakageProgram_#{unit_num},                                         
+          Set AH_MFR_#{unit_num} = AH_MFR_Sensor_#{unit_num},                              
+          Set Fan_RTF_#{unit_num} = Fan_RTF_Sensor_#{unit_num},
+          Set AH_VFR_#{unit_num} = AH_VFR_Sensor_#{unit_num},
+          Set AH_Tout_#{unit_num} = AH_Tout_Sensor_#{unit_num},
+          Set AH_Wout_#{unit_num} = AH_Wout_Sensor_#{unit_num},
+          Set RA_T_#{unit_num} = RA_T_Sensor_#{unit_num},
+          Set RA_W_#{unit_num} = RA_W_Sensor_#{unit_num},
+          Set AHZone_T_#{unit_num} = AHZone_T_Sensor_#{unit_num},
+          Set AHZone_W_#{unit_num} = AHZone_W_Sensor_#{unit_num},
+          Run CalculateDuctLeakage_#{unit_num},
+          Set SupplyLeakSensibleActuator_#{unit_num} = SupplyLeakSensibleLoad_#{unit_num},
+          Set SupplyLeakLatentActuator_#{unit_num} = SupplyLeakLatentLoad_#{unit_num},
+          Set SupplyDuctLoadToLivingActuator_#{unit_num} = SupplyDuctLoadToLiving_#{unit_num},
+          Set ConductionToAHZoneActuator_#{unit_num} = ConductionToAHZone_#{unit_num},
+          Set SensibleLeakageToAHZoneActuator_#{unit_num} = SensibleLeakageToAHZone_#{unit_num},
+          Set LatentLeakageToAHZoneActuator_#{unit_num} = LatentLeakageToAHZone_#{unit_num},
+          Set ReturnSensibleLeakageActuator_#{unit_num} = ReturnSensibleLeakage_#{unit_num},
+          Set ReturnLatentLeakageActuator_#{unit_num} = ReturnLatentLeakage_#{unit_num},
+          Set ReturnDuctLoadToPlenumActuator_#{unit_num} = ReturnDuctLoadToPlenum_#{unit_num},
+          Set ReturnConductionToAHZoneActuator_#{unit_num} = ReturnConductionToAHZone_#{unit_num},
+          Set AHZoneToLivingFlowRateActuator_#{unit_num} = AHZoneToLivingFlowRate_#{unit_num},
+          Set LivingToAHZoneFlowRateActuator_#{unit_num} = LivingToAHZoneFlowRate_#{unit_num};"       
+        
+        ems << "
+        EnergyManagementSystem:ProgramCallingManager,
+          DuctLeakageCallingManager_#{unit_num},                              !- Name
+          EndOfSystemTimestepAfterHVACReporting,                              !- EnergyPlus Model Calling Point
+          DuctLeakageProgram_#{unit_num};                                     !- Program Name 1"
+          
+      end      
+      
+    end
+
     ems.each do |str|
       idfObject = OpenStudio::IdfObject::load(str)
       object = idfObject.get
       wsObject = workspace.addObject(object)
       runner.registerInfo("Set object '#{str.split("\n")[1].gsub(",","")} - #{str.split("\n")[2].split(",")[0]}'")
     end    
-    
-    if not d.DuctLocation == Constants.LivingZone and not d.DuctLocation == "none" and hasForcedAirEquipment
-      workspace = HelperMethods.remove_object_from_idf_based_on_name(workspace, ["Air Loop HVAC Zone Mixer"], "AirLoopHVAC:ZoneMixer", runner)
-      workspace.getObjectsByType("AirLoopHVAC:ReturnPath".to_IddObjectType).each do |return_path|
-        return_path.setString(2, "AirLoopHVAC:ReturnPlenum")
-        return_path.setString(3, "Return Plenum")
-      end    
+        
+    (1..num_units).to_a.each do |unit_num|
+      _nbeds, _nbaths, unit_spaces = Geometry.get_unit_beds_baths_spaces(model, unit_num, runner)
+      thermal_zones = Geometry.get_thermal_zones_from_unit_spaces(unit_spaces)      
+      living_thermal_zone_r = nil   
+      thermal_zones.each do |thermal_zone|
+        if thermal_zone.name.to_s.start_with? Constants.LivingZone
+          living_thermal_zone_r = thermal_zone.name.to_s
+        end
+      end
+      if not duct_locations[unit_num] == living_thermal_zone_r and not duct_locations[unit_num] == "none" and hasForcedAirEquipment # has ducts
+        workspace.getObjectsByType("AirLoopHVAC:ReturnPath".to_IddObjectType).each do |return_path|
+          if return_path.getString(0).to_s == "Central Air System_#{unit_num} Return Path"
+            return_path.setString(2, "AirLoopHVAC:ReturnPlenum")
+            return_path.setString(3, "Return Plenum_#{unit_num}")
+          end
+        end
+      else # no ducts
+        workspace.getObjectsByType("AirLoopHVAC:ReturnPath".to_IddObjectType).each do |return_path|
+          if return_path.getString(0).to_s == "Central Air System_#{unit_num} Return Path"
+            return_path.setString(2, "AirLoopHVAC:ZoneMixer")
+            return_path.setString(3, "Zone Mixer_#{unit_num}")
+          end
+        end      
+      end
     end
     
     return true
  
   end #end the run method
 
-  def get_duct_location(duct_location, garage_thermal_zone, fbasement_thermal_zone, ufbasement_thermal_zone, crawl_thermal_zone, ufattic_thermal_zone)    
-    # raiseError=False is used for display values
+  def get_duct_location(runner, duct_location, living_thermal_zone, garage_thermal_zone, fbasement_thermal_zone, ufbasement_thermal_zone, crawl_thermal_zone, ufattic_thermal_zone)
     if duct_location == Constants.Auto
       if not fbasement_thermal_zone.nil?
-        duct_location = Constants.FinishedBasementZone
+        duct_location = fbasement_thermal_zone.name.to_s
       elsif not ufbasement_thermal_zone.nil?
-        duct_location = Constants.UnfinishedBasementZone
+        duct_location = ufbasement_thermal_zone.name.to_s
       elsif not crawl_thermal_zone.nil?
-        duct_location = Constants.CrawlZone
+        duct_location = crawl_thermal_zone.name.to_s
       elsif not ufattic_thermal_zone.nil?
-        duct_location = Constants.UnfinishedAtticZone
+        duct_location = ufattic_thermal_zone.name.to_s
       elsif not garage_thermal_zone.nil?
-        duct_location = Constants.GarageZone
+        duct_location = garage_thermal_zone.name.to_s
       else
-        duct_location = Constants.LivingZone
-      end    
+        duct_location = living_thermal_zone.name.to_s
+      end
     elsif duct_location == Constants.BasementZone
       if not fbasement_thermal_zone.nil?
-        duct_location = Constants.FinishedBasementZone
+        duct_location = fbasement_thermal_zone.name.to_s
       elsif not ufbasement_thermal_zone.nil?
-        duct_location = Constants.UnfinishedBasementZone
+        duct_location = ufbasement_thermal_zone.name.to_s
       else
-        runner.registerError("Duct location is basement, but the building does not have a basement.")
         return false
       end
     elsif duct_location == Constants.AtticZone
       if not ufattic_thermal_zone.nil?
-        duct_location = Constants.UnfinishedAtticZone
+        duct_location = ufattic_thermal_zone.name.to_s
       else
-        duct_location = Constants.LivingZone
+        duct_location = living_thermal_zone.name.to_s
       end
     end
     if duct_location == Constants.FinishedAtticZone
-      duct_location = Constants.LivingZone
+      duct_location = living_thermal_zone.name.to_s
     elsif duct_location == Constants.PierBeamZone
-      duct_location = Constants.CrawlZone
+      duct_location = crawl_thermal_zone.name.to_s
     end
     return duct_location    
   end
@@ -3030,7 +2943,7 @@ class ProcessAirflow < OpenStudio::Ruleset::WorkspaceUserScript
 
   end  
   
-  def _processMechanicalVentilation(infil, vent, ageOfHome, dryerExhaust, geometry, living_space, schedules)
+  def _processMechanicalVentilation(unit_num, infil, vent, ageOfHome, dryerExhaust, geometry, living_space, schedules)
     # Mechanical Ventilation
 
     # Get ASHRAE 62.2 required ventilation rate (excluding infiltration credit)
@@ -3045,14 +2958,14 @@ class ProcessAirflow < OpenStudio::Ruleset::WorkspaceUserScript
             # 2 cfm per 100ft^2 of occupiable floor area
             infil.default_rate = 2.0 * geometry.finished_floor_area / 100.0 # cfm
             # Half the excess infiltration rate above the default rate is credited toward mech vent:
-            infil.rate_credit = [(living_space.inf_flow - default_rate) / 2.0, 0].max          
+            infil.rate_credit = [(living_space.inf_flow - infil.default_rate) / 2.0, 0].max          
         elsif vent.MechVentASHRAEStandard == '2013' and geometry.num_units == 1
             # ASHRAE Standard 62.2 2013
             # Only applies to single-family homes (Section 8.2.1: "The required mechanical ventilation 
             # rate shall not be reduced as described in Section 4.1.3.").     
             ela = infil.A_o # Effective leakage area, ft^2
             nl = 1000.0 * ela / living_space.area * (living_space.height / 8.2) ** 0.4 # Normalized leakage, eq. 4.4
-            qinf = nl * @weather.header.WSF * living_space.area / 7.3 # Effective annual average infiltration rate, cfm, eq. 4.5a
+            qinf = nl * @weather.data.WSF * living_space.area / 7.3 # Effective annual average infiltration rate, cfm, eq. 4.5a
             infil.rate_credit = [(2.0 / 3.0) * ashrae_mv_without_infil_credit, qinf].min
         end
     end
@@ -3111,9 +3024,9 @@ class ProcessAirflow < OpenStudio::Ruleset::WorkspaceUserScript
 
     sch_year = "
     Schedule:Year,
-      MechanicalVentilationEnergy,                        !- Name
+      MechanicalVentilationEnergy_#{unit_num},            !- Name
       FRACTION,                                           !- Schedule Type
-      MechanicalVentilationEnergyWk,                      !- Week Schedule Name
+      MechanicalVentilationEnergyWk_#{unit_num},          !- Week Schedule Name
       1,                                                  !- Start Month
       1,                                                  !- Start Day
       12,                                                 !- End Month
@@ -3121,25 +3034,25 @@ class ProcessAirflow < OpenStudio::Ruleset::WorkspaceUserScript
 
     sch_hourly = "
     Schedule:Day:Hourly,
-      MechanicalVentilationEnergyDay,                     !- Name
-      FRACTION,                                           !- Schedule Type
-      "
-    vent.hourly_energy_schedule[0..23].each do |hour|
+      MechanicalVentilationEnergyDay_#{unit_num},         !- Name
+      FRACTION,                                           !- Schedule Type"
+
+    vent.hourly_energy_schedule[0..22].each do |hour|
       sch_hourly += "#{hour},\n"
     end
     sch_hourly += "#{vent.hourly_energy_schedule[23]};"
 
     sch_week = "
     Schedule:Week:Compact,
-      MechanicalVentilationEnergyWk,                      !- Name
+      MechanicalVentilationEnergyWk_#{unit_num},          !- Name
       For: Weekdays,
-      MechanicalVentilationEnergyDay,
+      MechanicalVentilationEnergyDay_#{unit_num},
       For: CustomDay1,
-      MechanicalVentilationEnergyDay,
+      MechanicalVentilationEnergyDay_#{unit_num},
       For: CustomDay2,
-      MechanicalVentilationEnergyDay,
+      MechanicalVentilationEnergyDay_#{unit_num},
       For: AllOtherDays,
-      MechanicalVentilationEnergyDay;"
+      MechanicalVentilationEnergyDay_#{unit_num};"
 
     schedules.MechanicalVentilationEnergy = [sch_hourly, sch_week, sch_year]
 
@@ -3160,9 +3073,9 @@ class ProcessAirflow < OpenStudio::Ruleset::WorkspaceUserScript
 
     sch_year = "
     Schedule:Year,
-      MechanicalVentilation,                              !- Name
+      MechanicalVentilation_#{unit_num},                  !- Name
       FRACTION,                                           !- Schedule Type
-      MechanicalVentilationWk,                            !- Week Schedule Name
+      MechanicalVentilationWk_#{unit_num},                !- Week Schedule Name
       1,                                                  !- Start Month
       1,                                                  !- Start Day
       12,                                                 !- End Month
@@ -3170,25 +3083,25 @@ class ProcessAirflow < OpenStudio::Ruleset::WorkspaceUserScript
 
     sch_hourly = "
     Schedule:Day:Hourly,
-      MechanicalVentilationDay,                           !- Name
-      FRACTION,                                           !- Schedule Type
-      "
-    vent.hourly_schedule[0..23].each do |hour|
+      MechanicalVentilationDay_#{unit_num},               !- Name
+      FRACTION,                                           !- Schedule Type"
+
+    vent.hourly_schedule[0..22].each do |hour|
       sch_hourly += "#{hour},\n"
     end
     sch_hourly += "#{vent.hourly_schedule[23]};"
 
     sch_week = "
     Schedule:Week:Compact,
-      MechanicalVentilationWk,                      !- Name
+      MechanicalVentilationWk_#{unit_num},                !- Name
       For: Weekdays,
-      MechanicalVentilationDay,
+      MechanicalVentilationDay_#{unit_num},
       For: CustomDay1,
-      MechanicalVentilationDay,
+      MechanicalVentilationDay_#{unit_num},
       For: CustomDay2,
-      MechanicalVentilationDay,
+      MechanicalVentilationDay_#{unit_num},
       For: AllOtherDays,
-      MechanicalVentilationDay;"
+      MechanicalVentilationDay_#{unit_num};"
 
     schedules.MechanicalVentilation = [sch_hourly, sch_week, sch_year]
 
@@ -3197,9 +3110,9 @@ class ProcessAirflow < OpenStudio::Ruleset::WorkspaceUserScript
 
     sch_year = "
     Schedule:Year,
-      BathExhaust,                                        !- Name
+      BathExhaust_#{unit_num},                            !- Name
       FRACTION,                                           !- Schedule Type
-      BathExhaustWk,                                      !- Week Schedule Name
+      BathExhaustWk_#{unit_num},                          !- Week Schedule Name
       1,                                                  !- Start Month
       1,                                                  !- Start Day
       12,                                                 !- End Month
@@ -3207,25 +3120,25 @@ class ProcessAirflow < OpenStudio::Ruleset::WorkspaceUserScript
 
     sch_hourly = "
     Schedule:Day:Hourly,
-      BathExhaustDay,                                     !- Name
+      BathExhaustDay_#{unit_num},                         !- Name
       FRACTION,                                           !- Schedule Type
       "
-    bath_exhaust_hourly[0..23].each do |hour|
+    bath_exhaust_hourly[0..22].each do |hour|
       sch_hourly += "#{hour}\n,"
     end
     sch_hourly += "#{bath_exhaust_hourly[23]};"
 
     sch_week = "
     Schedule:Week:Compact,
-      BathExhaustWk,                                      !- Name
+      BathExhaustWk_#{unit_num},                          !- Name
       For: Weekdays,
-      BathExhaustDay,
+      BathExhaustDay_#{unit_num},
       For: CustomDay1,
-      BathExhaustDay,
+      BathExhaustDay_#{unit_num},
       For: CustomDay2,
-      BathExhaustDay,
+      BathExhaustDay_#{unit_num},
       For: AllOtherDays,
-      BathExhaustDay;"
+      BathExhaustDay_#{unit_num};"
 
     schedules.BathExhaust = [sch_hourly, sch_week, sch_year]
 
@@ -3234,9 +3147,9 @@ class ProcessAirflow < OpenStudio::Ruleset::WorkspaceUserScript
 
     sch_year = "
     Schedule:Year,
-      ClothesDryerExhaust,                                !- Name
+      ClothesDryerExhaust_#{unit_num},                    !- Name
       FRACTION,                                           !- Schedule Type
-      ClothesDryerExhaustWk,                              !- Week Schedule Name
+      ClothesDryerExhaustWk_#{unit_num},                  !- Week Schedule Name
       1,                                                  !- Start Month
       1,                                                  !- Start Day
       12,                                                 !- End Month
@@ -3244,25 +3157,25 @@ class ProcessAirflow < OpenStudio::Ruleset::WorkspaceUserScript
 
     sch_hourly = "
     Schedule:Day:Hourly,
-      ClothesDryerExhaustDay,                             !- Name
+      ClothesDryerExhaustDay_#{unit_num},                 !- Name
       FRACTION,                                           !- Schedule Type
       "
-    clothes_dryer_exhaust_hourly[0..23].each do |hour|
+    clothes_dryer_exhaust_hourly[0..22].each do |hour|
       sch_hourly += "#{hour},\n"
     end
     sch_hourly += "#{clothes_dryer_exhaust_hourly[23]};"
 
     sch_week = "
     Schedule:Week:Compact,
-      ClothesDryerExhaustWk,                              !- Name
+      ClothesDryerExhaustWk_#{unit_num},                  !- Name
       For: Weekdays,
-      ClothesDryerExhaustDay,
+      ClothesDryerExhaustDay_#{unit_num},
       For: CustomDay1,
-      ClothesDryerExhaustDay,
+      ClothesDryerExhaustDay_#{unit_num},
       For: CustomDay2,
-      ClothesDryerExhaustDay,
+      ClothesDryerExhaustDay_#{unit_num},
       For: AllOtherDays,
-      ClothesDryerExhaustDay;"
+      ClothesDryerExhaustDay_#{unit_num};"
 
     schedules.ClothesDryerExhaust = [sch_hourly, sch_week, sch_year]
 
@@ -3271,9 +3184,9 @@ class ProcessAirflow < OpenStudio::Ruleset::WorkspaceUserScript
 
     sch_year = "
     Schedule:Year,
-      RangeHood,                                          !- Name
+      RangeHood_#{unit_num},                              !- Name
       FRACTION,                                           !- Schedule Type
-      RangeHoodWk,                                        !- Week Schedule Name
+      RangeHoodWk_#{unit_num},                            !- Week Schedule Name
       1,                                                  !- Start Month
       1,                                                  !- Start Day
       12,                                                 !- End Month
@@ -3281,25 +3194,25 @@ class ProcessAirflow < OpenStudio::Ruleset::WorkspaceUserScript
 
     sch_hourly = "
     Schedule:Day:Hourly,
-      RangeHoodDay,                                       !- Name
+      RangeHoodDay_#{unit_num},                           !- Name
       FRACTION,                                           !- Schedule Type
       "
-    range_hood_hourly[0..23].each do |hour|
+    range_hood_hourly[0..22].each do |hour|
       sch_hourly += "#{hour},\n"
     end
     sch_hourly += "#{range_hood_hourly[23]};"
 
     sch_week = "
     Schedule:Week:Compact,
-      RangeHoodWk,                                        !- Name
+      RangeHoodWk_#{unit_num},                            !- Name
       For: Weekdays,
-      RangeHoodDay,
+      RangeHoodDay_#{unit_num},
       For: CustomDay1,
-      RangeHoodDay,
+      RangeHoodDay_#{unit_num},
       For: CustomDay2,
-      RangeHoodDay,
+      RangeHoodDay_#{unit_num},
       For: AllOtherDays,
-      RangeHoodDay;"
+      RangeHoodDay_#{unit_num};"
 
     schedules.RangeHood = [sch_hourly, sch_week, sch_year]
 
@@ -3376,7 +3289,7 @@ class ProcessAirflow < OpenStudio::Ruleset::WorkspaceUserScript
 
   end
 
-  def _processNaturalVentilation(workspace, nv, living_space, wind_speed, infiltration, schedules, geometry, coolingSetpointWeekday, coolingSetpointWeekend, heatingSetpointWeekday, heatingSetpointWeekend)
+  def _processNaturalVentilation(workspace, unit_num, nv, living_space, wind_speed, infiltration, schedules, geometry, coolingSetpointWeekday, coolingSetpointWeekend, heatingSetpointWeekday, heatingSetpointWeekend)
     # Natural Ventilation
 
     # Specify an array of hourly lower-temperature-limits for natural ventilation
@@ -3404,7 +3317,7 @@ class ProcessAirflow < OpenStudio::Ruleset::WorkspaceUserScript
     # Natural Ventilation Probability Schedule (DOE2, not E+)
     sch_year = "
     Schedule:Constant,
-      NatVentProbability,                                 !- Name
+      NatVentProbability_#{unit_num},                     !- Name
       FRACTION,                                           !- Schedule Type
       1,                                                  !- Hourly Value"
 
@@ -3412,96 +3325,96 @@ class ProcessAirflow < OpenStudio::Ruleset::WorkspaceUserScript
 
     nat_vent_clg_ssn_temp = "
     Schedule:Week:Compact,
-      NatVentClgSsnTempWeek,                              !- Name
+      NatVentClgSsnTempWeek_#{unit_num},                  !- Name
       For: Weekdays,
-      NatVentClgSsnTempWkDay,
+      NatVentClgSsnTempWkDay_#{unit_num},
       For: CustomDay1,
-      NatVentClgSsnTempWkDay,
+      NatVentClgSsnTempWkDay_#{unit_num},
       For: CustomDay2,
-      NatVentClgSsnTempWkEnd,
+      NatVentClgSsnTempWkEnd_#{unit_num},
       For: AllOtherDays,
-      NatVentClgSsnTempWkEnd;"
+      NatVentClgSsnTempWkEnd_#{unit_num};"
 
     nat_vent_htg_ssn_temp = "
     Schedule:Week:Compact,
-      NatVentHtgSsnTempWeek,                              !- Name
+      NatVentHtgSsnTempWeek_#{unit_num},                  !- Name
       For: Weekdays,
-      NatVentHtgSsnTempWkDay,
+      NatVentHtgSsnTempWkDay_#{unit_num},
       For: CustomDay1,
-      NatVentHtgSsnTempWkDay,
+      NatVentHtgSsnTempWkDay_#{unit_num},
       For: CustomDay2,
-      NatVentHtgSsnTempWkEnd,
+      NatVentHtgSsnTempWkEnd_#{unit_num},
       For: AllOtherDays,
-      NatVentHtgSsnTempWkEnd;"
+      NatVentHtgSsnTempWkEnd_#{unit_num};"
 
     nat_vent_ovlp_ssn_temp = "
     Schedule:Week:Compact,
-      NatVentOvlpSsnTempWeek,                             !- Name
+      NatVentOvlpSsnTempWeek_#{unit_num},                 !- Name
       For: Weekdays,
-      NatVentOvlpSsnTempWkDay,
+      NatVentOvlpSsnTempWkDay_#{unit_num},
       For: CustomDay1,
-      NatVentOvlpSsnTempWkDay,
+      NatVentOvlpSsnTempWkDay_#{unit_num},
       For: CustomDay2,
-      NatVentOvlpSsnTempWkEnd,
+      NatVentOvlpSsnTempWkEnd_#{unit_num},
       For: AllOtherDays,
-      NatVentOvlpSsnTempWkEnd;"
+      NatVentOvlpSsnTempWkEnd_#{unit_num};"
 
     natVentHtgSsnTempWkDay_hourly = "
     Schedule:Day:Hourly,
-      NatVentHtgSsnTempWkDay,                             !- Name
-      TEMPERATURE,                                        !- Schedule Type
-      "
-    nv.htg_ssn_hourly_temp[0..23].each do |hour|
+      NatVentHtgSsnTempWkDay_#{unit_num},                 !- Name
+      TEMPERATURE,                                        !- Schedule Type"
+
+    nv.htg_ssn_hourly_temp[0..22].each do |hour|
       natVentHtgSsnTempWkDay_hourly += "#{hour}\n,"
     end
     natVentHtgSsnTempWkDay_hourly += "#{nv.htg_ssn_hourly_temp[23]};"
 
     natVentHtgSsnTempWkEnd_hourly = "
     Schedule:Day:Hourly,
-      NatVentHtgSsnTempWkEnd,                             !- Name
-      TEMPERATURE,                                        !- Schedule Type
-      "
-    nv.htg_ssn_hourly_weekend_temp[0..23].each do |hour|
+      NatVentHtgSsnTempWkEnd_#{unit_num},                 !- Name
+      TEMPERATURE,                                        !- Schedule Type"
+
+    nv.htg_ssn_hourly_weekend_temp[0..22].each do |hour|
       natVentHtgSsnTempWkEnd_hourly += "#{hour}\n,"
     end
     natVentHtgSsnTempWkEnd_hourly += "#{nv.htg_ssn_hourly_weekend_temp[23]};"
 
     natVentClgSsnTempWkDay_hourly = "
     Schedule:Day:Hourly,
-      NatVentClgSsnTempWkDay,                             !- Name
-      TEMPERATURE,                                        !- Schedule Type
-      "
-    nv.clg_ssn_hourly_temp[0..23].each do |hour|
+      NatVentClgSsnTempWkDay_#{unit_num},                 !- Name
+      TEMPERATURE,                                        !- Schedule Type"
+
+    nv.clg_ssn_hourly_temp[0..22].each do |hour|
       natVentClgSsnTempWkDay_hourly += "#{hour}\n,"
     end
     natVentClgSsnTempWkDay_hourly += "#{nv.clg_ssn_hourly_temp[23]};"
 
     natVentClgSsnTempWkEnd_hourly = "
     Schedule:Day:Hourly,
-      NatVentClgSsnTempWkEnd,                             !- Name
-      TEMPERATURE,                                        !- Schedule Type
-      "
-    nv.clg_ssn_hourly_weekend_temp[0..23].each do |hour|
+      NatVentClgSsnTempWkEnd_#{unit_num},                 !- Name
+      TEMPERATURE,                                        !- Schedule Type"
+
+    nv.clg_ssn_hourly_weekend_temp[0..22].each do |hour|
       natVentClgSsnTempWkEnd_hourly += "#{hour}\n,"
     end
     natVentClgSsnTempWkEnd_hourly += "#{nv.clg_ssn_hourly_weekend_temp[23]};"
 
     natVentOvlpSsnTempWkDay_hourly = "
     Schedule:Day:Hourly,
-      NatVentOvlpSsnTempWkDay,                            !- Name
-      TEMPERATURE,                                        !- Schedule Type
-      "
-    nv.ovlp_ssn_hourly_temp[0..23].each do |hour|
+      NatVentOvlpSsnTempWkDay_#{unit_num},                !- Name
+      TEMPERATURE,                                        !- Schedule Type"
+
+    nv.ovlp_ssn_hourly_temp[0..22].each do |hour|
       natVentOvlpSsnTempWkDay_hourly += "#{hour}\n,"
     end
     natVentOvlpSsnTempWkDay_hourly += "#{nv.ovlp_ssn_hourly_temp[23]};"
 
     natVentOvlpSsnTempWkEnd_hourly = "
     Schedule:Day:Hourly,
-      NatVentOvlpSsnTempWkEnd,                            !- Name
-      TEMPERATURE,                                        !- Schedule Type
-      "
-    nv.ovlp_ssn_hourly_weekend_temp[0..23].each do |hour|
+      NatVentOvlpSsnTempWkEnd_#{unit_num},                !- Name
+      TEMPERATURE,                                        !- Schedule Type"
+      
+    nv.ovlp_ssn_hourly_weekend_temp[0..22].each do |hour|
       natVentOvlpSsnTempWkEnd_hourly += "#{hour}\n,"
     end
     natVentOvlpSsnTempWkEnd_hourly += "#{nv.ovlp_ssn_hourly_weekend_temp[23]};"
@@ -3549,15 +3462,16 @@ class ProcessAirflow < OpenStudio::Ruleset::WorkspaceUserScript
 
     sch_year = "
     Schedule:Year,
-      NatVentTemp,                 !- Name
+      NatVentTemp_#{unit_num},     !- Name
       TEMPERATURE,                 !- Schedule Type"
+      
     nv.season_type.each_with_index do |ssn_type, month|
       if ssn_type == Constants.SeasonHeating
-        week_schedule_name = "NatVentHtgSsnTempWeek"
+        week_schedule_name = "NatVentHtgSsnTempWeek_#{unit_num}"
       elsif ssn_type == Constants.SeasonCooling
-        week_schedule_name = "NatVentClgSsnTempWeek"
+        week_schedule_name = "NatVentClgSsnTempWeek_#{unit_num}"
       else
-        week_schedule_name = "NatVentOvlpSsnTempWeek"
+        week_schedule_name = "NatVentOvlpSsnTempWeek_#{unit_num}"
       end
       if month == 0
         sch_year += "
@@ -3652,10 +3566,10 @@ class ProcessAirflow < OpenStudio::Ruleset::WorkspaceUserScript
 
     on_day = "
     Schedule:Day:Hourly,
-      NatVentOn-Day,                                   !- Name
-      FRACTION,                                        !- Schedule Type
-      "
-    natventon_day_hourly[0..23].each do |hour|
+      NatVentOn-Day_#{unit_num},                       !- Name
+      FRACTION,                                        !- Schedule Type"
+      
+    natventon_day_hourly[0..22].each do |hour|
       on_day += "#{hour}\n,"
     end
     on_day += "#{natventon_day_hourly[23]};"
@@ -3664,10 +3578,10 @@ class ProcessAirflow < OpenStudio::Ruleset::WorkspaceUserScript
 
     off_day = "
     Schedule:Day:Hourly,
-      NatVentOff-Day,                                  !- Name
-      FRACTION,                                        !- Schedule Type
-      "
-    natventoff_day_hourly[0..23].each do |hour|
+      NatVentOff-Day_#{unit_num},                      !- Name
+      FRACTION,                                        !- Schedule Type"
+      
+    natventoff_day_hourly[0..22].each do |hour|
       off_day += "#{hour}\n,"
     end
     off_day += "#{natventoff_day_hourly[23]};"
@@ -3707,43 +3621,44 @@ class ProcessAirflow < OpenStudio::Ruleset::WorkspaceUserScript
     
     off_week = "
     Schedule:Week:Compact,
-      NatVentOffSeason-Week,                           !- Name
+      NatVentOffSeason-Week_#{unit_num},               !- Name
       For: Weekdays,
-      NatVentOff-Day,
+      NatVentOff-Day_#{unit_num},
       For: CustomDay1,
-      NatVentOff-Day,
+      NatVentOff-Day_#{unit_num},
       For: CustomDay2,
-      NatVentOff-Day,
+      NatVentOff-Day_#{unit_num},
       For: AllOtherDays,
-      NatVentOff-Day;"
+      NatVentOff-Day_#{unit_num};"
 
     on_week = "
     Schedule:Week:Compact,
-      NatVent-Week,                                    !- Name"
+      NatVent-Week_#{unit_num},                        !- Name"
     if not days[0] == "None"
       days.each do |day|
         on_week += "
         For: #{day},
-        NatVentOn-Day,"
+        NatVentOn-Day_#{unit_num},"
       end
     else
       on_week += "
       For: Weekdays,
-      NatVentOn-Day,"
+      NatVentOn-Day_#{unit_num},"
     end
     on_week += "
     For: AllOtherDays,
-    NatVentOff-Day;"
+    NatVentOff-Day_#{unit_num};"
     
     sch_year = "
     Schedule:Year,
-      NatVent,                  !- Name
+      NatVent_#{unit_num},      !- Name
       FRACTION,                 !- Schedule Type"
+      
     (0...12).to_a.each do |month|
       if ((nv.season_type[month] == Constants.SeasonHeating and nv.NatVentHeatingSeason) or (nv.season_type[month] == Constants.SeasonCooling and nv.NatVentCoolingSeason) or (nv.season_type[month] == Constants.SeasonOverlap and nv.NatVentOverlapSeason)) and (not days[0] == "None")
-        week_schedule_name = "NatVent-Week"
+        week_schedule_name = "NatVent-Week_#{unit_num}"
       else
-        week_schedule_name = "NatVentOffSeason-Week"
+        week_schedule_name = "NatVentOffSeason-Week_#{unit_num}"
       end
       if month == 0
         sch_year += "

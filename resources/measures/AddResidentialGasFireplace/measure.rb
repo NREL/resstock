@@ -10,7 +10,7 @@ class ResidentialGasFireplace < OpenStudio::Ruleset::ModelUserScript
   end
   
   def description
-    return "Adds (or replaces) a residential gas fireplace with the specified efficiency and schedule in the given space."
+    return "Adds (or replaces) a residential gas fireplace with the specified efficiency and schedule. For multifamily buildings, the fireplace can be set for all units of the building."
   end
   
   def modeler_description
@@ -65,20 +65,19 @@ class ResidentialGasFireplace < OpenStudio::Ruleset::ModelUserScript
 	args << monthly_sch
 
     #make a choice argument for space
-    spaces = model.getSpaces
+    spaces = Geometry.get_all_unit_spaces(model)
+    if spaces.nil?
+        spaces = []
+    end
     space_args = OpenStudio::StringVector.new
+    space_args << Constants.Auto
     spaces.each do |space|
         space_args << space.name.to_s
     end
-    if space_args.empty?
-        space_args << Constants.LivingSpace(1)
-    end
     space = OpenStudio::Ruleset::OSArgument::makeChoiceArgument("space", space_args, true)
     space.setDisplayName("Location")
-    space.setDescription("Select the space where the fireplace is located.")
-    if space_args.include?(Constants.LivingSpace(1))
-        space.setDefaultValue(Constants.LivingSpace(1))
-    end
+    space.setDescription("Select the space where the cooking range is located. '#{Constants.Auto}' will choose the lowest above-grade finished space available (e.g., first story living space), or a below-grade finished space as last resort. For multifamily buildings, '#{Constants.Auto}' will choose a space for each unit of the building.")
+    space.setDefaultValue(Constants.Auto)
     args << space
 
     return args
@@ -111,80 +110,124 @@ class ResidentialGasFireplace < OpenStudio::Ruleset::ModelUserScript
 		runner.registerError("Energy multiplier must be greater than or equal to 0.")
 		return false
     end
-
-    #Get space
-    space = Geometry.get_space_from_string(model.getSpaces, space_r, runner)
-    if space.nil?
-        return false
-    end
-
-    # Get FFA and number of bedrooms/bathrooms
-    ffa = Geometry.get_building_finished_floor_area(model, runner)
-    if ffa.nil?
-        return false
-    end
-    nbeds, nbaths, unit_spaces = Geometry.get_unit_beds_baths_spaces(model, 1, runner)
-    if nbeds.nil? or nbaths.nil?
-        runner.registerError("Could not determine number of bedrooms or bathrooms. Run the 'Add Residential Bedrooms And Bathrooms' measure first.")
+    
+    # Get number of units
+    num_units = Geometry.get_num_units(model, runner)
+    if num_units.nil?
         return false
     end
     
-	#Calculate annual energy use
-    ann_g = base_energy * mult # therm/yr
-    
-    if scale_energy
-        #Scale energy use by num beds and floor area
-        constant = ann_g/2
-        nbr_coef = ann_g/4/3
-        ffa_coef = ann_g/4/1920
-        gf_ann_g = constant + nbr_coef * nbeds + ffa_coef * ffa # therm/yr
-    else
-        gf_ann_g = ann_g # therm/yr
+    # Will we be setting multiple objects?
+    set_multiple_objects = false
+    if num_units > 1 and space_r == Constants.Auto
+        set_multiple_objects = true
     end
-    
-    obj_name = Constants.ObjectNameGasFireplace
 
-    # Remove any existing gas fireplace
-    gf_removed = false
-    space.gasEquipment.each do |space_equipment|
-        if space_equipment.name.to_s == obj_name
-            space_equipment.remove
-            gf_removed = true
-        end
-    end
-    if gf_removed
-        runner.registerInfo("Removed existing gas fireplace.")
-    end
+    #hard coded convective, radiative, latent, and lost fractions
+    gf_lat = 0.1
+    gf_rad = 0.3
+    gf_conv = 0.2
+    gf_lost = 1 - gf_lat - gf_rad - gf_conv
+
+    tot_gf_ann_g = 0
+    last_space = nil
+    sch = nil
+    (1..num_units).to_a.each do |unit_num|
     
-    if gf_ann_g > 0
-        #hard coded convective, radiative, latent, and lost fractions
-        gf_lat = 0.1
-        gf_rad = 0.3
-        gf_conv = 0.2
-        gf_lost = 1 - gf_lat - gf_rad - gf_conv
-        
-        sch = MonthWeekdayWeekendSchedule.new(model, runner, obj_name + " schedule", weekday_sch, weekend_sch, monthly_sch)
-        if not sch.validated?
+        # Get unit beds/baths/spaces
+        nbeds, nbaths, unit_spaces = Geometry.get_unit_beds_baths_spaces(model, unit_num, runner)
+        if unit_spaces.nil?
+            runner.registerError("Could not determine the spaces associated with unit #{unit_num}.")
             return false
         end
-        design_level = sch.calcDesignLevelFromDailyTherm(gf_ann_g/365.0)
+        if nbeds.nil? or nbaths.nil?
+            runner.registerError("Could not determine number of bedrooms or bathrooms. Run the 'Add Residential Bedrooms And Bathrooms' measure first.")
+            return false
+        end
+        
+        # Get unit ffa
+        ffa = Geometry.get_unit_finished_floor_area(model, unit_spaces, runner)
+        if ffa.nil?
+            return false
+        end
+        
+        # Get space
+        space = Geometry.get_space_from_string(unit_spaces, space_r)
+        next if space.nil?
 
-        #Add gas equipment for the fireplace
-        gf_def = OpenStudio::Model::GasEquipmentDefinition.new(model)
-        gf = OpenStudio::Model::GasEquipment.new(gf_def)
-        gf.setName(obj_name)
-        gf.setSpace(space)
-        gf_def.setName(obj_name)
-        gf_def.setDesignLevel(design_level)
-        gf_def.setFractionRadiant(gf_rad)
-        gf_def.setFractionLatent(gf_lat)
-        gf_def.setFractionLost(gf_lost)
-        sch.setSchedule(gf)
+        unit_obj_name = Constants.ObjectNameGasFireplace(unit_num)
 
-        #reporting final condition of model
-        runner.registerFinalCondition("A gas fireplace has been set with #{gf_ann_g.round} therms annual energy consumption.")
+        # Remove any existing gas fireplace
+        gf_removed = false
+        space.gasEquipment.each do |space_equipment|
+            if space_equipment.name.to_s == unit_obj_name
+                space_equipment.remove
+                gf_removed = true
+            end
+        end
+        if gf_removed
+            runner.registerInfo("Removed existing gas fireplace from space #{space.name.to_s}.")
+        end
+
+        #Calculate annual energy use
+        ann_g = base_energy * mult # therm/yr
+        
+        if scale_energy
+            #Scale energy use by num beds and floor area
+            constant = ann_g/2
+            nbr_coef = ann_g/4/3
+            ffa_coef = ann_g/4/1920
+            gf_ann_g = constant + nbr_coef * nbeds + ffa_coef * ffa # therm/yr
+        else
+            gf_ann_g = ann_g # therm/yr
+        end
+        
+        if gf_ann_g > 0
+            
+            if sch.nil?
+                # Create schedule
+                sch = MonthWeekdayWeekendSchedule.new(model, runner, Constants.ObjectNameGasFireplace + " schedule", weekday_sch, weekend_sch, monthly_sch)
+                if not sch.validated?
+                    return false
+                end
+            end
+            
+            design_level = sch.calcDesignLevelFromDailyTherm(gf_ann_g/365.0)
+
+            #Add gas equipment for the fireplace
+            gf_def = OpenStudio::Model::GasEquipmentDefinition.new(model)
+            gf = OpenStudio::Model::GasEquipment.new(gf_def)
+            gf.setName(unit_obj_name)
+            gf.setSpace(space)
+            gf_def.setName(unit_obj_name)
+            gf_def.setDesignLevel(design_level)
+            gf_def.setFractionRadiant(gf_rad)
+            gf_def.setFractionLatent(gf_lat)
+            gf_def.setFractionLost(gf_lost)
+            sch.setSchedule(gf)
+    
+            if set_multiple_objects
+                # Report each assignment plus final condition
+                runner.registerInfo("A gas fireplace with #{gf_ann_g.round} therms annual energy consumption has been assigned to space '#{space.name.to_s}'.")
+            end
+            
+            tot_gf_ann_g += gf_ann_g
+            last_space = space
+        end
+        
     end
-	
+    
+    #reporting final condition of model
+    if tot_gf_ann_g > 0
+        if set_multiple_objects
+            runner.registerFinalCondition("The building has been assigned gas fireplaces totaling #{tot_gf_ann_g.round} therms annual energy consumption across #{num_units} units.")
+        else
+            runner.registerFinalCondition("A gas fireplace with #{tot_gf_ann_g.round} therms annual energy consumption has been assigned to space '#{last_space.name.to_s}'.")
+        end
+    else
+        runner.registerFinalCondition("No gas fireplace has been assigned.")
+    end
+
     return true
  
   end #end the run method

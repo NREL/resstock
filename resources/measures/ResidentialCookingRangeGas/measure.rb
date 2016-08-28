@@ -71,16 +71,19 @@ class ResidentialCookingRangeGas < OpenStudio::Ruleset::ModelUserScript
 	args << monthly_sch
 
     #make a choice argument for space
-    spaces = model.getSpaces
+    spaces = Geometry.get_all_unit_spaces(model)
+    if spaces.nil?
+        spaces = []
+    end
     space_args = OpenStudio::StringVector.new
-    space_args << Constants.Default
+    space_args << Constants.Auto
     spaces.each do |space|
         space_args << space.name.to_s
     end
     space = OpenStudio::Ruleset::OSArgument::makeChoiceArgument("space", space_args, true)
     space.setDisplayName("Location")
-    space.setDescription("Select the space where the cooking range is located. '#{Constants.Default}' will choose the lowest above-grade finished space available (e.g., first story living space), or a below-grade finished space as last resort. For multifamily buildings, '#{Constants.Default}' will choose a space for each unit of the building.")
-    space.setDefaultValue(Constants.Default)
+    space.setDescription("Select the space where the cooking range is located. '#{Constants.Auto}' will choose the lowest above-grade finished space available (e.g., first story living space), or a below-grade finished space as last resort. For multifamily buildings, '#{Constants.Auto}' will choose a space for each unit of the building.")
+    space.setDefaultValue(Constants.Auto)
     args << space
 
     return args
@@ -119,6 +122,7 @@ class ResidentialCookingRangeGas < OpenStudio::Ruleset::ModelUserScript
 		return false
     end
 
+    # Get number of units
     num_units = Geometry.get_num_units(model, runner)
     if num_units.nil?
         return false
@@ -126,7 +130,7 @@ class ResidentialCookingRangeGas < OpenStudio::Ruleset::ModelUserScript
     
     # Will we be setting multiple objects?
     set_multiple_objects = false
-    if num_units > 1 and space_r == Constants.Default
+    if num_units > 1 and space_r == Constants.Auto
         set_multiple_objects = true
     end
 
@@ -142,10 +146,11 @@ class ResidentialCookingRangeGas < OpenStudio::Ruleset::ModelUserScript
 
     tot_range_ann_g = 0
     tot_range_ann_i = 0
-    single_space = nil
+    last_space = nil
     sch = nil
-
     (1..num_units).to_a.each do |unit_num|
+    
+        # Get unit beds/baths/spaces
         nbeds, nbaths, unit_spaces = Geometry.get_unit_beds_baths_spaces(model, unit_num, runner)
         if unit_spaces.nil?
             runner.registerError("Could not determine the spaces associated with unit #{unit_num}.")
@@ -158,9 +163,6 @@ class ResidentialCookingRangeGas < OpenStudio::Ruleset::ModelUserScript
         
         # Get space
         space = Geometry.get_space_from_string(unit_spaces, space_r)
-        if space.nil? and space_r != Constants.Default
-            return false
-        end
         next if space.nil?
 
         unit_obj_name_e = Constants.ObjectNameCookingRange(Constants.FuelTypeElectric, false, unit_num)
@@ -242,7 +244,7 @@ class ResidentialCookingRangeGas < OpenStudio::Ruleset::ModelUserScript
             
             tot_range_ann_g += range_ann_g
             tot_range_ann_i += range_ann_i
-            single_space = space
+            last_space = space
         end
         
     end
@@ -256,7 +258,7 @@ class ResidentialCookingRangeGas < OpenStudio::Ruleset::ModelUserScript
         if set_multiple_objects
             runner.registerFinalCondition("The building has been assigned cooking ranges totaling #{tot_range_ann_g.round} therms#{s_ignition} annual energy consumption across #{num_units} units.")
         else
-            runner.registerFinalCondition("A cooking range with #{tot_range_ann_g.round} therms#{s_ignition} annual energy consumption has been assigned to space '#{single_space.name.to_s}'.")
+            runner.registerFinalCondition("A cooking range with #{tot_range_ann_g.round} therms#{s_ignition} annual energy consumption has been assigned to space '#{last_space.name.to_s}'.")
         end
     else
         runner.registerFinalCondition("No cooking range has been assigned.")
