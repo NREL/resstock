@@ -92,9 +92,7 @@ class AddResidentialOccupants < OpenStudio::Ruleset::ModelUserScript
     # Change to 1-based arrays or simplification
     num_occ.unshift(nil)
 
-    obj_name = Constants.ObjectNameOccupants
-    
-    people_sch = MonthWeekdayWeekendSchedule.new(model, runner, obj_name + " schedule", weekday_sch, weekend_sch, monthly_sch)
+    people_sch = MonthWeekdayWeekendSchedule.new(model, runner, Constants.ObjectNameOccupants + " schedule", weekday_sch, weekend_sch, monthly_sch)
     if not people_sch.validated?
         return false
     end
@@ -108,18 +106,6 @@ class AddResidentialOccupants < OpenStudio::Ruleset::ModelUserScript
     occ_lost = 1 - occ_lat - occ_conv - occ_rad
     occ_sens = occ_rad + occ_conv
     
-    # Remove any existing people
-    model.getSpaces.each do |space|
-        people_removed = false
-        space.people.each do |people|
-            people.remove
-            people_removed = true
-        end
-        if people_removed
-            runner.registerInfo("Removed existing people from space #{space.name.to_s}.")
-        end
-    end
-        
     # Update number of occupants
     total_num_occ = 0
     (1..num_units).to_a.each do |unit_num|
@@ -163,16 +149,27 @@ class AddResidentialOccupants < OpenStudio::Ruleset::ModelUserScript
       spaces = Geometry.get_finished_spaces(model, unit_spaces)      
       spaces.each do |space|
       
-          obj_name_space = "#{obj_name} #{space.name.to_s}"
+          space_obj_name = "#{Constants.ObjectNameOccupants(unit_num)}|#{space.name.to_s}"
+          
+          # Remove any existing people
+          people_removed = false
+          space.people.each do |people|
+              people.remove
+              people_removed = true
+          end
+          if people_removed
+              runner.registerInfo("Removed existing people from space #{space.name.to_s}.")
+          end
+          
           space_num_occ = unit_occ * OpenStudio.convert(space.floorArea, "m^2", "ft^2").get / ffa
           total_num_occ += space_num_occ
 
           #Add people definition for the occ
           occ_def = OpenStudio::Model::PeopleDefinition.new(model)
           occ = OpenStudio::Model::People.new(occ_def)
-          occ.setName(obj_name_space)
+          occ.setName(space_obj_name)
           occ.setSpace(space)
-          occ_def.setName(obj_name_space)
+          occ_def.setName(space_obj_name)
           occ_def.setNumberOfPeopleCalculationMethod("People",1)
           occ_def.setNumberofPeople(space_num_occ)
           occ_def.setFractionRadiant(occ_rad)

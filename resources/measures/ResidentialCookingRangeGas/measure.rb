@@ -128,25 +128,9 @@ class ResidentialCookingRangeGas < OpenStudio::Ruleset::ModelUserScript
         return false
     end
     
-    # Will we be setting multiple objects?
-    set_multiple_objects = false
-    if num_units > 1 and space_r == Constants.Auto
-        set_multiple_objects = true
-    end
-
-    #hard coded convective, radiative, latent, and lost fractions
-    range_lat_e = 0.3
-    range_conv_e = 0.16
-    range_rad_e = 0.24
-    range_lost_e = 1 - range_lat_e - range_conv_e - range_rad_e
-    range_lat_g = 0.2
-    range_conv_g = 0.12
-    range_rad_g = 0.18
-    range_lost_g = 1 - range_lat_g - range_conv_g - range_rad_g
-
     tot_range_ann_g = 0
     tot_range_ann_i = 0
-    last_space = nil
+    info_msgs = []
     sch = nil
     (1..num_units).to_a.each do |unit_num|
     
@@ -215,9 +199,9 @@ class ResidentialCookingRangeGas < OpenStudio::Ruleset::ModelUserScript
             rng.setSpace(space)
             rng_def.setName(unit_obj_name_g)
             rng_def.setDesignLevel(design_level_g)
-            rng_def.setFractionRadiant(range_rad_g)
-            rng_def.setFractionLatent(range_lat_g)
-            rng_def.setFractionLost(range_lost_g)
+            rng_def.setFractionRadiant(0.18)
+            rng_def.setFractionLatent(0.2)
+            rng_def.setFractionLost(0.5)
             sch.setSchedule(rng)
             
             if e_ignition == true
@@ -227,39 +211,37 @@ class ResidentialCookingRangeGas < OpenStudio::Ruleset::ModelUserScript
                 rng2.setSpace(space)
                 rng_def2.setName(unit_obj_name_i)
                 rng_def2.setDesignLevel(design_level_i)
-                rng_def2.setFractionRadiant(range_rad_e)
-                rng_def2.setFractionLatent(range_lat_e)
-                rng_def2.setFractionLost(range_lost_e)
+                rng_def2.setFractionRadiant(0.24)
+                rng_def2.setFractionLatent(0.3)
+                rng_def2.setFractionLost(0.3)
                 sch.setSchedule(rng2)
             end
 
-            if set_multiple_objects
-                # Report each assignment plus final condition
-                s_ignition = ""
-                if e_ignition
-                    s_ignition = " and #{range_ann_i.round} kWhs"
-                end
-                runner.registerInfo("A cooking range with #{range_ann_g.round} therms#{s_ignition} annual energy consumption has been assigned to space '#{space.name.to_s}'.")
+            # Report each assignment plus final condition
+            s_ignition = ""
+            if e_ignition
+                s_ignition = " and #{range_ann_i.round} kWhs"
             end
+            info_msgs << "A cooking range with #{range_ann_g.round} therms#{s_ignition} annual energy consumption has been assigned to space '#{space.name.to_s}'."
             
             tot_range_ann_g += range_ann_g
             tot_range_ann_i += range_ann_i
-            last_space = space
         end
         
     end
-            
-    #reporting final condition of model
-    if tot_range_ann_g > 0
+          
+    # Reporting
+    if info_msgs.size > 1
+        info_msgs.each do |info_msg|
+            runner.registerInfo(info_msg)
+        end
         s_ignition = ""
         if e_ignition
             s_ignition = " and #{tot_range_ann_i.round} kWhs"
         end
-        if set_multiple_objects
-            runner.registerFinalCondition("The building has been assigned cooking ranges totaling #{tot_range_ann_g.round} therms#{s_ignition} annual energy consumption across #{num_units} units.")
-        else
-            runner.registerFinalCondition("A cooking range with #{tot_range_ann_g.round} therms#{s_ignition} annual energy consumption has been assigned to space '#{last_space.name.to_s}'.")
-        end
+        runner.registerFinalCondition("The building has been assigned cooking ranges totaling #{tot_range_ann_g.round} therms#{s_ignition} annual energy consumption across #{num_units} units.")
+    elsif info_msgs.size == 1
+        runner.registerFinalCondition(info_msgs[0])
     else
         runner.registerFinalCondition("No cooking range has been assigned.")
     end

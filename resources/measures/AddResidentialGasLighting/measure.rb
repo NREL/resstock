@@ -100,19 +100,8 @@ class ResidentialGasLighting < OpenStudio::Ruleset::ModelUserScript
         return false
     end
 
-    # Will we be setting multiple objects?
-    set_multiple_objects = false
-    if num_units > 1
-        set_multiple_objects = true
-    end
-
-    #hard coded convective, radiative, latent, and lost fractions
-    gl_lat = 0
-    gl_rad = 0
-    gl_conv = 0
-    gl_lost = 1 - gl_lat - gl_rad - gl_conv
-    
     tot_gl_ann_g = 0
+    info_msgs = []
     sch = nil
     (1..num_units).to_a.each do |unit_num|
     
@@ -183,28 +172,26 @@ class ResidentialGasLighting < OpenStudio::Ruleset::ModelUserScript
             gl.setSpace(space)
             gl_def.setName(unit_obj_name)
             gl_def.setDesignLevel(design_level)
-            gl_def.setFractionRadiant(gl_rad)
-            gl_def.setFractionLatent(gl_lat)
-            gl_def.setFractionLost(gl_lost)
+            gl_def.setFractionRadiant(0)
+            gl_def.setFractionLatent(0)
+            gl_def.setFractionLost(1)
             sch.setSchedule(gl)
             
-            if set_multiple_objects
-                # Report each assignment plus final condition
-                runner.registerInfo("Gas lighting with #{gl_ann_g.round} therms annual energy consumption has been assigned to outside.")
-            end
+            info_msgs << "Gas lighting with #{gl_ann_g.round} therms annual energy consumption has been assigned to outside."
             
             tot_gl_ann_g += gl_ann_g
         end
         
     end
-	
-    #reporting final condition of model
-    if tot_gl_ann_g > 0
-        if set_multiple_objects
-            runner.registerFinalCondition("The building has been assigned gas lighting totaling #{tot_gl_ann_g.round} therms annual energy consumption across #{num_units} units.")
-        else
-            runner.registerFinalCondition("Gas lighting with #{tot_gl_ann_g.round} therms annual energy consumption has been assigned to outside.")
+    
+    # Reporting
+    if info_msgs.size > 1
+        info_msgs.each do |info_msg|
+            runner.registerInfo(info_msg)
         end
+        runner.registerFinalCondition("The building has been assigned gas lighting totaling #{tot_gl_ann_g.round} therms annual energy consumption across #{num_units} units.")
+    elsif info_msgs.size == 1
+        runner.registerFinalCondition(info_msgs[0])
     else
         runner.registerFinalCondition("No gas lighting has been assigned.")
     end

@@ -21,7 +21,7 @@ class ResidentialMiscellaneousElectricLoads < OpenStudio::Ruleset::ModelUserScri
   end
   
   def description
-    return "Adds (or replaces) residential plug loads with the specified efficiency and schedule in all finished spaces."
+    return "Adds (or replaces) residential plug loads with the specified efficiency and schedule in all finished spaces. For multifamily buildings, the plug loads can be set for all units of the building."
   end
   
   def modeler_description
@@ -84,73 +84,98 @@ class ResidentialMiscellaneousElectricLoads < OpenStudio::Ruleset::ModelUserScri
 		return false
     end
     
-    # Get FFA and number of bedrooms/bathrooms
-    ffa = Geometry.get_building_finished_floor_area(model, runner)
-    if ffa.nil?
+    # Get number of units
+    num_units = Geometry.get_num_units(model, runner)
+    if num_units.nil?
         return false
     end
-    nbeds, nbaths, unit_spaces = Geometry.get_unit_beds_baths_spaces(model, 1, runner)
-    if nbeds.nil? or nbaths.nil?
-        runner.registerError("Could not determine number of bedrooms or bathrooms. Run the 'Add Residential Bedrooms And Bathrooms' measure first.")
-        return false
-    end
-	
-	#Calculate electric mel daily energy use
-    mel_ann = (1108.1 + 180.2 * nbeds + 0.2785 * ffa) * mult
-	mel_daily = mel_ann / 365.0
     
-    spaces = Geometry.get_finished_spaces(model)
+    tot_mel_ann = 0
+    info_msgs = []
+    sch = nil
+    (1..num_units).to_a.each do |unit_num|
     
-    obj_name = Constants.ObjectNameMiscPlugLoads
-    
-    # Remove any existing mels
-    mels_removed = false
-    spaces.each do |space|
-        obj_name_space = "#{obj_name} #{space.name.to_s}"
-        space.electricEquipment.each do |space_equipment|
-            if space_equipment.name.to_s == obj_name_space
-                space_equipment.remove
-                mels_removed = true
-            end
+        # Get unit beds/baths/spaces
+        nbeds, nbaths, unit_spaces = Geometry.get_unit_beds_baths_spaces(model, unit_num, runner)
+        if unit_spaces.nil?
+            runner.registerError("Could not determine the spaces associated with unit #{unit_num}.")
+            return false
         end
-    end
-    if mels_removed
-        runner.registerInfo("Removed existing misc plug loads.")
-    end
-
-    if mel_daily > 0
-        #hard coded convective, radiative, latent, and lost fractions
-        mel_lat = 0.021
-        mel_rad = 0.558
-        mel_conv = 0.372
-        mel_lost = 1 - mel_lat - mel_rad - mel_conv
-
-        sch = MonthWeekdayWeekendSchedule.new(model, runner, obj_name + " schedule", weekday_sch, weekend_sch, monthly_sch)
-        if not sch.validated?
+        if nbeds.nil? or nbaths.nil?
+            runner.registerError("Could not determine number of bedrooms or bathrooms. Run the 'Add Residential Bedrooms And Bathrooms' measure first.")
             return false
         end
         
-        # Add specified mels
-        spaces.each do |space|
-            obj_name_space = "#{obj_name} #{space.name.to_s}"
-            space_energy_ann = mel_ann * OpenStudio.convert(space.floorArea, "m^2", "ft^2").get/ffa
-            space_design_level = sch.calcDesignLevelFromDailykWh(space_energy_ann/365.0)
-
-            #Add electric equipment for the mel
-            mel_def = OpenStudio::Model::ElectricEquipmentDefinition.new(model)
-            mel = OpenStudio::Model::ElectricEquipment.new(mel_def)
-            mel.setName(obj_name_space)
-            mel.setSpace(space)
-            mel_def.setName(obj_name_space)
-            mel_def.setDesignLevel(space_design_level)
-            mel_def.setFractionRadiant(mel_rad)
-            mel_def.setFractionLatent(mel_lat)
-            mel_def.setFractionLost(mel_lost)
-            sch.setSchedule(mel)
+        # Get unit ffa
+        ffa = Geometry.get_unit_finished_floor_area(model, unit_spaces, runner)
+        if ffa.nil?
+            return false
         end
         
-        #reporting final condition of model
-        runner.registerFinalCondition("Misc plug loads have been set with #{mel_ann.round} kWhs annual energy consumption.")
+        #Calculate electric mel daily energy use
+        mel_ann = (1108.1 + 180.2 * nbeds + 0.2785 * ffa) * mult
+        mel_daily = mel_ann / 365.0
+        
+        unit_spaces.each do |space|
+            next if Geometry.space_is_unfinished(space)
+            
+            space_obj_name = "#{Constants.ObjectNameMiscPlugLoads(unit_num)}|#{space.name.to_s}"
+            
+            # Remove any existing mels
+            mels_removed = false
+            space.electricEquipment.each do |space_equipment|
+                if space_equipment.name.to_s == space_obj_name
+                    space_equipment.remove
+                    mels_removed = true
+                end
+            end
+            if mels_removed
+                runner.registerInfo("Removed existing plug loads from space #{space.name.to_s}.")
+            end
+            
+            if mel_ann > 0
+
+                if sch.nil?
+                    # Create schedule
+                    sch = MonthWeekdayWeekendSchedule.new(model, runner, Constants.ObjectNameMiscPlugLoads + " schedule", weekday_sch, weekend_sch, monthly_sch)
+                    if not sch.validated?
+                        return false
+                    end
+                end
+            
+                space_mel_ann = mel_ann * OpenStudio.convert(space.floorArea, "m^2", "ft^2").get/ffa
+                space_design_level = sch.calcDesignLevelFromDailykWh(space_mel_ann/365.0)
+
+                #Add electric equipment for the mel
+                mel_def = OpenStudio::Model::ElectricEquipmentDefinition.new(model)
+                mel = OpenStudio::Model::ElectricEquipment.new(mel_def)
+                mel.setName(space_obj_name)
+                mel.setSpace(space)
+                mel_def.setName(space_obj_name)
+                mel_def.setDesignLevel(space_design_level)
+                mel_def.setFractionRadiant(0.558)
+                mel_def.setFractionLatent(0.021)
+                mel_def.setFractionLost(0.049)
+                sch.setSchedule(mel)
+                
+                info_msgs << "Plug loads with #{space_mel_ann.round} kWhs annual energy consumption has been assigned to space '#{space.name.to_s}'."
+                tot_mel_ann += space_mel_ann
+            end
+
+        end
+        
+    end
+
+    # Reporting
+    if info_msgs.size > 1
+        info_msgs.each do |info_msg|
+            runner.registerInfo(info_msg)
+        end
+        runner.registerFinalCondition("The building has been assigned plug loads totaling #{tot_mel_ann.round} kWhs annual energy consumption across #{num_units} units.")
+    elsif info_msgs.size == 1
+        runner.registerFinalCondition(info_msgs[0])
+    else
+        runner.registerFinalCondition("No plug loads have been assigned.")
     end
 	
     return true

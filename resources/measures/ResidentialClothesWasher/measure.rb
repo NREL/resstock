@@ -224,12 +224,6 @@ class ResidentialClothesWasher < OpenStudio::Ruleset::ModelUserScript
         return false
     end
 
-    #hard coded convective, radiative, latent, and lost fractions for clothes washer
-	cw_lat = 0.00
-	cw_rad = 0.48
-	cw_conv = 0.32
-	cw_lost = 1 - cw_lat - cw_rad - cw_conv
-
     # Use EnergyGuide Label test data to calculate per-cycle energy and water consumption.
     # Calculations are based on "Method for Evaluating Energy Use of Dishwashers, Clothes Washers, 
     # and Clothes Dryers" by Eastment and Hendron, Conference Paper NREL/CP-550-39769, August 2006.
@@ -523,9 +517,9 @@ class ResidentialClothesWasher < OpenStudio::Ruleset::ModelUserScript
         cw.setSpace(space)
         cw_def.setName(obj_name)
         cw_def.setDesignLevel(design_level)
-        cw_def.setFractionRadiant(cw_rad)
-        cw_def.setFractionLatent(cw_lat)
-        cw_def.setFractionLost(cw_lost)
+        cw_def.setFractionRadiant(0.48)
+        cw_def.setFractionLatent(0.0)
+        cw_def.setFractionLost(0.2)
         sch.setSchedule(cw)
 
         #Add water use equipment for the dw

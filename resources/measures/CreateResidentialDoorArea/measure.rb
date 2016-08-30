@@ -14,7 +14,7 @@ class CreateResidentialDoorArea < OpenStudio::Ruleset::ModelUserScript
 
   # human readable description
   def description
-    return "Sets the opaque door area for the building. Doors with glazing should be set as window area. For multifamily buildings, applies to each unit."
+    return "Sets the opaque door area for the building. Doors with glazing should be set as window area. For multifamily buildings, door area can be set for all units of the building."
   end
 
   # human readable description of modeling approach
@@ -27,10 +27,10 @@ class CreateResidentialDoorArea < OpenStudio::Ruleset::ModelUserScript
     args = OpenStudio::Ruleset::OSArgumentVector.new
 
     #make a double argument for front door area
-    userdefineddoorarea = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("userdefineddoorarea", true)
+    userdefineddoorarea = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("door_area", true)
     userdefineddoorarea.setDisplayName("Door Area")
     userdefineddoorarea.setUnits("ft^2")
-    userdefineddoorarea.setDescription("The area of the front door.")
+    userdefineddoorarea.setDescription("The area of the front door. For multifamily buildings, applies to each unit.")
     userdefineddoorarea.setDefaultValue(20.0)
     args << userdefineddoorarea
 
@@ -46,17 +46,12 @@ class CreateResidentialDoorArea < OpenStudio::Ruleset::ModelUserScript
       return false
     end
 	
-    door_area = OpenStudio::convert(runner.getDoubleArgumentValue("userdefineddoorarea",user_arguments),"ft^2","m^2").get
+    door_area = OpenStudio::convert(runner.getDoubleArgumentValue("door_area",user_arguments),"ft^2","m^2").get
     
-    model.getSpaces.each do |space|
-        space.surfaces.each do |surface|
-            next if not surface.surfaceType.downcase == "wall"
-            surface.subSurfaces.each do |sub_surface|
-                next if sub_surface.subSurfaceType.downcase != "door"
-                sub_surface.remove
-                runner.registerInfo("Removed door(s) from #{surface.name}.")
-            end
-        end
+    model.getSubSurfaces.each do |sub_surface|
+        next if sub_surface.subSurfaceType.downcase != "door"
+        runner.registerInfo("Removed door(s) from #{sub_surface.surface.get.name}.")
+        sub_surface.remove
     end
     
     # error checking
@@ -64,7 +59,7 @@ class CreateResidentialDoorArea < OpenStudio::Ruleset::ModelUserScript
       runner.registerError("Invalid door area.")
       return false
     elsif door_area == 0
-      runner.registerInfo("No door added because door area was set to 0 ft^2.")
+      runner.registerFinalCondition("No doors added because door area was set to 0.")
       return true
     end    
     
@@ -80,6 +75,7 @@ class CreateResidentialDoorArea < OpenStudio::Ruleset::ModelUserScript
         return false
     end  
   
+    tot_door_area = 0
     (1..num_units).to_a.each do |unit_num|
       _nbeds, _nbaths, unit_spaces = Geometry.get_unit_beds_baths_spaces(model, unit_num, runner)  
   
@@ -88,10 +84,7 @@ class CreateResidentialDoorArea < OpenStudio::Ruleset::ModelUserScript
       Geometry.get_finished_spaces(model, unit_spaces).each do |space|
           next if Geometry.space_is_below_grade(space)
           space.surfaces.each do |surface|
-              next if not (surface.surfaceType.downcase == "wall" and surface.outsideBoundaryCondition.downcase == "outdoors")
-              wall_azimuth = OpenStudio::Quantity.new(surface.azimuth, OpenStudio::createSIAngle)
-              wall_orientation = (OpenStudio.convert(wall_azimuth, OpenStudio::createIPAngle).get.value + building_orientation).round			
-              next if wall_orientation - 180 != building_orientation
+              next if Geometry.get_facade_for_surface(surface) != Constants.FacadeFront
               front_walls << surface
           end
       end
@@ -139,8 +132,22 @@ class CreateResidentialDoorArea < OpenStudio::Ruleset::ModelUserScript
           end 
       end
 
-      unless corridor_walls.size == 0
-        first_story_most_front_walls = corridor_walls
+      first_story_corridor_walls = []
+      first_story_corridor_wall_minz = 99999
+      corridor_walls.each do |corridor_wall|
+          zvalues = Geometry.getSurfaceZValues([corridor_wall])
+          minz = zvalues.min + corridor_wall.space.get.zOrigin
+          if minz < first_story_corridor_wall_minz
+              first_story_corridor_walls.clear
+              first_story_corridor_walls << corridor_wall
+              first_story_corridor_wall_minz = minz
+          elsif minz == first_story_corridor_wall_minz
+              first_story_corridor_walls << corridor_wall
+          end
+      end      
+      
+      unless first_story_corridor_walls.size == 0
+        first_story_most_front_walls = first_story_corridor_walls
       end
       
       unit_has_door = true
@@ -210,16 +217,18 @@ class CreateResidentialDoorArea < OpenStudio::Ruleset::ModelUserScript
           door_sub_surface.setAdjacentSubSurface(adjacent_door_sub_surface)
         end
         
-        added_door = true
+        tot_door_area += door_area
       end
 
       if door_sub_surface.nil? and unit_has_door
           runner.registerWarning("For unit #{unit_num} could not find appropriate surface for the door. No door was added.")
       elsif not door_sub_surface.nil?
-          runner.registerInfo("For unit #{unit_num} added #{OpenStudio::convert(door_area,"m^2","ft^2").get.round(1)} ft^2 door with name '#{door_sub_surface.name}'.")
+          runner.registerInfo("For unit #{unit_num} added #{OpenStudio::convert(door_area,"m^2","ft^2").get.round(1)} ft^2 door.")
       end
     
     end 
+    
+    runner.registerFinalCondition("The building has been assigned #{OpenStudio::convert(tot_door_area,"m^2","ft^2").get.round(1)} ft^2 total door area.")
     
     return true
 

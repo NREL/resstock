@@ -393,11 +393,6 @@ class ResidentialLighting < OpenStudio::Ruleset::ModelUserScript
         return false
     end
     
-    ltg_rad = 0.6
-    ltg_rep = 0.0
-    ltg_vis = 0.2
-    ltg_raf = 0.00
-    
     finished_spaces = Geometry.get_finished_spaces(model)
     garage_spaces = Geometry.get_garage_spaces(model)
     outside = 'outside'
@@ -430,9 +425,9 @@ class ResidentialLighting < OpenStudio::Ruleset::ModelUserScript
             ltg.setSpace(space)
             ltg_def.setName(obj_name_space)
             ltg_def.setLightingLevel(space_design_level)
-            ltg_def.setFractionRadiant(ltg_rad)
-            ltg_def.setFractionVisible(ltg_vis)
-            ltg_def.setReturnAirFraction(ltg_raf)
+            ltg_def.setFractionRadiant(0.6)
+            ltg_def.setFractionVisible(0.2)
+            ltg_def.setReturnAirFraction(0.0)
             sch.setSchedule(ltg)
         end
     end

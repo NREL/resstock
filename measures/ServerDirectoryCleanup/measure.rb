@@ -60,6 +60,14 @@ class ServerDirectoryCleanup < OpenStudio::Ruleset::ReportingUserScript
       File.delete(f)
       runner.registerInfo("Deleted #{f} from the run directory.") if !File.exist?(f)
     end
+    Dir.glob("./../*.eso").each do |f|
+      File.delete(f)
+      runner.registerInfo("Deleted #{f} from the run directory.") if !File.exist?(f)
+    end
+    Dir.glob("./../pre-preprocess.idf").each do |f|
+      File.delete(f)
+      runner.registerInfo("Deleted #{f} from the run directory.") if !File.exist?(f)
+    end
 
     final_string = "The following files were in the local run directory following the execution of this measure: "
     Dir.entries("./..").each do |f|

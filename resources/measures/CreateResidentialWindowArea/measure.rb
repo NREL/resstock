@@ -97,31 +97,37 @@ class SetResidentialWindowArea < OpenStudio::Ruleset::ModelUserScript
             if win_removed
                 runner.registerInfo("Removed fixed window(s) from #{surface.name}.")
             end
-            facade = Geometry.get_facade_from_surface_azimuth(surface.azimuth, model)
+            facade = Geometry.get_facade_for_surface(surface)
+            next if facade.nil?
             surfaces[facade] << surface
         end
     end
     
     # error checking
     if wwr[Constants.FacadeFront] < 0 or wwr[Constants.FacadeFront] >= 1
-      runner.registerError("Front Window-to-Wall Ratio must be greater than or equal to 0 and less than 1.")
+      runner.registerError("Front window-to-wall ratio must be greater than or equal to 0 and less than 1.")
       return false
     end
     if wwr[Constants.FacadeBack] < 0 or wwr[Constants.FacadeBack] >= 1
-      runner.registerError("Back Window-to-Wall Ratio must be greater than or equal to 0 and less than 1.")
+      runner.registerError("Back window-to-wall ratio must be greater than or equal to 0 and less than 1.")
       return false
     end
     if wwr[Constants.FacadeLeft] < 0 or wwr[Constants.FacadeLeft] >= 1
-      runner.registerError("Left Window-to-Wall Ratio must be greater than or equal to 0 and less than 1.")
+      runner.registerError("Left window-to-wall ratio must be greater than or equal to 0 and less than 1.")
       return false
     end
     if wwr[Constants.FacadeRight] < 0 or wwr[Constants.FacadeRight] >= 1
-      runner.registerError("Right Window-to-Wall Ratio must be greater than or equal to 0 and less than 1.")
+      runner.registerError("Right window-to-wall ratio must be greater than or equal to 0 and less than 1.")
       return false
     end    
     if aspect_ratio <= 0
       runner.registerError("Window Aspect Ratio must be greater than 0.")
       return false
+    end
+    
+    if wwr[Constants.FacadeFront] == 0 and wwr[Constants.FacadeFront] == 0 and wwr[Constants.FacadeFront] == 0 and wwr[Constants.FacadeFront] == 0
+      runner.registerFinalCondition("No windows added because all window-to-wall ratios were set to 0.")
+      return true
     end
     
     # Split any surfaces that have doors so that we can ignore them when adding windows
@@ -230,14 +236,18 @@ class SetResidentialWindowArea < OpenStudio::Ruleset::ModelUserScript
     
     end
     
+    tot_win_area = 0
     facades.each do |facade|
         surfaces[facade].each do |surface|
             next if surface_window_area[surface] == 0
             if not add_windows_to_wall(surface, surface_window_area[surface], window_gap_y, window_gap_x, aspect_ratio, max_single_window_area, facade, model, runner)
                 return false
             end
+            tot_win_area += surface_window_area[surface]
         end
     end
+    
+    runner.registerFinalCondition("The building has been assigned #{tot_win_area.round(1)} ft^2 total window area.")
     
     return true
 

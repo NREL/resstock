@@ -100,19 +100,8 @@ class ResidentialHotTubHeaterGas < OpenStudio::Ruleset::ModelUserScript
         return false
     end
 
-    # Will we be setting multiple objects?
-    set_multiple_objects = false
-    if num_units > 1
-        set_multiple_objects = true
-    end
-
-    #hard coded convective, radiative, latent, and lost fractions
-    hth_lat = 0
-    hth_rad = 0
-    hth_conv = 0
-    hth_lost = 1 - hth_lat - hth_rad - hth_conv
-    
     tot_hth_ann_g = 0
+    info_msgs = []
     sch = nil
     (1..num_units).to_a.each do |unit_num|
     
@@ -190,28 +179,26 @@ class ResidentialHotTubHeaterGas < OpenStudio::Ruleset::ModelUserScript
             hth.setSpace(space)
             hth_def.setName(unit_obj_name_g)
             hth_def.setDesignLevel(design_level)
-            hth_def.setFractionRadiant(hth_rad)
-            hth_def.setFractionLatent(hth_lat)
-            hth_def.setFractionLost(hth_lost)
+            hth_def.setFractionRadiant(0)
+            hth_def.setFractionLatent(0)
+            hth_def.setFractionLost(1)
             sch.setSchedule(hth)
             
-            if set_multiple_objects
-                # Report each assignment plus final condition
-                runner.registerInfo("A hot tub heater with #{hth_ann_g.round} therms annual energy consumption has been assigned to outside.")
-            end
+            info_msgs << "A hot tub heater with #{hth_ann_g.round} therms annual energy consumption has been assigned to outside."
             
             tot_hth_ann_g += hth_ann_g
         end
         
     end
-	
-    #reporting final condition of model
-    if tot_hth_ann_g > 0
-        if set_multiple_objects
-            runner.registerFinalCondition("The building has been assigned hot tub heaters totaling #{tot_hth_ann_g.round} therms annual energy consumption across #{num_units} units.")
-        else
-            runner.registerFinalCondition("A hot tub heater with #{tot_hth_ann_g.round} therms annual energy consumption has been assigned to outside.")
+    
+    # Reporting
+    if info_msgs.size > 1
+        info_msgs.each do |info_msg|
+            runner.registerInfo(info_msg)
         end
+        runner.registerFinalCondition("The building has been assigned hot tub heaters totaling #{tot_hth_ann_g.round} therms annual energy consumption across #{num_units} units.")
+    elsif info_msgs.size == 1
+        runner.registerFinalCondition(info_msgs[0])
     else
         runner.registerFinalCondition("No hot tub heater has been assigned.")
     end

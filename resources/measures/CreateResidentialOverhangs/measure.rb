@@ -128,15 +128,9 @@ class CreateResidentialOverhangs < OpenStudio::Ruleset::ModelUserScript
         next if not subsurface.subSurfaceType.downcase.include? "window"
         
         windows_found = true
-        facade = Geometry.get_facade_from_surface_azimuth(subsurface.azimuth, model)
-        
-        if facade.nil?
-            next
-        end
-        
-        unless facade_bools_hash["#{facade} Facade"]
-            next
-        end
+        facade = Geometry.get_facade_for_surface(subsurface)
+        next if facade.nil?
+        next if !facade_bools_hash["#{facade} Facade"]
 
         overhang = subsurface.addOverhang(depth, offset)
         overhang.get.setName("#{subsurface.name} - Overhang")

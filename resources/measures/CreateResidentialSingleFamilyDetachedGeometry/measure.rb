@@ -109,12 +109,12 @@ class CreateResidentialSingleFamilyDetachedGeometry < OpenStudio::Ruleset::Model
     foundation_type.setDefaultValue(Constants.SlabSpace)
     args << foundation_type
 
-    #make an argument for foundation height
+    #make an argument for crawlspace height
     foundation_height = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("foundation_height",true)
-    foundation_height.setDisplayName("Foundation Height")
+    foundation_height.setDisplayName("Crawlspace Height")
     foundation_height.setUnits("ft")
-    foundation_height.setDescription("The height of the foundation walls.")
-    foundation_height.setDefaultValue(0.0)
+    foundation_height.setDescription("The height of the crawlspace walls.")
+    foundation_height.setDefaultValue(3.0)
     args << foundation_height
 	
     #make a choice argument for model objects
@@ -190,6 +190,12 @@ class CreateResidentialSingleFamilyDetachedGeometry < OpenStudio::Ruleset::Model
     roof_type = runner.getStringArgumentValue("roof_type",user_arguments)
     roof_pitch = {"1:12"=>1.0/12.0, "2:12"=>2.0/12.0, "3:12"=>3.0/12.0, "4:12"=>4.0/12.0, "5:12"=>5.0/12.0, "6:12"=>6.0/12.0, "7:12"=>7.0/12.0, "8:12"=>8.0/12.0, "9:12"=>9.0/12.0, "10:12"=>10.0/12.0, "11:12"=>11.0/12.0, "12:12"=>12.0/12.0}[runner.getStringArgumentValue("roof_pitch",user_arguments)]
     
+    if foundation_type == Constants.SlabSpace
+      foundation_height = 0.0
+    elsif foundation_type == Constants.UnfinishedBasementSpace or foundation_type == Constants.FinishedBasementSpace
+      foundation_height = 8.0
+    end
+    
     # error checking
     if model.getSpaces.size > 0
       runner.registerError("Starting model is not empty.")
@@ -197,10 +203,6 @@ class CreateResidentialSingleFamilyDetachedGeometry < OpenStudio::Ruleset::Model
     end
     if aspect_ratio < 0
       runner.registerError("Invalid aspect ratio entered.")
-      return false
-    end
-    if ( foundation_type == Constants.FinishedBasementSpace or foundation_type == Constants.UnfinishedBasementSpace ) and (foundation_height - OpenStudio::convert(8.0,"ft","m").get).abs > 0.1
-      runner.registerError("Currently the basement height is restricted to 8 ft.")
       return false
     end
     if foundation_type == Constants.CrawlSpace and ( foundation_height < OpenStudio::convert(1.4,"ft","m").get or foundation_height > OpenStudio::convert(5.1,"ft","m").get )

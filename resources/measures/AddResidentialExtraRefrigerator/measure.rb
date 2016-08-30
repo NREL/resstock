@@ -108,23 +108,11 @@ class ResidentialExtraRefrigerator < OpenStudio::Ruleset::ModelUserScript
         return false
     end
     
-    # Will we be setting multiple objects?
-    set_multiple_objects = false
-    if num_units > 1 and space_r == Constants.Auto
-        set_multiple_objects = true
-    end
-
     #Calculate fridge daily energy use
 	fridge_ann = fridge_E*mult
     
-    #hard coded convective, radiative, latent, and lost fractions
-    fridge_lat = 0
-    fridge_rad = 0
-    fridge_conv = 1
-    fridge_lost = 1 - fridge_lat - fridge_rad - fridge_conv
-    
     tot_fridge_ann = 0
-    last_space = nil
+    info_msgs = []
     sch = nil
     (1..num_units).to_a.each do |unit_num|
     
@@ -180,28 +168,25 @@ class ResidentialExtraRefrigerator < OpenStudio::Ruleset::ModelUserScript
             frg.setSpace(space)
             frg_def.setName(unit_obj_name)
             frg_def.setDesignLevel(design_level)
-            frg_def.setFractionRadiant(fridge_rad)
-            frg_def.setFractionLatent(fridge_lat)
-            frg_def.setFractionLost(fridge_lost)
+            frg_def.setFractionRadiant(0)
+            frg_def.setFractionLatent(0)
+            frg_def.setFractionLost(0)
             sch.setSchedule(frg)
             
-            if set_multiple_objects
-                # Report each assignment plus final condition
-                runner.registerInfo("An extra refrigerator with #{fridge_ann.round} kWhs annual energy consumption has been assigned to space '#{space.name.to_s}'.")
-            end
+            info_msgs << "An extra refrigerator with #{fridge_ann.round} kWhs annual energy consumption has been assigned to space '#{space.name.to_s}'."
             
             tot_fridge_ann += fridge_ann
-            last_space = space
         end
     end
-	
-    #reporting final condition of model
-    if tot_fridge_ann > 0
-        if set_multiple_objects
-            runner.registerFinalCondition("The building has been assigned extra refrigerators totaling #{tot_fridge_ann.round} kWhs annual energy consumption across #{num_units} units.")
-        else
-            runner.registerFinalCondition("An extra refrigerator with #{tot_fridge_ann.round} kWhs annual energy consumption has been assigned to space '#{last_space.name.to_s}'.")
+    
+    # Reporting
+    if info_msgs.size > 1
+        info_msgs.each do |info_msg|
+            runner.registerInfo(info_msg)
         end
+        runner.registerFinalCondition("The building has been assigned extra refrigerators totaling #{tot_fridge_ann.round} kWhs annual energy consumption across #{num_units} units.")
+    elsif info_msgs.size == 1
+        runner.registerFinalCondition(info_msgs[0])
     else
         runner.registerFinalCondition("No extra refrigerator has been assigned.")
     end

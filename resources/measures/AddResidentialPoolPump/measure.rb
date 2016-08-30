@@ -102,19 +102,8 @@ class ResidentialPoolPump < OpenStudio::Ruleset::ModelUserScript
         return false
     end
 
-    # Will we be setting multiple objects?
-    set_multiple_objects = false
-    if num_units > 1
-        set_multiple_objects = true
-    end
-
-    #hard coded convective, radiative, latent, and lost fractions
-    pp_lat = 0
-    pp_rad = 0
-    pp_conv = 0
-    pp_lost = 1 - pp_lat - pp_rad - pp_conv
-    
     tot_pp_ann = 0
+    info_msgs = []
     sch = nil
     (1..num_units).to_a.each do |unit_num|
     
@@ -185,28 +174,26 @@ class ResidentialPoolPump < OpenStudio::Ruleset::ModelUserScript
             pp.setSpace(space)
             pp_def.setName(unit_obj_name)
             pp_def.setDesignLevel(design_level)
-            pp_def.setFractionRadiant(pp_rad)
-            pp_def.setFractionLatent(pp_lat)
-            pp_def.setFractionLost(pp_lost)
+            pp_def.setFractionRadiant(0)
+            pp_def.setFractionLatent(0)
+            pp_def.setFractionLost(1)
             sch.setSchedule(pp)
             
-            if set_multiple_objects
-                # Report each assignment plus final condition
-                runner.registerInfo("A pool pump with #{pp_ann.round} kWhs annual energy consumption has been assigned to outside.")
-            end
+            info_msgs << "A pool pump with #{pp_ann.round} kWhs annual energy consumption has been assigned to outside."
             
             tot_pp_ann += pp_ann
         end
         
     end
-        
-    #reporting final condition of model
-    if tot_pp_ann > 0
-        if set_multiple_objects
-            runner.registerFinalCondition("The building has been assigned pool pumps totaling #{tot_pp_ann.round} kWhs annual energy consumption across #{num_units} units.")
-        else
-            runner.registerFinalCondition("A pool pump with #{tot_pp_ann.round} kWhs annual energy consumption has been assigned to outside.")
+    
+    # Reporting
+    if info_msgs.size > 1
+        info_msgs.each do |info_msg|
+            runner.registerInfo(info_msg)
         end
+        runner.registerFinalCondition("The building has been assigned pool pumps totaling #{tot_pp_ann.round} kWhs annual energy consumption across #{num_units} units.")
+    elsif info_msgs.size == 1
+        runner.registerFinalCondition(info_msgs[0])
     else
         runner.registerFinalCondition("No pool pump has been assigned.")
     end

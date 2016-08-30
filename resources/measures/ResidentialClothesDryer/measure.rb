@@ -153,20 +153,8 @@ class ResidentialClothesDryer < OpenStudio::Ruleset::ModelUserScript
         return false
     end
     
-    # Will we be setting multiple objects?
-    set_multiple_objects = false
-    if num_units > 1 and space_r == Constants.Auto
-        set_multiple_objects = true
-    end
-
-    #hard coded convective, radiative, latent, and lost fractions
-	cd_lat_e = 0.05
-	cd_rad_e = 0.09
-	cd_conv_e = 0.06
-	cd_lost_e = 1 - cd_lat_e - cd_rad_e - cd_conv_e
-    
     tot_cd_ann_e = 0
-    last_space = nil
+    info_msgs = []
     sch = nil
     (1..num_units).to_a.each do |unit_num|
     
@@ -282,29 +270,26 @@ class ResidentialClothesDryer < OpenStudio::Ruleset::ModelUserScript
             cd.setSpace(space)
             cd_def.setName(unit_obj_name_e)
             cd_def.setDesignLevel(design_level_e)
-            cd_def.setFractionRadiant(cd_rad_e)
-            cd_def.setFractionLatent(cd_lat_e)
-            cd_def.setFractionLost(cd_lost_e)
+            cd_def.setFractionRadiant(0.09)
+            cd_def.setFractionLatent(0.05)
+            cd_def.setFractionLost(0.8)
             sch.setSchedule(cd)
             
-            if set_multiple_objects
-                # Report each assignment plus final condition
-                runner.registerInfo("A clothes dryer with #{cd_ann_e.round} kWhs annual energy consumption has been assigned to space '#{space.name.to_s}'.")
-            end
+            info_msgs << "A clothes dryer with #{cd_ann_e.round} kWhs annual energy consumption has been assigned to space '#{space.name.to_s}'."
             
             tot_cd_ann_e += cd_ann_e
-            last_space = space
         end
         
     end
-	
-    #reporting final condition of model
-    if tot_cd_ann_e > 0
-        if set_multiple_objects
-            runner.registerFinalCondition("The building has been assigned clothes dryers totaling #{tot_cd_ann_e.round} kWhs annual energy consumption across #{num_units} units.")
-        else
-            runner.registerFinalCondition("A clothes dryer with #{tot_cd_ann_e.round} kWhs annual energy consumption has been assigned to space '#{last_space.name.to_s}'.")
+    
+    # Reporting
+    if info_msgs.size > 1
+        info_msgs.each do |info_msg|
+            runner.registerInfo(info_msg)
         end
+        runner.registerFinalCondition("The building has been assigned clothes dryers totaling #{tot_cd_ann_e.round} kWhs annual energy consumption across #{num_units} units.")
+    elsif info_msgs.size == 1
+        runner.registerFinalCondition(info_msgs[0])
     else
         runner.registerFinalCondition("No clothes dryer has been assigned.")
     end

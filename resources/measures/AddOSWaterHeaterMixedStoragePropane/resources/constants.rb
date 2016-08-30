@@ -450,14 +450,26 @@ class Constants
     end
     return "residential hot tub pump#{s_unit}"
   end
-  def self.ObjectNameLighting
-    return 'residential lighting'
+  def self.ObjectNameLighting(unit=1)
+    s_unit = ""
+    if unit > 1
+      s_unit = "|unit #{unit}"
+    end
+    return "residential lighting#{s_unit}"
   end
-  def self.ObjectNameMiscPlugLoads
-    return 'residential misc plug loads'
+  def self.ObjectNameMiscPlugLoads(unit=1)
+    s_unit = ""
+    if unit > 1
+      s_unit = "|unit #{unit}"
+    end
+    return "residential misc plug loads#{s_unit}"
   end
-  def self.ObjectNameOccupants
-    return 'residential occupants'
+  def self.ObjectNameOccupants(unit=1)
+    s_unit = ""
+    if unit > 1
+      s_unit = "|unit #{unit}"
+    end
+    return "residential occupants#{s_unit}"
   end
   def self.ObjectNamePoolHeater(fueltype, unit=1)
     s_unit = ""

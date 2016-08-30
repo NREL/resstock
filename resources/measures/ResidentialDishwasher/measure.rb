@@ -208,12 +208,6 @@ class ResidentialDishwasher < OpenStudio::Ruleset::ModelUserScript
         return false
     end
     
-	#hard coded convective, radiative, latent, and lost fractions for dishwashers
-    dw_lat = 0.15
-    dw_rad = 0.36
-    dw_conv = 0.24
-    dw_lost = 1 - dw_lat - dw_rad - dw_conv
-	
 	# The water used in dishwashers must be heated, either internally or
 	# externally, to at least 140 degF for proper operation (dissolving of
 	# detergent, cleaning of dishes).
@@ -419,9 +413,9 @@ class ResidentialDishwasher < OpenStudio::Ruleset::ModelUserScript
         dw.setSpace(space)
         dw_def.setName(obj_name)
         dw_def.setDesignLevel(design_level)
-        dw_def.setFractionRadiant(dw_rad)
-        dw_def.setFractionLatent(dw_lat)
-        dw_def.setFractionLost(dw_lost)
+        dw_def.setFractionRadiant(0.36)
+        dw_def.setFractionLatent(0.15)
+        dw_def.setFractionLost(0.25)
         sch.setSchedule(dw)
         
         #Add water use equipment for the dw

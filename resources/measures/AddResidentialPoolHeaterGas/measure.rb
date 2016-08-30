@@ -100,19 +100,8 @@ class ResidentialPoolHeaterGas < OpenStudio::Ruleset::ModelUserScript
         return false
     end
 
-    # Will we be setting multiple objects?
-    set_multiple_objects = false
-    if num_units > 1
-        set_multiple_objects = true
-    end
-
-    #hard coded convective, radiative, latent, and lost fractions
-    ph_lat = 0
-    ph_rad = 0
-    ph_conv = 0
-    ph_lost = 1 - ph_lat - ph_rad - ph_conv
-    
     tot_ph_ann_g = 0
+    info_msgs = []
     sch = nil
     (1..num_units).to_a.each do |unit_num|
     
@@ -190,28 +179,26 @@ class ResidentialPoolHeaterGas < OpenStudio::Ruleset::ModelUserScript
             ph.setSpace(space)
             ph_def.setName(unit_obj_name_g)
             ph_def.setDesignLevel(design_level)
-            ph_def.setFractionRadiant(ph_rad)
-            ph_def.setFractionLatent(ph_lat)
-            ph_def.setFractionLost(ph_lost)
+            ph_def.setFractionRadiant(0)
+            ph_def.setFractionLatent(0)
+            ph_def.setFractionLost(1)
             sch.setSchedule(ph)
             
-            if set_multiple_objects
-                # Report each assignment plus final condition
-                runner.registerInfo("A pool heater with #{ph_ann_g.round} therms annual energy consumption has been assigned to outside.")
-            end
+            info_msgs << "A pool heater with #{ph_ann_g.round} therms annual energy consumption has been assigned to outside."
             
             tot_ph_ann_g += ph_ann_g
         end
         
     end
- 
-    #reporting final condition of model
-    if tot_ph_ann_g > 0
-        if set_multiple_objects
-            runner.registerFinalCondition("The building has been assigned pool heaters totaling #{tot_ph_ann_g.round} therms annual energy consumption across #{num_units} units.")
-        else
-            runner.registerFinalCondition("A pool heater with #{tot_ph_ann_g.round} therms annual energy consumption has been assigned to outside.")
+    
+    # Reporting
+    if info_msgs.size > 1
+        info_msgs.each do |info_msg|
+            runner.registerInfo(info_msg)
         end
+        runner.registerFinalCondition("The building has been assigned pool heaters totaling #{tot_ph_ann_g.round} therms annual energy consumption across #{num_units} units.")
+    elsif info_msgs.size == 1
+        runner.registerFinalCondition(info_msgs[0])
     else
         runner.registerFinalCondition("No pool heater has been assigned.")
     end

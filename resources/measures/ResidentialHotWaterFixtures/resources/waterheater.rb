@@ -13,112 +13,112 @@ class Waterheater
         end
     end
     
-	def self.calc_nom_tankvol(vol, fuel, num_beds, num_baths)
-		#Calculates the volume of a water heater
-		if vol == Constants.Auto
-			#Based on the BA HSP
-			if fuel == Constants.FuelTypeElectric
-			# Source: Table 5 HUD-FHA Minimum Water Heater Capacities for One- and 
-			# Two-Family Living Units (ASHRAE HVAC Applications 2007)
-				if num_baths < 2
-					if num_beds < 2
-						return 20
-					elsif num_beds < 3
-						return 30
-					else
-						return 40
-					end
-				elsif num_baths < 3
-					if num_beds < 3
-						return 40
-					elsif num_beds < 5
-						return 50
-					else
-						return 66
-					end
-				else
-					if num_beds < 4
-						return 50
-					elsif num_beds < 6
-						return 66
-					else
-						return 80
-					end
-				end
-			
-			else # Non-electric tank WHs
-			# Source: 2010 HSP Addendum
-				if num_beds <= 2
-					return 30
-				elsif num_beds == 3
-					if num_baths <= 1.5
-						return 30
-					else
-						return 40
-					end
-				elsif num_beds == 4
-					if num_baths <= 2.5
-						return 40
-					else
-						return 50
-					end
-				else
-					return 50
-				end
-			end
-		else #user entered volume
-			return vol.to_f
-		end
-	end
+    def self.calc_nom_tankvol(vol, fuel, num_beds, num_baths)
+        #Calculates the volume of a water heater
+        if vol == Constants.Auto
+            #Based on the BA HSP
+            if fuel == Constants.FuelTypeElectric
+            # Source: Table 5 HUD-FHA Minimum Water Heater Capacities for One- and 
+            # Two-Family Living Units (ASHRAE HVAC Applications 2007)
+                if num_baths < 2
+                    if num_beds < 2
+                        return 20
+                    elsif num_beds < 3
+                        return 30
+                    else
+                        return 40
+                    end
+                elsif num_baths < 3
+                    if num_beds < 3
+                        return 40
+                    elsif num_beds < 5
+                        return 50
+                    else
+                        return 66
+                    end
+                else
+                    if num_beds < 4
+                        return 50
+                    elsif num_beds < 6
+                        return 66
+                    else
+                        return 80
+                    end
+                end
+            
+            else # Non-electric tank WHs
+            # Source: 2010 HSP Addendum
+                if num_beds <= 2
+                    return 30
+                elsif num_beds == 3
+                    if num_baths <= 1.5
+                        return 30
+                    else
+                        return 40
+                    end
+                elsif num_beds == 4
+                    if num_baths <= 2.5
+                        return 40
+                    else
+                        return 50
+                    end
+                else
+                    return 50
+                end
+            end
+        else #user entered volume
+            return vol.to_f
+        end
+    end
 
     def self.calc_capacity(cap, fuel, num_beds, num_baths)
     #Calculate the capacity of the water heater based on the fuel type and number of bedrooms and bathrooms in a home
     #returns the capacity in kBtu/hr
-		if cap == Constants.Auto
-			if fuel != Constants.FuelTypeElectric
-				if num_beds <= 3
-					input_power = 36
-				elsif num_beds == 4
-					if num_baths <= 2.5
-						input_power = 36
-					else
-						input_power = 38
-					end
-				elsif num_beds == 5
-					input_power = 47
-				else
-					input_power = 50
-				end
-				return input_power
-			
-			else
-				if num_beds == 1
-					input_power = 2.5
-				elsif num_beds == 2
-					if num_baths <= 1.5
-						input_power = 3.5
-					else
-						input_power = 4.5
-					end
-				elsif num_beds == 3
-					if num_baths <= 1.5
-						input_power = 4.5
-					else
-						input_power = 5.5
-					end
-				else
-					input_power = 5.5
-				end
-				return input power
-			end
-			
-		else #fixed heater size
-			return cap.to_f
-		end
-	end
+        if cap == Constants.Auto
+            if fuel != Constants.FuelTypeElectric
+                if num_beds <= 3
+                    input_power = 36
+                elsif num_beds == 4
+                    if num_baths <= 2.5
+                        input_power = 36
+                    else
+                        input_power = 38
+                    end
+                elsif num_beds == 5
+                    input_power = 47
+                else
+                    input_power = 50
+                end
+                return input_power
+            
+            else
+                if num_beds == 1
+                    input_power = 2.5
+                elsif num_beds == 2
+                    if num_baths <= 1.5
+                        input_power = 3.5
+                    else
+                        input_power = 4.5
+                    end
+                elsif num_beds == 3
+                    if num_baths <= 1.5
+                        input_power = 4.5
+                    else
+                        input_power = 5.5
+                    end
+                else
+                    input_power = 5.5
+                end
+                return input power
+            end
+            
+        else #fixed heater size
+            return cap.to_f
+        end
+    end
 
-	def self.calc_actual_tankvol(vol, fuel, tanktype)
-	#Convert the nominal tank volume to an actual volume
+    def self.calc_actual_tankvol(vol, fuel, tanktype)
+    #Convert the nominal tank volume to an actual volume
         if tanktype == Constants.WaterHeaterTypeTankless
             act_vol = 1 #gal
         else
@@ -128,31 +128,31 @@ class Waterheater
                 act_vol = 0.95 * vol
             end
         end
-		return act_vol
-	end
-	
-	def self.calc_ef(ef, vol, fuel)
-	#Calculate the energy factor as a function of the tank volume and fuel type
-		if ef == Constants.Auto
-			if fuel == Constants.FuelTypePropane or fuel == Constants.FuelTypeGas
-				return 0.67 - (0.0019 * vol)
-			elsif fuel == Constants.FuelTypeElectric
-				return 0.97 - (0.00132 * vol)
-			else
-				return 0.59 - (0.0019 * vol)
-			end
-		else #user input energy factor
-			return ef.to_f
-		end
-	end
+        return act_vol
+    end
+    
+    def self.calc_ef(ef, vol, fuel)
+    #Calculate the energy factor as a function of the tank volume and fuel type
+        if ef == Constants.Auto
+            if fuel == Constants.FuelTypePropane or fuel == Constants.FuelTypeGas
+                return 0.67 - (0.0019 * vol)
+            elsif fuel == Constants.FuelTypeElectric
+                return 0.97 - (0.00132 * vol)
+            else
+                return 0.59 - (0.0019 * vol)
+            end
+        else #user input energy factor
+            return ef.to_f
+        end
+    end
 
-	def self.calc_tank_UA(vol, fuel, ef, re, pow, tanktype, cyc_derate)
-	#Calculates the U value, UA of the tank and conversion efficiency (eta_c)
-	#based on the Energy Factor and recovery efficiency of the tank
-	#Source: Burch and Erickson 2004 - http://www.nrel.gov/docs/gen/fy04/36035.pdf
+    def self.calc_tank_UA(vol, fuel, ef, re, pow, tanktype, cyc_derate)
+    #Calculates the U value, UA of the tank and conversion efficiency (eta_c)
+    #based on the Energy Factor and recovery efficiency of the tank
+    #Source: Burch and Erickson 2004 - http://www.nrel.gov/docs/gen/fy04/36035.pdf
         if tanktype == Constants.WaterHeaterTypeTankless
             eta_c = ef * (1 - cyc_derate)
-		    ua = 0
+            ua = 0
             surface_area = 1
         else
             pi = Math::PI
@@ -175,63 +175,69 @@ class Waterheater
                 ua = q_load * (1 / ef - 1) / ((t - t_env) * 24)
                 eta_c = 1.0
             end
-		end
-		u = ua / surface_area #Btu/hr-ft^2-F
-		return u, ua, eta_c
-	end
-	
-	def self.create_new_pump(model)
-		#Add a pump to the new DHW loop
-		pump = OpenStudio::Model::PumpConstantSpeed.new(model)
-		pump.setFractionofMotorInefficienciestoFluidStream(0)
-		pump.setMotorEfficiency(1)
-		pump.setRatedPowerConsumption(0)
-		pump.setRatedPumpHead(1)
-		return pump
-	end
-	
-	def self.create_new_schedule_ruleset(name, schedule_name, t_set_c, model)
-		#Create a setpoint schedule for the water heater
-		new_schedule = OpenStudio::Model::ScheduleRuleset.new(model)
-		new_schedule.setName(name)
-		new_schedule.defaultDaySchedule.setName(schedule_name)
-		new_schedule.defaultDaySchedule.addValue(OpenStudio::Time.new("24:00:00"), t_set_c)
-		return new_schedule
-	end
-	
-	def self.create_new_heater(cap, fuel, vol, nbeds, nbaths, ef, re, t_set, loc, oncycle_p, offcycle_p, tanktype, cyc_derate, model, runner)
-	
-		new_heater = OpenStudio::Model::WaterHeaterMixed.new(model)
-		fuel_eplus = HelperMethods.eplus_fuel_map(fuel)
-		capacity = self.calc_capacity(cap, fuel, nbeds, nbaths)
+        end
+        u = ua / surface_area #Btu/hr-ft^2-F
+        return u, ua, eta_c
+    end
+    
+    def self.create_new_pump(model)
+        #Add a pump to the new DHW loop
+        pump = OpenStudio::Model::PumpVariableSpeed.new(model)
+        pump.setRatedFlowRate(0.01)
+        pump.setFractionofMotorInefficienciestoFluidStream(0)
+        pump.setMotorEfficiency(1)
+        pump.setRatedPowerConsumption(0)
+        pump.setRatedPumpHead(1)
+        pump.setCoefficient1ofthePartLoadPerformanceCurve(0)
+        pump.setCoefficient2ofthePartLoadPerformanceCurve(1)
+        pump.setCoefficient3ofthePartLoadPerformanceCurve(0)
+        pump.setCoefficient4ofthePartLoadPerformanceCurve(0)
+        pump.setPumpControlType("Intermittent")
+        return pump
+    end
+    
+    def self.create_new_schedule_ruleset(name, schedule_name, t_set_c, model)
+        #Create a setpoint schedule for the water heater
+        new_schedule = OpenStudio::Model::ScheduleRuleset.new(model)
+        new_schedule.setName(name)
+        new_schedule.defaultDaySchedule.setName(schedule_name)
+        new_schedule.defaultDaySchedule.addValue(OpenStudio::Time.new("24:00:00"), t_set_c)
+        return new_schedule
+    end
+    
+    def self.create_new_heater(cap, fuel, vol, nbeds, nbaths, ef, re, t_set, loc, oncycle_p, offcycle_p, tanktype, cyc_derate, model, runner)
+    
+        new_heater = OpenStudio::Model::WaterHeaterMixed.new(model)
+        fuel_eplus = HelperMethods.eplus_fuel_map(fuel)
+        capacity = self.calc_capacity(cap, fuel, nbeds, nbaths)
         if fuel != Constants.FuelTypeElectric
             capacity_w = OpenStudio::convert(capacity,"kBtu/hr","W").get
         else
             capacity_w = OpenStudio::convert(capacity,"kW","W").get
         end
-		nom_vol = self.calc_nom_tankvol(vol, fuel, nbeds, nbaths)
-		act_vol = self.calc_actual_tankvol(nom_vol, fuel, tanktype)
-		energy_factor = self.calc_ef(ef, nom_vol, fuel)
-		u, ua, eta_c = self.calc_tank_UA(act_vol, fuel, energy_factor, re, capacity, tanktype, cyc_derate)
-		self.configure_setpoint_schedule(new_heater, t_set, tanktype, model, runner)
-		new_heater.setMaximumTemperatureLimit(99.0)
+        nom_vol = self.calc_nom_tankvol(vol, fuel, nbeds, nbaths)
+        act_vol = self.calc_actual_tankvol(nom_vol, fuel, tanktype)
+        energy_factor = self.calc_ef(ef, nom_vol, fuel)
+        u, ua, eta_c = self.calc_tank_UA(act_vol, fuel, energy_factor, re, capacity, tanktype, cyc_derate)
+        self.configure_setpoint_schedule(new_heater, t_set, tanktype, model, runner)
+        new_heater.setMaximumTemperatureLimit(99.0)
         if tanktype == Constants.WaterHeaterTypeTankless
             new_heater.setHeaterControlType("Modulate")
             new_heater.setDeadbandTemperatureDifference(self.deadband(tanktype))
         else
             new_heater.setHeaterControlType("Cycle")
             new_heater.setDeadbandTemperatureDifference(self.deadband(tanktype))
-		end
+        end
         
-		vol_m3 = OpenStudio::convert(act_vol, "gal", "m^3").get
-		new_heater.setHeaterMinimumCapacity(0.0)
-		new_heater.setHeaterMaximumCapacity(capacity_w)
-		new_heater.setHeaterFuelType(fuel_eplus)
-		new_heater.setHeaterThermalEfficiency(eta_c)
-		new_heater.setAmbientTemperatureIndicator("ThermalZone")
-		new_heater.setTankVolume(vol_m3)
-		
-		#Set parasitic power consumption
+        vol_m3 = OpenStudio::convert(act_vol, "gal", "m^3").get
+        new_heater.setHeaterMinimumCapacity(0.0)
+        new_heater.setHeaterMaximumCapacity(capacity_w)
+        new_heater.setHeaterFuelType(fuel_eplus)
+        new_heater.setHeaterThermalEfficiency(eta_c)
+        new_heater.setAmbientTemperatureIndicator("ThermalZone")
+        new_heater.setTankVolume(vol_m3)
+        
+        #Set parasitic power consumption
         if tanktype == Constants.WaterHeaterTypeTankless 
             if fuel == Constants.FuelTypeGas
                 #TODO: Different fractions if the home only has certain appliances (say no dishwasher or cw)
@@ -257,9 +263,9 @@ class Waterheater
             new_heater.setOffCycleParasiticFuelType("Electricity")
             new_heater.setOffCycleParasiticHeatFractiontoTank(0)
         end
-		
-		#Set fraction of heat loss from tank to ambient (vs out flue)
-		#Based on lab testing done by LBNL
+        
+        #Set fraction of heat loss from tank to ambient (vs out flue)
+        #Based on lab testing done by LBNL
         if tanktype == Constants.WaterHeaterTypeTankless
             skinlossfrac = 1.0
         else
@@ -275,43 +281,43 @@ class Waterheater
                 skinlossfrac = 1.0
             end
         end
-		new_heater.setOffCycleLossFractiontoThermalZone(skinlossfrac)
-		new_heater.setOnCycleLossFractiontoThermalZone(1.0)
+        new_heater.setOffCycleLossFractiontoThermalZone(skinlossfrac)
+        new_heater.setOnCycleLossFractiontoThermalZone(1.0)
 
-		thermal_zone = model.getThermalZones.find{|tz| tz.name.get == loc.to_s}
-		new_heater.setAmbientTemperatureThermalZone(thermal_zone)
-		ua_w_k = OpenStudio::convert(ua, "Btu/hr*R", "W/K").get
-		new_heater.setOnCycleLossCoefficienttoAmbientTemperature(ua_w_k)
-		new_heater.setOffCycleLossCoefficienttoAmbientTemperature(ua_w_k)
-		
-		return new_heater
-	end 
+        thermal_zone = model.getThermalZones.find{|tz| tz.name.get == loc.to_s}
+        new_heater.setAmbientTemperatureThermalZone(thermal_zone)
+        ua_w_k = OpenStudio::convert(ua, "Btu/hr*R", "W/K").get
+        new_heater.setOnCycleLossCoefficienttoAmbientTemperature(ua_w_k)
+        new_heater.setOffCycleLossCoefficienttoAmbientTemperature(ua_w_k)
+        
+        return new_heater
+    end 
   
     def self.configure_setpoint_schedule(new_heater, t_set, tanktype, model, runner)
         set_temp_c = OpenStudio::convert(t_set,"F","C").get + self.deadband(tanktype)/2.0 #Half the deadband to account for E+ deadband
         new_schedule = self.create_new_schedule_ruleset("DHW Set Temp", "DHW Set Temp", set_temp_c, model)
-		new_heater.setSetpointTemperatureSchedule(new_schedule)
-		runner.registerInfo("A schedule named DHW Set Temp was created and applied to the gas water heater, using a constant temperature of #{t_set.to_s} F for generating domestic hot water.")
-	end
-	
-	def self.create_new_loop(model)
-		#Create a new plant loop for the water heater
-		loop = OpenStudio::Model::PlantLoop.new(model)
-		loop.setName("Domestic Hot Water Loop")
-		loop.sizingPlant.setDesignLoopExitTemperature(60)
-		loop.sizingPlant.setLoopDesignTemperatureDifference(50)
-        loop.setPlantLoopVolume(0.003) #~1 gal
-			
-		bypass_pipe  = OpenStudio::Model::PipeAdiabatic.new(model)
-		out_pipe = OpenStudio::Model::PipeAdiabatic.new(model)
-		
-		loop.addSupplyBranchForComponent(bypass_pipe)
-		out_pipe.addToNode(loop.supplyOutletNode)
-		
-		return loop
-	end
+        new_heater.setSetpointTemperatureSchedule(new_schedule)
+        runner.registerInfo("A schedule named DHW Set Temp was created and applied to the gas water heater, using a constant temperature of #{t_set.to_s} F for generating domestic hot water.")
+    end
     
-	def self.get_water_heater_setpoint(model, plant_loop, runner)
+    def self.create_new_loop(model)
+        #Create a new plant loop for the water heater
+        loop = OpenStudio::Model::PlantLoop.new(model)
+        loop.setName("Domestic Hot Water Loop")
+        loop.sizingPlant.setDesignLoopExitTemperature(60)
+        loop.sizingPlant.setLoopDesignTemperatureDifference(50)
+        loop.setPlantLoopVolume(0.003) #~1 gal
+            
+        bypass_pipe  = OpenStudio::Model::PipeAdiabatic.new(model)
+        out_pipe = OpenStudio::Model::PipeAdiabatic.new(model)
+        
+        loop.addSupplyBranchForComponent(bypass_pipe)
+        out_pipe.addToNode(loop.supplyOutletNode)
+        
+        return loop
+    end
+    
+    def self.get_water_heater_setpoint(model, plant_loop, runner)
         waterHeater = nil
         plant_loop.supplyComponents.each do |wh|
             if wh.to_WaterHeaterMixed.is_initialized

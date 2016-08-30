@@ -719,19 +719,18 @@ class Geometry
         return spaces
     end
     
-    def self.get_facade_from_surface_azimuth(azimuth, model)
-        building_orientation = model.getBuilding.northAxis.round
-        surf_azimuth = OpenStudio::Quantity.new(azimuth, OpenStudio::createSIAngle)
-        surf_orientation = (OpenStudio.convert(surf_azimuth, OpenStudio::createIPAngle).get.value + building_orientation).round
+    def self.get_facade_for_surface(surface)
+        tol = 0.001
+        n = surface.outwardNormal
             
         facade = nil
-        if surf_orientation - 180 == building_orientation
+        if (n.x).abs < tol and (n.y + 1).abs < tol and (n.z).abs < tol
             facade = Constants.FacadeFront
-        elsif surf_orientation - 90 == building_orientation
+        elsif (n.x - 1).abs < tol and (n.y).abs < tol and (n.z).abs < tol
             facade = Constants.FacadeRight
-        elsif surf_orientation - 0 == building_orientation
+        elsif (n.x).abs < tol and (n.y - 1).abs < tol and (n.z).abs < tol
             facade = Constants.FacadeBack
-        elsif surf_orientation - 270 == building_orientation
+        elsif (n.x + 1).abs < tol and (n.y).abs < tol and (n.z).abs < tol
             facade = Constants.FacadeLeft
         end
         return facade
