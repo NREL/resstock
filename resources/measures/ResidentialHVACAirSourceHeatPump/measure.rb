@@ -16,7 +16,7 @@ require "#{File.dirname(__FILE__)}/resources/unit_conversions"
 class ProcessAirSourceHeatPump < OpenStudio::Ruleset::ModelUserScript
 
   class HeatPump
-    def initialize(hpNumberSpeeds, hpCoolingEER, hpCoolingInstalledSEER, hpSupplyFanPowerInstalled, hpSupplyFanPowerRated, hpSHRRated, hpCapacityRatio, hpFanspeedRatioCooling, hpCondenserType, hpCrankcase, hpCrankcaseMaxT, hpEERCapacityDerateFactor, hpHeatingCOP, hpHeatingInstalledHSPF, hpFanspeedRatioHeating, hpMinT, hpCOPCapacityDerateFactor, hpRatedAirFlowRateCooling, hpRatedAirFlowRateHeating)
+    def initialize(hpNumberSpeeds, hpCoolingEER, hpCoolingInstalledSEER, hpSupplyFanPowerInstalled, hpSupplyFanPowerRated, hpSHRRated, hpCapacityRatio, hpFanspeedRatioCooling, hpCrankcase, hpCrankcaseMaxT, hpEERCapacityDerateFactor, hpHeatingCOP, hpHeatingInstalledHSPF, hpFanspeedRatioHeating, hpMinT, hpCOPCapacityDerateFactor, hpRatedAirFlowRateCooling, hpRatedAirFlowRateHeating)
       @hpNumberSpeeds = hpNumberSpeeds
       @hpCoolingEER = hpCoolingEER
       @hpCoolingInstalledSEER = hpCoolingInstalledSEER
@@ -25,7 +25,6 @@ class ProcessAirSourceHeatPump < OpenStudio::Ruleset::ModelUserScript
       @hpSHRRated = hpSHRRated
       @hpCapacityRatio = hpCapacityRatio
       @hpFanspeedRatioCooling = hpFanspeedRatioCooling
-      @hpCondenserType = hpCondenserType
       @hpCrankcase = hpCrankcase
       @hpCrankcaseMaxT = hpCrankcaseMaxT
       @hpEERCapacityDerateFactor = hpEERCapacityDerateFactor
@@ -68,10 +67,6 @@ class ProcessAirSourceHeatPump < OpenStudio::Ruleset::ModelUserScript
 
     def HPFanspeedRatioCooling
       return @hpFanspeedRatioCooling
-    end
-
-    def HPCondenserType
-      return @hpCondenserType
     end
 
     def HPCrankcase
@@ -251,13 +246,6 @@ class ProcessAirSourceHeatPump < OpenStudio::Ruleset::ModelUserScript
     ashpSupplyFanPowerInstalled.setDefaultValue(0.5)
     args << ashpSupplyFanPowerInstalled    
     
-    #make a double argument for ashp condenser type
-    ashpCondenserType = OpenStudio::Ruleset::OSArgument::makeStringArgument("ashpCondenserType", true)
-    ashpCondenserType.setDisplayName("Condenser Type")
-    ashpCondenserType.setDescription("For evaporatively cooled units, the performance curves are a function of outdoor wetbulb (not drybulb) and entering wetbulb.")
-    ashpCondenserType.setDefaultValue("aircooled")
-    args << ashpCondenserType    
-  
     #make a double argument for ashp min t
     ashpMinTemp = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("ashpMinTemp", true)
     ashpMinTemp.setDisplayName("Min Temp")
@@ -410,7 +398,6 @@ class ProcessAirSourceHeatPump < OpenStudio::Ruleset::ModelUserScript
     hpFanspeedRatioHeating = runner.getStringArgumentValue("ashpFanspeedRatioHeating",user_arguments).split(",").map {|i| i.to_f}
     hpSupplyFanPowerRated = runner.getDoubleArgumentValue("ashpSupplyFanPowerRated",user_arguments)
     hpSupplyFanPowerInstalled = runner.getDoubleArgumentValue("ashpSupplyFanPowerInstalled",user_arguments)
-    hpCondenserType = runner.getStringArgumentValue("ashpCondenserType",user_arguments)
     hpMinT = runner.getDoubleArgumentValue("ashpMinTemp",user_arguments)
     hpCrankcase = runner.getDoubleArgumentValue("ashpCrankcase",user_arguments)
     hpCrankcaseMaxT = runner.getDoubleArgumentValue("ashpCrankcaseMaxT",user_arguments)
@@ -448,7 +435,7 @@ class ProcessAirSourceHeatPump < OpenStudio::Ruleset::ModelUserScript
     
     # Create the material class instances
     air_conditioner = AirConditioner.new(nil)
-    heat_pump = HeatPump.new(hpNumberSpeeds, hpCoolingEER, hpCoolingInstalledSEER, hpSupplyFanPowerInstalled, hpSupplyFanPowerRated, hpSHRRated, hpCapacityRatio, hpFanspeedRatioCooling, hpCondenserType, hpCrankcase, hpCrankcaseMaxT, hpEERCapacityDerateFactor, hpHeatingCOP, hpHeatingInstalledHSPF, hpFanspeedRatioHeating, hpMinT, hpCOPCapacityDerateFactor, hpRatedAirFlowRateCooling, hpRatedAirFlowRateHeating)
+    heat_pump = HeatPump.new(hpNumberSpeeds, hpCoolingEER, hpCoolingInstalledSEER, hpSupplyFanPowerInstalled, hpSupplyFanPowerRated, hpSHRRated, hpCapacityRatio, hpFanspeedRatioCooling, hpCrankcase, hpCrankcaseMaxT, hpEERCapacityDerateFactor, hpHeatingCOP, hpHeatingInstalledHSPF, hpFanspeedRatioHeating, hpMinT, hpCOPCapacityDerateFactor, hpRatedAirFlowRateCooling, hpRatedAirFlowRateHeating)
     supply = Supply.new
 
     # _processAirSystem
@@ -470,7 +457,7 @@ class ProcessAirSourceHeatPump < OpenStudio::Ruleset::ModelUserScript
     # Cooling Coil
     supply = HVAC.get_cooling_coefficients(runner, heat_pump.HPNumberSpeeds, false, true, supply)
     supply.CFM_TON_Rated = HVAC.calc_cfm_ton_rated(heat_pump.HPRatedAirFlowRateCooling, heat_pump.HPFanspeedRatioCooling, heat_pump.HPCapacityRatio)
-    supply = HVAC._processAirSystemCoolingCoil(runner, heat_pump.HPNumberSpeeds, heat_pump.HPCoolingEER, heat_pump.HPCoolingInstalledSEER, heat_pump.HPSupplyFanPowerInstalled, heat_pump.HPSupplyFanPowerRated, heat_pump.HPSHRRated, heat_pump.HPCapacityRatio, heat_pump.HPFanspeedRatioCooling, heat_pump.HPCondenserType, heat_pump.HPCrankcase, heat_pump.HPCrankcaseMaxT, heat_pump.HPEERCapacityDerateFactor, air_conditioner, supply, true)
+    supply = HVAC._processAirSystemCoolingCoil(runner, heat_pump.HPNumberSpeeds, heat_pump.HPCoolingEER, heat_pump.HPCoolingInstalledSEER, heat_pump.HPSupplyFanPowerInstalled, heat_pump.HPSupplyFanPowerRated, heat_pump.HPSHRRated, heat_pump.HPCapacityRatio, heat_pump.HPFanspeedRatioCooling, Constants.CondenserTypeAir, heat_pump.HPCrankcase, heat_pump.HPCrankcaseMaxT, heat_pump.HPEERCapacityDerateFactor, air_conditioner, supply, true)
 
     # Heating Coil
     has_cchp = hpIsColdClimate
@@ -610,14 +597,7 @@ class ProcessAirSourceHeatPump < OpenStudio::Ruleset::ModelUserScript
             clg_coil.setLatentCapacityTimeConstant(OpenStudio::OptionalDouble.new(45.0))
           end
 
-          if supply.CondenserType == Constants.CondenserTypeAir
-            clg_coil.setCondenserType("AirCooled")
-          else
-            clg_coil.setCondenserType("EvaporativelyCooled")
-            clg_coil.setEvaporativeCondenserEffectiveness(OpenStudio::OptionalDouble.new(1))
-            clg_coil.setEvaporativeCondenserAirFlowRate(OpenStudio::OptionalDouble.new(OpenStudio::convert(850.0,"cfm","m^3/s").get * hpOutputCapacity))
-            clg_coil.setEvaporativeCondenserPumpRatedPowerConsumption(OpenStudio::OptionalDouble.new(0))
-          end
+          clg_coil.setCondenserType(supply.CondenserType)
 
         else
 

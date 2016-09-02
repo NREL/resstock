@@ -176,16 +176,16 @@ class CreateResidentialSingleFamilyDetachedGeometry < OpenStudio::Ruleset::Model
       return false
     end
 
-    total_ffa = OpenStudio.convert(runner.getDoubleArgumentValue("total_ffa",user_arguments),"ft^2","m^2").get
-    living_height = OpenStudio.convert(runner.getDoubleArgumentValue("living_height",user_arguments),"ft","m").get
+    total_ffa = runner.getDoubleArgumentValue("total_ffa",user_arguments)
+    living_height = runner.getDoubleArgumentValue("living_height",user_arguments)
     num_floors = runner.getIntegerArgumentValue("num_floors",user_arguments)
     aspect_ratio = runner.getDoubleArgumentValue("aspect_ratio",user_arguments)
-    garage_width = OpenStudio::convert(runner.getDoubleArgumentValue("garage_width",user_arguments),"ft","m").get
-    garage_depth = OpenStudio::convert(runner.getDoubleArgumentValue("garage_depth",user_arguments),"ft","m").get
+    garage_width = runner.getDoubleArgumentValue("garage_width",user_arguments)
+    garage_depth = runner.getDoubleArgumentValue("garage_depth",user_arguments)
     garage_protrusion = runner.getDoubleArgumentValue("garage_protrusion",user_arguments)
     garage_pos = runner.getStringArgumentValue("garage_pos",user_arguments)
     foundation_type = runner.getStringArgumentValue("foundation_type",user_arguments)
-    foundation_height = OpenStudio.convert(runner.getDoubleArgumentValue("foundation_height",user_arguments),"ft","m").get
+    foundation_height = runner.getDoubleArgumentValue("foundation_height",user_arguments)
     attic_type = runner.getStringArgumentValue("attic_type",user_arguments)
     roof_type = runner.getStringArgumentValue("roof_type",user_arguments)
     roof_pitch = {"1:12"=>1.0/12.0, "2:12"=>2.0/12.0, "3:12"=>3.0/12.0, "4:12"=>4.0/12.0, "5:12"=>5.0/12.0, "6:12"=>6.0/12.0, "7:12"=>7.0/12.0, "8:12"=>8.0/12.0, "9:12"=>9.0/12.0, "10:12"=>10.0/12.0, "11:12"=>11.0/12.0, "12:12"=>12.0/12.0}[runner.getStringArgumentValue("roof_pitch",user_arguments)]
@@ -205,11 +205,11 @@ class CreateResidentialSingleFamilyDetachedGeometry < OpenStudio::Ruleset::Model
       runner.registerError("Invalid aspect ratio entered.")
       return false
     end
-    if foundation_type == Constants.CrawlSpace and ( foundation_height < OpenStudio::convert(1.4,"ft","m").get or foundation_height > OpenStudio::convert(5.1,"ft","m").get )
+    if foundation_type == Constants.CrawlSpace and ( foundation_height < 1.5 or foundation_height > 5.0 )
       runner.registerError("The crawlspace height can be set between 1.5 and 5 ft.")
       return false
     end
-    if foundation_type == Constants.PierBeamSpace and ( foundation_height < OpenStudio::convert(0.4,"ft","m").get or foundation_height > OpenStudio::convert(8.1,"ft","m").get )
+    if foundation_type == Constants.PierBeamSpace and ( foundation_height < 0.5 or foundation_height > 8.0 )
       runner.registerError("The pier & beam height can be set between 0.5 and 8 ft.")
       return false
     end
@@ -229,6 +229,13 @@ class CreateResidentialSingleFamilyDetachedGeometry < OpenStudio::Ruleset::Model
       runner.registerError("Cannot handle protruding garage and attic ridge running from front to back.")
       return false
     end
+    
+    # Convert to SI
+    total_ffa = OpenStudio.convert(total_ffa,"ft^2","m^2").get
+    living_height = OpenStudio.convert(living_height,"ft","m").get
+    garage_width = OpenStudio::convert(garage_width,"ft","m").get
+    garage_depth = OpenStudio::convert(garage_depth,"ft","m").get
+    foundation_height = OpenStudio.convert(foundation_height,"ft","m").get
     
     # calculate the footprint of the building
     garage_area = garage_width * garage_depth

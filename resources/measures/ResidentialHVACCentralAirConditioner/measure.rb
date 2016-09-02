@@ -10,7 +10,7 @@ require "#{File.dirname(__FILE__)}/resources/unit_conversions"
 class ProcessCentralAirConditioner < OpenStudio::Ruleset::ModelUserScript
 
   class AirConditioner
-    def initialize(acCoolingInstalledSEER, acNumberSpeeds, acRatedAirFlowRate, acFanspeedRatio, acCapacityRatio, acCoolingEER, acSupplyFanPowerInstalled, acSupplyFanPowerRated, acSHRRated, acCondenserType, acCrankcase, acCrankcaseMaxT, acEERCapacityDerateFactor)
+    def initialize(acCoolingInstalledSEER, acNumberSpeeds, acRatedAirFlowRate, acFanspeedRatio, acCapacityRatio, acCoolingEER, acSupplyFanPowerInstalled, acSupplyFanPowerRated, acSHRRated, acCrankcase, acCrankcaseMaxT, acEERCapacityDerateFactor)
       @acCoolingInstalledSEER = acCoolingInstalledSEER
       @acNumberSpeeds = acNumberSpeeds
       @acRatedAirFlowRate = acRatedAirFlowRate
@@ -20,7 +20,6 @@ class ProcessCentralAirConditioner < OpenStudio::Ruleset::ModelUserScript
       @acSupplyFanPowerInstalled = acSupplyFanPowerInstalled
       @acSupplyFanPowerRated = acSupplyFanPowerRated
       @acSHRRated = acSHRRated
-      @acCondenserType = acCondenserType
       @acCrankcase = acCrankcase
       @acCrankcaseMaxT = acCrankcaseMaxT
       @acEERCapacityDerateFactor = acEERCapacityDerateFactor
@@ -62,10 +61,6 @@ class ProcessCentralAirConditioner < OpenStudio::Ruleset::ModelUserScript
 
     def ACSHRRated
       return @acSHRRated
-    end
-
-    def ACCondenserType
-      return @acCondenserType
     end
 
     def ACCrankcase
@@ -174,13 +169,6 @@ class ProcessCentralAirConditioner < OpenStudio::Ruleset::ModelUserScript
     acSupplyFanPowerInstalled.setDefaultValue(0.5)
     args << acSupplyFanPowerInstalled
     
-    #make a double argument for central ac condenser type
-    acCondenserType = OpenStudio::Ruleset::OSArgument::makeStringArgument("acCondenserType", true)
-    acCondenserType.setDisplayName("Condenser Type")
-    acCondenserType.setDescription("For evaporatively cooled units, the performance curves are a function of outdoor wetbulb (not drybulb) and entering wetbulb.")
-    acCondenserType.setDefaultValue("aircooled")
-    args << acCondenserType    
-  
     #make a double argument for central ac crankcase
     acCrankcase = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("acCrankcase", true)
     acCrankcase.setDisplayName("Crankcase")
@@ -266,7 +254,6 @@ class ProcessCentralAirConditioner < OpenStudio::Ruleset::ModelUserScript
     acFanspeedRatio = runner.getStringArgumentValue("acFanspeedRatio",user_arguments).split(",").map {|i| i.to_f}
     acSupplyFanPowerRated = runner.getDoubleArgumentValue("acSupplyFanPowerRated",user_arguments)
     acSupplyFanPowerInstalled = runner.getDoubleArgumentValue("acSupplyFanPowerInstalled",user_arguments)
-    acCondenserType = runner.getStringArgumentValue("acCondenserType",user_arguments)
     acCrankcase = runner.getDoubleArgumentValue("acCrankcase",user_arguments)
     acCrankcaseMaxT = runner.getDoubleArgumentValue("acCrankcaseMaxT",user_arguments)
     acEERCapacityDerateFactor1ton = runner.getDoubleArgumentValue("acEERCapacityDerateFactor1ton",user_arguments)
@@ -291,7 +278,7 @@ class ProcessCentralAirConditioner < OpenStudio::Ruleset::ModelUserScript
     end   
     
     # Create the material class instances
-    air_conditioner = AirConditioner.new(acCoolingInstalledSEER, acNumberSpeeds, acRatedAirFlowRate, acFanspeedRatio, acCapacityRatio, acCoolingEER, acSupplyFanPowerInstalled, acSupplyFanPowerRated, acSHRRated, acCondenserType, acCrankcase, acCrankcaseMaxT, acEERCapacityDerateFactor)
+    air_conditioner = AirConditioner.new(acCoolingInstalledSEER, acNumberSpeeds, acRatedAirFlowRate, acFanspeedRatio, acCapacityRatio, acCoolingEER, acSupplyFanPowerInstalled, acSupplyFanPowerRated, acSHRRated, acCrankcase, acCrankcaseMaxT, acEERCapacityDerateFactor)
     supply = Supply.new
 
     # _processAirSystem
@@ -317,7 +304,7 @@ class ProcessCentralAirConditioner < OpenStudio::Ruleset::ModelUserScript
       supply = HVAC.get_cooling_coefficients(runner, air_conditioner.ACNumberSpeeds, false, false, supply)
     end
     supply.CFM_TON_Rated = HVAC.calc_cfm_ton_rated(air_conditioner.ACRatedAirFlowRate, air_conditioner.ACFanspeedRatio, air_conditioner.ACCapacityRatio)
-    supply = HVAC._processAirSystemCoolingCoil(runner, air_conditioner.ACNumberSpeeds, air_conditioner.ACCoolingEER, air_conditioner.ACCoolingInstalledSEER, air_conditioner.ACSupplyFanPowerInstalled, air_conditioner.ACSupplyFanPowerRated, air_conditioner.ACSHRRated, air_conditioner.ACCapacityRatio, air_conditioner.ACFanspeedRatio, air_conditioner.ACCondenserType, air_conditioner.ACCrankcase, air_conditioner.ACCrankcaseMaxT, air_conditioner.ACEERCapacityDerateFactor, air_conditioner, supply, false)
+    supply = HVAC._processAirSystemCoolingCoil(runner, air_conditioner.ACNumberSpeeds, air_conditioner.ACCoolingEER, air_conditioner.ACCoolingInstalledSEER, air_conditioner.ACSupplyFanPowerInstalled, air_conditioner.ACSupplyFanPowerRated, air_conditioner.ACSHRRated, air_conditioner.ACCapacityRatio, air_conditioner.ACFanspeedRatio, Constants.CondenserTypeAir, air_conditioner.ACCrankcase, air_conditioner.ACCrankcaseMaxT, air_conditioner.ACEERCapacityDerateFactor, air_conditioner, supply, false)
         
     # Determine if the compressor is multi-speed (in our case 2 speed).
     # If the minimum flow ratio is less than 1, then the fan and
@@ -385,15 +372,7 @@ class ProcessCentralAirConditioner < OpenStudio::Ruleset::ModelUserScript
             clg_coil.setLatentCapacityTimeConstant(OpenStudio::OptionalDouble.new(45.0))
           end
 
-          if supply.CondenserType == Constants.CondenserTypeAir
-            clg_coil.setCondenserType("AirCooled")
-          else
-            clg_coil.setCondenserType("EvaporativelyCooled")
-            clg_coil.setEvaporativeCondenserEffectiveness(OpenStudio::OptionalDouble.new(1))
-            clg_coil.setEvaporativeCondenserAirFlowRate(OpenStudio::OptionalDouble.new(OpenStudio::convert(850.0,"cfm","m^3/s").get * acOutputCapacity))
-            clg_coil.setEvaporativeCondenserPumpRatedPowerConsumption(OpenStudio::OptionalDouble.new(0))
-          end
-
+          clg_coil.setCondenserType(supply.CondenserType)
           clg_coil.setCrankcaseHeaterCapacity(OpenStudio::OptionalDouble.new(OpenStudio::convert(supply.Crankcase,"kW","W").get))
           clg_coil.setMaximumOutdoorDryBulbTemperatureForCrankcaseHeaterOperation(OpenStudio::OptionalDouble.new(OpenStudio::convert(supply.Crankcase_MaxT,"F","C").get))
 

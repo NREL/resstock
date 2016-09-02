@@ -1012,7 +1012,7 @@ class ProcessAirflow < OpenStudio::Ruleset::WorkspaceUserScript
       geometry.num_units = num_units
       living_space.height = Geometry.get_building_height(living_thermal_zone.spaces)
       living_space.area = OpenStudio::convert(living_thermal_zone.floorArea,"m^2","ft^2").get
-      living_space.volume = living_space.height * living_space.area
+      living_space.volume = living_space.height/geometry.stories.to_f * living_space.area
       unless ufattic_thermal_zone.nil?
         unfinished_attic.height = Geometry.get_building_height(ufattic_thermal_zone.spaces)
         unfinished_attic.area = OpenStudio::convert(ufattic_thermal_zone.floorArea,"m^2","ft^2").get
@@ -1559,7 +1559,7 @@ class ProcessAirflow < OpenStudio::Ruleset::WorkspaceUserScript
             GarageInfiltration,                                                         !- Name
             #{garage_thermal_zone_r},                                                   !- Zone Name
             AlwaysOn,                                                                   !- Schedule Name
-            #{OpenStudio::convert(garage.ELA,"ft^2","cm^2").get * 10.0},                !- Effective Air Leakage Area {cm}
+            #{OpenStudio::convert(garage.ELA,"ft^2","cm^2").get},                       !- Effective Air Leakage Area {cm}
             #{0.001672 * garage.C_s_SG},                                                !- Stack Coefficient {(L/s)/(cm^4-K)}
             #{0.01 * garage.C_w_SG};                                                    !- Wind Coefficient {(L/s)/(cm^4-(m/s))}"
         end
@@ -1639,7 +1639,7 @@ class ProcessAirflow < OpenStudio::Ruleset::WorkspaceUserScript
           UAtcInfiltration,                                                             !- Name
           #{ufattic_thermal_zone_r},                                                    !- Zone Name
           AlwaysOn,                                                                     !- Schedule Name
-          #{OpenStudio::convert(ua.ELA,"ft^2","cm^2").get * 10.0},                      !- Effective Air Leakage Area {cm}
+          #{OpenStudio::convert(ua.ELA,"ft^2","cm^2").get},                             !- Effective Air Leakage Area {cm}
           #{0.001672 * ua.C_s_SG},                                                      !- Stack Coefficient {(L/s)/(cm^4-K)}
           #{0.01 * ua.C_w_SG};                                                          !- Wind Coefficient {(L/s)/(cm^4-(m/s))}"
         end
