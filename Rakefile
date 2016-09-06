@@ -20,7 +20,9 @@ task :copy_beopt_files do
   puts "Copying #{empty_osm}..."
   beopt_empty_seed_model = File.join(File.dirname(__FILE__), "..", "OpenStudio-Beopt", "geometries", empty_osm)
   resstock_empty_seed_model = File.join(File.dirname(__FILE__), "seeds", empty_osm)
-  FileUtils.rm(resstock_empty_seed_model)
+  if File.exists?(resstock_empty_seed_model)
+    FileUtils.rm(resstock_empty_seed_model)
+  end
   FileUtils.cp(beopt_empty_seed_model, resstock_empty_seed_model)
   
   puts "Deleting #{resstock_measures_dir}..."
