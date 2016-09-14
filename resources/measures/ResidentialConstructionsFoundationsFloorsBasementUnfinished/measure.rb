@@ -140,7 +140,7 @@ class ProcessConstructionsFoundationsFloorsBasementUnfinished < OpenStudio::Rule
     wall_surfaces = []
     floor_surfaces = []
     ceiling_surfaces = []
-    spaces = Geometry.get_unfinished_basement_spaces(model)
+    spaces = Geometry.get_unfinished_basement_spaces(model.getSpaces)
     spaces.each do |space|
         space.surfaces.each do |surface|
             # Wall between below-grade unfinished space and ground
@@ -220,7 +220,7 @@ class ProcessConstructionsFoundationsFloorsBasementUnfinished < OpenStudio::Rule
     end
     
     # Get geometry values
-    ubFloorArea = Geometry.calculate_floor_area(spaces)
+    ubFloorArea = Geometry.calculate_floor_area_from_spaces(spaces)
     ubExtPerimeter = Geometry.calculate_perimeter(model, floor_surfaces, has_foundation_walls=true)
     ubExtWallArea = ubExtPerimeter * Geometry.spaces_avg_height(spaces)
 

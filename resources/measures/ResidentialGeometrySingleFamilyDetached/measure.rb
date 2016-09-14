@@ -265,8 +265,7 @@ class CreateResidentialSingleFamilyDetachedGeometry < OpenStudio::Ruleset::Model
     end    
 	
     # starting spaces
-    starting_spaces = model.getSpaces
-    runner.registerInitialCondition("The building started with #{starting_spaces.size} spaces.")
+    runner.registerInitialCondition("The building started with #{model.getSpaces.size} spaces.")
 	
     # create living zone
     living_zone = OpenStudio::Model::ThermalZone.new(model)
@@ -630,10 +629,17 @@ class CreateResidentialSingleFamilyDetachedGeometry < OpenStudio::Ruleset::Model
             se_point = s_points[1]
           end
           
-          nw_point = OpenStudio::Point3d.new(nw_point.x, nw_point.y, living_space.zOrigin+nw_point.z)
-          ne_point = OpenStudio::Point3d.new(ne_point.x, ne_point.y, living_space.zOrigin+ne_point.z)
-          sw_point = OpenStudio::Point3d.new(sw_point.x, sw_point.y, living_space.zOrigin+sw_point.z)
-          se_point = OpenStudio::Point3d.new(se_point.x, se_point.y, living_space.zOrigin+se_point.z)
+          if num_floors == 1
+              nw_point = OpenStudio::Point3d.new(nw_point.x, nw_point.y, living_space.zOrigin+nw_point.z)
+              ne_point = OpenStudio::Point3d.new(ne_point.x, ne_point.y, living_space.zOrigin+ne_point.z)
+              sw_point = OpenStudio::Point3d.new(sw_point.x, sw_point.y, living_space.zOrigin+sw_point.z)
+              se_point = OpenStudio::Point3d.new(se_point.x, se_point.y, living_space.zOrigin+se_point.z)
+          else
+              nw_point = OpenStudio::Point3d.new(nw_point.x, nw_point.y, nw_point.z-(living_space.zOrigin/(num_floors-1)))
+              ne_point = OpenStudio::Point3d.new(ne_point.x, ne_point.y, ne_point.z-(living_space.zOrigin/(num_floors-1)))
+              sw_point = OpenStudio::Point3d.new(sw_point.x, sw_point.y, sw_point.z-(living_space.zOrigin/(num_floors-1)))
+              se_point = OpenStudio::Point3d.new(se_point.x, se_point.y, se_point.z-(living_space.zOrigin/(num_floors-1)))
+          end
           
           garage_attic_height = (ne_point.x - nw_point.x)/2 * roof_pitch          
           
@@ -644,8 +650,13 @@ class CreateResidentialSingleFamilyDetachedGeometry < OpenStudio::Ruleset::Model
             runner.registerWarning("The garage pitch was changed to accommodate garage ridge >= house ridge (from #{roof_pitch.round(3)} to #{garage_roof_pitch.round(3)}).")
           end
 
-          roof_n_point = OpenStudio::Point3d.new((nw_point.x + ne_point.x)/2, nw_point.y+garage_attic_height/roof_pitch, living_space.zOrigin+living_height+garage_attic_height)
-          roof_s_point = OpenStudio::Point3d.new((sw_point.x + se_point.x)/2, sw_point.y, living_space.zOrigin+living_height+garage_attic_height)
+          if num_floors == 1
+              roof_n_point = OpenStudio::Point3d.new((nw_point.x + ne_point.x)/2, nw_point.y+garage_attic_height/roof_pitch, living_space.zOrigin+living_height+garage_attic_height)
+              roof_s_point = OpenStudio::Point3d.new((sw_point.x + se_point.x)/2, sw_point.y, living_space.zOrigin+living_height+garage_attic_height)
+          else
+              roof_n_point = OpenStudio::Point3d.new((nw_point.x + ne_point.x)/2, nw_point.y+garage_attic_height/roof_pitch, living_height+garage_attic_height-(living_space.zOrigin/(num_floors-1)))
+              roof_s_point = OpenStudio::Point3d.new((sw_point.x + se_point.x)/2, sw_point.y, living_height+garage_attic_height-(living_space.zOrigin/(num_floors-1)))
+          end
           
           polygon_w_roof = Geometry.make_polygon(nw_point, sw_point, roof_s_point, roof_n_point)
           polygon_e_roof = Geometry.make_polygon(ne_point, roof_n_point, roof_s_point, se_point)
@@ -664,21 +675,23 @@ class CreateResidentialSingleFamilyDetachedGeometry < OpenStudio::Ruleset::Model
           wall_s.setSurfaceType("Wall") 
           wall_s.setOutsideBoundaryCondition("Outdoors")
 
-          garage_attic_space = OpenStudio::Model::Space.new(model)
-          garage_attic_space_name = Constants.GarageAtticSpace
-          garage_attic_space.setName(garage_attic_space_name)
-          if attic_type == Constants.FinishedAtticSpace
-            garage_attic_space.setThermalZone(living_zone)
+          if num_floors == 1
+              garage_attic_space = OpenStudio::Model::Space.new(model)
+              garage_attic_space_name = Constants.GarageAtticSpace
+              garage_attic_space.setName(garage_attic_space_name)
+              garage_attic_space.setThermalZone(garage_zone)
+              deck_w.setSpace(garage_attic_space)
+              deck_e.setSpace(garage_attic_space)
+              wall_n.setSpace(garage_attic_space)
+              wall_s.setSpace(garage_attic_space)
+              runner.registerInfo("Set #{garage_attic_space_name}.")
           else
-            garage_attic_space.setThermalZone(garage_zone)
+              deck_w.setSpace(attic_space)
+              deck_e.setSpace(attic_space)
+              wall_n.setSpace(attic_space)
+              wall_s.setSpace(attic_space)          
           end
-          deck_w.setSpace(garage_attic_space)
-          deck_e.setSpace(garage_attic_space)
-          wall_n.setSpace(garage_attic_space)
-          wall_s.setSpace(garage_attic_space)
-          
-          runner.registerInfo("Set #{garage_attic_space_name}.")
-          
+                    
           surface.remove
           
           break
@@ -713,7 +726,7 @@ class CreateResidentialSingleFamilyDetachedGeometry < OpenStudio::Ruleset::Model
     Geometry.set_unit_beds_baths_spaces(model, 1, model.getSpaces)
   
     # reporting final condition of model
-    runner.registerFinalCondition("The building finished with #{model.getSpaces.size} spaces.")	
+    runner.registerFinalCondition("The building finished with #{model.getSpaces.size} spaces.")
     
     return true
 

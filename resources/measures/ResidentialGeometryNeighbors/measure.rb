@@ -1,6 +1,8 @@
 # see the URL below for information on how to write OpenStudio measures
 # http://nrel.github.io/OpenStudio-user-documentation/measures/measure_writing_guide/
 
+require "#{File.dirname(__FILE__)}/resources/geometry"
+
 # start the measure
 class CreateResidentialNeighbors < OpenStudio::Ruleset::ModelUserScript
 
@@ -54,6 +56,13 @@ class CreateResidentialNeighbors < OpenStudio::Ruleset::ModelUserScript
     front_neighbor_offset.setDescription("The minimum distance between the simulated house and the neighboring house to the front (not including eaves). A value of zero indicates no neighbors.")
     front_neighbor_offset.setDefaultValue(0.0)
     args << front_neighbor_offset
+    
+    #make a bool argument for copying all house surfaces
+    all_surfaces = OpenStudio::Ruleset::OSArgument::makeBoolArgument("all_surfaces", false)
+    all_surfaces.setDisplayName("Copy all surfaces?")
+    all_surfaces.setDescription("Indicates whether to copy all house surfaces (useful for rendering purposes). Otherwise, only the minimal required surfaces are copied (e.g., only the left-most surfaces for the right neighbor) in order to reduce simulation runtime.")
+    all_surfaces.setDefaultValue(false)
+    args << all_surfaces    
 
     return args
   end
@@ -71,6 +80,7 @@ class CreateResidentialNeighbors < OpenStudio::Ruleset::ModelUserScript
     right_neighbor_offset = OpenStudio::convert(runner.getDoubleArgumentValue("right_neighbor_offset",user_arguments),"ft","m").get
     back_neighbor_offset = OpenStudio::convert(runner.getDoubleArgumentValue("back_neighbor_offset",user_arguments),"ft","m").get
     front_neighbor_offset = OpenStudio::convert(runner.getDoubleArgumentValue("front_neighbor_offset",user_arguments),"ft","m").get
+    all_surfaces = runner.getBoolArgumentValue("all_surfaces",user_arguments)
 	
     if left_neighbor_offset < 0 or right_neighbor_offset < 0 or back_neighbor_offset < 0 or front_neighbor_offset < 0
       runner.registerError("Neighbor offsets must be greater than or equal to 0.")
@@ -119,39 +129,55 @@ class CreateResidentialNeighbors < OpenStudio::Ruleset::ModelUserScript
         end
       end
     end
-	
+	    
     # this is maximum building length or width + user specified neighbor offset
-    left_offset = ((greatest_x - least_x) + left_neighbor_offset) # TODO: why does positive x in the transformation result in a neg x translation?
-    right_offset = -((greatest_x - least_x) + right_neighbor_offset) # TODO: why does negative x in the transformation result in a pos x translation?
-    back_offset = -((greatest_y - least_y) + back_neighbor_offset) # TODO: why does negative y in the transformation result in a pos y translation?
-    front_offset = ((greatest_y - least_y) + front_neighbor_offset) # TODO: why does positive y in the transformation result in a neg y translation?
+    left_offset = ((greatest_x - least_x) + left_neighbor_offset)
+    right_offset = -((greatest_x - least_x) + right_neighbor_offset)
+    back_offset = -((greatest_y - least_y) + back_neighbor_offset)
+    front_offset = ((greatest_y - least_y) + front_neighbor_offset)
 			
-    directions = [["Left", left_neighbor_offset, left_offset, 0], ["Right", right_neighbor_offset, right_offset, 0], ["Back", back_neighbor_offset, 0, back_offset], ["Front", front_neighbor_offset, 0, front_offset]]
+    directions = [[Constants.FacadeLeft, left_neighbor_offset, left_offset, 0], [Constants.FacadeRight, right_neighbor_offset, right_offset, 0], [Constants.FacadeBack, back_neighbor_offset, 0, back_offset], [Constants.FacadeFront, front_neighbor_offset, 0, front_offset]]
             
     shading_surface_group = OpenStudio::Model::ShadingSurfaceGroup.new(model)
     model.getSpaces.each do |space|
       directions.each do |dir, neighbor_offset, x_offset, y_offset|
         if neighbor_offset != 0
-          new_space = space.clone.to_Space.get
-          m = OpenStudio::Matrix.new(4,4,0)
-          m[0,0] = 1
-          m[1,1] = 1
-          m[2,2] = 1
-          m[3,3] = 1
-          m[0,3] = x_offset
-          m[1,3] = y_offset
-          new_space.changeTransformation(OpenStudio::Transformation.new(m))
-          runner.registerInfo("Translated space #{space.name} by #{OpenStudio::convert((x_offset+y_offset).abs,"m","ft").get.round(2)} ft to the #{dir} into neighbor space #{new_space.name}.")
-          new_space.surfaces.each do |surface|
-            if surface.outsideBoundaryCondition.downcase == "outdoors"
-              shading_surface = OpenStudio::Model::ShadingSurface.new(surface.vertices, model)
+          space.surfaces.each do |surface|
+              next if surface.outsideBoundaryCondition.downcase != "outdoors" and surface.outsideBoundaryCondition.downcase != "adiabatic"
+              if !all_surfaces
+                if dir == Constants.FacadeLeft
+                    if Geometry.get_facade_for_surface(surface) != Constants.FacadeRight
+                        next
+                    end
+                elsif dir == Constants.FacadeRight
+                    if Geometry.get_facade_for_surface(surface) != Constants.FacadeLeft
+                        next
+                    end                
+                elsif dir == Constants.FacadeFront
+                    if Geometry.get_facade_for_surface(surface) != Constants.FacadeBack
+                        next
+                    end                
+                elsif dir == Constants.FacadeBack
+                    if Geometry.get_facade_for_surface(surface) != Constants.FacadeFront
+                        next
+                    end                
+                end
+              end
+              m = OpenStudio::Matrix.new(4,4,0)
+              m[0,0] = 1
+              m[1,1] = 1
+              m[2,2] = 1
+              m[3,3] = 1
+              m[0,3] = -x_offset
+              m[1,3] = -y_offset
+              m[2,3] = space.zOrigin
+              transformation = OpenStudio::Transformation.new(m)
+              new_vertices = transformation * surface.vertices
+              shading_surface = OpenStudio::Model::ShadingSurface.new(new_vertices, model)
               shading_surface.setName("#{dir} Neighbor")
               shading_surface.setShadingSurfaceGroup(shading_surface_group)
               runner.registerInfo("Created shading surface #{shading_surface.name} from surface #{surface.name}.")				
-            end
-            surface.remove
           end
-          new_space.remove
         end
       end
     end

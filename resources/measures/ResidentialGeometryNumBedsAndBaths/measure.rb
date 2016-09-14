@@ -115,7 +115,6 @@ class AddResidentialBedroomsAndBathrooms < OpenStudio::Ruleset::ModelUserScript
 
       _nbeds, _nbaths, unit_spaces = Geometry.get_unit_beds_baths_spaces(model, unit_num, runner)
       if unit_spaces.nil?
-          runner.registerError("Could not determine the spaces associated with unit #{unit_num}.")
           return false
       end
 

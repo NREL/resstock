@@ -48,7 +48,7 @@ class UnitConversion
     
     def self.lbm_min2kg_s(lbm_min)
         # lbm/min -> kg/s
-        return UnitConversion.lbm_min2kg_hr(lbm_min) / 3600.0
+        return self.lbm_min2kg_hr(lbm_min) / 3600.0
     end
   
 end

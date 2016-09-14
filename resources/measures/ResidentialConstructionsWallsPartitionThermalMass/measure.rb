@@ -186,7 +186,7 @@ class ProcessConstructionsWallsPartitionThermalMass < OpenStudio::Ruleset::Model
     # Constants
     mat_wood = BaseMaterial.Wood
  
-    spaces = Geometry.get_finished_spaces(model)
+    spaces = Geometry.get_finished_spaces(model.getSpaces)
     
     if spaces.size == 0
         runner.registerAsNotApplicable("Measure not applied because no applicable spaces were found.")

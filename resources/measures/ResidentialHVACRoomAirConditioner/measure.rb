@@ -4,6 +4,7 @@
 require "#{File.dirname(__FILE__)}/resources/util"
 require "#{File.dirname(__FILE__)}/resources/constants"
 require "#{File.dirname(__FILE__)}/resources/geometry"
+require "#{File.dirname(__FILE__)}/resources/hvac"
 
 # start the measure
 class ProcessRoomAirConditioner < OpenStudio::Ruleset::ModelUserScript
@@ -169,17 +170,17 @@ class ProcessRoomAirConditioner < OpenStudio::Ruleset::ModelUserScript
     
     (1..num_units).to_a.each do |unit_num|
       _nbeds, _nbaths, unit_spaces = Geometry.get_unit_beds_baths_spaces(model, unit_num, runner)
-      thermal_zones = Geometry.get_thermal_zones_from_unit_spaces(unit_spaces)
+      thermal_zones = Geometry.get_thermal_zones_from_spaces(unit_spaces)
       if thermal_zones.length > 1
         runner.registerInfo("Unit #{unit_num} spans more than one thermal zone.")
       end
-      control_slave_zones_hash = Geometry.get_control_and_slave_zones(thermal_zones)
+      control_slave_zones_hash = HVAC.get_control_and_slave_zones(thermal_zones)
       control_slave_zones_hash.each do |control_zone, slave_zones|
     
         next unless Geometry.zone_is_above_grade(control_zone)
 
         # Remove existing equipment
-        HelperMethods.remove_existing_hvac_equipment(model, runner, "Room Air Conditioner", control_zone)    
+        HVAC.remove_existing_hvac_equipment(model, runner, "Room Air Conditioner", control_zone)    
       
         # _processSystemRoomAC
       

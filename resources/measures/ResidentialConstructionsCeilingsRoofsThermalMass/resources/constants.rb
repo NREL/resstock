@@ -113,14 +113,12 @@ class Constants
   def self.CollectorTypeICS
     return 'ics'
   end
-  def self.CondenserTypeWater
-    return 'watercooled'
-  end
-  def self.CondenserTypeAir
-    return 'aircooled'
-  end
-  def self.CorridorSpace
-    return 'corridor space'
+  def self.CorridorSpace(story=1)
+    s_story = ""
+    if story > 1 or story == 0
+      s_story = "|story #{story}"
+    end
+    return "corridor space#{s_story}"
   end
   def self.CorridorZone
     return 'corridor zone'
@@ -263,7 +261,7 @@ class Constants
   def self.InsulationXPS
     return 'xps'
   end
-  def self.LivingSpace(story, unit=1)
+  def self.LivingSpace(story=1, unit=1)
     s_unit = ""
     s_story = ""
     if unit > 1
@@ -362,8 +360,12 @@ class Constants
   def self.ObjectNameBathDist
     return 'residential bath dist'
   end
-  def self.ObjectNameClothesWasher
-    return 'residential clothes washer'
+  def self.ObjectNameClothesWasher(unit=1)
+    s_unit = ""
+    if unit > 1
+      s_unit = "|unit #{unit}"
+    end
+    return "residential clothes washer#{s_unit}"
   end
   def self.ObjectNameClothesDryer(fueltype, unit=1)
     s_unit = ""
@@ -389,8 +391,12 @@ class Constants
   def self.ObjectNameCoolingSetpoint
     return 'residential cooling setpoint'
   end
-  def self.ObjectNameDishwasher
-    return 'residential dishwasher'
+  def self.ObjectNameDishwasher(unit=1)
+    s_unit = ""
+    if unit > 1
+      s_unit = "|unit #{unit}"
+    end
+    return "residential dishwasher#{s_unit}"
   end
   def self.ObjectNameExtraRefrigerator(unit=1)
     s_unit = ""
@@ -495,14 +501,21 @@ class Constants
   def self.ObjectNameShower
     return 'residential shower'
   end
-    def self.ObjectNameShowerDist
+  def self.ObjectNameShowerDist
     return 'residential shower dist'
   end
   def self.ObjectNameSink
     return 'residential sink'
   end
-      def self.ObjectNameSinkDist
+  def self.ObjectNameSinkDist
     return 'residential sink dist'
+  end
+  def self.ObjectNameWaterHeater(unit=1)
+    s_unit = ""
+    if unit > 1
+      s_unit = "|unit #{unit}"
+    end
+    return "residential water heater#{s_unit}"
   end
   def self.ObjectNameWellPump(unit=1)
     s_unit = ""
@@ -534,8 +547,12 @@ class Constants
   def self.PipeTypeHomeRun
     return 'home run'
   end
-  def self.PlantLoopDomesticWater
-    return 'Domestic Hot Water Loop'
+  def self.PlantLoopDomesticWater(unit=1)
+    s_unit = ""
+    if unit > 1
+      s_unit = "|unit #{unit}"
+    end
+    return "Domestic Hot Water Loop#{s_unit}"
   end
   def self.RADuctZone
     return 'RA Duct Zone'

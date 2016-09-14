@@ -138,23 +138,26 @@ class ProcessThermalMassFurniture < OpenStudio::Ruleset::ModelUserScript
     end
     
     # Add user-specified furniture mass
+    finished_spaces = Geometry.get_finished_spaces(model.getSpaces)
+    unfinished_basement_spaces = Geometry.get_unfinished_basement_spaces(model.getSpaces)
+    garage_spaces = Geometry.get_garage_spaces(model.getSpaces, model)
     model.getSpaces.each do |space|
         furnAreaFraction = nil
-        if Geometry.get_finished_spaces(model).include?(space)
+        if finished_spaces.include?(space)
             furnAreaFraction = finishedAreaFraction
             furnMass = finishedMass
             furnSolarAbsorptance = finishedSolarAbsorptance
             furnConductivity = finishedConductivity
             furnDensity = finishedDensity
             furnSpecHeat = finishedSpecHeat
-        elsif Geometry.get_unfinished_basement_spaces(model).include?(space)
+        elsif unfinished_basement_spaces.include?(space)
             furnAreaFraction = unfinBasementAreaFraction
             furnMass = unfinBasementMass
             furnSolarAbsorptance = unfinBasementSolarAbsorptance
             furnConductivity = unfinBasementConductivity
             furnDensity = unfinBasementDensity
             furnSpecHeat = unfinBasementSpecHeat
-        elsif Geometry.get_garage_spaces(model).include?(space)
+        elsif garage_spaces.include?(space)
             furnAreaFraction = garageAreaFraction
             furnMass = garageMass
             furnSolarAbsorptance = garageSolarAbsorptance

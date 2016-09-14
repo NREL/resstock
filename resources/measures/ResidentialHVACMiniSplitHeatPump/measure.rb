@@ -6,6 +6,7 @@ require "#{File.dirname(__FILE__)}/resources/psychrometrics"
 require "#{File.dirname(__FILE__)}/resources/util"
 require "#{File.dirname(__FILE__)}/resources/unit_conversions"
 require "#{File.dirname(__FILE__)}/resources/geometry"
+require "#{File.dirname(__FILE__)}/resources/hvac"
 
 # start the measure
 class ProcessMinisplit < OpenStudio::Ruleset::ModelUserScript
@@ -237,19 +238,19 @@ class ProcessMinisplit < OpenStudio::Ruleset::ModelUserScript
         
     # _processAirSystem       
         
-    has_cchp = miniSplitHPIsColdClimate
+    has_cchp = miniSplitHPIsColdClimate # FIXME: Currently unused
     
     curves.mshp_indices = [1,3,5,9]
     
     # Cooling Coil
-    curves = HVAC.get_cooling_coefficients(runner, Constants.Num_Speeds_MSHP, false, true, curves)
+    curves = HVAC.get_cooling_coefficients(runner, Constants.Num_Speeds_MSHP, true, curves)
 
     curves, supply = _processAirSystemMiniSplitCooling(runner, miniSplitHPCoolingRatedSEER, miniSplitHPCoolingMinCapacity, miniSplitHPCoolingMaxCapacity, miniSplitHPCoolingMinAirflow, miniSplitHPCoolingMaxAirflow, miniSplitHPRatedSHR, miniSplitHPSupplyFanPower, curves, supply)
                                            
     supply.HPCoolingOversizingFactor = miniSplitHPCoolingOversizeFactor
     
     # Heating Coil
-    curves = HVAC.get_heating_coefficients(runner, Constants.Num_Speeds_MSHP, false, curves, miniSplitHPMinT)
+    curves = HVAC.get_heating_coefficients(runner, Constants.Num_Speeds_MSHP, curves, miniSplitHPMinT)
                                                     
     curves, supply = _processAirSystemMiniSplitHeating(runner, miniSplitHPHeatingRatedHSPF, miniSplitHPHeatingMinCapacity, miniSplitHPHeatingMaxCapacity, miniSplitHPHeatingMinAirflow, miniSplitHPHeatingMaxAirflow, miniSplitHPSupplyFanPower, miniSplitHPMinT, curves, supply)    
     
@@ -429,8 +430,8 @@ class ProcessMinisplit < OpenStudio::Ruleset::ModelUserScript
     defrosteir.setMinimumValueofy(-100)
     defrosteir.setMaximumValueofy(100)
     
-    # Check if has equipment
-    HelperMethods.remove_hot_water_loop(model, runner)    
+    # Remove boiler hot water loop if it exists
+    HVAC.remove_hot_water_loop(model, runner)    
     
     num_units = Geometry.get_num_units(model, runner)
     if num_units.nil?
@@ -439,15 +440,15 @@ class ProcessMinisplit < OpenStudio::Ruleset::ModelUserScript
 
     (1..num_units).to_a.each do |unit_num|
       _nbeds, _nbaths, unit_spaces = Geometry.get_unit_beds_baths_spaces(model, unit_num, runner)
-      thermal_zones = Geometry.get_thermal_zones_from_unit_spaces(unit_spaces)
+      thermal_zones = Geometry.get_thermal_zones_from_spaces(unit_spaces)
       if thermal_zones.length > 1
         runner.registerInfo("Unit #{unit_num} spans more than one thermal zone.")
       end
-      control_slave_zones_hash = Geometry.get_control_and_slave_zones(thermal_zones)
+      control_slave_zones_hash = HVAC.get_control_and_slave_zones(thermal_zones)
       control_slave_zones_hash.each do |control_zone, slave_zones|
 
         # Remove existing equipment
-        HelperMethods.remove_existing_hvac_equipment(model, runner, "Mini-Split Heat Pump", control_zone)
+        HVAC.remove_existing_hvac_equipment(model, runner, "Mini-Split Heat Pump", control_zone)
       
         # _processSystemHeatingCoil
         
@@ -560,8 +561,8 @@ class ProcessMinisplit < OpenStudio::Ruleset::ModelUserScript
 
         slave_zones.each do |slave_zone|
 
-          HelperMethods.has_boiler(model, runner, slave_zone, true)
-          HelperMethods.has_electric_baseboard(model, runner, slave_zone, true)
+          HVAC.has_boiler(model, runner, slave_zone, true)
+          HVAC.has_electric_baseboard(model, runner, slave_zone, true)
       
           diffuser_fbsmt = OpenStudio::Model::AirTerminalSingleDuctUncontrolled.new(model, model.alwaysOnDiscreteSchedule)
           diffuser_fbsmt.setName("FBsmt Zone Direct Air")
@@ -671,7 +672,7 @@ class ProcessMinisplit < OpenStudio::Ruleset::ModelUserScript
     
     #Note: Make sure this method still works for BEopt central, variable speed units, which have 4 speeds (if needed in future)
     
-    curves = HVAC.get_cooling_coefficients(runner, num_speeds, false, isHeatPump, curves)
+    curves = HVAC.get_cooling_coefficients(runner, num_speeds, isHeatPump, curves)
 
     n_max = (eer_A.length-1.0)-3.0 # Don't use max speed
     n_min = 0.0
@@ -868,7 +869,7 @@ class ProcessMinisplit < OpenStudio::Ruleset::ModelUserScript
     
     #TODO: Make sure this method still works for BEopt central, variable speed units, which have 4 speeds, if needed in future
     
-    curves = HVAC.get_heating_coefficients(runner, 10, false, curves, min_temp)
+    curves = HVAC.get_heating_coefficients(runner, 10, curves, min_temp)
     
     n_max = (cop_47.length-1.0)#-3 # Don't use max speed
     n_min = 0

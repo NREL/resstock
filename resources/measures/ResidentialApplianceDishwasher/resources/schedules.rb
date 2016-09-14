@@ -6,7 +6,7 @@ class HourlyByMonthSchedule
     # weekday_month_by_hour_values must be a 12-element array of 24-element arrays of numbers.
     # weekend_month_by_hour_values must be a 12-element array of 24-element arrays of numbers.
     def initialize(model, runner, sch_name, weekday_month_by_hour_values, weekend_month_by_hour_values, 
-                   normalize_values=true)
+                   normalize_values=true, create_sch_object=true)
         @validated = true
         @model = model
         @runner = runner
@@ -21,7 +21,9 @@ class HourlyByMonthSchedule
         else
             @maxval = 1.0
         end
-        @schedule = createSchedule()
+        if create_sch_object
+            @schedule = createSchedule()
+        end
     end
     
     def validated?
@@ -174,7 +176,7 @@ class MonthWeekdayWeekendSchedule
     # weekend_hourly_values can either be a comma-separated string of 24 numbers or a 24-element array of numbers.
     # monthly_values can either be a comma-separated string of 12 numbers or a 12-element array of numbers.
     def initialize(model, runner, sch_name, weekday_hourly_values, weekend_hourly_values, monthly_values, 
-                   mult_weekday=1.0, mult_weekend=1.0, normalize_values=true)
+                   mult_weekday=1.0, mult_weekend=1.0, normalize_values=true, create_sch_object=true)
         @validated = true
         @model = model
         @runner = runner
@@ -197,7 +199,9 @@ class MonthWeekdayWeekendSchedule
             @maxval = 1.0
             @schadjust = 1.0
         end
-        @schedule = createSchedule()
+        if create_sch_object
+            @schedule = createSchedule()
+        end
     end
   
     def validated?
@@ -249,7 +253,7 @@ class MonthWeekdayWeekendSchedule
     private 
     
         def validateValues(values, num_values, sch_name)
-            err_msg = "Either a comma-separated string of #{num_values.to_s} numbers or an array of #{num_values.to_s} numbers must be entered for the #{sch_name} schedule."
+            err_msg = "A comma-separated string of #{num_values.to_s} numbers must be entered for the #{sch_name} schedule."
             if values.is_a?(Array)
                 if values.length != num_values
                     @runner.registerError(err_msg)
@@ -404,26 +408,28 @@ end
 
 class HotWaterSchedule
 
-    def initialize(model, runner, sch_name, temperature_sch_name, num_bedrooms, unit_num, file_prefix, target_water_temperature, measure_dir)
+    def initialize(model, runner, sch_name, temperature_sch_name, num_bedrooms, unit_num, file_prefix, target_water_temperature, measure_dir, create_sch_object=true)
         @validated = true
         @model = model
         @runner = runner
         @sch_name = sch_name
         @temperature_sch_name = temperature_sch_name
-        @num_bedrooms = num_bedrooms.to_i
-        @unit_index = unit_num % 10
+        @unit_index = (unit_num-1) % 10
+        @nbeds = ([num_bedrooms, 5].min).to_i
         @file_prefix = file_prefix
         @target_water_temperature = OpenStudio.convert(target_water_temperature, "F", "C").get
         
         timestep_minutes = (60/@model.getTimestep.numberOfTimestepsPerHour).to_i
         
         data = loadMinuteDrawProfileFromFile(timestep_minutes, measure_dir)
-        @totflow, @maxflow = loadDrawProfileStatsFromFile(measure_dir)
-        if data.nil? or @totflow.nil? or @maxflow.nil?
+        @totflow, @maxflow, @ontime = loadDrawProfileStatsFromFile(measure_dir)
+        if data.nil? or @totflow.nil? or @maxflow.nil? or @ontime.nil?
             @validated = false
             return
         end
-        @schedule = createSchedule(data, timestep_minutes)
+        if create_sch_object
+            @schedule = createSchedule(data, timestep_minutes)
+        end
     end
 
     def validated?
@@ -471,13 +477,21 @@ class HotWaterSchedule
         obj.waterUseEquipmentDefinition.setTargetTemperatureSchedule(temperature_sch)
     end
     
+    def getOntimeFraction
+        return @ontime
+    end
+    
     private
     
         def loadMinuteDrawProfileFromFile(timestep_minutes, measure_dir)
             data = []
             
+            if @file_prefix.nil?
+                return data
+            end
+
             # Get appropriate file
-            minute_draw_profile = "#{measure_dir}/resources/#{@file_prefix}Schedule_#{@num_bedrooms}bed_unit#{@unit_index}.csv"
+            minute_draw_profile = "#{measure_dir}/resources/#{@file_prefix}Schedule_#{@nbeds}bed_unit#{@unit_index}.csv"
             if not File.file?(minute_draw_profile)
                 @runner.registerError("Unable to find file: #{minute_draw_profile}")
                 return nil
@@ -513,11 +527,13 @@ class HotWaterSchedule
         def loadDrawProfileStatsFromFile(measure_dir)
             totflow = 0 # daily gal/day
             maxflow = 0
+            ontime = 0
             
             column_header = @file_prefix
             
             totflow_column_header = "#{column_header} Sum"
             maxflow_column_header = "#{column_header} Max"
+            ontime_column_header = "On-time Fraction"
             
             draw_file = "#{measure_dir}/resources/MinuteDrawProfilesMaxFlows.csv"
             
@@ -525,6 +541,7 @@ class HotWaterSchedule
             skippedheader = false
             totflow_col_num = nil
             maxflow_col_num = nil
+            ontime_col_num = nil
             File.open(draw_file).each do |line|
                 linedata = line.strip.split(',')
                 if not skippedheader
@@ -532,29 +549,29 @@ class HotWaterSchedule
                     # Which columns to read?
                     totflow_col_num = linedata.index(totflow_column_header)
                     maxflow_col_num = linedata.index(maxflow_column_header)
+                    ontime_col_num = linedata.index(ontime_column_header)
                     next
                 end
-                if totflow_col_num.nil?
-                    @runner.registerError("Unable to find column header: #{totflow_column_header}")
-                    return nil, nil
-                end
-                if maxflow_col_num.nil?
-                    @runner.registerError("Unable to find column header: #{maxflow_column_header}")
-                    return nil, nil
-                end
-                if linedata[0].to_i == @num_bedrooms and linedata[1].to_i == @unit_index
+                if linedata[0].to_i == @nbeds and linedata[1].to_i == @unit_index
                     datafound = true
-                    totflow = linedata[totflow_col_num].to_f
-                    maxflow = linedata[maxflow_col_num].to_f
+                    if not totflow_col_num.nil?
+                        totflow = linedata[totflow_col_num].to_f
+                    end
+                    if not maxflow_col_num.nil?
+                        maxflow = linedata[maxflow_col_num].to_f
+                    end
+                    if not ontime_col_num.nil?
+                        ontime = linedata[ontime_col_num].to_f
+                    end
                     break
                 end
             end
             
             if not datafound
-                @runner.registerError("Unable to find data for bedrooms = #{@num_bedrooms} and unit index = #{@unit_index}.")
-                return nil, nil
+                @runner.registerError("Unable to find data for bedrooms = #{@nbeds} and unit index = #{@unit_index}.")
+                return nil, nil, nil
             end
-            return totflow, maxflow
+            return totflow, maxflow, ontime
             
         end
     
@@ -562,6 +579,9 @@ class HotWaterSchedule
             # OpenStudio does not yet support ScheduleFile. So we use ScheduleInterval instead.
             # See https://unmethours.com/question/2877/has-anyone-used-the-variable-interval-schedule-sets-in-os-16/
             # for an example.
+            if data.size == 0
+                return nil
+            end
             
             yd = @model.getYearDescription
             start_date = yd.makeDate(1,1)

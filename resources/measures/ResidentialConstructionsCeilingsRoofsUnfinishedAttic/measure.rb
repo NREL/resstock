@@ -121,7 +121,7 @@ class ProcessConstructionsCeilingsRoofsUnfinishedAttic < OpenStudio::Ruleset::Mo
       return false
     end
 
-    spaces = Geometry.get_unfinished_attic_spaces(model)
+    spaces = Geometry.get_unfinished_attic_spaces(model.getSpaces, model)
 
     ceiling_surfaces = []
     spaces.each do |space|

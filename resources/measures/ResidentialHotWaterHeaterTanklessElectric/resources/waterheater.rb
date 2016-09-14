@@ -3,8 +3,55 @@ require "#{File.dirname(__FILE__)}/constants"
 require "#{File.dirname(__FILE__)}/util"
 require "#{File.dirname(__FILE__)}/weather"
 require "#{File.dirname(__FILE__)}/geometry"
+require "#{File.dirname(__FILE__)}/schedules"
 
 class Waterheater
+
+    def self.get_plant_loop_from_string(plant_loops, plantloop_s, spaces, runner=nil)
+        if plantloop_s == Constants.Auto
+            return self.get_plant_loop_for_spaces(plant_loops, spaces, runner)
+        end
+        plant_loop = nil
+        plant_loops.each do |pl|
+            if pl.name.to_s == plantloop_s
+                plant_loop = pl
+                break
+            end
+        end
+        if plant_loop.nil? and !runner
+            runner.registerError("Could not find plant loop with the name '#{plantloop_s}'.")
+        end
+        return plant_loop
+    end
+    
+    def self.get_plant_loop_for_spaces(plant_loops, spaces, runner=nil)
+        # We obtain the plant loop for a given set of space by comparing 
+        # their associated thermal zones to the thermal zone that each plant
+        # loop water heater is located in.
+        spaces.each do |space|
+            next if !space.thermalZone.is_initialized
+            zone = space.thermalZone.get
+            plant_loops.each do |pl|
+                pl.supplyComponents.each do |wh|
+                    if wh.to_WaterHeaterMixed.is_initialized
+                        waterHeater = wh.to_WaterHeaterMixed.get
+                    elsif wh.to_WaterHeaterStratified.is_initialized
+                        waterHeater = wh.to_WaterHeaterStratified.get
+                    else
+                        next
+                    end
+                    next if !waterHeater.ambientTemperatureThermalZone.is_initialized
+                    next if waterHeater.ambientTemperatureThermalZone.get.name.to_s != zone.name.to_s
+                    return pl
+                end
+            end
+        end
+        if !runner.nil?
+            runner.registerError("Could not find plant loop.")
+        end
+        return nil
+    end
+
     def self.deadband(tank_type)
         if tank_type == Constants.WaterHeaterTypeTank
             return 2.0 # deg-C
@@ -109,7 +156,7 @@ class Waterheater
                 else
                     input_power = 5.5
                 end
-                return input power
+                return input_power
             end
             
         else #fixed heater size
@@ -196,6 +243,11 @@ class Waterheater
         return pump
     end
     
+    def self.create_new_schedule_manager(t_set, model)
+        new_schedule = self.create_new_schedule_ruleset("DHW Temp", "DHW Temp Default", OpenStudio::convert(t_set,"F","C").get, model)
+        OpenStudio::Model::SetpointManagerScheduled.new(model, new_schedule)
+    end 
+    
     def self.create_new_schedule_ruleset(name, schedule_name, t_set_c, model)
         #Create a setpoint schedule for the water heater
         new_schedule = OpenStudio::Model::ScheduleRuleset.new(model)
@@ -205,9 +257,10 @@ class Waterheater
         return new_schedule
     end
     
-    def self.create_new_heater(cap, fuel, vol, nbeds, nbaths, ef, re, t_set, loc, oncycle_p, offcycle_p, tanktype, cyc_derate, model, runner)
+    def self.create_new_heater(unit_num, name, cap, fuel, vol, nbeds, nbaths, ef, re, t_set, thermal_zone, oncycle_p, offcycle_p, tanktype, cyc_derate, measure_dir, model, runner)
     
         new_heater = OpenStudio::Model::WaterHeaterMixed.new(model)
+        new_heater.setName(name)
         fuel_eplus = HelperMethods.eplus_fuel_map(fuel)
         capacity = self.calc_capacity(cap, fuel, nbeds, nbaths)
         if fuel != Constants.FuelTypeElectric
@@ -219,15 +272,14 @@ class Waterheater
         act_vol = self.calc_actual_tankvol(nom_vol, fuel, tanktype)
         energy_factor = self.calc_ef(ef, nom_vol, fuel)
         u, ua, eta_c = self.calc_tank_UA(act_vol, fuel, energy_factor, re, capacity, tanktype, cyc_derate)
-        self.configure_setpoint_schedule(new_heater, t_set, tanktype, model, runner)
+        self.configure_setpoint_schedule(new_heater, t_set, tanktype, model)
         new_heater.setMaximumTemperatureLimit(99.0)
         if tanktype == Constants.WaterHeaterTypeTankless
             new_heater.setHeaterControlType("Modulate")
-            new_heater.setDeadbandTemperatureDifference(self.deadband(tanktype))
         else
             new_heater.setHeaterControlType("Cycle")
-            new_heater.setDeadbandTemperatureDifference(self.deadband(tanktype))
         end
+        new_heater.setDeadbandTemperatureDifference(self.deadband(tanktype))
         
         vol_m3 = OpenStudio::convert(act_vol, "gal", "m^3").get
         new_heater.setHeaterMinimumCapacity(0.0)
@@ -239,30 +291,26 @@ class Waterheater
         
         #Set parasitic power consumption
         if tanktype == Constants.WaterHeaterTypeTankless 
-            if fuel == Constants.FuelTypeGas
-                #TODO: Different fractions if the home only has certain appliances (say no dishwasher or cw)
-                runtime_frac = [[0.0275, 0.0267, 0.0270, 0.0267, 0.0270, 0.0264, 0.0265, 0.0269, 0.0269, 0.0269], [0.0327, 0.0334, 0.0333, 0.0336, 0.0333, 0.0334, 0.0340, 0.0337, 0.0326, 0.0334], [0.0397, 0.0393, 0.0394, 0.0399, 0.0401, 0.0397, 0.0395, 0.0393, 0.0397, 0.0399], [0.0454, 0.0470, 0.0459, 0.0458, 0.0457, 0.0469, 0.0461, 0.0459, 0.0462, 0.0469], [0.0527, 0.0519, 0.0526, 0.0534, 0.0528, 0.0524, 0.0533, 0.0531, 0.0526, 0.0537]]
-                avg_elec = oncycle_p * runtime_frac[nbeds-1][0] + offcycle_p * (1-runtime_frac[nbeds-1][0]) #TODO: for MF, this needs to take into account unit number
-                new_heater.setOnCycleParasiticFuelConsumptionRate(avg_elec)
-                new_heater.setOnCycleParasiticFuelType("Electricity")
-                new_heater.setOnCycleParasiticHeatFractiontoTank(0)
-                
-                new_heater.setOffCycleParasiticFuelConsumptionRate(avg_elec)
-                new_heater.setOffCycleParasiticFuelType("Electricity")
-                new_heater.setOffCycleParasiticHeatFractiontoTank(0)
-            else
-                new_heater.setOnCycleParasiticFuelConsumptionRate(0)
-                new_heater.setOffCycleParasiticFuelConsumptionRate(0)
+            # Tankless WHs are set to "modulate", not "cycle", so they end up
+            # effectively always on. Thus, we need to use a weighted-average of
+            # on-cycle and off-cycle parasitics.
+            sch = HotWaterSchedule.new(model, runner, "", "", nbeds, unit_num, nil, 0, measure_dir, false)
+            if not sch.validated?
+                return nil
             end
+            runtime_frac = sch.getOntimeFraction
+            avg_elec = oncycle_p * runtime_frac + offcycle_p * (1-runtime_frac)
+            
+            new_heater.setOnCycleParasiticFuelConsumptionRate(avg_elec)
+            new_heater.setOffCycleParasiticFuelConsumptionRate(avg_elec)
         else
             new_heater.setOnCycleParasiticFuelConsumptionRate(oncycle_p)
-            new_heater.setOnCycleParasiticFuelType("Electricity")
-            new_heater.setOnCycleParasiticHeatFractiontoTank(0)
-            
             new_heater.setOffCycleParasiticFuelConsumptionRate(offcycle_p)
-            new_heater.setOffCycleParasiticFuelType("Electricity")
-            new_heater.setOffCycleParasiticHeatFractiontoTank(0)
         end
+        new_heater.setOnCycleParasiticFuelType("Electricity")
+        new_heater.setOffCycleParasiticFuelType("Electricity")
+        new_heater.setOnCycleParasiticHeatFractiontoTank(0)
+        new_heater.setOffCycleParasiticHeatFractiontoTank(0)
         
         #Set fraction of heat loss from tank to ambient (vs out flue)
         #Based on lab testing done by LBNL
@@ -272,7 +320,7 @@ class Waterheater
             if fuel  == Constants.FuelTypeGas or fuel == Constants.FuelTypePropane
                 if oncycle_p == 0
                     skinlossfrac = 0.64
-                elsif ef < 0.8
+                elsif energy_factor < 0.8
                     skinlossfrac = 0.91
                 else
                     skinlossfrac = 0.96
@@ -284,7 +332,6 @@ class Waterheater
         new_heater.setOffCycleLossFractiontoThermalZone(skinlossfrac)
         new_heater.setOnCycleLossFractiontoThermalZone(1.0)
 
-        thermal_zone = model.getThermalZones.find{|tz| tz.name.get == loc.to_s}
         new_heater.setAmbientTemperatureThermalZone(thermal_zone)
         ua_w_k = OpenStudio::convert(ua, "Btu/hr*R", "W/K").get
         new_heater.setOnCycleLossCoefficienttoAmbientTemperature(ua_w_k)
@@ -293,17 +340,16 @@ class Waterheater
         return new_heater
     end 
   
-    def self.configure_setpoint_schedule(new_heater, t_set, tanktype, model, runner)
+    def self.configure_setpoint_schedule(new_heater, t_set, tanktype, model)
         set_temp_c = OpenStudio::convert(t_set,"F","C").get + self.deadband(tanktype)/2.0 #Half the deadband to account for E+ deadband
         new_schedule = self.create_new_schedule_ruleset("DHW Set Temp", "DHW Set Temp", set_temp_c, model)
         new_heater.setSetpointTemperatureSchedule(new_schedule)
-        runner.registerInfo("A schedule named DHW Set Temp was created and applied to the gas water heater, using a constant temperature of #{t_set.to_s} F for generating domestic hot water.")
     end
     
-    def self.create_new_loop(model)
+    def self.create_new_loop(model, name)
         #Create a new plant loop for the water heater
         loop = OpenStudio::Model::PlantLoop.new(model)
-        loop.setName("Domestic Hot Water Loop")
+        loop.setName(name)
         loop.sizingPlant.setDesignLoopExitTemperature(60)
         loop.sizingPlant.setLoopDesignTemperatureDifference(50)
         loop.setPlantLoopVolume(0.003) #~1 gal
@@ -345,7 +391,7 @@ class Waterheater
         return OpenStudio.convert(wh_setpoint, "C", "F").get
     end
     
-    def self.get_water_heater_location_auto(model, runner)
+    def self.get_water_heater_location_auto(model, spaces, runner)
         #If auto is picked, get the BA climate zone, 
         #check if the building has a garage/basement, 
         #and assign the water heater location appropriately
@@ -356,26 +402,26 @@ class Waterheater
                 ba_cz_name = climateZone.value.to_s
             end
         end
-        living = Geometry.get_unit_default_finished_space(Geometry.get_finished_spaces(model), runner)
-        garage = Geometry.get_garage_spaces(model)
-        fin_basement = Geometry.get_finished_basement_spaces(model)
-        unfin_basement = Geometry.get_unfinished_basement_spaces(model)
+        living = Geometry.get_unit_default_finished_space(spaces, runner)
+        garage = Geometry.get_garage_spaces(spaces, model)
+        fin_basement = Geometry.get_finished_basement_spaces(spaces)
+        unfin_basement = Geometry.get_unfinished_basement_spaces(spaces)
         wh_tz = nil
         if ba_cz_name == Constants.BAZoneHotDry or ba_cz_name == Constants.BAZoneHotHumid
             #check if the building has a garage
             if garage.length > 0
-                wh_tz = garage[0].thermalZone.get.name
+                wh_tz = garage[0].thermalZone.get
             elsif not living.nil? #no garage, in living space
-                wh_tz = living.thermalZone.get.name
+                wh_tz = living.thermalZone.get
             end
         elsif ba_cz_name == Constants.BAZoneMarine or ba_cz_name == Constants.BAZoneMixedHumid or ba_cz_name == Constants.BAZoneMixedHumid or ba_cz_name == Constants.BAZoneCold or ba_cz_name == Constants.BAZoneVeryCold or ba_cz_name == Constants.BAZoneSubarctic
             #FIXME: always locating the water heater in the first unconditioned space, what if there's multiple
             if fin_basement.length > 0
-                wh_tz = fin_basement[0].thermalZone.get.name
+                wh_tz = fin_basement[0].thermalZone.get
             elsif unfin_basement.length > 0
-                wh_tz = unfin_basement[0].thermalZone.get.name
+                wh_tz = unfin_basement[0].thermalZone.get
             elsif not living.nil? #no basement, in living space
-                wh_tz = living.thermalZone.get.name
+                wh_tz = living.thermalZone.get
             end
         else
             runner.registerWarning("No Building America climate zone has been assigned. The water heater location will be chosen with the following priority: basement > garage > living")
@@ -383,13 +429,13 @@ class Waterheater
             #FIXME: in BEopt, priority goes living>fin attic. Since we always assign a zone as the living space in OS, this is the final location.
             #If geometry.rb is changed to better identify living zones, update this code to differentiate between living tz and fin attic tz
             if fin_basement.length > 0
-                wh_tz = fin_basement[0].thermalZone.get.name
+                wh_tz = fin_basement[0].thermalZone.get
             elsif unfin_basement.length > 0
-                wh_tz = unfin_basement[0].thermalZone.get.name
+                wh_tz = unfin_basement[0].thermalZone.get
             elsif garage.length > 0
-                wh_tz = garage[0].thermalZone.get.name
+                wh_tz = garage[0].thermalZone.get
             elsif not living.nil? #no basement or garage, in living space
-                wh_tz = living.thermalZone.get.name
+                wh_tz = living.thermalZone.get
             end
         end
         

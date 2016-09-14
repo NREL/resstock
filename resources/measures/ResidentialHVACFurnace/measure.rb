@@ -11,48 +11,10 @@ require "#{File.dirname(__FILE__)}/resources/constants"
 require "#{File.dirname(__FILE__)}/resources/geometry"
 require "#{File.dirname(__FILE__)}/resources/util"
 require "#{File.dirname(__FILE__)}/resources/unit_conversions"
+require "#{File.dirname(__FILE__)}/resources/hvac"
 
 #start the measure
 class ProcessFurnace < OpenStudio::Ruleset::ModelUserScript
-
-  class Furnace
-    def initialize(furnaceInstalledAFUE, furnaceMaxSupplyTemp, furnaceFuelType, furnaceInstalledSupplyFanPower)
-      @furnaceInstalledAFUE = furnaceInstalledAFUE
-      @furnaceMaxSupplyTemp = furnaceMaxSupplyTemp
-      @furnaceFuelType = furnaceFuelType
-      @furnaceInstalledSupplyFanPower = furnaceInstalledSupplyFanPower
-    end
-
-    attr_accessor(:hir, :aux_elec)
-
-    def FurnaceInstalledAFUE
-      return @furnaceInstalledAFUE
-    end
-
-    def FurnaceMaxSupplyTemp
-      return @furnaceMaxSupplyTemp
-    end
-
-    def FurnaceFuelType
-      return @furnaceFuelType
-    end
-	
-    def FurnaceSupplyFanPowerInstalled
-      return @furnaceInstalledSupplyFanPower
-    end
-  end
-
-  class AirConditioner
-    def initialize(acCoolingInstalledSEER)
-      @acCoolingInstalledSEER = acCoolingInstalledSEER
-    end
-
-    attr_accessor(:hasIdealAC)
-
-    def ACCoolingInstalledSEER
-      return @acCoolingInstalledSEER
-    end
-  end
 
   class Supply
     def initialize
@@ -146,21 +108,13 @@ class ProcessFurnace < OpenStudio::Ruleset::ModelUserScript
       furnaceOutputCapacity = OpenStudio::convert(furnaceOutputCapacity.split(" ")[0].to_f,"kBtu/h","Btu/h").get
     end
     furnaceMaxSupplyTemp = runner.getDoubleArgumentValue("userdefinedmaxtemp",user_arguments)
-    furnaceInstalledSupplyFanPower = runner.getDoubleArgumentValue("userdefinedfanpower",user_arguments) 
+    furnaceInstalledSupplyFanPower = runner.getDoubleArgumentValue("userdefinedfanpower",user_arguments)
     
     # Create the material class instances
-    furnace = Furnace.new(furnaceInstalledAFUE, furnaceMaxSupplyTemp, furnaceFuelType, furnaceInstalledSupplyFanPower)
-    air_conditioner = AirConditioner.new(nil)
     supply = Supply.new
 
     # _processAirSystem
     
-    if air_conditioner.ACCoolingInstalledSEER == 999
-      air_conditioner.hasIdealAC = true
-    else
-      air_conditioner.hasIdealAC = false
-    end
-
     supply.static = UnitConversion.inH2O2Pa(0.5) # Pascal
 
     # Flow rate through AC units - hardcoded assumption of 400 cfm/ton
@@ -174,26 +128,26 @@ class ProcessFurnace < OpenStudio::Ruleset::ModelUserScript
     # with only a furnace, the system fan is (for the time being) hard
     # coded here.
 
-    supply.fan_power = furnace.FurnaceSupplyFanPowerInstalled # Based on 2010 BA Benchmark
+    supply.fan_power = furnaceInstalledSupplyFanPower # Based on 2010 BA Benchmark
     supply.eff = OpenStudio::convert(supply.static / supply.fan_power,"cfm","m^3/s").get # Overall Efficiency of the Supply Fan, Motor and Drive
     # self.supply.delta_t = 0.00055000 / units.Btu2kWh(1.0) / (self.mat.air.inside_air_dens * self.mat.air.inside_air_sh * units.hr2min(1.0))
     supply.min_flow_ratio = 1.00000000
     supply.FAN_EIR_FPLR_SPEC_coefficients = [0.00000000, 1.00000000, 0.00000000, 0.00000000]
 
-    supply.htg_supply_air_temp = furnace.FurnaceMaxSupplyTemp
+    supply.htg_supply_air_temp = furnaceMaxSupplyTemp
 
-    furnace.hir = get_furnace_hir(furnace.FurnaceInstalledAFUE)
+    hir = get_furnace_hir(furnaceInstalledAFUE)
 
     # Parasitic Electricity (Source: DOE. (2007). Technical Support Document: Energy Efficiency Program for Consumer Products: "Energy Conservation Standards for Residential Furnaces and Boilers". www.eere.energy.gov/buildings/appliance_standards/residential/furnaces_boilers.html)
     #             FurnaceParasiticElecDict = {Constants.FuelTypeGas     :  76, # W during operation
     #                                         Constants.FuelTypeOil     : 220}
-    #             f.aux_elec = FurnaceParasiticElecDict[f.FurnaceFuelType]
-    furnace.aux_elec = 0.0 # set to zero until we figure out a way to distribute to the correct end uses (DOE-2 limitation?)    
+    #             aux_elec = FurnaceParasiticElecDict[furnaceFuelType]
+    aux_elec = 0.0 # set to zero until we figure out a way to distribute to the correct end uses (DOE-2 limitation?)    
 
     supply.compressor_speeds = nil   
     
-    # Check if has equipment
-    HelperMethods.remove_hot_water_loop(model, runner)    
+    # Remove boiler hot water loop if it exists
+    HVAC.remove_hot_water_loop(model, runner)    
 
     num_units = Geometry.get_num_units(model, runner)
     if num_units.nil?
@@ -202,37 +156,37 @@ class ProcessFurnace < OpenStudio::Ruleset::ModelUserScript
     
     (1..num_units).to_a.each do |unit_num|
       _nbeds, _nbaths, unit_spaces = Geometry.get_unit_beds_baths_spaces(model, unit_num, runner)
-      thermal_zones = Geometry.get_thermal_zones_from_unit_spaces(unit_spaces)
+      thermal_zones = Geometry.get_thermal_zones_from_spaces(unit_spaces)
       if thermal_zones.length > 1
         runner.registerInfo("Unit #{unit_num} spans more than one thermal zone.")
       end
-      control_slave_zones_hash = Geometry.get_control_and_slave_zones(thermal_zones)
+      control_slave_zones_hash = HVAC.get_control_and_slave_zones(thermal_zones)
       control_slave_zones_hash.each do |control_zone, slave_zones|
       
         # Remove existing equipment
-        clg_coil = HelperMethods.remove_existing_hvac_equipment(model, runner, "Furnace", control_zone)
+        clg_coil = HVAC.remove_existing_hvac_equipment(model, runner, "Furnace", control_zone)
       
         # _processSystemHeatingCoil
         
-        if furnace.FurnaceFuelType == Constants.FuelTypeElectric
+        if furnaceFuelType == Constants.FuelTypeElectric
 
           htg_coil = OpenStudio::Model::CoilHeatingElectric.new(model)
           htg_coil.setName("Furnace Heating Coil")
-          htg_coil.setEfficiency(1.0 / furnace.hir)
+          htg_coil.setEfficiency(1.0 / hir)
           if furnaceOutputCapacity != Constants.SizingAuto
             htg_coil.setNominalCapacity(OpenStudio::convert(furnaceOutputCapacity,"Btu/h","W").get)
           end
 
-        elsif furnace.FurnaceFuelType != Constants.FuelTypeElectric
+        elsif furnaceFuelType != Constants.FuelTypeElectric
 
           htg_coil = OpenStudio::Model::CoilHeatingGas.new(model)
           htg_coil.setName("Furnace Heating Coil")
-          htg_coil.setGasBurnerEfficiency(1.0 / furnace.hir)
+          htg_coil.setGasBurnerEfficiency(1.0 / hir)
           if furnaceOutputCapacity != Constants.SizingAuto
             htg_coil.setNominalCapacity(OpenStudio::convert(furnaceOutputCapacity,"Btu/h","W").get)
           end
 
-          htg_coil.setParasiticElectricLoad(furnace.aux_elec) # set to zero until we figure out a way to distribute to the correct end uses (DOE-2 limitation?)
+          htg_coil.setParasiticElectricLoad(aux_elec) # set to zero until we figure out a way to distribute to the correct end uses (DOE-2 limitation?)
           htg_coil.setParasiticGasLoad(0)
 
         end    
@@ -311,8 +265,8 @@ class ProcessFurnace < OpenStudio::Ruleset::ModelUserScript
         slave_zones.each do |slave_zone|
         
           # Remove existing equipment
-          HelperMethods.has_boiler(model, runner, slave_zone, true)
-          HelperMethods.has_electric_baseboard(model, runner, slave_zone, true)        
+          HVAC.has_boiler(model, runner, slave_zone, true)
+          HVAC.has_electric_baseboard(model, runner, slave_zone, true)        
         
           diffuser_fbsmt = OpenStudio::Model::AirTerminalSingleDuctUncontrolled.new(model, model.alwaysOnDiscreteSchedule)
           diffuser_fbsmt.setName("FBsmt Zone Direct Air")

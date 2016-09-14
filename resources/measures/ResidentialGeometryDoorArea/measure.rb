@@ -76,11 +76,11 @@ class CreateResidentialDoorArea < OpenStudio::Ruleset::ModelUserScript
     (1..num_units).to_a.each do |unit_num|
       _nbeds, _nbaths, unit_spaces = Geometry.get_unit_beds_baths_spaces(model, unit_num, runner)  
   
-      # get all exterior walls on the lowest story, prioritized by front, then back, then left, then right
+      # Get all exterior walls prioritized by front, then back, then left, then right
       facades = [Constants.FacadeFront, Constants.FacadeBack]
       avail_walls = []
       facades.each do |facade|
-          Geometry.get_finished_spaces(model, unit_spaces).each do |space|
+          Geometry.get_finished_spaces(unit_spaces).each do |space|
               next if Geometry.space_is_below_grade(space)
               space.surfaces.each do |surface|
                   next if Geometry.get_facade_for_surface(surface) != facade
@@ -91,6 +91,7 @@ class CreateResidentialDoorArea < OpenStudio::Ruleset::ModelUserScript
           break if avail_walls.size > 0
       end
 
+      # Get subset of exterior walls on lowest story
       min_story_avail_walls = []
       min_story_avail_wall_minz = 99999
       avail_walls.each do |avail_wall|
@@ -100,40 +101,28 @@ class CreateResidentialDoorArea < OpenStudio::Ruleset::ModelUserScript
               min_story_avail_walls.clear
               min_story_avail_walls << avail_wall
               min_story_avail_wall_minz = minz
-          elsif minz == min_story_avail_wall_minz
+          elsif (minz - min_story_avail_wall_minz).abs < 0.001
               min_story_avail_walls << avail_wall
           end
       end
 
-      min_story_most_avail_walls = []
-      min_story_avail_wall_miny = 99999
-      min_story_avail_walls.each do |avail_wall|
-          yvalues = Geometry.getSurfaceYValues([avail_wall])
-          miny = yvalues.min + avail_wall.space.get.yOrigin
-          if miny < min_story_avail_wall_miny
-              min_story_most_avail_walls.clear
-              min_story_most_avail_walls << avail_wall
-              min_story_avail_wall_miny = miny
-          elsif miny == min_story_avail_wall_miny
-              min_story_most_avail_walls << avail_wall
-          end
-      end
-
+      # Get all corridor walls
       corridor_walls = []
-      Geometry.get_finished_spaces(model, unit_spaces).each do |space|
+      Geometry.get_finished_spaces(unit_spaces).each do |space|
           space.surfaces.each do |surface|
               next unless surface.surfaceType.downcase == "wall"
-              next unless surface.adjacentSurface.is_initialized
+              next unless surface.outsideBoundaryCondition.downcase == "adiabatic"
               model.getSpaces.each do |potential_corridor_space|
                   next unless potential_corridor_space.name.to_s.include? Constants.CorridorSpace
                   potential_corridor_space.surfaces.each do |potential_corridor_surface|
-                      next unless potential_corridor_surface.handle.to_s == surface.adjacentSurface.get.handle.to_s
+                      next unless surface.reverseEqualVertices(potential_corridor_surface)
                       corridor_walls << potential_corridor_surface
                   end
               end
           end 
       end
 
+      # Get subset of corridor walls on lowest story
       min_story_corridor_walls = []
       min_story_corridor_wall_minz = 99999
       corridor_walls.each do |corridor_wall|
@@ -143,24 +132,24 @@ class CreateResidentialDoorArea < OpenStudio::Ruleset::ModelUserScript
               min_story_corridor_walls.clear
               min_story_corridor_walls << corridor_wall
               min_story_corridor_wall_minz = minz
-          elsif minz == min_story_corridor_wall_minz
+          elsif (minz - min_story_corridor_wall_minz).abs < 0.001
               min_story_corridor_walls << corridor_wall
           end
       end      
       
       # Prioritize corridor surfaces if available
       unless min_story_corridor_walls.size == 0
-        min_story_most_avail_walls = min_story_corridor_walls
+        min_story_avail_walls = min_story_corridor_walls
       end
       
       unit_has_door = true
-      if min_story_most_avail_walls.size == 0
+      if min_story_avail_walls.size == 0
           runner.registerWarning("For unit #{unit_num} could not find appropriate surface for the door. No door was added.")
           unit_has_door = false
       end
 
       door_sub_surface = nil
-      min_story_most_avail_walls.each do |min_story_avail_wall|
+      min_story_avail_walls.each do |min_story_avail_wall|
       
         wall_gross_area = OpenStudio.convert(min_story_avail_wall.grossArea, "m^2", "ft^2").get
         
@@ -176,7 +165,7 @@ class CreateResidentialDoorArea < OpenStudio::Ruleset::ModelUserScript
         
         num_existing_doors_on_this_surface = 0
         min_story_avail_wall.subSurfaces.each do |sub_surface|
-          if sub_surface.subSurfaceType == "Door"
+          if sub_surface.subSurfaceType.downcase == "door"
             num_existing_doors_on_this_surface += 1
           end
         end
@@ -224,15 +213,6 @@ class CreateResidentialDoorArea < OpenStudio::Ruleset::ModelUserScript
         door_sub_surface.setName("Unit #{unit_num} - #{min_story_avail_wall.name} - Door")
         door_sub_surface.setSubSurfaceType("Door")
         door_sub_surface.setSurface(min_story_avail_wall)
-        
-        if min_story_avail_wall.adjacentSurface.is_initialized
-          adjacent_surface = min_story_avail_wall.adjacentSurface.get
-          adjacent_door_sub_surface = OpenStudio::Model::SubSurface.new(door_sub_surface.vertices.reverse, model)
-          adjacent_door_sub_surface.setName("Unit #{unit_num} - #{min_story_avail_wall.name} - Door Adjacent")
-          adjacent_door_sub_surface.setSubSurfaceType("Door")
-          adjacent_door_sub_surface.setSurface(adjacent_surface)
-          door_sub_surface.setAdjacentSubSurface(adjacent_door_sub_surface)
-        end
         
         tot_door_area += door_area
       end

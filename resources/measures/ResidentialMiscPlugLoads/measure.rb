@@ -107,7 +107,7 @@ class ResidentialMiscellaneousElectricLoads < OpenStudio::Ruleset::ModelUserScri
         end
         
         # Get unit ffa
-        ffa = Geometry.get_unit_finished_floor_area(model, unit_spaces, runner)
+        ffa = Geometry.get_finished_floor_area_from_spaces(unit_spaces, runner)
         if ffa.nil?
             return false
         end

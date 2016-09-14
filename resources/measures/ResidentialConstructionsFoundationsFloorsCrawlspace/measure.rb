@@ -94,7 +94,7 @@ class ProcessConstructionsFoundationsFloorsCrawlspace < OpenStudio::Ruleset::Mod
     wall_surfaces = []
     floor_surfaces = []
     ceiling_surfaces = []
-    spaces = Geometry.get_crawl_spaces(model)
+    spaces = Geometry.get_crawl_spaces(model.getSpaces)
     spaces.each do |space|
         space.surfaces.each do |surface|
             # Wall between below-grade unfinished space and ground
@@ -153,7 +153,7 @@ class ProcessConstructionsFoundationsFloorsCrawlspace < OpenStudio::Ruleset::Mod
     
     # Get geometry values
     csHeight = Geometry.spaces_avg_height(spaces)
-    csFloorArea = Geometry.calculate_floor_area(spaces)
+    csFloorArea = Geometry.calculate_floor_area_from_spaces(spaces)
     csExtPerimeter = Geometry.calculate_perimeter(model, floor_surfaces, has_foundation_walls=true)
     csExtWallArea = csExtPerimeter * Geometry.spaces_avg_height(spaces)
 

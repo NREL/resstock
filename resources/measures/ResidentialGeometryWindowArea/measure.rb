@@ -85,7 +85,7 @@ class SetResidentialWindowArea < OpenStudio::Ruleset::ModelUserScript
     # Remove existing windows and store surfaces that should get windows by facade
     surfaces = {Constants.FacadeFront=>[], Constants.FacadeBack=>[],
                 Constants.FacadeLeft=>[], Constants.FacadeRight=>[]}
-    Geometry.get_finished_spaces(model).each do |space|
+    Geometry.get_finished_spaces(model.getSpaces).each do |space|
         space.surfaces.each do |surface|
             next if not (surface.surfaceType.downcase == "wall" and surface.outsideBoundaryCondition.downcase == "outdoors")
             win_removed = false

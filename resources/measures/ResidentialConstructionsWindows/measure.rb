@@ -11,6 +11,7 @@ require "#{File.dirname(__FILE__)}/resources/util"
 require "#{File.dirname(__FILE__)}/resources/constants"
 require "#{File.dirname(__FILE__)}/resources/weather"
 require "#{File.dirname(__FILE__)}/resources/schedules"
+require "#{File.dirname(__FILE__)}/resources/hvac"
 
 #start the measure
 class ProcessConstructionsWindows < OpenStudio::Ruleset::ModelUserScript
@@ -113,7 +114,7 @@ class ProcessConstructionsWindows < OpenStudio::Ruleset::ModelUserScript
         return false
     end
     
-    heating_season, cooling_season = HelperMethods.calc_heating_and_cooling_seasons(model, weather, runner)
+    heating_season, cooling_season = HVAC.calc_heating_and_cooling_seasons(model, weather, runner)
     if heating_season.nil? or cooling_season.nil?
         return false
     end

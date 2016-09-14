@@ -16,6 +16,7 @@ require "#{File.dirname(__FILE__)}/resources/weather"
 require "#{File.dirname(__FILE__)}/resources/util"
 require "#{File.dirname(__FILE__)}/resources/psychrometrics"
 require "#{File.dirname(__FILE__)}/resources/unit_conversions"
+require "#{File.dirname(__FILE__)}/resources/hvac"
 
 #start the measure
 class ProcessAirflow < OpenStudio::Ruleset::WorkspaceUserScript
@@ -933,7 +934,7 @@ class ProcessAirflow < OpenStudio::Ruleset::WorkspaceUserScript
       _nbeds, _nbaths, unit_spaces = Geometry.get_unit_beds_baths_spaces(model, unit_num, runner)
       geometry.num_bedrooms = _nbeds
       geometry.num_bathrooms = _nbaths
-      thermal_zones = Geometry.get_thermal_zones_from_unit_spaces(unit_spaces)
+      thermal_zones = Geometry.get_thermal_zones_from_spaces(unit_spaces)
       if thermal_zones.length > 1
         runner.registerInfo("Unit #{unit_num} spans more than one thermal zone.")
       end
@@ -965,17 +966,18 @@ class ProcessAirflow < OpenStudio::Ruleset::WorkspaceUserScript
         end
       end
         
-      living_thermal_zone = Geometry.get_thermal_zone_from_string(model, living_thermal_zone_r.to_s, runner)
+      zones = model.getThermalZones
+      living_thermal_zone = Geometry.get_thermal_zone_from_string(zones, living_thermal_zone_r.to_s, runner)
       if living_thermal_zone.nil?
           return false
       end      
-      garage_thermal_zone = Geometry.get_thermal_zone_from_string(model, garage_thermal_zone_r.to_s, runner)
-      fbasement_thermal_zone = Geometry.get_thermal_zone_from_string(model, fbasement_thermal_zone_r.to_s, runner)
-      ufbasement_thermal_zone = Geometry.get_thermal_zone_from_string(model, ufbasement_thermal_zone_r.to_s, runner)
-      crawl_thermal_zone = Geometry.get_thermal_zone_from_string(model, crawl_thermal_zone_r.to_s, runner)
-      ufattic_thermal_zone = Geometry.get_thermal_zone_from_string(model, ufattic_thermal_zone_r.to_s, runner)
+      garage_thermal_zone = Geometry.get_thermal_zone_from_string(zones, garage_thermal_zone_r.to_s)
+      fbasement_thermal_zone = Geometry.get_thermal_zone_from_string(zones, fbasement_thermal_zone_r.to_s)
+      ufbasement_thermal_zone = Geometry.get_thermal_zone_from_string(zones, ufbasement_thermal_zone_r.to_s)
+      crawl_thermal_zone = Geometry.get_thermal_zone_from_string(zones, crawl_thermal_zone_r.to_s)
+      ufattic_thermal_zone = Geometry.get_thermal_zone_from_string(zones, ufattic_thermal_zone_r.to_s)
 
-      if duct_location != "none" and HelperMethods.has_central_air_conditioner(model, runner, living_thermal_zone, false, false).nil? and HelperMethods.has_furnace(model, runner, living_thermal_zone, false, false).nil? and HelperMethods.has_air_source_heat_pump(model, runner, living_thermal_zone, false).nil?
+      if duct_location != "none" and HVAC.has_central_air_conditioner(model, runner, living_thermal_zone, false, false).nil? and HVAC.has_furnace(model, runner, living_thermal_zone, false, false).nil? and HVAC.has_air_source_heat_pump(model, runner, living_thermal_zone, false).nil?
         runner.registerWarning("No ducted HVAC equipment was found but ducts were specified. Overriding duct specification.")
         duct_location = "none"
       end
@@ -998,11 +1000,11 @@ class ProcessAirflow < OpenStudio::Ruleset::WorkspaceUserScript
         end
       end    
       
-      geometry.finished_floor_area = Geometry.get_unit_finished_floor_area(model, unit_spaces, runner)
+      geometry.finished_floor_area = Geometry.get_finished_floor_area_from_spaces(unit_spaces, runner)
       if geometry.finished_floor_area.nil?
         return false
       end
-      geometry.above_grade_finished_floor_area = Geometry.get_unit_above_grade_finished_floor_area(model, unit_spaces, runner)
+      geometry.above_grade_finished_floor_area = Geometry.get_above_grade_finished_floor_area_from_spaces(unit_spaces, runner)
       if geometry.above_grade_finished_floor_area.nil?
         return false
       end
@@ -1661,7 +1663,7 @@ class ProcessAirflow < OpenStudio::Ruleset::WorkspaceUserScript
       end
       
       has_mini_split_hp = false
-      unless HelperMethods.has_mini_split_heat_pump(model, runner, living_thermal_zone, false).nil?
+      unless HVAC.has_mini_split_heat_pump(model, runner, living_thermal_zone, false).nil?
         has_mini_split_hp = true
       end
       if has_mini_split_hp and ( d.DuctLocation != (living_thermal_zone_r or "none") )
@@ -2523,7 +2525,7 @@ class ProcessAirflow < OpenStudio::Ruleset::WorkspaceUserScript
         
     (1..num_units).to_a.each do |unit_num|
       _nbeds, _nbaths, unit_spaces = Geometry.get_unit_beds_baths_spaces(model, unit_num, runner)
-      thermal_zones = Geometry.get_thermal_zones_from_unit_spaces(unit_spaces)      
+      thermal_zones = Geometry.get_thermal_zones_from_spaces(unit_spaces)      
       living_thermal_zone_r = nil   
       thermal_zones.each do |thermal_zone|
         if thermal_zone.name.to_s.start_with? Constants.LivingZone

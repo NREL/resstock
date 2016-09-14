@@ -158,7 +158,7 @@ class ResidentialShowersSinksBaths < OpenStudio::Ruleset::ModelUserScript
         end
 
         #Get plant loop
-        plant_loop = HelperMethods.get_plant_loop_from_string(model, plant_loop_s, runner)
+        plant_loop = Waterheater.get_plant_loop_from_string(model.getPlantLoops, plant_loop_s, model.getSpaces, runner)
         if plant_loop.nil?
             return false
         end
@@ -182,9 +182,9 @@ class ResidentialShowersSinksBaths < OpenStudio::Ruleset::ModelUserScript
         b_name = Constants.ObjectNameBath
         
         #Get schedules for each end use
-        sh_sch = HotWaterSchedule.new(model, runner, sh_name + " schedule", sh_name + " temperature schedule", nbeds, 0, "Shower", mixed_use_t, File.dirname(__FILE__))
-        s_sch = HotWaterSchedule.new(model, runner, s_name + " schedule",  s_name + " temperature schedule", nbeds, 0, "Sink", mixed_use_t, File.dirname(__FILE__))
-        b_sch = HotWaterSchedule.new(model, runner, b_name + " schedule",  b_name + " temperature schedule", nbeds, 0, "Bath", mixed_use_t, File.dirname(__FILE__))
+        sh_sch = HotWaterSchedule.new(model, runner, sh_name + " schedule", sh_name + " temperature schedule", nbeds, 1, "Shower", mixed_use_t, File.dirname(__FILE__))
+        s_sch = HotWaterSchedule.new(model, runner, s_name + " schedule",  s_name + " temperature schedule", nbeds, 1, "Sink", mixed_use_t, File.dirname(__FILE__))
+        b_sch = HotWaterSchedule.new(model, runner, b_name + " schedule",  b_name + " temperature schedule", nbeds, 1, "Bath", mixed_use_t, File.dirname(__FILE__))
         if not sh_sch.validated? or not s_sch.validated? or not b_sch.validated?
             return false
         end

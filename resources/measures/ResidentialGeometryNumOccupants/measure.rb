@@ -140,13 +140,13 @@ class AddResidentialOccupants < OpenStudio::Ruleset::ModelUserScript
       end
 
       # Get FFA
-      ffa = Geometry.get_unit_finished_floor_area(model, unit_spaces, runner)
+      ffa = Geometry.get_finished_floor_area_from_spaces(unit_spaces, runner)
       if ffa.nil?
           return false
       end
       
       # Assign occupants to each space of the unit
-      spaces = Geometry.get_finished_spaces(model, unit_spaces)      
+      spaces = Geometry.get_finished_spaces(unit_spaces)      
       spaces.each do |space|
       
           space_obj_name = "#{Constants.ObjectNameOccupants(unit_num)}|#{space.name.to_s}"

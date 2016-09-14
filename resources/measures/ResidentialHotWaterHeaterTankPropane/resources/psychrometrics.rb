@@ -123,7 +123,7 @@ class Psychrometrics
         --------
             w       float      humidity ratio        (lbm/lbm)
         '''
-    w_star = Psychrometrics.w_fP(p, Psychrometrics.Psat_fT(twb))
+    w_star = self.w_fP(p, self.Psat_fT(twb))
 
     w = ((Liquid.H2O_l.h_fg - (Liquid.H2O_l.cp - Gas.H2O_v.cp) * twb) * w_star - Gas.Air.cp * (tdb - twb)) / (Liquid.H2O_l.h_fg + Gas.H2O_v.cp * tdb - Liquid.H2O_l.cp * twb) # (lbm/lbm)
     return w
@@ -222,8 +222,8 @@ class Psychrometrics
             Ao    float    Coil Ao Factor
         '''
     
-    bf = Psychrometrics.CoilBypassFactor(dBin, wBin, p, qdot, cfm, shr)        
-    mfr = UnitConversion.lbm_min2kg_s(Psychrometrics.CalculateMassflowRate(dBin, wBin, p, cfm))
+    bf = self.CoilBypassFactor(dBin, wBin, p, qdot, cfm, shr)        
+    mfr = UnitConversion.lbm_min2kg_s(self.CalculateMassflowRate(dBin, wBin, p, cfm))
     
     ntu = -1.0 * Math.log(bf)
     ao = ntu * mfr
@@ -255,20 +255,20 @@ class Psychrometrics
             CBF    float    Coil Bypass Factor
         '''
         
-    mfr = UnitConversion.lbm_min2kg_s(Psychrometrics.CalculateMassflowRate(dBin, wBin, p, cfm))
+    mfr = UnitConversion.lbm_min2kg_s(self.CalculateMassflowRate(dBin, wBin, p, cfm))
 
     tin = OpenStudio::convert(dBin,"F","C").get
-    win = Psychrometrics.w_fT_Twb_P(dBin, wBin, p)
+    win = self.w_fT_Twb_P(dBin, wBin, p)
     p = OpenStudio::convert(p,"psi","kPa").get
                     
     dH = OpenStudio::convert(qdot,"kBtu/h","W").get / mfr
-    hin = Psychrometrics.h_fT_w_SI(tin, win)
+    hin = self.h_fT_w_SI(tin, win)
     h_Tin_Wout = hin - (1-shr)*dH
-    wout = Psychrometrics.w_fT_h_SI(tin,h_Tin_Wout)
+    wout = self.w_fT_h_SI(tin,h_Tin_Wout)
     dW = win - wout
     hout = hin - dH
-    tout = Psychrometrics.T_fw_h_SI(wout, hout)                    
-    rH_out = Psychrometrics.R_fT_w_P_SI(tout, wout, p)
+    tout = self.T_fw_h_SI(wout, hout)                    
+    rH_out = self.R_fT_w_P_SI(tout, wout, p)
     
     if rH_out > 1
         puts 'Error: Conditions passed to CoilBypassFactor result in outlet RH > 100%'
@@ -277,11 +277,11 @@ class Psychrometrics
     dT = tin - tout   
     m_c = dW / dT        
     
-    t_ADP = Psychrometrics.Tdp_fP_w_SI(p, wout)  # Initial guess for iteration
+    t_ADP = self.Tdp_fP_w_SI(p, wout)  # Initial guess for iteration
     
     if shr == 1           
-        w_ADP = Psychrometrics.w_fT_Twb_P_SI(t_ADP, t_ADP, p)
-        h_ADP = Psychrometrics.h_fT_w_SI(t_ADP, w_ADP)
+        w_ADP = self.w_fT_Twb_P_SI(t_ADP, t_ADP, p)
+        h_ADP = self.h_fT_w_SI(t_ADP, w_ADP)
         bF = (hout - h_ADP) / (hin - h_ADP)
         return max(bF, 0.01)
     end
@@ -298,7 +298,7 @@ class Psychrometrics
             t_ADP = t_ADP + d_T_ADP
         end
         
-        w_ADP = Psychrometrics.w_fT_Twb_P_SI(t_ADP, t_ADP, p)
+        w_ADP = self.w_fT_Twb_P_SI(t_ADP, t_ADP, p)
        
         m = (win - w_ADP) / (tin - t_ADP)
         error = (m - m_c) / m_c
@@ -316,7 +316,7 @@ class Psychrometrics
         cnt = cnt + 1
     end        
 
-    h_ADP = Psychrometrics.h_fT_w_SI(t_ADP, w_ADP)
+    h_ADP = self.h_fT_w_SI(t_ADP, w_ADP)
     
     bF = (hout - h_ADP) / (hin - h_ADP)
     return [bF, 0.01].max
@@ -342,8 +342,8 @@ class Psychrometrics
         --------
             mfr    float    mass flow rate (lbm/min)            
         '''    
-    win= Psychrometrics.w_fT_Twb_P(dBin, wBin, p)
-    rho_in = Psychrometrics.rhoD_fT_w_P(dBin, win, p)        
+    win= self.w_fT_Twb_P(dBin, wBin, p)
+    rho_in = self.rhoD_fT_w_P(dBin, win, p)        
     mfr = cfm*rho_in
     return mfr
   end
@@ -394,7 +394,7 @@ class Psychrometrics
         --------
             R       float      relative humidity     (1/1)
         '''
-    return Psychrometrics.R_fT_w_P(OpenStudio::convert(tdb,"C","F").get, w, OpenStudio::convert(p,"kPa","psi").get)     
+    return self.R_fT_w_P(OpenStudio::convert(tdb,"C","F").get, w, OpenStudio::convert(p,"kPa","psi").get)     
   end
   
   def self.Tdp_fP_w_SI(p,w)
@@ -423,7 +423,7 @@ class Psychrometrics
         --------
             Tdp     float      dewpoint temperature  (degC)            
         '''
-    return OpenStudio::convert(Psychrometrics.Tdp_fP_w(OpenStudio::convert(p,"kPa","psi").get, w),"F","C").get
+    return OpenStudio::convert(self.Tdp_fP_w(OpenStudio::convert(p,"kPa","psi").get, w),"F","C").get
   end        
   
   def self.w_fT_Twb_P_SI(tdb,twb,p)
@@ -448,7 +448,7 @@ class Psychrometrics
             w       float      humidity ratio        (g/g)
         '''
         
-    return Psychrometrics.w_fT_Twb_P(OpenStudio::convert(tdb,"C","F").get, OpenStudio::convert(twb,"C","F").get, OpenStudio::convert(p,"kPa","psi").get)      
+    return self.w_fT_Twb_P(OpenStudio::convert(tdb,"C","F").get, OpenStudio::convert(twb,"C","F").get, OpenStudio::convert(p,"kPa","psi").get)      
   end        
   
   def self.w_fT_Twb_P(tdb,twb,p)
@@ -472,7 +472,7 @@ class Psychrometrics
         --------
             w       float      humidity ratio        (lbm/lbm)
         '''
-    w_star = Psychrometrics.w_fP(p,Psychrometrics.Psat_fT(twb))
+    w_star = self.w_fP(p,self.Psat_fT(twb))
 
     w = ((Liquid.H2O_l.h_fg - (Liquid.H2O_l.cp - Gas.H2O_v.cp)*twb)*w_star \
                  - Gas.Air.cp*(tdb - twb))/(Liquid.H2O_l.h_fg + Gas.H2O_v.cp*tdb \
@@ -502,8 +502,8 @@ class Psychrometrics
         --------
             R       float      relative humidity     (1/1)
         '''
-    pw = Psychrometrics.Pw_fP_w(p,w)
-    r = pw/Psychrometrics.Psat_fT(tdb)
+    pw = self.Pw_fP_w(p,w)
+    r = pw/self.Psat_fT(tdb)
     return r
   end        
   
@@ -569,7 +569,7 @@ class Psychrometrics
         c17 = 0.17074
         c18 = 1.2063
 
-        pw = Psychrometrics.Pw_fP_w(p,w) # (psia)
+        pw = self.Pw_fP_w(p,w) # (psia)
         alpha = Math.log(pw)
         tdp1 = c14 + c15*alpha + c16*alpha**2 + c17*alpha**3 + c18*pw**0.1984
         tdp2 = 90.12 + 26.142*alpha + 0.8927*alpha**2
@@ -585,8 +585,8 @@ class Psychrometrics
         if w < Constants.small
             tdp = -999.0
         else
-            pw = Psychrometrics.Pw_fP_w(p,w)
-            tdp = Psychrometrics.Tsat_fP(pw)
+            pw = self.Pw_fP_w(p,w)
+            tdp = self.Tsat_fP(pw)
         end
             
     end
@@ -617,25 +617,25 @@ class Psychrometrics
             SHR    float    Sensible Heat Ratio
         '''
         
-    mfr = UnitConversion.lbm_min2kg_s(Psychrometrics.CalculateMassflowRate(dBin, wBin, p, cfm))
+    mfr = UnitConversion.lbm_min2kg_s(self.CalculateMassflowRate(dBin, wBin, p, cfm))
     bf = Math.exp(-1.0*ao/mfr)
     
-    win = Psychrometrics.w_fT_Twb_P(dBin, wBin, p)
+    win = self.w_fT_Twb_P(dBin, wBin, p)
     p = OpenStudio::convert(p,"psi","kPa").get
     tin = OpenStudio::convert(dBin,"F","C").get
-    hin = Psychrometrics.h_fT_w_SI(tin, win)
+    hin = self.h_fT_w_SI(tin, win)
     dH = OpenStudio::convert(q,"kBtu/h","W").get / mfr
     h_ADP = hin - dH / (1-bf)
     
-    # T_ADP = Psychrometrics.Tsat_fh_P_SI(H_ADP, P)
-    # W_ADP = Psychrometrics.w_fT_h_SI(T_ADP, H_ADP)
+    # T_ADP = self.Tsat_fh_P_SI(H_ADP, P)
+    # W_ADP = self.w_fT_h_SI(T_ADP, H_ADP)
     
     # Initialize
-    t_ADP = Psychrometrics.Tdp_fP_w_SI(p, win)
+    t_ADP = self.Tdp_fP_w_SI(p, win)
     t_ADP_1 = t_ADP # (degC)
     t_ADP_2 = t_ADP # (degC)
-    w_ADP = Psychrometrics.w_fT_R_P_SI(t_ADP, 1.0, p)
-    error = h_ADP - Psychrometrics.h_fT_w_SI(t_ADP, w_ADP)
+    w_ADP = self.w_fT_R_P_SI(t_ADP, 1.0, p)
+    error = h_ADP - self.h_fT_w_SI(t_ADP, w_ADP)
     error1 = error
     error2 = error
 
@@ -644,8 +644,8 @@ class Psychrometrics
 
     (1...itmax+1).each do |i|
 
-        w_ADP = Psychrometrics.w_fT_R_P_SI(t_ADP, 1.0, p)    
-        error = h_ADP - Psychrometrics.h_fT_w_SI(t_ADP, w_ADP)
+        w_ADP = self.w_fT_R_P_SI(t_ADP, 1.0, p)    
+        error = h_ADP - self.h_fT_w_SI(t_ADP, w_ADP)
 
         t_ADP,cvg,t_ADP_1,error1,t_ADP_2,error2 = HelperMethods.Iterate(t_ADP,error,t_ADP_1,error1,t_ADP_2,error2,i,cvg)
 
@@ -658,7 +658,7 @@ class Psychrometrics
         puts 'Warning: Tsat_fh_P failed to converge'        
     end
     
-    h_Tin_Wadp = Psychrometrics.h_fT_w_SI(tin, w_ADP)
+    h_Tin_Wadp = self.h_fT_w_SI(tin, w_ADP)
     
     if (hin - h_ADP != 0)
         shr = [(h_Tin_Wadp-h_ADP) / (hin - h_ADP),1.0].min
@@ -689,7 +689,7 @@ class Psychrometrics
         --------
             w       float      humidity ratio        (g/g)
         '''
-    pws = OpenStudio::convert(Psychrometrics.Psat_fT(OpenStudio::convert(tdb,"C","F").get),"psi","kPa").get
+    pws = OpenStudio::convert(self.Psat_fT(OpenStudio::convert(tdb,"C","F").get),"psi","kPa").get
     pw = r * pws
     w = 0.62198 * pw / (p - pw)
     return w

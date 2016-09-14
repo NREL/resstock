@@ -11,6 +11,7 @@ require "#{File.dirname(__FILE__)}/resources/constants"
 require "#{File.dirname(__FILE__)}/resources/weather"
 require "#{File.dirname(__FILE__)}/resources/geometry"
 require "#{File.dirname(__FILE__)}/resources/schedules"
+require "#{File.dirname(__FILE__)}/resources/hvac"
 
 #start the measure
 class ProcessCoolingSetpoints < OpenStudio::Ruleset::ModelUserScript
@@ -69,7 +70,7 @@ class ProcessCoolingSetpoints < OpenStudio::Ruleset::ModelUserScript
       return false
     end
     
-    heating_season, cooling_season = HelperMethods.calc_heating_and_cooling_seasons(model, weather, runner)
+    heating_season, cooling_season = HVAC.calc_heating_and_cooling_seasons(model, weather, runner)
     if cooling_season.nil?
         return false
     end
@@ -83,7 +84,7 @@ class ProcessCoolingSetpoints < OpenStudio::Ruleset::ModelUserScript
     # assign the availability schedules to the equipment objects
     clg_equip = false
     model.getThermalZones.each do |thermal_zone|
-      clg_coil = HelperMethods.existing_cooling_equipment(model, runner, thermal_zone)
+      clg_coil = HVAC.existing_cooling_equipment(model, runner, thermal_zone)
       unless clg_coil.nil?
         if clg_coil.is_a? OpenStudio::Model::ZoneHVACPackagedTerminalAirConditioner
           coolingseasonschedule.setSchedule(clg_coil)
