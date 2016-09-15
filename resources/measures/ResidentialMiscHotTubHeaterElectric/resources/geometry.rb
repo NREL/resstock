@@ -2,6 +2,22 @@ require "#{File.dirname(__FILE__)}/constants"
 
 class Geometry
 
+    def self.make_one_space_from_multiple_spaces(model, spaces)
+      new_space = OpenStudio::Model::Space.new(model)
+      spaces.each do |space|
+        space.surfaces.each do |surface|
+          if surface.adjacentSurface.is_initialized and surface.surfaceType.downcase == "wall"
+            surface.adjacentSurface.get.remove
+            surface.remove
+          else
+            surface.setSpace(new_space)
+          end
+        end
+        space.remove
+      end      
+      return new_space
+    end
+
     def self.make_polygon(*pts)
         p = OpenStudio::Point3dVector.new
         pts.each do |pt|
@@ -191,6 +207,20 @@ class Geometry
       end
       return floor_area      
     end    
+    
+    def self.get_above_grade_finished_volume_from_spaces(spaces, runner=nil)
+      volume = 0
+      spaces.each do |space|
+        if self.space_is_finished(space) and self.space_is_above_grade(space)
+            volume += OpenStudio.convert(space.floorArea * Geometry.space_height(space),"m^2","ft^2").get
+        end
+      end
+      if volume == 0 and not runner.nil?
+          runner.registerError("Could not find any above-grade finished volume.")
+          return nil
+      end
+      return volume    
+    end
     
     def self.get_building_window_area(model, runner=nil)
       window_area = 0
@@ -454,6 +484,18 @@ class Geometry
         end
         return OpenStudio.convert(wall_area, "m^2", "ft^2").get
     end
+    
+    def self.calculate_exterior_wall_area(spaces)
+        wall_area = 0
+        spaces.each do |space|
+            space.surfaces.each do |surface|
+                next if surface.surfaceType.downcase != "wall"
+                next if surface.outsideBoundaryCondition.downcase != "outdoors"
+                wall_area += surface.grossArea
+            end
+        end
+        return OpenStudio.convert(wall_area, "m^2", "ft^2").get
+    end    
     
     def self.calculate_avg_roof_pitch(spaces)
         sum_tilt = 0

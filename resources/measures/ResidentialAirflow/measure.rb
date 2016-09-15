@@ -200,18 +200,22 @@ class ProcessAirflow < OpenStudio::Ruleset::WorkspaceUserScript
       return @mechVentSensibleEfficiency
     end
 	
-	def MechVentASHRAEStandard
-	  return @mechVentASHRAEStandard
-	end
+    def MechVentASHRAEStandard
+      return @mechVentASHRAEStandard
+    end
   end
 
   class Geom
     def initialize
     end
-	
-    attr_accessor(:finished_floor_area, :above_grade_finished_floor_area, :building_height, :stories, :window_area, :num_units, :num_bedrooms, :num_bathrooms)
-    
+    attr_accessor(:finished_floor_area, :above_grade_finished_floor_area, :building_height, :stories, :window_area, :num_units, :above_grade_volume, :above_grade_exterior_wall_area, :SLA)    
   end
+  
+  class Unit
+    def initialize
+    end    
+    attr_accessor(:num_bedrooms, :num_bathrooms, :above_grade_exterior_wall_area, :above_grade_finished_floor_area, :finished_floor_area)    
+  end  
 
   class NaturalVentilation
     def initialize(natVentHtgSsnSetpointOffset, natVentClgSsnSetpointOffset, natVentOvlpSsnSetpointOffset, natVentHeatingSeason, natVentCoolingSeason, natVentOverlapSeason, natVentNumberWeekdays, natVentNumberWeekendDays, natVentFractionWindowsOpen, natVentFractionWindowAreaOpen, natVentMaxOAHumidityRatio, natVentMaxOARelativeHumidity)
@@ -794,12 +798,6 @@ class ProcessAirflow < OpenStudio::Ruleset::WorkspaceUserScript
 	
     # Create the material class instances
     si = Infiltration.new(infiltrationLivingSpaceACH50, infiltrationShelterCoefficient, infiltrationGarageACH50)
-    living_space = LivingSpace.new
-    garage = Garage.new
-    finished_basement = FinBasement.new(fbsmtACH)
-    space_unfinished_basement = UnfinBasement.new(ufbsmtACH)
-    crawlspace = Crawl.new(crawlACH)
-    unfinished_attic = UnfinAttic.new(uaSLA)
     wind_speed = WindSpeed.new
     neighbors_min_nonzero_offset = get_least_neighbor_offset(workspace)
     vent = MechanicalVentilation.new(mechVentType, mechVentInfilCredit, mechVentTotalEfficiency, mechVentFractionOfASHRAE, mechVentHouseFanPower, mechVentSensibleEfficiency, mechVentASHRAEStandard)
@@ -807,6 +805,10 @@ class ProcessAirflow < OpenStudio::Ruleset::WorkspaceUserScript
     nv = NaturalVentilation.new(natVentHtgSsnSetpointOffset, natVentClgSsnSetpointOffset, natVentOvlpSsnSetpointOffset, natVentHeatingSeason, natVentCoolingSeason, natVentOverlapSeason, natVentNumberWeekdays, natVentNumberWeekendDays, natVentFractionWindowsOpen, natVentFractionWindowAreaOpen, natVentMaxOAHumidityRatio, natVentMaxOARelativeHumidity)
     schedules = Schedules.new
     d = Ducts.new(ductTotalLeakage, ductNormLeakageToOutside, ductSupplySurfaceAreaMultiplier, ductReturnSurfaceAreaMultiplier, ductUnconditionedRvalue, ductSupplyLeakageFractionOfTotal, ductReturnLeakageFractionOfTotal, ductAHSupplyLeakageFractionOfTotal, ductAHReturnLeakageFractionOfTotal)
+    garage = Garage.new
+    unfinished_basement = UnfinBasement.new(ufbsmtACH)
+    crawlspace = Crawl.new(crawlACH)
+    unfinished_attic = UnfinAttic.new(uaSLA)
   
     heatingSetpointWeekday = Array.new
     coolingSetpointWeekday = Array.new
@@ -921,129 +923,142 @@ class ProcessAirflow < OpenStudio::Ruleset::WorkspaceUserScript
     hasForcedAirEquipment = false
     if workspace.getObjectsByType("AirLoopHVAC".to_IddObjectType).length > 0
       hasForcedAirEquipment = true
-    end    
-    
-    duct_locations = {}
+    end
 
     num_units = Geometry.get_num_units(model, runner)
     if num_units.nil?
         return false
     end
 
+    geometry.finished_floor_area = Geometry.get_finished_floor_area_from_spaces(model.getSpaces, runner)
+    if geometry.finished_floor_area.nil?
+      return false
+    end
+    geometry.above_grade_finished_floor_area = Geometry.get_above_grade_finished_floor_area_from_spaces(model.getSpaces, runner)
+    if geometry.above_grade_finished_floor_area.nil?
+      return false
+    end
+    geometry.building_height = Geometry.get_building_height(model.getSpaces)
+    geometry.stories = Geometry.get_building_stories(model.getSpaces)
+    geometry.window_area = Geometry.get_building_window_area(model, runner)
+    geometry.num_units = num_units
+    geometry.above_grade_volume = Geometry.get_above_grade_finished_volume_from_spaces(model.getSpaces)
+    geometry.above_grade_exterior_wall_area = Geometry.calculate_exterior_wall_area(model.getSpaces)
+    
+    garage_thermal_zone = nil
+    ufbasement_thermal_zone = nil
+    crawl_thermal_zone = nil
+    ufattic_thermal_zone = nil
+    model.getThermalZones.each do |thermal_zone|
+      if thermal_zone.name.to_s.start_with? Constants.GarageZone
+        garage_thermal_zone = Geometry.get_thermal_zone_from_string(model.getThermalZones, thermal_zone.name.to_s, runner)
+        garage.height = Geometry.get_building_height(garage_thermal_zone.spaces)
+        garage.area = OpenStudio::convert(garage_thermal_zone.floorArea,"m^2","ft^2").get
+        garage.volume = garage.height * garage.area        
+      elsif thermal_zone.name.to_s.start_with? Constants.UnfinishedBasementZone
+        ufbasement_thermal_zone = Geometry.get_thermal_zone_from_string(model.getThermalZones, thermal_zone.name.to_s, runner)
+        unfinished_basement.height = Geometry.get_building_height(ufbasement_thermal_zone.spaces)
+        unfinished_basement.area = OpenStudio::convert(ufbasement_thermal_zone.floorArea,"m^2","ft^2").get
+        unfinished_basement.volume = unfinished_basement.height * unfinished_basement.area        
+      elsif thermal_zone.name.to_s.start_with? Constants.CrawlZone
+        crawl_thermal_zone = Geometry.get_thermal_zone_from_string(model.getThermalZones, thermal_zone.name.to_s, runner)
+        crawlspace.height = Geometry.get_building_height(crawl_thermal_zone.spaces)
+        crawlspace.area = OpenStudio::convert(crawl_thermal_zone.floorArea,"m^2","ft^2").get
+        crawlspace.volume = crawlspace.height * crawlspace.area        
+      elsif thermal_zone.name.to_s.start_with? Constants.UnfinishedAtticZone
+        ufattic_thermal_zone = Geometry.get_thermal_zone_from_string(model.getThermalZones, thermal_zone.name.to_s, runner)
+        unfinished_attic.height = Geometry.get_building_height(ufattic_thermal_zone.spaces)
+        unfinished_attic.area = OpenStudio::convert(ufattic_thermal_zone.floorArea,"m^2","ft^2").get
+        unfinished_attic.volume = unfinished_attic.height * unfinished_attic.area        
+      end
+    end
+    
+    zones = workspace.getObjectsByType("Zone".to_IddObjectType)
+    zones.each do |zone|    
+      unless ufattic_thermal_zone.nil?
+        if ufattic_thermal_zone.name.to_s == zone.getString(0).to_s
+          unfinished_attic.coord_z = OpenStudio::convert(zone.getString(4).get.to_f,"m","ft").get # Z Origin {m}
+        end
+      end
+      unless crawl_thermal_zone.nil?
+        if crawl_thermal_zone.name.to_s == zone.getString(0).to_s
+          crawlspace.coord_z = OpenStudio::convert(zone.getString(4).get.to_f,"m","ft").get # Z Origin {m}
+        end
+      end
+      unless garage_thermal_zone.nil?
+        if garage_thermal_zone.name.to_s == zone.getString(0).to_s
+          garage.coord_z = OpenStudio::convert(zone.getString(4).get.to_f,"m","ft").get # Z Origin {m}
+        end
+      end
+      unless ufbasement_thermal_zone.nil?
+        if ufbasement_thermal_zone.name.to_s == zone.getString(0).to_s
+          unfinished_basement.coord_z = OpenStudio::convert(zone.getString(4).get.to_f,"m","ft").get # Z Origin {m}
+        end
+      end
+    end
+      
+    wind_speed = _processWindSpeedCorrection(wind_speed, terrainType)
+    
+    duct_locations = {}
+    
     (1..num_units).to_a.each do |unit_num|
       _nbeds, _nbaths, unit_spaces = Geometry.get_unit_beds_baths_spaces(model, unit_num, runner)
-      geometry.num_bedrooms = _nbeds
-      geometry.num_bathrooms = _nbaths
+      unit = Unit.new
+      unit.num_bedrooms = _nbeds
+      unit.num_bathrooms = _nbaths
+      unit.above_grade_exterior_wall_area = Geometry.calculate_exterior_wall_area(unit_spaces)
+      unit.above_grade_finished_floor_area = Geometry.get_above_grade_finished_floor_area_from_spaces(unit_spaces, runner)
+      unit.finished_floor_area = Geometry.get_finished_floor_area_from_spaces(unit_spaces, runner)
       thermal_zones = Geometry.get_thermal_zones_from_spaces(unit_spaces)
       if thermal_zones.length > 1
         runner.registerInfo("Unit #{unit_num} spans more than one thermal zone.")
       end
       
-      living_thermal_zone_r = nil
-      garage_thermal_zone_r = nil
-      fbasement_thermal_zone_r = nil
-      ufbasement_thermal_zone_r = nil
-      crawl_thermal_zone_r = nil
-      ufattic_thermal_zone_r = nil
-      model.getThermalZones.each do |thermal_zone|
-        if thermal_zone.name.to_s.start_with? Constants.GarageZone or thermal_zone.name.to_s.start_with? Constants.UnfinishedBasementZone or thermal_zone.name.to_s.start_with? Constants.CrawlZone or thermal_zone.name.to_s.start_with? Constants.UnfinishedAtticZone
-          thermal_zones << thermal_zone
-        end
-      end      
+      living_space = LivingSpace.new
+      finished_basement = FinBasement.new(fbsmtACH)
+      
+      living_thermal_zone = nil
+      fbasement_thermal_zone = nil
       thermal_zones.each do |thermal_zone|
         if thermal_zone.name.to_s.start_with? Constants.LivingZone
-          living_thermal_zone_r = thermal_zone.name.to_s
-        elsif thermal_zone.name.to_s.start_with? Constants.GarageZone
-          garage_thermal_zone_r = thermal_zone.name.to_s          
+          living_thermal_zone = Geometry.get_thermal_zone_from_string(thermal_zones, thermal_zone.name.to_s, runner)
+          living_space.height = Geometry.get_building_height(living_thermal_zone.spaces)
+          living_space.area = OpenStudio::convert(living_thermal_zone.floorArea,"m^2","ft^2").get
+          living_space.volume = living_space.height/geometry.stories.to_f * living_space.area          
         elsif thermal_zone.name.to_s.start_with? Constants.FinishedBasementZone
-          fbasement_thermal_zone_r = thermal_zone.name.to_s          
-        elsif thermal_zone.name.to_s.start_with? Constants.UnfinishedBasementZone
-          ufbasement_thermal_zone_r = thermal_zone.name.to_s          
-        elsif thermal_zone.name.to_s.start_with? Constants.CrawlZone
-          crawl_thermal_zone_r = thermal_zone.name.to_s          
-        elsif thermal_zone.name.to_s.start_with? Constants.UnfinishedAtticZone
-          ufattic_thermal_zone_r = thermal_zone.name.to_s
+          fbasement_thermal_zone = Geometry.get_thermal_zone_from_string(thermal_zones, thermal_zone.name.to_s, runner)
+          finished_basement.height = Geometry.get_building_height(fbasement_thermal_zone.spaces)
+          finished_basement.area = OpenStudio::convert(fbasement_thermal_zone.floorArea,"m^2","ft^2").get
+          finished_basement.volume = finished_basement.height * finished_basement.area            
         end
       end
-        
-      zones = model.getThermalZones
-      living_thermal_zone = Geometry.get_thermal_zone_from_string(zones, living_thermal_zone_r.to_s, runner)
+
       if living_thermal_zone.nil?
           return false
-      end      
-      garage_thermal_zone = Geometry.get_thermal_zone_from_string(zones, garage_thermal_zone_r.to_s)
-      fbasement_thermal_zone = Geometry.get_thermal_zone_from_string(zones, fbasement_thermal_zone_r.to_s)
-      ufbasement_thermal_zone = Geometry.get_thermal_zone_from_string(zones, ufbasement_thermal_zone_r.to_s)
-      crawl_thermal_zone = Geometry.get_thermal_zone_from_string(zones, crawl_thermal_zone_r.to_s)
-      ufattic_thermal_zone = Geometry.get_thermal_zone_from_string(zones, ufattic_thermal_zone_r.to_s)
+      end
 
       if duct_location != "none" and HVAC.has_central_air_conditioner(model, runner, living_thermal_zone, false, false).nil? and HVAC.has_furnace(model, runner, living_thermal_zone, false, false).nil? and HVAC.has_air_source_heat_pump(model, runner, living_thermal_zone, false).nil?
         runner.registerWarning("No ducted HVAC equipment was found but ducts were specified. Overriding duct specification.")
         duct_location = "none"
       end
-
+      
       zones = workspace.getObjectsByType("Zone".to_IddObjectType)
       zones.each do |zone|
-        zone_name = zone.getString(0).to_s
-        if zone_name == living_thermal_zone_r
-          living_space.coord_z = OpenStudio::convert(zone.getString(4).get.to_f,"m","ft").get # Z Origin {m}
-        elsif zone_name == garage_thermal_zone_r
-          garage.coord_z = OpenStudio::convert(zone.getString(4).get.to_f,"m","ft").get # Z Origin {m}
-        elsif zone_name == fbasement_thermal_zone_r
-          finished_basement.coord_z = OpenStudio::convert(zone.getString(4).get.to_f,"m","ft").get # Z Origin {m}
-        elsif zone_name == ufbasement_thermal_zone_r
-          space_unfinished_basement.coord_z = OpenStudio::convert(zone.getString(4).get.to_f,"m","ft").get # Z Origin {m}
-        elsif zone_name == crawl_thermal_zone_r
-          crawlspace.coord_z = OpenStudio::convert(zone.getString(4).get.to_f,"m","ft").get # Z Origin {m}
-        elsif zone_name == ufattic_thermal_zone_r
-          unfinished_attic.coord_z = OpenStudio::convert(zone.getString(4).get.to_f,"m","ft").get # Z Origin {m}
+        unless living_thermal_zone.nil?
+          if living_thermal_zone.name.to_s == zone_name = zone.getString(0).to_s
+            living_space.coord_z = OpenStudio::convert(zone.getString(4).get.to_f,"m","ft").get # Z Origin {m}
+          end
         end
-      end    
-      
-      geometry.finished_floor_area = Geometry.get_finished_floor_area_from_spaces(unit_spaces, runner)
-      if geometry.finished_floor_area.nil?
-        return false
+        unless fbasement_thermal_zone.nil?
+          if fbasement_thermal_zone.name.to_s == zone_name = zone.getString(0).to_s
+            finished_basement.coord_z = OpenStudio::convert(zone.getString(4).get.to_f,"m","ft").get # Z Origin {m}
+          end
+        end
       end
-      geometry.above_grade_finished_floor_area = Geometry.get_above_grade_finished_floor_area_from_spaces(unit_spaces, runner)
-      if geometry.above_grade_finished_floor_area.nil?
-        return false
-      end
-      geometry.building_height = Geometry.get_building_height(model.getSpaces)
-      geometry.stories = Geometry.get_building_stories(model.getSpaces)
-      geometry.window_area = Geometry.get_building_window_area(model, runner)
-      geometry.num_units = num_units
-      living_space.height = Geometry.get_building_height(living_thermal_zone.spaces)
-      living_space.area = OpenStudio::convert(living_thermal_zone.floorArea,"m^2","ft^2").get
-      living_space.volume = living_space.height/geometry.stories.to_f * living_space.area
-      unless ufattic_thermal_zone.nil?
-        unfinished_attic.height = Geometry.get_building_height(ufattic_thermal_zone.spaces)
-        unfinished_attic.area = OpenStudio::convert(ufattic_thermal_zone.floorArea,"m^2","ft^2").get
-        unfinished_attic.volume = unfinished_attic.height * unfinished_attic.area
-      end
-      unless crawl_thermal_zone.nil?
-        crawlspace.height = Geometry.get_building_height(crawl_thermal_zone.spaces)
-        crawlspace.area = OpenStudio::convert(crawl_thermal_zone.floorArea,"m^2","ft^2").get
-        crawlspace.volume = crawlspace.height * crawlspace.area
-      end
-      unless garage_thermal_zone.nil?
-        garage.height = Geometry.get_building_height(garage_thermal_zone.spaces)
-        garage.area = OpenStudio::convert(garage_thermal_zone.floorArea,"m^2","ft^2").get
-        garage.volume = garage.height * garage.area
-      end
-      unless fbasement_thermal_zone.nil?
-        finished_basement.height = Geometry.get_building_height(fbasement_thermal_zone.spaces)
-        finished_basement.area = OpenStudio::convert(fbasement_thermal_zone.floorArea,"m^2","ft^2").get
-        finished_basement.volume = finished_basement.height * finished_basement.area   
-      end
-      unless ufbasement_thermal_zone.nil?
-        space_unfinished_basement.height = Geometry.get_building_height(ufbasement_thermal_zone.spaces)
-        space_unfinished_basement.area = OpenStudio::convert(ufbasement_thermal_zone.floorArea,"m^2","ft^2").get
-        space_unfinished_basement.volume = space_unfinished_basement.height * space_unfinished_basement.area
-      end        
 
       has_cd = false
       (workspace.getObjectsByType("ElectricEquipment".to_IddObjectType) + workspace.getObjectsByType("GasEquipment".to_IddObjectType)).each do |equipment|
-        if equipment.getString(1).to_s == living_thermal_zone_r
+        if equipment.getString(1).to_s == living_thermal_zone.name.to_s
           has_cd = true
         end
       end
@@ -1053,8 +1068,9 @@ class ProcessAirflow < OpenStudio::Ruleset::WorkspaceUserScript
         unit_dryer_exhaust = 0
       end
       
-      si, living_space, wind_speed, garage, fb, ub, cs, ua = _processInfiltration(si, living_space, garage, finished_basement, space_unfinished_basement, crawlspace, unfinished_attic, garage_thermal_zone, fbasement_thermal_zone, ufbasement_thermal_zone, crawl_thermal_zone, ufattic_thermal_zone, wind_speed, neighbors_min_nonzero_offset, terrainType, geometry)
-      vent, schedules = _processMechanicalVentilation(unit_num, si, vent, ageOfHome, unit_dryer_exhaust, geometry, living_space, schedules)
+      wind_speed = _processWindSpeedCorrectionForUnit(wind_speed, si, neighbors_min_nonzero_offset, geometry)
+      si, living_space, fb, garage, ub, cs, ua, wind_speed = _processInfiltrationForUnit(si, living_space, finished_basement, garage, unfinished_basement, crawlspace, unfinished_attic, fbasement_thermal_zone, garage_thermal_zone, ufbasement_thermal_zone, crawl_thermal_zone, ufattic_thermal_zone, wind_speed, geometry, unit_spaces)
+      vent, schedules = _processMechanicalVentilation(unit_num, si, vent, ageOfHome, unit_dryer_exhaust, geometry, unit, living_space, schedules)
       nv, schedules = _processNaturalVentilation(workspace, unit_num, nv, living_space, wind_speed, si, schedules, geometry, coolingSetpointWeekday, coolingSetpointWeekend, heatingSetpointWeekday, heatingSetpointWeekend)
 
       schedules.MechanicalVentilationEnergy.each do |sch|
@@ -1089,7 +1105,7 @@ class ProcessAirflow < OpenStudio::Ruleset::WorkspaceUserScript
       ems << "
       ZoneInfiltration:FlowCoefficient,
         Living Infiltration_#{unit_num},                            !- Name
-        #{living_thermal_zone_r},                                   !- Zone Name
+        #{living_thermal_zone.name.to_s},                           !- Zone Name
         AlwaysOn,                                                   !- Schedule Name
         1,                                                          !- Flow Coefficient {m/s-Pa^n}
         1,                                                          !- Stack Coefficient {Pa^n/K^n}
@@ -1102,8 +1118,8 @@ class ProcessAirflow < OpenStudio::Ruleset::WorkspaceUserScript
       ems << "
       ZoneVentilation:DesignFlowRate,
         Natural Ventilation_#{unit_num},                            !- Name
-        #{living_thermal_zone_r},                                   !- Zone Name
-        NatVent_#{unit_num},                                      !- Schedule Name
+        #{living_thermal_zone.name.to_s},                           !- Zone Name
+        NatVent_#{unit_num},                                        !- Schedule Name
         Flow/Zone,                                                  !- Design Flow Rate Calculation Method
         0.001,                                                      !- Design Flow rate {m^3/s}
         ,                                                           !- Flow Rate per Zone Floor Area {m/s-m}
@@ -1123,7 +1139,7 @@ class ProcessAirflow < OpenStudio::Ruleset::WorkspaceUserScript
       ems << "
       EnergyManagementSystem:Sensor,
         Tout_#{unit_num},                                           !- Name
-        #{living_thermal_zone_r},                                   !- Output:Variable or Output:Meter Index Key Name
+        #{living_thermal_zone.name.to_s},                           !- Output:Variable or Output:Meter Index Key Name
         Zone Outdoor Air Drybulb Temperature;                       !- Output:Variable or Output:Meter Index Key Name"
 
       # Hout
@@ -1144,21 +1160,21 @@ class ProcessAirflow < OpenStudio::Ruleset::WorkspaceUserScript
       ems << "
       EnergyManagementSystem:Sensor,
         Tin_#{unit_num},                                            !- Name
-        #{living_thermal_zone_r},                                   !- Output:Variable or Output:Meter Index Key Name
+        #{living_thermal_zone.name.to_s},                           !- Output:Variable or Output:Meter Index Key Name
         Zone Mean Air Temperature;                                  !- Output:Variable or Output:Meter Index Key Name"
 
       # Phiin
       ems << "
       EnergyManagementSystem:Sensor,
         Phiin_#{unit_num},                                          !- Name
-        #{living_thermal_zone_r},                                   !- Output:Variable or Output:Meter Index Key Name
+        #{living_thermal_zone.name.to_s},                           !- Output:Variable or Output:Meter Index Key Name
         Zone Air Relative Humidity;                                 !- Output:Variable or Output:Meter Index Key Name"	  
       
       # Win
       ems << "
       EnergyManagementSystem:Sensor,
         Win_#{unit_num},                                            !- Name
-        #{living_thermal_zone_r},                                   !- Output:Variable or Output:Meter Index Key Name
+        #{living_thermal_zone.name.to_s},                           !- Output:Variable or Output:Meter Index Key Name
         Zone Mean Air Humidity Ratio;                               !- Output:Variable or Output:Meter Index Key Name"
 
       # Wout
@@ -1260,7 +1276,7 @@ class ProcessAirflow < OpenStudio::Ruleset::WorkspaceUserScript
             Set Cw = #{inf.wind_coef * (1246.0 ** inf.n_i)},
             Set n = #{inf.n_i},
             Set sft = (f_t*#{(((wind_speed.S_wo * (1.0 - inf.Y_i)) + (inf.S_wflue * (1.5 * inf.Y_i))))}),
-            Set Qn = (((c*Cs*(DeltaT^n))^2)+(((c*Cw)*((sft*Vwind)^(2*n)))^2))^0.5,"
+            Set Qn = (((c*Cs*(DeltaT^n))^2)+(((c*Cw)*((sft*Vwind_#{unit_num})^(2*n)))^2))^0.5,"
         else
           ems_program += "
             Set Qn = 0,"
@@ -1286,7 +1302,7 @@ class ProcessAirflow < OpenStudio::Ruleset::WorkspaceUserScript
 
       if vent.MechVentType == Constants.VentTypeBalanced
         ems_program += "
-          Set Qout = Qrange_#{unit_num}+Qbath_#{unit_num + 1}+Qdryer_#{unit_num}+QhpwhOut+QductsOut,          !- Exhaust flows
+          Set Qout = Qrange_#{unit_num}+Qbath_#{unit_num}+Qdryer_#{unit_num}+QhpwhOut+QductsOut,          !- Exhaust flows
           Set Qin = QhpwhIn+QductsIn,                                 !- Supply flows
           Set Qu = (@Abs (Qout - Qin)),                               !- Unbalanced flow
           Set Qb = QWHV_#{unit_num} + (@Min Qout Qin),                !- Balanced flow"
@@ -1324,8 +1340,8 @@ class ProcessAirflow < OpenStudio::Ruleset::WorkspaceUserScript
       end
 
       ems_program += "
-        Set RangeHoodFanPowerOverride_#{unit_num} = (Qrange*300)/faneff_sp,
-        Set BathExhaustFanPowerOverride_#{unit_num} = (Qbath*300)/faneff_sp,
+        Set RangeHoodFanPowerOverride_#{unit_num} = (Qrange_#{unit_num}*300)/faneff_sp,
+        Set BathExhaustFanPowerOverride_#{unit_num} = (Qbath_#{unit_num}*300)/faneff_sp,
         Set Q_acctd_for_elsewhere = QhpwhOut + QhpwhIn + QductsOut + QductsIn,
         Set InfilFlow_#{unit_num} = (((Qu^2) + (Qn^2))^0.5) - Q_acctd_for_elsewhere,
         Set InfilFlow_#{unit_num} = (@Max InfilFlow_#{unit_num} 0),
@@ -1402,7 +1418,7 @@ class ProcessAirflow < OpenStudio::Ruleset::WorkspaceUserScript
       ems << "
       EnergyManagementSystem:Program,
         NaturalVentilationProgram_#{unit_num},                          !- Name
-        Set Tdiff = Tin_#{unit_num + 1} - Tout_#{unit_num},
+        Set Tdiff = Tin_#{unit_num} - Tout_#{unit_num},
         Set DeltaT = (@Abs Tdiff),
         Set Phiout = (@RhFnTdbWPb Tout_#{unit_num} Wout_#{unit_num} Pbar_#{unit_num}),
         Set Hin = (@HFnTdbRhPb Tin_#{unit_num} Phiin_#{unit_num} Pbar_#{unit_num}),
@@ -1531,35 +1547,35 @@ class ProcessAirflow < OpenStudio::Ruleset::WorkspaceUserScript
 
       end        
 
-      hasGarage = false
-      hasFinishedBasement = false
-      hasUnfinishedBasement = false
-      hasCrawl = false
-      hasUnfinAttic = false
+      garage_thermal_zone_r = nil
+      fbasement_thermal_zone_r = nil
+      ufbasement_thermal_zone_r = nil
+      crawl_thermal_zone_r = nil
+      ufattic_thermal_zone_r = nil
       if not garage_thermal_zone.nil?
-        hasGarage = true
+        garage_thermal_zone_r = garage_thermal_zone.name.to_s
       end
       if not fbasement_thermal_zone.nil?
-        hasFinishedBasement = true
+        fbasement_thermal_zone_r = fbasement_thermal_zone.name.to_s
       end
       if not ufbasement_thermal_zone.nil?
-        hasUnfinishedBasement = true
+        ufbasement_thermal_zone_r = ufbasement_thermal_zone.name.to_s
       end
       if not crawl_thermal_zone.nil?
-        hasCrawl = true
+        crawl_thermal_zone_r = crawl_thermal_zone.name.to_s
       end
       if not ufattic_thermal_zone.nil?
-        hasUnfinAttic = true
+        ufattic_thermal_zone_r = ufattic_thermal_zone.name.to_s
       end
 
       # _processZoneGarage
-      if hasGarage
+      unless garage_thermal_zone.nil?
         if garage.SLA > 0
           # Infiltration
           ems << "
           ZoneInfiltration:EffectiveLeakageArea,
             GarageInfiltration,                                                         !- Name
-            #{garage_thermal_zone_r},                                                   !- Zone Name
+            #{garage_thermal_zone.name.to_s},                                           !- Zone Name
             AlwaysOn,                                                                   !- Schedule Name
             #{OpenStudio::convert(garage.ELA,"ft^2","cm^2").get},                       !- Effective Air Leakage Area {cm}
             #{0.001672 * garage.C_s_SG},                                                !- Stack Coefficient {(L/s)/(cm^4-K)}
@@ -1568,14 +1584,14 @@ class ProcessAirflow < OpenStudio::Ruleset::WorkspaceUserScript
       end
 
       # _processZoneFinishedBasement
-      if hasFinishedBasement
+      unless fbasement_thermal_zone.nil?
         #--- Infiltration
         if fb.inf_method == Constants.InfMethodRes
           if fb.ACH > 0
             ems << "
             ZoneInfiltration:DesignFlowRate,
               FBsmtInfiltration_#{unit_num},                                            !- Name
-              #{fbasement_thermal_zone_r},                                              !- Zone Name
+              #{fbasement_thermal_zone.name.to_s},                                      !- Zone Name
               AlwaysOn,                                                                 !- Schedule Name
               AirChanges/Hour,                                                          !- Design Flow Rate Calculation Method
               ,                                                                         !- Design Flow rate {m^3/s}
@@ -1591,14 +1607,14 @@ class ProcessAirflow < OpenStudio::Ruleset::WorkspaceUserScript
       end
 
       # _processZoneUnfinishedBasement
-      if hasUnfinishedBasement
+      unless ufbasement_thermal_zone.nil?
         #--- Infiltration
         if ub.inf_method == Constants.InfMethodRes
           if ub.ACH > 0
             ems << "
             ZoneInfiltration:DesignFlowRate,
               UBsmtInfiltration,                                                        !- Name
-              #{ufbasement_thermal_zone_r},                                             !- Zone Name
+              #{ufbasement_thermal_zone.name.to_s},                                     !- Zone Name
               AlwaysOn,                                                                 !- Schedule Name
               AirChanges/Hour,                                                          !- Design Flow Rate Calculation Method
               ,                                                                         !- Design Flow rate {m^3/s}
@@ -1614,12 +1630,12 @@ class ProcessAirflow < OpenStudio::Ruleset::WorkspaceUserScript
       end
 
       # _processZoneCrawlspace
-      if hasCrawl
+      unless crawl_thermal_zone.nil?
         #--- Infiltration
         ems << "
         ZoneInfiltration:DesignFlowRate,
           CSInfiltration,                                                               !- Name
-          #{crawl_thermal_zone_r},                                                      !- Zone Name
+          #{crawl_thermal_zone.name.to_s},                                              !- Zone Name
           AlwaysOn,                                                                     !- Schedule Name
           AirChanges/Hour,                                                              !- Design Flow Rate Calculation Method
           ,                                                                             !- Design Flow rate {m^3/s}
@@ -1633,13 +1649,13 @@ class ProcessAirflow < OpenStudio::Ruleset::WorkspaceUserScript
       end
 
       # _processZoneUnfinishedAttic
-      if hasUnfinAttic
+      unless ufattic_thermal_zone.nil?
         #--- Infiltration
         if ua.ELA > 0
           ems << "
           ZoneInfiltration:EffectiveLeakageArea,
           UAtcInfiltration,                                                             !- Name
-          #{ufattic_thermal_zone_r},                                                    !- Zone Name
+          #{ufattic_thermal_zone.name.to_s},                                            !- Zone Name
           AlwaysOn,                                                                     !- Schedule Name
           #{OpenStudio::convert(ua.ELA,"ft^2","cm^2").get},                             !- Effective Air Leakage Area {cm}
           #{0.001672 * ua.C_s_SG},                                                      !- Stack Coefficient {(L/s)/(cm^4-K)}
@@ -1658,7 +1674,7 @@ class ProcessAirflow < OpenStudio::Ruleset::WorkspaceUserScript
       
       d.has_ducts = true  
       if d.DuctLocation == "none"
-          d.DuctLocation = living_thermal_zone_r
+          d.DuctLocation = living_thermal_zone.name.to_s
           d.has_ducts = false
       end
       
@@ -1666,15 +1682,15 @@ class ProcessAirflow < OpenStudio::Ruleset::WorkspaceUserScript
       unless HVAC.has_mini_split_heat_pump(model, runner, living_thermal_zone, false).nil?
         has_mini_split_hp = true
       end
-      if has_mini_split_hp and ( d.DuctLocation != (living_thermal_zone_r or "none") )
-        d.DuctLocation = living_thermal_zone_r
+      if has_mini_split_hp and ( d.DuctLocation != (living_thermal_zone.name.to_s or "none") )
+        d.DuctLocation = living_thermal_zone.name.to_s
         d.has_ducts = false
         runner.registerWarning("Duct losses are currently neglected when simulating mini-split heat pumps. Set Ducts to None or In Finished Space to avoid this warning message.")
       end    
       
       # Set has_uncond_ducts to False if ducts are in a conditioned space,
       # otherwise True    
-      if d.DuctLocation == living_thermal_zone_r
+      if d.DuctLocation == living_thermal_zone.name.to_s
           d.ducts_not_in_living = false
       elsif d.DuctLocation == fbasement_thermal_zone_r or d.DuctLocation == ufbasement_thermal_zone_r or d.DuctLocation == crawl_thermal_zone_r or d.DuctLocation == garage_thermal_zone_r or d.DuctLocation == ufattic_thermal_zone_r
           d.ducts_not_in_living = true
@@ -1774,7 +1790,7 @@ class ProcessAirflow < OpenStudio::Ruleset::WorkspaceUserScript
       
       d.total_duct_unbalance = (d.supply_duct_loss - d.return_duct_loss).abs
       
-      if not d.DuctLocation == living_thermal_zone_r and not d.DuctLocation == "none" and d.supply_duct_loss > 0
+      if not d.DuctLocation == living_thermal_zone.name.to_s and not d.DuctLocation == "none" and d.supply_duct_loss > 0
         # Calculate d.frac_oa = fraction of unbalanced make-up air that is outside air
         if d.total_duct_unbalance <= 0
           # Handle the exception for if there is no leakage unbalance.
@@ -1794,7 +1810,7 @@ class ProcessAirflow < OpenStudio::Ruleset::WorkspaceUserScript
       end
 
       duct_locations[unit_num] = d.DuctLocation
-      if not d.DuctLocation == living_thermal_zone_r and not d.DuctLocation == "none" and hasForcedAirEquipment
+      if not d.DuctLocation == living_thermal_zone.name.to_s and not d.DuctLocation == "none" and hasForcedAirEquipment
       
         # _processMaterials
         ems << "
@@ -1911,7 +1927,7 @@ class ProcessAirflow < OpenStudio::Ruleset::WorkspaceUserScript
         ems << "
         ZoneMixing,
           AHZoneToLivingZoneMixing_#{unit_num},                               !- Name
-          #{living_thermal_zone_r},                                           !- Zone Name
+          #{living_thermal_zone.name.to_s},                                   !- Zone Name
           AlwaysOn,                                                           !- Schedule Name
           Flow/Zone,                                                          !- Design Flow Rate Calculation Method
           0,                                                                  !- Design Flow Rate (set by EMS)
@@ -1931,7 +1947,7 @@ class ProcessAirflow < OpenStudio::Ruleset::WorkspaceUserScript
           ,                                                                   !- Flow Rate per Zone Floor Area
           ,                                                                   !- Flow Rate per Person
           ,                                                                   !- Air Changes per Hour
-          #{living_thermal_zone_r};                                           !- Source Zone Name"      
+          #{living_thermal_zone.name.to_s};                                   !- Source Zone Name"      
        
         ems << "
         SurfaceProperty:ConvectionCoefficients,
@@ -1980,7 +1996,7 @@ class ProcessAirflow < OpenStudio::Ruleset::WorkspaceUserScript
         living_zone_return_air_node_name = nil
         fbasement_zone_return_air_node_name = nil
         workspace.getObjectsByType("ZoneHVAC:EquipmentConnections".to_IddObjectType).each do |zonehvac|
-          if zonehvac.getString(0).to_s == living_thermal_zone_r
+          if zonehvac.getString(0).to_s == living_thermal_zone.name.to_s
             living_zone_return_air_node_name = zonehvac.getString(5)
           elsif zonehvac.getString(0).to_s == fbasement_thermal_zone_r
             fbasement_zone_return_air_node_name = zonehvac.getString(5)
@@ -2027,7 +2043,7 @@ class ProcessAirflow < OpenStudio::Ruleset::WorkspaceUserScript
         ems << "
         OtherEquipment,
           SupplySensibleLeakageToLiving_#{unit_num},                          !- Name
-          #{living_thermal_zone_r},                                           !- Zone Name
+          #{living_thermal_zone.name.to_s},                                   !- Zone Name
           AlwaysOn,                                                           !- Schedule Name
           EquipmentLevel,                                                     !- Design Level Calculation Method
           0,                                                                  !- Design Level {W}
@@ -2040,7 +2056,7 @@ class ProcessAirflow < OpenStudio::Ruleset::WorkspaceUserScript
         ems << "
         OtherEquipment,
           SupplyLatentLeakageToLiving_#{unit_num},                            !- Name
-          #{living_thermal_zone_r},                                           !- Zone Name
+          #{living_thermal_zone.name.to_s},                                    !- Zone Name
           AlwaysOn,                                                           !- Schedule Name
           EquipmentLevel,                                                     !- Design Level Calculation Method
           0,                                                                  !- Design Level {W}
@@ -2054,7 +2070,7 @@ class ProcessAirflow < OpenStudio::Ruleset::WorkspaceUserScript
         ems << "
         OtherEquipment,
           SupplyDuctConductionToLiving_#{unit_num},                           !- Name
-          #{living_thermal_zone_r},                                           !- Zone Name
+          #{living_thermal_zone.name.to_s},                                   !- Zone Name
           AlwaysOn,                                                           !- Schedule Name
           EquipmentLevel,                                                     !- Design Level Calculation Method
           0,                                                                  !- Design Level {W}
@@ -2444,7 +2460,7 @@ class ProcessAirflow < OpenStudio::Ruleset::WorkspaceUserScript
           ems_subroutine += "
           Set h_SA = (@HFnTdbW AH_Tout_#{unit_num} AH_Wout_#{unit_num}),
           Set h_AHZone = (@HFnTdbW AHZone_T_#{unit_num} AHZone_W_#{unit_num}),
-          Set h_RA = (@HFnTdbW RA_T RA_W),
+          Set h_RA = (@HFnTdbW RA_T_#{unit_num} RA_W_#{unit_num}),
           Set h_fg = (@HfgAirFnWTdb AH_Wout_#{unit_num} AH_Tout_#{unit_num}),
           Set SALeakageQtot = f_sup * AH_MFR_#{unit_num} * (h_RA - h_SA),
           Set SupplyLeakLatentLoad_#{unit_num} = f_sup * AH_MFR_#{unit_num} * h_fg * (RA_W_#{unit_num} - AH_Wout_#{unit_num}),
@@ -2454,7 +2470,7 @@ class ProcessAirflow < OpenStudio::Ruleset::WorkspaceUserScript
           Set Tsupply = AHZone_T_#{unit_num} + ((AH_Tout_#{unit_num} - AHZone_T_#{unit_num}) * (@Exp expTerm)),
           Set SupplyDuctLoadToLiving_#{unit_num} = AH_MFR_#{unit_num} * 1006.0 * (Tsupply - AH_Tout_#{unit_num}),
           Set ConductionToAHZone_#{unit_num} = 0 - SupplyDuctLoadToLiving_#{unit_num},
-          Set expTerm = (Fan_RTF_#{unit_num} / (AH_MF_#{unit_num}R * 1006.0)) * #{OpenStudio::convert(d.return_duct_ua,"Btu/hr*R","W/K").get},
+          Set expTerm = (Fan_RTF_#{unit_num} / (AH_MFR_#{unit_num} * 1006.0)) * #{OpenStudio::convert(d.return_duct_ua,"Btu/hr*R","W/K").get},
           Set expTerm = 0 - expTerm,
           Set Treturn = AHZone_T_#{unit_num} + ((RA_T_#{unit_num} - AHZone_T_#{unit_num}) * (@Exp expTerm)),
           Set ReturnDuctLoadToPlenum_#{unit_num} = AH_MFR_#{unit_num} * 1006.0 * (Treturn - RA_T_#{unit_num}),
@@ -2526,13 +2542,13 @@ class ProcessAirflow < OpenStudio::Ruleset::WorkspaceUserScript
     (1..num_units).to_a.each do |unit_num|
       _nbeds, _nbaths, unit_spaces = Geometry.get_unit_beds_baths_spaces(model, unit_num, runner)
       thermal_zones = Geometry.get_thermal_zones_from_spaces(unit_spaces)      
-      living_thermal_zone_r = nil   
+      living_thermal_zone_name = nil
       thermal_zones.each do |thermal_zone|
         if thermal_zone.name.to_s.start_with? Constants.LivingZone
-          living_thermal_zone_r = thermal_zone.name.to_s
+          living_thermal_zone_name = thermal_zone.name.to_s
         end
       end
-      if not duct_locations[unit_num] == living_thermal_zone_r and not duct_locations[unit_num] == "none" and hasForcedAirEquipment # has ducts
+      if not duct_locations[unit_num] == living_thermal_zone_name and not duct_locations[unit_num] == "none" and hasForcedAirEquipment # has ducts
         workspace.getObjectsByType("AirLoopHVAC:ReturnPath".to_IddObjectType).each do |return_path|
           if return_path.getString(0).to_s == "Central Air System_#{unit_num} Return Path"
             return_path.setString(2, "AirLoopHVAC:ReturnPlenum")
@@ -2547,6 +2563,16 @@ class ProcessAirflow < OpenStudio::Ruleset::WorkspaceUserScript
           end
         end      
       end
+    end
+    
+    # terrain
+    terrain = {Constants.TerrainOcean=> 'Ocean',      # Ocean, Bayou flat country
+               Constants.TerrainPlains=> 'Country',   # Flat, open country
+               Constants.TerrainRural=> 'Country',    # Flat, open country
+               Constants.TerrainSuburban=> 'Suburbs', # Rough, wooded country, suburbs
+               Constants.TerrainCity=> 'City'}        # Towns, city outskirts, center of large cities
+    workspace.getObjectsByType("Building".to_IddObjectType).each do |building|
+      building.setString(2, terrain[terrainType])
     end
     
     return true
@@ -2686,37 +2712,29 @@ class ProcessAirflow < OpenStudio::Ruleset::WorkspaceUserScript
     d.DuctLocationFracLeakage = 1
     
     return d
-  end
+  end 
   
-  def _processInfiltration(si, living_space, garage, finished_basement, space_unfinished_basement, crawlspace, unfinished_attic, selected_garage, selected_fbsmt, selected_ufbsmt, selected_crawl, selected_unfinattic, wind_speed, neighbors_min_nonzero_offset, terrainType, geometry)
+  def _processInfiltrationForUnit(si, living_space, finished_basement, garage, unfinished_basement, crawlspace, unfinished_attic, fbasement_thermal_zone, garage_thermal_zone, ufbasement_thermal_zone, crawl_thermal_zone, ufattic_thermal_zone, ws, geometry, unit_spaces)
     # Infiltration calculations.
-
-    # loop thru all the spaces
+    
     spaces = []
     spaces << living_space
-    if not selected_garage.nil?
+    unless fbasement_thermal_zone.nil?
+      spaces << finished_basement
+    end    
+    unless garage_thermal_zone.nil?
       spaces << garage
     end
-    if not selected_fbsmt.nil?
-      spaces << finished_basement
+    unless ufbasement_thermal_zone.nil?
+      spaces << unfinished_basement
     end
-    if not selected_ufbsmt.nil?
-      spaces << space_unfinished_basement
-    end
-    if not selected_crawl.nil?
+    unless crawl_thermal_zone.nil?
       spaces << crawlspace
     end
-    if not selected_unfinattic.nil?
+    unless ufattic_thermal_zone.nil?
       spaces << unfinished_attic
     end
-
-    outside_air_density = UnitConversion.atm2Btu_ft3(@weather.header.LocalPressure) / (Gas.Air.r * (@weather.data.AnnualAvgDrybulb + 460.0))
-    inf_conv_factor = 776.25 # [ft/min]/[inH2O^(1/2)*ft^(3/2)/lbm^(1/2)]
-    delta_pref = 0.016 # inH2O
-
-    # Assume an average inside temperature
-    si.assumed_inside_temp = Constants.AssumedInsideTemp # deg F, used other places. Make available.
-
+    
     spaces.each do |space|
       space.inf_method = nil
       space.SLA = nil
@@ -2726,6 +2744,73 @@ class ProcessAirflow < OpenStudio::Ruleset::WorkspaceUserScript
       space.neutral_level = nil
     end
 
+    unless garage_thermal_zone.nil?
+    
+      garage.inf_method = Constants.InfMethodSG
+      garage.hor_leak_frac = 0.4 # DOE-2 Default
+      garage.neutral_level = 0.5 # DOE-2 Default
+      garage.SLA = get_infiltration_SLA_from_ACH50(si.InfiltrationGarageACH50, 0.67, garage.area, garage.volume)
+      garage.ACH = get_infiltration_ACH_from_SLA(garage.SLA, 1.0, @weather)
+      # Convert ACH to cfm:
+      garage.inf_flow = garage.ACH / OpenStudio::convert(1.0,"hr","min").get * garage.volume # cfm
+          
+    end
+
+    unless ufbasement_thermal_zone.nil?
+
+      unfinished_basement.inf_method = Constants.InfMethodRes # Used for constant ACH
+      unfinished_basement.ACH = unfinished_basement.UFBsmtACH
+      # Convert ACH to cfm
+      unfinished_basement.inf_flow = unfinished_basement.ACH / OpenStudio::convert(1.0,"hr","min").get * unfinished_basement.volume
+
+    end
+
+    unless crawl_thermal_zone.nil?
+
+      crawlspace.inf_method = Constants.InfMethodRes
+
+      crawlspace.ACH = crawlspace.CrawlACH
+      # Convert ACH to cfm
+      crawlspace.inf_flow = crawlspace.ACH / OpenStudio::convert(1.0,"hr","min").get * crawlspace.volume
+
+    end
+
+    unless ufattic_thermal_zone.nil?
+
+      unfinished_attic.inf_method = Constants.InfMethodSG
+      unfinished_attic.hor_leak_frac = 0.75 # Same as Energy Gauge USA Attic Model
+      unfinished_attic.neutral_level = 0.5 # DOE-2 Default
+      unfinished_attic.SLA = unfinished_attic.UASLA
+
+      unfinished_attic.ACH = get_infiltration_ACH_from_SLA(unfinished_attic.SLA, 1.0, @weather)
+
+      # Convert ACH to cfm
+      unfinished_attic.inf_flow = unfinished_attic.ACH / OpenStudio::convert(1.0,"hr","min").get * unfinished_attic.volume
+
+    end    
+        
+    living_space.inf_method = nil
+    living_space.SLA = nil
+    living_space.ACH = nil
+    living_space.inf_flow = nil
+    living_space.hor_leak_frac = nil
+    living_space.neutral_level = nil
+    unless fbasement_thermal_zone.nil?
+      finished_basement.inf_method = nil
+      finished_basement.SLA = nil
+      finished_basement.ACH = nil
+      finished_basement.inf_flow = nil
+      finished_basement.hor_leak_frac = nil
+      finished_basement.neutral_level = nil
+    end
+  
+    outside_air_density = UnitConversion.atm2Btu_ft3(@weather.header.LocalPressure) / (Gas.Air.r * (@weather.data.AnnualAvgDrybulb + 460.0))
+    inf_conv_factor = 776.25 # [ft/min]/[inH2O^(1/2)*ft^(3/2)/lbm^(1/2)]
+    delta_pref = 0.016 # inH2O
+
+    # Assume an average inside temperature
+    si.assumed_inside_temp = Constants.AssumedInsideTemp # deg F, used other places. Make available.  
+  
     if not si.InfiltrationLivingSpaceACH50.nil?
       if living_space.volume == 0
           living_space.SLA = 0
@@ -2743,11 +2828,14 @@ class ProcessAirflow < OpenStudio::Ruleset::WorkspaceUserScript
           si.n_i = 0.67
           
           # Calculate SLA for above-grade portion of the building
-          living_space.SLA = get_infiltration_SLA_from_ACH50(si.InfiltrationLivingSpaceACH50, si.n_i, geometry.above_grade_finished_floor_area, living_space.volume)
+          geometry.SLA = get_infiltration_SLA_from_ACH50(si.InfiltrationLivingSpaceACH50, si.n_i, geometry.above_grade_finished_floor_area, geometry.above_grade_volume)
 
           # Effective Leakage Area (ft^2)
-          si.A_o = living_space.SLA * geometry.above_grade_finished_floor_area
+          si.A_o = geometry.SLA * geometry.above_grade_finished_floor_area * (Geometry.calculate_exterior_wall_area(unit_spaces)/geometry.above_grade_exterior_wall_area)
 
+          # Calculate SLA for unit
+          living_space.SLA = si.A_o / Geometry.get_above_grade_finished_floor_area_from_spaces(unit_spaces)
+    
           # Flow Coefficient (cfm/inH2O^n) (based on ASHRAE HoF)
           si.C_i = si.A_o * (2.0 / outside_air_density) ** 0.5 * delta_pref ** (0.5 - si.n_i) * inf_conv_factor
           has_flue = false
@@ -2765,7 +2853,7 @@ class ProcessAirflow < OpenStudio::Ruleset::WorkspaceUserScript
           end
 
           # Leakage distributions per Iain Walker (LBL) recommendations
-          if not selected_crawl.nil? and crawlspace.CrawlACH > 0
+          if not crawl_thermal_zone.nil? and crawlspace.CrawlACH > 0
             # 15% ceiling, 35% walls, 50% floor leakage distribution for vented crawl
             leakage_ceiling = 0.15
             leakage_walls = 0.35
@@ -2815,7 +2903,7 @@ class ProcessAirflow < OpenStudio::Ruleset::WorkspaceUserScript
           si.stack_coef = si.f_s * (UnitConversion.lbm_fts22inH2O(outside_air_density * Constants.g * living_space.height) / (si.assumed_inside_temp + 460.0)) ** si.n_i # inH2O^n/R^n
 
           # Calculate wind coefficient
-          if not selected_crawl.nil? and crawlspace.CrawlACH > 0
+          if not crawl_thermal_zone.nil? and crawlspace.CrawlACH > 0
 
             if si.X_i > 1.0 - 2.0 * si.Y_i
               # Critical floor to ceiling difference above which f_w does not change (eq. 25)
@@ -2850,20 +2938,8 @@ class ProcessAirflow < OpenStudio::Ruleset::WorkspaceUserScript
       end
           
     end
-
-    unless selected_garage.nil?
     
-      garage.inf_method = Constants.InfMethodSG
-      garage.hor_leak_frac = 0.4 # DOE-2 Default
-      garage.neutral_level = 0.5 # DOE-2 Default
-      garage.SLA = get_infiltration_SLA_from_ACH50(si.InfiltrationGarageACH50, 0.67, garage.area, garage.volume)
-      garage.ACH = get_infiltration_ACH_from_SLA(garage.SLA, 1.0, @weather)
-      # Convert ACH to cfm:
-      garage.inf_flow = garage.ACH / OpenStudio::convert(1.0,"hr","min").get * garage.volume # cfm
-          
-    end
-
-    unless selected_fbsmt.nil?
+    unless fbasement_thermal_zone.nil?
 
       finished_basement.inf_method = Constants.InfMethodRes # Used for constant ACH
       finished_basement.ACH = finished_basement.FBsmtACH
@@ -2871,41 +2947,6 @@ class ProcessAirflow < OpenStudio::Ruleset::WorkspaceUserScript
       finished_basement.inf_flow = finished_basement.ACH / OpenStudio::convert(1.0,"hr","min").get * finished_basement.volume
 
     end
-
-    unless selected_ufbsmt.nil?
-
-      space_unfinished_basement.inf_method = Constants.InfMethodRes # Used for constant ACH
-      space_unfinished_basement.ACH = space_unfinished_basement.UFBsmtACH
-      # Convert ACH to cfm
-      space_unfinished_basement.inf_flow = space_unfinished_basement.ACH / OpenStudio::convert(1.0,"hr","min").get * space_unfinished_basement.volume
-
-    end
-
-    unless selected_crawl.nil?
-
-      crawlspace.inf_method = Constants.InfMethodRes
-
-      crawlspace.ACH = crawlspace.CrawlACH
-      # Convert ACH to cfm
-      crawlspace.inf_flow = crawlspace.ACH / OpenStudio::convert(1.0,"hr","min").get * crawlspace.volume
-
-    end
-
-    unless selected_unfinattic.nil?
-
-      unfinished_attic.inf_method = Constants.InfMethodSG
-      unfinished_attic.hor_leak_frac = 0.75 # Same as Energy Gauge USA Attic Model
-      unfinished_attic.neutral_level = 0.5 # DOE-2 Default
-      unfinished_attic.SLA = unfinished_attic.UASLA
-
-      unfinished_attic.ACH = get_infiltration_ACH_from_SLA(unfinished_attic.SLA, 1.0, @weather)
-
-      # Convert ACH to cfm
-      unfinished_attic.inf_flow = unfinished_attic.ACH / OpenStudio::convert(1.0,"hr","min").get * unfinished_attic.volume
-
-    end
-
-    ws = _processWindSpeedCorrection(wind_speed, terrainType, si, neighbors_min_nonzero_offset, geometry)
 
     spaces.each do |space|
     
@@ -2940,16 +2981,16 @@ class ProcessAirflow < OpenStudio::Ruleset::WorkspaceUserScript
       end
 
     end
-
-    return si, living_space, ws, garage, finished_basement, space_unfinished_basement, crawlspace, unfinished_attic
-
-  end  
+    
+    return si, living_space, finished_basement, garage, unfinished_basement, crawlspace, unfinished_attic, ws
+    
+  end
   
-  def _processMechanicalVentilation(unit_num, infil, vent, ageOfHome, dryerExhaust, geometry, living_space, schedules)
+  def _processMechanicalVentilation(unit_num, infil, vent, ageOfHome, dryerExhaust, geometry, unit, living_space, schedules)
     # Mechanical Ventilation
 
     # Get ASHRAE 62.2 required ventilation rate (excluding infiltration credit)
-    ashrae_mv_without_infil_credit = get_mech_vent_whole_house_cfm(1, geometry.num_bedrooms, geometry.finished_floor_area, vent.MechVentASHRAEStandard) 
+    ashrae_mv_without_infil_credit = get_mech_vent_whole_house_cfm(1, unit.num_bedrooms, unit.finished_floor_area, vent.MechVentASHRAEStandard) 
     
     # Determine mechanical ventilation infiltration credit (per ASHRAE 62.2)
     infil.rate_credit = 0 # default to no credit
@@ -3006,7 +3047,7 @@ class ProcessAirflow < OpenStudio::Ruleset::WorkspaceUserScript
       vent.percent_fan_heat_to_space = 0.0
     end
 
-    vent.bathroom_hour_avg_exhaust = vent.MechVentBathroomExhaust * geometry.num_bathrooms * vent.bath_exhaust_operation / 60.0 # cfm
+    vent.bathroom_hour_avg_exhaust = vent.MechVentBathroomExhaust * unit.num_bathrooms * vent.bath_exhaust_operation / 60.0 # cfm
     vent.range_hood_hour_avg_exhaust = vent.MechVentRangeHoodExhaust * vent.range_hood_exhaust_operation / 60.0 # cfm
     vent.clothes_dryer_hour_avg_exhaust = dryerExhaust * vent.clothes_dryer_exhaust_operation / 60.0 # cfm
 
@@ -3771,7 +3812,7 @@ class ProcessAirflow < OpenStudio::Ruleset::WorkspaceUserScript
 
   end  
   
-  def _processWindSpeedCorrection(wind_speed, terrainType, infiltration, neighbors_min_nonzero_offset, geometry)
+  def _processWindSpeedCorrection(wind_speed, terrainType)
     # Wind speed correction
     wind_speed.height = 32.8 # ft (Standard weather station height)
     
@@ -3807,6 +3848,12 @@ class ProcessAirflow < OpenStudio::Ruleset::WorkspaceUserScript
       wind_speed.ashrae_site_terrain_thickness = 460 # Towns, city outskirs, center of large cities
       wind_speed.ashrae_site_terrain_exponent = 0.33 # Towns, city outskirs, center of large cities 
     end
+    
+    return wind_speed
+    
+  end
+    
+  def _processWindSpeedCorrectionForUnit(wind_speed, infiltration, neighbors_min_nonzero_offset, geometry)
     
     # Local Shielding
     if infiltration.InfiltrationShelterCoefficient == Constants.Auto

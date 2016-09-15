@@ -567,10 +567,8 @@ class CreateResidentialSingleFamilyDetachedGeometry < OpenStudio::Ruleset::Model
         if space.name.to_s == foundation_type.to_s
           surfaces = space.surfaces
           surfaces.each do |surface|
-            surface_type = surface.surfaceType
-            if surface_type == "Wall"
-              surface.setOutsideBoundaryCondition("Ground")
-            end
+            next if surface.surfaceType.downcase != "wall"
+            surface.setOutsideBoundaryCondition("Ground")
           end
         end
       end
