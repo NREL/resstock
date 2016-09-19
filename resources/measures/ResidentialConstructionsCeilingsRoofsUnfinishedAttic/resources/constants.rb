@@ -354,11 +354,19 @@ class Constants
   def self.MonthNames
     return ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
   end
-  def self.ObjectNameBath
-    return 'residential bath'
+  def self.ObjectNameBath(unit=1)
+    s_unit = ""
+    if unit > 1
+      s_unit = "|unit #{unit}"
+    end
+    return "residential bath#{s_unit}"
   end
-  def self.ObjectNameBathDist
-    return 'residential bath dist'
+  def self.ObjectNameBathDist(unit=1)
+    s_unit = ""
+    if unit > 1
+      s_unit = "|unit #{unit}"
+    end
+    return "residential bath dist#{s_unit}"
   end
   def self.ObjectNameClothesWasher(unit=1)
     s_unit = ""
@@ -498,17 +506,33 @@ class Constants
     end
     return "residential refrigerator#{s_unit}"
   end
-  def self.ObjectNameShower
-    return 'residential shower'
+  def self.ObjectNameShower(unit=1)
+    s_unit = ""
+    if unit > 1
+      s_unit = "|unit #{unit}"
+    end
+    return "residential shower#{s_unit}"
   end
-  def self.ObjectNameShowerDist
-    return 'residential shower dist'
+  def self.ObjectNameShowerDist(unit=1)
+    s_unit = ""
+    if unit > 1
+      s_unit = "|unit #{unit}"
+    end
+    return "residential shower dist#{s_unit}"
   end
-  def self.ObjectNameSink
-    return 'residential sink'
+  def self.ObjectNameSink(unit=1)
+    s_unit = ""
+    if unit > 1
+      s_unit = "|unit #{unit}"
+    end
+    return "residential sink#{s_unit}"
   end
-  def self.ObjectNameSinkDist
-    return 'residential sink dist'
+  def self.ObjectNameSinkDist(unit=1)
+    s_unit = ""
+    if unit > 1
+      s_unit = "|unit #{unit}"
+    end
+    return "residential sink dist#{s_unit}"
   end
   def self.ObjectNameWaterHeater(unit=1)
     s_unit = ""

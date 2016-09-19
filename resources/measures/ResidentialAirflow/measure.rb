@@ -2043,6 +2043,7 @@ class ProcessAirflow < OpenStudio::Ruleset::WorkspaceUserScript
         ems << "
         OtherEquipment,
           SupplySensibleLeakageToLiving_#{unit_num},                          !- Name
+          None,                                                               !- Fuel Type
           #{living_thermal_zone.name.to_s},                                   !- Zone Name
           AlwaysOn,                                                           !- Schedule Name
           EquipmentLevel,                                                     !- Design Level Calculation Method
@@ -2056,7 +2057,8 @@ class ProcessAirflow < OpenStudio::Ruleset::WorkspaceUserScript
         ems << "
         OtherEquipment,
           SupplyLatentLeakageToLiving_#{unit_num},                            !- Name
-          #{living_thermal_zone.name.to_s},                                    !- Zone Name
+          None,                                                               !- Fuel Type
+          #{living_thermal_zone.name.to_s},                                   !- Zone Name
           AlwaysOn,                                                           !- Schedule Name
           EquipmentLevel,                                                     !- Design Level Calculation Method
           0,                                                                  !- Design Level {W}
@@ -2070,6 +2072,7 @@ class ProcessAirflow < OpenStudio::Ruleset::WorkspaceUserScript
         ems << "
         OtherEquipment,
           SupplyDuctConductionToLiving_#{unit_num},                           !- Name
+          None,                                                               !- Fuel Type
           #{living_thermal_zone.name.to_s},                                   !- Zone Name
           AlwaysOn,                                                           !- Schedule Name
           EquipmentLevel,                                                     !- Design Level Calculation Method
@@ -2084,6 +2087,7 @@ class ProcessAirflow < OpenStudio::Ruleset::WorkspaceUserScript
         ems << "
         OtherEquipment,
           SupplyDuctConductionToAHZone_#{unit_num},                           !- Name
+          None,                                                               !- Fuel Type
           #{d.DuctLocation},                                                  !- Zone Name
           AlwaysOn,                                                           !- Schedule Name
           EquipmentLevel,                                                     !- Design Level Calculation Method
@@ -2098,6 +2102,7 @@ class ProcessAirflow < OpenStudio::Ruleset::WorkspaceUserScript
         ems << "
         OtherEquipment,
           ReturnDuctConductionToPlenum_#{unit_num},                           !- Name
+          None,                                                               !- Fuel Type
           RA Duct Zone_#{unit_num},                                           !- Zone Name
           AlwaysOn,                                                           !- Schedule Name
           EquipmentLevel,                                                     !- Design Level Calculation Method
@@ -2112,6 +2117,7 @@ class ProcessAirflow < OpenStudio::Ruleset::WorkspaceUserScript
         ems << "
         OtherEquipment,
           ReturnDuctConductionToAHZone_#{unit_num},                           !- Name
+          None,                                                               !- Fuel Type
           #{d.DuctLocation},                                                  !- Zone Name
           AlwaysOn,                                                           !- Schedule Name
           EquipmentLevel,                                                     !- Design Level Calculation Method
@@ -2126,6 +2132,7 @@ class ProcessAirflow < OpenStudio::Ruleset::WorkspaceUserScript
         ems << "
         OtherEquipment,
           SupplySensibleLeakageToAHZone_#{unit_num},                          !- Name
+          None,                                                               !- Fuel Type
           #{d.DuctLocation},                                                  !- Zone Name
           AlwaysOn,                                                           !- Schedule Name
           EquipmentLevel,                                                     !- Design Level Calculation Method
@@ -2140,6 +2147,7 @@ class ProcessAirflow < OpenStudio::Ruleset::WorkspaceUserScript
         ems << "
         OtherEquipment,
           SupplyLatentLeakageToAHZone_#{unit_num},                            !- Name
+          None,                                                               !- Fuel Type
           #{d.DuctLocation},                                                  !- Zone Name
           AlwaysOn,                                                           !- Schedule Name
           EquipmentLevel,                                                     !- Design Level Calculation Method
@@ -2154,6 +2162,7 @@ class ProcessAirflow < OpenStudio::Ruleset::WorkspaceUserScript
         ems << "
         OtherEquipment,
           ReturnSensibleLeakageEquip_#{unit_num},                             !- Name
+          None,                                                               !- Fuel Type
           RA Duct Zone_#{unit_num},                                           !- Zone Name
           AlwaysOn,                                                           !- Schedule Name
           EquipmentLevel,                                                     !- Design Level Calculation Method
@@ -2168,6 +2177,7 @@ class ProcessAirflow < OpenStudio::Ruleset::WorkspaceUserScript
         ems << "
         OtherEquipment,
           ReturnLatentLeakageEquip_#{unit_num},                               !- Name
+          None,                                                               !- Fuel Type
           RA Duct Zone_#{unit_num},                                           !- Zone Name
           AlwaysOn,                                                           !- Schedule Name
           EquipmentLevel,                                                     !- Design Level Calculation Method
@@ -2424,11 +2434,6 @@ class ProcessAirflow < OpenStudio::Ruleset::WorkspaceUserScript
           ZoneMixing,                                                         !- Actuated Component Type
           Air Exchange Flow Rate;                                             !- Actuated Component Control Type"       
         
-        ems << "
-        EnergyManagementSystem:GlobalVariable,
-          DuctLeakSupplyFanEquivalent_#{unit_num},                            !- Name
-          DuctLeakExhaustFanEquivalent_#{unit_num};                           !- Name"
-        
         ems_subroutine = "
         EnergyManagementSystem:Subroutine,
           CalculateDuctLeakage_#{unit_num},                                         
@@ -2458,6 +2463,7 @@ class ProcessAirflow < OpenStudio::Ruleset::WorkspaceUserScript
         
         if d.ducts_not_in_living
           ems_subroutine += "
+          If (AH_MFR_#{unit_num} > 0),
           Set h_SA = (@HFnTdbW AH_Tout_#{unit_num} AH_Wout_#{unit_num}),
           Set h_AHZone = (@HFnTdbW AHZone_T_#{unit_num} AHZone_W_#{unit_num}),
           Set h_RA = (@HFnTdbW RA_T_#{unit_num} RA_W_#{unit_num}),
@@ -2479,7 +2485,19 @@ class ProcessAirflow < OpenStudio::Ruleset::WorkspaceUserScript
           Set ReturnSensibleLeakage_#{unit_num} = f_ret * AH_MFR_#{unit_num} * 1006.0 * (AHZone_T_#{unit_num} - RA_T_#{unit_num}),
           Set QtotLeakageToAHZone = f_sup * AH_MFR_#{unit_num} * (h_SA - h_AHZone),
           Set LatentLeakageToAHZone_#{unit_num} = f_sup * AH_MFR_#{unit_num} * h_fg * (AH_Wout_#{unit_num} - AHZone_W_#{unit_num}),
-          Set SensibleLeakageToAHZone_#{unit_num} = QtotLeakageToAHZone - LatentLeakageToAHZone_#{unit_num};"
+          Set SensibleLeakageToAHZone_#{unit_num} = QtotLeakageToAHZone - LatentLeakageToAHZone_#{unit_num},
+          Else,
+          Set SupplyLeakLatentLoad_#{unit_num} = 0,
+          Set SupplyLeakSensibleLoad_#{unit_num} = 0,
+          Set SupplyDuctLoadToLiving_#{unit_num} = 0,
+          Set ConductionToAHZone_#{unit_num} = 0,
+          Set ReturnDuctLoadToPlenum_#{unit_num} = 0,
+          Set ReturnConductionToAHZone_#{unit_num} = 0,
+          Set ReturnLatentLeakage_#{unit_num} = 0,
+          Set ReturnSensibleLeakage_#{unit_num} = 0,
+          Set LatentLeakageToAHZone_#{unit_num} = 0,
+          Set SensibleLeakageToAHZone_#{unit_num} = 0,
+          EndIf;"
         else
           ems_subroutine += "
           Set SupplyLeakLatentLoad_#{unit_num} = 0,
@@ -2522,14 +2540,27 @@ class ProcessAirflow < OpenStudio::Ruleset::WorkspaceUserScript
           Set AHZoneToLivingFlowRateActuator_#{unit_num} = AHZoneToLivingFlowRate_#{unit_num},
           Set LivingToAHZoneFlowRateActuator_#{unit_num} = LivingToAHZoneFlowRate_#{unit_num};"       
         
+      else
+      
         ems << "
-        EnergyManagementSystem:ProgramCallingManager,
-          DuctLeakageCallingManager_#{unit_num},                              !- Name
-          EndOfSystemTimestepAfterHVACReporting,                              !- EnergyPlus Model Calling Point
-          DuctLeakageProgram_#{unit_num};                                     !- Program Name 1"
+        EnergyManagementSystem:Program,
+          DuctLeakageProgram_#{unit_num},                                         
+          Set DuctLeakSupplyFanEquivalent_#{unit_num} = 0,
+          Set DuctLeakExhaustFanEquivalent_#{unit_num} = 0;"
           
       end      
       
+      ems << "
+      EnergyManagementSystem:GlobalVariable,
+        DuctLeakSupplyFanEquivalent_#{unit_num},                            !- Name
+        DuctLeakExhaustFanEquivalent_#{unit_num};                           !- Name"
+
+      ems << "
+      EnergyManagementSystem:ProgramCallingManager,
+        DuctLeakageCallingManager_#{unit_num},                              !- Name
+        EndOfSystemTimestepAfterHVACReporting,                              !- EnergyPlus Model Calling Point
+        DuctLeakageProgram_#{unit_num};                                     !- Program Name 1"
+          
     end
 
     ems.each do |str|
@@ -2553,6 +2584,7 @@ class ProcessAirflow < OpenStudio::Ruleset::WorkspaceUserScript
           if return_path.getString(0).to_s == "Central Air System_#{unit_num} Return Path"
             return_path.setString(2, "AirLoopHVAC:ReturnPlenum")
             return_path.setString(3, "Return Plenum_#{unit_num}")
+            workspace = HelperMethods.remove_object_from_idf_based_on_name(workspace, ["Zone Mixer_#{unit_num}"], "AirLoopHVAC:ZoneMixer", runner)
           end
         end
       else # no ducts

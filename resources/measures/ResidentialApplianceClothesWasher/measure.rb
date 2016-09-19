@@ -516,12 +516,25 @@ class ResidentialClothesWasher < OpenStudio::Ruleset::ModelUserScript
         
             if sch.nil?
                 # Create schedule
-                sch = HotWaterSchedule.new(model, runner, obj_name + " schedule", obj_name + " temperature schedule", nbeds, 1, "ClothesWasher", cw_water_temp, File.dirname(__FILE__))
+                sch = HotWaterSchedule.new(model, runner, Constants.ObjectNameClothesWasher + " schedule", Constants.ObjectNameClothesWasher + " temperature schedule", nbeds, unit_num, "ClothesWasher", cw_water_temp, File.dirname(__FILE__))
                 if not sch.validated?
                     return false
                 end
             end
             
+            #Reuse existing water use connection if possible
+            water_use_connection = nil
+            plant_loop.demandComponents.each do |component|
+                next unless component.to_WaterUseConnections.is_initialized
+                water_use_connection = component.to_WaterUseConnections.get
+                break
+            end
+            if water_use_connection.nil?
+                #Need new water heater connection
+                water_use_connection = OpenStudio::Model::WaterUseConnections.new(model)
+                plant_loop.addDemandBranchForComponent(water_use_connection)
+            end
+
             design_level = sch.calcDesignLevelFromDailykWh(daily_energy)
             peak_flow = sch.calcPeakFlowFromDailygpm(total_daily_water_use)
 
@@ -546,22 +559,7 @@ class ResidentialClothesWasher < OpenStudio::Ruleset::ModelUserScript
             cw_def2.setPeakFlowRate(peak_flow)
             cw_def2.setEndUseSubcategory("Domestic Hot Water")
             sch.setWaterSchedule(cw2)
-
-            #Reuse existing water use connection if possible
-            equip_added = false
-            plant_loop.demandComponents.each do |component|
-                next unless component.to_WaterUseConnections.is_initialized
-                connection = component.to_WaterUseConnections.get
-                connection.addWaterUseEquipment(cw2)
-                equip_added = true
-                break
-            end
-            if not equip_added
-                #Need new water heater connection
-                connection = OpenStudio::Model::WaterUseConnections.new(model)
-                connection.addWaterUseEquipment(cw2)
-                plant_loop.addDemandBranchForComponent(connection)
-            end
+            water_use_connection.addWaterUseEquipment(cw2)
             
             info_msgs << "A clothes washer with #{cw_ann_e.round} kWhs annual energy consumption has been added to plant loop '#{plant_loop.name}' and assigned to space '#{space.name.to_s}'."
             

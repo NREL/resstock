@@ -74,9 +74,17 @@ class SimulationOutputReport < OpenStudio::Ruleset::ReportingUserScript
     report_output(runner, "Other Fuel Interior Equipment", sqlFile.otherFuelInteriorEquipment, "GJ", other_fuel_site_units)
     report_output(runner, "Other Fuel Water Systems", sqlFile.otherFuelWaterSystems, "GJ", other_fuel_site_units)
     
-    # Other Outputs
+    # Loads Not Met
     report_output(runner, "Hours Heating Setpoint Not Met", sqlFile.hoursHeatingSetpointNotMet, nil, nil)
     report_output(runner, "Hours Cooling Setpoint Not Met", sqlFile.hoursCoolingSetpointNotMet, nil, nil)
+    
+    # HVAC Capacities
+    cooling_capacity_query = "SELECT Value FROM ComponentSizes WHERE CompType IN ('Coil:Cooling:DX:SingleSpeed','Coil:Cooling:DX:TwoSpeed','Coil:Cooling:DX:MultiSpeed','Coil:Cooling:DX:VariableSpeed') AND Description IN ('Design Size Gross Rated Total Cooling Capacity')"
+    cooling_capacity = sqlFile.execAndReturnFirstDouble(cooling_capacity_query)
+    report_output(runner, "HVAC Cooling Capacity", cooling_capacity, "W", "W")
+    heating_capacity_query = "SELECT Value FROM ComponentSizes WHERE CompType IN ('Coil:Heating:Fuel','Coil:Heating:Electric','ZONEHVAC:BASEBOARD:CONVECTIVE:ELECTRIC','Coil:Heating:DX:SingleSpeed','Coil:Heating:DX:MultiSpeed','Coil:Heating:DX:VariableSpeed','Boiler:HotWater') AND Description IN ('Design Size Nominal Capacity','Design Size Heating Design Capacity','Design Size Gross Rated Heating Capacity')"
+    heating_capacity = sqlFile.execAndReturnFirstDouble(heating_capacity_query)
+    report_output(runner, "HVAC Heating Capacity", heating_capacity, "W", "W")
     
     #closing the sql file
     sqlFile.close()
@@ -93,7 +101,7 @@ class SimulationOutputReport < OpenStudio::Ruleset::ReportingUserScript
     if not report_units.nil?
         name = "#{name} #{report_units}"
     end
-    if os_units.nil? or report_units.nil?
+    if os_units.nil? or report_units.nil? or os_units != report_units
         valInUnits = val.get
     else
         valInUnits = OpenStudio::convert(val.get,os_units,report_units).get

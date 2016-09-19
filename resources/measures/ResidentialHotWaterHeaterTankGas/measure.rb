@@ -205,7 +205,7 @@ class ResidentialHotWaterHeaterTankGas < OpenStudio::Ruleset::ModelUserScript
             if loop.nil?
                 runner.registerInfo("A new plant loop for DHW will be added to the model")
                 runner.registerInitialCondition("No water heater model currently exists")
-                loop = Waterheater.create_new_loop(model, Constants.PlantLoopDomesticWater(unit_num))
+                loop = Waterheater.create_new_loop(model, Constants.PlantLoopDomesticWater(unit_num), t_set)
             end
 
             if loop.components(OpenStudio::Model::PumpConstantSpeed::iddObjectType).empty?

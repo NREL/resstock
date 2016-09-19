@@ -346,12 +346,12 @@ class Waterheater
         new_heater.setSetpointTemperatureSchedule(new_schedule)
     end
     
-    def self.create_new_loop(model, name)
+    def self.create_new_loop(model, name, t_set)
         #Create a new plant loop for the water heater
         loop = OpenStudio::Model::PlantLoop.new(model)
         loop.setName(name)
-        loop.sizingPlant.setDesignLoopExitTemperature(60)
-        loop.sizingPlant.setLoopDesignTemperatureDifference(50)
+        loop.sizingPlant.setDesignLoopExitTemperature(OpenStudio::convert(t_set,"F","C").get)
+        loop.sizingPlant.setLoopDesignTemperatureDifference(OpenStudio::convert(10,"R","K").get)
         loop.setPlantLoopVolume(0.003) #~1 gal
             
         bypass_pipe  = OpenStudio::Model::PipeAdiabatic.new(model)
