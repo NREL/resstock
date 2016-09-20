@@ -34,21 +34,21 @@ class ResidentialHotWaterFixtures < OpenStudio::Ruleset::ModelUserScript
         #Shower hot water use multiplier
         shower_mult = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("shower_mult",true)
         shower_mult.setDisplayName("Multiplier on shower hot water use")
-        shower_mult.setDescription("Multiplier on Building America HSP shower hot water consumption. HSP perscribes shower hot water consumption of 14 + 4.67 * n_bedrooms gal/day at 110 F.")
+        shower_mult.setDescription("Multiplier on Building America HSP shower hot water consumption. HSP prescribes shower hot water consumption of 14 + 4.67 * n_bedrooms gal/day at 110 F.")
         shower_mult.setDefaultValue(1.0)
         args << shower_mult
         
         #Sink hot water use multiplier
         sink_mult = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("sink_mult",true)
         sink_mult.setDisplayName("Multiplier on sink hot water use")
-        sink_mult.setDescription("Multiplier on Building America HSP sink hot water consumption. HSP perscribes sink hot water consumption of 12.5 + 4.16 * n_bedrooms gal/day at 110 F.")
+        sink_mult.setDescription("Multiplier on Building America HSP sink hot water consumption. HSP prescribes sink hot water consumption of 12.5 + 4.16 * n_bedrooms gal/day at 110 F.")
         sink_mult.setDefaultValue(1.0)
         args << sink_mult
             
         #Bath hot water use multiplier
         bath_mult = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("bath_mult",true)
         bath_mult.setDisplayName("Multiplier on bath hot water use")
-        bath_mult.setDescription("Multiplier on Building America HSP bath hot water consumption. HSP perscribes bath hot water consumption of 3.5 + 1.17 * n_bedrooms gal/day at 110 F.")
+        bath_mult.setDescription("Multiplier on Building America HSP bath hot water consumption. HSP prescribes bath hot water consumption of 3.5 + 1.17 * n_bedrooms gal/day at 110 F.")
         bath_mult.setDefaultValue(1.0)
         args << bath_mult
         

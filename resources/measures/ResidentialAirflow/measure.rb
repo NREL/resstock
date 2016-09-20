@@ -1002,10 +1002,19 @@ class ProcessAirflow < OpenStudio::Ruleset::WorkspaceUserScript
     duct_locations = {}
     
     (1..num_units).to_a.each do |unit_num|
-      _nbeds, _nbaths, unit_spaces = Geometry.get_unit_beds_baths_spaces(model, unit_num, runner)
+      nbeds, nbaths, unit_spaces = Geometry.get_unit_beds_baths_spaces(model, unit_num, runner)
+      if unit_spaces.nil?
+        runner.registerError("Could not determine the spaces associated with unit #{unit_num}.")
+        return false
+      end
+      if nbeds.nil? or nbaths.nil?
+        runner.registerError("Could not determine number of bedrooms or bathrooms. Run the 'Add Residential Bedrooms And Bathrooms' measure first.")
+        return false
+      end
+
       unit = Unit.new
-      unit.num_bedrooms = _nbeds
-      unit.num_bathrooms = _nbaths
+      unit.num_bedrooms = nbeds
+      unit.num_bathrooms = nbaths
       unit.above_grade_exterior_wall_area = Geometry.calculate_exterior_wall_area(unit_spaces)
       unit.above_grade_finished_floor_area = Geometry.get_above_grade_finished_floor_area_from_spaces(unit_spaces, runner)
       unit.finished_floor_area = Geometry.get_finished_floor_area_from_spaces(unit_spaces, runner)

@@ -27,6 +27,6 @@ The spreadsheets for [National](https://github.com/NREL/OpenStudio-ResStock/blob
 
 ## Results
 
-Raw results are available in a CSV file after running the simulations. For each Building ID, one or more rows of data are available that define the existing building as well as any upgrade scenarios. Each row, representing an EnergyPlus simulation, includes housing characteristics as well as simulation end use results.
+Raw results are available in a CSV file after running the simulations. For each Building ID, one or more rows of data are available that define the existing building as well as any upgrade scenarios. Each row, representing an EnergyPlus simulation, includes housing characteristics as well as simulation results (end use outputs, HVAC capacities, hours loads not met, etc.).
 
 There are [sample results](https://github.com/NREL/OpenStudio-ResStock/blob/master/analysis_results/) provided in the repository.
