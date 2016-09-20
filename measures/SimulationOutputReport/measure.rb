@@ -101,7 +101,7 @@ class SimulationOutputReport < OpenStudio::Ruleset::ReportingUserScript
     if not report_units.nil?
         name = "#{name} #{report_units}"
     end
-    if os_units.nil? or report_units.nil? or os_units != report_units
+    if os_units.nil? or report_units.nil? or os_units == report_units
         valInUnits = val.get
     else
         valInUnits = OpenStudio::convert(val.get,os_units,report_units).get
