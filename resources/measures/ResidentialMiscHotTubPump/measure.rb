@@ -177,7 +177,7 @@ class ResidentialHotTubPump < OpenStudio::Ruleset::ModelUserScript
             htp_def.setFractionRadiant(0)
             htp_def.setFractionLatent(0)
             htp_def.setFractionLost(1)
-            sch.setSchedule(htp)
+            htp.setSchedule(sch.schedule)
             
             info_msgs << "A hot tub pump with #{htp_ann.round} kWhs annual energy consumption has been assigned to outside."
             

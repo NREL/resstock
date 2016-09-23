@@ -126,6 +126,15 @@ class ResidentialHotWaterHeaterTankElectric < OpenStudio::Ruleset::ModelUserScri
             return false
         end
         
+        # Hot water schedules vary by number of bedrooms. For a given number of bedroom,
+        # there are 10 different schedules available for different units in a multifamily 
+        # building. This hash tracks which schedule to use.
+        sch_unit_index = {}
+        num_bed_options = (1..5)
+        num_bed_options.each do |num_bed_option|
+            sch_unit_index[num_bed_option.to_f] = -1
+        end
+        
         (1..num_units).to_a.each do |unit_num|
         
             # Get unit beds/baths/spaces
@@ -187,7 +196,8 @@ class ResidentialHotWaterHeaterTankElectric < OpenStudio::Ruleset::ModelUserScri
                 new_manager.addToNode(loop.supplyOutletNode)
             end
         
-            new_heater = Waterheater.create_new_heater(unit_num, Constants.ObjectNameWaterHeater(unit_num), cap, Constants.FuelTypeElectric, vol, nbeds, nbaths, ef, re, t_set, water_heater_tz, 0, 0, Constants.WaterHeaterTypeTank, 0, File.dirname(__FILE__), model, runner)
+            sch_unit_index[nbeds] = (sch_unit_index[nbeds] + 1) % 10
+            new_heater = Waterheater.create_new_heater(sch_unit_index[nbeds], Constants.ObjectNameWaterHeater(unit_num), cap, Constants.FuelTypeElectric, vol, nbeds, nbaths, ef, re, t_set, water_heater_tz, 0, 0, Constants.WaterHeaterTypeTank, 0, File.dirname(__FILE__), model, runner)
         
             loop.addSupplyBranchForComponent(new_heater)
             

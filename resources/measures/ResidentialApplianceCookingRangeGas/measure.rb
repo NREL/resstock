@@ -202,7 +202,7 @@ class ResidentialCookingRangeGas < OpenStudio::Ruleset::ModelUserScript
             rng_def.setFractionRadiant(0.18)
             rng_def.setFractionLatent(0.2)
             rng_def.setFractionLost(0.5)
-            sch.setSchedule(rng)
+            rng.setSchedule(sch.schedule)
             
             if e_ignition == true
                 rng_def2 = OpenStudio::Model::ElectricEquipmentDefinition.new(model)
@@ -214,7 +214,7 @@ class ResidentialCookingRangeGas < OpenStudio::Ruleset::ModelUserScript
                 rng_def2.setFractionRadiant(0.24)
                 rng_def2.setFractionLatent(0.3)
                 rng_def2.setFractionLost(0.3)
-                sch.setSchedule(rng2)
+                rng2.setSchedule(sch.schedule)
             end
 
             # Report each assignment plus final condition

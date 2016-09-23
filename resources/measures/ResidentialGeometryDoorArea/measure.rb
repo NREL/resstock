@@ -215,6 +215,7 @@ class CreateResidentialDoorArea < OpenStudio::Ruleset::ModelUserScript
         door_sub_surface.setSurface(min_story_avail_wall)
         
         tot_door_area += door_area
+        break
       end
 
       if door_sub_surface.nil? and unit_has_door

@@ -257,7 +257,7 @@ class Waterheater
         return new_schedule
     end
     
-    def self.create_new_heater(unit_num, name, cap, fuel, vol, nbeds, nbaths, ef, re, t_set, thermal_zone, oncycle_p, offcycle_p, tanktype, cyc_derate, measure_dir, model, runner)
+    def self.create_new_heater(unit_index, name, cap, fuel, vol, nbeds, nbaths, ef, re, t_set, thermal_zone, oncycle_p, offcycle_p, tanktype, cyc_derate, measure_dir, model, runner)
     
         new_heater = OpenStudio::Model::WaterHeaterMixed.new(model)
         new_heater.setName(name)
@@ -294,7 +294,7 @@ class Waterheater
             # Tankless WHs are set to "modulate", not "cycle", so they end up
             # effectively always on. Thus, we need to use a weighted-average of
             # on-cycle and off-cycle parasitics.
-            sch = HotWaterSchedule.new(model, runner, "", "", nbeds, unit_num, nil, 0, measure_dir, false)
+            sch = HotWaterSchedule.new(model, runner, "", "", nbeds, unit_index, nil, 0, measure_dir, false)
             if not sch.validated?
                 return nil
             end

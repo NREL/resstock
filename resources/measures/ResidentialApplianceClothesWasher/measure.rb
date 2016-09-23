@@ -208,8 +208,16 @@ class ResidentialClothesWasher < OpenStudio::Ruleset::ModelUserScript
     
     tot_cw_ann_e = 0
     
+    # Hot water schedules vary by number of bedrooms. For a given number of bedroom,
+    # there are 10 different schedules available for different units in a multifamily 
+    # building. This hash tracks which schedule to use.
+    sch_unit_index = {}
+    num_bed_options = (1..5)
+    num_bed_options.each do |num_bed_option|
+        sch_unit_index[num_bed_option.to_f] = -1
+    end
+    
     info_msgs = []
-    sch = nil
     (1..num_units).to_a.each do |unit_num|
     
         # Get unit beds/baths/spaces
@@ -514,12 +522,11 @@ class ResidentialClothesWasher < OpenStudio::Ruleset::ModelUserScript
     
         if cw_ann_e > 0
         
-            if sch.nil?
-                # Create schedule
-                sch = HotWaterSchedule.new(model, runner, Constants.ObjectNameClothesWasher + " schedule", Constants.ObjectNameClothesWasher + " temperature schedule", nbeds, unit_num, "ClothesWasher", cw_water_temp, File.dirname(__FILE__))
-                if not sch.validated?
-                    return false
-                end
+            # Create schedule
+            sch_unit_index[nbeds] = (sch_unit_index[nbeds] + 1) % 10
+            sch = HotWaterSchedule.new(model, runner, Constants.ObjectNameClothesWasher + " schedule", Constants.ObjectNameClothesWasher + " temperature schedule", nbeds, sch_unit_index[nbeds], "ClothesWasher", cw_water_temp, File.dirname(__FILE__))
+            if not sch.validated?
+                return false
             end
             
             #Reuse existing water use connection if possible
@@ -548,7 +555,7 @@ class ResidentialClothesWasher < OpenStudio::Ruleset::ModelUserScript
             cw_def.setFractionRadiant(0.48)
             cw_def.setFractionLatent(0.0)
             cw_def.setFractionLost(0.2)
-            sch.setSchedule(cw)
+            cw.setSchedule(sch.schedule)
 
             #Add water use equipment for the dw
             cw_def2 = OpenStudio::Model::WaterUseEquipmentDefinition.new(model)
@@ -558,7 +565,8 @@ class ResidentialClothesWasher < OpenStudio::Ruleset::ModelUserScript
             cw_def2.setName(obj_name)
             cw_def2.setPeakFlowRate(peak_flow)
             cw_def2.setEndUseSubcategory("Domestic Hot Water")
-            sch.setWaterSchedule(cw2)
+            cw2.setFlowRateFractionSchedule(sch.schedule)
+            cw_def2.setTargetTemperatureSchedule(sch.temperatureSchedule)
             water_use_connection.addWaterUseEquipment(cw2)
             
             info_msgs << "A clothes washer with #{cw_ann_e.round} kWhs annual energy consumption has been added to plant loop '#{plant_loop.name}' and assigned to space '#{space.name.to_s}'."

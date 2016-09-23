@@ -177,7 +177,7 @@ class ResidentialPoolPump < OpenStudio::Ruleset::ModelUserScript
             pp_def.setFractionRadiant(0)
             pp_def.setFractionLatent(0)
             pp_def.setFractionLost(1)
-            sch.setSchedule(pp)
+            pp.setSchedule(sch.schedule)
             
             info_msgs << "A pool pump with #{pp_ann.round} kWhs annual energy consumption has been assigned to outside."
             

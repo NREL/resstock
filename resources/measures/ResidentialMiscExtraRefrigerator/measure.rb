@@ -171,7 +171,7 @@ class ResidentialExtraRefrigerator < OpenStudio::Ruleset::ModelUserScript
             frg_def.setFractionRadiant(0)
             frg_def.setFractionLatent(0)
             frg_def.setFractionLost(0)
-            sch.setSchedule(frg)
+            frg.setSchedule(sch.schedule)
             
             info_msgs << "An extra refrigerator with #{fridge_ann.round} kWhs annual energy consumption has been assigned to space '#{space.name.to_s}'."
             

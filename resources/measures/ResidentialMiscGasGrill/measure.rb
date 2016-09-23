@@ -175,7 +175,7 @@ class ResidentialGasGrill < OpenStudio::Ruleset::ModelUserScript
             gg_def.setFractionRadiant(0)
             gg_def.setFractionLatent(0)
             gg_def.setFractionLost(1)
-            sch.setSchedule(gg)
+            gg.setSchedule(sch.schedule)
             
             info_msgs << "A gas grill with #{gg_ann_g.round} therms annual energy consumption has been assigned to outside."
             

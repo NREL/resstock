@@ -425,7 +425,7 @@ class ResidentialLighting < OpenStudio::Ruleset::ModelUserScript
             ltg_def.setFractionRadiant(0.6)
             ltg_def.setFractionVisible(0.2)
             ltg_def.setReturnAirFraction(0.0)
-            sch.setSchedule(ltg)
+            ltg.setSchedule(sch.schedule)
 
             info_msgs << "Lighting with #{space_ltg_ann.round} kWhs annual energy consumption has been assigned to space '#{space.name.to_s}'."
             tot_ltg += space_ltg_ann
@@ -465,7 +465,7 @@ class ResidentialLighting < OpenStudio::Ruleset::ModelUserScript
         ltg_def.setFractionRadiant(0.6)
         ltg_def.setFractionVisible(0.2)
         ltg_def.setReturnAirFraction(0.0)
-        sch.setSchedule(ltg)
+        ltg.setSchedule(sch.schedule)
 
         info_msgs << "Lighting with #{space_ltg_ann.round} kWhs annual energy consumption has been assigned to space '#{garage_space.name.to_s}'."
         tot_ltg += space_ltg_ann
@@ -486,7 +486,7 @@ class ResidentialLighting < OpenStudio::Ruleset::ModelUserScript
     ltg.setName(space_obj_name)
     ltg_def.setName(space_obj_name)
     ltg_def.setDesignLevel(space_design_level)
-    sch.setSchedule(ltg)
+    ltg.setSchedule(sch.schedule)
     
     info_msgs << "Lighting with #{outside_ann.round} kWhs annual energy consumption has been assigned to the exterior'."
     tot_ltg += outside_ann

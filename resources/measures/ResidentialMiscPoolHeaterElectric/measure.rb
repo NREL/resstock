@@ -184,7 +184,7 @@ class ResidentialPoolHeaterElec < OpenStudio::Ruleset::ModelUserScript
             ph_def.setFractionRadiant(0)
             ph_def.setFractionLatent(0)
             ph_def.setFractionLost(1)
-            sch.setSchedule(ph)
+            ph.setSchedule(sch.schedule)
             
             info_msgs << "A pool heater with #{ph_ann.round} kWhs annual energy consumption has been assigned to outside."
             

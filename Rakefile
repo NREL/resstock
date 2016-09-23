@@ -51,6 +51,8 @@ end
 
 desc 'Perform integrity checking on inputs to look for problems'
 task :integrity_check do
+  require 'openstudio'
+
   # Load helper file
   resources_dir = File.join(File.dirname(__FILE__), 'resources')
   require File.join(resources_dir, 'helper_methods')
@@ -63,9 +65,10 @@ task :integrity_check do
   lookup_file = File.join(resources_dir, 'options_lookup.tsv')
   check_file_exists(lookup_file, nil)
   parameter_names = get_parameters_ordered_from_options_lookup_tsv(resources_dir)
+  model = OpenStudio::Model::Model.new
+  measures = {}
   
   modes = ['national','pnw']
-    
   modes.each do |mode|
     project_file = File.join("projects","resstock_#{mode}.xlsx")
     check_file_exists(project_file, nil)
@@ -99,18 +102,17 @@ task :integrity_check do
       end
       
       # Integrity checks for option_lookup.txt
-      measure_args_from_xml = {}
       tsvfiles[parameter_name].option_cols.keys.each do |option_name|
         # Check for (parameter, option) names
         measure_args = get_measure_args_from_option_name(lookup_file, option_name, parameter_name, nil)
-        # Check that measures exist and all measure arguments are provided
+        # Check that measures exist and validate measure arguments
         measure_args.keys.each do |measure_subdir|
-          if not measure_args_from_xml.keys.include?(measure_subdir)
+          if not measures.keys.include?(measure_subdir)
             measurerb_path = File.absolute_path(File.join(File.dirname(lookup_file), 'measures', measure_subdir, 'measure.rb'))
             check_file_exists(measurerb_path, nil)
-            measure_args_from_xml[measure_subdir] = get_measure_args_from_xml(measurerb_path.sub('.rb','.xml'))
+            measures[measure_subdir] = get_measure_instance(measurerb_path)
           end
-          validate_measure_args(measure_args_from_xml[measure_subdir], measure_args[measure_subdir].keys, lookup_file, parameter_name, option_name, nil)
+          validate_measure_args(measures[measure_subdir].arguments(model), measure_args[measure_subdir], lookup_file, parameter_name, option_name, nil)
         end
       end
       

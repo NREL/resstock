@@ -172,7 +172,7 @@ class ProcessConstructionsWindows < OpenStudio::Ruleset::ModelUserScript
     sc.setName("WindowShadingControl")
     sc.setShadingType("InteriorShade")
     sc.setShadingControlType("OnIfScheduleAllows")
-    sch.setSchedule(sc)
+    sc.setSchedule(sch.schedule)
 
     # Define materials
     glaz_mat = GlazingMaterial.new(name="GlazingMaterial", ufactor=ufactor, shgc=shgc * intShadeHeatingMultiplier)

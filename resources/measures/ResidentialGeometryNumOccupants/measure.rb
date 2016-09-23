@@ -178,7 +178,7 @@ class AddResidentialOccupants < OpenStudio::Ruleset::ModelUserScript
           occ_def.setCarbonDioxideGenerationRate(0)
           occ_def.setEnableASHRAE55ComfortWarnings(false)
           occ.setActivityLevelSchedule(activity_sch)
-          people_sch.setSchedule(occ)
+          occ.setNumberofPeopleSchedule(people_sch.schedule)
           
           if num_units > 1
             runner.registerInfo("Space #{space.name.to_s} of Unit #{unit_num} has been assigned #{space_num_occ.round(2)} occupant(s).")

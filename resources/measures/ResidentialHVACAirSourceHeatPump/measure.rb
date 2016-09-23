@@ -234,13 +234,6 @@ class ProcessAirSourceHeatPump < OpenStudio::Ruleset::ModelUserScript
     ashpCOPCapacityDerateFactor5ton.setDefaultValue(1.0)
     args << ashpCOPCapacityDerateFactor5ton    
     
-    #make a bool argument for whether the ashp is cold climate
-    ashpIsColdClimate = OpenStudio::Ruleset::OSArgument::makeBoolArgument("ashpIsColdClimate", true)
-    ashpIsColdClimate.setDisplayName("Is Cold Climate")
-    ashpIsColdClimate.setDescription("Specifies whether the heat pump is a so called 'cold climate heat pump'.")
-    ashpIsColdClimate.setDefaultValue(false)
-    args << ashpIsColdClimate  
-    
     #make a choice argument for ashp cooling/heating output capacity
     cap_display_names = OpenStudio::StringVector.new
     cap_display_names << Constants.SizingAuto
@@ -307,7 +300,6 @@ class ProcessAirSourceHeatPump < OpenStudio::Ruleset::ModelUserScript
     hpCOPCapacityDerateFactor4ton = runner.getDoubleArgumentValue("ashpCOPCapacityDerateFactor4ton",user_arguments)
     hpCOPCapacityDerateFactor5ton = runner.getDoubleArgumentValue("ashpCOPCapacityDerateFactor5ton",user_arguments)
     hpCOPCapacityDerateFactor = [hpCOPCapacityDerateFactor1ton, hpCOPCapacityDerateFactor2ton, hpCOPCapacityDerateFactor3ton, hpCOPCapacityDerateFactor4ton, hpCOPCapacityDerateFactor5ton]
-    hpIsColdClimate = runner.getBoolArgumentValue("ashpIsColdClimate",user_arguments)    
     hpOutputCapacity = runner.getStringArgumentValue("selectedhpcap",user_arguments)
     unless hpOutputCapacity == Constants.SizingAuto
       hpOutputCapacity = OpenStudio::convert(hpOutputCapacity.split(" ")[0].to_f,"ton","Btu/h").get
@@ -344,7 +336,6 @@ class ProcessAirSourceHeatPump < OpenStudio::Ruleset::ModelUserScript
     supply = HVAC._processAirSystemCoolingCoil(runner, hpNumberSpeeds, hpCoolingEER, hpCoolingInstalledSEER, hpSupplyFanPowerInstalled, hpSupplyFanPowerRated, hpSHRRated, hpCapacityRatio, hpFanspeedRatioCooling, hpCrankcase, hpCrankcaseMaxT, hpEERCapacityDerateFactor, supply)
 
     # Heating Coil
-    has_cchp = hpIsColdClimate
     supply = HVAC.get_heating_coefficients(runner, supply.Number_Speeds, supply, hpMinT)
     supply.CFM_TON_Rated_Heat = HVAC.calc_cfm_ton_rated(hpRatedAirFlowRateHeating, hpFanspeedRatioHeating, hpCapacityRatio)
     supply = HVAC._processAirSystemHeatingCoil(hpHeatingCOP, hpHeatingInstalledHSPF, hpSupplyFanPowerRated, hpCapacityRatio, hpFanspeedRatioHeating, hpMinT, hpCOPCapacityDerateFactor, supply)    

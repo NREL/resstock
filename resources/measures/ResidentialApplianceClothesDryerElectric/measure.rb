@@ -273,7 +273,7 @@ class ResidentialClothesDryer < OpenStudio::Ruleset::ModelUserScript
             cd_def.setFractionRadiant(0.09)
             cd_def.setFractionLatent(0.05)
             cd_def.setFractionLost(0.8)
-            sch.setSchedule(cd)
+            cd.setSchedule(sch.schedule)
             
             info_msgs << "A clothes dryer with #{cd_ann_e.round} kWhs annual energy consumption has been assigned to space '#{space.name.to_s}'."
             

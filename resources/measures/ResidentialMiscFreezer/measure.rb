@@ -171,7 +171,7 @@ class ResidentialFreezer < OpenStudio::Ruleset::ModelUserScript
             frz_def.setFractionRadiant(0)
             frz_def.setFractionLatent(0)
             frz_def.setFractionLost(0)
-            sch.setSchedule(frz)
+            frz.setSchedule(sch.schedule)
             
             info_msgs << "A freezer with #{freezer_ann.round} kWhs annual energy consumption has been assigned to space '#{space.name.to_s}'."
             

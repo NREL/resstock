@@ -189,7 +189,7 @@ class ResidentialCookingRange < OpenStudio::Ruleset::ModelUserScript
             rng_def.setFractionRadiant(0.24)
             rng_def.setFractionLatent(0.3)
             rng_def.setFractionLost(0.3)
-            sch.setSchedule(rng)
+            rng.setSchedule(sch.schedule)
             
             info_msgs << "A cooking range with #{range_ann_e.round} kWhs annual energy consumption has been assigned to space '#{space.name.to_s}'."
             

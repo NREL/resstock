@@ -165,9 +165,9 @@ class ResidentialHotWaterDistribution < OpenStudio::Ruleset::ModelUserScript
 
         
         mixed_use_t = Constants.MixedUseT
-        sh_sch = HotWaterSchedule.new(model, runner, sh_name + " schedule", sh_name + " temperature schedule", nbeds, 1, "Shower", mixed_use_t, File.dirname(__FILE__), false)
-        s_sch = HotWaterSchedule.new(model, runner, s_name + " schedule",  s_name + " temperature schedule", nbeds, 1, "Sink", mixed_use_t, File.dirname(__FILE__), false)
-        b_sch = HotWaterSchedule.new(model, runner, b_name + " schedule",  b_name + " temperature schedule", nbeds, 1, "Bath", mixed_use_t, File.dirname(__FILE__), false)
+        sh_sch = HotWaterSchedule.new(model, runner, sh_name + " schedule", sh_name + " temperature schedule", nbeds, 0, "Shower", mixed_use_t, File.dirname(__FILE__))
+        s_sch = HotWaterSchedule.new(model, runner, s_name + " schedule",  s_name + " temperature schedule", nbeds, 0, "Sink", mixed_use_t, File.dirname(__FILE__))
+        b_sch = HotWaterSchedule.new(model, runner, b_name + " schedule",  b_name + " temperature schedule", nbeds, 0, "Bath", mixed_use_t, File.dirname(__FILE__))
         shower_daily = sh_sch.calcDailyGpmFromPeakFlow(shower_max)
         sink_daily = s_sch.calcDailyGpmFromPeakFlow(sink_max)
         bath_daily = b_sch.calcDailyGpmFromPeakFlow(bath_max)
@@ -390,6 +390,8 @@ class ResidentialHotWaterDistribution < OpenStudio::Ruleset::ModelUserScript
         daily_bath_inc = 0
         ann_int_gain = 0
         
+        runner.registerInfo("daily_shower_increase = #{daily_shower_increase}")
+        runner.registerInfo("water_mix_to_h = #{water_mix_to_h}")
         for m in 0..11
             recovery_load_inc += Constants.MonthNumDays[m] * daily_recovery_load[m] / water_mix_to_h[m] / (365.0 * 3.0) #Split evenly across all end uses
             daily_shower_inc += Constants.MonthNumDays[m] * daily_shower_increase[m] / water_mix_to_h[m] / 365.0
@@ -398,9 +400,9 @@ class ResidentialHotWaterDistribution < OpenStudio::Ruleset::ModelUserScript
             ann_int_gain += OpenStudio.convert(monthly_internal_gain[m], "Btu", "kWh").get
         end
         
-        new_shower_daily = shower_daily + recovery_load_inc + daily_shower_inc
-        new_sink_daily = sink_daily + recovery_load_inc + daily_sink_inc
-        new_bath_daily = bath_daily + recovery_load_inc + daily_bath_inc
+        shower_dist_hw = recovery_load_inc + daily_shower_inc
+        sink_dist_hw = recovery_load_inc + daily_sink_inc
+        bath_dist_hw = recovery_load_inc + daily_bath_inc
         
         mixed_use_t = Constants.MixedUseT #F
         sh_dist_name = Constants.ObjectNameShowerDist
@@ -408,6 +410,122 @@ class ResidentialHotWaterDistribution < OpenStudio::Ruleset::ModelUserScript
         b_dist_name = Constants.ObjectNameBathDist
         recirc_name = "Recirculation Pump"
         
+        #Check if there was a distribution system has already been added
+        #If it has, get the gal/day impact from the WaterUse:Equipment object name and adjust the draw volume appropriately
+        dist_exists = nil
+        model.getWaterUseEquipments.each do |wue|
+            if wue.name.to_s.start_with?(sh_dist_name) or wue.name.to_s.start_with?(s_dist_name) or wue.name.to_s.start_with?(b_dist_name)
+                dist_exists = true
+            end
+        end
+        
+        if dist_exists.nil?
+            #add new water use objects for the distribution system hot water increase
+            sh_dist_wu_def = OpenStudio::Model::WaterUseEquipmentDefinition.new(model)
+            sh_dist_wu = OpenStudio::Model::WaterUseEquipment.new(sh_dist_wu_def)
+            sh_dist_wu.setName("#{sh_dist_name}=#{shower_dist_hw}")
+            sh_dist_wu.setSpace(dist_space)
+            sh_dist_wu_def.setName("#{sh_dist_name}=#{shower_dist_hw}")
+            sh_dist_wu_def.setPeakFlowRate(0)
+            sh_dist_wu_def.setEndUseSubcategory("Domestic Hot Water")
+            sh_sch.setWaterSchedule(sh_dist_wu)
+            
+            s_dist_wu_def = OpenStudio::Model::WaterUseEquipmentDefinition.new(model)
+            s_dist_wu = OpenStudio::Model::WaterUseEquipment.new(s_dist_wu_def)
+            s_dist_wu.setName("#{s_dist_name}=#{sink_dist_hw}")
+            s_dist_wu.setSpace(dist_space)
+            s_dist_wu_def.setName("#{s_dist_name}=#{sink_dist_hw}")
+            s_dist_wu_def.setPeakFlowRate(0)
+            s_dist_wu_def.setEndUseSubcategory("Domestic Hot Water")
+            s_sch.setWaterSchedule(s_dist_wu)
+            
+            b_dist_wu_def = OpenStudio::Model::WaterUseEquipmentDefinition.new(model)
+            b_dist_wu = OpenStudio::Model::WaterUseEquipment.new(b_dist_wu_def)
+            b_dist_wu.setName("#{b_dist_name}=#{bath_dist_hw}")
+            b_dist_wu.setSpace(dist_space)
+            b_dist_wu_def.setName("#{b_dist_name}=#{bath_dist_hw}")
+            b_dist_wu_def.setPeakFlowRate(0)
+            b_dist_wu_def.setEndUseSubcategory("Domestic Hot Water")
+            b_sch.setWaterSchedule(b_dist_wu)
+            
+            plant_loop.demandComponents.each do |component|
+                next unless component.to_WaterUseConnections.is_initialized
+                connection = component.to_WaterUseConnections.get
+                connection.addWaterUseEquipment(sh_dist_wu)
+                connection.addWaterUseEquipment(s_dist_wu)
+                connection.addWaterUseEquipment(b_dist_wu)
+                break
+            end
+            
+            #calculate the new gal/day for ssb
+            new_shower_daily = shower_daily + recovery_load_inc + daily_shower_inc
+            new_sink_daily = sink_daily + recovery_load_inc + daily_sink_inc
+            new_bath_daily = bath_daily + recovery_load_inc + daily_bath_inc
+        else    
+            #read existing hot water objects to pull previous impact of the hot water distribution system
+            #also overwrite the name with the new hot water gal/day impact
+            sh_prev_dist = 0
+            s_prev_dist = 0
+            b_prev_dist = 0
+            model.getWaterUseEquipments.each do |wue|
+                vals = wue.name.to_s.split("=")
+                runner.registerInfo("vals = #{vals}")
+                if wue.name.to_s.start_with?(sh_dist_name)
+                    #vals = wue.name.to_s.split("=")
+                    sh_prev_dist = vals[1].to_f
+                    sh_newname = vals[0] + shower_dist_hw.to_s
+                    wue.setName(sh_newname)
+                    #runner.registerInfo("shvals = #{vals}")
+                elsif wue.name.to_s.start_with?(s_dist_name)
+                    #vals = wue.name.to_s.split("=")
+                    s_prev_dist = vals[1].to_f
+                    s_newname = vals[0] + sink_dist_hw.to_s
+                    wue.setName(s_newname)
+                    #runner.registerInfo("svals = #{vals}")
+                elsif wue.name.to_s.start_with?(b_dist_name)
+                    #vals = wue.name.to_s.split("=")
+                    b_prev_dist = vals[1].to_f
+                    b_newname = vals[0] + bath_dist_hw.to_s
+                    wue.setName(b_newname)
+                    #runner.registerInfo("vvals = #{vals}")
+                end
+            end
+            runner.registerInfo("shower_dist_hw_gpd_prev #{sh_prev_dist}")
+            runner.registerInfo("sink_dist_hw_gpd_prev #{s_prev_dist}")
+            runner.registerInfo("bath_dist_hw_gpd_prev #{b_prev_dist}")
+            #calculate the new gal/day for ssb
+            new_shower_daily = shower_daily + recovery_load_inc + daily_shower_inc + sh_prev_dist
+            new_sink_daily = sink_daily + recovery_load_inc + daily_sink_inc + s_prev_dist
+            new_bath_daily = bath_daily + recovery_load_inc + daily_bath_inc + b_prev_dist
+            runner.registerInfo("new_shower_daily #{new_shower_daily}")
+            runner.registerInfo("shower_daily #{shower_daily}")
+            runner.registerInfo("recovery_load_inc #{recovery_load_inc}")
+            runner.registerInfo("daily_shower_inc #{daily_shower_inc}")
+            runner.registerInfo("sh_prev_dist #{sh_prev_dist}")
+            runner.registerInfo("new_sink_daily #{new_sink_daily}")
+            runner.registerInfo("sink_daily #{sink_daily}")
+            runner.registerInfo("daily_sink_inc #{daily_sink_inc}")
+            runner.registerInfo("s_prev_dist #{s_prev_dist}")
+            runner.registerInfo("new_bath_daily #{new_bath_daily}")
+            runner.registerInfo("bath_daily #{bath_daily}")
+            runner.registerInfo("daily_bath_inc #{daily_bath_inc}")
+            runner.registerInfo("b_prev_dist #{b_prev_dist}")
+            
+            #check if the previous case had a recirculation pump or internal gains and remove if it did
+            spaces.each do |space|
+                space.electricEquipment.each do |space_equipment|
+                    if space_equipment.name.to_s == recirc_name
+                        space_equipment.remove
+                    end
+                end
+                space.otherEquipment.each do |other_equipment|
+                    if other_equipment.name.to_s == dist_name
+                        other_equipment.remove
+                    end
+                end
+            end
+        end    
+            
         sh_new_peak_flow = sh_sch.calcPeakFlowFromDailygpm(new_shower_daily)
         s_new_peak_flow = s_sch.calcPeakFlowFromDailygpm(new_sink_daily)
         b_new_peak_flow = b_sch.calcPeakFlowFromDailygpm(new_bath_daily)
@@ -435,13 +553,12 @@ class ResidentialHotWaterDistribution < OpenStudio::Ruleset::ModelUserScript
         end
         
         if recirc_type != Constants.RecircTypeNone
-            recirc_pump_name = "recirculation pump"
             recirc_pump_design_level = sh_sch.calcDesignLevelFromDailykWh(pump_e)
             recirc_pump_def = OpenStudio::Model::ElectricEquipmentDefinition.new(model)
             recirc_pump = OpenStudio::Model::ElectricEquipment.new(recirc_pump_def)
-            recirc_pump.setName(recirc_pump_name)
+            recirc_pump.setName(recirc_name)
             recirc_pump.setSpace(dist_space)
-            recirc_pump_def.setName(recirc_pump_name)
+            recirc_pump_def.setName(recirc_name)
             recirc_pump_def.setDesignLevel(recirc_pump_design_level)
             if dist_loc == Constants.LocationInterior
                 recirc_pump_def.setFractionRadiant(0.5)
@@ -459,10 +576,18 @@ class ResidentialHotWaterDistribution < OpenStudio::Ruleset::ModelUserScript
         if default_dist
             runner.registerFinalCondition("The defined DHW distribution system could not be modeled, and a default system was installed instead. For a list of acceptable distribution system configurations, see Table 18 of the December 2008 Building America Research Benchmark Definition (http://www.nrel.gov/docs/fy09osti/44816.pdf)")
         else
-            if recirc_type != Constants.RecircTypeNone
-                runner.registerFinalCondition("A new #{pipe_mat}, #{dist_layout} DHW distribution system has been added to the #{dist_loc} of the home with a recirculation pump energy consumption of #{pump_e_ann.round(2)} kWh/yr.")
+            if dist_exists.nil?
+                if recirc_type != Constants.RecircTypeNone
+                    runner.registerFinalCondition("A new #{pipe_mat}, #{dist_layout} DHW distribution system has been added to the #{dist_loc} of the home with a recirculation pump energy consumption of #{pump_e_ann.round(2)} kWh/yr.")
+                else
+                    runner.registerFinalCondition("A new #{pipe_mat}, #{dist_layout} DHW distribution system has been added to the #{dist_loc} of the home.")
+                end
             else
-                runner.registerFinalCondition("A new #{pipe_mat}, #{dist_layout} DHW distribution system has been added to the #{dist_loc} of the home.")
+                if recirc_type != Constants.RecircTypeNone
+                    runner.registerFinalCondition("The existing distribution system has been replaced by a #{pipe_mat}, #{dist_layout} DHW distribution system has been added to the #{dist_loc} of the home with a recirculation pump energy consumption of #{pump_e_ann.round(2)} kWh/yr.")
+                else
+                    runner.registerFinalCondition("The existing distribution system has been replaced by a #{pipe_mat}, #{dist_layout} DHW distribution system has been added to the #{dist_loc} of the home.")
+                end
             end
         end
         return true

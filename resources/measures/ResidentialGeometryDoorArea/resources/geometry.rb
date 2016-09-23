@@ -126,6 +126,37 @@ class Geometry
         return [nbeds, nbaths, spaces_list]
     end
     
+    def self.rename_unit_spaces_zones(model, old_unit_num, new_unit_num)
+        space_names_list = []
+        model.getElectricEquipments.each do |ee|
+            next if !ee.name.to_s.start_with?("unit=#{old_unit_num}|")
+            new_name = ee.name.to_s.gsub("unit=#{old_unit_num}|", "unit=#{new_unit_num}|")
+            ee.setName(new_name)
+            ee.electricEquipmentDefinition.setName(new_name)
+            ee.name.to_s.split("|").each do |data|
+                if data.start_with?("space=")            
+                    vals = data.split("=")
+                    space_names_list << vals[1]
+                end
+            end
+        end
+        model.getSpaces.each do |space|
+          space_names_list.each do |s|
+            next if !space.name.to_s == s
+            space.setName(space.name.to_s.gsub("unit #{old_unit_num}", "unit #{new_unit_num}"))
+            thermal_zone = space.thermalZone.get
+            thermal_zone.setName(thermal_zone.name.to_s.gsub("unit #{old_unit_num}", "unit #{new_unit_num}"))
+          end
+        end
+    end
+    
+    def self.remove_unit(model, unit_num)
+      model.getElectricEquipments.each do |ee|
+        next if !ee.name.to_s.start_with?("unit=#{unit_num}|")
+        ee.electricEquipmentDefinition.remove
+      end
+    end
+    
     def self.get_unit_default_finished_space(unit_spaces, runner)
         # For the specified unit, chooses an arbitrary finished space on the lowest above-grade story.
         # If no above-grade finished spaces are available, reverts to an arbitrary below-grade finished space.

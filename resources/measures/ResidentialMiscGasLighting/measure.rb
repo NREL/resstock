@@ -175,7 +175,7 @@ class ResidentialGasLighting < OpenStudio::Ruleset::ModelUserScript
             gl_def.setFractionRadiant(0)
             gl_def.setFractionLatent(0)
             gl_def.setFractionLost(1)
-            sch.setSchedule(gl)
+            gl.setSchedule(sch.schedule)
             
             info_msgs << "Gas lighting with #{gl_ann_g.round} therms annual energy consumption has been assigned to outside."
             

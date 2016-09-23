@@ -1,14 +1,14 @@
 <measure>
   <schema_version>3.0</schema_version>
-  <name>process_minisplit</name>
-  <uid>257a8095-0b3d-4ac7-acf5-c537ecbaa945</uid>
-  <version_id>2fd87e82-297c-4180-9a33-91e9171e2c9d</version_id>
-  <version_modified>20160916T221646Z</version_modified>
+  <name>process_vrf_minisplit</name>
+  <uid>402b168f-ed99-46bb-b367-103937011e91</uid>
+  <version_id>503d7b72-1658-45ee-9841-8719be118f10</version_id>
+  <version_modified>20160923T143747Z</version_modified>
   <xml_checksum>470FC630</xml_checksum>
-  <class_name>ProcessMinisplit</class_name>
+  <class_name>ProcessVRFMinisplit</class_name>
   <display_name>Set Residential Mini-Split Heat Pump</display_name>
-  <description>This measure removes any existing HVAC cooling components (except electric baseboard) from the building and adds a mini-split heat pump. For multifamily buildings, the mini-split heat pump can be set for all units of the building.</description>
-  <modeler_description>Any supply components or baseboard convective electrics/waters are removed from any existing air/plant loops or zones. Any existing air/plant loops are also removed. A heating DX coil, cooling DX coil, electric supplemental heating coil, and an on/off supply fan are added to a unitary air loop. The unitary air loop is added to the supply inlet node of the air loop. This air loop is added to a branch for the living zone. A diffuser is added to the branch for the living zone as well as for the finished basement if it exists.</modeler_description>
+  <description>This measure removes any existing HVAC components from the building and adds a mini-split heat pump. For multifamily buildings, the mini-split heat pump can be set for all units of the building.</description>
+  <modeler_description>Any supply components or baseboard convective electrics/waters are removed from any existing air/plant loops or zones. Any existing air/plant loops are also removed. A heating DX coil, cooling DX coil, and an on/off supply fan are added to a variable refrigerant flow terminal unit.</modeler_description>
   <arguments>
     <argument>
       <name>miniSplitHPCoolingRatedSEER</name>
@@ -160,25 +160,6 @@
       <default_value>5</default_value>
     </argument>
     <argument>
-      <name>miniSplitHPIsColdClimate</name>
-      <display_name>Is Cold Climate</display_name>
-      <description>Specifies whether the heat pump is a so called 'cold climate heat pump'.</description>
-      <type>Boolean</type>
-      <required>true</required>
-      <model_dependent>false</model_dependent>
-      <default_value>false</default_value>
-      <choices>
-        <choice>
-          <value>true</value>
-          <display_name>true</display_name>
-        </choice>
-        <choice>
-          <value>false</value>
-          <display_name>false</display_name>
-        </choice>
-      </choices>
-    </argument>
-    <argument>
       <name>miniSplitCoolingOutputCapacity</name>
       <display_name>Cooling Output Capacity</display_name>
       <type>Choice</type>
@@ -272,144 +253,6 @@
         </choice>
       </choices>
     </argument>
-    <argument>
-      <name>miniSplitSupplementalHeatingOutputCapacity</name>
-      <display_name>Supplemental Heating Output Capacity</display_name>
-      <type>Choice</type>
-      <required>true</required>
-      <model_dependent>false</model_dependent>
-      <default_value>autosize</default_value>
-      <choices>
-        <choice>
-          <value>NO SUPP HEAT</value>
-          <display_name>NO SUPP HEAT</display_name>
-        </choice>
-        <choice>
-          <value>autosize</value>
-          <display_name>autosize</display_name>
-        </choice>
-        <choice>
-          <value>5 kBtu/hr</value>
-          <display_name>5 kBtu/hr</display_name>
-        </choice>
-        <choice>
-          <value>10 kBtu/hr</value>
-          <display_name>10 kBtu/hr</display_name>
-        </choice>
-        <choice>
-          <value>15 kBtu/hr</value>
-          <display_name>15 kBtu/hr</display_name>
-        </choice>
-        <choice>
-          <value>20 kBtu/hr</value>
-          <display_name>20 kBtu/hr</display_name>
-        </choice>
-        <choice>
-          <value>25 kBtu/hr</value>
-          <display_name>25 kBtu/hr</display_name>
-        </choice>
-        <choice>
-          <value>30 kBtu/hr</value>
-          <display_name>30 kBtu/hr</display_name>
-        </choice>
-        <choice>
-          <value>35 kBtu/hr</value>
-          <display_name>35 kBtu/hr</display_name>
-        </choice>
-        <choice>
-          <value>40 kBtu/hr</value>
-          <display_name>40 kBtu/hr</display_name>
-        </choice>
-        <choice>
-          <value>45 kBtu/hr</value>
-          <display_name>45 kBtu/hr</display_name>
-        </choice>
-        <choice>
-          <value>50 kBtu/hr</value>
-          <display_name>50 kBtu/hr</display_name>
-        </choice>
-        <choice>
-          <value>55 kBtu/hr</value>
-          <display_name>55 kBtu/hr</display_name>
-        </choice>
-        <choice>
-          <value>60 kBtu/hr</value>
-          <display_name>60 kBtu/hr</display_name>
-        </choice>
-        <choice>
-          <value>65 kBtu/hr</value>
-          <display_name>65 kBtu/hr</display_name>
-        </choice>
-        <choice>
-          <value>70 kBtu/hr</value>
-          <display_name>70 kBtu/hr</display_name>
-        </choice>
-        <choice>
-          <value>75 kBtu/hr</value>
-          <display_name>75 kBtu/hr</display_name>
-        </choice>
-        <choice>
-          <value>80 kBtu/hr</value>
-          <display_name>80 kBtu/hr</display_name>
-        </choice>
-        <choice>
-          <value>85 kBtu/hr</value>
-          <display_name>85 kBtu/hr</display_name>
-        </choice>
-        <choice>
-          <value>90 kBtu/hr</value>
-          <display_name>90 kBtu/hr</display_name>
-        </choice>
-        <choice>
-          <value>95 kBtu/hr</value>
-          <display_name>95 kBtu/hr</display_name>
-        </choice>
-        <choice>
-          <value>100 kBtu/hr</value>
-          <display_name>100 kBtu/hr</display_name>
-        </choice>
-        <choice>
-          <value>105 kBtu/hr</value>
-          <display_name>105 kBtu/hr</display_name>
-        </choice>
-        <choice>
-          <value>110 kBtu/hr</value>
-          <display_name>110 kBtu/hr</display_name>
-        </choice>
-        <choice>
-          <value>115 kBtu/hr</value>
-          <display_name>115 kBtu/hr</display_name>
-        </choice>
-        <choice>
-          <value>120 kBtu/hr</value>
-          <display_name>120 kBtu/hr</display_name>
-        </choice>
-        <choice>
-          <value>125 kBtu/hr</value>
-          <display_name>125 kBtu/hr</display_name>
-        </choice>
-        <choice>
-          <value>130 kBtu/hr</value>
-          <display_name>130 kBtu/hr</display_name>
-        </choice>
-        <choice>
-          <value>135 kBtu/hr</value>
-          <display_name>135 kBtu/hr</display_name>
-        </choice>
-        <choice>
-          <value>140 kBtu/hr</value>
-          <display_name>140 kBtu/hr</display_name>
-        </choice>
-        <choice>
-          <value>145 kBtu/hr</value>
-          <display_name>145 kBtu/hr</display_name>
-        </choice>
-        <choice>
-          <value>150 kBtu/hr</value>
-          <display_name>150 kBtu/hr</display_name>
-        </choice>
-      </choices>
-    </argument>
   </arguments>
   <provenances/>
   <tags>
@@ -439,16 +282,22 @@
   </attributes>
   <files>
     <file>
-      <filename>USA_CO_Denver_Intl_AP_725650_TMY3.ddy</filename>
-      <filetype>ddy</filetype>
-      <usage_type>test</usage_type>
-      <checksum>FB253570</checksum>
+      <filename>psychrometrics.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>078F0169</checksum>
     </file>
     <file>
-      <filename>USA_CO_Denver_Intl_AP_725650_TMY3.epw</filename>
-      <filetype>epw</filetype>
-      <usage_type>test</usage_type>
-      <checksum>E23378AA</checksum>
+      <filename>unit_conversions.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>9A23E14E</checksum>
+    </file>
+    <file>
+      <filename>util.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>F4A45188</checksum>
     </file>
     <file>
       <filename>multifamily_3_units_location.osm</filename>
@@ -463,10 +312,10 @@
       <checksum>DDBF85D7</checksum>
     </file>
     <file>
-      <filename>process_minisplit_heat_pump_test.rb</filename>
-      <filetype>rb</filetype>
+      <filename>singlefamily_fbsmt_location.osm</filename>
+      <filetype>osm</filetype>
       <usage_type>test</usage_type>
-      <checksum>BC474076</checksum>
+      <checksum>2E5C600C</checksum>
     </file>
     <file>
       <filename>singlefamily_fbsmt_location_ashp.osm</filename>
@@ -475,10 +324,22 @@
       <checksum>8A3C71EC</checksum>
     </file>
     <file>
+      <filename>singlefamily_fbsmt_location_boiler.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>913FAA34</checksum>
+    </file>
+    <file>
       <filename>singlefamily_fbsmt_location_boiler_central_air_conditioner.osm</filename>
       <filetype>osm</filetype>
       <usage_type>test</usage_type>
       <checksum>B754E510</checksum>
+    </file>
+    <file>
+      <filename>singlefamily_fbsmt_location_boiler_room_air_conditioner.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>9440AFB2</checksum>
     </file>
     <file>
       <filename>singlefamily_fbsmt_location_central_air_conditioner.osm</filename>
@@ -487,10 +348,22 @@
       <checksum>8975229F</checksum>
     </file>
     <file>
+      <filename>singlefamily_fbsmt_location_electric_baseboard.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>F27DFDA2</checksum>
+    </file>
+    <file>
       <filename>singlefamily_fbsmt_location_electric_baseboard_central_air_conditioner.osm</filename>
       <filetype>osm</filetype>
       <usage_type>test</usage_type>
       <checksum>A118D211</checksum>
+    </file>
+    <file>
+      <filename>singlefamily_fbsmt_location_electric_baseboard_room_air_conditioner.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>02E488CA</checksum>
     </file>
     <file>
       <filename>singlefamily_fbsmt_location_furnace.osm</filename>
@@ -511,93 +384,63 @@
       <checksum>E1FBD5BD</checksum>
     </file>
     <file>
-      <filename>singlefamily_fbsmt_location_mshp.osm</filename>
-      <filetype>osm</filetype>
-      <usage_type>test</usage_type>
-      <checksum>D4716743</checksum>
-    </file>
-    <file>
-      <filename>singlefamily_fbsmt_location.osm</filename>
-      <filetype>osm</filetype>
-      <usage_type>test</usage_type>
-      <checksum>2E5C600C</checksum>
-    </file>
-    <file>
-      <filename>singlefamily_fbsmt_location_boiler.osm</filename>
-      <filetype>osm</filetype>
-      <usage_type>test</usage_type>
-      <checksum>913FAA34</checksum>
-    </file>
-    <file>
-      <filename>singlefamily_fbsmt_location_boiler_room_air_conditioner.osm</filename>
-      <filetype>osm</filetype>
-      <usage_type>test</usage_type>
-      <checksum>9440AFB2</checksum>
-    </file>
-    <file>
-      <filename>singlefamily_fbsmt_location_electric_baseboard.osm</filename>
-      <filetype>osm</filetype>
-      <usage_type>test</usage_type>
-      <checksum>F27DFDA2</checksum>
-    </file>
-    <file>
-      <filename>singlefamily_fbsmt_location_electric_baseboard_room_air_conditioner.osm</filename>
-      <filetype>osm</filetype>
-      <usage_type>test</usage_type>
-      <checksum>02E488CA</checksum>
-    </file>
-    <file>
       <filename>singlefamily_fbsmt_location_room_air_conditioner.osm</filename>
       <filetype>osm</filetype>
       <usage_type>test</usage_type>
       <checksum>331E51A2</checksum>
     </file>
     <file>
-      <version>
-        <software_program>OpenStudio</software_program>
-        <identifier>1.10.0</identifier>
-        <min_compatible>1.10.0</min_compatible>
-      </version>
-      <filename>measure.rb</filename>
-      <filetype>rb</filetype>
-      <usage_type>script</usage_type>
-      <checksum>5FED1D35</checksum>
+      <filename>USA_CO_Denver_Intl_AP_725650_TMY3.ddy</filename>
+      <filetype>ddy</filetype>
+      <usage_type>test</usage_type>
+      <checksum>FB253570</checksum>
     </file>
     <file>
-      <filename>unit_conversions.rb</filename>
-      <filetype>rb</filetype>
-      <usage_type>resource</usage_type>
-      <checksum>9A23E14E</checksum>
+      <filename>USA_CO_Denver_Intl_AP_725650_TMY3.epw</filename>
+      <filetype>epw</filetype>
+      <usage_type>test</usage_type>
+      <checksum>E23378AA</checksum>
     </file>
     <file>
-      <filename>psychrometrics.rb</filename>
+      <filename>singlefamily_fbsmt_location_mshp.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>27FDF5D9</checksum>
+    </file>
+    <file>
+      <filename>process_mini_split_heat_pump_test.rb</filename>
       <filetype>rb</filetype>
-      <usage_type>resource</usage_type>
-      <checksum>078F0169</checksum>
+      <usage_type>test</usage_type>
+      <checksum>EF9CA59E</checksum>
     </file>
     <file>
       <filename>hvac.rb</filename>
       <filetype>rb</filetype>
       <usage_type>resource</usage_type>
-      <checksum>92DBEC5C</checksum>
+      <checksum>31C935D5</checksum>
     </file>
     <file>
-      <filename>util.rb</filename>
+      <version>
+        <software_program>OpenStudio</software_program>
+        <identifier>1.12.4</identifier>
+        <min_compatible>1.12.4</min_compatible>
+      </version>
+      <filename>measure.rb</filename>
       <filetype>rb</filetype>
-      <usage_type>resource</usage_type>
-      <checksum>F4A45188</checksum>
+      <usage_type>script</usage_type>
+      <checksum>40788274</checksum>
     </file>
     <file>
       <filename>geometry.rb</filename>
       <filetype>rb</filetype>
       <usage_type>resource</usage_type>
-      <checksum>FB9C2854</checksum>
+      <checksum>A976F02F</checksum>
     </file>
     <file>
       <filename>constants.rb</filename>
       <filetype>rb</filetype>
       <usage_type>resource</usage_type>
-      <checksum>DFE453BC</checksum>
+      <checksum>C0E0A630</checksum>
     </file>
   </files>
 </measure>

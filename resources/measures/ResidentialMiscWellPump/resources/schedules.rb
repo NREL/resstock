@@ -11,6 +11,7 @@ class HourlyByMonthSchedule
         @model = model
         @runner = runner
         @sch_name = sch_name
+        @schedule = nil
         @weekday_month_by_hour_values = validateValues(weekday_month_by_hour_values, 12, 24)
         @weekend_month_by_hour_values = validateValues(weekend_month_by_hour_values, 12, 24)
         if not @validated
@@ -33,31 +34,9 @@ class HourlyByMonthSchedule
     def calcDesignLevel(val)
         return val * 1000
     end
-
-    def setSchedule(obj)
-        # Helper method to set (or replace) the object's schedule
-        if obj.is_a? OpenStudio::Model::ThermostatSetpointDualSetpoint
-            if @schedule.name.to_s.downcase.include? "heating"
-              unless obj.heatingSetpointTemperatureSchedule.empty?
-                  sch = obj.heatingSetpointTemperatureSchedule.get
-                  sch.remove
-              end
-              obj.setHeatingSetpointTemperatureSchedule(@schedule)
-            end
-            if @schedule.name.to_s.downcase.include? "cooling"
-              unless obj.coolingSetpointTemperatureSchedule.empty?
-                  sch = obj.coolingSetpointTemperatureSchedule.get
-                  sch.remove
-              end
-              obj.setCoolingSetpointTemperatureSchedule(@schedule)
-            end
-        else
-          unless obj.schedule.empty?
-              sch = obj.schedule.get
-              sch.remove
-          end
-          obj.setSchedule(@schedule)
-        end
+    
+    def schedule
+        return @schedule
     end
 
     private 
@@ -181,6 +160,7 @@ class MonthWeekdayWeekendSchedule
         @model = model
         @runner = runner
         @sch_name = sch_name
+        @schedule = nil
         @mult_weekday = mult_weekday
         @mult_weekend = mult_weekend
         @weekday_hourly_values = validateValues(weekday_hourly_values, 24, "weekday")
@@ -215,41 +195,11 @@ class MonthWeekdayWeekendSchedule
     def calcDesignLevelFromDailyTherm(daily_therm)
         return calcDesignLevelFromDailykWh(OpenStudio.convert(daily_therm, "therm", "kWh").get)
     end
-
-    def setSchedule(obj)
-        # Helper method to set (or replace) the object's schedule
-        if obj.is_a? OpenStudio::Model::People
-            unless obj.numberofPeopleSchedule.empty?
-                sch = obj.numberofPeopleSchedule.get
-                sch.remove
-            end
-            obj.setNumberofPeopleSchedule(@schedule)
-        elsif obj.is_a? OpenStudio::Model::ThermostatSetpointDualSetpoint
-            if @schedule.name.to_s.downcase.include? "heating"
-              unless obj.heatingSetpointTemperatureSchedule.empty?
-                  sch = obj.heatingSetpointTemperatureSchedule.get
-                  sch.remove
-              end
-              obj.setHeatingSetpointTemperatureSchedule(@schedule)
-            end
-            if @schedule.name.to_s.downcase.include? "cooling"
-              unless obj.coolingSetpointTemperatureSchedule.empty?
-                  sch = obj.coolingSetpointTemperatureSchedule.get
-                  sch.remove
-              end
-              obj.setCoolingSetpointTemperatureSchedule(@schedule)
-            end
-        elsif obj.is_a? OpenStudio::Model::CoilHeatingGas or obj.is_a? OpenStudio::Model::CoilHeatingElectric or obj.is_a? OpenStudio::Model::CoilCoolingDXSingleSpeed or obj.is_a? OpenStudio::Model::CoilCoolingDXMultiSpeed or obj.is_a? OpenStudio::Model::ZoneHVACBaseboardConvectiveWater or obj.is_a? OpenStudio::Model::ZoneHVACPackagedTerminalAirConditioner or obj.is_a? OpenStudio::Model::ZoneHVACBaseboardConvectiveElectric or obj.is_a? OpenStudio::Model::CoilHeatingDXSingleSpeed or obj.is_a? OpenStudio::Model::CoilHeatingDXMultiSpeed
-            obj.setAvailabilitySchedule(@schedule)
-        else
-            unless obj.schedule.empty?
-                sch = obj.schedule.get
-                sch.remove
-            end
-            obj.setSchedule(@schedule)
-        end
-    end
     
+    def schedule
+        return @schedule
+    end
+
     private 
     
         def validateValues(values, num_values, sch_name)
@@ -408,13 +358,14 @@ end
 
 class HotWaterSchedule
 
-    def initialize(model, runner, sch_name, temperature_sch_name, num_bedrooms, unit_num, file_prefix, target_water_temperature, measure_dir, create_sch_object=true)
+    def initialize(model, runner, sch_name, temperature_sch_name, num_bedrooms, unit_index, file_prefix, target_water_temperature, measure_dir, create_sch_object=true)
         @validated = true
         @model = model
         @runner = runner
         @sch_name = sch_name
+        @schedule = nil
         @temperature_sch_name = temperature_sch_name
-        @unit_index = (unit_num-1) % 10
+        @unit_index = unit_index
         @nbeds = ([num_bedrooms, 5].min).to_i
         @file_prefix = file_prefix
         @target_water_temperature = OpenStudio.convert(target_water_temperature, "F", "C").get
@@ -447,36 +398,18 @@ class HotWaterSchedule
     def calcDailyGpmFromPeakFlow(peak_flow)
         return OpenStudio.convert(@totflow * peak_flow / @maxflow, "m^3/s", "gal/min").get 
     end
-
-    def setSchedule(obj)
-        # Helper method to set (or replace) the object's electric equipment schedule
-        if not obj.schedule.empty?
-            sch = obj.schedule.get
-            sch.remove
-        end
-        obj.setSchedule(@schedule)
+    
+    def schedule
+        return @schedule
     end
     
-    def setWaterSchedule(obj)
-        # Helper method to set (or replace) the object's water use equipment schedule
-        
-        # Flow rate fraction schedule
-        if not obj.flowRateFractionSchedule.empty?
-            sch = obj.flowRateFractionSchedule.get
-            sch.remove
-        end
-        obj.setFlowRateFractionSchedule(@schedule)
-        
-        if not obj.waterUseEquipmentDefinition.targetTemperatureSchedule.empty?
-            sch = obj.waterUseEquipmentDefinition.targetTemperatureSchedule.get
-            sch.remove
-        end
+    def temperatureSchedule
         temperature_sch = OpenStudio::Model::ScheduleConstant.new(@model)
         temperature_sch.setValue(@target_water_temperature)
         temperature_sch.setName(@temperature_sch_name)
-        obj.waterUseEquipmentDefinition.setTargetTemperatureSchedule(temperature_sch)
+        return temperature_sch
     end
-    
+
     def getOntimeFraction
         return @ontime
     end

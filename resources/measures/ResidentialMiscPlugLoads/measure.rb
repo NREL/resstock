@@ -156,7 +156,7 @@ class ResidentialMiscellaneousElectricLoads < OpenStudio::Ruleset::ModelUserScri
                 mel_def.setFractionRadiant(0.558)
                 mel_def.setFractionLatent(0.021)
                 mel_def.setFractionLost(0.049)
-                sch.setSchedule(mel)
+                mel.setSchedule(sch.schedule)
                 
                 info_msgs << "Plug loads with #{space_mel_ann.round} kWhs annual energy consumption has been assigned to space '#{space.name.to_s}'."
                 tot_mel_ann += space_mel_ann

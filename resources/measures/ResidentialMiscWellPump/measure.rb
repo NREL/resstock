@@ -177,7 +177,7 @@ class ResidentialWellPump < OpenStudio::Ruleset::ModelUserScript
             wp_def.setFractionRadiant(0)
             wp_def.setFractionLatent(0)
             wp_def.setFractionLost(1)
-            sch.setSchedule(wp)
+            wp.setSchedule(sch.schedule)
             
             info_msgs << "A well pump with #{wp_ann.round} kWhs annual energy consumption has been assigned to outside."
             

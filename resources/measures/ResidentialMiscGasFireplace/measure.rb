@@ -192,7 +192,7 @@ class ResidentialGasFireplace < OpenStudio::Ruleset::ModelUserScript
             gf_def.setFractionRadiant(0.3)
             gf_def.setFractionLatent(0.1)
             gf_def.setFractionLost(0.4)
-            sch.setSchedule(gf)
+            gf.setSchedule(sch.schedule)
     
             info_msgs << "A gas fireplace with #{gf_ann_g.round} therms annual energy consumption has been assigned to space '#{space.name.to_s}'."
             

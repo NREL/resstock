@@ -184,7 +184,7 @@ class ResidentialHotTubHeaterElec < OpenStudio::Ruleset::ModelUserScript
             hth_def.setFractionRadiant(0)
             hth_def.setFractionLatent(0)
             hth_def.setFractionLost(1)
-            sch.setSchedule(hth)
+            hth.setSchedule(sch.schedule)
             
             info_msgs << "A hot tub heater with #{hth_ann.round} kWhs annual energy consumption has been assigned to outside."
             

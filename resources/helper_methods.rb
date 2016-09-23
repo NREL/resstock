@@ -282,15 +282,6 @@ def print_info(measure_args, measure_dir, option_name, runner)
     end
 end
 
-def get_measure_args_from_xml(measure_xml_path)
-    # Parse XML file for argument names
-    require 'rexml/document'
-    require 'rexml/xpath'
-    xmldoc = REXML::Document.new(File.read(measure_xml_path))
-    measure_args = REXML::XPath.match(xmldoc, "//measure/arguments/argument/name").map {|x| x.text }
-    return measure_args
-end
-
 def get_measure_instance(measure_rb_path)
     # Parse XML file for class name
     require 'rexml/document'
@@ -303,65 +294,65 @@ def get_measure_instance(measure_rb_path)
     return measure
 end
 
-def validate_measure_args(args1, args2, lookup_file, parameter_name, option_name, runner=nil)
+def validate_measure_args(measure_args, provided_args, lookup_file, parameter_name, option_name, runner=nil)
+    measure_arg_names = measure_args.map { |arg| arg.name }
     # Verify all arguments have been provided
-    args1.each do |k|
-        next if args2.include?(k)
-        register_error("Argument '#{k}' not provided in #{lookup_file.to_s} for parameter '#{parameter_name.to_s}' and option '#{option_name.to_s}'.", runner)
+    measure_args.each do |arg|
+        next if provided_args.keys.include?(arg.name)
+        register_error("Argument '#{arg.name}' not provided in #{lookup_file.to_s} for parameter '#{parameter_name.to_s}' and option '#{option_name.to_s}'.", runner)
     end
-    args2.each do |k|
-        next if args1.include?(k)
+    provided_args.keys.each do |k|
+        next if measure_arg_names.include?(k)
         register_error("Extra argument '#{k}' specified in #{lookup_file.to_s} for parameter '#{parameter_name.to_s}' and option '#{option_name.to_s}'.", runner)
     end
+    # Check for valid argument values
+    measure_args.each do |arg|
+        # Get measure provided arg
+        provided_val = provided_args[arg.name]
+        if provided_val.nil?
+            if arg.required
+                register_error("Argument '#{arg.name.to_s}' for parameter '#{parameter_name.to_s}' and option '#{option_name.to_s}' must have a value provided.", runner)
+            else
+                next
+            end
+        end
+        case arg.type.valueName.downcase
+        when "boolean"
+            if not ['true','false'].include?(provided_val)
+                register_error("Value of '#{provided_val.to_s}' for argument '#{arg.name.to_s}', parameter '#{parameter_name.to_s}', and option '#{option_name.to_s}' must be 'true' or 'false'.", runner)
+            end 
+        when "double"
+            if not provided_val.is_number?
+                register_error("Value of '#{provided_val.to_s}' for argument '#{arg.name.to_s}', parameter '#{parameter_name.to_s}', and option '#{option_name.to_s}' must be a number.", runner)
+            end
+        when "integer"
+            if not provided_val.is_integer?
+                register_error("Value of '#{provided_val.to_s}' for argument '#{arg.name.to_s}', parameter '#{parameter_name.to_s}', and option '#{option_name.to_s}' must be an integer.", runner)
+            end
+        when "string"
+            # no op
+        when "choice"
+            if not arg.choiceValues.include?(provided_val)
+                register_error("Value of '#{provided_val.to_s}' for argument '#{arg.name.to_s}', parameter '#{parameter_name.to_s}', and option '#{option_name.to_s}' must be one of: #{arg.choiceValues.to_s}.", runner)
+            end
+        end
+    end 
 end
   
-def get_argument_map(model, measure, measure_args, lookup_file, parameter_name, option_name, runner=nil)
-    # Get default arguments
-    args_hash = default_args_hash(model, measure)
-    
-    validate_measure_args(args_hash.keys, measure_args.keys, lookup_file, parameter_name, option_name, runner)
-    
-    # Overwrite with specified arguments
-    measure_args.each do |k,v|
-        args_hash[k] = v
-    end
+def get_argument_map(model, measure, provided_args, lookup_file, parameter_name, option_name, runner=nil)
+    measure_args = measure.arguments(model)
+    validate_measure_args(measure_args, provided_args, lookup_file, parameter_name, option_name, runner)
     
     # Convert to argument map needed by OS
-    arguments = measure.arguments(model)
-    argument_map = OpenStudio::Ruleset.convertOSArgumentVectorToMap(arguments)
-    arguments.each do |arg|
+    argument_map = OpenStudio::Ruleset.convertOSArgumentVectorToMap(measure_args)
+    measure_args.each do |arg|
         temp_arg_var = arg.clone
-        if args_hash[arg.name]
-            temp_arg_var.setValue(args_hash[arg.name])
+        if provided_args[arg.name]
+            temp_arg_var.setValue(provided_args[arg.name])
         end
         argument_map[arg.name] = temp_arg_var
     end
     return argument_map
-end
-  
-def default_args_hash(model, measure)
-    args_hash = {}
-    arguments = measure.arguments(model)
-    arguments.each do |arg| 
-        if arg.hasDefaultValue
-            type = arg.type.valueName
-            case type.downcase
-            when "boolean"
-                args_hash[arg.name] = arg.defaultValueAsBool
-            when "double"
-                args_hash[arg.name] = arg.defaultValueAsDouble
-            when "integer"
-                args_hash[arg.name] = arg.defaultValueAsInteger
-            when "string"
-                args_hash[arg.name] = arg.defaultValueAsString
-            when "choice"
-                args_hash[arg.name] = arg.defaultValueAsString
-            end
-        else
-            args_hash[arg.name] = nil
-        end
-    end
-    return args_hash
 end
   
 def run_measure(model, measure, argument_map, runner)
@@ -438,5 +429,15 @@ end
 class String
   def is_number?
     true if Float(self) rescue false
+  end
+  
+  def is_integer?
+    if not self.is_number?
+      return false
+    end
+    if Integer(Float(self)).to_f != Float(self)
+      return false
+    end
+    return true
   end
 end

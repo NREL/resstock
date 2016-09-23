@@ -96,17 +96,17 @@ class CreateResidentialSingleFamilyDetachedGeometry < OpenStudio::Ruleset::Model
 	
     #make a choice argument for model objects
     foundation_display_names = OpenStudio::StringVector.new
-    foundation_display_names << Constants.SlabSpace
-    foundation_display_names << Constants.CrawlSpace
-    foundation_display_names << Constants.UnfinishedBasementSpace
-    foundation_display_names << Constants.FinishedBasementSpace
-    foundation_display_names << Constants.PierBeamSpace
+    foundation_display_names << Constants.SlabFoundationType
+    foundation_display_names << Constants.CrawlFoundationType
+    foundation_display_names << Constants.UnfinishedBasementFoundationType
+    foundation_display_names << Constants.FinishedBasementFoundationType
+    foundation_display_names << Constants.PierBeamFoundationType
 	
     #make a choice argument for foundation type
     foundation_type = OpenStudio::Ruleset::OSArgument::makeChoiceArgument("foundation_type", foundation_display_names, true)
     foundation_type.setDisplayName("Foundation Type")
     foundation_type.setDescription("The foundation type of the building.")
-    foundation_type.setDefaultValue(Constants.SlabSpace)
+    foundation_type.setDefaultValue(Constants.SlabFoundationType)
     args << foundation_type
 
     #make an argument for crawlspace height
@@ -119,14 +119,14 @@ class CreateResidentialSingleFamilyDetachedGeometry < OpenStudio::Ruleset::Model
 	
     #make a choice argument for model objects
     attic_type_display_names = OpenStudio::StringVector.new
-    attic_type_display_names << Constants.UnfinishedAtticSpace
-    attic_type_display_names << Constants.FinishedAtticSpace
+    attic_type_display_names << Constants.UnfinishedAtticSpaceType
+    attic_type_display_names << Constants.FinishedAtticSpaceType
 	
     #make a choice argument for attic type
     attic_type = OpenStudio::Ruleset::OSArgument::makeChoiceArgument("attic_type", attic_type_display_names, true)
     attic_type.setDisplayName("Attic Type")
     attic_type.setDescription("The attic type of the building.")
-    attic_type.setDefaultValue(Constants.UnfinishedAtticSpace)
+    attic_type.setDefaultValue(Constants.UnfinishedAtticSpaceType)
     args << attic_type	
 	
     #make a choice argument for model objects
@@ -190,9 +190,9 @@ class CreateResidentialSingleFamilyDetachedGeometry < OpenStudio::Ruleset::Model
     roof_type = runner.getStringArgumentValue("roof_type",user_arguments)
     roof_pitch = {"1:12"=>1.0/12.0, "2:12"=>2.0/12.0, "3:12"=>3.0/12.0, "4:12"=>4.0/12.0, "5:12"=>5.0/12.0, "6:12"=>6.0/12.0, "7:12"=>7.0/12.0, "8:12"=>8.0/12.0, "9:12"=>9.0/12.0, "10:12"=>10.0/12.0, "11:12"=>11.0/12.0, "12:12"=>12.0/12.0}[runner.getStringArgumentValue("roof_pitch",user_arguments)]
     
-    if foundation_type == Constants.SlabSpace
+    if foundation_type == Constants.SlabFoundationType
       foundation_height = 0.0
-    elsif foundation_type == Constants.UnfinishedBasementSpace or foundation_type == Constants.FinishedBasementSpace
+    elsif foundation_type == Constants.UnfinishedBasementFoundationType or foundation_type == Constants.FinishedBasementFoundationType
       foundation_height = 8.0
     end
     
@@ -205,11 +205,11 @@ class CreateResidentialSingleFamilyDetachedGeometry < OpenStudio::Ruleset::Model
       runner.registerError("Invalid aspect ratio entered.")
       return false
     end
-    if foundation_type == Constants.CrawlSpace and ( foundation_height < 1.5 or foundation_height > 5.0 )
+    if foundation_type == Constants.CrawlFoundationType and ( foundation_height < 1.5 or foundation_height > 5.0 )
       runner.registerError("The crawlspace height can be set between 1.5 and 5 ft.")
       return false
     end
-    if foundation_type == Constants.PierBeamSpace and ( foundation_height < 0.5 or foundation_height > 8.0 )
+    if foundation_type == Constants.PierBeamFoundationType and ( foundation_height < 0.5 or foundation_height > 8.0 )
       runner.registerError("The pier & beam height can be set between 0.5 and 8 ft.")
       return false
     end
@@ -248,7 +248,7 @@ class CreateResidentialSingleFamilyDetachedGeometry < OpenStudio::Ruleset::Model
       garage_area_inside_footprint = garage_area * (1.0 - garage_protrusion)      
     end
     bonus_area_above_garage = garage_area * garage_protrusion
-    if foundation_type == Constants.FinishedBasementSpace
+    if foundation_type == Constants.FinishedBasementFoundationType
         footprint = (total_ffa + 2 * garage_area_inside_footprint - (num_floors - 1) * bonus_area_above_garage) / (num_floors + 1)
     else
         footprint = (total_ffa + garage_area_inside_footprint - (num_floors - 1) * bonus_area_above_garage) / num_floors
@@ -272,8 +272,8 @@ class CreateResidentialSingleFamilyDetachedGeometry < OpenStudio::Ruleset::Model
     living_zone.setName(Constants.LivingZone)
 	
     foundation_offset = 0.0
-    if foundation_type == Constants.PierBeamSpace
-      foundation_type = Constants.CrawlSpace
+    if foundation_type == Constants.PierBeamFoundationType
+      foundation_type = Constants.CrawlFoundationType
     end
 
     # loop through the number of floors
@@ -507,12 +507,12 @@ class CreateResidentialSingleFamilyDetachedGeometry < OpenStudio::Ruleset::Model
       runner.registerInfo("Set #{attic_space_name}.")
 
       # set these to the foundation zone
-      if attic_type == Constants.UnfinishedAtticSpace        
+      if attic_type == Constants.UnfinishedAtticSpaceType        
         # create attic zone
         attic_zone = OpenStudio::Model::ThermalZone.new(model)
         attic_zone.setName(Constants.UnfinishedAtticZone)
         attic_space.setThermalZone(attic_zone)
-      elsif attic_type == Constants.FinishedAtticSpace
+      elsif attic_type == Constants.FinishedAtticSpaceType
         attic_space.setThermalZone(living_zone)
       end
 
@@ -529,17 +529,17 @@ class CreateResidentialSingleFamilyDetachedGeometry < OpenStudio::Ruleset::Model
     end
 	
     # Foundation
-    if [Constants.CrawlSpace, Constants.UnfinishedBasementSpace, Constants.FinishedBasementSpace].include? foundation_type
+    if [Constants.CrawlFoundationType, Constants.UnfinishedBasementFoundationType, Constants.FinishedBasementFoundationType].include? foundation_type
       
       z = -foundation_height + foundation_offset		
       
       # create foundation zone
       foundation_zone = OpenStudio::Model::ThermalZone.new(model)
-      if foundation_type == Constants.CrawlSpace
+      if foundation_type == Constants.CrawlFoundationType
         foundation_zone_name = Constants.CrawlZone
-      elsif foundation_type == Constants.UnfinishedBasementSpace
+      elsif foundation_type == Constants.UnfinishedBasementFoundationType
         foundation_zone_name = Constants.UnfinishedBasementZone
-      elsif foundation_type == Constants.FinishedBasementSpace
+      elsif foundation_type == Constants.FinishedBasementFoundationType
         foundation_zone_name = Constants.FinishedBasementZone
       end
       foundation_zone.setName(foundation_zone_name)

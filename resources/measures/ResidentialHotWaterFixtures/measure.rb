@@ -119,14 +119,20 @@ class ResidentialHotWaterFixtures < OpenStudio::Ruleset::ModelUserScript
         if num_units.nil?
             return false
         end
+        
+        # Hot water schedules vary by number of bedrooms. For a given number of bedroom,
+        # there are 10 different schedules available for different units in a multifamily 
+        # building. This hash tracks which schedule to use.
+        sch_unit_index = {}
+        num_bed_options = (1..5)
+        num_bed_options.each do |num_bed_option|
+            sch_unit_index[num_bed_option.to_f] = -1
+        end
 
         tot_sh_gpd = 0
         tot_s_gpd = 0
         tot_b_gpd = 0
         info_msgs = []
-        sch_sh = nil
-        sch_s = nil
-        sch_b = nil
         (1..num_units).to_a.each do |unit_num|
         
             # Get unit beds/baths/spaces
@@ -213,17 +219,17 @@ class ResidentialHotWaterFixtures < OpenStudio::Ruleset::ModelUserScript
                     plant_loop.addDemandBranchForComponent(water_use_connection)
                 end
                 
+                sch_unit_index[nbeds] = (sch_unit_index[nbeds] + 1) % 10
+                
             end
             
             # Showers
             if sh_gpd > 0
                 
-                if sch_sh.nil?
-                    # Create schedule
-                    sch_sh = HotWaterSchedule.new(model, runner, Constants.ObjectNameShower + " schedule", Constants.ObjectNameShower + " temperature schedule", nbeds, unit_num, "Shower", mixed_use_t, File.dirname(__FILE__))
-                    if not sch_sh.validated?
-                        return false
-                    end
+                # Create schedule
+                sch_sh = HotWaterSchedule.new(model, runner, Constants.ObjectNameShower + " schedule", Constants.ObjectNameShower + " temperature schedule", nbeds, sch_unit_index[nbeds], "Shower", mixed_use_t, File.dirname(__FILE__))
+                if not sch_sh.validated?
+                    return false
                 end
             
                 sh_peak_flow = sch_sh.calcPeakFlowFromDailygpm(sh_gpd)
@@ -237,7 +243,8 @@ class ResidentialHotWaterFixtures < OpenStudio::Ruleset::ModelUserScript
                 sh_wu_def.setName(obj_name_sh)
                 sh_wu_def.setPeakFlowRate(sh_peak_flow)
                 sh_wu_def.setEndUseSubcategory("Domestic Hot Water")
-                sch_sh.setWaterSchedule(sh_wu)
+                sh_wu.setFlowRateFractionSchedule(sch_sh.schedule)
+                sh_wu_def.setTargetTemperatureSchedule(sch_sh.temperatureSchedule)
                 water_use_connection.addWaterUseEquipment(sh_wu)
                 
                 #Add other equipment
@@ -250,7 +257,7 @@ class ResidentialHotWaterFixtures < OpenStudio::Ruleset::ModelUserScript
                 sh_oe_def.setFractionRadiant(0)
                 sh_oe_def.setFractionLatent(sh_lat)
                 sh_oe_def.setFractionLost(0)
-                sch_sh.setSchedule(sh_oe)
+                sh_oe.setSchedule(sch_sh.schedule)
                 
                 tot_sh_gpd += sh_gpd
             end
@@ -258,12 +265,10 @@ class ResidentialHotWaterFixtures < OpenStudio::Ruleset::ModelUserScript
             # Sinks
             if s_gpd > 0
             
-                if sch_s.nil?
-                    # Create schedule
-                    sch_s = HotWaterSchedule.new(model, runner, Constants.ObjectNameSink + " schedule", Constants.ObjectNameSink + " temperature schedule", nbeds, unit_num, "Sink", mixed_use_t, File.dirname(__FILE__))
-                    if not sch_s.validated?
-                        return false
-                    end
+                # Create schedule
+                sch_s = HotWaterSchedule.new(model, runner, Constants.ObjectNameSink + " schedule", Constants.ObjectNameSink + " temperature schedule", nbeds, sch_unit_index[nbeds], "Sink", mixed_use_t, File.dirname(__FILE__))
+                if not sch_s.validated?
+                    return false
                 end
             
                 s_peak_flow = sch_s.calcPeakFlowFromDailygpm(s_gpd)  
@@ -277,7 +282,8 @@ class ResidentialHotWaterFixtures < OpenStudio::Ruleset::ModelUserScript
                 s_wu_def.setName(obj_name_s)
                 s_wu_def.setPeakFlowRate(s_peak_flow)
                 s_wu_def.setEndUseSubcategory("Domestic Hot Water")
-                sch_s.setWaterSchedule(s_wu)
+                s_wu.setFlowRateFractionSchedule(sch_s.schedule)
+                s_wu_def.setTargetTemperatureSchedule(sch_s.temperatureSchedule)
                 water_use_connection.addWaterUseEquipment(s_wu)
                 
                 #Add other equipment
@@ -290,7 +296,7 @@ class ResidentialHotWaterFixtures < OpenStudio::Ruleset::ModelUserScript
                 s_oe_def.setFractionRadiant(0)
                 s_oe_def.setFractionLatent(s_lat)
                 s_oe_def.setFractionLost(0)
-                sch_s.setSchedule(s_oe)
+                s_oe.setSchedule(sch_s.schedule)
                 
                 tot_s_gpd += s_gpd
             end
@@ -298,12 +304,10 @@ class ResidentialHotWaterFixtures < OpenStudio::Ruleset::ModelUserScript
             # Baths
             if b_gpd > 0
             
-                if sch_b.nil?
-                    # Create schedule
-                    sch_b = HotWaterSchedule.new(model, runner, Constants.ObjectNameSink + " schedule", Constants.ObjectNameSink + " temperature schedule", nbeds, unit_num, "Bath", mixed_use_t, File.dirname(__FILE__))
-                    if not sch_b.validated?
-                        return false
-                    end
+                # Create schedule
+                sch_b = HotWaterSchedule.new(model, runner, Constants.ObjectNameSink + " schedule", Constants.ObjectNameSink + " temperature schedule", nbeds, sch_unit_index[nbeds], "Bath", mixed_use_t, File.dirname(__FILE__))
+                if not sch_b.validated?
+                    return false
                 end
             
                 b_peak_flow = sch_b.calcPeakFlowFromDailygpm(b_gpd)
@@ -317,7 +321,8 @@ class ResidentialHotWaterFixtures < OpenStudio::Ruleset::ModelUserScript
                 b_wu_def.setName(obj_name_b)
                 b_wu_def.setPeakFlowRate(b_peak_flow)
                 b_wu_def.setEndUseSubcategory("Domestic Hot Water")
-                sch_b.setWaterSchedule(b_wu)
+                b_wu.setFlowRateFractionSchedule(sch_b.schedule)
+                b_wu_def.setTargetTemperatureSchedule(sch_b.temperatureSchedule)
                 water_use_connection.addWaterUseEquipment(b_wu)
                 
                 #Add other equipment
@@ -330,7 +335,7 @@ class ResidentialHotWaterFixtures < OpenStudio::Ruleset::ModelUserScript
                 b_oe_def.setFractionRadiant(0)
                 b_oe_def.setFractionLatent(b_lat)
                 b_oe_def.setFractionLost(0)
-                sch_b.setSchedule(b_oe)
+                b_oe.setSchedule(sch_b.schedule)
                 
                 tot_b_gpd += b_gpd
             end

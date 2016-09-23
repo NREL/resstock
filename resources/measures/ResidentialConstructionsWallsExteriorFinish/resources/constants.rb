@@ -123,6 +123,9 @@ class Constants
   def self.CorridorZone
     return 'corridor zone'
   end
+  def self.CrawlFoundationType
+    return 'crawlspace'
+  end
   def self.CrawlSpace(unit=1)
     s_unit = ""
     if unit > 1
@@ -165,12 +168,18 @@ class Constants
     end
     return "finished attic space#{s_unit}"
   end
+  def self.FinishedAtticSpaceType
+    return 'finished attic'
+  end
   def self.FinishedAtticZone(unit=1)
     s_unit = ""
     if unit > 1
       s_unit = "|unit #{unit}"
     end
     return "finished attic zone#{s_unit}"
+  end
+  def self.FinishedBasementFoundationType
+    return 'finished basement'
   end
   def self.FinishedBasementSpace(unit=1)
     s_unit = ""
@@ -551,12 +560,8 @@ class Constants
   def self.ObjectNameWindowShading
     return 'residential window shading'
   end
-  def self.PierBeamSpace(unit=1)
-    s_unit = ""
-    if unit > 1
-      s_unit = "|unit #{unit}"
-    end
-    return "pier and beam space#{s_unit}"
+  def self.PierBeamFoundationType
+    return "pier and beam"
   end
   def self.PierBeamZone(unit=1)
     s_unit = ""
@@ -620,8 +625,8 @@ class Constants
   def self.SizingAuto
     return 'autosize'
   end
-  def self.SlabSpace
-    return 'slab space'
+  def self.SlabFoundationType
+    return 'slab'
   end
   def self.TerrainOcean
     return 'ocean'
@@ -645,12 +650,18 @@ class Constants
     end
     return "unfinished attic space#{s_unit}"
   end
+  def self.UnfinishedAtticSpaceType
+    return 'unfinished attic'
+  end
   def self.UnfinishedAtticZone(unit=1)
     s_unit = ""
     if unit > 1
       s_unit = "|unit #{unit}"
     end
     return "unfinished attic zone#{s_unit}"
+  end
+  def self.UnfinishedBasementFoundationType
+    return 'unfinished basement'
   end
   def self.UnfinishedBasementSpace(unit=1)
     s_unit = ""
