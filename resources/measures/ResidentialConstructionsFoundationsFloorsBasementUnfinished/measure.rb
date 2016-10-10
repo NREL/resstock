@@ -220,7 +220,7 @@ class ProcessConstructionsFoundationsFloorsBasementUnfinished < OpenStudio::Rule
     end
     
     # Get geometry values
-    ubFloorArea = Geometry.calculate_floor_area_from_spaces(spaces)
+    ubFloorArea = Geometry.get_floor_area_from_spaces(spaces)
     ubExtPerimeter = Geometry.calculate_perimeter(model, floor_surfaces, has_foundation_walls=true)
     ubExtWallArea = ubExtPerimeter * Geometry.spaces_avg_height(spaces)
 

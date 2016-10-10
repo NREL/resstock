@@ -200,11 +200,13 @@ class ResidentialClothesWasher < OpenStudio::Ruleset::ModelUserScript
         return false
     end
 
-    # Get weather
-    weather = WeatherProcess.new(model, runner, File.dirname(__FILE__))
-    if weather.error?
+    # Get mains monthly temperatures
+    site = model.getSite
+    if !site.siteWaterMainsTemperature.is_initialized
+        runner.registerError("Mains water temperature has not been set.")
         return false
     end
+    mainsMonthlyTemps = WeatherProcess.get_mains_temperature(site.siteWaterMainsTemperature.get, site.latitude)[1]
     
     tot_cw_ann_e = 0
     
@@ -217,7 +219,7 @@ class ResidentialClothesWasher < OpenStudio::Ruleset::ModelUserScript
         sch_unit_index[num_bed_option.to_f] = -1
     end
     
-    info_msgs = []
+    msgs = []
     (1..num_units).to_a.each do |unit_num|
     
         # Get unit beds/baths/spaces
@@ -252,16 +254,14 @@ class ResidentialClothesWasher < OpenStudio::Ruleset::ModelUserScript
         # Remove any existing clothes washer
         cw_removed = false
         space.electricEquipment.each do |space_equipment|
-            if space_equipment.name.to_s == obj_name
-                space_equipment.remove
-                cw_removed = true
-            end
+            next if space_equipment.name.to_s != obj_name
+            space_equipment.remove
+            cw_removed = true
         end
         space.waterUseEquipment.each do |space_equipment|
-            if space_equipment.name.to_s == obj_name
-                space_equipment.remove
-                cw_removed = true
-            end
+            next if space_equipment.name.to_s != obj_name
+            space_equipment.remove
+            cw_removed = true
         end
         if cw_removed
             runner.registerInfo("Removed existing clothes washer from space #{space.name.to_s}.")
@@ -370,7 +370,7 @@ class ResidentialClothesWasher < OpenStudio::Ruleset::ModelUserScript
         # Set actual clothes washer water temperature for calculations below.
         if cw_cold_cycle
             # To model occupant behavior of using only a cold cycle.
-            cw_water_temp = weather.data.MainsMonthlyTemps.inject(:+)/12 # degF
+            cw_water_temp = mainsMonthlyTemps.inject(:+)/12 # degF
         elsif cw_thermostatic_control
             # Washer is being operated "normally" - at the same temperature as in the test.
             cw_water_temp = mixed_cycle_temperature_test # degF
@@ -400,7 +400,7 @@ class ResidentialClothesWasher < OpenStudio::Ruleset::ModelUserScript
         monthly_clothes_washer_dhw = Array.new(12, 0)
         monthly_clothes_washer_energy = Array.new(12, 0)
 
-        weather.data.MainsMonthlyTemps.each_with_index do |monthly_main, i|
+        mainsMonthlyTemps.each_with_index do |monthly_main, i|
 
             # Adjust per-cycle DHW amount.
             if cw_thermostatic_control
@@ -569,7 +569,7 @@ class ResidentialClothesWasher < OpenStudio::Ruleset::ModelUserScript
             cw_def2.setTargetTemperatureSchedule(sch.temperatureSchedule)
             water_use_connection.addWaterUseEquipment(cw2)
             
-            info_msgs << "A clothes washer with #{cw_ann_e.round} kWhs annual energy consumption has been added to plant loop '#{plant_loop.name}' and assigned to space '#{space.name.to_s}'."
+            msgs << "A clothes washer with #{cw_ann_e.round} kWhs annual energy consumption has been added to plant loop '#{plant_loop.name}' and assigned to space '#{space.name.to_s}'."
             
             tot_cw_ann_e += cw_ann_e
         end
@@ -577,13 +577,13 @@ class ResidentialClothesWasher < OpenStudio::Ruleset::ModelUserScript
     end
     
     # Reporting
-    if info_msgs.size > 1
-        info_msgs.each do |info_msg|
-            runner.registerInfo(info_msg)
+    if msgs.size > 1
+        msgs.each do |msg|
+            runner.registerInfo(msg)
         end
         runner.registerFinalCondition("The building has been assigned clothes washers totaling #{tot_cw_ann_e.round} kWhs annual energy consumption across #{num_units} units.")
-    elsif info_msgs.size == 1
-        runner.registerFinalCondition(info_msgs[0])
+    elsif msgs.size == 1
+        runner.registerFinalCondition(msgs[0])
     else
         runner.registerFinalCondition("No clothes washer has been assigned.")
     end

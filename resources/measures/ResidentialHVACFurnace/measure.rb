@@ -46,19 +46,19 @@ class ProcessFurnace < OpenStudio::Ruleset::ModelUserScript
     fuel_display_names << Constants.FuelTypeElectric
 
     #make a string argument for furnace fuel type
-    selected_furnacefuel = OpenStudio::Ruleset::OSArgument::makeChoiceArgument("selectedfurnacefuel", fuel_display_names, true)
-    selected_furnacefuel.setDisplayName("Fuel Type")
-    selected_furnacefuel.setDescription("Type of fuel used for heating.")
-    selected_furnacefuel.setDefaultValue(Constants.FuelTypeGas)
-    args << selected_furnacefuel
+    fueltype = OpenStudio::Ruleset::OSArgument::makeChoiceArgument("fueltype", fuel_display_names, true)
+    fueltype.setDisplayName("Fuel Type")
+    fueltype.setDescription("Type of fuel used for heating.")
+    fueltype.setDefaultValue(Constants.FuelTypeGas)
+    args << fueltype
 	
     #make an argument for entering furnace installed afue
-    userdefined_afue = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("userdefinedafue",true)
-    userdefined_afue.setDisplayName("Installed AFUE")
-    userdefined_afue.setUnits("Btu/Btu")
-    userdefined_afue.setDescription("The installed Annual Fuel Utilization Efficiency (AFUE) of the furnace, which can be used to account for performance derating or degradation relative to the rated value.")
-    userdefined_afue.setDefaultValue(0.78)
-    args << userdefined_afue
+    afue = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("afue",true)
+    afue.setDisplayName("Installed AFUE")
+    afue.setUnits("Btu/Btu")
+    afue.setDescription("The installed Annual Fuel Utilization Efficiency (AFUE) of the furnace, which can be used to account for performance derating or degradation relative to the rated value.")
+    afue.setDefaultValue(0.78)
+    args << afue
 
     #make a choice argument for furnace heating output capacity
     cap_display_names = OpenStudio::StringVector.new
@@ -68,26 +68,26 @@ class ProcessFurnace < OpenStudio::Ruleset::ModelUserScript
     end
 
     #make a string argument for furnace heating output capacity
-    selected_furnacecap = OpenStudio::Ruleset::OSArgument::makeChoiceArgument("selectedfurnacecap", cap_display_names, true)
-    selected_furnacecap.setDisplayName("Heating Output Capacity")
-    selected_furnacecap.setDefaultValue(Constants.SizingAuto)
-    args << selected_furnacecap
+    furnacecap = OpenStudio::Ruleset::OSArgument::makeChoiceArgument("furnacecap", cap_display_names, true)
+    furnacecap.setDisplayName("Heating Output Capacity")
+    furnacecap.setDefaultValue(Constants.SizingAuto)
+    args << furnacecap
 
     #make an argument for entering furnace max supply temp
-    userdefined_maxtemp = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("userdefinedmaxtemp",true)
-    userdefined_maxtemp.setDisplayName("Max Supply Temp")
-	  userdefined_maxtemp.setUnits("F")
-	  userdefined_maxtemp.setDescription("Maximum supply air temperature.")
-    userdefined_maxtemp.setDefaultValue(120.0)
-    args << userdefined_maxtemp
+    maxtemp = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("maxtemp",true)
+    maxtemp.setDisplayName("Max Supply Temp")
+	  maxtemp.setUnits("F")
+	  maxtemp.setDescription("Maximum supply air temperature.")
+    maxtemp.setDefaultValue(120.0)
+    args << maxtemp
 
     #make an argument for entering furnace installed supply fan power
-    userdefined_fanpower = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("userdefinedfanpower",true)
-    userdefined_fanpower.setDisplayName("Installed Supply Fan Power")
-    userdefined_fanpower.setUnits("W/cfm")
-    userdefined_fanpower.setDescription("Fan power (in W) per delivered airflow rate (in cfm) of the indoor fan for the maximum fan speed under actual operating conditions.")
-    userdefined_fanpower.setDefaultValue(0.5)
-    args << userdefined_fanpower	
+    fanpower = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("fanpower",true)
+    fanpower.setDisplayName("Installed Supply Fan Power")
+    fanpower.setUnits("W/cfm")
+    fanpower.setDescription("Fan power (in W) per delivered airflow rate (in cfm) of the indoor fan for the maximum fan speed under actual operating conditions.")
+    fanpower.setDefaultValue(0.5)
+    args << fanpower	
 	
     return args
   end #end the arguments method
@@ -101,14 +101,14 @@ class ProcessFurnace < OpenStudio::Ruleset::ModelUserScript
       return false
     end
 	
-    furnaceFuelType = runner.getStringArgumentValue("selectedfurnacefuel",user_arguments)
-    furnaceInstalledAFUE = runner.getDoubleArgumentValue("userdefinedafue",user_arguments)
-    furnaceOutputCapacity = runner.getStringArgumentValue("selectedfurnacecap",user_arguments)
+    furnaceFuelType = runner.getStringArgumentValue("fueltype",user_arguments)
+    furnaceInstalledAFUE = runner.getDoubleArgumentValue("afue",user_arguments)
+    furnaceOutputCapacity = runner.getStringArgumentValue("furnacecap",user_arguments)
     if not furnaceOutputCapacity == Constants.SizingAuto
       furnaceOutputCapacity = OpenStudio::convert(furnaceOutputCapacity.split(" ")[0].to_f,"kBtu/h","Btu/h").get
     end
-    furnaceMaxSupplyTemp = runner.getDoubleArgumentValue("userdefinedmaxtemp",user_arguments)
-    furnaceInstalledSupplyFanPower = runner.getDoubleArgumentValue("userdefinedfanpower",user_arguments)
+    furnaceMaxSupplyTemp = runner.getDoubleArgumentValue("maxtemp",user_arguments)
+    furnaceInstalledSupplyFanPower = runner.getDoubleArgumentValue("fanpower",user_arguments)
     
     # Create the material class instances
     supply = Supply.new
@@ -165,7 +165,7 @@ class ProcessFurnace < OpenStudio::Ruleset::ModelUserScript
       
         # Remove existing equipment
         clg_coil = HVAC.remove_existing_hvac_equipment(model, runner, "Furnace", control_zone)
-      
+        
         # _processSystemHeatingCoil
         
         if furnaceFuelType == Constants.FuelTypeElectric

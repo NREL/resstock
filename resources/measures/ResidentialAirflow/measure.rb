@@ -208,7 +208,7 @@ class ProcessAirflow < OpenStudio::Ruleset::WorkspaceUserScript
   class Geom
     def initialize
     end
-    attr_accessor(:finished_floor_area, :above_grade_finished_floor_area, :building_height, :stories, :window_area, :num_units, :above_grade_volume, :above_grade_exterior_wall_area, :SLA)    
+    attr_accessor(:finished_floor_area, :above_grade_finished_floor_area, :building_height, :stories, :num_units, :above_grade_volume, :above_grade_exterior_wall_area, :SLA)    
   end
   
   class Unit
@@ -930,20 +930,19 @@ class ProcessAirflow < OpenStudio::Ruleset::WorkspaceUserScript
         return false
     end
 
-    geometry.finished_floor_area = Geometry.get_finished_floor_area_from_spaces(model.getSpaces, runner)
+    geometry.finished_floor_area = Geometry.get_finished_floor_area_from_spaces(model.getSpaces, true, runner)
     if geometry.finished_floor_area.nil?
       return false
     end
-    geometry.above_grade_finished_floor_area = Geometry.get_above_grade_finished_floor_area_from_spaces(model.getSpaces, runner)
+    geometry.above_grade_finished_floor_area = Geometry.get_above_grade_finished_floor_area_from_spaces(model.getSpaces, true, runner)
     if geometry.above_grade_finished_floor_area.nil?
       return false
     end
     geometry.building_height = Geometry.get_building_height(model.getSpaces)
     geometry.stories = Geometry.get_building_stories(model.getSpaces)
-    geometry.window_area = Geometry.get_building_window_area(model, runner)
     geometry.num_units = num_units
-    geometry.above_grade_volume = Geometry.get_above_grade_finished_volume_from_spaces(model.getSpaces)
-    geometry.above_grade_exterior_wall_area = Geometry.calculate_exterior_wall_area(model.getSpaces)
+    geometry.above_grade_volume = Geometry.get_above_grade_finished_volume_from_spaces(model.getSpaces, true)
+    geometry.above_grade_exterior_wall_area = Geometry.calculate_exterior_wall_area(model.getSpaces, false)
     
     garage_thermal_zone = nil
     ufbasement_thermal_zone = nil
@@ -1015,9 +1014,9 @@ class ProcessAirflow < OpenStudio::Ruleset::WorkspaceUserScript
       unit = Unit.new
       unit.num_bedrooms = nbeds
       unit.num_bathrooms = nbaths
-      unit.above_grade_exterior_wall_area = Geometry.calculate_exterior_wall_area(unit_spaces)
-      unit.above_grade_finished_floor_area = Geometry.get_above_grade_finished_floor_area_from_spaces(unit_spaces, runner)
-      unit.finished_floor_area = Geometry.get_finished_floor_area_from_spaces(unit_spaces, runner)
+      unit.above_grade_exterior_wall_area = Geometry.calculate_exterior_wall_area(unit_spaces, false)
+      unit.above_grade_finished_floor_area = Geometry.get_above_grade_finished_floor_area_from_spaces(unit_spaces, false, runner)
+      unit.finished_floor_area = Geometry.get_finished_floor_area_from_spaces(unit_spaces, false, runner)
       thermal_zones = Geometry.get_thermal_zones_from_spaces(unit_spaces)
       if thermal_zones.length > 1
         runner.registerInfo("Unit #{unit_num} spans more than one thermal zone.")
@@ -1078,9 +1077,10 @@ class ProcessAirflow < OpenStudio::Ruleset::WorkspaceUserScript
       end
       
       wind_speed = _processWindSpeedCorrectionForUnit(wind_speed, si, neighbors_min_nonzero_offset, geometry)
-      si, living_space, fb, garage, ub, cs, ua, wind_speed = _processInfiltrationForUnit(si, living_space, finished_basement, garage, unfinished_basement, crawlspace, unfinished_attic, fbasement_thermal_zone, garage_thermal_zone, ufbasement_thermal_zone, crawl_thermal_zone, ufattic_thermal_zone, wind_speed, geometry, unit_spaces)
+      si, living_space, fb, garage, ub, cs, ua, wind_speed = _processInfiltrationForUnit(si, living_space, finished_basement, garage, unfinished_basement, crawlspace, unfinished_attic, fbasement_thermal_zone, garage_thermal_zone, ufbasement_thermal_zone, crawl_thermal_zone, ufattic_thermal_zone, wind_speed, geometry, unit_spaces, unit)
       vent, schedules = _processMechanicalVentilation(unit_num, si, vent, ageOfHome, unit_dryer_exhaust, geometry, unit, living_space, schedules)
-      nv, schedules = _processNaturalVentilation(workspace, unit_num, nv, living_space, wind_speed, si, schedules, geometry, coolingSetpointWeekday, coolingSetpointWeekend, heatingSetpointWeekday, heatingSetpointWeekend)
+      window_area = Geometry.get_window_area_from_spaces(unit_spaces, false)
+      nv, schedules = _processNaturalVentilation(workspace, unit_num, nv, living_space, wind_speed, si, schedules, geometry, coolingSetpointWeekday, coolingSetpointWeekend, heatingSetpointWeekday, heatingSetpointWeekend, window_area)
 
       schedules.MechanicalVentilationEnergy.each do |sch|
         ems << sch
@@ -2755,7 +2755,7 @@ class ProcessAirflow < OpenStudio::Ruleset::WorkspaceUserScript
     return d
   end 
   
-  def _processInfiltrationForUnit(si, living_space, finished_basement, garage, unfinished_basement, crawlspace, unfinished_attic, fbasement_thermal_zone, garage_thermal_zone, ufbasement_thermal_zone, crawl_thermal_zone, ufattic_thermal_zone, ws, geometry, unit_spaces)
+  def _processInfiltrationForUnit(si, living_space, finished_basement, garage, unfinished_basement, crawlspace, unfinished_attic, fbasement_thermal_zone, garage_thermal_zone, ufbasement_thermal_zone, crawl_thermal_zone, ufattic_thermal_zone, ws, geometry, unit_spaces, unit)
     # Infiltration calculations.
     
     spaces = []
@@ -2872,10 +2872,10 @@ class ProcessAirflow < OpenStudio::Ruleset::WorkspaceUserScript
           geometry.SLA = get_infiltration_SLA_from_ACH50(si.InfiltrationLivingSpaceACH50, si.n_i, geometry.above_grade_finished_floor_area, geometry.above_grade_volume)
 
           # Effective Leakage Area (ft^2)
-          si.A_o = geometry.SLA * geometry.above_grade_finished_floor_area * (Geometry.calculate_exterior_wall_area(unit_spaces)/geometry.above_grade_exterior_wall_area)
+          si.A_o = geometry.SLA * geometry.above_grade_finished_floor_area * (unit.above_grade_exterior_wall_area/geometry.above_grade_exterior_wall_area)
 
           # Calculate SLA for unit
-          living_space.SLA = si.A_o / Geometry.get_above_grade_finished_floor_area_from_spaces(unit_spaces)
+          living_space.SLA = si.A_o / unit.above_grade_finished_floor_area
     
           # Flow Coefficient (cfm/inH2O^n) (based on ASHRAE HoF)
           si.C_i = si.A_o * (2.0 / outside_air_density) ** 0.5 * delta_pref ** (0.5 - si.n_i) * inf_conv_factor
@@ -3373,7 +3373,7 @@ class ProcessAirflow < OpenStudio::Ruleset::WorkspaceUserScript
 
   end
 
-  def _processNaturalVentilation(workspace, unit_num, nv, living_space, wind_speed, infiltration, schedules, geometry, coolingSetpointWeekday, coolingSetpointWeekend, heatingSetpointWeekday, heatingSetpointWeekend)
+  def _processNaturalVentilation(workspace, unit_num, nv, living_space, wind_speed, infiltration, schedules, geometry, coolingSetpointWeekday, coolingSetpointWeekend, heatingSetpointWeekday, heatingSetpointWeekend, window_area)
     # Natural Ventilation
 
     # Specify an array of hourly lower-temperature-limits for natural ventilation
@@ -3839,7 +3839,7 @@ class ProcessAirflow < OpenStudio::Ruleset::WorkspaceUserScript
     # According to 2010 BA Benchmark, 33% of the windows on any facade will
     # be open at any given time and can only be opened to 20% of their area.
 
-    nv.area = 0.6 * geometry.window_area * nv.NatVentFractionWindowsOpen * nv.NatVentFractionWindowAreaOpen # ft^2 (For S-G, this is 0.6*(open window area))
+    nv.area = 0.6 * window_area * nv.NatVentFractionWindowsOpen * nv.NatVentFractionWindowAreaOpen # ft^2 (For S-G, this is 0.6*(open window area))
     nv.max_rate = 20.0 # Air Changes per hour
     nv.max_flow_rate = nv.max_rate * living_space.volume / OpenStudio::convert(1.0,"hr","min").get
     nv_neutral_level = 0.5

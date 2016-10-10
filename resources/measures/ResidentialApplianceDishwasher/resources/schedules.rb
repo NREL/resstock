@@ -95,44 +95,68 @@ class HourlyByMonthSchedule
             for m in 1..12
                 date_s = OpenStudio::Date::fromDayOfYear(day_startm[m])
                 date_e = OpenStudio::Date::fromDayOfYear(day_endm[m])
-                for w in 1..2
-                    if w == 1
-                        wkdy_rule = OpenStudio::Model::ScheduleRule.new(schedule)
-                        wkdy_rule.setName(@sch_name + " weekday ruleset#{m}")
-                        wkdy[m] = wkdy_rule.daySchedule
-                        wkdy[m].setName(@sch_name + " weekday#{m}")
-                        for h in 1..24
-                            val = (@weekday_month_by_hour_values[m-1][h-1].to_f)/@maxval
-                            wkdy[m].addValue(time[h],val)
-                        end
-                        wkdy_rule.setApplySunday(false)
-                        wkdy_rule.setApplyMonday(true)
-                        wkdy_rule.setApplyTuesday(true)
-                        wkdy_rule.setApplyWednesday(true)
-                        wkdy_rule.setApplyThursday(true)
-                        wkdy_rule.setApplyFriday(true)
-                        wkdy_rule.setApplySaturday(false)
-                        wkdy_rule.setStartDate(date_s)
-                        wkdy_rule.setEndDate(date_e)
-                    elsif w == 2
-                        wknd_rule = OpenStudio::Model::ScheduleRule.new(schedule)
-                        wknd_rule.setName(@sch_name + " weekend ruleset#{m}")
-                        wknd[m] = wknd_rule.daySchedule
-                        wknd[m].setName(@sch_name + " weekend#{m}")
-                        for h in 1..24
-                            val = (@weekend_month_by_hour_values[m-1][h-1].to_f)/@maxval
-                            wknd[m].addValue(time[h],val)
-                        end
-                        wknd_rule.setApplySunday(true)
-                        wknd_rule.setApplyMonday(false)
-                        wknd_rule.setApplyTuesday(false)
-                        wknd_rule.setApplyWednesday(false)
-                        wknd_rule.setApplyThursday(false)
-                        wknd_rule.setApplyFriday(false)
-                        wknd_rule.setApplySaturday(true)
-                        wknd_rule.setStartDate(date_s)
-                        wknd_rule.setEndDate(date_e)
+                
+                wkdy_vals = []
+                wknd_vals = []
+                for h in 1..24
+                    wkdy_vals[h] = (@weekday_month_by_hour_values[m-1][h-1].to_f)/@maxval
+                    wknd_vals[h] = (@weekend_month_by_hour_values[m-1][h-1].to_f)/@maxval
+                end
+                
+                if wkdy_vals == wknd_vals
+                    # Alldays
+                    wkdy_rule = OpenStudio::Model::ScheduleRule.new(schedule)
+                    wkdy_rule.setName(@sch_name + " allday ruleset#{m}")
+                    wkdy[m] = wkdy_rule.daySchedule
+                    wkdy[m].setName(@sch_name + " allday#{m}")
+                    for h in 1..24
+                        wkdy[m].addValue(time[h],wkdy_vals[h])
                     end
+                    wkdy_rule.setApplySunday(true)
+                    wkdy_rule.setApplyMonday(true)
+                    wkdy_rule.setApplyTuesday(true)
+                    wkdy_rule.setApplyWednesday(true)
+                    wkdy_rule.setApplyThursday(true)
+                    wkdy_rule.setApplyFriday(true)
+                    wkdy_rule.setApplySaturday(true)
+                    wkdy_rule.setStartDate(date_s)
+                    wkdy_rule.setEndDate(date_e)
+                else
+                    # Weekdays
+                    wkdy_rule = OpenStudio::Model::ScheduleRule.new(schedule)
+                    wkdy_rule.setName(@sch_name + " weekday ruleset#{m}")
+                    wkdy[m] = wkdy_rule.daySchedule
+                    wkdy[m].setName(@sch_name + " weekday#{m}")
+                    for h in 1..24
+                        wkdy[m].addValue(time[h],wkdy_vals[h])
+                    end
+                    wkdy_rule.setApplySunday(false)
+                    wkdy_rule.setApplyMonday(true)
+                    wkdy_rule.setApplyTuesday(true)
+                    wkdy_rule.setApplyWednesday(true)
+                    wkdy_rule.setApplyThursday(true)
+                    wkdy_rule.setApplyFriday(true)
+                    wkdy_rule.setApplySaturday(false)
+                    wkdy_rule.setStartDate(date_s)
+                    wkdy_rule.setEndDate(date_e)
+                    
+                    # Weekends
+                    wknd_rule = OpenStudio::Model::ScheduleRule.new(schedule)
+                    wknd_rule.setName(@sch_name + " weekend ruleset#{m}")
+                    wknd[m] = wknd_rule.daySchedule
+                    wknd[m].setName(@sch_name + " weekend#{m}")
+                    for h in 1..24
+                        wknd[m].addValue(time[h],wknd_vals[h])
+                    end
+                    wknd_rule.setApplySunday(true)
+                    wknd_rule.setApplyMonday(false)
+                    wknd_rule.setApplyTuesday(false)
+                    wknd_rule.setApplyWednesday(false)
+                    wknd_rule.setApplyThursday(false)
+                    wknd_rule.setApplyFriday(false)
+                    wknd_rule.setApplySaturday(true)
+                    wknd_rule.setStartDate(date_s)
+                    wknd_rule.setEndDate(date_e)
                 end
             end
             
@@ -302,45 +326,68 @@ class MonthWeekdayWeekendSchedule
             for m in 1..12
                 date_s = OpenStudio::Date::fromDayOfYear(day_startm[m])
                 date_e = OpenStudio::Date::fromDayOfYear(day_endm[m])
-                for w in 1..2
-                    if w == 1
-                        wkdy_rule = OpenStudio::Model::ScheduleRule.new(schedule)
-                        wkdy_rule.setName(@sch_name + " weekday ruleset#{m}")
-                        wkdy[m] = wkdy_rule.daySchedule
-                        wkdy[m].setName(@sch_name + " weekday#{m}")
-                        for h in 1..24
-                            val = (@monthly_values[m-1].to_f*@weekday_hourly_values[h-1].to_f*@mult_weekday)/@maxval
-                            wkdy[m].addValue(time[h],val)
-                        end
-                        wkdy_rule.setApplySunday(false)
-                        wkdy_rule.setApplyMonday(true)
-                        wkdy_rule.setApplyTuesday(true)
-                        wkdy_rule.setApplyWednesday(true)
-                        wkdy_rule.setApplyThursday(true)
-                        wkdy_rule.setApplyFriday(true)
-                        wkdy_rule.setApplySaturday(false)
-                        wkdy_rule.setStartDate(date_s)
-                        wkdy_rule.setEndDate(date_e)
-                        
-                    elsif w == 2
-                        wknd_rule = OpenStudio::Model::ScheduleRule.new(schedule)
-                        wknd_rule.setName(@sch_name + " weekend ruleset#{m}")
-                        wknd[m] = wknd_rule.daySchedule
-                        wknd[m].setName(@sch_name + " weekend#{m}")
-                        for h in 1..24
-                            val = (@monthly_values[m-1].to_f*@weekend_hourly_values[h-1].to_f*@mult_weekend)/@maxval
-                            wknd[m].addValue(time[h],val)
-                        end
-                        wknd_rule.setApplySunday(true)
-                        wknd_rule.setApplyMonday(false)
-                        wknd_rule.setApplyTuesday(false)
-                        wknd_rule.setApplyWednesday(false)
-                        wknd_rule.setApplyThursday(false)
-                        wknd_rule.setApplyFriday(false)
-                        wknd_rule.setApplySaturday(true)
-                        wknd_rule.setStartDate(date_s)
-                        wknd_rule.setEndDate(date_e)
+                
+                wkdy_vals = []
+                wknd_vals = []
+                for h in 1..24
+                    wkdy_vals[h] = (@monthly_values[m-1].to_f*@weekday_hourly_values[h-1].to_f*@mult_weekday)/@maxval
+                    wknd_vals[h] = (@monthly_values[m-1].to_f*@weekend_hourly_values[h-1].to_f*@mult_weekend)/@maxval
+                end
+                
+                if wkdy_vals == wknd_vals
+                    # Alldays
+                    wkdy_rule = OpenStudio::Model::ScheduleRule.new(schedule)
+                    wkdy_rule.setName(@sch_name + " allday ruleset#{m}")
+                    wkdy[m] = wkdy_rule.daySchedule
+                    wkdy[m].setName(@sch_name + " allday#{m}")
+                    for h in 1..24
+                        wkdy[m].addValue(time[h],wkdy_vals[h])
                     end
+                    wkdy_rule.setApplySunday(true)
+                    wkdy_rule.setApplyMonday(true)
+                    wkdy_rule.setApplyTuesday(true)
+                    wkdy_rule.setApplyWednesday(true)
+                    wkdy_rule.setApplyThursday(true)
+                    wkdy_rule.setApplyFriday(true)
+                    wkdy_rule.setApplySaturday(true)
+                    wkdy_rule.setStartDate(date_s)
+                    wkdy_rule.setEndDate(date_e)
+                else
+                    # Weekdays
+                    wkdy_rule = OpenStudio::Model::ScheduleRule.new(schedule)
+                    wkdy_rule.setName(@sch_name + " weekday ruleset#{m}")
+                    wkdy[m] = wkdy_rule.daySchedule
+                    wkdy[m].setName(@sch_name + " weekday#{m}")
+                    for h in 1..24
+                        wkdy[m].addValue(time[h],wkdy_vals[h])
+                    end
+                    wkdy_rule.setApplySunday(false)
+                    wkdy_rule.setApplyMonday(true)
+                    wkdy_rule.setApplyTuesday(true)
+                    wkdy_rule.setApplyWednesday(true)
+                    wkdy_rule.setApplyThursday(true)
+                    wkdy_rule.setApplyFriday(true)
+                    wkdy_rule.setApplySaturday(false)
+                    wkdy_rule.setStartDate(date_s)
+                    wkdy_rule.setEndDate(date_e)
+                    
+                    # Weekends
+                    wknd_rule = OpenStudio::Model::ScheduleRule.new(schedule)
+                    wknd_rule.setName(@sch_name + " weekend ruleset#{m}")
+                    wknd[m] = wknd_rule.daySchedule
+                    wknd[m].setName(@sch_name + " weekend#{m}")
+                    for h in 1..24
+                        wknd[m].addValue(time[h],wknd_vals[h])
+                    end
+                    wknd_rule.setApplySunday(true)
+                    wknd_rule.setApplyMonday(false)
+                    wknd_rule.setApplyTuesday(false)
+                    wknd_rule.setApplyWednesday(false)
+                    wknd_rule.setApplyThursday(false)
+                    wknd_rule.setApplyFriday(false)
+                    wknd_rule.setApplySaturday(true)
+                    wknd_rule.setStartDate(date_s)
+                    wknd_rule.setEndDate(date_e)
                 end
             end
             

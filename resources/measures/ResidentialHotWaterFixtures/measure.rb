@@ -132,7 +132,7 @@ class ResidentialHotWaterFixtures < OpenStudio::Ruleset::ModelUserScript
         tot_sh_gpd = 0
         tot_s_gpd = 0
         tot_b_gpd = 0
-        info_msgs = []
+        msgs = []
         (1..num_units).to_a.each do |unit_num|
         
             # Get unit beds/baths/spaces
@@ -163,23 +163,20 @@ class ResidentialHotWaterFixtures < OpenStudio::Ruleset::ModelUserScript
             # Remove any existing ssb
             ssb_removed = false
             space.otherEquipment.each do |space_equipment|
-                if space_equipment.name.to_s == obj_name_sh or space_equipment.name.to_s == obj_name_s or space_equipment.name.to_s == obj_name_b
-                    space_equipment.remove
-                    ssb_removed = true
-                end
+                next if space_equipment.name.to_s != obj_name_sh and space_equipment.name.to_s != obj_name_s and space_equipment.name.to_s != obj_name_b
+                space_equipment.remove
+                ssb_removed = true
             end
             space.waterUseEquipment.each do |space_equipment|
-                if space_equipment.name.to_s == obj_name_sh or space_equipment.name.to_s == obj_name_s or space_equipment.name.to_s == obj_name_b
-                    space_equipment.remove
-                    ssb_removed = true
-                end
+                next if space_equipment.name.to_s != obj_name_sh and space_equipment.name.to_s != obj_name_s and space_equipment.name.to_s != obj_name_b
+                space_equipment.remove
+                ssb_removed = true
             end
             if ssb_removed
                 runner.registerInfo("Removed existing showers, sinks, and baths from space #{space.name.to_s}.")
             end
         
-            #Create a constant mixed use temperature schedule at 110 F
-            mixed_use_t = 110 #F
+            mixed_use_t = Constants.MixedUseT #F
             
             #Calc daily gpm and annual gain of each end use
             sh_gpd = (14.0 + 4.67 * nbeds) * sh_mult
@@ -341,19 +338,19 @@ class ResidentialHotWaterFixtures < OpenStudio::Ruleset::ModelUserScript
             end
             
             if sh_gpd > 0 or s_gpd > 0 or b_gpd > 0
-                info_msgs << "Shower, sinks, and bath fixtures drawing #{sh_gpd.round(1)}, #{s_gpd.round(1)}, and #{b_gpd.round(1)} gal/day respectively have been added to plant loop '#{plant_loop.name}' and assigned to space '#{space.name.to_s}'."
+                msgs << "Shower, sinks, and bath fixtures drawing #{sh_gpd.round(1)}, #{s_gpd.round(1)}, and #{b_gpd.round(1)} gal/day respectively have been added to plant loop '#{plant_loop.name}' and assigned to space '#{space.name.to_s}'."
             end
             
         end
         
         # Reporting
-        if info_msgs.size > 1
-            info_msgs.each do |info_msg|
-                runner.registerInfo(info_msg)
+        if msgs.size > 1
+            msgs.each do |msg|
+                runner.registerInfo(msg)
             end
             runner.registerFinalCondition("The building has been assigned shower, sink, and bath fixtures drawing a total of #{(tot_sh_gpd + tot_s_gpd + tot_b_gpd).round(1)} gal/day across #{num_units} units.")
-        elsif info_msgs.size == 1
-            runner.registerFinalCondition(info_msgs[0])
+        elsif msgs.size == 1
+            runner.registerFinalCondition(msgs[0])
         else
             runner.registerFinalCondition("No shower, sink, or bath fixtures have been assigned.")
         end

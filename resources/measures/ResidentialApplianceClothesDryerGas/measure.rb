@@ -165,7 +165,7 @@ class ResidentialClothesDryerGas < OpenStudio::Ruleset::ModelUserScript
     
     tot_cd_ann_e = 0
     tot_cd_ann_g = 0
-    info_msgs = []
+    msgs = []
     sch = nil
     (1..num_units).to_a.each do |unit_num|
     
@@ -190,16 +190,14 @@ class ResidentialClothesDryerGas < OpenStudio::Ruleset::ModelUserScript
         # Remove any existing clothes dryer
         cd_removed = false
         space.electricEquipment.each do |space_equipment|
-            if space_equipment.name.to_s == unit_obj_name_e
-                space_equipment.remove
-                cd_removed = true
-            end
+            next if space_equipment.name.to_s != unit_obj_name_e
+            space_equipment.remove
+            cd_removed = true
         end
         space.gasEquipment.each do |space_equipment|
-            if space_equipment.name.to_s == unit_obj_name_g
-                space_equipment.remove
-                cd_removed = true
-            end
+            next if space_equipment.name.to_s != unit_obj_name_g
+            space_equipment.remove
+            cd_removed = true
         end
         if cd_removed
             runner.registerInfo("Removed existing clothes dryer from space #{space.name.to_s}.")
@@ -304,7 +302,7 @@ class ResidentialClothesDryerGas < OpenStudio::Ruleset::ModelUserScript
             cd_def.setFractionLost(0.0)
             cd.setSchedule(sch.schedule)
             
-            info_msgs << "A clothes dryer with #{cd_ann_g.round} therms and #{cd_ann_e.round} kWhs annual energy consumption has been assigned to space '#{space.name.to_s}'."
+            msgs << "A clothes dryer with #{cd_ann_g.round} therms and #{cd_ann_e.round} kWhs annual energy consumption has been assigned to space '#{space.name.to_s}'."
             
             tot_cd_ann_e += cd_ann_e
             tot_cd_ann_g += cd_ann_g
@@ -313,13 +311,13 @@ class ResidentialClothesDryerGas < OpenStudio::Ruleset::ModelUserScript
     end
     
     # Reporting
-    if info_msgs.size > 1
-        info_msgs.each do |info_msg|
-            runner.registerInfo(info_msg)
+    if msgs.size > 1
+        msgs.each do |msg|
+            runner.registerInfo(msg)
         end
         runner.registerFinalCondition("The building has been assigned clothes dryers totaling #{tot_cd_ann_g.round} therms and #{tot_cd_ann_e.round} kWhs annual energy consumption across #{num_units} units.")
-    elsif info_msgs.size == 1
-        runner.registerFinalCondition(info_msgs[0])
+    elsif msgs.size == 1
+        runner.registerFinalCondition(msgs[0])
     else
         runner.registerFinalCondition("No clothes dryer has been assigned.")
     end

@@ -112,7 +112,7 @@ class ResidentialFreezer < OpenStudio::Ruleset::ModelUserScript
 	freezer_ann = freezer_E*mult
     
     tot_freezer_ann = 0
-    info_msgs = []
+    msgs = []
     sch = nil
     (1..num_units).to_a.each do |unit_num|
     
@@ -140,10 +140,9 @@ class ResidentialFreezer < OpenStudio::Ruleset::ModelUserScript
         # Remove any existing freezer
         frz_removed = false
         space.electricEquipment.each do |space_equipment|
-            if space_equipment.name.to_s == unit_obj_name
-                space_equipment.remove
-                frz_removed = true
-            end
+            next if space_equipment.name.to_s != unit_obj_name
+            space_equipment.remove
+            frz_removed = true
         end
         if frz_removed
             runner.registerInfo("Removed existing freezer from space #{space.name.to_s}.")
@@ -173,20 +172,20 @@ class ResidentialFreezer < OpenStudio::Ruleset::ModelUserScript
             frz_def.setFractionLost(0)
             frz.setSchedule(sch.schedule)
             
-            info_msgs << "A freezer with #{freezer_ann.round} kWhs annual energy consumption has been assigned to space '#{space.name.to_s}'."
+            msgs << "A freezer with #{freezer_ann.round} kWhs annual energy consumption has been assigned to space '#{space.name.to_s}'."
             
             tot_freezer_ann += freezer_ann
         end
     end
     
     # Reporting
-    if info_msgs.size > 1
-        info_msgs.each do |info_msg|
-            runner.registerInfo(info_msg)
+    if msgs.size > 1
+        msgs.each do |msg|
+            runner.registerInfo(msg)
         end
         runner.registerFinalCondition("The building has been assigned freezers totaling #{tot_freezer_ann.round} kWhs annual energy consumption across #{num_units} units.")
-    elsif info_msgs.size == 1
-        runner.registerFinalCondition(info_msgs[0])
+    elsif msgs.size == 1
+        runner.registerFinalCondition(msgs[0])
     else
         runner.registerFinalCondition("No freezer has been assigned.")
     end

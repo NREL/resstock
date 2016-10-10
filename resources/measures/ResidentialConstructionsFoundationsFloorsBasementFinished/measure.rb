@@ -192,7 +192,7 @@ class ProcessConstructionsFoundationsFloorsBasementFinished < OpenStudio::Rulese
     end
 
     # Get geometry values
-    fbFloorArea = Geometry.calculate_floor_area_from_spaces(spaces)
+    fbFloorArea = Geometry.get_floor_area_from_spaces(spaces)
     fbExtPerimeter = Geometry.calculate_perimeter(model, floor_surfaces, has_foundation_walls=true)
     fbExtWallArea = fbExtPerimeter * Geometry.spaces_avg_height(spaces)
     

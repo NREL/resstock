@@ -103,10 +103,9 @@ class CreateResidentialOverhangs < OpenStudio::Ruleset::ModelUserScript
     # Remove any existing overhangs
     num_removed = 0
     model.getShadingSurfaces.each do |shading_surface|
-        if shading_surface.name.to_s.downcase.include? "overhang"
-            shading_surface.remove
-            num_removed += 1
-        end
+        next if not shading_surface.name.to_s.downcase.include? "overhang"
+        shading_surface.remove
+        num_removed += 1
     end
     if num_removed > 0
         runner.registerInfo("#{num_removed.to_s} overhang shading surfaces removed.")

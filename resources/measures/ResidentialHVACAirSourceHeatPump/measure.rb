@@ -349,8 +349,6 @@ class ProcessAirSourceHeatPump < OpenStudio::Ruleset::ModelUserScript
       supply.compressor_speeds = supply.Number_Speeds
     end
     
-    htg_coil_stage_data = HVAC._processCurvesDXHeating(model, supply, hpOutputCapacity)
-    
     # Heating defrost curve for reverse cycle
     defrost_eir = OpenStudio::Model::CurveBiquadratic.new(model)
     defrost_eir.setName("DefrostEIR")
@@ -365,10 +363,6 @@ class ProcessAirSourceHeatPump < OpenStudio::Ruleset::ModelUserScript
     defrost_eir.setMinimumValueofy(-100)
     defrost_eir.setMaximumValueofy(100)    
     
-    # _processCurvesDXCooling
-
-    clg_coil_stage_data = HVAC._processCurvesDXCooling(model, supply, hpOutputCapacity)
-
     # Remove boiler hot water loop if it exists
     HVAC.remove_hot_water_loop(model, runner)    
     
@@ -389,11 +383,15 @@ class ProcessAirSourceHeatPump < OpenStudio::Ruleset::ModelUserScript
         # Remove existing equipment
         HVAC.remove_existing_hvac_equipment(model, runner, "Air Source Heat Pump", control_zone)    
       
+        # _processCurvesDXHeating
+        htg_coil_stage_data = HVAC._processCurvesDXHeating(model, supply, hpOutputCapacity)
+      
         # _processSystemHeatingCoil
         
         if supply.compressor_speeds == 1.0
 
           htg_coil = OpenStudio::Model::CoilHeatingDXSingleSpeed.new(model, model.alwaysOnDiscreteSchedule, htg_coil_stage_data[0].heatingCapacityFunctionofTemperatureCurve, htg_coil_stage_data[0].heatingCapacityFunctionofFlowFractionCurve, htg_coil_stage_data[0].energyInputRatioFunctionofTemperatureCurve, htg_coil_stage_data[0].energyInputRatioFunctionofFlowFractionCurve, htg_coil_stage_data[0].partLoadFractionCorrelationCurve)
+          htg_coil_stage_data[0].remove
           htg_coil.setName("DX Heating Coil")
           if hpOutputCapacity != Constants.SizingAuto
             htg_coil.setRatedTotalHeatingCapacity(OpenStudio::convert(hpOutputCapacity,"Btu/h","W").get)
@@ -436,11 +434,16 @@ class ProcessAirSourceHeatPump < OpenStudio::Ruleset::ModelUserScript
           supp_htg_coil.setNominalCapacity(OpenStudio::convert(supplementalOutputCapacity,"Btu/h","W").get)
         end
         
+        # _processCurvesDXCooling
+
+        clg_coil_stage_data = HVAC._processCurvesDXCooling(model, supply, hpOutputCapacity)        
+        
         # _processSystemCoolingCoil
         
         if supply.compressor_speeds == 1.0
 
           clg_coil = OpenStudio::Model::CoilCoolingDXSingleSpeed.new(model, model.alwaysOnDiscreteSchedule, clg_coil_stage_data[0].totalCoolingCapacityFunctionofTemperatureCurve, clg_coil_stage_data[0].totalCoolingCapacityFunctionofFlowFractionCurve, clg_coil_stage_data[0].energyInputRatioFunctionofTemperatureCurve, clg_coil_stage_data[0].energyInputRatioFunctionofFlowFractionCurve, clg_coil_stage_data[0].partLoadFractionCorrelationCurve)
+          clg_coil_stage_data[0].remove
           clg_coil.setName("DX Cooling Coil")
           if hpOutputCapacity != Constants.SizingAuto
             clg_coil.setRatedTotalCoolingCapacity(OpenStudio::convert(hpOutputCapacity,"Btu/h","W").get)

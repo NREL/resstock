@@ -153,7 +153,7 @@ class ProcessConstructionsFoundationsFloorsCrawlspace < OpenStudio::Ruleset::Mod
     
     # Get geometry values
     csHeight = Geometry.spaces_avg_height(spaces)
-    csFloorArea = Geometry.calculate_floor_area_from_spaces(spaces)
+    csFloorArea = Geometry.get_floor_area_from_spaces(spaces)
     csExtPerimeter = Geometry.calculate_perimeter(model, floor_surfaces, has_foundation_walls=true)
     csExtWallArea = csExtPerimeter * Geometry.spaces_avg_height(spaces)
 

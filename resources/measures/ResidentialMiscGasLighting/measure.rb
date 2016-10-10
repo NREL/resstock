@@ -101,7 +101,7 @@ class ResidentialGasLighting < OpenStudio::Ruleset::ModelUserScript
     end
 
     tot_gl_ann_g = 0
-    info_msgs = []
+    msgs = []
     sch = nil
     (1..num_units).to_a.each do |unit_num|
     
@@ -117,7 +117,7 @@ class ResidentialGasLighting < OpenStudio::Ruleset::ModelUserScript
         end
         
         # Get unit ffa
-        ffa = Geometry.get_finished_floor_area_from_spaces(unit_spaces, runner)
+        ffa = Geometry.get_finished_floor_area_from_spaces(unit_spaces, false, runner)
         if ffa.nil?
             return false
         end
@@ -131,10 +131,9 @@ class ResidentialGasLighting < OpenStudio::Ruleset::ModelUserScript
         # Remove any existing gas lighting
         gl_removed = false
         space.gasEquipment.each do |space_equipment|
-            if space_equipment.name.to_s == unit_obj_name
-                space_equipment.remove
-                gl_removed = true
-            end
+            next if space_equipment.name.to_s != unit_obj_name
+            space_equipment.remove
+            gl_removed = true
         end
         if gl_removed
             runner.registerInfo("Removed existing gas lighting from outside.")
@@ -177,7 +176,7 @@ class ResidentialGasLighting < OpenStudio::Ruleset::ModelUserScript
             gl_def.setFractionLost(1)
             gl.setSchedule(sch.schedule)
             
-            info_msgs << "Gas lighting with #{gl_ann_g.round} therms annual energy consumption has been assigned to outside."
+            msgs << "Gas lighting with #{gl_ann_g.round} therms annual energy consumption has been assigned to outside."
             
             tot_gl_ann_g += gl_ann_g
         end
@@ -185,13 +184,13 @@ class ResidentialGasLighting < OpenStudio::Ruleset::ModelUserScript
     end
     
     # Reporting
-    if info_msgs.size > 1
-        info_msgs.each do |info_msg|
-            runner.registerInfo(info_msg)
+    if msgs.size > 1
+        msgs.each do |msg|
+            runner.registerInfo(msg)
         end
         runner.registerFinalCondition("The building has been assigned gas lighting totaling #{tot_gl_ann_g.round} therms annual energy consumption across #{num_units} units.")
-    elsif info_msgs.size == 1
-        runner.registerFinalCondition(info_msgs[0])
+    elsif msgs.size == 1
+        runner.registerFinalCondition(msgs[0])
     else
         runner.registerFinalCondition("No gas lighting has been assigned.")
     end

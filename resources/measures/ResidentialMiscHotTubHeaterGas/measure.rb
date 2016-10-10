@@ -101,7 +101,7 @@ class ResidentialHotTubHeaterGas < OpenStudio::Ruleset::ModelUserScript
     end
 
     tot_hth_ann_g = 0
-    info_msgs = []
+    msgs = []
     sch = nil
     (1..num_units).to_a.each do |unit_num|
     
@@ -117,7 +117,7 @@ class ResidentialHotTubHeaterGas < OpenStudio::Ruleset::ModelUserScript
         end
         
         # Get unit ffa
-        ffa = Geometry.get_finished_floor_area_from_spaces(unit_spaces, runner)
+        ffa = Geometry.get_finished_floor_area_from_spaces(unit_spaces, false, runner)
         if ffa.nil?
             return false
         end
@@ -132,16 +132,14 @@ class ResidentialHotTubHeaterGas < OpenStudio::Ruleset::ModelUserScript
         # Remove any existing hot tub heater
         hth_removed = false
         space.electricEquipment.each do |space_equipment|
-            if space_equipment.name.to_s == unit_obj_name_e
-                space_equipment.remove
-                hth_removed = true
-            end
+            next if space_equipment.name.to_s != unit_obj_name_e
+            space_equipment.remove
+            hth_removed = true
         end
         space.gasEquipment.each do |space_equipment|
-            if space_equipment.name.to_s == unit_obj_name_g
-                space_equipment.remove
-                hth_removed = true
-            end
+            next if space_equipment.name.to_s != unit_obj_name_g
+            space_equipment.remove
+            hth_removed = true
         end
         if hth_removed
             runner.registerInfo("Removed existing hot tub heater from outside.")
@@ -184,7 +182,7 @@ class ResidentialHotTubHeaterGas < OpenStudio::Ruleset::ModelUserScript
             hth_def.setFractionLost(1)
             hth.setSchedule(sch.schedule)
             
-            info_msgs << "A hot tub heater with #{hth_ann_g.round} therms annual energy consumption has been assigned to outside."
+            msgs << "A hot tub heater with #{hth_ann_g.round} therms annual energy consumption has been assigned to outside."
             
             tot_hth_ann_g += hth_ann_g
         end
@@ -192,13 +190,13 @@ class ResidentialHotTubHeaterGas < OpenStudio::Ruleset::ModelUserScript
     end
     
     # Reporting
-    if info_msgs.size > 1
-        info_msgs.each do |info_msg|
-            runner.registerInfo(info_msg)
+    if msgs.size > 1
+        msgs.each do |msg|
+            runner.registerInfo(msg)
         end
         runner.registerFinalCondition("The building has been assigned hot tub heaters totaling #{tot_hth_ann_g.round} therms annual energy consumption across #{num_units} units.")
-    elsif info_msgs.size == 1
-        runner.registerFinalCondition(info_msgs[0])
+    elsif msgs.size == 1
+        runner.registerFinalCondition(msgs[0])
     else
         runner.registerFinalCondition("No hot tub heater has been assigned.")
     end

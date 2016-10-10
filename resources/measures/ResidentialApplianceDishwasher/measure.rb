@@ -184,12 +184,14 @@ class ResidentialDishwasher < OpenStudio::Ruleset::ModelUserScript
         return false
     end
     
-    # Get weather if needed
+    # Get mains monthly temperatures if needed
     if dw_is_cold_water_inlet_only
-        weather = WeatherProcess.new(model, runner, File.dirname(__FILE__))
-        if weather.error?
+        site = model.getSite
+        if !site.siteWaterMainsTemperature.is_initialized
+            runner.registerError("Mains water temperature has not been set.")
             return false
         end
+        mainsMonthlyTemps = WeatherProcess.get_mains_temperature(site.siteWaterMainsTemperature.get, site.latitude)[1]
     end
     
     # Hot water schedules vary by number of bedrooms. For a given number of bedroom,
@@ -202,7 +204,7 @@ class ResidentialDishwasher < OpenStudio::Ruleset::ModelUserScript
     end
 
     tot_dw_ann = 0
-    info_msgs = []
+    msgs = []
     (1..num_units).to_a.each do |unit_num|
     
         # Get unit beds/baths/spaces
@@ -237,16 +239,14 @@ class ResidentialDishwasher < OpenStudio::Ruleset::ModelUserScript
         # Remove any existing dishwasher
         dw_removed = false
         space.electricEquipment.each do |space_equipment|
-            if space_equipment.name.to_s == obj_name
-                space_equipment.remove
-                dw_removed = true
-            end
+            next if space_equipment.name.to_s != obj_name
+            space_equipment.remove
+            dw_removed = true
         end
         space.waterUseEquipment.each do |space_equipment|
-            if space_equipment.name.to_s == obj_name
-                space_equipment.remove
-                dw_removed = true
-            end
+            next if space_equipment.name.to_s != obj_name
+            space_equipment.remove
+            dw_removed = true
         end
         if dw_removed
             runner.registerInfo("Removed existing dishwasher from space #{space.name.to_s}.")
@@ -368,7 +368,7 @@ class ResidentialDishwasher < OpenStudio::Ruleset::ModelUserScript
         if dw_is_cold_water_inlet_only
 
             monthly_dishwasher_energy = Array.new(12, 0)
-            weather.data.MainsMonthlyTemps.each_with_index do |monthly_main, i|
+            mainsMonthlyTemps.each_with_index do |monthly_main, i|
                 # Adjust for monthly variation in Tmains vs. test cold
                 # water supply temperature.
                 actual_dw_elec_use_per_cycle = test_dw_elec_use_per_cycle + \
@@ -465,7 +465,7 @@ class ResidentialDishwasher < OpenStudio::Ruleset::ModelUserScript
             dw_def2.setTargetTemperatureSchedule(sch.temperatureSchedule)
             water_use_connection.addWaterUseEquipment(dw2)
 
-            info_msgs << "A dishwasher with #{dw_ann.round} kWhs annual energy consumption has been added to plant loop '#{plant_loop.name}' and assigned to space '#{space.name.to_s}'."
+            msgs << "A dishwasher with #{dw_ann.round} kWhs annual energy consumption has been added to plant loop '#{plant_loop.name}' and assigned to space '#{space.name.to_s}'."
             
             tot_dw_ann += dw_ann
         end
@@ -473,13 +473,13 @@ class ResidentialDishwasher < OpenStudio::Ruleset::ModelUserScript
     end
 	
     # Reporting
-    if info_msgs.size > 1
-        info_msgs.each do |info_msg|
-            runner.registerInfo(info_msg)
+    if msgs.size > 1
+        msgs.each do |msg|
+            runner.registerInfo(msg)
         end
         runner.registerFinalCondition("The building has been assigned dishwashers totaling #{tot_dw_ann.round} kWhs annual energy consumption across #{num_units} units.")
-    elsif info_msgs.size == 1
-        runner.registerFinalCondition(info_msgs[0])
+    elsif msgs.size == 1
+        runner.registerFinalCondition(msgs[0])
     else
         runner.registerFinalCondition("No dishwasher has been assigned.")
     end

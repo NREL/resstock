@@ -103,7 +103,7 @@ class ResidentialWellPump < OpenStudio::Ruleset::ModelUserScript
     end
 
     tot_wp_ann = 0
-    info_msgs = []
+    msgs = []
     sch = nil
     (1..num_units).to_a.each do |unit_num|
     
@@ -119,7 +119,7 @@ class ResidentialWellPump < OpenStudio::Ruleset::ModelUserScript
         end
         
         # Get unit ffa
-        ffa = Geometry.get_finished_floor_area_from_spaces(unit_spaces, runner)
+        ffa = Geometry.get_finished_floor_area_from_spaces(unit_spaces, false, runner)
         if ffa.nil?
             return false
         end
@@ -133,10 +133,9 @@ class ResidentialWellPump < OpenStudio::Ruleset::ModelUserScript
         # Remove any existing well pump
         wp_removed = false
         space.electricEquipment.each do |space_equipment|
-            if space_equipment.name.to_s == unit_obj_name
-                space_equipment.remove
-                wp_removed = true
-            end
+            next if space_equipment.name.to_s != unit_obj_name
+            space_equipment.remove
+            wp_removed = true
         end
         if wp_removed
             runner.registerInfo("Removed existing well pump from outside.")
@@ -179,7 +178,7 @@ class ResidentialWellPump < OpenStudio::Ruleset::ModelUserScript
             wp_def.setFractionLost(1)
             wp.setSchedule(sch.schedule)
             
-            info_msgs << "A well pump with #{wp_ann.round} kWhs annual energy consumption has been assigned to outside."
+            msgs << "A well pump with #{wp_ann.round} kWhs annual energy consumption has been assigned to outside."
             
             tot_wp_ann += wp_ann
         end
@@ -187,13 +186,13 @@ class ResidentialWellPump < OpenStudio::Ruleset::ModelUserScript
     end
     
     # Reporting
-    if info_msgs.size > 1
-        info_msgs.each do |info_msg|
-            runner.registerInfo(info_msg)
+    if msgs.size > 1
+        msgs.each do |msg|
+            runner.registerInfo(msg)
         end
         runner.registerFinalCondition("The building has been assigned well pumps totaling #{tot_wp_ann.round} kWhs annual energy consumption across #{num_units} units.")
-    elsif info_msgs.size == 1
-        runner.registerFinalCondition(info_msgs[0])
+    elsif msgs.size == 1
+        runner.registerFinalCondition(msgs[0])
     else
         runner.registerFinalCondition("No well pump has been assigned.")
     end

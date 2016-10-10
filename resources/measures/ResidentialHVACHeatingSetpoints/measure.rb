@@ -148,7 +148,8 @@ class ProcessHeatingSetpoints < OpenStudio::Ruleset::ModelUserScript
                 clg_wkdy[hour] = value
               end
             end
-          elsif rule.applySaturday and rule.applySunday
+          end
+          if rule.applySaturday and rule.applySunday
             rule.daySchedule.values.each_with_index do |value, hour|
               if value < clg_wked[hour]
                 clg_wked[hour] = value
@@ -190,6 +191,13 @@ class ProcessHeatingSetpoints < OpenStudio::Ruleset::ModelUserScript
           return false
         end
 
+        if thermostatsetpointdualsetpoint.heatingSetpointTemperatureSchedule.is_initialized
+            thermostatsetpointdualsetpoint.heatingSetpointTemperatureSchedule.get.remove
+        end
+        if thermostatsetpointdualsetpoint.coolingSetpointTemperatureSchedule.is_initialized
+            thermostatsetpointdualsetpoint.coolingSetpointTemperatureSchedule.get.remove
+        end
+        
         thermostatsetpointdualsetpoint.setHeatingSetpointTemperatureSchedule(heatingsetpoint.schedule)
         thermostatsetpointdualsetpoint.setCoolingSetpointTemperatureSchedule(coolingsetpoint.schedule)
         

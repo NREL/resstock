@@ -473,6 +473,20 @@ class Constants
     end
     return "residential hot tub pump#{s_unit}"
   end
+  def self.ObjectNameHotWaterRecircPump(unit=1)
+    s_unit = ""
+    if unit > 1
+      s_unit = "|unit #{unit}"
+    end
+    return "residential hot water recirc pump#{s_unit}"
+  end
+  def self.ObjectNameHotWaterDistribution(unit=1)
+    s_unit = ""
+    if unit > 1
+      s_unit = "|unit #{unit}"
+    end
+    return "residential hot water distribution#{s_unit}"
+  end
   def self.ObjectNameLighting(unit=1)
     s_unit = ""
     if unit > 1

@@ -726,12 +726,11 @@ class HVAC
               runner.registerInfo("Removed '#{clg_coil.name}' from air loop '#{air_loop.name}'")
               air_loop_unitary.resetCoolingCoil
               clg_coil.remove
-              supply_fan = air_loop_unitary.supplyFan.get.to_FanOnOff.get
-              supply_fan.fanPowerRatioFunctionofSpeedRatioCurve.remove
-              supply_fan.fanEfficiencyRatioFunctionofSpeedRatioCurve.remove
-              availability_schedule = supply_fan.availabilitySchedule
-              availability_schedule.remove
-              supply_fan.remove
+              model.getScheduleConstants.each do |s|
+                next if !s.name.to_s.start_with?("SupplyFanAvailability")
+                s.remove
+              end
+              air_loop_unitary.supplyFan.get.remove
               if air_loop_unitary.supplyAirFanOperatingModeSchedule.is_initialized
                 air_loop_unitary.supplyAirFanOperatingModeSchedule.get.remove
               end
@@ -741,12 +740,11 @@ class HVAC
                 cloned_clg_coil = clg_coil.clone
                 air_loop_unitary.resetCoolingCoil
                 clg_coil.remove
-                supply_fan = air_loop_unitary.supplyFan.get.to_FanOnOff.get
-                supply_fan.fanPowerRatioFunctionofSpeedRatioCurve.remove
-                supply_fan.fanEfficiencyRatioFunctionofSpeedRatioCurve.remove
-                availability_schedule = supply_fan.availabilitySchedule
-                availability_schedule.remove
-                supply_fan.remove
+                model.getScheduleConstants.each do |s|
+                  next if !s.name.to_s.start_with?("SupplyFanAvailability")
+                  s.remove
+                end
+                air_loop_unitary.supplyFan.get.remove
                 if air_loop_unitary.supplyAirFanOperatingModeSchedule.is_initialized
                   air_loop_unitary.supplyAirFanOperatingModeSchedule.get.remove
                 end
@@ -792,12 +790,11 @@ class HVAC
               runner.registerInfo("Removed '#{htg_coil.name}' from air loop '#{air_loop.name}'")
               air_loop_unitary.resetHeatingCoil
               htg_coil.remove
-              supply_fan = air_loop_unitary.supplyFan.get.to_FanOnOff.get
-              supply_fan.fanPowerRatioFunctionofSpeedRatioCurve.remove
-              supply_fan.fanEfficiencyRatioFunctionofSpeedRatioCurve.remove
-              availability_schedule = supply_fan.availabilitySchedule
-              availability_schedule.remove
-              supply_fan.remove
+              model.getScheduleConstants.each do |s|
+                next if !s.name.to_s.start_with?("SupplyFanAvailability")
+                s.remove
+              end
+              air_loop_unitary.supplyFan.get.remove
               if air_loop_unitary.supplyAirFanOperatingModeSchedule.is_initialized
                 air_loop_unitary.supplyAirFanOperatingModeSchedule.get.remove
               end
@@ -807,12 +804,11 @@ class HVAC
                 cloned_htg_coil = htg_coil.clone
                 air_loop_unitary.resetHeatingCoil
                 htg_coil.remove
-                supply_fan = air_loop_unitary.supplyFan.get.to_FanOnOff.get
-                supply_fan.fanPowerRatioFunctionofSpeedRatioCurve.remove
-                supply_fan.fanEfficiencyRatioFunctionofSpeedRatioCurve.remove
-                availability_schedule = supply_fan.availabilitySchedule
-                availability_schedule.remove
-                supply_fan.remove
+                model.getScheduleConstants.each do |s|
+                  next if !s.name.to_s.start_with?("SupplyFanAvailability")
+                  s.remove
+                end
+                air_loop_unitary.supplyFan.get.remove
                 if air_loop_unitary.supplyAirFanOperatingModeSchedule.is_initialized
                   air_loop_unitary.supplyAirFanOperatingModeSchedule.get.remove
                 end
@@ -904,6 +900,7 @@ class HVAC
           return true
         end        
       end
+      return nil
     end
     
     def self.has_air_loop(model, runner, thermal_zone, remove=false)
@@ -949,7 +946,7 @@ class HVAC
         removed_ashp = self.has_air_source_heat_pump(model, runner, thermal_zone, true)
         removed_mshp = self.has_mini_split_heat_pump(model, runner, thermal_zone, true)      
         counterpart_equip = self.has_central_air_conditioner(model, runner, thermal_zone)
-        removed_furnace = self.has_furnace(model, runner, thermal_zone, true)        
+        removed_furnace = self.has_furnace(model, runner, thermal_zone, true)
         removed_boiler = self.has_boiler(model, runner, thermal_zone, true)
         removed_elec_baseboard = self.has_electric_baseboard(model, runner, thermal_zone, true)
         if counterpart_equip or removed_furnace or removed_ashp or removed_mshp

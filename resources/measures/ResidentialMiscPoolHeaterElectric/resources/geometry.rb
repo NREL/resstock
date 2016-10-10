@@ -33,6 +33,8 @@ class Geometry
             end
             return nil
         end
+        # FIXME: Update standardsNumberOfLivingUnits in SFA/MF geometry measures;
+        # factor in zone multipliers when checking for consistency.
         num_units = model.getBuilding.standardsNumberOfLivingUnits.get
         # Check that this matches the number of unit specifications
         units_found = []
@@ -211,12 +213,31 @@ class Geometry
         return (model.getSpaces - self.get_all_unit_spaces(model, runner))
     end
     
-    def self.get_finished_floor_area_from_spaces(spaces, runner=nil)
+    def self.get_floor_area_from_spaces(spaces, apply_multipliers=false, runner=nil)
         floor_area = 0
         spaces.each do |space|
-            if self.space_is_finished(space)
-                floor_area += OpenStudio.convert(space.floorArea,"m^2","ft^2").get
+            mult = 1.0
+            if apply_multipliers
+                mult = space.multiplier.to_f
             end
+            floor_area += OpenStudio.convert(space.floorArea * mult, "m^2", "ft^2").get
+        end
+        if floor_area == 0 and not runner.nil?
+            runner.registerError("Could not find any floor area.")
+            return nil
+        end
+        return floor_area
+    end
+
+    def self.get_finished_floor_area_from_spaces(spaces, apply_multipliers=false, runner=nil)
+        floor_area = 0
+        spaces.each do |space|
+            next if not self.space_is_finished(space)
+            mult = 1.0
+            if apply_multipliers
+                mult = space.multiplier.to_f
+            end
+            floor_area += OpenStudio.convert(space.floorArea * mult,"m^2","ft^2").get
         end
         if floor_area == 0 and not runner.nil?
             runner.registerError("Could not find any finished floor area.")
@@ -225,12 +246,15 @@ class Geometry
         return floor_area
     end
     
-    def self.get_above_grade_finished_floor_area_from_spaces(spaces, runner=nil)
+    def self.get_above_grade_finished_floor_area_from_spaces(spaces, apply_multipliers=false, runner=nil)
       floor_area = 0
       spaces.each do |space|
-        if self.space_is_finished(space) and self.space_is_above_grade(space)
-            floor_area += OpenStudio.convert(space.floorArea,"m^2","ft^2").get
+        next if not (self.space_is_finished(space) and self.space_is_above_grade(space))
+        mult = 1.0
+        if apply_multipliers
+            mult = space.multiplier.to_f
         end
+        floor_area += OpenStudio.convert(space.floorArea * mult,"m^2","ft^2").get
       end
       if floor_area == 0 and not runner.nil?
           runner.registerError("Could not find any above-grade finished floor area.")
@@ -239,12 +263,15 @@ class Geometry
       return floor_area      
     end    
     
-    def self.get_above_grade_finished_volume_from_spaces(spaces, runner=nil)
+    def self.get_above_grade_finished_volume_from_spaces(spaces, apply_multipliers=false, runner=nil)
       volume = 0
       spaces.each do |space|
-        if self.space_is_finished(space) and self.space_is_above_grade(space)
-            volume += OpenStudio.convert(space.floorArea * Geometry.space_height(space),"m^2","ft^2").get
+        next if not (self.space_is_finished(space) and self.space_is_above_grade(space))
+        mult = 1.0
+        if apply_multipliers
+            mult = space.multiplier.to_f
         end
+        volume += OpenStudio.convert(space.floorArea * Geometry.space_height(space) * mult,"m^2","ft^2").get
       end
       if volume == 0 and not runner.nil?
           runner.registerError("Could not find any above-grade finished volume.")
@@ -253,12 +280,18 @@ class Geometry
       return volume    
     end
     
-    def self.get_building_window_area(model, runner=nil)
+    def self.get_window_area_from_spaces(spaces, apply_multipliers=false)
       window_area = 0
-      model.getSurfaces.each do |surface|
-        surface.subSurfaces.each do |subsurface|
-          next if subsurface.subSurfaceType.downcase != "fixedwindow"
-          window_area += OpenStudio::convert(subsurface.grossArea,"m^2","ft^2").get
+      spaces.each do |space|
+        mult = 1.0
+        if apply_multipliers
+            mult = space.multiplier.to_f
+        end
+        space.surfaces.each do |surface|
+          surface.subSurfaces.each do |subsurface|
+            next if subsurface.subSurfaceType.downcase != "fixedwindow"
+            window_area += OpenStudio::convert(subsurface.grossArea * mult,"m^2","ft^2").get
+          end
         end
       end
       return window_area
@@ -486,46 +519,45 @@ class Geometry
         return sum_height/spaces.size
     end
     
-    # Takes in a list of spaces and returns the total floor area
-    def self.calculate_floor_area_from_spaces(spaces)
-        floor_area = 0
-        spaces.each do |space|
-            floor_area += space.floorArea
-        end
-        return OpenStudio.convert(floor_area, "m^2", "ft^2").get
-    end
-    
     # Takes in a list of surfaces and returns the total gross area
     def self.calculate_total_area_from_surfaces(surfaces)
         total_area = 0
         surfaces.each do |surface|
-            total_area += surface.grossArea
+            total_area += OpenStudio.convert(surface.grossArea, "m^2", "ft^2").get
         end
-        return OpenStudio.convert(total_area, "m^2", "ft^2").get
+        return total_area
     end
     
     # Takes in a list of spaces and returns the total wall area
-    def self.calculate_wall_area(spaces)
+    def self.calculate_wall_area(spaces, apply_multipliers=false)
         wall_area = 0
         spaces.each do |space|
+            mult = 1.0
+            if apply_multipliers
+                mult = space.multiplier.to_f
+            end
             space.surfaces.each do |surface|
                 next if surface.surfaceType.downcase != "wall"
-                wall_area += surface.grossArea
+                wall_area += OpenStudio.convert(surface.grossArea * mult, "m^2", "ft^2").get
             end
         end
-        return OpenStudio.convert(wall_area, "m^2", "ft^2").get
+        return wall_area
     end
     
-    def self.calculate_exterior_wall_area(spaces)
+    def self.calculate_exterior_wall_area(spaces, apply_multipliers=false)
         wall_area = 0
         spaces.each do |space|
+            mult = 1.0
+            if apply_multipliers
+                mult = space.multiplier.to_f
+            end
             space.surfaces.each do |surface|
                 next if surface.surfaceType.downcase != "wall"
                 next if surface.outsideBoundaryCondition.downcase != "outdoors"
-                wall_area += surface.grossArea
+                wall_area +=  OpenStudio.convert(surface.grossArea * mult, "m^2", "ft^2").get
             end
         end
-        return OpenStudio.convert(wall_area, "m^2", "ft^2").get
+        return wall_area
     end    
     
     def self.calculate_avg_roof_pitch(spaces)

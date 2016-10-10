@@ -143,7 +143,7 @@ class ResidentialHotWaterHeaterTanklessGas < OpenStudio::Ruleset::ModelUserScrip
 
         #Check if mains temperature has been set
         if !model.getSite.siteWaterMainsTemperature.is_initialized
-            runner.registerError("Mains water temperature must be set before adding a water heater.")
+            runner.registerError("Mains water temperature has not been set.")
             return false
         end
         
@@ -186,18 +186,17 @@ class ResidentialHotWaterHeaterTanklessGas < OpenStudio::Ruleset::ModelUserScrip
             loop = nil
         
             model.getPlantLoops.each do |pl|
-                if pl.name.to_s == Constants.PlantLoopDomesticWater(unit_num)
-                    loop = pl
-                    #Remove any existing water heater
-                    wh_removed = false
-                    pl.supplyComponents.each do |wh|
-                        next if !wh.to_WaterHeaterMixed.is_initialized and !wh.to_WaterHeaterStratified.is_initialized and !wh.to_WaterHeaterHeatPump.is_initialized
-                        wh.remove
-                        wh_removed = true
-                    end
-                    if wh_removed
-                        runner.registerInfo("Removed existing water heater from plant loop #{pl.name.to_s}.")
-                    end
+                next if pl.name.to_s != Constants.PlantLoopDomesticWater(unit_num)
+                loop = pl
+                #Remove any existing water heater
+                wh_removed = false
+                pl.supplyComponents.each do |wh|
+                    next if !wh.to_WaterHeaterMixed.is_initialized and !wh.to_WaterHeaterStratified.is_initialized and !wh.to_WaterHeaterHeatPump.is_initialized
+                    wh.remove
+                    wh_removed = true
+                end
+                if wh_removed
+                    runner.registerInfo("Removed existing water heater from plant loop #{pl.name.to_s}.")
                 end
             end
             

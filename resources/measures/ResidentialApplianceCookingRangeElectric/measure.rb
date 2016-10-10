@@ -123,7 +123,7 @@ class ResidentialCookingRange < OpenStudio::Ruleset::ModelUserScript
     end
     
     tot_range_ann_e = 0
-    info_msgs = []
+    msgs = []
     sch = nil
     (1..num_units).to_a.each do |unit_num|
     
@@ -149,16 +149,14 @@ class ResidentialCookingRange < OpenStudio::Ruleset::ModelUserScript
         # Remove any existing cooking range
         cr_removed = false
         space.electricEquipment.each do |space_equipment|
-            if space_equipment.name.to_s == unit_obj_name_e or space_equipment.name.to_s == unit_obj_name_i
-                space_equipment.remove
-                cr_removed = true
-            end
+            next if space_equipment.name.to_s != unit_obj_name_e and space_equipment.name.to_s != unit_obj_name_i
+            space_equipment.remove
+            cr_removed = true
         end
         space.gasEquipment.each do |space_equipment|
-            if space_equipment.name.to_s == unit_obj_name_g
-                space_equipment.remove
-                cr_removed = true
-            end
+            next if space_equipment.name.to_s != unit_obj_name_g
+            space_equipment.remove
+            cr_removed = true
         end
         if cr_removed
             runner.registerInfo("Removed existing cooking range from space #{space.name.to_s}.")
@@ -191,7 +189,7 @@ class ResidentialCookingRange < OpenStudio::Ruleset::ModelUserScript
             rng_def.setFractionLost(0.3)
             rng.setSchedule(sch.schedule)
             
-            info_msgs << "A cooking range with #{range_ann_e.round} kWhs annual energy consumption has been assigned to space '#{space.name.to_s}'."
+            msgs << "A cooking range with #{range_ann_e.round} kWhs annual energy consumption has been assigned to space '#{space.name.to_s}'."
             
             tot_range_ann_e += range_ann_e
         end
@@ -199,13 +197,13 @@ class ResidentialCookingRange < OpenStudio::Ruleset::ModelUserScript
     end
     
     # Reporting
-    if info_msgs.size > 1
-        info_msgs.each do |info_msg|
-            runner.registerInfo(info_msg)
+    if msgs.size > 1
+        msgs.each do |msg|
+            runner.registerInfo(msg)
         end
         runner.registerFinalCondition("The building has been assigned cooking ranges totaling #{tot_range_ann_e.round} kWhs annual energy consumption across #{num_units} units.")
-    elsif info_msgs.size == 1
-        runner.registerFinalCondition(info_msgs[0])
+    elsif msgs.size == 1
+        runner.registerFinalCondition(msgs[0])
     else
         runner.registerFinalCondition("No cooking range has been assigned.")
     end
