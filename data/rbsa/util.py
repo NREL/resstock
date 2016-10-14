@@ -846,7 +846,7 @@ def assign_cd(df):
     fueltypekey = {'Electric': 'Electric',
                    'Gas': 'Gas',
                    'Oil/Kerosene': 'Oil',
-                   'Propane': 'Propane',
+                   'Propane': 'Gas',
                    'Wood': 'Other Fuel',
                    'Other': 'Other Fuel',
                    'Oil': 'Oil',

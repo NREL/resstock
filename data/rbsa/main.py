@@ -1117,7 +1117,7 @@ class Create_DFs():
         df['Count'] = count
         df['Weight'] = weight
         df = add_option_prefix(df)
-        df = df[['Option=Electric, 100% Usage', 'Option=Gas, 100% Usage', 'Option=FIXME Propane, 100% Usage', 'Option=None', 'Count', 'Weight']]
+        df = df[['Option=Electric, 100% Usage', 'Option=Gas, 100% Usage', 'Option=None', 'Count', 'Weight']]
         return df
 
 def to_figure(df, file):
