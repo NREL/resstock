@@ -865,3 +865,18 @@ def assign_cd(df):
         
     return pd.DataFrame(cd, columns=['siteid', 'created', 'object', 'Dependency=Heating Fuel', 'cd']).set_index('siteid')
     
+def assign_electricity_consumption(df):
+
+    df['kwh_nrm'] = df.apply(lambda x: x.object.sfenergysumtmy3.kwhnrmy, axis=1)
+    df['Weight'] = df.apply(lambda x: x.object.sfmasterpopulations.svywt, axis=1)
+    df = df.dropna(subset=['kwh_nrm'])
+
+    return df
+    
+def assign_natural_gas_consumption(df):
+
+    df['thm_nrm'] = df.apply(lambda x: x.object.sfenergysumtmy3.thmnrmy, axis=1)
+    df['Weight'] = df.apply(lambda x: x.object.sfmasterpopulations.svywt, axis=1)
+    df = df.dropna(subset=['thm_nrm'])
+
+    return df
