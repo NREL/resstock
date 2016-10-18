@@ -31,7 +31,7 @@ class ProcessConstructionsWallsSheathing < OpenStudio::Ruleset::ModelUserScript
 	osb_thick_in = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("osb_thick_in",true)
 	osb_thick_in.setDisplayName("OSB/Plywood Thickness")
     osb_thick_in.setUnits("in")
-	osb_thick_in.setDescription("Specifies the thickness of the walls' structural shear OSB sheathing. Enter 0 for no sheathing (if the wall has other means to handle the shear load on the wall such as cross-bracing).")
+	osb_thick_in.setDescription("Specifies the thickness of the walls' OSB/plywood sheathing. Enter 0 for no sheathing (if the wall has other means to handle the shear load on the wall such as cross-bracing).")
 	osb_thick_in.setDefaultValue(0.5)
 	args << osb_thick_in
     

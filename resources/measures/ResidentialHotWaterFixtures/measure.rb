@@ -114,51 +114,40 @@ class ResidentialHotWaterFixtures < OpenStudio::Ruleset::ModelUserScript
             return false
         end
         
-        # Get number of units
-        num_units = Geometry.get_num_units(model, runner)
-        if num_units.nil?
+        # Get building units
+        units = Geometry.get_building_units(model, runner)
+        if units.nil?
             return false
-        end
-        
-        # Hot water schedules vary by number of bedrooms. For a given number of bedroom,
-        # there are 10 different schedules available for different units in a multifamily 
-        # building. This hash tracks which schedule to use.
-        sch_unit_index = {}
-        num_bed_options = (1..5)
-        num_bed_options.each do |num_bed_option|
-            sch_unit_index[num_bed_option.to_f] = -1
         end
 
         tot_sh_gpd = 0
         tot_s_gpd = 0
         tot_b_gpd = 0
         msgs = []
-        (1..num_units).to_a.each do |unit_num|
-        
-            # Get unit beds/baths/spaces
-            nbeds, nbaths, unit_spaces = Geometry.get_unit_beds_baths_spaces(model, unit_num, runner)
-            if unit_spaces.nil?
-                runner.registerError("Could not determine the spaces associated with unit #{unit_num}.")
+        units.each do |unit|
+            # Get unit beds/baths
+            nbeds, nbaths = Geometry.get_unit_beds_baths(model, unit, runner)
+            if nbeds.nil? or nbaths.nil?
                 return false
             end
-            if nbeds.nil? or nbaths.nil?
-                runner.registerError("Could not determine number of bedrooms or bathrooms. Run the 'Add Residential Bedrooms And Bathrooms' measure first.")
+            sch_unit_index = Geometry.get_unit_dhw_sched_index(model, unit, runner)
+            if sch_unit_index.nil?
                 return false
             end
 
             # Get space
-            space = Geometry.get_space_from_string(unit_spaces, space_r)
+            space = Geometry.get_space_from_string(unit.spaces, space_r)
             next if space.nil?
 
             #Get plant loop
-            plant_loop = Waterheater.get_plant_loop_from_string(model.getPlantLoops, plant_loop_s, unit_spaces, runner)
+            plant_loop = Waterheater.get_plant_loop_from_string(model.getPlantLoops, plant_loop_s, unit.spaces, runner)
             if plant_loop.nil?
                 return false
             end
 
-            obj_name_sh = Constants.ObjectNameShower(unit_num)
-            obj_name_s = Constants.ObjectNameSink(unit_num)
-            obj_name_b = Constants.ObjectNameBath(unit_num)
+            obj_name_sh = Constants.ObjectNameShower(unit.name.to_s)
+            obj_name_s = Constants.ObjectNameSink(unit.name.to_s)
+            obj_name_b = Constants.ObjectNameBath(unit.name.to_s)
         
             # Remove any existing ssb
             ssb_removed = false
@@ -216,15 +205,13 @@ class ResidentialHotWaterFixtures < OpenStudio::Ruleset::ModelUserScript
                     plant_loop.addDemandBranchForComponent(water_use_connection)
                 end
                 
-                sch_unit_index[nbeds] = (sch_unit_index[nbeds] + 1) % 10
-                
             end
             
             # Showers
             if sh_gpd > 0
                 
                 # Create schedule
-                sch_sh = HotWaterSchedule.new(model, runner, Constants.ObjectNameShower + " schedule", Constants.ObjectNameShower + " temperature schedule", nbeds, sch_unit_index[nbeds], "Shower", mixed_use_t, File.dirname(__FILE__))
+                sch_sh = HotWaterSchedule.new(model, runner, Constants.ObjectNameShower + " schedule", Constants.ObjectNameShower + " temperature schedule", nbeds, sch_unit_index, "Shower", mixed_use_t, File.dirname(__FILE__))
                 if not sch_sh.validated?
                     return false
                 end
@@ -263,7 +250,7 @@ class ResidentialHotWaterFixtures < OpenStudio::Ruleset::ModelUserScript
             if s_gpd > 0
             
                 # Create schedule
-                sch_s = HotWaterSchedule.new(model, runner, Constants.ObjectNameSink + " schedule", Constants.ObjectNameSink + " temperature schedule", nbeds, sch_unit_index[nbeds], "Sink", mixed_use_t, File.dirname(__FILE__))
+                sch_s = HotWaterSchedule.new(model, runner, Constants.ObjectNameSink + " schedule", Constants.ObjectNameSink + " temperature schedule", nbeds, sch_unit_index, "Sink", mixed_use_t, File.dirname(__FILE__))
                 if not sch_s.validated?
                     return false
                 end
@@ -302,7 +289,7 @@ class ResidentialHotWaterFixtures < OpenStudio::Ruleset::ModelUserScript
             if b_gpd > 0
             
                 # Create schedule
-                sch_b = HotWaterSchedule.new(model, runner, Constants.ObjectNameSink + " schedule", Constants.ObjectNameSink + " temperature schedule", nbeds, sch_unit_index[nbeds], "Bath", mixed_use_t, File.dirname(__FILE__))
+                sch_b = HotWaterSchedule.new(model, runner, Constants.ObjectNameSink + " schedule", Constants.ObjectNameSink + " temperature schedule", nbeds, sch_unit_index, "Bath", mixed_use_t, File.dirname(__FILE__))
                 if not sch_b.validated?
                     return false
                 end
@@ -348,7 +335,7 @@ class ResidentialHotWaterFixtures < OpenStudio::Ruleset::ModelUserScript
             msgs.each do |msg|
                 runner.registerInfo(msg)
             end
-            runner.registerFinalCondition("The building has been assigned shower, sink, and bath fixtures drawing a total of #{(tot_sh_gpd + tot_s_gpd + tot_b_gpd).round(1)} gal/day across #{num_units} units.")
+            runner.registerFinalCondition("The building has been assigned shower, sink, and bath fixtures drawing a total of #{(tot_sh_gpd + tot_s_gpd + tot_b_gpd).round(1)} gal/day across #{units.size} units.")
         elsif msgs.size == 1
             runner.registerFinalCondition(msgs[0])
         else

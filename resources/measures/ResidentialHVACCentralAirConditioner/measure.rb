@@ -237,21 +237,26 @@ class ProcessCentralAirConditioner < OpenStudio::Ruleset::ModelUserScript
       supply.compressor_speeds = supply.Number_Speeds
     end
     
-    num_units = Geometry.get_num_units(model, runner)
-    if num_units.nil?
+    # Get building units
+    units = Geometry.get_building_units(model, runner)
+    if units.nil?
         return false
-    end    
+    end
     
-    (1..num_units).to_a.each do |unit_num|
-      _nbeds, _nbaths, unit_spaces = Geometry.get_unit_beds_baths_spaces(model, unit_num, runner)
-      thermal_zones = Geometry.get_thermal_zones_from_spaces(unit_spaces)
+    units.each do |unit|
+      unit_num = Geometry.get_unit_number(model, unit, runner)
+      thermal_zones = Geometry.get_thermal_zones_from_spaces(unit.spaces)
       if thermal_zones.length > 1
-        runner.registerInfo("Unit #{unit_num} spans more than one thermal zone.")
+        runner.registerInfo("#{unit.name.to_s} spans more than one thermal zone.")
       end
       control_slave_zones_hash = HVAC.get_control_and_slave_zones(thermal_zones)
       control_slave_zones_hash.each do |control_zone, slave_zones|
     
         # Remove existing equipment
+        existing_has_mshp = false
+        if HVAC.has_mini_split_heat_pump(model, runner, control_zone)
+          existing_has_mshp = true
+        end
         htg_coil = HVAC.remove_existing_hvac_equipment(model, runner, "Central Air Conditioner", control_zone)
       
         # _processCurvesDXCooling
@@ -267,8 +272,6 @@ class ProcessCentralAirConditioner < OpenStudio::Ruleset::ModelUserScript
           clg_coil.setName("DX Cooling Coil")
           if acOutputCapacity != Constants.SizingAuto
             clg_coil.setRatedTotalCoolingCapacity(OpenStudio::convert(acOutputCapacity,"Btu/h","W").get)
-          end
-          if acOutputCapacity != Constants.SizingAuto
             clg_coil.setRatedSensibleHeatRatio(supply.SHR_Rated[0])
             clg_coil.setRatedAirFlowRate(supply.CFM_TON_Rated[0] * acOutputCapacity * OpenStudio::convert(1.0,"Btu/h","ton").get * OpenStudio::convert(1.0,"cfm","m^3/s").get)
           end
@@ -371,17 +374,22 @@ class ProcessCentralAirConditioner < OpenStudio::Ruleset::ModelUserScript
         air_loop.addBranchForZone(control_zone, diffuser_living.to_StraightComponent)
 
         air_loop.addBranchForZone(control_zone)
-        runner.registerInfo("Added air loop '#{air_loop.name}' to thermal zone '#{control_zone.name}' of unit #{unit_num}")
+        runner.registerInfo("Added air loop '#{air_loop.name}' to thermal zone '#{control_zone.name}' of #{unit.name.to_s}")
 
         slave_zones.each do |slave_zone|
 
+            # Remove existing equipment
+            if existing_has_mshp
+              HVAC.has_electric_baseboard(model, runner, slave_zone, true)
+            end
+        
             diffuser_fbsmt = OpenStudio::Model::AirTerminalSingleDuctUncontrolled.new(model, model.alwaysOnDiscreteSchedule)
             diffuser_fbsmt.setName("FBsmt Zone Direct Air")
             # diffuser_fbsmt.setMaximumAirFlowRate(OpenStudio::convert(supply.Living_AirFlowRate,"cfm","m^3/s").get)
             air_loop.addBranchForZone(slave_zone, diffuser_fbsmt.to_StraightComponent)
 
             air_loop.addBranchForZone(slave_zone)
-            runner.registerInfo("Added air loop '#{air_loop.name}' to thermal zone '#{slave_zone.name}' of unit #{unit_num}")
+            runner.registerInfo("Added air loop '#{air_loop.name}' to thermal zone '#{slave_zone.name}' of #{unit.name.to_s}")
 
         end    
       

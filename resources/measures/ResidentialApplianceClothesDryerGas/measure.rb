@@ -157,9 +157,9 @@ class ResidentialClothesDryerGas < OpenStudio::Ruleset::ModelUserScript
         return false
     end
     
-    # Get number of units
-    num_units = Geometry.get_num_units(model, runner)
-    if num_units.nil?
+    # Get building units
+    units = Geometry.get_building_units(model, runner)
+    if units.nil?
         return false
     end
     
@@ -167,40 +167,47 @@ class ResidentialClothesDryerGas < OpenStudio::Ruleset::ModelUserScript
     tot_cd_ann_g = 0
     msgs = []
     sch = nil
-    (1..num_units).to_a.each do |unit_num|
-    
-        # Get unit beds/baths/spaces
-        nbeds, nbaths, unit_spaces = Geometry.get_unit_beds_baths_spaces(model, unit_num, runner)
-        if unit_spaces.nil?
-            runner.registerError("Could not determine the spaces associated with unit #{unit_num}.")
-            return false
-        end
+    units.each do |unit|
+        # Get unit beds/baths
+        nbeds, nbaths = Geometry.get_unit_beds_baths(model, unit, runner)
         if nbeds.nil? or nbaths.nil?
-            runner.registerError("Could not determine number of bedrooms or bathrooms. Run the 'Add Residential Bedrooms And Bathrooms' measure first.")
             return false
         end
         
         # Get space
-        space = Geometry.get_space_from_string(unit_spaces, space_r)
+        space = Geometry.get_space_from_string(unit.spaces, space_r)
         next if space.nil?
 
-        unit_obj_name_e = Constants.ObjectNameClothesDryer(Constants.FuelTypeElectric, unit_num)
-        unit_obj_name_g = Constants.ObjectNameClothesDryer(Constants.FuelTypeGas, unit_num)
+        unit_obj_name_e = Constants.ObjectNameClothesDryer(Constants.FuelTypeElectric, unit.name.to_s)
+        unit_obj_name_g = Constants.ObjectNameClothesDryer(Constants.FuelTypeGas, unit.name.to_s)
         
         # Remove any existing clothes dryer
-        cd_removed = false
+        objects_to_remove = []
         space.electricEquipment.each do |space_equipment|
             next if space_equipment.name.to_s != unit_obj_name_e
-            space_equipment.remove
-            cd_removed = true
+            objects_to_remove << space_equipment
+            objects_to_remove << space_equipment.electricEquipmentDefinition
+            if space_equipment.schedule.is_initialized
+                objects_to_remove << space_equipment.schedule.get
+            end
         end
         space.gasEquipment.each do |space_equipment|
             next if space_equipment.name.to_s != unit_obj_name_g
-            space_equipment.remove
-            cd_removed = true
+            objects_to_remove << space_equipment
+            objects_to_remove << space_equipment.gasEquipmentDefinition
+            if space_equipment.schedule.is_initialized
+                objects_to_remove << space_equipment.schedule.get
+            end
         end
-        if cd_removed
+        if objects_to_remove.size > 0
             runner.registerInfo("Removed existing clothes dryer from space #{space.name.to_s}.")
+        end
+        objects_to_remove.uniq.each do |object|
+            begin
+                object.remove
+            rescue
+                # no op
+            end
         end
         
         # Energy Use is based on "Method for Evaluating Energy Use of Dishwashers, Clothes 
@@ -315,7 +322,7 @@ class ResidentialClothesDryerGas < OpenStudio::Ruleset::ModelUserScript
         msgs.each do |msg|
             runner.registerInfo(msg)
         end
-        runner.registerFinalCondition("The building has been assigned clothes dryers totaling #{tot_cd_ann_g.round} therms and #{tot_cd_ann_e.round} kWhs annual energy consumption across #{num_units} units.")
+        runner.registerFinalCondition("The building has been assigned clothes dryers totaling #{tot_cd_ann_g.round} therms and #{tot_cd_ann_e.round} kWhs annual energy consumption across #{units.size} units.")
     elsif msgs.size == 1
         runner.registerFinalCondition(msgs[0])
     else

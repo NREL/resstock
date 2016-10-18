@@ -1,17 +1,17 @@
 <measure>
   <schema_version>3.0</schema_version>
-  <name>process_airflow</name>
+  <name>residential_airflow</name>
   <uid>c4dde5f8-45aa-4381-93dc-e598f7c31155</uid>
-  <version_id>bf443dd3-8630-4ecf-9624-cff1160ecba8</version_id>
-  <version_modified>20161006T135235Z</version_modified>
+  <version_id>48063440-b6f7-4832-9a76-0f71b9f611b7</version_id>
+  <version_modified>20161018T190134Z</version_modified>
   <xml_checksum>2AC0F979</xml_checksum>
-  <class_name>ProcessAirflow</class_name>
+  <class_name>ResidentialAirflow</class_name>
   <display_name>Set Residential Airflow</display_name>
   <description>This measure processes infiltration for the living space, garage, finished basement, unfinished basement, crawlspace, and unfinished attic. It also processes mechanical ventilation and natural ventilation for the living space.</description>
   <modeler_description>Using EMS code, this measure processes the building's airflow (infiltration, mechanical ventilation, and natural ventilation). Note: This measure requires the number of bedrooms/bathrooms to have already been assigned.</modeler_description>
   <arguments>
     <argument>
-      <name>userdefinedinflivingspace</name>
+      <name>inflivingspace</name>
       <display_name>Air Leakage: Above-Grade Living Space ACH50</display_name>
       <description>Air exchange rate, in Air Changes per Hour at 50 Pascals (ACH50), for above-grade living space (including finished attic).</description>
       <type>Double</type>
@@ -21,7 +21,7 @@
       <default_value>7</default_value>
     </argument>
     <argument>
-      <name>userdefinedinfgarage</name>
+      <name>infgarage</name>
       <display_name>Garage: ACH50</display_name>
       <description>Air exchange rate, in Air Changes per Hour at 50 Pascals (ACH50), for the garage.</description>
       <type>Double</type>
@@ -31,7 +31,7 @@
       <default_value>7</default_value>
     </argument>
     <argument>
-      <name>userdefinedinffbsmt</name>
+      <name>inffbsmt</name>
       <display_name>Finished Basement: Constant ACH</display_name>
       <description>Constant air exchange rate, in Air Changes per Hour (ACH), for the finished basement.</description>
       <type>Double</type>
@@ -41,7 +41,7 @@
       <default_value>0</default_value>
     </argument>
     <argument>
-      <name>userdefinedinfufbsmt</name>
+      <name>infufbsmt</name>
       <display_name>Unfinished Basement: Constant ACH</display_name>
       <description>Constant air exchange rate, in Air Changes per Hour (ACH), for the unfinished basement. A value of 0.10 ACH or greater is recommended for modeling Heat Pump Water Heaters in unfinished basements.</description>
       <type>Double</type>
@@ -51,7 +51,7 @@
       <default_value>0.1</default_value>
     </argument>
     <argument>
-      <name>userdefinedinfcrawl</name>
+      <name>infcrawl</name>
       <display_name>Crawlspace: Constant ACH</display_name>
       <description>Air exchange rate, in Air Changes per Hour at 50 Pascals (ACH50), for the crawlspace.</description>
       <type>Double</type>
@@ -61,7 +61,7 @@
       <default_value>0</default_value>
     </argument>
     <argument>
-      <name>userdefinedinfunfinattic</name>
+      <name>infunfinattic</name>
       <display_name>Unfinished Attic: SLA</display_name>
       <description>Ratio of the effective leakage area (infiltration and/or ventilation) in the unfinished attic to the total floor area of the attic.</description>
       <type>Double</type>
@@ -70,7 +70,7 @@
       <default_value>0.00333</default_value>
     </argument>
     <argument>
-      <name>userdefinedinfsheltercoef</name>
+      <name>infsheltercoef</name>
       <display_name>Air Leakage: Shelter Coefficient</display_name>
       <description>The local shelter coefficient (AIM-2 infiltration model) accounts for nearby buildings, trees and obstructions.</description>
       <type>String</type>
@@ -79,7 +79,7 @@
       <default_value>auto</default_value>
     </argument>
     <argument>
-      <name>userdefinedhomeage</name>
+      <name>homeage</name>
       <display_name>Age of Home</display_name>
       <description>Age of home [Enter 0 for New Construction].</description>
       <type>Double</type>
@@ -89,7 +89,7 @@
       <default_value>0</default_value>
     </argument>
     <argument>
-      <name>selectedterraintype</name>
+      <name>terraintype</name>
       <display_name>Site Terrain</display_name>
       <description>The terrain of the site.</description>
       <type>Choice</type>
@@ -120,7 +120,7 @@
       </choices>
     </argument>
     <argument>
-      <name>selectedventtype</name>
+      <name>venttype</name>
       <display_name>Mechanical Ventilation: Ventilation Type</display_name>
       <type>Choice</type>
       <required>false</required>
@@ -146,7 +146,7 @@
       </choices>
     </argument>
     <argument>
-      <name>selectedinfilcredit</name>
+      <name>infilcredit</name>
       <display_name>Mechanical Ventilation: Allow Infiltration Credit</display_name>
       <description>Defines whether the infiltration credit allowed per the ASHRAE 62.2 Standard will be included in the calculation of the mechanical ventilation rate. If True, the infiltration credit will apply 1) to new/existing single-family detached homes for 2013 ASHRAE 62.2, or 2) to existing single-family detached or multi-family homes for 2010 ASHRAE 62.2.</description>
       <type>Boolean</type>
@@ -165,7 +165,7 @@
       </choices>
     </argument>
     <argument>
-      <name>userdefinedtotaleff</name>
+      <name>totaleff</name>
       <display_name>Mechanical Ventilation: Total Recovery Efficiency</display_name>
       <description>The net total energy (sensible plus latent, also called enthalpy) recovered by the supply airstream adjusted by electric consumption, case heat loss or heat gain, air leakage and airflow mass imbalance between the two airstreams, as a percent of the potential total energy that could be recovered plus the exhaust fan energy.</description>
       <type>Double</type>
@@ -174,7 +174,7 @@
       <default_value>0</default_value>
     </argument>
     <argument>
-      <name>userdefinedsenseff</name>
+      <name>senseff</name>
       <display_name>Mechanical Ventilation: Sensible Recovery Efficiency</display_name>
       <description>The net sensible energy recovered by the supply airstream as adjusted by electric consumption, case heat loss or heat gain, air leakage, airflow mass imbalance between the two airstreams and the energy used for defrost (when running the Very Low Temperature Test), as a percent of the potential sensible energy that could be recovered plus the exhaust fan energy.</description>
       <type>Double</type>
@@ -183,7 +183,7 @@
       <default_value>0</default_value>
     </argument>
     <argument>
-      <name>userdefinedfanpower</name>
+      <name>fanpower</name>
       <display_name>Mechanical Ventilation: Fan Power</display_name>
       <description>Fan power (in W) per delivered airflow rate (in cfm) of fan(s) providing whole house ventilation. If the house uses a balanced ventilation system there is assumed to be two fans operating at this efficiency.</description>
       <type>Double</type>
@@ -193,7 +193,7 @@
       <default_value>0.3</default_value>
     </argument>
     <argument>
-      <name>userdefinedfracofashrae</name>
+      <name>fracofashrae</name>
       <display_name>Mechanical Ventilation: Fraction of ASHRAE 62.2</display_name>
       <description>Fraction of the ventilation rate (including any infiltration credit) specified by ASHRAE 62.2 that is desired in the building.</description>
       <type>Double</type>
@@ -203,7 +203,7 @@
       <default_value>1</default_value>
     </argument>
     <argument>
-      <name>selectedashraestandard</name>
+      <name>ashraestandard</name>
       <display_name>Mechanical Ventilation: ASHRAE 62.2 Standard</display_name>
       <description>Specifies which version (year) of the ASHRAE 62.2 Standard should be used.</description>
       <type>Choice</type>
@@ -222,7 +222,7 @@
       </choices>
     </argument>
     <argument>
-      <name>userdefineddryerexhaust</name>
+      <name>dryerexhaust</name>
       <display_name>Clothes Dryer: Exhaust</display_name>
       <description>Rated flow capacity of the clothes dryer exhaust. This fan is assumed to run 60 min/day between 11am and 12pm.</description>
       <type>Double</type>
@@ -232,7 +232,7 @@
       <default_value>100</default_value>
     </argument>
     <argument>
-      <name>userdefinedhtgoffset</name>
+      <name>htgoffset</name>
       <display_name>Natural Ventilation: Heating Season Setpoint Offset</display_name>
       <description>The temperature offset below the hourly cooling setpoint, to which the living space is allowed to cool during months that are only in the heating season.</description>
       <type>Double</type>
@@ -242,7 +242,7 @@
       <default_value>1</default_value>
     </argument>
     <argument>
-      <name>userdefinedclgoffset</name>
+      <name>clgoffset</name>
       <display_name>Natural Ventilation: Cooling Season Setpoint Offset</display_name>
       <description>The temperature offset above the hourly heating setpoint, to which the living space is allowed to cool during months that are only in the cooling season.</description>
       <type>Double</type>
@@ -252,7 +252,7 @@
       <default_value>1</default_value>
     </argument>
     <argument>
-      <name>userdefinedovlpoffset</name>
+      <name>ovlpoffset</name>
       <display_name>Natural Ventilation: Overlap Season Setpoint Offset</display_name>
       <description>The temperature offset above the maximum heating setpoint, to which the living space is allowed to cool during months that are in both the heating season and cooling season.</description>
       <type>Double</type>
@@ -262,7 +262,7 @@
       <default_value>1</default_value>
     </argument>
     <argument>
-      <name>selectedheatingssn</name>
+      <name>heatingssn</name>
       <display_name>Natural Ventilation: Heating Season</display_name>
       <description>True if windows are allowed to be opened during months that are only in the heating season.</description>
       <type>Boolean</type>
@@ -281,7 +281,7 @@
       </choices>
     </argument>
     <argument>
-      <name>selectedcoolingssn</name>
+      <name>coolingssn</name>
       <display_name>Natural Ventilation: Cooling Season</display_name>
       <description>True if windows are allowed to be opened during months that are only in the cooling season.</description>
       <type>Boolean</type>
@@ -300,7 +300,7 @@
       </choices>
     </argument>
     <argument>
-      <name>selectedoverlapssn</name>
+      <name>overlapssn</name>
       <display_name>Natural Ventilation: Overlap Season</display_name>
       <description>True if windows are allowed to be opened during months that are in both the heating season and cooling season.</description>
       <type>Boolean</type>
@@ -319,7 +319,7 @@
       </choices>
     </argument>
     <argument>
-      <name>userdefinedventweekdays</name>
+      <name>ventweekdays</name>
       <display_name>Natural Ventilation: Number Weekdays</display_name>
       <description>Number of weekdays in the week that natural ventilation can occur.</description>
       <type>Integer</type>
@@ -328,7 +328,7 @@
       <default_value>3</default_value>
     </argument>
     <argument>
-      <name>userdefinedventweekenddays</name>
+      <name>ventweekenddays</name>
       <display_name>Natural Ventilation: Number Weekend Days</display_name>
       <description>Number of weekend days in the week that natural ventilation can occur.</description>
       <type>Integer</type>
@@ -337,7 +337,7 @@
       <default_value>0</default_value>
     </argument>
     <argument>
-      <name>userdefinedfracwinopen</name>
+      <name>fracwinopen</name>
       <display_name>Natural Ventilation: Fraction of Openable Windows Open</display_name>
       <description>Specifies the fraction of the total openable window area in the building that is opened for ventilation.</description>
       <type>Double</type>
@@ -347,7 +347,7 @@
       <default_value>0.33</default_value>
     </argument>
     <argument>
-      <name>userdefinedfracwinareaopen</name>
+      <name>fracwinareaopen</name>
       <display_name>Natural Ventilation: Fraction Window Area Openable</display_name>
       <description>Specifies the fraction of total window area in the home that can be opened (e.g. typical sliding windows can be opened to half of their area).</description>
       <type>Double</type>
@@ -357,7 +357,7 @@
       <default_value>0.2</default_value>
     </argument>
     <argument>
-      <name>userdefinedhumratio</name>
+      <name>humratio</name>
       <display_name>Natural Ventilation: Max OA Humidity Ratio</display_name>
       <description>Outdoor air humidity ratio above which windows will not open for natural ventilation.</description>
       <type>Double</type>
@@ -367,7 +367,7 @@
       <default_value>0.0115</default_value>
     </argument>
     <argument>
-      <name>userdefinedrelhumratio</name>
+      <name>relhumratio</name>
       <display_name>Natural Ventilation: Max OA Relative Humidity</display_name>
       <description>Outdoor air relative humidity (0-1) above which windows will not open for natural ventilation.</description>
       <type>Double</type>
@@ -552,54 +552,6 @@
       <checksum>E23378AA</checksum>
     </file>
     <file>
-      <filename>singlefamily_slab_location_neighbors_beds_furnace_central_air_conditioner.osm</filename>
-      <filetype>osm</filetype>
-      <usage_type>test</usage_type>
-      <checksum>B2DEB4B1</checksum>
-    </file>
-    <file>
-      <filename>singlefamily_slab_location_beds_electric_baseboard.osm</filename>
-      <filetype>osm</filetype>
-      <usage_type>test</usage_type>
-      <checksum>8B7D787A</checksum>
-    </file>
-    <file>
-      <filename>singlefamily_slab_location_beds_furnace_clothes_dryer.osm</filename>
-      <filetype>osm</filetype>
-      <usage_type>test</usage_type>
-      <checksum>A3CDCEF8</checksum>
-    </file>
-    <file>
-      <filename>singlefamily_garage_location_beds_furnace_central_air_conditioner.osm</filename>
-      <filetype>osm</filetype>
-      <usage_type>test</usage_type>
-      <checksum>70BF22DE</checksum>
-    </file>
-    <file>
-      <filename>singlefamily_ufbasement_location_beds_furnace_central_air_conditioner.osm</filename>
-      <filetype>osm</filetype>
-      <usage_type>test</usage_type>
-      <checksum>66D9CFCB</checksum>
-    </file>
-    <file>
-      <filename>singlefamily_crawl_location_beds_furnace_central_air_conditioner.osm</filename>
-      <filetype>osm</filetype>
-      <usage_type>test</usage_type>
-      <checksum>BCC6011F</checksum>
-    </file>
-    <file>
-      <filename>singlefamily_fbasement_location_beds_furnace_central_air_conditioner.osm</filename>
-      <filetype>osm</filetype>
-      <usage_type>test</usage_type>
-      <checksum>C3D08AA7</checksum>
-    </file>
-    <file>
-      <filename>singlefamily_slab_location_beds_furnace_central_air_conditioner.osm</filename>
-      <filetype>osm</filetype>
-      <usage_type>test</usage_type>
-      <checksum>59B6EBD7</checksum>
-    </file>
-    <file>
       <filename>ASHRAE622WSF.csv</filename>
       <filetype>csv</filetype>
       <usage_type>resource</usage_type>
@@ -618,57 +570,129 @@
       <checksum>078F0169</checksum>
     </file>
     <file>
-      <filename>util.rb</filename>
-      <filetype>rb</filetype>
-      <usage_type>resource</usage_type>
-      <checksum>F4A45188</checksum>
-    </file>
-    <file>
-      <filename>singlefamily_slab_location_beds_mshp.osm</filename>
-      <filetype>osm</filetype>
-      <usage_type>test</usage_type>
-      <checksum>4AE5893D</checksum>
-    </file>
-    <file>
       <filename>weather.rb</filename>
       <filetype>rb</filetype>
       <usage_type>resource</usage_type>
       <checksum>97B219DD</checksum>
     </file>
     <file>
-      <version>
-        <software_program>OpenStudio</software_program>
-        <identifier>1.4.0</identifier>
-        <min_compatible>1.12.5</min_compatible>
-      </version>
-      <filename>measure.rb</filename>
-      <filetype>rb</filetype>
-      <usage_type>script</usage_type>
-      <checksum>CFAD989F</checksum>
-    </file>
-    <file>
-      <filename>geometry.rb</filename>
+      <filename>util.rb</filename>
       <filetype>rb</filetype>
       <usage_type>resource</usage_type>
-      <checksum>4F1113E0</checksum>
+      <checksum>B9256575</checksum>
     </file>
     <file>
-      <filename>constants.rb</filename>
+      <filename>schedules.rb</filename>
       <filetype>rb</filetype>
       <usage_type>resource</usage_type>
-      <checksum>B4C82069</checksum>
+      <checksum>C3399417</checksum>
+    </file>
+    <file>
+      <filename>residential_airflow_test.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>test</usage_type>
+      <checksum>0CA0BA07</checksum>
     </file>
     <file>
       <filename>hvac.rb</filename>
       <filetype>rb</filetype>
       <usage_type>resource</usage_type>
-      <checksum>3B7DA3B8</checksum>
+      <checksum>5E54715B</checksum>
     </file>
     <file>
-      <filename>airflow_test.rb</filename>
+      <version>
+        <software_program>OpenStudio</software_program>
+        <identifier>1.4.0</identifier>
+        <min_compatible>1.13.1</min_compatible>
+      </version>
+      <filename>measure.rb</filename>
       <filetype>rb</filetype>
+      <usage_type>script</usage_type>
+      <checksum>DDFBCC37</checksum>
+    </file>
+    <file>
+      <filename>multifamily_8_units.osm</filename>
+      <filetype>osm</filetype>
       <usage_type>test</usage_type>
-      <checksum>BA9E5DD9</checksum>
+      <checksum>D72709C7</checksum>
+    </file>
+    <file>
+      <filename>singlefamily_attached_fbsmt_4_units.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>899A3387</checksum>
+    </file>
+    <file>
+      <filename>singlefamily_detached_crawl_furnace_central_air_conditioner.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>6FDE7D30</checksum>
+    </file>
+    <file>
+      <filename>singlefamily_detached_fbsmt_furnace_central_air_conditioner.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>1158D235</checksum>
+    </file>
+    <file>
+      <filename>singlefamily_detached_slab_clothes_dryer_furnace_central_air_conditioner.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>FC7DE905</checksum>
+    </file>
+    <file>
+      <filename>singlefamily_detached_slab_electric_baseboard.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>8447C772</checksum>
+    </file>
+    <file>
+      <filename>singlefamily_detached_slab_furnace_central_air_conditioner.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>87CC66B3</checksum>
+    </file>
+    <file>
+      <filename>singlefamily_detached_slab_garage_furnace_central_air_conditioner.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>F9041D4D</checksum>
+    </file>
+    <file>
+      <filename>singlefamily_detached_slab_mshp.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>611D42DC</checksum>
+    </file>
+    <file>
+      <filename>singlefamily_detached_slab_neighbors_furnace_central_air_conditioner.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>D9D84EE4</checksum>
+    </file>
+    <file>
+      <filename>singlefamily_detached_slab_no_attic_furnace_central_air_conditioner.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>3F6EE539</checksum>
+    </file>
+    <file>
+      <filename>singlefamily_detached_ufbsmt_furnace_central_air_conditioner.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>62D25C40</checksum>
+    </file>
+    <file>
+      <filename>constants.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>E4899227</checksum>
+    </file>
+    <file>
+      <filename>geometry.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>4D0A9290</checksum>
     </file>
   </files>
 </measure>

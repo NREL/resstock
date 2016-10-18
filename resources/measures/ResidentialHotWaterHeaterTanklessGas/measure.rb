@@ -135,9 +135,9 @@ class ResidentialHotWaterHeaterTanklessGas < OpenStudio::Ruleset::ModelUserScrip
             return false
         end
         
-        # Get number of units
-        num_units = Geometry.get_num_units(model, runner)
-        if num_units.nil?
+        # Get building units
+        units = Geometry.get_building_units(model, runner)
+        if units.nil?
             return false
         end
 
@@ -147,37 +147,26 @@ class ResidentialHotWaterHeaterTanklessGas < OpenStudio::Ruleset::ModelUserScrip
             return false
         end
         
-        # Hot water schedules vary by number of bedrooms. For a given number of bedroom,
-        # there are 10 different schedules available for different units in a multifamily 
-        # building. This hash tracks which schedule to use.
-        sch_unit_index = {}
-        num_bed_options = (1..5)
-        num_bed_options.each do |num_bed_option|
-            sch_unit_index[num_bed_option.to_f] = -1
-        end
-
-        (1..num_units).to_a.each do |unit_num|
-        
-            # Get unit beds/baths/spaces
-            nbeds, nbaths, unit_spaces = Geometry.get_unit_beds_baths_spaces(model, unit_num, runner)
-            if unit_spaces.nil?
-                runner.registerError("Could not determine the spaces associated with unit #{unit_num}.")
+        units.each do |unit|
+            # Get unit beds/baths
+            nbeds, nbaths = Geometry.get_unit_beds_baths(model, unit, runner)
+            if nbeds.nil? or nbaths.nil?
                 return false
             end
-            if nbeds.nil? or nbaths.nil?
-                runner.registerError("Could not determine number of bedrooms or bathrooms. Run the 'Add Residential Bedrooms And Bathrooms' measure first.")
+            sch_unit_index = Geometry.get_unit_dhw_sched_index(model, unit, runner)
+            if sch_unit_index.nil?
                 return false
             end
     
             #If location is Auto, get the location
             if water_heater_loc == Constants.Auto
-                water_heater_tz = Waterheater.get_water_heater_location_auto(model, unit_spaces, runner)
+                water_heater_tz = Waterheater.get_water_heater_location_auto(model, unit.spaces, runner)
                 if water_heater_tz.nil?
                     runner.registerError("The water heater cannot be automatically assigned to a thermal zone. Please manually select which zone the water heater should be located in.")
                     return false
                 end
             else
-                unit_zones = Geometry.get_thermal_zones_from_spaces(unit_spaces)
+                unit_zones = Geometry.get_thermal_zones_from_spaces(unit.spaces)
                 water_heater_tz = Geometry.get_thermal_zone_from_string(unit_zones, water_heater_loc.to_s)
                 next if water_heater_tz.nil?
             end
@@ -186,7 +175,7 @@ class ResidentialHotWaterHeaterTanklessGas < OpenStudio::Ruleset::ModelUserScrip
             loop = nil
         
             model.getPlantLoops.each do |pl|
-                next if pl.name.to_s != Constants.PlantLoopDomesticWater(unit_num)
+                next if pl.name.to_s != Constants.PlantLoopDomesticWater(unit.name.to_s)
                 loop = pl
                 #Remove any existing water heater
                 wh_removed = false
@@ -203,7 +192,7 @@ class ResidentialHotWaterHeaterTanklessGas < OpenStudio::Ruleset::ModelUserScrip
             if loop.nil?
                 runner.registerInfo("A new plant loop for DHW will be added to the model")
                 runner.registerInitialCondition("No water heater model currently exists")
-                loop = Waterheater.create_new_loop(model, Constants.PlantLoopDomesticWater(unit_num), t_set)
+                loop = Waterheater.create_new_loop(model, Constants.PlantLoopDomesticWater(unit.name.to_s), t_set)
             end
 
             if loop.components(OpenStudio::Model::PumpConstantSpeed::iddObjectType).empty?
@@ -216,8 +205,7 @@ class ResidentialHotWaterHeaterTanklessGas < OpenStudio::Ruleset::ModelUserScrip
                 new_manager.addToNode(loop.supplyOutletNode)
             end
         
-            sch_unit_index[nbeds] = (sch_unit_index[nbeds] + 1) % 10
-            new_heater = Waterheater.create_new_heater(sch_unit_index[nbeds], Constants.ObjectNameWaterHeater(unit_num), cap, Constants.FuelTypeGas, 1, nbeds, nbaths, ef, 0, t_set, water_heater_tz, oncycle_p, offcycle_p, tanktype, cd, File.dirname(__FILE__), model, runner)
+            new_heater = Waterheater.create_new_heater(sch_unit_index, Constants.ObjectNameWaterHeater(unit.name.to_s), cap, Constants.FuelTypeGas, 1, nbeds, nbaths, ef, 0, t_set, water_heater_tz, oncycle_p, offcycle_p, tanktype, cd, File.dirname(__FILE__), model, runner)
         
             loop.addSupplyBranchForComponent(new_heater)
             

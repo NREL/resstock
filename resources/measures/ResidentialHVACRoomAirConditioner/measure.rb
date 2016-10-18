@@ -163,16 +163,16 @@ class ProcessRoomAirConditioner < OpenStudio::Ruleset::ModelUserScript
     roomac_plf_fplr.setMinimumCurveOutput(0)
     roomac_plf_fplr.setMaximumCurveOutput(1)    
     
-    num_units = Geometry.get_num_units(model, runner)
-    if num_units.nil?
+    # Get building units
+    units = Geometry.get_building_units(model, runner)
+    if units.nil?
         return false
-    end    
+    end
     
-    (1..num_units).to_a.each do |unit_num|
-      _nbeds, _nbaths, unit_spaces = Geometry.get_unit_beds_baths_spaces(model, unit_num, runner)
-      thermal_zones = Geometry.get_thermal_zones_from_spaces(unit_spaces)
+    units.each do |unit|
+      thermal_zones = Geometry.get_thermal_zones_from_spaces(unit.spaces)
       if thermal_zones.length > 1
-        runner.registerInfo("Unit #{unit_num} spans more than one thermal zone.")
+        runner.registerInfo("#{unit.name.to_s} spans more than one thermal zone.")
       end
       control_slave_zones_hash = HVAC.get_control_and_slave_zones(thermal_zones)
       control_slave_zones_hash.each do |control_zone, slave_zones|
@@ -180,6 +180,10 @@ class ProcessRoomAirConditioner < OpenStudio::Ruleset::ModelUserScript
         next unless Geometry.zone_is_above_grade(control_zone)
 
         # Remove existing equipment
+        existing_has_mshp = false
+        if HVAC.has_mini_split_heat_pump(model, runner, control_zone)
+          existing_has_mshp = true
+        end        
         HVAC.remove_existing_hvac_equipment(model, runner, "Room Air Conditioner", control_zone)    
       
         # _processSystemRoomAC
@@ -219,7 +223,16 @@ class ProcessRoomAirConditioner < OpenStudio::Ruleset::ModelUserScript
         ptac.setName("Window AC")
         ptac.setSupplyAirFanOperatingModeSchedule(supply_fan_operation)
         ptac.addToThermalZone(control_zone)
-        runner.registerInfo("Added packaged terminal air conditioner '#{ptac.name}' to thermal zone '#{control_zone.name}' of unit #{unit_num}")
+        runner.registerInfo("Added packaged terminal air conditioner '#{ptac.name}' to thermal zone '#{control_zone.name}' of #{unit.name.to_s}")
+      
+        slave_zones.each do |slave_zone|
+
+            # Remove existing equipment
+            if existing_has_mshp
+              HVAC.has_electric_baseboard(model, runner, slave_zone, true)
+            end
+
+        end
       
       end
       

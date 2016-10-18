@@ -102,9 +102,9 @@ class ResidentialHotWaterDistribution < OpenStudio::Ruleset::ModelUserScript
             runner.registerError("Insulation Nominal R-Value must be greater than or equal to 0.")
         end
         
-        # Get number of units
-        num_units = Geometry.get_num_units(model, runner)
-        if num_units.nil?
+        # Get building units
+        units = Geometry.get_building_units(model, runner)
+        if units.nil?
             return false
         end
 
@@ -116,32 +116,21 @@ class ResidentialHotWaterDistribution < OpenStudio::Ruleset::ModelUserScript
         end
         mainsMonthlyTemps = WeatherProcess.get_mains_temperature(site.siteWaterMainsTemperature.get, site.latitude)[1]
         
-        # Hot water schedules vary by number of bedrooms. For a given number of bedroom,
-        # there are 10 different schedules available for different units in a multifamily 
-        # building. This hash tracks which schedule to use.
-        sch_unit_index = {}
-        num_bed_options = (1..5)
-        num_bed_options.each do |num_bed_option|
-            sch_unit_index[num_bed_option.to_f] = -1
-        end
-
         tot_pump_e_ann = 0
         msgs = []
-        (1..num_units).to_a.each do |unit_num|
-        
-            # Get unit beds/baths/spaces
-            nbeds, _nbaths, unit_spaces = Geometry.get_unit_beds_baths_spaces(model, unit_num, runner)
-            if unit_spaces.nil?
-                runner.registerError("Could not determine the spaces associated with unit #{unit_num}.")
+        units.each do |unit|
+            # Get unit beds/baths
+            nbeds, nbaths = Geometry.get_unit_beds_baths(model, unit, runner)
+            if nbeds.nil? or nbaths.nil?
                 return false
             end
-            if nbeds.nil? or _nbaths.nil?
-                runner.registerError("Could not determine number of bedrooms or bathrooms. Run the 'Add Residential Bedrooms And Bathrooms' measure first.")
+            sch_unit_index = Geometry.get_unit_dhw_sched_index(model, unit, runner)
+            if sch_unit_index.nil?
                 return false
             end
             
             # Get plant loop
-            plant_loop = Waterheater.get_plant_loop_from_string(model.getPlantLoops, Constants.Auto, unit_spaces, runner)
+            plant_loop = Waterheater.get_plant_loop_from_string(model.getPlantLoops, Constants.Auto, unit.spaces, runner)
             if plant_loop.nil?
                 return false
             end
@@ -152,14 +141,14 @@ class ResidentialHotWaterDistribution < OpenStudio::Ruleset::ModelUserScript
                 return false
             end
 
-            obj_name_sh = Constants.ObjectNameShower(unit_num)
-            obj_name_s = Constants.ObjectNameSink(unit_num)
-            obj_name_b = Constants.ObjectNameBath(unit_num)
-            obj_name_sh_dist = Constants.ObjectNameShowerDist(unit_num)
-            obj_name_s_dist = Constants.ObjectNameSinkDist(unit_num)
-            obj_name_b_dist = Constants.ObjectNameBathDist(unit_num)
-            obj_name_recirc_pump = Constants.ObjectNameHotWaterRecircPump(unit_num)
-            obj_name_dist = Constants.ObjectNameHotWaterDistribution(unit_num)
+            obj_name_sh = Constants.ObjectNameShower(unit.name.to_s)
+            obj_name_s = Constants.ObjectNameSink(unit.name.to_s)
+            obj_name_b = Constants.ObjectNameBath(unit.name.to_s)
+            obj_name_sh_dist = Constants.ObjectNameShowerDist(unit.name.to_s)
+            obj_name_s_dist = Constants.ObjectNameSinkDist(unit.name.to_s)
+            obj_name_b_dist = Constants.ObjectNameBathDist(unit.name.to_s)
+            obj_name_recirc_pump = Constants.ObjectNameHotWaterRecircPump(unit.name.to_s)
+            obj_name_dist = Constants.ObjectNameHotWaterDistribution(unit.name.to_s)
             
             # Remove any existing distribution objects (and read existing hot water gal/day values)
             dist_removed = false
@@ -167,7 +156,7 @@ class ResidentialHotWaterDistribution < OpenStudio::Ruleset::ModelUserScript
             sh_prev_dist = 0
             s_prev_dist = 0
             b_prev_dist = 0
-            unit_spaces.each do |space|
+            unit.spaces.each do |space|
                 space.waterUseEquipment.each do |wue|
                     next if not wue.name.to_s.start_with?(obj_name_sh_dist) and not wue.name.to_s.start_with?(obj_name_s_dist) and not wue.name.to_s.start_with?(obj_name_b_dist)
                     vals = wue.name.to_s.split("=")
@@ -205,7 +194,7 @@ class ResidentialHotWaterDistribution < OpenStudio::Ruleset::ModelUserScript
             sink_wu_def = nil
             bath_wu_def = nil
             dist_space = nil
-            unit_spaces.each do |space|
+            unit.spaces.each do |space|
                 space.waterUseEquipment.each do |space_equipment|
                     if space_equipment.name.to_s == obj_name_sh
                         shower_max = space_equipment.waterUseEquipmentDefinition.peakFlowRate
@@ -227,10 +216,9 @@ class ResidentialHotWaterDistribution < OpenStudio::Ruleset::ModelUserScript
             end
         
             # Create temporary HotWaterSchedule objects solely to calculate daily gpm
-            sch_unit_index[nbeds] = (sch_unit_index[nbeds] + 1) % 10
-            sch_sh = HotWaterSchedule.new(model, runner, "", "", nbeds, sch_unit_index[nbeds], "Shower", Constants.MixedUseT, File.dirname(__FILE__), false)
-            sch_s = HotWaterSchedule.new(model, runner, "",  "", nbeds, sch_unit_index[nbeds], "Sink", Constants.MixedUseT, File.dirname(__FILE__), false)
-            sch_b = HotWaterSchedule.new(model, runner, "",  "", nbeds, sch_unit_index[nbeds], "Bath", Constants.MixedUseT, File.dirname(__FILE__), false)
+            sch_sh = HotWaterSchedule.new(model, runner, "", "", nbeds, sch_unit_index, "Shower", Constants.MixedUseT, File.dirname(__FILE__), false)
+            sch_s = HotWaterSchedule.new(model, runner, "",  "", nbeds, sch_unit_index, "Sink", Constants.MixedUseT, File.dirname(__FILE__), false)
+            sch_b = HotWaterSchedule.new(model, runner, "",  "", nbeds, sch_unit_index, "Bath", Constants.MixedUseT, File.dirname(__FILE__), false)
             if not sch_sh.validated? or not sch_s.validated? or not sch_b.validated?
                 return false
             end
@@ -574,7 +562,7 @@ class ResidentialHotWaterDistribution < OpenStudio::Ruleset::ModelUserScript
             msgs.each do |msg|
                 runner.registerInfo(msg)
             end
-            runner.registerFinalCondition("The building has been assigned DHW distribution systems across #{num_units} units.")
+            runner.registerFinalCondition("The building has been assigned DHW distribution systems across #{units.size} units.")
         elsif msgs.size == 1
             runner.registerFinalCondition(msgs[0])
         else

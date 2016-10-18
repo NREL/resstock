@@ -84,30 +84,24 @@ class ResidentialMiscellaneousElectricLoads < OpenStudio::Ruleset::ModelUserScri
 		return false
     end
     
-    # Get number of units
-    num_units = Geometry.get_num_units(model, runner)
-    if num_units.nil?
+    # Get building units
+    units = Geometry.get_building_units(model, runner)
+    if units.nil?
         return false
     end
     
     tot_mel_ann = 0
     msgs = []
     sch = nil
-    (1..num_units).to_a.each do |unit_num|
-    
-        # Get unit beds/baths/spaces
-        nbeds, nbaths, unit_spaces = Geometry.get_unit_beds_baths_spaces(model, unit_num, runner)
-        if unit_spaces.nil?
-            runner.registerError("Could not determine the spaces associated with unit #{unit_num}.")
-            return false
-        end
+    units.each do |unit|
+        # Get unit beds/baths
+        nbeds, nbaths = Geometry.get_unit_beds_baths(model, unit, runner)
         if nbeds.nil? or nbaths.nil?
-            runner.registerError("Could not determine number of bedrooms or bathrooms. Run the 'Add Residential Bedrooms And Bathrooms' measure first.")
             return false
         end
         
         # Get unit ffa
-        ffa = Geometry.get_finished_floor_area_from_spaces(unit_spaces, false, runner)
+        ffa = Geometry.get_finished_floor_area_from_spaces(unit.spaces, false, runner)
         if ffa.nil?
             return false
         end
@@ -116,10 +110,10 @@ class ResidentialMiscellaneousElectricLoads < OpenStudio::Ruleset::ModelUserScri
         mel_ann = (1108.1 + 180.2 * nbeds + 0.2785 * ffa) * mult
         mel_daily = mel_ann / 365.0
         
-        unit_spaces.each do |space|
+        unit.spaces.each do |space|
             next if Geometry.space_is_unfinished(space)
             
-            space_obj_name = "#{Constants.ObjectNameMiscPlugLoads(unit_num)}|#{space.name.to_s}"
+            space_obj_name = "#{Constants.ObjectNameMiscPlugLoads(unit.name.to_s)}|#{space.name.to_s}"
             
             # Remove any existing mels
             mels_removed = false
@@ -170,7 +164,7 @@ class ResidentialMiscellaneousElectricLoads < OpenStudio::Ruleset::ModelUserScri
         msgs.each do |msg|
             runner.registerInfo(msg)
         end
-        runner.registerFinalCondition("The building has been assigned plug loads totaling #{tot_mel_ann.round} kWhs annual energy consumption across #{num_units} units.")
+        runner.registerFinalCondition("The building has been assigned plug loads totaling #{tot_mel_ann.round} kWhs annual energy consumption across #{units.size} units.")
     elsif msgs.size == 1
         runner.registerFinalCondition(msgs[0])
     else

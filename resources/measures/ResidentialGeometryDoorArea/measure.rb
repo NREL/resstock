@@ -67,20 +67,20 @@ class CreateResidentialDoorArea < OpenStudio::Ruleset::ModelUserScript
     door_width = door_area / door_height
     door_offset = 0.5 # ft
 
-    num_units = Geometry.get_num_units(model, runner)
-    if num_units.nil?
+    # Get building units
+    units = Geometry.get_building_units(model, runner)
+    if units.nil?
         return false
-    end  
+    end
   
     tot_door_area = 0
-    (1..num_units).to_a.each do |unit_num|
-      _nbeds, _nbaths, unit_spaces = Geometry.get_unit_beds_baths_spaces(model, unit_num, runner)  
+    units.each do |unit|
   
       # Get all exterior walls prioritized by front, then back, then left, then right
       facades = [Constants.FacadeFront, Constants.FacadeBack]
       avail_walls = []
       facades.each do |facade|
-          Geometry.get_finished_spaces(unit_spaces).each do |space|
+          Geometry.get_finished_spaces(unit.spaces).each do |space|
               next if Geometry.space_is_below_grade(space)
               space.surfaces.each do |surface|
                   next if Geometry.get_facade_for_surface(surface) != facade
@@ -108,7 +108,7 @@ class CreateResidentialDoorArea < OpenStudio::Ruleset::ModelUserScript
 
       # Get all corridor walls
       corridor_walls = []
-      Geometry.get_finished_spaces(unit_spaces).each do |space|
+      Geometry.get_finished_spaces(unit.spaces).each do |space|
           space.surfaces.each do |surface|
               next unless surface.surfaceType.downcase == "wall"
               next unless surface.outsideBoundaryCondition.downcase == "adiabatic"
@@ -144,7 +144,7 @@ class CreateResidentialDoorArea < OpenStudio::Ruleset::ModelUserScript
       
       unit_has_door = true
       if min_story_avail_walls.size == 0
-          runner.registerWarning("For unit #{unit_num} could not find appropriate surface for the door. No door was added.")
+          runner.registerWarning("For #{unit.name.to_s}, could not find appropriate surface for the door. No door was added.")
           unit_has_door = false
       end
 
@@ -210,7 +210,7 @@ class CreateResidentialDoorArea < OpenStudio::Ruleset::ModelUserScript
         end
 
         door_sub_surface = OpenStudio::Model::SubSurface.new(door_polygon, model)
-        door_sub_surface.setName("Unit #{unit_num} - #{min_story_avail_wall.name} - Door")
+        door_sub_surface.setName("#{unit.name.to_s} - #{min_story_avail_wall.name} - Door")
         door_sub_surface.setSubSurfaceType("Door")
         door_sub_surface.setSurface(min_story_avail_wall)
         
@@ -219,9 +219,9 @@ class CreateResidentialDoorArea < OpenStudio::Ruleset::ModelUserScript
       end
 
       if door_sub_surface.nil? and unit_has_door
-          runner.registerWarning("For unit #{unit_num} could not find appropriate surface for the door. No door was added.")
+          runner.registerWarning("For #{unit.name.to_s} could not find appropriate surface for the door. No door was added.")
       elsif not door_sub_surface.nil?
-          runner.registerInfo("For unit #{unit_num} added #{door_area.round(1)} ft^2 door.")
+          runner.registerInfo("For #{unit.name.to_s} added #{door_area.round(1)} ft^2 door.")
       end
     
     end 

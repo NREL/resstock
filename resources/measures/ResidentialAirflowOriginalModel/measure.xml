@@ -1,0 +1,668 @@
+<measure>
+  <schema_version>3.0</schema_version>
+  <name>process_airflow_original_model</name>
+  <uid>5a7ae205-bdc2-4daf-b29e-b6f0a59366a6</uid>
+  <version_id>13c57488-80bf-4801-bb6c-f22593480a98</version_id>
+  <version_modified>20161018T190134Z</version_modified>
+  <xml_checksum>2AC0F979</xml_checksum>
+  <class_name>ProcessAirflowOriginalModel</class_name>
+  <display_name>Set Residential Airflow - Original Model</display_name>
+  <description>This measure processes infiltration for the living space, garage, finished basement, unfinished basement, crawlspace, and unfinished attic. It also processes mechanical ventilation and natural ventilation for the living space.</description>
+  <modeler_description>Using EMS code, this measure processes the building's airflow (infiltration, mechanical ventilation, and natural ventilation). Note: This measure requires the number of bedrooms/bathrooms to have already been assigned.</modeler_description>
+  <arguments>
+    <argument>
+      <name>userdefinedinflivingspace</name>
+      <display_name>Air Leakage: Above-Grade Living Space ACH50</display_name>
+      <description>Air exchange rate, in Air Changes per Hour at 50 Pascals (ACH50), for above-grade living space (including finished attic).</description>
+      <type>Double</type>
+      <units>1/hr</units>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+      <default_value>7</default_value>
+    </argument>
+    <argument>
+      <name>userdefinedinfgarage</name>
+      <display_name>Garage: ACH50</display_name>
+      <description>Air exchange rate, in Air Changes per Hour at 50 Pascals (ACH50), for the garage.</description>
+      <type>Double</type>
+      <units>1/hr</units>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+      <default_value>7</default_value>
+    </argument>
+    <argument>
+      <name>userdefinedinffbsmt</name>
+      <display_name>Finished Basement: Constant ACH</display_name>
+      <description>Constant air exchange rate, in Air Changes per Hour (ACH), for the finished basement.</description>
+      <type>Double</type>
+      <units>1/hr</units>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+      <default_value>0</default_value>
+    </argument>
+    <argument>
+      <name>userdefinedinfufbsmt</name>
+      <display_name>Unfinished Basement: Constant ACH</display_name>
+      <description>Constant air exchange rate, in Air Changes per Hour (ACH), for the unfinished basement. A value of 0.10 ACH or greater is recommended for modeling Heat Pump Water Heaters in unfinished basements.</description>
+      <type>Double</type>
+      <units>1/hr</units>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+      <default_value>0.1</default_value>
+    </argument>
+    <argument>
+      <name>userdefinedinfcrawl</name>
+      <display_name>Crawlspace: Constant ACH</display_name>
+      <description>Air exchange rate, in Air Changes per Hour at 50 Pascals (ACH50), for the crawlspace.</description>
+      <type>Double</type>
+      <units>1/hr</units>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+      <default_value>0</default_value>
+    </argument>
+    <argument>
+      <name>userdefinedinfunfinattic</name>
+      <display_name>Unfinished Attic: SLA</display_name>
+      <description>Ratio of the effective leakage area (infiltration and/or ventilation) in the unfinished attic to the total floor area of the attic.</description>
+      <type>Double</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+      <default_value>0.00333</default_value>
+    </argument>
+    <argument>
+      <name>userdefinedinfsheltercoef</name>
+      <display_name>Air Leakage: Shelter Coefficient</display_name>
+      <description>The local shelter coefficient (AIM-2 infiltration model) accounts for nearby buildings, trees and obstructions.</description>
+      <type>String</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+      <default_value>auto</default_value>
+    </argument>
+    <argument>
+      <name>userdefinedhomeage</name>
+      <display_name>Age of Home</display_name>
+      <description>Age of home [Enter 0 for New Construction].</description>
+      <type>Double</type>
+      <units>yrs</units>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>0</default_value>
+    </argument>
+    <argument>
+      <name>selectedterraintype</name>
+      <display_name>Site Terrain</display_name>
+      <description>The terrain of the site.</description>
+      <type>Choice</type>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>suburban</default_value>
+      <choices>
+        <choice>
+          <value>ocean</value>
+          <display_name>ocean</display_name>
+        </choice>
+        <choice>
+          <value>plains</value>
+          <display_name>plains</display_name>
+        </choice>
+        <choice>
+          <value>rural</value>
+          <display_name>rural</display_name>
+        </choice>
+        <choice>
+          <value>suburban</value>
+          <display_name>suburban</display_name>
+        </choice>
+        <choice>
+          <value>city</value>
+          <display_name>city</display_name>
+        </choice>
+      </choices>
+    </argument>
+    <argument>
+      <name>selectedventtype</name>
+      <display_name>Mechanical Ventilation: Ventilation Type</display_name>
+      <type>Choice</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+      <default_value>exhaust</default_value>
+      <choices>
+        <choice>
+          <value>none</value>
+          <display_name>none</display_name>
+        </choice>
+        <choice>
+          <value>exhaust</value>
+          <display_name>exhaust</display_name>
+        </choice>
+        <choice>
+          <value>supply</value>
+          <display_name>supply</display_name>
+        </choice>
+        <choice>
+          <value>balanced</value>
+          <display_name>balanced</display_name>
+        </choice>
+      </choices>
+    </argument>
+    <argument>
+      <name>selectedinfilcredit</name>
+      <display_name>Mechanical Ventilation: Allow Infiltration Credit</display_name>
+      <description>Defines whether the infiltration credit allowed per the ASHRAE 62.2 Standard will be included in the calculation of the mechanical ventilation rate. If True, the infiltration credit will apply 1) to new/existing single-family detached homes for 2013 ASHRAE 62.2, or 2) to existing single-family detached or multi-family homes for 2010 ASHRAE 62.2.</description>
+      <type>Boolean</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+      <default_value>true</default_value>
+      <choices>
+        <choice>
+          <value>true</value>
+          <display_name>true</display_name>
+        </choice>
+        <choice>
+          <value>false</value>
+          <display_name>false</display_name>
+        </choice>
+      </choices>
+    </argument>
+    <argument>
+      <name>userdefinedtotaleff</name>
+      <display_name>Mechanical Ventilation: Total Recovery Efficiency</display_name>
+      <description>The net total energy (sensible plus latent, also called enthalpy) recovered by the supply airstream adjusted by electric consumption, case heat loss or heat gain, air leakage and airflow mass imbalance between the two airstreams, as a percent of the potential total energy that could be recovered plus the exhaust fan energy.</description>
+      <type>Double</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+      <default_value>0</default_value>
+    </argument>
+    <argument>
+      <name>userdefinedsenseff</name>
+      <display_name>Mechanical Ventilation: Sensible Recovery Efficiency</display_name>
+      <description>The net sensible energy recovered by the supply airstream as adjusted by electric consumption, case heat loss or heat gain, air leakage, airflow mass imbalance between the two airstreams and the energy used for defrost (when running the Very Low Temperature Test), as a percent of the potential sensible energy that could be recovered plus the exhaust fan energy.</description>
+      <type>Double</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+      <default_value>0</default_value>
+    </argument>
+    <argument>
+      <name>userdefinedfanpower</name>
+      <display_name>Mechanical Ventilation: Fan Power</display_name>
+      <description>Fan power (in W) per delivered airflow rate (in cfm) of fan(s) providing whole house ventilation. If the house uses a balanced ventilation system there is assumed to be two fans operating at this efficiency.</description>
+      <type>Double</type>
+      <units>W/cfm</units>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+      <default_value>0.3</default_value>
+    </argument>
+    <argument>
+      <name>userdefinedfracofashrae</name>
+      <display_name>Mechanical Ventilation: Fraction of ASHRAE 62.2</display_name>
+      <description>Fraction of the ventilation rate (including any infiltration credit) specified by ASHRAE 62.2 that is desired in the building.</description>
+      <type>Double</type>
+      <units>frac</units>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+      <default_value>1</default_value>
+    </argument>
+    <argument>
+      <name>selectedashraestandard</name>
+      <display_name>Mechanical Ventilation: ASHRAE 62.2 Standard</display_name>
+      <description>Specifies which version (year) of the ASHRAE 62.2 Standard should be used.</description>
+      <type>Choice</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+      <default_value>2010</default_value>
+      <choices>
+        <choice>
+          <value>2010</value>
+          <display_name>2010</display_name>
+        </choice>
+        <choice>
+          <value>2013</value>
+          <display_name>2013</display_name>
+        </choice>
+      </choices>
+    </argument>
+    <argument>
+      <name>userdefineddryerexhaust</name>
+      <display_name>Clothes Dryer: Exhaust</display_name>
+      <description>Rated flow capacity of the clothes dryer exhaust. This fan is assumed to run 60 min/day between 11am and 12pm.</description>
+      <type>Double</type>
+      <units>cfm</units>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+      <default_value>100</default_value>
+    </argument>
+    <argument>
+      <name>userdefinedhtgoffset</name>
+      <display_name>Natural Ventilation: Heating Season Setpoint Offset</display_name>
+      <description>The temperature offset below the hourly cooling setpoint, to which the living space is allowed to cool during months that are only in the heating season.</description>
+      <type>Double</type>
+      <units>degrees F</units>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+      <default_value>1</default_value>
+    </argument>
+    <argument>
+      <name>userdefinedclgoffset</name>
+      <display_name>Natural Ventilation: Cooling Season Setpoint Offset</display_name>
+      <description>The temperature offset above the hourly heating setpoint, to which the living space is allowed to cool during months that are only in the cooling season.</description>
+      <type>Double</type>
+      <units>degrees F</units>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+      <default_value>1</default_value>
+    </argument>
+    <argument>
+      <name>userdefinedovlpoffset</name>
+      <display_name>Natural Ventilation: Overlap Season Setpoint Offset</display_name>
+      <description>The temperature offset above the maximum heating setpoint, to which the living space is allowed to cool during months that are in both the heating season and cooling season.</description>
+      <type>Double</type>
+      <units>degrees F</units>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+      <default_value>1</default_value>
+    </argument>
+    <argument>
+      <name>selectedheatingssn</name>
+      <display_name>Natural Ventilation: Heating Season</display_name>
+      <description>True if windows are allowed to be opened during months that are only in the heating season.</description>
+      <type>Boolean</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+      <default_value>true</default_value>
+      <choices>
+        <choice>
+          <value>true</value>
+          <display_name>true</display_name>
+        </choice>
+        <choice>
+          <value>false</value>
+          <display_name>false</display_name>
+        </choice>
+      </choices>
+    </argument>
+    <argument>
+      <name>selectedcoolingssn</name>
+      <display_name>Natural Ventilation: Cooling Season</display_name>
+      <description>True if windows are allowed to be opened during months that are only in the cooling season.</description>
+      <type>Boolean</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+      <default_value>true</default_value>
+      <choices>
+        <choice>
+          <value>true</value>
+          <display_name>true</display_name>
+        </choice>
+        <choice>
+          <value>false</value>
+          <display_name>false</display_name>
+        </choice>
+      </choices>
+    </argument>
+    <argument>
+      <name>selectedoverlapssn</name>
+      <display_name>Natural Ventilation: Overlap Season</display_name>
+      <description>True if windows are allowed to be opened during months that are in both the heating season and cooling season.</description>
+      <type>Boolean</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+      <default_value>true</default_value>
+      <choices>
+        <choice>
+          <value>true</value>
+          <display_name>true</display_name>
+        </choice>
+        <choice>
+          <value>false</value>
+          <display_name>false</display_name>
+        </choice>
+      </choices>
+    </argument>
+    <argument>
+      <name>userdefinedventweekdays</name>
+      <display_name>Natural Ventilation: Number Weekdays</display_name>
+      <description>Number of weekdays in the week that natural ventilation can occur.</description>
+      <type>Integer</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+      <default_value>3</default_value>
+    </argument>
+    <argument>
+      <name>userdefinedventweekenddays</name>
+      <display_name>Natural Ventilation: Number Weekend Days</display_name>
+      <description>Number of weekend days in the week that natural ventilation can occur.</description>
+      <type>Integer</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+      <default_value>0</default_value>
+    </argument>
+    <argument>
+      <name>userdefinedfracwinopen</name>
+      <display_name>Natural Ventilation: Fraction of Openable Windows Open</display_name>
+      <description>Specifies the fraction of the total openable window area in the building that is opened for ventilation.</description>
+      <type>Double</type>
+      <units>frac</units>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+      <default_value>0.33</default_value>
+    </argument>
+    <argument>
+      <name>userdefinedfracwinareaopen</name>
+      <display_name>Natural Ventilation: Fraction Window Area Openable</display_name>
+      <description>Specifies the fraction of total window area in the home that can be opened (e.g. typical sliding windows can be opened to half of their area).</description>
+      <type>Double</type>
+      <units>frac</units>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+      <default_value>0.2</default_value>
+    </argument>
+    <argument>
+      <name>userdefinedhumratio</name>
+      <display_name>Natural Ventilation: Max OA Humidity Ratio</display_name>
+      <description>Outdoor air humidity ratio above which windows will not open for natural ventilation.</description>
+      <type>Double</type>
+      <units>frac</units>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+      <default_value>0.0115</default_value>
+    </argument>
+    <argument>
+      <name>userdefinedrelhumratio</name>
+      <display_name>Natural Ventilation: Max OA Relative Humidity</display_name>
+      <description>Outdoor air relative humidity (0-1) above which windows will not open for natural ventilation.</description>
+      <type>Double</type>
+      <units>frac</units>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+      <default_value>0.7</default_value>
+    </argument>
+    <argument>
+      <name>duct_location</name>
+      <display_name>Ducts: Location</display_name>
+      <description>The space with the primary location of ducts.</description>
+      <type>Choice</type>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>auto</default_value>
+      <choices>
+        <choice>
+          <value>none</value>
+          <display_name>none</display_name>
+        </choice>
+        <choice>
+          <value>auto</value>
+          <display_name>auto</display_name>
+        </choice>
+        <choice>
+          <value>living zone</value>
+          <display_name>living zone</display_name>
+        </choice>
+        <choice>
+          <value>attic zone</value>
+          <display_name>attic zone</display_name>
+        </choice>
+        <choice>
+          <value>basement zone</value>
+          <display_name>basement zone</display_name>
+        </choice>
+        <choice>
+          <value>garage zone</value>
+          <display_name>garage zone</display_name>
+        </choice>
+      </choices>
+    </argument>
+    <argument>
+      <name>duct_total_leakage</name>
+      <display_name>Ducts: Total Leakage</display_name>
+      <description>The total amount of air flow leakage expressed as a fraction of the total air flow rate.</description>
+      <type>Double</type>
+      <units>frac</units>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+      <default_value>0.3</default_value>
+    </argument>
+    <argument>
+      <name>duct_sup_frac</name>
+      <display_name>Ducts: Supply Leakage Fraction of Total</display_name>
+      <description>The amount of air flow leakage leaking out from the supply duct expressed as a fraction of the total duct leakage.</description>
+      <type>Double</type>
+      <units>frac</units>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+      <default_value>0.6</default_value>
+    </argument>
+    <argument>
+      <name>duct_ret_frac</name>
+      <display_name>Ducts: Return Leakage Fraction of Total</display_name>
+      <description>The amount of air flow leakage leaking into the return duct expressed as a fraction of the total duct leakage.</description>
+      <type>Double</type>
+      <units>frac</units>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+      <default_value>0.067</default_value>
+    </argument>
+    <argument>
+      <name>duct_ah_sup_frac</name>
+      <display_name>Ducts: Supply Air Handler Leakage Fraction of Total</display_name>
+      <description>The amount of air flow leakage leaking out from the supply-side of the air handler expressed as a fraction of the total duct leakage.</description>
+      <type>Double</type>
+      <units>frac</units>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+      <default_value>0.067</default_value>
+    </argument>
+    <argument>
+      <name>duct_ah_ret_frac</name>
+      <display_name>Ducts: Return Air Handler Leakage Fraction of Total</display_name>
+      <description>The amount of air flow leakage leaking out from the return-side of the air handler expressed as a fraction of the total duct leakage.</description>
+      <type>Double</type>
+      <units>frac</units>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+      <default_value>0.267</default_value>
+    </argument>
+    <argument>
+      <name>duct_norm_leakage_to_outside</name>
+      <display_name>Ducts: Leakage to Outside at 25Pa</display_name>
+      <description>Normalized leakage to the outside when tested at a pressure differential of 25 Pascals (0.1 inches w.g.) across the system.</description>
+      <type>String</type>
+      <units>cfm/100 ft^2</units>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+      <default_value>NA</default_value>
+    </argument>
+    <argument>
+      <name>duct_location_frac</name>
+      <display_name>Ducts: Location Fraction</display_name>
+      <description>Fraction of supply ducts in the space specified by Duct Location; the remainder of supply ducts will be located in above-grade conditioned space.</description>
+      <type>String</type>
+      <units>frac</units>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>auto</default_value>
+    </argument>
+    <argument>
+      <name>duct_num_returns</name>
+      <display_name>Ducts: Number of Returns</display_name>
+      <description>The number of duct returns.</description>
+      <type>String</type>
+      <units>#</units>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>auto</default_value>
+    </argument>
+    <argument>
+      <name>supply_surface_area_multiplier</name>
+      <display_name>Ducts: Supply Surface Area Multiplier</display_name>
+      <description>Values specify a fraction of the Building America Benchmark supply duct surface area.</description>
+      <type>Double</type>
+      <units>mult</units>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>1</default_value>
+    </argument>
+    <argument>
+      <name>return_surface_area_multiplier</name>
+      <display_name>Ducts: Return Surface Area Multiplier</display_name>
+      <description>Values specify a fraction of the Building America Benchmark return duct surface area.</description>
+      <type>Double</type>
+      <units>mult</units>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>1</default_value>
+    </argument>
+    <argument>
+      <name>duct_unconditioned_rvalue</name>
+      <display_name>Ducts: Insulation Nominal R-Value</display_name>
+      <description>The nominal R-value for duct insulation.</description>
+      <type>Double</type>
+      <units>h-ft^2-R/Btu</units>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>0</default_value>
+    </argument>
+  </arguments>
+  <provenances/>
+  <tags>
+    <tag>Envelope.Infiltration</tag>
+  </tags>
+  <attributes>
+    <attribute>
+      <name>Measure Type</name>
+      <value>EnergyPlusMeasure</value>
+      <datatype>string</datatype>
+    </attribute>
+    <attribute>
+      <name>Uses SketchUp API</name>
+      <value>false</value>
+      <datatype>boolean</datatype>
+    </attribute>
+  </attributes>
+  <files>
+    <file>
+      <filename>USA_CO_Denver_Intl_AP_725650_TMY3.ddy</filename>
+      <filetype>ddy</filetype>
+      <usage_type>test</usage_type>
+      <checksum>FB253570</checksum>
+    </file>
+    <file>
+      <filename>USA_CO_Denver_Intl_AP_725650_TMY3.epw</filename>
+      <filetype>epw</filetype>
+      <usage_type>test</usage_type>
+      <checksum>E23378AA</checksum>
+    </file>
+    <file>
+      <filename>unit_conversions.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>9A23E14E</checksum>
+    </file>
+    <file>
+      <filename>psychrometrics.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>078F0169</checksum>
+    </file>
+    <file>
+      <filename>weather.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>97B219DD</checksum>
+    </file>
+    <file>
+      <filename>util.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>B9256575</checksum>
+    </file>
+    <file>
+      <filename>airflow_test.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>test</usage_type>
+      <checksum>D072A5F2</checksum>
+    </file>
+    <file>
+      <filename>hvac.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>5E54715B</checksum>
+    </file>
+    <file>
+      <filename>singlefamily_slab_location_beds_electric_baseboard.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>276AA862</checksum>
+    </file>
+    <file>
+      <filename>singlefamily_slab_location_beds_mshp.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>80294C62</checksum>
+    </file>
+    <file>
+      <filename>constants.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>E4899227</checksum>
+    </file>
+    <file>
+      <filename>singlefamily_slab_location_neighbors_beds_furnace_central_air_conditioner.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>0F22D05E</checksum>
+    </file>
+    <file>
+      <filename>singlefamily_slab_location_beds_furnace_clothes_dryer.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>121B5E15</checksum>
+    </file>
+    <file>
+      <filename>singlefamily_garage_location_beds_furnace_central_air_conditioner.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>77A8E523</checksum>
+    </file>
+    <file>
+      <filename>singlefamily_ufbasement_location_beds_furnace_central_air_conditioner.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>8CC69F28</checksum>
+    </file>
+    <file>
+      <filename>singlefamily_crawl_location_beds_furnace_central_air_conditioner.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>41DEFBCF</checksum>
+    </file>
+    <file>
+      <filename>singlefamily_fbasement_location_beds_furnace_central_air_conditioner.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>458AE32D</checksum>
+    </file>
+    <file>
+      <filename>singlefamily_slab_location_beds_furnace_central_air_conditioner.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>CD7FC9A3</checksum>
+    </file>
+    <file>
+      <version>
+        <software_program>OpenStudio</software_program>
+        <identifier>1.4.0</identifier>
+        <min_compatible>1.13.1</min_compatible>
+      </version>
+      <filename>measure.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>script</usage_type>
+      <checksum>F679A4D6</checksum>
+    </file>
+    <file>
+      <filename>geometry.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>4D0A9290</checksum>
+    </file>
+  </files>
+</measure>

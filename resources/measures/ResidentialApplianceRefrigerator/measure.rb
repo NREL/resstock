@@ -102,9 +102,9 @@ class ResidentialRefrigerator < OpenStudio::Ruleset::ModelUserScript
 		return false
     end
     
-    # Get number of units
-    num_units = Geometry.get_num_units(model, runner)
-    if num_units.nil?
+    # Get building units
+    units = Geometry.get_building_units(model, runner)
+    if units.nil?
         return false
     end
     
@@ -114,16 +114,14 @@ class ResidentialRefrigerator < OpenStudio::Ruleset::ModelUserScript
     tot_fridge_ann = 0
     msgs = []
     sch = nil
-    (1..num_units).to_a.each do |unit_num|
-    
-        # Get unit spaces
-        _nbeds, _nbaths, unit_spaces = Geometry.get_unit_beds_baths_spaces(model, unit_num, runner)
-        if unit_spaces.nil?
-            runner.registerError("Could not determine the spaces associated with unit #{unit_num}.")
-            return false
+    units.each_with_index do |unit, unit_index|
+        
+        unit_spaces = []
+        unit.spaces.each do |unit_space|
+            unit_spaces << unit_space
         end
         
-        if unit_num == 1 and space_r != Constants.Auto
+        if unit_index == 0 and space_r != Constants.Auto
             # Append spaces not associated with a unit
             model.getSpaces.each do |space|
                 next if Geometry.space_is_finished(space)
@@ -135,7 +133,7 @@ class ResidentialRefrigerator < OpenStudio::Ruleset::ModelUserScript
         space = Geometry.get_space_from_string(unit_spaces, space_r)
         next if space.nil?
         
-        unit_obj_name = Constants.ObjectNameRefrigerator(unit_num)
+        unit_obj_name = Constants.ObjectNameRefrigerator(unit.name.to_s)
 
         # Remove any existing refrigerator
         frg_removed = false
@@ -184,7 +182,7 @@ class ResidentialRefrigerator < OpenStudio::Ruleset::ModelUserScript
         msgs.each do |msg|
             runner.registerInfo(msg)
         end
-        runner.registerFinalCondition("The building has been assigned refrigerators totaling #{tot_fridge_ann.round} kWhs annual energy consumption across #{num_units} units.")
+        runner.registerFinalCondition("The building has been assigned refrigerators totaling #{tot_fridge_ann.round} kWhs annual energy consumption across #{units.size} units.")
     elsif msgs.size == 1
         runner.registerFinalCondition(msgs[0])
     else

@@ -181,9 +181,9 @@ class ResidentialLighting < OpenStudio::Ruleset::ModelUserScript
         return false
     end
     
-    # Get number of units
-    num_units = Geometry.get_num_units(model, runner)
-    if num_units.nil?
+    # Get building units
+    units = Geometry.get_building_units(model, runner)
+    if units.nil?
         return false
     end
 
@@ -358,24 +358,17 @@ class ResidentialLighting < OpenStudio::Ruleset::ModelUserScript
     num_units_without_garage = 0
     msgs = []
     sch = nil
-    (1..num_units).to_a.each do |unit_num|
-    
-        # Get unit spaces
-        _nbeds, _nbaths, unit_spaces = Geometry.get_unit_beds_baths_spaces(model, unit_num, runner)
-        if unit_spaces.nil?
-            runner.registerError("Could not determine the spaces associated with unit #{unit_num}.")
-            return false
-        end
+    units.each do |unit|
         
         # Get unit ffa and finished spaces
-        unit_finished_spaces = Geometry.get_finished_spaces(unit_spaces)
-        ffa = Geometry.get_finished_floor_area_from_spaces(unit_spaces, false, runner)
+        unit_finished_spaces = Geometry.get_finished_spaces(unit.spaces)
+        ffa = Geometry.get_finished_floor_area_from_spaces(unit.spaces, false, runner)
         if ffa.nil?
             return false
         end
         
         # Get unit garage floor area
-        unit_garage_spaces = Geometry.get_garage_spaces(unit_spaces, model)
+        unit_garage_spaces = Geometry.get_garage_spaces(unit.spaces, model)
         gfa = Geometry.get_floor_area_from_spaces(unit_garage_spaces)
         if unit_garage_spaces.size == 0
             num_units_without_garage += 1
@@ -398,7 +391,7 @@ class ResidentialLighting < OpenStudio::Ruleset::ModelUserScript
     
         # Finished/Garage spaces for the unit
         (unit_finished_spaces + unit_garage_spaces).each do |space|
-            space_obj_name = "#{Constants.ObjectNameLighting(unit_num)} #{space.name.to_s}"
+            space_obj_name = "#{Constants.ObjectNameLighting(unit.name.to_s)} #{space.name.to_s}"
 
             if sch.nil?
                 # Create schedule
@@ -496,7 +489,7 @@ class ResidentialLighting < OpenStudio::Ruleset::ModelUserScript
         msgs.each do |msg|
             runner.registerInfo(msg)
         end
-        runner.registerFinalCondition("The building has been assigned lighting totaling #{tot_ltg.round} kWhs annual energy consumption across #{num_units} units.")
+        runner.registerFinalCondition("The building has been assigned lighting totaling #{tot_ltg.round} kWhs annual energy consumption across #{units.size} units.")
     elsif msgs.size == 1
         runner.registerFinalCondition(msgs[0])
     else

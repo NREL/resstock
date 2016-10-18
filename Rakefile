@@ -18,7 +18,7 @@ task :copy_beopt_files do
   
   empty_osm = "EmptySeedModel.osm"
   puts "Copying #{empty_osm}..."
-  beopt_empty_seed_model = File.join(File.dirname(__FILE__), "..", "OpenStudio-Beopt", "geometries", empty_osm)
+  beopt_empty_seed_model = File.join(File.dirname(__FILE__), "..", "OpenStudio-Beopt", "seeds", empty_osm)
   resstock_empty_seed_model = File.join(File.dirname(__FILE__), "seeds", empty_osm)
   if File.exists?(resstock_empty_seed_model)
     FileUtils.rm(resstock_empty_seed_model)

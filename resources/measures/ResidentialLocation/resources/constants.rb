@@ -107,6 +107,21 @@ class Constants
   def self.BuildingAmericaClimateZone
     return 'Building America'
   end
+  def self.BuildingUnitFeatureDHWSchedIndex
+    return 'DHWSchedIndex'
+  end
+  def self.BuildingUnitFeatureUnitNumber
+    return 'UnitNumber'
+  end
+  def self.BuildingUnitFeatureNumBathrooms
+    return 'NumberOfBathrooms'
+  end
+  def self.BuildingUnitFeatureNumBedrooms
+    return 'NumberOfBedrooms'
+  end
+  def self.BuildingUnitTypeResidential
+    return 'Residential'
+  end
   def self.CollectorTypeClosedLoop
     return 'closed loop'
   end
@@ -126,28 +141,28 @@ class Constants
   def self.CrawlFoundationType
     return 'crawlspace'
   end
-  def self.CrawlSpace(unit=1)
+  def self.CrawlSpace(unit_name=self.ObjectNameBuildingUnit)
     s_unit = ""
-    if unit > 1
-      s_unit = "|unit #{unit}"
+    if unit_name != self.ObjectNameBuildingUnit
+      s_unit = "|#{unit_name}"
     end
     return "crawl space#{s_unit}"
   end
-  def self.CrawlZone(unit=1)
+  def self.CrawlZone(unit_name=self.ObjectNameBuildingUnit)
     s_unit = ""
-    if unit > 1
-      s_unit = "|unit #{unit}"
+    if unit_name != self.ObjectNameBuildingUnit
+      s_unit = "|#{unit_name}"
     end
     return "crawl zone#{s_unit}"
   end
   def self.DDYHtgDrybulb
-    return 'Htg 99.6. Condns DB'
+    return 'Htg 99. Condns DB'
   end
   def self.DDYClgDrybulb
-    return 'Clg .4. Condns WB=>MDB'
+    return 'Clg 1. Condns WB=>MDB'
   end
   def self.DDYClgWetbulb
-    return 'Clg .4. Condns DB=>MWB'
+    return 'Clg 1. Condns DB=>MWB'
   end
   def self.FacadeFront
     return 'Front'
@@ -161,37 +176,37 @@ class Constants
   def self.FacadeRight
     return 'Right'
   end
-  def self.FinishedAtticSpace(unit=1)
+  def self.FinishedAtticSpace(unit_name=self.ObjectNameBuildingUnit)
     s_unit = ""
-    if unit > 1
-      s_unit = "|unit #{unit}"
+    if unit_name != self.ObjectNameBuildingUnit
+      s_unit = "|#{unit_name}"
     end
     return "finished attic space#{s_unit}"
   end
   def self.FinishedAtticSpaceType
     return 'finished attic'
   end
-  def self.FinishedAtticZone(unit=1)
+  def self.FinishedAtticZone(unit_name=self.ObjectNameBuildingUnit)
     s_unit = ""
-    if unit > 1
-      s_unit = "|unit #{unit}"
+    if unit_name != self.ObjectNameBuildingUnit
+      s_unit = "|#{unit_name}"
     end
     return "finished attic zone#{s_unit}"
   end
   def self.FinishedBasementFoundationType
     return 'finished basement'
   end
-  def self.FinishedBasementSpace(unit=1)
+  def self.FinishedBasementSpace(unit_name=self.ObjectNameBuildingUnit)
     s_unit = ""
-    if unit > 1
-      s_unit = "|unit #{unit}"
+    if unit_name != self.ObjectNameBuildingUnit
+      s_unit = "|#{unit_name}"
     end
     return "finished basement space#{s_unit}"
   end
-  def self.FinishedBasementZone(unit=1)
+  def self.FinishedBasementZone(unit_name=self.ObjectNameBuildingUnit)
     s_unit = ""
-    if unit > 1
-      s_unit = "|unit #{unit}"
+    if unit_name != self.ObjectNameBuildingUnit
+      s_unit = "|#{unit_name}"
     end
     return "finished basement zone#{s_unit}"
   end
@@ -216,24 +231,24 @@ class Constants
   def self.FuelTypeOil
     return 'oil'
   end
-  def self.GarageSpace(unit=1)
+  def self.GarageSpace(unit_name=self.ObjectNameBuildingUnit)
     s_unit = ""
-    if unit > 1
-      s_unit = "|unit #{unit}"
+    if unit_name != self.ObjectNameBuildingUnit
+      s_unit = "|#{unit_name}"
     end
     return "garage space#{s_unit}"
   end
-  def self.GarageAtticSpace(unit=1)
+  def self.GarageAtticSpace(unit_name=self.ObjectNameBuildingUnit)
     s_unit = ""
-    if unit > 1
-      s_unit = "|unit #{unit}"
+    if unit_name != self.ObjectNameBuildingUnit
+      s_unit = "|#{unit_name}"
     end
     return "garage attic space#{s_unit}"
   end
-  def self.GarageZone(unit=1)
+  def self.GarageZone(unit_name=self.ObjectNameBuildingUnit)
     s_unit = ""
-    if unit > 1
-      s_unit = "|unit #{unit}"
+    if unit_name != self.ObjectNameBuildingUnit
+      s_unit = "|#{unit_name}"
     end
     return "garage zone#{s_unit}"
   end
@@ -270,21 +285,21 @@ class Constants
   def self.InsulationXPS
     return 'xps'
   end
-  def self.LivingSpace(story=1, unit=1)
+  def self.LivingSpace(story=1, unit_name=self.ObjectNameBuildingUnit)
     s_unit = ""
     s_story = ""
-    if unit > 1
-      s_unit = "|unit #{unit}"
+    if unit_name != self.ObjectNameBuildingUnit
+      s_unit = "|#{unit_name}"
     end
     if story > 1
       s_story = "|story #{story}"
     end
     return "living space#{s_unit}#{s_story}"
   end
-  def self.LivingZone(unit=1)
+  def self.LivingZone(unit_name=self.ObjectNameBuildingUnit)
     s_unit = ""
-    if unit > 1
-      s_unit = "|unit #{unit}"
+    if unit_name != self.ObjectNameBuildingUnit
+      s_unit = "|#{unit_name}"
     end
     return "living zone#{s_unit}"
   end
@@ -363,42 +378,45 @@ class Constants
   def self.MonthNames
     return ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
   end
-  def self.ObjectNameBath(unit=1)
+  def self.ObjectNameBath(unit_name=self.ObjectNameBuildingUnit)
     s_unit = ""
-    if unit > 1
-      s_unit = "|unit #{unit}"
+    if unit_name != self.ObjectNameBuildingUnit
+      s_unit = "|#{unit_name}"
     end
     return "residential bath#{s_unit}"
   end
-  def self.ObjectNameBathDist(unit=1)
+  def self.ObjectNameBathDist(unit_name=self.ObjectNameBuildingUnit)
     s_unit = ""
-    if unit > 1
-      s_unit = "|unit #{unit}"
+    if unit_name != self.ObjectNameBuildingUnit
+      s_unit = "|#{unit_name}"
     end
     return "residential bath dist#{s_unit}"
   end
-  def self.ObjectNameClothesWasher(unit=1)
+  def self.ObjectNameBuildingUnit(unit_num=1)
+    return "unit #{unit_num}"
+  end
+  def self.ObjectNameClothesWasher(unit_name=self.ObjectNameBuildingUnit)
     s_unit = ""
-    if unit > 1
-      s_unit = "|unit #{unit}"
+    if unit_name != self.ObjectNameBuildingUnit
+      s_unit = "|#{unit_name}"
     end
     return "residential clothes washer#{s_unit}"
   end
-  def self.ObjectNameClothesDryer(fueltype, unit=1)
+  def self.ObjectNameClothesDryer(fueltype, unit_name=self.ObjectNameBuildingUnit)
     s_unit = ""
-    if unit > 1
-      s_unit = "|unit #{unit}"
+    if unit_name != self.ObjectNameBuildingUnit
+      s_unit = "|#{unit_name}"
     end
     return "residential clothes dryer #{fueltype}#{s_unit}"
   end
-  def self.ObjectNameCookingRange(fueltype, ignition=false, unit=1)
+  def self.ObjectNameCookingRange(fueltype, ignition=false, unit_name=self.ObjectNameBuildingUnit)
     s_ignition = ""
     s_unit = ""
     if ignition
       s_ignition = " ignition"
     end
-    if unit > 1
-      s_unit = "|unit #{unit}"
+    if unit_name != self.ObjectNameBuildingUnit
+      s_unit = "|#{unit_name}"
     end
     return "residential range #{fueltype}#{s_ignition}#{s_unit}"
   end
@@ -408,48 +426,48 @@ class Constants
   def self.ObjectNameCoolingSetpoint
     return 'residential cooling setpoint'
   end
-  def self.ObjectNameDishwasher(unit=1)
+  def self.ObjectNameDishwasher(unit_name=self.ObjectNameBuildingUnit)
     s_unit = ""
-    if unit > 1
-      s_unit = "|unit #{unit}"
+    if unit_name != self.ObjectNameBuildingUnit
+      s_unit = "|#{unit_name}"
     end
     return "residential dishwasher#{s_unit}"
   end
-  def self.ObjectNameExtraRefrigerator(unit=1)
+  def self.ObjectNameExtraRefrigerator(unit_name=self.ObjectNameBuildingUnit)
     s_unit = ""
-    if unit > 1
-      s_unit = "|unit #{unit}"
+    if unit_name != self.ObjectNameBuildingUnit
+      s_unit = "|#{unit_name}"
     end
     return "residential extra refrigerator#{s_unit}"
   end
-  def self.ObjectNameFreezer(unit=1)
+  def self.ObjectNameFreezer(unit_name=self.ObjectNameBuildingUnit)
     s_unit = ""
-    if unit > 1
-      s_unit = "|unit #{unit}"
+    if unit_name != self.ObjectNameBuildingUnit
+      s_unit = "|#{unit_name}"
     end
     return "residential freezer#{s_unit}"
   end
   def self.ObjectNameFurniture
     return 'residential furniture'
   end
-  def self.ObjectNameGasFireplace(unit=1)
+  def self.ObjectNameGasFireplace(unit_name=self.ObjectNameBuildingUnit)
     s_unit = ""
-    if unit > 1
-      s_unit = "|unit #{unit}"
+    if unit_name != self.ObjectNameBuildingUnit
+      s_unit = "|#{unit_name}"
     end
     return "residential gas fireplace#{s_unit}"
   end
-  def self.ObjectNameGasGrill(unit=1)
+  def self.ObjectNameGasGrill(unit_name=self.ObjectNameBuildingUnit)
     s_unit = ""
-    if unit > 1
-      s_unit = "|unit #{unit}"
+    if unit_name != self.ObjectNameBuildingUnit
+      s_unit = "|#{unit_name}"
     end
     return "residential gas grill#{s_unit}"
   end
-  def self.ObjectNameGasLighting(unit=1)
+  def self.ObjectNameGasLighting(unit_name=self.ObjectNameBuildingUnit)
     s_unit = ""
-    if unit > 1
-      s_unit = "|unit #{unit}"
+    if unit_name != self.ObjectNameBuildingUnit
+      s_unit = "|#{unit_name}"
     end
     return "residential gas lighting#{s_unit}"
   end
@@ -459,115 +477,115 @@ class Constants
   def self.ObjectNameHeatingSetpoint
     return 'residential heating setpoint'
   end
-  def self.ObjectNameHotTubHeater(fueltype, unit=1)
+  def self.ObjectNameHotTubHeater(fueltype, unit_name=self.ObjectNameBuildingUnit)
     s_unit = ""
-    if unit > 1
-      s_unit = "|unit #{unit}"
+    if unit_name != self.ObjectNameBuildingUnit
+      s_unit = "|#{unit_name}"
     end
     return "residential hot tub heater #{fueltype}#{s_unit}"
   end
-  def self.ObjectNameHotTubPump(unit=1)
+  def self.ObjectNameHotTubPump(unit_name=self.ObjectNameBuildingUnit)
     s_unit = ""
-    if unit > 1
-      s_unit = "|unit #{unit}"
+    if unit_name != self.ObjectNameBuildingUnit
+      s_unit = "|#{unit_name}"
     end
     return "residential hot tub pump#{s_unit}"
   end
-  def self.ObjectNameHotWaterRecircPump(unit=1)
+  def self.ObjectNameHotWaterRecircPump(unit_name=self.ObjectNameBuildingUnit)
     s_unit = ""
-    if unit > 1
-      s_unit = "|unit #{unit}"
+    if unit_name != self.ObjectNameBuildingUnit
+      s_unit = "|#{unit_name}"
     end
     return "residential hot water recirc pump#{s_unit}"
   end
-  def self.ObjectNameHotWaterDistribution(unit=1)
+  def self.ObjectNameHotWaterDistribution(unit_name=self.ObjectNameBuildingUnit)
     s_unit = ""
-    if unit > 1
-      s_unit = "|unit #{unit}"
+    if unit_name != self.ObjectNameBuildingUnit
+      s_unit = "|#{unit_name}"
     end
     return "residential hot water distribution#{s_unit}"
   end
-  def self.ObjectNameLighting(unit=1)
+  def self.ObjectNameLighting(unit_name=self.ObjectNameBuildingUnit)
     s_unit = ""
-    if unit > 1
-      s_unit = "|unit #{unit}"
+    if unit_name != self.ObjectNameBuildingUnit
+      s_unit = "|#{unit_name}"
     end
     return "residential lighting#{s_unit}"
   end
-  def self.ObjectNameMiscPlugLoads(unit=1)
+  def self.ObjectNameMiscPlugLoads(unit_name=self.ObjectNameBuildingUnit)
     s_unit = ""
-    if unit > 1
-      s_unit = "|unit #{unit}"
+    if unit_name != self.ObjectNameBuildingUnit
+      s_unit = "|#{unit_name}"
     end
     return "residential misc plug loads#{s_unit}"
   end
-  def self.ObjectNameOccupants(unit=1)
+  def self.ObjectNameOccupants(unit_name=self.ObjectNameBuildingUnit)
     s_unit = ""
-    if unit > 1
-      s_unit = "|unit #{unit}"
+    if unit_name != self.ObjectNameBuildingUnit
+      s_unit = "|#{unit_name}"
     end
     return "residential occupants#{s_unit}"
   end
-  def self.ObjectNamePoolHeater(fueltype, unit=1)
+  def self.ObjectNamePoolHeater(fueltype, unit_name=self.ObjectNameBuildingUnit)
     s_unit = ""
-    if unit > 1
-      s_unit = "|unit #{unit}"
+    if unit_name != self.ObjectNameBuildingUnit
+      s_unit = "|#{unit_name}"
     end
     return "residential pool heater #{fueltype}#{s_unit}"
   end
-  def self.ObjectNamePoolPump(unit=1)
+  def self.ObjectNamePoolPump(unit_name=self.ObjectNameBuildingUnit)
     s_unit = ""
-    if unit > 1
-      s_unit = "|unit #{unit}"
+    if unit_name != self.ObjectNameBuildingUnit
+      s_unit = "|#{unit_name}"
     end
     return "residential pool pump#{s_unit}"
   end
-  def self.ObjectNameRefrigerator(unit=1)
+  def self.ObjectNameRefrigerator(unit_name=self.ObjectNameBuildingUnit)
     s_unit = ""
-    if unit > 1
-      s_unit = "|unit #{unit}"
+    if unit_name != self.ObjectNameBuildingUnit
+      s_unit = "|#{unit_name}"
     end
     return "residential refrigerator#{s_unit}"
   end
-  def self.ObjectNameShower(unit=1)
+  def self.ObjectNameShower(unit_name=self.ObjectNameBuildingUnit)
     s_unit = ""
-    if unit > 1
-      s_unit = "|unit #{unit}"
+    if unit_name != self.ObjectNameBuildingUnit
+      s_unit = "|#{unit_name}"
     end
     return "residential shower#{s_unit}"
   end
-  def self.ObjectNameShowerDist(unit=1)
+  def self.ObjectNameShowerDist(unit_name=self.ObjectNameBuildingUnit)
     s_unit = ""
-    if unit > 1
-      s_unit = "|unit #{unit}"
+    if unit_name != self.ObjectNameBuildingUnit
+      s_unit = "|#{unit_name}"
     end
     return "residential shower dist#{s_unit}"
   end
-  def self.ObjectNameSink(unit=1)
+  def self.ObjectNameSink(unit_name=self.ObjectNameBuildingUnit)
     s_unit = ""
-    if unit > 1
-      s_unit = "|unit #{unit}"
+    if unit_name != self.ObjectNameBuildingUnit
+      s_unit = "|#{unit_name}"
     end
     return "residential sink#{s_unit}"
   end
-  def self.ObjectNameSinkDist(unit=1)
+  def self.ObjectNameSinkDist(unit_name=self.ObjectNameBuildingUnit)
     s_unit = ""
-    if unit > 1
-      s_unit = "|unit #{unit}"
+    if unit_name != self.ObjectNameBuildingUnit
+      s_unit = "|#{unit_name}"
     end
     return "residential sink dist#{s_unit}"
   end
-  def self.ObjectNameWaterHeater(unit=1)
+  def self.ObjectNameWaterHeater(unit_name=self.ObjectNameBuildingUnit)
     s_unit = ""
-    if unit > 1
-      s_unit = "|unit #{unit}"
+    if unit_name != self.ObjectNameBuildingUnit
+      s_unit = "|#{unit_name}"
     end
     return "residential water heater#{s_unit}"
   end
-  def self.ObjectNameWellPump(unit=1)
+  def self.ObjectNameWellPump(unit_name=self.ObjectNameBuildingUnit)
     s_unit = ""
-    if unit > 1
-      s_unit = "|unit #{unit}"
+    if unit_name != self.ObjectNameBuildingUnit
+      s_unit = "|#{unit_name}"
     end
     return "residential well pump#{s_unit}"
   end
@@ -577,10 +595,10 @@ class Constants
   def self.PierBeamFoundationType
     return "pier and beam"
   end
-  def self.PierBeamZone(unit=1)
+  def self.PierBeamZone(unit_name=self.ObjectNameBuildingUnit)
     s_unit = ""
-    if unit > 1
-      s_unit = "|unit #{unit}"
+    if unit_name != self.ObjectNameBuildingUnit
+      s_unit = "|#{unit_name}"
     end
     return "pier and beam zone#{s_unit}"
   end
@@ -590,10 +608,10 @@ class Constants
   def self.PipeTypeHomeRun
     return 'home run'
   end
-  def self.PlantLoopDomesticWater(unit=1)
+  def self.PlantLoopDomesticWater(unit_name=self.ObjectNameBuildingUnit)
     s_unit = ""
-    if unit > 1
-      s_unit = "|unit #{unit}"
+    if unit_name != self.ObjectNameBuildingUnit
+      s_unit = "|#{unit_name}"
     end
     return "Domestic Hot Water Loop#{s_unit}"
   end
@@ -657,37 +675,37 @@ class Constants
   def self.TerrainCity
     return 'city'
   end
-  def self.UnfinishedAtticSpace(unit=1)
+  def self.UnfinishedAtticSpace(unit_name=self.ObjectNameBuildingUnit)
     s_unit = ""
-    if unit > 1
-      s_unit = "|unit #{unit}"
+    if unit_name != self.ObjectNameBuildingUnit
+      s_unit = "|#{unit_name}"
     end
     return "unfinished attic space#{s_unit}"
   end
   def self.UnfinishedAtticSpaceType
     return 'unfinished attic'
   end
-  def self.UnfinishedAtticZone(unit=1)
+  def self.UnfinishedAtticZone(unit_name=self.ObjectNameBuildingUnit)
     s_unit = ""
-    if unit > 1
-      s_unit = "|unit #{unit}"
+    if unit_name != self.ObjectNameBuildingUnit
+      s_unit = "|#{unit_name}"
     end
     return "unfinished attic zone#{s_unit}"
   end
   def self.UnfinishedBasementFoundationType
     return 'unfinished basement'
   end
-  def self.UnfinishedBasementSpace(unit=1)
+  def self.UnfinishedBasementSpace(unit_name=self.ObjectNameBuildingUnit)
     s_unit = ""
-    if unit > 1
-      s_unit = "|unit #{unit}"
+    if unit_name != self.ObjectNameBuildingUnit
+      s_unit = "|#{unit_name}"
     end
     return "unfinished basement space#{s_unit}"
   end
-  def self.UnfinishedBasementZone(unit=1)
+  def self.UnfinishedBasementZone(unit_name=self.ObjectNameBuildingUnit)
     s_unit = ""
-    if unit > 1
-      s_unit = "|unit #{unit}"
+    if unit_name != self.ObjectNameBuildingUnit
+      s_unit = "|#{unit_name}"
     end
     return "unfinished basement zone#{s_unit}"
   end

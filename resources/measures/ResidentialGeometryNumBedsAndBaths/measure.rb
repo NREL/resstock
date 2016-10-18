@@ -56,11 +56,12 @@ class AddResidentialBedroomsAndBathrooms < OpenStudio::Ruleset::ModelUserScript
     num_br = runner.getStringArgumentValue("Num_Br", user_arguments).split(",").map(&:strip)
     num_ba = runner.getStringArgumentValue("Num_Ba", user_arguments).split(",").map(&:strip)
     
-    num_units = Geometry.get_num_units(model, runner)
-    if num_units.nil?
-      return false
+    # Get building units
+    units = Geometry.get_building_units(model, runner)
+    if units.nil?
+        return false
     end
-        
+    
     #error checking
     if not num_br.all? {|x| HelperMethods.valid_float?(x)}
       runner.registerError("Number of bedrooms must be a numerical value.")
@@ -86,56 +87,50 @@ class AddResidentialBedroomsAndBathrooms < OpenStudio::Ruleset::ModelUserScript
       runner.registerError("Number of bedroom elements specified inconsistent with number of bathroom elements specified.")
       return false
     end
-    if num_br.length > 1 and num_br.length != num_units
+    if num_br.length > 1 and num_br.length != units.size
       runner.registerError("Number of bedroom elements specified inconsistent with number of multifamily units defined in the model.")
       return false
     end
-    if num_ba.length > 1 and num_ba.length != num_units
+    if num_ba.length > 1 and num_ba.length != units.size
       runner.registerError("Number of bathroom elements specified inconsistent with number of multifamily units defined in the model.")
       return false
     end    
     
-    if num_units > 1 and num_br.length == 1
+    if units.size > 1 and num_br.length == 1
       if num_br.length == 1
-        num_br = Array.new(num_units, num_br[0])
+        num_br = Array.new(units.size, num_br[0])
       end
       if num_ba.length == 1
-        num_ba = Array.new(num_units, num_ba[0])
+        num_ba = Array.new(units.size, num_ba[0])
       end    
     end
     
-    # Change to 1-based arrays for simplification
-    num_br.unshift(nil)
-    num_ba.unshift(nil)
-      
     # Update number of bedrooms/bathrooms
     total_num_br = 0
-    total_num_ba = 0    
-    (1..num_units).to_a.each do |unit_num|
-
-      _nbeds, _nbaths, unit_spaces = Geometry.get_unit_beds_baths_spaces(model, unit_num, runner)
-      if unit_spaces.nil?
-          return false
-      end
-
-      num_br[unit_num] = num_br[unit_num].round(2).to_s
-      num_ba[unit_num] = num_ba[unit_num].round(2).to_s
-      Geometry.set_unit_beds_baths_spaces(model, unit_num, unit_spaces, num_br[unit_num], num_ba[unit_num])
-      if num_units > 1
-        runner.registerInfo("Unit #{unit_num} has been assigned #{num_br[unit_num]} bedroom(s) and #{num_ba[unit_num]} bathroom(s).")
+    total_num_ba = 0
+    units.each_with_index do |unit, unit_index|
+      
+      num_br[unit_index] = num_br[unit_index].to_i
+      num_ba[unit_index] = num_ba[unit_index].to_f
+      
+      unit.setFeature(Constants.BuildingUnitFeatureNumBedrooms, num_br[unit_index])
+      unit.setFeature(Constants.BuildingUnitFeatureNumBathrooms, num_ba[unit_index])
+      
+      if units.size > 1
+        runner.registerInfo("Unit '#{unit_index}' has been assigned #{num_br[unit_index].to_s} bedroom(s) and #{num_ba[unit_index].round(2).to_s} bathroom(s).")
       end
       
-      total_num_br += num_br[unit_num].to_f
-      total_num_ba += num_ba[unit_num].to_f
+      total_num_br += num_br[unit_index]
+      total_num_ba += num_ba[unit_index]
 
     end
     
     #reporting final condition of model
     units_str = ""
-    if num_units > 1
-      units_str = " across #{num_units} units"
+    if units.size > 1
+      units_str = " across #{units.size} units"
     end
-    runner.registerFinalCondition("The building has been assigned #{total_num_br.round(2)} bedroom(s) and #{total_num_ba.round(2)} bathroom(s)#{units_str}.")
+    runner.registerFinalCondition("The building has been assigned #{total_num_br.to_s} bedroom(s) and #{total_num_ba.round(2).to_s} bathroom(s)#{units_str}.")
 
     return true
 

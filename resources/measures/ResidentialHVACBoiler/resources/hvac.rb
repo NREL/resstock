@@ -607,6 +607,7 @@ class HVAC
     end
   
     def self.existing_cooling_equipment(model, runner, thermal_zone)
+      cooling_equipment = []
       model.getAirLoopHVACs.each do |air_loop|
         air_loop.thermalZones.each do |thermalZone|
           next unless thermal_zone.handle.to_s == thermalZone.handle.to_s
@@ -623,7 +624,7 @@ class HVAC
             elsif clg_coil.to_CoilCoolingDXMultiSpeed.is_initialized
               clg_coil = clg_coil.to_CoilCoolingDXMultiSpeed.get
             end                        
-            return clg_coil
+            cooling_equipment << clg_coil
           end
         end
       end    
@@ -636,30 +637,38 @@ class HVAC
             next unless air_loop_unitary.coolingCoil.is_initialized
             clg_coil = air_loop_unitary.coolingCoil.get
             next unless clg_coil.to_CoilCoolingDXSingleSpeed.is_initialized or clg_coil.to_CoilCoolingDXMultiSpeed.is_initialized
+            if air_loop_unitary.heatingCoil.is_initialized
+              htg_coil = air_loop_unitary.heatingCoil.get
+              next if htg_coil.to_CoilHeatingDXSingleSpeed.is_initialized or htg_coil.to_CoilHeatingDXMultiSpeed.is_initialized
+            end
             runner.registerInfo("Found a central air conditioner.")
             if clg_coil.to_CoilCoolingDXSingleSpeed.is_initialized
               clg_coil = clg_coil.to_CoilCoolingDXSingleSpeed.get
             elsif clg_coil.to_CoilCoolingDXMultiSpeed.is_initialized
               clg_coil = clg_coil.to_CoilCoolingDXMultiSpeed.get
             end
-            return clg_coil
+            cooling_equipment << clg_coil
           end
         end
       end
       model.getZoneHVACPackagedTerminalAirConditioners.each do |ptac|
         next unless thermal_zone.handle.to_s == ptac.thermalZone.get.handle.to_s
         runner.registerInfo("Found a room air conditioner.")
-        return ptac
+        cooling_equipment << ptac
       end
       model.getZoneHVACTerminalUnitVariableRefrigerantFlows.each do |tu_vrf|
         next unless thermal_zone.handle.to_s == tu_vrf.thermalZone.get.handle.to_s
         runner.registerInfo("Found a mini-split heat pump.")
-        return tu_vrf
+        cooling_equipment << tu_vrf
+      end
+      unless cooling_equipment.empty?
+        return cooling_equipment
       end
       return nil
     end
     
     def self.existing_heating_equipment(model, runner, thermal_zone)
+      heating_equipment = []
       model.getAirLoopHVACs.each do |air_loop|
         air_loop.thermalZones.each do |thermalZone|
           next unless thermal_zone.handle.to_s == thermalZone.handle.to_s
@@ -671,7 +680,7 @@ class HVAC
             htg_coil = air_loop_unitary.heatingCoil.get              
             next unless ( clg_coil.to_CoilCoolingDXSingleSpeed.is_initialized and htg_coil.to_CoilHeatingDXSingleSpeed.is_initialized ) or ( clg_coil.to_CoilCoolingDXMultiSpeed.is_initialized and htg_coil.to_CoilHeatingDXMultiSpeed.is_initialized )
             runner.registerInfo("Found an air source heat pump.")
-            return air_loop_unitary
+            heating_equipment << air_loop_unitary
           end
         end
       end    
@@ -690,24 +699,27 @@ class HVAC
             elsif htg_coil.to_CoilHeatingElectric.is_initialized
               htg_coil = htg_coil.to_CoilHeatingElectric.get
             end
-            return htg_coil
+            heating_equipment << htg_coil
           end
         end
       end
       model.getZoneHVACBaseboardConvectiveWaters.each do |baseboard|
         next unless thermal_zone.handle.to_s == baseboard.thermalZone.get.handle.to_s
         runner.registerInfo("Found a boiler.")
-        return baseboard
+        heating_equipment << baseboard
       end
       model.getZoneHVACBaseboardConvectiveElectrics.each do |baseboard|
         next unless thermal_zone.handle.to_s == baseboard.thermalZone.get.handle.to_s
         runner.registerInfo("Found an electric baseboard.")
-        return baseboard
+        heating_equipment << baseboard
       end
       model.getZoneHVACTerminalUnitVariableRefrigerantFlows.each do |tu_vrf|
         next unless thermal_zone.handle.to_s == tu_vrf.thermalZone.get.handle.to_s
         runner.registerInfo("Found a mini-split heat pump.")
-        return tu_vrf
+        heating_equipment << tu_vrf
+      end
+      unless heating_equipment.empty?
+        return heating_equipment
       end
       return nil
     end    
@@ -927,10 +939,13 @@ class HVAC
       case new_equip
       when "Central Air Conditioner"
         removed_ashp = self.has_air_source_heat_pump(model, runner, thermal_zone, true)
-        removed_mshp = self.has_mini_split_heat_pump(model, runner, thermal_zone, true)      
+        removed_mshp = self.has_mini_split_heat_pump(model, runner, thermal_zone, true)
         counterpart_equip = self.has_furnace(model, runner, thermal_zone)
         removed_ac = self.has_central_air_conditioner(model, runner, thermal_zone, true)
         removed_room_ac = self.has_room_air_conditioner(model, runner, thermal_zone, true)
+        if removed_mshp
+          removed_elec_baseboard = self.has_electric_baseboard(model, runner, thermal_zone, true)
+        end
         if counterpart_equip or removed_ac or removed_ashp or removed_mshp
           self.has_air_loop(model, runner, thermal_zone, true)
         end
@@ -939,6 +954,9 @@ class HVAC
         removed_mshp = self.has_mini_split_heat_pump(model, runner, thermal_zone, true)      
         removed_room_ac = self.has_room_air_conditioner(model, runner, thermal_zone, true)
         removed_ac = self.has_central_air_conditioner(model, runner, thermal_zone, true)
+        if removed_mshp
+          removed_elec_baseboard = self.has_electric_baseboard(model, runner, thermal_zone, true)
+        end        
         if removed_ac or removed_ashp or removed_mshp
           self.has_air_loop(model, runner, thermal_zone, true)
         end

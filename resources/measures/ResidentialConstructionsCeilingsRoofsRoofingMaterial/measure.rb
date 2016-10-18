@@ -34,9 +34,9 @@ class ProcessConstructionsCeilingsRoofsRoofingMaterial < OpenStudio::Ruleset::Mo
 	args << solar_abs
 
     #make a double argument for emissivity
-	emiss = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("emiss", true)
+	emiss = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("emissivity", true)
 	emiss.setDisplayName("Emissivity")
-	emiss.setDescription("Measure of the exterior finish's ability to emit infrared energy.")
+	emiss.setDescription("Measure of the material's ability to emit infrared energy.")
 	emiss.setDefaultValue(0.91)
 	args << emiss
     
@@ -68,7 +68,7 @@ class ProcessConstructionsCeilingsRoofsRoofingMaterial < OpenStudio::Ruleset::Mo
     
     # Get inputs
     solar_abs = runner.getDoubleArgumentValue("solar_abs",user_arguments)
-    emiss = runner.getDoubleArgumentValue("emiss",user_arguments)
+    emiss = runner.getDoubleArgumentValue("emissivity",user_arguments)
     
     # Validate inputs
     if solar_abs < 0.0 or solar_abs > 1.0
@@ -76,7 +76,7 @@ class ProcessConstructionsCeilingsRoofsRoofingMaterial < OpenStudio::Ruleset::Mo
         return false
     end
     if emiss < 0.0 or emiss > 1.0
-        runner.registerError("Emissivity must be greater than 0.")
+        runner.registerError("Emissivity must be greater than or equal to 0 and less than or equal to 1.")
         return false
     end
 

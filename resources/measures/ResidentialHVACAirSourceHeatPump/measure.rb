@@ -242,10 +242,10 @@ class ProcessAirSourceHeatPump < OpenStudio::Ruleset::ModelUserScript
     end
 
     #make a string argument for ashp cooling/heating output capacity
-    selected_hpcap = OpenStudio::Ruleset::OSArgument::makeChoiceArgument("selectedhpcap", cap_display_names, true)
-    selected_hpcap.setDisplayName("Cooling/Heating Output Capacity")
-    selected_hpcap.setDefaultValue(Constants.SizingAuto)
-    args << selected_hpcap
+    hpcap = OpenStudio::Ruleset::OSArgument::makeChoiceArgument("hpcap", cap_display_names, true)
+    hpcap.setDisplayName("Cooling/Heating Output Capacity")
+    hpcap.setDefaultValue(Constants.SizingAuto)
+    args << hpcap
 
     #make a choice argument for supplemental heating output capacity
     cap_display_names = OpenStudio::StringVector.new
@@ -255,10 +255,10 @@ class ProcessAirSourceHeatPump < OpenStudio::Ruleset::ModelUserScript
     end
 
     #make a string argument for supplemental heating output capacity
-    selected_supcap = OpenStudio::Ruleset::OSArgument::makeChoiceArgument("selectedsupcap", cap_display_names, true)
-    selected_supcap.setDisplayName("Supplemental Heating Output Capacity")
-    selected_supcap.setDefaultValue(Constants.SizingAuto)
-    args << selected_supcap 
+    supcap = OpenStudio::Ruleset::OSArgument::makeChoiceArgument("supcap", cap_display_names, true)
+    supcap.setDisplayName("Supplemental Heating Output Capacity")
+    supcap.setDefaultValue(Constants.SizingAuto)
+    args << supcap 
     
     return args
   end #end the arguments method
@@ -300,11 +300,11 @@ class ProcessAirSourceHeatPump < OpenStudio::Ruleset::ModelUserScript
     hpCOPCapacityDerateFactor4ton = runner.getDoubleArgumentValue("ashpCOPCapacityDerateFactor4ton",user_arguments)
     hpCOPCapacityDerateFactor5ton = runner.getDoubleArgumentValue("ashpCOPCapacityDerateFactor5ton",user_arguments)
     hpCOPCapacityDerateFactor = [hpCOPCapacityDerateFactor1ton, hpCOPCapacityDerateFactor2ton, hpCOPCapacityDerateFactor3ton, hpCOPCapacityDerateFactor4ton, hpCOPCapacityDerateFactor5ton]
-    hpOutputCapacity = runner.getStringArgumentValue("selectedhpcap",user_arguments)
+    hpOutputCapacity = runner.getStringArgumentValue("hpcap",user_arguments)
     unless hpOutputCapacity == Constants.SizingAuto
       hpOutputCapacity = OpenStudio::convert(hpOutputCapacity.split(" ")[0].to_f,"ton","Btu/h").get
     end
-    supplementalOutputCapacity = runner.getStringArgumentValue("selectedsupcap",user_arguments)
+    supplementalOutputCapacity = runner.getStringArgumentValue("supcap",user_arguments)
     unless supplementalOutputCapacity == Constants.SizingAuto
       supplementalOutputCapacity = OpenStudio::convert(supplementalOutputCapacity.split(" ")[0].to_f,"kBtu/h","Btu/h").get
     end   
@@ -366,16 +366,17 @@ class ProcessAirSourceHeatPump < OpenStudio::Ruleset::ModelUserScript
     # Remove boiler hot water loop if it exists
     HVAC.remove_hot_water_loop(model, runner)    
     
-    num_units = Geometry.get_num_units(model, runner)
-    if num_units.nil?
+    # Get building units
+    units = Geometry.get_building_units(model, runner)
+    if units.nil?
         return false
     end
     
-    (1..num_units).to_a.each do |unit_num|
-      _nbeds, _nbaths, unit_spaces = Geometry.get_unit_beds_baths_spaces(model, unit_num, runner)
-      thermal_zones = Geometry.get_thermal_zones_from_spaces(unit_spaces)
+    units.each do |unit|
+      unit_num = Geometry.get_unit_number(model, unit, runner)
+      thermal_zones = Geometry.get_thermal_zones_from_spaces(unit.spaces)
       if thermal_zones.length > 1
-        runner.registerInfo("Unit #{unit_num} spans more than one thermal zone.")
+        runner.registerInfo("#{unit.name.to_s} spans more than one thermal zone.")
       end
       control_slave_zones_hash = HVAC.get_control_and_slave_zones(thermal_zones)
       control_slave_zones_hash.each do |control_zone, slave_zones|
@@ -395,6 +396,7 @@ class ProcessAirSourceHeatPump < OpenStudio::Ruleset::ModelUserScript
           htg_coil.setName("DX Heating Coil")
           if hpOutputCapacity != Constants.SizingAuto
             htg_coil.setRatedTotalHeatingCapacity(OpenStudio::convert(hpOutputCapacity,"Btu/h","W").get)
+            htg_coil.setRatedAirFlowRate(supply.CFM_TON_Rated_Heat[0] * hpOutputCapacity * OpenStudio::convert(1.0,"Btu/h","ton").get * OpenStudio::convert(1.0,"cfm","m^3/s").get)
           end
           htg_coil.setRatedCOP(1.0 / supply.HeatingEIR[0])
           # self.addline(units.cfm2m3_s(sim.supply.Heat_AirFlowRate),'Rated Air Flow Rate {m^3/s}')
@@ -447,8 +449,6 @@ class ProcessAirSourceHeatPump < OpenStudio::Ruleset::ModelUserScript
           clg_coil.setName("DX Cooling Coil")
           if hpOutputCapacity != Constants.SizingAuto
             clg_coil.setRatedTotalCoolingCapacity(OpenStudio::convert(hpOutputCapacity,"Btu/h","W").get)
-          end
-          if hpOutputCapacity != Constants.SizingAuto
             clg_coil.setRatedSensibleHeatRatio(supply.SHR_Rated[0])
             clg_coil.setRatedAirFlowRate(supply.CFM_TON_Rated[0] * hpOutputCapacity * OpenStudio::convert(1.0,"Btu/h","ton").get * OpenStudio::convert(1.0,"cfm","m^3/s").get)
           end
@@ -540,7 +540,7 @@ class ProcessAirSourceHeatPump < OpenStudio::Ruleset::ModelUserScript
         air_loop.addBranchForZone(control_zone, diffuser_living.to_StraightComponent)
 
         air_loop.addBranchForZone(control_zone)
-        runner.registerInfo("Added air loop '#{air_loop.name}' to thermal zone '#{control_zone.name}' of unit #{unit_num}")
+        runner.registerInfo("Added air loop '#{air_loop.name}' to thermal zone '#{control_zone.name}' of #{unit.name.to_s}")
 
         slave_zones.each do |slave_zone|
 
@@ -553,7 +553,7 @@ class ProcessAirSourceHeatPump < OpenStudio::Ruleset::ModelUserScript
           air_loop.addBranchForZone(slave_zone, diffuser_fbsmt.to_StraightComponent)
 
           air_loop.addBranchForZone(slave_zone)
-          runner.registerInfo("Added air loop '#{air_loop.name}' to thermal zone '#{slave_zone.name}' of unit #{unit_num}")
+          runner.registerInfo("Added air loop '#{air_loop.name}' to thermal zone '#{slave_zone.name}' of #{unit.name.to_s}")
 
         end    
       

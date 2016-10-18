@@ -27,7 +27,7 @@ class ProcessConstructionsWallsExteriorWoodStud < OpenStudio::Ruleset::ModelUser
     args = OpenStudio::Ruleset::OSArgumentVector.new
 
     #make a double argument for R-value of installed cavity insulation
-    userdefined_instcavr = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("userdefinedinstcavr", true)
+    userdefined_instcavr = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("cavity_r", true)
     userdefined_instcavr.setDisplayName("Cavity Insulation Installed R-value")
     userdefined_instcavr.setUnits("hr-ft^2-R/Btu")
     userdefined_instcavr.setDescription("Refers to the R-value of the cavity insulation and not the overall R-value of the assembly. If batt insulation must be compressed to fit within the cavity (e.g., R19 in a 5.5\" 2x6 cavity), use an R-value that accounts for this effect (see HUD Mobile Home Construction and Safety Standards 3280.509 for reference).")
@@ -41,14 +41,14 @@ class ProcessConstructionsWallsExteriorWoodStud < OpenStudio::Ruleset::ModelUser
     installgrade_display_names << "III"
     
     #make a choice argument for wall cavity insulation installation grade
-    selected_installgrade = OpenStudio::Ruleset::OSArgument::makeChoiceArgument("selectedinstallgrade", installgrade_display_names, true)
+    selected_installgrade = OpenStudio::Ruleset::OSArgument::makeChoiceArgument("install_grade", installgrade_display_names, true)
     selected_installgrade.setDisplayName("Cavity Install Grade")
     selected_installgrade.setDescription("Installation grade as defined by RESNET standard. 5% of the cavity is considered missing insulation for Grade 3, 2% for Grade 2, and 0% for Grade 1.")
     selected_installgrade.setDefaultValue("I")
     args << selected_installgrade
 
     #make a double argument for wall cavity depth
-    selected_cavdepth = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("selectedcavitydepth", true)
+    selected_cavdepth = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("cavity_depth", true)
     selected_cavdepth.setDisplayName("Cavity Depth")
     selected_cavdepth.setUnits("in")
     selected_cavdepth.setDescription("Depth of the stud cavity. 3.5\" for 2x4s, 5.5\" for 2x6s, etc.")
@@ -56,14 +56,14 @@ class ProcessConstructionsWallsExteriorWoodStud < OpenStudio::Ruleset::ModelUser
     args << selected_cavdepth
     
     #make a bool argument for whether the cavity insulation fills the cavity
-    selected_insfills = OpenStudio::Ruleset::OSArgument::makeBoolArgument("selectedinsfills", true)
+    selected_insfills = OpenStudio::Ruleset::OSArgument::makeBoolArgument("ins_fills_cavity", true)
     selected_insfills.setDisplayName("Insulation Fills Cavity")
     selected_insfills.setDescription("When the insulation does not completely fill the depth of the cavity, air film resistances are added to the insulation R-value.")
     selected_insfills.setDefaultValue(true)
     args << selected_insfills
 
     #make a double argument for framing factor
-    selected_ffactor = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("selectedffactor", true)
+    selected_ffactor = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("framing_factor", true)
     selected_ffactor.setDisplayName("Framing Factor")
     selected_ffactor.setUnits("frac")
     selected_ffactor.setDescription("The fraction of a wall assembly that is comprised of structural framing.")
@@ -101,11 +101,11 @@ class ProcessConstructionsWallsExteriorWoodStud < OpenStudio::Ruleset::ModelUser
     end 
     
     # Get inputs
-    wsWallCavityInsRvalueInstalled = runner.getDoubleArgumentValue("userdefinedinstcavr",user_arguments)
-    wsWallInstallGrade = {"I"=>1, "II"=>2, "III"=>3}[runner.getStringArgumentValue("selectedinstallgrade",user_arguments)]
-    wsWallCavityDepth = runner.getDoubleArgumentValue("selectedcavitydepth",user_arguments)
-    wsWallCavityInsFillsCavity = runner.getBoolArgumentValue("selectedinsfills",user_arguments)
-    wsWallFramingFactor = runner.getDoubleArgumentValue("selectedffactor",user_arguments)
+    wsWallCavityInsRvalueInstalled = runner.getDoubleArgumentValue("cavity_r",user_arguments)
+    wsWallInstallGrade = {"I"=>1, "II"=>2, "III"=>3}[runner.getStringArgumentValue("install_grade",user_arguments)]
+    wsWallCavityDepth = runner.getDoubleArgumentValue("cavity_depth",user_arguments)
+    wsWallCavityInsFillsCavity = runner.getBoolArgumentValue("ins_fills_cavity",user_arguments)
+    wsWallFramingFactor = runner.getDoubleArgumentValue("framing_factor",user_arguments)
     
     # Validate inputs
     if wsWallCavityInsRvalueInstalled < 0.0

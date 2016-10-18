@@ -719,9 +719,16 @@ class CreateResidentialSingleFamilyDetachedGeometry < OpenStudio::Ruleset::Model
       end
     end
     
-    # Store dwelling unit information (for consistency with multifamily buildings)
+    # Store building unit information
+    unit = OpenStudio::Model::BuildingUnit.new(model)
+    unit.setBuildingUnitType(Constants.BuildingUnitTypeResidential)
+    unit.setName(Constants.ObjectNameBuildingUnit)
+    model.getSpaces.each do |space|
+        space.setBuildingUnit(unit)
+    end
+    
+    # Store number of units
     model.getBuilding.setStandardsNumberOfLivingUnits(1)
-    Geometry.set_unit_beds_baths_spaces(model, 1, model.getSpaces)
   
     # reporting final condition of model
     runner.registerFinalCondition("The building finished with #{model.getSpaces.size} spaces.")

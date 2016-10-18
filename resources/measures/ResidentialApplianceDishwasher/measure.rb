@@ -178,9 +178,9 @@ class ResidentialDishwasher < OpenStudio::Ruleset::ModelUserScript
 		return false
 	end
     
-    # Get number of units
-    num_units = Geometry.get_num_units(model, runner)
-    if num_units.nil?
+    # Get building units
+    units = Geometry.get_building_units(model, runner)
+    if units.nil?
         return false
     end
     
@@ -205,25 +205,19 @@ class ResidentialDishwasher < OpenStudio::Ruleset::ModelUserScript
 
     tot_dw_ann = 0
     msgs = []
-    (1..num_units).to_a.each do |unit_num|
-    
-        # Get unit beds/baths/spaces
-        nbeds, nbaths, unit_spaces = Geometry.get_unit_beds_baths_spaces(model, unit_num, runner)
-        if unit_spaces.nil?
-            runner.registerError("Could not determine the spaces associated with unit #{unit_num}.")
-            return false
-        end
+    units.each do |unit|
+        # Get unit beds/baths
+        nbeds, nbaths = Geometry.get_unit_beds_baths(model, unit, runner)
         if nbeds.nil? or nbaths.nil?
-            runner.registerError("Could not determine number of bedrooms or bathrooms. Run the 'Add Residential Bedrooms And Bathrooms' measure first.")
             return false
         end
         
         # Get space
-        space = Geometry.get_space_from_string(unit_spaces, space_r)
+        space = Geometry.get_space_from_string(unit.spaces, space_r)
         next if space.nil?
 
         #Get plant loop
-        plant_loop = Waterheater.get_plant_loop_from_string(model.getPlantLoops, plant_loop_s, unit_spaces, runner)
+        plant_loop = Waterheater.get_plant_loop_from_string(model.getPlantLoops, plant_loop_s, unit.spaces, runner)
         if plant_loop.nil?
             return false
         end
@@ -234,7 +228,7 @@ class ResidentialDishwasher < OpenStudio::Ruleset::ModelUserScript
             return false
         end
 
-        obj_name = Constants.ObjectNameDishwasher(unit_num)
+        obj_name = Constants.ObjectNameDishwasher(unit.name.to_s)
 
         # Remove any existing dishwasher
         dw_removed = false
@@ -477,7 +471,7 @@ class ResidentialDishwasher < OpenStudio::Ruleset::ModelUserScript
         msgs.each do |msg|
             runner.registerInfo(msg)
         end
-        runner.registerFinalCondition("The building has been assigned dishwashers totaling #{tot_dw_ann.round} kWhs annual energy consumption across #{num_units} units.")
+        runner.registerFinalCondition("The building has been assigned dishwashers totaling #{tot_dw_ann.round} kWhs annual energy consumption across #{units.size} units.")
     elsif msgs.size == 1
         runner.registerFinalCondition(msgs[0])
     else

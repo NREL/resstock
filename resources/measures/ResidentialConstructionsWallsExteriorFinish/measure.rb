@@ -35,7 +35,7 @@ class ProcessConstructionsWallsExteriorFinish < OpenStudio::Ruleset::ModelUserSc
 	args << solar_abs
 
 	#make a double argument for conductivity
-	cond = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("cond", true)
+	cond = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("conductivity", true)
 	cond.setDisplayName("Conductivity")
     cond.setUnits("Btu-in/h-ft^2-R")
 	cond.setDescription("Conductivity of the exterior finish assembly.")
@@ -43,7 +43,7 @@ class ProcessConstructionsWallsExteriorFinish < OpenStudio::Ruleset::ModelUserSc
 	args << cond
 
 	#make a double argument for density
-	dens = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("dens", true)
+	dens = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("density", true)
 	dens.setDisplayName("Density")
     dens.setUnits("lb/ft^3")
 	dens.setDescription("Density of the exterior finish assembly.")
@@ -51,7 +51,7 @@ class ProcessConstructionsWallsExteriorFinish < OpenStudio::Ruleset::ModelUserSc
 	args << dens
 
     #make a double argument for specific heat
-	specheat = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("specheat", true)
+	specheat = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("specific_heat", true)
 	specheat.setDisplayName("Specific Heat")
     specheat.setUnits("Btu/lb-R")
 	specheat.setDescription("Specific heat of the exterior finish assembly.")
@@ -67,9 +67,9 @@ class ProcessConstructionsWallsExteriorFinish < OpenStudio::Ruleset::ModelUserSc
 	args << thick_in
 
     #make a double argument for emissivity
-	emiss = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("emiss", true)
+	emiss = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("emissivity", true)
 	emiss.setDisplayName("Emissivity")
-	emiss.setDescription("Measure of the exterior finish's ability to emit infrared energy.")
+	emiss.setDescription("Measure of the material's ability to emit infrared energy.")
 	emiss.setDefaultValue(0.9)
 	args << emiss
     
@@ -102,11 +102,11 @@ class ProcessConstructionsWallsExteriorFinish < OpenStudio::Ruleset::ModelUserSc
     
     # Get inputs
     solar_abs = runner.getDoubleArgumentValue("solar_abs",user_arguments)
-    cond = runner.getDoubleArgumentValue("cond",user_arguments)
-    dens = runner.getDoubleArgumentValue("dens",user_arguments)
-    specheat = runner.getDoubleArgumentValue("specheat",user_arguments)
+    cond = runner.getDoubleArgumentValue("conductivity",user_arguments)
+    dens = runner.getDoubleArgumentValue("density",user_arguments)
+    specheat = runner.getDoubleArgumentValue("specific_heat",user_arguments)
     thick_in = runner.getDoubleArgumentValue("thick_in",user_arguments)
-    emiss = runner.getDoubleArgumentValue("emiss",user_arguments)
+    emiss = runner.getDoubleArgumentValue("emissivity",user_arguments)
     
     # Validate inputs
     if solar_abs < 0.0 or solar_abs > 1.0
@@ -130,7 +130,7 @@ class ProcessConstructionsWallsExteriorFinish < OpenStudio::Ruleset::ModelUserSc
         return false
     end
     if emiss < 0.0 or emiss > 1.0
-        runner.registerError("Emissivity must be greater than 0.")
+        runner.registerError("Emissivity must be greater than or equal to 0 and less than or equal to 1.")
         return false
     end
 

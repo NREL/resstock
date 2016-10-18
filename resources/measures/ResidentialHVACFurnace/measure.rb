@@ -149,16 +149,17 @@ class ProcessFurnace < OpenStudio::Ruleset::ModelUserScript
     # Remove boiler hot water loop if it exists
     HVAC.remove_hot_water_loop(model, runner)    
 
-    num_units = Geometry.get_num_units(model, runner)
-    if num_units.nil?
+    # Get building units
+    units = Geometry.get_building_units(model, runner)
+    if units.nil?
         return false
-    end    
+    end
     
-    (1..num_units).to_a.each do |unit_num|
-      _nbeds, _nbaths, unit_spaces = Geometry.get_unit_beds_baths_spaces(model, unit_num, runner)
-      thermal_zones = Geometry.get_thermal_zones_from_spaces(unit_spaces)
+    units.each do |unit|
+      unit_num = Geometry.get_unit_number(model, unit, runner)
+      thermal_zones = Geometry.get_thermal_zones_from_spaces(unit.spaces)
       if thermal_zones.length > 1
-        runner.registerInfo("Unit #{unit_num} spans more than one thermal zone.")
+        runner.registerInfo("#{unit.name.to_s} spans more than one thermal zone.")
       end
       control_slave_zones_hash = HVAC.get_control_and_slave_zones(thermal_zones)
       control_slave_zones_hash.each do |control_zone, slave_zones|
@@ -260,7 +261,7 @@ class ProcessFurnace < OpenStudio::Ruleset::ModelUserScript
         air_loop.addBranchForZone(control_zone, diffuser_living.to_StraightComponent)
 
         air_loop.addBranchForZone(control_zone)
-        runner.registerInfo("Added air loop '#{air_loop.name}' to thermal zone '#{control_zone.name}' of unit #{unit_num}")
+        runner.registerInfo("Added air loop '#{air_loop.name}' to thermal zone '#{control_zone.name}' of unit #{unit.name.to_s}")
       
         slave_zones.each do |slave_zone|
         
@@ -274,7 +275,7 @@ class ProcessFurnace < OpenStudio::Ruleset::ModelUserScript
           air_loop.addBranchForZone(slave_zone, diffuser_fbsmt.to_StraightComponent)
 
           air_loop.addBranchForZone(slave_zone)
-          runner.registerInfo("Added air loop '#{air_loop.name}' to thermal zone '#{slave_zone.name}' of unit #{unit_num}")
+          runner.registerInfo("Added air loop '#{air_loop.name}' to thermal zone '#{slave_zone.name}' of unit #{unit.name.to_s}")
         
         end    
       

@@ -8,7 +8,7 @@ class HelperMethods
         !!Float(str) rescue false
     end
     
-    def self.remove_object_from_idf_based_on_name(workspace, name_s, object_s, runner=nil)
+    def self.remove_object_from_idf_based_on_name(workspace, name_s, object_s, runner=nil) # TODO: remove after testing new airflow measure
       workspace.getObjectsByType(object_s.to_IddObjectType).each do |str|
         n = str.getString(0).to_s
         name_s.each do |name|
@@ -22,6 +22,15 @@ class HelperMethods
         end
       end
       return workspace
+    end    
+    
+    def self.remove_object_from_osm_based_on_name(model, object_type, names)
+      model.send("get#{object_type}s").each do |object|
+        names.each do |name|
+          next unless object.name.to_s.downcase.include? name.downcase
+          object.remove
+        end
+      end
     end
     
     def self.eplus_fuel_map(fuel)
@@ -449,7 +458,7 @@ class Material
     
     def self.DefaultExteriorFinish
         thick_in = 0.375
-        return self.new(name=Constants.MaterialWallExtFinish, thick_in=thick_in, mat_base=nil, k_in=thick_in/0.6, rho=11.1, cp=0.25, tAbs=0.9, sAbs=0.3, vAbs=0.3)
+        return self.new(name=Constants.MaterialWallExtFinish, thick_in=thick_in, mat_base=nil, k_in=thick_in/0.605, rho=11.1, cp=0.25, tAbs=0.9, sAbs=0.3, vAbs=0.3)
     end
     
     def self.DefaultFloorCovering
@@ -578,17 +587,30 @@ class Construction
         @remove_materials << name
     end
     
-    def print_layers(runner)
+    def print_layers(runner=nil)
+        infos = []
         @path_fracs.each do |path_frac|
-            runner.registerInfo("path_frac: #{path_frac.round(5).to_s}")
+            infos << "path_frac: #{path_frac.round(5).to_s}"
         end
-        runner.registerInfo("======")
-        @layers_materials.each do |layer_materials|
-            runner.registerInfo("layer thick: #{OpenStudio::convert(layer_materials[0].thick_in,"in","ft").get.round(5).to_s}")
-            layer_materials.each do |mat|
-                runner.registerInfo("layer cond:  #{OpenStudio::convert(mat.k_in,"in","ft").get.round(5).to_s}")
+        infos << "======"
+        @layers_materials.each_with_index do |layer_materials, idx|
+            if @layers_names[idx].nil?
+                infos << "layer name: #{layer_materials[0].name.to_s}"
+            else
+                infos << "layer name: #{@layers_names[idx]}"
             end
-            runner.registerInfo("------")
+            infos << "layer thick: #{OpenStudio::convert(layer_materials[0].thick_in,"in","ft").get.round(5).to_s}"
+            layer_materials.each do |mat|
+                infos << "layer cond:  #{OpenStudio::convert(mat.k_in,"in","ft").get.round(5).to_s}"
+            end
+            infos << "------"
+        end
+        infos.each do |i|
+            if !runner.nil?
+                runner.registerInfo(i)
+            else
+                puts i
+            end
         end
     end
     
@@ -630,7 +652,7 @@ class Construction
         
         materials = construct_materials(model, runner)
         
-        if materials.size == 0
+        if materials.size == 0 and @remove_materials.size == 0
             return true
         end
         
@@ -780,32 +802,29 @@ class Construction
             r_overall = assembly_rvalue(runner)
             
             # Calculate individual R-values for each layer
-            # Also calculate sum of R-values for individual parallel path layers
-            sum_r_parallels = 0
+            sum_r_all_layers = 0
+            sum_r_parallel_layers = 0
             layer_rvalues = []
             @layers_materials.each do |layer_materials|
-                r_path = 0
-                layer_materials.each do |layer_material|
-                    r_path += layer_material.thick / layer_material.k
+                u_path = 0
+                layer_materials.each_with_index do |layer_material, idx|
+                    if layer_materials.size > 1
+                        u_path += @path_fracs[idx] / (layer_material.thick / layer_material.k)
+                    else
+                        u_path += 1.0 / (layer_material.thick / layer_material.k)
+                    end
                 end
+                r_path = 1.0 / u_path
                 layer_rvalues << r_path
+                sum_r_all_layers += r_path
                 if layer_materials.size > 1
-                    sum_r_parallels += r_path
-                end
-            end
-            
-            # Subtract out series layers to calculate R-value across all parallel 
-            # path layers
-            r_parallel = r_overall
-            @layers_materials.each_with_index do |layer_materials,layer_num|
-                if layer_materials.size == 1
-                    r_parallel -= layer_rvalues[layer_num]
+                    sum_r_parallel_layers += r_path
                 end
             end
             
             # Material R-value
             # Apportion R-value to the current parallel path layer
-            mat.rvalue = layer_rvalues[curr_layer_num] / sum_r_parallels * r_parallel
+            mat.rvalue = layer_rvalues[curr_layer_num] + (r_overall - sum_r_all_layers) * layer_rvalues[curr_layer_num] / sum_r_parallel_layers
             
             # Material thickness and conductivity
             mat.thick_in = curr_layer_materials[0].thick_in # All paths have equal thickness
@@ -955,7 +974,7 @@ class Construction
         # Returns a boolean denoting whether the execution was successful
         def create_and_assign_construction(surface, materials, runner, model, name)
         
-            if materials.size == 0
+            if materials.size == 0 and @remove_materials.size == 0
                 return true
             end
         
@@ -1148,7 +1167,7 @@ class Construction
                 model.getMasslessOpaqueMaterials.each do |mat|
                     next if mat.name.to_s != name.to_s
                     next if mat.roughness.downcase.to_s != "rough"
-                    next if (mat.thermalResistance - OpenStudio::convert(material.rvalue,"hr*ft^2*R/Btu","m^2*K/W").get) > tolerance
+                    next if (mat.thermalResistance - OpenStudio::convert(material.rvalue,"hr*ft^2*R/Btu","m^2*K/W").get).abs > tolerance
                     return mat
                 end
                 # New material
@@ -1160,8 +1179,8 @@ class Construction
                 # Material already exists?
                 model.getSimpleGlazings.each do |mat|
                     next if mat.name.to_s != name.to_s
-                    next if (mat.uFactor - material.ufactor) > tolerance
-                    next if (mat.solarHeatGainCoefficient - material.shgc) > tolerance
+                    next if (mat.uFactor - material.ufactor).abs > tolerance
+                    next if (mat.solarHeatGainCoefficient - material.shgc).abs > tolerance
                     return mat
                 end
                 # New material
@@ -1174,13 +1193,13 @@ class Construction
                 model.getStandardOpaqueMaterials.each do |mat|
                     next if mat.name.to_s != name.to_s
                     next if mat.roughness.downcase.to_s != "rough"
-                    next if (mat.thickness - OpenStudio::convert(material.thick_in,"in","m").get) > tolerance
-                    next if (mat.conductivity - OpenStudio::convert(material.k,"Btu/hr*ft*R","W/m*K").get) > tolerance
-                    next if (mat.density - OpenStudio::convert(material.rho,"lb/ft^3","kg/m^3").get) > tolerance
-                    next if (mat.specificHeat - OpenStudio::convert(material.cp,"Btu/lb*R","J/kg*K").get) > tolerance
-                    next if not material.tAbs.nil? and (mat.thermalAbsorptance - material.tAbs) > tolerance
-                    next if not material.sAbs.nil? and (mat.solarAbsorptance - material.sAbs) > tolerance
-                    next if not material.vAbs.nil? and (mat.visibleAbsorptance - material.vAbs) > tolerance
+                    next if (mat.thickness - OpenStudio::convert(material.thick_in,"in","m").get).abs > tolerance
+                    next if (mat.conductivity - OpenStudio::convert(material.k,"Btu/hr*ft*R","W/m*K").get).abs > tolerance
+                    next if (mat.density - OpenStudio::convert(material.rho,"lb/ft^3","kg/m^3").get).abs > tolerance
+                    next if (mat.specificHeat - OpenStudio::convert(material.cp,"Btu/lb*R","J/kg*K").get).abs > tolerance
+                    next if not material.tAbs.nil? and (mat.thermalAbsorptance - material.tAbs).abs > tolerance
+                    next if not material.sAbs.nil? and (mat.solarAbsorptance - material.sAbs).abs > tolerance
+                    next if not material.vAbs.nil? and (mat.visibleAbsorptance - material.vAbs).abs > tolerance
                     return mat
                 end
                 # New material

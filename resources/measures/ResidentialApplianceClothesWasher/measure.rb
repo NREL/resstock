@@ -194,9 +194,9 @@ class ResidentialClothesWasher < OpenStudio::Ruleset::ModelUserScript
         return false
 	end
     
-    # Get number of units
-    num_units = Geometry.get_num_units(model, runner)
-    if num_units.nil?
+    # Get building units
+    units = Geometry.get_building_units(model, runner)
+    if units.nil?
         return false
     end
 
@@ -220,25 +220,19 @@ class ResidentialClothesWasher < OpenStudio::Ruleset::ModelUserScript
     end
     
     msgs = []
-    (1..num_units).to_a.each do |unit_num|
-    
-        # Get unit beds/baths/spaces
-        nbeds, nbaths, unit_spaces = Geometry.get_unit_beds_baths_spaces(model, unit_num, runner)
-        if unit_spaces.nil?
-            runner.registerError("Could not determine the spaces associated with unit #{unit_num}.")
-            return false
-        end
+    units.each do |unit|
+        # Get unit beds/baths
+        nbeds, nbaths = Geometry.get_unit_beds_baths(model, unit, runner)
         if nbeds.nil? or nbaths.nil?
-            runner.registerError("Could not determine number of bedrooms or bathrooms. Run the 'Add Residential Bedrooms And Bathrooms' measure first.")
             return false
         end
         
         # Get space
-        space = Geometry.get_space_from_string(unit_spaces, space_r)
+        space = Geometry.get_space_from_string(unit.spaces, space_r)
         next if space.nil?
 
         #Get plant loop
-        plant_loop = Waterheater.get_plant_loop_from_string(model.getPlantLoops, plant_loop_s, unit_spaces, runner)
+        plant_loop = Waterheater.get_plant_loop_from_string(model.getPlantLoops, plant_loop_s, unit.spaces, runner)
         if plant_loop.nil?
             return false
         end
@@ -249,22 +243,38 @@ class ResidentialClothesWasher < OpenStudio::Ruleset::ModelUserScript
             return false
         end
 
-        obj_name = Constants.ObjectNameClothesWasher(unit_num)
+        obj_name = Constants.ObjectNameClothesWasher(unit.name.to_s)
 
         # Remove any existing clothes washer
-        cw_removed = false
+        objects_to_remove = []
         space.electricEquipment.each do |space_equipment|
             next if space_equipment.name.to_s != obj_name
-            space_equipment.remove
-            cw_removed = true
+            objects_to_remove << space_equipment
+            objects_to_remove << space_equipment.electricEquipmentDefinition
+            if space_equipment.schedule.is_initialized
+                objects_to_remove << space_equipment.schedule.get
+            end
         end
         space.waterUseEquipment.each do |space_equipment|
             next if space_equipment.name.to_s != obj_name
-            space_equipment.remove
-            cw_removed = true
+            objects_to_remove << space_equipment
+            objects_to_remove << space_equipment.waterUseEquipmentDefinition
+            if space_equipment.flowRateFractionSchedule.is_initialized
+                objects_to_remove << space_equipment.flowRateFractionSchedule.get
+            end
+            if space_equipment.waterUseEquipmentDefinition.targetTemperatureSchedule.is_initialized
+                objects_to_remove << space_equipment.waterUseEquipmentDefinition.targetTemperatureSchedule.get
+            end
         end
-        if cw_removed
+        if objects_to_remove.size > 0
             runner.registerInfo("Removed existing clothes washer from space #{space.name.to_s}.")
+        end
+        objects_to_remove.uniq.each do |object|
+            begin
+                object.remove
+            rescue
+                # no op
+            end
         end
         
         # Use EnergyGuide Label test data to calculate per-cycle energy and water consumption.
@@ -581,7 +591,7 @@ class ResidentialClothesWasher < OpenStudio::Ruleset::ModelUserScript
         msgs.each do |msg|
             runner.registerInfo(msg)
         end
-        runner.registerFinalCondition("The building has been assigned clothes washers totaling #{tot_cw_ann_e.round} kWhs annual energy consumption across #{num_units} units.")
+        runner.registerFinalCondition("The building has been assigned clothes washers totaling #{tot_cw_ann_e.round} kWhs annual energy consumption across #{units.size} units.")
     elsif msgs.size == 1
         runner.registerFinalCondition(msgs[0])
     else
