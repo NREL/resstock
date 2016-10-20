@@ -247,14 +247,12 @@ def assign_size(df):
                 return '1500-2499'
             elif size >= 2500 and size < 3500:
                 return '2500-3499'
-            elif size >= 3500 and size < 4500:
-                return '3500-4499'
             else:
-                assert size >= 4500
-                return '4500+'
+                assert size >= 3500
+                return '3500+'
         
     df['Dependency=Geometry House Size'] = df.apply(lambda x: size(x.object.sfmasterhousegeometry), axis=1)
-    df = df.dropna(subset=['Dependency=Geometry House Size'])    
+    df = df.dropna(subset=['Dependency=Geometry House Size'])
 
     return df
 
@@ -263,8 +261,8 @@ def assign_stories(df):
     storieskey = {'1': '1',
                   '1.5': '2',
                   '2': '2',
-                  '2.5': '3+',
-                  '3+': '3+'}
+                  '2.5': '2+',
+                  '3+': '2+'}
         
     df['Dependency=Stories'] = df.apply(lambda x: storieskey[x.object.sfmasterhousegeometry.sffloors], axis=1)
     df = df.dropna(subset=['Dependency=Stories'])

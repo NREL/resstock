@@ -430,7 +430,7 @@ class Create_DFs():
         df, cols = util.categories_to_columns(df, 'Dependency=Stories')
         df = df.groupby(['Dependency=Vintage', 'Dependency=Geometry House Size', 'Dependency=Geometry Foundation Type'])
         missing_groups = []
-        for group in itertools.product(*[['<1950', '1950s', '1960s', '1970s', '1980s', '1990s', '2000s'], ['0-1499', '1500-2499', '2500-3499', '3500-4499', '4500+'], ['Crawl', 'Heated Basement', 'Slab', 'Unheated Basement']]):
+        for group in itertools.product(*[['<1950', '1950s', '1960s', '1970s', '1980s', '1990s', '2000s'], ['0-1499', '1500-2499', '2500-3499', '3500+'], ['Crawl', 'Heated Basement', 'Slab', 'Unheated Basement']]):
             if not group in list(df.groups):
                 missing_groups.append(dict(zip(['Dependency=Vintage', 'Dependency=Geometry House Size', 'Dependency=Geometry Foundation Type'], group)))          
         count = df.agg(['count']).ix[:, 0]
@@ -829,7 +829,7 @@ class Create_DFs():
         df, cols = util.categories_to_columns(df, 'inf')
         df = df.groupby(['Dependency=Vintage', 'Dependency=Geometry House Size'])
         missing_groups = []
-        for group in itertools.product(*[['<1950', '1950s', '1960s', '1970s', '1980s', '1990s', '2000s'], ['0-1499', '1500-2499', '2500-3499', '3500-4499', '4500+']]):
+        for group in itertools.product(*[['<1950', '1950s', '1960s', '1970s', '1980s', '1990s', '2000s'], ['0-1499', '1500-2499', '2500-3499', '3500+']]):
             if not group in list(df.groups):
                 missing_groups.append(dict(zip(['Dependency=Vintage', 'Dependency=Geometry House Size'], group)))         
         count = df.agg(['count']).ix[:, 0]
@@ -1059,6 +1059,115 @@ class Create_DFs():
         df = df.sort_values(by=['Dependency=Geometry Foundation Type', 'Dependency=Vintage']).set_index(['Dependency=Geometry Foundation Type', 'Dependency=Vintage'])
         return df
     
+    def ducts_analysis(self):
+        df = util.create_dataframe(self.session, rdb)
+        df = util.assign_climate_zones(df)
+        df = util.assign_state(df)
+        df = util.assign_location(df)        
+        df = util.assign_vintage(df)
+        
+        sfductsRval = {'R0': 0,
+                       'R2-R4': 3,
+                       'R7-R11': 9,
+                       'R4 Flex': 4,
+                       'R6 Flex': 6,
+                       'R8 Flex': 8,
+                       'R0 Metal; R4 Flex': 2,
+                       'R0 Metal; R6 Flex': 3,
+                       'R0 Metal; R8 Flex': 4,
+                       'R2-R4 Metal; R4 Flex': 3.5,
+                       'R2-R4 Metal; R6 Flex': 4.5,
+                       'R2-R4 Metal; R8 Flex': 5.5,
+                       'R7-R11 Metal; R4 Flex': 6.5,
+                       'R7-R11 Metal; R6 Flex': 7.5,
+                       'R7-R11 Metal; R8 Flex': 8.5,
+                       '1" Ductboard': 4,
+                       '2" Ductboard': 8,
+                       '1" Ductboard; R4 Flex': 4,
+                       '1" Ductboard; R6 Flex': 5,
+                       '1" Ductboard; R8 Flex': 6,
+                       '2" Ductboard; R4 Flex': 6,
+                       '2" Ductboard; R6 Flex': 7}
+    
+        def ductrval(sfducts):
+            if len(sfducts) == 0:
+                return np.nan
+            for ducts in sfducts:
+                if ducts.ductinsulationtype:
+                    return sfductsRval[ducts.ductinsulationtype]
+                else:
+                    return np.nan
+                    
+        def ductrvalbin(rval):
+            if rval < 2:
+                return 'Very low'
+            elif rval >= 2 and rval < 4:
+                return 'Low'
+            elif rval >= 4 and rval < 6:
+                return 'Medium'
+            elif rval >= 6 and rval < 8:
+                return 'High'
+            elif rval >= 8 and rval:
+                return 'Very high'                
+                    
+        sfductsincond = {0: 'None',
+                         25: 'Partial',
+                         50: 'Partial',
+                         75: 'Partial',
+                         100: 'All'}
+    
+        def ductincond(sfducts):
+            if len(sfducts) == 0:
+                return np.nan
+            for ducts in sfducts:
+                if ducts.ductsinconditioned:
+                    return sfductsincond[ducts.ductsinconditioned]
+                else:
+                    return np.nan                    
+                    
+        def ductleak(sfducttesting_dbase):
+            if len(sfducttesting_dbase) == 0:
+                return np.nan
+            for ducts in sfducttesting_dbase:
+                if ducts.slfhalfplen and ducts.rlfhalfplen:
+                    return ducts.slfhalfplen + ducts.rlfhalfplen
+                else:
+                    return np.nan
+                    
+        df['ductrval'] = df.apply(lambda x: ductrval(x.object.sfducts), axis=1)
+        df['ductrvalbin'] = df.apply(lambda x: ductrvalbin(x.ductrval), axis=1)
+        df['ductincond'] = df.apply(lambda x: ductincond(x.object.sfducts), axis=1)
+        df['ductleak'] = df.apply(lambda x: ductleak(x.object.sfducttestingdbase), axis=1)
+        
+        df_duct_r_val = df.dropna(subset=['ductrval'])
+        df_duct_leakage_test_performed = df_duct_r_val.dropna(subset=['ductleak'])
+        ax = sns.kdeplot(df_duct_r_val['ductrval'], label='all insulation values')
+        ax = sns.kdeplot(df_duct_leakage_test_performed['ductrval'], label='insulation values with leakage test')
+        ax.set(xlabel='r-value', ylabel='density')
+        plt.legend()
+        plt.savefig('test1.png')
+        plt.close()
+        
+        ax = sns.kdeplot(df_duct_leakage_test_performed[df_duct_leakage_test_performed['ductrvalbin']=='Very low']['ductleak'], label='Very low ins')
+        ax = sns.kdeplot(df_duct_leakage_test_performed[df_duct_leakage_test_performed['ductrvalbin']=='Low']['ductleak'], label='Low ins')
+        ax = sns.kdeplot(df_duct_leakage_test_performed[df_duct_leakage_test_performed['ductrvalbin']=='Medium']['ductleak'], label='Medium ins')
+        ax = sns.kdeplot(df_duct_leakage_test_performed[df_duct_leakage_test_performed['ductrvalbin']=='High']['ductleak'], label='High ins')
+        ax = sns.kdeplot(df_duct_leakage_test_performed[df_duct_leakage_test_performed['ductrvalbin']=='Very high']['ductleak'], label='Very high ins')
+        ax.set(xlabel='leak frac', ylabel='density')
+        plt.legend()
+        plt.savefig('test2.png')
+        plt.close()
+        
+        ax = sns.regplot(x=df_duct_leakage_test_performed['ductrval'], y=df_duct_leakage_test_performed['ductleak'], color="g")
+        ax.set(xlabel='r-val', ylabel='leak frac')
+        plt.legend()
+        plt.savefig('test3.png')
+        plt.close()              
+        
+        df[['Dependency=Location Region', 'Dependency=Vintage', 'ductrval', 'ductrvalbin', 'ductincond', 'ductleak']].to_csv(os.path.join(datafiles_dir, 'Ducts Analysis.tsv'), sep='\t')
+        
+        sys.exit()
+    
     def water_heater(self):
         df = util.create_dataframe(self.session, rdb)
         df = util.assign_heating_fuel(df)
@@ -1241,7 +1350,7 @@ def to_figure(df, file):
     ax = sns.heatmap(df, annot=True, annot_kws={'size': 10}, fmt='.2f')
     plt.savefig(file)
     plt.close()
-
+    
 def add_option_prefix(df):
     for col in df.columns:
         if not 'Dependency=' in col and not 'Count' in col and not 'Weight' in col and not 'group' in col:
@@ -1258,8 +1367,8 @@ if __name__ == '__main__':
     
     dfs = Create_DFs('rbsa.sqlite')
     
-    #for category in ['Location Region', 'Vintage', 'Heating Fuel', 'Geometry Foundation Type', 'Geometry House Size', 'Geometry Stories', 'Insulation Unfinished Attic', 'Insulation Wall', 'Heating Setpoint', 'Cooling Setpoint', 'Insulation Slab', 'Insulation Crawlspace', 'Insulation Unfinished Basement', 'Insulation Finished Basement', 'Insulation Interzonal Floor', 'Windows', 'Infiltration', 'HVAC System Combined', 'HVAC System Heating', 'HVAC System Cooling', 'HVAC System Is Combined', 'Ducts', 'Water Heater', 'Lighting', 'Cooking Range', 'Clothes Dryer', 'Insulation Wall H1', 'Insulation Wall H2', 'Insulation Wall H3', 'Insulation Unfinished Attic H1', 'Insulation Unfinished Attic H2', 'Insulation Unfinished Attic H3', 'Windows H1', 'Windows H2', 'Windows H3']:
-    for category in ['Electricity Consumption Location', 'Electricity Consumption Vintage', 'Electricity Consumption Location Vintage', 'Natural Gas Consumption Location', 'Natural Gas Consumption Vintage', 'Natural Gas Consumption Location Vintage']:
+    # for category in ['Location Region', 'Vintage', 'Heating Fuel', 'Geometry Foundation Type', 'Geometry House Size', 'Geometry Stories', 'Insulation Unfinished Attic', 'Insulation Wall', 'Heating Setpoint', 'Cooling Setpoint', 'Insulation Slab', 'Insulation Crawlspace', 'Insulation Unfinished Basement', 'Insulation Finished Basement', 'Insulation Interzonal Floor', 'Windows', 'Infiltration', 'HVAC System Combined', 'HVAC System Heating', 'HVAC System Cooling', 'HVAC System Is Combined', 'Ducts', 'Water Heater', 'Lighting', 'Cooking Range', 'Clothes Dryer', 'Insulation Wall H1', 'Insulation Wall H2', 'Insulation Wall H3', 'Insulation Unfinished Attic H1', 'Insulation Unfinished Attic H2', 'Insulation Unfinished Attic H3', 'Windows H1', 'Windows H2', 'Windows H3']:
+    for category in ['Geometry Stories', 'Geometry House Size']:
         print category
         method = getattr(dfs, category.lower().replace(' ', '_'))
         df = method()
