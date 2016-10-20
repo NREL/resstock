@@ -74,14 +74,8 @@ def assign_location(df):
     def location(h, c, st):
         h = float(h)
         c = float(c)
-        if h==1 and c==1 and st=='OR':
-            return 'H1C1 OR'
-        elif h==1 and c==1 and st=='WA':
-            return 'H1C1 WA'
-        elif h==1 and c==2:
-            return 'H1C2'
-        elif h==1 and c==3:
-            return 'H1C3'
+        if h==1:
+            return 'H1'
         elif h==2:
             return 'H2'
         elif h==3:

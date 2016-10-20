@@ -35,7 +35,7 @@ class Create_DFs():
         df['Count'] = count
         df['Weight'] = weight
         df = add_option_prefix(df)
-        df = df.reset_index().set_index('Option=H1C1 OR')
+        df = df.reset_index().set_index('Option=H1')
         del df['group']
         return df
     
@@ -66,7 +66,7 @@ class Create_DFs():
         df, cols = util.categories_to_columns(df, 'Dependency=Heating Fuel')      
         df = df.groupby(['Dependency=Location Region', 'Dependency=Vintage'])
         missing_groups = []
-        for group in itertools.product(*[['H1C1 OR', 'H1C1 WA', 'H1C2', 'H1C3', 'H2', 'H3'], ['<1950', '1950s', '1960s', '1970s', '1980s', '1990s', '2000s']]):
+        for group in itertools.product(*[['H1', 'H2', 'H3'], ['<1950', '1950s', '1960s', '1970s', '1980s', '1990s', '2000s']]):
             if not group in list(df.groups):
                 missing_groups.append(dict(zip(['Dependency=Location Region', 'Dependency=Vintage'], group)))
         count = df.agg(['count']).ix[:, 0]
@@ -99,7 +99,7 @@ class Create_DFs():
         df, cols = util.categories_to_columns(df, 'rval')
         df = df.groupby(['Dependency=Location Region', 'Dependency=Vintage'])
         missing_groups = []
-        for group in itertools.product(*[['H1C1 OR', 'H1C1 WA', 'H1C2', 'H1C3', 'H2', 'H3'], ['<1950', '1950s', '1960s', '1970s', '1980s', '1990s', '2000s']]):
+        for group in itertools.product(*[['H1', 'H2', 'H3'], ['<1950', '1950s', '1960s', '1970s', '1980s', '1990s', '2000s']]):
             if not group in list(df.groups):
                 missing_groups.append(dict(zip(['Dependency=Location Region', 'Dependency=Vintage'], group)))        
         count = df.agg(['count']).ix[:, 0]
@@ -232,7 +232,7 @@ class Create_DFs():
         df, cols = util.categories_to_columns(df, 'rval')   
         df = df.groupby(['Dependency=Location Region', 'Dependency=Vintage'])
         missing_groups = []
-        for group in itertools.product(*[['H1C1 OR', 'H1C1 WA', 'H1C2', 'H1C3', 'H2', 'H3'], ['<1950', '1950s', '1960s', '1970s', '1980s', '1990s', '2000s']]):
+        for group in itertools.product(*[['H1', 'H2', 'H3'], ['<1950', '1950s', '1960s', '1970s', '1980s', '1990s', '2000s']]):
             if not group in list(df.groups):
                 missing_groups.append(dict(zip(['Dependency=Location Region', 'Dependency=Vintage'], group)))        
         count = df.agg(['count']).ix[:, 0]
@@ -364,7 +364,7 @@ class Create_DFs():
         df, cols = util.categories_to_columns(df, 'Dependency=Geometry Foundation Type')
         df = df.groupby(['Dependency=Location Region', 'Dependency=Vintage'])
         missing_groups = []
-        for group in itertools.product(*[['H1C1 OR', 'H1C1 WA', 'H1C2', 'H1C3', 'H2', 'H3'], ['<1950', '1950s', '1960s', '1970s', '1980s', '1990s', '2000s']]):
+        for group in itertools.product(*[['H1', 'H2', 'H3'], ['<1950', '1950s', '1960s', '1970s', '1980s', '1990s', '2000s']]):
             if not group in list(df.groups):
                 missing_groups.append(dict(zip(['Dependency=Location Region', 'Dependency=Vintage'], group)))          
         count = df.agg(['count']).ix[:, 0]
@@ -396,7 +396,7 @@ class Create_DFs():
         df, cols = util.categories_to_columns(df, 'Dependency=Geometry House Size')
         df = df.groupby(['Dependency=Location Region', 'Dependency=Vintage'])
         missing_groups = []
-        for group in itertools.product(*[['H1C1 OR', 'H1C1 WA', 'H1C2', 'H1C3', 'H2', 'H3'], ['<1950', '1950s', '1960s', '1970s', '1980s', '1990s', '2000s']]):
+        for group in itertools.product(*[['H1', 'H2', 'H3'], ['<1950', '1950s', '1960s', '1970s', '1980s', '1990s', '2000s']]):
             if not group in list(df.groups):
                 missing_groups.append(dict(zip(['Dependency=Location Region', 'Dependency=Vintage'], group)))        
         count = df.agg(['count']).ix[:, 0]
@@ -495,7 +495,7 @@ class Create_DFs():
         df, cols = util.categories_to_columns(df, 'rval')
         df = df.groupby(['Dependency=Location Region', 'Dependency=Vintage', 'Dependency=Geometry Foundation Type'])
         missing_groups = []
-        for group in itertools.product(*[['H1C1 OR', 'H1C1 WA', 'H1C2', 'H1C3', 'H2', 'H3'], ['<1950', '1950s', '1960s', '1970s', '1980s', '1990s', '2000s'], ['Crawl', 'Heated Basement', 'Slab', 'Unheated Basement']]):
+        for group in itertools.product(*[['H1', 'H2', 'H3'], ['<1950', '1950s', '1960s', '1970s', '1980s', '1990s', '2000s'], ['Crawl', 'Heated Basement', 'Slab', 'Unheated Basement']]):
             if not group in list(df.groups):
                 missing_groups.append(dict(zip(['Dependency=Location Region', 'Dependency=Vintage', 'Dependency=Geometry Foundation Type'], group)))        
         count = df.agg(['count']).ix[:, 0]
@@ -538,7 +538,7 @@ class Create_DFs():
         df, cols = util.categories_to_columns(df, 'rval')      
         df = df.groupby(['Dependency=Location Region', 'Dependency=Vintage', 'Dependency=Geometry Foundation Type'])
         missing_groups = []
-        for group in itertools.product(*[['H1C1 OR', 'H1C1 WA', 'H1C2', 'H1C3', 'H2', 'H3'], ['<1950', '1950s', '1960s', '1970s', '1980s', '1990s', '2000s'], ['Crawl', 'Heated Basement', 'Slab', 'Unheated Basement']]):
+        for group in itertools.product(*[['H1', 'H2', 'H3'], ['<1950', '1950s', '1960s', '1970s', '1980s', '1990s', '2000s'], ['Crawl', 'Heated Basement', 'Slab', 'Unheated Basement']]):
             if not group in list(df.groups):
                 missing_groups.append(dict(zip(['Dependency=Location Region', 'Dependency=Vintage', 'Dependency=Geometry Foundation Type'], group)))         
         count = df.agg(['count']).ix[:, 0]
@@ -581,7 +581,7 @@ class Create_DFs():
         df, cols = util.categories_to_columns(df, 'rval')
         df = df.groupby(['Dependency=Location Region', 'Dependency=Vintage', 'Dependency=Geometry Foundation Type'])
         missing_groups = []
-        for group in itertools.product(*[['H1C1 OR', 'H1C1 WA', 'H1C2', 'H1C3', 'H2', 'H3'], ['<1950', '1950s', '1960s', '1970s', '1980s', '1990s', '2000s'], ['Crawl', 'Heated Basement', 'Slab', 'Unheated Basement']]):
+        for group in itertools.product(*[['H1', 'H2', 'H3'], ['<1950', '1950s', '1960s', '1970s', '1980s', '1990s', '2000s'], ['Crawl', 'Heated Basement', 'Slab', 'Unheated Basement']]):
             if not group in list(df.groups):
                 missing_groups.append(dict(zip(['Dependency=Location Region', 'Dependency=Vintage', 'Dependency=Geometry Foundation Type'], group)))
         count = df.agg(['count']).ix[:, 0]
@@ -624,7 +624,7 @@ class Create_DFs():
         df, cols = util.categories_to_columns(df, 'rval')            
         df = df.groupby(['Dependency=Location Region', 'Dependency=Vintage', 'Dependency=Geometry Foundation Type'])
         missing_groups = []
-        for group in itertools.product(*[['H1C1 OR', 'H1C1 WA', 'H1C2', 'H1C3', 'H2', 'H3'], ['<1950', '1950s', '1960s', '1970s', '1980s', '1990s', '2000s'], ['Crawl', 'Heated Basement', 'Slab', 'Unheated Basement']]):
+        for group in itertools.product(*[['H1', 'H2', 'H3'], ['<1950', '1950s', '1960s', '1970s', '1980s', '1990s', '2000s'], ['Crawl', 'Heated Basement', 'Slab', 'Unheated Basement']]):
             if not group in list(df.groups):
                 missing_groups.append(dict(zip(['Dependency=Location Region', 'Dependency=Vintage', 'Dependency=Geometry Foundation Type'], group)))
         count = df.agg(['count']).ix[:, 0]
@@ -666,7 +666,7 @@ class Create_DFs():
         df, cols = util.categories_to_columns(df, 'rval')
         df = df.groupby(['Dependency=Location Region', 'Dependency=Vintage'])
         missing_groups = []
-        for group in itertools.product(*[['H1C1 OR', 'H1C1 WA', 'H1C2', 'H1C3', 'H2', 'H3'], ['<1950', '1950s', '1960s', '1970s', '1980s', '1990s', '2000s']]):
+        for group in itertools.product(*[['H1', 'H2', 'H3'], ['<1950', '1950s', '1960s', '1970s', '1980s', '1990s', '2000s']]):
             if not group in list(df.groups):
                 missing_groups.append(dict(zip(['Dependency=Location Region', 'Dependency=Vintage'], group)))        
         count = df.agg(['count']).ix[:, 0]
@@ -699,7 +699,7 @@ class Create_DFs():
         df, cols = util.categories_to_columns(df, 'rval')
         df = df.groupby(['Dependency=Location Region', 'Dependency=Vintage'])
         missing_groups = []
-        for group in itertools.product(*[['H1C1 OR', 'H1C1 WA', 'H1C2', 'H1C3', 'H2', 'H3'], ['<1950', '1950s', '1960s', '1970s', '1980s', '1990s', '2000s']]):
+        for group in itertools.product(*[['H1', 'H2', 'H3'], ['<1950', '1950s', '1960s', '1970s', '1980s', '1990s', '2000s']]):
             if not group in list(df.groups):
                 missing_groups.append(dict(zip(['Dependency=Location Region', 'Dependency=Vintage'], group)))         
         count = df.agg(['count']).ix[:, 0]
@@ -864,7 +864,7 @@ class Create_DFs():
         df, cols = util.categories_to_columns(df, 'htg_and_clg')
         df = df.groupby(['Dependency=Location Region', 'Dependency=Vintage', 'Dependency=Heating Fuel', 'Dependency=HVAC System Is Combined'])
         missing_groups = []
-        for group in itertools.product(*[['H1C1 OR', 'H1C1 WA', 'H1C2', 'H1C3', 'H2', 'H3'], ['<1950', '1950s', '1960s', '1970s', '1980s', '1990s', '2000s'], ['Electricity', 'Fuel Oil', 'Natural Gas', 'Propane/LPG', 'Wood'], ['Yes', 'No']]):
+        for group in itertools.product(*[['H1', 'H2', 'H3'], ['<1950', '1950s', '1960s', '1970s', '1980s', '1990s', '2000s'], ['Electricity', 'Fuel Oil', 'Natural Gas', 'Propane/LPG', 'Wood'], ['Yes', 'No']]):
             if not group in list(df.groups):
                 missing_groups.append(dict(zip(['Dependency=Location Region', 'Dependency=Vintage', 'Dependency=Heating Fuel', 'Dependency=HVAC System Is Combined'], group)))            
         count = df.agg(['count']).ix[:, 0]
@@ -907,7 +907,7 @@ class Create_DFs():
         df, cols = util.categories_to_columns(df, 'Dependency=HVAC System Is Combined')
         df = df.groupby(['Dependency=Location Region', 'Dependency=Vintage', 'Dependency=Heating Fuel'])
         missing_groups = []
-        for group in itertools.product(*[['H1C1 OR', 'H1C1 WA', 'H1C2', 'H1C3', 'H2', 'H3'], ['<1950', '1950s', '1960s', '1970s', '1980s', '1990s', '2000s'], ['Electricity', 'Fuel Oil', 'Natural Gas', 'Propane/LPG', 'Wood']]):
+        for group in itertools.product(*[['H1', 'H2', 'H3'], ['<1950', '1950s', '1960s', '1970s', '1980s', '1990s', '2000s'], ['Electricity', 'Fuel Oil', 'Natural Gas', 'Propane/LPG', 'Wood']]):
             if not group in list(df.groups):
                 missing_groups.append(dict(zip(['Dependency=Location Region', 'Dependency=Vintage', 'Dependency=Heating Fuel'], group)))
         count = df.agg(['count']).ix[:, 0]
@@ -948,7 +948,7 @@ class Create_DFs():
         df, cols = util.categories_to_columns(df, 'htg')
         df = df.groupby(['Dependency=Location Region', 'Dependency=Vintage', 'Dependency=Heating Fuel', 'Dependency=HVAC System Is Combined'])
         missing_groups = []
-        for group in itertools.product(*[['H1C1 OR', 'H1C1 WA', 'H1C2', 'H1C3', 'H2', 'H3'], ['<1950', '1950s', '1960s', '1970s', '1980s', '1990s', '2000s'], ['Electricity', 'Fuel Oil', 'Natural Gas', 'Propane/LPG', 'Wood'], ['Yes', 'No']]):
+        for group in itertools.product(*[['H1', 'H2', 'H3'], ['<1950', '1950s', '1960s', '1970s', '1980s', '1990s', '2000s'], ['Electricity', 'Fuel Oil', 'Natural Gas', 'Propane/LPG', 'Wood'], ['Yes', 'No']]):
             if not group in list(df.groups):
                 missing_groups.append(dict(zip(['Dependency=Location Region', 'Dependency=Vintage', 'Dependency=Heating Fuel', 'Dependency=HVAC System Is Combined'], group)))           
         count = df.agg(['count']).ix[:, 0]
@@ -993,7 +993,7 @@ class Create_DFs():
         df, cols = util.categories_to_columns(df, 'clg')
         df = df.groupby(['Dependency=Location Region', 'Dependency=Vintage', 'Dependency=Heating Fuel', 'Dependency=HVAC System Is Combined'])
         missing_groups = []
-        for group in itertools.product(*[['H1C1 OR', 'H1C1 WA', 'H1C2', 'H1C3', 'H2', 'H3'], ['<1950', '1950s', '1960s', '1970s', '1980s', '1990s', '2000s'], ['Electricity', 'Fuel Oil', 'Natural Gas', 'Propane/LPG', 'Wood'], ['Yes', 'No']]):
+        for group in itertools.product(*[['H1', 'H2', 'H3'], ['<1950', '1950s', '1960s', '1970s', '1980s', '1990s', '2000s'], ['Electricity', 'Fuel Oil', 'Natural Gas', 'Propane/LPG', 'Wood'], ['Yes', 'No']]):
             if not group in list(df.groups):
                 missing_groups.append(dict(zip(['Dependency=Location Region', 'Dependency=Vintage', 'Dependency=Heating Fuel', 'Dependency=HVAC System Is Combined'], group)))           
         count = df.agg(['count']).ix[:, 0]
@@ -1367,8 +1367,7 @@ if __name__ == '__main__':
     
     dfs = Create_DFs('rbsa.sqlite')
     
-    # for category in ['Location Region', 'Vintage', 'Heating Fuel', 'Geometry Foundation Type', 'Geometry House Size', 'Geometry Stories', 'Insulation Unfinished Attic', 'Insulation Wall', 'Heating Setpoint', 'Cooling Setpoint', 'Insulation Slab', 'Insulation Crawlspace', 'Insulation Unfinished Basement', 'Insulation Finished Basement', 'Insulation Interzonal Floor', 'Windows', 'Infiltration', 'HVAC System Combined', 'HVAC System Heating', 'HVAC System Cooling', 'HVAC System Is Combined', 'Ducts', 'Water Heater', 'Lighting', 'Cooking Range', 'Clothes Dryer', 'Insulation Wall H1', 'Insulation Wall H2', 'Insulation Wall H3', 'Insulation Unfinished Attic H1', 'Insulation Unfinished Attic H2', 'Insulation Unfinished Attic H3', 'Windows H1', 'Windows H2', 'Windows H3']:
-    for category in ['Geometry Stories', 'Geometry House Size']:
+    for category in ['Location Region', 'Vintage', 'Heating Fuel', 'Geometry Foundation Type', 'Geometry House Size', 'Geometry Stories', 'Insulation Unfinished Attic', 'Insulation Wall', 'Heating Setpoint', 'Cooling Setpoint', 'Insulation Slab', 'Insulation Crawlspace', 'Insulation Unfinished Basement', 'Insulation Finished Basement', 'Insulation Interzonal Floor', 'Windows', 'Infiltration', 'HVAC System Combined', 'HVAC System Heating', 'HVAC System Cooling', 'HVAC System Is Combined', 'Ducts', 'Water Heater', 'Lighting', 'Cooking Range', 'Clothes Dryer', 'Insulation Wall H1', 'Insulation Wall H2', 'Insulation Wall H3', 'Insulation Unfinished Attic H1', 'Insulation Unfinished Attic H2', 'Insulation Unfinished Attic H3', 'Windows H1', 'Windows H2', 'Windows H3']:
         print category
         method = getattr(dfs, category.lower().replace(' ', '_'))
         df = method()
