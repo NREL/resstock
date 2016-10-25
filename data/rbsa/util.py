@@ -1,8 +1,9 @@
 import pandas as pd
 import datetime as dt
-import numpy as np
 import csv
 import random
+import sqlite3
+import itertools
 
 def create_dataframe(session, rdb, only_single_family=True):
         
@@ -681,82 +682,142 @@ def assign_hvac_system_cooling(df):
     return df
 
 def assign_ducts(df):
-    
+    """
+    :param df: DataFrame of all RBSA homes to be used in calculations
+    :return: DataFrame containing probability distributions for Ducts
+
+    Ducts differ from other RBSA categories because leakage and insulation are in different DB tables and leakage values
+    are only available for a subset of ~250 homes. For this reason, we construct the probability distributions here in
+    entirely in util.py instead of in main.py. The probability distributions for duct location
+    (in conditioned space or not), duct leakage, and duct insulation are queried separately (with different dependencies)
+    and combined.
+    """
+
+    # Two bins: 'Uninsulated' and 'R-6'
     sfductsRval = {'R0': 'Uninsulated',
-                   'R2-R4': 'R-4',
-                   'R7-R11': 'R-8',
-                   'R4 Flex': 'R-4',
+                   'R2-R4': 'R-6',
+                   'R7-R11': 'R-6',
+                   'R4 Flex': 'R-6',
                    'R6 Flex': 'R-6',
-                   'R8 Flex': 'R-8',
-                   'R0 Metal; R4 Flex': 'R-4',
-                   'R0 Metal; R6 Flex': 'R-4',
-                   'R0 Metal; R8 Flex': 'R-4',
-                   'R2-R4 Metal; R4 Flex': 'R-4',
-                   'R2-R4 Metal; R6 Flex': 'R-4',
+                   'R8 Flex': 'R-6',
+                   'R0 Metal; R4 Flex': 'R-6',
+                   'R0 Metal; R6 Flex': 'R-6',
+                   'R0 Metal; R8 Flex': 'R-6',
+                   'R2-R4 Metal; R4 Flex': 'R-6',
+                   'R2-R4 Metal; R6 Flex': 'R-6',
                    'R2-R4 Metal; R8 Flex': 'R-6',
-                   'R7-R11 Metal; R4 Flex': 'R-8',
-                   'R7-R11 Metal; R6 Flex': 'R-8',
-                   'R7-R11 Metal; R8 Flex': 'R-8',
-                   '1" Ductboard': 'R-4',
-                   '2" Ductboard': 'R-8',
-                   '1" Ductboard; R4 Flex': 'R-4',
+                   'R7-R11 Metal; R4 Flex': 'R-6',
+                   'R7-R11 Metal; R6 Flex': 'R-6',
+                   'R7-R11 Metal; R8 Flex': 'R-6',
+                   '1" Ductboard': 'R-6',
+                   '2" Ductboard': 'R-6',
+                   '1" Ductboard; R4 Flex': 'R-6',
                    '1" Ductboard; R6 Flex': 'R-6',
-                   '1" Ductboard; R8 Flex': 'R-8',
-                   '2" Ductboard; R4 Flex': 'R-4',
+                   '1" Ductboard; R8 Flex': 'R-6',
+                   '2" Ductboard; R4 Flex': 'R-6',
                    '2" Ductboard; R6 Flex': 'R-6'}
-    
-    def ductrval(sfducts):
-        if len(sfducts) == 0:
-            pass
-        for ducts in sfducts:
-            if ducts.ductinsulationtype:
-                return sfductsRval[ducts.ductinsulationtype]
-            else:
-                return 'Uninsulated' # FIXME: Change to 'None'
-            
-    def ductleak(sfducttesting_dbase):
-        if len(sfducttesting_dbase) == 0:
-            return 'In Finished Space'
-        for ducts in sfducttesting_dbase:
-            if ducts.slfhalfplen or ducts.rlfhalfplen:
-                try:
-                    frac = (ducts.slfhalfplen + ducts.rlfhalfplen)
-                except: # FIXME: Incorrect assumption that NULL is zero
-                    try:
-                        frac = ducts.slfhalfplen
-                    except:
-                        try:
-                            frac = ducts.slfhalfplen
-                        except:
-                            pass
-                if frac < .0875:
-                    return '7.5% Leakage'
-                elif frac >= .0875 and frac < .125:
-                    return '10% Leakage'
-                elif frac >= .125 and frac < .175:
-                    return '15% Leakage'
-                elif frac >= .175 and frac < .25:
-                    return '20% Leakage'
-                elif frac >= .25:
-                    return '30% Leakage'
-            else:
-                return 'In Finished Space' # FIXME: Change to 'None'
-    
-    def ductname(rval, leak):
-        if rval == 'None':
-            return 'None'
-        elif not leak == 'In Finished Space':
-            return '{leak}, {rval}'.format(leak=leak, rval=rval)
-        else:
-            return 'In Finished Space' # FIXME: Change to 'None'
 
-    df['ductrval'] = df.apply(lambda x: ductrval(x.object.sfducts), axis=1)
-    df['ductleak'] = df.apply(lambda x: ductleak(x.object.sfducttestingdbase), axis=1)
-    df = df.dropna(subset=['ductleak'])
-    df['ducts'] = df.apply(lambda x: ductname(x['ductrval'], x['ductleak']), axis=1)
+    # Bins designed to be roughly equally weighted; could be improved with k-medoid clustering
+    leakage_map = {(0.00, 0.10): 0.06, # Min, Max, Mapped value
+                   (0.10, 0.20): 0.14,
+                   (0.20, 0.30): 0.24,
+                   (0.30, 0.40): 0.34,
+                   (0.40, 0.70): 0.53,
+                   (0.70, 9999): 0.85}
 
-    return df    
-    
+    con = sqlite3.connect('rbsa.sqlite')
+
+    # Weighting factors
+    fields = ['siteid', 'svy_wt']
+    df_wt = pd.read_sql("SELECT {} FROM SFMaster_populations".format(', '.join(fields)), con, index_col='siteid')
+
+    # Load general SFducts table
+    fields = ['siteid', 'DuctInsulationType', 'DuctsInConditioned', 'DuctsInUnconditioned', 'DuctsReturnInUnconditioned']
+    df_ducts = pd.read_sql("SELECT {} FROM SFducts".format(', '.join(fields)), con, index_col='siteid')
+    df_ducts = df_ducts.join(df_wt) # Join in weights
+
+    # Probability that ducts are in unconditioned space (depends on foundation type)
+    df_cond = pd.DataFrame((df_ducts['DuctsInConditioned'] == 100.0) & (df_ducts['DuctsReturnInUnconditioned'] == 0.0), columns=['InConditioned']) # Convert % values to True/False
+    df_cond = df_cond.join(df_wt)
+    depend1 = ['Dependency=Geometry Foundation Type'] # Dependency for 'InConditioned'
+    df_cond = df_cond.join(df[depend1]).dropna(subset=depend1)
+    df_cond = group_and_normalize(df_cond, 'InConditioned', depend=depend1)
+
+    # Probability of duct insulation level
+    df_ducts = df_ducts[((df_ducts['DuctsInConditioned'] < 100) & (df_ducts['DuctsReturnInUnconditioned'] > 0))]
+    df_ducts['DuctInsulationType'] = df_ducts['DuctInsulationType'].replace(sfductsRval) # Apply mapping
+    depend2 = ['Dependency=Vintage']
+    df_ducts = df_ducts.join(df[depend2]).dropna(subset=depend2)
+    df_ins = group_and_normalize(df_ducts, 'DuctInsulationType', depend=depend2)
+
+    # Load Duct Leakage Database Table
+    fields = ['siteid', 'slf_halfplen', 'rlf_halfplen', 'DB_MajorityReturnLocation', 'DB_MajoritySupplyLocation']
+    df_ductleakage = pd.read_sql("SELECT {} FROM SFducttesting_dbase".format(', '.join(fields)), con, index_col='siteid')
+
+    # Probability of duct leakage levels
+    df_ductleakage = df_ductleakage.dropna(subset=['slf_halfplen', 'rlf_halfplen']) # Drop rows with null leakage fractions. Usually means the duct blaster or flow rate test failed
+    df_ductleakage.loc[:, 'tlf_halfplen'] = df_ductleakage.loc[:, 'slf_halfplen'] + df_ductleakage.loc[:,'rlf_halfplen'] # Total = Supply + Return
+    df_ductleakage = df_ductleakage.join(df_wt)
+    # Bin leakage values using leakage map above
+    for (v_min, v_max), v_map in leakage_map.iteritems():
+        df_ductleakage.loc[(df_ductleakage['tlf_halfplen'] >= v_min) & (df_ductleakage['tlf_halfplen'] < v_max), 'tlf_bin'] = v_map
+    df_ductleakage = group_and_normalize(df_ductleakage, 'tlf_bin')
+
+    # Combine probability distributions
+    df_product = pd.DataFrame(columns=['option', depend1[0], depend2[0], 'value'])
+    for found_type in df_cond.index:
+        for vintage in df_ins.index:
+            df_product.loc[len(df_product.index)] = {'option': 'Option=In Finished Space',
+                                                     depend1[0]: found_type,
+                                                     depend2[0]: vintage,
+                                                     'value': df_cond.loc[found_type, True]}
+            for (ins_label, leak_label), (ins_value, leak_value) in zip(itertools.product(df_ins.loc[vintage].index, df_ductleakage.index), itertools.product(df_ins.loc[vintage], df_ductleakage)):
+                index = len(df_product.index)
+                df_product.loc[index, 'option'] = 'Option={f:.0f}% Leakage, {s}'.format(f=leak_label*100, s=ins_label)
+                df_product.loc[index, depend1[0]] = found_type
+                df_product.loc[index, depend2[0]] = vintage
+                df_product.loc[index, 'value'] = ins_value * leak_value * df_cond.loc[found_type, False]
+
+    # Clean up formatting
+    df_product = df_product.set_index([depend1[0],depend2[0], 'option']).unstack()
+    df_product.columns = df_product.columns.droplevel()
+
+    # Improve sort order
+    rval_sort_order = {'Uninsulated':0.1, 'R-6':0.2}
+    new_columns = ['Option=In Finished Space'] + sorted(df_product.columns[:-1], key=lambda x: float(x.split('=')[-1].split('%')[0]) + rval_sort_order[x.split(' ')[-1]])
+    df_product = df_product.reindex_axis(new_columns, axis=1)
+    df_product = df_product.reset_index()
+    df_product['Dependency=Vintage'] = pd.Categorical(df_product['Dependency=Vintage'], ['<1950', '1950s', '1960s', '1970s', '1980s', '1990s', '2000s'])
+    depend = ['Dependency=Geometry Foundation Type', 'Dependency=Vintage']
+    df_product = df_product.sort_values(by=depend)
+    df_product = df_product.set_index(depend)
+
+    return df_product
+
+def group_and_normalize(df, field, depend=None, weight_field='svy_wt'):
+    """
+    :param df: DataFrame to group and normalize
+    :param field: field to group by (i.e. the option)
+    :param depend: (optional) other field to group by (i.e. dependency)
+    :param weight_field: (optional) name of the columns containing weights
+    :return: DataFrame grouped and normalized to percent of row totals
+    """
+    if depend is None:
+        return df.groupby(field).sum()[weight_field] / df[weight_field].sum()
+    else:
+        df2 = df.groupby(depend + [field]).sum()[weight_field]
+        df2 = df2.unstack().fillna(0)
+        dfsum = df2.sum(axis=1)
+        for col in df2.columns:
+            df2[col] = df2[col] / dfsum
+        return df2
+
+def product_index(values, names=None):
+    """Make a MultiIndex from the combinatorial product of the values."""
+    iterable = itertools.product(*values)
+    idx = pd.MultiIndex.from_tuples(list(iterable), names=names)
+    return idx
+
 def assign_wh(df):
 
     fueltypekey = {'Electric': 'Electric',

@@ -1026,37 +1026,19 @@ class Create_DFs():
         return df
     
     def ducts(self):
+        """
+        Ducts differ from other RBSA categories because leakage and insulation are in different DB tables and leakage values
+        are only available for a subset of ~250 homes. For this reason, we construct the probability distributions here in
+        entirely in util.py instead of in main.py.
+        :return:
+        """
         df = util.create_dataframe(self.session, rdb)
         df = util.assign_climate_zones(df)
         df = util.assign_state(df)
-        df = util.assign_location(df)        
+        df = util.assign_location(df)
         df = util.assign_vintage(df)
         df = util.assign_foundation_type(df)        
         df = util.assign_ducts(df)
-        df, cols = util.categories_to_columns(df, 'ducts')
-        df = df.groupby(['Dependency=Geometry Foundation Type', 'Dependency=Vintage'])
-        missing_groups = []
-        for group in itertools.product(*[['Crawl', 'Heated Basement', 'Slab', 'Unheated Basement'], ['<1950', '1950s', '1960s', '1970s', '1980s', '1990s', '2000s']]):
-            if not group in list(df.groups):
-                missing_groups.append(dict(zip(['Dependency=Geometry Foundation Type', 'Dependency=Vintage'], group)))           
-        count = df.agg(['count']).ix[:, 0]
-        weight = df.agg(['sum'])['Weight']
-        df = util.sum_cols(df, cols)
-        df['Count'] = count
-        df['Weight'] = weight
-        columns = list(df.columns)
-        columns.remove('Count')
-        columns.remove('Weight')  
-        for group in missing_groups:
-            df_new = pd.DataFrame(data=dict(group.items() + dict(zip(columns, [1.0/len(columns)] * len(columns))).items()), index=[0]).set_index(['Dependency=Geometry Foundation Type', 'Dependency=Vintage'])
-            df_new['Count'] = 0
-            df_new['Weight'] = 0
-            df = df.append(df_new)
-        df = add_option_prefix(df)
-        df = df[['Option=7.5% Leakage, Uninsulated', 'Option=7.5% Leakage, R-4', 'Option=7.5% Leakage, R-6', 'Option=7.5% Leakage, R-8', 'Option=10% Leakage, Uninsulated', 'Option=10% Leakage, R-4', 'Option=10% Leakage, R-6', 'Option=10% Leakage, R-8', 'Option=15% Leakage, Uninsulated', 'Option=15% Leakage, R-4', 'Option=15% Leakage, R-6', 'Option=15% Leakage, R-8', 'Option=20% Leakage, Uninsulated', 'Option=20% Leakage, R-4', 'Option=20% Leakage, R-6', 'Option=20% Leakage, R-8', 'Option=30% Leakage, Uninsulated', 'Option=30% Leakage, R-4', 'Option=30% Leakage, R-6', 'Option=30% Leakage, R-8', 'Option=In Finished Space', 'Count', 'Weight']]
-        df = df.reset_index()
-        df['Dependency=Vintage'] = pd.Categorical(df['Dependency=Vintage'], ['<1950', '1950s', '1960s', '1970s', '1980s', '1990s', '2000s'])
-        df = df.sort_values(by=['Dependency=Geometry Foundation Type', 'Dependency=Vintage']).set_index(['Dependency=Geometry Foundation Type', 'Dependency=Vintage'])
         return df
     
     def ducts_analysis(self):
@@ -1364,7 +1346,7 @@ if __name__ == '__main__':
     
     datafiles_dir = '../../resources/inputs/pnw'
     heatmaps_dir = 'heatmaps'
-    
+
     dfs = Create_DFs('rbsa.sqlite')
     
     for category in ['Location Region', 'Vintage', 'Heating Fuel', 'Geometry Foundation Type', 'Geometry House Size', 'Geometry Stories', 'Insulation Unfinished Attic', 'Insulation Wall', 'Heating Setpoint', 'Cooling Setpoint', 'Insulation Slab', 'Insulation Crawlspace', 'Insulation Unfinished Basement', 'Insulation Finished Basement', 'Insulation Interzonal Floor', 'Windows', 'Infiltration', 'HVAC System Combined', 'HVAC System Heating', 'HVAC System Cooling', 'HVAC System Is Combined', 'Ducts', 'Water Heater', 'Lighting', 'Cooking Range', 'Clothes Dryer', 'Insulation Wall H1', 'Insulation Wall H2', 'Insulation Wall H3', 'Insulation Unfinished Attic H1', 'Insulation Unfinished Attic H2', 'Insulation Unfinished Attic H3', 'Windows H1', 'Windows H2', 'Windows H3']:
@@ -1372,8 +1354,8 @@ if __name__ == '__main__':
         method = getattr(dfs, category.lower().replace(' ', '_'))
         df = method()
         df.to_csv(os.path.join(datafiles_dir, '{}.tsv'.format(category)), sep='\t')
-        del df['Count']
-        del df['Weight']
+
+        for col in ['Count', 'Weight']:
+            if col in df.columns:
+                del df[col]
         to_figure(df, os.path.join(heatmaps_dir, '{}.png'.format(category)))
-  
-    
