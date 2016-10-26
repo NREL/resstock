@@ -164,6 +164,12 @@ class Constants
   def self.DDYClgWetbulb
     return 'Clg 1. Condns DB=>MWB'
   end
+  def self.EndUseHVACFan
+    return 'residential hvac fan'
+  end
+  def self.EndUseMechVentFan
+    return 'residential mech vent fan'
+  end
   def self.FacadeFront
     return 'Front'
   end

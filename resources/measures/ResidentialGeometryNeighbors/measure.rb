@@ -26,7 +26,7 @@ class CreateResidentialNeighbors < OpenStudio::Ruleset::ModelUserScript
     args = OpenStudio::Ruleset::OSArgumentVector.new
 	
     #make a double argument for left neighbor offset
-    left_neighbor_offset = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("left_neighbor_offset", false)
+    left_neighbor_offset = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("left_offset", false)
     left_neighbor_offset.setDisplayName("Left Neighbor Offset")
     left_neighbor_offset.setUnits("ft")
     left_neighbor_offset.setDescription("The minimum distance between the simulated house and the neighboring house to the left (not including eaves). A value of zero indicates no neighbors.")
@@ -34,7 +34,7 @@ class CreateResidentialNeighbors < OpenStudio::Ruleset::ModelUserScript
     args << left_neighbor_offset
 
     #make a double argument for right neighbor offset
-    right_neighbor_offset = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("right_neighbor_offset", false)
+    right_neighbor_offset = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("right_offset", false)
     right_neighbor_offset.setDisplayName("Right Neighbor Offset")
     right_neighbor_offset.setUnits("ft")
     right_neighbor_offset.setDescription("The minimum distance between the simulated house and the neighboring house to the right (not including eaves). A value of zero indicates no neighbors.")
@@ -42,7 +42,7 @@ class CreateResidentialNeighbors < OpenStudio::Ruleset::ModelUserScript
     args << right_neighbor_offset
 	
     #make a double argument for back neighbor offset
-    back_neighbor_offset = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("back_neighbor_offset", false)
+    back_neighbor_offset = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("back_offset", false)
     back_neighbor_offset.setDisplayName("Back Neighbor Offset")
     back_neighbor_offset.setUnits("ft")
     back_neighbor_offset.setDescription("The minimum distance between the simulated house and the neighboring house to the back (not including eaves). A value of zero indicates no neighbors.")
@@ -50,7 +50,7 @@ class CreateResidentialNeighbors < OpenStudio::Ruleset::ModelUserScript
     args << back_neighbor_offset
 
     #make a double argument for front neighbor offset
-    front_neighbor_offset = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("front_neighbor_offset", false)
+    front_neighbor_offset = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("front_offset", false)
     front_neighbor_offset.setDisplayName("Front Neighbor Offset")
     front_neighbor_offset.setUnits("ft")
     front_neighbor_offset.setDescription("The minimum distance between the simulated house and the neighboring house to the front (not including eaves). A value of zero indicates no neighbors.")
@@ -76,10 +76,10 @@ class CreateResidentialNeighbors < OpenStudio::Ruleset::ModelUserScript
       return false
     end
 	
-    left_neighbor_offset = OpenStudio::convert(runner.getDoubleArgumentValue("left_neighbor_offset",user_arguments),"ft","m").get
-    right_neighbor_offset = OpenStudio::convert(runner.getDoubleArgumentValue("right_neighbor_offset",user_arguments),"ft","m").get
-    back_neighbor_offset = OpenStudio::convert(runner.getDoubleArgumentValue("back_neighbor_offset",user_arguments),"ft","m").get
-    front_neighbor_offset = OpenStudio::convert(runner.getDoubleArgumentValue("front_neighbor_offset",user_arguments),"ft","m").get
+    left_neighbor_offset = OpenStudio::convert(runner.getDoubleArgumentValue("left_offset",user_arguments),"ft","m").get
+    right_neighbor_offset = OpenStudio::convert(runner.getDoubleArgumentValue("right_offset",user_arguments),"ft","m").get
+    back_neighbor_offset = OpenStudio::convert(runner.getDoubleArgumentValue("back_offset",user_arguments),"ft","m").get
+    front_neighbor_offset = OpenStudio::convert(runner.getDoubleArgumentValue("front_offset",user_arguments),"ft","m").get
     all_surfaces = runner.getBoolArgumentValue("all_surfaces",user_arguments)
 	
     if left_neighbor_offset < 0 or right_neighbor_offset < 0 or back_neighbor_offset < 0 or front_neighbor_offset < 0

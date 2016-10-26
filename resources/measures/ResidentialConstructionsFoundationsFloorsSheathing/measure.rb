@@ -36,12 +36,12 @@ class ProcessConstructionsFoundationsFloorsSheathing < OpenStudio::Ruleset::Mode
 	args << osb_thick_in
     
 	#make a double argument for Rigid Insulation R-value
-	rigid_rvalue = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("rigid_rvalue",true)
-	rigid_rvalue.setDisplayName("Continuous Insulation Nominal R-value")
-    rigid_rvalue.setUnits("h-ft^2-R/Btu")
-    rigid_rvalue.setDescription("The R-value of the continuous insulation.")
-	rigid_rvalue.setDefaultValue(0.0)
-	args << rigid_rvalue
+	rigid_r = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("rigid_r",true)
+	rigid_r.setDisplayName("Continuous Insulation Nominal R-value")
+    rigid_r.setUnits("h-ft^2-R/Btu")
+    rigid_r.setDescription("The R-value of the continuous insulation.")
+	rigid_r.setDefaultValue(0.0)
+	args << rigid_r
 
 	#make a double argument for Rigid Insulation Thickness
 	rigid_thick_in = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("rigid_thick_in",true)
@@ -82,7 +82,7 @@ class ProcessConstructionsFoundationsFloorsSheathing < OpenStudio::Ruleset::Mode
 
     # Get inputs
     osb_thick_in = runner.getDoubleArgumentValue("osb_thick_in",user_arguments)
-    rigid_rvalue = runner.getDoubleArgumentValue("rigid_rvalue",user_arguments)
+    rigid_rvalue = runner.getDoubleArgumentValue("rigid_r",user_arguments)
     rigid_thick_in = runner.getDoubleArgumentValue("rigid_thick_in",user_arguments)
 
     # Validate inputs

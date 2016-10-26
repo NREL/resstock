@@ -125,14 +125,24 @@ class ResidentialWellPump < OpenStudio::Ruleset::ModelUserScript
         unit_obj_name = Constants.ObjectNameWellPump(unit.name.to_s)
     
         # Remove any existing well pump
-        wp_removed = false
+        objects_to_remove = []
         space.electricEquipment.each do |space_equipment|
             next if space_equipment.name.to_s != unit_obj_name
-            space_equipment.remove
-            wp_removed = true
+            objects_to_remove << space_equipment
+            objects_to_remove << space_equipment.electricEquipmentDefinition
+            if space_equipment.schedule.is_initialized
+                objects_to_remove << space_equipment.schedule.get
+            end
         end
-        if wp_removed
+        if objects_to_remove.size > 0
             runner.registerInfo("Removed existing well pump from outside.")
+        end
+        objects_to_remove.uniq.each do |object|
+            begin
+                object.remove
+            rescue
+                # no op
+            end
         end
     
         #Calculate annual energy use
@@ -164,6 +174,7 @@ class ResidentialWellPump < OpenStudio::Ruleset::ModelUserScript
             wp_def = OpenStudio::Model::ElectricEquipmentDefinition.new(model)
             wp = OpenStudio::Model::ElectricEquipment.new(wp_def)
             wp.setName(unit_obj_name)
+            wp.setEndUseSubcategory(unit_obj_name)
             wp.setSpace(space)
             wp_def.setName(unit_obj_name)
             wp_def.setDesignLevel(design_level)

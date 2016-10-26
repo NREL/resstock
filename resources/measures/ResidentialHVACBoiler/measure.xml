@@ -2,8 +2,8 @@
   <schema_version>3.0</schema_version>
   <name>process_boiler</name>
   <uid>a0f299ce-b90b-43f6-8794-03ef3ba24f0e</uid>
-  <version_id>e62fbd2a-447c-468a-b48f-b95750c43cf2</version_id>
-  <version_modified>20161018T190143Z</version_modified>
+  <version_id>276e2068-37a3-48bd-ab3e-d3f532e7ed7a</version_id>
+  <version_modified>20161026T203042Z</version_modified>
   <xml_checksum>470FC630</xml_checksum>
   <class_name>ProcessBoiler</class_name>
   <display_name>Set Residential Boiler</display_name>
@@ -11,7 +11,7 @@
   <modeler_description>Any heating components or baseboard convective electrics/waters are removed from any existing air/plant loops or zones. A boiler along with constant speed pump and water baseboard coils are added to a hot water plant loop.</modeler_description>
   <arguments>
     <argument>
-      <name>boilerFuelType</name>
+      <name>fuel_type</name>
       <display_name>Fuel Type</display_name>
       <description>Type of fuel used for heating.</description>
       <type>Choice</type>
@@ -38,7 +38,7 @@
       </choices>
     </argument>
     <argument>
-      <name>boilerType</name>
+      <name>system_type</name>
       <display_name>System Type</display_name>
       <description>The system type of the boiler.</description>
       <type>Choice</type>
@@ -65,7 +65,7 @@
       </choices>
     </argument>
     <argument>
-      <name>boilerInstalledAFUE</name>
+      <name>afue</name>
       <display_name>Installed AFUE</display_name>
       <description>The installed Annual Fuel Utilization Efficiency (AFUE) of the boiler, which can be used to account for performance derating or degradation relative to the rated value.</description>
       <type>Double</type>
@@ -75,7 +75,7 @@
       <default_value>0.8</default_value>
     </argument>
     <argument>
-      <name>boilerOATResetEnabled</name>
+      <name>oat_reset_enabled</name>
       <display_name>Outside Air Reset Enabled</display_name>
       <description>Outside Air Reset Enabled on Hot Water Supply Temperature.</description>
       <type>Boolean</type>
@@ -94,7 +94,7 @@
       </choices>
     </argument>
     <argument>
-      <name>boilerOATHigh</name>
+      <name>oat_high</name>
       <display_name>High Outside Air Temp</display_name>
       <description>High Outside Air Temperature.</description>
       <type>Double</type>
@@ -103,7 +103,7 @@
       <model_dependent>false</model_dependent>
     </argument>
     <argument>
-      <name>boilerOATLow</name>
+      <name>oat_low</name>
       <display_name>Low Outside Air Temp</display_name>
       <description>Low Outside Air Temperature.</description>
       <type>Double</type>
@@ -112,7 +112,7 @@
       <model_dependent>false</model_dependent>
     </argument>
     <argument>
-      <name>boilerOATHighHWST</name>
+      <name>oat_hwst_high</name>
       <display_name>Hot Water Supply Temp High Outside Air</display_name>
       <description>Hot Water Supply Temperature corresponding to High Outside Air Temperature.</description>
       <type>Double</type>
@@ -121,7 +121,7 @@
       <model_dependent>false</model_dependent>
     </argument>
     <argument>
-      <name>boilerOATLowHWST</name>
+      <name>oat_hwst_low</name>
       <display_name>Hot Water Supply Temp Low Outside Air</display_name>
       <description>Hot Water Supply Temperature corresponding to Low Outside Air Temperature.</description>
       <type>Double</type>
@@ -130,7 +130,7 @@
       <model_dependent>false</model_dependent>
     </argument>
     <argument>
-      <name>boilerDesignTemp</name>
+      <name>design_temp</name>
       <display_name>Design Temperature</display_name>
       <description>Temperature of the outlet water.</description>
       <type>Double</type>
@@ -140,7 +140,7 @@
       <default_value>180</default_value>
     </argument>
     <argument>
-      <name>boilerOutputCapacity</name>
+      <name>capacity</name>
       <display_name>Heating Output Capacity</display_name>
       <type>Choice</type>
       <required>true</required>
@@ -302,33 +302,10 @@
   </attributes>
   <files>
     <file>
-      <filename>process_boiler_test.rb</filename>
-      <filetype>rb</filetype>
-      <usage_type>test</usage_type>
-      <checksum>7873B471</checksum>
-    </file>
-    <file>
       <filename>util.rb</filename>
       <filetype>rb</filetype>
       <usage_type>resource</usage_type>
       <checksum>B9256575</checksum>
-    </file>
-    <file>
-      <filename>hvac.rb</filename>
-      <filetype>rb</filetype>
-      <usage_type>resource</usage_type>
-      <checksum>5E54715B</checksum>
-    </file>
-    <file>
-      <version>
-        <software_program>OpenStudio</software_program>
-        <identifier>1.10.6</identifier>
-        <min_compatible>1.13.1</min_compatible>
-      </version>
-      <filename>measure.rb</filename>
-      <filetype>rb</filetype>
-      <usage_type>script</usage_type>
-      <checksum>47656DE4</checksum>
     </file>
     <file>
       <filename>multifamily_8_units.osm</filename>
@@ -430,19 +407,42 @@
       <filename>singlefamily_detached_fbsmt_mshp.osm</filename>
       <filetype>osm</filetype>
       <usage_type>test</usage_type>
-      <checksum>8783D859</checksum>
-    </file>
-    <file>
-      <filename>constants.rb</filename>
-      <filetype>rb</filetype>
-      <usage_type>resource</usage_type>
-      <checksum>E4899227</checksum>
+      <checksum>2350A601</checksum>
     </file>
     <file>
       <filename>geometry.rb</filename>
       <filetype>rb</filetype>
       <usage_type>resource</usage_type>
-      <checksum>4D0A9290</checksum>
+      <checksum>9A86F3EB</checksum>
+    </file>
+    <file>
+      <filename>constants.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>6D48E2DD</checksum>
+    </file>
+    <file>
+      <filename>hvac.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>536297F8</checksum>
+    </file>
+    <file>
+      <filename>process_boiler_test.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>test</usage_type>
+      <checksum>46D382F9</checksum>
+    </file>
+    <file>
+      <version>
+        <software_program>OpenStudio</software_program>
+        <identifier>1.10.6</identifier>
+        <min_compatible>1.13.1</min_compatible>
+      </version>
+      <filename>measure.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>script</usage_type>
+      <checksum>AB31DA91</checksum>
     </file>
   </files>
 </measure>

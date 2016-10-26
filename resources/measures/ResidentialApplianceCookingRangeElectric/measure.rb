@@ -141,19 +141,32 @@ class ResidentialCookingRange < OpenStudio::Ruleset::ModelUserScript
         unit_obj_name_i = Constants.ObjectNameCookingRange(Constants.FuelTypeElectric, true, unit.name.to_s)
 
         # Remove any existing cooking range
-        cr_removed = false
+        objects_to_remove = []
         space.electricEquipment.each do |space_equipment|
             next if space_equipment.name.to_s != unit_obj_name_e and space_equipment.name.to_s != unit_obj_name_i
-            space_equipment.remove
-            cr_removed = true
+            objects_to_remove << space_equipment
+            objects_to_remove << space_equipment.electricEquipmentDefinition
+            if space_equipment.schedule.is_initialized
+                objects_to_remove << space_equipment.schedule.get
+            end
         end
         space.gasEquipment.each do |space_equipment|
             next if space_equipment.name.to_s != unit_obj_name_g
-            space_equipment.remove
-            cr_removed = true
+            objects_to_remove << space_equipment
+            objects_to_remove << space_equipment.gasEquipmentDefinition
+            if space_equipment.schedule.is_initialized
+                objects_to_remove << space_equipment.schedule.get
+            end
         end
-        if cr_removed
+        if objects_to_remove.size > 0
             runner.registerInfo("Removed existing cooking range from space #{space.name.to_s}.")
+        end
+        objects_to_remove.uniq.each do |object|
+            begin
+                object.remove
+            rescue
+                # no op
+            end
         end
         
         #Calculate electric range daily energy use
@@ -175,6 +188,7 @@ class ResidentialCookingRange < OpenStudio::Ruleset::ModelUserScript
             rng_def = OpenStudio::Model::ElectricEquipmentDefinition.new(model)
             rng = OpenStudio::Model::ElectricEquipment.new(rng_def)
             rng.setName(unit_obj_name_e)
+            rng.setEndUseSubcategory(unit_obj_name_e)
             rng.setSpace(space)
             rng_def.setName(unit_obj_name_e)
             rng_def.setDesignLevel(design_level_e)

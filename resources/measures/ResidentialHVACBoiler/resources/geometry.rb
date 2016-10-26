@@ -2,6 +2,20 @@ require "#{File.dirname(__FILE__)}/constants"
 
 class Geometry
 
+    def self.get_building_stories(spaces) # TODO: remove after testing new airflow measure
+      space_min_zs = []
+      spaces.each do |space|
+        next if not self.space_is_finished(space)
+        surfaces_min_zs = []
+        space.surfaces.each do |surface|
+          zvalues = self.getSurfaceZValues([surface])
+          surfaces_min_zs << zvalues.min + OpenStudio::convert(space.zOrigin,"m","ft").get
+        end
+        space_min_zs << surfaces_min_zs.min
+      end
+      return space_min_zs.uniq.length
+    end
+
     def self.make_one_space_from_multiple_spaces(model, spaces)
       new_space = OpenStudio::Model::Space.new(model)
       spaces.each do |space|
@@ -140,25 +154,6 @@ class Geometry
     def self.get_all_common_spaces(model, runner=nil)
         return (model.getSpaces - self.get_all_unit_spaces(model, runner))
     end
-
-    def self.rename_unit_spaces_zones(model, old_unit_num, new_unit_num)
-        space_names_list = []
-        model.getBuildingUnits.each do |unit|
-            next if unit.name.to_s != Constants.ObjectNameBuildingUnit(old_unit_num)
-            unit.setName(Constants.ObjectNameBuildingUnit(new_unit_num))
-            unit.spaces.each do |space|
-                space_names_list << space
-            end
-        end
-        model.getSpaces.each do |space|
-          space_names_list.each do |s|
-            next if !space.name.to_s == s
-            space.setName(space.name.to_s.gsub(Constants.ObjectNameBuildingUnit(old_unit_num), Constants.ObjectNameBuildingUnit(new_unit_num)))
-            thermal_zone = space.thermalZone.get
-            thermal_zone.setName(thermal_zone.name.to_s.gsub(Constants.ObjectNameBuildingUnit(old_unit_num), Constants.ObjectNameBuildingUnit(new_unit_num)))
-          end
-        end
-    end
     
     def self.get_unit_default_finished_space(unit_spaces, runner)
         # For the specified unit, chooses an arbitrary finished space on the lowest above-grade story.
@@ -290,21 +285,6 @@ class Geometry
         maxzs << zvalues.max + OpenStudio::convert(space.zOrigin,"m","ft").get
       end
       return maxzs.max - minzs.min
-    end
-    
-    # FIXME: Switch to using StandardsNumberOfStories and StandardsNumberOfAboveGroundStories instead
-    def self.get_building_stories(spaces)
-      space_min_zs = []
-      spaces.each do |space|
-        next if not self.space_is_finished(space)
-        surfaces_min_zs = []
-        space.surfaces.each do |surface|
-          zvalues = self.getSurfaceZValues([surface])
-          surfaces_min_zs << zvalues.min + OpenStudio::convert(space.zOrigin,"m","ft").get
-        end
-        space_min_zs << surfaces_min_zs.min
-      end
-      return space_min_zs.uniq.length
     end
     
     # Calculates the surface height as the max z coordinate minus the min z coordinate
@@ -486,6 +466,13 @@ class Geometry
         return zValueArray
     end
 
+    def self.get_space_floor_z(space)
+      space.surfaces.each do |surface|
+        next unless surface.surfaceType.downcase == "floor"
+        return self.getSurfaceZValues([surface])[0]
+      end
+    end
+    
     def self.get_z_origin_for_zone(zone)
       z_origins = []
       zone.spaces.each do |space|
@@ -621,6 +608,7 @@ class Geometry
                 point_two = OpenStudio::Point3d.new(v1[1][0],v1[1][1],v1[1][2])
                 length = OpenStudio::Vector3d.new(point_one - point_two).length
                 perimeter += length
+                break
             end
         end
     

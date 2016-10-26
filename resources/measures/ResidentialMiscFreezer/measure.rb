@@ -137,13 +137,24 @@ class ResidentialFreezer < OpenStudio::Ruleset::ModelUserScript
 	
         # Remove any existing freezer
         frz_removed = false
+        objects_to_remove = []
         space.electricEquipment.each do |space_equipment|
             next if space_equipment.name.to_s != unit_obj_name
-            space_equipment.remove
-            frz_removed = true
+            objects_to_remove << space_equipment
+            objects_to_remove << space_equipment.electricEquipmentDefinition
+            if space_equipment.schedule.is_initialized
+                objects_to_remove << space_equipment.schedule.get
+            end
         end
-        if frz_removed
+        if objects_to_remove.size > 0
             runner.registerInfo("Removed existing freezer from space #{space.name.to_s}.")
+        end
+        objects_to_remove.uniq.each do |object|
+            begin
+                object.remove
+            rescue
+                # no op
+            end
         end
 
         if freezer_ann > 0
@@ -162,6 +173,7 @@ class ResidentialFreezer < OpenStudio::Ruleset::ModelUserScript
             frz_def = OpenStudio::Model::ElectricEquipmentDefinition.new(model)
             frz = OpenStudio::Model::ElectricEquipment.new(frz_def)
             frz.setName(unit_obj_name)
+            frz.setEndUseSubcategory(unit_obj_name)
             frz.setSpace(space)
             frz_def.setName(unit_obj_name)
             frz_def.setDesignLevel(design_level)

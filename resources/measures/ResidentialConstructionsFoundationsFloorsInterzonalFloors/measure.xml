@@ -2,8 +2,8 @@
   <schema_version>3.0</schema_version>
   <name>process_constructions_foundations_floors_interzonal_floors</name>
   <uid>65e577ab-327e-4afa-af30-0f6b4e6b1ebf</uid>
-  <version_id>acb35d09-d69c-4fca-af6a-068e45433227</version_id>
-  <version_modified>20161018T190137Z</version_modified>
+  <version_id>12642ad5-4e20-4a24-8c4b-ff3acc67d45e</version_id>
+  <version_modified>20161026T203037Z</version_modified>
   <xml_checksum>1E963D9C</xml_checksum>
   <class_name>ProcessConstructionsFoundationsFloorsInterzonalFloors</class_name>
   <display_name>Set Residential Foundations/Floors - Interzonal Floor Construction</display_name>
@@ -11,7 +11,7 @@
   <modeler_description>Calculates and assigns material layer properties of wood stud constructions for floors 1) between finished and unfinished spaces or 2) between finished spaces and outside. If the floors have an existing construction, the layers (other than floor covering and floor mass) are replaced. This measure is intended to be used in conjunction with Floor Covering and Floor Mass measures.</modeler_description>
   <arguments>
     <argument>
-      <name>userdefinedinstcavr</name>
+      <name>cavity_r</name>
       <display_name>Cavity Insulation Nominal R-value</display_name>
       <description>Refers to the R-value of the cavity insulation and not the overall R-value of the assembly.</description>
       <type>Double</type>
@@ -21,9 +21,9 @@
       <default_value>19</default_value>
     </argument>
     <argument>
-      <name>selectedinstallgrade</name>
+      <name>install_grade</name>
       <display_name>Cavity Install Grade</display_name>
-      <description>nstallation grade as defined by RESNET standard. 5% of the cavity is considered missing insulation for Grade 3, 2% for Grade 2, and 0% for Grade 1.</description>
+      <description>Installation grade as defined by RESNET standard. 5% of the cavity is considered missing insulation for Grade 3, 2% for Grade 2, and 0% for Grade 1.</description>
       <type>Choice</type>
       <required>true</required>
       <model_dependent>false</model_dependent>
@@ -44,7 +44,7 @@
       </choices>
     </argument>
     <argument>
-      <name>userdefinedfloorff</name>
+      <name>framing_factor</name>
       <display_name>Framing Factor</display_name>
       <description>The fraction of a floor assembly that is comprised of structural framing.</description>
       <type>Double</type>
@@ -72,6 +72,24 @@
   </attributes>
   <files>
     <file>
+      <filename>util.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>B9256575</checksum>
+    </file>
+    <file>
+      <filename>geometry.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>9A86F3EB</checksum>
+    </file>
+    <file>
+      <filename>constants.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>6D48E2DD</checksum>
+    </file>
+    <file>
       <version>
         <software_program>OpenStudio</software_program>
         <identifier>1.4.0</identifier>
@@ -80,25 +98,7 @@
       <filename>measure.rb</filename>
       <filetype>rb</filetype>
       <usage_type>script</usage_type>
-      <checksum>4F160A2D</checksum>
-    </file>
-    <file>
-      <filename>util.rb</filename>
-      <filetype>rb</filetype>
-      <usage_type>resource</usage_type>
-      <checksum>B9256575</checksum>
-    </file>
-    <file>
-      <filename>constants.rb</filename>
-      <filetype>rb</filetype>
-      <usage_type>resource</usage_type>
-      <checksum>E4899227</checksum>
-    </file>
-    <file>
-      <filename>geometry.rb</filename>
-      <filetype>rb</filetype>
-      <usage_type>resource</usage_type>
-      <checksum>4D0A9290</checksum>
+      <checksum>A9BB3DCD</checksum>
     </file>
   </files>
 </measure>

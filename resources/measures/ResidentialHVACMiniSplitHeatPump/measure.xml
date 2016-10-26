@@ -2,8 +2,8 @@
   <schema_version>3.0</schema_version>
   <name>process_vrf_minisplit</name>
   <uid>402b168f-ed99-46bb-b367-103937011e91</uid>
-  <version_id>0e52e90d-0368-492d-8cdb-be5e047b6cf7</version_id>
-  <version_modified>20161018T190144Z</version_modified>
+  <version_id>27a2abed-58a0-4812-919c-d151f0612340</version_id>
+  <version_modified>20161026T203042Z</version_modified>
   <xml_checksum>470FC630</xml_checksum>
   <class_name>ProcessVRFMinisplit</class_name>
   <display_name>Set Residential Mini-Split Heat Pump</display_name>
@@ -11,7 +11,7 @@
   <modeler_description>Any supply components or baseboard convective electrics/waters are removed from any existing air/plant loops or zones. Any existing air/plant loops are also removed. A heating DX coil, cooling DX coil, and an on/off supply fan are added to a variable refrigerant flow terminal unit.</modeler_description>
   <arguments>
     <argument>
-      <name>miniSplitHPCoolingRatedSEER</name>
+      <name>seer</name>
       <display_name>Rated SEER</display_name>
       <description>Seasonal Energy Efficiency Ratio (SEER) is a measure of equipment energy efficiency over the cooling season.</description>
       <type>Double</type>
@@ -21,17 +21,7 @@
       <default_value>14.5</default_value>
     </argument>
     <argument>
-      <name>miniSplitHPCoolingOversizeFactor</name>
-      <display_name>Oversize Factor</display_name>
-      <description>Used to scale the auto-sized cooling capacity.</description>
-      <type>Double</type>
-      <units>frac</units>
-      <required>true</required>
-      <model_dependent>false</model_dependent>
-      <default_value>1</default_value>
-    </argument>
-    <argument>
-      <name>miniSplitHPCoolingMinCapacity</name>
+      <name>min_cooling_capacity</name>
       <display_name>Minimum Cooling Capacity</display_name>
       <description>Minimum cooling capacity as a fraction of the nominal cooling capacity at rated conditions.</description>
       <type>Double</type>
@@ -41,7 +31,7 @@
       <default_value>0.4</default_value>
     </argument>
     <argument>
-      <name>miniSplitHPCoolingMaxCapacity</name>
+      <name>max_cooling_capacity</name>
       <display_name>Maximum Cooling Capacity</display_name>
       <description>Maximum cooling capacity as a fraction of the nominal cooling capacity at rated conditions.</description>
       <type>Double</type>
@@ -51,7 +41,7 @@
       <default_value>1.2</default_value>
     </argument>
     <argument>
-      <name>miniSplitHPRatedSHR</name>
+      <name>shr</name>
       <display_name>Rated SHR</display_name>
       <description>The sensible heat ratio (ratio of the sensible portion of the load to the total load) at the nominal rated capacity.</description>
       <type>Double</type>
@@ -60,7 +50,7 @@
       <default_value>0.73</default_value>
     </argument>
     <argument>
-      <name>miniSplitHPCoolingMinAirflow</name>
+      <name>min_cooling_airflow_rate</name>
       <display_name>Minimum Cooling Airflow</display_name>
       <description>Minimum cooling cfm divided by the nominal rated cooling capacity.</description>
       <type>Double</type>
@@ -70,7 +60,7 @@
       <default_value>200</default_value>
     </argument>
     <argument>
-      <name>miniSplitHPCoolingMaxAirflow</name>
+      <name>max_cooling_airflow_rate</name>
       <display_name>Maximum Cooling Airflow</display_name>
       <description>Maximum cooling cfm divided by the nominal rated cooling capacity.</description>
       <type>Double</type>
@@ -80,7 +70,7 @@
       <default_value>425</default_value>
     </argument>
     <argument>
-      <name>miniSplitHPHeatingRatedHSPF</name>
+      <name>hspf</name>
       <display_name>Rated HSPF</display_name>
       <description>The Heating Seasonal Performance Factor (HSPF) is a measure of a heat pump's energy efficiency over one heating season.</description>
       <type>Double</type>
@@ -90,7 +80,7 @@
       <default_value>8.2</default_value>
     </argument>
     <argument>
-      <name>miniSplitHPHeatingCapacityOffset</name>
+      <name>heating_capacity_offset</name>
       <display_name>Heating Capacity Offset</display_name>
       <description>The difference between the nominal rated heating capacity and the nominal rated cooling capacity.</description>
       <type>Double</type>
@@ -100,7 +90,7 @@
       <default_value>2300</default_value>
     </argument>
     <argument>
-      <name>miniSplitHPHeatingMinCapacity</name>
+      <name>min_heating_capacity</name>
       <display_name>Minimum Heating Capacity</display_name>
       <description>Minimum heating capacity as a fraction of nominal heating capacity at rated conditions.</description>
       <type>Double</type>
@@ -110,7 +100,7 @@
       <default_value>0.3</default_value>
     </argument>
     <argument>
-      <name>miniSplitHPHeatingMaxCapacity</name>
+      <name>max_heating_capacity</name>
       <display_name>Maximum Heating Capacity</display_name>
       <description>Maximum heating capacity as a fraction of nominal heating capacity at rated conditions.</description>
       <type>Double</type>
@@ -120,7 +110,7 @@
       <default_value>1.2</default_value>
     </argument>
     <argument>
-      <name>miniSplitHPHeatingMinAirflow</name>
+      <name>min_heating_airflow_rate</name>
       <display_name>Minimum Heating Airflow</display_name>
       <description>Minimum heating cfm divided by the nominal rated heating capacity.</description>
       <type>Double</type>
@@ -130,7 +120,7 @@
       <default_value>200</default_value>
     </argument>
     <argument>
-      <name>miniSplitHPHeatingMaxAirflow</name>
+      <name>max_heating_airflow_rate</name>
       <display_name>Maximum Heating Airflow</display_name>
       <description>Maximum heating cfm divided by the nominal rated heating capacity.</description>
       <type>Double</type>
@@ -140,7 +130,7 @@
       <default_value>400</default_value>
     </argument>
     <argument>
-      <name>miniSplitHPSupplyFanPower</name>
+      <name>fan_power</name>
       <display_name>Supply Fan Power</display_name>
       <description>Fan power (in W) per delivered airflow rate (in cfm) of the fan.</description>
       <type>Double</type>
@@ -150,7 +140,7 @@
       <default_value>0.07</default_value>
     </argument>
     <argument>
-      <name>miniSplitHPMinT</name>
+      <name>min_temp</name>
       <display_name>Min Temp</display_name>
       <description>Outdoor dry-bulb temperature below which compressor turns off.</description>
       <type>Double</type>
@@ -160,7 +150,17 @@
       <default_value>5</default_value>
     </argument>
     <argument>
-      <name>miniSplitCoolingOutputCapacity</name>
+      <name>pan_heater_power</name>
+      <display_name>Pan Heater Power Per Unit</display_name>
+      <description>Prevents ice build up from damaging the coil.</description>
+      <type>Double</type>
+      <units>W/unit</units>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>0</default_value>
+    </argument>
+    <argument>
+      <name>heat_pump_capacity</name>
       <display_name>Cooling Output Capacity</display_name>
       <type>Choice</type>
       <required>true</required>
@@ -254,7 +254,7 @@
       </choices>
     </argument>
     <argument>
-      <name>baseboardeff</name>
+      <name>supplemental_efficiency</name>
       <display_name>Supplemental Efficiency</display_name>
       <description>The efficiency of the supplemental electric baseboard.</description>
       <type>Double</type>
@@ -264,7 +264,7 @@
       <default_value>1</default_value>
     </argument>
     <argument>
-      <name>baseboardcap</name>
+      <name>supplemental_capacity</name>
       <display_name>Supplemental Heating Output Capacity</display_name>
       <type>Choice</type>
       <required>true</required>
@@ -442,22 +442,10 @@
       <checksum>9A23E14E</checksum>
     </file>
     <file>
-      <filename>process_mini_split_heat_pump_test.rb</filename>
-      <filetype>rb</filetype>
-      <usage_type>test</usage_type>
-      <checksum>88BE4FE1</checksum>
-    </file>
-    <file>
       <filename>util.rb</filename>
       <filetype>rb</filetype>
       <usage_type>resource</usage_type>
       <checksum>B9256575</checksum>
-    </file>
-    <file>
-      <filename>hvac.rb</filename>
-      <filetype>rb</filetype>
-      <usage_type>resource</usage_type>
-      <checksum>5E54715B</checksum>
     </file>
     <file>
       <filename>multifamily_8_units.osm</filename>
@@ -559,13 +547,31 @@
       <filename>singlefamily_detached_fbsmt_mshp.osm</filename>
       <filetype>osm</filetype>
       <usage_type>test</usage_type>
-      <checksum>8783D859</checksum>
+      <checksum>2350A601</checksum>
+    </file>
+    <file>
+      <filename>geometry.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>9A86F3EB</checksum>
     </file>
     <file>
       <filename>constants.rb</filename>
       <filetype>rb</filetype>
       <usage_type>resource</usage_type>
-      <checksum>E4899227</checksum>
+      <checksum>6D48E2DD</checksum>
+    </file>
+    <file>
+      <filename>hvac.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>536297F8</checksum>
+    </file>
+    <file>
+      <filename>process_mini_split_heat_pump_test.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>test</usage_type>
+      <checksum>90A41C22</checksum>
     </file>
     <file>
       <version>
@@ -576,13 +582,7 @@
       <filename>measure.rb</filename>
       <filetype>rb</filetype>
       <usage_type>script</usage_type>
-      <checksum>C3C076F0</checksum>
-    </file>
-    <file>
-      <filename>geometry.rb</filename>
-      <filetype>rb</filetype>
-      <usage_type>resource</usage_type>
-      <checksum>4D0A9290</checksum>
+      <checksum>51DC55D7</checksum>
     </file>
   </files>
 </measure>

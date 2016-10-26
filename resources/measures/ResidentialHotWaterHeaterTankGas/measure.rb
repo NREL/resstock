@@ -32,7 +32,7 @@ class ResidentialHotWaterHeaterTankGas < OpenStudio::Ruleset::ModelUserScript
         args = ruleset::OSArgumentVector.new
 
         # make an argument for the storage tank volume
-        storage_tank_volume = osargument::makeStringArgument("storage_tank_volume", true)
+        storage_tank_volume = osargument::makeStringArgument("tank_volume", true)
         storage_tank_volume.setDisplayName("Tank Volume")
         storage_tank_volume.setDescription("Nominal volume of the of the water heater tank. Set to #{Constants.Auto} to have volume autosized.")
         storage_tank_volume.setUnits("gal")
@@ -40,7 +40,7 @@ class ResidentialHotWaterHeaterTankGas < OpenStudio::Ruleset::ModelUserScript
         args << storage_tank_volume
 
         # make an argument for hot water setpoint temperature
-        dhw_setpoint = osargument::makeDoubleArgument("dhw_setpoint_temperature", true)
+        dhw_setpoint = osargument::makeDoubleArgument("setpoint_temp", true)
         dhw_setpoint.setDisplayName("Setpoint")
         dhw_setpoint.setDescription("Water heater setpoint temperature.")
         dhw_setpoint.setUnits("F")
@@ -51,7 +51,7 @@ class ResidentialHotWaterHeaterTankGas < OpenStudio::Ruleset::ModelUserScript
         thermal_zones = model.getThermalZones
         thermal_zone_names = thermal_zones.select { |tz| not tz.name.empty?}.collect{|tz| tz.name.get }
         thermal_zone_names << Constants.Auto
-        water_heater_location = osargument::makeChoiceArgument("water_heater_location",thermal_zone_names, true)
+        water_heater_location = osargument::makeChoiceArgument("location",thermal_zone_names, true)
         water_heater_location.setDefaultValue(Constants.Auto)
         water_heater_location.setDisplayName("Location")
         water_heater_location.setDescription("Thermal zone where the water heater is located. #{Constants.Auto} will locate the water heater according the BA House Simulation Protocols: A garage (if available) or the living space in hot-dry and hot-humid climates, a basement (finished or unfinished, if available) or living space in all other climates.")
@@ -59,7 +59,7 @@ class ResidentialHotWaterHeaterTankGas < OpenStudio::Ruleset::ModelUserScript
         args << water_heater_location
 
         # make an argument for water_heater_capacity
-        water_heater_capacity = osargument::makeStringArgument("water_heater_capacity", true)
+        water_heater_capacity = osargument::makeStringArgument("capacity", true)
         water_heater_capacity.setDisplayName("Input Capacity")
         water_heater_capacity.setDescription("The maximum energy input rating of the water heater. Set to #{Constants.Auto} to have this field autosized.")
         water_heater_capacity.setUnits("kBtu/hr")
@@ -67,14 +67,14 @@ class ResidentialHotWaterHeaterTankGas < OpenStudio::Ruleset::ModelUserScript
         args << water_heater_capacity
 
         # make an argument for the rated energy factor
-        rated_energy_factor = osargument::makeStringArgument("rated_energy_factor", true)
+        rated_energy_factor = osargument::makeStringArgument("energy_factor", true)
         rated_energy_factor.setDisplayName("Rated Energy Factor")
         rated_energy_factor.setDescription("For water heaters, Energy Factor is the ratio of useful energy output from the water heater to the total amount of energy delivered from the water heater. The higher the EF is, the more efficient the water heater. Procedures to test the EF of water heaters are defined by the Department of Energy in 10 Code of Federal Regulation Part 430, Appendix E to Subpart B. Enter #{Constants.Auto} for a water heater that meets the minimum federal efficiency requirements.")
         rated_energy_factor.setDefaultValue("0.59")
         args << rated_energy_factor
 
         # make an argument for water_heater_recovery_efficiency
-        water_heater_recovery_efficiency = osargument::makeDoubleArgument("water_heater_recovery_efficiency", true)
+        water_heater_recovery_efficiency = osargument::makeDoubleArgument("recovery_efficiency", true)
         water_heater_recovery_efficiency.setDisplayName("Recovery Efficiency")
         water_heater_recovery_efficiency.setDescription("For water heaters, the recovery efficiency is the ratio of energy delivered to the water to the energy content of the fuel consumed by the water heater. Test procedures to test recovery efficiency are defined by the Department of Energy in 10 Code of Federal Regulations Part 430, Appendix E to Subpart B. This information can often be found in the AHRI Certification Directory or on the EnergyStar website.")
         water_heater_recovery_efficiency.setUnits("Frac")
@@ -106,12 +106,12 @@ class ResidentialHotWaterHeaterTankGas < OpenStudio::Ruleset::ModelUserScript
 
 	
         #Assign user inputs to variables
-        cap = runner.getStringArgumentValue("water_heater_capacity",user_arguments)
-        vol = runner.getStringArgumentValue("storage_tank_volume",user_arguments)
-        ef = runner.getStringArgumentValue("rated_energy_factor",user_arguments)
-        re = runner.getDoubleArgumentValue("water_heater_recovery_efficiency",user_arguments)
-        water_heater_loc = runner.getStringArgumentValue("water_heater_location",user_arguments)
-        t_set = runner.getDoubleArgumentValue("dhw_setpoint_temperature",user_arguments).to_f
+        cap = runner.getStringArgumentValue("capacity",user_arguments)
+        vol = runner.getStringArgumentValue("tank_volume",user_arguments)
+        ef = runner.getStringArgumentValue("energy_factor",user_arguments)
+        re = runner.getDoubleArgumentValue("recovery_efficiency",user_arguments)
+        water_heater_loc = runner.getStringArgumentValue("location",user_arguments)
+        t_set = runner.getDoubleArgumentValue("setpoint_temp",user_arguments).to_f
         oncycle_p = runner.getDoubleArgumentValue("oncyc_power",user_arguments)
         offcycle_p = runner.getDoubleArgumentValue("offcyc_power",user_arguments)
 	
@@ -189,14 +189,30 @@ class ResidentialHotWaterHeaterTankGas < OpenStudio::Ruleset::ModelUserScript
                 next if pl.name.to_s != Constants.PlantLoopDomesticWater(unit.name.to_s)
                 loop = pl
                 #Remove any existing water heater
-                wh_removed = false
+                objects_to_remove = []
                 pl.supplyComponents.each do |wh|
                     next if !wh.to_WaterHeaterMixed.is_initialized and !wh.to_WaterHeaterStratified.is_initialized and !wh.to_WaterHeaterHeatPump.is_initialized
-                    wh.remove
-                    wh_removed = true
+                    objects_to_remove << wh
+                    if wh.to_WaterHeaterMixed.is_initialized
+                        wh = wh.to_WaterHeaterMixed.get
+                    elsif wh.to_WaterHeaterStratified.is_initialized
+                        wh = wh.to_WaterHeaterStratified.get
+                    elsif wh.to_WaterHeaterHeatPump.is_initialized
+                        wh = wh.to_WaterHeaterHeatPump.get
+                    end
+                    if wh.setpointTemperatureSchedule.is_initialized
+                        objects_to_remove << wh.setpointTemperatureSchedule.get
+                    end
                 end
-                if wh_removed
+                if objects_to_remove.size > 0
                     runner.registerInfo("Removed existing water heater from plant loop #{pl.name.to_s}.")
+                end
+                objects_to_remove.uniq.each do |object|
+                    begin
+                        object.remove
+                    rescue
+                        # no op
+                    end
                 end
             end
 
@@ -206,7 +222,7 @@ class ResidentialHotWaterHeaterTankGas < OpenStudio::Ruleset::ModelUserScript
                 loop = Waterheater.create_new_loop(model, Constants.PlantLoopDomesticWater(unit.name.to_s), t_set)
             end
 
-            if loop.components(OpenStudio::Model::PumpConstantSpeed::iddObjectType).empty?
+            if loop.components(OpenStudio::Model::PumpVariableSpeed::iddObjectType).empty?
                 new_pump = Waterheater.create_new_pump(model)
                 new_pump.addToNode(loop.supplyInletNode)
             end

@@ -2,8 +2,8 @@
   <schema_version>3.0</schema_version>
   <name>residential_hot_water_heater_tank_oil</name>
   <uid>d3840fe2-6894-410c-8caa-24aabd614fe2</uid>
-  <version_id>d0ead628-cc66-486e-80cd-766fdf96ba42</version_id>
-  <version_modified>20161018T190143Z</version_modified>
+  <version_id>d1da3ad5-5725-480a-b94c-38cb8b915097</version_id>
+  <version_modified>20161026T210528Z</version_modified>
   <xml_checksum>9882CBDB</xml_checksum>
   <class_name>ResidentialHotWaterHeaterTankOil</class_name>
   <display_name>Set Residential Oil Tank Water Heater</display_name>
@@ -11,7 +11,7 @@
   <modeler_description>The measure will create a new instance of the OS:WaterHeater:Mixed object representing a oil storage water heater. The water heater will be placed on the plant loop 'Domestic Hot Water Loop'. If this loop already exists, any water heater on that loop will be removed and replaced with a water heater consistent with this measure. If it doesn't exist, it will be created.</modeler_description>
   <arguments>
     <argument>
-      <name>storage_tank_volume</name>
+      <name>tank_volume</name>
       <display_name>Tank Volume</display_name>
       <description>Nominal volume of the of the water heater tank. Set to auto to have volume autosized.</description>
       <type>String</type>
@@ -21,7 +21,7 @@
       <default_value>auto</default_value>
     </argument>
     <argument>
-      <name>dhw_setpoint_temperature</name>
+      <name>setpoint_temp</name>
       <display_name>Setpoint</display_name>
       <description>Water heater setpoint temperature.</description>
       <type>Double</type>
@@ -31,7 +31,7 @@
       <default_value>125</default_value>
     </argument>
     <argument>
-      <name>water_heater_location</name>
+      <name>location</name>
       <display_name>Location</display_name>
       <description>Thermal zone where the water heater is located. auto will locate the water heater according the BA House Simulation Protocols: A garage (if available) or the living space in hot-dry and hot-humid climates, a basement (finished or unfinished, if available) or living space in all other climates.</description>
       <type>Choice</type>
@@ -46,7 +46,7 @@
       </choices>
     </argument>
     <argument>
-      <name>water_heater_capacity</name>
+      <name>capacity</name>
       <display_name>Input Capacity</display_name>
       <description>The maximum energy input rating of the water heater. Set to auto to have this field autosized.</description>
       <type>String</type>
@@ -56,7 +56,7 @@
       <default_value>90.0</default_value>
     </argument>
     <argument>
-      <name>rated_energy_factor</name>
+      <name>energy_factor</name>
       <display_name>Rated Energy Factor</display_name>
       <description>For water heaters, Energy Factor is the ratio of useful energy output from the water heater to the total amount of energy delivered from the water heater. The higher the EF is, the more efficient the water heater. Procedures to test the EF of water heaters are defined by the Department of Energy in 10 Code of Federal Regulation Part 430, Appendix E to Subpart B. Enter auto for a water heater that meets the minimum federal efficiency requirements.</description>
       <type>String</type>
@@ -65,7 +65,7 @@
       <default_value>0.62</default_value>
     </argument>
     <argument>
-      <name>water_heater_recovery_efficiency</name>
+      <name>recovery_efficiency</name>
       <display_name>Recovery Efficiency</display_name>
       <description>For water heaters, the recovery efficiency is the ratio of energy delivered to the water to the energy content of the fuel consumed by the water heater. Test procedures to test recovery efficiency are defined by the Department of Energy in 10 Code of Federal Regulations Part 430, Appendix E to Subpart B. This information can often be found in the AHRI Certification Directory or on the EnergyStar website.</description>
       <type>Double</type>
@@ -143,12 +143,6 @@
       <checksum>9A23E14E</checksum>
     </file>
     <file>
-      <filename>waterheater.rb</filename>
-      <filetype>rb</filetype>
-      <usage_type>resource</usage_type>
-      <checksum>50777146</checksum>
-    </file>
-    <file>
       <filename>schedules.rb</filename>
       <filetype>rb</filetype>
       <usage_type>resource</usage_type>
@@ -177,23 +171,6 @@
       <filetype>osm</filetype>
       <usage_type>test</usage_type>
       <checksum>7FCAB593</checksum>
-    </file>
-    <file>
-      <version>
-        <software_program>OpenStudio</software_program>
-        <identifier>1.4.1</identifier>
-        <min_compatible>1.13.1</min_compatible>
-      </version>
-      <filename>measure.rb</filename>
-      <filetype>rb</filetype>
-      <usage_type>script</usage_type>
-      <checksum>32C82317</checksum>
-    </file>
-    <file>
-      <filename>ResidentialWaterHeaterTankOil_Test.rb</filename>
-      <filetype>rb</filetype>
-      <usage_type>test</usage_type>
-      <checksum>210677CE</checksum>
     </file>
     <file>
       <filename>2000sqft_2story_FB_GRG_UA_1Beds_1Baths_Denver.osm</filename>
@@ -280,16 +257,39 @@
       <checksum>8E13C9DA</checksum>
     </file>
     <file>
-      <filename>constants.rb</filename>
-      <filetype>rb</filetype>
-      <usage_type>resource</usage_type>
-      <checksum>E4899227</checksum>
-    </file>
-    <file>
       <filename>geometry.rb</filename>
       <filetype>rb</filetype>
       <usage_type>resource</usage_type>
-      <checksum>4D0A9290</checksum>
+      <checksum>9A86F3EB</checksum>
+    </file>
+    <file>
+      <filename>constants.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>6D48E2DD</checksum>
+    </file>
+    <file>
+      <filename>waterheater.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>951BE986</checksum>
+    </file>
+    <file>
+      <version>
+        <software_program>OpenStudio</software_program>
+        <identifier>1.4.1</identifier>
+        <min_compatible>1.13.1</min_compatible>
+      </version>
+      <filename>measure.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>script</usage_type>
+      <checksum>516CD775</checksum>
+    </file>
+    <file>
+      <filename>ResidentialWaterHeaterTankOil_Test.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>test</usage_type>
+      <checksum>9B7DE1EF</checksum>
     </file>
   </files>
 </measure>

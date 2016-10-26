@@ -226,7 +226,7 @@ class ProcessHeatingSetpoints < OpenStudio::Ruleset::ModelUserScript
         end        
         
         thermostatsetpointdualsetpoint = OpenStudio::Model::ThermostatSetpointDualSetpoint.new(model)
-        thermostatsetpointdualsetpoint.setName("Living Zone Temperature SP")
+        thermostatsetpointdualsetpoint.setName("#{finished_zone.name} temperature setpoint")
         runner.registerInfo("Created new thermostat #{thermostatsetpointdualsetpoint.name} for #{finished_zone.name}.")
         thermostatsetpointdualsetpoint.setHeatingSetpointTemperatureSchedule(heatingsetpoint.schedule)
         finished_zone.setThermostatSetpointDualSetpoint(thermostatsetpointdualsetpoint)

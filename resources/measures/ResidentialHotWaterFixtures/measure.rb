@@ -150,19 +150,35 @@ class ResidentialHotWaterFixtures < OpenStudio::Ruleset::ModelUserScript
             obj_name_b = Constants.ObjectNameBath(unit.name.to_s)
         
             # Remove any existing ssb
-            ssb_removed = false
+            objects_to_remove = []
             space.otherEquipment.each do |space_equipment|
                 next if space_equipment.name.to_s != obj_name_sh and space_equipment.name.to_s != obj_name_s and space_equipment.name.to_s != obj_name_b
-                space_equipment.remove
-                ssb_removed = true
+                objects_to_remove << space_equipment
+                objects_to_remove << space_equipment.otherEquipmentDefinition
+                if space_equipment.schedule.is_initialized
+                    objects_to_remove << space_equipment.schedule.get
+                end
             end
             space.waterUseEquipment.each do |space_equipment|
                 next if space_equipment.name.to_s != obj_name_sh and space_equipment.name.to_s != obj_name_s and space_equipment.name.to_s != obj_name_b
-                space_equipment.remove
-                ssb_removed = true
+                objects_to_remove << space_equipment
+                objects_to_remove << space_equipment.waterUseEquipmentDefinition
+                if space_equipment.flowRateFractionSchedule.is_initialized
+                    objects_to_remove << space_equipment.flowRateFractionSchedule.get
+                end
+                if space_equipment.waterUseEquipmentDefinition.targetTemperatureSchedule.is_initialized
+                    objects_to_remove << space_equipment.waterUseEquipmentDefinition.targetTemperatureSchedule.get
+                end
             end
-            if ssb_removed
+            if objects_to_remove.size > 0
                 runner.registerInfo("Removed existing showers, sinks, and baths from space #{space.name.to_s}.")
+            end
+            objects_to_remove.uniq.each do |object|
+                begin
+                    object.remove
+                rescue
+                    # no op
+                end
             end
         
             mixed_use_t = Constants.MixedUseT #F
@@ -226,7 +242,7 @@ class ResidentialHotWaterFixtures < OpenStudio::Ruleset::ModelUserScript
                 sh_wu.setSpace(space)
                 sh_wu_def.setName(obj_name_sh)
                 sh_wu_def.setPeakFlowRate(sh_peak_flow)
-                sh_wu_def.setEndUseSubcategory("Domestic Hot Water")
+                sh_wu_def.setEndUseSubcategory(obj_name_sh)
                 sh_wu.setFlowRateFractionSchedule(sch_sh.schedule)
                 sh_wu_def.setTargetTemperatureSchedule(sch_sh.temperatureSchedule)
                 water_use_connection.addWaterUseEquipment(sh_wu)
@@ -265,7 +281,7 @@ class ResidentialHotWaterFixtures < OpenStudio::Ruleset::ModelUserScript
                 s_wu.setSpace(space)
                 s_wu_def.setName(obj_name_s)
                 s_wu_def.setPeakFlowRate(s_peak_flow)
-                s_wu_def.setEndUseSubcategory("Domestic Hot Water")
+                s_wu_def.setEndUseSubcategory(obj_name_s)
                 s_wu.setFlowRateFractionSchedule(sch_s.schedule)
                 s_wu_def.setTargetTemperatureSchedule(sch_s.temperatureSchedule)
                 water_use_connection.addWaterUseEquipment(s_wu)
@@ -304,7 +320,7 @@ class ResidentialHotWaterFixtures < OpenStudio::Ruleset::ModelUserScript
                 b_wu.setSpace(space)
                 b_wu_def.setName(obj_name_b)
                 b_wu_def.setPeakFlowRate(b_peak_flow)
-                b_wu_def.setEndUseSubcategory("Domestic Hot Water")
+                b_wu_def.setEndUseSubcategory(obj_name_b)
                 b_wu.setFlowRateFractionSchedule(sch_b.schedule)
                 b_wu_def.setTargetTemperatureSchedule(sch_b.temperatureSchedule)
                 water_use_connection.addWaterUseEquipment(b_wu)

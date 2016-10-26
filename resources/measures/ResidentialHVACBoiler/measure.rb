@@ -28,36 +28,32 @@ class ProcessBoiler < OpenStudio::Ruleset::ModelUserScript
   def arguments(model)
     args = OpenStudio::Ruleset::OSArgumentVector.new
 
-    #make a choice argument for boiler fuel type
+    #make a string argument for boiler fuel type
     fuel_display_names = OpenStudio::StringVector.new
     fuel_display_names << Constants.FuelTypeGas
     fuel_display_names << Constants.FuelTypeElectric
     fuel_display_names << Constants.FuelTypeOil
     fuel_display_names << Constants.FuelTypePropane
-
-    #make a string argument for boiler fuel type
-    boilerFuelType = OpenStudio::Ruleset::OSArgument::makeChoiceArgument("boilerFuelType", fuel_display_names, true)
+    boilerFuelType = OpenStudio::Ruleset::OSArgument::makeChoiceArgument("fuel_type", fuel_display_names, true)
     boilerFuelType.setDisplayName("Fuel Type")
     boilerFuelType.setDescription("Type of fuel used for heating.")
     boilerFuelType.setDefaultValue(Constants.FuelTypeGas)
     args << boilerFuelType
     
-    #make a choice argument for boiler system type
+    #make a string argument for boiler system type
     boiler_display_names = OpenStudio::StringVector.new
     boiler_display_names << Constants.BoilerTypeForcedDraft
     boiler_display_names << Constants.BoilerTypeCondensing
     boiler_display_names << Constants.BoilerTypeNaturalDraft
     boiler_display_names << Constants.BoilerTypeSteam
-
-    #make a string argument for boiler system type
-    boilerType = OpenStudio::Ruleset::OSArgument::makeChoiceArgument("boilerType", boiler_display_names, true)
+    boilerType = OpenStudio::Ruleset::OSArgument::makeChoiceArgument("system_type", boiler_display_names, true)
     boilerType.setDisplayName("System Type")
     boilerType.setDescription("The system type of the boiler.")
     boilerType.setDefaultValue(Constants.BoilerTypeForcedDraft)
     args << boilerType
     
     #make an argument for entering boiler installed afue
-    boilerInstalledAFUE = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("boilerInstalledAFUE",true)
+    boilerInstalledAFUE = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("afue",true)
     boilerInstalledAFUE.setDisplayName("Installed AFUE")
     boilerInstalledAFUE.setUnits("Btu/Btu")
     boilerInstalledAFUE.setDescription("The installed Annual Fuel Utilization Efficiency (AFUE) of the boiler, which can be used to account for performance derating or degradation relative to the rated value.")
@@ -65,57 +61,55 @@ class ProcessBoiler < OpenStudio::Ruleset::ModelUserScript
     args << boilerInstalledAFUE
     
     #make a bool argument for whether the boiler OAT enabled
-    boilerOATResetEnabled = OpenStudio::Ruleset::OSArgument::makeBoolArgument("boilerOATResetEnabled", true)
+    boilerOATResetEnabled = OpenStudio::Ruleset::OSArgument::makeBoolArgument("oat_reset_enabled", true)
     boilerOATResetEnabled.setDisplayName("Outside Air Reset Enabled")
     boilerOATResetEnabled.setDescription("Outside Air Reset Enabled on Hot Water Supply Temperature.")
     boilerOATResetEnabled.setDefaultValue(false)
     args << boilerOATResetEnabled    
     
     #make an argument for entering boiler OAT high
-    boilerOATHigh = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("boilerOATHigh",false)
+    boilerOATHigh = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("oat_high",false)
     boilerOATHigh.setDisplayName("High Outside Air Temp")
     boilerOATHigh.setUnits("degrees F")
     boilerOATHigh.setDescription("High Outside Air Temperature.")
     args << boilerOATHigh    
     
     #make an argument for entering boiler OAT low
-    boilerOATLow = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("boilerOATLow",false)
+    boilerOATLow = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("oat_low",false)
     boilerOATLow.setDisplayName("Low Outside Air Temp")
     boilerOATLow.setUnits("degrees F")
     boilerOATLow.setDescription("Low Outside Air Temperature.")
     args << boilerOATLow
     
     #make an argument for entering boiler OAT high HWST
-    boilerOATHighHWST = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("boilerOATHighHWST",false)
+    boilerOATHighHWST = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("oat_hwst_high",false)
     boilerOATHighHWST.setDisplayName("Hot Water Supply Temp High Outside Air")
     boilerOATHighHWST.setUnits("degrees F")
     boilerOATHighHWST.setDescription("Hot Water Supply Temperature corresponding to High Outside Air Temperature.")
     args << boilerOATHighHWST
     
     #make an argument for entering boiler OAT low HWST
-    boilerOATLowHWST = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("boilerOATLowHWST",false)
+    boilerOATLowHWST = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("oat_hwst_low",false)
     boilerOATLowHWST.setDisplayName("Hot Water Supply Temp Low Outside Air")
     boilerOATLowHWST.setUnits("degrees F")
     boilerOATLowHWST.setDescription("Hot Water Supply Temperature corresponding to Low Outside Air Temperature.")
     args << boilerOATLowHWST        
     
     #make an argument for entering boiler design temp
-    boilerDesignTemp = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("boilerDesignTemp",false)
+    boilerDesignTemp = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("design_temp",false)
     boilerDesignTemp.setDisplayName("Design Temperature")
     boilerDesignTemp.setUnits("degrees F")
     boilerDesignTemp.setDescription("Temperature of the outlet water.")
     boilerDesignTemp.setDefaultValue(180.0)
     args << boilerDesignTemp     
     
-    #make a choice argument for furnace heating output capacity
+    #make a string argument for furnace heating output capacity
     cap_display_names = OpenStudio::StringVector.new
     cap_display_names << Constants.SizingAuto
     (5..150).step(5) do |kbtu|
       cap_display_names << "#{kbtu} kBtu/hr"
     end
-
-    #make a string argument for furnace heating output capacity
-    boilerOutputCapacity = OpenStudio::Ruleset::OSArgument::makeChoiceArgument("boilerOutputCapacity", cap_display_names, true)
+    boilerOutputCapacity = OpenStudio::Ruleset::OSArgument::makeChoiceArgument("capacity", cap_display_names, true)
     boilerOutputCapacity.setDisplayName("Heating Output Capacity")
     boilerOutputCapacity.setDefaultValue(Constants.SizingAuto)
     args << boilerOutputCapacity  
@@ -132,23 +126,23 @@ class ProcessBoiler < OpenStudio::Ruleset::ModelUserScript
       return false
     end
     
-    boilerFuelType = runner.getStringArgumentValue("boilerFuelType",user_arguments)
-    boilerType = runner.getStringArgumentValue("boilerType",user_arguments)
-    boilerInstalledAFUE = runner.getDoubleArgumentValue("boilerInstalledAFUE",user_arguments)
-    boilerOATResetEnabled = runner.getBoolArgumentValue("boilerOATResetEnabled",user_arguments)    
-    boilerOATHigh = runner.getOptionalDoubleArgumentValue("boilerOATHigh", user_arguments)
+    boilerFuelType = runner.getStringArgumentValue("fuel_type",user_arguments)
+    boilerType = runner.getStringArgumentValue("system_type",user_arguments)
+    boilerInstalledAFUE = runner.getDoubleArgumentValue("afue",user_arguments)
+    boilerOATResetEnabled = runner.getBoolArgumentValue("oat_reset_enabled",user_arguments)    
+    boilerOATHigh = runner.getOptionalDoubleArgumentValue("oat_high", user_arguments)
     boilerOATHigh.is_initialized ? boilerOATHigh = boilerOATHigh.get : boilerOATHigh = nil    
-    boilerOATLow = runner.getOptionalDoubleArgumentValue("boilerOATLow", user_arguments)
+    boilerOATLow = runner.getOptionalDoubleArgumentValue("oat_low", user_arguments)
     boilerOATLow.is_initialized ? boilerOATLow = boilerOATLow.get : boilerOATLow = nil     
-    boilerOATHighHWST = runner.getOptionalDoubleArgumentValue("boilerOATHighHWST", user_arguments)
+    boilerOATHighHWST = runner.getOptionalDoubleArgumentValue("oat_hwst_high", user_arguments)
     boilerOATHighHWST.is_initialized ? boilerOATHighHWST = boilerOATHighHWST.get : boilerOATHighHWST = nil
-    boilerOATLowHWST = runner.getOptionalDoubleArgumentValue("boilerOATLowHWST", user_arguments)
+    boilerOATLowHWST = runner.getOptionalDoubleArgumentValue("oat_hwst_low", user_arguments)
     boilerOATLowHWST.is_initialized ? boilerOATLowHWST = boilerOATLowHWST.get : boilerOATLowHWST = nil      
-    boilerOutputCapacity = runner.getStringArgumentValue("boilerOutputCapacity",user_arguments)
+    boilerOutputCapacity = runner.getStringArgumentValue("capacity",user_arguments)
     if not boilerOutputCapacity == Constants.SizingAuto
       boilerOutputCapacity = OpenStudio::convert(boilerOutputCapacity.split(" ")[0].to_f,"kBtu/h","Btu/h").get
     end
-    boilerDesignTemp = runner.getDoubleArgumentValue("boilerDesignTemp",user_arguments)
+    boilerDesignTemp = runner.getDoubleArgumentValue("design_temp",user_arguments)
     
     hasBoilerCondensing = false
     if boilerType == Constants.BoilerTypeCondensing
@@ -206,7 +200,7 @@ class ProcessBoiler < OpenStudio::Ruleset::ModelUserScript
     loop_sizing.setLoopDesignTemperatureDifference(OpenStudio::convert(20.0,"R","K").get)
     
     pump = OpenStudio::Model::PumpConstantSpeed.new(model)
-    pump.setName("HydronicPump")
+    pump.setName("Hydronic Pump")
     if boilerOutputCapacity != Constants.SizingAuto
       pump.setRatedFlowRate(OpenStudio::convert(boilerOutputCapacity/20.0/500.0,"gal/min","m^3/s").get)
     end
@@ -251,7 +245,7 @@ class ProcessBoiler < OpenStudio::Ruleset::ModelUserScript
        
     if boilerType == Constants.BoilerTypeCondensing and boilerOATResetEnabled
       setpoint_manager_oar = OpenStudio::Model::SetpointManagerOutdoorAirReset.new(model)
-      setpoint_manager_oar.setName("OutdoorReset")
+      setpoint_manager_oar.setName("Outdoor Reset")
       setpoint_manager_oar.setControlVariable("Temperature")
       setpoint_manager_oar.setSetpointatOutdoorLowTemperature(OpenStudio::convert(boilerOATLowHWST,"F","C").get)
       setpoint_manager_oar.setOutdoorLowTemperature(OpenStudio::convert(boilerOATLow,"F","C").get)
@@ -290,10 +284,9 @@ class ProcessBoiler < OpenStudio::Ruleset::ModelUserScript
     end
     
     units.each do |unit|
+      unit_num = Geometry.get_unit_number(model, unit, runner)
       thermal_zones = Geometry.get_thermal_zones_from_spaces(unit.spaces)
-      if thermal_zones.length > 1
-        runner.registerInfo("#{unit.name.to_s} spans more than one thermal zone.")
-      end
+
       control_slave_zones_hash = HVAC.get_control_and_slave_zones(thermal_zones)
       control_slave_zones_hash.each do |control_zone, slave_zones|
 
@@ -301,7 +294,7 @@ class ProcessBoiler < OpenStudio::Ruleset::ModelUserScript
         HVAC.remove_existing_hvac_equipment(model, runner, "Boiler", control_zone)
       
         baseboard_coil = OpenStudio::Model::CoilHeatingWaterBaseboard.new(model)
-        baseboard_coil.setName("Living Water Baseboard Coil")
+        baseboard_coil.setName("#{control_zone.name} water baseboard coil_#{unit_num}")
         if boilerOutputCapacity != Constants.SizingAuto
           bb_UA = OpenStudio::convert(boilerOutputCapacity,"Btu/h","W").get / (OpenStudio::convert(boilerDesignTemp - 10.0 - 95.0,"R","K").get) * 3
           bb_max_flow = OpenStudio::convert(boilerOutputCapacity,"Btu/h","W").get / OpenStudio::convert(20.0,"R","K").get / 4.186 / 998.2 / 1000 * 2.0    
@@ -311,7 +304,7 @@ class ProcessBoiler < OpenStudio::Ruleset::ModelUserScript
         baseboard_coil.setConvergenceTolerance(0.001)
         
         living_baseboard_heater = OpenStudio::Model::ZoneHVACBaseboardConvectiveWater.new(model, model.alwaysOnDiscreteSchedule, baseboard_coil)
-        living_baseboard_heater.setName("Living Zone Baseboards")
+        living_baseboard_heater.setName("#{control_zone.name} baseboards_#{unit_num}")
         living_baseboard_heater.addToThermalZone(control_zone)
         runner.registerInfo("Added baseboard convective water '#{living_baseboard_heater.name}' to thermal zone '#{control_zone.name}' of #{unit.name.to_s}")
         
@@ -323,7 +316,7 @@ class ProcessBoiler < OpenStudio::Ruleset::ModelUserScript
           HVAC.remove_existing_hvac_equipment(model, runner, "Boiler", slave_zone)       
         
           baseboard_coil = OpenStudio::Model::CoilHeatingWaterBaseboard.new(model)
-          baseboard_coil.setName("FBsmt Water Baseboard Coil")
+          baseboard_coil.setName("#{slave_zone.name} water baseboard coil_#{unit_num}")
           if boilerOutputCapacity != Constants.SizingAuto
             bb_UA = OpenStudio::convert(boilerOutputCapacity,"Btu/h","W").get / (OpenStudio::convert(boilerDesignTemp - 10.0 - 95.0,"R","K").get) * 3
             bb_max_flow = OpenStudio::convert(boilerOutputCapacity,"Btu/h","W").get / OpenStudio::convert(20.0,"R","K").get / 4.186 / 998.2 / 1000 * 2.0    
@@ -333,7 +326,7 @@ class ProcessBoiler < OpenStudio::Ruleset::ModelUserScript
           baseboard_coil.setConvergenceTolerance(0.001)
         
           fbasement_baseboard_heater = OpenStudio::Model::ZoneHVACBaseboardConvectiveWater.new(model, model.alwaysOnDiscreteSchedule, baseboard_coil)
-          fbasement_baseboard_heater.setName("FBsmt Zone Baseboards")
+          fbasement_baseboard_heater.setName("#{slave_zone.name} baseboards_#{unit_num}")
           fbasement_baseboard_heater.addToThermalZone(slave_zone)
           runner.registerInfo("Added baseboard convective water '#{fbasement_baseboard_heater.name}' to thermal zone '#{slave_zone.name}' of #{unit.name.to_s}")
           

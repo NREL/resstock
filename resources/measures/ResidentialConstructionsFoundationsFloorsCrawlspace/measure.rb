@@ -50,13 +50,11 @@ class ProcessConstructionsFoundationsFloorsCrawlspace < OpenStudio::Ruleset::Mod
     ceil_cavity_r.setDefaultValue(0)
     args << ceil_cavity_r
 
-    #make a choice argument for model objects
+	#make a choice argument for ceiling cavity insulation installation grade
     installgrade_display_names = OpenStudio::StringVector.new
     installgrade_display_names << "I"
     installgrade_display_names << "II"
     installgrade_display_names << "III"
-
-	#make a choice argument for ceiling cavity insulation installation grade
 	ceil_cavity_grade = OpenStudio::Ruleset::OSArgument::makeChoiceArgument("ceil_cavity_grade", installgrade_display_names, true)
 	ceil_cavity_grade.setDisplayName("Ceiling Cavity Install Grade")
 	ceil_cavity_grade.setDescription("Installation grade as defined by RESNET standard. 5% of the cavity is considered missing insulation for Grade 3, 2% for Grade 2, and 0% for Grade 1.")

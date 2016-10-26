@@ -82,7 +82,7 @@ class ProcessConstructionsFoundationsFloorsSlab < OpenStudio::Ruleset::ModelUser
 	args << mass_thick_in
 	
 	#make a double argument for slab mass conductivity
-	mass_cond = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("mass_cond", true)
+	mass_cond = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("mass_conductivity", true)
 	mass_cond.setDisplayName("Mass Conductivity")
 	mass_cond.setUnits("Btu-in/h-ft^2-R")
 	mass_cond.setDescription("Conductivity of the slab foundation mass.")
@@ -90,7 +90,7 @@ class ProcessConstructionsFoundationsFloorsSlab < OpenStudio::Ruleset::ModelUser
 	args << mass_cond
 
 	#make a double argument for slab mass density
-	mass_dens = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("mass_dens", true)
+	mass_dens = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("mass_density", true)
 	mass_dens.setDisplayName("Mass Density")
 	mass_dens.setUnits("lb/ft^3")
 	mass_dens.setDescription("Density of the slab foundation mass.")
@@ -98,7 +98,7 @@ class ProcessConstructionsFoundationsFloorsSlab < OpenStudio::Ruleset::ModelUser
 	args << mass_dens
 
 	#make a double argument for slab mass specific heat
-	mass_specheat = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("mass_specheat", true)
+	mass_specheat = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("mass_specific_heat", true)
 	mass_specheat.setDisplayName("Mass Specific Heat")
 	mass_specheat.setUnits("Btu/lb-R")
 	mass_specheat.setDescription("Specific heat of the slab foundation mass.")
@@ -147,9 +147,9 @@ class ProcessConstructionsFoundationsFloorsSlab < OpenStudio::Ruleset::ModelUser
     slabExtRvalue = runner.getDoubleArgumentValue("ext_r",user_arguments)
     slabExtInsDepth = runner.getDoubleArgumentValue("ext_depth",user_arguments)
     slabMassThickIn = runner.getDoubleArgumentValue("mass_thick_in",user_arguments)
-    slabMassCond = runner.getDoubleArgumentValue("mass_cond",user_arguments)
-    slabMassDens = runner.getDoubleArgumentValue("mass_dens",user_arguments)
-    slabMassSpecHeat = runner.getDoubleArgumentValue("mass_specheat",user_arguments)
+    slabMassCond = runner.getDoubleArgumentValue("mass_conductivity",user_arguments)
+    slabMassDens = runner.getDoubleArgumentValue("mass_density",user_arguments)
+    slabMassSpecHeat = runner.getDoubleArgumentValue("mass_specific_heat",user_arguments)
 
     # Validate Inputs
     if slabPerimeterRvalue < 0.0
@@ -280,14 +280,8 @@ class ProcessConstructionsFoundationsFloorsSlab < OpenStudio::Ruleset::ModelUser
         slabBarePerimeterConduction = ExteriorSlabInsulation(slabExtInsDepth, slabExtRvalue, 0)
     elsif slabWholeInsRvalue > 0
         slabHasWholeInsulation = true
-        if slabWholeInsRvalue >= 999
-            # Super insulated slab option
-            slabCarpetPerimeterConduction = 0.001
-            slabBarePerimeterConduction = 0.001
-        else
-            slabCarpetPerimeterConduction = FullSlabInsulation(slabWholeInsRvalue, slabGapRvalue, slabWidth, slabLength, 1, soilConductivity)
-            slabBarePerimeterConduction = FullSlabInsulation(slabWholeInsRvalue, slabGapRvalue, slabWidth, slabLength, 0, soilConductivity)
-        end
+        slabCarpetPerimeterConduction = FullSlabInsulation(slabWholeInsRvalue, slabGapRvalue, slabWidth, slabLength, 1, soilConductivity)
+        slabBarePerimeterConduction = FullSlabInsulation(slabWholeInsRvalue, slabGapRvalue, slabWidth, slabLength, 0, soilConductivity)
     else
         slabCarpetPerimeterConduction = FullSlabInsulation(0, 0, slabWidth, slabLength, 1, soilConductivity)
         slabBarePerimeterConduction = FullSlabInsulation(0, 0, slabWidth, slabLength, 0, soilConductivity)
