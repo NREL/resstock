@@ -1037,7 +1037,8 @@ class Create_DFs():
         df = util.assign_state(df)
         df = util.assign_location(df)
         df = util.assign_vintage(df)
-        df = util.assign_foundation_type(df)        
+        df = util.assign_foundation_type(df)
+        df = util.assign_heated_basement_boolean(df)
         df = util.assign_ducts(df)
         return df
     
@@ -1358,4 +1359,8 @@ if __name__ == '__main__':
         for col in ['Count', 'Weight']:
             if col in df.columns:
                 del df[col]
-        to_figure(df, os.path.join(heatmaps_dir, '{}.png'.format(category)))
+        try:
+            path = os.path.join(heatmaps_dir, '{}.png'.format(category))
+            to_figure(df, path)
+        except RuntimeError:
+            print "Warning: Error in plotting figure; skipping {}.".format(path)

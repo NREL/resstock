@@ -229,6 +229,16 @@ def assign_foundation_type(df):
 
     return pd.DataFrame(found_type, columns=['siteid', 'created', 'object', 'Dependency=Vintage', 'Dependency=Location Region', 'Dependency=Geometry Foundation Type']).set_index('siteid')
 
+
+def assign_heated_basement_boolean(df):
+    key = {'Heated Basement': 'Yes',
+           'Crawl': 'No',
+           'Slab': 'No',
+           'Unheated Basement': 'No'}
+
+    df.loc[:,'Dependency=Geometry Heated Basement'] = df['Dependency=Geometry Foundation Type'].replace(key)
+    return df
+
 def assign_size(df):
     
     def size(sfmasterhousegeometry):
@@ -739,7 +749,8 @@ def assign_ducts(df):
     # Probability that ducts are in unconditioned space (depends on foundation type)
     df_cond = pd.DataFrame((df_ducts['DuctsInConditioned'] == 100.0) & (df_ducts['DuctsReturnInUnconditioned'] == 0.0), columns=['InConditioned']) # Convert % values to True/False
     df_cond = df_cond.join(df_wt)
-    depend1 = ['Dependency=Geometry Foundation Type'] # Dependency for 'InConditioned'
+    # depend1 = ['Dependency=Geometry Foundation Type'] # Dependency for 'InConditioned'
+    depend1 = ['Dependency=Geometry Heated Basement'] # Dependency for 'InConditioned'
     df_cond = df_cond.join(df[depend1]).dropna(subset=depend1)
     df_cond = group_and_normalize(df_cond, 'InConditioned', depend=depend1)
 
@@ -765,18 +776,18 @@ def assign_ducts(df):
 
     # Combine probability distributions
     df_product = pd.DataFrame(columns=['option', depend1[0], depend2[0], 'value'])
-    for found_type in df_cond.index:
+    for htd_bsmt_bool in df_cond.index:
         for vintage in df_ins.index:
             df_product.loc[len(df_product.index)] = {'option': 'Option=In Finished Space',
-                                                     depend1[0]: found_type,
+                                                     depend1[0]: htd_bsmt_bool,
                                                      depend2[0]: vintage,
-                                                     'value': df_cond.loc[found_type, True]}
+                                                     'value': df_cond.loc[htd_bsmt_bool, True]}
             for (ins_label, leak_label), (ins_value, leak_value) in zip(itertools.product(df_ins.loc[vintage].index, df_ductleakage.index), itertools.product(df_ins.loc[vintage], df_ductleakage)):
                 index = len(df_product.index)
                 df_product.loc[index, 'option'] = 'Option={f:.0f}% Leakage, {s}'.format(f=leak_label*100, s=ins_label)
-                df_product.loc[index, depend1[0]] = found_type
+                df_product.loc[index, depend1[0]] = htd_bsmt_bool
                 df_product.loc[index, depend2[0]] = vintage
-                df_product.loc[index, 'value'] = ins_value * leak_value * df_cond.loc[found_type, False]
+                df_product.loc[index, 'value'] = ins_value * leak_value * df_cond.loc[htd_bsmt_bool, False]
 
     # Clean up formatting
     df_product = df_product.set_index([depend1[0],depend2[0], 'option']).unstack()
@@ -787,8 +798,8 @@ def assign_ducts(df):
     new_columns = ['Option=In Finished Space'] + sorted(df_product.columns[:-1], key=lambda x: float(x.split('=')[-1].split('%')[0]) + rval_sort_order[x.split(' ')[-1]])
     df_product = df_product.reindex_axis(new_columns, axis=1)
     df_product = df_product.reset_index()
-    df_product['Dependency=Vintage'] = pd.Categorical(df_product['Dependency=Vintage'], ['<1950', '1950s', '1960s', '1970s', '1980s', '1990s', '2000s'])
-    depend = ['Dependency=Geometry Foundation Type', 'Dependency=Vintage']
+    df_product[depend2[0]] = pd.Categorical(df_product[depend2[0]], ['<1950', '1950s', '1960s', '1970s', '1980s', '1990s', '2000s'])
+    depend = [depend1[0], depend2[0]]
     df_product = df_product.sort_values(by=depend)
     df_product = df_product.set_index(depend)
 
