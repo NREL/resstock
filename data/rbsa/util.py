@@ -5,6 +5,8 @@ import random
 import sqlite3
 import itertools
 
+random.seed(9801)
+
 def create_dataframe(session, rdb, only_single_family=True):
         
     siteid = pd.Series([br.siteid for br in session.query(rdb.SFMasterLocation)])
@@ -254,8 +256,8 @@ def assign_size(df):
 def assign_stories(df):
     
     storieskey = {'1': '1',
-                  '1.5': '2',
-                  '2': '2',
+                  '1.5': '2+',
+                  '2': '2+',
                   '2.5': '2+',
                   '3+': '2+'}
         
