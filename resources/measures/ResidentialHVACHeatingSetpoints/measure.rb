@@ -239,6 +239,11 @@ class ProcessHeatingSetpoints < OpenStudio::Ruleset::ModelUserScript
 
     end
 
+    model.getScheduleDays.each do |obj| # remove orphaned summer and winter design day schedules
+      next if obj.directUseCount > 0
+      obj.remove
+    end
+    
     return true
  
   end #end the run method

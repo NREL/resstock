@@ -14,7 +14,7 @@ class ResidentialClothesDryerGas < OpenStudio::Ruleset::ModelUserScript
   end
   
   def modeler_description
-    return "Since there is no Clothes Dryer object in OpenStudio/EnergyPlus, we look for a GasEquipment or ElectricEquipment object with the name that denotes it is a residential clothes dryer. If one is found, it is replaced with the specified properties. Otherwise, a new such object is added to the model. Note: This measure requires the number of bedrooms/bathrooms to have already been assigned."
+    return "Since there is no Clothes Dryer object in OpenStudio/EnergyPlus, we look for a GasEquipment, ElectricEquipment, or OtherEquipment object with the name that denotes it is a residential clothes dryer. If one is found, it is replaced with the specified properties. Otherwise, a new such object is added to the model. Note: This measure requires the number of bedrooms/bathrooms to have already been assigned."
   end
 
   #define the arguments that the user will input
@@ -24,7 +24,7 @@ class ResidentialClothesDryerGas < OpenStudio::Ruleset::ModelUserScript
 	#make a double argument for Energy Factor
 	cd_ef = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("cd_ef",true)
 	cd_ef.setDisplayName("Energy Factor")
-    cd_ef.setDescription("The Energy Factor, for electric or gas systems.")
+    cd_ef.setDescription("The Energy Factor measures the pounds of clothing that can be dried per kWh (gas equivalent) of electricity.")
 	cd_ef.setDefaultValue(2.75)
     cd_ef.setUnits("lb/kWh")
 	args << cd_ef
@@ -32,7 +32,7 @@ class ResidentialClothesDryerGas < OpenStudio::Ruleset::ModelUserScript
     #make a double argument for Assumed Gas Electric Split
     cd_gas_split = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("cd_gas_split",true)
 	cd_gas_split.setDisplayName("Assumed Gas Electric Split")
-    cd_gas_split.setDescription("For gas dryers, the Assumed Energy Use Ratio is (Electric Energy / (Gas Energy + Electric Energy)).")
+    cd_gas_split.setDescription("Defined as (Electric Energy) / (Gas Energy + Electric Energy).")
 	cd_gas_split.setDefaultValue(0.07)
     cd_gas_split.setUnits("frac")
 	args << cd_gas_split
@@ -180,6 +180,7 @@ class ResidentialClothesDryerGas < OpenStudio::Ruleset::ModelUserScript
 
         unit_obj_name_e = Constants.ObjectNameClothesDryer(Constants.FuelTypeElectric, unit.name.to_s)
         unit_obj_name_g = Constants.ObjectNameClothesDryer(Constants.FuelTypeGas, unit.name.to_s)
+        unit_obj_name_p = Constants.ObjectNameClothesDryer(Constants.FuelTypePropane, unit.name.to_s)
         
         # Remove any existing clothes dryer
         objects_to_remove = []
@@ -195,6 +196,14 @@ class ResidentialClothesDryerGas < OpenStudio::Ruleset::ModelUserScript
             next if space_equipment.name.to_s != unit_obj_name_g
             objects_to_remove << space_equipment
             objects_to_remove << space_equipment.gasEquipmentDefinition
+            if space_equipment.schedule.is_initialized
+                objects_to_remove << space_equipment.schedule.get
+            end
+        end
+        space.otherEquipment.each do |space_equipment|
+            next if space_equipment.name.to_s != unit_obj_name_p
+            objects_to_remove << space_equipment
+            objects_to_remove << space_equipment.otherEquipmentDefinition
             if space_equipment.schedule.is_initialized
                 objects_to_remove << space_equipment.schedule.get
             end
@@ -311,7 +320,11 @@ class ResidentialClothesDryerGas < OpenStudio::Ruleset::ModelUserScript
             cd_def.setFractionLost(0.0)
             cd.setSchedule(sch.schedule)
             
-            msgs << "A clothes dryer with #{cd_ann_g.round} therms and #{cd_ann_e.round} kWhs annual energy consumption has been assigned to space '#{space.name.to_s}'."
+            msg_e = ""
+            if cd_ann_e > 0
+                msg_e = " and #{cd_ann_e.round} kWhs"
+            end
+            msgs << "A clothes dryer with #{cd_ann_g.round} therms#{msg_e} annual energy consumption has been assigned to space '#{space.name.to_s}'."
             
             tot_cd_ann_e += cd_ann_e
             tot_cd_ann_g += cd_ann_g
@@ -324,7 +337,11 @@ class ResidentialClothesDryerGas < OpenStudio::Ruleset::ModelUserScript
         msgs.each do |msg|
             runner.registerInfo(msg)
         end
-        runner.registerFinalCondition("The building has been assigned clothes dryers totaling #{tot_cd_ann_g.round} therms and #{tot_cd_ann_e.round} kWhs annual energy consumption across #{units.size} units.")
+        msg_e = ""
+        if tot_cd_ann_e > 0
+            msg_e = " and #{tot_cd_ann_e.round} kWhs"
+        end
+        runner.registerFinalCondition("The building has been assigned clothes dryers totaling #{tot_cd_ann_g.round} therms#{msg_e} annual energy consumption across #{units.size} units.")
     elsif msgs.size == 1
         runner.registerFinalCondition(msgs[0])
     else

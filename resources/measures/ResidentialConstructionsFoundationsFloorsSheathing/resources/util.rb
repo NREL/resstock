@@ -27,10 +27,17 @@ class HelperMethods
     def self.remove_object_from_osm_based_on_name(model, object_type, names)
       model.send("get#{object_type}s").each do |object|
         names.each do |name|
-          next unless object.name.to_s.downcase.include? name.downcase
-          object.remove
+          next unless object.name.to_s.downcase.start_with? name.downcase
+          begin
+            object.remove
+          rescue
+          end
         end
       end
+      model.getScheduleDays.each do |obj| # remove any orphaned day schedules
+        next if obj.directUseCount > 0
+        obj.remove
+      end      
     end
     
     def self.eplus_fuel_map(fuel)

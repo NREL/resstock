@@ -2,18 +2,18 @@
   <schema_version>3.0</schema_version>
   <name>residential_clothes_dryer_gas</name>
   <uid>b31f5cef-63ff-4d0e-986c-2a2344ac6bab</uid>
-  <version_id>9dd8f136-afac-4119-a7a4-7003e674d475</version_id>
-  <version_modified>20161025T224557Z</version_modified>
+  <version_id>3759243b-c5cd-4b01-af80-0701e61f4feb</version_id>
+  <version_modified>20161028T212220Z</version_modified>
   <xml_checksum>25A40D75</xml_checksum>
   <class_name>ResidentialClothesDryerGas</class_name>
   <display_name>Set Residential Gas Clothes Dryer</display_name>
   <description>Adds (or replaces) a residential clothes dryer with the specified efficiency, operation, and schedule. For multifamily buildings, the clothes dryer can be set for all units of the building.</description>
-  <modeler_description>Since there is no Clothes Dryer object in OpenStudio/EnergyPlus, we look for a GasEquipment or ElectricEquipment object with the name that denotes it is a residential clothes dryer. If one is found, it is replaced with the specified properties. Otherwise, a new such object is added to the model. Note: This measure requires the number of bedrooms/bathrooms to have already been assigned.</modeler_description>
+  <modeler_description>Since there is no Clothes Dryer object in OpenStudio/EnergyPlus, we look for a GasEquipment, ElectricEquipment, or OtherEquipment object with the name that denotes it is a residential clothes dryer. If one is found, it is replaced with the specified properties. Otherwise, a new such object is added to the model. Note: This measure requires the number of bedrooms/bathrooms to have already been assigned.</modeler_description>
   <arguments>
     <argument>
       <name>cd_ef</name>
       <display_name>Energy Factor</display_name>
-      <description>The Energy Factor, for electric or gas systems.</description>
+      <description>The Energy Factor measures the pounds of clothing that can be dried per kWh (gas equivalent) of electricity.</description>
       <type>Double</type>
       <units>lb/kWh</units>
       <required>true</required>
@@ -23,7 +23,7 @@
     <argument>
       <name>cd_gas_split</name>
       <display_name>Assumed Gas Electric Split</display_name>
-      <description>For gas dryers, the Assumed Energy Use Ratio is (Electric Energy / (Gas Energy + Electric Energy)).</description>
+      <description>Defined as (Electric Energy) / (Gas Energy + Electric Energy).</description>
       <type>Double</type>
       <units>frac</units>
       <required>true</required>
@@ -130,12 +130,6 @@
   </attributes>
   <files>
     <file>
-      <filename>schedules.rb</filename>
-      <filetype>rb</filetype>
-      <usage_type>resource</usage_type>
-      <checksum>C3399417</checksum>
-    </file>
-    <file>
       <filename>multifamily_3_units_Beds_Baths.osm</filename>
       <filetype>osm</filetype>
       <usage_type>test</usage_type>
@@ -172,6 +166,12 @@
       <checksum>6D48E2DD</checksum>
     </file>
     <file>
+      <filename>schedules.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>C3399417</checksum>
+    </file>
+    <file>
       <version>
         <software_program>OpenStudio</software_program>
         <identifier>1.4.0</identifier>
@@ -180,13 +180,19 @@
       <filename>measure.rb</filename>
       <filetype>rb</filetype>
       <usage_type>script</usage_type>
-      <checksum>10C52DB0</checksum>
+      <checksum>65863187</checksum>
     </file>
     <file>
       <filename>ResidentialClothesDryerGas_Test.rb</filename>
       <filetype>rb</filetype>
       <usage_type>test</usage_type>
-      <checksum>F18A57D0</checksum>
+      <checksum>C7A104D6</checksum>
+    </file>
+    <file>
+      <filename>2000sqft_2story_FB_GRG_UA_3Beds_2Baths_PropaneClothesDryer.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>93738335</checksum>
     </file>
   </files>
 </measure>

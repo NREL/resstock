@@ -50,5 +50,15 @@ class UnitConversion
         # lbm/min -> kg/s
         return self.lbm_min2kg_hr(lbm_min) / 3600.0
     end
-  
+    
+    def self.btu2gal(btu, fueltype)
+        # Btu -> gal
+        if fueltype == Constants.FuelTypePropane
+            return btu/91600.0
+        elsif fueltype == Constants.FuelTypeOil
+            return btu/139000.0
+        end
+        return nil
+    end
+    
 end

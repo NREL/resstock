@@ -14,7 +14,7 @@ class ResidentialClothesDryer < OpenStudio::Ruleset::ModelUserScript
   end
   
   def modeler_description
-    return "Since there is no Clothes Dryer object in OpenStudio/EnergyPlus, we look for an ElectricEquipment or GasEquipment object with the name that denotes it is a residential clothes dryer. If one is found, it is replaced with the specified properties. Otherwise, a new such object is added to the model. Note: This measure requires the number of bedrooms/bathrooms to have already been assigned."
+    return "Since there is no Clothes Dryer object in OpenStudio/EnergyPlus, we look for an ElectricEquipment, GasEquipment, or OtherEquipment object with the name that denotes it is a residential clothes dryer. If one is found, it is replaced with the specified properties. Otherwise, a new such object is added to the model. Note: This measure requires the number of bedrooms/bathrooms to have already been assigned."
   end
 
   #define the arguments that the user will input
@@ -26,7 +26,7 @@ class ResidentialClothesDryer < OpenStudio::Ruleset::ModelUserScript
 	#make a double argument for Energy Factor
 	cd_ef = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("cd_ef",true)
 	cd_ef.setDisplayName("Energy Factor")
-    cd_ef.setDescription("The Energy Factor, for electric or gas systems.")
+    cd_ef.setDescription("The Energy Factor measures the pounds of clothing that can be dried per kWh of electricity.")
 	cd_ef.setDefaultValue(3.1)
     cd_ef.setUnits("lb/kWh")
 	args << cd_ef
@@ -169,6 +169,7 @@ class ResidentialClothesDryer < OpenStudio::Ruleset::ModelUserScript
 
         unit_obj_name_e = Constants.ObjectNameClothesDryer(Constants.FuelTypeElectric, unit.name.to_s)
         unit_obj_name_g = Constants.ObjectNameClothesDryer(Constants.FuelTypeGas, unit.name.to_s)
+        unit_obj_name_p = Constants.ObjectNameClothesDryer(Constants.FuelTypePropane, unit.name.to_s)
     
         # Remove any existing clothes dryer
         objects_to_remove = []
@@ -184,6 +185,14 @@ class ResidentialClothesDryer < OpenStudio::Ruleset::ModelUserScript
             next if space_equipment.name.to_s != unit_obj_name_g
             objects_to_remove << space_equipment
             objects_to_remove << space_equipment.gasEquipmentDefinition
+            if space_equipment.schedule.is_initialized
+                objects_to_remove << space_equipment.schedule.get
+            end
+        end
+        space.otherEquipment.each do |space_equipment|
+            next if space_equipment.name.to_s != unit_obj_name_p
+            objects_to_remove << space_equipment
+            objects_to_remove << space_equipment.otherEquipmentDefinition
             if space_equipment.schedule.is_initialized
                 objects_to_remove << space_equipment.schedule.get
             end
