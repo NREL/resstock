@@ -33,7 +33,7 @@ class ProcessFurnace < OpenStudio::Ruleset::ModelUserScript
   end
   
   def modeler_description
-    return "Any heating components or baseboard convective electrics/waters are removed from any existing air/plant loops or zones. Any existing air/plant loops are also removed. An electric or gas heating coil and an on/off supply fan are added to a unitary air loop. The unitary air loop is added to the supply inlet node of the air loop. This air loop is added to a branch for the living zone. A diffuser is added to the branch for the living zone as well as for the finished basement if it exists."
+    return "Any heating components or baseboard convective electrics/waters are removed from any existing air/plant loops or zones. Any existing air/plant loops are also removed. An electric or fuel heating coil and an on/off supply fan are added to a unitary air loop. The unitary air loop is added to the supply inlet node of the air loop. This air loop is added to a branch for the living zone. A diffuser is added to the branch for the living zone as well as for the finished basement if it exists."
   end   
   
   #define the arguments that the user will input
@@ -42,8 +42,10 @@ class ProcessFurnace < OpenStudio::Ruleset::ModelUserScript
 
     #make a string argument for furnace fuel type
     fuel_display_names = OpenStudio::StringVector.new
-    fuel_display_names << Constants.FuelTypeGas
     fuel_display_names << Constants.FuelTypeElectric
+    fuel_display_names << Constants.FuelTypeGas
+    fuel_display_names << Constants.FuelTypeOil
+    fuel_display_names << Constants.FuelTypePropane
     fueltype = OpenStudio::Ruleset::OSArgument::makeChoiceArgument("fuel_type", fuel_display_names, true)
     fueltype.setDisplayName("Fuel Type")
     fueltype.setDescription("Type of fuel used for heating.")
@@ -172,7 +174,7 @@ class ProcessFurnace < OpenStudio::Ruleset::ModelUserScript
             htg_coil.setNominalCapacity(OpenStudio::convert(furnaceOutputCapacity,"Btu/h","W").get)
           end
 
-        elsif furnaceFuelType != Constants.FuelTypeElectric
+        else
 
           htg_coil = OpenStudio::Model::CoilHeatingGas.new(model)
           htg_coil.setName("Furnace Heating Coil_#{unit_num}")
@@ -183,6 +185,7 @@ class ProcessFurnace < OpenStudio::Ruleset::ModelUserScript
 
           htg_coil.setParasiticElectricLoad(aux_elec) # set to zero until we figure out a way to distribute to the correct end uses (DOE-2 limitation?)
           htg_coil.setParasiticGasLoad(0)
+          htg_coil.setFuelType(HelperMethods.eplus_fuel_map(furnaceFuelType))
 
         end    
         
