@@ -5,10 +5,10 @@ require "#{File.dirname(__FILE__)}/resources/unit_conversions"
 require "#{File.dirname(__FILE__)}/resources/util"
 
 #start the measure
-class ResidentialCookingRangePropane < OpenStudio::Ruleset::ModelUserScript
+class ResidentialCookingRangeFuel < OpenStudio::Ruleset::ModelUserScript
   
   def name
-    return "Set Residential Propane Cooking Range"
+    return "Set Residential Fuel Cooking Range"
   end
   
   def description
@@ -16,13 +16,23 @@ class ResidentialCookingRangePropane < OpenStudio::Ruleset::ModelUserScript
   end
   
   def modeler_description
-    return "Since there is no Cooking Range object in OpenStudio/EnergyPlus, we look for a GasEquipment, ElectricEquipment, or OtherEquipment object with the name that denotes it is a residential cooking range. If one is found, it is replaced with the specified properties. Otherwise, a new such object is added to the model. Note: This measure requires the number of bedrooms/bathrooms to have already been assigned."
+    return "Since there is no Cooking Range object in OpenStudio/EnergyPlus, we look for an OtherEquipment or ElectricEquipment object with the name that denotes it is a residential cooking range. If one is found, it is replaced with the specified properties. Otherwise, a new such object is added to the model. Note: This measure requires the number of bedrooms/bathrooms to have already been assigned."
   end
   
   #define the arguments that the user will input
   def arguments(model)
     args = OpenStudio::Ruleset::OSArgumentVector.new
     
+	#make a double argument for Fuel Type
+    fuel_display_names = OpenStudio::StringVector.new
+    fuel_display_names << Constants.FuelTypeGas
+    fuel_display_names << Constants.FuelTypePropane
+    fuel_type = OpenStudio::Ruleset::OSArgument::makeChoiceArgument("fuel_type", fuel_display_names, true)
+    fuel_type.setDisplayName("Fuel Type")
+    fuel_type.setDescription("Type of fuel used by the cooking range.")
+    fuel_type.setDefaultValue(Constants.FuelTypeGas)
+    args << fuel_type
+
 	#make a double argument for cooktop EF
 	c_ef = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("c_ef", true)
 	c_ef.setDisplayName("Cooktop Energy Factor")
@@ -40,7 +50,7 @@ class ResidentialCookingRangePropane < OpenStudio::Ruleset::ModelUserScript
 	#make a boolean argument for has electric ignition
 	e_ignition = OpenStudio::Ruleset::OSArgument::makeBoolArgument("e_ignition", true)
 	e_ignition.setDisplayName("Has Electronic Ignition")
-	e_ignition.setDescription("For gas/propane cooking ranges with electronic ignition, an extra (40 + 13.3x(#BR)) kWh/yr of electricity will be included.")
+	e_ignition.setDescription("For fuel cooking ranges with electronic ignition, an extra (40 + 13.3x(#BR)) kWh/yr of electricity will be included.")
 	e_ignition.setDefaultValue(true)
 	args << e_ignition
 
@@ -101,6 +111,7 @@ class ResidentialCookingRangePropane < OpenStudio::Ruleset::ModelUserScript
     end
 
     #assign the user inputs to variables
+    fuel_type = runner.getStringArgumentValue("fuel_type",user_arguments)
 	c_ef = runner.getDoubleArgumentValue("c_ef",user_arguments)
 	o_ef = runner.getDoubleArgumentValue("o_ef",user_arguments)
 	e_ignition = runner.getBoolArgumentValue("e_ignition",user_arguments)
@@ -130,7 +141,7 @@ class ResidentialCookingRangePropane < OpenStudio::Ruleset::ModelUserScript
         return false
     end
     
-    tot_range_ann_p = 0
+    tot_range_ann_f = 0
     tot_range_ann_i = 0
     msgs = []
     sch = nil
@@ -149,6 +160,7 @@ class ResidentialCookingRangePropane < OpenStudio::Ruleset::ModelUserScript
         unit_obj_name_g = Constants.ObjectNameCookingRange(Constants.FuelTypeGas, false, unit.name.to_s)
         unit_obj_name_p = Constants.ObjectNameCookingRange(Constants.FuelTypePropane, false, unit.name.to_s)
         unit_obj_name_i = Constants.ObjectNameCookingRange(Constants.FuelTypeElectric, true, unit.name.to_s)
+        unit_obj_name_f = Constants.ObjectNameCookingRange(fuel_type, false, unit.name.to_s)
 
         # Remove any existing cooking range
         objects_to_remove = []
@@ -160,16 +172,8 @@ class ResidentialCookingRangePropane < OpenStudio::Ruleset::ModelUserScript
                 objects_to_remove << space_equipment.schedule.get
             end
         end
-        space.gasEquipment.each do |space_equipment|
-            next if space_equipment.name.to_s != unit_obj_name_g
-            objects_to_remove << space_equipment
-            objects_to_remove << space_equipment.gasEquipmentDefinition
-            if space_equipment.schedule.is_initialized
-                objects_to_remove << space_equipment.schedule.get
-            end
-        end
         space.otherEquipment.each do |space_equipment|
-            next if space_equipment.name.to_s != unit_obj_name_p
+            next if space_equipment.name.to_s != unit_obj_name_g and space_equipment.name.to_s != unit_obj_name_p
             objects_to_remove << space_equipment
             objects_to_remove << space_equipment.otherEquipmentDefinition
             if space_equipment.schedule.is_initialized
@@ -187,25 +191,25 @@ class ResidentialCookingRangePropane < OpenStudio::Ruleset::ModelUserScript
             end
         end
 
-        #Calculate propane range daily energy use
-        range_ann_p = ((2.64 + 0.88 * nbeds) / c_ef + (0.44 + 0.15 * nbeds) / o_ef)*mult # therm/yr
+        #Calculate fuel range daily energy use
+        range_ann_f = ((2.64 + 0.88 * nbeds) / c_ef + (0.44 + 0.15 * nbeds) / o_ef)*mult # therm/yr
         if e_ignition == true
             range_ann_i = (40 + 13.3 * nbeds)*mult #kWh/yr
         else
             range_ann_i = 0
         end
 
-        if range_ann_p > 0
+        if range_ann_f > 0
 
             if sch.nil?
                 # Create schedule
-                sch = MonthWeekdayWeekendSchedule.new(model, runner, Constants.ObjectNameCookingRange(Constants.FuelTypePropane, false) + " schedule", weekday_sch, weekend_sch, monthly_sch)
+                sch = MonthWeekdayWeekendSchedule.new(model, runner, Constants.ObjectNameCookingRange(fuel_type, false) + " schedule", weekday_sch, weekend_sch, monthly_sch)
                 if not sch.validated?
                     return false
                 end
             end
             
-            design_level_p = sch.calcDesignLevelFromDailyTherm(range_ann_p/365.0)
+            design_level_f = sch.calcDesignLevelFromDailyTherm(range_ann_f/365.0)
             design_level_i = sch.calcDesignLevelFromDailykWh(range_ann_i/365.0)
             
             #Add equipment for the range
@@ -225,25 +229,31 @@ class ResidentialCookingRangePropane < OpenStudio::Ruleset::ModelUserScript
 
             rng_def = OpenStudio::Model::OtherEquipmentDefinition.new(model)
             rng = OpenStudio::Model::OtherEquipment.new(rng_def)
-            rng.setName(unit_obj_name_p)
-            #rng.setEndUseSubcategory(unit_obj_name_p) # FIXME: Not wrapped in OpenStudio
-            rng.setFuelType(HelperMethods.eplus_fuel_map(Constants.FuelTypePropane))
+            rng.setName(unit_obj_name_f)
+            #rng.setEndUseSubcategory(unit_obj_name_f) # FIXME: Not wrapped in OpenStudio
+            rng.setFuelType(HelperMethods.eplus_fuel_map(fuel_type))
             rng.setSpace(space)
-            rng_def.setName(unit_obj_name_p)
-            rng_def.setDesignLevel(design_level_p)
+            rng_def.setName(unit_obj_name_f)
+            rng_def.setDesignLevel(design_level_f)
             rng_def.setFractionRadiant(0.18)
             rng_def.setFractionLatent(0.2)
             rng_def.setFractionLost(0.5)
             rng.setSchedule(sch.schedule)
 
             # Report each assignment plus final condition
+            s_ann = ""
+            if fuel_type == Constants.FuelTypeGas
+                s_ann = "#{range_ann_f.round} therms"
+            else
+                s_ann = "#{UnitConversion.btu2gal(OpenStudio.convert(range_ann_f, "therm", "Btu").get, fuel_type).round} gallons"
+            end
             s_ignition = ""
             if e_ignition
                 s_ignition = " and #{range_ann_i.round} kWhs"
             end
-            msgs << "A cooking range with #{UnitConversion.btu2gal(OpenStudio.convert(range_ann_p, "therm", "Btu").get, Constants.FuelTypePropane).round} gallons#{s_ignition} annual energy consumption has been assigned to space '#{space.name.to_s}'."
+            msgs << "A cooking range with #{s_ann}#{s_ignition} annual energy consumption has been assigned to space '#{space.name.to_s}'."
             
-            tot_range_ann_p += range_ann_p
+            tot_range_ann_f += range_ann_f
             tot_range_ann_i += range_ann_i
         end
         
@@ -254,11 +264,17 @@ class ResidentialCookingRangePropane < OpenStudio::Ruleset::ModelUserScript
         msgs.each do |msg|
             runner.registerInfo(msg)
         end
+        s_ann = ""
+        if fuel_type == Constants.FuelTypeGas
+            s_ann = "#{tot_range_ann_f.round} therms"
+        else
+            s_ann = "#{UnitConversion.btu2gal(OpenStudio.convert(tot_range_ann_f, "therm", "Btu").get, fuel_type).round} gallons"
+        end
         s_ignition = ""
         if e_ignition
             s_ignition = " and #{tot_range_ann_i.round} kWhs"
         end
-        runner.registerFinalCondition("The building has been assigned cooking ranges totaling #{UnitConversion.btu2gal(OpenStudio.convert(tot_range_ann_p, "therm", "Btu").get, Constants.FuelTypePropane).round} gallons#{s_ignition} annual energy consumption across #{units.size} units.")
+        runner.registerFinalCondition("The building has been assigned cooking ranges totaling #{s_ann}#{s_ignition} annual energy consumption across #{units.size} units.")
     elsif msgs.size == 1
         runner.registerFinalCondition(msgs[0])
     else
@@ -272,4 +288,4 @@ class ResidentialCookingRangePropane < OpenStudio::Ruleset::ModelUserScript
 end #end the measure
 
 #this allows the measure to be use by the application
-ResidentialCookingRangePropane.new.registerWithApplication
+ResidentialCookingRangeFuel.new.registerWithApplication

@@ -14,7 +14,7 @@ class ResidentialClothesDryer < OpenStudio::Ruleset::ModelUserScript
   end
   
   def modeler_description
-    return "Since there is no Clothes Dryer object in OpenStudio/EnergyPlus, we look for an ElectricEquipment, GasEquipment, or OtherEquipment object with the name that denotes it is a residential clothes dryer. If one is found, it is replaced with the specified properties. Otherwise, a new such object is added to the model. Note: This measure requires the number of bedrooms/bathrooms to have already been assigned."
+    return "Since there is no Clothes Dryer object in OpenStudio/EnergyPlus, we look for an ElectricEquipment or OtherEquipment object with the name that denotes it is a residential clothes dryer. If one is found, it is replaced with the specified properties. Otherwise, a new such object is added to the model. Note: This measure requires the number of bedrooms/bathrooms to have already been assigned."
   end
 
   #define the arguments that the user will input
@@ -181,16 +181,8 @@ class ResidentialClothesDryer < OpenStudio::Ruleset::ModelUserScript
                 objects_to_remove << space_equipment.schedule.get
             end
         end
-        space.gasEquipment.each do |space_equipment|
-            next if space_equipment.name.to_s != unit_obj_name_g
-            objects_to_remove << space_equipment
-            objects_to_remove << space_equipment.gasEquipmentDefinition
-            if space_equipment.schedule.is_initialized
-                objects_to_remove << space_equipment.schedule.get
-            end
-        end
         space.otherEquipment.each do |space_equipment|
-            next if space_equipment.name.to_s != unit_obj_name_p
+            next if space_equipment.name.to_s != unit_obj_name_g and space_equipment.name.to_s != unit_obj_name_p
             objects_to_remove << space_equipment
             objects_to_remove << space_equipment.otherEquipmentDefinition
             if space_equipment.schedule.is_initialized

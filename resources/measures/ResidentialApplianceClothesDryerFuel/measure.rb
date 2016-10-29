@@ -1,12 +1,14 @@
 require "#{File.dirname(__FILE__)}/resources/schedules"
 require "#{File.dirname(__FILE__)}/resources/constants"
 require "#{File.dirname(__FILE__)}/resources/geometry"
+require "#{File.dirname(__FILE__)}/resources/unit_conversions"
+require "#{File.dirname(__FILE__)}/resources/util"
 
 #start the measure
-class ResidentialClothesDryerGas < OpenStudio::Ruleset::ModelUserScript
+class ResidentialClothesDryerFuel < OpenStudio::Ruleset::ModelUserScript
   
   def name
-    return "Set Residential Gas Clothes Dryer"
+    return "Set Residential Fuel Clothes Dryer"
   end
 
   def description
@@ -14,28 +16,38 @@ class ResidentialClothesDryerGas < OpenStudio::Ruleset::ModelUserScript
   end
   
   def modeler_description
-    return "Since there is no Clothes Dryer object in OpenStudio/EnergyPlus, we look for a GasEquipment, ElectricEquipment, or OtherEquipment object with the name that denotes it is a residential clothes dryer. If one is found, it is replaced with the specified properties. Otherwise, a new such object is added to the model. Note: This measure requires the number of bedrooms/bathrooms to have already been assigned."
+    return "Since there is no Clothes Dryer object in OpenStudio/EnergyPlus, we look for an OtherEquipment or GasEquipment object with the name that denotes it is a residential clothes dryer. If one is found, it is replaced with the specified properties. Otherwise, a new such object is added to the model. Note: This measure requires the number of bedrooms/bathrooms to have already been assigned."
   end
 
   #define the arguments that the user will input
   def arguments(model)
     args = OpenStudio::Ruleset::OSArgumentVector.new
     
+	#make a double argument for Fuel Type
+    fuel_display_names = OpenStudio::StringVector.new
+    fuel_display_names << Constants.FuelTypeGas
+    fuel_display_names << Constants.FuelTypePropane
+    cd_fuel_type = OpenStudio::Ruleset::OSArgument::makeChoiceArgument("cd_fuel_type", fuel_display_names, true)
+    cd_fuel_type.setDisplayName("Fuel Type")
+    cd_fuel_type.setDescription("Type of fuel used by the clothes dryer.")
+    cd_fuel_type.setDefaultValue(Constants.FuelTypeGas)
+    args << cd_fuel_type
+
 	#make a double argument for Energy Factor
 	cd_ef = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("cd_ef",true)
 	cd_ef.setDisplayName("Energy Factor")
-    cd_ef.setDescription("The Energy Factor measures the pounds of clothing that can be dried per kWh (gas equivalent) of electricity.")
+    cd_ef.setDescription("The Energy Factor measures the pounds of clothing that can be dried per kWh (Fuel equivalent) of electricity.")
 	cd_ef.setDefaultValue(2.75)
     cd_ef.setUnits("lb/kWh")
 	args << cd_ef
     
-    #make a double argument for Assumed Gas Electric Split
-    cd_gas_split = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("cd_gas_split",true)
-	cd_gas_split.setDisplayName("Assumed Gas Electric Split")
-    cd_gas_split.setDescription("Defined as (Electric Energy) / (Gas Energy + Electric Energy).")
-	cd_gas_split.setDefaultValue(0.07)
-    cd_gas_split.setUnits("frac")
-	args << cd_gas_split
+    #make a double argument for Assumed Fuel Electric Split
+    cd_fuel_split = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("cd_fuel_split",true)
+	cd_fuel_split.setDisplayName("Assumed Fuel Electric Split")
+    cd_fuel_split.setDescription("Defined as (Electric Energy) / (Fuel Energy + Electric Energy).")
+	cd_fuel_split.setDefaultValue(0.07)
+    cd_fuel_split.setUnits("frac")
+	args << cd_fuel_split
 	
 	#make a double argument for occupancy energy multiplier
 	cd_mult = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("cd_mult",true)
@@ -121,8 +133,9 @@ class ResidentialClothesDryerGas < OpenStudio::Ruleset::ModelUserScript
     end
 
     #assign the user inputs to variables
+    cd_fuel_type = runner.getStringArgumentValue("cd_fuel_type",user_arguments)
 	cd_ef = runner.getDoubleArgumentValue("cd_ef",user_arguments)
-    cd_gas_split = runner.getDoubleArgumentValue("cd_gas_split",user_arguments)
+    cd_fuel_split = runner.getDoubleArgumentValue("cd_fuel_split",user_arguments)
 	cd_mult = runner.getDoubleArgumentValue("cd_mult",user_arguments)
 	cd_weekday_sch = runner.getStringArgumentValue("cd_weekday_sch",user_arguments)
 	cd_weekend_sch = runner.getStringArgumentValue("cd_weekend_sch",user_arguments)
@@ -137,8 +150,8 @@ class ResidentialClothesDryerGas < OpenStudio::Ruleset::ModelUserScript
 		runner.registerError("Energy factor must be greater than 0.0.")
         return false
 	end
-    if cd_gas_split < 0 or cd_gas_split > 1
-        runner.registerError("Assumed gas electric split must be greater than or equal to 0.0 and less than or equal to 1.0.")
+    if cd_fuel_split < 0 or cd_fuel_split > 1
+        runner.registerError("Assumed fuel electric split must be greater than or equal to 0.0 and less than or equal to 1.0.")
     end
 	if cd_mult < 0
 		runner.registerError("Occupancy energy multiplier must be greater than or equal to 0.0.")
@@ -164,7 +177,7 @@ class ResidentialClothesDryerGas < OpenStudio::Ruleset::ModelUserScript
     end
     
     tot_cd_ann_e = 0
-    tot_cd_ann_g = 0
+    tot_cd_ann_f = 0
     msgs = []
     sch = nil
     units.each do |unit|
@@ -181,6 +194,7 @@ class ResidentialClothesDryerGas < OpenStudio::Ruleset::ModelUserScript
         unit_obj_name_e = Constants.ObjectNameClothesDryer(Constants.FuelTypeElectric, unit.name.to_s)
         unit_obj_name_g = Constants.ObjectNameClothesDryer(Constants.FuelTypeGas, unit.name.to_s)
         unit_obj_name_p = Constants.ObjectNameClothesDryer(Constants.FuelTypePropane, unit.name.to_s)
+        unit_obj_name_f = Constants.ObjectNameClothesDryer(cd_fuel_type, unit.name.to_s)
         
         # Remove any existing clothes dryer
         objects_to_remove = []
@@ -192,16 +206,8 @@ class ResidentialClothesDryerGas < OpenStudio::Ruleset::ModelUserScript
                 objects_to_remove << space_equipment.schedule.get
             end
         end
-        space.gasEquipment.each do |space_equipment|
-            next if space_equipment.name.to_s != unit_obj_name_g
-            objects_to_remove << space_equipment
-            objects_to_remove << space_equipment.gasEquipmentDefinition
-            if space_equipment.schedule.is_initialized
-                objects_to_remove << space_equipment.schedule.get
-            end
-        end
         space.otherEquipment.each do |space_equipment|
-            next if space_equipment.name.to_s != unit_obj_name_p
+            next if space_equipment.name.to_s != unit_obj_name_g and space_equipment.name.to_s != unit_obj_name_p
             objects_to_remove << space_equipment
             objects_to_remove << space_equipment.otherEquipmentDefinition
             if space_equipment.schedule.is_initialized
@@ -258,11 +264,11 @@ class ResidentialClothesDryerGas < OpenStudio::Ruleset::ModelUserScript
         actual_cd_energy_use_per_cycle = (cw_remaining_water / (cd_ef *
                                          dryer_nominal_reduction_in_moisture_content)) # kWh/cycle
 
-        # Use assumed split between electricity and gas use to calculate each.
+        # Use assumed split between electricity and fuel use to calculate each.
         # eq. 8 of Eastment and Hendron, NREL/CP-550-39769, 2006
-        actual_cd_elec_use_per_cycle = cd_gas_split * actual_cd_energy_use_per_cycle # kWh/cycle
+        actual_cd_elec_use_per_cycle = cd_fuel_split * actual_cd_energy_use_per_cycle # kWh/cycle
         # eq. 9 of Eastment and Hendron, NREL/CP-550-39769, 2006
-        actual_cd_gas_use_per_cycle = (1 - cd_gas_split) * actual_cd_energy_use_per_cycle # kWh/cycle
+        actual_cd_fuel_use_per_cycle = (1 - cd_fuel_split) * actual_cd_energy_use_per_cycle # kWh/cycle
 
         # (eq. 14 Eastment and Hendron, NREL/CP-550-39769, 2006)
         actual_cw_cycles_per_year = (cw_cycles_per_year_test * (0.5 + nbeds / 6) * 
@@ -272,13 +278,13 @@ class ResidentialClothesDryerGas < OpenStudio::Ruleset::ModelUserScript
         actual_cd_cycles_per_year = dryer_usage_factor * actual_cw_cycles_per_year # cycles/year
         
         daily_energy_elec = actual_cd_cycles_per_year * actual_cd_elec_use_per_cycle / 365 # kWh/day
-        daily_energy_gas = actual_cd_cycles_per_year * actual_cd_gas_use_per_cycle / 365 # kWh/day
+        daily_energy_fuel = actual_cd_cycles_per_year * actual_cd_fuel_use_per_cycle / 365 # kWh/day
         
         daily_energy_elec = daily_energy_elec * cd_mult
-        daily_energy_gas = OpenStudio.convert(daily_energy_gas * cd_mult, "kWh", "therm").get # therm/day
+        daily_energy_fuel = OpenStudio.convert(daily_energy_fuel * cd_mult, "kWh", "therm").get # therm/day
         
         cd_ann_e = daily_energy_elec * 365.0 # kWh/yr
-        cd_ann_g = daily_energy_gas * 365.0 # therms/yr
+        cd_ann_f = daily_energy_fuel * 365.0 # therms/yr
 
         if cd_ann_e > 0
         
@@ -286,48 +292,57 @@ class ResidentialClothesDryerGas < OpenStudio::Ruleset::ModelUserScript
                 # Create schedule
                 mult_weekend = 1.15
                 mult_weekday = 0.94
-                sch = MonthWeekdayWeekendSchedule.new(model, runner, Constants.ObjectNameClothesDryer(Constants.FuelTypeGas) + " schedule", cd_weekday_sch, cd_weekend_sch, cd_monthly_sch, mult_weekday, mult_weekend)
+                sch = MonthWeekdayWeekendSchedule.new(model, runner, Constants.ObjectNameClothesDryer(cd_fuel_type) + " schedule", cd_weekday_sch, cd_weekend_sch, cd_monthly_sch, mult_weekday, mult_weekend)
                 if not sch.validated?
                     return false
                 end
             end
 
             design_level_e = sch.calcDesignLevelFromDailykWh(daily_energy_elec)
-            design_level_g = sch.calcDesignLevelFromDailyTherm(daily_energy_gas)
+            design_level_f = sch.calcDesignLevelFromDailyTherm(daily_energy_fuel)
 
             #Add equipment for the cd
-            cd_def = OpenStudio::Model::GasEquipmentDefinition.new(model)
-            cd = OpenStudio::Model::GasEquipment.new(cd_def)
-            cd.setName(unit_obj_name_g)
-            cd.setEndUseSubcategory(unit_obj_name_g)
+            if design_level_e > 0
+                cd_def = OpenStudio::Model::ElectricEquipmentDefinition.new(model)
+                cd = OpenStudio::Model::ElectricEquipment.new(cd_def)
+                cd.setName(unit_obj_name_e)
+                cd.setEndUseSubcategory(unit_obj_name_e)
+                cd.setSpace(space)
+                cd_def.setName(unit_obj_name_e)
+                cd_def.setDesignLevel(design_level_e)
+                cd_def.setFractionRadiant(0.6)
+                cd_def.setFractionLatent(0.0)
+                cd_def.setFractionLost(0.0)
+                cd.setSchedule(sch.schedule)
+            end
+            
+            cd_def = OpenStudio::Model::OtherEquipmentDefinition.new(model)
+            cd = OpenStudio::Model::OtherEquipment.new(cd_def)
+            cd.setName(unit_obj_name_f)
+            #cd.setEndUseSubcategory(unit_obj_name_f) # FIXME: Not wrapped in OpenStudio
+            cd.setFuelType(HelperMethods.eplus_fuel_map(cd_fuel_type))
             cd.setSpace(space)
-            cd_def.setName(unit_obj_name_g)
-            cd_def.setDesignLevel(design_level_g)
+            cd_def.setName(unit_obj_name_f)
+            cd_def.setDesignLevel(design_level_f)
             cd_def.setFractionRadiant(0.06)
             cd_def.setFractionLatent(0.05)
             cd_def.setFractionLost(0.85)
             cd.setSchedule(sch.schedule)
-            
-            cd_def = OpenStudio::Model::ElectricEquipmentDefinition.new(model)
-            cd = OpenStudio::Model::ElectricEquipment.new(cd_def)
-            cd.setName(unit_obj_name_e)
-            cd.setEndUseSubcategory(unit_obj_name_e)
-            cd.setSpace(space)
-            cd_def.setName(unit_obj_name_e)
-            cd_def.setDesignLevel(design_level_e)
-            cd_def.setFractionRadiant(0.6)
-            cd_def.setFractionLatent(0.0)
-            cd_def.setFractionLost(0.0)
-            cd.setSchedule(sch.schedule)
-            
+
+            msg_f = ""
+            if cd_fuel_type == Constants.FuelTypeGas
+                msg_f = "#{cd_ann_f.round} therms"
+            else
+                msg_f = "#{UnitConversion.btu2gal(OpenStudio.convert(cd_ann_f, "therm", "Btu").get, cd_fuel_type).round} gallons"
+            end
             msg_e = ""
             if cd_ann_e > 0
                 msg_e = " and #{cd_ann_e.round} kWhs"
             end
-            msgs << "A clothes dryer with #{cd_ann_g.round} therms#{msg_e} annual energy consumption has been assigned to space '#{space.name.to_s}'."
+            msgs << "A clothes dryer with #{msg_f}#{msg_e} annual energy consumption has been assigned to space '#{space.name.to_s}'."
             
             tot_cd_ann_e += cd_ann_e
-            tot_cd_ann_g += cd_ann_g
+            tot_cd_ann_f += cd_ann_f
         end
         
     end
@@ -337,11 +352,17 @@ class ResidentialClothesDryerGas < OpenStudio::Ruleset::ModelUserScript
         msgs.each do |msg|
             runner.registerInfo(msg)
         end
+        msg_f = ""
+        if cd_fuel_type == Constants.FuelTypeGas
+            msg_f = "#{tot_cd_ann_f.round} therms"
+        else
+            msg_f = "#{UnitConversion.btu2gal(OpenStudio.convert(tot_cd_ann_f, "therm", "Btu").get, cd_fuel_type).round} gallons"
+        end
         msg_e = ""
         if tot_cd_ann_e > 0
             msg_e = " and #{tot_cd_ann_e.round} kWhs"
         end
-        runner.registerFinalCondition("The building has been assigned clothes dryers totaling #{tot_cd_ann_g.round} therms#{msg_e} annual energy consumption across #{units.size} units.")
+        runner.registerFinalCondition("The building has been assigned clothes dryers totaling #{msg_f}#{msg_e} annual energy consumption across #{units.size} units.")
     elsif msgs.size == 1
         runner.registerFinalCondition(msgs[0])
     else
@@ -356,4 +377,4 @@ class ResidentialClothesDryerGas < OpenStudio::Ruleset::ModelUserScript
 end #end the measure
 
 #this allows the measure to be use by the application
-ResidentialClothesDryerGas.new.registerWithApplication
+ResidentialClothesDryerFuel.new.registerWithApplication

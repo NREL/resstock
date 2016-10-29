@@ -1,15 +1,34 @@
 <measure>
   <schema_version>3.0</schema_version>
-  <name>residential_cooking_range_propane</name>
+  <name>residential_cooking_range_fuel</name>
   <uid>68bdcee3-c301-4fe9-a99f-c7d8b5930c89</uid>
-  <version_id>7ef2745c-4475-4526-a3bf-675b3de7ae65</version_id>
-  <version_modified>20161029T151449Z</version_modified>
+  <version_id>a7091374-0ed1-44fe-88f5-94c5813a7f74</version_id>
+  <version_modified>20161029T172055Z</version_modified>
   <xml_checksum>25A40D75</xml_checksum>
-  <class_name>ResidentialCookingRangePropane</class_name>
-  <display_name>Set Residential Propane Cooking Range</display_name>
+  <class_name>ResidentialCookingRangeFuel</class_name>
+  <display_name>Set Residential Fuel Cooking Range</display_name>
   <description>Adds (or replaces) a residential cooking range with the specified efficiency, operation, and schedule. For multifamily buildings, the cooking range can be set for all units of the building.</description>
-  <modeler_description>Since there is no Cooking Range object in OpenStudio/EnergyPlus, we look for a GasEquipment, ElectricEquipment, or OtherEquipment object with the name that denotes it is a residential cooking range. If one is found, it is replaced with the specified properties. Otherwise, a new such object is added to the model. Note: This measure requires the number of bedrooms/bathrooms to have already been assigned.</modeler_description>
+  <modeler_description>Since there is no Cooking Range object in OpenStudio/EnergyPlus, we look for an OtherEquipment or ElectricEquipment object with the name that denotes it is a residential cooking range. If one is found, it is replaced with the specified properties. Otherwise, a new such object is added to the model. Note: This measure requires the number of bedrooms/bathrooms to have already been assigned.</modeler_description>
   <arguments>
+    <argument>
+      <name>fuel_type</name>
+      <display_name>Fuel Type</display_name>
+      <description>Type of fuel used by the cooking range.</description>
+      <type>Choice</type>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>gas</default_value>
+      <choices>
+        <choice>
+          <value>gas</value>
+          <display_name>gas</display_name>
+        </choice>
+        <choice>
+          <value>propane</value>
+          <display_name>propane</display_name>
+        </choice>
+      </choices>
+    </argument>
     <argument>
       <name>c_ef</name>
       <display_name>Cooktop Energy Factor</display_name>
@@ -31,7 +50,7 @@
     <argument>
       <name>e_ignition</name>
       <display_name>Has Electronic Ignition</display_name>
-      <description>For gas/propane cooking ranges with electronic ignition, an extra (40 + 13.3x(#BR)) kWh/yr of electricity will be included.</description>
+      <description>For fuel cooking ranges with electronic ignition, an extra (40 + 13.3x(#BR)) kWh/yr of electricity will be included.</description>
       <type>Boolean</type>
       <required>true</required>
       <model_dependent>false</model_dependent>
@@ -179,25 +198,13 @@
       <filename>measure.rb</filename>
       <filetype>rb</filetype>
       <usage_type>script</usage_type>
-      <checksum>C0F04AEA</checksum>
+      <checksum>2F147525</checksum>
     </file>
     <file>
-      <filename>2000sqft_2story_FB_GRG_UA_3Beds_2Baths_GasCookingRange.osm</filename>
-      <filetype>osm</filetype>
-      <usage_type>test</usage_type>
-      <checksum>262D2484</checksum>
-    </file>
-    <file>
-      <filename>2000sqft_2story_FB_GRG_UA_3Beds_2Baths_GasCookingRangeWithElecIgnition.osm</filename>
-      <filetype>osm</filetype>
-      <usage_type>test</usage_type>
-      <checksum>33D6CA8E</checksum>
-    </file>
-    <file>
-      <filename>ResidentialCookingRangePropane_Test.rb</filename>
+      <filename>ResidentialCookingRangeFuel_Test.rb</filename>
       <filetype>rb</filetype>
       <usage_type>test</usage_type>
-      <checksum>F9AD2F0D</checksum>
+      <checksum>0BD5E72C</checksum>
     </file>
   </files>
 </measure>
