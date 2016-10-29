@@ -1,14 +1,14 @@
 <measure>
   <schema_version>3.0</schema_version>
-  <name>residential_cooking_range_gas</name>
-  <uid>33d8c300-8f2b-4d36-b6cc-545422c7b407</uid>
-  <version_id>3dc4a744-c8d0-4998-9b0a-9f59873236b9</version_id>
-  <version_modified>20161029T150845Z</version_modified>
+  <name>residential_cooking_range_propane</name>
+  <uid>68bdcee3-c301-4fe9-a99f-c7d8b5930c89</uid>
+  <version_id>7ef2745c-4475-4526-a3bf-675b3de7ae65</version_id>
+  <version_modified>20161029T151449Z</version_modified>
   <xml_checksum>25A40D75</xml_checksum>
-  <class_name>ResidentialCookingRangeGas</class_name>
-  <display_name>Set Residential Gas Cooking Range</display_name>
+  <class_name>ResidentialCookingRangePropane</class_name>
+  <display_name>Set Residential Propane Cooking Range</display_name>
   <description>Adds (or replaces) a residential cooking range with the specified efficiency, operation, and schedule. For multifamily buildings, the cooking range can be set for all units of the building.</description>
-  <modeler_description>Since there is no Cooking Range object in OpenStudio/EnergyPlus, we look for a GasEquipment, ElectricEquipment or OtherEquipment object with the name that denotes it is a residential cooking range. If one is found, it is replaced with the specified properties. Otherwise, a new such object is added to the model. Note: This measure requires the number of bedrooms/bathrooms to have already been assigned.</modeler_description>
+  <modeler_description>Since there is no Cooking Range object in OpenStudio/EnergyPlus, we look for a GasEquipment, ElectricEquipment, or OtherEquipment object with the name that denotes it is a residential cooking range. If one is found, it is replaced with the specified properties. Otherwise, a new such object is added to the model. Note: This measure requires the number of bedrooms/bathrooms to have already been assigned.</modeler_description>
   <arguments>
     <argument>
       <name>c_ef</name>
@@ -159,6 +159,18 @@
       <checksum>C3399417</checksum>
     </file>
     <file>
+      <filename>unit_conversions.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>4977607F</checksum>
+    </file>
+    <file>
+      <filename>util.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>07CC9F86</checksum>
+    </file>
+    <file>
       <version>
         <software_program>OpenStudio</software_program>
         <identifier>1.9.0</identifier>
@@ -167,25 +179,25 @@
       <filename>measure.rb</filename>
       <filetype>rb</filetype>
       <usage_type>script</usage_type>
-      <checksum>869E405F</checksum>
+      <checksum>C0F04AEA</checksum>
     </file>
     <file>
-      <filename>ResidentialCookingRangeGas_Test.rb</filename>
+      <filename>2000sqft_2story_FB_GRG_UA_3Beds_2Baths_GasCookingRange.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>262D2484</checksum>
+    </file>
+    <file>
+      <filename>2000sqft_2story_FB_GRG_UA_3Beds_2Baths_GasCookingRangeWithElecIgnition.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>33D6CA8E</checksum>
+    </file>
+    <file>
+      <filename>ResidentialCookingRangePropane_Test.rb</filename>
       <filetype>rb</filetype>
       <usage_type>test</usage_type>
-      <checksum>F26A8F49</checksum>
-    </file>
-    <file>
-      <filename>2000sqft_2story_FB_GRG_UA_3Beds_2Baths_PropaneCookingRange.osm</filename>
-      <filetype>osm</filetype>
-      <usage_type>test</usage_type>
-      <checksum>E25F2A73</checksum>
-    </file>
-    <file>
-      <filename>2000sqft_2story_FB_GRG_UA_3Beds_2Baths_PropaneCookingRangeWithElecIgnition.osm</filename>
-      <filetype>osm</filetype>
-      <usage_type>test</usage_type>
-      <checksum>FB0C5DC2</checksum>
+      <checksum>F9AD2F0D</checksum>
     </file>
   </files>
 </measure>

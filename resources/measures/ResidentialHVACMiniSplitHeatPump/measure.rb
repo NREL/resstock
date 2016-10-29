@@ -143,15 +143,7 @@ class ProcessVRFMinisplit < OpenStudio::Ruleset::ModelUserScript
     miniSplitHPSupplyFanPower.setUnits("W/cfm")
     miniSplitHPSupplyFanPower.setDescription("Fan power (in W) per delivered airflow rate (in cfm) of the fan.")
     miniSplitHPSupplyFanPower.setDefaultValue(0.07)
-    args << miniSplitHPSupplyFanPower     
-    
-    #make a double argument for minisplit min temp
-    miniSplitHPMinT = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("min_temp", true)
-    miniSplitHPMinT.setDisplayName("Min Temp")
-    miniSplitHPMinT.setUnits("degrees F")
-    miniSplitHPMinT.setDescription("Outdoor dry-bulb temperature below which compressor turns off.")
-    miniSplitHPMinT.setDefaultValue(5.0)
-    args << miniSplitHPMinT
+    args << miniSplitHPSupplyFanPower
     
     #make a double argument for minisplit pan heater power
     miniSplitHPPanHeaterPowerPerUnit = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("pan_heater_power", true)
@@ -219,8 +211,7 @@ class ProcessVRFMinisplit < OpenStudio::Ruleset::ModelUserScript
     miniSplitHPHeatingMinCapacity = runner.getDoubleArgumentValue("min_heating_capacity",user_arguments) 
     miniSplitHPHeatingMaxCapacity = runner.getDoubleArgumentValue("max_heating_capacity",user_arguments) 
     miniSplitHPHeatingMinAirflow = runner.getDoubleArgumentValue("min_heating_airflow_rate",user_arguments) 
-    miniSplitHPHeatingMaxAirflow = runner.getDoubleArgumentValue("max_heating_airflow_rate",user_arguments) 
-    miniSplitHPMinT = runner.getDoubleArgumentValue("min_temp",user_arguments) 
+    miniSplitHPHeatingMaxAirflow = runner.getDoubleArgumentValue("max_heating_airflow_rate",user_arguments)
     miniSplitHPPanHeaterPowerPerUnit = runner.getDoubleArgumentValue("pan_heater_power",user_arguments) 
     miniSplitCoolingOutputCapacity = runner.getStringArgumentValue("heat_pump_capacity",user_arguments)
     unless miniSplitCoolingOutputCapacity == Constants.SizingAuto
@@ -236,6 +227,7 @@ class ProcessVRFMinisplit < OpenStudio::Ruleset::ModelUserScript
     # _processAirSystem
     
     curves.mshp_indices = [1,3,5,9]
+    miniSplitHPMinT = OpenStudio::convert(-30,"F","C").get
     
     # Cooling Coil
     curves = HVAC.get_cooling_coefficients(runner, Constants.Num_Speeds_MSHP, true, curves)
@@ -295,9 +287,9 @@ class ProcessVRFMinisplit < OpenStudio::Ruleset::ModelUserScript
         clg_coil.setName("#{control_zone.name} DX Cooling Coil_#{unit_num}")
         if miniSplitCoolingOutputCapacity != Constants.SizingAuto
           clg_coil.setRatedTotalCoolingCapacity(OpenStudio::convert(miniSplitCoolingOutputCapacity,"Btu/h","W").get * supply.Capacity_Ratio_Cooling[curves.mshp_indices[-1]])
+          clg_coil.setRatedSensibleHeatRatio(supply.SHR_Rated[curves.mshp_indices[-1]])
           clg_coil.setRatedAirFlowRate(supply.CoolingCFMs[curves.mshp_indices[-1]]* miniSplitCoolingOutputCapacity * OpenStudio::convert(1.0,"Btu/h","ton").get * OpenStudio::convert(1.0,"cfm","m^3/s").get)
-        end        
-        clg_coil.setRatedSensibleHeatRatio(supply.SHR_Rated[-1])
+        end
         clg_coil.setCoolingCapacityRatioModifierFunctionofTemperatureCurve(constant_cubic)
         clg_coil.setCoolingCapacityModifierCurveFunctionofFlowFraction(constant_cubic)
       
@@ -407,7 +399,7 @@ class ProcessVRFMinisplit < OpenStudio::Ruleset::ModelUserScript
           if miniSplitCoolingOutputCapacity != Constants.SizingAuto
             htg_coil.setRatedTotalHeatingCapacity(OpenStudio::convert(miniSplitHeatingOutputCapacity,"Btu/h","W").get * supply.Capacity_Ratio_Heating[curves.mshp_indices[-1]])
             htg_coil.setRatedAirFlowRate(supply.HeatingCFMs[curves.mshp_indices[-1]]* miniSplitHeatingOutputCapacity * OpenStudio::convert(1.0,"Btu/h","ton").get * OpenStudio::convert(1.0,"cfm","m^3/s").get)
-          end        
+          end
           htg_coil.setHeatingCapacityRatioModifierFunctionofTemperatureCurve(constant_cubic)
           htg_coil.setHeatingCapacityModifierFunctionofFlowFractionCurve(constant_cubic)        
                   
@@ -415,9 +407,9 @@ class ProcessVRFMinisplit < OpenStudio::Ruleset::ModelUserScript
           clg_coil.setName("#{slave_zone.name} DX Cooling Coil_#{unit_num}")
           if miniSplitCoolingOutputCapacity != Constants.SizingAuto
             clg_coil.setRatedTotalCoolingCapacity(OpenStudio::convert(miniSplitCoolingOutputCapacity,"Btu/h","W").get * supply.Capacity_Ratio_Cooling[curves.mshp_indices[-1]])
+            clg_coil.setRatedSensibleHeatRatio(supply.SHR_Rated[curves.mshp_indices[-1]])
             clg_coil.setRatedAirFlowRate(supply.CoolingCFMs[curves.mshp_indices[-1]]* miniSplitCoolingOutputCapacity * OpenStudio::convert(1.0,"Btu/h","ton").get * OpenStudio::convert(1.0,"cfm","m^3/s").get)
-          end        
-          clg_coil.setRatedSensibleHeatRatio(supply.SHR_Rated[-1])
+          end          
           clg_coil.setCoolingCapacityRatioModifierFunctionofTemperatureCurve(constant_cubic)
           clg_coil.setCoolingCapacityModifierCurveFunctionofFlowFraction(constant_cubic)
                 
@@ -528,6 +520,9 @@ class ProcessVRFMinisplit < OpenStudio::Ruleset::ModelUserScript
           end
           pan_heater_power = miniSplitHPPanHeaterPowerPerUnit * num_outdoor_units # W
           program.addLine("Set E_pan_#{unit_num} = 0")
+          if slave_zones.empty?
+            program.addLine("Set E_mshp_fb_#{unit_num} = 0")
+          end
           program.addLine("If E_mshp_#{unit_num} > 0 || E_mshp_fb_#{unit_num} > 0")
           program.addLine("If Tout_#{unit_num} <= #{OpenStudio::convert(32.0,"F","C").get}")
           program.addLine("Set E_pan_#{unit_num} = #{pan_heater_power}")
