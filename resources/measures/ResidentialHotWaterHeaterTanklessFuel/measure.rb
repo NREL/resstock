@@ -7,20 +7,20 @@ require "#{File.dirname(__FILE__)}/resources/constants"
 require "#{File.dirname(__FILE__)}/resources/geometry"
 
 #start the measure
-class ResidentialHotWaterHeaterTankOil < OpenStudio::Ruleset::ModelUserScript
+class ResidentialHotWaterHeaterTanklessFuel < OpenStudio::Ruleset::ModelUserScript
 
     #define the name that a user will see, this method may be deprecated as
     #the display name in PAT comes from the name field in measure.xml
     def name
-        return "Set Residential Oil Tank Water Heater"
+        return "Set Residential Fuel Tankless Water Heater"
     end
   
     def description
-        return "This measure adds a new residential oil storage water heater to the model based on user inputs. If there is already an existing residential water heater in the model, it is replaced. For multifamily buildings, the water heater can be set for all units of the building."
+        return "This measure adds a new residential fuel tankless water heater to the model based on user inputs. If there is already an existing residential water heater in the model, it is replaced. For multifamily buildings, the water heater can be set for all units of the building."
     end
   
     def modeler_description
-        return "The measure will create a new instance of the OS:WaterHeater:Mixed object representing a oil storage water heater. The water heater will be placed on the plant loop 'Domestic Hot Water Loop'. If this loop already exists, any water heater on that loop will be removed and replaced with a water heater consistent with this measure. If it doesn't exist, it will be created."
+        return "The measure will create a new instance of the OS:WaterHeater:Mixed object representing a fuel tankless water heater. The water heater will be placed on the plant loop 'Domestic Hot Water Loop'. If this loop already exists, any water heater on that loop will be removed and replaced with a water heater consistent with this measure. If it doesn't exist, it will be created."
     end
 
     #define the arguments that the user will input
@@ -31,13 +31,15 @@ class ResidentialHotWaterHeaterTankOil < OpenStudio::Ruleset::ModelUserScript
     
         args = ruleset::OSArgumentVector.new
 
-        # make an argument for the storage tank volume
-        storage_tank_volume = osargument::makeStringArgument("tank_volume", true)
-        storage_tank_volume.setDisplayName("Tank Volume")
-        storage_tank_volume.setDescription("Nominal volume of the of the water heater tank. Set to #{Constants.Auto} to have volume autosized.")
-        storage_tank_volume.setUnits("gal")
-        storage_tank_volume.setDefaultValue(Constants.Auto)
-        args << storage_tank_volume
+        #make a string argument for furnace fuel type
+        fuel_display_names = OpenStudio::StringVector.new
+        fuel_display_names << Constants.FuelTypeGas
+        fuel_display_names << Constants.FuelTypePropane
+        fueltype = OpenStudio::Ruleset::OSArgument::makeChoiceArgument("fuel_type", fuel_display_names, true)
+        fueltype.setDisplayName("Fuel Type")
+        fueltype.setDescription("Type of fuel used for water heating.")
+        fueltype.setDefaultValue(Constants.FuelTypeGas)
+        args << fueltype
 
         # make an argument for hot water setpoint temperature
         dhw_setpoint = osargument::makeDoubleArgument("setpoint_temp", true)
@@ -59,34 +61,34 @@ class ResidentialHotWaterHeaterTankOil < OpenStudio::Ruleset::ModelUserScript
         args << water_heater_location
 
         # make an argument for water_heater_capacity
-        water_heater_capacity = osargument::makeStringArgument("capacity", true)
+        water_heater_capacity = osargument::makeDoubleArgument("capacity", true)
         water_heater_capacity.setDisplayName("Input Capacity")
-        water_heater_capacity.setDescription("The maximum energy input rating of the water heater. Set to #{Constants.Auto} to have this field autosized.")
+        water_heater_capacity.setDescription("The maximum energy input rating of the water heater.")
         water_heater_capacity.setUnits("kBtu/hr")
-        water_heater_capacity.setDefaultValue("90.0")
+        water_heater_capacity.setDefaultValue(100000000.0)
         args << water_heater_capacity
 
         # make an argument for the rated energy factor
-        rated_energy_factor = osargument::makeStringArgument("energy_factor", true)
+        rated_energy_factor = osargument::makeDoubleArgument("energy_factor", true)
         rated_energy_factor.setDisplayName("Rated Energy Factor")
-        rated_energy_factor.setDescription("For water heaters, Energy Factor is the ratio of useful energy output from the water heater to the total amount of energy delivered from the water heater. The higher the EF is, the more efficient the water heater. Procedures to test the EF of water heaters are defined by the Department of Energy in 10 Code of Federal Regulation Part 430, Appendix E to Subpart B. Enter #{Constants.Auto} for a water heater that meets the minimum federal efficiency requirements.")
-        rated_energy_factor.setDefaultValue("0.62")
+        rated_energy_factor.setDescription("For water heaters, Energy Factor is the ratio of useful energy output from the water heater to the total amount of energy delivered from the water heater. The higher the EF is, the more efficient the water heater. Procedures to test the EF of water heaters are defined by the Department of Energy in 10 Code of Federal Regulation Part 430, Appendix E to Subpart B.")
+        rated_energy_factor.setDefaultValue(0.82)
         args << rated_energy_factor
 
-        # make an argument for water_heater_recovery_efficiency
-        water_heater_recovery_efficiency = osargument::makeDoubleArgument("recovery_efficiency", true)
-        water_heater_recovery_efficiency.setDisplayName("Recovery Efficiency")
-        water_heater_recovery_efficiency.setDescription("For water heaters, the recovery efficiency is the ratio of energy delivered to the water to the energy content of the fuel consumed by the water heater. Test procedures to test recovery efficiency are defined by the Department of Energy in 10 Code of Federal Regulations Part 430, Appendix E to Subpart B. This information can often be found in the AHRI Certification Directory or on the EnergyStar website.")
-        water_heater_recovery_efficiency.setUnits("Frac")
-        water_heater_recovery_efficiency.setDefaultValue(0.78)
-        args << water_heater_recovery_efficiency
+        # make an argument for cycling_derate
+        water_heater_cycling_derate = osargument::makeDoubleArgument("water_heater_cycling_derate", true)
+        water_heater_cycling_derate.setDisplayName("Cycling Derate")
+        water_heater_cycling_derate.setDescription("Annual energy derate for cycling inefficiencies -- accounts for the impact of thermal cycling and small hot water draws on the heat exchanger. CEC's 2008 Title24 implemented an 8% derate for tankless water heaters. ")
+        water_heater_cycling_derate.setUnits("Frac")
+        water_heater_cycling_derate.setDefaultValue(0.08)
+        args << water_heater_cycling_derate
 	
         # make an argument on cycle electricity consumption
         offcyc_power = osargument::makeDoubleArgument("offcyc_power", true)
         offcyc_power.setDisplayName("Parasitic Electric Power")
         offcyc_power.setDescription("Off cycle electric power draw for controls, etc.")
         offcyc_power.setUnits("W")
-        offcyc_power.setDefaultValue(0)
+        offcyc_power.setDefaultValue(5.0)
         args << offcyc_power
 	
         # make an argument on cycle electricity consumption
@@ -94,7 +96,7 @@ class ResidentialHotWaterHeaterTankOil < OpenStudio::Ruleset::ModelUserScript
         oncyc_power.setDisplayName("Forced Draft Fan Power")
         oncyc_power.setDescription("On cycle electric power draw from the forced draft fan motor.")
         oncyc_power.setUnits("W")
-        oncyc_power.setDefaultValue(0)
+        oncyc_power.setDefaultValue(65.0)
         args << oncyc_power
     
         return args
@@ -106,25 +108,21 @@ class ResidentialHotWaterHeaterTankOil < OpenStudio::Ruleset::ModelUserScript
 
 	
         #Assign user inputs to variables
-        cap = runner.getStringArgumentValue("capacity",user_arguments)
-        vol = runner.getStringArgumentValue("tank_volume",user_arguments)
-        ef = runner.getStringArgumentValue("energy_factor",user_arguments)
-        re = runner.getDoubleArgumentValue("recovery_efficiency",user_arguments)
+        fuel_type = runner.getStringArgumentValue("fuel_type",user_arguments)
+        cap = runner.getDoubleArgumentValue("capacity",user_arguments)
+        ef = runner.getDoubleArgumentValue("energy_factor",user_arguments)
+        cd = runner.getDoubleArgumentValue("water_heater_cycling_derate",user_arguments)
         water_heater_loc = runner.getStringArgumentValue("location",user_arguments)
         t_set = runner.getDoubleArgumentValue("setpoint_temp",user_arguments).to_f
         oncycle_p = runner.getDoubleArgumentValue("oncyc_power",user_arguments)
         offcycle_p = runner.getDoubleArgumentValue("offcyc_power",user_arguments)
-	
+        
         #Validate inputs
         if not runner.validateUserArguments(arguments(model), user_arguments)
             return false
         end
 	
         # Validate inputs further
-        valid_vol = validate_storage_tank_volume(vol, runner)
-        if valid_vol.nil?
-            return false
-        end
         valid_ef = validate_rated_energy_factor(ef, runner)
         if valid_ef.nil?
             return false
@@ -137,8 +135,8 @@ class ResidentialHotWaterHeaterTankOil < OpenStudio::Ruleset::ModelUserScript
         if valid_cap.nil?
             return false
         end
-        valid_re = validate_water_heater_recovery_efficiency(re, runner)
-        if valid_re.nil?
+        valid_cd = validate_water_heater_cycling_derate(cd, runner)
+        if valid_cd.nil?
             return false
         end
         valid_epar = validate_parasitic_elec(oncycle_p, offcycle_p, runner)
@@ -168,7 +166,7 @@ class ResidentialHotWaterHeaterTankOil < OpenStudio::Ruleset::ModelUserScript
             if sch_unit_index.nil?
                 return false
             end
-
+    
             #If location is Auto, get the location
             if water_heater_loc == Constants.Auto
                 water_heater_tz = Waterheater.get_water_heater_location_auto(model, unit.spaces, runner)
@@ -181,7 +179,7 @@ class ResidentialHotWaterHeaterTankOil < OpenStudio::Ruleset::ModelUserScript
                 water_heater_tz = Geometry.get_thermal_zone_from_string(unit_zones, water_heater_loc.to_s)
                 next if water_heater_tz.nil?
             end
-        
+
             #Check if a DHW plant loop already exists, if not add it
             loop = nil
         
@@ -215,7 +213,7 @@ class ResidentialHotWaterHeaterTankOil < OpenStudio::Ruleset::ModelUserScript
                     end
                 end
             end
-
+            
             if loop.nil?
                 runner.registerInfo("A new plant loop for DHW will be added to the model")
                 runner.registerInitialCondition("No water heater model currently exists")
@@ -231,13 +229,13 @@ class ResidentialHotWaterHeaterTankOil < OpenStudio::Ruleset::ModelUserScript
                 new_manager = Waterheater.create_new_schedule_manager(t_set, model)
                 new_manager.addToNode(loop.supplyOutletNode)
             end
-                
-            new_heater = Waterheater.create_new_heater(sch_unit_index, Constants.ObjectNameWaterHeater(unit.name.to_s), cap, Constants.FuelTypeOil, vol, nbeds, nbaths, ef, re, t_set, water_heater_tz, oncycle_p, offcycle_p, Constants.WaterHeaterTypeTank, 0, File.dirname(__FILE__), model, runner)
+        
+            new_heater = Waterheater.create_new_heater(sch_unit_index, Constants.ObjectNameWaterHeater(unit.name.to_s), cap, fuel_type, 1, nbeds, nbaths, ef, 0, t_set, water_heater_tz, oncycle_p, offcycle_p, Constants.WaterHeaterTypeTankless, cd, File.dirname(__FILE__), model, runner)
         
             loop.addSupplyBranchForComponent(new_heater)
             
         end
-        
+            
         register_final_conditions(runner, model)
   
         return true
@@ -263,32 +261,17 @@ class ResidentialHotWaterHeaterTankOil < OpenStudio::Ruleset::ModelUserScript
             capacity = OpenStudio.convert(capacity_si.value, capacity_si.units.standardString, "kBtu/hr").get
             volume_si = heater.getTankVolume.get
             volume = OpenStudio.convert(volume_si.value, volume_si.units.standardString, "gal").get
-            te = heater.getHeaterThermalEfficiency
+            te = heater.getHeaterThermalEfficiency.get.value
           
             water_heaters << "Water heater '#{heatername}' added to plant loop '#{loopname}', with a capacity of #{capacity.round(1)} kBtu/hr" +
-            " and an actual tank volume of #{volume.round(1)} gal."
+            " and a burner efficiency of  #{te.round(2)}."
         end
         water_heaters
     end
 
-    
-    def validate_storage_tank_volume(vol, runner)
-        return true if (vol == Constants.Auto)  # flag for autosizing
-        vol = vol.to_f
-
-        if vol <= 0
-            runner.registerError("Storage tank volume must be greater than 0 or #{Constants.Auto}.")   
-            return nil
-        end
-        return true
-    end
-
     def validate_rated_energy_factor(ef, runner)
-        return true if (ef == Constants.Auto)  # flag for autosizing
-        ef = ef.to_f
-
         if (ef >= 1 or ef <= 0)
-            runner.registerError("Rated energy factor must be greater than 0 and less than 1, or #{Constants.Auto}.")
+            runner.registerError("Rated energy factor must be greater than 0 and less than 1.")
             return nil
         end
         return true
@@ -303,19 +286,16 @@ class ResidentialHotWaterHeaterTankOil < OpenStudio::Ruleset::ModelUserScript
     end
 
     def validate_water_heater_capacity(cap, runner)
-        return true if cap == Constants.Auto # Autosized
-        cap = cap.to_f
-
         if cap <= 0
-            runner.registerError("Nominal capacity must be greater than 0 or #{Constants.Auto}.")
+            runner.registerError("Nominal capacity must be greater than 0.")
             return nil
         end
         return true
     end
     
-    def validate_water_heater_recovery_efficiency(re, runner)
-        if (re < 0 or re > 1)
-            runner.registerError("Recovery efficiency must be at least 0 and at most 1.")
+    def validate_water_heater_cycling_derate(cd, runner)
+        if (cd < 0 or cd > 1)
+            runner.registerError("Cycling derate must be at least 0 and at most 1.")
             return nil
         end
         return true
@@ -337,4 +317,4 @@ class ResidentialHotWaterHeaterTankOil < OpenStudio::Ruleset::ModelUserScript
 end #end the measure
 
 #this allows the measure to be use by the application
-ResidentialHotWaterHeaterTankOil.new.registerWithApplication
+ResidentialHotWaterHeaterTanklessFuel.new.registerWithApplication

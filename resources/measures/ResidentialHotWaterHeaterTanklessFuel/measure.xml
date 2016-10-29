@@ -1,24 +1,33 @@
 <measure>
   <schema_version>3.0</schema_version>
-  <name>residential_hot_water_heater_tank_propane</name>
-  <uid>202bfb71-76e0-4615-867b-5d51e8e25223</uid>
-  <version_id>9197e2c6-3ed1-49bc-ba19-b78dabd61ece</version_id>
-  <version_modified>20161028T172603Z</version_modified>
+  <name>residential_hot_water_heater_tankless_fuel</name>
+  <uid>caf92375-4c0c-47d1-9fe1-7aa5d3b1a734</uid>
+  <version_id>a6e29a56-4b4b-4bc8-94ac-a5f778201519</version_id>
+  <version_modified>20161029T213422Z</version_modified>
   <xml_checksum>9882CBDB</xml_checksum>
-  <class_name>ResidentialHotWaterHeaterTankPropane</class_name>
-  <display_name>Set Residential Propane Tank Water Heater</display_name>
-  <description>This measure adds a new residential propane storage water heater to the model based on user inputs. If there is already an existing residential water heater in the model, it is replaced. For multifamily buildings, the water heater can be set for all units of the building.</description>
-  <modeler_description>The measure will create a new instance of the OS:WaterHeater:Mixed object representing a propane storage water heater. The water heater will be placed on the plant loop 'Domestic Hot Water Loop'. If this loop already exists, any water heater on that loop will be removed and replaced with a water heater consistent with this measure. If it doesn't exist, it will be created.</modeler_description>
+  <class_name>ResidentialHotWaterHeaterTanklessFuel</class_name>
+  <display_name>Set Residential Fuel Tankless Water Heater</display_name>
+  <description>This measure adds a new residential fuel tankless water heater to the model based on user inputs. If there is already an existing residential water heater in the model, it is replaced. For multifamily buildings, the water heater can be set for all units of the building.</description>
+  <modeler_description>The measure will create a new instance of the OS:WaterHeater:Mixed object representing a fuel tankless water heater. The water heater will be placed on the plant loop 'Domestic Hot Water Loop'. If this loop already exists, any water heater on that loop will be removed and replaced with a water heater consistent with this measure. If it doesn't exist, it will be created.</modeler_description>
   <arguments>
     <argument>
-      <name>tank_volume</name>
-      <display_name>Tank Volume</display_name>
-      <description>Nominal volume of the of the water heater tank. Set to auto to have volume autosized.</description>
-      <type>String</type>
-      <units>gal</units>
+      <name>fuel_type</name>
+      <display_name>Fuel Type</display_name>
+      <description>Type of fuel used for water heating.</description>
+      <type>Choice</type>
       <required>true</required>
       <model_dependent>false</model_dependent>
-      <default_value>auto</default_value>
+      <default_value>gas</default_value>
+      <choices>
+        <choice>
+          <value>gas</value>
+          <display_name>gas</display_name>
+        </choice>
+        <choice>
+          <value>propane</value>
+          <display_name>propane</display_name>
+        </choice>
+      </choices>
     </argument>
     <argument>
       <name>setpoint_temp</name>
@@ -48,31 +57,31 @@
     <argument>
       <name>capacity</name>
       <display_name>Input Capacity</display_name>
-      <description>The maximum energy input rating of the water heater. Set to auto to have this field autosized.</description>
-      <type>String</type>
+      <description>The maximum energy input rating of the water heater.</description>
+      <type>Double</type>
       <units>kBtu/hr</units>
       <required>true</required>
       <model_dependent>false</model_dependent>
-      <default_value>47.0</default_value>
+      <default_value>100000000</default_value>
     </argument>
     <argument>
       <name>energy_factor</name>
       <display_name>Rated Energy Factor</display_name>
-      <description>For water heaters, Energy Factor is the ratio of useful energy output from the water heater to the total amount of energy delivered from the water heater. The higher the EF is, the more efficient the water heater. Procedures to test the EF of water heaters are defined by the Department of Energy in 10 Code of Federal Regulation Part 430, Appendix E to Subpart B. Enter auto for a water heater that meets the minimum federal efficiency requirements.</description>
-      <type>String</type>
+      <description>For water heaters, Energy Factor is the ratio of useful energy output from the water heater to the total amount of energy delivered from the water heater. The higher the EF is, the more efficient the water heater. Procedures to test the EF of water heaters are defined by the Department of Energy in 10 Code of Federal Regulation Part 430, Appendix E to Subpart B.</description>
+      <type>Double</type>
       <required>true</required>
       <model_dependent>false</model_dependent>
-      <default_value>0.59</default_value>
+      <default_value>0.82</default_value>
     </argument>
     <argument>
-      <name>recovery_efficiency</name>
-      <display_name>Recovery Efficiency</display_name>
-      <description>For water heaters, the recovery efficiency is the ratio of energy delivered to the water to the energy content of the fuel consumed by the water heater. Test procedures to test recovery efficiency are defined by the Department of Energy in 10 Code of Federal Regulations Part 430, Appendix E to Subpart B. This information can often be found in the AHRI Certification Directory or on the EnergyStar website.</description>
+      <name>water_heater_cycling_derate</name>
+      <display_name>Cycling Derate</display_name>
+      <description>Annual energy derate for cycling inefficiencies -- accounts for the impact of thermal cycling and small hot water draws on the heat exchanger. CEC's 2008 Title24 implemented an 8% derate for tankless water heaters. </description>
       <type>Double</type>
       <units>Frac</units>
       <required>true</required>
       <model_dependent>false</model_dependent>
-      <default_value>0.76</default_value>
+      <default_value>0.08</default_value>
     </argument>
     <argument>
       <name>offcyc_power</name>
@@ -82,7 +91,7 @@
       <units>W</units>
       <required>true</required>
       <model_dependent>false</model_dependent>
-      <default_value>0</default_value>
+      <default_value>5</default_value>
     </argument>
     <argument>
       <name>oncyc_power</name>
@@ -92,7 +101,7 @@
       <units>W</units>
       <required>true</required>
       <model_dependent>false</model_dependent>
-      <default_value>0</default_value>
+      <default_value>65</default_value>
     </argument>
   </arguments>
   <provenances/>
@@ -125,12 +134,6 @@
       <checksum>E23378AA</checksum>
     </file>
     <file>
-      <filename>MinuteDrawProfilesMaxFlows.csv</filename>
-      <filetype>csv</filetype>
-      <usage_type>resource</usage_type>
-      <checksum>9D722D63</checksum>
-    </file>
-    <file>
       <filename>psychrometrics.rb</filename>
       <filetype>rb</filetype>
       <usage_type>resource</usage_type>
@@ -161,24 +164,6 @@
       <checksum>7FCAB593</checksum>
     </file>
     <file>
-      <filename>2000sqft_2story_FB_GRG_UA_1Beds_1Baths_Denver.osm</filename>
-      <filetype>osm</filetype>
-      <usage_type>test</usage_type>
-      <checksum>B93F106A</checksum>
-    </file>
-    <file>
-      <filename>2000sqft_2story_FB_GRG_UA_2Beds_1Baths_Denver.osm</filename>
-      <filetype>osm</filetype>
-      <usage_type>test</usage_type>
-      <checksum>24DEC8FD</checksum>
-    </file>
-    <file>
-      <filename>2000sqft_2story_FB_GRG_UA_2Beds_2Baths_Denver.osm</filename>
-      <filetype>osm</filetype>
-      <usage_type>test</usage_type>
-      <checksum>DDB020B7</checksum>
-    </file>
-    <file>
       <filename>2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver.osm</filename>
       <filetype>osm</filetype>
       <usage_type>test</usage_type>
@@ -203,28 +188,16 @@
       <checksum>DCEC327B</checksum>
     </file>
     <file>
-      <filename>2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver_TanklessGas.osm</filename>
-      <filetype>osm</filetype>
-      <usage_type>test</usage_type>
-      <checksum>E85A7794</checksum>
-    </file>
-    <file>
-      <filename>2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver_TanklessPropane.osm</filename>
-      <filetype>osm</filetype>
-      <usage_type>test</usage_type>
-      <checksum>3DE62E6B</checksum>
-    </file>
-    <file>
       <filename>2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver_TankOil.osm</filename>
       <filetype>osm</filetype>
       <usage_type>test</usage_type>
       <checksum>A38F0DBB</checksum>
     </file>
     <file>
-      <filename>2000sqft_2story_FB_GRG_UA_5Beds_3Baths_Denver.osm</filename>
+      <filename>2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver_TankPropane.osm</filename>
       <filetype>osm</filetype>
       <usage_type>test</usage_type>
-      <checksum>1E878793</checksum>
+      <checksum>3F4CE80E</checksum>
     </file>
     <file>
       <filename>2000sqft_2story_FB_GRG_UA_Denver.osm</filename>
@@ -263,23 +236,6 @@
       <checksum>951BE986</checksum>
     </file>
     <file>
-      <version>
-        <software_program>OpenStudio</software_program>
-        <identifier>1.4.1</identifier>
-        <min_compatible>1.13.1</min_compatible>
-      </version>
-      <filename>measure.rb</filename>
-      <filetype>rb</filetype>
-      <usage_type>script</usage_type>
-      <checksum>3F8AEC19</checksum>
-    </file>
-    <file>
-      <filename>ResidentialWaterHeaterTankPropane_Test.rb</filename>
-      <filetype>rb</filetype>
-      <usage_type>test</usage_type>
-      <checksum>D6CE0FBB</checksum>
-    </file>
-    <file>
       <filename>util.rb</filename>
       <filetype>rb</filetype>
       <usage_type>resource</usage_type>
@@ -290,6 +246,29 @@
       <filetype>rb</filetype>
       <usage_type>resource</usage_type>
       <checksum>4977607F</checksum>
+    </file>
+    <file>
+      <version>
+        <software_program>OpenStudio</software_program>
+        <identifier>1.4.1</identifier>
+        <min_compatible>1.13.1</min_compatible>
+      </version>
+      <filename>measure.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>script</usage_type>
+      <checksum>5F7F5BFC</checksum>
+    </file>
+    <file>
+      <filename>ResidentialWaterHeaterTanklessFuel_Test.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>test</usage_type>
+      <checksum>8EA445C4</checksum>
+    </file>
+    <file>
+      <filename>MinuteDrawProfilesMaxFlows.csv</filename>
+      <filetype>csv</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>9D722D63</checksum>
     </file>
   </files>
 </measure>

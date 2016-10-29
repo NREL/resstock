@@ -7,20 +7,20 @@ require "#{File.dirname(__FILE__)}/resources/constants"
 require "#{File.dirname(__FILE__)}/resources/geometry"
 
 #start the measure
-class ResidentialHotWaterHeaterTankPropane < OpenStudio::Ruleset::ModelUserScript
+class ResidentialHotWaterHeaterTankFuel < OpenStudio::Ruleset::ModelUserScript
 
     #define the name that a user will see, this method may be deprecated as
     #the display name in PAT comes from the name field in measure.xml
     def name
-        return "Set Residential Propane Tank Water Heater"
+        return "Set Residential Fuel Tank Water Heater"
     end
   
     def description
-        return "This measure adds a new residential propane storage water heater to the model based on user inputs. If there is already an existing residential water heater in the model, it is replaced. For multifamily buildings, the water heater can be set for all units of the building."
+        return "This measure adds a new residential fuel storage water heater to the model based on user inputs. If there is already an existing residential water heater in the model, it is replaced. For multifamily buildings, the water heater can be set for all units of the building."
     end
   
     def modeler_description
-        return "The measure will create a new instance of the OS:WaterHeater:Mixed object representing a propane storage water heater. The water heater will be placed on the plant loop 'Domestic Hot Water Loop'. If this loop already exists, any water heater on that loop will be removed and replaced with a water heater consistent with this measure. If it doesn't exist, it will be created."
+        return "The measure will create a new instance of the OS:WaterHeater:Mixed object representing a fuel storage water heater. The water heater will be placed on the plant loop 'Domestic Hot Water Loop'. If this loop already exists, any water heater on that loop will be removed and replaced with a water heater consistent with this measure. If it doesn't exist, it will be created."
     end
 
     #define the arguments that the user will input
@@ -30,6 +30,17 @@ class ResidentialHotWaterHeaterTankPropane < OpenStudio::Ruleset::ModelUserScrip
         osargument = ruleset::OSArgument
     
         args = ruleset::OSArgumentVector.new
+
+        #make a string argument for furnace fuel type
+        fuel_display_names = OpenStudio::StringVector.new
+        fuel_display_names << Constants.FuelTypeGas
+        fuel_display_names << Constants.FuelTypeOil
+        fuel_display_names << Constants.FuelTypePropane
+        fueltype = OpenStudio::Ruleset::OSArgument::makeChoiceArgument("fuel_type", fuel_display_names, true)
+        fueltype.setDisplayName("Fuel Type")
+        fueltype.setDescription("Type of fuel used for water heating.")
+        fueltype.setDefaultValue(Constants.FuelTypeGas)
+        args << fueltype
 
         # make an argument for the storage tank volume
         storage_tank_volume = osargument::makeStringArgument("tank_volume", true)
@@ -63,7 +74,7 @@ class ResidentialHotWaterHeaterTankPropane < OpenStudio::Ruleset::ModelUserScrip
         water_heater_capacity.setDisplayName("Input Capacity")
         water_heater_capacity.setDescription("The maximum energy input rating of the water heater. Set to #{Constants.Auto} to have this field autosized.")
         water_heater_capacity.setUnits("kBtu/hr")
-        water_heater_capacity.setDefaultValue("47.0")
+        water_heater_capacity.setDefaultValue("40.0")
         args << water_heater_capacity
 
         # make an argument for the rated energy factor
@@ -104,8 +115,8 @@ class ResidentialHotWaterHeaterTankPropane < OpenStudio::Ruleset::ModelUserScrip
     def run(model, runner, user_arguments)
         super(model, runner, user_arguments)
 
-	
         #Assign user inputs to variables
+        fuel_type = runner.getStringArgumentValue("fuel_type",user_arguments)
         cap = runner.getStringArgumentValue("capacity",user_arguments)
         vol = runner.getStringArgumentValue("tank_volume",user_arguments)
         ef = runner.getStringArgumentValue("energy_factor",user_arguments)
@@ -232,7 +243,7 @@ class ResidentialHotWaterHeaterTankPropane < OpenStudio::Ruleset::ModelUserScrip
                 new_manager.addToNode(loop.supplyOutletNode)
             end
         
-            new_heater = Waterheater.create_new_heater(sch_unit_index, Constants.ObjectNameWaterHeater(unit.name.to_s), cap, Constants.FuelTypePropane, vol, nbeds, nbaths, ef, re, t_set, water_heater_tz, oncycle_p, offcycle_p, Constants.WaterHeaterTypeTank, 0, File.dirname(__FILE__), model, runner)
+            new_heater = Waterheater.create_new_heater(sch_unit_index, Constants.ObjectNameWaterHeater(unit.name.to_s), cap, fuel_type, vol, nbeds, nbaths, ef, re, t_set, water_heater_tz, oncycle_p, offcycle_p, Constants.WaterHeaterTypeTank, 0, File.dirname(__FILE__), model, runner)
         
             loop.addSupplyBranchForComponent(new_heater)
             
@@ -337,4 +348,4 @@ class ResidentialHotWaterHeaterTankPropane < OpenStudio::Ruleset::ModelUserScrip
 end #end the measure
 
 #this allows the measure to be use by the application
-ResidentialHotWaterHeaterTankPropane.new.registerWithApplication
+ResidentialHotWaterHeaterTankFuel.new.registerWithApplication

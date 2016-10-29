@@ -88,8 +88,6 @@ class ResidentialHotWaterHeaterTanklessElectric < OpenStudio::Ruleset::ModelUser
         water_heater_loc = runner.getStringArgumentValue("location",user_arguments)
         t_set = runner.getDoubleArgumentValue("setpoint_temp",user_arguments).to_f
         
-        tanktype = Constants.WaterHeaterTypeTankless
-	
         #Validate inputs
         if not runner.validateUserArguments(arguments(model), user_arguments)
             return false
@@ -199,7 +197,7 @@ class ResidentialHotWaterHeaterTanklessElectric < OpenStudio::Ruleset::ModelUser
                 new_manager.addToNode(loop.supplyOutletNode)
             end
 
-            new_heater = Waterheater.create_new_heater(sch_unit_index, Constants.ObjectNameWaterHeater(unit.name.to_s), cap, Constants.FuelTypeElectric, 1, nbeds, nbaths, ef, 0, t_set, water_heater_tz, 0, 0, tanktype, cd, File.dirname(__FILE__), model, runner)
+            new_heater = Waterheater.create_new_heater(sch_unit_index, Constants.ObjectNameWaterHeater(unit.name.to_s), cap, Constants.FuelTypeElectric, 1, nbeds, nbaths, ef, 0, t_set, water_heater_tz, 0, 0, Constants.WaterHeaterTypeTankless, cd, File.dirname(__FILE__), model, runner)
         
             loop.addSupplyBranchForComponent(new_heater)
             
