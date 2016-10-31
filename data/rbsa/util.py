@@ -261,9 +261,17 @@ def assign_size(df):
             else:
                 assert size >= 3500
                 return '3500+'
+                
+    def size(sfmasterhousegeometry):
+        if sfmasterhousegeometry.summarysketchsqftcalculated is None:
+            return None
+        else:
+            size = float(sfmasterhousegeometry.summarysketchsqftcalculated)
+            return size        
 
+    df['House Size'] = df.apply(lambda x: size(x.object.sfmasterhousegeometry), axis=1)
     df['Dependency=Geometry House Size'] = df.apply(lambda x: binned_size(x.object.sfmasterhousegeometry), axis=1)
-    df = df.dropna(subset=['Dependency=Geometry House Size'])  
+    df = df.dropna(subset=['Dependency=Geometry House Size'])
     
     return df
 
