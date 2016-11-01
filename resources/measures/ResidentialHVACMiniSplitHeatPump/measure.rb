@@ -276,6 +276,7 @@ class ProcessVRFMinisplit < OpenStudio::Ruleset::ModelUserScript
     HelperMethods.remove_object_from_osm_based_on_name(model, "EnergyManagementSystemActuator", ["E_pan_"])
     HelperMethods.remove_object_from_osm_based_on_name(model, "EnergyManagementSystemProgram", ["PanHeaterProgram_"])
     HelperMethods.remove_object_from_osm_based_on_name(model, "EnergyManagementSystemProgramCallingManager", ["PanHeaterProgramCallingManager_"])
+    HelperMethods.remove_object_from_osm_based_on_name(model, "ElectricEquipmentDefinition", ["PanHeater_"])
     
     units.each do |unit|
       unit_num = Geometry.get_unit_number(model, unit, runner)
@@ -513,10 +514,10 @@ class ProcessVRFMinisplit < OpenStudio::Ruleset::ModelUserScript
         if miniSplitHPPanHeaterPowerPerUnit > 0
         
           equip_def = OpenStudio::Model::ElectricEquipmentDefinition.new(model)
+          equip_def.setName("PanHeater_#{unit_num}")
           equip = OpenStudio::Model::ElectricEquipment.new(equip_def)
           equip.setName("PanHeater_#{unit_num}")
           equip.setSpace(control_zone.spaces[0])
-          equip_def.setName("PanHeater_#{unit_num}")
           equip_def.setFractionRadiant(0)
           equip_def.setFractionLatent(0)
           equip_def.setFractionLost(1)

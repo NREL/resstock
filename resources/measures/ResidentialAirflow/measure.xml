@@ -2,8 +2,8 @@
   <schema_version>3.0</schema_version>
   <name>residential_airflow</name>
   <uid>7d2adf5c-9995-49be-b662-a23d2452bb36</uid>
-  <version_id>a965c2f8-1392-4437-862d-10311a84b7f3</version_id>
-  <version_modified>20161101T133202Z</version_modified>
+  <version_id>75b03ee0-e51d-4c8d-af30-65be405ca34b</version_id>
+  <version_modified>20161101T213749Z</version_modified>
   <xml_checksum>19EEDBBB</xml_checksum>
   <class_name>ResidentialAirflow</class_name>
   <display_name>Set Residential Airflow</display_name>
@@ -11,7 +11,7 @@
   <modeler_description>Using EMS code, this measure processes the building's airflow (infiltration, mechanical ventilation, and natural ventilation). Note: This measure requires the number of bedrooms/bathrooms to have already been assigned.</modeler_description>
   <arguments>
     <argument>
-      <name>inflivingspace</name>
+      <name>living_ach50</name>
       <display_name>Air Leakage: Above-Grade Living Space ACH50</display_name>
       <description>Air exchange rate, in Air Changes per Hour at 50 Pascals (ACH50), for above-grade living space (including finished attic).</description>
       <type>Double</type>
@@ -21,7 +21,7 @@
       <default_value>7</default_value>
     </argument>
     <argument>
-      <name>infgarage</name>
+      <name>garage_ach50</name>
       <display_name>Garage: ACH50</display_name>
       <description>Air exchange rate, in Air Changes per Hour at 50 Pascals (ACH50), for the garage.</description>
       <type>Double</type>
@@ -31,7 +31,7 @@
       <default_value>7</default_value>
     </argument>
     <argument>
-      <name>inffbsmt</name>
+      <name>finished_basement_ach</name>
       <display_name>Finished Basement: Constant ACH</display_name>
       <description>Constant air exchange rate, in Air Changes per Hour (ACH), for the finished basement.</description>
       <type>Double</type>
@@ -41,7 +41,7 @@
       <default_value>0</default_value>
     </argument>
     <argument>
-      <name>infufbsmt</name>
+      <name>unfinished_basement_ach</name>
       <display_name>Unfinished Basement: Constant ACH</display_name>
       <description>Constant air exchange rate, in Air Changes per Hour (ACH), for the unfinished basement. A value of 0.10 ACH or greater is recommended for modeling Heat Pump Water Heaters in unfinished basements.</description>
       <type>Double</type>
@@ -51,7 +51,7 @@
       <default_value>0.1</default_value>
     </argument>
     <argument>
-      <name>infcrawl</name>
+      <name>crawl_ach</name>
       <display_name>Crawlspace: Constant ACH</display_name>
       <description>Air exchange rate, in Air Changes per Hour at 50 Pascals (ACH50), for the crawlspace.</description>
       <type>Double</type>
@@ -61,7 +61,7 @@
       <default_value>0</default_value>
     </argument>
     <argument>
-      <name>infunfinattic</name>
+      <name>unfinished_attic_ach</name>
       <display_name>Unfinished Attic: SLA</display_name>
       <description>Ratio of the effective leakage area (infiltration and/or ventilation) in the unfinished attic to the total floor area of the attic.</description>
       <type>Double</type>
@@ -70,7 +70,7 @@
       <default_value>0.00333</default_value>
     </argument>
     <argument>
-      <name>infsheltercoef</name>
+      <name>shelter_coef</name>
       <display_name>Air Leakage: Shelter Coefficient</display_name>
       <description>The local shelter coefficient (AIM-2 infiltration model) accounts for nearby buildings, trees and obstructions.</description>
       <type>String</type>
@@ -79,7 +79,7 @@
       <default_value>auto</default_value>
     </argument>
     <argument>
-      <name>homeage</name>
+      <name>age_of_home</name>
       <display_name>Age of Home</display_name>
       <description>Age of home [Enter 0 for New Construction].</description>
       <type>Double</type>
@@ -89,7 +89,7 @@
       <default_value>0</default_value>
     </argument>
     <argument>
-      <name>terraintype</name>
+      <name>terrain</name>
       <display_name>Site Terrain</display_name>
       <description>The terrain of the site.</description>
       <type>Choice</type>
@@ -120,7 +120,7 @@
       </choices>
     </argument>
     <argument>
-      <name>venttype</name>
+      <name>mech_vent_type</name>
       <display_name>Mechanical Ventilation: Ventilation Type</display_name>
       <type>Choice</type>
       <required>false</required>
@@ -146,7 +146,7 @@
       </choices>
     </argument>
     <argument>
-      <name>infilcredit</name>
+      <name>mech_vent_infil_credit</name>
       <display_name>Mechanical Ventilation: Allow Infiltration Credit</display_name>
       <description>Defines whether the infiltration credit allowed per the ASHRAE 62.2 Standard will be included in the calculation of the mechanical ventilation rate. If True, the infiltration credit will apply 1) to new/existing single-family detached homes for 2013 ASHRAE 62.2, or 2) to existing single-family detached or multi-family homes for 2010 ASHRAE 62.2.</description>
       <type>Boolean</type>
@@ -165,7 +165,7 @@
       </choices>
     </argument>
     <argument>
-      <name>totaleff</name>
+      <name>mech_vent_total_efficiency</name>
       <display_name>Mechanical Ventilation: Total Recovery Efficiency</display_name>
       <description>The net total energy (sensible plus latent, also called enthalpy) recovered by the supply airstream adjusted by electric consumption, case heat loss or heat gain, air leakage and airflow mass imbalance between the two airstreams, as a percent of the potential total energy that could be recovered plus the exhaust fan energy.</description>
       <type>Double</type>
@@ -174,7 +174,7 @@
       <default_value>0</default_value>
     </argument>
     <argument>
-      <name>senseff</name>
+      <name>mech_vent_sensible_efficiency</name>
       <display_name>Mechanical Ventilation: Sensible Recovery Efficiency</display_name>
       <description>The net sensible energy recovered by the supply airstream as adjusted by electric consumption, case heat loss or heat gain, air leakage, airflow mass imbalance between the two airstreams and the energy used for defrost (when running the Very Low Temperature Test), as a percent of the potential sensible energy that could be recovered plus the exhaust fan energy.</description>
       <type>Double</type>
@@ -183,7 +183,7 @@
       <default_value>0</default_value>
     </argument>
     <argument>
-      <name>fanpower</name>
+      <name>mech_vent_fan_power</name>
       <display_name>Mechanical Ventilation: Fan Power</display_name>
       <description>Fan power (in W) per delivered airflow rate (in cfm) of fan(s) providing whole house ventilation. If the house uses a balanced ventilation system there is assumed to be two fans operating at this efficiency.</description>
       <type>Double</type>
@@ -193,7 +193,7 @@
       <default_value>0.3</default_value>
     </argument>
     <argument>
-      <name>fracofashrae</name>
+      <name>mech_vent_frac_62_2</name>
       <display_name>Mechanical Ventilation: Fraction of ASHRAE 62.2</display_name>
       <description>Fraction of the ventilation rate (including any infiltration credit) specified by ASHRAE 62.2 that is desired in the building.</description>
       <type>Double</type>
@@ -203,7 +203,7 @@
       <default_value>1</default_value>
     </argument>
     <argument>
-      <name>ashraestandard</name>
+      <name>mech_vent_ashrae_std</name>
       <display_name>Mechanical Ventilation: ASHRAE 62.2 Standard</display_name>
       <description>Specifies which version (year) of the ASHRAE 62.2 Standard should be used.</description>
       <type>Choice</type>
@@ -222,7 +222,7 @@
       </choices>
     </argument>
     <argument>
-      <name>dryerexhaust</name>
+      <name>clothes_dryer_exhaust</name>
       <display_name>Clothes Dryer: Exhaust</display_name>
       <description>Rated flow capacity of the clothes dryer exhaust. This fan is assumed to run 60 min/day between 11am and 12pm.</description>
       <type>Double</type>
@@ -232,7 +232,7 @@
       <default_value>100</default_value>
     </argument>
     <argument>
-      <name>htgoffset</name>
+      <name>nat_vent_htg_offset</name>
       <display_name>Natural Ventilation: Heating Season Setpoint Offset</display_name>
       <description>The temperature offset below the hourly cooling setpoint, to which the living space is allowed to cool during months that are only in the heating season.</description>
       <type>Double</type>
@@ -242,7 +242,7 @@
       <default_value>1</default_value>
     </argument>
     <argument>
-      <name>clgoffset</name>
+      <name>nat_vent_clg_offset</name>
       <display_name>Natural Ventilation: Cooling Season Setpoint Offset</display_name>
       <description>The temperature offset above the hourly heating setpoint, to which the living space is allowed to cool during months that are only in the cooling season.</description>
       <type>Double</type>
@@ -252,7 +252,7 @@
       <default_value>1</default_value>
     </argument>
     <argument>
-      <name>ovlpoffset</name>
+      <name>nat_vent_ovlp_offset</name>
       <display_name>Natural Ventilation: Overlap Season Setpoint Offset</display_name>
       <description>The temperature offset above the maximum heating setpoint, to which the living space is allowed to cool during months that are in both the heating season and cooling season.</description>
       <type>Double</type>
@@ -262,7 +262,7 @@
       <default_value>1</default_value>
     </argument>
     <argument>
-      <name>heatingssn</name>
+      <name>nat_vent_htg_season</name>
       <display_name>Natural Ventilation: Heating Season</display_name>
       <description>True if windows are allowed to be opened during months that are only in the heating season.</description>
       <type>Boolean</type>
@@ -281,7 +281,7 @@
       </choices>
     </argument>
     <argument>
-      <name>coolingssn</name>
+      <name>nat_vent_clg_season</name>
       <display_name>Natural Ventilation: Cooling Season</display_name>
       <description>True if windows are allowed to be opened during months that are only in the cooling season.</description>
       <type>Boolean</type>
@@ -300,7 +300,7 @@
       </choices>
     </argument>
     <argument>
-      <name>overlapssn</name>
+      <name>nat_vent_ovlp_season</name>
       <display_name>Natural Ventilation: Overlap Season</display_name>
       <description>True if windows are allowed to be opened during months that are in both the heating season and cooling season.</description>
       <type>Boolean</type>
@@ -319,7 +319,7 @@
       </choices>
     </argument>
     <argument>
-      <name>ventweekdays</name>
+      <name>nat_vent_num_weekdays</name>
       <display_name>Natural Ventilation: Number Weekdays</display_name>
       <description>Number of weekdays in the week that natural ventilation can occur.</description>
       <type>Integer</type>
@@ -328,7 +328,7 @@
       <default_value>3</default_value>
     </argument>
     <argument>
-      <name>ventweekenddays</name>
+      <name>nat_vent_num_weekends</name>
       <display_name>Natural Ventilation: Number Weekend Days</display_name>
       <description>Number of weekend days in the week that natural ventilation can occur.</description>
       <type>Integer</type>
@@ -337,7 +337,7 @@
       <default_value>0</default_value>
     </argument>
     <argument>
-      <name>fracwinopen</name>
+      <name>nat_vent_frac_windows_open</name>
       <display_name>Natural Ventilation: Fraction of Openable Windows Open</display_name>
       <description>Specifies the fraction of the total openable window area in the building that is opened for ventilation.</description>
       <type>Double</type>
@@ -347,7 +347,7 @@
       <default_value>0.33</default_value>
     </argument>
     <argument>
-      <name>fracwinareaopen</name>
+      <name>nat_vent_frac_window_area_openable</name>
       <display_name>Natural Ventilation: Fraction Window Area Openable</display_name>
       <description>Specifies the fraction of total window area in the home that can be opened (e.g. typical sliding windows can be opened to half of their area).</description>
       <type>Double</type>
@@ -357,7 +357,7 @@
       <default_value>0.2</default_value>
     </argument>
     <argument>
-      <name>humratio</name>
+      <name>nat_vent_max_oa_hr</name>
       <display_name>Natural Ventilation: Max OA Humidity Ratio</display_name>
       <description>Outdoor air humidity ratio above which windows will not open for natural ventilation.</description>
       <type>Double</type>
@@ -367,7 +367,7 @@
       <default_value>0.0115</default_value>
     </argument>
     <argument>
-      <name>relhumratio</name>
+      <name>nat_vent_max_oa_rh</name>
       <display_name>Natural Ventilation: Max OA Relative Humidity</display_name>
       <description>Outdoor air relative humidity (0-1) above which windows will not open for natural ventilation.</description>
       <type>Double</type>
@@ -422,7 +422,7 @@
       <default_value>0.3</default_value>
     </argument>
     <argument>
-      <name>duct_sup_frac</name>
+      <name>duct_supply_frac</name>
       <display_name>Ducts: Supply Leakage Fraction of Total</display_name>
       <description>The amount of air flow leakage leaking out from the supply duct expressed as a fraction of the total duct leakage.</description>
       <type>Double</type>
@@ -432,7 +432,7 @@
       <default_value>0.6</default_value>
     </argument>
     <argument>
-      <name>duct_ret_frac</name>
+      <name>duct_return_frac</name>
       <display_name>Ducts: Return Leakage Fraction of Total</display_name>
       <description>The amount of air flow leakage leaking into the return duct expressed as a fraction of the total duct leakage.</description>
       <type>Double</type>
@@ -442,7 +442,7 @@
       <default_value>0.067</default_value>
     </argument>
     <argument>
-      <name>duct_ah_sup_frac</name>
+      <name>duct_ah_supply_frac</name>
       <display_name>Ducts: Supply Air Handler Leakage Fraction of Total</display_name>
       <description>The amount of air flow leakage leaking out from the supply-side of the air handler expressed as a fraction of the total duct leakage.</description>
       <type>Double</type>
@@ -452,7 +452,7 @@
       <default_value>0.067</default_value>
     </argument>
     <argument>
-      <name>duct_ah_ret_frac</name>
+      <name>duct_ah_return_frac</name>
       <display_name>Ducts: Return Air Handler Leakage Fraction of Total</display_name>
       <description>The amount of air flow leakage leaking out from the return-side of the air handler expressed as a fraction of the total duct leakage.</description>
       <type>Double</type>
@@ -462,7 +462,7 @@
       <default_value>0.267</default_value>
     </argument>
     <argument>
-      <name>duct_norm_leakage_to_outside</name>
+      <name>duct_norm_leakage_25pa</name>
       <display_name>Ducts: Leakage to Outside at 25Pa</display_name>
       <description>Normalized leakage to the outside when tested at a pressure differential of 25 Pascals (0.1 inches w.g.) across the system.</description>
       <type>String</type>
@@ -492,7 +492,7 @@
       <default_value>auto</default_value>
     </argument>
     <argument>
-      <name>supply_surface_area_multiplier</name>
+      <name>duct_supply_area_mult</name>
       <display_name>Ducts: Supply Surface Area Multiplier</display_name>
       <description>Values specify a fraction of the Building America Benchmark supply duct surface area.</description>
       <type>Double</type>
@@ -502,7 +502,7 @@
       <default_value>1</default_value>
     </argument>
     <argument>
-      <name>return_surface_area_multiplier</name>
+      <name>duct_return_area_mult</name>
       <display_name>Ducts: Return Surface Area Multiplier</display_name>
       <description>Values specify a fraction of the Building America Benchmark return duct surface area.</description>
       <type>Double</type>
@@ -512,7 +512,7 @@
       <default_value>1</default_value>
     </argument>
     <argument>
-      <name>duct_unconditioned_rvalue</name>
+      <name>duct_unconditioned_r</name>
       <display_name>Ducts: Insulation Nominal R-Value</display_name>
       <description>The nominal R-value for duct insulation.</description>
       <type>Double</type>
@@ -658,12 +658,6 @@
       <checksum>B01B84BC</checksum>
     </file>
     <file>
-      <filename>residential_airflow_test.rb</filename>
-      <filetype>rb</filetype>
-      <usage_type>test</usage_type>
-      <checksum>4B32C363</checksum>
-    </file>
-    <file>
       <filename>multifamily_8_units_slab_furnace_central_air_conditioner.osm</filename>
       <filetype>osm</filetype>
       <usage_type>test</usage_type>
@@ -694,6 +688,12 @@
       <checksum>C2C5EE94</checksum>
     </file>
     <file>
+      <filename>residential_airflow_test.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>test</usage_type>
+      <checksum>6C261392</checksum>
+    </file>
+    <file>
       <version>
         <software_program>OpenStudio</software_program>
         <identifier>1.13.1</identifier>
@@ -702,7 +702,7 @@
       <filename>measure.rb</filename>
       <filetype>rb</filetype>
       <usage_type>script</usage_type>
-      <checksum>F737EF27</checksum>
+      <checksum>8A44D3F7</checksum>
     </file>
   </files>
 </measure>

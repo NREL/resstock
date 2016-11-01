@@ -306,66 +306,66 @@ class ResidentialAirflow < OpenStudio::Ruleset::ModelUserScript
     args = OpenStudio::Ruleset::OSArgumentVector.new
 
     #make a double argument for infiltration of living space
-    inflivingspace = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("inflivingspace", false)
-    inflivingspace.setDisplayName("Air Leakage: Above-Grade Living Space ACH50")
-    inflivingspace.setUnits("1/hr")
-    inflivingspace.setDescription("Air exchange rate, in Air Changes per Hour at 50 Pascals (ACH50), for above-grade living space (including finished attic).")
-    inflivingspace.setDefaultValue(7)
-    args << inflivingspace
+    living_ach50 = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("living_ach50", false)
+    living_ach50.setDisplayName("Air Leakage: Above-Grade Living Space ACH50")
+    living_ach50.setUnits("1/hr")
+    living_ach50.setDescription("Air exchange rate, in Air Changes per Hour at 50 Pascals (ACH50), for above-grade living space (including finished attic).")
+    living_ach50.setDefaultValue(7)
+    args << living_ach50
 
     #make a double argument for infiltration of garage
-    infgarage = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("infgarage", false)
-    infgarage.setDisplayName("Garage: ACH50")
-    infgarage.setUnits("1/hr")
-    infgarage.setDescription("Air exchange rate, in Air Changes per Hour at 50 Pascals (ACH50), for the garage.")
-    infgarage.setDefaultValue(7)
-    args << infgarage
+    garage_ach50 = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("garage_ach50", false)
+    garage_ach50.setDisplayName("Garage: ACH50")
+    garage_ach50.setUnits("1/hr")
+    garage_ach50.setDescription("Air exchange rate, in Air Changes per Hour at 50 Pascals (ACH50), for the garage.")
+    garage_ach50.setDefaultValue(7)
+    args << garage_ach50
 
     #make a double argument for infiltration of finished basement
-    inffbsmt = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("inffbsmt", false)
-    inffbsmt.setDisplayName("Finished Basement: Constant ACH")
-    inffbsmt.setUnits("1/hr")
-    inffbsmt.setDescription("Constant air exchange rate, in Air Changes per Hour (ACH), for the finished basement.")
-    inffbsmt.setDefaultValue(0.0)
-    args << inffbsmt
+    finished_basement_ach = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("finished_basement_ach", false)
+    finished_basement_ach.setDisplayName("Finished Basement: Constant ACH")
+    finished_basement_ach.setUnits("1/hr")
+    finished_basement_ach.setDescription("Constant air exchange rate, in Air Changes per Hour (ACH), for the finished basement.")
+    finished_basement_ach.setDefaultValue(0.0)
+    args << finished_basement_ach
 	
     #make a double argument for infiltration of unfinished basement
-    infufbsmt = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("infufbsmt", false)
-    infufbsmt.setDisplayName("Unfinished Basement: Constant ACH")
-    infufbsmt.setUnits("1/hr")
-    infufbsmt.setDescription("Constant air exchange rate, in Air Changes per Hour (ACH), for the unfinished basement. A value of 0.10 ACH or greater is recommended for modeling Heat Pump Water Heaters in unfinished basements.")
-    infufbsmt.setDefaultValue(0.1)
-    args << infufbsmt
+    unfinished_basement_ach = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("unfinished_basement_ach", false)
+    unfinished_basement_ach.setDisplayName("Unfinished Basement: Constant ACH")
+    unfinished_basement_ach.setUnits("1/hr")
+    unfinished_basement_ach.setDescription("Constant air exchange rate, in Air Changes per Hour (ACH), for the unfinished basement. A value of 0.10 ACH or greater is recommended for modeling Heat Pump Water Heaters in unfinished basements.")
+    unfinished_basement_ach.setDefaultValue(0.1)
+    args << unfinished_basement_ach
 	
     #make a double argument for infiltration of crawlspace
-    infcrawl = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("infcrawl", false)
-    infcrawl.setDisplayName("Crawlspace: Constant ACH")
-    infcrawl.setUnits("1/hr")
-    infcrawl.setDescription("Air exchange rate, in Air Changes per Hour at 50 Pascals (ACH50), for the crawlspace.")
-    infcrawl.setDefaultValue(0.0)
-    args << infcrawl
+    crawl_ach = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("crawl_ach", false)
+    crawl_ach.setDisplayName("Crawlspace: Constant ACH")
+    crawl_ach.setUnits("1/hr")
+    crawl_ach.setDescription("Air exchange rate, in Air Changes per Hour at 50 Pascals (ACH50), for the crawlspace.")
+    crawl_ach.setDefaultValue(0.0)
+    args << crawl_ach
 
     #make a double argument for infiltration of unfinished attic
-    infunfinattic = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("infunfinattic", false)
-    infunfinattic.setDisplayName("Unfinished Attic: SLA")
-    infunfinattic.setDescription("Ratio of the effective leakage area (infiltration and/or ventilation) in the unfinished attic to the total floor area of the attic.")
-    infunfinattic.setDefaultValue(0.00333)
-    args << infunfinattic
+    unfinished_attic_ach = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("unfinished_attic_ach", false)
+    unfinished_attic_ach.setDisplayName("Unfinished Attic: SLA")
+    unfinished_attic_ach.setDescription("Ratio of the effective leakage area (infiltration and/or ventilation) in the unfinished attic to the total floor area of the attic.")
+    unfinished_attic_ach.setDefaultValue(0.00333)
+    args << unfinished_attic_ach
 
     #make a double argument for shelter coefficient
-    infsheltercoef = OpenStudio::Ruleset::OSArgument::makeStringArgument("infsheltercoef", false)
-    infsheltercoef.setDisplayName("Air Leakage: Shelter Coefficient")
-    infsheltercoef.setDescription("The local shelter coefficient (AIM-2 infiltration model) accounts for nearby buildings, trees and obstructions.")
-    infsheltercoef.setDefaultValue("auto")
-    args << infsheltercoef
+    shelter_coef = OpenStudio::Ruleset::OSArgument::makeStringArgument("shelter_coef", false)
+    shelter_coef.setDisplayName("Air Leakage: Shelter Coefficient")
+    shelter_coef.setDescription("The local shelter coefficient (AIM-2 infiltration model) accounts for nearby buildings, trees and obstructions.")
+    shelter_coef.setDefaultValue("auto")
+    args << shelter_coef
 
     #make a double argument for existing or new construction
-    homeage = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("homeage", true)
-    homeage.setDisplayName("Age of Home")
-    homeage.setUnits("yrs")
-    homeage.setDescription("Age of home [Enter 0 for New Construction].")
-    homeage.setDefaultValue(0)
-    args << homeage
+    age_of_home = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("age_of_home", true)
+    age_of_home.setDisplayName("Age of Home")
+    age_of_home.setUnits("yrs")
+    age_of_home.setDescription("Age of home [Enter 0 for New Construction].")
+    age_of_home.setDefaultValue(0)
+    args << age_of_home
 
     #make a choice arguments for terrain type
     terrain_types_names = OpenStudio::StringVector.new
@@ -374,11 +374,11 @@ class ResidentialAirflow < OpenStudio::Ruleset::ModelUserScript
     terrain_types_names << Constants.TerrainRural
     terrain_types_names << Constants.TerrainSuburban
     terrain_types_names << Constants.TerrainCity
-    terraintype = OpenStudio::Ruleset::OSArgument::makeChoiceArgument("terraintype", terrain_types_names, true)
-    terraintype.setDisplayName("Site Terrain")
-    terraintype.setDescription("The terrain of the site.")
-    terraintype.setDefaultValue("suburban")
-    args << terraintype
+    terrain = OpenStudio::Ruleset::OSArgument::makeChoiceArgument("terrain", terrain_types_names, true)
+    terrain.setDisplayName("Site Terrain")
+    terrain.setDescription("The terrain of the site.")
+    terrain.setDefaultValue(Constants.TerrainSuburban)
+    args << terrain
 
     #make a choice argument for ventilation type
     ventilation_types_names = OpenStudio::StringVector.new
@@ -386,47 +386,47 @@ class ResidentialAirflow < OpenStudio::Ruleset::ModelUserScript
     ventilation_types_names << Constants.VentTypeExhaust
     ventilation_types_names << Constants.VentTypeSupply
     ventilation_types_names << Constants.VentTypeBalanced
-    venttype = OpenStudio::Ruleset::OSArgument::makeChoiceArgument("venttype", ventilation_types_names, false)
-    venttype.setDisplayName("Mechanical Ventilation: Ventilation Type")
-    venttype.setDefaultValue("exhaust")
-    args << venttype
+    mech_vent_type = OpenStudio::Ruleset::OSArgument::makeChoiceArgument("mech_vent_type", ventilation_types_names, false)
+    mech_vent_type.setDisplayName("Mechanical Ventilation: Ventilation Type")
+    mech_vent_type.setDefaultValue(Constants.VentTypeExhaust)
+    args << mech_vent_type
 
     #make a bool argument for infiltration credit
-    infilcredit = OpenStudio::Ruleset::OSArgument::makeBoolArgument("infilcredit",false)
-    infilcredit.setDisplayName("Mechanical Ventilation: Allow Infiltration Credit")
-    infilcredit.setDescription("Defines whether the infiltration credit allowed per the ASHRAE 62.2 Standard will be included in the calculation of the mechanical ventilation rate. If True, the infiltration credit will apply 1) to new/existing single-family detached homes for 2013 ASHRAE 62.2, or 2) to existing single-family detached or multi-family homes for 2010 ASHRAE 62.2.")
-    infilcredit.setDefaultValue(true)
-    args << infilcredit
+    mech_vent_infil_credit = OpenStudio::Ruleset::OSArgument::makeBoolArgument("mech_vent_infil_credit",false)
+    mech_vent_infil_credit.setDisplayName("Mechanical Ventilation: Allow Infiltration Credit")
+    mech_vent_infil_credit.setDescription("Defines whether the infiltration credit allowed per the ASHRAE 62.2 Standard will be included in the calculation of the mechanical ventilation rate. If True, the infiltration credit will apply 1) to new/existing single-family detached homes for 2013 ASHRAE 62.2, or 2) to existing single-family detached or multi-family homes for 2010 ASHRAE 62.2.")
+    mech_vent_infil_credit.setDefaultValue(true)
+    args << mech_vent_infil_credit
 
     #make a double argument for total efficiency
-    totaleff = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("totaleff",false)
-    totaleff.setDisplayName("Mechanical Ventilation: Total Recovery Efficiency")
-    totaleff.setDescription("The net total energy (sensible plus latent, also called enthalpy) recovered by the supply airstream adjusted by electric consumption, case heat loss or heat gain, air leakage and airflow mass imbalance between the two airstreams, as a percent of the potential total energy that could be recovered plus the exhaust fan energy.")
-    totaleff.setDefaultValue(0)
-    args << totaleff
+    mech_vent_total_efficiency = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("mech_vent_total_efficiency",false)
+    mech_vent_total_efficiency.setDisplayName("Mechanical Ventilation: Total Recovery Efficiency")
+    mech_vent_total_efficiency.setDescription("The net total energy (sensible plus latent, also called enthalpy) recovered by the supply airstream adjusted by electric consumption, case heat loss or heat gain, air leakage and airflow mass imbalance between the two airstreams, as a percent of the potential total energy that could be recovered plus the exhaust fan energy.")
+    mech_vent_total_efficiency.setDefaultValue(0)
+    args << mech_vent_total_efficiency
 
     #make a double argument for sensible efficiency
-    senseff = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("senseff",false)
-    senseff.setDisplayName("Mechanical Ventilation: Sensible Recovery Efficiency")
-    senseff.setDescription("The net sensible energy recovered by the supply airstream as adjusted by electric consumption, case heat loss or heat gain, air leakage, airflow mass imbalance between the two airstreams and the energy used for defrost (when running the Very Low Temperature Test), as a percent of the potential sensible energy that could be recovered plus the exhaust fan energy.")
-    senseff.setDefaultValue(0)
-    args << senseff
+    mech_vent_sensible_efficiency = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("mech_vent_sensible_efficiency",false)
+    mech_vent_sensible_efficiency.setDisplayName("Mechanical Ventilation: Sensible Recovery Efficiency")
+    mech_vent_sensible_efficiency.setDescription("The net sensible energy recovered by the supply airstream as adjusted by electric consumption, case heat loss or heat gain, air leakage, airflow mass imbalance between the two airstreams and the energy used for defrost (when running the Very Low Temperature Test), as a percent of the potential sensible energy that could be recovered plus the exhaust fan energy.")
+    mech_vent_sensible_efficiency.setDefaultValue(0)
+    args << mech_vent_sensible_efficiency
 
     #make a double argument for house fan power
-    fanpower = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("fanpower",false)
-    fanpower.setDisplayName("Mechanical Ventilation: Fan Power")
-    fanpower.setUnits("W/cfm")
-    fanpower.setDescription("Fan power (in W) per delivered airflow rate (in cfm) of fan(s) providing whole house ventilation. If the house uses a balanced ventilation system there is assumed to be two fans operating at this efficiency.")
-    fanpower.setDefaultValue(0.3)
-    args << fanpower
+    mech_vent_fan_power = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("mech_vent_fan_power",false)
+    mech_vent_fan_power.setDisplayName("Mechanical Ventilation: Fan Power")
+    mech_vent_fan_power.setUnits("W/cfm")
+    mech_vent_fan_power.setDescription("Fan power (in W) per delivered airflow rate (in cfm) of fan(s) providing whole house ventilation. If the house uses a balanced ventilation system there is assumed to be two fans operating at this efficiency.")
+    mech_vent_fan_power.setDefaultValue(0.3)
+    args << mech_vent_fan_power
 
     #make a double argument for fraction of ashrae
-    fracofashrae = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("fracofashrae",false)
-    fracofashrae.setDisplayName("Mechanical Ventilation: Fraction of ASHRAE 62.2")
-    fracofashrae.setUnits("frac")
-    fracofashrae.setDescription("Fraction of the ventilation rate (including any infiltration credit) specified by ASHRAE 62.2 that is desired in the building.")
-    fracofashrae.setDefaultValue(1.0)
-    args << fracofashrae
+    mech_vent_frac_62_2 = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("mech_vent_frac_62_2",false)
+    mech_vent_frac_62_2.setDisplayName("Mechanical Ventilation: Fraction of ASHRAE 62.2")
+    mech_vent_frac_62_2.setUnits("frac")
+    mech_vent_frac_62_2.setDescription("Fraction of the ventilation rate (including any infiltration credit) specified by ASHRAE 62.2 that is desired in the building.")
+    mech_vent_frac_62_2.setDefaultValue(1.0)
+    args << mech_vent_frac_62_2
 
     #make a choice argument for ashrae standard
     standard_types_names = OpenStudio::StringVector.new
@@ -434,110 +434,110 @@ class ResidentialAirflow < OpenStudio::Ruleset::ModelUserScript
     standard_types_names << "2013"
 	
     #make a double argument for ashrae standard
-    ashraestandard = OpenStudio::Ruleset::OSArgument::makeChoiceArgument("ashraestandard", standard_types_names, false)
-    ashraestandard.setDisplayName("Mechanical Ventilation: ASHRAE 62.2 Standard")
-    ashraestandard.setDescription("Specifies which version (year) of the ASHRAE 62.2 Standard should be used.")
-    ashraestandard.setDefaultValue("2010")
-    args << ashraestandard	
+    mech_vent_ashrae_std = OpenStudio::Ruleset::OSArgument::makeChoiceArgument("mech_vent_ashrae_std", standard_types_names, false)
+    mech_vent_ashrae_std.setDisplayName("Mechanical Ventilation: ASHRAE 62.2 Standard")
+    mech_vent_ashrae_std.setDescription("Specifies which version (year) of the ASHRAE 62.2 Standard should be used.")
+    mech_vent_ashrae_std.setDefaultValue("2010")
+    args << mech_vent_ashrae_std	
 
     #make a double argument for dryer exhaust
-    dryerexhaust = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("dryerexhaust",false)
-    dryerexhaust.setDisplayName("Clothes Dryer: Exhaust")
-    dryerexhaust.setUnits("cfm")
-    dryerexhaust.setDescription("Rated flow capacity of the clothes dryer exhaust. This fan is assumed to run 60 min/day between 11am and 12pm.")
-    dryerexhaust.setDefaultValue(100.0)
-    args << dryerexhaust
+    clothes_dryer_exhaust = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("clothes_dryer_exhaust",false)
+    clothes_dryer_exhaust.setDisplayName("Clothes Dryer: Exhaust")
+    clothes_dryer_exhaust.setUnits("cfm")
+    clothes_dryer_exhaust.setDescription("Rated flow capacity of the clothes dryer exhaust. This fan is assumed to run 60 min/day between 11am and 12pm.")
+    clothes_dryer_exhaust.setDefaultValue(100.0)
+    args << clothes_dryer_exhaust
 
     #make a double argument for heating season setpoint offset
-    htgoffset = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("htgoffset",false)
-    htgoffset.setDisplayName("Natural Ventilation: Heating Season Setpoint Offset")
-    htgoffset.setUnits("degrees F")
-    htgoffset.setDescription("The temperature offset below the hourly cooling setpoint, to which the living space is allowed to cool during months that are only in the heating season.")
-    htgoffset.setDefaultValue(1.0)
-    args << htgoffset
+    nat_vent_htg_offset = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("nat_vent_htg_offset",false)
+    nat_vent_htg_offset.setDisplayName("Natural Ventilation: Heating Season Setpoint Offset")
+    nat_vent_htg_offset.setUnits("degrees F")
+    nat_vent_htg_offset.setDescription("The temperature offset below the hourly cooling setpoint, to which the living space is allowed to cool during months that are only in the heating season.")
+    nat_vent_htg_offset.setDefaultValue(1.0)
+    args << nat_vent_htg_offset
 
     #make a double argument for cooling season setpoint offset
-    clgoffset = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("clgoffset",false)
-    clgoffset.setDisplayName("Natural Ventilation: Cooling Season Setpoint Offset")
-    clgoffset.setUnits("degrees F")
-    clgoffset.setDescription("The temperature offset above the hourly heating setpoint, to which the living space is allowed to cool during months that are only in the cooling season.")
-    clgoffset.setDefaultValue(1.0)
-    args << clgoffset
+    nat_vent_clg_offset = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("nat_vent_clg_offset",false)
+    nat_vent_clg_offset.setDisplayName("Natural Ventilation: Cooling Season Setpoint Offset")
+    nat_vent_clg_offset.setUnits("degrees F")
+    nat_vent_clg_offset.setDescription("The temperature offset above the hourly heating setpoint, to which the living space is allowed to cool during months that are only in the cooling season.")
+    nat_vent_clg_offset.setDefaultValue(1.0)
+    args << nat_vent_clg_offset
 
     #make a double argument for overlap season setpoint offset
-    ovlpoffset = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("ovlpoffset",false)
-    ovlpoffset.setDisplayName("Natural Ventilation: Overlap Season Setpoint Offset")
-    ovlpoffset.setUnits("degrees F")
-    ovlpoffset.setDescription("The temperature offset above the maximum heating setpoint, to which the living space is allowed to cool during months that are in both the heating season and cooling season.")
-    ovlpoffset.setDefaultValue(1.0)
-    args << ovlpoffset
+    nat_vent_ovlp_offset = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("nat_vent_ovlp_offset",false)
+    nat_vent_ovlp_offset.setDisplayName("Natural Ventilation: Overlap Season Setpoint Offset")
+    nat_vent_ovlp_offset.setUnits("degrees F")
+    nat_vent_ovlp_offset.setDescription("The temperature offset above the maximum heating setpoint, to which the living space is allowed to cool during months that are in both the heating season and cooling season.")
+    nat_vent_ovlp_offset.setDefaultValue(1.0)
+    args << nat_vent_ovlp_offset
 
     #make a bool argument for heating season
-    heatingssn = OpenStudio::Ruleset::OSArgument::makeBoolArgument("heatingssn",false)
-    heatingssn.setDisplayName("Natural Ventilation: Heating Season")
-    heatingssn.setDescription("True if windows are allowed to be opened during months that are only in the heating season.")
-    heatingssn.setDefaultValue(true)
-    args << heatingssn
+    nat_vent_htg_season = OpenStudio::Ruleset::OSArgument::makeBoolArgument("nat_vent_htg_season",false)
+    nat_vent_htg_season.setDisplayName("Natural Ventilation: Heating Season")
+    nat_vent_htg_season.setDescription("True if windows are allowed to be opened during months that are only in the heating season.")
+    nat_vent_htg_season.setDefaultValue(true)
+    args << nat_vent_htg_season
 
     #make a bool argument for cooling season
-    coolingssn = OpenStudio::Ruleset::OSArgument::makeBoolArgument("coolingssn",false)
-    coolingssn.setDisplayName("Natural Ventilation: Cooling Season")
-    coolingssn.setDescription("True if windows are allowed to be opened during months that are only in the cooling season.")
-    coolingssn.setDefaultValue(true)
-    args << coolingssn
+    nat_vent_clg_season = OpenStudio::Ruleset::OSArgument::makeBoolArgument("nat_vent_clg_season",false)
+    nat_vent_clg_season.setDisplayName("Natural Ventilation: Cooling Season")
+    nat_vent_clg_season.setDescription("True if windows are allowed to be opened during months that are only in the cooling season.")
+    nat_vent_clg_season.setDefaultValue(true)
+    args << nat_vent_clg_season
 
     #make a bool argument for overlap season
-    overlapssn = OpenStudio::Ruleset::OSArgument::makeBoolArgument("overlapssn",false)
-    overlapssn.setDisplayName("Natural Ventilation: Overlap Season")
-    overlapssn.setDescription("True if windows are allowed to be opened during months that are in both the heating season and cooling season.")
-    overlapssn.setDefaultValue(true)
-    args << overlapssn
+    nat_vent_ovlp_season = OpenStudio::Ruleset::OSArgument::makeBoolArgument("nat_vent_ovlp_season",false)
+    nat_vent_ovlp_season.setDisplayName("Natural Ventilation: Overlap Season")
+    nat_vent_ovlp_season.setDescription("True if windows are allowed to be opened during months that are in both the heating season and cooling season.")
+    nat_vent_ovlp_season.setDefaultValue(true)
+    args << nat_vent_ovlp_season
 
     #make a double argument for number weekdays
-    ventweekdays = OpenStudio::Ruleset::OSArgument::makeIntegerArgument("ventweekdays",false)
-    ventweekdays.setDisplayName("Natural Ventilation: Number Weekdays")
-    ventweekdays.setDescription("Number of weekdays in the week that natural ventilation can occur.")
-    ventweekdays.setDefaultValue(3)
-    args << ventweekdays
+    nat_vent_num_weekdays = OpenStudio::Ruleset::OSArgument::makeIntegerArgument("nat_vent_num_weekdays",false)
+    nat_vent_num_weekdays.setDisplayName("Natural Ventilation: Number Weekdays")
+    nat_vent_num_weekdays.setDescription("Number of weekdays in the week that natural ventilation can occur.")
+    nat_vent_num_weekdays.setDefaultValue(3)
+    args << nat_vent_num_weekdays
 
     #make a double argument for number weekend days
-    ventweekenddays = OpenStudio::Ruleset::OSArgument::makeIntegerArgument("ventweekenddays",false)
-    ventweekenddays.setDisplayName("Natural Ventilation: Number Weekend Days")
-    ventweekenddays.setDescription("Number of weekend days in the week that natural ventilation can occur.")
-    ventweekenddays.setDefaultValue(0)
-    args << ventweekenddays
+    nat_vent_num_weekends = OpenStudio::Ruleset::OSArgument::makeIntegerArgument("nat_vent_num_weekends",false)
+    nat_vent_num_weekends.setDisplayName("Natural Ventilation: Number Weekend Days")
+    nat_vent_num_weekends.setDescription("Number of weekend days in the week that natural ventilation can occur.")
+    nat_vent_num_weekends.setDefaultValue(0)
+    args << nat_vent_num_weekends
 
     #make a double argument for fraction of windows open
-    fracwinopen = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("fracwinopen",false)
-    fracwinopen.setDisplayName("Natural Ventilation: Fraction of Openable Windows Open")
-    fracwinopen.setUnits("frac")
-    fracwinopen.setDescription("Specifies the fraction of the total openable window area in the building that is opened for ventilation.")
-    fracwinopen.setDefaultValue(0.33)
-    args << fracwinopen
+    nat_vent_frac_windows_open = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("nat_vent_frac_windows_open",false)
+    nat_vent_frac_windows_open.setDisplayName("Natural Ventilation: Fraction of Openable Windows Open")
+    nat_vent_frac_windows_open.setUnits("frac")
+    nat_vent_frac_windows_open.setDescription("Specifies the fraction of the total openable window area in the building that is opened for ventilation.")
+    nat_vent_frac_windows_open.setDefaultValue(0.33)
+    args << nat_vent_frac_windows_open
 
     #make a double argument for fraction of window area open
-    fracwinareaopen = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("fracwinareaopen",false)
-    fracwinareaopen.setDisplayName("Natural Ventilation: Fraction Window Area Openable")
-    fracwinareaopen.setUnits("frac")
-    fracwinareaopen.setDescription("Specifies the fraction of total window area in the home that can be opened (e.g. typical sliding windows can be opened to half of their area).")
-    fracwinareaopen.setDefaultValue(0.2)
-    args << fracwinareaopen
+    nat_vent_frac_window_area_openable = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("nat_vent_frac_window_area_openable",false)
+    nat_vent_frac_window_area_openable.setDisplayName("Natural Ventilation: Fraction Window Area Openable")
+    nat_vent_frac_window_area_openable.setUnits("frac")
+    nat_vent_frac_window_area_openable.setDescription("Specifies the fraction of total window area in the home that can be opened (e.g. typical sliding windows can be opened to half of their area).")
+    nat_vent_frac_window_area_openable.setDefaultValue(0.2)
+    args << nat_vent_frac_window_area_openable
 
     #make a double argument for humidity ratio
-    humratio = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("humratio",false)
-    humratio.setDisplayName("Natural Ventilation: Max OA Humidity Ratio")
-    humratio.setUnits("frac")
-    humratio.setDescription("Outdoor air humidity ratio above which windows will not open for natural ventilation.")
-    humratio.setDefaultValue(0.0115)
-    args << humratio
+    nat_vent_max_oa_hr = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("nat_vent_max_oa_hr",false)
+    nat_vent_max_oa_hr.setDisplayName("Natural Ventilation: Max OA Humidity Ratio")
+    nat_vent_max_oa_hr.setUnits("frac")
+    nat_vent_max_oa_hr.setDescription("Outdoor air humidity ratio above which windows will not open for natural ventilation.")
+    nat_vent_max_oa_hr.setDefaultValue(0.0115)
+    args << nat_vent_max_oa_hr
 
     #make a double argument for relative humidity ratio
-    relhumratio = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("relhumratio",false)
-    relhumratio.setDisplayName("Natural Ventilation: Max OA Relative Humidity")
-    relhumratio.setUnits("frac")
-    relhumratio.setDescription("Outdoor air relative humidity (0-1) above which windows will not open for natural ventilation.")
-    relhumratio.setDefaultValue(0.7)
-    args << relhumratio
+    nat_vent_max_oa_rh = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("nat_vent_max_oa_rh",false)
+    nat_vent_max_oa_rh.setDisplayName("Natural Ventilation: Max OA Relative Humidity")
+    nat_vent_max_oa_rh.setUnits("frac")
+    nat_vent_max_oa_rh.setDescription("Outdoor air relative humidity (0-1) above which windows will not open for natural ventilation.")
+    nat_vent_max_oa_rh.setDefaultValue(0.7)
+    args << nat_vent_max_oa_rh
 	
     #make a choice arguments for duct location
     duct_locations = OpenStudio::StringVector.new
@@ -562,44 +562,44 @@ class ResidentialAirflow < OpenStudio::Ruleset::ModelUserScript
     args << duct_total_leakage
 
     #make a double argument for supply leakage fraction of total
-    duct_sup_frac = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("duct_sup_frac", false)
-    duct_sup_frac.setDisplayName("Ducts: Supply Leakage Fraction of Total")
-    duct_sup_frac.setUnits("frac")
-    duct_sup_frac.setDescription("The amount of air flow leakage leaking out from the supply duct expressed as a fraction of the total duct leakage.")
-    duct_sup_frac.setDefaultValue(0.6)
-    args << duct_sup_frac
+    duct_supply_frac = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("duct_supply_frac", false)
+    duct_supply_frac.setDisplayName("Ducts: Supply Leakage Fraction of Total")
+    duct_supply_frac.setUnits("frac")
+    duct_supply_frac.setDescription("The amount of air flow leakage leaking out from the supply duct expressed as a fraction of the total duct leakage.")
+    duct_supply_frac.setDefaultValue(0.6)
+    args << duct_supply_frac
 
     #make a double argument for return leakage fraction of total
-    duct_ret_frac = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("duct_ret_frac", false)
-    duct_ret_frac.setDisplayName("Ducts: Return Leakage Fraction of Total")
-    duct_ret_frac.setUnits("frac")
-    duct_ret_frac.setDescription("The amount of air flow leakage leaking into the return duct expressed as a fraction of the total duct leakage.")
-    duct_ret_frac.setDefaultValue(0.067)
-    args << duct_ret_frac  
+    duct_return_frac = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("duct_return_frac", false)
+    duct_return_frac.setDisplayName("Ducts: Return Leakage Fraction of Total")
+    duct_return_frac.setUnits("frac")
+    duct_return_frac.setDescription("The amount of air flow leakage leaking into the return duct expressed as a fraction of the total duct leakage.")
+    duct_return_frac.setDefaultValue(0.067)
+    args << duct_return_frac  
 
     #make a double argument for supply AH leakage fraction of total
-    duct_ah_sup_frac = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("duct_ah_sup_frac", false)
-    duct_ah_sup_frac.setDisplayName("Ducts: Supply Air Handler Leakage Fraction of Total")
-    duct_ah_sup_frac.setUnits("frac")
-    duct_ah_sup_frac.setDescription("The amount of air flow leakage leaking out from the supply-side of the air handler expressed as a fraction of the total duct leakage.")
-    duct_ah_sup_frac.setDefaultValue(0.067)
-    args << duct_ah_sup_frac  
+    duct_ah_supply_frac = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("duct_ah_supply_frac", false)
+    duct_ah_supply_frac.setDisplayName("Ducts: Supply Air Handler Leakage Fraction of Total")
+    duct_ah_supply_frac.setUnits("frac")
+    duct_ah_supply_frac.setDescription("The amount of air flow leakage leaking out from the supply-side of the air handler expressed as a fraction of the total duct leakage.")
+    duct_ah_supply_frac.setDefaultValue(0.067)
+    args << duct_ah_supply_frac  
 
     #make a double argument for return AH leakage fraction of total
-    duct_ah_ret_frac = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("duct_ah_ret_frac", false)
-    duct_ah_ret_frac.setDisplayName("Ducts: Return Air Handler Leakage Fraction of Total")
-    duct_ah_ret_frac.setUnits("frac")
-    duct_ah_ret_frac.setDescription("The amount of air flow leakage leaking out from the return-side of the air handler expressed as a fraction of the total duct leakage.")
-    duct_ah_ret_frac.setDefaultValue(0.267)
-    args << duct_ah_ret_frac
+    duct_ah_return_frac = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("duct_ah_return_frac", false)
+    duct_ah_return_frac.setDisplayName("Ducts: Return Air Handler Leakage Fraction of Total")
+    duct_ah_return_frac.setUnits("frac")
+    duct_ah_return_frac.setDescription("The amount of air flow leakage leaking out from the return-side of the air handler expressed as a fraction of the total duct leakage.")
+    duct_ah_return_frac.setDefaultValue(0.267)
+    args << duct_ah_return_frac
     
     #make a string argument for norm leakage to outside
-    duct_norm_leakage_to_outside = OpenStudio::Ruleset::OSArgument::makeStringArgument("duct_norm_leakage_to_outside", false)
-    duct_norm_leakage_to_outside.setDisplayName("Ducts: Leakage to Outside at 25Pa")
-    duct_norm_leakage_to_outside.setUnits("cfm/100 ft^2")
-    duct_norm_leakage_to_outside.setDescription("Normalized leakage to the outside when tested at a pressure differential of 25 Pascals (0.1 inches w.g.) across the system.")
-    duct_norm_leakage_to_outside.setDefaultValue("NA")
-    args << duct_norm_leakage_to_outside
+    duct_norm_leakage_25pa = OpenStudio::Ruleset::OSArgument::makeStringArgument("duct_norm_leakage_25pa", false)
+    duct_norm_leakage_25pa.setDisplayName("Ducts: Leakage to Outside at 25Pa")
+    duct_norm_leakage_25pa.setUnits("cfm/100 ft^2")
+    duct_norm_leakage_25pa.setDescription("Normalized leakage to the outside when tested at a pressure differential of 25 Pascals (0.1 inches w.g.) across the system.")
+    duct_norm_leakage_25pa.setDefaultValue("NA")
+    args << duct_norm_leakage_25pa
     
     #make a string argument for duct location frac    
     duct_location_frac = OpenStudio::Ruleset::OSArgument::makeStringArgument("duct_location_frac", true)
@@ -618,28 +618,28 @@ class ResidentialAirflow < OpenStudio::Ruleset::ModelUserScript
     args << duct_num_returns       
     
     #make a double argument for supply surface area multiplier
-    supply_surface_area_multiplier = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("supply_surface_area_multiplier", true)
-    supply_surface_area_multiplier.setDisplayName("Ducts: Supply Surface Area Multiplier")
-    supply_surface_area_multiplier.setUnits("mult")
-    supply_surface_area_multiplier.setDescription("Values specify a fraction of the Building America Benchmark supply duct surface area.")
-    supply_surface_area_multiplier.setDefaultValue(1.0)
-    args << supply_surface_area_multiplier
+    duct_supply_area_mult = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("duct_supply_area_mult", true)
+    duct_supply_area_mult.setDisplayName("Ducts: Supply Surface Area Multiplier")
+    duct_supply_area_mult.setUnits("mult")
+    duct_supply_area_mult.setDescription("Values specify a fraction of the Building America Benchmark supply duct surface area.")
+    duct_supply_area_mult.setDefaultValue(1.0)
+    args << duct_supply_area_mult
 
     #make a double argument for return surface area multiplier
-    return_surface_area_multiplier = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("return_surface_area_multiplier", true)
-    return_surface_area_multiplier.setDisplayName("Ducts: Return Surface Area Multiplier")
-    return_surface_area_multiplier.setUnits("mult")
-    return_surface_area_multiplier.setDescription("Values specify a fraction of the Building America Benchmark return duct surface area.")
-    return_surface_area_multiplier.setDefaultValue(1.0)
-    args << return_surface_area_multiplier
+    duct_return_area_mult = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("duct_return_area_mult", true)
+    duct_return_area_mult.setDisplayName("Ducts: Return Surface Area Multiplier")
+    duct_return_area_mult.setUnits("mult")
+    duct_return_area_mult.setDescription("Values specify a fraction of the Building America Benchmark return duct surface area.")
+    duct_return_area_mult.setDefaultValue(1.0)
+    args << duct_return_area_mult
     
     #make a double argument for duct unconditioned r value
-    duct_unconditioned_rvalue = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("duct_unconditioned_rvalue", true)
-    duct_unconditioned_rvalue.setDisplayName("Ducts: Insulation Nominal R-Value")
-    duct_unconditioned_rvalue.setUnits("h-ft^2-R/Btu")
-    duct_unconditioned_rvalue.setDescription("The nominal R-value for duct insulation.")
-    duct_unconditioned_rvalue.setDefaultValue(0.0)
-    args << duct_unconditioned_rvalue
+    duct_unconditioned_r = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("duct_unconditioned_r", true)
+    duct_unconditioned_r.setDisplayName("Ducts: Insulation Nominal R-Value")
+    duct_unconditioned_r.setUnits("h-ft^2-R/Btu")
+    duct_unconditioned_r.setDescription("The nominal R-value for duct insulation.")
+    duct_unconditioned_r.setDefaultValue(0.0)
+    args << duct_unconditioned_r
 
     return args
   end
@@ -653,51 +653,51 @@ class ResidentialAirflow < OpenStudio::Ruleset::ModelUserScript
       return false
     end
 
-    infiltrationLivingSpaceACH50 = runner.getDoubleArgumentValue("inflivingspace",user_arguments)
+    infiltrationLivingSpaceACH50 = runner.getDoubleArgumentValue("living_ach50",user_arguments)
     if infiltrationLivingSpaceACH50 == 0
       infiltrationLivingSpaceACH50 = nil
     end
-    infiltrationGarageACH50 = runner.getDoubleArgumentValue("infgarage",user_arguments)
-    crawlACH = runner.getDoubleArgumentValue("infcrawl",user_arguments)
-    fbsmtACH = runner.getDoubleArgumentValue("inffbsmt",user_arguments)
-    ufbsmtACH = runner.getDoubleArgumentValue("infufbsmt",user_arguments)
-    uaSLA = runner.getDoubleArgumentValue("infunfinattic",user_arguments)
-    infiltrationShelterCoefficient = runner.getStringArgumentValue("infsheltercoef",user_arguments)
-    terrainType = runner.getStringArgumentValue("terraintype",user_arguments)
-    mechVentType = runner.getStringArgumentValue("venttype",user_arguments)
-    mechVentInfilCredit = runner.getBoolArgumentValue("infilcredit",user_arguments)
-    mechVentTotalEfficiency = runner.getDoubleArgumentValue("totaleff",user_arguments)
-    mechVentSensibleEfficiency = runner.getDoubleArgumentValue("senseff",user_arguments)
-    mechVentHouseFanPower = runner.getDoubleArgumentValue("fanpower",user_arguments)
-    mechVentFractionOfASHRAE = runner.getDoubleArgumentValue("fracofashrae",user_arguments)
-    mechVentASHRAEStandard = runner.getStringArgumentValue("ashraestandard",user_arguments)
+    infiltrationGarageACH50 = runner.getDoubleArgumentValue("garage_ach50",user_arguments)
+    crawlACH = runner.getDoubleArgumentValue("crawl_ach",user_arguments)
+    fbsmtACH = runner.getDoubleArgumentValue("finished_basement_ach",user_arguments)
+    ufbsmtACH = runner.getDoubleArgumentValue("unfinished_basement_ach",user_arguments)
+    uaSLA = runner.getDoubleArgumentValue("unfinished_attic_ach",user_arguments)
+    infiltrationShelterCoefficient = runner.getStringArgumentValue("shelter_coef",user_arguments)
+    terrainType = runner.getStringArgumentValue("terrain",user_arguments)
+    mechVentType = runner.getStringArgumentValue("mech_vent_type",user_arguments)
+    mechVentInfilCredit = runner.getBoolArgumentValue("mech_vent_infil_credit",user_arguments)
+    mechVentTotalEfficiency = runner.getDoubleArgumentValue("mech_vent_total_efficiency",user_arguments)
+    mechVentSensibleEfficiency = runner.getDoubleArgumentValue("mech_vent_sensible_efficiency",user_arguments)
+    mechVentHouseFanPower = runner.getDoubleArgumentValue("mech_vent_fan_power",user_arguments)
+    mechVentFractionOfASHRAE = runner.getDoubleArgumentValue("mech_vent_frac_62_2",user_arguments)
+    mechVentASHRAEStandard = runner.getStringArgumentValue("mech_vent_ashrae_std",user_arguments)
     if mechVentType == "none"
       mechVentFractionOfASHRAE = 0.0
       mechVentHouseFanPower = 0.0
       mechVentTotalEfficiency = 0.0
       mechVentSensibleEfficiency = 0.0
     end
-    dryerExhaust = runner.getDoubleArgumentValue("dryerexhaust",user_arguments)
-    ageOfHome = runner.getDoubleArgumentValue("homeage",user_arguments)
-    natVentHtgSsnSetpointOffset = runner.getDoubleArgumentValue("htgoffset",user_arguments)
-    natVentClgSsnSetpointOffset = runner.getDoubleArgumentValue("clgoffset",user_arguments)
-    natVentOvlpSsnSetpointOffset = runner.getDoubleArgumentValue("ovlpoffset",user_arguments)
-    natVentHeatingSeason = runner.getBoolArgumentValue("heatingssn",user_arguments)
-    natVentCoolingSeason = runner.getBoolArgumentValue("coolingssn",user_arguments)
-    natVentOverlapSeason = runner.getBoolArgumentValue("overlapssn",user_arguments)
-    natVentNumberWeekdays = runner.getIntegerArgumentValue("ventweekdays",user_arguments)
-    natVentNumberWeekendDays = runner.getIntegerArgumentValue("ventweekenddays",user_arguments)
-    natVentFractionWindowsOpen = runner.getDoubleArgumentValue("fracwinopen",user_arguments)
-    natVentFractionWindowAreaOpen = runner.getDoubleArgumentValue("fracwinareaopen",user_arguments)
-    natVentMaxOAHumidityRatio = runner.getDoubleArgumentValue("humratio",user_arguments)
-    natVentMaxOARelativeHumidity = runner.getDoubleArgumentValue("relhumratio",user_arguments)    
+    dryerExhaust = runner.getDoubleArgumentValue("clothes_dryer_exhaust",user_arguments)
+    ageOfHome = runner.getDoubleArgumentValue("age_of_home",user_arguments)
+    natVentHtgSsnSetpointOffset = runner.getDoubleArgumentValue("nat_vent_htg_offset",user_arguments)
+    natVentClgSsnSetpointOffset = runner.getDoubleArgumentValue("nat_vent_clg_offset",user_arguments)
+    natVentOvlpSsnSetpointOffset = runner.getDoubleArgumentValue("nat_vent_ovlp_offset",user_arguments)
+    natVentHeatingSeason = runner.getBoolArgumentValue("nat_vent_htg_season",user_arguments)
+    natVentCoolingSeason = runner.getBoolArgumentValue("nat_vent_clg_season",user_arguments)
+    natVentOverlapSeason = runner.getBoolArgumentValue("nat_vent_ovlp_season",user_arguments)
+    natVentNumberWeekdays = runner.getIntegerArgumentValue("nat_vent_num_weekdays",user_arguments)
+    natVentNumberWeekendDays = runner.getIntegerArgumentValue("nat_vent_num_weekends",user_arguments)
+    natVentFractionWindowsOpen = runner.getDoubleArgumentValue("nat_vent_frac_windows_open",user_arguments)
+    natVentFractionWindowAreaOpen = runner.getDoubleArgumentValue("nat_vent_frac_window_area_openable",user_arguments)
+    natVentMaxOAHumidityRatio = runner.getDoubleArgumentValue("nat_vent_max_oa_hr",user_arguments)
+    natVentMaxOARelativeHumidity = runner.getDoubleArgumentValue("nat_vent_max_oa_rh",user_arguments)    
     duct_location = runner.getStringArgumentValue("duct_location",user_arguments)
     ductTotalLeakage = runner.getDoubleArgumentValue("duct_total_leakage",user_arguments)
-    ductSupplyLeakageFractionOfTotal = runner.getDoubleArgumentValue("duct_sup_frac",user_arguments)
-    ductReturnLeakageFractionOfTotal = runner.getDoubleArgumentValue("duct_ret_frac",user_arguments)
-    ductAHSupplyLeakageFractionOfTotal = runner.getDoubleArgumentValue("duct_ah_sup_frac",user_arguments)
-    ductAHReturnLeakageFractionOfTotal = runner.getDoubleArgumentValue("duct_ah_ret_frac",user_arguments)
-    ductNormLeakageToOutside = runner.getStringArgumentValue("duct_norm_leakage_to_outside",user_arguments)
+    ductSupplyLeakageFractionOfTotal = runner.getDoubleArgumentValue("duct_supply_frac",user_arguments)
+    ductReturnLeakageFractionOfTotal = runner.getDoubleArgumentValue("duct_return_frac",user_arguments)
+    ductAHSupplyLeakageFractionOfTotal = runner.getDoubleArgumentValue("duct_ah_supply_frac",user_arguments)
+    ductAHReturnLeakageFractionOfTotal = runner.getDoubleArgumentValue("duct_ah_return_frac",user_arguments)
+    ductNormLeakageToOutside = runner.getStringArgumentValue("duct_norm_leakage_25pa",user_arguments)
     unless ductNormLeakageToOutside == "NA"
       ductNormLeakageToOutside = ductNormLeakageToOutside.to_f
     else
@@ -705,9 +705,9 @@ class ResidentialAirflow < OpenStudio::Ruleset::ModelUserScript
     end
     duct_location_frac = runner.getStringArgumentValue("duct_location_frac",user_arguments)
     duct_num_returns = runner.getStringArgumentValue("duct_num_returns",user_arguments)
-    ductSupplySurfaceAreaMultiplier = runner.getDoubleArgumentValue("supply_surface_area_multiplier",user_arguments)
-    ductReturnSurfaceAreaMultiplier = runner.getDoubleArgumentValue("return_surface_area_multiplier",user_arguments)
-    ductUnconditionedRvalue = runner.getDoubleArgumentValue("duct_unconditioned_rvalue",user_arguments)
+    ductSupplySurfaceAreaMultiplier = runner.getDoubleArgumentValue("duct_supply_area_mult",user_arguments)
+    ductReturnSurfaceAreaMultiplier = runner.getDoubleArgumentValue("duct_return_area_mult",user_arguments)
+    ductUnconditionedRvalue = runner.getDoubleArgumentValue("duct_unconditioned_r",user_arguments)
 
     # Create the class instances
     infil = Infiltration.new(infiltrationLivingSpaceACH50, infiltrationShelterCoefficient, infiltrationGarageACH50)
@@ -734,7 +734,7 @@ class ResidentialAirflow < OpenStudio::Ruleset::ModelUserScript
     HelperMethods.remove_object_from_osm_based_on_name(model, "SpaceInfiltrationEffectiveLeakageArea", ["UAtcInfiltration"])
     HelperMethods.remove_object_from_osm_based_on_name(model, "OutputVariable", ["Schedule Value", "System Node Temperature", "Zone Outdoor Air Drybulb Temperature", "Site Outdoor Air Enthalpy", "Zone Air Temperature", "System Node Humidity Ratio", "System Node Current Density Volume Flow Rate", "Fan Runtime Fraction", "System Node Mass Flow Rate", "Site Wind Speed", "Site Outdoor Air Humidity Ratio", "Zone Mean Air Humidity Ratio", "Zone Air Relative Humidity", "Zone Mean Air Temperature", "Site Outdoor Air Barometric Pressure"])
     HelperMethods.remove_object_from_osm_based_on_name(model, "EnergyManagementSystemSensor", ["Tout_", "Hout_", "Tin_", "Pbar_", "Phiin_", "Win_", "Wout_", "Vwind_", "WH_sch_", "Range_sch_", "Bath_sch_", "Clothes_dryer_sch_", "NVAvail_", "NVSP_", "AH_MFR_Sensor_", "Fan_RTF_Sensor_", "AH_VFR_Sensor_", "AH_Tout_Sensor_", "RA_T_Sensor_", "AH_Wout_Sensor_", "AHZone_T_Sensor_", "RA_W_Sensor_", "AHZone_W_Sensor_"])
-    HelperMethods.remove_object_from_osm_based_on_name(model, "EnergyManagementSystemActuator", ["InfilFlow_", "NatVentFlow_", "AHZoneToLivingFlowRateActuator_", "LivingToAHZoneFlowRateActuator_", "SupplyLeakSensibleActuator_", "SupplyLeakLatentActuator_", "SupplyDuctLoadToLivingActuator_", "ConductionToAHZoneActuator_", "ReturnDuctLoadToPlenumActuator_", "ReturnConductionToAHZoneActuator_", "SensibleLeakageToAHZoneActuator_", "LatentLeakageToAHZoneActuator_", "ReturnSensibleLeakageActuator_", "ReturnLatentLeakageActuator_"])
+    HelperMethods.remove_object_from_osm_based_on_name(model, "EnergyManagementSystemActuator", ["InfilFlow_", "NatVentFlow_", "AHZoneToLivingFlowRateActuator_", "LivingToAHZoneFlowRateActuator_", "SupplyLeakSensibleActuator_", "SupplyLeakLatentActuator_", "SupplyDuctLoadToLivingActuator_", "ConductionToAHZoneActuator_", "ReturnDuctLoadToPlenumActuator_", "ReturnConductionToAHZoneActuator_", "SensibleLeakageToAHZoneActuator_", "LatentLeakageToAHZoneActuator_", "ReturnSensibleLeakageActuator_", "ReturnLatentLeakageActuator_", "WholeHouseFanPowerOverride_", "RangeHoodFanPowerOverride_", "BathExhaustFanPowerOverride_"])
     HelperMethods.remove_object_from_osm_based_on_name(model, "EnergyManagementSystemProgram", ["DuctLeakageProgram_", "NaturalVentilationProgram_", "InfiltrationProgram_"])
     HelperMethods.remove_object_from_osm_based_on_name(model, "EnergyManagementSystemOutputVariable", ["Bath Exhaust Fan Vent Flow Rate_", "Clothes Dryer Exhaust Fan Vent Flow Rate_", "Local Wind Speed_", "Range Hood Fan Vent Flow Rate_", "Whole House Fan Vent Flow Rate_", "Zone Infil/MechVent Flow Rate_", "Zone Natural Ventilation Flow Rate_"])
     HelperMethods.remove_object_from_osm_based_on_name(model, "EnergyManagementSystemProgramCallingManager", ["AirflowCalculator_", "DuctLeakageCallingManager_"])
@@ -746,6 +746,7 @@ class ResidentialAirflow < OpenStudio::Ruleset::ModelUserScript
     HelperMethods.remove_object_from_osm_based_on_name(model, "Space", ["RA Duct Space"])
     HelperMethods.remove_object_from_osm_based_on_name(model, "ZoneMixing", ["AHZoneToLivingZoneMixing", "LivingZoneToAHZoneMixing"])
     HelperMethods.remove_object_from_osm_based_on_name(model, "AirLoopHVACReturnPlenum", ["Return Plenum"])
+    HelperMethods.remove_object_from_osm_based_on_name(model, "ElectricEquipmentDefinition", ["House Exhaust Fan Load_", "Range Hood Fan Load_", "Bath Exhaust Fan Load_"])
     HelperMethods.remove_object_from_osm_based_on_name(model, "OtherEquipmentDefinition", ["Other Equipment"])
     HelperMethods.remove_object_from_osm_based_on_name(model, "ScheduleRuleset", ["MechanicalVentilationEnergy", "MechanicalVentilation", "BathExhaust", "ClothesDryerExhaust", "RangeHood", "NatVent", "NatVentTemp"])
     
@@ -984,7 +985,49 @@ class ResidentialAirflow < OpenStudio::Ruleset::ModelUserScript
 
       actuator = OpenStudio::Model::EnergyManagementSystemActuator.new(space_nat_vent_design_flow_rate, "Zone Infiltration", "Air Exchange Flow Rate")
       actuator.setName("NatVentFlow_#{unit.unit_num}")
+
+      equip_def = OpenStudio::Model::ElectricEquipmentDefinition.new(model)
+      equip_def.setName("House Exhaust Fan Load_#{unit.unit_num}")
+      equip = OpenStudio::Model::ElectricEquipment.new(equip_def)
+      equip.setName("House Exhaust Fan Load_#{unit.unit_num}")
+      equip.setSpace(unit.living_zone.spaces[0])
+      equip_def.setFractionRadiant(0)
+      equip_def.setFractionLatent(0)
+      equip_def.setFractionLost(1.0 - mech_vent.percent_fan_heat_to_space)
+      equip.setSchedule(model.alwaysOnDiscreteSchedule)
+      equip.setEndUseSubcategory("VentFans")
       
+      actuator = OpenStudio::Model::EnergyManagementSystemActuator.new(equip, "ElectricEquipment", "Electric Power Level")
+      actuator.setName("WholeHouseFanPowerOverride_#{unit.unit_num}")      
+      
+      equip_def = OpenStudio::Model::ElectricEquipmentDefinition.new(model)
+      equip_def.setName("Range Hood Fan Load_#{unit.unit_num}")
+      equip = OpenStudio::Model::ElectricEquipment.new(equip_def)
+      equip.setName("Range Hood Fan Load_#{unit.unit_num}")
+      equip.setSpace(unit.living_zone.spaces[0])
+      equip_def.setFractionRadiant(0)
+      equip_def.setFractionLatent(0)
+      equip_def.setFractionLost(1)
+      equip.setSchedule(model.alwaysOnDiscreteSchedule)
+      equip.setEndUseSubcategory("VentFans")
+
+      actuator = OpenStudio::Model::EnergyManagementSystemActuator.new(equip, "ElectricEquipment", "Electric Power Level")
+      actuator.setName("RangeHoodFanPowerOverride_#{unit.unit_num}")      
+      
+      equip_def = OpenStudio::Model::ElectricEquipmentDefinition.new(model)
+      equip_def.setName("Bath Exhaust Fan Load_#{unit.unit_num}")
+      equip = OpenStudio::Model::ElectricEquipment.new(equip_def)
+      equip.setName("Bath Exhaust Fan Load_#{unit.unit_num}")
+      equip.setSpace(unit.living_zone.spaces[0])
+      equip_def.setFractionRadiant(0)
+      equip_def.setFractionLatent(0)
+      equip_def.setFractionLost(1)
+      equip.setSchedule(model.alwaysOnDiscreteSchedule)
+      equip.setEndUseSubcategory("VentFans")
+
+      actuator = OpenStudio::Model::EnergyManagementSystemActuator.new(equip, "ElectricEquipment", "Electric Power Level")
+      actuator.setName("BathExhaustFanPowerOverride_#{unit.unit_num}")      
+
       # Program
             
       infil_program = OpenStudio::Model::EnergyManagementSystemProgram.new(model)
@@ -1031,6 +1074,7 @@ class ResidentialAirflow < OpenStudio::Ruleset::ModelUserScript
         infil_program.addLine("Set Qin = QhpwhIn+QductsIn")
         infil_program.addLine("Set Qu = (@Abs (Qout - Qin))")
         infil_program.addLine("Set Qb = QWHV_#{unit.unit_num} + (@Min Qout Qin)")
+        infil_program.addLine("Set WholeHouseFanPowerOverride = 0")
       else
         if mech_vent.MechVentType == Constants.VentTypeExhaust
           infil_program.addLine("Set Qout = QWHV_#{unit.unit_num}+Qrange_#{unit.unit_num}+Qbath_#{unit.unit_num}+Qdryer_#{unit.unit_num}+QhpwhOut+QductsOut")
@@ -1057,8 +1101,6 @@ class ResidentialAirflow < OpenStudio::Ruleset::ModelUserScript
         infil_program.addLine("Set faneff_sp = 1")
       end
       
-      # EMS Output Variables
-      
       infil_program.addLine("Set RangeHoodFanPowerOverride_#{unit.unit_num} = (Qrange_#{unit.unit_num}*300)/faneff_sp")
       infil_program.addLine("Set BathExhaustFanPowerOverride_#{unit.unit_num} = (Qbath_#{unit.unit_num}*300)/faneff_sp")
       infil_program.addLine("Set Q_acctd_for_elsewhere = QhpwhOut + QhpwhIn + QductsOut + QductsIn")
@@ -1067,6 +1109,8 @@ class ResidentialAirflow < OpenStudio::Ruleset::ModelUserScript
       infil_program.addLine("Set InfilFlow_display_#{unit.unit_num} = (((Qu^2) + (Qn^2))^0.5) - Qu")
       infil_program.addLine("Set InfMechVent_#{unit.unit_num} = Qb + InfilFlow_#{unit.unit_num}")
 
+      # EMS Output Variables
+      
       ems_output_var = OpenStudio::Model::EnergyManagementSystemOutputVariable.new(model, "InfMechVent_#{unit.unit_num}")
       ems_output_var.setName("Zone Infil/MechVent Flow Rate_#{unit.unit_num}")
       ems_output_var.setTypeOfDataInVariable("Averaged")
@@ -2554,7 +2598,7 @@ class ResidentialAirflow < OpenStudio::Ruleset::ModelUserScript
     else
       return 2.0388 + 0.7053*nominalR
     end
-  end  
+  end
   
 end
 

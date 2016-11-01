@@ -75,7 +75,6 @@ class BuildExistingModel < OpenStudio::Ruleset::ModelUserScript
         # Get measure name and arguments associated with the option name
         option_name = bldg_data[parameter_name]
         register_value(runner, parameter_name, option_name)
-        next if parameter_name == "Airflow" # Temporary while Airflow is an EnergyPlus measure
         measure_args = get_measure_args_from_option_name(lookup_file, option_name, parameter_name, runner)
         
         measure_args.keys.each do |measure_subdir|

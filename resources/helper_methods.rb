@@ -360,9 +360,6 @@ def run_measure(model, measure, argument_map, runner)
 
       # run the measure
       runner_child = OpenStudio::Ruleset::OSRunner.new
-      if model.instance_of? OpenStudio::Workspace
-        runner_child.setLastOpenStudioModel(runner.lastOpenStudioModel.get)
-      end
       measure.run(model, runner_child, argument_map)
       result_child = runner_child.result
 
