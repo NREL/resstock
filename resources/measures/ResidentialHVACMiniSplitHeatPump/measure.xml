@@ -2,8 +2,8 @@
   <schema_version>3.0</schema_version>
   <name>process_vrf_minisplit</name>
   <uid>402b168f-ed99-46bb-b367-103937011e91</uid>
-  <version_id>f606b354-5227-4c23-a82e-80365e02b06f</version_id>
-  <version_modified>20161029T152005Z</version_modified>
+  <version_id>d69719ed-4db5-452b-91e4-11175de6d2a0</version_id>
+  <version_modified>20161101T133205Z</version_modified>
   <xml_checksum>470FC630</xml_checksum>
   <class_name>ProcessVRFMinisplit</class_name>
   <display_name>Set Residential Mini-Split Heat Pump</display_name>
@@ -130,6 +130,36 @@
       <default_value>400</default_value>
     </argument>
     <argument>
+      <name>cap_retention_frac</name>
+      <display_name>Heating Capacity Retention Fraction</display_name>
+      <description>The maximum heating capacity at X degrees divided by the maximum heating capacity at 47 degrees F.</description>
+      <type>Double</type>
+      <units>frac</units>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>0.25</default_value>
+    </argument>
+    <argument>
+      <name>cap_retention_temp</name>
+      <display_name>Heating Capacity Retention Temperature</display_name>
+      <description>The outdoor drybulb temperature at which the heating capacity retention fraction is defined.</description>
+      <type>Double</type>
+      <units>degrees F</units>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>-5</default_value>
+    </argument>
+    <argument>
+      <name>pan_heater_power</name>
+      <display_name>Pan Heater</display_name>
+      <description>Prevents ice build up from damaging the coil.</description>
+      <type>Double</type>
+      <units>W/unit</units>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>0</default_value>
+    </argument>
+    <argument>
       <name>fan_power</name>
       <display_name>Supply Fan Power</display_name>
       <description>Fan power (in W) per delivered airflow rate (in cfm) of the fan.</description>
@@ -138,16 +168,6 @@
       <required>true</required>
       <model_dependent>false</model_dependent>
       <default_value>0.07</default_value>
-    </argument>
-    <argument>
-      <name>pan_heater_power</name>
-      <display_name>Pan Heater Power Per Unit</display_name>
-      <description>Prevents ice build up from damaging the coil.</description>
-      <type>Double</type>
-      <units>W/unit</units>
-      <required>true</required>
-      <model_dependent>false</model_dependent>
-      <default_value>0</default_value>
     </argument>
     <argument>
       <name>heat_pump_capacity</name>
@@ -534,45 +554,45 @@
       <checksum>9A86F3EB</checksum>
     </file>
     <file>
-      <filename>constants.rb</filename>
-      <filetype>rb</filetype>
-      <usage_type>resource</usage_type>
-      <checksum>6D48E2DD</checksum>
-    </file>
-    <file>
-      <filename>hvac.rb</filename>
-      <filetype>rb</filetype>
-      <usage_type>resource</usage_type>
-      <checksum>536297F8</checksum>
-    </file>
-    <file>
       <filename>util.rb</filename>
       <filetype>rb</filetype>
       <usage_type>resource</usage_type>
       <checksum>07CC9F86</checksum>
     </file>
     <file>
-      <filename>unit_conversions.rb</filename>
+      <filename>constants.rb</filename>
       <filetype>rb</filetype>
       <usage_type>resource</usage_type>
-      <checksum>4977607F</checksum>
+      <checksum>D6592C9C</checksum>
+    </file>
+    <file>
+      <filename>hvac.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>C2C5EE94</checksum>
     </file>
     <file>
       <version>
         <software_program>OpenStudio</software_program>
         <identifier>1.12.4</identifier>
-        <min_compatible>1.13.2</min_compatible>
+        <min_compatible>1.13.1</min_compatible>
       </version>
       <filename>measure.rb</filename>
       <filetype>rb</filetype>
       <usage_type>script</usage_type>
-      <checksum>846CDD19</checksum>
+      <checksum>7D08A081</checksum>
+    </file>
+    <file>
+      <filename>unit_conversions.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>92D6C640</checksum>
     </file>
     <file>
       <filename>process_mini_split_heat_pump_test.rb</filename>
       <filetype>rb</filetype>
       <usage_type>test</usage_type>
-      <checksum>5DD4E7E5</checksum>
+      <checksum>F9CBF230</checksum>
     </file>
   </files>
 </measure>

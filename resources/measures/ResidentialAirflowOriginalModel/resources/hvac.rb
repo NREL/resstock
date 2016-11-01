@@ -102,7 +102,7 @@ class HVAC
         return curves
     end
 
-    def self.get_heating_coefficients(runner, num_speeds, curves, min_compressor_temp=nil)
+    def self.get_heating_coefficients(runner, num_speeds, curves, min_compressor_temp, mshp_capacity_retention_fraction=nil, mshp_capacity_retention_temperature=nil)
         # Hard coded curves
         if num_speeds == 1
             curves.HEAT_CAP_FT_SPEC_coefficients = [0.566333415, -0.000744164, -0.0000103, 0.009414634, 0.0000506, -0.00000675]
@@ -147,9 +147,7 @@ class HVAC
             # NOTE: These coefficients are in SI UNITS, which differs from the coefficients for 1, 2, and 4 speed units, which are in IP UNITS
             # Derive coefficients from user input for capacity retention at outdoor drybulb temperature X [C].
             # Biquadratic: capacity multiplier = a + b*IAT + c*IAT^2 + d*OAT + e*OAT^2 + f*IAT*OAT
-            mshp_capacity_retention_temperature = OpenStudio::convert(-13.0,"F", "C").get # Temperature at which capacity retention fraction is provided #TODO: Connect to user input
-            mshp_capacity_retention_fraction = 0.47 # Capacity retention fraction at this temperature #TODO: Connect to user input
-            x_A = mshp_capacity_retention_temperature
+            x_A = OpenStudio::convert(mshp_capacity_retention_temperature,"F", "C").get
             y_A = mshp_capacity_retention_fraction
             x_B = OpenStudio::convert(47.0,"F","C").get # 47F is the rating point
             y_B = 1.0 # Maximum capacity factor is 1 at the rating point, by definition (this is maximum capacity, not nominal capacity)

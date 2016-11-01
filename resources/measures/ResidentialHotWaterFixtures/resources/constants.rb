@@ -38,6 +38,9 @@ class Constants
   def self.MSHP_Cd_Heating
     return 0.40
   end
+  def self.MSHP_Min_T
+    return -30.0
+  end
   def self.MonthNumDays
     return [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
   end

@@ -137,6 +137,30 @@ class ProcessVRFMinisplit < OpenStudio::Ruleset::ModelUserScript
     miniSplitHPHeatingMaxAirflow.setDefaultValue(400.0)
     args << miniSplitHPHeatingMaxAirflow         
     
+    #make a double argument for minisplit capacity retention fraction
+    miniSplitHPCapacityRetentionFraction = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("cap_retention_frac", true)
+    miniSplitHPCapacityRetentionFraction.setDisplayName("Heating Capacity Retention Fraction")
+    miniSplitHPCapacityRetentionFraction.setUnits("frac")
+    miniSplitHPCapacityRetentionFraction.setDescription("The maximum heating capacity at X degrees divided by the maximum heating capacity at 47 degrees F.")
+    miniSplitHPCapacityRetentionFraction.setDefaultValue(0.25)
+    args << miniSplitHPCapacityRetentionFraction
+    
+    #make a double argument for minisplit capacity retention temperature
+    miniSplitHPCapacityRetentionTemperature = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("cap_retention_temp", true)
+    miniSplitHPCapacityRetentionTemperature.setDisplayName("Heating Capacity Retention Temperature")
+    miniSplitHPCapacityRetentionTemperature.setUnits("degrees F")
+    miniSplitHPCapacityRetentionTemperature.setDescription("The outdoor drybulb temperature at which the heating capacity retention fraction is defined.")
+    miniSplitHPCapacityRetentionTemperature.setDefaultValue(-5.0)
+    args << miniSplitHPCapacityRetentionTemperature    
+    
+    #make a double argument for minisplit pan heater power
+    miniSplitHPPanHeaterPowerPerUnit = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("pan_heater_power", true)
+    miniSplitHPPanHeaterPowerPerUnit.setDisplayName("Pan Heater")
+    miniSplitHPPanHeaterPowerPerUnit.setUnits("W/unit")
+    miniSplitHPPanHeaterPowerPerUnit.setDescription("Prevents ice build up from damaging the coil.")
+    miniSplitHPPanHeaterPowerPerUnit.setDefaultValue(0.0)
+    args << miniSplitHPPanHeaterPowerPerUnit    
+    
     #make a double argument for minisplit supply fan power
     miniSplitHPSupplyFanPower = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("fan_power", true)
     miniSplitHPSupplyFanPower.setDisplayName("Supply Fan Power")
@@ -144,14 +168,6 @@ class ProcessVRFMinisplit < OpenStudio::Ruleset::ModelUserScript
     miniSplitHPSupplyFanPower.setDescription("Fan power (in W) per delivered airflow rate (in cfm) of the fan.")
     miniSplitHPSupplyFanPower.setDefaultValue(0.07)
     args << miniSplitHPSupplyFanPower
-    
-    #make a double argument for minisplit pan heater power
-    miniSplitHPPanHeaterPowerPerUnit = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("pan_heater_power", true)
-    miniSplitHPPanHeaterPowerPerUnit.setDisplayName("Pan Heater Power Per Unit")
-    miniSplitHPPanHeaterPowerPerUnit.setUnits("W/unit")
-    miniSplitHPPanHeaterPowerPerUnit.setDescription("Prevents ice build up from damaging the coil.")
-    miniSplitHPPanHeaterPowerPerUnit.setDefaultValue(0.0)
-    args << miniSplitHPPanHeaterPowerPerUnit    
     
     #make a string argument for minisplit cooling output capacity
     cap_display_names = OpenStudio::StringVector.new
@@ -204,15 +220,17 @@ class ProcessVRFMinisplit < OpenStudio::Ruleset::ModelUserScript
     miniSplitHPCoolingMaxCapacity = runner.getDoubleArgumentValue("max_cooling_capacity",user_arguments) 
     miniSplitHPCoolingMinAirflow = runner.getDoubleArgumentValue("min_cooling_airflow_rate",user_arguments) 
     miniSplitHPCoolingMaxAirflow = runner.getDoubleArgumentValue("max_cooling_airflow_rate",user_arguments) 
-    miniSplitHPRatedSHR = runner.getDoubleArgumentValue("shr",user_arguments) 
-    miniSplitHPSupplyFanPower = runner.getDoubleArgumentValue("fan_power",user_arguments) 
+    miniSplitHPRatedSHR = runner.getDoubleArgumentValue("shr",user_arguments)    
     miniSplitHPHeatingCapacityOffset = runner.getDoubleArgumentValue("heating_capacity_offset",user_arguments) 
     miniSplitHPHeatingRatedHSPF = runner.getDoubleArgumentValue("hspf",user_arguments) 
     miniSplitHPHeatingMinCapacity = runner.getDoubleArgumentValue("min_heating_capacity",user_arguments) 
     miniSplitHPHeatingMaxCapacity = runner.getDoubleArgumentValue("max_heating_capacity",user_arguments) 
     miniSplitHPHeatingMinAirflow = runner.getDoubleArgumentValue("min_heating_airflow_rate",user_arguments) 
     miniSplitHPHeatingMaxAirflow = runner.getDoubleArgumentValue("max_heating_airflow_rate",user_arguments)
-    miniSplitHPPanHeaterPowerPerUnit = runner.getDoubleArgumentValue("pan_heater_power",user_arguments) 
+    miniSplitHPCapacityRetentionFraction = runner.getDoubleArgumentValue("cap_retention_frac",user_arguments)
+    miniSplitHPCapacityRetentionTemperature = runner.getDoubleArgumentValue("cap_retention_temp",user_arguments)
+    miniSplitHPPanHeaterPowerPerUnit = runner.getDoubleArgumentValue("pan_heater_power",user_arguments)    
+    miniSplitHPSupplyFanPower = runner.getDoubleArgumentValue("fan_power",user_arguments)
     miniSplitCoolingOutputCapacity = runner.getStringArgumentValue("heat_pump_capacity",user_arguments)
     unless miniSplitCoolingOutputCapacity == Constants.SizingAuto
       miniSplitCoolingOutputCapacity = OpenStudio::convert(miniSplitCoolingOutputCapacity.split(" ")[0].to_f,"ton","Btu/h").get
@@ -227,7 +245,6 @@ class ProcessVRFMinisplit < OpenStudio::Ruleset::ModelUserScript
     # _processAirSystem
     
     curves.mshp_indices = [1,3,5,9]
-    miniSplitHPMinT = OpenStudio::convert(-30,"F","C").get
     
     # Cooling Coil
     curves = HVAC.get_cooling_coefficients(runner, Constants.Num_Speeds_MSHP, true, curves)
@@ -235,9 +252,9 @@ class ProcessVRFMinisplit < OpenStudio::Ruleset::ModelUserScript
     curves, supply = _processAirSystemMiniSplitCooling(runner, miniSplitHPCoolingRatedSEER, miniSplitHPCoolingMinCapacity, miniSplitHPCoolingMaxCapacity, miniSplitHPCoolingMinAirflow, miniSplitHPCoolingMaxAirflow, miniSplitHPRatedSHR, miniSplitHPSupplyFanPower, curves, supply)
 
     # Heating Coil
-    curves = HVAC.get_heating_coefficients(runner, Constants.Num_Speeds_MSHP, curves, miniSplitHPMinT)
+    curves = HVAC.get_heating_coefficients(runner, Constants.Num_Speeds_MSHP, curves, nil, miniSplitHPCapacityRetentionFraction, miniSplitHPCapacityRetentionTemperature)
                                                     
-    curves, supply = _processAirSystemMiniSplitHeating(runner, miniSplitHPHeatingRatedHSPF, miniSplitHPHeatingMinCapacity, miniSplitHPHeatingMaxCapacity, miniSplitHPHeatingMinAirflow, miniSplitHPHeatingMaxAirflow, miniSplitHPSupplyFanPower, miniSplitHPMinT, curves, supply)    
+    curves, supply = _processAirSystemMiniSplitHeating(runner, miniSplitHPHeatingRatedHSPF, miniSplitHPHeatingMinCapacity, miniSplitHPHeatingMaxCapacity, miniSplitHPHeatingMinAirflow, miniSplitHPHeatingMaxAirflow, miniSplitHPSupplyFanPower, miniSplitHPCapacityRetentionFraction, miniSplitHPCapacityRetentionTemperature, curves, supply)
         
     # Remove boiler hot water loop if it exists
     HVAC.remove_hot_water_loop(model, runner)    
@@ -674,7 +691,7 @@ class ProcessVRFMinisplit < OpenStudio::Ruleset::ModelUserScript
     dB_rated = 80.0      
     wB_rated = 67.0
     
-    cap_nom_per = 1.0
+    cap_nom_per = cap_max_per
     cfm_ton_nom = ((cfm_ton_max - cfm_ton_min)/(cap_max_per - cap_min_per)) * (cap_nom_per - cap_min_per) + cfm_ton_min
     ao = Psychrometrics.CoilAoFactor(dB_rated, wB_rated, Constants.Patm, OpenStudio::convert(1,"ton","kBtu/h").get, cfm_ton_nom, shr)
     
@@ -867,15 +884,16 @@ class ProcessVRFMinisplit < OpenStudio::Ruleset::ModelUserScript
     return seer
   end
   
-  def _processAirSystemMiniSplitHeating(runner, heatingHSPF, cap_min_per, cap_max_per, cfm_ton_min, cfm_ton_max, supplyFanPower, min_T, curves, supply)
+  def _processAirSystemMiniSplitHeating(runner, heatingHSPF, cap_min_per, cap_max_per, cfm_ton_min, cfm_ton_max, supplyFanPower, mshp_capacity_retention_fraction, mshp_capacity_retention_temperature, curves, supply)
         
     curves.Number_Speeds = Constants.Num_Speeds_MSHP        
-    c_d = Constants.MSHP_Cd_Heating        
+    c_d = Constants.MSHP_Cd_Heating
+    min_T = Constants.MSHP_Min_T
+    
     #COPs_Norm = [1.636, 1.757, 1.388, 1.240, 1.162, 1.119, 1.084, 1.062, 1.044, 1] #Report Avg
     #COPs_Norm = [1.792, 1.502, 1.308, 1.207, 1.145, 1.105, 1.077, 1.056, 1.041, 1] #BEopt Default
     
-    cops_Norm = [1.792, 1.502, 1.308, 1.207, 1.145, 1.105, 1.077, 1.056, 1.041, 1] #BEopt Default
-    
+    cops_Norm = [1.792, 1.502, 1.308, 1.207, 1.145, 1.105, 1.077, 1.056, 1.041, 1] #BEopt Default    
     fanPows_Norm = [0.577, 0.625, 0.673, 0.720, 0.768, 0.814, 0.861, 0.907, 0.954, 1]
 
     supply.HeatingEIR = [0.0] * Constants.Num_Speeds_MSHP
@@ -889,7 +907,7 @@ class ProcessVRFMinisplit < OpenStudio::Ruleset::ModelUserScript
     
     (0...Constants.Num_Speeds_MSHP).each do |i|        
         supply.Capacity_Ratio_Heating[i] = cap_min_per + i*(cap_max_per - cap_min_per)/(cops_Norm.length-1)
-        supply.HeatingCFMs[i] = cfm_ton_min + i*(cfm_ton_max - cfm_ton_min)/(cops_Norm.length-1)            
+        supply.HeatingCFMs[i] = cfm_ton_min + i*(cfm_ton_max - cfm_ton_min)/(cops_Norm.length-1)
         
         fanPowsRated[i] = supplyFanPower * fanPows_Norm[i] 
         cops_Rated[i] = cop_maxSpeed * cops_Norm[i]
@@ -897,8 +915,7 @@ class ProcessVRFMinisplit < OpenStudio::Ruleset::ModelUserScript
         
     cop_maxSpeed_1 = cop_maxSpeed
     cop_maxSpeed_2 = cop_maxSpeed                
-    error = heatingHSPF - calc_HSPF_VariableSpeed(runner, cops_Rated, c_d, supply.Capacity_Ratio_Heating, supply.HeatingCFMs, 
-                                                  fanPowsRated, min_T, curves.Number_Speeds, curves)                                                            
+    error = heatingHSPF - calc_HSPF_VariableSpeed(runner, cops_Rated, c_d, supply.Capacity_Ratio_Heating, supply.HeatingCFMs, fanPowsRated, min_T, curves.Number_Speeds, mshp_capacity_retention_fraction, mshp_capacity_retention_temperature, curves)                                                            
     
     error1 = error
     error2 = error
@@ -913,11 +930,9 @@ class ProcessVRFMinisplit < OpenStudio::Ruleset::ModelUserScript
             cops_Rated[i] = cop_maxSpeed * cops_Norm[i]
         end
         
-        error = heatingHSPF - calc_HSPF_VariableSpeed(runner, cops_Rated, c_d, supply.Capacity_Ratio_Heating, supply.CoolingCFMs, 
-                                                      fanPowsRated, min_T, curves.Number_Speeds, curves)  
+        error = heatingHSPF - calc_HSPF_VariableSpeed(runner, cops_Rated, c_d, supply.Capacity_Ratio_Heating, supply.CoolingCFMs, fanPowsRated, min_T, curves.Number_Speeds, mshp_capacity_retention_fraction, mshp_capacity_retention_temperature, curves)  
 
-        cop_maxSpeed,cvg,cop_maxSpeed_1,error1,cop_maxSpeed_2,error2 = \
-                HelperMethods.Iterate(cop_maxSpeed,error,cop_maxSpeed_1,error1,cop_maxSpeed_2,error2,n,cvg)
+        cop_maxSpeed,cvg,cop_maxSpeed_1,error1,cop_maxSpeed_2,error2 = HelperMethods.Iterate(cop_maxSpeed,error,cop_maxSpeed_1,error1,cop_maxSpeed_2,error2,n,cvg)
     
         if cvg
             break
@@ -946,11 +961,11 @@ class ProcessVRFMinisplit < OpenStudio::Ruleset::ModelUserScript
     
   end  
   
-  def calc_HSPF_VariableSpeed(runner, cop_47, c_d, capacityRatio, cfm_Tons, supplyFanPower_Rated, min_temp, num_speeds, curves)
+  def calc_HSPF_VariableSpeed(runner, cop_47, c_d, capacityRatio, cfm_Tons, supplyFanPower_Rated, min_temp, num_speeds, mshp_capacity_retention_fraction, mshp_capacity_retention_temperature, curves)
     
     #TODO: Make sure this method still works for BEopt central, variable speed units, which have 4 speeds, if needed in future
     
-    curves = HVAC.get_heating_coefficients(runner, 10, curves, min_temp)
+    curves = HVAC.get_heating_coefficients(runner, 10, curves, min_temp, mshp_capacity_retention_fraction, mshp_capacity_retention_temperature)
     
     n_max = (cop_47.length-1.0)#-3 # Don't use max speed
     n_min = 0
