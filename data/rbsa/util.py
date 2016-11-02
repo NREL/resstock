@@ -74,7 +74,7 @@ def assign_climate_zones(df):
     
 def assign_heating_location(df):
     
-    def location(h, st):
+    def location(h):
         h = float(h)
         if h==1:
             return 'H1'
@@ -83,7 +83,7 @@ def assign_heating_location(df):
         elif h==3:
             return 'H3'
     
-    df['Dependency=Location Heating Region'] = df.apply(lambda x: location(x.H, x.ST), axis=1)
+    df['Dependency=Location Heating Region'] = df.apply(lambda x: location(x.H), axis=1)
     
     return df
     
