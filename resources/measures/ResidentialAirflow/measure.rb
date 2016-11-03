@@ -1867,7 +1867,7 @@ class ResidentialAirflow < OpenStudio::Ruleset::ModelUserScript
       building.garage.hor_leak_frac = 0.4 # DOE-2 Default
       building.garage.neutral_level = 0.5 # DOE-2 Default
       building.garage.SLA = get_infiltration_SLA_from_ACH50(infil.InfiltrationGarageACH50, 0.67, building.garage.area, building.garage.volume)
-      building.garage.ACH = get_infiltration_ACH_from_SLA(building.garage.SLA, 1.0, @weather)
+      building.garage.ACH = get_infiltration_ACH_from_SLA(building.garage.SLA, 1.0)
       building.garage.inf_flow = building.garage.ACH / OpenStudio::convert(1.0,"hr","min").get * building.garage.volume # cfm          
     end
 
@@ -1885,7 +1885,7 @@ class ResidentialAirflow < OpenStudio::Ruleset::ModelUserScript
       building.unfinished_attic.inf_method = Constants.InfMethodSG
       building.unfinished_attic.hor_leak_frac = 0.75 # Same as Energy Gauge USA Attic Model
       building.unfinished_attic.neutral_level = 0.5 # DOE-2 Default
-      building.unfinished_attic.ACH = get_infiltration_ACH_from_SLA(building.unfinished_attic.SLA, 1.0, @weather)
+      building.unfinished_attic.ACH = get_infiltration_ACH_from_SLA(building.unfinished_attic.SLA, 1.0)
       building.unfinished_attic.inf_flow = building.unfinished_attic.ACH / OpenStudio::convert(1.0,"hr","min").get * building.unfinished_attic.volume
     end
   
@@ -2045,7 +2045,7 @@ class ResidentialAirflow < OpenStudio::Ruleset::ModelUserScript
 
           infil.wind_coef = infil.f_w * UnitConversion.lbm_ft32inH2O_mph2(outside_air_density / 2.0) ** infil.n_i # inH2O^n/mph^2n
 
-          unit.living.ACH = get_infiltration_ACH_from_SLA(unit.living.SLA, building.stories, @weather)
+          unit.living.ACH = get_infiltration_ACH_from_SLA(unit.living.SLA, building.stories)
 
           # Convert living space ACH to cfm:
           unit.living.inf_flow = unit.living.ACH / OpenStudio::convert(1.0,"hr","min").get * unit.living.volume # cfm
@@ -2268,76 +2268,104 @@ class ResidentialAirflow < OpenStudio::Ruleset::ModelUserScript
   end
 
   def _processNaturalVentilation(model, runner, nat_vent, wind_speed, infil, building, unit, schedules)    
-      
-    # Get heating setpoints and season
+    
+    thermostatsetpointdualsetpoint = unit.living_zone.thermostatSetpointDualSetpoint
+    
+    # Get heating setpoints
     heatingSetpointWeekday = Array.new(24, -10000)
-    heatingSetpointWeekend = Array.new(24, -10000)  
-    heating_season = Array.new(12, 0.0)
-    unit.living_zone.thermostatSetpointDualSetpoint.get.heatingSetpointTemperatureSchedule.get.to_Schedule.get.to_ScheduleRuleset.get.scheduleRules.each do |rule|
-      if rule.applyMonday and rule.applyTuesday and rule.applyWednesday and rule.applyThursday and rule.applyFriday
-        rule.daySchedule.values.each_with_index do |value, hour|
-          if value > heatingSetpointWeekday[hour]
-            heatingSetpointWeekday[hour] = OpenStudio::convert(value,"C","F").get
+    heatingSetpointWeekend = Array.new(24, -10000)
+    if thermostatsetpointdualsetpoint.is_initialized
+      thermostatsetpointdualsetpoint.get.heatingSetpointTemperatureSchedule.get.to_Schedule.get.to_ScheduleRuleset.get.scheduleRules.each do |rule|
+        if rule.applyMonday and rule.applyTuesday and rule.applyWednesday and rule.applyThursday and rule.applyFriday
+          rule.daySchedule.values.each_with_index do |value, hour|
+            if value > heatingSetpointWeekday[hour]
+              heatingSetpointWeekday[hour] = OpenStudio::convert(value,"C","F").get
+            end
           end
-          if value > -10000
-            heating_season[rule.startDate.get.monthOfYear.value-1] = 1.0
+        end
+        if rule.applySaturday and rule.applySunday
+          rule.daySchedule.values.each_with_index do |value, hour|
+            if value > heatingSetpointWeekend[hour]
+              heatingSetpointWeekend[hour] = OpenStudio::convert(value,"C","F").get
+            end
           end
         end
       end
-      if rule.applySaturday and rule.applySunday
-        rule.daySchedule.values.each_with_index do |value, hour|
-          if value > heatingSetpointWeekend[hour]
-            heatingSetpointWeekend[hour] = OpenStudio::convert(value,"C","F").get
-          end
-        end
-      end  
     end
     
-    # Get cooling setpoints and season
+    # Get cooling setpoints
     coolingSetpointWeekday = Array.new(24, 10000)
     coolingSetpointWeekend = Array.new(24, 10000)
-    cooling_season = Array.new(12, 0.0)
-    unit.living_zone.thermostatSetpointDualSetpoint.get.coolingSetpointTemperatureSchedule.get.to_Schedule.get.to_ScheduleRuleset.get.scheduleRules.each do |rule|
-      if rule.applyMonday and rule.applyTuesday and rule.applyWednesday and rule.applyThursday and rule.applyFriday
-        rule.daySchedule.values.each_with_index do |value, hour|
-          if value < coolingSetpointWeekday[hour]
-            coolingSetpointWeekday[hour] = OpenStudio::convert(value,"C","F").get
+    if thermostatsetpointdualsetpoint.is_initialized
+      thermostatsetpointdualsetpoint.get.coolingSetpointTemperatureSchedule.get.to_Schedule.get.to_ScheduleRuleset.get.scheduleRules.each do |rule|
+        if rule.applyMonday and rule.applyTuesday and rule.applyWednesday and rule.applyThursday and rule.applyFriday
+          rule.daySchedule.values.each_with_index do |value, hour|
+            if value < coolingSetpointWeekday[hour]
+              coolingSetpointWeekday[hour] = OpenStudio::convert(value,"C","F").get
+            end
           end
-          if value < 10000
-            cooling_season[rule.startDate.get.monthOfYear.value-1] = 1.0
+        end
+        if rule.applySaturday and rule.applySunday
+          rule.daySchedule.values.each_with_index do |value, hour|
+            if value < coolingSetpointWeekend[hour]
+              coolingSetpointWeekend[hour] = OpenStudio::convert(value,"C","F").get
+            end
           end
         end
       end
-      if rule.applySaturday and rule.applySunday
-        rule.daySchedule.values.each_with_index do |value, hour|
-          if value < coolingSetpointWeekend[hour]
-            coolingSetpointWeekend[hour] = OpenStudio::convert(value,"C","F").get
-          end
-        end
-      end       
+    end
+      
+    if heatingSetpointWeekday.all? {|x| x == -10000}
+      runner.registerWarning("No heating equipment found. Assuming 71F for natural ventilation calculations.")
+      nat_vent.ovlp_ssn_hourly_temp = Array.new(24, OpenStudio::convert(71.0 + nat_vent.NatVentOvlpSsnSetpointOffset,"F","C").get)
+    else
+      nat_vent.ovlp_ssn_hourly_temp = Array.new(24, OpenStudio::convert([heatingSetpointWeekday.max, heatingSetpointWeekend.max].max + nat_vent.NatVentOvlpSsnSetpointOffset,"F","C").get)
+    end
+    if coolingSetpointWeekday.all? {|x| x == 10000}
+      runner.registerWarning("No cooling equipment found. Assuming 76F for natural ventilation calculations.")
+    end
+    nat_vent.ovlp_ssn_hourly_weekend_temp = nat_vent.ovlp_ssn_hourly_temp
+      
+    # Get heating and cooling seasons
+    heating_season, cooling_season = HVAC.calc_heating_and_cooling_seasons(model, @weather, runner)
+    if heating_season.nil? or cooling_season.nil?
+        return false
     end
   
     # Specify an array of hourly lower-temperature-limits for natural ventilation
     nat_vent.htg_ssn_hourly_temp = Array.new
     coolingSetpointWeekday.each do |x|
-      nat_vent.htg_ssn_hourly_temp << OpenStudio::convert(x - nat_vent.NatVentHtgSsnSetpointOffset,"F","C").get
+      if x == 10000
+        nat_vent.htg_ssn_hourly_temp << OpenStudio::convert(76.0 - nat_vent.NatVentHtgSsnSetpointOffset,"F","C").get
+      else
+        nat_vent.htg_ssn_hourly_temp << OpenStudio::convert(x - nat_vent.NatVentHtgSsnSetpointOffset,"F","C").get
+      end
     end
     nat_vent.htg_ssn_hourly_weekend_temp = Array.new
     coolingSetpointWeekend.each do |x|
-      nat_vent.htg_ssn_hourly_weekend_temp << OpenStudio::convert(x - nat_vent.NatVentHtgSsnSetpointOffset,"F","C").get
+      if x == 10000
+        nat_vent.htg_ssn_hourly_weekend_temp << OpenStudio::convert(76.0 - nat_vent.NatVentHtgSsnSetpointOffset,"F","C").get
+      else
+        nat_vent.htg_ssn_hourly_weekend_temp << OpenStudio::convert(x - nat_vent.NatVentHtgSsnSetpointOffset,"F","C").get
+      end
     end
 
     nat_vent.clg_ssn_hourly_temp = Array.new
     heatingSetpointWeekday.each do |x|
-      nat_vent.clg_ssn_hourly_temp << OpenStudio::convert(x + nat_vent.NatVentClgSsnSetpointOffset,"F","C").get
+      if x == -10000
+        nat_vent.clg_ssn_hourly_temp << OpenStudio::convert(71.0 + nat_vent.NatVentClgSsnSetpointOffset,"F","C").get
+      else
+        nat_vent.clg_ssn_hourly_temp << OpenStudio::convert(x + nat_vent.NatVentClgSsnSetpointOffset,"F","C").get
+      end
     end
     nat_vent.clg_ssn_hourly_weekend_temp = Array.new
     heatingSetpointWeekend.each do |x|
-      nat_vent.clg_ssn_hourly_weekend_temp << OpenStudio::convert(x + nat_vent.NatVentClgSsnSetpointOffset,"F","C").get
+      if x == -10000
+        nat_vent.clg_ssn_hourly_weekend_temp << OpenStudio::convert(71.0 + nat_vent.NatVentClgSsnSetpointOffset,"F","C").get
+      else
+        nat_vent.clg_ssn_hourly_weekend_temp << OpenStudio::convert(x + nat_vent.NatVentClgSsnSetpointOffset,"F","C").get
+      end
     end
-
-    nat_vent.ovlp_ssn_hourly_temp = Array.new(24, OpenStudio::convert([heatingSetpointWeekday.max, heatingSetpointWeekend.max].max + nat_vent.NatVentOvlpSsnSetpointOffset,"F","C").get)
-    nat_vent.ovlp_ssn_hourly_weekend_temp = nat_vent.ovlp_ssn_hourly_temp
 
     # Explanation for FRAC-VENT-AREA equation:
     # From DOE22 Vol2-Dictionary: For VENT-METHOD=S-G, this is 0.6 times
@@ -2369,7 +2397,7 @@ class ResidentialAirflow < OpenStudio::Ruleset::ModelUserScript
     end
       
     nat_vent_temp_hourly_wkdy = []
-    nat_vent_temp_hourly_wked = []      
+    nat_vent_temp_hourly_wked = []
     nat_vent.season_type.each_with_index do |ssn_type, month|
       if ssn_type == Constants.SeasonHeating
         ssn_schedule_wkdy = nat_vent.htg_ssn_hourly_temp
@@ -2395,7 +2423,7 @@ class ResidentialAirflow < OpenStudio::Ruleset::ModelUserScript
     
     time = []
     for h in 1..24
-        time[h] = OpenStudio::Time.new(0,h,0,0)
+      time[h] = OpenStudio::Time.new(0,h,0,0)
     end
     
     (1..12).to_a.each do |m|
@@ -2464,10 +2492,10 @@ class ResidentialAirflow < OpenStudio::Ruleset::ModelUserScript
 
   end
   
-  def calc_infiltration_w_factor(weather)
+  def calc_infiltration_w_factor
     # Returns a w factor for infiltration calculations; see ticket #852 for derivation.
-    hdd65f = weather.data.HDD65F
-    ws = weather.data.AnnualAvgWindspeed
+    hdd65f = @weather.data.HDD65F
+    ws = @weather.data.AnnualAvgWindspeed
     a = 0.36250748
     b = 0.365317169
     c = 0.028902855
@@ -2479,9 +2507,9 @@ class ResidentialAirflow < OpenStudio::Ruleset::ModelUserScript
     return w
   end
 
-  def get_infiltration_ACH_from_SLA(sla, numStories, weather)
+  def get_infiltration_ACH_from_SLA(sla, numStories)
     # Returns the infiltration annual average ACH given a SLA.
-    w = calc_infiltration_w_factor(weather)
+    w = calc_infiltration_w_factor
 
     # Equation from ASHRAE 119-1998 (using numStories for simplification)
     norm_leakage = 1000.0 * sla * numStories ** 0.3
