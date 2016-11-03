@@ -6,19 +6,19 @@ require 'rake/clean'
 
 CLEAN.include('*.pem', '*.pub', './projects/*.json', '*.json', 'faraday.log')
 
-desc 'Copy measures/osms from OpenStudio-Beopt repo'
+desc 'Copy measures/osms from OpenStudio-BEopt repo'
 task :copy_beopt_files do
   require 'fileutils'
 
-  beopt_measures_dir = File.join(File.dirname(__FILE__), "..", "OpenStudio-Beopt", "measures")
+  beopt_measures_dir = File.join(File.dirname(__FILE__), "..", "OpenStudio-BEopt", "measures")
   resstock_measures_dir = File.join(File.dirname(__FILE__), "resources", "measures")
   if not Dir.exist?(beopt_measures_dir)
-    puts "Cannot find OpenStudio-Beopt measures dir at #{beopt_measures_dir}."
+    puts "Cannot find OpenStudio-BEopt measures dir at #{beopt_measures_dir}."
   end
   
   empty_osm = "EmptySeedModel.osm"
   puts "Copying #{empty_osm}..."
-  beopt_empty_seed_model = File.join(File.dirname(__FILE__), "..", "OpenStudio-Beopt", "seeds", empty_osm)
+  beopt_empty_seed_model = File.join(File.dirname(__FILE__), "..", "OpenStudio-BEopt", "seeds", empty_osm)
   resstock_empty_seed_model = File.join(File.dirname(__FILE__), "seeds", empty_osm)
   if File.exists?(resstock_empty_seed_model)
     FileUtils.rm(resstock_empty_seed_model)
@@ -51,6 +51,20 @@ end
 
 desc 'Perform integrity checking on inputs to look for problems'
 task :integrity_check do
+    integrity_check()
+end # rake task
+
+desc 'Perform integrity checking on National inputs to look for problems'
+task :integrity_check_national do
+    integrity_check(['national'])
+end # rake task
+
+desc 'Perform integrity checking on PNW inputs to look for problems'
+task :integrity_check_pnw do
+    integrity_check(['pnw'])
+end # rake task
+
+def integrity_check(modes=['national','pnw'])
   require 'openstudio'
 
   # Load helper file
@@ -68,7 +82,6 @@ task :integrity_check do
   model = OpenStudio::Model::Model.new
   measures = {}
   
-  modes = ['national','pnw']
   modes.each do |mode|
     project_file = File.join("projects","resstock_#{mode}.xlsx")
     check_file_exists(project_file, nil)
@@ -126,5 +139,4 @@ task :integrity_check do
     end
     
   end # mode
-  
-end # rake task
+end
