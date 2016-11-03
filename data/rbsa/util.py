@@ -463,26 +463,24 @@ def assign_intfloor(df):
 
 def assign_win(df):
     
-    rval_area = []
+    rval_area = []                    
     for index, row in df.iterrows():
         for win in row.object.sfwindow:
-            if win.uwindow is not None:
-                if win.uwindow in [1.1]:
+            if win.windowtypeclass is not None:
+                if win.windowtypeclass in ['Metal:Single', 'Metal:Single:low-e']:
                     rval_area.append((index, row.created, row.object, row['Dependency=Vintage'], row['Dependency=Location Heating Region'], 'Clear, Single, Metal'))
-                elif win.uwindow in [0.9, 0.95]:
-                    rval_area.append((index, row.created, row.object, row['Dependency=Vintage'], row['Dependency=Location Heating Region'], 'Clear, Single, Non-metal'))
-                elif win.uwindow in [0.8, 0.85]:
+                elif win.windowtypeclass in ['Metal:Double']:
                     rval_area.append((index, row.created, row.object, row['Dependency=Vintage'], row['Dependency=Location Heating Region'], 'Clear, Double, Metal, Air'))
-                elif win.uwindow in [0.75]:
-                    rval_area.append((index, row.created, row.object, row['Dependency=Vintage'], row['Dependency=Location Heating Region'], 'Clear, Double, Thermal-Break, Air'))
-                elif win.uwindow in [0.55, 0.6, 0.65, 0.7]:
+                elif win.windowtypeclass in ['Wood-Vinyl-Fiberglass:Single', 'Wood-Vinyl-Fiberglass:Single:low-e']:
+                    rval_area.append((index, row.created, row.object, row['Dependency=Vintage'], row['Dependency=Location Heating Region'], 'Clear, Single, Non-metal'))
+                elif win.windowtypeclass in ['Wood-Vinyl-Fiberglass:Double']:
                     rval_area.append((index, row.created, row.object, row['Dependency=Vintage'], row['Dependency=Location Heating Region'], 'Clear, Double, Non-metal, Air'))
-                elif win.uwindow in [0.4, 0.45, 0.5]:
+                elif win.windowtypeclass in ['Wood-Vinyl-Fiberglass:Double:low-e', 'Metal:Double:low-e', 'Metal:Triple', 'Wood-Vinyl-Fiberglass:Triple', 'Wood-Vinyl-Fiberglass:Triple:low-e']:
                     rval_area.append((index, row.created, row.object, row['Dependency=Vintage'], row['Dependency=Location Heating Region'], 'Low-E, Double, Non-metal, Air, M-Gain'))
-                elif win.uwindow in [0.22, 0.35]:
-                    rval_area.append((index, row.created, row.object, row['Dependency=Vintage'], row['Dependency=Location Heating Region'], 'Low-E, Triple, Non-metal, Air, L-Gain'))
                 else:
-                    print index, win.uwindow
+                    print index, win.windowtypeclass
+            else:
+                print index, win.windowtypeclass
 
     return pd.DataFrame(rval_area, columns=['siteid', 'created', 'object', 'Dependency=Vintage', 'Dependency=Location Heating Region', 'rval']).set_index('siteid')
 

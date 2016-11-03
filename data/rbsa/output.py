@@ -144,8 +144,8 @@ def do_plot(slices, fields, size='medium', weighted_area=True, save=False, setli
         marker_colors = None
         marker_shapes = None
         if fields == 'weights':
-            measured_elec = pd.read_csv('../../resources/outputs/pnw/Electricity Consumption {}.tsv'.format(slicer), index_col=['Dependency={}'.format(slicer)], sep='\t')[['kwh_nrm_total']]
-            measured_gas = pd.read_csv('../../resources/outputs/pnw/Natural Gas Consumption {}.tsv'.format(slicer), index_col=['Dependency={}'.format(slicer)], sep='\t')[['thm_nrm_total']]
+            measured_elec = pd.read_csv('../../analysis_results/outputs/pnw/Electricity Consumption {}.tsv'.format(slicer), index_col=['Dependency={}'.format(slicer)], sep='\t')[['kwh_nrm_total']]
+            measured_gas = pd.read_csv('../../analysis_results/outputs/pnw/Natural Gas Consumption {}.tsv'.format(slicer), index_col=['Dependency={}'.format(slicer)], sep='\t')[['thm_nrm_total']]
             measured = measured_elec.join(measured_gas)
             measured['Measured Total Site Energy MBtu'] = 3412.0 * 0.000001 * measured['kwh_nrm_total'] + 29.3 * 3412.0 * 0.000001 * measured['thm_nrm_total']
             predicted = pd.read_csv('../../analysis_results/resstock_pnw_test.csv', index_col=['name'])[['building_characteristics_report.{}'.format(slicer), 'simulation_output_report.Total Site Energy MBtu', 'Weight']]
@@ -154,7 +154,7 @@ def do_plot(slices, fields, size='medium', weighted_area=True, save=False, setli
             cols = ['Measured Total Site Energy MBtu', 'Predicted Total Site Energy MBtu']
         else:
             if 'electricity' in fields:
-                measured = pd.read_csv('../../resources/outputs/pnw/Electricity Consumption {}.tsv'.format(slicer), index_col=['Dependency={}'.format(slicer)], sep='\t')[['kwh_nrm_per_home']]
+                measured = pd.read_csv('../../analysis_results/outputs/pnw/Electricity Consumption {}.tsv'.format(slicer), index_col=['Dependency={}'.format(slicer)], sep='\t')[['kwh_nrm_per_home']]
                 measured['Measured Per House Site Electricity MBtu'] = 3412.0 * 0.000001 * measured['kwh_nrm_per_home']
                 predicted = pd.read_csv('../../analysis_results/resstock_pnw_test.csv', index_col=['name'])[['building_characteristics_report.{}'.format(slicer), 'simulation_output_report.Total Site Electricity kWh', 'Weight']]
                 predicted['Predicted Total Site Electricity MBtu'] = 3412.0 * 0.000001 * predicted['simulation_output_report.Total Site Electricity kWh'] * predicted['Weight']
@@ -162,7 +162,7 @@ def do_plot(slices, fields, size='medium', weighted_area=True, save=False, setli
                 predicted['Predicted Per House Site Electricity MBtu'] = predicted['Predicted Total Site Electricity MBtu'] / predicted['Weight']
                 cols = ['Measured Per House Site Electricity MBtu', 'Predicted Per House Site Electricity MBtu', 'Weight']
             elif 'gas' in fields:
-                measured = pd.read_csv('../../resources/outputs/pnw/Natural Gas Consumption {}.tsv'.format(slicer), index_col=['Dependency={}'.format(slicer)], sep='\t')[['thm_nrm_per_home']]
+                measured = pd.read_csv('../../analysis_results/outputs/pnw/Natural Gas Consumption {}.tsv'.format(slicer), index_col=['Dependency={}'.format(slicer)], sep='\t')[['thm_nrm_per_home']]
                 measured['Measured Per House Site Gas MBtu'] = 29.3 * 3412.0 * 0.000001 * measured['thm_nrm_per_home']
                 predicted = pd.read_csv('../../analysis_results/resstock_pnw_test.csv', index_col=['name'])[['building_characteristics_report.{}'.format(slicer), 'simulation_output_report.Total Site Natural Gas therm', 'Weight']]
                 predicted['Predicted Total Site Gas MBtu'] = 29.3 * 3412.0 * 0.000001 * predicted['simulation_output_report.Total Site Natural Gas therm'] * predicted['Weight']
@@ -177,7 +177,7 @@ def do_plot(slices, fields, size='medium', weighted_area=True, save=False, setli
             df['HouseCount'] = df['Weight'] * 0.001
         draw_scatter_plot(df, cols, marker_labels, slicer, weighted_area=weighted_area, setlims=setlims, marker_colors=marker_colors, marker_shapes=marker_shapes, size=size, marker_color_all=marker_color_all, show_labels=show_labels, leg_label=leg_label)
     if save:
-        filename = os.path.join('..', '..', 'resources', 'outputs', 'pnw', 'saved images', 'Scatter_{}.png'.format(fields))
+        filename = os.path.join('..', '..', 'analysis_results', 'outputs', 'pnw', 'saved images', 'Scatter_{}.png'.format(fields))
         plt.savefig(filename, bbox_inches='tight', dpi=200)
         trim_white(filename)
 
@@ -339,8 +339,8 @@ def add_option_prefix(df):
 
 if __name__ == '__main__':
     
-    # datafiles_dir = '../../resources/outputs/pnw'
-    # heatmaps_dir = 'heatmaps'
+    datafiles_dir = '../../analysis_results/outputs/pnw'
+    heatmaps_dir = 'heatmaps'
 
     # dfs = Create_DFs('rbsa.sqlite')
     
