@@ -80,7 +80,7 @@ def integrity_check(modes=['national','pnw'])
   check_file_exists(lookup_file, nil)
   parameter_names = get_parameters_ordered_from_options_lookup_tsv(resources_dir)
   model = OpenStudio::Model::Model.new
-  measures = {}
+  measure_instances = {}
   
   modes.each do |mode|
     project_file = File.join("projects","resstock_#{mode}.xlsx")
@@ -90,6 +90,7 @@ def integrity_check(modes=['national','pnw'])
     parameters_processed = []
     option_names = {}
     tsvfiles = {}
+    measures = {}
     
     parameter_names.each do |parameter_name|
       tsvpath = File.join(resources_dir, "inputs", mode, "#{parameter_name}.tsv")
@@ -114,22 +115,49 @@ def integrity_check(modes=['national','pnw'])
         _matched_option_name, matched_row_num = tsvfile.get_option_name_from_sample_number(1.0, combo_hash)
       end
       
-      # Integrity checks for option_lookup.txt
+      # Integrity checks for option_lookup.tsv
       tsvfiles[parameter_name].option_cols.keys.each do |option_name|
         # Check for (parameter, option) names
-        measure_args = get_measure_args_from_option_name(lookup_file, option_name, parameter_name, nil)
-        # Check that measures exist and validate measure arguments
-        measure_args.keys.each do |measure_subdir|
-          if not measures.keys.include?(measure_subdir)
-            measurerb_path = File.absolute_path(File.join(File.dirname(lookup_file), 'measures', measure_subdir, 'measure.rb'))
-            check_file_exists(measurerb_path, nil)
-            measures[measure_subdir] = get_measure_instance(measurerb_path)
-          end
-          validate_measure_args(measures[measure_subdir].arguments(model), measure_args[measure_subdir], lookup_file, parameter_name, option_name, nil)
+        # Get measure name and arguments associated with the option
+        get_measure_args_from_option_name(lookup_file, option_name, parameter_name, nil).each do |measure_subdir, args_hash|
+            if not measures.has_key?(measure_subdir)
+                measures[measure_subdir] = {}
+            end
+            if not measures[measure_subdir].has_key?(parameter_name)
+                measures[measure_subdir][parameter_name] = {}
+            end
+            measures[measure_subdir][parameter_name][option_name] = args_hash
         end
       end
       
     end # parameter_name
+    
+    # Additional integrity checks for option_lookup.tsv
+    measures.keys.each do |measure_subdir|
+      puts "Checking for issues with #{measure_subdir} measure..."
+      # Check that measures exist
+      if not measure_instances.keys.include?(measure_subdir)
+        measurerb_path = File.absolute_path(File.join(File.dirname(lookup_file), 'measures', measure_subdir, 'measure.rb'))
+        check_file_exists(measurerb_path, nil)
+        measure_instances[measure_subdir] = get_measure_instance(measurerb_path)
+      end
+      # Validate measure arguments for each combination of options
+      parameter_names = measures[measure_subdir].keys()
+      options_array = []
+      parameter_names.each do |parameter_name|
+        options_array << measures[measure_subdir][parameter_name].keys()
+      end
+      option_combinations = options_array.first.product(*options_array[1..-1])
+      option_combinations.each do |option_combination|
+        measure_args = {}
+        option_combination.each_with_index do |option_name, idx|
+            measures[measure_subdir][parameter_names[idx]][option_name].each do |k,v|
+                measure_args[k] = v
+            end
+        end
+        validate_measure_args(measure_instances[measure_subdir].arguments(model), measure_args, lookup_file, measure_subdir, nil)
+      end
+    end
     
     # Test sampling
     r = RunSampling.new
