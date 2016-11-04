@@ -4,6 +4,7 @@ import csv
 import random
 import sqlite3
 import itertools
+import numpy as np
 
 random.seed(9801)
 
@@ -612,12 +613,14 @@ def assign_hvac_system_heating(df):
                    'Pellets': 'Other'}   
     
     def htg(hvacheating, htg_and_clg):
-        if htg_and_clg != 'None':
-            return 'None'
+        # if htg_and_clg != 'None':
+            # return 'None'
         for eq in hvacheating:
             if eq.hvacprimary:
                 if eq.hvactype is not None:
-                    if eq.hvactype == 'faf':
+                    if eq.hvactype in ['heatpump', 'heatpumpdualfuel', 'gshp', 'dhp']:
+                        return np.nan
+                    elif eq.hvactype == 'faf':
                         if not eq.hvacfuel:
                             continue
                         if fueltypekey[eq.hvacfuel] == 'Electric':
@@ -671,12 +674,14 @@ def assign_hvac_system_heating(df):
 def assign_hvac_system_cooling(df):
         
     def clg(object, htg_and_clg):
-        if htg_and_clg != 'None':
-            return 'None'        
+        # if htg_and_clg != 'None':
+            # return 'None'        
         for eq in object.hvaccooling:
             if eq.hvacprimarycooling:
                 if eq.hvactype is not None:
-                    if eq.hvactype in ['centralAC']:
+                    if eq.hvactype in ['heatpump', 'heatpumpdualfuel', 'gshp', 'dhp']:
+                        return np.nan                    
+                    elif eq.hvactype in ['centralAC']:
                         if eq.seer < 9:
                             return 'AC, SEER 8'
                         elif eq.seer >= 9 and eq.seer < 11.5:
