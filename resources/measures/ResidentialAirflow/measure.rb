@@ -748,7 +748,7 @@ class ResidentialAirflow < OpenStudio::Ruleset::ModelUserScript
     HelperMethods.remove_object_from_osm_based_on_name(model, "AirLoopHVACReturnPlenum", ["Return Plenum"])
     HelperMethods.remove_object_from_osm_based_on_name(model, "ElectricEquipmentDefinition", ["House Exhaust Fan Load_", "Range Hood Fan Load_", "Bath Exhaust Fan Load_"])
     HelperMethods.remove_object_from_osm_based_on_name(model, "OtherEquipmentDefinition", ["Other Equipment"])
-    HelperMethods.remove_object_from_osm_based_on_name(model, "ScheduleRuleset", ["MechanicalVentilationEnergy", "MechanicalVentilation", "BathExhaust", "ClothesDryerExhaust", "RangeHood", "NatVent", "NatVentTemp"])
+    HelperMethods.remove_object_from_osm_based_on_name(model, "ScheduleRuleset", ["MechanicalVentilationEnergy", "MechanicalVentilationSchedule", "BathExhaust", "ClothesDryerExhaust", "RangeHood", "NatVentSchedule", "NatVentTemp"])
     
     # Determine geometry for spaces and zones that aren't unit specific 
     building.building_height = Geometry.get_building_height(model.getSpaces)
@@ -972,7 +972,7 @@ class ResidentialAirflow < OpenStudio::Ruleset::ModelUserScript
       
       sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, schedule_value_output_var)
       sensor.setName("NVAvail_#{unit.unit_num}")
-      sensor.setKeyName("NatVent_#{unit.unit_num}")
+      sensor.setKeyName("NatVentSchedule_#{unit.unit_num}")
       
       sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, schedule_value_output_var)
       sensor.setName("NVSP_#{unit.unit_num}")
@@ -1151,7 +1151,7 @@ class ResidentialAirflow < OpenStudio::Ruleset::ModelUserScript
       ems_output_var.setTypeOfDataInVariable("Averaged")
       ems_output_var.setUpdateFrequency("ZoneTimestep")
       ems_output_var.setEMSProgramOrSubroutineName(infil_program)
-      ems_output_var.setUnits("m3/s")
+      ems_output_var.setUnits("m/s")
       
       # Program
 
@@ -1433,6 +1433,7 @@ class ResidentialAirflow < OpenStudio::Ruleset::ModelUserScript
         
         ra_duct_space.surfaces.each do |surface|
           surface.setConstruction(adiabatic_const)
+          surface.setOutsideBoundaryCondition("Adiabatic")
         end
       
         # Two objects are required to model the air exchange between the air handler zone and the living space since
@@ -2177,7 +2178,7 @@ class ResidentialAirflow < OpenStudio::Ruleset::ModelUserScript
       mech_vent.hourly_schedule = Array.new(24, 0.0)
     end
 
-    schedules.MechanicalVentilation = HourlyByMonthSchedule.new(model, runner, "MechanicalVentilation_#{unit.unit_num}", [mech_vent.hourly_schedule] * 12, [mech_vent.hourly_schedule] * 12, normalize_values=false)
+    schedules.MechanicalVentilation = HourlyByMonthSchedule.new(model, runner, "MechanicalVentilationSchedule_#{unit.unit_num}", [mech_vent.hourly_schedule] * 12, [mech_vent.hourly_schedule] * 12, normalize_values=false)
 
     bath_exhaust_hourly = Array.new(24, 0.0)
     bath_exhaust_hourly[6] = 1.0
@@ -2416,7 +2417,7 @@ class ResidentialAirflow < OpenStudio::Ruleset::ModelUserScript
     schedules.NatVentTemp = HourlyByMonthSchedule.new(model, runner, "NatVentTemp_#{unit.unit_num}", nat_vent_temp_hourly_wkdy, nat_vent_temp_hourly_wked, normalize_values=false)
     
     schedules.NatVentAvailability = OpenStudio::Model::ScheduleRuleset.new(model)
-    schedules.NatVentAvailability.setName("NatVent_#{unit.unit_num}")
+    schedules.NatVentAvailability.setName("NatVentSchedule_#{unit.unit_num}")
 
     day_endm = [0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334, 365]
     day_startm = [0, 1, 32, 60, 91, 121, 152, 182, 213, 244, 274, 305, 335]

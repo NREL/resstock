@@ -172,10 +172,11 @@ class CreateResidentialDoorArea < OpenStudio::Ruleset::ModelUserScript
         new_door_offset = door_offset + (door_offset + door_width) * num_existing_doors_on_this_surface
         
         # Create door vertices in relative coordinates
+        gap = 0.001 # Prevents E+ warning "Base Surface does not surround subsurface errors occuring"
         upperleft = [new_door_offset, door_height]
         upperright = [new_door_offset + door_width, door_height]
-        lowerright = [new_door_offset + door_width, 0]
-        lowerleft = [new_door_offset, 0]
+        lowerright = [new_door_offset + door_width, gap]
+        lowerleft = [new_door_offset, gap]
         
         # Convert to 3D geometry; assign to surface
         door_polygon = OpenStudio::Point3dVector.new

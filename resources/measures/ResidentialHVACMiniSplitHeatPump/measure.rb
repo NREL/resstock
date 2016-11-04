@@ -284,6 +284,11 @@ class ProcessVRFMinisplit < OpenStudio::Ruleset::ModelUserScript
       
       control_slave_zones_hash = HVAC.get_control_and_slave_zones(thermal_zones)
       control_slave_zones_hash.each do |control_zone, slave_zones|
+      
+        fbsmt_frac = 0.0
+        unless slave_zones.empty?
+          fbsmt_frac = slave_zones[0].floorArea / (control_zone.floorArea + slave_zones[0].floorArea)
+        end
 
         # Remove existing equipment
         HVAC.remove_existing_hvac_equipment(model, runner, "Mini-Split Heat Pump", control_zone)
@@ -293,8 +298,8 @@ class ProcessVRFMinisplit < OpenStudio::Ruleset::ModelUserScript
         htg_coil = OpenStudio::Model::CoilHeatingDXVariableRefrigerantFlow.new(model)
         htg_coil.setName("#{control_zone.name} DX Heating Coil_#{unit_num}")
         if miniSplitCoolingOutputCapacity != Constants.SizingAuto
-          htg_coil.setRatedTotalHeatingCapacity(OpenStudio::convert(miniSplitHeatingOutputCapacity,"Btu/h","W").get * supply.Capacity_Ratio_Heating[curves.mshp_indices[-1]])
-          htg_coil.setRatedAirFlowRate(supply.HeatingCFMs[curves.mshp_indices[-1]]* miniSplitHeatingOutputCapacity * OpenStudio::convert(1.0,"Btu/h","ton").get * OpenStudio::convert(1.0,"cfm","m^3/s").get)
+          htg_coil.setRatedTotalHeatingCapacity(OpenStudio::convert(miniSplitHeatingOutputCapacity,"Btu/h","W").get * supply.Capacity_Ratio_Heating[curves.mshp_indices[-1]] * (1.0 - fbsmt_frac))
+          htg_coil.setRatedAirFlowRate(supply.HeatingCFMs[curves.mshp_indices[-1]] * miniSplitHeatingOutputCapacity * OpenStudio::convert(1.0,"Btu/h","ton").get * OpenStudio::convert(1.0,"cfm","m^3/s").get * (1.0 - fbsmt_frac))
         end        
         htg_coil.setHeatingCapacityRatioModifierFunctionofTemperatureCurve(constant_cubic)
         htg_coil.setHeatingCapacityModifierFunctionofFlowFractionCurve(constant_cubic)        
@@ -304,9 +309,9 @@ class ProcessVRFMinisplit < OpenStudio::Ruleset::ModelUserScript
         clg_coil = OpenStudio::Model::CoilCoolingDXVariableRefrigerantFlow.new(model)
         clg_coil.setName("#{control_zone.name} DX Cooling Coil_#{unit_num}")
         if miniSplitCoolingOutputCapacity != Constants.SizingAuto
-          clg_coil.setRatedTotalCoolingCapacity(OpenStudio::convert(miniSplitCoolingOutputCapacity,"Btu/h","W").get * supply.Capacity_Ratio_Cooling[curves.mshp_indices[-1]])
+          clg_coil.setRatedTotalCoolingCapacity(OpenStudio::convert(miniSplitCoolingOutputCapacity,"Btu/h","W").get * supply.Capacity_Ratio_Cooling[curves.mshp_indices[-1]] * (1.0 - fbsmt_frac))
           clg_coil.setRatedSensibleHeatRatio(supply.SHR_Rated[curves.mshp_indices[-1]])
-          clg_coil.setRatedAirFlowRate(supply.CoolingCFMs[curves.mshp_indices[-1]]* miniSplitCoolingOutputCapacity * OpenStudio::convert(1.0,"Btu/h","ton").get * OpenStudio::convert(1.0,"cfm","m^3/s").get)
+          clg_coil.setRatedAirFlowRate(supply.CoolingCFMs[curves.mshp_indices[-1]]* miniSplitCoolingOutputCapacity * OpenStudio::convert(1.0,"Btu/h","ton").get * OpenStudio::convert(1.0,"cfm","m^3/s").get * (1.0 - fbsmt_frac))
         end
         clg_coil.setCoolingCapacityRatioModifierFunctionofTemperatureCurve(constant_cubic)
         clg_coil.setCoolingCapacityModifierCurveFunctionofFlowFraction(constant_cubic)
@@ -317,8 +322,8 @@ class ProcessVRFMinisplit < OpenStudio::Ruleset::ModelUserScript
         vrf.setName("#{control_zone.name} Multi Split Heat Pump_#{unit_num}")
         vrf.setAvailabilitySchedule(model.alwaysOnDiscreteSchedule)
         if miniSplitCoolingOutputCapacity != Constants.SizingAuto
-          vrf.setRatedTotalCoolingCapacity(OpenStudio::convert(miniSplitCoolingOutputCapacity,"Btu/h","W").get * supply.Capacity_Ratio_Cooling[curves.mshp_indices[-1]])
-          vrf.setRatedTotalHeatingCapacity(OpenStudio::convert(miniSplitHeatingOutputCapacity,"Btu/h","W").get * supply.Capacity_Ratio_Heating[curves.mshp_indices[-1]])
+          vrf.setRatedTotalCoolingCapacity(OpenStudio::convert(miniSplitCoolingOutputCapacity,"Btu/h","W").get * supply.Capacity_Ratio_Cooling[curves.mshp_indices[-1]] * (1.0 - fbsmt_frac))
+          vrf.setRatedTotalHeatingCapacity(OpenStudio::convert(miniSplitHeatingOutputCapacity,"Btu/h","W").get * supply.Capacity_Ratio_Heating[curves.mshp_indices[-1]] * (1.0 - fbsmt_frac))
         end
         vrf.setRatedCoolingCOP(1.0 / supply.CoolingEIR[-1])
         vrf.setMinimumOutdoorTemperatureinCoolingMode(-6)
@@ -415,8 +420,8 @@ class ProcessVRFMinisplit < OpenStudio::Ruleset::ModelUserScript
           htg_coil = OpenStudio::Model::CoilHeatingDXVariableRefrigerantFlow.new(model)
           htg_coil.setName("#{slave_zone.name} DX Heating Coil_#{unit_num}")
           if miniSplitCoolingOutputCapacity != Constants.SizingAuto
-            htg_coil.setRatedTotalHeatingCapacity(OpenStudio::convert(miniSplitHeatingOutputCapacity,"Btu/h","W").get * supply.Capacity_Ratio_Heating[curves.mshp_indices[-1]])
-            htg_coil.setRatedAirFlowRate(supply.HeatingCFMs[curves.mshp_indices[-1]]* miniSplitHeatingOutputCapacity * OpenStudio::convert(1.0,"Btu/h","ton").get * OpenStudio::convert(1.0,"cfm","m^3/s").get)
+            htg_coil.setRatedTotalHeatingCapacity(OpenStudio::convert(miniSplitHeatingOutputCapacity,"Btu/h","W").get * supply.Capacity_Ratio_Heating[curves.mshp_indices[-1]] * fbsmt_frac)
+            htg_coil.setRatedAirFlowRate(supply.HeatingCFMs[curves.mshp_indices[-1]]* miniSplitHeatingOutputCapacity * OpenStudio::convert(1.0,"Btu/h","ton").get * OpenStudio::convert(1.0,"cfm","m^3/s").get * fbsmt_frac)
           end
           htg_coil.setHeatingCapacityRatioModifierFunctionofTemperatureCurve(constant_cubic)
           htg_coil.setHeatingCapacityModifierFunctionofFlowFractionCurve(constant_cubic)        
@@ -424,9 +429,9 @@ class ProcessVRFMinisplit < OpenStudio::Ruleset::ModelUserScript
           clg_coil = OpenStudio::Model::CoilCoolingDXVariableRefrigerantFlow.new(model)
           clg_coil.setName("#{slave_zone.name} DX Cooling Coil_#{unit_num}")
           if miniSplitCoolingOutputCapacity != Constants.SizingAuto
-            clg_coil.setRatedTotalCoolingCapacity(OpenStudio::convert(miniSplitCoolingOutputCapacity,"Btu/h","W").get * supply.Capacity_Ratio_Cooling[curves.mshp_indices[-1]])
+            clg_coil.setRatedTotalCoolingCapacity(OpenStudio::convert(miniSplitCoolingOutputCapacity,"Btu/h","W").get * supply.Capacity_Ratio_Cooling[curves.mshp_indices[-1]] * fbsmt_frac)
             clg_coil.setRatedSensibleHeatRatio(supply.SHR_Rated[curves.mshp_indices[-1]])
-            clg_coil.setRatedAirFlowRate(supply.CoolingCFMs[curves.mshp_indices[-1]]* miniSplitCoolingOutputCapacity * OpenStudio::convert(1.0,"Btu/h","ton").get * OpenStudio::convert(1.0,"cfm","m^3/s").get)
+            clg_coil.setRatedAirFlowRate(supply.CoolingCFMs[curves.mshp_indices[-1]]* miniSplitCoolingOutputCapacity * OpenStudio::convert(1.0,"Btu/h","ton").get * OpenStudio::convert(1.0,"cfm","m^3/s").get * fbsmt_frac)
           end          
           clg_coil.setCoolingCapacityRatioModifierFunctionofTemperatureCurve(constant_cubic)
           clg_coil.setCoolingCapacityModifierCurveFunctionofFlowFraction(constant_cubic)
@@ -435,8 +440,8 @@ class ProcessVRFMinisplit < OpenStudio::Ruleset::ModelUserScript
           vrf.setName("#{slave_zone.name} Multi Split Heat Pump_#{unit_num}")
           vrf.setAvailabilitySchedule(model.alwaysOnDiscreteSchedule)          
           if miniSplitCoolingOutputCapacity != Constants.SizingAuto
-            vrf.setRatedTotalCoolingCapacity(OpenStudio::convert(miniSplitCoolingOutputCapacity,"Btu/h","W").get * supply.Capacity_Ratio_Cooling[curves.mshp_indices[-1]])
-            vrf.setRatedTotalHeatingCapacity(OpenStudio::convert(miniSplitHeatingOutputCapacity,"Btu/h","W").get * supply.Capacity_Ratio_Heating[curves.mshp_indices[-1]])
+            vrf.setRatedTotalCoolingCapacity(OpenStudio::convert(miniSplitCoolingOutputCapacity,"Btu/h","W").get * supply.Capacity_Ratio_Cooling[curves.mshp_indices[-1]] * fbsmt_frac)
+            vrf.setRatedTotalHeatingCapacity(OpenStudio::convert(miniSplitHeatingOutputCapacity,"Btu/h","W").get * supply.Capacity_Ratio_Heating[curves.mshp_indices[-1]] * fbsmt_frac)
           end
           vrf.setRatedCoolingCOP(1.0 / supply.CoolingEIR[-1])
           vrf.setMinimumOutdoorTemperatureinCoolingMode(-6)

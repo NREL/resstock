@@ -33,10 +33,6 @@ class HelperMethods
           rescue
           end
         end
-      end
-      model.getScheduleDays.each do |obj| # remove any orphaned day schedules
-        next if obj.directUseCount > 0
-        obj.remove
       end      
     end
     
