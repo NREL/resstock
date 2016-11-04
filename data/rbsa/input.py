@@ -967,6 +967,7 @@ class Create_DFs():
         df = util.assign_hvac_system_combined(df)
         df = util.assign_hvac_system_heating(df)
         df = util.assign_hvac_system_is_combined(df, 'htg_and_clg')
+        df.loc[df['Dependency=HVAC System Is Combined']=='Yes', 'htg'] = 'None'
         df, cols = util.categories_to_columns(df, 'htg')
         df = df.groupby(['Dependency=Location Heating Region', 'Dependency=Vintage', 'Dependency=Heating Fuel', 'Dependency=HVAC System Is Combined'])
         missing_groups = []
@@ -1013,6 +1014,7 @@ class Create_DFs():
         df = util.assign_hvac_system_combined(df)
         df = util.assign_hvac_system_is_combined(df, 'htg_and_clg')
         df = util.assign_hvac_system_cooling(df)
+        df.loc[df['Dependency=HVAC System Is Combined']=='Yes', 'htg'] = 'None'
         df, cols = util.categories_to_columns(df, 'clg')
         df = df.groupby(['Dependency=Location Cooling Region', 'Dependency=Vintage', 'Dependency=Heating Fuel', 'Dependency=HVAC System Is Combined'])
         missing_groups = []

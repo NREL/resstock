@@ -613,8 +613,6 @@ def assign_hvac_system_heating(df):
                    'Pellets': 'Other'}   
     
     def htg(hvacheating, htg_and_clg):
-        # if htg_and_clg != 'None':
-            # return 'None'
         for eq in hvacheating:
             if eq.hvacprimary:
                 if eq.hvactype is not None:
@@ -673,9 +671,7 @@ def assign_hvac_system_heating(df):
     
 def assign_hvac_system_cooling(df):
         
-    def clg(object, htg_and_clg):
-        # if htg_and_clg != 'None':
-            # return 'None'        
+    def clg(object, htg_and_clg):       
         for eq in object.hvaccooling:
             if eq.hvacprimarycooling:
                 if eq.hvactype is not None:
