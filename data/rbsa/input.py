@@ -735,7 +735,7 @@ class Create_DFs():
             df_new['Weight'] = 0
             df = df.append(df_new)
         df = add_option_prefix(df)
-        df = df[['Option=Clear, Single, Metal', 'Option=Clear, Single, Non-metal', 'Option=Clear, Double, Metal, Air', 'Option=Clear, Double, Non-metal, Air', 'Option=Clear, Double, Thermal-Break, Air', 'Option=Low-E, Double, Non-metal, Air, M-Gain', 'Option=Low-E, Triple, Non-metal, Air, L-Gain', 'Count', 'Weight']]
+        df = df[['Option=Clear, Single, Metal', 'Option=Clear, Single, Non-metal', 'Option=Clear, Double, Metal, Air', 'Option=Clear, Double, Non-metal, Air', 'Option=Low-E, Double, Non-metal, Air, M-Gain', 'Count', 'Weight']]
         df = df.reset_index()
         df['Dependency=Vintage'] = pd.Categorical(df['Dependency=Vintage'], ['<1950', '1950s', '1960s', '1970s', '1980s', '1990s', '2000s'])
         df = df.sort_values(by=['Dependency=Location Heating Region', 'Dependency=Vintage']).set_index(['Dependency=Location Heating Region', 'Dependency=Vintage'])        
@@ -967,6 +967,7 @@ class Create_DFs():
         df = util.assign_hvac_system_combined(df)
         df = util.assign_hvac_system_heating(df)
         df = util.assign_hvac_system_is_combined(df, 'htg_and_clg')
+        df.loc[df['Dependency=HVAC System Is Combined']=='Yes', 'htg'] = 'None'
         df, cols = util.categories_to_columns(df, 'htg')
         df = df.groupby(['Dependency=Location Heating Region', 'Dependency=Vintage', 'Dependency=Heating Fuel', 'Dependency=HVAC System Is Combined'])
         missing_groups = []
@@ -1013,6 +1014,7 @@ class Create_DFs():
         df = util.assign_hvac_system_combined(df)
         df = util.assign_hvac_system_is_combined(df, 'htg_and_clg')
         df = util.assign_hvac_system_cooling(df)
+        df.loc[df['Dependency=HVAC System Is Combined']=='Yes', 'htg'] = 'None'
         df, cols = util.categories_to_columns(df, 'clg')
         df = df.groupby(['Dependency=Location Cooling Region', 'Dependency=Vintage', 'Dependency=Heating Fuel', 'Dependency=HVAC System Is Combined'])
         missing_groups = []
@@ -1233,120 +1235,6 @@ class Create_DFs():
         df = add_option_prefix(df)
         df = df[['Option=Electric, 100% Usage', 'Option=Gas, 100% Usage', 'Option=None', 'Count', 'Weight']]
         return df
-        
-    def electricity_consumption_location(self):
-        df = util.create_dataframe(self.session, rdb)
-        df = util.assign_climate_zones(df)
-        df = util.assign_state(df)
-        df = util.assign_heating_location(df)
-        df = util.assign_vintage(df)
-        df = util.assign_electricity_consumption(df)
-        df = df.groupby(['Dependency=Location Heating Region'])
-        count = df.agg(['count']).ix[:, 0]
-        weight = df.agg(['sum'])['Weight']
-        df = df[['kwh_nrm']].sum()
-        df['Count'] = count
-        df['Weight'] = weight
-        df['kwh_nrm_per_home'] = df['kwh_nrm'] / df['Count']
-        df['kwh_nrm_total'] = df['kwh_nrm_per_home'] * df['Weight']           
-        return df
-
-    def electricity_consumption_vintage(self):
-        df = util.create_dataframe(self.session, rdb)
-        df = util.assign_climate_zones(df)
-        df = util.assign_state(df)
-        df = util.assign_heating_location(df)
-        df = util.assign_vintage(df)
-        df = util.assign_electricity_consumption(df)
-        df = df.groupby(['Dependency=Vintage'])
-        count = df.agg(['count']).ix[:, 0]
-        weight = df.agg(['sum'])['Weight']
-        df = df[['kwh_nrm']].sum()
-        df['Count'] = count
-        df['Weight'] = weight
-        df['kwh_nrm_per_home'] = df['kwh_nrm'] / df['Count']
-        df['kwh_nrm_total'] = df['kwh_nrm_per_home'] * df['Weight']
-        df = df.reset_index()
-        df['Dependency=Vintage'] = pd.Categorical(df['Dependency=Vintage'], ['<1950', '1950s', '1960s', '1970s', '1980s', '1990s', '2000s'])
-        df = df.sort_values(by=['Dependency=Vintage']).set_index(['Dependency=Vintage'])             
-        return df        
-        
-    def electricity_consumption_location_vintage(self):
-        df = util.create_dataframe(self.session, rdb)
-        df = util.assign_climate_zones(df)
-        df = util.assign_state(df)
-        df = util.assign_heating_location(df)
-        df = util.assign_vintage(df)
-        df = util.assign_electricity_consumption(df)
-        df = df.groupby(['Dependency=Location Heating Region', 'Dependency=Vintage'])
-        count = df.agg(['count']).ix[:, 0]
-        weight = df.agg(['sum'])['Weight']
-        df = df[['kwh_nrm']].sum()
-        df['Count'] = count
-        df['Weight'] = weight
-        df['kwh_nrm_per_home'] = df['kwh_nrm'] / df['Count']
-        df['kwh_nrm_total'] = df['kwh_nrm_per_home'] * df['Weight']
-        df = df.reset_index()
-        df['Dependency=Vintage'] = pd.Categorical(df['Dependency=Vintage'], ['<1950', '1950s', '1960s', '1970s', '1980s', '1990s', '2000s'])
-        df = df.sort_values(by=['Dependency=Location Heating Region', 'Dependency=Vintage']).set_index(['Dependency=Location Heating Region', 'Dependency=Vintage'])             
-        return df        
-        
-    def natural_gas_consumption_location(self):
-        df = util.create_dataframe(self.session, rdb)
-        df = util.assign_climate_zones(df)
-        df = util.assign_state(df)
-        df = util.assign_heating_location(df)
-        df = util.assign_vintage(df)
-        df = util.assign_natural_gas_consumption(df)
-        df = df.groupby(['Dependency=Location Heating Region'])
-        count = df.agg(['count']).ix[:, 0]
-        weight = df.agg(['sum'])['Weight']
-        df = df[['thm_nrm']].sum()
-        df['Count'] = count
-        df['Weight'] = weight
-        df['thm_nrm_per_home'] = df['thm_nrm'] / df['Count']
-        df['thm_nrm_total'] = df['thm_nrm_per_home'] * df['Weight']           
-        return df
-
-    def natural_gas_consumption_vintage(self):
-        df = util.create_dataframe(self.session, rdb)
-        df = util.assign_climate_zones(df)
-        df = util.assign_state(df)
-        df = util.assign_heating_location(df)
-        df = util.assign_vintage(df)
-        df = util.assign_natural_gas_consumption(df)
-        df = df.groupby(['Dependency=Vintage'])
-        count = df.agg(['count']).ix[:, 0]
-        weight = df.agg(['sum'])['Weight']
-        df = df[['thm_nrm']].sum()
-        df['Count'] = count
-        df['Weight'] = weight
-        df['thm_nrm_per_home'] = df['thm_nrm'] / df['Count']
-        df['thm_nrm_total'] = df['thm_nrm_per_home'] * df['Weight']
-        df = df.reset_index()
-        df['Dependency=Vintage'] = pd.Categorical(df['Dependency=Vintage'], ['<1950', '1950s', '1960s', '1970s', '1980s', '1990s', '2000s'])
-        df = df.sort_values(by=['Dependency=Vintage']).set_index(['Dependency=Vintage'])             
-        return df        
-        
-    def natural_gas_consumption_location_vintage(self):
-        df = util.create_dataframe(self.session, rdb)
-        df = util.assign_climate_zones(df)
-        df = util.assign_state(df)
-        df = util.assign_heating_location(df)        
-        df = util.assign_vintage(df)
-        df = util.assign_natural_gas_consumption(df)
-        df = df.groupby(['Dependency=Location Heating Region', 'Dependency=Vintage'])
-        count = df.agg(['count']).ix[:, 0]
-        weight = df.agg(['sum'])['Weight']
-        df = df[['thm_nrm']].sum()
-        df['Count'] = count
-        df['Weight'] = weight
-        df['thm_nrm_per_home'] = df['thm_nrm'] / df['Count']
-        df['thm_nrm_total'] = df['thm_nrm_per_home'] * df['Weight']
-        df = df.reset_index()
-        df['Dependency=Vintage'] = pd.Categorical(df['Dependency=Vintage'], ['<1950', '1950s', '1960s', '1970s', '1980s', '1990s', '2000s'])
-        df = df.sort_values(by=['Dependency=Location Heating Region', 'Dependency=Vintage']).set_index(['Dependency=Location Heating Region', 'Dependency=Vintage'])
-        return df
 
 def to_figure(df, file):
     
@@ -1372,7 +1260,7 @@ if __name__ == '__main__':
 
     dfs = Create_DFs('rbsa.sqlite')
     
-    # Other possible categories: 'Electricity Consumption Location', 'Electricity Consumption Vintage', 'Electricity Consumption Location Vintage', 'Natural Gas Consumption Location', 'Natural Gas Consumption Vintage', 'Natural Gas Consumption Location Vintage', 'Insulation Wall H1', 'Insulation Wall H2', 'Insulation Wall H3', 'Insulation Unfinished Attic H1', 'Insulation Unfinished Attic H2', 'Insulation Unfinished Attic H3', 'Windows H1', 'Windows H2', 'Windows H3'
+    # Other possible categories: 'Insulation Wall H1', 'Insulation Wall H2', 'Insulation Wall H3', 'Insulation Unfinished Attic H1', 'Insulation Unfinished Attic H2', 'Insulation Unfinished Attic H3', 'Windows H1', 'Windows H2', 'Windows H3'
     for category in ['Location Heating Region', 'Location Cooling Region', 'Vintage', 'Heating Fuel', 'Geometry Foundation Type', 'Geometry House Size', 'Geometry Stories', 'Insulation Unfinished Attic', 'Insulation Wall', 'Heating Setpoint', 'Cooling Setpoint', 'Insulation Slab', 'Insulation Crawlspace', 'Insulation Unfinished Basement', 'Insulation Finished Basement', 'Insulation Interzonal Floor', 'Windows', 'Infiltration', 'HVAC System Combined', 'HVAC System Heating', 'HVAC System Cooling', 'HVAC System Is Combined', 'Ducts', 'Water Heater', 'Lighting', 'Cooking Range', 'Clothes Dryer']:
         print category
         method = getattr(dfs, category.lower().replace(' ', '_'))

@@ -36,29 +36,51 @@ class UnitConversion
 		return 249.1*inH2O
 	end
     
-    def self.ft32gal(ft3)
-        # ft^3 -> gal
-        return 7.4805195*ft3
-    end
-    
-    def self.lbm_min2kg_hr(lbm_min)
-        # lbm/min -> kg/hr
-        return 27.215542*lbm_min
-    end
-    
-    def self.lbm_min2kg_s(lbm_min)
-        # lbm/min -> kg/s
-        return self.lbm_min2kg_hr(lbm_min) / 3600.0
-    end
-    
-    def self.btu2gal(btu, fueltype)
-        # Btu -> gal
-        if fueltype == Constants.FuelTypePropane
-            return btu/91600.0
-        elsif fueltype == Constants.FuelTypeOil
-            return btu/139000.0
-        end
-        return nil
-    end
+  def self.ft32gal(ft3)
+      # ft^3 -> gal
+      return 7.4805195*ft3
+  end
+  
+  def self.lbm_min2kg_hr(lbm_min)
+      # lbm/min -> kg/hr
+      return 27.215542*lbm_min
+  end
+  
+  def self.lbm_min2kg_s(lbm_min)
+      # lbm/min -> kg/s
+      return self.lbm_min2kg_hr(lbm_min) / 3600.0
+  end
+  
+  def self.btu2gal(btu, fueltype)
+      # Btu -> gal
+      if fueltype == Constants.FuelTypePropane
+          return btu/91600.0
+      elsif fueltype == Constants.FuelTypeOil
+          return btu/139000.0
+      end
+      return nil
+  end
+  
+  # Stack Coefficient
+  def self.inH2O_R2Pa_K(nH2O_R)
+    # inH2O/R -> Pa/K
+    return 448.4*nH2O_R
+  end
+  
+  def self.ft2_s2R2L2_s2cm4K(ft2_s2R)
+    # ft^2/(s^2-R) -> L^2/(s^2-cm^4-K)
+    return 0.001672*ft2_s2R
+  end
+  
+  # Wind Coefficient
+  def self.inH2O_mph2Pas2_m2(inH2O_mph)
+    # inH2O/mph^2 -> Pa-s^2/m^2
+    return 1246.0*inH2O_mph
+  end
+  
+  def self._2L2s2_s2cm4m2(x)
+    # I don't know what this means. I just copied it directly out of Global.bmi
+    return 0.01*x
+  end
     
 end

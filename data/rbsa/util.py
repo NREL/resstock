@@ -4,6 +4,7 @@ import csv
 import random
 import sqlite3
 import itertools
+import numpy as np
 
 random.seed(9801)
 
@@ -74,7 +75,7 @@ def assign_climate_zones(df):
     
 def assign_heating_location(df):
     
-    def location(h, st):
+    def location(h):
         h = float(h)
         if h==1:
             return 'H1'
@@ -83,7 +84,7 @@ def assign_heating_location(df):
         elif h==3:
             return 'H3'
     
-    df['Dependency=Location Heating Region'] = df.apply(lambda x: location(x.H, x.ST), axis=1)
+    df['Dependency=Location Heating Region'] = df.apply(lambda x: location(x.H), axis=1)
     
     return df
     
@@ -463,26 +464,24 @@ def assign_intfloor(df):
 
 def assign_win(df):
     
-    rval_area = []
+    rval_area = []                    
     for index, row in df.iterrows():
         for win in row.object.sfwindow:
-            if win.uwindow is not None:
-                if win.uwindow in [1.1]:
+            if win.windowtypeclass is not None:
+                if win.windowtypeclass in ['Metal:Single', 'Metal:Single:low-e']:
                     rval_area.append((index, row.created, row.object, row['Dependency=Vintage'], row['Dependency=Location Heating Region'], 'Clear, Single, Metal'))
-                elif win.uwindow in [0.9, 0.95]:
-                    rval_area.append((index, row.created, row.object, row['Dependency=Vintage'], row['Dependency=Location Heating Region'], 'Clear, Single, Non-metal'))
-                elif win.uwindow in [0.8, 0.85]:
+                elif win.windowtypeclass in ['Metal:Double']:
                     rval_area.append((index, row.created, row.object, row['Dependency=Vintage'], row['Dependency=Location Heating Region'], 'Clear, Double, Metal, Air'))
-                elif win.uwindow in [0.75]:
-                    rval_area.append((index, row.created, row.object, row['Dependency=Vintage'], row['Dependency=Location Heating Region'], 'Clear, Double, Thermal-Break, Air'))
-                elif win.uwindow in [0.55, 0.6, 0.65, 0.7]:
+                elif win.windowtypeclass in ['Wood-Vinyl-Fiberglass:Single', 'Wood-Vinyl-Fiberglass:Single:low-e']:
+                    rval_area.append((index, row.created, row.object, row['Dependency=Vintage'], row['Dependency=Location Heating Region'], 'Clear, Single, Non-metal'))
+                elif win.windowtypeclass in ['Wood-Vinyl-Fiberglass:Double']:
                     rval_area.append((index, row.created, row.object, row['Dependency=Vintage'], row['Dependency=Location Heating Region'], 'Clear, Double, Non-metal, Air'))
-                elif win.uwindow in [0.4, 0.45, 0.5]:
+                elif win.windowtypeclass in ['Wood-Vinyl-Fiberglass:Double:low-e', 'Metal:Double:low-e', 'Metal:Triple', 'Wood-Vinyl-Fiberglass:Triple', 'Wood-Vinyl-Fiberglass:Triple:low-e']:
                     rval_area.append((index, row.created, row.object, row['Dependency=Vintage'], row['Dependency=Location Heating Region'], 'Low-E, Double, Non-metal, Air, M-Gain'))
-                elif win.uwindow in [0.22, 0.35]:
-                    rval_area.append((index, row.created, row.object, row['Dependency=Vintage'], row['Dependency=Location Heating Region'], 'Low-E, Triple, Non-metal, Air, L-Gain'))
                 else:
-                    print index, win.uwindow
+                    print index, win.windowtypeclass
+            else:
+                print index, win.windowtypeclass
 
     return pd.DataFrame(rval_area, columns=['siteid', 'created', 'object', 'Dependency=Vintage', 'Dependency=Location Heating Region', 'rval']).set_index('siteid')
 
@@ -614,12 +613,12 @@ def assign_hvac_system_heating(df):
                    'Pellets': 'Other'}   
     
     def htg(hvacheating, htg_and_clg):
-        if htg_and_clg != 'None':
-            return 'None'
         for eq in hvacheating:
             if eq.hvacprimary:
                 if eq.hvactype is not None:
-                    if eq.hvactype == 'faf':
+                    if eq.hvactype in ['heatpump', 'heatpumpdualfuel', 'gshp', 'dhp']:
+                        return np.nan
+                    elif eq.hvactype == 'faf':
                         if not eq.hvacfuel:
                             continue
                         if fueltypekey[eq.hvacfuel] == 'Electric':
@@ -672,13 +671,13 @@ def assign_hvac_system_heating(df):
     
 def assign_hvac_system_cooling(df):
         
-    def clg(object, htg_and_clg):
-        if htg_and_clg != 'None':
-            return 'None'        
+    def clg(object, htg_and_clg):       
         for eq in object.hvaccooling:
             if eq.hvacprimarycooling:
                 if eq.hvactype is not None:
-                    if eq.hvactype in ['centralAC']:
+                    if eq.hvactype in ['heatpump', 'heatpumpdualfuel', 'gshp', 'dhp']:
+                        return np.nan                    
+                    elif eq.hvactype in ['centralAC']:
                         if eq.seer < 9:
                             return 'AC, SEER 8'
                         elif eq.seer >= 9 and eq.seer < 11.5:
