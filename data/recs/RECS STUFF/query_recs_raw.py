@@ -10,8 +10,7 @@ import csv
 sys.path.insert(0, os.path.join(os.getcwd(),'clustering'))
 #from medoids_tstat import do_plot
 import itertools
-recs_data_file = os.path.join("..", "Recs", "recs2009_public.csv")
-recs_header_file = os.path.join("..", "Recs", "recs2009_codebook.xlsx")
+recs_data_file = os.path.join("..", "RECS STUFF", "recs2009_public.csv")
 import statsmodels.api as sm
 
 regions = {1:'CR01',
@@ -90,30 +89,30 @@ income_range = {	1:'$2,500 and under',
 					23:'$100,000 to $119,999',
 					24:'$120,000 or More'}
 
-income = {	1:1250,
-				2:3250,
-				3:6250,
-				4:8750,
-				5:12250,
-				6:17250,
-				7:22250,
-				8:27250,
-				9:32250,
-				10:37250,
-				11:42250,
-				12:47250,
-				13:52250,
-				14:57250,
-				15:62250,
-				16:67250,
-				17:72250,
-				18:77250,
-				19:82250,
-				20:87250,
-				21:92250,
-				22:97250,
-				23:110000,
-				24:120000}
+med_income ={	1:1250,
+			2:3250,
+			3:6250,
+			4:8750,
+			5:12250,
+			6:17250,
+			7:22250,
+			8:27250,
+			9:32250,
+			10:37250,
+			11:42250,
+			12:47250,
+			13:52250,
+			14:57250,
+			15:62250,
+			16:67250,
+			17:72250,
+			18:77250,
+			19:82250,
+			20:87250,
+			21:92250,
+			22:97250,
+			23:110000,
+			24:120000}
 
 wall_type ={ 	1:'Brick',
 				2:'Wood',
@@ -134,8 +133,25 @@ roof_type ={	1:'Ceramic/Clay',
 				7:'Concrete Tiles',
 				8:'Other'}
 
+fpl16 = {	1:11880,
+			2:16020,
+			3:20160,
+			4:24300,
+			5:28440,
+			6:32580,
+			7:36730,
+			8:40890}
 
+fpl09 = {	1:10830,
+			2:14570,
+			3:18310,
+			4:22050,
+			5:25790,
+			6:29530,
+			7:33270,
+			8:37010}
 
+fpl = fpl09
 
 def process_csv_data():
 	df = pandas.read_csv(recs_data_file,na_values=['-2'])
@@ -315,16 +331,7 @@ def calc_general(df, cut_by=['REPORTABLE_DOMAIN','FUELHEAT'], columns=None, outf
 	for fuel_num, fuel_name in fuels.iteritems():
 		for field in ['FUELHEAT','FUELH2O','RNGFUEL','DRYRFUEL']:
 			df[field].replace(fuel_num,fuel_name, inplace=True)
-	#Code inserted into calc_general for income
-	df['INCOME_RANGE'] = df['MONEYPY']
-	df['INCOME'] = df['MONEYPY']
-	for income_range_num, income_range_name in income_range.iteritems():
-		for field in ['INCOME_RANGE']:
-			df[field].replace(income_range_num,income_range_name,inplace=True)
-	for income_num, income_name in income.iteritems():
-		for field in ['INCOME']:
-			df[field].replace(income_num,income_name,inplace=True)
-	#end code
+
 	if 'Stories' in cut_by or 'Stories' in columns:
 		for num, name in stories.iteritems():
 			df['Stories'].replace(num,name, inplace=True)
@@ -379,8 +386,39 @@ def query_stories(df, outfile='recs_query_stories.csv'):
 	df.to_csv(outfile, index=False)
 	print df
 
+def poverty(df):
+	df['INCOME_RANGE'] = df['MONEYPY']
+	df['INCOME'] = df['MONEYPY']
+	for income_range_num, income_range_name in income_range.iteritems():
+		df['INCOME_RANGE'].replace(income_range_num,income_range_name,inplace=True)
+	for num, name in med_income.iteritems():
+		df['INCOME'].replace(num,name,inplace=True)
+	#INFLATION
+	df['INF_INCOME']=df['INCOME']*1.125344
+	#FPL
+	df['INCOMELIMIT'] = df['NHSLDMEM']
+	for fpl_num,fpl_name in fpl.iteritems():
+		for field in ['INCOMELIMIT']:
+			df[field].replace(fpl_num,fpl_name,inplace=True)
+	df['FPL'] = df['INCOME']
+	df['FPL'] = df['INCOME']/df['INCOMELIMIT']*100
+	df['FPL250','FPL200','FPL150','FPL100','FPL50'] = 0
 
-
+	fpl_field = 'FPL'
+	df.loc[(df[fpl_field] <= 250),'FPL250'] = 1
+	df.loc[(df[fpl_field] <= 200),'FPL200'] = 1
+	df.loc[(df[fpl_field] <= 150),'FPL150'] = 1
+	df.loc[(df[fpl_field] <= 100),'FPL100'] = 1
+	df.loc[(df[fpl_field] <= 50),'FPL50'] = 1
+	df['FPL250'].fillna(value=0)
+	df['FPL200'].fillna(value=0)
+	df['FPL150'].fillna(value=0)
+	df['FPL100'].fillna(value=0)
+	df['FPL50'].fillna(value=0)
+	df['FPLALL'] = df['FPL']
+	df['FPLALL'] = 1
+	#end code
+	return df
 if __name__ == '__main__':
     df = process_csv_data()
     assign_sizes(df)

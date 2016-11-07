@@ -18,7 +18,7 @@ import seaborn as sns
 from scipy import stats
 from matplotlib.pyplot import show
 
-from query_recs_raw import process_csv_data, calc_temp_stats,calc_htg_type, calc_htg_type_by_wh_fuel, calc_htg_age, calc_occupancy,calc_ashp_cac,assign_sizes,calc_general,query_stories
+from query_recs_raw import poverty, process_csv_data, calc_temp_stats,calc_htg_type, calc_htg_type_by_wh_fuel, calc_htg_age, calc_occupancy,calc_ashp_cac,assign_sizes,calc_general,query_stories
 
 vintages = {'pre-1950' : 0,
             '1950s' : 1,
@@ -27,6 +27,7 @@ vintages = {'pre-1950' : 0,
             '1980s' : 4,
             '1990s' : 5,
             '2000s' : 6}
+
 num_vintages = {0 : 'pre-1950',
             1:'1950s' ,
             2:'1960s' ,
@@ -34,6 +35,7 @@ num_vintages = {0 : 'pre-1950',
             4:'1980s' ,
             5:'1990s' ,
             6:'2000s' }
+
 sizes = {'0-1499' : 0,
          '1500-2499' : 1,
          '2500-3499' : 2,
@@ -94,34 +96,58 @@ income = {	1:1250,
 				21:92250,
 				22:97250,
 				23:110000,
-				24:120000}
+				24:120000 }
+
+fpl16 = {	1:11880,
+			2:16020,
+			3:20160,
+			4:24300,
+			5:28440,
+			6:32580,
+			7:36730,
+			8:40890}
+
+fpl09 = {	1:10830,
+			2:14570,
+			3:18310,
+			4:22050,
+			5:25790,
+			6:29530,
+			7:33270,
+			8:37010}
+
+fpl = fpl09
 
 if __name__ == '__main__':
 	df = process_csv_data()
 	assign_sizes(df)
-	VAR1 = 'INCOME'
-	VAR2 = 'SizeMaxHeatCool'
-	VAR3 = ''
-	VAR4 = ''
-	PROB = 'POVERTY150'
-	TITLE = VAR1 + '&'+ VAR2 +' & ' + PROB
-	df1 = calc_general(df, cut_by=[VAR1,VAR2],columns=[PROB], outfile='output_general.csv')
+
+
 
 #JOINTPLOT
 
 #	df1 = df1[PROB]=df1[1].where(df1[1]>0,other=0)
 #	df = df[(df[PROB] >0)]
 
-	sns.jointplot(x=VAR1, y = VAR2, data = df, kind = "kde", joint_kws={'weights':'NWEIGHT'})
+#	sns.jointplot(x=VAR1, y = VAR2, data = df, kind = "kde", joint_kws={'weights':'NWEIGHT'})
 #	sns.jointplot(x=VAR1, y = VAR2, data = df, kind = "reg")
-	plt.title(TITLE)
+#	plt.title(TITLE)
 #BARCHART
 #	ax = plt.axes()
 #	sns.barplot(x=VAR,y= 1, palette = 'Reds_d', data = df1)
 #	ax.set_title(TITLE)
 #	plt.show()
 
+#STACKED BAR
+	CUT = ['Size','FPL50','FPL100','FPL150','FPL200','FPL250','FPLALL']
+#	df1 = calc_general(df, cut_by=[CUT],columns=[PROB], outfile='output_general.csv')
 
+	cut_by = CUT
+	grouped = df.groupby(cut_by, as_index=False).sum()
+	grouped.index
+	i = df.columns.size
+#	while (i > -1):
+	df1 = pandas.pivot_table(grouped, values = 'NWEIGHT', index = CUT, columns = ['Garage'])
 
 
 
