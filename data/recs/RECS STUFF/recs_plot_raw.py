@@ -17,7 +17,7 @@ from matplotlib.lines import Line2D
 import seaborn as sns
 from scipy import stats
 from matplotlib.pyplot import show
-
+from colour import Color
 from query_recs_raw import poverty, process_csv_data, calc_temp_stats,calc_htg_type, calc_htg_type_by_wh_fuel, calc_htg_age, calc_occupancy,calc_ashp_cac,assign_sizes,calc_general,query_stories
 
 vintages = {'pre-1950' : 0,
@@ -73,7 +73,7 @@ income_range = {	1:'Less than $2,500',
 					23:'$100,000 to $119,999',
 					24:'$120,000 or More'}
 
-income = {	1:1250,
+med_income = {1:1250,
 				2:3250,
 				3:6250,
 				4:8750,
@@ -118,11 +118,45 @@ fpl09 = {	1:10830,
 
 fpl = fpl09
 
+def stackedbar(df, VAR, TITLE):
+##Change only these two parameters
+#	VAR = 'Size'
+#	TITLE = "House Size" + " vs. " + "Federal Poverty Levels 250, 200, 150, 100, 50"
+
+	#Set up cut by different FPL levels
+
+	CUT = ['FPLALL','FPL250','FPL200','FPL150','FPL100','FPL50']
+	i = len(CUT)
+
+	#Colors for plot gradient
+
+	colors = sns.color_palette("GnBu", i)
+
+	#Loop to plot different poverty levels
+	plt.figure()
+   	for j in range(len(CUT)):
+		POV = CUT[j]
+		df1 = calc_general(df, cut_by=[VAR],columns=[POV])
+		ax = sns.barplot(x = df1[VAR], y = df1[1.0], color = colors[j])
+
+	#Save and label
+
+	ax.set_xlabel(VAR + " of Home", fontsize = 13.5)
+	ax.set_ylabel("Distribution of Homes According to Income", fontsize = 12)
+	ax.set_title(TITLE, fontsize = 15)
+	fig = ax.get_figure()
+	fig.savefig(VAR+'_POVlvls.png', bbox_inches = 'tight')
+	print fig
+
+
 if __name__ == '__main__':
 	df = process_csv_data()
 	assign_sizes(df)
-
-
+	poverty(df)
+	df = df.fillna(value = 0)
+	stackedbar(df,'EQUIPM', 'Heating Equipment' + ' vs. Federal Poverty Levels: 250,200,150,100,50')
+	stackedbar(df,'FUELHEAT', 'Heating Fuel' + ' vs. Federal Poverty Levels: 250,200,150,100,50')
+	stackedbar(df,'DIVISION', 'Census Division' + ' vs. Federal Poverty Levels: 250,200,150,100,50')
 
 #JOINTPLOT
 
@@ -139,17 +173,6 @@ if __name__ == '__main__':
 #	plt.show()
 
 #STACKED BAR
-	CUT = ['Size','FPL50','FPL100','FPL150','FPL200','FPL250','FPLALL']
-#	df1 = calc_general(df, cut_by=[CUT],columns=[PROB], outfile='output_general.csv')
-
-	cut_by = CUT
-	grouped = df.groupby(cut_by, as_index=False).sum()
-	grouped.index
-	i = df.columns.size
-#	while (i > -1):
-	df1 = pandas.pivot_table(grouped, values = 'NWEIGHT', index = CUT, columns = ['Garage'])
-
-
 
 
 

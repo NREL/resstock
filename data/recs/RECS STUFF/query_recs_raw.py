@@ -87,7 +87,7 @@ income_range = {	1:'$2,500 and under',
 					21:'$90,000 to $94,999',
 					22:'$95,000 to $99,999',
 					23:'$100,000 to $119,999',
-					24:'$120,000 or More'}
+					24:'$120,000 or More'	}
 
 med_income ={	1:1250,
 			2:3250,
@@ -150,6 +150,17 @@ fpl09 = {	1:10830,
 			6:29530,
 			7:33270,
 			8:37010}
+
+census_div = {	1: 'New England Census Division (CT, MA, ME, NH, RI, VT)',
+					2:	'Middle Atlantic Census Division (NJ, NY, PA)',
+					3:	'East North Central Census Division (IL, IN, MI, OH, WI)',
+					4:	'West North Central Census Division (IA, KS, MN, MO, ND, NE, SD)',
+					5:	'South Atlantic  Census Division (DC, DE, FL, GA, MD, NC, SC, VA, WV)',
+					6:	'East South Central Census Division (AL, KY, MS, TN)',
+					7:	'West South Central Census Division (AR, LA, OK, TX)',
+					8:	'Mountain North Sub-Division (CO, ID, MT, UT, WY)',
+					9:	'Mountain South Sub-Division (AZ, NM, NV)',
+					10:	'Pacific Census Division (AK, CA, HI, OR, WA)' }
 
 fpl = fpl09
 
@@ -331,7 +342,9 @@ def calc_general(df, cut_by=['REPORTABLE_DOMAIN','FUELHEAT'], columns=None, outf
 	for fuel_num, fuel_name in fuels.iteritems():
 		for field in ['FUELHEAT','FUELH2O','RNGFUEL','DRYRFUEL']:
 			df[field].replace(fuel_num,fuel_name, inplace=True)
-
+	for cen_num,cen_name in census_div.iteritems():
+		for field in ['DIVISION']:
+			df[field].replace(cen_num,cen_name,inplace=True)
 	if 'Stories' in cut_by or 'Stories' in columns:
 		for num, name in stories.iteritems():
 			df['Stories'].replace(num,name, inplace=True)
@@ -402,26 +415,23 @@ def poverty(df):
 			df[field].replace(fpl_num,fpl_name,inplace=True)
 	df['FPL'] = df['INCOME']
 	df['FPL'] = df['INCOME']/df['INCOMELIMIT']*100
-	df['FPL250','FPL200','FPL150','FPL100','FPL50'] = 0
-
+	df['FPLALL'] = df['FPL']
+	df['FPLALL'] = 1
+	df['FPL250','FPL200','FPL150','FPL100','FPL50'] = df['FPLALL']
 	fpl_field = 'FPL'
 	df.loc[(df[fpl_field] <= 250),'FPL250'] = 1
 	df.loc[(df[fpl_field] <= 200),'FPL200'] = 1
 	df.loc[(df[fpl_field] <= 150),'FPL150'] = 1
 	df.loc[(df[fpl_field] <= 100),'FPL100'] = 1
 	df.loc[(df[fpl_field] <= 50),'FPL50'] = 1
-	df['FPL250'].fillna(value=0)
-	df['FPL200'].fillna(value=0)
-	df['FPL150'].fillna(value=0)
-	df['FPL100'].fillna(value=0)
-	df['FPL50'].fillna(value=0)
-	df['FPLALL'] = df['FPL']
-	df['FPLALL'] = 1
 	#end code
-	return df
+
+	return df.fillna(value=0)
+
 if __name__ == '__main__':
-    df = process_csv_data()
-    assign_sizes(df)
+	df = process_csv_data()
+	assign_sizes(df)
+	poverty(df)
     # Overwrite FUELHEAT Type field with UGWARM ('UGWARM') if discrepancy
 #    df.loc[df['UGWARM'] == 1, 'FUELHEAT'] = 1
 #     calc_temp_stats(df)
