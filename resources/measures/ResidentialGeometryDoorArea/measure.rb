@@ -27,12 +27,12 @@ class CreateResidentialDoorArea < OpenStudio::Ruleset::ModelUserScript
     args = OpenStudio::Ruleset::OSArgumentVector.new
 
     #make a double argument for door area
-    userdefineddoorarea = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("door_area", true)
-    userdefineddoorarea.setDisplayName("Door Area")
-    userdefineddoorarea.setUnits("ft^2")
-    userdefineddoorarea.setDescription("The area of the opaque door(s). For multifamily buildings, applies to each unit.")
-    userdefineddoorarea.setDefaultValue(20.0)
-    args << userdefineddoorarea
+    door_area = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("door_area", true)
+    door_area.setDisplayName("Door Area")
+    door_area.setUnits("ft^2")
+    door_area.setDescription("The area of the opaque door(s). For multifamily buildings, applies to each unit.")
+    door_area.setDefaultValue(20.0)
+    args << door_area
 
     return args
   end

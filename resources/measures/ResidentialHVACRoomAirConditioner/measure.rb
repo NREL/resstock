@@ -41,26 +41,26 @@ class ProcessRoomAirConditioner < OpenStudio::Ruleset::ModelUserScript
     args = OpenStudio::Ruleset::OSArgumentVector.new
 
     #make a double argument for room air eer
-    roomaceer = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("roomaceer", true)
-    roomaceer.setDisplayName("EER")
-    roomaceer.setUnits("Btu/W-h")
-    roomaceer.setDescription("This is a measure of the instantaneous energy efficiency of the cooling equipment.")
-    roomaceer.setDefaultValue(8.5)
-    args << roomaceer         
+    eer = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("eer", true)
+    eer.setDisplayName("EER")
+    eer.setUnits("Btu/W-h")
+    eer.setDescription("This is a measure of the instantaneous energy efficiency of the cooling equipment.")
+    eer.setDefaultValue(8.5)
+    args << eer         
     
     #make a double argument for room air shr
-    roomacshr = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("roomacshr", true)
-    roomacshr.setDisplayName("Rated SHR")
-    roomacshr.setDescription("The sensible heat ratio (ratio of the sensible portion of the load to the total load) at the nominal rated capacity.")
-    roomacshr.setDefaultValue(0.65)
-    args << roomacshr
+    shr = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("shr", true)
+    shr.setDisplayName("Rated SHR")
+    shr.setDescription("The sensible heat ratio (ratio of the sensible portion of the load to the total load) at the nominal rated capacity.")
+    shr.setDefaultValue(0.65)
+    args << shr
 
     #make a double argument for room air airflow
-    roomacairflow = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("roomacairflow", true)
-    roomacairflow.setDisplayName("Airflow")
-    roomacairflow.setUnits("cfm/ton")
-    roomacairflow.setDefaultValue(350.0)
-    args << roomacairflow
+    airflow = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("airflow_rate", true)
+    airflow.setDisplayName("Airflow")
+    airflow.setUnits("cfm/ton")
+    airflow.setDefaultValue(350.0)
+    args << airflow
     
     #make a choice argument for room air cooling output capacity
     cap_display_names = OpenStudio::StringVector.new
@@ -70,10 +70,10 @@ class ProcessRoomAirConditioner < OpenStudio::Ruleset::ModelUserScript
     end
 
     #make a string argument for room air cooling output capacity
-    selected_accap = OpenStudio::Ruleset::OSArgument::makeChoiceArgument("selectedaccap", cap_display_names, true)
-    selected_accap.setDisplayName("Cooling Output Capacity")
-    selected_accap.setDefaultValue(Constants.SizingAuto)
-    args << selected_accap  
+    output_capacity = OpenStudio::Ruleset::OSArgument::makeChoiceArgument("capacity", cap_display_names, true)
+    output_capacity.setDisplayName("Cooling Output Capacity")
+    output_capacity.setDefaultValue(Constants.SizingAuto)
+    args << output_capacity  
 
     return args
   end
@@ -90,10 +90,10 @@ class ProcessRoomAirConditioner < OpenStudio::Ruleset::ModelUserScript
     supply = Supply.new
     curves = Curves.new
     
-    roomaceer = runner.getDoubleArgumentValue("roomaceer",user_arguments)
-    supply.shr_Rated = runner.getDoubleArgumentValue("roomacshr",user_arguments)
-    supply.coolingCFMs = runner.getDoubleArgumentValue("roomacairflow",user_arguments)
-    acOutputCapacity = runner.getStringArgumentValue("selectedaccap",user_arguments)
+    roomaceer = runner.getDoubleArgumentValue("eer",user_arguments)
+    supply.shr_Rated = runner.getDoubleArgumentValue("shr",user_arguments)
+    supply.coolingCFMs = runner.getDoubleArgumentValue("airflow_rate",user_arguments)
+    acOutputCapacity = runner.getStringArgumentValue("capacity",user_arguments)
     unless acOutputCapacity == Constants.SizingAuto
       acOutputCapacity = OpenStudio::convert(acOutputCapacity.split(" ")[0].to_f,"ton","Btu/h").get
     end     
@@ -170,26 +170,21 @@ class ProcessRoomAirConditioner < OpenStudio::Ruleset::ModelUserScript
     end
     
     units.each do |unit|
+      unit_num = Geometry.get_unit_number(model, unit, runner)
       thermal_zones = Geometry.get_thermal_zones_from_spaces(unit.spaces)
-      if thermal_zones.length > 1
-        runner.registerInfo("#{unit.name.to_s} spans more than one thermal zone.")
-      end
+
       control_slave_zones_hash = HVAC.get_control_and_slave_zones(thermal_zones)
       control_slave_zones_hash.each do |control_zone, slave_zones|
     
         next unless Geometry.zone_is_above_grade(control_zone)
 
         # Remove existing equipment
-        existing_has_mshp = false
-        if HVAC.has_mini_split_heat_pump(model, runner, control_zone)
-          existing_has_mshp = true
-        end        
         HVAC.remove_existing_hvac_equipment(model, runner, "Room Air Conditioner", control_zone)    
       
         # _processSystemRoomAC
       
         clg_coil = OpenStudio::Model::CoilCoolingDXSingleSpeed.new(model, model.alwaysOnDiscreteSchedule, roomac_cap_ft, roomac_cap_fff, roomac_eir_ft, roomcac_eir_fff, roomac_plf_fplr)
-        clg_coil.setName("WindowAC Coil")
+        clg_coil.setName("WindowAC Coil_#{unit_num}")
         if acOutputCapacity != Constants.SizingAuto
           clg_coil.setRatedTotalCoolingCapacity(OpenStudio::convert(acOutputCapacity,"Btu/h","W").get)
           clg_coil.setRatedAirFlowRate(supply.cfm_TON_Rated[0] * acOutputCapacity * OpenStudio::convert(1.0,"Btu/h","ton").get * OpenStudio::convert(1.0,"cfm","m^3/s").get)
@@ -202,35 +197,34 @@ class ProcessRoomAirConditioner < OpenStudio::Ruleset::ModelUserScript
         clg_coil.setBasinHeaterSetpointTemperature(OpenStudio::OptionalDouble.new(2))
         
         supply_fan_availability = OpenStudio::Model::ScheduleConstant.new(model)
-        supply_fan_availability.setName("SupplyFanAvailability")
+        supply_fan_availability.setName("SupplyFanAvailability_#{unit_num}")
         supply_fan_availability.setValue(1)    
         
         fan_onoff = OpenStudio::Model::FanOnOff.new(model, supply_fan_availability)
-        fan_onoff.setName("WindowAC Fan")
+        fan_onoff.setName("WindowAC Fan_#{unit_num}")
+        fan_onoff.setEndUseSubcategory(Constants.EndUseHVACFan)
         fan_onoff.setFanEfficiency(1)
         fan_onoff.setPressureRise(0)
         fan_onoff.setMotorEfficiency(1)
         fan_onoff.setMotorInAirstreamFraction(0)
         
         supply_fan_operation = OpenStudio::Model::ScheduleConstant.new(model)
-        supply_fan_operation.setName("SupplyFanOperation")
+        supply_fan_operation.setName("SupplyFanOperation_#{unit_num}")
         supply_fan_operation.setValue(0)
         
         htg_coil = OpenStudio::Model::CoilHeatingElectric.new(model, model.alwaysOffDiscreteSchedule())
-        htg_coil.setName("Always Off Heating Coil for PTAC")
+        htg_coil.setName("Always Off Heating Coil for PTAC_#{unit_num}")
         
         ptac = OpenStudio::Model::ZoneHVACPackagedTerminalAirConditioner.new(model, model.alwaysOnDiscreteSchedule, fan_onoff, htg_coil, clg_coil)
-        ptac.setName("Window AC")
+        ptac.setName("Window AC_#{unit_num}")
         ptac.setSupplyAirFanOperatingModeSchedule(supply_fan_operation)
         ptac.addToThermalZone(control_zone)
         runner.registerInfo("Added packaged terminal air conditioner '#{ptac.name}' to thermal zone '#{control_zone.name}' of #{unit.name.to_s}")
       
         slave_zones.each do |slave_zone|
 
-            # Remove existing equipment
-            if existing_has_mshp
-              HVAC.has_electric_baseboard(model, runner, slave_zone, true)
-            end
+          # Remove existing equipment
+          HVAC.remove_existing_hvac_equipment(model, runner, "Room Air Conditioner", slave_zone)
 
         end
       

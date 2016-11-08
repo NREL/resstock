@@ -26,33 +26,31 @@ class ProcessConstructionsFoundationsFloorsInterzonalFloors < OpenStudio::Rulese
     args = OpenStudio::Ruleset::OSArgumentVector.new
 
     #make a double argument for nominal R-value of cavity insulation
-    userdefined_instcavr = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("userdefinedinstcavr", true)
-    userdefined_instcavr.setDisplayName("Cavity Insulation Nominal R-value")
-    userdefined_instcavr.setUnits("hr-ft^2-R/Btu")
-    userdefined_instcavr.setDescription("Refers to the R-value of the cavity insulation and not the overall R-value of the assembly.")
-    userdefined_instcavr.setDefaultValue(19.0)
-    args << userdefined_instcavr
+    cavity_r = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("cavity_r", true)
+    cavity_r.setDisplayName("Cavity Insulation Nominal R-value")
+    cavity_r.setUnits("hr-ft^2-R/Btu")
+    cavity_r.setDescription("Refers to the R-value of the cavity insulation and not the overall R-value of the assembly.")
+    cavity_r.setDefaultValue(19.0)
+    args << cavity_r
 
-    #make a choice argument for model objects
+    #make a choice argument for wall cavity insulation installation grade
     installgrade_display_names = OpenStudio::StringVector.new
     installgrade_display_names << "I"
     installgrade_display_names << "II"
     installgrade_display_names << "III"
-    
-    #make a choice argument for wall cavity insulation installation grade
-    selected_installgrade = OpenStudio::Ruleset::OSArgument::makeChoiceArgument("selectedinstallgrade", installgrade_display_names, true)
-    selected_installgrade.setDisplayName("Cavity Install Grade")
-    selected_installgrade.setDescription("nstallation grade as defined by RESNET standard. 5% of the cavity is considered missing insulation for Grade 3, 2% for Grade 2, and 0% for Grade 1.")
-    selected_installgrade.setDefaultValue("I")
-    args << selected_installgrade   
+    install_grade = OpenStudio::Ruleset::OSArgument::makeChoiceArgument("install_grade", installgrade_display_names, true)
+    install_grade.setDisplayName("Cavity Install Grade")
+    install_grade.setDescription("Installation grade as defined by RESNET standard. 5% of the cavity is considered missing insulation for Grade 3, 2% for Grade 2, and 0% for Grade 1.")
+    install_grade.setDefaultValue("I")
+    args << install_grade   
 
     #make a choice argument for unfinished attic ceiling framing factor
-    userdefined_floorff = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("userdefinedfloorff", true)
-    userdefined_floorff.setDisplayName("Framing Factor")
-    userdefined_floorff.setUnits("frac")
-    userdefined_floorff.setDescription("The fraction of a floor assembly that is comprised of structural framing.")
-    userdefined_floorff.setDefaultValue(0.13)
-    args << userdefined_floorff
+    framing_factor = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("framing_factor", true)
+    framing_factor.setDisplayName("Framing Factor")
+    framing_factor.setUnits("frac")
+    framing_factor.setDescription("The fraction of a floor assembly that is comprised of structural framing.")
+    framing_factor.setDefaultValue(0.13)
+    args << framing_factor
     
     return args
   end #end the arguments method
@@ -92,9 +90,9 @@ class ProcessConstructionsFoundationsFloorsInterzonalFloors < OpenStudio::Rulese
     end        
     
     # Get Inputs
-    intFloorCavityInsRvalueNominal = runner.getDoubleArgumentValue("userdefinedinstcavr",user_arguments)
-    intFloorInstallGrade = {"I"=>1, "II"=>2, "III"=>3}[runner.getStringArgumentValue("selectedinstallgrade",user_arguments)]
-    intFloorFramingFactor = runner.getDoubleArgumentValue("userdefinedfloorff",user_arguments)
+    intFloorCavityInsRvalueNominal = runner.getDoubleArgumentValue("cavity_r",user_arguments)
+    intFloorInstallGrade = {"I"=>1, "II"=>2, "III"=>3}[runner.getStringArgumentValue("install_grade",user_arguments)]
+    intFloorFramingFactor = runner.getDoubleArgumentValue("framing_factor",user_arguments)
     
     # Validate Inputs
     if intFloorCavityInsRvalueNominal < 0.0

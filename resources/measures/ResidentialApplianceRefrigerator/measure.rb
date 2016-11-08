@@ -136,14 +136,24 @@ class ResidentialRefrigerator < OpenStudio::Ruleset::ModelUserScript
         unit_obj_name = Constants.ObjectNameRefrigerator(unit.name.to_s)
 
         # Remove any existing refrigerator
-        frg_removed = false
+        objects_to_remove = []
         space.electricEquipment.each do |space_equipment|
             next if space_equipment.name.to_s != unit_obj_name
-            space_equipment.remove
-            frg_removed = true
+            objects_to_remove << space_equipment
+            objects_to_remove << space_equipment.electricEquipmentDefinition
+            if space_equipment.schedule.is_initialized
+                objects_to_remove << space_equipment.schedule.get
+            end
         end
-        if frg_removed
+        if objects_to_remove.size > 0
             runner.registerInfo("Removed existing refrigerator from space #{space.name.to_s}.")
+        end
+        objects_to_remove.uniq.each do |object|
+            begin
+                object.remove
+            rescue
+                # no op
+            end
         end
 
         if fridge_ann > 0
@@ -162,6 +172,7 @@ class ResidentialRefrigerator < OpenStudio::Ruleset::ModelUserScript
             frg_def = OpenStudio::Model::ElectricEquipmentDefinition.new(model)
             frg = OpenStudio::Model::ElectricEquipment.new(frg_def)
             frg.setName(unit_obj_name)
+            frg.setEndUseSubcategory(unit_obj_name)
             frg.setSpace(space)
             frg_def.setName(unit_obj_name)
             frg_def.setDesignLevel(design_level)

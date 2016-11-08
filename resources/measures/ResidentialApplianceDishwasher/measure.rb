@@ -194,21 +194,16 @@ class ResidentialDishwasher < OpenStudio::Ruleset::ModelUserScript
         mainsMonthlyTemps = WeatherProcess.get_mains_temperature(site.siteWaterMainsTemperature.get, site.latitude)[1]
     end
     
-    # Hot water schedules vary by number of bedrooms. For a given number of bedroom,
-    # there are 10 different schedules available for different units in a multifamily 
-    # building. This hash tracks which schedule to use.
-    sch_unit_index = {}
-    num_bed_options = (1..5)
-    num_bed_options.each do |num_bed_option|
-        sch_unit_index[num_bed_option.to_f] = -1
-    end
-
     tot_dw_ann = 0
     msgs = []
     units.each do |unit|
         # Get unit beds/baths
         nbeds, nbaths = Geometry.get_unit_beds_baths(model, unit, runner)
         if nbeds.nil? or nbaths.nil?
+            return false
+        end
+        sch_unit_index = Geometry.get_unit_dhw_sched_index(model, unit, runner)
+        if sch_unit_index.nil?
             return false
         end
         
@@ -231,19 +226,35 @@ class ResidentialDishwasher < OpenStudio::Ruleset::ModelUserScript
         obj_name = Constants.ObjectNameDishwasher(unit.name.to_s)
 
         # Remove any existing dishwasher
-        dw_removed = false
+        objects_to_remove = []
         space.electricEquipment.each do |space_equipment|
             next if space_equipment.name.to_s != obj_name
-            space_equipment.remove
-            dw_removed = true
+            objects_to_remove << space_equipment
+            objects_to_remove << space_equipment.electricEquipmentDefinition
+            if space_equipment.schedule.is_initialized
+                objects_to_remove << space_equipment.schedule.get
+            end
         end
         space.waterUseEquipment.each do |space_equipment|
             next if space_equipment.name.to_s != obj_name
-            space_equipment.remove
-            dw_removed = true
+            objects_to_remove << space_equipment
+            objects_to_remove << space_equipment.waterUseEquipmentDefinition
+            if space_equipment.flowRateFractionSchedule.is_initialized
+                objects_to_remove << space_equipment.flowRateFractionSchedule.get
+            end
+            if space_equipment.waterUseEquipmentDefinition.targetTemperatureSchedule.is_initialized
+                objects_to_remove << space_equipment.waterUseEquipmentDefinition.targetTemperatureSchedule.get
+            end
         end
-        if dw_removed
+        if objects_to_remove.size > 0
             runner.registerInfo("Removed existing dishwasher from space #{space.name.to_s}.")
+        end
+        objects_to_remove.uniq.each do |object|
+            begin
+                object.remove
+            rescue
+                # no op
+            end
         end
         
         # The water used in dishwashers must be heated, either internally or
@@ -413,8 +424,7 @@ class ResidentialDishwasher < OpenStudio::Ruleset::ModelUserScript
         if dw_ann > 0
             
             # Create schedule
-            sch_unit_index[nbeds] = (sch_unit_index[nbeds] + 1) % 10
-            sch = HotWaterSchedule.new(model, runner, Constants.ObjectNameDishwasher + " schedule", Constants.ObjectNameDishwasher + " temperature schedule", nbeds, sch_unit_index[nbeds], "Dishwasher", wh_setpoint, File.dirname(__FILE__))
+            sch = HotWaterSchedule.new(model, runner, Constants.ObjectNameDishwasher + " schedule", Constants.ObjectNameDishwasher + " temperature schedule", nbeds, sch_unit_index, "Dishwasher", wh_setpoint, File.dirname(__FILE__))
             if not sch.validated?
                 return false
             end
@@ -439,6 +449,7 @@ class ResidentialDishwasher < OpenStudio::Ruleset::ModelUserScript
             dw_def = OpenStudio::Model::ElectricEquipmentDefinition.new(model)
             dw = OpenStudio::Model::ElectricEquipment.new(dw_def)
             dw.setName(obj_name)
+            dw.setEndUseSubcategory(obj_name)
             dw.setSpace(space)
             dw_def.setName(obj_name)
             dw_def.setDesignLevel(design_level)
@@ -454,7 +465,7 @@ class ResidentialDishwasher < OpenStudio::Ruleset::ModelUserScript
             dw2.setSpace(space)
             dw_def2.setName(obj_name)
             dw_def2.setPeakFlowRate(peak_flow)
-            dw_def2.setEndUseSubcategory("Domestic Hot Water")
+            dw_def2.setEndUseSubcategory(obj_name)
             dw2.setFlowRateFractionSchedule(sch.schedule)
             dw_def2.setTargetTemperatureSchedule(sch.temperatureSchedule)
             water_use_connection.addWaterUseEquipment(dw2)

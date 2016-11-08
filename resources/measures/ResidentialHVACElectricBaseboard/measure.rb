@@ -34,22 +34,20 @@ class ProcessElectricBaseboard < OpenStudio::Ruleset::ModelUserScript
     args = OpenStudio::Ruleset::OSArgumentVector.new
 
     #make an argument for entering baseboard efficiency
-    baseboardeff = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("baseboardeff",true)
+    baseboardeff = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("efficiency",true)
     baseboardeff.setDisplayName("Efficiency")
     baseboardeff.setUnits("Btu/Btu")
     baseboardeff.setDescription("The efficiency of the electric baseboard.")
     baseboardeff.setDefaultValue(1.0)
     args << baseboardeff
 
-    #make a choice argument for baseboard heating output capacity
+    #make a string argument for baseboard heating output capacity
     cap_display_names = OpenStudio::StringVector.new
     cap_display_names << Constants.SizingAuto
     (5..150).step(5) do |kbtu|
       cap_display_names << "#{kbtu} kBtu/hr"
     end
-
-    #make a string argument for furnace heating output capacity
-    baseboardcap = OpenStudio::Ruleset::OSArgument::makeChoiceArgument("baseboardcap", cap_display_names, true)
+    baseboardcap = OpenStudio::Ruleset::OSArgument::makeChoiceArgument("capacity", cap_display_names, true)
     baseboardcap.setDisplayName("Heating Output Capacity")
     baseboardcap.setDefaultValue(Constants.SizingAuto)
     args << baseboardcap
@@ -66,8 +64,8 @@ class ProcessElectricBaseboard < OpenStudio::Ruleset::ModelUserScript
       return false
     end
 	
-    baseboardEfficiency = runner.getDoubleArgumentValue("baseboardeff",user_arguments)
-    baseboardOutputCapacity = runner.getStringArgumentValue("baseboardcap",user_arguments)
+    baseboardEfficiency = runner.getDoubleArgumentValue("efficiency",user_arguments)
+    baseboardOutputCapacity = runner.getStringArgumentValue("capacity",user_arguments)
     if not baseboardOutputCapacity == Constants.SizingAuto
       baseboardOutputCapacity = OpenStudio::convert(baseboardOutputCapacity.split(" ")[0].to_f,"kBtu/h","Btu/h").get
     end
@@ -82,10 +80,9 @@ class ProcessElectricBaseboard < OpenStudio::Ruleset::ModelUserScript
     end
     
     units.each do |unit|
+      unit_num = Geometry.get_unit_number(model, unit, runner)
       thermal_zones = Geometry.get_thermal_zones_from_spaces(unit.spaces)
-      if thermal_zones.length > 1
-        runner.registerInfo("#{unit.name.to_s} spans more than one thermal zone.")
-      end
+
       control_slave_zones_hash = HVAC.get_control_and_slave_zones(thermal_zones)
       control_slave_zones_hash.each do |control_zone, slave_zones|
     
@@ -93,7 +90,7 @@ class ProcessElectricBaseboard < OpenStudio::Ruleset::ModelUserScript
         HVAC.remove_existing_hvac_equipment(model, runner, "Electric Baseboard", control_zone)
       
         htg_coil = OpenStudio::Model::ZoneHVACBaseboardConvectiveElectric.new(model)
-        htg_coil.setName("Living Zone Electric Baseboards")
+        htg_coil.setName("#{control_zone.name} electric baseboards_#{unit_num}")
         if baseboardOutputCapacity != Constants.SizingAuto
             htg_coil.setNominalCapacity(OpenStudio::convert(baseboardOutputCapacity,"Btu/h","W").get)
         end
@@ -108,7 +105,7 @@ class ProcessElectricBaseboard < OpenStudio::Ruleset::ModelUserScript
           HVAC.remove_existing_hvac_equipment(model, runner, "Electric Baseboard", slave_zone)    
         
           htg_coil = OpenStudio::Model::ZoneHVACBaseboardConvectiveElectric.new(model)
-          htg_coil.setName("FBsmt Zone Electric Baseboards")
+          htg_coil.setName("#{slave_zone.name} electric baseboards_#{unit_num}")
           if baseboardOutputCapacity != Constants.SizingAuto
               htg_coil.setNominalCapacity(OpenStudio::convert(baseboardOutputCapacity,"Btu/h","W").get)
           end

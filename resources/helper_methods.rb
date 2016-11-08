@@ -266,19 +266,20 @@ def get_measure_args_from_option_name(lookup_file, option_name, parameter_name, 
     end
     return measure_args
 end
-  
-def print_info(measure_args, measure_dir, option_name, runner)
+
+def print_option_assignment(parameter_name, option_name, runner)
+    runner.registerInfo("Assigning option '#{option_name.to_s}' for parameter '#{parameter_name.to_s}'.")
+end
+
+def print_measure_call(measure_args, measure_dir, runner)
     if measure_args.nil? or measure_dir.nil?
-        runner.registerInfo("Assigning option '#{option_name.to_s}'.")
+        return
+    end
+    args_s = hash_to_string(measure_args, delim=" -> ", separator=" \n")
+    if args_s.size > 0
+        runner.registerInfo("Calling #{measure_dir.to_s} measure with arguments:\n#{args_s}")
     else
-        args_s = hash_to_string(measure_args, delim=" -> ", separator="\n")
-        if args_s.size > 0
-            runner.registerInfo("Assigning option '#{option_name.to_s}'.")
-            runner.registerInfo("Calling #{measure_dir.to_s} measure with arguments:\n#{args_s}")
-        else
-            runner.registerInfo("Assigning option '#{option_name.to_s}'.")
-            runner.registerInfo("Calling #{measure_dir.to_s} measure with no arguments.")
-        end
+        runner.registerInfo("Calling #{measure_dir.to_s} measure with no arguments.")
     end
 end
 
@@ -294,16 +295,16 @@ def get_measure_instance(measure_rb_path)
     return measure
 end
 
-def validate_measure_args(measure_args, provided_args, lookup_file, parameter_name, option_name, runner=nil)
+def validate_measure_args(measure_args, provided_args, lookup_file, measure_name, runner=nil)
     measure_arg_names = measure_args.map { |arg| arg.name }
     # Verify all arguments have been provided
     measure_args.each do |arg|
         next if provided_args.keys.include?(arg.name)
-        register_error("Argument '#{arg.name}' not provided in #{lookup_file.to_s} for parameter '#{parameter_name.to_s}' and option '#{option_name.to_s}'.", runner)
+        register_error("Argument '#{arg.name}' not provided in #{lookup_file.to_s} for measure '#{measure_name.to_s}'.", runner)
     end
     provided_args.keys.each do |k|
         next if measure_arg_names.include?(k)
-        register_error("Extra argument '#{k}' specified in #{lookup_file.to_s} for parameter '#{parameter_name.to_s}' and option '#{option_name.to_s}'.", runner)
+        register_error("Extra argument '#{k}' specified in #{lookup_file.to_s} for measure '#{measure_name.to_s}'.", runner)
     end
     # Check for valid argument values
     measure_args.each do |arg|
@@ -311,7 +312,7 @@ def validate_measure_args(measure_args, provided_args, lookup_file, parameter_na
         provided_val = provided_args[arg.name]
         if provided_val.nil?
             if arg.required
-                register_error("Argument '#{arg.name.to_s}' for parameter '#{parameter_name.to_s}' and option '#{option_name.to_s}' must have a value provided.", runner)
+                register_error("Argument '#{arg.name.to_s}' for measure '#{measure_name.to_s}' must have a value provided.", runner)
             else
                 next
             end
@@ -319,29 +320,29 @@ def validate_measure_args(measure_args, provided_args, lookup_file, parameter_na
         case arg.type.valueName.downcase
         when "boolean"
             if not ['true','false'].include?(provided_val)
-                register_error("Value of '#{provided_val.to_s}' for argument '#{arg.name.to_s}', parameter '#{parameter_name.to_s}', and option '#{option_name.to_s}' must be 'true' or 'false'.", runner)
+                register_error("Value of '#{provided_val.to_s}' for argument '#{arg.name.to_s}' and measure '#{measure_name.to_s}' must be 'true' or 'false'.", runner)
             end 
         when "double"
             if not provided_val.is_number?
-                register_error("Value of '#{provided_val.to_s}' for argument '#{arg.name.to_s}', parameter '#{parameter_name.to_s}', and option '#{option_name.to_s}' must be a number.", runner)
+                register_error("Value of '#{provided_val.to_s}' for argument '#{arg.name.to_s}' and measure '#{measure_name.to_s}' must be a number.", runner)
             end
         when "integer"
             if not provided_val.is_integer?
-                register_error("Value of '#{provided_val.to_s}' for argument '#{arg.name.to_s}', parameter '#{parameter_name.to_s}', and option '#{option_name.to_s}' must be an integer.", runner)
+                register_error("Value of '#{provided_val.to_s}' for argument '#{arg.name.to_s}' and measure '#{measure_name.to_s}' must be an integer.", runner)
             end
         when "string"
             # no op
         when "choice"
             if not arg.choiceValues.include?(provided_val)
-                register_error("Value of '#{provided_val.to_s}' for argument '#{arg.name.to_s}', parameter '#{parameter_name.to_s}', and option '#{option_name.to_s}' must be one of: #{arg.choiceValues.to_s}.", runner)
+                register_error("Value of '#{provided_val.to_s}' for argument '#{arg.name.to_s}' and measure '#{measure_name.to_s}' must be one of: #{arg.choiceValues.to_s}.", runner)
             end
         end
     end 
 end
   
-def get_argument_map(model, measure, provided_args, lookup_file, parameter_name, option_name, runner=nil)
+def get_argument_map(model, measure, provided_args, lookup_file, measure_name, runner=nil)
     measure_args = measure.arguments(model)
-    validate_measure_args(measure_args, provided_args, lookup_file, parameter_name, option_name, runner)
+    validate_measure_args(measure_args, provided_args, lookup_file, measure_name, runner)
     
     # Convert to argument map needed by OS
     argument_map = OpenStudio::Ruleset.convertOSArgumentVectorToMap(measure_args)

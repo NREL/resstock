@@ -210,20 +210,15 @@ class ResidentialClothesWasher < OpenStudio::Ruleset::ModelUserScript
     
     tot_cw_ann_e = 0
     
-    # Hot water schedules vary by number of bedrooms. For a given number of bedroom,
-    # there are 10 different schedules available for different units in a multifamily 
-    # building. This hash tracks which schedule to use.
-    sch_unit_index = {}
-    num_bed_options = (1..5)
-    num_bed_options.each do |num_bed_option|
-        sch_unit_index[num_bed_option.to_f] = -1
-    end
-    
     msgs = []
     units.each do |unit|
         # Get unit beds/baths
         nbeds, nbaths = Geometry.get_unit_beds_baths(model, unit, runner)
         if nbeds.nil? or nbaths.nil?
+            return false
+        end
+        sch_unit_index = Geometry.get_unit_dhw_sched_index(model, unit, runner)
+        if sch_unit_index.nil?
             return false
         end
         
@@ -533,8 +528,7 @@ class ResidentialClothesWasher < OpenStudio::Ruleset::ModelUserScript
         if cw_ann_e > 0
         
             # Create schedule
-            sch_unit_index[nbeds] = (sch_unit_index[nbeds] + 1) % 10
-            sch = HotWaterSchedule.new(model, runner, Constants.ObjectNameClothesWasher + " schedule", Constants.ObjectNameClothesWasher + " temperature schedule", nbeds, sch_unit_index[nbeds], "ClothesWasher", cw_water_temp, File.dirname(__FILE__))
+            sch = HotWaterSchedule.new(model, runner, Constants.ObjectNameClothesWasher + " schedule", Constants.ObjectNameClothesWasher + " temperature schedule", nbeds, sch_unit_index, "ClothesWasher", cw_water_temp, File.dirname(__FILE__))
             if not sch.validated?
                 return false
             end
@@ -559,6 +553,7 @@ class ResidentialClothesWasher < OpenStudio::Ruleset::ModelUserScript
             cw_def = OpenStudio::Model::ElectricEquipmentDefinition.new(model)
             cw = OpenStudio::Model::ElectricEquipment.new(cw_def)
             cw.setName(obj_name)
+            cw.setEndUseSubcategory(obj_name)
             cw.setSpace(space)
             cw_def.setName(obj_name)
             cw_def.setDesignLevel(design_level)
@@ -574,7 +569,7 @@ class ResidentialClothesWasher < OpenStudio::Ruleset::ModelUserScript
             cw2.setSpace(space)
             cw_def2.setName(obj_name)
             cw_def2.setPeakFlowRate(peak_flow)
-            cw_def2.setEndUseSubcategory("Domestic Hot Water")
+            cw_def2.setEndUseSubcategory(obj_name)
             cw2.setFlowRateFractionSchedule(sch.schedule)
             cw_def2.setTargetTemperatureSchedule(sch.temperatureSchedule)
             water_use_connection.addWaterUseEquipment(cw2)

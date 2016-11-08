@@ -123,14 +123,24 @@ class ResidentialGasLighting < OpenStudio::Ruleset::ModelUserScript
         unit_obj_name = Constants.ObjectNameGasLighting(unit.name.to_s)
     
         # Remove any existing gas lighting
-        gl_removed = false
+        objects_to_remove = []
         space.gasEquipment.each do |space_equipment|
             next if space_equipment.name.to_s != unit_obj_name
-            space_equipment.remove
-            gl_removed = true
+            objects_to_remove << space_equipment
+            objects_to_remove << space_equipment.gasEquipmentDefinition
+            if space_equipment.schedule.is_initialized
+                objects_to_remove << space_equipment.schedule.get
+            end
         end
-        if gl_removed
+        if objects_to_remove.size > 0
             runner.registerInfo("Removed existing gas lighting from outside.")
+        end
+        objects_to_remove.uniq.each do |object|
+            begin
+                object.remove
+            rescue
+                # no op
+            end
         end
     
         #Calculate annual energy use
@@ -162,6 +172,7 @@ class ResidentialGasLighting < OpenStudio::Ruleset::ModelUserScript
             gl_def = OpenStudio::Model::GasEquipmentDefinition.new(model)
             gl = OpenStudio::Model::GasEquipment.new(gl_def)
             gl.setName(unit_obj_name)
+            gl.setEndUseSubcategory(unit_obj_name)
             gl.setSpace(space)
             gl_def.setName(unit_obj_name)
             gl_def.setDesignLevel(design_level)

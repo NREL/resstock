@@ -113,17 +113,28 @@ class ResidentialMiscellaneousElectricLoads < OpenStudio::Ruleset::ModelUserScri
         unit.spaces.each do |space|
             next if Geometry.space_is_unfinished(space)
             
-            space_obj_name = "#{Constants.ObjectNameMiscPlugLoads(unit.name.to_s)}|#{space.name.to_s}"
+            obj_name = "#{Constants.ObjectNameMiscPlugLoads(unit.name.to_s)}"
+            space_obj_name = "#{obj_name}|#{space.name.to_s}"
             
             # Remove any existing mels
-            mels_removed = false
+            objects_to_remove = []
             space.electricEquipment.each do |space_equipment|
                 next if space_equipment.name.to_s != space_obj_name
-                space_equipment.remove
-                mels_removed = true
+                objects_to_remove << space_equipment
+                objects_to_remove << space_equipment.electricEquipmentDefinition
+                if space_equipment.schedule.is_initialized
+                    objects_to_remove << space_equipment.schedule.get
+                end
             end
-            if mels_removed
+            if objects_to_remove.size > 0
                 runner.registerInfo("Removed existing plug loads from space #{space.name.to_s}.")
+            end
+            objects_to_remove.uniq.each do |object|
+                begin
+                    object.remove
+                rescue
+                    # no op
+                end
             end
             
             if mel_ann > 0
@@ -143,6 +154,7 @@ class ResidentialMiscellaneousElectricLoads < OpenStudio::Ruleset::ModelUserScri
                 mel_def = OpenStudio::Model::ElectricEquipmentDefinition.new(model)
                 mel = OpenStudio::Model::ElectricEquipment.new(mel_def)
                 mel.setName(space_obj_name)
+                mel.setEndUseSubcategory(obj_name)
                 mel.setSpace(space)
                 mel_def.setName(space_obj_name)
                 mel_def.setDesignLevel(space_design_level)

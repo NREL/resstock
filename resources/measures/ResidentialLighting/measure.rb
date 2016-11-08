@@ -340,17 +340,30 @@ class ResidentialLighting < OpenStudio::Ruleset::ModelUserScript
     end
     
     # Remove all existing lighting
-    ltg_removed = false
+    objects_to_remove = []
     model.getExteriorLightss.each do |exterior_light|
-        exterior_light.remove
-        ltg_removed = true
+        objects_to_remove << exterior_light
+        objects_to_remove << exterior_light.exteriorLightsDefinition
+        if exterior_light.schedule.is_initialized
+            objects_to_remove << exterior_light.schedule.get
+        end
     end
     model.getLightss.each do |light|
-        light.remove
-        ltg_removed = true
+        objects_to_remove << light
+        objects_to_remove << light.lightsDefinition
+        if light.schedule.is_initialized
+            objects_to_remove << light.schedule.get
+        end
     end
-    if ltg_removed
+    if objects_to_remove.size > 0
         runner.registerInfo("Removed existing interior/exterior lighting from the model.")
+    end
+    objects_to_remove.uniq.each do |object|
+        begin
+            object.remove
+        rescue
+            # no op
+        end
     end
 
     tot_ltg = 0

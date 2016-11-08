@@ -2,8 +2,8 @@
   <schema_version>3.0</schema_version>
   <name>process_air_source_heat_pump</name>
   <uid>9f709cf6-cf55-4bb3-8087-7a5c5a98aa7c</uid>
-  <version_id>e763c621-3025-4a6f-af86-0bac59284589</version_id>
-  <version_modified>20161018T190143Z</version_modified>
+  <version_id>113f3588-5cab-42fe-895d-198584ae0470</version_id>
+  <version_modified>20161103T221218Z</version_modified>
   <xml_checksum>0DA5C9E6</xml_checksum>
   <class_name>ProcessAirSourceHeatPump</class_name>
   <display_name>Set Residential Air Source Heat Pump</display_name>
@@ -11,9 +11,9 @@
   <modeler_description>Any supply components or baseboard convective electrics/waters are removed from any existing air/plant loops or zones. Any existing air/plant loops are also removed. A heating DX coil, cooling DX coil, electric supplemental heating coil, and an on/off supply fan are added to a unitary air loop. The unitary air loop is added to the supply inlet node of the air loop. This air loop is added to a branch for the living zone. A diffuser is added to the branch for the living zone as well as for the finished basement if it exists.</modeler_description>
   <arguments>
     <argument>
-      <name>ashpInstalledSEER</name>
+      <name>seer</name>
       <display_name>Installed SEER</display_name>
-      <description>The installed Seasonal Energy Efficiency Ratio (SEER) of the heat pump, and the installed Heating Seasonal Performance Factor (HSPF) of the heat pump.</description>
+      <description>The installed Seasonal Energy Efficiency Ratio (SEER) of the heat pump.</description>
       <type>Double</type>
       <units>Btu/W-h</units>
       <required>true</required>
@@ -21,9 +21,9 @@
       <default_value>13</default_value>
     </argument>
     <argument>
-      <name>ashpInstalledHSPF</name>
+      <name>hspf</name>
       <display_name>Installed HSPF</display_name>
-      <description>The installed Seasonal Energy Efficiency Ratio (SEER) of the heat pump, and the installed Heating Seasonal Performance Factor (HSPF) of the heat pump.</description>
+      <description>The installed Heating Seasonal Performance Factor (HSPF) of the heat pump.</description>
       <type>Double</type>
       <units>Btu/W-h</units>
       <required>true</required>
@@ -31,7 +31,7 @@
       <default_value>7.7</default_value>
     </argument>
     <argument>
-      <name>ashpNumberSpeeds</name>
+      <name>num_speeds</name>
       <display_name>Number of Speeds</display_name>
       <description>Number of speeds of the compressor.</description>
       <type>Double</type>
@@ -41,7 +41,7 @@
       <default_value>1</default_value>
     </argument>
     <argument>
-      <name>ashpEER</name>
+      <name>eer</name>
       <display_name>EER</display_name>
       <description>EER (net) from the A test (95 ODB/80 EDB/67 EWB) for each of the compressor speeds.</description>
       <type>String</type>
@@ -51,7 +51,7 @@
       <default_value>11.4</default_value>
     </argument>
     <argument>
-      <name>ashpCOP</name>
+      <name>cop</name>
       <display_name>COP</display_name>
       <description>COP (net) at 47 ODB/70 EDB/60 EWB (AHRI rated conditions) for each of the compressor speeds.</description>
       <type>String</type>
@@ -61,7 +61,7 @@
       <default_value>3.05</default_value>
     </argument>
     <argument>
-      <name>ashpSHRRated</name>
+      <name>shr</name>
       <display_name>Rated SHR</display_name>
       <description>The sensible heat ratio (ratio of the sensible portion of the load to the total load) at the nominal rated capacity for each of the compressor speeds.</description>
       <type>String</type>
@@ -70,7 +70,7 @@
       <default_value>0.73</default_value>
     </argument>
     <argument>
-      <name>ashpCapacityRatio</name>
+      <name>capacity_ratio</name>
       <display_name>Capacity Ratio</display_name>
       <description>Capacity divided by rated capacity for each of the compressor speeds.</description>
       <type>String</type>
@@ -79,7 +79,7 @@
       <default_value>1.0</default_value>
     </argument>
     <argument>
-      <name>ashpRatedAirFlowRateCooling</name>
+      <name>airflow_rate_cooling</name>
       <display_name>Rated Air Flow Rate, Cooling</display_name>
       <description>Air flow rate (cfm) per ton of rated capacity, in cooling mode.</description>
       <type>Double</type>
@@ -89,7 +89,7 @@
       <default_value>394.2</default_value>
     </argument>
     <argument>
-      <name>ashpRatedAirFlowRateHeating</name>
+      <name>airflow_rate_heating</name>
       <display_name>Rated Air Flow Rate, Heating</display_name>
       <description>Air flow rate (cfm) per ton of rated capacity, in heating mode.</description>
       <type>Double</type>
@@ -99,7 +99,7 @@
       <default_value>384.1</default_value>
     </argument>
     <argument>
-      <name>ashpFanspeedRatioCooling</name>
+      <name>fan_speed_ratio_cooling</name>
       <display_name>Fan Speed Ratio Cooling</display_name>
       <description>Cooling fan speed divided by fan speed at the compressor speed for which Capacity Ratio = 1.0 for each of the compressor speeds.</description>
       <type>String</type>
@@ -108,7 +108,7 @@
       <default_value>1.0</default_value>
     </argument>
     <argument>
-      <name>ashpFanspeedRatioHeating</name>
+      <name>fan_speed_ratio_heating</name>
       <display_name>Fan Speed Ratio Heating</display_name>
       <description>Heating fan speed divided by fan speed at the compressor speed for which Capacity Ratio = 1.0 for each of the compressor speeds.</description>
       <type>String</type>
@@ -117,7 +117,7 @@
       <default_value>1.0</default_value>
     </argument>
     <argument>
-      <name>ashpSupplyFanPowerRated</name>
+      <name>fan_power_rated</name>
       <display_name>Rated Supply Fan Power</display_name>
       <description>Fan power (in W) per delivered airflow rate (in cfm) of the outdoor fan under conditions prescribed by AHRI Standard 210/240 for SEER testing.</description>
       <type>Double</type>
@@ -127,7 +127,7 @@
       <default_value>0.365</default_value>
     </argument>
     <argument>
-      <name>ashpSupplyFanPowerInstalled</name>
+      <name>fan_power_installed</name>
       <display_name>Installed Supply Fan Power</display_name>
       <description>Fan power (in W) per delivered airflow rate (in cfm) of the outdoor fan for the maximum fan speed under actual operating conditions.</description>
       <type>Double</type>
@@ -137,7 +137,7 @@
       <default_value>0.5</default_value>
     </argument>
     <argument>
-      <name>ashpMinTemp</name>
+      <name>min_temp</name>
       <display_name>Min Temp</display_name>
       <description>Outdoor dry-bulb temperature below which compressor turns off.</description>
       <type>Double</type>
@@ -147,7 +147,7 @@
       <default_value>0</default_value>
     </argument>
     <argument>
-      <name>ashpCrankcase</name>
+      <name>crankcase_capacity</name>
       <display_name>Crankcase</display_name>
       <description>Capacity of the crankcase heater for the compressor.</description>
       <type>Double</type>
@@ -157,7 +157,7 @@
       <default_value>0.02</default_value>
     </argument>
     <argument>
-      <name>ashpCrankcaseMaxT</name>
+      <name>crankcase_max_temp</name>
       <display_name>Crankcase Max Temp</display_name>
       <description>Outdoor dry-bulb temperature above which compressor crankcase heating is disabled.</description>
       <type>Double</type>
@@ -167,7 +167,7 @@
       <default_value>55</default_value>
     </argument>
     <argument>
-      <name>ashpEERCapacityDerateFactor1ton</name>
+      <name>eer_capacity_derate_1ton</name>
       <display_name>1.5 Ton EER Capacity Derate</display_name>
       <description>EER multiplier for 1.5 ton air-conditioners.</description>
       <type>Double</type>
@@ -176,7 +176,7 @@
       <default_value>1</default_value>
     </argument>
     <argument>
-      <name>ashpEERCapacityDerateFactor2ton</name>
+      <name>eer_capacity_derate_2ton</name>
       <display_name>2 Ton EER Capacity Derate</display_name>
       <description>EER multiplier for 2 ton air-conditioners.</description>
       <type>Double</type>
@@ -185,7 +185,7 @@
       <default_value>1</default_value>
     </argument>
     <argument>
-      <name>ashpEERCapacityDerateFactor3ton</name>
+      <name>eer_capacity_derate_3ton</name>
       <display_name>3 Ton EER Capacity Derate</display_name>
       <description>EER multiplier for 3 ton air-conditioners.</description>
       <type>Double</type>
@@ -194,7 +194,7 @@
       <default_value>1</default_value>
     </argument>
     <argument>
-      <name>ashpEERCapacityDerateFactor4ton</name>
+      <name>eer_capacity_derate_4ton</name>
       <display_name>4 Ton EER Capacity Derate</display_name>
       <description>EER multiplier for 4 ton air-conditioners.</description>
       <type>Double</type>
@@ -203,7 +203,7 @@
       <default_value>1</default_value>
     </argument>
     <argument>
-      <name>ashpEERCapacityDerateFactor5ton</name>
+      <name>eer_capacity_derate_5ton</name>
       <display_name>5 Ton EER Capacity Derate</display_name>
       <description>EER multiplier for 5 ton air-conditioners.</description>
       <type>Double</type>
@@ -212,7 +212,7 @@
       <default_value>1</default_value>
     </argument>
     <argument>
-      <name>ashpCOPCapacityDerateFactor1ton</name>
+      <name>cop_capacity_derate_1ton</name>
       <display_name>1.5 Ton COP Capacity Derate</display_name>
       <description>COP multiplier for 1.5 ton air-conditioners.</description>
       <type>Double</type>
@@ -221,7 +221,7 @@
       <default_value>1</default_value>
     </argument>
     <argument>
-      <name>ashpCOPCapacityDerateFactor2ton</name>
+      <name>cop_capacity_derate_2ton</name>
       <display_name>2 Ton COP Capacity Derate</display_name>
       <description>COP multiplier for 2 ton air-conditioners.</description>
       <type>Double</type>
@@ -230,7 +230,7 @@
       <default_value>1</default_value>
     </argument>
     <argument>
-      <name>ashpCOPCapacityDerateFactor3ton</name>
+      <name>cop_capacity_derate_3ton</name>
       <display_name>3 Ton COP Capacity Derate</display_name>
       <description>COP multiplier for 3 ton air-conditioners.</description>
       <type>Double</type>
@@ -239,7 +239,7 @@
       <default_value>1</default_value>
     </argument>
     <argument>
-      <name>ashpCOPCapacityDerateFactor4ton</name>
+      <name>cop_capacity_derate_4ton</name>
       <display_name>4 Ton COP Capacity Derate</display_name>
       <description>COP multiplier for 4 ton air-conditioners.</description>
       <type>Double</type>
@@ -248,7 +248,7 @@
       <default_value>1</default_value>
     </argument>
     <argument>
-      <name>ashpCOPCapacityDerateFactor5ton</name>
+      <name>cop_capacity_derate_5ton</name>
       <display_name>5 Ton COP Capacity Derate</display_name>
       <description>COP multiplier for 5 ton air-conditioners.</description>
       <type>Double</type>
@@ -257,7 +257,7 @@
       <default_value>1</default_value>
     </argument>
     <argument>
-      <name>hpcap</name>
+      <name>heat_pump_capacity</name>
       <display_name>Cooling/Heating Output Capacity</display_name>
       <type>Choice</type>
       <required>true</required>
@@ -351,7 +351,7 @@
       </choices>
     </argument>
     <argument>
-      <name>supcap</name>
+      <name>supplemental_capacity</name>
       <display_name>Supplemental Heating Output Capacity</display_name>
       <type>Choice</type>
       <required>true</required>
@@ -503,30 +503,6 @@
   </attributes>
   <files>
     <file>
-      <filename>unit_conversions.rb</filename>
-      <filetype>rb</filetype>
-      <usage_type>resource</usage_type>
-      <checksum>9A23E14E</checksum>
-    </file>
-    <file>
-      <filename>process_air_source_heat_pump_test.rb</filename>
-      <filetype>rb</filetype>
-      <usage_type>test</usage_type>
-      <checksum>A5DB5335</checksum>
-    </file>
-    <file>
-      <filename>util.rb</filename>
-      <filetype>rb</filetype>
-      <usage_type>resource</usage_type>
-      <checksum>B9256575</checksum>
-    </file>
-    <file>
-      <filename>hvac.rb</filename>
-      <filetype>rb</filetype>
-      <usage_type>resource</usage_type>
-      <checksum>5E54715B</checksum>
-    </file>
-    <file>
       <filename>multifamily_8_units.osm</filename>
       <filetype>osm</filetype>
       <usage_type>test</usage_type>
@@ -626,13 +602,19 @@
       <filename>singlefamily_detached_fbsmt_mshp.osm</filename>
       <filetype>osm</filetype>
       <usage_type>test</usage_type>
-      <checksum>8783D859</checksum>
+      <checksum>2350A601</checksum>
     </file>
     <file>
-      <filename>constants.rb</filename>
+      <filename>geometry.rb</filename>
       <filetype>rb</filetype>
       <usage_type>resource</usage_type>
-      <checksum>E4899227</checksum>
+      <checksum>9A86F3EB</checksum>
+    </file>
+    <file>
+      <filename>process_air_source_heat_pump_test.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>test</usage_type>
+      <checksum>DCF970A1</checksum>
     </file>
     <file>
       <version>
@@ -643,13 +625,31 @@
       <filename>measure.rb</filename>
       <filetype>rb</filetype>
       <usage_type>script</usage_type>
-      <checksum>83CD4634</checksum>
+      <checksum>3F2AD687</checksum>
     </file>
     <file>
-      <filename>geometry.rb</filename>
+      <filename>constants.rb</filename>
       <filetype>rb</filetype>
       <usage_type>resource</usage_type>
-      <checksum>4D0A9290</checksum>
+      <checksum>D6592C9C</checksum>
+    </file>
+    <file>
+      <filename>hvac.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>C2C5EE94</checksum>
+    </file>
+    <file>
+      <filename>unit_conversions.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>92D6C640</checksum>
+    </file>
+    <file>
+      <filename>util.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>22C6561D</checksum>
     </file>
   </files>
 </measure>

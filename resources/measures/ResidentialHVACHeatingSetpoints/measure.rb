@@ -226,7 +226,7 @@ class ProcessHeatingSetpoints < OpenStudio::Ruleset::ModelUserScript
         end        
         
         thermostatsetpointdualsetpoint = OpenStudio::Model::ThermostatSetpointDualSetpoint.new(model)
-        thermostatsetpointdualsetpoint.setName("Living Zone Temperature SP")
+        thermostatsetpointdualsetpoint.setName("#{finished_zone.name} temperature setpoint")
         runner.registerInfo("Created new thermostat #{thermostatsetpointdualsetpoint.name} for #{finished_zone.name}.")
         thermostatsetpointdualsetpoint.setHeatingSetpointTemperatureSchedule(heatingsetpoint.schedule)
         finished_zone.setThermostatSetpointDualSetpoint(thermostatsetpointdualsetpoint)
@@ -239,6 +239,11 @@ class ProcessHeatingSetpoints < OpenStudio::Ruleset::ModelUserScript
 
     end
 
+    model.getScheduleDays.each do |obj| # remove orphaned summer and winter design day schedules
+      next if obj.directUseCount > 0
+      obj.remove
+    end
+    
     return true
  
   end #end the run method

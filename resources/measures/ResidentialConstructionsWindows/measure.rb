@@ -35,33 +35,33 @@ class ProcessConstructionsWindows < OpenStudio::Ruleset::ModelUserScript
     args = OpenStudio::Ruleset::OSArgumentVector.new
 
     #make an argument for entering optional window u-factor
-    userdefined_ufactor = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("ufactor",false)
-    userdefined_ufactor.setDisplayName("U-Value")
-    userdefined_ufactor.setUnits("Btu/hr-ft^2-R")
-    userdefined_ufactor.setDescription("The heat transfer coefficient of the windows.")
-    userdefined_ufactor.setDefaultValue(0.37)
-    args << userdefined_ufactor
+    ufactor = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("ufactor",false)
+    ufactor.setDisplayName("U-Value")
+    ufactor.setUnits("Btu/hr-ft^2-R")
+    ufactor.setDescription("The heat transfer coefficient of the windows.")
+    ufactor.setDefaultValue(0.37)
+    args << ufactor
 
     #make an argument for entering optional window shgc
-    userdefined_shgc = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("shgc",false)
-    userdefined_shgc.setDisplayName("SHGC")
-    userdefined_shgc.setDescription("The ratio of solar heat gain through a glazing system compared to that of an unobstructed opening.")
-    userdefined_shgc.setDefaultValue(0.3)
-    args << userdefined_shgc
+    shgc = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("shgc",false)
+    shgc.setDisplayName("SHGC")
+    shgc.setDescription("The ratio of solar heat gain through a glazing system compared to that of an unobstructed opening.")
+    shgc.setDefaultValue(0.3)
+    args << shgc
 
     #make an argument for entering optional window u-factor
-    userdefined_intshadeheatingmult = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("userdefinedintshadeheatingmult",false)
-    userdefined_intshadeheatingmult.setDisplayName("Heating Shade Multiplier")
-    userdefined_intshadeheatingmult.setDescription("Interior shading multiplier for heating season.")
-    userdefined_intshadeheatingmult.setDefaultValue(0.7)
-    args << userdefined_intshadeheatingmult
+    heating_shade_mult = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("heating_shade_mult",false)
+    heating_shade_mult.setDisplayName("Heating Shade Multiplier")
+    heating_shade_mult.setDescription("Interior shading multiplier for heating season.")
+    heating_shade_mult.setDefaultValue(0.7)
+    args << heating_shade_mult
 
     #make an argument for entering optional window shgc
-    userdefined_intshadecoolingmult = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("userdefinedintshadecoolingmult",false)
-    userdefined_intshadecoolingmult.setDisplayName("Cooling Shade Multiplier")
-    userdefined_intshadecoolingmult.setDescription("Interior shading multiplier for cooling season.")
-    userdefined_intshadecoolingmult.setDefaultValue(0.7)
-    args << userdefined_intshadecoolingmult
+    cooling_shade_mult = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("cooling_shade_mult",false)
+    cooling_shade_mult.setDisplayName("Cooling Shade Multiplier")
+    cooling_shade_mult.setDescription("Interior shading multiplier for cooling season.")
+    cooling_shade_mult.setDefaultValue(0.7)
+    args << cooling_shade_mult
 
     return args
   end #end the arguments method
@@ -106,8 +106,8 @@ class ProcessConstructionsWindows < OpenStudio::Ruleset::ModelUserScript
     end
 
     intShadeCoolingMonths = nil # FIXME: Implement
-    intShadeHeatingMultiplier = runner.getDoubleArgumentValue("userdefinedintshadeheatingmult",user_arguments)
-    intShadeCoolingMultiplier = runner.getDoubleArgumentValue("userdefinedintshadecoolingmult",user_arguments)
+    intShadeHeatingMultiplier = runner.getDoubleArgumentValue("heating_shade_mult",user_arguments)
+    intShadeCoolingMultiplier = runner.getDoubleArgumentValue("cooling_shade_mult",user_arguments)
 
     weather = WeatherProcess.new(model, runner, File.dirname(__FILE__))
     if weather.error?

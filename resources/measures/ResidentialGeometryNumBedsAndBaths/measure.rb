@@ -28,14 +28,14 @@ class AddResidentialBedroomsAndBathrooms < OpenStudio::Ruleset::ModelUserScript
     args = OpenStudio::Ruleset::OSArgumentVector.new		
 
     #make a string argument for number of bedrooms
-    num_br = OpenStudio::Ruleset::OSArgument::makeStringArgument("Num_Br", false)
+    num_br = OpenStudio::Ruleset::OSArgument::makeStringArgument("num_bedrooms", false)
     num_br.setDisplayName("Number of Bedrooms")
     num_br.setDescription("Specify the number of bedrooms. For a multifamily building, specify one value for all units or a comma-separated set of values (in the correct order) for each unit. Used to determine the energy usage of appliances and plug loads, hot water usage, mechanical ventilation rate, etc.")
     num_br.setDefaultValue("3")
     args << num_br
     
     #make a string argument for number of bathrooms
-    num_ba = OpenStudio::Ruleset::OSArgument::makeStringArgument("Num_Ba", false)
+    num_ba = OpenStudio::Ruleset::OSArgument::makeStringArgument("num_bathrooms", false)
     num_ba.setDisplayName("Number of Bathrooms")
     num_ba.setDescription("Specify the number of bathrooms. For a multifamily building, specify one value for all units or a comma-separated set of values (in the correct order) for each unit. Used to determine the hot water usage, etc.")
     num_ba.setDefaultValue("2")
@@ -53,8 +53,8 @@ class AddResidentialBedroomsAndBathrooms < OpenStudio::Ruleset::ModelUserScript
       return false
     end
 	
-    num_br = runner.getStringArgumentValue("Num_Br", user_arguments).split(",").map(&:strip)
-    num_ba = runner.getStringArgumentValue("Num_Ba", user_arguments).split(",").map(&:strip)
+    num_br = runner.getStringArgumentValue("num_bedrooms", user_arguments).split(",").map(&:strip)
+    num_ba = runner.getStringArgumentValue("num_bathrooms", user_arguments).split(",").map(&:strip)
     
     # Get building units
     units = Geometry.get_building_units(model, runner)

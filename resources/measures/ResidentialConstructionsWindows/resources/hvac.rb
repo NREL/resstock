@@ -56,8 +56,7 @@ class HVAC
             elsif num_speeds == Constants.Num_Speeds_MSHP
                 # NOTE: These coefficients are in SI UNITS, which differs from the coefficients for 1, 2, and 4 speed units, which are in IP UNITS
                 curves.COOL_CAP_FT_SPEC_coefficients = [[1.008993521905866, 0.006512749025457, 0.0, 0.003917565735935, -0.000222646705889, 0.0]] * num_speeds
-                curves.COOL_EIR_FT_SPEC_coefficients = [[0.429214441601141, -0.003604841598515, 0.000045783162727, 0.026490875804937, -0.000159212286878, -0.000159062656483]] * num_speeds
-                
+                curves.COOL_EIR_FT_SPEC_coefficients = [[0.429214441601141, -0.003604841598515, 0.000045783162727, 0.026490875804937, -0.000159212286878, -0.000159062656483]] * num_speeds                
                 curves.COOL_CAP_FFLOW_SPEC_coefficients = [[1, 0, 0]] * num_speeds
                 curves.COOL_EIR_FFLOW_SPEC_coefficients = [[1, 0, 0]] * num_speeds
 
@@ -94,8 +93,7 @@ class HVAC
             elsif num_speeds == Constants.Num_Speeds_MSHP
                 # NOTE: These coefficients are in SI UNITS, which differs from the coefficients for 1, 2, and 4 speed units, which are in IP UNITS
                 curves.COOL_CAP_FT_SPEC_coefficients = [[1.008993521905866, 0.006512749025457, 0.0, 0.003917565735935, -0.000222646705889, 0.0]] * num_speeds
-                curves.COOL_EIR_FT_SPEC_coefficients = [[0.429214441601141, -0.003604841598515, 0.000045783162727, 0.026490875804937, -0.000159212286878, -0.000159062656483]] * num_speeds
-                
+                curves.COOL_EIR_FT_SPEC_coefficients = [[0.429214441601141, -0.003604841598515, 0.000045783162727, 0.026490875804937, -0.000159212286878, -0.000159062656483]] * num_speeds                
                 curves.COOL_CAP_FFLOW_SPEC_coefficients = [[1, 0, 0]] * num_speeds
                 curves.COOL_EIR_FFLOW_SPEC_coefficients = [[1, 0, 0]] * num_speeds
                 
@@ -104,7 +102,7 @@ class HVAC
         return curves
     end
 
-    def self.get_heating_coefficients(runner, num_speeds, curves, min_compressor_temp=nil)
+    def self.get_heating_coefficients(runner, num_speeds, curves, min_compressor_temp, mshp_capacity_retention_fraction=nil, mshp_capacity_retention_temperature=nil)
         # Hard coded curves
         if num_speeds == 1
             curves.HEAT_CAP_FT_SPEC_coefficients = [0.566333415, -0.000744164, -0.0000103, 0.009414634, 0.0000506, -0.00000675]
@@ -145,8 +143,31 @@ class HVAC
             curves.HEAT_EIR_FFLOW_SPEC_coefficients = [[1, 0, 0], [1, 0, 0], [1, 0, 0], [1, 0, 0]]
             
         elsif num_speeds == Constants.Num_Speeds_MSHP
+            # Mini-Split Heat Pump Heating Curve Coefficients
             # NOTE: These coefficients are in SI UNITS, which differs from the coefficients for 1, 2, and 4 speed units, which are in IP UNITS
-            curves.HEAT_CAP_FT_SPEC_coefficients = [[1.1527124655908571, -0.010386676170938, 0.0, 0.011263752411403, -0.000392549621117, 0.0]] * num_speeds            
+            # Derive coefficients from user input for capacity retention at outdoor drybulb temperature X [C].
+            # Biquadratic: capacity multiplier = a + b*IAT + c*IAT^2 + d*OAT + e*OAT^2 + f*IAT*OAT
+            x_A = OpenStudio::convert(mshp_capacity_retention_temperature,"F", "C").get
+            y_A = mshp_capacity_retention_fraction
+            x_B = OpenStudio::convert(47.0,"F","C").get # 47F is the rating point
+            y_B = 1.0 # Maximum capacity factor is 1 at the rating point, by definition (this is maximum capacity, not nominal capacity)
+            oat_slope = (y_B - y_A) / (x_B - x_A)
+            oat_intercept = y_A - (x_A*oat_slope)
+            
+            # Coefficients for the indoor temperature relationship are retained from the BEoptDefault curve (Daikin lab data).
+            iat_slope = -0.010386676170938
+            iat_intercept = 0.219274275 
+            
+            a = oat_intercept + iat_intercept
+            b = iat_slope
+            c = 0
+            d = oat_slope
+            e = 0
+            f = 0
+            curves.HEAT_CAP_FT_SPEC_coefficients = [[a, b, c, d, e, f]] * num_speeds         
+            
+            # COP/EIR as a function of temperature
+            # Generic "BEoptDefault" curves (=Daikin from lab data)            
             curves.HEAT_EIR_FT_SPEC_coefficients = [[0.966475472847719, 0.005914950101249, 0.000191201688297, -0.012965668198361, 0.000042253229429, -0.000524002558712]] * num_speeds
             
             curves.HEAT_CAP_FFLOW_SPEC_coefficients = [[1, 0, 0]] * num_speeds
@@ -738,10 +759,6 @@ class HVAC
               runner.registerInfo("Removed '#{clg_coil.name}' from air loop '#{air_loop.name}'")
               air_loop_unitary.resetCoolingCoil
               clg_coil.remove
-              model.getScheduleConstants.each do |s|
-                next if !s.name.to_s.start_with?("SupplyFanAvailability")
-                s.remove
-              end
               air_loop_unitary.supplyFan.get.remove
               if air_loop_unitary.supplyAirFanOperatingModeSchedule.is_initialized
                 air_loop_unitary.supplyAirFanOperatingModeSchedule.get.remove
@@ -752,10 +769,6 @@ class HVAC
                 cloned_clg_coil = clg_coil.clone
                 air_loop_unitary.resetCoolingCoil
                 clg_coil.remove
-                model.getScheduleConstants.each do |s|
-                  next if !s.name.to_s.start_with?("SupplyFanAvailability")
-                  s.remove
-                end
                 air_loop_unitary.supplyFan.get.remove
                 if air_loop_unitary.supplyAirFanOperatingModeSchedule.is_initialized
                   air_loop_unitary.supplyAirFanOperatingModeSchedule.get.remove
@@ -764,7 +777,8 @@ class HVAC
                   cloned_clg_coil = cloned_clg_coil.to_CoilCoolingDXSingleSpeed.get
                 elsif cloned_clg_coil.to_CoilCoolingDXMultiSpeed.is_initialized
                   cloned_clg_coil = cloned_clg_coil.to_CoilCoolingDXMultiSpeed.get
-                end        
+                end
+                cloned_clg_coil.setName(clg_coil.name.to_s)
                 return cloned_clg_coil
               else
                 return true
@@ -802,10 +816,6 @@ class HVAC
               runner.registerInfo("Removed '#{htg_coil.name}' from air loop '#{air_loop.name}'")
               air_loop_unitary.resetHeatingCoil
               htg_coil.remove
-              model.getScheduleConstants.each do |s|
-                next if !s.name.to_s.start_with?("SupplyFanAvailability")
-                s.remove
-              end
               air_loop_unitary.supplyFan.get.remove
               if air_loop_unitary.supplyAirFanOperatingModeSchedule.is_initialized
                 air_loop_unitary.supplyAirFanOperatingModeSchedule.get.remove
@@ -816,10 +826,6 @@ class HVAC
                 cloned_htg_coil = htg_coil.clone
                 air_loop_unitary.resetHeatingCoil
                 htg_coil.remove
-                model.getScheduleConstants.each do |s|
-                  next if !s.name.to_s.start_with?("SupplyFanAvailability")
-                  s.remove
-                end
                 air_loop_unitary.supplyFan.get.remove
                 if air_loop_unitary.supplyAirFanOperatingModeSchedule.is_initialized
                   air_loop_unitary.supplyAirFanOperatingModeSchedule.get.remove
@@ -829,6 +835,7 @@ class HVAC
                 elsif cloned_htg_coil.to_CoilHeatingElectric.is_initialized
                   cloned_htg_coil = cloned_htg_coil.to_CoilHeatingElectric.get
                 end
+                cloned_htg_coil.setName(htg_coil.name.to_s)
                 return cloned_htg_coil
               else
                 return true
@@ -926,6 +933,10 @@ class HVAC
             if remove
               runner.registerInfo("Removed air loop '#{air_loop.name}'")
               air_loop.remove
+              model.getScheduleConstants.each do |s|
+                next if !s.name.to_s.start_with?("SupplyFanAvailability")
+                s.remove
+              end  
               return true
             end
           end

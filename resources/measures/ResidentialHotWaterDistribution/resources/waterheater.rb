@@ -286,7 +286,6 @@ class Waterheater
         new_heater.setHeaterMaximumCapacity(capacity_w)
         new_heater.setHeaterFuelType(fuel_eplus)
         new_heater.setHeaterThermalEfficiency(eta_c)
-        new_heater.setAmbientTemperatureIndicator("ThermalZone")
         new_heater.setTankVolume(vol_m3)
         
         #Set parasitic power consumption
@@ -332,7 +331,11 @@ class Waterheater
         new_heater.setOffCycleLossFractiontoThermalZone(skinlossfrac)
         new_heater.setOnCycleLossFractiontoThermalZone(1.0)
 
+        new_heater.setAmbientTemperatureIndicator("ThermalZone")
         new_heater.setAmbientTemperatureThermalZone(thermal_zone)
+        if new_heater.ambientTemperatureSchedule.is_initialized
+            new_heater.ambientTemperatureSchedule.get.remove
+        end
         ua_w_k = OpenStudio::convert(ua, "Btu/hr*R", "W/K").get
         new_heater.setOnCycleLossCoefficienttoAmbientTemperature(ua_w_k)
         new_heater.setOffCycleLossCoefficienttoAmbientTemperature(ua_w_k)
@@ -342,7 +345,10 @@ class Waterheater
   
     def self.configure_setpoint_schedule(new_heater, t_set, tanktype, model)
         set_temp_c = OpenStudio::convert(t_set,"F","C").get + self.deadband(tanktype)/2.0 #Half the deadband to account for E+ deadband
-        new_schedule = self.create_new_schedule_ruleset("DHW Set Temp", "DHW Set Temp", set_temp_c, model)
+        new_schedule = self.create_new_schedule_ruleset("WH Setpoint Temp", "WH Setpoint Temp", set_temp_c, model)
+        if new_heater.setpointTemperatureSchedule.is_initialized
+            new_heater.setpointTemperatureSchedule.get.remove
+        end
         new_heater.setSetpointTemperatureSchedule(new_schedule)
     end
     

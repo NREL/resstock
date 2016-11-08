@@ -2,8 +2,8 @@
   <schema_version>3.0</schema_version>
   <name>residential_hot_water_heater_tank_electric</name>
   <uid>cfbe1e78-78db-4902-aba3-95d23310802e</uid>
-  <version_id>057fe6f5-9f95-475c-9e6a-c9ca1290ca4c</version_id>
-  <version_modified>20161018T190142Z</version_modified>
+  <version_id>b564cbcb-71df-49ff-9d37-4a1a1c5ac3bb</version_id>
+  <version_modified>20161103T221216Z</version_modified>
   <xml_checksum>9882CBDB</xml_checksum>
   <class_name>ResidentialHotWaterHeaterTankElectric</class_name>
   <display_name>Set Residential Electric Tank Water Heater</display_name>
@@ -11,7 +11,7 @@
   <modeler_description>The measure will create a new instance of the OS:WaterHeater:Mixed object representing an electric storage water heater. The water heater will be placed on the plant loop 'Domestic Hot Water Loop'. If this loop already exists, any water heater on that loop will be removed and replaced with a water heater consistent with this measure. If it doesn't exist, it will be created.</modeler_description>
   <arguments>
     <argument>
-      <name>storage_tank_volume</name>
+      <name>tank_volume</name>
       <display_name>Tank Volume</display_name>
       <description>Nominal volume of the of the water heater tank. Set to auto to have volume autosized.</description>
       <type>String</type>
@@ -21,7 +21,7 @@
       <default_value>auto</default_value>
     </argument>
     <argument>
-      <name>dhw_setpoint_temperature</name>
+      <name>setpoint_temp</name>
       <display_name>Setpoint</display_name>
       <description>Water heater setpoint temperature.</description>
       <type>Double</type>
@@ -31,7 +31,7 @@
       <default_value>125</default_value>
     </argument>
     <argument>
-      <name>water_heater_location</name>
+      <name>location</name>
       <display_name>Location</display_name>
       <description>Thermal zone where the water heater is located. auto will locate the water heater according the BA House Simulation Protocols: A garage (if available) or the living space in hot-dry and hot-humid climates, a basement (finished or unfinished, if available) or living space in all other climates.</description>
       <type>Choice</type>
@@ -46,7 +46,7 @@
       </choices>
     </argument>
     <argument>
-      <name>water_heater_capacity</name>
+      <name>capacity</name>
       <display_name>Input Capacity</display_name>
       <description>The maximum energy input rating of the water heater. Set to auto to have this field autosized.</description>
       <type>String</type>
@@ -56,7 +56,7 @@
       <default_value>4.5</default_value>
     </argument>
     <argument>
-      <name>rated_energy_factor</name>
+      <name>energy_factor</name>
       <display_name>Rated Energy Factor</display_name>
       <description>For water heaters, Energy Factor is the ratio of useful energy output from the water heater to the total amount of energy delivered from the water heater. The higher the EF is, the more efficient the water heater. Procedures to test the EF of water heaters are defined by the Department of Energy in 10 Code of Federal Regulation Part 430, Appendix E to Subpart B. Enter auto for a water heater that meets the minimum federal efficiency requirements.</description>
       <type>String</type>
@@ -107,18 +107,6 @@
       <checksum>078F0169</checksum>
     </file>
     <file>
-      <filename>unit_conversions.rb</filename>
-      <filetype>rb</filetype>
-      <usage_type>resource</usage_type>
-      <checksum>9A23E14E</checksum>
-    </file>
-    <file>
-      <filename>waterheater.rb</filename>
-      <filetype>rb</filetype>
-      <usage_type>resource</usage_type>
-      <checksum>50777146</checksum>
-    </file>
-    <file>
       <filename>schedules.rb</filename>
       <filetype>rb</filetype>
       <usage_type>resource</usage_type>
@@ -131,12 +119,6 @@
       <checksum>97B219DD</checksum>
     </file>
     <file>
-      <filename>util.rb</filename>
-      <filetype>rb</filetype>
-      <usage_type>resource</usage_type>
-      <checksum>B9256575</checksum>
-    </file>
-    <file>
       <filename>2000sqft_2story_FB_GRG_UA.osm</filename>
       <filetype>osm</filetype>
       <usage_type>test</usage_type>
@@ -147,23 +129,6 @@
       <filetype>osm</filetype>
       <usage_type>test</usage_type>
       <checksum>7FCAB593</checksum>
-    </file>
-    <file>
-      <version>
-        <software_program>OpenStudio</software_program>
-        <identifier>1.4.1</identifier>
-        <min_compatible>1.13.1</min_compatible>
-      </version>
-      <filename>measure.rb</filename>
-      <filetype>rb</filetype>
-      <usage_type>script</usage_type>
-      <checksum>593DF800</checksum>
-    </file>
-    <file>
-      <filename>ResidentialWaterHeaterTankElectric_Test.rb</filename>
-      <filetype>rb</filetype>
-      <usage_type>test</usage_type>
-      <checksum>2C6AAECE</checksum>
     </file>
     <file>
       <filename>2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver.osm</filename>
@@ -250,16 +215,51 @@
       <checksum>8E13C9DA</checksum>
     </file>
     <file>
-      <filename>constants.rb</filename>
-      <filetype>rb</filetype>
-      <usage_type>resource</usage_type>
-      <checksum>E4899227</checksum>
-    </file>
-    <file>
       <filename>geometry.rb</filename>
       <filetype>rb</filetype>
       <usage_type>resource</usage_type>
-      <checksum>4D0A9290</checksum>
+      <checksum>9A86F3EB</checksum>
+    </file>
+    <file>
+      <filename>waterheater.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>951BE986</checksum>
+    </file>
+    <file>
+      <version>
+        <software_program>OpenStudio</software_program>
+        <identifier>1.4.1</identifier>
+        <min_compatible>1.13.1</min_compatible>
+      </version>
+      <filename>measure.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>script</usage_type>
+      <checksum>BFF23FBB</checksum>
+    </file>
+    <file>
+      <filename>ResidentialWaterHeaterTankElectric_Test.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>test</usage_type>
+      <checksum>8D46F195</checksum>
+    </file>
+    <file>
+      <filename>constants.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>D6592C9C</checksum>
+    </file>
+    <file>
+      <filename>unit_conversions.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>92D6C640</checksum>
+    </file>
+    <file>
+      <filename>util.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>22C6561D</checksum>
     </file>
   </files>
 </measure>

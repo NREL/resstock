@@ -459,7 +459,6 @@ class ResidentialHotWaterDistribution < OpenStudio::Ruleset::ModelUserScript
             sh_dist_wu.setSpace(dist_space)
             sh_dist_wu_def.setName("#{obj_name_sh_dist}=#{shower_dist_hw}")
             sh_dist_wu_def.setPeakFlowRate(0)
-            sh_dist_wu_def.setEndUseSubcategory("Domestic Hot Water")
             sh_dist_wu.setFlowRateFractionSchedule(sch_sh_schedule)
             sh_dist_wu_def.setTargetTemperatureSchedule(sch_sh_temperatureSchedule)
             
@@ -469,7 +468,6 @@ class ResidentialHotWaterDistribution < OpenStudio::Ruleset::ModelUserScript
             s_dist_wu.setSpace(dist_space)
             s_dist_wu_def.setName("#{obj_name_s_dist}=#{sink_dist_hw}")
             s_dist_wu_def.setPeakFlowRate(0)
-            s_dist_wu_def.setEndUseSubcategory("Domestic Hot Water")
             s_dist_wu.setFlowRateFractionSchedule(sch_s_schedule)
             s_dist_wu_def.setTargetTemperatureSchedule(sch_s_temperatureSchedule)
             
@@ -479,7 +477,6 @@ class ResidentialHotWaterDistribution < OpenStudio::Ruleset::ModelUserScript
             b_dist_wu.setSpace(dist_space)
             b_dist_wu_def.setName("#{obj_name_b_dist}=#{bath_dist_hw}")
             b_dist_wu_def.setPeakFlowRate(0)
-            b_dist_wu_def.setEndUseSubcategory("Domestic Hot Water")
             b_dist_wu.setFlowRateFractionSchedule(sch_b_schedule)
             b_dist_wu_def.setTargetTemperatureSchedule(sch_b_temperatureSchedule)
         
@@ -533,6 +530,7 @@ class ResidentialHotWaterDistribution < OpenStudio::Ruleset::ModelUserScript
                 recirc_pump_def = OpenStudio::Model::ElectricEquipmentDefinition.new(model)
                 recirc_pump = OpenStudio::Model::ElectricEquipment.new(recirc_pump_def)
                 recirc_pump.setName(obj_name_recirc_pump)
+                recirc_pump.setEndUseSubcategory(obj_name_recirc_pump)
                 recirc_pump.setSpace(dist_space)
                 recirc_pump_def.setName(obj_name_recirc_pump)
                 recirc_pump_def.setDesignLevel(recirc_pump_design_level)
