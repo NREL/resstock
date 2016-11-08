@@ -4,8 +4,8 @@ Created on Mon Sep 26 15:26:57 2016
 
 @author: jalley
 """
-import plotly.plotly as py
-import plotly.graph_objs as go
+# import plotly.plotly as py
+# import plotly.graph_objs as go
 import os, sys
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -15,9 +15,9 @@ import itertools
 import numpy as np
 from matplotlib.lines import Line2D
 import seaborn as sns
-from scipy import stats
-from matplotlib.pyplot import show
-from colour import Color
+# from scipy import stats
+# from matplotlib.pyplot import show
+# from colour import Color
 from query_recs_raw import poverty, process_csv_data, calc_temp_stats,calc_htg_type, calc_htg_type_by_wh_fuel, calc_htg_age, calc_occupancy,calc_ashp_cac,assign_sizes,calc_general,query_stories
 
 vintages = {'pre-1950' : 0,
