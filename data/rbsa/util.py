@@ -301,7 +301,7 @@ def assign_stories(df):
 def assign_htgsp(df):
     
     def temp(t):
-        if t is None:
+        if t is None or t == 0:
             return None
         if t <= 62:
             return '60F w/setback'
@@ -323,6 +323,31 @@ def assign_htgsp(df):
 
     return df
 
+def assign_htgsp_stbk(df):
+    
+    def temp(t, sb):
+        if sb is None or sb == 0:
+            return None
+        if t <= 62:
+            return sb
+        elif t >= 63 and t <= 66:
+            return sb
+        elif t in [67, 68] or (t == 69 and random.choice([True, False])):
+            return sb
+        elif t in [69, 70] or (t == 71 and random.choice([True, False])):
+            return sb
+        elif t in [71, 72, 73]:
+            return sb
+        elif t >= 74:
+            return sb
+        else:
+            print sb
+    
+    df['htgsp_stbk'] = df.apply(lambda x: temp(x.object.sfriheu.resintheattemp, x.object.sfriheu.resintheattempnight), axis=1)
+    df = df.dropna(subset=['htgsp_stbk'])
+
+    return df    
+    
 def assign_clgsp(df):
     
     def temp(t):

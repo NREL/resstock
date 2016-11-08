@@ -478,6 +478,13 @@ class Create_DFs():
         df = util.assign_heating_location(df)
         df = util.assign_vintage(df)
         df = util.assign_htgsp(df)
+        # df = util.assign_htgsp_stbk(df)
+        # df = df.groupby(['Dependency=Location Heating Region', 'Dependency=Vintage', 'htgsp']).mean()
+        # df = df.reset_index()
+        # df['Dependency=Vintage'] = pd.Categorical(df['Dependency=Vintage'], ['<1950', '1950s', '1960s', '1970s', '1980s', '1990s', '2000s'])
+        # df = df.sort_values(by=['Dependency=Location Heating Region', 'Dependency=Vintage', 'htgsp']).set_index(['Dependency=Location Heating Region', 'Dependency=Vintage', 'htgsp'])        
+        # df.to_csv(os.path.join(datafiles_dir, 'Heating Setbacks.tsv'), sep='\t')
+        # sys.exit()
         df, cols = util.categories_to_columns(df, 'htgsp')        
         df = df.groupby(['Dependency=Location Heating Region', 'Dependency=Vintage'])
         missing_groups = []
