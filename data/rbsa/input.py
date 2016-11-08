@@ -1294,12 +1294,11 @@ if __name__ == '__main__':
         for col in ['Count', 'Weight']:
             if col in df.columns:
                 del df[col]
-<<<<<<< HEAD:data/rbsa/main.py
+                
         try:
             path = os.path.join(heatmaps_dir, '{}.png'.format(category))
             to_figure(df, path)
         except RuntimeError:
             print "Warning: Error in plotting figure; skipping {}.".format(path)
-=======
+            
         to_figure(df, os.path.join(heatmaps_dir, '{}.png'.format(category)))
->>>>>>> origin/master:data/rbsa/input.py

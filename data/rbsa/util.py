@@ -351,7 +351,7 @@ def assign_htgsp_stbk(df):
 def assign_clgsp(df):
     
     def temp(t):
-        if t is None:
+        if t is None or t == 0:
             return None
         if t <= 66:
             return '65F'
