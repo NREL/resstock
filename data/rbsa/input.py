@@ -473,18 +473,34 @@ class Create_DFs():
     
     def heating_setpoint(self):
         df = util.create_dataframe(self.session, rdb)
+        df = util.assign_climate_zones(df)
+        df = util.assign_state(df)
+        df = util.assign_heating_location(df)
+        df = util.assign_vintage(df)
         df = util.assign_htgsp(df)
-        df, cols = util.categories_to_columns(df, 'htgsp')
-        df['group'] = 'all'
-        df = df.groupby(['group'])
+        df, cols = util.categories_to_columns(df, 'htgsp')        
+        df = df.groupby(['Dependency=Location Heating Region', 'Dependency=Vintage'])
+        missing_groups = []
+        for group in itertools.product(*[['H1', 'H2', 'H3'], ['<1950', '1950s', '1960s', '1970s', '1980s', '1990s', '2000s']]):
+            if not group in list(df.groups):
+                missing_groups.append(dict(zip(['Dependency=Location Heating Region', 'Dependency=Vintage'], group)))        
         count = df.agg(['count']).ix[:, 0]
         weight = df.agg(['sum'])['Weight']
         df = util.sum_cols(df, cols)
         df['Count'] = count
         df['Weight'] = weight
+        columns = list(df.columns)
+        columns.remove('Count')
+        columns.remove('Weight')       
+        for group in missing_groups:
+            df_new = pd.DataFrame(data=dict(group.items() + dict(zip(columns, [1.0/len(columns)] * len(columns))).items()), index=[0]).set_index(['Dependency=Location Heating Region', 'Dependency=Vintage'])
+            df_new['Count'] = 0
+            df_new['Weight'] = 0
+            df = df.append(df_new)
         df = add_option_prefix(df)
-        df = df.reset_index().set_index('Option=60F')
-        del df['group']        
+        df = df.reset_index()
+        df['Dependency=Vintage'] = pd.Categorical(df['Dependency=Vintage'], ['<1950', '1950s', '1960s', '1970s', '1980s', '1990s', '2000s'])
+        df = df.sort_values(by=['Dependency=Location Heating Region', 'Dependency=Vintage']).set_index(['Dependency=Location Heating Region', 'Dependency=Vintage'])     
         return df
     
     def cooling_setpoint(self):
