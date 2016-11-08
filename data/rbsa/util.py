@@ -295,17 +295,17 @@ def assign_htgsp(df):
         if t is None:
             return None
         if t <= 62:
-            return '60F'
+            return '60F w/setback'
         elif t >= 63 and t <= 66:
-            return '65F'
+            return '65F w/setback'
         elif t in [67, 68] or (t == 69 and random.choice([True, False])):
-            return '68F'
+            return '68F w/setback'
         elif t in [69, 70] or (t == 71 and random.choice([True, False])):
-            return '70F'
+            return '70F w/setback'
         elif t in [71, 72, 73]:
-            return '72F'
+            return '72F w/setback'
         elif t >= 74:
-            return '75F'
+            return '75F w/setback'
         else:
             print t 
     
