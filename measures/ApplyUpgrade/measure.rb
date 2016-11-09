@@ -23,6 +23,10 @@ class ApplyUpgrade < OpenStudio::Ruleset::ModelUserScript
   def modeler_description
     return "Determines if the upgrade should apply to a given building model. If so, calls one or more child measures with the appropriate arguments."
   end
+  
+  def num_options
+    return 20
+  end
 
   # define the arguments that the user will input
   def arguments(model)
@@ -35,21 +39,26 @@ class ApplyUpgrade < OpenStudio::Ruleset::ModelUserScript
     run_measure.setDefaultValue(1)
     args << run_measure 
     
-    parameter_names = OpenStudio::Ruleset::OSArgument.makeStringArgument("parameter_names", true)
-    parameter_names.setDisplayName("Parameter Name(s)")
-    parameter_names.setDescription("The name(s) of the parameter, as specified in resources\options_lookup.tsv. Multiple names can be listed with a '|' between them.")
-    args << parameter_names
-
-    option_names = OpenStudio::Ruleset::OSArgument.makeStringArgument("option_names", true)
-    option_names.setDisplayName("Option Name(s)")
-    option_names.setDescription("The name(s) of the option for the corresponding parameter, as specified in resources\options_lookup.tsv. Multiple names can be listed with a '|' between them.")
-    args << option_names
-
-    apply_logic = OpenStudio::Ruleset::OSArgument.makeStringArgument("apply_logic", false)
-    apply_logic.setDisplayName("Apply Logic")
-    apply_logic.setDescription("The logic that specifies whether the upgrade should apply to a given building. If no logic is provided, the upgrade will be applied to all buildings.")
-    args << apply_logic
+    # Option arguments
+    (1..num_options).each do |option_num|
+        is_required = false
+        if option_num == 1
+            is_required = true
+        end
+        option = OpenStudio::Ruleset::OSArgument.makeStringArgument("option_#{option_num}", is_required)
+        option.setDisplayName("Option #{option_num}")
+        option.setDescription("Specify the parameter|option as found in resources\\options_lookup.tsv.")
+        args << option
+    end
     
+    # Option Apply Logic arguments
+    (1..num_options).each do |option_num|
+        option_apply_logic = OpenStudio::Ruleset::OSArgument.makeStringArgument("option_#{option_num}_apply_logic", false)
+        option_apply_logic.setDisplayName("Option #{option_num} Apply Logic")
+        option_apply_logic.setDescription("Logic that determines if the Option #{option_num} upgrade will apply based on the existing building's options. Specify one or more parameter|option as found in resources\\options_lookup.tsv. When multiple are included, they must be separated by '||' for OR and '&&' for AND, and using parentheses as appropriate.")
+        args << option_apply_logic
+    end
+
     return args
   end
 
@@ -69,15 +78,40 @@ class ApplyUpgrade < OpenStudio::Ruleset::ModelUserScript
       return true     
     end
 
-    parameter_names = runner.getStringArgumentValue("parameter_names",user_arguments)
-    option_names = runner.getStringArgumentValue("option_names",user_arguments)
-    apply_logic = runner.getStringArgumentValue("apply_logic",user_arguments)
+    # Retrieve Option argument values
+    options = {}
+    (1..num_options).each do |option_num|
+        if option_num == 1
+            arg = runner.getStringArgumentValue("option_#{option_num}",user_arguments)
+        else
+            arg = runner.getOptionalStringArgumentValue("option_#{option_num}",user_arguments)
+            next if not arg.is_initialized
+            arg = arg.get
+        end
+        next if arg.strip.size == 0
+        if not arg.include?('|')
+            runner.registerError("Option #{option_num} is missing the '|' delimiter.")
+            return false
+        end
+        options[option_num] = arg.strip
+    end
     
-    parameters = parameter_names.split("|")
-    options = option_names.split("|")
-    if parameters.size != options.size
-        runner.registerError("The number of options (#{options.size.to_s}) did not match the number of parameters (#{parameters.size.to_s}).")
-        return false
+    # Retrieve Option Apply Logic argument values
+    options_apply_logic = {}
+    (1..num_options).each do |option_num|
+        arg = runner.getOptionalStringArgumentValue("option_#{option_num}_apply_logic",user_arguments)
+        next if not arg.is_initialized
+        arg = arg.get
+        next if arg.strip.size == 0
+        if not arg.include?('|')
+            runner.registerError("Option #{option_num} Apply Logic is missing the '|' delimiter.")
+            return false
+        end
+        if not options.keys.include?(option_num)
+            runner.registerError("Option #{option_num} Apply Logic was provided, but a corresponding Option #{option_num} was not provided.")
+            return false
+        end
+        options_apply_logic[option_num] = arg.strip
     end
     
     # Get file/dir paths
@@ -88,10 +122,70 @@ class ApplyUpgrade < OpenStudio::Ruleset::ModelUserScript
     
     # Load helper_methods
     require File.join(File.dirname(helper_methods_file), File.basename(helper_methods_file, File.extname(helper_methods_file)))
-
+    
     # Obtain measures and arguments to be called
     measures = {}
-    parameters.zip(options).each do |parameter_name, option_name|
+    options.each do |option_num, option|
+        parameter_name, option_name = option.split('|')
+        
+        # Apply this option?
+        apply_option_upgrade = true
+        if options_apply_logic.include?(option_num)
+        
+            option_apply_logic = options_apply_logic[option_num]
+        
+            # Convert to appropriate ruby statement for evaluation
+            if option_apply_logic.count("(") != option_apply_logic.count(")")
+                runner.registerError("Inconsistent number of open and close parentheses in Option #{option_num} Apply Logic.")
+                return false
+            end
+            
+            ruby_eval_str = ""
+            option_apply_logic.split("||").each do |or_segment|
+                or_segment.split("&&").each do |segment|
+                    segment.strip!
+                    
+                    # Handle presence of open parentheses
+                    rindex = segment.rindex("(")
+                    if rindex.nil?
+                        rindex = 0
+                    else
+                        rindex += 1
+                    end
+                    open_parentheses = segment[0,rindex].gsub(" ","")
+                    
+                    # Handle presence of close parentheses
+                    lindex = segment.index(")")
+                    if lindex.nil?
+                        lindex = segment.size
+                    end
+                    close_paranetheses = segment[lindex,segment.size-lindex].gsub(" ","")
+                    
+                    segment_parameter, segment_option = segment[rindex,lindex-rindex].strip.split("|")
+                    
+                    # Get existing building option name for the same parameter
+                    existing_option_name = get_value_from_runner_past_results(segment_parameter, runner)
+                    
+                    ruby_eval_str += open_parentheses + "'" + existing_option_name + "'=='" + segment_option + "'" + close_paranetheses + " and "
+                end
+                ruby_eval_str.chomp!(" and ")
+                ruby_eval_str += " or "
+            end
+            ruby_eval_str.chomp!(" or ")
+            apply_option_upgrade = eval(ruby_eval_str)
+            runner.registerInfo("Evaluating Option #{option_num} Apply Logic: #{option_apply_logic}.")
+            runner.registerInfo("Converted to Ruby: #{ruby_eval_str}.")
+            runner.registerInfo("Ruby Evaluation: #{apply_option_upgrade.to_s}.")
+            if not [true, false].include?(apply_option_upgrade)
+                runner.registerError("Option #{option_num} Apply Logic was not successfully evaluated: #{ruby_eval_str}")
+                return false
+            end
+        end
+        
+        if not apply_option_upgrade
+            runner.registerInfo("Parameter #{parameter_name}, Option #{option_name} will not be applied.")
+            next
+        end
     
         # Register this option so that it replaces the existing building option in the results csv file
         print_option_assignment(parameter_name, option_name, runner)
@@ -128,10 +222,16 @@ class ApplyUpgrade < OpenStudio::Ruleset::ModelUserScript
         end
     end
     
+    if measures.size == 0
+        # Upgrade not applied; skip from CSV
+        runner.registerAsNotApplicable("Upgrade not applied.")
+        return false
+    end
+
     return true
 
   end
-    
+  
 end
 
 # register the measure to be used by the application

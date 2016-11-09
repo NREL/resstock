@@ -20,13 +20,13 @@ class Create_DFs():
     def __init__(self, file):
         self.session = rdb.create_session(file)
         
-    def location_heating_region(self):
+    def location_region(self):
         df = util.create_dataframe(self.session, rdb)
         df = util.assign_climate_zones(df)
         df = util.assign_state(df)
-        df = util.assign_heating_location(df)
+        df = util.assign_location(df)
         df = util.assign_totalsfd(df)
-        df, cols = util.categories_to_columns(df, 'Dependency=Location Heating Region')
+        df, cols = util.categories_to_columns(df, 'Dependency=Location Region')
         df['group'] = 'all'
         df = df.groupby(['group'])
         count = df.agg(['count']).ix[:, 0]
@@ -38,32 +38,15 @@ class Create_DFs():
         df = df.reset_index().set_index('Option=H1')
         del df['group']
         return df
-        
-    def location_cooling_region(self):
-        df = util.create_dataframe(self.session, rdb)
-        df = util.assign_climate_zones(df)
-        df = util.assign_state(df)
-        df = util.assign_heating_location(df)
-        df = util.assign_cooling_location(df)
-        df = util.assign_totalsfd(df)
-        df, cols = util.categories_to_columns(df, 'Dependency=Location Cooling Region')
-        df = df.groupby(['Dependency=Location Heating Region'])
-        count = df.agg(['count']).ix[:, 0]
-        weight = df.agg(['sum'])['Weight']
-        df = util.sum_cols(df, cols)
-        df['Count'] = count
-        df['Weight'] = weight
-        df = add_option_prefix(df)
-        return df        
     
     def vintage(self):
         df = util.create_dataframe(self.session, rdb)
         df = util.assign_climate_zones(df)
         df = util.assign_state(df)
-        df = util.assign_heating_location(df)        
+        df = util.assign_location(df)        
         df = util.assign_vintage(df)
         df, cols = util.categories_to_columns(df, 'Dependency=Vintage')
-        df = df.groupby(['Dependency=Location Heating Region'])
+        df = df.groupby(['Dependency=Location Region'])
         count = df.agg(['count']).ix[:, 0]
         weight = df.agg(['sum'])['Weight']
         df = util.sum_cols(df, cols)
@@ -77,15 +60,15 @@ class Create_DFs():
         df = util.create_dataframe(self.session, rdb)
         df = util.assign_climate_zones(df)
         df = util.assign_state(df)
-        df = util.assign_heating_location(df)
+        df = util.assign_location(df)
         df = util.assign_vintage(df)
         df = util.assign_heating_fuel(df)
         df, cols = util.categories_to_columns(df, 'Dependency=Heating Fuel')      
-        df = df.groupby(['Dependency=Location Heating Region', 'Dependency=Vintage'])
+        df = df.groupby(['Dependency=Location Region', 'Dependency=Vintage'])
         missing_groups = []
         for group in itertools.product(*[['H1', 'H2', 'H3'], ['<1950', '1950s', '1960s', '1970s', '1980s', '1990s', '2000s']]):
             if not group in list(df.groups):
-                missing_groups.append(dict(zip(['Dependency=Location Heating Region', 'Dependency=Vintage'], group)))
+                missing_groups.append(dict(zip(['Dependency=Location Region', 'Dependency=Vintage'], group)))
         count = df.agg(['count']).ix[:, 0]
         weight = df.agg(['sum'])['Weight']
         df = util.sum_cols(df, cols)
@@ -95,7 +78,7 @@ class Create_DFs():
         columns.remove('Count')
         columns.remove('Weight')     
         for group in missing_groups:
-            df_new = pd.DataFrame(data=dict(group.items() + dict(zip(columns, [1.0/len(columns)] * len(columns))).items()), index=[0]).set_index(['Dependency=Location Heating Region', 'Dependency=Vintage'])
+            df_new = pd.DataFrame(data=dict(group.items() + dict(zip(columns, [1.0/len(columns)] * len(columns))).items()), index=[0]).set_index(['Dependency=Location Region', 'Dependency=Vintage'])
             df_new['Count'] = 0
             df_new['Weight'] = 0
             df = df.append(df_new)
@@ -103,22 +86,22 @@ class Create_DFs():
         df = df[['Option=Electricity', 'Option=Natural Gas', 'Option=Fuel Oil', 'Option=Propane/LPG', 'Option=Wood', 'Count', 'Weight']]
         df = df.reset_index()
         df['Dependency=Vintage'] = pd.Categorical(df['Dependency=Vintage'], ['<1950', '1950s', '1960s', '1970s', '1980s', '1990s', '2000s'])        
-        df = df.sort_values(by=['Dependency=Location Heating Region', 'Dependency=Vintage']).set_index(['Dependency=Location Heating Region', 'Dependency=Vintage'])        
+        df = df.sort_values(by=['Dependency=Location Region', 'Dependency=Vintage']).set_index(['Dependency=Location Region', 'Dependency=Vintage'])        
         return df
         
     def insulation_unfinished_attic(self):
         df = util.create_dataframe(self.session, rdb)
         df = util.assign_climate_zones(df)
         df = util.assign_state(df)
-        df = util.assign_heating_location(df)
+        df = util.assign_location(df)
         df = util.assign_vintage(df)
         df = util.assign_ceiling(df)
         df, cols = util.categories_to_columns(df, 'rval')
-        df = df.groupby(['Dependency=Location Heating Region', 'Dependency=Vintage'])
+        df = df.groupby(['Dependency=Location Region', 'Dependency=Vintage'])
         missing_groups = []
         for group in itertools.product(*[['H1', 'H2', 'H3'], ['<1950', '1950s', '1960s', '1970s', '1980s', '1990s', '2000s']]):
             if not group in list(df.groups):
-                missing_groups.append(dict(zip(['Dependency=Location Heating Region', 'Dependency=Vintage'], group)))        
+                missing_groups.append(dict(zip(['Dependency=Location Region', 'Dependency=Vintage'], group)))        
         count = df.agg(['count']).ix[:, 0]
         weight = df.agg(['sum'])['Weight']
         df = util.sum_cols(df, cols)
@@ -128,7 +111,7 @@ class Create_DFs():
         columns.remove('Count')
         columns.remove('Weight')   
         for group in missing_groups:
-            df_new = pd.DataFrame(data=dict(group.items() + dict(zip(columns, [1.0/len(columns)] * len(columns))).items()), index=[0]).set_index(['Dependency=Location Heating Region', 'Dependency=Vintage'])
+            df_new = pd.DataFrame(data=dict(group.items() + dict(zip(columns, [1.0/len(columns)] * len(columns))).items()), index=[0]).set_index(['Dependency=Location Region', 'Dependency=Vintage'])
             df_new['Count'] = 0
             df_new['Weight'] = 0
             df = df.append(df_new)
@@ -136,7 +119,7 @@ class Create_DFs():
         df = df[['Option=Uninsulated, Vented', 'Option=Ceiling R-7, Vented', 'Option=Ceiling R-13, Vented', 'Option=Ceiling R-19, Vented', 'Option=Ceiling R-30, Vented', 'Option=Ceiling R-38, Vented', 'Option=Ceiling R-49, Vented', 'Option=Ceiling R-60, Vented', 'Count', 'Weight']]
         df = df.reset_index()
         df['Dependency=Vintage'] = pd.Categorical(df['Dependency=Vintage'], ['<1950', '1950s', '1960s', '1970s', '1980s', '1990s', '2000s'])
-        df = df.sort_values(by=['Dependency=Location Heating Region', 'Dependency=Vintage']).set_index(['Dependency=Location Heating Region', 'Dependency=Vintage'])
+        df = df.sort_values(by=['Dependency=Location Region', 'Dependency=Vintage']).set_index(['Dependency=Location Region', 'Dependency=Vintage'])
         return df
     
     def insulation_unfinished_attic_h1(self):
@@ -243,15 +226,15 @@ class Create_DFs():
         df = util.create_dataframe(self.session, rdb)
         df = util.assign_climate_zones(df)
         df = util.assign_state(df)
-        df = util.assign_heating_location(df)
+        df = util.assign_location(df)
         df = util.assign_vintage(df)
         df = util.assign_wall(df)
         df, cols = util.categories_to_columns(df, 'rval')   
-        df = df.groupby(['Dependency=Location Heating Region', 'Dependency=Vintage'])
+        df = df.groupby(['Dependency=Location Region', 'Dependency=Vintage'])
         missing_groups = []
         for group in itertools.product(*[['H1', 'H2', 'H3'], ['<1950', '1950s', '1960s', '1970s', '1980s', '1990s', '2000s']]):
             if not group in list(df.groups):
-                missing_groups.append(dict(zip(['Dependency=Location Heating Region', 'Dependency=Vintage'], group)))        
+                missing_groups.append(dict(zip(['Dependency=Location Region', 'Dependency=Vintage'], group)))        
         count = df.agg(['count']).ix[:, 0]
         weight = df.agg(['sum'])['Weight']
         df = util.sum_cols(df, cols)
@@ -261,7 +244,7 @@ class Create_DFs():
         columns.remove('Count')
         columns.remove('Weight')    
         for group in missing_groups:
-            df_new = pd.DataFrame(data=dict(group.items() + dict(zip(columns, [1.0/len(columns)] * len(columns))).items()), index=[0]).set_index(['Dependency=Location Heating Region', 'Dependency=Vintage'])
+            df_new = pd.DataFrame(data=dict(group.items() + dict(zip(columns, [1.0/len(columns)] * len(columns))).items()), index=[0]).set_index(['Dependency=Location Region', 'Dependency=Vintage'])
             df_new['Count'] = 0
             df_new['Weight'] = 0
             df = df.append(df_new)
@@ -269,7 +252,7 @@ class Create_DFs():
         df = df[['Option=Uninsulated', 'Option=R-7', 'Option=R-13', 'Option=R-19', 'Option=R-36', 'Count', 'Weight']]
         df = df.reset_index()
         df['Dependency=Vintage'] = pd.Categorical(df['Dependency=Vintage'], ['<1950', '1950s', '1960s', '1970s', '1980s', '1990s', '2000s'])
-        df = df.sort_values(by=['Dependency=Location Heating Region', 'Dependency=Vintage']).set_index(['Dependency=Location Heating Region', 'Dependency=Vintage'])        
+        df = df.sort_values(by=['Dependency=Location Region', 'Dependency=Vintage']).set_index(['Dependency=Location Region', 'Dependency=Vintage'])        
         return df
     
     def insulation_wall_h1(self):
@@ -375,15 +358,15 @@ class Create_DFs():
         df = util.create_dataframe(self.session, rdb)
         df = util.assign_climate_zones(df)
         df = util.assign_state(df)
-        df = util.assign_heating_location(df)
+        df = util.assign_location(df)
         df = util.assign_vintage(df)
         df = util.assign_foundation_type(df)
         df, cols = util.categories_to_columns(df, 'Dependency=Geometry Foundation Type')
-        df = df.groupby(['Dependency=Location Heating Region', 'Dependency=Vintage'])
+        df = df.groupby(['Dependency=Location Region', 'Dependency=Vintage'])
         missing_groups = []
         for group in itertools.product(*[['H1', 'H2', 'H3'], ['<1950', '1950s', '1960s', '1970s', '1980s', '1990s', '2000s']]):
             if not group in list(df.groups):
-                missing_groups.append(dict(zip(['Dependency=Location Heating Region', 'Dependency=Vintage'], group)))          
+                missing_groups.append(dict(zip(['Dependency=Location Region', 'Dependency=Vintage'], group)))          
         count = df.agg(['count']).ix[:, 0]
         weight = df.agg(['sum'])['Weight']
         df = util.sum_cols(df, cols)
@@ -393,31 +376,29 @@ class Create_DFs():
         columns.remove('Count')
         columns.remove('Weight')    
         for group in missing_groups:
-            df_new = pd.DataFrame(data=dict(group.items() + dict(zip(columns, [1.0/len(columns)] * len(columns))).items()), index=[0]).set_index(['Dependency=Location Heating Region', 'Dependency=Vintage'])
+            df_new = pd.DataFrame(data=dict(group.items() + dict(zip(columns, [1.0/len(columns)] * len(columns))).items()), index=[0]).set_index(['Dependency=Location Region', 'Dependency=Vintage'])
             df_new['Count'] = 0
             df_new['Weight'] = 0
             df = df.append(df_new)
         df = add_option_prefix(df)
         df = df.reset_index()
         df['Dependency=Vintage'] = pd.Categorical(df['Dependency=Vintage'], ['<1950', '1950s', '1960s', '1970s', '1980s', '1990s', '2000s'])
-        df = df.sort_values(by=['Dependency=Location Heating Region', 'Dependency=Vintage']).set_index(['Dependency=Location Heating Region', 'Dependency=Vintage'])
+        df = df.sort_values(by=['Dependency=Location Region', 'Dependency=Vintage']).set_index(['Dependency=Location Region', 'Dependency=Vintage'])
         return df
     
     def geometry_house_size(self):
         df = util.create_dataframe(self.session, rdb)
         df = util.assign_climate_zones(df)
         df = util.assign_state(df)
-        df = util.assign_heating_location(df)        
-        df = util.assign_vintage(df)
+        df = util.assign_location(df)        
+        df = util.assign_vintage(df) 
         df = util.assign_size(df)
         df, cols = util.categories_to_columns(df, 'Dependency=Geometry House Size')
-        # df.groupby(['Dependency=Geometry House Size']).apply(lambda x: np.average(x['House Size'], weights=x['Weight'])).to_frame(name='Average House Size').to_csv(os.path.join(datafiles_dir, '{}.tsv'.format(category + ' House Size')), sep='\t')
-        # df.groupby(['Dependency=Vintage']).apply(lambda x: np.average(x['House Size'], weights=x['Weight'])).to_frame(name='Average House Size').to_csv(os.path.join(datafiles_dir, '{}.tsv'.format(category + ' Vintage')), sep='\t')
-        df = df.groupby(['Dependency=Location Heating Region', 'Dependency=Vintage'])
+        df = df.groupby(['Dependency=Location Region', 'Dependency=Vintage'])
         missing_groups = []
         for group in itertools.product(*[['H1', 'H2', 'H3'], ['<1950', '1950s', '1960s', '1970s', '1980s', '1990s', '2000s']]):
             if not group in list(df.groups):
-                missing_groups.append(dict(zip(['Dependency=Location Heating Region', 'Dependency=Vintage'], group)))        
+                missing_groups.append(dict(zip(['Dependency=Location Region', 'Dependency=Vintage'], group)))        
         count = df.agg(['count']).ix[:, 0]
         weight = df.agg(['sum'])['Weight']
         df = util.sum_cols(df, cols)
@@ -427,21 +408,21 @@ class Create_DFs():
         columns.remove('Count')
         columns.remove('Weight')       
         for group in missing_groups:
-            df_new = pd.DataFrame(data=dict(group.items() + dict(zip(columns, [1.0/len(columns)] * len(columns))).items()), index=[0]).set_index(['Dependency=Location Heating Region', 'Dependency=Vintage'])
+            df_new = pd.DataFrame(data=dict(group.items() + dict(zip(columns, [1.0/len(columns)] * len(columns))).items()), index=[0]).set_index(['Dependency=Location Region', 'Dependency=Vintage'])
             df_new['Count'] = 0
             df_new['Weight'] = 0
             df = df.append(df_new)
         df = add_option_prefix(df)
         df = df.reset_index()
         df['Dependency=Vintage'] = pd.Categorical(df['Dependency=Vintage'], ['<1950', '1950s', '1960s', '1970s', '1980s', '1990s', '2000s'])
-        df = df.sort_values(by=['Dependency=Location Heating Region', 'Dependency=Vintage']).set_index(['Dependency=Location Heating Region', 'Dependency=Vintage'])
+        df = df.sort_values(by=['Dependency=Location Region', 'Dependency=Vintage']).set_index(['Dependency=Location Region', 'Dependency=Vintage'])
         return df
     
     def geometry_stories(self):       
         df = util.create_dataframe(self.session, rdb)
         df = util.assign_climate_zones(df)
         df = util.assign_state(df)
-        df = util.assign_heating_location(df)
+        df = util.assign_location(df)        
         df = util.assign_vintage(df) 
         df = util.assign_foundation_type(df)
         df = util.assign_size(df)
@@ -473,41 +454,18 @@ class Create_DFs():
     
     def heating_setpoint(self):
         df = util.create_dataframe(self.session, rdb)
-        df = util.assign_climate_zones(df)
-        df = util.assign_state(df)
-        df = util.assign_heating_location(df)
-        df = util.assign_vintage(df)
         df = util.assign_htgsp(df)
-        # df = util.assign_htgsp_stbk(df)
-        # df = df.groupby(['Dependency=Location Heating Region', 'Dependency=Vintage', 'htgsp']).mean()
-        # df = df.reset_index()
-        # df['Dependency=Vintage'] = pd.Categorical(df['Dependency=Vintage'], ['<1950', '1950s', '1960s', '1970s', '1980s', '1990s', '2000s'])
-        # df = df.sort_values(by=['Dependency=Location Heating Region', 'Dependency=Vintage', 'htgsp']).set_index(['Dependency=Location Heating Region', 'Dependency=Vintage', 'htgsp'])        
-        # df.to_csv(os.path.join(datafiles_dir, 'Heating Setbacks.tsv'), sep='\t')
-        # sys.exit()
-        df, cols = util.categories_to_columns(df, 'htgsp')        
-        df = df.groupby(['Dependency=Location Heating Region', 'Dependency=Vintage'])
-        missing_groups = []
-        for group in itertools.product(*[['H1', 'H2', 'H3'], ['<1950', '1950s', '1960s', '1970s', '1980s', '1990s', '2000s']]):
-            if not group in list(df.groups):
-                missing_groups.append(dict(zip(['Dependency=Location Heating Region', 'Dependency=Vintage'], group)))        
+        df, cols = util.categories_to_columns(df, 'htgsp')
+        df['group'] = 'all'
+        df = df.groupby(['group'])
         count = df.agg(['count']).ix[:, 0]
         weight = df.agg(['sum'])['Weight']
         df = util.sum_cols(df, cols)
         df['Count'] = count
         df['Weight'] = weight
-        columns = list(df.columns)
-        columns.remove('Count')
-        columns.remove('Weight')       
-        for group in missing_groups:
-            df_new = pd.DataFrame(data=dict(group.items() + dict(zip(columns, [1.0/len(columns)] * len(columns))).items()), index=[0]).set_index(['Dependency=Location Heating Region', 'Dependency=Vintage'])
-            df_new['Count'] = 0
-            df_new['Weight'] = 0
-            df = df.append(df_new)
         df = add_option_prefix(df)
-        df = df.reset_index()
-        df['Dependency=Vintage'] = pd.Categorical(df['Dependency=Vintage'], ['<1950', '1950s', '1960s', '1970s', '1980s', '1990s', '2000s'])
-        df = df.sort_values(by=['Dependency=Location Heating Region', 'Dependency=Vintage']).set_index(['Dependency=Location Heating Region', 'Dependency=Vintage'])     
+        df = df.reset_index().set_index('Option=60F')
+        del df['group']        
         return df
     
     def cooling_setpoint(self):
@@ -530,16 +488,16 @@ class Create_DFs():
         df = util.create_dataframe(self.session, rdb)
         df = util.assign_climate_zones(df)
         df = util.assign_state(df)
-        df = util.assign_heating_location(df)
+        df = util.assign_location(df)
         df = util.assign_vintage(df)
         df = util.assign_foundation_type(df)
         df = util.assign_slab(df)
         df, cols = util.categories_to_columns(df, 'rval')
-        df = df.groupby(['Dependency=Location Heating Region', 'Dependency=Vintage', 'Dependency=Geometry Foundation Type'])
+        df = df.groupby(['Dependency=Location Region', 'Dependency=Vintage', 'Dependency=Geometry Foundation Type'])
         missing_groups = []
         for group in itertools.product(*[['H1', 'H2', 'H3'], ['<1950', '1950s', '1960s', '1970s', '1980s', '1990s', '2000s'], ['Crawl', 'Heated Basement', 'Slab', 'Unheated Basement']]):
             if not group in list(df.groups):
-                missing_groups.append(dict(zip(['Dependency=Location Heating Region', 'Dependency=Vintage', 'Dependency=Geometry Foundation Type'], group)))        
+                missing_groups.append(dict(zip(['Dependency=Location Region', 'Dependency=Vintage', 'Dependency=Geometry Foundation Type'], group)))        
         count = df.agg(['count']).ix[:, 0]
         weight = df.agg(['sum'])['Weight']
         df = util.sum_cols(df, cols)
@@ -554,11 +512,11 @@ class Create_DFs():
                 data = dict(group.items() + dict(zip(columns, [1.0/len(columns)] * len(columns))).items())
                 columns.append('None')
                 data['None'] = 0
-                df_new = pd.DataFrame(data=data, index=[0]).set_index(['Dependency=Location Heating Region', 'Dependency=Vintage', 'Dependency=Geometry Foundation Type'])
+                df_new = pd.DataFrame(data=data, index=[0]).set_index(['Dependency=Location Region', 'Dependency=Vintage', 'Dependency=Geometry Foundation Type'])
             else:
                 data = dict(group.items() + dict(zip(columns, [0] * len(columns))).items())
                 data['None'] = 1
-                df_new = pd.DataFrame(data=data, index=[0]).set_index(['Dependency=Location Heating Region', 'Dependency=Vintage', 'Dependency=Geometry Foundation Type'])
+                df_new = pd.DataFrame(data=data, index=[0]).set_index(['Dependency=Location Region', 'Dependency=Vintage', 'Dependency=Geometry Foundation Type'])
             df_new['Count'] = 0
             df_new['Weight'] = 0
             df = df.append(df_new)
@@ -566,23 +524,23 @@ class Create_DFs():
         df = df[['Option=Uninsulated', 'Option=4ft R5 Perimeter, R5 Gap', 'Option=R10 Whole Slab, R5 Gap', 'Option=None', 'Count', 'Weight']]
         df = df.reset_index()
         df['Dependency=Vintage'] = pd.Categorical(df['Dependency=Vintage'], ['<1950', '1950s', '1960s', '1970s', '1980s', '1990s', '2000s'])
-        df = df.sort_values(by=['Dependency=Location Heating Region', 'Dependency=Geometry Foundation Type', 'Dependency=Vintage']).set_index(['Dependency=Location Heating Region', 'Dependency=Geometry Foundation Type', 'Dependency=Vintage'])
+        df = df.sort_values(by=['Dependency=Location Region', 'Dependency=Geometry Foundation Type', 'Dependency=Vintage']).set_index(['Dependency=Location Region', 'Dependency=Geometry Foundation Type', 'Dependency=Vintage'])
         return df               
 
     def insulation_crawlspace(self):
         df = util.create_dataframe(self.session, rdb)
         df = util.assign_climate_zones(df)
         df = util.assign_state(df)
-        df = util.assign_heating_location(df)
+        df = util.assign_location(df)
         df = util.assign_vintage(df)
         df = util.assign_foundation_type(df)
         df = util.assign_crawl(df)
         df, cols = util.categories_to_columns(df, 'rval')      
-        df = df.groupby(['Dependency=Location Heating Region', 'Dependency=Vintage', 'Dependency=Geometry Foundation Type'])
+        df = df.groupby(['Dependency=Location Region', 'Dependency=Vintage', 'Dependency=Geometry Foundation Type'])
         missing_groups = []
         for group in itertools.product(*[['H1', 'H2', 'H3'], ['<1950', '1950s', '1960s', '1970s', '1980s', '1990s', '2000s'], ['Crawl', 'Heated Basement', 'Slab', 'Unheated Basement']]):
             if not group in list(df.groups):
-                missing_groups.append(dict(zip(['Dependency=Location Heating Region', 'Dependency=Vintage', 'Dependency=Geometry Foundation Type'], group)))         
+                missing_groups.append(dict(zip(['Dependency=Location Region', 'Dependency=Vintage', 'Dependency=Geometry Foundation Type'], group)))         
         count = df.agg(['count']).ix[:, 0]
         weight = df.agg(['sum'])['Weight']
         df = util.sum_cols(df, cols)
@@ -597,11 +555,11 @@ class Create_DFs():
                 data = dict(group.items() + dict(zip(columns, [1.0/len(columns)] * len(columns))).items())
                 columns.append('None')
                 data['None'] = 0
-                df_new = pd.DataFrame(data=data, index=[0]).set_index(['Dependency=Location Heating Region', 'Dependency=Vintage', 'Dependency=Geometry Foundation Type'])
+                df_new = pd.DataFrame(data=data, index=[0]).set_index(['Dependency=Location Region', 'Dependency=Vintage', 'Dependency=Geometry Foundation Type'])
             else:
                 data = dict(group.items() + dict(zip(columns, [0] * len(columns))).items())
                 data['None'] = 1
-                df_new = pd.DataFrame(data=data, index=[0]).set_index(['Dependency=Location Heating Region', 'Dependency=Vintage', 'Dependency=Geometry Foundation Type'])
+                df_new = pd.DataFrame(data=data, index=[0]).set_index(['Dependency=Location Region', 'Dependency=Vintage', 'Dependency=Geometry Foundation Type'])
             df_new['Count'] = 0
             df_new['Weight'] = 0
             df = df.append(df_new)
@@ -609,23 +567,23 @@ class Create_DFs():
         df = df[['Option=Uninsulated, Unvented', 'Option=Uninsulated, Vented', 'Option=Wall R-13, Unvented', 'Option=Ceiling R-13, Vented', 'Option=Ceiling R-19, Vented', 'Option=Ceiling R-30, Vented', 'Option=None', 'Count', 'Weight']]
         df = df.reset_index()
         df['Dependency=Vintage'] = pd.Categorical(df['Dependency=Vintage'], ['<1950', '1950s', '1960s', '1970s', '1980s', '1990s', '2000s'])
-        df = df.sort_values(by=['Dependency=Location Heating Region', 'Dependency=Geometry Foundation Type', 'Dependency=Vintage']).set_index(['Dependency=Location Heating Region', 'Dependency=Geometry Foundation Type', 'Dependency=Vintage'])        
+        df = df.sort_values(by=['Dependency=Location Region', 'Dependency=Geometry Foundation Type', 'Dependency=Vintage']).set_index(['Dependency=Location Region', 'Dependency=Geometry Foundation Type', 'Dependency=Vintage'])        
         return df
     
     def insulation_unfinished_basement(self):
         df = util.create_dataframe(self.session, rdb)
         df = util.assign_climate_zones(df)
         df = util.assign_state(df)
-        df = util.assign_heating_location(df)
+        df = util.assign_location(df)
         df = util.assign_vintage(df)
         df = util.assign_foundation_type(df)
         df = util.assign_ufbsmt(df)
         df, cols = util.categories_to_columns(df, 'rval')
-        df = df.groupby(['Dependency=Location Heating Region', 'Dependency=Vintage', 'Dependency=Geometry Foundation Type'])
+        df = df.groupby(['Dependency=Location Region', 'Dependency=Vintage', 'Dependency=Geometry Foundation Type'])
         missing_groups = []
         for group in itertools.product(*[['H1', 'H2', 'H3'], ['<1950', '1950s', '1960s', '1970s', '1980s', '1990s', '2000s'], ['Crawl', 'Heated Basement', 'Slab', 'Unheated Basement']]):
             if not group in list(df.groups):
-                missing_groups.append(dict(zip(['Dependency=Location Heating Region', 'Dependency=Vintage', 'Dependency=Geometry Foundation Type'], group)))
+                missing_groups.append(dict(zip(['Dependency=Location Region', 'Dependency=Vintage', 'Dependency=Geometry Foundation Type'], group)))
         count = df.agg(['count']).ix[:, 0]
         weight = df.agg(['sum'])['Weight']      
         df = util.sum_cols(df, cols)
@@ -640,11 +598,11 @@ class Create_DFs():
                 data = dict(group.items() + dict(zip(columns, [1.0/len(columns)] * len(columns))).items())
                 columns.append('None')
                 data['None'] = 0
-                df_new = pd.DataFrame(data=data, index=[0]).set_index(['Dependency=Location Heating Region', 'Dependency=Vintage', 'Dependency=Geometry Foundation Type'])
+                df_new = pd.DataFrame(data=data, index=[0]).set_index(['Dependency=Location Region', 'Dependency=Vintage', 'Dependency=Geometry Foundation Type'])
             else:
                 data = dict(group.items() + dict(zip(columns, [0] * len(columns))).items())
                 data['None'] = 1
-                df_new = pd.DataFrame(data=data, index=[0]).set_index(['Dependency=Location Heating Region', 'Dependency=Vintage', 'Dependency=Geometry Foundation Type'])
+                df_new = pd.DataFrame(data=data, index=[0]).set_index(['Dependency=Location Region', 'Dependency=Vintage', 'Dependency=Geometry Foundation Type'])
             df_new['Count'] = 0
             df_new['Weight'] = 0
             df = df.append(df_new)
@@ -652,23 +610,23 @@ class Create_DFs():
         df = df[['Option=Uninsulated', 'Option=Ceiling R-13', 'Option=Ceiling R-19', 'Option=None', 'Count', 'Weight']]
         df = df.reset_index()
         df['Dependency=Vintage'] = pd.Categorical(df['Dependency=Vintage'], ['<1950', '1950s', '1960s', '1970s', '1980s', '1990s', '2000s'])
-        df = df.sort_values(by=['Dependency=Location Heating Region', 'Dependency=Geometry Foundation Type', 'Dependency=Vintage']).set_index(['Dependency=Location Heating Region', 'Dependency=Geometry Foundation Type', 'Dependency=Vintage'])        
+        df = df.sort_values(by=['Dependency=Location Region', 'Dependency=Geometry Foundation Type', 'Dependency=Vintage']).set_index(['Dependency=Location Region', 'Dependency=Geometry Foundation Type', 'Dependency=Vintage'])        
         return df
     
     def insulation_finished_basement(self):
         df = util.create_dataframe(self.session, rdb)
         df = util.assign_climate_zones(df)
         df = util.assign_state(df)
-        df = util.assign_heating_location(df)
+        df = util.assign_location(df)
         df = util.assign_vintage(df)
         df = util.assign_foundation_type(df)
         df = util.assign_fbsmt(df)
         df, cols = util.categories_to_columns(df, 'rval')            
-        df = df.groupby(['Dependency=Location Heating Region', 'Dependency=Vintage', 'Dependency=Geometry Foundation Type'])
+        df = df.groupby(['Dependency=Location Region', 'Dependency=Vintage', 'Dependency=Geometry Foundation Type'])
         missing_groups = []
         for group in itertools.product(*[['H1', 'H2', 'H3'], ['<1950', '1950s', '1960s', '1970s', '1980s', '1990s', '2000s'], ['Crawl', 'Heated Basement', 'Slab', 'Unheated Basement']]):
             if not group in list(df.groups):
-                missing_groups.append(dict(zip(['Dependency=Location Heating Region', 'Dependency=Vintage', 'Dependency=Geometry Foundation Type'], group)))
+                missing_groups.append(dict(zip(['Dependency=Location Region', 'Dependency=Vintage', 'Dependency=Geometry Foundation Type'], group)))
         count = df.agg(['count']).ix[:, 0]
         weight = df.agg(['sum'])['Weight']  
         df = util.sum_cols(df, cols)
@@ -683,11 +641,11 @@ class Create_DFs():
                 data = dict(group.items() + dict(zip(columns, [1.0/len(columns)] * len(columns))).items())
                 columns.append('None')
                 data['None'] = 0                
-                df_new = pd.DataFrame(data=data, index=[0]).set_index(['Dependency=Location Heating Region', 'Dependency=Vintage', 'Dependency=Geometry Foundation Type'])
+                df_new = pd.DataFrame(data=data, index=[0]).set_index(['Dependency=Location Region', 'Dependency=Vintage', 'Dependency=Geometry Foundation Type'])
             else:
                 data = dict(group.items() + dict(zip(columns, [0] * len(columns))).items())
                 data['None'] = 1
-                df_new = pd.DataFrame(data=data, index=[0]).set_index(['Dependency=Location Heating Region', 'Dependency=Vintage', 'Dependency=Geometry Foundation Type'])
+                df_new = pd.DataFrame(data=data, index=[0]).set_index(['Dependency=Location Region', 'Dependency=Vintage', 'Dependency=Geometry Foundation Type'])
             df_new['Count'] = 0
             df_new['Weight'] = 0
             df = df.append(df_new)
@@ -695,22 +653,22 @@ class Create_DFs():
         df = df[['Option=Uninsulated', 'Option=Wall R-5', 'Option=Wall R-10', 'Option=Wall R-15', 'Option=None', 'Count', 'Weight']]
         df = df.reset_index()
         df['Dependency=Vintage'] = pd.Categorical(df['Dependency=Vintage'], ['<1950', '1950s', '1960s', '1970s', '1980s', '1990s', '2000s'])
-        df = df.sort_values(by=['Dependency=Location Heating Region', 'Dependency=Geometry Foundation Type', 'Dependency=Vintage']).set_index(['Dependency=Location Heating Region', 'Dependency=Geometry Foundation Type', 'Dependency=Vintage'])        
+        df = df.sort_values(by=['Dependency=Location Region', 'Dependency=Geometry Foundation Type', 'Dependency=Vintage']).set_index(['Dependency=Location Region', 'Dependency=Geometry Foundation Type', 'Dependency=Vintage'])        
         return df
     
     def insulation_interzonal_floor(self):
         df = util.create_dataframe(self.session, rdb)
         df = util.assign_climate_zones(df)
         df = util.assign_state(df)
-        df = util.assign_heating_location(df)
+        df = util.assign_location(df)
         df = util.assign_vintage(df)
         df = util.assign_intfloor(df)
         df, cols = util.categories_to_columns(df, 'rval')
-        df = df.groupby(['Dependency=Location Heating Region', 'Dependency=Vintage'])
+        df = df.groupby(['Dependency=Location Region', 'Dependency=Vintage'])
         missing_groups = []
         for group in itertools.product(*[['H1', 'H2', 'H3'], ['<1950', '1950s', '1960s', '1970s', '1980s', '1990s', '2000s']]):
             if not group in list(df.groups):
-                missing_groups.append(dict(zip(['Dependency=Location Heating Region', 'Dependency=Vintage'], group)))        
+                missing_groups.append(dict(zip(['Dependency=Location Region', 'Dependency=Vintage'], group)))        
         count = df.agg(['count']).ix[:, 0]
         weight = df.agg(['sum'])['Weight']  
         df = util.sum_cols(df, cols)
@@ -720,7 +678,7 @@ class Create_DFs():
         columns.remove('Count')
         columns.remove('Weight')     
         for group in missing_groups:
-            df_new = pd.DataFrame(data=dict(group.items() + dict(zip(columns, [1.0/len(columns)] * len(columns))).items()), index=[0]).set_index(['Dependency=Location Heating Region', 'Dependency=Vintage'])
+            df_new = pd.DataFrame(data=dict(group.items() + dict(zip(columns, [1.0/len(columns)] * len(columns))).items()), index=[0]).set_index(['Dependency=Location Region', 'Dependency=Vintage'])
             df_new['Count'] = 0
             df_new['Weight'] = 0
             df = df.append(df_new)
@@ -728,22 +686,22 @@ class Create_DFs():
         df = df[['Option=Uninsulated', 'Option=R-13', 'Option=R-19', 'Count', 'Weight']]
         df = df.reset_index()
         df['Dependency=Vintage'] = pd.Categorical(df['Dependency=Vintage'], ['<1950', '1950s', '1960s', '1970s', '1980s', '1990s', '2000s'])
-        df = df.sort_values(by=['Dependency=Location Heating Region', 'Dependency=Vintage']).set_index(['Dependency=Location Heating Region', 'Dependency=Vintage'])        
+        df = df.sort_values(by=['Dependency=Location Region', 'Dependency=Vintage']).set_index(['Dependency=Location Region', 'Dependency=Vintage'])        
         return df
     
     def windows(self):
         df = util.create_dataframe(self.session, rdb)
         df = util.assign_climate_zones(df)
         df = util.assign_state(df)
-        df = util.assign_heating_location(df)
+        df = util.assign_location(df)
         df = util.assign_vintage(df)
         df = util.assign_win(df)
         df, cols = util.categories_to_columns(df, 'rval')
-        df = df.groupby(['Dependency=Location Heating Region', 'Dependency=Vintage'])
+        df = df.groupby(['Dependency=Location Region', 'Dependency=Vintage'])
         missing_groups = []
         for group in itertools.product(*[['H1', 'H2', 'H3'], ['<1950', '1950s', '1960s', '1970s', '1980s', '1990s', '2000s']]):
             if not group in list(df.groups):
-                missing_groups.append(dict(zip(['Dependency=Location Heating Region', 'Dependency=Vintage'], group)))         
+                missing_groups.append(dict(zip(['Dependency=Location Region', 'Dependency=Vintage'], group)))         
         count = df.agg(['count']).ix[:, 0]
         weight = df.agg(['sum'])['Weight'] 
         df = util.sum_cols(df, cols)
@@ -753,15 +711,15 @@ class Create_DFs():
         columns.remove('Count')
         columns.remove('Weight')        
         for group in missing_groups:
-            df_new = pd.DataFrame(data=dict(group.items() + dict(zip(columns, [1.0/len(columns)] * len(columns))).items()), index=[0]).set_index(['Dependency=Location Heating Region', 'Dependency=Vintage'])
+            df_new = pd.DataFrame(data=dict(group.items() + dict(zip(columns, [1.0/len(columns)] * len(columns))).items()), index=[0]).set_index(['Dependency=Location Region', 'Dependency=Vintage'])
             df_new['Count'] = 0
             df_new['Weight'] = 0
             df = df.append(df_new)
         df = add_option_prefix(df)
-        df = df[['Option=Clear, Single, Metal', 'Option=Clear, Single, Non-metal', 'Option=Clear, Double, Metal, Air', 'Option=Clear, Double, Non-metal, Air', 'Option=Low-E, Double, Non-metal, Air, M-Gain', 'Count', 'Weight']]
+        df = df[['Option=Clear, Single, Metal', 'Option=Clear, Single, Non-metal', 'Option=Clear, Double, Metal, Air', 'Option=Clear, Double, Non-metal, Air', 'Option=Clear, Double, Thermal-Break, Air', 'Option=Low-E, Double, Non-metal, Air, M-Gain', 'Option=Low-E, Triple, Non-metal, Air, L-Gain', 'Count', 'Weight']]
         df = df.reset_index()
         df['Dependency=Vintage'] = pd.Categorical(df['Dependency=Vintage'], ['<1950', '1950s', '1960s', '1970s', '1980s', '1990s', '2000s'])
-        df = df.sort_values(by=['Dependency=Location Heating Region', 'Dependency=Vintage']).set_index(['Dependency=Location Heating Region', 'Dependency=Vintage'])        
+        df = df.sort_values(by=['Dependency=Location Region', 'Dependency=Vintage']).set_index(['Dependency=Location Region', 'Dependency=Vintage'])        
         return df
     
     def windows_h1(self):
@@ -898,18 +856,17 @@ class Create_DFs():
         df = util.create_dataframe(self.session, rdb)
         df = util.assign_climate_zones(df)
         df = util.assign_state(df)
-        df = util.assign_heating_location(df)
-        df = util.assign_cooling_location(df)
+        df = util.assign_location(df)
         df = util.assign_vintage(df)
         df = util.assign_heating_fuel(df)
         df = util.assign_hvac_system_combined(df)
         df = util.assign_hvac_system_is_combined(df, 'htg_and_clg')
         df, cols = util.categories_to_columns(df, 'htg_and_clg')
-        df = df.groupby(['Dependency=Location Heating Region', 'Dependency=Vintage', 'Dependency=Heating Fuel', 'Dependency=HVAC System Is Combined'])
+        df = df.groupby(['Dependency=Location Region', 'Dependency=Vintage', 'Dependency=Heating Fuel', 'Dependency=HVAC System Is Combined'])
         missing_groups = []
         for group in itertools.product(*[['H1', 'H2', 'H3'], ['<1950', '1950s', '1960s', '1970s', '1980s', '1990s', '2000s'], ['Electricity', 'Fuel Oil', 'Natural Gas', 'Propane/LPG', 'Wood'], ['Yes', 'No']]):
             if not group in list(df.groups):
-                missing_groups.append(dict(zip(['Dependency=Location Heating Region', 'Dependency=Vintage', 'Dependency=Heating Fuel', 'Dependency=HVAC System Is Combined'], group)))            
+                missing_groups.append(dict(zip(['Dependency=Location Region', 'Dependency=Vintage', 'Dependency=Heating Fuel', 'Dependency=HVAC System Is Combined'], group)))            
         count = df.agg(['count']).ix[:, 0]
         weight = df.agg(['sum'])['Weight']
         df = util.sum_cols(df, cols)
@@ -924,36 +881,35 @@ class Create_DFs():
                 data = dict(group.items() + dict(zip(columns, [1.0/len(columns)] * len(columns))).items())
                 columns.append('None')
                 data['None'] = 0
-                df_new = pd.DataFrame(data=data, index=[0]).set_index(['Dependency=Location Heating Region', 'Dependency=Vintage', 'Dependency=Heating Fuel', 'Dependency=HVAC System Is Combined'])
+                df_new = pd.DataFrame(data=data, index=[0]).set_index(['Dependency=Location Region', 'Dependency=Vintage', 'Dependency=Heating Fuel', 'Dependency=HVAC System Is Combined'])
             else:
                 data = dict(group.items() + dict(zip(columns, [0] * len(columns))).items())
                 data['None'] = 1
-                df_new = pd.DataFrame(data=data, index=[0]).set_index(['Dependency=Location Heating Region', 'Dependency=Vintage', 'Dependency=Heating Fuel', 'Dependency=HVAC System Is Combined'])
+                df_new = pd.DataFrame(data=data, index=[0]).set_index(['Dependency=Location Region', 'Dependency=Vintage', 'Dependency=Heating Fuel', 'Dependency=HVAC System Is Combined'])
             df_new['Count'] = 0
             df_new['Weight'] = 0
             df = df.append(df_new)
         df = add_option_prefix(df)
         df = df.reset_index()
         df['Dependency=Vintage'] = pd.Categorical(df['Dependency=Vintage'], ['<1950', '1950s', '1960s', '1970s', '1980s', '1990s', '2000s'])
-        df = df.sort_values(by=['Dependency=Location Heating Region', 'Dependency=Heating Fuel', 'Dependency=HVAC System Is Combined', 'Dependency=Vintage']).set_index(['Dependency=Location Heating Region', 'Dependency=Heating Fuel', 'Dependency=HVAC System Is Combined', 'Dependency=Vintage'])
+        df = df.sort_values(by=['Dependency=Location Region', 'Dependency=Heating Fuel', 'Dependency=HVAC System Is Combined', 'Dependency=Vintage']).set_index(['Dependency=Location Region', 'Dependency=Heating Fuel', 'Dependency=HVAC System Is Combined', 'Dependency=Vintage'])
         return df
         
     def hvac_system_is_combined(self):
         df = util.create_dataframe(self.session, rdb)
         df = util.assign_climate_zones(df)
         df = util.assign_state(df)
-        df = util.assign_heating_location(df)
-        df = util.assign_cooling_location(df)
+        df = util.assign_location(df)
         df = util.assign_vintage(df)
         df = util.assign_heating_fuel(df)
         df = util.assign_hvac_system_combined(df)
         df = util.assign_hvac_system_is_combined(df, 'htg_and_clg')
         df, cols = util.categories_to_columns(df, 'Dependency=HVAC System Is Combined')
-        df = df.groupby(['Dependency=Location Heating Region', 'Dependency=Vintage', 'Dependency=Heating Fuel'])
+        df = df.groupby(['Dependency=Location Region', 'Dependency=Vintage', 'Dependency=Heating Fuel'])
         missing_groups = []
         for group in itertools.product(*[['H1', 'H2', 'H3'], ['<1950', '1950s', '1960s', '1970s', '1980s', '1990s', '2000s'], ['Electricity', 'Fuel Oil', 'Natural Gas', 'Propane/LPG', 'Wood']]):
             if not group in list(df.groups):
-                missing_groups.append(dict(zip(['Dependency=Location Heating Region', 'Dependency=Vintage', 'Dependency=Heating Fuel'], group)))
+                missing_groups.append(dict(zip(['Dependency=Location Region', 'Dependency=Vintage', 'Dependency=Heating Fuel'], group)))
         count = df.agg(['count']).ix[:, 0]
         weight = df.agg(['sum'])['Weight']
         df = util.sum_cols(df, cols)
@@ -965,38 +921,36 @@ class Create_DFs():
         for group in missing_groups:
             if group['Dependency=Heating Fuel'] == 'Electricity':
                 data = dict(group.items() + dict(zip(columns, [1.0/len(columns)] * len(columns))).items())
-                df_new = pd.DataFrame(data=data, index=[0]).set_index(['Dependency=Location Heating Region', 'Dependency=Vintage', 'Dependency=Heating Fuel'])
+                df_new = pd.DataFrame(data=data, index=[0]).set_index(['Dependency=Location Region', 'Dependency=Vintage', 'Dependency=Heating Fuel'])
             else:
                 data = dict(group.items() + dict(zip(columns, [0] * len(columns))).items())
                 data['No'] = 1
-                df_new = pd.DataFrame(data=data, index=[0]).set_index(['Dependency=Location Heating Region', 'Dependency=Vintage', 'Dependency=Heating Fuel'])
+                df_new = pd.DataFrame(data=data, index=[0]).set_index(['Dependency=Location Region', 'Dependency=Vintage', 'Dependency=Heating Fuel'])
             df_new['Count'] = 0
             df_new['Weight'] = 0
             df = df.append(df_new)
         df = add_option_prefix(df)
         df = df.reset_index()
         df['Dependency=Vintage'] = pd.Categorical(df['Dependency=Vintage'], ['<1950', '1950s', '1960s', '1970s', '1980s', '1990s', '2000s'])
-        df = df.sort_values(by=['Dependency=Location Heating Region', 'Dependency=Heating Fuel', 'Dependency=Vintage']).set_index(['Dependency=Location Heating Region', 'Dependency=Heating Fuel', 'Dependency=Vintage'])        
+        df = df.sort_values(by=['Dependency=Location Region', 'Dependency=Heating Fuel', 'Dependency=Vintage']).set_index(['Dependency=Location Region', 'Dependency=Heating Fuel', 'Dependency=Vintage'])        
         return df
         
     def hvac_system_heating(self):
         df = util.create_dataframe(self.session, rdb)
         df = util.assign_climate_zones(df)
         df = util.assign_state(df)
-        df = util.assign_heating_location(df)
-        df = util.assign_cooling_location(df)
+        df = util.assign_location(df)
         df = util.assign_vintage(df)
         df = util.assign_heating_fuel(df)
         df = util.assign_hvac_system_combined(df)
         df = util.assign_hvac_system_heating(df)
         df = util.assign_hvac_system_is_combined(df, 'htg_and_clg')
-        df.loc[df['Dependency=HVAC System Is Combined']=='Yes', 'htg'] = 'None'
         df, cols = util.categories_to_columns(df, 'htg')
-        df = df.groupby(['Dependency=Location Heating Region', 'Dependency=Vintage', 'Dependency=Heating Fuel', 'Dependency=HVAC System Is Combined'])
+        df = df.groupby(['Dependency=Location Region', 'Dependency=Vintage', 'Dependency=Heating Fuel', 'Dependency=HVAC System Is Combined'])
         missing_groups = []
         for group in itertools.product(*[['H1', 'H2', 'H3'], ['<1950', '1950s', '1960s', '1970s', '1980s', '1990s', '2000s'], ['Electricity', 'Fuel Oil', 'Natural Gas', 'Propane/LPG', 'Wood'], ['Yes', 'No']]):
             if not group in list(df.groups):
-                missing_groups.append(dict(zip(['Dependency=Location Heating Region', 'Dependency=Vintage', 'Dependency=Heating Fuel', 'Dependency=HVAC System Is Combined'], group)))           
+                missing_groups.append(dict(zip(['Dependency=Location Region', 'Dependency=Vintage', 'Dependency=Heating Fuel', 'Dependency=HVAC System Is Combined'], group)))           
         count = df.agg(['count']).ix[:, 0]
         weight = df.agg(['sum'])['Weight']
         df = util.sum_cols(df, cols)
@@ -1011,11 +965,11 @@ class Create_DFs():
                 data = dict(group.items() + dict(zip(columns, [1.0/len(columns)] * len(columns))).items())
                 columns.append('None')
                 data['None'] = 0
-                df_new = pd.DataFrame(data=data, index=[0]).set_index(['Dependency=Location Heating Region', 'Dependency=Vintage', 'Dependency=Heating Fuel', 'Dependency=HVAC System Is Combined'])
+                df_new = pd.DataFrame(data=data, index=[0]).set_index(['Dependency=Location Region', 'Dependency=Vintage', 'Dependency=Heating Fuel', 'Dependency=HVAC System Is Combined'])
             else:
                 data = dict(group.items() + dict(zip(columns, [0] * len(columns))).items())
                 data['None'] = 1
-                df_new = pd.DataFrame(data=data, index=[0]).set_index(['Dependency=Location Heating Region', 'Dependency=Vintage', 'Dependency=Heating Fuel', 'Dependency=HVAC System Is Combined'])
+                df_new = pd.DataFrame(data=data, index=[0]).set_index(['Dependency=Location Region', 'Dependency=Vintage', 'Dependency=Heating Fuel', 'Dependency=HVAC System Is Combined'])
             df_new['Count'] = 0
             df_new['Weight'] = 0
             df = df.append(df_new)
@@ -1023,29 +977,27 @@ class Create_DFs():
         df = df[['Option=Electric Baseboard', 'Option=Electric Boiler', 'Option=Electric Furnace', 'Option=Gas Boiler, 72% AFUE', 'Option=Gas Boiler, 76% AFUE', 'Option=Gas Boiler, 80% AFUE', 'Option=Gas Boiler, 85% AFUE', 'Option=Gas Boiler, 96% AFUE', 'Option=Gas Furnace, 60% AFUE', 'Option=Gas Furnace, 68% AFUE', 'Option=Gas Furnace, 76% AFUE', 'Option=Gas Furnace, 80% AFUE', 'Option=Gas Furnace, 90% AFUE', 'Option=Gas Furnace, 96% AFUE', 'Option=Oil Boiler, 72% AFUE', 'Option=Propane Boiler, 72% AFUE', 'Option=None', 'Count', 'Weight']]
         df = df.reset_index()
         df['Dependency=Vintage'] = pd.Categorical(df['Dependency=Vintage'], ['<1950', '1950s', '1960s', '1970s', '1980s', '1990s', '2000s'])
-        df = df.sort_values(by=['Dependency=Location Heating Region', 'Dependency=Heating Fuel', 'Dependency=HVAC System Is Combined', 'Dependency=Vintage']).set_index(['Dependency=Location Heating Region', 'Dependency=Heating Fuel', 'Dependency=HVAC System Is Combined', 'Dependency=Vintage'])
+        df = df.sort_values(by=['Dependency=Location Region', 'Dependency=Heating Fuel', 'Dependency=HVAC System Is Combined', 'Dependency=Vintage']).set_index(['Dependency=Location Region', 'Dependency=Heating Fuel', 'Dependency=HVAC System Is Combined', 'Dependency=Vintage'])
         return df        
         
     def hvac_system_cooling(self):
         df = util.create_dataframe(self.session, rdb)
         df = util.assign_climate_zones(df)
         df = util.assign_state(df)
-        df = util.assign_heating_location(df)
-        df = util.assign_cooling_location(df)
+        df = util.assign_location(df)
         df = util.assign_vintage(df)
         df = util.assign_heating_fuel(df)
         df = util.assign_hvac_system_combined(df)
-        df = util.assign_hvac_system_is_combined(df, 'htg_and_clg')
         df = util.assign_hvac_system_cooling(df)
-        df.loc[df['Dependency=HVAC System Is Combined']=='Yes', 'htg'] = 'None'
+        df = util.assign_hvac_system_is_combined(df, 'htg_and_clg')
         df, cols = util.categories_to_columns(df, 'clg')
-        df = df.groupby(['Dependency=Location Cooling Region', 'Dependency=Vintage', 'Dependency=Heating Fuel', 'Dependency=HVAC System Is Combined'])
+        df = df.groupby(['Dependency=Location Region', 'Dependency=Vintage', 'Dependency=Heating Fuel', 'Dependency=HVAC System Is Combined'])
         missing_groups = []
-        for group in itertools.product(*[['C1', 'C2', 'C3'], ['<1950', '1950s', '1960s', '1970s', '1980s', '1990s', '2000s'], ['Electricity', 'Fuel Oil', 'Natural Gas', 'Propane/LPG', 'Wood'], ['Yes', 'No']]):
+        for group in itertools.product(*[['H1', 'H2', 'H3'], ['<1950', '1950s', '1960s', '1970s', '1980s', '1990s', '2000s'], ['Electricity', 'Fuel Oil', 'Natural Gas', 'Propane/LPG', 'Wood'], ['Yes', 'No']]):
             if not group in list(df.groups):
-                missing_groups.append(dict(zip(['Dependency=Location Cooling Region', 'Dependency=Vintage', 'Dependency=Heating Fuel', 'Dependency=HVAC System Is Combined'], group)))           
+                missing_groups.append(dict(zip(['Dependency=Location Region', 'Dependency=Vintage', 'Dependency=Heating Fuel', 'Dependency=HVAC System Is Combined'], group)))           
         count = df.agg(['count']).ix[:, 0]
-        weight = df.agg(['sum'])['Weight']
+        weight = df.agg(['sum'])['Weight']   
         df = util.sum_cols(df, cols)
         df['Count'] = count
         df['Weight'] = weight
@@ -1058,11 +1010,11 @@ class Create_DFs():
                 data = dict(group.items() + dict(zip(columns, [1.0/len(columns)] * len(columns))).items())
                 columns.append('None')
                 data['None'] = 0
-                df_new = pd.DataFrame(data=data, index=[0]).set_index(['Dependency=Location Cooling Region', 'Dependency=Vintage', 'Dependency=Heating Fuel', 'Dependency=HVAC System Is Combined'])
+                df_new = pd.DataFrame(data=data, index=[0]).set_index(['Dependency=Location Region', 'Dependency=Vintage', 'Dependency=Heating Fuel', 'Dependency=HVAC System Is Combined'])
             else:
                 data = dict(group.items() + dict(zip(columns, [0] * len(columns))).items())
                 data['None'] = 1
-                df_new = pd.DataFrame(data=data, index=[0]).set_index(['Dependency=Location Cooling Region', 'Dependency=Vintage', 'Dependency=Heating Fuel', 'Dependency=HVAC System Is Combined'])
+                df_new = pd.DataFrame(data=data, index=[0]).set_index(['Dependency=Location Region', 'Dependency=Vintage', 'Dependency=Heating Fuel', 'Dependency=HVAC System Is Combined'])
             df_new['Count'] = 0
             df_new['Weight'] = 0
             df = df.append(df_new)
@@ -1070,7 +1022,7 @@ class Create_DFs():
         df = df[['Option=AC, SEER 8', 'Option=AC, SEER 10', 'Option=AC, SEER 13', 'Option=AC, SEER 15', 'Option=FIXME Room AC, EER 9.8, 10% Conditioned', 'Option=FIXME Room AC, EER 9.8, 20% Conditioned', 'Option=FIXME Room AC, EER 9.8, 30% Conditioned', 'Option=FIXME Room AC, EER 9.8, 50% Conditioned', 'Option=None', 'Count', 'Weight']]
         df = df.reset_index()
         df['Dependency=Vintage'] = pd.Categorical(df['Dependency=Vintage'], ['<1950', '1950s', '1960s', '1970s', '1980s', '1990s', '2000s'])
-        df = df.sort_values(by=['Dependency=Location Cooling Region', 'Dependency=Heating Fuel', 'Dependency=HVAC System Is Combined', 'Dependency=Vintage']).set_index(['Dependency=Location Cooling Region', 'Dependency=Heating Fuel', 'Dependency=HVAC System Is Combined', 'Dependency=Vintage'])
+        df = df.sort_values(by=['Dependency=Location Region', 'Dependency=Heating Fuel', 'Dependency=HVAC System Is Combined', 'Dependency=Vintage']).set_index(['Dependency=Location Region', 'Dependency=Heating Fuel', 'Dependency=HVAC System Is Combined', 'Dependency=Vintage'])
         return df
     
     def ducts(self):
@@ -1083,7 +1035,7 @@ class Create_DFs():
         df = util.create_dataframe(self.session, rdb)
         df = util.assign_climate_zones(df)
         df = util.assign_state(df)
-        df = util.assign_heating_location(df)
+        df = util.assign_location(df)
         df = util.assign_vintage(df)
         df = util.assign_foundation_type(df)
         df = util.assign_heated_basement_boolean(df)
@@ -1094,7 +1046,7 @@ class Create_DFs():
         df = util.create_dataframe(self.session, rdb)
         df = util.assign_climate_zones(df)
         df = util.assign_state(df)
-        df = util.assign_heating_location(df)
+        df = util.assign_location(df)        
         df = util.assign_vintage(df)
         
         sfductsRval = {'R0': 0,
@@ -1195,7 +1147,7 @@ class Create_DFs():
         plt.savefig('test3.png')
         plt.close()              
         
-        df[['Dependency=Location Heating Region', 'Dependency=Vintage', 'ductrval', 'ductrvalbin', 'ductincond', 'ductleak']].to_csv(os.path.join(datafiles_dir, 'Ducts Analysis.tsv'), sep='\t')
+        df[['Dependency=Location Region', 'Dependency=Vintage', 'ductrval', 'ductrvalbin', 'ductincond', 'ductleak']].to_csv(os.path.join(datafiles_dir, 'Ducts Analysis.tsv'), sep='\t')
         
         sys.exit()
     
@@ -1259,6 +1211,120 @@ class Create_DFs():
         df = add_option_prefix(df)
         df = df[['Option=Electric, 100% Usage', 'Option=Gas, 100% Usage', 'Option=None', 'Count', 'Weight']]
         return df
+        
+    def electricity_consumption_location(self):
+        df = util.create_dataframe(self.session, rdb)
+        df = util.assign_climate_zones(df)
+        df = util.assign_state(df)
+        df = util.assign_location(df)
+        df = util.assign_vintage(df)
+        df = util.assign_electricity_consumption(df)
+        df = df.groupby(['Dependency=Location Region'])
+        count = df.agg(['count']).ix[:, 0]
+        weight = df.agg(['sum'])['Weight']
+        df = df[['kwh_nrm']].sum()
+        df['Count'] = count
+        df['Weight'] = weight
+        df['kwh_nrm_per_home'] = df['kwh_nrm'] / df['Count']
+        df['kwh_nrm_total'] = df['kwh_nrm_per_home'] * df['Weight']           
+        return df
+
+    def electricity_consumption_vintage(self):
+        df = util.create_dataframe(self.session, rdb)
+        df = util.assign_climate_zones(df)
+        df = util.assign_state(df)
+        df = util.assign_location(df)
+        df = util.assign_vintage(df)
+        df = util.assign_electricity_consumption(df)
+        df = df.groupby(['Dependency=Vintage'])
+        count = df.agg(['count']).ix[:, 0]
+        weight = df.agg(['sum'])['Weight']
+        df = df[['kwh_nrm']].sum()
+        df['Count'] = count
+        df['Weight'] = weight
+        df['kwh_nrm_per_home'] = df['kwh_nrm'] / df['Count']
+        df['kwh_nrm_total'] = df['kwh_nrm_per_home'] * df['Weight']
+        df = df.reset_index()
+        df['Dependency=Vintage'] = pd.Categorical(df['Dependency=Vintage'], ['<1950', '1950s', '1960s', '1970s', '1980s', '1990s', '2000s'])
+        df = df.sort_values(by=['Dependency=Vintage']).set_index(['Dependency=Vintage'])             
+        return df        
+        
+    def electricity_consumption_location_vintage(self):
+        df = util.create_dataframe(self.session, rdb)
+        df = util.assign_climate_zones(df)
+        df = util.assign_state(df)
+        df = util.assign_location(df)        
+        df = util.assign_vintage(df)
+        df = util.assign_electricity_consumption(df)
+        df = df.groupby(['Dependency=Location Region', 'Dependency=Vintage'])
+        count = df.agg(['count']).ix[:, 0]
+        weight = df.agg(['sum'])['Weight']
+        df = df[['kwh_nrm']].sum()
+        df['Count'] = count
+        df['Weight'] = weight
+        df['kwh_nrm_per_home'] = df['kwh_nrm'] / df['Count']
+        df['kwh_nrm_total'] = df['kwh_nrm_per_home'] * df['Weight']
+        df = df.reset_index()
+        df['Dependency=Vintage'] = pd.Categorical(df['Dependency=Vintage'], ['<1950', '1950s', '1960s', '1970s', '1980s', '1990s', '2000s'])
+        df = df.sort_values(by=['Dependency=Location Region', 'Dependency=Vintage']).set_index(['Dependency=Location Region', 'Dependency=Vintage'])             
+        return df        
+        
+    def natural_gas_consumption_location(self):
+        df = util.create_dataframe(self.session, rdb)
+        df = util.assign_climate_zones(df)
+        df = util.assign_state(df)
+        df = util.assign_location(df)
+        df = util.assign_vintage(df)
+        df = util.assign_natural_gas_consumption(df)
+        df = df.groupby(['Dependency=Location Region'])
+        count = df.agg(['count']).ix[:, 0]
+        weight = df.agg(['sum'])['Weight']
+        df = df[['thm_nrm']].sum()
+        df['Count'] = count
+        df['Weight'] = weight
+        df['thm_nrm_per_home'] = df['thm_nrm'] / df['Count']
+        df['thm_nrm_total'] = df['thm_nrm_per_home'] * df['Weight']           
+        return df
+
+    def natural_gas_consumption_vintage(self):
+        df = util.create_dataframe(self.session, rdb)
+        df = util.assign_climate_zones(df)
+        df = util.assign_state(df)
+        df = util.assign_location(df)
+        df = util.assign_vintage(df)
+        df = util.assign_natural_gas_consumption(df)
+        df = df.groupby(['Dependency=Vintage'])
+        count = df.agg(['count']).ix[:, 0]
+        weight = df.agg(['sum'])['Weight']
+        df = df[['thm_nrm']].sum()
+        df['Count'] = count
+        df['Weight'] = weight
+        df['thm_nrm_per_home'] = df['thm_nrm'] / df['Count']
+        df['thm_nrm_total'] = df['thm_nrm_per_home'] * df['Weight']
+        df = df.reset_index()
+        df['Dependency=Vintage'] = pd.Categorical(df['Dependency=Vintage'], ['<1950', '1950s', '1960s', '1970s', '1980s', '1990s', '2000s'])
+        df = df.sort_values(by=['Dependency=Vintage']).set_index(['Dependency=Vintage'])             
+        return df        
+        
+    def natural_gas_consumption_location_vintage(self):
+        df = util.create_dataframe(self.session, rdb)
+        df = util.assign_climate_zones(df)
+        df = util.assign_state(df)
+        df = util.assign_location(df)        
+        df = util.assign_vintage(df)
+        df = util.assign_natural_gas_consumption(df)
+        df = df.groupby(['Dependency=Location Region', 'Dependency=Vintage'])
+        count = df.agg(['count']).ix[:, 0]
+        weight = df.agg(['sum'])['Weight']
+        df = df[['thm_nrm']].sum()
+        df['Count'] = count
+        df['Weight'] = weight
+        df['thm_nrm_per_home'] = df['thm_nrm'] / df['Count']
+        df['thm_nrm_total'] = df['thm_nrm_per_home'] * df['Weight']
+        df = df.reset_index()
+        df['Dependency=Vintage'] = pd.Categorical(df['Dependency=Vintage'], ['<1950', '1950s', '1960s', '1970s', '1980s', '1990s', '2000s'])
+        df = df.sort_values(by=['Dependency=Location Region', 'Dependency=Vintage']).set_index(['Dependency=Location Region', 'Dependency=Vintage'])
+        return df
 
 def to_figure(df, file):
     
@@ -1284,8 +1350,7 @@ if __name__ == '__main__':
 
     dfs = Create_DFs('rbsa.sqlite')
     
-    # Other possible categories: 'Insulation Wall H1', 'Insulation Wall H2', 'Insulation Wall H3', 'Insulation Unfinished Attic H1', 'Insulation Unfinished Attic H2', 'Insulation Unfinished Attic H3', 'Windows H1', 'Windows H2', 'Windows H3'
-    for category in ['Location Heating Region', 'Location Cooling Region', 'Vintage', 'Heating Fuel', 'Geometry Foundation Type', 'Geometry House Size', 'Geometry Stories', 'Insulation Unfinished Attic', 'Insulation Wall', 'Heating Setpoint', 'Cooling Setpoint', 'Insulation Slab', 'Insulation Crawlspace', 'Insulation Unfinished Basement', 'Insulation Finished Basement', 'Insulation Interzonal Floor', 'Windows', 'Infiltration', 'HVAC System Combined', 'HVAC System Heating', 'HVAC System Cooling', 'HVAC System Is Combined', 'Ducts', 'Water Heater', 'Lighting', 'Cooking Range', 'Clothes Dryer']:
+    for category in ['Location Region', 'Vintage', 'Heating Fuel', 'Geometry Foundation Type', 'Geometry House Size', 'Geometry Stories', 'Insulation Unfinished Attic', 'Insulation Wall', 'Heating Setpoint', 'Cooling Setpoint', 'Insulation Slab', 'Insulation Crawlspace', 'Insulation Unfinished Basement', 'Insulation Finished Basement', 'Insulation Interzonal Floor', 'Windows', 'Infiltration', 'HVAC System Combined', 'HVAC System Heating', 'HVAC System Cooling', 'HVAC System Is Combined', 'Ducts', 'Water Heater', 'Lighting', 'Cooking Range', 'Clothes Dryer', 'Insulation Wall H1', 'Insulation Wall H2', 'Insulation Wall H3', 'Insulation Unfinished Attic H1', 'Insulation Unfinished Attic H2', 'Insulation Unfinished Attic H3', 'Windows H1', 'Windows H2', 'Windows H3']:
         print category
         method = getattr(dfs, category.lower().replace(' ', '_'))
         df = method()
@@ -1294,11 +1359,8 @@ if __name__ == '__main__':
         for col in ['Count', 'Weight']:
             if col in df.columns:
                 del df[col]
-                
         try:
             path = os.path.join(heatmaps_dir, '{}.png'.format(category))
             to_figure(df, path)
         except RuntimeError:
             print "Warning: Error in plotting figure; skipping {}.".format(path)
-            
-        to_figure(df, os.path.join(heatmaps_dir, '{}.png'.format(category)))
