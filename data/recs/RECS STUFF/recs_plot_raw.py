@@ -118,7 +118,7 @@ fpl09 = {	1:10830,
 
 fpl = fpl09
 
-def stackedbar(df, VAR, TITLE):
+def stackedbar(df, VAR, TITLE, x_label, norm):
 ##Change only these two parameters
 #	VAR = 'Size'
 #	TITLE = "House Size" + " vs. " + "Federal Poverty Levels 250, 200, 150, 100, 50"
@@ -128,25 +128,33 @@ def stackedbar(df, VAR, TITLE):
 	CUT = ['FPLALL','FPL250','FPL200','FPL150','FPL100','FPL50']
 	i = len(CUT)
 
-	#Colors for plot gradient
-
+	#Colors for plot gradient & plot type
+	if norm == False:
+		plot_type = ' Distribution'
+	else:
+		plot_type = ' Percentage'
 	colors = sns.color_palette("GnBu", i)
 
 	#Loop to plot different poverty levels
-	plt.figure()
+	plt.figure(figsize=(15,10))
    	for j in range(len(CUT)):
 		POV = CUT[j]
-		df1 = calc_general(df, cut_by=[VAR],columns=[POV])
-		ax = sns.barplot(x = df1[VAR], y = df1[1.0], color = colors[j])
+		df1 = calc_general(df, cut_by=[VAR],columns=[POV],norm=norm)
+		if norm == False:
+			ax = sns.barplot(x = df1[VAR], y = df1[1.0], color = colors[j])
+		else:
+			ax = sns.barplot(x = df1[VAR], y = df1[1.0]*100, color = colors[j])
 
 	#Save and label
-
-	ax.set_xlabel(VAR + " of Home", fontsize = 13.5)
-	ax.set_ylabel("Distribution of Homes According to Income", fontsize = 12)
+	for label in ax.get_xticklabels():
+		label.set_rotation(0)
+	ax.set_xlabel(x_label, fontsize = 13.5)
+	ax.set_ylabel(plot_type +" of Homes According to Income", fontsize = 12)
 	ax.set_title(TITLE, fontsize = 15)
+
 	fig = ax.get_figure()
-	fig.savefig(VAR+'_POVlvls.png', bbox_inches = 'tight')
-	print fig
+	fig.savefig(VAR+plot_type+'_POVlvls.png', bbox_inches = 'tight')
+
 
 
 if __name__ == '__main__':
@@ -154,9 +162,21 @@ if __name__ == '__main__':
 	assign_sizes(df)
 	poverty(df)
 	df = df.fillna(value = 0)
-	stackedbar(df,'EQUIPM', 'Heating Equipment' + ' vs. Federal Poverty Levels: 250,200,150,100,50')
-	stackedbar(df,'FUELHEAT', 'Heating Fuel' + ' vs. Federal Poverty Levels: 250,200,150,100,50')
-	stackedbar(df,'DIVISION', 'Census Division' + ' vs. Federal Poverty Levels: 250,200,150,100,50')
+
+#	stackedbar(df,'Size', 'House Size' + ' vs. Federal Poverty Levels: 250,200,150,100,50', 'Square Footage',True)	#Percentage
+#	stackedbar(df,'Size', 'House Size' + ' vs. Federal Poverty Levels: 250,200,150,100,50', 'Square Footage',False)	#Distribution
+#	stackedbar(df,'YEARMADERANGE', 'Vintage' + ' vs. Federal Poverty Levels: 250,200,150,100,50', 'Year Made',True)		#Percentage
+#	stackedbar(df,'YEARMADERANGE', 'Vintage' + ' vs. Federal Poverty Levels: 250,200,150,100,50', 'Year Made',False)		#Distribution
+#	stackedbar(df,'EQUIPM', 'Heating Type' + ' vs. Federal Poverty Levels: 250,200,150,100,50', 'Heating Equipment',True)	#Percentage
+#	stackedbar(df,'EQUIPM', 'Heating Type' + ' vs. Federal Poverty Levels: 250,200,150,100,50', 'Heating Equipment',False)	#Distribution
+#	stackedbar(df,'EQUIPAGE', 'Heating System Age' + ' vs. Federal Poverty Levels: 250,200,150,100,50', 'Age (years)',True)
+#	stackedbar(df,'EQUIPAGE', 'Heating System Age' + ' vs. Federal Poverty Levels: 250,200,150,100,50', 'Age (years)',False)
+#	stackedbar(df,'COOLTYPE', 'A/C Type' + ' vs. Federal Poverty Levels: 250,200,150,100,50', 'Type of A/C Equipment',True)
+#	stackedbar(df,'COOLTYPE', 'A/C Type' + ' vs. Federal Poverty Levels: 250,200,150,100,50', 'Type of A/C Equipment',False)
+	stackedbar(df,'AGECENAC', 'Central A/C System Age' + ' vs. Federal Poverty Levels: 250,200,150,100,50', 'Age of System',True)
+	stackedbar(df,'AGECENAC', 'Central A/C System Age' + ' vs. Federal Poverty Levels: 250,200,150,100,50', 'Age of System',False)
+	stackedbar(df,'WWACAGE', 'Window A/C Unit Age' + ' vs. Federal Poverty Levels: 250,200,150,100,50', 'Age of Oldest Unit',True)
+	stackedbar(df,'WWACAGE', 'Window A/C Unit Age' + ' vs. Federal Poverty Levels: 250,200,150,100,50', 'Age of Oldest Unit',False)
 
 #JOINTPLOT
 

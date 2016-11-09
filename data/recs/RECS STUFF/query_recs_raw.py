@@ -162,6 +162,51 @@ census_div = {	1: 'New England Census Division (CT, MA, ME, NH, RI, VT)',
 					9:	'Mountain South Sub-Division (AZ, NM, NV)',
 					10:	'Pacific Census Division (AK, CA, HI, OR, WA)' }
 
+heating_types = {	2: 'Steam/Hot Water'		, #'Steam or Hot Water System',
+						3:	'Central Warm-Air Furnace'      , #'Central Warm-Air Furnace'      ,
+						4:	'Heat Pump'                     , #'Heat Pump'                     ,
+						5 :	'Electric Units'       , #'Built-In Electric Units'       ,
+						6 :	'Pipeless Furnace', #'Floor or Wall Pipeless Furnace',
+						7 :	'Pipeless Furnace', #'Built-In Room Heater'          ,
+						8 :	'Other'               , #'Heating Stove'                 ,
+						9 :	'Other'               , #'Fireplace'                     ,
+						10:	'Electric Units'       , #'Portable Electric Heaters'     ,
+						11: 'Other'               , #'Portable Kerosene Heaters'     ,
+						12:   'Other'               , #'Cooking Stove'                 ,
+						21:   'Other'               , #'Other Equipment'               ,
+						0.0:   'Not Applicable'}                 #'Not Applicable'}
+
+type_glass = {	0:'1 Pane',
+					1:'1 Pane',
+					2:'2 Pane',
+					3:'2 Pane'}
+
+heat_age = {	1:'00-02',
+				2:'02-04',
+				3:'05-09',
+				41:'10-14',
+				42:'15-19',
+				5:'20+',
+				0.0:'N/a'}
+
+ac_age = {	1:'00-02',
+				2:'02-04',
+				3:'05-09',
+				41:'10-14',
+				42:'15-19',
+				5:'20+',
+				0.0:'No AC Used'}
+
+ac_type = {	1:'Central System',
+				2:'Window/Wall Units',
+				3:'Both C.S & W.U.',
+				0.0:'No AC Used'}
+
+
+
+
+
+ages = ['1', '3', '7', '12', '17', '25', '-1']
 fpl = fpl09
 
 def process_csv_data():
@@ -345,6 +390,21 @@ def calc_general(df, cut_by=['REPORTABLE_DOMAIN','FUELHEAT'], columns=None, outf
 	for cen_num,cen_name in census_div.iteritems():
 		for field in ['DIVISION']:
 			df[field].replace(cen_num,cen_name,inplace=True)
+	for heat_num, heat_name in heating_types.iteritems():
+		for field in ['EQUIPM']:
+			df[field].replace(heat_num,heat_name,inplace=True)
+	for glass_num, glass_name in type_glass.iteritems():
+		for field in ['TYPEGLASS']:
+			df[field].replace(glass_num,glass_name,inplace=True)
+	for heat_age_num, heat_age_name in heat_age.iteritems():
+		for field in ['EQUIPAGE']:
+			df[field].replace(heat_age_num,heat_age_name,inplace=True)
+	for ac_num, ac_name in ac_type.iteritems():
+		for field in ['COOLTYPE']:
+			df[field].replace(ac_num,ac_name,inplace=True)
+	for ac_age_num, ac_age_name in ac_age.iteritems():
+		for field in ['AGECENAC','WWACAGE']:
+			df[field].replace(ac_age_num,ac_age_name,inplace=True)
 	if 'Stories' in cut_by or 'Stories' in columns:
 		for num, name in stories.iteritems():
 			df['Stories'].replace(num,name, inplace=True)
