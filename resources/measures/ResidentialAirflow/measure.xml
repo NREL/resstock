@@ -2,13 +2,13 @@
   <schema_version>3.0</schema_version>
   <name>residential_airflow</name>
   <uid>7d2adf5c-9995-49be-b662-a23d2452bb36</uid>
-  <version_id>93e7473b-55d2-4d2a-aed4-9160f3ec7b78</version_id>
-  <version_modified>20161104T142959Z</version_modified>
+  <version_id>219bede1-3838-4f71-afd9-4c4aad7eea9e</version_id>
+  <version_modified>20161110T152055Z</version_modified>
   <xml_checksum>19EEDBBB</xml_checksum>
   <class_name>ResidentialAirflow</class_name>
   <display_name>Set Residential Airflow</display_name>
-  <description>This measure processes infiltration for the living space, garage, finished basement, unfinished basement, crawlspace, and unfinished attic. It also processes mechanical ventilation and natural ventilation for the living space.</description>
-  <modeler_description>Using EMS code, this measure processes the building's airflow (infiltration, mechanical ventilation, and natural ventilation). Note: This measure requires the number of bedrooms/bathrooms to have already been assigned.</modeler_description>
+  <description>Sets (or replaces) all building components related to airflow: infiltration, mechanical ventilation, natural ventilation, and ducts.</description>
+  <modeler_description>Uses EMS to model the building airflow.</modeler_description>
   <arguments>
     <argument>
       <name>living_ach50</name>
@@ -77,6 +77,25 @@
       <required>false</required>
       <model_dependent>false</model_dependent>
       <default_value>auto</default_value>
+    </argument>
+    <argument>
+      <name>has_flue</name>
+      <display_name>Air Leakage: Has Open Flue</display_name>
+      <description>Specifies whether the building has an open flue or chimney (e.g., for a furnace, boiler, water heater, or fireplace).</description>
+      <type>Boolean</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+      <default_value>true</default_value>
+      <choices>
+        <choice>
+          <value>true</value>
+          <display_name>true</display_name>
+        </choice>
+        <choice>
+          <value>false</value>
+          <display_name>false</display_name>
+        </choice>
+      </choices>
     </argument>
     <argument>
       <name>age_of_home</name>
@@ -670,12 +689,6 @@
       <checksum>92D6C640</checksum>
     </file>
     <file>
-      <filename>constants.rb</filename>
-      <filetype>rb</filetype>
-      <usage_type>resource</usage_type>
-      <checksum>D6592C9C</checksum>
-    </file>
-    <file>
       <filename>hvac.rb</filename>
       <filetype>rb</filetype>
       <usage_type>resource</usage_type>
@@ -706,6 +719,12 @@
       <checksum>22C6561D</checksum>
     </file>
     <file>
+      <filename>constants.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>394EB92E</checksum>
+    </file>
+    <file>
       <version>
         <software_program>OpenStudio</software_program>
         <identifier>1.13.1</identifier>
@@ -714,7 +733,7 @@
       <filename>measure.rb</filename>
       <filetype>rb</filetype>
       <usage_type>script</usage_type>
-      <checksum>CD762E55</checksum>
+      <checksum>6F7CE150</checksum>
     </file>
   </files>
 </measure>

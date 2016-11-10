@@ -293,12 +293,12 @@ class ResidentialAirflow < OpenStudio::Ruleset::ModelUserScript
 
   # human readable description
   def description
-    return "This measure processes infiltration for the living space, garage, finished basement, unfinished basement, crawlspace, and unfinished attic. It also processes mechanical ventilation and natural ventilation for the living space."
+    return "Sets (or replaces) all building components related to airflow: infiltration, mechanical ventilation, natural ventilation, and ducts."
   end
 
   # human readable description of modeling approach
   def modeler_description
-    return "Using EMS code, this measure processes the building's airflow (infiltration, mechanical ventilation, and natural ventilation). Note: This measure requires the number of bedrooms/bathrooms to have already been assigned."
+    return "Uses EMS to model the building airflow."
   end
 
   # define the arguments that the user will input
@@ -358,6 +358,13 @@ class ResidentialAirflow < OpenStudio::Ruleset::ModelUserScript
     shelter_coef.setDescription("The local shelter coefficient (AIM-2 infiltration model) accounts for nearby buildings, trees and obstructions.")
     shelter_coef.setDefaultValue("auto")
     args << shelter_coef
+    
+    #make a double argument for open flue
+    has_flue = OpenStudio::Ruleset::OSArgument::makeBoolArgument("has_flue", false)
+    has_flue.setDisplayName("Air Leakage: Has Open Flue")
+    has_flue.setDescription("Specifies whether the building has an open flue or chimney (e.g., for a furnace, boiler, water heater, or fireplace).")
+    has_flue.setDefaultValue(true)
+    args << has_flue    
 
     #make a double argument for existing or new construction
     age_of_home = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("age_of_home", true)
@@ -663,6 +670,7 @@ class ResidentialAirflow < OpenStudio::Ruleset::ModelUserScript
     ufbsmtACH = runner.getDoubleArgumentValue("unfinished_basement_ach",user_arguments)
     uaSLA = runner.getDoubleArgumentValue("unfinished_attic_ach",user_arguments)
     infiltrationShelterCoefficient = runner.getStringArgumentValue("shelter_coef",user_arguments)
+    has_flue = runner.getBoolArgumentValue("has_flue",user_arguments)
     terrainType = runner.getStringArgumentValue("terrain",user_arguments)
     mechVentType = runner.getStringArgumentValue("mech_vent_type",user_arguments)
     mechVentInfilCredit = runner.getBoolArgumentValue("mech_vent_infil_credit",user_arguments)
@@ -876,7 +884,7 @@ class ResidentialAirflow < OpenStudio::Ruleset::ModelUserScript
         unit.dryer_exhaust = 0
       end
       
-      infil, building, unit = _processInfiltrationForUnit(infil, wind_speed, building, unit)
+      infil, building, unit = _processInfiltrationForUnit(infil, wind_speed, building, unit, has_flue, runner)
       mech_vent, schedules = _processMechanicalVentilation(model, runner, infil, mech_vent, building, unit, schedules)
       nat_vent, schedules = _processNaturalVentilation(model, runner, nat_vent, wind_speed, infil, building, unit, schedules)
       
@@ -1912,7 +1920,7 @@ class ResidentialAirflow < OpenStudio::Ruleset::ModelUserScript
   
   end
   
-  def _processInfiltrationForUnit(infil, wind_speed, building, unit)
+  def _processInfiltrationForUnit(infil, wind_speed, building, unit, has_flue, runner)
     # Infiltration calculations.
     
     spaces = []
@@ -1955,11 +1963,9 @@ class ResidentialAirflow < OpenStudio::Ruleset::ModelUserScript
     
           # Flow Coefficient (cfm/inH2O^n) (based on ASHRAE HoF)
           infil.C_i = infil.A_o * (2.0 / outside_air_density) ** 0.5 * delta_pref ** (0.5 - infil.n_i) * inf_conv_factor
-          has_flue = false
 
           if has_flue
-            # for future use
-            infil.Y_i = 0.2
+            infil.Y_i = 0.2 # Fraction of leakage through the flue; 0.2 is a "typical" value according to THE ALBERTA AIR INFIL1RATION MODEL, Walker and Wilson, 1990
             infil.flue_height = building.building_height + 2.0 # ft
             infil.S_wflue = 1.0 # Flue Shelter Coefficient
           else
@@ -2005,7 +2011,7 @@ class ResidentialAirflow < OpenStudio::Ruleset::ModelUserScript
             # Eq. 13
             infil.X_c = infil.R_i + (2.0 * (1.0 - infil.R_i - infil.Y_i)) / (infil.n_i + 1.0) - 2.0 * infil.Y_i * (infil.Z_f - 1.0) ** infil.n_i
             # Additive flue function, Eq. 12
-            infil.F_i = infil.n_i * infil.Y_y * (infil.Z_f - 1.0) ** ((3.0 * infil.n_i - 1.0) / 3.0) * (1.0 - (3.0 * (infil.X_c - infil.X_i) ** 2.0 * infil.R_i ** (1 - infil.n_i)) / (2.0 * (infil.Z_f + 1.0)))
+            infil.F_i = infil.n_i * infil.Y_i * (infil.Z_f - 1.0) ** ((3.0 * infil.n_i - 1.0) / 3.0) * (1.0 - (3.0 * (infil.X_c - infil.X_i) ** 2.0 * infil.R_i ** (1 - infil.n_i)) / (2.0 * (infil.Z_f + 1.0)))
           else
             # Critical value of ceiling-floor leakage difference where the
             # neutral level is located at the ceiling (eq. 13)

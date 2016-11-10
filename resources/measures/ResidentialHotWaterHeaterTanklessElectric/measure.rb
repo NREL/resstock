@@ -66,12 +66,12 @@ class ResidentialHotWaterHeaterTanklessElectric < OpenStudio::Ruleset::ModelUser
         args << rated_energy_factor
 
         # make an argument for cycling_derate
-        water_heater_cycling_derate = osargument::makeDoubleArgument("water_heater_cycling_derate", true)
-        water_heater_cycling_derate.setDisplayName("Cycling Derate")
-        water_heater_cycling_derate.setDescription("Annual energy derate for cycling inefficiencies -- accounts for the impact of thermal cycling and small hot water draws on the heat exchanger. CEC's 2008 Title24 implemented an 8% derate for tankless water heaters. ")
-        water_heater_cycling_derate.setUnits("Frac")
-        water_heater_cycling_derate.setDefaultValue(0.08)
-        args << water_heater_cycling_derate
+        cycling_derate = osargument::makeDoubleArgument("cycling_derate", true)
+        cycling_derate.setDisplayName("Cycling Derate")
+        cycling_derate.setDescription("Annual energy derate for cycling inefficiencies -- accounts for the impact of thermal cycling and small hot water draws on the heat exchanger. CEC's 2008 Title24 implemented an 8% derate for tankless water heaters. ")
+        cycling_derate.setUnits("Frac")
+        cycling_derate.setDefaultValue(0.08)
+        args << cycling_derate
     
         return args
     end #end the arguments method
@@ -84,7 +84,7 @@ class ResidentialHotWaterHeaterTanklessElectric < OpenStudio::Ruleset::ModelUser
         #Assign user inputs to variables
         cap = runner.getDoubleArgumentValue("capacity",user_arguments)
         ef = runner.getDoubleArgumentValue("energy_factor",user_arguments)
-        cd = runner.getDoubleArgumentValue("water_heater_cycling_derate",user_arguments)
+        cd = runner.getDoubleArgumentValue("cycling_derate",user_arguments)
         water_heater_loc = runner.getStringArgumentValue("location",user_arguments)
         t_set = runner.getDoubleArgumentValue("setpoint_temp",user_arguments).to_f
         

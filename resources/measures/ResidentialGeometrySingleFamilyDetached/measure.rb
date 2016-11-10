@@ -119,14 +119,14 @@ class CreateResidentialSingleFamilyDetachedGeometry < OpenStudio::Ruleset::Model
 	
     #make a choice argument for model objects
     attic_type_display_names = OpenStudio::StringVector.new
-    attic_type_display_names << Constants.UnfinishedAtticSpaceType
-    attic_type_display_names << Constants.FinishedAtticSpaceType
+    attic_type_display_names << Constants.UnfinishedAtticType
+    attic_type_display_names << Constants.FinishedAtticType
 	
     #make a choice argument for attic type
     attic_type = OpenStudio::Ruleset::OSArgument::makeChoiceArgument("attic_type", attic_type_display_names, true)
     attic_type.setDisplayName("Attic Type")
     attic_type.setDescription("The attic type of the building.")
-    attic_type.setDefaultValue(Constants.UnfinishedAtticSpaceType)
+    attic_type.setDefaultValue(Constants.UnfinishedAtticType)
     args << attic_type	
 	
     #make a choice argument for model objects
@@ -502,18 +502,20 @@ class CreateResidentialSingleFamilyDetachedGeometry < OpenStudio::Ruleset::Model
       surface_w_wall.setSpace(attic_space)
       surface_e_wall.setSpace(attic_space)
       
-      attic_space_name = attic_type
-      attic_space.setName(attic_space_name)
-      runner.registerInfo("Set #{attic_space_name}.")
-
-      # set these to the foundation zone
-      if attic_type == Constants.UnfinishedAtticSpaceType        
+      # set these to the attic zone
+      if attic_type == Constants.UnfinishedAtticType        
         # create attic zone
         attic_zone = OpenStudio::Model::ThermalZone.new(model)
         attic_zone.setName(Constants.UnfinishedAtticZone)
         attic_space.setThermalZone(attic_zone)
-      elsif attic_type == Constants.FinishedAtticSpaceType
+        attic_space_name = Constants.UnfinishedAtticSpace
+        attic_space.setName(attic_space_name)
+        runner.registerInfo("Set #{attic_space_name}.")
+      elsif attic_type == Constants.FinishedAtticType
         attic_space.setThermalZone(living_zone)
+        attic_space_name = Constants.FinishedAtticSpace
+        attic_space.setName(attic_space_name)
+        runner.registerInfo("Set #{attic_space_name}.")
       end
 
       m = OpenStudio::Matrix.new(4,4,0)
@@ -554,7 +556,13 @@ class CreateResidentialSingleFamilyDetachedGeometry < OpenStudio::Ruleset::Model
       # make space
       foundation_space = OpenStudio::Model::Space::fromFloorPrint(foundation_polygon, foundation_height, model)
       foundation_space = foundation_space.get
-      foundation_space_name = foundation_type
+      if foundation_type == Constants.CrawlFoundationType
+        foundation_space_name = Constants.CrawlSpace
+      elsif foundation_type == Constants.UnfinishedBasementFoundationType
+        foundation_space_name = Constants.UnfinishedBasementSpace
+      elsif foundation_type == Constants.FinishedBasementFoundationType
+        foundation_space_name = Constants.FinishedBasementSpace
+      end
       foundation_space.setName(foundation_space_name)
       runner.registerInfo("Set #{foundation_space_name}.")
 
@@ -564,7 +572,7 @@ class CreateResidentialSingleFamilyDetachedGeometry < OpenStudio::Ruleset::Model
       # set foundation walls to ground
       spaces = model.getSpaces
       spaces.each do |space|
-        if space.name.to_s == foundation_type.to_s
+        if space.name.to_s == foundation_space_name
           surfaces = space.surfaces
           surfaces.each do |surface|
             next if surface.surfaceType.downcase != "wall"
@@ -731,7 +739,7 @@ class CreateResidentialSingleFamilyDetachedGeometry < OpenStudio::Ruleset::Model
     model.getBuilding.setStandardsNumberOfLivingUnits(1)
   
     # Store number of stories
-    if attic_type == Constants.FinishedAtticSpaceType
+    if attic_type == Constants.FinishedAtticType
       num_floors += 1
     end
     model.getBuilding.setStandardsNumberOfAboveGroundStories(num_floors)
