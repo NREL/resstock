@@ -55,7 +55,7 @@ class ApplyUpgrade < OpenStudio::Ruleset::ModelUserScript
     (1..num_options).each do |option_num|
         option_apply_logic = OpenStudio::Ruleset::OSArgument.makeStringArgument("option_#{option_num}_apply_logic", false)
         option_apply_logic.setDisplayName("Option #{option_num} Apply Logic")
-        option_apply_logic.setDescription("Logic that determines if the Option #{option_num} upgrade will apply based on the existing building's options. Specify one or more parameter|option as found in resources\\options_lookup.tsv. When multiple are included, they must be separated by '||' for OR and '&&' for AND, and using parentheses as appropriate.")
+        option_apply_logic.setDescription("Logic that determines if the Option #{option_num} upgrade will apply based on the existing building's options. Specify one or more parameter|option as found in resources\\options_lookup.tsv. When multiple are included, they must be separated by '||' for OR and '&&' for AND, and using parentheses as appropriate. Prefix an option with '!' for not.")
         args << option_apply_logic
     end
 
@@ -131,53 +131,8 @@ class ApplyUpgrade < OpenStudio::Ruleset::ModelUserScript
         # Apply this option?
         apply_option_upgrade = true
         if options_apply_logic.include?(option_num)
-        
-            option_apply_logic = options_apply_logic[option_num]
-        
-            # Convert to appropriate ruby statement for evaluation
-            if option_apply_logic.count("(") != option_apply_logic.count(")")
-                runner.registerError("Inconsistent number of open and close parentheses in Option #{option_num} Apply Logic.")
-                return false
-            end
-            
-            ruby_eval_str = ""
-            option_apply_logic.split("||").each do |or_segment|
-                or_segment.split("&&").each do |segment|
-                    segment.strip!
-                    
-                    # Handle presence of open parentheses
-                    rindex = segment.rindex("(")
-                    if rindex.nil?
-                        rindex = 0
-                    else
-                        rindex += 1
-                    end
-                    open_parentheses = segment[0,rindex].gsub(" ","")
-                    
-                    # Handle presence of close parentheses
-                    lindex = segment.index(")")
-                    if lindex.nil?
-                        lindex = segment.size
-                    end
-                    close_paranetheses = segment[lindex,segment.size-lindex].gsub(" ","")
-                    
-                    segment_parameter, segment_option = segment[rindex,lindex-rindex].strip.split("|")
-                    
-                    # Get existing building option name for the same parameter
-                    existing_option_name = get_value_from_runner_past_results(segment_parameter, runner)
-                    
-                    ruby_eval_str += open_parentheses + "'" + existing_option_name + "'=='" + segment_option + "'" + close_paranetheses + " and "
-                end
-                ruby_eval_str.chomp!(" and ")
-                ruby_eval_str += " or "
-            end
-            ruby_eval_str.chomp!(" or ")
-            apply_option_upgrade = eval(ruby_eval_str)
-            runner.registerInfo("Evaluating Option #{option_num} Apply Logic: #{option_apply_logic}.")
-            runner.registerInfo("Converted to Ruby: #{ruby_eval_str}.")
-            runner.registerInfo("Ruby Evaluation: #{apply_option_upgrade.to_s}.")
-            if not [true, false].include?(apply_option_upgrade)
-                runner.registerError("Option #{option_num} Apply Logic was not successfully evaluated: #{ruby_eval_str}")
+            apply_option_upgrade = evaluate_logic(options_apply_logic[option_num], runner)
+            if apply_option_upgrade.nil?
                 return false
             end
         end
@@ -224,7 +179,8 @@ class ApplyUpgrade < OpenStudio::Ruleset::ModelUserScript
     
     if measures.size == 0
         # Upgrade not applied; skip from CSV
-        runner.registerAsNotApplicable("Upgrade not applied.")
+        # FIXME: doesn't currently stop datapoint from continuing.
+        runner.registerAsNotApplicable("No measures to apply.") 
         return false
     end
 

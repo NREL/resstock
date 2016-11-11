@@ -843,7 +843,6 @@ class ResidentialAirflow < OpenStudio::Ruleset::ModelUserScript
       unit.num_bedrooms, unit.num_bathrooms = Geometry.get_unit_beds_baths(model, building_unit, runner)
       unit_spaces = building_unit.spaces
       if unit.num_bedrooms.nil? or unit.num_bathrooms.nil?
-        runner.registerError("Could not determine number of bedrooms or bathrooms. Run the 'Add Residential Bedrooms And Bathrooms' measure first.")
         return false
       end
       thermal_zones = Geometry.get_thermal_zones_from_spaces(unit_spaces)
@@ -1442,6 +1441,8 @@ class ResidentialAirflow < OpenStudio::Ruleset::ModelUserScript
         ra_duct_space.surfaces.each do |surface|
           surface.setConstruction(adiabatic_const)
           surface.setOutsideBoundaryCondition("Adiabatic")
+          surface.setSunExposure("NoSun")
+          surface.setWindExposure("NoWind")
         end
       
         # Two objects are required to model the air exchange between the air handler zone and the living space since
@@ -2321,15 +2322,17 @@ class ResidentialAirflow < OpenStudio::Ruleset::ModelUserScript
         end
       end
     end
-      
+
+    default_htg_sp = 71.0
+    default_clg_sp = 76.0
     if heatingSetpointWeekday.all? {|x| x == -10000}
-      runner.registerWarning("No heating equipment found. Assuming 71F for natural ventilation calculations.")
-      nat_vent.ovlp_ssn_hourly_temp = Array.new(24, OpenStudio::convert(71.0 + nat_vent.NatVentOvlpSsnSetpointOffset,"F","C").get)
+      runner.registerWarning("No heating equipment found. Assuming #{default_htg_sp} F for natural ventilation calculations.")
+      nat_vent.ovlp_ssn_hourly_temp = Array.new(24, OpenStudio::convert(default_htg_sp + nat_vent.NatVentOvlpSsnSetpointOffset,"F","C").get)
     else
       nat_vent.ovlp_ssn_hourly_temp = Array.new(24, OpenStudio::convert([heatingSetpointWeekday.max, heatingSetpointWeekend.max].max + nat_vent.NatVentOvlpSsnSetpointOffset,"F","C").get)
     end
     if coolingSetpointWeekday.all? {|x| x == 10000}
-      runner.registerWarning("No cooling equipment found. Assuming 76F for natural ventilation calculations.")
+      runner.registerWarning("No cooling equipment found. Assuming #{default_clg_sp} F for natural ventilation calculations.")
     end
     nat_vent.ovlp_ssn_hourly_weekend_temp = nat_vent.ovlp_ssn_hourly_temp
       
@@ -2343,7 +2346,7 @@ class ResidentialAirflow < OpenStudio::Ruleset::ModelUserScript
     nat_vent.htg_ssn_hourly_temp = Array.new
     coolingSetpointWeekday.each do |x|
       if x == 10000
-        nat_vent.htg_ssn_hourly_temp << OpenStudio::convert(76.0 - nat_vent.NatVentHtgSsnSetpointOffset,"F","C").get
+        nat_vent.htg_ssn_hourly_temp << OpenStudio::convert(default_clg_sp - nat_vent.NatVentHtgSsnSetpointOffset,"F","C").get
       else
         nat_vent.htg_ssn_hourly_temp << OpenStudio::convert(x - nat_vent.NatVentHtgSsnSetpointOffset,"F","C").get
       end
@@ -2351,7 +2354,7 @@ class ResidentialAirflow < OpenStudio::Ruleset::ModelUserScript
     nat_vent.htg_ssn_hourly_weekend_temp = Array.new
     coolingSetpointWeekend.each do |x|
       if x == 10000
-        nat_vent.htg_ssn_hourly_weekend_temp << OpenStudio::convert(76.0 - nat_vent.NatVentHtgSsnSetpointOffset,"F","C").get
+        nat_vent.htg_ssn_hourly_weekend_temp << OpenStudio::convert(default_clg_sp - nat_vent.NatVentHtgSsnSetpointOffset,"F","C").get
       else
         nat_vent.htg_ssn_hourly_weekend_temp << OpenStudio::convert(x - nat_vent.NatVentHtgSsnSetpointOffset,"F","C").get
       end
@@ -2360,7 +2363,7 @@ class ResidentialAirflow < OpenStudio::Ruleset::ModelUserScript
     nat_vent.clg_ssn_hourly_temp = Array.new
     heatingSetpointWeekday.each do |x|
       if x == -10000
-        nat_vent.clg_ssn_hourly_temp << OpenStudio::convert(71.0 + nat_vent.NatVentClgSsnSetpointOffset,"F","C").get
+        nat_vent.clg_ssn_hourly_temp << OpenStudio::convert(default_htg_sp + nat_vent.NatVentClgSsnSetpointOffset,"F","C").get
       else
         nat_vent.clg_ssn_hourly_temp << OpenStudio::convert(x + nat_vent.NatVentClgSsnSetpointOffset,"F","C").get
       end
@@ -2368,7 +2371,7 @@ class ResidentialAirflow < OpenStudio::Ruleset::ModelUserScript
     nat_vent.clg_ssn_hourly_weekend_temp = Array.new
     heatingSetpointWeekend.each do |x|
       if x == -10000
-        nat_vent.clg_ssn_hourly_weekend_temp << OpenStudio::convert(71.0 + nat_vent.NatVentClgSsnSetpointOffset,"F","C").get
+        nat_vent.clg_ssn_hourly_weekend_temp << OpenStudio::convert(default_htg_sp + nat_vent.NatVentClgSsnSetpointOffset,"F","C").get
       else
         nat_vent.clg_ssn_hourly_weekend_temp << OpenStudio::convert(x + nat_vent.NatVentClgSsnSetpointOffset,"F","C").get
       end

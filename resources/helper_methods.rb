@@ -427,6 +427,63 @@ def register_error(msg, runner=nil)
     end
 end
 
+def evaluate_logic(option_apply_logic, runner)
+    # Convert to appropriate ruby statement for evaluation
+    if option_apply_logic.count("(") != option_apply_logic.count(")")
+        runner.registerError("Inconsistent number of open and close parentheses in logic.")
+        return nil
+    end
+    
+    ruby_eval_str = ""
+    option_apply_logic.split("||").each do |or_segment|
+        or_segment.split("&&").each do |segment|
+            segment.strip!
+            
+            # Handle presence of open parentheses
+            rindex = segment.rindex("(")
+            if rindex.nil?
+                rindex = 0
+            else
+                rindex += 1
+            end
+            segment_open = segment[0,rindex].gsub(" ","")
+            
+            # Handle presence of exclamation point
+            segment_equality = "'=='"
+            if segment[rindex] == '!'
+                segment_equality = "'!='"
+                rindex += 1
+            end
+            
+            # Handle presence of close parentheses
+            lindex = segment.index(")")
+            if lindex.nil?
+                lindex = segment.size
+            end
+            segment_close = segment[lindex,segment.size-lindex].gsub(" ","")
+            
+            segment_parameter, segment_option = segment[rindex,lindex-rindex].strip.split("|")
+            
+            # Get existing building option name for the same parameter
+            segment_existing_option = get_value_from_runner_past_results(segment_parameter, runner)
+            
+            ruby_eval_str += segment_open + "'" + segment_existing_option + segment_equality + segment_option + "'" + segment_close + " and "
+        end
+        ruby_eval_str.chomp!(" and ")
+        ruby_eval_str += " or "
+    end
+    ruby_eval_str.chomp!(" or ")
+    result = eval(ruby_eval_str)
+    runner.registerInfo("Evaluating logic: #{option_apply_logic}.")
+    runner.registerInfo("Converted to Ruby: #{ruby_eval_str}.")
+    runner.registerInfo("Ruby Evaluation: #{result.to_s}.")
+    if not [true, false].include?(result)
+        runner.registerError("Logic was not successfully evaluated: #{ruby_eval_str}")
+        return nil
+    end 
+    return result
+end
+
 class String
   def is_number?
     true if Float(self) rescue false
