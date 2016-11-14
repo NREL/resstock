@@ -155,10 +155,13 @@ if __name__ == '__main__':
 	poverty(df)
 	df = df.fillna(value = 0)
 <<<<<<< HEAD
+<<<<<<< Updated upstream
 	stackedbar(df,'EQUIPM', 'Heating Equipment' + ' vs. Federal Poverty Levels: 250,200,150,100,50')
 	stackedbar(df,'FUELHEAT', 'Heating Fuel' + ' vs. Federal Poverty Levels: 250,200,150,100,50')
 	stackedbar(df,'DIVISION', 'Census Division' + ' vs. Federal Poverty Levels: 250,200,150,100,50')
 =======
+=======
+>>>>>>> Stashed changes
 
 	stackedbar(df,'Size', 'House Size' + ' vs. Federal Poverty Levels: 250,200,150,100,50', 'Square Footage',True)	#Percentage
 	stackedbar(df,'Size', 'House Size' + ' vs. Federal Poverty Levels: 250,200,150,100,50', 'Square Footage',False)	#Distribution
@@ -174,7 +177,15 @@ if __name__ == '__main__':
 #	stackedbar(df,'AGECENAC', 'Central A/C System Age' + ' vs. Federal Poverty Levels: 250,200,150,100,50', 'Age of System',False)
 #	stackedbar(df,'WWACAGE', 'Window A/C Unit Age' + ' vs. Federal Poverty Levels: 250,200,150,100,50', 'Age of Oldest Unit',True)
 #	stackedbar(df,'WWACAGE', 'Window A/C Unit Age' + ' vs. Federal Poverty Levels: 250,200,150,100,50', 'Age of Oldest Unit',False)
+<<<<<<< Updated upstream
 >>>>>>> 90c0872... Update of Plots
+=======
+=======
+	stackedbar(df,'EQUIPM', 'Heating Equipment' + ' vs. Federal Poverty Levels: 250,200,150,100,50')
+	stackedbar(df,'FUELHEAT', 'Heating Fuel' + ' vs. Federal Poverty Levels: 250,200,150,100,50')
+	stackedbar(df,'DIVISION', 'Census Division' + ' vs. Federal Poverty Levels: 250,200,150,100,50')
+>>>>>>> 2552194f8f7a788b5fee404682572fde6b07d97f
+>>>>>>> Stashed changes
 
 #JOINTPLOT
 
