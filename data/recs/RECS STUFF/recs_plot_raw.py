@@ -154,9 +154,27 @@ if __name__ == '__main__':
 	assign_sizes(df)
 	poverty(df)
 	df = df.fillna(value = 0)
+<<<<<<< HEAD
 	stackedbar(df,'EQUIPM', 'Heating Equipment' + ' vs. Federal Poverty Levels: 250,200,150,100,50')
 	stackedbar(df,'FUELHEAT', 'Heating Fuel' + ' vs. Federal Poverty Levels: 250,200,150,100,50')
 	stackedbar(df,'DIVISION', 'Census Division' + ' vs. Federal Poverty Levels: 250,200,150,100,50')
+=======
+
+	stackedbar(df,'Size', 'House Size' + ' vs. Federal Poverty Levels: 250,200,150,100,50', 'Square Footage',True)	#Percentage
+	stackedbar(df,'Size', 'House Size' + ' vs. Federal Poverty Levels: 250,200,150,100,50', 'Square Footage',False)	#Distribution
+#	stackedbar(df,'YEARMADERANGE', 'Vintage' + ' vs. Federal Poverty Levels: 250,200,150,100,50', 'Year Made',True)		#Percentage
+#	stackedbar(df,'YEARMADERANGE', 'Vintage' + ' vs. Federal Poverty Levels: 250,200,150,100,50', 'Year Made',False)		#Distribution
+#	stackedbar(df,'EQUIPM', 'Heating Type' + ' vs. Federal Poverty Levels: 250,200,150,100,50', 'Heating Equipment',True)	#Percentage
+#	stackedbar(df,'EQUIPM', 'Heating Type' + ' vs. Federal Poverty Levels: 250,200,150,100,50', 'Heating Equipment',False)	#Distribution
+#	stackedbar(df,'EQUIPAGE', 'Heating System Age' + ' vs. Federal Poverty Levels: 250,200,150,100,50', 'Age (years)',True)
+#	stackedbar(df,'EQUIPAGE', 'Heating System Age' + ' vs. Federal Poverty Levels: 250,200,150,100,50', 'Age (years)',False)
+#	stackedbar(df,'COOLTYPE', 'A/C Type' + ' vs. Federal Poverty Levels: 250,200,150,100,50', 'Type of A/C Equipment',True)
+#	stackedbar(df,'COOLTYPE', 'A/C Type' + ' vs. Federal Poverty Levels: 250,200,150,100,50', 'Type of A/C Equipment',False)
+#	stackedbar(df,'AGECENAC', 'Central A/C System Age' + ' vs. Federal Poverty Levels: 250,200,150,100,50', 'Age of System',True)
+#	stackedbar(df,'AGECENAC', 'Central A/C System Age' + ' vs. Federal Poverty Levels: 250,200,150,100,50', 'Age of System',False)
+#	stackedbar(df,'WWACAGE', 'Window A/C Unit Age' + ' vs. Federal Poverty Levels: 250,200,150,100,50', 'Age of Oldest Unit',True)
+#	stackedbar(df,'WWACAGE', 'Window A/C Unit Age' + ' vs. Federal Poverty Levels: 250,200,150,100,50', 'Age of Oldest Unit',False)
+>>>>>>> 90c0872... Update of Plots
 
 #JOINTPLOT
 
