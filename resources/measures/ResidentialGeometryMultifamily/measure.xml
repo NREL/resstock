@@ -1,0 +1,288 @@
+<measure>
+  <schema_version>3.0</schema_version>
+  <name>create_residential_multifamily_geometry</name>
+  <uid>9bc07973-98a4-46fc-b643-e280628817c5</uid>
+  <version_id>70c05e0f-b181-49c3-b52f-e692ca94bb2e</version_id>
+  <version_modified>20161110T145604Z</version_modified>
+  <xml_checksum>2AF3A68E</xml_checksum>
+  <class_name>CreateResidentialMultifamilyGeometry</class_name>
+  <display_name>Create Residential Multifamily Geometry</display_name>
+  <description>Sets the basic geometry for the building.</description>
+  <modeler_description>Creates multifamily geometry.</modeler_description>
+  <arguments>
+    <argument>
+      <name>unit_ffa</name>
+      <display_name>Unit Finished Floor Area</display_name>
+      <description>Unit floor area of the finished space (including any finished basement floor area).</description>
+      <type>Double</type>
+      <units>ft^2</units>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>900</default_value>
+    </argument>
+    <argument>
+      <name>living_height</name>
+      <display_name>Wall Height (Per Floor)</display_name>
+      <description>The height of the living space (and garage) walls.</description>
+      <type>Double</type>
+      <units>ft</units>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>8</default_value>
+    </argument>
+    <argument>
+      <name>building_num_floors</name>
+      <display_name>Building Num Floors</display_name>
+      <description>The number of floors above grade.</description>
+      <type>Integer</type>
+      <units>#</units>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>1</default_value>
+    </argument>
+    <argument>
+      <name>num_units_per_floor</name>
+      <display_name>Num Units Per Floor</display_name>
+      <description>The number of units per floor.</description>
+      <type>Integer</type>
+      <units>#</units>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>2</default_value>
+    </argument>
+    <argument>
+      <name>unit_aspect_ratio</name>
+      <display_name>Unit Aspect Ratio</display_name>
+      <description>The ratio of the front/back wall length to the left/right wall length.</description>
+      <type>Double</type>
+      <units>FB/LR</units>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>2</default_value>
+    </argument>
+    <argument>
+      <name>corr_pos</name>
+      <display_name>Corridor Position</display_name>
+      <description>The position of the corridor.</description>
+      <type>Choice</type>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>Double-Loaded Interior</default_value>
+      <choices>
+        <choice>
+          <value>Double-Loaded Interior</value>
+          <display_name>Double-Loaded Interior</display_name>
+        </choice>
+        <choice>
+          <value>Single Exterior (Front)</value>
+          <display_name>Single Exterior (Front)</display_name>
+        </choice>
+        <choice>
+          <value>Double Exterior</value>
+          <display_name>Double Exterior</display_name>
+        </choice>
+        <choice>
+          <value>None</value>
+          <display_name>None</display_name>
+        </choice>
+      </choices>
+    </argument>
+    <argument>
+      <name>corr_width</name>
+      <display_name>Corridor Width</display_name>
+      <description>The width of the corridor.</description>
+      <type>Double</type>
+      <units>ft</units>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>10</default_value>
+    </argument>
+    <argument>
+      <name>inset_width</name>
+      <display_name>Inset Width</display_name>
+      <description>The width of the inset.</description>
+      <type>Double</type>
+      <units>ft</units>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>0</default_value>
+    </argument>
+    <argument>
+      <name>inset_depth</name>
+      <display_name>Inset Depth</display_name>
+      <description>The depth of the inset.</description>
+      <type>Double</type>
+      <units>ft</units>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>0</default_value>
+    </argument>
+    <argument>
+      <name>inset_pos</name>
+      <display_name>Inset Position</display_name>
+      <description>The position of the inset.</description>
+      <type>Choice</type>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>Right</default_value>
+      <choices>
+        <choice>
+          <value>Right</value>
+          <display_name>Right</display_name>
+        </choice>
+        <choice>
+          <value>Left</value>
+          <display_name>Left</display_name>
+        </choice>
+      </choices>
+    </argument>
+    <argument>
+      <name>balc_depth</name>
+      <display_name>Balcony Depth</display_name>
+      <description>The depth of the balcony.</description>
+      <type>Double</type>
+      <units>ft</units>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>0</default_value>
+    </argument>
+    <argument>
+      <name>foundation_type</name>
+      <display_name>Foundation Type</display_name>
+      <description>The foundation type of the building.</description>
+      <type>Choice</type>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>slab</default_value>
+      <choices>
+        <choice>
+          <value>slab</value>
+          <display_name>slab</display_name>
+        </choice>
+        <choice>
+          <value>crawlspace</value>
+          <display_name>crawlspace</display_name>
+        </choice>
+        <choice>
+          <value>unfinished basement</value>
+          <display_name>unfinished basement</display_name>
+        </choice>
+        <choice>
+          <value>pier and beam</value>
+          <display_name>pier and beam</display_name>
+        </choice>
+      </choices>
+    </argument>
+    <argument>
+      <name>foundation_height</name>
+      <display_name>Crawlspace Height</display_name>
+      <description>The height of the crawlspace walls.</description>
+      <type>Double</type>
+      <units>ft</units>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>3</default_value>
+    </argument>
+    <argument>
+      <name>use_zone_mult</name>
+      <display_name>Use Zone Multipliers?</display_name>
+      <description>Model only one interior unit per floor with its thermal zone multiplier equal to the number of interior units per floor.</description>
+      <type>Boolean</type>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>false</default_value>
+      <choices>
+        <choice>
+          <value>true</value>
+          <display_name>true</display_name>
+        </choice>
+        <choice>
+          <value>false</value>
+          <display_name>false</display_name>
+        </choice>
+      </choices>
+    </argument>
+    <argument>
+      <name>use_floor_mult</name>
+      <display_name>Use Floor Multipliers?</display_name>
+      <description>Model only one interior floor with thermal zone multipliers equal to the number of interior floors.</description>
+      <type>Boolean</type>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>false</default_value>
+      <choices>
+        <choice>
+          <value>true</value>
+          <display_name>true</display_name>
+        </choice>
+        <choice>
+          <value>false</value>
+          <display_name>false</display_name>
+        </choice>
+      </choices>
+    </argument>
+  </arguments>
+  <provenances/>
+  <tags>
+    <tag>Envelope.Form</tag>
+  </tags>
+  <attributes>
+    <attribute>
+      <name>Measure Type</name>
+      <value>ModelMeasure</value>
+      <datatype>string</datatype>
+    </attribute>
+    <attribute>
+      <name>Intended Software Tool</name>
+      <value>Apply Measure Now</value>
+      <datatype>string</datatype>
+    </attribute>
+    <attribute>
+      <name>Intended Software Tool</name>
+      <value>OpenStudio Application</value>
+      <datatype>string</datatype>
+    </attribute>
+    <attribute>
+      <name>Intended Software Tool</name>
+      <value>Parametric Analysis Tool</value>
+      <datatype>string</datatype>
+    </attribute>
+  </attributes>
+  <files>
+    <file>
+      <filename>multifamily.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>B2C066DF</checksum>
+    </file>
+    <file>
+      <filename>create_residential_multifamily_geometry_test.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>test</usage_type>
+      <checksum>9FE1FDBE</checksum>
+    </file>
+    <file>
+      <filename>geometry.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>9A86F3EB</checksum>
+    </file>
+    <file>
+      <version>
+        <software_program>OpenStudio</software_program>
+        <identifier>1.12.2</identifier>
+        <min_compatible>1.13.1</min_compatible>
+      </version>
+      <filename>measure.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>script</usage_type>
+      <checksum>A600E433</checksum>
+    </file>
+    <file>
+      <filename>constants.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>394EB92E</checksum>
+    </file>
+  </files>
+</measure>

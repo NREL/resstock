@@ -1,0 +1,238 @@
+<measure>
+  <schema_version>3.0</schema_version>
+  <name>residential_photovoltaics</name>
+  <uid>f6447e7a-bcb0-46f0-a899-6c3999ce0b27</uid>
+  <version_id>5fa23bf8-cec0-4ad8-b89f-59c170e0aab3</version_id>
+  <version_modified>20161110T145611Z</version_modified>
+  <xml_checksum>1BFC8ABF</xml_checksum>
+  <class_name>ResidentialPhotovoltaics</class_name>
+  <display_name>Set Residential Photovoltaics</display_name>
+  <description>This measure...</description>
+  <modeler_description>Uses...</modeler_description>
+  <arguments>
+    <argument>
+      <name>size</name>
+      <display_name>Size</display_name>
+      <description>Size (power) per unit of the photovoltaic array in kW DC.</description>
+      <type>Double</type>
+      <units>kW</units>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+      <default_value>2.5</default_value>
+    </argument>
+    <argument>
+      <name>module_type</name>
+      <display_name>Module Type</display_name>
+      <description>Type of module to use for the PV simulation.</description>
+      <type>Choice</type>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>c-si</default_value>
+      <choices>
+        <choice>
+          <value>c-si</value>
+          <display_name>c-si</display_name>
+        </choice>
+      </choices>
+    </argument>
+    <argument>
+      <name>system_losses</name>
+      <display_name>System Losses</display_name>
+      <description>Difference between theoretical module-level and actual PV system performance due to wiring resistance losses, dust, module mismatch, etc.</description>
+      <type>Double</type>
+      <units>frac</units>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+      <default_value>0.14</default_value>
+    </argument>
+    <argument>
+      <name>inverter_efficiency</name>
+      <display_name>Inverter Efficiency</display_name>
+      <description>The efficiency of the inverter.</description>
+      <type>Double</type>
+      <units>frac</units>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+      <default_value>0.96</default_value>
+    </argument>
+    <argument>
+      <name>azimuth_type</name>
+      <display_name>Azimuth Type</display_name>
+      <description>Relative azimuth angle is measured clockwise from the front of the house. Absolute azimuth angle is measured clockwise from due south.</description>
+      <type>Choice</type>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>relative</default_value>
+      <choices>
+        <choice>
+          <value>relative</value>
+          <display_name>relative</display_name>
+        </choice>
+        <choice>
+          <value>absolute</value>
+          <display_name>absolute</display_name>
+        </choice>
+      </choices>
+    </argument>
+    <argument>
+      <name>azimuth</name>
+      <display_name>Azimuth</display_name>
+      <description>The azimuth angle is measured clockwise.</description>
+      <type>Double</type>
+      <units>degrees</units>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+      <default_value>0</default_value>
+    </argument>
+    <argument>
+      <name>tilt_type</name>
+      <display_name>Tilt Type</display_name>
+      <description>Type of tilt angle referenced.</description>
+      <type>Choice</type>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>pitch</default_value>
+      <choices>
+        <choice>
+          <value>pitch</value>
+          <display_name>pitch</display_name>
+        </choice>
+        <choice>
+          <value>absolute</value>
+          <display_name>absolute</display_name>
+        </choice>
+        <choice>
+          <value>latitude</value>
+          <display_name>latitude</display_name>
+        </choice>
+      </choices>
+    </argument>
+    <argument>
+      <name>tilt</name>
+      <display_name>Tilt</display_name>
+      <description>Angle of the tilt.</description>
+      <type>Double</type>
+      <units>degrees</units>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+      <default_value>0</default_value>
+    </argument>
+  </arguments>
+  <provenances/>
+  <tags>
+    <tag>Onsite Power Generation.Photovoltaic</tag>
+  </tags>
+  <attributes>
+    <attribute>
+      <name>Measure Type</name>
+      <value>ModelMeasure</value>
+      <datatype>string</datatype>
+    </attribute>
+    <attribute>
+      <name>Intended Software Tool</name>
+      <value>Apply Measure Now</value>
+      <datatype>string</datatype>
+    </attribute>
+    <attribute>
+      <name>Intended Software Tool</name>
+      <value>OpenStudio Application</value>
+      <datatype>string</datatype>
+    </attribute>
+    <attribute>
+      <name>Intended Software Tool</name>
+      <value>Parametric Analysis Tool</value>
+      <datatype>string</datatype>
+    </attribute>
+  </attributes>
+  <files>
+    <file>
+      <filename>psychrometrics.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>078F0169</checksum>
+    </file>
+    <file>
+      <filename>unit_conversions.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>92D6C640</checksum>
+    </file>
+    <file>
+      <filename>util.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>22C6561D</checksum>
+    </file>
+    <file>
+      <filename>weather.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>97B219DD</checksum>
+    </file>
+    <file>
+      <filename>singlefamily_detached.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>3230857D</checksum>
+    </file>
+    <file>
+      <filename>USA_CO_Denver_Intl_AP_725650_TMY3.ddy</filename>
+      <filetype>ddy</filetype>
+      <usage_type>test</usage_type>
+      <checksum>FB253570</checksum>
+    </file>
+    <file>
+      <filename>USA_CO_Denver_Intl_AP_725650_TMY3.epw</filename>
+      <filetype>epw</filetype>
+      <usage_type>test</usage_type>
+      <checksum>E23378AA</checksum>
+    </file>
+    <file>
+      <filename>geometry.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>9A86F3EB</checksum>
+    </file>
+    <file>
+      <filename>hvac.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>C2C5EE94</checksum>
+    </file>
+    <file>
+      <filename>Modules.csv</filename>
+      <filetype>csv</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>F7F10234</checksum>
+    </file>
+    <file>
+      <filename>singlefamily_attached_4_units.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>15B50BAD</checksum>
+    </file>
+    <file>
+      <filename>constants.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>394EB92E</checksum>
+    </file>
+    <file>
+      <version>
+        <software_program>OpenStudio</software_program>
+        <identifier>1.13.2</identifier>
+        <min_compatible>1.13.2</min_compatible>
+      </version>
+      <filename>measure.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>script</usage_type>
+      <checksum>FCAEBBC8</checksum>
+    </file>
+    <file>
+      <filename>residential_photovoltaics_test.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>test</usage_type>
+      <checksum>78B0470E</checksum>
+    </file>
+  </files>
+</measure>

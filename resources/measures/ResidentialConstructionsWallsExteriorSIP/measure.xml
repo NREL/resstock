@@ -1,0 +1,152 @@
+<measure>
+  <schema_version>3.0</schema_version>
+  <name>process_constructions_walls_exterior_sip</name>
+  <uid>d3c6d46a-2ebe-41a9-b218-d4c2a7d0f530</uid>
+  <version_id>334cae10-ce68-4566-a6fc-80740f889f12</version_id>
+  <version_modified>20161110T145603Z</version_modified>
+  <xml_checksum>2609226D</xml_checksum>
+  <class_name>ProcessConstructionsWallsExteriorSIP</class_name>
+  <display_name>Set Residential Walls - SIP Construction</display_name>
+  <description>This measure assigns a SIP construction to above-grade exterior walls adjacent to finished space.</description>
+  <modeler_description>Calculates and assigns material layer properties of SIP constructions for above-grade walls between finished space and outside. If the walls have an existing construction, the layers (other than exterior finish, wall sheathing, and wall mass) are replaced. This measure is intended to be used in conjunction with Exterior Finish, Wall Sheathing, and Exterior Wall Mass measures.</modeler_description>
+  <arguments>
+    <argument>
+      <name>sip_r</name>
+      <display_name>Nominal Insulation R-value</display_name>
+      <description>R-value is a measure of insulation's ability to resist heat traveling through it.</description>
+      <type>Double</type>
+      <units>hr-ft^2-R/Btu</units>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>17.5</default_value>
+    </argument>
+    <argument>
+      <name>thick_in</name>
+      <display_name>Insulation Thickness</display_name>
+      <description>Thickness of the insulating core of the SIP.</description>
+      <type>Double</type>
+      <units>in</units>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>3.625</default_value>
+    </argument>
+    <argument>
+      <name>framing_factor</name>
+      <display_name>Framing Factor</display_name>
+      <description>Total fraction of the wall that is framing for windows or doors.</description>
+      <type>Double</type>
+      <units>frac</units>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>0.156</default_value>
+    </argument>
+    <argument>
+      <name>sheathing_type</name>
+      <display_name>Interior Sheathing Type</display_name>
+      <description>The interior sheathing type of the SIP wall.</description>
+      <type>Choice</type>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>osb</default_value>
+      <choices>
+        <choice>
+          <value>osb</value>
+          <display_name>osb</display_name>
+        </choice>
+        <choice>
+          <value>gyp</value>
+          <display_name>gyp</display_name>
+        </choice>
+        <choice>
+          <value>crete</value>
+          <display_name>crete</display_name>
+        </choice>
+      </choices>
+    </argument>
+    <argument>
+      <name>sheathing_thick_in</name>
+      <display_name>Interior Sheathing Thickness</display_name>
+      <description>The thickness of the interior sheathing.</description>
+      <type>Double</type>
+      <units>in</units>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>0.44</default_value>
+    </argument>
+  </arguments>
+  <provenances/>
+  <tags>
+    <tag>Envelope.Opaque</tag>
+  </tags>
+  <attributes>
+    <attribute>
+      <name>Measure Type</name>
+      <value>ModelMeasure</value>
+      <datatype>string</datatype>
+    </attribute>
+    <attribute>
+      <name>Intended Software Tool</name>
+      <value>Apply Measure Now</value>
+      <datatype>string</datatype>
+    </attribute>
+    <attribute>
+      <name>Intended Software Tool</name>
+      <value>OpenStudio Application</value>
+      <datatype>string</datatype>
+    </attribute>
+    <attribute>
+      <name>Intended Software Tool</name>
+      <value>Parametric Analysis Tool</value>
+      <datatype>string</datatype>
+    </attribute>
+  </attributes>
+  <files>
+    <file>
+      <filename>2000sqft_2story_SL_UA.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>CDD25A07</checksum>
+    </file>
+    <file>
+      <filename>geometry.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>9A86F3EB</checksum>
+    </file>
+    <file>
+      <version>
+        <software_program>OpenStudio</software_program>
+        <identifier>1.9.0</identifier>
+        <min_compatible>1.13.1</min_compatible>
+      </version>
+      <filename>measure.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>script</usage_type>
+      <checksum>481CD808</checksum>
+    </file>
+    <file>
+      <filename>util.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>22C6561D</checksum>
+    </file>
+    <file>
+      <filename>SIP_Test.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>test</usage_type>
+      <checksum>0A9405CA</checksum>
+    </file>
+    <file>
+      <filename>2000sqft_2story_SL_UA_AllLayersButWallInsulation.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>7486DA3F</checksum>
+    </file>
+    <file>
+      <filename>constants.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>394EB92E</checksum>
+    </file>
+  </files>
+</measure>

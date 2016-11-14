@@ -49,22 +49,27 @@ task :copy_beopt_files do
   end
 end
 
-desc 'Perform integrity checking on inputs to look for problems'
+desc 'Perform integrity check on inputs for all modes'
 task :integrity_check do
     integrity_check()
 end # rake task
 
-desc 'Perform integrity checking on National inputs to look for problems'
+desc 'Perform integrity check on inputs for National mode'
 task :integrity_check_national do
     integrity_check(['national'])
 end # rake task
 
-desc 'Perform integrity checking on PNW inputs to look for problems'
+desc 'Perform integrity check on inputs for PNW mode'
 task :integrity_check_pnw do
     integrity_check(['pnw'])
 end # rake task
 
-def integrity_check(modes=['national','pnw'])
+desc 'Perform integrity check on inputs for Testing mode'
+task :integrity_check_testing do
+    integrity_check(['testing'])
+end # rake task
+
+def integrity_check(modes=['national','pnw','testing'])
   require 'openstudio'
 
   # Load helper file
@@ -91,6 +96,7 @@ def integrity_check(modes=['national','pnw'])
     option_names = {}
     tsvfiles = {}
     measures = {}
+    epw_files = []
     
     parameter_names.each do |parameter_name|
       tsvpath = File.join(resources_dir, "inputs", mode, "#{parameter_name}.tsv")
@@ -126,11 +132,39 @@ def integrity_check(modes=['national','pnw'])
             if not measures[measure_subdir].has_key?(parameter_name)
                 measures[measure_subdir][parameter_name] = {}
             end
+            
+            # Skip options with duplicate argument values as a previous option; speeds up processing.
+            duplicate_args = false
+            measures[measure_subdir][parameter_name].keys.each do |opt_name|
+                if measures[measure_subdir][parameter_name][opt_name].to_s == args_hash.to_s
+                    duplicate_args = true
+                    break
+                end
+            end
+            next if duplicate_args
+            
+            # Store arguments
             measures[measure_subdir][parameter_name][option_name] = args_hash
+            
+            # Store any EPW files referenced
+            args_hash.each do |k, v|
+                if not v.nil? and v.downcase.end_with?(".epw") and !epw_files.include?(v)
+                    epw_files << v
+                end
+            end
         end
       end
       
     end # parameter_name
+    
+    # Check referenced EPW files exist
+    epw_files.each do |epw_file|
+        epw_file_full = File.join(File.dirname(__FILE__), 'weather', mode, epw_file)
+        if not File.exists?(epw_file_full)
+            puts "ERROR: Cannot find EPW file at #{epw_file_full}."
+            exit
+        end
+    end
     
     # Additional integrity checks for option_lookup.tsv
     measures.keys.each do |measure_subdir|

@@ -1,0 +1,96 @@
+<measure>
+  <schema_version>3.0</schema_version>
+  <name>add_residential_dehumidifier</name>
+  <uid>3b675fc9-9e54-444b-a89b-faa97c24c38d</uid>
+  <version_id>8728e1d1-c74a-4fdb-8db0-00e1cab3c625</version_id>
+  <version_modified>20161026T203042Z</version_modified>
+  <xml_checksum>9E2537CD</xml_checksum>
+  <class_name>AddResidentialDehumidifier</class_name>
+  <display_name>Set Residential Dehumidifier</display_name>
+  <description>This measure allows the user to add an OS:ZoneHVAC:Dehumidifier:DX object to their model. Users will select the thermal zone where the dehumidifier will be added. By default, the dehumidifier will be configured to be available to operate year round. If, at the time of measure execution, the selected zone contains additional conditioning equipment (Other OS:ZoneEquipment objects or is served by an existing OS:AirLoop object) the new dehumidifier will be placed at the position of lowest cooling priority for equipment staging. In accordance with the published 2014 Building America House Simulation Protocols document, the measure will remove any existing dehumidifying setpoint schedule associated with the zone and add a new one configured to the Relative Humidity level set by the user.  Users will provide the following input describing humidifier performance: 1) Location (Thermal Zone) 2) Rated Water Removal Rate (pints/day) 3) Rated Energy Factor  4) Rated Airflow Rate 5) Relative Humidity Setpoint. Default curves for water removal, energy factor and part load fraction correlations will be used.</description>
+  <modeler_description>This measure will add and configure a OS:ZoneHVAC:Dehumidifier:DX object to the model. Users will select a thermal zone for attaching the OS:ZoneHVAC:Dehumidifier:DX object to. The measure will check to see if an existing ZoneControl:Humidistat object is already assigned to the thermal zone.  If so, the measure will remove the existing ZoneControl:Humidistat object, then create and assign a new object having a setpoint of 60%RH (year round). Attributes of the Humidifier which are not user arguments will be set to EnergyPlus defaults.</modeler_description>
+  <arguments>
+    <argument>
+      <name>benchmark_use_case</name>
+      <display_name>Check this box to have a Residential DX Dehumidifier configured to BA Benchmark Home Requirements (i.e. Relative Humidity will be set to 60%)</display_name>
+      <type>Boolean</type>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>false</default_value>
+      <choices>
+        <choice>
+          <value>true</value>
+          <display_name>true</display_name>
+        </choice>
+        <choice>
+          <value>false</value>
+          <display_name>false</display_name>
+        </choice>
+      </choices>
+    </argument>
+    <argument>
+      <name>selected_existing_thermal_zone</name>
+      <display_name>Thermal Zone where Dehumidifier will be located.</display_name>
+      <type>Choice</type>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>rated_water_removal_rate</name>
+      <display_name>Full load water removal rate (pints / day) at rated air flow rate and conditions (air entering the dehumidifier 80F dry-bulb and 60% relative humidity).</display_name>
+      <type>Double</type>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>energy_factor</name>
+      <display_name>Energy factor (Litres/kWh) at rated conditions (air entering the dehumidifier at 80F dry-bulb and 60% relative humidity, and air flow rate. Enter -1 to use EnergyStar criteria for Energy Factor.</display_name>
+      <type>Double</type>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>rated_airflow_rate</name>
+      <display_name>Dehumidifier airflow rate (cfm) at rated conditions (air entering the dehumidifier at 80F dry-bulb and 60% relative humidity. Enter -1 to have airflow rate a function of water removal rate (2.75 cfm/pint/day).</display_name>
+      <type>Double</type>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>relative_humidity_setpoint</name>
+      <display_name>The humidity setpoint of the Dehumidifier (% RH). If the checkbox for creating a Residential DX Dehumidifier is checked, this user argument will be ignored and the % RH will be set to 60</display_name>
+      <type>Double</type>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+  </arguments>
+  <provenances/>
+  <tags>
+    <tag>HVAC.Cooling</tag>
+  </tags>
+  <attributes>
+    <attribute>
+      <name>Measure Type</name>
+      <value>ModelMeasure</value>
+      <datatype>string</datatype>
+    </attribute>
+    <attribute>
+      <name>Uses SketchUp API</name>
+      <value>false</value>
+      <datatype>boolean</datatype>
+    </attribute>
+  </attributes>
+  <files>
+    <file>
+      <version>
+        <software_program>OpenStudio</software_program>
+        <identifier>1.4.1</identifier>
+        <min_compatible>1.13.1</min_compatible>
+      </version>
+      <filename>measure.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>script</usage_type>
+      <checksum>670DB5DC</checksum>
+    </file>
+  </files>
+</measure>

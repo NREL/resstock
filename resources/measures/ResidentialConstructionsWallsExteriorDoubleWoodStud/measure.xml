@@ -1,0 +1,171 @@
+<measure>
+  <schema_version>3.0</schema_version>
+  <name>process_constructions_walls_exterior_double_wood_stud</name>
+  <uid>d3ae8875-36bc-4e4f-a5a9-c9d0dcd46651</uid>
+  <version_id>bbb6f9b7-1667-4006-9c24-4884718b5f54</version_id>
+  <version_modified>20161110T145603Z</version_modified>
+  <xml_checksum>1E963D9C</xml_checksum>
+  <class_name>ProcessConstructionsWallsExteriorDoubleWoodStud</class_name>
+  <display_name>Set Residential Walls - Double Wood Stud Construction</display_name>
+  <description>This measure assigns a double wood stud construction to above-grade exterior walls adjacent to finished space.</description>
+  <modeler_description>Calculates and assigns material layer properties of double wood stud constructions for above-grade walls between finished space and outside. If the walls have an existing construction, the layers (other than exterior finish, wall sheathing, and wall mass) are replaced. This measure is intended to be used in conjunction with Exterior Finish, Wall Sheathing, and Exterior Wall Mass measures.</modeler_description>
+  <arguments>
+    <argument>
+      <name>cavity_r</name>
+      <display_name>Cavity Insulation Nominal R-value</display_name>
+      <description>Refers to the R-value of the cavity insulation and not the overall R-value of the assembly.</description>
+      <type>Double</type>
+      <units>hr-ft^2-R/Btu</units>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>33</default_value>
+    </argument>
+    <argument>
+      <name>install_grade</name>
+      <display_name>Cavity Install Grade</display_name>
+      <description>Installation grade as defined by RESNET standard. 5% of the cavity is considered missing insulation for Grade 3, 2% for Grade 2, and 0% for Grade 1.</description>
+      <type>Choice</type>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>I</default_value>
+      <choices>
+        <choice>
+          <value>I</value>
+          <display_name>I</display_name>
+        </choice>
+        <choice>
+          <value>II</value>
+          <display_name>II</display_name>
+        </choice>
+        <choice>
+          <value>III</value>
+          <display_name>III</display_name>
+        </choice>
+      </choices>
+    </argument>
+    <argument>
+      <name>stud_depth</name>
+      <display_name>Stud Depth</display_name>
+      <description>Depth of the studs. 3.5" for 2x4s, 5.5" for 2x6s, etc. The total cavity depth of the double stud wall = (2 x stud depth) + gap depth.</description>
+      <type>Double</type>
+      <units>in</units>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>3.5</default_value>
+    </argument>
+    <argument>
+      <name>gap_depth</name>
+      <display_name>Gap Depth</display_name>
+      <description>Depth of the gap between walls.</description>
+      <type>Double</type>
+      <units>in</units>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>3.5</default_value>
+    </argument>
+    <argument>
+      <name>framing_factor</name>
+      <display_name>Framing Factor</display_name>
+      <description>The fraction of a wall assembly that is comprised of structural framing for the individual (inner and outer) stud walls.</description>
+      <type>Double</type>
+      <units>frac</units>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>0.22</default_value>
+    </argument>
+    <argument>
+      <name>framing_spacing</name>
+      <display_name>Framing Spacing</display_name>
+      <description>The on-center spacing between framing in a wall assembly.</description>
+      <type>Double</type>
+      <units>in</units>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>24</default_value>
+    </argument>
+    <argument>
+      <name>is_staggered</name>
+      <display_name>Staggered Studs</display_name>
+      <description>Indicates that the double studs are aligned in a staggered fashion (as opposed to being center).</description>
+      <type>Boolean</type>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>false</default_value>
+      <choices>
+        <choice>
+          <value>true</value>
+          <display_name>true</display_name>
+        </choice>
+        <choice>
+          <value>false</value>
+          <display_name>false</display_name>
+        </choice>
+      </choices>
+    </argument>
+  </arguments>
+  <provenances/>
+  <tags>
+    <tag>Envelope.Opaque</tag>
+  </tags>
+  <attributes>
+    <attribute>
+      <name>Measure Type</name>
+      <value>ModelMeasure</value>
+      <datatype>string</datatype>
+    </attribute>
+    <attribute>
+      <name>Uses SketchUp API</name>
+      <value>false</value>
+      <datatype>boolean</datatype>
+    </attribute>
+  </attributes>
+  <files>
+    <file>
+      <filename>2000sqft_2story_SL_UA.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>CDD25A07</checksum>
+    </file>
+    <file>
+      <filename>geometry.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>9A86F3EB</checksum>
+    </file>
+    <file>
+      <version>
+        <software_program>OpenStudio</software_program>
+        <identifier>1.3.0</identifier>
+        <min_compatible>1.13.1</min_compatible>
+      </version>
+      <filename>measure.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>script</usage_type>
+      <checksum>5C9B97F7</checksum>
+    </file>
+    <file>
+      <filename>util.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>22C6561D</checksum>
+    </file>
+    <file>
+      <filename>DoubleWoodStud_Test.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>test</usage_type>
+      <checksum>88D928B3</checksum>
+    </file>
+    <file>
+      <filename>2000sqft_2story_SL_UA_AllLayersButWallInsulation.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>7486DA3F</checksum>
+    </file>
+    <file>
+      <filename>constants.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>394EB92E</checksum>
+    </file>
+  </files>
+</measure>

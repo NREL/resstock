@@ -47,8 +47,8 @@ class CreateResidentialOrientation < OpenStudio::Ruleset::ModelUserScript
 	
     if orientation > 360 or orientation < 0
       runner.registerError("Invalid orientation entered.")
-	  return false
-    end	
+      return false
+    end
 
     building = model.getBuilding
     unless building.northAxis == orientation

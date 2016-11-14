@@ -65,6 +65,12 @@ class Constants
   def self.Auto
     return 'auto'
   end
+  def self.CoordRelative
+    return 'relative'
+  end
+  def self.CoordAbsolute
+    return 'absolute'
+  end
   def self.BasementSpace
     return 'basement space'
   end
@@ -192,7 +198,7 @@ class Constants
     end
     return "finished attic space#{s_unit}"
   end
-  def self.FinishedAtticSpaceType
+  def self.FinishedAtticType
     return 'finished attic'
   end
   def self.FinishedAtticZone(unit_name=self.ObjectNameBuildingUnit)
@@ -383,6 +389,9 @@ class Constants
   end
   def self.MaterialWallSheathing
     return 'ResExtWallSheathing'
+  end
+  def self.PVModuleTypeCSI
+    return 'c-si'
   end
   def self.MonthNames
     return ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
@@ -684,6 +693,12 @@ class Constants
   def self.TerrainCity
     return 'city'
   end
+  def self.TiltPitch
+    return 'pitch'
+  end
+  def self.TiltLatitude
+    return 'latitude'
+  end
   def self.UnfinishedAtticSpace(unit_name=self.ObjectNameBuildingUnit)
     s_unit = ""
     if unit_name != self.ObjectNameBuildingUnit
@@ -691,7 +706,7 @@ class Constants
     end
     return "unfinished attic space#{s_unit}"
   end
-  def self.UnfinishedAtticSpaceType
+  def self.UnfinishedAtticType
     return 'unfinished attic'
   end
   def self.UnfinishedAtticZone(unit_name=self.ObjectNameBuildingUnit)
