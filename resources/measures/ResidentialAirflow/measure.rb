@@ -770,16 +770,16 @@ class ResidentialAirflow < OpenStudio::Ruleset::ModelUserScript
     building.above_grade_exterior_wall_area = Geometry.calculate_exterior_wall_area(model.getSpaces, false)    
     model.getThermalZones.each do |thermal_zone|
       if thermal_zone.name.to_s.start_with? Constants.GarageZone
-        building.garage_zone = Geometry.get_thermal_zone_from_string(model.getThermalZones, thermal_zone.name.to_s, runner)
+        building.garage_zone = thermal_zone
         building.garage = Garage.new(Geometry.get_building_height(building.garage_zone.spaces), OpenStudio::convert(building.garage_zone.floorArea,"m^2","ft^2").get, Geometry.get_building_height(building.garage_zone.spaces) * OpenStudio::convert(building.garage_zone.floorArea,"m^2","ft^2").get, Geometry.get_z_origin_for_zone(thermal_zone))
       elsif thermal_zone.name.to_s.start_with? Constants.UnfinishedBasementZone
-        building.unfinished_basement_zone = Geometry.get_thermal_zone_from_string(model.getThermalZones, thermal_zone.name.to_s, runner)
+        building.unfinished_basement_zone = thermal_zone
         building.unfinished_basement = UnfinBasement.new(ufbsmtACH, Geometry.get_building_height(building.unfinished_basement_zone.spaces), OpenStudio::convert(building.unfinished_basement_zone.floorArea,"m^2","ft^2").get, Geometry.get_building_height(building.unfinished_basement_zone.spaces) * OpenStudio::convert(building.unfinished_basement_zone.floorArea,"m^2","ft^2").get, Geometry.get_z_origin_for_zone(thermal_zone))
       elsif thermal_zone.name.to_s.start_with? Constants.CrawlZone
-        building.crawlspace_zone = Geometry.get_thermal_zone_from_string(model.getThermalZones, thermal_zone.name.to_s, runner)
+        building.crawlspace_zone = thermal_zone
         building.crawlspace = Crawl.new(crawlACH, Geometry.get_building_height(building.crawlspace_zone.spaces), OpenStudio::convert(building.crawlspace_zone.floorArea,"m^2","ft^2").get, Geometry.get_building_height(building.crawlspace_zone.spaces) * OpenStudio::convert(building.crawlspace_zone.floorArea,"m^2","ft^2").get, Geometry.get_z_origin_for_zone(thermal_zone))
       elsif thermal_zone.name.to_s.start_with? Constants.UnfinishedAtticZone
-        building.unfinished_attic_zone = Geometry.get_thermal_zone_from_string(model.getThermalZones, thermal_zone.name.to_s, runner)
+        building.unfinished_attic_zone = thermal_zone
         building.unfinished_attic = UnfinAttic.new(uaSLA, Geometry.get_building_height(building.unfinished_attic_zone.spaces), OpenStudio::convert(building.unfinished_attic_zone.floorArea,"m^2","ft^2").get, Geometry.get_building_height(building.unfinished_attic_zone.spaces) * OpenStudio::convert(building.unfinished_attic_zone.floorArea,"m^2","ft^2").get, Geometry.get_z_origin_for_zone(thermal_zone))
       end
     end
@@ -857,10 +857,10 @@ class ResidentialAirflow < OpenStudio::Ruleset::ModelUserScript
       # Determine geometry for spaces and zones that are unit specific
       thermal_zones.each do |thermal_zone|
         if thermal_zone.name.to_s.start_with? Constants.LivingZone
-          unit.living_zone = Geometry.get_thermal_zone_from_string(thermal_zones, thermal_zone.name.to_s, runner)
+          unit.living_zone = thermal_zone
           unit.living = LivingSpace.new(Geometry.get_building_height(unit.living_zone.spaces), OpenStudio::convert(unit.living_zone.floorArea,"m^2","ft^2").get, Geometry.get_building_height(unit.living_zone.spaces) / building.stories * OpenStudio::convert(unit.living_zone.floorArea,"m^2","ft^2").get, Geometry.get_z_origin_for_zone(thermal_zone))
         elsif thermal_zone.name.to_s.start_with? Constants.FinishedBasementZone
-          unit.finished_basement_zone = Geometry.get_thermal_zone_from_string(thermal_zones, thermal_zone.name.to_s, runner)
+          unit.finished_basement_zone = thermal_zone
           unit.finished_basement = FinBasement.new(fbsmtACH, Geometry.get_building_height(unit.finished_basement_zone.spaces), OpenStudio::convert(unit.finished_basement_zone.floorArea,"m^2","ft^2").get, Geometry.get_building_height(unit.finished_basement_zone.spaces) * OpenStudio::convert(unit.finished_basement_zone.floorArea,"m^2","ft^2").get, Geometry.get_z_origin_for_zone(thermal_zone))
         end
       end
@@ -2594,7 +2594,7 @@ class ResidentialAirflow < OpenStudio::Ruleset::ModelUserScript
       # Duct Number Returns per 2010 BA Benchmark Addendum
       return 1 + num_stories
     end
-    return duct_num_returns
+    return duct_num_returns.to_i
   end  
   
   def get_duct_supply_surface_area(mult, unit, num_stories)

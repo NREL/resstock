@@ -271,8 +271,8 @@ class ProcessVRFMinisplit < OpenStudio::Ruleset::ModelUserScript
     end
 
     # Remove any existing airflow objects
-    HelperMethods.remove_object_from_osm_based_on_name(model, "OutputVariable", ["VRF Heat Pump Heating Electric Energy"])
-    HelperMethods.remove_object_from_osm_based_on_name(model, "EnergyManagementSystemSensor", ["E_mshp_", "E_mshp_fb_"])
+    HelperMethods.remove_object_from_osm_based_on_name(model, "OutputVariable", ["VRF Heat Pump Heating Electric Energy", "Zone Outdoor Air Drybulb Temperature"])
+    HelperMethods.remove_object_from_osm_based_on_name(model, "EnergyManagementSystemSensor", ["E_mshp_", "E_mshp_fb_", "Tout_"])
     HelperMethods.remove_object_from_osm_based_on_name(model, "EnergyManagementSystemActuator", ["E_pan_"])
     HelperMethods.remove_object_from_osm_based_on_name(model, "EnergyManagementSystemProgram", ["PanHeaterProgram_"])
     HelperMethods.remove_object_from_osm_based_on_name(model, "EnergyManagementSystemProgramCallingManager", ["PanHeaterProgramCallingManager_"])
@@ -530,7 +530,18 @@ class ProcessVRFMinisplit < OpenStudio::Ruleset::ModelUserScript
         
           actuator = OpenStudio::Model::EnergyManagementSystemActuator.new(equip, "ElectricEquipment", "Electric Power Level")
           actuator.setName("E_pan_#{unit_num}")        
-        
+          
+          zone_outdoor_air_drybulb_temp_output_var = OpenStudio::Model::OutputVariable.new("Zone Outdoor Air Drybulb Temperature", model)
+          zone_outdoor_air_drybulb_temp_output_var.setName("Zone Outdoor Air Drybulb Temperature")
+          sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, zone_outdoor_air_drybulb_temp_output_var)
+          sensor.setName("Tout_#{unit_num}")
+          thermal_zones.each do |thermal_zone|
+            if thermal_zone.name.to_s.start_with? Constants.LivingZone
+              sensor.setKeyName(thermal_zone.name.to_s)
+              break
+            end
+          end
+
           program = OpenStudio::Model::EnergyManagementSystemProgram.new(model)
           program.setName("PanHeaterProgram_#{unit_num}")          
           if miniSplitCoolingOutputCapacity != Constants.SizingAuto

@@ -176,16 +176,16 @@ def integrity_check(modes=['national','pnw','testing'])
         measure_instances[measure_subdir] = get_measure_instance(measurerb_path)
       end
       # Validate measure arguments for each combination of options
-      parameter_names = measures[measure_subdir].keys()
+      param_names = measures[measure_subdir].keys()
       options_array = []
-      parameter_names.each do |parameter_name|
+      param_names.each do |parameter_name|
         options_array << measures[measure_subdir][parameter_name].keys()
       end
       option_combinations = options_array.first.product(*options_array[1..-1])
       option_combinations.each do |option_combination|
         measure_args = {}
         option_combination.each_with_index do |option_name, idx|
-            measures[measure_subdir][parameter_names[idx]][option_name].each do |k,v|
+            measures[measure_subdir][param_names[idx]][option_name].each do |k,v|
                 measure_args[k] = v
             end
         end
