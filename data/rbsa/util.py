@@ -701,10 +701,7 @@ def assign_hvac_system_cooling(df):
                         if eq.unitacdaysofuse < 10:
                             return 'None'
                         energy_multiplier = int(10 * round(float(eq.unitacquantity * 100/ ( object.sfmasterhousegeometry.summarynumberofroomscalculated - object.sfricustdat.resintbath )) / 10))                        
-                        if 'Room AC, EER 9.8, {}% Conditioned'.format(energy_multiplier) in ['Room AC, EER 9.8, 40% Conditioned', 'Room AC, EER 9.8, 50% Conditioned', 'Room AC, EER 9.8, 60% Conditioned', 'Room AC, EER 9.8, 70% Conditioned']:
-                            return 'Room AC, EER 9.8, 50% Conditioned'
-                        else:
-                            return 'Room AC, EER 9.8, {}% Conditioned'.format(energy_multiplier)
+                        return 'Room AC, EER 9.8, 20% Conditioned'
                     
         return 'None'
     

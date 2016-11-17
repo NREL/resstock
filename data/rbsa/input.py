@@ -266,7 +266,7 @@ class Create_DFs():
             df_new['Weight'] = 0
             df = df.append(df_new)
         df = add_option_prefix(df)
-        df = df[['Option=Uninsulated', 'Option=R-7', 'Option=R-13', 'Option=R-19', 'Option=R-36', 'Count', 'Weight']]
+        df = df[['Option=Wood Stud, Uninsulated', 'Option=Wood Stud, R-7', 'Option=Wood Stud, R-13', 'Option=Wood Stud, R-19', 'Option=Wood Stud, R-36', 'Count', 'Weight']]
         df = df.reset_index()
         df['Dependency=Vintage'] = pd.Categorical(df['Dependency=Vintage'], ['<1950', '1950s', '1960s', '1970s', '1980s', '1990s', '2000s'])
         df = df.sort_values(by=['Dependency=Location Heating Region', 'Dependency=Vintage']).set_index(['Dependency=Location Heating Region', 'Dependency=Vintage'])        
@@ -1060,7 +1060,7 @@ class Create_DFs():
             df_new['Weight'] = 0
             df = df.append(df_new)
         df = add_option_prefix(df)
-        df = df[['Option=AC, SEER 8', 'Option=AC, SEER 10', 'Option=AC, SEER 13', 'Option=AC, SEER 15', 'Option=FIXME Room AC, EER 9.8, 10% Conditioned', 'Option=FIXME Room AC, EER 9.8, 20% Conditioned', 'Option=FIXME Room AC, EER 9.8, 30% Conditioned', 'Option=FIXME Room AC, EER 9.8, 50% Conditioned', 'Option=None', 'Count', 'Weight']]
+        df = df[['Option=AC, SEER 8', 'Option=AC, SEER 10', 'Option=AC, SEER 13', 'Option=AC, SEER 15', 'Option=FIXME Room AC, EER 9.8, 20% Conditioned', 'Option=None', 'Count', 'Weight']]
         df = df.reset_index()
         df['Dependency=Vintage'] = pd.Categorical(df['Dependency=Vintage'], ['<1950', '1950s', '1960s', '1970s', '1980s', '1990s', '2000s'])
         df = df.sort_values(by=['Dependency=Location Cooling Region', 'Dependency=Heating Fuel', 'Dependency=HVAC System Is Combined', 'Dependency=Vintage']).set_index(['Dependency=Location Cooling Region', 'Dependency=Heating Fuel', 'Dependency=HVAC System Is Combined', 'Dependency=Vintage'])
@@ -1235,7 +1235,7 @@ class Create_DFs():
         df['Count'] = count
         df['Weight'] = weight
         df = add_option_prefix(df)
-        df = df[['Option=Electric, 100% Usage', 'Option=Gas, 100% Usage', 'Option=FIXME Propane, 100% Usage', 'Option=None', 'Count', 'Weight']]
+        df = df[['Option=Electric, 100% Usage', 'Option=Gas, 100% Usage', 'Option=Propane, 100% Usage', 'Option=None', 'Count', 'Weight']]
         return df               
         
     def clothes_dryer(self):
@@ -1264,7 +1264,7 @@ def to_figure(df, file):
 def add_option_prefix(df):
     for col in df.columns:
         if not 'Dependency=' in col and not 'Count' in col and not 'Weight' in col and not 'group' in col:
-            if col in ['Propane, 100% Usage', 'MSHP, SEER 18.0, 9.6 HSPF, 60% Conditioned', 'Room AC, EER 9.8, 10% Conditioned', 'Room AC, EER 9.8, 20% Conditioned', 'Room AC, EER 9.8, 30% Conditioned', 'Room AC, EER 9.8, 50% Conditioned']:
+            if col in ['MSHP, SEER 18.0, 9.6 HSPF, 60% Conditioned', 'Room AC, EER 9.8, 20% Conditioned']:
                 df.rename(columns={col: 'Option=FIXME {}'.format(col)}, inplace=True)
             else:
                 df.rename(columns={col: 'Option={}'.format(col)}, inplace=True)
@@ -1287,12 +1287,9 @@ if __name__ == '__main__':
         for col in ['Count', 'Weight']:
             if col in df.columns:
                 del df[col]
-<<<<<<< HEAD:data/rbsa/main.py
         try:
             path = os.path.join(heatmaps_dir, '{}.png'.format(category))
             to_figure(df, path)
         except RuntimeError:
             print "Warning: Error in plotting figure; skipping {}.".format(path)
-=======
-        to_figure(df, os.path.join(heatmaps_dir, '{}.png'.format(category)))
->>>>>>> origin/master:data/rbsa/input.py
+
