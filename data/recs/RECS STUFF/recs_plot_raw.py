@@ -18,7 +18,7 @@ import seaborn as sns
 # from scipy import stats
 # from matplotlib.pyplot import show
 # from colour import Color
-from query_recs_raw_sql import poverty, process_csv_data, calc_temp_stats,calc_htg_type, calc_htg_type_by_wh_fuel, calc_htg_age, calc_occupancy,calc_ashp_cac,assign_sizes,calc_general,query_stories
+import query_recs_raw as recs
 
 vintages = {'pre-1950' : 0,
             '1950s' : 1,
@@ -39,14 +39,12 @@ num_vintages = {0 : 'pre-1950',
 sizes = {'0-1499' : 0,
          '1500-2499' : 1,
          '2500-3499' : 2,
-         '3500-4499' : 3,
-         '4500+' : 4}
+         '3500+' : 3}
 
 num_sizes = {0:'0-1499' ,
          1:'1500-2499' ,
          2:'2500-3499' ,
-         3:'3500-4499' ,
-         4:'4500+' }
+         3:'3500+'}
 
 income_range = {    1:'Less than $2,500',
                     2:'$2,500 to $4,999',
@@ -134,9 +132,9 @@ def stackedbar(df, VAR, TITLE):
 
     #Loop to plot different poverty levels
     plt.figure()
-       for j in range(len(CUT)):
+    for j in range(len(CUT)):
         POV = CUT[j]
-        df1 = calc_general(df, cut_by=[VAR],columns=[POV])
+        df1 = recs.calc_general(df, cut_by=[VAR],columns=[POV])
         ax = sns.barplot(x = df1[VAR], y = df1[1.0], color = colors[j])
 
     #Save and label

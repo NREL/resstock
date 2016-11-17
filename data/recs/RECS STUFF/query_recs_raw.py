@@ -45,7 +45,7 @@ vintages = {1  :'1950-pre',
             5  :'1980s',
             6  :'1990s',
             7  :'2000s',
-              8  :'2000s'}
+            8  :'2000s'}
 
 fuels = {1:'Natural Gas',
          2:'Propane/LPG',
@@ -58,23 +58,11 @@ fuels = {1:'Natural Gas',
          21:'Other Fuel',
          pandas.np.NaN:'None'}
 
-sizes = {500:'0-1499',
-         1000:'0-1499',
-         2000:'1500-2499',
-         3000:'2500-3499',
-         4000:'3500-4499',
-         5000:'4500+',
-         6000:'4500+',
-         7000:'4500+',
-         8000:'4500+',
-         9000:'4500+',
-         10000:'4500+'}
-
 stories = {10:1,
            20:2,
            40:2,
-           31:3,
-           32:3}
+           31:2,
+           32:2}
 
 income_range = {    1:'$2,500 and under',
                     2:'$2,500 to $4,999',
@@ -99,34 +87,34 @@ income_range = {    1:'$2,500 and under',
                     21:'$90,000 to $94,999',
                     22:'$95,000 to $99,999',
                     23:'$100,000 to $119,999',
-                    24:'$120,000 or More'    }
+                    24:'$120,000 or More'}
 
-med_income ={    1:1250,
-            2:3250,
-            3:6250,
-            4:8750,
-            5:12250,
-            6:17250,
-            7:22250,
-            8:27250,
-            9:32250,
-            10:37250,
-            11:42250,
-            12:47250,
-            13:52250,
-            14:57250,
-            15:62250,
-            16:67250,
-            17:72250,
-            18:77250,
-            19:82250,
-            20:87250,
-            21:92250,
-            22:97250,
-            23:110000,
-            24:120000}
+med_income ={1:1250,
+             2:3250,
+             3:6250,
+             4:8750,
+             5:12250,
+             6:17250,
+             7:22250,
+             8:27250,
+             9:32250,
+             10:37250,
+             11:42250,
+             12:47250,
+             13:52250,
+             14:57250,
+             15:62250,
+             16:67250,
+             17:72250,
+             18:77250,
+             19:82250,
+             20:87250,
+             21:92250,
+             22:97250,
+             23:110000,
+             24:120000}
 
-wall_type ={     1:'Brick',
+wall_type ={    1:'Brick',
                 2:'Wood',
                 3:'Siding',
                 4:'Stucco',
@@ -145,7 +133,7 @@ roof_type ={    1:'Ceramic/Clay',
                 7:'Concrete Tiles',
                 8:'Other'}
 
-fpl16 = {    1:11880,
+fpl16 = {   1:11880,
             2:16020,
             3:20160,
             4:24300,
@@ -154,7 +142,7 @@ fpl16 = {    1:11880,
             7:36730,
             8:40890}
 
-fpl09 = {    1:10830,
+fpl09 = {   1:10830,
             2:14570,
             3:18310,
             4:22050,
@@ -163,7 +151,7 @@ fpl09 = {    1:10830,
             7:33270,
             8:37010}
 
-census_div = {    1: 'New England Census Division (CT, MA, ME, NH, RI, VT)',
+census_div = {      1: 'New England Census Division (CT, MA, ME, NH, RI, VT)',
                     2:    'Middle Atlantic Census Division (NJ, NY, PA)',
                     3:    'East North Central Census Division (IL, IN, MI, OH, WI)',
                     4:    'West North Central Census Division (IA, KS, MN, MO, ND, NE, SD)',
@@ -311,36 +299,33 @@ def calc_htg_age(df):
             pass
         print ','.join([name[0], name[1], name[2]]) + vals
 
-def calc_occupancy(df):
-    cut_by = ['Size']#,'Stories']
-    for num, name in stories.iteritems():
-        df['Stories'].replace(num,name, inplace=True)
-    for num, name in sizes.iteritems():
-        df['Size'].replace(num,name, inplace=True)
-#    df[df['SizeMaxHeatCool'] == 0]['SizeMaxHeatCool'] = df[df['SizeMaxHeatCool'] == 0]['SizeExactTotal']
-    df['SizeMaxHeatCool'].replace(0, pandas.np.nan, inplace=True)
-    df['SizeMaxHeatCool'] = df['SizeMaxHeatCool'].combine_first(df['SizeExactTotal'])
-    grouped = df.groupby(cut_by)
-    for name, group in grouped:
-        avg_occs = (group['NHSLDMEM'] * group['NWEIGHT'] * 1.0).sum() / group['NWEIGHT'].sum()
-        avg_baths = (group['NumBaths'] * group['NWEIGHT'] * 1.0).sum() / group['NWEIGHT'].sum()
-        avg_size = (group['SizeMaxHeatCool'] * group['NWEIGHT'] * 1.0).sum() / group['NWEIGHT'].sum()
-        print ','.join([name, str(avg_occs), str(avg_baths), str(avg_size)])
+# def calc_occupancy(df):
+#     cut_by = ['Size']#,'Stories']
+#     for num, name in stories.iteritems():
+#         df['Stories'].replace(num,name, inplace=True)
+#     for num, name in sizes.iteritems():
+#         df['Size'].replace(num,name, inplace=True)
+# #    df[df['Size'] == 0]['Size'] = df[df['Size'] == 0]['SizeExactTotal']
+#     df['Size'].replace(0, pandas.np.nan, inplace=True)
+#     df['Size'] = df['Size'].combine_first(df['SizeExactTotal'])
+#     grouped = df.groupby(cut_by)
+#     for name, group in grouped:
+#         avg_occs = (group['NHSLDMEM'] * group['NWEIGHT'] * 1.0).sum() / group['NWEIGHT'].sum()
+#         avg_baths = (group['NumBaths'] * group['NWEIGHT'] * 1.0).sum() / group['NWEIGHT'].sum()
+#         avg_size = (group['Size'] * group['NWEIGHT'] * 1.0).sum() / group['NWEIGHT'].sum()
+#         print ','.join([name, str(avg_occs), str(avg_baths), str(avg_size)])
 
 def calc_ashp_cac(df):
     ashp_but_not_cac = df[(df['EQUIPM'] == 4) & (df['COOLTYPE'] != 1)]['NWEIGHT'].sum()*1.0 / df[(df['EQUIPM'] == 4)]['NWEIGHT'].sum()
     print "ashp_but_not_cac - {:.3f}".format(ashp_but_not_cac)
 
 def assign_sizes(df):
-    df['SizeMaxHeatCool'] = df[['TOTHSQFT','TOTCSQFT']].max(axis=1)
-    df['Size'] = df['SizeMaxHeatCool']
-    size_field = 'SizeMaxHeatCool'
+    df['Size'] = df[['TOTHSQFT','TOTCSQFT']].max(axis=1)
     df.loc[:,'Size'] = pandas.np.nan
-    df.loc[(df[size_field] < 1500),'Size'] = '0-1499'
-    df.loc[(df[size_field] >= 1500) & (df[size_field] < 2500),'Size'] = '1500-2499'
-    df.loc[(df[size_field] >= 2500) & (df[size_field] < 3500),'Size'] = '2500-3499'
-    df.loc[(df[size_field] >= 3500) & (df[size_field] < 4500),'Size'] = '3500-4499'
-    df.loc[(df[size_field] >= 4500),'Size'] = '4500+'
+    df.loc[(df['Size'] < 1500),'Size'] = '0-1499'
+    df.loc[(df['Size'] >= 1500) & (df['Size'] < 2500),'Size'] = '1500-2499'
+    df.loc[(df['Size'] >= 2500) & (df['Size'] < 3500),'Size'] = '2500-3499'
+    df.loc[(df['Size'] >= 3500),'Size'] = '3500+'
     return df
 
 #def agg_bedrooms(df):
@@ -411,22 +396,23 @@ def query_stories(df, outfile='recs_query_stories.csv'):
     df.to_csv(outfile, index=False)
     print df
 
-def poverty(df):
+def assign_poverty_levels(df):
     df['INCOME_RANGE'] = df['MONEYPY']
     df['INCOME'] = df['MONEYPY']
     for income_range_num, income_range_name in income_range.iteritems():
         df['INCOME_RANGE'].replace(income_range_num,income_range_name,inplace=True)
     for num, name in med_income.iteritems():
-        df['INCOME'].replace(num,name,inplace=True)
+        df['INCOME'].replace(num, name, inplace=True)
     #INFLATION
-    df['INF_INCOME']=df['INCOME']*1.125344
+    inflation_2009_to_2016 = 1.125344  # TODO: Check with John; do we want to be using this?
+    df['INF_INCOME'] = df['INCOME'] * inflation_2009_to_2016
     #FPL
     df['INCOMELIMIT'] = df['NHSLDMEM']
     for fpl_num,fpl_name in fpl.iteritems():
         for field in ['INCOMELIMIT']:
-            df[field].replace(fpl_num,fpl_name,inplace=True)
+            df[field].replace(fpl_num, fpl_name, inplace=True)
     df['FPL'] = df['INCOME']
-    df['FPL'] = df['INCOME']/df['INCOMELIMIT']*100
+    df['FPL'] = df['INCOME'] / df['INCOMELIMIT'] * 100
     df['FPLALL'] = df['FPL']
     df['FPLALL'] = 1
     df['FPL250','FPL200','FPL150','FPL100','FPL50'] = df['FPLALL']
@@ -443,7 +429,10 @@ def poverty(df):
 if __name__ == '__main__':
     df = process_csv_data()
     assign_sizes(df)
-    poverty(df)
+    assign_poverty_levels(df)
+
+    #calc_general(df, cut_by=['YEARMADERANGE','Size',''], columns=['EQUIPM'], outfile='recs_query_heating_type.csv', norm=False)
+
     # Overwrite FUELHEAT Type field with UGWARM ('UGWARM') if discrepancy
 #    df.loc[df['UGWARM'] == 1, 'FUELHEAT'] = 1
 #     calc_temp_stats(df)
