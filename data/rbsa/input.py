@@ -473,34 +473,21 @@ class Create_DFs():
     
     def heating_setpoint(self):
         df = util.create_dataframe(self.session, rdb)
-        df = util.assign_climate_zones(df)
-        df = util.assign_state(df)
-        df = util.assign_heating_location(df)
-        df = util.assign_vintage(df)
         df = util.assign_htgsp(df)
-        df, cols = util.categories_to_columns(df, 'htgsp')        
-        df = df.groupby(['Dependency=Location Heating Region', 'Dependency=Vintage'])
-        missing_groups = []
-        for group in itertools.product(*[['H1', 'H2', 'H3'], ['<1950', '1950s', '1960s', '1970s', '1980s', '1990s', '2000s']]):
-            if not group in list(df.groups):
-                missing_groups.append(dict(zip(['Dependency=Location Heating Region', 'Dependency=Vintage'], group)))        
+        # df = util.assign_htgsbk(df)
+        # df['Weight'] = df.apply(lambda x: x.object.sfmasterpopulations.svywt, axis=1)
+        # df = df.groupby(['htgsp']).apply(lambda x: np.average(x.htgsbk, weights=x.Weight)).to_frame('htgsbk')
+        df, cols = util.categories_to_columns(df, 'htgsp')
+        df['group'] = 'all'
+        df = df.groupby(['group'])
         count = df.agg(['count']).ix[:, 0]
         weight = df.agg(['sum'])['Weight']
         df = util.sum_cols(df, cols)
         df['Count'] = count
         df['Weight'] = weight
-        columns = list(df.columns)
-        columns.remove('Count')
-        columns.remove('Weight')       
-        for group in missing_groups:
-            df_new = pd.DataFrame(data=dict(group.items() + dict(zip(columns, [1.0/len(columns)] * len(columns))).items()), index=[0]).set_index(['Dependency=Location Heating Region', 'Dependency=Vintage'])
-            df_new['Count'] = 0
-            df_new['Weight'] = 0
-            df = df.append(df_new)
         df = add_option_prefix(df)
-        df = df.reset_index()
-        df['Dependency=Vintage'] = pd.Categorical(df['Dependency=Vintage'], ['<1950', '1950s', '1960s', '1970s', '1980s', '1990s', '2000s'])
-        df = df.sort_values(by=['Dependency=Location Heating Region', 'Dependency=Vintage']).set_index(['Dependency=Location Heating Region', 'Dependency=Vintage'])     
+        df = df.reset_index().set_index('Option=60F')
+        del df['group']
         return df
     
     def cooling_setpoint(self):
@@ -925,6 +912,36 @@ class Create_DFs():
             df_new['Count'] = 0
             df_new['Weight'] = 0
             df = df.append(df_new)
+        for index, row in df.iterrows():
+          ashp_frac = row['ASHP, SEER 10.3, 7.0 HSPF'] + row['ASHP, SEER 11.5, 7.5 HSPF'] + row['ASHP, SEER 13, 8.0 HSPF'] + row['ASHP, SEER 14.3, 8.5 HSPF'] + row['ASHP, SEER 16, 9.0 HSPF']
+          if ashp_frac > 0:
+            df.loc[index, 'ASHP, SEER 10.3, 7.0 HSPF'] += row['ASHP'] * (row['ASHP, SEER 10.3, 7.0 HSPF'] / ashp_frac)
+            df.loc[index, 'ASHP, SEER 11.5, 7.5 HSPF'] += row['ASHP'] * (row['ASHP, SEER 11.5, 7.5 HSPF'] / ashp_frac)
+            df.loc[index, 'ASHP, SEER 13, 8.0 HSPF'] += row['ASHP'] * (row['ASHP, SEER 13, 8.0 HSPF'] / ashp_frac)
+            df.loc[index, 'ASHP, SEER 14.3, 8.5 HSPF'] += row['ASHP'] * (row['ASHP, SEER 14.3, 8.5 HSPF'] / ashp_frac)
+            df.loc[index, 'ASHP, SEER 16, 9.0 HSPF'] += row['ASHP'] * (row['ASHP, SEER 16, 9.0 HSPF'] / ashp_frac)
+          else:
+            df.loc[index, 'ASHP, SEER 10.3, 7.0 HSPF'] += row['ASHP'] / 5.0
+            df.loc[index, 'ASHP, SEER 11.5, 7.5 HSPF'] += row['ASHP'] / 5.0
+            df.loc[index, 'ASHP, SEER 13, 8.0 HSPF'] += row['ASHP'] / 5.0
+            df.loc[index, 'ASHP, SEER 14.3, 8.5 HSPF'] += row['ASHP'] / 5.0
+            df.loc[index, 'ASHP, SEER 16, 9.0 HSPF'] += row['ASHP'] / 5.0
+          dual_fuel_ashp_frac = row['Dual-Fuel ASHP, SEER 10.3, 7.0 HSPF'] + row['Dual-Fuel ASHP, SEER 11.5, 7.5 HSPF'] + row['Dual-Fuel ASHP, SEER 13, 8.0 HSPF'] + row['Dual-Fuel ASHP, SEER 14.3, 8.5 HSPF'] + row['Dual-Fuel ASHP, SEER 16, 9.0 HSPF']
+          if dual_fuel_ashp_frac > 0:
+            df.loc[index, 'Dual-Fuel ASHP, SEER 10.3, 7.0 HSPF'] += row['Dual-Fuel ASHP'] * (row['Dual-Fuel ASHP, SEER 10.3, 7.0 HSPF'] / dual_fuel_ashp_frac)
+            df.loc[index, 'Dual-Fuel ASHP, SEER 11.5, 7.5 HSPF'] += row['Dual-Fuel ASHP'] * (row['Dual-Fuel ASHP, SEER 11.5, 7.5 HSPF'] / dual_fuel_ashp_frac)
+            df.loc[index, 'Dual-Fuel ASHP, SEER 13, 8.0 HSPF'] += row['Dual-Fuel ASHP'] * (row['Dual-Fuel ASHP, SEER 13, 8.0 HSPF'] / dual_fuel_ashp_frac)
+            df.loc[index, 'Dual-Fuel ASHP, SEER 14.3, 8.5 HSPF'] += row['Dual-Fuel ASHP'] * (row['Dual-Fuel ASHP, SEER 14.3, 8.5 HSPF'] / dual_fuel_ashp_frac)
+            df.loc[index, 'Dual-Fuel ASHP, SEER 16, 9.0 HSPF'] += row['Dual-Fuel ASHP'] * (row['Dual-Fuel ASHP, SEER 16, 9.0 HSPF'] / dual_fuel_ashp_frac)
+          else:
+            df.loc[index, 'Dual-Fuel ASHP, SEER 10.3, 7.0 HSPF'] += row['Dual-Fuel ASHP'] / 5.0
+            df.loc[index, 'Dual-Fuel ASHP, SEER 11.5, 7.5 HSPF'] += row['Dual-Fuel ASHP'] / 5.0
+            df.loc[index, 'Dual-Fuel ASHP, SEER 13, 8.0 HSPF'] += row['Dual-Fuel ASHP'] / 5.0
+            df.loc[index, 'Dual-Fuel ASHP, SEER 14.3, 8.5 HSPF'] += row['Dual-Fuel ASHP'] / 5.0
+            df.loc[index, 'Dual-Fuel ASHP, SEER 16, 9.0 HSPF'] += row['Dual-Fuel ASHP'] / 5.0
+        del df['ASHP']
+        del df['Dual-Fuel ASHP']
+        df = df.fillna(0)
         df = add_option_prefix(df)
         df = df.reset_index()
         df['Dependency=Vintage'] = pd.Categorical(df['Dependency=Vintage'], ['<1950', '1950s', '1960s', '1970s', '1980s', '1990s', '2000s'])
@@ -981,7 +998,7 @@ class Create_DFs():
         df = util.assign_vintage(df)
         df = util.assign_heating_fuel(df)
         df = util.assign_hvac_system_combined(df)
-        df = util.assign_hvac_system_heating(df)
+        df = util.assign_hvac_system_heating(df)      
         df = util.assign_hvac_system_is_combined(df, 'htg_and_clg')
         df.loc[df['Dependency=HVAC System Is Combined']=='Yes', 'htg'] = 'None'
         df, cols = util.categories_to_columns(df, 'htg')
@@ -997,7 +1014,7 @@ class Create_DFs():
         df['Weight'] = weight
         columns = list(df.columns)
         columns.remove('Count')
-        columns.remove('Weight')       
+        columns.remove('Weight')
         for group in missing_groups:
             if group['Dependency=HVAC System Is Combined'] == 'No':
                 columns.remove('None')
@@ -1012,8 +1029,42 @@ class Create_DFs():
             df_new['Count'] = 0
             df_new['Weight'] = 0
             df = df.append(df_new)
+        for index, row in df.iterrows():
+          gas_furnace_frac = row['Gas Furnace, 60% AFUE'] + row['Gas Furnace, 68% AFUE'] + row['Gas Furnace, 76% AFUE'] + row['Gas Furnace, 80% AFUE'] + row['Gas Furnace, 90% AFUE'] + row['Gas Furnace, 96% AFUE']
+          if gas_furnace_frac > 0:
+            df.loc[index, 'Gas Furnace, 60% AFUE'] += row['Gas Furnace'] * (row['Gas Furnace, 60% AFUE'] / gas_furnace_frac)
+            df.loc[index, 'Gas Furnace, 68% AFUE'] += row['Gas Furnace'] * (row['Gas Furnace, 68% AFUE'] / gas_furnace_frac)
+            df.loc[index, 'Gas Furnace, 76% AFUE'] += row['Gas Furnace'] * (row['Gas Furnace, 76% AFUE'] / gas_furnace_frac)
+            df.loc[index, 'Gas Furnace, 80% AFUE'] += row['Gas Furnace'] * (row['Gas Furnace, 80% AFUE'] / gas_furnace_frac)
+            df.loc[index, 'Gas Furnace, 90% AFUE'] += row['Gas Furnace'] * (row['Gas Furnace, 90% AFUE'] / gas_furnace_frac)
+            df.loc[index, 'Gas Furnace, 96% AFUE'] += row['Gas Furnace'] * (row['Gas Furnace, 96% AFUE'] / gas_furnace_frac)
+            df.loc[index, 'Gas Furnace, 60% AFUE'] += row['Gas Furnace'] * (row['Gas Furnace, 60% AFUE'] / gas_furnace_frac)
+          else:
+            df.loc[index, 'Gas Furnace, 60% AFUE'] += row['Gas Furnace'] / 7.0
+            df.loc[index, 'Gas Furnace, 68% AFUE'] += row['Gas Furnace'] / 7.0
+            df.loc[index, 'Gas Furnace, 76% AFUE'] += row['Gas Furnace'] / 7.0
+            df.loc[index, 'Gas Furnace, 80% AFUE'] += row['Gas Furnace'] / 7.0
+            df.loc[index, 'Gas Furnace, 90% AFUE'] += row['Gas Furnace'] / 7.0
+            df.loc[index, 'Gas Furnace, 96% AFUE'] += row['Gas Furnace'] / 7.0
+            df.loc[index, 'Gas Furnace, 60% AFUE'] += row['Gas Furnace'] / 7.0
+          gas_boiler_frac = row['Gas Boiler, 72% AFUE'] + row['Gas Boiler, 76% AFUE'] + row['Gas Boiler, 80% AFUE'] + row['Gas Boiler, 85% AFUE'] + row['Gas Boiler, 96% AFUE']
+          if gas_boiler_frac > 0:
+            df.loc[index, 'Gas Boiler, 72% AFUE'] += row['Gas Boiler'] * (row['Gas Boiler, 72% AFUE'] / gas_boiler_frac)
+            df.loc[index, 'Gas Boiler, 76% AFUE'] += row['Gas Boiler'] * (row['Gas Boiler, 76% AFUE'] / gas_boiler_frac)
+            df.loc[index, 'Gas Boiler, 80% AFUE'] += row['Gas Boiler'] * (row['Gas Boiler, 80% AFUE'] / gas_boiler_frac)
+            df.loc[index, 'Gas Boiler, 85% AFUE'] += row['Gas Boiler'] * (row['Gas Boiler, 85% AFUE'] / gas_boiler_frac)
+            df.loc[index, 'Gas Boiler, 96% AFUE'] += row['Gas Boiler'] * (row['Gas Boiler, 96% AFUE'] / gas_boiler_frac)
+          else:
+            df.loc[index, 'Gas Boiler, 72% AFUE'] += row['Gas Boiler'] / 5.0
+            df.loc[index, 'Gas Boiler, 76% AFUE'] += row['Gas Boiler'] / 5.0
+            df.loc[index, 'Gas Boiler, 80% AFUE'] += row['Gas Boiler'] / 5.0
+            df.loc[index, 'Gas Boiler, 85% AFUE'] += row['Gas Boiler'] / 5.0
+            df.loc[index, 'Gas Boiler, 96% AFUE'] += row['Gas Boiler'] / 5.0
+          df.loc[index, 'Oil Boiler, 72% AFUE'] += row['Oil Boiler']
+          df.loc[index, 'Propane Boiler, 72% AFUE'] += row['Propane Boiler']
+        df = df.fillna(0)
         df = add_option_prefix(df)
-        df = df[['Option=Electric Baseboard', 'Option=Electric Boiler', 'Option=Electric Furnace', 'Option=Gas Boiler, 72% AFUE', 'Option=Gas Boiler, 76% AFUE', 'Option=Gas Boiler, 80% AFUE', 'Option=Gas Boiler, 85% AFUE', 'Option=Gas Boiler, 96% AFUE', 'Option=Gas Furnace, 60% AFUE', 'Option=Gas Furnace, 68% AFUE', 'Option=Gas Furnace, 76% AFUE', 'Option=Gas Furnace, 80% AFUE', 'Option=Gas Furnace, 90% AFUE', 'Option=Gas Furnace, 96% AFUE', 'Option=Oil Boiler, 72% AFUE', 'Option=Propane Boiler, 72% AFUE', 'Option=None', 'Count', 'Weight']]
+        df = df[['Option=Electric Baseboard', 'Option=Electric Boiler', 'Option=Electric Furnace', 'Option=Gas Boiler, 72% AFUE', 'Option=Gas Boiler, 76% AFUE', 'Option=Gas Boiler, 80% AFUE', 'Option=Gas Boiler, 85% AFUE', 'Option=Gas Boiler, 96% AFUE', 'Option=Gas Furnace, 60% AFUE', 'Option=Gas Furnace, 68% AFUE', 'Option=Gas Furnace, 76% AFUE', 'Option=Gas Furnace, 80% AFUE', 'Option=Gas Furnace, 90% AFUE', 'Option=Gas Furnace, 96% AFUE', 'Option=Gas Stove', 'Option=Oil Boiler, 72% AFUE', 'Option=Oil Furnace', 'Option=Oil Stove', 'Option=Propane Boiler, 72% AFUE', 'Option=Propane Stove', 'Option=Wood Stove', 'Option=Wood Fireplace', 'Option=None', 'Count', 'Weight']]
         df = df.reset_index()
         df['Dependency=Vintage'] = pd.Categorical(df['Dependency=Vintage'], ['<1950', '1950s', '1960s', '1970s', '1980s', '1990s', '2000s'])
         df = df.sort_values(by=['Dependency=Location Heating Region', 'Dependency=Heating Fuel', 'Dependency=HVAC System Is Combined', 'Dependency=Vintage']).set_index(['Dependency=Location Heating Region', 'Dependency=Heating Fuel', 'Dependency=HVAC System Is Combined', 'Dependency=Vintage'])
@@ -1028,9 +1079,9 @@ class Create_DFs():
         df = util.assign_vintage(df)
         df = util.assign_heating_fuel(df)
         df = util.assign_hvac_system_combined(df)
-        df = util.assign_hvac_system_is_combined(df, 'htg_and_clg')
         df = util.assign_hvac_system_cooling(df)
-        df.loc[df['Dependency=HVAC System Is Combined']=='Yes', 'htg'] = 'None'
+        df = util.assign_hvac_system_is_combined(df, 'htg_and_clg')        
+        df.loc[df['Dependency=HVAC System Is Combined']=='Yes', 'clg'] = 'None'
         df, cols = util.categories_to_columns(df, 'clg')
         df = df.groupby(['Dependency=Location Cooling Region', 'Dependency=Vintage', 'Dependency=Heating Fuel', 'Dependency=HVAC System Is Combined'])
         missing_groups = []
@@ -1059,8 +1110,19 @@ class Create_DFs():
             df_new['Count'] = 0
             df_new['Weight'] = 0
             df = df.append(df_new)
+        for index, row in df.iterrows():
+          ac_frac = row['AC, SEER 10'] + row['AC, SEER 13'] + row['AC, SEER 15']
+          if ac_frac > 0:
+            df.loc[index, 'AC, SEER 10'] += row['AC'] * (row['AC, SEER 10'] / ac_frac)
+            df.loc[index, 'AC, SEER 13'] += row['AC'] * (row['AC, SEER 13'] / ac_frac)
+            df.loc[index, 'AC, SEER 15'] += row['AC'] * (row['AC, SEER 15'] / ac_frac)
+          else:
+            df.loc[index, 'AC, SEER 10'] += row['AC'] / 3.0
+            df.loc[index, 'AC, SEER 13'] += row['AC'] / 3.0
+            df.loc[index, 'AC, SEER 15'] += row['AC'] / 3.0
+        df = df.fillna(0)
         df = add_option_prefix(df)
-        df = df[['Option=AC, SEER 8', 'Option=AC, SEER 10', 'Option=AC, SEER 13', 'Option=AC, SEER 15', 'Option=FIXME Room AC, EER 9.8, 20% Conditioned', 'Option=None', 'Count', 'Weight']]
+        df = df[['Option=AC, SEER 10', 'Option=AC, SEER 13', 'Option=AC, SEER 15', 'Option=FIXME Room AC, EER 9.8, 20% Conditioned', 'Option=Evaporative Cooler', 'Option=None', 'Count', 'Weight']]
         df = df.reset_index()
         df['Dependency=Vintage'] = pd.Categorical(df['Dependency=Vintage'], ['<1950', '1950s', '1960s', '1970s', '1980s', '1990s', '2000s'])
         df = df.sort_values(by=['Dependency=Location Cooling Region', 'Dependency=Heating Fuel', 'Dependency=HVAC System Is Combined', 'Dependency=Vintage']).set_index(['Dependency=Location Cooling Region', 'Dependency=Heating Fuel', 'Dependency=HVAC System Is Combined', 'Dependency=Vintage'])
@@ -1278,7 +1340,8 @@ if __name__ == '__main__':
     dfs = Create_DFs('rbsa.sqlite')
     
     # Other possible categories: 'Insulation Wall H1', 'Insulation Wall H2', 'Insulation Wall H3', 'Insulation Unfinished Attic H1', 'Insulation Unfinished Attic H2', 'Insulation Unfinished Attic H3', 'Windows H1', 'Windows H2', 'Windows H3'
-    for category in ['Location Heating Region', 'Location Cooling Region', 'Vintage', 'Heating Fuel', 'Geometry Foundation Type', 'Geometry House Size', 'Geometry Stories', 'Insulation Unfinished Attic', 'Insulation Wall', 'Heating Setpoint', 'Cooling Setpoint', 'Insulation Slab', 'Insulation Crawlspace', 'Insulation Unfinished Basement', 'Insulation Finished Basement', 'Insulation Interzonal Floor', 'Windows', 'Infiltration', 'HVAC System Combined', 'HVAC System Heating', 'HVAC System Cooling', 'HVAC System Is Combined', 'Ducts', 'Water Heater', 'Lighting', 'Cooking Range', 'Clothes Dryer']:
+    # for category in ['Location Heating Region', 'Location Cooling Region', 'Vintage', 'Heating Fuel', 'Geometry Foundation Type', 'Geometry House Size', 'Geometry Stories', 'Insulation Unfinished Attic', 'Insulation Wall', 'Heating Setpoint', 'Cooling Setpoint', 'Insulation Slab', 'Insulation Crawlspace', 'Insulation Unfinished Basement', 'Insulation Finished Basement', 'Insulation Interzonal Floor', 'Windows', 'Infiltration', 'HVAC System Combined', 'HVAC System Heating', 'HVAC System Cooling', 'HVAC System Is Combined', 'Ducts', 'Water Heater', 'Lighting', 'Cooking Range', 'Clothes Dryer']:
+    for category in ['HVAC System Cooling']:
         print category
         method = getattr(dfs, category.lower().replace(' ', '_'))
         df = method()
@@ -1292,4 +1355,4 @@ if __name__ == '__main__':
             to_figure(df, path)
         except RuntimeError:
             print "Warning: Error in plotting figure; skipping {}.".format(path)
-
+        to_figure(df, os.path.join(heatmaps_dir, '{}.png'.format(category)))

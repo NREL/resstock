@@ -135,22 +135,15 @@ def assign_heating_fuel(df):
     
     fueltypekey = {'Electric': 'Electricity',
                    'Gas': 'Natural Gas',
-                   'Oil/Kerosene': 'Fuel Oil',
                    'Propane': 'Propane/LPG',
                    'Wood': 'Wood',
                    'Oil': 'Fuel Oil',
                    'Pellets': 'Wood'}
     
-    # skip None
-    # and rename Other Fuel To Wood (there are no primary Other in RBSA)
-    
     def fuel(hvacheating):
         for eq in hvacheating:
             if eq.hvacprimary:
-                try:
-                    return fueltypekey[eq.hvacfuel]
-                except:
-                    return None
+                return fueltypekey[eq.hvacfuel]
     
     df['Dependency=Heating Fuel'] = df.apply(lambda x: fuel(x.object.hvacheating), axis=1)
     df = df[pd.notnull(df['Dependency=Heating Fuel'])]
@@ -300,33 +293,64 @@ def assign_stories(df):
 
 def assign_htgsp(df):
     
-    def temp(t):
-        if t is None:
+    def temp(t, sb):
+        if t is None or t == 0:
             return None
         if t <= 62:
-            return '60F w/setback'
+            if sb is None or sb == 0:
+                return '60F'
+            else:
+                return '60F w/setback'
         elif t >= 63 and t <= 66:
-            return '65F w/setback'
+            if sb is None or sb == 0:
+                return '65F'
+            else:
+                return '65F w/setback'
         elif t in [67, 68] or (t == 69 and random.choice([True, False])):
-            return '68F w/setback'
+            if sb is None or sb == 0:
+                return '68F'
+            else:
+                return '68F w/setback'
         elif t in [69, 70] or (t == 71 and random.choice([True, False])):
-            return '70F w/setback'
+            if sb is None or sb == 0:
+                return '70F'
+            else:
+                return '70F w/setback'
         elif t in [71, 72, 73]:
-            return '72F w/setback'
+            if sb is None or sb == 0:
+                return '72F'
+            else:
+                return '72F w/setback'
         elif t >= 74:
-            return '75F w/setback'
+            if sb is None or sb == 0:
+                return '75F'
+            else:
+                return '75F w/setback'
         else:
-            print t 
+            print t
     
-    df['htgsp'] = df.apply(lambda x: temp(x.object.sfriheu.resintheattemp), axis=1)
+    df['htgsp'] = df.apply(lambda x: temp(x.object.sfriheu.resintheattemp, x.object.sfriheu.resintheattempnight), axis=1)
     df = df.dropna(subset=['htgsp'])
 
     return df
 
+def assign_htgsbk(df):
+    
+    def temp(sb):
+        if sb is None or sb == 0:
+            return None
+        else:
+            return sb
+    
+    df['htgsbk'] = df.apply(lambda x: temp(x.object.sfriheu.resintheattempnight), axis=1)
+    df = df.dropna(subset=['htgsbk'])
+
+    return df    
+    
 def assign_clgsp(df):
     
     def temp(t):
-        if t is None:
+        if t is None or t == 0:
             return None
         if t <= 66:
             return '65F'
@@ -555,7 +579,9 @@ def assign_inf(df):
 def assign_hvac_system_combined(df):
     
     conditioned_key = {'ASHP': '',
-                       'MSHP': ', 60% Conditioned'}
+                       'MSHP': ', 60% Conditioned',
+                       'Dual-Fuel ASHP': '',
+                       'GSHP': ''}
     
     htg_and_clg = []
     for index, row in df.iterrows():
@@ -565,23 +591,35 @@ def assign_hvac_system_combined(df):
         clg_sys = None
         for eq in row.object.hvacheating:
             if eq.hvacprimary:
-                if eq.hvactype in ['heatpump', 'heatpumpdualfuel', 'gshp']:
+                if eq.hvactype == 'heatpump':
                     if eq.hspf:
                         htg = round(eq.hspf * 2) / 2 # nearest half integer
                     htg_sys = 'ASHP'
-                elif eq.hvactype in ['dhp']:
+                elif eq.hvactype == 'dhp':
                     htg = 9.6
                     htg_sys = 'MSHP'
+                elif eq.hvactype == 'heatpumpdualfuel':
+                    if eq.hspf:
+                        htg = round(eq.hspf * 2) / 2 # nearest half integer
+                    htg_sys = 'Dual-Fuel ASHP'
+                elif eq.hvactype == 'gshp':
+                    htg_sys = 'GSHP'
         for eq in row.object.hvaccooling:
             if eq.hvacprimarycooling:
-                if eq.hvactype in ['heatpump', 'heatpumpdualfuel', 'gshp']:
+                if eq.hvactype == 'heatpump':
                     if eq.seer:
                         clg = round(eq.seer * 2) / 2 # nearest half integer
                     clg_sys = 'ASHP'
-                elif eq.hvactype in ['dhp']:
+                elif eq.hvactype == 'dhp':
                     clg = 18.0
                     clg_sys = 'MSHP'
-        if not row['Dependency=Heating Fuel'] =='Electricity':
+                elif eq.hvactype == 'heatpumpdualfuel':
+                    if eq.seer:
+                        clg = round(eq.seer * 2) / 2 # nearest half integer
+                    clg_sys = 'Dual-Fuel ASHP'
+                elif eq.hvactype == 'gshp':
+                    clg_sys = 'GSHP'
+        if not row['Dependency=Heating Fuel'] == 'Electricity':
             htg_and_clg.append((index, row.created, row.object, row['Dependency=Vintage'], row['Dependency=Location Heating Region'], row['Dependency=Location Cooling Region'], row['Dependency=Heating Fuel'], 'None'))
         else:
             if not htg == 'None' and not clg == 'None':
@@ -596,13 +634,14 @@ def assign_hvac_system_combined(df):
                 if clg_sys == 'MSHP':
                     htg_and_clg.append((index, row.created, row.object, row['Dependency=Vintage'], row['Dependency=Location Heating Region'], row['Dependency=Location Cooling Region'], row['Dependency=Heating Fuel'], '{type}, SEER {clg}, 9.6 HSPF{cond}'.format(type=clg_sys, clg=clg, cond=conditioned_key[clg_sys])))
             else:
-                htg_and_clg.append((index, row.created, row.object, row['Dependency=Vintage'], row['Dependency=Location Heating Region'], row['Dependency=Location Cooling Region'], row['Dependency=Heating Fuel'], 'None'))
+                assert htg_sys == clg_sys
+                htg_and_clg.append((index, row.created, row.object, row['Dependency=Vintage'], row['Dependency=Location Heating Region'], row['Dependency=Location Cooling Region'], row['Dependency=Heating Fuel'], '{type}'.format(type=htg_sys)))
 
     return pd.DataFrame(htg_and_clg, columns=['siteid', 'created', 'object', 'Dependency=Vintage', 'Dependency=Location Heating Region', 'Dependency=Location Cooling Region', 'Dependency=Heating Fuel', 'htg_and_clg']).set_index('siteid')
 
 def assign_hvac_system_is_combined(df, col):
     def hvac_system_is_combined(sys):
-        if 'ASHP' in sys or 'MSHP' in sys:
+        if 'ASHP' in sys or 'MSHP' in sys or 'GSHP' in sys:
             return 'Yes'
         return 'No'
     
@@ -616,12 +655,12 @@ def assign_hvac_system_heating(df):
                    'Gas': 'Gas',
                    'Oil/Kerosene': 'Oil',
                    'Propane': 'Propane',
-                   'Wood': 'Other Fuel',
+                   'Wood': 'Wood',
                    'Other': 'Other Fuel',
                    'Oil': 'Oil',
-                   'Pellets': 'Other'}   
+                   'Pellets': 'Wood'}   
     
-    def htg(hvacheating, htg_and_clg):
+    def htg(hvacheating):
         for eq in hvacheating:
             if eq.hvacprimary:
                 if eq.hvactype is not None:
@@ -650,6 +689,8 @@ def assign_hvac_system_heating(df):
                                     return '{fuel} Furnace, 90% AFUE'.format(fuel=fueltypekey[eq.hvacfuel])
                                 else:
                                     return '{fuel} Furnace, 96% AFUE'.format(fuel=fueltypekey[eq.hvacfuel])
+                            else:
+                                return '{fuel} Furnace'.format(fuel=fueltypekey[eq.hvacfuel])
 
                     elif eq.hvactype == 'boiler':
                         if not eq.hvacfuel:
@@ -667,45 +708,55 @@ def assign_hvac_system_heating(df):
                                 elif eq.combeffic >= 0.835 and eq.combeffic < 0.875:
                                     return '{fuel} Boiler, 85% AFUE'.format(fuel=fueltypekey[eq.hvacfuel])
                                 elif eq.combeffic >= 0.875:
-                                    return '{fuel} Boiler, 96% AFUE'.format(fuel=fueltypekey[eq.hvacfuel])                       
+                                    return '{fuel} Boiler, 96% AFUE'.format(fuel=fueltypekey[eq.hvacfuel])
+                            else:
+                                return '{fuel} Boiler'.format(fuel=fueltypekey[eq.hvacfuel])
         
                     elif eq.hvactype in ['baseboard', 'pluginheater']:
                         return 'Electric Baseboard'
-        return 'None'
+                    elif eq.hvactype == 'htstove':
+                        return '{fuel} Stove'.format(fuel=fueltypekey[eq.hvacfuel])
+                    elif eq.hvactype == 'fireplace':
+                        return '{fuel} Fireplace'.format(fuel=fueltypekey[eq.hvacfuel])
+        return 'None' # shouldn't hit this
         
-    df['htg'] = df.apply(lambda x: htg(x.object.hvacheating, x.htg_and_clg), axis=1)
+    df['htg'] = df.apply(lambda x: htg(x.object.hvacheating), axis=1)
     df = df.dropna(subset=['htg'])
     
     return df
     
 def assign_hvac_system_cooling(df):
         
-    def clg(object, htg_and_clg):       
+    def clg(object):       
         for eq in object.hvaccooling:
             if eq.hvacprimarycooling:
                 if eq.hvactype is not None:
                     if eq.hvactype in ['heatpump', 'heatpumpdualfuel', 'gshp', 'dhp']:
                         return np.nan                    
-                    elif eq.hvactype in ['centralAC']:
-                        if eq.seer < 9:
-                            return 'AC, SEER 8'
-                        elif eq.seer >= 9 and eq.seer < 11.5:
-                            return 'AC, SEER 10'
-                        elif eq.seer >= 11.5 and eq.seer < 14:
-                            return 'AC, SEER 13'
+                    elif eq.hvactype == 'centralAC':
+                        if eq.seer is not None:
+                            if eq.seer < 9:
+                                return 'AC, SEER 8'
+                            elif eq.seer >= 9 and eq.seer < 11.5:
+                                return 'AC, SEER 10'
+                            elif eq.seer >= 11.5 and eq.seer < 14:
+                                return 'AC, SEER 13'
+                            else:
+                                assert eq.seer >= 14
+                                return 'AC, SEER 15'
                         else:
-                            assert eq.seer >= 14
-                            return 'AC, SEER 15'
+                            return 'AC'
 
                     elif eq.hvactype in ['windowshaker', 'PTAC']:
                         if eq.unitacdaysofuse < 10:
                             return 'None'
                         energy_multiplier = int(10 * round(float(eq.unitacquantity * 100/ ( object.sfmasterhousegeometry.summarynumberofroomscalculated - object.sfricustdat.resintbath )) / 10))                        
                         return 'Room AC, EER 9.8, 20% Conditioned'
-                    
+                    elif eq.hvactype == 'evapcooler':
+                        return 'Evaporative Cooler'
         return 'None'
     
-    df['clg'] = df.apply(lambda x: clg(x.object, x.htg_and_clg), axis=1)
+    df['clg'] = df.apply(lambda x: clg(x.object), axis=1)
     df = df.dropna(subset=['clg'])
     
     return df
