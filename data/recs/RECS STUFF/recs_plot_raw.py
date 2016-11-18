@@ -18,7 +18,7 @@ import seaborn as sns
 # from scipy import stats
 # from matplotlib.pyplot import show
 # from colour import Color
-from query_recs_raw import poverty, process_csv_data, calc_temp_stats,calc_htg_type, calc_htg_type_by_wh_fuel, calc_htg_age, calc_occupancy,calc_ashp_cac,assign_sizes,calc_general,query_stories
+from query_recs_raw_sql import poverty, process_csv_data, calc_temp_stats,calc_htg_type, calc_htg_type_by_wh_fuel, calc_htg_age, calc_occupancy,calc_ashp_cac,assign_sizes,calc_general,query_stories
 
 vintages = {'pre-1950' : 0,
             '1950s' : 1,
@@ -145,54 +145,57 @@ def stackedbar(df, VAR, TITLE):
 	ax.set_ylabel("Distribution of Homes According to Income", fontsize = 12)
 	ax.set_title(TITLE, fontsize = 15)
 	fig = ax.get_figure()
-	fig.savefig(VAR+'_POVlvls.png', bbox_inches = 'tight')
+	fig.savefig(VAR+'_pov_lvls.png', bbox_inches = 'tight')
 	print fig
 
+def kdeplot(df, VAR1, VAR2, TITLE):
+
+	#removes values of 0 from the dataset
+	temp_set = ['athome','temphome','tempgone','tempnite','temphomeac','tempconeac','tempniteac']
+	if VAR2 in temp_set:
+		df1 = df[df[VAR2] !=0]
+	else:
+		df1 = df
+	ax = sns.jointplot(x=VAR1, y = VAR2, data = df1, kind = "kde", joint_kws={'weights':'nweight'})
+	ax.savefig(VAR1 +" vs. "+ VAR2 +'_kde .png', bbox_inches = 'tight')
 
 if __name__ == '__main__':
 	df = process_csv_data()
 	assign_sizes(df)
 	poverty(df)
 	df = df.fillna(value = 0)
-<<<<<<< HEAD
-<<<<<<< Updated upstream
-	stackedbar(df,'EQUIPM', 'Heating Equipment' + ' vs. Federal Poverty Levels: 250,200,150,100,50')
-	stackedbar(df,'FUELHEAT', 'Heating Fuel' + ' vs. Federal Poverty Levels: 250,200,150,100,50')
-	stackedbar(df,'DIVISION', 'Census Division' + ' vs. Federal Poverty Levels: 250,200,150,100,50')
-=======
-=======
->>>>>>> Stashed changes
-
-	stackedbar(df,'Size', 'House Size' + ' vs. Federal Poverty Levels: 250,200,150,100,50', 'Square Footage',True)	#Percentage
-	stackedbar(df,'Size', 'House Size' + ' vs. Federal Poverty Levels: 250,200,150,100,50', 'Square Footage',False)	#Distribution
+#	stackedbar(df,'equipm', 'Heating Equipment' + ' vs. Federal Poverty Levels: 250,200,150,100,50')
+#	stackedbar(df,'fuelheat', 'Heating Fuel' + ' vs. Federal Poverty Levels: 250,200,150,100,50')
+#	stackedbar(df,'division', 'Census Division' + ' vs. Federal Poverty Levels: 250,200,150,100,50')
+#	stackedbar(df,'Size', 'House Size' + ' vs. Federal Poverty Levels: 250,200,150,100,50', 'Square Footage',True)	#Percentage
+#	stackedbar(df,'Size', 'House Size' + ' vs. Federal Poverty Levels: 250,200,150,100,50', 'Square Footage',False)	#Distribution
 #	stackedbar(df,'YEARMADERANGE', 'Vintage' + ' vs. Federal Poverty Levels: 250,200,150,100,50', 'Year Made',True)		#Percentage
 #	stackedbar(df,'YEARMADERANGE', 'Vintage' + ' vs. Federal Poverty Levels: 250,200,150,100,50', 'Year Made',False)		#Distribution
-#	stackedbar(df,'EQUIPM', 'Heating Type' + ' vs. Federal Poverty Levels: 250,200,150,100,50', 'Heating Equipment',True)	#Percentage
-#	stackedbar(df,'EQUIPM', 'Heating Type' + ' vs. Federal Poverty Levels: 250,200,150,100,50', 'Heating Equipment',False)	#Distribution
-#	stackedbar(df,'EQUIPAGE', 'Heating System Age' + ' vs. Federal Poverty Levels: 250,200,150,100,50', 'Age (years)',True)
-#	stackedbar(df,'EQUIPAGE', 'Heating System Age' + ' vs. Federal Poverty Levels: 250,200,150,100,50', 'Age (years)',False)
-#	stackedbar(df,'COOLTYPE', 'A/C Type' + ' vs. Federal Poverty Levels: 250,200,150,100,50', 'Type of A/C Equipment',True)
-#	stackedbar(df,'COOLTYPE', 'A/C Type' + ' vs. Federal Poverty Levels: 250,200,150,100,50', 'Type of A/C Equipment',False)
-#	stackedbar(df,'AGECENAC', 'Central A/C System Age' + ' vs. Federal Poverty Levels: 250,200,150,100,50', 'Age of System',True)
-#	stackedbar(df,'AGECENAC', 'Central A/C System Age' + ' vs. Federal Poverty Levels: 250,200,150,100,50', 'Age of System',False)
-#	stackedbar(df,'WWACAGE', 'Window A/C Unit Age' + ' vs. Federal Poverty Levels: 250,200,150,100,50', 'Age of Oldest Unit',True)
-#	stackedbar(df,'WWACAGE', 'Window A/C Unit Age' + ' vs. Federal Poverty Levels: 250,200,150,100,50', 'Age of Oldest Unit',False)
-<<<<<<< Updated upstream
->>>>>>> 90c0872... Update of Plots
-=======
-=======
-	stackedbar(df,'EQUIPM', 'Heating Equipment' + ' vs. Federal Poverty Levels: 250,200,150,100,50')
-	stackedbar(df,'FUELHEAT', 'Heating Fuel' + ' vs. Federal Poverty Levels: 250,200,150,100,50')
-	stackedbar(df,'DIVISION', 'Census Division' + ' vs. Federal Poverty Levels: 250,200,150,100,50')
->>>>>>> 2552194f8f7a788b5fee404682572fde6b07d97f
->>>>>>> Stashed changes
-
+#	stackedbar(df,'equipm', 'Heating Type' + ' vs. Federal Poverty Levels: 250,200,150,100,50', 'Heating Equipment',True)	#Percentage
+#	stackedbar(df,'equipm', 'Heating Type' + ' vs. Federal Poverty Levels: 250,200,150,100,50', 'Heating Equipment',False)	#Distribution
+#	stackedbar(df,'equipage', 'Heating System Age' + ' vs. Federal Poverty Levels: 250,200,150,100,50', 'Age (years)',True)
+#	stackedbar(df,'equipage', 'Heating System Age' + ' vs. Federal Poverty Levels: 250,200,150,100,50', 'Age (years)',False)
+#	stackedbar(df,'cooltype', 'A/C Type' + ' vs. Federal Poverty Levels: 250,200,150,100,50', 'Type of A/C Equipment',True)
+#	stackedbar(df,'cooltype', 'A/C Type' + ' vs. Federal Poverty Levels: 250,200,150,100,50', 'Type of A/C Equipment',False)
+#	stackedbar(df,'agecenac', 'Central A/C System Age' + ' vs. Federal Poverty Levels: 250,200,150,100,50', 'Age of System',True)
+#	stackedbar(df,'agecenac', 'Central A/C System Age' + ' vs. Federal Poverty Levels: 250,200,150,100,50', 'Age of System',False)
+#	stackedbar(df,'wwacage', 'Window A/C Unit Age' + ' vs. Federal Poverty Levels: 250,200,150,100,50', 'Age of Oldest Unit',True)
+#	stackedbar(df,'wwacage', 'Window A/C Unit Age' + ' vs. Federal Poverty Levels: 250,200,150,100,50', 'Age of Oldest Unit',False)
+#	stackedbar(df,'equipm', 'Heating Equipment' + ' vs. Federal Poverty Levels: 250,200,150,100,50')
+#	stackedbar(df,'fuelheat', 'Heating Fuel' + ' vs. Federal Poverty Levels: 250,200,150,100,50')
+#	stackedbar(df,'division', 'Census Division' + ' vs. Federal Poverty Levels: 250,200,150,100,50')
+	kdeplot(df,'income', 'temphome', 'Day Thermostat Temp When Home (Winter)')
+	kdeplot(df,'income', 'tempgone', 'Day Thermostat Temp When Gone(Winter)')
+	kdeplot(df,'income', 'tempnite', 'Night Thermostat Temp (Winter)')
+	kdeplot(df,'income', 'temphomeac', 'Day Thermostat Temp When Home (Summer)')
+	kdeplot(df,'income', 'tempgoneac', 'Day Thermostat Temp When Gone(Summer)')
+	kdeplot(df,'income', 'tempniteac', 'Night Thermostat Temp (Winter)')
 #JOINTPLOT
 
 #	df1 = df1[PROB]=df1[1].where(df1[1]>0,other=0)
 #	df = df[(df[PROB] >0)]
 
-#	sns.jointplot(x=VAR1, y = VAR2, data = df, kind = "kde", joint_kws={'weights':'NWEIGHT'})
+
 #	sns.jointplot(x=VAR1, y = VAR2, data = df, kind = "reg")
 #	plt.title(TITLE)
 #BARCHART

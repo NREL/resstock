@@ -14,13 +14,13 @@ import itertools
 import statsmodels.api as sm
 import psycopg2 as pg
 import pandas as pd
+import numpy as np
 
-con_string = "host = gispgdb.nrel.gov port = 5432 dbname = dav-gis user = ewilson password = ewilson"
+con_string = "host = gispgdb.nrel.gov port = 5432 dbname = dav-gis user = jalley password = jalley"
 con =  con = pg.connect(con_string)
 
 sql = """SELECT *
-       FROM eia.recs_2009_microdata
-       LIMIT 1000;"""
+       FROM eia.recs_2009_microdata;"""
 DF = pd.read_sql(sql, con)
 
 
@@ -70,7 +70,7 @@ sizes = {500:'0-1499',
          9000:'4500+',
          10000:'4500+'}
 
-stories = {10:1,
+story_dict = {10:1,
            20:2,
            40:2,
            31:3,
@@ -163,46 +163,46 @@ fpl09 = {	1:10830,
 			7:33270,
 			8:37010}
 
-census_div = {	1: 'New England Census Division (CT, MA, ME, NH, RI, VT)',
-					2:	'Middle Atlantic Census Division (NJ, NY, PA)',
-					3:	'East North Central Census Division (IL, IN, MI, OH, WI)',
-					4:	'West North Central Census Division (IA, KS, MN, MO, ND, NE, SD)',
-					5:	'South Atlantic  Census Division (DC, DE, FL, GA, MD, NC, SC, VA, WV)',
-					6:	'East South Central Census Division (AL, KY, MS, TN)',
-					7:	'West South Central Census Division (AR, LA, OK, TX)',
-					8:	'Mountain North Sub-Division (CO, ID, MT, UT, WY)',
-					9:	'Mountain South Sub-Division (AZ, NM, NV)',
-					10:	'Pacific Census Division (AK, CA, HI, OR, WA)' }
+census_div = {	1: 'New England Census division (CT, MA, ME, NH, RI, VT)',
+					2:	'Middle Atlantic Census division (NJ, NY, PA)',
+					3:	'East North Central Census division (IL, IN, MI, OH, WI)',
+					4:	'West North Central Census division (IA, KS, MN, MO, ND, NE, SD)',
+					5:	'South Atlantic  Census division (DC, DE, FL, GA, MD, NC, SC, VA, WV)',
+					6:	'East South Central Census division (AL, KY, MS, TN)',
+					7:	'West South Central Census division (AR, LA, OK, TX)',
+					8:	'Mountain North Sub-division (CO, ID, MT, UT, WY)',
+					9:	'Mountain South Sub-division (AZ, NM, NV)',
+					10:	'Pacific Census division (AK, CA, HI, OR, WA)' }
 
 fpl = fpl09
 
 def process_csv_data():
 #	df = pandas.read_csv(recs_data_file,na_values=['-2'])
-	df = DF
+	df = pd.read_sql(sql, con)
+	df = df.replace(-2, np.NaN)
 	for vint_num, vint_name in vintages.iteritems():
 		df['yearmaderange'].replace(vint_num,vint_name, inplace=True)
-
 	return df
 
 def calc_temp_stats(df):
-	df['ATHOME']
-	df['TEMPHOME']
-	df['TEMPGONE']
-	df['TEMPNITE']
-	df['TEMPHOMEAC']
-	df['TEMPGONEAC']
-	df['TEMPNITEAC']
+	df['athome'].replace(0,np.NaN)
+	df['temphome']
+	df['tempgone']
+	df['tempnite']
+	df['temphomeac']
+	df['tempgoneac']
+	df['tempniteac']
 	T_avg = {}
 	temp_hist = {}
 	for season in ['Winter', 'Summer']:
-		T_avg[season] = (df['ATHOME']*df['Temp {} Day Home'.format(season)]*8 + (df['ATHOME']==0)*df['Temp {} Day Away'.format(season)]*8 + df['Temp {} Day Home'.format(season)]*8 + df['Temp {} Night'.format(season)]*8) / 24.
+		T_avg[season] = (df['athome']*df['Temp {} Day Home'.format(season)]*8 + (df['athome']==0)*df['Temp {} Day Away'.format(season)]*8 + df['Temp {} Day Home'.format(season)]*8 + df['Temp {} Night'.format(season)]*8) / 24.
 		#	T_avg[season].hist(bins=range(40,97))
 		#	plt.show()
 		temp_hist[season] = pandas.np.histogram(T_avg[season],bins = range(40,97))
 		#	do_plot(list(temp_hist[season][0]), list(temp_hist[season][1]), 'US')
 	T_avg_weighted = {}
 	for season in ['Winter', 'Summer']:
-		T_avg_weighted[season] = sum(df['NWEIGHT'][T_avg[season].notnull()]*T_avg[season][T_avg[season].notnull()]) / (df['NWEIGHT'][T_avg[season].notnull()].sum()*1.0)
+		T_avg_weighted[season] = sum(df['nweight'][T_avg[season].notnull()]*T_avg[season][T_avg[season].notnull()]) / (df['nweight'][T_avg[season].notnull()].sum()*1.0)
 	print temp_hist
 
 def calc_htg_type(df):
@@ -217,21 +217,21 @@ def calc_htg_type(df):
                     10:   'Portable Electric Heaters'     ,
                     11:   'Portable Kerosene Heaters'     ,
                     12:   'Cooking Stove'                 ,
-                    21:   'Other Equipment'               ,
+                    21:   'Other equipment'               ,
                     -2:   'Not Applicable'}
-	cut_by = ['Custom Region']# ,'YEARMADERANGE','Custom Region',
-	df['FUELHEAT'].replace(2, 1, inplace=True) # Count Propane as Natural Gas for purposes of system type counting
+	cut_by = ['Custom Region']# ,'yearmaderange','Custom Region',
+	df['fuelheat'].replace(2, 1, inplace=True) # Count Propane as Natural Gas for purposes of system type counting
 	for fuel_num, fuel_name in fuels.iteritems():
-		df['FUELHEAT'].replace(fuel_num,fuel_name, inplace=True)
-		#df['EQUIPM'].replace([7,8,9,11,12],21, inplace=True)
-	df['EQUIPM'].replace(pandas.np.nan, -2, inplace=True)
+		df['fuelheat'].replace(fuel_num,fuel_name, inplace=True)
+		#df['equipm'].replace([7,8,9,11,12],21, inplace=True)
+	df['equipm'].replace(pandas.np.nan, -2, inplace=True)
 	grouped = df.groupby(cut_by)
 	print ','.join(cut_by + heating_types.values())
 	for name, group in grouped:
 		checksum = 0
 		vals = ''
 		for htg_num, htg_name in heating_types.iteritems():
-			val = group[group['EQUIPM'] == htg_num]['NWEIGHT'].sum() * 1.0 / group['NWEIGHT'].sum()
+			val = group[group['equipm'] == htg_num]['nweight'].sum() * 1.0 / group['nweight'].sum()
 			checksum += val
 			vals += (',' + str(val))
 		if checksum == 0:
@@ -239,7 +239,7 @@ def calc_htg_type(df):
 		#	print ','.join([regions[name[0]], name[1], name[2]]) + vals
 		print ','.join([str(name)]) + vals
 
-def calc_htg_type_by_wh_fuel(df, cut_by=['FUELH2O','REPORTABLE_DOMAIN','YEARMADERANGE','FUELHEAT'], outfile='output_calc_htg_type_by_wh_fuel.csv'):
+def calc_htg_type_by_wh_fuel(df, cut_by=['fuelh2o','reportable_domain','yearmaderange','fuelheat'], outfile='output_calc_htg_type_by_wh_fuel.csv'):
 	resultFyle = open(outfile,'wb')
 	wr = csv.writer(resultFyle, dialect='excel')
 	heating_types = {2:   'Steam or Hot Water System'      ,
@@ -253,14 +253,14 @@ def calc_htg_type_by_wh_fuel(df, cut_by=['FUELH2O','REPORTABLE_DOMAIN','YEARMADE
                     10:   'Portable Electric Heaters'     ,
                     11:   'Portable Kerosene Heaters'     ,
                     12:   'Cooking Stove'                 ,
-                    21:   'Other Equipment'               ,
+                    21:   'Other equipment'               ,
                     -2:   'Not Applicable'}
 	for fuel_num, fuel_name in fuels.iteritems():
-		df['FUELH2O'].replace(fuel_num,fuel_name, inplace=True)
-		df['FUELHEAT'].replace(fuel_num,fuel_name, inplace=True)
-	df['YEARMADERANGE'].replace(['< 1950s', '1950s', '1960s', '1970s', '1980s'],'<=1980s', inplace=True)
-	df['YEARMADERANGE'].replace(['1990s', '2000s'],'>=1990s', inplace=True)
-	df['EQUIPM'].replace(pandas.np.nan, -2, inplace=True)
+		df['fuelh2o'].replace(fuel_num,fuel_name, inplace=True)
+		df['fuelheat'].replace(fuel_num,fuel_name, inplace=True)
+	df['yearmaderange'].replace(['< 1950s', '1950s', '1960s', '1970s', '1980s'],'<=1980s', inplace=True)
+	df['yearmaderange'].replace(['1990s', '2000s'],'>=1990s', inplace=True)
+	df['equipm'].replace(pandas.np.nan, -2, inplace=True)
 	grouped = df.groupby(cut_by)
 	print ','.join(cut_by + heating_types.values() + ['Total'])
 	wr.writerow(cut_by + heating_types.values())
@@ -268,10 +268,10 @@ def calc_htg_type_by_wh_fuel(df, cut_by=['FUELH2O','REPORTABLE_DOMAIN','YEARMADE
 		checksum = 0
 		vals = ''
 		for htg_num, htg_name in heating_types.iteritems():
-			val = group[group['EQUIPM'] == htg_num]['NWEIGHT'].sum() / 100.0 # factor of 100 in data by mistake
+			val = group[group['equipm'] == htg_num]['nweight'].sum() / 100.0 # factor of 100 in data by mistake
 			checksum += val
 			vals += (',' + str(val))
-		vals += (',' + str(group['NWEIGHT'].sum()/ 100.0)) # factor of 100 in data by mistake
+		vals += (',' + str(group['nweight'].sum()/ 100.0)) # factor of 100 in data by mistake
 		if checksum == 0:
 			pass
 		row = ','.join([str(x) for x in name]) + vals
@@ -286,27 +286,27 @@ def calc_htg_age(df):
 						5 :	'Built-In Electric Units'       , #'Built-In Electric Units'       ,
 						6 :	'Floor or Wall Pipeless Furnace', #'Floor or Wall Pipeless Furnace',
 						7 :	'Floor or Wall Pipeless Furnace', #'Built-In Room Heater'          ,
-						8 :	'Other Equipment'               , #'Heating Stove'                 ,
-						9 :	'Other Equipment'               , #'Fireplace'                     ,
+						8 :	'Other equipment'               , #'Heating Stove'                 ,
+						9 :	'Other equipment'               , #'Fireplace'                     ,
 						10:	'Built-In Electric Units'       , #'Portable Electric Heaters'     ,
-						11: 'Other Equipment'               , #'Portable Kerosene Heaters'     ,
-						12:   'Other Equipment'               , #'Cooking Stove'                 ,
-						21:   'Other Equipment'               , #'Other Equipment'               ,
+						11: 'Other equipment'               , #'Portable Kerosene Heaters'     ,
+						12:   'Other equipment'               , #'Cooking Stove'                 ,
+						21:   'Other equipment'               , #'Other equipment'               ,
 						-2:   'Not Applicable'}                 #'Not Applicable'}
-	cut_by = ['YEARMADERANGE','FUELHEAT','EQUIPM']
-	df['FUELHEAT'].replace(2, 1, inplace=True) # Count Propane as Natural Gas for purposes of system type counting
+	cut_by = ['yearmaderange','fuelheat','equipm']
+	df['fuelheat'].replace(2, 1, inplace=True) # Count Propane as Natural Gas for purposes of system type counting
 	for fuel_num, fuel_name in fuels.iteritems():
-		df['FUELHEAT'].replace(fuel_num,fuel_name, inplace=True)
-	df['EQUIPM'].replace(pandas.np.nan, -2, inplace=True)
+		df['fuelheat'].replace(fuel_num,fuel_name, inplace=True)
+	df['equipm'].replace(pandas.np.nan, -2, inplace=True)
 	for num, name in heating_types.iteritems():
-		df['EQUIPM'].replace(num,name, inplace=True)
+		df['equipm'].replace(num,name, inplace=True)
 	grouped = df.groupby(cut_by)
 	print ','.join(cut_by + ages)
 	for name, group in grouped:
 		checksum = 0
 		vals = ''
 		for age in ages:
-			val = group[group['EQUIPAGE'] == int(age)]['NWEIGHT'].sum() * 1.0 / group['NWEIGHT'].sum()
+			val = group[group['equipage'] == int(age)]['nweight'].sum() * 1.0 / group['nweight'].sum()
 			checksum += val
 			vals += (',' + str(val))
 		if checksum == 0:
@@ -314,9 +314,9 @@ def calc_htg_age(df):
 		print ','.join([name[0], name[1], name[2]]) + vals
 
 def calc_occupancy(df):
-	cut_by = ['Size']#,'Stories']
-	for num, name in stories.iteritems():
-		df['Stories'].replace(num,name, inplace=True)
+	cut_by = ['Size']#,'stories']
+	for num, name in story_dict.iteritems():
+		df['stories'].replace(num,name, inplace=True)
 	for num, name in sizes.iteritems():
 		df['Size'].replace(num,name, inplace=True)
 #	df[df['SizeMaxHeatCool'] == 0]['SizeMaxHeatCool'] = df[df['SizeMaxHeatCool'] == 0]['SizeExactTotal']
@@ -324,13 +324,13 @@ def calc_occupancy(df):
 	df['SizeMaxHeatCool'] = df['SizeMaxHeatCool'].combine_first(df['SizeExactTotal'])
 	grouped = df.groupby(cut_by)
 	for name, group in grouped:
-		avg_occs = (group['NHSLDMEM'] * group['NWEIGHT'] * 1.0).sum() / group['NWEIGHT'].sum()
-		avg_baths = (group['NumBaths'] * group['NWEIGHT'] * 1.0).sum() / group['NWEIGHT'].sum()
-		avg_size = (group['SizeMaxHeatCool'] * group['NWEIGHT'] * 1.0).sum() / group['NWEIGHT'].sum()
+		avg_occs = (group['nhsldmem'] * group['nweight'] * 1.0).sum() / group['nweight'].sum()
+		avg_baths = (group['NumBaths'] * group['nweight'] * 1.0).sum() / group['nweight'].sum()
+		avg_size = (group['SizeMaxHeatCool'] * group['nweight'] * 1.0).sum() / group['nweight'].sum()
 		print ','.join([name, str(avg_occs), str(avg_baths), str(avg_size)])
 
 def calc_ashp_cac(df):
-	ashp_but_not_cac = df[(df['EQUIPM'] == 4) & (df['COOLTYPE'] != 1)]['NWEIGHT'].sum()*1.0 / df[(df['EQUIPM'] == 4)]['NWEIGHT'].sum()
+	ashp_but_not_cac = df[(df['equipm'] == 4) & (df['cooltype'] != 1)]['nweight'].sum()*1.0 / df[(df['equipm'] == 4)]['nweight'].sum()
 	print "ashp_but_not_cac - {:.3f}".format(ashp_but_not_cac)
 
 def assign_sizes(df):
@@ -351,17 +351,19 @@ def assign_sizes(df):
 #		df['BEDROOMS'].replace(num,name, inplace=True)
 #	return df
 
-def calc_general(df, cut_by=['REPORTABLE_DOMAIN','FUELHEAT'], columns=None, outfile=None,norm=True):
+def calc_general(df, cut_by=['reportable_domain','fuelheat'], columns=None, outfile=None,norm=True):
+
+	#Temp set 0 as NaN
+	temp_field = ['athome','temphome','tempgone','tempnite','temphomeac','tempconeac','tempniteac']
+	df = df[temp_field].replace(0,np.NaN)
 	fuels_list = ['Natural Gas','Propane/LPG','Fuel Oil','Electricity','Other Fuel']
 	for fuel_num, fuel_name in fuels.iteritems():
-		for field in ['FUELHEAT','FUELH2O','RNGFUEL','DRYRFUEL']:
+		for field in ['fuelheat','fuelh2o','rngfuel','dryrfuel']:
 			df[field].replace(fuel_num,fuel_name, inplace=True)
 	for cen_num,cen_name in census_div.iteritems():
-		for field in ['DIVISION']:
-			df[field].replace(cen_num,cen_name,inplace=True)
-	if 'Stories' in cut_by or 'Stories' in columns:
-		for num, name in stories.iteritems():
-			df['Stories'].replace(num,name, inplace=True)
+			df['division'].replace(cen_num,cen_name,inplace=True)
+	for story_num, story_name in story_dict.iteritems():
+			df['stories'].replace(story_num,story_name, inplace=True)
 	fields = cut_by + columns
 	grouped = df.groupby(cut_by + columns)
 	df = grouped.sum().reset_index()
@@ -373,9 +375,9 @@ def calc_general(df, cut_by=['REPORTABLE_DOMAIN','FUELHEAT'], columns=None, outf
 			combos[i] = list(x)
 	full_index = pandas.MultiIndex.from_product(combos, names=fields)
 	g = grouped.sum()
-	g = g['NWEIGHT'].reindex(full_index)
+	g = g['nweight'].reindex(full_index)
 	g = g.fillna(0).reset_index()
-	g = pandas.pivot_table(g, values='NWEIGHT', index=cut_by, columns=columns).reset_index()
+	g = pandas.pivot_table(g, values='nweight', index=cut_by, columns=columns).reset_index()
 	if norm:
 		total = g.sum(axis=1)
 		if isinstance(g.columns, pandas.core.index.MultiIndex):
@@ -392,7 +394,7 @@ def calc_general(df, cut_by=['REPORTABLE_DOMAIN','FUELHEAT'], columns=None, outf
 	return g
 
 def query_stories(df, outfile='recs_query_stories.csv'):
-	g = calc_general(df, cut_by=['YEARMADERANGE','Size'],columns=['Stories'], outfile=None)
+	g = calc_general(df, cut_by=['yearmaderange','Size'],columns=['stories'], outfile=None)
 	fnd_types = ['Crawl',
                  'Heated Basement',
                  'None',
@@ -409,26 +411,26 @@ def query_stories(df, outfile='recs_query_stories.csv'):
 			df2.loc[df2['Size'] == '4500+', 1] = 0
 		dfs.append(df2)
 	df = pandas.concat(dfs)
-	df = df[['YEARMADERANGE','Size','Foundation Type',1,2,3]]
+	df = df[['yearmaderange','Size','Foundation Type',1,2,3]]
 	df.to_csv(outfile, index=False)
 	print df
 
 def poverty(df):
-	df['INCOME_RANGE'] = df['moneypy']
-	df['INCOME'] = df['moneypy']
+	df['income_range'] = df['moneypy']
+	df['income'] = df['moneypy']
 	for income_range_num, income_range_name in income_range.iteritems():
-		df['INCOME_RANGE'].replace(income_range_num,income_range_name,inplace=True)
+		df['income_range'].replace(income_range_num,income_range_name,inplace=True)
 	for num, name in med_income.iteritems():
-		df['INCOME'].replace(num,name,inplace=True)
-	#INFLATION
-	df['INF_INCOME']=df['INCOME']*1.125344
+		df['income'].replace(num,name,inplace=True)
+	#infLATION
+	df['inf_income']=df['income']*1.125344
 	#FPL
-	df['INCOMELIMIT'] = df['NHSLDMEM']
+	df['incomelimit'] = df['nhsldmem']
 	for fpl_num,fpl_name in fpl.iteritems():
-		for field in ['INCOMELIMIT']:
+		for field in ['incomelimit']:
 			df[field].replace(fpl_num,fpl_name,inplace=True)
-	df['FPL'] = df['INCOME']
-	df['FPL'] = df['INCOME']/df['INCOMELIMIT']*100
+	df['FPL'] = df['income']
+	df['FPL'] = df['income']/df['incomelimit']*100
 	df['FPLALL'] = df['FPL']
 	df['FPLALL'] = 1
 	df['FPL250','FPL200','FPL150','FPL100','FPL50'] = df['FPLALL']
@@ -446,53 +448,53 @@ if __name__ == '__main__':
 	df = process_csv_data()
 	assign_sizes(df)
 	poverty(df)
-    # Overwrite FUELHEAT Type field with UGWARM ('UGWARM') if discrepancy
-#    df.loc[df['UGWARM'] == 1, 'FUELHEAT'] = 1
+    # Overwrite fuelheat Type field with UGWARM ('UGWARM') if discrepancy
+#    df.loc[df['UGWARM'] == 1, 'fuelheat'] = 1
 #     calc_temp_stats(df)
 #     calc_htg_type(df)
 #     calc_htg_age(df)
-#     calc_htg_type_by_wh_fuel(df, cut_by=['FUELH2O','REPORTABLE_DOMAIN','YEARMADERANGE','FUELHEAT'], outfile='output_calc_htg_type_by_wh_fuel_vintage.csv')
-#     calc_htg_type_by_wh_fuel(df, cut_by=['FUELH2O','REPORTABLE_DOMAIN','FUELHEAT'], outfile='output_calc_htg_type_by_wh_fuel.csv')
+#     calc_htg_type_by_wh_fuel(df, cut_by=['fuelh2o','reportable_domain','yearmaderange','fuelheat'], outfile='output_calc_htg_type_by_wh_fuel_vintage.csv')
+#     calc_htg_type_by_wh_fuel(df, cut_by=['fuelh2o','reportable_domain','fuelheat'], outfile='output_calc_htg_type_by_wh_fuel.csv')
 #     calc_num_beds(df)
 #     calc_ashp_cac(df)
 #     calc_occupancy(df)
-#     calc_general(df, cut_by=['Size','Stories'],columns=['Foundation Type'], outfile='output_general.csv')
-#     calc_general(df, cut_by=['DIVISION','YEARMADERANGE'],columns=['Foundation Type'], outfile='output_general.csv')
-#    calc_general(df, cut_by=['YEARMADERANGE','Size'],columns=['PRKGPLC1'], outfile='output_general.csv')
+#     calc_general(df, cut_by=['Size','stories'],columns=['Foundation Type'], outfile='output_general.csv')
+#     calc_general(df, cut_by=['division','yearmaderange'],columns=['Foundation Type'], outfile='output_general.csv')
+#    calc_general(df, cut_by=['yearmaderange','Size'],columns=['PRKGPLC1'], outfile='output_general.csv')
     # Query Vintage
-#     calc_general(df, cut_by=['REPORTABLE_DOMAIN'],columns=['YEARMADERANGE'], outfile='output_house_counts_vintage.csv')
+#     calc_general(df, cut_by=['reportable_domain'],columns=['yearmaderange'], outfile='output_house_counts_vintage.csv')
     # Query Fuel Types
-#     calc_general(df, cut_by=['REPORTABLE_DOMAIN','YEARMADERANGE'],columns=['FUELHEAT'], outfile='recs_query_heating_fuel.csv')
-#     calc_general(df, cut_by=['FUELHEAT','Custom Region'],columns=['FUELH2O','H2OTYPE1'], outfile='recs_query_wh_fuel.csv')
-#     calc_general(df, cut_by=['FUELHEAT','Custom Region'], columns=['RNGFUEL'], outfile='recs_query_range_fuel.csv')
-#     calc_general(df, cut_by=['FUELHEAT','Custom Region'],columns=['DRYRFUEL'], outfile='recs_query_dryer_fuel.csv')
+#     calc_general(df, cut_by=['reportable_domain','yearmaderange'],columns=['fuelheat'], outfile='recs_query_heating_fuel.csv')
+#     calc_general(df, cut_by=['fuelheat','Custom Region'],columns=['fuelh2o','H2OTYPE1'], outfile='recs_query_wh_fuel.csv')
+#     calc_general(df, cut_by=['fuelheat','Custom Region'], columns=['rngfuel'], outfile='recs_query_range_fuel.csv')
+#     calc_general(df, cut_by=['fuelheat','Custom Region'],columns=['dryrfuel'], outfile='recs_query_dryer_fuel.csv')
     # Query Size
-#     calc_general(df, cut_by=['Custom Region','YEARMADERANGE'],columns=['Size'], outfile='recs_query_size.csv')
-#     calc_general(df, cut_by=['FUELH2O_agg'],columns=['Size'], outfile='output_size.csv', norm=False)
-    # Query Stories
+#     calc_general(df, cut_by=['Custom Region','yearmaderange'],columns=['Size'], outfile='recs_query_size.csv')
+#     calc_general(df, cut_by=['fuelh2o_agg'],columns=['Size'], outfile='output_size.csv', norm=False)
+    # Query stories
 #     query_stories(df)
 #     calc_general(df, cut_by=[],columns=['ESCWASH'], outfile='output_cw.csv', norm=False)
 #     calc_general(df, cut_by=[],columns=['ESDISHW'], outfile='output_dw.csv', norm=False)
 #     calc_general(df, cut_by=[],columns=['ESFRIG'], outfile='output_ref.csv', norm=False)
 #     calc_general(df, cut_by=[],columns=['Percent CFLs'], outfile='output_ltg.csv', norm=False)
 #     calc_general(df, cut_by=['ESFRIG'],columns=['AGERFRI1'], outfile='output_ref_age.csv', norm=True)
-#     calc_general(df, cut_by=['YEARMADERANGE','Custom Region'],columns=['WALLTYPE'], outfile='output_wall.csv', norm=True)
-#     calc_general(df, cut_by=['DIVISION'],columns=['WALLTYPE'], outfile='output_wall_div.csv', norm=True)
-#     calc_general(df, cut_by=['YEARMADERANGE','Custom Region'],columns=['ATTCHEAT'], outfile='output_ATTCHEAT.csv', norm=True)
-#     calc_general(df, cut_by=['YEARMADERANGE','Custom Region'],columns=['Vented Attic'], outfile='output_vented attic.csv', norm=True)
+#     calc_general(df, cut_by=['yearmaderange','Custom Region'],columns=['WALLTYPE'], outfile='output_wall.csv', norm=True)
+#     calc_general(df, cut_by=['division'],columns=['WALLTYPE'], outfile='output_wall_div.csv', norm=True)
+#     calc_general(df, cut_by=['yearmaderange','Custom Region'],columns=['ATTCHEAT'], outfile='output_ATTCHEAT.csv', norm=True)
+#     calc_general(df, cut_by=['yearmaderange','Custom Region'],columns=['Vented Attic'], outfile='output_vented attic.csv', norm=True)
 #     calc_general(df, cut_by=[],columns=['ATTCHEAT'], outfile='output_ATTCHEAT.csv', norm=False)
 #     calc_general(df, cut_by=[],columns=['Vented Attic'], outfile='output_vented attic.csv', norm=False)
 #     calc_general(df, cut_by=[],columns=['Finished Attic'], outfile='output_vented attic.csv', norm=False)
 #     calc_general(df, cut_by=[],columns=['Cathedral Ceiling'], outfile='output_vented attic.csv', norm=False)
 #     calc_general(df, cut_by=[],columns=['ATTIC'], outfile='output_vented attic.csv', norm=False)
 #     df = agg_bedrooms(df)
-#     calc_general(df, cut_by=['FUELH2O_agg','Bedrooms_agg'],columns=['Water Heater Size'], outfile='output_wh_size.csv', norm=False)
+#     calc_general(df, cut_by=['fuelh2o_agg','Bedrooms_agg'],columns=['Water Heater Size'], outfile='output_wh_size.csv', norm=False)
     # Generic Query
-#     calc_general(df, cut_by=['REPORTABLE_DOMAIN'],columns=['ESCWASH'], outfile='output_general.csv')
-# FUELHEAT house counts
-#     df = calc_general(df, cut_by=['Custom Region','YEARMADERANGE','FUELHEAT'],columns=[], outfile='output_heating_fuel.csv', norm=False)
+#     calc_general(df, cut_by=['reportable_domain'],columns=['ESCWASH'], outfile='output_general.csv')
+# fuelheat house counts
+#     df = calc_general(df, cut_by=['Custom Region','yearmaderange','fuelheat'],columns=[], outfile='output_heating_fuel.csv', norm=False)
 #     df
-#     df = calc_general(df, cut_by=['Custom Region'],columns=['FUELHEAT'], outfile='output_heating_fuel.csv', norm=True)
-# df = calc_general(df, cut_by=[],columns=['ATHOME'], outfile='output_athome.csv', norm=False)
+#     df = calc_general(df, cut_by=['Custom Region'],columns=['fuelheat'], outfile='output_heating_fuel.csv', norm=True)
+# df = calc_general(df, cut_by=[],columns=['athome'], outfile='output_athome.csv', norm=False)
 #     calc_htg_type(df)
-#     calc_general(df, cut_by=['FUELHEAT'],columns=['EQUIPM'], outfile='recs_query_heating_type.csv', norm=False)
+#     calc_general(df, cut_by=['fuelheat'],columns=['equipm'], outfile='recs_query_heating_type.csv', norm=False)
