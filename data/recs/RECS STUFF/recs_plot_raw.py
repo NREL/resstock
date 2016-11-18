@@ -161,7 +161,6 @@ if __name__ == '__main__':
 	df = process_csv_data()
 	assign_sizes(df)
 	poverty(df)
-	df = df.fillna(value = 0)
 #	stackedbar(df,'equipm', 'Heating Equipment' + ' vs. Federal Poverty Levels: 250,200,150,100,50')
 #	stackedbar(df,'fuelheat', 'Heating Fuel' + ' vs. Federal Poverty Levels: 250,200,150,100,50')
 #	stackedbar(df,'division', 'Census Division' + ' vs. Federal Poverty Levels: 250,200,150,100,50')
