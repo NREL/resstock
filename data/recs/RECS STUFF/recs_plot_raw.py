@@ -149,7 +149,7 @@ def stackedbar(df, VAR, TITLE):
 def kdeplot(df, VAR1, VAR2, TITLE):
 
 	#removes values of 0 from the dataset
-	temp_set = ['athome','temphome','tempgone','tempnite','temphomeac','tempconeac','tempniteac']
+	temp_set = ['athome','temphome','tempgone','tempnite','temphomeac','tempgoneac','tempniteac']
 	if VAR2 in temp_set:
 		df1 = df[df[VAR2] !=0]
 	else:
