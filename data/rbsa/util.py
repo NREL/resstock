@@ -599,8 +599,7 @@ def assign_hvac_system_combined(df):
                     htg = 9.6
                     htg_sys = 'MSHP'
                 elif eq.hvactype == 'heatpumpdualfuel':
-                    if eq.hspf:
-                        htg = round(eq.hspf * 2) / 2 # nearest half integer
+                    htg = 8.2
                     htg_sys = 'Dual-Fuel ASHP'
                 elif eq.hvactype == 'gshp':
                     htg_sys = 'GSHP'
@@ -614,8 +613,7 @@ def assign_hvac_system_combined(df):
                     clg = 18.0
                     clg_sys = 'MSHP'
                 elif eq.hvactype == 'heatpumpdualfuel':
-                    if eq.seer:
-                        clg = round(eq.seer * 2) / 2 # nearest half integer
+                    clg = 14
                     clg_sys = 'Dual-Fuel ASHP'
                 elif eq.hvactype == 'gshp':
                     clg_sys = 'GSHP'
@@ -672,7 +670,7 @@ def assign_hvac_system_heating(df):
                         if fueltypekey[eq.hvacfuel] == 'Electric':
                             return 'Electric Furnace'
                         else:
-                            if eq.combeffic is not None:
+                            if eq.combeffic is not None and fueltypekey[eq.hvacfuel] == 'Gas':
                                 if eq.combeffic < .62:
                                     return '{fuel} Furnace, 60% AFUE'.format(fuel=fueltypekey[eq.hvacfuel])
                                 elif eq.combeffic >= .62 and eq.combeffic < .66:
@@ -698,7 +696,7 @@ def assign_hvac_system_heating(df):
                         if fueltypekey[eq.hvacfuel] == 'Electric':
                             return 'Electric Boiler'
                         else:
-                            if eq.combeffic is not None:
+                            if eq.combeffic is not None and fueltypekey[eq.hvacfuel] == 'Gas':
                                 if eq.combeffic < 0.74:
                                     return '{fuel} Boiler, 72% AFUE'.format(fuel=fueltypekey[eq.hvacfuel])
                                 elif eq.combeffic >= 0.74 and eq.combeffic < 0.78:
@@ -715,9 +713,16 @@ def assign_hvac_system_heating(df):
                     elif eq.hvactype in ['baseboard', 'pluginheater']:
                         return 'Electric Baseboard'
                     elif eq.hvactype == 'htstove':
-                        return '{fuel} Stove'.format(fuel=fueltypekey[eq.hvacfuel])
+                        if fueltypekey[eq.hvacfuel] == 'Gas':
+                            return '{fuel} Stove, 75% AFUE'.format(fuel=fueltypekey[eq.hvacfuel])
+                        else:
+                            return '{fuel} Stove'.format(fuel=fueltypekey[eq.hvacfuel])
                     elif eq.hvactype == 'fireplace':
-                        return '{fuel} Fireplace'.format(fuel=fueltypekey[eq.hvacfuel])
+                        if fueltypekey[eq.hvacfuel] == 'Wood':
+                            return '{fuel} Stove'.format(fuel=fueltypekey[eq.hvacfuel])
+                        else:
+                            return '{fuel} Fireplace'.format(fuel=fueltypekey[eq.hvacfuel])
+        print eq.hvactype, eq.hvacfuel
         return 'None' # shouldn't hit this
         
     df['htg'] = df.apply(lambda x: htg(x.object.hvacheating), axis=1)

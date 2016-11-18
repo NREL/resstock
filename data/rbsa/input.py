@@ -926,21 +926,7 @@ class Create_DFs():
             df.loc[index, 'ASHP, SEER 13, 8.0 HSPF'] += row['ASHP'] / 5.0
             df.loc[index, 'ASHP, SEER 14.3, 8.5 HSPF'] += row['ASHP'] / 5.0
             df.loc[index, 'ASHP, SEER 16, 9.0 HSPF'] += row['ASHP'] / 5.0
-          dual_fuel_ashp_frac = row['Dual-Fuel ASHP, SEER 10.3, 7.0 HSPF'] + row['Dual-Fuel ASHP, SEER 11.5, 7.5 HSPF'] + row['Dual-Fuel ASHP, SEER 13, 8.0 HSPF'] + row['Dual-Fuel ASHP, SEER 14.3, 8.5 HSPF'] + row['Dual-Fuel ASHP, SEER 16, 9.0 HSPF']
-          if dual_fuel_ashp_frac > 0:
-            df.loc[index, 'Dual-Fuel ASHP, SEER 10.3, 7.0 HSPF'] += row['Dual-Fuel ASHP'] * (row['Dual-Fuel ASHP, SEER 10.3, 7.0 HSPF'] / dual_fuel_ashp_frac)
-            df.loc[index, 'Dual-Fuel ASHP, SEER 11.5, 7.5 HSPF'] += row['Dual-Fuel ASHP'] * (row['Dual-Fuel ASHP, SEER 11.5, 7.5 HSPF'] / dual_fuel_ashp_frac)
-            df.loc[index, 'Dual-Fuel ASHP, SEER 13, 8.0 HSPF'] += row['Dual-Fuel ASHP'] * (row['Dual-Fuel ASHP, SEER 13, 8.0 HSPF'] / dual_fuel_ashp_frac)
-            df.loc[index, 'Dual-Fuel ASHP, SEER 14.3, 8.5 HSPF'] += row['Dual-Fuel ASHP'] * (row['Dual-Fuel ASHP, SEER 14.3, 8.5 HSPF'] / dual_fuel_ashp_frac)
-            df.loc[index, 'Dual-Fuel ASHP, SEER 16, 9.0 HSPF'] += row['Dual-Fuel ASHP'] * (row['Dual-Fuel ASHP, SEER 16, 9.0 HSPF'] / dual_fuel_ashp_frac)
-          else:
-            df.loc[index, 'Dual-Fuel ASHP, SEER 10.3, 7.0 HSPF'] += row['Dual-Fuel ASHP'] / 5.0
-            df.loc[index, 'Dual-Fuel ASHP, SEER 11.5, 7.5 HSPF'] += row['Dual-Fuel ASHP'] / 5.0
-            df.loc[index, 'Dual-Fuel ASHP, SEER 13, 8.0 HSPF'] += row['Dual-Fuel ASHP'] / 5.0
-            df.loc[index, 'Dual-Fuel ASHP, SEER 14.3, 8.5 HSPF'] += row['Dual-Fuel ASHP'] / 5.0
-            df.loc[index, 'Dual-Fuel ASHP, SEER 16, 9.0 HSPF'] += row['Dual-Fuel ASHP'] / 5.0
         del df['ASHP']
-        del df['Dual-Fuel ASHP']
         df = df.fillna(0)
         df = add_option_prefix(df)
         df = df.reset_index()
@@ -1028,7 +1014,7 @@ class Create_DFs():
                 df_new = pd.DataFrame(data=data, index=[0]).set_index(['Dependency=Location Heating Region', 'Dependency=Vintage', 'Dependency=Heating Fuel', 'Dependency=HVAC System Is Combined'])
             df_new['Count'] = 0
             df_new['Weight'] = 0
-            df = df.append(df_new)
+            df = df.append(df_new)           
         for index, row in df.iterrows():
           gas_furnace_frac = row['Gas Furnace, 60% AFUE'] + row['Gas Furnace, 68% AFUE'] + row['Gas Furnace, 76% AFUE'] + row['Gas Furnace, 80% AFUE'] + row['Gas Furnace, 90% AFUE'] + row['Gas Furnace, 96% AFUE']
           if gas_furnace_frac > 0:
@@ -1038,15 +1024,13 @@ class Create_DFs():
             df.loc[index, 'Gas Furnace, 80% AFUE'] += row['Gas Furnace'] * (row['Gas Furnace, 80% AFUE'] / gas_furnace_frac)
             df.loc[index, 'Gas Furnace, 90% AFUE'] += row['Gas Furnace'] * (row['Gas Furnace, 90% AFUE'] / gas_furnace_frac)
             df.loc[index, 'Gas Furnace, 96% AFUE'] += row['Gas Furnace'] * (row['Gas Furnace, 96% AFUE'] / gas_furnace_frac)
-            df.loc[index, 'Gas Furnace, 60% AFUE'] += row['Gas Furnace'] * (row['Gas Furnace, 60% AFUE'] / gas_furnace_frac)
           else:
-            df.loc[index, 'Gas Furnace, 60% AFUE'] += row['Gas Furnace'] / 7.0
-            df.loc[index, 'Gas Furnace, 68% AFUE'] += row['Gas Furnace'] / 7.0
-            df.loc[index, 'Gas Furnace, 76% AFUE'] += row['Gas Furnace'] / 7.0
-            df.loc[index, 'Gas Furnace, 80% AFUE'] += row['Gas Furnace'] / 7.0
-            df.loc[index, 'Gas Furnace, 90% AFUE'] += row['Gas Furnace'] / 7.0
-            df.loc[index, 'Gas Furnace, 96% AFUE'] += row['Gas Furnace'] / 7.0
-            df.loc[index, 'Gas Furnace, 60% AFUE'] += row['Gas Furnace'] / 7.0
+            df.loc[index, 'Gas Furnace, 60% AFUE'] += row['Gas Furnace'] / 6.0
+            df.loc[index, 'Gas Furnace, 68% AFUE'] += row['Gas Furnace'] / 6.0
+            df.loc[index, 'Gas Furnace, 76% AFUE'] += row['Gas Furnace'] / 6.0
+            df.loc[index, 'Gas Furnace, 80% AFUE'] += row['Gas Furnace'] / 6.0
+            df.loc[index, 'Gas Furnace, 90% AFUE'] += row['Gas Furnace'] / 6.0
+            df.loc[index, 'Gas Furnace, 96% AFUE'] += row['Gas Furnace'] / 6.0
           gas_boiler_frac = row['Gas Boiler, 72% AFUE'] + row['Gas Boiler, 76% AFUE'] + row['Gas Boiler, 80% AFUE'] + row['Gas Boiler, 85% AFUE'] + row['Gas Boiler, 96% AFUE']
           if gas_boiler_frac > 0:
             df.loc[index, 'Gas Boiler, 72% AFUE'] += row['Gas Boiler'] * (row['Gas Boiler, 72% AFUE'] / gas_boiler_frac)
@@ -1060,11 +1044,9 @@ class Create_DFs():
             df.loc[index, 'Gas Boiler, 80% AFUE'] += row['Gas Boiler'] / 5.0
             df.loc[index, 'Gas Boiler, 85% AFUE'] += row['Gas Boiler'] / 5.0
             df.loc[index, 'Gas Boiler, 96% AFUE'] += row['Gas Boiler'] / 5.0
-          df.loc[index, 'Oil Boiler, 72% AFUE'] += row['Oil Boiler']
-          df.loc[index, 'Propane Boiler, 72% AFUE'] += row['Propane Boiler']
         df = df.fillna(0)
         df = add_option_prefix(df)
-        df = df[['Option=Electric Baseboard', 'Option=Electric Boiler', 'Option=Electric Furnace', 'Option=Gas Boiler, 72% AFUE', 'Option=Gas Boiler, 76% AFUE', 'Option=Gas Boiler, 80% AFUE', 'Option=Gas Boiler, 85% AFUE', 'Option=Gas Boiler, 96% AFUE', 'Option=Gas Furnace, 60% AFUE', 'Option=Gas Furnace, 68% AFUE', 'Option=Gas Furnace, 76% AFUE', 'Option=Gas Furnace, 80% AFUE', 'Option=Gas Furnace, 90% AFUE', 'Option=Gas Furnace, 96% AFUE', 'Option=Gas Stove', 'Option=Oil Boiler, 72% AFUE', 'Option=Oil Furnace', 'Option=Oil Stove', 'Option=Propane Boiler, 72% AFUE', 'Option=Propane Stove', 'Option=Wood Stove', 'Option=Wood Fireplace', 'Option=None', 'Count', 'Weight']]
+        df = df[['Option=Electric Baseboard', 'Option=Electric Boiler', 'Option=Electric Furnace', 'Option=Gas Boiler, 72% AFUE', 'Option=Gas Boiler, 76% AFUE', 'Option=Gas Boiler, 80% AFUE', 'Option=Gas Boiler, 85% AFUE', 'Option=Gas Boiler, 96% AFUE', 'Option=Gas Furnace, 60% AFUE', 'Option=Gas Furnace, 68% AFUE', 'Option=Gas Furnace, 76% AFUE', 'Option=Gas Furnace, 80% AFUE', 'Option=Gas Furnace, 90% AFUE', 'Option=Gas Furnace, 96% AFUE', 'Option=Gas Stove, 75% AFUE', 'Option=Oil Boiler', 'Option=Oil Furnace', 'Option=Oil Stove', 'Option=Propane Boiler', 'Option=Propane Stove', 'Option=Wood Stove', 'Option=None', 'Count', 'Weight']]
         df = df.reset_index()
         df['Dependency=Vintage'] = pd.Categorical(df['Dependency=Vintage'], ['<1950', '1950s', '1960s', '1970s', '1980s', '1990s', '2000s'])
         df = df.sort_values(by=['Dependency=Location Heating Region', 'Dependency=Heating Fuel', 'Dependency=HVAC System Is Combined', 'Dependency=Vintage']).set_index(['Dependency=Location Heating Region', 'Dependency=Heating Fuel', 'Dependency=HVAC System Is Combined', 'Dependency=Vintage'])
@@ -1340,8 +1322,7 @@ if __name__ == '__main__':
     dfs = Create_DFs('rbsa.sqlite')
     
     # Other possible categories: 'Insulation Wall H1', 'Insulation Wall H2', 'Insulation Wall H3', 'Insulation Unfinished Attic H1', 'Insulation Unfinished Attic H2', 'Insulation Unfinished Attic H3', 'Windows H1', 'Windows H2', 'Windows H3'
-    # for category in ['Location Heating Region', 'Location Cooling Region', 'Vintage', 'Heating Fuel', 'Geometry Foundation Type', 'Geometry House Size', 'Geometry Stories', 'Insulation Unfinished Attic', 'Insulation Wall', 'Heating Setpoint', 'Cooling Setpoint', 'Insulation Slab', 'Insulation Crawlspace', 'Insulation Unfinished Basement', 'Insulation Finished Basement', 'Insulation Interzonal Floor', 'Windows', 'Infiltration', 'HVAC System Combined', 'HVAC System Heating', 'HVAC System Cooling', 'HVAC System Is Combined', 'Ducts', 'Water Heater', 'Lighting', 'Cooking Range', 'Clothes Dryer']:
-    for category in ['HVAC System Cooling']:
+    for category in ['Location Heating Region', 'Location Cooling Region', 'Vintage', 'Heating Fuel', 'Geometry Foundation Type', 'Geometry House Size', 'Geometry Stories', 'Insulation Unfinished Attic', 'Insulation Wall', 'Heating Setpoint', 'Cooling Setpoint', 'Insulation Slab', 'Insulation Crawlspace', 'Insulation Unfinished Basement', 'Insulation Finished Basement', 'Insulation Interzonal Floor', 'Windows', 'Infiltration', 'HVAC System Combined', 'HVAC System Heating', 'HVAC System Cooling', 'HVAC System Is Combined', 'Ducts', 'Water Heater', 'Lighting', 'Cooking Range', 'Clothes Dryer']:
         print category
         method = getattr(dfs, category.lower().replace(' ', '_'))
         df = method()
