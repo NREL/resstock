@@ -23,6 +23,10 @@ class ApplyUpgrade < OpenStudio::Ruleset::ModelUserScript
   def modeler_description
     return "Determines if the upgrade should apply to a given building model. If so, calls one or more child measures with the appropriate arguments."
   end
+  
+  def num_options
+    return 20
+  end
 
   # define the arguments that the user will input
   def arguments(model)
@@ -35,21 +39,26 @@ class ApplyUpgrade < OpenStudio::Ruleset::ModelUserScript
     run_measure.setDefaultValue(1)
     args << run_measure 
     
-    parameter_names = OpenStudio::Ruleset::OSArgument.makeStringArgument("parameter_names", true)
-    parameter_names.setDisplayName("Parameter Name(s)")
-    parameter_names.setDescription("The name(s) of the parameter, as specified in resources\options_lookup.tsv. Multiple names can be listed with a '|' between them.")
-    args << parameter_names
-
-    option_names = OpenStudio::Ruleset::OSArgument.makeStringArgument("option_names", true)
-    option_names.setDisplayName("Option Name(s)")
-    option_names.setDescription("The name(s) of the option for the corresponding parameter, as specified in resources\options_lookup.tsv. Multiple names can be listed with a '|' between them.")
-    args << option_names
-
-    apply_logic = OpenStudio::Ruleset::OSArgument.makeStringArgument("apply_logic", false)
-    apply_logic.setDisplayName("Apply Logic")
-    apply_logic.setDescription("The logic that specifies whether the upgrade should apply to a given building. If no logic is provided, the upgrade will be applied to all buildings.")
-    args << apply_logic
+    # Option arguments
+    (1..num_options).each do |option_num|
+        is_required = false
+        if option_num == 1
+            is_required = true
+        end
+        option = OpenStudio::Ruleset::OSArgument.makeStringArgument("option_#{option_num}", is_required)
+        option.setDisplayName("Option #{option_num}")
+        option.setDescription("Specify the parameter|option as found in resources\\options_lookup.tsv.")
+        args << option
+    end
     
+    # Option Apply Logic arguments
+    (1..num_options).each do |option_num|
+        option_apply_logic = OpenStudio::Ruleset::OSArgument.makeStringArgument("option_#{option_num}_apply_logic", false)
+        option_apply_logic.setDisplayName("Option #{option_num} Apply Logic")
+        option_apply_logic.setDescription("Logic that determines if the Option #{option_num} upgrade will apply based on the existing building's options. Specify one or more parameter|option as found in resources\\options_lookup.tsv. When multiple are included, they must be separated by '||' for OR and '&&' for AND, and using parentheses as appropriate. Prefix an option with '!' for not.")
+        args << option_apply_logic
+    end
+
     return args
   end
 
@@ -69,29 +78,70 @@ class ApplyUpgrade < OpenStudio::Ruleset::ModelUserScript
       return true     
     end
 
-    parameter_names = runner.getStringArgumentValue("parameter_names",user_arguments)
-    option_names = runner.getStringArgumentValue("option_names",user_arguments)
-    apply_logic = runner.getStringArgumentValue("apply_logic",user_arguments)
+    # Retrieve Option argument values
+    options = {}
+    (1..num_options).each do |option_num|
+        if option_num == 1
+            arg = runner.getStringArgumentValue("option_#{option_num}",user_arguments)
+        else
+            arg = runner.getOptionalStringArgumentValue("option_#{option_num}",user_arguments)
+            next if not arg.is_initialized
+            arg = arg.get
+        end
+        next if arg.strip.size == 0
+        if not arg.include?('|')
+            runner.registerError("Option #{option_num} is missing the '|' delimiter.")
+            return false
+        end
+        options[option_num] = arg.strip
+    end
     
-    parameters = parameter_names.split("|")
-    options = option_names.split("|")
-    if parameters.size != options.size
-        runner.registerError("The number of options (#{options.size.to_s}) did not match the number of parameters (#{parameters.size.to_s}).")
-        return false
+    # Retrieve Option Apply Logic argument values
+    options_apply_logic = {}
+    (1..num_options).each do |option_num|
+        arg = runner.getOptionalStringArgumentValue("option_#{option_num}_apply_logic",user_arguments)
+        next if not arg.is_initialized
+        arg = arg.get
+        next if arg.strip.size == 0
+        if not arg.include?('|')
+            runner.registerError("Option #{option_num} Apply Logic is missing the '|' delimiter.")
+            return false
+        end
+        if not options.keys.include?(option_num)
+            runner.registerError("Option #{option_num} Apply Logic was provided, but a corresponding Option #{option_num} was not provided.")
+            return false
+        end
+        options_apply_logic[option_num] = arg.strip
     end
     
     # Get file/dir paths
-    resources_dir = File.absolute_path(File.join(File.dirname(__FILE__), "../../lib/resources/")) # Should have been uploaded per 'Other Library Files' in analysis spreadsheet
+    resources_dir = File.absolute_path(File.join(File.dirname(__FILE__), "..", "..", "lib", "resources")) # Should have been uploaded per 'Other Library Files' in analysis spreadsheet
     helper_methods_file = File.join(resources_dir, "helper_methods.rb")
     measures_dir = File.join(resources_dir, "measures")
     lookup_file = File.join(resources_dir, "options_lookup.tsv")
+    resstock_csv = File.absolute_path(File.join(File.dirname(__FILE__), "..", "..", "lib", "worker_initialize", "resstock.csv")) # Should have been generated by the Worker Initialization Script (run_sampling.rb)
     
     # Load helper_methods
     require File.join(File.dirname(helper_methods_file), File.basename(helper_methods_file, File.extname(helper_methods_file)))
-
+    
     # Obtain measures and arguments to be called
     measures = {}
-    parameters.zip(options).each do |parameter_name, option_name|
+    options.each do |option_num, option|
+        parameter_name, option_name = option.split('|')
+        
+        # Apply this option?
+        apply_option_upgrade = true
+        if options_apply_logic.include?(option_num)
+            apply_option_upgrade = evaluate_logic(options_apply_logic[option_num], runner)
+            if apply_option_upgrade.nil?
+                return false
+            end
+        end
+        
+        if not apply_option_upgrade
+            runner.registerInfo("Parameter #{parameter_name}, Option #{option_name} will not be applied.")
+            next
+        end
     
         # Register this option so that it replaces the existing building option in the results csv file
         print_option_assignment(parameter_name, option_name, runner)
@@ -113,6 +163,28 @@ class ApplyUpgrade < OpenStudio::Ruleset::ModelUserScript
         
     end
     
+    # Add measure arguments from existing building if needed
+    building_col_name = "Building"
+    parameters = get_parameters_ordered(resstock_csv)
+    measures.keys.each do |measure_subdir|
+    
+        parameters.each do |parameter_name|
+            next if parameter_name == building_col_name
+            existing_option_name = get_value_from_runner_past_results(parameter_name, runner)
+            
+            get_measure_args_from_option_name(lookup_file, existing_option_name, parameter_name, runner).each do |measure_subdir2, args_hash|
+                next if measure_subdir != measure_subdir2
+                # Append any new arguments
+                args_hash.each do |k, v|
+                    next if measures[measure_subdir].has_key?(k)
+                    measures[measure_subdir][k] = v
+                end
+            end
+            
+        end
+        
+    end
+    
     # Call each measure for sample to build up model
     measures.keys.each do |measure_subdir|
         # Gather measure arguments and call measure
@@ -128,10 +200,17 @@ class ApplyUpgrade < OpenStudio::Ruleset::ModelUserScript
         end
     end
     
+    if measures.size == 0
+        # Upgrade not applied; skip from CSV
+        # FIXME: doesn't currently stop datapoint from continuing.
+        runner.registerAsNotApplicable("No measures to apply.") 
+        return false
+    end
+
     return true
 
   end
-    
+  
 end
 
 # register the measure to be used by the application

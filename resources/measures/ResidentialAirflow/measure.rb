@@ -359,12 +359,26 @@ class ResidentialAirflow < OpenStudio::Ruleset::ModelUserScript
     shelter_coef.setDefaultValue("auto")
     args << shelter_coef
     
-    #make a double argument for open flue
-    has_flue = OpenStudio::Ruleset::OSArgument::makeBoolArgument("has_flue", false)
-    has_flue.setDisplayName("Air Leakage: Has Open Flue")
-    has_flue.setDescription("Specifies whether the building has an open flue or chimney (e.g., for a furnace, boiler, water heater, or fireplace).")
-    has_flue.setDefaultValue(true)
-    args << has_flue    
+    #make a double argument for open hvac flue
+    has_hvac_flue = OpenStudio::Ruleset::OSArgument::makeBoolArgument("has_hvac_flue", false)
+    has_hvac_flue.setDisplayName("Air Leakage: Has Open HVAC Flue")
+    has_hvac_flue.setDescription("Specifies whether the building has an open flue associated with the HVAC system.")
+    has_hvac_flue.setDefaultValue(true)
+    args << has_hvac_flue    
+
+    #make a double argument for open water heater flue
+    has_water_heater_flue = OpenStudio::Ruleset::OSArgument::makeBoolArgument("has_water_heater_flue", false)
+    has_water_heater_flue.setDisplayName("Air Leakage: Has Open Water Heater Flue")
+    has_water_heater_flue.setDescription("Specifies whether the building has an open flue associated with the water heater.")
+    has_water_heater_flue.setDefaultValue(true)
+    args << has_water_heater_flue    
+
+    #make a double argument for open fireplace chimney
+    has_fireplace_chimney = OpenStudio::Ruleset::OSArgument::makeBoolArgument("has_fireplace_chimney", false)
+    has_fireplace_chimney.setDisplayName("Air Leakage: Has Open HVAC Flue")
+    has_fireplace_chimney.setDescription("Specifies whether the building has an open chimney associated with a fireplace.")
+    has_fireplace_chimney.setDefaultValue(true)
+    args << has_fireplace_chimney    
 
     #make a double argument for existing or new construction
     age_of_home = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("age_of_home", true)
@@ -670,7 +684,9 @@ class ResidentialAirflow < OpenStudio::Ruleset::ModelUserScript
     ufbsmtACH = runner.getDoubleArgumentValue("unfinished_basement_ach",user_arguments)
     uaSLA = runner.getDoubleArgumentValue("unfinished_attic_ach",user_arguments)
     infiltrationShelterCoefficient = runner.getStringArgumentValue("shelter_coef",user_arguments)
-    has_flue = runner.getBoolArgumentValue("has_flue",user_arguments)
+    has_hvac_flue = runner.getBoolArgumentValue("has_hvac_flue",user_arguments)
+    has_water_heater_flue = runner.getBoolArgumentValue("has_water_heater_flue",user_arguments)
+    has_fireplace_chimney = runner.getBoolArgumentValue("has_fireplace_chimney",user_arguments)
     terrainType = runner.getStringArgumentValue("terrain",user_arguments)
     mechVentType = runner.getStringArgumentValue("mech_vent_type",user_arguments)
     mechVentInfilCredit = runner.getBoolArgumentValue("mech_vent_infil_credit",user_arguments)
@@ -883,7 +899,7 @@ class ResidentialAirflow < OpenStudio::Ruleset::ModelUserScript
         unit.dryer_exhaust = 0
       end
       
-      infil, building, unit = _processInfiltrationForUnit(infil, wind_speed, building, unit, has_flue, runner)
+      infil, building, unit = _processInfiltrationForUnit(infil, wind_speed, building, unit, has_hvac_flue, has_water_heater_flue, has_fireplace_chimney, runner)
       mech_vent, schedules = _processMechanicalVentilation(model, runner, infil, mech_vent, building, unit, schedules)
       nat_vent, schedules = _processNaturalVentilation(model, runner, nat_vent, wind_speed, infil, building, unit, schedules)
       
@@ -1921,7 +1937,7 @@ class ResidentialAirflow < OpenStudio::Ruleset::ModelUserScript
   
   end
   
-  def _processInfiltrationForUnit(infil, wind_speed, building, unit, has_flue, runner)
+  def _processInfiltrationForUnit(infil, wind_speed, building, unit, has_hvac_flue, has_water_heater_flue, has_fireplace_chimney, runner)
     # Infiltration calculations.
     
     spaces = []
@@ -1964,6 +1980,11 @@ class ResidentialAirflow < OpenStudio::Ruleset::ModelUserScript
     
           # Flow Coefficient (cfm/inH2O^n) (based on ASHRAE HoF)
           infil.C_i = infil.A_o * (2.0 / outside_air_density) ** 0.5 * delta_pref ** (0.5 - infil.n_i) * inf_conv_factor
+          
+          has_flue = false
+          if has_hvac_flue or has_water_heater_flue or has_fireplace_chimney
+            has_flue = true
+          end
 
           if has_flue
             infil.Y_i = 0.2 # Fraction of leakage through the flue; 0.2 is a "typical" value according to THE ALBERTA AIR INFIL1RATION MODEL, Walker and Wilson, 1990

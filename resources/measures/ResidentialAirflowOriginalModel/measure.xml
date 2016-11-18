@@ -2,8 +2,8 @@
   <schema_version>3.0</schema_version>
   <name>process_airflow_original_model</name>
   <uid>5a7ae205-bdc2-4daf-b29e-b6f0a59366a6</uid>
-  <version_id>3a3ff03c-dac4-40de-a4af-57d7fafbdb3d</version_id>
-  <version_modified>20161115T164721Z</version_modified>
+  <version_id>1e10b665-603b-4520-8727-0079f0edd90c</version_id>
+  <version_modified>20161117T193713Z</version_modified>
   <xml_checksum>2AC0F979</xml_checksum>
   <class_name>ProcessAirflowOriginalModel</class_name>
   <display_name>Set Residential Airflow - Original Model</display_name>
@@ -79,9 +79,47 @@
       <default_value>auto</default_value>
     </argument>
     <argument>
-      <name>has_flue</name>
-      <display_name>Air Leakage: Has Open Flue</display_name>
-      <description>Specifies whether the building has an open flue or chimney (e.g., for a furnace, boiler, water heater, or fireplace).</description>
+      <name>has_hvac_flue</name>
+      <display_name>Air Leakage: Has Open HVAC Flue</display_name>
+      <description>Specifies whether the building has an open flue associated with the HVAC system.</description>
+      <type>Boolean</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+      <default_value>true</default_value>
+      <choices>
+        <choice>
+          <value>true</value>
+          <display_name>true</display_name>
+        </choice>
+        <choice>
+          <value>false</value>
+          <display_name>false</display_name>
+        </choice>
+      </choices>
+    </argument>
+    <argument>
+      <name>has_water_heater_flue</name>
+      <display_name>Air Leakage: Has Open Water Heater Flue</display_name>
+      <description>Specifies whether the building has an open flue associated with the water heater.</description>
+      <type>Boolean</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+      <default_value>true</default_value>
+      <choices>
+        <choice>
+          <value>true</value>
+          <display_name>true</display_name>
+        </choice>
+        <choice>
+          <value>false</value>
+          <display_name>false</display_name>
+        </choice>
+      </choices>
+    </argument>
+    <argument>
+      <name>has_fireplace_chimney</name>
+      <display_name>Air Leakage: Has Open HVAC Flue</display_name>
+      <description>Specifies whether the building has an open chimney associated with a fireplace.</description>
       <type>Boolean</type>
       <required>false</required>
       <model_dependent>false</model_dependent>
@@ -687,7 +725,7 @@
       <filename>measure.rb</filename>
       <filetype>rb</filetype>
       <usage_type>script</usage_type>
-      <checksum>B926B22E</checksum>
+      <checksum>F00ED98C</checksum>
     </file>
   </files>
 </measure>

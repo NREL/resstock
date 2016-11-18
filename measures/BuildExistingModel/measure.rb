@@ -120,11 +120,7 @@ class BuildExistingModel < OpenStudio::Ruleset::ModelUserScript
     runner.registerError(msg)
     fail msg
   end
-  
-  def get_parameters_ordered(resstock_csv)
-    return CSV.open(resstock_csv, 'r') { |csv| csv.first }
-  end
-  
+    
 end
 
 # register the measure to be used by the application

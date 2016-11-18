@@ -1,11 +1,11 @@
 OpenStudio-ResStock
 ===================
 
-ResStock, built on the OpenStudio platform, is a project geared at modeling the residential building stock for, e.g., National or Pacific Northwest analysis. As part of this project:
+ResStock, built on the [OpenStudio platform](http://openstudio.net), is a project geared at modeling the residential building stock for, e.g., national, regional, or local analysis. As part of this project:
 * Multiple data sources for building characteristics (e.g., [EIA RECS](http://www.eia.gov/consumption/residential/), [RBSA](http://neea.org/resource-center/regional-data-resources/residential-building-stock-assessment), [NAHB](http://www.homeinnovation.com/trends_and_reports/data/new_construction), [ACS](https://www.census.gov/programs-surveys/acs/)) have been combined into conditional probability distributions for [National](https://github.com/NREL/OpenStudio-ResStock/tree/master/resources/inputs/national) and [Pacific Northwest](https://github.com/NREL/OpenStudio-ResStock/tree/master/resources/inputs/pnw) analyses for, e.g., location, vintage, equipment types and efficiency levels, envelope insulation levels, etc.
-* A sampling technique is used to generate thousands (up to hundreds of thousands) of OpenStudio models via OpenStudio measures.
-* OpenStudio models are run through the [EnergyPlus simulation engine](http://energyplus.net) via [Amazon cloud computing](https://aws.amazon.com) or other resources.
-* FUTURE: Upgrades can applied to user-specified subsets of the housing stock (e.g., add insulation to only those homes with empty cavity walls or install ductless heat pumps only to those homes with electric baseboard heating) based on OpenStudio measures.
+* A sampling technique is used to generate thousands (up to hundreds of thousands) of OpenStudio building models via [OpenStudio measures](http://nrel.github.io/OpenStudio-user-documentation/getting_started/about_measures/).
+* OpenStudio models are run through DOE's flagship [EnergyPlus simulation engine](http://energyplus.net) via [Amazon cloud](https://aws.amazon.com) or other computing resources.
+* Upgrade measures or packages can be applied to user-specified subsets of the housing stock (e.g., add insulation to only those homes with empty cavity walls or install ductless heat pumps only to those homes with electric baseboard heating) based on OpenStudio measures.
 * FUTURE: A number of tabular reports and other output visualizations (e.g., geographic maps, heat maps) can be obtained.
 
 This project is a <b>work-in-progress</b>. The models are not fully completed nor tested. 

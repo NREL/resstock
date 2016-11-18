@@ -403,12 +403,26 @@ class ProcessAirflowOriginalModel < OpenStudio::Ruleset::WorkspaceUserScript
     userdefined_infsheltercoef.setDefaultValue("auto")
     args << userdefined_infsheltercoef
 
-    #make a double argument for open flue
-    has_flue = OpenStudio::Ruleset::OSArgument::makeBoolArgument("has_flue", false)
-    has_flue.setDisplayName("Air Leakage: Has Open Flue")
-    has_flue.setDescription("Specifies whether the building has an open flue or chimney (e.g., for a furnace, boiler, water heater, or fireplace).")
-    has_flue.setDefaultValue(true)
-    args << has_flue    
+    #make a double argument for open hvac flue
+    has_hvac_flue = OpenStudio::Ruleset::OSArgument::makeBoolArgument("has_hvac_flue", false)
+    has_hvac_flue.setDisplayName("Air Leakage: Has Open HVAC Flue")
+    has_hvac_flue.setDescription("Specifies whether the building has an open flue associated with the HVAC system.")
+    has_hvac_flue.setDefaultValue(true)
+    args << has_hvac_flue    
+
+    #make a double argument for open water heater flue
+    has_water_heater_flue = OpenStudio::Ruleset::OSArgument::makeBoolArgument("has_water_heater_flue", false)
+    has_water_heater_flue.setDisplayName("Air Leakage: Has Open Water Heater Flue")
+    has_water_heater_flue.setDescription("Specifies whether the building has an open flue associated with the water heater.")
+    has_water_heater_flue.setDefaultValue(true)
+    args << has_water_heater_flue    
+
+    #make a double argument for open fireplace chimney
+    has_fireplace_chimney = OpenStudio::Ruleset::OSArgument::makeBoolArgument("has_fireplace_chimney", false)
+    has_fireplace_chimney.setDisplayName("Air Leakage: Has Open HVAC Flue")
+    has_fireplace_chimney.setDescription("Specifies whether the building has an open chimney associated with a fireplace.")
+    has_fireplace_chimney.setDefaultValue(true)
+    args << has_fireplace_chimney    
 
     # Age of Home
 
@@ -750,7 +764,9 @@ class ProcessAirflowOriginalModel < OpenStudio::Ruleset::WorkspaceUserScript
     ufbsmtACH = runner.getDoubleArgumentValue("userdefinedinfufbsmt",user_arguments)
     uaSLA = runner.getDoubleArgumentValue("userdefinedinfunfinattic",user_arguments)
     infiltrationShelterCoefficient = runner.getStringArgumentValue("userdefinedinfsheltercoef",user_arguments)
-    has_flue = runner.getBoolArgumentValue("has_flue",user_arguments)
+    has_hvac_flue = runner.getBoolArgumentValue("has_hvac_flue",user_arguments)
+    has_water_heater_flue = runner.getBoolArgumentValue("has_water_heater_flue",user_arguments)
+    has_fireplace_chimney = runner.getBoolArgumentValue("has_fireplace_chimney",user_arguments)
     terrainType = runner.getStringArgumentValue("selectedterraintype",user_arguments)
     mechVentType = runner.getStringArgumentValue("selectedventtype",user_arguments)
     mechVentInfilCredit = runner.getBoolArgumentValue("selectedinfilcredit",user_arguments)
@@ -1083,7 +1099,7 @@ class ProcessAirflowOriginalModel < OpenStudio::Ruleset::WorkspaceUserScript
       end
       
       wind_speed = _processWindSpeedCorrectionForUnit(wind_speed, si, neighbors_min_nonzero_offset, geometry)
-      si, living_space, fb, garage, ub, cs, ua, wind_speed = _processInfiltrationForUnit(si, living_space, finished_basement, garage, unfinished_basement, crawlspace, unfinished_attic, fbasement_thermal_zone, garage_thermal_zone, ufbasement_thermal_zone, crawl_thermal_zone, ufattic_thermal_zone, wind_speed, has_flue, geometry, unit_spaces, unit)
+      si, living_space, fb, garage, ub, cs, ua, wind_speed = _processInfiltrationForUnit(si, living_space, finished_basement, garage, unfinished_basement, crawlspace, unfinished_attic, fbasement_thermal_zone, garage_thermal_zone, ufbasement_thermal_zone, crawl_thermal_zone, ufattic_thermal_zone, wind_speed, has_hvac_flue, has_water_heater_flue, has_fireplace_chimney, geometry, unit_spaces, unit)
       vent, schedules = _processMechanicalVentilation(unit_num, si, vent, ageOfHome, unit_dryer_exhaust, geometry, unit, living_space, schedules)
       window_area = Geometry.get_window_area_from_spaces(unit_spaces, false)
       nv, schedules = _processNaturalVentilation(workspace, unit_num, nv, living_space, wind_speed, si, schedules, geometry, coolingSetpointWeekday, coolingSetpointWeekend, heatingSetpointWeekday, heatingSetpointWeekend, window_area)
@@ -2770,7 +2786,7 @@ class ProcessAirflowOriginalModel < OpenStudio::Ruleset::WorkspaceUserScript
     return d
   end 
   
-  def _processInfiltrationForUnit(si, living_space, finished_basement, garage, unfinished_basement, crawlspace, unfinished_attic, fbasement_thermal_zone, garage_thermal_zone, ufbasement_thermal_zone, crawl_thermal_zone, ufattic_thermal_zone, ws, has_flue, geometry, unit_spaces, unit)
+  def _processInfiltrationForUnit(si, living_space, finished_basement, garage, unfinished_basement, crawlspace, unfinished_attic, fbasement_thermal_zone, garage_thermal_zone, ufbasement_thermal_zone, crawl_thermal_zone, ufattic_thermal_zone, ws, has_hvac_flue, has_water_heater_flue, has_fireplace_chimney, geometry, unit_spaces, unit)
     # Infiltration calculations.
     
     spaces = []
@@ -2895,6 +2911,11 @@ class ProcessAirflowOriginalModel < OpenStudio::Ruleset::WorkspaceUserScript
           # Flow Coefficient (cfm/inH2O^n) (based on ASHRAE HoF)
           si.C_i = si.A_o * (2.0 / outside_air_density) ** 0.5 * delta_pref ** (0.5 - si.n_i) * inf_conv_factor
 
+          has_flue = false
+          if has_hvac_flue or has_water_heater_flue or has_fireplace_chimney
+            has_flue = true
+          end
+          
           if has_flue
             # for future use
             si.Y_i = 0.2 # Fraction of leakage through the flue; 0.2 is a "typical" value according to THE ALBERTA AIR INFIL1RATION MODEL, Walker and Wilson, 1990
