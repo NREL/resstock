@@ -164,6 +164,10 @@ census_div = {      1: 'New England Census Division (CT, MA, ME, NH, RI, VT)',
 
 fpl = fpl09
 
+def assign_aliases(df):
+    aliases = {'PRKGPLC1':'HasGarage'}
+    return df.rename(columns=aliases)
+
 def process_csv_data():
     df = pandas.read_csv(recs_data_file,na_values=['-2'])
     for vint_num, vint_name in vintages.iteritems():
@@ -370,9 +374,21 @@ def calc_general(df, cut_by=['REPORTABLE_DOMAIN','FUELHEAT'], columns=None, outf
                 if not col in cut_by:
                     g[col] = g[col] / total
     if not outfile is None:
-        g.to_csv(outfile, index=False)
+        save_to_tsv(g, outfile)
         print g
     return g
+
+def save_to_tsv(g, cut_by, columns, outfile):
+    rename_dict = {}
+    for col in g.columns:
+        if col in cut_by:
+            rename_dict[col] = 'Dependency=' + col
+        if col in columns:
+            rename_dict[col] = 'Option=' + col
+    g = g.rename(columns=rename_dict)
+    print g
+    g.to_csv(outfile, index=False)
+
 
 def query_stories(df, outfile='recs_query_stories.csv'):
     g = calc_general(df, cut_by=['YEARMADERANGE','Size'],columns=['Stories'], outfile=None)
@@ -404,8 +420,8 @@ def assign_poverty_levels(df):
     for num, name in med_income.iteritems():
         df['INCOME'].replace(num, name, inplace=True)
     #INFLATION
-    inflation_2009_to_2016 = 1.125344  # TODO: Check with John; do we want to be using this?
-    df['INF_INCOME'] = df['INCOME'] * inflation_2009_to_2016
+    inflation_2009_to_2016 = 1.125344
+    df['INCOME_2016_DOLLARS'] = df['INCOME'] * inflation_2009_to_2016 # Not currently being used, but retain for possible later use
     #FPL
     df['INCOMELIMIT'] = df['NHSLDMEM']
     for fpl_num,fpl_name in fpl.iteritems():
@@ -424,14 +440,27 @@ def assign_poverty_levels(df):
     df.loc[(df[fpl_field] <= 50),'FPL50'] = 1
     #end code
 
-    return df.fillna(value=0)
+    # return df.fillna(value=0) # TODO: Check with John if this is necessary
+    return df
+
+def assign_garages(df):
+    garage_size = {1:  '1 Car',
+                   2:  '2 Car',
+                   3:  '3 Car',
+                   -2: 'None'}
+    df['SIZEOFGARAGE'] = df['SIZEOFGARAGE'].replace(garage_size)
+    return df
+
 
 if __name__ == '__main__':
     df = process_csv_data()
-    assign_sizes(df)
-    assign_poverty_levels(df)
+    df = assign_aliases(df)
+    df = assign_sizes(df)
+    df = assign_poverty_levels(df)
+    df = assign_garages(df)
 
-    #calc_general(df, cut_by=['YEARMADERANGE','Size',''], columns=['EQUIPM'], outfile='recs_query_heating_type.csv', norm=False)
+
+    calc_general(df, cut_by=['YEARMADERANGE','Size'], columns=['SIZEOFGARAGE'], outfile='Geometry Garage.tsv', norm=True)
 
     # Overwrite FUELHEAT Type field with UGWARM ('UGWARM') if discrepancy
 #    df.loc[df['UGWARM'] == 1, 'FUELHEAT'] = 1
