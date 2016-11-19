@@ -4,20 +4,22 @@ Created on Mon Sep 26 15:26:57 2016
 
 @author: jalley
 """
-# import plotly.plotly as py
-# import plotly.graph_objs as go
-import os, sys
-import pandas as pd
-import matplotlib.pyplot as plt
-import csv
+#import plotly.plotly as py
+#import plotly.graph_objs as go
+#import os, sys
+#import pandas as pd
+#import csv
 #from medoids_tstat import do_plot
-import itertools
-import numpy as np
-from matplotlib.lines import Line2D
+#import itertools
+#import numpy as np
+#from matplotlib.lines import Line2D
+#from scipy import stats
+#from matplotlib.pyplot import show
+#from colour import Color
+
 import seaborn as sns
-# from scipy import stats
-# from matplotlib.pyplot import show
-# from colour import Color
+import matplotlib.pyplot as plt
+
 import query_recs_raw as recs
 
 vintages = {'pre-1950' : 0,
@@ -158,8 +160,8 @@ def kdeplot(df, VAR1, VAR2, TITLE):
 	ax.savefig(VAR1 +" vs. "+ VAR2 +'_kde .png', bbox_inches = 'tight')
 
 if __name__ == '__main__':
-	df = process_csv_data()
-	assign_sizes(df)
+	df = recs.process_csv_data()
+	df = recs.assign_sizes(df)
 	poverty(df)
 #	stackedbar(df,'equipm', 'Heating Equipment' + ' vs. Federal Poverty Levels: 250,200,150,100,50')
 #	stackedbar(df,'fuelheat', 'Heating Fuel' + ' vs. Federal Poverty Levels: 250,200,150,100,50')
