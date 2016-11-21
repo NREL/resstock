@@ -55,9 +55,14 @@ class ApplyUpgrade < OpenStudio::Ruleset::ModelUserScript
     (1..num_options).each do |option_num|
         option_apply_logic = OpenStudio::Ruleset::OSArgument.makeStringArgument("option_#{option_num}_apply_logic", false)
         option_apply_logic.setDisplayName("Option #{option_num} Apply Logic")
-        option_apply_logic.setDescription("Logic that determines if the Option #{option_num} upgrade will apply based on the existing building's options. Specify one or more parameter|option as found in resources\\options_lookup.tsv. When multiple are included, they must be separated by '||' for OR and '&&' for AND, and using parentheses as appropriate. Prefix an option with '!' for not.")
+        option_apply_logic.setDescription("Logic that specifies if the Option #{option_num} upgrade will apply based on the existing building's options. Specify one or more parameter|option as found in resources\\options_lookup.tsv. When multiple are included, they must be separated by '||' for OR and '&&' for AND, and using parentheses as appropriate. Prefix an option with '!' for not.")
         args << option_apply_logic
     end
+
+    package_apply_logic = OpenStudio::Ruleset::OSArgument.makeStringArgument("package_apply_logic", false)
+    package_apply_logic.setDisplayName("Package Apply Logic")
+    package_apply_logic.setDescription("Logic that specifies if the entire package upgrade (all options) will apply based on the existing building's options. Specify one or more parameter|option as found in resources\\options_lookup.tsv. When multiple are included, they must be separated by '||' for OR and '&&' for AND, and using parentheses as appropriate. Prefix an option with '!' for not.")
+    args << package_apply_logic
 
     return args
   end
@@ -78,7 +83,7 @@ class ApplyUpgrade < OpenStudio::Ruleset::ModelUserScript
       return true     
     end
 
-    # Retrieve Option argument values
+    # Retrieve Option X argument values
     options = {}
     (1..num_options).each do |option_num|
         if option_num == 1
@@ -96,7 +101,7 @@ class ApplyUpgrade < OpenStudio::Ruleset::ModelUserScript
         options[option_num] = arg.strip
     end
     
-    # Retrieve Option Apply Logic argument values
+    # Retrieve Option X Apply Logic argument values
     options_apply_logic = {}
     (1..num_options).each do |option_num|
         arg = runner.getOptionalStringArgumentValue("option_#{option_num}_apply_logic",user_arguments)
@@ -114,6 +119,23 @@ class ApplyUpgrade < OpenStudio::Ruleset::ModelUserScript
         options_apply_logic[option_num] = arg.strip
     end
     
+    # Retrieve Package Apply Logic argument value
+    arg = runner.getOptionalStringArgumentValue("package_apply_logic",user_arguments)
+    if not arg.is_initialized
+        package_apply_logic = nil
+    else
+        arg = arg.get
+        if arg.strip.size == 0
+            package_apply_logic = nil
+        else
+            if not arg.include?('|')
+                runner.registerError("Package Apply Logic is missing the '|' delimiter.")
+                return false
+            end
+            package_apply_logic = arg.strip
+        end
+    end
+    
     # Get file/dir paths
     resources_dir = File.absolute_path(File.join(File.dirname(__FILE__), "..", "..", "lib", "resources")) # Should have been uploaded per 'Other Library Files' in analysis spreadsheet
     helper_methods_file = File.join(resources_dir, "helper_methods.rb")
@@ -124,81 +146,96 @@ class ApplyUpgrade < OpenStudio::Ruleset::ModelUserScript
     # Load helper_methods
     require File.join(File.dirname(helper_methods_file), File.basename(helper_methods_file, File.extname(helper_methods_file)))
     
-    # Obtain measures and arguments to be called
-    measures = {}
-    options.each do |option_num, option|
-        parameter_name, option_name = option.split('|')
-        
-        # Apply this option?
-        apply_option_upgrade = true
-        if options_apply_logic.include?(option_num)
-            apply_option_upgrade = evaluate_logic(options_apply_logic[option_num], runner)
-            if apply_option_upgrade.nil?
-                return false
-            end
+    # Process package apply logic if provided
+    apply_package_upgrade = true
+    if not package_apply_logic.nil?
+        # Apply this package?
+        apply_package_upgrade = evaluate_logic(package_apply_logic, runner)
+        if apply_package_upgrade.nil?
+            return false
         end
-        
-        if not apply_option_upgrade
-            runner.registerInfo("Parameter #{parameter_name}, Option #{option_name} will not be applied.")
-            next
-        end
-    
-        # Register this option so that it replaces the existing building option in the results csv file
-        print_option_assignment(parameter_name, option_name, runner)
-        register_value(runner, parameter_name, option_name)
-
-        # Check file/dir paths exist
-        check_file_exists(lookup_file, runner)
-
-        # Get measure name and arguments associated with the option
-        get_measure_args_from_option_name(lookup_file, option_name, parameter_name, runner).each do |measure_subdir, args_hash|
-            if not measures.has_key?(measure_subdir)
-                measures[measure_subdir] = {}
-            end
-            # Append args_hash to measures[measure_subdir]
-            args_hash.each do |k, v|
-                measures[measure_subdir][k] = v
-            end
-        end
-        
     end
     
-    # Add measure arguments from existing building if needed
-    building_col_name = "Building"
-    parameters = get_parameters_ordered(resstock_csv)
-    measures.keys.each do |measure_subdir|
+    measures = {}
+    if apply_package_upgrade
     
-        parameters.each do |parameter_name|
-            next if parameter_name == building_col_name
-            existing_option_name = get_value_from_runner_past_results(parameter_name, runner)
+        # Obtain measures and arguments to be called
+        # Process options apply logic if provided
+        options.each do |option_num, option|
+            parameter_name, option_name = option.split('|')
             
-            get_measure_args_from_option_name(lookup_file, existing_option_name, parameter_name, runner).each do |measure_subdir2, args_hash|
-                next if measure_subdir != measure_subdir2
-                # Append any new arguments
+            # Apply this option?
+            apply_option_upgrade = true
+            if options_apply_logic.include?(option_num)
+                apply_option_upgrade = evaluate_logic(options_apply_logic[option_num], runner)
+                if apply_option_upgrade.nil?
+                    return false
+                end
+            end
+            
+            if not apply_option_upgrade
+                runner.registerInfo("Parameter #{parameter_name}, Option #{option_name} will not be applied.")
+                next
+            end
+        
+            # Register this option so that it replaces the existing building option in the results csv file
+            print_option_assignment(parameter_name, option_name, runner)
+            register_value(runner, parameter_name, option_name)
+
+            # Check file/dir paths exist
+            check_file_exists(lookup_file, runner)
+
+            # Get measure name and arguments associated with the option
+            get_measure_args_from_option_name(lookup_file, option_name, parameter_name, runner).each do |measure_subdir, args_hash|
+                if not measures.has_key?(measure_subdir)
+                    measures[measure_subdir] = {}
+                end
+                # Append args_hash to measures[measure_subdir]
                 args_hash.each do |k, v|
-                    next if measures[measure_subdir].has_key?(k)
                     measures[measure_subdir][k] = v
                 end
             end
             
         end
         
-    end
-    
-    # Call each measure for sample to build up model
-    measures.keys.each do |measure_subdir|
-        # Gather measure arguments and call measure
-        full_measure_path = File.join(measures_dir, measure_subdir, "measure.rb")
-        check_file_exists(full_measure_path, runner)
+        # Add measure arguments from existing building if needed
+        building_col_name = "Building"
+        parameters = get_parameters_ordered(resstock_csv)
+        measures.keys.each do |measure_subdir|
         
-        measure_instance = get_measure_instance(full_measure_path)
-        argument_map = get_argument_map(model, measure_instance, measures[measure_subdir], lookup_file, measure_subdir, runner)
-        print_measure_call(measures[measure_subdir], measure_subdir, runner)
-
-        if not run_measure(model, measure_instance, argument_map, runner)
-            return false
+            parameters.each do |parameter_name|
+                next if parameter_name == building_col_name
+                existing_option_name = get_value_from_runner_past_results(parameter_name, runner)
+                
+                get_measure_args_from_option_name(lookup_file, existing_option_name, parameter_name, runner).each do |measure_subdir2, args_hash|
+                    next if measure_subdir != measure_subdir2
+                    # Append any new arguments
+                    args_hash.each do |k, v|
+                        next if measures[measure_subdir].has_key?(k)
+                        measures[measure_subdir][k] = v
+                    end
+                end
+                
+            end
+            
         end
-    end
+        
+        # Call each measure for sample to build up model
+        measures.keys.each do |measure_subdir|
+            # Gather measure arguments and call measure
+            full_measure_path = File.join(measures_dir, measure_subdir, "measure.rb")
+            check_file_exists(full_measure_path, runner)
+            
+            measure_instance = get_measure_instance(full_measure_path)
+            argument_map = get_argument_map(model, measure_instance, measures[measure_subdir], lookup_file, measure_subdir, runner)
+            print_measure_call(measures[measure_subdir], measure_subdir, runner)
+
+            if not run_measure(model, measure_instance, argument_map, runner)
+                return false
+            end
+        end
+    
+    end # apply_package_upgrade
     
     if measures.size == 0
         # Upgrade not applied; skip from CSV

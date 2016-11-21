@@ -1,13 +1,13 @@
 <measure>
   <schema_version>3.0</schema_version>
-  <name>process_central_air_conditioner</name>
+  <name>process_single_speed_central_air_conditioner</name>
   <uid>62ef17da-be70-43a1-99ec-b000e016ba4a</uid>
-  <version_id>c3c2d04a-004f-4704-b41e-f614125f9a21</version_id>
-  <version_modified>20161110T145608Z</version_modified>
+  <version_id>9aa8d3e0-127f-476d-8790-e6dc913549c5</version_id>
+  <version_modified>20161118T213759Z</version_modified>
   <xml_checksum>9E2537CD</xml_checksum>
-  <class_name>ProcessCentralAirConditioner</class_name>
-  <display_name>Set Residential Central Air Conditioner</display_name>
-  <description>This measure removes any existing HVAC cooling components from the building and adds a central air conditioner along with an on/off supply fan to a unitary air loop. For multifamily buildings, the central air conditioner can be set for all units of the building.</description>
+  <class_name>ProcessSingleSpeedCentralAirConditioner</class_name>
+  <display_name>Set Residential Single-Speed Central Air Conditioner</display_name>
+  <description>This measure removes any existing HVAC cooling components from the building and adds a single-speed central air conditioner along with an on/off supply fan to a unitary air loop. For multifamily buildings, the single-speed central air conditioner can be set for all units of the building.</description>
   <modeler_description>Any cooling components are removed from any existing air loops or zones. Any existing air loops are also removed. A cooling DX coil and an on/off supply fan are added to a unitary air loop. The unitary air loop is added to the supply inlet node of the air loop. This air loop is added to a branch for the living zone. A diffuser is added to the branch for the living zone as well as for the finished basement if it exists.</modeler_description>
   <arguments>
     <argument>
@@ -21,19 +21,10 @@
       <default_value>13</default_value>
     </argument>
     <argument>
-      <name>num_speeds</name>
-      <display_name>Number of Speeds</display_name>
-      <description>Number of speeds of the compressor.</description>
-      <type>Double</type>
-      <required>true</required>
-      <model_dependent>false</model_dependent>
-      <default_value>1</default_value>
-    </argument>
-    <argument>
       <name>eer</name>
       <display_name>EER</display_name>
-      <description>EER (net) from the A test (95 ODB/80 EDB/67 EWB) for each of the compressor speeds.</description>
-      <type>String</type>
+      <description>EER (net) from the A test (95 ODB/80 EDB/67 EWB).</description>
+      <type>Double</type>
       <units>kBtu/kWh</units>
       <required>true</required>
       <model_dependent>false</model_dependent>
@@ -42,8 +33,8 @@
     <argument>
       <name>shr</name>
       <display_name>Rated SHR</display_name>
-      <description>The sensible heat ratio (ratio of the sensible portion of the load to the total load) at the nominal rated capacity for each of the compressor speeds.</description>
-      <type>String</type>
+      <description>The sensible heat ratio (ratio of the sensible portion of the load to the total load) at the nominal rated capacity.</description>
+      <type>Double</type>
       <required>true</required>
       <model_dependent>false</model_dependent>
       <default_value>0.73</default_value>
@@ -51,11 +42,11 @@
     <argument>
       <name>capacity_ratio</name>
       <display_name>Capacity Ratio</display_name>
-      <description>Capacity divided by rated capacity for each of the compressor speeds.</description>
-      <type>String</type>
+      <description>Capacity divided by rated capacity.</description>
+      <type>Double</type>
       <required>true</required>
       <model_dependent>false</model_dependent>
-      <default_value>1.0</default_value>
+      <default_value>1</default_value>
     </argument>
     <argument>
       <name>airflow_rate</name>
@@ -70,11 +61,11 @@
     <argument>
       <name>fan_speed_ratio</name>
       <display_name>Fan Speed Ratio</display_name>
-      <description>Fan speed divided by fan speed at the compressor speed for which Capacity Ratio = 1.0 for each of the compressor speeds.</description>
-      <type>String</type>
+      <description>Fan speed divided by fan speed at the compressor speed for which Capacity Ratio = 1.0.</description>
+      <type>Double</type>
       <required>true</required>
       <model_dependent>false</model_dependent>
-      <default_value>1.0</default_value>
+      <default_value>1</default_value>
     </argument>
     <argument>
       <name>fan_power_rated</name>
@@ -382,23 +373,6 @@
       <checksum>9A86F3EB</checksum>
     </file>
     <file>
-      <filename>process_central_air_conditioner_test.rb</filename>
-      <filetype>rb</filetype>
-      <usage_type>test</usage_type>
-      <checksum>4637E43D</checksum>
-    </file>
-    <file>
-      <version>
-        <software_program>OpenStudio</software_program>
-        <identifier>1.4.0</identifier>
-        <min_compatible>1.13.1</min_compatible>
-      </version>
-      <filename>measure.rb</filename>
-      <filetype>rb</filetype>
-      <usage_type>script</usage_type>
-      <checksum>9B30C995</checksum>
-    </file>
-    <file>
       <filename>unit_conversions.rb</filename>
       <filetype>rb</filetype>
       <usage_type>resource</usage_type>
@@ -421,6 +395,23 @@
       <filetype>rb</filetype>
       <usage_type>resource</usage_type>
       <checksum>394EB92E</checksum>
+    </file>
+    <file>
+      <filename>process_single_speed_central_air_conditioner_test.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>test</usage_type>
+      <checksum>1133394D</checksum>
+    </file>
+    <file>
+      <version>
+        <software_program>OpenStudio</software_program>
+        <identifier>1.4.0</identifier>
+        <min_compatible>1.13.1</min_compatible>
+      </version>
+      <filename>measure.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>script</usage_type>
+      <checksum>A8A535FF</checksum>
     </file>
   </files>
 </measure>

@@ -250,23 +250,26 @@ class ProcessConstructionsWallsPartitionThermalMass < OpenStudio::Ruleset::Model
         end
     
         # Determine additional partition wall mass required
-        addtl_surface_area = fractionOfFloorArea * space.floorArea - existing_surface_area * 2
+        addtl_surface_area = fractionOfFloorArea * space.floorArea - existing_surface_area * 2 / spaces.size.to_f
         
         # Remove any existing internal mass
         space.internalMass.each do |im|
             runner.registerInfo("Removing internal mass object '#{im.name.to_s}' from space '#{space.name.to_s}'")
+            imdef = im.internalMassDefinition
             im.remove
+            imdef.resetConstruction
+            imdef.remove
         end
         
         if addtl_surface_area > 0
             # Add remaining partition walls within spaces (those without geometric representation)
             # as internal mass object.
             imdef = OpenStudio::Model::InternalMassDefinition.new(model)
-            imdef.setName("#{space.name.to_s}Partition")
-            imdef.setSurfaceArea(OpenStudio::convert(addtl_surface_area,"ft^2","m^2").get)
+            imdef.setName("#{space.name.to_s} Partition")
+            imdef.setSurfaceArea(addtl_surface_area)
             imdefs << imdef
             im = OpenStudio::Model::InternalMass.new(imdef)
-            im.setName("#{space.name.to_s}Partition")
+            im.setName("#{space.name.to_s} Partition")
             im.setSpace(space)
             runner.registerInfo("Added internal mass object '#{im.name.to_s}' to space '#{space.name.to_s}'")
         end

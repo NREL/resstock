@@ -1,120 +1,182 @@
 <measure>
   <schema_version>3.0</schema_version>
-  <name>process_air_source_heat_pump</name>
-  <uid>9f709cf6-cf55-4bb3-8087-7a5c5a98aa7c</uid>
-  <version_id>1b35d4d1-51a8-47c7-a50f-8b95459700fc</version_id>
-  <version_modified>20161110T145608Z</version_modified>
-  <xml_checksum>0DA5C9E6</xml_checksum>
-  <class_name>ProcessAirSourceHeatPump</class_name>
-  <display_name>Set Residential Air Source Heat Pump</display_name>
-  <description>This measure removes any existing HVAC components from the building and adds an air source heat pump along with an on/off supply fan to a unitary air loop. For multifamily buildings, the air source heat pump can be set for all units of the building.</description>
-  <modeler_description>Any supply components or baseboard convective electrics/waters are removed from any existing air/plant loops or zones. Any existing air/plant loops are also removed. A heating DX coil, cooling DX coil, electric supplemental heating coil, and an on/off supply fan are added to a unitary air loop. The unitary air loop is added to the supply inlet node of the air loop. This air loop is added to a branch for the living zone. A diffuser is added to the branch for the living zone as well as for the finished basement if it exists.</modeler_description>
+  <name>process_variable_speed_central_air_conditioner</name>
+  <uid>7387af85-5ae2-422c-9488-d64b8682dd06</uid>
+  <version_id>85761fa1-d194-4f7b-93aa-b2fed57db8e2</version_id>
+  <version_modified>20161121T162244Z</version_modified>
+  <xml_checksum>D48F381B</xml_checksum>
+  <class_name>ProcessVariableSpeedCentralAirConditioner</class_name>
+  <display_name>Set Residential Variable-Speed Central Air Conditioner</display_name>
+  <description>This measure removes any existing HVAC cooling components from the building and adds a variable-speed central air conditioner along with an on/off supply fan to a unitary air loop. For multifamily buildings, the variable-speed central air conditioner can be set for all units of the building.</description>
+  <modeler_description>Any cooling components are removed from any existing air loops or zones. Any existing air loops are also removed. A cooling DX coil and an on/off supply fan are added to a unitary air loop. The unitary air loop is added to the supply inlet node of the air loop. This air loop is added to a branch for the living zone. A diffuser is added to the branch for the living zone as well as for the finished basement if it exists.</modeler_description>
   <arguments>
     <argument>
       <name>seer</name>
-      <display_name>Installed SEER</display_name>
-      <description>The installed Seasonal Energy Efficiency Ratio (SEER) of the heat pump.</description>
+      <display_name>Rated SEER</display_name>
+      <description>Seasonal Energy Efficiency Ratio (SEER) is a measure of equipment energy efficiency over the cooling season.</description>
       <type>Double</type>
       <units>Btu/W-h</units>
       <required>true</required>
       <model_dependent>false</model_dependent>
-      <default_value>13</default_value>
+      <default_value>24.5</default_value>
     </argument>
     <argument>
-      <name>hspf</name>
-      <display_name>Installed HSPF</display_name>
-      <description>The installed Heating Seasonal Performance Factor (HSPF) of the heat pump.</description>
+      <name>eer</name>
+      <display_name>EER</display_name>
+      <description>EER (net) from the A test (95 ODB/80 EDB/67 EWB).</description>
       <type>Double</type>
-      <units>Btu/W-h</units>
+      <units>kBtu/kWh</units>
       <required>true</required>
       <model_dependent>false</model_dependent>
-      <default_value>7.7</default_value>
+      <default_value>19.2</default_value>
     </argument>
     <argument>
-      <name>num_speeds</name>
-      <display_name>Number of Speeds</display_name>
-      <description>Number of speeds of the compressor.</description>
+      <name>eer2</name>
+      <display_name>EER 2</display_name>
+      <description>EER (net) from the A test (95 ODB/80 EDB/67 EWB) for the second speed.</description>
       <type>Double</type>
-      <units>frac</units>
+      <units>kBtu/kWh</units>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>18.3</default_value>
+    </argument>
+    <argument>
+      <name>eer3</name>
+      <display_name>EER 3</display_name>
+      <description>EER (net) from the A test (95 ODB/80 EDB/67 EWB) for the third speed.</description>
+      <type>Double</type>
+      <units>kBtu/kWh</units>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>18.3</default_value>
+    </argument>
+    <argument>
+      <name>eer4</name>
+      <display_name>EER 4</display_name>
+      <description>EER (net) from the A test (95 ODB/80 EDB/67 EWB) for the fourth speed.</description>
+      <type>Double</type>
+      <units>kBtu/kWh</units>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>18.3</default_value>
+    </argument>
+    <argument>
+      <name>shr</name>
+      <display_name>Rated SHR</display_name>
+      <description>The sensible heat ratio (ratio of the sensible portion of the load to the total load) at the nominal rated capacity.</description>
+      <type>Double</type>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>0.98</default_value>
+    </argument>
+    <argument>
+      <name>shr2</name>
+      <display_name>Rated SHR 2</display_name>
+      <description>The sensible heat ratio (ratio of the sensible portion of the load to the total load) at the nominal rated capacity for the second speed.</description>
+      <type>Double</type>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>0.82</default_value>
+    </argument>
+    <argument>
+      <name>shr3</name>
+      <display_name>Rated SHR 3</display_name>
+      <description>The sensible heat ratio (ratio of the sensible portion of the load to the total load) at the nominal rated capacity for the third speed.</description>
+      <type>Double</type>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>0.745</default_value>
+    </argument>
+    <argument>
+      <name>shr4</name>
+      <display_name>Rated SHR 4</display_name>
+      <description>The sensible heat ratio (ratio of the sensible portion of the load to the total load) at the nominal rated capacity for the fourth speed.</description>
+      <type>Double</type>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>0.77</default_value>
+    </argument>
+    <argument>
+      <name>capacity_ratio</name>
+      <display_name>Capacity Ratio</display_name>
+      <description>Capacity divided by rated capacity.</description>
+      <type>Double</type>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>0.36</default_value>
+    </argument>
+    <argument>
+      <name>capacity_ratio2</name>
+      <display_name>Capacity Ratio 2</display_name>
+      <description>Capacity divided by rated capacity for the second speed.</description>
+      <type>Double</type>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>0.64</default_value>
+    </argument>
+    <argument>
+      <name>capacity_ratio3</name>
+      <display_name>Capacity Ratio 3</display_name>
+      <description>Capacity divided by rated capacity for the third speed.</description>
+      <type>Double</type>
       <required>true</required>
       <model_dependent>false</model_dependent>
       <default_value>1</default_value>
     </argument>
     <argument>
-      <name>eer</name>
-      <display_name>EER</display_name>
-      <description>EER (net) from the A test (95 ODB/80 EDB/67 EWB) for each of the compressor speeds.</description>
-      <type>String</type>
-      <units>kBtu/kWh</units>
+      <name>capacity_ratio4</name>
+      <display_name>Capacity Ratio 4</display_name>
+      <description>Capacity divided by rated capacity for the fourth speed.</description>
+      <type>Double</type>
       <required>true</required>
       <model_dependent>false</model_dependent>
-      <default_value>11.4</default_value>
+      <default_value>1.16</default_value>
     </argument>
     <argument>
-      <name>cop</name>
-      <display_name>COP</display_name>
-      <description>COP (net) at 47 ODB/70 EDB/60 EWB (AHRI rated conditions) for each of the compressor speeds.</description>
-      <type>String</type>
-      <units>Wh/Wh</units>
-      <required>true</required>
-      <model_dependent>false</model_dependent>
-      <default_value>3.05</default_value>
-    </argument>
-    <argument>
-      <name>shr</name>
-      <display_name>Rated SHR</display_name>
-      <description>The sensible heat ratio (ratio of the sensible portion of the load to the total load) at the nominal rated capacity for each of the compressor speeds.</description>
-      <type>String</type>
-      <required>true</required>
-      <model_dependent>false</model_dependent>
-      <default_value>0.73</default_value>
-    </argument>
-    <argument>
-      <name>capacity_ratio</name>
-      <display_name>Capacity Ratio</display_name>
-      <description>Capacity divided by rated capacity for each of the compressor speeds.</description>
-      <type>String</type>
-      <required>true</required>
-      <model_dependent>false</model_dependent>
-      <default_value>1.0</default_value>
-    </argument>
-    <argument>
-      <name>airflow_rate_cooling</name>
-      <display_name>Rated Air Flow Rate, Cooling</display_name>
-      <description>Air flow rate (cfm) per ton of rated capacity, in cooling mode.</description>
+      <name>airflow_rate</name>
+      <display_name>Rated Air Flow Rate</display_name>
+      <description>Air flow rate (cfm) per ton of rated capacity.</description>
       <type>Double</type>
       <units>cfm/ton</units>
       <required>true</required>
       <model_dependent>false</model_dependent>
-      <default_value>394.2</default_value>
+      <default_value>315.8</default_value>
     </argument>
     <argument>
-      <name>airflow_rate_heating</name>
-      <display_name>Rated Air Flow Rate, Heating</display_name>
-      <description>Air flow rate (cfm) per ton of rated capacity, in heating mode.</description>
+      <name>fan_speed_ratio</name>
+      <display_name>Fan Speed Ratio</display_name>
+      <description>Fan speed divided by fan speed at the compressor speed for which Capacity Ratio = 1.0.</description>
       <type>Double</type>
-      <units>cfm/ton</units>
       <required>true</required>
       <model_dependent>false</model_dependent>
-      <default_value>384.1</default_value>
+      <default_value>0.51</default_value>
     </argument>
     <argument>
-      <name>fan_speed_ratio_cooling</name>
-      <display_name>Fan Speed Ratio Cooling</display_name>
-      <description>Cooling fan speed divided by fan speed at the compressor speed for which Capacity Ratio = 1.0 for each of the compressor speeds.</description>
-      <type>String</type>
+      <name>fan_speed_ratio2</name>
+      <display_name>Fan Speed Ratio 2</display_name>
+      <description>Fan speed divided by fan speed at the compressor speed for which Capacity Ratio = 1.0 for the second speed.</description>
+      <type>Double</type>
       <required>true</required>
       <model_dependent>false</model_dependent>
-      <default_value>1.0</default_value>
+      <default_value>0.84</default_value>
     </argument>
     <argument>
-      <name>fan_speed_ratio_heating</name>
-      <display_name>Fan Speed Ratio Heating</display_name>
-      <description>Heating fan speed divided by fan speed at the compressor speed for which Capacity Ratio = 1.0 for each of the compressor speeds.</description>
-      <type>String</type>
+      <name>fan_speed_ratio3</name>
+      <display_name>Fan Speed Ratio 3</display_name>
+      <description>Fan speed divided by fan speed at the compressor speed for which Capacity Ratio = 1.0 for the third speed.</description>
+      <type>Double</type>
       <required>true</required>
       <model_dependent>false</model_dependent>
-      <default_value>1.0</default_value>
+      <default_value>1</default_value>
+    </argument>
+    <argument>
+      <name>fan_speed_ratio4</name>
+      <display_name>Fan Speed Ratio 4</display_name>
+      <description>Fan speed divided by fan speed at the compressor speed for which Capacity Ratio = 1.0 for the fourth speed.</description>
+      <type>Double</type>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>1.19</default_value>
     </argument>
     <argument>
       <name>fan_power_rated</name>
@@ -124,7 +186,7 @@
       <units>W/cfm</units>
       <required>true</required>
       <model_dependent>false</model_dependent>
-      <default_value>0.365</default_value>
+      <default_value>0.14</default_value>
     </argument>
     <argument>
       <name>fan_power_installed</name>
@@ -134,17 +196,7 @@
       <units>W/cfm</units>
       <required>true</required>
       <model_dependent>false</model_dependent>
-      <default_value>0.5</default_value>
-    </argument>
-    <argument>
-      <name>min_temp</name>
-      <display_name>Min Temp</display_name>
-      <description>Outdoor dry-bulb temperature below which compressor turns off.</description>
-      <type>Double</type>
-      <units>degrees F</units>
-      <required>true</required>
-      <model_dependent>false</model_dependent>
-      <default_value>0</default_value>
+      <default_value>0.3</default_value>
     </argument>
     <argument>
       <name>crankcase_capacity</name>
@@ -154,7 +206,7 @@
       <units>kW</units>
       <required>true</required>
       <model_dependent>false</model_dependent>
-      <default_value>0.02</default_value>
+      <default_value>0</default_value>
     </argument>
     <argument>
       <name>crankcase_max_temp</name>
@@ -191,7 +243,7 @@
       <type>Double</type>
       <required>true</required>
       <model_dependent>false</model_dependent>
-      <default_value>1</default_value>
+      <default_value>0.89</default_value>
     </argument>
     <argument>
       <name>eer_capacity_derate_4ton</name>
@@ -200,7 +252,7 @@
       <type>Double</type>
       <required>true</required>
       <model_dependent>false</model_dependent>
-      <default_value>1</default_value>
+      <default_value>0.89</default_value>
     </argument>
     <argument>
       <name>eer_capacity_derate_5ton</name>
@@ -209,56 +261,11 @@
       <type>Double</type>
       <required>true</required>
       <model_dependent>false</model_dependent>
-      <default_value>1</default_value>
+      <default_value>0.89</default_value>
     </argument>
     <argument>
-      <name>cop_capacity_derate_1ton</name>
-      <display_name>1.5 Ton COP Capacity Derate</display_name>
-      <description>COP multiplier for 1.5 ton air-conditioners.</description>
-      <type>Double</type>
-      <required>true</required>
-      <model_dependent>false</model_dependent>
-      <default_value>1</default_value>
-    </argument>
-    <argument>
-      <name>cop_capacity_derate_2ton</name>
-      <display_name>2 Ton COP Capacity Derate</display_name>
-      <description>COP multiplier for 2 ton air-conditioners.</description>
-      <type>Double</type>
-      <required>true</required>
-      <model_dependent>false</model_dependent>
-      <default_value>1</default_value>
-    </argument>
-    <argument>
-      <name>cop_capacity_derate_3ton</name>
-      <display_name>3 Ton COP Capacity Derate</display_name>
-      <description>COP multiplier for 3 ton air-conditioners.</description>
-      <type>Double</type>
-      <required>true</required>
-      <model_dependent>false</model_dependent>
-      <default_value>1</default_value>
-    </argument>
-    <argument>
-      <name>cop_capacity_derate_4ton</name>
-      <display_name>4 Ton COP Capacity Derate</display_name>
-      <description>COP multiplier for 4 ton air-conditioners.</description>
-      <type>Double</type>
-      <required>true</required>
-      <model_dependent>false</model_dependent>
-      <default_value>1</default_value>
-    </argument>
-    <argument>
-      <name>cop_capacity_derate_5ton</name>
-      <display_name>5 Ton COP Capacity Derate</display_name>
-      <description>COP multiplier for 5 ton air-conditioners.</description>
-      <type>Double</type>
-      <required>true</required>
-      <model_dependent>false</model_dependent>
-      <default_value>1</default_value>
-    </argument>
-    <argument>
-      <name>heat_pump_capacity</name>
-      <display_name>Cooling/Heating Output Capacity</display_name>
+      <name>capacity</name>
+      <display_name>Cooling Output Capacity</display_name>
       <type>Choice</type>
       <required>true</required>
       <model_dependent>false</model_dependent>
@@ -350,144 +357,10 @@
         </choice>
       </choices>
     </argument>
-    <argument>
-      <name>supplemental_capacity</name>
-      <display_name>Supplemental Heating Output Capacity</display_name>
-      <type>Choice</type>
-      <required>true</required>
-      <model_dependent>false</model_dependent>
-      <default_value>autosize</default_value>
-      <choices>
-        <choice>
-          <value>autosize</value>
-          <display_name>autosize</display_name>
-        </choice>
-        <choice>
-          <value>5 kBtu/hr</value>
-          <display_name>5 kBtu/hr</display_name>
-        </choice>
-        <choice>
-          <value>10 kBtu/hr</value>
-          <display_name>10 kBtu/hr</display_name>
-        </choice>
-        <choice>
-          <value>15 kBtu/hr</value>
-          <display_name>15 kBtu/hr</display_name>
-        </choice>
-        <choice>
-          <value>20 kBtu/hr</value>
-          <display_name>20 kBtu/hr</display_name>
-        </choice>
-        <choice>
-          <value>25 kBtu/hr</value>
-          <display_name>25 kBtu/hr</display_name>
-        </choice>
-        <choice>
-          <value>30 kBtu/hr</value>
-          <display_name>30 kBtu/hr</display_name>
-        </choice>
-        <choice>
-          <value>35 kBtu/hr</value>
-          <display_name>35 kBtu/hr</display_name>
-        </choice>
-        <choice>
-          <value>40 kBtu/hr</value>
-          <display_name>40 kBtu/hr</display_name>
-        </choice>
-        <choice>
-          <value>45 kBtu/hr</value>
-          <display_name>45 kBtu/hr</display_name>
-        </choice>
-        <choice>
-          <value>50 kBtu/hr</value>
-          <display_name>50 kBtu/hr</display_name>
-        </choice>
-        <choice>
-          <value>55 kBtu/hr</value>
-          <display_name>55 kBtu/hr</display_name>
-        </choice>
-        <choice>
-          <value>60 kBtu/hr</value>
-          <display_name>60 kBtu/hr</display_name>
-        </choice>
-        <choice>
-          <value>65 kBtu/hr</value>
-          <display_name>65 kBtu/hr</display_name>
-        </choice>
-        <choice>
-          <value>70 kBtu/hr</value>
-          <display_name>70 kBtu/hr</display_name>
-        </choice>
-        <choice>
-          <value>75 kBtu/hr</value>
-          <display_name>75 kBtu/hr</display_name>
-        </choice>
-        <choice>
-          <value>80 kBtu/hr</value>
-          <display_name>80 kBtu/hr</display_name>
-        </choice>
-        <choice>
-          <value>85 kBtu/hr</value>
-          <display_name>85 kBtu/hr</display_name>
-        </choice>
-        <choice>
-          <value>90 kBtu/hr</value>
-          <display_name>90 kBtu/hr</display_name>
-        </choice>
-        <choice>
-          <value>95 kBtu/hr</value>
-          <display_name>95 kBtu/hr</display_name>
-        </choice>
-        <choice>
-          <value>100 kBtu/hr</value>
-          <display_name>100 kBtu/hr</display_name>
-        </choice>
-        <choice>
-          <value>105 kBtu/hr</value>
-          <display_name>105 kBtu/hr</display_name>
-        </choice>
-        <choice>
-          <value>110 kBtu/hr</value>
-          <display_name>110 kBtu/hr</display_name>
-        </choice>
-        <choice>
-          <value>115 kBtu/hr</value>
-          <display_name>115 kBtu/hr</display_name>
-        </choice>
-        <choice>
-          <value>120 kBtu/hr</value>
-          <display_name>120 kBtu/hr</display_name>
-        </choice>
-        <choice>
-          <value>125 kBtu/hr</value>
-          <display_name>125 kBtu/hr</display_name>
-        </choice>
-        <choice>
-          <value>130 kBtu/hr</value>
-          <display_name>130 kBtu/hr</display_name>
-        </choice>
-        <choice>
-          <value>135 kBtu/hr</value>
-          <display_name>135 kBtu/hr</display_name>
-        </choice>
-        <choice>
-          <value>140 kBtu/hr</value>
-          <display_name>140 kBtu/hr</display_name>
-        </choice>
-        <choice>
-          <value>145 kBtu/hr</value>
-          <display_name>145 kBtu/hr</display_name>
-        </choice>
-        <choice>
-          <value>150 kBtu/hr</value>
-          <display_name>150 kBtu/hr</display_name>
-        </choice>
-      </choices>
-    </argument>
   </arguments>
   <provenances/>
   <tags>
-    <tag>HVAC.Heating</tag>
+    <tag>HVAC.Cooling</tag>
   </tags>
   <attributes>
     <attribute>
@@ -496,9 +369,19 @@
       <datatype>string</datatype>
     </attribute>
     <attribute>
-      <name>Uses SketchUp API</name>
-      <value>false</value>
-      <datatype>boolean</datatype>
+      <name>Intended Software Tool</name>
+      <value>Apply Measure Now</value>
+      <datatype>string</datatype>
+    </attribute>
+    <attribute>
+      <name>Intended Software Tool</name>
+      <value>OpenStudio Application</value>
+      <datatype>string</datatype>
+    </attribute>
+    <attribute>
+      <name>Intended Software Tool</name>
+      <value>Parametric Analysis Tool</value>
+      <datatype>string</datatype>
     </attribute>
   </attributes>
   <files>
@@ -593,39 +476,28 @@
       <checksum>5DFCEEF4</checksum>
     </file>
     <file>
-      <filename>singlefamily_detached_fbsmt_room_air_conditioner.osm</filename>
-      <filetype>osm</filetype>
-      <usage_type>test</usage_type>
-      <checksum>38A2C794</checksum>
-    </file>
-    <file>
       <filename>singlefamily_detached_fbsmt_mshp.osm</filename>
       <filetype>osm</filetype>
       <usage_type>test</usage_type>
       <checksum>2350A601</checksum>
     </file>
     <file>
+      <filename>singlefamily_detached_fbsmt_room_air_conditioner.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>38A2C794</checksum>
+    </file>
+    <file>
+      <filename>constants.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>394EB92E</checksum>
+    </file>
+    <file>
       <filename>geometry.rb</filename>
       <filetype>rb</filetype>
       <usage_type>resource</usage_type>
       <checksum>9A86F3EB</checksum>
-    </file>
-    <file>
-      <filename>process_air_source_heat_pump_test.rb</filename>
-      <filetype>rb</filetype>
-      <usage_type>test</usage_type>
-      <checksum>DCF970A1</checksum>
-    </file>
-    <file>
-      <version>
-        <software_program>OpenStudio</software_program>
-        <identifier>1.11.5</identifier>
-        <min_compatible>1.13.1</min_compatible>
-      </version>
-      <filename>measure.rb</filename>
-      <filetype>rb</filetype>
-      <usage_type>script</usage_type>
-      <checksum>3F2AD687</checksum>
     </file>
     <file>
       <filename>hvac.rb</filename>
@@ -646,10 +518,21 @@
       <checksum>22C6561D</checksum>
     </file>
     <file>
-      <filename>constants.rb</filename>
+      <version>
+        <software_program>OpenStudio</software_program>
+        <identifier>1.13.2</identifier>
+        <min_compatible>1.13.2</min_compatible>
+      </version>
+      <filename>measure.rb</filename>
       <filetype>rb</filetype>
-      <usage_type>resource</usage_type>
-      <checksum>394EB92E</checksum>
+      <usage_type>script</usage_type>
+      <checksum>E9A02DB1</checksum>
+    </file>
+    <file>
+      <filename>process_variable_speed_central_air_conditioner_test.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>test</usage_type>
+      <checksum>B2AC5FBF</checksum>
     </file>
   </files>
 </measure>

@@ -8,22 +8,22 @@ require "#{File.dirname(__FILE__)}/resources/unit_conversions"
 require "#{File.dirname(__FILE__)}/resources/hvac"
 
 #start the measure
-class ProcessCentralAirConditioner < OpenStudio::Ruleset::ModelUserScript
+class ProcessSingleSpeedCentralAirConditioner < OpenStudio::Ruleset::ModelUserScript
 
   class Supply
     def initialize
     end
-    attr_accessor(:static, :cfm_ton, :HPCoolingOversizingFactor, :SpaceConditionedMult, :fan_power, :fan_power_rated, :eff, :min_flow_ratio, :FAN_EIR_FPLR_SPEC_coefficients, :max_temp, :Heat_Capacity, :compressor_speeds, :Zone_Water_Remove_Cap_Ft_DB_RH_Coefficients, :Zone_Energy_Factor_Ft_DB_RH_Coefficients, :Zone_DXDH_PLF_F_PLR_Coefficients, :Number_Speeds, :fanspeed_ratio, :CFM_TON_Rated, :COOL_CAP_FT_SPEC_coefficients, :COOL_EIR_FT_SPEC_coefficients, :COOL_CAP_FFLOW_SPEC_coefficients, :COOL_EIR_FFLOW_SPEC_coefficients, :CoolingEIR, :SHR_Rated, :COOL_CLOSS_FPLR_SPEC_coefficients, :Capacity_Ratio_Cooling, :CondenserType, :Crankcase, :Crankcase_MaxT, :EER_CapacityDerateFactor)
+    attr_accessor(:static, :cfm_ton, :HPCoolingOversizingFactor, :SpaceConditionedMult, :fan_power, :fan_power_rated, :eff, :min_flow_ratio, :FAN_EIR_FPLR_SPEC_coefficients, :max_temp, :Heat_Capacity, :Zone_Water_Remove_Cap_Ft_DB_RH_Coefficients, :Zone_Energy_Factor_Ft_DB_RH_Coefficients, :Zone_DXDH_PLF_F_PLR_Coefficients, :Number_Speeds, :fanspeed_ratio, :CFM_TON_Rated, :COOL_CAP_FT_SPEC_coefficients, :COOL_EIR_FT_SPEC_coefficients, :COOL_CAP_FFLOW_SPEC_coefficients, :COOL_EIR_FFLOW_SPEC_coefficients, :CoolingEIR, :SHR_Rated, :COOL_CLOSS_FPLR_SPEC_coefficients, :Capacity_Ratio_Cooling, :CondenserType, :Crankcase, :Crankcase_MaxT, :EER_CapacityDerateFactor)
   end
 
   #define the name that a user will see, this method may be deprecated as
   #the display name in PAT comes from the name field in measure.xml
   def name
-    return "Set Residential Central Air Conditioner"
+    return "Set Residential Single-Speed Central Air Conditioner"
   end
   
   def description
-    return "This measure removes any existing HVAC cooling components from the building and adds a central air conditioner along with an on/off supply fan to a unitary air loop. For multifamily buildings, the central air conditioner can be set for all units of the building."
+    return "This measure removes any existing HVAC cooling components from the building and adds a single-speed central air conditioner along with an on/off supply fan to a unitary air loop. For multifamily buildings, the single-speed central air conditioner can be set for all units of the building."
   end
   
   def modeler_description
@@ -41,34 +41,27 @@ class ProcessCentralAirConditioner < OpenStudio::Ruleset::ModelUserScript
     acCoolingInstalledSEER.setDescription("Seasonal Energy Efficiency Ratio (SEER) is a measure of equipment energy efficiency over the cooling season.")
     acCoolingInstalledSEER.setDefaultValue(13.0)
     args << acCoolingInstalledSEER
-
-    #make a double argument for central ac number of speeds
-    acNumberSpeeds = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("num_speeds", true)
-    acNumberSpeeds.setDisplayName("Number of Speeds")
-    acNumberSpeeds.setDescription("Number of speeds of the compressor.")
-    acNumberSpeeds.setDefaultValue(1.0)
-    args << acNumberSpeeds
     
     #make a double argument for central ac eer
-    acCoolingEER = OpenStudio::Ruleset::OSArgument::makeStringArgument("eer", true)
+    acCoolingEER = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("eer", true)
     acCoolingEER.setDisplayName("EER")
     acCoolingEER.setUnits("kBtu/kWh")
-    acCoolingEER.setDescription("EER (net) from the A test (95 ODB/80 EDB/67 EWB) for each of the compressor speeds.")
-    acCoolingEER.setDefaultValue("11.1")
+    acCoolingEER.setDescription("EER (net) from the A test (95 ODB/80 EDB/67 EWB).")
+    acCoolingEER.setDefaultValue(11.1)
     args << acCoolingEER
 
     #make a double argument for central ac rated shr
-    acSHRRated = OpenStudio::Ruleset::OSArgument::makeStringArgument("shr", true)
+    acSHRRated = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("shr", true)
     acSHRRated.setDisplayName("Rated SHR")
-    acSHRRated.setDescription("The sensible heat ratio (ratio of the sensible portion of the load to the total load) at the nominal rated capacity for each of the compressor speeds.")
-    acSHRRated.setDefaultValue("0.73")
+    acSHRRated.setDescription("The sensible heat ratio (ratio of the sensible portion of the load to the total load) at the nominal rated capacity.")
+    acSHRRated.setDefaultValue(0.73)
     args << acSHRRated 
     
     #make a double argument for central ac capacity ratio
-    acCapacityRatio = OpenStudio::Ruleset::OSArgument::makeStringArgument("capacity_ratio", true)
+    acCapacityRatio = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("capacity_ratio", true)
     acCapacityRatio.setDisplayName("Capacity Ratio")
-    acCapacityRatio.setDescription("Capacity divided by rated capacity for each of the compressor speeds.")
-    acCapacityRatio.setDefaultValue("1.0")
+    acCapacityRatio.setDescription("Capacity divided by rated capacity.")
+    acCapacityRatio.setDefaultValue(1.0)
     args << acCapacityRatio
     
     #make a double argument for central ac rated air flow rate
@@ -80,10 +73,10 @@ class ProcessCentralAirConditioner < OpenStudio::Ruleset::ModelUserScript
     args << acRatedAirFlowRate
     
     #make a double argument for central ac fan speed ratio
-    acFanspeedRatio = OpenStudio::Ruleset::OSArgument::makeStringArgument("fan_speed_ratio", true)
+    acFanspeedRatio = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("fan_speed_ratio", true)
     acFanspeedRatio.setDisplayName("Fan Speed Ratio")
-    acFanspeedRatio.setDescription("Fan speed divided by fan speed at the compressor speed for which Capacity Ratio = 1.0 for each of the compressor speeds.")
-    acFanspeedRatio.setDefaultValue("1.0")
+    acFanspeedRatio.setDescription("Fan speed divided by fan speed at the compressor speed for which Capacity Ratio = 1.0.")
+    acFanspeedRatio.setDefaultValue(1.0)
     args << acFanspeedRatio
     
     #make a double argument for central ac rated supply fan power
@@ -177,12 +170,11 @@ class ProcessCentralAirConditioner < OpenStudio::Ruleset::ModelUserScript
     end
 	  
     acCoolingInstalledSEER = runner.getDoubleArgumentValue("seer",user_arguments)
-    acNumberSpeeds = runner.getDoubleArgumentValue("num_speeds",user_arguments)
-    acCoolingEER = runner.getStringArgumentValue("eer",user_arguments).split(",").map {|i| i.to_f}
-    acSHRRated = runner.getStringArgumentValue("shr",user_arguments).split(",").map {|i| i.to_f}
-    acCapacityRatio = runner.getStringArgumentValue("capacity_ratio",user_arguments).split(",").map {|i| i.to_f}
+    acCoolingEER = [runner.getDoubleArgumentValue("eer",user_arguments)]
+    acSHRRated = [runner.getDoubleArgumentValue("shr",user_arguments)]
+    acCapacityRatio = [runner.getDoubleArgumentValue("capacity_ratio",user_arguments)]
     acRatedAirFlowRate = runner.getDoubleArgumentValue("airflow_rate",user_arguments)
-    acFanspeedRatio = runner.getStringArgumentValue("fan_speed_ratio",user_arguments).split(",").map {|i| i.to_f}
+    acFanspeedRatio = [runner.getDoubleArgumentValue("fan_speed_ratio",user_arguments)]
     acSupplyFanPowerRated = runner.getDoubleArgumentValue("fan_power_rated",user_arguments)
     acSupplyFanPowerInstalled = runner.getDoubleArgumentValue("fan_power_installed",user_arguments)
     acCrankcase = runner.getDoubleArgumentValue("crankcase_capacity",user_arguments)
@@ -196,17 +188,7 @@ class ProcessCentralAirConditioner < OpenStudio::Ruleset::ModelUserScript
     acOutputCapacity = runner.getStringArgumentValue("capacity",user_arguments)
     unless acOutputCapacity == Constants.SizingAuto
       acOutputCapacity = OpenStudio::convert(acOutputCapacity.split(" ")[0].to_f,"ton","Btu/h").get
-    end
-
-    # error checking
-    unless [1, 2, 4].include? acNumberSpeeds
-      runner.registerError("Invalid number of compressor speeds entered.")
-      return false
-    end
-    unless ( acNumberSpeeds == acCoolingEER.length and acNumberSpeeds == acSHRRated.length and acNumberSpeeds == acCapacityRatio.length and acNumberSpeeds == acFanspeedRatio.length )
-      runner.registerError("Entered wrong length for EER, Rated SHR, Capacity Ratio, or Fan Speed Ratio given the Number of Speeds.")
-      return false
-    end   
+    end 
     
     # Create the material class instances
     supply = Supply.new
@@ -222,18 +204,9 @@ class ProcessCentralAirConditioner < OpenStudio::Ruleset::ModelUserScript
     supply.SpaceConditionedMult = 1 # Default used for central equipment    
         
     # Cooling Coil
-    supply = HVAC.get_cooling_coefficients(runner, acNumberSpeeds, false, supply)
+    supply = HVAC.get_cooling_coefficients(runner, 1, false, supply)
     supply.CFM_TON_Rated = HVAC.calc_cfm_ton_rated(acRatedAirFlowRate, acFanspeedRatio, acCapacityRatio)
-    supply = HVAC._processAirSystemCoolingCoil(runner, acNumberSpeeds, acCoolingEER, acCoolingInstalledSEER, acSupplyFanPowerInstalled, acSupplyFanPowerRated, acSHRRated, acCapacityRatio, acFanspeedRatio, acCrankcase, acCrankcaseMaxT, acEERCapacityDerateFactor, supply)
-        
-    # Determine if the compressor is multi-speed (in our case 2 speed).
-    # If the minimum flow ratio is less than 1, then the fan and
-    # compressors can operate at lower speeds.
-    if supply.min_flow_ratio == 1.0
-      supply.compressor_speeds = 1.0
-    else
-      supply.compressor_speeds = supply.Number_Speeds
-    end
+    supply = HVAC._processAirSystemCoolingCoil(runner, 1, acCoolingEER, acCoolingInstalledSEER, acSupplyFanPowerInstalled, acSupplyFanPowerRated, acSHRRated, acCapacityRatio, acFanspeedRatio, acCrankcase, acCrankcaseMaxT, acEERCapacityDerateFactor, supply)
     
     # Get building units
     units = Geometry.get_building_units(model, runner)
@@ -257,45 +230,25 @@ class ProcessCentralAirConditioner < OpenStudio::Ruleset::ModelUserScript
 
         # _processSystemCoolingCoil
         
-        if supply.compressor_speeds == 1.0
-
-          clg_coil = OpenStudio::Model::CoilCoolingDXSingleSpeed.new(model, model.alwaysOnDiscreteSchedule, clg_coil_stage_data[0].totalCoolingCapacityFunctionofTemperatureCurve, clg_coil_stage_data[0].totalCoolingCapacityFunctionofFlowFractionCurve, clg_coil_stage_data[0].energyInputRatioFunctionofTemperatureCurve, clg_coil_stage_data[0].energyInputRatioFunctionofFlowFractionCurve, clg_coil_stage_data[0].partLoadFractionCorrelationCurve)
-          clg_coil_stage_data[0].remove
-          clg_coil.setName("DX Cooling Coil_#{unit_num}")
-          if acOutputCapacity != Constants.SizingAuto
-            clg_coil.setRatedTotalCoolingCapacity(OpenStudio::convert(acOutputCapacity,"Btu/h","W").get)
-            clg_coil.setRatedSensibleHeatRatio(supply.SHR_Rated[0])
-            clg_coil.setRatedAirFlowRate(supply.CFM_TON_Rated[0] * acOutputCapacity * OpenStudio::convert(1.0,"Btu/h","ton").get * OpenStudio::convert(1.0,"cfm","m^3/s").get)
-          end
-          clg_coil.setRatedCOP(OpenStudio::OptionalDouble.new(1.0 / supply.CoolingEIR[0]))
-          clg_coil.setRatedEvaporatorFanPowerPerVolumeFlowRate(OpenStudio::OptionalDouble.new(supply.fan_power_rated / OpenStudio::convert(1.0,"cfm","m^3/s").get))
-
-          clg_coil.setNominalTimeForCondensateRemovalToBegin(OpenStudio::OptionalDouble.new(1000.0))
-          clg_coil.setRatioOfInitialMoistureEvaporationRateAndSteadyStateLatentCapacity(OpenStudio::OptionalDouble.new(1.5))
-          clg_coil.setMaximumCyclingRate(OpenStudio::OptionalDouble.new(3.0))
-          clg_coil.setLatentCapacityTimeConstant(OpenStudio::OptionalDouble.new(45.0))
-
-          clg_coil.setCondenserType("AirCooled")
-          clg_coil.setCrankcaseHeaterCapacity(OpenStudio::OptionalDouble.new(OpenStudio::convert(supply.Crankcase,"kW","W").get))
-          clg_coil.setMaximumOutdoorDryBulbTemperatureForCrankcaseHeaterOperation(OpenStudio::OptionalDouble.new(OpenStudio::convert(supply.Crankcase_MaxT,"F","C").get))
-
-        else
-
-          clg_coil = OpenStudio::Model::CoilCoolingDXMultiSpeed.new(model)
-          clg_coil.setName("DX Cooling Coil_#{unit_num}")
-          clg_coil.setCondenserType("AirCooled")
-          clg_coil.setApplyPartLoadFractiontoSpeedsGreaterthan1(false)
-          clg_coil.setApplyLatentDegradationtoSpeedsGreaterthan1(false)
-          clg_coil.setCrankcaseHeaterCapacity(OpenStudio::convert(supply.Crankcase,"kW","W").get)
-          clg_coil.setMaximumOutdoorDryBulbTemperatureforCrankcaseHeaterOperation(OpenStudio::convert(supply.Crankcase_MaxT,"F","C").get)
-          
-          clg_coil.setFuelType("Electricity")
-               
-          clg_coil_stage_data.each do |i|
-              clg_coil.addStage(i)
-          end  
-
+        clg_coil = OpenStudio::Model::CoilCoolingDXSingleSpeed.new(model, model.alwaysOnDiscreteSchedule, clg_coil_stage_data[0].totalCoolingCapacityFunctionofTemperatureCurve, clg_coil_stage_data[0].totalCoolingCapacityFunctionofFlowFractionCurve, clg_coil_stage_data[0].energyInputRatioFunctionofTemperatureCurve, clg_coil_stage_data[0].energyInputRatioFunctionofFlowFractionCurve, clg_coil_stage_data[0].partLoadFractionCorrelationCurve)
+        clg_coil_stage_data[0].remove
+        clg_coil.setName("DX Cooling Coil_#{unit_num}")
+        if acOutputCapacity != Constants.SizingAuto
+          clg_coil.setRatedTotalCoolingCapacity(OpenStudio::convert(acOutputCapacity,"Btu/h","W").get)
+          clg_coil.setRatedSensibleHeatRatio(supply.SHR_Rated[0])
+          clg_coil.setRatedAirFlowRate(supply.CFM_TON_Rated[0] * acOutputCapacity * OpenStudio::convert(1.0,"Btu/h","ton").get * OpenStudio::convert(1.0,"cfm","m^3/s").get)
         end
+        clg_coil.setRatedCOP(OpenStudio::OptionalDouble.new(1.0 / supply.CoolingEIR[0]))
+        clg_coil.setRatedEvaporatorFanPowerPerVolumeFlowRate(OpenStudio::OptionalDouble.new(supply.fan_power_rated / OpenStudio::convert(1.0,"cfm","m^3/s").get))
+
+        clg_coil.setNominalTimeForCondensateRemovalToBegin(OpenStudio::OptionalDouble.new(1000.0))
+        clg_coil.setRatioOfInitialMoistureEvaporationRateAndSteadyStateLatentCapacity(OpenStudio::OptionalDouble.new(1.5))
+        clg_coil.setMaximumCyclingRate(OpenStudio::OptionalDouble.new(3.0))
+        clg_coil.setLatentCapacityTimeConstant(OpenStudio::OptionalDouble.new(45.0))
+
+        clg_coil.setCondenserType("AirCooled")
+        clg_coil.setCrankcaseHeaterCapacity(OpenStudio::OptionalDouble.new(OpenStudio::convert(supply.Crankcase,"kW","W").get))
+        clg_coil.setMaximumOutdoorDryBulbTemperatureForCrankcaseHeaterOperation(OpenStudio::OptionalDouble.new(OpenStudio::convert(supply.Crankcase_MaxT,"F","C").get))
           
         # _processSystemFan
         
@@ -370,16 +323,16 @@ class ProcessCentralAirConditioner < OpenStudio::Ruleset::ModelUserScript
 
         slave_zones.each do |slave_zone|
 
-            # Remove existing equipment
-            HVAC.remove_existing_hvac_equipment(model, runner, "Central Air Conditioner", slave_zone)
-        
-            diffuser_fbsmt = OpenStudio::Model::AirTerminalSingleDuctUncontrolled.new(model, model.alwaysOnDiscreteSchedule)
-            diffuser_fbsmt.setName("#{slave_zone.name} direct air_#{unit_num}")
-            # diffuser_fbsmt.setMaximumAirFlowRate(OpenStudio::convert(supply.Living_AirFlowRate,"cfm","m^3/s").get)
-            air_loop.addBranchForZone(slave_zone, diffuser_fbsmt.to_StraightComponent)
+          # Remove existing equipment
+          HVAC.remove_existing_hvac_equipment(model, runner, "Central Air Conditioner", slave_zone)
+      
+          diffuser_fbsmt = OpenStudio::Model::AirTerminalSingleDuctUncontrolled.new(model, model.alwaysOnDiscreteSchedule)
+          diffuser_fbsmt.setName("#{slave_zone.name} direct air_#{unit_num}")
+          # diffuser_fbsmt.setMaximumAirFlowRate(OpenStudio::convert(supply.Living_AirFlowRate,"cfm","m^3/s").get)
+          air_loop.addBranchForZone(slave_zone, diffuser_fbsmt.to_StraightComponent)
 
-            air_loop.addBranchForZone(slave_zone)
-            runner.registerInfo("Added air loop '#{air_loop.name}' to thermal zone '#{slave_zone.name}' of #{unit.name.to_s}")
+          air_loop.addBranchForZone(slave_zone)
+          runner.registerInfo("Added air loop '#{air_loop.name}' to thermal zone '#{slave_zone.name}' of #{unit.name.to_s}")
 
         end    
       
@@ -394,4 +347,4 @@ class ProcessCentralAirConditioner < OpenStudio::Ruleset::ModelUserScript
 end #end the measure
 
 #this allows the measure to be use by the application
-ProcessCentralAirConditioner.new.registerWithApplication
+ProcessSingleSpeedCentralAirConditioner.new.registerWithApplication

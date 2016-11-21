@@ -313,19 +313,14 @@ class Waterheater
         
         #Set fraction of heat loss from tank to ambient (vs out flue)
         #Based on lab testing done by LBNL
-        if tanktype == Constants.WaterHeaterTypeTankless
-            skinlossfrac = 1.0
-        else
-            if fuel  == Constants.FuelTypeGas or fuel == Constants.FuelTypePropane
-                if oncycle_p == 0
-                    skinlossfrac = 0.64
-                elsif energy_factor < 0.8
-                    skinlossfrac = 0.91
-                else
-                    skinlossfrac = 0.96
-                end
+        skinlossfrac = 1.0
+        if fuel != Constants.FuelTypeElectric and tanktype == Constants.WaterHeaterTypeTank
+            if oncycle_p == 0
+                skinlossfrac = 0.64
+            elsif energy_factor < 0.8
+                skinlossfrac = 0.91
             else
-                skinlossfrac = 1.0
+                skinlossfrac = 0.96
             end
         end
         new_heater.setOffCycleLossFractiontoThermalZone(skinlossfrac)
