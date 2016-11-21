@@ -73,7 +73,7 @@ class Create_DFs():
         df = df[['Option=<1950', 'Option=1950s', 'Option=1960s', 'Option=1970s', 'Option=1980s', 'Option=1990s', 'Option=2000s', 'Count', 'Weight']]
         return df
     
-    def heating_fuel(self):
+    def heating_fuel(self, smooth=False):
         df = util.create_dataframe(self.session, rdb)
         df = util.assign_climate_zones(df)
         df = util.assign_state(df)
@@ -103,7 +103,19 @@ class Create_DFs():
         df = df[['Option=Electricity', 'Option=Natural Gas', 'Option=Fuel Oil', 'Option=Propane/LPG', 'Option=Wood', 'Count', 'Weight']]
         df = df.reset_index()
         df['Dependency=Vintage'] = pd.Categorical(df['Dependency=Vintage'], ['<1950', '1950s', '1960s', '1970s', '1980s', '1990s', '2000s'])        
-        df = df.sort_values(by=['Dependency=Location Heating Region', 'Dependency=Vintage']).set_index(['Dependency=Location Heating Region', 'Dependency=Vintage'])        
+        df = df.sort_values(by=['Dependency=Location Heating Region', 'Dependency=Vintage']).set_index(['Dependency=Location Heating Region', 'Dependency=Vintage'])
+        if smooth:
+            w1 = 'Dependency=Location Heating Region'
+            w2 = 'Dependency=Vintage'
+            df = df.reset_index()
+            for col in df.columns:
+                if not 'Option' in col:
+                  continue
+                df[col] = df[col] * df['Weight']
+                p1 = df[[w1, col]].groupby([w1]).sum()
+                p2 = df[[w2, col]].groupby([w2]).sum()
+                df[col] = df.apply(lambda row: smoothing_calculation(row, col, p1, p2), axis=1)
+            df = df.set_index(['Dependency=Location Heating Region', 'Dependency=Vintage'])
         return df
         
     def insulation_unfinished_attic(self):
@@ -881,7 +893,7 @@ class Create_DFs():
         df = util.assign_heating_location(df)
         df = util.assign_cooling_location(df)
         df = util.assign_vintage(df)
-        df = util.assign_heating_fuel(df)
+        df = util.assign_heating_fheating_fuel(df)
         df = util.assign_hvac_system_combined(df)
         df = util.assign_hvac_system_is_combined(df, 'htg_and_clg')
         df, cols = util.categories_to_columns(df, 'htg_and_clg')
@@ -1314,6 +1326,9 @@ def add_option_prefix(df):
                 df.rename(columns={col: 'Option={}'.format(col)}, inplace=True)
     return df
 
+def smoothing_calculation(row, col, p1, p2):
+    return ( p1.loc[row[p1.index.name], col] / p1[col].sum() ) * p2.loc[row[p2.index.name], col] / row['Weight']
+    
 if __name__ == '__main__':
     
     datafiles_dir = '../../resources/inputs/pnw'
@@ -1325,7 +1340,10 @@ if __name__ == '__main__':
     for category in ['Location Heating Region', 'Location Cooling Region', 'Vintage', 'Heating Fuel', 'Geometry Foundation Type', 'Geometry House Size', 'Geometry Stories', 'Insulation Unfinished Attic', 'Insulation Wall', 'Heating Setpoint', 'Cooling Setpoint', 'Insulation Slab', 'Insulation Crawlspace', 'Insulation Unfinished Basement', 'Insulation Finished Basement', 'Insulation Interzonal Floor', 'Windows', 'Infiltration', 'HVAC System Combined', 'HVAC System Heating', 'HVAC System Cooling', 'HVAC System Is Combined', 'Ducts', 'Water Heater', 'Lighting', 'Cooking Range', 'Clothes Dryer']:
         print category
         method = getattr(dfs, category.lower().replace(' ', '_'))
-        df = method()
+        if not category in ['Heating Fuel']:
+            df = method()
+        else:
+            df = method(True)
         df.to_csv(os.path.join(datafiles_dir, '{}.tsv'.format(category)), sep='\t')
 
         for col in ['Count', 'Weight']:
