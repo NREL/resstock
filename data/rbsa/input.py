@@ -893,7 +893,7 @@ class Create_DFs():
         df = util.assign_heating_location(df)
         df = util.assign_cooling_location(df)
         df = util.assign_vintage(df)
-        df = util.assign_heating_fheating_fuel(df)
+        df = util.assign_heating_fuel(df)
         df = util.assign_hvac_system_combined(df)
         df = util.assign_hvac_system_is_combined(df, 'htg_and_clg')
         df, cols = util.categories_to_columns(df, 'htg_and_clg')
