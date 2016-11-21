@@ -424,16 +424,6 @@ class ProcessAirflowOriginalModel < OpenStudio::Ruleset::WorkspaceUserScript
     has_fireplace_chimney.setDefaultValue(true)
     args << has_fireplace_chimney    
 
-    # Age of Home
-
-    #make a double argument for existing or new construction
-    userdefined_homeage = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("userdefinedhomeage", true)
-    userdefined_homeage.setDisplayName("Age of Home")
-    userdefined_homeage.setUnits("yrs")
-    userdefined_homeage.setDescription("Age of home [Enter 0 for New Construction].")
-    userdefined_homeage.setDefaultValue(0)
-    args << userdefined_homeage
-
     # Terrain
 
     #make a choice arguments for terrain type
@@ -444,7 +434,7 @@ class ProcessAirflowOriginalModel < OpenStudio::Ruleset::WorkspaceUserScript
     terrain_types_names << Constants.TerrainSuburban
     terrain_types_names << Constants.TerrainCity
     selected_terraintype = OpenStudio::Ruleset::OSArgument::makeChoiceArgument("selectedterraintype", terrain_types_names, true)
-    selected_terraintype.setDisplayName("Site Terrain")
+    selected_terraintype.setDisplayName("Air Leakage: Site Terrain")
     selected_terraintype.setDescription("The terrain of the site.")
     selected_terraintype.setDefaultValue("suburban")
     args << selected_terraintype
@@ -461,13 +451,6 @@ class ProcessAirflowOriginalModel < OpenStudio::Ruleset::WorkspaceUserScript
     selected_venttype.setDisplayName("Mechanical Ventilation: Ventilation Type")
     selected_venttype.setDefaultValue("exhaust")
     args << selected_venttype
-
-    #make a bool argument for infiltration credit
-    selected_infilcredit = OpenStudio::Ruleset::OSArgument::makeBoolArgument("selectedinfilcredit",false)
-    selected_infilcredit.setDisplayName("Mechanical Ventilation: Allow Infiltration Credit")
-    selected_infilcredit.setDescription("Defines whether the infiltration credit allowed per the ASHRAE 62.2 Standard will be included in the calculation of the mechanical ventilation rate. If True, the infiltration credit will apply 1) to new/existing single-family detached homes for 2013 ASHRAE 62.2, or 2) to existing single-family detached or multi-family homes for 2010 ASHRAE 62.2.")
-    selected_infilcredit.setDefaultValue(true)
-    args << selected_infilcredit
 
     #make a double argument for total efficiency
     userdefined_totaleff = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("userdefinedtotaleff",false)
@@ -519,6 +502,20 @@ class ProcessAirflowOriginalModel < OpenStudio::Ruleset::WorkspaceUserScript
     userdefined_dryerexhaust.setDefaultValue(100.0)
     args << userdefined_dryerexhaust
 
+    #make a bool argument for infiltration credit
+    selected_infilcredit = OpenStudio::Ruleset::OSArgument::makeBoolArgument("selectedinfilcredit",false)
+    selected_infilcredit.setDisplayName("Mechanical Ventilation: Allow Infiltration Credit")
+    selected_infilcredit.setDescription("Defines whether the infiltration credit allowed per the ASHRAE 62.2 Standard will be included in the calculation of the mechanical ventilation rate. If True, the infiltration credit will apply 1) to new/existing single-family detached homes for 2013 ASHRAE 62.2, or 2) to existing single-family detached or multi-family homes for 2010 ASHRAE 62.2.")
+    selected_infilcredit.setDefaultValue(true)
+    args << selected_infilcredit
+
+    #make a boolean argument for if an existing home
+    userdefined_existinghome = OpenStudio::Ruleset::OSArgument::makeBoolArgument("userdefinedexistinghome", true)
+    userdefined_existinghome.setDisplayName("Mechanical Ventilation: Is Existing Home")
+    userdefined_existinghome.setDescription("Specifies whether the building is an existing home or new construction.")
+    userdefined_existinghome.setDefaultValue(false)
+    args << userdefined_existinghome
+    
     # Natural Ventilation
 
     #make a double argument for heating season setpoint offset
@@ -768,6 +765,7 @@ class ProcessAirflowOriginalModel < OpenStudio::Ruleset::WorkspaceUserScript
     has_water_heater_flue = runner.getBoolArgumentValue("has_water_heater_flue",user_arguments)
     has_fireplace_chimney = runner.getBoolArgumentValue("has_fireplace_chimney",user_arguments)
     terrainType = runner.getStringArgumentValue("selectedterraintype",user_arguments)
+    
     mechVentType = runner.getStringArgumentValue("selectedventtype",user_arguments)
     mechVentInfilCredit = runner.getBoolArgumentValue("selectedinfilcredit",user_arguments)
     mechVentTotalEfficiency = runner.getDoubleArgumentValue("userdefinedtotaleff",user_arguments)
@@ -781,9 +779,8 @@ class ProcessAirflowOriginalModel < OpenStudio::Ruleset::WorkspaceUserScript
       mechVentTotalEfficiency = 0.0
       mechVentSensibleEfficiency = 0.0
     end
+    mechVentIsExistingHome = runner.getBoolArgumentValue("userdefinedexistinghome",user_arguments)
     dryerExhaust = runner.getDoubleArgumentValue("userdefineddryerexhaust",user_arguments)
-
-    ageOfHome = runner.getDoubleArgumentValue("userdefinedhomeage",user_arguments)
 
     natVentHtgSsnSetpointOffset = runner.getDoubleArgumentValue("userdefinedhtgoffset",user_arguments)
     natVentClgSsnSetpointOffset = runner.getDoubleArgumentValue("userdefinedclgoffset",user_arguments)
@@ -1100,7 +1097,7 @@ class ProcessAirflowOriginalModel < OpenStudio::Ruleset::WorkspaceUserScript
       
       wind_speed = _processWindSpeedCorrectionForUnit(wind_speed, si, neighbors_min_nonzero_offset, geometry)
       si, living_space, fb, garage, ub, cs, ua, wind_speed = _processInfiltrationForUnit(si, living_space, finished_basement, garage, unfinished_basement, crawlspace, unfinished_attic, fbasement_thermal_zone, garage_thermal_zone, ufbasement_thermal_zone, crawl_thermal_zone, ufattic_thermal_zone, wind_speed, has_hvac_flue, has_water_heater_flue, has_fireplace_chimney, geometry, unit_spaces, unit)
-      vent, schedules = _processMechanicalVentilation(unit_num, si, vent, ageOfHome, unit_dryer_exhaust, geometry, unit, living_space, schedules)
+      vent, schedules = _processMechanicalVentilation(unit_num, si, vent, mechVentIsExistingHome, unit_dryer_exhaust, geometry, unit, living_space, schedules)
       window_area = Geometry.get_window_area_from_spaces(unit_spaces, false)
       nv, schedules = _processNaturalVentilation(workspace, unit_num, nv, living_space, wind_speed, si, schedules, geometry, coolingSetpointWeekday, coolingSetpointWeekend, heatingSetpointWeekday, heatingSetpointWeekend, window_area)
 
@@ -3061,7 +3058,7 @@ class ProcessAirflowOriginalModel < OpenStudio::Ruleset::WorkspaceUserScript
     
   end
   
-  def _processMechanicalVentilation(unit_num, infil, vent, ageOfHome, dryerExhaust, geometry, unit, living_space, schedules)
+  def _processMechanicalVentilation(unit_num, infil, vent, mechVentIsExistingHome, dryerExhaust, geometry, unit, living_space, schedules)
     # Mechanical Ventilation
 
     # Get ASHRAE 62.2 required ventilation rate (excluding infiltration credit)
@@ -3070,11 +3067,11 @@ class ProcessAirflowOriginalModel < OpenStudio::Ruleset::WorkspaceUserScript
     # Determine mechanical ventilation infiltration credit (per ASHRAE 62.2)
     infil.rate_credit = 0 # default to no credit
     if vent.MechVentInfilCredit
-        if vent.MechVentASHRAEStandard == '2010' and ageOfHome > 0
+        if vent.MechVentASHRAEStandard == '2010' and mechVentIsExistingHome
             # ASHRAE Standard 62.2 2010
             # Only applies to existing buildings
             # 2 cfm per 100ft^2 of occupiable floor area
-            infil.default_rate = 2.0 * geometry.finished_floor_area / 100.0 # cfm
+            infil.default_rate = 2.0 * unit.finished_floor_area / 100.0 # cfm
             # Half the excess infiltration rate above the default rate is credited toward mech vent:
             infil.rate_credit = [(living_space.inf_flow - infil.default_rate) / 2.0, 0].max          
         elsif vent.MechVentASHRAEStandard == '2013' and geometry.num_units == 1

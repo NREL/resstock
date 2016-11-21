@@ -2,8 +2,8 @@
   <schema_version>3.0</schema_version>
   <name>process_airflow_original_model</name>
   <uid>5a7ae205-bdc2-4daf-b29e-b6f0a59366a6</uid>
-  <version_id>47bbe8b5-db19-4d1f-82d0-eb31f60e9d31</version_id>
-  <version_modified>20161118T210305Z</version_modified>
+  <version_id>0de98fe9-eb1d-4172-bbe8-c3b8b300bb96</version_id>
+  <version_modified>20161121T214833Z</version_modified>
   <xml_checksum>2AC0F979</xml_checksum>
   <class_name>ProcessAirflowOriginalModel</class_name>
   <display_name>Set Residential Airflow - Original Model</display_name>
@@ -136,18 +136,8 @@
       </choices>
     </argument>
     <argument>
-      <name>userdefinedhomeage</name>
-      <display_name>Age of Home</display_name>
-      <description>Age of home [Enter 0 for New Construction].</description>
-      <type>Double</type>
-      <units>yrs</units>
-      <required>true</required>
-      <model_dependent>false</model_dependent>
-      <default_value>0</default_value>
-    </argument>
-    <argument>
       <name>selectedterraintype</name>
-      <display_name>Site Terrain</display_name>
+      <display_name>Air Leakage: Site Terrain</display_name>
       <description>The terrain of the site.</description>
       <type>Choice</type>
       <required>true</required>
@@ -199,25 +189,6 @@
         <choice>
           <value>balanced</value>
           <display_name>balanced</display_name>
-        </choice>
-      </choices>
-    </argument>
-    <argument>
-      <name>selectedinfilcredit</name>
-      <display_name>Mechanical Ventilation: Allow Infiltration Credit</display_name>
-      <description>Defines whether the infiltration credit allowed per the ASHRAE 62.2 Standard will be included in the calculation of the mechanical ventilation rate. If True, the infiltration credit will apply 1) to new/existing single-family detached homes for 2013 ASHRAE 62.2, or 2) to existing single-family detached or multi-family homes for 2010 ASHRAE 62.2.</description>
-      <type>Boolean</type>
-      <required>false</required>
-      <model_dependent>false</model_dependent>
-      <default_value>true</default_value>
-      <choices>
-        <choice>
-          <value>true</value>
-          <display_name>true</display_name>
-        </choice>
-        <choice>
-          <value>false</value>
-          <display_name>false</display_name>
         </choice>
       </choices>
     </argument>
@@ -287,6 +258,44 @@
       <required>false</required>
       <model_dependent>false</model_dependent>
       <default_value>100</default_value>
+    </argument>
+    <argument>
+      <name>selectedinfilcredit</name>
+      <display_name>Mechanical Ventilation: Allow Infiltration Credit</display_name>
+      <description>Defines whether the infiltration credit allowed per the ASHRAE 62.2 Standard will be included in the calculation of the mechanical ventilation rate. If True, the infiltration credit will apply 1) to new/existing single-family detached homes for 2013 ASHRAE 62.2, or 2) to existing single-family detached or multi-family homes for 2010 ASHRAE 62.2.</description>
+      <type>Boolean</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+      <default_value>true</default_value>
+      <choices>
+        <choice>
+          <value>true</value>
+          <display_name>true</display_name>
+        </choice>
+        <choice>
+          <value>false</value>
+          <display_name>false</display_name>
+        </choice>
+      </choices>
+    </argument>
+    <argument>
+      <name>userdefinedexistinghome</name>
+      <display_name>Mechanical Ventilation: Is Existing Home</display_name>
+      <description>Specifies whether the building is an existing home or new construction.</description>
+      <type>Boolean</type>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>false</default_value>
+      <choices>
+        <choice>
+          <value>true</value>
+          <display_name>true</display_name>
+        </choice>
+        <choice>
+          <value>false</value>
+          <display_name>false</display_name>
+        </choice>
+      </choices>
     </argument>
     <argument>
       <name>userdefinedhtgoffset</name>
@@ -699,23 +708,6 @@
       <checksum>22C6561D</checksum>
     </file>
     <file>
-      <filename>airflow_test.rb</filename>
-      <filetype>rb</filetype>
-      <usage_type>test</usage_type>
-      <checksum>39102A6F</checksum>
-    </file>
-    <file>
-      <version>
-        <software_program>OpenStudio</software_program>
-        <identifier>1.4.0</identifier>
-        <min_compatible>1.13.1</min_compatible>
-      </version>
-      <filename>measure.rb</filename>
-      <filetype>rb</filetype>
-      <usage_type>script</usage_type>
-      <checksum>F00ED98C</checksum>
-    </file>
-    <file>
       <filename>constants.rb</filename>
       <filetype>rb</filetype>
       <usage_type>resource</usage_type>
@@ -726,6 +718,23 @@
       <filetype>csv</filetype>
       <usage_type>resource</usage_type>
       <checksum>308F75BA</checksum>
+    </file>
+    <file>
+      <filename>airflow_test.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>test</usage_type>
+      <checksum>5529915B</checksum>
+    </file>
+    <file>
+      <version>
+        <software_program>OpenStudio</software_program>
+        <identifier>1.4.0</identifier>
+        <min_compatible>1.13.1</min_compatible>
+      </version>
+      <filename>measure.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>script</usage_type>
+      <checksum>72E5F397</checksum>
     </file>
   </files>
 </measure>

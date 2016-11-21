@@ -210,7 +210,7 @@ class ResidentialAirflow < OpenStudio::Ruleset::ModelUserScript
   class Unit
     def initialize
     end    
-    attr_accessor(:unit_num, :num_bedrooms, :num_bathrooms, :age_of_home, :above_grade_exterior_wall_area, :above_grade_finished_floor_area, :finished_floor_area, :dryer_exhaust, :window_area, :living_zone, :living, :finished_basement_zone, :finished_basement)
+    attr_accessor(:unit_num, :num_bedrooms, :num_bathrooms, :is_existing_home, :above_grade_exterior_wall_area, :above_grade_finished_floor_area, :finished_floor_area, :dryer_exhaust, :window_area, :living_zone, :living, :finished_basement_zone, :finished_basement)
   end  
 
   class NaturalVentilation
@@ -380,14 +380,6 @@ class ResidentialAirflow < OpenStudio::Ruleset::ModelUserScript
     has_fireplace_chimney.setDefaultValue(true)
     args << has_fireplace_chimney    
 
-    #make a double argument for existing or new construction
-    age_of_home = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("age_of_home", true)
-    age_of_home.setDisplayName("Age of Home")
-    age_of_home.setUnits("yrs")
-    age_of_home.setDescription("Age of home [Enter 0 for New Construction].")
-    age_of_home.setDefaultValue(0)
-    args << age_of_home
-
     #make a choice arguments for terrain type
     terrain_types_names = OpenStudio::StringVector.new
     terrain_types_names << Constants.TerrainOcean
@@ -396,7 +388,7 @@ class ResidentialAirflow < OpenStudio::Ruleset::ModelUserScript
     terrain_types_names << Constants.TerrainSuburban
     terrain_types_names << Constants.TerrainCity
     terrain = OpenStudio::Ruleset::OSArgument::makeChoiceArgument("terrain", terrain_types_names, true)
-    terrain.setDisplayName("Site Terrain")
+    terrain.setDisplayName("Air Leakage: Site Terrain")
     terrain.setDescription("The terrain of the site.")
     terrain.setDefaultValue(Constants.TerrainSuburban)
     args << terrain
@@ -411,13 +403,6 @@ class ResidentialAirflow < OpenStudio::Ruleset::ModelUserScript
     mech_vent_type.setDisplayName("Mechanical Ventilation: Ventilation Type")
     mech_vent_type.setDefaultValue(Constants.VentTypeExhaust)
     args << mech_vent_type
-
-    #make a bool argument for infiltration credit
-    mech_vent_infil_credit = OpenStudio::Ruleset::OSArgument::makeBoolArgument("mech_vent_infil_credit",false)
-    mech_vent_infil_credit.setDisplayName("Mechanical Ventilation: Allow Infiltration Credit")
-    mech_vent_infil_credit.setDescription("Defines whether the infiltration credit allowed per the ASHRAE 62.2 Standard will be included in the calculation of the mechanical ventilation rate. If True, the infiltration credit will apply 1) to new/existing single-family detached homes for 2013 ASHRAE 62.2, or 2) to existing single-family detached or multi-family homes for 2010 ASHRAE 62.2.")
-    mech_vent_infil_credit.setDefaultValue(true)
-    args << mech_vent_infil_credit
 
     #make a double argument for total efficiency
     mech_vent_total_efficiency = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("mech_vent_total_efficiency",false)
@@ -461,6 +446,20 @@ class ResidentialAirflow < OpenStudio::Ruleset::ModelUserScript
     mech_vent_ashrae_std.setDefaultValue("2010")
     args << mech_vent_ashrae_std	
 
+    #make a bool argument for infiltration credit
+    mech_vent_infil_credit = OpenStudio::Ruleset::OSArgument::makeBoolArgument("mech_vent_infil_credit",false)
+    mech_vent_infil_credit.setDisplayName("Mechanical Ventilation: Allow Infiltration Credit")
+    mech_vent_infil_credit.setDescription("Defines whether the infiltration credit allowed per the ASHRAE 62.2 Standard will be included in the calculation of the mechanical ventilation rate. If True, the infiltration credit will apply 1) to new/existing single-family detached homes for 2013 ASHRAE 62.2, or 2) to existing single-family detached or multi-family homes for 2010 ASHRAE 62.2.")
+    mech_vent_infil_credit.setDefaultValue(true)
+    args << mech_vent_infil_credit
+
+    #make a boolean argument for if an existing home
+    is_existing_home = OpenStudio::Ruleset::OSArgument::makeBoolArgument("is_existing_home", true)
+    is_existing_home.setDisplayName("Mechanical Ventilation: Is Existing Home")
+    is_existing_home.setDescription("Specifies whether the building is an existing home or new construction.")
+    is_existing_home.setDefaultValue(false)
+    args << is_existing_home
+    
     #make a double argument for dryer exhaust
     clothes_dryer_exhaust = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("clothes_dryer_exhaust",false)
     clothes_dryer_exhaust.setDisplayName("Clothes Dryer: Exhaust")
@@ -702,7 +701,7 @@ class ResidentialAirflow < OpenStudio::Ruleset::ModelUserScript
       mechVentSensibleEfficiency = 0.0
     end
     dryerExhaust = runner.getDoubleArgumentValue("clothes_dryer_exhaust",user_arguments)
-    ageOfHome = runner.getDoubleArgumentValue("age_of_home",user_arguments)
+    is_existing_home = runner.getBoolArgumentValue("is_existing_home",user_arguments)
     natVentHtgSsnSetpointOffset = runner.getDoubleArgumentValue("nat_vent_htg_offset",user_arguments)
     natVentClgSsnSetpointOffset = runner.getDoubleArgumentValue("nat_vent_clg_offset",user_arguments)
     natVentOvlpSsnSetpointOffset = runner.getDoubleArgumentValue("nat_vent_ovlp_offset",user_arguments)
@@ -864,7 +863,7 @@ class ResidentialAirflow < OpenStudio::Ruleset::ModelUserScript
       thermal_zones = Geometry.get_thermal_zones_from_spaces(unit_spaces)
       
       unit.unit_num = Geometry.get_unit_number(model, building_unit, runner)
-      unit.age_of_home = ageOfHome
+      unit.is_existing_home = is_existing_home
       unit.above_grade_exterior_wall_area = Geometry.calculate_exterior_wall_area(unit_spaces, false)
       unit.above_grade_finished_floor_area = Geometry.get_above_grade_finished_floor_area_from_spaces(unit_spaces, false, runner)
       unit.finished_floor_area = Geometry.get_finished_floor_area_from_spaces(unit_spaces, false, runner)
@@ -2119,7 +2118,7 @@ class ResidentialAirflow < OpenStudio::Ruleset::ModelUserScript
     # Determine mechanical ventilation infiltration credit (per ASHRAE 62.2)
     infil.rate_credit = 0 # default to no credit
     if mech_vent.MechVentInfilCredit
-        if mech_vent.MechVentASHRAEStandard == '2010' and unit.age_of_home > 0
+        if mech_vent.MechVentASHRAEStandard == '2010' and unit.is_existing_home
             # ASHRAE Standard 62.2 2010
             # Only applies to existing buildings
             # 2 cfm per 100ft^2 of occupiable floor area
