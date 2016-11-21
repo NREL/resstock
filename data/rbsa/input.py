@@ -1364,7 +1364,7 @@ if __name__ == '__main__':
     for category in ['Location Heating Region', 'Location Cooling Region', 'Vintage', 'Heating Fuel', 'Geometry Foundation Type', 'Geometry House Size', 'Geometry Stories', 'Insulation Unfinished Attic', 'Insulation Wall', 'Heating Setpoint', 'Cooling Setpoint', 'Insulation Slab', 'Insulation Crawlspace', 'Insulation Unfinished Basement', 'Insulation Finished Basement', 'Insulation Interzonal Floor', 'Windows', 'Infiltration', 'HVAC System Combined', 'HVAC System Heating', 'HVAC System Cooling', 'HVAC System Is Combined', 'Ducts', 'Water Heater', 'Lighting', 'Cooking Range', 'Clothes Dryer']:
         print category
         method = getattr(dfs, category.lower().replace(' ', '_'))
-        if not category in ['Heating Fuel']:
+        if not category in ['Heating Fuel', 'Geometry Stories']:
             df = method()
         else:
             df = method(True)

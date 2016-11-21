@@ -4,20 +4,22 @@ Created on Mon Sep 26 15:26:57 2016
 
 @author: jalley
 """
-# import plotly.plotly as py
-# import plotly.graph_objs as go
-import os, sys
-import pandas as pd
-import matplotlib.pyplot as plt
-import csv
+#import plotly.plotly as py
+#import plotly.graph_objs as go
+#import os, sys
+#import pandas as pd
+#import csv
 #from medoids_tstat import do_plot
-import itertools
-import numpy as np
-from matplotlib.lines import Line2D
+#import itertools
+#import numpy as np
+#from matplotlib.lines import Line2D
+#from scipy import stats
+#from matplotlib.pyplot import show
+#from colour import Color
+
 import seaborn as sns
-# from scipy import stats
-# from matplotlib.pyplot import show
-# from colour import Color
+import matplotlib.pyplot as plt
+
 import query_recs_raw as recs
 
 vintages = {'pre-1950' : 0,
@@ -149,7 +151,7 @@ def stackedbar(df, VAR, TITLE):
 def kdeplot(df, VAR1, VAR2, TITLE):
 
 	#removes values of 0 from the dataset
-	temp_set = ['athome','temphome','tempgone','tempnite','temphomeac','tempconeac','tempniteac']
+	temp_set = ['athome','temphome','tempgone','tempnite','temphomeac','tempgoneac','tempniteac']
 	if VAR2 in temp_set:
 		df1 = df[df[VAR2] !=0]
 	else:
@@ -158,10 +160,9 @@ def kdeplot(df, VAR1, VAR2, TITLE):
 	ax.savefig(VAR1 +" vs. "+ VAR2 +'_kde .png', bbox_inches = 'tight')
 
 if __name__ == '__main__':
-	df = process_csv_data()
-	assign_sizes(df)
+	df = recs.process_csv_data()
+	df = recs.assign_sizes(df)
 	poverty(df)
-	df = df.fillna(value = 0)
 #	stackedbar(df,'equipm', 'Heating Equipment' + ' vs. Federal Poverty Levels: 250,200,150,100,50')
 #	stackedbar(df,'fuelheat', 'Heating Fuel' + ' vs. Federal Poverty Levels: 250,200,150,100,50')
 #	stackedbar(df,'division', 'Census Division' + ' vs. Federal Poverty Levels: 250,200,150,100,50')
