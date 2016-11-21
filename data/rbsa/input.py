@@ -116,6 +116,12 @@ class Create_DFs():
                 p2 = df[[w2, col]].groupby([w2]).sum()
                 df[col] = df.apply(lambda row: smoothing_calculation(row, col, p1, p2), axis=1)
             df = df.set_index(['Dependency=Location Heating Region', 'Dependency=Vintage'])
+            del df['Weight']
+            df['Weight'] = df.sum(axis=1)
+            for col in df.columns:
+                if not 'Option' in col:
+                  continue
+                df[col] = df[col] / df['Weight']
         return df
         
     def insulation_unfinished_attic(self):
@@ -449,21 +455,21 @@ class Create_DFs():
         df = df.sort_values(by=['Dependency=Location Heating Region', 'Dependency=Vintage']).set_index(['Dependency=Location Heating Region', 'Dependency=Vintage'])
         return df
     
-    def geometry_stories(self):       
+    def geometry_stories(self, smooth=False):
         df = util.create_dataframe(self.session, rdb)
         df = util.assign_climate_zones(df)
         df = util.assign_state(df)
         df = util.assign_heating_location(df)
         df = util.assign_vintage(df) 
-        df = util.assign_foundation_type(df)
+        # df = util.assign_foundation_type(df)
         df = util.assign_size(df)
         df = util.assign_stories(df)
         df, cols = util.categories_to_columns(df, 'Dependency=Stories')
-        df = df.groupby(['Dependency=Vintage', 'Dependency=Geometry House Size', 'Dependency=Geometry Foundation Type'])
+        df = df.groupby(['Dependency=Vintage', 'Dependency=Geometry House Size'])
         missing_groups = []
-        for group in itertools.product(*[['<1950', '1950s', '1960s', '1970s', '1980s', '1990s', '2000s'], ['0-1499', '1500-2499', '2500-3499', '3500+'], ['Crawl', 'Heated Basement', 'Slab', 'Unheated Basement']]):
+        for group in itertools.product(*[['<1950', '1950s', '1960s', '1970s', '1980s', '1990s', '2000s'], ['0-1499', '1500-2499', '2500-3499', '3500+']]):
             if not group in list(df.groups):
-                missing_groups.append(dict(zip(['Dependency=Vintage', 'Dependency=Geometry House Size', 'Dependency=Geometry Foundation Type'], group)))          
+                missing_groups.append(dict(zip(['Dependency=Vintage', 'Dependency=Geometry House Size'], group)))
         count = df.agg(['count']).ix[:, 0]
         weight = df.agg(['sum'])['Weight']
         df = util.sum_cols(df, cols)        
@@ -473,14 +479,32 @@ class Create_DFs():
         columns.remove('Count')
         columns.remove('Weight')        
         for group in missing_groups:
-            df_new = pd.DataFrame(data=dict(group.items() + dict(zip(columns, [1.0/len(columns)] * len(columns))).items()), index=[0]).set_index(['Dependency=Vintage', 'Dependency=Geometry House Size', 'Dependency=Geometry Foundation Type'])
+            df_new = pd.DataFrame(data=dict(group.items() + dict(zip(columns, [1.0/len(columns)] * len(columns))).items()), index=[0]).set_index(['Dependency=Vintage', 'Dependency=Geometry House Size'])
             df_new['Count'] = 0
             df_new['Weight'] = 0
             df = df.append(df_new)
         df = add_option_prefix(df)
         df = df.reset_index()
         df['Dependency=Vintage'] = pd.Categorical(df['Dependency=Vintage'], ['<1950', '1950s', '1960s', '1970s', '1980s', '1990s', '2000s'])
-        df = df.sort_values(by=['Dependency=Geometry Foundation Type', 'Dependency=Geometry House Size', 'Dependency=Vintage']).set_index(['Dependency=Geometry Foundation Type', 'Dependency=Geometry House Size', 'Dependency=Vintage'])
+        df = df.sort_values(by=['Dependency=Geometry House Size', 'Dependency=Vintage']).set_index(['Dependency=Geometry House Size', 'Dependency=Vintage'])
+        if smooth:
+            w1 = 'Dependency=Geometry House Size'
+            w2 = 'Dependency=Vintage'
+            df = df.reset_index()
+            for col in df.columns:
+                if not 'Option' in col:
+                    continue
+                df[col] = df[col] * df['Weight']
+                p1 = df[[w1, col]].groupby([w1]).sum()
+                p2 = df[[w2, col]].groupby([w2]).sum()
+                df[col] = df.apply(lambda row: smoothing_calculation(row, col, p1, p2), axis=1)
+            df = df.set_index(['Dependency=Geometry House Size', 'Dependency=Vintage'])
+            del df['Weight']
+            df['Weight'] = df.sum(axis=1)
+            for col in df.columns:
+                if not 'Option' in col:
+                  continue
+                df[col] = df[col] / df['Weight']
         return df
     
     def heating_setpoint(self):
@@ -1327,7 +1351,7 @@ def add_option_prefix(df):
     return df
 
 def smoothing_calculation(row, col, p1, p2):
-    return ( p1.loc[row[p1.index.name], col] / p1[col].sum() ) * p2.loc[row[p2.index.name], col] / row['Weight']
+    return ( p1.loc[row[p1.index.name], col] / p1[col].sum() ) * p2.loc[row[p2.index.name], col]
     
 if __name__ == '__main__':
     
