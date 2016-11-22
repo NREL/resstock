@@ -613,6 +613,13 @@ class Constants
   def self.PierBeamFoundationType
     return "pier and beam"
   end
+  def self.PierBeamSpace(unit_name=self.ObjectNameBuildingUnit)
+    s_unit = ""
+    if unit_name != self.ObjectNameBuildingUnit
+      s_unit = "|#{unit_name}"
+    end
+    return "pier and beam space#{s_unit}"
+  end
   def self.PierBeamZone(unit_name=self.ObjectNameBuildingUnit)
     s_unit = ""
     if unit_name != self.ObjectNameBuildingUnit

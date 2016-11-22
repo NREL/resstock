@@ -654,10 +654,22 @@ class Geometry
         crawl_spaces = []
         spaces.each do |space|
             next if self.space_is_above_grade(space)
+            next if self.space_is_finished(space)
             next if self.space_height(space) >= Constants.MinimumBasementHeight
             crawl_spaces << space
         end
         return crawl_spaces
+    end
+    
+    def self.get_pier_beam_spaces(spaces)
+        pb_spaces = []
+        spaces.each do |space|
+            next if self.space_is_below_grade(space)
+            next if self.space_is_finished(space)
+            next if self.space_height(space) >= Constants.MinimumBasementHeight
+            pb_spaces << space
+        end
+        return pb_spaces
     end
     
     def self.get_finished_spaces(spaces)

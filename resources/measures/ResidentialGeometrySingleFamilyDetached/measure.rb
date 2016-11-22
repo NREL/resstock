@@ -209,8 +209,8 @@ class CreateResidentialSingleFamilyDetachedGeometry < OpenStudio::Ruleset::Model
       runner.registerError("The crawlspace height can be set between 1.5 and 5 ft.")
       return false
     end
-    if foundation_type == Constants.PierBeamFoundationType and ( foundation_height < 0.5 or foundation_height > 8.0 )
-      runner.registerError("The pier & beam height can be set between 0.5 and 8 ft.")
+    if foundation_type == Constants.PierBeamFoundationType and ( foundation_height <= 0.0 )
+      runner.registerError("The pier & beam height must be greater than 0 ft.")
       return false
     end
     if num_floors > 6
@@ -227,6 +227,10 @@ class CreateResidentialSingleFamilyDetachedGeometry < OpenStudio::Ruleset::Model
     end
     if garage_protrusion > 0 and aspect_ratio < 1
       runner.registerError("Cannot handle protruding garage and attic ridge running from front to back.")
+      return false
+    end
+    if garage_width > 0 and garage_depth > 0 and foundation_type == Constants.PierBeamFoundationType
+      runner.registerError("Cannot handle garages with a pier & beam foundation type.")
       return false
     end
     
@@ -273,7 +277,7 @@ class CreateResidentialSingleFamilyDetachedGeometry < OpenStudio::Ruleset::Model
 	
     foundation_offset = 0.0
     if foundation_type == Constants.PierBeamFoundationType
-      foundation_type = Constants.CrawlFoundationType
+      foundation_offset = foundation_height
     end
 
     # loop through the number of floors
@@ -531,7 +535,7 @@ class CreateResidentialSingleFamilyDetachedGeometry < OpenStudio::Ruleset::Model
     end
 	
     # Foundation
-    if [Constants.CrawlFoundationType, Constants.UnfinishedBasementFoundationType, Constants.FinishedBasementFoundationType].include? foundation_type
+    if [Constants.CrawlFoundationType, Constants.UnfinishedBasementFoundationType, Constants.FinishedBasementFoundationType, Constants.PierBeamFoundationType].include? foundation_type
       
       z = -foundation_height + foundation_offset		
       
@@ -543,6 +547,8 @@ class CreateResidentialSingleFamilyDetachedGeometry < OpenStudio::Ruleset::Model
         foundation_zone_name = Constants.UnfinishedBasementZone
       elsif foundation_type == Constants.FinishedBasementFoundationType
         foundation_zone_name = Constants.FinishedBasementZone
+      elsif foundation_type == Constants.PierBeamFoundationType
+        foundation_zone_name = Constants.PierBeamZone
       end
       foundation_zone.setName(foundation_zone_name)
 
@@ -562,6 +568,8 @@ class CreateResidentialSingleFamilyDetachedGeometry < OpenStudio::Ruleset::Model
         foundation_space_name = Constants.UnfinishedBasementSpace
       elsif foundation_type == Constants.FinishedBasementFoundationType
         foundation_space_name = Constants.FinishedBasementSpace
+      elsif foundation_type == Constants.PierBeamFoundationType
+        foundation_space_name = Constants.PierBeamSpace
       end
       foundation_space.setName(foundation_space_name)
       runner.registerInfo("Set #{foundation_space_name}.")
@@ -569,13 +577,16 @@ class CreateResidentialSingleFamilyDetachedGeometry < OpenStudio::Ruleset::Model
       # set these to the foundation zone
       foundation_space.setThermalZone(foundation_zone)	
       
-      # set foundation walls to ground
+      # set foundation walls outside boundary condition
       spaces = model.getSpaces
       spaces.each do |space|
-        if space.name.to_s == foundation_space_name
-          surfaces = space.surfaces
-          surfaces.each do |surface|
-            next if surface.surfaceType.downcase != "wall"
+        next if space.name.to_s != foundation_space_name
+        surfaces = space.surfaces
+        surfaces.each do |surface|
+          next if surface.surfaceType.downcase != "wall"
+          if foundation_type == Constants.PierBeamFoundationType
+            surface.setOutsideBoundaryCondition("Outdoors")
+          else
             surface.setOutsideBoundaryCondition("Ground")
           end
         end
@@ -743,7 +754,7 @@ class CreateResidentialSingleFamilyDetachedGeometry < OpenStudio::Ruleset::Model
       num_floors += 1
     end
     model.getBuilding.setStandardsNumberOfAboveGroundStories(num_floors)
-    if foundation_type == Constants.UnfinishedBasementFoundationType or foundation_type == Constants.FinishedBasementFoundationType
+    if foundation_type == Constants.FinishedBasementFoundationType
       num_floors += 1
     end
     model.getBuilding.setStandardsNumberOfStories(num_floors)

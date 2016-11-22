@@ -142,6 +142,17 @@ class ResidentialAirflow < OpenStudio::Ruleset::ModelUserScript
     attr_accessor(:height, :area, :volume, :inf_method, :coord_z, :SLA, :ACH, :inf_flow, :hor_leak_frac, :neutral_level, :f_t_SG, :f_s_SG, :f_w_SG, :C_s_SG, :C_w_SG, :ELA)
   end
 
+  class PierBeam
+    def initialize(ach, height, area, volume, coord_z)
+      @ACH = ach    
+      @height = height
+      @area = area
+      @volume = volume
+      @coord_z = coord_z      
+    end
+    attr_accessor(:height, :area, :volume, :inf_method, :coord_z, :SLA, :ACH, :inf_flow, :hor_leak_frac, :neutral_level, :f_t_SG, :f_s_SG, :f_w_SG, :C_s_SG, :C_w_SG, :ELA)
+  end
+
   class UnfinAttic
     def initialize(sla, height, area, volume, coord_z)
       @SLA = sla
@@ -204,7 +215,7 @@ class ResidentialAirflow < OpenStudio::Ruleset::ModelUserScript
   class Building
     def initialize
     end
-    attr_accessor(:finished_floor_area, :above_grade_finished_floor_area, :building_height, :stories, :num_units, :above_grade_volume, :above_grade_exterior_wall_area, :SLA, :garage_zone, :garage, :unfinished_basement_zone, :unfinished_basement, :crawlspace_zone, :crawlspace, :unfinished_attic_zone, :unfinished_attic)    
+    attr_accessor(:finished_floor_area, :above_grade_finished_floor_area, :building_height, :stories, :num_units, :above_grade_volume, :above_grade_exterior_wall_area, :SLA, :garage_zone, :garage, :unfinished_basement_zone, :unfinished_basement, :crawlspace_zone, :crawlspace, :pierbeam_zone, :pierbeam, :unfinished_attic_zone, :unfinished_attic)    
   end
   
   class Unit
@@ -344,6 +355,14 @@ class ResidentialAirflow < OpenStudio::Ruleset::ModelUserScript
     crawl_ach.setDescription("Air exchange rate, in Air Changes per Hour at 50 Pascals (ACH50), for the crawlspace.")
     crawl_ach.setDefaultValue(0.0)
     args << crawl_ach
+
+    #make a double argument for infiltration of pier & beam
+    pier_beam_ach = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("pier_beam_ach", false)
+    pier_beam_ach.setDisplayName("Pier & Beam: Constant ACH")
+    pier_beam_ach.setUnits("1/hr")
+    pier_beam_ach.setDescription("Air exchange rate, in Air Changes per Hour at 50 Pascals (ACH50), for the pier & beam foundation.")
+    pier_beam_ach.setDefaultValue(100.0)
+    args << pier_beam_ach
 
     #make a double argument for infiltration of unfinished attic
     unfinished_attic_ach = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("unfinished_attic_ach", false)
@@ -679,6 +698,7 @@ class ResidentialAirflow < OpenStudio::Ruleset::ModelUserScript
     end
     infiltrationGarageACH50 = runner.getDoubleArgumentValue("garage_ach50",user_arguments)
     crawlACH = runner.getDoubleArgumentValue("crawl_ach",user_arguments)
+    pierbeamACH = runner.getDoubleArgumentValue("pier_beam_ach",user_arguments)
     fbsmtACH = runner.getDoubleArgumentValue("finished_basement_ach",user_arguments)
     ufbsmtACH = runner.getDoubleArgumentValue("unfinished_basement_ach",user_arguments)
     uaSLA = runner.getDoubleArgumentValue("unfinished_attic_ach",user_arguments)
@@ -793,6 +813,9 @@ class ResidentialAirflow < OpenStudio::Ruleset::ModelUserScript
       elsif thermal_zone.name.to_s.start_with? Constants.CrawlZone
         building.crawlspace_zone = thermal_zone
         building.crawlspace = Crawl.new(crawlACH, Geometry.get_building_height(building.crawlspace_zone.spaces), OpenStudio::convert(building.crawlspace_zone.floorArea,"m^2","ft^2").get, Geometry.get_building_height(building.crawlspace_zone.spaces) * OpenStudio::convert(building.crawlspace_zone.floorArea,"m^2","ft^2").get, Geometry.get_z_origin_for_zone(thermal_zone))
+      elsif thermal_zone.name.to_s.start_with? Constants.PierBeamZone
+        building.pierbeam_zone = thermal_zone
+        building.pierbeam = PierBeam.new(pierbeamACH, Geometry.get_building_height(building.pierbeam_zone.spaces), OpenStudio::convert(building.pierbeam_zone.floorArea,"m^2","ft^2").get, Geometry.get_building_height(building.pierbeam_zone.spaces) * OpenStudio::convert(building.pierbeam_zone.floorArea,"m^2","ft^2").get, Geometry.get_z_origin_for_zone(thermal_zone))
       elsif thermal_zone.name.to_s.start_with? Constants.UnfinishedAtticZone
         building.unfinished_attic_zone = thermal_zone
         building.unfinished_attic = UnfinAttic.new(uaSLA, Geometry.get_building_height(building.unfinished_attic_zone.spaces), OpenStudio::convert(building.unfinished_attic_zone.floorArea,"m^2","ft^2").get, Geometry.get_building_height(building.unfinished_attic_zone.spaces) * OpenStudio::convert(building.unfinished_attic_zone.floorArea,"m^2","ft^2").get, Geometry.get_z_origin_for_zone(thermal_zone))
@@ -843,6 +866,14 @@ class ResidentialAirflow < OpenStudio::Ruleset::ModelUserScript
       space_infil_design_flow_rate.setSpace(building.crawlspace_zone.spaces[0])
     end
     
+    unless building.pierbeam_zone.nil?
+      space_infil_design_flow_rate = OpenStudio::Model::SpaceInfiltrationDesignFlowRate.new(model)
+      space_infil_design_flow_rate.setName("PBInfiltration")
+      space_infil_design_flow_rate.setSchedule(model.alwaysOnDiscreteSchedule)
+      space_infil_design_flow_rate.setAirChangesperHour(building.pierbeam.ACH)
+      space_infil_design_flow_rate.setSpace(building.pierbeam_zone.spaces[0])
+    end
+
     unless building.unfinished_attic_zone.nil?
       space_infil_effective_leakage_area = OpenStudio::Model::SpaceInfiltrationEffectiveLeakageArea.new(model)
       space_infil_effective_leakage_area.setName("UAtcInfiltration")
@@ -1405,11 +1436,16 @@ class ResidentialAirflow < OpenStudio::Ruleset::ModelUserScript
               ducts.frac_oa = ducts.direct_oa_supply_duct_loss / ducts.total_duct_unbalance
             end
           end
-          unless building.crawlspace_zone.nil?
-            if building.crawlspace_zone == ducts.duct_location_zone and building.crawlspace.ACH == 0
+          unless building.pierbeam_zone.nil?
+            if building.pierbeam_zone == ducts.duct_location_zone and building.pierbeam.ACH == 0
               ducts.frac_oa = ducts.direct_oa_supply_duct_loss / ducts.total_duct_unbalance
             end
-          end        
+          end
+          unless building.unfinished_attic_zone.nil?
+            if building.unfinished_attic_zone == ducts.duct_location_zone and building.unfinished_attic.ACH == 0
+              ducts.frac_oa = ducts.direct_oa_supply_duct_loss / ducts.total_duct_unbalance
+            end
+          end
           # Assume that all of the unbalanced make-up air is driven infiltration from outdoors.
           # This assumes that the holes for attic ventilation are much larger than any attic bypasses.      
           if ducts.frac_oa.nil?
@@ -1883,6 +1919,9 @@ class ResidentialAirflow < OpenStudio::Ruleset::ModelUserScript
     unless building.crawlspace_zone.nil?
       spaces << building.crawlspace
     end
+    unless building.pierbeam_zone.nil?
+      spaces << building.pierbeam
+    end
     unless building.unfinished_attic_zone.nil?
       spaces << building.unfinished_attic
     end 
@@ -1904,6 +1943,11 @@ class ResidentialAirflow < OpenStudio::Ruleset::ModelUserScript
     unless building.crawlspace_zone.nil?
       building.crawlspace.inf_method = Constants.InfMethodRes
       building.crawlspace.inf_flow = building.crawlspace.ACH / OpenStudio::convert(1.0,"hr","min").get * building.crawlspace.volume
+    end
+
+    unless building.pierbeam_zone.nil?
+      building.pierbeam.inf_method = Constants.InfMethodRes
+      building.pierbeam.inf_flow = building.pierbeam.ACH / OpenStudio::convert(1.0,"hr","min").get * building.pierbeam.volume
     end
 
     unless building.unfinished_attic_zone.nil?
@@ -1994,9 +2038,14 @@ class ResidentialAirflow < OpenStudio::Ruleset::ModelUserScript
             infil.flue_height = 0.0 # ft
             infil.S_wflue = 0.0 # Flue Shelter Coefficient
           end
-
+          
+          vented_crawl = false
+          if (not building.crawlspace_zone.nil? and building.crawlspace.ACH > 0) or (not building.pierbeam_zone.nil? and building.pierbeam.ACH > 0)
+            vented_crawl = true
+          end
+          
           # Leakage distributions per Iain Walker (LBL) recommendations
-          if not building.crawlspace_zone.nil? and building.crawlspace.ACH > 0
+          if vented_crawl
             # 15% ceiling, 35% walls, 50% floor leakage distribution for vented crawl
             leakage_ceiling = 0.15
             leakage_walls = 0.35
@@ -2046,7 +2095,7 @@ class ResidentialAirflow < OpenStudio::Ruleset::ModelUserScript
           infil.stack_coef = infil.f_s * (UnitConversion.lbm_fts22inH2O(outside_air_density * Constants.g * unit.living.height) / (infil.assumed_inside_temp + 460.0)) ** infil.n_i # inH2O^n/R^n
 
           # Calculate wind coefficient
-          if not building.crawlspace_zone.nil? and building.crawlspace.ACH > 0
+          if vented_crawl
 
             if infil.X_i > 1.0 - 2.0 * infil.Y_i
               # Critical floor to ceiling difference above which f_w does not change (eq. 25)
@@ -2575,6 +2624,9 @@ class ResidentialAirflow < OpenStudio::Ruleset::ModelUserScript
       elsif not building.crawlspace_zone.nil?
         duct_location_zone = building.crawlspace_zone
         duct_location_name = building.crawlspace_zone.name.to_s
+      elsif not building.pierbeam_zone.nil?
+        duct_location_zone = building.pierbeam_zone
+        duct_location_name = building.pierbeam_zone.name.to_s
       elsif not building.unfinished_attic_zone.nil?
         duct_location_zone = building.unfinished_attic_zone
         duct_location_name = building.unfinished_attic_zone.name.to_s

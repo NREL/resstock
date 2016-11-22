@@ -406,10 +406,10 @@ class HVAC
         hp_heat_plf_fplr.setCoefficient1Constant(supply.HEAT_CLOSS_FPLR_SPEC_coefficients[0])
         hp_heat_plf_fplr.setCoefficient2x(supply.HEAT_CLOSS_FPLR_SPEC_coefficients[1])
         hp_heat_plf_fplr.setCoefficient3xPOW2(supply.HEAT_CLOSS_FPLR_SPEC_coefficients[2])
-        hp_heat_plf_fplr.setMinimumValueofx(-100)
-        hp_heat_plf_fplr.setMaximumValueofx(100)
-        hp_heat_plf_fplr.setMinimumCurveOutput(-100)
-        hp_heat_plf_fplr.setMaximumCurveOutput(100)
+        hp_heat_plf_fplr.setMinimumValueofx(0)
+        hp_heat_plf_fplr.setMaximumValueofx(1)
+        hp_heat_plf_fplr.setMinimumCurveOutput(0.7)
+        hp_heat_plf_fplr.setMaximumCurveOutput(1)
 
         # Heating CAP f(FF) Convert DOE-2 curves to E+ curves
         hp_heat_cap_fff = OpenStudio::Model::CurveQuadratic.new(model)

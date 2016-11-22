@@ -68,6 +68,7 @@ class ProcessConstructionsFoundationsFloorsInterzonalFloors < OpenStudio::Rulese
     model.getSpaces.each do |space|
         next if Geometry.space_is_unfinished(space)
         next if Geometry.space_is_below_grade(space)
+        next if Geometry.get_pier_beam_spaces([space]).size > 0
         space.surfaces.each do |surface|
             next if surface.surfaceType.downcase != "floor"
             if surface.outsideBoundaryCondition.downcase == "outdoors"

@@ -87,7 +87,6 @@ class CreateResidentialSingleFamilyAttachedGeometry < OpenStudio::Ruleset::Model
     foundation_display_names << Constants.CrawlFoundationType
     foundation_display_names << Constants.UnfinishedBasementFoundationType
     foundation_display_names << Constants.FinishedBasementFoundationType
-    foundation_display_names << Constants.PierBeamFoundationType
 	
     #make a choice argument for foundation type
     foundation_type = OpenStudio::Ruleset::OSArgument::makeChoiceArgument("foundation_type", foundation_display_names, true)

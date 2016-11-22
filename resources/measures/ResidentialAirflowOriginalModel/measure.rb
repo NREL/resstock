@@ -145,6 +145,18 @@ class ProcessAirflowOriginalModel < OpenStudio::Ruleset::WorkspaceUserScript
     end
   end
 
+  class PierBeam
+    def initialize(pierbeamACH)
+      @pierbeamACH = pierbeamACH
+    end
+
+    attr_accessor(:height, :area, :volume, :inf_method, :coord_z, :SLA, :ACH, :inf_flow, :hor_leak_frac, :neutral_level, :f_t_SG, :f_s_SG, :f_w_SG, :C_s_SG, :C_w_SG, :ELA)
+
+    def PierBeamACH
+      return @pierbeamACH
+    end
+  end
+
   class UnfinAttic
     def initialize(uaSLA)
       @uaSLA = uaSLA
@@ -388,6 +400,14 @@ class ProcessAirflowOriginalModel < OpenStudio::Ruleset::WorkspaceUserScript
     userdefined_infcrawl.setDescription("Air exchange rate, in Air Changes per Hour at 50 Pascals (ACH50), for the crawlspace.")
     userdefined_infcrawl.setDefaultValue(0.0)
     args << userdefined_infcrawl
+
+    #make a double argument for infiltration of pier & beam
+    userdefined_infpierbeam = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("userdefinedinfpierbeam", false)
+    userdefined_infpierbeam.setDisplayName("Pier & Beam: Constant ACH")
+    userdefined_infpierbeam.setUnits("1/hr")
+    userdefined_infpierbeam.setDescription("Air exchange rate, in Air Changes per Hour at 50 Pascals (ACH50), for the pier & beam foundation.")
+    userdefined_infpierbeam.setDefaultValue(0.0)
+    args << userdefined_infpierbeam
 
     #make a double argument for infiltration of unfinished attic
     userdefined_infunfinattic = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("userdefinedinfunfinattic", false)
@@ -757,6 +777,7 @@ class ProcessAirflowOriginalModel < OpenStudio::Ruleset::WorkspaceUserScript
     infiltrationLivingSpaceACH50 = runner.getDoubleArgumentValue("userdefinedinflivingspace",user_arguments)
     infiltrationGarageACH50 = runner.getDoubleArgumentValue("userdefinedinfgarage",user_arguments)
     crawlACH = runner.getDoubleArgumentValue("userdefinedinfcrawl",user_arguments)
+    pierbeamACH = runner.getDoubleArgumentValue("userdefinedinfpierbeam",user_arguments)
     fbsmtACH = runner.getDoubleArgumentValue("userdefinedinffbsmt",user_arguments)
     ufbsmtACH = runner.getDoubleArgumentValue("userdefinedinfufbsmt",user_arguments)
     uaSLA = runner.getDoubleArgumentValue("userdefinedinfunfinattic",user_arguments)
@@ -829,6 +850,7 @@ class ProcessAirflowOriginalModel < OpenStudio::Ruleset::WorkspaceUserScript
     garage = Garage.new
     unfinished_basement = UnfinBasement.new(ufbsmtACH)
     crawlspace = Crawl.new(crawlACH)
+    pierbeam = PierBeam.new(pierbeamACH)
     unfinished_attic = UnfinAttic.new(uaSLA)
   
     heatingSetpointWeekday = Array.new
@@ -969,6 +991,7 @@ class ProcessAirflowOriginalModel < OpenStudio::Ruleset::WorkspaceUserScript
     garage_thermal_zone = nil
     ufbasement_thermal_zone = nil
     crawl_thermal_zone = nil
+    pierbeam_thermal_zone = nil
     ufattic_thermal_zone = nil
     model.getThermalZones.each do |thermal_zone|
       if thermal_zone.name.to_s.start_with? Constants.GarageZone
@@ -986,6 +1009,11 @@ class ProcessAirflowOriginalModel < OpenStudio::Ruleset::WorkspaceUserScript
         crawlspace.height = Geometry.get_building_height(crawl_thermal_zone.spaces)
         crawlspace.area = OpenStudio::convert(crawl_thermal_zone.floorArea,"m^2","ft^2").get
         crawlspace.volume = crawlspace.height * crawlspace.area        
+      elsif thermal_zone.name.to_s.start_with? Constants.PierBeamZone
+        pierbeam_thermal_zone = thermal_zone
+        pierbeam.height = Geometry.get_building_height(pierbeam_thermal_zone.spaces)
+        pierbeam.area = OpenStudio::convert(pierbeam_thermal_zone.floorArea,"m^2","ft^2").get
+        pierbeam.volume = pierbeam.height * pierbeam.area        
       elsif thermal_zone.name.to_s.start_with? Constants.UnfinishedAtticZone
         ufattic_thermal_zone = thermal_zone
         unfinished_attic.height = Geometry.get_building_height(ufattic_thermal_zone.spaces)
@@ -1004,6 +1032,11 @@ class ProcessAirflowOriginalModel < OpenStudio::Ruleset::WorkspaceUserScript
       unless crawl_thermal_zone.nil?
         if crawl_thermal_zone.name.to_s == zone.getString(0).to_s
           crawlspace.coord_z = OpenStudio::convert(zone.getString(4).get.to_f,"m","ft").get # Z Origin {m}
+        end
+      end
+      unless pierbeam_thermal_zone.nil?
+        if pierbeam_thermal_zone.name.to_s == zone.getString(0).to_s
+          pierbeam.coord_z = OpenStudio::convert(zone.getString(4).get.to_f,"m","ft").get # Z Origin {m}
         end
       end
       unless garage_thermal_zone.nil?
@@ -1096,7 +1129,7 @@ class ProcessAirflowOriginalModel < OpenStudio::Ruleset::WorkspaceUserScript
       end
       
       wind_speed = _processWindSpeedCorrectionForUnit(wind_speed, si, neighbors_min_nonzero_offset, geometry)
-      si, living_space, fb, garage, ub, cs, ua, wind_speed = _processInfiltrationForUnit(si, living_space, finished_basement, garage, unfinished_basement, crawlspace, unfinished_attic, fbasement_thermal_zone, garage_thermal_zone, ufbasement_thermal_zone, crawl_thermal_zone, ufattic_thermal_zone, wind_speed, has_hvac_flue, has_water_heater_flue, has_fireplace_chimney, geometry, unit_spaces, unit)
+      si, living_space, fb, garage, ub, cs, pb, ua, wind_speed = _processInfiltrationForUnit(si, living_space, finished_basement, garage, unfinished_basement, crawlspace, pierbeam, unfinished_attic, fbasement_thermal_zone, garage_thermal_zone, ufbasement_thermal_zone, crawl_thermal_zone, pierbeam_thermal_zone, ufattic_thermal_zone, wind_speed, has_hvac_flue, has_water_heater_flue, has_fireplace_chimney, geometry, unit_spaces, unit)
       vent, schedules = _processMechanicalVentilation(unit_num, si, vent, mechVentIsExistingHome, unit_dryer_exhaust, geometry, unit, living_space, schedules)
       window_area = Geometry.get_window_area_from_spaces(unit_spaces, false)
       nv, schedules = _processNaturalVentilation(workspace, unit_num, nv, living_space, wind_speed, si, schedules, geometry, coolingSetpointWeekday, coolingSetpointWeekend, heatingSetpointWeekday, heatingSetpointWeekend, window_area)
@@ -1579,6 +1612,7 @@ class ProcessAirflowOriginalModel < OpenStudio::Ruleset::WorkspaceUserScript
       fbasement_thermal_zone_r = nil
       ufbasement_thermal_zone_r = nil
       crawl_thermal_zone_r = nil
+      pierbeam_thermal_zone_r = nil
       ufattic_thermal_zone_r = nil
       if not garage_thermal_zone.nil?
         garage_thermal_zone_r = garage_thermal_zone.name.to_s
@@ -1591,6 +1625,9 @@ class ProcessAirflowOriginalModel < OpenStudio::Ruleset::WorkspaceUserScript
       end
       if not crawl_thermal_zone.nil?
         crawl_thermal_zone_r = crawl_thermal_zone.name.to_s
+      end
+      if not pierbeam_thermal_zone.nil?
+        pierbeam_thermal_zone_r = pierbeam_thermal_zone.name.to_s
       end
       if not ufattic_thermal_zone.nil?
         ufattic_thermal_zone_r = ufattic_thermal_zone.name.to_s
@@ -1676,6 +1713,25 @@ class ProcessAirflowOriginalModel < OpenStudio::Ruleset::WorkspaceUserScript
           0;                                                                            !- Velocity Squared Term Coefficient"
       end
 
+      # _processZonePierBeam
+      unless pierbeam_thermal_zone.nil?
+        #--- Infiltration
+        ems << "
+        ZoneInfiltration:DesignFlowRate,
+          PBInfiltration,                                                               !- Name
+          #{pierbeam_thermal_zone.name.to_s},                                              !- Zone Name
+          AlwaysOn,                                                                     !- Schedule Name
+          AirChanges/Hour,                                                              !- Design Flow Rate Calculation Method
+          ,                                                                             !- Design Flow rate {m^3/s}
+          ,                                                                             !- Flow per Zone Floor Area {m/s-m}
+          ,                                                                             !- Flow per Exterior Surface Area {m/s-m}
+          #{pb.ACH},                                                                    !- Air Changes per Hour {1/hr}
+          1,                                                                            !- Constant Term Coefficient
+          0,                                                                            !- Temperature Term Coefficient
+          0,                                                                            !- Velocity Term Coefficient
+          0;                                                                            !- Velocity Squared Term Coefficient"
+      end
+
       # _processZoneUnfinishedAttic
       unless ufattic_thermal_zone.nil?
         #--- Infiltration
@@ -1692,7 +1748,7 @@ class ProcessAirflowOriginalModel < OpenStudio::Ruleset::WorkspaceUserScript
       end
       
       # _processDuctwork
-      d.DuctLocation = get_duct_location(runner, duct_location, living_thermal_zone, garage_thermal_zone, fbasement_thermal_zone, ufbasement_thermal_zone, crawl_thermal_zone, ufattic_thermal_zone)
+      d.DuctLocation = get_duct_location(runner, duct_location, living_thermal_zone, garage_thermal_zone, fbasement_thermal_zone, ufbasement_thermal_zone, crawl_thermal_zone, pierbeam_thermal_zone, ufattic_thermal_zone)
       # Disallow placing ducts in locations that don't exist, and handle
       # exception for no ducts (in DuctLocation = None).    
       if !d.DuctLocation
@@ -1720,7 +1776,7 @@ class ProcessAirflowOriginalModel < OpenStudio::Ruleset::WorkspaceUserScript
       # otherwise True    
       if d.DuctLocation == living_thermal_zone.name.to_s
           d.ducts_not_in_living = false
-      elsif d.DuctLocation == fbasement_thermal_zone_r or d.DuctLocation == ufbasement_thermal_zone_r or d.DuctLocation == crawl_thermal_zone_r or d.DuctLocation == garage_thermal_zone_r or d.DuctLocation == ufattic_thermal_zone_r
+      elsif d.DuctLocation == fbasement_thermal_zone_r or d.DuctLocation == ufbasement_thermal_zone_r or d.DuctLocation == crawl_thermal_zone_r or d.DuctLocation == pierbeam_thermal_zone_r or d.DuctLocation == garage_thermal_zone_r or d.DuctLocation == ufattic_thermal_zone_r
           d.ducts_not_in_living = true
       end
       
@@ -1823,7 +1879,7 @@ class ProcessAirflowOriginalModel < OpenStudio::Ruleset::WorkspaceUserScript
         if d.total_duct_unbalance <= 0
           # Handle the exception for if there is no leakage unbalance.
           d.frac_oa = 0
-        elsif [fbasement_thermal_zone_r, ufbasement_thermal_zone_r].include? d.DuctLocation or (d.DuctLocation == crawl_thermal_zone_r and crawlACH == 0) or (d.DuctLocation == ufattic_thermal_zone_r and uaSLA == 0)         
+        elsif [fbasement_thermal_zone_r, ufbasement_thermal_zone_r].include? d.DuctLocation or (d.DuctLocation == crawl_thermal_zone_r and crawlACH == 0) or (d.DuctLocation == pierbeam_thermal_zone_r and pierbeamACH == 0) or (d.DuctLocation == ufattic_thermal_zone_r and uaSLA == 0)         
           d.frac_oa = d.direct_oa_supply_duct_loss / d.total_duct_unbalance
         else
           # Assume that all of the unbalanced make-up air is driven infiltration from outdoors.
@@ -2648,7 +2704,7 @@ class ProcessAirflowOriginalModel < OpenStudio::Ruleset::WorkspaceUserScript
  
   end #end the run method
 
-  def get_duct_location(runner, duct_location, living_thermal_zone, garage_thermal_zone, fbasement_thermal_zone, ufbasement_thermal_zone, crawl_thermal_zone, ufattic_thermal_zone)
+  def get_duct_location(runner, duct_location, living_thermal_zone, garage_thermal_zone, fbasement_thermal_zone, ufbasement_thermal_zone, crawl_thermal_zone, pierbeam_thermal_zone, ufattic_thermal_zone)
     if duct_location == Constants.Auto
       if not fbasement_thermal_zone.nil?
         duct_location = fbasement_thermal_zone.name.to_s
@@ -2656,6 +2712,8 @@ class ProcessAirflowOriginalModel < OpenStudio::Ruleset::WorkspaceUserScript
         duct_location = ufbasement_thermal_zone.name.to_s
       elsif not crawl_thermal_zone.nil?
         duct_location = crawl_thermal_zone.name.to_s
+      elsif not pierbeam_thermal_zone.nil?
+        duct_location = pierbeam_thermal_zone.name.to_s
       elsif not ufattic_thermal_zone.nil?
         duct_location = ufattic_thermal_zone.name.to_s
       elsif not garage_thermal_zone.nil?
@@ -2680,8 +2738,6 @@ class ProcessAirflowOriginalModel < OpenStudio::Ruleset::WorkspaceUserScript
     end
     if duct_location == Constants.FinishedAtticZone
       duct_location = living_thermal_zone.name.to_s
-    elsif duct_location == Constants.PierBeamZone
-      duct_location = crawl_thermal_zone.name.to_s
     end
     return duct_location    
   end
@@ -2783,7 +2839,7 @@ class ProcessAirflowOriginalModel < OpenStudio::Ruleset::WorkspaceUserScript
     return d
   end 
   
-  def _processInfiltrationForUnit(si, living_space, finished_basement, garage, unfinished_basement, crawlspace, unfinished_attic, fbasement_thermal_zone, garage_thermal_zone, ufbasement_thermal_zone, crawl_thermal_zone, ufattic_thermal_zone, ws, has_hvac_flue, has_water_heater_flue, has_fireplace_chimney, geometry, unit_spaces, unit)
+  def _processInfiltrationForUnit(si, living_space, finished_basement, garage, unfinished_basement, crawlspace, pierbeam, unfinished_attic, fbasement_thermal_zone, garage_thermal_zone, ufbasement_thermal_zone, crawl_thermal_zone, pierbeam_thermal_zone, ufattic_thermal_zone, ws, has_hvac_flue, has_water_heater_flue, has_fireplace_chimney, geometry, unit_spaces, unit)
     # Infiltration calculations.
     
     spaces = []
@@ -2799,6 +2855,9 @@ class ProcessAirflowOriginalModel < OpenStudio::Ruleset::WorkspaceUserScript
     end
     unless crawl_thermal_zone.nil?
       spaces << crawlspace
+    end
+    unless pierbeam_thermal_zone.nil?
+      spaces << pierbeam
     end
     unless ufattic_thermal_zone.nil?
       spaces << unfinished_attic
@@ -2841,6 +2900,16 @@ class ProcessAirflowOriginalModel < OpenStudio::Ruleset::WorkspaceUserScript
       crawlspace.ACH = crawlspace.CrawlACH
       # Convert ACH to cfm
       crawlspace.inf_flow = crawlspace.ACH / OpenStudio::convert(1.0,"hr","min").get * crawlspace.volume
+
+    end
+
+    unless pierbeam_thermal_zone.nil?
+
+      pierbeam.inf_method = Constants.InfMethodRes
+
+      pierbeam.ACH = pierbeam.PierBeamACH
+      # Convert ACH to cfm
+      pierbeam.inf_flow = pierbeam.ACH / OpenStudio::convert(1.0,"hr","min").get * pierbeam.volume
 
     end
 
@@ -2923,9 +2992,14 @@ class ProcessAirflowOriginalModel < OpenStudio::Ruleset::WorkspaceUserScript
             si.flue_height = 0.0 # ft
             si.S_wflue = 0.0 # Flue Shelter Coefficient
           end
+          
+          vented_crawl = false
+          if (not crawl_thermal_zone.nil? and crawlspace.CrawlACH > 0) or (not pierbeam_thermal_zone.nil? and pierbeam.PierBeamACH > 0)
+            vented_crawl = true
+          end
 
           # Leakage distributions per Iain Walker (LBL) recommendations
-          if not crawl_thermal_zone.nil? and crawlspace.CrawlACH > 0
+          if vented_crawl
             # 15% ceiling, 35% walls, 50% floor leakage distribution for vented crawl
             leakage_ceiling = 0.15
             leakage_walls = 0.35
@@ -2975,7 +3049,7 @@ class ProcessAirflowOriginalModel < OpenStudio::Ruleset::WorkspaceUserScript
           si.stack_coef = si.f_s * (UnitConversion.lbm_fts22inH2O(outside_air_density * Constants.g * living_space.height) / (si.assumed_inside_temp + 460.0)) ** si.n_i # inH2O^n/R^n
 
           # Calculate wind coefficient
-          if not crawl_thermal_zone.nil? and crawlspace.CrawlACH > 0
+          if vented_crawl
 
             if si.X_i > 1.0 - 2.0 * si.Y_i
               # Critical floor to ceiling difference above which f_w does not change (eq. 25)
@@ -3054,7 +3128,7 @@ class ProcessAirflowOriginalModel < OpenStudio::Ruleset::WorkspaceUserScript
 
     end
     
-    return si, living_space, finished_basement, garage, unfinished_basement, crawlspace, unfinished_attic, ws
+    return si, living_space, finished_basement, garage, unfinished_basement, crawlspace, pierbeam, unfinished_attic, ws
     
   end
   
