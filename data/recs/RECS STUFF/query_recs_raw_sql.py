@@ -15,28 +15,28 @@ import statsmodels.api as sm
 import psycopg2 as pg
 import pandas as pd
 import numpy as np
-
-con_string = "host = gispgdb.nrel.gov port = 5432 dbname = dav-gis user = jalley password = jalley"
-con =  con = pg.connect(con_string)
-
-sql = """SELECT *
-       FROM eia.recs_2009_microdata;"""
-DF = pd.read_sql(sql, con)
+from datetime import datetime
+import pickle
+from pandas import DataFrame, Series
 
 
+startTime = datetime.now()
 
-regions = {1:'CR01',
-           2:'CR02',
-           3:'CR03',
-           4:'CR04',
-           5:'CR05',
-           6:'CR06',
-           7:'CR07',
-           8:'CR08',
-           9:'CR09',
-           10:'CR10',
-           11:'CR11',
-           12:'CR12'}
+
+
+
+region_def = {1:'CR01',
+              2:'CR02',
+              3:'CR03',
+              4:'CR04',
+              5:'CR05',
+              6:'CR06',
+              7:'CR07',
+              8:'CR08',
+              9:'CR09',
+              10:'CR10',
+              11:'CR11',
+              12:'CR12'}
 
 vintages = {1  :'1950-pre',
             2  :'1950s',
@@ -56,25 +56,25 @@ fuels = {1:'Natural Gas',
          8:'Other Fuel',
          9:'Other Fuel',
          21:'Other Fuel',
-         pandas.np.NaN:'None'}
+         np.NaN:'None'}
 
 sizes = {500:'0-1499',
          1000:'0-1499',
          2000:'1500-2499',
          3000:'2500-3499',
-         4000:'3500-4499',
-         5000:'4500+',
-         6000:'4500+',
-         7000:'4500+',
-         8000:'4500+',
-         9000:'4500+',
-         10000:'4500+'}
+         4000:'3500+',
+         5000:'3500+',
+         6000:'3500+',
+         7000:'3500+',
+         8000:'3500+',
+         9000:'3500+',
+         10000:'3500+'}
 
 story_dict = {10:1,
-           20:2,
-           40:2,
-           31:2,
-           32:2}
+              20:2,
+              40:2,
+              31:2,
+              32:2}
 
 income_range = {    1:'$2,500 and under',
                     2:'$2,500 to $4,999',
@@ -126,24 +126,24 @@ med_income ={1:1250,
              23:110000,
              24:120000}
 
-wall_type ={    1:'Brick',
-                2:'Wood',
-                3:'Siding',
-                4:'Stucco',
-                5:'Composition',
-                6:'Stone',
-                7:'Concrete',
-                8:'Glass',
-                9:'Other'}
+wall_type ={1:'Brick',
+            2:'Wood',
+            3:'Siding',
+            4:'Stucco',
+            5:'Composition',
+            6:'Stone',
+            7:'Concrete',
+            8:'Glass',
+            9:'Other'}
 
-roof_type ={    1:'Ceramic/Clay',
-                2:'Wood Shingles/Shakes',
-                3:'Metal',
-                4:'Slate',
-                5:'Composition Shingles',
-                6:'Asphalt',
-                7:'Concrete Tiles',
-                8:'Other'}
+roof_type ={1:'Ceramic/Clay',
+            2:'Wood Shingles/Shakes',
+            3:'Metal',
+            4:'Slate',
+            5:'Composition Shingles',
+            6:'Asphalt',
+            7:'Concrete Tiles',
+            8:'Other'}
 
 fpl16 = {   1:11880,
             2:16020,
@@ -163,26 +163,94 @@ fpl09 = {   1:10830,
             7:33270,
             8:37010}
 
-census_div = {      1: 'New England Census Division (CT, MA, ME, NH, RI, VT)',
-                    2:    'Middle Atlantic Census Division (NJ, NY, PA)',
-                    3:    'East North Central Census Division (IL, IN, MI, OH, WI)',
-                    4:    'West North Central Census Division (IA, KS, MN, MO, ND, NE, SD)',
-                    5:    'South Atlantic  Census Division (DC, DE, FL, GA, MD, NC, SC, VA, WV)',
-                    6:    'East South Central Census Division (AL, KY, MS, TN)',
-                    7:    'West South Central Census Division (AR, LA, OK, TX)',
-                    8:    'Mountain North Sub-Division (CO, ID, MT, UT, WY)',
-                    9:    'Mountain South Sub-Division (AZ, NM, NV)',
-                    10:    'Pacific Census Division (AK, CA, HI, OR, WA)' }
+census_div = {1:'New England Census Division (CT, MA, ME, NH, RI, VT)',
+              2:'Middle Atlantic Census Division (NJ, NY, PA)',
+              3:'East North Central Census Division (IL, IN, MI, OH, WI)',
+              4:'West North Central Census Division (IA, KS, MN, MO, ND, NE, SD)',
+              5:'South Atlantic  Census Division (DC, DE, FL, GA, MD, NC, SC, VA, WV)',
+              6:'East South Central Census Division (AL, KY, MS, TN)',
+              7:'West South Central Census Division (AR, LA, OK, TX)',
+              8:'Mountain North Sub-Division (CO, ID, MT, UT, WY)',
+              9:'Mountain South Sub-Division (AZ, NM, NV)',
+              10:'Pacific Census Division (AK, CA, HI, OR, WA)' }
 
+region_def = {1:3,
+              2:3,
+              3:7,
+              4:7,
+              5:7,
+              6:4,
+              7:4,
+              8:4,
+              9:2,
+              10:2,
+              11:8,
+              12:8,
+              13:8,
+              14:8,
+              15:9,
+              16:9,
+              17:9,
+              18:9,
+              19:8,
+              20:9,
+              21:9,
+              22:5,
+              23:5,
+              24:10,
+              25:10,
+              26:11,
+              27:6}
+
+cr_str = {1:'CR01',
+          2:'CR02',
+          3:'CR03',
+          4:'CR04',
+          5:'CR05',
+          6:'CR06',
+          7:'CR07',
+          8:'CR08',
+          9:'CR09',
+          10:'CR10',
+          11:'CR11',
+          12:'CR12'}
 fpl = fpl09
+heating_types = {    2: 'Steam or Hot Water System'        , #'Steam or Hot Water System',
+                     3:    'Central Warm-Air Furnace'      , #'Central Warm-Air Furnace'      ,
+                     4:    'Heat Pump'                     , #'Heat Pump'                     ,
+                     5 :    'Built-In Electric Units'       , #'Built-In Electric Units'       ,
+                     6 :    'Floor or Wall Pipeless Furnace', #'Floor or Wall Pipeless Furnace',
+                     7 :    'Floor or Wall Pipeless Furnace', #'Built-In Room Heater'          ,
+                     8 :    'Other Equipment'               , #'Heating Stove'                 ,
+                     9 :    'Other Equipment'               , #'Fireplace'                     ,
+                     10:    'Built-In Electric Units'       , #'Portable Electric Heaters'     ,
+                     11: 'Other Equipment'               , #'Portable Kerosene Heaters'     ,
+                     12:   'Other Equipment'               , #'Cooking Stove'                 ,
+                     21:   'Other Equipment'               , #'Other Equipment'               ,
+                     pd.np.NaN:   'Not Applicable'}                 #'Not Applicable'}
+def retrieve_data():
+    if not os.path.exists('eia.recs_2009_microdata.pkl'):
+        con_string = "host = gispgdb.nrel.gov port = 5432 dbname = dav-gis user = jalley password = jalley"
+        con =  con = pg.connect(con_string)
+        sql = """SELECT *
+                FROM eia.recs_2009_microdata;"""
+        df = pd.read_sql(sql, con)
+        df.to_pickle('eia.recs_2009_microdata.pkl')
+    df = pd.read_pickle('eia.recs_2009_microdata.pkl')
 
-def process_csv_data():
+    return df
+
+def process_data(df):
 #	df = pandas.read_csv(recs_data_file,na_values=['-2'])
-    df = pd.read_sql(sql, con)
-    df = df.replace(-2, np.NaN)
+    df = df.replace(-2, np.nan)
     for vint_num, vint_name in vintages.iteritems():
         df['yearmaderange'].replace(vint_num,vint_name, inplace=True)
+    df['Count']=1
     return df
+
+def assign_aliases(df):
+    aliases = {'prkgplc1':'HasGarage'}
+    return df.rename(columns=aliases)
 
 def calc_temp_stats(df):
     df['athome'].replace(0,np.NaN)
@@ -335,7 +403,7 @@ def calc_ashp_cac(df):
 
 def assign_sizes(df):
     df['Size'] = df[['tothsqft','totcsqft']].max(axis=1)
-    df.loc[:,'Size'] = pandas.np.nan
+    df.loc[:,'Size'] = 0
     df.loc[(df['Size'] < 1500),'Size'] = '0-1499'
     df.loc[(df['Size'] >= 1500) & (df['Size'] < 2500),'Size'] = '1500-2499'
     df.loc[(df['Size'] >= 2500) & (df['Size'] < 3500),'Size'] = '2500-3499'
@@ -348,22 +416,27 @@ def assign_sizes(df):
 #		df['BEDROOMS'].replace(num,name, inplace=True)
 #	return df
 
-def calc_general(df, cut_by=['reportable_domain','fuelheat'], columns=None, outfile=None,norm=True):
-
+def calc_general(df, cut_by=['reportable_domain', 'fuelheat'], columns=None, outfile=None,norm=True):
     #Temp set 0 as NaN
-    temp_field = ['athome','temphome','tempgone','tempnite','temphomeac','tempconeac','tempniteac']
-    df = df[temp_field].replace(0,np.NaN)
+
+#Use Dictionaries to Define Data
+    temp_field = ['athome','temphome','tempgone','tempnite','temphomeac','tempgoneac','tempniteac']
+    df[temp_field].replace(-2,np.NaN)
     fuels_list = ['Natural Gas','Propane/LPG','Fuel Oil','Electricity','Other Fuel']
-    for fuel_num, fuel_name in fuels.iteritems():
-        for field in ['fuelheat','fuelh2o','rngfuel','dryrfuel']:
+    for heat_num, heat_name in heating_types.iteritems():
+        df['equipm'].replace(heat_num,heat_name,inplace=True)
+    for field in ['fuelheat','fuelh2o','rngfuel','dryrfuel']:
+        for fuel_num, fuel_name in fuels.iteritems():
             df[field].replace(fuel_num,fuel_name, inplace=True)
     for cen_num,cen_name in census_div.iteritems():
-            df['division'].replace(cen_num,cen_name,inplace=True)
+        df['division'].replace(cen_num,cen_name,inplace=True)
     for story_num, story_name in story_dict.iteritems():
-            df['stories'].replace(story_num,story_name, inplace=True)
+        df['stories'].replace(story_num,story_name, inplace=True)
+
+#Start Analyzing Specific Data
     fields = cut_by + columns
-    grouped = df.groupby(cut_by + columns)
-    df = grouped.sum().reset_index()
+    grouped = df.groupby(fields)
+    df.groupby(cut_by)['Count'].sum()
     combos = [list(set(df[field])) for field in fields]
     for i, combo in enumerate(combos):
         if pandas.np.nan in combo:
@@ -371,10 +444,22 @@ def calc_general(df, cut_by=['reportable_domain','fuelheat'], columns=None, outf
             x = x[~pandas.np.isnan(x)]
             combos[i] = list(x)
     full_index = pandas.MultiIndex.from_product(combos, names=fields)
+
+#Implement Total Weight of Each Type
     g = grouped.sum()
     g = g['nweight'].reindex(full_index)
     g = g.fillna(0).reset_index()
     g = pandas.pivot_table(g, values='nweight', index=cut_by, columns=columns).reset_index()
+    Weight = g[g.columns[len(cut_by):]].sum(axis = 1)
+
+#Implement Count of Each Type
+    ct = grouped.sum()
+    ct = ct['Count'].reindex(full_index)
+    ct = ct.fillna(0).reset_index()
+    ct = pandas.pivot_table(ct, values='Count', index=cut_by, columns=columns).reset_index()
+    Count = ct[ct.columns[len(cut_by):]].sum(axis=1)    #only adds Options, not Dependencies
+
+#Normalize Data
     if norm:
         total = g.sum(axis=1)
         if isinstance(g.columns, pandas.core.index.MultiIndex):
@@ -385,8 +470,23 @@ def calc_general(df, cut_by=['reportable_domain','fuelheat'], columns=None, outf
             for col in g.columns:
                 if not col in cut_by:
                     g[col] = g[col] / total
+    g['Weight']=Weight
+    g['Count']=Count
+
+#Add Headers for Option and Dependency
+    rename_dict = {}
+    for col in g.columns:
+        if col in ['Weight','Count']:
+            rename_dict[col] = col
+        else:
+            rename_dict[col] = 'Option=' + col
+        if col in cut_by:
+            rename_dict[col] = 'Dependency=' + col
+    g = g.rename(columns=rename_dict)
+
+#Generate Outfile
     if not outfile is None:
-        g.to_csv(outfile, index=False)
+        g.to_csv(os.path.join("Probability Distributions", outfile), sep = '\t',index=False)
         print g
     return g
 
@@ -399,7 +499,8 @@ def save_to_tsv(g, cut_by, columns, outfile):
             rename_dict[col] = 'Option=' + col
     g = g.rename(columns=rename_dict)
     print g
-    g.to_csv(outfile, index=False)
+    g.to_csv(outfile, sep='\t', index=False)
+
 def query_stories(df, outfile='recs_query_stories.csv'):
     g = calc_general(df, cut_by=['yearmaderange','Size'],columns=['stories'], outfile=None)
     fnd_types = ['Crawl',
@@ -429,36 +530,82 @@ def assign_poverty_levels(df):
         df['income_range'].replace(income_range_num,income_range_name,inplace=True)
     for num, name in med_income.iteritems():
         df['income'].replace(num, name, inplace=True)
-    #infLATION
-    df['inf_income']=df['income']*1.125344
-    #FPL
+    inflation_2009_to_2016 = 1.125344
+    df['inf_income']=df['income']*inflation_2009_to_2016
+
     df['incomelimit'] = df['nhsldmem']
     for fpl_num,fpl_name in fpl.iteritems():
         for field in ['incomelimit']:
             df[field].replace(fpl_num,fpl_name,inplace=True)
-    df['FPL'] = df['income']
     df['FPL'] = df['income']/df['incomelimit']*100
-    df['FPLALL'] = df['FPL']
     df['FPLALL'] = 1
-    df['FPL250','FPL200','FPL150','FPL100','FPL50'] = df['FPLALL']
-    fpl_field = 'FPL'
-    df.loc[(df[fpl_field] <= 250),'FPL250'] = 1
-    df.loc[(df[fpl_field] <= 200),'FPL200'] = 1
-    df.loc[(df[fpl_field] <= 150),'FPL150'] = 1
-    df.loc[(df[fpl_field] <= 100),'FPL100'] = 1
-    df.loc[(df[fpl_field] <= 50),'FPL50'] = 1
-    #end code
+    df['FPL300','FPL250','FPL200','FPL150','FPL100','FPL50'] = df['FPLALL']
+    df.loc[(df['FPL'] <= 300),'FPL300'] = 1
+    df.loc[(df['FPL'] <= 250),'FPL250'] = 1
+    df.loc[(df['FPL'] <= 200),'FPL200'] = 1
+    df.loc[(df['FPL'] <= 150),'FPL150'] = 1
+    df.loc[(df['FPL'] <= 100),'FPL100'] = 1
+    df.loc[(df['FPL'] <= 50),'FPL50'] = 1
 
-    return df.fillna(value=0)
+    #Create FPL Bins
+    df['FPL_BINS'] = 0
+    df.loc[(df['FPL'] >= 300),'FPL_BINS'] = "300+"
+    df.loc[(df['FPL'] >= 250) & (df['FPL'] < 300),'FPL_BINS'] = "250-300"
+    df.loc[(df['FPL'] >= 200) & (df['FPL'] < 250),'FPL_BINS'] = "200-250"
+    df.loc[(df['FPL'] >= 150) & (df['FPL'] < 200),'FPL_BINS'] = "150-200"
+    df.loc[(df['FPL'] >= 100) & (df['FPL'] < 150),'FPL_BINS'] = "100-150"
+    df.loc[(df['FPL'] >= 50) & (df['FPL'] < 100),'FPL_BINS'] = "50-100"
+    df.loc[(df['FPL'] < 50),'FPL_BINS'] = "0-50"
+    return df
+
+
+def custom_region(df):
+    df['CR'] = df['reportable_domain']
+    df['CR'].replace(region_def, inplace=True)
+
+# Split out Kentucky and put in 8:
+    df.ix[(df['reportable_domain'] == 18) & (df['aia_zone'] == 3), 'CR'] = 8
+
+# Split out Hawaii and put in 12:
+    df.ix[(df['reportable_domain'] == 27) & ((df['aia_zone'] == 5) | (df['hdd65'] < 4000)), 'CR'] = 12
+
+# Split out Alaska and put in 1:
+    df.ix[(df['reportable_domain'] == 27) & (df['hdd65'] > 6930), 'CR'] = 1 #Source for 6930 HDD: Dennis Barley
+    return df
+
 
 if __name__ == '__main__':
-    df = process_csv_data()
-    df = assign_aliases(df)
-    df = assign_sizes(df)
-    poverty(df)
-    # Overwrite fuelheat Type field with UGWARM ('UGWARM') if discrepancy
-#    df.loc[df['UGWARM'] == 1, 'fuelheat'] = 1
-#     calc_temp_stats(df)
+
+#preallocate steps for speed. Delete pkl files if objects are changed
+
+    if not os.path.exists('processed_eia.recs_2009_microdata.pkl'):
+        df = retrieve_data()
+        df = process_data(df)
+        df = custom_region(df)
+        df = assign_sizes(df)
+        df = assign_poverty_levels(df)
+        df = assign_aliases(df)
+        df.to_pickle('processed_eia.recs_2009_microdata.pkl')
+    else:
+        df = pd.read_pickle('processed_eia.recs_2009_microdata.pkl')
+
+
+#NEW QUERIES
+#    calc_general(df, cut_by=['CR','FPL_BINS'], columns = ['yearmaderange'], outfile = 'output_calc_CR_FPL_by_vintage.tsv')
+#    calc_general(df, cut_by=['CR','FPL_BINS','yearmaderange'], columns = ['equipm'], outfile = 'heatingequipment_output_by_CR_FPL_vintage.tsv')
+    calc_general(df, cut_by=['CR','FPL_BINS','yearmaderange'], columns = ['equipm'], outfile = 'heatingequipment_output_by_CR_FPL_vintage.tsv')
+
+
+
+
+
+
+
+#OLD QUERIES
+
+   # Overwrite fuelheat Type field with UGWARM ('UGWARM') if discrepancy
+    df.loc[df['ugwarm'] == 1, 'fuelheat'] = 1
+#    calc_temp_stats(df)
 #     calc_htg_type(df)
 #     calc_htg_age(df)
 #     calc_htg_type_by_wh_fuel(df, cut_by=['fuelh2o','reportable_domain','yearmaderange','fuelheat'], outfile='output_calc_htg_type_by_wh_fuel_vintage.csv')
@@ -466,7 +613,7 @@ if __name__ == '__main__':
 #     calc_num_beds(df)
 #     calc_ashp_cac(df)
 #     calc_occupancy(df)
-#     calc_general(df, cut_by=['Size','stories'],columns=['Foundation Type'], outfile='output_general.csv')
+#    calc_general(df, cut_by=['Size','stories'],columns=['Foundation Type'], outfile='output_general.csv')
 #     calc_general(df, cut_by=['division','yearmaderange'],columns=['Foundation Type'], outfile='output_general.csv')
 #    calc_general(df, cut_by=['yearmaderange','Size'],columns=['PRKGPLC1'], outfile='output_general.csv')
     # Query Vintage
@@ -506,3 +653,5 @@ if __name__ == '__main__':
 # df = calc_general(df, cut_by=[],columns=['athome'], outfile='output_athome.csv', norm=False)
 #     calc_htg_type(df)
 #     calc_general(df, cut_by=['fuelheat'],columns=['equipm'], outfile='recs_query_heating_type.csv', norm=False)
+
+    print datetime.now() - startTime
