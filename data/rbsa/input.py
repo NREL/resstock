@@ -1329,10 +1329,10 @@ def apply_smoothing(df, w1, w2):
         df[col] = df.apply(lambda row: smoothing_calculation(row, col, p1, p2), axis=1)
     df = df.set_index([w1, w2])
     del df['Weight']
-    df['Weight'] = df.sum(axis=1)
+    df['Weight'] = df.drop(['Count'], axis=1).sum(axis=1)    
     for col in df.columns:
         if not 'Option' in col:
-          continue
+            continue
         df[col] = df[col] / df['Weight']
     return df
     
