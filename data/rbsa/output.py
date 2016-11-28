@@ -193,6 +193,7 @@ def do_plot(slices, fields, size='medium', weighted_area=True, save=False, setli
            
         df = measured.join(predicted)[cols]
         df = df.reset_index()
+        marker_labels = df.ix[:,0]
         if marker_color:
             marker_colors = df['Dependency=Vintage']
             marker_colors = [list(set(marker_colors)).index(i) for i in marker_colors.tolist()]          
@@ -383,9 +384,9 @@ if __name__ == '__main__':
                 # del df[col]
         # to_figure(df, os.path.join(heatmaps_dir, '{}.png'.format(category)))
 
-    # do_plot(slices=['Location Heating Region', 'Vintage', 'Heating Fuel'], fields='weights', weighted_area=False, save=True, setlims=(0,None))
-    # do_plot(slices=['Location Heating Region', 'Vintage', 'Heating Fuel'], fields='electricity_perhouse', weighted_area=True, save=True, setlims=(0,90))
-    # do_plot(slices=['Location Heating Region', 'Vintage', 'Heating Fuel'], fields='gas_perhouse', save=True, setlims=(0,140))    
+    do_plot(slices=['Location Heating Region', 'Vintage', 'Heating Fuel'], fields='weights', weighted_area=False, save=True, setlims=(0,None))
+    do_plot(slices=['Location Heating Region', 'Vintage', 'Heating Fuel'], fields='electricity_perhouse', weighted_area=True, save=True, setlims=(0,90))
+    do_plot(slices=['Location Heating Region', 'Vintage', 'Heating Fuel'], fields='gas_perhouse', save=True, setlims=(0,140))    
     
     do_plot(slices=['Location Heating Region Vintage'], fields='electricity_perhouse', save=True, setlims=(0,180), size='large', marker_color=True)
     do_plot(slices=['Location Heating Region Vintage'], fields='gas_perhouse', save=True, setlims=(0,180), size='large', marker_color=True)
