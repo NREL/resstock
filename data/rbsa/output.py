@@ -44,14 +44,14 @@ def draw_scatter_plot(df, cols, marker_labels, slicer, weighted_area=True, setli
                 xytext = (5, -5)
             plt.annotate(label, xy =(x, y), xytext=xytext,
                 textcoords='offset points', ha=ha, va=va, alpha=0.8)
-    
+
     if marker_color_all is None:
         marker_color_all = 'b'
 
     title = slicer
     x = df[cols[0]]
     y = df[cols[1]]
-
+    
     if not marker_colors is None:
         if not marker_shapes is None:
             for i, shape in enumerate(set(marker_shapes)):
@@ -143,6 +143,7 @@ def do_plot(slices, fields, size='medium', weighted_area=True, save=False, setli
         plt.subplot(1, len(slices), i+1)
         marker_colors = None
         marker_shapes = None
+        marker_labels = None
         if fields == 'weights':
             measured_elec = pd.read_csv('../../analysis_results/outputs/pnw/Electricity Consumption {}.tsv'.format(slicer), index_col=['Dependency={}'.format(slicer)], sep='\t')[['kwh_nrm_total']]
             measured_gas = pd.read_csv('../../analysis_results/outputs/pnw/Natural Gas Consumption {}.tsv'.format(slicer), index_col=['Dependency={}'.format(slicer)], sep='\t')[['thm_nrm_total']]
@@ -153,33 +154,60 @@ def do_plot(slices, fields, size='medium', weighted_area=True, save=False, setli
             predicted = predicted.groupby('building_characteristics_report.{}'.format(slicer)).sum()
             cols = ['Measured Total Site Energy MBtu', 'Predicted Total Site Energy MBtu']
         else:
-            if 'electricity' in fields:
-                measured = pd.read_csv('../../analysis_results/outputs/pnw/Electricity Consumption {}.tsv'.format(slicer), index_col=['Dependency={}'.format(slicer)], sep='\t')[['kwh_nrm_per_home']]
-                measured['Measured Per House Site Electricity MBtu'] = 3412.0 * 0.000001 * measured['kwh_nrm_per_home']
-                predicted = pd.read_csv('../../analysis_results/resstock_pnw_test.csv', index_col=['name'])[['building_characteristics_report.{}'.format(slicer), 'simulation_output_report.Total Site Electricity kWh', 'Weight']]
-                predicted['Predicted Total Site Electricity MBtu'] = 3412.0 * 0.000001 * predicted['simulation_output_report.Total Site Electricity kWh'] * predicted['Weight']
-                predicted = predicted.groupby('building_characteristics_report.{}'.format(slicer)).sum()
-                predicted['Predicted Per House Site Electricity MBtu'] = predicted['Predicted Total Site Electricity MBtu'] / predicted['Weight']
-                cols = ['Measured Per House Site Electricity MBtu', 'Predicted Per House Site Electricity MBtu', 'Weight']
-            elif 'gas' in fields:
-                measured = pd.read_csv('../../analysis_results/outputs/pnw/Natural Gas Consumption {}.tsv'.format(slicer), index_col=['Dependency={}'.format(slicer)], sep='\t')[['thm_nrm_per_home']]
-                measured['Measured Per House Site Gas MBtu'] = 29.3 * 3412.0 * 0.000001 * measured['thm_nrm_per_home']
-                predicted = pd.read_csv('../../analysis_results/resstock_pnw_test.csv', index_col=['name'])[['building_characteristics_report.{}'.format(slicer), 'simulation_output_report.Total Site Natural Gas therm', 'Weight']]
-                predicted['Predicted Total Site Gas MBtu'] = 29.3 * 3412.0 * 0.000001 * predicted['simulation_output_report.Total Site Natural Gas therm'] * predicted['Weight']
-                predicted = predicted.groupby('building_characteristics_report.{}'.format(slicer)).sum()
-                predicted['Predicted Per House Site Gas MBtu'] = predicted['Predicted Total Site Gas MBtu'] / predicted['Weight']
-                cols = ['Measured Per House Site Gas MBtu', 'Predicted Per House Site Gas MBtu', 'Weight']
-            
+            if slicer in ['Location Heating Region', 'Vintage', 'Heating Fuel']:
+              if 'electricity' in fields:
+                  measured = pd.read_csv('../../analysis_results/outputs/pnw/Electricity Consumption {}.tsv'.format(slicer), index_col=['Dependency={}'.format(slicer)], sep='\t')[['kwh_nrm_per_home']]
+                  measured['Measured Per House Site Electricity MBtu'] = 3412.0 * 0.000001 * measured['kwh_nrm_per_home']
+                  predicted = pd.read_csv('../../analysis_results/resstock_pnw_test.csv', index_col=['name'])[['building_characteristics_report.{}'.format(slicer), 'simulation_output_report.Total Site Electricity kWh', 'Weight']]
+                  predicted['Predicted Total Site Electricity MBtu'] = 3412.0 * 0.000001 * predicted['simulation_output_report.Total Site Electricity kWh'] * predicted['Weight']
+                  predicted = predicted.groupby('building_characteristics_report.{}'.format(slicer)).sum()
+                  predicted['Predicted Per House Site Electricity MBtu'] = predicted['Predicted Total Site Electricity MBtu'] / predicted['Weight']
+                  cols = ['Measured Per House Site Electricity MBtu', 'Predicted Per House Site Electricity MBtu', 'Weight']
+              elif 'gas' in fields:
+                  measured = pd.read_csv('../../analysis_results/outputs/pnw/Natural Gas Consumption {}.tsv'.format(slicer), index_col=['Dependency={}'.format(slicer)], sep='\t')[['thm_nrm_per_home']]
+                  measured['Measured Per House Site Gas MBtu'] = 29.3 * 3412.0 * 0.000001 * measured['thm_nrm_per_home']
+                  predicted = pd.read_csv('../../analysis_results/resstock_pnw_test.csv', index_col=['name'])[['building_characteristics_report.{}'.format(slicer), 'simulation_output_report.Total Site Natural Gas therm', 'Weight']]
+                  predicted['Predicted Total Site Gas MBtu'] = 29.3 * 3412.0 * 0.000001 * predicted['simulation_output_report.Total Site Natural Gas therm'] * predicted['Weight']
+                  predicted = predicted.groupby('building_characteristics_report.{}'.format(slicer)).sum()
+                  predicted['Predicted Per House Site Gas MBtu'] = predicted['Predicted Total Site Gas MBtu'] / predicted['Weight']
+                  cols = ['Measured Per House Site Gas MBtu', 'Predicted Per House Site Gas MBtu', 'Weight']
+            elif slicer == 'Location Heating Region Vintage':
+              if 'electricity' in fields:
+                  measured = pd.read_csv('../../analysis_results/outputs/pnw/Electricity Consumption {}.tsv'.format(slicer), index_col=['Dependency=Location Heating Region', 'Dependency=Vintage'], sep='\t')[['kwh_nrm_per_home']]
+                  measured['Measured Per House Site Electricity MBtu'] = 3412.0 * 0.000001 * measured['kwh_nrm_per_home']
+                  predicted = pd.read_csv('../../analysis_results/resstock_pnw_test.csv', index_col=['name'])[['building_characteristics_report.Location Heating Region', 'building_characteristics_report.Vintage', 'simulation_output_report.Total Site Electricity kWh', 'Weight']]
+                  predicted['Predicted Total Site Electricity MBtu'] = 3412.0 * 0.000001 * predicted['simulation_output_report.Total Site Electricity kWh'] * predicted['Weight']
+                  predicted = predicted.rename(columns={"building_characteristics_report.Location Heating Region": "Dependency=Location Heating Region", "building_characteristics_report.Vintage": "Dependency=Vintage"})
+                  predicted = predicted.groupby(['Dependency=Location Heating Region', 'Dependency=Vintage']).sum()
+                  predicted['Predicted Per House Site Electricity MBtu'] = predicted['Predicted Total Site Electricity MBtu'] / predicted['Weight']
+                  cols = ['Measured Per House Site Electricity MBtu', 'Predicted Per House Site Electricity MBtu', 'Weight']
+              elif 'gas' in fields:
+                  measured = pd.read_csv('../../analysis_results/outputs/pnw/Natural Gas Consumption {}.tsv'.format(slicer), index_col=['Dependency=Location Heating Region', 'Dependency=Vintage'], sep='\t')[['thm_nrm_per_home']]
+                  measured['Measured Per House Site Gas MBtu'] = 29.3 * 3412.0 * 0.000001 * measured['thm_nrm_per_home']
+                  predicted = pd.read_csv('../../analysis_results/resstock_pnw_test.csv', index_col=['name'])[['building_characteristics_report.Location Heating Region', 'building_characteristics_report.Vintage', 'simulation_output_report.Total Site Natural Gas therm', 'Weight']]
+                  predicted['Predicted Total Site Gas MBtu'] = 29.3 * 3412.0 * 0.000001 * predicted['simulation_output_report.Total Site Natural Gas therm'] * predicted['Weight']
+                  predicted = predicted.rename(columns={"building_characteristics_report.Location Heating Region": "Dependency=Location Heating Region", "building_characteristics_report.Vintage": "Dependency=Vintage"})
+                  predicted = predicted.groupby(['Dependency=Location Heating Region', 'Dependency=Vintage']).sum()
+                  predicted['Predicted Per House Site Gas MBtu'] = predicted['Predicted Total Site Gas MBtu'] / predicted['Weight']
+                  cols = ['Measured Per House Site Gas MBtu', 'Predicted Per House Site Gas MBtu', 'Weight']
+           
         df = measured.join(predicted)[cols]
         df = df.reset_index()
-        marker_labels = df.ix[:,0]
+        if marker_color:
+            marker_colors = df['Dependency=Vintage']
+            marker_colors = [list(set(marker_colors)).index(i) for i in marker_colors.tolist()]          
+            marker_labels = zip(df['Dependency=Location Heating Region'], df['Dependency=Vintage'])
         if weighted_area:
             df['HouseCount'] = df['Weight'] * 0.001
         draw_scatter_plot(df, cols, marker_labels, slicer, weighted_area=weighted_area, setlims=setlims, marker_colors=marker_colors, marker_shapes=marker_shapes, size=size, marker_color_all=marker_color_all, show_labels=show_labels, leg_label=leg_label)
     if save:
-        filename = os.path.join('..', '..', 'analysis_results', 'outputs', 'pnw', 'saved images', 'Scatter_{}.png'.format(fields))
+        if len(slices) == 1:
+          filename = os.path.join('..', '..', 'analysis_results', 'outputs', 'pnw', 'saved images', 'Scatter_2slice_{}.png'.format(fields))
+        else:
+          filename = os.path.join('..', '..', 'analysis_results', 'outputs', 'pnw', 'saved images', 'Scatter_1slice_{}.png'.format(fields))
         plt.savefig(filename, bbox_inches='tight', dpi=200)
         trim_white(filename)
+        plt.close()
 
 class Create_DFs():
     
@@ -357,8 +385,8 @@ if __name__ == '__main__':
 
     # do_plot(slices=['Location Heating Region', 'Vintage', 'Heating Fuel'], fields='weights', weighted_area=False, save=True, setlims=(0,None))
     # do_plot(slices=['Location Heating Region', 'Vintage', 'Heating Fuel'], fields='electricity_perhouse', weighted_area=True, save=True, setlims=(0,90))
-    do_plot(slices=['Location Heating Region', 'Vintage', 'Heating Fuel'], fields='gas_perhouse', save=True, setlims=(0,140))
+    # do_plot(slices=['Location Heating Region', 'Vintage', 'Heating Fuel'], fields='gas_perhouse', save=True, setlims=(0,140))    
     
-    
-    
+    do_plot(slices=['Location Heating Region Vintage'], fields='electricity_perhouse', save=True, setlims=(0,180), size='large', marker_color=True)
+    do_plot(slices=['Location Heating Region Vintage'], fields='gas_perhouse', save=True, setlims=(0,180), size='large', marker_color=True)
             
