@@ -1,0 +1,421 @@
+<measure>
+  <schema_version>3.0</schema_version>
+  <name>process_boiler_electric</name>
+  <uid>a0f299ce-b90b-43f6-8794-03ef3ba24f0e</uid>
+  <version_id>6737dfe3-3d33-438a-9ab5-5ec6c0462710</version_id>
+  <version_modified>20161123T170030Z</version_modified>
+  <xml_checksum>470FC630</xml_checksum>
+  <class_name>ProcessBoilerElectric</class_name>
+  <display_name>Set Residential Boiler Electric</display_name>
+  <description>This measure removes any existing HVAC heating components from the building and adds a boiler along with constant speed pump and water baseboard coils to a hot water plant loop. For multifamily buildings, the boiler can be set for all units of the building.</description>
+  <modeler_description>Any heating components or baseboard convective electrics/waters are removed from any existing air/plant loops or zones. A boiler along with constant speed pump and water baseboard coils are added to a hot water plant loop.</modeler_description>
+  <arguments>
+    <argument>
+      <name>system_type</name>
+      <display_name>System Type</display_name>
+      <description>The system type of the boiler.</description>
+      <type>Choice</type>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>hot water, forced draft</default_value>
+      <choices>
+        <choice>
+          <value>hot water, forced draft</value>
+          <display_name>hot water, forced draft</display_name>
+        </choice>
+        <choice>
+          <value>hot water, condensing</value>
+          <display_name>hot water, condensing</display_name>
+        </choice>
+        <choice>
+          <value>hot water, natural draft</value>
+          <display_name>hot water, natural draft</display_name>
+        </choice>
+        <choice>
+          <value>steam</value>
+          <display_name>steam</display_name>
+        </choice>
+      </choices>
+    </argument>
+    <argument>
+      <name>afue</name>
+      <display_name>Installed AFUE</display_name>
+      <description>The installed Annual Fuel Utilization Efficiency (AFUE) of the boiler, which can be used to account for performance derating or degradation relative to the rated value.</description>
+      <type>Double</type>
+      <units>Btu/Btu</units>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>0.8</default_value>
+    </argument>
+    <argument>
+      <name>oat_reset_enabled</name>
+      <display_name>Outside Air Reset Enabled</display_name>
+      <description>Outside Air Reset Enabled on Hot Water Supply Temperature.</description>
+      <type>Boolean</type>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>false</default_value>
+      <choices>
+        <choice>
+          <value>true</value>
+          <display_name>true</display_name>
+        </choice>
+        <choice>
+          <value>false</value>
+          <display_name>false</display_name>
+        </choice>
+      </choices>
+    </argument>
+    <argument>
+      <name>oat_high</name>
+      <display_name>High Outside Air Temp</display_name>
+      <description>High Outside Air Temperature.</description>
+      <type>Double</type>
+      <units>degrees F</units>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>oat_low</name>
+      <display_name>Low Outside Air Temp</display_name>
+      <description>Low Outside Air Temperature.</description>
+      <type>Double</type>
+      <units>degrees F</units>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>oat_hwst_high</name>
+      <display_name>Hot Water Supply Temp High Outside Air</display_name>
+      <description>Hot Water Supply Temperature corresponding to High Outside Air Temperature.</description>
+      <type>Double</type>
+      <units>degrees F</units>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>oat_hwst_low</name>
+      <display_name>Hot Water Supply Temp Low Outside Air</display_name>
+      <description>Hot Water Supply Temperature corresponding to Low Outside Air Temperature.</description>
+      <type>Double</type>
+      <units>degrees F</units>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>design_temp</name>
+      <display_name>Design Temperature</display_name>
+      <description>Temperature of the outlet water.</description>
+      <type>Double</type>
+      <units>degrees F</units>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+      <default_value>180</default_value>
+    </argument>
+    <argument>
+      <name>capacity</name>
+      <display_name>Heating Output Capacity</display_name>
+      <type>Choice</type>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>autosize</default_value>
+      <choices>
+        <choice>
+          <value>autosize</value>
+          <display_name>autosize</display_name>
+        </choice>
+        <choice>
+          <value>5 kBtu/hr</value>
+          <display_name>5 kBtu/hr</display_name>
+        </choice>
+        <choice>
+          <value>10 kBtu/hr</value>
+          <display_name>10 kBtu/hr</display_name>
+        </choice>
+        <choice>
+          <value>15 kBtu/hr</value>
+          <display_name>15 kBtu/hr</display_name>
+        </choice>
+        <choice>
+          <value>20 kBtu/hr</value>
+          <display_name>20 kBtu/hr</display_name>
+        </choice>
+        <choice>
+          <value>25 kBtu/hr</value>
+          <display_name>25 kBtu/hr</display_name>
+        </choice>
+        <choice>
+          <value>30 kBtu/hr</value>
+          <display_name>30 kBtu/hr</display_name>
+        </choice>
+        <choice>
+          <value>35 kBtu/hr</value>
+          <display_name>35 kBtu/hr</display_name>
+        </choice>
+        <choice>
+          <value>40 kBtu/hr</value>
+          <display_name>40 kBtu/hr</display_name>
+        </choice>
+        <choice>
+          <value>45 kBtu/hr</value>
+          <display_name>45 kBtu/hr</display_name>
+        </choice>
+        <choice>
+          <value>50 kBtu/hr</value>
+          <display_name>50 kBtu/hr</display_name>
+        </choice>
+        <choice>
+          <value>55 kBtu/hr</value>
+          <display_name>55 kBtu/hr</display_name>
+        </choice>
+        <choice>
+          <value>60 kBtu/hr</value>
+          <display_name>60 kBtu/hr</display_name>
+        </choice>
+        <choice>
+          <value>65 kBtu/hr</value>
+          <display_name>65 kBtu/hr</display_name>
+        </choice>
+        <choice>
+          <value>70 kBtu/hr</value>
+          <display_name>70 kBtu/hr</display_name>
+        </choice>
+        <choice>
+          <value>75 kBtu/hr</value>
+          <display_name>75 kBtu/hr</display_name>
+        </choice>
+        <choice>
+          <value>80 kBtu/hr</value>
+          <display_name>80 kBtu/hr</display_name>
+        </choice>
+        <choice>
+          <value>85 kBtu/hr</value>
+          <display_name>85 kBtu/hr</display_name>
+        </choice>
+        <choice>
+          <value>90 kBtu/hr</value>
+          <display_name>90 kBtu/hr</display_name>
+        </choice>
+        <choice>
+          <value>95 kBtu/hr</value>
+          <display_name>95 kBtu/hr</display_name>
+        </choice>
+        <choice>
+          <value>100 kBtu/hr</value>
+          <display_name>100 kBtu/hr</display_name>
+        </choice>
+        <choice>
+          <value>105 kBtu/hr</value>
+          <display_name>105 kBtu/hr</display_name>
+        </choice>
+        <choice>
+          <value>110 kBtu/hr</value>
+          <display_name>110 kBtu/hr</display_name>
+        </choice>
+        <choice>
+          <value>115 kBtu/hr</value>
+          <display_name>115 kBtu/hr</display_name>
+        </choice>
+        <choice>
+          <value>120 kBtu/hr</value>
+          <display_name>120 kBtu/hr</display_name>
+        </choice>
+        <choice>
+          <value>125 kBtu/hr</value>
+          <display_name>125 kBtu/hr</display_name>
+        </choice>
+        <choice>
+          <value>130 kBtu/hr</value>
+          <display_name>130 kBtu/hr</display_name>
+        </choice>
+        <choice>
+          <value>135 kBtu/hr</value>
+          <display_name>135 kBtu/hr</display_name>
+        </choice>
+        <choice>
+          <value>140 kBtu/hr</value>
+          <display_name>140 kBtu/hr</display_name>
+        </choice>
+        <choice>
+          <value>145 kBtu/hr</value>
+          <display_name>145 kBtu/hr</display_name>
+        </choice>
+        <choice>
+          <value>150 kBtu/hr</value>
+          <display_name>150 kBtu/hr</display_name>
+        </choice>
+      </choices>
+    </argument>
+  </arguments>
+  <provenances/>
+  <tags>
+    <tag>HVAC.Heating</tag>
+  </tags>
+  <attributes>
+    <attribute>
+      <name>Measure Type</name>
+      <value>ModelMeasure</value>
+      <datatype>string</datatype>
+    </attribute>
+    <attribute>
+      <name>Intended Software Tool</name>
+      <value>Apply Measure Now</value>
+      <datatype>string</datatype>
+    </attribute>
+    <attribute>
+      <name>Intended Software Tool</name>
+      <value>OpenStudio Application</value>
+      <datatype>string</datatype>
+    </attribute>
+    <attribute>
+      <name>Intended Software Tool</name>
+      <value>Parametric Analysis Tool</value>
+      <datatype>string</datatype>
+    </attribute>
+  </attributes>
+  <files>
+    <file>
+      <filename>multifamily_8_units.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>AD4C79BA</checksum>
+    </file>
+    <file>
+      <filename>singlefamily_attached_fbsmt_4_units.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>A078F665</checksum>
+    </file>
+    <file>
+      <filename>singlefamily_detached.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>E39339E4</checksum>
+    </file>
+    <file>
+      <filename>singlefamily_detached_fbsmt.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>6AB838B7</checksum>
+    </file>
+    <file>
+      <filename>singlefamily_detached_fbsmt_ashp.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>4841EEEF</checksum>
+    </file>
+    <file>
+      <filename>singlefamily_detached_fbsmt_boiler.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>A02CCA31</checksum>
+    </file>
+    <file>
+      <filename>singlefamily_detached_fbsmt_boiler_central_air_conditioner.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>EEC456BF</checksum>
+    </file>
+    <file>
+      <filename>singlefamily_detached_fbsmt_boiler_room_air_conditioner.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>E8F8272E</checksum>
+    </file>
+    <file>
+      <filename>singlefamily_detached_fbsmt_central_air_conditioner.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>645F0232</checksum>
+    </file>
+    <file>
+      <filename>singlefamily_detached_fbsmt_electric_baseboard.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>3A80FEBE</checksum>
+    </file>
+    <file>
+      <filename>singlefamily_detached_fbsmt_electric_baseboard_central_air_conditioner.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>8A141E28</checksum>
+    </file>
+    <file>
+      <filename>singlefamily_detached_fbsmt_electric_baseboard_room_air_conditioner.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>12044FCE</checksum>
+    </file>
+    <file>
+      <filename>singlefamily_detached_fbsmt_furnace.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>756CBE98</checksum>
+    </file>
+    <file>
+      <filename>singlefamily_detached_fbsmt_furnace_central_air_conditioner.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>ABCDEBAF</checksum>
+    </file>
+    <file>
+      <filename>singlefamily_detached_fbsmt_furnace_room_air_conditioner.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>5DFCEEF4</checksum>
+    </file>
+    <file>
+      <filename>singlefamily_detached_fbsmt_room_air_conditioner.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>38A2C794</checksum>
+    </file>
+    <file>
+      <filename>singlefamily_detached_fbsmt_mshp.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>2350A601</checksum>
+    </file>
+    <file>
+      <filename>util.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>22C6561D</checksum>
+    </file>
+    <file>
+      <filename>geometry.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>4E6EFE03</checksum>
+    </file>
+    <file>
+      <filename>constants.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>1036AA7A</checksum>
+    </file>
+    <file>
+      <filename>hvac.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>B604F457</checksum>
+    </file>
+    <file>
+      <version>
+        <software_program>OpenStudio</software_program>
+        <identifier>1.10.6</identifier>
+        <min_compatible>1.13.1</min_compatible>
+      </version>
+      <filename>measure.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>script</usage_type>
+      <checksum>16471E8D</checksum>
+    </file>
+    <file>
+      <filename>process_boiler_electric_test.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>test</usage_type>
+      <checksum>30D166C3</checksum>
+    </file>
+  </files>
+</measure>

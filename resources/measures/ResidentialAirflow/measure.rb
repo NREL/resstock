@@ -1408,8 +1408,9 @@ class ResidentialAirflow < OpenStudio::Ruleset::ModelUserScript
       
       # _processDuctLeakage
       unless ducts.DuctNormLeakageToOutside.nil?
-        runner.registerError("Duct leakage to outside was specified by we don't calculate fan air flow rate.")
-        return false
+        # runner.registerError("Duct leakage to outside was specified by we don't calculate fan air flow rate.")
+        # return false
+        ducts = calc_duct_leakage_from_test(ducts, unit.finished_floor_area, fan_AirFlowRate) # TODO: what should fan_AirFlowRate be?
       end
       
       ducts.total_duct_unbalance = (ducts.supply_duct_loss - ducts.return_duct_loss).abs
@@ -2708,6 +2709,58 @@ class ResidentialAirflow < OpenStudio::Ruleset::ModelUserScript
     else
       return 2.0388 + 0.7053*nominalR
     end
+  end
+  
+def calc_duct_leakage_from_test(ducts, ffa, fan_AirFlowRate)
+    '''
+    Calculates duct leakage inputs based on duct blaster type leakage measurements (cfm @ 25 Pa per 100 ft2 conditioned floor area).
+    Requires assumptions about supply/return leakage split, air handler leakage, and duct plenum (de)pressurization. 
+    '''
+    # Assumptions
+    supply_duct_leakage_frac = 0.67 # 2013 RESNET Standards, Appendix A, p.A-28
+    return_duct_leakage_frac = 0.33 # 2013 RESNET Standards, Appendix A, p.A-28
+    ah_leakage = 0.025 # 2.5% of air handler flow at 25 P (Reference: ASHRAE Standard 152-2004, Annex C, p 33; Walker et al 2010. "Air Leakage of Furnaces and Air Handlers") 
+    ah_supply_frac = 0.20 # (Reference: Walker et al 2010. "Air Leakage of Furnaces and Air Handlers") 
+    ah_return_frac = 0.80 # (Reference: Walker et al 2010. "Air Leakage of Furnaces and Air Handlers") 
+    p_supply = 25.0 # Assume average operating pressure in ducts is 25 Pa, 
+    p_return = 25.0 # though it is likely lower (Reference: Pigg and Francisco 2008 "A Field Study of Exterior Duct Leakage in New Wisconsin Homes")
+
+    # Conversion
+    cfm25 = ducts.DuctNormLeakageToOutside * ffa / 100.0 #denormalize leakage
+    ah_cfm25 = AH_leakage * fan_AirFlowRate # air handler leakage flow rate at 25 Pa
+    ah_supply_leak_cfm25 = [ah_cfm25 * ah_supply_frac, cfm25 * supply_duct_leakage_frac].min
+    ah_return_leak_cfm25 = [ah_cfm25 * ah_return_frac, cfm25 * return_duct_leakage_frac].min
+    supply_leak_cfm25 = [cfm25 * supply_duct_leakage_frac - ah_supply_leak_cfm25, 0].max
+    return_leak_cfm25 = [cfm25 * return_duct_leakage_frac - ah_return_leak_cfm25, 0].max
+    
+    ducts.supply_leak_oper = calc_duct_leakage_at_diff_pressure(supply_leak_cfm25, 25, p_supply) # cfm at operating pressure
+    ducts.return_leak_oper = calc_duct_leakage_at_diff_pressure(return_leak_cfm25, 25, p_return) # cfm at operating pressure
+    ducts.AH_supply_leak_oper = calc_duct_leakage_at_diff_pressure(ah_supply_leak_cfm25, 25, p_supply) # cfm at operating pressure
+    ducts.AH_return_leak_oper = calc_duct_leakage_at_diff_pressure(ah_return_leak_cfm25, 25, p_return) # cfm at operating pressure
+    
+    if fan_AirFlowRate == 0
+        ducts.DuctSupplyLeakage = 0
+        ducts.DuctReturnLeakage = 0
+        ducts.DuctAHSupplyLeakage = 0
+        ducts.DuctAHReturnLeakage = 0
+    else
+        ducts.DuctSupplyLeakage   = ducts.supply_leak_oper / fan_AirFlowRate
+        ducts.DuctReturnLeakage   = ducts.return_leak_oper / fan_AirFlowRate
+        ducts.DuctAHSupplyLeakage = ducts.AH_supply_leak_oper / fan_AirFlowRate
+        ducts.DuctAHReturnLeakage = ducts.AH_return_leak_oper / fan_AirFlowRate
+    end
+
+    ducts.supply_duct_loss = ducts.DuctSupplyLeakage + ducts.DuctAHSupplyLeakage
+    ducts.return_duct_loss = ducts.DuctReturnLeakage + ducts.DuctAHReturnLeakage
+
+    # Leakage to outside was specified, so don't account for location fraction 
+    ducts.DuctLocationFracLeakage = 1
+    
+    return ducts
+  end
+  
+  def calc_duct_leakage_at_diff_pressure(q_old, p_old, p_new)
+    return q_old * (p_new / p_old) ** 0.6 # Derived from Equation C-1 (Annex C), p34, ASHRAE Standard 152-2004.
   end
   
 end

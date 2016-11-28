@@ -607,6 +607,18 @@ class HVAC
       return 0.24
     end  
   
+    def self.get_furnace_hir(furnaceInstalledAFUE)
+      # Based on DOE2 Volume 5 Compliance Analysis manual.
+      # This is not used until we have a better way of disaggregating AFUE
+      # if FurnaceInstalledAFUE <= 0.835:
+      #     hir = 1 / (0.2907 * FurnaceInstalledAFUE + 0.5787)
+      # else:
+      #     hir = 1 / (1.1116 * FurnaceInstalledAFUE - 0.098185)
+
+      hir = 1.0 / furnaceInstalledAFUE
+      return hir
+    end  
+  
     def self.get_control_and_slave_zones(thermal_zones)
       control_slave_zones_hash = {}
       finished_above_grade_zones, finished_below_grade_zones = Geometry.get_finished_above_and_below_grade_zones(thermal_zones)

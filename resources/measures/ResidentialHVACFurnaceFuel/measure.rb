@@ -14,7 +14,7 @@ require "#{File.dirname(__FILE__)}/resources/unit_conversions"
 require "#{File.dirname(__FILE__)}/resources/hvac"
 
 #start the measure
-class ProcessFurnace < OpenStudio::Ruleset::ModelUserScript
+class ProcessFurnaceFuel < OpenStudio::Ruleset::ModelUserScript
 
   class Supply
     def initialize
@@ -25,7 +25,7 @@ class ProcessFurnace < OpenStudio::Ruleset::ModelUserScript
   #define the name that a user will see, this method may be deprecated as
   #the display name in PAT comes from the name field in measure.xml
   def name
-    return "Set Residential Furnace"
+    return "Set Residential Furnace Fuel"
   end
   
   def description
@@ -33,16 +33,15 @@ class ProcessFurnace < OpenStudio::Ruleset::ModelUserScript
   end
   
   def modeler_description
-    return "Any heating components or baseboard convective electrics/waters are removed from any existing air/plant loops or zones. Any existing air/plant loops are also removed. An electric or fuel heating coil and an on/off supply fan are added to a unitary air loop. The unitary air loop is added to the supply inlet node of the air loop. This air loop is added to a branch for the living zone. A diffuser is added to the branch for the living zone as well as for the finished basement if it exists."
+    return "Any heating components or baseboard convective electrics/waters are removed from any existing air/plant loops or zones. Any existing air/plant loops are also removed. A fuel heating coil and an on/off supply fan are added to a unitary air loop. The unitary air loop is added to the supply inlet node of the air loop. This air loop is added to a branch for the living zone. A diffuser is added to the branch for the living zone as well as for the finished basement if it exists."
   end   
   
   #define the arguments that the user will input
   def arguments(model)
     args = OpenStudio::Ruleset::OSArgumentVector.new
-
+	
     #make a string argument for furnace fuel type
     fuel_display_names = OpenStudio::StringVector.new
-    fuel_display_names << Constants.FuelTypeElectric
     fuel_display_names << Constants.FuelTypeGas
     fuel_display_names << Constants.FuelTypeOil
     fuel_display_names << Constants.FuelTypePropane
@@ -50,8 +49,8 @@ class ProcessFurnace < OpenStudio::Ruleset::ModelUserScript
     fueltype.setDisplayName("Fuel Type")
     fueltype.setDescription("Type of fuel used for heating.")
     fueltype.setDefaultValue(Constants.FuelTypeGas)
-    args << fueltype
-	
+    args << fueltype  
+  
     #make an argument for entering furnace installed afue
     afue = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("afue",true)
     afue.setDisplayName("Installed AFUE")
@@ -134,7 +133,7 @@ class ProcessFurnace < OpenStudio::Ruleset::ModelUserScript
 
     supply.htg_supply_air_temp = furnaceMaxSupplyTemp
 
-    hir = get_furnace_hir(furnaceInstalledAFUE)
+    hir = HVAC.get_furnace_hir(furnaceInstalledAFUE)
 
     # Parasitic Electricity (Source: DOE. (2007). Technical Support Document: Energy Efficiency Program for Consumer Products: "Energy Conservation Standards for Residential Furnaces and Boilers". www.eere.energy.gov/buildings/appliance_standards/residential/furnaces_boilers.html)
     #             FurnaceParasiticElecDict = {Constants.FuelTypeGas     :  76, # W during operation
@@ -164,30 +163,17 @@ class ProcessFurnace < OpenStudio::Ruleset::ModelUserScript
         clg_coil = HVAC.remove_existing_hvac_equipment(model, runner, "Furnace", control_zone)
         
         # _processSystemHeatingCoil
-        
-        if furnaceFuelType == Constants.FuelTypeElectric
 
-          htg_coil = OpenStudio::Model::CoilHeatingElectric.new(model)
-          htg_coil.setName("Furnace Heating Coil_#{unit_num}")
-          htg_coil.setEfficiency(1.0 / hir)
-          if furnaceOutputCapacity != Constants.SizingAuto
-            htg_coil.setNominalCapacity(OpenStudio::convert(furnaceOutputCapacity,"Btu/h","W").get)
-          end
+        htg_coil = OpenStudio::Model::CoilHeatingGas.new(model)
+        htg_coil.setName("Furnace Heating Coil_#{unit_num}")
+        htg_coil.setGasBurnerEfficiency(1.0 / hir)
+        if furnaceOutputCapacity != Constants.SizingAuto
+          htg_coil.setNominalCapacity(OpenStudio::convert(furnaceOutputCapacity,"Btu/h","W").get)
+        end
 
-        else
-
-          htg_coil = OpenStudio::Model::CoilHeatingGas.new(model)
-          htg_coil.setName("Furnace Heating Coil_#{unit_num}")
-          htg_coil.setGasBurnerEfficiency(1.0 / hir)
-          if furnaceOutputCapacity != Constants.SizingAuto
-            htg_coil.setNominalCapacity(OpenStudio::convert(furnaceOutputCapacity,"Btu/h","W").get)
-          end
-
-          htg_coil.setParasiticElectricLoad(aux_elec) # set to zero until we figure out a way to distribute to the correct end uses (DOE-2 limitation?)
-          htg_coil.setParasiticGasLoad(0)
-          htg_coil.setFuelType(HelperMethods.eplus_fuel_map(furnaceFuelType))
-
-        end    
+        htg_coil.setParasiticElectricLoad(aux_elec) # set to zero until we figure out a way to distribute to the correct end uses (DOE-2 limitation?)
+        htg_coil.setParasiticGasLoad(0)
+        htg_coil.setFuelType(HelperMethods.eplus_fuel_map(furnaceFuelType))
         
         # _processSystemFan
         
@@ -281,21 +267,9 @@ class ProcessFurnace < OpenStudio::Ruleset::ModelUserScript
 	
     return true
  
-  end #end the run method
-
-  def get_furnace_hir(furnaceInstalledAFUE)
-    # Based on DOE2 Volume 5 Compliance Analysis manual.
-    # This is not used until we have a better way of disaggregating AFUE
-    # if FurnaceInstalledAFUE <= 0.835:
-    #     hir = 1 / (0.2907 * FurnaceInstalledAFUE + 0.5787)
-    # else:
-    #     hir = 1 / (1.1116 * FurnaceInstalledAFUE - 0.098185)
-
-    hir = 1.0 / furnaceInstalledAFUE
-    return hir
-  end  
+  end #end the run method  
   
 end #end the measure
 
 #this allows the measure to be use by the application
-ProcessFurnace.new.registerWithApplication
+ProcessFurnaceFuel.new.registerWithApplication

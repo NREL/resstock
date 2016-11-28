@@ -1,14 +1,14 @@
 <measure>
   <schema_version>3.0</schema_version>
-  <name>process_furnace</name>
-  <uid>18ba60d7-82a7-45c7-a0ed-bafb828ca0e2</uid>
-  <version_id>fb52cfe4-b626-4885-820f-09148a03c614</version_id>
-  <version_modified>20161122T201709Z</version_modified>
-  <xml_checksum>0DA5C9E6</xml_checksum>
-  <class_name>ProcessFurnace</class_name>
-  <display_name>Set Residential Furnace</display_name>
+  <name>process_furnace_fuel</name>
+  <uid>1a71ae9e-5485-4cca-a369-16c6b8a9c1d8</uid>
+  <version_id>59b875cd-5a96-4320-b02e-68a6e4326932</version_id>
+  <version_modified>20161128T140709Z</version_modified>
+  <xml_checksum>470FC630</xml_checksum>
+  <class_name>ProcessFurnaceFuel</class_name>
+  <display_name>Set Residential Furnace Fuel</display_name>
   <description>This measure removes any existing HVAC heating components from the building and adds a furnace along with an on/off supply fan to a unitary air loop. For multifamily buildings, the furnace can be set for all units of the building.</description>
-  <modeler_description>Any heating components or baseboard convective electrics/waters are removed from any existing air/plant loops or zones. Any existing air/plant loops are also removed. An electric or fuel heating coil and an on/off supply fan are added to a unitary air loop. The unitary air loop is added to the supply inlet node of the air loop. This air loop is added to a branch for the living zone. A diffuser is added to the branch for the living zone as well as for the finished basement if it exists.</modeler_description>
+  <modeler_description>Any heating components or baseboard convective electrics/waters are removed from any existing air/plant loops or zones. Any existing air/plant loops are also removed. A fuel heating coil and an on/off supply fan are added to a unitary air loop. The unitary air loop is added to the supply inlet node of the air loop. This air loop is added to a branch for the living zone. A diffuser is added to the branch for the living zone as well as for the finished basement if it exists.</modeler_description>
   <arguments>
     <argument>
       <name>fuel_type</name>
@@ -19,10 +19,6 @@
       <model_dependent>false</model_dependent>
       <default_value>gas</default_value>
       <choices>
-        <choice>
-          <value>electric</value>
-          <display_name>electric</display_name>
-        </choice>
         <choice>
           <value>gas</value>
           <display_name>gas</display_name>
@@ -213,12 +209,34 @@
       <datatype>string</datatype>
     </attribute>
     <attribute>
-      <name>Uses SketchUp API</name>
-      <value>false</value>
-      <datatype>boolean</datatype>
+      <name>Intended Software Tool</name>
+      <value>Apply Measure Now</value>
+      <datatype>string</datatype>
+    </attribute>
+    <attribute>
+      <name>Intended Software Tool</name>
+      <value>OpenStudio Application</value>
+      <datatype>string</datatype>
+    </attribute>
+    <attribute>
+      <name>Intended Software Tool</name>
+      <value>Parametric Analysis Tool</value>
+      <datatype>string</datatype>
     </attribute>
   </attributes>
   <files>
+    <file>
+      <filename>multifamily_8_units.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>AD4C79BA</checksum>
+    </file>
+    <file>
+      <filename>singlefamily_attached_fbsmt_4_units.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>A078F665</checksum>
+    </file>
     <file>
       <filename>singlefamily_detached.osm</filename>
       <filetype>osm</filetype>
@@ -232,16 +250,28 @@
       <checksum>6AB838B7</checksum>
     </file>
     <file>
-      <filename>singlefamily_detached_fbsmt_furnace.osm</filename>
-      <filetype>osm</filetype>
-      <usage_type>test</usage_type>
-      <checksum>756CBE98</checksum>
-    </file>
-    <file>
       <filename>singlefamily_detached_fbsmt_ashp.osm</filename>
       <filetype>osm</filetype>
       <usage_type>test</usage_type>
       <checksum>4841EEEF</checksum>
+    </file>
+    <file>
+      <filename>singlefamily_detached_fbsmt_boiler.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>A02CCA31</checksum>
+    </file>
+    <file>
+      <filename>singlefamily_detached_fbsmt_boiler_central_air_conditioner.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>EEC456BF</checksum>
+    </file>
+    <file>
+      <filename>singlefamily_detached_fbsmt_boiler_room_air_conditioner.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>E8F8272E</checksum>
     </file>
     <file>
       <filename>singlefamily_detached_fbsmt_central_air_conditioner.osm</filename>
@@ -250,22 +280,28 @@
       <checksum>645F0232</checksum>
     </file>
     <file>
-      <filename>singlefamily_detached_fbsmt_room_air_conditioner.osm</filename>
-      <filetype>osm</filetype>
-      <usage_type>test</usage_type>
-      <checksum>38A2C794</checksum>
-    </file>
-    <file>
       <filename>singlefamily_detached_fbsmt_electric_baseboard.osm</filename>
       <filetype>osm</filetype>
       <usage_type>test</usage_type>
       <checksum>3A80FEBE</checksum>
     </file>
     <file>
-      <filename>singlefamily_detached_fbsmt_boiler.osm</filename>
+      <filename>singlefamily_detached_fbsmt_electric_baseboard_central_air_conditioner.osm</filename>
       <filetype>osm</filetype>
       <usage_type>test</usage_type>
-      <checksum>A02CCA31</checksum>
+      <checksum>8A141E28</checksum>
+    </file>
+    <file>
+      <filename>singlefamily_detached_fbsmt_electric_baseboard_room_air_conditioner.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>12044FCE</checksum>
+    </file>
+    <file>
+      <filename>singlefamily_detached_fbsmt_furnace.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>756CBE98</checksum>
     </file>
     <file>
       <filename>singlefamily_detached_fbsmt_furnace_central_air_conditioner.osm</filename>
@@ -280,46 +316,16 @@
       <checksum>5DFCEEF4</checksum>
     </file>
     <file>
-      <filename>singlefamily_detached_fbsmt_electric_baseboard_central_air_conditioner.osm</filename>
-      <filetype>osm</filetype>
-      <usage_type>test</usage_type>
-      <checksum>8A141E28</checksum>
-    </file>
-    <file>
-      <filename>singlefamily_detached_fbsmt_boiler_central_air_conditioner.osm</filename>
-      <filetype>osm</filetype>
-      <usage_type>test</usage_type>
-      <checksum>EEC456BF</checksum>
-    </file>
-    <file>
-      <filename>singlefamily_detached_fbsmt_electric_baseboard_room_air_conditioner.osm</filename>
-      <filetype>osm</filetype>
-      <usage_type>test</usage_type>
-      <checksum>12044FCE</checksum>
-    </file>
-    <file>
-      <filename>singlefamily_detached_fbsmt_boiler_room_air_conditioner.osm</filename>
-      <filetype>osm</filetype>
-      <usage_type>test</usage_type>
-      <checksum>E8F8272E</checksum>
-    </file>
-    <file>
-      <filename>singlefamily_attached_fbsmt_4_units.osm</filename>
-      <filetype>osm</filetype>
-      <usage_type>test</usage_type>
-      <checksum>A078F665</checksum>
-    </file>
-    <file>
-      <filename>multifamily_8_units.osm</filename>
-      <filetype>osm</filetype>
-      <usage_type>test</usage_type>
-      <checksum>AD4C79BA</checksum>
-    </file>
-    <file>
       <filename>singlefamily_detached_fbsmt_mshp.osm</filename>
       <filetype>osm</filetype>
       <usage_type>test</usage_type>
       <checksum>2350A601</checksum>
+    </file>
+    <file>
+      <filename>singlefamily_detached_fbsmt_room_air_conditioner.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>38A2C794</checksum>
     </file>
     <file>
       <filename>unit_conversions.rb</filename>
@@ -328,33 +334,10 @@
       <checksum>92D6C640</checksum>
     </file>
     <file>
-      <filename>process_furnace_test.rb</filename>
-      <filetype>rb</filetype>
-      <usage_type>test</usage_type>
-      <checksum>70033B16</checksum>
-    </file>
-    <file>
-      <version>
-        <software_program>OpenStudio</software_program>
-        <identifier>1.4.0</identifier>
-        <min_compatible>1.13.1</min_compatible>
-      </version>
-      <filename>measure.rb</filename>
-      <filetype>rb</filetype>
-      <usage_type>script</usage_type>
-      <checksum>C91C9BB8</checksum>
-    </file>
-    <file>
       <filename>util.rb</filename>
       <filetype>rb</filetype>
       <usage_type>resource</usage_type>
       <checksum>22C6561D</checksum>
-    </file>
-    <file>
-      <filename>hvac.rb</filename>
-      <filetype>rb</filetype>
-      <usage_type>resource</usage_type>
-      <checksum>E0FB4D46</checksum>
     </file>
     <file>
       <filename>constants.rb</filename>
@@ -367,6 +350,29 @@
       <filetype>rb</filetype>
       <usage_type>resource</usage_type>
       <checksum>4E6EFE03</checksum>
+    </file>
+    <file>
+      <filename>hvac.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>B604F457</checksum>
+    </file>
+    <file>
+      <version>
+        <software_program>OpenStudio</software_program>
+        <identifier>1.13.2</identifier>
+        <min_compatible>1.13.2</min_compatible>
+      </version>
+      <filename>measure.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>script</usage_type>
+      <checksum>52A5182C</checksum>
+    </file>
+    <file>
+      <filename>process_furnace_fuel_test.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>test</usage_type>
+      <checksum>9E1025F7</checksum>
     </file>
   </files>
 </measure>
