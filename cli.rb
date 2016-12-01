@@ -82,6 +82,8 @@ def lookup_target_url(target_type)
       server_dns = 'http://bball-130553.nrel.gov:8080'
     when 'nrel24b'
       server_dns = 'http://bball-130590.nrel.gov:8080'
+    when 'lcnode1'
+      server_dns = 'http://10.60.7.61:8080'
     else
       puts "ERROR: TARGET -- Unknown 'target_type' in #{__method__}"
       fail 1

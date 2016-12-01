@@ -63,7 +63,7 @@ def validate_sampling(mode)
     results_data_dir = File.join(results_dir, mode, "data")
     FileUtils.rm_rf("#{results_data_dir}/.", secure: true)
     FileUtils.mkpath(results_data_dir)
-    all_samples_results = generate_data_output(results_data, tsvfiles, results_data_dir, skip_headers, report_name)
+    all_samples_results = generate_data_output(results_data, tsvfiles, results_data_dir, skip_headers, report_name, results_file)
     generate_data_input(results_data, tsvfiles, results_data_dir, skip_headers, report_name)
     
     # Visualization
@@ -73,7 +73,7 @@ def validate_sampling(mode)
     generate_visualizations(results_data, tsvfiles, results_vis_dir, all_samples_results, skip_headers, report_name)
 end 
 
-def generate_data_output(results_data, tsvfiles, results_data_dir, skip_headers, report_name)
+def generate_data_output(results_data, tsvfiles, results_data_dir, skip_headers, report_name, results_file)
     # Create map of parameter names to results_file columns
     results_file_cols = {}
     tsvfiles.keys.each do |param_name|
@@ -125,6 +125,9 @@ def generate_data_output(results_data, tsvfiles, results_data_dir, skip_headers,
             results_data[1..-1].each do |row|
                 row_match = true
                 tsvfile.dependency_cols.each_with_index do |(dep_name, dep_col), index|
+                    if results_file_cols[dep_name].nil?
+                        fail "ERROR: Could not find '#{dep_name.to_s}' in #{results_file.to_s}."
+                    end
                     if row[results_file_cols[dep_name]].downcase != dep_combo[index].downcase
                         row_match = false
                     end
