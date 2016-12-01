@@ -1069,11 +1069,11 @@ class Create_DFs():
         df = util.assign_hvac_system_is_combined(df, 'htg_and_clg')        
         df.loc[df['Dependency=HVAC System Is Combined']=='Yes', 'clg'] = 'None'
         df, cols = util.categories_to_columns(df, 'clg')
-        df = df.groupby(['Dependency=Location Cooling Region', 'Dependency=Vintage', 'Dependency=Heating Fuel', 'Dependency=HVAC System Is Combined'])
+        df = df.groupby(['Dependency=Location Cooling Region', 'Dependency=Vintage', 'Dependency=HVAC System Is Combined'])
         missing_groups = []
-        for group in itertools.product(*[['C1', 'C2', 'C3'], ['<1950', '1950s', '1960s', '1970s', '1980s', '1990s', '2000s'], ['Electricity', 'Fuel Oil', 'Natural Gas', 'Propane/LPG', 'Wood'], ['Yes', 'No']]):
+        for group in itertools.product(*[['C1', 'C2', 'C3'], ['<1950', '1950s', '1960s', '1970s', '1980s', '1990s', '2000s'], ['Yes', 'No']]):
             if not group in list(df.groups):
-                missing_groups.append(dict(zip(['Dependency=Location Cooling Region', 'Dependency=Vintage', 'Dependency=Heating Fuel', 'Dependency=HVAC System Is Combined'], group)))           
+                missing_groups.append(dict(zip(['Dependency=Location Cooling Region', 'Dependency=Vintage', 'Dependency=HVAC System Is Combined'], group)))           
         count = df.agg(['count']).ix[:, 0]
         weight = df.agg(['sum'])['Weight']
         df = util.sum_cols(df, cols)
@@ -1088,11 +1088,11 @@ class Create_DFs():
                 data = dict(group.items() + dict(zip(columns, [1.0/len(columns)] * len(columns))).items())
                 columns.append('None')
                 data['None'] = 0
-                df_new = pd.DataFrame(data=data, index=[0]).set_index(['Dependency=Location Cooling Region', 'Dependency=Vintage', 'Dependency=Heating Fuel', 'Dependency=HVAC System Is Combined'])
+                df_new = pd.DataFrame(data=data, index=[0]).set_index(['Dependency=Location Cooling Region', 'Dependency=Vintage', 'Dependency=HVAC System Is Combined'])
             else:
                 data = dict(group.items() + dict(zip(columns, [0] * len(columns))).items())
                 data['None'] = 1
-                df_new = pd.DataFrame(data=data, index=[0]).set_index(['Dependency=Location Cooling Region', 'Dependency=Vintage', 'Dependency=Heating Fuel', 'Dependency=HVAC System Is Combined'])
+                df_new = pd.DataFrame(data=data, index=[0]).set_index(['Dependency=Location Cooling Region', 'Dependency=Vintage', 'Dependency=HVAC System Is Combined'])
             df_new['Count'] = 0
             df_new['Weight'] = 0
             df = df.append(df_new)
@@ -1111,7 +1111,7 @@ class Create_DFs():
         df = df[['Option=AC, SEER 10', 'Option=AC, SEER 13', 'Option=AC, SEER 15', 'Option=FIXME Room AC, EER 9.8, 20% Conditioned', 'Option=FIXME Evaporative Cooler', 'Option=None', 'Count', 'Weight']]
         df = df.reset_index()
         df['Dependency=Vintage'] = pd.Categorical(df['Dependency=Vintage'], ['<1950', '1950s', '1960s', '1970s', '1980s', '1990s', '2000s'])
-        df = df.sort_values(by=['Dependency=Location Cooling Region', 'Dependency=Heating Fuel', 'Dependency=HVAC System Is Combined', 'Dependency=Vintage']).set_index(['Dependency=Location Cooling Region', 'Dependency=Heating Fuel', 'Dependency=HVAC System Is Combined', 'Dependency=Vintage'])
+        df = df.sort_values(by=['Dependency=Location Cooling Region', 'Dependency=HVAC System Is Combined', 'Dependency=Vintage']).set_index(['Dependency=Location Cooling Region', 'Dependency=HVAC System Is Combined', 'Dependency=Vintage'])
         return df
     
     def ducts(self):
