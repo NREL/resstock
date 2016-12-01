@@ -445,7 +445,6 @@ class Create_DFs():
         df = util.assign_state(df)
         df = util.assign_heating_location(df)
         df = util.assign_vintage(df) 
-        # df = util.assign_foundation_type(df)
         df = util.assign_size(df)
         df = util.assign_stories(df)
         df, cols = util.categories_to_columns(df, 'Dependency=Stories')
@@ -979,7 +978,7 @@ class Create_DFs():
         df = df.sort_values(by=['Dependency=Location Heating Region', 'Dependency=Heating Fuel', 'Dependency=Vintage']).set_index(['Dependency=Location Heating Region', 'Dependency=Heating Fuel', 'Dependency=Vintage'])        
         return df
         
-    def hvac_system_heating(self):
+    def hvac_system_heating_electricity(self, smooth=False):
         df = util.create_dataframe(self.session, rdb)
         df = util.assign_climate_zones(df)
         df = util.assign_state(df)
@@ -1002,18 +1001,64 @@ class Create_DFs():
         df = util.sum_cols(df, cols)
         df['Count'] = count
         df['Weight'] = weight
-        columns = list(df.columns)
-        columns.remove('Count')
-        columns.remove('Weight')
+        columns = ['Electric Baseboard', 'Electric Boiler', 'Electric Furnace', 'None']
         for group in missing_groups:
-            if group['Dependency=HVAC System Is Combined'] == 'No':
+            if group['Dependency=HVAC System Is Combined'] == 'No' and group['Dependency=Heating Fuel'] == 'Electricity':
                 columns.remove('None')
-                data = dict(group.items() + dict(zip(columns, [1.0/len(columns)] * len(columns))).items())
+                data = dict(group.items() + dict(zip(columns, [1.0/3.0] * 3)).items())
                 columns.append('None')
                 data['None'] = 0
                 df_new = pd.DataFrame(data=data, index=[0]).set_index(['Dependency=Location Heating Region', 'Dependency=Vintage', 'Dependency=Heating Fuel', 'Dependency=HVAC System Is Combined'])
             else:
-                data = dict(group.items() + dict(zip(columns, [0] * len(columns))).items())
+                data = dict(group.items() + dict(zip(columns, [0] * 3)).items())
+                data['None'] = 1
+                df_new = pd.DataFrame(data=data, index=[0]).set_index(['Dependency=Location Heating Region', 'Dependency=Vintage', 'Dependency=Heating Fuel', 'Dependency=HVAC System Is Combined'])
+            df_new['Count'] = 0
+            df_new['Weight'] = 0
+            df = df.append(df_new)
+        df = add_option_prefix(df)
+        df = df[['Option=Electric Baseboard', 'Option=Electric Boiler', 'Option=Electric Furnace', 'Option=None', 'Count', 'Weight']]
+        df = df.reset_index()
+        df.loc[df['Dependency=Heating Fuel']!='Electricity', 'Option=None'] = 1
+        df['Dependency=Vintage'] = pd.Categorical(df['Dependency=Vintage'], ['<1950', '1950s', '1960s', '1970s', '1980s', '1990s', '2000s'])
+        df = df.sort_values(by=['Dependency=Location Heating Region', 'Dependency=Heating Fuel', 'Dependency=HVAC System Is Combined', 'Dependency=Vintage']).set_index(['Dependency=Location Heating Region', 'Dependency=Heating Fuel', 'Dependency=HVAC System Is Combined', 'Dependency=Vintage'])
+        # if smooth:
+            # df = apply_smoothing(df, 'Dependency=Location Heating Region', 'Dependency=Vintage')        
+        return df
+        
+    def hvac_system_heating_natural_gas(self, smooth=False):
+        df = util.create_dataframe(self.session, rdb)
+        df = util.assign_climate_zones(df)
+        df = util.assign_state(df)
+        df = util.assign_heating_location(df)
+        df = util.assign_cooling_location(df)
+        df = util.assign_vintage(df)
+        df = util.assign_heating_fuel(df)
+        df = util.assign_hvac_system_combined(df)
+        df = util.assign_hvac_system_heating(df)      
+        df = util.assign_hvac_system_is_combined(df, 'htg_and_clg')
+        df.loc[df['Dependency=HVAC System Is Combined']=='Yes', 'htg'] = 'None'
+        df, cols = util.categories_to_columns(df, 'htg')
+        df = df.groupby(['Dependency=Location Heating Region', 'Dependency=Vintage', 'Dependency=Heating Fuel', 'Dependency=HVAC System Is Combined'])
+        missing_groups = []
+        for group in itertools.product(*[['H1', 'H2', 'H3'], ['<1950', '1950s', '1960s', '1970s', '1980s', '1990s', '2000s'], ['Electricity', 'Fuel Oil', 'Natural Gas', 'Propane/LPG', 'Wood'], ['Yes', 'No']]):
+            if not group in list(df.groups):
+                missing_groups.append(dict(zip(['Dependency=Location Heating Region', 'Dependency=Vintage', 'Dependency=Heating Fuel', 'Dependency=HVAC System Is Combined'], group)))           
+        count = df.agg(['count']).ix[:, 0]
+        weight = df.agg(['sum'])['Weight']
+        df = util.sum_cols(df, cols)
+        df['Count'] = count
+        df['Weight'] = weight
+        columns = ['Gas Boiler, 72% AFUE', 'Gas Boiler, 76% AFUE', 'Gas Boiler, 80% AFUE', 'Gas Boiler, 85% AFUE', 'Gas Boiler, 96% AFUE', 'Gas Furnace, 60% AFUE', 'Gas Furnace, 68% AFUE', 'Gas Furnace, 76% AFUE', 'Gas Furnace, 80% AFUE', 'Gas Furnace, 90% AFUE', 'Gas Furnace, 96% AFUE', 'Gas Stove, 75% AFUE', 'None']
+        for group in missing_groups:
+            if group['Dependency=HVAC System Is Combined'] == 'No' and group['Dependency=Heating Fuel'] == 'Natural Gas':
+                columns.remove('None')
+                data = dict(group.items() + dict(zip(columns, [1.0/12.0] * 12)).items())
+                columns.append('None')
+                data['None'] = 0
+                df_new = pd.DataFrame(data=data, index=[0]).set_index(['Dependency=Location Heating Region', 'Dependency=Vintage', 'Dependency=Heating Fuel', 'Dependency=HVAC System Is Combined'])
+            else:
+                data = dict(group.items() + dict(zip(columns, [0] * 12)).items())
                 data['None'] = 1
                 df_new = pd.DataFrame(data=data, index=[0]).set_index(['Dependency=Location Heating Region', 'Dependency=Vintage', 'Dependency=Heating Fuel', 'Dependency=HVAC System Is Combined'])
             df_new['Count'] = 0
@@ -1050,13 +1095,151 @@ class Create_DFs():
             df.loc[index, 'Gas Boiler, 96% AFUE'] += row['Gas Boiler'] / 5.0
         df = df.fillna(0)
         df = add_option_prefix(df)
-        df = df[['Option=Electric Baseboard', 'Option=Electric Boiler', 'Option=Electric Furnace', 'Option=Gas Boiler, 72% AFUE', 'Option=Gas Boiler, 76% AFUE', 'Option=Gas Boiler, 80% AFUE', 'Option=Gas Boiler, 85% AFUE', 'Option=Gas Boiler, 96% AFUE', 'Option=Gas Furnace, 60% AFUE', 'Option=Gas Furnace, 68% AFUE', 'Option=Gas Furnace, 76% AFUE', 'Option=Gas Furnace, 80% AFUE', 'Option=Gas Furnace, 90% AFUE', 'Option=Gas Furnace, 96% AFUE', 'Option=FIXME Gas Stove, 75% AFUE', 'Option=Oil Boiler', 'Option=Oil Furnace', 'Option=FIXME Oil Stove', 'Option=Propane Boiler', 'Option=FIXME Propane Stove', 'Option=FIXME Wood Stove', 'Option=None', 'Count', 'Weight']]
+        df = df[['Option=Gas Boiler, 72% AFUE', 'Option=Gas Boiler, 76% AFUE', 'Option=Gas Boiler, 80% AFUE', 'Option=Gas Boiler, 85% AFUE', 'Option=Gas Boiler, 96% AFUE', 'Option=Gas Furnace, 60% AFUE', 'Option=Gas Furnace, 68% AFUE', 'Option=Gas Furnace, 76% AFUE', 'Option=Gas Furnace, 80% AFUE', 'Option=Gas Furnace, 90% AFUE', 'Option=Gas Furnace, 96% AFUE', 'Option=FIXME Gas Stove, 75% AFUE', 'Option=None', 'Count', 'Weight']]
         df = df.reset_index()
+        df.loc[df['Dependency=Heating Fuel']!='Natural Gas', 'Option=None'] = 1        
         df['Dependency=Vintage'] = pd.Categorical(df['Dependency=Vintage'], ['<1950', '1950s', '1960s', '1970s', '1980s', '1990s', '2000s'])
         df = df.sort_values(by=['Dependency=Location Heating Region', 'Dependency=Heating Fuel', 'Dependency=HVAC System Is Combined', 'Dependency=Vintage']).set_index(['Dependency=Location Heating Region', 'Dependency=Heating Fuel', 'Dependency=HVAC System Is Combined', 'Dependency=Vintage'])
+        # if smooth:
+            # df = apply_smoothing(df, 'Dependency=Location Heating Region', 'Dependency=Vintage')        
+        return df
+        
+    def hvac_system_heating_fuel_oil(self):
+        df = util.create_dataframe(self.session, rdb)
+        df = util.assign_climate_zones(df)
+        df = util.assign_state(df)
+        df = util.assign_heating_location(df)
+        df = util.assign_cooling_location(df)
+        df = util.assign_vintage(df)
+        df = util.assign_heating_fuel(df)
+        df = util.assign_hvac_system_combined(df)
+        df = util.assign_hvac_system_heating(df)      
+        df = util.assign_hvac_system_is_combined(df, 'htg_and_clg')
+        df.loc[df['Dependency=HVAC System Is Combined']=='Yes', 'htg'] = 'None'
+        df, cols = util.categories_to_columns(df, 'htg')
+        df = df.groupby(['Dependency=Heating Fuel', 'Dependency=HVAC System Is Combined'])
+        missing_groups = []
+        for group in itertools.product(*[['Electricity', 'Fuel Oil', 'Natural Gas', 'Propane/LPG', 'Wood'], ['Yes', 'No']]):
+            if not group in list(df.groups):
+                missing_groups.append(dict(zip(['Dependency=Heating Fuel', 'Dependency=HVAC System Is Combined'], group)))           
+        count = df.agg(['count']).ix[:, 0]
+        weight = df.agg(['sum'])['Weight']
+        df = util.sum_cols(df, cols)
+        df['Count'] = count
+        df['Weight'] = weight
+        columns = ['Oil Boiler', 'Oil Furnace', 'Oil Stove', 'None']
+        for group in missing_groups:
+            if group['Dependency=HVAC System Is Combined'] == 'No' and group['Dependency=Heating Fuel'] == 'Fuel Oil':
+                columns.remove('None')
+                data = dict(group.items() + dict(zip(columns, [1.0/3.0] * 3)).items())
+                columns.append('None')
+                data['None'] = 0
+                df_new = pd.DataFrame(data=data, index=[0]).set_index(['Dependency=Heating Fuel', 'Dependency=HVAC System Is Combined'])
+            else:
+                data = dict(group.items() + dict(zip(columns, [0] * 3)).items())
+                data['None'] = 1
+                df_new = pd.DataFrame(data=data, index=[0]).set_index(['Dependency=Heating Fuel', 'Dependency=HVAC System Is Combined'])
+            df_new['Count'] = 0
+            df_new['Weight'] = 0
+            df = df.append(df_new)
+        df = add_option_prefix(df)
+        df = df[['Option=Oil Boiler', 'Option=Oil Furnace', 'Option=FIXME Oil Stove', 'Option=None', 'Count', 'Weight']]
+        df = df.reset_index()
+        df.loc[df['Dependency=Heating Fuel']!='Fuel Oil', 'Option=None'] = 1
+        df = df.sort_values(by=['Dependency=Heating Fuel', 'Dependency=HVAC System Is Combined']).set_index(['Dependency=Heating Fuel', 'Dependency=HVAC System Is Combined'])
         return df        
         
-    def hvac_system_cooling(self):
+    def hvac_system_heating_propane(self):
+        df = util.create_dataframe(self.session, rdb)
+        df = util.assign_climate_zones(df)
+        df = util.assign_state(df)
+        df = util.assign_heating_location(df)
+        df = util.assign_cooling_location(df)
+        df = util.assign_vintage(df)
+        df = util.assign_heating_fuel(df)
+        df = util.assign_hvac_system_combined(df)
+        df = util.assign_hvac_system_heating(df)      
+        df = util.assign_hvac_system_is_combined(df, 'htg_and_clg')
+        df.loc[df['Dependency=HVAC System Is Combined']=='Yes', 'htg'] = 'None'
+        df, cols = util.categories_to_columns(df, 'htg')
+        df = df.groupby(['Dependency=Heating Fuel', 'Dependency=HVAC System Is Combined'])
+        missing_groups = []
+        for group in itertools.product(*[['Electricity', 'Fuel Oil', 'Natural Gas', 'Propane/LPG', 'Wood'], ['Yes', 'No']]):
+            if not group in list(df.groups):
+                missing_groups.append(dict(zip(['Dependency=Heating Fuel', 'Dependency=HVAC System Is Combined'], group)))           
+        count = df.agg(['count']).ix[:, 0]
+        weight = df.agg(['sum'])['Weight']
+        df = util.sum_cols(df, cols)
+        df['Count'] = count
+        df['Weight'] = weight
+        columns = ['Propane Boiler', 'Propane Stove', 'None']
+        for group in missing_groups:
+            if group['Dependency=HVAC System Is Combined'] == 'No' and group['Dependency=Heating Fuel'] == 'Propane/LPG':
+                columns.remove('None')
+                data = dict(group.items() + dict(zip(columns, [1.0/2.0] * 2)).items())
+                columns.append('None')
+                data['None'] = 0
+                df_new = pd.DataFrame(data=data, index=[0]).set_index(['Dependency=Heating Fuel', 'Dependency=HVAC System Is Combined'])
+            else:
+                data = dict(group.items() + dict(zip(columns, [0] * 2)).items())
+                data['None'] = 1
+                df_new = pd.DataFrame(data=data, index=[0]).set_index(['Dependency=Heating Fuel', 'Dependency=HVAC System Is Combined'])
+            df_new['Count'] = 0
+            df_new['Weight'] = 0
+            df = df.append(df_new)
+        df = add_option_prefix(df)
+        df = df[['Option=Propane Boiler', 'Option=FIXME Propane Stove', 'Option=None', 'Count', 'Weight']]
+        df = df.reset_index()
+        df.loc[df['Dependency=Heating Fuel']!='Propane/LPG', 'Option=None'] = 1
+        df = df.sort_values(by=['Dependency=Heating Fuel', 'Dependency=HVAC System Is Combined']).set_index(['Dependency=Heating Fuel', 'Dependency=HVAC System Is Combined'])
+        return df        
+        
+    def hvac_system_heating_wood(self):
+        df = util.create_dataframe(self.session, rdb)
+        df = util.assign_climate_zones(df)
+        df = util.assign_state(df)
+        df = util.assign_heating_location(df)
+        df = util.assign_cooling_location(df)
+        df = util.assign_vintage(df)
+        df = util.assign_heating_fuel(df)
+        df = util.assign_hvac_system_combined(df)
+        df = util.assign_hvac_system_heating(df)      
+        df = util.assign_hvac_system_is_combined(df, 'htg_and_clg')
+        df.loc[df['Dependency=HVAC System Is Combined']=='Yes', 'htg'] = 'None'
+        df, cols = util.categories_to_columns(df, 'htg')
+        df = df.groupby(['Dependency=Heating Fuel', 'Dependency=HVAC System Is Combined'])
+        missing_groups = []
+        for group in itertools.product(*[['Electricity', 'Fuel Oil', 'Natural Gas', 'Propane/LPG', 'Wood'], ['Yes', 'No']]):
+            if not group in list(df.groups):
+                missing_groups.append(dict(zip(['Dependency=Heating Fuel', 'Dependency=HVAC System Is Combined'], group)))           
+        count = df.agg(['count']).ix[:, 0]
+        weight = df.agg(['sum'])['Weight']
+        df = util.sum_cols(df, cols)
+        df['Count'] = count
+        df['Weight'] = weight
+        columns = ['Wood Stove', 'None']
+        for group in missing_groups:
+            if group['Dependency=HVAC System Is Combined'] == 'No' and group['Dependency=Heating Fuel'] == 'Wood':
+                columns.remove('None')
+                data = dict(group.items() + dict(zip(columns, [1.0/1.0] * 1)).items())
+                columns.append('None')
+                data['None'] = 0
+                df_new = pd.DataFrame(data=data, index=[0]).set_index(['Dependency=Heating Fuel', 'Dependency=HVAC System Is Combined'])
+            else:
+                data = dict(group.items() + dict(zip(columns, [0] * 1)).items())
+                data['None'] = 1
+                df_new = pd.DataFrame(data=data, index=[0]).set_index(['Dependency=Heating Fuel', 'Dependency=HVAC System Is Combined'])
+            df_new['Count'] = 0
+            df_new['Weight'] = 0
+            df = df.append(df_new)
+        df = add_option_prefix(df)
+        df = df[['Option=FIXME Wood Stove', 'Option=None', 'Count', 'Weight']]
+        df = df.reset_index()
+        df.loc[df['Dependency=Heating Fuel']!='Wood', 'Option=None'] = 1
+        df = df.sort_values(by=['Dependency=Heating Fuel', 'Dependency=HVAC System Is Combined']).set_index(['Dependency=Heating Fuel', 'Dependency=HVAC System Is Combined'])
+        return df        
+        
+    def hvac_system_cooling(self, smooth=False):
         df = util.create_dataframe(self.session, rdb)
         df = util.assign_climate_zones(df)
         df = util.assign_state(df)
@@ -1112,6 +1295,8 @@ class Create_DFs():
         df = df.reset_index()
         df['Dependency=Vintage'] = pd.Categorical(df['Dependency=Vintage'], ['<1950', '1950s', '1960s', '1970s', '1980s', '1990s', '2000s'])
         df = df.sort_values(by=['Dependency=Location Cooling Region', 'Dependency=HVAC System Is Combined', 'Dependency=Vintage']).set_index(['Dependency=Location Cooling Region', 'Dependency=HVAC System Is Combined', 'Dependency=Vintage'])
+        # if smooth:
+            # df = apply_smoothing(df, 'Dependency=Location Heating Region', 'Dependency=Vintage')
         return df
     
     def ducts(self):
@@ -1350,10 +1535,10 @@ if __name__ == '__main__':
     for category in ['Location Heating Region', 'Location Cooling Region', 'Vintage', 'Heating Fuel', 'Geometry Foundation Type', 'Geometry House Size', 'Geometry Stories', 'Insulation Unfinished Attic', 'Insulation Wall', 'Heating Setpoint', 'Cooling Setpoint', 'Insulation Slab', 'Insulation Crawlspace', 'Insulation Unfinished Basement', 'Insulation Finished Basement', 'Insulation Interzonal Floor', 'Windows', 'Infiltration', 'HVAC System Combined', 'HVAC System Heating', 'HVAC System Cooling', 'HVAC System Is Combined', 'Ducts', 'Water Heater', 'Lighting', 'Cooking Range', 'Clothes Dryer']:
         print category
         method = getattr(dfs, category.lower().replace(' ', '_'))
-        if not category in ['Heating Fuel', 'Geometry Stories']:
-            df = method()
-        else:
+        if category in ['Heating Fuel', 'Geometry Stories', 'HVAC System Heating Electricity', 'HVAC System Heating Natural Gas', 'HVAC System Cooling']: # these are smoothed
             df = method(True)
+        else:
+            df = method()
         df.to_csv(os.path.join(datafiles_dir, '{}.tsv'.format(category)), sep='\t')
 
         for col in ['Count', 'Weight']:

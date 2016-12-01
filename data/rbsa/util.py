@@ -148,7 +148,7 @@ def assign_heating_fuel(df):
     df['Dependency=Heating Fuel'] = df.apply(lambda x: fuel(x.object.hvacheating), axis=1)
     df = df[pd.notnull(df['Dependency=Heating Fuel'])]
 
-    return df
+    return df 
 
 def assign_ceiling(df):
     
