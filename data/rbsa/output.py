@@ -25,8 +25,9 @@ def trim_white(filename):
     region_pix = np.asarray(region)
     region.save(filename)
 
-def draw_scatter_plot(df, cols, marker_labels, slicer, weighted_area=True, setlims=None, marker_colors=None, marker_shapes=None, size='medium', axis_titles=None, marker_color_all=None, show_labels=True, leg_label=None):
-#     plt.rcParams['figure.figsize'] = 10, 10  # that's default image size for this interactive session
+def draw_scatter_plot(df, cols, marker_labels, slicer, weighted_area=True, setlims=None, marker_colors=None,
+                      marker_shapes=None, size='medium', axis_titles=None, marker_color_all=None, show_labels=True,
+                      leg_label=None, max_marker_size=None):
     def get_marker(i):
         return mpl.markers.MarkerStyle.filled_markers[i]
 
@@ -46,14 +47,35 @@ def draw_scatter_plot(df, cols, marker_labels, slicer, weighted_area=True, setli
                 textcoords='offset points', ha=ha, va=va, alpha=0.8)
 
     if marker_color_all is None:
-        marker_color_all = 'b'
+        if 'electricity' in cols[0].lower():
+            marker_color_all = 'r'
+        elif 'gas' in cols[0].lower():
+            marker_color_all = 'b'
+        else:
+            marker_color_all = 'k'
 
     title = slicer
     x = df[cols[0]]
     y = df[cols[1]]
-    
-    if not marker_colors is None:
-        if not marker_shapes is None:
+
+    if weighted_area:
+        area_weights = (df['Weight'] / df['Weight'].max()) * max_marker_size
+    else:
+        area_weights = 100
+
+    if marker_colors is None:
+        if weighted_area:
+            # plt.scatter(x, y, s=area_weights, c='k', alpha=1.0) # solid black for superimpoesed shadows for previous calibration iteration
+            plt.scatter(x, y, s=area_weights, c=marker_color_all, alpha=0.5, label=leg_label)
+        else:
+            plt.scatter(x, y, c=marker_color_all, alpha=0.5, label=leg_label)
+        add_labels(marker_labels, x, y)
+    else:
+        colormap = plt.cm.autumn
+        if marker_shapes is None:
+            plt.scatter(x, y, c=marker_colors, cmap=colormap, s=area_weights, alpha=0.7, label=leg_label)
+            add_labels(marker_labels, x, y)
+        else:
             for i, shape in enumerate(set(marker_shapes)):
                 this_marker = df.loc[df['level_0'] == shape, :]
                 x = this_marker[cols[0]]
@@ -61,24 +83,9 @@ def draw_scatter_plot(df, cols, marker_labels, slicer, weighted_area=True, setli
                 marker_colors = this_marker['level_1']
                 marker_colors = [list(set(marker_colors)).index(j) for j in marker_colors.tolist()]
                 marker_labels = zip(this_marker['level_0'], this_marker['level_1'])
-                if weighted_area:
-                    plt.scatter(x, y, c=marker_colors, cmap=plt.cm.Set1, marker='${}$'.format(shape[2:]), s=df['HouseCount'], alpha=0.7, label=leg_label)
-                else:
-                    plt.scatter(x, y, c=marker_colors, cmap=plt.cm.Set1, marker='${}$'.format(shape[2:]), s=1000, alpha=0.7, label=leg_label)
+                plt.scatter(x, y, c=marker_colors, cmap=colormap, marker='${}$'.format(shape[2:]), s=area_weights,
+                            alpha=0.7, label=leg_label)
                 add_labels(marker_labels, x, y)
-        else:
-            if weighted_area:
-                plt.scatter(x, y, c=marker_colors, cmap=plt.cm.Set1, s=df['HouseCount'], alpha=0.7, label=leg_label)
-            else:
-                plt.scatter(x, y, c=marker_colors, cmap=plt.cm.Set1, s=50, alpha=0.7, label=leg_label)
-            add_labels(marker_labels, x, y)
-    else:
-        if weighted_area:
-#             plt.scatter(x, y, s=df['HouseCount'], c='k', alpha=1.0) # solid black for superimpoesed shadows
-            plt.scatter(x, y, s=df['HouseCount'], c=marker_color_all, alpha=0.5, label=leg_label)
-        else:
-            plt.scatter(x, y, c=marker_color_all, alpha=0.5, label=leg_label)
-        add_labels(marker_labels, x, y)
 
     # y=x line
     ax = plt.gca()
@@ -120,14 +127,23 @@ def draw_scatter_plot(df, cols, marker_labels, slicer, weighted_area=True, setli
         tick_size = 12
 
     if axis_titles is None:
-        ax.set_xlabel('RBSA', fontsize=axis_label_size)
-        ax.set_ylabel('NREL PNW-Scale Analysis', fontsize=axis_label_size)
+        ax.set_xlabel('Measured (RBSA)', fontsize=axis_label_size)
+        ax.set_ylabel('Modeled (ResStock-PNW)', fontsize=axis_label_size)
     else:
         ax.set_xlabel(axis_titles[0], fontsize=axis_label_size)
         ax.set_ylabel(axis_titles[1], fontsize=axis_label_size)
     plt.tick_params(axis='both', which='major', labelsize=tick_size)
     plt.title(title, fontsize=title_size)
-    
+
+
+def units_kWh2MBtu(x):
+    return 3412.0 * 0.000001 * x
+
+
+def units_Therm2MBtu(x):
+    return 0.1 * x
+
+
 def do_plot(slices, fields, size='medium', weighted_area=True, save=False, setlims=None, marker_color=False, marker_shape=False, version=None, marker_color_all=None, show_labels=True, leg_label=None):
     if size == 'large':
         plt.rcParams['figure.figsize'] = 20, 20 #20, 20  # set image size
@@ -137,7 +153,7 @@ def do_plot(slices, fields, size='medium', weighted_area=True, save=False, setli
         max_marker_size = 400
     elif size == 'small':
         plt.rcParams['figure.figsize'] = 10, 5  # set image size
-        max_marker_size = 400       
+        max_marker_size = 400
     
     upgrades = ['led_lighting_upgrade', 'r13_wall_insulation_upgrade_(if_uninsulated)', 'triple_pane_windows_upgrade_(if_single_pane)', 'upgrade_package_(all_or_none)', 'upgrade_package_(allow_individual_options)']
     
@@ -147,62 +163,64 @@ def do_plot(slices, fields, size='medium', weighted_area=True, save=False, setli
         marker_shapes = None
         marker_labels = None
         if fields == 'weights':
+            continue # TODO
+        elif fields == 'Total Site Energy':
             measured_elec = pd.read_csv('../../analysis_results/outputs/pnw/Electricity Consumption {}.tsv'.format(slicer), index_col=['Dependency={}'.format(slicer)], sep='\t')[['kwh_nrm_total']]
             measured_gas = pd.read_csv('../../analysis_results/outputs/pnw/Natural Gas Consumption {}.tsv'.format(slicer), index_col=['Dependency={}'.format(slicer)], sep='\t')[['thm_nrm_total']]
             measured = measured_elec.join(measured_gas)
-            measured['Measured Total Site Energy MBtu'] = 3412.0 * 0.000001 * measured['kwh_nrm_total'] + 29.3 * 3412.0 * 0.000001 * measured['thm_nrm_total']
+            measured['Measured Total Site Energy MBtu'] = units_kWh2MBtu(measured['kwh_nrm_total']) + units_Therm2MBtu(measured['thm_nrm_total'])
             house_count = pd.read_csv('../../analysis_results/outputs/pnw/Electricity Consumption {}.tsv'.format(slicer), index_col=['Dependency={}'.format(slicer)], sep='\t')[['Weight']].sum().values[0]
             predicted = pd.read_csv('../../analysis_results/resstock_pnw.csv', index_col=['name'])[['building_characteristics_report.{}'.format(slicer), 'simulation_output_report.Total Site Energy MBtu', 'led_lighting_upgrade.run_measure', 'r13_wall_insulation_upgrade_(if_uninsulated).run_measure', 'triple_pane_windows_upgrade_(if_single_pane).run_measure', 'upgrade_package_(all_or_none).run_measure', 'upgrade_package_(allow_individual_options).run_measure']]
             predicted = remove_upgrades(predicted, upgrades)
             predicted['Weight'] = house_count / len(predicted.index)
             predicted['Predicted Total Site Energy MBtu'] = predicted['simulation_output_report.Total Site Energy MBtu'] * predicted['Weight']
             predicted = predicted.groupby('building_characteristics_report.{}'.format(slicer)).sum()
-            cols = ['Measured Total Site Energy MBtu', 'Predicted Total Site Energy MBtu']
+            cols = ['Measured Total Site Energy MBtu', 'Predicted Total Site Energy MBtu', 'Weight']
         else:
             if slicer in ['Location Heating Region', 'Vintage', 'Heating Fuel']:
               if 'electricity' in fields:
                   measured = pd.read_csv('../../analysis_results/outputs/pnw/Electricity Consumption {}.tsv'.format(slicer), index_col=['Dependency={}'.format(slicer)], sep='\t')[['kwh_nrm_per_home']]
-                  measured['Measured Per House Site Electricity MBtu'] = 3412.0 * 0.000001 * measured['kwh_nrm_per_home']
+                  measured['Measured Per House Site Electricity MBtu'] = units_kWh2MBtu(measured['kwh_nrm_per_home'])
                   house_count = pd.read_csv('../../analysis_results/outputs/pnw/Electricity Consumption {}.tsv'.format(slicer), index_col=['Dependency={}'.format(slicer)], sep='\t')[['Weight']].sum().values[0]
                   predicted = pd.read_csv('../../analysis_results/resstock_pnw.csv', index_col=['name'])[['building_characteristics_report.{}'.format(slicer), 'simulation_output_report.Total Site Electricity kWh', 'led_lighting_upgrade.run_measure', 'r13_wall_insulation_upgrade_(if_uninsulated).run_measure', 'triple_pane_windows_upgrade_(if_single_pane).run_measure', 'upgrade_package_(all_or_none).run_measure', 'upgrade_package_(allow_individual_options).run_measure']]
                   predicted = remove_upgrades(predicted, upgrades)
                   predicted['Weight'] = house_count / len(predicted.index)
-                  predicted['Predicted Total Site Electricity MBtu'] = 3412.0 * 0.000001 * predicted['simulation_output_report.Total Site Electricity kWh'] * predicted['Weight']
+                  predicted['Predicted Total Site Electricity MBtu'] = units_kWh2MBtu(predicted['simulation_output_report.Total Site Electricity kWh']) * predicted['Weight']
                   predicted = predicted.groupby('building_characteristics_report.{}'.format(slicer)).sum()
                   predicted['Predicted Per House Site Electricity MBtu'] = predicted['Predicted Total Site Electricity MBtu'] / predicted['Weight']
                   cols = ['Measured Per House Site Electricity MBtu', 'Predicted Per House Site Electricity MBtu', 'Weight']
               elif 'gas' in fields:
                   measured = pd.read_csv('../../analysis_results/outputs/pnw/Natural Gas Consumption {}.tsv'.format(slicer), index_col=['Dependency={}'.format(slicer)], sep='\t')[['thm_nrm_per_home']]
-                  measured['Measured Per House Site Gas MBtu'] = 29.3 * 3412.0 * 0.000001 * measured['thm_nrm_per_home']
+                  measured['Measured Per House Site Gas MBtu'] = units_Therm2MBtu(measured['thm_nrm_per_home'])
                   house_count = pd.read_csv('../../analysis_results/outputs/pnw/Natural Gas Consumption {}.tsv'.format(slicer), index_col=['Dependency={}'.format(slicer)], sep='\t')[['Weight']].sum().values[0]
                   predicted = pd.read_csv('../../analysis_results/resstock_pnw.csv', index_col=['name'])[['building_characteristics_report.{}'.format(slicer), 'simulation_output_report.Total Site Natural Gas therm', 'led_lighting_upgrade.run_measure', 'r13_wall_insulation_upgrade_(if_uninsulated).run_measure', 'triple_pane_windows_upgrade_(if_single_pane).run_measure', 'upgrade_package_(all_or_none).run_measure', 'upgrade_package_(allow_individual_options).run_measure']]
                   predicted = remove_upgrades(predicted, upgrades)
                   predicted['Weight'] = house_count / len(predicted.index)
-                  predicted['Predicted Total Site Gas MBtu'] = 29.3 * 3412.0 * 0.000001 * predicted['simulation_output_report.Total Site Natural Gas therm'] * predicted['Weight']
+                  predicted['Predicted Total Site Gas MBtu'] = units_Therm2MBtu(predicted['simulation_output_report.Total Site Natural Gas therm'] * predicted['Weight'])
                   predicted = predicted.groupby('building_characteristics_report.{}'.format(slicer)).sum()
                   predicted['Predicted Per House Site Gas MBtu'] = predicted['Predicted Total Site Gas MBtu'] / predicted['Weight']
                   cols = ['Measured Per House Site Gas MBtu', 'Predicted Per House Site Gas MBtu', 'Weight']
             elif slicer == 'Location Heating Region Vintage':
               if 'electricity' in fields:
                   measured = pd.read_csv('../../analysis_results/outputs/pnw/Electricity Consumption {}.tsv'.format(slicer), index_col=['Dependency=Location Heating Region', 'Dependency=Vintage'], sep='\t')[['kwh_nrm_per_home']]
-                  measured['Measured Per House Site Electricity MBtu'] = 3412.0 * 0.000001 * measured['kwh_nrm_per_home']
+                  measured['Measured Per House Site Electricity MBtu'] = units_kWh2MBtu(measured['kwh_nrm_per_home'])
                   house_count = pd.read_csv('../../analysis_results/outputs/pnw/Electricity Consumption {}.tsv'.format(slicer), index_col=['Dependency=Location Heating Region', 'Dependency=Vintage'], sep='\t')[['Weight']].sum().values[0]
                   predicted = pd.read_csv('../../analysis_results/resstock_pnw.csv', index_col=['name'])[['building_characteristics_report.Location Heating Region', 'building_characteristics_report.Vintage', 'simulation_output_report.Total Site Electricity kWh', 'led_lighting_upgrade.run_measure', 'r13_wall_insulation_upgrade_(if_uninsulated).run_measure', 'triple_pane_windows_upgrade_(if_single_pane).run_measure', 'upgrade_package_(all_or_none).run_measure', 'upgrade_package_(allow_individual_options).run_measure']]
                   predicted = remove_upgrades(predicted, upgrades)
                   predicted['Weight'] = house_count / len(predicted.index)
-                  predicted['Predicted Total Site Electricity MBtu'] = 3412.0 * 0.000001 * predicted['simulation_output_report.Total Site Electricity kWh'] * predicted['Weight']
+                  predicted['Predicted Total Site Electricity MBtu'] = units_kWh2MBtu(predicted['simulation_output_report.Total Site Electricity kWh']) * predicted['Weight']
                   predicted = predicted.rename(columns={"building_characteristics_report.Location Heating Region": "Dependency=Location Heating Region", "building_characteristics_report.Vintage": "Dependency=Vintage"})
                   predicted = predicted.groupby(['Dependency=Location Heating Region', 'Dependency=Vintage']).sum()
                   predicted['Predicted Per House Site Electricity MBtu'] = predicted['Predicted Total Site Electricity MBtu'] / predicted['Weight']
                   cols = ['Measured Per House Site Electricity MBtu', 'Predicted Per House Site Electricity MBtu', 'Weight']
               elif 'gas' in fields:
                   measured = pd.read_csv('../../analysis_results/outputs/pnw/Natural Gas Consumption {}.tsv'.format(slicer), index_col=['Dependency=Location Heating Region', 'Dependency=Vintage'], sep='\t')[['thm_nrm_per_home']]
-                  measured['Measured Per House Site Gas MBtu'] = 29.3 * 3412.0 * 0.000001 * measured['thm_nrm_per_home']
+                  measured['Measured Per House Site Gas MBtu'] = units_Therm2MBtu(measured['thm_nrm_per_home'])
                   house_count = pd.read_csv('../../analysis_results/outputs/pnw/Natural Gas Consumption {}.tsv'.format(slicer), index_col=['Dependency=Location Heating Region', 'Dependency=Vintage'], sep='\t')[['Weight']].sum().values[0]
                   predicted = pd.read_csv('../../analysis_results/resstock_pnw.csv', index_col=['name'])[['building_characteristics_report.Location Heating Region', 'building_characteristics_report.Vintage', 'simulation_output_report.Total Site Natural Gas therm', 'led_lighting_upgrade.run_measure', 'r13_wall_insulation_upgrade_(if_uninsulated).run_measure', 'triple_pane_windows_upgrade_(if_single_pane).run_measure', 'upgrade_package_(all_or_none).run_measure', 'upgrade_package_(allow_individual_options).run_measure']]
                   predicted = remove_upgrades(predicted, upgrades)
                   predicted['Weight'] = house_count / len(predicted.index)
-                  predicted['Predicted Total Site Gas MBtu'] = 29.3 * 3412.0 * 0.000001 * predicted['simulation_output_report.Total Site Natural Gas therm'] * predicted['Weight']
+                  predicted['Predicted Total Site Gas MBtu'] = units_Therm2MBtu(predicted['simulation_output_report.Total Site Natural Gas therm']) * predicted['Weight']
                   predicted = predicted.rename(columns={"building_characteristics_report.Location Heating Region": "Dependency=Location Heating Region", "building_characteristics_report.Vintage": "Dependency=Vintage"})
                   predicted = predicted.groupby(['Dependency=Location Heating Region', 'Dependency=Vintage']).sum()
                   predicted['Predicted Per House Site Gas MBtu'] = predicted['Predicted Total Site Gas MBtu'] / predicted['Weight']
@@ -212,12 +230,14 @@ def do_plot(slices, fields, size='medium', weighted_area=True, save=False, setli
         df = df.reset_index()
         marker_labels = df.ix[:,0]
         if marker_color:
-            marker_colors = df['Dependency=Vintage']
+            marker_colors = df['Dependency=Location Heating Region']
             marker_colors = [list(set(marker_colors)).index(i) for i in marker_colors.tolist()]          
             marker_labels = zip(df['Dependency=Location Heating Region'], df['Dependency=Vintage'])
-        if weighted_area:
-            df['HouseCount'] = df['Weight'] * 0.001
-        draw_scatter_plot(df, cols, marker_labels, slicer, weighted_area=weighted_area, setlims=setlims, marker_colors=marker_colors, marker_shapes=marker_shapes, size=size, marker_color_all=marker_color_all, show_labels=show_labels, leg_label=leg_label)
+
+        draw_scatter_plot(df, cols, marker_labels, slicer, weighted_area=weighted_area, setlims=setlims,
+                          marker_colors=marker_colors, marker_shapes=marker_shapes, size=size,
+                          marker_color_all=marker_color_all, show_labels=show_labels, leg_label=leg_label,
+                          max_marker_size=max_marker_size)
     if save:
         if len(slices) == 1:
           filename = os.path.join('..', '..', 'analysis_results', 'outputs', 'pnw', 'saved images', 'Scatter_2slice_{}.png'.format(fields))
@@ -407,10 +427,9 @@ if __name__ == '__main__':
                 # del df[col]
         # to_figure(df, os.path.join(heatmaps_dir, '{}.png'.format(category)))
         
-    do_plot(slices=['Location Heating Region', 'Vintage', 'Heating Fuel'], fields='weights', weighted_area=False, save=True, setlims=(0,None))
-    do_plot(slices=['Location Heating Region', 'Vintage', 'Heating Fuel'], fields='electricity_perhouse', weighted_area=True, save=True, setlims=(0,90))
-    do_plot(slices=['Location Heating Region', 'Vintage', 'Heating Fuel'], fields='gas_perhouse', save=True, setlims=(0,140))    
+    do_plot(slices=['Location Heating Region', 'Vintage', 'Heating Fuel'], fields='Total Site Energy', weighted_area=True, save=True, setlims=(0,None))
+    do_plot(slices=['Location Heating Region', 'Vintage', 'Heating Fuel'], fields='electricity_perhouse', weighted_area=True, save=True, setlims=(0,80))
+    do_plot(slices=['Location Heating Region', 'Vintage', 'Heating Fuel'], fields='gas_perhouse', save=True, setlims=(0,90))
     
-    do_plot(slices=['Location Heating Region Vintage'], fields='electricity_perhouse', save=True, setlims=(0,180), size='large', marker_color=True)
-    do_plot(slices=['Location Heating Region Vintage'], fields='gas_perhouse', save=True, setlims=(0,180), size='large', marker_color=True)
-            
+    do_plot(slices=['Location Heating Region Vintage'], fields='electricity_perhouse', save=True, setlims=(0,120), size='medium', marker_color=True)
+    do_plot(slices=['Location Heating Region Vintage'], fields='gas_perhouse', save=True, setlims=(0,120), size='medium', marker_color=True)
