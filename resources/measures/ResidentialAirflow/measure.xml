@@ -2,8 +2,8 @@
   <schema_version>3.0</schema_version>
   <name>residential_airflow</name>
   <uid>7d2adf5c-9995-49be-b662-a23d2452bb36</uid>
-  <version_id>243d1784-6fd4-4804-a8a5-4a0cf073324d</version_id>
-  <version_modified>20161128T140704Z</version_modified>
+  <version_id>febf4f3c-a1f8-4c99-a1f4-dca920457851</version_id>
+  <version_modified>20161130T173016Z</version_modified>
   <xml_checksum>19EEDBBB</xml_checksum>
   <class_name>ResidentialAirflow</class_name>
   <display_name>Set Residential Airflow</display_name>
@@ -542,7 +542,7 @@
       <display_name>Ducts: Leakage to Outside at 25Pa</display_name>
       <description>Normalized leakage to the outside when tested at a pressure differential of 25 Pascals (0.1 inches w.g.) across the system.</description>
       <type>String</type>
-      <units>cfm/100 ft^2</units>
+      <units>cfm/100 ft^2 Finished Floor</units>
       <required>false</required>
       <model_dependent>false</model_dependent>
       <default_value>NA</default_value>
@@ -596,6 +596,15 @@
       <required>true</required>
       <model_dependent>false</model_dependent>
       <default_value>0</default_value>
+    </argument>
+    <argument>
+      <name>dist_system_eff</name>
+      <display_name>Ducts: Distribution System Efficiency</display_name>
+      <description>A system efficiency factor, not included in manufacturer's equipment performance ratings for heating and cooling equipment, that adjusts for the energy losses associated with the delivery of energy from the equipment to the source of the load.</description>
+      <type>String</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+      <default_value>NA</default_value>
     </argument>
   </arguments>
   <provenances/>
@@ -758,22 +767,10 @@
       <checksum>22C6561D</checksum>
     </file>
     <file>
-      <filename>residential_airflow_test.rb</filename>
-      <filetype>rb</filetype>
-      <usage_type>test</usage_type>
-      <checksum>C20D85FA</checksum>
-    </file>
-    <file>
       <filename>singlefamily_detached_pierbeam_furnace_central_air_conditioner.osm</filename>
       <filetype>osm</filetype>
       <usage_type>test</usage_type>
       <checksum>1D231A61</checksum>
-    </file>
-    <file>
-      <filename>geometry.rb</filename>
-      <filetype>rb</filetype>
-      <usage_type>resource</usage_type>
-      <checksum>4E6EFE03</checksum>
     </file>
     <file>
       <filename>constants.rb</filename>
@@ -796,7 +793,19 @@
       <filename>measure.rb</filename>
       <filetype>rb</filetype>
       <usage_type>script</usage_type>
-      <checksum>02AFFA1A</checksum>
+      <checksum>01F1314E</checksum>
+    </file>
+    <file>
+      <filename>geometry.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>047FBEB1</checksum>
+    </file>
+    <file>
+      <filename>residential_airflow_test.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>test</usage_type>
+      <checksum>9DDC6E6A</checksum>
     </file>
   </files>
 </measure>

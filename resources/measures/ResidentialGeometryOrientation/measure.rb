@@ -23,15 +23,15 @@ class CreateResidentialOrientation < OpenStudio::Ruleset::ModelUserScript
   def arguments(model)
     args = OpenStudio::Ruleset::OSArgumentVector.new
 	
-	#make a choice argument for foundation type
-	orientation = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("orientation", true)
-	orientation.setDisplayName("Azimuth")
-	orientation.setUnits("degrees")
-	orientation.setDescription("The house's azimuth is measured clockwise from due south when viewed from above (e.g., South=0, West=90, North=180, East=270).")
-  orientation.setDefaultValue(180.0)
-	args << orientation
-	
-	return args
+    #make a choice argument for foundation type
+    orientation = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("orientation", true)
+    orientation.setDisplayName("Azimuth")
+    orientation.setUnits("degrees")
+    orientation.setDescription("The house's azimuth is measured clockwise from due south when viewed from above (e.g., South=0, West=90, North=180, East=270).")
+    orientation.setDefaultValue(180.0)
+    args << orientation
+    
+    return args
   end
 
   # define what happens when the measure is run

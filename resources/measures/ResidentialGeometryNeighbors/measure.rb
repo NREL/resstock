@@ -100,10 +100,12 @@ class CreateResidentialNeighbors < OpenStudio::Ruleset::ModelUserScript
     
     # remove existing neighbors
     existing_neighbors = false
-    model.getShadingSurfaces.each do |shading_surface|
-      next unless shading_surface.name.to_s.downcase.include? "neighbor"
-      existing_neighbors = true
-      shading_surface.remove
+    model.getShadingSurfaceGroups.each do |shading_surface_group|
+      shading_surface_group.shadingSurfaces.each do |shading_surface|
+        next unless shading_surface.name.to_s.downcase.include? "neighbor"
+        existing_neighbors = true
+      end
+      shading_surface_group.remove
     end
     if existing_neighbors
       runner.registerInfo("Removed existing neighbors.")

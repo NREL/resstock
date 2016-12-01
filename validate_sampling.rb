@@ -60,14 +60,14 @@ def validate_sampling(mode)
     end
 
     # Data
-    results_data_dir = File.join(results_dir, mode, "data")
+    results_data_dir = File.join(results_dir, "outputs", mode, "data")
     FileUtils.rm_rf("#{results_data_dir}/.", secure: true)
-    FileUtils.mkpath(results_data_dir)
+    #FileUtils.mkpath(results_data_dir)
     all_samples_results = generate_data_output(results_data, tsvfiles, results_data_dir, skip_headers, report_name, results_file)
     generate_data_input(results_data, tsvfiles, results_data_dir, skip_headers, report_name)
     
     # Visualization
-    results_vis_dir = File.join(results_dir, mode, "visualizations")
+    results_vis_dir = File.join(results_dir, "outputs", mode, "sampling_images")
     FileUtils.rm_rf("#{results_vis_dir}/.", secure: true)
     FileUtils.mkpath(results_vis_dir)
     generate_visualizations(results_data, tsvfiles, results_vis_dir, all_samples_results, skip_headers, report_name)
@@ -168,13 +168,13 @@ def generate_data_output(results_data, tsvfiles, results_data_dir, skip_headers,
         end
         
         # Write *_output.csv
-        outfile = File.join(results_data_dir, tsvfile.filename.sub(File.extname(tsvfile.filename),"_output.csv"))
-        CSV.open(outfile, "wb") do |csv|
-            csv << tsvfile.header + ["# Samples"]
-            samples_results.each do |sample_results|
-                csv << sample_results
-            end
-        end
+        #outfile = File.join(results_data_dir, tsvfile.filename.sub(File.extname(tsvfile.filename),"_output.csv"))
+        #CSV.open(outfile, "wb") do |csv|
+        #    csv << tsvfile.header + ["# Samples"]
+        #    samples_results.each do |sample_results|
+        #        csv << sample_results
+        #    end
+        #end
         
         all_samples_results[param_name] = samples_results
     end
@@ -191,18 +191,18 @@ def generate_data_input(results_data, tsvfiles, results_data_dir, skip_headers, 
         tsvfile = tsvfiles[param_name]
         
         # Write *_input.csv
-        outfile = File.join(results_data_dir, tsvfile.filename.sub(File.extname(tsvfile.filename),"_input.csv"))
-        CSV.open(outfile, "wb") do |csv|
-            csv << tsvfile.header
-            tsvfile.rows.each do |row|
-                rowdata = []
-                row.each_with_index do |val, col|
-                    next if not tsvfile.option_cols.values.include?(col) and not tsvfile.dependency_cols.values.include?(col)
-                    rowdata << val
-                end
-                csv << rowdata
-            end
-        end
+        #outfile = File.join(results_data_dir, tsvfile.filename.sub(File.extname(tsvfile.filename),"_input.csv"))
+        #CSV.open(outfile, "wb") do |csv|
+        #    csv << tsvfile.header
+        #    tsvfile.rows.each do |row|
+        #        rowdata = []
+        #        row.each_with_index do |val, col|
+        #            next if not tsvfile.option_cols.values.include?(col) and not tsvfile.dependency_cols.values.include?(col)
+        #            rowdata << val
+        #        end
+        #        csv << rowdata
+        #    end
+        #end
     end
 end
 
@@ -305,7 +305,7 @@ def generate_visualizations(results_data, tsvfiles, results_vis_dir, all_samples
         # Replace <TABLE_HEADER_HERE> with the appropriate header
         table_header_html = "['Input', "
         (1..num_data_series).each do |series_num|
-            series_name = tsvfile.header[series_num+tsvfile.dependency_cols.size-1].to_s
+            series_name = tsvfile.header[series_num+tsvfile.dependency_cols.size-1].to_s.gsub("Option=","")
             table_header_html << "'#{series_name}', {'type': 'string', 'role': 'style'},"
         end
         table_header_html << "'Line','Line +20%','Line -20%']"
