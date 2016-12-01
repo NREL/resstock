@@ -1008,7 +1008,7 @@ def assign_electricity_consumption(df):
 
     df['kwh_nrm'] = df.apply(lambda x: x.object.sfenergysumtmy3.kwhnrmy, axis=1)
     df['Weight'] = df.apply(lambda x: x.object.sfmasterpopulations.svywt, axis=1)
-    df = df.dropna(subset=['kwh_nrm'])
+    df = df.fillna(0)
 
     return df
     
@@ -1016,6 +1016,6 @@ def assign_natural_gas_consumption(df):
 
     df['thm_nrm'] = df.apply(lambda x: x.object.sfenergysumtmy3.thmnrmy, axis=1)
     df['Weight'] = df.apply(lambda x: x.object.sfmasterpopulations.svywt, axis=1)
-    df = df.dropna(subset=['thm_nrm'])
+    df = df.fillna(0)
 
     return df
