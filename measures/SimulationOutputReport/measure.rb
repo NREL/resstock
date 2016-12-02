@@ -47,6 +47,15 @@ class SimulationOutputReport < OpenStudio::Ruleset::ReportingUserScript
     elec_site_units = "kWh"
     gas_site_units = "therm"
     other_fuel_site_units = "MBtu"
+    
+    # FIXME: Temporary fix to convert propane heating (modeled as gas) to other fuel. 
+    # Remove when https://github.com/NREL/OpenStudio-BEopt/issues/114 is closed.
+    gas_should_be_propane = 0.0
+    if runner.past_results[:build_existing_models][:"HVAC System Heating Propane"].include?("Propane")
+        if not sqlFile.naturalGasHeating.empty?
+            gas_should_be_propane = sqlFile.naturalGasHeating.get
+        end
+    end
            
     # Total
     report_output(runner, "Total Site Energy", sqlFile.totalSiteEnergy, "GJ", "MBtu")
@@ -63,14 +72,14 @@ class SimulationOutputReport < OpenStudio::Ruleset::ReportingUserScript
     report_output(runner, "Electricity Water Systems", sqlFile.electricityWaterSystems, "GJ", elec_site_units)
     
     # Natural Gas
-    report_output(runner, "Total Site Natural Gas", sqlFile.naturalGasTotalEndUses, "GJ", gas_site_units)
-    report_output(runner, "Natural Gas Heating", sqlFile.naturalGasHeating, "GJ", gas_site_units)
+    report_output(runner, "Total Site Natural Gas", sqlFile.naturalGasTotalEndUses, "GJ", gas_site_units, -1.0*gas_should_be_propane)
+    report_output(runner, "Natural Gas Heating", sqlFile.naturalGasHeating, "GJ", gas_site_units, -1.0*gas_should_be_propane)
     report_output(runner, "Natural Gas Interior Equipment", sqlFile.naturalGasInteriorEquipment, "GJ", gas_site_units)
     report_output(runner, "Natural Gas Water Systems", sqlFile.naturalGasWaterSystems, "GJ", gas_site_units)
     
     # Other Fuel
-    report_output(runner, "Total Site Other Fuel", sqlFile.otherFuelTotalEndUses, "GJ", other_fuel_site_units)
-    report_output(runner, "Other Fuel Heating", sqlFile.otherFuelHeating, "GJ", other_fuel_site_units)
+    report_output(runner, "Total Site Other Fuel", sqlFile.otherFuelTotalEndUses, "GJ", other_fuel_site_units, gas_should_be_propane)
+    report_output(runner, "Other Fuel Heating", sqlFile.otherFuelHeating, "GJ", other_fuel_site_units, gas_should_be_propane)
     report_output(runner, "Other Fuel Interior Equipment", sqlFile.otherFuelInteriorEquipment, "GJ", other_fuel_site_units)
     report_output(runner, "Other Fuel Water Systems", sqlFile.otherFuelWaterSystems, "GJ", other_fuel_site_units)
     
@@ -96,15 +105,15 @@ class SimulationOutputReport < OpenStudio::Ruleset::ReportingUserScript
 
   end #end the run method
 
-  def report_output(runner, name, val, os_units=nil, report_units=nil)
+  def report_output(runner, name, val, os_units=nil, report_units=nil, extra_energy=0.0)
     return if val.empty?
     if not report_units.nil?
         name = "#{name} #{report_units}"
     end
     if os_units.nil? or report_units.nil? or os_units == report_units
-        valInUnits = val.get
+        valInUnits = val.get+extra_energy
     else
-        valInUnits = OpenStudio::convert(val.get,os_units,report_units).get
+        valInUnits = OpenStudio::convert(val.get+extra_energy,os_units,report_units).get
     end
     runner.registerValue(name,valInUnits)
     runner.registerInfo("Registered: #{name}, #{valInUnits.round(2)}")
