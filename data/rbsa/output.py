@@ -146,7 +146,7 @@ def units_Therm2MBtu(x):
 
 def do_plot(slices, fields, size='medium', weighted_area=True, save=False, setlims=None, marker_color=False, marker_shape=False, version=None, marker_color_all=None, show_labels=True, leg_label=None):
     if size == 'large':
-        plt.rcParams['figure.figsize'] = 20, 20 #20, 20  # set image size
+        plt.rcParams['figure.figsize'] = 20, 20 # 20, 20 # set image size
         max_marker_size = 800
     elif size == 'medium':
         plt.rcParams['figure.figsize'] = 20, 10  # set image size
@@ -154,8 +154,6 @@ def do_plot(slices, fields, size='medium', weighted_area=True, save=False, setli
     elif size == 'small':
         plt.rcParams['figure.figsize'] = 10, 5  # set image size
         max_marker_size = 400
-    
-    upgrades = ['led_lighting_upgrade', 'r13_wall_insulation_upgrade_(if_uninsulated)', 'triple_pane_windows_upgrade_(if_single_pane)', 'upgrade_package_(all_or_none)', 'upgrade_package_(allow_individual_options)']
     
     for i, slicer in enumerate(slices):
         plt.subplot(1, len(slices), i+1)
@@ -170,8 +168,8 @@ def do_plot(slices, fields, size='medium', weighted_area=True, save=False, setli
             measured = measured_elec.join(measured_gas)
             measured['Measured Total Site Energy MBtu'] = units_kWh2MBtu(measured['kwh_nrm_total']) + units_Therm2MBtu(measured['thm_nrm_total'])
             house_count = pd.read_csv('../../analysis_results/outputs/pnw/Electricity Consumption {}.tsv'.format(slicer), index_col=['Dependency={}'.format(slicer)], sep='\t')[['Weight']].sum().values[0]
-            predicted = pd.read_csv('../../analysis_results/resstock_pnw.csv', index_col=['name'])[['building_characteristics_report.{}'.format(slicer), 'simulation_output_report.Total Site Energy MBtu', 'led_lighting_upgrade.run_measure', 'r13_wall_insulation_upgrade_(if_uninsulated).run_measure', 'triple_pane_windows_upgrade_(if_single_pane).run_measure', 'upgrade_package_(all_or_none).run_measure', 'upgrade_package_(allow_individual_options).run_measure']]
-            predicted = remove_upgrades(predicted, upgrades)
+            predicted = pd.read_csv('../../analysis_results/resstock_pnw.csv', index_col=['name'])
+            predicted = remove_upgrades(predicted)
             predicted['Weight'] = house_count / len(predicted.index)
             predicted['Predicted Total Site Energy MBtu'] = predicted['simulation_output_report.Total Site Energy MBtu'] * predicted['Weight']
             predicted = predicted.groupby('building_characteristics_report.{}'.format(slicer)).sum()
@@ -182,8 +180,8 @@ def do_plot(slices, fields, size='medium', weighted_area=True, save=False, setli
                   measured = pd.read_csv('../../analysis_results/outputs/pnw/Electricity Consumption {}.tsv'.format(slicer), index_col=['Dependency={}'.format(slicer)], sep='\t')[['kwh_nrm_per_home']]
                   measured['Measured Per House Site Electricity MBtu'] = units_kWh2MBtu(measured['kwh_nrm_per_home'])
                   house_count = pd.read_csv('../../analysis_results/outputs/pnw/Electricity Consumption {}.tsv'.format(slicer), index_col=['Dependency={}'.format(slicer)], sep='\t')[['Weight']].sum().values[0]
-                  predicted = pd.read_csv('../../analysis_results/resstock_pnw.csv', index_col=['name'])[['building_characteristics_report.{}'.format(slicer), 'simulation_output_report.Total Site Electricity kWh', 'led_lighting_upgrade.run_measure', 'r13_wall_insulation_upgrade_(if_uninsulated).run_measure', 'triple_pane_windows_upgrade_(if_single_pane).run_measure', 'upgrade_package_(all_or_none).run_measure', 'upgrade_package_(allow_individual_options).run_measure']]
-                  predicted = remove_upgrades(predicted, upgrades)
+                  predicted = pd.read_csv('../../analysis_results/resstock_pnw.csv', index_col=['name'])
+                  predicted = remove_upgrades(predicted)
                   predicted['Weight'] = house_count / len(predicted.index)
                   predicted['Predicted Total Site Electricity MBtu'] = units_kWh2MBtu(predicted['simulation_output_report.Total Site Electricity kWh']) * predicted['Weight']
                   predicted = predicted.groupby('building_characteristics_report.{}'.format(slicer)).sum()
@@ -193,8 +191,8 @@ def do_plot(slices, fields, size='medium', weighted_area=True, save=False, setli
                   measured = pd.read_csv('../../analysis_results/outputs/pnw/Natural Gas Consumption {}.tsv'.format(slicer), index_col=['Dependency={}'.format(slicer)], sep='\t')[['thm_nrm_per_home']]
                   measured['Measured Per House Site Gas MBtu'] = units_Therm2MBtu(measured['thm_nrm_per_home'])
                   house_count = pd.read_csv('../../analysis_results/outputs/pnw/Natural Gas Consumption {}.tsv'.format(slicer), index_col=['Dependency={}'.format(slicer)], sep='\t')[['Weight']].sum().values[0]
-                  predicted = pd.read_csv('../../analysis_results/resstock_pnw.csv', index_col=['name'])[['building_characteristics_report.{}'.format(slicer), 'simulation_output_report.Total Site Natural Gas therm', 'led_lighting_upgrade.run_measure', 'r13_wall_insulation_upgrade_(if_uninsulated).run_measure', 'triple_pane_windows_upgrade_(if_single_pane).run_measure', 'upgrade_package_(all_or_none).run_measure', 'upgrade_package_(allow_individual_options).run_measure']]
-                  predicted = remove_upgrades(predicted, upgrades)
+                  predicted = pd.read_csv('../../analysis_results/resstock_pnw.csv', index_col=['name'])
+                  predicted = remove_upgrades(predicted)
                   predicted['Weight'] = house_count / len(predicted.index)
                   predicted['Predicted Total Site Gas MBtu'] = units_Therm2MBtu(predicted['simulation_output_report.Total Site Natural Gas therm'] * predicted['Weight'])
                   predicted = predicted.groupby('building_characteristics_report.{}'.format(slicer)).sum()
@@ -205,8 +203,8 @@ def do_plot(slices, fields, size='medium', weighted_area=True, save=False, setli
                   measured = pd.read_csv('../../analysis_results/outputs/pnw/Electricity Consumption {}.tsv'.format(slicer), index_col=['Dependency=Location Heating Region', 'Dependency=Vintage'], sep='\t')[['kwh_nrm_per_home']]
                   measured['Measured Per House Site Electricity MBtu'] = units_kWh2MBtu(measured['kwh_nrm_per_home'])
                   house_count = pd.read_csv('../../analysis_results/outputs/pnw/Electricity Consumption {}.tsv'.format(slicer), index_col=['Dependency=Location Heating Region', 'Dependency=Vintage'], sep='\t')[['Weight']].sum().values[0]
-                  predicted = pd.read_csv('../../analysis_results/resstock_pnw.csv', index_col=['name'])[['building_characteristics_report.Location Heating Region', 'building_characteristics_report.Vintage', 'simulation_output_report.Total Site Electricity kWh', 'led_lighting_upgrade.run_measure', 'r13_wall_insulation_upgrade_(if_uninsulated).run_measure', 'triple_pane_windows_upgrade_(if_single_pane).run_measure', 'upgrade_package_(all_or_none).run_measure', 'upgrade_package_(allow_individual_options).run_measure']]
-                  predicted = remove_upgrades(predicted, upgrades)
+                  predicted = pd.read_csv('../../analysis_results/resstock_pnw.csv', index_col=['name'])
+                  predicted = remove_upgrades(predicted)
                   predicted['Weight'] = house_count / len(predicted.index)
                   predicted['Predicted Total Site Electricity MBtu'] = units_kWh2MBtu(predicted['simulation_output_report.Total Site Electricity kWh']) * predicted['Weight']
                   predicted = predicted.rename(columns={"building_characteristics_report.Location Heating Region": "Dependency=Location Heating Region", "building_characteristics_report.Vintage": "Dependency=Vintage"})
@@ -217,8 +215,8 @@ def do_plot(slices, fields, size='medium', weighted_area=True, save=False, setli
                   measured = pd.read_csv('../../analysis_results/outputs/pnw/Natural Gas Consumption {}.tsv'.format(slicer), index_col=['Dependency=Location Heating Region', 'Dependency=Vintage'], sep='\t')[['thm_nrm_per_home']]
                   measured['Measured Per House Site Gas MBtu'] = units_Therm2MBtu(measured['thm_nrm_per_home'])
                   house_count = pd.read_csv('../../analysis_results/outputs/pnw/Natural Gas Consumption {}.tsv'.format(slicer), index_col=['Dependency=Location Heating Region', 'Dependency=Vintage'], sep='\t')[['Weight']].sum().values[0]
-                  predicted = pd.read_csv('../../analysis_results/resstock_pnw.csv', index_col=['name'])[['building_characteristics_report.Location Heating Region', 'building_characteristics_report.Vintage', 'simulation_output_report.Total Site Natural Gas therm', 'led_lighting_upgrade.run_measure', 'r13_wall_insulation_upgrade_(if_uninsulated).run_measure', 'triple_pane_windows_upgrade_(if_single_pane).run_measure', 'upgrade_package_(all_or_none).run_measure', 'upgrade_package_(allow_individual_options).run_measure']]
-                  predicted = remove_upgrades(predicted, upgrades)
+                  predicted = pd.read_csv('../../analysis_results/resstock_pnw.csv', index_col=['name'])
+                  predicted = remove_upgrades(predicted)
                   predicted['Weight'] = house_count / len(predicted.index)
                   predicted['Predicted Total Site Gas MBtu'] = units_Therm2MBtu(predicted['simulation_output_report.Total Site Natural Gas therm']) * predicted['Weight']
                   predicted = predicted.rename(columns={"building_characteristics_report.Location Heating Region": "Dependency=Location Heating Region", "building_characteristics_report.Vintage": "Dependency=Vintage"})
@@ -394,10 +392,10 @@ def to_figure(df, file):
     plt.savefig(file)
     plt.close()
     
-def remove_upgrades(df, cols):
-    for col in cols:
-        col += '.run_measure'
-        df = df[df[col]==0]
+def remove_upgrades(df):
+    for col in df.columns:
+        if col.endswith('.run_measure'):
+            df = df[df[col]==0]
     return df
     
 if __name__ == '__main__':
