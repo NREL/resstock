@@ -1021,9 +1021,12 @@ class Create_DFs():
         df = df.reset_index()
         df.loc[df['Dependency=Heating Fuel']!='Electricity', 'Option=None'] = 1
         df['Dependency=Vintage'] = pd.Categorical(df['Dependency=Vintage'], ['<1950', '1950s', '1960s', '1970s', '1980s', '1990s', '2000s'])
-        df = df.sort_values(by=['Dependency=Location Heating Region', 'Dependency=Heating Fuel', 'Dependency=HVAC System Is Combined', 'Dependency=Vintage']).set_index(['Dependency=Location Heating Region', 'Dependency=Heating Fuel', 'Dependency=HVAC System Is Combined', 'Dependency=Vintage'])
-        # if smooth:
-            # df = apply_smoothing(df, 'Dependency=Location Heating Region', 'Dependency=Vintage')        
+        df = df.sort_values(by=['Dependency=Location Heating Region', 'Dependency=Heating Fuel', 'Dependency=HVAC System Is Combined', 'Dependency=Vintage']).set_index(['Dependency=Location Heating Region', 'Dependency=Vintage', 'Dependency=Heating Fuel', 'Dependency=HVAC System Is Combined'])
+        if smooth:
+            df_sub = df.reset_index()
+            df_sub = df_sub[(df_sub['Dependency=Heating Fuel']=='Electricity') & (df_sub['Dependency=HVAC System Is Combined']=='No')].set_index(['Dependency=Location Heating Region', 'Dependency=Vintage', 'Dependency=Heating Fuel', 'Dependency=HVAC System Is Combined'])                
+            df_sub = apply_smoothing(df_sub, 'Dependency=Location Heating Region', 'Dependency=Vintage', ['Dependency=Heating Fuel', 'Dependency=HVAC System Is Combined'])
+            df.update(df_sub)
         return df
         
     def hvac_system_heating_natural_gas(self, smooth=False):
@@ -1099,9 +1102,12 @@ class Create_DFs():
         df = df.reset_index()
         df.loc[df['Dependency=Heating Fuel']!='Natural Gas', 'Option=None'] = 1        
         df['Dependency=Vintage'] = pd.Categorical(df['Dependency=Vintage'], ['<1950', '1950s', '1960s', '1970s', '1980s', '1990s', '2000s'])
-        df = df.sort_values(by=['Dependency=Location Heating Region', 'Dependency=Heating Fuel', 'Dependency=HVAC System Is Combined', 'Dependency=Vintage']).set_index(['Dependency=Location Heating Region', 'Dependency=Heating Fuel', 'Dependency=HVAC System Is Combined', 'Dependency=Vintage'])
-        # if smooth:
-            # df = apply_smoothing(df, 'Dependency=Location Heating Region', 'Dependency=Vintage')        
+        df = df.sort_values(by=['Dependency=Location Heating Region', 'Dependency=Heating Fuel', 'Dependency=HVAC System Is Combined', 'Dependency=Vintage']).set_index(['Dependency=Location Heating Region', 'Dependency=Vintage', 'Dependency=Heating Fuel', 'Dependency=HVAC System Is Combined'])
+        if smooth:
+            df_sub = df.reset_index()
+            df_sub = df_sub[(df_sub['Dependency=Heating Fuel']=='Natural Gas') & (df_sub['Dependency=HVAC System Is Combined']=='No')].set_index(['Dependency=Location Heating Region', 'Dependency=Vintage', 'Dependency=Heating Fuel', 'Dependency=HVAC System Is Combined'])        
+            df_sub = apply_smoothing(df_sub, 'Dependency=Location Heating Region', 'Dependency=Vintage', ['Dependency=Heating Fuel', 'Dependency=HVAC System Is Combined'])
+            df.update(df_sub)
         return df
         
     def hvac_system_heating_fuel_oil(self):
@@ -1294,9 +1300,12 @@ class Create_DFs():
         df = df[['Option=AC, SEER 10', 'Option=AC, SEER 13', 'Option=AC, SEER 15', 'Option=FIXME Room AC, EER 9.8, 20% Conditioned', 'Option=FIXME Evaporative Cooler', 'Option=None', 'Count', 'Weight']]
         df = df.reset_index()
         df['Dependency=Vintage'] = pd.Categorical(df['Dependency=Vintage'], ['<1950', '1950s', '1960s', '1970s', '1980s', '1990s', '2000s'])
-        df = df.sort_values(by=['Dependency=Location Cooling Region', 'Dependency=HVAC System Is Combined', 'Dependency=Vintage']).set_index(['Dependency=Location Cooling Region', 'Dependency=HVAC System Is Combined', 'Dependency=Vintage'])
-        # if smooth:
-            # df = apply_smoothing(df, 'Dependency=Location Heating Region', 'Dependency=Vintage')
+        df = df.sort_values(by=['Dependency=Location Cooling Region', 'Dependency=HVAC System Is Combined', 'Dependency=Vintage']).set_index(['Dependency=Location Cooling Region', 'Dependency=Vintage', 'Dependency=HVAC System Is Combined'])
+        if smooth:
+            df_sub = df.reset_index()
+            df_sub = df_sub[df_sub['Dependency=HVAC System Is Combined']=='No'].set_index(['Dependency=Location Cooling Region', 'Dependency=Vintage', 'Dependency=HVAC System Is Combined'])
+            df_sub = apply_smoothing(df_sub, 'Dependency=Location Cooling Region', 'Dependency=Vintage', ['Dependency=HVAC System Is Combined'])
+            df.update(df_sub)
         return df
     
     def ducts(self):
@@ -1503,18 +1512,18 @@ def add_option_prefix(df):
                 df.rename(columns={col: 'Option={}'.format(col)}, inplace=True)
     return df
 
-def apply_smoothing(df, w1, w2):
+def apply_smoothing(df, w1, w2, additional_indexes=[]):
     df = df.reset_index()
     for col in df.columns:
         if not 'Option' in col:
             continue
-        df[col] = df[col] * df['Weight']
+        df[col] *= df['Weight']
         p1 = df[[w1, col]].groupby([w1]).sum()
-        p2 = df[[w2, col]].groupby([w2]).sum()
+        p2 = df[[w2, col]].groupby([w2]).sum()        
         df[col] = df.apply(lambda row: smoothing_calculation(row, col, p1, p2), axis=1)
-    df = df.set_index([w1, w2])
+    df = df.set_index([w1, w2] + additional_indexes)
     del df['Weight']
-    df['Weight'] = df.drop(['Count'], axis=1).sum(axis=1)    
+    df['Weight'] = df.drop(['Count'], axis=1).sum(axis=1)
     for col in df.columns:
         if not 'Option' in col:
             continue
@@ -1532,7 +1541,8 @@ if __name__ == '__main__':
     dfs = Create_DFs('rbsa.sqlite')
     
     # Other possible categories: 'Insulation Wall H1', 'Insulation Wall H2', 'Insulation Wall H3', 'Insulation Unfinished Attic H1', 'Insulation Unfinished Attic H2', 'Insulation Unfinished Attic H3', 'Windows H1', 'Windows H2', 'Windows H3'
-    for category in ['Location Heating Region', 'Location Cooling Region', 'Vintage', 'Heating Fuel', 'Geometry Foundation Type', 'Geometry House Size', 'Geometry Stories', 'Insulation Unfinished Attic', 'Insulation Wall', 'Heating Setpoint', 'Cooling Setpoint', 'Insulation Slab', 'Insulation Crawlspace', 'Insulation Unfinished Basement', 'Insulation Finished Basement', 'Insulation Interzonal Floor', 'Windows', 'Infiltration', 'HVAC System Combined', 'HVAC System Heating Electricity', 'HVAC System Heating Natural Gas', 'HVAC System Heating Fuel Oil', 'HVAC System Heating Propane', 'HVAC System Heating Wood', 'HVAC System Cooling', 'HVAC System Is Combined', 'Ducts', 'Water Heater', 'Lighting', 'Cooking Range', 'Clothes Dryer']:
+    # for category in ['Location Heating Region', 'Location Cooling Region', 'Vintage', 'Heating Fuel', 'Geometry Foundation Type', 'Geometry House Size', 'Geometry Stories', 'Insulation Unfinished Attic', 'Insulation Wall', 'Heating Setpoint', 'Cooling Setpoint', 'Insulation Slab', 'Insulation Crawlspace', 'Insulation Unfinished Basement', 'Insulation Finished Basement', 'Insulation Interzonal Floor', 'Windows', 'Infiltration', 'HVAC System Combined', 'HVAC System Heating Electricity', 'HVAC System Heating Natural Gas', 'HVAC System Heating Fuel Oil', 'HVAC System Heating Propane', 'HVAC System Heating Wood', 'HVAC System Cooling', 'HVAC System Is Combined', 'Ducts', 'Water Heater', 'Lighting', 'Cooking Range', 'Clothes Dryer']:
+    for category in ['HVAC System Heating Electricity', 'HVAC System Heating Natural Gas']:
         print category
         method = getattr(dfs, category.lower().replace(' ', '_'))
         if category in ['Heating Fuel', 'Geometry Stories', 'HVAC System Heating Electricity', 'HVAC System Heating Natural Gas', 'HVAC System Cooling']: # these are smoothed
