@@ -48,7 +48,7 @@ vintages = {1  :'1950-pre',
             8  :'2000s'}
 
 fuels = {1:'Natural Gas',
-         2:'Propane/LPG',
+         2:'Propane',
          3:'Fuel Oil',
          5:'Electricity',
          4:'Other Fuel',
@@ -422,7 +422,7 @@ def calc_general(df, cut_by=['reportable_domain', 'fuelheat'], columns=None, out
 #Use Dictionaries to Define Data
     temp_field = ['athome','temphome','tempgone','tempnite','temphomeac','tempgoneac','tempniteac']
     df[temp_field].replace(-2,np.NaN)
-    fuels_list = ['Natural Gas','Propane/LPG','Fuel Oil','Electricity','Other Fuel']
+    fuels_list = ['Natural Gas','Propane','Fuel Oil','Electricity','Other Fuel']
     for heat_num, heat_name in heating_types.iteritems():
         df['equipm'].replace(heat_num,heat_name,inplace=True)
     for field in ['fuelheat','fuelh2o','rngfuel','dryrfuel']:

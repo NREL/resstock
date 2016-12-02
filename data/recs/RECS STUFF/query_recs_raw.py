@@ -48,7 +48,7 @@ vintages = {1  :'1950-pre',
             8  :'2000s'}
 
 fuels = {1:'Natural Gas',
-         2:'Propane/LPG',
+         2:'Propane',
          3:'Fuel Oil',
          5:'Electricity',
          4:'Other Fuel',
@@ -339,7 +339,7 @@ def assign_sizes(df):
 #    return df
 
 def calc_general(df, cut_by=['REPORTABLE_DOMAIN','FUELHEAT'], columns=None, outfile=None,norm=True):
-    fuels_list = ['Natural Gas','Propane/LPG','Fuel Oil','Electricity','Other Fuel']
+    fuels_list = ['Natural Gas','Propane','Fuel Oil','Electricity','Other Fuel']
     for fuel_num, fuel_name in fuels.iteritems():
         for field in ['FUELHEAT','FUELH2O','RNGFUEL','DRYRFUEL']:
             df[field].replace(fuel_num,fuel_name, inplace=True)

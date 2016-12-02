@@ -394,15 +394,6 @@ def to_figure(df, file):
     plt.savefig(file)
     plt.close()
     
-def add_option_prefix(df):
-    for col in df.columns:
-        if not 'Dependency=' in col and not 'Count' in col and not 'Weight' in col and not 'group' in col:
-            if col in ['Propane, 100% Usage', 'MSHP, SEER 18.0, 9.6 HSPF, 60% Conditioned', 'Room AC, EER 9.8, 10% Conditioned', 'Room AC, EER 9.8, 20% Conditioned', 'Room AC, EER 9.8, 30% Conditioned', 'Room AC, EER 9.8, 50% Conditioned']:
-                df.rename(columns={col: 'Option=FIXME {}'.format(col)}, inplace=True)
-            else:
-                df.rename(columns={col: 'Option={}'.format(col)}, inplace=True)
-    return df
-
 def remove_upgrades(df, cols):
     for col in cols:
         col += '.run_measure'

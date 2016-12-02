@@ -135,7 +135,7 @@ def assign_heating_fuel(df):
     
     fueltypekey = {'Electric': 'Electricity',
                    'Gas': 'Natural Gas',
-                   'Propane': 'Propane/LPG',
+                   'Propane': 'Propane',
                    'Wood': 'Wood',
                    'Oil': 'Fuel Oil',
                    'Pellets': 'Wood'}
