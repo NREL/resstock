@@ -108,7 +108,7 @@ class Create_DFs():
             df = apply_smoothing(df, 'Dependency=Location Heating Region', 'Dependency=Vintage')
         return df
         
-    def insulation_unfinished_attic(self):
+    def insulation_unfinished_attic(self, smooth=False):
         df = util.create_dataframe(self.session, rdb)
         df = util.assign_climate_zones(df)
         df = util.assign_state(df)
@@ -139,6 +139,8 @@ class Create_DFs():
         df = df.reset_index()
         df['Dependency=Vintage'] = pd.Categorical(df['Dependency=Vintage'], ['<1950', '1950s', '1960s', '1970s', '1980s', '1990s', '2000s'])
         df = df.sort_values(by=['Dependency=Location Heating Region', 'Dependency=Vintage']).set_index(['Dependency=Location Heating Region', 'Dependency=Vintage'])
+        if smooth:
+            df = apply_smoothing(df, 'Dependency=Location Heating Region', 'Dependency=Vintage')        
         return df
     
     def insulation_unfinished_attic_h1(self):
@@ -241,7 +243,7 @@ class Create_DFs():
         df = df.sort_values(by=['Dependency=State', 'Dependency=Vintage']).set_index(['Dependency=State', 'Dependency=Vintage'])
         return df
     
-    def insulation_wall(self):
+    def insulation_wall(self, smooth=False):
         df = util.create_dataframe(self.session, rdb)
         df = util.assign_climate_zones(df)
         df = util.assign_state(df)
@@ -272,6 +274,8 @@ class Create_DFs():
         df = df.reset_index()
         df['Dependency=Vintage'] = pd.Categorical(df['Dependency=Vintage'], ['<1950', '1950s', '1960s', '1970s', '1980s', '1990s', '2000s'])
         df = df.sort_values(by=['Dependency=Location Heating Region', 'Dependency=Vintage']).set_index(['Dependency=Location Heating Region', 'Dependency=Vintage'])        
+        if smooth:
+            df = apply_smoothing(df, 'Dependency=Location Heating Region', 'Dependency=Vintage')
         return df
     
     def insulation_wall_h1(self):
@@ -405,7 +409,7 @@ class Create_DFs():
         df = df.sort_values(by=['Dependency=Location Heating Region', 'Dependency=Vintage']).set_index(['Dependency=Location Heating Region', 'Dependency=Vintage'])
         return df
     
-    def geometry_house_size(self):
+    def geometry_house_size(self, smooth=False):
         df = util.create_dataframe(self.session, rdb)
         df = util.assign_climate_zones(df)
         df = util.assign_state(df)
@@ -437,6 +441,8 @@ class Create_DFs():
         df = df.reset_index()
         df['Dependency=Vintage'] = pd.Categorical(df['Dependency=Vintage'], ['<1950', '1950s', '1960s', '1970s', '1980s', '1990s', '2000s'])
         df = df.sort_values(by=['Dependency=Location Heating Region', 'Dependency=Vintage']).set_index(['Dependency=Location Heating Region', 'Dependency=Vintage'])
+        if smooth:
+            df = apply_smoothing(df, 'Dependency=Location Heating Region', 'Dependency=Vintage')        
         return df
     
     def geometry_stories(self, smooth=False):
@@ -509,7 +515,7 @@ class Create_DFs():
         del df['group']        
         return df
     
-    def insulation_slab(self):
+    def insulation_slab(self, smooth=False):
         df = util.create_dataframe(self.session, rdb)
         df = util.assign_climate_zones(df)
         df = util.assign_state(df)
@@ -549,10 +555,15 @@ class Create_DFs():
         df = df[['Option=Uninsulated', 'Option=4ft R5 Perimeter, R5 Gap', 'Option=R10 Whole Slab, R5 Gap', 'Option=None', 'Count', 'Weight']]
         df = df.reset_index()
         df['Dependency=Vintage'] = pd.Categorical(df['Dependency=Vintage'], ['<1950', '1950s', '1960s', '1970s', '1980s', '1990s', '2000s'])
-        df = df.sort_values(by=['Dependency=Location Heating Region', 'Dependency=Geometry Foundation Type', 'Dependency=Vintage']).set_index(['Dependency=Location Heating Region', 'Dependency=Geometry Foundation Type', 'Dependency=Vintage'])
+        df = df.sort_values(by=['Dependency=Location Heating Region', 'Dependency=Geometry Foundation Type', 'Dependency=Vintage']).set_index(['Dependency=Location Heating Region', 'Dependency=Vintage', 'Dependency=Geometry Foundation Type'])
+        if smooth:
+            df_sub = df.reset_index()
+            df_sub = df_sub[df_sub['Dependency=Geometry Foundation Type']=='Slab'].set_index(['Dependency=Location Heating Region', 'Dependency=Vintage', 'Dependency=Geometry Foundation Type'])                
+            df_sub = apply_smoothing(df_sub, 'Dependency=Location Heating Region', 'Dependency=Vintage', ['Dependency=Geometry Foundation Type'])
+            df.update(df_sub)
         return df               
 
-    def insulation_crawlspace(self):
+    def insulation_crawlspace(self, smooth=False):
         df = util.create_dataframe(self.session, rdb)
         df = util.assign_climate_zones(df)
         df = util.assign_state(df)
@@ -592,10 +603,15 @@ class Create_DFs():
         df = df[['Option=Uninsulated, Unvented', 'Option=Uninsulated, Vented', 'Option=Wall R-13, Unvented', 'Option=Ceiling R-13, Vented', 'Option=Ceiling R-19, Vented', 'Option=Ceiling R-30, Vented', 'Option=None', 'Count', 'Weight']]
         df = df.reset_index()
         df['Dependency=Vintage'] = pd.Categorical(df['Dependency=Vintage'], ['<1950', '1950s', '1960s', '1970s', '1980s', '1990s', '2000s'])
-        df = df.sort_values(by=['Dependency=Location Heating Region', 'Dependency=Geometry Foundation Type', 'Dependency=Vintage']).set_index(['Dependency=Location Heating Region', 'Dependency=Geometry Foundation Type', 'Dependency=Vintage'])        
+        df = df.sort_values(by=['Dependency=Location Heating Region', 'Dependency=Geometry Foundation Type', 'Dependency=Vintage']).set_index(['Dependency=Location Heating Region', 'Dependency=Vintage', 'Dependency=Geometry Foundation Type'])
+        if smooth:
+            df_sub = df.reset_index()
+            df_sub = df_sub[df_sub['Dependency=Geometry Foundation Type']=='Crawl'].set_index(['Dependency=Location Heating Region', 'Dependency=Vintage', 'Dependency=Geometry Foundation Type'])                
+            df_sub = apply_smoothing(df_sub, 'Dependency=Location Heating Region', 'Dependency=Vintage', ['Dependency=Geometry Foundation Type'])
+            df.update(df_sub)
         return df
     
-    def insulation_unfinished_basement(self):
+    def insulation_unfinished_basement(self, smooth=False):
         df = util.create_dataframe(self.session, rdb)
         df = util.assign_climate_zones(df)
         df = util.assign_state(df)
@@ -635,10 +651,15 @@ class Create_DFs():
         df = df[['Option=Uninsulated', 'Option=Ceiling R-13', 'Option=Ceiling R-19', 'Option=None', 'Count', 'Weight']]
         df = df.reset_index()
         df['Dependency=Vintage'] = pd.Categorical(df['Dependency=Vintage'], ['<1950', '1950s', '1960s', '1970s', '1980s', '1990s', '2000s'])
-        df = df.sort_values(by=['Dependency=Location Heating Region', 'Dependency=Geometry Foundation Type', 'Dependency=Vintage']).set_index(['Dependency=Location Heating Region', 'Dependency=Geometry Foundation Type', 'Dependency=Vintage'])        
+        df = df.sort_values(by=['Dependency=Location Heating Region', 'Dependency=Geometry Foundation Type', 'Dependency=Vintage']).set_index(['Dependency=Location Heating Region', 'Dependency=Vintage', 'Dependency=Geometry Foundation Type'])        
+        if smooth:
+            df_sub = df.reset_index()
+            df_sub = df_sub[df_sub['Dependency=Geometry Foundation Type']=='Unheated Basement'].set_index(['Dependency=Location Heating Region', 'Dependency=Vintage', 'Dependency=Geometry Foundation Type'])                
+            df_sub = apply_smoothing(df_sub, 'Dependency=Location Heating Region', 'Dependency=Vintage', ['Dependency=Geometry Foundation Type'])
+            df.update(df_sub)
         return df
     
-    def insulation_finished_basement(self):
+    def insulation_finished_basement(self, smooth=False):
         df = util.create_dataframe(self.session, rdb)
         df = util.assign_climate_zones(df)
         df = util.assign_state(df)
@@ -678,10 +699,15 @@ class Create_DFs():
         df = df[['Option=Uninsulated', 'Option=Wall R-5', 'Option=Wall R-10', 'Option=Wall R-15', 'Option=None', 'Count', 'Weight']]
         df = df.reset_index()
         df['Dependency=Vintage'] = pd.Categorical(df['Dependency=Vintage'], ['<1950', '1950s', '1960s', '1970s', '1980s', '1990s', '2000s'])
-        df = df.sort_values(by=['Dependency=Location Heating Region', 'Dependency=Geometry Foundation Type', 'Dependency=Vintage']).set_index(['Dependency=Location Heating Region', 'Dependency=Geometry Foundation Type', 'Dependency=Vintage'])        
+        df = df.sort_values(by=['Dependency=Location Heating Region', 'Dependency=Geometry Foundation Type', 'Dependency=Vintage']).set_index(['Dependency=Location Heating Region', 'Dependency=Vintage', 'Dependency=Geometry Foundation Type'])
+        if smooth:
+            df_sub = df.reset_index()
+            df_sub = df_sub[df_sub['Dependency=Geometry Foundation Type']=='Heated Basement'].set_index(['Dependency=Location Heating Region', 'Dependency=Vintage', 'Dependency=Geometry Foundation Type'])                
+            df_sub = apply_smoothing(df_sub, 'Dependency=Location Heating Region', 'Dependency=Vintage', ['Dependency=Geometry Foundation Type'])
+            df.update(df_sub)        
         return df
     
-    def insulation_interzonal_floor(self):
+    def insulation_interzonal_floor(self, smooth=False):
         df = util.create_dataframe(self.session, rdb)
         df = util.assign_climate_zones(df)
         df = util.assign_state(df)
@@ -712,6 +738,8 @@ class Create_DFs():
         df = df.reset_index()
         df['Dependency=Vintage'] = pd.Categorical(df['Dependency=Vintage'], ['<1950', '1950s', '1960s', '1970s', '1980s', '1990s', '2000s'])
         df = df.sort_values(by=['Dependency=Location Heating Region', 'Dependency=Vintage']).set_index(['Dependency=Location Heating Region', 'Dependency=Vintage'])        
+        if smooth:
+            df = apply_smoothing(df, 'Dependency=Location Heating Region', 'Dependency=Vintage')      
         return df
     
     def windows(self):
@@ -846,7 +874,7 @@ class Create_DFs():
         df = df.sort_values(by=['Dependency=State', 'Dependency=Vintage']).set_index(['Dependency=State', 'Dependency=Vintage'])        
         return df    
     
-    def infiltration(self):
+    def infiltration(self, smooth=False):
         df = util.create_dataframe(self.session, rdb)
         df = util.assign_vintage(df)
         df = util.assign_size(df)
@@ -874,10 +902,12 @@ class Create_DFs():
         df = df[['Option=2 ACH50', 'Option=4 ACH50', 'Option=6 ACH50', 'Option=8 ACH50', 'Option=10 ACH50', 'Option=15 ACH50', 'Option=20 ACH50', 'Option=25 ACH50', 'Count', 'Weight']]
         df = df.reset_index()
         df['Dependency=Vintage'] = pd.Categorical(df['Dependency=Vintage'], ['<1950', '1950s', '1960s', '1970s', '1980s', '1990s', '2000s'])
-        df = df.sort_values(by=['Dependency=Geometry House Size', 'Dependency=Vintage']).set_index(['Dependency=Geometry House Size', 'Dependency=Vintage'])        
+        df = df.sort_values(by=['Dependency=Geometry House Size', 'Dependency=Vintage']).set_index(['Dependency=Geometry House Size', 'Dependency=Vintage'])
+        if smooth:
+            df = apply_smoothing(df, 'Dependency=Geometry House Size', 'Dependency=Vintage')
         return df
         
-    def hvac_system_combined(self):
+    def hvac_system_combined(self, smooth=False):
         df = util.create_dataframe(self.session, rdb)
         df = util.assign_climate_zones(df)
         df = util.assign_state(df)
@@ -934,7 +964,12 @@ class Create_DFs():
         df = add_option_prefix(df)
         df = df.reset_index()
         df['Dependency=Vintage'] = pd.Categorical(df['Dependency=Vintage'], ['<1950', '1950s', '1960s', '1970s', '1980s', '1990s', '2000s'])
-        df = df.sort_values(by=['Dependency=Location Heating Region', 'Dependency=Heating Fuel', 'Dependency=HVAC System Is Combined', 'Dependency=Vintage']).set_index(['Dependency=Location Heating Region', 'Dependency=Heating Fuel', 'Dependency=HVAC System Is Combined', 'Dependency=Vintage'])
+        df = df.sort_values(by=['Dependency=Location Heating Region', 'Dependency=Heating Fuel', 'Dependency=HVAC System Is Combined', 'Dependency=Vintage']).set_index(['Dependency=Location Heating Region', 'Dependency=Vintage', 'Dependency=Heating Fuel', 'Dependency=HVAC System Is Combined'])
+        if smooth:
+            df_sub = df.reset_index()
+            df_sub = df_sub[(df_sub['Dependency=Heating Fuel']=='Electricity') & (df_sub['Dependency=HVAC System Is Combined']=='Yes')].set_index(['Dependency=Location Heating Region', 'Dependency=Vintage', 'Dependency=Heating Fuel', 'Dependency=HVAC System Is Combined'])                
+            df_sub = apply_smoothing(df_sub, 'Dependency=Location Heating Region', 'Dependency=Vintage', ['Dependency=Heating Fuel', 'Dependency=HVAC System Is Combined'])
+            df.update(df_sub)        
         return df
         
     def hvac_system_is_combined(self):
@@ -1544,7 +1579,7 @@ if __name__ == '__main__':
     for category in ['Location Heating Region', 'Location Cooling Region', 'Vintage', 'Heating Fuel', 'Geometry Foundation Type', 'Geometry House Size', 'Geometry Stories', 'Insulation Unfinished Attic', 'Insulation Wall', 'Heating Setpoint', 'Cooling Setpoint', 'Insulation Slab', 'Insulation Crawlspace', 'Insulation Unfinished Basement', 'Insulation Finished Basement', 'Insulation Interzonal Floor', 'Windows', 'Infiltration', 'HVAC System Combined', 'HVAC System Heating Electricity', 'HVAC System Heating Natural Gas', 'HVAC System Heating Fuel Oil', 'HVAC System Heating Propane', 'HVAC System Heating Wood', 'HVAC System Cooling', 'HVAC System Is Combined', 'Ducts', 'Water Heater', 'Lighting', 'Cooking Range', 'Clothes Dryer']:
         print category
         method = getattr(dfs, category.lower().replace(' ', '_'))
-        if category in ['Heating Fuel', 'Geometry Stories', 'HVAC System Heating Electricity', 'HVAC System Heating Natural Gas', 'HVAC System Cooling']: # these are smoothed
+        if category in ['Heating Fuel', 'Geometry Stories', 'HVAC System Heating Electricity', 'HVAC System Heating Natural Gas', 'HVAC System Cooling', 'Geometry House Size', 'HVAC System Combined', 'Infiltration', 'Insulation Crawlspace', 'Insulation Finished Basement', 'Insulation Interzonal Floor', 'Insulation Slab', 'Insulation Unfinished Attic', 'Insulation Wall', 'Insulation Unfinished Basement']: # these are smoothed
             df = method(True)
         else:
             df = method()
