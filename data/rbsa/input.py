@@ -1332,7 +1332,7 @@ class Create_DFs():
             df.loc[index, 'AC, SEER 15'] += row['AC'] / 3.0
         df = df.fillna(0)
         df = add_option_prefix(df)
-        df = df[['Option=AC, SEER 10', 'Option=AC, SEER 13', 'Option=AC, SEER 15', 'Option=FIXME Room AC, EER 9.8, 20% Conditioned', 'Option=FIXME Evaporative Cooler', 'Option=None', 'Count', 'Weight']]
+        df = df[['Option=AC, SEER 10', 'Option=AC, SEER 13', 'Option=AC, SEER 15', 'Option=Room AC, EER 9.8, 20% Conditioned', 'Option=FIXME Evaporative Cooler', 'Option=None', 'Count', 'Weight']]
         df = df.reset_index()
         df['Dependency=Vintage'] = pd.Categorical(df['Dependency=Vintage'], ['<1950', '1950s', '1960s', '1970s', '1980s', '1990s', '2000s'])
         df = df.sort_values(by=['Dependency=Location Cooling Region', 'Dependency=HVAC System Is Combined', 'Dependency=Vintage']).set_index(['Dependency=Location Cooling Region', 'Dependency=Vintage', 'Dependency=HVAC System Is Combined'])
@@ -1541,7 +1541,7 @@ def to_figure(df, file):
 def add_option_prefix(df):
     for col in df.columns:
         if not 'Dependency=' in col and not 'Count' in col and not 'Weight' in col and not 'group' in col:
-            if col in ['MSHP, SEER 18.0, 9.6 HSPF, 60% Conditioned', 'Room AC, EER 9.8, 20% Conditioned', 'GSHP', 'Dual-Fuel ASHP, SEER 14, 8.2 HSPF', 'Gas Stove, 75% AFUE', 'Oil Stove', 'Propane Stove', 'Wood Stove', 'Evaporative Cooler']:
+            if col in ['GSHP', 'Dual-Fuel ASHP, SEER 14, 8.2 HSPF', 'Gas Stove, 75% AFUE', 'Oil Stove', 'Propane Stove', 'Wood Stove', 'Evaporative Cooler']:
                 df.rename(columns={col: 'Option=FIXME {}'.format(col)}, inplace=True)
             else:
                 df.rename(columns={col: 'Option={}'.format(col)}, inplace=True)
