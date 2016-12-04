@@ -182,6 +182,7 @@ def integrity_check(modes=['national','pnw','testing'])
         options_array << measures[measure_subdir][parameter_name].keys()
       end
       option_combinations = options_array.first.product(*options_array[1..-1])
+      all_measure_args = []
       option_combinations.each do |option_combination|
         measure_args = {}
         option_combination.each_with_index do |option_name, idx|
@@ -189,7 +190,11 @@ def integrity_check(modes=['national','pnw','testing'])
                 measure_args[k] = v
             end
         end
-        validate_measure_args(measure_instances[measure_subdir].arguments(model), measure_args, lookup_file, measure_subdir, nil)
+        next if all_measure_args.include?(measure_args)
+        all_measure_args << measure_args
+      end
+      all_measure_args.each do |measure_args|
+          validate_measure_args(measure_instances[measure_subdir].arguments(model), measure_args, lookup_file, measure_subdir, nil)
       end
     end
     
