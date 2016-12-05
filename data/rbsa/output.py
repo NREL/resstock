@@ -67,6 +67,7 @@ def draw_scatter_plot(df, cols, marker_labels, slicer, weighted_area=True, setli
         if weighted_area:
             # plt.scatter(x, y, s=area_weights, c='k', alpha=1.0) # solid black for superimpoesed shadows for previous calibration iteration
             plt.scatter(x, y, s=area_weights, c=marker_color_all, alpha=0.5, label=leg_label)
+            # pd.concat([x, y, marker_labels], axis=1).to_csv(os.path.join('../../analysis_results/outputs/pnw', 'values.tsv'), sep='\t', index=False, mode='a', header=True)
         else:
             plt.scatter(x, y, c=marker_color_all, alpha=0.5, label=leg_label)
         add_labels(marker_labels, x, y)
@@ -74,6 +75,7 @@ def draw_scatter_plot(df, cols, marker_labels, slicer, weighted_area=True, setli
         colormap = plt.cm.autumn
         if marker_shapes is None:
             plt.scatter(x, y, c=marker_colors, cmap=colormap, s=area_weights, alpha=0.7, label=leg_label)
+            # pd.concat([x, y, pd.DataFrame(marker_labels)], axis=1).to_csv(os.path.join('../../analysis_results/outputs/pnw', 'values.tsv'), sep='\t', index=False, mode='a', header=True)
             add_labels(marker_labels, x, y)
         else:
             for i, shape in enumerate(set(marker_shapes)):
@@ -416,9 +418,9 @@ if __name__ == '__main__':
                 # del df[col]
         # to_figure(df, os.path.join(heatmaps_dir, '{}.png'.format(category)))
         
-    do_plot(slices=['Location Heating Region', 'Vintage', 'Heating Fuel'], fields='Total Site Energy', weighted_area=True, save=True, setlims=(0,None))
-    do_plot(slices=['Location Heating Region', 'Vintage', 'Heating Fuel'], fields='electricity_perhouse', weighted_area=True, save=True, setlims=(0,80))
-    do_plot(slices=['Location Heating Region', 'Vintage', 'Heating Fuel'], fields='gas_perhouse', save=True, setlims=(0,90))
+    do_plot(slices=['Location Heating Region', 'Vintage', 'Heating Fuel'], fields='Total Site Energy', weighted_area=True, save=True)
+    do_plot(slices=['Location Heating Region', 'Vintage', 'Heating Fuel'], fields='electricity_perhouse', weighted_area=True, save=True)
+    do_plot(slices=['Location Heating Region', 'Vintage', 'Heating Fuel'], fields='gas_perhouse', save=True)
     
-    do_plot(slices=['Location Heating Region Vintage'], fields='electricity_perhouse', save=True, setlims=(0,120), size='medium', marker_color=True)
-    do_plot(slices=['Location Heating Region Vintage'], fields='gas_perhouse', save=True, setlims=(0,120), size='medium', marker_color=True)
+    do_plot(slices=['Location Heating Region Vintage'], fields='electricity_perhouse', save=True, size='medium', marker_color=True)
+    do_plot(slices=['Location Heating Region Vintage'], fields='gas_perhouse', save=True, size='medium', marker_color=True)
