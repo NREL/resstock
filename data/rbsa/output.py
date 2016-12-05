@@ -418,9 +418,9 @@ if __name__ == '__main__':
                 # del df[col]
         # to_figure(df, os.path.join(heatmaps_dir, '{}.png'.format(category)))
         
-    do_plot(slices=['Location Heating Region', 'Vintage', 'Heating Fuel'], fields='Total Site Energy', weighted_area=True, save=True)
-    do_plot(slices=['Location Heating Region', 'Vintage', 'Heating Fuel'], fields='electricity_perhouse', weighted_area=True, save=True)
-    do_plot(slices=['Location Heating Region', 'Vintage', 'Heating Fuel'], fields='gas_perhouse', save=True)
+    do_plot(slices=['Location Heating Region', 'Vintage', 'Heating Fuel'], fields='Total Site Energy', weighted_area=True, save=True, setlims=[0,None])
+    do_plot(slices=['Location Heating Region', 'Vintage', 'Heating Fuel'], fields='electricity_perhouse', weighted_area=True, save=True, setlims=[0,None])
+    do_plot(slices=['Location Heating Region', 'Vintage', 'Heating Fuel'], fields='gas_perhouse', save=True, setlims=[0,None])
     
-    do_plot(slices=['Location Heating Region Vintage'], fields='electricity_perhouse', save=True, size='medium', marker_color=True)
-    do_plot(slices=['Location Heating Region Vintage'], fields='gas_perhouse', save=True, size='medium', marker_color=True)
+    do_plot(slices=['Location Heating Region Vintage'], fields='electricity_perhouse', save=True, size='medium', marker_color=True, setlims=[0,None])
+    do_plot(slices=['Location Heating Region Vintage'], fields='gas_perhouse', save=True, size='medium', marker_color=True, setlims=[0,None])
