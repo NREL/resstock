@@ -48,7 +48,7 @@ vintages = {1  :'1950-pre',
             8  :'2000s'}
 
 fuels = {1:'Natural Gas',
-         2:'Propane',
+         2:'Propane/LPG',
          3:'Fuel Oil',
          5:'Electricity',
          4:'Other Fuel',
@@ -56,8 +56,41 @@ fuels = {1:'Natural Gas',
          8:'Other Fuel',
          9:'Other Fuel',
          21:'Other Fuel',
-         np.NaN:'None'}
+         -2:'None'}
 
+cooltype_dict = {1:'Central System',
+                 2:'Window/wall Units',
+                 3:'Both',
+                 -2:'No A/C'}
+
+equipage_dict = {1: '< 2 yrs',
+               2: '2-4 yrs',
+               3: '5-9 yrs',
+               41:'10-14 yrs',
+               42:'15-19 yrs',
+               5: '20+ yrs',
+               -2:'N/A'}
+
+agecenac_dict = {1: '< 2 yrs',
+               2: '2-4 yrs',
+               3: '5-9 yrs',
+               41:'10-14 yrs',
+               42:'15-19 yrs',
+               5: '20+ yrs',
+               -2:'N/A'}
+
+wwacage_dict = {1: '< 2 yrs',
+               2: '2-4 yrs',
+               3: '5-9 yrs',
+               41:'10-14 yrs',
+               42:'15-19 yrs',
+               5: '20+ yrs',
+               -2:'N/A'}
+
+typeglass_dict = {1:'1 Pane',
+                  2:'2+ Pane',
+                  3:'2+ Pane',
+                  -2:'No Windows'}
 sizes = {500:'0-1499',
          1000:'0-1499',
          2000:'1500-2499',
@@ -227,7 +260,7 @@ heating_types = {    2: 'Steam or Hot Water System'        , #'Steam or Hot Wate
                      11: 'Other Equipment'               , #'Portable Kerosene Heaters'     ,
                      12:   'Other Equipment'               , #'Cooking Stove'                 ,
                      21:   'Other Equipment'               , #'Other Equipment'               ,
-                     pd.np.NaN:   'Not Applicable'}                 #'Not Applicable'}
+                     -2:   'Not Applicable'}                 #'Not Applicable'}
 def retrieve_data():
     if not os.path.exists('eia.recs_2009_microdata.pkl'):
         con_string = "host = gispgdb.nrel.gov port = 5432 dbname = dav-gis user = jalley password = jalley"
@@ -242,9 +275,31 @@ def retrieve_data():
 
 def process_data(df):
 #	df = pandas.read_csv(recs_data_file,na_values=['-2'])
-    df = df.replace(-2, np.nan)
-    for vint_num, vint_name in vintages.iteritems():
-        df['yearmaderange'].replace(vint_num,vint_name, inplace=True)
+    field_dicts = {'equipm': heating_types,
+                   'division': census_div,
+                   'stories': story_dict,
+                   'cooltype': cooltype_dict,
+                   'yearmaderange': vintages,
+                   'fuelheat':fuels,
+                   'fuelh2o':fuels,
+                   'rngfuel':fuels,
+                   'dryrfuel':fuels,
+                   'equipage':equipage_dict,
+                   'agecenac':agecenac_dict,
+                   'wwacage':wwacage_dict,
+                   'typeglass':typeglass_dict}
+    for field_name, field_dict in field_dicts.iteritems():
+        for num, name in field_dict.iteritems():
+            df[field_name].replace(num, name, inplace=True)
+
+    df['Size'] = df[['tothsqft','totcsqft']].max(axis=1)
+    df.loc[:,'Size'] = 0
+    df.loc[(df['Size'] < 1500),'Size'] = '0-1499'
+    df.loc[(df['Size'] >= 1500) & (df['Size'] < 2500),'Size'] = '1500-2499'
+    df.loc[(df['Size'] >= 2500) & (df['Size'] < 3500),'Size'] = '2500-3499'
+    df.loc[(df['Size'] >= 3500),'Size'] = '3500+'
+
+
     df['Count']=1
     return df
 
@@ -401,14 +456,6 @@ def calc_ashp_cac(df):
     ashp_but_not_cac = df[(df['equipm'] == 4) & (df['cooltype'] != 1)]['nweight'].sum()*1.0 / df[(df['equipm'] == 4)]['nweight'].sum()
     print "ashp_but_not_cac - {:.3f}".format(ashp_but_not_cac)
 
-def assign_sizes(df):
-    df['Size'] = df[['tothsqft','totcsqft']].max(axis=1)
-    df.loc[:,'Size'] = 0
-    df.loc[(df['Size'] < 1500),'Size'] = '0-1499'
-    df.loc[(df['Size'] >= 1500) & (df['Size'] < 2500),'Size'] = '1500-2499'
-    df.loc[(df['Size'] >= 2500) & (df['Size'] < 3500),'Size'] = '2500-3499'
-    df.loc[(df['Size'] >= 3500),'Size'] = '3500+'
-    return df
 
 #def agg_bedrooms(df):
 #	br_replace_dict = {5:4}
@@ -420,18 +467,7 @@ def calc_general(df, cut_by=['reportable_domain', 'fuelheat'], columns=None, out
     #Temp set 0 as NaN
 
 #Use Dictionaries to Define Data
-    temp_field = ['athome','temphome','tempgone','tempnite','temphomeac','tempgoneac','tempniteac']
-    df[temp_field].replace(-2,np.NaN)
-    fuels_list = ['Natural Gas','Propane','Fuel Oil','Electricity','Other Fuel']
-    for heat_num, heat_name in heating_types.iteritems():
-        df['equipm'].replace(heat_num,heat_name,inplace=True)
-    for field in ['fuelheat','fuelh2o','rngfuel','dryrfuel']:
-        for fuel_num, fuel_name in fuels.iteritems():
-            df[field].replace(fuel_num,fuel_name, inplace=True)
-    for cen_num,cen_name in census_div.iteritems():
-        df['division'].replace(cen_num,cen_name,inplace=True)
-    for story_num, story_name in story_dict.iteritems():
-        df['stories'].replace(story_num,story_name, inplace=True)
+
 
 #Start Analyzing Specific Data
     fields = cut_by + columns
@@ -441,7 +477,7 @@ def calc_general(df, cut_by=['reportable_domain', 'fuelheat'], columns=None, out
     for i, combo in enumerate(combos):
         if pandas.np.nan in combo:
             x = pandas.np.array(combos[i])
-            x = x[~pandas.np.isnan(x)]
+            x = x[~pandas.np.isNaN(x)]
             combos[i] = list(x)
     full_index = pandas.MultiIndex.from_product(combos, names=fields)
 
@@ -477,11 +513,11 @@ def calc_general(df, cut_by=['reportable_domain', 'fuelheat'], columns=None, out
     rename_dict = {}
     for col in g.columns:
         if col in ['Weight','Count']:
-            rename_dict[col] = col
+            rename_dict[col] = str(col)
         else:
-            rename_dict[col] = 'Option=' + col
+            rename_dict[col] = 'Option=' + str(col)
         if col in cut_by:
-            rename_dict[col] = 'Dependency=' + col
+            rename_dict[col] = 'Dependency=' + str(col)
     g = g.rename(columns=rename_dict)
 
 #Generate Outfile
@@ -582,24 +618,32 @@ if __name__ == '__main__':
         df = retrieve_data()
         df = process_data(df)
         df = custom_region(df)
-        df = assign_sizes(df)
         df = assign_poverty_levels(df)
-        df = assign_aliases(df)
+#        df = assign_aliases(df)
         df.to_pickle('processed_eia.recs_2009_microdata.pkl')
     else:
         df = pd.read_pickle('processed_eia.recs_2009_microdata.pkl')
 
 
 #NEW QUERIES
-#    calc_general(df, cut_by=['CR','FPL_BINS'], columns = ['yearmaderange'], outfile = 'output_calc_CR_FPL_by_vintage.tsv')
-#    calc_general(df, cut_by=['CR','FPL_BINS','yearmaderange'], columns = ['equipm'], outfile = 'heatingequipment_output_by_CR_FPL_vintage.tsv')
+    calc_general(df, cut_by=['CR','FPL_BINS'], columns = ['yearmaderange'], outfile = 'output_calc_CR_FPL_by_vintage.tsv')
     calc_general(df, cut_by=['CR','FPL_BINS','yearmaderange'], columns = ['equipm'], outfile = 'heatingequipment_output_by_CR_FPL_vintage.tsv')
-
-
-
-
-
-
+    calc_general(df, cut_by=['CR','FPL_BINS','yearmaderange'], columns = ['equipm'], outfile = 'heatingequipment_output_by_CR_FPL_vintage.tsv')
+    calc_general(df, cut_by=['CR','FPL_BINS','yearmaderange'], columns = ['fuelheat'], outfile = 'heatingfuel_output_by_CR_FPL_vintage.tsv')
+    calc_general(df, cut_by=['CR','FPL_BINS','yearmaderange'], columns = ['Size'], outfile = 'Size_output_by_CR_FPL_vintage.tsv')
+    calc_general(df, cut_by=['CR','FPL_BINS','yearmaderange'], columns = ['equipage'], outfile = 'heating_equipment_age_output_by_CR_FPL_vintage.tsv')
+    calc_general(df, cut_by=['CR','FPL_BINS','yearmaderange'], columns = ['cooltype'], outfile = 'AC_type_output_by_CR_FPL_vintage.tsv')
+    calc_general(df, cut_by=['CR','FPL_BINS','yearmaderange'], columns = ['agecenac'], outfile = 'Central-AC-Sys-Age_output_by_CR_FPL_vintage.tsv')
+    calc_general(df, cut_by=['CR','FPL_BINS','yearmaderange'], columns = ['wwacage'], outfile = 'Window-AC-Sys-Age_output_by_CR_FPL_vintage.tsv')
+    calc_general(df, cut_by=['CR','FPL_BINS','yearmaderange'], columns = ['temphome'], outfile = 'Temp-Winter-Home_output_by_CR_FPL_vintage.tsv')
+    calc_general(df, cut_by=['CR','FPL_BINS','yearmaderange'], columns = ['tempgone'], outfile = 'Temp-Winter-Gone_output_by_CR_FPL_vintage.tsv')
+    calc_general(df, cut_by=['CR','FPL_BINS','yearmaderange'], columns = ['tempnite'], outfile = 'Temp-Winter-Night_output_by_CR_FPL_vintage.tsv')
+    calc_general(df, cut_by=['CR','FPL_BINS','yearmaderange'], columns = ['temphomeac'], outfile = 'Temp-Summer-Home_output_by_CR_FPL_vintage.tsv')
+    calc_general(df, cut_by=['CR','FPL_BINS','yearmaderange'], columns = ['tempgoneac'], outfile = 'Temp-Summer-Gone_output_by_CR_FPL_vintage.tsv')
+    calc_general(df, cut_by=['CR','FPL_BINS','yearmaderange'], columns = ['tempniteac'], outfile = 'Temp-Summer-Night_output_by_CR_FPL_vintage.tsv')
+    calc_general(df, cut_by=['CR','FPL_BINS','yearmaderange'], columns = ['typeglass'], outfile = 'Window-Type_output_by_CR_FPL_vintage.tsv')
+    calc_general(df, cut_by=['CR','FPL_BINS','yearmaderange'], columns = ['nhsldmem'], outfile = 'Household-Occ-Num_output_by_CR_FPL_vintage.tsv')
+#    calc_general(df, cut_by=['CR','FPL_BINS','yearmaderange'], columns = [''], outfile = '_output_by_CR_FPL_vintage.tsv')
 
 #OLD QUERIES
 
