@@ -477,7 +477,6 @@ def calc_general(df, cut_by=['reportable_domain', 'fuelheat'], columns=None, out
     for i, combo in enumerate(combos):
         if pandas.np.nan in combo:
             x = pandas.np.array(combos[i])
-            x = x[~pandas.np.isNaN(x)]
             combos[i] = list(x)
     full_index = pandas.MultiIndex.from_product(combos, names=fields)
 
