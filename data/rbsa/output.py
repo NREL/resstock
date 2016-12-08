@@ -430,6 +430,9 @@ class Create_DFs():
         df = util.assign_climate_zones(df)
         df = util.assign_heating_location(df)
         df = util.assign_natural_gas_consumption(df)
+        # df = util.assign_natural_gas_consumption_tmy2_nrm_sel(df)
+        # df = util.assign_natural_gas_consumption_tmy2_nrm(df)
+        # df = util.assign_natural_gas_consumption_tmy2_act(df)
         df = df.groupby(['Dependency=Location Heating Region'])
         count = df.agg(['count']).ix[:, 0]
         weight = df.agg(['sum'])['Weight']
@@ -437,13 +440,16 @@ class Create_DFs():
         df['Count'] = count
         df['Weight'] = weight
         df['thm_nrm_per_home'] = df['thm_nrm'] / df['Count']
-        df['thm_nrm_total'] = df['thm_nrm_per_home'] * df['Weight']           
+        df['thm_nrm_total'] = df['thm_nrm_per_home'] * df['Weight']
         return df
 
     def natural_gas_consumption_vintage(self):
         df = util.create_dataframe(self.session, rdb)
         df = util.assign_vintage(df)
         df = util.assign_natural_gas_consumption(df)
+        # df = util.assign_natural_gas_consumption_tmy2_nrm_sel(df)
+        # df = util.assign_natural_gas_consumption_tmy2_nrm(df)
+        # df = util.assign_natural_gas_consumption_tmy2_act(df)        
         df = df.groupby(['Dependency=Vintage'])
         count = df.agg(['count']).ix[:, 0]
         weight = df.agg(['sum'])['Weight']
@@ -463,6 +469,9 @@ class Create_DFs():
         df = util.assign_heating_location(df)        
         df = util.assign_vintage(df)
         df = util.assign_natural_gas_consumption(df)
+        # df = util.assign_natural_gas_consumption_tmy2_nrm_sel(df)
+        # df = util.assign_natural_gas_consumption_tmy2_nrm(df)
+        # df = util.assign_natural_gas_consumption_tmy2_act(df)        
         df = df.groupby(['Dependency=Location Heating Region', 'Dependency=Vintage'])
         count = df.agg(['count']).ix[:, 0]
         weight = df.agg(['sum'])['Weight']
@@ -517,6 +526,9 @@ class Create_DFs():
         df = util.create_dataframe(self.session, rdb)
         df = util.assign_heating_fuel(df)
         df = util.assign_natural_gas_consumption(df)
+        # df = util.assign_natural_gas_consumption_tmy2_nrm_sel(df)
+        # df = util.assign_natural_gas_consumption_tmy2_nrm(df)
+        # df = util.assign_natural_gas_consumption_tmy2_act(df)        
         df = df.groupby(['Dependency=Heating Fuel'])
         count = df.agg(['count']).ix[:, 0]
         weight = df.agg(['sum'])['Weight']
@@ -642,7 +654,7 @@ if __name__ == '__main__':
         method = getattr(dfs, category.lower().replace(' ', '_'))
         df = method()
         df.to_csv(os.path.join(datafiles_dir, '{}.tsv'.format(category)), sep='\t')
-    
+
         for col in ['Count', 'Weight']:
             if col in df.columns:
                 del df[col]

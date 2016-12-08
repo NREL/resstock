@@ -1013,6 +1013,16 @@ class Create_DFs():
         df = df.sort_values(by=['Dependency=Location Heating Region', 'Dependency=Heating Fuel', 'Dependency=Vintage']).set_index(['Dependency=Location Heating Region', 'Dependency=Heating Fuel', 'Dependency=Vintage'])        
         return df
         
+    def hvac_system_heating_secondary(self):       
+        df = util.create_dataframe(self.session, rdb)
+        df = util.assign_climate_zones(df)
+        df = util.assign_state(df)
+        df = util.assign_heating_location(df)
+        df = util.assign_cooling_location(df)
+        df = util.assign_vintage(df)
+        df = util.assign_heating_types_and_fuel(df)
+        return df
+        
     def hvac_system_heating_electricity(self, smooth=False):
         df = util.create_dataframe(self.session, rdb)
         df = util.assign_climate_zones(df)

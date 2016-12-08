@@ -647,6 +647,45 @@ def assign_hvac_system_is_combined(df, col):
 
     return df    
 
+def assign_heating_types_and_fuel(df):
+
+    gas_systems = ['faf', 'htstove', 'boiler']
+
+    def primary_htg(hvacheating):
+        for eq in hvacheating:
+            if eq.hvacprimary:
+                if eq.hvacfuel == 'Gas':
+                    if eq.hvactype in gas_systems:
+                        return eq.hvactype
+
+    def secondary_htg(primary_gas_system, hvacheating, sys):
+        fuel = None
+        if '_' in sys:
+            fuel = sys.split('_')[0]
+            sys = sys.split('_')[1]
+        
+        for eq in hvacheating:
+            if not eq.hvacprimary:
+                if fuel:
+                    if sys == eq.hvactype and fuel == eq.hvacfuel:
+                        return 1
+                else:
+                    if sys == eq.hvactype:
+                        return 1
+                        
+    df['primary_gas_system'] = df.apply(lambda x: primary_htg(x.object.hvacheating), axis=1)
+    df = df.dropna(subset=['primary_gas_system'])
+    secondary_systems = ['baseboard', 'pluginheater', 'faf', 'Gas_htstove', 'Oil_htstove', 'Other_htstove', 'Pellets_htstove', 'Propane_htstove', 'Wood_htstove', 'heatpump', 'Wood_fireplace', 'Propane_fireplace', 'heatpumpdualfuel', 'boiler', 'dhp', 'gshp']
+    for sys in secondary_systems:
+        df[sys] = df.apply(lambda x: secondary_htg(x.primary_gas_system, x.object.hvacheating, sys), axis=1)
+    df = df.fillna(0.0)
+    df['num_secondary_systems'] = df[secondary_systems].sum(axis=1)
+    df['no_secondary'] = df['num_secondary_systems'].apply(lambda x: 1.0 if x == 0 else 0.0)
+    print df.shape
+    df[secondary_systems + ['no_secondary']].sum().to_frame(name='counts')
+
+    return df
+    
 def assign_hvac_system_heating(df):
     
     fueltypekey = {'Electric': 'Electric',
@@ -1019,3 +1058,27 @@ def assign_natural_gas_consumption(df):
     df = df.fillna(0)
 
     return df
+    
+def assign_natural_gas_consumption_tmy2_nrm_sel(df):
+
+    df['thm_nrm'] = df.apply(lambda x: x.object.sfenergysum.thmnrmsel, axis=1)
+    df['Weight'] = df.apply(lambda x: x.object.sfmasterpopulations.svywt, axis=1)
+    df = df.fillna(0)
+
+    return df
+    
+def assign_natural_gas_consumption_tmy2_nrm(df):
+
+    df['thm_nrm'] = df.apply(lambda x: x.object.sfenergysum.thmnrmy, axis=1)
+    df['Weight'] = df.apply(lambda x: x.object.sfmasterpopulations.svywt, axis=1)
+    df = df.fillna(0)
+
+    return df
+
+def assign_natural_gas_consumption_tmy2_act(df):
+
+    df['thm_nrm'] = df.apply(lambda x: x.object.sfenergysum.thmy, axis=1)
+    df['Weight'] = df.apply(lambda x: x.object.sfmasterpopulations.svywt, axis=1)
+    df = df.fillna(0)
+
+    return df    
