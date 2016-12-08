@@ -1004,7 +1004,7 @@ class ResidentialAirflow < OpenStudio::Ruleset::ModelUserScript
       zone_air_relative_humidity_output_var.setName("Zone Air Relative Humidity")      
       sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, zone_air_relative_humidity_output_var)
       sensor.setName("Phiin_#{unit.unit_num}")
-      sensor.setKeyName(unit.living_zone.name.to_s)      
+      sensor.setKeyName(unit.living_zone.name.to_s)
       
       zone_mean_air_humidity_ratio_output_var = OpenStudio::Model::OutputVariable.new("Zone Mean Air Humidity Ratio", model)
       zone_mean_air_humidity_ratio_output_var.setName("Zone Mean Air Humidity Ratio")      
@@ -2467,16 +2467,14 @@ class ResidentialAirflow < OpenStudio::Ruleset::ModelUserScript
       end
     end
 
-    default_htg_sp = 71.0
-    default_clg_sp = 76.0
     if heatingSetpointWeekday.all? {|x| x == -10000}
-      runner.registerWarning("No heating equipment found. Assuming #{default_htg_sp} F for natural ventilation calculations.")
-      nat_vent.ovlp_ssn_hourly_temp = Array.new(24, OpenStudio::convert(default_htg_sp + nat_vent.NatVentOvlpSsnSetpointOffset,"F","C").get)
+      runner.registerWarning("No heating equipment found. Assuming #{Constants.DefaultHeatingSetpoint} F for natural ventilation calculations.")
+      nat_vent.ovlp_ssn_hourly_temp = Array.new(24, OpenStudio::convert(Constants.DefaultHeatingSetpoint + nat_vent.NatVentOvlpSsnSetpointOffset,"F","C").get)
     else
       nat_vent.ovlp_ssn_hourly_temp = Array.new(24, OpenStudio::convert([heatingSetpointWeekday.max, heatingSetpointWeekend.max].max + nat_vent.NatVentOvlpSsnSetpointOffset,"F","C").get)
     end
     if coolingSetpointWeekday.all? {|x| x == 10000}
-      runner.registerWarning("No cooling equipment found. Assuming #{default_clg_sp} F for natural ventilation calculations.")
+      runner.registerWarning("No cooling equipment found. Assuming #{Constants.DefaultCoolingSetpoint} F for natural ventilation calculations.")
     end
     nat_vent.ovlp_ssn_hourly_weekend_temp = nat_vent.ovlp_ssn_hourly_temp
       
@@ -2490,7 +2488,7 @@ class ResidentialAirflow < OpenStudio::Ruleset::ModelUserScript
     nat_vent.htg_ssn_hourly_temp = Array.new
     coolingSetpointWeekday.each do |x|
       if x == 10000
-        nat_vent.htg_ssn_hourly_temp << OpenStudio::convert(default_clg_sp - nat_vent.NatVentHtgSsnSetpointOffset,"F","C").get
+        nat_vent.htg_ssn_hourly_temp << OpenStudio::convert(Constants.DefaultCoolingSetpoint - nat_vent.NatVentHtgSsnSetpointOffset,"F","C").get
       else
         nat_vent.htg_ssn_hourly_temp << OpenStudio::convert(x - nat_vent.NatVentHtgSsnSetpointOffset,"F","C").get
       end
@@ -2498,7 +2496,7 @@ class ResidentialAirflow < OpenStudio::Ruleset::ModelUserScript
     nat_vent.htg_ssn_hourly_weekend_temp = Array.new
     coolingSetpointWeekend.each do |x|
       if x == 10000
-        nat_vent.htg_ssn_hourly_weekend_temp << OpenStudio::convert(default_clg_sp - nat_vent.NatVentHtgSsnSetpointOffset,"F","C").get
+        nat_vent.htg_ssn_hourly_weekend_temp << OpenStudio::convert(Constants.DefaultCoolingSetpoint - nat_vent.NatVentHtgSsnSetpointOffset,"F","C").get
       else
         nat_vent.htg_ssn_hourly_weekend_temp << OpenStudio::convert(x - nat_vent.NatVentHtgSsnSetpointOffset,"F","C").get
       end
@@ -2507,7 +2505,7 @@ class ResidentialAirflow < OpenStudio::Ruleset::ModelUserScript
     nat_vent.clg_ssn_hourly_temp = Array.new
     heatingSetpointWeekday.each do |x|
       if x == -10000
-        nat_vent.clg_ssn_hourly_temp << OpenStudio::convert(default_htg_sp + nat_vent.NatVentClgSsnSetpointOffset,"F","C").get
+        nat_vent.clg_ssn_hourly_temp << OpenStudio::convert(Constants.DefaultHeatingSetpoint + nat_vent.NatVentClgSsnSetpointOffset,"F","C").get
       else
         nat_vent.clg_ssn_hourly_temp << OpenStudio::convert(x + nat_vent.NatVentClgSsnSetpointOffset,"F","C").get
       end
@@ -2515,7 +2513,7 @@ class ResidentialAirflow < OpenStudio::Ruleset::ModelUserScript
     nat_vent.clg_ssn_hourly_weekend_temp = Array.new
     heatingSetpointWeekend.each do |x|
       if x == -10000
-        nat_vent.clg_ssn_hourly_weekend_temp << OpenStudio::convert(default_htg_sp + nat_vent.NatVentClgSsnSetpointOffset,"F","C").get
+        nat_vent.clg_ssn_hourly_weekend_temp << OpenStudio::convert(Constants.DefaultHeatingSetpoint + nat_vent.NatVentClgSsnSetpointOffset,"F","C").get
       else
         nat_vent.clg_ssn_hourly_weekend_temp << OpenStudio::convert(x + nat_vent.NatVentClgSsnSetpointOffset,"F","C").get
       end

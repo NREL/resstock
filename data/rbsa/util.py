@@ -286,8 +286,8 @@ def assign_stories(df):
                   '2.5': '2+',
                   '3+': '2+'}
         
-    df['Dependency=Stories'] = df.apply(lambda x: storieskey[x.object.sfmasterhousegeometry.sffloors], axis=1)
-    df = df.dropna(subset=['Dependency=Stories'])
+    df['Dependency=Geometry Stories'] = df.apply(lambda x: storieskey[x.object.sfmasterhousegeometry.sffloors], axis=1)
+    df = df.dropna(subset=['Dependency=Geometry Stories'])
     
     return df
 
@@ -329,8 +329,8 @@ def assign_htgsp(df):
         else:
             print t
     
-    df['htgsp'] = df.apply(lambda x: temp(x.object.sfriheu.resintheattemp, x.object.sfriheu.resintheattempnight), axis=1)
-    df = df.dropna(subset=['htgsp'])
+    df['Dependency=Heating Setpoint'] = df.apply(lambda x: temp(x.object.sfriheu.resintheattemp, x.object.sfriheu.resintheattempnight), axis=1)
+    df = df.dropna(subset=['Dependency=Heating Setpoint'])
 
     return df
 

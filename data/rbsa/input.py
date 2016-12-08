@@ -453,7 +453,7 @@ class Create_DFs():
         df = util.assign_vintage(df) 
         df = util.assign_size(df)
         df = util.assign_stories(df)
-        df, cols = util.categories_to_columns(df, 'Dependency=Stories')
+        df, cols = util.categories_to_columns(df, 'Dependency=Geometry Stories')
         df = df.groupby(['Dependency=Vintage', 'Dependency=Geometry House Size'])
         missing_groups = []
         for group in itertools.product(*[['<1950', '1950s', '1960s', '1970s', '1980s', '1990s', '2000s'], ['0-1499', '1500-2499', '2500-3499', '3500+']]):
@@ -485,8 +485,8 @@ class Create_DFs():
         df = util.assign_htgsp(df)
         # df = util.assign_htgsbk(df)
         # df['Weight'] = df.apply(lambda x: x.object.sfmasterpopulations.svywt, axis=1)
-        # df = df.groupby(['htgsp']).apply(lambda x: np.average(x.htgsbk, weights=x.Weight)).to_frame('htgsbk')
-        df, cols = util.categories_to_columns(df, 'htgsp')
+        # df = df.groupby(['Dependency=Heating Setpoint']).apply(lambda x: np.average(x.htgsbk, weights=x.Weight)).to_frame('htgsbk')
+        df, cols = util.categories_to_columns(df, 'Dependency=Heating Setpoint')
         df['group'] = 'all'
         df = df.groupby(['group'])
         count = df.agg(['count']).ix[:, 0]

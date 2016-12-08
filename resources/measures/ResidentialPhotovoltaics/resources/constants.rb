@@ -5,6 +5,12 @@ class Constants
   def self.AssumedInsideTemp
     return 73.5 # deg-F
   end
+  def self.conv
+    return self.sens / 2.5
+  end
+  def self.DefaultCoolingSetpoint
+    return 76.0
+  end
   def self.DefaultFramingFactorCeiling
     return 0.11
   end
@@ -13,6 +19,9 @@ class Constants
   end
   def self.DefaultFramingFactorInterior
     return 0.16
+  end
+  def self.DefaultHeatingSetpoint
+    return 71.0
   end
   def self.DefaultSolarAbsCeiling
     return 0.3
@@ -25,6 +34,9 @@ class Constants
   end
   def self.g
     return 32.174    # gravity (ft/s2)
+  end
+  def self.lat
+    return 0.021
   end
   def self.MixedUseT
     return 110 # F
@@ -49,6 +61,12 @@ class Constants
   end
   def self.Patm
     return 14.696 # standard atmospheric pressure (psia)
+  end
+  def self.rad
+    return self.conv * 1.5
+  end
+  def self.sens
+    return 0.93
   end
   def self.small 
     return 1e-9
@@ -130,6 +148,12 @@ class Constants
   end
   def self.BuildingUnitTypeResidential
     return 'Residential'
+  end
+  def self.CeilingFanControlTypical
+    return 'typical'
+  end
+  def self.CeilingFanControlSmart
+    return 'smart'
   end
   def self.CollectorTypeClosedLoop
     return 'closed loop'
@@ -412,6 +436,13 @@ class Constants
   end
   def self.ObjectNameBuildingUnit(unit_num=1)
     return "unit #{unit_num}"
+  end
+  def self.ObjectNameCeilingFan(unit_name=self.ObjectNameBuildingUnit)
+    s_unit = ""
+    if unit_name != self.ObjectNameBuildingUnit
+      s_unit = "|#{unit_name}"
+    end
+    return "residential ceiling fan#{s_unit}"
   end
   def self.ObjectNameClothesWasher(unit_name=self.ObjectNameBuildingUnit)
     s_unit = ""
