@@ -65,7 +65,7 @@ def draw_scatter_plot(df, cols, marker_labels, slicer, weighted_area=True, setli
 
     if marker_colors is None:
         if weighted_area:
-            # plt.scatter(x, y, s=area_weights, c='k', alpha=1.0) # solid black for superimpoesed shadows for previous calibration iteration
+            # plt.scatter(x, y, s=area_weights, c='k', alpha=1.0) # solid black for superimposed shadows for previous calibration iteration
             plt.scatter(x, y, s=area_weights, c=marker_color_all, alpha=0.5, label=leg_label)
             # pd.concat([x, y, marker_labels], axis=1).to_csv(os.path.join('../../analysis_results/outputs/pnw', 'values.tsv'), sep='\t', index=False, mode='a', header=True)
         else:
@@ -164,72 +164,72 @@ def do_plot(slices, fields, size='medium', weighted_area=True, save=False, setli
         marker_labels = None
         if fields == 'weights':
             continue # TODO
-        elif fields == 'Total Site Energy':
-            measured_elec = pd.read_csv('../../analysis_results/outputs/pnw/Electricity Consumption {}.tsv'.format(slicer), index_col=['Dependency={}'.format(slicer)], sep='\t')[['kwh_nrm_total']]
-            measured_gas = pd.read_csv('../../analysis_results/outputs/pnw/Natural Gas Consumption {}.tsv'.format(slicer), index_col=['Dependency={}'.format(slicer)], sep='\t')[['thm_nrm_total']]
-            measured = measured_elec.join(measured_gas)
-            measured['Measured Total Site Energy MBtu'] = units_kWh2MBtu(measured['kwh_nrm_total']) + units_Therm2MBtu(measured['thm_nrm_total'])
-            house_count = pd.read_csv('../../analysis_results/outputs/pnw/Electricity Consumption {}.tsv'.format(slicer), index_col=['Dependency={}'.format(slicer)], sep='\t')[['Weight']].sum().values[0]
-            predicted = pd.read_csv('../../analysis_results/resstock_pnw.csv', index_col=['name'])
-            predicted = remove_upgrades(predicted)
-            predicted['Weight'] = house_count / len(predicted.index)
-            predicted['Predicted Total Site Energy MBtu'] = predicted['simulation_output_report.Total Site Energy MBtu'] * predicted['Weight']
-            predicted = predicted.groupby('building_characteristics_report.{}'.format(slicer)).sum()
-            cols = ['Measured Total Site Energy MBtu', 'Predicted Total Site Energy MBtu', 'Weight']
+        elif num_slices == 1:
+          if 'electricity_and_gas' in fields:
+              measured_elec = pd.read_csv('../../analysis_results/outputs/pnw/Electricity Consumption {}.tsv'.format(slicer), index_col=['Dependency={}'.format(slicer)], sep='\t')[['kwh_nrm_per_home']]
+              measured_gas = pd.read_csv('../../analysis_results/outputs/pnw/Natural Gas Consumption {}.tsv'.format(slicer), index_col=['Dependency={}'.format(slicer)], sep='\t')[['thm_nrm_per_home']]
+              measured = measured_elec.join(measured_gas)
+              measured['Measured Per House Site Electricity+Gas MBtu'] = units_kWh2MBtu(measured['kwh_nrm_per_home']) + units_Therm2MBtu(measured['thm_nrm_per_home'])
+              house_count = pd.read_csv('../../analysis_results/outputs/pnw/Electricity Consumption {}.tsv'.format(slicer), index_col=['Dependency={}'.format(slicer)], sep='\t')[['Weight']].sum().values[0]
+              predicted = pd.read_csv('../../analysis_results/resstock_pnw.csv', index_col=['name'])
+              predicted = remove_upgrades(predicted)
+              predicted['Weight'] = house_count / len(predicted.index)
+              predicted['Predicted Total Site Electricity+Gas MBtu'] = (units_kWh2MBtu(predicted['simulation_output_report.Total Site Electricity kWh']) + units_Therm2MBtu(predicted['simulation_output_report.Total Site Natural Gas therm'])) * predicted['Weight']
+              predicted = predicted.groupby('building_characteristics_report.{}'.format(slicer)).sum()
+              predicted['Predicted Per House Site Electricity+Gas MBtu'] = predicted['Predicted Total Site Electricity+Gas MBtu'] / predicted['Weight']
+              cols = ['Measured Per House Site Electricity+Gas MBtu', 'Predicted Per House Site Electricity+Gas MBtu', 'Weight']
+          elif 'electricity' in fields:
+              measured = pd.read_csv('../../analysis_results/outputs/pnw/Electricity Consumption {}.tsv'.format(slicer), index_col=['Dependency={}'.format(slicer)], sep='\t')[['kwh_nrm_per_home']]
+              measured['Measured Per House Site Electricity MBtu'] = units_kWh2MBtu(measured['kwh_nrm_per_home'])
+              house_count = pd.read_csv('../../analysis_results/outputs/pnw/Electricity Consumption {}.tsv'.format(slicer), index_col=['Dependency={}'.format(slicer)], sep='\t')[['Weight']].sum().values[0]
+              predicted = pd.read_csv('../../analysis_results/resstock_pnw.csv', index_col=['name'])
+              predicted = remove_upgrades(predicted)
+              predicted['Weight'] = house_count / len(predicted.index)
+              predicted['Predicted Total Site Electricity MBtu'] = units_kWh2MBtu(predicted['simulation_output_report.Total Site Electricity kWh']) * predicted['Weight']
+              predicted = predicted.groupby('building_characteristics_report.{}'.format(slicer)).sum()
+              predicted['Predicted Per House Site Electricity MBtu'] = predicted['Predicted Total Site Electricity MBtu'] / predicted['Weight']
+              cols = ['Measured Per House Site Electricity MBtu', 'Predicted Per House Site Electricity MBtu', 'Weight']
+          elif 'gas' in fields:
+              measured = pd.read_csv('../../analysis_results/outputs/pnw/Natural Gas Consumption {}.tsv'.format(slicer), index_col=['Dependency={}'.format(slicer)], sep='\t')[['thm_nrm_per_home']]
+              measured['Measured Per House Site Gas MBtu'] = units_Therm2MBtu(measured['thm_nrm_per_home'])
+              house_count = pd.read_csv('../../analysis_results/outputs/pnw/Natural Gas Consumption {}.tsv'.format(slicer), index_col=['Dependency={}'.format(slicer)], sep='\t')[['Weight']].sum().values[0]
+              predicted = pd.read_csv('../../analysis_results/resstock_pnw.csv', index_col=['name'])
+              predicted = remove_upgrades(predicted)
+              predicted['Weight'] = house_count / len(predicted.index)
+              predicted['Predicted Total Site Gas MBtu'] = units_Therm2MBtu(predicted['simulation_output_report.Total Site Natural Gas therm'] * predicted['Weight'])
+              predicted = predicted.groupby('building_characteristics_report.{}'.format(slicer)).sum()
+              predicted['Predicted Per House Site Gas MBtu'] = predicted['Predicted Total Site Gas MBtu'] / predicted['Weight']
+              cols = ['Measured Per House Site Gas MBtu', 'Predicted Per House Site Gas MBtu', 'Weight']
+        elif num_slices == 2:
+          sub_slicer = slicer.replace("Location Heating Region ","") # Assumes first slice is Location Heating Region; will error out if not
+          if sub_slicer == slicer:
+            sys.exit("Unexpected slicer: %s" % slicer)
+          if 'electricity' in fields:
+              measured = pd.read_csv('../../analysis_results/outputs/pnw/Electricity Consumption {}.tsv'.format(slicer), index_col=['Dependency=Location Heating Region', 'Dependency={}'.format(sub_slicer)], sep='\t')[['kwh_nrm_per_home']]
+              measured['Measured Per House Site Electricity MBtu'] = units_kWh2MBtu(measured['kwh_nrm_per_home'])
+              house_count = pd.read_csv('../../analysis_results/outputs/pnw/Electricity Consumption {}.tsv'.format(slicer), index_col=['Dependency=Location Heating Region', 'Dependency={}'.format(sub_slicer)], sep='\t')[['Weight']].sum().values[0]
+              predicted = pd.read_csv('../../analysis_results/resstock_pnw.csv', index_col=['name'])
+              predicted = remove_upgrades(predicted)
+              predicted['Weight'] = house_count / len(predicted.index)
+              predicted['Predicted Total Site Electricity MBtu'] = units_kWh2MBtu(predicted['simulation_output_report.Total Site Electricity kWh']) * predicted['Weight']
+              predicted = predicted.rename(columns={"building_characteristics_report.Location Heating Region": "Dependency=Location Heating Region", "building_characteristics_report.{}".format(sub_slicer): "Dependency={}".format(sub_slicer)})
+              predicted = predicted.groupby(['Dependency=Location Heating Region', 'Dependency={}'.format(sub_slicer)]).sum()
+              predicted['Predicted Per House Site Electricity MBtu'] = predicted['Predicted Total Site Electricity MBtu'] / predicted['Weight']
+              cols = ['Measured Per House Site Electricity MBtu', 'Predicted Per House Site Electricity MBtu', 'Weight']
+          elif 'gas' in fields:
+              measured = pd.read_csv('../../analysis_results/outputs/pnw/Natural Gas Consumption {}.tsv'.format(slicer), index_col=['Dependency=Location Heating Region', 'Dependency={}'.format(sub_slicer)], sep='\t')[['thm_nrm_per_home']]
+              measured['Measured Per House Site Gas MBtu'] = units_Therm2MBtu(measured['thm_nrm_per_home'])
+              house_count = pd.read_csv('../../analysis_results/outputs/pnw/Natural Gas Consumption {}.tsv'.format(slicer), index_col=['Dependency=Location Heating Region', 'Dependency={}'.format(sub_slicer)], sep='\t')[['Weight']].sum().values[0]
+              predicted = pd.read_csv('../../analysis_results/resstock_pnw.csv', index_col=['name'])
+              predicted = remove_upgrades(predicted)
+              predicted['Weight'] = house_count / len(predicted.index)
+              predicted['Predicted Total Site Gas MBtu'] = units_Therm2MBtu(predicted['simulation_output_report.Total Site Natural Gas therm']) * predicted['Weight']
+              predicted = predicted.rename(columns={"building_characteristics_report.Location Heating Region": "Dependency=Location Heating Region", "building_characteristics_report.{}".format(sub_slicer): "Dependency={}".format(sub_slicer)})
+              predicted = predicted.groupby(['Dependency=Location Heating Region', 'Dependency={}'.format(sub_slicer)]).sum()
+              predicted['Predicted Per House Site Gas MBtu'] = predicted['Predicted Total Site Gas MBtu'] / predicted['Weight']
+              cols = ['Measured Per House Site Gas MBtu', 'Predicted Per House Site Gas MBtu', 'Weight']
         else:
-            if num_slices == 1:
-              if 'electricity' in fields:
-                  measured = pd.read_csv('../../analysis_results/outputs/pnw/Electricity Consumption {}.tsv'.format(slicer), index_col=['Dependency={}'.format(slicer)], sep='\t')[['kwh_nrm_per_home']]
-                  measured['Measured Per House Site Electricity MBtu'] = units_kWh2MBtu(measured['kwh_nrm_per_home'])
-                  house_count = pd.read_csv('../../analysis_results/outputs/pnw/Electricity Consumption {}.tsv'.format(slicer), index_col=['Dependency={}'.format(slicer)], sep='\t')[['Weight']].sum().values[0]
-                  predicted = pd.read_csv('../../analysis_results/resstock_pnw.csv', index_col=['name'])
-                  predicted = remove_upgrades(predicted)
-                  predicted['Weight'] = house_count / len(predicted.index)
-                  predicted['Predicted Total Site Electricity MBtu'] = units_kWh2MBtu(predicted['simulation_output_report.Total Site Electricity kWh']) * predicted['Weight']
-                  predicted = predicted.groupby('building_characteristics_report.{}'.format(slicer)).sum()
-                  predicted['Predicted Per House Site Electricity MBtu'] = predicted['Predicted Total Site Electricity MBtu'] / predicted['Weight']
-                  cols = ['Measured Per House Site Electricity MBtu', 'Predicted Per House Site Electricity MBtu', 'Weight']
-              elif 'gas' in fields:
-                  measured = pd.read_csv('../../analysis_results/outputs/pnw/Natural Gas Consumption {}.tsv'.format(slicer), index_col=['Dependency={}'.format(slicer)], sep='\t')[['thm_nrm_per_home']]
-                  measured['Measured Per House Site Gas MBtu'] = units_Therm2MBtu(measured['thm_nrm_per_home'])
-                  house_count = pd.read_csv('../../analysis_results/outputs/pnw/Natural Gas Consumption {}.tsv'.format(slicer), index_col=['Dependency={}'.format(slicer)], sep='\t')[['Weight']].sum().values[0]
-                  predicted = pd.read_csv('../../analysis_results/resstock_pnw.csv', index_col=['name'])
-                  predicted = remove_upgrades(predicted)
-                  predicted['Weight'] = house_count / len(predicted.index)
-                  predicted['Predicted Total Site Gas MBtu'] = units_Therm2MBtu(predicted['simulation_output_report.Total Site Natural Gas therm'] * predicted['Weight'])
-                  predicted = predicted.groupby('building_characteristics_report.{}'.format(slicer)).sum()
-                  predicted['Predicted Per House Site Gas MBtu'] = predicted['Predicted Total Site Gas MBtu'] / predicted['Weight']
-                  cols = ['Measured Per House Site Gas MBtu', 'Predicted Per House Site Gas MBtu', 'Weight']
-            elif num_slices == 2:
-              sub_slicer = slicer.replace("Location Heating Region ","") # Assume first slice is Location Heating Region
-              if sub_slicer == slicer:
-                sys.exit("Unexpected slicer: %s" % slicer)
-              if 'electricity' in fields:
-                  measured = pd.read_csv('../../analysis_results/outputs/pnw/Electricity Consumption {}.tsv'.format(slicer), index_col=['Dependency=Location Heating Region', 'Dependency={}'.format(sub_slicer)], sep='\t')[['kwh_nrm_per_home']]
-                  measured['Measured Per House Site Electricity MBtu'] = units_kWh2MBtu(measured['kwh_nrm_per_home'])
-                  house_count = pd.read_csv('../../analysis_results/outputs/pnw/Electricity Consumption {}.tsv'.format(slicer), index_col=['Dependency=Location Heating Region', 'Dependency={}'.format(sub_slicer)], sep='\t')[['Weight']].sum().values[0]
-                  predicted = pd.read_csv('../../analysis_results/resstock_pnw.csv', index_col=['name'])
-                  predicted = remove_upgrades(predicted)
-                  predicted['Weight'] = house_count / len(predicted.index)
-                  predicted['Predicted Total Site Electricity MBtu'] = units_kWh2MBtu(predicted['simulation_output_report.Total Site Electricity kWh']) * predicted['Weight']
-                  predicted = predicted.rename(columns={"building_characteristics_report.Location Heating Region": "Dependency=Location Heating Region", "building_characteristics_report.{}".format(sub_slicer): "Dependency={}".format(sub_slicer)})
-                  predicted = predicted.groupby(['Dependency=Location Heating Region', 'Dependency={}'.format(sub_slicer)]).sum()
-                  predicted['Predicted Per House Site Electricity MBtu'] = predicted['Predicted Total Site Electricity MBtu'] / predicted['Weight']
-                  cols = ['Measured Per House Site Electricity MBtu', 'Predicted Per House Site Electricity MBtu', 'Weight']
-              elif 'gas' in fields:
-                  measured = pd.read_csv('../../analysis_results/outputs/pnw/Natural Gas Consumption {}.tsv'.format(slicer), index_col=['Dependency=Location Heating Region', 'Dependency={}'.format(sub_slicer)], sep='\t')[['thm_nrm_per_home']]
-                  measured['Measured Per House Site Gas MBtu'] = units_Therm2MBtu(measured['thm_nrm_per_home'])
-                  house_count = pd.read_csv('../../analysis_results/outputs/pnw/Natural Gas Consumption {}.tsv'.format(slicer), index_col=['Dependency=Location Heating Region', 'Dependency={}'.format(sub_slicer)], sep='\t')[['Weight']].sum().values[0]
-                  predicted = pd.read_csv('../../analysis_results/resstock_pnw.csv', index_col=['name'])
-                  predicted = remove_upgrades(predicted)
-                  predicted['Weight'] = house_count / len(predicted.index)
-                  predicted['Predicted Total Site Gas MBtu'] = units_Therm2MBtu(predicted['simulation_output_report.Total Site Natural Gas therm']) * predicted['Weight']
-                  predicted = predicted.rename(columns={"building_characteristics_report.Location Heating Region": "Dependency=Location Heating Region", "building_characteristics_report.{}".format(sub_slicer): "Dependency={}".format(sub_slicer)})
-                  predicted = predicted.groupby(['Dependency=Location Heating Region', 'Dependency={}'.format(sub_slicer)]).sum()
-                  predicted['Predicted Per House Site Gas MBtu'] = predicted['Predicted Total Site Gas MBtu'] / predicted['Weight']
-                  cols = ['Measured Per House Site Gas MBtu', 'Predicted Per House Site Gas MBtu', 'Weight']
-            else:
-                sys.exit("Unexpected num_slices: %s" % num_slices)
+            sys.exit("Unexpected num_slices: %s" % num_slices)
            
         df = measured.join(predicted)[cols]
         df = df.reset_index()
@@ -668,8 +668,8 @@ if __name__ == '__main__':
               #'Geometry Stories', 
               #'Heating Setpoint'
               ]
-    do_plot(slices=slices, fields='Total Site Energy', weighted_area=True, save=True, setlims=[0,None], num_slices=1)
-    do_plot(slices=slices, fields='electricity_perhouse', weighted_area=True, save=True, setlims=[0,None], num_slices=1)
+    do_plot(slices=slices, fields='electricity_and_gas_perhouse', save=True, setlims=[0,None], num_slices=1)
+    do_plot(slices=slices, fields='electricity_perhouse', save=True, setlims=[0,None], num_slices=1)
     do_plot(slices=slices, fields='gas_perhouse', save=True, setlims=[0,None], num_slices=1)
     
     slices = ['Location Heating Region Vintage', 
