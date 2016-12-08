@@ -8,7 +8,7 @@ import numpy as np
 
 random.seed(9801)
 
-def create_dataframe(session, rdb, only_single_family=True):
+def create_dataframe(session, rdb, only_single_family=True, screen_scen='No Screens'):
         
     siteid = pd.Series([br.siteid for br in session.query(rdb.SFMasterLocation)])
     df = pd.DataFrame([(br.siteid, dt.datetime.now(), br) for br in session.query(rdb.SFMasterLocation)], columns=['siteid', 'created', 'object']).set_index('siteid')
@@ -16,6 +16,11 @@ def create_dataframe(session, rdb, only_single_family=True):
         df['building_type'] = df.apply(lambda x: x.object.sfmasterhousegeometry.sfbuildingtype, axis=1)
         df = df[df.building_type=='Single Family, Detached']
         del df['building_type']
+
+    if not screen_scen == 'No Screens':
+        screens = pd.read_csv('SiteIDs screened for SEEMCal runs.csv', index_col=['SiteID'], skiprows=1)[[screen_scen]]
+        inclusions = screens[screens[screen_scen]==0].index.values
+        df = df.loc[df.index.isin(inclusions)]
     
     return df
 

@@ -146,7 +146,9 @@ def units_Therm2MBtu(x):
     return 0.1 * x
 
 
-def do_plot(slices, fields, size='medium', weighted_area=True, save=False, setlims=None, marker_color=False, marker_shape=False, version=None, marker_color_all=None, show_labels=True, leg_label=None, num_slices=1):
+def do_plot(slices, fields, size='medium', weighted_area=True, save=False, setlims=None, marker_color=False, marker_shape=False, version=None, marker_color_all=None, show_labels=True, leg_label=None, num_slices=1, screen_scen='no screens'):
+    consumption_folder = '../../analysis_results/outputs/pnw/screens/{}'.format(screen_scen)
+    
     if size == 'large':
         plt.rcParams['figure.figsize'] = 20, 20 # 20, 20 # set image size
         max_marker_size = 800
@@ -166,11 +168,11 @@ def do_plot(slices, fields, size='medium', weighted_area=True, save=False, setli
             continue # TODO
         elif num_slices == 1:
           if 'electricity_and_gas' in fields:
-              measured_elec = pd.read_csv('../../analysis_results/outputs/pnw/Electricity Consumption {}.tsv'.format(slicer), index_col=['Dependency={}'.format(slicer)], sep='\t')[['kwh_nrm_per_home']]
-              measured_gas = pd.read_csv('../../analysis_results/outputs/pnw/Natural Gas Consumption {}.tsv'.format(slicer), index_col=['Dependency={}'.format(slicer)], sep='\t')[['thm_nrm_per_home']]
+              measured_elec = pd.read_csv(os.path.join(consumption_folder, 'Electricity Consumption {}.tsv'.format(slicer)), index_col=['Dependency={}'.format(slicer)], sep='\t')[['kwh_nrm_per_home']]
+              measured_gas = pd.read_csv(os.path.join(consumption_folder, 'Natural Gas Consumption {}.tsv'.format(slicer)), index_col=['Dependency={}'.format(slicer)], sep='\t')[['thm_nrm_per_home']]
               measured = measured_elec.join(measured_gas)
               measured['Measured Per House Site Electricity+Gas MBtu'] = units_kWh2MBtu(measured['kwh_nrm_per_home']) + units_Therm2MBtu(measured['thm_nrm_per_home'])
-              house_count = pd.read_csv('../../analysis_results/outputs/pnw/Electricity Consumption {}.tsv'.format(slicer), index_col=['Dependency={}'.format(slicer)], sep='\t')[['Weight']].sum().values[0]
+              house_count = pd.read_csv(os.path.join(consumption_folder, 'Electricity Consumption {}.tsv'.format(slicer)), index_col=['Dependency={}'.format(slicer)], sep='\t')[['Weight']].sum().values[0]
               predicted = pd.read_csv('../../analysis_results/resstock_pnw.csv', index_col=['name'])
               predicted = remove_upgrades(predicted)
               predicted['Weight'] = house_count / len(predicted.index)
@@ -179,9 +181,9 @@ def do_plot(slices, fields, size='medium', weighted_area=True, save=False, setli
               predicted['Predicted Per House Site Electricity+Gas MBtu'] = predicted['Predicted Total Site Electricity+Gas MBtu'] / predicted['Weight']
               cols = ['Measured Per House Site Electricity+Gas MBtu', 'Predicted Per House Site Electricity+Gas MBtu', 'Weight']
           elif 'electricity' in fields:
-              measured = pd.read_csv('../../analysis_results/outputs/pnw/Electricity Consumption {}.tsv'.format(slicer), index_col=['Dependency={}'.format(slicer)], sep='\t')[['kwh_nrm_per_home']]
+              measured = pd.read_csv(os.path.join(consumption_folder, 'Electricity Consumption {}.tsv'.format(slicer)), index_col=['Dependency={}'.format(slicer)], sep='\t')[['kwh_nrm_per_home']]
               measured['Measured Per House Site Electricity MBtu'] = units_kWh2MBtu(measured['kwh_nrm_per_home'])
-              house_count = pd.read_csv('../../analysis_results/outputs/pnw/Electricity Consumption {}.tsv'.format(slicer), index_col=['Dependency={}'.format(slicer)], sep='\t')[['Weight']].sum().values[0]
+              house_count = pd.read_csv(os.path.join(consumption_folder, 'Electricity Consumption {}.tsv'.format(slicer)), index_col=['Dependency={}'.format(slicer)], sep='\t')[['Weight']].sum().values[0]
               predicted = pd.read_csv('../../analysis_results/resstock_pnw.csv', index_col=['name'])
               predicted = remove_upgrades(predicted)
               predicted['Weight'] = house_count / len(predicted.index)
@@ -190,9 +192,9 @@ def do_plot(slices, fields, size='medium', weighted_area=True, save=False, setli
               predicted['Predicted Per House Site Electricity MBtu'] = predicted['Predicted Total Site Electricity MBtu'] / predicted['Weight']
               cols = ['Measured Per House Site Electricity MBtu', 'Predicted Per House Site Electricity MBtu', 'Weight']
           elif 'gas' in fields:
-              measured = pd.read_csv('../../analysis_results/outputs/pnw/Natural Gas Consumption {}.tsv'.format(slicer), index_col=['Dependency={}'.format(slicer)], sep='\t')[['thm_nrm_per_home']]
+              measured = pd.read_csv(os.path.join(consumption_folder, 'Natural Gas Consumption {}.tsv'.format(slicer)), index_col=['Dependency={}'.format(slicer)], sep='\t')[['thm_nrm_per_home']]
               measured['Measured Per House Site Gas MBtu'] = units_Therm2MBtu(measured['thm_nrm_per_home'])
-              house_count = pd.read_csv('../../analysis_results/outputs/pnw/Natural Gas Consumption {}.tsv'.format(slicer), index_col=['Dependency={}'.format(slicer)], sep='\t')[['Weight']].sum().values[0]
+              house_count = pd.read_csv(os.path.join(consumption_folder, 'Natural Gas Consumption {}.tsv'.format(slicer)), index_col=['Dependency={}'.format(slicer)], sep='\t')[['Weight']].sum().values[0]
               predicted = pd.read_csv('../../analysis_results/resstock_pnw.csv', index_col=['name'])
               predicted = remove_upgrades(predicted)
               predicted['Weight'] = house_count / len(predicted.index)
@@ -205,9 +207,9 @@ def do_plot(slices, fields, size='medium', weighted_area=True, save=False, setli
           if sub_slicer == slicer:
             sys.exit("Unexpected slicer: %s" % slicer)
           if 'electricity' in fields:
-              measured = pd.read_csv('../../analysis_results/outputs/pnw/Electricity Consumption {}.tsv'.format(slicer), index_col=['Dependency=Location Heating Region', 'Dependency={}'.format(sub_slicer)], sep='\t')[['kwh_nrm_per_home']]
+              measured = pd.read_csv(os.path.join(consumption_folder, 'Electricity Consumption {}.tsv'.format(slicer)), index_col=['Dependency=Location Heating Region', 'Dependency={}'.format(sub_slicer)], sep='\t')[['kwh_nrm_per_home']]
               measured['Measured Per House Site Electricity MBtu'] = units_kWh2MBtu(measured['kwh_nrm_per_home'])
-              house_count = pd.read_csv('../../analysis_results/outputs/pnw/Electricity Consumption {}.tsv'.format(slicer), index_col=['Dependency=Location Heating Region', 'Dependency={}'.format(sub_slicer)], sep='\t')[['Weight']].sum().values[0]
+              house_count = pd.read_csv(os.path.join(consumption_folder, 'Electricity Consumption {}.tsv'.format(slicer)), index_col=['Dependency=Location Heating Region', 'Dependency={}'.format(sub_slicer)], sep='\t')[['Weight']].sum().values[0]
               predicted = pd.read_csv('../../analysis_results/resstock_pnw.csv', index_col=['name'])
               predicted = remove_upgrades(predicted)
               predicted['Weight'] = house_count / len(predicted.index)
@@ -217,9 +219,9 @@ def do_plot(slices, fields, size='medium', weighted_area=True, save=False, setli
               predicted['Predicted Per House Site Electricity MBtu'] = predicted['Predicted Total Site Electricity MBtu'] / predicted['Weight']
               cols = ['Measured Per House Site Electricity MBtu', 'Predicted Per House Site Electricity MBtu', 'Weight']
           elif 'gas' in fields:
-              measured = pd.read_csv('../../analysis_results/outputs/pnw/Natural Gas Consumption {}.tsv'.format(slicer), index_col=['Dependency=Location Heating Region', 'Dependency={}'.format(sub_slicer)], sep='\t')[['thm_nrm_per_home']]
+              measured = pd.read_csv(os.path.join(consumption_folder, 'Natural Gas Consumption {}.tsv'.format(slicer)), index_col=['Dependency=Location Heating Region', 'Dependency={}'.format(sub_slicer)], sep='\t')[['thm_nrm_per_home']]
               measured['Measured Per House Site Gas MBtu'] = units_Therm2MBtu(measured['thm_nrm_per_home'])
-              house_count = pd.read_csv('../../analysis_results/outputs/pnw/Natural Gas Consumption {}.tsv'.format(slicer), index_col=['Dependency=Location Heating Region', 'Dependency={}'.format(sub_slicer)], sep='\t')[['Weight']].sum().values[0]
+              house_count = pd.read_csv(os.path.join(consumption_folder, 'Natural Gas Consumption {}.tsv'.format(slicer)), index_col=['Dependency=Location Heating Region', 'Dependency={}'.format(sub_slicer)], sep='\t')[['Weight']].sum().values[0]
               predicted = pd.read_csv('../../analysis_results/resstock_pnw.csv', index_col=['name'])
               predicted = remove_upgrades(predicted)
               predicted['Weight'] = house_count / len(predicted.index)
@@ -244,7 +246,7 @@ def do_plot(slices, fields, size='medium', weighted_area=True, save=False, setli
                           marker_color_all=marker_color_all, show_labels=show_labels, leg_label=leg_label,
                           max_marker_size=max_marker_size)
     if save:
-        filename = os.path.join('..', '..', 'analysis_results', 'outputs', 'pnw', 'saved images', 'Scatter_{}slice_{}.png'.format(num_slices, fields))
+        filename = os.path.join('..', '..', 'analysis_results', 'outputs', 'pnw', 'saved images', screen_scen, 'Scatter_{}slice_{}.png'.format(num_slices, fields))
         plt.savefig(filename, bbox_inches='tight', dpi=200)
         trim_white(filename)
         plt.close()
@@ -254,8 +256,8 @@ class Create_DFs():
     def __init__(self, file):
         self.session = rdb.create_session(file)
         
-    def electricity_consumption_location_heating_region(self):
-        df = util.create_dataframe(self.session, rdb)
+    def electricity_consumption_location_heating_region(self, screen_scen):
+        df = util.create_dataframe(self.session, rdb, screen_scen=screen_scen)
         df = util.assign_climate_zones(df)
         df = util.assign_heating_location(df)
         df = util.assign_electricity_consumption(df)
@@ -269,8 +271,8 @@ class Create_DFs():
         df['kwh_nrm_total'] = df['kwh_nrm_per_home'] * df['Weight']           
         return df
 
-    def electricity_consumption_vintage(self):
-        df = util.create_dataframe(self.session, rdb)
+    def electricity_consumption_vintage(self, screen_scen):
+        df = util.create_dataframe(self.session, rdb, screen_scen=screen_scen)
         df = util.assign_vintage(df)
         df = util.assign_electricity_consumption(df)
         df = df.groupby(['Dependency=Vintage'])
@@ -286,8 +288,8 @@ class Create_DFs():
         df = df.sort_values(by=['Dependency=Vintage']).set_index(['Dependency=Vintage'])             
         return df
         
-    def electricity_consumption_heating_fuel(self):
-        df = util.create_dataframe(self.session, rdb)
+    def electricity_consumption_heating_fuel(self, screen_scen):
+        df = util.create_dataframe(self.session, rdb, screen_scen=screen_scen)
         df = util.assign_heating_fuel(df)
         df = util.assign_electricity_consumption(df)    
         df = df.groupby(['Dependency=Heating Fuel'])
@@ -302,8 +304,8 @@ class Create_DFs():
         df = df.sort_values(by=['Dependency=Heating Fuel']).set_index(['Dependency=Heating Fuel'])             
         return df
         
-    def electricity_consumption_geometry_house_size(self):
-        df = util.create_dataframe(self.session, rdb)
+    def electricity_consumption_geometry_house_size(self, screen_scen):
+        df = util.create_dataframe(self.session, rdb, screen_scen=screen_scen)
         df = util.assign_size(df)
         df = util.assign_electricity_consumption(df)    
         df = df.groupby(['Dependency=Geometry House Size'])
@@ -318,8 +320,8 @@ class Create_DFs():
         df = df.sort_values(by=['Dependency=Geometry House Size']).set_index(['Dependency=Geometry House Size'])             
         return df
 
-    def electricity_consumption_heating_setpoint(self):
-        df = util.create_dataframe(self.session, rdb)
+    def electricity_consumption_heating_setpoint(self, screen_scen):
+        df = util.create_dataframe(self.session, rdb, screen_scen=screen_scen)
         df = util.assign_htgsp(df)
         df = util.assign_electricity_consumption(df)    
         df = df.groupby(['Dependency=Heating Setpoint'])
@@ -334,8 +336,8 @@ class Create_DFs():
         df = df.sort_values(by=['Dependency=Heating Setpoint']).set_index(['Dependency=Heating Setpoint'])             
         return df
 
-    def electricity_consumption_geometry_foundation_type(self):
-        df = util.create_dataframe(self.session, rdb)
+    def electricity_consumption_geometry_foundation_type(self, screen_scen):
+        df = util.create_dataframe(self.session, rdb, screen_scen=screen_scen)
         df = util.assign_climate_zones(df)
         df = util.assign_heating_location(df)        
         df = util.assign_vintage(df)
@@ -353,8 +355,8 @@ class Create_DFs():
         df = df.sort_values(by=['Dependency=Geometry Foundation Type']).set_index(['Dependency=Geometry Foundation Type'])             
         return df
 
-    def electricity_consumption_geometry_stories(self):
-        df = util.create_dataframe(self.session, rdb)
+    def electricity_consumption_geometry_stories(self, screen_scen):
+        df = util.create_dataframe(self.session, rdb, screen_scen=screen_scen)
         df = util.assign_stories(df)
         df = util.assign_electricity_consumption(df)    
         df = df.groupby(['Dependency=Geometry Stories'])
@@ -369,8 +371,8 @@ class Create_DFs():
         df = df.sort_values(by=['Dependency=Geometry Stories']).set_index(['Dependency=Geometry Stories'])             
         return df
 
-    def electricity_consumption_location_heating_region_vintage(self):
-        df = util.create_dataframe(self.session, rdb)
+    def electricity_consumption_location_heating_region_vintage(self, screen_scen):
+        df = util.create_dataframe(self.session, rdb, screen_scen=screen_scen)
         df = util.assign_climate_zones(df)
         df = util.assign_heating_location(df)
         df = util.assign_vintage(df)
@@ -388,8 +390,8 @@ class Create_DFs():
         df = df.sort_values(by=['Dependency=Location Heating Region', 'Dependency=Vintage']).set_index(['Dependency=Location Heating Region', 'Dependency=Vintage'])             
         return df        
         
-    def electricity_consumption_location_heating_region_geometry_foundation_type(self):
-        df = util.create_dataframe(self.session, rdb)
+    def electricity_consumption_location_heating_region_geometry_foundation_type(self, screen_scen):
+        df = util.create_dataframe(self.session, rdb, screen_scen=screen_scen)
         df = util.assign_climate_zones(df)
         df = util.assign_heating_location(df)
         df = util.assign_vintage(df)
@@ -407,8 +409,8 @@ class Create_DFs():
         df = df.sort_values(by=['Dependency=Location Heating Region', 'Dependency=Geometry Foundation Type']).set_index(['Dependency=Location Heating Region', 'Dependency=Geometry Foundation Type'])             
         return df        
 
-    def electricity_consumption_location_heating_region_geometry_house_size(self):
-        df = util.create_dataframe(self.session, rdb)
+    def electricity_consumption_location_heating_region_geometry_house_size(self, screen_scen):
+        df = util.create_dataframe(self.session, rdb, screen_scen=screen_scen)
         df = util.assign_climate_zones(df)
         df = util.assign_heating_location(df)
         df = util.assign_size(df)
@@ -425,14 +427,11 @@ class Create_DFs():
         df = df.sort_values(by=['Dependency=Location Heating Region', 'Dependency=Geometry House Size']).set_index(['Dependency=Location Heating Region', 'Dependency=Geometry House Size'])             
         return df        
 
-    def natural_gas_consumption_location_heating_region(self):
-        df = util.create_dataframe(self.session, rdb)
+    def natural_gas_consumption_location_heating_region(self, screen_scen):
+        df = util.create_dataframe(self.session, rdb, screen_scen=screen_scen)
         df = util.assign_climate_zones(df)
         df = util.assign_heating_location(df)
         df = util.assign_natural_gas_consumption(df)
-        # df = util.assign_natural_gas_consumption_tmy2_nrm_sel(df)
-        # df = util.assign_natural_gas_consumption_tmy2_nrm(df)
-        # df = util.assign_natural_gas_consumption_tmy2_act(df)
         df = df.groupby(['Dependency=Location Heating Region'])
         count = df.agg(['count']).ix[:, 0]
         weight = df.agg(['sum'])['Weight']
@@ -443,13 +442,10 @@ class Create_DFs():
         df['thm_nrm_total'] = df['thm_nrm_per_home'] * df['Weight']
         return df
 
-    def natural_gas_consumption_vintage(self):
-        df = util.create_dataframe(self.session, rdb)
+    def natural_gas_consumption_vintage(self, screen_scen):
+        df = util.create_dataframe(self.session, rdb, screen_scen=screen_scen)
         df = util.assign_vintage(df)
-        df = util.assign_natural_gas_consumption(df)
-        # df = util.assign_natural_gas_consumption_tmy2_nrm_sel(df)
-        # df = util.assign_natural_gas_consumption_tmy2_nrm(df)
-        # df = util.assign_natural_gas_consumption_tmy2_act(df)        
+        df = util.assign_natural_gas_consumption(df)  
         df = df.groupby(['Dependency=Vintage'])
         count = df.agg(['count']).ix[:, 0]
         weight = df.agg(['sum'])['Weight']
@@ -463,15 +459,12 @@ class Create_DFs():
         df = df.sort_values(by=['Dependency=Vintage']).set_index(['Dependency=Vintage'])             
         return df
         
-    def natural_gas_consumption_location_heating_region_vintage(self):
-        df = util.create_dataframe(self.session, rdb)
+    def natural_gas_consumption_location_heating_region_vintage(self, screen_scen):
+        df = util.create_dataframe(self.session, rdb, screen_scen=screen_scen)
         df = util.assign_climate_zones(df)
         df = util.assign_heating_location(df)        
         df = util.assign_vintage(df)
-        df = util.assign_natural_gas_consumption(df)
-        # df = util.assign_natural_gas_consumption_tmy2_nrm_sel(df)
-        # df = util.assign_natural_gas_consumption_tmy2_nrm(df)
-        # df = util.assign_natural_gas_consumption_tmy2_act(df)        
+        df = util.assign_natural_gas_consumption(df)       
         df = df.groupby(['Dependency=Location Heating Region', 'Dependency=Vintage'])
         count = df.agg(['count']).ix[:, 0]
         weight = df.agg(['sum'])['Weight']
@@ -485,8 +478,8 @@ class Create_DFs():
         df = df.sort_values(by=['Dependency=Location Heating Region', 'Dependency=Vintage']).set_index(['Dependency=Location Heating Region', 'Dependency=Vintage'])
         return df
 
-    def natural_gas_consumption_location_heating_region_geometry_foundation_type(self):
-        df = util.create_dataframe(self.session, rdb)
+    def natural_gas_consumption_location_heating_region_geometry_foundation_type(self, screen_scen):
+        df = util.create_dataframe(self.session, rdb, screen_scen=screen_scen)
         df = util.assign_climate_zones(df)
         df = util.assign_heating_location(df)      
         df = util.assign_vintage(df)        
@@ -504,8 +497,8 @@ class Create_DFs():
         df = df.sort_values(by=['Dependency=Location Heating Region', 'Dependency=Geometry Foundation Type']).set_index(['Dependency=Location Heating Region', 'Dependency=Geometry Foundation Type'])
         return df
 
-    def natural_gas_consumption_location_heating_region_geometry_house_size(self):
-        df = util.create_dataframe(self.session, rdb)
+    def natural_gas_consumption_location_heating_region_geometry_house_size(self, screen_scen):
+        df = util.create_dataframe(self.session, rdb, screen_scen=screen_scen)
         df = util.assign_climate_zones(df)
         df = util.assign_heating_location(df)      
         df = util.assign_size(df)
@@ -522,13 +515,10 @@ class Create_DFs():
         df = df.sort_values(by=['Dependency=Location Heating Region', 'Dependency=Geometry House Size']).set_index(['Dependency=Location Heating Region', 'Dependency=Geometry House Size'])
         return df
 
-    def natural_gas_consumption_heating_fuel(self):
-        df = util.create_dataframe(self.session, rdb)
+    def natural_gas_consumption_heating_fuel(self, screen_scen):
+        df = util.create_dataframe(self.session, rdb, screen_scen=screen_scen)
         df = util.assign_heating_fuel(df)
-        df = util.assign_natural_gas_consumption(df)
-        # df = util.assign_natural_gas_consumption_tmy2_nrm_sel(df)
-        # df = util.assign_natural_gas_consumption_tmy2_nrm(df)
-        # df = util.assign_natural_gas_consumption_tmy2_act(df)        
+        df = util.assign_natural_gas_consumption(df)        
         df = df.groupby(['Dependency=Heating Fuel'])
         count = df.agg(['count']).ix[:, 0]
         weight = df.agg(['sum'])['Weight']
@@ -541,8 +531,8 @@ class Create_DFs():
         df = df.sort_values(by=['Dependency=Heating Fuel']).set_index(['Dependency=Heating Fuel'])             
         return df
         
-    def natural_gas_consumption_geometry_house_size(self):
-        df = util.create_dataframe(self.session, rdb)
+    def natural_gas_consumption_geometry_house_size(self, screen_scen):
+        df = util.create_dataframe(self.session, rdb, screen_scen=screen_scen)
         df = util.assign_size(df)
         df = util.assign_natural_gas_consumption(df)
         df = df.groupby(['Dependency=Geometry House Size'])
@@ -557,8 +547,8 @@ class Create_DFs():
         df = df.sort_values(by=['Dependency=Geometry House Size']).set_index(['Dependency=Geometry House Size'])             
         return df
 
-    def natural_gas_consumption_heating_setpoint(self):
-        df = util.create_dataframe(self.session, rdb)
+    def natural_gas_consumption_heating_setpoint(self, screen_scen):
+        df = util.create_dataframe(self.session, rdb, screen_scen=screen_scen)
         df = util.assign_htgsp(df)
         df = util.assign_natural_gas_consumption(df)
         df = df.groupby(['Dependency=Heating Setpoint'])
@@ -573,8 +563,8 @@ class Create_DFs():
         df = df.sort_values(by=['Dependency=Heating Setpoint']).set_index(['Dependency=Heating Setpoint'])             
         return df
 
-    def natural_gas_consumption_geometry_foundation_type(self):
-        df = util.create_dataframe(self.session, rdb)
+    def natural_gas_consumption_geometry_foundation_type(self, screen_scen):
+        df = util.create_dataframe(self.session, rdb, screen_scen=screen_scen)
         df = util.assign_climate_zones(df)
         df = util.assign_heating_location(df)        
         df = util.assign_vintage(df)
@@ -592,8 +582,8 @@ class Create_DFs():
         df = df.sort_values(by=['Dependency=Geometry Foundation Type']).set_index(['Dependency=Geometry Foundation Type'])             
         return df
 
-    def natural_gas_consumption_geometry_stories(self):
-        df = util.create_dataframe(self.session, rdb)
+    def natural_gas_consumption_geometry_stories(self, screen_scen):
+        df = util.create_dataframe(self.session, rdb, screen_scen=screen_scen)
         df = util.assign_stories(df)
         df = util.assign_natural_gas_consumption(df)
         df = df.groupby(['Dependency=Geometry Stories'])
@@ -624,57 +614,66 @@ def remove_upgrades(df):
     
 if __name__ == '__main__':
     
-    datafiles_dir = '../../analysis_results/outputs/pnw'
+    datafiles_dir = '../../analysis_results/outputs/pnw/screens'
     heatmaps_dir = 'heatmaps'
 
     dfs = Create_DFs('rbsa.sqlite')
     
-    for category in ['Electricity Consumption Location Heating Region', 
-                     'Electricity Consumption Vintage', 
-                     'Electricity Consumption Heating Fuel',
-                     #'Electricity Consumption Geometry House Size', 
-                     #'Electricity Consumption Geometry Foundation Type', 
-                     #'Electricity Consumption Geometry Stories', 
-                     #'Electricity Consumption Heating Setpoint', 
-                     #'Electricity Consumption Location Heating Region Vintage', 
-                     #'Electricity Consumption Location Heating Region Geometry Foundation Type', 
-                     #'Electricity Consumption Location Heating Region Geometry House Size', 
-                     'Natural Gas Consumption Location Heating Region',
-                     'Natural Gas Consumption Vintage', 
-                     'Natural Gas Consumption Heating Fuel',
-                     #'Natural Gas Consumption Geometry House Size',
-                     #'Natural Gas Consumption Geometry Foundation Type',
-                     #'Natural Gas Consumption Geometry Stories',
-                     #'Natural Gas Consumption Heating Setpoint',
-                     #'Natural Gas Consumption Location Heating Region Vintage',
-                     #'Natural Gas Consumption Location Heating Region Geometry Foundation Type',
-                     #'Natural Gas Consumption Location Heating Region Geometry House Size',
-                     ]:
-        print category
-        method = getattr(dfs, category.lower().replace(' ', '_'))
-        df = method()
-        df.to_csv(os.path.join(datafiles_dir, '{}.tsv'.format(category)), sep='\t')
+    for screening_scenario in [
+                               'No Screens',
+                               # 'All Screens',
+                               # 'All Screens except SEEM Run'
+                               ]:
+    
+        for category in [
+                         'Electricity Consumption Location Heating Region', 
+                         'Electricity Consumption Vintage', 
+                         'Electricity Consumption Heating Fuel',
+                         # 'Electricity Consumption Geometry House Size', 
+                         # 'Electricity Consumption Geometry Foundation Type', 
+                         # 'Electricity Consumption Geometry Stories', 
+                         # 'Electricity Consumption Heating Setpoint', 
+                         'Electricity Consumption Location Heating Region Vintage', 
+                         # 'Electricity Consumption Location Heating Region Geometry Foundation Type', 
+                         # 'Electricity Consumption Location Heating Region Geometry House Size', 
+                         'Natural Gas Consumption Location Heating Region',
+                         'Natural Gas Consumption Vintage', 
+                         'Natural Gas Consumption Heating Fuel',
+                         # 'Natural Gas Consumption Geometry House Size',
+                         # 'Natural Gas Consumption Geometry Foundation Type',
+                         # 'Natural Gas Consumption Geometry Stories',
+                         # 'Natural Gas Consumption Heating Setpoint',
+                         'Natural Gas Consumption Location Heating Region Vintage',
+                         # 'Natural Gas Consumption Location Heating Region Geometry Foundation Type',
+                         # 'Natural Gas Consumption Location Heating Region Geometry House Size',
+                         ]:
+            print category
+            method = getattr(dfs, category.lower().replace(' ', '_'))
+            df = method(screening_scenario)
+            df.to_csv(os.path.join(datafiles_dir, screening_scenario, '{}.tsv'.format(category)), sep='\t')
 
-        for col in ['Count', 'Weight']:
-            if col in df.columns:
-                del df[col]
-        to_figure(df, os.path.join(heatmaps_dir, '{}.png'.format(category)))
-    
-    slices = ['Location Heating Region', 
-              'Vintage', 
-              'Heating Fuel', 
-              #'Geometry House Size', 
-              #'Geometry Foundation Type', 
-              #'Geometry Stories', 
-              #'Heating Setpoint'
-              ]
-    do_plot(slices=slices, fields='electricity_and_gas_perhouse', save=True, setlims=[0,None], num_slices=1)
-    do_plot(slices=slices, fields='electricity_perhouse', save=True, setlims=[0,None], num_slices=1)
-    do_plot(slices=slices, fields='gas_perhouse', save=True, setlims=[0,None], num_slices=1)
-    
-    slices = ['Location Heating Region Vintage', 
-              #'Location Heating Region Geometry Foundation Type',
-              #'Location Heating Region Geometry House Size',
-              ]
-    do_plot(slices=slices, fields='electricity_perhouse', save=True, size='medium', marker_color=True, setlims=[0,None], num_slices=2)
-    do_plot(slices=slices, fields='gas_perhouse', save=True, size='medium', marker_color=True, setlims=[0,None], num_slices=2)
+            for col in ['Count', 'Weight']:
+                if col in df.columns:
+                    del df[col]
+            to_figure(df, os.path.join(heatmaps_dir, screening_scenario, '{}.png'.format(category)))
+        
+        slices = [
+                  'Location Heating Region',
+                  'Vintage',
+                  'Heating Fuel',
+                  #'Geometry House Size', 
+                  #'Geometry Foundation Type', 
+                  #'Geometry Stories', 
+                  #'Heating Setpoint'
+                  ]        
+        do_plot(slices=slices, fields='electricity_and_gas_perhouse', save=True, setlims=[0,None], num_slices=1, screen_scen=screening_scenario)
+        do_plot(slices=slices, fields='electricity_perhouse', save=True, setlims=[0,None], num_slices=1, screen_scen=screening_scenario)
+        do_plot(slices=slices, fields='gas_perhouse', save=True, setlims=[0,None], num_slices=1, screen_scen=screening_scenario)
+
+        slices = [
+                  'Location Heating Region Vintage',
+                  #'Location Heating Region Geometry Foundation Type',
+                  #'Location Heating Region Geometry House Size',
+                  ]
+        do_plot(slices=slices, fields='electricity_perhouse', save=True, size='medium', marker_color=True, setlims=[0,None], num_slices=2, screen_scen=screening_scenario)
+        do_plot(slices=slices, fields='gas_perhouse', save=True, size='medium', marker_color=True, setlims=[0,None], num_slices=2, screen_scen=screening_scenario)
