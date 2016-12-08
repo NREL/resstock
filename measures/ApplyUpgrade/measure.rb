@@ -241,7 +241,7 @@ class ApplyUpgrade < OpenStudio::Ruleset::ModelUserScript
         # Upgrade not applied; skip from CSV
         # FIXME: NA doesn't currently stop datapoint from continuing.
         # runner.registerAsNotApplicable("No measures apply.") 
-        runner.registerAsError("No measures apply.") 
+        runner.registerError("No measures apply.") 
         return false
     end
 
