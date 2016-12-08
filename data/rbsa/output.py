@@ -271,6 +271,22 @@ class Create_DFs():
         df['kwh_nrm_total'] = df['kwh_nrm_per_home'] * df['Weight']           
         return df
 
+    def electricity_consumption_location_cooling_region(self, screen_scen):
+        df = util.create_dataframe(self.session, rdb, screen_scen=screen_scen)
+        df = util.assign_climate_zones(df)
+        df = util.assign_state(df)
+        df = util.assign_cooling_location(df)
+        df = util.assign_electricity_consumption(df)
+        df = df.groupby(['Dependency=Location Cooling Region'])
+        count = df.agg(['count']).ix[:, 0]
+        weight = df.agg(['sum'])['Weight']
+        df = df[['kwh_nrm']].sum()
+        df['Count'] = count
+        df['Weight'] = weight
+        df['kwh_nrm_per_home'] = df['kwh_nrm'] / df['Count']
+        df['kwh_nrm_total'] = df['kwh_nrm_per_home'] * df['Weight']           
+        return df
+
     def electricity_consumption_vintage(self, screen_scen):
         df = util.create_dataframe(self.session, rdb, screen_scen=screen_scen)
         df = util.assign_vintage(df)
@@ -433,6 +449,22 @@ class Create_DFs():
         df = util.assign_heating_location(df)
         df = util.assign_natural_gas_consumption(df)
         df = df.groupby(['Dependency=Location Heating Region'])
+        count = df.agg(['count']).ix[:, 0]
+        weight = df.agg(['sum'])['Weight']
+        df = df[['thm_nrm']].sum()
+        df['Count'] = count
+        df['Weight'] = weight
+        df['thm_nrm_per_home'] = df['thm_nrm'] / df['Count']
+        df['thm_nrm_total'] = df['thm_nrm_per_home'] * df['Weight']
+        return df
+
+    def natural_gas_consumption_location_cooling_region(self, screen_scen):
+        df = util.create_dataframe(self.session, rdb, screen_scen=screen_scen)
+        df = util.assign_climate_zones(df)
+        df = util.assign_state(df)
+        df = util.assign_cooling_location(df)
+        df = util.assign_natural_gas_consumption(df)
+        df = df.groupby(['Dependency=Location Cooling Region'])
         count = df.agg(['count']).ix[:, 0]
         weight = df.agg(['sum'])['Weight']
         df = df[['thm_nrm']].sum()
@@ -620,32 +652,34 @@ if __name__ == '__main__':
     dfs = Create_DFs('rbsa.sqlite')
     
     for screening_scenario in [
-                               'No Screens',
-                               # 'All Screens',
-                               # 'All Screens except SEEM Run'
+                               #'No Screens',
+                               #'All Screens',
+                               #'All Screens except SEEM Run'
                                ]:
     
         for category in [
-                         'Electricity Consumption Location Heating Region', 
-                         'Electricity Consumption Vintage', 
-                         'Electricity Consumption Heating Fuel',
-                         # 'Electricity Consumption Geometry House Size', 
-                         # 'Electricity Consumption Geometry Foundation Type', 
-                         # 'Electricity Consumption Geometry Stories', 
-                         # 'Electricity Consumption Heating Setpoint', 
-                         'Electricity Consumption Location Heating Region Vintage', 
-                         # 'Electricity Consumption Location Heating Region Geometry Foundation Type', 
-                         # 'Electricity Consumption Location Heating Region Geometry House Size', 
-                         'Natural Gas Consumption Location Heating Region',
-                         'Natural Gas Consumption Vintage', 
-                         'Natural Gas Consumption Heating Fuel',
-                         # 'Natural Gas Consumption Geometry House Size',
-                         # 'Natural Gas Consumption Geometry Foundation Type',
-                         # 'Natural Gas Consumption Geometry Stories',
-                         # 'Natural Gas Consumption Heating Setpoint',
-                         'Natural Gas Consumption Location Heating Region Vintage',
-                         # 'Natural Gas Consumption Location Heating Region Geometry Foundation Type',
-                         # 'Natural Gas Consumption Location Heating Region Geometry House Size',
+                         #'Electricity Consumption Location Heating Region', 
+                         #'Electricity Consumption Location Cooling Region', 
+                         #'Electricity Consumption Vintage', 
+                         #'Electricity Consumption Heating Fuel',
+                         #'Electricity Consumption Geometry House Size', 
+                         #'Electricity Consumption Geometry Foundation Type', 
+                         #'Electricity Consumption Geometry Stories', 
+                         #'Electricity Consumption Heating Setpoint', 
+                         #'Electricity Consumption Location Heating Region Vintage', 
+                         #'Electricity Consumption Location Heating Region Geometry Foundation Type', 
+                         #'Electricity Consumption Location Heating Region Geometry House Size', 
+                         #'Natural Gas Consumption Location Heating Region',
+                         #'Natural Gas Consumption Location Cooling Region',
+                         #'Natural Gas Consumption Vintage', 
+                         #'Natural Gas Consumption Heating Fuel',
+                         #'Natural Gas Consumption Geometry House Size',
+                         #'Natural Gas Consumption Geometry Foundation Type',
+                         #'Natural Gas Consumption Geometry Stories',
+                         #'Natural Gas Consumption Heating Setpoint',
+                         #'Natural Gas Consumption Location Heating Region Vintage',
+                         #'Natural Gas Consumption Location Heating Region Geometry Foundation Type',
+                         #'Natural Gas Consumption Location Heating Region Geometry House Size',
                          ]:
             print category
             method = getattr(dfs, category.lower().replace(' ', '_'))
@@ -659,6 +693,7 @@ if __name__ == '__main__':
         
         slices = [
                   'Location Heating Region',
+                  'Location Cooling Region',
                   'Vintage',
                   'Heating Fuel',
                   #'Geometry House Size', 
