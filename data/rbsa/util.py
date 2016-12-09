@@ -18,9 +18,13 @@ def create_dataframe(session, rdb, only_single_family=True, screen_scen='No Scre
         del df['building_type']
 
     if not screen_scen == 'No Screens':
-        screens = pd.read_csv('SiteIDs screened for SEEMCal runs.csv', index_col=['SiteID'], skiprows=1)[[screen_scen]]
+        screens = pd.read_csv('{}.csv'.format(screen_scen), index_col=['SiteID'])[[screen_scen]]
         inclusions = screens[screens[screen_scen]==0].index.values
         df = df.loc[df.index.isin(inclusions)]
+        if screen_scen == 'All Screens Plus No Secondary HVAC':
+            screens = pd.read_csv('All Screens.csv', index_col=['SiteID'])[['All Screens']]
+            inclusions = screens[screens['All Screens']==0].index.values
+            df = df.loc[df.index.isin(inclusions)]
     
     return df
 
@@ -689,6 +693,17 @@ def assign_heating_types_and_fuel(df):
     print df.shape
     df[secondary_systems + ['no_secondary']].sum().to_frame(name='counts')
 
+    return df
+    
+def assign_presence_of_secondary_system(df):
+    
+    def secondary_htg(hvacheating):        
+        if len(hvacheating) > 1:
+            return 1
+        else:
+            return 0
+            
+    df['secondary_system'] = df.apply(lambda x: secondary_htg(x.object.hvacheating), axis=1)
     return df
     
 def assign_hvac_system_heating(df):

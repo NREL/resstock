@@ -1020,7 +1020,8 @@ class Create_DFs():
         df = util.assign_heating_location(df)
         df = util.assign_cooling_location(df)
         df = util.assign_vintage(df)
-        df = util.assign_heating_types_and_fuel(df)
+        # df = util.assign_heating_types_and_fuel(df)
+        df = util.assign_presence_of_secondary_system(df)
         return df
         
     def hvac_system_heating_electricity(self, smooth=False):
