@@ -406,6 +406,24 @@ class Create_DFs():
         df = df.sort_values(by=['Dependency=Location Heating Region', 'Dependency=Vintage']).set_index(['Dependency=Location Heating Region', 'Dependency=Vintage'])             
         return df        
         
+    def electricity_consumption_location_heating_region_heating_fuel(self, screen_scen):
+        df = util.create_dataframe(self.session, rdb, screen_scen=screen_scen)
+        df = util.assign_climate_zones(df)
+        df = util.assign_heating_location(df)
+        df = util.assign_heating_fuel(df)
+        df = util.assign_electricity_consumption(df)
+        df = df.groupby(['Dependency=Location Heating Region', 'Dependency=Heating Fuel'])
+        count = df.agg(['count']).ix[:, 0]
+        weight = df.agg(['sum'])['Weight']
+        df = df[['kwh_nrm']].sum()
+        df['Count'] = count
+        df['Weight'] = weight
+        df['kwh_nrm_per_home'] = df['kwh_nrm'] / df['Count']
+        df['kwh_nrm_total'] = df['kwh_nrm_per_home'] * df['Weight']
+        df = df.reset_index()
+        df = df.sort_values(by=['Dependency=Location Heating Region', 'Dependency=Heating Fuel']).set_index(['Dependency=Location Heating Region', 'Dependency=Heating Fuel'])             
+        return df        
+        
     def electricity_consumption_location_heating_region_geometry_foundation_type(self, screen_scen):
         df = util.create_dataframe(self.session, rdb, screen_scen=screen_scen)
         df = util.assign_climate_zones(df)
@@ -508,6 +526,24 @@ class Create_DFs():
         df = df.reset_index()
         df['Dependency=Vintage'] = pd.Categorical(df['Dependency=Vintage'], ['<1950', '1950s', '1960s', '1970s', '1980s', '1990s', '2000s'])
         df = df.sort_values(by=['Dependency=Location Heating Region', 'Dependency=Vintage']).set_index(['Dependency=Location Heating Region', 'Dependency=Vintage'])
+        return df
+
+    def natural_gas_consumption_location_heating_region_heating_fuel(self, screen_scen):
+        df = util.create_dataframe(self.session, rdb, screen_scen=screen_scen)
+        df = util.assign_climate_zones(df)
+        df = util.assign_heating_location(df)        
+        df = util.assign_heating_fuel(df)
+        df = util.assign_natural_gas_consumption(df)       
+        df = df.groupby(['Dependency=Location Heating Region', 'Dependency=Heating Fuel'])
+        count = df.agg(['count']).ix[:, 0]
+        weight = df.agg(['sum'])['Weight']
+        df = df[['thm_nrm']].sum()
+        df['Count'] = count
+        df['Weight'] = weight
+        df['thm_nrm_per_home'] = df['thm_nrm'] / df['Count']
+        df['thm_nrm_total'] = df['thm_nrm_per_home'] * df['Weight']
+        df = df.reset_index()
+        df = df.sort_values(by=['Dependency=Location Heating Region', 'Dependency=Heating Fuel']).set_index(['Dependency=Location Heating Region', 'Dependency=Heating Fuel'])
         return df
 
     def natural_gas_consumption_location_heating_region_geometry_foundation_type(self, screen_scen):
@@ -652,37 +688,39 @@ if __name__ == '__main__':
     dfs = Create_DFs('rbsa.sqlite')
     
     for screening_scenario in [
-                               #'No Screens',
-                               #'All Screens',
+                               'No Screens',
+                               'All Screens',
                                #'All Screens except SEEM Run',
-                               #'All Screens Plus No Secondary HVAC'
+                               'All Screens Plus No Secondary HVAC'
                                ]:
     
         for category in [
-                         #'Electricity Consumption Location Heating Region', 
-                         #'Electricity Consumption Location Cooling Region', 
-                         #'Electricity Consumption Vintage', 
-                         #'Electricity Consumption Heating Fuel',
+                         'Electricity Consumption Location Heating Region', 
+                         'Electricity Consumption Location Cooling Region', 
+                         'Electricity Consumption Vintage', 
+                         'Electricity Consumption Heating Fuel',
                          #'Electricity Consumption Geometry House Size', 
                          #'Electricity Consumption Geometry Foundation Type', 
                          #'Electricity Consumption Geometry Stories', 
                          #'Electricity Consumption Heating Setpoint', 
-                         #'Electricity Consumption Location Heating Region Vintage', 
+                         'Electricity Consumption Location Heating Region Vintage', 
+                         'Electricity Consumption Location Heating Region Heating Fuel', 
                          #'Electricity Consumption Location Heating Region Geometry Foundation Type', 
                          #'Electricity Consumption Location Heating Region Geometry House Size', 
-                         #'Natural Gas Consumption Location Heating Region',
-                         #'Natural Gas Consumption Location Cooling Region',
-                         #'Natural Gas Consumption Vintage', 
-                         #'Natural Gas Consumption Heating Fuel',
+                         'Natural Gas Consumption Location Heating Region',
+                         'Natural Gas Consumption Location Cooling Region',
+                         'Natural Gas Consumption Vintage', 
+                         'Natural Gas Consumption Heating Fuel',
                          #'Natural Gas Consumption Geometry House Size',
                          #'Natural Gas Consumption Geometry Foundation Type',
                          #'Natural Gas Consumption Geometry Stories',
                          #'Natural Gas Consumption Heating Setpoint',
-                         #'Natural Gas Consumption Location Heating Region Vintage',
+                         'Natural Gas Consumption Location Heating Region Vintage',
+                         'Natural Gas Consumption Location Heating Region Heating Fuel',
                          #'Natural Gas Consumption Location Heating Region Geometry Foundation Type',
                          #'Natural Gas Consumption Location Heating Region Geometry House Size',
                          ]:
-            print category
+            print "{} - {}".format(screening_scenario, category)
             method = getattr(dfs, category.lower().replace(' ', '_'))
             df = method(screening_scenario)
             df.to_csv(os.path.join(datafiles_dir, screening_scenario, '{}.tsv'.format(category)), sep='\t')
@@ -694,7 +732,7 @@ if __name__ == '__main__':
         
         slices = [
                   'Location Heating Region',
-                  'Location Cooling Region',
+                  #'Location Cooling Region',
                   'Vintage',
                   'Heating Fuel',
                   #'Geometry House Size', 
@@ -708,6 +746,7 @@ if __name__ == '__main__':
 
         slices = [
                   'Location Heating Region Vintage',
+                  'Location Heating Region Heating Fuel',
                   #'Location Heating Region Geometry Foundation Type',
                   #'Location Heating Region Geometry House Size',
                   ]
