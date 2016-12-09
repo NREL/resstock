@@ -18,14 +18,10 @@ def create_dataframe(session, rdb, only_single_family=True, screen_scen='No Scre
         del df['building_type']
 
     if not screen_scen == 'No Screens':
-        screens = pd.read_csv('{}.csv'.format(screen_scen), index_col=['SiteID'])[[screen_scen]]
+        screens = pd.read_csv('screens.csv', index_col=['SiteID'])[[screen_scen]]
         inclusions = screens[screens[screen_scen]==0].index.values
-        df = df.loc[df.index.isin(inclusions)]
-        if screen_scen == 'All Screens Plus No Secondary HVAC':
-            screens = pd.read_csv('All Screens.csv', index_col=['SiteID'])[['All Screens']]
-            inclusions = screens[screens['All Screens']==0].index.values
-            df = df.loc[df.index.isin(inclusions)]
-    
+        df = df.loc[df.index.isin(inclusions)]    
+
     return df
 
 def categories_to_columns(df, column, svywt=True):
@@ -300,6 +296,17 @@ def assign_stories(df):
     
     return df
 
+def assign_primary_heating_system_type(df):
+
+    def htg(hvacheating):
+        for eq in hvacheating:
+            if eq.hvacprimary:
+                return eq.hvactype
+        
+    df['Dependency=Primary Heating System Type'] = df.apply(lambda x: htg(x.object.hvacheating), axis=1)
+    df = df.fillna('None')
+    return df
+    
 def assign_htgsp(df):
     
     def temp(t, sb):

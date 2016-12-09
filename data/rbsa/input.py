@@ -499,6 +499,23 @@ class Create_DFs():
         del df['group']
         return df
     
+    def heating_setpoint_2(self):
+        df = util.create_dataframe(self.session, rdb)
+        df = util.assign_primary_heating_system_type(df)
+        df = util.assign_htgsp(df)
+        df, cols = util.categories_to_columns(df, 'Dependency=Heating Setpoint')
+        df = df.groupby(['Dependency=Primary Heating System Type'])
+        count = df.agg(['count']).ix[:, 0]
+        weight = df.agg(['sum'])['Weight']
+        df = util.sum_cols(df, cols)        
+        df['Count'] = count
+        df['Weight'] = weight
+        columns = list(df.columns)
+        columns.remove('Count')
+        columns.remove('Weight')
+        df = add_option_prefix(df)
+        return df    
+    
     def cooling_setpoint(self):
         df = util.create_dataframe(self.session, rdb)
         df = util.assign_clgsp(df)
@@ -1014,12 +1031,12 @@ class Create_DFs():
         return df
         
     def hvac_system_heating_secondary(self):       
-        df = util.create_dataframe(self.session, rdb)
-        df = util.assign_climate_zones(df)
-        df = util.assign_state(df)
-        df = util.assign_heating_location(df)
-        df = util.assign_cooling_location(df)
-        df = util.assign_vintage(df)
+        df = util.create_dataframe(self.session, rdb, False)
+        # df = util.assign_climate_zones(df)
+        # df = util.assign_state(df)
+        # df = util.assign_heating_location(df)
+        # df = util.assign_cooling_location(df)
+        # df = util.assign_vintage(df)
         # df = util.assign_heating_types_and_fuel(df)
         df = util.assign_presence_of_secondary_system(df)
         return df
@@ -1587,7 +1604,8 @@ if __name__ == '__main__':
     dfs = Create_DFs('rbsa.sqlite')
     
     # Other possible categories: 'Insulation Wall H1', 'Insulation Wall H2', 'Insulation Wall H3', 'Insulation Unfinished Attic H1', 'Insulation Unfinished Attic H2', 'Insulation Unfinished Attic H3', 'Windows H1', 'Windows H2', 'Windows H3'
-    for category in ['Location Heating Region', 'Location Cooling Region', 'Vintage', 'Heating Fuel', 'Geometry Foundation Type', 'Geometry House Size', 'Geometry Stories', 'Insulation Unfinished Attic', 'Insulation Wall', 'Heating Setpoint', 'Cooling Setpoint', 'Insulation Slab', 'Insulation Crawlspace', 'Insulation Unfinished Basement', 'Insulation Finished Basement', 'Insulation Interzonal Floor', 'Windows', 'Infiltration', 'HVAC System Combined', 'HVAC System Heating Electricity', 'HVAC System Heating Natural Gas', 'HVAC System Heating Fuel Oil', 'HVAC System Heating Propane', 'HVAC System Heating Wood', 'HVAC System Cooling', 'HVAC System Is Combined', 'Ducts', 'Water Heater', 'Lighting', 'Cooking Range', 'Clothes Dryer']:
+    # for category in ['Location Heating Region', 'Location Cooling Region', 'Vintage', 'Heating Fuel', 'Geometry Foundation Type', 'Geometry House Size', 'Geometry Stories', 'Insulation Unfinished Attic', 'Insulation Wall', 'Heating Setpoint', 'Cooling Setpoint', 'Insulation Slab', 'Insulation Crawlspace', 'Insulation Unfinished Basement', 'Insulation Finished Basement', 'Insulation Interzonal Floor', 'Windows', 'Infiltration', 'HVAC System Combined', 'HVAC System Heating Electricity', 'HVAC System Heating Natural Gas', 'HVAC System Heating Fuel Oil', 'HVAC System Heating Propane', 'HVAC System Heating Wood', 'HVAC System Cooling', 'HVAC System Is Combined', 'Ducts', 'Water Heater', 'Lighting', 'Cooking Range', 'Clothes Dryer']:
+    for category in ['HVAC System Heating Secondary']:
         print category
         method = getattr(dfs, category.lower().replace(' ', '_'))
         if category in ['Heating Fuel', 'Geometry Stories', 'HVAC System Heating Electricity', 'HVAC System Heating Natural Gas', 'HVAC System Cooling', 'Geometry House Size', 'HVAC System Combined', 'Infiltration', 'Insulation Crawlspace', 'Insulation Finished Basement', 'Insulation Interzonal Floor', 'Insulation Slab', 'Insulation Unfinished Attic', 'Insulation Wall', 'Insulation Unfinished Basement']: # these are smoothed
