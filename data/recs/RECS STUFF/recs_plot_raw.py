@@ -137,7 +137,7 @@ def stackedbar(df, VAR, TITLE):
     for j in range(len(CUT)):
         POV = CUT[j]
         df1 = recs.calc_general(df, cut_by=[VAR],columns=[POV])
-        ax = sns.barplot(x = df1[VAR], y = df1[1.0], color = colors[j])
+        ax = sns.barplot(x = df1['Dependency=' + VAR], y = df1['Option=1'], color = colors[j])
 
    #Save and label
     ax.set_xlabel(VAR + " of Home", fontsize = 13.5)
@@ -160,10 +160,16 @@ def kdeplot(df, VAR1, VAR2, TITLE):
     ax.savefig(VAR1 +" vs. "+ VAR2 +'_kde .png', bbox_inches = 'tight')
 
 if __name__ == '__main__':
-    df = recs.retrieve_data()
-    df = recs.process_csv_data(df)
-    df = recs.assign_sizes(df)
-    df = recs.assign_poverty_levels(df)
+    if not os.path.exists('processed_eia.recs_2009_microdata.pkl'):
+        df = recs.retrieve_data()
+        df = recs.process_data(df)
+        df = recs.custom_region(df)
+        df = recs.assign_poverty_levels(df)
+#        df = assign_aliases(df)
+        df.to_pickle('processed_eia.recs_2009_microdata.pkl')
+    else:
+        df = pd.read_pickle('processed_eia.recs_2009_microdata.pkl')
+
 #	stackedbar(df,'equipm', 'Heating Equipment' + ' vs. Federal Poverty Levels: 250,200,150,100,50')
 #	stackedbar(df,'fuelheat', 'Heating Fuel' + ' vs. Federal Poverty Levels: 250,200,150,100,50')
 #	stackedbar(df,'division', 'Census Division' + ' vs. Federal Poverty Levels: 250,200,150,100,50')
@@ -181,9 +187,10 @@ if __name__ == '__main__':
 #	stackedbar(df,'agecenac', 'Central A/C System Age' + ' vs. Federal Poverty Levels: 250,200,150,100,50', 'Age of System',False)
 #	stackedbar(df,'wwacage', 'Window A/C Unit Age' + ' vs. Federal Poverty Levels: 250,200,150,100,50', 'Age of Oldest Unit',True)
 #	stackedbar(df,'wwacage', 'Window A/C Unit Age' + ' vs. Federal Poverty Levels: 250,200,150,100,50', 'Age of Oldest Unit',False)
-#	stackedbar(df,'equipm', 'Heating Equipment' + ' vs. Federal Poverty Levels: 250,200,150,100,50')
-#	stackedbar(df,'fuelheat', 'Heating Fuel' + ' vs. Federal Poverty Levels: 250,200,150,100,50')
-#	stackedbar(df,'division', 'Census Division' + ' vs. Federal Poverty Levels: 250,200,150,100,50')
+    stackedbar(df,'equipm', 'Heating Equipment' + ' vs. Federal Poverty Levels: 250,200,150,100,50')
+    stackedbar(df,'fuelheat', 'Heating Fuel' + ' vs. Federal Poverty Levels: 250,200,150,100,50')
+#    stackedbar(df,'division', 'Census Division' + ' vs. Federal Poverty Levels: 250,200,150,100,50')
+    stackedbar(df,'householder_race', 'Census Division' +' vs. Federal Poverty Levels: 250,200,150,100,50')
 #	kdeplot(df,'income', 'temphome', 'Day Thermostat Temp When Home (Winter)')
 #	kdeplot(df,'income', 'tempgone', 'Day Thermostat Temp When Gone(Winter)')
 #	kdeplot(df,'income', 'tempnite', 'Night Thermostat Temp (Winter)')
