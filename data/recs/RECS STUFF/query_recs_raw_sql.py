@@ -264,6 +264,11 @@ cr_str = {1:'CR01',
           10:'CR10',
           11:'CR11',
           12:'CR12'}
+
+garage_dict = {1: "1 Car",
+               2: "2 Car",
+               3: "3+ Car",
+               -2: "None"}
 fpl = fpl09
 heating_types = {    2: 'Steam or Hot Water System'        , #'Steam or Hot Water System',
                      3:    'Central Warm-Air Furnace'      , #'Central Warm-Air Furnace'      ,
@@ -306,7 +311,8 @@ def process_data(df):
                    'wwacage':wwacage_dict,
                    'typeglass':typeglass_dict,
                    'householder_race':race_dict,
-                   'education':education_dict}
+                   'education':education_dict,
+                   'sizeofgarage':garage_dict}
     for field_name, field_dict in field_dicts.iteritems():
         for num, name in field_dict.iteritems():
             df[field_name].replace(num, name, inplace=True)
@@ -483,10 +489,8 @@ def calc_ashp_cac(df):
 #	return df
 
 def calc_general(df, cut_by=['reportable_domain', 'fuelheat'], columns=None, outfile=None,norm=True):
-    #Temp set 0 as NaN
-
-#Use Dictionaries to Define Data
-
+    if 'Foundation Type' in columns:
+        df = foundation_type(df)
 
 #Start Analyzing Specific Data
     fields = cut_by + columns
@@ -627,6 +631,16 @@ def custom_region(df):
     df.ix[(df['reportable_domain'] == 27) & (df['hdd65'] > 6930), 'CR'] = 1 #Source for 6930 HDD: Dennis Barley
     return df
 
+def foundation_type(df):
+    df['Foundation Type'] = -2
+    if df['crawl']=1:
+        df['Foundation Type'].replace('Crawl')
+
+    #Add column describing number of foundation types
+    #Implement code to add rows for i in i foundation types
+        #Rows should only have 1 foundation type and a third of the count/weight of their parent
+    #Fill in foundation type column with appropriate information.
+    #check df has appropriate weights for each term
 
 if __name__ == '__main__':
 
@@ -662,6 +676,9 @@ if __name__ == '__main__':
 #    calc_general(df, cut_by=['CR','FPL_BINS','yearmaderange'], columns = ['typeglass'], outfile = 'Window-Type_output_by_CR_FPL_vintage.tsv')
 #    calc_general(df, cut_by=['CR','FPL_BINS','yearmaderange'], columns = ['nhsldmem'], outfile = 'Household-Occ-Num_output_by_CR_FPL_vintage.tsv')
 #    calc_general(df, cut_by=['CR','FPL_BINS','yearmaderange'], columns = [''], outfile = '_output_by_CR_FPL_vintage.tsv')
+#    calc_general(df, cut_by=['CR','FPL_BINS','yearmaderange'], columns = ['sizeofgarage'], outfile = 'SizeofGarage_output_by_CR_FPL_vintage.tsv')
+#    calc_general(df, cut_by=['FPL_BINS','yearmaderange'], columns = ['sizeofgarage'], outfile = 'SizeofGarage_output_by_FPL_vintage.tsv')
+    calc_general(df, cut_by=['yearmaderange','Size'], columns = ['sizeofgarage'], outfile = 'SizeofGarage_output_by_vintage_size.tsv')
 
 #OLD QUERIES
 
