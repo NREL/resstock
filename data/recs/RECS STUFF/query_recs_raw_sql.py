@@ -317,15 +317,33 @@ def process_data(df):
         for num, name in field_dict.iteritems():
             df[field_name].replace(num, name, inplace=True)
 
-    df['Size'] = df[['tothsqft','totcsqft']].max(axis=1)
+    df['Intsize'] = df[['tothsqft','totcsqft']].max(axis=1)
     df.loc[:,'Size'] = 0
-    df.loc[(df['Size'] < 1500),'Size'] = '0-1499'
-    df.loc[(df['Size'] >= 1500) & (df['Size'] < 2500),'Size'] = '1500-2499'
-    df.loc[(df['Size'] >= 2500) & (df['Size'] < 3500),'Size'] = '2500-3499'
-    df.loc[(df['Size'] >= 3500),'Size'] = '3500+'
-
+    df.loc[(df['Intsize'] < 1500),'Size'] = '0-1499'
+    df.loc[(df['Intsize'] >= 1500) & (df['Intsize'] < 2500),'Size'] = '1500-2499'
+    df.loc[(df['Intsize'] >= 2500) & (df['Intsize'] < 3500),'Size'] = '2500-3499'
+    df.loc[(df['Intsize'] >= 3500),'Size'] = '3500+'
 
     df['Count']=1
+
+#Test Foundation Type
+
+   #Number of different foundation types
+
+    df['numfoundations']= 0
+    df['numfoundations']= df.apply(lambda x: x['crawl']+x['cellar']+x['concrete'] if x['crawl'] > -2 and x['cellar'] > -2 and x['concrete'] > -2 else 0, axis=1)
+    df.numfoundations.sum()
+
+    #Foundation Type
+
+    df['Foundation Type'] = 0
+    df.loc[(df['numfoundations'] == 0),'Foundation Type'] = 'Pier and Beam'
+    df.loc[(df['numfoundations'] > 1), 'Foundation Type'] = 'Multiple Foundation Types'
+    df.loc[(df['numfoundations'] == 1) & (df['crawl'] == 1), 'Foundation Type'] = 'Crawl'
+    df.loc[(df['numfoundations'] == 1) & (df['concrete'] == 1), 'Foundation Type'] = 'Slab'
+    df.loc[(df['numfoundations'] == 1) & (df['cellar'] == 1) & (df['baseheat'] == 1), 'Foundation Type'] = 'Heated Basement'
+    df.loc[(df['numfoundations'] == 1) & (df['cellar'] == 1) & (df['baseheat'] == 0), 'Foundation Type'] = 'Unheated Basement'
+
     return df
 
 def assign_aliases(df):
@@ -489,8 +507,7 @@ def calc_ashp_cac(df):
 #	return df
 
 def calc_general(df, cut_by=['reportable_domain', 'fuelheat'], columns=None, outfile=None,norm=True):
-    if 'Foundation Type' in columns:
-        df = foundation_type(df)
+
 
 #Start Analyzing Specific Data
     fields = cut_by + columns
@@ -530,6 +547,10 @@ def calc_general(df, cut_by=['reportable_domain', 'fuelheat'], columns=None, out
                     g[col] = g[col] / total
     g['Weight']=Weight
     g['Count']=Count
+
+#    if 'Foundation Type' in columns:
+#        g['Weight'] = Weight / df['numfoundations']
+#        g['Count'] = Count / df['numfoundations']
 
 #Add Headers for Option and Dependency
     rename_dict = {}
@@ -632,10 +653,33 @@ def custom_region(df):
     return df
 
 def foundation_type(df):
-    df['Foundation Type'] = -2
-    if df['crawl']=1:
-        df['Foundation Type'].replace('Crawl')
 
+
+    #Number of different foundation types
+
+    df['numfoundations']= 0
+    df['numfoundations']= df.apply(lambda x: x['crawl']+x['cellar']+x['concrete'] if x['crawl'] > -2 and x['cellar'] > -2 and x['concrete'] > -2 else 0, axis=1)
+    df = df.numfoundations.sum()
+
+    #Foundation Type
+
+    df['Foundation Type'] = 0
+    df.loc[(df['numfoundations'] == 0),'Foundation Type'] = 'Pier and Beam'
+    df.loc[(df['numfoundations'] > 1), 'Foundation Type'] = 'Multiple Foundation Types'
+    df.loc[(df['numfoundations'] == 1) & (df['crawl'] == 1), 'Foundation Type'] = 'Crawl'
+    df.loc[(df['numfoundations'] == 1) & (df['concrete'] == 1), 'Foundation Type'] = 'Slab'
+    df.loc[(df['numfoundations'] == 1) & (df['cellar'] == 1) & (df['baseheat'] == 1), 'Foundation Type'] = 'Heated Basement'
+    df.loc[(df['numfoundations'] == 1) & (df['cellar'] == 1) & (df['baseheat'] == 0), 'Foundation Type'] = 'Unheated Basement'
+
+    return df
+
+#    if df[].item() == 1:
+#        df['Foundation Type'].replace('Heated Basement')
+##        if df[['crawl','slab'] == 1:
+##            df.append(df.loc())
+#    for value in ['Foundation Type']:
+#        if df['crawl'] == 1 & df[['baseheat','concrete']] > -2:
+#            df.['Foundation Type'].replace['crawl']
     #Add column describing number of foundation types
     #Implement code to add rows for i in i foundation types
         #Rows should only have 1 foundation type and a third of the count/weight of their parent
@@ -676,9 +720,12 @@ if __name__ == '__main__':
 #    calc_general(df, cut_by=['CR','FPL_BINS','yearmaderange'], columns = ['typeglass'], outfile = 'Window-Type_output_by_CR_FPL_vintage.tsv')
 #    calc_general(df, cut_by=['CR','FPL_BINS','yearmaderange'], columns = ['nhsldmem'], outfile = 'Household-Occ-Num_output_by_CR_FPL_vintage.tsv')
 #    calc_general(df, cut_by=['CR','FPL_BINS','yearmaderange'], columns = [''], outfile = '_output_by_CR_FPL_vintage.tsv')
-#    calc_general(df, cut_by=['CR','FPL_BINS','yearmaderange'], columns = ['sizeofgarage'], outfile = 'SizeofGarage_output_by_CR_FPL_vintage.tsv')
+    calc_general(df, cut_by=['CR','FPL_BINS','yearmaderange'], columns = ['sizeofgarage'], outfile = 'SizeofGarage_output_by_CR_FPL_vintage.tsv')
 #    calc_general(df, cut_by=['FPL_BINS','yearmaderange'], columns = ['sizeofgarage'], outfile = 'SizeofGarage_output_by_FPL_vintage.tsv')
-    calc_general(df, cut_by=['yearmaderange','Size'], columns = ['sizeofgarage'], outfile = 'SizeofGarage_output_by_vintage_size.tsv')
+#    calc_general(df, cut_by=['yearmaderange','Size'], columns = ['sizeofgarage'], outfile = 'SizeofGarage_output_by_vintage_size.tsv')
+
+    calc_general(df, cut_by=['yearmaderange','Size'], columns = ['Foundation Type'], outfile = 'FoundationType_output_by_vintage_size.tsv')
+    calc_general(df, cut_by=['CR','FPL_BINS','Size'], columns = ['sizeofgarage'], outfile = 'SizeofGarage_output_by_CR_FPL_Size.tsv')
 
 #OLD QUERIES
 
