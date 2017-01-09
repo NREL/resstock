@@ -3,6 +3,7 @@ Created on Apr 29, 2014
 @author: ewilson
       : jalley
 '''
+from __future__ import division
 import os, sys
 import pandas
 import matplotlib.pyplot as plt
@@ -296,6 +297,10 @@ def retrieve_data():
     return df
 
 def process_data(df):
+
+#Select Single Family Detached Housing Only
+    df = df[df['typehuq'] == 2]
+
 #	df = pandas.read_csv(recs_data_file,na_values=['-2'])
     field_dicts = {'equipm': heating_types,
                    'division': census_div,
@@ -326,13 +331,171 @@ def process_data(df):
 
     df['Count']=1
 
-#Test Foundation Type
+    return df
 
-   #Number of different foundation types
+def calc_general(df, cut_by=['reportable_domain', 'fuelheat'], columns=None, outfile=None,norm=True):
+
+    if 'Foundation Type' in cut_by:
+        two_found = df['numfoundations'] == 2
+        three_found = df['numfoundations'] ==3
+        three_dupl = df[three_found]
+        two_dupl = df[two_found]
+        df = df.append([three_dupl]*2,ignore_index=True)
+        df = df.append([two_dupl]*1,ignore_index=True)
+
+    #Change Weight and Count If using Foundation Type
+
+        df['nweight'] = df.apply(lambda x: x['nweight']/x['numfoundations'] if x['numfoundations'] > 0 else x['nweight'], axis = 1)
+        df['Count'] = df.apply(lambda x: x['Count']/x['numfoundations'] if x['numfoundations'] > 0 else x['Count'], axis = 1)
+
+#df
+#df_new = pandas.DataFrame()
+#
+## Assign counts of 1/2 and 1/3
+#
+#for fnd in ['slab', 'crawl', etc.]:
+#    df_this_fnd = df[(df['numfoundations'] > 1]) & (df[fnd] == 1)]
+#    df_this_fnd['Foundation Type'] = fnd
+#    df_new.concat(df_this_fnd)
+
+
+#Start Analyzing Specific Data
+    fields = cut_by + columns
+    grouped = df.groupby(fields)
+    df.groupby(cut_by)['Count'].sum()
+    combos = [list(set(df[field])) for field in fields]
+    for i, combo in enumerate(combos):
+        if pandas.np.nan in combo:
+            x = pandas.np.array(combos[i])
+            combos[i] = list(x)
+    full_index = pandas.MultiIndex.from_product(combos, names=fields)
+
+#Implement Total Weight of Each Type
+    g = grouped.sum()
+    g = g['nweight'].reindex(full_index)
+    g = g.fillna(0).reset_index()
+    g = pandas.pivot_table(g, values='nweight', index=cut_by, columns=columns).reset_index()
+    Weight = g[g.columns[len(cut_by):]].sum(axis = 1)
+
+#Implement Count of Each Type
+    ct = grouped.sum()
+    ct = ct['Count'].reindex(full_index)
+    ct = ct.fillna(0).reset_index()
+    ct = pandas.pivot_table(ct, values='Count', index=cut_by, columns=columns).reset_index()
+    Count = ct[ct.columns[len(cut_by):]].sum(axis=1)    #only adds Options, not Dependencies
+
+#Normalize Data
+    if norm:
+        total = g.sum(axis=1)
+        if isinstance(g.columns, pandas.core.index.MultiIndex):
+            for col in g.columns:
+                if not col[0] in cut_by:
+                    g[col] = g[col] / total
+        else:
+            for col in g.columns:
+                if not col in cut_by:
+                    g[col] = g[col] / total
+    g['Weight']=Weight
+    g['Count']=Count
+
+#    if 'Foundation Type' in columns:
+#        g['Weight'] = Weight / df['numfoundations']
+#        g['Count'] = Count / df['numfoundations']
+
+#Add Headers for Option and Dependency
+    rename_dict = {}
+    for col in g.columns:
+        if col in ['Weight','Count']:
+            rename_dict[col] = str(col)
+        else:
+            rename_dict[col] = 'Option=' + str(col)
+        if col in cut_by:
+            rename_dict[col] = 'Dependency=' + str(col)
+    g = g.rename(columns=rename_dict)
+
+#Generate Outfile
+    if not outfile is None:
+        g.to_csv(os.path.join("Probability Distributions", outfile), sep = '\t',index=False)
+        print g
+    return g
+
+def save_to_tsv(g, cut_by, columns, outfile):
+    rename_dict = {}
+    for col in g.columns:
+        if col in cut_by:
+            rename_dict[col] = 'Dependency=' + col
+        if col in columns:
+            rename_dict[col] = 'Option=' + col
+    g = g.rename(columns=rename_dict)
+    print g
+    g.to_csv(outfile, sep='\t', index=False)
+
+
+
+def assign_poverty_levels(df):
+    df['income_range'] = df['moneypy']
+    df['income'] = df['moneypy']
+    for income_range_num, income_range_name in income_range.iteritems():
+        df['income_range'].replace(income_range_num,income_range_name,inplace=True)
+    for num, name in med_income.iteritems():
+        df['income'].replace(num, name, inplace=True)
+    inflation_2009_to_2016 = 1.125344
+    df['inf_income']=df['income']*inflation_2009_to_2016
+
+    df['incomelimit'] = df['nhsldmem']
+    for fpl_num,fpl_name in fpl.iteritems():
+        for field in ['incomelimit']:
+            df[field].replace(fpl_num,fpl_name,inplace=True)
+    df['FPL'] = df['income']/df['incomelimit']*100
+
+
+    df['FPLALL'] = 1
+    df['FPL300']=0
+    df['FPL250']=0
+    df['FPL200']=0
+    df['FPL150']=0
+    df['FPL100']=0
+    df['FPL50']=0
+    df.loc[(df['FPL'] <= 300),'FPL300'] = 1
+    df.loc[(df['FPL'] <= 250),'FPL250'] = 1
+    df.loc[(df['FPL'] <= 200),'FPL200'] = 1
+    df.loc[(df['FPL'] <= 150),'FPL150'] = 1
+    df.loc[(df['FPL'] <= 100),'FPL100'] = 1
+    df.loc[(df['FPL'] <= 50),'FPL50'] = 1
+
+    #Create FPL Bins
+    df['FPL_BINS'] = 0
+    df.loc[(df['FPL'] >= 300),'FPL_BINS'] = "300+"
+    df.loc[(df['FPL'] >= 250) & (df['FPL'] < 300),'FPL_BINS'] = "250-300"
+    df.loc[(df['FPL'] >= 200) & (df['FPL'] < 250),'FPL_BINS'] = "200-250"
+    df.loc[(df['FPL'] >= 150) & (df['FPL'] < 200),'FPL_BINS'] = "150-200"
+    df.loc[(df['FPL'] >= 100) & (df['FPL'] < 150),'FPL_BINS'] = "100-150"
+    df.loc[(df['FPL'] >= 50) & (df['FPL'] < 100),'FPL_BINS'] = "50-100"
+    df.loc[(df['FPL'] < 50),'FPL_BINS'] = "0-50"
+    return df
+
+
+def custom_region(df):
+    df['CR'] = df['reportable_domain']
+    df['CR'].replace(region_def, inplace=True)
+
+# Split out Kentucky and put in 8:
+    df.ix[(df['reportable_domain'] == 18) & (df['aia_zone'] == 3), 'CR'] = 8
+
+# Split out Hawaii and put in 12:
+    df.ix[(df['reportable_domain'] == 27) & ((df['aia_zone'] == 5) | (df['hdd65'] < 4000)), 'CR'] = 12
+
+# Split out Alaska and put in 1:
+    df.ix[(df['reportable_domain'] == 27) & (df['hdd65'] > 6930), 'CR'] = 1 #Source for 6930 HDD: Dennis Barley
+    return df
+
+def foundation_type(df):
+
+
+    #Number of different foundation types
 
     df['numfoundations']= 0
     df['numfoundations']= df.apply(lambda x: x['crawl']+x['cellar']+x['concrete'] if x['crawl'] > -2 and x['cellar'] > -2 and x['concrete'] > -2 else 0, axis=1)
-    df.numfoundations.sum()
 
     #Foundation Type
 
@@ -346,9 +509,114 @@ def process_data(df):
 
     return df
 
-def assign_aliases(df):
-    aliases = {'prkgplc1':'HasGarage'}
-    return df.rename(columns=aliases)
+#    if df[].item() == 1:
+#        df['Foundation Type'].replace('Heated Basement')
+##        if df[['crawl','slab'] == 1:
+##            df.append(df.loc())
+#    for value in ['Foundation Type']:
+#        if df['crawl'] == 1 & df[['baseheat','concrete']] > -2:
+#            df.['Foundation Type'].replace['crawl']
+    #Add column describing number of foundation types
+    #Implement code to add rows for i in i foundation types
+        #Rows should only have 1 foundation type and a third of the count/weight of their parent
+    #Fill in foundation type column with appropriate information.
+    #check df has appropriate weights for each term
+
+if __name__ == '__main__':
+
+#preallocate steps for speed. Delete pkl files if objects are changed
+
+    if not os.path.exists('processed_eia.recs_2009_microdata.pkl'):
+        df = retrieve_data()
+        df = process_data(df)
+        df = custom_region(df)
+        df = assign_poverty_levels(df)
+        df = foundation_type(df)
+#        df = assign_aliases(df)
+        df.to_pickle('processed_eia.recs_2009_microdata.pkl')
+    else:df = pd.read_pickle('processed_eia.recs_2009_microdata.pkl')
+
+
+#NEW QUERIES
+
+#    calc_general(df, cut_by=['CR','FPL_BINS'], columns = ['yearmaderange'], outfile = 'output_calc_CR_FPL_by_vintage.tsv')
+#    calc_general(df, cut_by=['CR','FPL_BINS','yearmaderange'], columns = ['equipm'], outfile = 'heatingequipment_output_by_CR_FPL_vintage.tsv')
+#    calc_general(df, cut_by=['CR','FPL_BINS','yearmaderange'], columns = ['equipm'], outfile = 'heatingequipment_output_by_CR_FPL_vintage.tsv')
+#    calc_general(df, cut_by=['CR','FPL_BINS','yearmaderange'], columns = ['fuelheat'], outfile = 'heatingfuel_output_by_CR_FPL_vintage.tsv')
+#    calc_general(df, cut_by=['CR','FPL_BINS','yearmaderange'], columns = ['Size'], outfile = 'Size_output_by_CR_FPL_vintage.tsv')
+#    calc_general(df, cut_by=['CR','FPL_BINS','yearmaderange'], columns = ['equipage'], outfile = 'heating_equipment_age_output_by_CR_FPL_vintage.tsv')
+#    calc_general(df, cut_by=['CR','FPL_BINS','yearmaderange'], columns = ['cooltype'], outfile = 'AC_type_output_by_CR_FPL_vintage.tsv')
+#    calc_general(df, cut_by=['CR','FPL_BINS','yearmaderange'], columns = ['agecenac'], outfile = 'Central-AC-Sys-Age_output_by_CR_FPL_vintage.tsv')
+#    calc_general(df, cut_by=['CR','FPL_BINS','yearmaderange'], columns = ['wwacage'], outfile = 'Window-AC-Sys-Age_output_by_CR_FPL_vintage.tsv')
+#    calc_general(df, cut_by=['CR','FPL_BINS','yearmaderange'], columns = ['temphome'], outfile = 'Temp-Winter-Home_output_by_CR_FPL_vintage.tsv')
+#    calc_general(df, cut_by=['CR','FPL_BINS','yearmaderange'], columns = ['tempgone'], outfile = 'Temp-Winter-Gone_output_by_CR_FPL_vintage.tsv')
+#    calc_general(df, cut_by=['CR','FPL_BINS','yearmaderange'], columns = ['tempnite'], outfile = 'Temp-Winter-Night_output_by_CR_FPL_vintage.tsv')
+#    calc_general(df, cut_by=['CR','FPL_BINS','yearmaderange'], columns = ['temphomeac'], outfile = 'Temp-Summer-Home_output_by_CR_FPL_vintage.tsv')
+#    calc_general(df, cut_by=['CR','FPL_BINS','yearmaderange'], columns = ['tempgoneac'], outfile = 'Temp-Summer-Gone_output_by_CR_FPL_vintage.tsv')
+#    calc_general(df, cut_by=['CR','FPL_BINS','yearmaderange'], columns = ['tempniteac'], outfile = 'Temp-Summer-Night_output_by_CR_FPL_vintage.tsv')
+#    calc_general(df, cut_by=['CR','FPL_BINS','yearmaderange'], columns = ['typeglass'], outfile = 'Window-Type_output_by_CR_FPL_vintage.tsv')
+#    calc_general(df, cut_by=['CR','FPL_BINS','yearmaderange'], columns = ['nhsldmem'], outfile = 'Household-Occ-Num_output_by_CR_FPL_vintage.tsv')
+#    calc_general(df, cut_by=['CR','FPL_BINS','yearmaderange'], outfile = '_output_by_CR_FPL_vintage.tsv')
+#    calc_general(df, cut_by=['CR','FPL_BINS','yearmaderange'], columns = ['sizeofgarage'], outfile = 'SizeofGarage_output_by_CR_FPL_vintage.tsv')
+#    calc_general(df, cut_by=['FPL_BINS','yearmaderange'], columns = ['sizeofgarage'], outfile = 'SizeofGarage_output_by_FPL_vintage.tsv')
+#    calc_general(df, cut_by=['yearmaderange','Size'], columns = ['sizeofgarage'], outfile = 'SizeofGarage_output_by_vintage_size.tsv')
+#    calc_general(df, cut_by=['yearmaderange','Size'], columns = ['Foundation Type'], outfile = 'FoundationType_output_by_vintage_size.tsv')
+#    calc_general(df, cut_by=['CR','FPL_BINS','Size'], columns = ['sizeofgarage'], outfile = 'SizeofGarage_output_by_CR_FPL_Size.tsv')
+
+#OLD QUERIES
+
+   # Overwrite fuelheat Type field with UGWARM ('UGWARM') if discrepancy
+#    df.loc[df['ugwarm'] == 1, 'fuelheat'] = 1
+#    calc_temp_stats(df)
+#     calc_htg_type(df)
+#     calc_htg_age(df)
+#     calc_htg_type_by_wh_fuel(df, cut_by=['fuelh2o','reportable_domain','yearmaderange','fuelheat'], outfile='output_calc_htg_type_by_wh_fuel_vintage.csv')
+#     calc_htg_type_by_wh_fuel(df, cut_by=['fuelh2o','reportable_domain','fuelheat'], outfile='output_calc_htg_type_by_wh_fuel.csv')
+#     calc_num_beds(df)
+#     calc_ashp_cac(df)
+#     calc_occupancy(df)
+#    calc_general(df, cut_by=['Size','stories'],columns=['Foundation Type'], outfile='output_general.csv')
+#     calc_general(df, cut_by=['division','yearmaderange'],columns=['Foundation Type'], outfile='output_general.csv')
+#    calc_general(df, cut_by=['yearmaderange','Size'],columns=['PRKGPLC1'], outfile='output_general.csv')
+    # Query Vintage
+#     calc_general(df, cut_by=['reportable_domain'],columns=['yearmaderange'], outfile='output_house_counts_vintage.csv')
+    # Query Fuel Types
+#     calc_general(df, cut_by=['reportable_domain','yearmaderange'],columns=['fuelheat'], outfile='recs_query_heating_fuel.csv')
+#     calc_general(df, cut_by=['fuelheat','Custom Region'],columns=['fuelh2o','H2OTYPE1'], outfile='recs_query_wh_fuel.csv')
+#     calc_general(df, cut_by=['fuelheat','Custom Region'], columns=['rngfuel'], outfile='recs_query_range_fuel.csv')
+#     calc_general(df, cut_by=['fuelheat','Custom Region'],columns=['dryrfuel'], outfile='recs_query_dryer_fuel.csv')
+    # Query Size
+#     calc_general(df, cut_by=['Custom Region','yearmaderange'],columns=['Size'], outfile='recs_query_size.csv')
+#     calc_general(df, cut_by=['fuelh2o_agg'],columns=['Size'], outfile='output_size.csv', norm=False)
+    # Query stories
+#     query_stories(df)
+#     calc_general(df, cut_by=[],columns=['ESCWASH'], outfile='output_cw.csv', norm=False)
+#     calc_general(df, cut_by=[],columns=['ESDISHW'], outfile='output_dw.csv', norm=False)
+#     calc_general(df, cut_by=[],columns=['ESFRIG'], outfile='output_ref.csv', norm=False)
+#     calc_general(df, cut_by=[],columns=['Percent CFLs'], outfile='output_ltg.csv', norm=False)
+#     calc_general(df, cut_by=['ESFRIG'],columns=['AGERFRI1'], outfile='output_ref_age.csv', norm=True)
+#     calc_general(df, cut_by=['yearmaderange','Custom Region'],columns=['WALLTYPE'], outfile='output_wall.csv', norm=True)
+#     calc_general(df, cut_by=['division'],columns=['WALLTYPE'], outfile='output_wall_div.csv', norm=True)
+#     calc_general(df, cut_by=['yearmaderange','Custom Region'],columns=['ATTCHEAT'], outfile='output_ATTCHEAT.csv', norm=True)
+#     calc_general(df, cut_by=['yearmaderange','Custom Region'],columns=['Vented Attic'], outfile='output_vented attic.csv', norm=True)
+#     calc_general(df, cut_by=[],columns=['ATTCHEAT'], outfile='output_ATTCHEAT.csv', norm=False)
+#     calc_general(df, cut_by=[],columns=['Vented Attic'], outfile='output_vented attic.csv', norm=False)
+#     calc_general(df, cut_by=[],columns=['Finished Attic'], outfile='output_vented attic.csv', norm=False)
+#     calc_general(df, cut_by=[],columns=['Cathedral Ceiling'], outfile='output_vented attic.csv', norm=False)
+#     calc_general(df, cut_by=[],columns=['ATTIC'], outfile='output_vented attic.csv', norm=False)
+#     df = agg_bedrooms(df)
+#     calc_general(df, cut_by=['fuelh2o_agg','Bedrooms_agg'],columns=['Water Heater Size'], outfile='output_wh_size.csv', norm=False)
+    # Generic Query
+#     calc_general(df, cut_by=['reportable_domain'],columns=['ESCWASH'], outfile='output_general.csv')
+# fuelheat house counts
+#     df = calc_general(df, cut_by=['Custom Region','yearmaderange','fuelheat'],columns=[], outfile='output_heating_fuel.csv', norm=False)
+#     df
+#     df = calc_general(df, cut_by=['Custom Region'],columns=['fuelheat'], outfile='output_heating_fuel.csv', norm=True)
+# df = calc_general(df, cut_by=[],columns=['athome'], outfile='output_athome.csv', norm=False)
+#     calc_htg_type(df)
+#     calc_general(df, cut_by=['fuelheat'],columns=['equipm'], outfile='recs_query_heating_type.csv', norm=False)
+
+    print datetime.now() - startTime
 
 def calc_temp_stats(df):
     df['athome'].replace(0,np.NaN)
@@ -370,6 +638,8 @@ def calc_temp_stats(df):
     for season in ['Winter', 'Summer']:
         T_avg_weighted[season] = sum(df['nweight'][T_avg[season].notnull()]*T_avg[season][T_avg[season].notnull()]) / (df['nweight'][T_avg[season].notnull()].sum()*1.0)
     print temp_hist
+
+
 
 def calc_htg_type(df):
     heating_types = {2:   'Steam or Hot Water System'      ,
@@ -506,80 +776,6 @@ def calc_ashp_cac(df):
 #		df['BEDROOMS'].replace(num,name, inplace=True)
 #	return df
 
-def calc_general(df, cut_by=['reportable_domain', 'fuelheat'], columns=None, outfile=None,norm=True):
-
-
-#Start Analyzing Specific Data
-    fields = cut_by + columns
-    grouped = df.groupby(fields)
-    df.groupby(cut_by)['Count'].sum()
-    combos = [list(set(df[field])) for field in fields]
-    for i, combo in enumerate(combos):
-        if pandas.np.nan in combo:
-            x = pandas.np.array(combos[i])
-            combos[i] = list(x)
-    full_index = pandas.MultiIndex.from_product(combos, names=fields)
-
-#Implement Total Weight of Each Type
-    g = grouped.sum()
-    g = g['nweight'].reindex(full_index)
-    g = g.fillna(0).reset_index()
-    g = pandas.pivot_table(g, values='nweight', index=cut_by, columns=columns).reset_index()
-    Weight = g[g.columns[len(cut_by):]].sum(axis = 1)
-
-#Implement Count of Each Type
-    ct = grouped.sum()
-    ct = ct['Count'].reindex(full_index)
-    ct = ct.fillna(0).reset_index()
-    ct = pandas.pivot_table(ct, values='Count', index=cut_by, columns=columns).reset_index()
-    Count = ct[ct.columns[len(cut_by):]].sum(axis=1)    #only adds Options, not Dependencies
-
-#Normalize Data
-    if norm:
-        total = g.sum(axis=1)
-        if isinstance(g.columns, pandas.core.index.MultiIndex):
-            for col in g.columns:
-                if not col[0] in cut_by:
-                    g[col] = g[col] / total
-        else:
-            for col in g.columns:
-                if not col in cut_by:
-                    g[col] = g[col] / total
-    g['Weight']=Weight
-    g['Count']=Count
-
-#    if 'Foundation Type' in columns:
-#        g['Weight'] = Weight / df['numfoundations']
-#        g['Count'] = Count / df['numfoundations']
-
-#Add Headers for Option and Dependency
-    rename_dict = {}
-    for col in g.columns:
-        if col in ['Weight','Count']:
-            rename_dict[col] = str(col)
-        else:
-            rename_dict[col] = 'Option=' + str(col)
-        if col in cut_by:
-            rename_dict[col] = 'Dependency=' + str(col)
-    g = g.rename(columns=rename_dict)
-
-#Generate Outfile
-    if not outfile is None:
-        g.to_csv(os.path.join("Probability Distributions", outfile), sep = '\t',index=False)
-        print g
-    return g
-
-def save_to_tsv(g, cut_by, columns, outfile):
-    rename_dict = {}
-    for col in g.columns:
-        if col in cut_by:
-            rename_dict[col] = 'Dependency=' + col
-        if col in columns:
-            rename_dict[col] = 'Option=' + col
-    g = g.rename(columns=rename_dict)
-    print g
-    g.to_csv(outfile, sep='\t', index=False)
-
 def query_stories(df, outfile='recs_query_stories.csv'):
     g = calc_general(df, cut_by=['yearmaderange','Size'],columns=['stories'], outfile=None)
     fnd_types = ['Crawl',
@@ -601,183 +797,3 @@ def query_stories(df, outfile='recs_query_stories.csv'):
     df = df[['yearmaderange','Size','Foundation Type',1,2,3]]
     df.to_csv(outfile, index=False)
     print df
-
-def assign_poverty_levels(df):
-    df['income_range'] = df['moneypy']
-    df['income'] = df['moneypy']
-    for income_range_num, income_range_name in income_range.iteritems():
-        df['income_range'].replace(income_range_num,income_range_name,inplace=True)
-    for num, name in med_income.iteritems():
-        df['income'].replace(num, name, inplace=True)
-    inflation_2009_to_2016 = 1.125344
-    df['inf_income']=df['income']*inflation_2009_to_2016
-
-    df['incomelimit'] = df['nhsldmem']
-    for fpl_num,fpl_name in fpl.iteritems():
-        for field in ['incomelimit']:
-            df[field].replace(fpl_num,fpl_name,inplace=True)
-    df['FPL'] = df['income']/df['incomelimit']*100
-    df['FPLALL'] = 1
-    df['FPL300','FPL250','FPL200','FPL150','FPL100','FPL50'] = df['FPLALL']
-    df.loc[(df['FPL'] <= 300),'FPL300'] = 1
-    df.loc[(df['FPL'] <= 250),'FPL250'] = 1
-    df.loc[(df['FPL'] <= 200),'FPL200'] = 1
-    df.loc[(df['FPL'] <= 150),'FPL150'] = 1
-    df.loc[(df['FPL'] <= 100),'FPL100'] = 1
-    df.loc[(df['FPL'] <= 50),'FPL50'] = 1
-
-    #Create FPL Bins
-    df['FPL_BINS'] = 0
-    df.loc[(df['FPL'] >= 300),'FPL_BINS'] = "300+"
-    df.loc[(df['FPL'] >= 250) & (df['FPL'] < 300),'FPL_BINS'] = "250-300"
-    df.loc[(df['FPL'] >= 200) & (df['FPL'] < 250),'FPL_BINS'] = "200-250"
-    df.loc[(df['FPL'] >= 150) & (df['FPL'] < 200),'FPL_BINS'] = "150-200"
-    df.loc[(df['FPL'] >= 100) & (df['FPL'] < 150),'FPL_BINS'] = "100-150"
-    df.loc[(df['FPL'] >= 50) & (df['FPL'] < 100),'FPL_BINS'] = "50-100"
-    df.loc[(df['FPL'] < 50),'FPL_BINS'] = "0-50"
-    return df
-
-
-def custom_region(df):
-    df['CR'] = df['reportable_domain']
-    df['CR'].replace(region_def, inplace=True)
-
-# Split out Kentucky and put in 8:
-    df.ix[(df['reportable_domain'] == 18) & (df['aia_zone'] == 3), 'CR'] = 8
-
-# Split out Hawaii and put in 12:
-    df.ix[(df['reportable_domain'] == 27) & ((df['aia_zone'] == 5) | (df['hdd65'] < 4000)), 'CR'] = 12
-
-# Split out Alaska and put in 1:
-    df.ix[(df['reportable_domain'] == 27) & (df['hdd65'] > 6930), 'CR'] = 1 #Source for 6930 HDD: Dennis Barley
-    return df
-
-def foundation_type(df):
-
-
-    #Number of different foundation types
-
-    df['numfoundations']= 0
-    df['numfoundations']= df.apply(lambda x: x['crawl']+x['cellar']+x['concrete'] if x['crawl'] > -2 and x['cellar'] > -2 and x['concrete'] > -2 else 0, axis=1)
-    df = df.numfoundations.sum()
-
-    #Foundation Type
-
-    df['Foundation Type'] = 0
-    df.loc[(df['numfoundations'] == 0),'Foundation Type'] = 'Pier and Beam'
-    df.loc[(df['numfoundations'] > 1), 'Foundation Type'] = 'Multiple Foundation Types'
-    df.loc[(df['numfoundations'] == 1) & (df['crawl'] == 1), 'Foundation Type'] = 'Crawl'
-    df.loc[(df['numfoundations'] == 1) & (df['concrete'] == 1), 'Foundation Type'] = 'Slab'
-    df.loc[(df['numfoundations'] == 1) & (df['cellar'] == 1) & (df['baseheat'] == 1), 'Foundation Type'] = 'Heated Basement'
-    df.loc[(df['numfoundations'] == 1) & (df['cellar'] == 1) & (df['baseheat'] == 0), 'Foundation Type'] = 'Unheated Basement'
-
-    return df
-
-#    if df[].item() == 1:
-#        df['Foundation Type'].replace('Heated Basement')
-##        if df[['crawl','slab'] == 1:
-##            df.append(df.loc())
-#    for value in ['Foundation Type']:
-#        if df['crawl'] == 1 & df[['baseheat','concrete']] > -2:
-#            df.['Foundation Type'].replace['crawl']
-    #Add column describing number of foundation types
-    #Implement code to add rows for i in i foundation types
-        #Rows should only have 1 foundation type and a third of the count/weight of their parent
-    #Fill in foundation type column with appropriate information.
-    #check df has appropriate weights for each term
-
-if __name__ == '__main__':
-
-#preallocate steps for speed. Delete pkl files if objects are changed
-
-    if not os.path.exists('processed_eia.recs_2009_microdata.pkl'):
-        df = retrieve_data()
-        df = process_data(df)
-        df = custom_region(df)
-        df = assign_poverty_levels(df)
-#        df = assign_aliases(df)
-        df.to_pickle('processed_eia.recs_2009_microdata.pkl')
-    else:
-        df = pd.read_pickle('processed_eia.recs_2009_microdata.pkl')
-
-
-#NEW QUERIES
-#    calc_general(df, cut_by=['CR','FPL_BINS'], columns = ['yearmaderange'], outfile = 'output_calc_CR_FPL_by_vintage.tsv')
-#    calc_general(df, cut_by=['CR','FPL_BINS','yearmaderange'], columns = ['equipm'], outfile = 'heatingequipment_output_by_CR_FPL_vintage.tsv')
-#    calc_general(df, cut_by=['CR','FPL_BINS','yearmaderange'], columns = ['equipm'], outfile = 'heatingequipment_output_by_CR_FPL_vintage.tsv')
-#    calc_general(df, cut_by=['CR','FPL_BINS','yearmaderange'], columns = ['fuelheat'], outfile = 'heatingfuel_output_by_CR_FPL_vintage.tsv')
-#    calc_general(df, cut_by=['CR','FPL_BINS','yearmaderange'], columns = ['Size'], outfile = 'Size_output_by_CR_FPL_vintage.tsv')
-#    calc_general(df, cut_by=['CR','FPL_BINS','yearmaderange'], columns = ['equipage'], outfile = 'heating_equipment_age_output_by_CR_FPL_vintage.tsv')
-#    calc_general(df, cut_by=['CR','FPL_BINS','yearmaderange'], columns = ['cooltype'], outfile = 'AC_type_output_by_CR_FPL_vintage.tsv')
-#    calc_general(df, cut_by=['CR','FPL_BINS','yearmaderange'], columns = ['agecenac'], outfile = 'Central-AC-Sys-Age_output_by_CR_FPL_vintage.tsv')
-#    calc_general(df, cut_by=['CR','FPL_BINS','yearmaderange'], columns = ['wwacage'], outfile = 'Window-AC-Sys-Age_output_by_CR_FPL_vintage.tsv')
-#    calc_general(df, cut_by=['CR','FPL_BINS','yearmaderange'], columns = ['temphome'], outfile = 'Temp-Winter-Home_output_by_CR_FPL_vintage.tsv')
-#    calc_general(df, cut_by=['CR','FPL_BINS','yearmaderange'], columns = ['tempgone'], outfile = 'Temp-Winter-Gone_output_by_CR_FPL_vintage.tsv')
-#    calc_general(df, cut_by=['CR','FPL_BINS','yearmaderange'], columns = ['tempnite'], outfile = 'Temp-Winter-Night_output_by_CR_FPL_vintage.tsv')
-#    calc_general(df, cut_by=['CR','FPL_BINS','yearmaderange'], columns = ['temphomeac'], outfile = 'Temp-Summer-Home_output_by_CR_FPL_vintage.tsv')
-#    calc_general(df, cut_by=['CR','FPL_BINS','yearmaderange'], columns = ['tempgoneac'], outfile = 'Temp-Summer-Gone_output_by_CR_FPL_vintage.tsv')
-#    calc_general(df, cut_by=['CR','FPL_BINS','yearmaderange'], columns = ['tempniteac'], outfile = 'Temp-Summer-Night_output_by_CR_FPL_vintage.tsv')
-#    calc_general(df, cut_by=['CR','FPL_BINS','yearmaderange'], columns = ['typeglass'], outfile = 'Window-Type_output_by_CR_FPL_vintage.tsv')
-#    calc_general(df, cut_by=['CR','FPL_BINS','yearmaderange'], columns = ['nhsldmem'], outfile = 'Household-Occ-Num_output_by_CR_FPL_vintage.tsv')
-#    calc_general(df, cut_by=['CR','FPL_BINS','yearmaderange'], columns = [''], outfile = '_output_by_CR_FPL_vintage.tsv')
-    calc_general(df, cut_by=['CR','FPL_BINS','yearmaderange'], columns = ['sizeofgarage'], outfile = 'SizeofGarage_output_by_CR_FPL_vintage.tsv')
-#    calc_general(df, cut_by=['FPL_BINS','yearmaderange'], columns = ['sizeofgarage'], outfile = 'SizeofGarage_output_by_FPL_vintage.tsv')
-#    calc_general(df, cut_by=['yearmaderange','Size'], columns = ['sizeofgarage'], outfile = 'SizeofGarage_output_by_vintage_size.tsv')
-
-    calc_general(df, cut_by=['yearmaderange','Size'], columns = ['Foundation Type'], outfile = 'FoundationType_output_by_vintage_size.tsv')
-    calc_general(df, cut_by=['CR','FPL_BINS','Size'], columns = ['sizeofgarage'], outfile = 'SizeofGarage_output_by_CR_FPL_Size.tsv')
-
-#OLD QUERIES
-
-   # Overwrite fuelheat Type field with UGWARM ('UGWARM') if discrepancy
-#    df.loc[df['ugwarm'] == 1, 'fuelheat'] = 1
-#    calc_temp_stats(df)
-#     calc_htg_type(df)
-#     calc_htg_age(df)
-#     calc_htg_type_by_wh_fuel(df, cut_by=['fuelh2o','reportable_domain','yearmaderange','fuelheat'], outfile='output_calc_htg_type_by_wh_fuel_vintage.csv')
-#     calc_htg_type_by_wh_fuel(df, cut_by=['fuelh2o','reportable_domain','fuelheat'], outfile='output_calc_htg_type_by_wh_fuel.csv')
-#     calc_num_beds(df)
-#     calc_ashp_cac(df)
-#     calc_occupancy(df)
-#    calc_general(df, cut_by=['Size','stories'],columns=['Foundation Type'], outfile='output_general.csv')
-#     calc_general(df, cut_by=['division','yearmaderange'],columns=['Foundation Type'], outfile='output_general.csv')
-#    calc_general(df, cut_by=['yearmaderange','Size'],columns=['PRKGPLC1'], outfile='output_general.csv')
-    # Query Vintage
-#     calc_general(df, cut_by=['reportable_domain'],columns=['yearmaderange'], outfile='output_house_counts_vintage.csv')
-    # Query Fuel Types
-#     calc_general(df, cut_by=['reportable_domain','yearmaderange'],columns=['fuelheat'], outfile='recs_query_heating_fuel.csv')
-#     calc_general(df, cut_by=['fuelheat','Custom Region'],columns=['fuelh2o','H2OTYPE1'], outfile='recs_query_wh_fuel.csv')
-#     calc_general(df, cut_by=['fuelheat','Custom Region'], columns=['rngfuel'], outfile='recs_query_range_fuel.csv')
-#     calc_general(df, cut_by=['fuelheat','Custom Region'],columns=['dryrfuel'], outfile='recs_query_dryer_fuel.csv')
-    # Query Size
-#     calc_general(df, cut_by=['Custom Region','yearmaderange'],columns=['Size'], outfile='recs_query_size.csv')
-#     calc_general(df, cut_by=['fuelh2o_agg'],columns=['Size'], outfile='output_size.csv', norm=False)
-    # Query stories
-#     query_stories(df)
-#     calc_general(df, cut_by=[],columns=['ESCWASH'], outfile='output_cw.csv', norm=False)
-#     calc_general(df, cut_by=[],columns=['ESDISHW'], outfile='output_dw.csv', norm=False)
-#     calc_general(df, cut_by=[],columns=['ESFRIG'], outfile='output_ref.csv', norm=False)
-#     calc_general(df, cut_by=[],columns=['Percent CFLs'], outfile='output_ltg.csv', norm=False)
-#     calc_general(df, cut_by=['ESFRIG'],columns=['AGERFRI1'], outfile='output_ref_age.csv', norm=True)
-#     calc_general(df, cut_by=['yearmaderange','Custom Region'],columns=['WALLTYPE'], outfile='output_wall.csv', norm=True)
-#     calc_general(df, cut_by=['division'],columns=['WALLTYPE'], outfile='output_wall_div.csv', norm=True)
-#     calc_general(df, cut_by=['yearmaderange','Custom Region'],columns=['ATTCHEAT'], outfile='output_ATTCHEAT.csv', norm=True)
-#     calc_general(df, cut_by=['yearmaderange','Custom Region'],columns=['Vented Attic'], outfile='output_vented attic.csv', norm=True)
-#     calc_general(df, cut_by=[],columns=['ATTCHEAT'], outfile='output_ATTCHEAT.csv', norm=False)
-#     calc_general(df, cut_by=[],columns=['Vented Attic'], outfile='output_vented attic.csv', norm=False)
-#     calc_general(df, cut_by=[],columns=['Finished Attic'], outfile='output_vented attic.csv', norm=False)
-#     calc_general(df, cut_by=[],columns=['Cathedral Ceiling'], outfile='output_vented attic.csv', norm=False)
-#     calc_general(df, cut_by=[],columns=['ATTIC'], outfile='output_vented attic.csv', norm=False)
-#     df = agg_bedrooms(df)
-#     calc_general(df, cut_by=['fuelh2o_agg','Bedrooms_agg'],columns=['Water Heater Size'], outfile='output_wh_size.csv', norm=False)
-    # Generic Query
-#     calc_general(df, cut_by=['reportable_domain'],columns=['ESCWASH'], outfile='output_general.csv')
-# fuelheat house counts
-#     df = calc_general(df, cut_by=['Custom Region','yearmaderange','fuelheat'],columns=[], outfile='output_heating_fuel.csv', norm=False)
-#     df
-#     df = calc_general(df, cut_by=['Custom Region'],columns=['fuelheat'], outfile='output_heating_fuel.csv', norm=True)
-# df = calc_general(df, cut_by=[],columns=['athome'], outfile='output_athome.csv', norm=False)
-#     calc_htg_type(df)
-#     calc_general(df, cut_by=['fuelheat'],columns=['equipm'], outfile='recs_query_heating_type.csv', norm=False)
-
-    print datetime.now() - startTime
