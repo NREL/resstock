@@ -507,6 +507,25 @@ def foundation_type(df):
     df.loc[(df['numfoundations'] == 1) & (df['cellar'] == 1) & (df['baseheat'] == 1), 'Foundation Type'] = 'Heated Basement'
     df.loc[(df['numfoundations'] == 1) & (df['cellar'] == 1) & (df['baseheat'] == 0), 'Foundation Type'] = 'Unheated Basement'
 
+    #Implement Weight and Count Changes
+
+    df['nweight'] = df.apply(lambda x: x['nweight'] / x['numfoundations'] if x['numfoundations'] > 2 else x['nweight'], axis = 1)
+    df['Count'] = df.apply(lambda x: x['Count'] / x['numfoundations'] if x['numfoundations'] > 2 else x['Count'], axis = 1)
+
+    df_new = pd.DataFrame()
+
+    for fnd in ['concrete','crawl','cellar']:
+        df_this_fnd = df[(df['numfoundations'] > 1) & (df[fnd] == 1)]
+        df_this_fnd['Foundation Type'] = fnd
+        df_new = df_new.append(df_this_fnd)
+
+    df_new.loc[(df_new['Foundation Type'] == 'cellar') & (df['baseheat'] == 1), 'Foundation Type'] = 'Heated Basement'
+    df_new.loc[(df_new['Foundation Type'] == 'cellar') & (df['baseheat'] == 0), 'Foundation Type'] = 'Unheated Basement'
+    df_new.loc[(df_new['Foundation Type'] == 'concrete'), 'Foundation Type'] = 'Slab'
+    df_new.loc[(df_new['Foundation Type'] == 'crawl'), 'Foundation Type'] = 'Crawl'
+
+    df = df.append(df_new)
+
     return df
 
 #    if df[].item() == 1:

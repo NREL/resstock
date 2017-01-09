@@ -39,6 +39,7 @@ from datetime import datetime
 import pickle
 from pandas import DataFrame, Series
 
+startTime = datetime.now()
 
 vintages = {'pre-1950' : 0,
             '1950s' : 1,
@@ -222,7 +223,7 @@ def stackedbar(df, VAR, TITLE, NORM):
     ax.set_ylabel("Distribution of Homes According to Income", fontsize = 12)
     ax.set_title(TITLE, fontsize = 15)
     fig = ax.get_figure()
-    file_name = VAR+'_pov_lvls.png'
+    file_name = VAR+'_pov_lvls_V2.png'
     fig.savefig(os.path.join('Graphs',file_name), bbox_inches = 'tight')
     print fig
 
@@ -252,27 +253,28 @@ if __name__ == '__main__':
 #    stackedbar(df,'equipm', 'Heating Equipment' + ' vs. Federal Poverty Levels: 250,200,150,100,50_V2')
 #    stackedbar(df,'fuelheat', 'Heating Fuel' + ' vs. Federal Poverty Levels: 250,200,150,100,50_V2')
 #    stackedbar(df,'division', 'Census Division' + ' vs. Federal Poverty Levels: 250,200,150,100,50_V2')
-    stackedbar(df,'Size', 'House Size' + ' vs. Federal Poverty Levels: 250,200,150,100,50_V2',True)	#Percentage
-    stackedbar(df,'Size', 'House Size' + ' vs. Federal Poverty Levels: 250,200,150,100,50_V2',False)	#Distribution
-    stackedbar(df,'YEARMADERANGE', 'Vintage' + ' vs. Federal Poverty Levels: 250,200,150,100,50_V2',True)		#Percentage
-    stackedbar(df,'YEARMADERANGE', 'Vintage' + ' vs. Federal Poverty Levels: 250,200,150,100,50_V2',False)		#Distribution
-    stackedbar(df,'equipm', 'Heating Type' + ' vs. Federal Poverty Levels: 250,200,150,100,50_V2',True)	#Percentage
-    stackedbar(df,'equipm', 'Heating Type' + ' vs. Federal Poverty Levels: 250,200,150,100,50_V2',False)	#Distribution
-    stackedbar(df,'equipage', 'Heating System Age' + ' vs. Federal Poverty Levels: 250,200,150,100,50_V2',True)
-    stackedbar(df,'equipage', 'Heating System Age' + ' vs. Federal Poverty Levels: 250,200,150,100,50_V2',False)
-    stackedbar(df,'cooltype', 'A/C Type' + ' vs. Federal Poverty Levels: 250,200,150,100,50_V2',True)
-    stackedbar(df,'cooltype', 'A/C Type' + ' vs. Federal Poverty Levels: 250,200,150,100,50_V2',False)
-    stackedbar(df,'agecenac', 'Central A/C System Age' + ' vs. Federal Poverty Levels: 250,200,150,100,50_V2',True)
-    stackedbar(df,'agecenac', 'Central A/C System Age' + ' vs. Federal Poverty Levels: 250,200,150,100,50_V2',False)
-    stackedbar(df,'wwacage', 'Window A/C Unit Age' + ' vs. Federal Poverty Levels: 250,200,150,100,50_V2',True)
-    stackedbar(df,'wwacage', 'Window A/C Unit Age' + ' vs. Federal Poverty Levels: 250,200,150,100,50_V2',False)
-    stackedbar(df,'equipm', 'Heating Equipment' + ' vs. Federal Poverty Levels: 250,200,150,100,50_V2')
-    stackedbar(df,'fuelheat', 'Heating Fuel' + ' vs. Federal Poverty Levels: 250,200,150,100,50_V2')
-    stackedbar(df,'division', 'Census Division' + ' vs. Federal Poverty Levels: 250,200,150,100,50_V2')
-    stackedbar(df,'householder_race', 'Census Division' +' vs. Federal Poverty Levels: 250,200,150,100,50_V2')
-    kdeplot(df,'income', 'temphome', 'Day Thermostat Temp When Home (Winter)_V2')
-    kdeplot(df,'income', 'tempgone', 'Day Thermostat Temp When Gone(Winter)_V2')
-    kdeplot(df,'income', 'tempnite', 'Night Thermostat Temp (Winter)_V2')
-    kdeplot(df,'income', 'temphomeac', 'Day Thermostat Temp When Home (Summer)_V2')
-    kdeplot(df,'income', 'tempgoneac', 'Day Thermostat Temp When Gone(Summer)_V2')
-    kdeplot(df,'income', 'tempniteac', 'Night Thermostat Temp (Winter)_V2')
+#    stackedbar(df,'Size', 'House Size' + ' vs. Federal Poverty Levels: 250,200,150,100,50_V2',True)	#Percentage
+#    stackedbar(df,'Size', 'House Size' + ' vs. Federal Poverty Levels: 250,200,150,100,50_V2',False)	#Distribution
+#    stackedbar(df,'yearmaderange', 'Vintage' + ' vs. Federal Poverty Levels: 250,200,150,100,50_V2',True)		#Percentage
+#    stackedbar(df,'yearmaderange', 'Vintage' + ' vs. Federal Poverty Levels: 250,200,150,100,50_V2',False)		#Distribution
+#    stackedbar(df,'equipm', 'Heating Type' + ' vs. Federal Poverty Levels: 250,200,150,100,50_V2',True)	#Percentage
+#    stackedbar(df,'equipm', 'Heating Type' + ' vs. Federal Poverty Levels: 250,200,150,100,50_V2',False)	#Distribution
+#    stackedbar(df,'equipage', 'Heating System Age' + ' vs. Federal Poverty Levels: 250,200,150,100,50_V2',True)
+#    stackedbar(df,'equipage', 'Heating System Age' + ' vs. Federal Poverty Levels: 250,200,150,100,50_V2',False)
+#    stackedbar(df,'cooltype', 'A/C Type' + ' vs. Federal Poverty Levels: 250,200,150,100,50_V2',True)
+#    stackedbar(df,'cooltype', 'A/C Type' + ' vs. Federal Poverty Levels: 250,200,150,100,50_V2',False)
+#    stackedbar(df,'agecenac', 'Central A/C System Age' + ' vs. Federal Poverty Levels: 250,200,150,100,50_V2',True)
+#    stackedbar(df,'agecenac', 'Central A/C System Age' + ' vs. Federal Poverty Levels: 250,200,150,100,50_V2',False)
+#    stackedbar(df,'wwacage', 'Window A/C Unit Age' + ' vs. Federal Poverty Levels: 250,200,150,100,50_V2',True)
+#    stackedbar(df,'wwacage', 'Window A/C Unit Age' + ' vs. Federal Poverty Levels: 250,200,150,100,50_V2',False)
+#    stackedbar(df,'fuelheat', 'Heating Fuel' + ' vs. Federal Poverty Levels: 250,200,150,100,50_V2',False)
+#    stackedbar(df,'division', 'Census Division' + ' vs. Federal Poverty Levels: 250,200,150,100,50_V2',False)
+    stackedbar(df,'householder_race', 'Householder Race' +' vs. Weighted Federal Poverty Levels: 250,200,150,100,50_V2',False)
+    stackedbar(df,'householder_race', 'Householder Race' +' vs. Proportional Federal Poverty Levels: 250,200,150,100,50_V2',True)
+#    kdeplot(df,'income', 'temphome', 'Day Thermostat Temp When Home (Winter)_V2')
+#    kdeplot(df,'income', 'tempgone', 'Day Thermostat Temp When Gone(Winter)_V2')
+#    kdeplot(df,'income', 'tempnite', 'Night Thermostat Temp (Winter)_V2')
+#    kdeplot(df,'income', 'temphomeac', 'Day Thermostat Temp When Home (Summer)_V2')
+#    kdeplot(df,'income', 'tempgoneac', 'Day Thermostat Temp When Gone(Summer)_V2')
+#    kdeplot(df,'income', 'tempniteac', 'Night Thermostat Temp (Winter)_V2')
+    print datetime.now() - startTime
