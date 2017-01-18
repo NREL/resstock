@@ -175,7 +175,10 @@ class ProcessFurnaceElectric < OpenStudio::Ruleset::ModelUserScript
         end
         
         # _processSystemFan
-
+        if not clg_coil.nil?
+          obj_name = Constants.ObjectNameFurnaceAndCentralAirConditioner(Constants.FuelTypeElectric, unit.name.to_s)
+        end
+        
         fan = OpenStudio::Model::FanOnOff.new(model, supply_fan_availability)
         fan.setName(obj_name + " supply fan")
         fan.setEndUseSubcategory(Constants.EndUseHVACFan)

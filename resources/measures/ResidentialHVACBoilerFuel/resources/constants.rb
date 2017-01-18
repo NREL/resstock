@@ -600,6 +600,13 @@ class Constants
     end
     return "residential furnace #{fueltype}#{s_unit}"
   end
+  def self.ObjectNameFurnaceAndCentralAirConditioner(fueltype, unit_name=self.ObjectNameBuildingUnit)
+    s_unit = ""
+    if unit_name != self.ObjectNameBuildingUnit
+      s_unit = "|#{unit_name}"
+    end
+    return "residential furnace #{fueltype} and central ac#{s_unit}"
+  end  
   def self.ObjectNameFurniture
     return 'residential furniture'
   end

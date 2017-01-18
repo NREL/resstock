@@ -191,6 +191,9 @@ class ProcessFurnaceFuel < OpenStudio::Ruleset::ModelUserScript
         htg_coil.setFuelType(HelperMethods.eplus_fuel_map(furnaceFuelType))
         
         # _processSystemFan
+        if not clg_coil.nil?
+          obj_name = Constants.ObjectNameFurnaceAndCentralAirConditioner(furnaceFuelType, unit.name.to_s)
+        end
 
         fan = OpenStudio::Model::FanOnOff.new(model, supply_fan_availability)
         fan.setName(obj_name + " supply fan")
@@ -240,7 +243,7 @@ class ProcessFurnaceFuel < OpenStudio::Ruleset::ModelUserScript
 
         # Supply Air
         zone_splitter = air_loop.zoneSplitter
-        zone_splitter.setName(obj_name = " zone splitter")
+        zone_splitter.setName(obj_name + " zone splitter")
         
         zone_mixer = air_loop.zoneMixer
         zone_mixer.setName(obj_name + " zone mixer")

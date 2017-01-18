@@ -32,6 +32,18 @@ class HelperMethods
         end
     end
     
+    def self.reverse_eplus_fuel_map(fuel)
+        if fuel == "Electricity"
+            return Constants.FuelTypeElectric
+        elsif fuel == "NaturalGas"
+            return Constants.FuelTypeGas
+        elsif fuel == "FuelOil#1"
+            return Constants.FuelTypeOil
+        elsif fuel == "PropaneGas"
+            return Constants.FuelTypePropane
+        end
+    end    
+    
     def self.remove_unused_constructions_and_materials(model, runner)
         # Code from https://bcl.nrel.gov/node/82267 (remove_orphan_objects_and_unused_resources measure)
         model.getConstructions.sort.each do |resource|

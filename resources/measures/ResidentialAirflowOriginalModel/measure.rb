@@ -1054,6 +1054,7 @@ class ProcessAirflowOriginalModel < OpenStudio::Ruleset::WorkspaceUserScript
     wind_speed = _processWindSpeedCorrection(wind_speed, terrainType)
     
     duct_locations = {}
+    obj_name = {}
     
     units.each do |building_unit|
       nbeds, nbaths = Geometry.get_unit_beds_baths(model, building_unit, runner)
@@ -2090,6 +2091,19 @@ class ProcessAirflowOriginalModel < OpenStudio::Ruleset::WorkspaceUserScript
         demand_side_outlet_node_name = nil
         demand_side_inlet_node_names = nil
         workspace.getObjectsByType("AirLoopHVAC".to_IddObjectType).each do |airloop|
+          next unless [
+          "#{Constants.ObjectNameFurnace(Constants.FuelTypeElectric, building_unit.name.to_s)} central air system", 
+          "#{Constants.ObjectNameFurnace(Constants.FuelTypeGas, building_unit.name.to_s)} central air system",
+          "#{Constants.ObjectNameFurnace(Constants.FuelTypeOil, building_unit.name.to_s)} central air system", 
+          "#{Constants.ObjectNameFurnace(Constants.FuelTypePropane, building_unit.name.to_s)} central air system",
+          "#{Constants.ObjectNameCentralAirConditioner(building_unit.name.to_s)} central air system",
+          "#{Constants.ObjectNameFurnaceAndCentralAirConditioner(Constants.FuelTypeElectric, building_unit.name.to_s)} central air system", 
+          "#{Constants.ObjectNameFurnaceAndCentralAirConditioner(Constants.FuelTypeGas, building_unit.name.to_s)} central air system",
+          "#{Constants.ObjectNameFurnaceAndCentralAirConditioner(Constants.FuelTypeOil, building_unit.name.to_s)} central air system", 
+          "#{Constants.ObjectNameFurnaceAndCentralAirConditioner(Constants.FuelTypePropane, building_unit.name.to_s)} central air system",          
+          "#{Constants.ObjectNameAirSourceHeatPump(building_unit.name.to_s)} central air system"
+          ].include? airloop.getString(0).to_s
+          obj_name[unit_num] = airloop.getString(0).to_s.gsub(" central air system", "")
           demand_side_outlet_node_name = airloop.getString(7).to_s
           demand_side_inlet_node_names = airloop.getString(8).to_s
         end
@@ -2289,7 +2303,7 @@ class ProcessAirflowOriginalModel < OpenStudio::Ruleset::WorkspaceUserScript
         ems << "
         EnergyManagementSystem:Sensor,
           Fan_RTF_Sensor_#{unit_num},                                         !- Name
-          Supply Fan_#{unit_num},                                             !- Output:Variable or Output:Meter Index Key Name
+          #{obj_name[unit_num]} supply fan,                                             !- Output:Variable or Output:Meter Index Key Name
           Fan Runtime Fraction;                                               !- Output:Variable or Output:Meter Index Key Name"     
       
         # Sensor to report the air handler volume flow rate
@@ -2672,18 +2686,16 @@ class ProcessAirflowOriginalModel < OpenStudio::Ruleset::WorkspaceUserScript
       end
       if not duct_locations[unit_num] == living_thermal_zone_name and not duct_locations[unit_num] == "none" and hasForcedAirEquipment # has ducts
         workspace.getObjectsByType("AirLoopHVAC:ReturnPath".to_IddObjectType).each do |return_path|
-          if return_path.getString(0).to_s == "Central Air System_#{unit_num} Return Path"
-            return_path.setString(2, "AirLoopHVAC:ReturnPlenum")
-            return_path.setString(3, "Return Plenum_#{unit_num}")
-            workspace = HelperMethods.remove_object_from_idf_based_on_name(workspace, ["Zone Mixer_#{unit_num}"], "AirLoopHVAC:ZoneMixer", runner)
-          end
+          next unless return_path.getString(0).to_s == "#{obj_name[unit_num]} central air system Return Path"
+          return_path.setString(2, "AirLoopHVAC:ReturnPlenum")
+          return_path.setString(3, "Return Plenum_#{unit_num}")
+          workspace = HelperMethods.remove_object_from_idf_based_on_name(workspace, ["#{obj_name[unit_num]} zone mixer"], "AirLoopHVAC:ZoneMixer", runner)
         end
       else # no ducts
         workspace.getObjectsByType("AirLoopHVAC:ReturnPath".to_IddObjectType).each do |return_path|
-          if return_path.getString(0).to_s == "Central Air System_#{unit_num} Return Path"
-            return_path.setString(2, "AirLoopHVAC:ZoneMixer")
-            return_path.setString(3, "Zone Mixer_#{unit_num}")
-          end
+          next unless return_path.getString(0).to_s == "#{obj_name[unit_num]} central air system Return Path"
+          return_path.setString(2, "AirLoopHVAC:ZoneMixer")
+          return_path.setString(3, "#{obj_name[unit_num]} zone mixer")
         end      
       end
     end

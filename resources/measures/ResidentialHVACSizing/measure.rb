@@ -1790,19 +1790,7 @@ class ProcessHVACSizing < OpenStudio::Ruleset::ModelUserScript
                             
             sensCap_Rated = coolCap_Rated * sHR_Rated_Equip
         
-            # Based on EnergyPlus's model for calculating SHR at off-rated conditions. This curve fit 
-            # avoids the iterations in the actual model. It does not account for altitude or variations 
-            # in the SHR_rated. It is a function of ODB (MJ design temp) and CFM/Ton (from MJ)
-            a_sens = 1.08464364
-            b_sens = 0.002096954
-            c_sens = -0.005766327
-            d_sens = -0.000011147
-        
-            # TODO: Get rid of this curve by using ADP/BF calculations
-            sensibleCap_CurveValue = a_sens + \
-                                     b_sens * (mj8.Cool_AirFlowRate / OpenStudio::convert(mj8.CoolingLoad_Tot,"Btu/h","ton").get) + \
-                                     c_sens * mj8.EnteringTemp + \
-                                     d_sens * (mj8.Cool_AirFlowRate / OpenStudio::convert(mj8.CoolingLoad_Tot,"Btu/h","ton").get) * mj8.EnteringTemp
+            sensibleCap_CurveValue = process_curve_fit(mj8.Cool_AirFlowRate, mj8.CoolingLoad_Tot, mj8.EnteringTemp, mj8.EnteringTemp)
             mj8.SensCap_Design = sensCap_Rated * sensibleCap_CurveValue
             mj8.LatCap_Design = [mj8.CoolingLoad_Tot - mj8.SensCap_Design, 1].max
         
@@ -2318,11 +2306,7 @@ class ProcessHVACSizing < OpenStudio::Ruleset::ModelUserScript
                 totalCap_CurveValue_1 = MathTools.biquadratic(mj8.wetbulb_indoor_dehumid, dehum_design_db, cOOL_CAP_FT_SPEC_coefficients[0])
                 dehumid_AC_TotCap_1 = totalCap_CurveValue_1 * mj8.Cool_Capacity * capacity_Ratio_Cooling[0]
             
-                #TODO: This could be improved by not using this correlation with added Python capability in BEopt2
-                sensibleCap_CurveValue_1 = 1.08464364 + 0.002096954 * ((mj8.Cool_AirFlowRate * unit.supply.fanspeed_ratio[0]) / 
-                                           OpenStudio::convert(dehumid_AC_TotCap_1,"Btu/h","ton").get) - 0.005766327 * dehum_design_db - \
-                                           0.000011147 * ((mj8.Cool_AirFlowRate * unit.supply.fanspeed_ratio[0]) / 
-                                           OpenStudio::convert(dehumid_AC_TotCap_1,"Btu/h","ton").get) * dehum_design_db
+                sensibleCap_CurveValue_1 = process_curve_fit(mj8.Cool_AirFlowRate * unit.supply.fanspeed_ratio[0], dehumid_AC_TotCap_1, dehum_design_db, dehum_design_db)
                 dehumid_AC_SensCap_1 = sensibleCap_CurveValue_1 * mj8.Cool_SensCap * capacity_Ratio_Cooling[0]
             
                 if mj8.DehumidLoad_Sens > dehumid_AC_SensCap_1
@@ -2330,10 +2314,7 @@ class ProcessHVACSizing < OpenStudio::Ruleset::ModelUserScript
                     totalCap_CurveValue_2 = MathTools.biquadratic(mj8.wetbulb_indoor_dehumid, dehum_design_db, cOOL_CAP_FT_SPEC_coefficients[1])
                     dehumid_AC_TotCap_2 = totalCap_CurveValue_2 * mj8.Cool_Capacity
             
-                    sensibleCap_CurveValue_2 = 1.08464364 + 0.002096954 * (mj8.Cool_AirFlowRate / \
-                                               OpenStudio::convert(dehumid_AC_TotCap_2,"Btu/h","ton").get) - 0.005766327 * dehum_design_db - \
-                                               0.000011147 * (mj8.Cool_AirFlowRate / OpenStudio::convert(dehumid_AC_TotCap_2,"Btu/h","ton").get) * \
-                                               dehum_design_db
+                    sensibleCap_CurveValue_2 = process_curve_fit(mj8.Cool_AirFlowRate, dehumid_AC_TotCap_2, dehum_design_db, dehum_design_db)
                     dehumid_AC_SensCap_2 = sensibleCap_CurveValue_2 * mj8.Cool_SensCap
             
                     dehumid_AC_LatCap = dehumid_AC_TotCap_2 - dehumid_AC_SensCap_2
@@ -2399,10 +2380,8 @@ class ProcessHVACSizing < OpenStudio::Ruleset::ModelUserScript
 
             else
                 
-                sensibleCap_CurveValue = 1.08464364 + 0.002096954 * (mj8.Cool_AirFlowRate / \
-                                         OpenStudio::convert(dehumid_AC_TotCap,"Btu/h","ton").get) - 0.005766327 * enteringTemp - \
-                                         0.000011147 * (mj8.Cool_AirFlowRate / OpenStudio::convert(dehumid_AC_TotCap,"Btu/h","ton").get) * \
-                                         dehum_design_db
+                # FIXME: For GSHP, this will use two different temperatures, which deviates from all other uses of this curve fit
+                sensibleCap_CurveValue = process_curve_fit(mj8.Cool_AirFlowRate, dehumid_AC_TotCap, enteringTemp, dehum_design_db)
                                      
             end
             
@@ -2772,6 +2751,24 @@ class ProcessHVACSizing < OpenStudio::Ruleset::ModelUserScript
         end
     end
     return has_hvac
+  end
+  
+  def process_curve_fit(airFlowRate, capacity, temp1, temp2)
+    # Based on EnergyPlus's model for calculating SHR at off-rated conditions. This curve fit 
+    # avoids the iterations in the actual model. It does not account for altitude or variations 
+    # in the SHR_rated. It is a function of ODB (MJ design temp) and CFM/Ton (from MJ)
+    a_sens = 1.08464364
+    b_sens = 0.002096954
+    c_sens = -0.005766327
+    d_sens = -0.000011147
+
+    # TODO: Get rid of this curve by using ADP/BF calculations
+    capacity_tons  OpenStudio::convert(capacity,"Btu/h","ton").get
+    curve_value = a_sens + 
+                  b_sens * (airFlowRate / capacity_tons) + 
+                  c_sens * EnteringTemp + 
+                  d_sens * (airFlowRate / capacity_tons) * mj8.EnteringTemp
+    return curve_value
   end
   
   def display_Info(runner, mj8, display_initial_data, display_intermediate_data, display_ducts_data)

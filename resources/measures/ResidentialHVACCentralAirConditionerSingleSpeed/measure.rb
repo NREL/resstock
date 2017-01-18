@@ -266,6 +266,14 @@ class ProcessSingleSpeedCentralAirConditioner < OpenStudio::Ruleset::ModelUserSc
         clg_coil.setMaximumOutdoorDryBulbTemperatureForCrankcaseHeaterOperation(OpenStudio::OptionalDouble.new(OpenStudio::convert(supply.Crankcase_MaxT,"F","C").get))
           
         # _processSystemFan
+        if not htg_coil.nil?
+          begin
+            furnaceFuelType = HelperMethods.reverse_eplus_fuel_map(htg_coil.fuelType)
+          rescue
+            furnaceFuelType = Constants.FuelTypeElectric
+          end
+          obj_name = Constants.ObjectNameFurnaceAndCentralAirConditioner(furnaceFuelType, unit.name.to_s)
+        end
         
         fan = OpenStudio::Model::FanOnOff.new(model, supply_fan_availability)
         fan.setName(obj_name + " supply fan")
