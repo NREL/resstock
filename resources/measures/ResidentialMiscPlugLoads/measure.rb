@@ -33,9 +33,9 @@ class ResidentialMiscellaneousElectricLoads < OpenStudio::Ruleset::ModelUserScri
     
 	#TODO: New argument for demand response for mels (alternate schedules if automatic DR control is specified)
 	
-	#make a double argument for BA Benchamrk multiplier
+	#make a double argument for BA Benchmark multiplier
 	mult = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("mult")
-	mult.setDisplayName("Building America Benchmark Multipler")
+	mult.setDisplayName("Building America Benchmark Multiplier")
 	mult.setDefaultValue(1)
 	args << mult
 	

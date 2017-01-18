@@ -340,8 +340,23 @@ class ProcessSingleSpeedAirSourceHeatPump < OpenStudio::Ruleset::ModelUserScript
         return false
     end
     
+    model.getScheduleConstants.each do |sch|
+      next unless sch.name.to_s == "SupplyFanAvailability" or sch.name.to_s == "SupplyFanOperation"
+      sch.remove
+    end    
+    
+    supply_fan_availability = OpenStudio::Model::ScheduleConstant.new(model)
+    supply_fan_availability.setName("SupplyFanAvailability")
+    supply_fan_availability.setValue(1)    
+    
+    supply_fan_operation = OpenStudio::Model::ScheduleConstant.new(model)
+    supply_fan_operation.setName("SupplyFanOperation")
+    supply_fan_operation.setValue(0)
+    
     units.each do |unit|
-      unit_num = Geometry.get_unit_number(model, unit, runner)
+
+      obj_name = Constants.ObjectNameAirSourceHeatPump(unit.name.to_s)
+    
       thermal_zones = Geometry.get_thermal_zones_from_spaces(unit.spaces)
 
       control_slave_zones_hash = HVAC.get_control_and_slave_zones(thermal_zones)
@@ -357,7 +372,7 @@ class ProcessSingleSpeedAirSourceHeatPump < OpenStudio::Ruleset::ModelUserScript
         
         htg_coil = OpenStudio::Model::CoilHeatingDXSingleSpeed.new(model, model.alwaysOnDiscreteSchedule, htg_coil_stage_data[0].heatingCapacityFunctionofTemperatureCurve, htg_coil_stage_data[0].heatingCapacityFunctionofFlowFractionCurve, htg_coil_stage_data[0].energyInputRatioFunctionofTemperatureCurve, htg_coil_stage_data[0].energyInputRatioFunctionofFlowFractionCurve, htg_coil_stage_data[0].partLoadFractionCorrelationCurve)
         htg_coil_stage_data[0].remove
-        htg_coil.setName("DX Heating Coil_#{unit_num}")
+        htg_coil.setName(obj_name + " heating coil")
         if hpOutputCapacity != Constants.SizingAuto
           htg_coil.setRatedTotalHeatingCapacity(OpenStudio::convert(hpOutputCapacity,"Btu/h","W").get)
           htg_coil.setRatedAirFlowRate(supply.CFM_TON_Rated_Heat[0] * hpOutputCapacity * OpenStudio::convert(1.0,"Btu/h","ton").get * OpenStudio::convert(1.0,"cfm","m^3/s").get)
@@ -373,7 +388,7 @@ class ProcessSingleSpeedAirSourceHeatPump < OpenStudio::Ruleset::ModelUserScript
         htg_coil.setDefrostControl("OnDemand")
         
         supp_htg_coil = OpenStudio::Model::CoilHeatingElectric.new(model, model.alwaysOnDiscreteSchedule)
-        supp_htg_coil.setName("HeatPump Supp Heater_#{unit_num}")
+        supp_htg_coil.setName(obj_name + " supp heater")
         supp_htg_coil.setEfficiency(1)
         if supplementalOutputCapacity != Constants.SizingAuto
           supp_htg_coil.setNominalCapacity(OpenStudio::convert(supplementalOutputCapacity,"Btu/h","W").get)
@@ -387,7 +402,7 @@ class ProcessSingleSpeedAirSourceHeatPump < OpenStudio::Ruleset::ModelUserScript
         
         clg_coil = OpenStudio::Model::CoilCoolingDXSingleSpeed.new(model, model.alwaysOnDiscreteSchedule, clg_coil_stage_data[0].totalCoolingCapacityFunctionofTemperatureCurve, clg_coil_stage_data[0].totalCoolingCapacityFunctionofFlowFractionCurve, clg_coil_stage_data[0].energyInputRatioFunctionofTemperatureCurve, clg_coil_stage_data[0].energyInputRatioFunctionofFlowFractionCurve, clg_coil_stage_data[0].partLoadFractionCorrelationCurve)
         clg_coil_stage_data[0].remove
-        clg_coil.setName("DX Cooling Coil_#{unit_num}")
+        clg_coil.setName(obj_name + " cooling coil")
         if hpOutputCapacity != Constants.SizingAuto
           clg_coil.setRatedTotalCoolingCapacity(OpenStudio::convert(hpOutputCapacity,"Btu/h","W").get)
           clg_coil.setRatedSensibleHeatRatio(supply.SHR_Rated[0])
@@ -402,27 +417,19 @@ class ProcessSingleSpeedAirSourceHeatPump < OpenStudio::Ruleset::ModelUserScript
         clg_coil.setCondenserType("AirCooled")   
         
         # _processSystemFan
-        
-        supply_fan_availability = OpenStudio::Model::ScheduleConstant.new(model)
-        supply_fan_availability.setName("SupplyFanAvailability_#{unit_num}")
-        supply_fan_availability.setValue(1)
 
         fan = OpenStudio::Model::FanOnOff.new(model, supply_fan_availability)
-        fan.setName("Supply Fan_#{unit_num}")
+        fan.setName(obj_name + " supply fan")
         fan.setEndUseSubcategory(Constants.EndUseHVACFan)
         fan.setFanEfficiency(supply.eff)
         fan.setPressureRise(supply.static)
         fan.setMotorEfficiency(1)
         fan.setMotorInAirstreamFraction(1)
-
-        supply_fan_operation = OpenStudio::Model::ScheduleConstant.new(model)
-        supply_fan_operation.setName("SupplyFanOperation_#{unit_num}")
-        supply_fan_operation.setValue(0)     
         
         # _processSystemAir
                  
         air_loop_unitary = OpenStudio::Model::AirLoopHVACUnitarySystem.new(model)
-        air_loop_unitary.setName("Forced Air System_#{unit_num}")
+        air_loop_unitary.setName(obj_name + " unitary system")
         air_loop_unitary.setAvailabilitySchedule(model.alwaysOnDiscreteSchedule)
         air_loop_unitary.setSupplyFan(fan)
         air_loop_unitary.setHeatingCoil(htg_coil)
@@ -435,7 +442,7 @@ class ProcessSingleSpeedAirSourceHeatPump < OpenStudio::Ruleset::ModelUserScript
         air_loop_unitary.setSupplyAirFlowRateWhenNoCoolingorHeatingisRequired(0)
           
         air_loop = OpenStudio::Model::AirLoopHVAC.new(model)
-        air_loop.setName("Central Air System_#{unit_num}")
+        air_loop.setName(obj_name + " central air system")
         air_supply_inlet_node = air_loop.supplyInletNode
         air_supply_outlet_node = air_loop.supplyOutletNode
         air_demand_inlet_node = air_loop.demandInletNode
@@ -443,10 +450,10 @@ class ProcessSingleSpeedAirSourceHeatPump < OpenStudio::Ruleset::ModelUserScript
         
         air_loop_unitary.addToNode(air_supply_inlet_node)
         
-        runner.registerInfo("Added on/off fan '#{fan.name}' to branch '#{air_loop_unitary.name}' of air loop '#{air_loop.name}'")
-        runner.registerInfo("Added DX cooling coil '#{clg_coil.name}' to branch '#{air_loop_unitary.name}' of air loop '#{air_loop.name}'")
-        runner.registerInfo("Added DX heating coil '#{htg_coil.name}' to branch '#{air_loop_unitary.name}' of air loop '#{air_loop.name}'")
-        runner.registerInfo("Added electric heating coil '#{supp_htg_coil.name}' to branch '#{air_loop_unitary.name}' of air loop '#{air_loop.name}'")    
+        runner.registerInfo("Added '#{fan.name}' to '#{air_loop_unitary.name}' of '#{air_loop.name}'")
+        runner.registerInfo("Added '#{clg_coil.name}' to '#{air_loop_unitary.name}' of '#{air_loop.name}'")
+        runner.registerInfo("Added '#{htg_coil.name}' to '#{air_loop_unitary.name}' of '#{air_loop.name}'")
+        runner.registerInfo("Added '#{supp_htg_coil.name}' to '#{air_loop_unitary.name}' of '#{air_loop.name}'")    
         
         air_loop_unitary.setControllingZoneorThermostatLocation(control_zone)
           
@@ -455,18 +462,17 @@ class ProcessSingleSpeedAirSourceHeatPump < OpenStudio::Ruleset::ModelUserScript
 
         # Supply Air
         zone_splitter = air_loop.zoneSplitter
-        zone_splitter.setName("Zone Splitter_#{unit_num}")
+        zone_splitter.setName(obj_name + " zone splitter")
         
         zone_mixer = air_loop.zoneMixer
-        zone_mixer.setName("Zone Mixer_#{unit_num}")
+        zone_mixer.setName(obj_name + " zone mixer")
 
         diffuser_living = OpenStudio::Model::AirTerminalSingleDuctUncontrolled.new(model, model.alwaysOnDiscreteSchedule)
-        diffuser_living.setName("#{control_zone.name} direct air_#{unit_num}")
-        # diffuser_living.setMaximumAirFlowRate(OpenStudio::convert(supply.Living_AirFlowRate,"cfm","m^3/s").get)
+        diffuser_living.setName(obj_name + " #{control_zone.name} direct air")
         air_loop.addBranchForZone(control_zone, diffuser_living.to_StraightComponent)
 
         air_loop.addBranchForZone(control_zone)
-        runner.registerInfo("Added air loop '#{air_loop.name}' to thermal zone '#{control_zone.name}' of #{unit.name.to_s}")
+        runner.registerInfo("Added '#{air_loop.name}' to '#{control_zone.name}' of #{unit.name}")
 
         slave_zones.each do |slave_zone|
 
@@ -474,12 +480,11 @@ class ProcessSingleSpeedAirSourceHeatPump < OpenStudio::Ruleset::ModelUserScript
           HVAC.remove_existing_hvac_equipment(model, runner, "Air Source Heat Pump", slave_zone)
       
           diffuser_fbsmt = OpenStudio::Model::AirTerminalSingleDuctUncontrolled.new(model, model.alwaysOnDiscreteSchedule)
-          diffuser_fbsmt.setName("#{slave_zone.name} direct air_#{unit_num}")
-          # diffuser_fbsmt.setMaximumAirFlowRate(OpenStudio::convert(supply.Living_AirFlowRate,"cfm","m^3/s").get)
+          diffuser_fbsmt.setName(obj_name + " #{slave_zone.name} direct air")
           air_loop.addBranchForZone(slave_zone, diffuser_fbsmt.to_StraightComponent)
 
           air_loop.addBranchForZone(slave_zone)
-          runner.registerInfo("Added air loop '#{air_loop.name}' to thermal zone '#{slave_zone.name}' of #{unit.name.to_s}")
+          runner.registerInfo("Added '#{air_loop.name}' to '#{slave_zone.name}' of #{unit.name}")
 
         end    
       

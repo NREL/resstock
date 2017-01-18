@@ -1,4 +1,5 @@
 require "#{File.dirname(__FILE__)}/psychrometrics"
+require "#{File.dirname(__FILE__)}/constants"
 
 class WeatherHeader
   def initialize
@@ -9,7 +10,13 @@ end
 class WeatherData
   def initialize
   end
-  attr_accessor(:AnnualAvgDrybulb, :AnnualMinDrybulb, :AnnualMaxDrybulb, :CDD50F, :CDD65F, :HDD50F, :HDD65F, :DailyAvgDrybulbs, :DailyMaxDrybulbs, :DailyMinDrybulbs, :AnnualAvgWindspeed, :MonthlyAvgDrybulbs, :MainsDailyTemps, :MainsMonthlyTemps, :MainsAvgTemp, :GroundMonthlyTemps, :WSF)
+  attr_accessor(:AnnualAvgDrybulb, :AnnualMinDrybulb, :AnnualMaxDrybulb, :CDD50F, :CDD65F, :HDD50F, :HDD65F, :DailyAvgDrybulbs, :DailyMaxDrybulbs, :DailyMinDrybulbs, :AnnualAvgWindspeed, :MonthlyAvgDrybulbs, :MainsDailyTemps, :MainsMonthlyTemps, :MainsAvgTemp, :GroundMonthlyTemps, :WSF, :MonthlyAvgDailyHighDrybulbs, :MonthlyAvgDailyLowDrybulbs)
+end
+
+class WeatherDesign
+  def initialize
+  end
+  attr_accessor(:HeatingDrybulb, :HeatingWindspeed, :CoolingDrybulb, :CoolingWetbulb, :CoolingHumidityRatio, :CoolingWindspeed, :DailyTemperatureRange, :DehumidDrybulb, :DehumidHumidityRatio)
 end
 
 class WeatherProcess
@@ -30,7 +37,7 @@ class WeatherProcess
       if not File.exist? epw_path # Handle relative paths for unit tests
         epw_path = File.join(measure_dir, "resources", epw_path)
       end
-      @header, @data = process_epw(epw_path, header_only)
+      @header, @data, @design = process_epw(epw_path, header_only)
     else
       runner.registerError("Model has not been assigned a weather file.")
       @error = true
@@ -41,7 +48,7 @@ class WeatherProcess
     return @error
   end
   
-  attr_accessor(:header, :data)
+  attr_accessor(:header, :data, :design)
   
   private
   
@@ -53,7 +60,6 @@ class WeatherProcess
         end
 
         epw_file = OpenStudio::EpwFile.new(epw_path, !header_only)
-        epw_file_data = epw_file.data
 
         # Header info:
         header = WeatherHeader.new
@@ -68,11 +74,16 @@ class WeatherProcess
         header.Altitude = OpenStudio::convert(epw_file.elevation,"m","ft").get
         header.LocalPressure = Math::exp(-0.0000368 * header.Altitude) # atm
         
+        # FIXME: Would like to get design data info from header line
+        design = WeatherDesign.new
+        epwHasDesignData = false
+        
         if header_only
-            return header, nil
+            return header, nil, nil
         end
 
         # Timeseries data:
+        epw_file_data = epw_file.data
         hourdata = []
         dailydbs = []
         dailyhighdbs = []
@@ -120,12 +131,18 @@ class WeatherProcess
         data = calc_annual_drybulbs(data, hourdata)
         data = calc_monthly_drybulbs(data, hourdata)
         data = calc_heat_cool_degree_days(data, hourdata, dailydbs)
+        data = calc_avg_highs_lows(data, dailyhighdbs, dailylowdbs)
         data = calc_avg_windspeed(data, hourdata)
         data = calc_mains_temperature(data, header)
         data = calc_ground_temperatures(data)
         data.WSF = get_ashrae_622_wsf(header.Station)
         
-        return header, data
+        if not epwHasDesignData
+          design = calc_design_info(design, hourdata, header.Altitude)
+          design.DailyTemperatureRange = data.MonthlyAvgDailyHighDrybulbs[7] - data.MonthlyAvgDailyLowDrybulbs[7]
+        end
+        
+        return header, data, design
 
       end
 
@@ -219,6 +236,25 @@ class WeatherProcess
         return 1.8 * deg_days
 
       end
+      
+      def calc_avg_highs_lows(data, daily_high_dbs, daily_low_dbs)
+        # Calculates and stores avg daily highs and lows for each month
+        data.MonthlyAvgDailyHighDrybulbs = []
+        data.MonthlyAvgDailyLowDrybulbs = []
+        
+        first_day = 0
+        for month in 1..12
+            ndays = Constants.MonthNumDays[month-1]  # Number of days in current month
+            if month > 1
+                first_day += Constants.MonthNumDays[month-2]  # Number of days in previous month
+            end
+            avg_high = daily_high_dbs[first_day, ndays].inject{ |sum, n| sum + n } / ndays.to_f
+            avg_low = daily_low_dbs[first_day, ndays].inject{ |sum, n| sum + n } / ndays.to_f
+            data.MonthlyAvgDailyHighDrybulbs << OpenStudio::convert(avg_high,"C","F").get
+            data.MonthlyAvgDailyLowDrybulbs << OpenStudio::convert(avg_low,"C","F").get
+        end
+        return data
+      end
 
       def calc_mains_temperature(data, header)
         #Calculates and returns the annual average, daily, and monthly mains water temperature
@@ -287,6 +323,69 @@ class WeatherProcess
         @runner.registerWarning("ASHRAE 62.2 WSF not found for station number #{wmo.to_s}, using the national average value of #{wsf_avg.round(3).to_s} instead.")
         return wsf_avg
             
+      end
+      
+      def calc_design_info(design, hourdata, altitude)
+        # Calculate design day info: 
+        # - Heating 99% drybulb
+        # - Heating mean coincident windspeed 
+        # - Cooling 99% drybulb
+        # - Cooling mean coincident windspeed
+        # - Cooling mean coincident wetbulb
+        # - Cooling mean coincident humidity ratio
+        
+        std_press = Psychrometrics.Pstd_fZ(altitude)
+        annual_hd_sorted_by_db = hourdata.sort_by { |x| x['db'] }
+        annual_hd_sorted_by_dp = hourdata.sort_by { |x| x['dp'] }
+        
+        # 1%/99%/2% values
+        heat99per_db = annual_hd_sorted_by_db[88]['db']
+        cool01per_db = annual_hd_sorted_by_db[8673]['db']
+        dehum02per_dp = annual_hd_sorted_by_dp[8584]['dp']
+        
+        # Mean coincident values for cooling
+        cool_windspeed = []
+        cool_wetbulb = []
+        for i in 0..(annual_hd_sorted_by_db.size - 1)
+            if (annual_hd_sorted_by_db[i]['db'] > cool01per_db - 0.5) and (annual_hd_sorted_by_db[i]['db'] < cool01per_db + 0.5)
+                cool_windspeed << annual_hd_sorted_by_db[i]['ws']
+                wb = Psychrometrics.Twb_fT_R_P(OpenStudio::convert(annual_hd_sorted_by_db[i]['db'],"C","F").get, annual_hd_sorted_by_db[i]['rh'], std_press)
+                cool_wetbulb << wb
+            end
+        end
+        cool_design_wb = cool_wetbulb.inject{ |sum, n| sum + n } / cool_wetbulb.size
+        
+        # Mean coincident values for heating
+        heat_windspeed = []
+        for i in 0..(annual_hd_sorted_by_db.size - 1)
+            if (annual_hd_sorted_by_db[i]['db'] > heat99per_db - 0.5) and (annual_hd_sorted_by_db[i]['db'] < heat99per_db + 0.5)
+                heat_windspeed << annual_hd_sorted_by_db[i]['ws']
+            end
+        end
+        
+        # Mean coincident values for dehumidification
+        dehum_drybulb = []
+        for i in 0..(annual_hd_sorted_by_dp.size - 1)
+            if (annual_hd_sorted_by_dp[i]['dp'] > dehum02per_dp - 0.5) and (annual_hd_sorted_by_dp[i]['dp'] < dehum02per_dp + 0.5)
+                dehum_drybulb << annual_hd_sorted_by_dp[i]['db']
+            end
+        end
+        dehum_design_db = dehum_drybulb.inject{ |sum, n| sum + n } / dehum_drybulb.size
+        
+
+        design.CoolingDrybulb = OpenStudio::convert(cool01per_db,"C","F").get
+        design.CoolingWetbulb = cool_design_wb
+        design.CoolingHumidityRatio = Psychrometrics.w_fT_Twb_P(OpenStudio::convert(cool01per_db,"C","F").get, cool_design_wb, std_press)
+        design.CoolingWindspeed = cool_windspeed.inject{ |sum, n| sum + n } / cool_windspeed.size
+        
+        design.HeatingDrybulb = OpenStudio::convert(heat99per_db,"C","F").get
+        design.HeatingWindspeed = heat_windspeed.inject{ |sum, n| sum + n } / heat_windspeed.size
+        
+        design.DehumidDrybulb = OpenStudio::convert(dehum_design_db,"C","F").get
+        design.DehumidHumidityRatio = Psychrometrics.w_fT_Twb_P(OpenStudio::convert(dehum02per_dp,"C","F").get, OpenStudio::convert(dehum02per_dp,"C","F").get, std_press)
+        
+        return design
+        
       end
       
       def calc_ground_temperatures(data)

@@ -1,11 +1,11 @@
 <measure>
   <schema_version>3.0</schema_version>
-  <name>residential_ceiling_fan</name>
+  <name>process_ceiling_fan</name>
   <uid>f65edfd9-ff4f-4f08-a245-ea48b3b3c88e</uid>
-  <version_id>d1d3f88d-1935-4091-854a-36382708d27d</version_id>
-  <version_modified>20161208T185907Z</version_modified>
+  <version_id>080f6668-2115-4e54-aebb-1a7dd5adfd1b</version_id>
+  <version_modified>20170118T003112Z</version_modified>
   <xml_checksum>D48F381B</xml_checksum>
-  <class_name>ResidentialCeilingFan</class_name>
+  <class_name>ProcessCeilingFan</class_name>
   <display_name>Set Residential Ceiling Fan</display_name>
   <description>Adds (or replaces) residential ceiling fan(s) and schedule in all finished spaces. For multifamily buildings, the ceiling fan(s) can be set for all units of the building.</description>
   <modeler_description>Since there is no Ceiling Fan object in OpenStudio/EnergyPlus, we look for an ElectricEquipment object with the name that denotes it is residential ceiling fan. If one is found, it is replaced with the specified properties. Otherwise, a new such object is added to the model. Note: This measure requires the number of bedrooms/bathrooms to have already been assigned.</modeler_description>
@@ -90,7 +90,7 @@
     </argument>
     <argument>
       <name>mult</name>
-      <display_name>Building America Benchmark Multipler</display_name>
+      <display_name>Building America Benchmark Multiplier</display_name>
       <type>Double</type>
       <required>true</required>
       <model_dependent>false</model_dependent>
@@ -152,52 +152,16 @@
   </attributes>
   <files>
     <file>
-      <filename>geometry.rb</filename>
-      <filetype>rb</filetype>
-      <usage_type>resource</usage_type>
-      <checksum>047FBEB1</checksum>
-    </file>
-    <file>
       <filename>schedules.rb</filename>
       <filetype>rb</filetype>
       <usage_type>resource</usage_type>
       <checksum>C3399417</checksum>
     </file>
     <file>
-      <filename>util.rb</filename>
-      <filetype>rb</filetype>
-      <usage_type>resource</usage_type>
-      <checksum>22C6561D</checksum>
-    </file>
-    <file>
-      <filename>singlefamily_attached_has_cooling.osm</filename>
+      <filename>SFD_2000sqft_2story_SL_UA_3Beds_2Baths_Denver.osm</filename>
       <filetype>osm</filetype>
       <usage_type>test</usage_type>
-      <checksum>2D123F55</checksum>
-    </file>
-    <file>
-      <filename>multifamily_has_cooling.osm</filename>
-      <filetype>osm</filetype>
-      <usage_type>test</usage_type>
-      <checksum>D952C17F</checksum>
-    </file>
-    <file>
-      <filename>singlefamily_detached_no_cooling.osm</filename>
-      <filetype>osm</filetype>
-      <usage_type>test</usage_type>
-      <checksum>92527627</checksum>
-    </file>
-    <file>
-      <filename>singlefamily_detached_fbsmt_has_cooling.osm</filename>
-      <filetype>osm</filetype>
-      <usage_type>test</usage_type>
-      <checksum>CC516973</checksum>
-    </file>
-    <file>
-      <filename>constants.rb</filename>
-      <filetype>rb</filetype>
-      <usage_type>resource</usage_type>
-      <checksum>AA12364C</checksum>
+      <checksum>21BA7CB7</checksum>
     </file>
     <file>
       <version>
@@ -208,13 +172,49 @@
       <filename>measure.rb</filename>
       <filetype>rb</filetype>
       <usage_type>script</usage_type>
-      <checksum>C2DB1667</checksum>
+      <checksum>8C3A8EA6</checksum>
     </file>
     <file>
-      <filename>residential_ceiling_fan.rb</filename>
+      <filename>process_ceiling_fan_test.rb</filename>
       <filetype>rb</filetype>
       <usage_type>test</usage_type>
-      <checksum>CEFBAE5A</checksum>
+      <checksum>2C2CAFB8</checksum>
+    </file>
+    <file>
+      <filename>constants.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>3ECF4961</checksum>
+    </file>
+    <file>
+      <filename>util.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>B368FA16</checksum>
+    </file>
+    <file>
+      <filename>geometry.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>E81E792E</checksum>
+    </file>
+    <file>
+      <filename>SFD_2000sqft_2story_FB_UA_3Beds_2Baths_Denver_Furnace_CentralAC.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>3CF09746</checksum>
+    </file>
+    <file>
+      <filename>MF_8units_1story_SL_3Beds_2Baths_Denver_Furnace_CentralAC.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>E7B12DD1</checksum>
+    </file>
+    <file>
+      <filename>SFA_4units_1story_SL_UA_3Beds_2Baths_Denver_Furnace_CentralAC.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>01FC517F</checksum>
     </file>
   </files>
 </measure>

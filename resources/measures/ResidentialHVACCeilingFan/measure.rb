@@ -7,12 +7,12 @@ require "#{File.dirname(__FILE__)}/resources/schedules"
 require "#{File.dirname(__FILE__)}/resources/util"
 
 # start the measure
-class ResidentialCeilingFan < OpenStudio::Ruleset::ModelUserScript
+class ProcessCeilingFan < OpenStudio::Ruleset::ModelUserScript
 
   class Unit
     def initialize
     end    
-    attr_accessor(:unit_num, :living_zone, :finished_basement_zone, :above_grade_finished_floor_area, :cooling_setpoint_min, :num_bedrooms, :num_bathrooms, :finished_floor_area)
+    attr_accessor(:living_zone, :finished_basement_zone, :above_grade_finished_floor_area, :cooling_setpoint_min, :num_bedrooms, :num_bathrooms, :finished_floor_area)
   end
   
   class Schedules
@@ -91,7 +91,7 @@ class ResidentialCeilingFan < OpenStudio::Ruleset::ModelUserScript
     
     #make a double argument for BA Benchamrk multiplier
     mult = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("mult")
-    mult.setDisplayName("Building America Benchmark Multipler")
+    mult.setDisplayName("Building America Benchmark Multiplier")
     mult.setDefaultValue(1)
     args << mult
     
@@ -168,21 +168,55 @@ class ResidentialCeilingFan < OpenStudio::Ruleset::ModelUserScript
       return false
     end
     
-    # remove any existing ceiling fan objects
-    HelperMethods.remove_object_from_osm_based_on_name(model, "OutputVariable", ["Schedule Value", "Zone Mean Air Temperature"])
-    HelperMethods.remove_object_from_osm_based_on_name(model, "EnergyManagementSystemSensor", ["CeilingFan_sch_", "Tin_"])
-    HelperMethods.remove_object_from_osm_based_on_name(model, "EnergyManagementSystemActuator", ["CeilingFanScheduleOverride_"])
-    HelperMethods.remove_object_from_osm_based_on_name(model, "EnergyManagementSystemProgram", ["CeilingFanScheduleProgram_"])
-    HelperMethods.remove_object_from_osm_based_on_name(model, "EnergyManagementSystemProgramCallingManager", ["CeilingFanProgramManager_"])
-    HelperMethods.remove_object_from_osm_based_on_name(model, "ElectricEquipmentDefinition", ["CeilingFans_", Constants.ObjectNameCeilingFan])
-    HelperMethods.remove_object_from_osm_based_on_name(model, "ScheduleRuleset", ["CeilingFan_"])
+    model.getOutputVariables.each do |output_var|
+      next unless output_var.name.to_s == Constants.ObjectNameCeilingFan + " sched val output var"
+      output_var.remove
+    end
+    model.getOutputVariables.each do |output_var|
+      next unless output_var.name.to_s == Constants.ObjectNameCeilingFan + " zone mean air temp output var"       
+      output_var.remove
+    end
+    schedule_value_output_var = OpenStudio::Model::OutputVariable.new("Schedule Value", model)
+    schedule_value_output_var.setName(Constants.ObjectNameCeilingFan + " sched val output var")
+    zone_mean_air_temp_output_var = OpenStudio::Model::OutputVariable.new("Zone Mean Air Temperature", model)
+    zone_mean_air_temp_output_var.setName(Constants.ObjectNameCeilingFan + " zone mean air temp output var")
     
     sch = nil
     units.each do |building_unit|
     
+      obj_name = Constants.ObjectNameCeilingFan(building_unit.name.to_s)
+    
+      # Remove existing ceiling fan
+      model.getScheduleRulesets.each do |schedule|
+        next unless schedule.name.to_s == obj_name + " schedule"
+        schedule.remove
+      end
+      model.getEnergyManagementSystemSensors.each do |sensor|
+        next unless sensor.name.to_s == "#{obj_name} sched val sensor".gsub(" ","_").gsub("|","_")
+        sensor.remove
+      end
+      model.getEnergyManagementSystemSensors.each do |sensor|
+        next unless sensor.name.to_s == "#{obj_name} tin sensor".gsub(" ","_").gsub("|","_")
+        sensor.remove
+      end
+      model.getEnergyManagementSystemActuators.each do |actuator|
+        next unless actuator.name.to_s == "#{obj_name} sched override".gsub(" ","_").gsub("|","_")
+        actuator.remove
+      end
+      model.getEnergyManagementSystemPrograms.each do |program|
+        next unless program.name.to_s == "#{obj_name} schedule program".gsub(" ","_")
+        program.remove
+      end      
+      model.getEnergyManagementSystemProgramCallingManagers.each do |program_calling_manager|
+        next unless program_calling_manager.name.to_s == obj_name + " program calling manager"
+        program_calling_manager.remove
+      end
+    
       unit = Unit.new
-      unit.unit_num = Geometry.get_unit_number(model, building_unit, runner)
       unit.num_bedrooms, unit.num_bathrooms = Geometry.get_unit_beds_baths(model, building_unit, runner)      
+      if unit.num_bedrooms.nil? or unit.num_bathrooms.nil?
+        return false
+      end      
       unit.above_grade_finished_floor_area = Geometry.get_above_grade_finished_floor_area_from_spaces(building_unit.spaces, false, runner)
       unit.finished_floor_area = Geometry.get_finished_floor_area_from_spaces(building_unit.spaces, false, runner)
 
@@ -315,7 +349,7 @@ class ResidentialCeilingFan < OpenStudio::Ruleset::ModelUserScript
         end      
       end
 
-      schedules.CeilingFan = MonthWeekdayWeekendSchedule.new(model, runner, "CeilingFan_#{unit.unit_num}", ceiling_fans_hourly_weekday, ceiling_fans_hourly_weekend, Array.new(12, 1), mult_weekday=1.0, mult_weekend=1.0, normalize_values=false)      
+      schedules.CeilingFan = MonthWeekdayWeekendSchedule.new(model, runner, obj_name + " schedule", ceiling_fans_hourly_weekday, ceiling_fans_hourly_weekend, Array.new(12, 1), mult_weekday=1.0, mult_weekend=1.0, normalize_values=false)      
       
       unless schedules.CeilingFan.validated?
         return false
@@ -328,7 +362,7 @@ class ResidentialCeilingFan < OpenStudio::Ruleset::ModelUserScript
       schedule_type_limits.setNumericType("Discrete")
       
       schedules.CeilingFansMaster = OpenStudio::Model::ScheduleConstant.new(model)
-      schedules.CeilingFansMaster.setName("CeilingFansMaster_#{unit.unit_num}")
+      schedules.CeilingFansMaster.setName(obj_name + " master")
       schedules.CeilingFansMaster.setScheduleTypeLimits(schedule_type_limits)
       schedules.CeilingFansMaster.setValue(1)
       
@@ -338,93 +372,98 @@ class ResidentialCeilingFan < OpenStudio::Ruleset::ModelUserScript
       # it checks the indoor temperature to see if it is less than the normal cooling setpoint. In either case, it turns the fans off.
       # Otherwise it turns the fans on.
       
+      unit.living_zone.spaces.each do |space|
+        space.electricEquipment.each do |equip|
+          next unless equip.name.to_s == obj_name + " non benchmark equip"
+          equip.electricEquipmentDefinition.remove
+        end
+      end
       equip_def = OpenStudio::Model::ElectricEquipmentDefinition.new(model)
-      equip_def.setName("CeilingFans_#{unit.unit_num}")
+      equip_def.setName(obj_name + " non benchmark equip")
       equip = OpenStudio::Model::ElectricEquipment.new(equip_def)
-      equip.setName("CeilingFans_#{unit.unit_num}")
+      equip.setName(equip_def.name.to_s)
       equip.setSpace(unit.living_zone.spaces[0])
       equip_def.setDesignLevel(OpenStudio::convert(ceiling_fans_max_power,"kW","W").get)
       equip_def.setFractionLatent(0)
       equip_def.setFractionRadiant(Constants.rad)
       equip_def.setFractionLost(0)
       equip.setSchedule(schedules.CeilingFansMaster)
-      equip.setEndUseSubcategory("Misc_#{unit.unit_num}")
       
       # Sensor that reports the value of the schedule CeilingFan (0 if cooling setpoint setup is in effect, 1 otherwise).
-      schedule_value_output_var = OpenStudio::Model::OutputVariable.new("Schedule Value", model)
-      schedule_value_output_var.setName("Schedule Value")
-      sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, schedule_value_output_var)
-      sensor.setName("CeilingFan_sch_#{unit.unit_num}")
-      sensor.setKeyName("CeilingFan_#{unit.unit_num}")
-      
-      zone_mean_air_temp_output_var = OpenStudio::Model::OutputVariable.new("Zone Mean Air Temperature", model)
-      zone_mean_air_temp_output_var.setName("Zone Mean Air Temperature")
-      sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, zone_mean_air_temp_output_var)
-      sensor.setName("Tin_#{unit.unit_num}")
-      sensor.setKeyName(unit.living_zone.name.to_s)
+      sched_val_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, schedule_value_output_var)
+      sched_val_sensor.setName("#{obj_name} sched val sensor".gsub("|","_"))
+      sched_val_sensor.setKeyName(obj_name + " schedule")
+
+      tin_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, zone_mean_air_temp_output_var)
+      tin_sensor.setName("#{obj_name} tin sensor".gsub("|","_"))
+      tin_sensor.setKeyName(unit.living_zone.name.to_s)
       
       # Actuator that overrides the master ceiling fan schedule.
-      actuator = OpenStudio::Model::EnergyManagementSystemActuator.new(schedules.CeilingFansMaster, "Schedule:Constant", "Schedule Value")
-      actuator.setName("CeilingFanScheduleOverride_#{unit.unit_num}")
+      sched_override_actuator = OpenStudio::Model::EnergyManagementSystemActuator.new(schedules.CeilingFansMaster, "Schedule:Constant", "Schedule Value")
+      sched_override_actuator.setName("#{obj_name} sched override".gsub("|","_"))
       
       # Program that turns the ceiling fans off in the situations described above.
       program = OpenStudio::Model::EnergyManagementSystemProgram.new(model)
-      program.setName("CeilingFanScheduleProgram_#{unit.unit_num}")
-      program.addLine("If CeilingFan_sch_#{unit.unit_num} == 0")
-      program.addLine("Set CeilingFanScheduleOverride_#{unit.unit_num} = 0")
+      program.setName(obj_name + " schedule program")
+      program.addLine("If #{sched_val_sensor.name} == 0")
+      program.addLine("Set #{sched_override_actuator.name} = 0")
       # Subtract 0.1 from cooling setpoint to avoid fans cycling on and off with minor temperature variations.
-      program.addLine("ElseIf Tin_#{unit.unit_num}<#{OpenStudio::convert(unit.cooling_setpoint_min-0.1-32.0,"R","K").get}")
-      program.addLine("Set CeilingFanScheduleOverride_#{unit.unit_num} = 0")
+      program.addLine("ElseIf #{tin_sensor.name} < #{OpenStudio::convert(unit.cooling_setpoint_min-0.1-32.0,"R","K").get.round(3)}")
+      program.addLine("Set #{sched_override_actuator.name} = 0")
       program.addLine("Else")
-      program.addLine("Set CeilingFanScheduleOverride_#{unit.unit_num} = 1")
+      program.addLine("Set #{sched_override_actuator.name} = 1")
       program.addLine("EndIf")
       
       program_calling_manager = OpenStudio::Model::EnergyManagementSystemProgramCallingManager.new(model)
-      program_calling_manager.setName("CeilingFanProgramManager_#{unit.unit_num}")
+      program_calling_manager.setName(obj_name + " program calling manager")
       program_calling_manager.setCallingPoint("BeginTimestepBeforePredictor")
-      program_calling_manager.addProgram(program)    
+      program_calling_manager.addProgram(program)
       
-      if use_benchmark_energy #add ceiling fan if is benchmark
-      
-        mel_ann_no_ceiling_fan = (1108.1 + 180.2 * unit.num_bedrooms + 0.2785 * unit.finished_floor_area) * mult
-        mel_ann_with_ceiling_fan = (1185.4 + 180.2 * unit.num_bedrooms + 0.3188 * unit.finished_floor_area) * mult         
-        mel_ann = mel_ann_with_ceiling_fan - mel_ann_no_ceiling_fan      
-      
-        building_unit.spaces.each do |space|
-          next if Geometry.space_is_unfinished(space)
+      mel_ann_no_ceiling_fan = (1108.1 + 180.2 * unit.num_bedrooms + 0.2785 * unit.finished_floor_area) * mult
+      mel_ann_with_ceiling_fan = (1185.4 + 180.2 * unit.num_bedrooms + 0.3188 * unit.finished_floor_area) * mult         
+      mel_ann = mel_ann_with_ceiling_fan - mel_ann_no_ceiling_fan      
+    
+      building_unit.spaces.each do |space|
+        next if Geometry.space_is_unfinished(space)
+        
+        space_obj_name = "#{obj_name} benchmark|#{space.name.to_s}"          
+
+        space.electricEquipment.each do |equip|
+          next unless equip.name.to_s == space_obj_name
+          equip.electricEquipmentDefinition.remove
+        end
+        model.getScheduleRulesets.each do |schedule|
+          next unless schedule.name.to_s == space_obj_name + " schedule"
+          schedule.remove
+        end
           
-          obj_name = "#{Constants.ObjectNameCeilingFan(building_unit.name.to_s)}"
-          space_obj_name = "#{obj_name}|#{space.name.to_s}"          
-
-          if mel_ann > 0
-
-            if sch.nil?
-              sch = MonthWeekdayWeekendSchedule.new(model, runner, Constants.ObjectNameCeilingFan + " schedule", weekday_sch, weekend_sch, monthly_sch)
-              if not sch.validated?
-                return false
-              end
+        if mel_ann > 0 and use_benchmark_energy
+          
+          if sch.nil?
+            sch = MonthWeekdayWeekendSchedule.new(model, runner, space_obj_name + " schedule", weekday_sch, weekend_sch, monthly_sch)
+            if not sch.validated?
+              return false
             end
-            
-            space_mel_ann = mel_ann * OpenStudio.convert(space.floorArea,"m^2","ft^2").get / unit.finished_floor_area
-            space_design_level = sch.calcDesignLevelFromDailykWh(space_mel_ann / 365.0)
-
-            mel_def = OpenStudio::Model::ElectricEquipmentDefinition.new(model)
-            mel = OpenStudio::Model::ElectricEquipment.new(mel_def)
-            mel.setName(space_obj_name)
-            mel.setEndUseSubcategory(obj_name)
-            mel.setSpace(space)
-            mel_def.setName(space_obj_name)
-            mel_def.setDesignLevel(space_design_level)
-            mel_def.setFractionRadiant(Constants.rad)
-            mel_def.setFractionLatent(Constants.lat)
-            mel_def.setFractionLost(1 - Constants.lat - Constants.sens)
-            mel.setSchedule(sch.schedule)
-            
           end
           
-        end # unit spaces
+          space_mel_ann = mel_ann * OpenStudio.convert(space.floorArea,"m^2","ft^2").get / unit.finished_floor_area
+          space_design_level = sch.calcDesignLevelFromDailykWh(space_mel_ann / 365.0)
+
+          mel_def = OpenStudio::Model::ElectricEquipmentDefinition.new(model)
+          mel = OpenStudio::Model::ElectricEquipment.new(mel_def)
+          mel.setName(space_obj_name)
+          mel.setEndUseSubcategory(obj_name)
+          mel.setSpace(space)
+          mel_def.setName(space_obj_name)
+          mel_def.setDesignLevel(space_design_level)
+          mel_def.setFractionRadiant(Constants.rad)
+          mel_def.setFractionLatent(Constants.lat)
+          mel_def.setFractionLost(1 - Constants.lat - Constants.sens)
+          mel.setSchedule(sch.schedule)
+                      
+        end # benchmark
         
-      end # benchmark
+      end # unit spaces
 
     end # units
     
@@ -439,4 +478,4 @@ class ResidentialCeilingFan < OpenStudio::Ruleset::ModelUserScript
 end
 
 # register the measure to be used by the application
-ResidentialCeilingFan.new.registerWithApplication
+ProcessCeilingFan.new.registerWithApplication

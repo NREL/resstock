@@ -34,12 +34,12 @@ class ResidentialPhotovoltaics < OpenStudio::Ruleset::ModelUserScript
 
   # human readable description
   def description
-    return "This measure..."
+    return "Adds (or replaces) residential photovoltaics with the specified efficiency, size, orientation, and tilt. For both single-family detached and multifamily buildings, one panel is added (or replaced)."
   end
 
   # human readable description of modeling approach
   def modeler_description
-    return "Uses..."
+    return "Any photovoltaic panels, generators, inverters, and electric load center distribution objects are removed. A photovoltaic panel, along with generator and inverter are added to the electric load center distribution object."
   end
 
   # define the arguments that the user will input
@@ -162,6 +162,8 @@ class ResidentialPhotovoltaics < OpenStudio::Ruleset::ModelUserScript
       return false
     end
     
+    obj_name = Constants.ObjectNamePhotovoltaics
+    
     # Calculate number of PV modules (Should we round to the nearest integer?)    
     pv_system.derated_num_modules = OpenStudio::convert(size,"kW","W").get / (pv_module["Impo"] * pv_module["Vmpo"]) * (1.0 - system_losses)
     
@@ -204,25 +206,37 @@ class ResidentialPhotovoltaics < OpenStudio::Ruleset::ModelUserScript
     transformation = OpenStudio::Transformation.new(m)
     vertices = transformation * vertices
     
+    # Remove existing photovoltaics
+    model.getElectricLoadCenterDistributions.each do |electric_load_center_dist|
+      next unless electric_load_center_dist.name.to_s == obj_name + " electric load center"
+      electric_load_center_dist.generators.each do |generator|
+        panel = generator.to_GeneratorPhotovoltaic.get
+        panel.surface.get.to_ShadingSurface.get.shadingSurfaceGroup.get.remove
+        panel.remove
+      end
+      electric_load_center_dist.inverter.get.remove
+      electric_load_center_dist.remove
+    end
+    
     shading_surface_group = OpenStudio::Model::ShadingSurfaceGroup.new(model)
-    shading_surface_group.setName("PV Panel")
+    shading_surface_group.setName(obj_name + " panel")
     shading_surface = OpenStudio::Model::ShadingSurface.new(vertices, model)
-    shading_surface.setName("PV Panel")
+    shading_surface.setName(obj_name + " panel")
     shading_surface.setShadingSurfaceGroup(shading_surface_group)      
 
     inverter = OpenStudio::Model::ElectricLoadCenterInverterSimple.new(model)
-    inverter.setName("PV Inverter")
+    inverter.setName(obj_name + " inverter")
     inverter.setAvailabilitySchedule(model.alwaysOnDiscreteSchedule)
     inverter.setInverterEfficiency(inverter_efficiency)
     
     electric_load_center_dist = OpenStudio::Model::ElectricLoadCenterDistribution.new(model)
-    electric_load_center_dist.setName("Electric Load Center")
+    electric_load_center_dist.setName(obj_name + " electric load center")
     electric_load_center_dist.setInverter(inverter)
     electric_load_center_dist.setGeneratorOperationSchemeType("Baseload")
     electric_load_center_dist.setElectricalBussType("DirectCurrentWithInverter")
 
     panel = OpenStudio::Model::GeneratorPhotovoltaic::simple(model)
-    panel.setName("PV System")
+    panel.setName(obj_name + " system")
     panel.setSurface(shading_surface)
     panel.setHeatTransferIntegrationMode("Decoupled")
     panel.setNumberOfModulesInParallel(1)
@@ -230,7 +244,7 @@ class ResidentialPhotovoltaics < OpenStudio::Ruleset::ModelUserScript
     panel.setRatedElectricPowerOutput(OpenStudio::convert(size,"kW","W").get)
     panel.setAvailabilitySchedule(model.alwaysOnDiscreteSchedule)
     performance = panel.photovoltaicPerformance.to_PhotovoltaicPerformanceSimple.get
-    performance.setName("PV Module")
+    performance.setName(obj_name + " module")
     performance.setFractionOfSurfaceAreaWithActiveSolarCells(1)
     performance.setFixedEfficiency(1)
 
@@ -244,7 +258,7 @@ class ResidentialPhotovoltaics < OpenStudio::Ruleset::ModelUserScript
   
   def _getPVModuleCharacteristics(module_type)
   
-    modules_csv = File.join(File.dirname(__FILE__), "resources", 'Modules.csv')
+    modules_csv = File.join(File.dirname(__FILE__), "resources", "Modules.csv")
     modules_csvlines = []
     File.open(modules_csv) do |file|
       file.each do |line|

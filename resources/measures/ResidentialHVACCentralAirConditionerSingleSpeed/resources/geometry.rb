@@ -343,7 +343,7 @@ class Geometry
     
     def self.zone_is_finished(zone)
         # FIXME: Ugly hack until we can get finished zones from OS
-        if zone.name.to_s.start_with?(Constants.LivingZone) or zone.name.to_s.start_with?(Constants.FinishedBasementZone) or zone.name.to_s.include?("Story") # URBANopt hack: zone.name.to_s.include? "Story" ensures always finished zone
+        if zone.name.to_s.start_with?(Constants.LivingZone) or zone.name.to_s.start_with?(Constants.FinishedBasementZone) or zone.name.to_s.start_with?(Constants.URBANoptFinishedZoneIdentifier)
             return true
         end
         return false
@@ -545,8 +545,8 @@ class Geometry
         return total_area
     end
     
-    # Takes in a list of spaces and returns the total wall area
-    def self.calculate_wall_area(spaces, apply_multipliers=false)
+    # Takes in a list of spaces and returns the total above grade wall area
+    def self.calculate_above_grade_wall_area(spaces, apply_multipliers=false)
         wall_area = 0
         spaces.each do |space|
             mult = 1.0
@@ -555,13 +555,14 @@ class Geometry
             end
             space.surfaces.each do |surface|
                 next if surface.surfaceType.downcase != "wall"
+                next if surface.isGroundSurface
                 wall_area += OpenStudio.convert(surface.grossArea * mult, "m^2", "ft^2").get
             end
         end
         return wall_area
     end
     
-    def self.calculate_exterior_wall_area(spaces, apply_multipliers=false)
+    def self.calculate_above_grade_exterior_wall_area(spaces, apply_multipliers=false)
         wall_area = 0
         spaces.each do |space|
             mult = 1.0
@@ -571,7 +572,8 @@ class Geometry
             space.surfaces.each do |surface|
                 next if surface.surfaceType.downcase != "wall"
                 next if surface.outsideBoundaryCondition.downcase != "outdoors"
-                wall_area +=  OpenStudio.convert(surface.grossArea * mult, "m^2", "ft^2").get
+                next if surface.isGroundSurface
+                wall_area += OpenStudio.convert(surface.grossArea * mult, "m^2", "ft^2").get
             end
         end
         return wall_area
@@ -831,15 +833,15 @@ class Geometry
             return xrange
         end
         return yrange
-   end
+    end
    
-   def self.get_surface_height(surface) 
+    def self.get_surface_height(surface) 
         zvalues = self.getSurfaceZValues([surface])
         zrange = zvalues.max - zvalues.min
         return zrange
-   end
+    end
    
-   def self.is_gable_wall(surface)
+    def self.is_gable_wall(surface)
         if (surface.surfaceType.downcase != "wall" or surface.outsideBoundaryCondition.downcase != "outdoors")
             return false
         end
@@ -854,9 +856,9 @@ class Geometry
             return false
         end
         return true
-   end
+    end
    
-   def self.is_rectangular_wall(surface)
+    def self.is_rectangular_wall(surface)
         if (surface.surfaceType.downcase != "wall" or surface.outsideBoundaryCondition.downcase != "outdoors")
             return false
         end
@@ -874,33 +876,33 @@ class Geometry
             return false
         end
         return true
-   end
+    end
    
-  def self.get_closest_neighbor_distance(model)
-    house_points = []
-    neighbor_points = []
-    model.getSurfaces.each do |surface|
-      next unless surface.surfaceType.downcase == "wall"
-      surface.vertices.each do |vertex|
-        house_points << OpenStudio::Point3d.new(vertex)
-      end
+    def self.get_closest_neighbor_distance(model)
+        house_points = []
+        neighbor_points = []
+        model.getSurfaces.each do |surface|
+          next unless surface.surfaceType.downcase == "wall"
+          surface.vertices.each do |vertex|
+            house_points << OpenStudio::Point3d.new(vertex)
+          end
+        end
+        model.getShadingSurfaces.each do |shading_surface|
+          next unless shading_surface.name.to_s.downcase.include? "neighbor"
+          shading_surface.vertices.each do |vertex|
+            neighbor_points << OpenStudio::Point3d.new(vertex)
+          end
+        end
+        neighbor_offsets = []
+        house_points.each do |house_point|
+          neighbor_points.each do |neighbor_point|
+            neighbor_offsets << OpenStudio::getDistance(house_point, neighbor_point)
+          end
+        end
+        if neighbor_offsets.empty?
+          return 0
+        end    
+        return OpenStudio::convert(neighbor_offsets.min,"m","ft").get
     end
-    model.getShadingSurfaces.each do |shading_surface|
-      next unless shading_surface.name.to_s.downcase.include? "neighbor"
-      shading_surface.vertices.each do |vertex|
-        neighbor_points << OpenStudio::Point3d.new(vertex)
-      end
-    end
-    neighbor_offsets = []
-    house_points.each do |house_point|
-      neighbor_points.each do |neighbor_point|
-        neighbor_offsets << OpenStudio::getDistance(house_point, neighbor_point)
-      end
-    end
-    if neighbor_offsets.empty?
-      return 0
-    end    
-    return OpenStudio::convert(neighbor_offsets.min,"m","ft").get
-  end
     
 end

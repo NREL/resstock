@@ -63,13 +63,13 @@ class AddResidentialBedroomsAndBathrooms < OpenStudio::Ruleset::ModelUserScript
     end
     
     #error checking
-    if not num_br.all? {|x| HelperMethods.valid_float?(x)}
+    if not num_br.all? {|x| MathTools.valid_float?(x)}
       runner.registerError("Number of bedrooms must be a numerical value.")
       return false
     else
       num_br = num_br.map(&:to_f)
     end
-    if not num_ba.all? {|x| HelperMethods.valid_float?(x)}
+    if not num_ba.all? {|x| MathTools.valid_float?(x)}
       runner.registerError("Number of bathrooms must be a numerical value.")
       return false
     else

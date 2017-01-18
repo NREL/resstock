@@ -1,467 +1,256 @@
-# developed for use with Ruby 2.0.0 (have your Ruby evaluate RUBY_VERSION)
+# see the URL below for information on how to write OpenStudio measures
+# http://nrel.github.io/OpenStudio-user-documentation/reference/measure_writing_guide/
 
-# Note that the Dehumidifier functions are all stubbed out at the end of the AddResidentialDehumidifier class
-# With these stubs, the new Dehumidifier settings will be revealed as runner Info messages if
-# if the thermal zone is named "showParametersForNewDummyDehumidifier"
+require "#{File.dirname(__FILE__)}/resources/geometry"
+require "#{File.dirname(__FILE__)}/resources/unit_conversions"
+require "#{File.dirname(__FILE__)}/resources/hvac"
+require "#{File.dirname(__FILE__)}/resources/constants"
 
-require 'openstudio'
-require 'cgi'
+# start the measure
+class ProcessDehumidifier < OpenStudio::Ruleset::ModelUserScript
 
-class AddResidentialDehumidifier < OpenStudio::Ruleset::ModelUserScript
-	OSM = OpenStudio::Model
-	    
-    #define the name that a user will see, this method may be deprecated as
-    #the display name in PAT comes from the name field in measure.xml
-	def name
-		return "Set Residential Dehumidifier"
-	end
+  class Curves
+    def initialize
+    end
+    attr_accessor(:Zone_Water_Remove_Cap_Ft_DB_RH_coefficients, :Zone_Energy_Factor_Ft_DB_RH_coefficients, :Zone_DXDH_PLF_F_PLR_coefficients)
+  end
 
-	def arguments(model)
-		ruleset = OpenStudio::Ruleset
-		osArg = ruleset::OSArgument
+  # human readable name
+  def name
+    return "Set Residential Dehumidifier"
+  end
 
-		args = ruleset::OSArgumentVector.new
-        
-        # checkbox for benchmark_use_case
-		@benchmark_use_case_Arg = osArg::makeBoolArgument('benchmark_use_case', true) # true means required
-		@benchmark_use_case_Arg.setDisplayName('Check this box to have a Residential DX Dehumidifier configured to BA Benchmark Home Requirements (i.e. Relative Humidity will be set to 60%)')
-        @benchmark_use_case_Arg.setDefaultValue(false)
-		args << @benchmark_use_case_Arg
-        
-        # Choice list of existing_thermal_zones
-        zoneNames = model.getThermalZones.collect{|z|z.name.get}
-        
-        @selected_existing_thermal_zone_Arg = osArg::makeChoiceArgument("selected_existing_thermal_zone", zoneNames, true) # true means required
-		@selected_existing_thermal_zone_Arg.setDisplayName("Thermal Zone where Dehumidifier will be located.")
-		args << @selected_existing_thermal_zone_Arg
-        
-        # rated_water_removal_rate
-        @rated_water_removal_rate_Arg = osArg::makeDoubleArgument("rated_water_removal_rate", true) # true means required
-        @rated_water_removal_rate_Arg.setDisplayName("Full load water removal rate (pints / day) at rated air flow rate and conditions (air entering the dehumidifier 80F dry-bulb and 60% relative humidity).")
-        args << @rated_water_removal_rate_Arg
-        
-        # rated_energy_factor
-        @rated_energy_factor_Arg = osArg::makeDoubleArgument("energy_factor", true) # true means required
-        @rated_energy_factor_Arg.setDisplayName("Energy factor (Litres/kWh) at rated conditions (air entering the dehumidifier at 80F dry-bulb and 60% relative humidity, and air flow rate. Enter -1 to use EnergyStar criteria for Energy Factor.")
-        args << @rated_energy_factor_Arg
-        
-        # rated_airflow_rate
-        @rated_airflow_rate_Arg = osArg::makeDoubleArgument("rated_airflow_rate", true) # true means required
-        @rated_airflow_rate_Arg.setDisplayName("Dehumidifier airflow rate (cfm) at rated conditions (air entering the dehumidifier at 80F dry-bulb and 60% relative humidity. Enter -1 to have airflow rate a function of water removal rate (2.75 cfm/pint/day).")
-        args << @rated_airflow_rate_Arg
-        
-        # relative_humidity_setpoint
-        @relative_humidity_setpoint_Arg = osArg::makeDoubleArgument("relative_humidity_setpoint", true) # true means required
-        @relative_humidity_setpoint_Arg.setDisplayName("The humidity setpoint of the Dehumidifier (% RH). If the checkbox for creating a Residential DX Dehumidifier is checked, this user argument will be ignored and the % RH will be set to 60")
-        args << @relative_humidity_setpoint_Arg
-           
-		args
-	end # arguments 
+  # human readable description
+  def description
+    return "This measure removes any existing dehumidifiers from the building and adds a dehumidifier. For multifamily buildings, the dehumidifier can be set for all units of the building."
+  end
 
-    #Put argument values in the following variables, returning true if they validate, false otherwise
-    #    @benchmark_use_case 
-    #    @selected_existing_thermal_zone
-    #    @rated_water_removal_rate
-    #    @rated_energy_factor
-    #    @rated_airflow_rate
-    #    @relative_humidity_setpoint
-    #
-    #Error messages and warning messages will be accumulated, i.e., we don't stop validating when we find a problem.
-    #Conditions that cause errors will not also cause warnings.
-    #
-    #(UserScript should exit(return false) if false is returned by prevalidate, like with registerWarning)
-    def prevalidate(model, runner, args)
-        modelArgs = arguments(model)
+  # human readable description of modeling approach
+  def modeler_description
+    return "Any HVAC dehumidifier DXs are removed from any existing zones. An HVAC dehumidifier DX is added to the living zone. A humidistat is also added to the zone, with the relative humidity setpoint input by the user."
+  end
+
+  # define the arguments that the user will input
+  def arguments(model)
+    args = OpenStudio::Ruleset::OSArgumentVector.new
+
+   	#Make a string argument for dehumidifier energy factor
+    energy_factor = OpenStudio::Ruleset::OSArgument::makeStringArgument("energy_factor", true)
+    energy_factor.setDisplayName("Energy Factor")
+    energy_factor.setDescription("The energy efficiency of dehumidifiers is measured by its energy factor, in liters of water removed per kilowatt-hour (kWh) of energy consumed or L/kWh.")
+    energy_factor.setUnits("L/kWh")
+    energy_factor.setDefaultValue(Constants.Auto)
+    args << energy_factor
+    
+   	#Make a string argument for dehumidifier water removal rate
+    water_removal_rate = OpenStudio::Ruleset::OSArgument::makeStringArgument("water_removal_rate", true)
+    water_removal_rate.setDisplayName("Water Removal Rate")
+    water_removal_rate.setDescription("Dehumidifier rated water removal rate measured in pints per day at an inlet condition of 80 degrees F DB/60%RH.")
+    water_removal_rate.setUnits("Pints/day")
+    water_removal_rate.setDefaultValue(Constants.Auto)
+    args << water_removal_rate
+    
+   	#Make a string argument for dehumidifier air flow rate
+    air_flow_rate = OpenStudio::Ruleset::OSArgument::makeStringArgument("air_flow_rate", true)
+    air_flow_rate.setDisplayName("Air Flow Rate")
+    air_flow_rate.setDescription("The dehumidifier rated air flow rate in CFM. If 'auto' is entered, the air flow will be determined using the rated water removal rate.")
+    air_flow_rate.setUnits("cfm")
+    air_flow_rate.setDefaultValue(Constants.Auto)
+    args << air_flow_rate
+    
+    #make a string argument for dehumidifier configuration
+    config_display_names = OpenStudio::StringVector.new
+    config_display_names << Constants.Standalone
+    # config_display_names << Constants.Ducted
+    config = OpenStudio::Ruleset::OSArgument::makeChoiceArgument("config", config_display_names, true)
+    config.setDisplayName("Configuration")
+    config.setDescription("The configuration of the dehumidifier. Only affects costing. If 'auto' is selected, dehumidifiers larger than 70 pints/day will be ducted.")
+    config.setDefaultValue(Constants.Standalone)
+    args << config    
+    
+   	#Make a string argument for humidity setpoint
+    humidity_setpoint = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("humidity_setpoint", true)
+    humidity_setpoint.setDisplayName("Annual Relative Humidity Setpoint")
+    humidity_setpoint.setDescription("The annual relative humidity setpoint.")
+    humidity_setpoint.setUnits("frac")
+    humidity_setpoint.setDefaultValue(Constants.DefaultHumiditySetpoint)
+    args << humidity_setpoint    
+    
+    return args
+  end
+
+  # define what happens when the measure is run
+  def run(model, runner, user_arguments)
+    super(model, runner, user_arguments)
+
+    # use the built-in error checking
+    if !runner.validateUserArguments(arguments(model), user_arguments)
+      return false
+    end
+
+    energy_factor = runner.getStringArgumentValue("energy_factor",user_arguments)
+    water_removal_rate = runner.getStringArgumentValue("water_removal_rate",user_arguments)
+    air_flow_rate = runner.getStringArgumentValue("air_flow_rate",user_arguments)
+    config = runner.getStringArgumentValue("config",user_arguments)
+    humidity_setpoint = runner.getDoubleArgumentValue("humidity_setpoint",user_arguments)
+    
+    # error checking
+    if humidity_setpoint < 0 or humidity_setpoint > 1
+      runner.registerError("Invalid humidity setpoint value entered.")
+      return false
+    end
+    
+    model.getScheduleConstants.each do |sch|
+      next unless sch.name.to_s == "RelativeHumiditySetpoint"
+      sch.remove
+    end
+    
+    avg_rh_setpoint = humidity_setpoint * 100.0 # (EnergyPlus uses 60 for 60% RH)
+    relative_humidity_setpoint_sch = OpenStudio::Model::ScheduleConstant.new(model)
+    relative_humidity_setpoint_sch.setName("RelativeHumiditySetpoint")
+    relative_humidity_setpoint_sch.setValue(avg_rh_setpoint)
+    
+    # Use a minimum capacity of 20 pints/day
+    water_removal_rate_auto = UnitConversion.pint2liter(25.0) # TODO: calculate water_removal_rate_auto using sizing.rb
+    water_removal_rate_auto = [water_removal_rate_auto, UnitConversion.pint2liter(20.0)].max
+    
+    # Dehumidifier sizing
+    if water_removal_rate == Constants.Auto
+      water_removal_rate_rated = water_removal_rate_auto
+    else
+      water_removal_rate_rated = UnitConversion.pint2liter(water_removal_rate.to_f)
+    end
+
+    # error checking
+    if water_removal_rate_rated <= 0
+      runner.registerError("Invalid water removal rate value entered.")
+      return false
+    end    
+    
+    # Select an Energy Factor based on ENERGY STAR requirements
+    if energy_factor == Constants.Auto
+      if UnitConversion.liter2pint(water_removal_rate_rated) <= 25.0
+        energy_factor = 1.2
+      elsif UnitConversion.liter2pint(water_removal_rate_rated) <= 35.0
+        energy_factor = 1.4
+      elsif UnitConversion.liter2pint(water_removal_rate_rated) <= 45.0
+        energy_factor = 1.5
+      elsif UnitConversion.liter2pint(water_removal_rate_rated) <= 54.0
+        energy_factor = 1.6
+      elsif UnitConversion.liter2pint(water_removal_rate_rated) <= 75.0
+        energy_factor = 1.8
+      else
+        energy_factor = 2.5
+      end
+    else
+      energy_factor = energy_factor.to_f
+    end
   
-        #use the built-in error checking 
-        return false unless runner.validateUserArguments(modelArgs, args)
-        
-        # get the args values
-        @benchmark_use_case = runner.getBoolArgumentValue("benchmark_use_case",args)
-        @selected_existing_thermal_zone = model.getThermalZoneByName(runner.getStringArgumentValue("selected_existing_thermal_zone", args)).get # assume each has unique name
-        @rated_water_removal_rate = runner.getDoubleArgumentValue("rated_water_removal_rate", args)
-        @rated_energy_factor = runner.getDoubleArgumentValue("energy_factor", args)
-        @rated_airflow_rate = runner.getDoubleArgumentValue("rated_airflow_rate", args)
-        @relative_humidity_setpoint = runner.getDoubleArgumentValue("relative_humidity_setpoint", args)
-        
-        errors = []
-        emit = lambda{|msg| errors << msg}
-        
-        emit["Dehumidifier rated water removal rate must be > 0 pints/day."] unless @rated_water_removal_rate > 0 
-        emit["Rated Energy Factor of Dehumidifier must be > 0 Litres/kWh."] unless @rated_energy_factor > 0 or @rated_energy_factor == -1
-        emit["Rated Airflow Rate of Dehumidifier must be > 0 cfm."] unless @rated_airflow_rate > 0 or @rated_airflow_rate == -1
-        emit["Relative Humidity Setpoint must be greater than 0%."] unless @benchmark_use_case or @relative_humidity_setpoint > 0
-        emit["Relative Humidity Setpoint must be < 100%."] unless @benchmark_use_case or @relative_humidity_setpoint < 100.0
-        
-        warnings = []
-        emit = lambda{|msg| warnings << (msg + " Please confirm input.")}
-        
-        # Conditions that cause errors will not also cause warnings
-        
-        wrrLOW = 25
-        emit["A residential dehumidifier having a water removal rate < #{wrrLOW} pints per day is suspect."] if 
-            0 < @rated_water_removal_rate && @rated_water_removal_rate < wrrLOW 
-        
-        wrrHIGH = 200
-        emit["A residential dehumidifier having a water removal rate > #{wrrHIGH} pints per day is suspect."] if @rated_water_removal_rate > wrrHIGH
-        
-        refacHIGH = 4
-        emit["A residential dehumidifier having a Rated Energy Factor > #{'%.1f'% refacHIGH} Litres/kWh is suspect."] if @rated_energy_factor > refacHIGH
-        
-        refacLOW = 1
-        emit["A residential dehumidifier having a Rated Energy Factor < #{'%.1f'% refacLOW} Litres/kWh is suspect."] if 
-            0 < @rated_energy_factor && @rated_energy_factor < refacLOW 
-            
-        raflowHIGH = 500
-        emit["A residential dehumidifier having a rated airflow rate > #{raflowHIGH} cfm is suspect."] if @rated_airflow_rate > raflowHIGH
-        
-        raflowLOW = 100
-        emit["A residential dehumidifier having a rated airflow rate < #{raflowLOW} cfm is suspect."] if 
-            0 < @rated_airflow_rate && @rated_airflow_rate < raflowLOW 
-            
-        rhsHIGH = 85
-        emit["Relative Humidity Setpoint of #{@relative_humidity_setpoint} % seems high."] if 
-            !@benchmark_use_case && 100 > @relative_humidity_setpoint && @relative_humidity_setpoint > rhsHIGH
-        
-        rhsLOW = 30
-        emit["Relative Humidity Setpoint of #{@relative_humidity_setpoint} % seems low."] if 
-            !@benchmark_use_case && 0 < @relative_humidity_setpoint && @relative_humidity_setpoint < rhsLOW
-        
-        isValid = true
-        errors.map{|msg|    isValid = false ; runner.registerError(CGI.escapeHTML(msg)) }
-        warnings.map{|msg|  isValid &= runner.registerWarning(CGI.escapeHTML(msg)) } 
-        # isValid is true when there are no errors and no failing warnings
-        #"UserScripts should return false after calling [registerError]" see http://openstudio.nrel.gov/c-sdk-documentation/ruleset       
-        #"The UserScript should exit (return false) if false is returned [from registerWarning]" see http://openstudio.nrel.gov/c-sdk-documentation/ruleset 
-               
-        isValid        
-    end # prevalidate
-
-    
-    def run(model, runner, args)
-		super(model, runner, args)
-    
-        return false unless prevalidate(model, runner, args)
-        
-        #NB: assume there is a thermal zone since thermal zone is a required argument
-   
-        runner.registerInitialCondition(CGI.escapeHTML( initialCondition(model) ))         
-
-        @relative_humidity_setpoint = 60 if @benchmark_use_case
-
-        @rated_energy_factor = autoSizedEnergyFactor(@rated_water_removal_rate) if @rated_energy_factor == -1 
-
-        @rated_airflow_rate =  @rated_water_removal_rate * 2.75 if @rated_airflow_rate == -1 # this conversion assumes removal is pints/day and airflow is cfm
-
-        @theNewDehumidifier = newZoneHVACDehumidifierDX
-
-        configureDehumidifier(model, @theNewDehumidifier)
-        
-        @oldHumidistatDehumSetpointSched = humidistatDehumSetpointSchedIfAny(@selected_existing_thermal_zone) 
-
-        @theHumidistat,@theHumidistatIsNew = updateHumidistatFor(model, @selected_existing_thermal_zone)
-        @theHumidistat.setDehumidifyingRelativeHumiditySetpointSchedule(default_dehumidification_sch(model))
-        @newHumidistatDehumSetpointSched = humidistatDehumSetpointSchedIfAny(@selected_existing_thermal_zone) 
-
-        addDehumidifierToThermalZoneAndPrioritize(model, @selected_existing_thermal_zone, @theNewDehumidifier)
-           
-        runner.registerFinalCondition(CGI.escapeHTML( finalCondition(model) )) 
-        
-        ###############################################################################################################
-        # REMOVE this call to showDummyDehumidifier when Dehumidifiers are actually implemented and stubs are replaced.
-        # It's just here to facilitate testing whether correct values are set in the new dehumidifier.
-        ###############################################################################################################
-        showDummyDehumidifier(@theNewDehumidifier,runner) if @selected_existing_thermal_zone.name.to_s == "showParametersForNewDummyDehumidifier" 
-        
-		true
-    end # run 
-
-
-    # Report count of existing OS:ZoneHVAC:Dehumidifier:DX objects prior to running the measure. 
-    # Report Size (gal) and nominal Capacity (W) of eachobject.
-    def initialCondition(model)     
-        dhObs = dehumidifierDXObjects(model)
-        
-        "Initial Condition: #{dhObs.size} DehumidifierDX."+
-        " Water removal rates and Energy factors: "+
-        dhObs.map{|dhOb| 
-            precision = 6
-            waterRemovalRate_ppd = pintsFromLitres(ratedWaterRemovalRate(dhOb)).round(precision)
-            energyFactor_lpkwh = ratedEnergyFactor(dhOb).round(precision)
-            "#{dehumidifierName(dhOb)}(#{waterRemovalRate_ppd} pints/day, #{energyFactor_lpkwh} litres/kWh)"
-        }.join(' ; ')
-    end
-
-    # Report the name of OS:ZoneHVAC:Dehumidifier:DX objects and the thermal zone the object was added to. 
-    # If a ZoneControl:Humidistat dehumidifying setpoint schedule object was replaced, report the name of that schedule, 
-    # as well as the name of new ZoneControl:Humidistat dehumidifying setpoint schedule.   
-    # Report the final values of: rated_water_removal_rate ; rated_energy_factor ; rated_airflow_rate ; relative_humidity_setpoint
-    def finalCondition(model)  
-        msg  = "Added #{dehumidifierName(@theNewDehumidifier)} (OS:ZoneHVAC:Dehumidifier:DX) "+
-               " to thermal zone named #{@selected_existing_thermal_zone.name}" 
-        msg << ", and added a Humidistat"  if @theHumidistatIsNew
-        msg << ", setting the thermal zone controls Humidistat Dehumidification Setpoint Schedule to #{@newHumidistatDehumSetpointSched.name}" 
-        msg << " (replacing #{@oldHumidistatDehumSetpointSched.name})" unless nil == @oldHumidistatDehumSetpointSched
-        msg << "."
-            
-        msg << " New Dehumidifier values: "
-        msg << "Water removal rate = #{@rated_water_removal_rate} pints/day"
-        msg << " ; "
-        msg << "Energy factor = #{@rated_energy_factor} litres/kWh"
-        msg << " ; "
-        msg << "Airflow rate = #{@rated_airflow_rate} cfm"
-        msg << " ; "
-        msg << "Humidity setpoint = #{@relative_humidity_setpoint}%"
-        
-    end
-
-    def autoSizedEnergyFactor(removalRate)
-        cutoffs =  [[25,1.2],
-                    [35,1.4],
-                    [45,1.5],
-                    [54,1.6],
-                    [75,1.8]
-                   ]
-        cutoffsSize = cutoffs.size
-        i = 0
-        while (i < cutoffsSize && removalRate > cutoffs[i][0]) ; i = i+1 end
-        i < cutoffsSize ? cutoffs[i][1] : 2.5
+    # error checking
+    if energy_factor < 0
+      runner.registerError("Invalid energy factor value entered.")
+      return false
     end
     
-    def nonFanZoneExhaustEquipmentList(model, thermalZone) 
-        model.getZoneHVACEquipmentLists.select{|es|  es.thermalZone == thermalZone}[0] # assume there's exactly one equipment list for thermalZone
-        .equipment.select{|e|e.iddObject.name != "OS:Fan:ZoneExhaust"} # ignore OS:Fan:ZoneExhaust
-    end
- 
-    def default_water_removal_rate_curve(model)
-        curve = OpenStudio::Model::CurveBiquadratic.new(model)
-        curve.setCoefficient1Constant(-1.162525707)
-        curve.setCoefficient2x(0.02271469)
-        curve.setCoefficient3xPOW2(-0.000113208)
-        curve.setCoefficient4y(0.021110538)
-        curve.setCoefficient5yPOW2(-0.0000693034)
-        curve.setCoefficient6xTIMESY(0.000378843)
-        curve.setMinimumValueofx(-100)
-        curve.setMaximumValueofx(100)
-        curve.setMinimumCurveOutput(-100)
-        curve.setMaximumCurveOutput(100)
-        curve
-    end
-    
-    def default_energy_factor_curve(model)
-        curve = OpenStudio::Model::CurveBiquadratic.new(model)
-        curve.setCoefficient1Constant(-1.902154518)
-        curve.setCoefficient2x(0.063466565)
-        curve.setCoefficient3xPOW2(-0.000622839)
-        curve.setCoefficient4y(0.039540407)
-        curve.setCoefficient5yPOW2(-0.000125637)
-        curve.setCoefficient6xTIMESY(-0.000176722)
-        curve.setMinimumValueofx(-100)
-        curve.setMaximumValueofx(100)
-        curve.setMinimumCurveOutput(-100)
-        curve.setMaximumCurveOutput(100)   
-        curve
-    end
-    
-    def default_part_load_fraction_correction_curve(model)
-        curve = OpenStudio::Model::CurveQuadratic.new(model)
-        curve.setCoefficient1Constant(0.9)
-        curve.setCoefficient2x(0.1)
-        curve.setCoefficient3xPOW2(0)
-        curve.setMinimumValueofx(0)
-        curve.setMaximumValueofx(1.0)
-        curve.setMinimumCurveOutput(0.7) 
-        curve.setMaximumCurveOutput(1.0)  
-        curve
-    end
-    
-    def litresFromPints(x) 
-        OpenStudio::convert(x,"gal","m^3").get*(100**3)/1000/8.0 # 8pts = 1gal ; 1(m^3) = (100^3)cc ; 1000cc = 1liter
-    end
-    
-    def pintsFromLitres(x) 
-        OpenStudio::convert(x,"m^3","gal").get*1000/(100**3)*8 # 8pts = 1gal ; 1(m^3) = (100^3)cc ; 1000cc = 1liter
-    end
-    
-    def cmsFromCfm(x) #Cubic meters per second from cubic feet per minute
-        OpenStudio::convert(x*1.0,"ft^3/min","m^3/s").get
-    end
-    
-    def configureDehumidifier(model, dehumidifier)
-    
-        setRatedWaterRemovalRate(dehumidifier, litresFromPints(@rated_water_removal_rate)) 
+    if air_flow_rate == Constants.Auto
+      # Calculate the dehumidifer air flow rate by assuming 2.75 cfm/pint/day (based on experimental test data)
+      air_flow_rate = 2.75 * water_removal_rate_rated * UnitConversion.liter2pint(1.0) * OpenStudio::convert(1.0,"cfm","m^3/s").get
+    else
+      air_flow_rate = OpenStudio::convert(air_flow_rate.to_f,"cfm","m^3/s").get
+    end    
 
-        setRatedEnergyFactor(dehumidifier, @rated_energy_factor)     
-		
-        setRatedAirflowRate(dehumidifier, cmsFromCfm(@rated_airflow_rate))   	
-  
-        setWaterRemovalCurveName(dehumidifier, default_water_removal_rate_curve(model))
-		
-        setEnergyFactorCurveName(dehumidifier, default_energy_factor_curve(model))
-
-		setPartLoadCorrelationCurveName(dehumidifier, default_part_load_fraction_correction_curve(model))
-		
-        setMinimumDryBulbTemperatureForDehumidificationOperation(dehumidifier, 10) 	## Note units are degrees C, hard-coding value to idd default.
-		
-        setMaximumDryBulbTemperatureForDehumidificationOperation(dehumidifier, 35) 	## Note units are degrees C, hard-coding value to idd default.
-		
-        setOffCycleParasiticElectricLoad(dehumidifier, 0)								## Note 0 is the idd default value.
-
-    end # configureDehumidifier
+    # Dehumidifier coefficients
+    # Generic model coefficients from Winkler, Christensen, and Tomerlin (2011)
+    curves = Curves.new
+    curves.Zone_Water_Remove_Cap_Ft_DB_RH_coefficients = [-1.162525707, 0.02271469, -0.000113208, 0.021110538, -0.0000693034, 0.000378843]
+    curves.Zone_Energy_Factor_Ft_DB_RH_coefficients = [-1.902154518, 0.063466565, -0.000622839, 0.039540407, -0.000125637, -0.000176722]
+    curves.Zone_DXDH_PLF_F_PLR_coefficients = [0.90, 0.10, 0.0]
     
-    def dehumidificationScheduleTypeLimits(model)
-        limits = OpenStudio::Model::ScheduleTypeLimits.new(model)
-        limits.setName("Dehumidification Setpoint Schedule Type Limits")
-        limits.setLowerLimitValue(0.0)
-        limits.setUpperLimitValue(100.0)
-        limits.setNumericType("Continuous")
-        limits.setUnitType("Percent")
-        limits
+    water_removal_curve = OpenStudio::Model::CurveBiquadratic.new(model)
+    water_removal_curve.setName("DXDH-WaterRemove-Cap-fT")
+    water_removal_curve.setCoefficient1Constant(curves.Zone_Water_Remove_Cap_Ft_DB_RH_coefficients[0])
+    water_removal_curve.setCoefficient2x(curves.Zone_Water_Remove_Cap_Ft_DB_RH_coefficients[1])
+    water_removal_curve.setCoefficient3xPOW2(curves.Zone_Water_Remove_Cap_Ft_DB_RH_coefficients[2])
+    water_removal_curve.setCoefficient4y(curves.Zone_Water_Remove_Cap_Ft_DB_RH_coefficients[3])
+    water_removal_curve.setCoefficient5yPOW2(curves.Zone_Water_Remove_Cap_Ft_DB_RH_coefficients[4])
+    water_removal_curve.setCoefficient6xTIMESY(curves.Zone_Water_Remove_Cap_Ft_DB_RH_coefficients[5])
+    water_removal_curve.setMinimumValueofx(-100)
+    water_removal_curve.setMaximumValueofx(100)
+    water_removal_curve.setMinimumValueofy(-100)
+    water_removal_curve.setMaximumValueofy(100)
+
+    energy_factor_curve = OpenStudio::Model::CurveBiquadratic.new(model)
+    energy_factor_curve.setName("DXDH-EnergyFactor-fT")
+    energy_factor_curve.setCoefficient1Constant(curves.Zone_Energy_Factor_Ft_DB_RH_coefficients[0])
+    energy_factor_curve.setCoefficient2x(curves.Zone_Energy_Factor_Ft_DB_RH_coefficients[1])
+    energy_factor_curve.setCoefficient3xPOW2(curves.Zone_Energy_Factor_Ft_DB_RH_coefficients[2])
+    energy_factor_curve.setCoefficient4y(curves.Zone_Energy_Factor_Ft_DB_RH_coefficients[3])
+    energy_factor_curve.setCoefficient5yPOW2(curves.Zone_Energy_Factor_Ft_DB_RH_coefficients[4])
+    energy_factor_curve.setCoefficient6xTIMESY(curves.Zone_Energy_Factor_Ft_DB_RH_coefficients[5])
+    energy_factor_curve.setMinimumValueofx(-100)
+    energy_factor_curve.setMaximumValueofx(100)
+    energy_factor_curve.setMinimumValueofy(-100)
+    energy_factor_curve.setMaximumValueofy(100)
+
+    part_load_frac_curve = OpenStudio::Model::CurveQuadratic.new(model)
+    part_load_frac_curve.setName("DXDH-PLF-fPLR")
+    part_load_frac_curve.setCoefficient1Constant(curves.Zone_DXDH_PLF_F_PLR_coefficients[0])
+    part_load_frac_curve.setCoefficient2x(curves.Zone_DXDH_PLF_F_PLR_coefficients[1])
+    part_load_frac_curve.setCoefficient3xPOW2(curves.Zone_DXDH_PLF_F_PLR_coefficients[2])
+    part_load_frac_curve.setMinimumValueofx(0)
+    part_load_frac_curve.setMaximumValueofx(1)
+    part_load_frac_curve.setMinimumCurveOutput(0.7)
+    part_load_frac_curve.setMaximumCurveOutput(1)
+    
+    # Get building units
+    units = Geometry.get_building_units(model, runner)
+    if units.nil?
+      return false
     end
     
-    def default_dehumidification_sch(model)
-        ruleset = OpenStudio::Model::ScheduleRuleset.new(model)
-        ruleset.setName("Dehumidification Setpoint Default")
-        ruleset.defaultDaySchedule().setName("Dehumidification Setpoint Default") 
-        ruleset.defaultDaySchedule().addValue(OpenStudio::Time.new(0,24,0,0),@relative_humidity_setpoint)
-        ruleset.setScheduleTypeLimits(dehumidificationScheduleTypeLimits(model)) 
-        ruleset 
-    end
-
-    # If the thermalZone has a humidistat with a dehumidifying setpoint schedule, 
-    # return that schedule, otherwise return nil
-    def humidistatDehumSetpointSchedIfAny(thermalZone)     
-        statMaybe = thermalZone.zoneControlHumidistat
-        return nil if statMaybe.empty?
-        schedMaybe = statMaybe.get.dehumidifyingRelativeHumiditySetpointSchedule
-        return nil if schedMaybe.empty?
-        schedMaybe.get
-    end
+    units.each do |unit|
     
-    # Returns [humidistat, humidistatIsNew]
-    # humidistat will be thermalZone.zoneControlHumidistat.get in the end.
-    # A new humidistat will be forced upon the thermalZone if need be to accomplish this,
-    # in which case humidistatIsNew will be true.  
-    def updateHumidistatFor(model, thermalZone)
-        statMaybe = thermalZone.zoneControlHumidistat
-        if humidistatIsNew = statMaybe.empty?
-            humidistat = OpenStudio::Model::ZoneControlHumidistat.new(model)
-            thermalZone.setZoneControlHumidistat(humidistat)
-        else
-            humidistat = statMaybe.get
+      obj_name = Constants.ObjectNameDehumidifier(unit.name.to_s)    
+    
+      thermal_zones = Geometry.get_thermal_zones_from_spaces(unit.spaces)
+      
+      control_slave_zones_hash = HVAC.get_control_and_slave_zones(thermal_zones)
+      control_slave_zones_hash.each do |control_zone, slave_zones|
+
+        # Remove existing equipment
+        HVAC.remove_existing_hvac_equipment(model, runner, "Dehumidifier", control_zone)
+      
+        humidistat = control_zone.zoneControlHumidistat
+        if humidistat.is_initialized
+          humidistat.get.remove
         end
-        [humidistat,humidistatIsNew]
-    end
-   
-    ######################################################################################################################################
-    # The code from here to end-of-class comprises stubs that should be rewritten once the dehumidier type is implemented.
-    # The class would probably be OpenStudio::Model::ZoneHVACDehumidifierDX, and would extend OpenStudio::Model::HVACComponent ;
-    # we assume the iddObject.name for these dehumidifiers would be "OS:ZoneHVAC:Dehumidifier:DX"
-    ######################################################################################################################################
+        humidistat = OpenStudio::Model::ZoneControlHumidistat.new(model)
+        humidistat.setName(obj_name + " humidistat")
+        humidistat.setHumidifyingRelativeHumiditySetpointSchedule(relative_humidity_setpoint_sch)
+        humidistat.setDehumidifyingRelativeHumiditySetpointSchedule(relative_humidity_setpoint_sch)
+        control_zone.setZoneControlHumidistat(humidistat)  
+      
+        zone_hvac = OpenStudio::Model::ZoneHVACDehumidifierDX.new(model, water_removal_curve, energy_factor_curve, part_load_frac_curve)
+        zone_hvac.setName(obj_name + " zone dx")
+        zone_hvac.setAvailabilitySchedule(model.alwaysOnDiscreteSchedule)
+        zone_hvac.setRatedWaterRemoval(water_removal_rate_rated)
+        zone_hvac.setRatedEnergyFactor(energy_factor)
+        zone_hvac.setRatedAirFlowRate(air_flow_rate)
+        zone_hvac.setMinimumDryBulbTemperatureforDehumidifierOperation(10)
+        zone_hvac.setMaximumDryBulbTemperatureforDehumidifierOperation(40)
+        
+        zone_hvac.addToThermalZone(control_zone)
+        runner.registerInfo("Added dehumidifier '#{zone_hvac.name}' to thermal zone '#{control_zone.name}' of #{unit.name}")
+      
+      end
     
-    #############################################################################################
-    #TODO replace this stub to really get all OS::ZoneHVACDehumidifierDX objects from the model
-    #############################################################################################
-    def dehumidifierDXObjects(model) 
-        # The real code would look something like 
-        # model.getZoneHVACEquipmentLists.map{|es| es.equipment}.flatten.select{|e| e.iddObject.name == "OS:ZoneHVAC:Dehumidifier:DX"}
-        # 
-        # Until the dehumidier type is implemented, we just return some fakes
-        newDH = lambda{|name,removal,efactor| 
-            dh = {name:name , ratedWaterRemovalRate: litresFromPints(removal) , ratedEnergyFactor: efactor }
-        }
+    end
+    
+    return true
 
-        [newDH["TestDummy-DehumidiferA", 111.0, 1.2],
-         newDH["TestDummy-Dehumidifer1", 124.0, 2.3],
-         newDH["TestDummy-Dehumidifer", 139.0, 3.4]
-        ] 
-     
-#        [{name:"TestDummy-Dehumidifer-A" , ratedWaterRemovalRate: 111.0 , ratedEnergyFactor: 1.2}]
-    end
+  end
+  
+end
 
-    #############################################################################################
-    #TODO replace this stub to really add a OS::ZoneHVACDehumidifierDX object to a thermal zone
-    #############################################################################################
-    def addDehumidifierToThermalZoneAndPrioritize(model, thermalZone, dehumidifier)
-        # The real code would be
-        # thermalZone.addEquipment(dehumidifier)
-        # thermalZone.setCoolingPriority(dehumidifier, nonFanZoneExhaustEquipmentList(model,thermalZone).size )
-        if  false 
-            nonFanZoneExhaustEquipmentList(model,thermalZone).size # stub code is still made to show dependency on nonFanZoneExhaustEquipmentList
-        end # but this stub doesn't do anything
-    end
-
-    def  newZoneHVACDehumidifierDX #TODO replace stub to Create new OS::ZoneHVACDehumidifierDX object 
-       @newZoneHVACDehumidifierDX_count = (defined? @newZoneHVACDehumidifierDX_count) ? 1+@newZoneHVACDehumidifierDX_count : 1
-       {name:     "TestDummy-New-Dehumidifier#{@newZoneHVACDehumidifierDX_count==1 ? "" : @newZoneHVACDehumidifierDX_count.to_s }",
-       }
-    end
- 
-    def showDummyDehumidifier(dehumidifier,runner) # this should be deleted when eliminating stubs
-        dehumidifier.map{|key,value|
-            runner.registerInfo(CGI.escapeHTML("#{dehumidifierName(dehumidifier)} : #{key} = #{value}"))
-        }
-    end
-    
-    def dehumidifierName(dehumidifier)
-        dehumidifier[:name] #TODO replace stub when we know how to get the name from a OS::ZoneHVACDehumidifierDX object 
-    end
-    
-    def dehumidifierSize_gal(dehumidifier)
-        dehumidifier[:size]  #TODO eliminate stub after we know how to get the size from a OS::ZoneHVACDehumidifierDX object 
-    end 
-    
-    def dehumidifierCapacity_W(dehumidifier)
-        dehumidifier[:capacity]   #TODO eliminate stub after we know how to get the capacity from a OS::ZoneHVACDehumidifierDX object 
-    end 
-    
-    def stubbedDehumidiferSetting # this is defined to allow testing before Dehumidifiers are implemented
-        @selected_existing_thermal_zone == "testingStubbedDehumidiferSetting"
-    end
-    
-    def ratedWaterRemovalRate(dehumidifier)
-        dehumidifier[:ratedWaterRemovalRate]
-    end
-	def setRatedWaterRemovalRate(dehumidifier, x)  ## Litres per day 
-        dehumidifier[:ratedWaterRemovalRate] = x
-    end
-
-    def ratedEnergyFactor(dehumidifier)
-        dehumidifier[:ratedEnergyFactor]
-    end
-	def setRatedEnergyFactor(dehumidifier, x)   	## Litres/kWh 
-        dehumidifier[:ratedEnergyFactor] = x
-	end
-	
-	def	setRatedAirflowRate(dehumidifier, x)   		## meters3 / sec
-        dehumidifier[:ratedAirflowRate] = x
-    end
-    
-	def	setWaterRemovalCurveName(dehumidifier, x) 
-        dehumidifier[:waterRemovalCurveName] = x
-	end
-	
-	def	setEnergyFactorCurveName(dehumidifier, x) 
-        dehumidifier[:energyFactorCurveName] = x
-	end
-	
-	def	setPartLoadCorrelationCurveName(dehumidifier, x)
-        dehumidifier[:partLoadCorrelationCurveName] = x
-	end
-	
-	def	setMinimumDryBulbTemperatureForDehumidificationOperation(dehumidifier, x) 	## degrees C
-        dehumidifier[:minimumDryBulbTemperatureForDehumidificationOperation] = x
-	end
-	
-	def	setMaximumDryBulbTemperatureForDehumidificationOperation(dehumidifier, x) 	## degrees C
-        dehumidifier[:maximumDryBulbTemperatureForDehumidificationOperation] = x
-	end
-	
-	def	setOffCycleParasiticElectricLoad(dehumidifier, x)				
-        dehumidifier[:offCycleParasiticElectricLoad] = x
-    end
-    
-end # measure AddResidentialDehumidifier
-   
-#this allows the measure to be use by the application
-AddResidentialDehumidifier.new.registerWithApplication
+# register the measure to be used by the application
+ProcessDehumidifier.new.registerWithApplication

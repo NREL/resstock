@@ -16,6 +16,16 @@ class UnitConversion
 		return 2.719*atm
 	end
 	
+    def self.atm2kPa(x)
+        # atm -> kPa
+        return x*101.325
+    end
+	
+    def self.atm2psi(x)
+        # atm -> psi
+        return x*14.692
+    end
+
 	def self.lbm_ft32inH2O_mph2(lbm_ft3)
 	    # lbm/ft^3 -> inH2O/mph^2
 		return 0.01285*lbm_ft3
@@ -81,6 +91,22 @@ class UnitConversion
   def self._2L2s2_s2cm4m2(x)
     # I don't know what this means. I just copied it directly out of Global.bmi
     return 0.01*x
+  end
+  
+  def self.pint2liter(pints)
+    # pints -> liters
+    return 0.47317647*pints
+  end
+  
+  def self.liter2pint(liters)
+    # liters -> pints
+    return 2.1133764*liters
+  end
+
+  # Humidity ratio
+  def self.lbm_lbm2grains(lbm_lbm)
+    # lbm/lbm -> grains
+    return lbm_lbm * 7000.0
   end
     
 end

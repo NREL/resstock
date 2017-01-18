@@ -30,7 +30,7 @@ class CreateResidentialNeighbors < OpenStudio::Ruleset::ModelUserScript
     left_neighbor_offset.setDisplayName("Left Neighbor Offset")
     left_neighbor_offset.setUnits("ft")
     left_neighbor_offset.setDescription("The minimum distance between the simulated house and the neighboring house to the left (not including eaves). A value of zero indicates no neighbors.")
-    left_neighbor_offset.setDefaultValue(0.0)
+    left_neighbor_offset.setDefaultValue(10.0)
     args << left_neighbor_offset
 
     #make a double argument for right neighbor offset
@@ -38,7 +38,7 @@ class CreateResidentialNeighbors < OpenStudio::Ruleset::ModelUserScript
     right_neighbor_offset.setDisplayName("Right Neighbor Offset")
     right_neighbor_offset.setUnits("ft")
     right_neighbor_offset.setDescription("The minimum distance between the simulated house and the neighboring house to the right (not including eaves). A value of zero indicates no neighbors.")
-    right_neighbor_offset.setDefaultValue(0.0)
+    right_neighbor_offset.setDefaultValue(10.0)
     args << right_neighbor_offset
 	
     #make a double argument for back neighbor offset

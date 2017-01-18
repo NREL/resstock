@@ -25,7 +25,6 @@ class BuildExistingModel < OpenStudio::Ruleset::ModelUserScript
   def arguments(model)
     args = OpenStudio::Ruleset::OSArgumentVector.new
 
-    # FIXME: Change to integer_sequence
     building_id = OpenStudio::Ruleset::OSArgument.makeIntegerArgument("building_id", true)
     building_id.setDisplayName("Building ID")
     building_id.setDescription("The building number (between 1 and the number of samples).")
@@ -63,7 +62,6 @@ class BuildExistingModel < OpenStudio::Ruleset::ModelUserScript
     # Retrieve all data associated with sample number
     building_col_name = "Building"
     bldg_data = get_data_for_sample(resstock_csv, building_id, runner, building_col_name)
-    register_value(runner, "Building ID", building_id)
     
     # Retrieve order of parameters to run
     parameters_ordered = get_parameters_ordered(resstock_csv)

@@ -75,6 +75,11 @@ class ProcessCoolingSetpoints < OpenStudio::Ruleset::ModelUserScript
         return false
     end
     
+    # Remove existing cooling season schedule
+    model.getScheduleRulesets.each do |sch|
+      next unless sch.name.to_s == Constants.ObjectNameCoolingSeason
+      sch.remove
+    end    
     coolingseasonschedule = MonthWeekdayWeekendSchedule.new(model, runner, Constants.ObjectNameCoolingSeason, Array.new(24, 1), Array.new(24, 1), cooling_season, mult_weekday=1.0, mult_weekend=1.0, normalize_values=false)  
     
     unless coolingseasonschedule.validated?
@@ -90,10 +95,12 @@ class ProcessCoolingSetpoints < OpenStudio::Ruleset::ModelUserScript
           if clg_coil.is_a? OpenStudio::Model::ZoneHVACPackagedTerminalAirConditioner
             clg_coil = clg_coil.coolingCoil.to_CoilCoolingDXSingleSpeed.get
           elsif clg_coil.is_a? OpenStudio::Model::ZoneHVACTerminalUnitVariableRefrigerantFlow
-            clg_coil = clg_coil.coolingCoil.to_CoilCoolingDXVariableRefrigerantFlow.get        
+            clg_coil = clg_coil.coolingCoil.to_CoilCoolingDXVariableRefrigerantFlow.get
           end
-          clg_coil.setAvailabilitySchedule(coolingseasonschedule.schedule)
-          runner.registerInfo("Added availability schedule to #{clg_coil.name}.")
+          unless clg_coil.to_CoilCoolingWaterToAirHeatPumpEquationFit.is_initialized
+            clg_coil.setAvailabilitySchedule(coolingseasonschedule.schedule)
+            runner.registerInfo("Added availability schedule to #{clg_coil.name}.")
+          end
         end
         clg_equip = true
       end
@@ -122,6 +129,15 @@ class ProcessCoolingSetpoints < OpenStudio::Ruleset::ModelUserScript
       end
     end
     
+    # Remove existing cooling setpoint schedule
+    model.getScheduleRulesets.each do |sch|
+      next unless sch.name.to_s == Constants.ObjectNameCoolingSetpoint
+      sch.remove
+    end    
+    
+    # Make the setpoint schedules
+    heatingsetpoint = nil
+    coolingsetpoint = nil
     finished_zones.each do |finished_zone|
     
       thermostatsetpointdualsetpoint = finished_zone.thermostatSetpointDualSetpoint
@@ -176,12 +192,10 @@ class ProcessCoolingSetpoints < OpenStudio::Ruleset::ModelUserScript
           end          
         end
         
-        if thermostatsetpointdualsetpoint.heatingSetpointTemperatureSchedule.is_initialized
-            thermostatsetpointdualsetpoint.heatingSetpointTemperatureSchedule.get.remove
-        end
-        if thermostatsetpointdualsetpoint.coolingSetpointTemperatureSchedule.is_initialized
-            thermostatsetpointdualsetpoint.coolingSetpointTemperatureSchedule.get.remove
-        end
+        model.getScheduleRulesets.each do |sch|
+          next unless sch.name.to_s == Constants.ObjectNameHeatingSetpoint
+          sch.remove
+        end        
         
         heatingsetpoint = HourlyByMonthSchedule.new(model, runner, Constants.ObjectNameHeatingSetpoint, htg_wkdy_monthly, htg_wked_monthly, normalize_values=false)
         coolingsetpoint = HourlyByMonthSchedule.new(model, runner, Constants.ObjectNameCoolingSetpoint, clg_wkdy_monthly, clg_wked_monthly, normalize_values=false)
@@ -189,9 +203,6 @@ class ProcessCoolingSetpoints < OpenStudio::Ruleset::ModelUserScript
         unless heatingsetpoint.validated? and coolingsetpoint.validated?
           return false
         end
-
-        thermostatsetpointdualsetpoint.setHeatingSetpointTemperatureSchedule(heatingsetpoint.schedule)
-        thermostatsetpointdualsetpoint.setCoolingSetpointTemperatureSchedule(coolingsetpoint.schedule)
         
       else
         
@@ -213,14 +224,31 @@ class ProcessCoolingSetpoints < OpenStudio::Ruleset::ModelUserScript
 
         unless coolingsetpoint.validated?
           return false
-        end        
+        end
+      
+      end
+      break # assume all finished zones have the same schedules
+      
+    end    
+    
+    # Set the setpoint schedules
+    finished_zones.each do |finished_zone|
+    
+      thermostatsetpointdualsetpoint = finished_zone.thermostatSetpointDualSetpoint
+      if thermostatsetpointdualsetpoint.is_initialized
+        
+        thermostatsetpointdualsetpoint = thermostatsetpointdualsetpoint.get
+        thermostatsetpointdualsetpoint.setHeatingSetpointTemperatureSchedule(heatingsetpoint.schedule)
+        thermostatsetpointdualsetpoint.setCoolingSetpointTemperatureSchedule(coolingsetpoint.schedule)
+        
+      else       
         
         thermostatsetpointdualsetpoint = OpenStudio::Model::ThermostatSetpointDualSetpoint.new(model)
         thermostatsetpointdualsetpoint.setName("#{finished_zone.name} temperature setpoint")
         runner.registerInfo("Created new thermostat #{thermostatsetpointdualsetpoint.name} for #{finished_zone.name}.")
-        thermostatsetpointdualsetpoint.setCoolingSetpointTemperatureSchedule(coolingsetpoint.schedule)
-        finished_zone.setThermostatSetpointDualSetpoint(thermostatsetpointdualsetpoint)
         thermostatsetpointdualsetpoint.setHeatingSetpointTemperatureSchedule(heatingsetpoint.schedule)
+        thermostatsetpointdualsetpoint.setCoolingSetpointTemperatureSchedule(coolingsetpoint.schedule)        
+        finished_zone.setThermostatSetpointDualSetpoint(thermostatsetpointdualsetpoint)        
         runner.registerInfo("Set a dummy heating setpoint schedule for #{thermostatsetpointdualsetpoint.name}.")              
       
       end

@@ -238,7 +238,7 @@ class ProcessVRFMinisplit < OpenStudio::Ruleset::ModelUserScript
     end
     baseboardEfficiency = runner.getDoubleArgumentValue("supplemental_efficiency",user_arguments)
     baseboardOutputCapacity = runner.getStringArgumentValue("supplemental_capacity",user_arguments)
-    if not baseboardOutputCapacity == Constants.SizingAuto and not baseboardOutputCapacity == "NO SUPP HEAT"
+    unless baseboardOutputCapacity == Constants.SizingAuto and not baseboardOutputCapacity == "NO SUPP HEAT"
       baseboardOutputCapacity = OpenStudio::convert(baseboardOutputCapacity.split(" ")[0].to_f,"kBtu/h","Btu/h").get
     end    
         
@@ -267,27 +267,87 @@ class ProcessVRFMinisplit < OpenStudio::Ruleset::ModelUserScript
     # Get building units
     units = Geometry.get_building_units(model, runner)
     if units.nil?
-        return false
+      return false
     end
-
-    # Remove any existing airflow objects
-    HelperMethods.remove_object_from_osm_based_on_name(model, "OutputVariable", ["VRF Heat Pump Heating Electric Energy", "Zone Outdoor Air Drybulb Temperature"])
-    HelperMethods.remove_object_from_osm_based_on_name(model, "EnergyManagementSystemSensor", ["E_mshp_", "E_mshp_fb_", "Tout_"])
-    HelperMethods.remove_object_from_osm_based_on_name(model, "EnergyManagementSystemActuator", ["E_pan_"])
-    HelperMethods.remove_object_from_osm_based_on_name(model, "EnergyManagementSystemProgram", ["PanHeaterProgram_"])
-    HelperMethods.remove_object_from_osm_based_on_name(model, "EnergyManagementSystemProgramCallingManager", ["PanHeaterProgramCallingManager_"])
-    HelperMethods.remove_object_from_osm_based_on_name(model, "ElectricEquipmentDefinition", ["PanHeater_"])
+    
+    model.getOutputVariables.each do |output_var|
+      next unless output_var.name.to_s == Constants.ObjectNameMiniSplitHeatPump + " vrf heat energy output var"
+      output_var.remove
+    end
+    model.getOutputVariables.each do |output_var|
+      next unless output_var.name.to_s == Constants.ObjectNameMiniSplitHeatPump + " zone outdoor air drybulb temp output var"
+      output_var.remove
+    end    
+    if miniSplitHPPanHeaterPowerPerUnit > 0    
+      vrf_heating_output_var = OpenStudio::Model::OutputVariable.new("VRF Heat Pump Heating Electric Energy", model)
+      vrf_heating_output_var.setName(Constants.ObjectNameMiniSplitHeatPump + " vrf heat energy output var")
+      zone_outdoor_air_drybulb_temp_output_var = OpenStudio::Model::OutputVariable.new("Zone Outdoor Air Drybulb Temperature", model)
+      zone_outdoor_air_drybulb_temp_output_var.setName(Constants.ObjectNameMiniSplitHeatPump + " zone outdoor air drybulb temp output var")
+    end
+    
+    model.getScheduleConstants.each do |sch|
+      next unless sch.name.to_s == "SupplyFanAvailability" or sch.name.to_s == "SupplyFanOperation"
+      sch.remove
+    end    
+    
+    supply_fan_availability = OpenStudio::Model::ScheduleConstant.new(model)
+    supply_fan_availability.setName("SupplyFanAvailability")
+    supply_fan_availability.setValue(1)        
+    
+    supply_fan_operation = OpenStudio::Model::ScheduleConstant.new(model)
+    supply_fan_operation.setName("SupplyFanOperation")
+    supply_fan_operation.setValue(0)
     
     units.each do |unit|
-      unit_num = Geometry.get_unit_number(model, unit, runner)
+    
+      obj_name = Constants.ObjectNameMiniSplitHeatPump(unit.name.to_s)
+
+      # Remove existing mini-split heat pump pan heater
+      model.getEnergyManagementSystemSensors.each do |sensor|
+        next unless sensor.name.to_s == "#{obj_name} vrf energy sensor".gsub(" ","_").gsub("|","_")
+        sensor.remove
+      end
+      model.getEnergyManagementSystemSensors.each do |sensor|
+        next unless sensor.name.to_s == "#{obj_name} vrf fbsmt energy sensor".gsub(" ","_").gsub("|","_")
+        sensor.remove
+      end
+      model.getEnergyManagementSystemSensors.each do |sensor|
+        next unless sensor.name.to_s == "#{obj_name} tout sensor".gsub(" ","_").gsub("|","_")
+        sensor.remove
+      end
+      model.getEnergyManagementSystemActuators.each do |actuator|
+        next unless actuator.name.to_s == "#{obj_name} pan heater actuator".gsub(" ","_").gsub("|","_")
+        actuator.remove
+      end
+      model.getEnergyManagementSystemPrograms.each do |program|
+        next unless program.name.to_s == "#{obj_name} pan heater program".gsub(" ","_")
+        program.remove
+      end          
+      model.getEnergyManagementSystemProgramCallingManagers.each do |program_calling_manager|
+        next unless program_calling_manager.name.to_s == obj_name + " pan heater program calling manager"
+        program_calling_manager.remove
+      end
+    
       thermal_zones = Geometry.get_thermal_zones_from_spaces(unit.spaces)
       
       control_slave_zones_hash = HVAC.get_control_and_slave_zones(thermal_zones)
       control_slave_zones_hash.each do |control_zone, slave_zones|
       
+        control_zone.spaces.each do |space|
+          space.electricEquipment.each do |equip|
+            next unless equip.name.to_s == obj_name + " pan heater equip"
+            equip.electricEquipmentDefinition.remove
+          end
+        end
+      
+        total_slave_zone_floor_area = 0
+        slave_zones.each do |slave_zone|
+          total_slave_zone_floor_area += slave_zone.floorArea
+        end
+      
         fbsmt_frac = 0.0
         unless slave_zones.empty?
-          fbsmt_frac = slave_zones[0].floorArea / (control_zone.floorArea + slave_zones[0].floorArea)
+          fbsmt_frac = total_slave_zone_floor_area / (control_zone.floorArea + total_slave_zone_floor_area)
         end
 
         # Remove existing equipment
@@ -296,7 +356,7 @@ class ProcessVRFMinisplit < OpenStudio::Ruleset::ModelUserScript
         # _processSystemHeatingCoil
         
         htg_coil = OpenStudio::Model::CoilHeatingDXVariableRefrigerantFlow.new(model)
-        htg_coil.setName("#{control_zone.name} DX Heating Coil_#{unit_num}")
+        htg_coil.setName(obj_name + " #{control_zone.name} heating coil")
         if miniSplitCoolingOutputCapacity != Constants.SizingAuto
           htg_coil.setRatedTotalHeatingCapacity(OpenStudio::convert(miniSplitHeatingOutputCapacity,"Btu/h","W").get * supply.Capacity_Ratio_Heating[curves.mshp_indices[-1]] * (1.0 - fbsmt_frac))
           htg_coil.setRatedAirFlowRate(supply.HeatingCFMs[curves.mshp_indices[-1]] * miniSplitHeatingOutputCapacity * OpenStudio::convert(1.0,"Btu/h","ton").get * OpenStudio::convert(1.0,"cfm","m^3/s").get * (1.0 - fbsmt_frac))
@@ -307,7 +367,7 @@ class ProcessVRFMinisplit < OpenStudio::Ruleset::ModelUserScript
         # _processSystemCoolingCoil
         
         clg_coil = OpenStudio::Model::CoilCoolingDXVariableRefrigerantFlow.new(model)
-        clg_coil.setName("#{control_zone.name} DX Cooling Coil_#{unit_num}")
+        clg_coil.setName(obj_name + " #{control_zone.name} cooling coil")
         if miniSplitCoolingOutputCapacity != Constants.SizingAuto
           clg_coil.setRatedTotalCoolingCapacity(OpenStudio::convert(miniSplitCoolingOutputCapacity,"Btu/h","W").get * supply.Capacity_Ratio_Cooling[curves.mshp_indices[-1]] * (1.0 - fbsmt_frac))
           clg_coil.setRatedSensibleHeatRatio(supply.SHR_Rated[curves.mshp_indices[-1]])
@@ -319,7 +379,7 @@ class ProcessVRFMinisplit < OpenStudio::Ruleset::ModelUserScript
         # _processSystemAir
         
         vrf = OpenStudio::Model::AirConditionerVariableRefrigerantFlow.new(model)
-        vrf.setName("#{control_zone.name} Multi Split Heat Pump_#{unit_num}")
+        vrf.setName(obj_name + " #{control_zone.name} ac vrf")
         vrf.setAvailabilitySchedule(model.alwaysOnDiscreteSchedule)
         if miniSplitCoolingOutputCapacity != Constants.SizingAuto
           vrf.setRatedTotalCoolingCapacity(OpenStudio::convert(miniSplitCoolingOutputCapacity,"Btu/h","W").get * supply.Capacity_Ratio_Cooling[curves.mshp_indices[-1]] * (1.0 - fbsmt_frac))
@@ -359,27 +419,19 @@ class ProcessVRFMinisplit < OpenStudio::Ruleset::ModelUserScript
         vrf.setEquivalentPipingLengthusedforPipingCorrectionFactorinHeatingMode(0)
 
         # _processSystemFan
-        
-        supply_fan_availability = OpenStudio::Model::ScheduleConstant.new(model)
-        supply_fan_availability.setName("SupplyFanAvailability")
-        supply_fan_availability.setValue(1)
 
         fan = OpenStudio::Model::FanOnOff.new(model, supply_fan_availability)
-        fan.setName("Supply Fan_#{unit_num}")
+        fan.setName(obj_name + " #{control_zone.name} supply fan")
         fan.setEndUseSubcategory(Constants.EndUseHVACFan)
         fan.setFanEfficiency(supply.eff)
         fan.setPressureRise(supply.static)
         fan.setMotorEfficiency(1)
-        fan.setMotorInAirstreamFraction(1)
-        
-        supply_fan_operation = OpenStudio::Model::ScheduleConstant.new(model)
-        supply_fan_operation.setName("SupplyFanOperation")
-        supply_fan_operation.setValue(0)          
+        fan.setMotorInAirstreamFraction(1)       
         
         # _processSystemDemandSideAir
         
         tu_vrf = OpenStudio::Model::ZoneHVACTerminalUnitVariableRefrigerantFlow.new(model, clg_coil, htg_coil, fan)
-        tu_vrf.setName("#{control_zone.name} indoor unit_#{unit_num}")
+        tu_vrf.setName(obj_name + " #{control_zone.name} zone vrf")
         tu_vrf.setTerminalUnitAvailabilityschedule(model.alwaysOnDiscreteSchedule)
         tu_vrf.setSupplyAirFanOperatingModeSchedule(supply_fan_operation)
         tu_vrf.setZoneTerminalUnitOnParasiticElectricEnergyUse(0)
@@ -387,38 +439,28 @@ class ProcessVRFMinisplit < OpenStudio::Ruleset::ModelUserScript
         tu_vrf.setRatedTotalHeatingCapacitySizingRatio(1)
         tu_vrf.addToThermalZone(control_zone)
         vrf.addTerminal(tu_vrf)
-        runner.registerInfo("Added variable refrigerant flow terminal unit '#{tu_vrf.name}' to thermal zone '#{control_zone.name}' of #{unit.name.to_s}")        
+        runner.registerInfo("Added '#{tu_vrf.name}' to '#{control_zone.name}' of #{unit.name}")        
         
         # Supplemental heat
         unless baseboardOutputCapacity == "NO SUPP HEAT"
           supp_htg_coil = OpenStudio::Model::ZoneHVACBaseboardConvectiveElectric.new(model)
-          supp_htg_coil.setName("#{control_zone.name} electric baseboards_#{unit_num}")
+          supp_htg_coil.setName(obj_name + " #{control_zone.name} supp heater")
           if baseboardOutputCapacity != Constants.SizingAuto
             supp_htg_coil.setNominalCapacity(OpenStudio::convert(baseboardOutputCapacity,"Btu/h","W").get)
           end
           supp_htg_coil.setEfficiency(baseboardEfficiency)
           supp_htg_coil.addToThermalZone(control_zone)
-          runner.registerInfo("Added baseboard convective electric '#{supp_htg_coil.name}' to thermal zone '#{control_zone.name}' of #{unit.name.to_s}")     
-        end              
-
-        if miniSplitHPPanHeaterPowerPerUnit > 0
-          
-          vrf_heating_output_var = OpenStudio::Model::OutputVariable.new("VRF Heat Pump Heating Electric Energy", model)
-          vrf_heating_output_var.setName("VRF Heat Pump Heating Electric Energy_#{unit_num}")
-          
-          sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, vrf_heating_output_var)
-          sensor.setName("E_mshp_#{unit_num}")
-          sensor.setKeyName("#{control_zone.name} Multi Split Heat Pump_#{unit_num}")
-        
+          runner.registerInfo("Added '#{supp_htg_coil.name}' to '#{control_zone.name}' of #{unit.name}")     
         end
         
+        vrf_fbsmt_sensor = nil
         slave_zones.each do |slave_zone|
 
           # Remove existing equipment
           HVAC.remove_existing_hvac_equipment(model, runner, "Mini-Split Heat Pump", slave_zone)
           
           htg_coil = OpenStudio::Model::CoilHeatingDXVariableRefrigerantFlow.new(model)
-          htg_coil.setName("#{slave_zone.name} DX Heating Coil_#{unit_num}")
+          htg_coil.setName(obj_name + " #{slave_zone.name} heating coil")
           if miniSplitCoolingOutputCapacity != Constants.SizingAuto
             htg_coil.setRatedTotalHeatingCapacity(OpenStudio::convert(miniSplitHeatingOutputCapacity,"Btu/h","W").get * supply.Capacity_Ratio_Heating[curves.mshp_indices[-1]] * fbsmt_frac)
             htg_coil.setRatedAirFlowRate(supply.HeatingCFMs[curves.mshp_indices[-1]]* miniSplitHeatingOutputCapacity * OpenStudio::convert(1.0,"Btu/h","ton").get * OpenStudio::convert(1.0,"cfm","m^3/s").get * fbsmt_frac)
@@ -427,7 +469,7 @@ class ProcessVRFMinisplit < OpenStudio::Ruleset::ModelUserScript
           htg_coil.setHeatingCapacityModifierFunctionofFlowFractionCurve(constant_cubic)        
                   
           clg_coil = OpenStudio::Model::CoilCoolingDXVariableRefrigerantFlow.new(model)
-          clg_coil.setName("#{slave_zone.name} DX Cooling Coil_#{unit_num}")
+          clg_coil.setName(obj_name + " #{slave_zone.name} cooling coil")
           if miniSplitCoolingOutputCapacity != Constants.SizingAuto
             clg_coil.setRatedTotalCoolingCapacity(OpenStudio::convert(miniSplitCoolingOutputCapacity,"Btu/h","W").get * supply.Capacity_Ratio_Cooling[curves.mshp_indices[-1]] * fbsmt_frac)
             clg_coil.setRatedSensibleHeatRatio(supply.SHR_Rated[curves.mshp_indices[-1]])
@@ -437,7 +479,7 @@ class ProcessVRFMinisplit < OpenStudio::Ruleset::ModelUserScript
           clg_coil.setCoolingCapacityModifierCurveFunctionofFlowFraction(constant_cubic)
                 
           vrf = OpenStudio::Model::AirConditionerVariableRefrigerantFlow.new(model)
-          vrf.setName("#{slave_zone.name} Multi Split Heat Pump_#{unit_num}")
+          vrf.setName(obj_name + " #{slave_zone.name} ac vrf")
           vrf.setAvailabilitySchedule(model.alwaysOnDiscreteSchedule)          
           if miniSplitCoolingOutputCapacity != Constants.SizingAuto
             vrf.setRatedTotalCoolingCapacity(OpenStudio::convert(miniSplitCoolingOutputCapacity,"Btu/h","W").get * supply.Capacity_Ratio_Cooling[curves.mshp_indices[-1]] * fbsmt_frac)
@@ -477,7 +519,7 @@ class ProcessVRFMinisplit < OpenStudio::Ruleset::ModelUserScript
           vrf.setEquivalentPipingLengthusedforPipingCorrectionFactorinHeatingMode(0)     
 
           fan = OpenStudio::Model::FanOnOff.new(model, supply_fan_availability)
-          fan.setName("Supply Fan_#{unit_num}")
+          fan.setName(obj_name + " #{slave_zone.name} supply fan")
           fan.setEndUseSubcategory(Constants.EndUseHVACFan)
           fan.setFanEfficiency(supply.eff)
           fan.setPressureRise(supply.static)
@@ -485,7 +527,7 @@ class ProcessVRFMinisplit < OpenStudio::Ruleset::ModelUserScript
           fan.setMotorInAirstreamFraction(1)
                     
           tu_vrf = OpenStudio::Model::ZoneHVACTerminalUnitVariableRefrigerantFlow.new(model, clg_coil, htg_coil, fan)
-          tu_vrf.setName("#{slave_zone.name} indoor unit_#{unit_num}")
+          tu_vrf.setName(obj_name + " #{slave_zone.name} zone vrf")
           tu_vrf.setTerminalUnitAvailabilityschedule(model.alwaysOnDiscreteSchedule)
           tu_vrf.setSupplyAirFanOperatingModeSchedule(supply_fan_operation)
           tu_vrf.setZoneTerminalUnitOnParasiticElectricEnergyUse(0)
@@ -493,57 +535,57 @@ class ProcessVRFMinisplit < OpenStudio::Ruleset::ModelUserScript
           tu_vrf.setRatedTotalHeatingCapacitySizingRatio(1)
           tu_vrf.addToThermalZone(slave_zone)
           vrf.addTerminal(tu_vrf)
-          runner.registerInfo("Added variable refrigerant flow terminal unit '#{tu_vrf.name}' to thermal zone '#{slave_zone.name}' of #{unit.name.to_s}") 
+          runner.registerInfo("Added '#{tu_vrf.name}' to '#{slave_zone.name}' of #{unit.name}") 
           
           unless baseboardOutputCapacity == "NO SUPP HEAT"
             supp_htg_coil = OpenStudio::Model::ZoneHVACBaseboardConvectiveElectric.new(model)
-            supp_htg_coil.setName("#{slave_zone.name} electric baseboards_#{unit_num}")
+            supp_htg_coil.setName(obj_name + " #{slave_zone.name} supp heater")
             if baseboardOutputCapacity != Constants.SizingAuto
               supp_htg_coil.setNominalCapacity(OpenStudio::convert(baseboardOutputCapacity,"Btu/h","W").get)
             end
             supp_htg_coil.setEfficiency(baseboardEfficiency)
             supp_htg_coil.addToThermalZone(slave_zone)
-            runner.registerInfo("Added baseboard convective electric '#{supp_htg_coil.name}' to thermal zone '#{slave_zone.name}' of #{unit.name.to_s}")
+            runner.registerInfo("Added '#{supp_htg_coil.name}' to '#{slave_zone.name}' of #{unit.name}")
           end
-
-          if miniSplitHPPanHeaterPowerPerUnit > 0
           
-            sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, vrf_heating_output_var)
-            sensor.setName("E_mshp_fb_#{unit_num}")
-            sensor.setKeyName("#{slave_zone.name} Multi Split Heat Pump_#{unit_num}")          
-
+          if miniSplitHPPanHeaterPowerPerUnit > 0            
+            vrf_fbsmt_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, vrf_heating_output_var)
+            vrf_fbsmt_sensor.setName("#{obj_name} vrf fbsmt energy sensor".gsub("|","_"))
+            vrf_fbsmt_sensor.setKeyName(obj_name + " #{slave_zone.name} ac vrf")
           end
             
         end
       
         if miniSplitHPPanHeaterPowerPerUnit > 0
-        
+
+          vrf_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, vrf_heating_output_var)
+          vrf_sensor.setName("#{obj_name} vrf energy sensor".gsub("|","_"))
+          vrf_sensor.setKeyName(obj_name + " #{control_zone.name} ac vrf")
+     
           equip_def = OpenStudio::Model::ElectricEquipmentDefinition.new(model)
-          equip_def.setName("PanHeater_#{unit_num}")
+          equip_def.setName(obj_name + " pan heater equip")
           equip = OpenStudio::Model::ElectricEquipment.new(equip_def)
-          equip.setName("PanHeater_#{unit_num}")
+          equip.setName(equip_def.name.to_s)
           equip.setSpace(control_zone.spaces[0])
           equip_def.setFractionRadiant(0)
           equip_def.setFractionLatent(0)
           equip_def.setFractionLost(1)
           equip.setSchedule(model.alwaysOnDiscreteSchedule)
-        
-          actuator = OpenStudio::Model::EnergyManagementSystemActuator.new(equip, "ElectricEquipment", "Electric Power Level")
-          actuator.setName("E_pan_#{unit_num}")        
-          
-          zone_outdoor_air_drybulb_temp_output_var = OpenStudio::Model::OutputVariable.new("Zone Outdoor Air Drybulb Temperature", model)
-          zone_outdoor_air_drybulb_temp_output_var.setName("Zone Outdoor Air Drybulb Temperature")
-          sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, zone_outdoor_air_drybulb_temp_output_var)
-          sensor.setName("Tout_#{unit_num}")
+
+          pan_heater_actuator = OpenStudio::Model::EnergyManagementSystemActuator.new(equip, "ElectricEquipment", "Electric Power Level")
+          pan_heater_actuator.setName("#{obj_name} pan heater actuator".gsub("|","_"))
+
+          tout_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, zone_outdoor_air_drybulb_temp_output_var)
+          tout_sensor.setName("#{obj_name} tout sensor".gsub("|","_"))
           thermal_zones.each do |thermal_zone|
             if thermal_zone.name.to_s.start_with? Constants.LivingZone
-              sensor.setKeyName(thermal_zone.name.to_s)
+              tout_sensor.setKeyName(thermal_zone.name.to_s)
               break
             end
           end
 
           program = OpenStudio::Model::EnergyManagementSystemProgram.new(model)
-          program.setName("PanHeaterProgram_#{unit_num}")          
+          program.setName(obj_name + " pan heater program")
           if miniSplitCoolingOutputCapacity != Constants.SizingAuto
             num_outdoor_units = (OpenStudio::convert(miniSplitCoolingOutputCapacity,"Btu/h","ton").get / 1.5).ceil # Assume 1.5 tons max per outdoor unit
           else
@@ -553,18 +595,21 @@ class ProcessVRFMinisplit < OpenStudio::Ruleset::ModelUserScript
             num_outdoor_units = [num_outdoor_units, 2].max
           end
           pan_heater_power = miniSplitHPPanHeaterPowerPerUnit * num_outdoor_units # W
-          program.addLine("Set E_pan_#{unit_num} = 0")
+          program.addLine("Set #{pan_heater_actuator.name} = 0")
           if slave_zones.empty?
-            program.addLine("Set E_mshp_fb_#{unit_num} = 0")
-          end
-          program.addLine("If E_mshp_#{unit_num} > 0 || E_mshp_fb_#{unit_num} > 0")
-          program.addLine("If Tout_#{unit_num} <= #{OpenStudio::convert(32.0,"F","C").get}")
-          program.addLine("Set E_pan_#{unit_num} = #{pan_heater_power}")
+            program.addLine("Set vrf_fbsmt_sensor = 0")
+            program.addLine("If #{vrf_sensor.name} > 0 || vrf_fbsmt_sensor > 0")
+          else
+            program.addLine("Set #{vrf_fbsmt_sensor.name} = 0")
+            program.addLine("If #{vrf_sensor.name} > 0 || #{vrf_fbsmt_sensor.name} > 0")
+          end          
+          program.addLine("If #{tout_sensor.name} <= #{OpenStudio::convert(32.0,"F","C").get.round(3)}")
+          program.addLine("Set #{pan_heater_actuator.name} = #{pan_heater_power}")
           program.addLine("EndIf")
           program.addLine("EndIf")
-          
+         
           program_calling_manager = OpenStudio::Model::EnergyManagementSystemProgramCallingManager.new(model)
-          program_calling_manager.setName("PanHeaterProgramCallingManager_#{unit_num}")
+          program_calling_manager.setName(obj_name + " pan heater program calling manager")
           program_calling_manager.setCallingPoint("BeginTimestepBeforePredictor")
           program_calling_manager.addProgram(program)
           
@@ -726,7 +771,7 @@ class ProcessVRFMinisplit < OpenStudio::Ruleset::ModelUserScript
         supply.Capacity_Ratio_Cooling[i] = cap_min_per + i*(cap_max_per - cap_min_per)/(cops_Norm.length-1)
         supply.CoolingCFMs[i]= cfm_ton_min + i*(cfm_ton_max - cfm_ton_min)/(cops_Norm.length-1)
         
-        # Calculate the SHR for each speed. Use mimnimum value of 0.98 to prevent E+ bypass factor calculation errors
+        # Calculate the SHR for each speed. Use minimum value of 0.98 to prevent E+ bypass factor calculation errors
         supply.SHR_Rated[i] = [Psychrometrics.CalculateSHR(dB_rated, wB_rated, Constants.Patm, 
                                                                    OpenStudio::convert(supply.Capacity_Ratio_Cooling[i],"ton","kBtu/h").get, 
                                                                    supply.CoolingCFMs[i], ao), 0.98].min
@@ -754,7 +799,7 @@ class ProcessVRFMinisplit < OpenStudio::Ruleset::ModelUserScript
         error = coolingSEER - calc_SEER_VariableSpeed(runner, eers_Rated, c_d, supply.Capacity_Ratio_Cooling, supply.CoolingCFMs, fanPowsRated, 
                                                      true, curves.Number_Speeds, curves)
         
-        cop_maxSpeed,cvg,cop_maxSpeed_1,error1,cop_maxSpeed_2,error2 = HelperMethods.Iterate(cop_maxSpeed,error,cop_maxSpeed_1,error1,cop_maxSpeed_2,error2,n,cvg)
+        cop_maxSpeed,cvg,cop_maxSpeed_1,error1,cop_maxSpeed_2,error2 = MathTools.Iterate(cop_maxSpeed,error,cop_maxSpeed_1,error1,cop_maxSpeed_2,error2,n,cvg)
     
         if cvg 
             break
@@ -806,20 +851,20 @@ class ProcessVRFMinisplit < OpenStudio::Ruleset::ModelUserScript
     end
 
     eir_A2 = HVAC.calc_EIR_from_EER(eer_A[n_max], supplyFanPower_Rated[n_max])    
-    eir_B2 = eir_A2 * HelperMethods.biquadratic(wBin, tout_B, curves.COOL_EIR_FT_SPEC_coefficients[n_max]) 
+    eir_B2 = eir_A2 * MathTools.biquadratic(wBin, tout_B, curves.COOL_EIR_FT_SPEC_coefficients[n_max]) 
     
     eir_Av = HVAC.calc_EIR_from_EER(eer_A[n_int], supplyFanPower_Rated[n_int])    
-    eir_Ev = eir_Av * HelperMethods.biquadratic(wBin, tout_E, curves.COOL_EIR_FT_SPEC_coefficients[n_int])
+    eir_Ev = eir_Av * MathTools.biquadratic(wBin, tout_E, curves.COOL_EIR_FT_SPEC_coefficients[n_int])
     
     eir_A1 = HVAC.calc_EIR_from_EER(eer_A[n_min], supplyFanPower_Rated[n_min])
-    eir_B1 = eir_A1 * HelperMethods.biquadratic(wBin, tout_B, curves.COOL_EIR_FT_SPEC_coefficients[n_min]) 
-    eir_F1 = eir_A1 * HelperMethods.biquadratic(wBin, tout_F, curves.COOL_EIR_FT_SPEC_coefficients[n_min])
+    eir_B1 = eir_A1 * MathTools.biquadratic(wBin, tout_B, curves.COOL_EIR_FT_SPEC_coefficients[n_min]) 
+    eir_F1 = eir_A1 * MathTools.biquadratic(wBin, tout_F, curves.COOL_EIR_FT_SPEC_coefficients[n_min])
     
     q_A2 = capacityRatio[n_max]
-    q_B2 = q_A2 * HelperMethods.biquadratic(wBin, tout_B, curves.COOL_CAP_FT_SPEC_coefficients[n_max])    
-    q_Ev = capacityRatio[n_int] * HelperMethods.biquadratic(wBin, tout_E, curves.COOL_CAP_FT_SPEC_coefficients[n_int])            
-    q_B1 = capacityRatio[n_min] * HelperMethods.biquadratic(wBin, tout_B, curves.COOL_CAP_FT_SPEC_coefficients[n_min])
-    q_F1 = capacityRatio[n_min] * HelperMethods.biquadratic(wBin, tout_F, curves.COOL_CAP_FT_SPEC_coefficients[n_min])
+    q_B2 = q_A2 * MathTools.biquadratic(wBin, tout_B, curves.COOL_CAP_FT_SPEC_coefficients[n_max])    
+    q_Ev = capacityRatio[n_int] * MathTools.biquadratic(wBin, tout_E, curves.COOL_CAP_FT_SPEC_coefficients[n_int])            
+    q_B1 = capacityRatio[n_min] * MathTools.biquadratic(wBin, tout_B, curves.COOL_CAP_FT_SPEC_coefficients[n_min])
+    q_F1 = capacityRatio[n_min] * MathTools.biquadratic(wBin, tout_F, curves.COOL_CAP_FT_SPEC_coefficients[n_min])
             
     q_A2_net = q_A2 - supplyFanPower_Rated[n_max] * OpenStudio::convert(1,"W","Btu/h").get * cfm_Tons[n_max] / OpenStudio::convert(1,"ton","Btu/h").get
     q_B2_net = q_B2 - supplyFanPower_Rated[n_max] * OpenStudio::convert(1,"W","Btu/h").get * cfm_Tons[n_max] / OpenStudio::convert(1,"ton","Btu/h").get       
@@ -949,7 +994,7 @@ class ProcessVRFMinisplit < OpenStudio::Ruleset::ModelUserScript
         
         error = heatingHSPF - calc_HSPF_VariableSpeed(runner, cops_Rated, c_d, supply.Capacity_Ratio_Heating, supply.CoolingCFMs, fanPowsRated, min_T, curves.Number_Speeds, mshp_capacity_retention_fraction, mshp_capacity_retention_temperature, curves)  
 
-        cop_maxSpeed,cvg,cop_maxSpeed_1,error1,cop_maxSpeed_2,error2 = HelperMethods.Iterate(cop_maxSpeed,error,cop_maxSpeed_1,error1,cop_maxSpeed_2,error2,n,cvg)
+        cop_maxSpeed,cvg,cop_maxSpeed_1,error1,cop_maxSpeed_2,error2 = MathTools.Iterate(cop_maxSpeed,error,cop_maxSpeed_1,error1,cop_maxSpeed_2,error2,n,cvg)
     
         if cvg
             break
@@ -967,7 +1012,7 @@ class ProcessVRFMinisplit < OpenStudio::Ruleset::ModelUserScript
 
     curves.HEAT_CLOSS_FPLR_SPEC_coefficients = [(1 - c_d), c_d, 0]    # Linear part load model
             
-    # Supply Air Tempteratures     
+    # Supply Air Temperatures     
     supply.htg_supply_air_temp = 105.0 # used for sizing heating flow rate
     supply.supp_htg_max_supply_temp = 200.0 # Setting to 200F since MSHPs use electric baseboard for backup, which shouldn't be limited by a supply air temperature limit
     supply.min_hp_temp = min_T          # Minimum temperature for Heat Pump operation
@@ -1000,21 +1045,21 @@ class ProcessVRFMinisplit < OpenStudio::Ruleset::ModelUserScript
     end
     
     eir_H1_2 = HVAC.calc_EIR_from_COP(cop_47[n_max], supplyFanPower_Rated[n_max])    
-    eir_H3_2 = eir_H1_2 * HelperMethods.biquadratic(tin, tout_3, curves.HEAT_EIR_FT_SPEC_coefficients[n_max])
+    eir_H3_2 = eir_H1_2 * MathTools.biquadratic(tin, tout_3, curves.HEAT_EIR_FT_SPEC_coefficients[n_max])
 
     eir_adjv = HVAC.calc_EIR_from_COP(cop_47[n_int], supplyFanPower_Rated[n_int])    
-    eir_H2_v = eir_adjv * HelperMethods.biquadratic(tin, tout_2, curves.HEAT_EIR_FT_SPEC_coefficients[n_int])
+    eir_H2_v = eir_adjv * MathTools.biquadratic(tin, tout_2, curves.HEAT_EIR_FT_SPEC_coefficients[n_int])
         
     eir_H1_1 = HVAC.calc_EIR_from_COP(cop_47[n_min], supplyFanPower_Rated[n_min])
-    eir_H0_1 = eir_H1_1 * HelperMethods.biquadratic(tin, tout_0, curves.HEAT_EIR_FT_SPEC_coefficients[n_min])
+    eir_H0_1 = eir_H1_1 * MathTools.biquadratic(tin, tout_0, curves.HEAT_EIR_FT_SPEC_coefficients[n_min])
         
     q_H1_2 = capacityRatio[n_max]
-    q_H3_2 = q_H1_2 * HelperMethods.biquadratic(tin, tout_3, curves.HEAT_CAP_FT_SPEC_coefficients[n_max])    
+    q_H3_2 = q_H1_2 * MathTools.biquadratic(tin, tout_3, curves.HEAT_CAP_FT_SPEC_coefficients[n_max])    
         
-    q_H2_v = capacityRatio[n_int] * HelperMethods.biquadratic(tin, tout_2, curves.HEAT_CAP_FT_SPEC_coefficients[n_int])
+    q_H2_v = capacityRatio[n_int] * MathTools.biquadratic(tin, tout_2, curves.HEAT_CAP_FT_SPEC_coefficients[n_int])
     
     q_H1_1 = capacityRatio[n_min]
-    q_H0_1 = q_H1_1 * HelperMethods.biquadratic(tin, tout_0, curves.HEAT_CAP_FT_SPEC_coefficients[n_min])
+    q_H0_1 = q_H1_1 * MathTools.biquadratic(tin, tout_0, curves.HEAT_CAP_FT_SPEC_coefficients[n_min])
                                   
     q_H1_2_net = q_H1_2 + supplyFanPower_Rated[n_max] * OpenStudio::convert(1,"W","Btu/h").get * cfm_Tons[n_max] / OpenStudio::convert(1,"ton","Btu/h").get
     q_H3_2_net = q_H3_2 + supplyFanPower_Rated[n_max] * OpenStudio::convert(1,"W","Btu/h").get * cfm_Tons[n_max] / OpenStudio::convert(1,"ton","Btu/h").get

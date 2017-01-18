@@ -4,10 +4,6 @@ require "#{File.dirname(__FILE__)}/constants"
 
 class HelperMethods
     
-    def self.valid_float?(str)
-        !!Float(str) rescue false
-    end
-    
     def self.remove_object_from_idf_based_on_name(workspace, name_s, object_s, runner=nil) # TODO: remove after testing new airflow measure
       workspace.getObjectsByType(object_s.to_IddObjectType).each do |str|
         n = str.getString(0).to_s
@@ -22,18 +18,6 @@ class HelperMethods
         end
       end
       return workspace
-    end    
-    
-    def self.remove_object_from_osm_based_on_name(model, object_type, names)
-      model.send("get#{object_type}s").each do |object|
-        names.each do |name|
-          next unless object.name.to_s.downcase.start_with? name.downcase
-          begin
-            object.remove
-          rescue
-          end
-        end
-      end      
     end
     
     def self.eplus_fuel_map(fuel)
@@ -65,6 +49,122 @@ class HelperMethods
         end
     end
 
+    def self.get_design_day_temperature(model, runner, dd_name)
+        model.getDesignDays.each do |d|
+            if d.name.get =~ /#{dd_name}/
+                return OpenStudio::convert(d.maximumDryBulbTemperature, "C", "F").get
+            end
+        end
+        runner.registerError("Could not find design day temperature.")
+        return nil
+    end
+    
+end
+
+class MathTools
+
+    def self.valid_float?(str)
+        !!Float(str) rescue false
+    end
+    
+    def self.interp2(x, x0, x1, f0, f1)
+        '''
+        Returns the linear interpolation between two results.
+        '''
+        
+        return f0 + ((x - x0) / (x1 - x0)) * (f1 - f0)
+    end
+    
+    def self.interp4(x, y, x1, x2, y1, y2, fx1y1, fx1y2, fx2y1, fx2y2)
+        '''
+        Returns the bilinear interpolation between four results.
+        '''
+        
+        return (fx1y1 / ((x2-x1) * (y2-y1))) * (x2-x) * (y2-y) \
+              + (fx2y1 / ((x2-x1) * (y2-y1))) * (x-x1) * (y2-y) \
+              + (fx1y2 / ((x2-x1) * (y2-y1))) * (x2-x) * (y-y1) \
+              + (fx2y2 / ((x2-x1) * (y2-y1))) * (x-x1) * (y-y1)
+
+    end
+
+    def self.biquadratic(x,y,c)
+        '''
+        Description:
+        ------------
+            Calculate the result of a biquadratic polynomial with independent variables
+            x and y, and a list of coefficients, c:
+            z = c[1] + c[2]*x + c[3]*x**2 + c[4]*y + c[5]*y**2 + c[6]*x*y
+        Inputs:
+        -------
+            x       float      independent variable 1
+            y       float      independent variable 2
+            c       tuple      list of 6 coeffients [floats]
+        Outputs:
+        --------
+            z       float      result of biquadratic polynomial
+        '''
+        if c.length != 6
+            puts "Error: There must be 6 coefficients in a biquadratic polynomial"
+        end
+        z = c[0] + c[1]*x + c[2]*x**2 + c[3]*y + c[4]*y**2 + c[5]*y*x
+        return z
+    end
+        
+    def self.quadratic(x,c)
+        '''
+        Description:
+        ------------
+            Calculate the result of a quadratic polynomial with independent variable
+            x and a list of coefficients, c:
+
+            y = c[1] + c[2]*x + c[3]*x**2
+
+        Inputs:
+        -------
+            x       float      independent variable        
+            c       tuple      list of 6 coeffients [floats]
+
+        Outputs:
+        --------
+            y       float      result of biquadratic polynomial
+        '''
+        if c.size != 3
+            puts "Error: There must be 3 coefficients in a quadratic polynomial"
+        end
+        y = c[0] + c[1]*x + c[2]*x**2
+
+        return y
+    end
+        
+    def self.bicubic(x,y,c)
+        '''
+        Description:
+        ------------
+            Calculate the result of a bicubic polynomial with independent variables
+            x and y, and a list of coefficients, c:
+
+            z = c[1] + c[2]*x + c[3]*y + c[4]*x**2 + c[5]*x*y + c[6]*y**2 + \
+                c[7]*x**3 + c[8]*y*x**2 + c[9]*x*y**2 + c[10]*y**3
+
+        Inputs:
+        -------
+            x       float      independent variable 1
+            y       float      independent variable 2
+            c       tuple      list of 10 coeffients [floats]
+
+        Outputs:
+        --------
+            z       float      result of bicubic polynomial
+        '''
+        if c.size != 10
+            puts "Error: There must be 10 coefficients in a bicubic polynomial"
+        end
+        z = c[0] + c[1]*x + c[2]*y + c[3]*x**2 + c[4]*x*y + c[5]*y**2 + \
+                c[6]*x**3 + c[7]*y*x**2 + c[8]*x*y**2 + c[9]*y**3
+
+        return z
+    end
+        
     def self.Iterate(x0,f0,x1,f1,x2,f2,icount,cvg)
         '''
         Description:
@@ -215,39 +315,6 @@ class HelperMethods
             end
         end
         return x_new,cvg,x1,f1,x2,f2
-    end
-    
-    def self.biquadratic(x,y,c)
-        '''
-        Description:
-        ------------
-            Calculate the result of a biquadratic polynomial with independent variables
-            x and y, and a list of coefficients, C:
-            z = C[1] + C[2]*x + C[3]*x**2 + C[4]*y + C[5]*y**2 + C[6]*x*y
-        Inputs:
-        -------
-            x       float      independent variable 1
-            y       float      independent variable 2
-            C       tuple      list of 6 coeffients [floats]
-        Outputs:
-        --------
-            z       float      result of biquadratic polynomial
-        '''
-        if c.length != 6
-            puts "Error: There must be 6 coefficients in a biquadratic polynomial"
-        end
-        z = c[0] + c[1]*x + c[2]*x**2 + c[3]*y + c[4]*y**2 + c[5]*y*x
-        return z
-    end
-    
-    def self.get_design_day_temperature(model, runner, dd_name)
-        model.getDesignDays.each do |d|
-            if d.name.get =~ /#{dd_name}/
-                return OpenStudio::convert(d.maximumDryBulbTemperature, "C", "F").get
-            end
-        end
-        runner.registerError("Could not find design day temperature.")
-        return nil
     end
     
 end

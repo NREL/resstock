@@ -986,7 +986,7 @@ class ProcessAirflowOriginalModel < OpenStudio::Ruleset::WorkspaceUserScript
     geometry.stories = Geometry.get_building_stories(model.getSpaces)
     geometry.num_units = units.size
     geometry.above_grade_volume = Geometry.get_above_grade_finished_volume_from_spaces(model.getSpaces, true)
-    geometry.above_grade_exterior_wall_area = Geometry.calculate_exterior_wall_area(model.getSpaces, false)
+    geometry.above_grade_exterior_wall_area = Geometry.calculate_above_grade_exterior_wall_area(model.getSpaces, false)
     
     garage_thermal_zone = nil
     ufbasement_thermal_zone = nil
@@ -1066,7 +1066,7 @@ class ProcessAirflowOriginalModel < OpenStudio::Ruleset::WorkspaceUserScript
       unit = Unit.new
       unit.num_bedrooms = nbeds
       unit.num_bathrooms = nbaths
-      unit.above_grade_exterior_wall_area = Geometry.calculate_exterior_wall_area(unit_spaces, false)
+      unit.above_grade_exterior_wall_area = Geometry.calculate_above_grade_exterior_wall_area(unit_spaces, false)
       unit.above_grade_finished_floor_area = Geometry.get_above_grade_finished_floor_area_from_spaces(unit_spaces, false, runner)
       unit.finished_floor_area = Geometry.get_finished_floor_area_from_spaces(unit_spaces, false, runner)
       thermal_zones = Geometry.get_thermal_zones_from_spaces(unit_spaces)
@@ -2090,10 +2090,8 @@ class ProcessAirflowOriginalModel < OpenStudio::Ruleset::WorkspaceUserScript
         demand_side_outlet_node_name = nil
         demand_side_inlet_node_names = nil
         workspace.getObjectsByType("AirLoopHVAC".to_IddObjectType).each do |airloop|
-          if airloop.getString(0).to_s.include? "Central Air System_#{unit_num}"
-            demand_side_outlet_node_name = airloop.getString(7).to_s
-            demand_side_inlet_node_names = airloop.getString(8).to_s
-          end
+          demand_side_outlet_node_name = airloop.getString(7).to_s
+          demand_side_inlet_node_names = airloop.getString(8).to_s
         end
         if demand_side_outlet_node_name.nil?
           runner.registerError("Could not find AirLoopHVAC demand side outlet node name.")

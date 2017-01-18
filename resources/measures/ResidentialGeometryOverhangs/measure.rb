@@ -2,6 +2,7 @@
 # http://nrel.github.io/OpenStudio-user-documentation/measures/measure_writing_guide/
 
 require "#{File.dirname(__FILE__)}/resources/constants"
+require "#{File.dirname(__FILE__)}/resources/geometry"
 
 # start the measure
 class CreateResidentialOverhangs < OpenStudio::Ruleset::ModelUserScript
@@ -100,15 +101,21 @@ class CreateResidentialOverhangs < OpenStudio::Ruleset::ModelUserScript
         # return false
     # end
 
-    # Remove any existing overhangs
-    num_removed = 0
-    model.getShadingSurfaces.each do |shading_surface|
-        next if not shading_surface.name.to_s.downcase.include? "overhang"
-        shading_surface.remove
+    # Remove existing overhangs
+    num_removed = 0    
+    model.getShadingSurfaceGroups.each do |shading_surface_group|
+      remove_group = false
+      shading_surface_group.shadingSurfaces.each do |shading_surface|
+        next unless shading_surface.name.to_s.downcase.include? "overhang"
         num_removed += 1
+        remove_group = true
+      end
+      if remove_group
+        shading_surface_group.remove
+      end
     end
     if num_removed > 0
-        runner.registerInfo("#{num_removed.to_s} overhang shading surfaces removed.")
+        runner.registerInfo("#{num_removed} overhang shading surfaces removed.")
     end
     
     # No overhangs to add? Exit here.

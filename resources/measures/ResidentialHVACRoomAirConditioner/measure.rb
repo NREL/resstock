@@ -169,8 +169,23 @@ class ProcessRoomAirConditioner < OpenStudio::Ruleset::ModelUserScript
         return false
     end
     
+    model.getScheduleConstants.each do |sch|
+      next unless sch.name.to_s == "SupplyFanAvailability" or sch.name.to_s == "SupplyFanOperation"
+      sch.remove
+    end    
+    
+    supply_fan_availability = OpenStudio::Model::ScheduleConstant.new(model)
+    supply_fan_availability.setName("SupplyFanAvailability")
+    supply_fan_availability.setValue(1)           
+    
+    supply_fan_operation = OpenStudio::Model::ScheduleConstant.new(model)
+    supply_fan_operation.setName("SupplyFanOperation")
+    supply_fan_operation.setValue(0)    
+    
     units.each do |unit|
-      unit_num = Geometry.get_unit_number(model, unit, runner)
+      
+      obj_name = Constants.ObjectNameRoomAirConditioner(unit.name.to_s)
+      
       thermal_zones = Geometry.get_thermal_zones_from_spaces(unit.spaces)
 
       control_slave_zones_hash = HVAC.get_control_and_slave_zones(thermal_zones)
@@ -184,7 +199,7 @@ class ProcessRoomAirConditioner < OpenStudio::Ruleset::ModelUserScript
         # _processSystemRoomAC
       
         clg_coil = OpenStudio::Model::CoilCoolingDXSingleSpeed.new(model, model.alwaysOnDiscreteSchedule, roomac_cap_ft, roomac_cap_fff, roomac_eir_ft, roomcac_eir_fff, roomac_plf_fplr)
-        clg_coil.setName("WindowAC Coil_#{unit_num}")
+        clg_coil.setName(obj_name + " cooling coil")
         if acOutputCapacity != Constants.SizingAuto
           clg_coil.setRatedTotalCoolingCapacity(OpenStudio::convert(acOutputCapacity,"Btu/h","W").get)
           clg_coil.setRatedAirFlowRate(supply.cfm_TON_Rated[0] * acOutputCapacity * OpenStudio::convert(1.0,"Btu/h","ton").get * OpenStudio::convert(1.0,"cfm","m^3/s").get)
@@ -196,30 +211,22 @@ class ProcessRoomAirConditioner < OpenStudio::Ruleset::ModelUserScript
         clg_coil.setMaximumOutdoorDryBulbTemperatureForCrankcaseHeaterOperation(OpenStudio::OptionalDouble.new(10))
         clg_coil.setBasinHeaterSetpointTemperature(OpenStudio::OptionalDouble.new(2))
         
-        supply_fan_availability = OpenStudio::Model::ScheduleConstant.new(model)
-        supply_fan_availability.setName("SupplyFanAvailability_#{unit_num}")
-        supply_fan_availability.setValue(1)    
-        
-        fan_onoff = OpenStudio::Model::FanOnOff.new(model, supply_fan_availability)
-        fan_onoff.setName("WindowAC Fan_#{unit_num}")
-        fan_onoff.setEndUseSubcategory(Constants.EndUseHVACFan)
-        fan_onoff.setFanEfficiency(1)
-        fan_onoff.setPressureRise(0)
-        fan_onoff.setMotorEfficiency(1)
-        fan_onoff.setMotorInAirstreamFraction(0)
-        
-        supply_fan_operation = OpenStudio::Model::ScheduleConstant.new(model)
-        supply_fan_operation.setName("SupplyFanOperation_#{unit_num}")
-        supply_fan_operation.setValue(0)
+        fan = OpenStudio::Model::FanOnOff.new(model, supply_fan_availability)
+        fan.setName(obj_name + " supply fan")
+        fan.setEndUseSubcategory(Constants.EndUseHVACFan)
+        fan.setFanEfficiency(1)
+        fan.setPressureRise(0)
+        fan.setMotorEfficiency(1)
+        fan.setMotorInAirstreamFraction(0)
         
         htg_coil = OpenStudio::Model::CoilHeatingElectric.new(model, model.alwaysOffDiscreteSchedule())
-        htg_coil.setName("Always Off Heating Coil for PTAC_#{unit_num}")
+        htg_coil.setName(obj_name + " always off heating coil")
         
-        ptac = OpenStudio::Model::ZoneHVACPackagedTerminalAirConditioner.new(model, model.alwaysOnDiscreteSchedule, fan_onoff, htg_coil, clg_coil)
-        ptac.setName("Window AC_#{unit_num}")
+        ptac = OpenStudio::Model::ZoneHVACPackagedTerminalAirConditioner.new(model, model.alwaysOnDiscreteSchedule, fan, htg_coil, clg_coil)
+        ptac.setName(obj_name + " zone ptac")
         ptac.setSupplyAirFanOperatingModeSchedule(supply_fan_operation)
         ptac.addToThermalZone(control_zone)
-        runner.registerInfo("Added packaged terminal air conditioner '#{ptac.name}' to thermal zone '#{control_zone.name}' of #{unit.name.to_s}")
+        runner.registerInfo("Added '#{ptac.name}' to '#{control_zone.name}' of #{unit.name}")
       
         slave_zones.each do |slave_zone|
 

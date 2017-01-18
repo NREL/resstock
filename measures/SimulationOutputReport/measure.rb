@@ -51,7 +51,7 @@ class SimulationOutputReport < OpenStudio::Ruleset::ReportingUserScript
     # FIXME: Temporary fix to convert propane heating (modeled as gas) to other fuel. 
     # Remove when https://github.com/NREL/OpenStudio-BEopt/issues/114 is closed.
     gas_should_be_propane = 0.0
-    if runner.past_results[:build_existing_models][:"HVAC System Heating Propane"].include?("Propane")
+    if runner.past_results[:build_existing_models][:"hvac_system_heating_propane"].include?("Propane")
         if not sqlFile.naturalGasHeating.empty?
             gas_should_be_propane = sqlFile.naturalGasHeating.get
             runner.registerWarning("Propane Air Loop HVAC detected. Gas heating will be converted to propane.")
@@ -63,10 +63,10 @@ class SimulationOutputReport < OpenStudio::Ruleset::ReportingUserScript
     percent_heating = 1.0
     (1..9).each do |i|
         percent = i*10
-        if runner.past_results[:build_existing_models][:"HVAC System Cooling"].include?("#{percent}% Conditioned")
+        if runner.past_results[:build_existing_models][:"hvac_system_cooling"].include?("#{percent}% Conditioned")
             percent_cooling = percent.to_f/100.0
             runner.registerWarning("Cooling system with % conditioned detected. #{percent_cooling.to_s} will be applied to cooling results.")
-        elsif runner.past_results[:build_existing_models][:"HVAC System Combined"].include?("#{percent}% Conditioned")
+        elsif runner.past_results[:build_existing_models][:"hvac_system_combined"].include?("#{percent}% Conditioned")
             percent_cooling = percent.to_f/100.0
             percent_heating = percent_cooling
             runner.registerWarning("Combined system with % conditioned detected. #{percent_cooling.to_s} will be applied to cooling and heating results.")

@@ -1,0 +1,713 @@
+<measure>
+  <schema_version>3.0</schema_version>
+  <name>process_ground_source_heat_pump_vertical_bore</name>
+  <uid>2151a447-b1d8-44dc-b297-90cb7e1223c1</uid>
+  <version_id>12df371d-2b3a-4af3-8eb8-4a5a5bc4c9b5</version_id>
+  <version_modified>20170118T003113Z</version_modified>
+  <xml_checksum>470FC630</xml_checksum>
+  <class_name>ProcessGroundSourceHeatPumpVerticalBore</class_name>
+  <display_name>Set Residential Ground Source Heat Pump Vertical Bore</display_name>
+  <description>This measure removes any existing HVAC components from the building and adds a ground heat exchanger along with variable speed pump and water to air heat pump coils to a condenser plant loop. For multifamily buildings, the supply components on the plant loop can be set for all units of the building.</description>
+  <modeler_description>Any supply components or baseboard convective electrics/waters are removed from any existing air/plant loops or zones. A ground heat exchanger along with variable speed pump and water to air heat pump coils are added to a condenser plant loop.</modeler_description>
+  <arguments>
+    <argument>
+      <name>cop</name>
+      <display_name>COP</display_name>
+      <description>User can use AHRI/ASHRAE ISO 13556-1 rated EER value and convert it to EIR here.</description>
+      <type>Double</type>
+      <units>W/W</units>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>3.6</default_value>
+    </argument>
+    <argument>
+      <name>eer</name>
+      <display_name>EER</display_name>
+      <description>This is a measure of the instantaneous energy efficiency of cooling equipment.</description>
+      <type>Double</type>
+      <units>Btu/W-h</units>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>16.6</default_value>
+    </argument>
+    <argument>
+      <name>ground_conductivity</name>
+      <display_name>Ground Conductivity</display_name>
+      <description>Conductivity of the ground into which the ground heat exchangers are installed.</description>
+      <type>Double</type>
+      <units>Btu/hr-ft-R</units>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>0.6</default_value>
+    </argument>
+    <argument>
+      <name>grout_conductivity</name>
+      <display_name>Grout Conductivity</display_name>
+      <description>Grout is used to enhance heat transfer between the pipe and the ground.</description>
+      <type>Double</type>
+      <units>Btu/hr-ft-R</units>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>0.4</default_value>
+    </argument>
+    <argument>
+      <name>bore_config</name>
+      <display_name>Bore Configuration</display_name>
+      <description>Different types of vertical bore configuration results in different G-functions which captures the thermal response of a bore field.</description>
+      <type>Choice</type>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>autosize</default_value>
+      <choices>
+        <choice>
+          <value>autosize</value>
+          <display_name>autosize</display_name>
+        </choice>
+        <choice>
+          <value>single</value>
+          <display_name>single</display_name>
+        </choice>
+        <choice>
+          <value>line</value>
+          <display_name>line</display_name>
+        </choice>
+        <choice>
+          <value>rectangle</value>
+          <display_name>rectangle</display_name>
+        </choice>
+        <choice>
+          <value>l-config</value>
+          <display_name>l-config</display_name>
+        </choice>
+        <choice>
+          <value>l2-config</value>
+          <display_name>l2-config</display_name>
+        </choice>
+        <choice>
+          <value>u-config</value>
+          <display_name>u-config</display_name>
+        </choice>
+      </choices>
+    </argument>
+    <argument>
+      <name>bore_holes</name>
+      <display_name>Number of Bore Holes</display_name>
+      <description>Number of vertical bores.</description>
+      <type>Choice</type>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>autosize</default_value>
+      <choices>
+        <choice>
+          <value>autosize</value>
+          <display_name>autosize</display_name>
+        </choice>
+        <choice>
+          <value>1</value>
+          <display_name>1</display_name>
+        </choice>
+        <choice>
+          <value>2</value>
+          <display_name>2</display_name>
+        </choice>
+        <choice>
+          <value>3</value>
+          <display_name>3</display_name>
+        </choice>
+        <choice>
+          <value>4</value>
+          <display_name>4</display_name>
+        </choice>
+        <choice>
+          <value>5</value>
+          <display_name>5</display_name>
+        </choice>
+        <choice>
+          <value>6</value>
+          <display_name>6</display_name>
+        </choice>
+        <choice>
+          <value>7</value>
+          <display_name>7</display_name>
+        </choice>
+        <choice>
+          <value>8</value>
+          <display_name>8</display_name>
+        </choice>
+        <choice>
+          <value>9</value>
+          <display_name>9</display_name>
+        </choice>
+        <choice>
+          <value>10</value>
+          <display_name>10</display_name>
+        </choice>
+      </choices>
+    </argument>
+    <argument>
+      <name>bore_depth</name>
+      <display_name>Bore Depth</display_name>
+      <description>Vertical well bore depth typically range from 150 to 300 feet deep.</description>
+      <type>Choice</type>
+      <units>ft</units>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>autosize</default_value>
+      <choices>
+        <choice>
+          <value>autosize</value>
+          <display_name>autosize</display_name>
+        </choice>
+      </choices>
+    </argument>
+    <argument>
+      <name>bore_spacing</name>
+      <display_name>Bore Spacing</display_name>
+      <description>Bore holes are typically spaced 15 to 20 feet apart.</description>
+      <type>Double</type>
+      <units>ft</units>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>20</default_value>
+    </argument>
+    <argument>
+      <name>bore_diameter</name>
+      <display_name>Bore Diameter</display_name>
+      <description>Bore hole diameter.</description>
+      <type>Double</type>
+      <units>in</units>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>5</default_value>
+    </argument>
+    <argument>
+      <name>pipe_size</name>
+      <display_name>Nominal Pipe Size</display_name>
+      <description>Pipe nominal size.</description>
+      <type>Double</type>
+      <units>in</units>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>0.75</default_value>
+    </argument>
+    <argument>
+      <name>ground_diffusivity</name>
+      <display_name>Ground Diffusivity</display_name>
+      <description>A measure of thermal inertia, the ground diffusivity is the thermal conductivity divided by density and specific heat capacity.</description>
+      <type>Double</type>
+      <units>ft^2/hr</units>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>0.0208</default_value>
+    </argument>
+    <argument>
+      <name>fluid_type</name>
+      <display_name>Heat Exchanger Fluid Type</display_name>
+      <description>Fluid type.</description>
+      <type>Choice</type>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>propylene-glycol</default_value>
+      <choices>
+        <choice>
+          <value>propylene-glycol</value>
+          <display_name>propylene-glycol</display_name>
+        </choice>
+        <choice>
+          <value>water</value>
+          <display_name>water</display_name>
+        </choice>
+      </choices>
+    </argument>
+    <argument>
+      <name>frac_glycol</name>
+      <display_name>Fraction Glycol</display_name>
+      <description>Fraction of glycol, 0 indicates water.</description>
+      <type>Double</type>
+      <units>frac</units>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>0.3</default_value>
+    </argument>
+    <argument>
+      <name>design_delta_t</name>
+      <display_name>Ground Loop Design Delta Temp</display_name>
+      <description>Ground loop design temperature difference.</description>
+      <type>Double</type>
+      <units>deg F</units>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>10</default_value>
+    </argument>
+    <argument>
+      <name>pump_head</name>
+      <display_name>Pump Head</display_name>
+      <description>Feet of water column.</description>
+      <type>Double</type>
+      <units>ft of water</units>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>50</default_value>
+    </argument>
+    <argument>
+      <name>u_tube_leg_spacing</name>
+      <display_name>U Tube Leg Separation</display_name>
+      <description>U-tube leg spacing.</description>
+      <type>Double</type>
+      <units>in</units>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>0.9661</default_value>
+    </argument>
+    <argument>
+      <name>rated_shr</name>
+      <display_name>Rated SHR</display_name>
+      <description>The sensible heat ratio (ratio of the sensible portion of the load to the total load) at the nominal rated capacity.</description>
+      <type>Double</type>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>0.732</default_value>
+    </argument>
+    <argument>
+      <name>fan_power</name>
+      <display_name>Supply Fan Power</display_name>
+      <description>Fan power (in W) per delivered airflow rate (in cfm) of the indoor fan.</description>
+      <type>Double</type>
+      <units>W/cfm</units>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>0.5</default_value>
+    </argument>
+    <argument>
+      <name>gshp_capacity</name>
+      <display_name>Cooling Output Capacity</display_name>
+      <type>Choice</type>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>3.0 tons</default_value>
+      <choices>
+        <choice>
+          <value>0.5 tons</value>
+          <display_name>0.5 tons</display_name>
+        </choice>
+        <choice>
+          <value>1.0 tons</value>
+          <display_name>1.0 tons</display_name>
+        </choice>
+        <choice>
+          <value>1.5 tons</value>
+          <display_name>1.5 tons</display_name>
+        </choice>
+        <choice>
+          <value>2.0 tons</value>
+          <display_name>2.0 tons</display_name>
+        </choice>
+        <choice>
+          <value>2.5 tons</value>
+          <display_name>2.5 tons</display_name>
+        </choice>
+        <choice>
+          <value>3.0 tons</value>
+          <display_name>3.0 tons</display_name>
+        </choice>
+        <choice>
+          <value>3.5 tons</value>
+          <display_name>3.5 tons</display_name>
+        </choice>
+        <choice>
+          <value>4.0 tons</value>
+          <display_name>4.0 tons</display_name>
+        </choice>
+        <choice>
+          <value>4.5 tons</value>
+          <display_name>4.5 tons</display_name>
+        </choice>
+        <choice>
+          <value>5.0 tons</value>
+          <display_name>5.0 tons</display_name>
+        </choice>
+        <choice>
+          <value>5.5 tons</value>
+          <display_name>5.5 tons</display_name>
+        </choice>
+        <choice>
+          <value>6.0 tons</value>
+          <display_name>6.0 tons</display_name>
+        </choice>
+        <choice>
+          <value>6.5 tons</value>
+          <display_name>6.5 tons</display_name>
+        </choice>
+        <choice>
+          <value>7.0 tons</value>
+          <display_name>7.0 tons</display_name>
+        </choice>
+        <choice>
+          <value>7.5 tons</value>
+          <display_name>7.5 tons</display_name>
+        </choice>
+        <choice>
+          <value>8.0 tons</value>
+          <display_name>8.0 tons</display_name>
+        </choice>
+        <choice>
+          <value>8.5 tons</value>
+          <display_name>8.5 tons</display_name>
+        </choice>
+        <choice>
+          <value>9.0 tons</value>
+          <display_name>9.0 tons</display_name>
+        </choice>
+        <choice>
+          <value>9.5 tons</value>
+          <display_name>9.5 tons</display_name>
+        </choice>
+        <choice>
+          <value>10.0 tons</value>
+          <display_name>10.0 tons</display_name>
+        </choice>
+      </choices>
+    </argument>
+    <argument>
+      <name>supplemental_capacity</name>
+      <display_name>Supplemental Heating Output Capacity</display_name>
+      <type>Choice</type>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>autosize</default_value>
+      <choices>
+        <choice>
+          <value>autosize</value>
+          <display_name>autosize</display_name>
+        </choice>
+        <choice>
+          <value>5 kBtu/hr</value>
+          <display_name>5 kBtu/hr</display_name>
+        </choice>
+        <choice>
+          <value>10 kBtu/hr</value>
+          <display_name>10 kBtu/hr</display_name>
+        </choice>
+        <choice>
+          <value>15 kBtu/hr</value>
+          <display_name>15 kBtu/hr</display_name>
+        </choice>
+        <choice>
+          <value>20 kBtu/hr</value>
+          <display_name>20 kBtu/hr</display_name>
+        </choice>
+        <choice>
+          <value>25 kBtu/hr</value>
+          <display_name>25 kBtu/hr</display_name>
+        </choice>
+        <choice>
+          <value>30 kBtu/hr</value>
+          <display_name>30 kBtu/hr</display_name>
+        </choice>
+        <choice>
+          <value>35 kBtu/hr</value>
+          <display_name>35 kBtu/hr</display_name>
+        </choice>
+        <choice>
+          <value>40 kBtu/hr</value>
+          <display_name>40 kBtu/hr</display_name>
+        </choice>
+        <choice>
+          <value>45 kBtu/hr</value>
+          <display_name>45 kBtu/hr</display_name>
+        </choice>
+        <choice>
+          <value>50 kBtu/hr</value>
+          <display_name>50 kBtu/hr</display_name>
+        </choice>
+        <choice>
+          <value>55 kBtu/hr</value>
+          <display_name>55 kBtu/hr</display_name>
+        </choice>
+        <choice>
+          <value>60 kBtu/hr</value>
+          <display_name>60 kBtu/hr</display_name>
+        </choice>
+        <choice>
+          <value>65 kBtu/hr</value>
+          <display_name>65 kBtu/hr</display_name>
+        </choice>
+        <choice>
+          <value>70 kBtu/hr</value>
+          <display_name>70 kBtu/hr</display_name>
+        </choice>
+        <choice>
+          <value>75 kBtu/hr</value>
+          <display_name>75 kBtu/hr</display_name>
+        </choice>
+        <choice>
+          <value>80 kBtu/hr</value>
+          <display_name>80 kBtu/hr</display_name>
+        </choice>
+        <choice>
+          <value>85 kBtu/hr</value>
+          <display_name>85 kBtu/hr</display_name>
+        </choice>
+        <choice>
+          <value>90 kBtu/hr</value>
+          <display_name>90 kBtu/hr</display_name>
+        </choice>
+        <choice>
+          <value>95 kBtu/hr</value>
+          <display_name>95 kBtu/hr</display_name>
+        </choice>
+        <choice>
+          <value>100 kBtu/hr</value>
+          <display_name>100 kBtu/hr</display_name>
+        </choice>
+        <choice>
+          <value>105 kBtu/hr</value>
+          <display_name>105 kBtu/hr</display_name>
+        </choice>
+        <choice>
+          <value>110 kBtu/hr</value>
+          <display_name>110 kBtu/hr</display_name>
+        </choice>
+        <choice>
+          <value>115 kBtu/hr</value>
+          <display_name>115 kBtu/hr</display_name>
+        </choice>
+        <choice>
+          <value>120 kBtu/hr</value>
+          <display_name>120 kBtu/hr</display_name>
+        </choice>
+        <choice>
+          <value>125 kBtu/hr</value>
+          <display_name>125 kBtu/hr</display_name>
+        </choice>
+        <choice>
+          <value>130 kBtu/hr</value>
+          <display_name>130 kBtu/hr</display_name>
+        </choice>
+        <choice>
+          <value>135 kBtu/hr</value>
+          <display_name>135 kBtu/hr</display_name>
+        </choice>
+        <choice>
+          <value>140 kBtu/hr</value>
+          <display_name>140 kBtu/hr</display_name>
+        </choice>
+        <choice>
+          <value>145 kBtu/hr</value>
+          <display_name>145 kBtu/hr</display_name>
+        </choice>
+        <choice>
+          <value>150 kBtu/hr</value>
+          <display_name>150 kBtu/hr</display_name>
+        </choice>
+      </choices>
+    </argument>
+  </arguments>
+  <provenances/>
+  <tags>
+    <tag>HVAC.Heating</tag>
+  </tags>
+  <attributes>
+    <attribute>
+      <name>Measure Type</name>
+      <value>ModelMeasure</value>
+      <datatype>string</datatype>
+    </attribute>
+    <attribute>
+      <name>Intended Software Tool</name>
+      <value>Apply Measure Now</value>
+      <datatype>string</datatype>
+    </attribute>
+    <attribute>
+      <name>Intended Software Tool</name>
+      <value>OpenStudio Application</value>
+      <datatype>string</datatype>
+    </attribute>
+    <attribute>
+      <name>Intended Software Tool</name>
+      <value>Parametric Analysis Tool</value>
+      <datatype>string</datatype>
+    </attribute>
+  </attributes>
+  <files>
+    <file>
+      <filename>USA_CO_Denver_Intl_AP_725650_TMY3.ddy</filename>
+      <filetype>ddy</filetype>
+      <usage_type>test</usage_type>
+      <checksum>FB253570</checksum>
+    </file>
+    <file>
+      <filename>USA_CO_Denver_Intl_AP_725650_TMY3.epw</filename>
+      <filetype>epw</filetype>
+      <usage_type>test</usage_type>
+      <checksum>E23378AA</checksum>
+    </file>
+    <file>
+      <filename>SFD_2000sqft_2story_FB_UA.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>64E95394</checksum>
+    </file>
+    <file>
+      <filename>SFD_2000sqft_2story_FB_UA_Denver.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>8031C117</checksum>
+    </file>
+    <file>
+      <filename>SFD_2000sqft_2story_FB_UA_Denver_ASHP.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>F6B9AB21</checksum>
+    </file>
+    <file>
+      <filename>SFD_2000sqft_2story_FB_UA_Denver_Boiler.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>259D655A</checksum>
+    </file>
+    <file>
+      <filename>SFD_2000sqft_2story_FB_UA_Denver_Boiler_CentralAC.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>6D4EE897</checksum>
+    </file>
+    <file>
+      <filename>SFD_2000sqft_2story_FB_UA_Denver_Boiler_RoomAC.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>5B070B85</checksum>
+    </file>
+    <file>
+      <filename>SFD_2000sqft_2story_FB_UA_Denver_CentralAC.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>1B5FAE19</checksum>
+    </file>
+    <file>
+      <filename>SFD_2000sqft_2story_FB_UA_Denver_ElectricBaseboard.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>1F5B8F65</checksum>
+    </file>
+    <file>
+      <filename>SFD_2000sqft_2story_FB_UA_Denver_ElectricBaseboard_CentralAC.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>C27975CE</checksum>
+    </file>
+    <file>
+      <filename>SFD_2000sqft_2story_FB_UA_Denver_ElectricBaseboard_RoomAC.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>FE972495</checksum>
+    </file>
+    <file>
+      <filename>SFD_2000sqft_2story_FB_UA_Denver_Furnace.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>FA18E536</checksum>
+    </file>
+    <file>
+      <filename>SFD_2000sqft_2story_FB_UA_Denver_Furnace_CentralAC.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>11A8ADBC</checksum>
+    </file>
+    <file>
+      <filename>SFD_2000sqft_2story_FB_UA_Denver_Furnace_RoomAC.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>BE0D49C8</checksum>
+    </file>
+    <file>
+      <filename>SFD_2000sqft_2story_FB_UA_Denver_GSHPVertBore.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>9ABA0833</checksum>
+    </file>
+    <file>
+      <filename>SFD_2000sqft_2story_FB_UA_Denver_MSHP.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>9486A4AA</checksum>
+    </file>
+    <file>
+      <filename>SFD_2000sqft_2story_FB_UA_Denver_RoomAC.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>A496B9F0</checksum>
+    </file>
+    <file>
+      <filename>hvac.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>76C55B95</checksum>
+    </file>
+    <file>
+      <filename>constants.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>3ECF4961</checksum>
+    </file>
+    <file>
+      <filename>geometry.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>E81E792E</checksum>
+    </file>
+    <file>
+      <filename>psychrometrics.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>3C131B97</checksum>
+    </file>
+    <file>
+      <filename>util.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>B368FA16</checksum>
+    </file>
+    <file>
+      <filename>weather.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>2E35D7F3</checksum>
+    </file>
+    <file>
+      <filename>unit_conversions.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>DCB12FCF</checksum>
+    </file>
+    <file>
+      <filename>process_ground_source_heat_pump_vertical_bore_test.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>test</usage_type>
+      <checksum>5E02A49A</checksum>
+    </file>
+    <file>
+      <filename>MF_8units_1story_SL_Denver.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>64B3CADA</checksum>
+    </file>
+    <file>
+      <filename>SFA_4units_1story_FB_UA_Denver.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>E90A54AB</checksum>
+    </file>
+    <file>
+      <version>
+        <software_program>OpenStudio</software_program>
+        <identifier>1.14.0</identifier>
+        <min_compatible>1.14.0</min_compatible>
+      </version>
+      <filename>measure.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>script</usage_type>
+      <checksum>7781B3F6</checksum>
+    </file>
+  </files>
+</measure>

@@ -58,7 +58,7 @@ class BuildExistingModelEnergyPlus < OpenStudio::Ruleset::WorkspaceUserScript
     check_file_exists(lookup_file, runner)
     check_file_exists(resstock_csv, runner)
     
-    building_id = get_value_from_runner_past_results("Building ID", runner).to_i
+    building_id = get_value_from_runner_past_results("building_id", runner).to_i
 
     # Retrieve all data associated with sample number
     building_col_name = "Building"

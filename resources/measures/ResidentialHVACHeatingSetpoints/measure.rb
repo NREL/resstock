@@ -75,6 +75,11 @@ class ProcessHeatingSetpoints < OpenStudio::Ruleset::ModelUserScript
         return false
     end
     
+    # Remove existing heating season schedule
+    model.getScheduleRulesets.each do |sch|
+      next unless sch.name.to_s == Constants.ObjectNameHeatingSeason
+      sch.remove
+    end
     heatingseasonschedule = MonthWeekdayWeekendSchedule.new(model, runner, Constants.ObjectNameHeatingSeason, Array.new(24, 1), Array.new(24, 1), heating_season, mult_weekday=1.0, mult_weekend=1.0, normalize_values=false)
         
     unless heatingseasonschedule.validated?
@@ -94,7 +99,7 @@ class ProcessHeatingSetpoints < OpenStudio::Ruleset::ModelUserScript
               htg_coil = htg_coil.to_CoilHeatingDXSingleSpeed.get
             elsif htg_coil.to_CoilHeatingDXMultiSpeed.is_initialized
               htg_coil = htg_coil.to_CoilHeatingDXMultiSpeed.get
-            end          
+            end
             supp_htg_coil = air_loop_unitary.supplementalHeatingCoil.get
             supp_htg_coil = supp_htg_coil.to_CoilHeatingElectric.get
             supp_htg_coil.setAvailabilitySchedule(heatingseasonschedule.schedule)
@@ -102,8 +107,10 @@ class ProcessHeatingSetpoints < OpenStudio::Ruleset::ModelUserScript
           elsif htg_coil.is_a? OpenStudio::Model::ZoneHVACTerminalUnitVariableRefrigerantFlow
             htg_coil = htg_coil.heatingCoil.to_CoilHeatingDXVariableRefrigerantFlow.get        
           end
-          htg_coil.setAvailabilitySchedule(heatingseasonschedule.schedule)
-          runner.registerInfo("Added availability schedule to #{htg_coil.name}.")
+          unless htg_coil.to_CoilHeatingWaterToAirHeatPumpEquationFit.is_initialized
+            htg_coil.setAvailabilitySchedule(heatingseasonschedule.schedule)
+            runner.registerInfo("Added availability schedule to #{htg_coil.name}.")
+          end
         end
         htg_equip = true
       end
@@ -132,6 +139,15 @@ class ProcessHeatingSetpoints < OpenStudio::Ruleset::ModelUserScript
       end
     end
     
+    # Remove existing heating setpoint schedule
+    model.getScheduleRulesets.each do |sch|
+      next unless sch.name.to_s == Constants.ObjectNameHeatingSetpoint
+      sch.remove
+    end
+    
+    # Make the setpoint schedules
+    heatingsetpoint = nil
+    coolingsetpoint = nil
     finished_zones.each do |finished_zone|
     
       thermostatsetpointdualsetpoint = finished_zone.thermostatSetpointDualSetpoint
@@ -186,22 +202,17 @@ class ProcessHeatingSetpoints < OpenStudio::Ruleset::ModelUserScript
           end          
         end
         
+        model.getScheduleRulesets.each do |sch|
+          next unless sch.name.to_s == Constants.ObjectNameCoolingSetpoint
+          sch.remove
+        end
+        
         heatingsetpoint = HourlyByMonthSchedule.new(model, runner, Constants.ObjectNameHeatingSetpoint, htg_wkdy_monthly, htg_wked_monthly, normalize_values=false)
         coolingsetpoint = HourlyByMonthSchedule.new(model, runner, Constants.ObjectNameCoolingSetpoint, clg_wkdy_monthly, clg_wked_monthly, normalize_values=false)
 
         unless heatingsetpoint.validated? and coolingsetpoint.validated?
           return false
         end
-
-        if thermostatsetpointdualsetpoint.heatingSetpointTemperatureSchedule.is_initialized
-            thermostatsetpointdualsetpoint.heatingSetpointTemperatureSchedule.get.remove
-        end
-        if thermostatsetpointdualsetpoint.coolingSetpointTemperatureSchedule.is_initialized
-            thermostatsetpointdualsetpoint.coolingSetpointTemperatureSchedule.get.remove
-        end
-        
-        thermostatsetpointdualsetpoint.setHeatingSetpointTemperatureSchedule(heatingsetpoint.schedule)
-        thermostatsetpointdualsetpoint.setCoolingSetpointTemperatureSchedule(coolingsetpoint.schedule)
         
       else
         
@@ -216,21 +227,38 @@ class ProcessHeatingSetpoints < OpenStudio::Ruleset::ModelUserScript
         clg_monthly_sch = Array.new(12, 1)
         for m in 1..12
           clg_monthly_sch[m-1] = 10000
-        end        
+        end
         
         heatingsetpoint = MonthWeekdayWeekendSchedule.new(model, runner, Constants.ObjectNameHeatingSetpoint, htg_wkdy, htg_wked, htg_monthly_sch, mult_weekday=1.0, mult_weekend=1.0, normalize_values=false)
         coolingsetpoint = MonthWeekdayWeekendSchedule.new(model, runner, Constants.ObjectNameCoolingSetpoint, Array.new(24, 1), Array.new(24, 1), clg_monthly_sch, mult_weekday=1.0, mult_weekend=1.0, normalize_values=false)
 
         unless heatingsetpoint.validated?
           return false
-        end        
+        end             
+      
+      end
+      break # assume all finished zones have the same schedules
+      
+    end    
+    
+    # Set the setpoint schedules
+    finished_zones.each do |finished_zone|
+    
+      thermostatsetpointdualsetpoint = finished_zone.thermostatSetpointDualSetpoint
+      if thermostatsetpointdualsetpoint.is_initialized
+        
+        thermostatsetpointdualsetpoint = thermostatsetpointdualsetpoint.get
+        thermostatsetpointdualsetpoint.setHeatingSetpointTemperatureSchedule(heatingsetpoint.schedule)
+        thermostatsetpointdualsetpoint.setCoolingSetpointTemperatureSchedule(coolingsetpoint.schedule)
+        
+      else
         
         thermostatsetpointdualsetpoint = OpenStudio::Model::ThermostatSetpointDualSetpoint.new(model)
         thermostatsetpointdualsetpoint.setName("#{finished_zone.name} temperature setpoint")
         runner.registerInfo("Created new thermostat #{thermostatsetpointdualsetpoint.name} for #{finished_zone.name}.")
         thermostatsetpointdualsetpoint.setHeatingSetpointTemperatureSchedule(heatingsetpoint.schedule)
-        finished_zone.setThermostatSetpointDualSetpoint(thermostatsetpointdualsetpoint)
         thermostatsetpointdualsetpoint.setCoolingSetpointTemperatureSchedule(coolingsetpoint.schedule)
+        finished_zone.setThermostatSetpointDualSetpoint(thermostatsetpointdualsetpoint)        
         runner.registerInfo("Set a dummy cooling setpoint schedule for #{thermostatsetpointdualsetpoint.name}.")              
       
       end

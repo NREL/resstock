@@ -27,7 +27,7 @@ class BuildingCharacteristicsReport < OpenStudio::Ruleset::ReportingUserScript
     end
 
     # Uncomment the line below to debug:
-    runner.registerInfo("past_results: #{runner.past_results.to_s}")
+    #runner.registerInfo("past_results: #{runner.past_results.to_s}")
 
     # Get existing building characteristics
     outputs = runner.past_results[:build_existing_models]
