@@ -1374,8 +1374,8 @@ class Create_DFs():
     def ducts(self):
         """
         Ducts differ from other RBSA categories because leakage and insulation are in different DB tables and leakage values
-        are only available for a subset of ~250 homes. For this reason, we construct the probability distributions here in
-        entirely in util.py instead of in main.py.
+        are only available for a subset of ~250 homes. For this reason, we construct the probability distributions entirely
+        in util.py instead of in input.py.
         :return:
         """
         df = util.create_dataframe(self.session, rdb)

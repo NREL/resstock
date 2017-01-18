@@ -838,8 +838,8 @@ def assign_ducts(df):
     :return: DataFrame containing probability distributions for Ducts
 
     Ducts differ from other RBSA categories because leakage and insulation are in different DB tables and leakage values
-    are only available for a subset of ~250 homes. For this reason, we construct the probability distributions here in
-    entirely in util.py instead of in main.py. The probability distributions for duct location
+    are only available for a subset of ~250 homes. For this reason, we construct the probability distributions entirely
+    here in util.py instead of in input.py. The probability distributions for duct location
     (in conditioned space or not), duct leakage, and duct insulation are queried separately (with different dependencies)
     and combined.
     """
@@ -869,7 +869,7 @@ def assign_ducts(df):
                    '2" Ductboard; R6 Flex': 'R-6'}
 
     # Bins designed to be roughly equally weighted; could be improved with k-medoid clustering
-    leakage_map = {(0.00, 0.10): 0.06, # Min, Max, Mapped value
+    leakage_map = {(0.00, 0.10): 0.06,  # Min, Max, Mapped value
                    (0.10, 0.20): 0.14,
                    (0.20, 0.30): 0.24,
                    (0.30, 0.40): 0.34,
@@ -895,7 +895,7 @@ def assign_ducts(df):
     df_cond = df_cond.join(df[depend1]).dropna(subset=depend1)
     df_cond = group_and_normalize(df_cond, 'InConditioned', depend=depend1)
 
-    # Probability of duct insulation level
+    # Probability of duct insulation level (depends on vintage)
     df_ducts = df_ducts[((df_ducts['DuctsInConditioned'] < 100) & (df_ducts['DuctsReturnInUnconditioned'] > 0))]
     df_ducts['DuctInsulationType'] = df_ducts['DuctInsulationType'].replace(sfductsRval) # Apply mapping
     depend2 = ['Dependency=Vintage']
@@ -906,7 +906,7 @@ def assign_ducts(df):
     fields = ['siteid', 'slf_halfplen', 'rlf_halfplen', 'DB_MajorityReturnLocation', 'DB_MajoritySupplyLocation']
     df_ductleakage = pd.read_sql("SELECT {} FROM SFducttesting_dbase".format(', '.join(fields)), con, index_col='siteid')
 
-    # Probability of duct leakage levels
+    # Probability of duct leakage levels (no dependencies)
     df_ductleakage = df_ductleakage.dropna(subset=['slf_halfplen', 'rlf_halfplen']) # Drop rows with null leakage fractions. Usually means the duct blaster or flow rate test failed
     df_ductleakage.loc[:, 'tlf_halfplen'] = df_ductleakage.loc[:, 'slf_halfplen'] + df_ductleakage.loc[:,'rlf_halfplen'] # Total = Supply + Return
     df_ductleakage = df_ductleakage.join(df_wt)
