@@ -6,19 +6,15 @@ Created on Apr 29, 2014
 from __future__ import division
 import os, sys
 import pandas
-import matplotlib.pyplot as plt
-import csv
 sys.path.insert(0, os.path.join(os.getcwd(),'clustering'))
 #from medoids_tstat import do_plot
 import itertools
 #recs_data_file = os.path.join("..", "RECS STUFF", "recs2009_public.csv")
-import statsmodels.api as sm
 import psycopg2 as pg
 import pandas as pd
-import numpy as np
 from datetime import datetime
 import pickle
-from pandas import DataFrame, Series
+
 
 
 startTime = datetime.now()
@@ -341,6 +337,7 @@ def process_data(df):
 
 def calc_general(df, cut_by, columns=None, outfile=None,norm=True):
 
+
     if 'Foundation Type' in cut_by:
         two_found = df['numfoundations'] == 2
         three_found = df['numfoundations'] ==3
@@ -350,20 +347,8 @@ def calc_general(df, cut_by, columns=None, outfile=None,norm=True):
         df = df.append([two_dupl]*1,ignore_index=True)
 
     #Change Weight and Count If using Foundation Type
-
         df['nweight'] = df.apply(lambda x: x['nweight']/x['numfoundations'] if x['numfoundations'] > 0 else x['nweight'], axis = 1)
         df['Count'] = df.apply(lambda x: x['Count']/x['numfoundations'] if x['numfoundations'] > 0 else x['Count'], axis = 1)
-
-#df
-#df_new = pandas.DataFrame()
-#
-## Assign counts of 1/2 and 1/3
-#
-#for fnd in ['slab', 'crawl', etc.]:
-#    df_this_fnd = df[(df['numfoundations'] > 1]) & (df[fnd] == 1)]
-#    df_this_fnd['Foundation Type'] = fnd
-#    df_new.concat(df_this_fnd)
-
 
     #Start Analyzing Specific Data
     fields = cut_by + columns
@@ -404,10 +389,6 @@ def calc_general(df, cut_by, columns=None, outfile=None,norm=True):
     g['Weight']=Weight
     g['Count']=Count
 
-#    if 'Foundation Type' in columns:
-#        g['Weight'] = Weight / df['numfoundations']
-#        g['Count'] = Count / df['numfoundations']
-
     #Add Headers for Option and Dependency
     rename_dict = {}
     for col in g.columns:
@@ -436,8 +417,6 @@ def save_to_tsv(g, cut_by, columns, outfile):
     print g
     g.to_csv(outfile, sep='\t', index=False)
 
-
-
 def assign_poverty_levels(df):
     df['income_range'] = df['moneypy']
     df['income'] = df['moneypy']
@@ -454,14 +433,11 @@ def assign_poverty_levels(df):
             df[field].replace(fpl_num,fpl_name,inplace=True)
     df['FPL'] = df['income']/df['incomelimit']*100
 
-
     df['FPLALL'] = 1
-    df['FPL300']=0
-    df['FPL250']=0
-    df['FPL200']=0
-    df['FPL150']=0
-    df['FPL100']=0
-    df['FPL50']=0
+    levels = ['FPL300','FPL250','FPL200','FPL150','FPL100','FPL50']
+    for lvl in levels:
+        df[lvl]=0
+
     df.loc[(df['FPL'] <= 300),'FPL300'] = 1
     df.loc[(df['FPL'] <= 250),'FPL250'] = 1
     df.loc[(df['FPL'] <= 200),'FPL200'] = 1
@@ -496,6 +472,7 @@ def custom_region(df):
     return df
 
 def foundation_type(df):
+
 
     #Number of different foundation types
 
@@ -533,150 +510,6 @@ def foundation_type(df):
 
     return df
 
-#    if df[].item() == 1:
-#        df['Foundation Type'].replace('Heated Basement')
-##        if df[['crawl','slab'] == 1:
-##            df.append(df.loc())
-#    for value in ['Foundation Type']:
-#        if df['crawl'] == 1 & df[['baseheat','concrete']] > -2:
-#            df.['Foundation Type'].replace['crawl']
-    #Add column describing number of foundation types
-    #Implement code to add rows for i in i foundation types
-        #Rows should only have 1 foundation type and a third of the count/weight of their parent
-    #Fill in foundation type column with appropriate information.
-    #check df has appropriate weights for each term
-
-def calc_temp_stats(df):
-    df['athome'].replace(0,np.NaN)
-    df['temphome']
-    df['tempgone']
-    df['tempnite']
-    df['temphomeac']
-    df['tempgoneac']
-    df['tempniteac']
-    T_avg = {}
-    temp_hist = {}
-    for season in ['Winter', 'Summer']:
-        T_avg[season] = (df['athome']*df['Temp {} Day Home'.format(season)]*8 + (df['athome']==0)*df['Temp {} Day Away'.format(season)]*8 + df['Temp {} Day Home'.format(season)]*8 + df['Temp {} Night'.format(season)]*8) / 24.
-        #    T_avg[season].hist(bins=range(40,97))
-        #    plt.show()
-        temp_hist[season] = pandas.np.histogram(T_avg[season],bins = range(40,97))
-        #    do_plot(list(temp_hist[season][0]), list(temp_hist[season][1]), 'US')
-    T_avg_weighted = {}
-    for season in ['Winter', 'Summer']:
-        T_avg_weighted[season] = sum(df['nweight'][T_avg[season].notnull()]*T_avg[season][T_avg[season].notnull()]) / (df['nweight'][T_avg[season].notnull()].sum()*1.0)
-    print temp_hist
-
-
-
-def calc_htg_type(df):
-    heating_types = {2:   'Steam or Hot Water System'      ,
-                    3 :   'Central Warm-Air Furnace'      ,
-                    4 :   'Heat Pump'                     ,
-                    5 :   'Built-In Electric Units'       ,
-                    6 :   'Floor or Wall Pipeless Furnace',
-                    7 :   'Built-In Room Heater'          ,
-                    8 :   'Heating Stove'                 ,
-                    9 :   'Fireplace'                     ,
-                    10:   'Portable Electric Heaters'     ,
-                    11:   'Portable Kerosene Heaters'     ,
-                    12:   'Cooking Stove'                 ,
-                    21:   'Other equipment'               ,
-                    -2:   'Not Applicable'}
-    cut_by = ['Custom Region']# ,'yearmaderange','Custom Region',
-    df['fuelheat'].replace(2, 1, inplace=True) # Count Propane as Natural Gas for purposes of system type counting
-    for fuel_num, fuel_name in fuels.iteritems():
-        df['fuelheat'].replace(fuel_num,fuel_name, inplace=True)
-        #df['equipm'].replace([7,8,9,11,12],21, inplace=True)
-    df['equipm'].replace(pandas.np.nan, -2, inplace=True)
-    grouped = df.groupby(cut_by)
-    print ','.join(cut_by + heating_types.values())
-    for name, group in grouped:
-        checksum = 0
-        vals = ''
-        for htg_num, htg_name in heating_types.iteritems():
-            val = group[group['equipm'] == htg_num]['nweight'].sum() * 1.0 / group['nweight'].sum()
-            checksum += val
-            vals += (',' + str(val))
-        if checksum == 0:
-            pass
-        #    print ','.join([regions[name[0]], name[1], name[2]]) + vals
-        print ','.join([str(name)]) + vals
-
-def calc_htg_type_by_wh_fuel(df, cut_by=['fuelh2o','reportable_domain','yearmaderange','fuelheat'], outfile='output_calc_htg_type_by_wh_fuel.csv'):
-    resultFyle = open(outfile,'wb')
-    wr = csv.writer(resultFyle, dialect='excel')
-    heating_types = {2:   'Steam or Hot Water System'      ,
-                    3 :   'Central Warm-Air Furnace'      ,
-                    4 :   'Heat Pump'                     ,
-                    5 :   'Built-In Electric Units'       ,
-                    6 :   'Floor or Wall Pipeless Furnace',
-                    7 :   'Built-In Room Heater'          ,
-                    8 :   'Heating Stove'                 ,
-                    9 :   'Fireplace'                     ,
-                    10:   'Portable Electric Heaters'     ,
-                    11:   'Portable Kerosene Heaters'     ,
-                    12:   'Cooking Stove'                 ,
-                    21:   'Other Equipment'               ,
-                    -2:   'Not Applicable'}
-    for fuel_num, fuel_name in fuels.iteritems():
-        df['fuelh2o'].replace(fuel_num,fuel_name, inplace=True)
-        df['fuelheat'].replace(fuel_num,fuel_name, inplace=True)
-    df['yearmaderange'].replace(['< 1950s', '1950s', '1960s', '1970s', '1980s'],'<=1980s', inplace=True)
-    df['yearmaderange'].replace(['1990s', '2000s'],'>=1990s', inplace=True)
-    df['equipm'].replace(pandas.np.nan, -2, inplace=True)
-    grouped = df.groupby(cut_by)
-    print ','.join(cut_by + heating_types.values() + ['Total'])
-    wr.writerow(cut_by + heating_types.values())
-    for name, group in grouped:
-        checksum = 0
-        vals = ''
-        for htg_num, htg_name in heating_types.iteritems():
-            val = group[group['equipm'] == htg_num]['nweight'].sum() / 100.0 # factor of 100 in data by mistake
-            checksum += val
-            vals += (',' + str(val))
-        vals += (',' + str(group['nweight'].sum()/ 100.0)) # factor of 100 in data by mistake
-        if checksum == 0:
-            pass
-        row = ','.join([str(x) for x in name]) + vals
-        print row
-        wr.writerow(row.split(','))
-
-def calc_htg_age(df):
-    ages = ['1', '3', '7', '12', '17', '25', '-1']
-    heating_types = {    2: 'Steam or Hot Water System'        , #'Steam or Hot Water System',
-                        3:    'Central Warm-Air Furnace'      , #'Central Warm-Air Furnace'      ,
-                        4:    'Heat Pump'                     , #'Heat Pump'                     ,
-                        5 :    'Built-In Electric Units'       , #'Built-In Electric Units'       ,
-                        6 :    'Floor or Wall Pipeless Furnace', #'Floor or Wall Pipeless Furnace',
-                        7 :    'Floor or Wall Pipeless Furnace', #'Built-In Room Heater'          ,
-                        8 :    'Other Equipment'               , #'Heating Stove'                 ,
-                        9 :    'Other Equipment'               , #'Fireplace'                     ,
-                        10:    'Built-In Electric Units'       , #'Portable Electric Heaters'     ,
-                        11: 'Other Equipment'               , #'Portable Kerosene Heaters'     ,
-                        12:   'Other Equipment'               , #'Cooking Stove'                 ,
-                        21:   'Other Equipment'               , #'Other Equipment'               ,
-                        -2:   'Not Applicable'}                 #'Not Applicable'}
-    cut_by = ['yearmaderange','fuelheat','equipm']
-    df['fuelheat'].replace(2, 1, inplace=True) # Count Propane as Natural Gas for purposes of system type counting
-    for fuel_num, fuel_name in fuels.iteritems():
-        df['fuelheat'].replace(fuel_num,fuel_name, inplace=True)
-    df['equipm'].replace(pandas.np.nan, -2, inplace=True)
-    for num, name in heating_types.iteritems():
-        df['equipm'].replace(num,name, inplace=True)
-    grouped = df.groupby(cut_by)
-    print ','.join(cut_by + ages)
-    for name, group in grouped:
-        checksum = 0
-        vals = ''
-        for age in ages:
-            val = group[group['equipage'] == int(age)]['nweight'].sum() * 1.0 / group['nweight'].sum()
-            checksum += val
-            vals += (',' + str(val))
-        if checksum == 0:
-            pass
-        print ','.join([name[0], name[1], name[2]]) + vals
-
 # def calc_occupancy(df):
 #     cut_by = ['Size']#,'Stories']
 #     for num, name in stories.iteritems():
@@ -692,17 +525,6 @@ def calc_htg_age(df):
 #         avg_baths = (group['NumBaths'] * group['NWEIGHT'] * 1.0).sum() / group['NWEIGHT'].sum()
 #         avg_size = (group['Size'] * group['NWEIGHT'] * 1.0).sum() / group['NWEIGHT'].sum()
 #         print ','.join([name, str(avg_occs), str(avg_baths), str(avg_size)])
-
-def calc_ashp_cac(df):
-    ashp_but_not_cac = df[(df['equipm'] == 4) & (df['cooltype'] != 1)]['nweight'].sum()*1.0 / df[(df['equipm'] == 4)]['nweight'].sum()
-    print "ashp_but_not_cac - {:.3f}".format(ashp_but_not_cac)
-
-
-#def agg_bedrooms(df):
-#	br_replace_dict = {5:4}
-#	for num, name in br_replace_dict.iteritems():
-#		df['BEDROOMS'].replace(num,name, inplace=True)
-#	return df
 
 def query_stories(df, outfile='recs_query_stories.csv'):
     g = calc_general(df, cut_by=['yearmaderange','Size'],columns=['stories'], outfile=None)
@@ -726,21 +548,17 @@ def query_stories(df, outfile='recs_query_stories.csv'):
     df.to_csv(outfile, index=False)
     print df
 
-def regenerate
+def regenerate():
 
-if __name__ == '__main__':
+    # Use this to regenerate processed data if changes are made to any of the classes below
 
-    # preallocate steps for speed. Delete pkl files if objects are changed
-
-    if not os.path.exists('processed_eia.recs_2009_microdata.pkl'):
-        df = retrieve_data()
-        df = process_data(df)
-        df = custom_region(df)
-        df = assign_poverty_levels(df)
-        df = foundation_type(df)
-        df.to_pickle('processed_eia.recs_2009_microdata.pkl')
-    else:
-        df = pd.read_pickle('processed_eia.recs_2009_microdata.pkl')
+    df = retrieve_data()
+    df = process_data(df)
+    df = custom_region(df)
+    df = assign_poverty_levels(df)
+    df = foundation_type(df)
+    df.to_pickle('processed_eia.recs_2009_microdata.pkl')
+    return df
 
 
 #NEW QUERIES
@@ -766,8 +584,10 @@ if __name__ == '__main__':
 #    calc_general(df, cut_by=['CR','FPL_BINS','yearmaderange'], columns = ['sizeofgarage'], outfile = 'SizeofGarage_output_by_CR_FPL_vintage.tsv')
 #    calc_general(df, cut_by=['FPL_BINS','yearmaderange'], columns = ['sizeofgarage'], outfile = 'SizeofGarage_output_by_FPL_vintage.tsv')
 #    calc_general(df, cut_by=['yearmaderange','Size'], columns = ['sizeofgarage'], outfile = 'SizeofGarage_output_by_vintage_size.tsv')
-#    calc_general(df, cut_by=['yearmaderange','Size'], columns = ['Foundation Type'], outfile = 'FoundationType_output_by_vintage_size.tsv')
+    calc_general(df, cut_by=['yearmaderange','Size'], columns = ['Foundation Type'], outfile = 'FoundationType_output_by_vintage_size.tsv')
 #    calc_general(df, cut_by=['CR','FPL_BINS','Size'], columns = ['sizeofgarage'], outfile = 'SizeofGarage_output_by_CR_FPL_Size.tsv')
 
     print datetime.now() - startTime
 
+
+    print df
