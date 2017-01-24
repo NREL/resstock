@@ -266,6 +266,14 @@ garage_dict = {1: "1 Car",
                2: "2 Car",
                3: "3+ Car",
                -2: "None"}
+
+stories_dict = {10: '1',
+                20: '2+',
+                31: '2+',
+                32: '2+',
+                40: '2+',
+                50: 'Other',
+                -2: 'N/a'}
 fpl = fpl09
 heating_types = {    2: 'Steam or Hot Water System'        , #'Steam or Hot Water System',
                      3:    'Central Warm-Air Furnace'      , #'Central Warm-Air Furnace'      ,
@@ -322,7 +330,8 @@ def process_data(df):
                    'typeglass':typeglass_dict,
                    'householder_race':race_dict,
                    'education':education_dict,
-                   'sizeofgarage':garage_dict}
+                   'sizeofgarage':garage_dict,
+                   'stories':stories_dict}
 
     for field_name, field_dict in field_dicts.iteritems():
         for num, name in field_dict.iteritems():
@@ -336,19 +345,6 @@ def process_data(df):
     return df
 
 def calc_general(df, cut_by, columns=None, outfile=None,norm=True):
-
-
-    if 'Foundation Type' in cut_by:
-        two_found = df['numfoundations'] == 2
-        three_found = df['numfoundations'] ==3
-        three_dupl = df[three_found]
-        two_dupl = df[two_found]
-        df = df.append([three_dupl]*2,ignore_index=True)
-        df = df.append([two_dupl]*1,ignore_index=True)
-
-    #Change Weight and Count If using Foundation Type
-        df['nweight'] = df.apply(lambda x: x['nweight']/x['numfoundations'] if x['numfoundations'] > 0 else x['nweight'], axis = 1)
-        df['Count'] = df.apply(lambda x: x['Count']/x['numfoundations'] if x['numfoundations'] > 0 else x['Count'], axis = 1)
 
     #Start Analyzing Specific Data
     fields = cut_by + columns
@@ -481,9 +477,9 @@ def foundation_type(df):
 
     #Foundation Type
 
-    df['Foundation Type'] = 0
+    df['Foundation Type'] = 'Pier and Beam'
     df.loc[(df['numfoundations'] == 0),'Foundation Type'] = 'Pier and Beam'
-    df.loc[(df['numfoundations'] > 1), 'Foundation Type'] = 'Multiple Foundation Types'
+#    df.loc[(df['numfoundations'] > 1), 'Foundation Type'] = 'Multiple Foundation Types'
     df.loc[(df['numfoundations'] == 1) & (df['crawl'] == 1), 'Foundation Type'] = 'Crawl'
     df.loc[(df['numfoundations'] == 1) & (df['concrete'] == 1), 'Foundation Type'] = 'Slab'
     df.loc[(df['numfoundations'] == 1) & (df['cellar'] == 1) & (df['baseheat'] == 1), 'Foundation Type'] = 'Heated Basement'
@@ -491,8 +487,8 @@ def foundation_type(df):
 
     #Implement Weight and Count Changes
 
-    df['nweight'] = df.apply(lambda x: x['nweight'] / x['numfoundations'] if x['numfoundations'] > 2 else x['nweight'], axis = 1)
-    df['Count'] = df.apply(lambda x: x['Count'] / x['numfoundations'] if x['numfoundations'] > 2 else x['Count'], axis = 1)
+    df['nweight'] = df.apply(lambda x: x['nweight'] / x['numfoundations'] if x['numfoundations'] > 1 else x['nweight'], axis = 1)
+    df['Count'] = df.apply(lambda x: x['Count'] / x['numfoundations'] if x['numfoundations'] > 1 else x['Count'], axis = 1)
 
     df_new = pd.DataFrame()
 
@@ -530,7 +526,7 @@ def query_stories(df, outfile='recs_query_stories.csv'):
     g = calc_general(df, cut_by=['yearmaderange','Size'],columns=['stories'], outfile=None)
     fnd_types = ['Crawl',
                  'Heated Basement',
-                 'None',
+                 'Pier and Beam',
                  'Slab',
                  'Unheated Basement']
     dfs = []
@@ -562,6 +558,7 @@ def regenerate():
 
 
 #NEW QUERIES
+def query(df):
 
 #    calc_general(df, cut_by=['CR','FPL_BINS'], columns = ['yearmaderange'], outfile = 'output_calc_CR_FPL_by_vintage.tsv')
 #    calc_general(df, cut_by=['CR','FPL_BINS','yearmaderange'], columns = ['equipm'], outfile = 'heatingequipment_output_by_CR_FPL_vintage.tsv')
@@ -584,10 +581,23 @@ def regenerate():
 #    calc_general(df, cut_by=['CR','FPL_BINS','yearmaderange'], columns = ['sizeofgarage'], outfile = 'SizeofGarage_output_by_CR_FPL_vintage.tsv')
 #    calc_general(df, cut_by=['FPL_BINS','yearmaderange'], columns = ['sizeofgarage'], outfile = 'SizeofGarage_output_by_FPL_vintage.tsv')
 #    calc_general(df, cut_by=['yearmaderange','Size'], columns = ['sizeofgarage'], outfile = 'SizeofGarage_output_by_vintage_size.tsv')
-    calc_general(df, cut_by=['yearmaderange','Size'], columns = ['Foundation Type'], outfile = 'FoundationType_output_by_vintage_size.tsv')
+#    calc_general(df, cut_by=['yearmaderange','Size'], columns = ['Foundation Type'], outfile = 'FoundationType_output_by_vintage_size.tsv')
 #    calc_general(df, cut_by=['CR','FPL_BINS','Size'], columns = ['sizeofgarage'], outfile = 'SizeofGarage_output_by_CR_FPL_Size.tsv')
+    calc_general(df, cut_by=['yearmaderange','Size','Foundation Type'], columns = ['stories'], outfile = 'Stories_output_by_vin_size_fndtype.tsv')
+
+if __name__ == '__main__':
+    #Choose regerate if you want to redo the processed pkl file, otherwise comment out
+
+#    df = regenerate()
+
+    df = pd.read_pickle('processed_eia.recs_2009_microdata.pkl')
+    query(df)
+
+
+
+
+
 
     print datetime.now() - startTime
 
 
-    print df
