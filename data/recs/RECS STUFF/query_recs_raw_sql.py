@@ -14,8 +14,9 @@ import psycopg2 as pg
 import pandas as pd
 from datetime import datetime
 import pickle
-
-
+import matplotlib.pyplot as plt
+import random
+import numpy as np
 
 startTime = datetime.now()
 
@@ -274,6 +275,39 @@ stories_dict = {10: '1',
                 40: '2+',
                 50: 'Other',
                 -2: 'N/a'}
+
+randincome_dict = {-1:0000,
+                   0:0000,
+                   1:2500,
+                   2:5000,
+                   3:7500,
+                   4:10000,
+                   5:15000,
+                   6:20000,
+                   7:25000,
+                   8:30000,
+                   9:35000,
+                   10:40000,
+                   11:45000,
+                   12:50000,
+                   13:55000,
+                   14:60000,
+                   15:65000,
+                   16:70000,
+                   17:75000,
+                   18:80000,
+                   19:85000,
+                   20:90000,
+                   21:95000,
+                   22:100000,
+                   23:110000,
+                   24:120000,
+                   25:200000}
+
+numglass_dict = {'1 Pane',
+                 '2+ Pane',
+                 'No Windows'}
+
 fpl = fpl09
 heating_types = {    2: 'Steam or Hot Water System'        , #'Steam or Hot Water System',
                      3:    'Central Warm-Air Furnace'      , #'Central Warm-Air Furnace'      ,
@@ -310,10 +344,13 @@ def assign_size_bins(df):
     return df
 
 def process_data(df):
+    #create new fields for numerical processing later (correlation stuff)
+
+    df['num_glass']=df.apply(lambda x: x['typeglass'] if x['typeglass'] > 0 else 0, axis = 1)
 
     #Select Single Family Detached Housing Only
-    df = df[df['typehuq'] == 2]
-
+    df = df.loc[df['typehuq'] == 2]
+    df = df.reset_index()
     # Apply dictionaries for mapping RECS response fields
     field_dicts = {'equipm': heating_types,
                    'division': census_div,
@@ -335,7 +372,8 @@ def process_data(df):
 
     for field_name, field_dict in field_dicts.iteritems():
         for num, name in field_dict.iteritems():
-            df[field_name].replace(num, name, inplace=True)
+            df.loc[:,field_name].replace(num, name, inplace=True)
+
 
     df = assign_size_bins(df)
 
@@ -414,6 +452,24 @@ def save_to_tsv(g, cut_by, columns, outfile):
     g.to_csv(outfile, sep='\t', index=False)
 
 def assign_poverty_levels(df):
+
+    #Generate Random Income Distribution
+
+    df['rand_income'] = df['moneypy']
+
+    for i in range(0,df['moneypy'].count()):
+        x = df.iloc[i]['moneypy']
+        df.loc[(i,'rand_income')] = random.randint(randincome_dict[x],randincome_dict[(x+1)])
+
+
+
+#    for b in randincome_dict.iteritems():
+#        if b[0] == 25:
+#            break
+#
+#        df.loc[(df['moneypy']==(b[0]+1)),'rand_income']=random.randint(b[1],randincome_dict[(b[0]+1)])
+
+
     df['income_range'] = df['moneypy']
     df['income'] = df['moneypy']
     for income_range_num, income_range_name in income_range.iteritems():
@@ -426,7 +482,7 @@ def assign_poverty_levels(df):
     df['incomelimit'] = df['nhsldmem']
     for fpl_num,fpl_name in fpl.iteritems():
         for field in ['incomelimit']:
-            df[field].replace(fpl_num,fpl_name,inplace=True)
+            df.loc[:,field].replace(fpl_num,fpl_name,inplace=True)
     df['FPL'] = df['income']/df['incomelimit']*100
 
     df['FPLALL'] = 1
@@ -493,7 +549,7 @@ def foundation_type(df):
     df_new = pd.DataFrame()
 
     for fnd in ['concrete','crawl','cellar']:
-        df_this_fnd = df[(df['numfoundations'] > 1) & (df[fnd] == 1)]
+        df_this_fnd = df.loc[(df['numfoundations'] > 1) & (df[fnd] == 1)]
         df_this_fnd['Foundation Type'] = fnd
         df_new = df_new.append(df_this_fnd)
 
@@ -544,6 +600,15 @@ def query_stories(df, outfile='recs_query_stories.csv'):
     df.to_csv(outfile, index=False)
     print df
 
+def corr(x,y,w):
+    def m(x,w):
+        return np.sum(x*w)/np.sum(w)
+    def cov(x,y,w):
+        return np.sum(w * (x - m(x,w)) * (y - m(y,w))) / np.sum(w)
+    return cov(x,y,w) / np.sqrt(cov(x,x,w)*cov(y,y,w))
+
+
+
 def regenerate():
 
     # Use this to regenerate processed data if changes are made to any of the classes below
@@ -553,12 +618,13 @@ def regenerate():
     df = custom_region(df)
     df = assign_poverty_levels(df)
     df = foundation_type(df)
+    df = df.reset_index()
     df.to_pickle('processed_eia.recs_2009_microdata.pkl')
     return df
 
 
 #NEW QUERIES
-def query(df):
+#def query(df):
 
 #    calc_general(df, cut_by=['CR','FPL_BINS'], columns = ['yearmaderange'], outfile = 'output_calc_CR_FPL_by_vintage.tsv')
 #    calc_general(df, cut_by=['CR','FPL_BINS','yearmaderange'], columns = ['equipm'], outfile = 'heatingequipment_output_by_CR_FPL_vintage.tsv')
@@ -583,15 +649,15 @@ def query(df):
 #    calc_general(df, cut_by=['yearmaderange','Size'], columns = ['sizeofgarage'], outfile = 'SizeofGarage_output_by_vintage_size.tsv')
 #    calc_general(df, cut_by=['yearmaderange','Size'], columns = ['Foundation Type'], outfile = 'FoundationType_output_by_vintage_size.tsv')
 #    calc_general(df, cut_by=['CR','FPL_BINS','Size'], columns = ['sizeofgarage'], outfile = 'SizeofGarage_output_by_CR_FPL_Size.tsv')
-    calc_general(df, cut_by=['yearmaderange','Size','Foundation Type'], columns = ['stories'], outfile = 'Stories_output_by_vin_size_fndtype.tsv')
+#    calc_general(df, cut_by=['yearmaderange','Size','Foundation Type'], columns = ['stories'], outfile = 'Stories_output_by_vin_size_fndtype.tsv')
 
 if __name__ == '__main__':
     #Choose regerate if you want to redo the processed pkl file, otherwise comment out
 
-#    df = regenerate()
+    df = regenerate()
 
     df = pd.read_pickle('processed_eia.recs_2009_microdata.pkl')
-    query(df)
+#    query(df)
 
 
 

@@ -238,17 +238,19 @@ def kdeplot(df, VAR1, VAR2, TITLE):
     ax = sns.jointplot(x=VAR1, y = VAR2, data = df1, kind = "kde", joint_kws={'weights':'nweight'})
     ax.savefig(VAR1 +" vs. "+ VAR2 +'_kde .png', bbox_inches = 'tight')
 
-if __name__ == '__main__':
-    if not os.path.exists('processed_eia.recs_2009_microdata.pkl'):
-        df = recs.retrieve_data()
-        df = recs.process_data(df)
-        df = recs.custom_region(df)
-        df = recs.assign_poverty_levels(df)
-        df = recs.foundation_type(df)
-#        df = assign_aliases(df)
-        df.to_pickle('processed_eia.recs_2009_microdata.pkl')
-    else:
-        df = pd.read_pickle('processed_eia.recs_2009_microdata.pkl')
+def regenerate():
+
+    # Use this to regenerate processed data if changes are made to any of the classes below
+
+    df = retrieve_data()
+    df = process_data(df)
+    df = custom_region(df)
+    df = assign_poverty_levels(df)
+    df = foundation_type(df)
+    df.to_pickle('processed_eia.recs_2009_microdata.pkl')
+    return df
+
+def plot(df):
 
 #    stackedbar(df,'equipm', 'Heating Equipment' + ' vs. Federal Poverty Levels: 250,200,150,100,50_V2')
 #    stackedbar(df,'fuelheat', 'Heating Fuel' + ' vs. Federal Poverty Levels: 250,200,150,100,50_V2')
@@ -269,12 +271,29 @@ if __name__ == '__main__':
 #    stackedbar(df,'wwacage', 'Window A/C Unit Age' + ' vs. Federal Poverty Levels: 250,200,150,100,50_V2',False)
 #    stackedbar(df,'fuelheat', 'Heating Fuel' + ' vs. Federal Poverty Levels: 250,200,150,100,50_V2',False)
 #    stackedbar(df,'division', 'Census Division' + ' vs. Federal Poverty Levels: 250,200,150,100,50_V2',False)
-    stackedbar(df,'householder_race', 'Householder Race' +' vs. Weighted Federal Poverty Levels: 250,200,150,100,50_V2',False)
-    stackedbar(df,'householder_race', 'Householder Race' +' vs. Proportional Federal Poverty Levels: 250,200,150,100,50_V2',True)
+#    stackedbar(df,'householder_race', 'Householder Race' +' vs. Weighted Federal Poverty Levels: 250,200,150,100,50_V2',False)
+#    stackedbar(df,'householder_race', 'Householder Race' +' vs. Proportional Federal Poverty Levels: 250,200,150,100,50_V2',True)
 #    kdeplot(df,'income', 'temphome', 'Day Thermostat Temp When Home (Winter)_V2')
 #    kdeplot(df,'income', 'tempgone', 'Day Thermostat Temp When Gone(Winter)_V2')
 #    kdeplot(df,'income', 'tempnite', 'Night Thermostat Temp (Winter)_V2')
 #    kdeplot(df,'income', 'temphomeac', 'Day Thermostat Temp When Home (Summer)_V2')
 #    kdeplot(df,'income', 'tempgoneac', 'Day Thermostat Temp When Gone(Summer)_V2')
 #    kdeplot(df,'income', 'tempniteac', 'Night Thermostat Temp (Winter)_V2')
+    kdeplot(df,'rand_income', 'tothsqft', 'Night Thermostat Temp (Winter)_V2')
     print datetime.now() - startTime
+
+if __name__ == '__main__':
+    #Choose regerate if you want to redo the processed pkl file, otherwise comment out
+
+#    df = regenerate()
+
+    df = pd.read_pickle('processed_eia.recs_2009_microdata.pkl')
+    plot(df)
+
+
+
+
+
+
+    print datetime.now() - startTime
+
