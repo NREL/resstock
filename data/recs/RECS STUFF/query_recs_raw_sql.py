@@ -17,6 +17,7 @@ import pickle
 import matplotlib.pyplot as plt
 import random
 import numpy as np
+from collections import OrderedDict
 
 startTime = datetime.now()
 
@@ -124,10 +125,10 @@ story_dict = {10:1,
               31:2,
               32:2}
 
-income_range = {    1:'$2,500 and under',
-                    2:'$2,500 to $4,999',
-                    3:'$5,000 to $7,499',
-                    4:'$7,500 to $9,999',
+income_range = {    1:'$02,500 and under',
+                    2:'$02,500 to $4,999',
+                    3:'$05,000 to $7,499',
+                    4:'$07,500 to $9,999',
                     5:'$10,000 to $14,999',
                     6:'$15,000 to $19,999',
                     7:'$20,000 to $24,999',
@@ -550,7 +551,7 @@ def foundation_type(df):
 
     for fnd in ['concrete','crawl','cellar']:
         df_this_fnd = df.loc[(df['numfoundations'] > 1) & (df[fnd] == 1)]
-        df_this_fnd['Foundation Type'] = fnd
+        df_this_fnd.loc[df_this_fnd['Foundation Type'] == fnd]
         df_new = df_new.append(df_this_fnd)
 
     df_new.loc[(df_new['Foundation Type'] == 'cellar') & (df['baseheat'] == 1), 'Foundation Type'] = 'Heated Basement'
@@ -607,13 +608,30 @@ def corr(x,y,w):
         return np.sum(w * (x - m(x,w)) * (y - m(y,w))) / np.sum(w)
     return cov(x,y,w) / np.sqrt(cov(x,x,w)*cov(y,y,w))
 
+def med_avg(slice_by, column,df,outfile):
+    x = df[slice_by].value_counts()
+    idx = sorted(x.index.tolist())
+    median = []
+    mean = []
+    w_mean = []
+    for i in range(len(idx)):
+        #Implement Weight
+        w = df.loc[df[slice_by]==idx[i],'nweight']
+        m = df.loc[df[slice_by]==idx[i],column]
+        median.append(m.median())
+        mean.append(m.mean())
+        w_mean.append((m*w).sum()/w.sum())
+    data = {'Median':median, 'Mean':mean, 'Weighted Mean':w_mean}
+    g = pd.DataFrame(data)
+    g.insert(0,slice_by,idx)
+    g.to_csv(outfile, sep='\t', index=False)
 
 
 def regenerate():
 
     # Use this to regenerate processed data if changes are made to any of the classes below
-
     df = retrieve_data()
+    df = assign_size_bins(df)
     df = process_data(df)
     df = custom_region(df)
     df = assign_poverty_levels(df)
@@ -659,8 +677,8 @@ if __name__ == '__main__':
     df = pd.read_pickle('processed_eia.recs_2009_microdata.pkl')
 #    query(df)
 
-
-
+    med_avg('Size','tothsqft',df,'Sizes_mean_median.tsv')
+    med_avg('income_range','rand_income',df,'Income_mean_median.tsv')
 
 
 
