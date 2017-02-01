@@ -3,25 +3,34 @@ library(ggplot2)
 library(ggfortify)
 library(leaps)
 
-cat_vars = c('yearmaderange', 'fuelheat', 'householder_race', 'Size', 'CR', 'FPL_BINS', 'education')
-# cat_vars = c('equipm')
-# cat_vars = c('size')
-# cat_vars = c('temphome')
-# cat_vars = c('cooltype')
-# cat_vars = c('education')
-con_vars = c('rand_income')
+# x.vars.con = c('yearmade', 'Intsize')
+x.vars.con = c()
 
-dep_vars = con_vars
-indep_vars = cat_vars
+y.vars.con = c('rand_income')
+
+x.vars.cat = c('yearmaderange', 'fuelheat', 'Size', 'CR', 'cooltype')
+# x.vars.cat = c('fuelheat', 'CR', 'cooltype')
+# x.vars.cat = c('equipm')
+# x.vars.cat = c('Size')
+# x.vars.cat = c('temphome')
+# x.vars.cat = c('cooltype')
+# x.vars.cat = c('education')
+# x.vars.cat = c('householder_race')
+# x.vars.cat = c('FPL_BINS')
+
+y.vars.cat = c()
+
+dep_vars = c(y.vars.con, y.vars.cat)
+indep_vars = c(x.vars.con, x.vars.cat)
 
 df = read.csv('recs.csv')
-df = subset(df, select=c(cat_vars, con_vars, c('nweight')))
+df = subset(df, select=c(x.vars.con, y.vars.con, x.vars.cat, y.vars.cat, c('nweight')))
 df$values = 'actual'
 df$actual = df$rand_income
 df$lwr = df$rand_income
 df$upr = df$rand_income
 
-df[cat_vars] = lapply(df[cat_vars], factor) # apply factor to each of the categorical vars
+df[c(x.vars.cat, y.vars.cat)] = lapply(df[c(x.vars.cat, y.vars.cat)], factor) # apply factor to each of the categorical vars
 df = na.omit(df) # this removes rows with at least one NA
 
 # FIRST PASS
@@ -29,7 +38,7 @@ attach(df)
 df.lm1 = lm(paste(dep_vars, paste(indep_vars, collapse=' + '), sep=' ~ '), weights=nweight, data=df, x=T) # weighted
 # df.lm1 = lm(paste(dep_vars, paste(indep_vars, collapse=' + '), sep=' ~ '), data=df, x=T) # non-weighted
 detach(df)
-# summary(df.lm1)
+summary(df.lm1)
 write.csv(summary(df.lm1)$coefficients, 'lm1.csv') # write out first pass to csv
 ###
 
@@ -54,17 +63,17 @@ attach(df)
 df.lm2 = lm(paste(dep_vars, paste(sig_indep_vars, collapse=' + '), sep=' ~ '), weights=nweight, data=df, x=T) # weighted
 # df.lm2 = lm(paste(dep_vars, paste(sig_indep_vars, collapse=' + '), sep=' ~ '), data=df, x=T) # non-weighted
 detach(df)
-# summary(df.lm2)
+summary(df.lm2)
 write.csv(summary(df.lm2)$coefficients, 'lm2.csv') # write out first pass to csv
 ###
 
-attach(df)
-leaps = regsubsets(rand_income ~ yearmaderange + fuelheat + Size + CR, data=df, nbest=10)
-detach(df)
-png(filename="leaps.png", width=10, height=5, units="in", res=1200)
-par(cex.axis=0.5, cex.lab=0.5)
-plot(leaps, scale='r2')
-dev.off()
+# attach(df)
+# leaps = regsubsets(rand_income ~ yearmaderange + fuelheat + Size + CR, data=df, nbest=10)
+# detach(df)
+# png(filename="leaps.png", width=10, height=5, units="in", res=1200)
+# par(cex.axis=0.5, cex.lab=0.5)
+# plot(leaps, scale='r2')
+# dev.off()
 
 df2 = df
 df2$values = 'predict'
