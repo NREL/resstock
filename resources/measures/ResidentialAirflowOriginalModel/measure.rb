@@ -1985,7 +1985,7 @@ class ProcessAirflowOriginalModel < OpenStudio::Ruleset::WorkspaceUserScript
           AdiabaticConst,                                                     !- Construction Name
           RA Duct Zone_#{unit_num},                                           !- RA Duct Zone
           0,                                                                  !- Azimuth
-          90,                                                                 !- Tilt
+          0,                                                                  !- Tilt
           0,                                                                  !- Vertex 1 X-Coordinate
           75,                                                                 !- Vertex 1 Y-Coordinate
           1,                                                                  !- Vertex 1 Z-Coordinate

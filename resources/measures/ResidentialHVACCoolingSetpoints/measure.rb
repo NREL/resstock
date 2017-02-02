@@ -87,26 +87,32 @@ class ProcessCoolingSetpoints < OpenStudio::Ruleset::ModelUserScript
     end
 
     # assign the availability schedules to the equipment objects
-    clg_equip = false
+    has_clg_equip = false
     model.getThermalZones.each do |thermal_zone|
       cooling_equipment = HVAC.existing_cooling_equipment(model, runner, thermal_zone)
-      unless cooling_equipment.nil?
-        cooling_equipment.each do |clg_coil|
-          if clg_coil.is_a? OpenStudio::Model::ZoneHVACPackagedTerminalAirConditioner
-            clg_coil = clg_coil.coolingCoil.to_CoilCoolingDXSingleSpeed.get
-          elsif clg_coil.is_a? OpenStudio::Model::ZoneHVACTerminalUnitVariableRefrigerantFlow
-            clg_coil = clg_coil.coolingCoil.to_CoilCoolingDXVariableRefrigerantFlow.get
+      cooling_equipment.each do |clg_equip|
+        has_clg_equip = true
+        clg_obj = nil
+        if clg_equip.is_a? OpenStudio::Model::AirLoopHVACUnitarySystem
+          if clg_equip.coolingCoil.is_initialized
+            clg_obj = HVAC.get_coil_from_hvac_component(clg_equip.coolingCoil.get)
           end
-          unless clg_coil.to_CoilCoolingWaterToAirHeatPumpEquationFit.is_initialized
-            clg_coil.setAvailabilitySchedule(coolingseasonschedule.schedule)
-            runner.registerInfo("Added availability schedule to #{clg_coil.name}.")
-          end
+        elsif clg_equip.is_a? OpenStudio::Model::ZoneHVACPackagedTerminalAirConditioner
+          clg_obj = HVAC.get_coil_from_hvac_component(clg_equip.coolingCoil)
+        elsif clg_equip.is_a? OpenStudio::Model::ZoneHVACTerminalUnitVariableRefrigerantFlow
+          clg_obj = HVAC.get_coil_from_hvac_component(clg_equip.coolingCoil)
+        else
+          runner.registerError("Unexpected cooling system: '#{clg_equip.name}'.")
+          return false
         end
-        clg_equip = true
+        unless clg_obj.nil? or clg_obj.to_CoilCoolingWaterToAirHeatPumpEquationFit.is_initialized
+          clg_obj.setAvailabilitySchedule(coolingseasonschedule.schedule)
+          runner.registerInfo("Added availability schedule to #{clg_obj.name}.")
+        end
       end
     end
     
-    unless clg_equip
+    unless has_clg_equip
       runner.registerWarning("No cooling equipment found.")
       return true
     end

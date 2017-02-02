@@ -212,14 +212,15 @@ def get_combination_hashes(tsvfiles, dependencies)
 end
   
 def get_value_from_runner_past_results(key_lookup, runner=nil)
+    key_lookup = OpenStudio::toUnderscoreCase(key_lookup)
     runner.past_results.each do |measure, measure_hash|
         measure_hash.each do |k, v|
-            if k.to_s == key_lookup.to_s
+            if k.to_s == key_lookup
                 return v.to_s
             end
         end
     end
-    register_error("Could not find past value for '#{key_lookup.to_s}'.", runner)
+    register_error("Could not find past value for '#{key_lookup}'.\nrunner.past_results: #{runner.past_results.to_s}", runner)
 end
   
 def get_measure_args_from_option_name(lookup_file, option_name, parameter_name, runner=nil)
@@ -478,9 +479,9 @@ def evaluate_logic(option_apply_logic, runner)
     end
     ruby_eval_str.chomp!(" or ")
     result = eval(ruby_eval_str)
-    runner.registerInfo("Evaluating logic: #{option_apply_logic}.")
-    runner.registerInfo("Converted to Ruby: #{ruby_eval_str}.")
-    runner.registerInfo("Ruby Evaluation: #{result.to_s}.")
+    #runner.registerInfo("Evaluating logic: #{option_apply_logic}.")
+    #runner.registerInfo("Converted to Ruby: #{ruby_eval_str}.")
+    #runner.registerInfo("Ruby Evaluation: #{result.to_s}.")
     if not [true, false].include?(result)
         runner.registerError("Logic was not successfully evaluated: #{ruby_eval_str}")
         return nil
@@ -502,4 +503,5 @@ class String
     end
     return true
   end
+  
 end

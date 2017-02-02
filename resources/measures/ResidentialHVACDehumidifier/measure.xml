@@ -2,13 +2,13 @@
   <schema_version>3.0</schema_version>
   <name>process_dehumidifier</name>
   <uid>f2d9e1e8-17bd-4a4a-a46b-df5f7e54e6c3</uid>
-  <version_id>98408fcf-d23c-4a45-8801-71947a8743f2</version_id>
-  <version_modified>20170118T165751Z</version_modified>
-  <xml_checksum>D48F381B</xml_checksum>
+  <version_id>f4cfe993-a345-4c61-86b2-264e1d38c5ea</version_id>
+  <version_modified>20170201T173720Z</version_modified>
+  <xml_checksum>0D0748A3</xml_checksum>
   <class_name>ProcessDehumidifier</class_name>
   <display_name>Set Residential Dehumidifier</display_name>
   <description>This measure removes any existing dehumidifiers from the building and adds a dehumidifier. For multifamily buildings, the dehumidifier can be set for all units of the building.</description>
-  <modeler_description>Any HVAC dehumidifier DXs are removed from any existing zones. An HVAC dehumidifier DX is added to the living zone. A humidistat is also added to the zone, with the relative humidity setpoint input by the user.</modeler_description>
+  <modeler_description>Any HVAC dehumidifier DXs are removed from any existing zones. An HVAC dehumidifier DX is added to the living zone, as well as to the finished basement if it exists. A humidistat is also added to the zone, with the relative humidity setpoint input by the user.</modeler_description>
   <arguments>
     <argument>
       <name>energy_factor</name>
@@ -41,21 +41,6 @@
       <default_value>auto</default_value>
     </argument>
     <argument>
-      <name>config</name>
-      <display_name>Configuration</display_name>
-      <description>The configuration of the dehumidifier. Only affects costing. If 'auto' is selected, dehumidifiers larger than 70 pints/day will be ducted.</description>
-      <type>Choice</type>
-      <required>true</required>
-      <model_dependent>false</model_dependent>
-      <default_value>standalone</default_value>
-      <choices>
-        <choice>
-          <value>standalone</value>
-          <display_name>standalone</display_name>
-        </choice>
-      </choices>
-    </argument>
-    <argument>
       <name>humidity_setpoint</name>
       <display_name>Annual Relative Humidity Setpoint</display_name>
       <description>The annual relative humidity setpoint.</description>
@@ -66,6 +51,7 @@
       <default_value>0.6</default_value>
     </argument>
   </arguments>
+  <outputs/>
   <provenances/>
   <tags>
     <tag>HVAC.Cooling</tag>
@@ -100,24 +86,6 @@
       <checksum>86A38CF7</checksum>
     </file>
     <file>
-      <filename>process_dehumidifier_test.rb</filename>
-      <filetype>rb</filetype>
-      <usage_type>test</usage_type>
-      <checksum>4670A7E1</checksum>
-    </file>
-    <file>
-      <filename>hvac.rb</filename>
-      <filetype>rb</filetype>
-      <usage_type>resource</usage_type>
-      <checksum>76C55B95</checksum>
-    </file>
-    <file>
-      <filename>geometry.rb</filename>
-      <filetype>rb</filetype>
-      <usage_type>resource</usage_type>
-      <checksum>E81E792E</checksum>
-    </file>
-    <file>
       <filename>unit_conversions.rb</filename>
       <filetype>rb</filetype>
       <usage_type>resource</usage_type>
@@ -136,6 +104,12 @@
       <checksum>E90A54AB</checksum>
     </file>
     <file>
+      <filename>process_dehumidifier_test.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>test</usage_type>
+      <checksum>4670A7E1</checksum>
+    </file>
+    <file>
       <version>
         <software_program>OpenStudio</software_program>
         <identifier>1.14.0</identifier>
@@ -144,13 +118,25 @@
       <filename>measure.rb</filename>
       <filetype>rb</filetype>
       <usage_type>script</usage_type>
-      <checksum>84C50DD0</checksum>
+      <checksum>9DBED5E2</checksum>
+    </file>
+    <file>
+      <filename>hvac.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>048F7BD2</checksum>
+    </file>
+    <file>
+      <filename>geometry.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>44E4E210</checksum>
     </file>
     <file>
       <filename>constants.rb</filename>
       <filetype>rb</filetype>
       <usage_type>resource</usage_type>
-      <checksum>7BF8DC86</checksum>
+      <checksum>E02944E8</checksum>
     </file>
   </files>
 </measure>

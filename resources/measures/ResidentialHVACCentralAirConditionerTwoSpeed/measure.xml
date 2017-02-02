@@ -2,9 +2,9 @@
   <schema_version>3.0</schema_version>
   <name>process_two_speed_central_air_conditioner</name>
   <uid>fd979c79-79d9-4c99-8cc8-abd7935d636b</uid>
-  <version_id>22b39c02-6a73-4fe2-b747-73d06f566ea7</version_id>
-  <version_modified>20170118T161940Z</version_modified>
-  <xml_checksum>D48F381B</xml_checksum>
+  <version_id>d8c6f745-6a1f-45d4-85d2-2dec69b1a38e</version_id>
+  <version_modified>20170201T173720Z</version_modified>
+  <xml_checksum>0D0748A3</xml_checksum>
   <class_name>ProcessTwoSpeedCentralAirConditioner</class_name>
   <display_name>Set Residential Two-Speed Central Air Conditioner</display_name>
   <description>This measure removes any existing HVAC cooling components from the building and adds a two-speed central air conditioner along with an on/off supply fan to a unitary air loop. For multifamily buildings, the two-speed central air conditioner can be set for all units of the building.</description>
@@ -191,8 +191,10 @@
     </argument>
     <argument>
       <name>capacity</name>
-      <display_name>Cooling Output Capacity</display_name>
+      <display_name>Cooling Capacity</display_name>
+      <description>The output cooling capacity of the air conditioner.</description>
       <type>Choice</type>
+      <units>tons</units>
       <required>true</required>
       <model_dependent>false</model_dependent>
       <default_value>autosize</default_value>
@@ -202,88 +204,89 @@
           <display_name>autosize</display_name>
         </choice>
         <choice>
-          <value>0.5 tons</value>
-          <display_name>0.5 tons</display_name>
+          <value>0.5</value>
+          <display_name>0.5</display_name>
         </choice>
         <choice>
-          <value>1.0 tons</value>
-          <display_name>1.0 tons</display_name>
+          <value>1.0</value>
+          <display_name>1.0</display_name>
         </choice>
         <choice>
-          <value>1.5 tons</value>
-          <display_name>1.5 tons</display_name>
+          <value>1.5</value>
+          <display_name>1.5</display_name>
         </choice>
         <choice>
-          <value>2.0 tons</value>
-          <display_name>2.0 tons</display_name>
+          <value>2.0</value>
+          <display_name>2.0</display_name>
         </choice>
         <choice>
-          <value>2.5 tons</value>
-          <display_name>2.5 tons</display_name>
+          <value>2.5</value>
+          <display_name>2.5</display_name>
         </choice>
         <choice>
-          <value>3.0 tons</value>
-          <display_name>3.0 tons</display_name>
+          <value>3.0</value>
+          <display_name>3.0</display_name>
         </choice>
         <choice>
-          <value>3.5 tons</value>
-          <display_name>3.5 tons</display_name>
+          <value>3.5</value>
+          <display_name>3.5</display_name>
         </choice>
         <choice>
-          <value>4.0 tons</value>
-          <display_name>4.0 tons</display_name>
+          <value>4.0</value>
+          <display_name>4.0</display_name>
         </choice>
         <choice>
-          <value>4.5 tons</value>
-          <display_name>4.5 tons</display_name>
+          <value>4.5</value>
+          <display_name>4.5</display_name>
         </choice>
         <choice>
-          <value>5.0 tons</value>
-          <display_name>5.0 tons</display_name>
+          <value>5.0</value>
+          <display_name>5.0</display_name>
         </choice>
         <choice>
-          <value>5.5 tons</value>
-          <display_name>5.5 tons</display_name>
+          <value>5.5</value>
+          <display_name>5.5</display_name>
         </choice>
         <choice>
-          <value>6.0 tons</value>
-          <display_name>6.0 tons</display_name>
+          <value>6.0</value>
+          <display_name>6.0</display_name>
         </choice>
         <choice>
-          <value>6.5 tons</value>
-          <display_name>6.5 tons</display_name>
+          <value>6.5</value>
+          <display_name>6.5</display_name>
         </choice>
         <choice>
-          <value>7.0 tons</value>
-          <display_name>7.0 tons</display_name>
+          <value>7.0</value>
+          <display_name>7.0</display_name>
         </choice>
         <choice>
-          <value>7.5 tons</value>
-          <display_name>7.5 tons</display_name>
+          <value>7.5</value>
+          <display_name>7.5</display_name>
         </choice>
         <choice>
-          <value>8.0 tons</value>
-          <display_name>8.0 tons</display_name>
+          <value>8.0</value>
+          <display_name>8.0</display_name>
         </choice>
         <choice>
-          <value>8.5 tons</value>
-          <display_name>8.5 tons</display_name>
+          <value>8.5</value>
+          <display_name>8.5</display_name>
         </choice>
         <choice>
-          <value>9.0 tons</value>
-          <display_name>9.0 tons</display_name>
+          <value>9.0</value>
+          <display_name>9.0</display_name>
         </choice>
         <choice>
-          <value>9.5 tons</value>
-          <display_name>9.5 tons</display_name>
+          <value>9.5</value>
+          <display_name>9.5</display_name>
         </choice>
         <choice>
-          <value>10.0 tons</value>
-          <display_name>10.0 tons</display_name>
+          <value>10.0</value>
+          <display_name>10.0</display_name>
         </choice>
       </choices>
     </argument>
   </arguments>
+  <outputs/>
   <provenances/>
   <tags>
     <tag>HVAC.Cooling</tag>
@@ -420,24 +423,6 @@
       <checksum>86A38CF7</checksum>
     </file>
     <file>
-      <filename>hvac.rb</filename>
-      <filetype>rb</filetype>
-      <usage_type>resource</usage_type>
-      <checksum>76C55B95</checksum>
-    </file>
-    <file>
-      <filename>process_two_speed_central_air_conditioner_test.rb</filename>
-      <filetype>rb</filetype>
-      <usage_type>test</usage_type>
-      <checksum>ADB507D3</checksum>
-    </file>
-    <file>
-      <filename>geometry.rb</filename>
-      <filetype>rb</filetype>
-      <usage_type>resource</usage_type>
-      <checksum>E81E792E</checksum>
-    </file>
-    <file>
       <filename>unit_conversions.rb</filename>
       <filetype>rb</filetype>
       <usage_type>resource</usage_type>
@@ -456,6 +441,18 @@
       <checksum>E90A54AB</checksum>
     </file>
     <file>
+      <filename>util.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>BAAF2AEF</checksum>
+    </file>
+    <file>
+      <filename>process_two_speed_central_air_conditioner_test.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>test</usage_type>
+      <checksum>0183D975</checksum>
+    </file>
+    <file>
       <version>
         <software_program>OpenStudio</software_program>
         <identifier>1.13.2</identifier>
@@ -464,19 +461,25 @@
       <filename>measure.rb</filename>
       <filetype>rb</filetype>
       <usage_type>script</usage_type>
-      <checksum>C4B0014B</checksum>
+      <checksum>4CB58F73</checksum>
+    </file>
+    <file>
+      <filename>hvac.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>048F7BD2</checksum>
+    </file>
+    <file>
+      <filename>geometry.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>44E4E210</checksum>
     </file>
     <file>
       <filename>constants.rb</filename>
       <filetype>rb</filetype>
       <usage_type>resource</usage_type>
-      <checksum>7BF8DC86</checksum>
-    </file>
-    <file>
-      <filename>util.rb</filename>
-      <filetype>rb</filetype>
-      <usage_type>resource</usage_type>
-      <checksum>BAAF2AEF</checksum>
+      <checksum>E02944E8</checksum>
     </file>
   </files>
 </measure>

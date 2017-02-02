@@ -87,36 +87,40 @@ class ProcessHeatingSetpoints < OpenStudio::Ruleset::ModelUserScript
     end
 
     # assign the availability schedules to the equipment objects
-    htg_equip = false
+    has_htg_equip = false
     model.getThermalZones.each do |thermal_zone|
       heating_equipment = HVAC.existing_heating_equipment(model, runner, thermal_zone)
-      unless heating_equipment.nil?
-        heating_equipment.each do |htg_coil|
-          if htg_coil.is_a? OpenStudio::Model::AirLoopHVACUnitarySystem
-            air_loop_unitary = htg_coil
-            htg_coil = air_loop_unitary.heatingCoil.get
-            if htg_coil.to_CoilHeatingDXSingleSpeed.is_initialized
-              htg_coil = htg_coil.to_CoilHeatingDXSingleSpeed.get
-            elsif htg_coil.to_CoilHeatingDXMultiSpeed.is_initialized
-              htg_coil = htg_coil.to_CoilHeatingDXMultiSpeed.get
-            end
-            supp_htg_coil = air_loop_unitary.supplementalHeatingCoil.get
-            supp_htg_coil = supp_htg_coil.to_CoilHeatingElectric.get
-            supp_htg_coil.setAvailabilitySchedule(heatingseasonschedule.schedule)
-            runner.registerInfo("Added availability schedule to #{supp_htg_coil.name}.")
-          elsif htg_coil.is_a? OpenStudio::Model::ZoneHVACTerminalUnitVariableRefrigerantFlow
-            htg_coil = htg_coil.heatingCoil.to_CoilHeatingDXVariableRefrigerantFlow.get        
+      heating_equipment.each do |htg_equip|
+        has_htg_equip = true
+        htg_obj = nil
+        supp_htg_obj = nil
+        if htg_equip.is_a? OpenStudio::Model::AirLoopHVACUnitarySystem
+          if htg_equip.heatingCoil.is_initialized
+            htg_obj = HVAC.get_coil_from_hvac_component(htg_equip.heatingCoil.get)
           end
-          unless htg_coil.to_CoilHeatingWaterToAirHeatPumpEquationFit.is_initialized
-            htg_coil.setAvailabilitySchedule(heatingseasonschedule.schedule)
-            runner.registerInfo("Added availability schedule to #{htg_coil.name}.")
+          if htg_equip.supplementalHeatingCoil.is_initialized
+            supp_htg_obj = HVAC.get_coil_from_hvac_component(htg_equip.supplementalHeatingCoil.get)
           end
+        elsif htg_equip.is_a? OpenStudio::Model::ZoneHVACTerminalUnitVariableRefrigerantFlow
+          htg_obj = HVAC.get_coil_from_hvac_component(htg_equip.heatingCoil)
+        elsif htg_equip.to_ZoneHVACComponent.is_initialized
+          htg_obj = htg_equip
+        else
+          runner.registerError("Unexpected heating system: '#{htg_equip.name}'.")
+          return false
         end
-        htg_equip = true
+        unless htg_obj.nil? or htg_obj.to_CoilHeatingWaterToAirHeatPumpEquationFit.is_initialized
+          htg_obj.setAvailabilitySchedule(heatingseasonschedule.schedule)
+          runner.registerInfo("Added availability schedule to #{htg_obj.name}.")
+        end
+        unless supp_htg_obj.nil?
+          supp_htg_obj.setAvailabilitySchedule(heatingseasonschedule.schedule)
+          runner.registerInfo("Added availability schedule to #{supp_htg_obj.name}.")
+        end
       end
     end
     
-    unless htg_equip
+    unless has_htg_equip
       runner.registerWarning("No heating equipment found.")
       return true
     end    

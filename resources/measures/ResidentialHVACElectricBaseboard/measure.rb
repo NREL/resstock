@@ -45,10 +45,12 @@ class ProcessElectricBaseboard < OpenStudio::Ruleset::ModelUserScript
     cap_display_names = OpenStudio::StringVector.new
     cap_display_names << Constants.SizingAuto
     (5..150).step(5) do |kbtu|
-      cap_display_names << "#{kbtu} kBtu/hr"
+      cap_display_names << kbtu.to_s
     end
     baseboardcap = OpenStudio::Ruleset::OSArgument::makeChoiceArgument("capacity", cap_display_names, true)
-    baseboardcap.setDisplayName("Heating Output Capacity")
+    baseboardcap.setDisplayName("Heating Capacity")
+    baseboardcap.setDescription("The output heating capacity of the electric baseboard.")
+    baseboardcap.setUnits("kBtu/hr")
     baseboardcap.setDefaultValue(Constants.SizingAuto)
     args << baseboardcap
 	
@@ -67,7 +69,7 @@ class ProcessElectricBaseboard < OpenStudio::Ruleset::ModelUserScript
     baseboardEfficiency = runner.getDoubleArgumentValue("efficiency",user_arguments)
     baseboardOutputCapacity = runner.getStringArgumentValue("capacity",user_arguments)
     unless baseboardOutputCapacity == Constants.SizingAuto
-      baseboardOutputCapacity = OpenStudio::convert(baseboardOutputCapacity.split(" ")[0].to_f,"kBtu/h","Btu/h").get
+      baseboardOutputCapacity = OpenStudio::convert(baseboardOutputCapacity.to_f,"kBtu/h","Btu/h").get
     end
    
     # Remove boiler hot water loop if it exists
@@ -89,10 +91,10 @@ class ProcessElectricBaseboard < OpenStudio::Ruleset::ModelUserScript
       control_slave_zones_hash.each do |control_zone, slave_zones|
     
         # Remove existing equipment
-        HVAC.remove_existing_hvac_equipment(model, runner, "Electric Baseboard", control_zone)
+        HVAC.remove_existing_hvac_equipment(model, runner, Constants.ObjectNameElectricBaseboard, control_zone)
       
         htg_coil = OpenStudio::Model::ZoneHVACBaseboardConvectiveElectric.new(model)
-        htg_coil.setName(obj_name + " #{control_zone.name} zone bb")
+        htg_coil.setName(obj_name + " #{control_zone.name} convective electric")
         if baseboardOutputCapacity != Constants.SizingAuto
             htg_coil.setNominalCapacity(OpenStudio::convert(baseboardOutputCapacity,"Btu/h","W").get)
         end
@@ -104,10 +106,10 @@ class ProcessElectricBaseboard < OpenStudio::Ruleset::ModelUserScript
         slave_zones.each do |slave_zone|
         
           # Remove existing equipment
-          HVAC.remove_existing_hvac_equipment(model, runner, "Electric Baseboard", slave_zone)    
+          HVAC.remove_existing_hvac_equipment(model, runner, Constants.ObjectNameElectricBaseboard, slave_zone)    
         
           htg_coil = OpenStudio::Model::ZoneHVACBaseboardConvectiveElectric.new(model)
-          htg_coil.setName(obj_name + " #{slave_zone.name} zone bb")
+          htg_coil.setName(obj_name + " #{slave_zone.name} convective electric")
           if baseboardOutputCapacity != Constants.SizingAuto
               htg_coil.setNominalCapacity(OpenStudio::convert(baseboardOutputCapacity,"Btu/h","W").get)
           end

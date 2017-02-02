@@ -88,6 +88,7 @@ class SetResidentialWindowArea < OpenStudio::Ruleset::ModelUserScript
     Geometry.get_finished_spaces(model.getSpaces).each do |space|
         space.surfaces.each do |surface|
             next if not (surface.surfaceType.downcase == "wall" and surface.outsideBoundaryCondition.downcase == "outdoors")
+            next if (90 - surface.tilt*180/Math::PI).abs > 0.01 # Not a vertical wall
             win_removed = false
             surface.subSurfaces.each do |sub_surface|
                 next if sub_surface.subSurfaceType.downcase != "fixedwindow"

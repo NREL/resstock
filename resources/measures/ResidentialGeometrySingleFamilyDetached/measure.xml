@@ -2,9 +2,9 @@
   <schema_version>3.0</schema_version>
   <name>create_residential_single_family_detached_geometry</name>
   <uid>a1248ef4-c1ef-46ed-a9ea-4d8fbf719b6f</uid>
-  <version_id>7790d87c-aa74-411a-8fef-604a59f906ef</version_id>
-  <version_modified>20170118T165745Z</version_modified>
-  <xml_checksum>2AF3A68E</xml_checksum>
+  <version_id>da6eb3eb-bb31-45d3-bab6-95a6ca786185</version_id>
+  <version_modified>20170201T173713Z</version_modified>
+  <xml_checksum>0D0748A3</xml_checksum>
   <class_name>CreateResidentialSingleFamilyDetachedGeometry</class_name>
   <display_name>Create Residential Single-Family Detached Geometry</display_name>
   <description>Sets the basic geometry for the building. Building is limited to one foundation type. Garage is tucked within the building, on the front left or front right corners of the building.</description>
@@ -43,7 +43,7 @@
     <argument>
       <name>aspect_ratio</name>
       <display_name>Aspect Ratio</display_name>
-      <description>The ratio of the front/back wall length to the left/right wall length.</description>
+      <description>The ratio of the front/back wall length to the left/right wall length, excluding any protruding garage wall area.</description>
       <type>Double</type>
       <units>FB/LR</units>
       <required>true</required>
@@ -242,6 +242,7 @@
       </choices>
     </argument>
   </arguments>
+  <outputs/>
   <provenances/>
   <tags>
     <tag>Envelope.Form</tag>
@@ -270,6 +271,18 @@
   </attributes>
   <files>
     <file>
+      <filename>SFD_2000sqft_2story_SL_UA.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>36B2871D</checksum>
+    </file>
+    <file>
+      <filename>create_residential_single_family_detached_geometry_test.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>test</usage_type>
+      <checksum>7DAFD8E9</checksum>
+    </file>
+    <file>
       <version>
         <software_program>OpenStudio</software_program>
         <identifier>1.12.4</identifier>
@@ -278,31 +291,19 @@
       <filename>measure.rb</filename>
       <filetype>rb</filetype>
       <usage_type>script</usage_type>
-      <checksum>BC34ED37</checksum>
-    </file>
-    <file>
-      <filename>create_residential_single_family_detached_geometry_test.rb</filename>
-      <filetype>rb</filetype>
-      <usage_type>test</usage_type>
-      <checksum>820070E4</checksum>
-    </file>
-    <file>
-      <filename>SFD_2000sqft_2story_SL_UA.osm</filename>
-      <filetype>osm</filetype>
-      <usage_type>test</usage_type>
-      <checksum>36B2871D</checksum>
+      <checksum>AB3CF988</checksum>
     </file>
     <file>
       <filename>geometry.rb</filename>
       <filetype>rb</filetype>
       <usage_type>resource</usage_type>
-      <checksum>E81E792E</checksum>
+      <checksum>44E4E210</checksum>
     </file>
     <file>
       <filename>constants.rb</filename>
       <filetype>rb</filetype>
       <usage_type>resource</usage_type>
-      <checksum>7BF8DC86</checksum>
+      <checksum>E02944E8</checksum>
     </file>
   </files>
 </measure>

@@ -51,7 +51,7 @@ class ProcessConstructionsCeilingsRoofsFinishedRoof < OpenStudio::Ruleset::Model
     cavity_depth.setDisplayName("Cavity Depth")
     cavity_depth.setUnits("in")
     cavity_depth.setDescription("Depth of the roof cavity. 3.5\" for 2x4s, 5.5\" for 2x6s, etc.")
-    cavity_depth.setDefaultValue("9.25")
+    cavity_depth.setDefaultValue(9.25)
     args << cavity_depth
     
 	#make a bool argument for whether the cavity insulation fills the cavity

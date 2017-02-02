@@ -106,10 +106,12 @@ class ProcessBoilerFuel < OpenStudio::Ruleset::ModelUserScript
     cap_display_names = OpenStudio::StringVector.new
     cap_display_names << Constants.SizingAuto
     (5..150).step(5) do |kbtu|
-      cap_display_names << "#{kbtu} kBtu/hr"
+      cap_display_names << kbtu.to_s
     end
     boilerOutputCapacity = OpenStudio::Ruleset::OSArgument::makeChoiceArgument("capacity", cap_display_names, true)
-    boilerOutputCapacity.setDisplayName("Heating Output Capacity")
+    boilerOutputCapacity.setDisplayName("Heating Capacity")
+    boilerOutputCapacity.setDescription("The output heating capacity of the boiler.")
+    boilerOutputCapacity.setUnits("kBtu/hr")
     boilerOutputCapacity.setDefaultValue(Constants.SizingAuto)
     args << boilerOutputCapacity  
 
@@ -139,7 +141,7 @@ class ProcessBoilerFuel < OpenStudio::Ruleset::ModelUserScript
     boilerOATLowHWST.is_initialized ? boilerOATLowHWST = boilerOATLowHWST.get : boilerOATLowHWST = nil      
     boilerOutputCapacity = runner.getStringArgumentValue("capacity",user_arguments)
     if not boilerOutputCapacity == Constants.SizingAuto
-      boilerOutputCapacity = OpenStudio::convert(boilerOutputCapacity.split(" ")[0].to_f,"kBtu/h","Btu/h").get
+      boilerOutputCapacity = OpenStudio::convert(boilerOutputCapacity.to_f,"kBtu/h","Btu/h").get
     end
     boilerDesignTemp = runner.getDoubleArgumentValue("design_temp",user_arguments)
     
@@ -186,7 +188,7 @@ class ProcessBoilerFuel < OpenStudio::Ruleset::ModelUserScript
     # _processSystemHydronic
     
     plant_loop = OpenStudio::Model::PlantLoop.new(model)
-    plant_loop.setName("Hydronic Heat Loop")
+    plant_loop.setName(Constants.ObjectNameBoiler(boilerFuelType) + " hydronic heat loop")
     plant_loop.setFluidType("Water")
     plant_loop.setMaximumLoopTemperature(100)
     plant_loop.setMinimumLoopTemperature(0)
@@ -198,7 +200,7 @@ class ProcessBoilerFuel < OpenStudio::Ruleset::ModelUserScript
     loop_sizing.setLoopDesignTemperatureDifference(OpenStudio::convert(20.0,"R","K").get)
     
     pump = OpenStudio::Model::PumpConstantSpeed.new(model)
-    pump.setName("Hydronic Pump")
+    pump.setName(Constants.ObjectNameBoiler(boilerFuelType) + " hydronic pump")
     if boilerOutputCapacity != Constants.SizingAuto
       pump.setRatedFlowRate(OpenStudio::convert(boilerOutputCapacity/20.0/500.0,"gal/min","m^3/s").get)
     end
@@ -208,7 +210,7 @@ class ProcessBoilerFuel < OpenStudio::Ruleset::ModelUserScript
     pump.setPumpControlType("Intermittent")
         
     boiler = OpenStudio::Model::BoilerHotWater.new(model)
-    boiler.setName("Boiler")
+    boiler.setName(Constants.ObjectNameBoiler(boilerFuelType))
     boiler.setFuelType(HelperMethods.eplus_fuel_map(boilerFuelType))
     if boilerOutputCapacity != Constants.SizingAuto
       boiler.setNominalCapacity(OpenStudio::convert(boilerOutputCapacity,"Btu/h","W").get)
@@ -243,7 +245,7 @@ class ProcessBoilerFuel < OpenStudio::Ruleset::ModelUserScript
        
     if boilerType == Constants.BoilerTypeCondensing and boilerOATResetEnabled
       setpoint_manager_oar = OpenStudio::Model::SetpointManagerOutdoorAirReset.new(model)
-      setpoint_manager_oar.setName("Outdoor Reset")
+      setpoint_manager_oar.setName(Constants.ObjectNameBoiler(boilerFuelType) + " outdoor reset")
       setpoint_manager_oar.setControlVariable("Temperature")
       setpoint_manager_oar.setSetpointatOutdoorLowTemperature(OpenStudio::convert(boilerOATLowHWST,"F","C").get)
       setpoint_manager_oar.setOutdoorLowTemperature(OpenStudio::convert(boilerOATLow,"F","C").get)
@@ -253,11 +255,11 @@ class ProcessBoilerFuel < OpenStudio::Ruleset::ModelUserScript
     end
     
     hydronic_heat_supply_setpoint = OpenStudio::Model::ScheduleConstant.new(model)
-    hydronic_heat_supply_setpoint.setName("Hydronic Heat Supply Setpoint")
+    hydronic_heat_supply_setpoint.setName(Constants.ObjectNameBoiler(boilerFuelType) + " hydronic heat supply setpoint")
     hydronic_heat_supply_setpoint.setValue(OpenStudio::convert(boilerDesignTemp,"F","C").get)    
     
     setpoint_manager_scheduled = OpenStudio::Model::SetpointManagerScheduled.new(model, hydronic_heat_supply_setpoint)
-    setpoint_manager_scheduled.setName("Hydronic Heat Loop Setpoint Manager")
+    setpoint_manager_scheduled.setName(Constants.ObjectNameBoiler(boilerFuelType) + " hydronic heat loop setpoint manager")
     setpoint_manager_scheduled.setControlVariable("Temperature")
     
     pipe_supply_bypass = OpenStudio::Model::PipeAdiabatic.new(model)
@@ -291,10 +293,10 @@ class ProcessBoilerFuel < OpenStudio::Ruleset::ModelUserScript
       control_slave_zones_hash.each do |control_zone, slave_zones|
 
         # Remove existing equipment
-        HVAC.remove_existing_hvac_equipment(model, runner, "Boiler", control_zone)
+        HVAC.remove_existing_hvac_equipment(model, runner, Constants.ObjectNameBoiler, control_zone)
       
         baseboard_coil = OpenStudio::Model::CoilHeatingWaterBaseboard.new(model)
-        baseboard_coil.setName(obj_name + " #{control_zone.name} water bb coil")
+        baseboard_coil.setName(obj_name + " #{control_zone.name} heating coil")
         if boilerOutputCapacity != Constants.SizingAuto
           bb_UA = OpenStudio::convert(boilerOutputCapacity,"Btu/h","W").get / (OpenStudio::convert(boilerDesignTemp - 10.0 - 95.0,"R","K").get) * 3
           bb_max_flow = OpenStudio::convert(boilerOutputCapacity,"Btu/h","W").get / OpenStudio::convert(20.0,"R","K").get / 4.186 / 998.2 / 1000 * 2.0    
@@ -304,7 +306,7 @@ class ProcessBoilerFuel < OpenStudio::Ruleset::ModelUserScript
         baseboard_coil.setConvergenceTolerance(0.001)
         
         living_baseboard_heater = OpenStudio::Model::ZoneHVACBaseboardConvectiveWater.new(model, model.alwaysOnDiscreteSchedule, baseboard_coil)
-        living_baseboard_heater.setName(obj_name + " #{control_zone.name} zone bb")
+        living_baseboard_heater.setName(obj_name + " #{control_zone.name} convective water")
         living_baseboard_heater.addToThermalZone(control_zone)
         runner.registerInfo("Added '#{living_baseboard_heater.name}' to '#{control_zone.name}' of #{unit.name}")
         
@@ -313,10 +315,10 @@ class ProcessBoilerFuel < OpenStudio::Ruleset::ModelUserScript
         slave_zones.each do |slave_zone|
 
           # Remove existing equipment
-          HVAC.remove_existing_hvac_equipment(model, runner, "Boiler", slave_zone)       
+          HVAC.remove_existing_hvac_equipment(model, runner, Constants.ObjectNameBoiler, slave_zone)       
         
           baseboard_coil = OpenStudio::Model::CoilHeatingWaterBaseboard.new(model)
-          baseboard_coil.setName(obj_name + " #{slave_zone.name} water bb coil")
+          baseboard_coil.setName(obj_name + " #{slave_zone.name} heating coil")
           if boilerOutputCapacity != Constants.SizingAuto
             bb_UA = OpenStudio::convert(boilerOutputCapacity,"Btu/h","W").get / (OpenStudio::convert(boilerDesignTemp - 10.0 - 95.0,"R","K").get) * 3
             bb_max_flow = OpenStudio::convert(boilerOutputCapacity,"Btu/h","W").get / OpenStudio::convert(20.0,"R","K").get / 4.186 / 998.2 / 1000 * 2.0    
@@ -326,7 +328,7 @@ class ProcessBoilerFuel < OpenStudio::Ruleset::ModelUserScript
           baseboard_coil.setConvergenceTolerance(0.001)
         
           fbasement_baseboard_heater = OpenStudio::Model::ZoneHVACBaseboardConvectiveWater.new(model, model.alwaysOnDiscreteSchedule, baseboard_coil)
-          fbasement_baseboard_heater.setName(obj_name + " #{slave_zone.name} zone bb")
+          fbasement_baseboard_heater.setName(obj_name + " #{slave_zone.name} convective water")
           fbasement_baseboard_heater.addToThermalZone(slave_zone)
           runner.registerInfo("Added '#{fbasement_baseboard_heater.name}' to '#{slave_zone.name}' of #{unit.name}")
           

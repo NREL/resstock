@@ -179,10 +179,12 @@ class ProcessTwoSpeedCentralAirConditioner < OpenStudio::Ruleset::ModelUserScrip
     cap_display_names = OpenStudio::StringVector.new
     cap_display_names << Constants.SizingAuto
     (0.5..10.0).step(0.5) do |tons|
-      cap_display_names << "#{tons} tons"
+      cap_display_names << tons.to_s
     end
     acCoolingOutputCapacity = OpenStudio::Ruleset::OSArgument::makeChoiceArgument("capacity", cap_display_names, true)
-    acCoolingOutputCapacity.setDisplayName("Cooling Output Capacity")
+    acCoolingOutputCapacity.setDisplayName("Cooling Capacity")
+    acCoolingOutputCapacity.setDescription("The output cooling capacity of the air conditioner.")
+    acCoolingOutputCapacity.setUnits("tons")
     acCoolingOutputCapacity.setDefaultValue(Constants.SizingAuto)
     args << acCoolingOutputCapacity    
     
@@ -216,13 +218,22 @@ class ProcessTwoSpeedCentralAirConditioner < OpenStudio::Ruleset::ModelUserScrip
     acEERCapacityDerateFactor = [acEERCapacityDerateFactor1ton, acEERCapacityDerateFactor2ton, acEERCapacityDerateFactor3ton, acEERCapacityDerateFactor4ton, acEERCapacityDerateFactor5ton]
     acOutputCapacity = runner.getStringArgumentValue("capacity",user_arguments)
     unless acOutputCapacity == Constants.SizingAuto
-      acOutputCapacity = OpenStudio::convert(acOutputCapacity.split(" ")[0].to_f,"ton","Btu/h").get
+      acOutputCapacity = OpenStudio::convert(acOutputCapacity.to_f,"ton","Btu/h").get
     end 
     
-    # Create the material class instances
     supply = Supply.new
+    
+    # Performance curves
 
-    # _processAirSystem
+    # NOTE: These coefficients are in IP UNITS
+    supply.COOL_CAP_FT_SPEC_coefficients = [[3.940185508, -0.104723455, 0.001019298, 0.006471171, -0.00000953, -0.000161658],
+                                            [3.109456535, -0.085520461, 0.000863238, 0.00863049, -0.0000210, -0.000140186]]
+    supply.COOL_EIR_FT_SPEC_coefficients = [[-3.877526888, 0.164566276, -0.001272755, -0.019956043, 0.000256512, -0.000133539],
+                                            [-1.990708931, 0.093969249, -0.00073335, -0.009062553, 0.000165099, -0.0000997]]
+    supply.COOL_CAP_FFLOW_SPEC_coefficients = [[0.65673024, 0.516470835, -0.172887149], 
+                                               [0.690334551, 0.464383753, -0.154507638]]
+    supply.COOL_EIR_FFLOW_SPEC_coefficients = [[1.562945114, -0.791859997, 0.230030877], 
+                                               [1.31565404, -0.482467162, 0.166239001]]
     
     supply.static = UnitConversion.inH2O2Pa(0.5) # Pascal
 
@@ -233,7 +244,6 @@ class ProcessTwoSpeedCentralAirConditioner < OpenStudio::Ruleset::ModelUserScrip
     supply.SpaceConditionedMult = 1 # Default used for central equipment    
         
     # Cooling Coil
-    supply = HVAC.get_cooling_coefficients(runner, 2, false, supply)
     supply.CFM_TON_Rated = HVAC.calc_cfm_ton_rated(acRatedAirFlowRate, acFanspeedRatio, acCapacityRatio)
     supply = HVAC._processAirSystemCoolingCoil(runner, 2, acCoolingEER, acCoolingInstalledSEER, acSupplyFanPowerInstalled, acSupplyFanPowerRated, acSHRRated, acCapacityRatio, acFanspeedRatio, acCrankcase, acCrankcaseMaxT, acEERCapacityDerateFactor, supply)
     
@@ -242,19 +252,6 @@ class ProcessTwoSpeedCentralAirConditioner < OpenStudio::Ruleset::ModelUserScrip
     if units.nil?
         return false
     end
-    
-    model.getScheduleConstants.each do |sch|
-      next unless sch.name.to_s == "SupplyFanAvailability" or sch.name.to_s == "SupplyFanOperation"
-      sch.remove
-    end    
-    
-    supply_fan_availability = OpenStudio::Model::ScheduleConstant.new(model)
-    supply_fan_availability.setName("SupplyFanAvailability")
-    supply_fan_availability.setValue(1)
-    
-    supply_fan_operation = OpenStudio::Model::ScheduleConstant.new(model)
-    supply_fan_operation.setName("SupplyFanOperation")
-    supply_fan_operation.setValue(0)
     
     units.each do |unit|
       
@@ -266,7 +263,7 @@ class ProcessTwoSpeedCentralAirConditioner < OpenStudio::Ruleset::ModelUserScrip
       control_slave_zones_hash.each do |control_zone, slave_zones|
     
         # Remove existing equipment
-        htg_coil = HVAC.remove_existing_hvac_equipment(model, runner, "Central Air Conditioner", control_zone)
+        htg_coil = HVAC.remove_existing_hvac_equipment(model, runner, Constants.ObjectNameCentralAirConditioner, control_zone)
 
         # _processCurvesDXCooling
         
@@ -298,7 +295,7 @@ class ProcessTwoSpeedCentralAirConditioner < OpenStudio::Ruleset::ModelUserScrip
           obj_name = Constants.ObjectNameFurnaceAndCentralAirConditioner(furnaceFuelType, unit.name.to_s)
         end
         
-        fan = OpenStudio::Model::FanOnOff.new(model, supply_fan_availability)
+        fan = OpenStudio::Model::FanOnOff.new(model, model.alwaysOnDiscreteSchedule)
         fan.setName(obj_name + " supply fan")
         fan.setEndUseSubcategory(Constants.EndUseHVACFan)
         fan.setFanEfficiency(supply.eff)
@@ -320,7 +317,7 @@ class ProcessTwoSpeedCentralAirConditioner < OpenStudio::Ruleset::ModelUserScrip
         end
         air_loop_unitary.setSupplyFan(fan)
         air_loop_unitary.setFanPlacement("BlowThrough")
-        air_loop_unitary.setSupplyAirFanOperatingModeSchedule(supply_fan_operation)
+        air_loop_unitary.setSupplyAirFanOperatingModeSchedule(model.alwaysOffDiscreteSchedule)
         air_loop_unitary.setMaximumSupplyAirTemperature(OpenStudio::convert(120.0,"F","C").get)
         air_loop_unitary.setSupplyAirFlowRateWhenNoCoolingorHeatingisRequired(0)    
         
@@ -361,7 +358,7 @@ class ProcessTwoSpeedCentralAirConditioner < OpenStudio::Ruleset::ModelUserScrip
         slave_zones.each do |slave_zone|
 
           # Remove existing equipment
-          HVAC.remove_existing_hvac_equipment(model, runner, "Central Air Conditioner", slave_zone)
+          HVAC.remove_existing_hvac_equipment(model, runner, Constants.ObjectNameCentralAirConditioner, slave_zone)
       
           diffuser_fbsmt = OpenStudio::Model::AirTerminalSingleDuctUncontrolled.new(model, model.alwaysOnDiscreteSchedule)
           diffuser_fbsmt.setName(obj_name + " #{slave_zone.name} direct air")

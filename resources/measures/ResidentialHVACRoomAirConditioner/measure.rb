@@ -66,12 +66,12 @@ class ProcessRoomAirConditioner < OpenStudio::Ruleset::ModelUserScript
     cap_display_names = OpenStudio::StringVector.new
     cap_display_names << Constants.SizingAuto
     (0.5..10.0).step(0.5) do |tons|
-      cap_display_names << "#{tons} tons"
+      cap_display_names << tons.to_s
     end
-
-    #make a string argument for room air cooling output capacity
     output_capacity = OpenStudio::Ruleset::OSArgument::makeChoiceArgument("capacity", cap_display_names, true)
-    output_capacity.setDisplayName("Cooling Output Capacity")
+    output_capacity.setDisplayName("Cooling Capacity")
+    output_capacity.setDescription("The output cooling capacity of the air conditioner.")
+    output_capacity.setUnits("tons")
     output_capacity.setDefaultValue(Constants.SizingAuto)
     args << output_capacity  
 
@@ -95,11 +95,19 @@ class ProcessRoomAirConditioner < OpenStudio::Ruleset::ModelUserScript
     supply.coolingCFMs = runner.getDoubleArgumentValue("airflow_rate",user_arguments)
     acOutputCapacity = runner.getStringArgumentValue("capacity",user_arguments)
     unless acOutputCapacity == Constants.SizingAuto
-      acOutputCapacity = OpenStudio::convert(acOutputCapacity.split(" ")[0].to_f,"ton","Btu/h").get
+      acOutputCapacity = OpenStudio::convert(acOutputCapacity.to_f,"ton","Btu/h").get
     end     
     
     # Performance curves
-    supply, curves = get_cooling_coefficients_RoomAC(supply, curves)                   
+    # From Frigidaire 10.7 EER unit in Winkler et. al. Lab Testing of Window ACs (2013)
+    # NOTE: These coefficients are in SI UNITS
+    curves.cool_CAP_FT_SPEC_coefficients = [0.6405, 0.01568, 0.0004531, 0.001615, -0.0001825, 0.00006614]
+    curves.cool_EIR_FT_SPEC_coefficients = [2.287, -0.1732, 0.004745, 0.01662, 0.000484, -0.001306]
+    curves.cool_CAP_FFLOW_SPEC_coefficients = [0.887, 0.1128, 0]
+    curves.cool_EIR_FFLOW_SPEC_coefficients = [1.763, -0.6081, 0]
+    curves.cool_PLF_FPLR = [0.78, 0.22, 0]
+    supply.cfm_TON_Rated = [312]    # medium speed
+
     # To avoid BEopt errors
     supply.min_flow_ratio = 1
     curves.number_Speeds = 1
@@ -169,19 +177,6 @@ class ProcessRoomAirConditioner < OpenStudio::Ruleset::ModelUserScript
         return false
     end
     
-    model.getScheduleConstants.each do |sch|
-      next unless sch.name.to_s == "SupplyFanAvailability" or sch.name.to_s == "SupplyFanOperation"
-      sch.remove
-    end    
-    
-    supply_fan_availability = OpenStudio::Model::ScheduleConstant.new(model)
-    supply_fan_availability.setName("SupplyFanAvailability")
-    supply_fan_availability.setValue(1)           
-    
-    supply_fan_operation = OpenStudio::Model::ScheduleConstant.new(model)
-    supply_fan_operation.setName("SupplyFanOperation")
-    supply_fan_operation.setValue(0)    
-    
     units.each do |unit|
       
       obj_name = Constants.ObjectNameRoomAirConditioner(unit.name.to_s)
@@ -194,7 +189,7 @@ class ProcessRoomAirConditioner < OpenStudio::Ruleset::ModelUserScript
         next unless Geometry.zone_is_above_grade(control_zone)
 
         # Remove existing equipment
-        HVAC.remove_existing_hvac_equipment(model, runner, "Room Air Conditioner", control_zone)    
+        HVAC.remove_existing_hvac_equipment(model, runner, Constants.ObjectNameRoomAirConditioner, control_zone)    
       
         # _processSystemRoomAC
       
@@ -211,7 +206,7 @@ class ProcessRoomAirConditioner < OpenStudio::Ruleset::ModelUserScript
         clg_coil.setMaximumOutdoorDryBulbTemperatureForCrankcaseHeaterOperation(OpenStudio::OptionalDouble.new(10))
         clg_coil.setBasinHeaterSetpointTemperature(OpenStudio::OptionalDouble.new(2))
         
-        fan = OpenStudio::Model::FanOnOff.new(model, supply_fan_availability)
+        fan = OpenStudio::Model::FanOnOff.new(model, model.alwaysOnDiscreteSchedule)
         fan.setName(obj_name + " supply fan")
         fan.setEndUseSubcategory(Constants.EndUseHVACFan)
         fan.setFanEfficiency(1)
@@ -224,14 +219,14 @@ class ProcessRoomAirConditioner < OpenStudio::Ruleset::ModelUserScript
         
         ptac = OpenStudio::Model::ZoneHVACPackagedTerminalAirConditioner.new(model, model.alwaysOnDiscreteSchedule, fan, htg_coil, clg_coil)
         ptac.setName(obj_name + " zone ptac")
-        ptac.setSupplyAirFanOperatingModeSchedule(supply_fan_operation)
+        ptac.setSupplyAirFanOperatingModeSchedule(model.alwaysOffDiscreteSchedule)
         ptac.addToThermalZone(control_zone)
         runner.registerInfo("Added '#{ptac.name}' to '#{control_zone.name}' of #{unit.name}")
       
         slave_zones.each do |slave_zone|
 
           # Remove existing equipment
-          HVAC.remove_existing_hvac_equipment(model, runner, "Room Air Conditioner", slave_zone)
+          HVAC.remove_existing_hvac_equipment(model, runner, Constants.ObjectNameRoomAirConditioner, slave_zone)
 
         end
       
@@ -242,22 +237,6 @@ class ProcessRoomAirConditioner < OpenStudio::Ruleset::ModelUserScript
     return true
 
   end
-  
-  def get_cooling_coefficients_RoomAC(supply, curves)
-    
-    # From Frigidaire 10.7 EER unit in Winkler et. al. Lab Testing of Window ACs (2013)
-    
-    # Hard coded coefficients in SI UNITS
-    curves.cool_CAP_FT_SPEC_coefficients = [0.6405, 0.01568, 0.0004531, 0.001615, -0.0001825, 0.00006614]
-    curves.cool_EIR_FT_SPEC_coefficients = [2.287, -0.1732, 0.004745, 0.01662, 0.000484, -0.001306]
-    curves.cool_CAP_FFLOW_SPEC_coefficients = [0.887, 0.1128, 0]
-    curves.cool_EIR_FFLOW_SPEC_coefficients = [1.763, -0.6081, 0]
-    curves.cool_PLF_FPLR = [0.78, 0.22, 0]
-    supply.cfm_TON_Rated = [312]    # medium speed
-
-    return supply, curves
-
-  end    
   
 end
 

@@ -101,9 +101,7 @@ class ProcessGroundSourceHeatPumpVerticalBore < OpenStudio::Ruleset::ModelUserSc
     args << gshpVertBoreHoles
 
     #make a string argument for gshp bore depth
-    depth_display_names = OpenStudio::StringVector.new
-    depth_display_names << Constants.SizingAuto
-    gshpVertBoreDepth = OpenStudio::Ruleset::OSArgument::makeChoiceArgument("bore_depth", depth_display_names, true)
+    gshpVertBoreDepth = OpenStudio::Ruleset::OSArgument::makeStringArgument("bore_depth", true)
     gshpVertBoreDepth.setDisplayName("Bore Depth")
     gshpVertBoreDepth.setUnits("ft")
     gshpVertBoreDepth.setDescription("Vertical well bore depth typically range from 150 to 300 feet deep.")
@@ -145,7 +143,7 @@ class ProcessGroundSourceHeatPumpVerticalBore < OpenStudio::Ruleset::ModelUserSc
     #make a string argument for gshp bore fluid type
     fluid_display_names = OpenStudio::StringVector.new
     fluid_display_names << Constants.FluidPropyleneGlycol
-    fluid_display_names << Constants.FluidWater
+    fluid_display_names << Constants.FluidEthyleneGlycol
     gshpVertBoreFluidType = OpenStudio::Ruleset::OSArgument::makeChoiceArgument("fluid_type", fluid_display_names, true)
     gshpVertBoreFluidType.setDisplayName("Heat Exchanger Fluid Type")
     gshpVertBoreFluidType.setDescription("Fluid type.")
@@ -202,21 +200,25 @@ class ProcessGroundSourceHeatPumpVerticalBore < OpenStudio::Ruleset::ModelUserSc
     #make a string argument for gshp heating/cooling output capacity
     cap_display_names = OpenStudio::StringVector.new
     (0.5..10.0).step(0.5) do |tons|
-      cap_display_names << "#{tons} tons"
+      cap_display_names << tons.to_s
     end
     gshpOutputCapacity = OpenStudio::Ruleset::OSArgument::makeChoiceArgument("gshp_capacity", cap_display_names, true)
-    gshpOutputCapacity.setDisplayName("Cooling Output Capacity")
-    gshpOutputCapacity.setDefaultValue("3.0 tons")
+    gshpOutputCapacity.setDisplayName("Heat Pump Capacity")
+    gshpOutputCapacity.setDescription("The output heating/cooling capacity of the heat pump.")
+    gshpOutputCapacity.setUnits("tons")
+    gshpOutputCapacity.setDefaultValue("3.0")
     args << gshpOutputCapacity    
     
     #make a string argument for supplemental heating output capacity
     cap_display_names = OpenStudio::StringVector.new
     cap_display_names << Constants.SizingAuto
     (5..150).step(5) do |kbtu|
-      cap_display_names << "#{kbtu} kBtu/hr"
+      cap_display_names << kbtu.to_s
     end
     supcap = OpenStudio::Ruleset::OSArgument::makeChoiceArgument("supplemental_capacity", cap_display_names, true)
-    supcap.setDisplayName("Supplemental Heating Output Capacity")
+    supcap.setDisplayName("Supplemental Heating Capacity")
+    supcap.setDescription("The output heating capacity of the supplemental heater.")
+    supcap.setUnits("kBtu/hr")
     supcap.setDefaultValue(Constants.SizingAuto)
     args << supcap     
     
@@ -250,13 +252,13 @@ class ProcessGroundSourceHeatPumpVerticalBore < OpenStudio::Ruleset::ModelUserSc
     leg_separation = runner.getDoubleArgumentValue("u_tube_leg_spacing",user_arguments)
     rated_shr = runner.getDoubleArgumentValue("rated_shr",user_arguments)
     supply_fan_power = runner.getDoubleArgumentValue("fan_power",user_arguments)
-    gshp_capacity = OpenStudio::convert(runner.getStringArgumentValue("gshp_capacity",user_arguments).split(" ")[0].to_f,"ton","Btu/h").get
+    gshp_capacity = OpenStudio::convert(runner.getStringArgumentValue("gshp_capacity",user_arguments).to_f,"ton","Btu/h").get
     supp_capacity = runner.getStringArgumentValue("supplemental_capacity",user_arguments)
     unless supp_capacity == Constants.SizingAuto
-      supp_capacity = OpenStudio::convert(supp_capacity.split(" ")[0].to_f,"kBtu/h","Btu/h").get
+      supp_capacity = OpenStudio::convert(supp_capacity.to_f,"kBtu/h","Btu/h").get
     end
     
-    if fluid_type == Constants.FluidPropyleneGlycol and frac_glycol == 0
+    if frac_glycol == 0
       fluid_type = Constants.FluidWater
       runner.registerWarning("Specified #{Constants.FluidPropyleneGlycol} fluid type and 0 fraction of glycol, so assuming #{Constants.FluidWater} fluid type.")
     end
@@ -380,6 +382,37 @@ class ProcessGroundSourceHeatPumpVerticalBore < OpenStudio::Ruleset::ModelUserSc
       end
     end
     
+    # Test for valid GSHP bore field configurations
+    valid_configs = {Constants.BoreConfigSingle=>[1], Constants.BoreConfigLine=>[2,3,4,5,6,7,8,9,10], Constants.BoreConfigLconfig=>[3,4,5,6], Constants.BoreConfigRectangle=>[2,4,6,8], Constants.BoreConfigUconfig=>[5,7,9], Constants.BoreConfigL2config=>[8], Constants.BoreConfigOpenRectangle=>[8]}
+    valid_num_bores = valid_configs[bore_config]
+    max_valid_configs = {Constants.BoreConfigLine=>10, Constants.BoreConfigLconfig=>6}
+    unless valid_num_bores.include? bore_holes
+      # Any configuration with a max_valid_configs value can accept any number of bores up to the maximum    
+      if max_valid_configs.keys.include? bore_config
+        max_bore_holes = max_valid_configs[bore_config]
+        runner.registerWarning("Maximum number of bore holes for '#{bore_config}' bore configuration is #{max_bore_holes}. Overriding value of #{bore_holes} bore holes to #{max_bore_holes}.")
+        bore_holes = max_bore_holes
+      else
+        # Search for first valid bore field
+        new_bore_config = nil
+        valid_field_found = false
+        valid_configs.keys.each do |bore_config|
+          if valid_configs[bore_config].include? bore_holes
+            valid_field_found = true
+            new_bore_config = bore_config
+            break
+          end
+        end
+        if valid_field_found
+          runner.registerWarning("Bore field '#{bore_config}' with #{bore_holes.to_i} bore holes is an invalid configuration. Changing layout to '#{new_bore_config}' configuration.")
+          bore_config = new_bore_config
+        else
+          runner.registerError("Could not construct a valid GSHP bore field configuration.")
+          return false
+        end
+      end
+    end
+    
     spacing_to_depth_ratio = bore_spacing / bore_depth
     
     gfnc_coeff = get_gfnc_coeff(bore_config, bore_holes, spacing_to_depth_ratio)
@@ -413,10 +446,10 @@ class ProcessGroundSourceHeatPumpVerticalBore < OpenStudio::Ruleset::ModelUserSc
     
     plant_loop = OpenStudio::Model::PlantLoop.new(model)
     plant_loop.setName(Constants.ObjectNameGroundSourceHeatPumpVerticalBore + " condenser loop")
-    if frac_glycol == 0
-      plant_loop.setFluidType('water')
+    if fluid_type == Constants.FluidWater
+      plant_loop.setFluidType('Water')
     else
-      plant_loop.setFluidType('glycol')
+      plant_loop.setFluidType('Glycol') # TODO: openstudio changes this to Water since it's not an available fluid type option
     end
     plant_loop.setMaximumLoopTemperature(48.88889)
     plant_loop.setMinimumLoopTemperature(OpenStudio::convert(hw_design,"F","C").get)
@@ -470,19 +503,6 @@ class ProcessGroundSourceHeatPumpVerticalBore < OpenStudio::Ruleset::ModelUserSc
       return false
     end
     
-    model.getScheduleConstants.each do |sch|
-      next unless sch.name.to_s == "SupplyFanAvailability" or sch.name.to_s == "SupplyFanOperation"
-      sch.remove
-    end    
-    
-    supply_fan_availability = OpenStudio::Model::ScheduleConstant.new(model)
-    supply_fan_availability.setName("SupplyFanAvailability")
-    supply_fan_availability.setValue(1)
-    
-    supply_fan_operation = OpenStudio::Model::ScheduleConstant.new(model)
-    supply_fan_operation.setName("SupplyFanOperation")
-    supply_fan_operation.setValue(0)
-    
     units.each do |unit|
     
       obj_name = Constants.ObjectNameGroundSourceHeatPumpVerticalBore(unit.name.to_s)
@@ -493,7 +513,7 @@ class ProcessGroundSourceHeatPumpVerticalBore < OpenStudio::Ruleset::ModelUserSc
       control_slave_zones_hash.each do |control_zone, slave_zones|
       
         # Remove existing equipment
-        HVAC.remove_existing_hvac_equipment(model, runner, "Ground Source Heat Pump Vertical Bore", control_zone) 
+        HVAC.remove_existing_hvac_equipment(model, runner, Constants.ObjectNameGroundSourceHeatPumpVerticalBore, control_zone) 
 
         c = [0.67104926, -0.00210834, 0.00000000, 0.01491424, 0.00000000, 0.00000000] # unit.gshp.GSHP_HEAT_CAP_FT_SPEC_coefficients
         gshp_Heat_CAP_fT_coeff = []
@@ -587,7 +607,7 @@ class ProcessGroundSourceHeatPumpVerticalBore < OpenStudio::Ruleset::ModelUserSc
           
         plant_loop.addDemandBranchForComponent(clg_coil)
 
-        fan = OpenStudio::Model::FanOnOff.new(model, supply_fan_availability)
+        fan = OpenStudio::Model::FanOnOff.new(model, model.alwaysOnDiscreteSchedule)
         fan.setName(obj_name + " #{control_zone.name} supply fan")
         fan.setEndUseSubcategory(Constants.EndUseHVACFan)
         fan.setFanEfficiency(supply.eff)
@@ -603,7 +623,7 @@ class ProcessGroundSourceHeatPumpVerticalBore < OpenStudio::Ruleset::ModelUserSc
         air_loop_unitary.setCoolingCoil(clg_coil)
         air_loop_unitary.setSupplementalHeatingCoil(supp_htg_coil)
         air_loop_unitary.setFanPlacement("BlowThrough")
-        air_loop_unitary.setSupplyAirFanOperatingModeSchedule(supply_fan_operation)
+        air_loop_unitary.setSupplyAirFanOperatingModeSchedule(model.alwaysOffDiscreteSchedule)
         air_loop_unitary.setMaximumSupplyAirTemperature(OpenStudio::convert(supply.supp_htg_max_supply_temp,"F","C").get)
         air_loop_unitary.setMaximumOutdoorDryBulbTemperatureforSupplementalHeaterOperation(OpenStudio::convert(supply.supp_htg_max_outdoor_temp,"F","C").get)
         air_loop_unitary.setSupplyAirFlowRateWhenNoCoolingorHeatingisRequired(0)          
@@ -640,7 +660,7 @@ class ProcessGroundSourceHeatPumpVerticalBore < OpenStudio::Ruleset::ModelUserSc
         slave_zones.each do |slave_zone|
 
           # Remove existing equipment
-          HVAC.remove_existing_hvac_equipment(model, runner, "Ground Source Heat Pump Vertical Bore", slave_zone)
+          HVAC.remove_existing_hvac_equipment(model, runner, Constants.ObjectNameGroundSourceHeatPumpVerticalBore, slave_zone)
       
           diffuser_fbsmt = OpenStudio::Model::AirTerminalSingleDuctUncontrolled.new(model, model.alwaysOnDiscreteSchedule)
           diffuser_fbsmt.setName(obj_name + " #{slave_zone.name} direct air")

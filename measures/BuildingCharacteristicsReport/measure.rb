@@ -31,14 +31,18 @@ class BuildingCharacteristicsReport < OpenStudio::Ruleset::ReportingUserScript
 
     # Get existing building characteristics
     outputs = runner.past_results[:build_existing_models]
-    runner.registerInfo("outputs: #{outputs.to_s}")
     
     # Update existing building characteristics with upgrade characteristics
+    measures_used = 0
     runner.past_results.each do |measure, measure_hash|
         next if not measure_hash.keys.include?(:run_measure)
-        runner.registerInfo("merging hash: #{measure_hash.to_s}")
+        next if measure_hash[:run_measure] == 0
+        measures_used += 1
         outputs.merge!(measure_hash)
-        runner.registerInfo("new outputs: #{outputs.to_s}")
+    end
+    if measures_used > 1
+        runner.registerError("Unexpected error.")
+        return false
     end
     
     # These values will show up in the results CSV file when added to 
@@ -47,6 +51,8 @@ class BuildingCharacteristicsReport < OpenStudio::Ruleset::ReportingUserScript
         runner.registerInfo("Registering #{v.to_s} for #{k.to_s}.")
         runner.registerValue(k.to_s, v.to_s)
     end
+    
+    runner.registerFinalCondition("Report generated successfully.")
 
     return true
 

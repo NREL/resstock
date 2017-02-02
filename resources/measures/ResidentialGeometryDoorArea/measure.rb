@@ -85,6 +85,7 @@ class CreateResidentialDoorArea < OpenStudio::Ruleset::ModelUserScript
               space.surfaces.each do |surface|
                   next if Geometry.get_facade_for_surface(surface) != facade
                   next if surface.outsideBoundaryCondition.downcase != "outdoors"
+                  next if (90 - surface.tilt*180/Math::PI).abs > 0.01 # Not a vertical wall
                   avail_walls << surface
               end
           end

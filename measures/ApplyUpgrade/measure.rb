@@ -25,9 +25,13 @@ class ApplyUpgrade < OpenStudio::Ruleset::ModelUserScript
   end
   
   def num_options
-    return 20
+    return 10 # Sync with SimulationOutputReport measure
   end
-
+  
+  def num_costs_per_option
+    return 5 # Sync with SimulationOutputReport measure
+  end
+  
   # define the arguments that the user will input
   def arguments(model)
     args = OpenStudio::Ruleset::OSArgumentVector.new
@@ -39,31 +43,62 @@ class ApplyUpgrade < OpenStudio::Ruleset::ModelUserScript
     run_measure.setDefaultValue(1)
     args << run_measure 
     
-    # Option arguments
-    (1..num_options).each do |option_num|
-        is_required = false
-        if option_num == 1
-            is_required = true
-        end
-        option = OpenStudio::Ruleset::OSArgument.makeStringArgument("option_#{option_num}", is_required)
+    for option_num in 1..num_options
+    
+        # Option name argument
+        option = OpenStudio::Ruleset::OSArgument.makeStringArgument("option_#{option_num}", (option_num == 1))
         option.setDisplayName("Option #{option_num}")
         option.setDescription("Specify the parameter|option as found in resources\\options_lookup.tsv.")
         args << option
-    end
-    
-    # Option Apply Logic arguments
-    (1..num_options).each do |option_num|
+        
+        # Option Apply Logic argument
         option_apply_logic = OpenStudio::Ruleset::OSArgument.makeStringArgument("option_#{option_num}_apply_logic", false)
         option_apply_logic.setDisplayName("Option #{option_num} Apply Logic")
         option_apply_logic.setDescription("Logic that specifies if the Option #{option_num} upgrade will apply based on the existing building's options. Specify one or more parameter|option as found in resources\\options_lookup.tsv. When multiple are included, they must be separated by '||' for OR and '&&' for AND, and using parentheses as appropriate. Prefix an option with '!' for not.")
         args << option_apply_logic
-    end
+        
+        for cost_num in 1..num_costs_per_option
+        
+            # Option Cost Value argument
+            cost_value = OpenStudio::Ruleset::OSArgument.makeDoubleArgument("option_#{option_num}_cost_#{cost_num}_value", false)
+            cost_value.setDisplayName("Option #{option_num} Cost #{cost_num} Value")
+            cost_value.setDescription("Total option #{option_num} cost is the sum of all: (Cost N Value) x (Cost N Multiplier).")
+            cost_value.setUnits("$")
+            cost_value.setDefaultValue(0.0)
+            args << cost_value
+            
+            # Option Cost Multiplier argument
+            choices = [
+                       "Fixed (1)",
+                       "Conditioned Floor Area (ft^2)",
+                       "Lighting Floor Area (ft^2)",
+                       "Above-Grade Conditioned Wall Area (ft^2)",
+                       "Above-Grade Total Wall Area (ft^2)",
+                       "Below-Grade Conditioned Wall Area (ft^2)",
+                       "Below-Grade Total Wall Area (ft^2)",
+                       "Window Area (ft^2)",
+                       "Roof Area (ft^2)",
+                       "Door Area (ft^2)",
+                       "Water Heater Tank Size (gal)",
+                       "HVAC Cooling Capacity (kBtuh)",
+                       "HVAC Heating Capacity (kBtuh)",
+                      ]
+            cost_multiplier = OpenStudio::Ruleset::OSArgument.makeChoiceArgument("option_#{option_num}_cost_#{cost_num}_multiplier", choices, false)
+            cost_multiplier.setDisplayName("Option #{option_num} Cost #{cost_num} Multiplier")
+            cost_multiplier.setDescription("Total option #{option_num} cost is the sum of all: (Cost N Value) x (Cost N Multiplier).")
+            cost_multiplier.setDefaultValue(choices[0])
+            args << cost_multiplier
+            
+        end
 
+    end
+    
+    # Package Apply Logic argument
     package_apply_logic = OpenStudio::Ruleset::OSArgument.makeStringArgument("package_apply_logic", false)
     package_apply_logic.setDisplayName("Package Apply Logic")
     package_apply_logic.setDescription("Logic that specifies if the entire package upgrade (all options) will apply based on the existing building's options. Specify one or more parameter|option as found in resources\\options_lookup.tsv. When multiple are included, they must be separated by '||' for OR and '&&' for AND, and using parentheses as appropriate. Prefix an option with '!' for not.")
     args << package_apply_logic
-
+    
     return args
   end
 
@@ -85,7 +120,7 @@ class ApplyUpgrade < OpenStudio::Ruleset::ModelUserScript
 
     # Retrieve Option X argument values
     options = {}
-    (1..num_options).each do |option_num|
+    for option_num in 1..num_options
         if option_num == 1
             arg = runner.getStringArgumentValue("option_#{option_num}",user_arguments)
         else
@@ -103,7 +138,7 @@ class ApplyUpgrade < OpenStudio::Ruleset::ModelUserScript
     
     # Retrieve Option X Apply Logic argument values
     options_apply_logic = {}
-    (1..num_options).each do |option_num|
+    for option_num in 1..num_options
         arg = runner.getOptionalStringArgumentValue("option_#{option_num}_apply_logic",user_arguments)
         next if not arg.is_initialized
         arg = arg.get
@@ -181,7 +216,15 @@ class ApplyUpgrade < OpenStudio::Ruleset::ModelUserScript
             # Register this option so that it replaces the existing building option in the results csv file
             print_option_assignment(parameter_name, option_name, runner)
             register_value(runner, parameter_name, option_name)
-
+            
+            # Register cost values/multipliers for applied options; used by the SimulationOutputReport measure
+            for cost_num in 1..num_costs_per_option
+                cost_value = runner.getDoubleArgumentValue("option_#{option_num}_cost_#{cost_num}_value",user_arguments)
+                cost_mult = runner.getStringArgumentValue("option_#{option_num}_cost_#{cost_num}_multiplier",user_arguments)
+                register_value(runner, "option_#{option_num}_cost_#{cost_num}_value_to_apply", cost_value)
+                register_value(runner, "option_#{option_num}_cost_#{cost_num}_multiplier_to_apply", cost_mult)
+            end
+            
             # Check file/dir paths exist
             check_file_exists(lookup_file, runner)
 
@@ -240,11 +283,11 @@ class ApplyUpgrade < OpenStudio::Ruleset::ModelUserScript
     if measures.size == 0
         # Upgrade not applied; skip from CSV
         # FIXME: NA doesn't currently stop datapoint from continuing.
-        # runner.registerAsNotApplicable("No measures apply.") 
-        runner.registerError("No measures apply.") 
-        return false
+        runner.registerAsNotApplicable("No measures apply.") 
+        #runner.registerError("No measures apply.") 
+        #return false
     end
-
+    
     return true
 
   end

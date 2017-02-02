@@ -239,7 +239,7 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Ruleset::ModelUserScrip
     # calculate the dimensions of the unit
     footprint = unit_ffa + inset_width * inset_depth
     x = Math.sqrt(footprint / unit_aspect_ratio)
-    y = footprint / x    
+    y = footprint / x
     
     foundation_corr_polygon = nil
     foundation_front_polygon = nil
@@ -422,11 +422,7 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Ruleset::ModelUserScrip
           new_living_space = living_space.clone.to_Space.get
           new_living_space.setName(Constants.LivingSpace(story + 1, Constants.ObjectNameBuildingUnit(unit_num)))
         
-          m = OpenStudio::Matrix.new(4,4,0)
-          m[0,0] = 1
-          m[1,1] = 1
-          m[2,2] = 1
-          m[3,3] = 1
+          m = Geometry.initialize_transformation_matrix(OpenStudio::Matrix.new(4,4,0))
           m[0,3] = -pos * x     
           m[2,3] = -floor
           new_living_space.changeTransformation(OpenStudio::Transformation.new(m))
@@ -482,11 +478,7 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Ruleset::ModelUserScrip
           (1...building_num_floors).to_a.each do |floor|
           
             new_corridor_space = corridor_space.clone.to_Space.get
-            m = OpenStudio::Matrix.new(4,4,0)
-            m[0,0] = 1
-            m[1,1] = 1
-            m[2,2] = 1
-            m[3,3] = 1
+            m = Geometry.initialize_transformation_matrix(OpenStudio::Matrix.new(4,4,0))
             m[2,3] = -floor * living_height
             new_corridor_space.changeTransformation(OpenStudio::Transformation.new(m))
             new_corridor_space.setZOrigin(0)
@@ -559,11 +551,7 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Ruleset::ModelUserScrip
           new_living_space = living_space.clone.to_Space.get
           new_living_space.setName(Constants.LivingSpace(story + 1, Constants.ObjectNameBuildingUnit(unit_num)))
         
-          m = OpenStudio::Matrix.new(4,4,0)
-          m[0,0] = 1
-          m[1,1] = 1
-          m[2,2] = 1
-          m[3,3] = 1
+          m = Geometry.initialize_transformation_matrix(OpenStudio::Matrix.new(4,4,0))
           m[0,3] = -pos * x      
           m[2,3] = -floor
           new_living_space.changeTransformation(OpenStudio::Transformation.new(m))
@@ -617,11 +605,7 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Ruleset::ModelUserScrip
       if corr_width > 0 and corr_pos == "Double-Loaded Interior"
         corridor_space = OpenStudio::Model::Space::fromFloorPrint(foundation_corr_polygon, foundation_height, model)
         corridor_space = corridor_space.get
-        m = OpenStudio::Matrix.new(4,4,0)
-        m[0,0] = 1
-        m[1,1] = 1
-        m[2,2] = 1
-        m[3,3] = 1
+        m = Geometry.initialize_transformation_matrix(OpenStudio::Matrix.new(4,4,0))
         m[2,3] = foundation_height
         corridor_space.changeTransformation(OpenStudio::Transformation.new(m))
         corridor_space.setXOrigin(0)
@@ -635,11 +619,7 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Ruleset::ModelUserScrip
       foundation_space_front = []
       foundation_space = OpenStudio::Model::Space::fromFloorPrint(foundation_front_polygon, foundation_height, model)
       foundation_space = foundation_space.get
-      m = OpenStudio::Matrix.new(4,4,0)
-      m[0,0] = 1
-      m[1,1] = 1
-      m[2,2] = 1
-      m[3,3] = 1
+      m = Geometry.initialize_transformation_matrix(OpenStudio::Matrix.new(4,4,0))
       m[2,3] = foundation_height
       foundation_space.changeTransformation(OpenStudio::Transformation.new(m))
       foundation_space.setXOrigin(0)
@@ -655,11 +635,7 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Ruleset::ModelUserScrip
         foundation_space_back = []
         foundation_space = OpenStudio::Model::Space::fromFloorPrint(foundation_back_polygon, foundation_height, model)
         foundation_space = foundation_space.get
-        m = OpenStudio::Matrix.new(4,4,0)
-        m[0,0] = 1
-        m[1,1] = 1
-        m[2,2] = 1
-        m[3,3] = 1
+        m = Geometry.initialize_transformation_matrix(OpenStudio::Matrix.new(4,4,0))
         m[2,3] = foundation_height
         foundation_space.changeTransformation(OpenStudio::Transformation.new(m))
         foundation_space.setXOrigin(0)
@@ -684,11 +660,7 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Ruleset::ModelUserScrip
         
             new_living_space = living_space.clone.to_Space.get
           
-            m = OpenStudio::Matrix.new(4,4,0)
-            m[0,0] = 1
-            m[1,1] = 1
-            m[2,2] = 1
-            m[3,3] = 1
+            m = Geometry.initialize_transformation_matrix(OpenStudio::Matrix.new(4,4,0))
             m[0,3] = -pos * x          
             new_living_space.changeTransformation(OpenStudio::Transformation.new(m))
             new_living_space.setXOrigin(0)
@@ -713,11 +685,7 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Ruleset::ModelUserScrip
             
             new_living_space = living_space.clone.to_Space.get
           
-            m = OpenStudio::Matrix.new(4,4,0)
-            m[0,0] = 1
-            m[1,1] = 1
-            m[2,2] = 1
-            m[3,3] = 1
+            m = Geometry.initialize_transformation_matrix(OpenStudio::Matrix.new(4,4,0))
             m[0,3] = -pos * x    
             new_living_space.changeTransformation(OpenStudio::Transformation.new(m))
             new_living_space.setXOrigin(0)
@@ -942,7 +910,7 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Ruleset::ModelUserScrip
     model.getBuilding.setStandardsNumberOfStories(building_num_floors)
     
     # Store the building type
-    model.getBuilding.setStandardsBuildingType("Multifamily")
+    model.getBuilding.setStandardsBuildingType(Constants.BuildingTypeMultifamily)
     
     # reporting final condition of model
     runner.registerFinalCondition("The building finished with #{model.getSpaces.size} spaces.")   

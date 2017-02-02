@@ -176,6 +176,15 @@ class Constants
   def self.BuildingAmericaClimateZone
     return 'Building America'
   end
+  def self.BuildingTypeMultifamily
+    return 'multifamily'
+  end
+  def self.BuildingTypeSingleFamilyAttached
+    return 'singlefamilyttached'
+  end
+  def self.BuildingTypeSingleFamilyDetached
+    return 'singlefamilydetached'
+  end
   def self.BuildingUnitFeatureDHWSchedIndex
     return 'DHWSchedIndex'
   end
@@ -496,7 +505,7 @@ class Constants
     end
     return "residential bath dist#{s_unit}"
   end
-  def self.ObjectNameBoiler(fueltype, unit_name=self.ObjectNameBuildingUnit)
+  def self.ObjectNameBoiler(fueltype="", unit_name=self.ObjectNameBuildingUnit)
     s_unit = ""
     if unit_name != self.ObjectNameBuildingUnit
       s_unit = "|#{unit_name}"
@@ -593,7 +602,7 @@ class Constants
     end
     return "residential freezer#{s_unit}"
   end
-  def self.ObjectNameFurnace(fueltype, unit_name=self.ObjectNameBuildingUnit)
+  def self.ObjectNameFurnace(fueltype="", unit_name=self.ObjectNameBuildingUnit)
     s_unit = ""
     if unit_name != self.ObjectNameBuildingUnit
       s_unit = "|#{unit_name}"
@@ -748,6 +757,9 @@ class Constants
       s_unit = "|#{unit_name}"
     end
     return "residential refrigerator#{s_unit}"
+  end
+  def self.ObjectNameRelativeHumiditySetpoint
+    return 'residential relative humidity setpoint'
   end
   def self.ObjectNameRoomAirConditioner(unit_name=self.ObjectNameBuildingUnit)
     s_unit = ""

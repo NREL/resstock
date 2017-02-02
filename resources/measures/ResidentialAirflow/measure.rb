@@ -1237,9 +1237,9 @@ class ResidentialAirflow < OpenStudio::Ruleset::ModelUserScript
         if unit.living.SLA > 0
           infil_program.addLine("Set Tdiff = #{tin_sensor.name} - #{tout_sensor.name}")
           infil_program.addLine("Set DeltaT = @Abs Tdiff")
-          infil_program.addLine("Set c = #{(OpenStudio::convert(infil.C_i,"cfm","m^3/s").get / (249.1 ** infil.n_i))}")
-          infil_program.addLine("Set Cs = #{infil.stack_coef * (UnitConversion.inH2O_R2Pa_K(1.0) ** infil.n_i)}")
-          infil_program.addLine("Set Cw = #{infil.wind_coef * (UnitConversion.inH2O_mph2Pas2_m2(1.0) ** infil.n_i)}")
+          infil_program.addLine("Set c = #{((OpenStudio::convert(infil.C_i,"cfm","m^3/s").get / (249.1 ** infil.n_i))).round(3)}")
+          infil_program.addLine("Set Cs = #{(infil.stack_coef * (UnitConversion.inH2O_R2Pa_K(1.0) ** infil.n_i)).round(3)}")
+          infil_program.addLine("Set Cw = #{(infil.wind_coef * (UnitConversion.inH2O_mph2Pas2_m2(1.0) ** infil.n_i)).round(3)}")
           infil_program.addLine("Set n = #{infil.n_i}")
           infil_program.addLine("Set sft = (f_t*#{(((wind_speed.S_wo * (1.0 - infil.Y_i)) + (infil.S_wflue * (1.5 * infil.Y_i))))})")
           infil_program.addLine("Set Qn = (((c*Cs*(DeltaT^n))^2)+(((c*Cw)*((sft*#{vwind_sensor.name})^(2*n)))^2))^0.5")
@@ -1444,6 +1444,7 @@ class ResidentialAirflow < OpenStudio::Ruleset::ModelUserScript
             air_loop_unitary = supply_component.to_AirLoopHVACUnitarySystem.get
             supply_fan = air_loop_unitary.supplyFan.get
           end
+          break
         end
         living_zone_return_air_node = unit.living_zone.returnAirModelObject().get
         
