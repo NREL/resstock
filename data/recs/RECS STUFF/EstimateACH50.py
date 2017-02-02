@@ -2,8 +2,11 @@
 Created on Apr 23, 2014
 @author: ewilson
 '''
-
+import query_recs_raw_sql as recs
 from math import exp, trunc
+import os, sys
+import pandas as pd
+sys.path.insert(0, os.path.join(os.getcwd(),'clustering'))
 
 regions = {'CR01':'7',
            'CR02':'6A',
@@ -26,15 +29,13 @@ vintages = {'pre-1950': 1955, # pre 1960 is identical
             '1990s':   1995,
             '2000s':   2005}
 
-sizes = {'0-1499':1000, # replace with dict read from csv generated from query of RECS for mean or median floor areas in each bin.
-         '1500-2499':2000,
-         '2500-3499':3000,
-         '3500-4499':4000,
-         '4500+':5860}
+sizes = {'0-1499':1024, #Used Weighted Median Floor Area
+         '1500-2499':1901.72,
+         '2500-3499':2886.275,
+         '3500+':4624.878,}
 
 stories = {'1':1,
-           '2':2,
-           '3+':3}
+           '2+':2,}
 
 def EstimatedACH50(YearBuilt,Climate,Area,Height,LowIncome,EnergyEfficient,Volume):
     # Coded by Dennis Barley, July 2013.
@@ -98,7 +99,9 @@ def EstimatedACH50(YearBuilt,Climate,Area,Height,LowIncome,EnergyEfficient,Volum
 
     return ACH50, CFM50, ELA, NL, ach50_bin
 
+df = pd.DataFrame()
 
+Region, Vintage_Bin, Size_Bin, Story_Bin, ACH50_Value, ACH50_Bin = ([] for i in range(6))
 
 if __name__ == '__main__':
     for region, cz in regions.iteritems():
@@ -106,4 +109,16 @@ if __name__ == '__main__':
             for size_bin, area in sizes.iteritems():
                 for story_bin, story_num in stories.iteritems():
                     ACH50, CFM50, ELA, NL, ach50_bin = EstimatedACH50(year, cz, area, story_num*8, False, False, area*8)
-                    print ','.join([region, vintage_bin, size_bin, story_bin, str(ACH50), str(ach50_bin)])
+                    Region.append(region)
+                    Vintage_Bin.append(vintage_bin)
+                    Size_Bin.append(size_bin)
+                    Story_Bin.append(story_bin)
+                    ACH50_Value.append(ACH50)
+                    ACH50_Bin.append(str(ach50_bin))
+
+    data = {'Region':Region,'Vintage':Vintage_Bin,'Size':Size_Bin,'Stories':Story_Bin,'ACH50':ACH50_Value,'ACH50_Bin':ACH50_Bin}
+
+    g = pd.DataFrame(data)
+    g = g[['Region','Vintage','Size','Stories','ACH50_Bin','ACH50']]
+    g = g.pivot_table(index=['Region','Vintage','Size','Stories','ACH50_Bin']).unstack('ACH50_Bin').reset_index()
+    g.to_csv(os.path.join("Probability Distributions", 'Infiltration.tsv'), sep='\t', index=False)
