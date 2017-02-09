@@ -8,12 +8,15 @@ x.vars.con = c()
 
 y.vars.con = c('rand_income')
 
-x.vars.cat = c('yearmaderange', 'fuelheat', 'Size', 'CR', 'cooltype')
+# x.vars.cat = c('yearmaderange', 'fuelheat', 'Size', 'CR', 'cooltype')
+x.vars.cat = c('ur', 'yearmaderange', 'fuelheat', 'Size', 'CR', 'cooltype', 'stories', 'totrooms', 'sizeofgarage', 'kownrent', 'stovefuel', 'ovenfuel', 'outgrillfuel', 'numfrig', 'sizrfri1', 'esfrig', 'agerfri1', 'windows', 'typeglass', 'householder_race', 'education', 'hhage', 'wwacage', 'fuelh2o')
 # x.vars.cat = c('fuelheat', 'CR', 'cooltype')
 # x.vars.cat = c('equipm')
 # x.vars.cat = c('Size')
 # x.vars.cat = c('temphome')
 # x.vars.cat = c('cooltype')
+# x.vars.cat = c('FPL_BINS')
+# x.vars.cat = c('fuelheat')
 # x.vars.cat = c('education')
 # x.vars.cat = c('householder_race')
 # x.vars.cat = c('FPL_BINS')
@@ -26,17 +29,14 @@ indep_vars = c(x.vars.con, x.vars.cat)
 df = read.csv('recs.csv')
 df = subset(df, select=c(x.vars.con, y.vars.con, x.vars.cat, y.vars.cat, c('nweight')))
 df$values = 'actual'
-df$actual = df$rand_income
-df$lwr = df$rand_income
-df$upr = df$rand_income
+# df$actual = df$rand_income
 
 df[c(x.vars.cat, y.vars.cat)] = lapply(df[c(x.vars.cat, y.vars.cat)], factor) # apply factor to each of the categorical vars
 df = na.omit(df) # this removes rows with at least one NA
 
 # FIRST PASS
 attach(df)
-df.lm1 = lm(paste(dep_vars, paste(indep_vars, collapse=' + '), sep=' ~ '), weights=nweight, data=df, x=T) # weighted
-# df.lm1 = lm(paste(dep_vars, paste(indep_vars, collapse=' + '), sep=' ~ '), data=df, x=T) # non-weighted
+df.lm1 = lm(paste(dep_vars, paste(indep_vars, collapse=' + '), sep=' ~ '), weights=nweight, data=df, x=T)
 detach(df)
 summary(df.lm1)
 write.csv(summary(df.lm1)$coefficients, 'lm1.csv') # write out first pass to csv
@@ -60,8 +60,7 @@ for (x in indep_vars) {
 
 # SECOND PASS
 attach(df)
-df.lm2 = lm(paste(dep_vars, paste(sig_indep_vars, collapse=' + '), sep=' ~ '), weights=nweight, data=df, x=T) # weighted
-# df.lm2 = lm(paste(dep_vars, paste(sig_indep_vars, collapse=' + '), sep=' ~ '), data=df, x=T) # non-weighted
+df.lm2 = lm(paste(dep_vars, paste(sig_indep_vars, collapse=' + '), sep=' ~ '), weights=nweight, data=df, x=T)
 detach(df)
 summary(df.lm2)
 write.csv(summary(df.lm2)$coefficients, 'lm2.csv') # write out first pass to csv
@@ -77,22 +76,58 @@ write.csv(summary(df.lm2)$coefficients, 'lm2.csv') # write out first pass to csv
 
 df2 = df
 df2$values = 'predict'
-df2$rand_income = df.lm2$fitted.values
-df2$actual = df$rand_income
+df2$rand_income = predict(df.lm2, newdata=subset(df2, select=sig_indep_vars)) # this is the same as the fitted values
+# df2$actual = df$rand_income
 
-p = ggplot(df2) + geom_point(aes(x=actual, y=rand_income), size=0.8, colour="blue") + geom_smooth(data=df2, aes(x=actual, y=rand_income), size=0.8, colour="red", se=T)
-ggsave(p, file='conf.png', width=14)
+counts = c(sum(df$nweight), sum(df2$nweight))
+labels = paste(c('actual', 'predict'), ', n = ', round(counts), sep='')
+
+p = ggplot(NULL, aes(x=rand_income, colour=values, weight=nweight/sum(nweight))) + geom_density(data=df2) + geom_density(data=df) + scale_colour_discrete(name='model', labels=labels) + xlim(0, 250000) + ylim(0, 0.00002)
+# binwidth = 1000
+# p = ggplot(NULL, aes(x=rand_income, colour=values, weight=nweight/sum(nweight))) + geom_histogram(data=df2, binwidth=binwidth, alpha=0.1) + geom_histogram(data=df, binwidth=binwidth, alpha=0.1) + scale_colour_discrete(name='model', labels=labels) + xlim(0, 250000) + ylim(0, 0.03)
+ggsave(p, file='dist.png', width=14)
+
+# p = ggplot(df2) + geom_point(aes(x=actual, y=rand_income), size=0.8, colour="blue") + geom_smooth(data=df2, aes(x=actual, y=rand_income), size=0.8, colour="red", se=T) + xlim(0, 250000)
+# ggsave(p, file='conf.png', width=14)
 
 p = autoplot(df.lm2, label.size=3)
 ggsave(p, file='stat.png', width=14)
 
 for (x in sig_indep_vars) {
-  p = ggplot(df2, aes(x=rand_income)) + geom_density(aes_string(colour=x))
-  ggsave(p, file=paste(x,'png',sep='.'), width=14)
+
+  lvls = levels(as.factor(df2[[x]]))
+  counts = aggregate(df2$nweight, by=list(bin=df2[[x]]), FUN=sum)$x
+  labels = paste(lvls, ', n = ', round(counts), sep='')
+  
+  p = ggplot(df2, aes(x=rand_income, weight=nweight/sum(nweight))) + geom_density(aes_string(colour=x)) + scale_colour_discrete(name=x, labels=labels) + xlim(0, 250000) + ylim(0, 0.00002)
+  ggsave(p, file=paste(x,'png',sep='_pre.'), width=14)
+  
+  lvls = levels(as.factor(df[[x]]))
+  counts = aggregate(df$nweight, by=list(bin=df[[x]]), FUN=sum)$x
+  labels = paste(lvls, ', n = ', round(counts), sep='')
+  
+  q = ggplot(df, aes(x=rand_income, weight=nweight/sum(nweight))) + geom_density(aes_string(colour=x)) + scale_colour_discrete(name=x, labels=labels) + xlim(0, 250000) + ylim(0, 0.00002)
+  ggsave(q, file=paste(x,'png',sep='_act.'), width=14)
+  
 }
 
-df = rbind(df, df2)
+# size and vintage
 
-p = ggplot(NULL, aes(x=rand_income, colour=values, weight=nweight/sum(nweight))) + geom_density(data=df[df$values=='predict',]) + geom_density(data=df[df$values=='actual',]) # weighted
-# p = ggplot(df, aes(x=rand_income)) + geom_density(aes(colour=values)) # non-weighted
-ggsave(p, file='dist.png', width=14)
+df$size_and_vintage = paste(df$Size, df$yearmaderange)
+df2$size_and_vintage = paste(df2$Size, df2$yearmaderange)
+
+x = 'size_and_vintage'
+
+lvls = levels(as.factor(df2[[x]]))
+counts = aggregate(df2$nweight, by=list(bin=df2[[x]]), FUN=sum)$x
+labels = paste(lvls, ', n = ', round(counts), sep='')
+
+p = ggplot(df2, aes(x=rand_income, weight=nweight/sum(nweight))) + geom_density(aes_string(colour=x)) + scale_colour_discrete(name=x, labels=labels) + xlim(0, 250000) + ylim(0, 0.00002)
+ggsave(p, file=paste(x,'png',sep='_pre.'), width=14)
+
+lvls = levels(as.factor(df[[x]]))
+counts = aggregate(df$nweight, by=list(bin=df[[x]]), FUN=sum)$x
+labels = paste(lvls, ', n = ', round(counts), sep='')
+
+q = ggplot(df, aes(x=rand_income, weight=nweight/sum(nweight))) + geom_density(aes_string(colour=x)) + scale_colour_discrete(name=x, labels=labels) + xlim(0, 250000) + ylim(0, 0.00002)
+ggsave(q, file=paste(x,'png',sep='_act.'), width=14)
