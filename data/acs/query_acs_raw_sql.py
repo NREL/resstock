@@ -8,8 +8,7 @@ con_string = "host={} port={} dbname={} user={} password={}".format(os.environ['
 def retrieve_data():
   if not os.path.exists('acs_2011_tractdata.pkl'):
     con = pg.connect(con_string)
-    # sql = """SELECT * FROM acs_2011.acs_tract_5yr limit 100;"""
-    sql = """SELECT * FROM acs_2011.acs_tract_5yr;"""
+    sql = """SELECT * FROM acs_2011.acs_tract_5yr limit 100;"""
     df = pd.read_sql(sql, con)
     spatial = assemble_spatial(con, retrieve_spatial_headers(con), df['spatial'], df['gisjoin'])
     data = assemble_data(con, retrieve_data_headers(con), df['acs_data'], df['gisjoin'])

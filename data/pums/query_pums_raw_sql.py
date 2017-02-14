@@ -63,7 +63,8 @@ def assign_heatingfuel(df):
 if __name__ == '__main__':
   
   dfs = []
-  for st in ['co', 'ca', 'la', 'fl', 'tx', 'mn']:
+  # for st in ['co', 'ca', 'la', 'fl', 'tx', 'mn']:
+  for st in ['co']:
     df = regenerate(st)
     df = assign_vintage(df)
     df = assign_heatingfuel(df)
