@@ -30,6 +30,11 @@ class BuildExistingModel < OpenStudio::Ruleset::ModelUserScript
     building_id.setDescription("The building number (between 1 and the number of samples).")
     args << building_id
     
+    number_of_buildings_represented = OpenStudio::Ruleset::OSArgument.makeIntegerArgument("number_of_buildings_represented", false)
+    number_of_buildings_represented.setDisplayName("Number of Buildings Represented")
+    number_of_buildings_represented.setDescription("The total number of buildings represented by the existing building models.")
+    args << number_of_buildings_represented
+    
     return args
   end
 
@@ -43,6 +48,7 @@ class BuildExistingModel < OpenStudio::Ruleset::ModelUserScript
     end
     
     building_id = runner.getIntegerArgumentValue("building_id",user_arguments)
+    number_of_buildings_represented = runner.getOptionalIntegerArgumentValue("number_of_buildings_represented",user_arguments)
     
     # Get file/dir paths
     resources_dir = File.absolute_path(File.join(File.dirname(__FILE__), "..", "..", "lib", "resources")) # Should have been uploaded per 'Other Library Files' in analysis spreadsheet
@@ -102,6 +108,15 @@ class BuildExistingModel < OpenStudio::Ruleset::ModelUserScript
         if not run_measure(model, measure_instance, argument_map, runner)
             return false
         end
+    end
+    
+    # Determine weight
+    if not number_of_buildings_represented.nil?
+        total_samples = runner.analysis[:analysis][:problem][:algorithm][:number_of_samples].to_f
+        weight = number_of_buildings_represented.get / total_samples
+        register_value(runner, "Weight", weight)
+    else
+        register_value(runner, "Weight", "")
     end
 
     return true

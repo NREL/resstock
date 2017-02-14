@@ -117,6 +117,10 @@ class SimulationOutputReport < OpenStudio::Ruleset::ReportingUserScript
     heating_capacity_w = sqlFile.execAndReturnFirstDouble(heating_capacity_query)
     report_sim_output(runner, "HVAC Heating Capacity", heating_capacity_w, "W", "W", 0.0, percent_heating)
     
+    # WEIGHT
+    weight = runner.past_results[:build_existing_models][:"weight"]
+    runner.registerValue("Weight", weight)
+    
     # UPGRADE COSTS
     
     # Get upgrade cost value/multiplier pairs from the upgrade measure
@@ -138,6 +142,12 @@ class SimulationOutputReport < OpenStudio::Ruleset::ReportingUserScript
     if measures_used > 1
         runner.registerError("Unexpected error.")
         return false
+    end
+    
+    if cost_pairs.size == 0
+        runner.registerValue("Upgrade Cost", "")
+        runner.registerInfo("Registering (blank) for Upgrade Cost.")
+        return true
     end
     
     # Obtain cost multiplier values from simulation results and calculate upgrade costs
