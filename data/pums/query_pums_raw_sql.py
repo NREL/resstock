@@ -5,18 +5,42 @@ import psycopg2 as pg
 
 con_string = "host={} port={} dbname={} user={} password={}".format(os.environ['GIS_HOST'], os.environ['GIS_PORT'], os.environ['GIS_DBNAME'], os.environ['GIS_USER'], os.environ['GIS_PASSWORD'])
 
-def retrieve_data(st):  
-    if not os.path.exists('pums_2011_{}_microdata.pkl'.format(st)):
+cols = ['unitsstr', 'hhincome', 'repwt', 'hhwt', 'builtyr2', 'rooms', 'fuelheat', 'bedrooms', 'hhtype', 'region', 'ownershp', 'acrehous', 'kitchen', 'plumbing', 'vehicles', 'race', 'stateicp', 'statefip', 'vacancy', 'state_abbr']
+
+def retrieve_tables():
+    con = pg.connect(con_string)
+    sql = """SELECT table_name FROM information_schema.tables WHERE table_schema='pums_2011';"""
+    df = pd.read_sql(sql, con)
+    table_names = list(df['table_name'])
+    state_tables = []
+    for table_name in table_names:
+      if not table_name.startswith("ipums_acs") or table_name.endswith("parent") or table_name.endswith("metadata") or table_name.endswith("puma_codes"):
+        continue
+      # if table_name.endswith('5yr_ca') or table_name.endswith('5yr_oh') or table_name.endswith('5yr_nj'): # MemoryError
+        # continue
+      # if table_name.endswith("5yr_md") or table_name.endswith("5yr_nd") or table_name.endswith('5yr_nm'): # python.exe error
+        # continue
+      state_tables.append(table_name)
+    return state_tables
+
+def retrieve_data(table):  
+    if not os.path.exists('{}.pkl'.format(table)):
       con = pg.connect(con_string)
-      sql = """SELECT * FROM pums_2011.ipums_acs_2011_5yr_{} order by random() limit 10000;""".format(st)
-      df = pd.read_sql(sql, con)
-      df.to_pickle('pums_2011_{}_microdata.pkl'.format(st))
-    df = pd.read_pickle('pums_2011_{}_microdata.pkl'.format(st))
+      # sql = """SELECT {} FROM pums_2011.{} where unitsstr='3' order by random() limit 1000;""".format(",".join(cols), table)
+      sql = """SELECT {} FROM pums_2011.{} where unitsstr='3' limit 50000;""".format(",".join(cols), table)
+      # sql = """SELECT {} FROM pums_2011.{};""".format(",".join(cols), table)
+      try:
+        df = pd.read_sql(sql, con)
+        df.to_pickle('{}.pkl'.format(table))
+      except MemoryError:
+        print '\t ... MemoryError'
+        return None
+    try:
+      df = pd.read_pickle('{}.pkl'.format(table))
+    except MemoryError:
+      print '\t ... MemoryError'
+      return None
     return df
-    
-def regenerate(st):
-  df = retrieve_data(st)
-  return df
 
 def assign_vintage(df):
 
@@ -63,9 +87,11 @@ def assign_heatingfuel(df):
 if __name__ == '__main__':
   
   dfs = []
-  # for st in ['co', 'ca', 'la', 'fl', 'tx', 'mn']:
-  for st in ['co']:
-    df = regenerate(st)
+  for table in retrieve_tables():
+    print ' ... {}'.format(table)
+    df = retrieve_data(table)
+    if df is None:
+      continue
     df = assign_vintage(df)
     df = assign_heatingfuel(df)
     dfs.append(df)

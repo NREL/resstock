@@ -3,6 +3,9 @@ library(ggplot2)
 library(ggfortify)
 library(leaps)
 
+# state = 'CA'
+state = 'all'
+
 x.vars.con = c()
 
 y.vars.con = c('hhincome')
@@ -18,8 +21,14 @@ dep_vars = c(y.vars.con, y.vars.cat)
 indep_vars = c(x.vars.con, x.vars.cat)
 
 df = read.csv('pums.csv')
-df = df[df$unitsstr==3, ]
-df = subset(df, select=c(x.vars.con, y.vars.con, x.vars.cat, y.vars.cat, c('repwt')))
+
+levels(as.factor(df$state_abbr))
+
+if (state != 'all'){
+  df = df[df$state_abbr==state, ]
+}
+
+df = subset(df, select=c(x.vars.con, y.vars.con, x.vars.cat, y.vars.cat, c('hhwt', 'state_abbr')))
 
 df$values = 'actual'
 # df$actual = df$hhincome
@@ -29,7 +38,7 @@ df = na.omit(df) # this removes rows with at least one NA
 
 # FIRST PASS
 attach(df)
-df.lm1 = lm(paste(dep_vars, paste(indep_vars, collapse=' + '), sep=' ~ '), weights=repwt, data=df, x=T)
+df.lm1 = lm(paste(dep_vars, paste(indep_vars, collapse=' + '), sep=' ~ '), weights=hhwt, data=df, x=T)
 detach(df)
 summary(df.lm1)
 write.csv(summary(df.lm1)$coefficients, 'lm1.csv') # write out first pass to csv
@@ -53,7 +62,7 @@ for (x in indep_vars) {
 
 # SECOND PASS
 attach(df)
-df.lm2 = lm(paste(dep_vars, paste(sig_indep_vars, collapse=' + '), sep=' ~ '), weights=repwt, data=df, x=T)
+df.lm2 = lm(paste(dep_vars, paste(sig_indep_vars, collapse=' + '), sep=' ~ '), weights=hhwt, data=df, x=T)
 detach(df)
 summary(df.lm2)
 write.csv(summary(df.lm2)$coefficients, 'lm2.csv') # write out first pass to csv
@@ -72,13 +81,13 @@ df2$values = 'predict'
 df2$hhincome = predict(df.lm2, newdata=subset(df2, select=sig_indep_vars)) # this is the same as the fitted values
 # df2$actual = df$hhincome
 
-counts = c(sum(df$repwt), sum(df2$repwt))
+counts = c(sum(df$hhwt), sum(df2$hhwt))
 labels = paste(c('actual', 'predict'), ', n = ', round(counts), sep='')
 
-# p = ggplot(NULL, aes(x=hhincome, colour=values, weight=repwt/sum(repwt))) + geom_density(data=df2) + geom_density(data=df) + scale_colour_discrete(name='model', labels=labels) + xlim(0, 250000) + ylim(0, 0.000015)
+# p = ggplot(NULL, aes(x=hhincome, colour=values, weight=hhwt/sum(hhwt))) + geom_density(data=df2) + geom_density(data=df) + scale_colour_discrete(name='model', labels=labels) + xlim(0, 250000) + ylim(0, 0.000015)
 p = ggplot(NULL, aes(x=hhincome, colour=values)) + geom_density(data=df2) + geom_density(data=df) + scale_colour_discrete(name='model', labels=labels) + xlim(0, 250000)
 # binwidth = 1000
-# p = ggplot(NULL, aes(x=hhincome, colour=values, weight=repwt/sum(repwt))) + geom_histogram(data=df2, binwidth=binwidth, alpha=0.1) + geom_histogram(data=df, binwidth=binwidth, alpha=0.1) + scale_colour_discrete(name='model', labels=labels) + xlim(0, 250000) + ylim(0, 0.03)
+# p = ggplot(NULL, aes(x=hhincome, colour=values, weight=hhwt/sum(hhwt))) + geom_histogram(data=df2, binwidth=binwidth, alpha=0.1) + geom_histogram(data=df, binwidth=binwidth, alpha=0.1) + scale_colour_discrete(name='model', labels=labels) + xlim(0, 250000) + ylim(0, 0.03)
 ggsave(p, file='dist.png', width=14)
 
 # p = ggplot(df2) + geom_point(aes(x=actual, y=hhincome), size=0.8, colour="blue") + geom_smooth(data=df2, aes(x=actual, y=hhincome), size=0.8, colour="red", se=T) + xlim(0, 250000)
@@ -89,26 +98,29 @@ ggsave(p, file='stat.png', width=14)
 
 for (x in sig_indep_vars) {
 
-  temp = df[df$rooms!=1 & df$rooms!=2, ]
-  temp2 = df2[df2$rooms!=1 & df2$rooms!=2, ]
+  temp = df
+  temp2 = df2
+
+  temp = temp[temp$rooms!=1 & temp$rooms!=2, ]
+  temp2 = temp2[temp2$rooms!=1 & temp2$rooms!=2, ]
   temp$rooms = factor(temp$rooms)
   temp2$rooms = factor(temp2$rooms)
   
   lvls = levels(as.factor(temp2[[x]]))
-  counts = aggregate(temp2$repwt, by=list(bin=temp2[[x]]), FUN=sum)$x
+  counts = aggregate(temp2$hhwt, by=list(bin=temp2[[x]]), FUN=sum)$x
   labels = paste(lvls, ', n = ', round(counts), sep='')
   
-  # p = ggplot(df2, aes(x=hhincome, weight=repwt/sum(repwt))) + geom_density(aes_string(colour=x)) + scale_colour_discrete(name=x, labels=labels) + xlim(0, 250000) + ylim(0, 0.00002)
+  # p = ggplot(df2, aes(x=hhincome, weight=hhwt/sum(hhwt))) + geom_density(aes_string(colour=x)) + scale_colour_discrete(name=x, labels=labels) + xlim(0, 250000) + ylim(0, 0.00002)
   # ggsave(p, file=paste(x,'png',sep='_pre.'), width=14)
   
   p = ggplot(temp2, aes(x=hhincome)) + geom_density(aes_string(colour=x)) + scale_colour_discrete(name=x, labels=labels) + xlim(0, 250000)
   ggsave(p, file=paste(x,'png',sep='_pre.'), width=14)  
   
   lvls = levels(as.factor(temp[[x]]))
-  counts = aggregate(temp$repwt, by=list(bin=temp[[x]]), FUN=sum)$x
+  counts = aggregate(temp$hhwt, by=list(bin=temp[[x]]), FUN=sum)$x
   labels = paste(lvls, ', n = ', round(counts), sep='')
   
-  # q = ggplot(df, aes(x=hhincome, weight=repwt/sum(repwt))) + geom_density(aes_string(colour=x)) + scale_colour_discrete(name=x, labels=labels) + xlim(0, 250000) + ylim(0, 0.00002)
+  # q = ggplot(df, aes(x=hhincome, weight=hhwt/sum(hhwt))) + geom_density(aes_string(colour=x)) + scale_colour_discrete(name=x, labels=labels) + xlim(0, 250000) + ylim(0, 0.00002)
   # ggsave(q, file=paste(x,'png',sep='_act.'), width=14)
   
   q = ggplot(temp, aes(x=hhincome)) + geom_density(aes_string(colour=x)) + scale_colour_discrete(name=x, labels=labels) + xlim(0, 250000)
@@ -117,8 +129,6 @@ for (x in sig_indep_vars) {
 }
 
 # rooms and vintage
-
-x = 'rooms_and_vintage'
 
 for (vintage in levels(as.factor(df$vintage))){
 
@@ -131,25 +141,48 @@ for (vintage in levels(as.factor(df$vintage))){
   temp$rooms_and_vintage = paste(temp$rooms, temp$vintage)
   temp2$rooms_and_vintage = paste(temp2$rooms, temp2$vintage)
       
-  lvls = levels(as.factor(temp2[[x]]))
-  counts = aggregate(temp2$repwt, by=list(bin=temp2[[x]]), FUN=sum)$x
+  lvls = levels(as.factor(temp2$rooms_and_vintage))
+  counts = aggregate(temp2$hhwt, by=list(bin=temp2$rooms_and_vintage), FUN=sum)$x
   labels = paste(lvls, ', n = ', round(counts), sep='')
 
-  # p = ggplot(temp2, aes(x=hhincome, weight=repwt/sum(repwt))) + geom_density(aes_string(colour=x)) + scale_colour_discrete(name=x, labels=labels) + xlim(0, 250000) + ylim(0, 0.000006)
+  # p = ggplot(temp2, aes(x=hhincome, weight=hhwt/sum(hhwt))) + geom_density(aes_string(colour=x)) + scale_colour_discrete(name=x, labels=labels) + xlim(0, 250000) + ylim(0, 0.000006)
   # ggsave(p, file=paste(gsub('<', '', vintage),'png',sep='_pre.'), width=14)
   
-  p = ggplot(temp2, aes(x=hhincome)) + geom_density(aes_string(colour=x)) + scale_colour_discrete(name=x, labels=labels) + xlim(0, 250000)
+  p = ggplot(temp2, aes(x=hhincome)) + geom_density(aes(colour=rooms_and_vintage)) + scale_colour_discrete(name='rooms_and_vintage', labels=labels) + xlim(0, 250000)
   ggsave(p, file=paste(gsub('<', '', vintage),'png',sep='_pre.'), width=14)
   
-  lvls = levels(as.factor(temp[[x]]))
-  counts = aggregate(temp$repwt, by=list(bin=temp[[x]]), FUN=sum)$x
+  lvls = levels(as.factor(temp$rooms_and_vintage))
+  counts = aggregate(temp$hhwt, by=list(bin=temp$rooms_and_vintage), FUN=sum)$x
   labels = paste(lvls, ', n = ', round(counts), sep='')
 
-  # q = ggplot(temp, aes(x=hhincome, weight=repwt/sum(repwt))) + geom_density(aes_string(colour=x)) + scale_colour_discrete(name=x, labels=labels) + xlim(0, 250000) + ylim(0, 0.000006)
+  # q = ggplot(temp, aes(x=hhincome, weight=hhwt/sum(hhwt))) + geom_density(aes_string(colour=x)) + scale_colour_discrete(name=x, labels=labels) + xlim(0, 250000) + ylim(0, 0.000006)
   # ggsave(q, file=paste(gsub('<', '', vintage),'png',sep='_act.'), width=14)
   
-  q = ggplot(temp, aes(x=hhincome)) + geom_density(aes_string(colour=x)) + scale_colour_discrete(name=x, labels=labels) + xlim(0, 250000)
+  q = ggplot(temp, aes(x=hhincome)) + geom_density(aes(colour=rooms_and_vintage)) + scale_colour_discrete(name='rooms_and_vintage', labels=labels) + xlim(0, 250000)
   ggsave(q, file=paste(gsub('<', '', vintage),'png',sep='_act.'), width=14)
   
 }
 
+if (state == 'all'){
+
+  temp = df
+  temp2 = df2
+
+  temp = temp[temp$rooms!=1 & temp$rooms!=2, ]
+  temp2 = temp2[temp2$rooms!=1 & temp2$rooms!=2, ]
+  
+  lvls = levels(as.factor(temp2$state_abbr))
+  counts = aggregate(temp2$hhwt, by=list(bin=temp2$state_abbr), FUN=sum)$x
+  labels = paste(lvls, ', n = ', round(counts), sep='')
+  
+  p = ggplot(temp2, aes(x=hhincome)) + geom_density(aes(colour=state_abbr)) + scale_colour_discrete(name='state_abbr', labels=labels) + xlim(0, 250000)
+  ggsave(p, file='state_pre.png', width=14)
+  
+  lvls = levels(as.factor(temp$state_abbr))
+  counts = aggregate(temp$hhwt, by=list(bin=temp$state_abbr), FUN=sum)$x
+  labels = paste(lvls, ', n = ', round(counts), sep='')
+  
+  q = ggplot(temp, aes(x=hhincome)) + geom_density(aes(colour=state_abbr)) + scale_colour_discrete(name='state_abbr', labels=labels) + xlim(0, 250000)
+  ggsave(q, file='state_act.png', width=14)
+  
+}
