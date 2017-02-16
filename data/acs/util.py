@@ -20,11 +20,11 @@ def assign_vintage(session):
     df = pd.read_csv(session)
     df = df.rename(columns={'gisjoin': 'Dependency=Census Tract'}).set_index('Dependency=Census Tract')    
     
-    total1 = 'MTUE002'
-    total2 = 'MTUM002'
+    total1 = 'MTXE001'
+    total2 = 'MTXM001'
     
-    df['Weight'] = df[total1] + df[total2]
-    total = 'Weight'
+    df['Total'] = df[total1] + df[total2]
+    total = 'Total'
    
     fields = {'MTXE002':'2010s',
               'MTXE003':'2000s',
@@ -47,10 +47,11 @@ def assign_vintage(session):
               
     df = normalize(df, fields.keys(), total)
     df = map_cols(df, fields)
-    
-    df = df[list(set(fields.values())) + [total]]
-    
+        
     df['Count'] = 1
+    df['Weight'] = df['MTUE002'] + df['MTUM002']
+    
+    df = df[list(set(fields.values())) + ['Count'] + ['Weight']]
         
     return df
     
@@ -59,11 +60,11 @@ def assign_income(session):
     df = pd.read_csv(session)
     df = df.rename(columns={'gisjoin': 'Dependency=Census Tract'}).set_index('Dependency=Census Tract')    
    
-    total1 = 'MTUE002'
-    total2 = 'MTUM002'
+    total1 = 'MP0E001'
+    total2 = 'MP0M001'
     
-    df['Weight'] = df[total1] + df[total2]
-    total = 'Weight'    
+    df['Total'] = df[total1] + df[total2]
+    total = 'Total'    
    
     fields = {'MP0E002': '<$10,000',
               'MP0E003': '$10,000-14,999',
@@ -101,9 +102,10 @@ def assign_income(session):
     df = normalize(df, fields.keys(), total)
     df = map_cols(df, fields)
     
-    df = df[list(set(fields.values())) + [total]]
-    
     df['Count'] = 1
+    df['Weight'] = df['MTUE002'] + df['MTUM002']
+    
+    df = df[list(set(fields.values())) + ['Count'] + ['Weight']]
         
     return df
     
@@ -115,8 +117,8 @@ def assign_census_tract(session):
     total1 = 'MTUE002'
     total2 = 'MTUM002'
     
-    df['Weight'] = df[total1] + df[total2]
-    total = 'Weight'
+    df['Total'] = df[total1] + df[total2]
+    total = 'Total'
     
     df = df[[total]]
     df['frac'] = df[[total]] / df[[total]].sum()
