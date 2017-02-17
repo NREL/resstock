@@ -1,6 +1,8 @@
 
 import os
+import sys
 import pandas as pd
+import numpy as np
 import psycopg2 as pg
 
 con_string = "host={} port={} dbname={} user={} password={}".format(os.environ['GIS_HOST'], os.environ['GIS_PORT'], os.environ['GIS_DBNAME'], os.environ['GIS_USER'], os.environ['GIS_PASSWORD'])
@@ -14,16 +16,30 @@ def retrieve_data():
   for file in os.listdir(os.path.dirname(os.path.abspath(__file__))):
     if file.endswith('.pkl'):
       pkls.append(file)
-  if not len(pkls) > 0:
+  if not len(pkls) > 0:      
     con = pg.connect(con_string)
     # sql = """SELECT * FROM acs_2011.acs_tract_5yr limit 1;"""
-    sql = """SELECT * FROM acs_2011.acs_tract_5yr;""" # 74,001
+    # sql = """SELECT * FROM acs_2011.acs_tract_5yr;""" # 74,001    
     positions = [retrieve_data_headers(con).index(x) for x in cols]
-    for i, df in enumerate(pd.read_sql(sql, con, chunksize=10000)):
+    row_chunks = 100
+    chunks = []    
+    for first_row in range(1, 74001, row_chunks):
+      chunks.append(",".join([str(x) for x in range(first_row, first_row + row_chunks)]))
+    dfs = []
+    for i, rows in enumerate(chunks):
+      print ' ... rows {} - {}'.format(rows.split(",")[0], rows.split(",")[-1])
+      sql = """SELECT * FROM (
+               SELECT
+                 ROW_NUMBER() OVER (ORDER BY gisjoin ASC) AS rownumber, *
+               FROM acs_2011.acs_tract_5yr
+                 ) AS tabletemp
+               WHERE rownumber IN ({});""".format(rows)
+      df = pd.read_sql(sql, con)    
       spatial = assemble_spatial(retrieve_spatial_headers(con), df['spatial'], df['gisjoin'])
       data = assemble_data(cols, df['acs_data'], df['gisjoin'], positions)
       data = data.loc[(data['MTUE002'] > 0) | (data['MTUM002'] > 0)] # SFD
       df = pd.concat([spatial, data], axis=1)
+      df = df.loc[:, (df != '').any(axis=0)] # remove blank columns
       df.to_pickle('acs_2011_tractdata_{}.pkl'.format(i))
       pkls.append('acs_2011_tractdata_{}.pkl'.format(i))
   dfs = []

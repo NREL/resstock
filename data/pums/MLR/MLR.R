@@ -2,6 +2,25 @@ library(MASS)
 library(ggplot2)
 library(ggfortify)
 library(leaps)
+library(reshape2)
+
+# totrooms to Size
+df = read.csv('../../recs/MLR/recs.csv')
+df = subset(df, select=c('totrooms', 'Size', 'nweight'))
+df = dcast(df, totrooms * nweight ~ Size)
+df[['0-1499']] = df$nweight * df[['0-1499']]
+df[['1500-2499']] = df$nweight * df[['1500-2499']]
+df[['2500-3499']] = df$nweight * df[['2500-3499']]
+df[['3500+']] = df$nweight * df[['3500+']]
+df$nweight = NULL
+attach(df)
+agg = aggregate(df, by=list(totrooms), FUN=sum)
+detach(df)
+agg$totrooms = agg$Group.1
+agg$Group.1 = NULL
+map = as.data.frame(prop.table(data.matrix(subset(agg, select=c('0-1499', '1500-2499', '2500-3499', '3500+'))), 1))
+map$totrooms = agg$totrooms
+map
 
 # state = 'CA'
 state = 'all'
@@ -17,12 +36,7 @@ x.vars.cat = c('vintage', 'rooms')
 
 y.vars.cat = c()
 
-dep_vars = c(y.vars.con, y.vars.cat)
-indep_vars = c(x.vars.con, x.vars.cat)
-
 df = read.csv('pums.csv')
-
-levels(as.factor(df$state_abbr))
 
 if (state != 'all'){
   df = df[df$state_abbr==state, ]
@@ -30,11 +44,35 @@ if (state != 'all'){
 
 df = subset(df, select=c(x.vars.con, y.vars.con, x.vars.cat, y.vars.cat, c('hhwt', 'state_abbr')))
 
+# add the Size column according to the map
+df$Size = NA
+
+# 1: 0-1499
+df[df$rooms==1, 'Size'] = '0-1499'
+
+# 2: 0-1499 (85%), 1500-2499 (15%)
+num_rooms = 2
+df[sample(which(df$rooms==num_rooms & is.na(df$Size)), round(map[map$totrooms==num_rooms, '0-1499'] * length(which(df$rooms==num_rooms)))), 'Size'] = '0-1499'
+df[sample(which(df$rooms==num_rooms & is.na(df$Size)), round(map[map$totrooms==num_rooms, '1500-2499'] * length(which(df$rooms==num_rooms)))), 'Size'] = '1500-2499'
+
+for (num_rooms in c(3, 4, 5, 6, 7, 8, 9)) {
+  df[sample(which(df$rooms==num_rooms & is.na(df$Size)), round(map[map$totrooms==num_rooms, '0-1499'] * length(which(df$rooms==num_rooms)))), 'Size'] = '0-1499'
+  df[sample(which(df$rooms==num_rooms & is.na(df$Size)), round(map[map$totrooms==num_rooms, '1500-2499'] * length(which(df$rooms==num_rooms)))), 'Size'] = '1500-2499'
+  df[sample(which(df$rooms==num_rooms & is.na(df$Size)), round(map[map$totrooms==num_rooms, '2500-3499'] * length(which(df$rooms==num_rooms)))), 'Size'] = '2500-3499'
+  df[sample(which(df$rooms==num_rooms & is.na(df$Size)), round(map[map$totrooms==num_rooms, '3500+'] * length(which(df$rooms==num_rooms)))), 'Size'] = '3500+'
+}
+
+write.csv(df, 'pums_size.csv')
+
 df$values = 'actual'
 # df$actual = df$hhincome
 
+x.vars.cat = c(x.vars.cat, 'Size')
 df[c(x.vars.cat, y.vars.cat)] = lapply(df[c(x.vars.cat, y.vars.cat)], factor) # apply factor to each of the categorical vars
 df = na.omit(df) # this removes rows with at least one NA
+
+dep_vars = c(y.vars.con, y.vars.cat)
+indep_vars = c(x.vars.con, x.vars.cat)
 
 # FIRST PASS
 attach(df)
@@ -47,7 +85,7 @@ write.csv(summary(df.lm1)$coefficients, 'lm1.csv') # write out first pass to csv
 # df.lm1.step1 = stepAIC(df.lm1, direction='both') # step-wise regression
 # summary(df.lm1.step1)
 
-sig_indep_vars_factors = rownames(data.frame(summary(df.lm1)$coefficients)[data.frame(summary(df.lm1)$coefficients)$'Pr...t..' <= 0.05, ]) # remove insignificant vars
+sig_indep_vars_factors = rownames(data.frame(summary(df.lm1)$coefficients)[data.frame(summary(df.lm1)$coefficients)$'Pr...t..' <= 0.5, ]) # remove insignificant vars
 sig_indep_vars_factors = sig_indep_vars_factors[!sig_indep_vars_factors %in% c('(Intercept)')]
 sig_indep_vars = c()
 for (x in indep_vars) {

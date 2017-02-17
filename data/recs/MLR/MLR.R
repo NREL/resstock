@@ -9,7 +9,7 @@ x.vars.con = c()
 y.vars.con = c('rand_income')
 
 # x.vars.cat = c('yearmaderange', 'fuelheat', 'Size', 'CR', 'cooltype')
-x.vars.cat = c('ur', 'yearmaderange', 'fuelheat', 'Size', 'CR', 'cooltype', 'stories', 'totrooms', 'sizeofgarage', 'kownrent', 'stovefuel', 'ovenfuel', 'outgrillfuel', 'numfrig', 'sizrfri1', 'esfrig', 'agerfri1', 'windows', 'typeglass', 'householder_race', 'education', 'hhage', 'wwacage', 'fuelh2o')
+x.vars.cat = c('yearmaderange', 'fuelheat', 'Size', 'CR', 'cooltype', 'stories', 'totrooms', 'sizeofgarage', 'kownrent', 'stovefuel', 'ovenfuel', 'outgrillfuel', 'numfrig', 'sizrfri1', 'esfrig', 'agerfri1', 'windows', 'typeglass', 'householder_race', 'education', 'hhage', 'wwacage', 'fuelh2o')
 # x.vars.cat = c('fuelheat', 'CR', 'cooltype')
 # x.vars.cat = c('equipm')
 # x.vars.cat = c('Size')
