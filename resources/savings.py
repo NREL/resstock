@@ -47,13 +47,13 @@ def main(file):
     df_upgrades = get_upgrade_rows(group, upgrades)
     
     # incremental cost
-    df.loc[df_upgrades.index, 'incremental_cost'] = df_upgrades['simulation_output_report.upgrade_cost'].values - df_reference['simulation_output_report.upgrade_cost'].values
+    full.loc[df_upgrades.index, 'incremental_cost'] = df_upgrades['simulation_output_report.upgrade_cost'].values - df_reference['simulation_output_report.upgrade_cost'].values
     
     # energy savings
     for enduse in enduses:
-      df.loc[df_upgrades.index, 'savings_{}'.format(enduse)] = df_reference[enduse].values - df_upgrades[enduse].values
+      full.loc[df_upgrades.index, 'savings_{}'.format(enduse)] = df_reference[enduse].values - df_upgrades[enduse].values
     
-  return df
+  return full
     
 def is_reference_case(x, upgrades):
   upgrades_applied = 0

@@ -12,21 +12,17 @@ cols = ['MTUE002', 'MTUM002',
         'MP0E001', 'MP0E002', 'MP0E003', 'MP0E004', 'MP0E005', 'MP0E006', 'MP0E007', 'MP0E008', 'MP0E009', 'MP0E010', 'MP0E011', 'MP0E012', 'MP0E013', 'MP0E014', 'MP0E015', 'MP0E016', 'MP0E017', 'MP0M001', 'MP0M002', 'MP0M003', 'MP0M004', 'MP0M005', 'MP0M006', 'MP0M007', 'MP0M008', 'MP0M009', 'MP0M010', 'MP0M011', 'MP0M012', 'MP0M013', 'MP0M014', 'MP0M015', 'MP0M016', 'MP0M017']
 
 def retrieve_data():
-  pkls = []
-  for file in os.listdir(os.path.dirname(os.path.abspath(__file__))):
-    if file.endswith('.pkl'):
-      pkls.append(file)
-  if not len(pkls) > 0:      
-    con = pg.connect(con_string)
-    # sql = """SELECT * FROM acs_2011.acs_tract_5yr limit 1;"""
-    # sql = """SELECT * FROM acs_2011.acs_tract_5yr;""" # 74,001    
-    positions = [retrieve_data_headers(con).index(x) for x in cols]
-    row_chunks = 100
-    chunks = []    
-    for first_row in range(1, 74001, row_chunks):
-      chunks.append(",".join([str(x) for x in range(first_row, first_row + row_chunks)]))
-    dfs = []
-    for i, rows in enumerate(chunks):
+  pkls = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'pkls')
+  con = pg.connect(con_string)
+  # sql = """SELECT * FROM acs_2011.acs_tract_5yr limit 1;"""
+  # sql = """SELECT * FROM acs_2011.acs_tract_5yr;""" # 74,001    
+  positions = [retrieve_data_headers(con).index(x) for x in cols]
+  row_chunks = 100
+  chunks = []    
+  for first_row in range(1, 74002, row_chunks):
+    chunks.append(",".join([str(x) for x in range(first_row, first_row + row_chunks)]))
+  for i, rows in enumerate(chunks):
+    if not os.path.exists(os.path.join(pkls, 'acs_2011_tractdata_{}.pkl'.format(i))):
       print ' ... rows {} - {}'.format(rows.split(",")[0], rows.split(",")[-1])
       sql = """SELECT * FROM (
                SELECT
@@ -40,11 +36,10 @@ def retrieve_data():
       data = data.loc[(data['MTUE002'] > 0) | (data['MTUM002'] > 0)] # SFD
       df = pd.concat([spatial, data], axis=1)
       df = df.loc[:, (df != '').any(axis=0)] # remove blank columns
-      df.to_pickle('acs_2011_tractdata_{}.pkl'.format(i))
-      pkls.append('acs_2011_tractdata_{}.pkl'.format(i))
+      df.to_pickle(os.path.join(pkls, 'acs_2011_tractdata_{}.pkl'.format(i)))
   dfs = []
-  for pkl in pkls:
-    dfs.append(pd.read_pickle(pkl))
+  for pkl in os.listdir(pkls):
+    dfs.append(pd.read_pickle(os.path.join(pkls, pkl)))
   df = pd.concat(dfs)
   return df
 
