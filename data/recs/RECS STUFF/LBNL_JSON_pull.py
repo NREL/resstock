@@ -28,7 +28,7 @@ import itertools
 #
 #print "Loop:" + str(datetime.now() - LoopTime)
 
-LoopTime = datetime.now()
+
 
 ###### Create Dictionary of all possible values
 
@@ -58,7 +58,10 @@ df['c_dist'] = ""
 
 ###### Create URL and Query
 
+LoopTime = datetime.now()
+
 def url(x):
+    Y = []
     CLIMATE = x[x.columns[0]].tolist()
     FOUNDATION = x[x.columns[1]].tolist()
     STORIES = x[x.columns[2]].tolist()
@@ -72,33 +75,52 @@ def url(x):
         url = 'http://resdb.lbl.gov/main.php?step=2&sub=2&run_env_model=&dtype1=&dtype2=&is_ca=&calc_id=2&floor_area='+str(FLOOR_AREA[i])+'&house_height='+str(STORIES[0])+'&year_built='+str(VINTAGE[i])+'&wap='+str(WAP[i])+'&ee_home='+str(EE[i])+'&region='+str(REGION[i])+'&zone='+str(CLIMATE[i])+'&foundation='+str(FOUNDATION[i])+'&duct='+str(DUCT[i])+'.html'
         page = requests.get(url)
         m = re.search("'Prob Density', data: \[(.*)\]",page.text)
-        n = re.search("'Cumulative Dist', data: \[(.*)\]",page.text)
-        c_dist = n.group(1)
+#        n = re.search("'Cumulative Dist', data: \[(.*)\]",page.text)
         prob_density = m.group(1)
+#        c_dist = n.group(1)
         x.loc[(i,'p_dist')] = prob_density
-        x.loc[(i,'c_dist')]= c_dist
+#        x.loc[(i,'c_dist')]= c_dist
     return x
 
-n = 10
+###### Start Test Loop Time
+
+
+###### Start Call
+
+n = 20
+
 df1 = url(df[0:n])
 
 ###### Split Strings into Coordinates
 
 P_Dist = df1.drop('c_dist', axis=1)
-C_Dist = df1.drop('p_dist',axis=1)
-
+#C_Dist = df1.drop('p_dist',axis=1)
+#
 P_Dist['p_dist_cords'] = P_Dist.apply(lambda x: re.split('(?<!\d)[,](?!\d)',x['p_dist']),axis=1)
-C_Dist['c_dist_cords'] = C_Dist.apply(lambda x: re.split('(?<!\d)[,](?!\d)',x['c_dist']),axis=1)
+#C_Dist['c_dist_cords'] = C_Dist.apply(lambda x: re.split('(?<!\d)[,](?!\d)',x['c_dist']),axis=1)
+#
 
-###### Save Data to TSV
-
-def save_to_tsv(g, outfile):
-    g.to_csv(outfile, sep='\t', index=False)
+###### Pull First Coordinate and Compare to Column Values
 
 
+y = re.search('(?<=\[)(.*)(?=,)',l[i])
 
-save_to_tsv(P_Dist,outfile = 'LBNL_P_Dist.tsv')
-save_to_tsv(C_Dist,outfile = 'LBNL_C_Dist.tsv')
+
+
+for i in P_Dist['p_dist_cords']:
+
+###
+
+
+####### Save Data to TSV
+#
+#def save_to_tsv(g, outfile):
+#    g.to_csv(outfile, sep='\t', index=False)
+#
+#
+#
+#save_to_tsv(P_Dist,outfile = 'LBNL_P_Dist.tsv')
+#save_to_tsv(C_Dist,outfile = 'LBNL_C_Dist.tsv')
 
 
 
