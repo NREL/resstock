@@ -5,7 +5,7 @@ import psycopg2 as pg
 
 con_string = "host={} port={} dbname={} user={} password={}".format(os.environ['GIS_HOST'], os.environ['GIS_PORT'], os.environ['GIS_DBNAME'], os.environ['GIS_USER'], os.environ['GIS_PASSWORD'])
 
-cols = ['unitsstr', 'hhincome', 'repwt', 'hhwt', 'builtyr2', 'rooms', 'fuelheat', 'bedrooms', 'hhtype', 'region', 'ownershp', 'acrehous', 'kitchen', 'plumbing', 'vehicles', 'race', 'stateicp', 'statefip', 'vacancy', 'state_abbr']
+cols = ['unitsstr', 'hhincome', 'repwt', 'hhwt', 'builtyr2', 'rooms', 'fuelheat', 'bedrooms', 'hhtype', 'region', 'ownershp', 'acrehous', 'kitchen', 'plumbing', 'vehicles', 'race', 'stateicp', 'statefip', 'vacancy', 'state_abbr', 'nfams', 'famsize', 'ftotinc']
 
 def retrieve_tables():
     con = pg.connect(con_string)
@@ -68,7 +68,7 @@ def assign_vintage(df):
   
   return df
   
-def assign_heatingfuel(df):
+def assign_heating_fuel(df):
 
   heatingfuelkey = {0: None,
                     1: 'None',
@@ -85,6 +85,29 @@ def assign_heatingfuel(df):
   
   return df
   
+def assign_federal_poverty_level(df):
+  
+  # https://aspe.hhs.gov/2011-poverty-guidelines-federal-register-notice
+  incomelimitkey = {1: 10890.0,
+                    2: 14710.0,
+                    3: 18530.0,
+                    4: 22350.0,
+                    5: 26170.0,
+                    6: 29990.0,
+                    7: 33810.0,
+                    8: 37630.0}
+  
+  def incomelimit(famsize, hhincome):
+    if famsize <= 8:
+      incomelimit = incomelimitkey[famsize]
+    else:
+      incomelimit = incomelimitkey[8] + (famsize - 8) * 3820.0
+    return hhincome * 100.0 / incomelimit
+  
+  df['fpl'] = df.apply(lambda x: incomelimit(x.famsize, x.hhincome), axis=1)
+  
+  return df
+  
 if __name__ == '__main__':
   
   dfs = []
@@ -94,7 +117,8 @@ if __name__ == '__main__':
     if df is None:
       continue
     df = assign_vintage(df)
-    df = assign_heatingfuel(df)
+    df = assign_heating_fuel(df)
+    df = assign_federal_poverty_level(df)
     dfs.append(df)
     
   pd.concat(dfs).to_csv(os.path.join(os.path.dirname(__file__), 'MLR', 'pums.csv'), index=False)

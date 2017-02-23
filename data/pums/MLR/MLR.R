@@ -2,7 +2,7 @@ library(MASS)
 library(ggplot2)
 library(ggfortify)
 library(leaps)
-library(reshape2)
+library(reshape2)         
 
 # totrooms to Size
 df = read.csv('../../recs/MLR/recs.csv')
@@ -28,9 +28,10 @@ state = 'all'
 x.vars.con = c()
 
 y.vars.con = c('hhincome')
+# y.vars.con = c('fpl')
 
 # x.vars.cat = c('heatingfuel')
-x.vars.cat = c('vintage', 'rooms')
+x.vars.cat = c('vintage', 'rooms', 'size')
 # x.vars.cat = c('vintage', 'rooms', 'heatingfuel')
 # x.vars.cat = c('vintage', 'rooms', 'heatingfuel', 'bedrooms', 'hhtype', 'region', 'ownershp', 'acrehous', 'kitchen', 'plumbing', 'vehicles', 'race')
 
@@ -38,36 +39,41 @@ y.vars.cat = c()
 
 df = read.csv('pums.csv')
 
+# filters
+df = df[df$hhincome>=0, ]
+df = df[df$hhincome <= 250000, ]
+df = df[df$nfams==1, ]
+
 if (state != 'all'){
   df = df[df$state_abbr==state, ]
 }
 
-df = subset(df, select=c(x.vars.con, y.vars.con, x.vars.cat, y.vars.cat, c('hhwt', 'state_abbr')))
-
 # add the Size column according to the map
-df$Size = NA
+df$size = NA
 
 # 1: 0-1499
-df[df$rooms==1, 'Size'] = '0-1499'
+df[df$rooms==1, 'size'] = '0-1499'
 
 # 2: 0-1499 (85%), 1500-2499 (15%)
 num_rooms = 2
-df[sample(which(df$rooms==num_rooms & is.na(df$Size)), round(map[map$totrooms==num_rooms, '0-1499'] * length(which(df$rooms==num_rooms)))), 'Size'] = '0-1499'
-df[sample(which(df$rooms==num_rooms & is.na(df$Size)), round(map[map$totrooms==num_rooms, '1500-2499'] * length(which(df$rooms==num_rooms)))), 'Size'] = '1500-2499'
+df[sample(which(df$rooms==num_rooms & is.na(df$size)), round(map[map$totrooms==num_rooms, '0-1499'] * length(which(df$rooms==num_rooms)))), 'size'] = '0-1499'
+df[sample(which(df$rooms==num_rooms & is.na(df$size)), round(map[map$totrooms==num_rooms, '1500-2499'] * length(which(df$rooms==num_rooms)))), 'size'] = '1500-2499'
 
 for (num_rooms in c(3, 4, 5, 6, 7, 8, 9)) {
-  df[sample(which(df$rooms==num_rooms & is.na(df$Size)), round(map[map$totrooms==num_rooms, '0-1499'] * length(which(df$rooms==num_rooms)))), 'Size'] = '0-1499'
-  df[sample(which(df$rooms==num_rooms & is.na(df$Size)), round(map[map$totrooms==num_rooms, '1500-2499'] * length(which(df$rooms==num_rooms)))), 'Size'] = '1500-2499'
-  df[sample(which(df$rooms==num_rooms & is.na(df$Size)), round(map[map$totrooms==num_rooms, '2500-3499'] * length(which(df$rooms==num_rooms)))), 'Size'] = '2500-3499'
-  df[sample(which(df$rooms==num_rooms & is.na(df$Size)), round(map[map$totrooms==num_rooms, '3500+'] * length(which(df$rooms==num_rooms)))), 'Size'] = '3500+'
+  population = length(which(df$rooms==num_rooms & is.na(df$size)))
+  df[sample(which(df$rooms==num_rooms & is.na(df$size)), round(map[map$totrooms==num_rooms, '0-1499'] * length(which(df$rooms==num_rooms)))), 'size'] = '0-1499'
+  sampled = round(map[map$totrooms==num_rooms, '0-1499'] * length(which(df$rooms==num_rooms)))
+  df[sample(which(df$rooms==num_rooms & is.na(df$size)), round(map[map$totrooms==num_rooms, '1500-2499'] * length(which(df$rooms==num_rooms)))), 'size'] = '1500-2499'
+  sampled = sampled + round(map[map$totrooms==num_rooms, '1500-2499'] * length(which(df$rooms==num_rooms)))
+  df[sample(which(df$rooms==num_rooms & is.na(df$size)), round(map[map$totrooms==num_rooms, '2500-3499'] * length(which(df$rooms==num_rooms)))), 'size'] = '2500-3499'
+  sampled = sampled + round(map[map$totrooms==num_rooms, '2500-3499'] * length(which(df$rooms==num_rooms)))
+  df[sample(which(df$rooms==num_rooms & is.na(df$size)), population - sampled), 'size'] = '3500+' # whatever's left because of rounding issues
 }
 
-write.csv(df, 'pums_size.csv')
+df = subset(df, select=c(x.vars.con, y.vars.con, x.vars.cat, y.vars.cat, c('hhwt', 'state_abbr')))
 
 df$values = 'actual'
-# df$actual = df$hhincome
 
-x.vars.cat = c(x.vars.cat, 'Size')
 df[c(x.vars.cat, y.vars.cat)] = lapply(df[c(x.vars.cat, y.vars.cat)], factor) # apply factor to each of the categorical vars
 df = na.omit(df) # this removes rows with at least one NA
 
@@ -81,9 +87,6 @@ detach(df)
 summary(df.lm1)
 write.csv(summary(df.lm1)$coefficients, 'lm1.csv') # write out first pass to csv
 ###
-
-# df.lm1.step1 = stepAIC(df.lm1, direction='both') # step-wise regression
-# summary(df.lm1.step1)
 
 sig_indep_vars_factors = rownames(data.frame(summary(df.lm1)$coefficients)[data.frame(summary(df.lm1)$coefficients)$'Pr...t..' <= 0.5, ]) # remove insignificant vars
 sig_indep_vars_factors = sig_indep_vars_factors[!sig_indep_vars_factors %in% c('(Intercept)')]
@@ -106,24 +109,15 @@ summary(df.lm2)
 write.csv(summary(df.lm2)$coefficients, 'lm2.csv') # write out first pass to csv
 ###
 
-# attach(df)
-# leaps = regsubsets(hhincome ~ yearmaderange + fuelheat + Size + CR, data=df, nbest=10)
-# detach(df)
-# png(filename="leaps.png", width=10, height=5, units="in", res=1200)
-# par(cex.axis=0.5, cex.lab=0.5)
-# plot(leaps, scale='r2')
-# dev.off()
-
 df2 = df
 df2$values = 'predict'
-df2$hhincome = predict(df.lm2, newdata=subset(df2, select=sig_indep_vars)) # this is the same as the fitted values
-# df2$actual = df$hhincome
+df2[[y.vars.con[[1]]]] = predict(df.lm2, newdata=subset(df2, select=sig_indep_vars)) # this is the same as the fitted values
 
 counts = c(sum(df$hhwt), sum(df2$hhwt))
 labels = paste(c('actual', 'predict'), ', n = ', round(counts), sep='')
 
 # p = ggplot(NULL, aes(x=hhincome, colour=values, weight=hhwt/sum(hhwt))) + geom_density(data=df2) + geom_density(data=df) + scale_colour_discrete(name='model', labels=labels) + xlim(0, 250000) + ylim(0, 0.000015)
-p = ggplot(NULL, aes(x=hhincome, colour=values)) + geom_density(data=df2) + geom_density(data=df) + scale_colour_discrete(name='model', labels=labels) + xlim(0, 250000)
+p = ggplot(NULL, aes_string(x=y.vars.con[[1]], colour='values')) + geom_density(data=df2) + geom_density(data=df) + scale_colour_discrete(name='model', labels=labels)
 # binwidth = 1000
 # p = ggplot(NULL, aes(x=hhincome, colour=values, weight=hhwt/sum(hhwt))) + geom_histogram(data=df2, binwidth=binwidth, alpha=0.1) + geom_histogram(data=df, binwidth=binwidth, alpha=0.1) + scale_colour_discrete(name='model', labels=labels) + xlim(0, 250000) + ylim(0, 0.03)
 ggsave(p, file='dist.png', width=14)
@@ -151,7 +145,7 @@ for (x in sig_indep_vars) {
   # p = ggplot(df2, aes(x=hhincome, weight=hhwt/sum(hhwt))) + geom_density(aes_string(colour=x)) + scale_colour_discrete(name=x, labels=labels) + xlim(0, 250000) + ylim(0, 0.00002)
   # ggsave(p, file=paste(x,'png',sep='_pre.'), width=14)
   
-  p = ggplot(temp2, aes(x=hhincome)) + geom_density(aes_string(colour=x)) + scale_colour_discrete(name=x, labels=labels) + xlim(0, 250000)
+  p = ggplot(temp2, aes_string(x=y.vars.con[[1]])) + geom_density(aes_string(colour=x)) + scale_colour_discrete(name=x, labels=labels)
   ggsave(p, file=paste(x,'png',sep='_pre.'), width=14)  
   
   lvls = levels(as.factor(temp[[x]]))
@@ -161,7 +155,7 @@ for (x in sig_indep_vars) {
   # q = ggplot(df, aes(x=hhincome, weight=hhwt/sum(hhwt))) + geom_density(aes_string(colour=x)) + scale_colour_discrete(name=x, labels=labels) + xlim(0, 250000) + ylim(0, 0.00002)
   # ggsave(q, file=paste(x,'png',sep='_act.'), width=14)
   
-  q = ggplot(temp, aes(x=hhincome)) + geom_density(aes_string(colour=x)) + scale_colour_discrete(name=x, labels=labels) + xlim(0, 250000)
+  q = ggplot(temp, aes_string(x=y.vars.con[[1]])) + geom_density(aes_string(colour=x)) + scale_colour_discrete(name=x, labels=labels)
   ggsave(q, file=paste(x,'png',sep='_act.'), width=14)  
   
 }
@@ -186,7 +180,7 @@ for (vintage in levels(as.factor(df$vintage))){
   # p = ggplot(temp2, aes(x=hhincome, weight=hhwt/sum(hhwt))) + geom_density(aes_string(colour=x)) + scale_colour_discrete(name=x, labels=labels) + xlim(0, 250000) + ylim(0, 0.000006)
   # ggsave(p, file=paste(gsub('<', '', vintage),'png',sep='_pre.'), width=14)
   
-  p = ggplot(temp2, aes(x=hhincome)) + geom_density(aes(colour=rooms_and_vintage)) + scale_colour_discrete(name='rooms_and_vintage', labels=labels) + xlim(0, 250000)
+  p = ggplot(temp2, aes_string(x=y.vars.con[[1]])) + geom_density(aes(colour=rooms_and_vintage)) + scale_colour_discrete(name='rooms_and_vintage', labels=labels)
   ggsave(p, file=paste(gsub('<', '', vintage),'png',sep='_pre.'), width=14)
   
   lvls = levels(as.factor(temp$rooms_and_vintage))
@@ -196,7 +190,7 @@ for (vintage in levels(as.factor(df$vintage))){
   # q = ggplot(temp, aes(x=hhincome, weight=hhwt/sum(hhwt))) + geom_density(aes_string(colour=x)) + scale_colour_discrete(name=x, labels=labels) + xlim(0, 250000) + ylim(0, 0.000006)
   # ggsave(q, file=paste(gsub('<', '', vintage),'png',sep='_act.'), width=14)
   
-  q = ggplot(temp, aes(x=hhincome)) + geom_density(aes(colour=rooms_and_vintage)) + scale_colour_discrete(name='rooms_and_vintage', labels=labels) + xlim(0, 250000)
+  q = ggplot(temp, aes_string(x=y.vars.con[[1]])) + geom_density(aes(colour=rooms_and_vintage)) + scale_colour_discrete(name='rooms_and_vintage', labels=labels)
   ggsave(q, file=paste(gsub('<', '', vintage),'png',sep='_act.'), width=14)
   
 }
@@ -213,14 +207,14 @@ if (state == 'all'){
   counts = aggregate(temp2$hhwt, by=list(bin=temp2$state_abbr), FUN=sum)$x
   labels = paste(lvls, ', n = ', round(counts), sep='')
   
-  p = ggplot(temp2, aes(x=hhincome)) + geom_density(aes(colour=state_abbr)) + scale_colour_discrete(name='state_abbr', labels=labels) + xlim(0, 250000)
+  p = ggplot(temp2, aes_string(x=y.vars.con[[1]])) + geom_density(aes(colour=state_abbr)) + scale_colour_discrete(name='state_abbr', labels=labels)
   ggsave(p, file='state_pre.png', width=14)
   
   lvls = levels(as.factor(temp$state_abbr))
   counts = aggregate(temp$hhwt, by=list(bin=temp$state_abbr), FUN=sum)$x
   labels = paste(lvls, ', n = ', round(counts), sep='')
   
-  q = ggplot(temp, aes(x=hhincome)) + geom_density(aes(colour=state_abbr)) + scale_colour_discrete(name='state_abbr', labels=labels) + xlim(0, 250000)
+  q = ggplot(temp, aes_string(x=y.vars.con[[1]])) + geom_density(aes(colour=state_abbr)) + scale_colour_discrete(name='state_abbr', labels=labels)
   ggsave(q, file='state_act.png', width=14)
   
 }
