@@ -14,25 +14,37 @@ from datetime import timedelta
 import pandas as pd
 import itertools
 
-###### Original test of loop
+story_dict = {8:1,
+              16:2}
 
-#LoopTime = datetime.now()
-#for i in range(5):
-#    url = "http://resdb.lbl.gov/main.php?step=2&sub=2&run_env_model=&dtype1=&dtype2=&is_ca=&calc_id=2&floor_area=1500&house_height=8&year_built=1&wap=0&ee_home=0&region=2&zone=1&foundation=1&duct=1.html"
-#    try:
-#        page = requests.get(url)
-#        re.search("data: \[(.*)\]",page.text)
-#    finally:
-#        print ""
-#
-#
-#print "Loop:" + str(datetime.now() - LoopTime)
+size_dict = {1000: '0-1499',
+             2000: '1500-2499',
+             3000: '2500-3499',
+             4500: '3500+'}
 
+vintage_dict = {1  :'Pre-1960s',
+                2  :'1970s',
+                3  :'1980s',
+                4  :'1990s',
+                5  :'2000s',
+                6  :'2000s'}
 
+region_dict = {1: 'Humid',
+               2: 'Dry',
+               3: 'Marine',
+               4: 'Alaska'}
 
-###### Create Dictionary of all possible values
+foundation_dict = {1: 'Slab',
+                   2: 'Conditioned Basement or Unvented Crawlspace',
+                   3: 'Unconditioned Basement or Vented Crawlspace'}
 
-x = {"Floor_Area":[1000,2000,3000,4500],"Vintage":[1,2,3,4,5,6],"WAP":[0,1],"EE":[0,1],"Stories":[8,16],"Region":[1,2,3,4],"Climate_Zone":[1,2,3,4,5,6,7,8],"Foundation_Type":[1,2,3],"Duct":[1,2,3]}
+duct_dict = {   1: 'Inside conditioned space',
+                2: 'Attic or basement (unconditioned)',
+                3: 'Vented crawlspace'}
+
+###### Create Dictionary & Dataframe of all possible values
+
+x = {"Size":[1000,2000,3000,4500],"yearmaderange":[1,2,3,4,5,6],"WAP":[0,1],"EE":[0,1],"stories":[8,16],"Region":[1,2,3,4],"Climate_Zone":[1,2,3,4,5,6,7,8],"Foundation Type":[1,2,3],"Duct":[1,2,3]}
 df = pd.DataFrame(list(itertools.product(*x.values())),columns=x.keys())
 
 ###### Combinations that do not exist on Website
@@ -51,17 +63,12 @@ for i in range(len(lf)):
 
 df = df.reset_index()
 df = df.drop('index',axis=1)
-df['Coordinates']='.'
-df['URL']=""
 df['p_dist']=""
 df['c_dist'] = ""
 
 ###### Create URL and Query
 
-LoopTime = datetime.now()
-
 def url(x):
-    Y = []
     CLIMATE = x[x.columns[0]].tolist()
     FOUNDATION = x[x.columns[1]].tolist()
     STORIES = x[x.columns[2]].tolist()
@@ -75,72 +82,90 @@ def url(x):
         url = 'http://resdb.lbl.gov/main.php?step=2&sub=2&run_env_model=&dtype1=&dtype2=&is_ca=&calc_id=2&floor_area='+str(FLOOR_AREA[i])+'&house_height='+str(STORIES[0])+'&year_built='+str(VINTAGE[i])+'&wap='+str(WAP[i])+'&ee_home='+str(EE[i])+'&region='+str(REGION[i])+'&zone='+str(CLIMATE[i])+'&foundation='+str(FOUNDATION[i])+'&duct='+str(DUCT[i])+'.html'
         page = requests.get(url)
         m = re.search("'Prob Density', data: \[(.*)\]",page.text)
-#        n = re.search("'Cumulative Dist', data: \[(.*)\]",page.text)
+        n = re.search("'Cumulative Dist', data: \[(.*)\]",page.text)
         prob_density = m.group(1)
-#        c_dist = n.group(1)
+        c_dist = n.group(1)
         x.loc[(i,'p_dist')] = prob_density
-#        x.loc[(i,'c_dist')]= c_dist
+        x.loc[(i,'c_dist')]= c_dist
     return x
 
 ###### Start Test Loop Time
 
+LoopTime = datetime.now()
 
-###### Start Call
+###### Call to Pull Data from LBNL
 
-n = 20
-
+n = 5
 df1 = url(df[0:n])
 
-###### Split Strings into Coordinates
+###### Split Data into Cumulative Distributions and Probability Density Distributions
 
 P_Dist = df1.drop('c_dist', axis=1)
-#C_Dist = df1.drop('p_dist',axis=1)
-#
-P_Dist['p_dist_cords'] = P_Dist.apply(lambda x: re.split('(?<!\d)[,](?!\d)',x['p_dist']),axis=1)
-#C_Dist['c_dist_cords'] = C_Dist.apply(lambda x: re.split('(?<!\d)[,](?!\d)',x['c_dist']),axis=1)
-#
+C_Dist = df1.drop('p_dist',axis=1)
 
-###### Pull First Coordinate and Compare to Column Values
+###### Pull Coordinates into Unicode Lists of X & Y Values
 
+P_Dist['x_vals'] = P_Dist.apply(lambda x: re.findall('(?<=\[)(.*?)(?=,)',x['p_dist']),axis=1)
+P_Dist['y_vals'] = P_Dist.apply(lambda x: re.findall('(?<=\d,)(.+?)(?=\])',x['p_dist']),axis=1)
+C_Dist['x_vals'] = C_Dist.apply(lambda x: re.findall('(?<=\[)(.*?)(?=,)',x['c_dist']),axis=1)
+C_Dist['y_vals'] = C_Dist.apply(lambda x: re.findall('(?<=\d,)(.+?)(?=\])',x['c_dist']),axis=1)
 
-y = re.search('(?<=\[)(.*)(?=,)',l[i])
+###### Convert Unicode to Float for X & Y Values
 
+P_Dist['x_vals'] = P_Dist.apply(lambda x: [float(unicode(x['x_vals'][i])) for i in range(len(x['x_vals']))],axis=1)
+P_Dist['y_vals'] = P_Dist.apply(lambda x: [float(unicode(x['y_vals'][i])) for i in range(len(x['y_vals']))],axis=1)
+C_Dist['x_vals'] = C_Dist.apply(lambda x: [float(unicode(x['x_vals'][i])) for i in range(len(x['x_vals']))],axis=1)
+C_Dist['y_vals'] = C_Dist.apply(lambda x: [float(unicode(x['y_vals'][i])) for i in range(len(x['y_vals']))],axis=1)
 
-
-for i in P_Dist['p_dist_cords']:
-
-###
-
-
-####### Save Data to TSV
-#
-#def save_to_tsv(g, outfile):
-#    g.to_csv(outfile, sep='\t', index=False)
-#
-#
-#
-#save_to_tsv(P_Dist,outfile = 'LBNL_P_Dist.tsv')
-#save_to_tsv(C_Dist,outfile = 'LBNL_C_Dist.tsv')
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+###### End Timer & Calculate Estimated Runtime
 
 time = datetime.now() - LoopTime
-
 total = time.total_seconds()*(len(df)/n)
 print "Loop:" + str(time)
 print "Expected Time:" + str(timedelta(seconds= total))
+
+###### Put Columns into RECS Format
+
+def process_data(df):
+    field_dicts = {'stories': story_dict,
+                   'Foundation Type': foundation_dict,
+                   'Duct': duct_dict,
+                   'Size':size_dict,
+                   'yearmaderange': vintage_dict,
+                   'Region': region_dict}
+    for field_name, field_dict in field_dicts.iteritems():
+        for num, name in field_dict.iteritems():
+            df.loc[:,field_name].replace(num, name, inplace=True)
+    return df
+
+####### Save Data to TSV
+
+def save_to_tsv(g, outfile):
+    g.to_csv(outfile, sep='\t', index=False)
+
+####### Make Function Calls
+
+P_Dist = process_data(P_Dist)
+C_Dist = process_data(C_Dist)
+
+save_to_tsv(P_Dist,outfile = 'LBNL_P_Dist.tsv')
+save_to_tsv(C_Dist,outfile = 'LBNL_C_Dist.tsv')
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
