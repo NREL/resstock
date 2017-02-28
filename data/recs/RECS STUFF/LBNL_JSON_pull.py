@@ -96,7 +96,7 @@ LoopTime = datetime.now()
 ###### Call to Pull Data from LBNL
 
 n = 5
-df1 = url(df[0:n])
+df1 = url(df)
 
 ###### Split Data into Cumulative Distributions and Probability Density Distributions
 
