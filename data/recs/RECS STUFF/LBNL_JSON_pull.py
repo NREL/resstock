@@ -69,17 +69,9 @@ df['c_dist'] = ""
 ###### Create URL and Query
 
 def url(x):
-    CLIMATE = x[x.columns[0]].tolist()
-    FOUNDATION = x[x.columns[1]].tolist()
-    STORIES = x[x.columns[2]].tolist()
-    FLOOR_AREA = x[x.columns[3]].tolist()
-    EE = x[x.columns[4]].tolist()
-    VINTAGE = x[x.columns[5]].tolist()
-    REGION = x[x.columns[6]].tolist()
-    DUCT = x[x.columns[7]].tolist()
-    WAP = x[x.columns[8]].tolist()
-    for i in range(len(EE)):
-        url = 'http://resdb.lbl.gov/main.php?step=2&sub=2&run_env_model=&dtype1=&dtype2=&is_ca=&calc_id=2&floor_area='+str(FLOOR_AREA[i])+'&house_height='+str(STORIES[0])+'&year_built='+str(VINTAGE[i])+'&wap='+str(WAP[i])+'&ee_home='+str(EE[i])+'&region='+str(REGION[i])+'&zone='+str(CLIMATE[i])+'&foundation='+str(FOUNDATION[i])+'&duct='+str(DUCT[i])+'.html'
+
+    for i,row in x.iterrows():
+        url = 'http://resdb.lbl.gov/main.php?step=2&sub=2&run_env_model=&dtype1=&dtype2=&is_ca=&calc_id=2&floor_area='+str(row['Size'])+'&house_height='+str(row['stories'])+'&year_built='+str(row['yearmaderange'])+'&wap='+str(row['WAP'])+'&ee_home='+str(row['EE'])+'&region='+str(row['Region'])+'&zone='+str(row['Climate_Zone'])+'&foundation='+str(row['Foundation Type'])+'&duct='+str(row['Duct'])+'.html'
         page = requests.get(url)
         m = re.search("'Prob Density', data: \[(.*)\]",page.text)
         n = re.search("'Cumulative Dist', data: \[(.*)\]",page.text)
@@ -95,7 +87,6 @@ LoopTime = datetime.now()
 
 ###### Call to Pull Data from LBNL
 
-n = 5
 df1 = url(df)
 
 ###### Split Data into Cumulative Distributions and Probability Density Distributions
@@ -114,13 +105,14 @@ C_Dist['y_vals'] = C_Dist.apply(lambda x: re.findall('(?<=\d,)(.+?)(?=\])',x['c_
 
 P_Dist['x_vals'] = P_Dist.apply(lambda x: [float(unicode(x['x_vals'][i])) for i in range(len(x['x_vals']))],axis=1)
 P_Dist['y_vals'] = P_Dist.apply(lambda x: [float(unicode(x['y_vals'][i])) for i in range(len(x['y_vals']))],axis=1)
+
 C_Dist['x_vals'] = C_Dist.apply(lambda x: [float(unicode(x['x_vals'][i])) for i in range(len(x['x_vals']))],axis=1)
 C_Dist['y_vals'] = C_Dist.apply(lambda x: [float(unicode(x['y_vals'][i])) for i in range(len(x['y_vals']))],axis=1)
 
 ###### End Timer & Calculate Estimated Runtime
 
 time = datetime.now() - LoopTime
-total = time.total_seconds()*(len(df)/n)
+total = time.total_seconds()
 print "Loop:" + str(time)
 print "Expected Time:" + str(timedelta(seconds= total))
 
@@ -151,8 +143,14 @@ C_Dist = process_data(C_Dist)
 save_to_tsv(P_Dist,outfile = 'LBNL_P_Dist.tsv')
 save_to_tsv(C_Dist,outfile = 'LBNL_C_Dist.tsv')
 
+###### Create Frequency Distribution
 
+for i,row in C_Dist.iterrows():
+    for k in range(len(row['y_vals'])):
+        if k > 0:
+            row['y_vals'][k] = row['y_vals'][k] - row['y_vals'][k-1]
 
+save_to_tsv(C_Dist,outfile = 'LBNL_FRQ_Dist.tsv')
 
 
 
