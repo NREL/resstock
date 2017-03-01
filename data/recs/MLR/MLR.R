@@ -17,6 +17,7 @@ dep_vars = c(y.vars.con, y.vars.cat)
 indep_vars = c(x.vars.con, x.vars.cat)
 
 df = read.csv('recs.csv')
+levels(df$yearmaderange) = c(levels(df$yearmaderange), '<1950')
 df[df$yearmaderange=='1950-pre', 'yearmaderange'] = '<1950'
 df$yearmaderange = as.factor(df$yearmaderange)
 df = rename(df, c('yearmaderange'='vintage', 'Size'='size'))
@@ -88,10 +89,11 @@ for (x in sig_indep_vars) {
 }
 
 # size and vintage
+levels(df$vintage) = c('<1950', '1950s', '1960s', '1970s', '1980s', '1990s', '2000s')
 sizes_and_vintages = expand.grid(levels(df$size), levels(df$vintage))
 sizes_and_vintages = rename(sizes_and_vintages, c('Var1'='size', 'Var2'='vintage'))
 sizes_and_vintages$income = predict(df.lm2, newdata=sizes_and_vintages)
-sizes_and_vintages
+write.csv(sizes_and_vintages, 'income_estimates.csv', row.names=F)
 
 for (vintage in levels(as.factor(df$vintage))){
 

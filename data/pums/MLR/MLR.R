@@ -127,7 +127,7 @@ for (x in sig_indep_vars) {
 sizes_and_vintages = expand.grid(levels(df$size), levels(df$vintage))
 sizes_and_vintages = rename(sizes_and_vintages, c('Var1'='size', 'Var2'='vintage'))
 sizes_and_vintages$income = predict(df.lm2, newdata=sizes_and_vintages)
-sizes_and_vintages
+write.csv(sizes_and_vintages, 'income_estimates.csv', row.names=F)
 
 for (vintage in levels(as.factor(df$vintage))){
 
