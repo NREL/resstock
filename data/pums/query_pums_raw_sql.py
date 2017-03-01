@@ -5,7 +5,7 @@ import psycopg2 as pg
 
 con_string = "host={} port={} dbname={} user={} password={}".format(os.environ['GIS_HOST'], os.environ['GIS_PORT'], os.environ['GIS_DBNAME'], os.environ['GIS_USER'], os.environ['GIS_PASSWORD'])
 
-cols = ['unitsstr', 'hhincome', 'repwt', 'hhwt', 'builtyr2', 'rooms', 'fuelheat', 'bedrooms', 'hhtype', 'region', 'ownershp', 'acrehous', 'kitchen', 'plumbing', 'vehicles', 'race', 'stateicp', 'statefip', 'vacancy', 'state_abbr', 'nfams', 'famsize', 'ftotinc']
+cols = ['serial', 'unitsstr', 'hhincome', 'repwt', 'hhwt', 'builtyr2', 'rooms', 'fuelheat', 'bedrooms', 'hhtype', 'region', 'ownershp', 'acrehous', 'kitchen', 'plumbing', 'vehicles', 'race', 'stateicp', 'statefip', 'vacancy', 'state_abbr', 'nfams', 'famsize', 'ftotinc']
 
 def retrieve_tables():
     con = pg.connect(con_string)
@@ -16,10 +16,6 @@ def retrieve_tables():
     for table_name in table_names:
       if not table_name.startswith("ipums_acs") or table_name.endswith("parent") or table_name.endswith("metadata") or table_name.endswith("puma_codes"):
         continue
-      # if table_name.endswith('5yr_ca') or table_name.endswith('5yr_oh') or table_name.endswith('5yr_nj'): # MemoryError
-        # continue
-      # if table_name.endswith("5yr_md") or table_name.endswith("5yr_nd") or table_name.endswith('5yr_nm'): # python.exe error
-        # continue
       state_tables.append(table_name)
     return state_tables
 
@@ -60,9 +56,9 @@ def assign_vintage(df):
                 12: '2000s',
                 13: '2000s',
                 14: '2000s',
-                15: '2000s',
-                16: '2000s',
-                17: '2000s'}
+                15: '2010s',
+                16: '2010s',
+                17: '2010s'}
 
   df['vintage'] = df.apply(lambda x: vintagekey[x.builtyr2], axis=1)
   
@@ -70,16 +66,16 @@ def assign_vintage(df):
   
 def assign_heating_fuel(df):
 
-  heatingfuelkey = {0: None,
+  heatingfuelkey = {0: 'None',
                     1: 'None',
                     2: 'Natural Gas',
-                    3: 'Propane',
+                    3: 'Propane/LPG',
                     4: 'Electricity',
                     5: 'Fuel Oil',
-                    6: 'Coal',
-                    7: 'Wood',
-                    8: 'Solar',
-                    9: 'Other'}
+                    6: 'Other Fuel',
+                    7: 'Other Fuel',
+                    8: 'Other Fuel',
+                    9: 'Other Fuel'}
 
   df['heatingfuel'] = df.apply(lambda x: heatingfuelkey[x.fuelheat], axis=1)
   
@@ -97,14 +93,30 @@ def assign_federal_poverty_level(df):
                     7: 33810.0,
                     8: 37630.0}
   
-  def incomelimit(famsize, hhincome):
+  def incomelimit(famsize, ftotinc):
     if famsize <= 8:
       incomelimit = incomelimitkey[famsize]
     else:
       incomelimit = incomelimitkey[8] + (famsize - 8) * 3820.0
-    return hhincome * 100.0 / incomelimit
+    return ftotinc * 100.0 / incomelimit
   
-  df['fpl'] = df.apply(lambda x: incomelimit(x.famsize, x.hhincome), axis=1)
+  df['fpl'] = df.apply(lambda x: incomelimit(x.famsize, x.ftotinc), axis=1)
+  
+  return df
+  
+def assign_race(df):
+
+  racekey = {1: 'White Alone',
+             2: 'Black or African/American Alone',
+             3: 'American Indian Alone',
+             4: 'Asian Alone',
+             5: 'Pacific Islander Alone',
+             6: 'Other Race Alone',
+             7: 'Other Race Alone',
+             8: '2 or More Races Selected',
+             9: '2 or More Races Selected'}
+             
+  df['householder_race'] = df.apply(lambda x: racekey[x.race], axis=1)
   
   return df
   
@@ -119,6 +131,7 @@ if __name__ == '__main__':
     df = assign_vintage(df)
     df = assign_heating_fuel(df)
     df = assign_federal_poverty_level(df)
+    df = assign_race(df)
     dfs.append(df)
     
   pd.concat(dfs).to_csv(os.path.join(os.path.dirname(__file__), 'MLR', 'pums.csv'), index=False)
