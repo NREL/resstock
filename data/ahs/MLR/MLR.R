@@ -7,8 +7,9 @@ library(plyr)
 
 df = read.csv('ahs.csv', na.strings='')
 
-df = subset(df, select=c('NUNIT2', 'rooms', 'bedrooms', 'size', 'vintage', 'heatingfuel', 'income', 'WEIGHT'))
+df = subset(df, select=c('NUNIT2', 'ROOMS', 'BEDRMS', 'size', 'vintage', 'heatingfuel', 'ZINC2', 'WEIGHT'))
 df$NUNIT2 = as.numeric(gsub("'", "", df$NUNIT2))
+df = rename(df, c('ZINC2'='income'))
 
 x.vars.con = c()
 
