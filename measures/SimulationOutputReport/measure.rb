@@ -123,6 +123,8 @@ class SimulationOutputReport < OpenStudio::Ruleset::ReportingUserScript
     
     # UPGRADE COSTS
     
+    upgrade_cost_name = "Upgrade Cost USD"
+    
     # Get upgrade cost value/multiplier pairs from the upgrade measure
     cost_pairs = []
     measures_used = 0
@@ -145,8 +147,8 @@ class SimulationOutputReport < OpenStudio::Ruleset::ReportingUserScript
     end
     
     if cost_pairs.size == 0
-        runner.registerValue("Upgrade Cost", "")
-        runner.registerInfo("Registering (blank) for Upgrade Cost.")
+        runner.registerValue(upgrade_cost_name, "")
+        runner.registerInfo("Registering (blank) for #{upgrade_cost_name}.")
         return true
     end
     
@@ -240,9 +242,9 @@ class SimulationOutputReport < OpenStudio::Ruleset::ReportingUserScript
         runner.registerInfo("Upgrade cost addition: $#{cost_value} x #{cost_mult} [#{cost_mult_type}].")
         upgrade_cost += cost_value * cost_mult
     end
-    upgrade_cost_str = "$"+upgrade_cost.round(2).to_s
-    runner.registerValue("Upgrade Cost", upgrade_cost_str)
-    runner.registerInfo("Registering #{upgrade_cost_str} for Upgrade Cost.")
+    upgrade_cost_str = upgrade_cost.round(2).to_s
+    runner.registerValue(upgrade_cost_name, upgrade_cost_str)
+    runner.registerInfo("Registering #{upgrade_cost_str} for #{upgrade_cost_name}.")
 
     sqlFile.close()
 

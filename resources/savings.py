@@ -34,7 +34,6 @@ def main(file):
   
   # clean cost column
   df['simulation_output_report.upgrade_cost'] = df['simulation_output_report.upgrade_cost'].str.strip()
-  df['simulation_output_report.upgrade_cost'] = df['simulation_output_report.upgrade_cost'].str.replace('$', '')
   df['simulation_output_report.upgrade_cost'] = df['simulation_output_report.upgrade_cost'].str.replace(',', '')
   df['simulation_output_report.upgrade_cost'] = df['simulation_output_report.upgrade_cost'].astype(float)
   df['simulation_output_report.upgrade_cost'] = df.apply(lambda x: 0.0 if is_reference_case(x, upgrades) else x['simulation_output_report.upgrade_cost'], axis=1)

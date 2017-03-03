@@ -52,6 +52,29 @@ class BuildingCharacteristicsReport < OpenStudio::Ruleset::ReportingUserScript
         runner.registerValue(k.to_s, v.to_s)
     end
     
+    # Report some additional location characteristics
+    
+    model = runner.lastOpenStudioModel
+    if model.empty?
+      runner.registerError("Cannot find last model.")
+      return false
+    end
+    model = model.get
+
+    weather = WeatherProcess.new(model, runner, File.dirname(__FILE__), header_only=true)
+    if weather.error?
+      return false
+    end
+
+    runner.registerInfo("Registering #{weather.header.City} for Location City.")
+    runner.registerValue("Location City", weather.header.City)
+    runner.registerInfo("Registering #{weather.header.State} for Location State.")
+    runner.registerValue("Location State", weather.header.State)
+    runner.registerInfo("Registering #{weather.header.Latitude} for Location Latitude.")
+    runner.registerValue("Location Latitude", weather.header.Latitude)
+    runner.registerInfo("Registering #{weather.header.Longitude} for Location Longitude.")
+    runner.registerValue("Location Longitude", weather.header.Longitude)
+    
     runner.registerFinalCondition("Report generated successfully.")
 
     return true
