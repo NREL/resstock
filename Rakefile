@@ -16,14 +16,20 @@ task :copy_beopt_files do
     puts "Cannot find OpenStudio-BEopt measures dir at #{beopt_measures_dir}."
   end
   
-  empty_osm = "EmptySeedModel.osm"
-  puts "Copying #{empty_osm}..."
-  beopt_empty_seed_model = File.join(File.dirname(__FILE__), "..", "OpenStudio-BEopt", "seeds", empty_osm)
-  resstock_empty_seed_model = File.join(File.dirname(__FILE__), "seeds", empty_osm)
-  if File.exists?(resstock_empty_seed_model)
-    FileUtils.rm(resstock_empty_seed_model)
+  extra_files = [
+                 File.join("seeds", "EmptySeedModel.osm"),
+                 File.join("resources", "geometry.rb"), # Needed by SimulationOutputReport
+                 File.join("resources", "constants.rb") # Needed by geometry.rb
+                ]
+  extra_files.each do |extra_file|
+      puts "Copying #{extra_file}..."
+      beopt_file = File.join(File.dirname(__FILE__), "..", "OpenStudio-BEopt", extra_file)
+      resstock_file = File.join(File.dirname(__FILE__), extra_file)
+      if File.exists?(resstock_file)
+        FileUtils.rm(resstock_file)
+      end
+      FileUtils.cp(beopt_file, resstock_file)
   end
-  FileUtils.cp(beopt_empty_seed_model, resstock_empty_seed_model)
   
   puts "Deleting #{resstock_measures_dir}..."
   while Dir.exist?(resstock_measures_dir)

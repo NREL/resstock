@@ -71,6 +71,7 @@ class ApplyUpgrade < OpenStudio::Ruleset::ModelUserScript
             choices = [
                        "Fixed (1)",
                        "Conditioned Floor Area (ft^2)",
+                       "Conditioned Foundation Slab Area (ft^2)",
                        "Lighting Floor Area (ft^2)",
                        "Above-Grade Conditioned Wall Area (ft^2)",
                        "Above-Grade Total Wall Area (ft^2)",

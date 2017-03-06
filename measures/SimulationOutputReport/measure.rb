@@ -44,6 +44,11 @@ class SimulationOutputReport < OpenStudio::Ruleset::ReportingUserScript
     sqlFile = sqlFile.get
     model.setSqlFile(sqlFile)
     
+    # Load geometry.rb resource
+    resources_dir = File.absolute_path(File.join(File.dirname(__FILE__), "..", "..", "lib", "resources")) # Should have been uploaded per 'Other Library Files' in analysis spreadsheet
+    geometry_file = File.join(resources_dir, "geometry.rb")
+    require File.join(File.dirname(geometry_file), File.basename(geometry_file, File.extname(geometry_file)))
+    
     elec_site_units = "kWh"
     gas_site_units = "therm"
     other_fuel_site_units = "MBtu"
@@ -164,6 +169,20 @@ class SimulationOutputReport < OpenStudio::Ruleset::ReportingUserScript
             sql_query = "SELECT Value FROM TabularDataWithStrings WHERE ReportName='AnnualBuildingUtilityPerformanceSummary' AND ReportForString='Entire Facility' AND TableName='Building Area' AND RowName='Net Conditioned Building Area' AND ColumnName='Area' AND Units='m2'"
             sql_result = sqlFile.execAndReturnFirstDouble(sql_query)
             cost_mult = OpenStudio::convert(sql_result.get,"m^2","ft^2").get
+            
+        elsif cost_mult_type == "Conditioned Foundation Slab Area (ft^2)"
+            # Surface area between conditioned space and ground
+            floor_area = 0
+            model.getSurfaces.each do |surface|
+                next if surface.surfaceType.downcase != "floor"
+                next if surface.outsideBoundaryCondition.downcase != "ground"
+                next if not surface.adjacentSurface.is_initialized
+                next if not surface.adjacentSurface.get.space.is_initialized
+                adjacent_space = surface.adjacentSurface.get.space.get
+                next if not Geometry.space_is_finished(adjacent_space)
+                floor_area += surface.grossArea
+            end
+            cost_mult = OpenStudio::convert(floor_area,"m^2","ft^2").get
             
         elsif cost_mult_type == "Lighting Floor Area (ft^2)"
             # Get zone names where Lighting > 0
