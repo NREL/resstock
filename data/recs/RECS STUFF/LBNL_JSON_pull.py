@@ -4,6 +4,7 @@ Created on Thu Feb 09 11:27:26 2017
 
 @author: jalley
 """
+from __future__ import division
 import csv
 import requests
 import lxml
@@ -13,6 +14,7 @@ from datetime import datetime
 from datetime import timedelta
 import pandas as pd
 import itertools
+import numpy as np
 
 story_dict = {8:1,
               16:2}
@@ -42,6 +44,10 @@ duct_dict = {   1: 'Inside conditioned space',
                 2: 'Attic or basement (unconditioned)',
                 3: 'Vented crawlspace'}
 
+LoopTime = datetime.now()
+
+n = 100
+
 ###### Create Dictionary & Dataframe of all possible values
 
 x = {"Size":[1000,2000,3000,4500],"yearmaderange":[1,2,3,4,5,6],"WAP":[0,1],"EE":[0,1],"stories":[8,16],"Region":[1,2,3,4],"Climate_Zone":[1,2,3,4,5,6,7,8],"Foundation Type":[1,2,3],"Duct":[1,2,3]}
@@ -69,9 +75,8 @@ df['c_dist'] = ""
 ###### Create URL and Query
 
 def url(x):
-
     for i,row in x.iterrows():
-        url = 'http://resdb.lbl.gov/main.php?step=2&sub=2&run_env_model=&dtype1=&dtype2=&is_ca=&calc_id=2&floor_area='+str(row['Size'])+'&house_height='+str(row['stories'])+'&year_built='+str(row['yearmaderange'])+'&wap='+str(row['WAP'])+'&ee_home='+str(row['EE'])+'&region='+str(row['Region'])+'&zone='+str(row['Climate_Zone'])+'&foundation='+str(row['Foundation Type'])+'&duct='+str(row['Duct'])+'.html'
+        url = 'http://resdb.lbl.gov/main.php?step=2&sub=2&run_env_model=&dtype1=&dtype2=&is_ca=&calc_id=2&floor_area='+str(row['Size'])+'&house_height='+str(row['stories'])+'&year_built='+str(row['yearmaderange'])+'&wap='+str(row['WAP'])+'&ee_home='+str(row['EE'])+'&region='+str(row['Region'])+'&zone='+str(row['Climate_Zone'])+'&foundation='+str(row['Foundation Type'])+'&duct='+str(row['Duct'])
         page = requests.get(url)
         m = re.search("'Prob Density', data: \[(.*)\]",page.text)
         n = re.search("'Cumulative Dist', data: \[(.*)\]",page.text)
@@ -79,15 +84,12 @@ def url(x):
         c_dist = n.group(1)
         x.loc[(i,'p_dist')] = prob_density
         x.loc[(i,'c_dist')]= c_dist
+        x['url'] = url
     return x
-
-###### Start Test Loop Time
-
-LoopTime = datetime.now()
 
 ###### Call to Pull Data from LBNL
 
-df1 = url(df)
+df1 = url(df[0:n])
 
 ###### Split Data into Cumulative Distributions and Probability Density Distributions
 
@@ -109,12 +111,6 @@ P_Dist['y_vals'] = P_Dist.apply(lambda x: [float(unicode(x['y_vals'][i])) for i 
 C_Dist['x_vals'] = C_Dist.apply(lambda x: [float(unicode(x['x_vals'][i])) for i in range(len(x['x_vals']))],axis=1)
 C_Dist['y_vals'] = C_Dist.apply(lambda x: [float(unicode(x['y_vals'][i])) for i in range(len(x['y_vals']))],axis=1)
 
-###### End Timer & Calculate Estimated Runtime
-
-time = datetime.now() - LoopTime
-total = time.total_seconds()
-print "Loop:" + str(time)
-print "Expected Time:" + str(timedelta(seconds= total))
 
 ###### Put Columns into RECS Format
 
@@ -143,12 +139,36 @@ C_Dist = process_data(C_Dist)
 save_to_tsv(P_Dist,outfile = 'LBNL_P_Dist.tsv')
 save_to_tsv(C_Dist,outfile = 'LBNL_C_Dist.tsv')
 
-###### Create Frequency Distribution
+###### Create Frequency Distribution & Distribution Table
+
+df = pd.read_csv('LBNL_C_Dist.tsv',sep='\t')
+
+C_Dist = df[0:n].copy()
+C_Dist['Y_VALS']=C_Dist['y_vals']
+C_Dist['y_vals'] = C_Dist.apply(lambda x: eval(x['y_vals']),axis=1)
+C_Dist['x_vals'] = C_Dist.apply(lambda x: eval(x['x_vals']),axis=1)
+C_Dist['Y_VALS'] = C_Dist.apply(lambda x: eval(x['Y_VALS']),axis=1)
 
 for i,row in C_Dist.iterrows():
-    for k in range(len(row['y_vals'])):
+    for k in range(len(row['Y_VALS'])):
         if k > 0:
-            row['y_vals'][k] = row['y_vals'][k] - row['y_vals'][k-1]
+            row['y_vals'][k] = float(row['Y_VALS'][k] - row['Y_VALS'][k-1])
+            if k == len(row['Y_VALS'])-1:
+                row['Cum_Max'] = row['Y_VALS'][k]
+
+#Fill in P_Dist Values
+
+def dict_zip(row):
+    return dict(zip(row['x_vals'],row['y_vals']))
+
+##### Create Additional Dataframe and Merge with Original
+
+df1 = C_Dist[['x_vals','y_vals']].copy()
+list_of_dicts = df1.apply(dict_zip,axis=1)
+D_list = pd.DataFrame(list(list_of_dicts))
+
+C_Dist = pd.concat([C_Dist,D_list],axis=1)
+C_Dist = C_Dist.replace(np.NaN,0)
 
 save_to_tsv(C_Dist,outfile = 'LBNL_FRQ_Dist.tsv')
 
@@ -158,12 +178,7 @@ save_to_tsv(C_Dist,outfile = 'LBNL_FRQ_Dist.tsv')
 
 
 
-
-
-
-
-
-
-
+total = (datetime.now() - LoopTime).total_seconds()*(31104/n)
+print "Expected Time:" + str(timedelta(seconds= total))
 
 
