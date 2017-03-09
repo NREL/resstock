@@ -10,10 +10,16 @@ import argparse
 def main(file):
 
   df = pd.read_csv(file, index_col=['_id'])
-  full = df.copy()
-  
-  # get upgrades  
   upgrades = [col for col in df.columns if col.endswith('.run_measure')]
+  
+  # summarize the upgrades applied
+  df['upgrade'] = df.apply(lambda x: identify_upgrade(x, upgrades), axis=1)
+  
+  # remove NA (upgrade not applicable) rows
+  df = df[~((pd.isnull(df['simulation_output_report.upgrade_cost'])) & (df['upgrade'] != 'reference'))]
+    
+  # process only applicable columns
+  full = df.copy()
     
   # get enduses  
   enduses = [col for col in df.columns if 'simulation_output_report' in col]
@@ -35,6 +41,7 @@ def main(file):
   # clean cost column
   df['simulation_output_report.upgrade_cost'] = df['simulation_output_report.upgrade_cost'].str.strip()
   df['simulation_output_report.upgrade_cost'] = df['simulation_output_report.upgrade_cost'].str.replace(',', '')
+  df['simulation_output_report.upgrade_cost'] = df['simulation_output_report.upgrade_cost'].str.replace('$', '')
   df['simulation_output_report.upgrade_cost'] = df['simulation_output_report.upgrade_cost'].astype(float)
   df['simulation_output_report.upgrade_cost'] = df.apply(lambda x: 0.0 if is_reference_case(x, upgrades) else x['simulation_output_report.upgrade_cost'], axis=1)
   
@@ -42,8 +49,6 @@ def main(file):
   
   cols_to_use = [col for col in df.columns if col not in full.columns]
   full = pd.concat([full, df[cols_to_use]], axis=1)
-  
-  full['upgrade'] = full.apply(lambda x: identify_upgrade(x, upgrades), axis=1)
   
   return df, full
     

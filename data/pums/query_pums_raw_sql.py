@@ -5,7 +5,7 @@ import psycopg2 as pg
 
 con_string = "host={} port={} dbname={} user={} password={}".format(os.environ['GIS_HOST'], os.environ['GIS_PORT'], os.environ['GIS_DBNAME'], os.environ['GIS_USER'], os.environ['GIS_PASSWORD'])
 
-cols = ['serial', 'unitsstr', 'hhincome', 'repwt', 'hhwt', 'builtyr2', 'rooms', 'fuelheat', 'bedrooms', 'hhtype', 'region', 'ownershp', 'acrehous', 'kitchen', 'plumbing', 'vehicles', 'race', 'stateicp', 'statefip', 'vacancy', 'state_abbr', 'nfams', 'famsize', 'ftotinc']
+cols = ['serial', 'unitsstr', 'hhincome', 'repwt', 'hhwt', 'builtyr2', 'rooms', 'fuelheat', 'bedrooms', 'hhtype', 'region', 'stateicp', 'statefip', 'vacancy', 'state_abbr', 'nfams', 'famsize', 'ftotinc']
 
 def retrieve_tables():
     con = pg.connect(con_string)
@@ -104,22 +104,6 @@ def assign_federal_poverty_level(df):
   
   return df
   
-def assign_race(df):
-
-  racekey = {1: 'White Alone',
-             2: 'Black or African/American Alone',
-             3: 'American Indian Alone',
-             4: 'Asian Alone',
-             5: 'Pacific Islander Alone',
-             6: 'Other Race Alone',
-             7: 'Other Race Alone',
-             8: '2 or More Races Selected',
-             9: '2 or More Races Selected'}
-             
-  df['householder_race'] = df.apply(lambda x: racekey[x.race], axis=1)
-  
-  return df
-  
 if __name__ == '__main__':
   
   dfs = []
@@ -128,10 +112,10 @@ if __name__ == '__main__':
     df = retrieve_data(table)
     if df is None:
       continue
+    df = df.groupby(['serial', 'unitsstr', 'hhincome', 'repwt', 'hhwt', 'builtyr2', 'rooms', 'fuelheat', 'bedrooms', 'hhtype', 'region', 'stateicp', 'statefip', 'vacancy', 'state_abbr']).sum().reset_index() # for each unique structure, sum nfams / famsize / ftotinc
     df = assign_vintage(df)
     df = assign_heating_fuel(df)
     df = assign_federal_poverty_level(df)
-    df = assign_race(df)
     dfs.append(df)
     
   pd.concat(dfs).to_csv(os.path.join(os.path.dirname(__file__), 'MLR', 'pums.csv'), index=False)

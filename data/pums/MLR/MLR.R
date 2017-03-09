@@ -43,6 +43,10 @@ df[df$totsqft >= 2500 & df$totsqft < 3500, 'size'] = '2500-3499'
 df[df$totsqft >= 3500, 'size'] = '3500+'
 df$size = as.factor(df$size)
 
+# nfams: 1 vs 2 vs 3 vs ...
+table(df$nfams)*100.0/length(df$nfams)
+sum(unlist(table(df$nfams)/length(df$nfams), use.names=FALSE))
+
 write.csv(df, 'pums_size.csv', row.names=F)
 
 # filters
