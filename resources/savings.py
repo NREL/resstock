@@ -16,7 +16,7 @@ def main(file):
   df['upgrade'] = df.apply(lambda x: identify_upgrade(x, upgrades), axis=1)
   
   # remove NA (upgrade not applicable) rows
-  df = df[~((pd.isnull(df['simulation_output_report.upgrade_cost'])) & (df['upgrade'] != 'reference'))]
+  df = df[~((pd.isnull(df['simulation_output_report.upgrade_cost_usd'])) & (df['upgrade'] != 'reference'))]
     
   # process only applicable columns
   full = df.copy()
@@ -39,11 +39,7 @@ def main(file):
       print ' ... did not remove {}'.format(col)  
   
   # clean cost column
-  df['simulation_output_report.upgrade_cost'] = df['simulation_output_report.upgrade_cost'].str.strip()
-  df['simulation_output_report.upgrade_cost'] = df['simulation_output_report.upgrade_cost'].str.replace(',', '')
-  df['simulation_output_report.upgrade_cost'] = df['simulation_output_report.upgrade_cost'].str.replace('$', '')
-  df['simulation_output_report.upgrade_cost'] = df['simulation_output_report.upgrade_cost'].astype(float)
-  df['simulation_output_report.upgrade_cost'] = df.apply(lambda x: 0.0 if is_reference_case(x, upgrades) else x['simulation_output_report.upgrade_cost'], axis=1)
+  df['simulation_output_report.upgrade_cost_usd'] = df.apply(lambda x: 0.0 if is_reference_case(x, upgrades) else x['simulation_output_report.upgrade_cost_usd'], axis=1)
   
   df = parallelize(df.groupby('build_existing_models.building_id'), deltas, upgrades, enduses)
   
@@ -61,7 +57,7 @@ def deltas(df, upgrades, enduses):
   df_upgrades = df.loc[df[upgrades].sum(axis=1)!=0]
   
   # incremental cost
-  df.loc[df_upgrades.index, 'incremental_cost_usd'] = df_upgrades['simulation_output_report.upgrade_cost'].values - df_reference['simulation_output_report.upgrade_cost'].values
+  df.loc[df_upgrades.index, 'incremental_cost_usd'] = df_upgrades['simulation_output_report.upgrade_cost_usd'].values - df_reference['simulation_output_report.upgrade_cost_usd'].values
   
   # energy savings
   for enduse in enduses:

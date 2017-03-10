@@ -39,7 +39,7 @@ task :copy_beopt_files do
   FileUtils.makedirs(resstock_measures_dir)
   
   Dir.foreach(beopt_measures_dir) do |item|
-    next if item == '.' or item == '..'
+    next if !item.include? 'Residential'
     beopt_measure_dir = File.join(beopt_measures_dir, item)
     next if not Dir.exist?(beopt_measure_dir)
     puts "Copying #{item} measure..."
