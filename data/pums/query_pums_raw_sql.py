@@ -112,7 +112,8 @@ if __name__ == '__main__':
     df = retrieve_data(table)
     if df is None:
       continue
-    df = df.groupby(['serial', 'unitsstr', 'hhincome', 'repwt', 'hhwt', 'builtyr2', 'rooms', 'fuelheat', 'bedrooms', 'hhtype', 'region', 'stateicp', 'statefip', 'vacancy', 'state_abbr']).sum().reset_index() # for each unique structure, sum nfams / famsize / ftotinc
+    df = df.drop_duplicates()
+    df = df.groupby(['serial', 'unitsstr', 'hhincome', 'repwt', 'hhwt', 'builtyr2', 'rooms', 'fuelheat', 'bedrooms', 'hhtype', 'region', 'stateicp', 'statefip', 'vacancy', 'state_abbr', 'nfams']).sum().reset_index() # for each unique structure, sum / famsize / ftotinc
     df = assign_vintage(df)
     df = assign_heating_fuel(df)
     df = assign_federal_poverty_level(df)
