@@ -150,27 +150,43 @@ def save_to_tsv(g, outfile):
 #save_to_tsv(C_Dist, outfile='LBNL_C_Dist.tsv')
 
 ###### Create Frequency Distribution & Distribution Table
-print 'Create Frequency Distribution & Distribution Table'
+
 df = pd.read_csv('LBNL_C_Dist.tsv', sep='\t')
 
 C_Dist = df.copy()
 
+C_Dist['Y_VALS'] = C_Dist['y_vals'].copy()
 C_Dist['y_vals'] = C_Dist.apply(lambda x: eval(x['y_vals']), axis=1)
 C_Dist['x_vals'] = C_Dist.apply(lambda x: eval(x['x_vals']), axis=1)
-C_Dist['Y_VALS'] = C_Dist['y_vals']
+C_Dist['Y_VALS'] = C_Dist.apply(lambda x: eval(x['Y_VALS']), axis=1)
+C_Dist['Cum_Max'] =  C_Dist.apply(lambda x: max(x['Y_VALS']), axis =1)
+
 
 for i, row in C_Dist.iterrows():
     for k in range(len(row['Y_VALS'])):
         if k > 0:
-            row['y_vals'][k] = float(row['Y_VALS'][k] - row['Y_VALS'][k - 1])
-            if k == len(row['Y_VALS']) - 1:
-                row['Cum_Max'] = row['Y_VALS'][k]
-
-
-# Fill in P_Dist Values
+            row['y_vals'][k] = float(row['Y_VALS'][k]) - float(row['Y_VALS'][k - 1])
+            if k == len(row['Y_VALS'])-1:
+                row['y_vals'][k] = float(row['y_vals'][k]) + (1-float(row['Cum_Max']))
+    print str(i)
+# Fill in P_Dist Values / Generate Mean and Var
 
 def dict_zip(row):
     return dict(zip(row['x_vals'], row['y_vals']))
+
+def mean(x,y):
+    u = 0
+    for i in range(len(x)):
+        u += float(y[i])*float(x[i])
+    return u
+
+def var(x,y):
+    u = 0
+    u2 = 0
+    for i in range(len(x)):
+        u += float(y[i])*float(x[i])
+        u2 += float(y[i])*(float(x[i])**2)
+    return u2-u**2
 
 
 ##### Create Additional Dataframe and Merge with Original
@@ -178,11 +194,13 @@ def dict_zip(row):
 df1 = C_Dist[['x_vals', 'y_vals']].copy()
 list_of_dicts = df1.apply(dict_zip, axis=1)
 D_list = pd.DataFrame(list(list_of_dicts))
-
 C_Dist = pd.concat([C_Dist, D_list], axis=1)
 C_Dist = C_Dist.replace(np.NaN, 0)
-
-save_to_tsv(C_Dist, outfile='LBNL_FRQ_Dist.tsv')
+C_Dist['Mean'] =  C_Dist.apply(lambda x: mean(x['x_vals'],x['y_vals']), axis =1)
+C_Dist['Var'] = C_Dist.apply(lambda x: var(x['x_vals'],x['y_vals']), axis=1)
+C_Dist = C_Dist.drop(['c_dist','x_vals','y_vals','Y_VALS'],axis=1)
+print C_Dist
+#save_to_tsv(C_Dist, outfile='LBNL_FRQ_Dist.tsv')
 
 #total = (datetime.now() - LoopTime).total_seconds() * (31104 / n)
 #print "Expected Time:" + str(timedelta(seconds=total))
