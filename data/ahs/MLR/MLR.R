@@ -20,9 +20,6 @@ x.vars.cat = c('vintage', 'size')
 
 y.vars.cat = c()
 
-# filters
-df = df[df$NUNIT2==1, ]
-
 df$values = 'actual'
 
 df[c(x.vars.cat, y.vars.cat)] = lapply(df[c(x.vars.cat, y.vars.cat)], factor) # apply factor to each of the categorical vars

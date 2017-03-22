@@ -3,7 +3,7 @@ import os
 import pandas as pd
 import numpy as np
 
-cols = {'newhouse.csv': ['STATUS', 'NUNIT2', 'ZINC2', 'ROOMS', 'BEDRMS', 'UNITSF', 'BUILT', 'HFUEL', 'GASPIP', 'SMSA', 'REGION', 'DIVISION', 'POOR', 'WEIGHT']}
+cols = {'newhouse.csv': ['STATUS', 'NUNIT2', 'ZINC2', 'ROOMS', 'BEDRMS', 'UNITSF', 'BUILT', 'HFUEL', 'FLOORS', 'GASPIP', 'SMSA', 'CMSA', 'REGION', 'DIVISION', 'METRO3', 'POOR', 'HHREL', 'NONREL', 'WEIGHT']}
 
 def retrieve_data(files):
     
@@ -14,7 +14,9 @@ def retrieve_data(files):
       df = pd.read_csv(file, index_col=['CONTROL'], na_values=["'-6'", "'-7'", "'-8'", "'-9'", -6, -7, -8, -9])
       df = df[cols[os.path.basename(file)]]
       df['STATUS'] = df['STATUS'].str.replace("'", "")
-      df = df[df['STATUS']=='1']
+      df = df[df['STATUS']=='1'] # Occupied
+      df['NUNIT2'] = df['NUNIT2'].str.replace("'", "")
+      df = df[df['NUNIT2']=='1'] # Single-family, detached
       dfs.append(df)
     
     return pd.concat(dfs)
@@ -83,7 +85,7 @@ def assign_size(df):
 
   return df
   
-def assign_metro_area(df):
+def assign_smsa(df):
 
   smsakey = {'0720': 'Baltimore-Towson, MD  Metro Area',
              '1120': 'Boston-Cambridge-Quincy, MA-NH  Metro Area',
@@ -131,9 +133,19 @@ def assign_metro_area(df):
       return np.nan
   
   df['SMSA'] = df['SMSA'].str.replace("'", "")
-  df['metro_area'] = df['SMSA'].apply(lambda x: smsa(x))
+  df['smsa'] = df['SMSA'].apply(lambda x: smsa(x))
   
   return df
+  
+def assign_cmsa(df):
+
+  def cmsa(key):
+    return key
+  
+  df['CMSA'] = df['CMSA'].str.replace("'", "")
+  df['cmsa'] = df['CMSA'].apply(lambda x: cmsa(x))
+  
+  return df  
   
 def assign_region(df):
 
@@ -162,16 +174,35 @@ def assign_division(df):
   
   return df
   
+def assign_metro(df):
+
+  def metro(key):
+    return key
+
+  df['METRO3'] = df['METRO3'].str.replace("'", "")
+  df['metro'] = df['METRO3'].apply(lambda x: metro(x))
+  
+  return df
+  
+def assign_stories(df):
+
+  df['stories'] = df['FLOORS'].apply(lambda x: '1' if x == 1 else '2+')
+  
+  return df
+  
 if __name__ == '__main__':
   
-  files = [os.path.join(os.path.abspath(os.path.dirname(__file__)), 'csvs', file) for file in os.listdir(os.path.join(os.path.dirname(__file__), 'csvs'))]
+  files = [os.path.join(os.path.abspath(os.path.dirname(__file__)), 'csvs', 'national', file) for file in os.listdir(os.path.join(os.path.dirname(__file__), 'csvs', 'national'))]
     
   df = retrieve_data(files)
   df = assign_vintage(df)
   df = assign_heating_fuel(df)
   df = assign_size(df)
-  df = assign_metro_area(df)
+  df = assign_smsa(df)
+  df = assign_cmsa(df)
   df = assign_region(df)
   df = assign_division(df)
-    
+  df = assign_metro(df)
+  df = assign_stories(df)
+
   df.to_csv(os.path.join(os.path.dirname(__file__), 'MLR', 'ahs.csv'), index=True)
