@@ -25,10 +25,10 @@ size_dict = {1000: '0-1499',
              4500: '3500+'}
 
 vintage_dict = {1: 'Pre-1960s',
-                2: '1970s',
-                3: '1980s',
-                4: '1990s',
-                5: '2000s',
+                2: '1960s',
+                3: '1970s',
+                4: '1980s',
+                5: '1990s',
                 6: '2000s'}
 
 region_dict = {1: 'Humid',
@@ -121,19 +121,19 @@ n = 10
 #
 #
 ####### Put Columns into RECS Format
-#
-#def process_data(df):
-#    field_dicts = {'stories': story_dict,
-#                   'Foundation Type': foundation_dict,
-#                   'Duct': duct_dict,
-#                   'Size': size_dict,
-#                   'yearmaderange': vintage_dict,
-#                   'Region': region_dict}
-#    for field_name, field_dict in field_dicts.iteritems():
-#        for num, name in field_dict.iteritems():
-#            df.loc[:, field_name].replace(num, name, inplace=True)
-#    return df
-#
+
+def process_data(df):
+    field_dicts = {'stories': story_dict,
+                   'Foundation Type': foundation_dict,
+                   'Duct': duct_dict,
+                   'Size': size_dict,
+                   'yearmaderange': vintage_dict,
+                   'Region': region_dict}
+    for field_name, field_dict in field_dicts.iteritems():
+        for num, name in field_dict.iteritems():
+            df.loc[:, field_name].replace(num, name, inplace=True)
+    return df
+
 #
 ######## Save Data to TSV
 
@@ -142,34 +142,35 @@ def save_to_tsv(g, outfile):
 
 
 ####### Make Function Calls
-#
-#P_Dist = process_data(P_Dist)
-#C_Dist = process_data(C_Dist)
-#
-#save_to_tsv(P_Dist, outfile='LBNL_P_Dist.tsv')
-#save_to_tsv(C_Dist, outfile='LBNL_C_Dist.tsv')
+
+P_Dist = process_data(P_Dist)
+C_Dist = process_data(C_Dist)
+
+save_to_tsv(P_Dist, outfile='LBNL_P_Dist.tsv')
+save_to_tsv(C_Dist, outfile='LBNL_C_Dist.tsv')
+
 
 ###### Create Frequency Distribution & Distribution Table
 
-df = pd.read_csv('LBNL_C_Dist.tsv', sep='\t')
-
-C_Dist = df.copy()
-
-C_Dist['Y_VALS'] = C_Dist['y_vals'].copy()
-C_Dist['y_vals'] = C_Dist.apply(lambda x: eval(x['y_vals']), axis=1)
-C_Dist['x_vals'] = C_Dist.apply(lambda x: eval(x['x_vals']), axis=1)
-C_Dist['Y_VALS'] = C_Dist.apply(lambda x: eval(x['Y_VALS']), axis=1)
-C_Dist['Cum_Max'] =  C_Dist.apply(lambda x: max(x['Y_VALS']), axis =1)
-
-
-for i, row in C_Dist.iterrows():
-    for k in range(len(row['Y_VALS'])):
-        if k > 0:
-            row['y_vals'][k] = float(row['Y_VALS'][k]) - float(row['Y_VALS'][k - 1])
-            if k == len(row['Y_VALS'])-1:
-                row['y_vals'][k] = float(row['y_vals'][k]) + (1-float(row['Cum_Max']))
-    print str(i)
-# Fill in P_Dist Values / Generate Mean and Var
+#df = pd.read_csv('LBNL_C_Dist.tsv', sep='\t')
+#
+#C_Dist = df.copy()
+#
+#C_Dist['Y_VALS'] = C_Dist['y_vals'].copy()
+#C_Dist['y_vals'] = C_Dist.apply(lambda x: eval(x['y_vals']), axis=1)
+#C_Dist['x_vals'] = C_Dist.apply(lambda x: eval(x['x_vals']), axis=1)
+#C_Dist['Y_VALS'] = C_Dist.apply(lambda x: eval(x['Y_VALS']), axis=1)
+#C_Dist['Cum_Max'] =  C_Dist.apply(lambda x: max(x['Y_VALS']), axis =1)
+#
+#
+#for i, row in C_Dist.iterrows():
+#    for k in range(len(row['Y_VALS'])):
+#        if k > 0:
+#            row['y_vals'][k] = float(row['Y_VALS'][k]) - float(row['Y_VALS'][k - 1])
+#            if k == len(row['Y_VALS'])-1:
+#                row['y_vals'][k] = float(row['y_vals'][k]) + (1-float(row['Cum_Max']))
+#    print str(i)
+## Fill in P_Dist Values / Generate Mean and Var
 
 def dict_zip(row):
     return dict(zip(row['x_vals'], row['y_vals']))
@@ -189,7 +190,7 @@ def var(x,y):
     return u2-u**2
 
 
-##### Create Additional Dataframe and Merge with Original
+#### Create Additional Dataframe and Merge with Original
 
 df1 = C_Dist[['x_vals', 'y_vals']].copy()
 list_of_dicts = df1.apply(dict_zip, axis=1)
@@ -199,8 +200,32 @@ C_Dist = C_Dist.replace(np.NaN, 0)
 C_Dist['Mean'] =  C_Dist.apply(lambda x: mean(x['x_vals'],x['y_vals']), axis =1)
 C_Dist['Var'] = C_Dist.apply(lambda x: var(x['x_vals'],x['y_vals']), axis=1)
 C_Dist = C_Dist.drop(['c_dist','x_vals','y_vals','Y_VALS'],axis=1)
-print C_Dist
-#save_to_tsv(C_Dist, outfile='LBNL_FRQ_Dist.tsv')
+save_to_tsv(C_Dist, outfile='LBNL_FRQ_Dist.tsv')
 
-#total = (datetime.now() - LoopTime).total_seconds() * (31104 / n)
-#print "Expected Time:" + str(timedelta(seconds=total))
+##### Bin Different Columns together
+#df1 = increments by 1
+#df2 = increments by 2
+
+df = pd.read_csv('LBNL_FRQ_Dist.tsv', sep='\t')
+
+#Bin by every 1
+df1 = pd.DataFrame()
+x = df.columns.tolist()[12:-2]
+x5 = x[:19]
+x1 = x[19:]
+for i in range(len(x5)//2):
+    header = (float(x5[2*i]) + float(x5[2*i+1]))/2
+    print header
+    df1[header] = df[x5[2*i]]+df[x5[2*i+1]]
+for i in x1:
+    df1[i] = df[i]
+
+#Bin by every 2
+x = df1.columns.tolist()
+df2 = pd.DataFrame()
+for i in range(len(x)//2):
+    header = (float(x[2*i]) + float(x[2*i+1]))/2
+    print header
+    df2[header] = df1[x[2*i]]+df1[x[2*i+1]]
+
+df.join(df1)
