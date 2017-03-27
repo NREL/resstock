@@ -3,7 +3,7 @@ import os
 import pandas as pd
 import numpy as np
 
-cols = {'newhouse.csv': ['STATUS', 'NUNIT2', 'ZINC2', 'ROOMS', 'BEDRMS', 'UNITSF', 'BUILT', 'HFUEL', 'FLOORS', 'GASPIP', 'SMSA', 'CMSA', 'REGION', 'DIVISION', 'METRO3', 'POOR', 'HHREL', 'NONREL', 'WEIGHT']}
+cols = {'newhouse.csv': ['STATUS', 'NUNIT2', 'ZINC2', 'ROOMS', 'BEDRMS', 'UNITSF', 'BUILT', 'HFUEL', 'FLOORS', 'GASPIP', 'SMSA', 'CMSA', 'REGION', 'DIVISION', 'METRO3', 'POOR', 'HHREL', 'NONREL', 'AIRSYS', 'NUMAIR', 'WEIGHT']}
 
 def retrieve_data(files):
     
@@ -39,7 +39,7 @@ def assign_vintage(df):
     elif year >= 2000 and year < 2010:
       return '2000s'
     elif year >= 2010:
-      return '2010s'
+      return '2000s' # TODO: 2010s?
 
   df['vintage'] = df['BUILT'].apply(lambda x: vintage(x))
   
@@ -54,13 +54,13 @@ def assign_heating_fuel(df):
       if pipe == '1':
         return 'Natural Gas'
       elif pipe == '2':
-        return 'Propane/LPG'
+        return 'Propane'
       return np.nan
     elif fuel == '3':
       return 'Fuel Oil'
     elif fuel in ['4', '5', '6', '7', '8']:
       return 'Other Fuel'
-    return np.nan
+    return 'None' # TODO: None or Other Fuel?
 
   df['HFUEL'] = df['HFUEL'].str.replace("'", "")
   df['GASPIP'] = df['GASPIP'].str.replace("'", "")
@@ -190,6 +190,43 @@ def assign_stories(df):
   
   return df
   
+def assign_actype(df):
+
+  def actype(airsys, numair):
+    if airsys == '1':
+      return 'Central'
+    elif airsys == '2':
+      if not pd.isnull(numair):
+        return 'Room'
+    return 'None'
+
+  df['AIRSYS'] = df['AIRSYS'].str.replace("'", "")
+  df['actype'] = df.apply(lambda x: actype(x['AIRSYS'], x['NUMAIR']), axis=1)
+  
+  return df
+  
+def assign_fplbins(df):
+
+  def fpl(val):
+    if val < 50:
+      return '0-50'
+    elif val >= 50 and val < 100:
+      return '50-100'
+    elif val >= 100 and val < 150:
+      return '100-150'
+    elif val >= 150 and val < 200:
+      return '150-200'
+    elif val >= 200 and val < 250:
+      return '200-250'
+    elif val >= 250 and val < 300:
+      return '250-300'
+    elif val >= 300:
+      return '300+'
+
+  df['fplbins'] = df['POOR'].apply(lambda x: fpl(x))
+  
+  return df  
+  
 if __name__ == '__main__':
   
   files = [os.path.join(os.path.abspath(os.path.dirname(__file__)), 'csvs', 'national', file) for file in os.listdir(os.path.join(os.path.dirname(__file__), 'csvs', 'national'))]
@@ -204,5 +241,7 @@ if __name__ == '__main__':
   df = assign_division(df)
   df = assign_metro(df)
   df = assign_stories(df)
+  df = assign_actype(df)
+  df = assign_fplbins(df)
 
   df.to_csv(os.path.join(os.path.dirname(__file__), 'MLR', 'ahs.csv'), index=True)
