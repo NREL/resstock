@@ -79,7 +79,7 @@ def assign_size(df):
       return '2500-3499'
     elif sf >= 3500:
       return '3500+'
-    return np.nan
+    return 'Blank'
              
   df['size'] = df.apply(lambda x: size(float(x.UNITSF)), axis=1)
 
