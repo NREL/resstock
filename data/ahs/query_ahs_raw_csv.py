@@ -3,7 +3,8 @@ import os
 import pandas as pd
 import numpy as np
 
-cols = {'newhouse.csv': ['STATUS', 'NUNIT2', 'ZINC2', 'ROOMS', 'BEDRMS', 'UNITSF', 'BUILT', 'HFUEL', 'FLOORS', 'GASPIP', 'SMSA', 'CMSA', 'REGION', 'DIVISION', 'METRO3', 'POOR', 'HHREL', 'NONREL', 'AIRSYS', 'NUMAIR', 'WEIGHT']}
+cols = {'newhouse.csv': ['CONTROL', 'STATUS', 'NUNIT2', 'ZINC2', 'ROOMS', 'BEDRMS', 'UNITSF', 'BUILT', 'HFUEL', 'FLOORS', 'GASPIP', 'SMSA', 'CMSA', 'REGION', 'DIVISION', 'METRO3', 'POOR', 'AIRSYS', 'NUMAIR', 'TENURE', 'WEIGHT'],
+        'ahs2015n.csv': ['CONTROL', 'INTSTATUS', 'WEIGHT', 'DIVISION', 'TENURE', 'BLD', 'YRBUILT', 'FOUNDTYPE', 'UNITSIZE', 'STORIES', 'HEATTYPE', 'HEATFUEL', 'ACPRIMARY', 'NUMPEOPLE', 'HINCP', 'FINCP', 'PERPOVLVL', 'TOTROOMS']}
 
 def retrieve_data(files):
     
@@ -11,8 +12,8 @@ def retrieve_data(files):
     for file in files:
       if not os.path.basename(file) in cols.keys():
         continue
-      df = pd.read_csv(file, index_col=['CONTROL'], na_values=["'-6'", "'-7'", "'-8'", "'-9'", -6, -7, -8, -9])
-      df = df[cols[os.path.basename(file)]]
+      df = pd.read_csv(file, usecols=cols[os.path.basename(file)], na_values=["'-6'", "'-7'", "'-8'", "'-9'", -6, -7, -8, -9])
+      df = df.set_index('CONTROL')
       df['STATUS'] = df['STATUS'].str.replace("'", "")
       df = df[df['STATUS']=='1'] # Occupied
       df['NUNIT2'] = df['NUNIT2'].str.replace("'", "")
@@ -85,105 +86,6 @@ def assign_size(df):
 
   return df
   
-def assign_smsa(df):
-
-  smsakey = {'0720': 'Baltimore-Towson, MD  Metro Area',
-             '1120': 'Boston-Cambridge-Quincy, MA-NH  Metro Area',
-             '9991': 'Chicago-Naperville-Joliet, IL + Lake County-Kenosha County, IL-WI',
-             '2160': 'Detroit-Warren-Livonia, MI  Metro Area',
-             '3280': 'Hartford-West Hartford-East Hartford, CT  Metro Area',
-             '3360': 'Houston-Sugar Land-Baytown, TX  Metro Area',
-             '5000': 'Miami-Miami Beach -Kendall, FL',
-             '5120': 'Minneapolis-St. Paul-Bloomington, MN-WI  Metro Area',
-             '9992': 'New York',
-             '9993': 'Northern NJ',
-             '5880': 'Oklahoma City, OK  Metro Area',
-             '6160': 'Philadelphia, PA',
-             '6840': 'Rochester, NY  Metro Area',
-             '7240': 'San Antonio, TX  Metro Area',
-             '7600': 'Seattle-Tacoma-Bellevue, WA  Metro Area',
-             '8280': 'Tampa-St. Petersburg-Clearwater, FL  Metro Area',
-             '8840': 'Washington-Arlington-Alexandria, DC-VA-MD-WV  Metro Area',
-             '5960': 'Orlando-Kissimmee, FL  Metro Area',
-             '4120': 'Las Vegas-Paradise, NV  Metro Area',
-             '5360': 'Nashville-Davidson--Murfreesboro--Franklin, TN  Metro Area',
-             '0640': 'Austin-Round Rock, TX  Metro Area',
-             '3600': 'Jacksonville, FL  Metro Area',
-             '4520': 'Louisville-Jefferson County, KY-IN  Metro Area',
-             '6760': 'Richmond, VA  Metro Area',
-             '8520': 'Tucson, AZ  Metro Area',
-             '0620': 'Chicago-Naperville-Joliet, IL + Lake County-Kenosha County, IL-WI',
-             '1600': 'Chicago-Naperville-Joliet, IL + Lake County-Kenosha County, IL-WI',
-             '3690': 'Chicago-Naperville-Joliet, IL + Lake County-Kenosha County, IL-WI',
-             '3965': 'Chicago-Naperville-Joliet, IL + Lake County-Kenosha County, IL-WI',
-             '5380': 'New York',
-             '5600': 'New York',
-             '5950': 'New York',
-             '0875': 'Northern NJ',
-             '3640': 'Northern NJ',
-             '5015': 'Northern NJ',
-             '5190': 'Northern NJ',
-             '5640': 'Northern NJ',
-             '8480': 'Northern NJ'}
-
-  def smsa(key):
-    try:
-      return smsakey[key]
-    except:
-      return np.nan
-  
-  df['SMSA'] = df['SMSA'].str.replace("'", "")
-  df['smsa'] = df['SMSA'].apply(lambda x: smsa(x))
-  
-  return df
-  
-def assign_cmsa(df):
-
-  def cmsa(key):
-    return key
-  
-  df['CMSA'] = df['CMSA'].str.replace("'", "")
-  df['cmsa'] = df['CMSA'].apply(lambda x: cmsa(x))
-  
-  return df  
-  
-def assign_region(df):
-
-  regionkey = {'1': 'Northeast',
-               '2': 'Midwest',
-               '3': 'South',
-               '4': 'West'}
-  
-  df['REGION'] = df['REGION'].str.replace("'", "")
-  df['region'] = df['REGION'].apply(lambda x: regionkey[x])
-  
-  return df
-  
-def assign_division(df):
-
-  divisionkey = {'01': 'New England',
-                 '02': 'Middle Atlantic',
-                 '03': 'East North Central',
-                 '04': 'West North Central',
-                 '07': 'West South Central',
-                 '56': 'South Atlantic - East South Central',
-                 '89': 'Mountain - Pacific'}
-  
-  df['DIVISION'] = df['DIVISION'].str.replace("'", "")
-  df['division'] = df['DIVISION'].apply(lambda x: divisionkey[x])
-  
-  return df
-  
-def assign_metro(df):
-
-  def metro(key):
-    return key
-
-  df['METRO3'] = df['METRO3'].str.replace("'", "")
-  df['metro'] = df['METRO3'].apply(lambda x: metro(x))
-  
-  return df
-  
 def assign_stories(df):
 
   df['stories'] = df['FLOORS'].apply(lambda x: '1' if x == 1 else '2+')
@@ -204,6 +106,259 @@ def assign_actype(df):
   df['actype'] = df.apply(lambda x: actype(x['AIRSYS'], x['NUMAIR']), axis=1)
   
   return df
+  
+def assign_tenure(df):
+
+  def tenure(key):
+    if key == '1':
+      return 'Own'
+    elif key == '2':
+      return 'Rent'
+    elif key == '3':
+      return 'None'
+
+  df['TENURE'] = df['TENURE'].str.replace("'", "")
+  df['tenure'] = df.apply(lambda x: tenure(x['TENURE']), axis=1)    
+    
+  return df
+  
+def assign_location(df):
+
+  smsakey = {'0080': 'Akron, OH',
+             '0160': 'Albany-Schenectady-Troy, NY',
+             '0200': 'Albuquerque, NM',
+             '0240': 'Allentown-Bethlehem-Easton, PA',
+             '0275': 'Alton-Granite City, IL',
+             '0360': 'Anaheim-Santa Ana (Orange County), CA',
+             '0460': 'Appleton-Oshkosh-Neenah, WI',
+             '0520': 'Atlanta, GA',
+             '0560': 'Atlantic City, NJ',
+             '0600': 'Augusta, GA-SC',
+             '0620': 'Aurora-Elgin, IL',
+             '0640': 'Austin, TX',
+             '0680': 'Bakersfield, CA',
+             '0720': 'Baltimore, MD',
+             '0760': 'Baton Rouge, LA',
+             '0840': 'Beaumont-Port Arthur, TX',
+             '0845': 'Beaver, PA',
+             '0875': 'Bergen-Passaic, NJ',
+             '1000': 'Birmingham, AL',
+             '1120': 'Boston, MA',
+             '1125': 'Boulder-Longmont, CO',
+             '1160': 'Bridgeport-Milford, CT',
+             '1320': 'Canton, OH',
+             '1440': 'Charleston, SC',
+             '1560': 'Chattanooga, TN-GA',
+             '1600': 'Chicago, IL',
+             '1640': 'Cincinnati, OH-KY-IN',
+             '1680': 'Cleveland, OH',
+             '1720': 'Colorado Springs, CO',
+             '1760': 'Columbia, SC',
+             '1840': 'Columbus, OH',
+             '1880': 'Corpus Christi, TX',
+             '1920': 'Dallas, TX',
+             '1960': 'Davenport-Rock Island-Moline, IA-IL',
+             '2020': 'Daytona Beach, FL',
+             '2080': 'Denver, CO',
+             '2120': 'Des Moines, IA',
+             '2160': 'Detroit, MI',
+             '2240': 'Duluth, MN-WI',             
+             '2285': 'East Saint Louis-Belleville, IL',
+             '2320': 'El Paso, TX',
+             '2360': 'Erie, PA',
+             '2400': 'Eugene-Springfield, OR',
+             '2440': 'Evansville, IN-KY',
+             '2640': 'Flint, MI',
+             '2680': 'Fort Lauderdale-Hollywood, FL',
+             '2700': 'Fort Myers-Cape Coral, FL',
+             '2760': 'Fort Wayne, IN',
+             '2800': 'Fort Worth-Arlington, TX',
+             '2840': 'Fresno, CA',
+             '2960': 'Gary-Hammond, IN',
+             '3000': 'Grand Rapids, MI',
+             '3120': 'Greensboro-Winston Salem-High Point, NC',
+             '3160': 'Greenville-Spartanburg, SC',
+             '3280': 'Hartford, CT',
+             '3320': 'Honolulu, HI',
+             '3360': 'Houston, TX',
+             '3480': 'Indianapolis, IN',
+             '3560': 'Jackson, MS',
+             '3600': 'Jacksonville, FL',
+             '3640': 'Jersey City, NJ',
+             '3660': 'Johnson City-Kingsport-Bristol, TN-VA',
+             '3690': 'Chicago-Naperville-Joliet, IL + Lake County-Kenosha County, IL-WI',
+             '3760': 'Kansas City, MO-KS',
+             '3840': 'Knoxville, TN',
+             '3965': 'Lake County, IL',
+             '3980': 'Lakeland-Winter Haven, FL',
+             '4000': 'Lancaster, PA',
+             '4040': 'Lansing-East Lansing, MI',
+             '4120': 'Las Vegas, NV',
+             '4160': 'Lawrence-Haverhill, MA-NH',
+             '4280': 'Lexington-Fayette, KY',
+             '4400': 'Little Rock-North Little Rock, AR',
+             '4520': 'Louisville-Jefferson County, KY-IN',
+             '4480': 'Los Angeles-Long Beach, CA',
+             '4720': 'Madison, WI',
+             '4880': 'McAllen-Edinburgh-Mission, TX',
+             '4900': 'Melbourne-Titusville-Palm Bay, FL',
+             '4920': 'Memphis, TN-AR-MS',
+             '5000': 'Miami-Hialeah, FL',
+             '5015': 'Middlesex-Somerset-Hunterdon, NJ',
+             '5080': 'Milwaukee, WI',
+             '5120': 'Minneapolis-Saint Paul, MN',
+             '5160': 'Mobile, AL',
+             '5170': 'Modesto, CA',
+             '5190': 'Monmouth-Ocean, NJ',
+             '5240': 'Montgomery, AL',
+             '5360': 'Nashville, TN',
+             '5380': 'Nassau-Suffolk, NY',
+             '5480': 'New Haven-Meriden, CT',
+             '5560': 'New Orleans, LA',
+             '5600': 'New York City, NY',
+             '5640': 'Newark, NJ',
+             '5680': 'Norfolk-Newport News, VA-NC',
+             '5775': 'Oakland, CA',
+             '5880': 'Oklahoma City, OK',
+             '5920': 'Omaha, NE-IA',
+             '5950': 'New York, NY',
+             '5960': 'Orlando, FL',
+             '6000': 'Oxnard-Ventura, CA',
+             '6080': 'Pensacola, FL',
+             '6120': 'Peoria, IL',
+             '6160': 'Philadelphia, PA-NJ',
+             '6200': 'Phoenix, AZ',
+             '6280': 'Pittsburgh, PA',
+             '6480': 'Providence, RI',
+             '6640': 'Raleigh-Durham, NC',
+             '6760': 'Richmond, VA',
+             '6780': 'Riverside-San Bernardino, CA',
+             '6840': 'Rochester, NY',
+             '6880': 'Rockford, IL',
+             '6920': 'Sacramento, CA',
+             '7040': 'Saint Louis, MO-IL',
+             '7090': 'Salem-Gloucester, MA',
+             '7120': 'Salinas-Seaside-Monterey, CA',
+             '7160': 'Salt Lake City-Ogden, UT',
+             '7240': 'San Antonio, TX',
+             '7600': 'Seattle-Tacoma-Bellevue, WA',
+             '8280': 'Tampa-St. Petersburg-Clearwater, FL',
+             '8480': 'Northern NJ, NJ',
+             '8520': 'Tucson, AZ',
+             '8840': 'Washington-Arlington-Alexandria, DC-VA-MD-WV',
+             '9991': 'Chicago-Naperville-Joliet, IL + Lake County-Kenosha County, IL-WI',
+             '9992': 'New York, NY',
+             '9993': 'Northern NJ, NJ',
+             }
+
+  cmsakey = {'07': 'Boston-Lawrence-Salem, MA-NH',
+             '10': 'Buffalo-Niagara Falls, NY',
+             '31': 'Dallas-Fort Worth, TX',
+             '34': 'Denver-Boulder, CO',
+             '41': 'Hartford-New Britain-Middletown, CT',
+             '47': 'Kansas City, MO-KS',
+             '49': 'Los Angeles-Anaheim-Riverside, CA',
+             '56': 'Miami-Fort Lauderdale, FL',
+             '70': 'New York-Northern New Jersey-Long Island, NY-NJ-CT',
+             '78': 'Pittsburgh-Beaver Valley, PA',
+             '79': 'Portland-Vancouver, OR-WA',
+             '80': 'Providence-Pawtucket-Fall River, RI-MA',
+             '82': 'Saint Louis-East Saint Louis-Alton, MO-IL',
+             '91': 'Seattle-Tacoma, WA'}             
+             
+  metrokey = {'1': 'Central city of MSA',
+              '2': 'Inside MSA, but not in central city - urban',
+              '3': 'Inside MSA, but not in central city - rural',
+              '4': 'Outside MSA, urban',
+              '5': 'Outside MSA, rural'}             
+             
+  divisionkey = {'01': 'New England',
+                 '02': 'Middle Atlantic',
+                 '03': 'East North Central',
+                 '04': 'West North Central',
+                 '07': 'West South Central',
+                 '56': 'South Atlantic - East South Central',
+                 '89': 'Mountain - Pacific'}               
+             
+  def smsa(key):
+    if key in smsakey.keys():
+      return smsakey[key]
+    else:
+      return 'Blank'
+      
+  def cmsa(key):
+    if key in cmsakey.keys():
+      return cmsakey[key]
+    else:
+      return 'Blank'
+
+  def metro3(key):
+    if key in metrokey.keys():
+      return metrokey[key]
+    else:
+      return 'Blank'        
+
+  def division(key):
+    if key in divisionkey.keys():
+      return divisionkey[key]
+    else:
+      return 'Blank'      
+      
+  def location(smsa, cmsa, metro, div):
+    if smsa in smsakey.keys():
+      return smsakey[smsa]
+    elif cmsa in cmsakey.keys():
+      return cmsakey[cmsa]
+    else:
+      return '{}, {}'.format(divisionkey[div], metrokey[metro])
+    
+  df['SMSA'] = df['SMSA'].str.replace("'", "")
+  df['smsa'] = df['SMSA'].apply(lambda x: smsa(x))
+  df['CMSA'] = df['CMSA'].str.replace("'", "")
+  df['cmsa'] = df['CMSA'].apply(lambda x: cmsa(x))
+  df['METRO3'] = df['METRO3'].str.replace("'", "")
+  df['metro3'] = df['METRO3'].apply(lambda x: metro3(x))
+  df['DIVISION'] = df['DIVISION'].str.replace("'", "")
+  df['division'] = df['DIVISION'].apply(lambda x: division(x))
+  df['location'] = df.apply(lambda x: location(x['SMSA'], x['CMSA'], x['METRO3'], x['DIVISION']), axis=1)   
+
+  return df
+  
+def assign_region(df):
+
+  regionkey = {'1': 'Northeast',
+               '2': 'Midwest',
+               '3': 'South',
+               '4': 'West'}
+  
+  df['REGION'] = df['REGION'].str.replace("'", "")
+  df['region'] = df['REGION'].apply(lambda x: regionkey[x])
+  
+  return df  
+  
+def assign_income(df):
+
+  def income(val):
+    if val < 25000:
+      return '0-25K'
+    elif val >= 25000 and val < 50000:
+      return '25-50K'
+    elif val >= 50000 and val < 75000:
+      return '50-75K'
+    elif val >= 75000 and val < 100000:
+      return '75-100K'
+    elif val >= 100000 and val < 125000:
+      return '100-125K'
+    elif val >= 125000 and val < 150000:
+      return '125-150K'
+    elif val >= 150000 and val < 200000:
+      return '150-200K'
+    else:
+      return '200K+'
+
+  df['income'] = df['ZINC2'].apply(lambda x: income(x))
+  
+  return df  
   
 def assign_fplbins(df):
 
@@ -229,19 +384,19 @@ def assign_fplbins(df):
   
 if __name__ == '__main__':
   
-  files = [os.path.join(os.path.abspath(os.path.dirname(__file__)), 'csvs', 'national', file) for file in os.listdir(os.path.join(os.path.dirname(__file__), 'csvs', 'national'))]
+  files = [os.path.join(os.path.abspath(os.path.dirname(__file__)), 'data', '2013', 'national', file) for file in os.listdir(os.path.join(os.path.dirname(__file__), 'data', '2013', 'national'))]
     
   df = retrieve_data(files)
   df = assign_vintage(df)
   df = assign_heating_fuel(df)
   df = assign_size(df)
-  df = assign_smsa(df)
-  df = assign_cmsa(df)
-  df = assign_region(df)
-  df = assign_division(df)
-  df = assign_metro(df)
+  df = assign_location(df)
   df = assign_stories(df)
   df = assign_actype(df)
+  df = assign_tenure(df)
+  df = assign_location(df)
+  df = assign_region(df)
+  df = assign_income(df)
   df = assign_fplbins(df)
 
   df.to_csv(os.path.join(os.path.dirname(__file__), 'MLR', 'ahs.csv'), index=True)

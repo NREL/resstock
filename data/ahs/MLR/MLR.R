@@ -7,16 +7,15 @@ library(plyr)
 
 df = read.csv('ahs.csv', na.strings='')
 
-df = subset(df, select=c('NUNIT2', 'ROOMS', 'BEDRMS', 'size', 'vintage', 'heatingfuel', 'ZINC2', 'POOR', 'WEIGHT'))
+df = subset(df, select=c('NUNIT2', 'ROOMS', 'BEDRMS', 'size', 'vintage', 'heatingfuel', 'actype', 'ZINC2', 'POOR', 'WEIGHT', 'smsa', 'cmsa', 'metro3', 'division'))
 df$NUNIT2 = as.numeric(gsub("'", "", df$NUNIT2))
 df = rename(df, c('ZINC2'='income', 'POOR'='fpl'))
 
-x.vars.con = c()
+x.vars.con = c('income')
 
-# y.vars.con = c('income')
 y.vars.con = c('fpl')
 
-x.vars.cat = c('vintage', 'size')
+x.vars.cat = c('vintage', 'size', 'heatingfuel', 'actype', 'metro3', 'division')
 
 y.vars.cat = c()
 
@@ -87,6 +86,8 @@ for (x in sig_indep_vars) {
   ggsave(q, file=paste(x,'png',sep='_act.'), width=14)
   
 }
+
+stop()
 
 # size and vintage
 sizes_and_vintages = expand.grid(levels(df$size), levels(df$vintage))
