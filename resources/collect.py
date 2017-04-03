@@ -31,14 +31,18 @@ def process_into_zip(dir):
         
       with zipfile.ZipFile(os.path.join(dir, item), 'r') as old_zf:
               
-        new_zf.writestr("{}.csv".format(uuid.uuid1()), old_zf.read('enduse_timeseries.csv')) # TODO: get actual uuid from metadata
+        new_zf.writestr("{}.csv".format(uuid.uuid1()), old_zf.read('enduse_timeseries.csv')) # TODO: get actual uuid from where?
       
-      print len(new_zf.namelist())
+      # print len(new_zf.namelist())
       
   print "Created new zip file containing {} csv files.".format(len(new_zf.namelist()))
   new_zf.close()
 
 def process_into_hdf5(dir):
+
+  datapoint_ids = pd.DataFrame(columns=['datapoint', 'datapoint_id'])
+  enduse_ids = pd.DataFrame(columns=['enduse', 'enduse_id'])
+  # timestamp_ids = pd.DataFrame(columns=['timestamp', 'timestamp_id'])
   
   with pd.HDFStore('data_points.h5', mode='w') as hdf:
   
@@ -51,13 +55,40 @@ def process_into_hdf5(dir):
         
         df = pd.read_csv(old_zf.open('enduse_timeseries.csv'))
         df.columns = [re.sub(r"[^\w\s]", '_', col).replace(' ', '').rstrip('_') for col in df.columns]
+        
+        # enduse_id
+        enduses = [col for col in df.columns if not 'Time' in col]
+        for enduse in enduses:
+          if not enduse in enduse_ids['enduse'].values:
+            next_id = len(enduse_ids.index) + 1
+            enduse_ids.loc[next_id] = [enduse, str(next_id)]
+        df = df.rename(columns=dict(zip(enduse_ids['enduse'], enduse_ids['enduse_id'])))
+        
+        # datapoint_id
+        datapoint = str(uuid.uuid1()) # TODO: get actual uuid from where?        
+        if not datapoint in datapoint_ids['datapoint'].values:
+          next_id = len(datapoint_ids.index) + 1
+          datapoint_ids.loc[next_id] = [datapoint, str(next_id)]
+        df.insert(0, 'datapoint_id', next_id)
+        
+        # timestamp_id
+        # if timestamp_ids.empty:
+          # for i, timestamp in enumerate(df['Time']):
+            # timestamp_ids.loc[i] = [timestamp, str(i + 1)]
+        # df = df.replace({'Time': dict(zip(timestamp_ids['timestamp'].values, timestamp_ids['timestamp_id'].values))})
+        
+        df = pd.melt(df, id_vars=['datapoint_id', 'Time'], var_name='enduse_id')
+        df = df.set_index('datapoint_id')
    
-        df.to_hdf(hdf, str(uuid.uuid1()), complib='zlib', complevel=9) # TODO: get actual uuid from metadata
+        df.to_hdf(hdf, 'df', complib='bzip2', complevel=9, format='table', append=True) # complib='zlib'? something else?
+        print hdf
+      
+    datapoint_ids.to_hdf(hdf, 'datapoint_ids', complib='bzip2', complevel=9)
+    enduse_ids.to_hdf(hdf, 'enduse_ids', complib='bzip2', complevel=9)
+    # timestamp_ids.to_hdf(hdf, 'timestamp_ids', complib='bzip2', complevel=9)
     
-      print len(hdf.keys())
-  
-  print "Created new hdf5 file containing {} csv files.".format(len(hdf.keys()))
-  hdf.close()    
+    print hdf    
+    print "Created new hdf5 file containing {} groups.".format(len(hdf.keys()))
     
 if __name__ == '__main__':
 
