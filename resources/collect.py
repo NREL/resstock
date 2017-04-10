@@ -10,17 +10,29 @@ import re
 import warnings
 warnings.filterwarnings('ignore')
 
-def main(dir, format):
+def main(dir, format, func):
 
-  if format == 'zip':
-  
-    process_into_zip(dir)
+  if func == 'write':
+
+    if format == 'zip':
     
-  elif format == 'hdf5':
+      write_zip(dir)
+      
+    elif format == 'hdf5':
+    
+      write_hdf5(dir)
+      
+  elif func == 'read':
   
-    process_into_hdf5(dir)
+    if format == 'zip':
+    
+      print "Haven't written this code yet."
+      
+    elif format == 'hdf5':
+    
+      read_hdf5(dir)    
 
-def process_into_zip(dir):
+def write_zip(dir):
 
   with zipfile.ZipFile('data_points.zip', 'w', zipfile.ZIP_DEFLATED) as new_zf:
   
@@ -38,7 +50,7 @@ def process_into_zip(dir):
   print "Created new zip file containing {} csv files.".format(len(new_zf.namelist()))
   new_zf.close()
 
-def process_into_hdf5(dir):
+def write_hdf5(dir):
 
   datapoint_ids = pd.DataFrame(columns=['datapoint', 'datapoint_id'])
   enduse_ids = pd.DataFrame(columns=['enduse', 'enduse_id'])
@@ -80,15 +92,23 @@ def process_into_hdf5(dir):
         df = pd.melt(df, id_vars=['datapoint_id', 'Time'], var_name='enduse_id')
         df = df.set_index('datapoint_id')
    
+        print df.head()
         df.to_hdf(hdf, 'df', complib='bzip2', complevel=9, format='table', append=True) # complib='zlib'? something else?
         print hdf
       
-    datapoint_ids.to_hdf(hdf, 'datapoint_ids', complib='bzip2', complevel=9)
-    enduse_ids.to_hdf(hdf, 'enduse_ids', complib='bzip2', complevel=9)
+    datapoint_ids.set_index('datapoint_id').to_hdf(hdf, 'datapoint_ids', complib='bzip2', complevel=9, format='table')
+    enduse_ids.set_index('enduse_id').to_hdf(hdf, 'enduse_ids', complib='bzip2', complevel=9, format='table')
     # timestamp_ids.to_hdf(hdf, 'timestamp_ids', complib='bzip2', complevel=9)
     
-    print hdf    
+    print hdf
     print "Created new hdf5 file containing {} groups.".format(len(hdf.keys()))
+    
+def read_hdf5(dir):
+
+  for key in ['df', 'datapoint_ids', 'enduse_ids']:
+    
+    hdf = pd.read_hdf('data_points.h5', key=key)  
+    print hdf
     
 if __name__ == '__main__':
 
@@ -98,8 +118,10 @@ if __name__ == '__main__':
   parser.add_argument('--directory', default='../analysis_results/data_points', help='Relative path containing the data_point.zip files.')
   formats = ['zip', 'hdf5']
   parser.add_argument('--format', choices=formats, default='hdf5', help='Desired format of the stored output csv files.')   
+  functions = ['read', 'write']
+  parser.add_argument('--function', choices=functions, default='write', help='Read or write.')
   args = parser.parse_args()
 
-  main(args.directory, args.format)
+  main(args.directory, args.format, args.function)
   
   print "All done! Completed rows in {0:.2f} seconds on".format(time.time()-t0), time.strftime("%Y-%m-%d %H:%M")
