@@ -382,7 +382,7 @@ def process_data(df):
 
     return df
 
-def calc_general(df, cut_by, columns=None, outfile=None,norm=True):
+def calc_general(df, cut_by, columns=None, outfile=None,norm=True,outpath="Probability Distributions"):
 
     #Start Analyzing Specific Data
     fields = cut_by + columns
@@ -420,8 +420,14 @@ def calc_general(df, cut_by, columns=None, outfile=None,norm=True):
             for col in g.columns:
                 if not col in cut_by:
                     g[col] = g[col] / total
-    g['Weight']=Weight
     g['Count']=Count
+    g['Weight']=Weight
+
+    #Rename columns
+    g = g.rename(columns={'yearmaderange': 'Vintage', 'Size': 'Geometry House Size'})
+    
+    #Rename rows
+    g['Vintage'] = g['Vintage'].replace({'1950-pre': '<1950'})
 
     #Add Headers for Option and Dependency
     rename_dict = {}
@@ -436,7 +442,7 @@ def calc_general(df, cut_by, columns=None, outfile=None,norm=True):
 
     #Generate Outfile
     if not outfile is None:
-        g.to_csv(os.path.join("Probability Distributions", outfile), sep='\t', index=False)
+        g.to_csv(os.path.join(outpath, outfile), sep='\t', index=False)
         print g
     return g
 
@@ -634,14 +640,14 @@ def regenerate():
     df = process_data(df)
     df = custom_region(df)
     df = assign_poverty_levels(df)
-    df = foundation_type(df)
+    # df = foundation_type(df)
     df = df.reset_index()
     df.to_pickle('processed_eia.recs_2009_microdata.pkl')
     return df
 
 
 #NEW QUERIES
-#def query(df):
+def query(df):
 
 #    calc_general(df, cut_by=['CR','FPL_BINS'], columns = ['yearmaderange'], outfile = 'output_calc_CR_FPL_by_vintage.tsv')
 #    calc_general(df, cut_by=['CR','FPL_BINS','yearmaderange'], columns = ['equipm'], outfile = 'heatingequipment_output_by_CR_FPL_vintage.tsv')
@@ -667,6 +673,8 @@ def regenerate():
 #    calc_general(df, cut_by=['yearmaderange','Size'], columns = ['Foundation Type'], outfile = 'FoundationType_output_by_vintage_size.tsv')
 #    calc_general(df, cut_by=['CR','FPL_BINS','Size'], columns = ['sizeofgarage'], outfile = 'SizeofGarage_output_by_CR_FPL_Size.tsv')
 #    calc_general(df, cut_by=['yearmaderange','Size','Foundation Type'], columns = ['stories'], outfile = 'Stories_output_by_vin_size_fndtype.tsv')
+#    calc_general(df, cut_by=['yearmaderange','Size'], columns = ['stories'], outfile = 'Geometry Stories.tsv', outpath='../../../resources/inputs/national')
+#    calc_general(df, cut_by=['yearmaderange','Size'], columns = ['sizeofgarage'], outfile = 'Geometry Garage.tsv', outpath='../../../resources/inputs/national')
 
 if __name__ == '__main__':
     #Choose regerate if you want to redo the processed pkl file, otherwise comment out
@@ -674,10 +682,10 @@ if __name__ == '__main__':
     df = regenerate()
 
     df = pd.read_pickle('processed_eia.recs_2009_microdata.pkl')
-#    query(df)
+    query(df)
 
-    med_avg('Size','tothsqft',df,'Sizes_mean_median.tsv')
-    med_avg('income_range','rand_income',df,'Income_mean_median.tsv')
+    # med_avg('Size','tothsqft',df,'Sizes_mean_median.tsv')
+    # med_avg('income_range','rand_income',df,'Income_mean_median.tsv')
 
 
 
