@@ -2,6 +2,7 @@
 import os
 import pandas as pd
 import numpy as np
+import random
 
 cols = {'newhouse.csv': ['CONTROL', 'STATUS', 'NUNIT2', 'ZINC2', 'ROOMS', 'BEDRMS', 'UNITSF', 'BUILT', 'HFUEL', 'FLOORS', 'GASPIP', 'SMSA', 'CMSA', 'REGION', 'DIVISION', 'METRO3', 'POOR', 'AIRSYS', 'NUMAIR', 'TENURE', 'WEIGHT'],
         'ahs2015n.csv': ['CONTROL', 'INTSTATUS', 'WEIGHT', 'DIVISION', 'TENURE', 'BLD', 'YRBUILT', 'FOUNDTYPE', 'UNITSIZE', 'STORIES', 'HEATTYPE', 'HEATFUEL', 'ACPRIMARY', 'NUMPEOPLE', 'HINCP', 'FINCP', 'PERPOVLVL', 'TOTROOMS']}
@@ -96,10 +97,10 @@ def assign_actype(df):
 
   def actype(airsys, numair):
     if airsys == '1':
-      return 'Central'
+      return 'AC, SEER 13' # TODO: what option(s) should this be?
     elif airsys == '2':
       if not pd.isnull(numair):
-        return 'Room'
+        return 'Room AC, EER 10.7, 20% Conditioned' # TODO: what option(s) should this be?
     return 'None'
 
   df['AIRSYS'] = df['AIRSYS'].str.replace("'", "")

@@ -151,7 +151,7 @@ def units_Btu2Therm(x):
     return (1/units_Therm2MBtu(1))*x/1000.0
 
 
-def do_plot(slices, fields, size='medium', weighted_area=True, save=False, setlims=None, marker_color=False, marker_shape=False, version=None, marker_color_all=None, show_labels=True, leg_label=None, num_slices=1, screen_scen='no screens'):
+def do_plot(slices, fields, size='medium', weighted_area=True, save=False, setlims=None, marker_color=False, marker_shape=False, version=None, marker_color_all=None, show_labels=True, leg_label=None, num_slices=1, screen_scen='no screens', predicted_file_name='resstock_national'):
     consumption_folder = '../../analysis_results/outputs/national/screens/{}'.format(screen_scen)
     
     if size == 'large':
@@ -178,7 +178,7 @@ def do_plot(slices, fields, size='medium', weighted_area=True, save=False, setli
               measured = measured_elec.join(measured_gas)
               measured['Measured Per House Site Electricity+Gas MBtu'] = units_kWh2MBtu(measured['kwh_nrm_per_home']) + units_Therm2MBtu(measured['thm_nrm_per_home'])
               house_count = pd.read_csv(os.path.join(consumption_folder, 'Electricity Consumption {}.tsv'.format(slicer)), index_col=['Dependency={}'.format(slicer)], sep='\t')[['Weight']].sum().values[0]
-              predicted = pd.read_csv('../../analysis_results/resstock_national.csv', index_col=['name'])
+              predicted = pd.read_csv('../../analysis_results/{}.csv'.format(predicted_file_name), index_col=['name'])
               predicted = remove_upgrades(predicted)
               predicted['Weight'] = house_count / len(predicted.index)
               predicted['Predicted Total Site Electricity+Gas MBtu'] = (units_kWh2MBtu(predicted['simulation_output_report.Total Site Electricity kWh']) + units_Therm2MBtu(predicted['simulation_output_report.Total Site Natural Gas therm'])) * predicted['Weight']
@@ -189,7 +189,7 @@ def do_plot(slices, fields, size='medium', weighted_area=True, save=False, setli
               measured = pd.read_csv(os.path.join(consumption_folder, 'Electricity Consumption {}.tsv'.format(slicer)), index_col=['Dependency={}'.format(slicer)], sep='\t')[['kwh_nrm_per_home']]
               measured['Measured Per House Site Electricity MBtu'] = units_kWh2MBtu(measured['kwh_nrm_per_home'])
               house_count = pd.read_csv(os.path.join(consumption_folder, 'Electricity Consumption {}.tsv'.format(slicer)), index_col=['Dependency={}'.format(slicer)], sep='\t')[['Weight']].sum().values[0]
-              predicted = pd.read_csv('../../analysis_results/resstock_national.csv', index_col=['name'])
+              predicted = pd.read_csv('../../analysis_results/{}.csv'.format(predicted_file_name), index_col=['name'])
               predicted = remove_upgrades(predicted)
               predicted['Weight'] = house_count / len(predicted.index)
               predicted['Predicted Total Site Electricity MBtu'] = units_kWh2MBtu(predicted['simulation_output_report.Total Site Electricity kWh']) * predicted['Weight']
@@ -200,7 +200,7 @@ def do_plot(slices, fields, size='medium', weighted_area=True, save=False, setli
               measured = pd.read_csv(os.path.join(consumption_folder, 'Natural Gas Consumption {}.tsv'.format(slicer)), index_col=['Dependency={}'.format(slicer)], sep='\t')[['thm_nrm_per_home']]
               measured['Measured Per House Site Gas MBtu'] = units_Therm2MBtu(measured['thm_nrm_per_home'])
               house_count = pd.read_csv(os.path.join(consumption_folder, 'Natural Gas Consumption {}.tsv'.format(slicer)), index_col=['Dependency={}'.format(slicer)], sep='\t')[['Weight']].sum().values[0]
-              predicted = pd.read_csv('../../analysis_results/resstock_national.csv', index_col=['name'])
+              predicted = pd.read_csv('../../analysis_results/{}.csv'.format(predicted_file_name), index_col=['name'])
               predicted = remove_upgrades(predicted)
               predicted['Weight'] = house_count / len(predicted.index)
               predicted['Predicted Total Site Gas MBtu'] = units_Therm2MBtu(predicted['simulation_output_report.Total Site Natural Gas therm'] * predicted['Weight'])
@@ -215,7 +215,7 @@ def do_plot(slices, fields, size='medium', weighted_area=True, save=False, setli
               measured = pd.read_csv(os.path.join(consumption_folder, 'Electricity Consumption {}.tsv'.format(slicer)), index_col=['Dependency=Location Heating Region', 'Dependency={}'.format(sub_slicer)], sep='\t')[['kwh_nrm_per_home']]
               measured['Measured Per House Site Electricity MBtu'] = units_kWh2MBtu(measured['kwh_nrm_per_home'])
               house_count = pd.read_csv(os.path.join(consumption_folder, 'Electricity Consumption {}.tsv'.format(slicer)), index_col=['Dependency=Location Heating Region', 'Dependency={}'.format(sub_slicer)], sep='\t')[['Weight']].sum().values[0]
-              predicted = pd.read_csv('../../analysis_results/resstock_national.csv', index_col=['name'])
+              predicted = pd.read_csv('../../analysis_results/{}.csv'.format(predicted_file_name), index_col=['name'])
               predicted = remove_upgrades(predicted)
               predicted['Weight'] = house_count / len(predicted.index)
               predicted['Predicted Total Site Electricity MBtu'] = units_kWh2MBtu(predicted['simulation_output_report.Total Site Electricity kWh']) * predicted['Weight']
@@ -227,7 +227,7 @@ def do_plot(slices, fields, size='medium', weighted_area=True, save=False, setli
               measured = pd.read_csv(os.path.join(consumption_folder, 'Natural Gas Consumption {}.tsv'.format(slicer)), index_col=['Dependency=Location Heating Region', 'Dependency={}'.format(sub_slicer)], sep='\t')[['thm_nrm_per_home']]
               measured['Measured Per House Site Gas MBtu'] = units_Therm2MBtu(measured['thm_nrm_per_home'])
               house_count = pd.read_csv(os.path.join(consumption_folder, 'Natural Gas Consumption {}.tsv'.format(slicer)), index_col=['Dependency=Location Heating Region', 'Dependency={}'.format(sub_slicer)], sep='\t')[['Weight']].sum().values[0]
-              predicted = pd.read_csv('../../analysis_results/resstock_national.csv', index_col=['name'])
+              predicted = pd.read_csv('../../analysis_results/{}.csv'.format(predicted_file_name), index_col=['name'])
               predicted = remove_upgrades(predicted)
               predicted['Weight'] = house_count / len(predicted.index)
               predicted['Predicted Total Site Gas MBtu'] = units_Therm2MBtu(predicted['simulation_output_report.Total Site Natural Gas therm']) * predicted['Weight']
@@ -314,6 +314,23 @@ class Create_DFs():
         df = df.sort_values(by=['Dependency=Geometry House Size']).set_index(['Dependency=Geometry House Size'])             
         return df
         
+    def electricity_consumption_federal_poverty_level(self, screen_scen):
+        df = self.session
+        df = df[['FPL_BINS', 'btuel', 'nweight']]
+        df['kwh_nrm'] = df.apply(lambda x: units_Btu2kWh(x.btuel), axis=1)
+        df = df.rename(columns={'FPL_BINS': 'Dependency=Federal Poverty Level', 'nweight': 'Weight'})
+        df = df.groupby(['Dependency=Federal Poverty Level'])
+        count = df.agg(['count']).ix[:, 0]
+        weight = df.agg(['sum'])['Weight']
+        df = df[['kwh_nrm']].sum()
+        df['Count'] = count
+        df['Weight'] = weight
+        df['kwh_nrm_per_home'] = df['kwh_nrm'] / df['Count']
+        df['kwh_nrm_total'] = df['kwh_nrm_per_home'] * df['Weight']
+        df = df.reset_index()
+        df = df.sort_values(by=['Dependency=Federal Poverty Level']).set_index(['Dependency=Federal Poverty Level'])             
+        return df
+        
     def natural_gas_consumption_vintage(self, screen_scen):
         df = self.session
         df = df[['yearmaderange', 'btung', 'nweight']]
@@ -367,6 +384,23 @@ class Create_DFs():
         df = df.sort_values(by=['Dependency=Geometry House Size']).set_index(['Dependency=Geometry House Size'])             
         return df
         
+    def natural_gas_consumption_federal_poverty_level(self, screen_scen):
+        df = self.session
+        df = df[['FPL_BINS', 'btung', 'nweight']]
+        df['thm_nrm'] = df.apply(lambda x: units_Btu2Therm(x.btung), axis=1)
+        df = df.rename(columns={'FPL_BINS': 'Dependency=Federal Poverty Level', 'nweight': 'Weight'})
+        df = df.groupby(['Dependency=Federal Poverty Level'])
+        count = df.agg(['count']).ix[:, 0]
+        weight = df.agg(['sum'])['Weight']
+        df = df[['thm_nrm']].sum()
+        df['Count'] = count
+        df['Weight'] = weight
+        df['thm_nrm_per_home'] = df['thm_nrm'] / df['Count']
+        df['thm_nrm_total'] = df['thm_nrm_per_home'] * df['Weight']
+        df = df.reset_index()
+        df = df.sort_values(by=['Dependency=Federal Poverty Level']).set_index(['Dependency=Federal Poverty Level'])             
+        return df
+        
 def to_figure(df, file):
     
     sns.set(font_scale=1)
@@ -381,6 +415,15 @@ def remove_upgrades(df):
             df = df[df[col]==0]
     return df
     
+def update_predicted_with_fpl(predicted_file_name='resstock_national'):
+
+    # os.system('ruby ../../worker_initialize/run_sampling.rb')
+    # os.system('ruby ./run_sampling.rb')
+
+    predicted = pd.read_csv('../../analysis_results/{}.csv'.format(predicted_file_name), index_col=['name'])
+    predicted['building_characteristics_report.Federal Poverty Level'] = '0-50'
+    predicted.to_csv('../../analysis_results/{}_fpl.csv'.format(predicted_file_name))
+   
 if __name__ == '__main__':
     
     datafiles_dir = '../../analysis_results/outputs/national/screens'
@@ -395,28 +438,30 @@ if __name__ == '__main__':
         for category in [
                          # 'Electricity Consumption Location Heating Region', 
                          # 'Electricity Consumption Location Cooling Region', 
-                         'Electricity Consumption Vintage', 
-                         'Electricity Consumption Heating Fuel',
-                         'Electricity Consumption Geometry House Size', 
-                         # #'Electricity Consumption Geometry Foundation Type', 
-                         # #'Electricity Consumption Geometry Stories', 
-                         # #'Electricity Consumption Heating Setpoint', 
+                         # 'Electricity Consumption Vintage', 
+                         # 'Electricity Consumption Heating Fuel',
+                         # 'Electricity Consumption Geometry House Size', 
+                         # 'Electricity Consumption Geometry Foundation Type', 
+                         # 'Electricity Consumption Geometry Stories', 
+                         # 'Electricity Consumption Heating Setpoint', 
                          # 'Electricity Consumption Location Heating Region Vintage', 
                          # 'Electricity Consumption Location Heating Region Heating Fuel', 
-                         # #'Electricity Consumption Location Heating Region Geometry Foundation Type', 
-                         # #'Electricity Consumption Location Heating Region Geometry House Size', 
+                         # 'Electricity Consumption Location Heating Region Geometry Foundation Type', 
+                         # 'Electricity Consumption Location Heating Region Geometry House Size',
+                         # 'Electricity Consumption Federal Poverty Level',
                          # 'Natural Gas Consumption Location Heating Region',
                          # 'Natural Gas Consumption Location Cooling Region',
-                         'Natural Gas Consumption Vintage', 
-                         'Natural Gas Consumption Heating Fuel',
-                         'Natural Gas Consumption Geometry House Size',
-                         # #'Natural Gas Consumption Geometry Foundation Type',
-                         # #'Natural Gas Consumption Geometry Stories',
-                         # #'Natural Gas Consumption Heating Setpoint',
+                         # 'Natural Gas Consumption Vintage', 
+                         # 'Natural Gas Consumption Heating Fuel',
+                         # 'Natural Gas Consumption Geometry House Size',
+                         # 'Natural Gas Consumption Geometry Foundation Type',
+                         # 'Natural Gas Consumption Geometry Stories',
+                         # 'Natural Gas Consumption Heating Setpoint',
                          # 'Natural Gas Consumption Location Heating Region Vintage',
                          # 'Natural Gas Consumption Location Heating Region Heating Fuel',
-                         # #'Natural Gas Consumption Location Heating Region Geometry Foundation Type',
-                         # #'Natural Gas Consumption Location Heating Region Geometry House Size',
+                         # 'Natural Gas Consumption Location Heating Region Geometry Foundation Type',
+                         # 'Natural Gas Consumption Location Heating Region Geometry House Size',
+                         # 'Natural Gas Consumption Federal Poverty Level'
                          ]:
             print "{} - {}".format(screening_scenario, category)
             method = getattr(dfs, category.lower().replace(' ', '_'))
@@ -433,14 +478,21 @@ if __name__ == '__main__':
                   #'Location Cooling Region',
                   'Vintage',
                   'Heating Fuel',
-                  'Geometry House Size', 
+                  'Geometry House Size',
+                  'Federal Poverty Level',
                   #'Geometry Foundation Type', 
                   #'Geometry Stories', 
                   #'Heating Setpoint'
-                  ]        
-        do_plot(slices=slices, fields='electricity_and_gas_perhouse', save=True, setlims=[0,None], num_slices=1, screen_scen=screening_scenario)
-        do_plot(slices=slices, fields='electricity_perhouse', save=True, setlims=[0,None], num_slices=1, screen_scen=screening_scenario)
-        do_plot(slices=slices, fields='gas_perhouse', save=True, setlims=[0,None], num_slices=1, screen_scen=screening_scenario)
+                  ]
+        if 'Federal Poverty Level' in slices:
+          update_predicted_with_fpl()
+          do_plot(slices=slices, fields='electricity_and_gas_perhouse', save=True, setlims=[0,None], num_slices=1, screen_scen=screening_scenario, predicted_file_name='resstock_national_fpl')
+          do_plot(slices=slices, fields='electricity_perhouse', save=True, setlims=[0,None], num_slices=1, screen_scen=screening_scenario, predicted_file_name='resstock_national_fpl')
+          do_plot(slices=slices, fields='gas_perhouse', save=True, setlims=[0,None], num_slices=1, screen_scen=screening_scenario, predicted_file_name='resstock_national_fpl')
+        else:
+          do_plot(slices=slices, fields='electricity_and_gas_perhouse', save=True, setlims=[0,None], num_slices=1, screen_scen=screening_scenario)
+          do_plot(slices=slices, fields='electricity_perhouse', save=True, setlims=[0,None], num_slices=1, screen_scen=screening_scenario)
+          do_plot(slices=slices, fields='gas_perhouse', save=True, setlims=[0,None], num_slices=1, screen_scen=screening_scenario)
 
         slices = [
                   #'Location Heating Region Vintage',
