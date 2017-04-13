@@ -97,10 +97,10 @@ def assign_actype(df):
 
   def actype(airsys, numair):
     if airsys == '1':
-      return 'AC, SEER 13' # TODO: what option(s) should this be?
+      return 'Central'
     elif airsys == '2':
       if not pd.isnull(numair):
-        return 'Room AC, EER 10.7, 20% Conditioned' # TODO: what option(s) should this be?
+        return 'Room'
     return 'None'
 
   df['AIRSYS'] = df['AIRSYS'].str.replace("'", "")

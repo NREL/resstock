@@ -424,6 +424,8 @@ def calc_general(df, cut_by, columns=None, outfile=None,norm=True,outpath="Proba
     g['Weight']=Weight
 
     #Rename columns
+    cut_by = [x.replace('yearmaderange', 'Vintage') for x in cut_by]
+    cut_by = [x.replace('Size', 'Geometry House Size') for x in cut_by]
     g = g.rename(columns={'yearmaderange': 'Vintage', 'Size': 'Geometry House Size'})
     
     #Rename rows

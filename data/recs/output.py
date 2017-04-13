@@ -328,7 +328,8 @@ class Create_DFs():
         df['kwh_nrm_per_home'] = df['kwh_nrm'] / df['Count']
         df['kwh_nrm_total'] = df['kwh_nrm_per_home'] * df['Weight']
         df = df.reset_index()
-        df = df.sort_values(by=['Dependency=Federal Poverty Level']).set_index(['Dependency=Federal Poverty Level'])             
+        df['Dependency=Federal Poverty Level'] = pd.Categorical(df['Dependency=Federal Poverty Level'], ['0-50', '50-100', '100-150', '150-200', '200-250', '250-300', '300+'])
+        df = df.sort_values(by=['Dependency=Federal Poverty Level']).set_index(['Dependency=Federal Poverty Level'])
         return df
         
     def natural_gas_consumption_vintage(self, screen_scen):
@@ -398,6 +399,7 @@ class Create_DFs():
         df['thm_nrm_per_home'] = df['thm_nrm'] / df['Count']
         df['thm_nrm_total'] = df['thm_nrm_per_home'] * df['Weight']
         df = df.reset_index()
+        df['Dependency=Federal Poverty Level'] = pd.Categorical(df['Dependency=Federal Poverty Level'], ['0-50', '50-100', '100-150', '150-200', '200-250', '250-300', '300+'])
         df = df.sort_values(by=['Dependency=Federal Poverty Level']).set_index(['Dependency=Federal Poverty Level'])             
         return df
         
@@ -417,9 +419,12 @@ def remove_upgrades(df):
     
 def update_predicted_with_fpl(predicted_file_name='resstock_national'):
 
-    # os.system('ruby ../../worker_initialize/run_sampling.rb')
+    os.system('ruby ../../worker_initialize/run_sampling.rb')
     # os.system('ruby ./run_sampling.rb')
 
+    fpl = pd.read_csv('../../resources/inputs/national/Federal Poverty Level.tsv', index_col=[('Dependency=Vintage', 'Dependency=HVAC System Cooling Type')])
+    print fpl
+    
     predicted = pd.read_csv('../../analysis_results/{}.csv'.format(predicted_file_name), index_col=['name'])
     predicted['building_characteristics_report.Federal Poverty Level'] = '0-50'
     predicted.to_csv('../../analysis_results/{}_fpl.csv'.format(predicted_file_name))
