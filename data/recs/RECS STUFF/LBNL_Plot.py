@@ -38,12 +38,12 @@ df = pd.read_csv('LBNL_FRQ_Dist.tsv', sep='\t')
 #ax.set(xlabel='Climate Zone',ylabel='ACH50 Value',title = 'Infiltration')
 
 #####TEMPORARY-Create List of X and Y Values for plotting
-df_val = df[df.columns[11:-2]].copy()
-x_val = df.columns.tolist()[11:-4]
-x_val = [float(i) for i in x_val]
-df['x_vals'] = [x_val] * len(df)
-df['Y_VALS'] = df_val[df_val.columns[1:]].apply(lambda x: ','.join(x.dropna().astype(float).astype(str)),axis=1)
-df['Y_VALS'] = df.apply(lambda x: literal_eval(x['Y_VALS']),axis = 1)
+#df_val = df[df.columns[11:-2]].copy()
+#x_val = df.columns.tolist()[11:-4]
+#x_val = [float(i) for i in x_val]
+#df['x_vals'] = [x_val] * len(df)
+#df['Y_VALS'] = df_val[df_val.columns[1:]].apply(lambda x: ','.join(x.dropna().astype(float).astype(str)),axis=1)
+#df['Y_VALS'] = df.apply(lambda x: literal_eval(x['Y_VALS']),axis = 1)
 #####60's and 70's
 
 df1 = df.loc[df['yearmaderange'] == '1970s'].copy().reset_index()

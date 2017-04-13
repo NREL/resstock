@@ -51,7 +51,7 @@ def rand_plots(df,col_name,var1,var2):
 #Generate Plots
 
     n = random.randint(0, .5*len(df_new))
-    for i in range(3):
+    for i in range(5):
         n = random.randint(0, .5*len(df_new))
         plt.figure()
         x_val1 = ast.literal_eval(df_new.loc[df_new.index[2*n],'x_vals'])
@@ -71,6 +71,8 @@ def rand_plots(df,col_name,var1,var2):
             count += 1
         plt.title(title)
 
-rand_plots(df,'yearmaderange','1960s','1970s')
-rand_plots(df,'Foundation Type','Unconditioned Basement or Vented Crawlspace','Conditioned Basement or Unvented Crawlspace')
+#rand_plots(df,'yearmaderange','1960s','1970s')
+#rand_plots(df,'Foundation Type','Unconditioned Basement or Vented Crawlspace','Conditioned Basement or Unvented Crawlspace')
 rand_plots(df,'Climate_Zone',6,7)
+
+

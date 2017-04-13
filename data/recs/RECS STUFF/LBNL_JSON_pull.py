@@ -15,10 +15,10 @@ from datetime import timedelta
 import pandas as pd
 import itertools
 import numpy as np
-import LBNL_Plot as plot
 from ast import literal_eval
 import random
-import matplotlib as plt
+import matplotlib.pyplot as plt
+
 story_dict = {8: 1,
               16: 2}
 
@@ -150,57 +150,57 @@ def save_to_tsv(g, outfile):
 #save_to_tsv(C_Dist, outfile='LBNL_C_Dist.tsv')
 
 
-###### Create Frequency Distribution & Distribution Table
-
-df = pd.read_csv('LBNL_C_Dist.tsv', sep='\t')
-
-C_Dist = df.copy()
-
-C_Dist['Y_VALS'] = C_Dist['y_vals'].copy()
-C_Dist['y_vals'] = C_Dist.apply(lambda x: eval(x['y_vals']), axis=1)
-C_Dist['x_vals'] = C_Dist.apply(lambda x: eval(x['x_vals']), axis=1)
-C_Dist['Y_VALS'] = C_Dist.apply(lambda x: eval(x['Y_VALS']), axis=1)
-C_Dist['Cum_Max'] =  C_Dist.apply(lambda x: max(x['Y_VALS']), axis =1)
-
-
-for i, row in C_Dist.iterrows():
-    for k in range(len(row['Y_VALS'])):
-        if k > 0:
-            row['y_vals'][k] = float(row['Y_VALS'][k]) - float(row['Y_VALS'][k - 1])
-            if k == len(row['Y_VALS'])-1:
-                row['y_vals'][k] = float(row['y_vals'][k]) + (1-float(row['Cum_Max']))
-    print str(i)
-## Fill in P_Dist Values / Generate Mean and Var
-
-def dict_zip(row):
-    return dict(zip(row['x_vals'], row['y_vals']))
-
-def mean(x,y):
-    u = 0
-    for i in range(len(x)):
-        u += float(y[i])*float(x[i])
-    return u
-
-def var(x,y):
-    u = 0
-    u2 = 0
-    for i in range(len(x)):
-        u += float(y[i])*float(x[i])
-        u2 += float(y[i])*(float(x[i])**2)
-    return u2-u**2
-
-
-#### Create Additional Dataframe and Merge with Original
-
-df1 = C_Dist[['x_vals', 'y_vals']].copy()
-list_of_dicts = df1.apply(dict_zip, axis=1)
-D_list = pd.DataFrame(list(list_of_dicts))
-C_Dist = pd.concat([C_Dist, D_list], axis=1)
-C_Dist = C_Dist.replace(np.NaN, 0)
-C_Dist['Mean'] =  C_Dist.apply(lambda x: mean(x['x_vals'],x['y_vals']), axis =1)
-C_Dist['Var'] = C_Dist.apply(lambda x: var(x['x_vals'],x['y_vals']), axis=1)
-C_Dist = C_Dist.drop(['c_dist'],axis=1)
-save_to_tsv(C_Dist, outfile='LBNL_FRQ_Dist.tsv')
+####### Create Frequency Distribution & Distribution Table
+#
+#df = pd.read_csv('LBNL_C_Dist.tsv', sep='\t')
+#
+#C_Dist = df.copy()
+#
+#C_Dist['Y_VALS'] = C_Dist['y_vals'].copy()
+#C_Dist['y_vals'] = C_Dist.apply(lambda x: eval(x['y_vals']), axis=1)
+#C_Dist['x_vals'] = C_Dist.apply(lambda x: eval(x['x_vals']), axis=1)
+#C_Dist['Y_VALS'] = C_Dist.apply(lambda x: eval(x['Y_VALS']), axis=1)
+#C_Dist['Cum_Max'] =  C_Dist.apply(lambda x: max(x['Y_VALS']), axis =1)
+#
+#
+#for i, row in C_Dist.iterrows():
+#    for k in range(len(row['Y_VALS'])):
+#        if k > 0:
+#            row['y_vals'][k] = float(row['Y_VALS'][k]) - float(row['Y_VALS'][k - 1])
+#            if k == len(row['Y_VALS'])-1:
+#                row['y_vals'][k] = float(row['y_vals'][k]) + (1-float(row['Cum_Max']))
+#    print str(i)
+### Fill in P_Dist Values / Generate Mean and Var
+#
+#def dict_zip(row):
+#    return dict(zip(row['x_vals'], row['y_vals']))
+#
+#def mean(x,y):
+#    u = 0
+#    for i in range(len(x)):
+#        u += float(y[i])*float(x[i])
+#    return u
+#
+#def var(x,y):
+#    u = 0
+#    u2 = 0
+#    for i in range(len(x)):
+#        u += float(y[i])*float(x[i])
+#        u2 += float(y[i])*(float(x[i])**2)
+#    return u2-u**2
+#
+#
+##### Create Additional Dataframe and Merge with Original
+#
+#df1 = C_Dist[['x_vals', 'y_vals']].copy()
+#list_of_dicts = df1.apply(dict_zip, axis=1)
+#D_list = pd.DataFrame(list(list_of_dicts))
+#C_Dist = pd.concat([C_Dist, D_list], axis=1)
+#C_Dist = C_Dist.replace(np.NaN, 0)
+#C_Dist['Mean'] =  C_Dist.apply(lambda x: mean(x['x_vals'],x['y_vals']), axis =1)
+#C_Dist['Var'] = C_Dist.apply(lambda x: var(x['x_vals'],x['y_vals']), axis=1)
+#C_Dist = C_Dist.drop(['c_dist'],axis=1)
+#save_to_tsv(C_Dist, outfile='LBNL_FRQ_Dist.tsv')
 
 ##### Bin Different Columns together
 #df_1 = increments by 1
@@ -214,7 +214,7 @@ df_1 = pd.DataFrame()
 x = df.columns.tolist()[14:-2]
 x5 = x[:19]
 x1 = x[19:]
-for i in range(len(x5)//2):
+for i in range((len(x5)//2)):
     header = str((float(x5[2*i]) + float(x5[2*i+1]))/2)
     print header
     df_1[header] = df[x5[2*i]]+df[x5[2*i+1]]
@@ -227,7 +227,7 @@ df_col = df[df.columns[:9]]
 df1 = df_col.join(df_1)
 x_val = df_1.columns.tolist()
 x_val = [float(i) for i in x_val]
-df1['y_vals'] = df_1[df_1.columns[1:]].apply(lambda x: ','.join(x.dropna().astype(float).astype(str)),axis=1)
+df1['y_vals'] = df_1[df_1.columns[0:]].apply(lambda x: ','.join(x.dropna().astype(float).astype(str)),axis=1)
 df1['y_vals'] = df1.apply(lambda x: literal_eval(x['y_vals']),axis = 1)
 df1['x_vals'] = [x_val] * len(df_1)
 #Bin by every 2
@@ -239,15 +239,14 @@ for i in range(len(x)//2):
     print header
     df_2[header] = df1[x[2*i]]+df1[x[2*i+1]]
 
-df2 = df_col.join(df_2)
+
 x_val = df_2.columns.tolist()
 x_val = [float(i) for i in x_val]
-df2['y_vals'] = []
-df2['y_vals'] = df_2[df_2.columns[1:]].apply(lambda x: ','.join(x.dropna().astype(float).astype(str)),axis=1)
-df2['y_vals'] = df2.apply(lambda x: literal_eval(x['y_vals']),axis = 1)
-df2['x_vals'] = [x_val] * len(df_2)
-
-save_to_tsv(C_Dist, outfile='LBNL_FRQ_Dist.tsv')
+df_2['y_vals'] = df_2[df_2.columns[0:]].apply(lambda x: ','.join(x.dropna().astype(float).astype(str)),axis=1)
+df_2['y_vals'] = df_2.apply(lambda x: list(x['y_vals']),axis = 1)
+df_2['x_vals'] = [x_val] * len(df_2)
+df2 = df_col.join(df_2)
+save_to_tsv(df_2, outfile='LBNL_FRQ_Dist_Bin2.tsv')
 
 #####Plots of binned vs unbinned
 
