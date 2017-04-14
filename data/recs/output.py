@@ -417,17 +417,48 @@ def remove_upgrades(df):
             df = df[df[col]==0]
     return df
     
-def update_predicted_with_fpl(predicted_file_name='resstock_national'):
+def update_predicted_with_divvys(predicted_file_name, tsv_file):
 
-    os.system('ruby ../../worker_initialize/run_sampling.rb')
-    # os.system('ruby ./run_sampling.rb')
-
-    fpl = pd.read_csv('../../resources/inputs/national/Federal Poverty Level.tsv', index_col=[('Dependency=Vintage', 'Dependency=HVAC System Cooling Type')])
-    print fpl
+    tsv = pd.read_csv('../../resources/inputs/national/{}.tsv'.format(tsv_file), sep='\t')
+    on = []
+    for col in tsv.columns:
+      if 'Dependency=' in col:
+        tsv = tsv.rename(columns={col: col.replace('Dependency=', 'building_characteristics_report.')})
+        on.append(col.replace('Dependency=', 'building_characteristics_report.'))
     
-    predicted = pd.read_csv('../../analysis_results/{}.csv'.format(predicted_file_name), index_col=['name'])
-    predicted['building_characteristics_report.Federal Poverty Level'] = '0-50'
-    predicted.to_csv('../../analysis_results/{}_fpl.csv'.format(predicted_file_name))
+    predicted = pd.read_csv('../../analysis_results/resstock_national.csv')
+    
+    # TODO: following is temp code until we can successfully run national sampling
+    predicted['building_characteristics_report.Location Census Division'] = np.random.choice(['New England', 'East North Central', 'Middle Atlantic', 'Mountain - Pacific', 'South Atlantic - East South Central', 'West North Central', 'West South Central'], predicted.shape[0])
+    predicted['building_characteristics_report.HVAC System Cooling Type'] = np.random.choice(['Central', 'Room', 'None'], predicted.shape[0])
+    predicted['simulation_output_report.weight'] = 4000
+    #
+    
+    predicted = predicted.merge(tsv, on=on, how='left')
+    
+    id_vars = []
+    value_vars = []
+    for col in predicted.columns:
+      if 'Option=' in col:
+        value_vars.append(col)
+      else:
+        id_vars.append(col)    
+    
+    num_of_divvys = len(value_vars)
+    predicted = predicted.fillna(1.0 / num_of_divvys)    
+    
+    predicted = pd.melt(predicted, id_vars=id_vars, value_vars=value_vars, var_name='building_characteristics_report.{}'.format(tsv_file), value_name='frac')
+    predicted['building_characteristics_report.{}'.format(tsv_file)] = predicted['building_characteristics_report.{}'.format(tsv_file)].str.replace('Option=', '')
+        
+    del predicted['Count']
+    del predicted['Weight']
+    
+    for col in predicted.columns:
+      if col.endswith('.weight') or col.endswith('MBtu') or col.endswith('kWh') or col.endswith('therm'):
+        predicted[col] = predicted[col].values * predicted['frac'].values
+        
+    predicted = predicted.set_index('name')
+    predicted.to_csv('../../analysis_results/{}.csv'.format(predicted_file_name))
    
 if __name__ == '__main__':
     
@@ -489,11 +520,14 @@ if __name__ == '__main__':
                   #'Geometry Stories', 
                   #'Heating Setpoint'
                   ]
-        if 'Federal Poverty Level' in slices:
-          update_predicted_with_fpl()
-          do_plot(slices=slices, fields='electricity_and_gas_perhouse', save=True, setlims=[0,None], num_slices=1, screen_scen=screening_scenario, predicted_file_name='resstock_national_fpl')
-          do_plot(slices=slices, fields='electricity_perhouse', save=True, setlims=[0,None], num_slices=1, screen_scen=screening_scenario, predicted_file_name='resstock_national_fpl')
-          do_plot(slices=slices, fields='gas_perhouse', save=True, setlims=[0,None], num_slices=1, screen_scen=screening_scenario, predicted_file_name='resstock_national_fpl')
+        # tsv_file_for_divvys = None
+        tsv_file_for_divvys = 'Federal Poverty Level'
+        if tsv_file_for_divvys is not None:
+          predicted_file_name = 'resstock_national_{}'.format(tsv_file_for_divvys)
+          update_predicted_with_divvys(predicted_file_name, tsv_file_for_divvys)
+          do_plot(slices=slices, fields='electricity_and_gas_perhouse', save=True, setlims=[0,None], num_slices=1, screen_scen=screening_scenario, predicted_file_name=predicted_file_name)
+          do_plot(slices=slices, fields='electricity_perhouse', save=True, setlims=[0,None], num_slices=1, screen_scen=screening_scenario, predicted_file_name=predicted_file_name)
+          do_plot(slices=slices, fields='gas_perhouse', save=True, setlims=[0,None], num_slices=1, screen_scen=screening_scenario, predicted_file_name=predicted_file_name)
         else:
           do_plot(slices=slices, fields='electricity_and_gas_perhouse', save=True, setlims=[0,None], num_slices=1, screen_scen=screening_scenario)
           do_plot(slices=slices, fields='electricity_perhouse', save=True, setlims=[0,None], num_slices=1, screen_scen=screening_scenario)

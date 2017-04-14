@@ -45,7 +45,7 @@ class Create_DFs():
         df = df.reset_index()
         df['Dependency=Location Census Division'] = pd.Categorical(df['Dependency=Location Census Division'], ['New England', 'East North Central', 'Middle Atlantic', 'Mountain - Pacific', 'South Atlantic - East South Central', 'West North Central', 'West South Central'])
         df['Dependency=Vintage'] = pd.Categorical(df['Dependency=Vintage'], ['<1950', '1950s', '1960s', '1970s', '1980s', '1990s', '2000s'])
-        df['Dependency=Geometry House Size'] = pd.Categorical(df['Dependency=Location Census Division'], ['0-1499', '1500-2499', '2500-3499', '3500+'])
+        df['Dependency=Geometry House Size'] = pd.Categorical(df['Dependency=Geometry House Size'], ['0-1499', '1500-2499', '2500-3499', '3500+'])
         df['Dependency=HVAC System Cooling Type'] = pd.Categorical(df['Dependency=HVAC System Cooling Type'], ['None', 'Central', 'Room'])
         df = df.sort_values(by=['Dependency=Location Census Division', 'Dependency=Vintage', 'Dependency=Geometry House Size', 'Dependency=HVAC System Cooling Type']).set_index(['Dependency=Location Census Division', 'Dependency=Vintage', 'Dependency=Geometry House Size', 'Dependency=HVAC System Cooling Type'])
         return df
@@ -53,13 +53,13 @@ class Create_DFs():
     def geometry_house_size(self):
         df = self.session
         df = df[df['size'].isin(['0-1499', '1500-2499', '2500-3499', '3500+'])]
-        df = df.rename(columns={'division': 'Dependency=Location Census Division', 'vintage': 'Dependency=Vintage', 'income': 'Dependency=Income'})
+        df = df.rename(columns={'division': 'Dependency=Location Census Division', 'vintage': 'Dependency=Vintage'})
         df, cols = categories_to_columns(df, 'size')
-        df = df.groupby(['Dependency=Location Census Division', 'Dependency=Vintage', 'Dependency=Income'])
+        df = df.groupby(['Dependency=Location Census Division', 'Dependency=Vintage'])
         missing_groups = []
-        for group in itertools.product(*[['New England', 'East North Central', 'Middle Atlantic', 'Mountain - Pacific', 'South Atlantic - East South Central', 'West North Central', 'West South Central'], ['<1950', '1950s', '1960s', '1970s', '1980s', '1990s', '2000s'], ['0-25K', '25-50K', '50-75K', '75-100K', '100-125K', '125-150K', '150-200K', '200K+']]):
+        for group in itertools.product(*[['New England', 'East North Central', 'Middle Atlantic', 'Mountain - Pacific', 'South Atlantic - East South Central', 'West North Central', 'West South Central'], ['<1950', '1950s', '1960s', '1970s', '1980s', '1990s', '2000s']]):
             if not group in list(df.groups):
-                missing_groups.append(dict(zip(['Dependency=Location Census Division', 'Dependency=Vintage', 'Dependency=Income'], group)))
+                missing_groups.append(dict(zip(['Dependency=Location Census Division', 'Dependency=Vintage'], group)))
         count = df.agg(['count']).ix[:, 0]
         weight = df.agg(['sum'])['Weight']
         df = sum_cols(df, cols)
@@ -69,7 +69,7 @@ class Create_DFs():
         columns.remove('Count')
         columns.remove('Weight')
         for group in missing_groups:
-            df_new = pd.DataFrame(data=dict(group.items() + dict(zip(columns, [1.0/len(columns)] * len(columns))).items()), index=[0]).set_index(['Dependency=Location Census Division', 'Dependency=Vintage', 'Dependency=Income'])
+            df_new = pd.DataFrame(data=dict(group.items() + dict(zip(columns, [1.0/len(columns)] * len(columns))).items()), index=[0]).set_index(['Dependency=Location Census Division', 'Dependency=Vintage'])
             df_new['Count'] = 0
             df_new['Weight'] = 0
             df = df.append(df_new)
@@ -78,8 +78,7 @@ class Create_DFs():
         df = df.reset_index()
         df['Dependency=Location Census Division'] = pd.Categorical(df['Dependency=Location Census Division'], ['New England', 'East North Central', 'Middle Atlantic', 'Mountain - Pacific', 'South Atlantic - East South Central', 'West North Central', 'West South Central'])
         df['Dependency=Vintage'] = pd.Categorical(df['Dependency=Vintage'], ['<1950', '1950s', '1960s', '1970s', '1980s', '1990s', '2000s'])
-        df['Dependency=Income'] = pd.Categorical(df['Dependency=Income'], ['0-25K', '25-50K', '50-75K', '75-100K', '100-125K', '125-150K', '150-200K', '200K+'])
-        df = df.sort_values(by=['Dependency=Location Census Division', 'Dependency=Vintage', 'Dependency=Income']).set_index(['Dependency=Location Census Division', 'Dependency=Vintage', 'Dependency=Income'])
+        df = df.sort_values(by=['Dependency=Location Census Division', 'Dependency=Vintage']).set_index(['Dependency=Location Census Division', 'Dependency=Vintage'])
         return df
         
     def income(self):
@@ -96,7 +95,6 @@ class Create_DFs():
         
     def location_census_division(self):
         df = self.session
-        df = df.head(100)
         df = df[['division', 'WEIGHT']]
         df = df.groupby('division').sum()
         df['frac'] = df['WEIGHT'] / df['WEIGHT'].sum()
@@ -138,7 +136,7 @@ if __name__ == '__main__':
 
     dfs = Create_DFs('MLR/ahs.csv')
     
-    for category in ['Federal Poverty Level', 'HVAC System Cooling Type', 'Geometry House Size', 'Income', 'Location Census Division']:
+    for category in ['Federal Poverty Level', 'HVAC System Cooling Type', 'Geometry House Size', 'Location Census Division']:
         print category
         method = getattr(dfs, category.lower().replace(' ', '_'))
         df = method()
