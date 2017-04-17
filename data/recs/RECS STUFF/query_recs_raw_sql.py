@@ -439,8 +439,7 @@ def calc_general(df, cut_by, columns=None, outfile=None,norm=True,outpath="Proba
       del g['South Atlantic']
       del g['East South Central']
       
-      g = g[['Location Region', 'East North Central', 'Middle Atlantic', 'New England', 'West North Central', 'West South Central', 'Mountain - Pacific', 'South Atlantic - East South Central']]
-      print g
+      g = g[['Location Region', 'East North Central', 'Middle Atlantic', 'New England', 'West North Central', 'West South Central', 'Mountain - Pacific', 'South Atlantic - East South Central', 'Count', 'Weight']]
     
     #Rename rows
     if 'Vintage' in g.columns:
@@ -694,7 +693,7 @@ def query(df):
 #    calc_general(df, cut_by=['yearmaderange','Size','Foundation Type'], columns = ['stories'], outfile = 'Stories_output_by_vin_size_fndtype.tsv')
 #    calc_general(df, cut_by=['yearmaderange','Size'], columns = ['stories'], outfile = 'Geometry Stories.tsv', outpath='../../../resources/inputs/national')
 #    calc_general(df, cut_by=['yearmaderange','Size'], columns = ['sizeofgarage'], outfile = 'Geometry Garage.tsv', outpath='../../../resources/inputs/national')
-    calc_general(df, cut_by=['CR'], columns = ['division'], outfile = 'Location Census Division.tsv', outpath='../../../resources/inputs/national')
+#    calc_general(df, cut_by=['CR'], columns = ['division'], outfile = 'Location Census Division.tsv', outpath='../../../resources/inputs/national')
 
 if __name__ == '__main__':
     #Choose regerate if you want to redo the processed pkl file, otherwise comment out
