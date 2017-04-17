@@ -136,7 +136,7 @@ if __name__ == '__main__':
 
     dfs = Create_DFs('MLR/ahs.csv')
     
-    for category in ['Federal Poverty Level', 'HVAC System Cooling Type', 'Geometry House Size', 'Location Census Division']:
+    for category in ['Federal Poverty Level', 'HVAC System Cooling Type', 'Geometry House Size']:
         print category
         method = getattr(dfs, category.lower().replace(' ', '_'))
         df = method()
