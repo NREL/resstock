@@ -426,10 +426,27 @@ def calc_general(df, cut_by, columns=None, outfile=None,norm=True,outpath="Proba
     #Rename columns
     cut_by = [x.replace('yearmaderange', 'Vintage') for x in cut_by]
     cut_by = [x.replace('Size', 'Geometry House Size') for x in cut_by]
-    g = g.rename(columns={'yearmaderange': 'Vintage', 'Size': 'Geometry House Size', '3+ Car': '3 Car'})
+    cut_by = [x.replace('CR', 'Location Region') for x in cut_by]
+
+    g = g.rename(columns={'yearmaderange': 'Vintage', 'Size': 'Geometry House Size', '3+ Car': '3 Car', 'CR': 'Location Region', 'East North Central Census Division (IL, IN, MI, OH, WI)': 'East North Central', 'East South Central Census Division (AL, KY, MS, TN)': 'East South Central', 'Middle Atlantic Census Division (NJ, NY, PA)': 'Middle Atlantic', 'Mountain North Sub-Division (CO, ID, MT, UT, WY)': 'Mountain North', 'Mountain South Sub-Division (AZ, NM, NV)': 'Mountain South', 'New England Census Division (CT, MA, ME, NH, RI, VT)': 'New England', 'Pacific Census Division (AK, CA, HI, OR, WA)': 'Pacific', 'South Atlantic  Census Division (DC, DE, FL, GA, MD, NC, SC, VA, WV)': 'South Atlantic', 'West North Central Census Division (IA, KS, MN, MO, ND, NE, SD)': 'West North Central', 'West South Central Census Division (AR, LA, OK, TX)': 'West South Central'})
+
+    if 'division' in columns:
+      g['Mountain - Pacific'] = g['Mountain North'].values + g['Mountain South'].values + g['Pacific'].values
+      del g['Mountain North']
+      del g['Mountain South']
+      del g['Pacific']
+      g['South Atlantic - East South Central'] = g['South Atlantic'].values + g['East South Central'].values
+      del g['South Atlantic']
+      del g['East South Central']
+      
+      g = g[['Location Region', 'East North Central', 'Middle Atlantic', 'New England', 'West North Central', 'West South Central', 'Mountain - Pacific', 'South Atlantic - East South Central']]
+      print g
     
     #Rename rows
-    g['Vintage'] = g['Vintage'].replace({'1950-pre': '<1950'})
+    if 'Vintage' in g.columns:
+      g['Vintage'] = g['Vintage'].replace({'1950-pre': '<1950'})
+    if 'Location Region' in g.columns:
+      g['Location Region'] = g['Location Region'].replace({1: 'CR01', 2: 'CR02', 3: 'CR03', 4: 'CR04', 5: 'CR05', 6: 'CR06', 7: 'CR07', 8: 'CR08', 9: 'CR09', 10: 'CR10', 11: 'CR11', 12: 'CR12'})
 
     #Add Headers for Option and Dependency
     rename_dict = {}
@@ -677,6 +694,7 @@ def query(df):
 #    calc_general(df, cut_by=['yearmaderange','Size','Foundation Type'], columns = ['stories'], outfile = 'Stories_output_by_vin_size_fndtype.tsv')
 #    calc_general(df, cut_by=['yearmaderange','Size'], columns = ['stories'], outfile = 'Geometry Stories.tsv', outpath='../../../resources/inputs/national')
 #    calc_general(df, cut_by=['yearmaderange','Size'], columns = ['sizeofgarage'], outfile = 'Geometry Garage.tsv', outpath='../../../resources/inputs/national')
+    calc_general(df, cut_by=['CR'], columns = ['division'], outfile = 'Location Census Division.tsv', outpath='../../../resources/inputs/national')
 
 if __name__ == '__main__':
     #Choose regerate if you want to redo the processed pkl file, otherwise comment out
