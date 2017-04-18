@@ -68,9 +68,8 @@ def write_pandas_hdf5(dir, file):
 
   datapoint_ids = pd.DataFrame(columns=['datapoint', 'datapoint_id'])
   enduse_ids = pd.DataFrame(columns=['enduse', 'enduse_id'])
-  # timestamp_ids = pd.DataFrame(columns=['timestamp', 'timestamp_id'])
   
-  with pd.HDFStore(file, mode='w') as hdf:
+  with pd.HDFStore(file, mode='w', complib='zlib', complevel=9) as hdf:
   
     for item in os.listdir(dir):
     
@@ -97,29 +96,20 @@ def write_pandas_hdf5(dir, file):
           datapoint_ids.loc[next_id] = [datapoint, str(next_id)]
         df.insert(0, 'datapoint_id', next_id)
         
-        # timestamp_id
-        # if timestamp_ids.empty:
-          # for i, timestamp in enumerate(df['Time']):
-            # timestamp_ids.loc[i] = [timestamp, str(i + 1)]
-        # df = df.replace({'Time': dict(zip(timestamp_ids['timestamp'].values, timestamp_ids['timestamp_id'].values))})
-        
         df = pd.melt(df, id_vars=['datapoint_id', 'Time'], var_name='enduse_id')
         df = df.set_index('datapoint_id')
-   
-        df.to_hdf(hdf, 'df', complib='bzip2', complevel=9, format='table', append=True) # complib='zlib'? something else?
+
+        df.to_hdf(hdf, 'df', format='table', append=True)
       
-    datapoint_ids.set_index('datapoint_id').to_hdf(hdf, 'datapoint_ids', complib='bzip2', complevel=9, format='table')
-    enduse_ids.set_index('enduse_id').to_hdf(hdf, 'enduse_ids', complib='bzip2', complevel=9, format='table')
-    # timestamp_ids.to_hdf(hdf, 'timestamp_ids', complib='bzip2', complevel=9)
+    datapoint_ids.set_index('datapoint_id').to_hdf(hdf, 'datapoint_ids', format='table')
+    enduse_ids.set_index('enduse_id').to_hdf(hdf, 'enduse_ids', format='table')    
     
     print hdf
     print "Created new hdf5 file containing {} groups.".format(len(hdf.keys()))
     
 def write_h5py_hdf5(dir, file):
   
-  with h5py.File(file, mode='w', compression='gzip', compression_opts=9) as hdf:
-  
-    df = hdf.create_group('df')
+  with h5py.File(file, mode='w') as hdf:
   
     for item in os.listdir(dir):
     
@@ -132,9 +122,9 @@ def write_h5py_hdf5(dir, file):
         header = csv_file.next()
         lines = list(csv_file)
       
-      df[str(uuid.uuid1())] = lines
-      
-    df.attrs['column_names'] = header
+      df = hdf.create_dataset(str(uuid.uuid1()), data=lines, compression='gzip', compression_opts=9)
+        
+      df.attrs['column_names'] = header
     
     print hdf
     print "Created new hdf5 file containing {} groups.".format(len(hdf.keys()))
@@ -153,26 +143,19 @@ def read_h5py_hdf5(dir, file):
 
   with h5py.File(file, mode='r') as hdf:
     
-    for group in hdf:
+    datapoint_ids = 0
+    nrows = 0
     
-      print group
-      datapoint_ids = 0
-      nrows = 0
-
-      for k, v in hdf[group].items():
-      
-        if isinstance(v, h5py.Dataset):
+    for group in hdf:
         
-          # for attr in hdf[group].attrs:
-          
-            # print hdf[group].attrs[attr]
+      # for attr in hdf[group].attrs:
         
-          # print k, v.value
-          
-          datapoint_ids += 1
-          nrows += v.shape[0]
-          
-      print datapoint_ids, nrows
+        # print hdf[group].attrs[attr]
+              
+      datapoint_ids += 1
+      nrows += hdf[group].shape[0]
+        
+    print datapoint_ids, nrows
           
 if __name__ == '__main__':
 
