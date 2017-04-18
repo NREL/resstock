@@ -208,55 +208,83 @@ def save_to_tsv(g, outfile):
 
 df = pd.read_csv('LBNL_FRQ_Dist.tsv', sep='\t')
 
+#####Collapse Rows
+
+def collapse(df,col_name,var1,var2,new_name):
+    print 'Rows Before Collapsing of',var1,'&',var2,':',len(df.index)
+    df1 = df.loc[df[col_name] == var1].copy().reset_index(drop=True)
+    df2 = df.loc[df[col_name] == var2].copy().reset_index(drop=True)
+    df = df.drop(df.loc[df[col_name]==var1].index)
+    df = df.drop(df.loc[df[col_name]==var2].index)
+    val_list = df1.columns.tolist()[15:]
+    col_list = df1.columns.tolist()[:15]
+    headers = col_list + val_list
+    df3 = (df1[val_list]+df2[val_list])/2
+    frames = [df1[col_list],df3]
+    df4 = pd.concat(frames,axis=1)
+    df4[col_name] = new_name
+    df = df.append(df4)
+    df = df[headers]
+    print 'Rows After Collapsing of',var1,'&',var2,':',len(df.index)
+    return df
+
+
+df = collapse(df,'yearmaderange','1960s','1970s','1960/70s')
+df = collapse(df,'Foundation Type','Unconditioned Basement or Vented Crawlspace','Conditioned Basement or Unvented Crawlspace','Basement or Crawlspace')
+
+save_to_tsv(df, outfile='LBNL_FRQ_Dist_Collapsed.tsv')
 #Bin by every 1
 
-df_1 = pd.DataFrame()
-x = df.columns.tolist()[14:-2]
-x5 = x[:19]
-x1 = x[19:]
-for i in range((len(x5)//2)):
-    header = str((float(x5[2*i]) + float(x5[2*i+1]))/2)
-    print header
-    df_1[header] = df[x5[2*i]]+df[x5[2*i+1]]
-for i in x1:
-    df_1[i] = df[i]
+#df_1 = pd.DataFrame()
+#x = df.columns.tolist()[14:-2]
+#x5 = x[:19]
+#x1 = x[19:]
+#for i in range((len(x5)//2)):
+#    header = str((float(x5[2*i]) + float(x5[2*i+1])+1)/2)
+#    print header
+#    df_1[header] = df[x5[2*i]]+df[x5[2*i+1]]
+#for i in x1:
+#    df_1[i] = df[i]
 
 #Create New Dataframe
 
-df_col = df[df.columns[:9]]
-df1 = df_col.join(df_1)
-x_val = df_1.columns.tolist()
-x_val = [float(i) for i in x_val]
-df1['y_vals'] = df_1[df_1.columns[0:]].apply(lambda x: ','.join(x.dropna().astype(float).astype(str)),axis=1)
-df1['y_vals'] = df1.apply(lambda x: literal_eval(x['y_vals']),axis = 1)
-df1['x_vals'] = [x_val] * len(df_1)
-#Bin by every 2
-
-x = df_1.columns.tolist()
-df_2 = pd.DataFrame()
-for i in range(len(x)//2):
-    header = str((float(x[2*i]) + float(x[2*i+1]))/2)
-    print header
-    df_2[header] = df1[x[2*i]]+df1[x[2*i+1]]
-
-
-x_val = df_2.columns.tolist()
-x_val = [float(i) for i in x_val]
-df_2['y_vals'] = df_2[df_2.columns[0:]].apply(lambda x: ','.join(x.dropna().astype(float).astype(str)),axis=1)
-df_2['y_vals'] = df_2.apply(lambda x: list(x['y_vals']),axis = 1)
-df_2['x_vals'] = [x_val] * len(df_2)
-df2 = df_col.join(df_2)
-save_to_tsv(df_2, outfile='LBNL_FRQ_Dist_Bin2.tsv')
+#df_col = df[df.columns[:9]]
+#df1 = df_col.join(df_1)
+#x_val = df_1.columns.tolist()
+#x_val = [float(i) for i in x_val]
+#df1['y_vals'] = df_1[df_1.columns[0:]].apply(lambda x: ','.join(x.dropna().astype(float).astype(str)),axis=1)
+#df1['y_vals'] = df1.apply(lambda x: literal_eval(x['y_vals']),axis = 1)
+#df1['x_vals'] = [x_val] * len(df_1)
+##Bin by every 2
+#
+#x = df_1.columns.tolist()
+#df_2 = pd.DataFrame()
+#for i in range(len(x)//2):
+#    header = str((float(x[2*i]) + float(x[2*i+1])+1)/2)
+#    print header
+#    df_2[header] = df1[x[2*i]]+df1[x[2*i+1]]
+#
+#
+#x_val = df_2.columns.tolist()
+#x_val = [float(i) for i in x_val]
+#df_2['y_vals'] = df_2[df_2.columns[0:]].apply(lambda x: ','.join(x.dropna().astype(float).astype(str)),axis=1)
+#df_2['y_vals'] = df_2.apply(lambda x: list(x['y_vals']),axis = 1)
+#df_2['x_vals'] = [x_val] * len(df_2)
+#df2 = df_col.join(df_2)
+#save_to_tsv(df_2, outfile='LBNL_FRQ_Dist_Bin2.tsv')
 
 #####Plots of binned vs unbinned
 
-for i in range(3):
-    n = random.randint(0, .5*len(df1))
-    plt.figure()
-    x_val1 = df1.loc[df1.index[n],'x_vals']
-    x_val2 = df1.loc[df2.index[n],'x_vals']
-    y_val1 = df1.loc[df1.index[n],'y_vals']
-    y_val2 = df2.loc[df2.index[n],'y_vals']
-    plt.plot(x_val1,y_val1,':b',label = 'Bin1',linewidth=3)
-    plt.plot(x_val2,y_val2,'--r',label = 'Bin2',linewidth=3)
-    plt.legend();
+#for i in range(3):
+#    n = random.randint(0, .5*len(df1))
+#    plt.figure()
+#    x_val1 = df1.loc[df1.index[n],'x_vals']
+#    x_val2 = df1.loc[df2.index[n],'x_vals']
+#    y_val1 = df1.loc[df1.index[n],'y_vals']
+#    y_val2 = df2.loc[df2.index[n],'y_vals']
+#    plt.plot(x_val1,y_val1,':b',label = 'Bin1',linewidth=3)
+#    plt.plot(x_val2,y_val2,'--r',label = 'Bin2',linewidth=3)
+#    plt.legend();
+
+
+
