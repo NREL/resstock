@@ -8,9 +8,11 @@ import zipfile
 import uuid
 import re
 import warnings
+import csv
+import h5py
 warnings.filterwarnings('ignore')
 
-def main(dir, format, func):
+def main(dir, format, package, func, file):
 
   if func == 'write':
 
@@ -20,7 +22,13 @@ def main(dir, format, func):
       
     elif format == 'hdf5':
     
-      write_hdf5(dir)
+      if package == 'pandas':
+    
+        write_pandas_hdf5(dir, file)
+      
+      elif package == 'h5py':
+      
+        write_h5py_hdf5(dir, file)
       
   elif func == 'read':
   
@@ -30,7 +38,13 @@ def main(dir, format, func):
       
     elif format == 'hdf5':
     
-      read_hdf5(dir)    
+      if package == 'pandas':
+    
+        read_pandas_hdf5(dir, file)
+        
+      elif package == 'h5py':
+      
+        read_h5py_hdf5(dir, file)
 
 def write_zip(dir):
 
@@ -50,13 +64,13 @@ def write_zip(dir):
   print "Created new zip file containing {} csv files.".format(len(new_zf.namelist()))
   new_zf.close()
 
-def write_hdf5(dir):
+def write_pandas_hdf5(dir, file):
 
   datapoint_ids = pd.DataFrame(columns=['datapoint', 'datapoint_id'])
   enduse_ids = pd.DataFrame(columns=['enduse', 'enduse_id'])
   # timestamp_ids = pd.DataFrame(columns=['timestamp', 'timestamp_id'])
   
-  with pd.HDFStore('data_points.h5', mode='w') as hdf:
+  with pd.HDFStore(file, mode='w') as hdf:
   
     for item in os.listdir(dir):
     
@@ -92,9 +106,7 @@ def write_hdf5(dir):
         df = pd.melt(df, id_vars=['datapoint_id', 'Time'], var_name='enduse_id')
         df = df.set_index('datapoint_id')
    
-        print df.head()
         df.to_hdf(hdf, 'df', complib='bzip2', complevel=9, format='table', append=True) # complib='zlib'? something else?
-        print hdf
       
     datapoint_ids.set_index('datapoint_id').to_hdf(hdf, 'datapoint_ids', complib='bzip2', complevel=9, format='table')
     enduse_ids.set_index('enduse_id').to_hdf(hdf, 'enduse_ids', complib='bzip2', complevel=9, format='table')
@@ -103,13 +115,65 @@ def write_hdf5(dir):
     print hdf
     print "Created new hdf5 file containing {} groups.".format(len(hdf.keys()))
     
-def read_hdf5(dir):
-
-  for key in ['df', 'datapoint_ids', 'enduse_ids']:
+def write_h5py_hdf5(dir, file):
+  
+  with h5py.File(file, mode='w', compression='gzip', compression_opts=9) as hdf:
+  
+    df = hdf.create_group('df')
+  
+    for item in os.listdir(dir):
     
-    hdf = pd.read_hdf('data_points.h5', key=key)  
+      if not item.endswith(".zip"):
+        continue
+    
+      with zipfile.ZipFile(os.path.join(dir, item), 'r') as old_zf:
+        
+        csv_file = csv.reader(old_zf.open('enduse_timeseries.csv'))
+        header = csv_file.next()
+        lines = list(csv_file)
+      
+      df[str(uuid.uuid1())] = lines
+      
+    df.attrs['column_names'] = header
+    
+    print hdf
+    print "Created new hdf5 file containing {} groups.".format(len(hdf.keys()))
+    
+def read_pandas_hdf5(dir, file):
+    
+  with pd.HDFStore(file) as hdf: 
+    
     print hdf
     
+    # for key in hdf.keys():
+    
+      # print hdf[key]
+    
+def read_h5py_hdf5(dir, file):
+
+  with h5py.File(file, mode='r') as hdf:
+    
+    for group in hdf:
+    
+      print group
+      datapoint_ids = 0
+      nrows = 0
+
+      for k, v in hdf[group].items():
+      
+        if isinstance(v, h5py.Dataset):
+        
+          # for attr in hdf[group].attrs:
+          
+            # print hdf[group].attrs[attr]
+        
+          # print k, v.value
+          
+          datapoint_ids += 1
+          nrows += v.shape[0]
+          
+      print datapoint_ids, nrows
+          
 if __name__ == '__main__':
 
   t0 = time.time()
@@ -117,11 +181,14 @@ if __name__ == '__main__':
   parser = argparse.ArgumentParser()
   parser.add_argument('--directory', default='../analysis_results/data_points', help='Relative path containing the data_point.zip files.')
   formats = ['zip', 'hdf5']
-  parser.add_argument('--format', choices=formats, default='hdf5', help='Desired format of the stored output csv files.')   
+  parser.add_argument('--format', choices=formats, default='hdf5', help='Desired format of the stored output csv files.')
+  packages = ['pandas', 'h5py']
+  parser.add_argument('--package', choices=packages, default='pandas', help='HDF5 tool.')
   functions = ['read', 'write']
   parser.add_argument('--function', choices=functions, default='write', help='Read or write.')
+  parser.add_argument('--file', default='data_points.h5', help='Name of the existing hdf5 file.')
   args = parser.parse_args()
 
-  main(args.directory, args.format, args.function)
+  main(args.directory, args.format, args.package, args.function, args.file)
   
   print "All done! Completed rows in {0:.2f} seconds on".format(time.time()-t0), time.strftime("%Y-%m-%d %H:%M")
