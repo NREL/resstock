@@ -151,7 +151,7 @@ def units_Btu2Therm(x):
     return (1/units_Therm2MBtu(1))*x/1000.0
 
 
-def do_plot(slices, fields, size='medium', weighted_area=True, save=False, setlims=None, marker_color=False, marker_shape=False, version=None, marker_color_all=None, show_labels=True, leg_label=None, num_slices=1, screen_scen='no screens', predicted_file_name='resstock_national'):
+def do_plot(slices, fields, size='medium', weighted_area=True, save=False, setlims=None, marker_color=False, marker_shape=False, version=None, marker_color_all=None, show_labels=True, leg_label=None, num_slices=1, screen_scen='No Screens', predicted_file_name='resstock_national'):
     consumption_folder = '../../analysis_results/outputs/national/screens/{}'.format(screen_scen)
     
     if size == 'large':
@@ -584,56 +584,12 @@ def remove_upgrades(df):
         if col.endswith('.run_measure'):
             df = df[df[col]==0]
     return df
-    
-def update_predicted_with_divvys(predicted_file_name, tsv_file):
-
-    tsv = pd.read_csv('../../resources/inputs/national/{}.tsv'.format(tsv_file), sep='\t')
-    on = []
-    for col in tsv.columns:
-      if 'Dependency=' in col:
-        tsv = tsv.rename(columns={col: col.replace('Dependency=', 'building_characteristics_report.')})
-        on.append(col.replace('Dependency=', 'building_characteristics_report.'))
-    
-    predicted = pd.read_csv('../../analysis_results/resstock_national.csv')
-    
-    # TODO: following is temp code until we can successfully run national sampling
-    predicted['building_characteristics_report.Location Census Division'] = np.random.choice(['New England', 'East North Central', 'Middle Atlantic', 'Mountain - Pacific', 'South Atlantic - East South Central', 'West North Central', 'West South Central'], predicted.shape[0])
-    predicted['building_characteristics_report.HVAC System Cooling Type'] = np.random.choice(['Central', 'Room', 'None'], predicted.shape[0])
-    predicted['simulation_output_report.weight'] = 4000
-    #
-    
-    predicted = predicted.merge(tsv, on=on, how='left')
-    
-    id_vars = []
-    value_vars = []
-    for col in predicted.columns:
-      if 'Option=' in col:
-        value_vars.append(col)
-      else:
-        id_vars.append(col)    
-    
-    num_of_divvys = len(value_vars)
-    predicted = predicted.fillna(1.0 / num_of_divvys)    
-    
-    predicted = pd.melt(predicted, id_vars=id_vars, value_vars=value_vars, var_name='building_characteristics_report.{}'.format(tsv_file), value_name='frac')
-    predicted['building_characteristics_report.{}'.format(tsv_file)] = predicted['building_characteristics_report.{}'.format(tsv_file)].str.replace('Option=', '')
-    predicted['building_characteristics_report.{}'.format(tsv_file)] = predicted['building_characteristics_report.{}'.format(tsv_file)].str.replace('Own, ', '') # TODO: do we have own vs rent for recs data?
-    predicted['building_characteristics_report.{}'.format(tsv_file)] = predicted['building_characteristics_report.{}'.format(tsv_file)].str.replace('Rent, ', '') # TODO: do we have own vs rent for recs data?
-    
-    del predicted['Count']
-    del predicted['Weight']
-    
-    for col in predicted.columns:
-      if col.endswith('.weight') or col.endswith('MBtu') or col.endswith('kWh') or col.endswith('therm'):
-        predicted[col] = predicted[col].values * predicted['frac'].values
-        
-    predicted = predicted.set_index('name')
-    predicted.to_csv('../../analysis_results/{}.csv'.format(predicted_file_name))
    
 if __name__ == '__main__':
     
     datafiles_dir = '../../analysis_results/outputs/national/screens'
     heatmaps_dir = 'heatmaps'
+    predicted_file_name = 'resstock_national_expanded'
 
     dfs = Create_DFs('MLR/recs.csv')
     
@@ -657,8 +613,9 @@ if __name__ == '__main__':
                          # 'Natural Gas Consumption Federal Poverty Level'
                          # 'Natural Gas Consumption Location Region Vintage',
                          # 'Natural Gas Consumption Location Region Heating Fuel',
-                         # 'Natural Gas Consumption Location Region Federal Poverty Level'                         
+                         # 'Natural Gas Consumption Location Region Federal Poverty Level'
                          ]:
+                         
             print "{} - {}".format(screening_scenario, category)
             method = getattr(dfs, category.lower().replace(' ', '_'))
             df = method(screening_scenario)
@@ -676,14 +633,7 @@ if __name__ == '__main__':
                   # 'Geometry House Size',
                   'Federal Poverty Level'
                   ]
-        
-        tsv_file_for_divvys = None
-        tsv_file_for_divvys = 'Federal Poverty Level'
-        if tsv_file_for_divvys is not None:
-          predicted_file_name = 'resstock_national_{}'.format(tsv_file_for_divvys)
-          update_predicted_with_divvys(predicted_file_name, tsv_file_for_divvys)
-        else:
-          predicted_file_name = 'resstock_national'
+
         do_plot(slices=slices, fields='electricity_and_gas_perhouse', save=True, setlims=[0,None], num_slices=1, screen_scen=screening_scenario, predicted_file_name=predicted_file_name)
         do_plot(slices=slices, fields='electricity_perhouse', save=True, setlims=[0,None], num_slices=1, screen_scen=screening_scenario, predicted_file_name=predicted_file_name)
         do_plot(slices=slices, fields='gas_perhouse', save=True, setlims=[0,None], num_slices=1, screen_scen=screening_scenario, predicted_file_name=predicted_file_name)          
@@ -694,5 +644,6 @@ if __name__ == '__main__':
                   # 'Location Region Geometry House Size',
                   'Location Region Federal Poverty Level'
                   ]
+
         do_plot(slices=slices, fields='electricity_perhouse', save=True, size='medium', marker_color=True, setlims=[0,None], num_slices=2, screen_scen=screening_scenario, predicted_file_name=predicted_file_name)
         do_plot(slices=slices, fields='gas_perhouse', save=True, size='medium', marker_color=True, setlims=[0,None], num_slices=2, screen_scen=screening_scenario, predicted_file_name=predicted_file_name)
