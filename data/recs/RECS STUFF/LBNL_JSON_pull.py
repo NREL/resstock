@@ -18,7 +18,7 @@ import numpy as np
 from ast import literal_eval
 import random
 import matplotlib.pyplot as plt
-
+import itertools as it
 story_dict = {8: 1,
               16: 2}
 
@@ -206,9 +206,9 @@ def save_to_tsv(g, outfile):
 #df_1 = increments by 1
 #df_2 = increments by 2
 
-df = pd.read_csv('LBNL_FRQ_Dist.tsv', sep='\t')
 
-#####Collapse Rows
+
+###Collapse Rows
 
 def collapse(df,col_name,var1,var2,new_name):
     print 'Rows Before Collapsing of',var1,'&',var2,':',len(df.index)
@@ -226,65 +226,140 @@ def collapse(df,col_name,var1,var2,new_name):
     df = df.append(df4)
     df = df[headers]
     print 'Rows After Collapsing of',var1,'&',var2,':',len(df.index)
+    df.reset_index(drop=True)
     return df
-
-
-df = collapse(df,'yearmaderange','1960s','1970s','1960/70s')
-df = collapse(df,'Foundation Type','Unconditioned Basement or Vented Crawlspace','Conditioned Basement or Unvented Crawlspace','Basement or Crawlspace')
-
-save_to_tsv(df, outfile='LBNL_FRQ_Dist_Collapsed.tsv')
-#Bin by every 1
-
-#df_1 = pd.DataFrame()
-#x = df.columns.tolist()[14:-2]
-#x5 = x[:19]
-#x1 = x[19:]
-#for i in range((len(x5)//2)):
-#    header = str((float(x5[2*i]) + float(x5[2*i+1])+1)/2)
-#    print header
-#    df_1[header] = df[x5[2*i]]+df[x5[2*i+1]]
-#for i in x1:
-#    df_1[i] = df[i]
-
-#Create New Dataframe
-
-#df_col = df[df.columns[:9]]
-#df1 = df_col.join(df_1)
-#x_val = df_1.columns.tolist()
-#x_val = [float(i) for i in x_val]
-#df1['y_vals'] = df_1[df_1.columns[0:]].apply(lambda x: ','.join(x.dropna().astype(float).astype(str)),axis=1)
-#df1['y_vals'] = df1.apply(lambda x: literal_eval(x['y_vals']),axis = 1)
-#df1['x_vals'] = [x_val] * len(df_1)
-##Bin by every 2
 #
+#df = pd.read_csv('LBNL_FRQ_Dist.tsv', sep='\t')
+#df = collapse(df,'yearmaderange','1960s','1970s','1960/70s')
+#df = collapse(df,'Foundation Type','Unconditioned Basement or Vented Crawlspace','Conditioned Basement or Unvented Crawlspace','Basement or Crawlspace')
+#save_to_tsv(df, outfile='LBNL_FRQ_Dist_Collapsed.tsv')
+#
+df = pd.read_csv('LBNL_FRQ_Dist_Collapsed.tsv', sep='\t')
+
+df_1 = pd.DataFrame()
+x = ['0.5', '1.0', '1.5', '2.0', '2.5', '3.0', '3.5', '4.0', '4.5', '5.0', '5.5',
+     '6.0', '6.5', '7.0', '7.5', '8.0', '8.5', '9.0', '9.5', '10.0', '11.0', '12.0',
+     '13.0', '14.0', '15.0', '16.0', '17.0', '18.0', '19.0', '20.0', '21.0', '22.0',
+     '23.0', '24.0', '25.0', '26.0', '27.0', '28.0', '29.0', '30.0', '31.0', '32.0',
+     '33.0', '34.0', '35.0', '36.0', '37.0', '38.0', '39.0', '40.0', '41.0', '42.0',
+     '43.0', '44.0', '45.0', '46.0', '47.0', '48.0', '49.0', '50.0']
+x5 = x[:19]
+x1 = x[19:]
+for i in range((len(x5)//2)):
+    header = str((float(x5[2*i]) + float(x5[2*i+1]))/2)
+    print header
+    df_1[header] = df[x5[2*i]]+df[x5[2*i+1]]
+for i in x1:
+    df_1[i] = df[i]
+df_col = df[['Duct', 'stories', 'Climate_Zone', 'Foundation Type', 'EE', 'Region', 'WAP', 'yearmaderange', 'Size', 'url','x_vals','y_vals']]
+df_col = df_col.reset_index(drop=True)
+df_1 = df_1.reset_index(drop=True)
+df1 = df_col.join(df_1)
+x_val = df_1.columns.tolist()
+x_val = [float(i) for i in x_val]
+df1['y_vals'] = df_1[df_1.columns[0:]].apply(lambda x: ','.join(x.dropna().astype(float).astype(str)),axis=1)
+df1['y_vals'] = df1.apply(lambda x: literal_eval(x['y_vals']),axis = 1)
+df1['y_vals'] = df1.apply(lambda x: list(x['y_vals']),axis = 1)
+df1['x_vals'] = [x_val] * len(df_1)
+
+
+save_to_tsv(df1, outfile='LBNL_FRQ_Dist_Bin1.tsv')
+print('done binning by 1')
+
+
+
+
+###Bin by every 2
+##
 #x = df_1.columns.tolist()
 #df_2 = pd.DataFrame()
 #for i in range(len(x)//2):
 #    header = str((float(x[2*i]) + float(x[2*i+1])+1)/2)
 #    print header
-#    df_2[header] = df1[x[2*i]]+df1[x[2*i+1]]
+#    df_2[header] = (df1[x[2*i]]+df1[x[2*i+1]])/2
 #
 #
 #x_val = df_2.columns.tolist()
 #x_val = [float(i) for i in x_val]
-#df_2['y_vals'] = df_2[df_2.columns[0:]].apply(lambda x: ','.join(x.dropna().astype(float).astype(str)),axis=1)
-#df_2['y_vals'] = df_2.apply(lambda x: list(x['y_vals']),axis = 1)
-#df_2['x_vals'] = [x_val] * len(df_2)
+#df_2 = df_2.reset_index(drop=True)
 #df2 = df_col.join(df_2)
-#save_to_tsv(df_2, outfile='LBNL_FRQ_Dist_Bin2.tsv')
+#df2['y_vals'] = df_2[df_2.columns[0:]].apply(lambda x: ','.join(x.dropna().astype(float).astype(str)),axis=1)
+#df2['y_vals'] = df2.apply(lambda x: literal_eval(x['y_vals']),axis = 1)
+#df2['y_vals'] = df2.apply(lambda x: list(x['y_vals']),axis = 1)
+#df2['x_vals'] = [x_val] * len(df_2)
+#
+##df['Y_VALS'] = df_val[df_val.columns[1:]].apply(lambda x: ','.join(x.dropna().astype(float).astype(str)),axis=1)
+##df['Y_VALS'] = df.apply(lambda x: literal_eval(x['Y_VALS']),axis = 1)
+#save_to_tsv(df2, outfile='LBNL_FRQ_Dist_Bin2.tsv')
+#print('Done binning by 2')
+
+
+####Binning Alg
+
+def binning_alg(width,df_1,df1, df_col):
+    x = df_1.columns.tolist()
+    df_n = pd.DataFrame()
+    for i in range((len(x)//width)):
+        v=0
+        val = 0
+        for j in range(width):
+            if (width*i+j) < len(x):
+                v += float(x[width*i+j])
+                header = str((v)/(j+1))
+                val += df1[x[width*i+j]]
+        df_n[header] = (val)/(width)
+        print i,header
+    x_val = df_n.columns.tolist()
+    x_val = [float(i) for i in x_val]
+    df_n = df_n.reset_index(drop=True)
+    dfn = df_col.join(df_n)
+    dfn['y_vals'] = df_n[df_n.columns[0:]].apply(lambda x: ','.join(x.dropna().astype(float).astype(str)),axis=1)
+    dfn['y_vals'] = dfn.apply(lambda x: literal_eval(x['y_vals']),axis = 1)
+    dfn['y_vals'] = dfn.apply(lambda x: list(x['y_vals']),axis = 1)
+    dfn['x_vals'] = [x_val] * len(df_n)
+    save_to_tsv(dfn, outfile='LBNL_FRQ_Dist_Bin'+str(width)+'.tsv')
+    print 'done binning by',width
+    return dfn
+
+
+
+
+df1 =pd.read_csv('LBNL_FRQ_Dist_Bin1.tsv',sep ='\t')
+df_col = df1[['Duct', 'stories', 'Climate_Zone', 'Foundation Type', 'EE', 'Region',
+             'WAP', 'yearmaderange', 'Size', 'url','x_vals','y_vals']]
+
+x = ['0.75', '1.75', '2.75', '3.75', '4.75', '5.75', '6.75', '7.75', '8.75', '10.0', '11.0', '12.0', '13.0', '14.0', '15.0', '16.0', '17.0', '18.0', '19.0', '20.0', '21.0', '22.0', '23.0', '24.0', '25.0', '26.0', '27.0', '28.0', '29.0', '30.0', '31.0', '32.0', '33.0', '34.0', '35.0', '36.0', '37.0', '38.0', '39.0', '40.0', '41.0', '42.0', '43.0', '44.0', '45.0', '46.0', '47.0', '48.0', '49.0', '50.0']
+df_1 = df1[x]
+df2 = binning_alg(2,df_1,df1,df_col)
+df3 = binning_alg(3,df_1,df1,df_col)
+df4 = binning_alg(4,df_1,df1,df_col)
 
 #####Plots of binned vs unbinned
+print 'Plots'
+df1 = pd.read_csv('LBNL_FRQ_Dist_Bin1.tsv', sep='\t')
+df2 = pd.read_csv('LBNL_FRQ_Dist_Bin2.tsv', sep='\t')
+df3 = pd.read_csv('LBNL_FRQ_Dist_Bin3.tsv', sep='\t')
+df4 = pd.read_csv('LBNL_FRQ_Dist_Bin4.tsv', sep='\t')
 
-#for i in range(3):
-#    n = random.randint(0, .5*len(df1))
-#    plt.figure()
-#    x_val1 = df1.loc[df1.index[n],'x_vals']
-#    x_val2 = df1.loc[df2.index[n],'x_vals']
-#    y_val1 = df1.loc[df1.index[n],'y_vals']
-#    y_val2 = df2.loc[df2.index[n],'y_vals']
-#    plt.plot(x_val1,y_val1,':b',label = 'Bin1',linewidth=3)
-#    plt.plot(x_val2,y_val2,'--r',label = 'Bin2',linewidth=3)
-#    plt.legend();
+for i in range(10):
+    n = random.randint(0, .5*len(df1))
+    plt.figure()
+
+    x_val1 = literal_eval(df1.loc[df1.index[n],'x_vals'])
+    x_val2 = literal_eval(df2.loc[df2.index[n],'x_vals'])
+    x_val3 = literal_eval(df3.loc[df3.index[n],'x_vals'])
+    x_val4 = literal_eval(df4.loc[df4.index[n],'x_vals'])
+
+    y_val1 = literal_eval(df1.loc[df1.index[n],'y_vals'])
+    y_val2 = literal_eval(df2.loc[df2.index[n],'y_vals'])
+    y_val3 = literal_eval(df3.loc[df3.index[n],'y_vals'])
+    y_val4 = literal_eval(df4.loc[df4.index[n],'y_vals'])
+
+    plt.plot(x_val1,y_val1,':b',label = 'Bin1',linewidth=4)
+    plt.plot(x_val2,y_val2,'--r',label = 'Bin2',linewidth=4)
+    plt.plot(x_val3,y_val3,'-*g',label = 'Bin3',linewidth=2)
+    plt.plot(x_val4,y_val4,'-.y',label = 'Bin3',linewidth=4)
+    plt.legend();
 
 
 
