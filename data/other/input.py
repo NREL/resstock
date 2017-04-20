@@ -41,6 +41,38 @@ class Create_DFs():
         df = add_option_prefix(df)        
         return df
     
+    def location_census_division(self):
+    
+        def assign_division(state):
+            if state in ['WI', 'IL', 'IN', 'MI', 'OH']:
+                return 'East North Central'
+            elif state in ['NY', 'PA', 'NJ']:
+                return 'Middle Atlantic'
+            elif state in ['ME', 'NH', 'VT', 'MA', 'CT', 'RI']:
+                return 'New England'
+            elif state in ['ND', 'SD', 'NE', 'KS', 'MN', 'IA', 'MO']:
+                return 'West North Central'
+            elif state in ['TX', 'OK', 'AR', 'LA']:
+                return 'West South Central'
+            elif state in ['WA', 'OR', 'CA', 'NV', 'ID', 'MT', 'WY', 'CO', 'UT', 'AZ', 'NM']:    
+                return 'Mountain - Pacific'
+            elif state in ['WV', 'MD', 'DE', 'DC', 'VA', 'NC', 'SC', 'GA', 'FL', 'KY', 'TN', 'MS', 'AL']:
+                return 'South Atlantic - East South Central'
+    
+        df = pd.read_csv('by_usaf.csv', index_col=['usaf'])
+        df = df.rename(columns={'EPW': 'Dependency=Location EPW'})
+        df['ST'] = df['Dependency=Location EPW'].apply(lambda x: x.split('_')[1])
+        df['division'] = df['ST'].apply(lambda x: assign_division(x))
+        df, cols = categories_to_columns(df, 'division')
+        df = df.groupby(['Dependency=Location EPW'])
+        count = df.agg(['count']).ix[:, 0]
+        weight = df.agg(['sum'])['Weight']
+        df = sum_cols(df, cols)
+        df['Count'] = count
+        df['Weight'] = weight
+        df = add_option_prefix(df)        
+        return df
+    
 def categories_to_columns(df, column, svywt=True):
     categories = df[column]
     unique_categories = categories.unique()
@@ -80,7 +112,8 @@ if __name__ == '__main__':
 
     dfs = Create_DFs('Zones.csv')
     
-    for category in ['Location IECC EPW', 'Location BA EPW']:
+    for category in ['Location Census Division']:
+    # for category in ['Location IECC EPW', 'Location BA EPW']:
         print category
         method = getattr(dfs, category.lower().replace(' ', '_'))
         df = method()
