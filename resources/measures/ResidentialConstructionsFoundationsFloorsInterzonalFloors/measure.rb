@@ -5,7 +5,7 @@ require "#{File.dirname(__FILE__)}/resources/util"
 require "#{File.dirname(__FILE__)}/resources/geometry"
 
 #start the measure
-class ProcessConstructionsFoundationsFloorsInterzonalFloors < OpenStudio::Ruleset::ModelUserScript
+class ProcessConstructionsFoundationsFloorsInterzonalFloors < OpenStudio::Measure::ModelMeasure
 
   #define the name that a user will see, this method may be deprecated as
   #the display name in PAT comes from the name field in measure.xml
@@ -23,10 +23,10 @@ class ProcessConstructionsFoundationsFloorsInterzonalFloors < OpenStudio::Rulese
   
   #define the arguments that the user will input
   def arguments(model)
-    args = OpenStudio::Ruleset::OSArgumentVector.new
+    args = OpenStudio::Measure::OSArgumentVector.new
 
     #make a double argument for nominal R-value of cavity insulation
-    cavity_r = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("cavity_r", true)
+    cavity_r = OpenStudio::Measure::OSArgument::makeDoubleArgument("cavity_r", true)
     cavity_r.setDisplayName("Cavity Insulation Nominal R-value")
     cavity_r.setUnits("hr-ft^2-R/Btu")
     cavity_r.setDescription("Refers to the R-value of the cavity insulation and not the overall R-value of the assembly.")
@@ -38,14 +38,14 @@ class ProcessConstructionsFoundationsFloorsInterzonalFloors < OpenStudio::Rulese
     installgrade_display_names << "I"
     installgrade_display_names << "II"
     installgrade_display_names << "III"
-    install_grade = OpenStudio::Ruleset::OSArgument::makeChoiceArgument("install_grade", installgrade_display_names, true)
+    install_grade = OpenStudio::Measure::OSArgument::makeChoiceArgument("install_grade", installgrade_display_names, true)
     install_grade.setDisplayName("Cavity Install Grade")
     install_grade.setDescription("Installation grade as defined by RESNET standard. 5% of the cavity is considered missing insulation for Grade 3, 2% for Grade 2, and 0% for Grade 1.")
     install_grade.setDefaultValue("I")
     args << install_grade   
 
     #make a choice argument for unfinished attic ceiling framing factor
-    framing_factor = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("framing_factor", true)
+    framing_factor = OpenStudio::Measure::OSArgument::makeDoubleArgument("framing_factor", true)
     framing_factor.setDisplayName("Framing Factor")
     framing_factor.setUnits("frac")
     framing_factor.setDescription("The fraction of a floor assembly that is comprised of structural framing.")

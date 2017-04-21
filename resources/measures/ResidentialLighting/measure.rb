@@ -12,7 +12,7 @@ require "#{File.dirname(__FILE__)}/resources/schedules"
 require "#{File.dirname(__FILE__)}/resources/weather"
 
 #start the measure
-class ResidentialLighting < OpenStudio::Ruleset::ModelUserScript
+class ResidentialLighting < OpenStudio::Measure::ModelMeasure
   
   #define the name that a user will see, this method may be deprecated as
   #the display name in PAT comes from the name field in measure.xml
@@ -31,52 +31,52 @@ class ResidentialLighting < OpenStudio::Ruleset::ModelUserScript
   #define the arguments that the user will input
   #define the arguments that the user will input
   def arguments(model)
-    args = OpenStudio::Ruleset::OSArgumentVector.new
+    args = OpenStudio::Measure::OSArgumentVector.new
     
     #make a double argument for hardwired CFL fraction
-    hw_cfl = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("hw_cfl",true)
+    hw_cfl = OpenStudio::Measure::OSArgument::makeDoubleArgument("hw_cfl",true)
     hw_cfl.setDisplayName("Hardwired Fraction CFL")
     hw_cfl.setDescription("Fraction of all hardwired lamps (interior, garage, and exterior) that are compact fluorescent. Hardwired lighting not specified as CFL, LED, or LFL is assumed to be incandescent.")
     hw_cfl.setDefaultValue(0.34)
     args << hw_cfl
     
     #make a double argument for hardwired LED fraction
-    hw_led = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("hw_led",true)
+    hw_led = OpenStudio::Measure::OSArgument::makeDoubleArgument("hw_led",true)
     hw_led.setDisplayName("Hardwired Fraction LED")
     hw_led.setDescription("Fraction of all hardwired lamps (interior, garage, and exterior) that are LED. Hardwired lighting not specified as CFL, LED, or LFL is assumed to be incandescent.")
     hw_led.setDefaultValue(0)
     args << hw_led
     
     #make a double argument for hardwired LFL fraction
-    hw_lfl = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("hw_lfl",true)
+    hw_lfl = OpenStudio::Measure::OSArgument::makeDoubleArgument("hw_lfl",true)
     hw_lfl.setDisplayName("Hardwired Fraction LFL")
     hw_lfl.setDescription("Fraction of all hardwired lamps (interior, garage, and exterior) that are linear fluorescent. Hardwired lighting not specified as CFL, LED, or LFL is assumed to be incandescent.")
     hw_lfl.setDefaultValue(0)
     args << hw_lfl
     
     #make a double argument for Plugin CFL fraction
-    pg_cfl = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("pg_cfl",true)
+    pg_cfl = OpenStudio::Measure::OSArgument::makeDoubleArgument("pg_cfl",true)
     pg_cfl.setDisplayName("Plugin Fraction CFL")
     pg_cfl.setDescription("Fraction of all plugin lamps that are compact fluorescent. Plugin lighting not specified as CFL, LED, or LFL is assumed to be incandescent.")
     pg_cfl.setDefaultValue(0.34)
     args << pg_cfl
     
     #make a double argument for Plugin LED fraction
-    pg_led = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("pg_led",true)
+    pg_led = OpenStudio::Measure::OSArgument::makeDoubleArgument("pg_led",true)
     pg_led.setDisplayName("Plugin Fraction LED")
     pg_led.setDescription("Fraction of all plugin lamps that are LED. Plugin lighting not specified as CFL, LED, or LFL is assumed to be incandescent.")
     pg_led.setDefaultValue(0)
     args << pg_led
     
     #make a double argument for Plugin LFL fraction
-    pg_lfl = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("pg_lfl",true)
+    pg_lfl = OpenStudio::Measure::OSArgument::makeDoubleArgument("pg_lfl",true)
     pg_lfl.setDisplayName("Plugin Fraction LFL")
     pg_lfl.setDescription("Fraction of all plugin lamps that are linear fluorescent. Plugin lighting not specified as CFL, LED, or LFL is assumed to be incandescent.")
     pg_lfl.setDefaultValue(0)
     args << pg_lfl
     
     #make a double argument for Incandescent Efficacy
-    in_eff = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("in_eff",true)
+    in_eff = OpenStudio::Measure::OSArgument::makeDoubleArgument("in_eff",true)
     in_eff.setDisplayName("Incandescent Efficacy")
     in_eff.setUnits("lm/W")
     in_eff.setDescription("The ratio of light output from an incandescent lamp to the electric power it consumes.")
@@ -84,7 +84,7 @@ class ResidentialLighting < OpenStudio::Ruleset::ModelUserScript
     args << in_eff
     
     #make a double argument for CFL Efficacy
-    cfl_eff = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("cfl_eff",true)
+    cfl_eff = OpenStudio::Measure::OSArgument::makeDoubleArgument("cfl_eff",true)
     cfl_eff.setDisplayName("CFL Efficacy")
     cfl_eff.setUnits("lm/W")
     cfl_eff.setDescription("The ratio of light output from a CFL lamp to the electric power it consumes.")
@@ -92,7 +92,7 @@ class ResidentialLighting < OpenStudio::Ruleset::ModelUserScript
     args << cfl_eff
     
     #make a double argument for LED Efficacy
-    led_eff = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("led_eff",true)
+    led_eff = OpenStudio::Measure::OSArgument::makeDoubleArgument("led_eff",true)
     led_eff.setDisplayName("LED Efficacy")
     led_eff.setUnits("lm/W")
     led_eff.setDescription("The ratio of light output from a LED lamp to the electric power it consumes.")
@@ -100,7 +100,7 @@ class ResidentialLighting < OpenStudio::Ruleset::ModelUserScript
     args << led_eff
     
     #make a double argument for LFL Efficacy
-    lfl_eff = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("lfl_eff",true)
+    lfl_eff = OpenStudio::Measure::OSArgument::makeDoubleArgument("lfl_eff",true)
     lfl_eff.setDisplayName("LFL Efficacy")
     lfl_eff.setUnits("lm/W")
     lfl_eff.setDescription("The ratio of light output from a LFL lamp to the electric power it consumes.")

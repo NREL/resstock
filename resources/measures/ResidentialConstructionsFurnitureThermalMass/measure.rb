@@ -12,7 +12,7 @@ require "#{File.dirname(__FILE__)}/resources/util"
 require "#{File.dirname(__FILE__)}/resources/geometry"
 
 #start the measure
-class ProcessThermalMassFurniture < OpenStudio::Ruleset::ModelUserScript
+class ProcessThermalMassFurniture < OpenStudio::Measure::ModelMeasure
 
   #define the name that a user will see, this method may be deprecated as
   #the display name in PAT comes from the name field in measure.xml
@@ -30,17 +30,17 @@ class ProcessThermalMassFurniture < OpenStudio::Ruleset::ModelUserScript
   
   #define the arguments that the user will input
   def arguments(model)
-    args = OpenStudio::Ruleset::OSArgumentVector.new
+    args = OpenStudio::Measure::OSArgumentVector.new
 
     #make an argument for furniture area fraction
-    area_fraction = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("area_fraction",true)
+    area_fraction = OpenStudio::Measure::OSArgument::makeDoubleArgument("area_fraction",true)
     area_fraction.setDisplayName("Area Fraction")
     area_fraction.setDescription("Fraction of finished floor area covered by furniture.  Furniture intercepts a portion of radiation which would otherwise be distributed to floor surfaces, based on this variable.")
     area_fraction.setDefaultValue(0.4)
     args << area_fraction
 
     #make an argument for furniture mass
-    mass = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("mass",true)
+    mass = OpenStudio::Measure::OSArgument::makeDoubleArgument("mass",true)
     mass.setDisplayName("Mass")
     mass.setUnits("lb/ft^2")
     mass.setDescription("Furniture mass per finished floor area.")
@@ -48,14 +48,14 @@ class ProcessThermalMassFurniture < OpenStudio::Ruleset::ModelUserScript
     args << mass
     
     #make an argument for furniture solar absorptance
-    solar_abs = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("solar_abs",true)
+    solar_abs = OpenStudio::Measure::OSArgument::makeDoubleArgument("solar_abs",true)
     solar_abs.setDisplayName("Solar Absorptance")
     solar_abs.setDescription("Solar absorptance of furnishings in finished spaces.")
     solar_abs.setDefaultValue(0.6)
     args << solar_abs
 
     #make an argument for finished furniture mass
-    conductivity = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("conductivity",true)
+    conductivity = OpenStudio::Measure::OSArgument::makeDoubleArgument("conductivity",true)
     conductivity.setDisplayName("Conductivity")
     conductivity.setUnits("Btu-in/h-ft^2-R")
     conductivity.setDescription("Conductivity of furnishings in finished spaces.")
@@ -63,7 +63,7 @@ class ProcessThermalMassFurniture < OpenStudio::Ruleset::ModelUserScript
     args << conductivity
 
     #make an argument for finished furniture density
-    density = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("density",true)
+    density = OpenStudio::Measure::OSArgument::makeDoubleArgument("density",true)
     density.setDisplayName("Density")
     density.setUnits("lb/ft^3")
     density.setDescription("Density of furnishings in finished spaces.")
@@ -71,7 +71,7 @@ class ProcessThermalMassFurniture < OpenStudio::Ruleset::ModelUserScript
     args << density
 
     #make an argument for finished furniture specific heat
-    specific_heat = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("specific_heat",true)
+    specific_heat = OpenStudio::Measure::OSArgument::makeDoubleArgument("specific_heat",true)
     specific_heat.setDisplayName("Density")
     specific_heat.setUnits("Btu/lb-R")
     specific_heat.setDescription("Specific heat of furnishings in finished spaces.")

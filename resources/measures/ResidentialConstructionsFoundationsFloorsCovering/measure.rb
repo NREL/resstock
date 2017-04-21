@@ -6,7 +6,7 @@ require "#{File.dirname(__FILE__)}/resources/constants"
 require "#{File.dirname(__FILE__)}/resources/geometry"
 
 #start the measure
-class ProcessConstructionsFoundationsFloorsCovering < OpenStudio::Ruleset::ModelUserScript
+class ProcessConstructionsFoundationsFloorsCovering < OpenStudio::Measure::ModelMeasure
 
   #define the name that a user will see, this method may be deprecated as
   #the display name in PAT comes from the name field in measure.xml
@@ -24,17 +24,17 @@ class ProcessConstructionsFoundationsFloorsCovering < OpenStudio::Ruleset::Model
   
   #define the arguments that the user will input
   def arguments(model)
-    args = OpenStudio::Ruleset::OSArgumentVector.new
+    args = OpenStudio::Measure::OSArgumentVector.new
 
     #make a double argument for floor covering fraction
-    covering_frac = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("covering_frac", true)
+    covering_frac = OpenStudio::Measure::OSArgument::makeDoubleArgument("covering_frac", true)
     covering_frac.setDisplayName("Floor Covering Fraction")
     covering_frac.setDescription("Fraction of floors that are covered.")
     covering_frac.setDefaultValue(0.8)
     args << covering_frac
     
     #make a double argument for floor covering r-value
-    covering_r = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("covering_r", true)
+    covering_r = OpenStudio::Measure::OSArgument::makeDoubleArgument("covering_r", true)
     covering_r.setDisplayName("Covering R-value")
     covering_r.setUnits("h-ft^2-R/Btu")
     covering_r.setDescription("The total R-value of the covering.")

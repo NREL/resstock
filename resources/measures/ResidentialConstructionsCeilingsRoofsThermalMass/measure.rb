@@ -6,7 +6,7 @@ require "#{File.dirname(__FILE__)}/resources/constants"
 require "#{File.dirname(__FILE__)}/resources/geometry"
 
 #start the measure
-class ProcessConstructionsCeilingsRoofsThermalMass < OpenStudio::Ruleset::ModelUserScript
+class ProcessConstructionsCeilingsRoofsThermalMass < OpenStudio::Measure::ModelMeasure
 
   #define the name that a user will see, this method may be deprecated as
   #the display name in PAT comes from the name field in measure.xml
@@ -24,10 +24,10 @@ class ProcessConstructionsCeilingsRoofsThermalMass < OpenStudio::Ruleset::ModelU
   
   #define the arguments that the user will input
   def arguments(model)
-    args = OpenStudio::Ruleset::OSArgumentVector.new
+    args = OpenStudio::Measure::OSArgumentVector.new
 
     #make a double argument for layer 1: thickness
-    thick_in1 = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("thick_in1", true)
+    thick_in1 = OpenStudio::Measure::OSArgument::makeDoubleArgument("thick_in1", true)
     thick_in1.setDisplayName("Thickness 1")
     thick_in1.setUnits("in")
     thick_in1.setDescription("Thickness of the layer.")
@@ -35,14 +35,14 @@ class ProcessConstructionsCeilingsRoofsThermalMass < OpenStudio::Ruleset::ModelU
     args << thick_in1
     
     #make a double argument for layer 2: thickness
-    thick_in2 = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("thick_in2", false)
+    thick_in2 = OpenStudio::Measure::OSArgument::makeDoubleArgument("thick_in2", false)
     thick_in2.setDisplayName("Thickness 2")
     thick_in2.setUnits("in")
     thick_in2.setDescription("Thickness of the second layer. Leave blank if no second layer.")
     args << thick_in2
     
     #make a double argument for layer 1: conductivity
-    cond1 = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("cond1", true)
+    cond1 = OpenStudio::Measure::OSArgument::makeDoubleArgument("cond1", true)
     cond1.setDisplayName("Conductivity 1")
     cond1.setUnits("Btu-in/h-ft^2-R")
     cond1.setDescription("Conductivity of the layer.")
@@ -50,14 +50,14 @@ class ProcessConstructionsCeilingsRoofsThermalMass < OpenStudio::Ruleset::ModelU
     args << cond1
     
     #make a double argument for layer 2: conductivity
-    cond2 = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("cond2", false)
+    cond2 = OpenStudio::Measure::OSArgument::makeDoubleArgument("cond2", false)
     cond2.setDisplayName("Conductivity 2")
     cond2.setUnits("Btu-in/h-ft^2-R")
     cond2.setDescription("Conductivity of the second layer. Leave blank if no second layer.")
     args << cond2
 
     #make a double argument for layer 1: density
-    dens1 = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("dens1", true)
+    dens1 = OpenStudio::Measure::OSArgument::makeDoubleArgument("dens1", true)
     dens1.setDisplayName("Density 1")
     dens1.setUnits("lb/ft^3")
     dens1.setDescription("Density of the layer.")
@@ -65,14 +65,14 @@ class ProcessConstructionsCeilingsRoofsThermalMass < OpenStudio::Ruleset::ModelU
     args << dens1
     
     #make a double argument for layer 2: density
-    dens2 = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("dens2", false)
+    dens2 = OpenStudio::Measure::OSArgument::makeDoubleArgument("dens2", false)
     dens2.setDisplayName("Density 2")
     dens2.setUnits("lb/ft^3")
     dens2.setDescription("Density of the second layer. Leave blank if no second layer.")
     args << dens2
     
     #make a double argument for layer 1: specific heat
-    specheat1 = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("specheat1", true)
+    specheat1 = OpenStudio::Measure::OSArgument::makeDoubleArgument("specheat1", true)
     specheat1.setDisplayName("Specific Heat 1")
     specheat1.setUnits("Btu/lb-R")
     specheat1.setDescription("Specific heat of the layer.")
@@ -80,7 +80,7 @@ class ProcessConstructionsCeilingsRoofsThermalMass < OpenStudio::Ruleset::ModelU
     args << specheat1
     
     #make a double argument for layer 2: specific heat
-    specheat2 = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("specheat2", false)
+    specheat2 = OpenStudio::Measure::OSArgument::makeDoubleArgument("specheat2", false)
     specheat2.setDisplayName("Specific Heat 2")
     specheat2.setUnits("Btu/lb-R")
     specheat2.setDescription("Specific heat of the second layer. Leave blank if no second layer.")

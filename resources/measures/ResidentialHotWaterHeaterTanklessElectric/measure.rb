@@ -7,7 +7,7 @@ require "#{File.dirname(__FILE__)}/resources/constants"
 require "#{File.dirname(__FILE__)}/resources/geometry"
 
 #start the measure
-class ResidentialHotWaterHeaterTanklessElectric < OpenStudio::Ruleset::ModelUserScript
+class ResidentialHotWaterHeaterTanklessElectric < OpenStudio::Measure::ModelMeasure
 
     #define the name that a user will see, this method may be deprecated as
     #the display name in PAT comes from the name field in measure.xml
@@ -25,7 +25,7 @@ class ResidentialHotWaterHeaterTanklessElectric < OpenStudio::Ruleset::ModelUser
 
     #define the arguments that the user will input
     def arguments(model)
-        ruleset = OpenStudio::Ruleset
+        ruleset = OpenStudio::Measure
     
         osargument = ruleset::OSArgument
     
@@ -184,7 +184,7 @@ class ResidentialHotWaterHeaterTanklessElectric < OpenStudio::Ruleset::ModelUser
             if loop.nil?
                 runner.registerInfo("A new plant loop for DHW will be added to the model")
                 runner.registerInitialCondition("No water heater model currently exists")
-                loop = Waterheater.create_new_loop(model, Constants.PlantLoopDomesticWater(unit.name.to_s), t_set)
+                loop = Waterheater.create_new_loop(model, Constants.PlantLoopDomesticWater(unit.name.to_s), t_set, "tankless")
             end
 
             if loop.components(OpenStudio::Model::PumpVariableSpeed::iddObjectType).empty?
@@ -193,7 +193,7 @@ class ResidentialHotWaterHeaterTanklessElectric < OpenStudio::Ruleset::ModelUser
             end
 
             if loop.supplyOutletNode.setpointManagers.empty?
-                new_manager = Waterheater.create_new_schedule_manager(t_set, model)
+                new_manager = Waterheater.create_new_schedule_manager(t_set, model,"tankless")
                 new_manager.addToNode(loop.supplyOutletNode)
             end
 

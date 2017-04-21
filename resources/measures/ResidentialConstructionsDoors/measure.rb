@@ -11,7 +11,7 @@ require "#{File.dirname(__FILE__)}/resources/util"
 require "#{File.dirname(__FILE__)}/resources/geometry"
 
 #start the measure
-class ProcessConstructionsDoors < OpenStudio::Ruleset::ModelUserScript
+class ProcessConstructionsDoors < OpenStudio::Measure::ModelMeasure
 
   #define the name that a user will see, this method may be deprecated as
   #the display name in PAT comes from the name field in measure.xml
@@ -29,10 +29,10 @@ class ProcessConstructionsDoors < OpenStudio::Ruleset::ModelUserScript
   
   #define the arguments that the user will input
   def arguments(model)
-    args = OpenStudio::Ruleset::OSArgumentVector.new
+    args = OpenStudio::Measure::OSArgumentVector.new
 
     #make a string argument for wood stud size of wall cavity
-    door_uvalue = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("door_uvalue", true)
+    door_uvalue = OpenStudio::Measure::OSArgument::makeDoubleArgument("door_uvalue", true)
     door_uvalue.setDisplayName("U-Value for Finished Space Doors")
     door_uvalue.setUnits("Btu/hr-ft^2-R")
     door_uvalue.setDescription("The heat transfer coefficient of the doors adjacent to finished space.")

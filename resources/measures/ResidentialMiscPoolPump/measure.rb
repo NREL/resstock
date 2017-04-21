@@ -3,7 +3,7 @@ require "#{File.dirname(__FILE__)}/resources/constants"
 require "#{File.dirname(__FILE__)}/resources/geometry"
 
 #start the measure
-class ResidentialPoolPump < OpenStudio::Ruleset::ModelUserScript
+class ResidentialPoolPump < OpenStudio::Measure::ModelMeasure
   
   def name
     return "Set Residential Pool Pump"
@@ -19,12 +19,12 @@ class ResidentialPoolPump < OpenStudio::Ruleset::ModelUserScript
   
   #define the arguments that the user will input
   def arguments(model)
-    args = OpenStudio::Ruleset::OSArgumentVector.new
+    args = OpenStudio::Measure::OSArgumentVector.new
     
 	#TODO: New argument for demand response for pool pumps (alternate schedules if automatic DR control is specified)
 	
 	#make a double argument for Base Energy Use
-	base_energy = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("base_energy")
+	base_energy = OpenStudio::Measure::OSArgument::makeDoubleArgument("base_energy")
 	base_energy.setDisplayName("Base Energy Use")
     base_energy.setUnits("kWh/yr")
 	base_energy.setDescription("The national average (Building America Benchmark) energy use.")
@@ -32,35 +32,35 @@ class ResidentialPoolPump < OpenStudio::Ruleset::ModelUserScript
 	args << base_energy
 
 	#make a double argument for Energy Multiplier
-	mult = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("mult")
+	mult = OpenStudio::Measure::OSArgument::makeDoubleArgument("mult")
 	mult.setDisplayName("Energy Multiplier")
 	mult.setDescription("Sets the annual energy use equal to the base energy use times this multiplier.")
 	mult.setDefaultValue(1)
 	args << mult
 	
     #make a boolean argument for Scale Energy Use
-	scale_energy = OpenStudio::Ruleset::OSArgument::makeBoolArgument("scale_energy",true)
+	scale_energy = OpenStudio::Measure::OSArgument::makeBoolArgument("scale_energy",true)
 	scale_energy.setDisplayName("Scale Energy Use")
 	scale_energy.setDescription("If true, scales the energy use relative to a 3-bedroom, 1920 sqft house using the following equation: Fscale = (0.5 + 0.25 x Nbr/3 + 0.25 x FFA/1920) where Nbr is the number of bedrooms and FFA is the finished floor area.")
 	scale_energy.setDefaultValue(true)
 	args << scale_energy
 
 	#Make a string argument for 24 weekday schedule values
-	weekday_sch = OpenStudio::Ruleset::OSArgument::makeStringArgument("weekday_sch")
+	weekday_sch = OpenStudio::Measure::OSArgument::makeStringArgument("weekday_sch")
 	weekday_sch.setDisplayName("Weekday schedule")
 	weekday_sch.setDescription("Specify the 24-hour weekday schedule.")
 	weekday_sch.setDefaultValue("0.003, 0.003, 0.003, 0.004, 0.008, 0.015, 0.026, 0.044, 0.084, 0.121, 0.127, 0.121, 0.120, 0.090, 0.075, 0.061, 0.037, 0.023, 0.013, 0.008, 0.004, 0.003, 0.003, 0.003")
 	args << weekday_sch
     
 	#Make a string argument for 24 weekend schedule values
-	weekend_sch = OpenStudio::Ruleset::OSArgument::makeStringArgument("weekend_sch")
+	weekend_sch = OpenStudio::Measure::OSArgument::makeStringArgument("weekend_sch")
 	weekend_sch.setDisplayName("Weekend schedule")
 	weekend_sch.setDescription("Specify the 24-hour weekend schedule.")
 	weekend_sch.setDefaultValue("0.003, 0.003, 0.003, 0.004, 0.008, 0.015, 0.026, 0.044, 0.084, 0.121, 0.127, 0.121, 0.120, 0.090, 0.075, 0.061, 0.037, 0.023, 0.013, 0.008, 0.004, 0.003, 0.003, 0.003")
 	args << weekend_sch
 
 	#Make a string argument for 12 monthly schedule values
-	monthly_sch = OpenStudio::Ruleset::OSArgument::makeStringArgument("monthly_sch")
+	monthly_sch = OpenStudio::Measure::OSArgument::makeStringArgument("monthly_sch")
 	monthly_sch.setDisplayName("Month schedule")
 	monthly_sch.setDescription("Specify the 12-month schedule.")
 	monthly_sch.setDefaultValue("1.154, 1.161, 1.013, 1.010, 1.013, 0.888, 0.883, 0.883, 0.888, 0.978, 0.974, 1.154")

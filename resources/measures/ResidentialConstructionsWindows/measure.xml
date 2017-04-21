@@ -2,9 +2,9 @@
   <schema_version>3.0</schema_version>
   <name>process_constructions_windows</name>
   <uid>648dc42f-f079-4d97-913e-6dc3e19560b1</uid>
-  <version_id>03f8b329-a269-4fd0-ba3d-d2273bbf813c</version_id>
-  <version_modified>20170201T173712Z</version_modified>
-  <xml_checksum>BCB7218E</xml_checksum>
+  <version_id>1b8efdc7-e50a-494b-b1a2-e0fe9c278f0f</version_id>
+  <version_modified>20170420T165552Z</version_modified>
+  <xml_checksum>6FAFA9DE</xml_checksum>
   <class_name>ProcessConstructionsWindows</class_name>
   <display_name>Set Residential Window Construction</display_name>
   <description>This measure assigns a construction to windows. This measure also creates the interior shading schedule, which is based on shade multipliers and the heating and cooling season logic defined in the Building America House Simulation Protocols.</description>
@@ -32,7 +32,7 @@
     <argument>
       <name>heating_shade_mult</name>
       <display_name>Heating Shade Multiplier</display_name>
-      <description>Interior shading multiplier for heating season.</description>
+      <description>Interior shading multiplier for heating season. 1.0 indicates no reduction in solar gain, 0.85 indicates 15% reduction, etc.</description>
       <type>Double</type>
       <required>false</required>
       <model_dependent>false</model_dependent>
@@ -41,7 +41,7 @@
     <argument>
       <name>cooling_shade_mult</name>
       <display_name>Cooling Shade Multiplier</display_name>
-      <description>Interior shading multiplier for cooling season.</description>
+      <description>Interior shading multiplier for cooling season. 1.0 indicates no reduction in solar gain, 0.85 indicates 15% reduction, etc.</description>
       <type>Double</type>
       <required>false</required>
       <model_dependent>false</model_dependent>
@@ -79,47 +79,6 @@
       <checksum>E23378AA</checksum>
     </file>
     <file>
-      <filename>schedules.rb</filename>
-      <filetype>rb</filetype>
-      <usage_type>resource</usage_type>
-      <checksum>C3399417</checksum>
-    </file>
-    <file>
-      <version>
-        <software_program>OpenStudio</software_program>
-        <identifier>1.4.0</identifier>
-        <min_compatible>1.13.1</min_compatible>
-      </version>
-      <filename>measure.rb</filename>
-      <filetype>rb</filetype>
-      <usage_type>script</usage_type>
-      <checksum>4553B40C</checksum>
-    </file>
-    <file>
-      <filename>process_constructions_windows_test.rb</filename>
-      <filetype>rb</filetype>
-      <usage_type>test</usage_type>
-      <checksum>6FD2057D</checksum>
-    </file>
-    <file>
-      <filename>SFD_2000sqft_2story_SL_UA_Denver_Windows.osm</filename>
-      <filetype>osm</filetype>
-      <usage_type>test</usage_type>
-      <checksum>2C457220</checksum>
-    </file>
-    <file>
-      <filename>SFD_2000sqft_2story_SL_UA_Windows.osm</filename>
-      <filetype>osm</filetype>
-      <usage_type>test</usage_type>
-      <checksum>0015F775</checksum>
-    </file>
-    <file>
-      <filename>SFD_2000sqft_2story_SL_UA_Denver.osm</filename>
-      <filetype>osm</filetype>
-      <usage_type>test</usage_type>
-      <checksum>86A38CF7</checksum>
-    </file>
-    <file>
       <filename>psychrometrics.rb</filename>
       <filetype>rb</filetype>
       <usage_type>resource</usage_type>
@@ -132,34 +91,75 @@
       <checksum>DCB12FCF</checksum>
     </file>
     <file>
+      <version>
+        <software_program>OpenStudio</software_program>
+        <identifier>1.4.0</identifier>
+        <min_compatible>2.0.4</min_compatible>
+      </version>
+      <filename>measure.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>script</usage_type>
+      <checksum>B0CD597F</checksum>
+    </file>
+    <file>
+      <filename>process_constructions_windows_test.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>test</usage_type>
+      <checksum>32573C47</checksum>
+    </file>
+    <file>
+      <filename>schedules.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>E957CFBF</checksum>
+    </file>
+    <file>
       <filename>util.rb</filename>
       <filetype>rb</filetype>
       <usage_type>resource</usage_type>
-      <checksum>BAAF2AEF</checksum>
+      <checksum>37254C93</checksum>
     </file>
     <file>
-      <filename>weather.rb</filename>
-      <filetype>rb</filetype>
-      <usage_type>resource</usage_type>
-      <checksum>8322C807</checksum>
+      <filename>SFD_2000sqft_2story_SL_UA_Denver_Windows.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>1B43BBD7</checksum>
+    </file>
+    <file>
+      <filename>SFD_2000sqft_2story_SL_UA_Windows.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>4C1B4984</checksum>
+    </file>
+    <file>
+      <filename>SFD_2000sqft_2story_SL_UA_Denver.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>C7C92EA5</checksum>
     </file>
     <file>
       <filename>hvac.rb</filename>
       <filetype>rb</filetype>
       <usage_type>resource</usage_type>
-      <checksum>048F7BD2</checksum>
+      <checksum>27E5CCE6</checksum>
+    </file>
+    <file>
+      <filename>weather.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>D04CADDB</checksum>
     </file>
     <file>
       <filename>geometry.rb</filename>
       <filetype>rb</filetype>
       <usage_type>resource</usage_type>
-      <checksum>44E4E210</checksum>
+      <checksum>17063A91</checksum>
     </file>
     <file>
       <filename>constants.rb</filename>
       <filetype>rb</filetype>
       <usage_type>resource</usage_type>
-      <checksum>E02944E8</checksum>
+      <checksum>AAE3D2EE</checksum>
     </file>
   </files>
 </measure>

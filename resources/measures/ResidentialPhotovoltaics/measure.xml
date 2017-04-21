@@ -1,14 +1,14 @@
 <measure>
   <schema_version>3.0</schema_version>
   <name>residential_photovoltaics</name>
-  <uid>f6447e7a-bcb0-46f0-a899-6c3999ce0b27</uid>
-  <version_id>4b440184-e180-4596-89ce-fb9ac2f66f52</version_id>
-  <version_modified>20170201T173725Z</version_modified>
-  <xml_checksum>0D0748A3</xml_checksum>
+  <uid>3ed7d5e0-4441-43d9-a47e-ae4560a6db92</uid>
+  <version_id>7c7d502d-207e-418d-97dd-ff6a21bb52d9</version_id>
+  <version_modified>20170420T165601Z</version_modified>
+  <xml_checksum>1BFC8ABF</xml_checksum>
   <class_name>ResidentialPhotovoltaics</class_name>
   <display_name>Set Residential Photovoltaics</display_name>
   <description>Adds (or replaces) residential photovoltaics with the specified efficiency, size, orientation, and tilt. For both single-family detached and multifamily buildings, one panel is added (or replaced).</description>
-  <modeler_description>Any photovoltaic panels, generators, inverters, and electric load center distribution objects are removed. A photovoltaic panel, along with generator and inverter are added to the electric load center distribution object.</modeler_description>
+  <modeler_description>Any generators and electric load center distribution objects are removed. An electric load center distribution object is added with a track schedule equal to the hourly output from SAM. A micro turbine generator object is add to the electric load center distribution object. The fuel used to make the electricity is zeroed out.</modeler_description>
   <arguments>
     <argument>
       <name>size</name>
@@ -27,11 +27,19 @@
       <type>Choice</type>
       <required>true</required>
       <model_dependent>false</model_dependent>
-      <default_value>c-si</default_value>
+      <default_value>standard</default_value>
       <choices>
         <choice>
-          <value>c-si</value>
-          <display_name>c-si</display_name>
+          <value>standard</value>
+          <display_name>standard</display_name>
+        </choice>
+        <choice>
+          <value>premium</value>
+          <display_name>premium</display_name>
+        </choice>
+        <choice>
+          <value>thin film</value>
+          <display_name>thin film</display_name>
         </choice>
       </choices>
     </argument>
@@ -147,51 +155,16 @@
   </attributes>
   <files>
     <file>
-      <filename>USA_CO_Denver_Intl_AP_725650_TMY3.ddy</filename>
-      <filetype>ddy</filetype>
-      <usage_type>test</usage_type>
-      <checksum>FB253570</checksum>
-    </file>
-    <file>
-      <filename>USA_CO_Denver_Intl_AP_725650_TMY3.epw</filename>
-      <filetype>epw</filetype>
-      <usage_type>test</usage_type>
-      <checksum>E23378AA</checksum>
-    </file>
-    <file>
-      <filename>Modules.csv</filename>
-      <filetype>csv</filetype>
-      <usage_type>resource</usage_type>
-      <checksum>F7F10234</checksum>
-    </file>
-    <file>
-      <filename>residential_photovoltaics_test.rb</filename>
-      <filetype>rb</filetype>
-      <usage_type>test</usage_type>
-      <checksum>81A3438C</checksum>
-    </file>
-    <file>
-      <filename>SFD_2000sqft_2story_SL_UA_Denver.osm</filename>
-      <filetype>osm</filetype>
-      <usage_type>test</usage_type>
-      <checksum>86A38CF7</checksum>
-    </file>
-    <file>
-      <version>
-        <software_program>OpenStudio</software_program>
-        <identifier>1.13.2</identifier>
-        <min_compatible>1.13.2</min_compatible>
-      </version>
-      <filename>measure.rb</filename>
-      <filetype>rb</filetype>
-      <usage_type>script</usage_type>
-      <checksum>0090FAB7</checksum>
-    </file>
-    <file>
       <filename>psychrometrics.rb</filename>
       <filetype>rb</filetype>
       <usage_type>resource</usage_type>
       <checksum>3C131B97</checksum>
+    </file>
+    <file>
+      <filename>ssc_api.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>C9F510A2</checksum>
     </file>
     <file>
       <filename>unit_conversions.rb</filename>
@@ -200,46 +173,111 @@
       <checksum>DCB12FCF</checksum>
     </file>
     <file>
-      <filename>MF_8units_1story_SL_Denver.osm</filename>
-      <filetype>osm</filetype>
+      <filename>USA_CO_Denver_Intl_AP_725650_TMY3.epw</filename>
+      <filetype>epw</filetype>
       <usage_type>test</usage_type>
-      <checksum>64B3CADA</checksum>
+      <checksum>E23378AA</checksum>
     </file>
     <file>
-      <filename>SFA_4units_1story_FB_UA_Denver.osm</filename>
-      <filetype>osm</filetype>
+      <filename>ssc_ffi.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>C9DD9291</checksum>
+    </file>
+    <file>
+      <version>
+        <software_program>OpenStudio</software_program>
+        <identifier>1.14.0</identifier>
+        <min_compatible>2.0.4</min_compatible>
+      </version>
+      <filename>measure.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>script</usage_type>
+      <checksum>96F59696</checksum>
+    </file>
+    <file>
+      <filename>USA_AK_Anchorage.Intl.AP.702730_TMY3.epw</filename>
+      <filetype>epw</filetype>
       <usage_type>test</usage_type>
-      <checksum>E90A54AB</checksum>
+      <checksum>01DBB4A1</checksum>
+    </file>
+    <file>
+      <filename>residential_photovoltaics_test.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>test</usage_type>
+      <checksum>4301A4E7</checksum>
     </file>
     <file>
       <filename>util.rb</filename>
       <filetype>rb</filetype>
       <usage_type>resource</usage_type>
-      <checksum>BAAF2AEF</checksum>
+      <checksum>37254C93</checksum>
     </file>
     <file>
-      <filename>weather.rb</filename>
-      <filetype>rb</filetype>
+      <filename>sam-sdk-2017-1-17-r1.zip</filename>
+      <filetype>zip</filetype>
       <usage_type>resource</usage_type>
-      <checksum>8322C807</checksum>
+      <checksum>14339B8F</checksum>
+    </file>
+    <file>
+      <filename>MF_8units_1story_SL_Anchorage.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>D086E2E0</checksum>
+    </file>
+    <file>
+      <filename>MF_8units_1story_SL_Denver.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>6DA7F072</checksum>
+    </file>
+    <file>
+      <filename>SFA_4units_1story_FB_UA_Anchorage.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>778E5586</checksum>
+    </file>
+    <file>
+      <filename>SFA_4units_1story_FB_UA_Denver.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>30D177B6</checksum>
+    </file>
+    <file>
+      <filename>SFD_2000sqft_2story_SL_UA_Anchorage.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>77B9157B</checksum>
+    </file>
+    <file>
+      <filename>SFD_2000sqft_2story_SL_UA_Denver.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>C7C92EA5</checksum>
     </file>
     <file>
       <filename>hvac.rb</filename>
       <filetype>rb</filetype>
       <usage_type>resource</usage_type>
-      <checksum>048F7BD2</checksum>
+      <checksum>27E5CCE6</checksum>
+    </file>
+    <file>
+      <filename>weather.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>D04CADDB</checksum>
     </file>
     <file>
       <filename>geometry.rb</filename>
       <filetype>rb</filetype>
       <usage_type>resource</usage_type>
-      <checksum>44E4E210</checksum>
+      <checksum>17063A91</checksum>
     </file>
     <file>
       <filename>constants.rb</filename>
       <filetype>rb</filetype>
       <usage_type>resource</usage_type>
-      <checksum>E02944E8</checksum>
+      <checksum>AAE3D2EE</checksum>
     </file>
   </files>
 </measure>

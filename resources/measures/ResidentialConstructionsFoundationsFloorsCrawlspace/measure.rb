@@ -6,7 +6,7 @@ require "#{File.dirname(__FILE__)}/resources/constants"
 require "#{File.dirname(__FILE__)}/resources/geometry"
 
 #start the measure
-class ProcessConstructionsFoundationsFloorsCrawlspace < OpenStudio::Ruleset::ModelUserScript
+class ProcessConstructionsFoundationsFloorsCrawlspace < OpenStudio::Measure::ModelMeasure
   
   #define the name that a user will see, this method may be deprecated as
   #the display name in PAT comes from the name field in measure.xml
@@ -24,10 +24,10 @@ class ProcessConstructionsFoundationsFloorsCrawlspace < OpenStudio::Ruleset::Mod
   
   #define the arguments that the user will input
   def arguments(model)
-    args = OpenStudio::Ruleset::OSArgumentVector.new
+    args = OpenStudio::Measure::OSArgumentVector.new
 
     #make a double argument for wall continuous insulation R-value
-    wall_rigid_r = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("wall_rigid_r", true)
+    wall_rigid_r = OpenStudio::Measure::OSArgument::makeDoubleArgument("wall_rigid_r", true)
     wall_rigid_r.setDisplayName("Wall Continuous Insulation Nominal R-value")
 	wall_rigid_r.setUnits("hr-ft^2-R/Btu")
 	wall_rigid_r.setDescription("The R-value of the continuous insulation.")
@@ -35,7 +35,7 @@ class ProcessConstructionsFoundationsFloorsCrawlspace < OpenStudio::Ruleset::Mod
     args << wall_rigid_r
 
     #make a double argument for wall continuous insulation thickness
-    wall_rigid_thick_in = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("wall_rigid_thick_in", true)
+    wall_rigid_thick_in = OpenStudio::Measure::OSArgument::makeDoubleArgument("wall_rigid_thick_in", true)
     wall_rigid_thick_in.setDisplayName("Wall Continuous Insulation Thickness")
 	wall_rigid_thick_in.setUnits("in")
 	wall_rigid_thick_in.setDescription("The thickness of the continuous insulation.")
@@ -43,7 +43,7 @@ class ProcessConstructionsFoundationsFloorsCrawlspace < OpenStudio::Ruleset::Mod
     args << wall_rigid_thick_in
 
     #make a double argument for ceiling cavity R-value
-    ceil_cavity_r = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("ceil_cavity_r", true)
+    ceil_cavity_r = OpenStudio::Measure::OSArgument::makeDoubleArgument("ceil_cavity_r", true)
     ceil_cavity_r.setDisplayName("Ceiling Cavity Insulation Nominal R-value")
 	ceil_cavity_r.setUnits("h-ft^2-R/Btu")
 	ceil_cavity_r.setDescription("Refers to the R-value of the cavity insulation and not the overall R-value of the assembly.")
@@ -55,14 +55,14 @@ class ProcessConstructionsFoundationsFloorsCrawlspace < OpenStudio::Ruleset::Mod
     installgrade_display_names << "I"
     installgrade_display_names << "II"
     installgrade_display_names << "III"
-	ceil_cavity_grade = OpenStudio::Ruleset::OSArgument::makeChoiceArgument("ceil_cavity_grade", installgrade_display_names, true)
+	ceil_cavity_grade = OpenStudio::Measure::OSArgument::makeChoiceArgument("ceil_cavity_grade", installgrade_display_names, true)
 	ceil_cavity_grade.setDisplayName("Ceiling Cavity Install Grade")
 	ceil_cavity_grade.setDescription("Installation grade as defined by RESNET standard. 5% of the cavity is considered missing insulation for Grade 3, 2% for Grade 2, and 0% for Grade 1.")
     ceil_cavity_grade.setDefaultValue("I")
 	args << ceil_cavity_grade
 
 	#make a choice argument for ceiling framing factor
-	ceil_ff = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("ceil_ff", true)
+	ceil_ff = OpenStudio::Measure::OSArgument::makeDoubleArgument("ceil_ff", true)
     ceil_ff.setDisplayName("Ceiling Framing Factor")
 	ceil_ff.setUnits("frac")
 	ceil_ff.setDescription("Fraction of ceiling that is framing.")
@@ -70,12 +70,20 @@ class ProcessConstructionsFoundationsFloorsCrawlspace < OpenStudio::Ruleset::Mod
 	args << ceil_ff
 
 	#make a choice argument for ceiling joist height
-	ceil_joist_height = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("ceil_joist_height", true)
+	ceil_joist_height = OpenStudio::Measure::OSArgument::makeDoubleArgument("ceil_joist_height", true)
 	ceil_joist_height.setDisplayName("Ceiling Joist Height")
 	ceil_joist_height.setUnits("in")
 	ceil_joist_height.setDescription("Height of the joist member.")
 	ceil_joist_height.setDefaultValue("9.25")
 	args << ceil_joist_height	
+    
+    #make a string argument for exposed perimeter
+    exposed_perim = OpenStudio::Measure::OSArgument::makeStringArgument("exposed_perim", true)
+	exposed_perim.setDisplayName("Exposed Perimeter")
+	exposed_perim.setUnits("ft")
+	exposed_perim.setDescription("Total length of the crawlspace's perimeter that is on the exterior of the building's footprint.")
+	exposed_perim.setDefaultValue(Constants.Auto)
+	args << exposed_perim	
     
     return args
   end #end the arguments method
@@ -126,6 +134,7 @@ class ProcessConstructionsFoundationsFloorsCrawlspace < OpenStudio::Ruleset::Mod
     crawlCeilingInstallGrade = {"I"=>1, "II"=>2, "III"=>3}[runner.getStringArgumentValue("ceil_cavity_grade",user_arguments)]
     crawlCeilingFramingFactor = runner.getDoubleArgumentValue("ceil_ff",user_arguments)
     crawlCeilingJoistHeight = runner.getDoubleArgumentValue("ceil_joist_height",user_arguments)
+    exposed_perim = runner.getStringArgumentValue("exposed_perim",user_arguments)
     
     # Validate Inputs
     if crawlWallContInsRvalueNominal < 0.0
@@ -148,11 +157,19 @@ class ProcessConstructionsFoundationsFloorsCrawlspace < OpenStudio::Ruleset::Mod
         runner.registerError("Ceiling Joist Height must be greater than 0.")
         return false
     end    
+    if exposed_perim != Constants.Auto and (not MathTools.valid_float?(exposed_perim) or exposed_perim.to_f < 0)
+        runner.registerError("Exposed Perimeter must be #{Constants.Auto} or a number greater than or equal to 0.")
+        return false
+    end
     
     # Get geometry values
     csHeight = Geometry.spaces_avg_height(spaces)
     csFloorArea = Geometry.get_floor_area_from_spaces(spaces)
-    csExtPerimeter = Geometry.calculate_perimeter(model, floor_surfaces, has_foundation_walls=true)
+    if exposed_perim == Constants.Auto
+        csExtPerimeter = Geometry.calculate_exposed_perimeter(model, floor_surfaces, has_foundation_walls=true)
+    else
+        csExtPerimeter = exposed_perim.to_f
+    end
     csExtWallArea = csExtPerimeter * Geometry.spaces_avg_height(spaces)
 
     # -------------------------------
@@ -265,6 +282,19 @@ class ProcessConstructionsFoundationsFloorsCrawlspace < OpenStudio::Ruleset::Mod
         end
     end
 
+    # Store info for HVAC Sizing measure
+    units = Geometry.get_building_units(model, runner)
+    if units.nil?
+        return false
+    end
+    units.each do |unit|
+        unit.spaces.each do |space|
+            next if not spaces.include?(space)
+            unit.setFeature(Constants.SizingInfoSpaceWallsInsulated(space), (crawlWallContInsThickness > 0 and crawlWallContInsRvalueNominal > 0))
+            unit.setFeature(Constants.SizingInfoSpaceCeilingInsulated(space), (crawlCeilingCavityInsRvalueNominal > 0))
+        end
+    end
+    
     # Remove any constructions/materials that aren't used
     HelperMethods.remove_unused_constructions_and_materials(model, runner)
 

@@ -6,7 +6,7 @@ require "#{File.dirname(__FILE__)}/resources/constants"
 require "#{File.dirname(__FILE__)}/resources/geometry"
 
 #start the measure
-class ProcessConstructionsWallsInterzonal < OpenStudio::Ruleset::ModelUserScript
+class ProcessConstructionsWallsInterzonal < OpenStudio::Measure::ModelMeasure
 
   #define the name that a user will see, this method may be deprecated as
   #the display name in PAT comes from the name field in measure.xml
@@ -24,10 +24,10 @@ class ProcessConstructionsWallsInterzonal < OpenStudio::Ruleset::ModelUserScript
   
   #define the arguments that the user will input
   def arguments(model)
-    args = OpenStudio::Ruleset::OSArgumentVector.new
+    args = OpenStudio::Measure::OSArgumentVector.new
 
     #make a double argument for R-value of installed cavity insulation
-    cavity_r = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("cavity_r", true)
+    cavity_r = OpenStudio::Measure::OSArgument::makeDoubleArgument("cavity_r", true)
     cavity_r.setDisplayName("Cavity Insulation Installed R-value")
     cavity_r.setUnits("hr-ft^2-R/Btu")
     cavity_r.setDescription("Refers to the R-value of the cavity insulation and not the overall R-value of the assembly. If batt insulation must be compressed to fit within the cavity (e.g., R19 in a 5.5\" 2x6 cavity), use an R-value that accounts for this effect (see HUD Mobile Home Construction and Safety Standards 3280.509 for reference).")
@@ -41,14 +41,14 @@ class ProcessConstructionsWallsInterzonal < OpenStudio::Ruleset::ModelUserScript
     installgrade_display_names << "III"
     
     #make a choice argument for wall cavity insulation installation grade
-    install_grade = OpenStudio::Ruleset::OSArgument::makeChoiceArgument("install_grade", installgrade_display_names, true)
+    install_grade = OpenStudio::Measure::OSArgument::makeChoiceArgument("install_grade", installgrade_display_names, true)
     install_grade.setDisplayName("Cavity Install Grade")
     install_grade.setDescription("Installation grade as defined by RESNET standard. 5% of the cavity is considered missing insulation for Grade 3, 2% for Grade 2, and 0% for Grade 1.")
     install_grade.setDefaultValue("I")
     args << install_grade
 
     #make a double argument for wall cavity depth
-    cavity_depth = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("cavity_depth", true)
+    cavity_depth = OpenStudio::Measure::OSArgument::makeDoubleArgument("cavity_depth", true)
     cavity_depth.setDisplayName("Cavity Depth")
     cavity_depth.setUnits("in")
     cavity_depth.setDescription("Depth of the stud cavity. 3.5\" for 2x4s, 5.5\" for 2x6s, etc.")
@@ -56,14 +56,14 @@ class ProcessConstructionsWallsInterzonal < OpenStudio::Ruleset::ModelUserScript
     args << cavity_depth
     
     #make a bool argument for whether the cavity insulation fills the cavity
-    ins_fills_cavity = OpenStudio::Ruleset::OSArgument::makeBoolArgument("ins_fills_cavity", true)
+    ins_fills_cavity = OpenStudio::Measure::OSArgument::makeBoolArgument("ins_fills_cavity", true)
     ins_fills_cavity.setDisplayName("Insulation Fills Cavity")
     ins_fills_cavity.setDescription("When the insulation does not completely fill the depth of the cavity, air film resistances are added to the insulation R-value.")
     ins_fills_cavity.setDefaultValue(true)
     args << ins_fills_cavity
 
     #make a double argument for framing factor
-    framing_factor = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("framing_factor", true)
+    framing_factor = OpenStudio::Measure::OSArgument::makeDoubleArgument("framing_factor", true)
     framing_factor.setDisplayName("Framing Factor")
     framing_factor.setUnits("frac")
     framing_factor.setDescription("The fraction of a wall assembly that is comprised of structural framing.")

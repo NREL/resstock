@@ -2,7 +2,7 @@
 # http://nrel.github.io/OpenStudio-user-documentation/measures/measure_writing_guide/
 
 # start the measure
-class CreateResidentialOrientation < OpenStudio::Ruleset::ModelUserScript
+class CreateResidentialOrientation < OpenStudio::Measure::ModelMeasure
 
   # human readable name
   def name
@@ -21,10 +21,10 @@ class CreateResidentialOrientation < OpenStudio::Ruleset::ModelUserScript
 
   # define the arguments that the user will input
   def arguments(model)
-    args = OpenStudio::Ruleset::OSArgumentVector.new
+    args = OpenStudio::Measure::OSArgumentVector.new
 	
     #make a choice argument for foundation type
-    orientation = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("orientation", true)
+    orientation = OpenStudio::Measure::OSArgument::makeDoubleArgument("orientation", true)
     orientation.setDisplayName("Azimuth")
     orientation.setUnits("degrees")
     orientation.setDescription("The house's azimuth is measured clockwise from due south when viewed from above (e.g., South=0, West=90, North=180, East=270).")

@@ -5,7 +5,7 @@ require "#{File.dirname(__FILE__)}/resources/unit_conversions"
 require "#{File.dirname(__FILE__)}/resources/util"
 
 #start the measure
-class ResidentialClothesDryerFuel < OpenStudio::Ruleset::ModelUserScript
+class ResidentialClothesDryerFuel < OpenStudio::Measure::ModelMeasure
   
   def name
     return "Set Residential Fuel Clothes Dryer"
@@ -21,28 +21,28 @@ class ResidentialClothesDryerFuel < OpenStudio::Ruleset::ModelUserScript
 
   #define the arguments that the user will input
   def arguments(model)
-    args = OpenStudio::Ruleset::OSArgumentVector.new
+    args = OpenStudio::Measure::OSArgumentVector.new
     
 	#make a double argument for Fuel Type
     fuel_display_names = OpenStudio::StringVector.new
     fuel_display_names << Constants.FuelTypeGas
     fuel_display_names << Constants.FuelTypePropane
-    cd_fuel_type = OpenStudio::Ruleset::OSArgument::makeChoiceArgument("cd_fuel_type", fuel_display_names, true)
+    cd_fuel_type = OpenStudio::Measure::OSArgument::makeChoiceArgument("cd_fuel_type", fuel_display_names, true)
     cd_fuel_type.setDisplayName("Fuel Type")
     cd_fuel_type.setDescription("Type of fuel used by the clothes dryer.")
     cd_fuel_type.setDefaultValue(Constants.FuelTypeGas)
     args << cd_fuel_type
 
 	#make a double argument for Energy Factor
-	cd_ef = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("cd_ef",true)
-	cd_ef.setDisplayName("Energy Factor")
-    cd_ef.setDescription("The Energy Factor measures the pounds of clothing that can be dried per kWh (Fuel equivalent) of electricity.")
-	cd_ef.setDefaultValue(2.75)
-    cd_ef.setUnits("lb/kWh")
-	args << cd_ef
+	cd_cef = OpenStudio::Measure::OSArgument::makeDoubleArgument("cd_cef",true)
+	cd_cef.setDisplayName("Combined Energy Factor")
+    cd_cef.setDescription("The Combined Energy Factor (CEF) measures the pounds of clothing that can be dried per kWh (Fuel equivalent) of electricity, including energy consumed during Stand-by and Off modes. If only an Energy Factor (EF) is available, convert using the equation: CEF = EF / 1.15.")
+	cd_cef.setDefaultValue(2.4)
+    cd_cef.setUnits("lb/kWh")
+	args << cd_cef
     
     #make a double argument for Assumed Fuel Electric Split
-    cd_fuel_split = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("cd_fuel_split",true)
+    cd_fuel_split = OpenStudio::Measure::OSArgument::makeDoubleArgument("cd_fuel_split",true)
 	cd_fuel_split.setDisplayName("Assumed Fuel Electric Split")
     cd_fuel_split.setDescription("Defined as (Electric Energy) / (Fuel Energy + Electric Energy).")
 	cd_fuel_split.setDefaultValue(0.07)
@@ -50,45 +50,45 @@ class ResidentialClothesDryerFuel < OpenStudio::Ruleset::ModelUserScript
 	args << cd_fuel_split
 	
 	#make a double argument for occupancy energy multiplier
-	cd_mult = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("cd_mult",true)
+	cd_mult = OpenStudio::Measure::OSArgument::makeDoubleArgument("cd_mult",true)
 	cd_mult.setDisplayName("Occupancy Energy Multiplier")
     cd_mult.setDescription("Appliance energy use is multiplied by this factor to account for occupancy usage that differs from the national average.")
 	cd_mult.setDefaultValue(1)
 	args << cd_mult
 
    	#Make a string argument for 24 weekday schedule values
-	cd_weekday_sch = OpenStudio::Ruleset::OSArgument::makeStringArgument("cd_weekday_sch")
+	cd_weekday_sch = OpenStudio::Measure::OSArgument::makeStringArgument("cd_weekday_sch")
 	cd_weekday_sch.setDisplayName("Weekday schedule")
 	cd_weekday_sch.setDescription("Specify the 24-hour weekday schedule.")
 	cd_weekday_sch.setDefaultValue("0.010, 0.006, 0.004, 0.002, 0.004, 0.006, 0.016, 0.032, 0.048, 0.068, 0.078, 0.081, 0.074, 0.067, 0.057, 0.061, 0.055, 0.054, 0.051, 0.051, 0.052, 0.054, 0.044, 0.024")
 	args << cd_weekday_sch
     
 	#Make a string argument for 24 weekend schedule values
-	cd_weekend_sch = OpenStudio::Ruleset::OSArgument::makeStringArgument("cd_weekend_sch")
+	cd_weekend_sch = OpenStudio::Measure::OSArgument::makeStringArgument("cd_weekend_sch")
 	cd_weekend_sch.setDisplayName("Weekend schedule")
 	cd_weekend_sch.setDescription("Specify the 24-hour weekend schedule.")
 	cd_weekend_sch.setDefaultValue("0.010, 0.006, 0.004, 0.002, 0.004, 0.006, 0.016, 0.032, 0.048, 0.068, 0.078, 0.081, 0.074, 0.067, 0.057, 0.061, 0.055, 0.054, 0.051, 0.051, 0.052, 0.054, 0.044, 0.024")
 	args << cd_weekend_sch
 
   	#Make a string argument for 12 monthly schedule values
-	cd_monthly_sch = OpenStudio::Ruleset::OSArgument::makeStringArgument("cd_monthly_sch", true)
+	cd_monthly_sch = OpenStudio::Measure::OSArgument::makeStringArgument("cd_monthly_sch", true)
 	cd_monthly_sch.setDisplayName("Month schedule")
 	cd_monthly_sch.setDescription("Specify the 12-month schedule.")
 	cd_monthly_sch.setDefaultValue("1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0")
 	args << cd_monthly_sch
 
-	#make a double argument for Clothes Washer Modified Energy Factor
+	#make a double argument for Clothes Washer Integrated Modified Energy Factor
     #TODO: Remove when clothes washer info available
-	cw_mef = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("cw_mef",true)
-	cw_mef.setDisplayName("Clothes Washer Energy Factor")
-    cw_mef.setUnits("ft^3/kWh-cycle")
-    cw_mef.setDescription("The Modified Energy Factor (MEF) is the quotient of the capacity of the clothes container, C, divided by the total clothes washer energy consumption per cycle, with such energy consumption expressed as the sum of the machine electrical energy consumption, M, the hot water energy consumption, E, and the energy required for removal of the remaining moisture in the wash load, D. The higher the value, the more efficient the clothes washer is. Procedures to test MEF are defined by the Department of Energy (DOE) in 10 Code of Federal Regulations Part 430, Appendix J to Subpart B.")
-	cw_mef.setDefaultValue(1.41)
-	args << cw_mef
+	cw_imef = OpenStudio::Measure::OSArgument::makeDoubleArgument("cw_imef",true)
+	cw_imef.setDisplayName("Integrated Modified Energy Factor")
+    cw_imef.setUnits("ft^3/kWh-cycle")
+    cw_imef.setDescription("The Integrated Modified Energy Factor (IMEF) is the capacity of the clothes container divided by the total clothes washer energy consumption per cycle, where the energy consumption is the sum of the machine electrical energy consumption, the hot water energy consumption, the energy required for removal of the remaining moisture in the wash load, standby energy, and off-mode energy consumption. If only a Modified Energy Factor (MEF) is available, convert using the equation: IMEF = (MEF - 0.503) / 0.95.")
+	cw_imef.setDefaultValue(0.95)
+	args << cw_imef
     
     #make a double argument for Clothes Washer Rated Annual Consumption
     #TODO: Remove when clothes washer info available
-    cw_rated_annual_energy = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("cw_rated_annual_energy",true)
+    cw_rated_annual_energy = OpenStudio::Measure::OSArgument::makeDoubleArgument("cw_rated_annual_energy",true)
 	cw_rated_annual_energy.setDisplayName("Clothes Washer Rated Annual Consumption")
     cw_rated_annual_energy.setUnits("kWh")
     cw_rated_annual_energy.setDescription("The annual energy consumed by the clothes washer, as rated, obtained from the EnergyGuide label. This includes both the appliance electricity consumption and the energy required for water heating.")
@@ -97,7 +97,7 @@ class ResidentialClothesDryerFuel < OpenStudio::Ruleset::ModelUserScript
     
 	#make a double argument for Clothes Washer Drum Volume
     #TODO: Remove when clothes washer info available
-	cw_drum_volume = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("cw_drum_volume",true)
+	cw_drum_volume = OpenStudio::Measure::OSArgument::makeDoubleArgument("cw_drum_volume",true)
 	cw_drum_volume.setDisplayName("Clothes Washer Drum Volume")
     cw_drum_volume.setUnits("ft^3")
     cw_drum_volume.setDescription("Volume of the washer drum.  Obtained from the EnergyStar website or the manufacturer's literature.")
@@ -114,7 +114,7 @@ class ResidentialClothesDryerFuel < OpenStudio::Ruleset::ModelUserScript
     spaces.each do |space|
         space_args << space.name.to_s
     end
-    space = OpenStudio::Ruleset::OSArgument::makeChoiceArgument("space", space_args, true)
+    space = OpenStudio::Measure::OSArgument::makeChoiceArgument("space", space_args, true)
     space.setDisplayName("Location")
     space.setDescription("Select the space where the cooking range is located. '#{Constants.Auto}' will choose the lowest above-grade finished space available (e.g., first story living space), or a below-grade finished space as last resort. For multifamily buildings, '#{Constants.Auto}' will choose a space for each unit of the building.")
     space.setDefaultValue(Constants.Auto)
@@ -134,20 +134,20 @@ class ResidentialClothesDryerFuel < OpenStudio::Ruleset::ModelUserScript
 
     #assign the user inputs to variables
     cd_fuel_type = runner.getStringArgumentValue("cd_fuel_type",user_arguments)
-	cd_ef = runner.getDoubleArgumentValue("cd_ef",user_arguments)
+	cd_cef = runner.getDoubleArgumentValue("cd_cef",user_arguments)
     cd_fuel_split = runner.getDoubleArgumentValue("cd_fuel_split",user_arguments)
 	cd_mult = runner.getDoubleArgumentValue("cd_mult",user_arguments)
 	cd_weekday_sch = runner.getStringArgumentValue("cd_weekday_sch",user_arguments)
 	cd_weekend_sch = runner.getStringArgumentValue("cd_weekend_sch",user_arguments)
     cd_monthly_sch = runner.getStringArgumentValue("cd_monthly_sch",user_arguments)
-	cw_mef = runner.getDoubleArgumentValue("cw_mef",user_arguments)
+	cw_imef = runner.getDoubleArgumentValue("cw_imef",user_arguments)
     cw_rated_annual_energy = runner.getDoubleArgumentValue("cw_rated_annual_energy",user_arguments)
 	cw_drum_volume = runner.getDoubleArgumentValue("cw_drum_volume",user_arguments)
 	space_r = runner.getStringArgumentValue("space",user_arguments)
 
     #Check for valid inputs
-	if cd_ef <= 0
-		runner.registerError("Energy factor must be greater than 0.0.")
+	if cd_cef <= 0
+		runner.registerError("Combined energy factor must be greater than 0.0.")
         return false
 	end
     if cd_fuel_split < 0 or cd_fuel_split > 1
@@ -157,8 +157,8 @@ class ResidentialClothesDryerFuel < OpenStudio::Ruleset::ModelUserScript
 		runner.registerError("Occupancy energy multiplier must be greater than or equal to 0.0.")
         return false
     end
-    if cw_mef <= 0
-        runner.registerError("Clothes washer modified energy factor must be greater than 0.0.")
+    if cw_imef <= 0
+        runner.registerError("Clothes washer integrated modified energy factor must be greater than 0.0.")
         return false
     end
     if cw_rated_annual_energy <= 0
@@ -225,6 +225,9 @@ class ResidentialClothesDryerFuel < OpenStudio::Ruleset::ModelUserScript
             end
         end
         
+        cd_ef = cd_cef * 1.15 # RESNET interpretation
+        cw_mef = 0.503 + 0.95 * cw_imef # RESNET interpretation
+
         # Energy Use is based on "Method for Evaluating Energy Use of Dishwashers, Clothes 
         # Washers, and Clothes Dryers" by Eastment and Hendron, Conference Paper NREL/CP-550-39769, 
         # August 2006. Their paper is in part based on the energy use calculations presented in the 
@@ -319,7 +322,7 @@ class ResidentialClothesDryerFuel < OpenStudio::Ruleset::ModelUserScript
             cd_def = OpenStudio::Model::OtherEquipmentDefinition.new(model)
             cd = OpenStudio::Model::OtherEquipment.new(cd_def)
             cd.setName(unit_obj_name_f)
-            #cd.setEndUseSubcategory(unit_obj_name_f) # FIXME: Not wrapped in OpenStudio
+            cd.setEndUseSubcategory(unit_obj_name_f)
             cd.setFuelType(HelperMethods.eplus_fuel_map(cd_fuel_type))
             cd.setSpace(space)
             cd_def.setName(unit_obj_name_f)

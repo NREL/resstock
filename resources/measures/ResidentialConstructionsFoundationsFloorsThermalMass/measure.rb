@@ -6,7 +6,7 @@ require "#{File.dirname(__FILE__)}/resources/constants"
 require "#{File.dirname(__FILE__)}/resources/geometry"
 
 #start the measure
-class ProcessConstructionsFoundationsFloorsThermalMass < OpenStudio::Ruleset::ModelUserScript
+class ProcessConstructionsFoundationsFloorsThermalMass < OpenStudio::Measure::ModelMeasure
 
   #define the name that a user will see, this method may be deprecated as
   #the display name in PAT comes from the name field in measure.xml
@@ -24,10 +24,10 @@ class ProcessConstructionsFoundationsFloorsThermalMass < OpenStudio::Ruleset::Mo
   
   #define the arguments that the user will input
   def arguments(model)
-    args = OpenStudio::Ruleset::OSArgumentVector.new
+    args = OpenStudio::Measure::OSArgumentVector.new
 
     #make a double argument for thickness
-    thick_in = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("thick_in", true)
+    thick_in = OpenStudio::Measure::OSArgument::makeDoubleArgument("thick_in", true)
     thick_in.setDisplayName("Thickness")
     thick_in.setUnits("in")
     thick_in.setDescription("Thickness of the floor mass.")
@@ -35,7 +35,7 @@ class ProcessConstructionsFoundationsFloorsThermalMass < OpenStudio::Ruleset::Mo
     args << thick_in
     
     #make a double argument for conductivity
-    cond = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("cond", true)
+    cond = OpenStudio::Measure::OSArgument::makeDoubleArgument("cond", true)
     cond.setDisplayName("Conductivity")
     cond.setUnits("Btu-in/h-ft^2-R")
     cond.setDescription("Conductivity of the floor mass.")
@@ -43,7 +43,7 @@ class ProcessConstructionsFoundationsFloorsThermalMass < OpenStudio::Ruleset::Mo
     args << cond
     
     #make a double argument for density
-    dens = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("dens", true)
+    dens = OpenStudio::Measure::OSArgument::makeDoubleArgument("dens", true)
     dens.setDisplayName("Density")
     dens.setUnits("lb/ft^3")
     dens.setDescription("Density of the floor mass.")
@@ -51,7 +51,7 @@ class ProcessConstructionsFoundationsFloorsThermalMass < OpenStudio::Ruleset::Mo
     args << dens
     
     #make a double argument for specific heat
-    specheat = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("specheat", true)
+    specheat = OpenStudio::Measure::OSArgument::makeDoubleArgument("specheat", true)
     specheat.setDisplayName("Specific Heat")
     specheat.setUnits("Btu/lb-R")
     specheat.setDescription("Specific heat of the floor mass.")

@@ -30,20 +30,27 @@ class WeatherProcess
       wf = model.weatherFile.get
       # Sometimes path is available, sometimes just url. Should be improved in OS 2.0.
       if wf.path.is_initialized
-        epw_path = wf.path.get.to_s
+        @epw_path = wf.path.get.to_s
       else
-        epw_path = wf.url.to_s.sub("file:///","").sub("file://","").sub("file:","")
+        @epw_path = wf.url.to_s.sub("file:///","").sub("file://","").sub("file:","")
       end
-      if not File.exist? epw_path # Handle relative paths for unit tests
-        epw_path = File.join(measure_dir, "resources", epw_path)
+      if not File.exist? @epw_path # Handle relative paths for unit tests
+        epw_path2 = File.join(measure_dir, "resources", @epw_path)
+        if File.exist? epw_path2
+            @epw_path = epw_path2
+        end
       end
-      @header, @data, @design = process_epw(epw_path, header_only)
+      @header, @data, @design = process_epw(@epw_path, header_only)
     else
       runner.registerError("Model has not been assigned a weather file.")
       @error = true
     end
   end
 
+  def epw_path
+    return @epw_path
+  end
+  
   def error?
     return @error
   end
@@ -79,6 +86,7 @@ class WeatherProcess
         end
         
         design = WeatherDesign.new
+        # FIXME: This path should be passed in.
         ddy_path = epw_path.gsub(".epw",".ddy")
         epwHasDesignData = false
         if File.exist?(ddy_path)
@@ -210,9 +218,9 @@ class WeatherProcess
       def calc_heat_cool_degree_days(data, hd, dailydbs)
         # Calculates and stores heating/cooling degree days
         data.HDD65F = calc_degree_days(dailydbs, 65, true)
-        #data.HDD50F = calc_degree_days(dailydbs, 50, true)
-        #data.CDD65F = calc_degree_days(dailydbs, 65, false)
-        #data.CDD50F = calc_degree_days(dailydbs, 50, false)
+        data.HDD50F = calc_degree_days(dailydbs, 50, true)
+        data.CDD65F = calc_degree_days(dailydbs, 65, false)
+        data.CDD50F = calc_degree_days(dailydbs, 50, false)
 
         return data
 

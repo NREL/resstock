@@ -7,7 +7,7 @@ require "#{File.dirname(__FILE__)}/resources/schedules"
 require "#{File.dirname(__FILE__)}/resources/util"
 
 # start the measure
-class ProcessCeilingFan < OpenStudio::Ruleset::ModelUserScript
+class ProcessCeilingFan < OpenStudio::Measure::ModelMeasure
 
   class Unit
     def initialize
@@ -38,10 +38,10 @@ class ProcessCeilingFan < OpenStudio::Ruleset::ModelUserScript
 
   # define the arguments that the user will input
   def arguments(model)
-    args = OpenStudio::Ruleset::OSArgumentVector.new
+    args = OpenStudio::Measure::OSArgumentVector.new
 
     #make a string argument for coverage
-    coverage = OpenStudio::Ruleset::OSArgument::makeStringArgument("coverage", true)
+    coverage = OpenStudio::Measure::OSArgument::makeStringArgument("coverage", true)
     coverage.setDisplayName("Coverage")
     coverage.setUnits("frac")
     coverage.setDescription("Fraction of house conditioned by fans where # fans = (above-grade finished floor area)/(% coverage)/300.")
@@ -49,7 +49,7 @@ class ProcessCeilingFan < OpenStudio::Ruleset::ModelUserScript
     args << coverage
 
     #make a string argument for specified number
-    specified_num = OpenStudio::Ruleset::OSArgument::makeStringArgument("specified_num", true)
+    specified_num = OpenStudio::Measure::OSArgument::makeStringArgument("specified_num", true)
     specified_num.setDisplayName("Specified Number")
     specified_num.setUnits("#/unit")
     specified_num.setDescription("Total number of fans.")
@@ -57,7 +57,7 @@ class ProcessCeilingFan < OpenStudio::Ruleset::ModelUserScript
     args << specified_num
     
     #make a double argument for power
-    power = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("power", true)
+    power = OpenStudio::Measure::OSArgument::makeDoubleArgument("power", true)
     power.setDisplayName("Power")
     power.setUnits("W")
     power.setDescription("Power consumption per fan assuming it runs at medium speed.")
@@ -68,21 +68,21 @@ class ProcessCeilingFan < OpenStudio::Ruleset::ModelUserScript
     control_names = OpenStudio::StringVector.new
     control_names << Constants.CeilingFanControlTypical
     control_names << Constants.CeilingFanControlSmart
-    control = OpenStudio::Ruleset::OSArgument::makeChoiceArgument("control", control_names, true)
+    control = OpenStudio::Measure::OSArgument::makeChoiceArgument("control", control_names, true)
     control.setDisplayName("Control")
     control.setDescription("'Typical' indicates half of the fans will be on whenever the interior temperature is above the cooling setpoint; 'Smart' indicates 50% of the energy consumption of 'Typical.'")
     control.setDefaultValue(Constants.CeilingFanControlTypical)
     args << control 
     
     #make a bool argument for using benchmark energy
-    use_benchmark_energy = OpenStudio::Ruleset::OSArgument::makeBoolArgument("use_benchmark_energy", true)
+    use_benchmark_energy = OpenStudio::Measure::OSArgument::makeBoolArgument("use_benchmark_energy", true)
     use_benchmark_energy.setDisplayName("Use Benchmark Energy")
     use_benchmark_energy.setDescription("Use the energy value specified in the BA Benchmark: 77.3 + 0.0403 x FFA kWh/yr, where FFA is Finished Floor Area.")
     use_benchmark_energy.setDefaultValue(true)
     args << use_benchmark_energy
     
     #make a double argument for cooling setpoint offset
-    cooling_setpoint_offset = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("cooling_setpoint_offset", true)
+    cooling_setpoint_offset = OpenStudio::Measure::OSArgument::makeDoubleArgument("cooling_setpoint_offset", true)
     cooling_setpoint_offset.setDisplayName("Cooling Setpoint Offset")
     cooling_setpoint_offset.setUnits("degrees F")
     cooling_setpoint_offset.setDescription("Increase in cooling set point due to fan usage.")
@@ -90,27 +90,27 @@ class ProcessCeilingFan < OpenStudio::Ruleset::ModelUserScript
     args << cooling_setpoint_offset    
     
     #make a double argument for BA Benchamrk multiplier
-    mult = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("mult")
+    mult = OpenStudio::Measure::OSArgument::makeDoubleArgument("mult")
     mult.setDisplayName("Building America Benchmark Multiplier")
     mult.setDefaultValue(1)
     args << mult
     
     #Make a string argument for 24 weekday schedule values
-    weekday_sch = OpenStudio::Ruleset::OSArgument::makeStringArgument("weekday_sch", true)
+    weekday_sch = OpenStudio::Measure::OSArgument::makeStringArgument("weekday_sch", true)
     weekday_sch.setDisplayName("Weekday schedule")
     weekday_sch.setDescription("Specify the 24-hour weekday schedule.")
     weekday_sch.setDefaultValue("0.04, 0.037, 0.037, 0.036, 0.033, 0.036, 0.043, 0.047, 0.034, 0.023, 0.024, 0.025, 0.024, 0.028, 0.031, 0.032, 0.039, 0.053, 0.063, 0.067, 0.071, 0.069, 0.059, 0.05")
     args << weekday_sch
       
     #Make a string argument for 24 weekend schedule values
-    weekend_sch = OpenStudio::Ruleset::OSArgument::makeStringArgument("weekend_sch", true)
+    weekend_sch = OpenStudio::Measure::OSArgument::makeStringArgument("weekend_sch", true)
     weekend_sch.setDisplayName("Weekend schedule")
     weekend_sch.setDescription("Specify the 24-hour weekend schedule.")
     weekend_sch.setDefaultValue("0.04, 0.037, 0.037, 0.036, 0.033, 0.036, 0.043, 0.047, 0.034, 0.023, 0.024, 0.025, 0.024, 0.028, 0.031, 0.032, 0.039, 0.053, 0.063, 0.067, 0.071, 0.069, 0.059, 0.05")
     args << weekend_sch
 
     #Make a string argument for 12 monthly schedule values
-    monthly_sch = OpenStudio::Ruleset::OSArgument::makeStringArgument("monthly_sch", true)
+    monthly_sch = OpenStudio::Measure::OSArgument::makeStringArgument("monthly_sch", true)
     monthly_sch.setDisplayName("Month schedule")
     monthly_sch.setDescription("Specify the 12-month schedule.")
     monthly_sch.setDefaultValue("1.248, 1.257, 0.993, 0.989, 0.993, 0.827, 0.821, 0.821, 0.827, 0.99, 0.987, 1.248")
@@ -224,9 +224,9 @@ class ProcessCeilingFan < OpenStudio::Ruleset::ModelUserScript
     
       # Determine geometry for spaces and zones that are unit specific
       Geometry.get_thermal_zones_from_spaces(building_unit.spaces).each do |thermal_zone|
-        if thermal_zone.name.to_s.start_with? Constants.LivingZone
+        if Geometry.is_living(thermal_zone)
           unit.living_zone = thermal_zone
-        elsif thermal_zone.name.to_s.start_with? Constants.FinishedBasementZone
+        elsif Geometry.is_finished_basement(thermal_zone)
           unit.finished_basement_zone = thermal_zone
         end
       end
@@ -384,9 +384,9 @@ class ProcessCeilingFan < OpenStudio::Ruleset::ModelUserScript
       equip.setName(equip_def.name.to_s)
       equip.setSpace(unit.living_zone.spaces[0])
       equip_def.setDesignLevel(OpenStudio::convert(ceiling_fans_max_power,"kW","W").get)
+      equip_def.setFractionRadiant(0.558)
       equip_def.setFractionLatent(0)
-      equip_def.setFractionRadiant(Constants.rad)
-      equip_def.setFractionLost(0)
+      equip_def.setFractionLost(0.07)
       equip.setSchedule(schedules.CeilingFansMaster)
       
       # Sensor that reports the value of the schedule CeilingFan (0 if cooling setpoint setup is in effect, 1 otherwise).
@@ -456,9 +456,9 @@ class ProcessCeilingFan < OpenStudio::Ruleset::ModelUserScript
           mel.setSpace(space)
           mel_def.setName(space_obj_name)
           mel_def.setDesignLevel(space_design_level)
-          mel_def.setFractionRadiant(Constants.rad)
-          mel_def.setFractionLatent(Constants.lat)
-          mel_def.setFractionLost(1 - Constants.lat - Constants.sens)
+          mel_def.setFractionRadiant(0.558)
+          mel_def.setFractionLatent(0.0)
+          mel_def.setFractionLost(0.07)
           mel.setSchedule(sch.schedule)
                       
         end # benchmark

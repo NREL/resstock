@@ -3,7 +3,7 @@ require "#{File.dirname(__FILE__)}/resources/constants"
 require "#{File.dirname(__FILE__)}/resources/geometry"
 
 #start the measure
-class ResidentialFreezer < OpenStudio::Ruleset::ModelUserScript
+class ResidentialFreezer < OpenStudio::Measure::ModelMeasure
   
   def name
     return "Set Residential Freezer"
@@ -19,12 +19,12 @@ class ResidentialFreezer < OpenStudio::Ruleset::ModelUserScript
   
   #define the arguments that the user will input
   def arguments(model)
-    args = OpenStudio::Ruleset::OSArgumentVector.new
+    args = OpenStudio::Measure::OSArgumentVector.new
     
 	#TODO: New argument for demand response for freezers (alternate schedules if automatic DR control is specified)
 	
 	#make a double argument for user defined freezer options
-	freezer_E = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("freezer_E",true)
+	freezer_E = OpenStudio::Measure::OSArgument::makeDoubleArgument("freezer_E",true)
 	freezer_E.setDisplayName("Rated Annual Consumption")
 	freezer_E.setUnits("kWh/yr")
 	freezer_E.setDescription("The EnergyGuide rated annual energy consumption for a freezer.")
@@ -32,28 +32,28 @@ class ResidentialFreezer < OpenStudio::Ruleset::ModelUserScript
 	args << freezer_E
 	
 	#make a double argument for Occupancy Energy Multiplier
-	mult = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("mult")
+	mult = OpenStudio::Measure::OSArgument::makeDoubleArgument("mult")
 	mult.setDisplayName("Occupancy Energy Multiplier")
 	mult.setDescription("Appliance energy use is multiplied by this factor to account for occupancy usage that differs from the national average.")
 	mult.setDefaultValue(1)
 	args << mult
 	
 	#Make a string argument for 24 weekday schedule values
-	weekday_sch = OpenStudio::Ruleset::OSArgument::makeStringArgument("weekday_sch")
+	weekday_sch = OpenStudio::Measure::OSArgument::makeStringArgument("weekday_sch")
 	weekday_sch.setDisplayName("Weekday schedule")
 	weekday_sch.setDescription("Specify the 24-hour weekday schedule.")
 	weekday_sch.setDefaultValue("0.040, 0.039, 0.038, 0.037, 0.036, 0.036, 0.038, 0.040, 0.041, 0.041, 0.040, 0.040, 0.042, 0.042, 0.042, 0.041, 0.044, 0.048, 0.050, 0.048, 0.047, 0.046, 0.044, 0.041")
 	args << weekday_sch
     
 	#Make a string argument for 24 weekend schedule values
-	weekend_sch = OpenStudio::Ruleset::OSArgument::makeStringArgument("weekend_sch")
+	weekend_sch = OpenStudio::Measure::OSArgument::makeStringArgument("weekend_sch")
 	weekend_sch.setDisplayName("Weekend schedule")
 	weekend_sch.setDescription("Specify the 24-hour weekend schedule.")
 	weekend_sch.setDefaultValue("0.040, 0.039, 0.038, 0.037, 0.036, 0.036, 0.038, 0.040, 0.041, 0.041, 0.040, 0.040, 0.042, 0.042, 0.042, 0.041, 0.044, 0.048, 0.050, 0.048, 0.047, 0.046, 0.044, 0.041")
 	args << weekend_sch
 
 	#Make a string argument for 12 monthly schedule values
-	monthly_sch = OpenStudio::Ruleset::OSArgument::makeStringArgument("monthly_sch")
+	monthly_sch = OpenStudio::Measure::OSArgument::makeStringArgument("monthly_sch")
 	monthly_sch.setDisplayName("Month schedule")
 	monthly_sch.setDescription("Specify the 12-month schedule.")
 	monthly_sch.setDefaultValue("0.837, 0.835, 1.084, 1.084, 1.084, 1.096, 1.096, 1.096, 1.096, 0.931, 0.925, 0.837")
@@ -66,7 +66,7 @@ class ResidentialFreezer < OpenStudio::Ruleset::ModelUserScript
     spaces.each do |space|
         space_args << space.name.to_s
     end
-    space = OpenStudio::Ruleset::OSArgument::makeChoiceArgument("space", space_args, true)
+    space = OpenStudio::Measure::OSArgument::makeChoiceArgument("space", space_args, true)
     space.setDisplayName("Location")
     space.setDescription("Select the space where the freezer is located. '#{Constants.Auto}' will choose the lowest above-grade finished space available (e.g., first story living space), or a below-grade finished space as last resort. For multifamily buildings, '#{Constants.Auto}' will choose a space for each unit of the building.")
     space.setDefaultValue(Constants.Auto)

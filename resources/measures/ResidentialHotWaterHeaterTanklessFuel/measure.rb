@@ -7,7 +7,7 @@ require "#{File.dirname(__FILE__)}/resources/constants"
 require "#{File.dirname(__FILE__)}/resources/geometry"
 
 #start the measure
-class ResidentialHotWaterHeaterTanklessFuel < OpenStudio::Ruleset::ModelUserScript
+class ResidentialHotWaterHeaterTanklessFuel < OpenStudio::Measure::ModelMeasure
 
     #define the name that a user will see, this method may be deprecated as
     #the display name in PAT comes from the name field in measure.xml
@@ -25,7 +25,7 @@ class ResidentialHotWaterHeaterTanklessFuel < OpenStudio::Ruleset::ModelUserScri
 
     #define the arguments that the user will input
     def arguments(model)
-        ruleset = OpenStudio::Ruleset
+        ruleset = OpenStudio::Measure
     
         osargument = ruleset::OSArgument
     
@@ -35,7 +35,7 @@ class ResidentialHotWaterHeaterTanklessFuel < OpenStudio::Ruleset::ModelUserScri
         fuel_display_names = OpenStudio::StringVector.new
         fuel_display_names << Constants.FuelTypeGas
         fuel_display_names << Constants.FuelTypePropane
-        fueltype = OpenStudio::Ruleset::OSArgument::makeChoiceArgument("fuel_type", fuel_display_names, true)
+        fueltype = OpenStudio::Measure::OSArgument::makeChoiceArgument("fuel_type", fuel_display_names, true)
         fueltype.setDisplayName("Fuel Type")
         fueltype.setDescription("Type of fuel used for water heating.")
         fueltype.setDefaultValue(Constants.FuelTypeGas)
@@ -217,7 +217,7 @@ class ResidentialHotWaterHeaterTanklessFuel < OpenStudio::Ruleset::ModelUserScri
             if loop.nil?
                 runner.registerInfo("A new plant loop for DHW will be added to the model")
                 runner.registerInitialCondition("No water heater model currently exists")
-                loop = Waterheater.create_new_loop(model, Constants.PlantLoopDomesticWater(unit.name.to_s), t_set)
+                loop = Waterheater.create_new_loop(model, Constants.PlantLoopDomesticWater(unit.name.to_s), t_set, "tankless")
             end
 
             if loop.components(OpenStudio::Model::PumpVariableSpeed::iddObjectType).empty?
@@ -226,7 +226,7 @@ class ResidentialHotWaterHeaterTanklessFuel < OpenStudio::Ruleset::ModelUserScri
             end
 
             if loop.supplyOutletNode.setpointManagers.empty?
-                new_manager = Waterheater.create_new_schedule_manager(t_set, model)
+                new_manager = Waterheater.create_new_schedule_manager(t_set, model, "tank")
                 new_manager.addToNode(loop.supplyOutletNode)
             end
         

@@ -5,7 +5,7 @@ require "#{File.dirname(__FILE__)}/resources/constants"
 require "#{File.dirname(__FILE__)}/resources/geometry"
 
 # start the measure
-class CreateResidentialSingleFamilyAttachedGeometry < OpenStudio::Ruleset::ModelUserScript
+class CreateResidentialSingleFamilyAttachedGeometry < OpenStudio::Measure::ModelMeasure
 
   # human readable name
   def name
@@ -24,10 +24,10 @@ class CreateResidentialSingleFamilyAttachedGeometry < OpenStudio::Ruleset::Model
 
   # define the arguments that the user will input
   def arguments(model)
-    args = OpenStudio::Ruleset::OSArgumentVector.new
+    args = OpenStudio::Measure::OSArgumentVector.new
 
     #make an argument for unit living space floor area
-    unit_ffa = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("unit_ffa",true)
+    unit_ffa = OpenStudio::Measure::OSArgument::makeDoubleArgument("unit_ffa",true)
     unit_ffa.setDisplayName("Unit Finished Floor Area")
     unit_ffa.setUnits("ft^2")
     unit_ffa.setDescription("Unit floor area of the finished space (including any finished basement floor area).")
@@ -35,7 +35,7 @@ class CreateResidentialSingleFamilyAttachedGeometry < OpenStudio::Ruleset::Model
     args << unit_ffa
     
     #make an argument for living space height
-    living_height = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("living_height",true)
+    living_height = OpenStudio::Measure::OSArgument::makeDoubleArgument("living_height",true)
     living_height.setDisplayName("Wall Height (Per Floor)")
     living_height.setUnits("ft")
     living_height.setDescription("The height of the living space (and garage) walls.")
@@ -43,7 +43,7 @@ class CreateResidentialSingleFamilyAttachedGeometry < OpenStudio::Ruleset::Model
     args << living_height
 
     #make an argument for total number of floors
-    building_num_floors = OpenStudio::Ruleset::OSArgument::makeIntegerArgument("building_num_floors",true)
+    building_num_floors = OpenStudio::Measure::OSArgument::makeIntegerArgument("building_num_floors",true)
     building_num_floors.setDisplayName("Building Num Floors")
     building_num_floors.setUnits("#")
     building_num_floors.setDescription("The number of floors above grade.")
@@ -51,7 +51,7 @@ class CreateResidentialSingleFamilyAttachedGeometry < OpenStudio::Ruleset::Model
     args << building_num_floors
 
     #make an argument for number of units
-    num_units = OpenStudio::Ruleset::OSArgument::makeIntegerArgument("num_units",true)
+    num_units = OpenStudio::Measure::OSArgument::makeIntegerArgument("num_units",true)
     num_units.setDisplayName("Num Units")
     num_units.setUnits("#")
     num_units.setDescription("The number of units.")
@@ -59,7 +59,7 @@ class CreateResidentialSingleFamilyAttachedGeometry < OpenStudio::Ruleset::Model
     args << num_units
     
     #make an argument for unit aspect ratio
-    unit_aspect_ratio = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("unit_aspect_ratio",true)
+    unit_aspect_ratio = OpenStudio::Measure::OSArgument::makeDoubleArgument("unit_aspect_ratio",true)
     unit_aspect_ratio.setDisplayName("Unit Aspect Ratio")
     unit_aspect_ratio.setUnits("FB/LR")
     unit_aspect_ratio.setDescription("The ratio of the front/back wall length to the left/right wall length.")
@@ -67,7 +67,7 @@ class CreateResidentialSingleFamilyAttachedGeometry < OpenStudio::Ruleset::Model
     args << unit_aspect_ratio
     
     #make an argument for unit offset
-    offset = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("offset", true)
+    offset = OpenStudio::Measure::OSArgument::makeDoubleArgument("offset", true)
     offset.setDisplayName("Offset Depth")
     offset.setUnits("ft")
     offset.setDescription("The depth of the offset.")
@@ -75,7 +75,7 @@ class CreateResidentialSingleFamilyAttachedGeometry < OpenStudio::Ruleset::Model
     args << offset
     
     #make an argument for units in back
-    has_rear_units = OpenStudio::Ruleset::OSArgument::makeBoolArgument("has_rear_units", true)
+    has_rear_units = OpenStudio::Measure::OSArgument::makeBoolArgument("has_rear_units", true)
     has_rear_units.setDisplayName("Has Rear Units?")
     has_rear_units.setDescription("Whether the building has rear adjacent units.")
     has_rear_units.setDefaultValue(false)
@@ -89,14 +89,14 @@ class CreateResidentialSingleFamilyAttachedGeometry < OpenStudio::Ruleset::Model
     foundation_display_names << Constants.FinishedBasementFoundationType
 	
     #make a choice argument for foundation type
-    foundation_type = OpenStudio::Ruleset::OSArgument::makeChoiceArgument("foundation_type", foundation_display_names, true)
+    foundation_type = OpenStudio::Measure::OSArgument::makeChoiceArgument("foundation_type", foundation_display_names, true)
     foundation_type.setDisplayName("Foundation Type")
     foundation_type.setDescription("The foundation type of the building.")
     foundation_type.setDefaultValue(Constants.SlabFoundationType)
     args << foundation_type
 
     #make an argument for crawlspace height
-    foundation_height = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("foundation_height",true)
+    foundation_height = OpenStudio::Measure::OSArgument::makeDoubleArgument("foundation_height",true)
     foundation_height.setDisplayName("Crawlspace Height")
     foundation_height.setUnits("ft")
     foundation_height.setDescription("The height of the crawlspace walls.")
@@ -109,7 +109,7 @@ class CreateResidentialSingleFamilyAttachedGeometry < OpenStudio::Ruleset::Model
     attic_type_display_names << Constants.FinishedAtticType
 	
     #make a choice argument for attic type
-    attic_type = OpenStudio::Ruleset::OSArgument::makeChoiceArgument("attic_type", attic_type_display_names, true)
+    attic_type = OpenStudio::Measure::OSArgument::makeChoiceArgument("attic_type", attic_type_display_names, true)
     attic_type.setDisplayName("Attic Type")
     attic_type.setDescription("The attic type of the building.")
     attic_type.setDefaultValue(Constants.UnfinishedAtticType)
@@ -122,7 +122,7 @@ class CreateResidentialSingleFamilyAttachedGeometry < OpenStudio::Ruleset::Model
     roof_type_display_names << Constants.RoofTypeFlat
 	
     #make a choice argument for roof type
-    roof_type = OpenStudio::Ruleset::OSArgument::makeChoiceArgument("roof_type", roof_type_display_names, true)
+    roof_type = OpenStudio::Measure::OSArgument::makeChoiceArgument("roof_type", roof_type_display_names, true)
     roof_type.setDisplayName("Roof Type")
     roof_type.setDescription("The roof type of the building.")
     roof_type.setDefaultValue(Constants.RoofTypeGable)
@@ -144,14 +144,14 @@ class CreateResidentialSingleFamilyAttachedGeometry < OpenStudio::Ruleset::Model
     roof_pitch_display_names << "12:12"
 	
     #make a choice argument for roof pitch
-    roof_pitch = OpenStudio::Ruleset::OSArgument::makeChoiceArgument("roof_pitch", roof_pitch_display_names, true)
+    roof_pitch = OpenStudio::Measure::OSArgument::makeChoiceArgument("roof_pitch", roof_pitch_display_names, true)
     roof_pitch.setDisplayName("Roof Pitch")
     roof_pitch.setDescription("The roof pitch of the attic.")
     roof_pitch.setDefaultValue("6:12")
     args << roof_pitch    
     
     #make an argument for using zone multipliers
-    use_zone_mult = OpenStudio::Ruleset::OSArgument::makeBoolArgument("use_zone_mult", true)
+    use_zone_mult = OpenStudio::Measure::OSArgument::makeBoolArgument("use_zone_mult", true)
     use_zone_mult.setDisplayName("Use Zone Multipliers?")
     use_zone_mult.setDescription("Model only one interior unit with its thermal zone multiplier equal to the number of interior units.")
     use_zone_mult.setDefaultValue(false)
@@ -660,7 +660,7 @@ class CreateResidentialSingleFamilyAttachedGeometry < OpenStudio::Ruleset::Model
       # set foundation walls to ground
       spaces = model.getSpaces
       spaces.each do |space|
-        if space.name.to_s.start_with? Constants.CrawlSpace or space.name.to_s.start_with? Constants.UnfinishedBasementSpace or space.name.to_s.start_with? Constants.FinishedBasementSpace
+        if Geometry.is_crawl(space) or Geometry.is_unfinished_basement(space) or Geometry.is_finished_basement(space)
           surfaces = space.surfaces
           surfaces.each do |surface|
             next if surface.surfaceType.downcase != "wall"

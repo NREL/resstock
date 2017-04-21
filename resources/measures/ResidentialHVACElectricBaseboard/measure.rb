@@ -13,7 +13,7 @@ require "#{File.dirname(__FILE__)}/resources/geometry"
 require "#{File.dirname(__FILE__)}/resources/hvac"
 
 #start the measure
-class ProcessElectricBaseboard < OpenStudio::Ruleset::ModelUserScript
+class ProcessElectricBaseboard < OpenStudio::Measure::ModelMeasure
   
   #define the name that a user will see, this method may be deprecated as
   #the display name in PAT comes from the name field in measure.xml
@@ -31,10 +31,10 @@ class ProcessElectricBaseboard < OpenStudio::Ruleset::ModelUserScript
   
   #define the arguments that the user will input
   def arguments(model)
-    args = OpenStudio::Ruleset::OSArgumentVector.new
+    args = OpenStudio::Measure::OSArgumentVector.new
 
     #make an argument for entering baseboard efficiency
-    baseboardeff = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("efficiency",true)
+    baseboardeff = OpenStudio::Measure::OSArgument::makeDoubleArgument("efficiency",true)
     baseboardeff.setDisplayName("Efficiency")
     baseboardeff.setUnits("Btu/Btu")
     baseboardeff.setDescription("The efficiency of the electric baseboard.")
@@ -47,7 +47,7 @@ class ProcessElectricBaseboard < OpenStudio::Ruleset::ModelUserScript
     (5..150).step(5) do |kbtu|
       cap_display_names << kbtu.to_s
     end
-    baseboardcap = OpenStudio::Ruleset::OSArgument::makeChoiceArgument("capacity", cap_display_names, true)
+    baseboardcap = OpenStudio::Measure::OSArgument::makeChoiceArgument("capacity", cap_display_names, true)
     baseboardcap.setDisplayName("Heating Capacity")
     baseboardcap.setDescription("The output heating capacity of the electric baseboard.")
     baseboardcap.setUnits("kBtu/hr")
@@ -96,13 +96,18 @@ class ProcessElectricBaseboard < OpenStudio::Ruleset::ModelUserScript
         htg_coil = OpenStudio::Model::ZoneHVACBaseboardConvectiveElectric.new(model)
         htg_coil.setName(obj_name + " #{control_zone.name} convective electric")
         if baseboardOutputCapacity != Constants.SizingAuto
-            htg_coil.setNominalCapacity(OpenStudio::convert(baseboardOutputCapacity,"Btu/h","W").get)
+            htg_coil.setNominalCapacity(OpenStudio::convert(baseboardOutputCapacity,"Btu/h","W").get) # Used by HVACSizing measure
         end
         htg_coil.setEfficiency(baseboardEfficiency)
 
         htg_coil.addToThermalZone(control_zone)
         runner.registerInfo("Added '#{htg_coil.name}' to '#{control_zone.name}' of #{unit.name}")
-
+       
+        HVAC.prioritize_zone_hvac(model, runner, control_zone).reverse.each do |object|
+          control_zone.setCoolingPriority(object, 1)
+          control_zone.setHeatingPriority(object, 1)
+        end
+        
         slave_zones.each do |slave_zone|
         
           # Remove existing equipment
@@ -111,14 +116,19 @@ class ProcessElectricBaseboard < OpenStudio::Ruleset::ModelUserScript
           htg_coil = OpenStudio::Model::ZoneHVACBaseboardConvectiveElectric.new(model)
           htg_coil.setName(obj_name + " #{slave_zone.name} convective electric")
           if baseboardOutputCapacity != Constants.SizingAuto
-              htg_coil.setNominalCapacity(OpenStudio::convert(baseboardOutputCapacity,"Btu/h","W").get)
+              htg_coil.setNominalCapacity(OpenStudio::convert(baseboardOutputCapacity,"Btu/h","W").get) # Used by HVACSizing measure
           end
           htg_coil.setEfficiency(baseboardEfficiency)
 
           htg_coil.addToThermalZone(slave_zone)
           runner.registerInfo("Added '#{htg_coil.name}' to '#{slave_zone.name}' of #{unit.name}")
 
-        end    
+          HVAC.prioritize_zone_hvac(model, runner, slave_zone).reverse.each do |object|
+            slave_zone.setCoolingPriority(object, 1)
+            slave_zone.setHeatingPriority(object, 1)
+          end
+          
+        end
       
       end
       

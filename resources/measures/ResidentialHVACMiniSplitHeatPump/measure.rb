@@ -9,19 +9,7 @@ require "#{File.dirname(__FILE__)}/resources/geometry"
 require "#{File.dirname(__FILE__)}/resources/hvac"
 
 # start the measure
-class ProcessVRFMinisplit < OpenStudio::Ruleset::ModelUserScript
-
-  class Supply
-    def initialize
-    end
-    attr_accessor(:SpaceConditionedMult, :CoolingEIR, :Capacity_Ratio_Cooling, :CoolingCFMs, :SHR_Rated, :fanspeed_ratio, :min_flow_ratio, :static, :fan_power, :eff, :HeatingEIR, :Capacity_Ratio_Heating, :HeatingCFMs, :htg_supply_air_temp, :supp_htg_max_supply_temp, :min_hp_temp, :supp_htg_max_outdoor_temp, :max_defrost_temp)
-  end
-  
-  class Curves
-    def initialize
-    end
-    attr_accessor(:mshp_indices, :COOL_CAP_FT_SPEC_coefficients, :COOL_EIR_FT_SPEC_coefficients, :COOL_CAP_FFLOW_SPEC_coefficients, :COOL_CLOSS_FPLR_SPEC_coefficients, :COOL_EIR_FFLOW_SPEC_coefficients, :HEAT_CAP_FT_SPEC_coefficients, :HEAT_EIR_FT_SPEC_coefficients, :HEAT_CAP_FFLOW_SPEC_coefficients, :HEAT_CLOSS_FPLR_SPEC_coefficients, :HEAT_EIR_FFLOW_SPEC_coefficients, :Number_Speeds)
-  end
+class ProcessVRFMinisplit < OpenStudio::Measure::ModelMeasure
 
   # human readable name
   def name
@@ -40,10 +28,10 @@ class ProcessVRFMinisplit < OpenStudio::Ruleset::ModelUserScript
 
   # define the arguments that the user will input
   def arguments(model)
-    args = OpenStudio::Ruleset::OSArgumentVector.new
+    args = OpenStudio::Measure::OSArgumentVector.new
     
     #make a double argument for minisplit cooling rated seer
-    miniSplitHPCoolingRatedSEER = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("seer", true)
+    miniSplitHPCoolingRatedSEER = OpenStudio::Measure::OSArgument::makeDoubleArgument("seer", true)
     miniSplitHPCoolingRatedSEER.setDisplayName("Rated SEER")
     miniSplitHPCoolingRatedSEER.setUnits("Btu/W-h")
     miniSplitHPCoolingRatedSEER.setDescription("Seasonal Energy Efficiency Ratio (SEER) is a measure of equipment energy efficiency over the cooling season.")
@@ -51,7 +39,7 @@ class ProcessVRFMinisplit < OpenStudio::Ruleset::ModelUserScript
     args << miniSplitHPCoolingRatedSEER 
     
     #make a double argument for minisplit cooling min capacity
-    miniSplitHPCoolingMinCapacity = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("min_cooling_capacity", true)
+    miniSplitHPCoolingMinCapacity = OpenStudio::Measure::OSArgument::makeDoubleArgument("min_cooling_capacity", true)
     miniSplitHPCoolingMinCapacity.setDisplayName("Minimum Cooling Capacity")
     miniSplitHPCoolingMinCapacity.setUnits("frac")
     miniSplitHPCoolingMinCapacity.setDescription("Minimum cooling capacity as a fraction of the nominal cooling capacity at rated conditions.")
@@ -59,7 +47,7 @@ class ProcessVRFMinisplit < OpenStudio::Ruleset::ModelUserScript
     args << miniSplitHPCoolingMinCapacity     
     
     #make a double argument for minisplit cooling max capacity
-    miniSplitHPCoolingMaxCapacity = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("max_cooling_capacity", true)
+    miniSplitHPCoolingMaxCapacity = OpenStudio::Measure::OSArgument::makeDoubleArgument("max_cooling_capacity", true)
     miniSplitHPCoolingMaxCapacity.setDisplayName("Maximum Cooling Capacity")
     miniSplitHPCoolingMaxCapacity.setUnits("frac")
     miniSplitHPCoolingMaxCapacity.setDescription("Maximum cooling capacity as a fraction of the nominal cooling capacity at rated conditions.")
@@ -67,14 +55,14 @@ class ProcessVRFMinisplit < OpenStudio::Ruleset::ModelUserScript
     args << miniSplitHPCoolingMaxCapacity    
     
     #make a double argument for minisplit rated shr
-    miniSplitHPRatedSHR = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("shr", true)
+    miniSplitHPRatedSHR = OpenStudio::Measure::OSArgument::makeDoubleArgument("shr", true)
     miniSplitHPRatedSHR.setDisplayName("Rated SHR")
     miniSplitHPRatedSHR.setDescription("The sensible heat ratio (ratio of the sensible portion of the load to the total load) at the nominal rated capacity.")
     miniSplitHPRatedSHR.setDefaultValue(0.73)
     args << miniSplitHPRatedSHR        
     
     #make a double argument for minisplit cooling min airflow
-    miniSplitHPCoolingMinAirflow = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("min_cooling_airflow_rate", true)
+    miniSplitHPCoolingMinAirflow = OpenStudio::Measure::OSArgument::makeDoubleArgument("min_cooling_airflow_rate", true)
     miniSplitHPCoolingMinAirflow.setDisplayName("Minimum Cooling Airflow")
     miniSplitHPCoolingMinAirflow.setUnits("cfm/ton")
     miniSplitHPCoolingMinAirflow.setDescription("Minimum cooling cfm divided by the nominal rated cooling capacity.")
@@ -82,7 +70,7 @@ class ProcessVRFMinisplit < OpenStudio::Ruleset::ModelUserScript
     args << miniSplitHPCoolingMinAirflow      
     
     #make a double argument for minisplit cooling max airflow
-    miniSplitHPCoolingMaxAirflow = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("max_cooling_airflow_rate", true)
+    miniSplitHPCoolingMaxAirflow = OpenStudio::Measure::OSArgument::makeDoubleArgument("max_cooling_airflow_rate", true)
     miniSplitHPCoolingMaxAirflow.setDisplayName("Maximum Cooling Airflow")
     miniSplitHPCoolingMaxAirflow.setUnits("cfm/ton")
     miniSplitHPCoolingMaxAirflow.setDescription("Maximum cooling cfm divided by the nominal rated cooling capacity.")
@@ -90,7 +78,7 @@ class ProcessVRFMinisplit < OpenStudio::Ruleset::ModelUserScript
     args << miniSplitHPCoolingMaxAirflow     
     
     #make a double argument for minisplit rated hspf
-    miniSplitHPHeatingRatedHSPF = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("hspf", true)
+    miniSplitHPHeatingRatedHSPF = OpenStudio::Measure::OSArgument::makeDoubleArgument("hspf", true)
     miniSplitHPHeatingRatedHSPF.setDisplayName("Rated HSPF")
     miniSplitHPHeatingRatedHSPF.setUnits("Btu/W-h")
     miniSplitHPHeatingRatedHSPF.setDescription("The Heating Seasonal Performance Factor (HSPF) is a measure of a heat pump's energy efficiency over one heating season.")
@@ -98,7 +86,7 @@ class ProcessVRFMinisplit < OpenStudio::Ruleset::ModelUserScript
     args << miniSplitHPHeatingRatedHSPF
     
     #make a double argument for minisplit heating capacity offset
-    miniSplitHPHeatingCapacityOffset = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("heating_capacity_offset", true)
+    miniSplitHPHeatingCapacityOffset = OpenStudio::Measure::OSArgument::makeDoubleArgument("heating_capacity_offset", true)
     miniSplitHPHeatingCapacityOffset.setDisplayName("Heating Capacity Offset")
     miniSplitHPHeatingCapacityOffset.setUnits("Btu/h")
     miniSplitHPHeatingCapacityOffset.setDescription("The difference between the nominal rated heating capacity and the nominal rated cooling capacity.")
@@ -106,7 +94,7 @@ class ProcessVRFMinisplit < OpenStudio::Ruleset::ModelUserScript
     args << miniSplitHPHeatingCapacityOffset    
     
     #make a double argument for minisplit heating min capacity
-    miniSplitHPHeatingMinCapacity = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("min_heating_capacity", true)
+    miniSplitHPHeatingMinCapacity = OpenStudio::Measure::OSArgument::makeDoubleArgument("min_heating_capacity", true)
     miniSplitHPHeatingMinCapacity.setDisplayName("Minimum Heating Capacity")
     miniSplitHPHeatingMinCapacity.setUnits("frac")
     miniSplitHPHeatingMinCapacity.setDescription("Minimum heating capacity as a fraction of nominal heating capacity at rated conditions.")
@@ -114,7 +102,7 @@ class ProcessVRFMinisplit < OpenStudio::Ruleset::ModelUserScript
     args << miniSplitHPHeatingMinCapacity     
     
     #make a double argument for minisplit heating max capacity
-    miniSplitHPHeatingMaxCapacity = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("max_heating_capacity", true)
+    miniSplitHPHeatingMaxCapacity = OpenStudio::Measure::OSArgument::makeDoubleArgument("max_heating_capacity", true)
     miniSplitHPHeatingMaxCapacity.setDisplayName("Maximum Heating Capacity")
     miniSplitHPHeatingMaxCapacity.setUnits("frac")
     miniSplitHPHeatingMaxCapacity.setDescription("Maximum heating capacity as a fraction of nominal heating capacity at rated conditions.")
@@ -122,7 +110,7 @@ class ProcessVRFMinisplit < OpenStudio::Ruleset::ModelUserScript
     args << miniSplitHPHeatingMaxCapacity        
     
     #make a double argument for minisplit heating min airflow
-    miniSplitHPHeatingMinAirflow = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("min_heating_airflow_rate", true)
+    miniSplitHPHeatingMinAirflow = OpenStudio::Measure::OSArgument::makeDoubleArgument("min_heating_airflow_rate", true)
     miniSplitHPHeatingMinAirflow.setDisplayName("Minimum Heating Airflow")
     miniSplitHPHeatingMinAirflow.setUnits("cfm/ton")
     miniSplitHPHeatingMinAirflow.setDescription("Minimum heating cfm divided by the nominal rated heating capacity.")
@@ -130,7 +118,7 @@ class ProcessVRFMinisplit < OpenStudio::Ruleset::ModelUserScript
     args << miniSplitHPHeatingMinAirflow     
     
     #make a double argument for minisplit heating min airflow
-    miniSplitHPHeatingMaxAirflow = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("max_heating_airflow_rate", true)
+    miniSplitHPHeatingMaxAirflow = OpenStudio::Measure::OSArgument::makeDoubleArgument("max_heating_airflow_rate", true)
     miniSplitHPHeatingMaxAirflow.setDisplayName("Maximum Heating Airflow")
     miniSplitHPHeatingMaxAirflow.setUnits("cfm/ton")
     miniSplitHPHeatingMaxAirflow.setDescription("Maximum heating cfm divided by the nominal rated heating capacity.")
@@ -138,7 +126,7 @@ class ProcessVRFMinisplit < OpenStudio::Ruleset::ModelUserScript
     args << miniSplitHPHeatingMaxAirflow         
     
     #make a double argument for minisplit capacity retention fraction
-    miniSplitHPCapacityRetentionFraction = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("cap_retention_frac", true)
+    miniSplitHPCapacityRetentionFraction = OpenStudio::Measure::OSArgument::makeDoubleArgument("cap_retention_frac", true)
     miniSplitHPCapacityRetentionFraction.setDisplayName("Heating Capacity Retention Fraction")
     miniSplitHPCapacityRetentionFraction.setUnits("frac")
     miniSplitHPCapacityRetentionFraction.setDescription("The maximum heating capacity at X degrees divided by the maximum heating capacity at 47 degrees F.")
@@ -146,7 +134,7 @@ class ProcessVRFMinisplit < OpenStudio::Ruleset::ModelUserScript
     args << miniSplitHPCapacityRetentionFraction
     
     #make a double argument for minisplit capacity retention temperature
-    miniSplitHPCapacityRetentionTemperature = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("cap_retention_temp", true)
+    miniSplitHPCapacityRetentionTemperature = OpenStudio::Measure::OSArgument::makeDoubleArgument("cap_retention_temp", true)
     miniSplitHPCapacityRetentionTemperature.setDisplayName("Heating Capacity Retention Temperature")
     miniSplitHPCapacityRetentionTemperature.setUnits("degrees F")
     miniSplitHPCapacityRetentionTemperature.setDescription("The outdoor drybulb temperature at which the heating capacity retention fraction is defined.")
@@ -154,7 +142,7 @@ class ProcessVRFMinisplit < OpenStudio::Ruleset::ModelUserScript
     args << miniSplitHPCapacityRetentionTemperature    
     
     #make a double argument for minisplit pan heater power
-    miniSplitHPPanHeaterPowerPerUnit = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("pan_heater_power", true)
+    miniSplitHPPanHeaterPowerPerUnit = OpenStudio::Measure::OSArgument::makeDoubleArgument("pan_heater_power", true)
     miniSplitHPPanHeaterPowerPerUnit.setDisplayName("Pan Heater")
     miniSplitHPPanHeaterPowerPerUnit.setUnits("W/unit")
     miniSplitHPPanHeaterPowerPerUnit.setDescription("Prevents ice build up from damaging the coil.")
@@ -162,7 +150,7 @@ class ProcessVRFMinisplit < OpenStudio::Ruleset::ModelUserScript
     args << miniSplitHPPanHeaterPowerPerUnit    
     
     #make a double argument for minisplit supply fan power
-    miniSplitHPSupplyFanPower = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("fan_power", true)
+    miniSplitHPSupplyFanPower = OpenStudio::Measure::OSArgument::makeDoubleArgument("fan_power", true)
     miniSplitHPSupplyFanPower.setDisplayName("Supply Fan Power")
     miniSplitHPSupplyFanPower.setUnits("W/cfm")
     miniSplitHPSupplyFanPower.setDescription("Fan power (in W) per delivered airflow rate (in cfm) of the fan.")
@@ -172,18 +160,19 @@ class ProcessVRFMinisplit < OpenStudio::Ruleset::ModelUserScript
     #make a string argument for minisplit cooling output capacity
     cap_display_names = OpenStudio::StringVector.new
     cap_display_names << Constants.SizingAuto
+    cap_display_names << Constants.SizingAutoMaxLoad
     (0.5..10.0).step(0.5) do |tons|
       cap_display_names << tons.to_s
     end
-    miniSplitCoolingOutputCapacity = OpenStudio::Ruleset::OSArgument::makeChoiceArgument("heat_pump_capacity", cap_display_names, true)
+    miniSplitCoolingOutputCapacity = OpenStudio::Measure::OSArgument::makeChoiceArgument("heat_pump_capacity", cap_display_names, true)
     miniSplitCoolingOutputCapacity.setDisplayName("Heat Pump Capacity")
-    miniSplitCoolingOutputCapacity.setDescription("The output heating/cooling capacity of the heat pump.")
+    miniSplitCoolingOutputCapacity.setDescription("The output cooling capacity of the heat pump. If using #{Constants.SizingAuto}, the autosizing algorithm will use ACCA Manual S to set the heat pump capacity based on the cooling load, with up to 1.3x oversizing allowed for variable-speed equipment in colder climates when the heating load exceeds the cooling load. If using #{Constants.SizingAutoMaxLoad}, the autosizing algorithm will override ACCA Manual S and use the maximum of the heating and cooling loads to set the heat pump capacity, based on the heating/cooling capacities under design conditions.")
     miniSplitCoolingOutputCapacity.setUnits("tons")
     miniSplitCoolingOutputCapacity.setDefaultValue(Constants.SizingAuto)
     args << miniSplitCoolingOutputCapacity
 
     #make an argument for entering supplemental efficiency
-    baseboardeff = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("supplemental_efficiency",true)
+    baseboardeff = OpenStudio::Measure::OSArgument::makeDoubleArgument("supplemental_efficiency",true)
     baseboardeff.setDisplayName("Supplemental Efficiency")
     baseboardeff.setUnits("Btu/Btu")
     baseboardeff.setDescription("The efficiency of the supplemental electric baseboard.")
@@ -197,7 +186,7 @@ class ProcessVRFMinisplit < OpenStudio::Ruleset::ModelUserScript
     (5..150).step(5) do |kbtu|
       cap_display_names << kbtu.to_s
     end  
-    baseboardcap = OpenStudio::Ruleset::OSArgument::makeChoiceArgument("supplemental_capacity", cap_display_names, true)
+    baseboardcap = OpenStudio::Measure::OSArgument::makeChoiceArgument("supplemental_capacity", cap_display_names, true)
     baseboardcap.setDisplayName("Supplemental Heating Capacity")
     baseboardcap.setDescription("The output heating capacity of the supplemental electric baseboard.")
     baseboardcap.setUnits("kBtu/hr")
@@ -216,9 +205,6 @@ class ProcessVRFMinisplit < OpenStudio::Ruleset::ModelUserScript
       return false
     end    
     
-    curves = Curves.new
-    supply = Supply.new
-    
     miniSplitHPCoolingRatedSEER = runner.getDoubleArgumentValue("seer",user_arguments) 
     miniSplitHPCoolingMinCapacity = runner.getDoubleArgumentValue("min_cooling_capacity",user_arguments) 
     miniSplitHPCoolingMaxCapacity = runner.getDoubleArgumentValue("max_cooling_capacity",user_arguments) 
@@ -236,23 +222,26 @@ class ProcessVRFMinisplit < OpenStudio::Ruleset::ModelUserScript
     miniSplitHPPanHeaterPowerPerUnit = runner.getDoubleArgumentValue("pan_heater_power",user_arguments)    
     miniSplitHPSupplyFanPower = runner.getDoubleArgumentValue("fan_power",user_arguments)
     miniSplitCoolingOutputCapacity = runner.getStringArgumentValue("heat_pump_capacity",user_arguments)
-    unless miniSplitCoolingOutputCapacity == Constants.SizingAuto
+    unless miniSplitCoolingOutputCapacity == Constants.SizingAuto or miniSplitCoolingOutputCapacity == Constants.SizingAutoMaxLoad
       miniSplitCoolingOutputCapacity = OpenStudio::convert(miniSplitCoolingOutputCapacity.to_f,"ton","Btu/h").get
-      miniSplitHeatingOutputCapacity = miniSplitCoolingOutputCapacity + miniSplitHPHeatingCapacityOffset
     end
     baseboardEfficiency = runner.getDoubleArgumentValue("supplemental_efficiency",user_arguments)
     baseboardOutputCapacity = runner.getStringArgumentValue("supplemental_capacity",user_arguments)
     unless baseboardOutputCapacity == Constants.SizingAuto or baseboardOutputCapacity == "NO SUPP HEAT"
       baseboardOutputCapacity = OpenStudio::convert(baseboardOutputCapacity.to_f,"kBtu/h","Btu/h").get
     end    
+    
+    number_Speeds = 10
+    max_defrost_temp = 40.0 # F
+    min_hp_temp = -30.0 # F; Minimum temperature for Heat Pump operation
+    static = UnitConversion.inH2O2Pa(0.1) # Pascal
         
     # Performance curves
     
     # NOTE: These coefficients are in SI UNITS
-    curves.COOL_CAP_FT_SPEC_coefficients = [[1.008993521905866, 0.006512749025457, 0.0, 0.003917565735935, -0.000222646705889, 0.0]] * Constants.Num_Speeds_MSHP
-    curves.COOL_EIR_FT_SPEC_coefficients = [[0.429214441601141, -0.003604841598515, 0.000045783162727, 0.026490875804937, -0.000159212286878, -0.000159062656483]] * Constants.Num_Speeds_MSHP                
-    curves.COOL_CAP_FFLOW_SPEC_coefficients = [[1, 0, 0]] * Constants.Num_Speeds_MSHP
-    curves.COOL_EIR_FFLOW_SPEC_coefficients = [[1, 0, 0]] * Constants.Num_Speeds_MSHP
+    cOOL_CAP_FT_SPEC = [[1.008993521905866, 0.006512749025457, 0.0, 0.003917565735935, -0.000222646705889, 0.0]] * number_Speeds
+    cOOL_EIR_FT_SPEC = [[0.429214441601141, -0.003604841598515, 0.000045783162727, 0.026490875804937, -0.000159212286878, -0.000159062656483]] * number_Speeds                
+    cOOL_CAP_FFLOW_SPEC = [[1, 0, 0]] * number_Speeds
     
     # Mini-Split Heat Pump Heating Curve Coefficients
     # Derive coefficients from user input for capacity retention at outdoor drybulb temperature X [C].
@@ -274,30 +263,46 @@ class ProcessVRFMinisplit < OpenStudio::Ruleset::ModelUserScript
     d = oat_slope
     e = 0
     f = 0
-    curves.HEAT_CAP_FT_SPEC_coefficients = [[a, b, c, d, e, f]] * Constants.Num_Speeds_MSHP         
+    hEAT_CAP_FT_SPEC = [[a, b, c, d, e, f]] * number_Speeds         
     
     # COP/EIR as a function of temperature
     # Generic "BEoptDefault" curves (=Daikin from lab data)            
-    curves.HEAT_EIR_FT_SPEC_coefficients = [[0.966475472847719, 0.005914950101249, 0.000191201688297, -0.012965668198361, 0.000042253229429, -0.000524002558712]] * Constants.Num_Speeds_MSHP
+    hEAT_EIR_FT_SPEC = [[0.966475472847719, 0.005914950101249, 0.000191201688297, -0.012965668198361, 0.000042253229429, -0.000524002558712]] * number_Speeds
     
-    curves.HEAT_CAP_FFLOW_SPEC_coefficients = [[1, 0, 0]] * Constants.Num_Speeds_MSHP
-    curves.HEAT_EIR_FFLOW_SPEC_coefficients = [[1, 0, 0]] * Constants.Num_Speeds_MSHP
-    
-    curves.mshp_indices = [1,3,5,9]
+    mshp_indices = [1,3,5,9]
     
     # Cooling Coil
-    curves, supply = _processAirSystemMiniSplitCooling(runner, miniSplitHPCoolingRatedSEER, miniSplitHPCoolingMinCapacity, miniSplitHPCoolingMaxCapacity, miniSplitHPCoolingMinAirflow, miniSplitHPCoolingMaxAirflow, miniSplitHPRatedSHR, miniSplitHPSupplyFanPower, curves, supply)
+    c_d_cooling = 0.25
+    cOOL_CLOSS_FPLR_SPEC = HVAC.calc_plr_coefficients_cooling(number_Speeds, miniSplitHPCoolingRatedSEER, c_d_cooling)
+    dB_rated = 80.0
+    wB_rated = 67.0
+    coolingCFMs, capacity_Ratio_Cooling, sHR_Rated = calc_cfm_ton_cooling(miniSplitHPCoolingMinCapacity, miniSplitHPCoolingMaxCapacity, miniSplitHPCoolingMinAirflow, miniSplitHPCoolingMaxAirflow, number_Speeds, dB_rated, wB_rated, miniSplitHPRatedSHR)
+    coolingEIR = calc_cooling_eir(runner, miniSplitHPCoolingRatedSEER, miniSplitHPSupplyFanPower, c_d_cooling, number_Speeds, capacity_Ratio_Cooling, coolingCFMs, cOOL_EIR_FT_SPEC, cOOL_CAP_FT_SPEC)
 
     # Heating Coil
-    curves, supply = _processAirSystemMiniSplitHeating(runner, miniSplitHPHeatingRatedHSPF, miniSplitHPHeatingMinCapacity, miniSplitHPHeatingMaxCapacity, miniSplitHPHeatingMinAirflow, miniSplitHPHeatingMaxAirflow, miniSplitHPSupplyFanPower, miniSplitHPCapacityRetentionFraction, miniSplitHPCapacityRetentionTemperature, curves, supply)
+    c_d_heating = 0.40
+    hEAT_CLOSS_FPLR_SPEC = HVAC.calc_plr_coefficients_heating(number_Speeds, miniSplitHPHeatingRatedHSPF, c_d_heating)
+    heatingCFMs, capacity_Ratio_Heating = calc_cfm_ton_heating(miniSplitHPHeatingMinCapacity, miniSplitHPHeatingMaxCapacity, miniSplitHPHeatingMinAirflow, miniSplitHPHeatingMaxAirflow, number_Speeds)
+    heatingEIR = calc_heating_eir(runner, miniSplitHPHeatingRatedHSPF, miniSplitHPSupplyFanPower, miniSplitHPCapacityRetentionFraction, miniSplitHPCapacityRetentionTemperature, min_hp_temp, c_d_heating, coolingCFMs, number_Speeds, capacity_Ratio_Heating, heatingCFMs, hEAT_EIR_FT_SPEC, hEAT_CAP_FT_SPEC)
         
     # Remove boiler hot water loop if it exists
     HVAC.remove_hot_water_loop(model, runner)    
     
-    min_plr_heat = supply.Capacity_Ratio_Heating[curves.mshp_indices.min] / supply.Capacity_Ratio_Heating[curves.mshp_indices.max]
-    min_plr_cool = supply.Capacity_Ratio_Cooling[curves.mshp_indices.min] / supply.Capacity_Ratio_Cooling[curves.mshp_indices.max]
+    min_plr_heat = capacity_Ratio_Heating[mshp_indices.min] / capacity_Ratio_Heating[mshp_indices.max]
+    min_plr_cool = capacity_Ratio_Cooling[mshp_indices.min] / capacity_Ratio_Cooling[mshp_indices.max]
         
-    cool_cap_ft, cool_eir_ft, cool_eir_fplr, cool_plf_fplr, heat_cap_ft, heat_eir_ft, heat_eir_fplr, heat_plf_fplr, constant_cubic, defrosteir = _processCurvesMiniSplitHP(model, curves, min_plr_cool, min_plr_heat)
+    # Curves
+    curve_index = mshp_indices[-1]+1
+    cool_cap_ft_curve = HVAC.create_curve_biquadratic(model, cOOL_CAP_FT_SPEC[-1], "Cool-CAP-fT#{curve_index}", 13.88, 23.88, 18.33, 51.66)
+    cool_eir_ft_curve = HVAC.create_curve_biquadratic(model, cOOL_EIR_FT_SPEC[-1], "Cool-EIR-fT#{curve_index}", 13.88, 23.88, 18.33, 51.66)
+    cool_eir_fplr_curve = HVAC.create_curve_quadratic(model, [0.100754583, -0.131544809, 1.030916234], "Cool-EIR-fPLR#{curve_index}", min_plr_cool, 1, nil, nil, true)
+    cool_plf_fplr_curve = HVAC.create_curve_quadratic(model, cOOL_CLOSS_FPLR_SPEC, "Cool-PLF-fPLR#{curve_index}", 0, 1, 0.7, 1)
+    heat_cap_ft_curve = HVAC.create_curve_biquadratic(model, hEAT_CAP_FT_SPEC[-1], "Heat-CAP-fT#{curve_index}", -100, 100, -100, 100)
+    heat_eir_ft_curve = HVAC.create_curve_biquadratic(model, hEAT_EIR_FT_SPEC[-1], "Heat-EIR-fT#{curve_index}", -100, 100, -100, 100)
+    heat_eir_fplr_curve = HVAC.create_curve_quadratic(model, [-0.169542039, 1.167269914, 0.0], "Heat-EIR-fPLR#{curve_index}", min_plr_heat, 1, nil, nil, true)
+    heat_plf_fplr_curve = HVAC.create_curve_quadratic(model, hEAT_CLOSS_FPLR_SPEC, "Heat-PLF-fPLR#{curve_index}", 0, 1, 0.7, 1)
+    constant_cubic_curve = HVAC.create_curve_cubic_constant(model)
+    defrost_eir_curve = HVAC.create_curve_biquadratic(model, [0.1528, 0, 0, 0, 0, 0], "DefrostEIR", -100, 100, -100, 100)
     
     # Get building units
     units = Geometry.get_building_units(model, runner)
@@ -367,11 +372,6 @@ class ProcessVRFMinisplit < OpenStudio::Ruleset::ModelUserScript
           total_slave_zone_floor_area += slave_zone.floorArea
         end
       
-        fbsmt_frac = 0.0
-        unless slave_zones.empty?
-          fbsmt_frac = total_slave_zone_floor_area / (control_zone.floorArea + total_slave_zone_floor_area)
-        end
-
         # Remove existing equipment
         HVAC.remove_existing_hvac_equipment(model, runner, Constants.ObjectNameMiniSplitHeatPump, control_zone)
       
@@ -379,50 +379,41 @@ class ProcessVRFMinisplit < OpenStudio::Ruleset::ModelUserScript
         
         htg_coil = OpenStudio::Model::CoilHeatingDXVariableRefrigerantFlow.new(model)
         htg_coil.setName(obj_name + " #{control_zone.name} heating coil")
-        if miniSplitCoolingOutputCapacity != Constants.SizingAuto
-          htg_coil.setRatedTotalHeatingCapacity(OpenStudio::convert(miniSplitHeatingOutputCapacity,"Btu/h","W").get * supply.Capacity_Ratio_Heating[curves.mshp_indices[-1]] * (1.0 - fbsmt_frac))
-          htg_coil.setRatedAirFlowRate(supply.HeatingCFMs[curves.mshp_indices[-1]] * miniSplitHeatingOutputCapacity * OpenStudio::convert(1.0,"Btu/h","ton").get * OpenStudio::convert(1.0,"cfm","m^3/s").get * (1.0 - fbsmt_frac))
-        end        
-        htg_coil.setHeatingCapacityRatioModifierFunctionofTemperatureCurve(constant_cubic)
-        htg_coil.setHeatingCapacityModifierFunctionofFlowFractionCurve(constant_cubic)        
+        htg_coil.setHeatingCapacityRatioModifierFunctionofTemperatureCurve(constant_cubic_curve)
+        htg_coil.setHeatingCapacityModifierFunctionofFlowFractionCurve(constant_cubic_curve)        
       
         # _processSystemCoolingCoil
         
         clg_coil = OpenStudio::Model::CoilCoolingDXVariableRefrigerantFlow.new(model)
         clg_coil.setName(obj_name + " #{control_zone.name} cooling coil")
-        if miniSplitCoolingOutputCapacity != Constants.SizingAuto
-          clg_coil.setRatedTotalCoolingCapacity(OpenStudio::convert(miniSplitCoolingOutputCapacity,"Btu/h","W").get * supply.Capacity_Ratio_Cooling[curves.mshp_indices[-1]] * (1.0 - fbsmt_frac))
-          clg_coil.setRatedSensibleHeatRatio(supply.SHR_Rated[curves.mshp_indices[-1]])
-          clg_coil.setRatedAirFlowRate(supply.CoolingCFMs[curves.mshp_indices[-1]]* miniSplitCoolingOutputCapacity * OpenStudio::convert(1.0,"Btu/h","ton").get * OpenStudio::convert(1.0,"cfm","m^3/s").get * (1.0 - fbsmt_frac))
+        if miniSplitCoolingOutputCapacity != Constants.SizingAuto and miniSplitCoolingOutputCapacity != Constants.SizingAutoMaxLoad
+          clg_coil.setRatedTotalCoolingCapacity(OpenStudio::convert(miniSplitCoolingOutputCapacity,"Btu/h","W").get) # Used by HVACSizing measure
         end
-        clg_coil.setCoolingCapacityRatioModifierFunctionofTemperatureCurve(constant_cubic)
-        clg_coil.setCoolingCapacityModifierCurveFunctionofFlowFraction(constant_cubic)
+        clg_coil.setRatedSensibleHeatRatio(sHR_Rated[mshp_indices[-1]])
+        clg_coil.setCoolingCapacityRatioModifierFunctionofTemperatureCurve(constant_cubic_curve)
+        clg_coil.setCoolingCapacityModifierCurveFunctionofFlowFraction(constant_cubic_curve)
       
         # _processSystemAir
         
         vrf = OpenStudio::Model::AirConditionerVariableRefrigerantFlow.new(model)
         vrf.setName(obj_name + " #{control_zone.name} ac vrf")
         vrf.setAvailabilitySchedule(model.alwaysOnDiscreteSchedule)
-        if miniSplitCoolingOutputCapacity != Constants.SizingAuto
-          vrf.setRatedTotalCoolingCapacity(OpenStudio::convert(miniSplitCoolingOutputCapacity,"Btu/h","W").get * supply.Capacity_Ratio_Cooling[curves.mshp_indices[-1]] * (1.0 - fbsmt_frac))
-          vrf.setRatedTotalHeatingCapacity(OpenStudio::convert(miniSplitHeatingOutputCapacity,"Btu/h","W").get * supply.Capacity_Ratio_Heating[curves.mshp_indices[-1]] * (1.0 - fbsmt_frac))
-        end
-        vrf.setRatedCoolingCOP(1.0 / supply.CoolingEIR[-1])
+        vrf.setRatedCoolingCOP(1.0 / coolingEIR[-1])
         vrf.setMinimumOutdoorTemperatureinCoolingMode(-6)
         vrf.setMaximumOutdoorTemperatureinCoolingMode(60)
-        vrf.setCoolingCapacityRatioModifierFunctionofLowTemperatureCurve(cool_cap_ft)    
-        vrf.setCoolingEnergyInputRatioModifierFunctionofLowTemperatureCurve(cool_eir_ft)
-        vrf.setCoolingEnergyInputRatioModifierFunctionofLowPartLoadRatioCurve(cool_eir_fplr)
-        vrf.setCoolingPartLoadFractionCorrelationCurve(cool_plf_fplr)
+        vrf.setCoolingCapacityRatioModifierFunctionofLowTemperatureCurve(cool_cap_ft_curve)    
+        vrf.setCoolingEnergyInputRatioModifierFunctionofLowTemperatureCurve(cool_eir_ft_curve)
+        vrf.setCoolingEnergyInputRatioModifierFunctionofLowPartLoadRatioCurve(cool_eir_fplr_curve)
+        vrf.setCoolingPartLoadFractionCorrelationCurve(cool_plf_fplr_curve)
         vrf.setRatedTotalHeatingCapacitySizingRatio(1)
-        vrf.setRatedHeatingCOP(1.0 / supply.HeatingEIR[-1])
-        vrf.setMinimumOutdoorTemperatureinHeatingMode(OpenStudio::convert(supply.min_hp_temp,"F","C").get)
+        vrf.setRatedHeatingCOP(1.0 / heatingEIR[-1])
+        vrf.setMinimumOutdoorTemperatureinHeatingMode(OpenStudio::convert(min_hp_temp,"F","C").get)
         vrf.setMaximumOutdoorTemperatureinHeatingMode(40)
-        vrf.setHeatingCapacityRatioModifierFunctionofLowTemperatureCurve(heat_cap_ft)
-        vrf.setHeatingEnergyInputRatioModifierFunctionofLowTemperatureCurve(heat_eir_ft)
+        vrf.setHeatingCapacityRatioModifierFunctionofLowTemperatureCurve(heat_cap_ft_curve)
+        vrf.setHeatingEnergyInputRatioModifierFunctionofLowTemperatureCurve(heat_eir_ft_curve)
         vrf.setHeatingPerformanceCurveOutdoorTemperatureType("DryBulbTemperature")   
-        vrf.setHeatingEnergyInputRatioModifierFunctionofLowPartLoadRatioCurve(heat_eir_fplr)
-        vrf.setHeatingPartLoadFractionCorrelationCurve(heat_plf_fplr)        
+        vrf.setHeatingEnergyInputRatioModifierFunctionofLowPartLoadRatioCurve(heat_eir_fplr_curve)
+        vrf.setHeatingPartLoadFractionCorrelationCurve(heat_plf_fplr_curve)        
         vrf.setMinimumHeatPumpPartLoadRatio([min_plr_heat, min_plr_cool].min)
         vrf.setZoneforMasterThermostatLocation(control_zone)
         vrf.setMasterThermostatPriorityControlType("LoadPriority")
@@ -432,8 +423,8 @@ class ProcessVRFMinisplit < OpenStudio::Ruleset::ModelUserScript
         vrf.setRatioofCompressorSizetoTotalCompressorCapacity(1)
         vrf.setDefrostStrategy("ReverseCycle")
         vrf.setDefrostControl("OnDemand")
-        vrf.setDefrostEnergyInputRatioModifierFunctionofTemperatureCurve(defrosteir)        
-        vrf.setMaximumOutdoorDrybulbTemperatureforDefrostOperation(OpenStudio::convert(supply.max_defrost_temp,"F","C").get)
+        vrf.setDefrostEnergyInputRatioModifierFunctionofTemperatureCurve(defrost_eir_curve)        
+        vrf.setMaximumOutdoorDrybulbTemperatureforDefrostOperation(OpenStudio::convert(max_defrost_temp,"F","C").get)
         vrf.setFuelType("Electricity")
         vrf.setEquivalentPipingLengthusedforPipingCorrectionFactorinCoolingMode(0)
         vrf.setVerticalHeightusedforPipingCorrectionFactor(0)
@@ -445,8 +436,8 @@ class ProcessVRFMinisplit < OpenStudio::Ruleset::ModelUserScript
         fan = OpenStudio::Model::FanOnOff.new(model, model.alwaysOnDiscreteSchedule)
         fan.setName(obj_name + " #{control_zone.name} supply fan")
         fan.setEndUseSubcategory(Constants.EndUseHVACFan)
-        fan.setFanEfficiency(supply.eff)
-        fan.setPressureRise(supply.static)
+        fan.setFanEfficiency(HVAC.calculate_fan_efficiency(static, miniSplitHPSupplyFanPower))
+        fan.setPressureRise(static)
         fan.setMotorEfficiency(1)
         fan.setMotorInAirstreamFraction(1)       
         
@@ -463,12 +454,17 @@ class ProcessVRFMinisplit < OpenStudio::Ruleset::ModelUserScript
         vrf.addTerminal(tu_vrf)
         runner.registerInfo("Added '#{tu_vrf.name}' to '#{control_zone.name}' of #{unit.name}")        
         
+        HVAC.prioritize_zone_hvac(model, runner, control_zone).reverse.each do |object|
+          control_zone.setCoolingPriority(object, 1)
+          control_zone.setHeatingPriority(object, 1)
+        end
+        
         # Supplemental heat
         unless baseboardOutputCapacity == "NO SUPP HEAT"
           supp_htg_coil = OpenStudio::Model::ZoneHVACBaseboardConvectiveElectric.new(model)
           supp_htg_coil.setName(obj_name + " #{control_zone.name} supp heater")
           if baseboardOutputCapacity != Constants.SizingAuto
-            supp_htg_coil.setNominalCapacity(OpenStudio::convert(baseboardOutputCapacity,"Btu/h","W").get)
+            supp_htg_coil.setNominalCapacity(OpenStudio::convert(baseboardOutputCapacity,"Btu/h","W").get) # Used by HVACSizing measure
           end
           supp_htg_coil.setEfficiency(baseboardEfficiency)
           supp_htg_coil.addToThermalZone(control_zone)
@@ -483,46 +479,34 @@ class ProcessVRFMinisplit < OpenStudio::Ruleset::ModelUserScript
           
           htg_coil = OpenStudio::Model::CoilHeatingDXVariableRefrigerantFlow.new(model)
           htg_coil.setName(obj_name + " #{slave_zone.name} heating coil")
-          if miniSplitCoolingOutputCapacity != Constants.SizingAuto
-            htg_coil.setRatedTotalHeatingCapacity(OpenStudio::convert(miniSplitHeatingOutputCapacity,"Btu/h","W").get * supply.Capacity_Ratio_Heating[curves.mshp_indices[-1]] * fbsmt_frac)
-            htg_coil.setRatedAirFlowRate(supply.HeatingCFMs[curves.mshp_indices[-1]]* miniSplitHeatingOutputCapacity * OpenStudio::convert(1.0,"Btu/h","ton").get * OpenStudio::convert(1.0,"cfm","m^3/s").get * fbsmt_frac)
-          end
-          htg_coil.setHeatingCapacityRatioModifierFunctionofTemperatureCurve(constant_cubic)
-          htg_coil.setHeatingCapacityModifierFunctionofFlowFractionCurve(constant_cubic)        
+          htg_coil.setHeatingCapacityRatioModifierFunctionofTemperatureCurve(constant_cubic_curve)
+          htg_coil.setHeatingCapacityModifierFunctionofFlowFractionCurve(constant_cubic_curve)        
                   
           clg_coil = OpenStudio::Model::CoilCoolingDXVariableRefrigerantFlow.new(model)
           clg_coil.setName(obj_name + " #{slave_zone.name} cooling coil")
-          if miniSplitCoolingOutputCapacity != Constants.SizingAuto
-            clg_coil.setRatedTotalCoolingCapacity(OpenStudio::convert(miniSplitCoolingOutputCapacity,"Btu/h","W").get * supply.Capacity_Ratio_Cooling[curves.mshp_indices[-1]] * fbsmt_frac)
-            clg_coil.setRatedSensibleHeatRatio(supply.SHR_Rated[curves.mshp_indices[-1]])
-            clg_coil.setRatedAirFlowRate(supply.CoolingCFMs[curves.mshp_indices[-1]]* miniSplitCoolingOutputCapacity * OpenStudio::convert(1.0,"Btu/h","ton").get * OpenStudio::convert(1.0,"cfm","m^3/s").get * fbsmt_frac)
-          end          
-          clg_coil.setCoolingCapacityRatioModifierFunctionofTemperatureCurve(constant_cubic)
-          clg_coil.setCoolingCapacityModifierCurveFunctionofFlowFraction(constant_cubic)
+          clg_coil.setRatedSensibleHeatRatio(sHR_Rated[mshp_indices[-1]])
+          clg_coil.setCoolingCapacityRatioModifierFunctionofTemperatureCurve(constant_cubic_curve)
+          clg_coil.setCoolingCapacityModifierCurveFunctionofFlowFraction(constant_cubic_curve)
                 
           vrf = OpenStudio::Model::AirConditionerVariableRefrigerantFlow.new(model)
           vrf.setName(obj_name + " #{slave_zone.name} ac vrf")
           vrf.setAvailabilitySchedule(model.alwaysOnDiscreteSchedule)          
-          if miniSplitCoolingOutputCapacity != Constants.SizingAuto
-            vrf.setRatedTotalCoolingCapacity(OpenStudio::convert(miniSplitCoolingOutputCapacity,"Btu/h","W").get * supply.Capacity_Ratio_Cooling[curves.mshp_indices[-1]] * fbsmt_frac)
-            vrf.setRatedTotalHeatingCapacity(OpenStudio::convert(miniSplitHeatingOutputCapacity,"Btu/h","W").get * supply.Capacity_Ratio_Heating[curves.mshp_indices[-1]] * fbsmt_frac)
-          end
-          vrf.setRatedCoolingCOP(1.0 / supply.CoolingEIR[-1])
+          vrf.setRatedCoolingCOP(1.0 / coolingEIR[-1])
           vrf.setMinimumOutdoorTemperatureinCoolingMode(-6)
           vrf.setMaximumOutdoorTemperatureinCoolingMode(60)          
-          vrf.setCoolingCapacityRatioModifierFunctionofLowTemperatureCurve(cool_cap_ft)   
-          vrf.setCoolingEnergyInputRatioModifierFunctionofLowTemperatureCurve(cool_eir_ft)
-          vrf.setCoolingEnergyInputRatioModifierFunctionofLowPartLoadRatioCurve(cool_eir_fplr)
-          vrf.setCoolingPartLoadFractionCorrelationCurve(cool_plf_fplr)
+          vrf.setCoolingCapacityRatioModifierFunctionofLowTemperatureCurve(cool_cap_ft_curve)   
+          vrf.setCoolingEnergyInputRatioModifierFunctionofLowTemperatureCurve(cool_eir_ft_curve)
+          vrf.setCoolingEnergyInputRatioModifierFunctionofLowPartLoadRatioCurve(cool_eir_fplr_curve)
+          vrf.setCoolingPartLoadFractionCorrelationCurve(cool_plf_fplr_curve)
           vrf.setRatedTotalHeatingCapacitySizingRatio(1)
-          vrf.setRatedHeatingCOP(1.0 / supply.HeatingEIR[-1])
-          vrf.setMinimumOutdoorTemperatureinHeatingMode(OpenStudio::convert(supply.min_hp_temp,"F","C").get)
+          vrf.setRatedHeatingCOP(1.0 / heatingEIR[-1])
+          vrf.setMinimumOutdoorTemperatureinHeatingMode(OpenStudio::convert(min_hp_temp,"F","C").get)
           vrf.setMaximumOutdoorTemperatureinHeatingMode(40)
-          vrf.setHeatingCapacityRatioModifierFunctionofLowTemperatureCurve(heat_cap_ft)
-          vrf.setHeatingEnergyInputRatioModifierFunctionofLowTemperatureCurve(heat_eir_ft)
+          vrf.setHeatingCapacityRatioModifierFunctionofLowTemperatureCurve(heat_cap_ft_curve)
+          vrf.setHeatingEnergyInputRatioModifierFunctionofLowTemperatureCurve(heat_eir_ft_curve)
           vrf.setHeatingPerformanceCurveOutdoorTemperatureType("DryBulbTemperature")       
-          vrf.setHeatingEnergyInputRatioModifierFunctionofLowPartLoadRatioCurve(heat_eir_fplr)
-          vrf.setHeatingPartLoadFractionCorrelationCurve(heat_plf_fplr)          
+          vrf.setHeatingEnergyInputRatioModifierFunctionofLowPartLoadRatioCurve(heat_eir_fplr_curve)
+          vrf.setHeatingPartLoadFractionCorrelationCurve(heat_plf_fplr_curve)          
           vrf.setMinimumHeatPumpPartLoadRatio([min_plr_heat, min_plr_cool].min)
           vrf.setZoneforMasterThermostatLocation(control_zone)
           vrf.setMasterThermostatPriorityControlType("LoadPriority")
@@ -532,8 +516,8 @@ class ProcessVRFMinisplit < OpenStudio::Ruleset::ModelUserScript
           vrf.setRatioofCompressorSizetoTotalCompressorCapacity(1)
           vrf.setDefrostStrategy("ReverseCycle")
           vrf.setDefrostControl("OnDemand")           
-          vrf.setDefrostEnergyInputRatioModifierFunctionofTemperatureCurve(defrosteir)          
-          vrf.setMaximumOutdoorDrybulbTemperatureforDefrostOperation(OpenStudio::convert(supply.max_defrost_temp,"F","C").get)
+          vrf.setDefrostEnergyInputRatioModifierFunctionofTemperatureCurve(defrost_eir_curve)          
+          vrf.setMaximumOutdoorDrybulbTemperatureforDefrostOperation(OpenStudio::convert(max_defrost_temp,"F","C").get)
           vrf.setFuelType("Electricity")
           vrf.setEquivalentPipingLengthusedforPipingCorrectionFactorinCoolingMode(0)
           vrf.setVerticalHeightusedforPipingCorrectionFactor(0)
@@ -543,8 +527,8 @@ class ProcessVRFMinisplit < OpenStudio::Ruleset::ModelUserScript
           fan = OpenStudio::Model::FanOnOff.new(model, model.alwaysOnDiscreteSchedule)
           fan.setName(obj_name + " #{slave_zone.name} supply fan")
           fan.setEndUseSubcategory(Constants.EndUseHVACFan)
-          fan.setFanEfficiency(supply.eff)
-          fan.setPressureRise(supply.static)
+          fan.setFanEfficiency(HVAC.calculate_fan_efficiency(static, miniSplitHPSupplyFanPower))
+          fan.setPressureRise(static)
           fan.setMotorEfficiency(1)
           fan.setMotorInAirstreamFraction(1)
                     
@@ -559,12 +543,14 @@ class ProcessVRFMinisplit < OpenStudio::Ruleset::ModelUserScript
           vrf.addTerminal(tu_vrf)
           runner.registerInfo("Added '#{tu_vrf.name}' to '#{slave_zone.name}' of #{unit.name}") 
           
+          HVAC.prioritize_zone_hvac(model, runner, slave_zone).reverse.each do |object|
+            slave_zone.setCoolingPriority(object, 1)
+            slave_zone.setHeatingPriority(object, 1)
+          end
+          
           unless baseboardOutputCapacity == "NO SUPP HEAT"
             supp_htg_coil = OpenStudio::Model::ZoneHVACBaseboardConvectiveElectric.new(model)
             supp_htg_coil.setName(obj_name + " #{slave_zone.name} supp heater")
-            if baseboardOutputCapacity != Constants.SizingAuto
-              supp_htg_coil.setNominalCapacity(OpenStudio::convert(baseboardOutputCapacity,"Btu/h","W").get)
-            end
             supp_htg_coil.setEfficiency(baseboardEfficiency)
             supp_htg_coil.addToThermalZone(slave_zone)
             runner.registerInfo("Added '#{supp_htg_coil.name}' to '#{slave_zone.name}' of #{unit.name}")
@@ -600,7 +586,7 @@ class ProcessVRFMinisplit < OpenStudio::Ruleset::ModelUserScript
           tout_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, zone_outdoor_air_drybulb_temp_output_var)
           tout_sensor.setName("#{obj_name} tout sensor".gsub("|","_"))
           thermal_zones.each do |thermal_zone|
-            if thermal_zone.name.to_s.start_with? Constants.LivingZone
+            if Geometry.is_living(thermal_zone)
               tout_sensor.setKeyName(thermal_zone.name.to_s)
               break
             end
@@ -608,7 +594,7 @@ class ProcessVRFMinisplit < OpenStudio::Ruleset::ModelUserScript
 
           program = OpenStudio::Model::EnergyManagementSystemProgram.new(model)
           program.setName(obj_name + " pan heater program")
-          if miniSplitCoolingOutputCapacity != Constants.SizingAuto
+          if miniSplitCoolingOutputCapacity != Constants.SizingAuto and miniSplitCoolingOutputCapacity != Constants.SizingAutoMaxLoad
             num_outdoor_units = (OpenStudio::convert(miniSplitCoolingOutputCapacity,"Btu/h","ton").get / 1.5).ceil # Assume 1.5 tons max per outdoor unit
           else
             num_outdoor_units = 2
@@ -635,176 +621,66 @@ class ProcessVRFMinisplit < OpenStudio::Ruleset::ModelUserScript
           program_calling_manager.setCallingPoint("BeginTimestepBeforePredictor")
           program_calling_manager.addProgram(program)
           
-        end
+        end # slave_zone
       
-      end
+      end # control_zone
       
-    end
+      # Store info for HVAC Sizing measure
+      unit.setFeature(Constants.SizingInfoHVACCapacityRatioCooling, capacity_Ratio_Cooling.join(","))
+      unit.setFeature(Constants.SizingInfoHVACCapacityRatioHeating, capacity_Ratio_Heating.join(","))
+      unit.setFeature(Constants.SizingInfoHVACCoolingCFMs, coolingCFMs.join(","))
+      unit.setFeature(Constants.SizingInfoHVACHeatingCFMs, heatingCFMs.join(","))
+      unit.setFeature(Constants.SizingInfoHVACHeatingCapacityOffset, miniSplitHPHeatingCapacityOffset)
+      unit.setFeature(Constants.SizingInfoHPSizedForMaxLoad, (miniSplitCoolingOutputCapacity == Constants.SizingAutoMaxLoad))
+      unit.setFeature(Constants.SizingInfoHVACSHR, sHR_Rated.join(","))
+      unit.setFeature(Constants.SizingInfoMSHPIndices, mshp_indices.join(","))
+      
+    end # unit
 
     return true
 
   end
   
-  def _processCurvesMiniSplitHP(model, curves, min_plr_cool, min_plr_heat)
+  def calc_cfm_ton_cooling(cap_min_per, cap_max_per, cfm_ton_min, cfm_ton_max, number_Speeds, dB_rated, wB_rated, shr)
   
-    cool_cap_ft = OpenStudio::Model::CurveBiquadratic.new(model)
-    cool_cap_ft.setName("Cool-Cap-fT#{curves.mshp_indices[-1]+1}")
-    cool_cap_ft.setCoefficient1Constant(curves.COOL_CAP_FT_SPEC_coefficients[-1][0])
-    cool_cap_ft.setCoefficient2x(curves.COOL_CAP_FT_SPEC_coefficients[-1][1])
-    cool_cap_ft.setCoefficient3xPOW2(curves.COOL_CAP_FT_SPEC_coefficients[-1][2])
-    cool_cap_ft.setCoefficient4y(curves.COOL_CAP_FT_SPEC_coefficients[-1][3])
-    cool_cap_ft.setCoefficient5yPOW2(curves.COOL_CAP_FT_SPEC_coefficients[-1][4])
-    cool_cap_ft.setCoefficient6xTIMESY(curves.COOL_CAP_FT_SPEC_coefficients[-1][5])
-    cool_cap_ft.setMinimumValueofx(13.88)
-    cool_cap_ft.setMaximumValueofx(23.88)
-    cool_cap_ft.setMinimumValueofy(18.33)
-    cool_cap_ft.setMaximumValueofy(51.66)
-
-    cool_eir_ft = OpenStudio::Model::CurveBiquadratic.new(model)
-    cool_eir_ft.setName("Cool-EIR-fT#{curves.mshp_indices[-1]+1}")
-    cool_eir_ft.setCoefficient1Constant(curves.COOL_EIR_FT_SPEC_coefficients[-1][0])
-    cool_eir_ft.setCoefficient2x(curves.COOL_EIR_FT_SPEC_coefficients[-1][1])
-    cool_eir_ft.setCoefficient3xPOW2(curves.COOL_EIR_FT_SPEC_coefficients[-1][2])
-    cool_eir_ft.setCoefficient4y(curves.COOL_EIR_FT_SPEC_coefficients[-1][3])
-    cool_eir_ft.setCoefficient5yPOW2(curves.COOL_EIR_FT_SPEC_coefficients[-1][4])
-    cool_eir_ft.setCoefficient6xTIMESY(curves.COOL_EIR_FT_SPEC_coefficients[-1][5])
-    cool_eir_ft.setMinimumValueofx(13.88)
-    cool_eir_ft.setMaximumValueofx(23.88)
-    cool_eir_ft.setMinimumValueofy(18.33)
-    cool_eir_ft.setMaximumValueofy(51.66)     
-    
-    cool_eir_fplr = OpenStudio::Model::CurveQuadratic.new(model)
-    cool_eir_fplr.setName("Cool-EIR-fPLR#{curves.mshp_indices[-1]+1}")
-    cool_eir_fplr.setCoefficient1Constant(0.100754583)
-    cool_eir_fplr.setCoefficient2x(-0.131544809)
-    cool_eir_fplr.setCoefficient3xPOW2(1.030916234)
-    cool_eir_fplr.setMinimumValueofx(min_plr_cool)
-    cool_eir_fplr.setMaximumValueofx(1)
-    cool_eir_fplr.setInputUnitTypeforX("Dimensionless")
-    cool_eir_fplr.setOutputUnitType("Dimensionless")        
-    
-    cool_plf_fplr = OpenStudio::Model::CurveQuadratic.new(model)
-    cool_plf_fplr.setName("Cool-PLF-fPLR#{curves.mshp_indices[-1]+1}")
-    cool_plf_fplr.setCoefficient1Constant(curves.COOL_CLOSS_FPLR_SPEC_coefficients[0])
-    cool_plf_fplr.setCoefficient2x(curves.COOL_CLOSS_FPLR_SPEC_coefficients[1])
-    cool_plf_fplr.setCoefficient3xPOW2(curves.COOL_CLOSS_FPLR_SPEC_coefficients[2])
-    cool_plf_fplr.setMinimumValueofx(0)
-    cool_plf_fplr.setMaximumValueofx(1)
-    cool_plf_fplr.setMinimumCurveOutput(0.7)
-    cool_plf_fplr.setMaximumCurveOutput(1)       
-
-    heat_cap_ft = OpenStudio::Model::CurveBiquadratic.new(model)
-    heat_cap_ft.setName("Heat-Cap-fT#{curves.mshp_indices[-1]+1}")
-    heat_cap_ft.setCoefficient1Constant(curves.HEAT_CAP_FT_SPEC_coefficients[-1][0])
-    heat_cap_ft.setCoefficient2x(curves.HEAT_CAP_FT_SPEC_coefficients[-1][1])
-    heat_cap_ft.setCoefficient3xPOW2(curves.HEAT_CAP_FT_SPEC_coefficients[-1][2])
-    heat_cap_ft.setCoefficient4y(curves.HEAT_CAP_FT_SPEC_coefficients[-1][3])
-    heat_cap_ft.setCoefficient5yPOW2(curves.HEAT_CAP_FT_SPEC_coefficients[-1][4])
-    heat_cap_ft.setCoefficient6xTIMESY(curves.HEAT_CAP_FT_SPEC_coefficients[-1][5])
-    heat_cap_ft.setMinimumValueofx(-100)
-    heat_cap_ft.setMaximumValueofx(100)
-    heat_cap_ft.setMinimumValueofy(-100)
-    heat_cap_ft.setMaximumValueofy(100)     
-
-    heat_eir_ft = OpenStudio::Model::CurveBiquadratic.new(model)
-    heat_eir_ft.setName("Heat-EIR-fT#{curves.mshp_indices[-1]+1}")
-    heat_eir_ft.setCoefficient1Constant(curves.HEAT_EIR_FT_SPEC_coefficients[-1][0])
-    heat_eir_ft.setCoefficient2x(curves.HEAT_EIR_FT_SPEC_coefficients[-1][1])
-    heat_eir_ft.setCoefficient3xPOW2(curves.HEAT_EIR_FT_SPEC_coefficients[-1][2])
-    heat_eir_ft.setCoefficient4y(curves.HEAT_EIR_FT_SPEC_coefficients[-1][3])
-    heat_eir_ft.setCoefficient5yPOW2(curves.HEAT_EIR_FT_SPEC_coefficients[-1][4])
-    heat_eir_ft.setCoefficient6xTIMESY(curves.HEAT_EIR_FT_SPEC_coefficients[-1][5])
-    heat_eir_ft.setMinimumValueofx(-100)
-    heat_eir_ft.setMaximumValueofx(100)
-    heat_eir_ft.setMinimumValueofy(-100)
-    heat_eir_ft.setMaximumValueofy(100)        
-
-    heat_eir_fplr = OpenStudio::Model::CurveQuadratic.new(model)
-    heat_eir_fplr.setName("Heat-EIR-fPLR#{curves.mshp_indices[-1]+1}")
-    heat_eir_fplr.setCoefficient1Constant(-0.169542039)
-    heat_eir_fplr.setCoefficient2x(1.167269914)
-    heat_eir_fplr.setCoefficient3xPOW2(0.0)
-    heat_eir_fplr.setMinimumValueofx(min_plr_heat)
-    heat_eir_fplr.setMaximumValueofx(1)
-    heat_eir_fplr.setInputUnitTypeforX("Dimensionless")
-    heat_eir_fplr.setOutputUnitType("Dimensionless")       
-
-    heat_plf_fplr = OpenStudio::Model::CurveQuadratic.new(model)
-    heat_plf_fplr.setName("Heat-PLF-fPLR#{curves.mshp_indices[-1]+1}")
-    heat_plf_fplr.setCoefficient1Constant(curves.HEAT_CLOSS_FPLR_SPEC_coefficients[0])
-    heat_plf_fplr.setCoefficient2x(curves.HEAT_CLOSS_FPLR_SPEC_coefficients[1])
-    heat_plf_fplr.setCoefficient3xPOW2(curves.HEAT_CLOSS_FPLR_SPEC_coefficients[2])
-    heat_plf_fplr.setMinimumValueofx(0)
-    heat_plf_fplr.setMaximumValueofx(1)
-    heat_plf_fplr.setMinimumCurveOutput(0.7)
-    heat_plf_fplr.setMaximumCurveOutput(1)
-
-    constant_cubic = OpenStudio::Model::CurveCubic.new(model)
-    constant_cubic.setName("ConstantCubic")
-    constant_cubic.setCoefficient1Constant(1)
-    constant_cubic.setCoefficient2x(0)
-    constant_cubic.setCoefficient3xPOW2(0)
-    constant_cubic.setCoefficient4xPOW3(0)
-    constant_cubic.setMinimumValueofx(-100)
-    constant_cubic.setMaximumValueofx(100)    
-    
-    defrosteir = OpenStudio::Model::CurveBiquadratic.new(model)
-    defrosteir.setName("DefrostEIR")
-    defrosteir.setCoefficient1Constant(0.1528)
-    defrosteir.setCoefficient2x(0)
-    defrosteir.setCoefficient3xPOW2(0)
-    defrosteir.setCoefficient4y(0)
-    defrosteir.setCoefficient5yPOW2(0)
-    defrosteir.setCoefficient6xTIMESY(0)
-    defrosteir.setMinimumValueofx(-100)
-    defrosteir.setMaximumValueofx(100)
-    defrosteir.setMinimumValueofy(-100)
-    defrosteir.setMaximumValueofy(100)       
-    
-    return cool_cap_ft, cool_eir_ft, cool_eir_fplr, cool_plf_fplr, heat_cap_ft, heat_eir_ft, heat_eir_fplr, heat_plf_fplr, constant_cubic, defrosteir
-  
-  end
-  
-  def _processAirSystemMiniSplitCooling(runner, coolingSEER, cap_min_per, cap_max_per, cfm_ton_min, cfm_ton_max, shr, supplyFanPower, curves, supply)
-        
-    curves.Number_Speeds = Constants.Num_Speeds_MSHP
-    c_d = Constants.MSHP_Cd_Cooling
-    cops_Norm = [1.901, 1.859, 1.746, 1.609, 1.474, 1.353, 1.247, 1.156, 1.079, 1.0]
-    fanPows_Norm = [0.604, 0.634, 0.670, 0.711, 0.754, 0.800, 0.848, 0.898, 0.948, 1.0]
-    
-    dB_rated = 80.0      
-    wB_rated = 67.0
+    capacity_Ratio_Cooling = [0.0] * number_Speeds
+    coolingCFMs = [0.0] * number_Speeds
+    sHR_Rated = [0.0] * number_Speeds
     
     cap_nom_per = cap_max_per
     cfm_ton_nom = ((cfm_ton_max - cfm_ton_min)/(cap_max_per - cap_min_per)) * (cap_nom_per - cap_min_per) + cfm_ton_min
+    
     ao = Psychrometrics.CoilAoFactor(dB_rated, wB_rated, Constants.Patm, OpenStudio::convert(1,"ton","kBtu/h").get, cfm_ton_nom, shr)
     
-    supply.CoolingEIR = [0.0] * Constants.Num_Speeds_MSHP
-    supply.Capacity_Ratio_Cooling = [0.0] * Constants.Num_Speeds_MSHP
-    supply.CoolingCFMs = [0.0] * Constants.Num_Speeds_MSHP
-    supply.SHR_Rated = [0.0] * Constants.Num_Speeds_MSHP
+    (0...number_Speeds).each do |i|
+        capacity_Ratio_Cooling[i] = cap_min_per + i*(cap_max_per - cap_min_per)/(number_Speeds-1)
+        coolingCFMs[i] = cfm_ton_min + i*(cfm_ton_max - cfm_ton_min)/(number_Speeds-1)
+        # Calculate the SHR for each speed. Use minimum value of 0.98 to prevent E+ bypass factor calculation errors
+        sHR_Rated[i] = [Psychrometrics.CalculateSHR(dB_rated, wB_rated, Constants.Patm, OpenStudio::convert(capacity_Ratio_Cooling[i],"ton","kBtu/h").get, coolingCFMs[i], ao), 0.98].min
+    end
+  
+    return coolingCFMs, capacity_Ratio_Cooling, sHR_Rated
+  end
+  
+  def calc_cooling_eir(runner, coolingSEER, supplyFanPower, c_d, number_Speeds, capacity_Ratio_Cooling, coolingCFMs, cOOL_EIR_FT_SPEC, cOOL_CAP_FT_SPEC)
+        
+    cops_Norm = [1.901, 1.859, 1.746, 1.609, 1.474, 1.353, 1.247, 1.156, 1.079, 1.0]
+    fanPows_Norm = [0.604, 0.634, 0.670, 0.711, 0.754, 0.800, 0.848, 0.898, 0.948, 1.0]
     
-    fanPowsRated = [0.0] * Constants.Num_Speeds_MSHP
-    eers_Rated = [0.0] * Constants.Num_Speeds_MSHP
+    coolingEIR = [0.0] * number_Speeds
+    fanPowsRated = [0.0] * number_Speeds
+    eers_Rated = [0.0] * number_Speeds
     
     cop_maxSpeed = 3.5  # 3.5 is an initial guess, final value solved for below
     
-    (0...Constants.Num_Speeds_MSHP).each do |i|
-        supply.Capacity_Ratio_Cooling[i] = cap_min_per + i*(cap_max_per - cap_min_per)/(cops_Norm.length-1)
-        supply.CoolingCFMs[i]= cfm_ton_min + i*(cfm_ton_max - cfm_ton_min)/(cops_Norm.length-1)
-        
-        # Calculate the SHR for each speed. Use minimum value of 0.98 to prevent E+ bypass factor calculation errors
-        supply.SHR_Rated[i] = [Psychrometrics.CalculateSHR(dB_rated, wB_rated, Constants.Patm, 
-                                                                   OpenStudio::convert(supply.Capacity_Ratio_Cooling[i],"ton","kBtu/h").get, 
-                                                                   supply.CoolingCFMs[i], ao), 0.98].min
-        
+    (0...number_Speeds).each do |i|
         fanPowsRated[i] = supplyFanPower * fanPows_Norm[i] 
         eers_Rated[i] = OpenStudio::convert(cop_maxSpeed,"W","Btu/h").get * cops_Norm[i]   
     end 
         
     cop_maxSpeed_1 = cop_maxSpeed
     cop_maxSpeed_2 = cop_maxSpeed                
-    error = coolingSEER - calc_SEER_VariableSpeed(runner, eers_Rated, c_d, supply.Capacity_Ratio_Cooling, supply.CoolingCFMs, fanPowsRated, true, curves.Number_Speeds, curves)                                                            
+    error = coolingSEER - calc_SEER_VariableSpeed(eers_Rated, c_d, capacity_Ratio_Cooling, coolingCFMs, fanPowsRated, true, number_Speeds, cOOL_EIR_FT_SPEC, cOOL_CAP_FT_SPEC)
     error1 = error
     error2 = error
     
@@ -814,12 +690,11 @@ class ProcessVRFMinisplit < OpenStudio::Ruleset::ModelUserScript
     
     (1...itmax+1).each do |n|
         final_n = n
-        (0...Constants.Num_Speeds_MSHP).each do |i|
+        (0...number_Speeds).each do |i|
             eers_Rated[i] = OpenStudio::convert(cop_maxSpeed,"W","Btu/h").get * cops_Norm[i]
         end
         
-        error = coolingSEER - calc_SEER_VariableSpeed(runner, eers_Rated, c_d, supply.Capacity_Ratio_Cooling, supply.CoolingCFMs, fanPowsRated, 
-                                                     true, curves.Number_Speeds, curves)
+        error = coolingSEER - calc_SEER_VariableSpeed(eers_Rated, c_d, capacity_Ratio_Cooling, coolingCFMs, fanPowsRated, true, number_Speeds, cOOL_EIR_FT_SPEC, cOOL_CAP_FT_SPEC)
         
         cop_maxSpeed,cvg,cop_maxSpeed_1,error1,cop_maxSpeed_2,error2 = MathTools.Iterate(cop_maxSpeed,error,cop_maxSpeed_1,error1,cop_maxSpeed_2,error2,n,cvg)
     
@@ -833,25 +708,15 @@ class ProcessVRFMinisplit < OpenStudio::Ruleset::ModelUserScript
         runner.registerWarning('Mini-split heat pump COP iteration failed to converge. Setting to default value.')
     end
         
-    (0...Constants.Num_Speeds_MSHP).each do |i|
-        supply.CoolingEIR[i] = HVAC.calc_EIR_from_EER(OpenStudio::convert(cop_maxSpeed,"W","Btu/h").get * cops_Norm[i], fanPowsRated[i])
+    (0...number_Speeds).each do |i|
+        coolingEIR[i] = HVAC.calc_EIR_from_EER(OpenStudio::convert(cop_maxSpeed,"W","Btu/h").get * cops_Norm[i], fanPowsRated[i])
     end
 
-    curves.COOL_CLOSS_FPLR_SPEC_coefficients = [(1 - c_d), c_d, 0]    # Linear part load model
-
-    supply.fanspeed_ratio = [1]
-    supply.min_flow_ratio = supply.CoolingCFMs.min / supply.CoolingCFMs.max
-
-    # Supply Fan
-    supply.static = UnitConversion.inH2O2Pa(0.1) # Pascal
-    supply.fan_power = supplyFanPower
-    supply.eff = OpenStudio::convert(supply.static / supply.fan_power,"cfm","m^3/s").get  # Overall Efficiency of the Supply Fan, Motor and Drive
-    
-    return curves, supply
+    return coolingEIR
 
   end
   
-  def calc_SEER_VariableSpeed(runner, eer_A, c_d, capacityRatio, cfm_Tons, supplyFanPower_Rated, isHeatPump, num_speeds, curves)
+  def calc_SEER_VariableSpeed(eer_A, c_d, capacityRatio, cfm_Tons, supplyFanPower_Rated, isHeatPump, number_Speeds, cOOL_EIR_FT_SPEC, cOOL_CAP_FT_SPEC)
     
     n_max = (eer_A.length-1.0)-3.0 # Don't use max speed
     n_min = 0.0
@@ -861,7 +726,7 @@ class ProcessVRFMinisplit < OpenStudio::Ruleset::ModelUserScript
     tout_B = 82.0
     tout_E = 87.0
     tout_F = 67.0
-    if num_speeds == Constants.Num_Speeds_MSHP
+    if number_Speeds == number_Speeds # FIXME: Need to look into this.
         wBin = OpenStudio::convert(wBin,"F","C").get
         tout_B = OpenStudio::convert(tout_B,"F","C").get
         tout_E = OpenStudio::convert(tout_E,"F","C").get
@@ -869,20 +734,20 @@ class ProcessVRFMinisplit < OpenStudio::Ruleset::ModelUserScript
     end
 
     eir_A2 = HVAC.calc_EIR_from_EER(eer_A[n_max], supplyFanPower_Rated[n_max])    
-    eir_B2 = eir_A2 * MathTools.biquadratic(wBin, tout_B, curves.COOL_EIR_FT_SPEC_coefficients[n_max]) 
+    eir_B2 = eir_A2 * MathTools.biquadratic(wBin, tout_B, cOOL_EIR_FT_SPEC[n_max]) 
     
     eir_Av = HVAC.calc_EIR_from_EER(eer_A[n_int], supplyFanPower_Rated[n_int])    
-    eir_Ev = eir_Av * MathTools.biquadratic(wBin, tout_E, curves.COOL_EIR_FT_SPEC_coefficients[n_int])
+    eir_Ev = eir_Av * MathTools.biquadratic(wBin, tout_E, cOOL_EIR_FT_SPEC[n_int])
     
     eir_A1 = HVAC.calc_EIR_from_EER(eer_A[n_min], supplyFanPower_Rated[n_min])
-    eir_B1 = eir_A1 * MathTools.biquadratic(wBin, tout_B, curves.COOL_EIR_FT_SPEC_coefficients[n_min]) 
-    eir_F1 = eir_A1 * MathTools.biquadratic(wBin, tout_F, curves.COOL_EIR_FT_SPEC_coefficients[n_min])
+    eir_B1 = eir_A1 * MathTools.biquadratic(wBin, tout_B, cOOL_EIR_FT_SPEC[n_min]) 
+    eir_F1 = eir_A1 * MathTools.biquadratic(wBin, tout_F, cOOL_EIR_FT_SPEC[n_min])
     
     q_A2 = capacityRatio[n_max]
-    q_B2 = q_A2 * MathTools.biquadratic(wBin, tout_B, curves.COOL_CAP_FT_SPEC_coefficients[n_max])    
-    q_Ev = capacityRatio[n_int] * MathTools.biquadratic(wBin, tout_E, curves.COOL_CAP_FT_SPEC_coefficients[n_int])            
-    q_B1 = capacityRatio[n_min] * MathTools.biquadratic(wBin, tout_B, curves.COOL_CAP_FT_SPEC_coefficients[n_min])
-    q_F1 = capacityRatio[n_min] * MathTools.biquadratic(wBin, tout_F, curves.COOL_CAP_FT_SPEC_coefficients[n_min])
+    q_B2 = q_A2 * MathTools.biquadratic(wBin, tout_B, cOOL_CAP_FT_SPEC[n_max])    
+    q_Ev = capacityRatio[n_int] * MathTools.biquadratic(wBin, tout_E, cOOL_CAP_FT_SPEC[n_int])            
+    q_B1 = capacityRatio[n_min] * MathTools.biquadratic(wBin, tout_B, cOOL_CAP_FT_SPEC[n_min])
+    q_F1 = capacityRatio[n_min] * MathTools.biquadratic(wBin, tout_F, cOOL_CAP_FT_SPEC[n_min])
             
     q_A2_net = q_A2 - supplyFanPower_Rated[n_max] * OpenStudio::convert(1,"W","Btu/h").get * cfm_Tons[n_max] / OpenStudio::convert(1,"ton","Btu/h").get
     q_B2_net = q_B2 - supplyFanPower_Rated[n_max] * OpenStudio::convert(1,"W","Btu/h").get * cfm_Tons[n_max] / OpenStudio::convert(1,"ton","Btu/h").get       
@@ -964,38 +829,41 @@ class ProcessVRFMinisplit < OpenStudio::Ruleset::ModelUserScript
     return seer
   end
   
-  def _processAirSystemMiniSplitHeating(runner, heatingHSPF, cap_min_per, cap_max_per, cfm_ton_min, cfm_ton_max, supplyFanPower, mshp_capacity_retention_fraction, mshp_capacity_retention_temperature, curves, supply)
+  def calc_cfm_ton_heating(cap_min_per, cap_max_per, cfm_ton_min, cfm_ton_max, number_Speeds)
+  
+    capacity_Ratio_Heating = [0.0] * number_Speeds
+    heatingCFMs = [0.0] * number_Speeds
+  
+    (0...number_Speeds).each do |i|
+        capacity_Ratio_Heating[i] = cap_min_per + i*(cap_max_per - cap_min_per)/(number_Speeds-1)
+        heatingCFMs[i] = cfm_ton_min + i*(cfm_ton_max - cfm_ton_min)/(number_Speeds-1)
+    end
+  
+    return heatingCFMs, capacity_Ratio_Heating
+  end
+  
+  def calc_heating_eir(runner, heatingHSPF, supplyFanPower, mshp_capacity_retention_fraction, mshp_capacity_retention_temperature, min_hp_temp, c_d, coolingCFMs, number_Speeds, capacity_Ratio_Heating, heatingCFMs, hEAT_EIR_FT_SPEC, hEAT_CAP_FT_SPEC)
         
-    curves.Number_Speeds = Constants.Num_Speeds_MSHP        
-    c_d = Constants.MSHP_Cd_Heating
-    min_T = Constants.MSHP_Min_T
-    
     #COPs_Norm = [1.636, 1.757, 1.388, 1.240, 1.162, 1.119, 1.084, 1.062, 1.044, 1] #Report Avg
     #COPs_Norm = [1.792, 1.502, 1.308, 1.207, 1.145, 1.105, 1.077, 1.056, 1.041, 1] #BEopt Default
     
     cops_Norm = [1.792, 1.502, 1.308, 1.207, 1.145, 1.105, 1.077, 1.056, 1.041, 1] #BEopt Default    
     fanPows_Norm = [0.577, 0.625, 0.673, 0.720, 0.768, 0.814, 0.861, 0.907, 0.954, 1]
 
-    supply.HeatingEIR = [0.0] * Constants.Num_Speeds_MSHP
-    supply.Capacity_Ratio_Heating = [0.0] * Constants.Num_Speeds_MSHP
-    supply.HeatingCFMs = [0.0] * Constants.Num_Speeds_MSHP      
-    
-    fanPowsRated = [0.0] * Constants.Num_Speeds_MSHP
-    cops_Rated = [0.0] * Constants.Num_Speeds_MSHP
+    heatingEIR = [0.0] * number_Speeds
+    fanPowsRated = [0.0] * number_Speeds
+    cops_Rated = [0.0] * number_Speeds
     
     cop_maxSpeed = 3.25  # 3.35 is an initial guess, final value solved for below
     
-    (0...Constants.Num_Speeds_MSHP).each do |i|        
-        supply.Capacity_Ratio_Heating[i] = cap_min_per + i*(cap_max_per - cap_min_per)/(cops_Norm.length-1)
-        supply.HeatingCFMs[i] = cfm_ton_min + i*(cfm_ton_max - cfm_ton_min)/(cops_Norm.length-1)
-        
+    (0...number_Speeds).each do |i|
         fanPowsRated[i] = supplyFanPower * fanPows_Norm[i] 
         cops_Rated[i] = cop_maxSpeed * cops_Norm[i]
     end
         
     cop_maxSpeed_1 = cop_maxSpeed
     cop_maxSpeed_2 = cop_maxSpeed                
-    error = heatingHSPF - calc_HSPF_VariableSpeed(runner, cops_Rated, c_d, supply.Capacity_Ratio_Heating, supply.HeatingCFMs, fanPowsRated, min_T, curves.Number_Speeds, mshp_capacity_retention_fraction, mshp_capacity_retention_temperature, curves)                                                            
+    error = heatingHSPF - calc_HSPF_VariableSpeed(cops_Rated, c_d, capacity_Ratio_Heating, heatingCFMs, fanPowsRated, min_hp_temp, number_Speeds, mshp_capacity_retention_fraction, mshp_capacity_retention_temperature, hEAT_EIR_FT_SPEC, hEAT_CAP_FT_SPEC)
     
     error1 = error
     error2 = error
@@ -1006,12 +874,12 @@ class ProcessVRFMinisplit < OpenStudio::Ruleset::ModelUserScript
     
     (1...itmax+1).each do |n|
         final_n = n
-        (0...Constants.Num_Speeds_MSHP).each do |i|          
+        (0...number_Speeds).each do |i|          
             cops_Rated[i] = cop_maxSpeed * cops_Norm[i]
         end
         
-        error = heatingHSPF - calc_HSPF_VariableSpeed(runner, cops_Rated, c_d, supply.Capacity_Ratio_Heating, supply.CoolingCFMs, fanPowsRated, min_T, curves.Number_Speeds, mshp_capacity_retention_fraction, mshp_capacity_retention_temperature, curves)  
-
+        error = heatingHSPF - calc_HSPF_VariableSpeed(cops_Rated, c_d, capacity_Ratio_Heating, coolingCFMs, fanPowsRated, min_hp_temp, number_Speeds, mshp_capacity_retention_fraction, mshp_capacity_retention_temperature, hEAT_EIR_FT_SPEC, hEAT_CAP_FT_SPEC)
+        
         cop_maxSpeed,cvg,cop_maxSpeed_1,error1,cop_maxSpeed_2,error2 = MathTools.Iterate(cop_maxSpeed,error,cop_maxSpeed_1,error1,cop_maxSpeed_2,error2,n,cvg)
     
         if cvg
@@ -1020,28 +888,19 @@ class ProcessVRFMinisplit < OpenStudio::Ruleset::ModelUserScript
     end
     
     if not cvg or final_n > itmax
-        cop_maxSpeed = OpenStudio::convert(0.4174*heatingHSPF - 1.1134,"Btu/h","W").get  # Correlation developed from JonW's MatLab scripts. Only used is a COP cannot be found.   
+        cop_maxSpeed = OpenStudio::convert(0.4174*heatingHSPF - 1.1134,"Btu/h","W").get  # Correlation developed from JonW's MatLab scripts. Only used if a COP cannot be found.   
         runner.registerWarning('Mini-split heat pump COP iteration failed to converge. Setting to default value.')
     end
 
-    (0...Constants.Num_Speeds_MSHP).each do |i|
-        supply.HeatingEIR[i] = HVAC.calc_EIR_from_COP(cop_maxSpeed * cops_Norm[i], fanPowsRated[i])
+    (0...number_Speeds).each do |i|
+        heatingEIR[i] = HVAC.calc_EIR_from_COP(cop_maxSpeed * cops_Norm[i], fanPowsRated[i])
     end
 
-    curves.HEAT_CLOSS_FPLR_SPEC_coefficients = [(1 - c_d), c_d, 0]    # Linear part load model
-            
-    # Supply Air Temperatures     
-    supply.htg_supply_air_temp = 105.0 # used for sizing heating flow rate
-    supply.supp_htg_max_supply_temp = 200.0 # Setting to 200F since MSHPs use electric baseboard for backup, which shouldn't be limited by a supply air temperature limit
-    supply.min_hp_temp = min_T          # Minimum temperature for Heat Pump operation
-    supply.supp_htg_max_outdoor_temp = 40.0   # Moved from DOE-2. DOE-2 Default
-    supply.max_defrost_temp = 40.0        # Moved from DOE-2. DOE-2 Default
-
-    return curves, supply
+    return heatingEIR
     
   end  
   
-  def calc_HSPF_VariableSpeed(runner, cop_47, c_d, capacityRatio, cfm_Tons, supplyFanPower_Rated, min_temp, num_speeds, mshp_capacity_retention_fraction, mshp_capacity_retention_temperature, curves)
+  def calc_HSPF_VariableSpeed(cop_47, c_d, capacityRatio, cfm_Tons, supplyFanPower_Rated, min_temp, number_Speeds, mshp_capacity_retention_fraction, mshp_capacity_retention_temperature, hEAT_EIR_FT_SPEC, hEAT_CAP_FT_SPEC)
     
     n_max = (cop_47.length-1.0)#-3 # Don't use max speed
     n_min = 0
@@ -1051,7 +910,7 @@ class ProcessVRFMinisplit < OpenStudio::Ruleset::ModelUserScript
     tout_3 = 17.0
     tout_2 = 35.0
     tout_0 = 62.0
-    if num_speeds == Constants.Num_Speeds_MSHP
+    if number_Speeds == number_Speeds # FIXME: Need to look into this.
         tin = OpenStudio::convert(tin,"F","C").get
         tout_3 = OpenStudio::convert(tout_3,"F","C").get
         tout_2 = OpenStudio::convert(tout_2,"F","C").get
@@ -1059,21 +918,21 @@ class ProcessVRFMinisplit < OpenStudio::Ruleset::ModelUserScript
     end
     
     eir_H1_2 = HVAC.calc_EIR_from_COP(cop_47[n_max], supplyFanPower_Rated[n_max])    
-    eir_H3_2 = eir_H1_2 * MathTools.biquadratic(tin, tout_3, curves.HEAT_EIR_FT_SPEC_coefficients[n_max])
+    eir_H3_2 = eir_H1_2 * MathTools.biquadratic(tin, tout_3, hEAT_EIR_FT_SPEC[n_max])
 
     eir_adjv = HVAC.calc_EIR_from_COP(cop_47[n_int], supplyFanPower_Rated[n_int])    
-    eir_H2_v = eir_adjv * MathTools.biquadratic(tin, tout_2, curves.HEAT_EIR_FT_SPEC_coefficients[n_int])
+    eir_H2_v = eir_adjv * MathTools.biquadratic(tin, tout_2, hEAT_EIR_FT_SPEC[n_int])
         
     eir_H1_1 = HVAC.calc_EIR_from_COP(cop_47[n_min], supplyFanPower_Rated[n_min])
-    eir_H0_1 = eir_H1_1 * MathTools.biquadratic(tin, tout_0, curves.HEAT_EIR_FT_SPEC_coefficients[n_min])
+    eir_H0_1 = eir_H1_1 * MathTools.biquadratic(tin, tout_0, hEAT_EIR_FT_SPEC[n_min])
         
     q_H1_2 = capacityRatio[n_max]
-    q_H3_2 = q_H1_2 * MathTools.biquadratic(tin, tout_3, curves.HEAT_CAP_FT_SPEC_coefficients[n_max])    
+    q_H3_2 = q_H1_2 * MathTools.biquadratic(tin, tout_3, hEAT_CAP_FT_SPEC[n_max])    
         
-    q_H2_v = capacityRatio[n_int] * MathTools.biquadratic(tin, tout_2, curves.HEAT_CAP_FT_SPEC_coefficients[n_int])
+    q_H2_v = capacityRatio[n_int] * MathTools.biquadratic(tin, tout_2, hEAT_CAP_FT_SPEC[n_int])
     
     q_H1_1 = capacityRatio[n_min]
-    q_H0_1 = q_H1_1 * MathTools.biquadratic(tin, tout_0, curves.HEAT_CAP_FT_SPEC_coefficients[n_min])
+    q_H0_1 = q_H1_1 * MathTools.biquadratic(tin, tout_0, hEAT_CAP_FT_SPEC[n_min])
                                   
     q_H1_2_net = q_H1_2 + supplyFanPower_Rated[n_max] * OpenStudio::convert(1,"W","Btu/h").get * cfm_Tons[n_max] / OpenStudio::convert(1,"ton","Btu/h").get
     q_H3_2_net = q_H3_2 + supplyFanPower_Rated[n_max] * OpenStudio::convert(1,"W","Btu/h").get * cfm_Tons[n_max] / OpenStudio::convert(1,"ton","Btu/h").get

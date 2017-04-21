@@ -5,7 +5,7 @@ require "#{File.dirname(__FILE__)}/resources/util"
 require "#{File.dirname(__FILE__)}/resources/geometry"
 
 #start the measure
-class ProcessConstructionsCeilingsRoofsUnfinishedAttic < OpenStudio::Ruleset::ModelUserScript
+class ProcessConstructionsCeilingsRoofsUnfinishedAttic < OpenStudio::Measure::ModelMeasure
 
   #define the name that a user will see, this method may be deprecated as
   #the display name in PAT comes from the name field in measure.xml
@@ -23,10 +23,10 @@ class ProcessConstructionsCeilingsRoofsUnfinishedAttic < OpenStudio::Ruleset::Mo
   
   #define the arguments that the user will input
   def arguments(model)
-    args = OpenStudio::Ruleset::OSArgumentVector.new
+    args = OpenStudio::Measure::OSArgumentVector.new
     
     #make a double argument for ceiling R-value
-    ceil_r = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("ceil_r", true)
+    ceil_r = OpenStudio::Measure::OSArgument::makeDoubleArgument("ceil_r", true)
     ceil_r.setDisplayName("Ceiling Insulation Nominal R-value")
 	ceil_r.setUnits("h-ft^2-R/Btu")
 	ceil_r.setDescription("Refers to the R-value of the insulation and not the overall R-value of the assembly.")
@@ -40,14 +40,14 @@ class ProcessConstructionsCeilingsRoofsUnfinishedAttic < OpenStudio::Ruleset::Mo
     installgrade_display_names << "III"
 
 	#make a choice argument for ceiling insulation installation grade
-	ceil_grade = OpenStudio::Ruleset::OSArgument::makeChoiceArgument("ceil_grade", installgrade_display_names, true)
+	ceil_grade = OpenStudio::Measure::OSArgument::makeChoiceArgument("ceil_grade", installgrade_display_names, true)
 	ceil_grade.setDisplayName("Ceiling Install Grade")
 	ceil_grade.setDescription("Installation grade as defined by RESNET standard. 5% of the cavity is considered missing insulation for Grade 3, 2% for Grade 2, and 0% for Grade 1.")
     ceil_grade.setDefaultValue("I")
 	args << ceil_grade
 
 	#make a choice argument for ceiling insulation thickness
-	ceil_ins_thick_in = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("ceil_ins_thick_in", true)
+	ceil_ins_thick_in = OpenStudio::Measure::OSArgument::makeDoubleArgument("ceil_ins_thick_in", true)
     ceil_ins_thick_in.setDisplayName("Ceiling Insulation Thickness")
 	ceil_ins_thick_in.setUnits("in")
 	ceil_ins_thick_in.setDescription("The thickness in inches of insulation required to obtain the specified R-value.")
@@ -55,7 +55,7 @@ class ProcessConstructionsCeilingsRoofsUnfinishedAttic < OpenStudio::Ruleset::Mo
 	args << ceil_ins_thick_in
 
 	#make a choice argument for ceiling framing factor
-	ceil_ff = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("ceil_ff", true)
+	ceil_ff = OpenStudio::Measure::OSArgument::makeDoubleArgument("ceil_ff", true)
     ceil_ff.setDisplayName("Ceiling Framing Factor")
 	ceil_ff.setUnits("frac")
 	ceil_ff.setDescription("Fraction of ceiling that is framing.")
@@ -63,7 +63,7 @@ class ProcessConstructionsCeilingsRoofsUnfinishedAttic < OpenStudio::Ruleset::Mo
 	args << ceil_ff
 
 	#make a choice argument for ceiling joist height
-	ceil_joist_height = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("ceil_joist_height", true)
+	ceil_joist_height = OpenStudio::Measure::OSArgument::makeDoubleArgument("ceil_joist_height", true)
 	ceil_joist_height.setDisplayName("Ceiling Joist Height")
 	ceil_joist_height.setUnits("in")
 	ceil_joist_height.setDescription("Height of the joist member.")
@@ -71,7 +71,7 @@ class ProcessConstructionsCeilingsRoofsUnfinishedAttic < OpenStudio::Ruleset::Mo
 	args << ceil_joist_height	
 
     #make a double argument for roof cavity R-value
-    roof_cavity_r = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("roof_cavity_r", true)
+    roof_cavity_r = OpenStudio::Measure::OSArgument::makeDoubleArgument("roof_cavity_r", true)
     roof_cavity_r.setDisplayName("Roof Cavity Insulation Nominal R-value")
 	roof_cavity_r.setUnits("h-ft^2-R/Btu")
 	roof_cavity_r.setDescription("Refers to the R-value of the cavity insulation and not the overall R-value of the assembly.")
@@ -79,14 +79,14 @@ class ProcessConstructionsCeilingsRoofsUnfinishedAttic < OpenStudio::Ruleset::Mo
     args << roof_cavity_r
     
 	#make a choice argument for roof cavity insulation installation grade
-	roof_cavity_grade = OpenStudio::Ruleset::OSArgument::makeChoiceArgument("roof_cavity_grade", installgrade_display_names, true)
+	roof_cavity_grade = OpenStudio::Measure::OSArgument::makeChoiceArgument("roof_cavity_grade", installgrade_display_names, true)
 	roof_cavity_grade.setDisplayName("Roof Cavity Install Grade")
 	roof_cavity_grade.setDescription("Installation grade as defined by RESNET standard. 5% of the cavity is considered missing insulation for Grade 3, 2% for Grade 2, and 0% for Grade 1.")
     roof_cavity_grade.setDefaultValue("I")
 	args << roof_cavity_grade
 
 	#make a choice argument for roof cavity insulation thickness
-	roof_cavity_ins_thick_in = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("roof_cavity_ins_thick_in", true)
+	roof_cavity_ins_thick_in = OpenStudio::Measure::OSArgument::makeDoubleArgument("roof_cavity_ins_thick_in", true)
     roof_cavity_ins_thick_in.setDisplayName("Roof Cavity Insulation Thickness")
 	roof_cavity_ins_thick_in.setUnits("in")
 	roof_cavity_ins_thick_in.setDescription("The thickness in inches of insulation required to obtain the specified R-value.")
@@ -94,7 +94,7 @@ class ProcessConstructionsCeilingsRoofsUnfinishedAttic < OpenStudio::Ruleset::Mo
 	args << roof_cavity_ins_thick_in
     
 	#make a choice argument for roof framing factor
-	roof_ff = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("roof_ff", true)
+	roof_ff = OpenStudio::Measure::OSArgument::makeDoubleArgument("roof_ff", true)
     roof_ff.setDisplayName("Roof Framing Factor")
 	roof_ff.setUnits("frac")
 	roof_ff.setDescription("Fraction of roof that is framing.")
@@ -102,7 +102,7 @@ class ProcessConstructionsCeilingsRoofsUnfinishedAttic < OpenStudio::Ruleset::Mo
 	args << roof_ff
 
 	#make a choice argument for roof framing thickness
-	roof_fram_thick_in = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("roof_fram_thick_in", true)
+	roof_fram_thick_in = OpenStudio::Measure::OSArgument::makeDoubleArgument("roof_fram_thick_in", true)
     roof_fram_thick_in.setDisplayName("Roof Framing Thickness")
 	roof_fram_thick_in.setUnits("in")
 	roof_fram_thick_in.setDescription("Thickness of roof framing.")

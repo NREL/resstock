@@ -8,15 +8,19 @@ require_relative '../resources/helper_methods'
 
 class RunSampling
 
-    def run(mode, num_samples)
+    def run(project_dir_name, num_samples)
         
-        resources_dir = File.absolute_path(File.join(File.dirname(__FILE__), '..', 'resources'))
+        resources_dir = File.absolute_path(File.join(File.dirname(__FILE__), '..', 'resources')) # Should have been uploaded per 'Additional Analysis Files' in PAT
+        characteristics_dir = File.absolute_path(File.join(File.dirname(__FILE__), '..', 'housing_characteristics')) # Should have been uploaded per 'Additional Analysis Files' in PAT
+        if not File.exists?(characteristics_dir)
+            characteristics_dir = File.absolute_path(File.join(File.dirname(__FILE__), '..', project_dir_name, 'housing_characteristics')) # Being run locally?
+        end
         
         params = get_parameters_ordered_from_options_lookup_tsv(resources_dir)
         
         tsvfiles = {}
         params.each do |param|
-            tsvpath = File.join(resources_dir, 'inputs', mode, param + ".tsv")
+            tsvpath = File.join(characteristics_dir, param + ".tsv")
             next if not File.exist?(tsvpath) # Not every parameter used by every mode
             tsvfile = TsvFile.new(tsvpath, nil)
             tsvfiles[param] = tsvfile
@@ -27,7 +31,7 @@ class RunSampling
         end
 
         params = update_parameter_dependencies(params, tsvfiles)
-        sample_results = perform_sampling(params, num_samples, tsvfiles, mode).transpose
+        sample_results = perform_sampling(params, num_samples, tsvfiles, project_dir_name).transpose
         out_file = write_csv(sample_results)
         return out_file
     end
@@ -41,7 +45,7 @@ class RunSampling
         return params_with_deps
     end
 
-    def perform_sampling(params, num_samples, tsvfiles, mode)
+    def perform_sampling(params, num_samples, tsvfiles, project_dir_name)
         results_data = []
         results_data_cols = {}
         
@@ -57,14 +61,15 @@ class RunSampling
                 # Already processed? Skip
                 next if processed_params.include?(param)
                 
-                # Dependencies not yet processed? Skip
+                # Dependencies not yet processed? Skip until a subsequent pass
+                skip = false
                 param_deps.each do |param_dep|
-                    if !processed_params.include?(param_dep)
-                        next
-                    end
+                    next if processed_params.include?(param_dep)
+                    skip = true
                 end
+                next if skip
                 
-                puts "Sampling #{mode}/#{param}..."
+                puts "Sampling #{project_dir_name}/#{param}..."
                 
                 results_data_param = [param] + [nil]*num_samples
                 tsvfile = tsvfiles[param]
@@ -103,6 +108,10 @@ class RunSampling
                 results_data << results_data_param
                 results_data_cols[results_data_param[0]] = results_data.size-1
                 processed_params << param
+                
+                # We just processed a parameter; start back at the beginning to try
+                # to keep the parameters better ordered.
+                break
             end
         end
         
@@ -294,5 +303,5 @@ class RunSampling
 
 end
 
-#r = RunSampling.new
-#r.run('pnw',1000)
+r = RunSampling.new
+r.run('project_resstock_pnw',100)

@@ -5,7 +5,7 @@ require "#{File.dirname(__FILE__)}/resources/constants"
 require "#{File.dirname(__FILE__)}/resources/geometry"
 
 # start the measure
-class SetResidentialWindowArea < OpenStudio::Ruleset::ModelUserScript
+class SetResidentialWindowArea < OpenStudio::Measure::ModelMeasure
 
   # human readable name
   def name
@@ -24,38 +24,38 @@ class SetResidentialWindowArea < OpenStudio::Ruleset::ModelUserScript
 
   # define the arguments that the user will input
   def arguments(model)
-    args = OpenStudio::Ruleset::OSArgumentVector.new
+    args = OpenStudio::Measure::OSArgumentVector.new
 
     #make a double argument for front wwr
-    front_wwr = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("front_wwr", true)
+    front_wwr = OpenStudio::Measure::OSArgument::makeDoubleArgument("front_wwr", true)
     front_wwr.setDisplayName("Front Window-to-Wall Ratio")
     front_wwr.setDescription("The ratio of window area to wall area for the building's front facade.")
     front_wwr.setDefaultValue(0.18)
     args << front_wwr
 
     #make a double argument for back wwr
-    back_wwr = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("back_wwr", true)
+    back_wwr = OpenStudio::Measure::OSArgument::makeDoubleArgument("back_wwr", true)
     back_wwr.setDisplayName("Back Window-to-Wall Ratio")
     back_wwr.setDescription("The ratio of window area to wall area for the building's back facade.")
     back_wwr.setDefaultValue(0.18)
     args << back_wwr
 
     #make a double argument for left wwr
-    left_wwr = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("left_wwr", true)
+    left_wwr = OpenStudio::Measure::OSArgument::makeDoubleArgument("left_wwr", true)
     left_wwr.setDisplayName("Left Window-to-Wall Ratio")
     left_wwr.setDescription("The ratio of window area to wall area for the building's left facade.")
     left_wwr.setDefaultValue(0.18)
     args << left_wwr
 
     #make a double argument for right wwr
-    right_wwr = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("right_wwr", true)
+    right_wwr = OpenStudio::Measure::OSArgument::makeDoubleArgument("right_wwr", true)
     right_wwr.setDisplayName("Right Window-to-Wall Ratio")
     right_wwr.setDescription("The ratio of window area to wall area for the building's right facade.")
     right_wwr.setDefaultValue(0.18)
     args << right_wwr
 
     #make a double argument for aspect ratio
-    aspect_ratio = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("aspect_ratio", true)
+    aspect_ratio = OpenStudio::Measure::OSArgument::makeDoubleArgument("aspect_ratio", true)
     aspect_ratio.setDisplayName("Window Aspect Ratio")
     aspect_ratio.setDescription("Ratio of window height to width.")
     aspect_ratio.setDefaultValue(1.333)

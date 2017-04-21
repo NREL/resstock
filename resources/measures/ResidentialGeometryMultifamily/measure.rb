@@ -5,7 +5,7 @@ require "#{File.dirname(__FILE__)}/resources/constants"
 require "#{File.dirname(__FILE__)}/resources/geometry"
 
 # start the measure
-class CreateResidentialMultifamilyGeometry < OpenStudio::Ruleset::ModelUserScript
+class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
 
   # human readable name
   def name
@@ -24,10 +24,10 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Ruleset::ModelUserScrip
 
   # define the arguments that the user will input
   def arguments(model)
-    args = OpenStudio::Ruleset::OSArgumentVector.new
+    args = OpenStudio::Measure::OSArgumentVector.new
 
     #make an argument for unit living space floor area
-    unit_ffa = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("unit_ffa",true)
+    unit_ffa = OpenStudio::Measure::OSArgument::makeDoubleArgument("unit_ffa",true)
     unit_ffa.setDisplayName("Unit Finished Floor Area")
     unit_ffa.setUnits("ft^2")
     unit_ffa.setDescription("Unit floor area of the finished space (including any finished basement floor area).")
@@ -35,7 +35,7 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Ruleset::ModelUserScrip
     args << unit_ffa
     
     #make an argument for living space height
-    living_height = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("living_height",true)
+    living_height = OpenStudio::Measure::OSArgument::makeDoubleArgument("living_height",true)
     living_height.setDisplayName("Wall Height (Per Floor)")
     living_height.setUnits("ft")
     living_height.setDescription("The height of the living space (and garage) walls.")
@@ -43,7 +43,7 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Ruleset::ModelUserScrip
     args << living_height
 
     #make an argument for total number of floors
-    building_num_floors = OpenStudio::Ruleset::OSArgument::makeIntegerArgument("building_num_floors",true)
+    building_num_floors = OpenStudio::Measure::OSArgument::makeIntegerArgument("building_num_floors",true)
     building_num_floors.setDisplayName("Building Num Floors")
     building_num_floors.setUnits("#")
     building_num_floors.setDescription("The number of floors above grade.")
@@ -51,7 +51,7 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Ruleset::ModelUserScrip
     args << building_num_floors
 
     #make an argument for number of units per floor
-    num_units_per_floor = OpenStudio::Ruleset::OSArgument::makeIntegerArgument("num_units_per_floor",true)
+    num_units_per_floor = OpenStudio::Measure::OSArgument::makeIntegerArgument("num_units_per_floor",true)
     num_units_per_floor.setDisplayName("Num Units Per Floor")
     num_units_per_floor.setUnits("#")
     num_units_per_floor.setDescription("The number of units per floor.")
@@ -59,7 +59,7 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Ruleset::ModelUserScrip
     args << num_units_per_floor
     
     #make an argument for unit aspect ratio
-    unit_aspect_ratio = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("unit_aspect_ratio",true)
+    unit_aspect_ratio = OpenStudio::Measure::OSArgument::makeDoubleArgument("unit_aspect_ratio",true)
     unit_aspect_ratio.setDisplayName("Unit Aspect Ratio")
     unit_aspect_ratio.setUnits("FB/LR")
     unit_aspect_ratio.setDescription("The ratio of the front/back wall length to the left/right wall length.")
@@ -73,14 +73,14 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Ruleset::ModelUserScrip
     corr_pos_display_names << "Double Exterior"
     corr_pos_display_names << "None"
 	
-    corr_pos = OpenStudio::Ruleset::OSArgument::makeChoiceArgument("corr_pos", corr_pos_display_names, true)
+    corr_pos = OpenStudio::Measure::OSArgument::makeChoiceArgument("corr_pos", corr_pos_display_names, true)
     corr_pos.setDisplayName("Corridor Position")
     corr_pos.setDescription("The position of the corridor.")
     corr_pos.setDefaultValue("Double-Loaded Interior")
     args << corr_pos    
     
     #make an argument for corridor width
-    corr_width = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("corr_width", true)
+    corr_width = OpenStudio::Measure::OSArgument::makeDoubleArgument("corr_width", true)
     corr_width.setDisplayName("Corridor Width")
     corr_width.setUnits("ft")
     corr_width.setDescription("The width of the corridor.")
@@ -88,7 +88,7 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Ruleset::ModelUserScrip
     args << corr_width
     
     #make an argument for inset width
-    inset_width = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("inset_width", true)
+    inset_width = OpenStudio::Measure::OSArgument::makeDoubleArgument("inset_width", true)
     inset_width.setDisplayName("Inset Width")
     inset_width.setUnits("ft")
     inset_width.setDescription("The width of the inset.")
@@ -96,7 +96,7 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Ruleset::ModelUserScrip
     args << inset_width
     
     #make an argument for inset depth
-    inset_depth = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("inset_depth", true)
+    inset_depth = OpenStudio::Measure::OSArgument::makeDoubleArgument("inset_depth", true)
     inset_depth.setDisplayName("Inset Depth")
     inset_depth.setUnits("ft")
     inset_depth.setDescription("The depth of the inset.")
@@ -108,14 +108,14 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Ruleset::ModelUserScrip
     inset_pos_display_names << "Right"
     inset_pos_display_names << "Left"
 	
-    inset_pos = OpenStudio::Ruleset::OSArgument::makeChoiceArgument("inset_pos", inset_pos_display_names, true)
+    inset_pos = OpenStudio::Measure::OSArgument::makeChoiceArgument("inset_pos", inset_pos_display_names, true)
     inset_pos.setDisplayName("Inset Position")
     inset_pos.setDescription("The position of the inset.")
     inset_pos.setDefaultValue("Right")
     args << inset_pos
     
     #make an argument for balcony depth
-    balc_depth = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("balc_depth", true)
+    balc_depth = OpenStudio::Measure::OSArgument::makeDoubleArgument("balc_depth", true)
     balc_depth.setDisplayName("Balcony Depth")
     balc_depth.setUnits("ft")
     balc_depth.setDescription("The depth of the balcony.")
@@ -129,14 +129,14 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Ruleset::ModelUserScrip
     foundation_display_names << Constants.UnfinishedBasementFoundationType
 	
     #make a choice argument for foundation type
-    foundation_type = OpenStudio::Ruleset::OSArgument::makeChoiceArgument("foundation_type", foundation_display_names, true)
+    foundation_type = OpenStudio::Measure::OSArgument::makeChoiceArgument("foundation_type", foundation_display_names, true)
     foundation_type.setDisplayName("Foundation Type")
     foundation_type.setDescription("The foundation type of the building.")
     foundation_type.setDefaultValue(Constants.SlabFoundationType)
     args << foundation_type
 
     #make an argument for crawlspace height
-    foundation_height = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("foundation_height",true)
+    foundation_height = OpenStudio::Measure::OSArgument::makeDoubleArgument("foundation_height",true)
     foundation_height.setDisplayName("Crawlspace Height")
     foundation_height.setUnits("ft")
     foundation_height.setDescription("The height of the crawlspace walls.")
@@ -144,14 +144,14 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Ruleset::ModelUserScrip
     args << foundation_height    
     
     #make an argument for using zone multipliers
-    use_zone_mult = OpenStudio::Ruleset::OSArgument::makeBoolArgument("use_zone_mult", true)
+    use_zone_mult = OpenStudio::Measure::OSArgument::makeBoolArgument("use_zone_mult", true)
     use_zone_mult.setDisplayName("Use Zone Multipliers?")
     use_zone_mult.setDescription("Model only one interior unit per floor with its thermal zone multiplier equal to the number of interior units per floor.")
     use_zone_mult.setDefaultValue(false)
     args << use_zone_mult
     
     #make an argument for using floor multipliers
-    use_floor_mult = OpenStudio::Ruleset::OSArgument::makeBoolArgument("use_floor_mult", true)
+    use_floor_mult = OpenStudio::Measure::OSArgument::makeBoolArgument("use_floor_mult", true)
     use_floor_mult.setDisplayName("Use Floor Multipliers?")
     use_floor_mult.setDescription("Model only one interior floor with thermal zone multipliers equal to the number of interior floors.")
     use_floor_mult.setDefaultValue(false)
@@ -728,7 +728,7 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Ruleset::ModelUserScrip
       # set foundation walls to ground
       spaces = model.getSpaces
       spaces.each do |space|
-        if space.name.to_s.start_with? Constants.CrawlSpace or space.name.to_s.start_with? Constants.UnfinishedBasementSpace
+        if Geometry.is_crawl(space) or Geometry.is_unfinished_basement(space)
           surfaces = space.surfaces
           surfaces.each do |surface|
             next if surface.surfaceType.downcase != "wall"

@@ -14,13 +14,7 @@ require "#{File.dirname(__FILE__)}/resources/unit_conversions"
 require "#{File.dirname(__FILE__)}/resources/hvac"
 
 #start the measure
-class ProcessFurnaceFuel < OpenStudio::Ruleset::ModelUserScript
-
-  class Supply
-    def initialize
-    end
-    attr_accessor(:static, :cfm_ton, :HPCoolingOversizingFactor, :SpaceConditionedMult, :fan_power, :eff, :min_flow_ratio, :FAN_EIR_FPLR_SPEC_coefficients, :Heat_Capacity, :compressor_speeds, :Zone_Water_Remove_Cap_Ft_DB_RH_Coefficients, :Zone_Energy_Factor_Ft_DB_RH_Coefficients, :Zone_DXDH_PLF_F_PLR_Coefficients, :Number_Speeds, :fanspeed_ratio, :Heat_AirFlowRate, :Cool_AirFlowRate, :Fan_AirFlowRate, :htg_supply_air_temp)
-  end
+class ProcessFurnaceFuel < OpenStudio::Measure::ModelMeasure
 
   #define the name that a user will see, this method may be deprecated as
   #the display name in PAT comes from the name field in measure.xml
@@ -38,21 +32,21 @@ class ProcessFurnaceFuel < OpenStudio::Ruleset::ModelUserScript
   
   #define the arguments that the user will input
   def arguments(model)
-    args = OpenStudio::Ruleset::OSArgumentVector.new
+    args = OpenStudio::Measure::OSArgumentVector.new
 	
     #make a string argument for furnace fuel type
     fuel_display_names = OpenStudio::StringVector.new
     fuel_display_names << Constants.FuelTypeGas
     fuel_display_names << Constants.FuelTypeOil
     fuel_display_names << Constants.FuelTypePropane
-    fueltype = OpenStudio::Ruleset::OSArgument::makeChoiceArgument("fuel_type", fuel_display_names, true)
+    fueltype = OpenStudio::Measure::OSArgument::makeChoiceArgument("fuel_type", fuel_display_names, true)
     fueltype.setDisplayName("Fuel Type")
     fueltype.setDescription("Type of fuel used for heating.")
     fueltype.setDefaultValue(Constants.FuelTypeGas)
     args << fueltype  
   
     #make an argument for entering furnace installed afue
-    afue = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("afue",true)
+    afue = OpenStudio::Measure::OSArgument::makeDoubleArgument("afue",true)
     afue.setDisplayName("Installed AFUE")
     afue.setUnits("Btu/Btu")
     afue.setDescription("The installed Annual Fuel Utilization Efficiency (AFUE) of the furnace, which can be used to account for performance derating or degradation relative to the rated value.")
@@ -65,23 +59,15 @@ class ProcessFurnaceFuel < OpenStudio::Ruleset::ModelUserScript
     (5..150).step(5) do |kbtu|
       cap_display_names << kbtu.to_s
     end
-    furnacecap = OpenStudio::Ruleset::OSArgument::makeChoiceArgument("capacity", cap_display_names, true)
+    furnacecap = OpenStudio::Measure::OSArgument::makeChoiceArgument("capacity", cap_display_names, true)
     furnacecap.setDisplayName("Heating Capacity")
     furnacecap.setDescription("The output heating capacity of the furnace.")
     furnacecap.setUnits("kBtu/hr")
     furnacecap.setDefaultValue(Constants.SizingAuto)
     args << furnacecap
 
-    #make an argument for entering furnace max supply temp
-    maxtemp = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("max_temp",true)
-    maxtemp.setDisplayName("Max Supply Temp")
-    maxtemp.setUnits("F")
-    maxtemp.setDescription("Maximum supply air temperature.")
-    maxtemp.setDefaultValue(120.0)
-    args << maxtemp
-
     #make an argument for entering furnace installed supply fan power
-    fanpower = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("fan_power_installed",true)
+    fanpower = OpenStudio::Measure::OSArgument::makeDoubleArgument("fan_power_installed",true)
     fanpower.setDisplayName("Installed Supply Fan Power")
     fanpower.setUnits("W/cfm")
     fanpower.setDescription("Fan power (in W) per delivered airflow rate (in cfm) of the indoor fan for the maximum fan speed under actual operating conditions.")
@@ -106,34 +92,11 @@ class ProcessFurnaceFuel < OpenStudio::Ruleset::ModelUserScript
     if not furnaceOutputCapacity == Constants.SizingAuto
       furnaceOutputCapacity = OpenStudio::convert(furnaceOutputCapacity.to_f,"kBtu/h","Btu/h").get
     end
-    furnaceMaxSupplyTemp = runner.getDoubleArgumentValue("max_temp",user_arguments)
     furnaceInstalledSupplyFanPower = runner.getDoubleArgumentValue("fan_power_installed",user_arguments)
     
-    # Create the material class instances
-    supply = Supply.new
-
     # _processAirSystem
     
-    supply.static = UnitConversion.inH2O2Pa(0.5) # Pascal
-
-    # Flow rate through AC units - hardcoded assumption of 400 cfm/ton
-    supply.cfm_ton = 400 # cfm / ton
-
-    supply.HPCoolingOversizingFactor = 1 # Default to a value of 1 (currently only used for MSHPs)
-    supply.SpaceConditionedMult = 1 # Default used for central equipment
-
-    # Before we allowed systems with no cooling equipment, the system
-    # fan was defined by the cooling equipment option. For systems
-    # with only a furnace, the system fan is (for the time being) hard
-    # coded here.
-
-    supply.fan_power = furnaceInstalledSupplyFanPower # Based on 2010 BA Benchmark
-    supply.eff = OpenStudio::convert(supply.static / supply.fan_power,"cfm","m^3/s").get # Overall Efficiency of the Supply Fan, Motor and Drive
-    # self.supply.delta_t = 0.00055000 / units.Btu2kWh(1.0) / (self.mat.air.inside_air_dens * self.mat.air.inside_air_sh * units.hr2min(1.0))
-    supply.min_flow_ratio = 1.00000000
-    supply.FAN_EIR_FPLR_SPEC_coefficients = [0.00000000, 1.00000000, 0.00000000, 0.00000000]
-
-    supply.htg_supply_air_temp = furnaceMaxSupplyTemp
+    static = UnitConversion.inH2O2Pa(0.5) # Pascal
 
     hir = HVAC.get_furnace_hir(furnaceInstalledAFUE)
 
@@ -143,8 +106,6 @@ class ProcessFurnaceFuel < OpenStudio::Ruleset::ModelUserScript
     #             aux_elec = FurnaceParasiticElecDict[furnaceFuelType]
     aux_elec = 0.0 # set to zero until we figure out a way to distribute to the correct end uses (DOE-2 limitation?)    
 
-    supply.compressor_speeds = nil   
-    
     # Remove boiler hot water loop if it exists
     HVAC.remove_hot_water_loop(model, runner)    
 
@@ -172,7 +133,7 @@ class ProcessFurnaceFuel < OpenStudio::Ruleset::ModelUserScript
         htg_coil.setName(obj_name + " heating coil")
         htg_coil.setGasBurnerEfficiency(1.0 / hir)
         if furnaceOutputCapacity != Constants.SizingAuto
-          htg_coil.setNominalCapacity(OpenStudio::convert(furnaceOutputCapacity,"Btu/h","W").get)
+          htg_coil.setNominalCapacity(OpenStudio::convert(furnaceOutputCapacity,"Btu/h","W").get) # Used by HVACSizing measure
         end
 
         htg_coil.setParasiticElectricLoad(aux_elec) # set to zero until we figure out a way to distribute to the correct end uses (DOE-2 limitation?)
@@ -187,8 +148,8 @@ class ProcessFurnaceFuel < OpenStudio::Ruleset::ModelUserScript
         fan = OpenStudio::Model::FanOnOff.new(model, model.alwaysOnDiscreteSchedule)
         fan.setName(obj_name + " supply fan")
         fan.setEndUseSubcategory(Constants.EndUseHVACFan)
-        fan.setFanEfficiency(supply.eff)
-        fan.setPressureRise(supply.static)
+        fan.setFanEfficiency(OpenStudio::convert(static / furnaceInstalledSupplyFanPower,"cfm","m^3/s").get) # Overall Efficiency of the Supply Fan, Motor and Drive
+        fan.setPressureRise(static)
         fan.setMotorEfficiency(1)
         fan.setMotorInAirstreamFraction(1)  
       
@@ -207,7 +168,7 @@ class ProcessFurnaceFuel < OpenStudio::Ruleset::ModelUserScript
         air_loop_unitary.setSupplyFan(fan)
         air_loop_unitary.setFanPlacement("BlowThrough")
         air_loop_unitary.setSupplyAirFanOperatingModeSchedule(model.alwaysOffDiscreteSchedule)
-        air_loop_unitary.setMaximumSupplyAirTemperature(OpenStudio::convert(supply.htg_supply_air_temp,"F","C").get)      
+        air_loop_unitary.setMaximumSupplyAirTemperature(OpenStudio::convert(120.0,"F","C").get)      
         air_loop_unitary.setSupplyAirFlowRateWhenNoCoolingorHeatingisRequired(0)
 
         air_loop = OpenStudio::Model::AirLoopHVAC.new(model)
@@ -244,6 +205,11 @@ class ProcessFurnaceFuel < OpenStudio::Ruleset::ModelUserScript
         air_loop.addBranchForZone(control_zone)
         runner.registerInfo("Added '#{air_loop.name}' to '#{control_zone.name}' of #{unit.name}")
       
+        HVAC.prioritize_zone_hvac(model, runner, control_zone).reverse.each do |object|
+          control_zone.setCoolingPriority(object, 1)
+          control_zone.setHeatingPriority(object, 1)
+        end
+      
         slave_zones.each do |slave_zone|
         
           # Remove existing equipment
@@ -255,6 +221,11 @@ class ProcessFurnaceFuel < OpenStudio::Ruleset::ModelUserScript
 
           air_loop.addBranchForZone(slave_zone)
           runner.registerInfo("Added '#{air_loop.name}' to '#{slave_zone.name}' of #{unit.name}")
+        
+          HVAC.prioritize_zone_hvac(model, runner, slave_zone).reverse.each do |object|
+            slave_zone.setCoolingPriority(object, 1)
+            slave_zone.setHeatingPriority(object, 1)
+          end
         
         end    
       

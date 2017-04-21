@@ -6,7 +6,7 @@ require "#{File.dirname(__FILE__)}/resources/constants"
 require "#{File.dirname(__FILE__)}/resources/geometry"
 
 #start the measure
-class ProcessConstructionsUninsulatedSurfaces < OpenStudio::Ruleset::ModelUserScript
+class ProcessConstructionsUninsulatedSurfaces < OpenStudio::Measure::ModelMeasure
 
   #define the name that a user will see, this method may be deprecated as
   #the display name in PAT comes from the name field in measure.xml
@@ -24,7 +24,7 @@ class ProcessConstructionsUninsulatedSurfaces < OpenStudio::Ruleset::ModelUserSc
   
   #define the arguments that the user will input
   def arguments(model)
-    args = OpenStudio::Ruleset::OSArgumentVector.new
+    args = OpenStudio::Measure::OSArgumentVector.new
 
     return args
   end #end the arguments method
@@ -44,6 +44,7 @@ class ProcessConstructionsUninsulatedSurfaces < OpenStudio::Ruleset::ModelUserSc
         next if Geometry.space_is_finished(space)
         next if Geometry.space_is_below_grade(space)
         space.surfaces.each do |surface|
+            next if surface.construction.is_initialized
             next if surface.surfaceType.downcase != "wall"
             next if surface.outsideBoundaryCondition.downcase != "outdoors"
             ext_wall_surfaces << surface
@@ -55,6 +56,7 @@ class ProcessConstructionsUninsulatedSurfaces < OpenStudio::Ruleset::ModelUserSc
     model.getSpaces.each do |space|
         next if Geometry.space_is_unfinished(space)
         space.surfaces.each do |surface|
+            next if surface.construction.is_initialized
             next if surface.surfaceType.downcase != "wall"
             next if not surface.adjacentSurface.is_initialized
             next if not surface.adjacentSurface.get.space.is_initialized
@@ -69,6 +71,7 @@ class ProcessConstructionsUninsulatedSurfaces < OpenStudio::Ruleset::ModelUserSc
     model.getSpaces.each do |space|
         next if Geometry.space_is_finished(space)
         space.surfaces.each do |surface|
+            next if surface.construction.is_initialized
             next if surface.surfaceType.downcase != "wall"
             next if not surface.adjacentSurface.is_initialized
             next if not surface.adjacentSurface.get.space.is_initialized
@@ -83,6 +86,7 @@ class ProcessConstructionsUninsulatedSurfaces < OpenStudio::Ruleset::ModelUserSc
     model.getSpaces.each do |space|
         next if Geometry.space_is_unfinished(space)
         space.surfaces.each do |surface|
+            next if surface.construction.is_initialized
             next if surface.surfaceType.downcase != "floor"
             next if not surface.adjacentSurface.is_initialized
             next if not surface.adjacentSurface.get.space.is_initialized
@@ -98,6 +102,7 @@ class ProcessConstructionsUninsulatedSurfaces < OpenStudio::Ruleset::ModelUserSc
     model.getSpaces.each do |space|
         next if Geometry.space_is_finished(space)
         space.surfaces.each do |surface|
+            next if surface.construction.is_initialized
             next if surface.surfaceType.downcase != "floor"
             next if not surface.adjacentSurface.is_initialized
             next if not surface.adjacentSurface.get.space.is_initialized
@@ -114,6 +119,7 @@ class ProcessConstructionsUninsulatedSurfaces < OpenStudio::Ruleset::ModelUserSc
         next if Geometry.space_is_finished(space)
         next if Geometry.space_is_below_grade(space)
         space.surfaces.each do |surface|
+            next if surface.construction.is_initialized
             next if surface.surfaceType.downcase != "floor"
             next if surface.outsideBoundaryCondition.downcase != "ground"
             # Floors between above-grade unfinished space and ground
@@ -126,6 +132,7 @@ class ProcessConstructionsUninsulatedSurfaces < OpenStudio::Ruleset::ModelUserSc
     roof_surfaces = []
     roof_spaces.each do |space|
         space.surfaces.each do |surface|
+            next if surface.construction.is_initialized
             next if surface.surfaceType.downcase != "roofceiling"
             next if surface.outsideBoundaryCondition.downcase != "outdoors"
             roof_surfaces << surface
@@ -135,6 +142,7 @@ class ProcessConstructionsUninsulatedSurfaces < OpenStudio::Ruleset::ModelUserSc
     # Adiabatic surfaces (assign construction for mass effects)
     model.getSpaces.each do |space|
         space.surfaces.each do |surface|
+            next if surface.construction.is_initialized
             next if surface.outsideBoundaryCondition.downcase != "adiabatic"
             if surface.surfaceType.downcase == "wall"
                 if Geometry.space_is_finished(space)

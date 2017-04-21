@@ -7,7 +7,7 @@ require "#{File.dirname(__FILE__)}/resources/geometry"
 require "#{File.dirname(__FILE__)}/resources/waterheater"
 
 #start the measure
-class ResidentialDishwasher < OpenStudio::Ruleset::ModelUserScript
+class ResidentialDishwasher < OpenStudio::Measure::ModelMeasure
   
   def name
     return "Set Residential Dishwasher"
@@ -23,12 +23,12 @@ class ResidentialDishwasher < OpenStudio::Ruleset::ModelUserScript
  
   #define the arguments that the user will input
   def arguments(model)
-    args = OpenStudio::Ruleset::OSArgumentVector.new
+    args = OpenStudio::Measure::OSArgumentVector.new
     
 	#TODO: New argument for demand response for dws (alternate schedules if automatic DR control is specified)
 	
 	#make an integer argument for number of place settings
-	num_settings = OpenStudio::Ruleset::OSArgument::makeIntegerArgument("num_settings",true)
+	num_settings = OpenStudio::Measure::OSArgument::makeIntegerArgument("num_settings",true)
 	num_settings.setDisplayName("Number of Place Settings")
 	num_settings.setUnits("#")
 	num_settings.setDescription("The number of place settings for the unit. Data obtained from manufacturer's literature.")
@@ -36,7 +36,7 @@ class ResidentialDishwasher < OpenStudio::Ruleset::ModelUserScript
 	args << num_settings
 	
 	#make a double argument for rated annual consumption
-	dw_E = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("dw_E",true)
+	dw_E = OpenStudio::Measure::OSArgument::makeDoubleArgument("dw_E",true)
 	dw_E.setDisplayName("Rated Annual Consumption")
 	dw_E.setUnits("kWh")
 	dw_E.setDescription("The annual energy consumed by the dishwasher, as rated, obtained from the EnergyGuide label. This includes both the appliance electricity consumption and the energy required for water heating.")
@@ -44,21 +44,21 @@ class ResidentialDishwasher < OpenStudio::Ruleset::ModelUserScript
 	args << dw_E
 	
 	#make a bool argument for internal heater adjustment
-	int_htr = OpenStudio::Ruleset::OSArgument::makeBoolArgument("int_htr",true)
+	int_htr = OpenStudio::Measure::OSArgument::makeBoolArgument("int_htr",true)
 	int_htr.setDisplayName("Internal Heater Adjustment")
 	int_htr.setDescription("Does the system use an internal electric heater to adjust water temperature? Input obtained from manufacturer's literature.")
 	int_htr.setDefaultValue("true")
 	args << int_htr
 
 	#make a bool argument for cold water inlet only
-	cold_inlet = OpenStudio::Ruleset::OSArgument::makeBoolArgument("cold_inlet",true)
+	cold_inlet = OpenStudio::Measure::OSArgument::makeBoolArgument("cold_inlet",true)
 	cold_inlet.setDisplayName("Cold Water Inlet Only")
 	cold_inlet.setDescription("Does the dishwasher use a cold water connection only.   Input obtained from manufacturer's literature.")
 	cold_inlet.setDefaultValue("false")
 	args << cold_inlet
 	
 	#make a double argument for cold water connection use
-	cold_use = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("cold_use",true)
+	cold_use = OpenStudio::Measure::OSArgument::makeDoubleArgument("cold_use",true)
 	cold_use.setDisplayName("Cold Water Conn Use Per Cycle")
 	cold_use.setUnits("gal/cycle")
 	cold_use.setDescription("Volume of water per cycle used if there is only a cold water inlet connection, for the dishwasher. Input obtained from manufacturer's literature.")
@@ -66,14 +66,14 @@ class ResidentialDishwasher < OpenStudio::Ruleset::ModelUserScript
 	args << cold_use
 
 	#make an integer argument for energy guide date
-	eg_date = OpenStudio::Ruleset::OSArgument::makeIntegerArgument("eg_date",true)
+	eg_date = OpenStudio::Measure::OSArgument::makeIntegerArgument("eg_date",true)
 	eg_date.setDisplayName("Energy Guide Date")
 	eg_date.setDescription("Energy Guide test date.")
 	eg_date.setDefaultValue(2007)
 	args << eg_date
 	
 	#make a double argument for energy guide annual gas cost
-	eg_gas_cost = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("eg_gas_cost",true)
+	eg_gas_cost = OpenStudio::Measure::OSArgument::makeDoubleArgument("eg_gas_cost",true)
 	eg_gas_cost.setDisplayName("Energy Guide Annual Gas Cost")
 	eg_gas_cost.setUnits("$/yr")
 	eg_gas_cost.setDescription("Annual cost of gas, as rated.  Obtained from the EnergyGuide label.")
@@ -81,14 +81,14 @@ class ResidentialDishwasher < OpenStudio::Ruleset::ModelUserScript
 	args << eg_gas_cost
 	
 	#make a double argument for occupancy energy multiplier
-	mult_e = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("mult_e",true)
+	mult_e = OpenStudio::Measure::OSArgument::makeDoubleArgument("mult_e",true)
 	mult_e.setDisplayName("Occupancy Energy Multiplier")
 	mult_e.setDescription("Appliance energy use is multiplied by this factor to account for occupancy usage that differs from the national average.")
 	mult_e.setDefaultValue(1)
 	args << mult_e
 
 	#make a double argument for occupancy water multiplier
-	mult_hw = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("mult_hw",true)
+	mult_hw = OpenStudio::Measure::OSArgument::makeDoubleArgument("mult_hw",true)
 	mult_hw.setDisplayName("Occupancy Hot Water Multiplier")
 	mult_hw.setDescription("Appliance hot water use is multiplied by this factor to account for occupancy usage that differs from the national average. This should generally be equal to the Occupancy Energy Multiplier.")
 	mult_hw.setDefaultValue(1)
@@ -104,7 +104,7 @@ class ResidentialDishwasher < OpenStudio::Ruleset::ModelUserScript
     spaces.each do |space|
         space_args << space.name.to_s
     end
-    space = OpenStudio::Ruleset::OSArgument::makeChoiceArgument("space", space_args, true)
+    space = OpenStudio::Measure::OSArgument::makeChoiceArgument("space", space_args, true)
     space.setDisplayName("Location")
     space.setDescription("Select the space where the dishwasher is located. '#{Constants.Auto}' will choose the lowest above-grade finished space available (e.g., first story living space), or a below-grade finished space as last resort. For multifamily buildings, '#{Constants.Auto}' will choose a space for each unit of the building.")
     space.setDefaultValue(Constants.Auto)
@@ -117,7 +117,7 @@ class ResidentialDishwasher < OpenStudio::Ruleset::ModelUserScript
     plant_loops.each do |plant_loop|
         plant_loop_args << plant_loop.name.to_s
     end
-    plant_loop = OpenStudio::Ruleset::OSArgument::makeChoiceArgument("plant_loop", plant_loop_args, true)
+    plant_loop = OpenStudio::Measure::OSArgument::makeChoiceArgument("plant_loop", plant_loop_args, true)
     plant_loop.setDisplayName("Plant Loop")
     plant_loop.setDescription("Select the plant loop for the dishwasher. '#{Constants.Auto}' will try to choose the plant loop associated with the specified space. For multifamily buildings, '#{Constants.Auto}' will choose the plant loop for each unit of the building.")
     plant_loop.setDefaultValue(Constants.Auto)
@@ -210,9 +210,12 @@ class ResidentialDishwasher < OpenStudio::Ruleset::ModelUserScript
         # Get space
         space = Geometry.get_space_from_string(unit.spaces, space_r)
         next if space.nil?
+		
+		#Get unit number
+		unit_num = Geometry.get_unit_number(model, unit, runner)
 
         #Get plant loop
-        plant_loop = Waterheater.get_plant_loop_from_string(model.getPlantLoops, plant_loop_s, unit.spaces, runner)
+        plant_loop = Waterheater.get_plant_loop_from_string(model.getPlantLoops, plant_loop_s, unit.spaces, unit_num, runner)
         if plant_loop.nil?
             return false
         end

@@ -14,7 +14,7 @@ require "#{File.dirname(__FILE__)}/resources/schedules"
 require "#{File.dirname(__FILE__)}/resources/hvac"
 
 #start the measure
-class ProcessHeatingSetpoints < OpenStudio::Ruleset::ModelUserScript
+class ProcessHeatingSetpoints < OpenStudio::Measure::ModelMeasure
 
   #define the name that a user will see, this method may be deprecated as
   #the display name in PAT comes from the name field in measure.xml
@@ -32,10 +32,10 @@ class ProcessHeatingSetpoints < OpenStudio::Ruleset::ModelUserScript
   
   #define the arguments that the user will input
   def arguments(model)
-    args = OpenStudio::Ruleset::OSArgumentVector.new
+    args = OpenStudio::Measure::OSArgumentVector.new
 
    	#Make a string argument for 24 weekday heating set point values
-    htg_wkdy = OpenStudio::Ruleset::OSArgument::makeStringArgument("htg_wkdy", false)
+    htg_wkdy = OpenStudio::Measure::OSArgument::makeStringArgument("htg_wkdy", false)
     htg_wkdy.setDisplayName("Weekday Setpoint")
     htg_wkdy.setDescription("Specify a single heating setpoint or a 24-hour comma-separated heating schedule for the weekdays.")
     htg_wkdy.setUnits("degrees F")
@@ -43,7 +43,7 @@ class ProcessHeatingSetpoints < OpenStudio::Ruleset::ModelUserScript
     args << htg_wkdy
 
    	#Make a string argument for 24 weekend heating set point values
-    htg_wked = OpenStudio::Ruleset::OSArgument::makeStringArgument("htg_wked", false)
+    htg_wked = OpenStudio::Measure::OSArgument::makeStringArgument("htg_wked", false)
     htg_wked.setDisplayName("Weekend Setpoint")
     htg_wked.setDescription("Specify a single heating setpoint or a 24-hour comma-separated heating schedule for the weekend.")
     htg_wked.setUnits("degrees F")

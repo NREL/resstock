@@ -7,7 +7,7 @@ require "#{File.dirname(__FILE__)}/resources/geometry"
 require "#{File.dirname(__FILE__)}/resources/hvac"
 
 # start the measure
-class ProcessBoilerElectric < OpenStudio::Ruleset::ModelUserScript
+class ProcessBoilerElectric < OpenStudio::Measure::ModelMeasure
 
   # human readable name
   def name
@@ -26,7 +26,7 @@ class ProcessBoilerElectric < OpenStudio::Ruleset::ModelUserScript
 
   # define the arguments that the user will input
   def arguments(model)
-    args = OpenStudio::Ruleset::OSArgumentVector.new
+    args = OpenStudio::Measure::OSArgumentVector.new
     
     #make a string argument for boiler system type
     boiler_display_names = OpenStudio::StringVector.new
@@ -34,14 +34,14 @@ class ProcessBoilerElectric < OpenStudio::Ruleset::ModelUserScript
     boiler_display_names << Constants.BoilerTypeCondensing
     boiler_display_names << Constants.BoilerTypeNaturalDraft
     boiler_display_names << Constants.BoilerTypeSteam
-    boilerType = OpenStudio::Ruleset::OSArgument::makeChoiceArgument("system_type", boiler_display_names, true)
+    boilerType = OpenStudio::Measure::OSArgument::makeChoiceArgument("system_type", boiler_display_names, true)
     boilerType.setDisplayName("System Type")
     boilerType.setDescription("The system type of the boiler.")
     boilerType.setDefaultValue(Constants.BoilerTypeForcedDraft)
     args << boilerType
     
     #make an argument for entering boiler installed afue
-    boilerInstalledAFUE = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("afue",true)
+    boilerInstalledAFUE = OpenStudio::Measure::OSArgument::makeDoubleArgument("afue",true)
     boilerInstalledAFUE.setDisplayName("Installed AFUE")
     boilerInstalledAFUE.setUnits("Btu/Btu")
     boilerInstalledAFUE.setDescription("The installed Annual Fuel Utilization Efficiency (AFUE) of the boiler, which can be used to account for performance derating or degradation relative to the rated value.")
@@ -49,42 +49,42 @@ class ProcessBoilerElectric < OpenStudio::Ruleset::ModelUserScript
     args << boilerInstalledAFUE
     
     #make a bool argument for whether the boiler OAT enabled
-    boilerOATResetEnabled = OpenStudio::Ruleset::OSArgument::makeBoolArgument("oat_reset_enabled", true)
+    boilerOATResetEnabled = OpenStudio::Measure::OSArgument::makeBoolArgument("oat_reset_enabled", true)
     boilerOATResetEnabled.setDisplayName("Outside Air Reset Enabled")
     boilerOATResetEnabled.setDescription("Outside Air Reset Enabled on Hot Water Supply Temperature.")
     boilerOATResetEnabled.setDefaultValue(false)
     args << boilerOATResetEnabled    
     
     #make an argument for entering boiler OAT high
-    boilerOATHigh = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("oat_high",false)
+    boilerOATHigh = OpenStudio::Measure::OSArgument::makeDoubleArgument("oat_high",false)
     boilerOATHigh.setDisplayName("High Outside Air Temp")
     boilerOATHigh.setUnits("degrees F")
     boilerOATHigh.setDescription("High Outside Air Temperature.")
     args << boilerOATHigh    
     
     #make an argument for entering boiler OAT low
-    boilerOATLow = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("oat_low",false)
+    boilerOATLow = OpenStudio::Measure::OSArgument::makeDoubleArgument("oat_low",false)
     boilerOATLow.setDisplayName("Low Outside Air Temp")
     boilerOATLow.setUnits("degrees F")
     boilerOATLow.setDescription("Low Outside Air Temperature.")
     args << boilerOATLow
     
     #make an argument for entering boiler OAT high HWST
-    boilerOATHighHWST = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("oat_hwst_high",false)
+    boilerOATHighHWST = OpenStudio::Measure::OSArgument::makeDoubleArgument("oat_hwst_high",false)
     boilerOATHighHWST.setDisplayName("Hot Water Supply Temp High Outside Air")
     boilerOATHighHWST.setUnits("degrees F")
     boilerOATHighHWST.setDescription("Hot Water Supply Temperature corresponding to High Outside Air Temperature.")
     args << boilerOATHighHWST
     
     #make an argument for entering boiler OAT low HWST
-    boilerOATLowHWST = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("oat_hwst_low",false)
+    boilerOATLowHWST = OpenStudio::Measure::OSArgument::makeDoubleArgument("oat_hwst_low",false)
     boilerOATLowHWST.setDisplayName("Hot Water Supply Temp Low Outside Air")
     boilerOATLowHWST.setUnits("degrees F")
     boilerOATLowHWST.setDescription("Hot Water Supply Temperature corresponding to Low Outside Air Temperature.")
     args << boilerOATLowHWST        
     
     #make an argument for entering boiler design temp
-    boilerDesignTemp = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("design_temp",false)
+    boilerDesignTemp = OpenStudio::Measure::OSArgument::makeDoubleArgument("design_temp",false)
     boilerDesignTemp.setDisplayName("Design Temperature")
     boilerDesignTemp.setUnits("degrees F")
     boilerDesignTemp.setDescription("Temperature of the outlet water.")
@@ -97,7 +97,7 @@ class ProcessBoilerElectric < OpenStudio::Ruleset::ModelUserScript
     (5..150).step(5) do |kbtu|
       cap_display_names << kbtu.to_s
     end
-    boilerOutputCapacity = OpenStudio::Ruleset::OSArgument::makeChoiceArgument("capacity", cap_display_names, true)
+    boilerOutputCapacity = OpenStudio::Measure::OSArgument::makeChoiceArgument("capacity", cap_display_names, true)
     boilerOutputCapacity.setDisplayName("Heating Capacity")
     boilerOutputCapacity.setDescription("The output heating capacity of the boiler.")
     boilerOutputCapacity.setUnits("kBtu/hr")
@@ -165,7 +165,7 @@ class ProcessBoilerElectric < OpenStudio::Ruleset::ModelUserScript
     
     # _processCurvesBoiler
     
-    boiler_eff_curve = _processCurvesBoiler(model, runner, hasBoilerCondensing)
+    boiler_eff_curve = HVAC.get_boiler_curve(model, hasBoilerCondensing)
     
     # Remove boiler hot water loop if it exists
     HVAC.remove_hot_water_loop(model, runner)
@@ -178,27 +178,29 @@ class ProcessBoilerElectric < OpenStudio::Ruleset::ModelUserScript
     plant_loop.setMaximumLoopTemperature(100)
     plant_loop.setMinimumLoopTemperature(0)
     plant_loop.setMinimumLoopFlowRate(0)
+    plant_loop.autocalculatePlantLoopVolume()
     
     loop_sizing = plant_loop.sizingPlant
     loop_sizing.setLoopType("Heating")
     loop_sizing.setDesignLoopExitTemperature(OpenStudio::convert(boilerDesignTemp - 32.0,"R","K").get)
     loop_sizing.setLoopDesignTemperatureDifference(OpenStudio::convert(20.0,"R","K").get)
     
-    pump = OpenStudio::Model::PumpConstantSpeed.new(model)
+    pump = OpenStudio::Model::PumpVariableSpeed.new(model)
     pump.setName(Constants.ObjectNameBoiler(Constants.FuelTypeElectric) + " hydronic pump")
-    if boilerOutputCapacity != Constants.SizingAuto
-      pump.setRatedFlowRate(OpenStudio::convert(boilerOutputCapacity/20.0/500.0,"gal/min","m^3/s").get)
-    end
     pump.setRatedPumpHead(179352)
     pump.setMotorEfficiency(0.9)
     pump.setFractionofMotorInefficienciestoFluidStream(0)
+    pump.setCoefficient1ofthePartLoadPerformanceCurve(0)
+    pump.setCoefficient2ofthePartLoadPerformanceCurve(1)
+    pump.setCoefficient3ofthePartLoadPerformanceCurve(0)
+    pump.setCoefficient4ofthePartLoadPerformanceCurve(0)
     pump.setPumpControlType("Intermittent")
         
     boiler = OpenStudio::Model::BoilerHotWater.new(model)
     boiler.setName(Constants.ObjectNameBoiler(Constants.FuelTypeElectric))
     boiler.setFuelType(HelperMethods.eplus_fuel_map(Constants.FuelTypeElectric))
     if boilerOutputCapacity != Constants.SizingAuto
-      boiler.setNominalCapacity(OpenStudio::convert(boilerOutputCapacity,"Btu/h","W").get)
+      boiler.setNominalCapacity(OpenStudio::convert(boilerOutputCapacity,"Btu/h","W").get) # Used by HVACSizing measure
     end
     if boilerType == Constants.BoilerTypeCondensing
       # Convert Rated Efficiency at 80F and 1.0PLR where the performance curves are derived from to Design condition as input
@@ -283,10 +285,7 @@ class ProcessBoilerElectric < OpenStudio::Ruleset::ModelUserScript
         baseboard_coil = OpenStudio::Model::CoilHeatingWaterBaseboard.new(model)
         baseboard_coil.setName(obj_name + " #{control_zone.name} heating coil")
         if boilerOutputCapacity != Constants.SizingAuto
-          bb_UA = OpenStudio::convert(boilerOutputCapacity,"Btu/h","W").get / (OpenStudio::convert(boilerDesignTemp - 10.0 - 95.0,"R","K").get) * 3
-          bb_max_flow = OpenStudio::convert(boilerOutputCapacity,"Btu/h","W").get / OpenStudio::convert(20.0,"R","K").get / 4.186 / 998.2 / 1000 * 2.0    
-          baseboard_coil.setUFactorTimesAreaValue(bb_UA)
-          baseboard_coil.setMaximumWaterFlowRate(bb_max_flow)      
+          baseboard_coil.setHeatingDesignCapacity(OpenStudio::convert(boilerOutputCapacity,"Btu/h","W").get) # Used by HVACSizing measure
         end
         baseboard_coil.setConvergenceTolerance(0.001)
         
@@ -294,6 +293,11 @@ class ProcessBoilerElectric < OpenStudio::Ruleset::ModelUserScript
         living_baseboard_heater.setName(obj_name + " #{control_zone.name} convective water")
         living_baseboard_heater.addToThermalZone(control_zone)
         runner.registerInfo("Added '#{living_baseboard_heater.name}' to '#{control_zone.name}' of #{unit.name}")
+        
+        HVAC.prioritize_zone_hvac(model, runner, control_zone).reverse.each do |object|
+          control_zone.setCoolingPriority(object, 1)
+          control_zone.setHeatingPriority(object, 1)
+        end
         
         plant_loop.addDemandBranchForComponent(baseboard_coil)
         
@@ -305,10 +309,7 @@ class ProcessBoilerElectric < OpenStudio::Ruleset::ModelUserScript
           baseboard_coil = OpenStudio::Model::CoilHeatingWaterBaseboard.new(model)
           baseboard_coil.setName(obj_name + " #{slave_zone.name} heating coil")
           if boilerOutputCapacity != Constants.SizingAuto
-            bb_UA = OpenStudio::convert(boilerOutputCapacity,"Btu/h","W").get / (OpenStudio::convert(boilerDesignTemp - 10.0 - 95.0,"R","K").get) * 3
-            bb_max_flow = OpenStudio::convert(boilerOutputCapacity,"Btu/h","W").get / OpenStudio::convert(20.0,"R","K").get / 4.186 / 998.2 / 1000 * 2.0    
-            baseboard_coil.setUFactorTimesAreaValue(bb_UA)
-            baseboard_coil.setMaximumWaterFlowRate(bb_max_flow)      
+            baseboard_coil.setHeatingDesignCapacity(OpenStudio::convert(boilerOutputCapacity,"Btu/h","W").get) # Used by HVACSizing measure
           end
           baseboard_coil.setConvergenceTolerance(0.001)
         
@@ -316,6 +317,11 @@ class ProcessBoilerElectric < OpenStudio::Ruleset::ModelUserScript
           fbasement_baseboard_heater.setName(obj_name + " #{slave_zone.name} convective water")
           fbasement_baseboard_heater.addToThermalZone(slave_zone)
           runner.registerInfo("Added '#{fbasement_baseboard_heater.name}' to '#{slave_zone.name}' of #{unit.name}")
+          
+          HVAC.prioritize_zone_hvac(model, runner, slave_zone).reverse.each do |object|
+            slave_zone.setCoolingPriority(object, 1)
+            slave_zone.setHeatingPriority(object, 1)
+          end          
           
           plant_loop.addDemandBranchForComponent(baseboard_coil)
 
@@ -340,43 +346,6 @@ class ProcessBoilerElectric < OpenStudio::Ruleset::ModelUserScript
     #     hir = 1 / BoilerInstalledAFUE
     hir = 1.0 / boilerInstalledAFUE
     return hir
-  end
-  
-  def _processCurvesBoiler(model, runner, hasBoilerCondensing)
-    if hasBoilerCondensing
-      condensing_boiler_eff = OpenStudio::Model::CurveBiquadratic.new(model)
-      condensing_boiler_eff.setName("CondensingBoilerEff")
-      condensing_boiler_eff.setCoefficient1Constant(1.058343061)
-      condensing_boiler_eff.setCoefficient2x(-0.052650153)
-      condensing_boiler_eff.setCoefficient3xPOW2(-0.0087272)
-      condensing_boiler_eff.setCoefficient4y(-0.001742217)
-      condensing_boiler_eff.setCoefficient5yPOW2(0.00000333715)
-      condensing_boiler_eff.setCoefficient6xTIMESY(0.000513723)
-      condensing_boiler_eff.setMinimumValueofx(0.2)
-      condensing_boiler_eff.setMaximumValueofx(1.0)
-      condensing_boiler_eff.setMinimumValueofy(30.0)
-      condensing_boiler_eff.setMaximumValueofy(85.0)
-      return condensing_boiler_eff
-    else
-      non_condensing_boiler_eff = OpenStudio::Model::CurveBicubic.new(model)
-      non_condensing_boiler_eff.setName("NonCondensingBoilerEff")
-      non_condensing_boiler_eff.setCoefficient1Constant(1.111720116)
-      non_condensing_boiler_eff.setCoefficient2x(0.078614078)
-      non_condensing_boiler_eff.setCoefficient3xPOW2(-0.400425756)
-      non_condensing_boiler_eff.setCoefficient4y(0.0)
-      non_condensing_boiler_eff.setCoefficient5yPOW2(-0.000156783)
-      non_condensing_boiler_eff.setCoefficient6xTIMESY(0.009384599)
-      non_condensing_boiler_eff.setCoefficient7xPOW3(0.234257955)
-      non_condensing_boiler_eff.setCoefficient8yPOW3(1.32927e-06)
-      non_condensing_boiler_eff.setCoefficient9xPOW2TIMESY(-0.004446701)
-      non_condensing_boiler_eff.setCoefficient10xTIMESYPOW2(-1.22498e-05)
-      non_condensing_boiler_eff.setMinimumValueofx(0.1)
-      non_condensing_boiler_eff.setMaximumValueofx(1.0)
-      non_condensing_boiler_eff.setMinimumValueofy(20.0)
-      non_condensing_boiler_eff.setMaximumValueofy(80.0)
-      return non_condensing_boiler_eff
-    end
-    
   end
   
 end

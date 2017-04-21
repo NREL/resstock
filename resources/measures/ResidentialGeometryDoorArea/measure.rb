@@ -5,7 +5,7 @@ require "#{File.dirname(__FILE__)}/resources/constants"
 require "#{File.dirname(__FILE__)}/resources/geometry"
 
 # start the measure
-class CreateResidentialDoorArea < OpenStudio::Ruleset::ModelUserScript
+class CreateResidentialDoorArea < OpenStudio::Measure::ModelMeasure
 
   # human readable name
   def name
@@ -24,10 +24,10 @@ class CreateResidentialDoorArea < OpenStudio::Ruleset::ModelUserScript
 
   # define the arguments that the user will input
   def arguments(model)
-    args = OpenStudio::Ruleset::OSArgumentVector.new
+    args = OpenStudio::Measure::OSArgumentVector.new
 
     #make a double argument for door area
-    door_area = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("door_area", true)
+    door_area = OpenStudio::Measure::OSArgument::makeDoubleArgument("door_area", true)
     door_area.setDisplayName("Door Area")
     door_area.setUnits("ft^2")
     door_area.setDescription("The area of the opaque door(s). For multifamily buildings, applies to each unit.")

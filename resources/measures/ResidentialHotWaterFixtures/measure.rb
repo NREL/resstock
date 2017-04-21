@@ -8,7 +8,7 @@ require "#{File.dirname(__FILE__)}/resources/waterheater"
 
 
 #start the measure
-class ResidentialHotWaterFixtures < OpenStudio::Ruleset::ModelUserScript
+class ResidentialHotWaterFixtures < OpenStudio::Measure::ModelMeasure
     OSM = OpenStudio::Model
             
     #define the name that a user will see, this method may be deprecated as
@@ -26,27 +26,27 @@ class ResidentialHotWaterFixtures < OpenStudio::Ruleset::ModelUserScript
     end
 
     def arguments(model)
-        ruleset = OpenStudio::Ruleset
+        ruleset = OpenStudio::Measure
         osargument = ruleset::OSArgument
 
         args = ruleset::OSArgumentVector.new
             
         #Shower hot water use multiplier
-        shower_mult = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("shower_mult",true)
+        shower_mult = OpenStudio::Measure::OSArgument::makeDoubleArgument("shower_mult",true)
         shower_mult.setDisplayName("Multiplier on shower hot water use")
         shower_mult.setDescription("Multiplier on Building America HSP shower hot water consumption. HSP prescribes shower hot water consumption of 14 + 4.67 * n_bedrooms gal/day at 110 F.")
         shower_mult.setDefaultValue(1.0)
         args << shower_mult
         
         #Sink hot water use multiplier
-        sink_mult = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("sink_mult",true)
+        sink_mult = OpenStudio::Measure::OSArgument::makeDoubleArgument("sink_mult",true)
         sink_mult.setDisplayName("Multiplier on sink hot water use")
         sink_mult.setDescription("Multiplier on Building America HSP sink hot water consumption. HSP prescribes sink hot water consumption of 12.5 + 4.16 * n_bedrooms gal/day at 110 F.")
         sink_mult.setDefaultValue(1.0)
         args << sink_mult
             
         #Bath hot water use multiplier
-        bath_mult = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("bath_mult",true)
+        bath_mult = OpenStudio::Measure::OSArgument::makeDoubleArgument("bath_mult",true)
         bath_mult.setDisplayName("Multiplier on bath hot water use")
         bath_mult.setDescription("Multiplier on Building America HSP bath hot water consumption. HSP prescribes bath hot water consumption of 3.5 + 1.17 * n_bedrooms gal/day at 110 F.")
         bath_mult.setDefaultValue(1.0)
@@ -62,7 +62,7 @@ class ResidentialHotWaterFixtures < OpenStudio::Ruleset::ModelUserScript
         spaces.each do |space|
             space_args << space.name.to_s
         end
-        space = OpenStudio::Ruleset::OSArgument::makeChoiceArgument("space", space_args, true)
+        space = OpenStudio::Measure::OSArgument::makeChoiceArgument("space", space_args, true)
         space.setDisplayName("Location")
         space.setDescription("Select the space where the hot water fixtures are located. '#{Constants.Auto}' will choose the lowest above-grade finished space available (e.g., first story living space), or a below-grade finished space as last resort. For multifamily buildings, '#{Constants.Auto}' will choose a space for each unit of the building.")
         space.setDefaultValue(Constants.Auto)
@@ -75,7 +75,7 @@ class ResidentialHotWaterFixtures < OpenStudio::Ruleset::ModelUserScript
         plant_loops.each do |plant_loop|
             plant_loop_args << plant_loop.name.to_s
         end
-        plant_loop = OpenStudio::Ruleset::OSArgument::makeChoiceArgument("plant_loop", plant_loop_args, true)
+        plant_loop = OpenStudio::Measure::OSArgument::makeChoiceArgument("plant_loop", plant_loop_args, true)
         plant_loop.setDisplayName("Plant Loop")
         plant_loop.setDescription("Select the plant loop for the hot water fixtures. '#{Constants.Auto}' will try to choose the plant loop associated with the specified space. For multifamily buildings, '#{Constants.Auto}' will choose the plant loop for each unit of the building.")
         plant_loop.setDefaultValue(Constants.Auto)
@@ -138,9 +138,12 @@ class ResidentialHotWaterFixtures < OpenStudio::Ruleset::ModelUserScript
             # Get space
             space = Geometry.get_space_from_string(unit.spaces, space_r)
             next if space.nil?
+			
+			#Get unit number
+			unit_num = Geometry.get_unit_number(model, unit, runner)
 
             #Get plant loop
-            plant_loop = Waterheater.get_plant_loop_from_string(model.getPlantLoops, plant_loop_s, unit.spaces, runner)
+            plant_loop = Waterheater.get_plant_loop_from_string(model.getPlantLoops, plant_loop_s, unit.spaces,  unit_num, runner)
             if plant_loop.nil?
                 return false
             end

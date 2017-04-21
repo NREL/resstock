@@ -5,7 +5,7 @@ require "#{File.dirname(__FILE__)}/resources/unit_conversions"
 require "#{File.dirname(__FILE__)}/resources/util"
 
 #start the measure
-class ResidentialCookingRangeFuel < OpenStudio::Ruleset::ModelUserScript
+class ResidentialCookingRangeFuel < OpenStudio::Measure::ModelMeasure
   
   def name
     return "Set Residential Fuel Cooking Range"
@@ -21,62 +21,62 @@ class ResidentialCookingRangeFuel < OpenStudio::Ruleset::ModelUserScript
   
   #define the arguments that the user will input
   def arguments(model)
-    args = OpenStudio::Ruleset::OSArgumentVector.new
+    args = OpenStudio::Measure::OSArgumentVector.new
     
 	#make a double argument for Fuel Type
     fuel_display_names = OpenStudio::StringVector.new
     fuel_display_names << Constants.FuelTypeGas
     fuel_display_names << Constants.FuelTypePropane
-    fuel_type = OpenStudio::Ruleset::OSArgument::makeChoiceArgument("fuel_type", fuel_display_names, true)
+    fuel_type = OpenStudio::Measure::OSArgument::makeChoiceArgument("fuel_type", fuel_display_names, true)
     fuel_type.setDisplayName("Fuel Type")
     fuel_type.setDescription("Type of fuel used by the cooking range.")
     fuel_type.setDefaultValue(Constants.FuelTypeGas)
     args << fuel_type
 
 	#make a double argument for cooktop EF
-	c_ef = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("c_ef", true)
+	c_ef = OpenStudio::Measure::OSArgument::makeDoubleArgument("c_ef", true)
 	c_ef.setDisplayName("Cooktop Energy Factor")
 	c_ef.setDescription("Cooktop energy factor determined by DOE test procedures for cooking appliances (DOE 1997).")
 	c_ef.setDefaultValue(0.4)
 	args << c_ef
 
 	#make a double argument for oven EF
-	o_ef = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("o_ef", true)
+	o_ef = OpenStudio::Measure::OSArgument::makeDoubleArgument("o_ef", true)
 	o_ef.setDisplayName("Oven Energy Factor")
 	o_ef.setDescription("Oven energy factor determined by DOE test procedures for cooking appliances (DOE 1997).")
 	o_ef.setDefaultValue(0.058)
 	args << o_ef
 	
 	#make a boolean argument for has electric ignition
-	e_ignition = OpenStudio::Ruleset::OSArgument::makeBoolArgument("e_ignition", true)
+	e_ignition = OpenStudio::Measure::OSArgument::makeBoolArgument("e_ignition", true)
 	e_ignition.setDisplayName("Has Electronic Ignition")
 	e_ignition.setDescription("For fuel cooking ranges with electronic ignition, an extra (40 + 13.3x(#BR)) kWh/yr of electricity will be included.")
 	e_ignition.setDefaultValue(true)
 	args << e_ignition
 
 	#make a double argument for Occupancy Energy Multiplier
-	mult = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("mult", true)
+	mult = OpenStudio::Measure::OSArgument::makeDoubleArgument("mult", true)
 	mult.setDisplayName("Occupancy Energy Multiplier")
 	mult.setDescription("Appliance energy use is multiplied by this factor to account for occupancy usage that differs from the national average.")
 	mult.setDefaultValue(1)
 	args << mult
 
 	#Make a string argument for 24 weekday schedule values
-	weekday_sch = OpenStudio::Ruleset::OSArgument::makeStringArgument("weekday_sch", true)
+	weekday_sch = OpenStudio::Measure::OSArgument::makeStringArgument("weekday_sch", true)
 	weekday_sch.setDisplayName("Weekday schedule")
 	weekday_sch.setDescription("Specify the 24-hour weekday schedule.")
 	weekday_sch.setDefaultValue("0.007, 0.007, 0.004, 0.004, 0.007, 0.011, 0.025, 0.042, 0.046, 0.048, 0.042, 0.050, 0.057, 0.046, 0.057, 0.044, 0.092, 0.150, 0.117, 0.060, 0.035, 0.025, 0.016, 0.011")
 	args << weekday_sch
     
 	#Make a string argument for 24 weekend schedule values
-	weekend_sch = OpenStudio::Ruleset::OSArgument::makeStringArgument("weekend_sch", true)
+	weekend_sch = OpenStudio::Measure::OSArgument::makeStringArgument("weekend_sch", true)
 	weekend_sch.setDisplayName("Weekend schedule")
 	weekend_sch.setDescription("Specify the 24-hour weekend schedule.")
 	weekend_sch.setDefaultValue("0.007, 0.007, 0.004, 0.004, 0.007, 0.011, 0.025, 0.042, 0.046, 0.048, 0.042, 0.050, 0.057, 0.046, 0.057, 0.044, 0.092, 0.150, 0.117, 0.060, 0.035, 0.025, 0.016, 0.011")
 	args << weekend_sch
 
 	#Make a string argument for 12 monthly schedule values
-	monthly_sch = OpenStudio::Ruleset::OSArgument::makeStringArgument("monthly_sch", true)
+	monthly_sch = OpenStudio::Measure::OSArgument::makeStringArgument("monthly_sch", true)
 	monthly_sch.setDisplayName("Month schedule")
 	monthly_sch.setDescription("Specify the 12-month schedule.")
 	monthly_sch.setDefaultValue("1.097, 1.097, 0.991, 0.987, 0.991, 0.890, 0.896, 0.896, 0.890, 1.085, 1.085, 1.097")
@@ -92,7 +92,7 @@ class ResidentialCookingRangeFuel < OpenStudio::Ruleset::ModelUserScript
     spaces.each do |space|
         space_args << space.name.to_s
     end
-    space = OpenStudio::Ruleset::OSArgument::makeChoiceArgument("space", space_args, true)
+    space = OpenStudio::Measure::OSArgument::makeChoiceArgument("space", space_args, true)
     space.setDisplayName("Location")
     space.setDescription("Select the space where the cooking range is located. '#{Constants.Auto}' will choose the lowest above-grade finished space available (e.g., first story living space), or a below-grade finished space as last resort. For multifamily buildings, '#{Constants.Auto}' will choose a space for each unit of the building.")
     space.setDefaultValue(Constants.Auto)
@@ -230,7 +230,7 @@ class ResidentialCookingRangeFuel < OpenStudio::Ruleset::ModelUserScript
             rng_def = OpenStudio::Model::OtherEquipmentDefinition.new(model)
             rng = OpenStudio::Model::OtherEquipment.new(rng_def)
             rng.setName(unit_obj_name_f)
-            #rng.setEndUseSubcategory(unit_obj_name_f) # FIXME: Not wrapped in OpenStudio
+            rng.setEndUseSubcategory(unit_obj_name_f)
             rng.setFuelType(HelperMethods.eplus_fuel_map(fuel_type))
             rng.setSpace(space)
             rng_def.setName(unit_obj_name_f)

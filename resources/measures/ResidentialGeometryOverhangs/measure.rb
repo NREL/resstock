@@ -5,7 +5,7 @@ require "#{File.dirname(__FILE__)}/resources/constants"
 require "#{File.dirname(__FILE__)}/resources/geometry"
 
 # start the measure
-class CreateResidentialOverhangs < OpenStudio::Ruleset::ModelUserScript
+class CreateResidentialOverhangs < OpenStudio::Measure::ModelMeasure
 
   # human readable name
   def name
@@ -24,16 +24,16 @@ class CreateResidentialOverhangs < OpenStudio::Ruleset::ModelUserScript
 
   # define the arguments that the user will input
   def arguments(model)
-    args = OpenStudio::Ruleset::OSArgumentVector.new
+    args = OpenStudio::Measure::OSArgumentVector.new
 
-    depth = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("depth", true)
+    depth = OpenStudio::Measure::OSArgument::makeDoubleArgument("depth", true)
     depth.setDisplayName("Depth")
     depth.setUnits("ft")
     depth.setDescription("Depth of the overhang. The distance from the wall surface in the direction normal to the wall surface.")
     depth.setDefaultValue(2.0)
     args << depth
 
-    offset = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("offset", true)
+    offset = OpenStudio::Measure::OSArgument::makeDoubleArgument("offset", true)
     offset.setDisplayName("Offset")
     offset.setUnits("ft")
     offset.setDescription("Height of the overhangs above windows, relative to the top of the window framing.")
@@ -41,7 +41,7 @@ class CreateResidentialOverhangs < OpenStudio::Ruleset::ModelUserScript
     args << offset
 
     # TODO: addOverhang() sets WidthExtension=Offset*2.
-    # width_extension = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("width_extension", true)
+    # width_extension = OpenStudio::Measure::OSArgument::makeDoubleArgument("width_extension", true)
     # width_extension.setDisplayName("Width Extension")
     # width_extension.setUnits("ft")
     # width_extension.setDescription("Length that the overhang extends beyond the window width, relative to the outside of the window framing.")
@@ -55,7 +55,7 @@ class CreateResidentialOverhangs < OpenStudio::Ruleset::ModelUserScript
     facade_bools << "Right Facade"
     facade_bools.each do |facade_bool|
         facade = facade_bool.split(' ')[0]
-        arg = OpenStudio::Ruleset::OSArgument::makeBoolArgument(facade_bool.downcase.gsub(" ", "_"), true)
+        arg = OpenStudio::Measure::OSArgument::makeBoolArgument(facade_bool.downcase.gsub(" ", "_"), true)
         arg.setDisplayName(facade_bool)
         arg.setDescription("Specifies the presence of overhangs for windows on the #{facade.downcase} facade.")
         arg.setDefaultValue(true)

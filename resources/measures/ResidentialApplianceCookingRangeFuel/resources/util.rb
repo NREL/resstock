@@ -61,16 +61,6 @@ class HelperMethods
         end
     end
 
-    def self.get_design_day_temperature(model, runner, dd_name)
-        model.getDesignDays.each do |d|
-            if d.name.get =~ /#{dd_name}/
-                return OpenStudio::convert(d.maximumDryBulbTemperature, "C", "F").get
-            end
-        end
-        runner.registerError("Could not find design day temperature.")
-        return nil
-    end
-    
 end
 
 class MathTools
@@ -846,6 +836,65 @@ class Construction
         return materials
     end
     
+    def self.get_space_r_value(runner, space, surface_type)
+        # Get area-weighted space r-value
+        sum_surface_ua = 0.0
+        total_area = 0.0
+        space.surfaces.each do |surface|
+            next if surface.surfaceType.downcase != surface_type
+            surf_area = OpenStudio::convert(surface.netArea,"m^2","ft^2").get
+            uvalue = self.get_surface_uvalue(runner, surface, surface_type)
+            return nil if uvalue.nil?
+            sum_surface_ua += surf_area * uvalue
+            total_area += surf_area
+        end
+        return total_area / sum_surface_ua
+    end
+    
+    def self.get_surface_uvalue(runner, surface, surface_type)
+        if surface_type.downcase.include?("window")
+            simple_glazing = self.get_window_simple_glazing(runner, surface)
+            return nil if simple_glazing.nil?
+            return OpenStudio::convert(simple_glazing.uFactor,"W/m^2*K","Btu/ft^2*h*R").get
+        else
+            if not surface.construction.is_initialized
+                runner.registerError("Construction not assigned to '#{surface.name.to_s}'.")
+                return nil
+            end
+            uvalue = OpenStudio::convert(surface.uFactor.get,"W/m^2*K","Btu/ft^2*h*R").get
+            if surface.class.method_defined?('adjacentSurface') and surface.adjacentSurface.is_initialized
+                # Use average u-value of adjacent surface, as OpenStudio returns
+                # two different values for, e.g., floor vs adjacent roofceiling
+                if not surface.adjacentSurface.get.construction.is_initialized
+                    runner.registerError("Construction not assigned to '#{surface.adjacentSurface.get.name.to_s}'.")
+                    return nil
+                end
+                adjacent_uvalue = OpenStudio::convert(surface.adjacentSurface.get.uFactor.get,"W/m^2*K","Btu/ft^2*h*R").get
+                return (uvalue + adjacent_uvalue) / 2.0
+            end
+            return uvalue
+        end
+    end
+  
+    def self.get_window_simple_glazing(runner, surface)
+        if not surface.construction.is_initialized
+            runner.registerError("Construction not assigned to '#{surface.name.to_s}'.")
+            return nil
+        end
+        construction = surface.construction.get
+        if not construction.to_LayeredConstruction.is_initialized
+            runner.registerError("Expected LayeredConstruction for '#{surface.name.to_s}'.")
+            return nil
+        end
+        window_layered_construction = construction.to_LayeredConstruction.get
+        if not window_layered_construction.getLayer(0).to_SimpleGlazing.is_initialized
+            runner.registerError("Expected SimpleGlazing for '#{surface.name.to_s}'.")
+            return nil
+        end
+        simple_glazing = window_layered_construction.getLayer(0).to_SimpleGlazing.get
+        return simple_glazing
+    end
+
     private
     
         def print_construction_creation(runner, surface)

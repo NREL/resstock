@@ -12,7 +12,7 @@ require "#{File.dirname(__FILE__)}/resources/schedules"
 require "#{File.dirname(__FILE__)}/resources/geometry"
 
 #start the measure
-class ResidentialMiscellaneousElectricLoads < OpenStudio::Ruleset::ModelUserScript
+class ResidentialMiscellaneousElectricLoads < OpenStudio::Measure::ModelMeasure
   
   #define the name that a user will see, this method may be deprecated as
   #the display name in PAT comes from the name field in measure.xml
@@ -29,32 +29,32 @@ class ResidentialMiscellaneousElectricLoads < OpenStudio::Ruleset::ModelUserScri
   end
   
   def arguments(model)
-    args = OpenStudio::Ruleset::OSArgumentVector.new
+    args = OpenStudio::Measure::OSArgumentVector.new
     
 	#TODO: New argument for demand response for mels (alternate schedules if automatic DR control is specified)
 	
 	#make a double argument for BA Benchmark multiplier
-	mult = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("mult")
+	mult = OpenStudio::Measure::OSArgument::makeDoubleArgument("mult")
 	mult.setDisplayName("Building America Benchmark Multiplier")
 	mult.setDefaultValue(1)
 	args << mult
 	
 	#Make a string argument for 24 weekday schedule values
-	weekday_sch = OpenStudio::Ruleset::OSArgument::makeStringArgument("weekday_sch", true)
+	weekday_sch = OpenStudio::Measure::OSArgument::makeStringArgument("weekday_sch", true)
 	weekday_sch.setDisplayName("Weekday schedule")
 	weekday_sch.setDescription("Specify the 24-hour weekday schedule.")
 	weekday_sch.setDefaultValue("0.04, 0.037, 0.037, 0.036, 0.033, 0.036, 0.043, 0.047, 0.034, 0.023, 0.024, 0.025, 0.024, 0.028, 0.031, 0.032, 0.039, 0.053, 0.063, 0.067, 0.071, 0.069, 0.059, 0.05")
 	args << weekday_sch
     
 	#Make a string argument for 24 weekend schedule values
-	weekend_sch = OpenStudio::Ruleset::OSArgument::makeStringArgument("weekend_sch", true)
+	weekend_sch = OpenStudio::Measure::OSArgument::makeStringArgument("weekend_sch", true)
 	weekend_sch.setDisplayName("Weekend schedule")
 	weekend_sch.setDescription("Specify the 24-hour weekend schedule.")
 	weekend_sch.setDefaultValue("0.04, 0.037, 0.037, 0.036, 0.033, 0.036, 0.043, 0.047, 0.034, 0.023, 0.024, 0.025, 0.024, 0.028, 0.031, 0.032, 0.039, 0.053, 0.063, 0.067, 0.071, 0.069, 0.059, 0.05")
 	args << weekend_sch
 
 	#Make a string argument for 12 monthly schedule values
-	monthly_sch = OpenStudio::Ruleset::OSArgument::makeStringArgument("monthly_sch", true)
+	monthly_sch = OpenStudio::Measure::OSArgument::makeStringArgument("monthly_sch", true)
 	monthly_sch.setDisplayName("Month schedule")
 	monthly_sch.setDescription("Specify the 12-month schedule.")
 	monthly_sch.setDefaultValue("1.248, 1.257, 0.993, 0.989, 0.993, 0.827, 0.821, 0.821, 0.827, 0.99, 0.987, 1.248")

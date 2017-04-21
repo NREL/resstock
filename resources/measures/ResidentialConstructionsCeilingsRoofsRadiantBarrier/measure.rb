@@ -5,7 +5,7 @@ require "#{File.dirname(__FILE__)}/resources/util"
 require "#{File.dirname(__FILE__)}/resources/geometry"
 
 # start the measure
-class ProcessConstructionsCeilingsRoofsRadiantBarrier < OpenStudio::Ruleset::ModelUserScript
+class ProcessConstructionsCeilingsRoofsRadiantBarrier < OpenStudio::Measure::ModelMeasure
 
   # human readable name
   def name
@@ -24,10 +24,10 @@ class ProcessConstructionsCeilingsRoofsRadiantBarrier < OpenStudio::Ruleset::Mod
 
   # define the arguments that the user will input
   def arguments(model)
-    args = OpenStudio::Ruleset::OSArgumentVector.new
+    args = OpenStudio::Measure::OSArgumentVector.new
 
     #make a boolean argument for Has Radiant Barrier
-	has_rb = OpenStudio::Ruleset::OSArgument::makeBoolArgument("has_rb",true)
+	has_rb = OpenStudio::Measure::OSArgument::makeBoolArgument("has_rb",true)
 	has_rb.setDisplayName("Has Radiant Barrier")
 	has_rb.setDefaultValue(false)
 	args << has_rb
@@ -79,6 +79,18 @@ class ProcessConstructionsCeilingsRoofsRadiantBarrier < OpenStudio::Ruleset::Mod
     # Create and assign construction to surfaces
     if not rb.create_and_assign_constructions(surfaces, runner, model, name=nil)
         return false
+    end
+    
+    # Store info for HVAC Sizing measure
+    units = Geometry.get_building_units(model, runner)
+    if units.nil?
+        return false
+    end
+    surfaces.each do |surface|
+        units.each do |unit|
+            next if not unit.spaces.include?(surface.space.get)
+            unit.setFeature(Constants.SizingInfoRoofHasRadiantBarrier(surface), has_rb)
+        end
     end
     
     # Remove any constructions/materials that aren't used

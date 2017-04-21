@@ -6,7 +6,7 @@ require "#{File.dirname(__FILE__)}/resources/constants"
 require "#{File.dirname(__FILE__)}/resources/geometry"
 
 # start the measure
-class ProcessConstructionsWallsSheathing < OpenStudio::Ruleset::ModelUserScript
+class ProcessConstructionsWallsSheathing < OpenStudio::Measure::ModelMeasure
 
   # human readable name
   def name
@@ -25,10 +25,10 @@ class ProcessConstructionsWallsSheathing < OpenStudio::Ruleset::ModelUserScript
 
   # define the arguments that the user will input
   def arguments(model)
-    args = OpenStudio::Ruleset::OSArgumentVector.new
+    args = OpenStudio::Measure::OSArgumentVector.new
 
     #make a double argument for OSB/Plywood Thickness
-	osb_thick_in = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("osb_thick_in",true)
+	osb_thick_in = OpenStudio::Measure::OSArgument::makeDoubleArgument("osb_thick_in",true)
 	osb_thick_in.setDisplayName("OSB/Plywood Thickness")
     osb_thick_in.setUnits("in")
 	osb_thick_in.setDescription("Specifies the thickness of the walls' OSB/plywood sheathing. Enter 0 for no sheathing (if the wall has other means to handle the shear load on the wall such as cross-bracing).")
@@ -36,7 +36,7 @@ class ProcessConstructionsWallsSheathing < OpenStudio::Ruleset::ModelUserScript
 	args << osb_thick_in
     
 	#make a double argument for Rigid Insulation R-value
-	rigid_r = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("rigid_r",true)
+	rigid_r = OpenStudio::Measure::OSArgument::makeDoubleArgument("rigid_r",true)
 	rigid_r.setDisplayName("Continuous Insulation Nominal R-value")
     rigid_r.setUnits("h-ft^2-R/Btu")
     rigid_r.setDescription("The R-value of the continuous insulation.")
@@ -44,7 +44,7 @@ class ProcessConstructionsWallsSheathing < OpenStudio::Ruleset::ModelUserScript
 	args << rigid_r
 
 	#make a double argument for Rigid Insulation Thickness
-	rigid_thick_in = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("rigid_thick_in",true)
+	rigid_thick_in = OpenStudio::Measure::OSArgument::makeDoubleArgument("rigid_thick_in",true)
 	rigid_thick_in.setDisplayName("Continuous Insulation Thickness")
     rigid_thick_in.setUnits("in")
     rigid_thick_in.setDescription("The thickness of the continuous insulation.")
@@ -63,24 +63,34 @@ class ProcessConstructionsWallsSheathing < OpenStudio::Ruleset::ModelUserScript
       return false
     end
     
-    surfaces = []
+    finished_surfaces = []
+    unfinished_surfaces = []
     model.getSpaces.each do |space|
-        next if Geometry.space_is_unfinished(space)
-        next if Geometry.space_is_below_grade(space)
-        space.surfaces.each do |surface|
-            next if surface.surfaceType.downcase != "wall"
-            if surface.outsideBoundaryCondition.downcase == "outdoors"
-                # Above-grade wall between finished space and outside    
-                surfaces << surface
-            elsif surface.adjacentSurface.is_initialized and surface.adjacentSurface.get.space.is_initialized
-                adjacent_space = surface.adjacentSurface.get.space.get
-                next if Geometry.space_is_finished(adjacent_space)
-                # Above-grade wall between finished space and unfinished space
-                surfaces << surface
+        # Walls adjacent to finished space
+        if Geometry.space_is_finished(space) and Geometry.space_is_above_grade(space)
+            space.surfaces.each do |surface|
+                next if surface.surfaceType.downcase != "wall"
+                if surface.outsideBoundaryCondition.downcase == "outdoors"
+                    # Above-grade wall between finished space and outside    
+                    finished_surfaces << surface
+                elsif surface.adjacentSurface.is_initialized and surface.adjacentSurface.get.space.is_initialized
+                    adjacent_space = surface.adjacentSurface.get.space.get
+                    next if Geometry.space_is_finished(adjacent_space)
+                    # Above-grade wall between finished space and unfinished space
+                    finished_surfaces << surface
+                end
+            end
+        # Attic wall under an insulated roof
+        elsif Geometry.is_unfinished_attic(space)
+            attic_roof_r = Construction.get_space_r_value(runner, space, "roofceiling")
+            next if attic_roof_r.nil? or attic_roof_r <= 5 # assume uninsulated if <= R-5 assembly
+            space.surfaces.each do |surface|
+                next if surface.surfaceType.downcase != "wall" or surface.outsideBoundaryCondition.downcase != "outdoors"
+                unfinished_surfaces << surface
             end
         end
     end
-    if surfaces.empty?
+    if finished_surfaces.empty? and unfinished_surfaces.empty?
         runner.registerAsNotApplicable("Measure not applied because no applicable surfaces were found.")
         return true
     end
@@ -114,22 +124,57 @@ class ProcessConstructionsWallsSheathing < OpenStudio::Ruleset::ModelUserScript
         mat_rigid = Material.new(name=Constants.MaterialWallRigidIns, thick_in=rigid_thick_in, mat_base=BaseMaterial.InsulationRigid, k_in=rigid_thick_in/rigid_rvalue)
     end
     
-    # Define construction
-    wall_sh = Construction.new([1])
-    if not mat_rigid.nil?
-        wall_sh.add_layer(mat_rigid, true)
-    else
-        wall_sh.remove_layer(Constants.MaterialWallRigidIns)
-    end
-    if not mat_osb.nil?
-        wall_sh.add_layer(mat_osb, true)
-    else
-        wall_sh.remove_layer(Constants.MaterialWallSheathing)
+    if not finished_surfaces.empty?
+        # Define construction
+        fin_wall_sh = Construction.new([1])
+        if not mat_rigid.nil?
+            fin_wall_sh.add_layer(mat_rigid, true)
+        else
+            fin_wall_sh.remove_layer(Constants.MaterialWallRigidIns)
+        end
+        if not mat_osb.nil?
+            fin_wall_sh.add_layer(mat_osb, true)
+        else
+            fin_wall_sh.remove_layer(Constants.MaterialWallSheathing)
+        end
+        
+        # Create and assign construction to surfaces
+        if not fin_wall_sh.create_and_assign_constructions(finished_surfaces, runner, model, name=nil)
+            return false
+        end
     end
     
-    # Create and assign construction to surfaces
-    if not wall_sh.create_and_assign_constructions(surfaces, runner, model, name=nil)
+    if not unfinished_surfaces.empty?
+        # Define construction
+        unfin_wall_sh = Construction.new([1])
+        if not mat_rigid.nil?
+            unfin_wall_sh.add_layer(mat_rigid, true)
+        else
+            unfin_wall_sh.remove_layer(Constants.MaterialWallRigidIns)
+        end
+        if not mat_osb.nil?
+            unfin_wall_sh.add_layer(mat_osb, true)
+        else
+            unfin_wall_sh.remove_layer(Constants.MaterialWallSheathing)
+        end
+        
+        # Create and assign construction to surfaces
+        if not unfin_wall_sh.create_and_assign_constructions(unfinished_surfaces, runner, model, name=nil)
+            return false
+        end
+    end
+    
+    # Store info for HVAC Sizing measure
+    units = Geometry.get_building_units(model, runner)
+    if units.nil?
         return false
+    end
+    (finished_surfaces + unfinished_surfaces).each do |surface|
+        units.each do |unit|
+            next if not unit.spaces.include?(surface.space.get)
+            unit.setFeature(Constants.SizingInfoWallRigidInsRvalue(surface), rigid_rvalue)
+            unit.setFeature(Constants.SizingInfoWallRigidInsThickness(surface), rigid_thick_in)
+        end
     end
 
     # Remove any constructions/materials that aren't used

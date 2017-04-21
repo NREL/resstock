@@ -6,7 +6,7 @@ require "#{File.dirname(__FILE__)}/resources/geometry"
 require "#{File.dirname(__FILE__)}/resources/util"
 
 # start the measure
-class AddResidentialBedroomsAndBathrooms < OpenStudio::Ruleset::ModelUserScript
+class AddResidentialBedroomsAndBathrooms < OpenStudio::Measure::ModelMeasure
 
   # human readable name
   def name
@@ -25,17 +25,17 @@ class AddResidentialBedroomsAndBathrooms < OpenStudio::Ruleset::ModelUserScript
 
   # define the arguments that the user will input
   def arguments(model)
-    args = OpenStudio::Ruleset::OSArgumentVector.new		
+    args = OpenStudio::Measure::OSArgumentVector.new		
 
     #make a string argument for number of bedrooms
-    num_br = OpenStudio::Ruleset::OSArgument::makeStringArgument("num_bedrooms", false)
+    num_br = OpenStudio::Measure::OSArgument::makeStringArgument("num_bedrooms", false)
     num_br.setDisplayName("Number of Bedrooms")
     num_br.setDescription("Specify the number of bedrooms. For a multifamily building, specify one value for all units or a comma-separated set of values (in the correct order) for each unit. Used to determine the energy usage of appliances and plug loads, hot water usage, mechanical ventilation rate, etc.")
     num_br.setDefaultValue("3")
     args << num_br
     
     #make a string argument for number of bathrooms
-    num_ba = OpenStudio::Ruleset::OSArgument::makeStringArgument("num_bathrooms", false)
+    num_ba = OpenStudio::Measure::OSArgument::makeStringArgument("num_bathrooms", false)
     num_ba.setDisplayName("Number of Bathrooms")
     num_ba.setDescription("Specify the number of bathrooms. For a multifamily building, specify one value for all units or a comma-separated set of values (in the correct order) for each unit. Used to determine the hot water usage, etc.")
     num_ba.setDefaultValue("2")

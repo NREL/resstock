@@ -7,7 +7,7 @@ require "#{File.dirname(__FILE__)}/resources/geometry"
 require "#{File.dirname(__FILE__)}/resources/waterheater"
 
 #start the measure
-class ResidentialHotWaterDistribution < OpenStudio::Ruleset::ModelUserScript
+class ResidentialHotWaterDistribution < OpenStudio::Measure::ModelMeasure
     OSM = OpenStudio::Model
             
     #define the name that a user will see, this method may be deprecated as
@@ -25,7 +25,7 @@ class ResidentialHotWaterDistribution < OpenStudio::Ruleset::ModelUserScript
     end
 
     def arguments(model)
-        ruleset = OpenStudio::Ruleset
+        ruleset = OpenStudio::Measure
         osargument = ruleset::OSArgument
 
         args = ruleset::OSArgumentVector.new
@@ -34,7 +34,7 @@ class ResidentialHotWaterDistribution < OpenStudio::Ruleset::ModelUserScript
         pipe_mat_display_name = OpenStudio::StringVector.new
         pipe_mat_display_name << Constants.MaterialCopper
         pipe_mat_display_name << Constants.MaterialPEX
-        pipe_mat = OpenStudio::Ruleset::OSArgument::makeChoiceArgument("pipe_mat", pipe_mat_display_name, true)
+        pipe_mat = OpenStudio::Measure::OSArgument::makeChoiceArgument("pipe_mat", pipe_mat_display_name, true)
         pipe_mat.setDisplayName("Pipe Material")
         pipe_mat.setDescription("The plumbing material.")
         pipe_mat.setDefaultValue(Constants.MaterialCopper)
@@ -44,7 +44,7 @@ class ResidentialHotWaterDistribution < OpenStudio::Ruleset::ModelUserScript
         dist_layout_display_name = OpenStudio::StringVector.new
         dist_layout_display_name << Constants.PipeTypeHomeRun
         dist_layout_display_name << Constants.PipeTypeTrunkBranch
-        dist_layout = OpenStudio::Ruleset::OSArgument::makeChoiceArgument("dist_layout", dist_layout_display_name, true)
+        dist_layout = OpenStudio::Measure::OSArgument::makeChoiceArgument("dist_layout", dist_layout_display_name, true)
         dist_layout.setDisplayName("Distribution system layout")
         dist_layout.setDescription("The plumbing layout of the hot water distribution system. Trunk and branch uses a main trunk line to supply various branch take-offs to specific fixtures. In the home run layout, all fixtures are fed from dedicated piping that runs directly from central manifolds.")
         dist_layout.setDefaultValue(Constants.PipeTypeTrunkBranch)
@@ -54,7 +54,7 @@ class ResidentialHotWaterDistribution < OpenStudio::Ruleset::ModelUserScript
         space_display_name = OpenStudio::StringVector.new
         space_display_name << Constants.LocationInterior
         space_display_name << Constants.LocationExterior
-        space = OpenStudio::Ruleset::OSArgument::makeChoiceArgument("space", space_display_name, true)
+        space = OpenStudio::Measure::OSArgument::makeChoiceArgument("space", space_display_name, true)
         space.setDescription("Select the primary space where the DHW distribution system is located.")
         space.setDefaultValue(Constants.LocationInterior)
         args << space
@@ -64,14 +64,14 @@ class ResidentialHotWaterDistribution < OpenStudio::Ruleset::ModelUserScript
         recirc_type_display_name << Constants.RecircTypeNone
         recirc_type_display_name << Constants.RecircTypeTimer
         recirc_type_display_name << Constants.RecircTypeDemand
-        recirc_type = OpenStudio::Ruleset::OSArgument::makeChoiceArgument("recirc_type", recirc_type_display_name, true)
+        recirc_type = OpenStudio::Measure::OSArgument::makeChoiceArgument("recirc_type", recirc_type_display_name, true)
         recirc_type.setDisplayName("Recirculation Type")
         recirc_type.setDescription("The type of hot water recirculation control, if any. Timer recirculation control assumes 16 hours of daily pump operation from 6am to 10pm. Demand recirculation controls assume push button control at all non-appliance fistures with 100% ideal control.")
         recirc_type.setDefaultValue(Constants.RecircTypeNone)
         args << recirc_type
                     
         #Insulation
-        dist_ins = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("dist_ins",true)
+        dist_ins = OpenStudio::Measure::OSArgument::makeDoubleArgument("dist_ins",true)
         dist_ins.setDisplayName("Insulation Nominal R-Value")
         dist_ins.setUnits("h-ft^2-R/Btu")
         dist_ins.setDescription("Nominal R-value of the insulation on the DHW distribution system.")
@@ -128,9 +128,12 @@ class ResidentialHotWaterDistribution < OpenStudio::Ruleset::ModelUserScript
             if sch_unit_index.nil?
                 return false
             end
+			
+			#Get unit number
+			unit_num = Geometry.get_unit_number(model, unit, runner)
             
             # Get plant loop
-            plant_loop = Waterheater.get_plant_loop_from_string(model.getPlantLoops, Constants.Auto, unit.spaces, runner)
+            plant_loop = Waterheater.get_plant_loop_from_string(model.getPlantLoops, Constants.Auto, unit.spaces, unit_num, runner)
             if plant_loop.nil?
                 return false
             end

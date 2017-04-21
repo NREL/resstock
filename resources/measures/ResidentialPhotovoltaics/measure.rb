@@ -7,12 +7,12 @@ require "#{File.dirname(__FILE__)}/resources/hvac"
 require "#{File.dirname(__FILE__)}/resources/geometry"
 
 # start the measure
-class ResidentialPhotovoltaics < OpenStudio::Ruleset::ModelUserScript
+class ResidentialPhotovoltaics < OpenStudio::Measure::ModelMeasure
 
   class PVSystem
     def initialize
     end
-    attr_accessor(:derate, :derated_num_modules, :inv_tare_loss, :inv_capacity_factor)   
+    attr_accessor(:size, :module_type, :inv_eff, :losses)   
   end
   
   class PVAzimuth
@@ -39,15 +39,15 @@ class ResidentialPhotovoltaics < OpenStudio::Ruleset::ModelUserScript
 
   # human readable description of modeling approach
   def modeler_description
-    return "Any photovoltaic panels, generators, inverters, and electric load center distribution objects are removed. A photovoltaic panel, along with generator and inverter are added to the electric load center distribution object."
+    return "Any generators and electric load center distribution objects are removed. An electric load center distribution object is added with a track schedule equal to the hourly output from SAM. A micro turbine generator object is add to the electric load center distribution object. The fuel used to make the electricity is zeroed out."
   end
 
   # define the arguments that the user will input
   def arguments(model)
-    args = OpenStudio::Ruleset::OSArgumentVector.new
+    args = OpenStudio::Measure::OSArgumentVector.new
 
     #make a double argument for size
-    size = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("size", false)
+    size = OpenStudio::Measure::OSArgument::makeDoubleArgument("size", false)
     size.setDisplayName("Size")
     size.setUnits("kW")
     size.setDescription("Size (power) per unit of the photovoltaic array in kW DC.")
@@ -56,15 +56,17 @@ class ResidentialPhotovoltaics < OpenStudio::Ruleset::ModelUserScript
     
     #make a choice arguments for module type
     module_types_names = OpenStudio::StringVector.new
-    module_types_names << Constants.PVModuleTypeCSI
-    module_type = OpenStudio::Ruleset::OSArgument::makeChoiceArgument("module_type", module_types_names, true)
+    module_types_names << Constants.PVModuleTypeStandard
+    module_types_names << Constants.PVModuleTypePremium
+    module_types_names << Constants.PVModuleTypeThinFilm
+    module_type = OpenStudio::Measure::OSArgument::makeChoiceArgument("module_type", module_types_names, true)
     module_type.setDisplayName("Module Type")
     module_type.setDescription("Type of module to use for the PV simulation.")
-    module_type.setDefaultValue(Constants.PVModuleTypeCSI)
+    module_type.setDefaultValue(Constants.PVModuleTypeStandard)
     args << module_type
 
     #make a double argument for system losses
-    system_losses = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("system_losses", false)
+    system_losses = OpenStudio::Measure::OSArgument::makeDoubleArgument("system_losses", false)
     system_losses.setDisplayName("System Losses")
     system_losses.setUnits("frac")
     system_losses.setDescription("Difference between theoretical module-level and actual PV system performance due to wiring resistance losses, dust, module mismatch, etc.")
@@ -72,7 +74,7 @@ class ResidentialPhotovoltaics < OpenStudio::Ruleset::ModelUserScript
     args << system_losses
     
     #make a double argument for inverter efficiency
-    inverter_efficiency = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("inverter_efficiency", false)
+    inverter_efficiency = OpenStudio::Measure::OSArgument::makeDoubleArgument("inverter_efficiency", false)
     inverter_efficiency.setDisplayName("Inverter Efficiency")
     inverter_efficiency.setUnits("frac")
     inverter_efficiency.setDescription("The efficiency of the inverter.")
@@ -83,14 +85,14 @@ class ResidentialPhotovoltaics < OpenStudio::Ruleset::ModelUserScript
     azimuth_types_names = OpenStudio::StringVector.new
     azimuth_types_names << Constants.CoordRelative
     azimuth_types_names << Constants.CoordAbsolute
-    azimuth_type = OpenStudio::Ruleset::OSArgument::makeChoiceArgument("azimuth_type", azimuth_types_names, true)
+    azimuth_type = OpenStudio::Measure::OSArgument::makeChoiceArgument("azimuth_type", azimuth_types_names, true)
     azimuth_type.setDisplayName("Azimuth Type")
     azimuth_type.setDescription("Relative azimuth angle is measured clockwise from the front of the house. Absolute azimuth angle is measured clockwise from due south.")
     azimuth_type.setDefaultValue(Constants.CoordRelative)
     args << azimuth_type    
     
     #make a double argument for azimuth
-    azimuth = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("azimuth", false)
+    azimuth = OpenStudio::Measure::OSArgument::makeDoubleArgument("azimuth", false)
     azimuth.setDisplayName("Azimuth")
     azimuth.setUnits("degrees")
     azimuth.setDescription("The azimuth angle is measured clockwise.")
@@ -102,14 +104,14 @@ class ResidentialPhotovoltaics < OpenStudio::Ruleset::ModelUserScript
     tilt_types_names << Constants.TiltPitch
     tilt_types_names << Constants.CoordAbsolute
     tilt_types_names << Constants.TiltLatitude
-    tilt_type = OpenStudio::Ruleset::OSArgument::makeChoiceArgument("tilt_type", tilt_types_names, true)
+    tilt_type = OpenStudio::Measure::OSArgument::makeChoiceArgument("tilt_type", tilt_types_names, true)
     tilt_type.setDisplayName("Tilt Type")
     tilt_type.setDescription("Type of tilt angle referenced.")
     tilt_type.setDefaultValue(Constants.TiltPitch)
     args << tilt_type      
     
     #make a double argument for tilt
-    tilt = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("tilt", false)
+    tilt = OpenStudio::Measure::OSArgument::makeDoubleArgument("tilt", false)
     tilt.setDisplayName("Tilt")
     tilt.setUnits("degrees")
     tilt.setDescription("Angle of the tilt.")
@@ -128,6 +130,13 @@ class ResidentialPhotovoltaics < OpenStudio::Ruleset::ModelUserScript
       return false
     end
 
+    if !File.directory? "#{File.dirname(__FILE__)}/resources/sam-sdk-2017-1-17-r1"
+      unzip_file = OpenStudio::UnzipFile.new("#{File.dirname(__FILE__)}/resources/sam-sdk-2017-1-17-r1.zip")
+      unzip_file.extractAllFiles(OpenStudio::toPath("#{File.dirname(__FILE__)}/resources/sam-sdk-2017-1-17-r1"))
+    end
+
+    require "#{File.dirname(__FILE__)}/resources/ssc_api"
+    
     size = runner.getDoubleArgumentValue("size",user_arguments)
     module_type = runner.getStringArgumentValue("module_type",user_arguments)
     system_losses = runner.getDoubleArgumentValue("system_losses",user_arguments)
@@ -136,7 +145,7 @@ class ResidentialPhotovoltaics < OpenStudio::Ruleset::ModelUserScript
     azimuth = runner.getDoubleArgumentValue("azimuth",user_arguments)
     tilt_type = runner.getStringArgumentValue("tilt_type",user_arguments)
     tilt = runner.getDoubleArgumentValue("tilt",user_arguments)
-    
+        
     if azimuth > 360 or azimuth < 0
       runner.registerError("Invalid azimuth entered.")
       return false
@@ -146,153 +155,141 @@ class ResidentialPhotovoltaics < OpenStudio::Ruleset::ModelUserScript
     pv_azimuth = PVAzimuth.new
     pv_tilt = PVTilt.new
     
-    @weather = WeatherProcess.new(model, runner, File.dirname(__FILE__))
+    @weather = WeatherProcess.new(model, runner, File.dirname(__FILE__), header_only=true)
     if @weather.error?
-      return false
-    end
-    
-    pv_module = _getPVModuleCharacteristics(module_type)
-    if pv_module.nil?
-      return false
-    end
-    
-    # Get building units
-    units = Geometry.get_building_units(model, runner)
-    if units.nil?
       return false
     end
     
     obj_name = Constants.ObjectNamePhotovoltaics
     
-    # Calculate number of PV modules (Should we round to the nearest integer?)    
-    pv_system.derated_num_modules = OpenStudio::convert(size,"kW","W").get / (pv_module["Impo"] * pv_module["Vmpo"]) * (1.0 - system_losses)
-    
     highest_roof_pitch = Geometry.get_roof_pitch(model.getSurfaces)
-    pv_tilt.abs = get_abs_tilt(tilt_type, tilt, highest_roof_pitch, @weather.header.Latitude)
+    roof_tilt = OpenStudio::convert(Math.atan(highest_roof_pitch),"rad","deg").get # tan(x) = opp/adj = highest_roof_pitch
     
-    if azimuth_type == Constants.CoordRelative
-      pv_azimuth.abs = azimuth + model.getBuilding.northAxis
-    elsif azimuth_type == Constants.CoordAbsolute
-      pv_azimuth.abs = azimuth
-    end
-    
-    pv_system.inv_tare_loss = 0.003
-    pv_system.inv_capacity_factor = 1.2
-    
-    # Ensure Azimuth is >=0 and <=360
-    if pv_azimuth.abs < 0.0
-      pv_azimuth.abs += 360.0
-    end
-
-    if pv_azimuth.abs >= 360.0
-      pv_azimuth.abs -= 360.0
-    end
-
-    panel_length = (pv_module["Area"] * pv_system.derated_num_modules) ** 0.5
-    run = Math::cos(Math::atan(pv_tilt.abs)) * panel_length
-    vertices = OpenStudio::Point3dVector.new
-    vertices << OpenStudio::Point3d.new(OpenStudio::convert(100.0,"ft","m").get, OpenStudio::convert(100.0,"ft","m").get, 0)
-    vertices << OpenStudio::Point3d.new(OpenStudio::convert(100.0,"ft","m").get + panel_length * units.length, OpenStudio::convert(100.0,"ft","m").get, 0)
-    vertices << OpenStudio::Point3d.new(OpenStudio::convert(100.0,"ft","m").get + panel_length * units.length, OpenStudio::convert(100.0,"ft","m").get + run, pv_tilt.abs * run)
-    vertices << OpenStudio::Point3d.new(OpenStudio::convert(100.0,"ft","m").get, OpenStudio::convert(100.0,"ft","m").get + run, pv_tilt.abs * run)
-    
-    m = OpenStudio::Matrix.new(4,4,0)
-    m[0,0] = Math::cos(-pv_azimuth.abs * Math::PI / 180.0)
-    m[1,1] = Math::cos(-pv_azimuth.abs * Math::PI / 180.0)
-    m[0,1] = -Math::sin(-pv_azimuth.abs * Math::PI / 180.0)
-    m[1,0] = Math::sin(-pv_azimuth.abs * Math::PI / 180.0)
-    m[2,2] = 1
-    m[3,3] = 1
-    transformation = OpenStudio::Transformation.new(m)
-    vertices = transformation * vertices
-    
+    pv_system.size = size
+    pv_system.module_type = {Constants.PVModuleTypeStandard=>0, Constants.PVModuleTypePremium=>1, Constants.PVModuleTypeThinFilm=>2}[module_type]
+    pv_system.inv_eff = inverter_efficiency * 100.0
+    pv_system.losses = system_losses * 100.0
+    pv_azimuth.abs = get_abs_azimuth(azimuth_type, azimuth, model.getBuilding.northAxis)
+    pv_tilt.abs = get_abs_tilt(tilt_type, tilt, roof_tilt, @weather.header.Latitude)
+                
+    p_data = SscApi.create_data_object
+    SscApi.set_number(p_data, 'system_capacity', pv_system.size)
+    SscApi.set_number(p_data, 'module_type', pv_system.module_type)
+    SscApi.set_number(p_data, 'array_type', 0)
+    SscApi.set_number(p_data, 'inv_eff', pv_system.inv_eff)
+    SscApi.set_number(p_data, 'losses', pv_system.losses)
+    SscApi.set_number(p_data, 'azimuth', pv_azimuth.abs)
+    SscApi.set_number(p_data, 'tilt', pv_tilt.abs)    
+    SscApi.set_number(p_data, 'adjust:constant', 0)
+    SscApi.set_string(p_data, 'solar_resource_file', @weather.epw_path)
+    p_mod = SscApi.create_module("pvwattsv5")
+    SscApi.set_print(false)
+    SscApi.execute_module(p_mod, p_data)
+      
+    obj_name = Constants.ObjectNamePhotovoltaics
+      
     # Remove existing photovoltaics
+    curves_to_remove = []
     model.getElectricLoadCenterDistributions.each do |electric_load_center_dist|
-      next unless electric_load_center_dist.name.to_s == obj_name + " electric load center"
+      next unless electric_load_center_dist.name.to_s == obj_name + " elec load center dist"
       electric_load_center_dist.generators.each do |generator|
-        panel = generator.to_GeneratorPhotovoltaic.get
-        panel.surface.get.to_ShadingSurface.get.shadingSurfaceGroup.get.remove
-        panel.remove
+        micro_turbine = generator.to_GeneratorMicroTurbine.get
+        micro_turbine.remove
       end
-      electric_load_center_dist.inverter.get.remove
+      electric_load_center_dist.trackScheduleSchemeSchedule.get.remove
       electric_load_center_dist.remove
     end
-    
-    shading_surface_group = OpenStudio::Model::ShadingSurfaceGroup.new(model)
-    shading_surface_group.setName(obj_name + " panel")
-    shading_surface = OpenStudio::Model::ShadingSurface.new(vertices, model)
-    shading_surface.setName(obj_name + " panel")
-    shading_surface.setShadingSurfaceGroup(shading_surface_group)      
-
-    inverter = OpenStudio::Model::ElectricLoadCenterInverterSimple.new(model)
-    inverter.setName(obj_name + " inverter")
-    inverter.setAvailabilitySchedule(model.alwaysOnDiscreteSchedule)
-    inverter.setInverterEfficiency(inverter_efficiency)
-    
+      
+    runner.registerInfo("#{(SscApi.get_array(p_data, "ac").inject(0){ |sum, x| sum + x }).round(2)} W-h")
+    values = OpenStudio::Vector.new(8760)
+    SscApi.get_array(p_data, "ac").each_with_index do |wh, i|
+      values[i] = wh.to_f
+    end
+    start_date = model.getYearDescription.makeDate(1, 1)
+    time_step = OpenStudio::Time.new(0, 0, 60, 0)
+    timeseries = OpenStudio::TimeSeries.new(start_date, time_step, values, "W")
+    schedule = OpenStudio::Model::ScheduleInterval.fromTimeSeries(timeseries, model).get
+    schedule.setName(obj_name + " watt-hours")
+      
     electric_load_center_dist = OpenStudio::Model::ElectricLoadCenterDistribution.new(model)
-    electric_load_center_dist.setName(obj_name + " electric load center")
-    electric_load_center_dist.setInverter(inverter)
-    electric_load_center_dist.setGeneratorOperationSchemeType("Baseload")
-    electric_load_center_dist.setElectricalBussType("DirectCurrentWithInverter")
-
-    panel = OpenStudio::Model::GeneratorPhotovoltaic::simple(model)
-    panel.setName(obj_name + " system")
-    panel.setSurface(shading_surface)
-    panel.setHeatTransferIntegrationMode("Decoupled")
-    panel.setNumberOfModulesInParallel(1)
-    panel.setNumberOfModulesInSeries(pv_system.derated_num_modules)
-    panel.setRatedElectricPowerOutput(OpenStudio::convert(size,"kW","W").get)
-    panel.setAvailabilitySchedule(model.alwaysOnDiscreteSchedule)
-    performance = panel.photovoltaicPerformance.to_PhotovoltaicPerformanceSimple.get
-    performance.setName(obj_name + " module")
-    performance.setFractionOfSurfaceAreaWithActiveSolarCells(1)
-    performance.setFixedEfficiency(1)
-
-    electric_load_center_dist.addGenerator(panel)
+    electric_load_center_dist.setName(obj_name + " elec load center dist")
+    electric_load_center_dist.setGeneratorOperationSchemeType("TrackSchedule")
+    electric_load_center_dist.setTrackScheduleSchemeSchedule(schedule)
+    electric_load_center_dist.setDemandLimitSchemePurchasedElectricDemandLimit(0)
+    electric_load_center_dist.setElectricalBussType("AlternatingCurrent")
+      
+    micro_turbine = OpenStudio::Model::GeneratorMicroTurbine.new(model)
+    micro_turbine.setName(obj_name + " generator")
+    micro_turbine.setAvailabilitySchedule(model.alwaysOnDiscreteSchedule)
     
-    runner.registerInfo("Added #{OpenStudio::convert(panel_length ** 2,"m^2","ft^2").get.round(1)} square feet of PV.")
+    curve_biquadratic = micro_turbine.electricalPowerFunctionofTemperatureandElevationCurve.to_CurveBiquadratic.get
+    curve_biquadratic.setName("null input curve biquadratic")    
+    curve_biquadratic.setCoefficient1Constant(1)
+    curve_biquadratic.setCoefficient2x(0)
+    curve_biquadratic.setCoefficient3xPOW2(0)
+    curve_biquadratic.setCoefficient4y(0)
+    curve_biquadratic.setCoefficient5yPOW2(0)
+    curve_biquadratic.setCoefficient6xTIMESY(0)
+    curve_biquadratic.setMinimumValueofx(0)
+    curve_biquadratic.setMaximumValueofx(0)
+    curve_biquadratic.setMinimumValueofy(0)
+    curve_biquadratic.setMaximumValueofy(1)    
     
+    curve_cubic = micro_turbine.electricalEfficiencyFunctionofTemperatureCurve.to_CurveCubic.get
+    curve_cubic.setName("null input curve cubic 1")
+    curve_cubic.setCoefficient1Constant(10000000000000000000000000000)
+    curve_cubic.setCoefficient2x(0)
+    curve_cubic.setCoefficient3xPOW2(0)
+    curve_cubic.setCoefficient4xPOW3(0)
+    curve_cubic.setMinimumValueofx(0)
+    curve_cubic.setMaximumValueofx(1)
+    
+    curve_cubic = micro_turbine.electricalEfficiencyFunctionofPartLoadRatioCurve.to_CurveCubic.get
+    curve_cubic.setName("null input curve cubic 2")
+    curve_cubic.setCoefficient1Constant(10000000000000000000000000000)
+    curve_cubic.setCoefficient2x(0)
+    curve_cubic.setCoefficient3xPOW2(0)
+    curve_cubic.setCoefficient4xPOW3(0)
+    curve_cubic.setMinimumValueofx(0)
+    curve_cubic.setMaximumValueofx(1)
+          
+    electric_load_center_dist.addGenerator(micro_turbine)
+      
     return true
 
   end
   
-  def _getPVModuleCharacteristics(module_type)
-  
-    modules_csv = File.join(File.dirname(__FILE__), "resources", "Modules.csv")
-    modules_csvlines = []
-    File.open(modules_csv) do |file|
-      file.each do |line|
-        line = line.strip.chomp.chomp(',').chomp(',').chomp # remove RHS whitespace and extra commas
-        modules_csvlines << line
-      end
+  def get_abs_azimuth(azimuth_type, relative_azimuth, building_orientation)
+    azimuth = nil
+    if azimuth_type == Constants.CoordRelative
+      azimuth = relative_azimuth + building_orientation
+    elsif azimuth_type == Constants.CoordAbsolute
+      azimuth = relative_azimuth
+    end    
+    
+    # Ensure Azimuth is >=0 and <=360
+    if azimuth < 0.0
+      azimuth += 360.0
     end
 
-    pv_module = nil
-    modules_csvlines[1..-1].each_with_index do |line, i|
-      pv_module = Hash[modules_csvlines[0].split(',').zip(line.split(','))]
-      break if pv_module["Material"].downcase == module_type
+    if azimuth >= 360.0
+      azimuth -= 360.0
     end
     
-    if pv_module.nil?
-      runner.registerError("Could not find PV module characteristics.")
-    else
-      pv_module["Impo"] = pv_module["Impo"].to_f
-      pv_module["Vmpo"] = pv_module["Vmpo"].to_f
-      pv_module["Area"] = pv_module["Area"].to_f
-    end
+    return azimuth
     
-    return pv_module
-  
   end
   
-  def get_abs_tilt(tiltType, relative_tilt, highest_roof_pitch, latitude)
-    if tiltType == Constants.TiltPitch
-      return relative_tilt + highest_roof_pitch
-    elsif tiltType == Constants.TiltLatitude
+  def get_abs_tilt(tilt_type, relative_tilt, roof_tilt, latitude)
+  
+    if tilt_type == Constants.TiltPitch
+      return relative_tilt + roof_tilt
+    elsif tilt_type == Constants.TiltLatitude
       return relative_tilt + latitude
-    elsif tiltType == Constants.CoordAbsolute
+    elsif tilt_type == Constants.CoordAbsolute
       return relative_tilt
     end
+    
   end
   
 end

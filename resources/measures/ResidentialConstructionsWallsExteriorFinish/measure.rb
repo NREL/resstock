@@ -6,7 +6,7 @@ require "#{File.dirname(__FILE__)}/resources/constants"
 require "#{File.dirname(__FILE__)}/resources/geometry"
 
 # start the measure
-class ProcessConstructionsWallsExteriorFinish < OpenStudio::Ruleset::ModelUserScript
+class ProcessConstructionsWallsExteriorFinish < OpenStudio::Measure::ModelMeasure
 
   # human readable name
   def name
@@ -25,17 +25,17 @@ class ProcessConstructionsWallsExteriorFinish < OpenStudio::Ruleset::ModelUserSc
 
   # define the arguments that the user will input
   def arguments(model)
-    args = OpenStudio::Ruleset::OSArgumentVector.new
+    args = OpenStudio::Measure::OSArgumentVector.new
 
 	#make a double argument for solar absorptivity
-	solar_abs = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("solar_abs", true)
+	solar_abs = OpenStudio::Measure::OSArgument::makeDoubleArgument("solar_abs", true)
 	solar_abs.setDisplayName("Solar Absorptivity")
 	solar_abs.setDescription("Fraction of the incident radiation that is absorbed.")
 	solar_abs.setDefaultValue(0.3)
 	args << solar_abs
 
 	#make a double argument for conductivity
-	cond = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("conductivity", true)
+	cond = OpenStudio::Measure::OSArgument::makeDoubleArgument("conductivity", true)
 	cond.setDisplayName("Conductivity")
     cond.setUnits("Btu-in/h-ft^2-R")
 	cond.setDescription("Conductivity of the exterior finish assembly.")
@@ -43,7 +43,7 @@ class ProcessConstructionsWallsExteriorFinish < OpenStudio::Ruleset::ModelUserSc
 	args << cond
 
 	#make a double argument for density
-	dens = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("density", true)
+	dens = OpenStudio::Measure::OSArgument::makeDoubleArgument("density", true)
 	dens.setDisplayName("Density")
     dens.setUnits("lb/ft^3")
 	dens.setDescription("Density of the exterior finish assembly.")
@@ -51,7 +51,7 @@ class ProcessConstructionsWallsExteriorFinish < OpenStudio::Ruleset::ModelUserSc
 	args << dens
 
     #make a double argument for specific heat
-	specheat = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("specific_heat", true)
+	specheat = OpenStudio::Measure::OSArgument::makeDoubleArgument("specific_heat", true)
 	specheat.setDisplayName("Specific Heat")
     specheat.setUnits("Btu/lb-R")
 	specheat.setDescription("Specific heat of the exterior finish assembly.")
@@ -59,7 +59,7 @@ class ProcessConstructionsWallsExteriorFinish < OpenStudio::Ruleset::ModelUserSc
 	args << specheat
 
     #make a double argument for thickness
-	thick_in = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("thick_in", true)
+	thick_in = OpenStudio::Measure::OSArgument::makeDoubleArgument("thick_in", true)
 	thick_in.setDisplayName("Thickness")
     thick_in.setUnits("in")
 	thick_in.setDescription("Thickness of the exterior finish assembly.")
@@ -67,7 +67,7 @@ class ProcessConstructionsWallsExteriorFinish < OpenStudio::Ruleset::ModelUserSc
 	args << thick_in
 
     #make a double argument for emissivity
-	emiss = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("emissivity", true)
+	emiss = OpenStudio::Measure::OSArgument::makeDoubleArgument("emissivity", true)
 	emiss.setDisplayName("Emissivity")
 	emiss.setDescription("Measure of the material's ability to emit infrared energy.")
 	emiss.setDefaultValue(0.9)

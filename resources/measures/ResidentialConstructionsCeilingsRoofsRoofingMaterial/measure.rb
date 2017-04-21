@@ -5,7 +5,7 @@ require "#{File.dirname(__FILE__)}/resources/util"
 require "#{File.dirname(__FILE__)}/resources/geometry"
 
 # start the measure
-class ProcessConstructionsCeilingsRoofsRoofingMaterial < OpenStudio::Ruleset::ModelUserScript
+class ProcessConstructionsCeilingsRoofsRoofingMaterial < OpenStudio::Measure::ModelMeasure
 
   # human readable name
   def name
@@ -24,21 +24,47 @@ class ProcessConstructionsCeilingsRoofsRoofingMaterial < OpenStudio::Ruleset::Mo
 
   # define the arguments that the user will input
   def arguments(model)
-    args = OpenStudio::Ruleset::OSArgumentVector.new
+    args = OpenStudio::Measure::OSArgumentVector.new
 
 	#make a double argument for solar absorptivity
-	solar_abs = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("solar_abs", true)
+	solar_abs = OpenStudio::Measure::OSArgument::makeDoubleArgument("solar_abs", true)
 	solar_abs.setDisplayName("Solar Absorptivity")
 	solar_abs.setDescription("Fraction of the incident radiation that is absorbed.")
 	solar_abs.setDefaultValue(0.85)
 	args << solar_abs
 
     #make a double argument for emissivity
-	emiss = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("emissivity", true)
+	emiss = OpenStudio::Measure::OSArgument::makeDoubleArgument("emissivity", true)
 	emiss.setDisplayName("Emissivity")
 	emiss.setDescription("Measure of the material's ability to emit infrared energy.")
 	emiss.setDefaultValue(0.91)
 	args << emiss
+    
+    #make a choice argument for material
+    choices = OpenStudio::StringVector.new
+    choices << Constants.RoofMaterialAsphaltShingles
+    choices << Constants.RoofMaterialMembrane
+    choices << Constants.RoofMaterialMetal
+    choices << Constants.RoofMaterialTarGravel
+    choices << Constants.RoofMaterialTile
+    choices << Constants.RoofMaterialWoodShakes
+    material = OpenStudio::Measure::OSArgument::makeChoiceArgument("material", choices, true)
+    material.setDisplayName("Material")
+    material.setDescription("Material description used only for Manual J sizing calculations.")
+    material.setDefaultValue(Constants.RoofMaterialAsphaltShingles)
+    args << material
+    
+    #make a choice argument for color
+    choices = OpenStudio::StringVector.new
+    choices << Constants.ColorWhite
+    choices << Constants.ColorLight
+    choices << Constants.ColorMedium
+    choices << Constants.ColorDark
+    color = OpenStudio::Measure::OSArgument::makeChoiceArgument("color", choices, true)
+    color.setDisplayName("Color")
+    color.setDescription("Color description used only for Manual J sizing calculations.")
+    color.setDefaultValue(Constants.ColorMedium)
+    args << color
     
     return args
   end
@@ -69,6 +95,8 @@ class ProcessConstructionsCeilingsRoofsRoofingMaterial < OpenStudio::Ruleset::Mo
     # Get inputs
     solar_abs = runner.getDoubleArgumentValue("solar_abs",user_arguments)
     emiss = runner.getDoubleArgumentValue("emissivity",user_arguments)
+    manual_j_color = runner.getStringArgumentValue("color",user_arguments)
+    manual_j_material = runner.getStringArgumentValue("material",user_arguments)
     
     # Validate inputs
     if solar_abs < 0.0 or solar_abs > 1.0
@@ -90,6 +118,19 @@ class ProcessConstructionsCeilingsRoofsRoofingMaterial < OpenStudio::Ruleset::Mo
     # Create and assign construction to surfaces
     if not roof_mat.create_and_assign_constructions(surfaces, runner, model, name=nil)
         return false
+    end
+    
+    # Store info for HVAC Sizing measure
+    units = Geometry.get_building_units(model, runner)
+    if units.nil?
+        return false
+    end
+    surfaces.each do |surface|
+        units.each do |unit|
+            next if not unit.spaces.include?(surface.space.get)
+            unit.setFeature(Constants.SizingInfoRoofColor(surface), manual_j_color)
+            unit.setFeature(Constants.SizingInfoRoofMaterial(surface), manual_j_material)
+        end
     end
     
     # Remove any constructions/materials that aren't used

@@ -1,4 +1,5 @@
 require 'csv'
+require 'openstudio'
 
 class TsvFile
 
@@ -154,12 +155,8 @@ def check_dir_exists(full_path, runner=nil)
         register_error("Cannot find directory #{full_path.to_s}.", runner)
     end
 end
-  
-def get_parameters_ordered(resstock_csv)
-    return CSV.open(resstock_csv, 'r') { |csv| csv.first }
-end
 
-def get_parameters_ordered_from_options_lookup_tsv(resources_dir)
+def get_parameters_ordered_from_options_lookup_tsv(resources_dir, characteristics_dir=nil)
     # Obtain full list of parameters and their order
     params_file = File.join(resources_dir, 'options_lookup.tsv')
     if not File.exist?(params_file)
@@ -169,9 +166,12 @@ def get_parameters_ordered_from_options_lookup_tsv(resources_dir)
     CSV.foreach(params_file, { :col_sep => "\t" }) do |row|
         next if row.size < 2
         next if row[0].nil? or row[0].downcase == "parameter name" or row[1].nil?
-        if not params.include?(row[0])
-            params << row[0]
+        next if params.include?(row[0])
+        if not characteristics_dir.nil?
+            tsvpath = File.join(characteristics_dir, row[0] + ".tsv")
+            next if not File.exist?(tsvpath)
         end
+        params << row[0]
     end
     
     return params
@@ -211,16 +211,24 @@ def get_combination_hashes(tsvfiles, dependencies)
     return combos_hashes
 end
   
-def get_value_from_runner_past_results(key_lookup, runner=nil)
+def get_value_from_runner_past_results(runner, key_lookup, measure_name, error_if_missing=true)
     key_lookup = OpenStudio::toUnderscoreCase(key_lookup)
-    runner.past_results.each do |measure, measure_hash|
-        measure_hash.each do |k, v|
-            if k.to_s == key_lookup
-                return v.to_s
-            end
+    success_value = OpenStudio::StepResult.new("Success")
+    runner.workflow.workflowSteps.each do |step|
+        next if not step.result.is_initialized
+        step_result = step.result.get
+        next if not step_result.measureName.is_initialized
+        next if step_result.measureName.get != measure_name
+        next if step_result.value != success_value
+        step_result.stepValues.each do |step_value|
+            next if step_value.name != key_lookup
+            return step_value.valueAsString
         end
     end
-    register_error("Could not find past value for '#{key_lookup}'.\nrunner.past_results: #{runner.past_results.to_s}", runner)
+    if error_if_missing
+        register_error("Could not find past value for '#{key_lookup}'.", runner)
+    end
+    return nil
 end
   
 def get_measure_args_from_option_name(lookup_file, option_name, parameter_name, runner=nil)
@@ -470,7 +478,7 @@ def evaluate_logic(option_apply_logic, runner)
             segment_parameter, segment_option = segment[rindex,lindex-rindex].strip.split("|")
             
             # Get existing building option name for the same parameter
-            segment_existing_option = get_value_from_runner_past_results(segment_parameter, runner)
+            segment_existing_option = get_value_from_runner_past_results(runner, segment_parameter, "build_existing_model")
             
             ruby_eval_str += segment_open + "'" + segment_existing_option + segment_equality + segment_option + "'" + segment_close + " and "
         end

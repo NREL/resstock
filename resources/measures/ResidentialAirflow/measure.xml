@@ -2,9 +2,9 @@
   <schema_version>3.0</schema_version>
   <name>residential_airflow</name>
   <uid>7d2adf5c-9995-49be-b662-a23d2452bb36</uid>
-  <version_id>0c50b95c-c6f7-4313-bf33-9a860f20a2ef</version_id>
-  <version_modified>20170201T173705Z</version_modified>
-  <xml_checksum>0D0748A3</xml_checksum>
+  <version_id>022edafa-930a-4b40-99ca-77833d974e46</version_id>
+  <version_modified>20170420T165550Z</version_modified>
+  <xml_checksum>19EEDBBB</xml_checksum>
   <class_name>ResidentialAirflow</class_name>
   <display_name>Set Residential Airflow</display_name>
   <description>Adds (or replaces) all building components related to airflow: infiltration, mechanical ventilation, natural ventilation, and ducts.</description>
@@ -71,7 +71,7 @@
       <default_value>100</default_value>
     </argument>
     <argument>
-      <name>unfinished_attic_ach</name>
+      <name>unfinished_attic_sla</name>
       <display_name>Unfinished Attic: SLA</display_name>
       <description>Ratio of the effective leakage area (infiltration and/or ventilation) in the unfinished attic to the total floor area of the attic.</description>
       <type>Double</type>
@@ -95,7 +95,7 @@
       <type>Boolean</type>
       <required>false</required>
       <model_dependent>false</model_dependent>
-      <default_value>true</default_value>
+      <default_value>false</default_value>
       <choices>
         <choice>
           <value>true</value>
@@ -114,7 +114,7 @@
       <type>Boolean</type>
       <required>false</required>
       <model_dependent>false</model_dependent>
-      <default_value>true</default_value>
+      <default_value>false</default_value>
       <choices>
         <choice>
           <value>true</value>
@@ -133,7 +133,7 @@
       <type>Boolean</type>
       <required>false</required>
       <model_dependent>false</model_dependent>
-      <default_value>true</default_value>
+      <default_value>false</default_value>
       <choices>
         <choice>
           <value>true</value>
@@ -478,8 +478,32 @@
           <display_name>attic zone</display_name>
         </choice>
         <choice>
+          <value>finished attic zone</value>
+          <display_name>finished attic zone</display_name>
+        </choice>
+        <choice>
+          <value>unfinished attic zone</value>
+          <display_name>unfinished attic zone</display_name>
+        </choice>
+        <choice>
           <value>basement zone</value>
           <display_name>basement zone</display_name>
+        </choice>
+        <choice>
+          <value>finished basement zone</value>
+          <display_name>finished basement zone</display_name>
+        </choice>
+        <choice>
+          <value>unfinished basement zone</value>
+          <display_name>unfinished basement zone</display_name>
+        </choice>
+        <choice>
+          <value>crawl zone</value>
+          <display_name>crawl zone</display_name>
+        </choice>
+        <choice>
+          <value>pier and beam zone</value>
+          <display_name>pier and beam zone</display_name>
         </choice>
         <choice>
           <value>garage zone</value>
@@ -538,16 +562,6 @@
       <default_value>0.267</default_value>
     </argument>
     <argument>
-      <name>duct_norm_leakage_25pa</name>
-      <display_name>Ducts: Leakage to Outside at 25Pa</display_name>
-      <description>Normalized leakage to the outside when tested at a pressure differential of 25 Pascals (0.1 inches w.g.) across the system.</description>
-      <type>String</type>
-      <units>cfm/100 ft^2 Finished Floor</units>
-      <required>false</required>
-      <model_dependent>false</model_dependent>
-      <default_value>NA</default_value>
-    </argument>
-    <argument>
       <name>duct_location_frac</name>
       <display_name>Ducts: Location Fraction</display_name>
       <description>Fraction of supply ducts in the space specified by Duct Location; the remainder of supply ducts will be located in above-grade conditioned space.</description>
@@ -597,15 +611,6 @@
       <model_dependent>false</model_dependent>
       <default_value>0</default_value>
     </argument>
-    <argument>
-      <name>dist_system_eff</name>
-      <display_name>Ducts: Distribution System Efficiency</display_name>
-      <description>A system efficiency factor, not included in manufacturer's equipment performance ratings for heating and cooling equipment, that adjusts for the energy losses associated with the delivery of energy from the equipment to the source of the load.</description>
-      <type>String</type>
-      <required>false</required>
-      <model_dependent>false</model_dependent>
-      <default_value>NA</default_value>
-    </argument>
   </arguments>
   <outputs/>
   <provenances/>
@@ -654,30 +659,6 @@
       <checksum>308F75BA</checksum>
     </file>
     <file>
-      <filename>schedules.rb</filename>
-      <filetype>rb</filetype>
-      <usage_type>resource</usage_type>
-      <checksum>C3399417</checksum>
-    </file>
-    <file>
-      <filename>SFD_2000sqft_2story_SL_GRG_FR_3Beds_2Baths_Denver_Furnace_CentralAC.osm</filename>
-      <filetype>osm</filetype>
-      <usage_type>test</usage_type>
-      <checksum>0748C1C5</checksum>
-    </file>
-    <file>
-      <filename>SFD_2000sqft_2story_SL_UA_3Beds_2Baths_Denver.osm</filename>
-      <filetype>osm</filetype>
-      <usage_type>test</usage_type>
-      <checksum>21BA7CB7</checksum>
-    </file>
-    <file>
-      <filename>residential_airflow_test.rb</filename>
-      <filetype>rb</filetype>
-      <usage_type>test</usage_type>
-      <checksum>44F6DDA5</checksum>
-    </file>
-    <file>
       <filename>psychrometrics.rb</filename>
       <filetype>rb</filetype>
       <usage_type>resource</usage_type>
@@ -690,117 +671,141 @@
       <checksum>DCB12FCF</checksum>
     </file>
     <file>
-      <filename>SFD_2000sqft_2story_CS_UA_3Beds_2Baths_Denver_Furnace_CentralAC.osm</filename>
-      <filetype>osm</filetype>
-      <usage_type>test</usage_type>
-      <checksum>9F31435E</checksum>
-    </file>
-    <file>
-      <filename>SFD_2000sqft_2story_FB_UA_3Beds_2Baths_Denver_Furnace_CentralAC.osm</filename>
-      <filetype>osm</filetype>
-      <usage_type>test</usage_type>
-      <checksum>3CF09746</checksum>
-    </file>
-    <file>
-      <filename>SFD_2000sqft_2story_PB_UA_3Beds_2Baths_Denver_Furnace_CentralAC.osm</filename>
-      <filetype>osm</filetype>
-      <usage_type>test</usage_type>
-      <checksum>BDD8CE69</checksum>
-    </file>
-    <file>
-      <filename>SFD_2000sqft_2story_SL_GRG_UA_3Beds_2Baths_Denver_Furnace_CentralAC.osm</filename>
-      <filetype>osm</filetype>
-      <usage_type>test</usage_type>
-      <checksum>E612FA25</checksum>
-    </file>
-    <file>
-      <filename>SFD_2000sqft_2story_SL_UA_3Beds_2Baths_Denver_ElectricBaseboard.osm</filename>
-      <filetype>osm</filetype>
-      <usage_type>test</usage_type>
-      <checksum>58E75595</checksum>
-    </file>
-    <file>
-      <filename>SFD_2000sqft_2story_SL_UA_3Beds_2Baths_Denver_Furnace_CentralAC.osm</filename>
-      <filetype>osm</filetype>
-      <usage_type>test</usage_type>
-      <checksum>581A91DB</checksum>
-    </file>
-    <file>
-      <filename>SFD_2000sqft_2story_SL_UA_3Beds_2Baths_Denver_Furnace_CentralAC_ClothesDryer.osm</filename>
-      <filetype>osm</filetype>
-      <usage_type>test</usage_type>
-      <checksum>36966D36</checksum>
-    </file>
-    <file>
-      <filename>SFD_2000sqft_2story_SL_UA_3Beds_2Baths_Denver_Furnace_CentralAC_Neighbors.osm</filename>
-      <filetype>osm</filetype>
-      <usage_type>test</usage_type>
-      <checksum>2A733193</checksum>
-    </file>
-    <file>
-      <filename>SFD_2000sqft_2story_SL_UA_3Beds_2Baths_Denver_MSHP.osm</filename>
-      <filetype>osm</filetype>
-      <usage_type>test</usage_type>
-      <checksum>382E8FF3</checksum>
-    </file>
-    <file>
-      <filename>SFD_2000sqft_2story_UB_UA_3Beds_2Baths_Denver_Furnace_CentralAC.osm</filename>
-      <filetype>osm</filetype>
-      <usage_type>test</usage_type>
-      <checksum>4695342C</checksum>
-    </file>
-    <file>
-      <filename>MF_8units_1story_SL_3Beds_2Baths_Denver_Furnace_CentralAC.osm</filename>
-      <filetype>osm</filetype>
-      <usage_type>test</usage_type>
-      <checksum>E7B12DD1</checksum>
-    </file>
-    <file>
-      <filename>SFA_4units_1story_SL_UA_3Beds_2Baths_Denver_Furnace_CentralAC.osm</filename>
-      <filetype>osm</filetype>
-      <usage_type>test</usage_type>
-      <checksum>01FC517F</checksum>
+      <filename>schedules.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>E957CFBF</checksum>
     </file>
     <file>
       <filename>util.rb</filename>
       <filetype>rb</filetype>
       <usage_type>resource</usage_type>
-      <checksum>BAAF2AEF</checksum>
+      <checksum>37254C93</checksum>
+    </file>
+    <file>
+      <filename>SFD_2000sqft_2story_SL_UA_3Beds_2Baths_Denver.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>D17087B4</checksum>
+    </file>
+    <file>
+      <filename>SFD_2000sqft_2story_CS_UA_3Beds_2Baths_Denver_Furnace_CentralAC.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>B369BA48</checksum>
+    </file>
+    <file>
+      <filename>SFD_2000sqft_2story_FB_UA_3Beds_2Baths_Denver_Furnace_CentralAC.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>7D0A5864</checksum>
+    </file>
+    <file>
+      <filename>SFD_2000sqft_2story_PB_UA_3Beds_2Baths_Denver_Furnace_CentralAC.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>01396D1E</checksum>
+    </file>
+    <file>
+      <filename>SFD_2000sqft_2story_SL_GRG_UA_3Beds_2Baths_Denver_Furnace_CentralAC.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>51E97E01</checksum>
+    </file>
+    <file>
+      <filename>SFD_2000sqft_2story_SL_UA_3Beds_2Baths_Denver_ElectricBaseboard.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>30000C11</checksum>
+    </file>
+    <file>
+      <filename>SFD_2000sqft_2story_SL_UA_3Beds_2Baths_Denver_Furnace_CentralAC.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>57CEEECD</checksum>
+    </file>
+    <file>
+      <filename>SFD_2000sqft_2story_SL_UA_3Beds_2Baths_Denver_Furnace_CentralAC_ClothesDryer.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>0A37AEC0</checksum>
+    </file>
+    <file>
+      <filename>SFD_2000sqft_2story_SL_UA_3Beds_2Baths_Denver_Furnace_CentralAC_Neighbors.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>3DDAEADA</checksum>
+    </file>
+    <file>
+      <filename>SFD_2000sqft_2story_SL_UA_3Beds_2Baths_Denver_MSHP.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>D20F6D5A</checksum>
+    </file>
+    <file>
+      <filename>SFD_2000sqft_2story_UB_UA_3Beds_2Baths_Denver_Furnace_CentralAC.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>AEDF7263</checksum>
+    </file>
+    <file>
+      <filename>MF_8units_1story_SL_3Beds_2Baths_Denver_Furnace_CentralAC.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>F1995325</checksum>
+    </file>
+    <file>
+      <filename>SFA_4units_1story_SL_UA_3Beds_2Baths_Denver_Furnace_CentralAC.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>6D8C374E</checksum>
+    </file>
+    <file>
+      <filename>SFD_2000sqft_2story_SL_GRG_FR_3Beds_2Baths_Denver_Furnace_CentralAC.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>71FB1EC6</checksum>
+    </file>
+    <file>
+      <filename>residential_airflow_test.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>test</usage_type>
+      <checksum>7EC93A36</checksum>
     </file>
     <file>
       <version>
         <software_program>OpenStudio</software_program>
         <identifier>1.13.1</identifier>
-        <min_compatible>1.13.1</min_compatible>
+        <min_compatible>2.0.4</min_compatible>
       </version>
       <filename>measure.rb</filename>
       <filetype>rb</filetype>
       <usage_type>script</usage_type>
-      <checksum>5DD69095</checksum>
-    </file>
-    <file>
-      <filename>weather.rb</filename>
-      <filetype>rb</filetype>
-      <usage_type>resource</usage_type>
-      <checksum>8322C807</checksum>
+      <checksum>B882776A</checksum>
     </file>
     <file>
       <filename>hvac.rb</filename>
       <filetype>rb</filetype>
       <usage_type>resource</usage_type>
-      <checksum>048F7BD2</checksum>
+      <checksum>27E5CCE6</checksum>
+    </file>
+    <file>
+      <filename>weather.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>D04CADDB</checksum>
     </file>
     <file>
       <filename>geometry.rb</filename>
       <filetype>rb</filetype>
       <usage_type>resource</usage_type>
-      <checksum>44E4E210</checksum>
+      <checksum>17063A91</checksum>
     </file>
     <file>
       <filename>constants.rb</filename>
       <filetype>rb</filetype>
       <usage_type>resource</usage_type>
-      <checksum>E02944E8</checksum>
+      <checksum>AAE3D2EE</checksum>
     </file>
   </files>
 </measure>

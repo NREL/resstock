@@ -3,7 +3,7 @@ require "#{File.dirname(__FILE__)}/resources/constants"
 require "#{File.dirname(__FILE__)}/resources/geometry"
 
 #start the measure
-class ResidentialCookingRange < OpenStudio::Ruleset::ModelUserScript
+class ResidentialCookingRange < OpenStudio::Measure::ModelMeasure
   
   def name
     return "Set Residential Electric Cooking Range"
@@ -19,47 +19,47 @@ class ResidentialCookingRange < OpenStudio::Ruleset::ModelUserScript
   
   #define the arguments that the user will input
   def arguments(model)
-    args = OpenStudio::Ruleset::OSArgumentVector.new
+    args = OpenStudio::Measure::OSArgumentVector.new
     
 	#TODO: New argument for demand response for ranges (alternate schedules if automatic DR control is specified)
 	
 	#make a double argument for cooktop EF
-	c_ef = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("c_ef", true)
+	c_ef = OpenStudio::Measure::OSArgument::makeDoubleArgument("c_ef", true)
 	c_ef.setDisplayName("Cooktop Energy Factor")
 	c_ef.setDescription("Cooktop energy factor determined by DOE test procedures for cooking appliances (DOE 1997).")
 	c_ef.setDefaultValue(0.74)
 	args << c_ef
 
 	#make a double argument for oven EF
-	o_ef = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("o_ef", true)
+	o_ef = OpenStudio::Measure::OSArgument::makeDoubleArgument("o_ef", true)
 	o_ef.setDisplayName("Oven Energy Factor")
 	o_ef.setDescription("Oven energy factor determined by DOE test procedures for cooking appliances (DOE 1997).")
 	o_ef.setDefaultValue(0.11)
 	args << o_ef
 	
 	#make a double argument for Occupancy Energy Multiplier
-	mult = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("mult", true)
+	mult = OpenStudio::Measure::OSArgument::makeDoubleArgument("mult", true)
 	mult.setDisplayName("Occupancy Energy Multiplier")
 	mult.setDescription("Appliance energy use is multiplied by this factor to account for occupancy usage that differs from the national average.")
 	mult.setDefaultValue(1)
 	args << mult
 
 	#Make a string argument for 24 weekday schedule values
-	weekday_sch = OpenStudio::Ruleset::OSArgument::makeStringArgument("weekday_sch", true)
+	weekday_sch = OpenStudio::Measure::OSArgument::makeStringArgument("weekday_sch", true)
 	weekday_sch.setDisplayName("Weekday schedule")
 	weekday_sch.setDescription("Specify the 24-hour weekday schedule.")
 	weekday_sch.setDefaultValue("0.007, 0.007, 0.004, 0.004, 0.007, 0.011, 0.025, 0.042, 0.046, 0.048, 0.042, 0.050, 0.057, 0.046, 0.057, 0.044, 0.092, 0.150, 0.117, 0.060, 0.035, 0.025, 0.016, 0.011")
 	args << weekday_sch
     
 	#Make a string argument for 24 weekend schedule values
-	weekend_sch = OpenStudio::Ruleset::OSArgument::makeStringArgument("weekend_sch", true)
+	weekend_sch = OpenStudio::Measure::OSArgument::makeStringArgument("weekend_sch", true)
 	weekend_sch.setDisplayName("Weekend schedule")
 	weekend_sch.setDescription("Specify the 24-hour weekend schedule.")
 	weekend_sch.setDefaultValue("0.007, 0.007, 0.004, 0.004, 0.007, 0.011, 0.025, 0.042, 0.046, 0.048, 0.042, 0.050, 0.057, 0.046, 0.057, 0.044, 0.092, 0.150, 0.117, 0.060, 0.035, 0.025, 0.016, 0.011")
 	args << weekend_sch
 
 	#Make a string argument for 12 monthly schedule values
-	monthly_sch = OpenStudio::Ruleset::OSArgument::makeStringArgument("monthly_sch", true)
+	monthly_sch = OpenStudio::Measure::OSArgument::makeStringArgument("monthly_sch", true)
 	monthly_sch.setDisplayName("Month schedule")
 	monthly_sch.setDescription("Specify the 12-month schedule.")
 	monthly_sch.setDefaultValue("1.097, 1.097, 0.991, 0.987, 0.991, 0.890, 0.896, 0.896, 0.890, 1.085, 1.085, 1.097")
@@ -75,7 +75,7 @@ class ResidentialCookingRange < OpenStudio::Ruleset::ModelUserScript
     spaces.each do |space|
         space_args << space.name.to_s
     end
-    space = OpenStudio::Ruleset::OSArgument::makeChoiceArgument("space", space_args, true)
+    space = OpenStudio::Measure::OSArgument::makeChoiceArgument("space", space_args, true)
     space.setDisplayName("Location")
     space.setDescription("Select the space where the cooking range is located. '#{Constants.Auto}' will choose the lowest above-grade finished space available (e.g., first story living space), or a below-grade finished space as last resort. For multifamily buildings, '#{Constants.Auto}' will choose a space for each unit of the building.")
     space.setDefaultValue(Constants.Auto)

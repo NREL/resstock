@@ -5,9 +5,6 @@ class Constants
   def self.AssumedInsideTemp
     return 73.5 # deg-F
   end
-  def self.conv
-    return self.sens / 2.5
-  end
   def self.DefaultCoolingSetpoint
     return 76.0
   end
@@ -38,56 +35,17 @@ class Constants
   def self.g
     return 32.174    # gravity (ft/s2)
   end
-  def self.GSHPPumpCapacityCtrl
-    return 1 # Default to 1 speed control
-  end  
-  def self.GSHPPipeCond
-    return 0.23 # Pipe thermal conductivity, default to high density polyethylene
-  end
-  def self.GSHPPumpEff
-    return 0.77
-  end
-  def self.GSHPPumpMinSpeed
-    return 1.0
-  end
-  def self.GSHP_CFM_Btuh
-    return OpenStudio::convert(400.0,"Btu/hr","ton").get
-  end
-  def self.GSHP_GPM_Btuh
-    return OpenStudio::convert(3.0,"Btu/hr","ton").get
-  end
-  def self.lat
-    return 0.021
-  end
   def self.MixedUseT
     return 110 # F
   end
   def self.MinimumBasementHeight
     return 7 # ft
   end
-  def self.MSHP_Cd_Cooling
-    return 0.25
-  end
-  def self.MSHP_Cd_Heating
-    return 0.40
-  end
-  def self.MSHP_Min_T
-    return -30.0
-  end
   def self.MonthNumDays
     return [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
   end
-  def self.Num_Speeds_MSHP
-    return 10
-  end
   def self.Patm
     return 14.696 # standard atmospheric pressure (psia)
-  end
-  def self.rad
-    return self.conv * 1.5
-  end
-  def self.sens
-    return 0.93
   end
   def self.small 
     return 1e-9
@@ -103,6 +61,18 @@ class Constants
   end
   def self.Auto
     return 'auto'
+  end
+  def self.ColorWhite
+    return 'white'
+  end
+  def self.ColorLight
+    return 'light'
+  end
+  def self.ColorMedium
+    return 'medium'
+  end
+  def self.ColorDark
+    return 'dark'
   end
   def self.CoordRelative
     return 'relative'
@@ -206,12 +176,6 @@ class Constants
   def self.CeilingFanControlSmart
     return 'smart'
   end
-  def self.CollectorTypeClosedLoop
-    return 'closed loop'
-  end
-  def self.CollectorTypeICS
-    return 'ics'
-  end
   def self.CondenserTypeWater
     return 'watercooled'
   end
@@ -245,15 +209,6 @@ class Constants
   def self.Ducted
     return 'ducted'
   end
-  def self.DDYHtgDrybulb
-    return 'Htg 99. Condns DB'
-  end
-  def self.DDYClgDrybulb
-    return 'Clg 1. Condns WB=>MDB'
-  end
-  def self.DDYClgWetbulb
-    return 'Clg 1. Condns DB=>MWB'
-  end
   def self.EndUseHVACFan
     return 'residential hvac fan'
   end
@@ -261,16 +216,16 @@ class Constants
     return 'residential mech vent fan'
   end
   def self.FacadeFront
-    return 'Front'
+    return 'front'
   end
   def self.FacadeBack
-    return 'Back'
+    return 'back'
   end
   def self.FacadeLeft
-    return 'Left'
+    return 'left'
   end
   def self.FacadeRight
-    return 'Right'
+    return 'right'
   end
   def self.FinishedAtticSpace(unit_name=self.ObjectNameBuildingUnit)
     s_unit = ""
@@ -341,45 +296,19 @@ class Constants
     end
     return "garage attic space#{s_unit}"
   end
+  def self.GarageFinishedAtticSpace(unit_name=self.ObjectNameBuildingUnit)
+    s_unit = ""
+    if unit_name != self.ObjectNameBuildingUnit
+      s_unit = "|#{unit_name}"
+    end
+    return "garage finished attic space#{s_unit}"
+  end
   def self.GarageZone(unit_name=self.ObjectNameBuildingUnit)
     s_unit = ""
     if unit_name != self.ObjectNameBuildingUnit
       s_unit = "|#{unit_name}"
     end
     return "garage zone#{s_unit}"
-  end
-  def self.InfMethodSG
-    return 'S-G'
-  end
-  def self.InfMethodASHRAE
-    return 'ASHRAE-ENHANCED'
-  end
-  def self.InfMethodRes
-    return 'RESIDENTIAL'
-  end
-  def self.InsulationCellulose
-    return 'cellulose'
-  end
-  def self.InsulationFiberglass
-    return 'fiberglass'
-  end
-  def self.InsulationFiberglassBatt
-    return 'fiberglass batt'
-  end
-  def self.InsulationPolyiso
-    return 'polyiso'
-  end
-  def self.InsulationSIP
-    return 'sip'
-  end
-  def self.InsulationClosedCellSprayFoam
-    return 'closed cell spray foam'
-  end
-  def self.InsulationOpenCellSprayFoam
-    return 'open cell spray foam'
-  end
-  def self.InsulationXPS
-    return 'xps'
   end
   def self.LivingSpace(story=1, unit_name=self.ObjectNameBuildingUnit)
     s_unit = ""
@@ -471,8 +400,14 @@ class Constants
   def self.MaterialWallSheathing
     return 'ResExtWallSheathing'
   end
-  def self.PVModuleTypeCSI
-    return 'c-si'
+  def self.PVModuleTypeStandard
+    return 'standard'
+  end
+  def self.PVModuleTypePremium
+    return 'premium'
+  end
+  def self.PVModuleTypeThinFilm
+    return 'thin film'
   end
   def self.MonthNames
     return ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
@@ -482,7 +417,7 @@ class Constants
     if unit_name != self.ObjectNameBuildingUnit
       s_unit = "|#{unit_name}"
     end
-    return "res airflow#{s_unit}"
+    return "res af#{s_unit}"
   end
   def self.ObjectNameAirSourceHeatPump(unit_name=self.ObjectNameBuildingUnit)
     s_unit = ""
@@ -579,7 +514,16 @@ class Constants
     if unit_name != self.ObjectNameBuildingUnit
       s_unit = "|#{unit_name}"
     end
-    return "res ducts#{s_unit}"
+    return "res ds#{s_unit}"
+  end  
+  def self.ObjectNameEaves(facade="")
+    if facade.nil?
+      facade = ""
+    end
+    if facade != ""
+      facade = " #{facade}"
+    end
+    return "residential eaves#{facade}"
   end
   def self.ObjectNameElectricBaseboard(unit_name=self.ObjectNameBuildingUnit)
     s_unit = ""
@@ -700,7 +644,7 @@ class Constants
     if unit_name != self.ObjectNameBuildingUnit
       s_unit = "|#{unit_name}"
     end
-    return "res mech vent#{s_unit}"
+    return "res mv#{s_unit}"
   end
   def self.ObjectNameMiniSplitHeatPump(unit_name=self.ObjectNameBuildingUnit)
     s_unit = ""
@@ -721,8 +665,17 @@ class Constants
     if unit_name != self.ObjectNameBuildingUnit
       s_unit = "|#{unit_name}"
     end
-    return "res nat vent#{s_unit}"
+    return "res nv#{s_unit}"
   end
+  def self.ObjectNameNeighbors(facade="")
+    if facade.nil?
+      facade = ""
+    end
+    if facade != ""
+      facade = " #{facade}"
+    end
+    return "residential neighbors#{facade}"
+  end  
   def self.ObjectNameOccupants(unit_name=self.ObjectNameBuildingUnit)
     s_unit = ""
     if unit_name != self.ObjectNameBuildingUnit
@@ -855,6 +808,24 @@ class Constants
   def self.RecircTypeNone
     return 'none'
   end
+  def self.RoofMaterialAsphaltShingles
+    return 'asphalt shingles'
+  end
+  def self.RoofMaterialMembrane
+    return 'membrane'
+  end
+  def self.RoofMaterialMetal
+    return 'metal'
+  end
+  def self.RoofMaterialTarGravel
+    return 'tar gravel'
+  end
+  def self.RoofMaterialTile
+    return 'tile'
+  end
+  def self.RoofMaterialWoodShakes
+    return 'wood shakes'
+  end
   def self.RoofStructureRafter
     return 'rafter'
   end
@@ -884,6 +855,148 @@ class Constants
   end
   def self.SizingAuto
     return 'autosize'
+  end
+  def self.SizingAutoMaxLoad
+    return 'autosize for max load'
+  end
+  def self.SizingInfo(property, obj=nil)
+    s_obj = ''
+    if not obj.nil?
+        s_obj = "|#{obj.handle.to_s}"
+    end
+    return "#{property}#{s_obj}"
+  end
+  def self.SizingInfoBasementWallInsulationHeight(surface)
+    return self.SizingInfo(__method__.to_s, surface)
+  end
+  def self.SizingInfoBasementWallRvalue(surface)
+    return self.SizingInfo(__method__.to_s, surface)
+  end
+  def self.SizingInfoDuctsLocationFrac
+    return self.SizingInfo(__method__.to_s)
+  end
+  def self.SizingInfoDuctsLocationZone
+    return self.SizingInfo(__method__.to_s)
+  end
+  def self.SizingInfoDuctsReturnLoss
+    return self.SizingInfo(__method__.to_s)
+  end
+  def self.SizingInfoDuctsReturnRvalue
+    return self.SizingInfo(__method__.to_s)
+  end
+  def self.SizingInfoDuctsReturnSurfaceArea
+    return self.SizingInfo(__method__.to_s)
+  end
+  def self.SizingInfoDuctsSupplyLoss
+    return self.SizingInfo(__method__.to_s)
+  end
+  def self.SizingInfoDuctsSupplyRvalue
+    return self.SizingInfo(__method__.to_s)
+  end
+  def self.SizingInfoDuctsSupplySurfaceArea
+    return self.SizingInfo(__method__.to_s)
+  end
+  def self.SizingInfoHPSizedForMaxLoad
+    return self.SizingInfo(__method__.to_s)
+  end
+  def self.SizingInfoHVACCapacityDerateFactorCOP
+    return self.SizingInfo(__method__.to_s)
+  end
+  def self.SizingInfoHVACCapacityDerateFactorEER
+    return self.SizingInfo(__method__.to_s)
+  end
+  def self.SizingInfoHVACCapacityRatioCooling
+    return self.SizingInfo(__method__.to_s)
+  end
+  def self.SizingInfoHVACCapacityRatioHeating
+    return self.SizingInfo(__method__.to_s)
+  end
+  def self.SizingInfoHVACCoolingCFMs
+    return self.SizingInfo(__method__.to_s)
+  end
+  def self.SizingInfoHVACFanspeedRatioCooling
+    return self.SizingInfo(__method__.to_s)
+  end
+  def self.SizingInfoHVACHeatingCapacityOffset
+    return self.SizingInfo(__method__.to_s)
+  end
+  def self.SizingInfoHVACHeatingCFMs
+    return self.SizingInfo(__method__.to_s)
+  end
+  def self.SizingInfoHVACRatedCFMperTonHeating
+    return self.SizingInfo(__method__.to_s)
+  end
+  def self.SizingInfoHVACRatedCFMperTonCooling
+    return self.SizingInfo(__method__.to_s)
+  end
+  def self.SizingInfoHVACSHR
+    return self.SizingInfo(__method__.to_s)
+  end
+  def self.SizingInfoMechVentType
+    return self.SizingInfo(__method__.to_s)
+  end
+  def self.SizingInfoMechVentApparentSensibleEffectiveness
+    return self.SizingInfo(__method__.to_s)
+  end
+  def self.SizingInfoMechVentLatentEffectiveness
+    return self.SizingInfo(__method__.to_s)
+  end
+  def self.SizingInfoMechVentTotalEfficiency
+    return self.SizingInfo(__method__.to_s)
+  end
+  def self.SizingInfoMechVentWholeHouseRate
+    return self.SizingInfo(__method__.to_s)
+  end
+  def self.SizingInfoMSHPIndices
+    return self.SizingInfo(__method__.to_s)
+  end
+  def self.SizingInfoRoofCavityRvalue(surface)
+    return self.SizingInfo(__method__.to_s, surface)
+  end
+  def self.SizingInfoRoofColor(surface)
+    return self.SizingInfo(__method__.to_s, surface)
+  end
+  def self.SizingInfoRoofHasRadiantBarrier(surface)
+    return self.SizingInfo(__method__.to_s, surface)
+  end
+  def self.SizingInfoRoofMaterial(surface)
+    return self.SizingInfo(__method__.to_s, surface)
+  end
+  def self.SizingInfoRoofRigidInsRvalue(surface)
+    return self.SizingInfo(__method__.to_s, surface)
+  end
+  def self.SizingInfoSIPWallInsThickness(surface)
+    return self.SizingInfo(__method__.to_s, surface)
+  end
+  def self.SizingInfoSlabRvalue(surface)
+    return self.SizingInfo(__method__.to_s, surface)
+  end
+  def self.SizingInfoSpaceCeilingInsulated(space)
+    return self.SizingInfo(__method__.to_s, space)
+  end
+  def self.SizingInfoSpaceWallsInsulated(space)
+    return self.SizingInfo(__method__.to_s, space)
+  end
+  def self.SizingInfoWallType(surface)
+    return self.SizingInfo(__method__.to_s, surface)
+  end
+  def self.SizingInfoWallRigidInsRvalue(surface)
+    return self.SizingInfo(__method__.to_s, surface)
+  end
+  def self.SizingInfoWallRigidInsThickness(surface)
+    return self.SizingInfo(__method__.to_s, surface)
+  end
+  def self.SizingInfoWoodStudWallCavityRvalue(surface)
+    return self.SizingInfo(__method__.to_s, surface)
+  end
+  def self.SizingInfoZoneInfiltrationCFM(zone)
+    return self.SizingInfo(__method__.to_s, zone)
+  end
+  def self.SizingInfoZoneInfiltrationELA(zone)
+    return self.SizingInfo(__method__.to_s, zone)
+  end
+  def self.SizingInfoZoneIsVented(zone)
+    return self.SizingInfo(__method__.to_s, zone)
   end
   def self.SlabFoundationType
     return 'slab'
@@ -947,10 +1060,13 @@ class Constants
     return "unfinished basement zone#{s_unit}"
   end
   def self.URBANoptFinishedZoneIdentifier
-    return "Story"
+    return 'Story'
   end
   def self.VentTypeExhaust
     return 'exhaust'
+  end
+  def self.VentTypeNone
+    return 'none'
   end
   def self.VentTypeSupply
     return 'supply'
