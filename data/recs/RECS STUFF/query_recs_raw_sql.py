@@ -384,51 +384,62 @@ def process_data(df):
 
 def calc_general(df, cut_by, columns=None, outfile=None,norm=True,outpath="Probability Distributions"):
 
-    #Start Analyzing Specific Data
-    fields = cut_by + columns
-    grouped = df.groupby(fields)
-    df.groupby(cut_by)['Count'].sum()
-    combos = [list(set(df[field])) for field in fields]
-    for i, combo in enumerate(combos):
-        if pandas.np.nan in combo:
-            x = pandas.np.array(combos[i])
-            combos[i] = list(x)
-    full_index = pandas.MultiIndex.from_product(combos, names=fields)
+    if not outfile == 'Infiltration.tsv':
 
-    #Implement Total Weight of Each Type
-    g = grouped.sum()
-    g = g['nweight'].reindex(full_index)
-    g = g.fillna(0).reset_index()
-    g = pandas.pivot_table(g, values='nweight', index=cut_by, columns=columns).reset_index()
-    Weight = g[g.columns[len(cut_by):]].sum(axis = 1)
+      #Start Analyzing Specific Data
+      fields = cut_by + columns
+      grouped = df.groupby(fields)
+      df.groupby(cut_by)['Count'].sum()
+      combos = [list(set(df[field])) for field in fields]
+      for i, combo in enumerate(combos):
+          if pandas.np.nan in combo:
+              x = pandas.np.array(combos[i])
+              combos[i] = list(x)
+      full_index = pandas.MultiIndex.from_product(combos, names=fields)
 
-    #Implement Count of Each Type
-    ct = grouped.sum()
-    ct = ct['Count'].reindex(full_index)
-    ct = ct.fillna(0).reset_index()
-    ct = pandas.pivot_table(ct, values='Count', index=cut_by, columns=columns).reset_index()
-    Count = ct[ct.columns[len(cut_by):]].sum(axis=1)    #only adds Options, not Dependencies
+      #Implement Total Weight of Each Type
+      g = grouped.sum()
+      g = g['nweight'].reindex(full_index)
+      g = g.fillna(0).reset_index()
+      g = pandas.pivot_table(g, values='nweight', index=cut_by, columns=columns).reset_index()
+      Weight = g[g.columns[len(cut_by):]].sum(axis = 1)
 
-    #Normalize Data
-    if norm:
-        total = g.sum(axis=1)
-        if isinstance(g.columns, pandas.core.index.MultiIndex):
-            for col in g.columns:
-                if not col[0] in cut_by:
-                    g[col] = g[col] / total
-        else:
-            for col in g.columns:
-                if not col in cut_by:
-                    g[col] = g[col] / total
-    g['Count']=Count
-    g['Weight']=Weight
+      #Implement Count of Each Type
+      ct = grouped.sum()
+      ct = ct['Count'].reindex(full_index)
+      ct = ct.fillna(0).reset_index()
+      ct = pandas.pivot_table(ct, values='Count', index=cut_by, columns=columns).reset_index()
+      Count = ct[ct.columns[len(cut_by):]].sum(axis=1)    #only adds Options, not Dependencies
+
+      #Normalize Data
+      if norm:
+          total = g.sum(axis=1)
+          if isinstance(g.columns, pandas.core.index.MultiIndex):
+              for col in g.columns:
+                  if not col[0] in cut_by:
+                      g[col] = g[col] / total
+          else:
+              for col in g.columns:
+                  if not col in cut_by:
+                      g[col] = g[col] / total
+      g['Count']=Count
+      g['Weight']=Weight
+    
+    else:
+    
+      g = pd.read_csv('Probability Distributions/Infiltration.tsv', delimiter='\t')
+      for col in g.columns:
+        g = g.rename(columns={col: col.replace('Option=', '')})
+        g = g.rename(columns={col: col.replace('Dependency=', '')})
 
     #Rename columns
+    print cut_by
     cut_by = [x.replace('yearmaderange', 'Vintage') for x in cut_by]
     cut_by = [x.replace('Size', 'Geometry House Size') for x in cut_by]
     cut_by = [x.replace('CR', 'Location Region') for x in cut_by]
+    cut_by = [x.replace('stories', 'Geometry Stories') for x in cut_by]
 
-    g = g.rename(columns={'yearmaderange': 'Vintage', 'Size': 'Geometry House Size', '3+ Car': '3 Car', 'CR': 'Location Region', 'East North Central Census Division (IL, IN, MI, OH, WI)': 'East North Central', 'East South Central Census Division (AL, KY, MS, TN)': 'East South Central', 'Middle Atlantic Census Division (NJ, NY, PA)': 'Middle Atlantic', 'Mountain North Sub-Division (CO, ID, MT, UT, WY)': 'Mountain North', 'Mountain South Sub-Division (AZ, NM, NV)': 'Mountain South', 'New England Census Division (CT, MA, ME, NH, RI, VT)': 'New England', 'Pacific Census Division (AK, CA, HI, OR, WA)': 'Pacific', 'South Atlantic  Census Division (DC, DE, FL, GA, MD, NC, SC, VA, WV)': 'South Atlantic', 'West North Central Census Division (IA, KS, MN, MO, ND, NE, SD)': 'West North Central', 'West South Central Census Division (AR, LA, OK, TX)': 'West South Central'})
+    g = g.rename(columns={'yearmaderange': 'Vintage', 'Size': 'Geometry House Size', '3+ Car': '3 Car', 'CR': 'Location Region', 'Region': 'Location Region', 'Stories': 'Geometry Stories', 'East North Central Census Division (IL, IN, MI, OH, WI)': 'East North Central', 'East South Central Census Division (AL, KY, MS, TN)': 'East South Central', 'Middle Atlantic Census Division (NJ, NY, PA)': 'Middle Atlantic', 'Mountain North Sub-Division (CO, ID, MT, UT, WY)': 'Mountain North', 'Mountain South Sub-Division (AZ, NM, NV)': 'Mountain South', 'New England Census Division (CT, MA, ME, NH, RI, VT)': 'New England', 'Pacific Census Division (AK, CA, HI, OR, WA)': 'Pacific', 'South Atlantic  Census Division (DC, DE, FL, GA, MD, NC, SC, VA, WV)': 'South Atlantic', 'West North Central Census Division (IA, KS, MN, MO, ND, NE, SD)': 'West North Central', 'West South Central Census Division (AR, LA, OK, TX)': 'West South Central'})
 
     if 'division' in columns:
       g['Mountain - Pacific'] = g['Mountain North'].values + g['Mountain South'].values + g['Pacific'].values
@@ -444,18 +455,21 @@ def calc_general(df, cut_by, columns=None, outfile=None,norm=True,outpath="Proba
     #Rename rows
     if 'Vintage' in g.columns:
       g['Vintage'] = g['Vintage'].replace({'1950-pre': '<1950'})
+      g['Vintage'] = g['Vintage'].replace({'pre-1950': '<1950'})
     if 'Location Region' in g.columns:
       g['Location Region'] = g['Location Region'].replace({1: 'CR01', 2: 'CR02', 3: 'CR03', 4: 'CR04', 5: 'CR05', 6: 'CR06', 7: 'CR07', 8: 'CR08', 9: 'CR09', 10: 'CR10', 11: 'CR11', 12: 'CR12'})
-
+      
     #Add Headers for Option and Dependency
     rename_dict = {}
     for col in g.columns:
         if col in ['Weight','Count']:
             rename_dict[col] = str(col)
         else:
+          if col in cut_by:
+            rename_dict[col] = 'Dependency=' + str(col)        
+          else:
             rename_dict[col] = 'Option=' + str(col)
-        if col in cut_by:
-            rename_dict[col] = 'Dependency=' + str(col)
+
     g = g.rename(columns=rename_dict)
 
     #Generate Outfile
@@ -694,6 +708,7 @@ def query(df):
 #    calc_general(df, cut_by=['yearmaderange','Size'], columns = ['stories'], outfile = 'Geometry Stories.tsv', outpath='../../../resources/inputs/national')
 #    calc_general(df, cut_by=['yearmaderange','Size'], columns = ['sizeofgarage'], outfile = 'Geometry Garage.tsv', outpath='../../../resources/inputs/national')
 #    calc_general(df, cut_by=['CR'], columns = ['division'], outfile = 'Location Census Division.tsv', outpath='../../../resources/inputs/national')
+    calc_general(df, cut_by=['CR','yearmaderange','Size','stories'], columns = [], outfile = 'Infiltration.tsv', outpath='../../../project_resstock_national/housing_characteristics')
 
 if __name__ == '__main__':
     #Choose regerate if you want to redo the processed pkl file, otherwise comment out
