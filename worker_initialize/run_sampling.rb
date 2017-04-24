@@ -54,6 +54,8 @@ class RunSampling
         results_data << results_data_bldgs
         results_data_cols[results_data_bldgs[0]] = results_data.size-1
         
+        random_seed = 57 # Using a hard-coded seed so that we get repeatable results
+        
         processed_params = []
         bldgs_hash = {}
         while processed_params.size != params.size
@@ -77,7 +79,7 @@ class RunSampling
                 if param_deps.size == 0
                     # No dependencies, perform 'global' sampling
                     sample_results = sample_probability_distribution(nil, tsvfile, num_samples)
-                    distribute_samples(results_data_param, sample_results, Array(1..num_samples))
+                    random_seed = distribute_samples(random_seed, results_data_param, sample_results, Array(1..num_samples))
                 else
                     # For each combination of dependency values, perform sampling
                     dep_hashes = get_combination_hashes(tsvfiles, param_deps)
@@ -90,7 +92,7 @@ class RunSampling
                         bldgs = bldgs_hash[param_deps][dep_hash]
                         next if bldgs.size == 0
                         sample_results = sample_probability_distribution(dep_hash, tsvfile, bldgs.size)
-                        distribute_samples(results_data_param, sample_results, bldgs)
+                        random_seed = distribute_samples(random_seed, results_data_param, sample_results, bldgs)
                         bldgs_processed += bldgs.size
                     end
                     # Ensure correct number of buildings were processed
@@ -274,10 +276,9 @@ class RunSampling
         return return_samples
     end
 
-    def distribute_samples(results_data_param, sample_results, bldgs)
+    def distribute_samples(random_seed, results_data_param, sample_results, bldgs)
         # Randomly distributes sample_results to the specified bldgs.
         # Returns an updated results_data_param array.
-        random_seed = 57 # Using a hard-coded seed so that we get repeatable results
         bldgs.shuffle(random: Random.new(random_seed)).each do |bldg|
             sample_results.each do |option_name, option_num_samples|
                 next if option_num_samples <= 0
@@ -286,7 +287,7 @@ class RunSampling
                 break
             end
         end
-        return results_data_param
+        return random_seed + 1
     end
 
     def write_csv(sample_results)
@@ -303,5 +304,5 @@ class RunSampling
 
 end
 
-r = RunSampling.new
-r.run('project_resstock_pnw',100)
+#r = RunSampling.new
+#r.run('project_resstock_national',100)
