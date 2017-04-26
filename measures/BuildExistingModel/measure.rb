@@ -98,11 +98,30 @@ class BuildExistingModel < OpenStudio::Ruleset::ModelUserScript
 
     end
     
+    # Create a workflow based on the measures we're going to call. Convenient for debugging.
+    workflowJSON = OpenStudio::WorkflowJSON.new
+    workflowJSON.setOswPath(File.expand_path("../residential_measures.osw"))
+    workflowJSON.addMeasurePath("measures")
+    workflowJSON.setSeedFile("seeds/EmptySeedModel.osm")
+    steps = OpenStudio::WorkflowStepVector.new
+    
     # Call each measure for sample to build up model
     measures.keys.each do |measure_subdir|
         # Gather measure arguments and call measure
         full_measure_path = File.join(measures_dir, measure_subdir, "measure.rb")
         check_file_exists(full_measure_path, runner)
+        
+        # Add to workflowJSON
+        step = OpenStudio::MeasureStep.new(measure_subdir)
+        measures[measure_subdir].each do |k,v|
+            next if v.nil?
+            if measure_subdir == 'ResidentialLocation' and k == 'weather_directory'
+                step.setArgument(k, 'FIXME')
+            else
+                step.setArgument(k, v)
+            end
+        end
+        steps.push(step)
         
         measure_instance = get_measure_instance(full_measure_path)
         argument_map = get_argument_map(model, measure_instance, measures[measure_subdir], lookup_file, measure_subdir, runner)
@@ -112,6 +131,11 @@ class BuildExistingModel < OpenStudio::Ruleset::ModelUserScript
             return false
         end
     end
+    
+    workflowJSON.setWorkflowSteps(steps)
+    runner.registerWarning("workflowJSON path: #{workflowJSON.oswDir}")
+    workflowJSON.save
+    runner.registerWarning("workflowJSON saved")
     
     # Determine weight
     if not number_of_buildings_represented.nil?
