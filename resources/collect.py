@@ -15,35 +15,20 @@ warnings.filterwarnings('ignore')
 def main(dir, format, package, func, file):
 
   if func == 'write':
-
-    if format == 'zip':
-    
-      write_zip(dir)
-      
+    if format == 'zip':    
+      write_zip(dir)      
+    elif format == 'hdf5':    
+      if package == 'pandas':    
+        write_pandas_hdf5(dir, file)      
+      elif package == 'h5py':      
+        write_h5py_hdf5(dir, file)      
+  elif func == 'read':  
+    if format == 'zip':    
+      print "Haven't written this code yet."      
     elif format == 'hdf5':
-    
-      if package == 'pandas':
-    
-        write_pandas_hdf5(dir, file)
-      
-      elif package == 'h5py':
-      
-        write_h5py_hdf5(dir, file)
-      
-  elif func == 'read':
-  
-    if format == 'zip':
-    
-      print "Haven't written this code yet."
-      
-    elif format == 'hdf5':
-    
-      if package == 'pandas':
-    
-        read_pandas_hdf5(dir, file)
-        
-      elif package == 'h5py':
-      
+      if package == 'pandas':    
+        read_pandas_hdf5(dir, file)        
+      elif package == 'h5py':      
         read_h5py_hdf5(dir, file)
 
 def write_zip(dir):
@@ -52,7 +37,7 @@ def write_zip(dir):
   
     for item in os.listdir(dir):
     
-      if not item.endswith(".zip"):
+      if not item.endswith('.zip'):
         continue
         
       with zipfile.ZipFile(os.path.join(dir, item), 'r') as old_zf:
@@ -72,15 +57,15 @@ def write_pandas_hdf5(dir, file):
   with pd.HDFStore(file, mode='w', complib='zlib', complevel=9) as hdf:
   
     for item in os.listdir(dir):
-    
-      if not item.endswith(".zip"):
+
+      if not item.endswith('.zip'):
         continue
     
       with zipfile.ZipFile(os.path.join(dir, item), 'r') as old_zf:
         
         df = pd.read_csv(old_zf.open('enduse_timeseries.csv'))
         df.columns = [re.sub(r"[^\w\s]", '_', col).replace(' ', '').rstrip('_') for col in df.columns]
-        
+
         # enduse_id
         enduses = [col for col in df.columns if not 'Time' in col]
         for enduse in enduses:
@@ -90,7 +75,10 @@ def write_pandas_hdf5(dir, file):
         df = df.rename(columns=dict(zip(enduse_ids['enduse'], enduse_ids['enduse_id'])))
         
         # datapoint_id
-        datapoint = str(uuid.uuid1()) # TODO: get actual uuid from where?        
+        m = re.search('data_point_([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})', item)
+        if m:
+          datapoint = m.group(1)
+          datapoint = str(uuid.uuid1()) # TODO: remove this when we have actual results
         if not datapoint in datapoint_ids['datapoint'].values:
           next_id = len(datapoint_ids.index) + 1
           datapoint_ids.loc[next_id] = [datapoint, str(next_id)]
@@ -133,11 +121,8 @@ def read_pandas_hdf5(dir, file):
     
   with pd.HDFStore(file) as hdf: 
     
-    print hdf
-    
-    # for key in hdf.keys():
-    
-      # print hdf[key]
+    for key in hdf.keys():
+      print hdf[key].head()
     
 def read_h5py_hdf5(dir, file):
 
