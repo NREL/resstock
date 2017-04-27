@@ -2,7 +2,7 @@
 Created on Apr 23, 2014
 @author: ewilson
 '''
-import query_recs_raw_sql as recs
+import sql_query_recs_V2 as recs
 from math import exp, trunc
 import os, sys
 import pandas as pd
@@ -103,6 +103,7 @@ df = pd.DataFrame()
 
 Region, Vintage_Bin, Size_Bin, Story_Bin, ACH50_Value, ACH50_Bin = ([] for i in range(6))
 
+
 if __name__ == '__main__':
     for region, cz in regions.iteritems():
         for vintage_bin, year in vintages.iteritems():
@@ -115,10 +116,9 @@ if __name__ == '__main__':
                     Story_Bin.append(story_bin)
                     ACH50_Value.append(ACH50)
                     ACH50_Bin.append(str(ach50_bin))
-
     data = {'Region':Region,'Vintage':Vintage_Bin,'Size':Size_Bin,'Stories':Story_Bin,'ACH50':ACH50_Value,'ACH50_Bin':ACH50_Bin}
 
     g = pd.DataFrame(data)
     g = g[['Region','Vintage','Size','Stories','ACH50_Bin','ACH50']]
     g = g.pivot_table(index=['Region','Vintage','Size','Stories','ACH50_Bin']).unstack('ACH50_Bin').reset_index()
-    g.to_csv(os.path.join("Probability Distributions", 'Infiltration.tsv'), sep='\t', index=False)
+    g.to_csv(os.path.join("RECS_Outputs_TSV", 'Infiltration.tsv'), sep='\t', index=False)
