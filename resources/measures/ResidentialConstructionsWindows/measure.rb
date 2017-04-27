@@ -106,7 +106,6 @@ class ProcessConstructionsWindows < OpenStudio::Measure::ModelMeasure
       return false
     end
 
-    intShadeCoolingMonths = nil # FIXME: Implement
     intShadeHeatingMultiplier = runner.getDoubleArgumentValue("heating_shade_mult",user_arguments)
     intShadeCoolingMultiplier = runner.getDoubleArgumentValue("cooling_shade_mult",user_arguments)
 

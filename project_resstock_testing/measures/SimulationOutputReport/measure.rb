@@ -21,34 +21,37 @@ class SimulationOutputReport < OpenStudio::Ruleset::ReportingUserScript
   end #end the arguments method
   
   def outputs
-    resstock_outputs = [
-                        "total_site_energy_mbtu",
-                        "total_site_electricity_kwh",
-                        "total_site_natural_gas_therm",
-                        "total_site_other_fuel_mbtu",
-                        "electricity_heating_kwh",
-                        "electricity_cooling_kwh",
-                        "electricity_interior_lighting_kwh",
-                        "electricity_exterior_lighting_kwh",
-                        "electricity_interior_equipment_kwh",
-                        "electricity_fans_kwh",
-                        "electricity_pumps_kwh",
-                        "electricity_water_systems_kwh",
-                        "natural_gas_heating_therm",
-                        "natural_gas_interior_equipment_therm",
-                        "natural_gas_water_systems_therm",
-                        "other_fuel_heating_mbtu",
-                        "other_fuel_interior_equipment_mbtu",
-                        "other_fuel_water_systems_mbtu",
-                        "hours_heating_setpoint_not_met",
-                        "hours_cooling_setpoint_not_met",
-                        "hvac_cooling_capacity_w",
-                        "hvac_heating_capacity_w",
-                        "upgrade_cost_usd",
-                        "weight"
-                       ]
+    buildstock_outputs = [
+                          "total_site_energy_mbtu",
+                          "total_site_electricity_kwh",
+                          "total_site_natural_gas_therm",
+                          "total_site_other_fuel_mbtu",
+                          "net_site_energy_mbtu", # Incorporates PV
+                          "net_site_electricity_kwh", # Incorporates PV
+                          "electricity_heating_kwh",
+                          "electricity_cooling_kwh",
+                          "electricity_interior_lighting_kwh",
+                          "electricity_exterior_lighting_kwh",
+                          "electricity_interior_equipment_kwh",
+                          "electricity_fans_kwh",
+                          "electricity_pumps_kwh",
+                          "electricity_water_systems_kwh",
+                          "electricity_pv_kwh",
+                          "natural_gas_heating_therm",
+                          "natural_gas_interior_equipment_therm",
+                          "natural_gas_water_systems_therm",
+                          "other_fuel_heating_mbtu",
+                          "other_fuel_interior_equipment_mbtu",
+                          "other_fuel_water_systems_mbtu",
+                          "hours_heating_setpoint_not_met",
+                          "hours_cooling_setpoint_not_met",
+                          "hvac_cooling_capacity_w",
+                          "hvac_heating_capacity_w",
+                          "upgrade_cost_usd",
+                          "weight"
+                         ]
     result = OpenStudio::Measure::OSOutputVector.new
-    resstock_outputs.each do |output|
+    buildstock_outputs.each do |output|
         result << OpenStudio::Measure::OSOutput.makeDoubleOutput(output)
     end
     return result
@@ -106,61 +109,106 @@ class SimulationOutputReport < OpenStudio::Ruleset::ReportingUserScript
             step_result.stepValues.each do |step_value|
                 if step_value.name == "hvac_system_cooling"
                     next if not step_value.valueAsString.include?("#{percent}% Conditioned")
-                    percent_cooling = step_value.valueAsString.to_f/100.0
+                    percent_cooling = percent.to_f/100.0
                     runner.registerWarning("Cooling system with % conditioned detected. #{percent_cooling.to_s} will be applied to cooling results.")
                 elsif step_value.name == "hvac_system_combined"
                     next if not step_value.valueAsString.include?("#{percent}% Conditioned")
-                    percent_cooling = step_value.valueAsString.to_f/100.0
+                    percent_cooling = percent.to_f/100.0
                     percent_heating = percent_cooling
                     runner.registerWarning("Combined system with % conditioned detected. #{percent_cooling.to_s} will be applied to cooling and heating results.")
                 end
             end
         end
     end
+    
+    # Get PV electricity produced
+    pv_query = "SELECT -1*Value FROM TabularDataWithStrings WHERE ReportName='AnnualBuildingUtilityPerformanceSummary' AND ReportForString='Entire Facility' AND TableName='Electric Loads Satisfied' AND RowName='Total On-Site Electric Sources' AND ColumnName='Electricity' AND Units='GJ'"
+    pv_val = sqlFile.execAndReturnFirstDouble(pv_query)
            
     # TOTAL
     
-    report_sim_output(runner, "total_site_energy_mbtu", sqlFile.totalSiteEnergy, "GJ", total_site_units)
+    report_sim_output(runner, "total_site_energy_mbtu", [sqlFile.totalSiteEnergy], "GJ", total_site_units)
+    report_sim_output(runner, "net_site_energy_mbtu", [sqlFile.totalSiteEnergy, pv_val], "GJ", total_site_units)
     
     # ELECTRICITY
     
-    report_sim_output(runner, "total_site_electricity_kwh", sqlFile.electricityTotalEndUses, "GJ", elec_site_units)
-    report_sim_output(runner, "electricity_heating_kwh", sqlFile.electricityHeating, "GJ", elec_site_units, percent_heating)
-    report_sim_output(runner, "electricity_cooling_kwh", sqlFile.electricityCooling, "GJ", elec_site_units, percent_cooling)
-    report_sim_output(runner, "electricity_interior_lighting_kwh", sqlFile.electricityInteriorLighting, "GJ", elec_site_units)
-    report_sim_output(runner, "electricity_exterior_lighting_kwh", sqlFile.electricityExteriorLighting, "GJ", elec_site_units)
-    report_sim_output(runner, "electricity_interior_equipment_kwh", sqlFile.electricityInteriorEquipment, "GJ", elec_site_units)
-    report_sim_output(runner, "electricity_fans_kwh", sqlFile.electricityFans, "GJ", elec_site_units)
-    report_sim_output(runner, "electricity_pumps_kwh", sqlFile.electricityPumps, "GJ", elec_site_units)
-    report_sim_output(runner, "electricity_water_systems_kwh", sqlFile.electricityWaterSystems, "GJ", elec_site_units)
+    report_sim_output(runner, "total_site_electricity_kwh", [sqlFile.electricityTotalEndUses], "GJ", elec_site_units)
+    report_sim_output(runner, "net_site_electricity_kwh", [sqlFile.electricityTotalEndUses, pv_val], "GJ", elec_site_units)
+    report_sim_output(runner, "electricity_heating_kwh", [sqlFile.electricityHeating], "GJ", elec_site_units, percent_heating)
+    report_sim_output(runner, "electricity_cooling_kwh", [sqlFile.electricityCooling], "GJ", elec_site_units, percent_cooling)
+    report_sim_output(runner, "electricity_interior_lighting_kwh", [sqlFile.electricityInteriorLighting], "GJ", elec_site_units)
+    report_sim_output(runner, "electricity_exterior_lighting_kwh", [sqlFile.electricityExteriorLighting], "GJ", elec_site_units)
+    report_sim_output(runner, "electricity_interior_equipment_kwh", [sqlFile.electricityInteriorEquipment], "GJ", elec_site_units)
+    report_sim_output(runner, "electricity_fans_kwh", [sqlFile.electricityFans], "GJ", elec_site_units)
+    report_sim_output(runner, "electricity_pumps_kwh", [sqlFile.electricityPumps], "GJ", elec_site_units)
+    report_sim_output(runner, "electricity_water_systems_kwh", [sqlFile.electricityWaterSystems], "GJ", elec_site_units)
+    report_sim_output(runner, "electricity_pv_kwh", [pv_val], "GJ", elec_site_units)
     
     # NATURAL GAS
     
-    report_sim_output(runner, "total_site_natural_gas_therm", sqlFile.naturalGasTotalEndUses, "GJ", gas_site_units)
-    report_sim_output(runner, "natural_gas_heating_therm", sqlFile.naturalGasHeating, "GJ", gas_site_units, percent_heating)
-    report_sim_output(runner, "natural_gas_interior_equipment_therm", sqlFile.naturalGasInteriorEquipment, "GJ", gas_site_units)
-    report_sim_output(runner, "natural_gas_water_systems_therm", sqlFile.naturalGasWaterSystems, "GJ", gas_site_units)
+    report_sim_output(runner, "total_site_natural_gas_therm", [sqlFile.naturalGasTotalEndUses], "GJ", gas_site_units)
+    report_sim_output(runner, "natural_gas_heating_therm", [sqlFile.naturalGasHeating], "GJ", gas_site_units, percent_heating)
+    report_sim_output(runner, "natural_gas_interior_equipment_therm", [sqlFile.naturalGasInteriorEquipment], "GJ", gas_site_units)
+    report_sim_output(runner, "natural_gas_water_systems_therm", [sqlFile.naturalGasWaterSystems], "GJ", gas_site_units)
     
     # OTHER FUEL
     
-    report_sim_output(runner, "total_site_other_fuel_mbtu", sqlFile.otherFuelTotalEndUses, "GJ", other_fuel_site_units)
-    report_sim_output(runner, "other_fuel_heating_mbtu", sqlFile.otherFuelHeating, "GJ", other_fuel_site_units, percent_heating)
-    report_sim_output(runner, "other_fuel_interior_equipment_mbtu", sqlFile.otherFuelInteriorEquipment, "GJ", other_fuel_site_units)
-    report_sim_output(runner, "other_fuel_water_systems_mbtu", sqlFile.otherFuelWaterSystems, "GJ", other_fuel_site_units)
+    report_sim_output(runner, "total_site_other_fuel_mbtu", [sqlFile.otherFuelTotalEndUses], "GJ", other_fuel_site_units)
+    report_sim_output(runner, "other_fuel_heating_mbtu", [sqlFile.otherFuelHeating], "GJ", other_fuel_site_units, percent_heating)
+    report_sim_output(runner, "other_fuel_interior_equipment_mbtu", [sqlFile.otherFuelInteriorEquipment], "GJ", other_fuel_site_units)
+    report_sim_output(runner, "other_fuel_water_systems_mbtu", [sqlFile.otherFuelWaterSystems], "GJ", other_fuel_site_units)
     
     # LOADS NOT MET
     
-    report_sim_output(runner, "hours_heating_setpoint_not_met", sqlFile.hoursHeatingSetpointNotMet, nil, nil)
-    report_sim_output(runner, "hours_cooling_setpoint_not_met", sqlFile.hoursCoolingSetpointNotMet, nil, nil)
+    report_sim_output(runner, "hours_heating_setpoint_not_met", [sqlFile.hoursHeatingSetpointNotMet], nil, nil)
+    report_sim_output(runner, "hours_cooling_setpoint_not_met", [sqlFile.hoursCoolingSetpointNotMet], nil, nil)
     
     # HVAC CAPACITIES
     
-    cooling_capacity_query = "SELECT Value FROM ComponentSizes WHERE CompType IN ('Coil:Cooling:DX:SingleSpeed','Coil:Cooling:DX:TwoSpeed','Coil:Cooling:DX:MultiSpeed','Coil:Cooling:DX:VariableSpeed') AND Description IN ('Design Size Gross Rated Total Cooling Capacity')"
-    cooling_capacity_w = sqlFile.execAndReturnFirstDouble(cooling_capacity_query)
-    report_sim_output(runner, "hvac_cooling_capacity_w", cooling_capacity_w, "W", "W", percent_cooling)
-    heating_capacity_query = "SELECT Value FROM ComponentSizes WHERE CompType IN ('Coil:Heating:Fuel','Coil:Heating:Electric','ZONEHVAC:BASEBOARD:CONVECTIVE:ELECTRIC','Coil:Heating:DX:SingleSpeed','Coil:Heating:DX:MultiSpeed','Coil:Heating:DX:VariableSpeed','Boiler:HotWater') AND Description IN ('Design Size Nominal Capacity','Design Size Heating Design Capacity','Design Size Gross Rated Heating Capacity')"
-    heating_capacity_w = sqlFile.execAndReturnFirstDouble(heating_capacity_query)
-    report_sim_output(runner, "hvac_heating_capacity_w", heating_capacity_w, "W", "W", percent_heating)
+    cooling_coils = [
+                     'coil:cooling:dx:singlespeed',
+                     'coil:cooling:dx:twospeed',
+                     'coil:cooling:dx:multispeed',
+                     'coil:cooling:dx:variablespeed',
+                     'coil:cooling:dx:variablerefrigerantflow'
+                    ]
+    cooling_capacity_fields = [
+                               'user-specified gross rated total cooling capacity',
+                               'speed 4 user-specified total cooling capacity'
+                              ]
+    cooling_capacity_w = nil
+    cooling_coils.each do |cooling_coil|
+        cooling_capacity_query = "SELECT Value FROM ComponentSizes WHERE lower(CompType) == '#{cooling_coil}' AND lower(Description) IN ('#{cooling_capacity_fields.join("','")}')"
+        cooling_capacity_w = sqlFile.execAndReturnFirstDouble(cooling_capacity_query)
+        break if cooling_capacity_w.is_initialized
+    end
+    report_sim_output(runner, "hvac_cooling_capacity_w", [cooling_capacity_w], "W", "W", percent_cooling)
+    
+    heating_coils = [
+                     'coil:heating:fuel',
+                     'coil:heating:dx:singlespeed',
+                     'coil:heating:dx:multispeed',
+                     'coil:heating:dx:variablespeed',
+                     'coil:heating:dx:variablerefrigerantflow',
+                     'boiler:hotwater',
+                     'coil:heating:electric',
+                     'zonehvac:baseboard:convective:electric'
+                    ]
+    heating_capacity_fields = [
+                               'user-specified nominal capacity',
+                               'user-specified heating design capacity',
+                               'user-specified gross rated heating capacity',
+                               'design size nominal capacity',
+                               'speed 2 user-specified total cooling capacity',
+                               'speed 4 user-specified total cooling capacity'
+                              ]
+    heating_capacity_w = nil
+    heating_coils.each do |heating_coil|
+        heating_capacity_query = "SELECT Value FROM ComponentSizes WHERE lower(CompType) == '#{heating_coil}' AND lower(Description) IN ('#{heating_capacity_fields.join("','")}')"
+        heating_capacity_w = sqlFile.execAndReturnFirstDouble(heating_capacity_query)
+        break if heating_capacity_w.is_initialized
+    end
+    report_sim_output(runner, "hvac_heating_capacity_w", [heating_capacity_w], "W", "W", percent_heating)
     
     # WEIGHT
     
@@ -308,13 +356,16 @@ class SimulationOutputReport < OpenStudio::Ruleset::ReportingUserScript
 
   end #end the run method
 
-  def report_sim_output(runner, name, val, os_units, desired_units, percent_of_val=1.0)
-    return if val.empty?
-    newVal = val.get * percent_of_val
+  def report_sim_output(runner, name, vals, os_units, desired_units, percent_of_val=1.0)
+    total_val = 0.0
+    vals.each do |val|
+        return if val.empty?
+        total_val += val.get * percent_of_val
+    end
     if os_units.nil? or desired_units.nil? or os_units == desired_units
-        valInUnits = newVal
+        valInUnits = total_val
     else
-        valInUnits = OpenStudio::convert(newVal, os_units, desired_units).get
+        valInUnits = OpenStudio::convert(total_val, os_units, desired_units).get
     end
     runner.registerValue(name,valInUnits)
     runner.registerInfo("Registering #{valInUnits.round(2)} for #{name}.")

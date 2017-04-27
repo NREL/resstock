@@ -130,7 +130,7 @@ class ResidentialAirflow < OpenStudio::Measure::ModelMeasure
       @MechVentFractionOfASHRAE = mechVentFractionOfASHRAE
       @MechVentHouseFanPower = mechVentHouseFanPower
       @MechVentSensibleEfficiency = mechVentSensibleEfficiency
-      @mechVentASHRAEStandard = mechVentASHRAEStandard
+      @MechVentASHRAEStandard = mechVentASHRAEStandard
     end
     attr_accessor(:MechVentType, :MechVentInfilCredit, :MechVentTotalEfficiency, :MechVentFractionOfASHRAE, :MechVentHouseFanPower, :MechVentSensibleEfficiency, :MechVentASHRAEStandard, :MechVentBathroomExhaust, :MechVentRangeHoodExhaust, :MechVentSpotFanPower, :bath_exhaust_operation, :range_hood_exhaust_operation, :clothes_dryer_exhaust_operation, :ashrae_vent_rate, :num_vent_fans, :percent_fan_heat_to_space, :whole_house_vent_rate, :bathroom_hour_avg_exhaust, :range_hood_hour_avg_exhaust, :clothes_dryer_hour_avg_exhaust, :max_power, :base_vent_rate, :max_vent_rate, :MechVentApparentSensibleEffectiveness, :MechVentHXCoreSensibleEffectiveness, :MechVentLatentEffectiveness, :hourly_energy_schedule, :hourly_schedule, :average_vent_fan_eff)
   end
@@ -803,39 +803,59 @@ class ResidentialAirflow < OpenStudio::Measure::ModelMeasure
       end
     end
 
-    model.getOutputVariables.each do |output_var|
-      next unless ["Zone Outdoor Air Drybulb Temperature", "Site Outdoor Air Barometric Pressure", "Zone Mean Air Temperature", "Zone Air Relative Humidity", "Site Outdoor Air Humidity Ratio", "Zone Mean Air Humidity Ratio", "Site Wind Speed", "Schedule Value", "System Node Mass Flow Rate", "Fan Runtime Fraction", "System Node Current Density Volume Flow Rate", "System Node Temperature", "System Node Humidity Ratio", "Zone Air Temperature"].include? output_var.name.to_s
-      output_var.remove
+    ["Zone Outdoor Air Drybulb Temperature", "Site Outdoor Air Barometric Pressure", "Zone Mean Air Temperature", "Zone Air Relative Humidity", "Site Outdoor Air Humidity Ratio", "Zone Mean Air Humidity Ratio", "Site Wind Speed", "Schedule Value", "System Node Mass Flow Rate", "Fan Runtime Fraction", "System Node Current Density Volume Flow Rate", "System Node Temperature", "System Node Humidity Ratio", "Zone Air Temperature"].each do |output_var_name|
+      unless model.getOutputVariables.any? {|existing_output_var| existing_output_var.name.to_s == output_var_name} 
+        output_var = OpenStudio::Model::OutputVariable.new(output_var_name, model)
+        output_var.setName(output_var_name)
+      end
     end
-    zone_outdoor_air_drybulb_temp_output_var = OpenStudio::Model::OutputVariable.new("Zone Outdoor Air Drybulb Temperature", model)
-    zone_outdoor_air_drybulb_temp_output_var.setName("Zone Outdoor Air Drybulb Temperature")
-    outdoor_air_barometric_pressure_output_var = OpenStudio::Model::OutputVariable.new("Site Outdoor Air Barometric Pressure", model)
-    outdoor_air_barometric_pressure_output_var.setName("Site Outdoor Air Barometric Pressure")
-    zone_mean_air_temp_output_var = OpenStudio::Model::OutputVariable.new("Zone Mean Air Temperature", model)
-    zone_mean_air_temp_output_var.setName("Zone Mean Air Temperature")
-    zone_air_relative_humidity_output_var = OpenStudio::Model::OutputVariable.new("Zone Air Relative Humidity", model)
-    zone_air_relative_humidity_output_var.setName("Zone Air Relative Humidity")
-    outdoor_air_humidity_ratio_output_var = OpenStudio::Model::OutputVariable.new("Site Outdoor Air Humidity Ratio", model)
-    outdoor_air_humidity_ratio_output_var.setName("Site Outdoor Air Humidity Ratio")
-    zone_mean_air_humidity_ratio_output_var = OpenStudio::Model::OutputVariable.new("Zone Mean Air Humidity Ratio", model)
-    zone_mean_air_humidity_ratio_output_var.setName("Zone Mean Air Humidity Ratio")    
-    wind_speed_output_var = OpenStudio::Model::OutputVariable.new("Site Wind Speed", model)
-    wind_speed_output_var.setName("Site Wind Speed")
-    schedule_value_output_var = OpenStudio::Model::OutputVariable.new("Schedule Value", model)
-    schedule_value_output_var.setName("Schedule Value")
-    system_node_mass_flow_rate_output_var = OpenStudio::Model::OutputVariable.new("System Node Mass Flow Rate", model)
-    system_node_mass_flow_rate_output_var.setName("System Node Mass Flow Rate")
-    fan_runtime_fraction_output_var = OpenStudio::Model::OutputVariable.new("Fan Runtime Fraction", model)
-    fan_runtime_fraction_output_var.setName("Fan Runtime Fraction")
-    system_node_current_density_volume_flow_rate_output_var = OpenStudio::Model::OutputVariable.new("System Node Current Density Volume Flow Rate", model)
-    system_node_current_density_volume_flow_rate_output_var.setName("System Node Current Density Volume Flow Rate")                
-    system_node_temp_output_var = OpenStudio::Model::OutputVariable.new("System Node Temperature", model)
-    system_node_temp_output_var.setName("System Node Temperature")        
-    system_node_humidity_ratio_output_var = OpenStudio::Model::OutputVariable.new("System Node Humidity Ratio", model)
-    system_node_humidity_ratio_output_var.setName("System Node Humidity Ratio")        
-    zone_air_temp_output_var = OpenStudio::Model::OutputVariable.new("Zone Air Temperature", model)
-    zone_air_temp_output_var.setName("Zone Air Temperature")
-     
+    
+    zone_outdoor_air_drybulb_temp_output_var = nil
+    outdoor_air_barometric_pressure_output_var = nil
+    zone_mean_air_temp_output_var = nil
+    zone_air_relative_humidity_output_var = nil
+    outdoor_air_humidity_ratio_output_var = nil
+    zone_mean_air_humidity_ratio_output_var = nil
+    wind_speed_output_var = nil
+    schedule_value_output_var = nil
+    system_node_mass_flow_rate_output_var = nil
+    fan_runtime_fraction_output_var = nil
+    system_node_current_density_volume_flow_rate_output_var = nil
+    system_node_temp_output_var = nil
+    system_node_humidity_ratio_output_var = nil
+    zone_air_temp_output_var = nil
+    model.getOutputVariables.each do |output_var|
+      if output_var.name.to_s == "Zone Outdoor Air Drybulb Temperature"
+        zone_outdoor_air_drybulb_temp_output_var = output_var
+      elsif output_var.name.to_s == "Site Outdoor Air Barometric Pressure"
+        outdoor_air_barometric_pressure_output_var = output_var
+      elsif output_var.name.to_s == "Zone Mean Air Temperature"
+        zone_mean_air_temp_output_var = output_var
+      elsif output_var.name.to_s == "Zone Air Relative Humidity"
+        zone_air_relative_humidity_output_var = output_var
+      elsif output_var.name.to_s == "Site Outdoor Air Humidity Ratio"
+        outdoor_air_humidity_ratio_output_var = output_var
+      elsif output_var.name.to_s == "Zone Mean Air Humidity Ratio"
+        zone_mean_air_humidity_ratio_output_var = output_var
+      elsif output_var.name.to_s == "Site Wind Speed"
+        wind_speed_output_var = output_var
+      elsif output_var.name.to_s == "Schedule Value"
+        schedule_value_output_var = output_var
+      elsif output_var.name.to_s == "System Node Mass Flow Rate"
+        system_node_mass_flow_rate_output_var = output_var
+      elsif output_var.name.to_s == "Fan Runtime Fraction"
+        fan_runtime_fraction_output_var = output_var
+      elsif output_var.name.to_s == "System Node Current Density Volume Flow Rate"
+        system_node_current_density_volume_flow_rate_output_var = output_var       
+      elsif output_var.name.to_s == "System Node Temperature"
+        system_node_temp_output_var = output_var
+      elsif output_var.name.to_s == "System Node Humidity Ratio"
+        system_node_humidity_ratio_output_var = output_var
+      elsif output_var.name.to_s == "Zone Air Temperature"
+        zone_air_temp_output_var = output_var        
+      end
+    end
+ 
     model.getLayeredConstructions.each do |construction|
       next unless construction.name.to_s == "AdiabaticConst"
       construction.layers.each do |material|
@@ -920,6 +940,11 @@ class ResidentialAirflow < OpenStudio::Measure::ModelMeasure
         program.remove
       end
       
+      model.getEnergyManagementSystemOutputVariables.each do |output_var|
+        next unless output_var.name.to_s == "#{obj_name_infil} loc w spd"
+        output_var.remove      
+      end
+      
       # Remove existing natural ventilation
       
       model.getEnergyManagementSystemPrograms.each do |program|
@@ -952,7 +977,7 @@ class ResidentialAirflow < OpenStudio::Measure::ModelMeasure
       air_handler_w = "#{obj_name_ducts} ah w".gsub(" ","_").gsub("|","_")       
       
       model.getEnergyManagementSystemSensors.each do |sensor|
-        next unless [air_handler_mfr, fan_rtf, air_handler_vfr, air_handler_tout, return_air_t, air_handler_wout, return_air_w, air_handler_t, air_handler_w].map{|x| "#{x} s"}.include? sensor.name.to_s
+        next unless [air_handler_mfr, fan_rtf, air_handler_vfr, air_handler_tout, return_air_t, air_handler_wout, return_air_w, air_handler_t, air_handler_w].map{|x| "#{x}_s"}.include? sensor.name.to_s
         sensor.remove
       end   
       
@@ -1255,6 +1280,7 @@ class ResidentialAirflow < OpenStudio::Measure::ModelMeasure
       infil_program.addLine("Set z_m = #{OpenStudio.convert(wind_speed.height,"ft","m").get}")
       infil_program.addLine("Set z_s = #{OpenStudio.convert(unit.living.height,"ft","m").get}")
       infil_program.addLine("Set f_t = (((s_m/z_m)^p_m)*((z_s/s_s)^p_s))")
+      infil_program.addLine("Set #{building_unit.name.to_s.gsub("unit", "u").gsub(" ","_")}_VwindL = (f_t*#{vwind_sensor.name})")
       
       if unit.living.inf_method == @infMethodASHRAE
         if unit.living.SLA > 0
@@ -1276,10 +1302,10 @@ class ResidentialAirflow < OpenStudio::Measure::ModelMeasure
       
       infil_program.addLine("Set Tdiff = #{tin_sensor.name}-#{tout_sensor.name}")
       infil_program.addLine("Set dT = @Abs Tdiff")
-      infil_program.addLine("Set QWHV = #{wh_sch_sensor.name}*#{OpenStudio.convert(mech_vent.whole_house_vent_rate,"cfm","m^3/s").get}")
-      infil_program.addLine("Set Qrange = #{range_sch_sensor.name}*#{OpenStudio.convert(mech_vent.range_hood_hour_avg_exhaust,"cfm","m^3/s").get}")
+      infil_program.addLine("Set QWHV = #{wh_sch_sensor.name}*#{OpenStudio.convert(mech_vent.whole_house_vent_rate,"cfm","m^3/s").get.round(4)}")
+      infil_program.addLine("Set Qrange = #{range_sch_sensor.name}*#{OpenStudio.convert(mech_vent.range_hood_hour_avg_exhaust,"cfm","m^3/s").get.round(4)}")
       infil_program.addLine("Set Qdryer = #{clothes_dryer_sch_sensor.name}*#{OpenStudio.convert(mech_vent.clothes_dryer_hour_avg_exhaust,"cfm","m^3/s").get}")
-      infil_program.addLine("Set Qbath = #{bath_sch_sensor.name}*#{OpenStudio.convert(mech_vent.bathroom_hour_avg_exhaust,"cfm","m^3/s").get}")
+      infil_program.addLine("Set Qbath = #{bath_sch_sensor.name}*#{OpenStudio.convert(mech_vent.bathroom_hour_avg_exhaust,"cfm","m^3/s").get.round(4)}")
       infil_program.addLine("Set QhpwhOut = 0")
       infil_program.addLine("Set QhpwhIn = 0")
       infil_program.addLine("Set QductsOut = #{duct_lk_exhaust_fan_equiv}")
@@ -1323,12 +1349,17 @@ class ResidentialAirflow < OpenStudio::Measure::ModelMeasure
       infil_program.addLine("Set #{infil_flow_actuator.name} = (((Qu^2)+(Qn^2))^0.5)-Q_acctd_for_elsewhere")
       infil_program.addLine("Set #{infil_flow_actuator.name} = (@Max #{infil_flow_actuator.name} 0)")
       
+      # EMS Output Variables
+      ems_output_var = OpenStudio::Model::EnergyManagementSystemOutputVariable.new(model, "#{building_unit.name.to_s.gsub("unit", "u").gsub(" ","_")}_VwindL")
+      ems_output_var.setName(obj_name_infil + " loc w spd")
+      ems_output_var.setEMSProgramOrSubroutineName(infil_program)
+      ems_output_var.setUnits("m/s")
+      
       nat_vent_program = OpenStudio::Model::EnergyManagementSystemProgram.new(model)
       nat_vent_program.setName(obj_name_natvent + " program")
       nat_vent_program.addLine("Set Tdiff = #{tin_sensor.name}-#{tout_sensor.name}")
       nat_vent_program.addLine("Set dT = (@Abs Tdiff)")
       nat_vent_program.addLine("Set pt = (@RhFnTdbWPb #{tout_sensor.name} #{wout_sensor.name} #{pbar_sensor.name})")
-      nat_vent_program.addLine("Set Hin = (@HFnTdbRhPb #{tout_sensor.name} #{phiin_sensor.name} #{pbar_sensor.name})")
       nat_vent_program.addLine("Set NVA = #{OpenStudio.convert(nat_vent.area,"ft^2","cm^2").get}")
       nat_vent_program.addLine("Set Cs = #{UnitConversion.ft2_s2R2L2_s2cm4K(nat_vent.C_s)}")
       nat_vent_program.addLine("Set Cw = #{UnitConversion._2L2s2_s2cm4m2(nat_vent.C_w)}")
@@ -1746,7 +1777,7 @@ class ResidentialAirflow < OpenStudio::Measure::ModelMeasure
           duct_lkage_subroutine.addLine("Set QtotLeakToAHZn = f_sup*#{air_handler_mfr_sensor.name}*(h_SA-h_AHZone)")
           duct_lkage_subroutine.addLine("Set temp3 = (#{air_handler_wout_sensor.name}-#{air_handler_w_sensor.name})")
           duct_lkage_subroutine.addLine("Set #{supply_latent_lkage_to_air_handler} = f_sup*#{air_handler_mfr_sensor.name}*h_fg*temp3")
-          duct_lkage_subroutine.addLine("Set S#{supply_sensible_lkage_to_air_handler} = QtotLeakToAHZn-#{supply_latent_lkage_to_air_handler}")
+          duct_lkage_subroutine.addLine("Set #{supply_sensible_lkage_to_air_handler} = QtotLeakToAHZn-#{supply_latent_lkage_to_air_handler}")
           duct_lkage_subroutine.addLine("Else")
           duct_lkage_subroutine.addLine("Set #{supply_latent_lkage_to_living} = 0")
           duct_lkage_subroutine.addLine("Set #{supply_sensible_lkage_to_living} = 0")
@@ -2511,7 +2542,7 @@ class ResidentialAirflow < OpenStudio::Measure::ModelMeasure
   
   def _processDuctsForUnit(model, runner, ducts, building, unit)
   
-    if ducts.DuctLocation !=  "none" and HVAC.has_central_air_conditioner(model, runner, unit.living_zone, false, false).nil? and HVAC.has_furnace(model, runner, unit.living_zone, false, false).nil? and HVAC.has_air_source_heat_pump(model, runner, unit.living_zone, false).nil?
+    if ducts.DuctLocation !=  "none" and HVAC.has_central_air_conditioner(model, runner, unit.living_zone, false, false).nil? and HVAC.has_furnace(model, runner, unit.living_zone, false, false).nil? and HVAC.has_air_source_heat_pump(model, runner, unit.living_zone, false).nil? and HVAC.has_gshp_vert_bore(model, runner, unit.living_zone, false).nil?
       runner.registerWarning("No ducted HVAC equipment was found but ducts were specified. Overriding duct specification.")
       ducts.DuctLocation = "none"
     end        

@@ -292,7 +292,7 @@ class RunSampling
 
     def write_csv(sample_results)
         # Writes the csv output file.
-        out_file = File.absolute_path(File.join(File.dirname(__FILE__), 'resstock.csv'))
+        out_file = File.absolute_path(File.join(File.dirname(__FILE__), 'buildstock.csv'))
         CSV.open(out_file, 'w') do |csv_object|
           sample_results.each do |sample_result|
             csv_object << sample_result
@@ -305,4 +305,4 @@ class RunSampling
 end
 
 #r = RunSampling.new
-#r.run('project_resstock_national',100)
+#r.run('project_resstock_testing',100)

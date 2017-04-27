@@ -202,6 +202,7 @@ class ProcessConstructionsWallsExteriorSteelStud < OpenStudio::Measure::ModelMea
         units.each do |unit|
             next if not unit.spaces.include?(surface.space.get)
             unit.setFeature(Constants.SizingInfoWallType(surface), "SteelStud")
+            unit.setFeature(Constants.SizingInfoStudWallCavityRvalue(surface), ssWallCavityInsRvalueNominal)
         end
     end
 

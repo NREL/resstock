@@ -235,6 +235,7 @@ class ProcessConstructionsWallsExteriorCMU < OpenStudio::Measure::ModelMeasure
         units.each do |unit|
             next if not unit.spaces.include?(surface.space.get)
             unit.setFeature(Constants.SizingInfoWallType(surface), "CMU")
+            unit.setFeature(Constants.SizingInfoCMUWallFurringInsRvalue(surface), cmuFurringInsRvalue)
         end
     end
 

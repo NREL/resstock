@@ -18,16 +18,25 @@ class BuildingCharacteristicsReport < OpenStudio::Ruleset::ReportingUserScript
   end
   
   def outputs
-    # Other building characteristics should be manually entered in PAT
-    # since they can vary across different projects (National, PNW, etc.).
-    resstock_outputs = [
-                        "location_city",
-                        "location_state",
-                        "location_latitude",
-                        "location_longitude",
-                       ]
     result = OpenStudio::Measure::OSOutputVector.new
-    resstock_outputs.each do |output|
+    # Outputs based on parameters in options_lookup.tsv
+    # Note: Not every parameter is used by every project; non-applicable outputs
+    #       for a given project can be removed via a server finalization script.
+    resources_dir = File.absolute_path(File.join(File.dirname(__FILE__), "..", "..", "resources"))
+    helper_methods_file = File.join(resources_dir, "helper_methods.rb")
+    require File.join(File.dirname(helper_methods_file), File.basename(helper_methods_file, File.extname(helper_methods_file)))
+    parameters = get_parameters_ordered_from_options_lookup_tsv(resources_dir)
+    parameters.each do |parameter|
+        result << OpenStudio::Measure::OSOutput.makeStringOutput(OpenStudio::toUnderscoreCase(parameter))
+    end
+    # Additional hard-coded outputs
+    buildstock_outputs = [
+                          "location_city",
+                          "location_state",
+                          "location_latitude",
+                          "location_longitude",
+                         ]
+    buildstock_outputs.each do |output|
         result << OpenStudio::Measure::OSOutput.makeStringOutput(output)
     end
     return result
@@ -51,7 +60,7 @@ class BuildingCharacteristicsReport < OpenStudio::Ruleset::ReportingUserScript
             # These values will show up in the results CSV file when added to 
             # the analysis spreadsheet's Outputs worksheet.
             begin
-                # All building characteristics should be strings
+                # All building characteristics will be strings
                 runner.registerInfo("Registering #{step_value.valueAsString} for #{step_value.name}.")
                 runner.registerValue(step_value.name,step_value.valueAsString)
             rescue

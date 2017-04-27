@@ -12,7 +12,7 @@ class HVAC
     end
     
     def self.calc_cfm_ton_rated(rated_airflow_rate, fanspeed_ratios, capacity_ratios)
-        array = Array.new
+        array = []
         fanspeed_ratios.each_with_index do |fanspeed_ratio, i|
             capacity_ratio = capacity_ratios[i]
             array << fanspeed_ratio * rated_airflow_rate / capacity_ratio
@@ -51,7 +51,7 @@ class HVAC
     def self.convert_curve_biquadratic(coeff, ip_to_si)
         if ip_to_si
             # Convert IP curves to SI curves
-            si_coeff = Array.new
+            si_coeff = []
             si_coeff << coeff[0] + 32.0 * (coeff[1] + coeff[3]) + 1024.0 * (coeff[2] + coeff[4] + coeff[5])
             si_coeff << 9.0 / 5.0 * coeff[1] + 576.0 / 5.0 * coeff[2] + 288.0 / 5.0 * coeff[5]
             si_coeff << 81.0 / 25.0 * coeff[2]
@@ -61,7 +61,7 @@ class HVAC
             return si_coeff
         else
             # Convert SI curves to IP curves
-            ip_coeff = Array.new
+            ip_coeff = []
             ip_coeff << coeff[0] - 160.0/9.0 * (coeff[1] + coeff[3]) + 25600.0/81.0 * (coeff[2] + coeff[4] + coeff[5])
             ip_coeff << 5.0/9.0 * (coeff[1] - 320.0/9.0 * coeff[2] - 160.0/9.0 * coeff[5])
             ip_coeff << 25.0/81.0 * coeff[2]
@@ -69,6 +69,29 @@ class HVAC
             ip_coeff << 25.0/81.0 * coeff[4]
             ip_coeff << 25.0/81.0 * coeff[5]
             return ip_coeff
+        end
+    end
+    
+    def self.convert_curve_gshp(coeff, gshp_to_biquadratic)
+        m1 = 32 - 273.15 * 1.8
+        m2 = 283 * 1.8
+        if gshp_to_biquadratic
+            biq_coeff = []
+            biq_coeff << coeff[0] - m1 * ((coeff[1] + coeff[2]) / m2)
+            biq_coeff << coeff[1] / m2
+            biq_coeff << 0
+            biq_coeff << coeff[2] / m2
+            biq_coeff << 0
+            biq_coeff << 0
+            return biq_coeff
+        else
+            gsph_coeff = []
+            gsph_coeff << coeff[0] + m1 * (coeff[1] + coeff[3])
+            gsph_coeff << m2 * coeff[1]
+            gsph_coeff << m2 * coeff[3]
+            gsph_coeff << 0
+            gsph_coeff << 0
+            return gsph_coeff
         end
     end
     
@@ -221,7 +244,7 @@ class HVAC
     end
     
     def self.calc_cooling_eir(number_Speeds, coolingEER, supplyFanPower_Rated)
-        coolingEIR = Array.new
+        coolingEIR = []
         (0...number_Speeds).to_a.each do |speed|
           eir = calc_EIR_from_EER(coolingEER[speed], supplyFanPower_Rated)
           coolingEIR << eir
@@ -230,7 +253,7 @@ class HVAC
     end
     
     def self.calc_heating_eir(number_Speeds, heatingCOP, supplyFanPower_Rated)
-        heatingEIR = Array.new
+        heatingEIR = []
         (0...number_Speeds).to_a.each do |speed|
           eir = calc_EIR_from_COP(heatingCOP[speed], supplyFanPower_Rated)
           heatingEIR << eir
@@ -241,7 +264,7 @@ class HVAC
     def self.calc_shr_rated_gross(number_Speeds, shr_Rated_Net, supplyFanPower_Rated, cFM_TON_Rated)
     
         # Convert SHRs from net to gross
-        sHR_Rated_Gross = Array.new
+        sHR_Rated_Gross = []
         (0...number_Speeds).to_a.each do |speed|
 
           qtot_net_nominal = 12000.0

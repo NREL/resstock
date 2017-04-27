@@ -190,7 +190,7 @@ class ProcessConstructionsWallsExteriorWoodStud < OpenStudio::Measure::ModelMeas
         units.each do |unit|
             next if not unit.spaces.include?(surface.space.get)
             unit.setFeature(Constants.SizingInfoWallType(surface), "WoodStud")
-            unit.setFeature(Constants.SizingInfoWoodStudWallCavityRvalue(surface), wsWallCavityInsRvalueInstalled)
+            unit.setFeature(Constants.SizingInfoStudWallCavityRvalue(surface), wsWallCavityInsRvalueInstalled)
         end
     end
 

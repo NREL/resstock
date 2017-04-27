@@ -38,7 +38,7 @@ class CreateResidentialSingleFamilyAttachedGeometry < OpenStudio::Measure::Model
     living_height = OpenStudio::Measure::OSArgument::makeDoubleArgument("living_height",true)
     living_height.setDisplayName("Wall Height (Per Floor)")
     living_height.setUnits("ft")
-    living_height.setDescription("The height of the living space (and garage) walls.")
+    living_height.setDescription("The height of the living space walls.")
     living_height.setDefaultValue(8.0)
     args << living_height
 

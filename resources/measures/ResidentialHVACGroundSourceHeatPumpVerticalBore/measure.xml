@@ -2,8 +2,8 @@
   <schema_version>3.0</schema_version>
   <name>process_ground_source_heat_pump_vertical_bore</name>
   <uid>2151a447-b1d8-44dc-b297-90cb7e1223c1</uid>
-  <version_id>bb43c83b-0c28-4c58-bf18-f0464aeb51d5</version_id>
-  <version_modified>20170420T165556Z</version_modified>
+  <version_id>aaf10ec4-3197-4ad6-b7bb-5fda6cfa0ec6</version_id>
+  <version_modified>20170427T163028Z</version_modified>
   <xml_checksum>470FC630</xml_checksum>
   <class_name>ProcessGroundSourceHeatPumpVerticalBore</class_name>
   <display_name>Set Residential Ground Source Heat Pump Vertical Bore</display_name>
@@ -254,6 +254,29 @@
       <default_value>0.9661</default_value>
     </argument>
     <argument>
+      <name>u_tube_spacing_type</name>
+      <display_name>U Tube Spacing Type</display_name>
+      <description>U-tube shank spacing type. Type B, for 5" bore is equivalent to 0.9661" shank spacing. Type C is the type where the U tube legs are furthest apart.</description>
+      <type>Choice</type>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>b</default_value>
+      <choices>
+        <choice>
+          <value>as</value>
+          <display_name>as</display_name>
+        </choice>
+        <choice>
+          <value>b</value>
+          <display_name>b</display_name>
+        </choice>
+        <choice>
+          <value>c</value>
+          <display_name>c</display_name>
+        </choice>
+      </choices>
+    </argument>
+    <argument>
       <name>rated_shr</name>
       <display_name>Rated SHR</display_name>
       <description>The sensible heat ratio (ratio of the sensible portion of the load to the total load) at the nominal rated capacity.</description>
@@ -273,15 +296,19 @@
       <default_value>0.5</default_value>
     </argument>
     <argument>
-      <name>gshp_capacity</name>
+      <name>heat_pump_capacity</name>
       <display_name>Heat Pump Capacity</display_name>
       <description>The output heating/cooling capacity of the heat pump.</description>
       <type>Choice</type>
       <units>tons</units>
       <required>true</required>
       <model_dependent>false</model_dependent>
-      <default_value>3.0</default_value>
+      <default_value>autosize</default_value>
       <choices>
+        <choice>
+          <value>autosize</value>
+          <display_name>autosize</display_name>
+        </choice>
         <choice>
           <value>0.5</value>
           <display_name>0.5</display_name>
@@ -554,12 +581,6 @@
       <checksum>DCB12FCF</checksum>
     </file>
     <file>
-      <filename>util.rb</filename>
-      <filetype>rb</filetype>
-      <usage_type>resource</usage_type>
-      <checksum>37254C93</checksum>
-    </file>
-    <file>
       <filename>SFD_2000sqft_2story_FB_UA.osm</filename>
       <filetype>osm</filetype>
       <usage_type>test</usage_type>
@@ -650,29 +671,6 @@
       <checksum>30D177B6</checksum>
     </file>
     <file>
-      <version>
-        <software_program>OpenStudio</software_program>
-        <identifier>1.14.0</identifier>
-        <min_compatible>2.0.4</min_compatible>
-      </version>
-      <filename>measure.rb</filename>
-      <filetype>rb</filetype>
-      <usage_type>script</usage_type>
-      <checksum>8EF2A6F6</checksum>
-    </file>
-    <file>
-      <filename>hvac.rb</filename>
-      <filetype>rb</filetype>
-      <usage_type>resource</usage_type>
-      <checksum>27E5CCE6</checksum>
-    </file>
-    <file>
-      <filename>weather.rb</filename>
-      <filetype>rb</filetype>
-      <usage_type>resource</usage_type>
-      <checksum>D04CADDB</checksum>
-    </file>
-    <file>
       <filename>SFD_2000sqft_2story_FB_UA_Denver_Boiler.osm</filename>
       <filetype>osm</filetype>
       <usage_type>test</usage_type>
@@ -691,22 +689,51 @@
       <checksum>98D29F9B</checksum>
     </file>
     <file>
-      <filename>process_ground_source_heat_pump_vertical_bore_test.rb</filename>
-      <filetype>rb</filetype>
-      <usage_type>test</usage_type>
-      <checksum>B6BA7507</checksum>
-    </file>
-    <file>
-      <filename>geometry.rb</filename>
+      <filename>hvac.rb</filename>
       <filetype>rb</filetype>
       <usage_type>resource</usage_type>
-      <checksum>17063A91</checksum>
+      <checksum>EB0DBEE2</checksum>
     </file>
     <file>
       <filename>constants.rb</filename>
       <filetype>rb</filetype>
       <usage_type>resource</usage_type>
-      <checksum>AAE3D2EE</checksum>
+      <checksum>8DCDCE57</checksum>
+    </file>
+    <file>
+      <filename>process_ground_source_heat_pump_vertical_bore_test.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>test</usage_type>
+      <checksum>B17A766F</checksum>
+    </file>
+    <file>
+      <filename>util.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>D3BD80AC</checksum>
+    </file>
+    <file>
+      <filename>weather.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>36B7CAC2</checksum>
+    </file>
+    <file>
+      <version>
+        <software_program>OpenStudio</software_program>
+        <identifier>1.14.0</identifier>
+        <min_compatible>2.0.4</min_compatible>
+      </version>
+      <filename>measure.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>script</usage_type>
+      <checksum>DFD4DC70</checksum>
+    </file>
+    <file>
+      <filename>geometry.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>31FE0BE6</checksum>
     </file>
   </files>
 </measure>

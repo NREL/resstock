@@ -1,17 +1,12 @@
 require 'bundler'
 Bundler.setup
 
-require 'rake'
-require 'rake/clean'
-
-CLEAN.include('*.pem', '*.pub', './projects/*.json', '*.json', 'faraday.log')
-
 desc 'Copy measures/osms from OpenStudio-BEopt repo'
 task :copy_beopt_files do
   require 'fileutils'
 
   beopt_measures_dir = File.join(File.dirname(__FILE__), "..", "OpenStudio-BEopt", "measures")
-  resstock_measures_dir = File.join(File.dirname(__FILE__), "resources", "measures")
+  buildstock_measures_dir = File.join(File.dirname(__FILE__), "resources", "measures")
   if not Dir.exist?(beopt_measures_dir)
     puts "Cannot find OpenStudio-BEopt measures dir at #{beopt_measures_dir}."
   end
@@ -28,41 +23,41 @@ task :copy_beopt_files do
       beopt_file = File.join(File.dirname(__FILE__), "..", "OpenStudio-BEopt", extra_file)
       if extra_file.start_with?("seeds") # Distribute to all projects
         project_dir_names.each do |project_dir_name|
-          resstock_file = File.join(File.dirname(__FILE__), project_dir_name, extra_file)
-          if File.exists?(resstock_file)
-            FileUtils.rm(resstock_file)
+          buildstock_file = File.join(File.dirname(__FILE__), project_dir_name, extra_file)
+          if File.exists?(buildstock_file)
+            FileUtils.rm(buildstock_file)
           end
-          FileUtils.cp(beopt_file, resstock_file)
+          FileUtils.cp(beopt_file, buildstock_file)
         end
       else # Copy to resources dir
-        resstock_file = File.join(File.dirname(__FILE__), extra_file)
-        if File.exists?(resstock_file)
-          FileUtils.rm(resstock_file)
+        buildstock_file = File.join(File.dirname(__FILE__), extra_file)
+        if File.exists?(buildstock_file)
+          FileUtils.rm(buildstock_file)
         end
-        FileUtils.cp(beopt_file, resstock_file)
+        FileUtils.cp(beopt_file, buildstock_file)
       end
   end
   
-  puts "Deleting #{resstock_measures_dir}..."
-  while Dir.exist?(resstock_measures_dir)
-    FileUtils.rm_rf("#{resstock_measures_dir}/.", secure: true)
+  puts "Deleting #{buildstock_measures_dir}..."
+  while Dir.exist?(buildstock_measures_dir)
+    FileUtils.rm_rf("#{buildstock_measures_dir}/.", secure: true)
     sleep 1
   end
-  FileUtils.makedirs(resstock_measures_dir)
+  FileUtils.makedirs(buildstock_measures_dir)
   
   Dir.foreach(beopt_measures_dir) do |item|
     next if !item.include? 'Residential'
     beopt_measure_dir = File.join(beopt_measures_dir, item)
     next if not Dir.exist?(beopt_measure_dir)
     puts "Copying #{item} measure..."
-    FileUtils.cp_r(beopt_measure_dir, resstock_measures_dir)
-    resstock_measure_test_dir = File.join(resstock_measures_dir, item, "tests")
-    if Dir.exist?(resstock_measure_test_dir)
-      FileUtils.rm_rf("#{resstock_measure_test_dir}/.", secure: true)
+    FileUtils.cp_r(beopt_measure_dir, buildstock_measures_dir)
+    buildstock_measure_test_dir = File.join(buildstock_measures_dir, item, "tests")
+    if Dir.exist?(buildstock_measure_test_dir)
+      FileUtils.rm_rf("#{buildstock_measure_test_dir}/.", secure: true)
     end
-    resstock_measure_cov_dir = File.join(resstock_measures_dir, item, "coverage")
-    if Dir.exist?(resstock_measure_cov_dir)
-      FileUtils.rm_rf("#{resstock_measure_cov_dir}/.", secure: true)
+    buildstock_measure_cov_dir = File.join(buildstock_measures_dir, item, "coverage")
+    if Dir.exist?(buildstock_measure_cov_dir)
+      FileUtils.rm_rf("#{buildstock_measure_cov_dir}/.", secure: true)
     end
   end
 end
@@ -72,7 +67,7 @@ task :integrity_check_all do
     integrity_check()
 end # rake task
 
-desc 'Perform integrity check on inputs for project_ressstock_national'
+desc 'Perform integrity check on inputs for project_resstock_national'
 task :integrity_check_resstock_national do
     integrity_check(['project_resstock_national'])
 end # rake task
@@ -94,13 +89,10 @@ def integrity_check(project_dir_names=nil)
     project_dir_names = get_all_project_dir_names()
   end
 
-  # Load helper file
+  # Load helper file and sampling file
   resources_dir = File.join(File.dirname(__FILE__), 'resources')
   require File.join(resources_dir, 'helper_methods')
-  
-  # Load sampling file
-  worker_initialize_dir = File.join(File.dirname(__FILE__), 'worker_initialize')
-  require File.join(worker_initialize_dir, 'run_sampling')
+  require File.join(resources_dir, 'run_sampling')
     
   # Setup
   lookup_file = File.join(resources_dir, 'options_lookup.tsv')

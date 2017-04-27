@@ -98,6 +98,23 @@ class BuildExistingModel < OpenStudio::Ruleset::ModelUserScript
 
     end
     
+    # Create a workflow based on the measures we're going to call. Convenient for debugging.
+    workflowJSON = OpenStudio::WorkflowJSON.new
+    workflowJSON.setOswPath(File.expand_path("../measures.osw"))
+    workflowJSON.addMeasurePath("measures")
+    workflowJSON.setSeedFile("seeds/EmptySeedModel.osm")
+    steps = OpenStudio::WorkflowStepVector.new
+    measures.keys.each do |measure_subdir|
+        step = OpenStudio::MeasureStep.new(measure_subdir)
+        measures[measure_subdir].each do |k,v|
+            next if v.nil?
+            step.setArgument(k, v)
+        end
+        steps.push(step)
+    end
+    workflowJSON.setWorkflowSteps(steps)
+    workflowJSON.save
+    
     # Call each measure for sample to build up model
     measures.keys.each do |measure_subdir|
         # Gather measure arguments and call measure
@@ -112,7 +129,7 @@ class BuildExistingModel < OpenStudio::Ruleset::ModelUserScript
             return false
         end
     end
-    
+        
     # Determine weight
     if not number_of_buildings_represented.nil?
         total_samples = 100 # Temporary

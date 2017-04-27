@@ -749,6 +749,13 @@ class Constants
     end
     return "residential sink dist#{s_unit}"
   end
+  def self.ObjectNameSolarHotWater(unit_name=self.ObjectNameBuildingUnit)
+    s_unit = ""
+    if unit_name != self.ObjectNameBuildingUnit
+      s_unit = "|#{unit_name}"
+    end
+    return "residential solar hot water#{s_unit}"
+  end
   def self.ObjectNameWaterHeater(unit_name=self.ObjectNameBuildingUnit)
     s_unit = ""
     if unit_name != self.ObjectNameBuildingUnit
@@ -872,6 +879,9 @@ class Constants
   def self.SizingInfoBasementWallRvalue(surface)
     return self.SizingInfo(__method__.to_s, surface)
   end
+  def self.SizingInfoCMUWallFurringInsRvalue(surface)
+    return self.SizingInfo(__method__.to_s, surface)
+  end
   def self.SizingInfoDuctsLocationFrac
     return self.SizingInfo(__method__.to_s)
   end
@@ -894,6 +904,30 @@ class Constants
     return self.SizingInfo(__method__.to_s)
   end
   def self.SizingInfoDuctsSupplySurfaceArea
+    return self.SizingInfo(__method__.to_s)
+  end
+  def self.SizingInfoGarageFracUnderFinishedSpace
+    return self.SizingInfo(__method__.to_s)
+  end
+  def self.SizingInfoGSHPBoreConfig
+    return self.SizingInfo(__method__.to_s)
+  end
+  def self.SizingInfoGSHPBoreDepth
+    return self.SizingInfo(__method__.to_s)
+  end
+  def self.SizingInfoGSHPBoreHoles
+    return self.SizingInfo(__method__.to_s)
+  end
+  def self.SizingInfoGSHPBoreSpacing
+    return self.SizingInfo(__method__.to_s)
+  end
+  def self.SizingInfoGSHPCoil_BF_FT_SPEC
+    return self.SizingInfo(__method__.to_s)
+  end
+  def self.SizingInfoGSHPCoilBF
+    return self.SizingInfo(__method__.to_s)
+  end
+  def self.SizingInfoGSHPUTubeSpacingType
     return self.SizingInfo(__method__.to_s)
   end
   def self.SizingInfoHPSizedForMaxLoad
@@ -977,6 +1011,9 @@ class Constants
   def self.SizingInfoSpaceWallsInsulated(space)
     return self.SizingInfo(__method__.to_s, space)
   end
+  def self.SizingInfoStudWallCavityRvalue(surface)
+    return self.SizingInfo(__method__.to_s, surface)
+  end
   def self.SizingInfoWallType(surface)
     return self.SizingInfo(__method__.to_s, surface)
   end
@@ -984,9 +1021,6 @@ class Constants
     return self.SizingInfo(__method__.to_s, surface)
   end
   def self.SizingInfoWallRigidInsThickness(surface)
-    return self.SizingInfo(__method__.to_s, surface)
-  end
-  def self.SizingInfoWoodStudWallCavityRvalue(surface)
     return self.SizingInfo(__method__.to_s, surface)
   end
   def self.SizingInfoZoneInfiltrationCFM(zone)

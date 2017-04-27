@@ -95,8 +95,8 @@ class ResidentialPhotovoltaics < OpenStudio::Measure::ModelMeasure
     azimuth = OpenStudio::Measure::OSArgument::makeDoubleArgument("azimuth", false)
     azimuth.setDisplayName("Azimuth")
     azimuth.setUnits("degrees")
-    azimuth.setDescription("The azimuth angle is measured clockwise.")
-    azimuth.setDefaultValue(0)
+    azimuth.setDescription("The azimuth angle is measured clockwise, based on the azimuth type specified.")
+    azimuth.setDefaultValue(180.0)
     args << azimuth
     
     #make a choice arguments for tilt type
@@ -149,7 +149,7 @@ class ResidentialPhotovoltaics < OpenStudio::Measure::ModelMeasure
     if azimuth > 360 or azimuth < 0
       runner.registerError("Invalid azimuth entered.")
       return false
-    end	    
+    end
     
     pv_system = PVSystem.new
     pv_azimuth = PVAzimuth.new
@@ -169,8 +169,8 @@ class ResidentialPhotovoltaics < OpenStudio::Measure::ModelMeasure
     pv_system.module_type = {Constants.PVModuleTypeStandard=>0, Constants.PVModuleTypePremium=>1, Constants.PVModuleTypeThinFilm=>2}[module_type]
     pv_system.inv_eff = inverter_efficiency * 100.0
     pv_system.losses = system_losses * 100.0
-    pv_azimuth.abs = get_abs_azimuth(azimuth_type, azimuth, model.getBuilding.northAxis)
-    pv_tilt.abs = get_abs_tilt(tilt_type, tilt, roof_tilt, @weather.header.Latitude)
+    pv_azimuth.abs = Geometry.get_abs_azimuth(azimuth_type, azimuth, model.getBuilding.northAxis)
+    pv_tilt.abs = Geometry.get_abs_tilt(tilt_type, tilt, roof_tilt, @weather.header.Latitude)
                 
     p_data = SscApi.create_data_object
     SscApi.set_number(p_data, 'system_capacity', pv_system.size)
@@ -257,39 +257,6 @@ class ResidentialPhotovoltaics < OpenStudio::Measure::ModelMeasure
       
     return true
 
-  end
-  
-  def get_abs_azimuth(azimuth_type, relative_azimuth, building_orientation)
-    azimuth = nil
-    if azimuth_type == Constants.CoordRelative
-      azimuth = relative_azimuth + building_orientation
-    elsif azimuth_type == Constants.CoordAbsolute
-      azimuth = relative_azimuth
-    end    
-    
-    # Ensure Azimuth is >=0 and <=360
-    if azimuth < 0.0
-      azimuth += 360.0
-    end
-
-    if azimuth >= 360.0
-      azimuth -= 360.0
-    end
-    
-    return azimuth
-    
-  end
-  
-  def get_abs_tilt(tilt_type, relative_tilt, roof_tilt, latitude)
-  
-    if tilt_type == Constants.TiltPitch
-      return relative_tilt + roof_tilt
-    elsif tilt_type == Constants.TiltLatitude
-      return relative_tilt + latitude
-    elsif tilt_type == Constants.CoordAbsolute
-      return relative_tilt
-    end
-    
   end
   
 end

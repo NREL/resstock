@@ -202,7 +202,7 @@ class ProcessConstructionsWallsExteriorSIP < OpenStudio::Measure::ModelMeasure
         units.each do |unit|
             next if not unit.spaces.include?(surface.space.get)
             unit.setFeature(Constants.SizingInfoWallType(surface), "SIP")
-            unit.setFeature(Constants.SizingInfoWallType(surface), sipInsThickness)
+            unit.setFeature(Constants.SizingInfoSIPWallInsThickness(surface), sipInsThickness)
         end
     end
 

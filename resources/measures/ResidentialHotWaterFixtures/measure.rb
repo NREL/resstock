@@ -308,7 +308,7 @@ class ResidentialHotWaterFixtures < OpenStudio::Measure::ModelMeasure
             if b_gpd > 0
             
                 # Create schedule
-                sch_b = HotWaterSchedule.new(model, runner, Constants.ObjectNameSink + " schedule", Constants.ObjectNameSink + " temperature schedule", nbeds, sch_unit_index, "Bath", mixed_use_t, File.dirname(__FILE__))
+                sch_b = HotWaterSchedule.new(model, runner, Constants.ObjectNameBath + " schedule", Constants.ObjectNameBath + " temperature schedule", nbeds, sch_unit_index, "Bath", mixed_use_t, File.dirname(__FILE__))
                 if not sch_b.validated?
                     return false
                 end

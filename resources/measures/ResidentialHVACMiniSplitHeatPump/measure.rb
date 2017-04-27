@@ -680,7 +680,7 @@ class ProcessVRFMinisplit < OpenStudio::Measure::ModelMeasure
         
     cop_maxSpeed_1 = cop_maxSpeed
     cop_maxSpeed_2 = cop_maxSpeed                
-    error = coolingSEER - calc_SEER_VariableSpeed(eers_Rated, c_d, capacity_Ratio_Cooling, coolingCFMs, fanPowsRated, true, number_Speeds, cOOL_EIR_FT_SPEC, cOOL_CAP_FT_SPEC)
+    error = coolingSEER - calc_SEER_VariableSpeed(eers_Rated, c_d, capacity_Ratio_Cooling, coolingCFMs, fanPowsRated, true, cOOL_EIR_FT_SPEC, cOOL_CAP_FT_SPEC)
     error1 = error
     error2 = error
     
@@ -694,7 +694,7 @@ class ProcessVRFMinisplit < OpenStudio::Measure::ModelMeasure
             eers_Rated[i] = OpenStudio::convert(cop_maxSpeed,"W","Btu/h").get * cops_Norm[i]
         end
         
-        error = coolingSEER - calc_SEER_VariableSpeed(eers_Rated, c_d, capacity_Ratio_Cooling, coolingCFMs, fanPowsRated, true, number_Speeds, cOOL_EIR_FT_SPEC, cOOL_CAP_FT_SPEC)
+        error = coolingSEER - calc_SEER_VariableSpeed(eers_Rated, c_d, capacity_Ratio_Cooling, coolingCFMs, fanPowsRated, true, cOOL_EIR_FT_SPEC, cOOL_CAP_FT_SPEC)
         
         cop_maxSpeed,cvg,cop_maxSpeed_1,error1,cop_maxSpeed_2,error2 = MathTools.Iterate(cop_maxSpeed,error,cop_maxSpeed_1,error1,cop_maxSpeed_2,error2,n,cvg)
     
@@ -716,22 +716,16 @@ class ProcessVRFMinisplit < OpenStudio::Measure::ModelMeasure
 
   end
   
-  def calc_SEER_VariableSpeed(eer_A, c_d, capacityRatio, cfm_Tons, supplyFanPower_Rated, isHeatPump, number_Speeds, cOOL_EIR_FT_SPEC, cOOL_CAP_FT_SPEC)
+  def calc_SEER_VariableSpeed(eer_A, c_d, capacityRatio, cfm_Tons, supplyFanPower_Rated, isHeatPump, cOOL_EIR_FT_SPEC, cOOL_CAP_FT_SPEC)
     
     n_max = (eer_A.length-1.0)-3.0 # Don't use max speed
     n_min = 0.0
     n_int = (n_min + (n_max-n_min)/3.0).ceil.to_i
 
-    wBin = 67.0
-    tout_B = 82.0
-    tout_E = 87.0
-    tout_F = 67.0
-    if number_Speeds == number_Speeds # FIXME: Need to look into this.
-        wBin = OpenStudio::convert(wBin,"F","C").get
-        tout_B = OpenStudio::convert(tout_B,"F","C").get
-        tout_E = OpenStudio::convert(tout_E,"F","C").get
-        tout_F = OpenStudio::convert(tout_F,"F","C").get
-    end
+    wBin = OpenStudio::convert(67.0,"F","C").get
+    tout_B = OpenStudio::convert(82.0,"F","C").get
+    tout_E = OpenStudio::convert(87.0,"F","C").get
+    tout_F = OpenStudio::convert(67.0,"F","C").get
 
     eir_A2 = HVAC.calc_EIR_from_EER(eer_A[n_max], supplyFanPower_Rated[n_max])    
     eir_B2 = eir_A2 * MathTools.biquadratic(wBin, tout_B, cOOL_EIR_FT_SPEC[n_max]) 
@@ -863,7 +857,7 @@ class ProcessVRFMinisplit < OpenStudio::Measure::ModelMeasure
         
     cop_maxSpeed_1 = cop_maxSpeed
     cop_maxSpeed_2 = cop_maxSpeed                
-    error = heatingHSPF - calc_HSPF_VariableSpeed(cops_Rated, c_d, capacity_Ratio_Heating, heatingCFMs, fanPowsRated, min_hp_temp, number_Speeds, mshp_capacity_retention_fraction, mshp_capacity_retention_temperature, hEAT_EIR_FT_SPEC, hEAT_CAP_FT_SPEC)
+    error = heatingHSPF - calc_HSPF_VariableSpeed(cops_Rated, c_d, capacity_Ratio_Heating, heatingCFMs, fanPowsRated, min_hp_temp, mshp_capacity_retention_fraction, mshp_capacity_retention_temperature, hEAT_EIR_FT_SPEC, hEAT_CAP_FT_SPEC)
     
     error1 = error
     error2 = error
@@ -878,7 +872,7 @@ class ProcessVRFMinisplit < OpenStudio::Measure::ModelMeasure
             cops_Rated[i] = cop_maxSpeed * cops_Norm[i]
         end
         
-        error = heatingHSPF - calc_HSPF_VariableSpeed(cops_Rated, c_d, capacity_Ratio_Heating, coolingCFMs, fanPowsRated, min_hp_temp, number_Speeds, mshp_capacity_retention_fraction, mshp_capacity_retention_temperature, hEAT_EIR_FT_SPEC, hEAT_CAP_FT_SPEC)
+        error = heatingHSPF - calc_HSPF_VariableSpeed(cops_Rated, c_d, capacity_Ratio_Heating, coolingCFMs, fanPowsRated, min_hp_temp, mshp_capacity_retention_fraction, mshp_capacity_retention_temperature, hEAT_EIR_FT_SPEC, hEAT_CAP_FT_SPEC)
         
         cop_maxSpeed,cvg,cop_maxSpeed_1,error1,cop_maxSpeed_2,error2 = MathTools.Iterate(cop_maxSpeed,error,cop_maxSpeed_1,error1,cop_maxSpeed_2,error2,n,cvg)
     
@@ -900,22 +894,16 @@ class ProcessVRFMinisplit < OpenStudio::Measure::ModelMeasure
     
   end  
   
-  def calc_HSPF_VariableSpeed(cop_47, c_d, capacityRatio, cfm_Tons, supplyFanPower_Rated, min_temp, number_Speeds, mshp_capacity_retention_fraction, mshp_capacity_retention_temperature, hEAT_EIR_FT_SPEC, hEAT_CAP_FT_SPEC)
+  def calc_HSPF_VariableSpeed(cop_47, c_d, capacityRatio, cfm_Tons, supplyFanPower_Rated, min_temp, mshp_capacity_retention_fraction, mshp_capacity_retention_temperature, hEAT_EIR_FT_SPEC, hEAT_CAP_FT_SPEC)
     
     n_max = (cop_47.length-1.0)#-3 # Don't use max speed
     n_min = 0
     n_int = (n_min + (n_max-n_min)/3.0).ceil.to_i
 
-    tin = 70.0
-    tout_3 = 17.0
-    tout_2 = 35.0
-    tout_0 = 62.0
-    if number_Speeds == number_Speeds # FIXME: Need to look into this.
-        tin = OpenStudio::convert(tin,"F","C").get
-        tout_3 = OpenStudio::convert(tout_3,"F","C").get
-        tout_2 = OpenStudio::convert(tout_2,"F","C").get
-        tout_0 = OpenStudio::convert(tout_0,"F","C").get
-    end
+    tin = OpenStudio::convert(70.0,"F","C").get
+    tout_3 = OpenStudio::convert(17.0,"F","C").get
+    tout_2 = OpenStudio::convert(35.0,"F","C").get
+    tout_0 = OpenStudio::convert(62.0,"F","C").get
     
     eir_H1_2 = HVAC.calc_EIR_from_COP(cop_47[n_max], supplyFanPower_Rated[n_max])    
     eir_H3_2 = eir_H1_2 * MathTools.biquadratic(tin, tout_3, hEAT_EIR_FT_SPEC[n_max])

@@ -2,6 +2,40 @@ require "#{File.dirname(__FILE__)}/constants"
 
 class Geometry
 
+    def self.get_abs_azimuth(azimuth_type, relative_azimuth, building_orientation, offset=180.0)
+
+      azimuth = nil
+      if azimuth_type == Constants.CoordRelative
+        azimuth = relative_azimuth + building_orientation + offset
+      elsif azimuth_type == Constants.CoordAbsolute
+        azimuth = relative_azimuth + offset
+      end    
+      
+      # Ensure azimuth is >=0 and <=360
+      while azimuth < 0.0
+        azimuth += 360.0
+      end
+
+      while azimuth >= 360.0
+        azimuth -= 360.0
+      end
+
+      return azimuth
+
+    end
+
+    def self.get_abs_tilt(tilt_type, relative_tilt, roof_tilt, latitude)
+    
+      if tilt_type == Constants.TiltPitch
+        return relative_tilt + roof_tilt
+      elsif tilt_type == Constants.TiltLatitude
+        return relative_tilt + latitude
+      elsif tilt_type == Constants.CoordAbsolute
+        return relative_tilt
+      end
+
+    end
+
     def self.initialize_transformation_matrix(m)
       m[0,0] = 1
       m[1,1] = 1
@@ -43,7 +77,7 @@ class Geometry
       return l, w, h
     end
 
-    # FIXME: Use algorithm in calculate_avg_roof_pitch instead
+    # TODO: Use algorithm in calculate_avg_roof_pitch instead
     def self.get_roof_pitch(surfaces)
       surfaces.each do |surface|
         next if surface.space.get.name.to_s.downcase.include? "garage" # don't determine the attic height increase based on the garage (gable) roof
@@ -364,7 +398,7 @@ class Geometry
     end
     
     def self.zone_is_finished(zone)
-        # FIXME: Ugly hack until we can get finished zones from OS
+        # TODO: Ugly hack until we can get finished zones from OS
         if zone.name.to_s.start_with?(Constants.LivingZone) or zone.name.to_s.start_with?(Constants.FinishedBasementZone) or zone.name.to_s.start_with?(Constants.URBANoptFinishedZoneIdentifier)
             return true
         end
@@ -646,7 +680,7 @@ class Geometry
     
     # Takes in a list of ground exposed floor surfaces for which to calculate the perimeter; 
     # checks for edges shared by a ground exposed floor and 1) exterior exposed or 2) interzonal wall.
-    # FIXME: Has not been tested on buildings with multiple foundations 
+    # TODO: Has not been tested on buildings with multiple foundations 
     #        (aside from basements/crawls with attached garages over slabs)
     # TODO: Update code to work for non-rectangular buildings.
     def self.calculate_exposed_perimeter(model, ground_floor_surfaces, has_foundation_walls=false)

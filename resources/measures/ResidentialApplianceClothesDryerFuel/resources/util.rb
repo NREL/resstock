@@ -4,22 +4,6 @@ require "#{File.dirname(__FILE__)}/constants"
 
 class HelperMethods
     
-    def self.remove_object_from_idf_based_on_name(workspace, name_s, object_s, runner=nil) # TODO: remove after testing new airflow measure
-      workspace.getObjectsByType(object_s.to_IddObjectType).each do |str|
-        n = str.getString(0).to_s
-        name_s.each do |name|
-          if n.include? name
-            str.remove
-            unless runner.nil?
-              runner.registerInfo("Removed object '#{object_s} - #{n}'")
-            end
-            break
-          end
-        end
-      end
-      return workspace
-    end
-    
     def self.eplus_fuel_map(fuel)
         if fuel == Constants.FuelTypeElectric
             return "Electricity"
@@ -1162,7 +1146,7 @@ class Construction
             # Note: We determine types of layers (exterior finish, etc.) by name.
             # The code below defines the target layer positions for the materials when the 
             # construction is complete.
-            # FIXME: This is all a huge hack until we can use StandardsInfo to classify layers.
+            # TODO: This is all a huge hack until we can use StandardsInfo to classify layers.
             if surface.surfaceType.downcase == "wall" # Wall
                 target_positions_std = {Constants.MaterialWallExtFinish => 0, # outside
                                         Constants.MaterialWallRigidIns => 1,

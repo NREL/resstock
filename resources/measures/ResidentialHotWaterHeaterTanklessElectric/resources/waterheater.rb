@@ -258,7 +258,7 @@ class Waterheater
         return pump
     end
     
-    def self.create_new_schedule_manager(t_set, model, wh_type)
+    def self.create_new_schedule_manager(t_set, model, wh_type="tank")
         if wh_type == "tank"
             new_schedule = self.create_new_schedule_ruleset("DHW Temp", "DHW Temp Default", OpenStudio::convert(t_set,"F","C").get + 1, model)
         else #tankless
@@ -366,7 +366,7 @@ class Waterheater
         new_heater.setSetpointTemperatureSchedule(new_schedule)
     end
     
-    def self.create_new_loop(model, name, t_set, wh_type)
+    def self.create_new_loop(model, name, t_set, wh_type="tank")
         #Create a new plant loop for the water heater
         loop = OpenStudio::Model::PlantLoop.new(model)
         loop.setName(name)
@@ -405,8 +405,7 @@ class Waterheater
                 if wh.to_WaterHeaterMixed.is_initialized
                     waterHeater = wh.to_WaterHeaterMixed.get
                     wh_type = "mixed"
-                else
-                    next
+                    break
                 end
             end
         end
@@ -432,14 +431,15 @@ class Waterheater
             if min_max_result['min'] != min_max_result['max']
                 runner.registerWarning("Water heater setpoint is not constant. Using average setpoint temperature of #{wh_setpoint.round} F.")
             end
+            return OpenStudio.convert(wh_setpoint,"C","F").get
         else #wh_type == "hpwh"
             min_max_result = Schedule.getMinMaxAnnualProfileValue(model, waterHeater.compressorSetpointTemperatureSchedule)
             wh_setpoint = (min_max_result['min'] + min_max_result['max'])/2.0
             if min_max_result['min'] != min_max_result['max']
                 runner.registerWarning("Water heater setpoint is not constant. Using average setpoint temperature of #{wh_setpoint.round} F.")
             end
+            return OpenStudio.convert(wh_setpoint,"C","F").get
         end
-        return OpenStudio.convert(wh_setpoint, "C", "F").get
     end
     
     def self.get_water_heater_location_auto(model, spaces, runner)
@@ -466,7 +466,7 @@ class Waterheater
                 wh_tz = living.thermalZone.get
             end
         elsif ba_cz_name == Constants.BAZoneMarine or ba_cz_name == Constants.BAZoneMixedHumid or ba_cz_name == Constants.BAZoneMixedHumid or ba_cz_name == Constants.BAZoneCold or ba_cz_name == Constants.BAZoneVeryCold or ba_cz_name == Constants.BAZoneSubarctic
-            #FIXME: always locating the water heater in the first unconditioned space, what if there's multiple
+            #TODO: always locating the water heater in the first unconditioned space, what if there's multiple
             if fin_basement.length > 0
                 wh_tz = fin_basement[0].thermalZone.get
             elsif unfin_basement.length > 0
@@ -477,7 +477,7 @@ class Waterheater
         else
             runner.registerWarning("No Building America climate zone has been assigned. The water heater location will be chosen with the following priority: basement > garage > living")
             #check for suitable WH locations
-            #FIXME: in BEopt, priority goes living>fin attic. Since we always assign a zone as the living space in OS, this is the final location.
+            #TODO: in BEopt, priority goes living>fin attic. Since we always assign a zone as the living space in OS, this is the final location.
             #If geometry.rb is changed to better identify living zones, update this code to differentiate between living tz and fin attic tz
             if fin_basement.length > 0
                 wh_tz = fin_basement[0].thermalZone.get
