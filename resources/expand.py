@@ -5,12 +5,12 @@ import numpy as np
 import time
 import argparse
 import warnings
-from memory_profiler import profile
 warnings.filterwarnings('ignore')
 from configparser import ConfigParser
 from sqlalchemy import create_engine
  
-def config(filename='buildstock.ini', section='postgresql'):
+def config(filename='openstudio-resstock.ini', section='postgresql'):
+
   # create a parser
   parser = ConfigParser()
   # read config file
@@ -27,31 +27,28 @@ def config(filename='buildstock.ini', section='postgresql'):
 
   return db
 
-def main(output_file, tsv_file, func, chunk_size):
-
-  # read connection parameters
-  params = config()
-
-  # connect to the PostgreSQL server
-  print 'Connecting to the PostgreSQL database...'  
-  engine = create_engine('postgresql://{user}:{password}@{host}:{port}/{database}'.format(**params))
+def main(output_file, tsv_file, func):
 
   if func == 'write':
 
-    db_writes(engine, output_file, tsv_file, chunk_size)
+    new_cols = {'Own, 0-200': ['Own, 0-50', 'Own, 50-100', 'Own, 100-150', 'Own, 150-200'], 'Own, 0-300+': ['Own, 0-50', 'Own, 50-100', 'Own, 100-150', 'Own, 150-200', 'Own, 200-250', 'Own, 250-300', 'Own, 300+']}
+    db_writes(output_file, tsv_file, new_cols)
   
   else:
   
     states = ['WI', 'IL', 'IN', 'MI', 'OH', 'NY', 'PA', 'NJ', 'ME', 'NH', 'VT', 'MA', 'CT', 'RI', 'ND', 'SD', 'NE', 'KS', 'MN', 'IA', 'MO', 'TX', 'OK', 'AR', 'LA', 'WA', 'OR', 'CA', 'NV', 'ID', 'MT', 'WY', 'CO', 'UT', 'AZ', 'NM', 'WV', 'MD', 'DE', 'DC', 'VA', 'NC', 'SC', 'GA', 'FL', 'KY', 'TN', 'MS', 'AL']
-    tables = ['Federal Poverty Level', 'Geometry House Size', 'Vintage']
-    tables = ['Geometry House Size']
-    bins = ['Own, 0-50', 'Own, 50-100', 'Own, 100-150', '0-1499', '1500-2499', '2500-3499', '3500+', '<1950', '1950s', '1960s', '1970s', '1980s', '1990s']
+    tables = ['Federal Poverty Level']
+    # tables = ['Geometry House Size']
+    bins = ['Own, 0-50', 'Own, 50-100', 'Own, 100-150', 'Own, 0-200', 'Own, 0-300+']
+    # bins = ['0-1499', '1500-2499', '2500-3499', '3500+']
     enduses = ['simulation_output_report.Total Site Energy MBtu']
     
-    db_reads(engine, states, tables, bins, enduses)
+    db_reads(states, tables, bins, enduses)
+    
+def db_writes(output_file, tsv_file, new_cols):
 
-# @profile
-def db_writes(engine, output_file, tsv_file, chunk_size):
+  params = config()
+  engine = create_engine('postgresql://{user}:{password}@{host}:{port}/{database}'.format(**params))
 
   tsv = pd.read_csv(tsv_file, sep='\t')
   on = []
@@ -89,75 +86,67 @@ def db_writes(engine, output_file, tsv_file, chunk_size):
 
   # characteristics table
   print 'Creating table: characteristics'
-  predicted[char_vars].set_index('_id').to_sql('characteristics', engine, if_exists='replace')
+  predicted[char_vars].set_index('_id').to_sql('characteristics', engine, schema='buildingstock', if_exists='replace')
   
   # results table
   print 'Creating table: results'
-  predicted[['_id'] + res_vars].set_index('_id').to_sql('results', engine, if_exists='replace')
+  predicted[['_id'] + res_vars].set_index('_id').to_sql('results', engine, schema='buildingstock', if_exists='replace')
   
   # weights table
   print 'Creating table: {}'.format(os.path.basename(tsv_file).replace('.tsv', ''))
   for col in predicted[frac_vars].columns:
     predicted = predicted.rename(columns={col: col.replace('Option=', '')})
   frac_vars = [col.replace('Option=', '') for col in frac_vars]
-  predicted[['_id'] + frac_vars].set_index('_id').to_sql(os.path.basename(tsv_file).replace('.tsv', ''), engine, if_exists='replace')
+  for new_col, old_cols in new_cols.items():
+    predicted[new_col] = predicted[old_cols].sum(axis=1)
+    frac_vars.append(new_col)
+  predicted[['_id'] + frac_vars].set_index('_id').to_sql(os.path.basename(tsv_file).replace('.tsv', ''), engine, schema='buildingstock', if_exists='replace')
   
-def db_reads(engine, states=['CO'], tables=['Federal Poverty Level'], bins=['Own, 0-50'], enduses=['simulation_output_report.Total Site Energy MBtu']):
+def db_reads(states=['CO'], tables=['Federal Poverty Level'], bins=['Own, 0-50'], enduses=['simulation_output_report.Total Site Energy MBtu']):
 
-  char = pd.read_sql_table('characteristics', engine, index_col='_id')
+  params = config()
+  engine = create_engine('postgresql://{user}:{password}@{host}:{port}/{database}'.format(**params))
+
+  char = pd.read_sql_table('characteristics', engine, schema='buildingstock', index_col='_id')
 
   # apply filter(s)
   char = char[char['ST'].isin(states)]
-  chars_already_sampled = char.columns
-  char = char[['ST']]  
   
   # get results
   enduses.append('simulation_output_report.weight')
-  results = pd.read_sql_table('results', engine, index_col='_id')
-  results = char.join(results[enduses])
+  results = pd.read_sql_table('results', engine, schema='buildingstock', index_col='_id')
+  results = char[['ST']].join(results[enduses])
   
   # get weights
   for table in tables:
     
+    weights = pd.read_sql_table(table, engine, schema='buildingstock', index_col='_id')
+    
     for bin in bins:
     
-      if not bin in weights.columns:
-        continue
-
-      if not 'building_characteristics_report.{}'.format(table) in chars_already_sampled: # new characteristic
-        
-        weights = pd.read_sql_table(table, engine, index_col='_id')
-        table = weights[[bin]]
-        table = results.join(table)
-
-      else: # characteristic was already sampled
-      
-        table = results
-        table[bin] = 1
+      table = weights[[bin]]
+      table = results.join(table)
         
       # apply weights
       for enduse in enduses:
         table[enduse] *= table[bin]
-      
-      del table[bin]
-      
-      table['count'] = 1      
-      
-      wm = lambda x: np.average(x, weights=table.loc[x.index, 'simulation_output_report.weight'])
-      f = {'simulation_output_report.weight': np.sum, 'count': np.sum}
-      for enduse in enduses:
-        if enduse.endswith('.weight'):
-          continue
 
-        table['{} per house'.format(enduse)] = table[enduse]
-          
-        f[enduse] = np.sum
-        f['{} per house'.format(enduse)] = wm
+      f = {}
+      for enduse in enduses + [bin]:
+        f[enduse] = np.sum        
     
-      print 'Creating table: {}, aggregated by ST'.format(bin)
-      table.groupby('ST').agg(f).to_sql(bin, engine, if_exists='replace')
+      table = table.groupby('ST').agg(f)
+
+      for enduse in enduses:
+        if enduse.endswith('count') or enduse.endswith('.weight'):
+          continue
+        
+        table['{} per house'.format(enduse)] = table[enduse] / table[bin]
       
-      print table.groupby('ST').agg(f).sum()
+      print 'Creating table: {}, aggregated by ST'.format(bin)
+      table.to_sql(bin, engine, schema='buildingstock', if_exists='replace')
+      
+      print table.sum()
           
 if __name__ == '__main__':
 
@@ -167,9 +156,8 @@ if __name__ == '__main__':
   parser.add_argument('--output_file', default= '../analysis_results/resstock_national.csv', help='Relative path of the output csv file.')
   parser.add_argument('--tsv_file', default='../project_resstock_national/housing_characteristics/Federal Poverty Level.tsv', help='Relative path of the tsv file.')
   parser.add_argument('--function', default='write', help='Create the db or query it.')
-  parser.add_argument('--chunk_size', default=500.0, help='Size of chunk.')
   args = parser.parse_args()
 
-  main(args.output_file, args.tsv_file, args.function, args.chunk_size)
+  main(args.output_file, args.tsv_file, args.function)
   
   print "All done! Completed rows in {0:.2f} seconds on".format(time.time()-t0), time.strftime("%Y-%m-%d %H:%M")
