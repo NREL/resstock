@@ -174,7 +174,8 @@ class SimulationOutputReport < OpenStudio::Ruleset::ReportingUserScript
                     ]
     cooling_capacity_fields = [
                                'user-specified gross rated total cooling capacity',
-                               'speed 4 user-specified total cooling capacity'
+                               'speed 4 user-specified total cooling capacity',
+                               'speed 2 user-specified total cooling capacity'
                               ]
     cooling_capacity_w = nil
     cooling_coils.each do |cooling_coil|
