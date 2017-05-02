@@ -6,81 +6,38 @@ import psycopg2 as pg
 import numpy as np
 import sqlite3
 
+con = sqlite3.connect('../../../../BEopt-dev/Build/BEopt/Data/Measures.sqlite')
+Category = pd.read_sql_query('SELECT CategoryID, CategoryName from Category', con)
+Option = pd.read_sql_query('SELECT OptionGUID, OptionName from Option', con)
+
+con = sqlite3.connect('../../../../BEopt-dev/SREAT/Data/AppData.sqlite')
+BEoptCategoryDependency = pd.read_sql_query('SELECT * from BEoptCategoryDependency', con)
+MetaCategory = pd.read_sql_query('SELECT * from MetaCategory', con)
+MetaOption = pd.read_sql_query('SELECT ID, MetaCategoryID, Name from MetaOption', con)
+MetaOptionCombo = pd.read_sql_query('SELECT * from MetaOptionCombo', con)
+BEoptWeightingFactor = pd.read_sql_query('SELECT * from BEoptWeightingFactor', con)
+EPWs = MetaOption[MetaOption['MetaCategoryID']==1]['Name'].values
+
 def main(df):
 
+  # meta
   df = assign_epw_stations(df)
+  df = assign_location(df)
+  df = assign_vintage(df)
   df = assign_heating_fuel(df)
   df = assign_geometry_house_size(df)
   df = assign_geometry_stories(df)
   df = assign_geometry_garage(df)
-  df = assign_windows(df)
-  df = assign_hvac_system_heating(df)
-  df = assign_hvac_system_cooling(df)
-  df = assign_water_heater(df)
-  df = assign_cooking_range(df)
-  df = assign_clothes_dryer(df)
-  df = assign_heating_setpoint(df)
-  df = assign_cooling_setpoint(df)
-  df = assign_lighting(df)
-  df = assign_refrigerator(df)
-  df = assign_clothes_washer(df)
-  df = assign_dishwasher(df)
-  df = assign_misc_extra_refrigerator(df)
-  df = assign_misc_freezer(df)
-  df = assign_misc_gas_fireplace(df)
-  df = assign_misc_gas_grill(df)
-  df = assign_misc_gas_lighting(df)
-  df = assign_misc_hot_tub_spa(df)
-  df = assign_misc_pool(df)
-  df = assign_misc_well_pump(df)
+  df = assign_usage_level(df) # TODO: what is this based on in recs? right now i'm randomly assigning it
+  df = assign_heating_setpoint(df) # TODO: has no dependencies in appdata.sqlite
+  df = assign_cooling_setpoint(df) # TODO: has no dependencies in appdata.sqlite
 
-  col_to_category_name = {
-                          'Heating Setpoint': {'Heating Set Point': {'63F': ['63 F'], '68F': ['68 F'], '71F': ['71 F'], '73F': ['73 F']}},
-                          'Cooling Setpoint': {'Cooling Set Point': {'69F': ['69 F'], '74F': ['74 F'], '76F': ['76 F'], '78F': ['78 F']}},
-                          'Windows': {'Windows': {'1 Pane': ['Clear, Single, Metal', 'Clear, Single, Non-metal'], '2+ Pane': ['Clear, Double, Metal, Air', 'Clear, Double, Non-metal, Air', 'Low-E, Double, Non-metal, Air, L-Gain', 'Low-E, Triple, Non-metal, Air, L-Gain'], 'None': []}},
-                          'Water Heater': {'Water Heater': {'Electric Standard': ['Electric Standard'], 'Electric Tankless': ['Electric Tankless'], 'Gas Standard': ['Gas Standard'], 'Gas Tankless': ['Gas Tankless'], 'Oil Standard': ['Oil Standard'], 'Propane Standard': ['Propane Standard'], 'Propane Tankless': ['Propane Tankless']}},
-                          'Cooking Range': {'Cooking Range': {'Gas, 100% Usage': ['Gas, 80% Usage', 'Gas', 'Gas, 120% Usage'], 'Propane, 100% Usage': ['Propane, 80% Usage', 'Propane', 'Propane, 120% Usage'], 'Electric, 100% Usage': ['Electric, 80% Usage', 'Electric', 'Electric, 120% Usage'], 'None': ['None']}},
-                          'Clothes Dryer': {'Clothes Dryer': {'Gas, 100% Usage': ['Gas, 80% Usage', 'Gas', 'Gas, 120% Usage'], 'Propane, 100% Usage': ['Propane, 80% Usage', 'Propane', 'Propane, 120% Usage'], 'Electric, 100% Usage': ['Electric, 80% Usage', 'Electric', 'Electric, 120% Usage'], 'None': ['None']}},
-                          'Refrigerator': {'Refrigerator': {1: ['Bottom freezer, EF = 6.7', 'Bottom freezer, EF = 10.2', 'Top freezer, EF = 10.5', 'Bottom freezer, EF = 15.9'], 0: ['None']}},
-                          'Lighting': {'Lighting': {1: ['60% CFL', '100% CFL'], 0: ['100% Incandescent']}},
-                          'Dishwasher': {'Dishwasher': {1: ['290 Rated kWh, 80% Usage', '290 Rated kWh', '290 Rated kWh, 120% Usage', '318 Rated kWh, 80% Usage', '318 Rated kWh', '318 Rated kWh, 120% Usage'], 0: ['None']}},
-                          'Clothes Washer': {'Clothes Washer': {'Standard': ['Standard, 80% Usage', 'Standard', 'Standard, 120% Usage'], 'EnergyStar': ['EnergyStar, 80% Usage', 'EnergyStar', 'EnergyStar, 120% Usage'], 'None': ['None']}},
-                          'Misc Extra Refrigerator': {'Extra Refrigerator': {1: ['Top freezer, EF = 6.9, National Average']}},
-                          'Misc Freezer': {'Freezer': {1: ['Upright, EF = 12, National Average']}},
-                          'Misc Gas Fireplace': {'Gas Fireplace': {1: ['National Average']}},
-                          'Misc Gas Grill': {'Gas Grill': {1: ['National Average']}},
-                          'Misc Gas Lighting': {'Gas Lighting': {1: ['National Average']}},
-                          'Misc Hot Tub Spa': {'Hot Tub/Spa Heater': {1: ['National Average']}},
-                          'Misc Pool': {'Pool Heater': {1: ['National Average']}},
-                          'Misc Well Pump': {'Well Pump': {1: ['National Average']}},
-                          'HVAC System Cooling Central': {'Central Air Conditioner': {1: ['SEER 8', 'SEER 10', 'SEER 13', 'SEER 15'], 0: ['None']}},
-                          'HVAC System Cooling Air Source Heat Pump': {'Air Source Heat Pump': {1: ['SEER 10, 6.2 HSPF', 'SEER 13, 7.7 HSPF', 'SEER 15, 8.5 HSPF'], 0: ['None']}},
-                          'HVAC System Cooling Room': {'Room Air Conditioner': {1: ['EER 8.5, 20% Conditioned', 'EER 10.7, 20% Conditioned'], 0: ['None']}},
-                          'HVAC System Heating Furnace': {'Furnace': {'Electric Furnace': ['Electric, 100% AFUE'], 'Gas Furnace': ['Gas, 60% AFUE', 'Gas, 76% AFUE', 'Gas, 80% AFUE', 'Gas, 92.5% AFUE', 'Gas, 96% AFUE'], 'None': ['None']}},
-                          }
-  
-  con = sqlite3.connect('../../../../BEopt-dev/Build/BEopt/Data/Measures.sqlite')
-  category = pd.read_sql_query('SELECT CategoryID, CategoryName from Category', con)
-  option = pd.read_sql_query('SELECT OptionName, OptionGUID, CategoryID from Option', con)
-  for col_name, values in col_to_category_name.items():
-  
-    print col_name
-    category_id = category[category['CategoryName']==values.keys()[0]]['CategoryID'].values[0]
-    df['{} OptionGUID'.format(col_name)] = df[col_name].apply(lambda x: get_guids(values.values()[0], x, option[option['CategoryID']==category_id]))
+  # beopt
+  for option in ['Water Heater', 'Windows', 'Cooking Range', 'Clothes Dryer', 'Refrigerator', 'Lighting', 'Dishwasher', 'Clothes Washer', 'Central Air Conditioner', 'Room Air Conditioner', 'Furnace', 'Boiler', 'Electric Baseboard', 'Air Source Heat Pump']:
+    print option
+    df = assign_options(df, con, option)
   
   df.to_csv('recs.csv', index=False)
-
-def get_guids(values, x, option):
-
-  if pd.isnull(x):
-    return ''
-  
-  guids = []
-  for value in values[x]:
-    
-    guids.append(option[option['OptionName']==value]['OptionGUID'].values[0])
-  
-  return ';'.join([str(x) for x in guids])
   
 def assign_epw_stations(df):
 
@@ -90,10 +47,36 @@ def assign_epw_stations(df):
 
   return df
   
+def assign_location(df): # Location
+
+  def epw(tmy3_id):
+    for EPW in EPWs:
+      if str(tmy3_id) in str(EPW):
+        return EPW
+
+  df['Location'] = df['TMY3_ID'].apply(lambda x: epw(x))
+
+  return df
+ 
+def assign_vintage(df): # Vintage
+
+  vintages = {1: 'pre-1950',
+              2: '1950s',
+              3: '1960s',
+              4: '1970s',
+              5: '1980s',
+              6: '1990s',
+              7: '2000s',
+              8: '2000s'}
+              
+  df['Vintage'] = df['yearmaderange'].apply(lambda x: vintages[x])  
+   
+  return df 
+ 
 def assign_heating_fuel(df): # Heating fuel
 
   fuels = {1:'Natural Gas',
-           2:'Propane',
+           2:'Propane/LPG',
            3:'Fuel Oil',
            5:'Electricity',
            4:'Other Fuel',
@@ -103,145 +86,52 @@ def assign_heating_fuel(df): # Heating fuel
            21:'Other Fuel',
            -2:'None'}
            
-  df['Heating Fuel'] = df['fuelheat'].apply(lambda x: fuels[x])
+  df['Heating Fuel'] = df['fuelheat'].apply(lambda x: fuels[x])  
    
-  return df
+  return df   
   
 def assign_geometry_house_size(df): # Floor area
-
+  
   df['Intsize'] = df[['tothsqft', 'totcsqft']].max(axis=1)
-  df.loc[:, 'Geometry House Size'] = 0
-  df.loc[(df['Intsize'] < 1500), 'Geometry House Size'] = '0-1499'
-  df.loc[(df['Intsize'] >= 1500) & (df['Intsize'] < 2500), 'Geometry House Size'] = '1500-2499'
-  df.loc[(df['Intsize'] >= 2500) & (df['Intsize'] < 3500), 'Geometry House Size'] = '2500-3499'
-  df.loc[(df['Intsize'] >= 3500), 'Geometry House Size'] = '3500+'
+  df.loc[:, 'Size'] = 0
+  df.loc[(df['Intsize'] < 1500), 'Size'] = '0-1499'
+  df.loc[(df['Intsize'] >= 1500) & (df['Intsize'] < 2500), 'Size'] = '1500-2499'
+  df.loc[(df['Intsize'] >= 2500) & (df['Intsize'] < 3500), 'Size'] = '2500-3499'
+  df.loc[(df['Intsize'] >= 3500) & (df['Intsize'] < 4500), 'Size'] = '3500-4499'
+  df.loc[(df['Intsize'] >= 4500), 'Size'] = '4500+'
   
   del df['Intsize']
   
-  return df  
+  return df 
   
 def assign_geometry_stories(df): # Number of stories
 
   stories = {10: '1',
-             20: '2+',
-             31: '2+',
-             32: '2+',
-             40: '2+',
+             20: '2',
+             31: '3+',
+             32: '3+',
+             40: '2',
              50: np.nan,
              -2: np.nan}
                   
-  df['Geometry Stories'] = df['stories'].apply(lambda x: stories[x])
+  df['Stories'] = df['stories'].apply(lambda x: stories[x])
 
   return df
   
 def assign_geometry_garage(df): # Attached garage
 
-  garage = {1: '1 Car',
-            2: '2 Car',
-            3: '3 Car',
-            -2: 'None'}
+  garage = {1: 'Yes',
+            2: 'Yes',
+            3: 'Yes',
+            -2: 'No'}
             
-  df['Geometry Garage'] = df['sizeofgarage'].apply(lambda x: garage[x])
+  df['Attached Garage'] = df['sizeofgarage'].apply(lambda x: garage[x])
 
   return df
   
-def assign_windows(df): # Window type
+def assign_usage_level(df): # Usage level
 
-  typeglass = {1:'1 Pane',
-               2:'2+ Pane',
-               3:'2+ Pane',
-               -2:'None'}
-                    
-  df['Windows'] = df['typeglass'].apply(lambda x: typeglass[x])
-  
-  return df
-  
-def assign_hvac_system_heating(df): # Heating system type # TODO
-
-  def furnace(type, fuel):
-    if type == 3 and fuel == 5:
-      return 'Electric Furnace'
-    elif type == 3 and fuel == 1:
-      return 'Gas Furnace'
-
-  df['HVAC System Heating Furnace'] = df['equipm'].apply(lambda x: 1 if x == 3 else 0)
-  df['HVAC System Heating Boiler'] = df['equipm'].apply(lambda x: 1 if x == 2 else 0)
-  df['HVAC System Heating Electric Baseboard'] = df['equipm'].apply(lambda x: 1 if x == 5 or x == 6 or x == 7 or x == 10 else 0)
-  df['HVAC System Heating Air Source Heat Pump'] = df['equipm'].apply(lambda x: 1 if x == 4 else 0)
-  
-def assign_hvac_system_cooling(df): # Cooling system type
-
-  def central(type, hp):
-    if ( type == 1 or type == 3 ) and not hp == 1:
-      return 1
-    else:
-      return 0
-
-  def ashp(type, hp):
-    if ( type == 1 or type == 3 ) and hp == 1:
-      return 1
-    else:
-      return 0
-      
-  df['HVAC System Cooling Central'] = df.apply(lambda x: central(x['cooltype'], x['cenachp']), axis=1)
-  df['HVAC System Cooling Air Source Heat Pump'] = df.apply(lambda x: ashp(x['cooltype'], x['cenachp']), axis=1)
-  df['HVAC System Cooling Room'] = df['cooltype'].apply(lambda x: 1 if x == 2 or x == 3 else 0)
-  
-  return df
-  
-def assign_water_heater(df): # DHW system type
-
-  def wh(fuel, type):
-    if fuel == 5 and type == 1:
-      return 'Electric Standard'
-    elif fuel == 5 and type == 2:
-      return 'Electric Tankless'
-    elif fuel == 1 and type == 1:
-      return 'Gas Standard'
-    elif fuel == 1 and type == 2:
-      return 'Gas Tankless'
-    elif fuel == 3 and type == 1:
-      return 'Oil Standard'
-    elif fuel == 1 and type == 2:
-      return 'Gas Tankless'
-    elif fuel == 2 and type == 1:
-      return 'Propane Standard'
-    elif fuel == 2 and type == 2:
-      return 'Propane Tankless'
-           
-  df['Water Heater'] = df.apply(lambda x: wh(x['fuelh2o'], x['h2otype1']), axis=1)
-
-  return df
-  
-def assign_cooking_range(df): # Cooking type
-           
-  def rng(fuel):
-    if fuel == 1:
-      return 'Gas, 100% Usage'
-    elif fuel == 2:
-      return 'Propane, 100% Usage'
-    elif fuel == 5:
-      return 'Electric, 100% Usage'
-    else:
-      return 'None'
-           
-  df['Cooking Range'] = df['rngfuel'].apply(lambda x: rng(x))
-
-  return df
-  
-def assign_clothes_dryer(df): # Clothes dryer type
-  
-  def cd(fuel):
-    if fuel == 1:
-      return 'Gas, 100% Usage'
-    elif fuel == 2:
-      return 'Propane, 100% Usage'
-    elif fuel == 5:
-      return 'Electric, 100% Usage'
-    else:
-      return 'None'
-           
-  df['Clothes Dryer'] = df['dryrfuel'].apply(lambda x: cd(x))
+  df['Usage Level'] = np.random.choice(['Low', 'Medium', 'High', 'Average'], df.shape[0], p=[0.25, 0.5, 0.25, 0.0])  
   
   return df
   
@@ -249,17 +139,17 @@ def assign_heating_setpoint(df): # Heating set points
 
   def htgstpt(stpt):
     if stpt > 0 and stpt < 65.5:
-      return '63F'
+      return Option[Option['OptionName']=='63 F']['OptionGUID'].values[0]
     elif stpt >= 65.5 and stpt < 69.5:
-      return '68F'
+      return Option[Option['OptionName']=='68 F']['OptionGUID'].values[0]
     elif stpt >= 69.5 and stpt < 72.0:
-      return '71F'
+      return Option[Option['OptionName']=='71 F']['OptionGUID'].values[0]
     elif stpt >= 72.0:
-      return '73F'
+      return Option[Option['OptionName']=='73 F']['OptionGUID'].values[0]
     else:
       return np.nan
   
-  df['Heating Setpoint'] = df['temphome'].apply(lambda x: htgstpt(x))
+  df['Heating Set Point'] = df['temphome'].apply(lambda x: htgstpt(x))
 
   return df
   
@@ -267,98 +157,54 @@ def assign_cooling_setpoint(df): # Cooling set points
 
   def clgstpt(stpt):
     if stpt > 0 and stpt < 71.5:
-      return '69F'
+      return Option[Option['OptionName']=='69 F']['OptionGUID'].values[0]
     elif stpt >= 71.5 and stpt < 75.0:
-      return '74F'
+      return Option[Option['OptionName']=='74 F']['OptionGUID'].values[0]
     elif stpt >= 75.0 and stpt < 77.0:
-      return '76F'
+      return Option[Option['OptionName']=='76 F']['OptionGUID'].values[0]
     elif stpt >= 77.0:
-      return '78F'
+      return Option[Option['OptionName']=='78 F']['OptionGUID'].values[0]
     else:
       return np.nan
   
-  df['Cooling Setpoint'] = df['temphomeac'].apply(lambda x: clgstpt(x))
+  df['Cooling Set Point'] = df['temphomeac'].apply(lambda x: clgstpt(x))
 
-  return df
+  return df  
   
-def assign_lighting(df): # Lighting
+def assign_options(df, con, option):
 
-  df['Lighting'] = df['instlcfl'].apply(lambda x: 1 if x == 1 else 0)
+  def iter(row, category_id, meta_category_dependency_ids):
 
-  return df
+    IDs = {}
+    for meta_category_dependency_id in meta_category_dependency_ids:
+    
+      meta_option = MetaOption[(MetaOption['MetaCategoryID']==meta_category_dependency_id) & (MetaOption['Name']==row[MetaCategory[MetaCategory['ID']==meta_category_dependency_id]['Name'].values[0]])]
+
+      IDs['MetaOptionIDForMetaCategoryID{}'.format(meta_category_dependency_id)] = [meta_option['ID'].values[0]]
+    
+    meta_option_combo = MetaOptionCombo
+    
+    for i in range(1, 10):
+      if 'MetaOptionIDForMetaCategoryID{}'.format(i) in IDs.keys():
+        meta_option_combo = meta_option_combo[meta_option_combo['MetaOptionIDForMetaCategoryID{}'.format(i)]==IDs['MetaOptionIDForMetaCategoryID{}'.format(i)]]
+      else:
+        meta_option_combo = meta_option_combo[pd.isnull(meta_option_combo['MetaOptionIDForMetaCategoryID{}'.format(i)])]
+
+    meta_option_combo_id = meta_option_combo['ID'].values[0]
+    
+    beopt_weighting_factor = BEoptWeightingFactor[BEoptWeightingFactor['MetaOptionComboID']==meta_option_combo_id]
+    beopt_weighting_factor = beopt_weighting_factor[beopt_weighting_factor['CategoryID']==category_id]
+    
+    beopt_weighting_factor = beopt_weighting_factor[beopt_weighting_factor['Value']>0.0001] # don't include the options that aren't sampled
+
+    return ';'.join([str(x) for x in beopt_weighting_factor['OptionGUID'].values])
   
-def assign_refrigerator(df): # Appliances
-
-  df['Refrigerator'] = df['numfrig'].apply(lambda x: 1 if x > 0 else 0)
-
-  return df
+  category_id = Category[Category['CategoryName']==option]['CategoryID'].values[0]
   
-def assign_clothes_washer(df): # Appliances
-
-  def cl(used, estar):
-    if used == 1 and estar == 1:
-      return 'EnergyStar'
-    elif used == 1:
-      return 'Standard'
-    else:
-      return 'None'
-      
-  df['Clothes Washer'] = df.apply(lambda x: cl(x['cwasher'], x['escwash']), axis=1)
+  meta_category_dependency_ids = BEoptCategoryDependency[BEoptCategoryDependency['CategoryID']==category_id]['MetaCategoryDependencyID']  
   
-  return df
+  df[option] = df.apply(lambda x: iter(x, category_id, meta_category_dependency_ids), axis=1)
   
-def assign_dishwasher(df): # Appliances
-
-  df['Dishwasher'] = df['dishwash'].apply(lambda x: 1 if x == 1 else 0)
-
-  return df
-  
-def assign_misc_extra_refrigerator(df): # MELs
-
-  df['Misc Extra Refrigerator'] = 1
-
-  return df
-  
-def assign_misc_freezer(df): # MELs
-
-  df['Misc Freezer'] = 1
-
-  return df
-
-def assign_misc_gas_fireplace(df): # MELs
-
-  df['Misc Gas Fireplace'] = 1
-
-  return df
-
-def assign_misc_gas_grill(df): # MELs
-
-  df['Misc Gas Grill'] = 1
-
-  return df
-  
-def assign_misc_gas_lighting(df): # MELs
-
-  df['Misc Gas Lighting'] = 1
-
-  return df
-  
-def assign_misc_hot_tub_spa(df): # MELs
-
-  df['Misc Hot Tub Spa'] = 1
-
-  return df
-
-def assign_misc_pool(df): # MELs
-
-  df['Misc Pool'] = 1
-
-  return df
-
-def assign_misc_well_pump(df): # MELs
-
-  df['Misc Well Pump'] = 1
-
   return df
   
 def retrieve_data():
