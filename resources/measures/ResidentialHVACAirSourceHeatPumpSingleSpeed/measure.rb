@@ -184,28 +184,17 @@ class ProcessSingleSpeedAirSourceHeatPump < OpenStudio::Measure::ModelMeasure
     args << ashpCOPCapacityDerateFactor5ton    
     
     #make a string argument for ashp cooling/heating output capacity
-    cap_display_names = OpenStudio::StringVector.new
-    cap_display_names << Constants.SizingAuto
-    cap_display_names << Constants.SizingAutoMaxLoad
-    (0.5..10.0).step(0.5) do |tons|
-      cap_display_names << tons.to_s
-    end
-    hpcap = OpenStudio::Measure::OSArgument::makeChoiceArgument("heat_pump_capacity", cap_display_names, true)
+    hpcap = OpenStudio::Measure::OSArgument::makeStringArgument("heat_pump_capacity", true)
     hpcap.setDisplayName("Heat Pump Capacity")
-    hpcap.setDescription("The output heating/cooling capacity of the heat pump. If using #{Constants.SizingAuto}, the autosizing algorithm will use ACCA Manual S to set the heat pump capacity based on the cooling load. If using #{Constants.SizingAutoMaxLoad}, the autosizing algorithm will override ACCA Manual S and use the maximum of the heating and cooling loads to set the heat pump capacity, based on the heating/cooling capacities under design conditions.")
+    hpcap.setDescription("The output heating/cooling capacity of the heat pump. If using '#{Constants.SizingAuto}', the autosizing algorithm will use ACCA Manual S to set the heat pump capacity based on the cooling load. If using '#{Constants.SizingAutoMaxLoad}', the autosizing algorithm will override ACCA Manual S and use the maximum of the heating and cooling loads to set the heat pump capacity, based on the heating/cooling capacities under design conditions.")
     hpcap.setUnits("tons")
     hpcap.setDefaultValue(Constants.SizingAuto)
     args << hpcap
 
     #make a string argument for supplemental heating output capacity
-    cap_display_names = OpenStudio::StringVector.new
-    cap_display_names << Constants.SizingAuto
-    (5..150).step(5) do |kbtu|
-      cap_display_names << kbtu.to_s
-    end
-    supcap = OpenStudio::Measure::OSArgument::makeChoiceArgument("supplemental_capacity", cap_display_names, true)
+    supcap = OpenStudio::Measure::OSArgument::makeStringArgument("supplemental_capacity", true)
     supcap.setDisplayName("Supplemental Heating Capacity")
-    supcap.setDescription("The output heating capacity of the supplemental heater.")
+    supcap.setDescription("The output heating capacity of the supplemental heater. If using '#{Constants.SizingAuto}', the autosizing algorithm will use ACCA Manual S to set the heat pump supplemental heating capacity.")
     supcap.setUnits("kBtu/hr")
     supcap.setDefaultValue(Constants.SizingAuto)
     args << supcap 

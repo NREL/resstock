@@ -294,6 +294,7 @@ class ResidentialAirflow < OpenStudio::Measure::ModelMeasure
     ventilation_types_names << Constants.VentTypeBalanced
     mech_vent_type = OpenStudio::Measure::OSArgument::makeChoiceArgument("mech_vent_type", ventilation_types_names, false)
     mech_vent_type.setDisplayName("Mechanical Ventilation: Ventilation Type")
+    mech_vent_type.setDescription("Whole house ventilation strategy used.")
     mech_vent_type.setDefaultValue(Constants.VentTypeExhaust)
     args << mech_vent_type
 

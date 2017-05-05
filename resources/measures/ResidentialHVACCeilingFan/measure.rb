@@ -81,6 +81,13 @@ class ProcessCeilingFan < OpenStudio::Measure::ModelMeasure
     use_benchmark_energy.setDefaultValue(true)
     args << use_benchmark_energy
     
+    #make a double argument for BA Benchamrk multiplier
+    mult = OpenStudio::Measure::OSArgument::makeDoubleArgument("mult")
+    mult.setDisplayName("Building America Benchmark Multiplier")
+    mult.setDefaultValue(1)
+    mult.setDescription("A multiplier on the national average energy use. Only applies if 'Use Benchmark Energy' is set to True.")
+    args << mult
+    
     #make a double argument for cooling setpoint offset
     cooling_setpoint_offset = OpenStudio::Measure::OSArgument::makeDoubleArgument("cooling_setpoint_offset", true)
     cooling_setpoint_offset.setDisplayName("Cooling Setpoint Offset")
@@ -88,12 +95,6 @@ class ProcessCeilingFan < OpenStudio::Measure::ModelMeasure
     cooling_setpoint_offset.setDescription("Increase in cooling set point due to fan usage.")
     cooling_setpoint_offset.setDefaultValue(0)
     args << cooling_setpoint_offset    
-    
-    #make a double argument for BA Benchamrk multiplier
-    mult = OpenStudio::Measure::OSArgument::makeDoubleArgument("mult")
-    mult.setDisplayName("Building America Benchmark Multiplier")
-    mult.setDefaultValue(1)
-    args << mult
     
     #Make a string argument for 24 weekday schedule values
     weekday_sch = OpenStudio::Measure::OSArgument::makeStringArgument("weekday_sch", true)

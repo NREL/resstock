@@ -8,7 +8,7 @@ require "#{File.dirname(__FILE__)}/resources/geometry"
 require "#{File.dirname(__FILE__)}/resources/psychrometrics"
 
 #start the measure
-class ResidentialHotWaterHeaterHeatPump < OpenStudio::Ruleset::ModelUserScript
+class ResidentialHotWaterHeaterHeatPump < OpenStudio::Measure::ModelMeasure
 
     #define the name that a user will see, this method may be deprecated as
     #the display name in PAT comes from the name field in measure.xml
@@ -28,9 +28,9 @@ class ResidentialHotWaterHeaterHeatPump < OpenStudio::Ruleset::ModelUserScript
     def arguments(model)
         ruleset = OpenStudio::Ruleset
     
-        osargument = ruleset::OSArgument
+        osargument = OpenStudio::Measure::OSArgument
     
-        args = ruleset::OSArgumentVector.new
+        args = OpenStudio::Measure::OSArgumentVector.new
 
         # make an argument for the storage tank volume
         storage_tank_volume = osargument::makeDoubleArgument("storage_tank_volume", true)
@@ -557,12 +557,12 @@ class ResidentialHotWaterHeaterHeatPump < OpenStudio::Ruleset::ModelUserScript
             hpwh_top_element_sp = OpenStudio::Model::ScheduleConstant.new(model)
             hpwh_top_element_sp.setName("HPWHTopElementSetpoint_#{unit_num}")
             
-            if hpwh_param == 80
-                hpwh_bottom_element_sp.setValue(-60)
+            if hpwh_param == 50
+                hpwh_bottom_element_sp.setValue(tset_C)
                 sp = (tset_C-2.89).round(2)
                 hpwh_top_element_sp.setValue(sp)
             else
-                hpwh_bottom_element_sp.setValue(tset_C)
+                hpwh_bottom_element_sp.setValue(-60)
                 sp = (tset_C-9.0001).round(4)
                 hpwh_top_element_sp.setValue(sp)
             end
@@ -693,8 +693,8 @@ class ResidentialHotWaterHeaterHeatPump < OpenStudio::Ruleset::ModelUserScript
             tank.setNode8AdditionalLossCoefficient(0)
             tank.setNode9AdditionalLossCoefficient(0)
             tank.setNode10AdditionalLossCoefficient(0)
-            #tank.setNode11AdditionalLossCoefficient(0)
-            #tank.setNode12AdditionalLossCoefficient(0)
+            tank.setNode11AdditionalLossCoefficient(0)
+            tank.setNode12AdditionalLossCoefficient(0)
             tank.setUseSideDesignFlowRate((OpenStudio.convert(v_actual,"gal","m^3").get)/60.1)
             tank.setSourceSideDesignFlowRate(0)
             tank.setSourceSideFlowControlMode("")
@@ -847,7 +847,10 @@ class ResidentialHotWaterHeaterHeatPump < OpenStudio::Ruleset::ModelUserScript
             #EMS Program for ducting
             hpwh_ducting_program = OpenStudio::Model::EnergyManagementSystemProgram.new(model)
             hpwh_ducting_program.setName("HPWHInletAir_#{unit_num}")
-            if (water_heater_tz.name.to_s.start_with?(Constants.FinishedBasementZone) or water_heater_tz.name.to_s.start_with?(Constants.LivingZone)) and temp_depress_c > 0 and ducting == "none"
+            if not (water_heater_tz.name.to_s.start_with?(Constants.FinishedBasementZone) or water_heater_tz.name.to_s.start_with?(Constants.LivingZone))
+                runner.registerWarning("Confined space installations are typically used represent installations in locations like a utility closet. Utility closets installations are typically only done in conditioned spaces.")
+            end
+            if temp_depress_c > 0 and ducting == "none"
                 hpwh_ducting_program.addLine("Set HPWH_last_#{unit_num} = (@TrendValue HPWH_on_off_#{unit_num} 1)")
                 hpwh_ducting_program.addLine("Set HPWH_now_#{unit_num} = HPWH_on_off_#{unit_num}")
                 hpwh_ducting_program.addLine("Set num = (@Ln 2)")
@@ -891,12 +894,12 @@ class ResidentialHotWaterHeaterHeatPump < OpenStudio::Ruleset::ModelUserScript
                 end
             end
             if ducting == "none"
-                hpwh_ducting_program.addLine("Set HPWH_Tamb_act_#{unit_num} = HPWH_amb_temp_#{unit_num}")
+                hpwh_ducting_program.addLine("Set HPWH_Tamb_act_#{unit_num} = T_hpwh_inlet_#{unit_num}")
                 hpwh_ducting_program.addLine("Set HPWH_RHamb_act_#{unit_num} = HPWH_amb_rh_#{unit_num}/100")
                 hpwh_ducting_program.addLine("Set HPWH_sens_act_#{unit_num} = 0 - (HPWH_sens_cool_#{unit_num} * #{int_factor}) -(HPWH_tl_#{unit_num} * #{int_factor}) + HPWH_fan_power_#{unit_num} * #{int_factor}")
                 hpwh_ducting_program.addLine("Set HPWH_lat_act_#{unit_num} = 0 - HPWH_lat_cool_#{unit_num} * #{int_factor}")
             elsif ducting == Constants.VentTypeBalanced
-                hpwh_ducting_program.addLine("Set HPWH_Tamb_act_#{unit_num} = HPWH_out_temp_#{unit_num}")
+                hpwh_ducting_program.addLine("Set HPWH_Tamb_act_#{unit_num} = T_hpwh_inlet_#{unit_num}")
                 hpwh_ducting_program.addLine("Set HPWH_Tamb_act2_#{unit_num} = HPWH_amb_temp_#{unit_num}")
                 hpwh_ducting_program.addLine("Set HPWH_HRamb_act_#{unit_num} = HPWH_out_rh_#{unit_num}/100")
                 hpwh_ducting_program.addLine("Set HPWH_sens_act_#{unit_num} = 0 - HPWH_tl_#{unit_num}")
@@ -907,7 +910,7 @@ class ResidentialHotWaterHeaterHeatPump < OpenStudio::Ruleset::ModelUserScript
                 hpwh_ducting_program.addLine("Set h = (@HFnTdbW HPWHTair_out_#{unit_num} HPWHWair_out_#{unit_num})")
                 hpwh_ducting_program.addLine("Set HPWH_sens_gain = rho*cp*(HPWHTair_out_#{unit_num}-HPWH_amb_temp_#{unit_num})*V_airHPWH_#{unit_num}")
                 hpwh_ducting_program.addLine("Set HPWH_lat_gain = h*rho*(HPWHWair_out_#{unit_num}-HPWH_amb_w_#{unit_num})*V_airHPWH_#{unit_num}")
-                hpwh_ducting_program.addLine("Set HPWH_Tamb_act_#{unit_num} = HPWH_out_temp_#{unit_num}")
+                hpwh_ducting_program.addLine("Set HPWH_Tamb_act_#{unit_num} = T_hpwh_inlet_#{unit_num}")
                 hpwh_ducting_program.addLine("Set HPWH_Tamb_act2_#{unit_num} = HPWH_amb_temp_#{unit_num}")
                 hpwh_ducting_program.addLine("Set HPWH_HRamb_act_#{unit_num} = HPWH_out_rh_#{unit_num}/100")
                 hpwh_ducting_program.addLine("Set HPWH_sens_act_#{unit_num} = HPWH_sens_gain_#{unit_num} - HPWH_tl_#{unit_num}")
@@ -918,7 +921,7 @@ class ResidentialHotWaterHeaterHeatPump < OpenStudio::Ruleset::ModelUserScript
                 hpwh_ducting_program.addLine("Set h = (@HFnTdbW HPWHTair_out_#{unit_num} HPWHWair_out_#{unit_num})")
                 hpwh_ducting_program.addLine("Set HPWH_sens_gain = rho*cp*(Tout_#{unit_num}-HPWH_amb_temp_#{unit_num})*V_airHPWH_#{unit_num}")
                 hpwh_ducting_program.addLine("Set HPWH_lat_gain = h*rho*(Wout_#{unit_num}-HPWH_amb_w_#{unit_num})*V_airHPWH_#{unit_num}")
-                hpwh_ducting_program.addLine("Set HPWH_Tamb_act_#{unit_num} = HPWH_amb_temp_#{unit_num}")
+                hpwh_ducting_program.addLine("Set HPWH_Tamb_act_#{unit_num} = T_hpwh_inlet_#{unit_num}")
                 hpwh_ducting_program.addLine("Set HPWH_HRamb_act_#{unit_num} = HPWH_amb_rh_#{unit_num}/100")
                 hpwh_ducting_program.addLine("Set HPWH_sens_act_#{unit_num} = HPWH_sens_gain_#{unit_num} - HPWH_tl_#{unit_num}")
                 hpwh_ducting_program.addLine("Set HPWH_lat_act_#{unit_num} = HPWH_lat_gain_#{unit_num}")
@@ -937,9 +940,9 @@ class ResidentialHotWaterHeaterHeatPump < OpenStudio::Ruleset::ModelUserScript
                 else
                     hpwh_ctrl_program.addLine("If (HPWH_amb_temp_#{unit_num} < #{OpenStudio.convert(min_temp,"F","C").get}) || (HPWH_amb_temp_#{unit_num} > #{OpenStudio.convert(max_temp,"F","C").get})")
                 end
-                hpwh_ctrl_program.addLine("Set LESchedOverride = #{tset_C}")
+                hpwh_ctrl_program.addLine("Set LESchedOverride_#{unit_num} = #{tset_C}")
                 hpwh_ctrl_program.addLine("Else")
-                hpwh_ctrl_program.addLine("Set LESchedOverride = 0")
+                hpwh_ctrl_program.addLine("Set LESchedOverride_#{unit_num} = 0")
                 hpwh_ctrl_program.addLine("EndIf")
                 
             else #hpwh_param == 50
@@ -957,7 +960,7 @@ class ResidentialHotWaterHeaterHeatPump < OpenStudio::Ruleset::ModelUserScript
                 sensor.setKeyName("hpwh_tank_#{unit_num}")
                 
                 hpSchedOverride = OpenStudio::Model::ScheduleConstant.new(model)
-                hpSchedOverride.setName("HPOverride_#{unit_num}")
+                hpSchedOverride.setName("HPSchedOverride_#{unit_num}")
                 hpSchedOverride.setValue(tset_C)
                 
                 ueSchedOverride = OpenStudio::Model::ScheduleConstant.new(model)
@@ -965,7 +968,7 @@ class ResidentialHotWaterHeaterHeatPump < OpenStudio::Ruleset::ModelUserScript
                 ueSchedOverride.setValue(tset_C)
                 
                 leSchedOverride = OpenStudio::Model::ScheduleConstant.new(model)
-                leSchedOverride.setName("LESchedOverride")
+                leSchedOverride.setName("LESchedOverride_#{unit_num}")
                 leSchedOverride.setValue(tset_C)
                 
                 actuator =  OpenStudio::Model::EnergyManagementSystemActuator.new(hpSchedOverride,"Schedule:Constant", "Schedule Value")

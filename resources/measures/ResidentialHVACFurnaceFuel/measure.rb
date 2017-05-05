@@ -53,19 +53,6 @@ class ProcessFurnaceFuel < OpenStudio::Measure::ModelMeasure
     afue.setDefaultValue(0.78)
     args << afue
 
-    #make a string argument for furnace heating output capacity
-    cap_display_names = OpenStudio::StringVector.new
-    cap_display_names << Constants.SizingAuto
-    (5..150).step(5) do |kbtu|
-      cap_display_names << kbtu.to_s
-    end
-    furnacecap = OpenStudio::Measure::OSArgument::makeChoiceArgument("capacity", cap_display_names, true)
-    furnacecap.setDisplayName("Heating Capacity")
-    furnacecap.setDescription("The output heating capacity of the furnace.")
-    furnacecap.setUnits("kBtu/hr")
-    furnacecap.setDefaultValue(Constants.SizingAuto)
-    args << furnacecap
-
     #make an argument for entering furnace installed supply fan power
     fanpower = OpenStudio::Measure::OSArgument::makeDoubleArgument("fan_power_installed",true)
     fanpower.setDisplayName("Installed Supply Fan Power")
@@ -74,6 +61,14 @@ class ProcessFurnaceFuel < OpenStudio::Measure::ModelMeasure
     fanpower.setDefaultValue(0.5)
     args << fanpower	
 	
+    #make a string argument for furnace heating output capacity
+    furnacecap = OpenStudio::Measure::OSArgument::makeStringArgument("capacity", true)
+    furnacecap.setDisplayName("Heating Capacity")
+    furnacecap.setDescription("The output heating capacity of the furnace. If using '#{Constants.SizingAuto}', the autosizing algorithm will use ACCA Manual S to set the capacity.")
+    furnacecap.setUnits("kBtu/hr")
+    furnacecap.setDefaultValue(Constants.SizingAuto)
+    args << furnacecap
+    
     return args
   end #end the arguments method
 

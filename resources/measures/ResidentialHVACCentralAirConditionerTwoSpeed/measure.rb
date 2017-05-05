@@ -162,14 +162,9 @@ class ProcessTwoSpeedCentralAirConditioner < OpenStudio::Measure::ModelMeasure
     args << acEERCapacityDerateFactor5ton
     
     #make a string argument for central air cooling output capacity
-    cap_display_names = OpenStudio::StringVector.new
-    cap_display_names << Constants.SizingAuto
-    (0.5..10.0).step(0.5) do |tons|
-      cap_display_names << tons.to_s
-    end
-    acCoolingOutputCapacity = OpenStudio::Measure::OSArgument::makeChoiceArgument("capacity", cap_display_names, true)
+    acCoolingOutputCapacity = OpenStudio::Measure::OSArgument::makeStringArgument("capacity", true)
     acCoolingOutputCapacity.setDisplayName("Cooling Capacity")
-    acCoolingOutputCapacity.setDescription("The output cooling capacity of the air conditioner.")
+    acCoolingOutputCapacity.setDescription("The output cooling capacity of the air conditioner. If using '#{Constants.SizingAuto}', the autosizing algorithm will use ACCA Manual S to set the capacity.")
     acCoolingOutputCapacity.setUnits("tons")
     acCoolingOutputCapacity.setDefaultValue(Constants.SizingAuto)
     args << acCoolingOutputCapacity    

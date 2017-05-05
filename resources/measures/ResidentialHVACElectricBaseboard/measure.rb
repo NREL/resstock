@@ -42,14 +42,9 @@ class ProcessElectricBaseboard < OpenStudio::Measure::ModelMeasure
     args << baseboardeff
 
     #make a string argument for baseboard heating output capacity
-    cap_display_names = OpenStudio::StringVector.new
-    cap_display_names << Constants.SizingAuto
-    (5..150).step(5) do |kbtu|
-      cap_display_names << kbtu.to_s
-    end
-    baseboardcap = OpenStudio::Measure::OSArgument::makeChoiceArgument("capacity", cap_display_names, true)
+    baseboardcap = OpenStudio::Measure::OSArgument::makeStringArgument("capacity", true)
     baseboardcap.setDisplayName("Heating Capacity")
-    baseboardcap.setDescription("The output heating capacity of the electric baseboard.")
+    baseboardcap.setDescription("The output heating capacity of the electric baseboard. If using '#{Constants.SizingAuto}', the autosizing algorithm will use ACCA Manual S to set the capacity.")
     baseboardcap.setUnits("kBtu/hr")
     baseboardcap.setDefaultValue(Constants.SizingAuto)
     args << baseboardcap

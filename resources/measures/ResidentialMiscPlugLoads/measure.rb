@@ -35,8 +35,9 @@ class ResidentialMiscellaneousElectricLoads < OpenStudio::Measure::ModelMeasure
 	
 	#make a double argument for BA Benchmark multiplier
 	mult = OpenStudio::Measure::OSArgument::makeDoubleArgument("mult")
-	mult.setDisplayName("Building America Benchmark Multiplier")
+	mult.setDisplayName("Multiplier")
 	mult.setDefaultValue(1)
+	mult.setDescription("A multiplier on the national average energy use, which is calculated as: (1108.1 + 180.2 * Nbeds + 0.2785 * FFA), where Nbeds is the number of bedrooms and FFA is the finished floor area in sqft.")
 	args << mult
 	
 	#Make a string argument for 24 weekday schedule values

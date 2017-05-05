@@ -197,12 +197,7 @@ class ProcessGroundSourceHeatPumpVerticalBore < OpenStudio::Measure::ModelMeasur
     args << gshpVertBoreSupplyFanPower    
     
     #make a string argument for gshp heating/cooling output capacity
-    cap_display_names = OpenStudio::StringVector.new
-    cap_display_names << Constants.SizingAuto
-    (0.5..10.0).step(0.5) do |tons|
-      cap_display_names << tons.to_s
-    end
-    gshpOutputCapacity = OpenStudio::Measure::OSArgument::makeChoiceArgument("heat_pump_capacity", cap_display_names, true)
+    gshpOutputCapacity = OpenStudio::Measure::OSArgument::makeStringArgument("heat_pump_capacity", true)
     gshpOutputCapacity.setDisplayName("Heat Pump Capacity")
     gshpOutputCapacity.setDescription("The output heating/cooling capacity of the heat pump.")
     gshpOutputCapacity.setUnits("tons")
@@ -210,12 +205,7 @@ class ProcessGroundSourceHeatPumpVerticalBore < OpenStudio::Measure::ModelMeasur
     args << gshpOutputCapacity    
     
     #make a string argument for supplemental heating output capacity
-    cap_display_names = OpenStudio::StringVector.new
-    cap_display_names << Constants.SizingAuto
-    (5..150).step(5) do |kbtu|
-      cap_display_names << kbtu.to_s
-    end
-    supcap = OpenStudio::Measure::OSArgument::makeChoiceArgument("supplemental_capacity", cap_display_names, true)
+    supcap = OpenStudio::Measure::OSArgument::makeStringArgument("supplemental_capacity", true)
     supcap.setDisplayName("Supplemental Heating Capacity")
     supcap.setDescription("The output heating capacity of the supplemental heater.")
     supcap.setUnits("kBtu/hr")

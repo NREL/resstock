@@ -92,14 +92,9 @@ class ProcessBoilerElectric < OpenStudio::Measure::ModelMeasure
     args << boilerDesignTemp     
     
     #make a string argument for furnace heating output capacity
-    cap_display_names = OpenStudio::StringVector.new
-    cap_display_names << Constants.SizingAuto
-    (5..150).step(5) do |kbtu|
-      cap_display_names << kbtu.to_s
-    end
-    boilerOutputCapacity = OpenStudio::Measure::OSArgument::makeChoiceArgument("capacity", cap_display_names, true)
+    boilerOutputCapacity = OpenStudio::Measure::OSArgument::makeStringArgument("capacity", true)
     boilerOutputCapacity.setDisplayName("Heating Capacity")
-    boilerOutputCapacity.setDescription("The output heating capacity of the boiler.")
+    boilerOutputCapacity.setDescription("The output heating capacity of the boiler. If using '#{Constants.SizingAuto}', the autosizing algorithm will use ACCA Manual S to set the capacity.")
     boilerOutputCapacity.setUnits("kBtu/hr")
     boilerOutputCapacity.setDefaultValue(Constants.SizingAuto)
     args << boilerOutputCapacity  

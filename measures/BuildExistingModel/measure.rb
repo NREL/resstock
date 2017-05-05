@@ -131,8 +131,7 @@ class BuildExistingModel < OpenStudio::Ruleset::ModelUserScript
         
     # Determine weight
     if not number_of_buildings_represented.nil?
-        total_samples = 100 # Temporary
-        #total_samples = runner.analysis[:analysis][:problem][:algorithm][:number_of_samples].to_f
+        total_samples = runner.analysis[:analysis][:problem][:algorithm][:number_of_samples].to_f
         weight = number_of_buildings_represented.get / total_samples
         register_value(runner, "weight", weight.to_s)
     end

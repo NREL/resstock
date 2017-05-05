@@ -2,8 +2,8 @@
   <schema_version>3.0</schema_version>
   <name>process_ceiling_fan</name>
   <uid>f65edfd9-ff4f-4f08-a245-ea48b3b3c88e</uid>
-  <version_id>880e6998-c1df-41a5-9839-391e0411062a</version_id>
-  <version_modified>20170427T163758Z</version_modified>
+  <version_id>19df2cff-24dc-480c-a8aa-ea87ae5c33f3</version_id>
+  <version_modified>20170429T161734Z</version_modified>
   <xml_checksum>D48F381B</xml_checksum>
   <class_name>ProcessCeilingFan</class_name>
   <display_name>Set Residential Ceiling Fan</display_name>
@@ -79,6 +79,15 @@
       </choices>
     </argument>
     <argument>
+      <name>mult</name>
+      <display_name>Building America Benchmark Multiplier</display_name>
+      <description>A multiplier on the national average energy use. Only applies if 'Use Benchmark Energy' is set to True.</description>
+      <type>Double</type>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>1</default_value>
+    </argument>
+    <argument>
       <name>cooling_setpoint_offset</name>
       <display_name>Cooling Setpoint Offset</display_name>
       <description>Increase in cooling set point due to fan usage.</description>
@@ -87,14 +96,6 @@
       <required>true</required>
       <model_dependent>false</model_dependent>
       <default_value>0</default_value>
-    </argument>
-    <argument>
-      <name>mult</name>
-      <display_name>Building America Benchmark Multiplier</display_name>
-      <type>Double</type>
-      <required>true</required>
-      <model_dependent>false</model_dependent>
-      <default_value>1</default_value>
     </argument>
     <argument>
       <name>weekday_sch</name>
@@ -195,17 +196,6 @@
       <checksum>FC2B4C91</checksum>
     </file>
     <file>
-      <version>
-        <software_program>OpenStudio</software_program>
-        <identifier>1.13.2</identifier>
-        <min_compatible>2.0.4</min_compatible>
-      </version>
-      <filename>measure.rb</filename>
-      <filetype>rb</filetype>
-      <usage_type>script</usage_type>
-      <checksum>C1E434F7</checksum>
-    </file>
-    <file>
       <filename>geometry.rb</filename>
       <filetype>rb</filetype>
       <usage_type>resource</usage_type>
@@ -216,6 +206,17 @@
       <filetype>rb</filetype>
       <usage_type>resource</usage_type>
       <checksum>E957CFBF</checksum>
+    </file>
+    <file>
+      <version>
+        <software_program>OpenStudio</software_program>
+        <identifier>1.13.2</identifier>
+        <min_compatible>2.0.4</min_compatible>
+      </version>
+      <filename>measure.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>script</usage_type>
+      <checksum>B4853260</checksum>
     </file>
   </files>
 </measure>

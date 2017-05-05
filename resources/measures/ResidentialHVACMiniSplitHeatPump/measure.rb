@@ -158,15 +158,9 @@ class ProcessVRFMinisplit < OpenStudio::Measure::ModelMeasure
     args << miniSplitHPSupplyFanPower
     
     #make a string argument for minisplit cooling output capacity
-    cap_display_names = OpenStudio::StringVector.new
-    cap_display_names << Constants.SizingAuto
-    cap_display_names << Constants.SizingAutoMaxLoad
-    (0.5..10.0).step(0.5) do |tons|
-      cap_display_names << tons.to_s
-    end
-    miniSplitCoolingOutputCapacity = OpenStudio::Measure::OSArgument::makeChoiceArgument("heat_pump_capacity", cap_display_names, true)
+    miniSplitCoolingOutputCapacity = OpenStudio::Measure::OSArgument::makeStringArgument("heat_pump_capacity", true)
     miniSplitCoolingOutputCapacity.setDisplayName("Heat Pump Capacity")
-    miniSplitCoolingOutputCapacity.setDescription("The output cooling capacity of the heat pump. If using #{Constants.SizingAuto}, the autosizing algorithm will use ACCA Manual S to set the heat pump capacity based on the cooling load, with up to 1.3x oversizing allowed for variable-speed equipment in colder climates when the heating load exceeds the cooling load. If using #{Constants.SizingAutoMaxLoad}, the autosizing algorithm will override ACCA Manual S and use the maximum of the heating and cooling loads to set the heat pump capacity, based on the heating/cooling capacities under design conditions.")
+    miniSplitCoolingOutputCapacity.setDescription("The output cooling capacity of the heat pump. If using '#{Constants.SizingAuto}', the autosizing algorithm will use ACCA Manual S to set the heat pump capacity based on the cooling load, with up to 1.3x oversizing allowed for variable-speed equipment in colder climates when the heating load exceeds the cooling load. If using '#{Constants.SizingAutoMaxLoad}', the autosizing algorithm will override ACCA Manual S and use the maximum of the heating and cooling loads to set the heat pump capacity, based on the heating/cooling capacities under design conditions.")
     miniSplitCoolingOutputCapacity.setUnits("tons")
     miniSplitCoolingOutputCapacity.setDefaultValue(Constants.SizingAuto)
     args << miniSplitCoolingOutputCapacity
@@ -180,15 +174,9 @@ class ProcessVRFMinisplit < OpenStudio::Measure::ModelMeasure
     args << baseboardeff
 
     #make a string argument for supplemental heating output capacity
-    cap_display_names = OpenStudio::StringVector.new
-    cap_display_names << "NO SUPP HEAT"
-    cap_display_names << Constants.SizingAuto
-    (5..150).step(5) do |kbtu|
-      cap_display_names << kbtu.to_s
-    end  
-    baseboardcap = OpenStudio::Measure::OSArgument::makeChoiceArgument("supplemental_capacity", cap_display_names, true)
+    baseboardcap = OpenStudio::Measure::OSArgument::makeStringArgument("supplemental_capacity", true)
     baseboardcap.setDisplayName("Supplemental Heating Capacity")
-    baseboardcap.setDescription("The output heating capacity of the supplemental electric baseboard.")
+    baseboardcap.setDescription("The output heating capacity of the supplemental electric baseboard. If using '#{Constants.SizingAuto}', the autosizing algorithm will use ACCA Manual S to set the supplemental heating capacity.")
     baseboardcap.setUnits("kBtu/hr")
     baseboardcap.setDefaultValue(Constants.SizingAuto)
     args << baseboardcap  
@@ -227,7 +215,7 @@ class ProcessVRFMinisplit < OpenStudio::Measure::ModelMeasure
     end
     baseboardEfficiency = runner.getDoubleArgumentValue("supplemental_efficiency",user_arguments)
     baseboardOutputCapacity = runner.getStringArgumentValue("supplemental_capacity",user_arguments)
-    unless baseboardOutputCapacity == Constants.SizingAuto or baseboardOutputCapacity == "NO SUPP HEAT"
+    unless baseboardOutputCapacity == Constants.SizingAuto
       baseboardOutputCapacity = OpenStudio::convert(baseboardOutputCapacity.to_f,"kBtu/h","Btu/h").get
     end    
     
@@ -460,7 +448,7 @@ class ProcessVRFMinisplit < OpenStudio::Measure::ModelMeasure
         end
         
         # Supplemental heat
-        unless baseboardOutputCapacity == "NO SUPP HEAT"
+        unless baseboardOutputCapacity == 0.0
           supp_htg_coil = OpenStudio::Model::ZoneHVACBaseboardConvectiveElectric.new(model)
           supp_htg_coil.setName(obj_name + " #{control_zone.name} supp heater")
           if baseboardOutputCapacity != Constants.SizingAuto
@@ -548,7 +536,7 @@ class ProcessVRFMinisplit < OpenStudio::Measure::ModelMeasure
             slave_zone.setHeatingPriority(object, 1)
           end
           
-          unless baseboardOutputCapacity == "NO SUPP HEAT"
+          unless baseboardOutputCapacity == 0.0
             supp_htg_coil = OpenStudio::Model::ZoneHVACBaseboardConvectiveElectric.new(model)
             supp_htg_coil.setName(obj_name + " #{slave_zone.name} supp heater")
             supp_htg_coil.setEfficiency(baseboardEfficiency)

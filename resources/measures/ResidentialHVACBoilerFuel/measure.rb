@@ -102,19 +102,6 @@ class ProcessBoilerFuel < OpenStudio::Measure::ModelMeasure
     boilerDesignTemp.setDefaultValue(180.0)
     args << boilerDesignTemp     
     
-    #make a string argument for furnace heating output capacity
-    cap_display_names = OpenStudio::StringVector.new
-    cap_display_names << Constants.SizingAuto
-    (5..150).step(5) do |kbtu|
-      cap_display_names << kbtu.to_s
-    end
-    boilerOutputCapacity = OpenStudio::Measure::OSArgument::makeChoiceArgument("capacity", cap_display_names, true)
-    boilerOutputCapacity.setDisplayName("Heating Capacity")
-    boilerOutputCapacity.setDescription("The output heating capacity of the boiler.")
-    boilerOutputCapacity.setUnits("kBtu/hr")
-    boilerOutputCapacity.setDefaultValue(Constants.SizingAuto)
-    args << boilerOutputCapacity  
-    
     #make an argument for whether the boiler is modulating or not
     boilerModulation = OpenStudio::Measure::OSArgument::makeBoolArgument("modulation", true)
     boilerModulation.setDisplayName("Modulating Boiler")
@@ -122,6 +109,14 @@ class ProcessBoilerFuel < OpenStudio::Measure::ModelMeasure
     boilerModulation.setDefaultValue(false)
     args << boilerModulation
 
+    #make a string argument for furnace heating output capacity
+    boilerOutputCapacity = OpenStudio::Measure::OSArgument::makeStringArgument("capacity", true)
+    boilerOutputCapacity.setDisplayName("Heating Capacity")
+    boilerOutputCapacity.setDescription("The output heating capacity of the boiler. If using '#{Constants.SizingAuto}', the autosizing algorithm will use ACCA Manual S to set the capacity.")
+    boilerOutputCapacity.setUnits("kBtu/hr")
+    boilerOutputCapacity.setDefaultValue(Constants.SizingAuto)
+    args << boilerOutputCapacity  
+    
     return args
   end
 

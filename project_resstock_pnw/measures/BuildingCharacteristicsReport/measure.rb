@@ -30,13 +30,13 @@ class BuildingCharacteristicsReport < OpenStudio::Ruleset::ReportingUserScript
         result << OpenStudio::Measure::OSOutput.makeStringOutput(OpenStudio::toUnderscoreCase(parameter))
     end
     # Additional hard-coded outputs
-    resstock_outputs = [
-                        "location_city",
-                        "location_state",
-                        "location_latitude",
-                        "location_longitude",
-                       ]
-    resstock_outputs.each do |output|
+    buildstock_outputs = [
+                          "location_city",
+                          "location_state",
+                          "location_latitude",
+                          "location_longitude",
+                         ]
+    buildstock_outputs.each do |output|
         result << OpenStudio::Measure::OSOutput.makeStringOutput(output)
     end
     return result

@@ -2,8 +2,8 @@
   <schema_version>3.0</schema_version>
   <name>process_vrf_minisplit</name>
   <uid>402b168f-ed99-46bb-b367-103937011e91</uid>
-  <version_id>6fed4d2f-057a-4e65-a729-c0e386d82098</version_id>
-  <version_modified>20170427T163028Z</version_modified>
+  <version_id>9c666cb8-a252-41e2-8b6b-5b877c3c868e</version_id>
+  <version_modified>20170428T153230Z</version_modified>
   <xml_checksum>470FC630</xml_checksum>
   <class_name>ProcessVRFMinisplit</class_name>
   <display_name>Set Residential Mini-Split Heat Pump</display_name>
@@ -172,102 +172,12 @@
     <argument>
       <name>heat_pump_capacity</name>
       <display_name>Heat Pump Capacity</display_name>
-      <description>The output cooling capacity of the heat pump. If using autosize, the autosizing algorithm will use ACCA Manual S to set the heat pump capacity based on the cooling load, with up to 1.3x oversizing allowed for variable-speed equipment in colder climates when the heating load exceeds the cooling load. If using autosize for max load, the autosizing algorithm will override ACCA Manual S and use the maximum of the heating and cooling loads to set the heat pump capacity, based on the heating/cooling capacities under design conditions.</description>
-      <type>Choice</type>
+      <description>The output cooling capacity of the heat pump. If using 'autosize', the autosizing algorithm will use ACCA Manual S to set the heat pump capacity based on the cooling load, with up to 1.3x oversizing allowed for variable-speed equipment in colder climates when the heating load exceeds the cooling load. If using 'autosize for max load', the autosizing algorithm will override ACCA Manual S and use the maximum of the heating and cooling loads to set the heat pump capacity, based on the heating/cooling capacities under design conditions.</description>
+      <type>String</type>
       <units>tons</units>
       <required>true</required>
       <model_dependent>false</model_dependent>
       <default_value>autosize</default_value>
-      <choices>
-        <choice>
-          <value>autosize</value>
-          <display_name>autosize</display_name>
-        </choice>
-        <choice>
-          <value>autosize for max load</value>
-          <display_name>autosize for max load</display_name>
-        </choice>
-        <choice>
-          <value>0.5</value>
-          <display_name>0.5</display_name>
-        </choice>
-        <choice>
-          <value>1.0</value>
-          <display_name>1.0</display_name>
-        </choice>
-        <choice>
-          <value>1.5</value>
-          <display_name>1.5</display_name>
-        </choice>
-        <choice>
-          <value>2.0</value>
-          <display_name>2.0</display_name>
-        </choice>
-        <choice>
-          <value>2.5</value>
-          <display_name>2.5</display_name>
-        </choice>
-        <choice>
-          <value>3.0</value>
-          <display_name>3.0</display_name>
-        </choice>
-        <choice>
-          <value>3.5</value>
-          <display_name>3.5</display_name>
-        </choice>
-        <choice>
-          <value>4.0</value>
-          <display_name>4.0</display_name>
-        </choice>
-        <choice>
-          <value>4.5</value>
-          <display_name>4.5</display_name>
-        </choice>
-        <choice>
-          <value>5.0</value>
-          <display_name>5.0</display_name>
-        </choice>
-        <choice>
-          <value>5.5</value>
-          <display_name>5.5</display_name>
-        </choice>
-        <choice>
-          <value>6.0</value>
-          <display_name>6.0</display_name>
-        </choice>
-        <choice>
-          <value>6.5</value>
-          <display_name>6.5</display_name>
-        </choice>
-        <choice>
-          <value>7.0</value>
-          <display_name>7.0</display_name>
-        </choice>
-        <choice>
-          <value>7.5</value>
-          <display_name>7.5</display_name>
-        </choice>
-        <choice>
-          <value>8.0</value>
-          <display_name>8.0</display_name>
-        </choice>
-        <choice>
-          <value>8.5</value>
-          <display_name>8.5</display_name>
-        </choice>
-        <choice>
-          <value>9.0</value>
-          <display_name>9.0</display_name>
-        </choice>
-        <choice>
-          <value>9.5</value>
-          <display_name>9.5</display_name>
-        </choice>
-        <choice>
-          <value>10.0</value>
-          <display_name>10.0</display_name>
-        </choice>
-      </choices>
     </argument>
     <argument>
       <name>supplemental_efficiency</name>
@@ -282,142 +192,12 @@
     <argument>
       <name>supplemental_capacity</name>
       <display_name>Supplemental Heating Capacity</display_name>
-      <description>The output heating capacity of the supplemental electric baseboard.</description>
-      <type>Choice</type>
+      <description>The output heating capacity of the supplemental electric baseboard. If using 'autosize', the autosizing algorithm will use ACCA Manual S to set the supplemental heating capacity.</description>
+      <type>String</type>
       <units>kBtu/hr</units>
       <required>true</required>
       <model_dependent>false</model_dependent>
       <default_value>autosize</default_value>
-      <choices>
-        <choice>
-          <value>NO SUPP HEAT</value>
-          <display_name>NO SUPP HEAT</display_name>
-        </choice>
-        <choice>
-          <value>autosize</value>
-          <display_name>autosize</display_name>
-        </choice>
-        <choice>
-          <value>5</value>
-          <display_name>5</display_name>
-        </choice>
-        <choice>
-          <value>10</value>
-          <display_name>10</display_name>
-        </choice>
-        <choice>
-          <value>15</value>
-          <display_name>15</display_name>
-        </choice>
-        <choice>
-          <value>20</value>
-          <display_name>20</display_name>
-        </choice>
-        <choice>
-          <value>25</value>
-          <display_name>25</display_name>
-        </choice>
-        <choice>
-          <value>30</value>
-          <display_name>30</display_name>
-        </choice>
-        <choice>
-          <value>35</value>
-          <display_name>35</display_name>
-        </choice>
-        <choice>
-          <value>40</value>
-          <display_name>40</display_name>
-        </choice>
-        <choice>
-          <value>45</value>
-          <display_name>45</display_name>
-        </choice>
-        <choice>
-          <value>50</value>
-          <display_name>50</display_name>
-        </choice>
-        <choice>
-          <value>55</value>
-          <display_name>55</display_name>
-        </choice>
-        <choice>
-          <value>60</value>
-          <display_name>60</display_name>
-        </choice>
-        <choice>
-          <value>65</value>
-          <display_name>65</display_name>
-        </choice>
-        <choice>
-          <value>70</value>
-          <display_name>70</display_name>
-        </choice>
-        <choice>
-          <value>75</value>
-          <display_name>75</display_name>
-        </choice>
-        <choice>
-          <value>80</value>
-          <display_name>80</display_name>
-        </choice>
-        <choice>
-          <value>85</value>
-          <display_name>85</display_name>
-        </choice>
-        <choice>
-          <value>90</value>
-          <display_name>90</display_name>
-        </choice>
-        <choice>
-          <value>95</value>
-          <display_name>95</display_name>
-        </choice>
-        <choice>
-          <value>100</value>
-          <display_name>100</display_name>
-        </choice>
-        <choice>
-          <value>105</value>
-          <display_name>105</display_name>
-        </choice>
-        <choice>
-          <value>110</value>
-          <display_name>110</display_name>
-        </choice>
-        <choice>
-          <value>115</value>
-          <display_name>115</display_name>
-        </choice>
-        <choice>
-          <value>120</value>
-          <display_name>120</display_name>
-        </choice>
-        <choice>
-          <value>125</value>
-          <display_name>125</display_name>
-        </choice>
-        <choice>
-          <value>130</value>
-          <display_name>130</display_name>
-        </choice>
-        <choice>
-          <value>135</value>
-          <display_name>135</display_name>
-        </choice>
-        <choice>
-          <value>140</value>
-          <display_name>140</display_name>
-        </choice>
-        <choice>
-          <value>145</value>
-          <display_name>145</display_name>
-        </choice>
-        <choice>
-          <value>150</value>
-          <display_name>150</display_name>
-        </choice>
-      </choices>
     </argument>
   </arguments>
   <outputs/>
@@ -575,12 +355,6 @@
       <checksum>98D29F9B</checksum>
     </file>
     <file>
-      <filename>process_mini_split_heat_pump_test.rb</filename>
-      <filetype>rb</filetype>
-      <usage_type>test</usage_type>
-      <checksum>42ABCD01</checksum>
-    </file>
-    <file>
       <filename>hvac.rb</filename>
       <filetype>rb</filetype>
       <usage_type>resource</usage_type>
@@ -599,6 +373,18 @@
       <checksum>D3BD80AC</checksum>
     </file>
     <file>
+      <filename>geometry.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>31FE0BE6</checksum>
+    </file>
+    <file>
+      <filename>process_mini_split_heat_pump_test.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>test</usage_type>
+      <checksum>CE2EEC2D</checksum>
+    </file>
+    <file>
       <version>
         <software_program>OpenStudio</software_program>
         <identifier>1.12.4</identifier>
@@ -607,13 +393,7 @@
       <filename>measure.rb</filename>
       <filetype>rb</filetype>
       <usage_type>script</usage_type>
-      <checksum>F173E11C</checksum>
-    </file>
-    <file>
-      <filename>geometry.rb</filename>
-      <filetype>rb</filetype>
-      <usage_type>resource</usage_type>
-      <checksum>31FE0BE6</checksum>
+      <checksum>A1774116</checksum>
     </file>
   </files>
 </measure>

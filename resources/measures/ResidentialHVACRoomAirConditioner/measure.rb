@@ -51,14 +51,9 @@ class ProcessRoomAirConditioner < OpenStudio::Measure::ModelMeasure
     args << airflow
     
     #make a choice argument for room air cooling output capacity
-    cap_display_names = OpenStudio::StringVector.new
-    cap_display_names << Constants.SizingAuto
-    (0.5..10.0).step(0.5) do |tons|
-      cap_display_names << tons.to_s
-    end
-    output_capacity = OpenStudio::Measure::OSArgument::makeChoiceArgument("capacity", cap_display_names, true)
+    output_capacity = OpenStudio::Measure::OSArgument::makeStringArgument("capacity", true)
     output_capacity.setDisplayName("Cooling Capacity")
-    output_capacity.setDescription("The output cooling capacity of the air conditioner.")
+    output_capacity.setDescription("The output cooling capacity of the air conditioner. If using '#{Constants.SizingAuto}', the autosizing algorithm will use ACCA Manual S to set the capacity.")
     output_capacity.setUnits("tons")
     output_capacity.setDefaultValue(Constants.SizingAuto)
     args << output_capacity  

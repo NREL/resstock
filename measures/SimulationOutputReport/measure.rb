@@ -193,20 +193,27 @@ class SimulationOutputReport < OpenStudio::Ruleset::ReportingUserScript
                      'coil:heating:dx:variablerefrigerantflow',
                      'boiler:hotwater',
                      'coil:heating:electric',
-                     'zonehvac:baseboard:convective:electric'
+                     'zonehvac:baseboard:convective:electric',
+                     'zonehvac:baseboard:convective:water' # TEMPORARY: See https://github.com/NREL/OpenStudio-BuildStock/issues/57
                     ]
     heating_capacity_fields = [
                                'user-specified nominal capacity',
                                'user-specified heating design capacity',
                                'user-specified gross rated heating capacity',
-                               'design size nominal capacity',
                                'speed 2 user-specified total cooling capacity',
-                               'speed 4 user-specified total cooling capacity'
+                               'speed 4 user-specified total cooling capacity',
+                               'user-specified maximum water flow rate' # TEMPORARY: See https://github.com/NREL/OpenStudio-BuildStock/issues/57
                               ]
     heating_capacity_w = nil
     heating_coils.each do |heating_coil|
-        heating_capacity_query = "SELECT Value FROM ComponentSizes WHERE lower(CompType) == '#{heating_coil}' AND lower(Description) IN ('#{heating_capacity_fields.join("','")}')"
-        heating_capacity_w = sqlFile.execAndReturnFirstDouble(heating_capacity_query)
+        heating_capacity_fields.each do |heating_capacity_field|
+            heating_capacity_query = "SELECT Value FROM ComponentSizes WHERE lower(CompType) == '#{heating_coil}' AND lower(Description) == '#{heating_capacity_field}'"
+            if heating_capacity_field == "user-specified maximum water flow rate" # TEMPORARY: See https://github.com/NREL/OpenStudio-BuildStock/issues/57
+                heating_capacity_query = "SELECT Value*23213695.555555556 FROM ComponentSizes WHERE lower(CompType) == '#{heating_coil}' AND lower(Description) == '#{heating_capacity_field}'"
+            end
+            heating_capacity_w = sqlFile.execAndReturnFirstDouble(heating_capacity_query)
+            break if heating_capacity_w.is_initialized
+        end
         break if heating_capacity_w.is_initialized
     end
     report_sim_output(runner, "hvac_heating_capacity_w", [heating_capacity_w], "W", "W", percent_heating)
