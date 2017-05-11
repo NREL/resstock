@@ -6,13 +6,13 @@ task :copy_beopt_files do
   require 'fileutils'
 
   beopt_measures_dir = File.join(File.dirname(__FILE__), "..", "OpenStudio-BEopt", "measures")
-  buildstock_measures_dir = File.join(File.dirname(__FILE__), "resources", "measures")
+  buildstock_resource_measures_dir = File.join(File.dirname(__FILE__), "resources", "measures")
   if not Dir.exist?(beopt_measures_dir)
     puts "Cannot find OpenStudio-BEopt measures dir at #{beopt_measures_dir}."
   end
   
+  # Copy seed osm and other needed resource files
   project_dir_names = get_all_project_dir_names()
-  
   extra_files = [
                  File.join("seeds", "EmptySeedModel.osm"),
                  File.join("resources", "geometry.rb"), # Needed by SimulationOutputReport
@@ -38,26 +38,40 @@ task :copy_beopt_files do
       end
   end
   
-  puts "Deleting #{buildstock_measures_dir}..."
-  while Dir.exist?(buildstock_measures_dir)
-    FileUtils.rm_rf("#{buildstock_measures_dir}/.", secure: true)
+  # Clean out resources/measures/ dir
+  puts "Deleting #{buildstock_resource_measures_dir}..."
+  while Dir.exist?(buildstock_resource_measures_dir)
+    FileUtils.rm_rf("#{buildstock_resource_measures_dir}/.", secure: true)
     sleep 1
   end
-  FileUtils.makedirs(buildstock_measures_dir)
+  FileUtils.makedirs(buildstock_resource_measures_dir)
   
-  Dir.foreach(beopt_measures_dir) do |item|
-    next if !item.include? 'Residential'
-    beopt_measure_dir = File.join(beopt_measures_dir, item)
+  # Copy residential measures to resources/measures/
+  Dir.foreach(beopt_measures_dir) do |beopt_measure|
+    next if !beopt_measure.include? 'Residential'
+    beopt_measure_dir = File.join(beopt_measures_dir, beopt_measure)
     next if not Dir.exist?(beopt_measure_dir)
-    puts "Copying #{item} measure..."
-    FileUtils.cp_r(beopt_measure_dir, buildstock_measures_dir)
-    buildstock_measure_test_dir = File.join(buildstock_measures_dir, item, "tests")
-    if Dir.exist?(buildstock_measure_test_dir)
-      FileUtils.rm_rf("#{buildstock_measure_test_dir}/.", secure: true)
+    puts "Copying #{beopt_measure} measure..."
+    FileUtils.cp_r(beopt_measure_dir, buildstock_resource_measures_dir)
+    ["coverage","tests"].each do |subdir|
+      buildstock_resource_measures_subdir = File.join(buildstock_resource_measures_dir, beopt_measure, subdir)
+      if Dir.exist?(buildstock_resource_measures_subdir)
+        FileUtils.rm_rf("#{buildstock_resource_measures_subdir}/.", secure: true)
+      end
     end
-    buildstock_measure_cov_dir = File.join(buildstock_measures_dir, item, "coverage")
-    if Dir.exist?(buildstock_measure_cov_dir)
-      FileUtils.rm_rf("#{buildstock_measure_cov_dir}/.", secure: true)
+  end
+  
+  # Copy other measures to measure/ dir
+  other_measures = ["TimeseriesCSVExport"]
+  buildstock_measures_dir = buildstock_resource_measures_dir = File.join(File.dirname(__FILE__), "measures")
+  other_measures.each do |other_measure|
+    puts "Copying #{other_measure} measure..."
+    FileUtils.cp_r(File.join(beopt_measures_dir, other_measure), buildstock_measures_dir)
+    ["coverage","tests"].each do |subdir|
+      buildstock_measure_subdir = File.join(buildstock_measures_dir, other_measure, subdir)
+      if Dir.exist?(buildstock_measure_subdir)
+        FileUtils.rm_rf("#{buildstock_measure_subdir}/.", secure: true)
+      end
     end
   end
 end
