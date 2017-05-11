@@ -10,11 +10,12 @@ con = sqlite3.connect('../../../../BEopt-dev/Build/BEopt/Data/Measures.sqlite')
 Category = pd.read_sql_query('SELECT CategoryID, CategoryName from Category', con)
 Option = pd.read_sql_query('SELECT OptionGUID, OptionName from Option', con)
 
-con = sqlite3.connect('../../../../BEopt-dev/SREAT/Data/AppData.sqlite')
+con = sqlite3.connect('../../../../Users/jrobert1/Downloads/Output_2016-01-27_1m_EPSA_LEDDWCW.sqlite/Output.sqlite')
 BEoptCategoryDependency = pd.read_sql_query('SELECT * from BEoptCategoryDependency', con)
 MetaCategory = pd.read_sql_query('SELECT * from MetaCategory', con)
 MetaOption = pd.read_sql_query('SELECT ID, MetaCategoryID, Name from MetaOption', con)
 MetaOptionCombo = pd.read_sql_query('SELECT * from MetaOptionCombo', con)
+OutputArchetypeVariant = pd.read_sql_query('SELECT * from OutputArchetypeVariant', con)
 BEoptWeightingFactor = pd.read_sql_query('SELECT * from BEoptWeightingFactor', con)
 EPWs = MetaOption[MetaOption['MetaCategoryID']==1]['Name'].values
 
@@ -25,17 +26,22 @@ def main(df):
   df = assign_location(df)
   df = assign_vintage(df)
   df = assign_heating_fuel(df)
-  df = assign_geometry_house_size(df)
-  df = assign_geometry_stories(df)
-  df = assign_geometry_garage(df)
-  df = assign_usage_level(df) # TODO: what is this based on in recs? right now i'm randomly assigning it
-  df = assign_heating_setpoint(df) # TODO: has no dependencies in appdata.sqlite
-  df = assign_cooling_setpoint(df) # TODO: has no dependencies in appdata.sqlite
+  df = assign_size(df)
+  df = assign_stories(df)
+  df = assign_foundation_type(df)
+  df = assign_daytime_occupancy(df)
+  df = assign_usage_level(df)
+  df = assign_attached_garage(df)
+  
+  # extra
+  # df = assign_heating_setpoint(df) # TODO: has no dependencies in appdata.sqlite
+  # df = assign_cooling_setpoint(df) # TODO: has no dependencies in appdata.sqlite
 
   # beopt
-  for option in ['Water Heater', 'Windows', 'Cooking Range', 'Clothes Dryer', 'Refrigerator', 'Lighting', 'Dishwasher', 'Clothes Washer', 'Central Air Conditioner', 'Room Air Conditioner', 'Furnace', 'Boiler', 'Electric Baseboard', 'Air Source Heat Pump']:
-    print option
-    df = assign_options(df, con, option)
+  df = assign_variant_ids(df, con)
+  # for option in ['Water Heater', 'Windows', 'Cooking Range', 'Clothes Dryer', 'Refrigerator', 'Lighting', 'Dishwasher', 'Clothes Washer', 'Central Air Conditioner', 'Room Air Conditioner', 'Furnace', 'Boiler', 'Electric Baseboard', 'Air Source Heat Pump']:
+    # print option
+    # df = assign_option_guids(df, con, option)
   
   df.to_csv('recs.csv', index=False)
   
@@ -90,7 +96,7 @@ def assign_heating_fuel(df): # Heating fuel
    
   return df   
   
-def assign_geometry_house_size(df): # Floor area
+def assign_size(df): # Floor area
   
   df['Intsize'] = df[['tothsqft', 'totcsqft']].max(axis=1)
   df.loc[:, 'Size'] = 0
@@ -104,36 +110,64 @@ def assign_geometry_house_size(df): # Floor area
   
   return df 
   
-def assign_geometry_stories(df): # Number of stories
+def assign_stories(df): # Number of stories
 
   stories = {10: '1',
              20: '2',
              31: '3+',
              32: '3+',
              40: '2',
-             50: np.nan,
-             -2: np.nan}
+             50: '1;2;3+',
+             -2: '1;2;3+'}
                   
   df['Stories'] = df['stories'].apply(lambda x: stories[x])
 
   return df
   
-def assign_geometry_garage(df): # Attached garage
+def assign_foundation_type(df):
 
-  garage = {1: 'Yes',
+	def assign_foundation(crawl, cellar, concrete, baseheat):
+	
+		foundations = []
+		if crawl == 1:
+			foundations.append('Crawl')
+		if concrete == 1:
+			foundations.append('Slab')
+		if cellar == 1 and baseheat == 1:
+			foundations.append('Heated Basement')
+		if cellar == 1 and baseheat == 0:
+			foundations.append('Unheated Basement')
+		if len(foundations) == 0:
+			foundations.append('None')
+		
+		return ';'.join([str(x) for x in foundations])
+
+	df['Foundation Type'] = df.apply(lambda x: assign_foundation(x['crawl'], x['cellar'], x['concrete'], x['baseheat']), axis=1)
+
+	return df
+
+def assign_daytime_occupancy(df):
+  
+    df['Daytime Occupancy'] = 'No;Yes;Average'
+  
+    return df
+  
+def assign_usage_level(df): # Usage level
+
+    df['Usage Level'] = 'Low;Medium;High;Average'
+  
+    return df
+  
+def assign_attached_garage(df): # Attached garage
+
+    garage = {1: 'Yes',
             2: 'Yes',
             3: 'Yes',
             -2: 'No'}
             
-  df['Attached Garage'] = df['sizeofgarage'].apply(lambda x: garage[x])
+    df['Attached Garage'] = df['sizeofgarage'].apply(lambda x: garage[x])
 
-  return df
-  
-def assign_usage_level(df): # Usage level
-
-  df['Usage Level'] = np.random.choice(['Low', 'Medium', 'High', 'Average'], df.shape[0], p=[0.25, 0.5, 0.25, 0.0])  
-  
-  return df
+    return df  
   
 def assign_heating_setpoint(df): # Heating set points
 
@@ -171,7 +205,7 @@ def assign_cooling_setpoint(df): # Cooling set points
 
   return df  
   
-def assign_options(df, con, option):
+def assign_option_guids(df, con, option):
 
   def iter(row, category_id, meta_category_dependency_ids):
 
@@ -206,6 +240,34 @@ def assign_options(df, con, option):
   df[option] = df.apply(lambda x: iter(x, category_id, meta_category_dependency_ids), axis=1)
   
   return df
+  
+def assign_variant_ids(df, con):
+  
+  def iter(row, meta_category_dependency_ids):
+
+    IDs = {}
+    for meta_category_dependency_id in meta_category_dependency_ids:
+    
+      params = []
+      for param in row[MetaCategory[MetaCategory['ID']==meta_category_dependency_id]['Name']].values[0].split(';'):
+		params.append(param)
+
+      meta_option = MetaOption[(MetaOption['MetaCategoryID']==meta_category_dependency_id) & (MetaOption['Name'].isin(params))]
+
+      IDs['MetaOptionIDForMetaCategoryID{}'.format(meta_category_dependency_id)] = meta_option['ID'].tolist()
+    
+    output_archetype_variant = OutputArchetypeVariant
+    
+    for i in range(1, 10):
+      output_archetype_variant = output_archetype_variant[output_archetype_variant['MetaOptionIDForMetaCategoryID{}'.format(i)].isin(IDs['MetaOptionIDForMetaCategoryID{}'.format(i)])]
+	
+    return ';'.join([str(x) for x in output_archetype_variant['ID'].values])
+  
+  meta_category_dependency_ids = range(1, 10)
+  
+  df['OutputArchetypeVariantID'] = df.apply(lambda x: iter(x, meta_category_dependency_ids), axis=1)
+  
+  return df  
   
 def retrieve_data():
   if not os.path.exists('eia.recs_2009_microdata.pkl'):
