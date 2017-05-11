@@ -179,9 +179,9 @@ class SimulationOutputReport < OpenStudio::Ruleset::ReportingUserScript
                               ]
     cooling_capacity_w = nil
     cooling_coils.each do |cooling_coil|
-        cooling_capacity_query = "SELECT Value FROM ComponentSizes WHERE lower(CompType) == '#{cooling_coil}' AND lower(Description) IN ('#{cooling_capacity_fields.join("','")}')"
+        cooling_capacity_query = "SELECT SUM(Value) FROM ComponentSizes WHERE lower(CompType) == '#{cooling_coil}' AND lower(Description) IN ('#{cooling_capacity_fields.join("','")}')"
         cooling_capacity_w = sqlFile.execAndReturnFirstDouble(cooling_capacity_query)
-        break if cooling_capacity_w.is_initialized
+        break if cooling_capacity_w.is_initialized and cooling_capacity_w.get > 0
     end
     report_sim_output(runner, "hvac_cooling_capacity_w", [cooling_capacity_w], "W", "W", percent_cooling)
     
@@ -191,7 +191,7 @@ class SimulationOutputReport < OpenStudio::Ruleset::ReportingUserScript
                      'coil:heating:dx:multispeed',
                      'coil:heating:dx:variablespeed',
                      'coil:heating:dx:variablerefrigerantflow',
-                     'boiler:hotwater',
+                     #'boiler:hotwater', # TEMPORARY: See https://github.com/NREL/OpenStudio-BuildStock/issues/57
                      'coil:heating:electric',
                      'zonehvac:baseboard:convective:electric',
                      'zonehvac:baseboard:convective:water' # TEMPORARY: See https://github.com/NREL/OpenStudio-BuildStock/issues/57
@@ -206,15 +206,12 @@ class SimulationOutputReport < OpenStudio::Ruleset::ReportingUserScript
                               ]
     heating_capacity_w = nil
     heating_coils.each do |heating_coil|
-        heating_capacity_fields.each do |heating_capacity_field|
-            heating_capacity_query = "SELECT Value FROM ComponentSizes WHERE lower(CompType) == '#{heating_coil}' AND lower(Description) == '#{heating_capacity_field}'"
-            if heating_capacity_field == "user-specified maximum water flow rate" # TEMPORARY: See https://github.com/NREL/OpenStudio-BuildStock/issues/57
-                heating_capacity_query = "SELECT Value*23213695.555555556 FROM ComponentSizes WHERE lower(CompType) == '#{heating_coil}' AND lower(Description) == '#{heating_capacity_field}'"
-            end
-            heating_capacity_w = sqlFile.execAndReturnFirstDouble(heating_capacity_query)
-            break if heating_capacity_w.is_initialized
+        heating_capacity_query = "SELECT SUM(Value) FROM ComponentSizes WHERE lower(CompType) == '#{heating_coil}' AND lower(Description) IN ('#{heating_capacity_fields.join("','")}')"
+        if heating_coil == 'zonehvac:baseboard:convective:water' # TEMPORARY: See https://github.com/NREL/OpenStudio-BuildStock/issues/57
+            heating_capacity_query = "SELECT SUM(Value*23213695.555555556) FROM ComponentSizes WHERE lower(CompType) == '#{heating_coil}' AND lower(Description) IN ('#{heating_capacity_fields.join("','")}')"
         end
-        break if heating_capacity_w.is_initialized
+        heating_capacity_w = sqlFile.execAndReturnFirstDouble(heating_capacity_query)
+        break if heating_capacity_w.is_initialized and heating_capacity_w.get > 0
     end
     report_sim_output(runner, "hvac_heating_capacity_w", [heating_capacity_w], "W", "W", percent_heating)
     
@@ -341,7 +338,7 @@ class SimulationOutputReport < OpenStudio::Ruleset::ReportingUserScript
             
         elsif cost_mult_type == "HVAC Heating Capacity (kBtuh)"
             if heating_capacity_w.is_initialized
-                cost_mult = OpenStudio::convert(heating_capacity.get,"W","kBtu/h").get
+                cost_mult = OpenStudio::convert(total_heating_capacity_w,"W","kBtu/h").get
             end
             
         else
@@ -367,7 +364,7 @@ class SimulationOutputReport < OpenStudio::Ruleset::ReportingUserScript
   def report_sim_output(runner, name, vals, os_units, desired_units, percent_of_val=1.0)
     total_val = 0.0
     vals.each do |val|
-        return if val.empty?
+        next if val.empty?
         total_val += val.get * percent_of_val
     end
     if os_units.nil? or desired_units.nil? or os_units == desired_units

@@ -59,33 +59,6 @@ class ResidentialClothesDryer < OpenStudio::Measure::ModelMeasure
 	cd_monthly_sch.setDefaultValue("1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0")
 	args << cd_monthly_sch
 
-	#make a double argument for Clothes Washer Integrated Modified Energy Factor
-    #TODO: Remove when clothes washer info available
-	cw_imef = OpenStudio::Measure::OSArgument::makeDoubleArgument("cw_imef",true)
-	cw_imef.setDisplayName("Integrated Modified Energy Factor")
-    cw_imef.setUnits("ft^3/kWh-cycle")
-    cw_imef.setDescription("The Integrated Modified Energy Factor (IMEF) is the capacity of the clothes container divided by the total clothes washer energy consumption per cycle, where the energy consumption is the sum of the machine electrical energy consumption, the hot water energy consumption, the energy required for removal of the remaining moisture in the wash load, standby energy, and off-mode energy consumption. If only a Modified Energy Factor (MEF) is available, convert using the equation: IMEF = (MEF - 0.503) / 0.95.")
-	cw_imef.setDefaultValue(0.95)
-	args << cw_imef
-    
-    #make a double argument for Clothes Washer Rated Annual Consumption
-    #TODO: Remove when clothes washer info available
-    cw_rated_annual_energy = OpenStudio::Measure::OSArgument::makeDoubleArgument("cw_rated_annual_energy",true)
-	cw_rated_annual_energy.setDisplayName("Clothes Washer Rated Annual Consumption")
-    cw_rated_annual_energy.setUnits("kWh")
-    cw_rated_annual_energy.setDescription("The annual energy consumed by the clothes washer, as rated, obtained from the EnergyGuide label. This includes both the appliance electricity consumption and the energy required for water heating.")
-	cw_rated_annual_energy.setDefaultValue(387.0)
-	args << cw_rated_annual_energy
-    
-	#make a double argument for Clothes Washer Drum Volume
-    #TODO: Remove when clothes washer info available
-	cw_drum_volume = OpenStudio::Measure::OSArgument::makeDoubleArgument("cw_drum_volume",true)
-	cw_drum_volume.setDisplayName("Clothes Washer Drum Volume")
-    cw_drum_volume.setUnits("ft^3")
-    cw_drum_volume.setDescription("Volume of the washer drum.  Obtained from the EnergyStar website or the manufacturer's literature.")
-	cw_drum_volume.setDefaultValue(3.5)
-	args << cw_drum_volume
-    
     #make a choice argument for space
     spaces = Geometry.get_all_unit_spaces(model)
     if spaces.nil?
@@ -120,9 +93,6 @@ class ResidentialClothesDryer < OpenStudio::Measure::ModelMeasure
 	cd_weekday_sch = runner.getStringArgumentValue("cd_weekday_sch",user_arguments)
 	cd_weekend_sch = runner.getStringArgumentValue("cd_weekend_sch",user_arguments)
     cd_monthly_sch = runner.getStringArgumentValue("cd_monthly_sch",user_arguments)
-	cw_imef = runner.getDoubleArgumentValue("cw_imef",user_arguments)
-    cw_rated_annual_energy = runner.getDoubleArgumentValue("cw_rated_annual_energy",user_arguments)
-	cw_drum_volume = runner.getDoubleArgumentValue("cw_drum_volume",user_arguments)
 	space_r = runner.getStringArgumentValue("space",user_arguments)
     
     #Check for valid inputs
@@ -132,18 +102,6 @@ class ResidentialClothesDryer < OpenStudio::Measure::ModelMeasure
 	end
 	if cd_mult < 0
 		runner.registerError("Occupancy energy multiplier must be greater than or equal to 0.0.")
-        return false
-    end
-    if cw_imef <= 0
-        runner.registerError("Clothes washer integrated modified energy factor must be greater than 0.0.")
-        return false
-    end
-    if cw_rated_annual_energy <= 0
-        runner.registerError("Clothes washer rated annual consumption must be greater than 0.0.")
-        return false
-    end
-    if cw_drum_volume <= 0
-        runner.registerError("Clothes washer drum volume must be greater than 0.0.")
         return false
     end
 
@@ -166,7 +124,28 @@ class ResidentialClothesDryer < OpenStudio::Measure::ModelMeasure
         # Get space
         space = Geometry.get_space_from_string(unit.spaces, space_r)
         next if space.nil?
-
+        
+        # Get clothes washer properties
+        cw = nil
+        model.getElectricEquipments.each do |ee|
+            next if ee.name.to_s != Constants.ObjectNameClothesWasher(unit.name.to_s)
+            cw = ee
+        end
+        if cw.nil?
+            runner.registerError("Could not find clothes washer equipment.")
+            return false
+        end
+        cw_drum_volume = unit.getFeatureAsDouble(Constants.ClothesWasherDrumVolume(cw))
+        cw_imef = unit.getFeatureAsDouble(Constants.ClothesWasherIMEF(cw))
+        cw_rated_annual_energy = unit.getFeatureAsDouble(Constants.ClothesWasherRatedAnnualEnergy(cw))
+        if !cw_drum_volume.is_initialized or !cw_imef.is_initialized or !cw_rated_annual_energy.is_initialized
+            runner.registerError("Could not find clothes washer properties.")
+            return false
+        end
+        cw_drum_volume = cw_drum_volume.get
+        cw_imef = cw_imef.get
+        cw_rated_annual_energy = cw_rated_annual_energy.get
+        
         unit_obj_name_e = Constants.ObjectNameClothesDryer(Constants.FuelTypeElectric, unit.name.to_s)
         unit_obj_name_g = Constants.ObjectNameClothesDryer(Constants.FuelTypeGas, unit.name.to_s)
         unit_obj_name_p = Constants.ObjectNameClothesDryer(Constants.FuelTypePropane, unit.name.to_s)

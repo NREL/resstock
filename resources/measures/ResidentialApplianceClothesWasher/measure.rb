@@ -580,6 +580,11 @@ class ResidentialClothesWasher < OpenStudio::Measure::ModelMeasure
             msgs << "A clothes washer with #{cw_ann_e.round} kWhs annual energy consumption has been added to plant loop '#{plant_loop.name}' and assigned to space '#{space.name.to_s}'."
             
             tot_cw_ann_e += cw_ann_e
+            
+            # Store some info for Clothes Dryer measures
+            unit.setFeature(Constants.ClothesWasherIMEF(cw), cw_imef)
+            unit.setFeature(Constants.ClothesWasherRatedAnnualEnergy(cw), cw_rated_annual_energy)
+            unit.setFeature(Constants.ClothesWasherDrumVolume(cw), cw_drum_volume)
         end
         
     end

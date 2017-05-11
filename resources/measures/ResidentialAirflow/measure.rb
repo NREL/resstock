@@ -1390,11 +1390,13 @@ class ResidentialAirflow < OpenStudio::Measure::ModelMeasure
       
       if mech_vent.MechVentType == Constants.VentTypeBalanced
       
+        balanced_flow_rate = [OpenStudio.convert(mech_vent.whole_house_vent_rate,"cfm","m^3/s").get,0.0000001].max
+      
         supply_fan = OpenStudio::Model::FanOnOff.new(model)
         supply_fan.setName(obj_name_mechvent + " erv supply fan")
         supply_fan.setFanEfficiency(OpenStudio.convert(300.0 / mech_vent.MechVentHouseFanPower,"cfm","m^3/s").get)
         supply_fan.setPressureRise(300.0)
-        supply_fan.setMaximumFlowRate(OpenStudio.convert(mech_vent.whole_house_vent_rate,"cfm","m^3/s").get)
+        supply_fan.setMaximumFlowRate(balanced_flow_rate)
         supply_fan.setMotorEfficiency(1)
         supply_fan.setMotorInAirstreamFraction(1)
         supply_fan.setEndUseSubcategory(Constants.EndUseMechVentFan)
@@ -1403,7 +1405,7 @@ class ResidentialAirflow < OpenStudio::Measure::ModelMeasure
         exhaust_fan.setName(obj_name_mechvent + " erv exhaust fan")
         exhaust_fan.setFanEfficiency(OpenStudio.convert(300.0 / mech_vent.MechVentHouseFanPower,"cfm","m^3/s").get)
         exhaust_fan.setPressureRise(300.0)
-        exhaust_fan.setMaximumFlowRate(OpenStudio.convert(mech_vent.whole_house_vent_rate,"cfm","m^3/s").get)
+        exhaust_fan.setMaximumFlowRate(balanced_flow_rate)
         exhaust_fan.setMotorEfficiency(1)
         exhaust_fan.setMotorInAirstreamFraction(0)
         exhaust_fan.setEndUseSubcategory(Constants.EndUseMechVentFan)
@@ -1412,12 +1414,12 @@ class ResidentialAirflow < OpenStudio::Measure::ModelMeasure
         erv_controller.setName(obj_name_mechvent + " erv controller")
         erv_controller.setExhaustAirTemperatureLimit("NoExhaustAirTemperatureLimit")
         erv_controller.setExhaustAirEnthalpyLimit("NoExhaustAirEnthalpyLimit")
-        erv_controller.setTimeofDayEconomizerFlowControlSchedule(model.alwaysOnDiscreteSchedule)
+        erv_controller.setTimeofDayEconomizerFlowControlSchedule(model.alwaysOffDiscreteSchedule)
         erv_controller.setHighHumidityControlFlag(false)
 
         heat_exchanger = OpenStudio::Model::HeatExchangerAirToAirSensibleAndLatent.new(model)
         heat_exchanger.setName(obj_name_mechvent + " erv heat exchanger")
-        heat_exchanger.setNominalSupplyAirFlowRate(OpenStudio.convert(mech_vent.whole_house_vent_rate,"cfm","m^3/s").get)
+        heat_exchanger.setNominalSupplyAirFlowRate(balanced_flow_rate)
         heat_exchanger.setSensibleEffectivenessat100HeatingAirFlow(mech_vent.MechVentHXCoreSensibleEffectiveness)
         heat_exchanger.setLatentEffectivenessat100HeatingAirFlow(mech_vent.MechVentLatentEffectiveness)
         heat_exchanger.setSensibleEffectivenessat75HeatingAirFlow(mech_vent.MechVentHXCoreSensibleEffectiveness)
@@ -1430,8 +1432,10 @@ class ResidentialAirflow < OpenStudio::Measure::ModelMeasure
         zone_hvac = OpenStudio::Model::ZoneHVACEnergyRecoveryVentilator.new(model, heat_exchanger, supply_fan, exhaust_fan)
         zone_hvac.setName(obj_name_mechvent + " erv")
         zone_hvac.setController(erv_controller)
-        zone_hvac.setSupplyAirFlowRate(OpenStudio.convert(mech_vent.whole_house_vent_rate,"cfm","m^3/s").get)
-        zone_hvac.setExhaustAirFlowRate(OpenStudio.convert(mech_vent.whole_house_vent_rate,"cfm","m^3/s").get)
+        zone_hvac.setSupplyAirFlowRate(balanced_flow_rate)
+        zone_hvac.setExhaustAirFlowRate(balanced_flow_rate)
+        zone_hvac.setVentilationRateperUnitFloorArea(0)
+        zone_hvac.setVentilationRateperOccupant(0)
         zone_hvac.addToThermalZone(unit.living_zone)
         
         HVAC.prioritize_zone_hvac(model, runner, unit.living_zone).reverse.each do |object|

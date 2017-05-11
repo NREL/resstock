@@ -78,6 +78,7 @@ class ProcessConstructionsFoundationsFloorsInterzonalFloors < OpenStudio::Measur
                 adjacent_space = surface.adjacentSurface.get.space.get
                 next if Geometry.space_is_finished(adjacent_space)
                 next if Geometry.space_is_below_grade(adjacent_space)
+                next if Geometry.get_pier_beam_spaces([adjacent_space]).size > 0
                 # Floor between above-grade finished space and above-grade unfinished space
                 surfaces << surface
             end

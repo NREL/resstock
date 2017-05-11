@@ -259,22 +259,15 @@ class Waterheater
     end
     
     def self.create_new_schedule_manager(t_set, model, wh_type="tank")
+        new_schedule = OpenStudio::Model::ScheduleConstant.new(model)
+        new_schedule.setName("DHW Temp")
         if wh_type == "tank"
-            new_schedule = self.create_new_schedule_ruleset("DHW Temp", "DHW Temp Default", OpenStudio::convert(t_set,"F","C").get + 1, model)
+            new_schedule.setValue(OpenStudio::convert(t_set,"F","C").get + 1)
         else #tankless
-            new_schedule = self.create_new_schedule_ruleset("DHW Temp", "DHW Temp Default", OpenStudio::convert(t_set,"F","C").get, model)
+            new_schedule.setValue(OpenStudio::convert(t_set,"F","C").get)
         end
         OpenStudio::Model::SetpointManagerScheduled.new(model, new_schedule)
     end 
-    
-    def self.create_new_schedule_ruleset(name, schedule_name, t_set_c, model)
-        #Create a setpoint schedule for the water heater
-        new_schedule = OpenStudio::Model::ScheduleRuleset.new(model)
-        new_schedule.setName(name)
-        new_schedule.defaultDaySchedule.setName(schedule_name)
-        new_schedule.defaultDaySchedule.addValue(OpenStudio::Time.new("24:00:00"), t_set_c)
-        return new_schedule
-    end
     
     def self.create_new_heater(unit_index, name, cap, fuel, vol, nbeds, nbaths, ef, re, t_set, thermal_zone, oncycle_p, offcycle_p, tanktype, cyc_derate, measure_dir, model, runner)
     
@@ -359,7 +352,9 @@ class Waterheater
   
     def self.configure_setpoint_schedule(new_heater, t_set, tanktype, model)
         set_temp_c = OpenStudio::convert(t_set,"F","C").get + self.deadband(tanktype)/2.0 #Half the deadband to account for E+ deadband
-        new_schedule = self.create_new_schedule_ruleset("WH Setpoint Temp", "WH Setpoint Temp", set_temp_c, model)
+        new_schedule = OpenStudio::Model::ScheduleConstant.new(model)
+        new_schedule.setName("WH Setpoint Temp")
+        new_schedule.setValue(set_temp_c)
         if new_heater.setpointTemperatureSchedule.is_initialized
             new_heater.setpointTemperatureSchedule.get.remove
         end
@@ -425,20 +420,9 @@ class Waterheater
             return nil
         end
         if wh_type == "mixed"
-            min_max_result = Schedule.getMinMaxAnnualProfileValue(model, waterHeater.setpointTemperatureSchedule.get)
-            wh_setpoint = (min_max_result['min'] + min_max_result['max'])/2.0
-            wh_setpoint -= waterHeater.deadbandTemperatureDifference/2.0
-            if min_max_result['min'] != min_max_result['max']
-                runner.registerWarning("Water heater setpoint is not constant. Using average setpoint temperature of #{wh_setpoint.round} F.")
-            end
-            return OpenStudio.convert(wh_setpoint,"C","F").get
+            return OpenStudio.convert(waterHeater.setpointTemperatureSchedule.get.to_ScheduleConstant.get.value - waterHeater.deadbandTemperatureDifference/2.0,"C","F").get
         else #wh_type == "hpwh"
-            min_max_result = Schedule.getMinMaxAnnualProfileValue(model, waterHeater.compressorSetpointTemperatureSchedule)
-            wh_setpoint = (min_max_result['min'] + min_max_result['max'])/2.0
-            if min_max_result['min'] != min_max_result['max']
-                runner.registerWarning("Water heater setpoint is not constant. Using average setpoint temperature of #{wh_setpoint.round} F.")
-            end
-            return OpenStudio.convert(wh_setpoint,"C","F").get
+            return OpenStudio.convert(waterHeater.compressorSetpointTemperatureSchedule.to_ScheduleConstant.get.value,"C","F").get
         end
     end
     

@@ -74,7 +74,7 @@ class ProcessConstructionsFoundationsFloorsCrawlspace < OpenStudio::Measure::Mod
 	ceil_joist_height.setDisplayName("Ceiling Joist Height")
 	ceil_joist_height.setUnits("in")
 	ceil_joist_height.setDescription("Height of the joist member.")
-	ceil_joist_height.setDefaultValue("9.25")
+	ceil_joist_height.setDefaultValue(9.25)
 	args << ceil_joist_height	
     
     #make a string argument for exposed perimeter

@@ -52,7 +52,7 @@ class ProcessConstructionsWallsInterzonal < OpenStudio::Measure::ModelMeasure
     cavity_depth.setDisplayName("Cavity Depth")
     cavity_depth.setUnits("in")
     cavity_depth.setDescription("Depth of the stud cavity. 3.5\" for 2x4s, 5.5\" for 2x6s, etc.")
-    cavity_depth.setDefaultValue("3.5")
+    cavity_depth.setDefaultValue(3.5)
     args << cavity_depth
     
     #make a bool argument for whether the cavity insulation fills the cavity
@@ -67,7 +67,7 @@ class ProcessConstructionsWallsInterzonal < OpenStudio::Measure::ModelMeasure
     framing_factor.setDisplayName("Framing Factor")
     framing_factor.setUnits("frac")
     framing_factor.setDescription("The fraction of a wall assembly that is comprised of structural framing.")
-    framing_factor.setDefaultValue("0.25")
+    framing_factor.setDefaultValue(0.25)
     args << framing_factor
 
     return args

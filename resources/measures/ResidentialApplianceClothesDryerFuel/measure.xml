@@ -2,8 +2,8 @@
   <schema_version>3.0</schema_version>
   <name>residential_clothes_dryer_fuel</name>
   <uid>0ed6fb35-c3e0-4a33-a397-ce4cec92d96e</uid>
-  <version_id>2763351e-4208-48c4-a8cd-1adceafd1d67</version_id>
-  <version_modified>20170427T163755Z</version_modified>
+  <version_id>ed881503-0c58-408e-97f3-efce1df0cf66</version_id>
+  <version_modified>20170510T221915Z</version_modified>
   <xml_checksum>25A40D75</xml_checksum>
   <class_name>ResidentialClothesDryerFuel</class_name>
   <display_name>Set Residential Fuel Clothes Dryer</display_name>
@@ -86,36 +86,6 @@
       <default_value>1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0</default_value>
     </argument>
     <argument>
-      <name>cw_imef</name>
-      <display_name>Integrated Modified Energy Factor</display_name>
-      <description>The Integrated Modified Energy Factor (IMEF) is the capacity of the clothes container divided by the total clothes washer energy consumption per cycle, where the energy consumption is the sum of the machine electrical energy consumption, the hot water energy consumption, the energy required for removal of the remaining moisture in the wash load, standby energy, and off-mode energy consumption. If only a Modified Energy Factor (MEF) is available, convert using the equation: IMEF = (MEF - 0.503) / 0.95.</description>
-      <type>Double</type>
-      <units>ft^3/kWh-cycle</units>
-      <required>true</required>
-      <model_dependent>false</model_dependent>
-      <default_value>0.95</default_value>
-    </argument>
-    <argument>
-      <name>cw_rated_annual_energy</name>
-      <display_name>Clothes Washer Rated Annual Consumption</display_name>
-      <description>The annual energy consumed by the clothes washer, as rated, obtained from the EnergyGuide label. This includes both the appliance electricity consumption and the energy required for water heating.</description>
-      <type>Double</type>
-      <units>kWh</units>
-      <required>true</required>
-      <model_dependent>false</model_dependent>
-      <default_value>387</default_value>
-    </argument>
-    <argument>
-      <name>cw_drum_volume</name>
-      <display_name>Clothes Washer Drum Volume</display_name>
-      <description>Volume of the washer drum.  Obtained from the EnergyStar website or the manufacturer's literature.</description>
-      <type>Double</type>
-      <units>ft^3</units>
-      <required>true</required>
-      <model_dependent>false</model_dependent>
-      <default_value>3.5</default_value>
-    </argument>
-    <argument>
       <name>space</name>
       <display_name>Location</display_name>
       <description>Select the space where the cooking range is located. 'auto' will choose the lowest above-grade finished space available (e.g., first story living space), or a below-grade finished space as last resort. For multifamily buildings, 'auto' will choose a space for each unit of the building.</description>
@@ -156,63 +126,16 @@
       <checksum>DCB12FCF</checksum>
     </file>
     <file>
-      <version>
-        <software_program>OpenStudio</software_program>
-        <identifier>1.4.0</identifier>
-        <min_compatible>2.0.4</min_compatible>
-      </version>
-      <filename>measure.rb</filename>
-      <filetype>rb</filetype>
-      <usage_type>script</usage_type>
-      <checksum>87DD93C9</checksum>
-    </file>
-    <file>
-      <filename>ResidentialClothesDryerFuel_Test.rb</filename>
-      <filetype>rb</filetype>
-      <usage_type>test</usage_type>
-      <checksum>8DD5BD55</checksum>
-    </file>
-    <file>
-      <filename>SFD_2000sqft_2story_FB_GRG_UA.osm</filename>
-      <filetype>osm</filetype>
-      <usage_type>test</usage_type>
-      <checksum>4E8CFABF</checksum>
-    </file>
-    <file>
-      <filename>SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths.osm</filename>
-      <filetype>osm</filetype>
-      <usage_type>test</usage_type>
-      <checksum>F44C20B9</checksum>
-    </file>
-    <file>
-      <filename>SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_ElecClothesDryer.osm</filename>
-      <filetype>osm</filetype>
-      <usage_type>test</usage_type>
-      <checksum>33FF5DBA</checksum>
-    </file>
-    <file>
-      <filename>MF_8units_1story_SL_3Beds_2Baths_Denver.osm</filename>
-      <filetype>osm</filetype>
-      <usage_type>test</usage_type>
-      <checksum>90743A06</checksum>
-    </file>
-    <file>
-      <filename>SFA_4units_1story_FB_UA_3Beds_2Baths_Denver.osm</filename>
-      <filetype>osm</filetype>
-      <usage_type>test</usage_type>
-      <checksum>544A05F3</checksum>
-    </file>
-    <file>
-      <filename>constants.rb</filename>
-      <filetype>rb</filetype>
-      <usage_type>resource</usage_type>
-      <checksum>8DCDCE57</checksum>
-    </file>
-    <file>
       <filename>util.rb</filename>
       <filetype>rb</filetype>
       <usage_type>resource</usage_type>
       <checksum>D3BD80AC</checksum>
+    </file>
+    <file>
+      <filename>schedules.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>E957CFBF</checksum>
     </file>
     <file>
       <filename>geometry.rb</filename>
@@ -221,10 +144,63 @@
       <checksum>31FE0BE6</checksum>
     </file>
     <file>
-      <filename>schedules.rb</filename>
+      <version>
+        <software_program>OpenStudio</software_program>
+        <identifier>1.4.0</identifier>
+        <min_compatible>2.0.4</min_compatible>
+      </version>
+      <filename>measure.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>script</usage_type>
+      <checksum>CBEB6300</checksum>
+    </file>
+    <file>
+      <filename>constants.rb</filename>
       <filetype>rb</filetype>
       <usage_type>resource</usage_type>
-      <checksum>E957CFBF</checksum>
+      <checksum>750BCD51</checksum>
+    </file>
+    <file>
+      <filename>ResidentialClothesDryerFuel_Test.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>test</usage_type>
+      <checksum>0FAC377E</checksum>
+    </file>
+    <file>
+      <filename>SFD_2000sqft_2story_FB_GRG_UA.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>AD531B32</checksum>
+    </file>
+    <file>
+      <filename>SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>619BA1D0</checksum>
+    </file>
+    <file>
+      <filename>MF_8units_1story_SL_3Beds_2Baths_Denver_ElecWHTank_ClothesWasher.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>FC27349A</checksum>
+    </file>
+    <file>
+      <filename>SFA_4units_1story_FB_UA_3Beds_2Baths_Denver_ElecWHTank_ClothesWasher.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>CA5C18EF</checksum>
+    </file>
+    <file>
+      <filename>SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver_ElecWHTank_ClothesWasher.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>C25715D5</checksum>
+    </file>
+    <file>
+      <filename>SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver_ElecWHTank_ClothesWasher_ElecClothesDryer.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>5E9F7E71</checksum>
     </file>
   </files>
 </measure>

@@ -36,7 +36,7 @@ class ProcessConstructionsDoors < OpenStudio::Measure::ModelMeasure
     door_uvalue.setDisplayName("U-Value for Finished Space Doors")
     door_uvalue.setUnits("Btu/hr-ft^2-R")
     door_uvalue.setDescription("The heat transfer coefficient of the doors adjacent to finished space.")
-    door_uvalue.setDefaultValue("0.2")
+    door_uvalue.setDefaultValue(0.2)
     args << door_uvalue   
 
     return args

@@ -176,6 +176,15 @@ class Constants
   def self.CeilingFanControlSmart
     return 'smart'
   end
+  def self.ClothesWasherDrumVolume(clothes_washer)
+    return "#{__method__.to_s}|#{clothes_washer.handle.to_s}"
+  end
+  def self.ClothesWasherIMEF(clothes_washer)
+    return "#{__method__.to_s}|#{clothes_washer.handle.to_s}"
+  end
+  def self.ClothesWasherRatedAnnualEnergy(clothes_washer)
+    return "#{__method__.to_s}|#{clothes_washer.handle.to_s}"
+  end
   def self.CondenserTypeWater
     return 'watercooled'
   end
@@ -214,6 +223,15 @@ class Constants
   end
   def self.EndUseMechVentFan
     return 'residential mech vent fan'
+  end
+  def self.ERIRatedHome
+    return 'rated home'
+  end
+  def self.ERIReferenceHome
+    return 'reference home'
+  end
+  def self.ERIndexAdjustmentDesign
+    return 'index adjustment design'
   end
   def self.FacadeFront
     return 'front'

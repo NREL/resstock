@@ -69,7 +69,7 @@ class ResidentialHotWaterHeaterHeatPump < OpenStudio::Measure::ModelMeasure
         element_capacity.setDisplayName("Input Capacity")
         element_capacity.setDescription("The capacity of the backup electric resistance elements in the tank.")
         element_capacity.setUnits("kW")
-        element_capacity.setDefaultValue("4.5")
+        element_capacity.setDefaultValue(4.5)
         args << element_capacity
         
         # make an argument for min_temp
@@ -77,7 +77,7 @@ class ResidentialHotWaterHeaterHeatPump < OpenStudio::Measure::ModelMeasure
         min_temp.setDisplayName("Minimum Abient Temperature")
         min_temp.setDescription("The minimum ambient air temperature at which the heat pump compressor will operate.")
         min_temp.setUnits("F")
-        min_temp.setDefaultValue("45")
+        min_temp.setDefaultValue(45)
         args << min_temp
         
         # make an argument for max_temp
@@ -85,7 +85,7 @@ class ResidentialHotWaterHeaterHeatPump < OpenStudio::Measure::ModelMeasure
         max_temp.setDisplayName("Maximum Ambient Temperature")
         max_temp.setDescription("The maximum ambient air temperature at which the heat pump compressor will operate.")
         max_temp.setUnits("F")
-        max_temp.setDefaultValue("120")
+        max_temp.setDefaultValue(120)
         args << max_temp
         
         # make an argument for cap
@@ -93,21 +93,21 @@ class ResidentialHotWaterHeaterHeatPump < OpenStudio::Measure::ModelMeasure
         cap.setDisplayName("Rated Capacity")
         cap.setDescription("The input power of the HPWH compressor at rated conditions.")
         cap.setUnits("kW")
-        cap.setDefaultValue("0.5")
+        cap.setDefaultValue(0.5)
         args << cap
         
         # make an argument for cop
         cop = osargument::makeDoubleArgument("cop", true)
         cop.setDisplayName("Rated COP")
         cop.setDescription("The coefficient of performance of the HPWH compressor at rated conditions.")
-        cop.setDefaultValue("2.8")
+        cop.setDefaultValue(2.8)
         args << cop
         
         # make an argument for shr
         shr = osargument::makeDoubleArgument("shr", true)
         shr.setDisplayName("Rated SHR")
         shr.setDescription("The sensible heat ratio of the HPWH's evaporator at rated conditions. This is the net SHR of the evaporator and includes the effects of fan heat.")
-        shr.setDefaultValue("0.88")
+        shr.setDefaultValue(0.88)
         args << shr
         
         # make an argument for airflow_rate
@@ -115,7 +115,7 @@ class ResidentialHotWaterHeaterHeatPump < OpenStudio::Measure::ModelMeasure
         airflow_rate.setDisplayName("Airflow Rate")
         airflow_rate.setDescription("Air flow rate of the HPWH.")
         airflow_rate.setUnits("cfm")
-        airflow_rate.setDefaultValue("181")
+        airflow_rate.setDefaultValue(181)
         args << airflow_rate
         
         # make an argument for fan_power
@@ -123,7 +123,7 @@ class ResidentialHotWaterHeaterHeatPump < OpenStudio::Measure::ModelMeasure
         fan_power.setDisplayName("Fan Power")
         fan_power.setDescription("Fan power (in W) per delivered airflow rate (in cfm).")
         fan_power.setUnits("W/cfm")
-        fan_power.setDefaultValue("0.0462")
+        fan_power.setDefaultValue(0.0462)
         args << fan_power
         
         # make an argument for parasitics
@@ -131,7 +131,7 @@ class ResidentialHotWaterHeaterHeatPump < OpenStudio::Measure::ModelMeasure
         parasitics.setDisplayName("Parasitics")
         parasitics.setDescription("Parasitic electricity consumption of the HPWH.")
         parasitics.setUnits("W")
-        parasitics.setDefaultValue("3")
+        parasitics.setDefaultValue(3)
         args << parasitics
         
         # make an argument for tank_ua
@@ -139,14 +139,14 @@ class ResidentialHotWaterHeaterHeatPump < OpenStudio::Measure::ModelMeasure
         tank_ua.setDisplayName("Tank UA")
         tank_ua.setDescription("The overall UA of the tank.")
         tank_ua.setUnits("Btu/h-R")
-        tank_ua.setDefaultValue("3.9")
+        tank_ua.setDefaultValue(3.9)
         args << tank_ua
         
         # make an argument for int_factor
         int_factor = osargument::makeDoubleArgument("int_factor", true)
         int_factor.setDisplayName("Interaction Factor")
         int_factor.setDescription("Specifies how much the HPWH space conditioning impact interacts with the building's HVAC equipment. This can be used to account for situations such as wehen a HPWH is in a closet and only a portion of the HPWH's space cooling affects the HVAC system.")
-        int_factor.setDefaultValue("1.0")
+        int_factor.setDefaultValue(1.0)
         args << int_factor
         
         # make an argument for temp_depress
@@ -154,7 +154,7 @@ class ResidentialHotWaterHeaterHeatPump < OpenStudio::Measure::ModelMeasure
         temp_depress.setDisplayName("Temperature Depression")
         temp_depress.setDescription("The reduction in ambient air temperature in the space where the water heater is located. This variable can be used to simulate the impact the HPWH has on its own performance when installing in a confined space suc as a utility closet.")
         temp_depress.setUnits("F")
-        temp_depress.setDefaultValue("0")
+        temp_depress.setDefaultValue(0)
         args << temp_depress
         
         # make an argument for ducting
@@ -549,7 +549,9 @@ class ResidentialHotWaterHeaterHeatPump < OpenStudio::Measure::ModelMeasure
             end
             
             tset_C = OpenStudio.convert(t_set,"F","C").to_f.round(2)
-            hp_setpoint = Waterheater.create_new_schedule_ruleset("CompressorSPSchedule_#{unit_num}", "WaterHeaterHPSchedule_#{unit_num}", tset_C, model) 
+            hp_setpoint = OpenStudio::Model::ScheduleConstant.new(model)
+            hp_setpoint.setName("WaterHeaterHPSchedule_#{unit_num}")
+            hp_setpoint.setValue(tset_C)
             
             hpwh_bottom_element_sp = OpenStudio::Model::ScheduleConstant.new(model)
             hpwh_bottom_element_sp.setName("HPWHBottomElementSetpoint_#{unit_num}")
@@ -628,8 +630,8 @@ class ResidentialHotWaterHeaterHeatPump < OpenStudio::Measure::ModelMeasure
             hpwh_cop.setMinimumValueofy(0)
             hpwh_cop.setMaximumValueofy(100)  
             
-            #Coil:WaterHeating:AirToWaterHeatPump:Wrapped (get the object created by the HPWH object and modify that)
-            coil = model.getCoilWaterHeatingAirToWaterHeatPumpWrappeds[unit_num-1] #There's only one per unit in the model
+            #Coil:WaterHeating:AirToWaterHeatPump:Wrapped
+            coil = hpwh.dXCoil.to_CoilWaterHeatingAirToWaterHeatPumpWrapped.get
             coil.setName("hpwh_coil_#{unit_num}")
             coil.setRatedHeatingCapacity(rated_heat_cap)
             coil.setRatedCOP(cop)
@@ -644,8 +646,8 @@ class ResidentialHotWaterHeaterHeatPump < OpenStudio::Measure::ModelMeasure
             coil.setHeatingCOPFunctionofTemperatureCurve(hpwh_cop)
             coil.setMaximumAmbientTemperatureforCrankcaseHeaterOperation(0)
             
-            #WaterHeater:Stratified (get the object created by the HPWH object and modify that)
-            tank = model.getWaterHeaterStratifieds[unit_num-1]
+            #WaterHeater:Stratified
+            tank = hpwh.tank.to_WaterHeaterStratified.get
             tank.setName("hpwh_tank_#{unit_num}")
             tank.setEndUseSubcategory("Domestic Hot Water")
             tank.setTankVolume(OpenStudio.convert(v_actual,"gal","m^3").get)
@@ -702,30 +704,19 @@ class ResidentialHotWaterHeaterHeatPump < OpenStudio::Measure::ModelMeasure
             tank.setSourceSideOutletHeight(0)
             
             #Fan:OnOff
-            #The hpwh object creates a fan, so we're getting that fan and setting the apropriate values
-            model.getFanOnOffs.each do |fan|	
-                #Look for a fan with the default properties to make sure we're getting the newly created fan object
-                if fan.fanEfficiency == 0.6 and fan.pressureRise == 300 and fan.isMaximumFlowRateAutosized == true and fan.isMotorEfficiencyDefaulted == false
-                    fan.setName("hpwh_fan_#{unit_num}")
-                    if hpwh_param == 50
-                        fan.setFanEfficiency(23/fan_power * OpenStudio.convert(1,"ft^3/min","m^3/s").get)
-                        fan.setPressureRise(23)
-                    else
-                        fan.setFanEfficiency(65/fan_power * OpenStudio.convert(1,"ft^3/min","m^3/s").get)
-                        fan.setPressureRise(65)
-                    end
-                    fan.setMaximumFlowRate(OpenStudio.convert(airflow_rate,"ft^3/min","m^3/s").get)
-                    fan.setMotorEfficiency(1.0)
-                    fan.setMotorInAirstreamFraction(1.0)
-                    fan.setEndUseSubcategory("Domestic Hot Water")
-                    hpwh.setFan(fan)
-                    break
-                end
+            fan = hpwh.fan.to_FanOnOff.get
+            fan.setName("hpwh_fan_#{unit_num}")
+            if hpwh_param == 50
+                fan.setFanEfficiency(23/fan_power * OpenStudio.convert(1,"ft^3/min","m^3/s").get)
+                fan.setPressureRise(23)
+            else
+                fan.setFanEfficiency(65/fan_power * OpenStudio.convert(1,"ft^3/min","m^3/s").get)
+                fan.setPressureRise(65)
             end
-            
-            #Set the HPWH tank and coil objects
-            hpwh.setTank(tank)
-            hpwh.setDXCoil(coil)
+            fan.setMaximumFlowRate(OpenStudio.convert(airflow_rate,"ft^3/min","m^3/s").get)
+            fan.setMotorEfficiency(1.0)
+            fan.setMotorInAirstreamFraction(1.0)
+            fan.setEndUseSubcategory("Domestic Hot Water")
             
             #Add in EMS program for HPWH interaction with the living space & ambient air temperature depression
             if int_factor != 1 and ducting != "none"
@@ -928,7 +919,6 @@ class ResidentialHotWaterHeaterHeatPump < OpenStudio::Measure::ModelMeasure
             end
             
             #EMS for the 50 gal HPWH control logic
-            #schedules come from sim.py
             if hpwh_param == 80
                 actuator =  OpenStudio::Model::EnergyManagementSystemActuator.new(hpwh_bottom_element_sp,"Schedule:Constant","Schedule Value")
                 actuator.setName("LESchedOverride_#{unit_num}")
@@ -959,25 +949,13 @@ class ResidentialHotWaterHeaterHeatPump < OpenStudio::Measure::ModelMeasure
                 sensor.setName("UE_P_#{unit_num}")
                 sensor.setKeyName("hpwh_tank_#{unit_num}")
                 
-                hpSchedOverride = OpenStudio::Model::ScheduleConstant.new(model)
-                hpSchedOverride.setName("HPSchedOverride_#{unit_num}")
-                hpSchedOverride.setValue(tset_C)
-                
-                ueSchedOverride = OpenStudio::Model::ScheduleConstant.new(model)
-                ueSchedOverride.setName("UESchedOverride")
-                ueSchedOverride.setValue(tset_C)
-                
-                leSchedOverride = OpenStudio::Model::ScheduleConstant.new(model)
-                leSchedOverride.setName("LESchedOverride_#{unit_num}")
-                leSchedOverride.setValue(tset_C)
-                
-                actuator =  OpenStudio::Model::EnergyManagementSystemActuator.new(hpSchedOverride,"Schedule:Constant", "Schedule Value")
+                actuator =  OpenStudio::Model::EnergyManagementSystemActuator.new(hp_setpoint,"Schedule:Constant", "Schedule Value")
                 actuator.setName("HPSchedOverride_#{unit_num}")
                 
-                actuator =  OpenStudio::Model::EnergyManagementSystemActuator.new(ueSchedOverride,"Schedule:Constant", "Schedule Value")
+                actuator =  OpenStudio::Model::EnergyManagementSystemActuator.new(hpwh_top_element_sp,"Schedule:Constant", "Schedule Value")
                 actuator.setName("UESchedOverride_#{unit_num}")
                 
-                actuator =  OpenStudio::Model::EnergyManagementSystemActuator.new(leSchedOverride,"Schedule:Constant", "Schedule Value")
+                actuator =  OpenStudio::Model::EnergyManagementSystemActuator.new(hpwh_bottom_element_sp,"Schedule:Constant", "Schedule Value")
                 actuator.setName("LESchedOverride_#{unit_num}")
                 
                 trend_var = OpenStudio::Model::EnergyManagementSystemTrendVariable.new(model, "UE_P_#{unit_num}")
@@ -1001,7 +979,7 @@ class ResidentialHotWaterHeaterHeatPump < OpenStudio::Measure::ModelMeasure
                 hpwh_ctrl_program.addLine("Set ElemOn_#{unit_num} = (@Max UEMax_#{unit_num} LEMax_#{unit_num})")
                 hpwh_ctrl_program.addLine("If (T_ctrl_#{unit_num} < #{t_ems_control1}) || ((ElemOn_#{unit_num} > 0) && (T_ctrl_#{unit_num} < #{t_ems_control2}))") #Small offset in second value is to prevent the element overshooting the setpoint due to mixing
                 hpwh_ctrl_program.addLine("Set LESchedOverride_#{unit_num} = 70")
-                hpwh_ctrl_program.addLine("Set HP SchedOverride_#{unit_num} = 0")
+                hpwh_ctrl_program.addLine("Set HPSchedOverride_#{unit_num} = 0")
                 hpwh_ctrl_program.addLine("Else")
                 hpwh_ctrl_program.addLine("Set LESchedOverride_#{unit_num} = 0")
                 hpwh_ctrl_program.addLine("Set HPSchedOverride_#{unit_num} = #{tset_C}")

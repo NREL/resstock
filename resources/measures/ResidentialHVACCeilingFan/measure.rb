@@ -70,7 +70,7 @@ class ProcessCeilingFan < OpenStudio::Measure::ModelMeasure
     control_names << Constants.CeilingFanControlSmart
     control = OpenStudio::Measure::OSArgument::makeChoiceArgument("control", control_names, true)
     control.setDisplayName("Control")
-    control.setDescription("'Typical' indicates half of the fans will be on whenever the interior temperature is above the cooling setpoint; 'Smart' indicates 50% of the energy consumption of 'Typical.'")
+    control.setDescription("'typical' indicates half of the fans will be on whenever the interior temperature is above the cooling setpoint; 'smart' indicates 50% of the energy consumption of 'typical.'")
     control.setDefaultValue(Constants.CeilingFanControlTypical)
     args << control 
     
