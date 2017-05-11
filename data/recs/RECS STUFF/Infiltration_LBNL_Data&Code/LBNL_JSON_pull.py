@@ -9,6 +9,8 @@ import csv
 import requests
 import lxml
 from lxml import etree
+import os, sys
+sys.path.insert(0, os.path.join(os.getcwd(),'clustering'))
 import re
 from datetime import datetime
 from datetime import timedelta
@@ -38,6 +40,11 @@ region_dict = {1: 'Humid',
                2: 'Dry',
                3: 'Marine',
                4: 'Alaska'}
+
+climate_dict = {'Humid':'A',
+                'Dry':'B',
+                'Marine':'C',
+                'Alaska':'D'}
 
 foundation_dict = {1: 'Slab',
                    2: 'Conditioned Basement or Unvented Crawlspace',
@@ -322,44 +329,142 @@ def binning_alg(width,df_1,df1, df_col):
     return dfn
 
 
+#####Bin by 2
+
+#
+#df1 =pd.read_csv('Infiltration_LBNL_FRQ_Dist_Bin1.tsv',sep ='\t')
+#df_col = df1[['Duct', 'stories', 'Climate_Zone', 'Foundation Type', 'EE', 'Region',
+#             'WAP', 'yearmaderange', 'Size', 'url','x_vals','y_vals']]
+#
+#x = ['0.75', '1.75', '2.75', '3.75', '4.75', '5.75', '6.75', '7.75', '8.75', '10.0', '11.0', '12.0', '13.0', '14.0', '15.0', '16.0', '17.0', '18.0', '19.0', '20.0', '21.0', '22.0', '23.0', '24.0', '25.0', '26.0', '27.0', '28.0', '29.0', '30.0', '31.0', '32.0', '33.0', '34.0', '35.0', '36.0', '37.0', '38.0', '39.0', '40.0', '41.0', '42.0', '43.0', '44.0', '45.0', '46.0', '47.0', '48.0', '49.0', '50.0']
+#df_1 = df1[x]
+#df2 = binning_alg(2,df_1,df1,df_col)
+#df3 = binning_alg(3,df_1,df1,df_col)
+#df4 = binning_alg(4,df_1,df1,df_col)
+#
+######Plots of binned vs unbinned
+#print 'Plots'
+#df1 = pd.read_csv('Infiltration_LBNL_FRQ_Dist_Bin1.tsv', sep='\t')
+#df2 = pd.read_csv('Infiltration_LBNL_FRQ_Dist_Bin2.tsv', sep='\t')
+#df3 = pd.read_csv('Infiltration_LBNL_FRQ_Dist_Bin3.tsv', sep='\t')
+#df4 = pd.read_csv('Infiltration_LBNL_FRQ_Dist_Bin4.tsv', sep='\t')
+#
+#for i in range(10):
+#    n = random.randint(0, .5*len(df1))
+#    plt.figure()
+#
+#    x_val1 = literal_eval(df1.loc[df1.index[n],'x_vals'])
+#    x_val2 = literal_eval(df2.loc[df2.index[n],'x_vals'])
+#    x_val3 = literal_eval(df3.loc[df3.index[n],'x_vals'])
+#    x_val4 = literal_eval(df4.loc[df4.index[n],'x_vals'])
+#
+#    y_val1 = literal_eval(df1.loc[df1.index[n],'y_vals'])
+#    y_val2 = literal_eval(df2.loc[df2.index[n],'y_vals'])
+#    y_val3 = literal_eval(df3.loc[df3.index[n],'y_vals'])
+#    y_val4 = literal_eval(df4.loc[df4.index[n],'y_vals'])
+#
+#    plt.plot(x_val1,y_val1,':b',label = 'Bin1',linewidth=4)
+#    plt.plot(x_val2,y_val2,'--r',label = 'Bin2',linewidth=4)
+#    plt.plot(x_val3,y_val3,'-*g',label = 'Bin3',linewidth=2)
+#    plt.plot(x_val4,y_val4,'-.y',label = 'Bin4',linewidth=4)
+#    plt.legend();
+
+#####Create TSV's
+
+def calc_general(df, cut_by, columns=None, outfile=None,norm=True,outpath="Probability Distributions"):
+
+    #Start Analyzing Specific Data
+    fields = cut_by + columns
+    grouped = df.groupby(fields)
+    df.groupby(cut_by)['Count'].sum()
+    combos = [list(set(df[field])) for field in fields]
+    for i, combo in enumerate(combos):
+        if pd.np.nan in combo:
+            x = pd.np.array(combos[i])
+            combos[i] = list(x)
+    full_index = pd.MultiIndex.from_product(combos, names=fields)
+
+    #Implement Total Weight of Each Type
+    g = grouped.sum()
+    g = g['nweight'].reindex(full_index)
+    g = g.fillna(0).reset_index()
+    g = pd.pivot_table(g, values='nweight', index=cut_by, columns=columns).reset_index()
+    Weight = g[g.columns[len(cut_by):]].sum(axis = 1)
+
+    #Implement Count of Each Type
+    ct = grouped.sum()
+    ct = ct['Count'].reindex(full_index)
+    ct = ct.fillna(0).reset_index()
+    ct = pd.pivot_table(ct, values='Count', index=cut_by, columns=columns).reset_index()
+    Count = ct[ct.columns[len(cut_by):]].sum(axis=1)    #only adds Options, not Dependencies
+
+    #Normalize Data
+    if norm:
+        total = g.sum(axis=1)
+        if isinstance(g.columns, pd.core.index.MultiIndex):
+            for col in g.columns:
+                if not col[0] in cut_by:
+                    g[col] = g[col] / total
+        else:
+            for col in g.columns:
+                if not col in cut_by:
+                    g[col] = g[col] / total
+    g['Count']=Count
+    g['Weight']=Weight
+
+    #Rename columns
+    cut_by = [x.replace('yearmaderange', 'Vintage') for x in cut_by]
+    cut_by = [x.replace('Size', 'Geometry House Size') for x in cut_by]
+
+    g = g.rename(columns={'yearmaderange': 'Vintage', 'Size': 'Geometry House Size'})
+    #Rename rows
+    if 'Vintage' in g.columns:
+        g['Vintage'] = g['Vintage'].replace({'pre-1960s': '<1960'})
+
+    #Add Headers for Option and Dependency
+    rename_dict = {}
+    for col in g.columns:
+        if col in ['Weight','Count']:
+            rename_dict[col] = str(col)
+        else:
+            rename_dict[col] = 'Option=' + str(col)
+        if col in cut_by:
+            rename_dict[col] = 'Dependency=' + str(col)
+    g = g.rename(columns=rename_dict)
+
+    #Generate Outfile
+    if not outfile is None:
+        g.to_csv(os.path.join(outpath, outfile), sep='\t', index=False)
+        print g
+    return g
 
 
-df1 =pd.read_csv('Infiltration_LBNL_FRQ_Dist_Bin1.tsv',sep ='\t')
-df_col = df1[['Duct', 'stories', 'Climate_Zone', 'Foundation Type', 'EE', 'Region',
-             'WAP', 'yearmaderange', 'Size', 'url','x_vals','y_vals']]
+#####Combine IECC Region and Climate Zone
+df = pd.read_csv('Infiltration_LBNL_FRQ_Dist_Bin2.tsv', sep='\t')
 
-x = ['0.75', '1.75', '2.75', '3.75', '4.75', '5.75', '6.75', '7.75', '8.75', '10.0', '11.0', '12.0', '13.0', '14.0', '15.0', '16.0', '17.0', '18.0', '19.0', '20.0', '21.0', '22.0', '23.0', '24.0', '25.0', '26.0', '27.0', '28.0', '29.0', '30.0', '31.0', '32.0', '33.0', '34.0', '35.0', '36.0', '37.0', '38.0', '39.0', '40.0', '41.0', '42.0', '43.0', '44.0', '45.0', '46.0', '47.0', '48.0', '49.0', '50.0']
-df_1 = df1[x]
-df2 = binning_alg(2,df_1,df1,df_col)
-df3 = binning_alg(3,df_1,df1,df_col)
-df4 = binning_alg(4,df_1,df1,df_col)
+field_dicts = {'Region':climate_dict}
+for field_name, field_dict in field_dicts.iteritems():
+    for num, name in field_dict.iteritems():
+        df.loc[:, field_name].replace(num, name, inplace=True)
 
-#####Plots of binned vs unbinned
-print 'Plots'
-df1 = pd.read_csv('Infiltration_LBNL_FRQ_Dist_Bin1.tsv', sep='\t')
-df2 = pd.read_csv('Infiltration_LBNL_FRQ_Dist_Bin2.tsv', sep='\t')
-df3 = pd.read_csv('Infiltration_LBNL_FRQ_Dist_Bin3.tsv', sep='\t')
-df4 = pd.read_csv('Infiltration_LBNL_FRQ_Dist_Bin4.tsv', sep='\t')
+df['Climate Zone'] = df['Climate Zone'].map(str)+df['Region']
+df = df.drop(['Region']
 
-for i in range(10):
-    n = random.randint(0, .5*len(df1))
-    plt.figure()
+#####Create TSV in format of Dependency-Option:
 
-    x_val1 = literal_eval(df1.loc[df1.index[n],'x_vals'])
-    x_val2 = literal_eval(df2.loc[df2.index[n],'x_vals'])
-    x_val3 = literal_eval(df3.loc[df3.index[n],'x_vals'])
-    x_val4 = literal_eval(df4.loc[df4.index[n],'x_vals'])
+def tsv_outfile(g, cut_by, columns, outfile):
+    rename_dict = {}
+    for col in g.columns:
+        if col in cut_by:
+            rename_dict[col] = 'Dependency=' + col
+        if col in columns:
+            rename_dict[col] = 'Option=' + col
+    g = g.rename(columns=rename_dict)
+    print g
+    g.to_csv(outfile, sep='\t', index=False)
+    return
 
-    y_val1 = literal_eval(df1.loc[df1.index[n],'y_vals'])
-    y_val2 = literal_eval(df2.loc[df2.index[n],'y_vals'])
-    y_val3 = literal_eval(df3.loc[df3.index[n],'y_vals'])
-    y_val4 = literal_eval(df4.loc[df4.index[n],'y_vals'])
+columns = ['1.25', '3.25', '5.25', '7.25', '9.375', '11.5', '13.5', '15.5', '17.5', '19.5', '21.5', '23.5', '25.5', '27.5', '29.5', '31.5', '33.5', '35.5', '37.5', '39.5', '41.5', '43.5', '45.5', '47.5', '49.5']
+cut_by = ['Duct', 'Stories', 'IECC Region', 'Foundation Type', 'EE', 'WAP', 'yearmaderange', 'Size', 'url', 'x_vals', 'y_vals']
 
-    plt.plot(x_val1,y_val1,':b',label = 'Bin1',linewidth=4)
-    plt.plot(x_val2,y_val2,'--r',label = 'Bin2',linewidth=4)
-    plt.plot(x_val3,y_val3,'-*g',label = 'Bin3',linewidth=2)
-    plt.plot(x_val4,y_val4,'-.y',label = 'Bin4',linewidth=4)
-    plt.legend();
-
-
-
+tsv_outfile(df, cut_by, columns,'LBNL Infiltration.tsv')
