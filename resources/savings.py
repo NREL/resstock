@@ -7,30 +7,79 @@ from joblib import Parallel, delayed
 import multiprocessing
 import argparse
 
+def assign_upgrades(df):
+
+  upgrades = {}
+  for name, group in df.groupby('build_existing_model.building_id'):    
+    
+    for ix, row in group.iterrows():
+    
+      ref_count = 0
+      for col in group.columns:
+        if not col.endswith('.run_measure'):
+          continue
+        ref_count += row[col]
+      
+      if ref_count == 0:
+        ref = row
+        
+    for ix, row in group.iterrows():
+    
+      ref_count = 0
+      for col in group.columns:
+        if not col.endswith('.run_measure'):
+          continue
+        ref_count += row[col]
+      
+      if ref_count == 0:
+        continue
+        
+      for col in group.columns:
+        if not col.endswith('.run_measure'):
+          continue
+          
+        if row[col] == 1:
+          upgrade = col
+          break
+   
+      for col in group.columns:      
+        if not col.startswith('BuildingCharacteristicsReport'):
+          continue
+        if ref[col] != row[col]:
+          upgrades[upgrade] = '{}.run_measure'.format(col.replace('BuildingCharacteristicsReport.', ''))
+        
+  df = df.rename(columns=upgrades)
+
+  return df
+  
 def main(file):
 
   df = pd.read_csv(file, index_col=['_id'])
+
+  df = df.dropna(axis=1, how='all')
+  df = assign_upgrades(df)
+  
   upgrades = [col for col in df.columns if col.endswith('.run_measure')]
   
   # summarize the upgrades applied
   df['upgrade'] = df.apply(lambda x: identify_upgrade(x, upgrades), axis=1)
   
   # remove NA (upgrade not applicable) rows
-  df = df[~((pd.isnull(df['simulation_output_report.upgrade_cost_usd'])) & (df['upgrade'] != 'reference'))]
-    
+  df = df[~((pd.isnull(df['SimulationOutputReport.upgrade_cost_usd'])) & (df['upgrade'] != 'reference'))]
+
   # process only applicable columns
   full = df.copy()
     
   # get enduses  
-  enduses = [col for col in df.columns if 'simulation_output_report' in col]
+  enduses = [col for col in df.columns if 'SimulationOutputReport' in col]
   enduses = [col for col in enduses if not '.weight' in col]
-  enduses = [col for col in enduses if not '.upgrade_cost' in col]
+  enduses = [col for col in enduses if not '.upgrade_cost_usd' in col]
   enduses = [col for col in enduses if not '_not_met' in col]
   enduses = [col for col in enduses if not '_capacity_w' in col]
   
   # remove unused columns  
-  cols = [col for col in df.columns if col.startswith('building_characteristics_report.')]
-  cols += ['name', 'run_start_time', 'run_end_time', 'status', 'status_message', 'build_existing_models_energyplus.always_run']
+  cols = [col for col in df.columns if col.startswith('BuildingCharacteristicsReport.')]
+  cols += ['name', 'run_start_time', 'run_end_time', 'status', 'status_message']
   cols = [col for col in cols if not 'location_epw' in col]
   for col in cols:
     try:
@@ -39,12 +88,14 @@ def main(file):
       print ' ... did not remove {}'.format(col)  
   
   # clean cost column
-  df['simulation_output_report.upgrade_cost_usd'] = df.apply(lambda x: 0.0 if is_reference_case(x, upgrades) else x['simulation_output_report.upgrade_cost_usd'], axis=1)
+  df['SimulationOutputReport.upgrade_cost_usd'] = df.apply(lambda x: 0.0 if is_reference_case(x, upgrades) else x['SimulationOutputReport.upgrade_cost_usd'], axis=1)
   
-  df = parallelize(df.groupby('build_existing_models.building_id'), deltas, upgrades, enduses)
+  df = parallelize(df.groupby('build_existing_model.building_id'), deltas, upgrades, enduses)
   
   cols_to_use = [col for col in df.columns if col not in full.columns]
   full = pd.concat([full, df[cols_to_use]], axis=1)
+  
+  print full.head()
   
   return df, full
     
@@ -57,7 +108,7 @@ def deltas(df, upgrades, enduses):
   df_upgrades = df.loc[df[upgrades].sum(axis=1)!=0]
   
   # incremental cost
-  df.loc[df_upgrades.index, 'incremental_cost_usd'] = df_upgrades['simulation_output_report.upgrade_cost_usd'].values - df_reference['simulation_output_report.upgrade_cost_usd'].values
+  df.loc[df_upgrades.index, 'incremental_cost_usd'] = df_upgrades['SimulationOutputReport.upgrade_cost_usd'].values - df_reference['SimulationOutputReport.upgrade_cost_usd'].values
   
   # energy savings
   for enduse in enduses:
@@ -88,13 +139,14 @@ if __name__ == '__main__':
   t0 = time.time()
   
   parser = argparse.ArgumentParser()
-  parser.add_argument('--file', default= '../analysis_results/resstock_pnw.csv', help='Relative path of the output csv file.')
+  parser.add_argument('--file', default= '../analysis_results/results.csv', help='Relative path of the output csv file.')
   args = parser.parse_args()
   file = os.path.abspath(os.path.join(os.path.dirname(__file__), args.file))
 
   df, full = main(file)
   
   new_file = '{}_savings{}'.format(os.path.splitext(os.path.basename(file))[0], os.path.splitext(os.path.basename(file))[1])
+  full.index.name = '_id'
   full.to_csv(os.path.join(os.path.dirname(file), new_file))
   
   print "All done! Completed rows in {0:.2f} seconds on".format(time.time()-t0), time.strftime("%Y-%m-%d %H:%M")
