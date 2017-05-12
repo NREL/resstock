@@ -131,7 +131,18 @@ class BuildExistingModel < OpenStudio::Ruleset::ModelUserScript
         
     # Determine weight
     if not number_of_buildings_represented.nil?
-        total_samples = runner.analysis[:analysis][:problem][:algorithm][:number_of_samples].to_f
+        total_samples = nil
+        runner.analysis[:analysis][:problem][:workflow].each do |wf|
+            next if wf[:name] != 'build_existing_model'
+            wf[:variables].each do |v|
+                next if v[:argument][:name] != 'building_id'
+                total_samples = v[:maximum].to_f
+            end
+        end
+        if total_samples.nil?
+            runner.registerError("Could not retrieve value for number_of_buildings_represented.")
+            return false
+        end
         weight = number_of_buildings_represented.get / total_samples
         register_value(runner, "weight", weight.to_s)
     end

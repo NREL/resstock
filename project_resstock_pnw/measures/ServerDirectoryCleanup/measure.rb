@@ -56,10 +56,6 @@ class ServerDirectoryCleanup < OpenStudio::Ruleset::ReportingUserScript
       File.delete(f)
       runner.registerInfo("Deleted #{f} from the run directory.") if !File.exist?(f)
     end
-    #Dir.glob("./../*.csv").each do |f|
-    #  File.delete(f)
-    #  runner.registerInfo("Deleted #{f} from the run directory.") if !File.exist?(f)
-    #end
     Dir.glob("./../*.eso").each do |f|
       File.delete(f)
       runner.registerInfo("Deleted #{f} from the run directory.") if !File.exist?(f)
