@@ -2,6 +2,9 @@
 """
 Created on Thu Mar 23 15:13:24 2017
 
+This randomly plots two variable that you wish to collapse and compares them. For instance
+1960s and 1970s housing
+
 @author: jalley
 """
 from __future__ import division
@@ -17,6 +20,7 @@ import matplotlib.pyplot as plt
 import random
 from ast import literal_eval
 sns.set(font_scale=1.25)
+
 
 
 ######## Save Data to TSV
