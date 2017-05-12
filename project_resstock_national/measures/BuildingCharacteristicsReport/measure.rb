@@ -51,22 +51,42 @@ class BuildingCharacteristicsReport < OpenStudio::Ruleset::ReportingUserScript
       return false
     end
 
+    characteristics = {}
+    
     # Get existing building characteristics
     runner.workflow.workflowSteps.each do |step|
         next if not step.result.is_initialized
         step_result = step.result.get
         next if !step_result.measureName.is_initialized or step_result.measureName.get != "build_existing_model"
         step_result.stepValues.each do |step_value|
-            # These values will show up in the results CSV file when added to 
-            # the analysis spreadsheet's Outputs worksheet.
             begin
                 # All building characteristics will be strings
-                runner.registerInfo("Registering #{step_value.valueAsString} for #{step_value.name}.")
-                runner.registerValue(step_value.name,step_value.valueAsString)
+                characteristics[step_value.name] = step_value.valueAsString
             rescue
                 runner.registerInfo("Skipping #{step_value.name}.")
             end
         end
+    end
+    
+    # Override building characteristics with any upgrades that applied
+    runner.workflow.workflowSteps.each do |step|
+        next if not step.result.is_initialized
+        step_result = step.result.get
+        next if !step_result.measureName.is_initialized or step_result.measureName.get != "apply_upgrade"
+        step_result.stepValues.each do |step_value|
+            begin
+                # All building characteristics will be strings
+                characteristics[step_value.name] = step_value.valueAsString
+            rescue
+                runner.registerInfo("Skipping #{step_value.name}.")
+            end
+        end
+    end
+    
+    # Report building characteristics
+    characteristics.each do |k,v|
+        runner.registerInfo("Registering #{v} for #{k}.")
+        runner.registerValue(k,v)
     end
     
     # Report some additional location characteristics
@@ -79,18 +99,16 @@ class BuildingCharacteristicsReport < OpenStudio::Ruleset::ReportingUserScript
     model = model.get
 
     weather = WeatherProcess.new(model, runner, File.dirname(__FILE__), header_only=true)
-    if weather.error?
-      return false
+    if !weather.error?
+      runner.registerInfo("Registering #{weather.header.City} for location_city.")
+      runner.registerValue("location_city", weather.header.City)
+      runner.registerInfo("Registering #{weather.header.State} for location_state.")
+      runner.registerValue("location_state", weather.header.State)
+      runner.registerInfo("Registering #{weather.header.Latitude} for location_latitude.")
+      runner.registerValue("location_latitude", weather.header.Latitude)
+      runner.registerInfo("Registering #{weather.header.Longitude} for location_longitude.")
+      runner.registerValue("location_longitude", weather.header.Longitude)
     end
-
-    runner.registerInfo("Registering #{weather.header.City} for location_city.")
-    runner.registerValue("location_city", weather.header.City)
-    runner.registerInfo("Registering #{weather.header.State} for location_state.")
-    runner.registerValue("location_state", weather.header.State)
-    runner.registerInfo("Registering #{weather.header.Latitude} for location_latitude.")
-    runner.registerValue("location_latitude", weather.header.Latitude)
-    runner.registerInfo("Registering #{weather.header.Longitude} for location_longitude.")
-    runner.registerValue("location_longitude", weather.header.Longitude)
     
     runner.registerFinalCondition("Report generated successfully.")
 
