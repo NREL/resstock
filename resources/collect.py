@@ -11,6 +11,7 @@ import warnings
 import csv
 import h5py
 warnings.filterwarnings('ignore')
+import shutil
 
 def main(dir, format, package, func, file):
 
@@ -57,40 +58,58 @@ def write_pandas_hdf5(dir, file):
   with pd.HDFStore(file, mode='w', complib='zlib', complevel=9) as hdf:
   
     for item in os.listdir(dir):
-
+    
       if not item.endswith('.zip'):
         continue
     
-      with zipfile.ZipFile(os.path.join(dir, item), 'r') as old_zf:
+      print os.path.join(dir, item)
+      
+      folder_zf = zipfile.ZipFile(os.path.join(dir, item))
+      
+      for datapoint in folder_zf.namelist():
+      
+        if datapoint.endswith('results.csv'):
+          folder_zf.extract(datapoint, dir)
+          chars = pd.read_csv(os.path.join(dir, datapoint), index_col='_id')
+          chars = chars.dropna(axis=1, how='all')
+      
+        if not datapoint.endswith('.zip'):
+          continue
         
-        df = pd.read_csv(old_zf.open('enduse_timeseries.csv'))
-        df.columns = [re.sub(r"[^\w\s]", '_', col).replace(' ', '').rstrip('_') for col in df.columns]
+        folder_zf.extract(datapoint, dir)
+        
+        with zipfile.ZipFile(os.path.join(dir, datapoint), 'r') as data_point_zf:
+      
+          df = pd.read_csv(data_point_zf.open('enduse_timeseries.csv'))
+          df.columns = [re.sub(r"[^\w\s]", '_', col).replace(' ', '').rstrip('_') for col in df.columns]
 
-        # enduse_id
-        enduses = [col for col in df.columns if not 'Time' in col]
-        for enduse in enduses:
-          if not enduse in enduse_ids['enduse'].values:
-            next_id = len(enduse_ids.index) + 1
-            enduse_ids.loc[next_id] = [enduse, str(next_id)]
-        df = df.rename(columns=dict(zip(enduse_ids['enduse'], enduse_ids['enduse_id'])))
-        
-        # datapoint_id
-        m = re.search('data_point_([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})', item)
-        if m:
-          datapoint = m.group(1)
-          datapoint = str(uuid.uuid1()) # TODO: remove this when we have actual results
-        if not datapoint in datapoint_ids['datapoint'].values:
-          next_id = len(datapoint_ids.index) + 1
-          datapoint_ids.loc[next_id] = [datapoint, str(next_id)]
-        df.insert(0, 'datapoint_id', next_id)
-        
-        df = pd.melt(df, id_vars=['datapoint_id', 'Time'], var_name='enduse_id')
-        df = df.set_index('datapoint_id')
+          # enduse_id
+          enduses = [col for col in df.columns if not 'Time' in col]
+          for enduse in enduses:
+            if not enduse in enduse_ids['enduse'].values:
+              next_id = len(enduse_ids.index) + 1
+              enduse_ids.loc[next_id] = [enduse, str(next_id)]
+          df = df.rename(columns=dict(zip(enduse_ids['enduse'], enduse_ids['enduse_id'])))
+          
+          # datapoint_id
+          m = re.search('([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})', datapoint)
+          if m:
+            datapoint_id = m.group(1)
+          if not datapoint_id in datapoint_ids['datapoint'].values:
+            next_id = len(datapoint_ids.index) + 1
+            datapoint_ids.loc[next_id] = [datapoint_id, str(next_id)]
+          df.insert(0, 'datapoint_id', next_id)
+          
+          df = pd.melt(df, id_vars=['datapoint_id', 'Time'], var_name='enduse_id')
+          df = df.set_index('datapoint_id')
 
-        df.to_hdf(hdf, 'df', format='table', append=True)
+          df.to_hdf(hdf, 'df', format='table', append=True)
+
+        shutil.rmtree(os.path.join(dir, os.path.dirname(datapoint)))
       
     datapoint_ids.set_index('datapoint_id').to_hdf(hdf, 'datapoint_ids', format='table')
-    enduse_ids.set_index('enduse_id').to_hdf(hdf, 'enduse_ids', format='table')    
+    enduse_ids.set_index('enduse_id').to_hdf(hdf, 'enduse_ids', format='table')
+    chars.to_hdf(hdf, 'characteristics', format='table')
     
     print hdf
     print "Created new hdf5 file containing {} groups.".format(len(hdf.keys()))
@@ -122,7 +141,9 @@ def read_pandas_hdf5(dir, file):
   with pd.HDFStore(file) as hdf: 
     
     for key in hdf.keys():
-      print hdf[key].head()
+      # print hdf[key].head()
+      # print hdf[key].shape
+      print hdf[key]
     
 def read_h5py_hdf5(dir, file):
 

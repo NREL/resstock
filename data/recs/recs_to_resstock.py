@@ -160,10 +160,10 @@ def assign_usage_level(df): # Usage level
   
 def assign_attached_garage(df): # Attached garage
 
-    garage = {1: 'Yes',
-            2: 'Yes',
-            3: 'Yes',
-            -2: 'No'}
+    garage = {1: 'No;Yes',
+              2: 'No;Yes',
+              3: 'No;Yes',
+              -2: 'No;Yes'}
             
     df['Attached Garage'] = df['sizeofgarage'].apply(lambda x: garage[x])
 

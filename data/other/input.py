@@ -108,12 +108,11 @@ def add_option_prefix(df):
     
 if __name__ == '__main__':
     
-    datafiles_dir = '../../resources/inputs/national'
+    datafiles_dir = '../../project_resstock_national/housing_characteristics'
 
     dfs = Create_DFs('Zones.csv')
-    
-    for category in ['Location Census Division']:
-    # for category in ['Location IECC EPW', 'Location BA EPW']:
+
+    for category in ['Location Census Division', 'Location IECC EPW', 'Location BA EPW']:
         print category
         method = getattr(dfs, category.lower().replace(' ', '_'))
         df = method()

@@ -311,7 +311,7 @@ def assign_location(df):
     elif cmsa in cmsakey.keys():
       return cmsakey[cmsa]
     else:
-      return '{}, {}'.format(divisionkey[div], metrokey[metro])
+      return divisionkey[div]
     
   df['SMSA'] = df['SMSA'].str.replace("'", "")
   df['smsa'] = df['SMSA'].apply(lambda x: smsa(x))
