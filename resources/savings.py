@@ -6,6 +6,7 @@ import time
 from joblib import Parallel, delayed
 import multiprocessing
 import argparse
+import zipfile
 
 def assign_upgrades(df):
 
@@ -52,52 +53,66 @@ def assign_upgrades(df):
 
   return df
   
-def main(file):
+def main(dir):
 
-  df = pd.read_csv(file, index_col=['_id'])
+  for item in os.listdir(dir):
+  
+    if not item.endswith('.zip'):
+      continue
 
-  df = df.dropna(axis=1, how='all')
-  df = assign_upgrades(df)
-  
-  upgrades = [col for col in df.columns if col.endswith('.run_measure')]
-  
-  # summarize the upgrades applied
-  df['upgrade'] = df.apply(lambda x: identify_upgrade(x, upgrades), axis=1)
-  
-  # remove NA (upgrade not applicable) rows
-  df = df[~((pd.isnull(df['SimulationOutputReport.upgrade_cost_usd'])) & (df['upgrade'] != 'reference'))]
-
-  # process only applicable columns
-  full = df.copy()
+    print os.path.join(dir, item)
     
-  # get enduses  
-  enduses = [col for col in df.columns if 'SimulationOutputReport' in col]
-  enduses = [col for col in enduses if not '.weight' in col]
-  enduses = [col for col in enduses if not '.upgrade_cost_usd' in col]
-  enduses = [col for col in enduses if not '_not_met' in col]
-  enduses = [col for col in enduses if not '_capacity_w' in col]
-  
-  # remove unused columns  
-  cols = [col for col in df.columns if col.startswith('BuildingCharacteristicsReport.')]
-  cols += ['name', 'run_start_time', 'run_end_time', 'status', 'status_message']
-  cols = [col for col in cols if not 'location_epw' in col]
-  for col in cols:
-    try:
-      df = df.drop(col, 1)
-    except:
-      print ' ... did not remove {}'.format(col)  
-  
-  # clean cost column
-  df['SimulationOutputReport.upgrade_cost_usd'] = df.apply(lambda x: 0.0 if is_reference_case(x, upgrades) else x['SimulationOutputReport.upgrade_cost_usd'], axis=1)
-  
-  df = parallelize(df.groupby('build_existing_model.building_id'), deltas, upgrades, enduses)
-  
-  cols_to_use = [col for col in df.columns if col not in full.columns]
-  full = pd.concat([full, df[cols_to_use]], axis=1)
-  
-  print full.head()
-  
-  return df, full
+    folder_zf = zipfile.ZipFile(os.path.join(dir, item))
+    
+    for datapoint in folder_zf.namelist():
+    
+      if not datapoint.endswith('results.csv'):
+        continue
+      
+      folder_zf.extract(datapoint, dir)
+
+      df = pd.read_csv(os.path.join(dir, datapoint), index_col=['_id'])
+
+      df = df.dropna(axis=1, how='all')
+      df = assign_upgrades(df)
+      
+      upgrades = [col for col in df.columns if col.endswith('.run_measure')]
+      
+      # summarize the upgrades applied
+      df['upgrade'] = df.apply(lambda x: identify_upgrade(x, upgrades), axis=1)
+      
+      # remove NA (upgrade not applicable) rows
+      df = df[~((pd.isnull(df['SimulationOutputReport.upgrade_cost_usd'])) & (df['upgrade'] != 'reference'))]
+
+      # process only applicable columns
+      full = df.copy()
+        
+      # get enduses  
+      enduses = [col for col in df.columns if 'SimulationOutputReport' in col]
+      enduses = [col for col in enduses if not '.weight' in col]
+      enduses = [col for col in enduses if not '.upgrade_cost_usd' in col]
+      enduses = [col for col in enduses if not '_not_met' in col]
+      enduses = [col for col in enduses if not '_capacity_w' in col]
+      
+      # remove unused columns  
+      cols = [col for col in df.columns if col.startswith('BuildingCharacteristicsReport.')]
+      cols += ['name', 'run_start_time', 'run_end_time', 'status', 'status_message']
+      cols = [col for col in cols if not 'location_epw' in col]
+      for col in cols:
+        try:
+          df = df.drop(col, 1)
+        except:
+          print ' ... did not remove {}'.format(col)  
+      
+      # clean cost column
+      df['SimulationOutputReport.upgrade_cost_usd'] = df.apply(lambda x: 0.0 if is_reference_case(x, upgrades) else x['SimulationOutputReport.upgrade_cost_usd'], axis=1)
+      
+      df = parallelize(df.groupby('build_existing_model.building_id'), deltas, upgrades, enduses)
+      
+      cols_to_use = [col for col in df.columns if col not in full.columns]
+      full = pd.concat([full, df[cols_to_use]], axis=1)
+      
+      return os.path.basename(datapoint), full
     
 def deltas(df, upgrades, enduses):
     
@@ -139,14 +154,15 @@ if __name__ == '__main__':
   t0 = time.time()
   
   parser = argparse.ArgumentParser()
-  parser.add_argument('--file', default= '../analysis_results/results.csv', help='Relative path of the output csv file.')
+  parser.add_argument('--directory', default='../analysis_results/data_points', help='Relative path containing the data_point.zip files.')
   args = parser.parse_args()
-  file = os.path.abspath(os.path.join(os.path.dirname(__file__), args.file))
 
-  df, full = main(file)
+  datapoint, full = main(args.directory)
   
-  new_file = '{}_savings{}'.format(os.path.splitext(os.path.basename(file))[0], os.path.splitext(os.path.basename(file))[1])
+  print datapoint
+  
+  new_file = '{}_savings{}'.format(os.path.splitext(os.path.basename(datapoint))[0], os.path.splitext(os.path.basename(datapoint))[1])
   full.index.name = '_id'
-  full.to_csv(os.path.join(os.path.dirname(file), new_file))
+  full.to_csv(os.path.join(args.directory, new_file))
   
   print "All done! Completed rows in {0:.2f} seconds on".format(time.time()-t0), time.strftime("%Y-%m-%d %H:%M")
