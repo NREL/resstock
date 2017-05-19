@@ -64,14 +64,14 @@ def main(dir):
     
     folder_zf = zipfile.ZipFile(os.path.join(dir, item))
     
-    for datapoint in folder_zf.namelist():
+    for item in folder_zf.namelist():
     
-      if not datapoint.endswith('results.csv'):
+      if not item.endswith('results.csv'):
         continue
       
-      folder_zf.extract(datapoint, dir)
+      folder_zf.extract(item, dir)
 
-      df = pd.read_csv(os.path.join(dir, datapoint), index_col=['_id'])
+      df = pd.read_csv(os.path.join(dir, item), index_col=['_id'])
 
       df = df.dropna(axis=1, how='all')
       df = assign_upgrades(df)
@@ -112,7 +112,7 @@ def main(dir):
       cols_to_use = [col for col in df.columns if col not in full.columns]
       full = pd.concat([full, df[cols_to_use]], axis=1)
       
-      return os.path.basename(datapoint), full
+      return os.path.basename(item), full
     
 def deltas(df, upgrades, enduses):
     
@@ -157,11 +157,10 @@ if __name__ == '__main__':
   parser.add_argument('--directory', default='../analysis_results/data_points', help='Relative path containing the data_point.zip files.')
   args = parser.parse_args()
 
-  datapoint, full = main(args.directory)
+  item, full = main(args.directory)
   
-  print datapoint
-  
-  new_file = '{}_savings{}'.format(os.path.splitext(os.path.basename(datapoint))[0], os.path.splitext(os.path.basename(datapoint))[1])
+  file, ext = os.path.splitext(os.path.basename(item))
+  new_file = '{}_savings{}'.format(file, ext)
   full.index.name = '_id'
   full.to_csv(os.path.join(args.directory, new_file))
   
