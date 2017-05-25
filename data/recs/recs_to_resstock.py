@@ -44,7 +44,7 @@ def main(df):
     df = pd.read_csv('recs.csv', index_col=['doeid'])
   
   # revise (remove) variant ids based on non-meta
-  # df['OutputArchetypeVariantID_Revised'] = df['OutputArchetypeVariantID']
+  df['OutputArchetypeVariantID (Meta Parameters + Heating + Cooling + WH + Windows)'] = df['OutputArchetypeVariantID (Meta Parameters)']
   
   guid_dict = {
                'Windows': {
@@ -116,7 +116,8 @@ def revise_variant_ids(df, category, dict, con):
     col = 'cooltype'
   elif category == 'Heating System':
     col = 'equipm'
-  df['OutputArchetypeVariantID_{}'.format(category)] = df.apply(lambda x: remove_variants(x[col], dict, x['OutputArchetypeVariantID'], OutputArchetypeVariantOptionDiff), axis=1)
+  # df['OutputArchetypeVariantID_{}'.format(category)] = df.apply(lambda x: remove_variants(x[col], dict, x['OutputArchetypeVariantID'], OutputArchetypeVariantOptionDiff), axis=1)
+  df['OutputArchetypeVariantID (Meta Parameters + Heating + Cooling + WH + Windows)'] = df.apply(lambda x: remove_variants(x[col], dict, x['OutputArchetypeVariantID (Meta Parameters + Heating + Cooling + WH + Windows)'], OutputArchetypeVariantOptionDiff), axis=1)
   
   return df
   
@@ -341,7 +342,7 @@ def assign_variant_ids(df):
   
   meta_category_dependency_ids = range(1, 10)
   
-  df['OutputArchetypeVariantID'] = df.apply(lambda x: iter(x, meta_category_dependency_ids), axis=1)
+  df['OutputArchetypeVariantID (Meta Parameters)'] = df.apply(lambda x: iter(x, meta_category_dependency_ids), axis=1)
   
   return df  
   

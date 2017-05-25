@@ -138,12 +138,48 @@ def write_h5py_hdf5(dir, file):
     
 def read_pandas_hdf5(dir, file):
     
-  with pd.HDFStore(file) as hdf: 
+  import plotly
+  import plotly.graph_objs as go   
     
+  # one datapoint, one enduse  
+  datapoints = ['03f05f93-27ae-46b5-ba6b-c97cc39a0663', '0b7aab40-c8fb-4d37-aae0-921b3a7856a6']
+  enduses = ['Heating_Gas_kBtu', 'Cooling_Electricity_kWh']
+    
+  with pd.HDFStore(file) as hdf:
+  
     for key in hdf.keys():
       # print hdf[key].head()
       # print hdf[key].shape
       print hdf[key]
+    
+    # load dataframes into memory
+    characteristics = hdf['characteristics']
+    datapoint_ids = hdf['datapoint_ids']
+    enduse_ids = hdf['enduse_ids']    
+    df = hdf['df']
+    
+    for datapoint in datapoints:
+      datapoint_id = datapoint_ids[datapoint_ids['datapoint']==datapoint].index.values[0]
+      data = []
+      for enduse in enduses:
+
+        enduse_id = enduse_ids[enduse_ids['enduse']==enduse].index.values[0]
+        d = df.ix[int(datapoint_id)]
+        d = d[d['enduse_id']==enduse_id]
+        if 'kWh' in enduse:
+          data.append({'x': d['Time'], 'y': kWh2MBtu(d['value']), 'name': enduse})
+        elif 'kBtu' in enduse:
+          data.append({'x': d['Time'], 'y': kBtu2MBtu(d['value']), 'name': enduse})
+
+      layout = go.Layout(title=characteristics[characteristics.index==datapoint]['BuildingCharacteristicsReport.location_epw'].values[0], yaxis=dict(title='MBtu'))
+      data = go.Figure(data=data, layout=layout)
+      plotly.offline.plot(data, filename='{}.html'.format(datapoint), auto_open=True)
+    
+def kWh2MBtu(x):
+    return 3412.0 * 0.000001 * x
+    
+def kBtu2MBtu(x):
+    return x / 1000.0    
     
 def read_h5py_hdf5(dir, file):
 
