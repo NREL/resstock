@@ -13,7 +13,7 @@ import h5py
 warnings.filterwarnings('ignore')
 import shutil
 
-def main(dir, format, package, func, file):
+def main(dir, format, package, func, file, driver):
 
   if func == 'write':
     if format == 'zip':    
@@ -31,6 +31,13 @@ def main(dir, format, package, func, file):
         read_pandas_hdf5(dir, file)        
       elif package == 'h5py':      
         read_h5py_hdf5(dir, file)
+  elif func == 'build_db':
+    build_db(file, driver)
+    
+def build_db(file, driver):
+  import buildstockdbmodel as bsdb
+  
+  session = bsdb.create_session(file, driver)
 
 def write_zip(dir):
 
@@ -209,11 +216,13 @@ if __name__ == '__main__':
   parser.add_argument('--format', choices=formats, default='hdf5', help='Desired format of the stored output csv files.')
   packages = ['pandas', 'h5py']
   parser.add_argument('--package', choices=packages, default='pandas', help='HDF5 tool.')
-  functions = ['read', 'write']
+  functions = ['read', 'write', 'build_db']
   parser.add_argument('--function', choices=functions, default='write', help='Read or write.')
   parser.add_argument('--file', default='data_points.h5', help='Name of the existing hdf5 file.')
+  dbtypes = ['sqlite', 'postgresql']
+  parser.add_argument('--driver', default='sqlite', help='Type of db to build.')
   args = parser.parse_args()
 
-  main(args.directory, args.format, args.package, args.function, args.file)
+  main(args.directory, args.format, args.package, args.function, args.file, args.driver)
   
   print "All done! Completed rows in {0:.2f} seconds on".format(time.time()-t0), time.strftime("%Y-%m-%d %H:%M")
