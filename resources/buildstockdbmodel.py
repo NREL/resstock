@@ -40,7 +40,7 @@ def config(filename='buildstock.ini', section='postgresql'):
   else:
     raise Exception('Section {0} not found in the {1} file'.format(section, filename))
 
-  return db  
+  return db
   
 class Datapoint(Base):
   __tablename__ = 'Datapoint'
