@@ -38,6 +38,33 @@ def build_db(file, driver):
   import buildstockdbmodel as bsdb
   
   session = bsdb.create_session(file, driver)
+  
+  datapoint_id = '007917fe-19f9-4078-a116-2e258134f02b'
+  building_id = 1
+  parameteroption_id = 1
+  upgrade_id = 1
+  upgrade_cost_usd = 100.0
+  upgrade_name = 'upgrade 1'
+  parameter_id = 1
+  parameter_name = 'parameter 1'
+  parameteroption_name = 'parameter option 1'
+  
+  datapoint = bsdb.Datapoint(datapoint_id=datapoint_id, building_id=building_id, parameteroption_id=parameteroption_id, upgrade_id=upgrade_id, upgrade_cost_usd=upgrade_cost_usd)
+  session.add(datapoint)
+  
+  building = bsdb.Building(building_id=1)
+  session.add(building)
+  
+  upgrade = bsdb.Upgrade(upgrade_id=upgrade_id, upgrade_name=upgrade_name)
+  session.add(upgrade)
+  
+  parameteroption = bsdb.ParameterOption(parameteroption_id=parameteroption_id, parameter_id=parameter_id, parameteroption_name=parameteroption_name)
+  session.add(parameteroption)
+  
+  parameter = bsdb.Parameter(parameter_id=parameter_id, parameter_name=parameter_name)
+  session.add(parameter)
+  
+  session.commit()
 
 def write_zip(dir):
 

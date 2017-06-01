@@ -44,18 +44,21 @@ def config(filename='buildstock.ini', section='postgresql'):
   
 class Datapoint(Base):
   __tablename__ = 'Datapoint'
+  
   datapoint_id = Column('datapoint_id', String, primary_key=True)
   building_id = Column('building_id', Integer, ForeignKey('Building.building_id'))
   parameteroption_id = Column('parameteroption_id', Integer, ForeignKey('ParameterOption.parameteroption_id'))
-  ugprade_id = Column('upgrade_id', Integer, ForeignKey('Upgrade.upgrade_id'))
+  upgrade_id = Column('upgrade_id', Integer, ForeignKey('Upgrade.upgrade_id'))
   upgrade_cost_usd = Column('upgrade_cost_usd', Float)
     
 class Building(Base):
   __tablename__ = 'Building'
+
   building_id = Column('building_id', Integer, primary_key=True)
 
 class Upgrade(Base):
   __tablename__ = 'Upgrade'
+  
   upgrade_id = Column(Integer, primary_key=True)
   upgrade_name = Column(String)
   
@@ -63,17 +66,20 @@ class Upgrade(Base):
   
 class ParameterOption(Base):
   __tablename__ = 'ParameterOption'
+  
   parameteroption_id = Column('parameteroption_id', Integer, primary_key=True)
   parameter_id = Column('parameter_id', Integer, ForeignKey('Parameter.parameter_id'))
   parameteroption_name = Column('parameteroption_name', String)
   
 class Parameter(Base):
   __tablename__ = 'Parameter'
+  
   parameter_id = Column('parameter_id', Integer, primary_key=True)
   parameter_name = Column('parameter_name', String)
   
 class SimulationOutput(Base):
   __tablename__ = 'SimulationOutput'
+  
   simulationoutput_id = Column('simulationoutput_id', Integer, primary_key=True)
   fueltype_id = Column('fueltype_id', Integer, ForeignKey('FuelType.fueltype_id'))
   enduse_id = Column('enduse_id', Integer, ForeignKey('Enduse.enduse_id'))
@@ -81,10 +87,12 @@ class SimulationOutput(Base):
   
 class Enduse(Base):
   __tablename__ = 'Enduse'
+  
   enduse_id = Column('enduse_id', Integer, primary_key=True)
   enduse_name = Column('enduse_name', String)
   
 class FuelType(Base):
   __tablename__ = 'FuelType'
+  
   fueltype_id = Column('fueltype_id', Integer, primary_key=True)
   fueltype_name = Column('fueltype_name', String)
