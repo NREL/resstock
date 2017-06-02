@@ -13,56 +13,161 @@ import h5py
 warnings.filterwarnings('ignore')
 import shutil
 
-def main(dir, format, package, func, file, driver):
+def main(zip_file, format, package, func, file, driver):
 
   if func == 'write':
     if format == 'zip':    
-      write_zip(dir)      
+      write_zip(os.path.dirname(dir))      
     elif format == 'hdf5':    
       if package == 'pandas':    
-        write_pandas_hdf5(dir, file)      
+        write_pandas_hdf5(os.path.dirname(dir), file)      
       elif package == 'h5py':      
-        write_h5py_hdf5(dir, file)      
+        write_h5py_hdf5(os.path.dirname(dir), file)      
   elif func == 'read':  
     if format == 'zip':    
       print "Haven't written this code yet."      
     elif format == 'hdf5':
       if package == 'pandas':    
-        read_pandas_hdf5(dir, file)        
+        read_pandas_hdf5(os.path.dirname(dir), file)        
       elif package == 'h5py':      
-        read_h5py_hdf5(dir, file)
+        read_h5py_hdf5(os.path.dirname(dir), file)
   elif func == 'build_db':
-    build_db(file, driver)
+    build_db(zip_file, driver)
     
-def build_db(file, driver):
+def assign_upgrades(df):
+
+  upgrades = {}
+  for name, group in df.groupby('build_existing_model.building_id'):    
+    
+    for ix, row in group.iterrows():
+    
+      ref_count = 0
+      for col in group.columns:
+        if not col.endswith('.run_measure'):
+          continue
+        ref_count += row[col]
+      
+      if ref_count == 0:
+        ref = row
+        
+    for ix, row in group.iterrows():
+    
+      ref_count = 0
+      for col in group.columns:
+        if not col.endswith('.run_measure'):
+          continue
+        ref_count += row[col]
+      
+      if ref_count == 0:
+        continue
+        
+      for col in group.columns:
+        if not col.endswith('.run_measure'):
+          continue
+          
+        if row[col] == 1:
+          upgrade = col
+          break
+   
+      for col in group.columns:      
+        if not col.startswith('BuildingCharacteristicsReport'):
+          continue
+        if ref[col] != row[col]:
+          upgrades[upgrade] = '{}.run_measure'.format(col.replace('BuildingCharacteristicsReport.', ''))
+        
+  df = df.rename(columns=upgrades)
+
+  return df
+    
+def build_db(zip_file, driver):
   import buildstockdbmodel as bsdb
+  from buildstockdbmodel import Datapoint, Building, Upgrade, ParameterOption, Parameter, Enduse, FuelType, DatapointParameterOption, DatapointSimulationOutput
   
-  session = bsdb.create_session(file, driver)
+  folder_zf = zipfile.ZipFile(zip_file)  
+  for datapoint in folder_zf.namelist():  
+    if datapoint.endswith('results.csv'):
+      folder_zf.extract(datapoint, os.path.dirname(zip_file))
+      df = pd.read_csv(os.path.join(os.path.dirname(zip_file), datapoint), index_col='_id')
+      df = df.dropna(axis=1, how='all')
+  df = assign_upgrades(df)
   
-  datapoint_id = '007917fe-19f9-4078-a116-2e258134f02b'
-  building_id = 1
-  parameteroption_id = 1
-  upgrade_id = 1
-  upgrade_cost_usd = 100.0
-  upgrade_name = 'upgrade 1'
-  parameter_id = 1
-  parameter_name = 'parameter 1'
-  parameteroption_name = 'parameter option 1'
+  session = bsdb.create_session(driver)
   
-  datapoint = bsdb.Datapoint(datapoint_id=datapoint_id, building_id=building_id, parameteroption_id=parameteroption_id, upgrade_id=upgrade_id, upgrade_cost_usd=upgrade_cost_usd)
-  session.add(datapoint)
+  parameter_names = [col.replace('BuildingCharacteristicsReport.', '') for col in df.columns if 'BuildingCharacteristicsReport' in col]
+  parameter_ids = [i + 1 for i in range(len(parameter_names))]
+  session.bulk_insert_mappings(Parameter, [{'parameter_id': i+1, 'parameter_name': item} for i, item in enumerate(parameter_names)])
+  parameter_dict = dict(zip(parameter_names, parameter_ids))
   
-  building = bsdb.Building(building_id=1)
-  session.add(building)
+  parameteroption = []
+  i = 1
+  for col in df.columns:
+    if not 'BuildingCharacteristicsReport' in col:
+      continue
+    for item in list(set(df[col])):
+      parameteroption.append({'parameteroption_id': i, 'parameter_id': parameter_dict[col.replace('BuildingCharacteristicsReport.', '')], 'parameteroption_name': item})
+      i += 1
+  session.bulk_insert_mappings(ParameterOption, parameteroption)
+  parameteroption_dict = dict(zip(session.query(ParameterOption.parameter_id, ParameterOption.parameteroption_name).all(), [item[0] for item in session.query(ParameterOption.parameteroption_id).all()]))
   
-  upgrade = bsdb.Upgrade(upgrade_id=upgrade_id, upgrade_name=upgrade_name)
-  session.add(upgrade)
+  upgrade_names = [col.replace('.run_measure', '') for col in df.columns if '.run_measure' in col]
+  upgrade_names.insert(0, 'none')
+  upgrade_ids = [i + 1 for i in range(len(upgrade_names))]
+  session.bulk_insert_mappings(Upgrade, [{'upgrade_id': i+1, 'upgrade_name': item} for i, item in enumerate(upgrade_names)])
+  upgrade_dict = dict(zip(upgrade_names, upgrade_ids))
   
-  parameteroption = bsdb.ParameterOption(parameteroption_id=parameteroption_id, parameter_id=parameter_id, parameteroption_name=parameteroption_name)
-  session.add(parameteroption)
+  fueltype_names = ['electricity_', 'natural_gas_', 'other_fuel_']  
+  enduse_names = [col.replace('SimulationOutputReport.', '') for col in df.columns if 'SimulationOutputReport' in col]
+  for i, enduse_name in enumerate(enduse_names):
+    for fueltype_name in fueltype_names:
+      if fueltype_name in enduse_name:
+        enduse_names[i] = enduse_name.replace(fueltype_name, '')
+  enduse_ids = [i + 1 for i in range(len(enduse_names))]
+  session.bulk_insert_mappings(Enduse, [{'enduse_id': i+1, 'enduse_name': item} for i, item in enumerate(enduse_names)])
+  enduse_dict = dict(zip(enduse_names, enduse_ids))
   
-  parameter = bsdb.Parameter(parameter_id=parameter_id, parameter_name=parameter_name)
-  session.add(parameter)
+  fueltype_ids = [i + 1 for i in range(len(fueltype_names))]
+  session.bulk_insert_mappings(FuelType, [{'fueltype_id': i+1, 'fueltype_name': item} for i, item in enumerate(fueltype_names)])
+  fueltype_dict = dict(zip(fueltype_names, fueltype_ids))
+
+  for ix, row in df.iterrows():
+
+    building = Building(ix, row['build_existing_model.building_id'])
+    session.add(building)
+  
+    upgrade_id = 1
+    for upgrade in upgrade_dict.keys():  
+      
+      for col in row.index.values:
+
+        if not '.run_measure' in col:
+          continue        
+        
+        if not upgrade == 'none':
+          if row['{}.run_measure'.format(upgrade)] == 1:
+            upgrade_id = upgrade_dict[col.replace('.run_measure', '')]
+
+    upgrade_cost_usd = None
+    if 'SimulationOutputReport.upgrade_cost_usd' in row.index.values:
+      upgrade_cost_usd = row['SimulationOutputReport.upgrade_cost_usd']
+            
+    datapoint = Datapoint(ix, upgrade_id, upgrade_cost_usd)
+    session.add(datapoint)
+
+    for col in row.index.values:        
+    
+      if 'BuildingCharacteristicsReport' in col:
+
+        datapointparameteroption = DatapointParameterOption(ix, parameteroption_dict[(parameter_dict[col.replace('BuildingCharacteristicsReport.', '')], str(row[col]))])
+        session.add(datapointparameteroption)
+
+      elif 'SimulationOutputReport' in col:
+        
+        for fueltype_name in fueltype_names:
+          if fueltype_name in col:
+            fueltype_id = fueltype_dict[fueltype_name]
+
+        datapointsimulationoutput = DatapointSimulationOutput(ix, enduse_dict[col.replace('SimulationOutputReport.', '').replace('electricity_', '').replace('natural_gas_', '').replace('other_fuel_', '')], fueltype_id, row[col])
+        session.add(datapointsimulationoutput)
   
   session.commit()
 
@@ -238,7 +343,7 @@ if __name__ == '__main__':
   t0 = time.time()
   
   parser = argparse.ArgumentParser()
-  parser.add_argument('--directory', default='../analysis_results/data_points', help='Relative path containing the data_point.zip files.')
+  parser.add_argument('--zip', default='../analysis_results/data_points/resstock_pnw_localResults.zip', help='Relative path of the localResults.zip file.')
   formats = ['zip', 'hdf5']
   parser.add_argument('--format', choices=formats, default='hdf5', help='Desired format of the stored output csv files.')
   packages = ['pandas', 'h5py']
@@ -247,9 +352,9 @@ if __name__ == '__main__':
   parser.add_argument('--function', choices=functions, default='write', help='Read or write.')
   parser.add_argument('--file', default='data_points.h5', help='Name of the existing hdf5 file.')
   dbtypes = ['sqlite', 'postgresql']
-  parser.add_argument('--driver', default='sqlite', help='Type of db to build.')
+  parser.add_argument('--driver', default='sqlite:///buildstock.sql', help='Type of db to build.')
   args = parser.parse_args()
 
-  main(args.directory, args.format, args.package, args.function, args.file, args.driver)
+  main(args.zip, args.format, args.package, args.function, args.file, args.driver)
   
   print "All done! Completed rows in {0:.2f} seconds on".format(time.time()-t0), time.strftime("%Y-%m-%d %H:%M")
