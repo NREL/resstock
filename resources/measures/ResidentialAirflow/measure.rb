@@ -1086,9 +1086,9 @@ class ResidentialAirflow < OpenStudio::Measure::ModelMeasure
         
         if ((nat_vent.season_type[m-1] == Constants.SeasonHeating and nat_vent.NatVentHeatingSeason) or (nat_vent.season_type[m-1] == Constants.SeasonCooling and nat_vent.NatVentCoolingSeason) or (nat_vent.season_type[m-1] == Constants.SeasonOverlap and nat_vent.NatVentOverlapSeason)) and (nat_vent.NatVentNumberWeekdays + nat_vent.NatVentNumberWeekendDays !=  0)
           on_rule = OpenStudio::Model::ScheduleRule.new(schedules.NatVentAvailability)
-          on_rule.setName(obj_name_natvent + " availability schedule allday ruleset#{m} on")
+          on_rule.setName(obj_name_natvent + " availability schedule #{Schedule.allday_name} ruleset#{m} on")
           on_rule_day = on_rule.daySchedule
-          on_rule_day.setName(obj_name_natvent + " availability schedule allday1 on")
+          on_rule_day.setName(obj_name_natvent + " availability schedule #{Schedule.allday_name}1 on")
           for h in 1..24
             on_rule_day.addValue(time[h],1)
           end
@@ -1123,9 +1123,9 @@ class ResidentialAirflow < OpenStudio::Measure::ModelMeasure
           on_rule.setEndDate(date_e)
         else
           off_rule = OpenStudio::Model::ScheduleRule.new(schedules.NatVentAvailability)
-          off_rule.setName(obj_name_natvent + " availability schedule allday ruleset#{m} off")
+          off_rule.setName(obj_name_natvent + " availability schedule #{Schedule.allday_name} ruleset#{m} off")
           off_rule_day = off_rule.daySchedule
-          off_rule_day.setName(obj_name_natvent + " availability schedule allday1 off")
+          off_rule_day.setName(obj_name_natvent + " availability schedule #{Schedule.allday_name}1 off")
           for h in 1..24
             off_rule_day.addValue(time[h],0)
           end
@@ -1893,7 +1893,6 @@ class ResidentialAirflow < OpenStudio::Measure::ModelMeasure
       end
       unless building.unfinished_attic_zone.nil?
         building_unit.setFeature(Constants.SizingInfoZoneInfiltrationCFM(building.unfinished_attic_zone), building.unfinished_attic.inf_flow)
-        building_unit.setFeature(Constants.SizingInfoZoneIsVented(building.unfinished_attic_zone), (building.unfinished_attic.SLA > 0.001)) # The minimum SLA at which an attic is assumed to be vented
       end
     end
 
@@ -2400,8 +2399,8 @@ class ResidentialAirflow < OpenStudio::Measure::ModelMeasure
     thermostatsetpointdualsetpoint = unit.living_zone.thermostatSetpointDualSetpoint
     
     # Get heating setpoints
-    heatingSetpointWeekday = Array.new(24, -10000)
-    heatingSetpointWeekend = Array.new(24, -10000)
+    heatingSetpointWeekday = Array.new(24, Constants.NoHeatingSetpoint)
+    heatingSetpointWeekend = Array.new(24, Constants.NoHeatingSetpoint)
     if thermostatsetpointdualsetpoint.is_initialized
       thermostatsetpointdualsetpoint.get.heatingSetpointTemperatureSchedule.get.to_Schedule.get.to_ScheduleRuleset.get.scheduleRules.each do |rule|
         if rule.applyMonday and rule.applyTuesday and rule.applyWednesday and rule.applyThursday and rule.applyFriday
@@ -2422,8 +2421,8 @@ class ResidentialAirflow < OpenStudio::Measure::ModelMeasure
     end
     
     # Get cooling setpoints
-    coolingSetpointWeekday = Array.new(24, 10000)
-    coolingSetpointWeekend = Array.new(24, 10000)
+    coolingSetpointWeekday = Array.new(24, Constants.NoCoolingSetpoint)
+    coolingSetpointWeekend = Array.new(24, Constants.NoCoolingSetpoint)
     if thermostatsetpointdualsetpoint.is_initialized
       thermostatsetpointdualsetpoint.get.coolingSetpointTemperatureSchedule.get.to_Schedule.get.to_ScheduleRuleset.get.scheduleRules.each do |rule|
         if rule.applyMonday and rule.applyTuesday and rule.applyWednesday and rule.applyThursday and rule.applyFriday
@@ -2443,13 +2442,13 @@ class ResidentialAirflow < OpenStudio::Measure::ModelMeasure
       end
     end
 
-    if heatingSetpointWeekday.all? {|x| x == -10000}
+    if heatingSetpointWeekday.all? {|x| x == Constants.NoHeatingSetpoint}
       runner.registerWarning("No heating equipment found. Assuming #{Constants.DefaultHeatingSetpoint} F for natural ventilation calculations.")
       nat_vent.ovlp_ssn_hourly_temp = Array.new(24, OpenStudio.convert(Constants.DefaultHeatingSetpoint + nat_vent.NatVentOvlpSsnSetpointOffset,"F","C").get)
     else
       nat_vent.ovlp_ssn_hourly_temp = Array.new(24, OpenStudio.convert([heatingSetpointWeekday.max, heatingSetpointWeekend.max].max + nat_vent.NatVentOvlpSsnSetpointOffset,"F","C").get)
     end
-    if coolingSetpointWeekday.all? {|x| x == 10000}
+    if coolingSetpointWeekday.all? {|x| x == Constants.NoCoolingSetpoint}
       runner.registerWarning("No cooling equipment found. Assuming #{Constants.DefaultCoolingSetpoint} F for natural ventilation calculations.")
     end
     nat_vent.ovlp_ssn_hourly_weekend_temp = nat_vent.ovlp_ssn_hourly_temp
@@ -2463,7 +2462,7 @@ class ResidentialAirflow < OpenStudio::Measure::ModelMeasure
     # Specify an array of hourly lower-temperature-limits for natural ventilation
     nat_vent.htg_ssn_hourly_temp = Array.new
     coolingSetpointWeekday.each do |x|
-      if x == 10000
+      if x == Constants.NoCoolingSetpoint
         nat_vent.htg_ssn_hourly_temp << OpenStudio.convert(Constants.DefaultCoolingSetpoint - nat_vent.NatVentHtgSsnSetpointOffset,"F","C").get
       else
         nat_vent.htg_ssn_hourly_temp << OpenStudio.convert(x - nat_vent.NatVentHtgSsnSetpointOffset,"F","C").get
@@ -2471,7 +2470,7 @@ class ResidentialAirflow < OpenStudio::Measure::ModelMeasure
     end
     nat_vent.htg_ssn_hourly_weekend_temp = Array.new
     coolingSetpointWeekend.each do |x|
-      if x == 10000
+      if x == Constants.NoCoolingSetpoint
         nat_vent.htg_ssn_hourly_weekend_temp << OpenStudio.convert(Constants.DefaultCoolingSetpoint - nat_vent.NatVentHtgSsnSetpointOffset,"F","C").get
       else
         nat_vent.htg_ssn_hourly_weekend_temp << OpenStudio.convert(x - nat_vent.NatVentHtgSsnSetpointOffset,"F","C").get
@@ -2480,7 +2479,7 @@ class ResidentialAirflow < OpenStudio::Measure::ModelMeasure
 
     nat_vent.clg_ssn_hourly_temp = Array.new
     heatingSetpointWeekday.each do |x|
-      if x == -10000
+      if x == Constants.NoHeatingSetpoint
         nat_vent.clg_ssn_hourly_temp << OpenStudio.convert(Constants.DefaultHeatingSetpoint + nat_vent.NatVentClgSsnSetpointOffset,"F","C").get
       else
         nat_vent.clg_ssn_hourly_temp << OpenStudio.convert(x + nat_vent.NatVentClgSsnSetpointOffset,"F","C").get
@@ -2488,7 +2487,7 @@ class ResidentialAirflow < OpenStudio::Measure::ModelMeasure
     end
     nat_vent.clg_ssn_hourly_weekend_temp = Array.new
     heatingSetpointWeekend.each do |x|
-      if x == -10000
+      if x == Constants.NoHeatingSetpoint
         nat_vent.clg_ssn_hourly_weekend_temp << OpenStudio.convert(Constants.DefaultHeatingSetpoint + nat_vent.NatVentClgSsnSetpointOffset,"F","C").get
       else
         nat_vent.clg_ssn_hourly_weekend_temp << OpenStudio.convert(x + nat_vent.NatVentClgSsnSetpointOffset,"F","C").get

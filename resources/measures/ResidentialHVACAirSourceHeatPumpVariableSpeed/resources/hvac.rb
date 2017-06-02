@@ -788,7 +788,7 @@ class HVAC
           self.has_air_loop(model, runner, thermal_zone, true)
         end
         if removed_gshp_vert_bore
-          self.remove_hot_water_loop(model, runner)
+          self.remove_boiler_and_gshp_loops(model, runner)
         end
       when Constants.ObjectNameRoomAirConditioner
         removed_ashp = self.has_air_source_heat_pump(model, runner, thermal_zone, true)
@@ -803,7 +803,7 @@ class HVAC
           self.has_air_loop(model, runner, thermal_zone, true)
         end
         if removed_gshp_vert_bore
-          self.remove_hot_water_loop(model, runner)
+          self.remove_boiler_and_gshp_loops(model, runner)
         end        
       when Constants.ObjectNameFurnace
         removed_ashp = self.has_air_source_heat_pump(model, runner, thermal_zone, true)
@@ -878,12 +878,13 @@ class HVAC
       end
     end   
     
-    def self.remove_hot_water_loop(model, runner)
+    def self.remove_boiler_and_gshp_loops(model, runner)
+      # TODO: Add a BuildingUnit argument
       model.getPlantLoops.each do |plant_loop|
-        remove = true
+        remove = false
         plant_loop.supplyComponents.each do |supply_component|
-          if supply_component.to_WaterHeaterMixed.is_initialized or supply_component.to_WaterHeaterStratified.is_initialized or supply_component.to_WaterHeaterHeatPump.is_initialized # don't remove the dhw
-            remove = false
+          if supply_component.to_BoilerHotWater.is_initialized or supply_component.to_GroundHeatExchangerVertical.is_initialized or supply_component.to_GroundHeatExchangerHorizontalTrench.is_initialized
+            remove = true
           end
         end
         if remove

@@ -68,7 +68,7 @@ class ProcessElectricBaseboard < OpenStudio::Measure::ModelMeasure
     end
    
     # Remove boiler hot water loop if it exists
-    HVAC.remove_hot_water_loop(model, runner)
+    HVAC.remove_boiler_and_gshp_loops(model, runner)
    
     # Get building units
     units = Geometry.get_building_units(model, runner)

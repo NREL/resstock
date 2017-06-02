@@ -301,36 +301,30 @@ class ProcessCeilingFan < OpenStudio::Measure::ModelMeasure
       thermostatsetpointdualsetpoint = unit.living_zone.thermostatSetpointDualSetpoint
       if thermostatsetpointdualsetpoint.is_initialized
         thermostatsetpointdualsetpoint.get.coolingSetpointTemperatureSchedule.get.to_Schedule.get.to_ScheduleRuleset.get.scheduleRules.each do |rule|
-          coolingSetpointWeekday = Array.new(24, 10000)
-          coolingSetpointWeekend = Array.new(24, 10000)
+          coolingSetpoint = Array.new(24, Constants.NoCoolingSetpoint)
+          rule.daySchedule.values.each_with_index do |value, hour|
+            if value < coolingSetpoint[hour]
+              coolingSetpoint[hour] = OpenStudio::convert(value,"C","F").get + cooling_setpoint_offset
+            end
+          end
           # weekday
           if rule.applyMonday and rule.applyTuesday and rule.applyWednesday and rule.applyThursday and rule.applyFriday
-            rule.daySchedule.values.each_with_index do |value, hour|
-              if value < coolingSetpointWeekday[hour]
-                coolingSetpointWeekday[hour] = OpenStudio::convert(value,"C","F").get + cooling_setpoint_offset
-              end
-            end
-            unless rule.daySchedule.values.all? {|x| x == 10000}
+            unless rule.daySchedule.values.all? {|x| x == Constants.NoCoolingSetpoint}
               rule.daySchedule.clearValues
-              coolingSetpointWeekday.each_with_index do |value, hour|
+              coolingSetpoint.each_with_index do |value, hour|
                 rule.daySchedule.addValue(OpenStudio::Time.new(0,hour+1,0,0), OpenStudio::convert(value,"F","C").get)
               end
-              clg_wkdy = coolingSetpointWeekday
+              clg_wkdy = coolingSetpoint
             end            
           end
           # weekend
           if rule.applySaturday and rule.applySunday
-            rule.daySchedule.values.each_with_index do |value, hour|
-              if value < coolingSetpointWeekend[hour]
-                coolingSetpointWeekend[hour] = OpenStudio::convert(value,"C","F").get + cooling_setpoint_offset
-              end
-            end
-            unless rule.daySchedule.values.all? {|x| x == 10000}          
+            unless rule.daySchedule.values.all? {|x| x == Constants.NoCoolingSetpoint}          
               rule.daySchedule.clearValues
-              coolingSetpointWeekend.each_with_index do |value, hour|
+              coolingSetpoint.each_with_index do |value, hour|
                 rule.daySchedule.addValue(OpenStudio::Time.new(0,hour+1,0,0), OpenStudio::convert(value,"F","C").get)
               end
-              clg_wked = coolingSetpointWeekend
+              clg_wked = coolingSetpoint
             end            
           end
         end

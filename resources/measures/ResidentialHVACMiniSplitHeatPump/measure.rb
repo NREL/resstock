@@ -274,7 +274,7 @@ class ProcessVRFMinisplit < OpenStudio::Measure::ModelMeasure
     heatingEIR = calc_heating_eir(runner, miniSplitHPHeatingRatedHSPF, miniSplitHPSupplyFanPower, miniSplitHPCapacityRetentionFraction, miniSplitHPCapacityRetentionTemperature, min_hp_temp, c_d_heating, coolingCFMs, number_Speeds, capacity_Ratio_Heating, heatingCFMs, hEAT_EIR_FT_SPEC, hEAT_CAP_FT_SPEC)
         
     # Remove boiler hot water loop if it exists
-    HVAC.remove_hot_water_loop(model, runner)    
+    HVAC.remove_boiler_and_gshp_loops(model, runner)    
     
     min_plr_heat = capacity_Ratio_Heating[mshp_indices.min] / capacity_Ratio_Heating[mshp_indices.max]
     min_plr_cool = capacity_Ratio_Cooling[mshp_indices.min] / capacity_Ratio_Cooling[mshp_indices.max]

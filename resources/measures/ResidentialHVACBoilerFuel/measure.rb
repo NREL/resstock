@@ -190,7 +190,7 @@ class ProcessBoilerFuel < OpenStudio::Measure::ModelMeasure
     boiler_eff_curve = HVAC.get_boiler_curve(model, hasBoilerCondensing)
     
     # Remove boiler hot water loop if it exists
-    HVAC.remove_hot_water_loop(model, runner)
+    HVAC.remove_boiler_and_gshp_loops(model, runner)
     
     # _processSystemHydronic
     

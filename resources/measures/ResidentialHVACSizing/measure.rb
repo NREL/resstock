@@ -284,9 +284,11 @@ class ProcessHVACSizing < OpenStudio::Measure::ModelMeasure
     # Initialize Manual J buffer space temperatures using current design temperatures
     model.getSpaces.each do |space|
         mj8.cool_design_temps[space] = processDesignTempCooling(runner, mj8, weather, space)
+        return nil if mj8.cool_design_temps[space].nil?
         mj8.heat_design_temps[space] = processDesignTempHeating(runner, mj8, weather, space, weather.design.HeatingDrybulb)
+        return nil if mj8.heat_design_temps[space].nil?
         mj8.dehum_design_temps[space] = processDesignTempDehumid(runner, mj8, weather, space)
-        return nil if mj8.cool_design_temps[space].nil? or mj8.heat_design_temps[space].nil? or mj8.dehum_design_temps[space].nil?
+        return nil if mj8.dehum_design_temps[space].nil?
     end
     
     return mj8
@@ -304,11 +306,12 @@ class ProcessHVACSizing < OpenStudio::Measure::ModelMeasure
         
     elsif Geometry.is_unfinished_attic(space)
     
-        is_vented = get_unit_feature(runner, space.buildingUnit.get, Constants.SizingInfoZoneIsVented(space.thermalZone.get), 'boolean', true)
-        return nil if is_vented.nil?
+        is_vented = space_is_vented(space, 0.001)
         
         attic_floor_r = Construction.get_space_r_value(runner, space, "floor")
+        return nil if attic_floor_r.nil?
         attic_roof_r = Construction.get_space_r_value(runner, space, "roofceiling")
+        return nil if attic_roof_r.nil?
         
         # Unfinished attic
         if attic_floor_r < attic_roof_r
@@ -373,11 +376,12 @@ class ProcessHVACSizing < OpenStudio::Measure::ModelMeasure
         
     elsif Geometry.is_unfinished_attic(space)
     
-        is_vented = get_unit_feature(runner, space.buildingUnit.get, Constants.SizingInfoZoneIsVented(space.thermalZone.get), 'boolean', true)
-        return nil if is_vented.nil?
+        is_vented = space_is_vented(space, 0.001)
         
         attic_floor_r = Construction.get_space_r_value(runner, space, "floor")
+        return nil if attic_floor_r.nil?
         attic_roof_r = Construction.get_space_r_value(runner, space, "roofceiling")
+        return nil if attic_roof_r.nil?
         
         # Unfinished attic
         if attic_floor_r < attic_roof_r
@@ -524,11 +528,12 @@ class ProcessHVACSizing < OpenStudio::Measure::ModelMeasure
         
     elsif Geometry.is_unfinished_attic(space)
     
-        is_vented = get_unit_feature(runner, space.buildingUnit.get, Constants.SizingInfoZoneIsVented(space.thermalZone.get), 'boolean', true)
-        return nil if is_vented.nil?
+        is_vented = space_is_vented(space, 0.001)
         
         attic_floor_r = Construction.get_space_r_value(runner, space, "floor")
+        return nil if attic_floor_r.nil?
         attic_roof_r = Construction.get_space_r_value(runner, space, "roofceiling")
+        return nil if attic_roof_r.nil?
         
         # Unfinished attic
         if attic_floor_r < attic_roof_r
@@ -2278,7 +2283,9 @@ class ProcessHVACSizing < OpenStudio::Measure::ModelMeasure
             # Calculate the cooling design temperature for the unfinished attic based on Figure A12-14
             if Geometry.is_unfinished_attic(space)
                 attic_floor_r = Construction.get_space_r_value(runner, space, "floor")
+                return nil if attic_floor_r.nil?
                 attic_roof_r = Construction.get_space_r_value(runner, space, "roofceiling")
+                return nil if attic_roof_r.nil?
                 if attic_floor_r > attic_roof_r
                     mj8.heat_design_temps[space] = heat_db
                 end
@@ -3372,6 +3379,18 @@ class ProcessHVACSizing < OpenStudio::Measure::ModelMeasure
     # TODO: Get rid of this curve by using ADP/BF calculations
     capacity_tons = OpenStudio::convert(capacity,"Btu/h","ton").get
     return MathTools.biquadratic(airFlowRate / capacity_tons, temp, @shr_biquadratic)
+  end
+  
+  def space_is_vented(space, min_sla_for_venting)
+    ela = 0.0
+    space.spaceInfiltrationEffectiveLeakageAreas.each do |leakage_area|
+        ela += OpenStudio.convert(leakage_area.effectiveAirLeakageArea,"cm^2","ft^2").get
+    end
+    sla = ela / OpenStudio.convert(space.floorArea,"m^2","ft^2").get
+    if sla > min_sla_for_venting
+        return true
+    end
+    return false
   end
   
   def true_azimuth(surface)

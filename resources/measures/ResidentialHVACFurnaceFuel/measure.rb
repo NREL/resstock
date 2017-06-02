@@ -102,7 +102,7 @@ class ProcessFurnaceFuel < OpenStudio::Measure::ModelMeasure
     aux_elec = 0.0 # set to zero until we figure out a way to distribute to the correct end uses (DOE-2 limitation?)    
 
     # Remove boiler hot water loop if it exists
-    HVAC.remove_hot_water_loop(model, runner)    
+    HVAC.remove_boiler_and_gshp_loops(model, runner)    
 
     # Get building units
     units = Geometry.get_building_units(model, runner)

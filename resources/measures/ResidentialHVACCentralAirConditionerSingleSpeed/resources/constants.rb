@@ -44,6 +44,12 @@ class Constants
   def self.MonthNumDays
     return [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
   end
+  def self.NoCoolingSetpoint
+    return 10000
+  end
+  def self.NoHeatingSetpoint
+    return -10000
+  end
   def self.Patm
     return 14.696 # standard atmospheric pressure (psia)
   end
@@ -1045,9 +1051,6 @@ class Constants
     return self.SizingInfo(__method__.to_s, zone)
   end
   def self.SizingInfoZoneInfiltrationELA(zone)
-    return self.SizingInfo(__method__.to_s, zone)
-  end
-  def self.SizingInfoZoneIsVented(zone)
     return self.SizingInfo(__method__.to_s, zone)
   end
   def self.SlabFoundationType

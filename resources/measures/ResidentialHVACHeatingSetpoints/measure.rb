@@ -160,8 +160,8 @@ class ProcessHeatingSetpoints < OpenStudio::Measure::ModelMeasure
         thermostatsetpointdualsetpoint = thermostatsetpointdualsetpoint.get
         runner.registerInfo("Found existing thermostat #{thermostatsetpointdualsetpoint.name} for #{finished_zone.name}.")
         
-        clg_wkdy = Array.new(24, 10000)
-        clg_wked = Array.new(24, 10000)
+        clg_wkdy = Array.new(24, Constants.NoCoolingSetpoint)
+        clg_wked = Array.new(24, Constants.NoCoolingSetpoint)
         cooling_season = Array.new(12, 0.0)
         thermostatsetpointdualsetpoint.coolingSetpointTemperatureSchedule.get.to_Schedule.get.to_ScheduleRuleset.get.scheduleRules.each do |rule|
           if rule.applyMonday and rule.applyTuesday and rule.applyWednesday and rule.applyThursday and rule.applyFriday
@@ -196,11 +196,11 @@ class ProcessHeatingSetpoints < OpenStudio::Measure::ModelMeasure
           elsif heating_season[i] == 1
             htg_wkdy_monthly << htg_wkdy
             htg_wked_monthly << htg_wked
-            clg_wkdy_monthly << Array.new(24, 10000)
-            clg_wked_monthly << Array.new(24, 10000)
+            clg_wkdy_monthly << Array.new(24, Constants.NoCoolingSetpoint)
+            clg_wked_monthly << Array.new(24, Constants.NoCoolingSetpoint)
           else
-            htg_wkdy_monthly << Array.new(24, -10000)
-            htg_wked_monthly << Array.new(24, -10000)
+            htg_wkdy_monthly << Array.new(24, Constants.NoHeatingSetpoint)
+            htg_wked_monthly << Array.new(24, Constants.NoHeatingSetpoint)
             clg_wkdy_monthly << clg_wkdy
             clg_wked_monthly << clg_wked
           end          
@@ -225,12 +225,12 @@ class ProcessHeatingSetpoints < OpenStudio::Measure::ModelMeasure
           if heating_season[m-1] == 1
             htg_monthly_sch[m-1] = 1
           else
-            htg_monthly_sch[m-1] = -10000
+            htg_monthly_sch[m-1] = Constants.NoHeatingSetpoint
           end
         end        
         clg_monthly_sch = Array.new(12, 1)
         for m in 1..12
-          clg_monthly_sch[m-1] = 10000
+          clg_monthly_sch[m-1] = Constants.NoCoolingSetpoint
         end
         
         heatingsetpoint = MonthWeekdayWeekendSchedule.new(model, runner, Constants.ObjectNameHeatingSetpoint, htg_wkdy, htg_wked, htg_monthly_sch, mult_weekday=1.0, mult_weekend=1.0, normalize_values=false)

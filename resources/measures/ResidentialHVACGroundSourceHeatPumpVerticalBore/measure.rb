@@ -295,7 +295,7 @@ class ProcessGroundSourceHeatPumpVerticalBore < OpenStudio::Measure::ModelMeasur
     min_hp_temp = -30.0
     
     # Remove ground heat exchanger condenser loop if it exists
-    HVAC.remove_hot_water_loop(model, runner)
+    HVAC.remove_boiler_and_gshp_loops(model, runner)
     
     ground_heat_exch_vert = OpenStudio::Model::GroundHeatExchangerVertical.new(model)
     ground_heat_exch_vert.setName(Constants.ObjectNameGroundSourceHeatPumpVerticalBore + " exchanger")

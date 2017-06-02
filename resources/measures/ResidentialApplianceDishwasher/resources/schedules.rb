@@ -106,9 +106,9 @@ class HourlyByMonthSchedule
                 if wkdy_vals == wknd_vals
                     # Alldays
                     wkdy_rule = OpenStudio::Model::ScheduleRule.new(schedule)
-                    wkdy_rule.setName(@sch_name + " allday ruleset#{m}")
+                    wkdy_rule.setName(@sch_name + " #{Schedule.allday_name} ruleset#{m}")
                     wkdy[m] = wkdy_rule.daySchedule
-                    wkdy[m].setName(@sch_name + " allday#{m}")
+                    wkdy[m].setName(@sch_name + " #{Schedule.allday_name}#{m}")
                     for h in 1..24
                         wkdy[m].addValue(time[h],wkdy_vals[h])
                     end
@@ -124,9 +124,9 @@ class HourlyByMonthSchedule
                 else
                     # Weekdays
                     wkdy_rule = OpenStudio::Model::ScheduleRule.new(schedule)
-                    wkdy_rule.setName(@sch_name + " weekday ruleset#{m}")
+                    wkdy_rule.setName(@sch_name + " #{Schedule.weekday_name} ruleset#{m}")
                     wkdy[m] = wkdy_rule.daySchedule
-                    wkdy[m].setName(@sch_name + " weekday#{m}")
+                    wkdy[m].setName(@sch_name + " #{Schedule.weekday_name}#{m}")
                     for h in 1..24
                         wkdy[m].addValue(time[h],wkdy_vals[h])
                     end
@@ -142,9 +142,9 @@ class HourlyByMonthSchedule
                     
                     # Weekends
                     wknd_rule = OpenStudio::Model::ScheduleRule.new(schedule)
-                    wknd_rule.setName(@sch_name + " weekend ruleset#{m}")
+                    wknd_rule.setName(@sch_name + " #{Schedule.weekend_name} ruleset#{m}")
                     wknd[m] = wknd_rule.daySchedule
-                    wknd[m].setName(@sch_name + " weekend#{m}")
+                    wknd[m].setName(@sch_name + " #{Schedule.weekend_name}#{m}")
                     for h in 1..24
                         wknd[m].addValue(time[h],wknd_vals[h])
                     end
@@ -330,9 +330,9 @@ class MonthWeekdayWeekendSchedule
                 if wkdy_vals == wknd_vals
                     # Alldays
                     wkdy_rule = OpenStudio::Model::ScheduleRule.new(schedule)
-                    wkdy_rule.setName(@sch_name + " allday ruleset#{m}")
+                    wkdy_rule.setName(@sch_name + " #{Schedule.allday_name} ruleset#{m}")
                     wkdy[m] = wkdy_rule.daySchedule
-                    wkdy[m].setName(@sch_name + " allday#{m}")
+                    wkdy[m].setName(@sch_name + " #{Schedule.allday_name}#{m}")
                     for h in 1..24
                         wkdy[m].addValue(time[h],wkdy_vals[h])
                     end
@@ -348,9 +348,9 @@ class MonthWeekdayWeekendSchedule
                 else
                     # Weekdays
                     wkdy_rule = OpenStudio::Model::ScheduleRule.new(schedule)
-                    wkdy_rule.setName(@sch_name + " weekday ruleset#{m}")
+                    wkdy_rule.setName(@sch_name + " #{Schedule.weekday_name} ruleset#{m}")
                     wkdy[m] = wkdy_rule.daySchedule
-                    wkdy[m].setName(@sch_name + " weekday#{m}")
+                    wkdy[m].setName(@sch_name + " #{Schedule.weekday_name}#{m}")
                     for h in 1..24
                         wkdy[m].addValue(time[h],wkdy_vals[h])
                     end
@@ -366,9 +366,9 @@ class MonthWeekdayWeekendSchedule
                     
                     # Weekends
                     wknd_rule = OpenStudio::Model::ScheduleRule.new(schedule)
-                    wknd_rule.setName(@sch_name + " weekend ruleset#{m}")
+                    wknd_rule.setName(@sch_name + " #{Schedule.weekend_name} ruleset#{m}")
                     wknd[m] = wknd_rule.daySchedule
-                    wknd[m].setName(@sch_name + " weekend#{m}")
+                    wknd[m].setName(@sch_name + " #{Schedule.weekend_name}#{m}")
                     for h in 1..24
                         wknd[m].addValue(time[h],wknd_vals[h])
                     end
@@ -564,6 +564,18 @@ class HotWaterSchedule
 end
 
 class Schedule
+
+  def self.allday_name
+    return 'allday'
+  end
+  
+  def self.weekday_name
+    return 'weekday'
+  end
+  
+  def self.weekend_name
+    return 'weekend'
+  end
 
   # find the maximum profile value for a schedule
   def self.getMinMaxAnnualProfileValue(model, schedule)
