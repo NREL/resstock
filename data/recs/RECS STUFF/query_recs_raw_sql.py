@@ -677,6 +677,55 @@ def regenerate():
     df.to_pickle('processed_eia.recs_2009_microdata.pkl')
     return df
 
+def erin_boyd():
+  df_2009_full = retrieve_data()
+  df_2015_full = pd.read_csv('c:/recs2015/recs2015_public_v1.csv')
+  df_2015_full = df_2015_full.rename(columns={'DIVISION': 'division'})
+  
+  bldgtypes = {'singlefamily': [2, 3], 'multifamily': [4, 5]}
+  for k, v in bldgtypes.items():
+    df_2009 = df_2009_full.loc[df_2009_full['typehuq'].isin(v)]
+    df_2015 = df_2015_full.loc[df_2015_full['TYPEHUQ'].isin(v)]  
+  
+    dfs = []
+    
+    # #1 % of homes with baseboard heat and electric furnaces  
+    df = df_2009[((df_2009['equipm']==5) | (df_2009['equipm']==3)) & (df_2009['fuelheat']==5)].groupby('division')['nweight'].sum() * 100.0 / df_2009.groupby('division')['nweight'].sum() # 2009
+    dfs.append(df.to_frame(('% of homes with baseboard heat and electric furnaces', '2009')))
+    df = df_2015[((df_2015['EQUIPM']==5) | (df_2015['EQUIPM']==3)) & (df_2015['FUELHEAT']==5)].groupby('division')['NWEIGHT'].sum() * 100.0 / df_2015.groupby('division')['NWEIGHT'].sum() # 2015
+    dfs.append(df.to_frame(('', '2015')))
+    
+    # #2 ?
+    
+    # #3 % of homes with both room ACs and central AC or central warm-air furnace
+    df = df_2009[((df_2009['cooltype']==2) & (df_2009['equipm']==3)) | (df_2009['cooltype']==3)].groupby('division')['nweight'].sum() * 100.0 / df_2009.groupby('division')['nweight'].sum() # 2009
+    dfs.append(df.to_frame(('% of homes with both room ACs and central AC or central warm-air furnace', '2009')))
+    df = df_2015[((df_2015['COOLTYPE']==2) & (df_2015['EQUIPM']==3)) | (df_2015['COOLTYPE']==3)].groupby('division')['NWEIGHT'].sum() * 100.0 / df_2015.groupby('division')['NWEIGHT'].sum() # 2015
+    dfs.append(df.to_frame(('', '2015')))
+    
+    # #4
+    # % of homes with electric heating and central AC
+    df = df_2009[(df_2009['fuelheat']==5) & (df_2009['cooltype'].isin([1, 3]))].groupby('division')['nweight'].sum() * 100.0 / df_2009.groupby('division')['nweight'].sum() # 2009
+    dfs.append(df.to_frame(('% of homes with electric heating and central AC', '2009')))
+    df = df_2015[(df_2015['FUELHEAT']==5) & (df_2015['COOLTYPE'].isin([1, 3]))].groupby('division')['NWEIGHT'].sum() * 100.0 / df_2015.groupby('division')['NWEIGHT'].sum() # 2015
+    dfs.append(df.to_frame(('', '2015')))
+      
+    # % of homes with electric heating and room AC
+    df = df_2009[(df_2009['fuelheat']==5) & (df_2009['cooltype'].isin([2, 3]))].groupby('division')['nweight'].sum() * 100.0 / df_2009.groupby('division')['nweight'].sum() # 2009
+    dfs.append(df.to_frame(('% of homes with electric heating and room AC', '2009')))
+    df = df_2015[(df_2015['FUELHEAT']==5) & (df_2015['COOLTYPE'].isin([2, 3]))].groupby('division')['NWEIGHT'].sum() * 100.0 / df_2015.groupby('division')['NWEIGHT'].sum() # 2015
+    dfs.append(df.to_frame(('', '2015')))
+    
+    # % of homes with electric heating and no AC
+    df = df_2009[(df_2009['fuelheat']==5) & (df_2009['cooltype']==-2)].groupby('division')['nweight'].sum() * 100.0 / df_2009.groupby('division')['nweight'].sum() # 2009
+    dfs.append(df.to_frame(('% of homes with electric heating and no AC', '2009')))
+    df = df_2015[(df_2015['FUELHEAT']==5) & (df_2015['COOLTYPE']==-2)].groupby('division')['NWEIGHT'].sum() * 100.0 / df_2015.groupby('division')['NWEIGHT'].sum() # 2015
+    dfs.append(df.to_frame(('', '2015')))
+    
+    df = pd.concat(dfs, axis=1)
+    df.to_csv('{}.csv'.format(k))
+  
+  sys.exit()
 
 #NEW QUERIES
 def query(df):
@@ -708,11 +757,14 @@ def query(df):
 #    calc_general(df, cut_by=['yearmaderange','Size'], columns = ['stories'], outfile = 'Geometry Stories.tsv', outpath='../../../resources/inputs/national')
 #    calc_general(df, cut_by=['yearmaderange','Size'], columns = ['sizeofgarage'], outfile = 'Geometry Garage.tsv', outpath='../../../resources/inputs/national')
 #    calc_general(df, cut_by=['CR'], columns = ['division'], outfile = 'Location Census Division.tsv', outpath='../../../resources/inputs/national')
-    calc_general(df, cut_by=['CR','yearmaderange','Size','stories'], columns = [], outfile = 'Infiltration.tsv', outpath='../../../project_resstock_national/housing_characteristics')
+#    calc_general(df, cut_by=['CR','yearmaderange','Size','stories'], columns = [], outfile = 'Infiltration.tsv', outpath='../../../project_resstock_national/housing_characteristics')
+    pass
 
 if __name__ == '__main__':
     #Choose regerate if you want to redo the processed pkl file, otherwise comment out
 
+    df = erin_boyd()
+    
     df = regenerate()
 
     df = pd.read_pickle('processed_eia.recs_2009_microdata.pkl')

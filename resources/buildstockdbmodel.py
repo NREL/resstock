@@ -134,3 +134,16 @@ class DatapointParameterOption(Base):
   def __init__(self, datapoint_id, parameteroption_id):
     self.datapoint_id = datapoint_id
     self.parameteroption_id = parameteroption_id
+
+class FederalPovertyLevel(Base):
+  __tablename__ = 'FederalPovertyLevel'
+  
+  building_id = Column('building_id', Integer, primary_key=True)
+  fplbin_id = Column('fplbin_id', Integer, ForeignKey('FederalPovertyLevelBins.fplbin_id'), primary_key=True)
+  value = Column('value', Float)
+  
+class FederalPovertyLevelBins(Base):
+  __tablename__ = 'FederalPovertyLevelBins'
+  
+  fplbin_id = Column('fplbin_id', Integer, primary_key=True)
+  fplbin_name = Column('fplbin_name', String)

@@ -17,20 +17,20 @@ def main(zip_file, format, package, func, file, driver):
 
   if func == 'write':
     if format == 'zip':    
-      write_zip(os.path.dirname(dir))      
+      write_zip(file)      
     elif format == 'hdf5':    
       if package == 'pandas':    
-        write_pandas_hdf5(os.path.dirname(dir), file)      
+        write_pandas_hdf5(zip_file, file)      
       elif package == 'h5py':      
-        write_h5py_hdf5(os.path.dirname(dir), file)      
+        write_h5py_hdf5(zip_file, file)      
   elif func == 'read':  
     if format == 'zip':    
       print "Haven't written this code yet."      
     elif format == 'hdf5':
       if package == 'pandas':    
-        read_pandas_hdf5(os.path.dirname(dir), file)        
+        read_pandas_hdf5(file)
       elif package == 'h5py':      
-        read_h5py_hdf5(os.path.dirname(dir), file)
+        read_h5py_hdf5(file)
   elif func == 'build_db':
     build_db(zip_file, driver)
     
@@ -81,7 +81,7 @@ def assign_upgrades(df):
     
 def build_db(zip_file, driver):
   import buildstockdbmodel as bsdb
-  from buildstockdbmodel import Datapoint, Building, Upgrade, ParameterOption, Parameter, Enduse, FuelType, DatapointParameterOption, DatapointSimulationOutput
+  from buildstockdbmodel import Datapoint, Building, Upgrade, ParameterOption, Parameter, Enduse, FuelType, DatapointParameterOption, DatapointSimulationOutput, FederalPovertyLevelBins
   
   folder_zf = zipfile.ZipFile(zip_file)  
   for datapoint in folder_zf.namelist():  
@@ -168,6 +168,11 @@ def build_db(zip_file, driver):
 
         datapointsimulationoutput = DatapointSimulationOutput(ix, enduse_dict[col.replace('SimulationOutputReport.', '').replace('electricity_', '').replace('natural_gas_', '').replace('other_fuel_', '')], fueltype_id, row[col])
         session.add(datapointsimulationoutput)
+        
+  fpl = pd.read_csv('../project_resstock_national/housing_characteristics/Federal Poverty Level.tsv', sep='\t')
+  fplbin_names = [col.replace('Option=', '') for col in fpl.columns if 'Option=' in col]
+  fplbin_ids = [i + 1 for i in range(len(fplbin_names))]
+  session.bulk_insert_mappings(FederalPovertyLevelBins, [{'fplbin_id': i+1, 'fplbin_name': item} for i, item in enumerate(fplbin_names)])
   
   session.commit()
 
@@ -189,62 +194,57 @@ def write_zip(dir):
   print "Created new zip file containing {} csv files.".format(len(new_zf.namelist()))
   new_zf.close()
 
-def write_pandas_hdf5(dir, file):
+def write_pandas_hdf5(zip_file, file):
+
+  dir = os.path.dirname(os.path.abspath(zip_file))
 
   datapoint_ids = pd.DataFrame(columns=['datapoint', 'datapoint_id'])
   enduse_ids = pd.DataFrame(columns=['enduse', 'enduse_id'])
   
   with pd.HDFStore(file, mode='w', complib='zlib', complevel=9) as hdf:
-  
-    for item in os.listdir(dir):
-    
-      if not item.endswith('.zip'):
-        continue
-    
-      print os.path.join(dir, item)
-      
-      folder_zf = zipfile.ZipFile(os.path.join(dir, item))
-      
-      for datapoint in folder_zf.namelist():
-      
-        if datapoint.endswith('results.csv'):
-          folder_zf.extract(datapoint, dir)
-          chars = pd.read_csv(os.path.join(dir, datapoint), index_col='_id')
-          chars = chars.dropna(axis=1, how='all')
-      
-        if not datapoint.endswith('.zip'):
-          continue
         
+    folder_zf = zipfile.ZipFile(zip_file)
+    
+    for datapoint in folder_zf.namelist():
+    
+      if datapoint.endswith('results.csv'):
         folder_zf.extract(datapoint, dir)
-        
-        with zipfile.ZipFile(os.path.join(dir, datapoint), 'r') as data_point_zf:
+        chars = pd.read_csv(os.path.join(dir, datapoint), index_col='_id')
+        chars = chars.dropna(axis=1, how='all')      
+    
+      if not datapoint.endswith('.zip'):
+        continue
       
-          df = pd.read_csv(data_point_zf.open('enduse_timeseries.csv'))
-          df.columns = [re.sub(r"[^\w\s]", '_', col).replace(' ', '').rstrip('_') for col in df.columns]
+      folder_zf.extract(datapoint, os.path.dirname(os.path.abspath(zip_file)))
+      
+      with zipfile.ZipFile(os.path.join(os.path.dirname(os.path.abspath(zip_file)), datapoint), 'r') as data_point_zf:
+    
+        df = pd.read_csv(data_point_zf.open('enduse_timeseries.csv'))
+        df.columns = [re.sub(r"[^\w\s]", '_', col).replace(' ', '').rstrip('_') for col in df.columns]
 
-          # enduse_id
-          enduses = [col for col in df.columns if not 'Time' in col]
-          for enduse in enduses:
-            if not enduse in enduse_ids['enduse'].values:
-              next_id = len(enduse_ids.index) + 1
-              enduse_ids.loc[next_id] = [enduse, str(next_id)]
-          df = df.rename(columns=dict(zip(enduse_ids['enduse'], enduse_ids['enduse_id'])))
-          
-          # datapoint_id
-          m = re.search('([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})', datapoint)
-          if m:
-            datapoint_id = m.group(1)
-          if not datapoint_id in datapoint_ids['datapoint'].values:
-            next_id = len(datapoint_ids.index) + 1
-            datapoint_ids.loc[next_id] = [datapoint_id, str(next_id)]
-          df.insert(0, 'datapoint_id', next_id)
-          
-          df = pd.melt(df, id_vars=['datapoint_id', 'Time'], var_name='enduse_id')
-          df = df.set_index('datapoint_id')
+        # enduse_id
+        enduses = [col for col in df.columns if not 'Time' in col]
+        for enduse in enduses:
+          if not enduse in enduse_ids['enduse'].values:
+            next_id = len(enduse_ids.index) + 1
+            enduse_ids.loc[next_id] = [enduse, str(next_id)]
+        df = df.rename(columns=dict(zip(enduse_ids['enduse'], enduse_ids['enduse_id'])))
+        
+        # datapoint_id
+        m = re.search('([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})', datapoint)
+        if m:
+          datapoint_id = m.group(1)
+        if not datapoint_id in datapoint_ids['datapoint'].values:
+          next_id = len(datapoint_ids.index) + 1
+          datapoint_ids.loc[next_id] = [datapoint_id, str(next_id)]
+        df.insert(0, 'datapoint_id', next_id)
+        
+        df = pd.melt(df, id_vars=['datapoint_id', 'Time'], var_name='enduse_id')
+        df = df.set_index('datapoint_id')
 
-          df.to_hdf(hdf, 'df', format='table', append=True)
+        df.to_hdf(hdf, 'df', format='table', append=True)
 
-        shutil.rmtree(os.path.join(dir, os.path.dirname(datapoint)))
+      shutil.rmtree(os.path.join(dir, os.path.dirname(datapoint)))
       
     datapoint_ids.set_index('datapoint_id').to_hdf(hdf, 'datapoint_ids', format='table')
     enduse_ids.set_index('enduse_id').to_hdf(hdf, 'enduse_ids', format='table')
@@ -253,29 +253,49 @@ def write_pandas_hdf5(dir, file):
     print hdf
     print "Created new hdf5 file containing {} groups.".format(len(hdf.keys()))
     
-def write_h5py_hdf5(dir, file):
+def write_h5py_hdf5(zip_file, file):  
+  from dsgrid.dataformat import DSGridFile
+
+  dir = os.path.dirname(os.path.abspath(zip_file))
+    
+  folder_zf = zipfile.ZipFile(zip_file)
   
-  with h5py.File(file, mode='w') as hdf:
+  df = pd.DataFrame()
   
-    for item in os.listdir(dir):
+  for datapoint in folder_zf.namelist():
+  
+    if not datapoint.endswith('.zip'):
+      continue
     
-      if not item.endswith(".zip"):
-        continue
+    folder_zf.extract(datapoint, dir)
     
-      with zipfile.ZipFile(os.path.join(dir, item), 'r') as old_zf:
+    with zipfile.ZipFile(os.path.join(dir, datapoint), 'r') as data_point_zf:
+  
+      if df.empty:
+        df = pd.read_csv(data_point_zf.open('enduse_timeseries.csv'), index_col='Time')
+      else:
+        df = df.add(pd.read_csv(data_point_zf.open('enduse_timeseries.csv'), index_col='Time'), fill_value=0)
         
-        csv_file = csv.reader(old_zf.open('enduse_timeseries.csv'))
-        header = csv_file.next()
-        lines = list(csv_file)
-      
-      df = hdf.create_dataset(str(uuid.uuid1()), data=lines, compression='gzip', compression_opts=9)
-        
-      df.attrs['column_names'] = header
+  df = df.reset_index()
+  del df['Time']
+  df.columns = [re.sub(r"[^\w\s]", '_', col).replace(' ', '').rstrip('_').replace('Electricity', 'Elec') for col in df.columns]
+  
+  f = DSGridFile()
+  sector = f.add_sector('res', 'Residential')
+  subsector = sector.add_subsector("sf", "Single-Family", Hours(), df.columns.values)
+  subsector.add_data(df, (8, 59))
+  f.write(file)
+
+from dsgrid.timeformats import TimeFormat
+class Hours(TimeFormat):
+
+  def __init__(self):
+    TimeFormat.__init__(self, "Hours", 8760)
+
+  def timeindex(self):
+    return pd.Index(range(self.periods))
     
-    print hdf
-    print "Created new hdf5 file containing {} groups.".format(len(hdf.keys()))
-    
-def read_pandas_hdf5(dir, file):
+def read_pandas_hdf5(file):
     
   import plotly
   import plotly.graph_objs as go   
@@ -313,20 +333,14 @@ def read_pandas_hdf5(dir, file):
       layout = go.Layout(title=characteristics[characteristics.index==datapoint]['BuildingCharacteristicsReport.location_epw'].values[0], yaxis=dict(title='MBtu'))
       data = go.Figure(data=data, layout=layout)
       plotly.offline.plot(data, filename='{}.html'.format(datapoint), auto_open=True)
-    
-def kWh2MBtu(x):
-    return 3412.0 * 0.000001 * x
-    
-def kBtu2MBtu(x):
-    return x / 1000.0    
-    
-def read_h5py_hdf5(dir, file):
+
+def read_h5py_hdf5(file):
 
   with h5py.File(file, mode='r') as hdf:
-    
+
     datapoint_ids = 0
     nrows = 0
-    
+    print 'here1'
     for group in hdf:
         
       # for attr in hdf[group].attrs:
@@ -337,6 +351,12 @@ def read_h5py_hdf5(dir, file):
       nrows += hdf[group].shape[0]
         
     print datapoint_ids, nrows
+          
+def kWh2MBtu(x):
+    return 3412.0 * 0.000001 * x
+    
+def kBtu2MBtu(x):
+    return x / 1000.0 
           
 if __name__ == '__main__':
 
