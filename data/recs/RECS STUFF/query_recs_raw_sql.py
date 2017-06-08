@@ -678,52 +678,174 @@ def regenerate():
     return df
 
 def erin_boyd():
-  df_2009_full = retrieve_data()
-  df_2015_full = pd.read_csv('c:/recs2015/recs2015_public_v1.csv')
-  df_2015_full = df_2015_full.rename(columns={'DIVISION': 'division'})
-  
+
+  years = ['2009', '2015']
   bldgtypes = {'singlefamily': [2, 3], 'multifamily': [4, 5]}
   for k, v in bldgtypes.items():
-    df_2009 = df_2009_full.loc[df_2009_full['typehuq'].isin(v)]
-    df_2015 = df_2015_full.loc[df_2015_full['TYPEHUQ'].isin(v)]  
-  
-    dfs = []
+    for year in years:
     
-    # #1 % of homes with baseboard heat and electric furnaces  
-    df = df_2009[((df_2009['equipm']==5) | (df_2009['equipm']==3)) & (df_2009['fuelheat']==5)].groupby('division')['nweight'].sum() * 100.0 / df_2009.groupby('division')['nweight'].sum() # 2009
-    dfs.append(df.to_frame(('% of homes with baseboard heat and electric furnaces', '2009')))
-    df = df_2015[((df_2015['EQUIPM']==5) | (df_2015['EQUIPM']==3)) & (df_2015['FUELHEAT']==5)].groupby('division')['NWEIGHT'].sum() * 100.0 / df_2015.groupby('division')['NWEIGHT'].sum() # 2015
-    dfs.append(df.to_frame(('', '2015')))
+      dfs = []
     
-    # #2 ?
-    
-    # #3 % of homes with both room ACs and central AC or central warm-air furnace
-    df = df_2009[((df_2009['cooltype']==2) & (df_2009['equipm']==3)) | (df_2009['cooltype']==3)].groupby('division')['nweight'].sum() * 100.0 / df_2009.groupby('division')['nweight'].sum() # 2009
-    dfs.append(df.to_frame(('% of homes with both room ACs and central AC or central warm-air furnace', '2009')))
-    df = df_2015[((df_2015['COOLTYPE']==2) & (df_2015['EQUIPM']==3)) | (df_2015['COOLTYPE']==3)].groupby('division')['NWEIGHT'].sum() * 100.0 / df_2015.groupby('division')['NWEIGHT'].sum() # 2015
-    dfs.append(df.to_frame(('', '2015')))
-    
-    # #4
-    # % of homes with electric heating and central AC
-    df = df_2009[(df_2009['fuelheat']==5) & (df_2009['cooltype'].isin([1, 3]))].groupby('division')['nweight'].sum() * 100.0 / df_2009.groupby('division')['nweight'].sum() # 2009
-    dfs.append(df.to_frame(('% of homes with electric heating and central AC', '2009')))
-    df = df_2015[(df_2015['FUELHEAT']==5) & (df_2015['COOLTYPE'].isin([1, 3]))].groupby('division')['NWEIGHT'].sum() * 100.0 / df_2015.groupby('division')['NWEIGHT'].sum() # 2015
-    dfs.append(df.to_frame(('', '2015')))
-      
-    # % of homes with electric heating and room AC
-    df = df_2009[(df_2009['fuelheat']==5) & (df_2009['cooltype'].isin([2, 3]))].groupby('division')['nweight'].sum() * 100.0 / df_2009.groupby('division')['nweight'].sum() # 2009
-    dfs.append(df.to_frame(('% of homes with electric heating and room AC', '2009')))
-    df = df_2015[(df_2015['FUELHEAT']==5) & (df_2015['COOLTYPE'].isin([2, 3]))].groupby('division')['NWEIGHT'].sum() * 100.0 / df_2015.groupby('division')['NWEIGHT'].sum() # 2015
-    dfs.append(df.to_frame(('', '2015')))
-    
-    # % of homes with electric heating and no AC
-    df = df_2009[(df_2009['fuelheat']==5) & (df_2009['cooltype']==-2)].groupby('division')['nweight'].sum() * 100.0 / df_2009.groupby('division')['nweight'].sum() # 2009
-    dfs.append(df.to_frame(('% of homes with electric heating and no AC', '2009')))
-    df = df_2015[(df_2015['FUELHEAT']==5) & (df_2015['COOLTYPE']==-2)].groupby('division')['NWEIGHT'].sum() * 100.0 / df_2015.groupby('division')['NWEIGHT'].sum() # 2015
-    dfs.append(df.to_frame(('', '2015')))
-    
-    df = pd.concat(dfs, axis=1)
-    df.to_csv('{}.csv'.format(k))
+      if year == '2009':
+        df_2009_full = retrieve_data()
+        df_2009 = df_2009_full.loc[df_2009_full['typehuq'].isin(v)]
+        
+        # #1
+        
+        # % of homes with baseboard heat
+        df = df_2009[df_2009['equipm']==5].groupby('division')['nweight'].sum() / df_2009.groupby('division')['nweight'].sum() # 2009
+        dfs.append(df.to_frame(('% of homes with baseboard heat', '2009')))    
+        df = df_2009[df_2009['equipm']==5].groupby('division')['nweight'].sum() # 2009
+        dfs.append(df.to_frame(('', 'nweight')))       
+        
+        # % of homes with electric furnaces
+        df = df_2009[(df_2009['equipm']==3) & (df_2009['fuelheat']==5)].groupby('division')['nweight'].sum() / df_2009.groupby('division')['nweight'].sum() # 2009
+        dfs.append(df.to_frame(('% of homes with electric furnaces', '2009')))
+        df = df_2009[(df_2009['equipm']==3) & (df_2009['fuelheat']==5)].groupby('division')['nweight'].sum() # 2009
+        dfs.append(df.to_frame(('', 'nweight')))
+        
+        # % of homes with heat pumps
+        df = df_2009[df_2009['equipm']==4].groupby('division')['nweight'].sum() / df_2009.groupby('division')['nweight'].sum() # 2009
+        dfs.append(df.to_frame(('% of homes with heat pumps', '2009')))
+        df = df_2009[df_2009['equipm']==4].groupby('division')['nweight'].sum() # 2009
+        dfs.append(df.to_frame(('', 'nweight')))
+        
+        # % of homes with electric heating
+        df = df_2009[df_2009['fuelheat']==5].groupby('division')['nweight'].sum() / df_2009.groupby('division')['nweight'].sum() # 2009
+        dfs.append(df.to_frame(('% of homes with electric heating', '2009')))
+        df = df_2009[df_2009['fuelheat']==5].groupby('division')['nweight'].sum() # 2009
+        dfs.append(df.to_frame(('', 'nweight')))
+        
+        # #2
+        
+        # % of homes with heat pump and no central AC
+        df = df_2009[(df_2009['equipm']==4) & ((df_2009['cooltype']==2) | (df_2009['cooltype']==-2))].groupby('division')['nweight'].sum() / df_2009.groupby('division')['nweight'].sum() # 2009 
+        dfs.append(df.to_frame(('% of homes with heat pump and no central AC', '2009')))
+        df = df_2009[(df_2009['equipm']==4) & ((df_2009['cooltype']==2) | (df_2009['cooltype']==-2))].groupby('division')['nweight'].sum() # 2009 
+        dfs.append(df.to_frame(('', 'nweight')))
+        
+        # % of homes with heat pump used for secondary space heating
+        df = df_2009[df_2009['reverse']==1].groupby('division')['nweight'].sum() / df_2009.groupby('division')['nweight'].sum() # 2009
+        dfs.append(df.to_frame(('% of homes with heat pump used for secondary space heating', '2009')))
+        df = df_2009[df_2009['reverse']==1].groupby('division')['nweight'].sum()# 2009
+        dfs.append(df.to_frame(('', 'nweight')))  
+        
+        # #3 
+        
+        # % of homes with both room ACs and central AC or central warm-air furnace
+        df = df_2009[((df_2009['cooltype']==2) & (df_2009['equipm']==3)) | (df_2009['cooltype']==3)].groupby('division')['nweight'].sum() / df_2009.groupby('division')['nweight'].sum() # 2009 
+        dfs.append(df.to_frame(('% of homes with both room ACs and central AC or central warm-air furnace', '2009')))
+        df = df_2009[((df_2009['cooltype']==2) & (df_2009['equipm']==3)) | (df_2009['cooltype']==3)].groupby('division')['nweight'].sum() # 2009 
+        dfs.append(df.to_frame(('', 'nweight'))) 
+        
+        # % of homes with central AC or Central AC/Room AC or furnace
+        df = df_2009[(df_2009['cooltype']==1) | (df_2009['cooltype']==3) | (df_2009['equipm']==3)].groupby('division')['nweight'].sum() / df_2009.groupby('division')['nweight'].sum() # 2009 
+        dfs.append(df.to_frame(('% of homes with central AC or Central AC/Room AC or furnace', '2009')))
+        df = df_2009[(df_2009['cooltype']==1) | (df_2009['cooltype']==3) | (df_2009['equipm']==3)].groupby('division')['nweight'].sum() # 2009 
+        dfs.append(df.to_frame(('', 'nweight')))  
+        
+        # #4
+        
+        # % of homes with electric heating and central AC
+        df = df_2009[(df_2009['fuelheat']==5) & (df_2009['cooltype'].isin([1, 3]))].groupby('division')['nweight'].sum() / df_2009.groupby('division')['nweight'].sum() # 2009
+        dfs.append(df.to_frame(('% of homes with electric heating and central AC', '2009')))
+        df = df_2009[(df_2009['fuelheat']==5) & (df_2009['cooltype'].isin([1, 3]))].groupby('division')['nweight'].sum() # 2009
+        dfs.append(df.to_frame(('', 'nweight')))   
+          
+        # % of homes with electric heating and room AC
+        df = df_2009[(df_2009['fuelheat']==5) & (df_2009['cooltype'].isin([2, 3]))].groupby('division')['nweight'].sum() / df_2009.groupby('division')['nweight'].sum() # 2009
+        dfs.append(df.to_frame(('% of homes with electric heating and room AC', '2009')))
+        df = df_2009[(df_2009['fuelheat']==5) & (df_2009['cooltype'].isin([2, 3]))].groupby('division')['nweight'].sum() # 2009
+        dfs.append(df.to_frame(('', 'nweight')))  
+        
+        # % of homes with electric heating and no AC
+        df = df_2009[(df_2009['fuelheat']==5) & (df_2009['cooltype']==-2)].groupby('division')['nweight'].sum() / df_2009.groupby('division')['nweight'].sum() # 2009
+        dfs.append(df.to_frame(('% of homes with electric heating and no AC', '2009')))
+        df = df_2009[(df_2009['fuelheat']==5) & (df_2009['cooltype']==-2)].groupby('division')['nweight'].sum() # 2009
+        dfs.append(df.to_frame(('', 'nweight')))
+        
+        
+      elif year == '2015':
+        df_2015_full = pd.read_csv('c:/recs2015/recs2015_public_v1.csv')
+        df_2015_full = df_2015_full.loc[df_2015_full['TYPEHUQ'].isin(v)]
+        df_2015 = df_2015_full.rename(columns={'DIVISION': 'division'})
+        
+        # #1
+        
+        # % of homes with baseboard heat   
+        df = df_2015[df_2015['EQUIPM']==5].groupby('division')['NWEIGHT'].sum() / df_2015.groupby('division')['NWEIGHT'].sum() # 2015
+        dfs.append(df.to_frame(('% of homes with baseboard heat', '2015')))
+        df = df_2015[df_2015['EQUIPM']==5].groupby('division')['NWEIGHT'].sum() # 2015
+        dfs.append(df.to_frame(('', 'nweight')))    
+        
+        # % of homes with electric furnaces 
+        df = df_2015[(df_2015['EQUIPM']==3) & (df_2015['FUELHEAT']==5)].groupby('division')['NWEIGHT'].sum() / df_2015.groupby('division')['NWEIGHT'].sum() # 2015
+        dfs.append(df.to_frame(('% of homes with electric furnaces', '2015')))
+        df = df_2015[(df_2015['EQUIPM']==3) & (df_2015['FUELHEAT']==5)].groupby('division')['NWEIGHT'].sum()# 2015
+        dfs.append(df.to_frame(('', 'nweight')))
+        
+        # % of homes with heat pumps
+        df = df_2015[df_2015['EQUIPM']==4].groupby('division')['NWEIGHT'].sum() / df_2015.groupby('division')['NWEIGHT'].sum() # 2015
+        dfs.append(df.to_frame(('% of homes with heat pumps', '2015')))
+        df = df_2015[df_2015['EQUIPM']==4].groupby('division')['NWEIGHT'].sum() # 2015
+        dfs.append(df.to_frame(('', 'nweight')))
+        
+        # % of homes with electric heating
+        df = df_2015[df_2015['FUELHEAT']==5].groupby('division')['NWEIGHT'].sum() / df_2015.groupby('division')['NWEIGHT'].sum() # 2015
+        dfs.append(df.to_frame(('% of homes with electric heating', '2015')))
+        df = df_2015[df_2015['FUELHEAT']==5].groupby('division')['NWEIGHT'].sum() # 2015
+        dfs.append(df.to_frame(('', 'nweight')))
+        
+        # #2
+        
+        # % of homes with heat pump and no central AC
+        df = df_2015[(df_2015['EQUIPM']==4) & ((df_2015['COOLTYPE']==2) | (df_2015['COOLTYPE']==-2))].groupby('division')['NWEIGHT'].sum() / df_2015.groupby('division')['NWEIGHT'].sum() # 2015
+        dfs.append(df.to_frame(('% of homes with heat pump and no central AC', '2015')))
+        df = df_2015[(df_2015['EQUIPM']==4) & ((df_2015['COOLTYPE']==2) | (df_2015['COOLTYPE']==-2))].groupby('division')['NWEIGHT'].sum() # 2015
+        dfs.append(df.to_frame(('', 'nweight')))    
+        
+        # % of homes with heat pump used for secondary space heating
+        df = pd.Series(data=[np.nan]*10, index=range(1, 11), name='division')
+        dfs.append(df.to_frame(('% of homes with heat pump used for secondary space heating', '2015')))
+        df = pd.Series(data=[np.nan]*10, index=range(1, 11), name='division')
+        dfs.append(df.to_frame(('', 'nweight')))    
+        
+        # #3 
+        
+        # % of homes with both room ACs and central AC or central warm-air furnace
+        df = df_2015[((df_2015['COOLTYPE']==2) & (df_2015['EQUIPM']==3)) | (df_2015['COOLTYPE']==3)].groupby('division')['NWEIGHT'].sum() / df_2015.groupby('division')['NWEIGHT'].sum() # 2015
+        dfs.append(df.to_frame(('% of homes with both room ACs and central AC or central warm-air furnace', '2015')))
+        df = df_2015[((df_2015['COOLTYPE']==2) & (df_2015['EQUIPM']==3)) | (df_2015['COOLTYPE']==3)].groupby('division')['NWEIGHT'].sum() # 2015
+        dfs.append(df.to_frame(('', 'nweight')))    
+        
+        # % of homes with central AC or Central AC/Room AC or furnace
+        df = df_2015[(df_2015['COOLTYPE']==1) | (df_2015['COOLTYPE']==3) | (df_2015['EQUIPM']==3)].groupby('division')['NWEIGHT'].sum() / df_2015.groupby('division')['NWEIGHT'].sum() # 2015
+        dfs.append(df.to_frame(('% of homes with central AC or Central AC/Room AC or furnace', '2015')))
+        df = df_2015[(df_2015['COOLTYPE']==1) | (df_2015['COOLTYPE']==3) | (df_2015['EQUIPM']==3)].groupby('division')['NWEIGHT'].sum() # 2015
+        dfs.append(df.to_frame(('', 'nweight')))    
+        
+        # #4
+        
+        # % of homes with electric heating and central AC 
+        df = df_2015[(df_2015['FUELHEAT']==5) & (df_2015['COOLTYPE'].isin([1, 3]))].groupby('division')['NWEIGHT'].sum() / df_2015.groupby('division')['NWEIGHT'].sum() # 2015
+        dfs.append(df.to_frame(('% of homes with electric heating and central AC', '2015')))
+        df = df_2015[(df_2015['FUELHEAT']==5) & (df_2015['COOLTYPE'].isin([1, 3]))].groupby('division')['NWEIGHT'].sum() # 2015
+        dfs.append(df.to_frame(('', 'nweight')))    
+          
+        # % of homes with electric heating and room AC
+        df = df_2015[(df_2015['FUELHEAT']==5) & (df_2015['COOLTYPE'].isin([2, 3]))].groupby('division')['NWEIGHT'].sum() / df_2015.groupby('division')['NWEIGHT'].sum() # 2015
+        dfs.append(df.to_frame(('% of homes with electric heating and room AC', '2015')))
+        df = df_2015[(df_2015['FUELHEAT']==5) & (df_2015['COOLTYPE'].isin([2, 3]))].groupby('division')['NWEIGHT'].sum() # 2015
+        dfs.append(df.to_frame(('', 'nweight')))    
+        
+        # % of homes with electric heating and no AC
+        df = df_2015[(df_2015['FUELHEAT']==5) & (df_2015['COOLTYPE']==-2)].groupby('division')['NWEIGHT'].sum() / df_2015.groupby('division')['NWEIGHT'].sum() # 2015
+        dfs.append(df.to_frame(('% of homes with electric heating and no AC', '2015')))
+        df = df_2015[(df_2015['FUELHEAT']==5) & (df_2015['COOLTYPE']==-2)].groupby('division')['NWEIGHT'].sum() # 2015
+        dfs.append(df.to_frame(('', 'nweight')))
+        
+      df = pd.concat(dfs, axis=1)
+      df.to_csv('{}_{}.csv'.format(k, year))
   
   sys.exit()
 
