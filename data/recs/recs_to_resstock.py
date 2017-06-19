@@ -18,24 +18,23 @@ MetaOptionCombo = pd.read_sql_query('SELECT * from MetaOptionCombo', con)
 OutputArchetypeVariant = pd.read_sql_query('SELECT * from OutputArchetypeVariant', con)
 BEoptWeightingFactor = pd.read_sql_query('SELECT * from BEoptWeightingFactor', con)
 EPWs = MetaOption[MetaOption['MetaCategoryID']==1]['Name'].values
-OutputArchetypeVariantOptionDiff = pd.read_sql_query('SELECT * from OutputArchetypeVariantOptionDiff', con)
+OutputArchetypeVariantOptionDiff = pd.read_sql_query('SELECT * from OutputArchetypeVariantOptionDiff where CategoryID in (190, 270, 375, 35, 312, 431, 367, 308, 316, 18, 374, 279)', con)
 
 def main(df):
 
-  # meta
-  df = assign_epw_stations(df)
-  df = assign_location(df)
-  df = assign_vintage(df)
-  df = assign_heating_fuel(df)
-  df = assign_size(df)
-  df = assign_stories(df)
-  df = assign_foundation_type(df)
-  df = assign_daytime_occupancy(df)
-  df = assign_usage_level(df)
-  df = assign_attached_garage(df)
-
   # assign variant ids based on meta
   if not os.path.exists('recs.csv'):
+    # meta
+    df = assign_epw_stations(df)
+    df = assign_location(df)
+    df = assign_vintage(df)
+    df = assign_heating_fuel(df)
+    df = assign_size(df)
+    df = assign_stories(df)
+    df = assign_foundation_type(df)
+    df = assign_daytime_occupancy(df)
+    df = assign_usage_level(df)
+    df = assign_attached_garage(df)  
     df = assign_variant_ids(df)
     # for option in ['Water Heater', 'Windows', 'Cooking Range', 'Clothes Dryer', 'Refrigerator', 'Lighting', 'Dishwasher', 'Clothes Washer', 'Central Air Conditioner', 'Room Air Conditioner', 'Furnace', 'Boiler', 'Electric Baseboard', 'Air Source Heat Pump']:
       # print option
@@ -95,18 +94,20 @@ def main(df):
     full_options = OutputArchetypeVariantOptionDiff[OutputArchetypeVariantOptionDiff['OutputArchetypeVariantID']==1]
     options[1] = dict(zip(full_options['CategoryID'].values, full_options['OptionGUID'].values))
     for id in range(2, len(list(set(OutputArchetypeVariantOptionDiff['OutputArchetypeVariantID'].values)))+1):
+    # for id in range(2, 5):
       print id
       part_options = OutputArchetypeVariantOptionDiff[OutputArchetypeVariantOptionDiff['OutputArchetypeVariantID']==id]
       options[id] = dict(zip(part_options['CategoryID'].values, part_options['OptionGUID'].values))
-      for k, v in options[id-1].iteritems():
+      for k, v in options[1].iteritems():
         if not k in options[id].keys():
           options[id][k] = v
-    f = open('output.txt', 'w')
-    f.write(str(options))
+          
+    # f = open('output.txt', 'w')
+    # f.write(str(options))
   else:
     s = open('options.txt', 'r').read()
     options = eval(s)
-                           
+
   for category in ['Cooling System', 'Heating System', 'Windows', 'Water Heater', 'Clothes Dryer', 'Cooking Range']:
     print category
     df = revise_variant_ids(df, category, guid_dict[category], con, options)
@@ -115,39 +116,29 @@ def main(df):
   
 def revise_variant_ids(df, category, guid_dict, con, options):
   
-  def remove_variants(prop, guid_dict, output_archetype_variant_ids, options):
+  def remove_variants(row, col, guid_dict, output_archetype_variant_ids, options):
+  
+    print col, row.name
 
     if pd.isnull(output_archetype_variant_ids):
       return np.nan
   
     guids_to_keep = []
     for k, v in guid_dict.items():
-      if k == prop:
+      if k == row[col]:
         guids_to_keep += v
         
-    print 'HERE1'
-    ids = {}
+    variants_to_keep = []
     for id in output_archetype_variant_ids.split(';'):
       if int(id) in options.keys():
-        ids[int(id)] = options[int(id)]
+        if bool(set(guids_to_keep) & set(options[int(id)].values())):
+          variants_to_keep.append(id)
 
-    print 'HERE2'
-    variants_to_keep = []
-    for id, d in ids.iteritems():
-      print id
-      if bool(set(guids_to_keep) & set(d.values())):
-        variants_to_keep.append(id)
-
-    revised_variants = []
-    for variant in output_archetype_variant_ids.split(';'):
-      if int(variant) in variants_to_keep:
-        revised_variants.append(variant)
-        
-    if revised_variants:
-      return ';'.join([str(x) for x in revised_variants])
+    if variants_to_keep:
+      return ';'.join([str(x) for x in variants_to_keep])
     else:
       return np.nan
-  
+
   if category == 'Windows':
     col = 'typeglass'
   elif category == 'Water Heater':
@@ -161,7 +152,7 @@ def revise_variant_ids(df, category, guid_dict, con, options):
   elif category == 'Cooking Range':
     col = 'stovenfuel'
 
-  df['OutputArchetypeVariantID (Meta Parameters + Heating + Cooling + WH + Windows + CD + CR)'] = df.apply(lambda x: remove_variants(x[col], guid_dict, x['OutputArchetypeVariantID (Meta Parameters + Heating + Cooling + WH + Windows + CD + CR)'], options), axis=1)
+  df['OutputArchetypeVariantID (Meta Parameters + Heating + Cooling + WH + Windows + CD + CR)'] = df.apply(lambda x: remove_variants(x, col, guid_dict, x['OutputArchetypeVariantID (Meta Parameters + Heating + Cooling + WH + Windows + CD + CR)'], options), axis=1)
   
   return df
   
@@ -174,6 +165,13 @@ def assign_epw_stations(df):
   return df
   
 def assign_location(df): # Location
+  
+  # def epw(tmy3_id):
+    # for EPW in EPWs:
+      # if str(tmy3_id) in str(EPW):
+        # return EPW
+
+  # df['Location'] = df['TMY3_ID'].apply(lambda x: epw(x))  
   
   rd_map = {1: ['CT', 'ME', 'NH', 'RI', 'VT'], 
             2: ['MA'],

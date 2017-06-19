@@ -80,8 +80,8 @@ def assign_upgrades(df):
   return df
     
 def build_db(zip_file, driver):
-  import buildstockdbmodel as bsdb
-  from buildstockdbmodel import Datapoint, Building, Upgrade, ParameterOption, Parameter, Enduse, FuelType, DatapointParameterOption, DatapointSimulationOutput, FederalPovertyLevelBins
+  import buildstockdb as bsdb
+  from buildstockdb import Datapoint, Building, Upgrade, ParameterOption, Parameter, Enduse, FuelType, DatapointParameterOption, DatapointSimulationOutput, FederalPovertyLevelBins
   
   folder_zf = zipfile.ZipFile(zip_file)  
   for datapoint in folder_zf.namelist():  
