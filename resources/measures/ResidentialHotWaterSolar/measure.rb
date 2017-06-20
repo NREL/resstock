@@ -412,6 +412,7 @@ class ResidentialHotWaterSolar < OpenStudio::Measure::ModelMeasure
         availability_manager.setColdNode(storage_tank.demandOutletModelObject.get.to_Node.get)
         availability_manager.setTemperatureDifferenceOnLimit(0)
         availability_manager.setTemperatureDifferenceOffLimit(0)
+        # plant_loop.setAvailabilityManager(availability_manager) # TODO: remove until there's a new OS build supporting this
        
       end
      

@@ -185,7 +185,7 @@ class ProcessConstructionsFoundationsFloorsCrawlspace < OpenStudio::Measure::Mod
         if csExtPerimeter > 0
             crawlspace_effective_Rvalue = csExtWallArea / (crawlspace_conduction * csExtPerimeter) # hr*ft^2*F/Btu
         else
-            crawlspace_effective_Rvalue = 1000 # hr*ft^2*F/Btu
+            crawlspace_effective_Rvalue = 1000.0 # hr*ft^2*F/Btu
         end
         crawlspace_US_Rvalue = Material.Concrete8in.rvalue + Material.AirFilmVertical.rvalue + crawlWallContInsRvalueNominal
         crawlspace_fictitious_Rvalue = crawlspace_effective_Rvalue - Material.Soil12in.rvalue - crawlspace_US_Rvalue
@@ -231,7 +231,7 @@ class ProcessConstructionsFoundationsFloorsCrawlspace < OpenStudio::Measure::Mod
         if crawlspace_fictitious_Rvalue < 0 # Not enough cond through walls, need to add in floor conduction
             crawlspace_floor_Rvalue = csFloorArea / (crawlspace_total_UA - crawlspace_wall_UA) - Material.Soil12in.rvalue # hr*ft^2*F/Btu (assumes crawlspace floor is dirt with no concrete slab)
         else
-            crawlspace_floor_Rvalue = 1000 # hr*ft^2*F/Btu
+            crawlspace_floor_Rvalue = 1000.0 # hr*ft^2*F/Btu
         end
         
         # Define materials

@@ -704,7 +704,7 @@ class Construction
         
         # Uncomment the following line to debug
         #print_layers(runner)
-        #runner.registerInfo("Assembly R-vale: #{assembly_rvalue(runner).to_s}")
+        #runner.registerInfo("Assembly R-value: #{assembly_rvalue(runner).to_s}")
         
         materials = construct_materials(model, runner)
         

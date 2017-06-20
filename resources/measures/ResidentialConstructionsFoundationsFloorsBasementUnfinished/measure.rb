@@ -302,7 +302,7 @@ class ProcessConstructionsFoundationsFloorsBasementUnfinished < OpenStudio::Meas
         if ubExtPerimeter > 0
             ub_effective_Rvalue = ubExtWallArea / (conduction_factor * ubExtPerimeter) # hr*ft^2*F/Btu
         else
-            ub_effective_Rvalue = 1000 # hr*ft^2*F/Btu
+            ub_effective_Rvalue = 1000.0 # hr*ft^2*F/Btu
         end
         # Insulation of 4ft height inside a 8ft basement is modeled completely in the fictitious layer
         mat_fic_insul_layer = nil
@@ -352,7 +352,7 @@ class ProcessConstructionsFoundationsFloorsBasementUnfinished < OpenStudio::Meas
         if ub_fictitious_Rvalue < 0 # Not enough cond through walls, need to add in floor conduction
             ub_floor_Rvalue = ubFloorArea / (ub_total_UA - ub_wall_UA) - Material.Soil12in.rvalue - Material.Concrete4in.rvalue # hr*ft^2*F/Btu (assumes basement floor is a 4-in concrete slab)
         else
-            ub_floor_Rvalue = 1000 # hr*ft^2*F/Btu
+            ub_floor_Rvalue = 1000.0 # hr*ft^2*F/Btu
         end
         
         # Define materials

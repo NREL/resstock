@@ -344,6 +344,14 @@ class ProcessVariableSpeedAirSourceHeatPump < OpenStudio::Measure::ModelMeasure
     hpcap.setDefaultValue(Constants.SizingAuto)
     args << hpcap
 
+    #make an argument for entering supplemental efficiency
+    supp_eff = OpenStudio::Measure::OSArgument::makeDoubleArgument("supplemental_efficiency",true)
+    supp_eff.setDisplayName("Supplemental Efficiency")
+    supp_eff.setUnits("Btu/Btu")
+    supp_eff.setDescription("The efficiency of the supplemental electric coil.")
+    supp_eff.setDefaultValue(1.0)
+    args << supp_eff
+    
     #make a string argument for supplemental heating output capacity
     supcap = OpenStudio::Measure::OSArgument::makeStringArgument("supplemental_capacity", true)
     supcap.setDisplayName("Supplemental Heating Capacity")
@@ -393,6 +401,7 @@ class ProcessVariableSpeedAirSourceHeatPump < OpenStudio::Measure::ModelMeasure
     unless hpOutputCapacity == Constants.SizingAuto or hpOutputCapacity == Constants.SizingAutoMaxLoad
       hpOutputCapacity = OpenStudio::convert(hpOutputCapacity.to_f,"ton","Btu/h").get
     end
+    supplementalEfficiency = runner.getDoubleArgumentValue("supplemental_efficiency",user_arguments)
     supplementalOutputCapacity = runner.getStringArgumentValue("supplemental_capacity",user_arguments)
     unless supplementalOutputCapacity == Constants.SizingAuto
       supplementalOutputCapacity = OpenStudio::convert(supplementalOutputCapacity.to_f,"kBtu/h","Btu/h").get
@@ -487,7 +496,7 @@ class ProcessVariableSpeedAirSourceHeatPump < OpenStudio::Measure::ModelMeasure
         
         supp_htg_coil = OpenStudio::Model::CoilHeatingElectric.new(model, model.alwaysOnDiscreteSchedule)
         supp_htg_coil.setName(obj_name + " supp heater")
-        supp_htg_coil.setEfficiency(1)
+        supp_htg_coil.setEfficiency(supplementalEfficiency)
         if supplementalOutputCapacity != Constants.SizingAuto
           supp_htg_coil.setNominalCapacity(OpenStudio::convert(supplementalOutputCapacity,"Btu/h","W").get) # Used by HVACSizing measure
         end

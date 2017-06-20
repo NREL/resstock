@@ -204,6 +204,14 @@ class ProcessGroundSourceHeatPumpVerticalBore < OpenStudio::Measure::ModelMeasur
     gshpOutputCapacity.setDefaultValue(Constants.SizingAuto)
     args << gshpOutputCapacity    
     
+    #make an argument for entering supplemental efficiency
+    supp_eff = OpenStudio::Measure::OSArgument::makeDoubleArgument("supplemental_efficiency",true)
+    supp_eff.setDisplayName("Supplemental Efficiency")
+    supp_eff.setUnits("Btu/Btu")
+    supp_eff.setDescription("The efficiency of the supplemental electric coil.")
+    supp_eff.setDefaultValue(1.0)
+    args << supp_eff
+    
     #make a string argument for supplemental heating output capacity
     supcap = OpenStudio::Measure::OSArgument::makeStringArgument("supplemental_capacity", true)
     supcap.setDisplayName("Supplemental Heating Capacity")
@@ -247,6 +255,7 @@ class ProcessGroundSourceHeatPumpVerticalBore < OpenStudio::Measure::ModelMeasur
     unless gshp_capacity == Constants.SizingAuto
       gshp_capacity = OpenStudio::convert(gshp_capacity.to_f,"ton","Btu/h").get
     end
+    supp_eff = runner.getDoubleArgumentValue("supplemental_efficiency",user_arguments)
     supp_capacity = runner.getStringArgumentValue("supplemental_capacity",user_arguments)
     unless supp_capacity == Constants.SizingAuto
       supp_capacity = OpenStudio::convert(supp_capacity.to_f,"kBtu/h","Btu/h").get
@@ -404,7 +413,7 @@ class ProcessGroundSourceHeatPumpVerticalBore < OpenStudio::Measure::ModelMeasur
         
         supp_htg_coil = OpenStudio::Model::CoilHeatingElectric.new(model, model.alwaysOnDiscreteSchedule)
         supp_htg_coil.setName(obj_name + " supp heater")
-        supp_htg_coil.setEfficiency(1)
+        supp_htg_coil.setEfficiency(supp_eff)
         if supp_capacity != Constants.SizingAuto
           supp_htg_coil.setNominalCapacity(OpenStudio::convert(supp_capacity,"Btu/h","W").get) # Used by HVACSizing measure
         end        

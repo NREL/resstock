@@ -244,7 +244,7 @@ class ProcessConstructionsFoundationsFloorsSlab < OpenStudio::Measure::ModelMeas
     if slabExtPerimeter > 0
         effective_slab_Rvalue = slabArea / (slabExtPerimeter * slab_perimeter_conduction)
     else
-        effective_slab_Rvalue = 1000 # hr*ft^2*F/Btu
+        effective_slab_Rvalue = 1000.0 # hr*ft^2*F/Btu
     end
 
     slab_Rvalue = mat_slab.rvalue + Material.AirFilmFlatReduced.rvalue + Material.Soil12in.rvalue + Material.DefaultFloorCovering.rvalue

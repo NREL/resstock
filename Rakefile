@@ -125,7 +125,6 @@ def integrity_check(project_dir_names=nil)
     option_names = {}
     tsvfiles = {}
     measures = {}
-    epw_files = []
     last_size = -1
   
     parameter_names = []
@@ -205,24 +204,10 @@ def integrity_check(project_dir_names=nil)
             # Store arguments
             measures[measure_subdir][parameter_name][option_name] = args_hash
                 
-            # Store any EPW files referenced
-            args_hash.each do |k, v|
-              next if v.nil? or !v.downcase.end_with?(".epw") or epw_files.include?(v)
-              epw_files << v
-            end
           end
         end
       end
     end # parameter_name
-    
-    # Check referenced EPW files exist
-    epw_files.each do |epw_file|
-        epw_file_full = File.join(project_dir_name, 'weather', epw_file)
-        if not File.exists?(epw_file_full)
-            puts "ERROR: Cannot find EPW file at #{epw_file_full}."
-            exit
-        end
-    end
     
     # Additional integrity checks for option_lookup.tsv
     measures.keys.each do |measure_subdir|
