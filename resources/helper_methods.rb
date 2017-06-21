@@ -336,6 +336,8 @@ def validate_measure_args(measure_args, provided_args, lookup_file, measure_name
             else
                 next
             end
+        else
+          provided_val = provided_val.to_s
         end
         case arg.type.valueName.downcase
         when "boolean"
