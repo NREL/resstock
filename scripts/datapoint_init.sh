@@ -13,10 +13,11 @@ if ! [ -d "weather" ]; then
 fi
 cd "weather"
 
-LOCKFILE="LOCK"
+STARTFILE="START"
+FINISHFILE="FINISH"
 
-if ! [ -f $LOCKFILE ]; then
-  touch $LOCKFILE
+if ! [ -f $STARTFILE ]; then
+  touch $STARTFILE
   
   # Download weather zip
   `curl -O "$1"`
@@ -24,7 +25,7 @@ if ! [ -f $LOCKFILE ]; then
   FILENAME="${1##*/}"
   if ! [ -f $FILENAME ]; then
     # TODO: Retry download several times?
-    echo ERROR: "$FILENAME not successfully downloaded. Aborting..."
+    echo "ERROR: $FILENAME not successfully downloaded. Aborting..."
     exit 1
   fi
   
@@ -35,11 +36,11 @@ if ! [ -f $LOCKFILE ]; then
   echo "$NUMDIREPWS EPWs available."
   
   # Let other scripts know that we are done
-  rm $LOCKFILE
+  touch $FINISHFILE
 else
   
   i="0"
-  while [ -f $LOCKFILE ]; do
+  while ! [ -f $FINISHFILE ]; do
     sleep 30 # seconds
     i=$[$i+1]
     if [ $i -eq "20" ]; then
