@@ -3070,9 +3070,19 @@ class ProcessHVACSizing < OpenStudio::Measure::ModelMeasure
             return nil if capacityRatioCooling.nil?
             hvac.CapacityRatioCooling = capacityRatioCooling.split(",").map(&:to_f)
             
-            fanspeed_ratio = get_unit_feature(runner, unit, Constants.SizingInfoHVACFanspeedRatioCooling, 'string')
-            return nil if fanspeed_ratio.nil?
-            hvac.FanspeedRatioCooling = fanspeed_ratio.split(",").map(&:to_f)
+            if not clg_equip.designSpecificationMultispeedObject.is_initialized
+              runner.registerError("DesignSpecificationMultispeedObject not set for #{clg_equip.name.to_s}.")
+              return nil
+            end
+            perf = clg_equip.designSpecificationMultispeedObject.get
+            hvac.FanspeedRatioCooling = []
+            perf.supplyAirflowRatioFields.each do |airflowRatioField|
+              if not airflowRatioField.coolingRatio.is_initialized
+                runner.registerError("Cooling airflow ratio not set for #{perf.name.to_s}")
+                return nil
+              end
+              hvac.FanspeedRatioCooling << airflowRatioField.coolingRatio.get
+            end
                 
             curves = []
             hvac.SHRRated = []
@@ -4406,7 +4416,7 @@ class ProcessHVACSizing < OpenStudio::Measure::ModelMeasure
                     ground_heat_exch_vert.setNumberofBoreHoles(unit_final.GSHP_Bore_Holes.to_i)
                     ground_heat_exch_vert.setBoreHoleLength(OpenStudio::convert(unit_final.GSHP_Bore_Depth,"ft","m").get)
                     ground_heat_exch_vert.removeAllGFunctions
-                    for i in 0..(unit_final.GSHP_G_Functions.size-1)
+                    for i in 0..(unit_final.GSHP_G_Functions[0].size-1)
                       ground_heat_exch_vert.addGFunction(unit_final.GSHP_G_Functions[0][i], unit_final.GSHP_G_Functions[1][i])
                     end
                     

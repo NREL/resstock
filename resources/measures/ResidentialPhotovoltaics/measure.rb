@@ -39,7 +39,7 @@ class ResidentialPhotovoltaics < OpenStudio::Measure::ModelMeasure
 
   # human readable description of modeling approach
   def modeler_description
-    return "Any generators and electric load center distribution objects are removed. An electric load center distribution object is added with a track schedule equal to the hourly output from SAM. A micro turbine generator object is add to the electric load center distribution object. The fuel used to make the electricity is zeroed out."
+    return "Any generators and electric load center distribution objects are removed. An electric load center distribution object is added with a track schedule equal to the hourly output from SAM. A micro turbine generator object is added to the electric load center distribution object. The fuel used to make the electricity is zeroed out."
   end
 
   # define the arguments that the user will input

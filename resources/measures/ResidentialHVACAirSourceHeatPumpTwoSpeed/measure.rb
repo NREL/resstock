@@ -454,6 +454,14 @@ class ProcessTwoSpeedAirSourceHeatPump < OpenStudio::Measure::ModelMeasure
         air_loop_unitary.setMaximumOutdoorDryBulbTemperatureforSupplementalHeaterOperation(OpenStudio::convert(40.0,"F","C").get)
         air_loop_unitary.setSupplyAirFlowRateWhenNoCoolingorHeatingisRequired(0)
           
+        perf = OpenStudio::Model::UnitarySystemPerformanceMultispeed.new(model)
+        air_loop_unitary.setDesignSpecificationMultispeedObject(perf)
+        perf.setSingleModeOperation(false)
+        for speed in 1..number_Speeds
+          f = OpenStudio::Model::SupplyAirflowRatioField.new(hpFanspeedRatioHeating[speed-1], hpFanspeedRatioCooling[speed-1])
+          perf.addSupplyAirflowRatioField(f)
+        end
+        
         air_loop = OpenStudio::Model::AirLoopHVAC.new(model)
         air_loop.setName(obj_name + " central air system")
         air_supply_inlet_node = air_loop.supplyInletNode
@@ -514,7 +522,6 @@ class ProcessTwoSpeedAirSourceHeatPump < OpenStudio::Measure::ModelMeasure
       end # control_zone
       
       # Store info for HVAC Sizing measure
-      unit.setFeature(Constants.SizingInfoHVACFanspeedRatioCooling, hpFanspeedRatioCooling.join(","))
       unit.setFeature(Constants.SizingInfoHVACCapacityRatioCooling, hpCapacityRatio.join(","))
       unit.setFeature(Constants.SizingInfoHVACCapacityDerateFactorEER, hpEERCapacityDerateFactor.join(","))
       unit.setFeature(Constants.SizingInfoHVACCapacityDerateFactorCOP, hpCOPCapacityDerateFactor.join(","))

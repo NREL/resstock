@@ -4,11 +4,12 @@
 # File name must for the snake case (underscore case) of the class name. For example: WorkerInit = worker_init
 
 require 'csv'
+require 'optparse'
 require_relative '../resources/helper_methods'
 
 class RunSampling
 
-    def run(project_dir_name, num_samples)
+    def run(project_dir_name, num_samples, outfile)
         
         resources_dir = File.absolute_path(File.join(File.dirname(__FILE__), '..', 'resources')) # Should have been uploaded per 'Additional Analysis Files' in PAT
         characteristics_dir = File.absolute_path(File.join(File.dirname(__FILE__), '..', 'housing_characteristics')) # Should have been uploaded per 'Additional Analysis Files' in PAT
@@ -32,7 +33,7 @@ class RunSampling
 
         params = update_parameter_dependencies(params, tsvfiles)
         sample_results = perform_sampling(params, num_samples, tsvfiles, project_dir_name).transpose
-        out_file = write_csv(sample_results)
+        out_file = write_csv(sample_results, outfile)
         return out_file
     end
 
@@ -290,9 +291,9 @@ class RunSampling
         return random_seed + 1
     end
 
-    def write_csv(sample_results)
+    def write_csv(sample_results, outfile)
         # Writes the csv output file.
-        out_file = File.absolute_path(File.join(File.dirname(__FILE__), 'buildstock.csv'))
+        out_file = File.absolute_path(File.join(File.dirname(__FILE__), outfile))
         CSV.open(out_file, 'w') do |csv_object|
           sample_results.each do |sample_result|
             csv_object << sample_result
@@ -304,5 +305,32 @@ class RunSampling
 
 end
 
-#r = RunSampling.new
-#r.run('project_resstock_testing',10000)
+options = {}
+OptionParser.new do |opts|
+  opts.banner = "Usage: #{File.basename(__FILE__)} -p project_name -n num_datapoints -o outfile"
+
+  opts.on('-p', '--project <STRING>', 'Project Name') do |t|
+    options[:project] = t
+  end
+
+  opts.on('-n', '--num-datapoints <INTEGER>', 'Number of datapoints') do |t|
+    options[:numdps] = t.to_i
+  end
+  
+  opts.on('-o', '--output <STRING>', 'Output file name') do |t|
+    options[:outfile] = t
+  end
+  
+  opts.on_tail('-h', '--help', 'Display help') do
+    puts opts
+    exit
+  end
+
+end.parse!
+
+if not options[:project] or not options[:numdps] or not options[:outfile]
+  fail "ERROR: All 3 arguments are required. Call #{File.basename(__FILE__)} -h for usage."
+end
+
+r = RunSampling.new
+r.run(options[:project], options[:numdps], options[:outfile])

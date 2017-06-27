@@ -65,11 +65,11 @@ class ApplyUpgrade < OpenStudio::Ruleset::ModelUserScript
             cost_value.setDisplayName("Option #{option_num} Cost #{cost_num} Value")
             cost_value.setDescription("Total option #{option_num} cost is the sum of all: (Cost N Value) x (Cost N Multiplier).")
             cost_value.setUnits("$")
-            cost_value.setDefaultValue(0.0)
             args << cost_value
             
             # Option Cost Multiplier argument
             choices = [
+                       "",
                        "Fixed (1)",
                        "Conditioned Floor Area (ft^2)",
                        "Conditioned Foundation Slab Area (ft^2)",

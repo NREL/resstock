@@ -1,5 +1,4 @@
 require 'csv'
-require 'openstudio'
 
 # TODO: Move some methods below into a MetaMeasure class
 
@@ -214,6 +213,7 @@ def get_combination_hashes(tsvfiles, dependencies)
 end
   
 def get_value_from_runner_past_results(runner, key_lookup, measure_name, error_if_missing=true)
+    require 'openstudio'
     key_lookup = OpenStudio::toUnderscoreCase(key_lookup)
     success_value = OpenStudio::StepResult.new("Success")
     runner.workflow.workflowSteps.each do |step|
@@ -363,6 +363,7 @@ def validate_measure_args(measure_args, provided_args, lookup_file, measure_name
 end
   
 def get_argument_map(model, measure, provided_args, lookup_file, measure_name, runner=nil)
+    require 'openstudio'
     measure_args = measure.arguments(model)
     validate_measure_args(measure_args, provided_args, lookup_file, measure_name, runner)
     
@@ -379,8 +380,8 @@ def get_argument_map(model, measure, provided_args, lookup_file, measure_name, r
 end
   
 def run_measure(model, measure, argument_map, runner)
+    require 'openstudio'
     begin
-
       # run the measure
       runner_child = OpenStudio::Measure::OSRunner.new(OpenStudio::WorkflowJSON.new)
       if model.instance_of? OpenStudio::Workspace
@@ -416,7 +417,6 @@ def run_measure(model, measure, argument_map, runner)
         runner.registerError("The measure was not successful")
         return false
       end
-
     rescue => e
       runner.registerError("Measure Failed with Error: #{e.backtrace.join("\n")}")
       return false
