@@ -341,7 +341,7 @@ class SimulationOutputReport < OpenStudio::Ruleset::ReportingUserScript
                 cost_mult = OpenStudio::convert(total_heating_capacity_w,"W","kBtu/h").get
             end
             
-        else
+        elsif cost_mult_type != ""
             runner.registerError("Unhandled cost multiplier: #{cost_mult_type.to_s}. Aborting...")
             return false
             

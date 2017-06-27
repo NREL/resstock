@@ -288,11 +288,9 @@ class ApplyUpgrade < OpenStudio::Ruleset::ModelUserScript
     end # apply_package_upgrade
     
     if measures.size == 0
-        # Upgrade not applied; skip from CSV
-        # FIXME: NA doesn't currently stop datapoint from continuing.
-        runner.registerAsNotApplicable("No measures apply.") 
-        #runner.registerError("No measures apply.") 
-        #return false
+        # Upgrade not applied; don't re-run existing home simulation
+        runner.haltWorkflow('Invalid')
+        return false
     end
     
     return true
