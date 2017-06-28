@@ -243,7 +243,7 @@ def integrity_check(project_dir_names=nil)
     
     # Test sampling
     r = RunSampling.new
-    output_file = r.run(project_dir_name, 1000)
+    output_file = r.run(project_dir_name, 1000, 'buildstock.csv')
     if File.exist?(output_file)
       File.delete(output_file) # Clean up
     end
