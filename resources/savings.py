@@ -111,6 +111,8 @@ def main(zip_file):
     cols_to_use = [col for col in df.columns if col not in full.columns]
     full = pd.concat([full, df[cols_to_use]], axis=1)
     
+    full = full.sort_values(['build_existing_model.building_id'] + upgrades)
+    
     return os.path.basename(item), full
     
 def deltas(df, upgrades, enduses):
