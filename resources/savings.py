@@ -155,14 +155,14 @@ if __name__ == '__main__':
   t0 = time.time()
   
   parser = argparse.ArgumentParser()
-  parser.add_argument('--zip_file', default='../analysis_results/data_points/resstock_pnw_localResults.zip', help='Relative path containing the data_point.zip files.')
+  parser.add_argument('--zip', default='../analysis_results/data_points/resstock_pnw_localResults.zip', help='Relative path containing the data_point.zip files.')
   args = parser.parse_args()
 
-  item, full = main(args.zip_file)
+  item, full = main(args.zip)
   
   file, ext = os.path.splitext(os.path.basename(item))
   new_file = '{}_savings{}'.format(file, ext)
   full.index.name = '_id'
-  full.to_csv(os.path.join(os.path.dirname(args.zip_file), new_file))
+  full.to_csv(os.path.join(os.path.dirname(args.zip), new_file))
   
   print "All done! Completed rows in {0:.2f} seconds on".format(time.time()-t0), time.strftime("%Y-%m-%d %H:%M")

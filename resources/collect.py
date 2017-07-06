@@ -13,7 +13,7 @@ import h5py
 warnings.filterwarnings('ignore')
 import shutil
 
-def main(zip_file, format, package, func, file, driver):
+def main(zip_file, format, package, func, file):
 
   if func == 'write':
     if format == 'zip':    
@@ -31,150 +31,6 @@ def main(zip_file, format, package, func, file, driver):
         read_pandas_hdf5(file)
       elif package == 'h5py':      
         read_h5py_hdf5(file)
-  elif func == 'build_db':
-    build_db(zip_file, driver)
-    
-def assign_upgrades(df):
-
-  upgrades = {}
-  for name, group in df.groupby('build_existing_model.building_id'):    
-    
-    for ix, row in group.iterrows():
-    
-      ref_count = 0
-      for col in group.columns:
-        if not col.endswith('.run_measure'):
-          continue
-        ref_count += row[col]
-      
-      if ref_count == 0:
-        ref = row
-        
-    for ix, row in group.iterrows():
-    
-      ref_count = 0
-      for col in group.columns:
-        if not col.endswith('.run_measure'):
-          continue
-        ref_count += row[col]
-      
-      if ref_count == 0:
-        continue
-        
-      for col in group.columns:
-        if not col.endswith('.run_measure'):
-          continue
-          
-        if row[col] == 1:
-          upgrade = col
-          break
-   
-      for col in group.columns:      
-        if not col.startswith('BuildingCharacteristicsReport'):
-          continue
-        if ref[col] != row[col]:
-          upgrades[upgrade] = '{}.run_measure'.format(col.replace('BuildingCharacteristicsReport.', ''))
-        
-  df = df.rename(columns=upgrades)
-
-  return df
-    
-def build_db(zip_file, driver):
-  import buildstockdb as bsdb
-  from buildstockdb import Datapoint, Building, Upgrade, ParameterOption, Parameter, Enduse, FuelType, DatapointParameterOption, DatapointSimulationOutput, FederalPovertyLevelBins
-  
-  folder_zf = zipfile.ZipFile(zip_file)  
-  for datapoint in folder_zf.namelist():  
-    if datapoint.endswith('results.csv'):
-      folder_zf.extract(datapoint, os.path.dirname(zip_file))
-      df = pd.read_csv(os.path.join(os.path.dirname(zip_file), datapoint), index_col='_id')
-      df = df.dropna(axis=1, how='all')
-  df = assign_upgrades(df)
-  
-  session = bsdb.create_session(driver)
-  
-  parameter_names = [col.replace('BuildingCharacteristicsReport.', '') for col in df.columns if 'BuildingCharacteristicsReport' in col]
-  parameter_ids = [i + 1 for i in range(len(parameter_names))]
-  session.bulk_insert_mappings(Parameter, [{'parameter_id': i+1, 'parameter_name': item} for i, item in enumerate(parameter_names)])
-  parameter_dict = dict(zip(parameter_names, parameter_ids))
-  
-  parameteroption = []
-  i = 1
-  for col in df.columns:
-    if not 'BuildingCharacteristicsReport' in col:
-      continue
-    for item in list(set(df[col])):
-      parameteroption.append({'parameteroption_id': i, 'parameter_id': parameter_dict[col.replace('BuildingCharacteristicsReport.', '')], 'parameteroption_name': item})
-      i += 1
-  session.bulk_insert_mappings(ParameterOption, parameteroption)
-  parameteroption_dict = dict(zip(session.query(ParameterOption.parameter_id, ParameterOption.parameteroption_name).all(), [item[0] for item in session.query(ParameterOption.parameteroption_id).all()]))
-  
-  upgrade_names = [col.replace('.run_measure', '') for col in df.columns if '.run_measure' in col]
-  upgrade_names.insert(0, 'none')
-  upgrade_ids = [i + 1 for i in range(len(upgrade_names))]
-  session.bulk_insert_mappings(Upgrade, [{'upgrade_id': i+1, 'upgrade_name': item} for i, item in enumerate(upgrade_names)])
-  upgrade_dict = dict(zip(upgrade_names, upgrade_ids))
-  
-  fueltype_names = ['electricity_', 'natural_gas_', 'other_fuel_']  
-  enduse_names = [col.replace('SimulationOutputReport.', '') for col in df.columns if 'SimulationOutputReport' in col]
-  for i, enduse_name in enumerate(enduse_names):
-    for fueltype_name in fueltype_names:
-      if fueltype_name in enduse_name:
-        enduse_names[i] = enduse_name.replace(fueltype_name, '')
-  enduse_ids = [i + 1 for i in range(len(enduse_names))]
-  session.bulk_insert_mappings(Enduse, [{'enduse_id': i+1, 'enduse_name': item} for i, item in enumerate(enduse_names)])
-  enduse_dict = dict(zip(enduse_names, enduse_ids))
-  
-  fueltype_ids = [i + 1 for i in range(len(fueltype_names))]
-  session.bulk_insert_mappings(FuelType, [{'fueltype_id': i+1, 'fueltype_name': item} for i, item in enumerate(fueltype_names)])
-  fueltype_dict = dict(zip(fueltype_names, fueltype_ids))
-
-  for ix, row in df.iterrows():
-
-    building = Building(ix, row['build_existing_model.building_id'])
-    session.add(building)
-  
-    upgrade_id = 1
-    for upgrade in upgrade_dict.keys():  
-      
-      for col in row.index.values:
-
-        if not '.run_measure' in col:
-          continue        
-        
-        if not upgrade == 'none':
-          if row['{}.run_measure'.format(upgrade)] == 1:
-            upgrade_id = upgrade_dict[col.replace('.run_measure', '')]
-
-    upgrade_cost_usd = None
-    if 'SimulationOutputReport.upgrade_cost_usd' in row.index.values:
-      upgrade_cost_usd = row['SimulationOutputReport.upgrade_cost_usd']
-            
-    datapoint = Datapoint(ix, upgrade_id, upgrade_cost_usd)
-    session.add(datapoint)
-
-    for col in row.index.values:        
-    
-      if 'BuildingCharacteristicsReport' in col:
-
-        datapointparameteroption = DatapointParameterOption(ix, parameteroption_dict[(parameter_dict[col.replace('BuildingCharacteristicsReport.', '')], str(row[col]))])
-        session.add(datapointparameteroption)
-
-      elif 'SimulationOutputReport' in col:
-        
-        for fueltype_name in fueltype_names:
-          if fueltype_name in col:
-            fueltype_id = fueltype_dict[fueltype_name]
-
-        datapointsimulationoutput = DatapointSimulationOutput(ix, enduse_dict[col.replace('SimulationOutputReport.', '').replace('electricity_', '').replace('natural_gas_', '').replace('other_fuel_', '')], fueltype_id, row[col])
-        session.add(datapointsimulationoutput)
-        
-  fpl = pd.read_csv('../project_resstock_national/housing_characteristics/Federal Poverty Level.tsv', sep='\t')
-  fplbin_names = [col.replace('Option=', '') for col in fpl.columns if 'Option=' in col]
-  fplbin_ids = [i + 1 for i in range(len(fplbin_names))]
-  session.bulk_insert_mappings(FederalPovertyLevelBins, [{'fplbin_id': i+1, 'fplbin_name': item} for i, item in enumerate(fplbin_names)])
-  
-  session.commit()
 
 def write_zip(dir):
 
@@ -340,7 +196,6 @@ def read_h5py_hdf5(file):
 
     datapoint_ids = 0
     nrows = 0
-    print 'here1'
     for group in hdf:
         
       # for attr in hdf[group].attrs:
@@ -371,10 +226,8 @@ if __name__ == '__main__':
   functions = ['read', 'write', 'build_db']
   parser.add_argument('--function', choices=functions, default='write', help='Read or write.')
   parser.add_argument('--file', default='data_points.h5', help='Name of the existing hdf5 file.')
-  dbtypes = ['sqlite', 'postgresql']
-  parser.add_argument('--driver', default='sqlite:///buildstock.sql', help='Type of db to build.')
   args = parser.parse_args()
 
-  main(args.zip, args.format, args.package, args.function, args.file, args.driver)
+  main(args.zip, args.format, args.package, args.function, args.file)
   
   print "All done! Completed rows in {0:.2f} seconds on".format(time.time()-t0), time.strftime("%Y-%m-%d %H:%M")
