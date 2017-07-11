@@ -1,9 +1,6 @@
+
 import os
-#import matplotlib as mpl
-#mpl.use('Agg') # Turn interactive plotting off
-#mpl.use('qt4agg')
 import matplotlib.pyplot as plt
-import seaborn as sns
 import sys
 import numpy as np
 import itertools
@@ -135,21 +132,17 @@ def draw_scatter_plot(df, cols, marker_labels, slicer, weighted_area=True, setli
     plt.tick_params(axis='both', which='major', labelsize=tick_size)
     plt.title(title, fontsize=title_size)
 
-
 def units_kWh2MBtu(x):
     return 3412.0 * 0.000001 * x
 
-
 def units_Therm2MBtu(x):
-    return 0.1 * x
-    
+    return 0.1 * x    
     
 def units_Btu2kWh(x):
     return (1/units_kWh2MBtu(1))*x/1000.0
 
 def units_Btu2Therm(x):
     return (1/units_Therm2MBtu(1))*x/1000.0
-
 
 def do_plot(slices, fields, size='medium', weighted_area=True, save=False, setlims=None, marker_color=False, marker_shape=False, version=None, marker_color_all=None, show_labels=True, leg_label=None, num_slices=1, screen_scen='No Screens', predicted_file_name='resstock_national'):
     consumption_folder = '../../analysis_results/outputs/national/screens/{}'.format(screen_scen)
@@ -271,7 +264,7 @@ class Create_DFs():
     def __init__(self, file):
         self.session = pd.read_csv(file)
         
-    def electricity_consumption_location_region(self, screen_scen):
+    def electricity_consumption_location_region(self):
         df = self.session
         df = df[['CR', 'btuel', 'nweight']]
         df['kwh_nrm'] = df.apply(lambda x: units_Btu2kWh(x.btuel), axis=1)
@@ -290,7 +283,7 @@ class Create_DFs():
         df = df.sort_values(by=['Dependency=Location Region']).set_index(['Dependency=Location Region'])             
         return df
         
-    def electricity_consumption_vintage(self, screen_scen):
+    def electricity_consumption_vintage(self):
         df = self.session
         df = df[['yearmaderange', 'btuel', 'nweight']]
         df['kwh_nrm'] = df.apply(lambda x: units_Btu2kWh(x.btuel), axis=1)
@@ -309,7 +302,7 @@ class Create_DFs():
         df = df.sort_values(by=['Dependency=Vintage']).set_index(['Dependency=Vintage'])             
         return df
 
-    def electricity_consumption_heating_fuel(self, screen_scen):
+    def electricity_consumption_heating_fuel(self):
         df = self.session
         df = df[['fuelheat', 'btuel', 'nweight']]
         df['kwh_nrm'] = df.apply(lambda x: units_Btu2kWh(x.btuel), axis=1)
@@ -326,7 +319,7 @@ class Create_DFs():
         df = df.sort_values(by=['Dependency=Heating Fuel']).set_index(['Dependency=Heating Fuel'])             
         return df
         
-    def electricity_consumption_geometry_house_size(self, screen_scen):
+    def electricity_consumption_geometry_house_size(self):
         df = self.session
         df = df[['Size', 'btuel', 'nweight']]
         df['kwh_nrm'] = df.apply(lambda x: units_Btu2kWh(x.btuel), axis=1)
@@ -343,7 +336,7 @@ class Create_DFs():
         df = df.sort_values(by=['Dependency=Geometry House Size']).set_index(['Dependency=Geometry House Size'])             
         return df
         
-    def electricity_consumption_federal_poverty_level(self, screen_scen):
+    def electricity_consumption_federal_poverty_level(self):
         df = self.session
         df = df[['FPL_BINS', 'btuel', 'nweight']]
         df['kwh_nrm'] = df.apply(lambda x: units_Btu2kWh(x.btuel), axis=1)
@@ -361,7 +354,7 @@ class Create_DFs():
         df = df.sort_values(by=['Dependency=Federal Poverty Level']).set_index(['Dependency=Federal Poverty Level'])
         return df
         
-    def electricity_consumption_location_region_vintage(self, screen_scen):
+    def electricity_consumption_location_region_vintage(self):
         df = self.session
         df = df[['CR', 'yearmaderange', 'btuel', 'nweight']]
         df['kwh_nrm'] = df.apply(lambda x: units_Btu2kWh(x.btuel), axis=1)
@@ -382,7 +375,7 @@ class Create_DFs():
         df = df.sort_values(by=['Dependency=Location Region', 'Dependency=Vintage']).set_index(['Dependency=Location Region', 'Dependency=Vintage'])
         return df
         
-    def electricity_consumption_location_region_heating_fuel(self, screen_scen):
+    def electricity_consumption_location_region_heating_fuel(self):
         df = self.session
         df = df[['CR', 'fuelheat', 'btuel', 'nweight']]
         df['kwh_nrm'] = df.apply(lambda x: units_Btu2kWh(x.btuel), axis=1)
@@ -401,7 +394,7 @@ class Create_DFs():
         df = df.sort_values(by=['Dependency=Location Region', 'Dependency=Heating Fuel']).set_index(['Dependency=Location Region', 'Dependency=Heating Fuel'])
         return df
         
-    def electricity_consumption_location_region_federal_poverty_level(self, screen_scen):
+    def electricity_consumption_location_region_federal_poverty_level(self):
         df = self.session
         df = df[['CR', 'FPL_BINS', 'btuel', 'nweight']]
         df['kwh_nrm'] = df.apply(lambda x: units_Btu2kWh(x.btuel), axis=1)
@@ -421,7 +414,7 @@ class Create_DFs():
         df = df.sort_values(by=['Dependency=Location Region', 'Dependency=Federal Poverty Level']).set_index(['Dependency=Location Region', 'Dependency=Federal Poverty Level'])
         return df        
         
-    def natural_gas_consumption_location_region(self, screen_scen):
+    def natural_gas_consumption_location_region(self):
         df = self.session
         df = df[['CR', 'btung', 'nweight']]
         df['thm_nrm'] = df.apply(lambda x: units_Btu2Therm(x.btung), axis=1)
@@ -440,7 +433,7 @@ class Create_DFs():
         df = df.sort_values(by=['Dependency=Location Region']).set_index(['Dependency=Location Region'])             
         return df
         
-    def natural_gas_consumption_vintage(self, screen_scen):
+    def natural_gas_consumption_vintage(self):
         df = self.session
         df = df[['yearmaderange', 'btung', 'nweight']]
         df['thm_nrm'] = df.apply(lambda x: units_Btu2Therm(x.btung), axis=1)
@@ -459,7 +452,7 @@ class Create_DFs():
         df = df.sort_values(by=['Dependency=Vintage']).set_index(['Dependency=Vintage'])             
         return df
 
-    def natural_gas_consumption_heating_fuel(self, screen_scen):
+    def natural_gas_consumption_heating_fuel(self):
         df = self.session
         df = df[['fuelheat', 'btung', 'nweight']]
         df['thm_nrm'] = df.apply(lambda x: units_Btu2Therm(x.btung), axis=1)
@@ -476,7 +469,7 @@ class Create_DFs():
         df = df.sort_values(by=['Dependency=Heating Fuel']).set_index(['Dependency=Heating Fuel'])             
         return df
         
-    def natural_gas_consumption_geometry_house_size(self, screen_scen):
+    def natural_gas_consumption_geometry_house_size(self):
         df = self.session
         df = df[['Size', 'btung', 'nweight']]
         df['thm_nrm'] = df.apply(lambda x: units_Btu2Therm(x.btung), axis=1)
@@ -493,7 +486,7 @@ class Create_DFs():
         df = df.sort_values(by=['Dependency=Geometry House Size']).set_index(['Dependency=Geometry House Size'])             
         return df
         
-    def natural_gas_consumption_federal_poverty_level(self, screen_scen):
+    def natural_gas_consumption_federal_poverty_level(self):
         df = self.session
         df = df[['FPL_BINS', 'btung', 'nweight']]
         df['thm_nrm'] = df.apply(lambda x: units_Btu2Therm(x.btung), axis=1)
@@ -511,7 +504,7 @@ class Create_DFs():
         df = df.sort_values(by=['Dependency=Federal Poverty Level']).set_index(['Dependency=Federal Poverty Level'])             
         return df
         
-    def natural_gas_consumption_location_region_vintage(self, screen_scen):
+    def natural_gas_consumption_location_region_vintage(self):
         df = self.session
         df = df[['CR', 'yearmaderange', 'btung', 'nweight']]
         df['thm_nrm'] = df.apply(lambda x: units_Btu2Therm(x.btung), axis=1)
@@ -532,7 +525,7 @@ class Create_DFs():
         df = df.sort_values(by=['Dependency=Location Region', 'Dependency=Vintage']).set_index(['Dependency=Location Region', 'Dependency=Vintage'])             
         return df
         
-    def natural_gas_consumption_location_region_heating_fuel(self, screen_scen):
+    def natural_gas_consumption_location_region_heating_fuel(self):
         df = self.session
         df = df[['CR', 'fuelheat', 'btung', 'nweight']]
         df['thm_nrm'] = df.apply(lambda x: units_Btu2Therm(x.btung), axis=1)
@@ -551,7 +544,7 @@ class Create_DFs():
         df = df.sort_values(by=['Dependency=Location Region', 'Dependency=Heating Fuel']).set_index(['Dependency=Location Region', 'Dependency=Heating Fuel'])             
         return df
         
-    def natural_gas_consumption_location_region_federal_poverty_level(self, screen_scen):
+    def natural_gas_consumption_location_region_federal_poverty_level(self):
         df = self.session
         df = df[['CR', 'FPL_BINS', 'btung', 'nweight']]
         df['thm_nrm'] = df.apply(lambda x: units_Btu2Therm(x.btung), axis=1)
@@ -570,14 +563,6 @@ class Create_DFs():
         df['Dependency=Federal Poverty Level'] = pd.Categorical(df['Dependency=Federal Poverty Level'], ['0-50', '50-100', '100-150', '150-200', '200-250', '250-300', '300+'])
         df = df.sort_values(by=['Dependency=Location Region', 'Dependency=Federal Poverty Level']).set_index(['Dependency=Location Region', 'Dependency=Federal Poverty Level'])             
         return df
-        
-def to_figure(df, file):
-    
-    sns.set(font_scale=1)
-    f, ax = plt.subplots(figsize=(10, 10))
-    ax = sns.heatmap(df, annot=True, annot_kws={'size': 10}, fmt='.2f')
-    plt.savefig(file)
-    plt.close()
     
 def remove_upgrades(df):
     for col in df.columns:
@@ -587,63 +572,53 @@ def remove_upgrades(df):
    
 if __name__ == '__main__':
     
-    datafiles_dir = '../../analysis_results/outputs/national/screens'
-    heatmaps_dir = 'heatmaps'
+    datafiles_dir = 'outputs'
     predicted_file_name = 'resstock_national_expanded'
 
     dfs = Create_DFs('MLR/recs.csv')
     
-    for screening_scenario in [
-                               'No Screens'
-                               ]:
-    
-        for category in [
-                         # 'Electricity Consumption Location Region',
-                         # 'Electricity Consumption Vintage', 
-                         # 'Electricity Consumption Heating Fuel',
-                         # 'Electricity Consumption Geometry House Size', 
-                         # 'Electricity Consumption Federal Poverty Level',
-                         # 'Electricity Consumption Location Region Vintage', 
-                         # 'Electricity Consumption Location Region Heating Fuel', 
-                         # 'Electricity Consumption Location Region Federal Poverty Level',                         
-                         # 'Natural Gas Consumption Location Region',
-                         # 'Natural Gas Consumption Vintage', 
-                         # 'Natural Gas Consumption Heating Fuel',
-                         # 'Natural Gas Consumption Geometry House Size',
-                         # 'Natural Gas Consumption Federal Poverty Level'
-                         # 'Natural Gas Consumption Location Region Vintage',
-                         # 'Natural Gas Consumption Location Region Heating Fuel',
-                         # 'Natural Gas Consumption Location Region Federal Poverty Level'
-                         ]:
-                         
-            print "{} - {}".format(screening_scenario, category)
-            method = getattr(dfs, category.lower().replace(' ', '_'))
-            df = method(screening_scenario)
-            df.to_csv(os.path.join(datafiles_dir, screening_scenario, '{}.tsv'.format(category)), sep='\t')
-
-            for col in ['Count', 'Weight']:
-                if col in df.columns:
-                    del df[col]
-            to_figure(df, os.path.join(heatmaps_dir, screening_scenario, '{}.png'.format(category)))
+    for category in [
+                     'Electricity Consumption Location Region',
+                     'Electricity Consumption Vintage', 
+                     'Electricity Consumption Heating Fuel',
+                     'Electricity Consumption Geometry House Size', 
+                     'Electricity Consumption Federal Poverty Level',
+                     'Electricity Consumption Location Region Vintage', 
+                     'Electricity Consumption Location Region Heating Fuel', 
+                     'Electricity Consumption Location Region Federal Poverty Level',                         
+                     'Natural Gas Consumption Location Region',
+                     'Natural Gas Consumption Vintage', 
+                     'Natural Gas Consumption Heating Fuel',
+                     'Natural Gas Consumption Geometry House Size',
+                     'Natural Gas Consumption Federal Poverty Level'
+                     'Natural Gas Consumption Location Region Vintage',
+                     'Natural Gas Consumption Location Region Heating Fuel',
+                     'Natural Gas Consumption Location Region Federal Poverty Level'
+                     ]:
+                     
+        print category
+        method = getattr(dfs, category.lower().replace(' ', '_'))
+        df = method()
+        df.to_csv(os.path.join(datafiles_dir, '{}.tsv'.format(category)), sep='\t')
         
-        slices = [
-                  'Location Region',
-                  'Vintage',
-                  'Heating Fuel',
-                  # 'Geometry House Size',
-                  'Federal Poverty Level'
-                  ]
+    slices = [
+              # 'Location Region',
+              # 'Vintage',
+              # 'Heating Fuel',
+              # 'Geometry House Size',
+              # 'Federal Poverty Level'
+              ]
 
-        do_plot(slices=slices, fields='electricity_and_gas_perhouse', save=True, setlims=[0,None], num_slices=1, screen_scen=screening_scenario, predicted_file_name=predicted_file_name)
-        do_plot(slices=slices, fields='electricity_perhouse', save=True, setlims=[0,None], num_slices=1, screen_scen=screening_scenario, predicted_file_name=predicted_file_name)
-        do_plot(slices=slices, fields='gas_perhouse', save=True, setlims=[0,None], num_slices=1, screen_scen=screening_scenario, predicted_file_name=predicted_file_name)          
-          
-        slices = [
-                  'Location Region Vintage',
-                  'Location Region Heating Fuel',
-                  # 'Location Region Geometry House Size',
-                  'Location Region Federal Poverty Level'
-                  ]
+    do_plot(slices=slices, fields='electricity_and_gas_perhouse', save=True, setlims=[0,None], num_slices=1, screen_scen=screening_scenario, predicted_file_name=predicted_file_name)
+    do_plot(slices=slices, fields='electricity_perhouse', save=True, setlims=[0,None], num_slices=1, screen_scen=screening_scenario, predicted_file_name=predicted_file_name)
+    do_plot(slices=slices, fields='gas_perhouse', save=True, setlims=[0,None], num_slices=1, screen_scen=screening_scenario, predicted_file_name=predicted_file_name)          
+      
+    slices = [
+              # 'Location Region Vintage',
+              # 'Location Region Heating Fuel',
+              # 'Location Region Geometry House Size',
+              # 'Location Region Federal Poverty Level'
+              ]
 
-        do_plot(slices=slices, fields='electricity_perhouse', save=True, size='medium', marker_color=True, setlims=[0,None], num_slices=2, screen_scen=screening_scenario, predicted_file_name=predicted_file_name)
-        do_plot(slices=slices, fields='gas_perhouse', save=True, size='medium', marker_color=True, setlims=[0,None], num_slices=2, screen_scen=screening_scenario, predicted_file_name=predicted_file_name)
+    do_plot(slices=slices, fields='electricity_perhouse', save=True, size='medium', marker_color=True, setlims=[0,None], num_slices=2, screen_scen=screening_scenario, predicted_file_name=predicted_file_name)
+    do_plot(slices=slices, fields='gas_perhouse', save=True, size='medium', marker_color=True, setlims=[0,None], num_slices=2, screen_scen=screening_scenario, predicted_file_name=predicted_file_name)
