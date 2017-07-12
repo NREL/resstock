@@ -19,9 +19,9 @@ class Create_DFs():
         df = self.session
         df = df[df['tenure'].isin(['Own', 'Rent'])]
         df = df[df['size'].isin(['0-1499', '1500-2499', '2500-3499', '3500+'])]
-        df['fplbinstenure'] = df.apply(lambda x: '{}, {}'.format(x.tenure, x.fplbins), axis=1)
+        # df['fplbinstenure'] = df.apply(lambda x: '{}, {}'.format(x.tenure, x.fplbins), axis=1)
         df = df.rename(columns={'division': 'Dependency=Location Census Division', 'vintage': 'Dependency=Vintage', 'size': 'Dependency=Geometry House Size', 'actype': 'Dependency=HVAC System Cooling Type'})
-        df, cols = categories_to_columns(df, 'fplbinstenure')
+        df, cols = categories_to_columns(df, 'fplbins')
         cd = df['Dependency=Location Census Division'].unique()
         df = df.groupby(['Dependency=Location Census Division', 'Dependency=Vintage', 'Dependency=Geometry House Size', 'Dependency=HVAC System Cooling Type'])
         missing_groups = []
@@ -42,7 +42,8 @@ class Create_DFs():
             df_new['Weight'] = 0
             df = df.append(df_new)
         df = add_option_prefix(df)
-        df = df[['Option=Own, 0-50', 'Option=Own, 50-100', 'Option=Own, 100-150', 'Option=Own, 150-200', 'Option=Own, 200-250', 'Option=Own, 250-300', 'Option=Own, 300+', 'Option=Rent, 0-50', 'Option=Rent, 50-100', 'Option=Rent, 100-150', 'Option=Rent, 150-200', 'Option=Rent, 200-250', 'Option=Rent, 250-300', 'Option=Rent, 300+', 'Count', 'Weight']]
+        # df = df[['Option=Own, 0-50', 'Option=Own, 50-100', 'Option=Own, 100-150', 'Option=Own, 150-200', 'Option=Own, 200-250', 'Option=Own, 250-300', 'Option=Own, 300+', 'Option=Rent, 0-50', 'Option=Rent, 50-100', 'Option=Rent, 100-150', 'Option=Rent, 150-200', 'Option=Rent, 200-250', 'Option=Rent, 250-300', 'Option=Rent, 300+', 'Count', 'Weight']]
+        df = df[['Option=0-50', 'Option=50-100', 'Option=100-150', 'Option=150-200', 'Option=200-250', 'Option=250-300', 'Option=300+', 'Count', 'Weight']]
         df = df.reset_index()
         df['Dependency=Location Census Division'] = pd.Categorical(df['Dependency=Location Census Division'], cd)
         df['Dependency=Vintage'] = pd.Categorical(df['Dependency=Vintage'], ['<1950', '1950s', '1960s', '1970s', '1980s', '1990s', '2000s'])

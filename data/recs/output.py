@@ -1,4 +1,3 @@
-
 import os
 import matplotlib.pyplot as plt
 import sys
@@ -7,6 +6,8 @@ import itertools
 import pandas as pd
 import matplotlib as mpl
 from PIL import Image
+import zipfile
+import stringcase
 
 def trim_white(filename):
     im = Image.open(filename)
@@ -144,9 +145,45 @@ def units_Btu2kWh(x):
 def units_Btu2Therm(x):
     return (1/units_Therm2MBtu(1))*x/1000.0
 
-def do_plot(slices, fields, size='medium', weighted_area=True, save=False, setlims=None, marker_color=False, marker_shape=False, version=None, marker_color_all=None, show_labels=True, leg_label=None, num_slices=1, screen_scen='No Screens', predicted_file_name='resstock_national'):
-    consumption_folder = '../../analysis_results/outputs/national/screens/{}'.format(screen_scen)
+def expand(predicted, tsv_file):
+  tsv = pd.read_csv(tsv_file, sep='\t')
+  on = []
+  for col in tsv.columns:
+    if 'Dependency=' in col:
+      tsv = tsv.rename(columns={col: col.replace('Dependency=', 'building_characteristics_report.').lower().replace(' ', '_')})
+      on.append(col.replace('Dependency=', 'building_characteristics_report.').lower().replace(' ', '_'))
+    # elif 'Option=' in col:
+      # tsv = tsv.rename(columns={col: col.replace('Option=', '')})
+  
+  # TODO: following is temp code until we can successfully run the national analysis with all the updated tsv files
+  predicted['building_characteristics_report.location_census_division'] = np.random.choice(['New England', 'East North Central', 'Middle Atlantic', 'Mountain - Pacific', 'South Atlantic - East South Central', 'West North Central', 'West South Central'], predicted.shape[0])
+  predicted['building_characteristics_report.hvac_system_cooling_type'] = np.random.choice(['Central', 'Room', 'None'], predicted.shape[0])
+  #
+
+  try:
+    predicted = predicted.reset_index()
+    predicted = predicted.merge(tsv, on=on, how='left')
+  except KeyError as ke:
+    sys.exit('Column {} does not exist.'.format(ke))
     
+  id_vars = []
+  value_vars = []
+  for col in predicted.columns:
+    if 'Option=' in col:
+      value_vars.append(col)
+    else:
+      id_vars.append(col)
+    
+  melted = pd.melt(predicted, id_vars=id_vars, value_vars=value_vars, var_name='building_characteristics_report.{}'.format(os.path.basename(tsv_file).replace('.tsv', '').lower().replace(' ', '_')), value_name='frac')
+  melted = melted.set_index('_id')
+  melted['building_characteristics_report.{}'.format(os.path.basename(tsv_file).replace('.tsv', '').lower().replace(' ', '_'))] = melted['building_characteristics_report.{}'.format(os.path.basename(tsv_file).replace('.tsv', '').lower().replace(' ', '_'))].str.replace('Option=', '')
+    
+  return melted
+    
+def do_plot(slices, fields, size='medium', weighted_area=True, save=False, setlims=None, marker_color=False, marker_shape=False, version=None, marker_color_all=None, show_labels=True, leg_label=None, num_slices=1, zip_file='resstock_national', tsv_file=None):
+
+    consumption_folder = 'outputs'
+
     if size == 'large':
         plt.rcParams['figure.figsize'] = 20, 20 # 20, 20 # set image size
         max_marker_size = 800
@@ -158,6 +195,19 @@ def do_plot(slices, fields, size='medium', weighted_area=True, save=False, setli
         max_marker_size = 400
     
     for i, slicer in enumerate(slices):
+    
+        dir = os.path.dirname(zip_file)
+        folder_zf = zipfile.ZipFile(zip_file)    
+        for item in folder_zf.namelist():    
+          if not item.endswith('results.csv'):
+            continue      
+          folder_zf.extract(item, dir)
+          predicted = pd.read_csv(os.path.join(dir, item), index_col=['_id'])
+          predicted = remove_upgrades(predicted)
+          
+        if tsv_file:
+          predicted = expand(predicted, tsv_file)
+    
         plt.subplot(1, len(slices), i+1)
         marker_colors = None
         marker_shapes = None
@@ -171,39 +221,36 @@ def do_plot(slices, fields, size='medium', weighted_area=True, save=False, setli
               measured = measured_elec.join(measured_gas)
               measured['Measured Per House Site Electricity+Gas MBtu'] = units_kWh2MBtu(measured['kwh_nrm_per_home']) + units_Therm2MBtu(measured['thm_nrm_per_home'])
               house_count = pd.read_csv(os.path.join(consumption_folder, 'Electricity Consumption {}.tsv'.format(slicer)), index_col=['Dependency={}'.format(slicer)], sep='\t')[['Weight']].sum().values[0]
-              predicted = pd.read_csv('../../analysis_results/{}.csv'.format(predicted_file_name), index_col=['name'])
-              predicted = remove_upgrades(predicted)
               predicted['Weight'] = house_count / len(predicted.index.unique())
-              predicted['Predicted Total Site Electricity+Gas MBtu'] = (units_kWh2MBtu(predicted['simulation_output_report.Total Site Electricity kWh']) + units_Therm2MBtu(predicted['simulation_output_report.Total Site Natural Gas therm'])) * predicted['Weight']
+              predicted['Predicted Total Site Electricity+Gas MBtu'] = (units_kWh2MBtu(predicted['simulation_output_report.total_site_electricity_kwh']) + units_Therm2MBtu(predicted['simulation_output_report.total_site_natural_gas_therm'])) * predicted['Weight']
               if 'frac' in predicted.columns:
-                predicted['Weight'] = predicted['Weight'] * predicted['frac']               
-              predicted = predicted.groupby('building_characteristics_report.{}'.format(slicer)).sum()
+                predicted['Weight'] = predicted['Weight'] * predicted['frac']
+                predicted['Predicted Total Site Electricity+Gas MBtu'] = predicted['Predicted Total Site Electricity+Gas MBtu'] * predicted['frac']
+              predicted = predicted.groupby('building_characteristics_report.{}'.format(slicer.lower().replace(' ', '_'))).sum()
               predicted['Predicted Per House Site Electricity+Gas MBtu'] = predicted['Predicted Total Site Electricity+Gas MBtu'] / predicted['Weight']
               cols = ['Measured Per House Site Electricity+Gas MBtu', 'Predicted Per House Site Electricity+Gas MBtu', 'Weight']
           elif 'electricity' in fields:
               measured = pd.read_csv(os.path.join(consumption_folder, 'Electricity Consumption {}.tsv'.format(slicer)), index_col=['Dependency={}'.format(slicer)], sep='\t')[['kwh_nrm_per_home']]
               measured['Measured Per House Site Electricity MBtu'] = units_kWh2MBtu(measured['kwh_nrm_per_home'])
               house_count = pd.read_csv(os.path.join(consumption_folder, 'Electricity Consumption {}.tsv'.format(slicer)), index_col=['Dependency={}'.format(slicer)], sep='\t')[['Weight']].sum().values[0]
-              predicted = pd.read_csv('../../analysis_results/{}.csv'.format(predicted_file_name), index_col=['name'])
-              predicted = remove_upgrades(predicted)
               predicted['Weight'] = house_count / len(predicted.index.unique())
-              predicted['Predicted Total Site Electricity MBtu'] = units_kWh2MBtu(predicted['simulation_output_report.Total Site Electricity kWh']) * predicted['Weight']
+              predicted['Predicted Total Site Electricity MBtu'] = units_kWh2MBtu(predicted['simulation_output_report.total_site_electricity_kwh']) * predicted['Weight']
               if 'frac' in predicted.columns:
-                predicted['Weight'] = predicted['Weight'] * predicted['frac'] 
-              predicted = predicted.groupby('building_characteristics_report.{}'.format(slicer)).sum()              
+                predicted['Weight'] = predicted['Weight'] * predicted['frac']
+                predicted['Predicted Total Site Electricity MBtu'] = predicted['Predicted Total Site Electricity MBtu'] * predicted['frac']
+              predicted = predicted.groupby('building_characteristics_report.{}'.format(slicer.lower().replace(' ', '_'))).sum()
               predicted['Predicted Per House Site Electricity MBtu'] = predicted['Predicted Total Site Electricity MBtu'] / predicted['Weight']
               cols = ['Measured Per House Site Electricity MBtu', 'Predicted Per House Site Electricity MBtu', 'Weight']
           elif 'gas' in fields:
               measured = pd.read_csv(os.path.join(consumption_folder, 'Natural Gas Consumption {}.tsv'.format(slicer)), index_col=['Dependency={}'.format(slicer)], sep='\t')[['thm_nrm_per_home']]
               measured['Measured Per House Site Gas MBtu'] = units_Therm2MBtu(measured['thm_nrm_per_home'])
               house_count = pd.read_csv(os.path.join(consumption_folder, 'Natural Gas Consumption {}.tsv'.format(slicer)), index_col=['Dependency={}'.format(slicer)], sep='\t')[['Weight']].sum().values[0]
-              predicted = pd.read_csv('../../analysis_results/{}.csv'.format(predicted_file_name), index_col=['name'])
-              predicted = remove_upgrades(predicted)
               predicted['Weight'] = house_count / len(predicted.index.unique())
-              predicted['Predicted Total Site Gas MBtu'] = units_Therm2MBtu(predicted['simulation_output_report.Total Site Natural Gas therm'] * predicted['Weight'])
+              predicted['Predicted Total Site Gas MBtu'] = units_Therm2MBtu(predicted['simulation_output_report.total_site_natural_gas_therm'] * predicted['Weight'])
               if 'frac' in predicted.columns:
-                predicted['Weight'] = predicted['Weight'] * predicted['frac']               
-              predicted = predicted.groupby('building_characteristics_report.{}'.format(slicer)).sum()
+                predicted['Weight'] = predicted['Weight'] * predicted['frac']
+                predicted['Predicted Total Site Gas MBtu'] = predicted['Predicted Total Site Gas MBtu'] * predicted['frac']
+              predicted = predicted.groupby('building_characteristics_report.{}'.format(slicer.lower().replace(' ', '_'))).sum()
               predicted['Predicted Per House Site Gas MBtu'] = predicted['Predicted Total Site Gas MBtu'] / predicted['Weight']
               cols = ['Measured Per House Site Gas MBtu', 'Predicted Per House Site Gas MBtu', 'Weight']
         elif num_slices == 2:
@@ -214,13 +261,12 @@ def do_plot(slices, fields, size='medium', weighted_area=True, save=False, setli
               measured = pd.read_csv(os.path.join(consumption_folder, 'Electricity Consumption {}.tsv'.format(slicer)), index_col=['Dependency=Location Region', 'Dependency={}'.format(sub_slicer)], sep='\t')[['kwh_nrm_per_home']]
               measured['Measured Per House Site Electricity MBtu'] = units_kWh2MBtu(measured['kwh_nrm_per_home'])
               house_count = pd.read_csv(os.path.join(consumption_folder, 'Electricity Consumption {}.tsv'.format(slicer)), index_col=['Dependency=Location Region', 'Dependency={}'.format(sub_slicer)], sep='\t')[['Weight']].sum().values[0]
-              predicted = pd.read_csv('../../analysis_results/{}.csv'.format(predicted_file_name), index_col=['name'])
-              predicted = remove_upgrades(predicted)
               predicted['Weight'] = house_count / len(predicted.index.unique())
-              predicted['Predicted Total Site Electricity MBtu'] = units_kWh2MBtu(predicted['simulation_output_report.Total Site Electricity kWh']) * predicted['Weight']
-              predicted = predicted.rename(columns={"building_characteristics_report.Location Region": "Dependency=Location Region", "building_characteristics_report.{}".format(sub_slicer): "Dependency={}".format(sub_slicer)})
+              predicted['Predicted Total Site Electricity MBtu'] = units_kWh2MBtu(predicted['simulation_output_report.total_site_electricity_kwh']) * predicted['Weight']
+              predicted = predicted.rename(columns={"building_characteristics_report.Location Region": "Dependency=Location Region", "building_characteristics_report.{}".format(sub_slicer.lower().replace(' ', '_')): "Dependency={}".format(sub_slicer.lower().replace(' ', '_'))})
               if 'frac' in predicted.columns:
-                predicted['Weight'] = predicted['Weight'] * predicted['frac']               
+                predicted['Weight'] = predicted['Weight'] * predicted['frac']
+                predicted['Predicted Total Site Electricity MBtu'] = predicted['Predicted Total Site Electricity MBtu'] * predicted['frac']
               predicted = predicted.groupby(['Dependency=Location Region', 'Dependency={}'.format(sub_slicer)]).sum()
               predicted['Predicted Per House Site Electricity MBtu'] = predicted['Predicted Total Site Electricity MBtu'] / predicted['Weight']
               cols = ['Measured Per House Site Electricity MBtu', 'Predicted Per House Site Electricity MBtu', 'Weight']
@@ -228,13 +274,12 @@ def do_plot(slices, fields, size='medium', weighted_area=True, save=False, setli
               measured = pd.read_csv(os.path.join(consumption_folder, 'Natural Gas Consumption {}.tsv'.format(slicer)), index_col=['Dependency=Location Region', 'Dependency={}'.format(sub_slicer)], sep='\t')[['thm_nrm_per_home']]
               measured['Measured Per House Site Gas MBtu'] = units_Therm2MBtu(measured['thm_nrm_per_home'])
               house_count = pd.read_csv(os.path.join(consumption_folder, 'Natural Gas Consumption {}.tsv'.format(slicer)), index_col=['Dependency=Location Region', 'Dependency={}'.format(sub_slicer)], sep='\t')[['Weight']].sum().values[0]
-              predicted = pd.read_csv('../../analysis_results/{}.csv'.format(predicted_file_name), index_col=['name'])
-              predicted = remove_upgrades(predicted)
               predicted['Weight'] = house_count / len(predicted.index.unique())
-              predicted['Predicted Total Site Gas MBtu'] = units_Therm2MBtu(predicted['simulation_output_report.Total Site Natural Gas therm']) * predicted['Weight']
-              predicted = predicted.rename(columns={"building_characteristics_report.Location Region": "Dependency=Location Region", "building_characteristics_report.{}".format(sub_slicer): "Dependency={}".format(sub_slicer)})
+              predicted['Predicted Total Site Gas MBtu'] = units_Therm2MBtu(predicted['simulation_output_report.total_site_natural_gas_therm']) * predicted['Weight']
+              predicted = predicted.rename(columns={"building_characteristics_report.Location Region": "Dependency=Location Region", "building_characteristics_report.{}".format(sub_slicer.lower().replace(' ', '_')): "Dependency={}".format(sub_slicer.lower().replace(' ', '_'))})
               if 'frac' in predicted.columns:
-                predicted['Weight'] = predicted['Weight'] * predicted['frac']               
+                predicted['Weight'] = predicted['Weight'] * predicted['frac']
+                predicted['Predicted Total Site Gas MBtu'] = predicted['Predicted Total Site Gas MBtu'] * predicted['frac']
               predicted = predicted.groupby(['Dependency=Location Region', 'Dependency={}'.format(sub_slicer)]).sum()
               predicted['Predicted Per House Site Gas MBtu'] = predicted['Predicted Total Site Gas MBtu'] / predicted['Weight']
               cols = ['Measured Per House Site Gas MBtu', 'Predicted Per House Site Gas MBtu', 'Weight']
@@ -254,7 +299,7 @@ def do_plot(slices, fields, size='medium', weighted_area=True, save=False, setli
                           marker_color_all=marker_color_all, show_labels=show_labels, leg_label=leg_label,
                           max_marker_size=max_marker_size)
     if save:
-        filename = os.path.join('..', '..', 'analysis_results', 'outputs', 'national', 'saved images', screen_scen, 'Scatter_{}slice_{}.png'.format(num_slices, fields))
+        filename = os.path.join('outputs', 'Scatter_{}slice_{}.png'.format(num_slices, fields))
         plt.savefig(filename, bbox_inches='tight', dpi=200)
         trim_white(filename)
         plt.close()
@@ -449,7 +494,7 @@ class Create_DFs():
         df['thm_nrm_total'] = df['thm_nrm_per_home'] * df['Weight']
         df = df.reset_index()
         df['Dependency=Vintage'] = pd.Categorical(df['Dependency=Vintage'], ['<1950', '1950s', '1960s', '1970s', '1980s', '1990s', '2000s'])
-        df = df.sort_values(by=['Dependency=Vintage']).set_index(['Dependency=Vintage'])             
+        df = df.sort_values(by=['Dependency=Vintage']).set_index(['Dependency=Vintage'])
         return df
 
     def natural_gas_consumption_heating_fuel(self):
@@ -573,27 +618,27 @@ def remove_upgrades(df):
 if __name__ == '__main__':
     
     datafiles_dir = 'outputs'
-    predicted_file_name = 'resstock_national_expanded'
+    zip_file = '../../analysis_results/data_points/resstock_pnw_localResults_100homes_2upgrades.zip'
 
     dfs = Create_DFs('MLR/recs.csv')
     
     for category in [
-                     'Electricity Consumption Location Region',
-                     'Electricity Consumption Vintage', 
-                     'Electricity Consumption Heating Fuel',
-                     'Electricity Consumption Geometry House Size', 
-                     'Electricity Consumption Federal Poverty Level',
-                     'Electricity Consumption Location Region Vintage', 
-                     'Electricity Consumption Location Region Heating Fuel', 
-                     'Electricity Consumption Location Region Federal Poverty Level',                         
-                     'Natural Gas Consumption Location Region',
-                     'Natural Gas Consumption Vintage', 
-                     'Natural Gas Consumption Heating Fuel',
-                     'Natural Gas Consumption Geometry House Size',
-                     'Natural Gas Consumption Federal Poverty Level'
-                     'Natural Gas Consumption Location Region Vintage',
-                     'Natural Gas Consumption Location Region Heating Fuel',
-                     'Natural Gas Consumption Location Region Federal Poverty Level'
+                     # 'Electricity Consumption Location Region',
+                     # 'Electricity Consumption Vintage', 
+                     # 'Electricity Consumption Heating Fuel',
+                     # 'Electricity Consumption Geometry House Size', 
+                     # 'Electricity Consumption Federal Poverty Level',
+                     # 'Electricity Consumption Location Region Vintage', 
+                     # 'Electricity Consumption Location Region Heating Fuel', 
+                     # 'Electricity Consumption Location Region Federal Poverty Level',
+                     # 'Natural Gas Consumption Location Region',
+                     # 'Natural Gas Consumption Vintage', 
+                     # 'Natural Gas Consumption Heating Fuel',
+                     # 'Natural Gas Consumption Geometry House Size',
+                     # 'Natural Gas Consumption Federal Poverty Level',
+                     # 'Natural Gas Consumption Location Region Vintage',
+                     # 'Natural Gas Consumption Location Region Heating Fuel',
+                     # 'Natural Gas Consumption Location Region Federal Poverty Level'
                      ]:
                      
         print category
@@ -603,16 +648,16 @@ if __name__ == '__main__':
         
     slices = [
               # 'Location Region',
-              # 'Vintage',
-              # 'Heating Fuel',
-              # 'Geometry House Size',
-              # 'Federal Poverty Level'
+              'Vintage',
+              'Heating Fuel',
+              'Geometry House Size',
+              'Federal Poverty Level'
               ]
 
-    do_plot(slices=slices, fields='electricity_and_gas_perhouse', save=True, setlims=[0,None], num_slices=1, screen_scen=screening_scenario, predicted_file_name=predicted_file_name)
-    do_plot(slices=slices, fields='electricity_perhouse', save=True, setlims=[0,None], num_slices=1, screen_scen=screening_scenario, predicted_file_name=predicted_file_name)
-    do_plot(slices=slices, fields='gas_perhouse', save=True, setlims=[0,None], num_slices=1, screen_scen=screening_scenario, predicted_file_name=predicted_file_name)          
-      
+    do_plot(slices=slices, fields='electricity_and_gas_perhouse', save=True, setlims=[0,None], num_slices=1, zip_file=zip_file, tsv_file='../../project_resstock_national/housing_characteristics/Federal Poverty Level.tsv')
+    do_plot(slices=slices, fields='electricity_perhouse', save=True, setlims=[0,None], num_slices=1, zip_file=zip_file, tsv_file='../../project_resstock_national/housing_characteristics/Federal Poverty Level.tsv')
+    do_plot(slices=slices, fields='gas_perhouse', save=True, setlims=[0,None], num_slices=1, zip_file=zip_file, tsv_file='../../project_resstock_national/housing_characteristics/Federal Poverty Level.tsv')
+    sys.exit()
     slices = [
               # 'Location Region Vintage',
               # 'Location Region Heating Fuel',
@@ -620,5 +665,5 @@ if __name__ == '__main__':
               # 'Location Region Federal Poverty Level'
               ]
 
-    do_plot(slices=slices, fields='electricity_perhouse', save=True, size='medium', marker_color=True, setlims=[0,None], num_slices=2, screen_scen=screening_scenario, predicted_file_name=predicted_file_name)
-    do_plot(slices=slices, fields='gas_perhouse', save=True, size='medium', marker_color=True, setlims=[0,None], num_slices=2, screen_scen=screening_scenario, predicted_file_name=predicted_file_name)
+    do_plot(slices=slices, fields='electricity_perhouse', save=True, size='medium', marker_color=True, setlims=[0,None], num_slices=2, zip_file=zip_file)
+    do_plot(slices=slices, fields='gas_perhouse', save=True, size='medium', marker_color=True, setlims=[0,None], num_slices=2, zip_file=zip_file)
