@@ -7,7 +7,6 @@ import pandas as pd
 import matplotlib as mpl
 from PIL import Image
 import zipfile
-import stringcase
 
 def trim_white(filename):
     im = Image.open(filename)
