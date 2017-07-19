@@ -788,6 +788,13 @@ def erin_boyd():
                         df = df_2009[(df_2009['fuelheat']==5) & (df_2009['cooltype']==-2)].groupby('division')['nweight'].sum() # 2009
                     dfs.append(df.to_frame((label + field_short_dict[field], year)))
                 
+                    label = 'Room AC'
+                    if field == 'percentage':
+                        # % of homes with room AC
+                        df = df_2009[df_2009['cooltype'].isin([2, 3])].groupby('division')['nweight'].sum() / df_2009.groupby('division')['nweight'].sum() # 2009
+                    else:
+                        df = df_2009[df_2009['cooltype'].isin([2, 3])].groupby('division')['nweight'].sum() # 2009
+                    dfs.append(df.to_frame((label + field_short_dict[field], year)))                    
                 
                 elif year == '2015':
                     df_2015_full = pd.read_csv(os.path.join('..','recs2015_public_v1.csv'))
@@ -885,6 +892,14 @@ def erin_boyd():
                     else:
                         df = df_2015[(df_2015['FUELHEAT']==5) & (df_2015['COOLTYPE']==-2)].groupby('division')['NWEIGHT'].sum() # 2015
                     dfs.append(df.to_frame((label + field_short_dict[field], year)))
+                
+                    label = 'Room AC'
+                    if field == 'percentage':    
+                        # % of homes with room AC
+                        df = df_2015[df_2015['COOLTYPE'].isin([2, 3])].groupby('division')['NWEIGHT'].sum() / df_2015.groupby('division')['NWEIGHT'].sum() # 2015
+                    else:
+                        df = df_2015[df_2015['COOLTYPE'].isin([2, 3])].groupby('division')['NWEIGHT'].sum() # 2015
+                    dfs.append(df.to_frame((label + field_short_dict[field], year)))                
                 
         df = pd.concat(dfs, axis=1)
         df.to_csv('{}.csv'.format(k))
