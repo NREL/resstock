@@ -729,10 +729,9 @@ def erin_boyd():
                     dfs.append(df.to_frame((label + field_short_dict[field], year)))
                     
                     # #2
-                    
-                    # % of homes with heat pump and no central AC
                     label = 'Heat pump with no central AC'
                     if field == 'percentage':
+                        # % of homes with heat pump and no central AC
                         df = df_2009[(df_2009['equipm']==4) & ((df_2009['cooltype']==2) | (df_2009['cooltype']==-2))].groupby('division')['nweight'].sum() / df_2009.groupby('division')['nweight'].sum() # 2009 
                     else:
                         df = df_2009[(df_2009['equipm']==4) & ((df_2009['cooltype']==2) | (df_2009['cooltype']==-2))].groupby('division')['nweight'].sum() # 2009 
@@ -754,7 +753,7 @@ def erin_boyd():
                         df = df_2009[(df_2009['cooltype']==1) | (df_2009['cooltype']==3) | (df_2009['equipm']==3)].groupby('division')['nweight'].sum() # 2009 
                     dfs.append(df.to_frame((label + field_short_dict[field], year))) 
                     
-                        # #3 
+                    # #3 
                     label = 'Have central duct system and room AC'
                     if field == 'percentage':
                         # % of homes with both room ACs and central AC or central warm-air furnace
@@ -763,7 +762,7 @@ def erin_boyd():
                         df = df_2009[((df_2009['cooltype']==2) & (df_2009['equipm']==3)) | (df_2009['cooltype']==3)].groupby('division')['nweight'].sum() # 2009 
                     dfs.append(df.to_frame((label + field_short_dict[field], year))) 
                         
-                        # #4
+                    # #4
                     label = 'Electric heat and central AC'
                     if field == 'percentage':
                         # % of homes with electric heating and central AC
@@ -788,13 +787,31 @@ def erin_boyd():
                         df = df_2009[(df_2009['fuelheat']==5) & (df_2009['cooltype']==-2)].groupby('division')['nweight'].sum() # 2009
                     dfs.append(df.to_frame((label + field_short_dict[field], year)))
                 
+                    # 07/19/17
                     label = 'Room AC'
                     if field == 'percentage':
                         # % of homes with room AC
                         df = df_2009[df_2009['cooltype'].isin([2, 3])].groupby('division')['nweight'].sum() / df_2009.groupby('division')['nweight'].sum() # 2009
                     else:
                         df = df_2009[df_2009['cooltype'].isin([2, 3])].groupby('division')['nweight'].sum() # 2009
-                    dfs.append(df.to_frame((label + field_short_dict[field], year)))                    
+                    dfs.append(df.to_frame((label + field_short_dict[field], year)))
+
+                    # 07/20/17
+                    label = 'Built-in electric units with ducts'
+                    if field == 'percentage':
+                        # % of homes with central AC or Central AC/Room AC. and built-in electric heat
+                        df = df_2009[((df_2009['cooltype']==1) | (df_2009['cooltype']==3)) & (df_2009['equipm']==5)].groupby('division')['nweight'].sum() / df_2009.groupby('division')['nweight'].sum() # 2009 
+                    else:
+                        df = df_2009[((df_2009['cooltype']==1) | (df_2009['cooltype']==3)) & (df_2009['equipm']==5)].groupby('division')['nweight'].sum() # 2009 
+                    dfs.append(df.to_frame((label + field_short_dict[field], year)))
+
+                    label = 'Built-in electric units without ducts'
+                    if field == 'percentage':
+                        # % of homes with room AC or no AC. and built-in electric heat
+                        df = df_2009[((df_2009['cooltype']!=1) & (df_2009['cooltype']!=3)) & (df_2009['equipm']==5)].groupby('division')['nweight'].sum() / df_2009.groupby('division')['nweight'].sum() # 2009 
+                    else:
+                        df = df_2009[((df_2009['cooltype']!=1) & (df_2009['cooltype']!=3)) & (df_2009['equipm']==5)].groupby('division')['nweight'].sum() # 2009
+                    dfs.append(df.to_frame((label + field_short_dict[field], year)))
                 
                 elif year == '2015':
                     df_2015_full = pd.read_csv(os.path.join('..','recs2015_public_v1.csv'))
@@ -834,7 +851,7 @@ def erin_boyd():
                         df = df_2015[df_2015['FUELHEAT']==5].groupby('division')['NWEIGHT'].sum() # 2015
                     dfs.append(df.to_frame((label + field_short_dict[field], year)))
                         
-                        # #2
+                    # #2
                     label = 'Heat pump with no central AC'
                     if field == 'percentage':    
                         # % of homes with heat pump and no central AC
@@ -851,7 +868,7 @@ def erin_boyd():
                         df = pd.Series(data=[np.nan]*10, index=range(1, 11), name='division')
                     dfs.append(df.to_frame((label + field_short_dict[field], year))) 
                         
-                        # #3 
+                    # #3 
                     label = 'Have central duct system'
                     if field == 'percentage':    
                         # % of homes with central AC or Central AC/Room AC or furnace
@@ -868,7 +885,7 @@ def erin_boyd():
                         df = df_2015[((df_2015['COOLTYPE']==2) & (df_2015['EQUIPM']==3)) | (df_2015['COOLTYPE']==3)].groupby('division')['NWEIGHT'].sum() # 2015
                     dfs.append(df.to_frame((label + field_short_dict[field], year)))
    
-                        # #4
+                    # #4
                     label = 'Electric heat and central AC'
                     if field == 'percentage':    
                         # % of homes with electric heating and central AC 
@@ -893,6 +910,7 @@ def erin_boyd():
                         df = df_2015[(df_2015['FUELHEAT']==5) & (df_2015['COOLTYPE']==-2)].groupby('division')['NWEIGHT'].sum() # 2015
                     dfs.append(df.to_frame((label + field_short_dict[field], year)))
                 
+                    # 07/19/17
                     label = 'Room AC'
                     if field == 'percentage':    
                         # % of homes with room AC
@@ -900,6 +918,22 @@ def erin_boyd():
                     else:
                         df = df_2015[df_2015['COOLTYPE'].isin([2, 3])].groupby('division')['NWEIGHT'].sum() # 2015
                     dfs.append(df.to_frame((label + field_short_dict[field], year)))                
+                
+                    # 07/20/17
+                    label = 'Built-in electric units with ducts'
+                    if field == 'percentage':
+                        # % of homes with central AC or Central AC/Room AC. and built-in electric heat
+                        df = df_2015[((df_2015['COOLTYPE']==1) | (df_2015['COOLTYPE']==3)) & (df_2015['EQUIPM']==5)].groupby('division')['NWEIGHT'].sum() / df_2015.groupby('division')['NWEIGHT'].sum() # 2015
+                    else:
+                        df = df_2015[((df_2015['COOLTYPE']==1) | (df_2015['COOLTYPE']==3)) & (df_2015['EQUIPM']==5)].groupby('division')['NWEIGHT'].sum() # 2015
+                    dfs.append(df.to_frame((label + field_short_dict[field], year)))
+
+                    label = 'Built-in electric units without ducts'
+                    if field == 'percentage':
+                        # % of homes with room AC or no AC. and built-in electric heat
+                        df = df_2015[((df_2015['COOLTYPE']!=1) & (df_2015['COOLTYPE']!=3)) & (df_2015['EQUIPM']==5)].groupby('division')['NWEIGHT'].sum() / df_2015.groupby('division')['NWEIGHT'].sum() # 2015
+                    else:
+                        df = df_2015[((df_2015['COOLTYPE']!=1) & (df_2015['COOLTYPE']!=3)) & (df_2015['EQUIPM']==5)].groupby('division')['NWEIGHT'].sum() # 2015
                 
         df = pd.concat(dfs, axis=1)
         df.to_csv('{}.csv'.format(k))
