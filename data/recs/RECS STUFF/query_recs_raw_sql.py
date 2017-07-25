@@ -680,7 +680,7 @@ def regenerate():
 def erin_boyd():
 
     years = ['2009', '2015']
-    bldgtypes = {'singlefamily': [2, 3], 'multifamily': [4, 5]}
+    bldgtypes = {'singlefamily': [2, 3], 'multifamily': [4, 5], 'mobile': [1]}
     fields = ['percentage','number']
     field_short_dict = {'percentage':' (%)',
                         'number':' (#)'}
