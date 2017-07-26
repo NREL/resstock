@@ -10,7 +10,7 @@ sys.path.insert(0, os.path.join(os.getcwd(),'clustering'))
 #from medoids_tstat import do_plot
 #import itertools
 #recs_data_file = os.path.join("..", "RECS STUFF", "recs2009_public.csv")
-import psycopg2 as pg
+# import psycopg2 as pg
 import pandas as pd
 from datetime import datetime
 #import matplotlib.pyplot as plt
@@ -788,7 +788,15 @@ def erin_boyd():
                     dfs.append(df.to_frame((label + field_short_dict[field], year)))
                 
                     # 07/19/17
-                    label = 'Room AC'
+                    label = 'Room AC only'
+                    if field == 'percentage':
+                        # % of homes with room AC
+                        df = df_2009[df_2009['cooltype'].isin([2])].groupby('division')['nweight'].sum() / df_2009.groupby('division')['nweight'].sum() # 2009
+                    else:
+                        df = df_2009[df_2009['cooltype'].isin([2])].groupby('division')['nweight'].sum() # 2009
+                    dfs.append(df.to_frame((label + field_short_dict[field], year)))
+
+                    label = 'Room AC and Central AC used'
                     if field == 'percentage':
                         # % of homes with room AC
                         df = df_2009[df_2009['cooltype'].isin([2, 3])].groupby('division')['nweight'].sum() / df_2009.groupby('division')['nweight'].sum() # 2009
@@ -911,13 +919,21 @@ def erin_boyd():
                     dfs.append(df.to_frame((label + field_short_dict[field], year)))
                 
                     # 07/19/17
-                    label = 'Room AC'
+                    label = 'Room AC only'
+                    if field == 'percentage':    
+                        # % of homes with room AC
+                        df = df_2015[df_2015['COOLTYPE']==2].groupby('division')['NWEIGHT'].sum() / df_2015.groupby('division')['NWEIGHT'].sum() # 2015
+                    else:
+                        df = df_2015[df_2015['COOLTYPE']==2].groupby('division')['NWEIGHT'].sum() # 2015
+                    dfs.append(df.to_frame((label + field_short_dict[field], year)))                
+
+                    label = 'Room AC and Central AC used'
                     if field == 'percentage':    
                         # % of homes with room AC
                         df = df_2015[df_2015['COOLTYPE'].isin([2, 3])].groupby('division')['NWEIGHT'].sum() / df_2015.groupby('division')['NWEIGHT'].sum() # 2015
                     else:
                         df = df_2015[df_2015['COOLTYPE'].isin([2, 3])].groupby('division')['NWEIGHT'].sum() # 2015
-                    dfs.append(df.to_frame((label + field_short_dict[field], year)))                
+                    dfs.append(df.to_frame((label + field_short_dict[field], year))) 
                 
                     # 07/20/17
                     label = 'Built-in electric units with ducts'
@@ -934,6 +950,7 @@ def erin_boyd():
                         df = df_2015[((df_2015['COOLTYPE']!=1) & (df_2015['COOLTYPE']!=3)) & (df_2015['EQUIPM']==5)].groupby('division')['NWEIGHT'].sum() / df_2015.groupby('division')['NWEIGHT'].sum() # 2015
                     else:
                         df = df_2015[((df_2015['COOLTYPE']!=1) & (df_2015['COOLTYPE']!=3)) & (df_2015['EQUIPM']==5)].groupby('division')['NWEIGHT'].sum() # 2015
+                    dfs.append(df.to_frame((label + field_short_dict[field], year)))
                 
         df = pd.concat(dfs, axis=1)
         df.to_csv('{}.csv'.format(k))
