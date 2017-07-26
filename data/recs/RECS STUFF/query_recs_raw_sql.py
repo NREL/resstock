@@ -10,7 +10,7 @@ sys.path.insert(0, os.path.join(os.getcwd(),'clustering'))
 #from medoids_tstat import do_plot
 #import itertools
 #recs_data_file = os.path.join("..", "RECS STUFF", "recs2009_public.csv")
-# import psycopg2 as pg
+import psycopg2 as pg
 import pandas as pd
 from datetime import datetime
 #import matplotlib.pyplot as plt
