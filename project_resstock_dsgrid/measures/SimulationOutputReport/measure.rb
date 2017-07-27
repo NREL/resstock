@@ -97,30 +97,6 @@ class SimulationOutputReport < OpenStudio::Ruleset::ReportingUserScript
     gas_site_units = "therm"
     other_fuel_site_units = "MBtu"
     
-    # FIXME: Temporary fix to handle % conditioned for Room AC and MSHP (https://github.com/NREL/OpenStudio-ResStock/issues/41)
-    percent_cooling = 1.0
-    percent_heating = 1.0
-    (1..9).each do |i|
-        percent = i*10
-        runner.workflow.workflowSteps.each do |step|
-            next if not step.result.is_initialized
-            step_result = step.result.get
-            next if !step_result.measureName.is_initialized or step_result.measureName.get != "build_existing_model"
-            step_result.stepValues.each do |step_value|
-                if step_value.name == "hvac_system_cooling"
-                    next if not step_value.valueAsString.include?("#{percent}% Conditioned")
-                    percent_cooling = percent.to_f/100.0
-                    runner.registerWarning("Cooling system with % conditioned detected. #{percent_cooling.to_s} will be applied to cooling results.")
-                elsif step_value.name == "hvac_system_combined"
-                    next if not step_value.valueAsString.include?("#{percent}% Conditioned")
-                    percent_cooling = percent.to_f/100.0
-                    percent_heating = percent_cooling
-                    runner.registerWarning("Combined system with % conditioned detected. #{percent_cooling.to_s} will be applied to cooling and heating results.")
-                end
-            end
-        end
-    end
-    
     # Get PV electricity produced
     pv_query = "SELECT -1*Value FROM TabularDataWithStrings WHERE ReportName='AnnualBuildingUtilityPerformanceSummary' AND ReportForString='Entire Facility' AND TableName='Electric Loads Satisfied' AND RowName='Total On-Site Electric Sources' AND ColumnName='Electricity' AND Units='GJ'"
     pv_val = sqlFile.execAndReturnFirstDouble(pv_query)
@@ -134,8 +110,8 @@ class SimulationOutputReport < OpenStudio::Ruleset::ReportingUserScript
     
     report_sim_output(runner, "total_site_electricity_kwh", [sqlFile.electricityTotalEndUses], "GJ", elec_site_units)
     report_sim_output(runner, "net_site_electricity_kwh", [sqlFile.electricityTotalEndUses, pv_val], "GJ", elec_site_units)
-    report_sim_output(runner, "electricity_heating_kwh", [sqlFile.electricityHeating], "GJ", elec_site_units, percent_heating)
-    report_sim_output(runner, "electricity_cooling_kwh", [sqlFile.electricityCooling], "GJ", elec_site_units, percent_cooling)
+    report_sim_output(runner, "electricity_heating_kwh", [sqlFile.electricityHeating], "GJ", elec_site_units)
+    report_sim_output(runner, "electricity_cooling_kwh", [sqlFile.electricityCooling], "GJ", elec_site_units)
     report_sim_output(runner, "electricity_interior_lighting_kwh", [sqlFile.electricityInteriorLighting], "GJ", elec_site_units)
     report_sim_output(runner, "electricity_exterior_lighting_kwh", [sqlFile.electricityExteriorLighting], "GJ", elec_site_units)
     report_sim_output(runner, "electricity_interior_equipment_kwh", [sqlFile.electricityInteriorEquipment], "GJ", elec_site_units)
@@ -147,14 +123,14 @@ class SimulationOutputReport < OpenStudio::Ruleset::ReportingUserScript
     # NATURAL GAS
     
     report_sim_output(runner, "total_site_natural_gas_therm", [sqlFile.naturalGasTotalEndUses], "GJ", gas_site_units)
-    report_sim_output(runner, "natural_gas_heating_therm", [sqlFile.naturalGasHeating], "GJ", gas_site_units, percent_heating)
+    report_sim_output(runner, "natural_gas_heating_therm", [sqlFile.naturalGasHeating], "GJ", gas_site_units)
     report_sim_output(runner, "natural_gas_interior_equipment_therm", [sqlFile.naturalGasInteriorEquipment], "GJ", gas_site_units)
     report_sim_output(runner, "natural_gas_water_systems_therm", [sqlFile.naturalGasWaterSystems], "GJ", gas_site_units)
     
     # OTHER FUEL
     
     report_sim_output(runner, "total_site_other_fuel_mbtu", [sqlFile.otherFuelTotalEndUses], "GJ", other_fuel_site_units)
-    report_sim_output(runner, "other_fuel_heating_mbtu", [sqlFile.otherFuelHeating], "GJ", other_fuel_site_units, percent_heating)
+    report_sim_output(runner, "other_fuel_heating_mbtu", [sqlFile.otherFuelHeating], "GJ", other_fuel_site_units)
     report_sim_output(runner, "other_fuel_interior_equipment_mbtu", [sqlFile.otherFuelInteriorEquipment], "GJ", other_fuel_site_units)
     report_sim_output(runner, "other_fuel_water_systems_mbtu", [sqlFile.otherFuelWaterSystems], "GJ", other_fuel_site_units)
     
@@ -183,7 +159,7 @@ class SimulationOutputReport < OpenStudio::Ruleset::ReportingUserScript
         cooling_capacity_w = sqlFile.execAndReturnFirstDouble(cooling_capacity_query)
         break if cooling_capacity_w.is_initialized and cooling_capacity_w.get > 0
     end
-    report_sim_output(runner, "hvac_cooling_capacity_w", [cooling_capacity_w], "W", "W", percent_cooling)
+    report_sim_output(runner, "hvac_cooling_capacity_w", [cooling_capacity_w], "W", "W")
     
     heating_coils = [
                      'coil:heating:fuel',
@@ -213,7 +189,7 @@ class SimulationOutputReport < OpenStudio::Ruleset::ReportingUserScript
         heating_capacity_w = sqlFile.execAndReturnFirstDouble(heating_capacity_query)
         break if heating_capacity_w.is_initialized and heating_capacity_w.get > 0
     end
-    report_sim_output(runner, "hvac_heating_capacity_w", [heating_capacity_w], "W", "W", percent_heating)
+    report_sim_output(runner, "hvac_heating_capacity_w", [heating_capacity_w], "W", "W")
     
     # WEIGHT
     

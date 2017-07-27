@@ -1,5 +1,8 @@
-
-require 'ffi'
+begin
+  require 'ffi'
+rescue LoadError
+  fail "Could not load ffi."
+end
 
 module SscApi
 
@@ -21,9 +24,9 @@ module SscApi
     end
     
     if ssc_path.nil?
-      puts "Platform not supported: #{RUBY_PLATFORM}"
+      fail "Platform not supported: #{RUBY_PLATFORM}"
     elsif !File.exist? ssc_path
-      puts "File not found: #{ssc_path}"
+      fail "File not found: #{ssc_path}"
     end
     ffi_lib ssc_path
 

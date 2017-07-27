@@ -7,9 +7,62 @@ require "#{File.dirname(__FILE__)}/schedules"
 
 class Waterheater
 
-    def self.get_plant_loop_from_string(plant_loops, plantloop_s, spaces, unit_num, runner=nil)
+    def self.remove_existing_hpwh(model, obj_name_hpwh)
+      
+      model.getEnergyManagementSystemProgramCallingManagers.each do |program_calling_manager|
+        next unless program_calling_manager.name.to_s == obj_name_hpwh + " ProgramManager"
+        program_calling_manager.remove
+      end
+      
+      model.getEnergyManagementSystemSensors.each do |sensor|
+        next unless ["#{obj_name_hpwh} amb temp", "#{obj_name_hpwh} amb rh", "#{obj_name_hpwh} tl", "#{obj_name_hpwh} sens cool", "#{obj_name_hpwh} lat cool", "#{obj_name_hpwh} fan pwr", "#{obj_name_hpwh} amb w", "#{obj_name_hpwh} amb p", "#{obj_name_hpwh} tair out", "#{obj_name_hpwh} wair out", "#{obj_name_hpwh} v air", "#{obj_name_hpwh} T ctrl", "#{obj_name_hpwh} LE P", "#{obj_name_hpwh} UE P", "#{obj_name_hpwh} Tout", "#{obj_name_hpwh} RHout"].map{|x| x.gsub(" ","_")}.include? sensor.name.to_s
+        sensor.remove
+      end      
+      
+      model.getEnergyManagementSystemActuators.each do |actuator|
+        next unless ["#{obj_name_hpwh} Tamb act2", "#{obj_name_hpwh} Tamb act", "#{obj_name_hpwh} RHamb act", "#{obj_name_hpwh} on off", "#{obj_name_hpwh} LESchedOverride", "#{obj_name_hpwh} HPSchedOverride", "#{obj_name_hpwh} UESchedOverride"].map{|x| x.gsub(" ","_")}.include? actuator.name.to_s
+        actuator.actuatedComponent.remove
+        actuator.remove
+      end
+      
+      model.getEnergyManagementSystemActuators.each do |actuator|
+        next unless ["#{obj_name_hpwh} sens act", "#{obj_name_hpwh} lat act"].map{|x| x.gsub(" ","_")}.include? actuator.name.to_s
+        actuator.actuatedComponent.to_OtherEquipment.get.otherEquipmentDefinition.remove
+        actuator.remove
+      end
+      
+      model.getScheduleConstants.each do |schedule|
+        next unless ["#{obj_name_hpwh} Tamb act", "#{obj_name_hpwh} RHamb act", "#{obj_name_hpwh} Tamb act2", "#{obj_name_hpwh} WaterHeaterHPSchedule", "#{obj_name_hpwh} BottomElementSetpoint", "#{obj_name_hpwh} TopElementSetpoint"].map{|x| x.gsub("|","_")}.include? schedule.name.to_s
+        schedule.remove
+      end
+      
+      model.getEnergyManagementSystemPrograms.each do |program|
+        next unless ["#{obj_name_hpwh} InletAir", "#{obj_name_hpwh} Control"].map{|x| x.gsub(" ","_").gsub("|","_")}.include? program.name.to_s
+        program.remove
+      end      
+      
+      model.getEnergyManagementSystemTrendVariables.each do |trend_var|
+        next unless ["#{obj_name_hpwh} on off", "#{obj_name_hpwh} UETrend", "#{obj_name_hpwh} LETrend"].map{|x| x.gsub(" ","_").gsub("|","_")}.include? trend_var.name.to_s
+        trend_var.remove
+      end
+      
+    end
+
+    def self.get_shw_storage_tank(model, unit)
+        model.getPlantLoops.each do |plant_loop|
+          next unless plant_loop.name.to_s == Constants.PlantLoopSolarHotWater(unit.name.to_s)
+          (plant_loop.supplyComponents + plant_loop.demandComponents).each do |component|
+            if component.to_WaterHeaterStratified.is_initialized
+              return component.to_WaterHeaterStratified.get
+            end
+          end
+        end
+        return nil
+    end
+  
+    def self.get_plant_loop_from_string(plant_loops, plantloop_s, spaces, obj_name_hpwh, runner=nil)
         if plantloop_s == Constants.Auto
-            return self.get_plant_loop_for_spaces(plant_loops, spaces, unit_num, runner)
+            return self.get_plant_loop_for_spaces(plant_loops, spaces, obj_name_hpwh, runner)
         end
         plant_loop = nil
         plant_loops.each do |pl|
@@ -24,7 +77,7 @@ class Waterheater
         return plant_loop
     end
     
-    def self.get_plant_loop_for_spaces(plant_loops, spaces, unit_num, runner=nil)
+    def self.get_plant_loop_for_spaces(plant_loops, spaces, obj_name_hpwh, runner=nil)
         # We obtain the plant loop for a given set of space by comparing 
         # their associated thermal zones to the thermal zone that each plant
         # loop water heater is located in.
@@ -38,8 +91,10 @@ class Waterheater
                         waterHeater = wh.to_WaterHeaterMixed.get
                         wh_type = "mixed" 
                     elsif wh.to_WaterHeaterStratified.is_initialized
+                      if not wh.to_WaterHeaterStratified.get.secondaryPlantLoop.is_initialized
                         waterHeater = wh.to_WaterHeaterStratified.get
                         wh_type = "stratified"
+                      end
                     else
                         next
                     end
@@ -53,7 +108,7 @@ class Waterheater
                             next if waterHeater.ambientTemperatureThermalZone.get.name.to_s != zone.name.to_s
                             return pl
                         elsif waterHeater.ambientTemperatureSchedule.is_initialized
-                            if waterHeater.ambientTemperatureSchedule.get.name.to_s == "HPWH_Tamb_act_#{unit_num}" or waterHeater.ambientTemperatureSchedule.get.name.to_s == "HPWH_Tamb_act2_#{unit_num}"
+                            if waterHeater.ambientTemperatureSchedule.get.name.to_s == "#{obj_name_hpwh} Tamb act" or waterHeater.ambientTemperatureSchedule.get.name.to_s == "#{obj_name_hpwh} Tamb act2"
                                 return pl
                             end
                         end
@@ -260,7 +315,7 @@ class Waterheater
     
     def self.create_new_schedule_manager(t_set, model, wh_type="tank")
         new_schedule = OpenStudio::Model::ScheduleConstant.new(model)
-        new_schedule.setName("DHW Temp")
+        new_schedule.setName("dhw temp")
         if wh_type == "tank"
             new_schedule.setValue(OpenStudio::convert(t_set,"F","C").get + 1)
         else #tankless

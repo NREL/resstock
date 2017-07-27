@@ -204,7 +204,7 @@ class CreateResidentialEaves < OpenStudio::Measure::ModelMeasure
           m_right_upper_out = Geometry.initialize_transformation_matrix(OpenStudio::Matrix.new(4,4,0))
           m_right_upper_in = Geometry.initialize_transformation_matrix(OpenStudio::Matrix.new(4,4,0))
           slope_dir, lower_pts, upper_pts = get_slope_direction_and_lower_points(surface)
-          
+
           if slope_dir == "neg_y"
           
             if lower_pts[0].x < lower_pts[1].x
@@ -1604,7 +1604,9 @@ class CreateResidentialEaves < OpenStudio::Measure::ModelMeasure
       end
       l, w, h = Geometry.get_surface_dimensions(surface)
       garage_front = surface.vertices.sort_by { |vertex| vertex.y }[0]
-      return pos, l, w, garage_front.y.abs
+      if garage_front.y.abs > 0
+        return pos, l, w, garage_front.y.abs
+      end
     end
     return "None", 0, 0, 0
   end

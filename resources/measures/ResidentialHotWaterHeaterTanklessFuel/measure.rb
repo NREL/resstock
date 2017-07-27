@@ -189,17 +189,22 @@ class ResidentialHotWaterHeaterTanklessFuel < OpenStudio::Measure::ModelMeasure
                 #Remove any existing water heater
                 objects_to_remove = []
                 pl.supplyComponents.each do |wh|
-                    next if !wh.to_WaterHeaterMixed.is_initialized and !wh.to_WaterHeaterStratified.is_initialized and !wh.to_WaterHeaterHeatPump.is_initialized
-                    objects_to_remove << wh
+                    next if !wh.to_WaterHeaterMixed.is_initialized and !wh.to_WaterHeaterStratified.is_initialized
                     if wh.to_WaterHeaterMixed.is_initialized
-                        wh = wh.to_WaterHeaterMixed.get
+                        objects_to_remove << wh
+                        if wh.to_WaterHeaterMixed.get.setpointTemperatureSchedule.is_initialized
+                          objects_to_remove << wh.to_WaterHeaterMixed.get.setpointTemperatureSchedule.get
+                        end
                     elsif wh.to_WaterHeaterStratified.is_initialized
-                        wh = wh.to_WaterHeaterStratified.get
-                    elsif wh.to_WaterHeaterHeatPump.is_initialized
-                        wh = wh.to_WaterHeaterHeatPump.get
-                    end
-                    if wh.setpointTemperatureSchedule.is_initialized
-                        objects_to_remove << wh.setpointTemperatureSchedule.get
+                        if not wh.to_WaterHeaterStratified.get.secondaryPlantLoop.is_initialized
+                          model.getWaterHeaterHeatPumpWrappedCondensers.each do |hpwh|
+                            objects_to_remove << hpwh.tank
+                            objects_to_remove << hpwh                            
+                          end
+                          objects_to_remove << wh.to_WaterHeaterStratified.get.heater1SetpointTemperatureSchedule
+                          objects_to_remove << wh.to_WaterHeaterStratified.get.heater2SetpointTemperatureSchedule
+                          Waterheater.remove_existing_hpwh(model, Constants.ObjectNameWaterHeater(unit.name.to_s.gsub("unit", "u")).gsub("|","_"))
+                        end
                     end
                 end
                 if objects_to_remove.size > 0
@@ -232,7 +237,13 @@ class ResidentialHotWaterHeaterTanklessFuel < OpenStudio::Measure::ModelMeasure
         
             new_heater = Waterheater.create_new_heater(sch_unit_index, Constants.ObjectNameWaterHeater(unit.name.to_s), cap, fuel_type, 1, nbeds, nbaths, ef, 0, t_set, water_heater_tz, oncycle_p, offcycle_p, Constants.WaterHeaterTypeTankless, cd, File.dirname(__FILE__), model, runner)
         
-            loop.addSupplyBranchForComponent(new_heater)
+            storage_tank = Waterheater.get_shw_storage_tank(model, unit)
+        
+            if storage_tank.nil?
+              loop.addSupplyBranchForComponent(new_heater)
+            else
+              new_heater.addToNode(storage_tank.supplyOutletModelObject.get.to_Node.get)
+            end
             
         end
             

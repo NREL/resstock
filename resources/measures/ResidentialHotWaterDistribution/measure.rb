@@ -128,12 +128,9 @@ class ResidentialHotWaterDistribution < OpenStudio::Measure::ModelMeasure
             if sch_unit_index.nil?
                 return false
             end
-			
-			#Get unit number
-			unit_num = Geometry.get_unit_number(model, unit, runner)
             
             # Get plant loop
-            plant_loop = Waterheater.get_plant_loop_from_string(model.getPlantLoops, Constants.Auto, unit.spaces, unit_num, runner)
+            plant_loop = Waterheater.get_plant_loop_from_string(model.getPlantLoops, Constants.Auto, unit.spaces, Constants.ObjectNameWaterHeater(unit.name.to_s.gsub("unit", "u")).gsub("|","_"), runner)
             if plant_loop.nil?
                 return false
             end

@@ -24,7 +24,7 @@ if ! [ -f $FILENAME ]; then
   echo "Retrieving weather files."
   while [ $NUMEPWS -le "1" ]; do
   
-    `curl --retry 10 -O "$1"`
+    curl --retry 10 -O "$1"
     
     if ! [ -f $FILENAME ]; then
       echo "ERROR: $FILENAME not successfully downloaded. Aborting..."
@@ -55,7 +55,7 @@ if ! [ -f $FILENAME ]; then
     NUMDATAPOINTS=`awk -F\"maximum\": 'NF>=2 {print $2}' analysis.json | sed 's/,//g' | head -n1 | xargs` # Yes, this is gross.
     echo "NUMDATAPOINTS is $NUMDATAPOINTS"
 
-    `ruby lib/resources/run_sampling.rb -p NA -n $NUMDATAPOINTS -o $OUTCSV`
+    ruby lib/resources/run_sampling.rb -p NA -n $NUMDATAPOINTS -o $OUTCSV
 
     cp "lib/resources/$OUTCSV" "lib/housing_characteristics/$OUTCSV"
     

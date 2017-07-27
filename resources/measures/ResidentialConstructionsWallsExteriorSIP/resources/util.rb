@@ -594,7 +594,7 @@ class Material
     end
 
     def self.RadiantBarrier
-        return self.new(name=Constants.MaterialRadiantBarrier, thick_in=0.00084, mat_base=nil, k_in=1629.6, rho=168.6, cp=0.22, tAbs=0.05, sAbs=0.05, vAbs=0.05)
+        return self.new(name=Constants.MaterialRadiantBarrier, thick_in=0.0084, mat_base=nil, k_in=1629.6, rho=168.6, cp=0.22, tAbs=0.05, sAbs=0.05, vAbs=0.05)
     end
 
     def self.RoofMaterial(roofMatEmissivity, roofMatAbsorptivity)

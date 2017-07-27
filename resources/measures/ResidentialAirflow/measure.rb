@@ -872,11 +872,11 @@ class ResidentialAirflow < OpenStudio::Measure::ModelMeasure
      
     units.each do |building_unit|
 
-      obj_name_airflow = Constants.ObjectNameAirflow(building_unit.name.to_s.gsub("unit", "u"))
-      obj_name_infil = Constants.ObjectNameInfiltration(building_unit.name.to_s.gsub("unit", "u"))
-      obj_name_natvent = Constants.ObjectNameNaturalVentilation(building_unit.name.to_s.gsub("unit", "u"))
-      obj_name_mechvent = Constants.ObjectNameMechanicalVentilation(building_unit.name.to_s.gsub("unit", "u"))
-      obj_name_ducts = Constants.ObjectNameDucts(building_unit.name.to_s.gsub("unit", "u"))
+      obj_name_airflow = Constants.ObjectNameAirflow(building_unit.name.to_s.gsub("unit", "u")).gsub("|","_")
+      obj_name_infil = Constants.ObjectNameInfiltration(building_unit.name.to_s.gsub("unit", "u")).gsub("|","_")
+      obj_name_natvent = Constants.ObjectNameNaturalVentilation(building_unit.name.to_s.gsub("unit", "u")).gsub("|","_")
+      obj_name_mechvent = Constants.ObjectNameMechanicalVentilation(building_unit.name.to_s.gsub("unit", "u")).gsub("|","_")
+      obj_name_ducts = Constants.ObjectNameDucts(building_unit.name.to_s.gsub("unit", "u")).gsub("|","_")
     
       unit = Unit.new
       unit.num_bedrooms, unit.num_bathrooms = Geometry.get_unit_beds_baths(model, building_unit, runner)
@@ -915,18 +915,18 @@ class ResidentialAirflow < OpenStudio::Measure::ModelMeasure
       # Remove existing infiltration  
       
       model.getEnergyManagementSystemSensors.each do |sensor|
-        next unless ["#{obj_name_airflow} tt", "#{obj_name_airflow} tin", "#{obj_name_natvent} pb", "#{obj_name_natvent} phiin", "#{obj_name_natvent} wt", "#{obj_name_airflow} vw", "#{obj_name_infil} wh sch", "#{obj_name_infil} range sch", "#{obj_name_infil} bath sch", "#{obj_name_infil} clothes dryer sch", "#{obj_name_natvent} nva", "#{obj_name_natvent} sp"].map{|x| "#{x} s".gsub("|","_").gsub(" ","_")}.include? sensor.name.to_s
+        next unless ["#{obj_name_airflow} tt", "#{obj_name_airflow} tin", "#{obj_name_natvent} pb", "#{obj_name_natvent} phiin", "#{obj_name_natvent} wt", "#{obj_name_airflow} vw", "#{obj_name_infil} wh sch", "#{obj_name_infil} range sch", "#{obj_name_infil} bath sch", "#{obj_name_infil} clothes dryer sch", "#{obj_name_natvent} nva", "#{obj_name_natvent} sp"].map{|x| "#{x} s".gsub(" ","_")}.include? sensor.name.to_s
         sensor.remove
       end
       
       model.getEnergyManagementSystemActuators.each do |actuator|
-        next unless [obj_name_infil + " flow"].map{|x| "#{x} act".gsub("|","_").gsub(" ","_")}.include? actuator.name.to_s or [obj_name_natvent + " flow"].map{|x| "#{x} act".gsub("|","_").gsub(" ","_")}.include? actuator.name.to_s
+        next unless [obj_name_infil + " flow"].map{|x| "#{x} act".gsub(" ","_")}.include? actuator.name.to_s or [obj_name_natvent + " flow"].map{|x| "#{x} act".gsub(" ","_")}.include? actuator.name.to_s
         actuator.actuatedComponent.remove
         actuator.remove      
       end      
       
       model.getEnergyManagementSystemActuators.each do |actuator|
-        next unless [obj_name_infil + " house exh", obj_name_infil + " range hood", obj_name_infil + " bath exh"].map{|x| "#{x} fan load equip act".gsub("|","_").gsub(" ","_")}.include? actuator.name.to_s
+        next unless [obj_name_infil + " house exh", obj_name_infil + " range hood", obj_name_infil + " bath exh"].map{|x| "#{x} fan load equip act".gsub(" ","_")}.include? actuator.name.to_s
         actuator.actuatedComponent.to_ElectricEquipment.get.electricEquipmentDefinition.remove
         actuator.remove
       end
@@ -967,23 +967,23 @@ class ResidentialAirflow < OpenStudio::Measure::ModelMeasure
     
       # Remove existing ducts   
       
-      air_handler_mfr = "#{obj_name_ducts} ah mfr".gsub(" ","_").gsub("|","_")
-      fan_rtf = "#{obj_name_ducts} fan rtf".gsub(" ","_").gsub("|","_")
-      air_handler_vfr = "#{obj_name_ducts} ah vfr".gsub(" ","_").gsub("|","_")
-      air_handler_tout = "#{obj_name_ducts} ah tt".gsub(" ","_").gsub("|","_")
-      return_air_t = "#{obj_name_ducts} ret air t".gsub(" ","_").gsub("|","_")
-      air_handler_wout = "#{obj_name_ducts} ah wt".gsub(" ","_").gsub("|","_")
-      return_air_w = "#{obj_name_ducts} ret air w".gsub(" ","_").gsub("|","_")
-      air_handler_t = "#{obj_name_ducts} ah t".gsub(" ","_").gsub("|","_")
-      air_handler_w = "#{obj_name_ducts} ah w".gsub(" ","_").gsub("|","_")       
+      air_handler_mfr = "#{obj_name_ducts} ah mfr".gsub(" ","_")
+      fan_rtf = "#{obj_name_ducts} fan rtf".gsub(" ","_")
+      air_handler_vfr = "#{obj_name_ducts} ah vfr".gsub(" ","_")
+      air_handler_tout = "#{obj_name_ducts} ah tt".gsub(" ","_")
+      return_air_t = "#{obj_name_ducts} ret air t".gsub(" ","_")
+      air_handler_wout = "#{obj_name_ducts} ah wt".gsub(" ","_")
+      return_air_w = "#{obj_name_ducts} ret air w".gsub(" ","_")
+      air_handler_t = "#{obj_name_ducts} ah t".gsub(" ","_")
+      air_handler_w = "#{obj_name_ducts} ah w".gsub(" ","_")       
       
       model.getEnergyManagementSystemSensors.each do |sensor|
         next unless [air_handler_mfr, fan_rtf, air_handler_vfr, air_handler_tout, return_air_t, air_handler_wout, return_air_w, air_handler_t, air_handler_w].map{|x| "#{x}_s"}.include? sensor.name.to_s
         sensor.remove
       end   
       
-      air_handler_to_living_flow_rate = "#{obj_name_ducts} ah to liv".gsub("|","_").gsub(" ","_")
-      living_to_air_handler_flow_rate = "#{obj_name_ducts} liv to ah".gsub("|","_").gsub(" ","_")
+      air_handler_to_living_flow_rate = "#{obj_name_ducts} ah to liv".gsub(" ","_")
+      living_to_air_handler_flow_rate = "#{obj_name_ducts} liv to ah".gsub(" ","_")
       model.getEnergyManagementSystemActuators.each do |actuator|
         next unless [air_handler_to_living_flow_rate, living_to_air_handler_flow_rate].map{|x| "#{x} mix act".gsub(" ","_")}.include? actuator.name.to_s
         actuator.actuatedComponent.remove
@@ -991,20 +991,20 @@ class ResidentialAirflow < OpenStudio::Measure::ModelMeasure
       end
       
       model.getEnergyManagementSystemSubroutines.each do |subroutine|
-        next unless subroutine.name.to_s == "#{obj_name_ducts} lk subrout".gsub("|","_").gsub(" ","_")
+        next unless subroutine.name.to_s == "#{obj_name_ducts} lk subrout".gsub(" ","_")
         subroutine.remove
       end
     
-      supply_sensible_lkage_to_living = "#{obj_name_ducts} sup s lk to lv".gsub(" ","_").gsub("|","_")
-      supply_latent_lkage_to_living = "#{obj_name_ducts} sup lat lk to lv".gsub(" ","_").gsub("|","_")
-      supply_duct_conduction_to_living = "#{obj_name_ducts} sup d cn to lv".gsub(" ","_").gsub("|","_")
-      supply_duct_conduction_to_air_handler = "#{obj_name_ducts} sup d cn to ah".gsub(" ","_").gsub("|","_")
-      return_duct_conduction_to_plenum = "#{obj_name_ducts} ret d cn to pl".gsub(" ","_").gsub("|","_")
-      return_duct_conduction_to_air_handler = "#{obj_name_ducts} ret d cn to ah".gsub(" ","_").gsub("|","_")
-      supply_sensible_lkage_to_air_handler = "#{obj_name_ducts} sup s lk to ah".gsub(" ","_").gsub("|","_")
-      supply_latent_lkage_to_air_handler = "#{obj_name_ducts} sup lat lk to ah".gsub(" ","_").gsub("|","_")
-      return_sensible_lkage = "#{obj_name_ducts} ret s lk".gsub(" ","_").gsub("|","_")
-      return_latent_lkage = "#{obj_name_ducts} ret lat lk".gsub(" ","_").gsub("|","_")
+      supply_sensible_lkage_to_living = "#{obj_name_ducts} sup s lk to lv".gsub(" ","_")
+      supply_latent_lkage_to_living = "#{obj_name_ducts} sup lat lk to lv".gsub(" ","_")
+      supply_duct_conduction_to_living = "#{obj_name_ducts} sup d cn to lv".gsub(" ","_")
+      supply_duct_conduction_to_air_handler = "#{obj_name_ducts} sup d cn to ah".gsub(" ","_")
+      return_duct_conduction_to_plenum = "#{obj_name_ducts} ret d cn to pl".gsub(" ","_")
+      return_duct_conduction_to_air_handler = "#{obj_name_ducts} ret d cn to ah".gsub(" ","_")
+      supply_sensible_lkage_to_air_handler = "#{obj_name_ducts} sup s lk to ah".gsub(" ","_")
+      supply_latent_lkage_to_air_handler = "#{obj_name_ducts} sup lat lk to ah".gsub(" ","_")
+      return_sensible_lkage = "#{obj_name_ducts} ret s lk".gsub(" ","_")
+      return_latent_lkage = "#{obj_name_ducts} ret lat lk".gsub(" ","_")
       
       model.getEnergyManagementSystemActuators.each do |actuator|
         next unless [supply_sensible_lkage_to_living, supply_latent_lkage_to_living, supply_duct_conduction_to_living, supply_duct_conduction_to_air_handler, return_duct_conduction_to_plenum, return_duct_conduction_to_air_handler, supply_sensible_lkage_to_air_handler, supply_latent_lkage_to_air_handler, return_sensible_lkage, return_latent_lkage].map{|x| "#{x} equip act".gsub(" ","_")}.include? actuator.name.to_s
@@ -1022,8 +1022,8 @@ class ResidentialAirflow < OpenStudio::Measure::ModelMeasure
         program_calling_manager.remove
       end
       
-      duct_lk_supply_fan_equiv = "#{obj_name_ducts} lk sup fan equiv".gsub("|","_").gsub(" ","_")
-      duct_lk_exhaust_fan_equiv = "#{obj_name_ducts} lk exh fan equiv".gsub("|","_").gsub(" ","_")      
+      duct_lk_supply_fan_equiv = "#{obj_name_ducts} lk sup fan equiv".gsub(" ","_")
+      duct_lk_exhaust_fan_equiv = "#{obj_name_ducts} lk exh fan equiv".gsub(" ","_")      
     
       model.getEnergyManagementSystemGlobalVariables.each do |ems_global_var|
         next unless [air_handler_mfr, fan_rtf, air_handler_vfr, air_handler_tout, return_air_t, air_handler_wout, return_air_w, air_handler_t, air_handler_w, supply_sensible_lkage_to_living, supply_latent_lkage_to_living, supply_duct_conduction_to_living, supply_duct_conduction_to_air_handler, return_duct_conduction_to_plenum, return_duct_conduction_to_air_handler, supply_sensible_lkage_to_air_handler, supply_latent_lkage_to_air_handler, return_sensible_lkage, return_latent_lkage, living_to_air_handler_flow_rate, air_handler_to_living_flow_rate, duct_lk_supply_fan_equiv, duct_lk_exhaust_fan_equiv].include? ems_global_var.name.to_s
@@ -1163,48 +1163,48 @@ class ResidentialAirflow < OpenStudio::Measure::ModelMeasure
       # Sensors
     
       tout_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, zone_outdoor_air_drybulb_temp_output_var)
-      tout_sensor.setName("#{obj_name_airflow} tt s".gsub("|","_"))
+      tout_sensor.setName("#{obj_name_airflow} tt s")
       tout_sensor.setKeyName(unit.living_zone.name.to_s)
       
       tin_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, zone_mean_air_temp_output_var)
-      tin_sensor.setName("#{obj_name_airflow} tin s".gsub("|","_"))
+      tin_sensor.setName("#{obj_name_airflow} tin s")
       tin_sensor.setKeyName(unit.living_zone.name.to_s)
       
       pbar_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, outdoor_air_barometric_pressure_output_var)
-      pbar_sensor.setName("#{obj_name_natvent} pb s".gsub("|","_"))      
+      pbar_sensor.setName("#{obj_name_natvent} pb s")      
 
       phiin_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, zone_air_relative_humidity_output_var)
-      phiin_sensor.setName("#{obj_name_natvent} phiin s".gsub("|","_"))
+      phiin_sensor.setName("#{obj_name_natvent} phiin s")
       phiin_sensor.setKeyName(unit.living_zone.name.to_s)
 
       wout_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, outdoor_air_humidity_ratio_output_var)
-      wout_sensor.setName("#{obj_name_natvent} wt s".gsub("|","_"))
+      wout_sensor.setName("#{obj_name_natvent} wt s")
    
       vwind_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, wind_speed_output_var)
-      vwind_sensor.setName("#{obj_name_airflow} vw s".gsub("|","_"))
+      vwind_sensor.setName("#{obj_name_airflow} vw s")
       
       wh_sch_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, schedule_value_output_var)
-      wh_sch_sensor.setName("#{obj_name_infil} wh sch s".gsub("|","_"))
+      wh_sch_sensor.setName("#{obj_name_infil} wh sch s")
       wh_sch_sensor.setKeyName(model.alwaysOnDiscreteSchedule.name.to_s)
       
       range_sch_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, schedule_value_output_var)
-      range_sch_sensor.setName("#{obj_name_infil} range sch s".gsub("|","_"))
+      range_sch_sensor.setName("#{obj_name_infil} range sch s")
       range_sch_sensor.setKeyName(schedules.RangeHood.schedule.name.to_s)
       
       bath_sch_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, schedule_value_output_var)
-      bath_sch_sensor.setName("#{obj_name_infil} bath sch s".gsub("|","_"))
+      bath_sch_sensor.setName("#{obj_name_infil} bath sch s")
       bath_sch_sensor.setKeyName(schedules.BathExhaust.schedule.name.to_s)      
       
       clothes_dryer_sch_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, schedule_value_output_var)
-      clothes_dryer_sch_sensor.setName("#{obj_name_infil} clothes dryer sch s".gsub("|","_"))
+      clothes_dryer_sch_sensor.setName("#{obj_name_infil} clothes dryer sch s")
       clothes_dryer_sch_sensor.setKeyName(schedules.ClothesDryerExhaust.schedule.name.to_s)
       
       nvavail_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, schedule_value_output_var)
-      nvavail_sensor.setName("#{obj_name_natvent} nva s".gsub("|","_"))
+      nvavail_sensor.setName("#{obj_name_natvent} nva s")
       nvavail_sensor.setKeyName(schedules.NatVentAvailability.name.to_s)
       
       nvsp_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, schedule_value_output_var)
-      nvsp_sensor.setName("#{obj_name_natvent} sp s".gsub("|","_"))
+      nvsp_sensor.setName("#{obj_name_natvent} sp s")
       nvsp_sensor.setKeyName(schedules.NatVentTemp.schedule.name.to_s)
       
       # Actuators
@@ -1214,14 +1214,14 @@ class ResidentialAirflow < OpenStudio::Measure::ModelMeasure
       infil_flow.setSchedule(model.alwaysOnDiscreteSchedule)
       infil_flow.setSpace(unit.living_zone.spaces[0])      
       infil_flow_actuator = OpenStudio::Model::EnergyManagementSystemActuator.new(infil_flow, "Zone Infiltration", "Air Exchange Flow Rate")
-      infil_flow_actuator.setName("#{infil_flow.name} act".gsub("|","_"))
+      infil_flow_actuator.setName("#{infil_flow.name} act")
 
       natvent_flow = OpenStudio::Model::SpaceInfiltrationDesignFlowRate.new(model)
       natvent_flow.setName(obj_name_natvent + " flow")
       natvent_flow.setSchedule(model.alwaysOnDiscreteSchedule)
       natvent_flow.setSpace(unit.living_zone.spaces[0])       
       natvent_flow_actuator = OpenStudio::Model::EnergyManagementSystemActuator.new(natvent_flow, "Zone Infiltration", "Air Exchange Flow Rate")
-      natvent_flow_actuator.setName("#{natvent_flow.name} act".gsub("|","_"))
+      natvent_flow_actuator.setName("#{natvent_flow.name} act")
 
       equip_def = OpenStudio::Model::ElectricEquipmentDefinition.new(model)
       equip_def.setName(obj_name_infil + " house exh fan load equip")
@@ -1235,7 +1235,7 @@ class ResidentialAirflow < OpenStudio::Measure::ModelMeasure
       equip.setEndUseSubcategory("VentFans")
       
       whole_house_fan_actuator = OpenStudio::Model::EnergyManagementSystemActuator.new(equip, "ElectricEquipment", "Electric Power Level")
-      whole_house_fan_actuator.setName("#{equip.name} act".gsub("|","_"))        
+      whole_house_fan_actuator.setName("#{equip.name} act")        
       
       equip_def = OpenStudio::Model::ElectricEquipmentDefinition.new(model)
       equip_def.setName(obj_name_infil + " range hood fan load equip")
@@ -1249,7 +1249,7 @@ class ResidentialAirflow < OpenStudio::Measure::ModelMeasure
       equip.setEndUseSubcategory("VentFans")
 
       range_hood_fan_actuator = OpenStudio::Model::EnergyManagementSystemActuator.new(equip, "ElectricEquipment", "Electric Power Level")
-      range_hood_fan_actuator.setName("#{equip.name} act".gsub("|","_"))           
+      range_hood_fan_actuator.setName("#{equip.name} act")           
       
       equip_def = OpenStudio::Model::ElectricEquipmentDefinition.new(model)
       equip_def.setName(obj_name_infil + " bath exh fan load equip")
@@ -1263,7 +1263,7 @@ class ResidentialAirflow < OpenStudio::Measure::ModelMeasure
       equip.setEndUseSubcategory("VentFans")
       
       bath_exhaust_fan_actuator = OpenStudio::Model::EnergyManagementSystemActuator.new(equip, "ElectricEquipment", "Electric Power Level")
-      bath_exhaust_fan_actuator.setName("#{equip.name} act".gsub("|","_"))
+      bath_exhaust_fan_actuator.setName("#{equip.name} act")
       
       # Global Variables
       
@@ -1539,7 +1539,7 @@ class ResidentialAirflow < OpenStudio::Measure::ModelMeasure
         other_equip.setSchedule(model.alwaysOnDiscreteSchedule)
         other_equip.setSpace(unit.living_zone.spaces[0])
         supply_sensible_lkage_to_living_actuator = OpenStudio::Model::EnergyManagementSystemActuator.new(other_equip, "OtherEquipment", "Power Level")
-        supply_sensible_lkage_to_living_actuator.setName("#{other_equip.name} act".gsub("|","_"))
+        supply_sensible_lkage_to_living_actuator.setName("#{other_equip.name} act")
         
         other_equip_def = OpenStudio::Model::OtherEquipmentDefinition.new(model)
         other_equip_def.setName(supply_latent_lkage_to_living + " equip")
@@ -1549,7 +1549,7 @@ class ResidentialAirflow < OpenStudio::Measure::ModelMeasure
         other_equip.setSchedule(model.alwaysOnDiscreteSchedule)
         other_equip.setSpace(unit.living_zone.spaces[0])
         supply_latent_lkage_to_living_actuator = OpenStudio::Model::EnergyManagementSystemActuator.new(other_equip, "OtherEquipment", "Power Level")
-        supply_latent_lkage_to_living_actuator.setName("#{other_equip.name} act".gsub("|","_"))        
+        supply_latent_lkage_to_living_actuator.setName("#{other_equip.name} act")        
         
         # Supply duct conduction load added to the living space
         other_equip_def = OpenStudio::Model::OtherEquipmentDefinition.new(model)
@@ -1560,7 +1560,7 @@ class ResidentialAirflow < OpenStudio::Measure::ModelMeasure
         other_equip.setSchedule(model.alwaysOnDiscreteSchedule)
         other_equip.setSpace(unit.living_zone.spaces[0])
         supply_duct_conduction_to_living_actuator = OpenStudio::Model::EnergyManagementSystemActuator.new(other_equip, "OtherEquipment", "Power Level")
-        supply_duct_conduction_to_living_actuator.setName("#{other_equip.name} act".gsub("|","_"))
+        supply_duct_conduction_to_living_actuator.setName("#{other_equip.name} act")
         
         # Supply duct conduction impact on the air handler zone.
         other_equip_def = OpenStudio::Model::OtherEquipmentDefinition.new(model)
@@ -1571,7 +1571,7 @@ class ResidentialAirflow < OpenStudio::Measure::ModelMeasure
         other_equip.setSchedule(model.alwaysOnDiscreteSchedule)
         other_equip.setSpace(ducts.duct_location_zone.spaces[0])
         supply_duct_conduction_to_air_handler_actuator = OpenStudio::Model::EnergyManagementSystemActuator.new(other_equip, "OtherEquipment", "Power Level")
-        supply_duct_conduction_to_air_handler_actuator.setName("#{other_equip.name} act".gsub("|","_"))
+        supply_duct_conduction_to_air_handler_actuator.setName("#{other_equip.name} act")
         
         # Return duct conduction load added to the return plenum zone
         other_equip_def = OpenStudio::Model::OtherEquipmentDefinition.new(model)
@@ -1582,7 +1582,7 @@ class ResidentialAirflow < OpenStudio::Measure::ModelMeasure
         other_equip.setSchedule(model.alwaysOnDiscreteSchedule)
         other_equip.setSpace(ra_duct_space)
         return_duct_conduction_to_plenum_actuator = OpenStudio::Model::EnergyManagementSystemActuator.new(other_equip, "OtherEquipment", "Power Level")
-        return_duct_conduction_to_plenum_actuator.setName("#{other_equip.name} act".gsub("|","_"))
+        return_duct_conduction_to_plenum_actuator.setName("#{other_equip.name} act")
       
         # Return duct conduction impact on the air handler zone.
         other_equip_def = OpenStudio::Model::OtherEquipmentDefinition.new(model)
@@ -1593,7 +1593,7 @@ class ResidentialAirflow < OpenStudio::Measure::ModelMeasure
         other_equip.setSchedule(model.alwaysOnDiscreteSchedule)
         other_equip.setSpace(ducts.duct_location_zone.spaces[0])
         return_duct_conduction_to_air_handler_actuator = OpenStudio::Model::EnergyManagementSystemActuator.new(other_equip, "OtherEquipment", "Power Level")
-        return_duct_conduction_to_air_handler_actuator.setName("#{other_equip.name} act".gsub("|","_"))
+        return_duct_conduction_to_air_handler_actuator.setName("#{other_equip.name} act")
         
         # Supply duct sensible lkage impact on the air handler zone.
         other_equip_def = OpenStudio::Model::OtherEquipmentDefinition.new(model)
@@ -1604,7 +1604,7 @@ class ResidentialAirflow < OpenStudio::Measure::ModelMeasure
         other_equip.setSchedule(model.alwaysOnDiscreteSchedule)
         other_equip.setSpace(ducts.duct_location_zone.spaces[0])
         supply_sensible_lkage_to_air_handler_actuator = OpenStudio::Model::EnergyManagementSystemActuator.new(other_equip, "OtherEquipment", "Power Level")
-        supply_sensible_lkage_to_air_handler_actuator.setName("#{other_equip.name} act".gsub("|","_"))
+        supply_sensible_lkage_to_air_handler_actuator.setName("#{other_equip.name} act")
         
         # Supply duct latent lkage impact on the air handler zone.
         other_equip_def = OpenStudio::Model::OtherEquipmentDefinition.new(model)
@@ -1615,7 +1615,7 @@ class ResidentialAirflow < OpenStudio::Measure::ModelMeasure
         other_equip.setSchedule(model.alwaysOnDiscreteSchedule)
         other_equip.setSpace(ducts.duct_location_zone.spaces[0])
         supply_latent_lkage_to_air_handler_actuator = OpenStudio::Model::EnergyManagementSystemActuator.new(other_equip, "OtherEquipment", "Power Level")
-        supply_latent_lkage_to_air_handler_actuator.setName("#{other_equip.name} act".gsub("|","_"))
+        supply_latent_lkage_to_air_handler_actuator.setName("#{other_equip.name} act")
       
         # Return duct sensible lkage impact on the return plenum
         other_equip_def = OpenStudio::Model::OtherEquipmentDefinition.new(model)
@@ -1626,7 +1626,7 @@ class ResidentialAirflow < OpenStudio::Measure::ModelMeasure
         other_equip.setSchedule(model.alwaysOnDiscreteSchedule)
         other_equip.setSpace(ra_duct_space)
         return_sensible_lkage_actuator = OpenStudio::Model::EnergyManagementSystemActuator.new(other_equip, "OtherEquipment", "Power Level")
-        return_sensible_lkage_actuator.setName("#{other_equip.name} act".gsub("|","_"))
+        return_sensible_lkage_actuator.setName("#{other_equip.name} act")
         
         # Return duct latent lkage impact on the return plenum
         other_equip_def = OpenStudio::Model::OtherEquipmentDefinition.new(model)
@@ -1637,7 +1637,7 @@ class ResidentialAirflow < OpenStudio::Measure::ModelMeasure
         other_equip.setSchedule(model.alwaysOnDiscreteSchedule)
         other_equip.setSpace(ra_duct_space)
         return_latent_lkage_actuator = OpenStudio::Model::EnergyManagementSystemActuator.new(other_equip, "OtherEquipment", "Power Level")
-        return_latent_lkage_actuator.setName("#{other_equip.name} act".gsub("|","_"))
+        return_latent_lkage_actuator.setName("#{other_equip.name} act")
       
         # Two objects are required to model the air exchange between the air handler zone and the living space since
         # ZoneMixing objects can not account for direction of air flow (both are controlled by EMS)
@@ -1648,13 +1648,13 @@ class ResidentialAirflow < OpenStudio::Measure::ModelMeasure
         zone_mixing_ah_to_living.setName(air_handler_to_living_flow_rate + " mix")
         zone_mixing_ah_to_living.setSourceZone(ducts.duct_location_zone)
         zone_mixing_ah_to_living_actuator = OpenStudio::Model::EnergyManagementSystemActuator.new(zone_mixing_ah_to_living, "ZoneMixing", "Air Exchange Flow Rate")
-        zone_mixing_ah_to_living_actuator.setName("#{zone_mixing_ah_to_living.name} act".gsub("|","_"))
+        zone_mixing_ah_to_living_actuator.setName("#{zone_mixing_ah_to_living.name} act")
 
         zone_mixing_living_to_ah = OpenStudio::Model::ZoneMixing.new(ducts.duct_location_zone)
         zone_mixing_living_to_ah.setName(living_to_air_handler_flow_rate + " mix")
         zone_mixing_living_to_ah.setSourceZone(unit.living_zone)
         zone_mixing_living_to_ah_actuator = OpenStudio::Model::EnergyManagementSystemActuator.new(zone_mixing_living_to_ah, "ZoneMixing", "Air Exchange Flow Rate")
-        zone_mixing_living_to_ah_actuator.setName("#{zone_mixing_living_to_ah.name} act".gsub("|","_"))      
+        zone_mixing_living_to_ah_actuator.setName("#{zone_mixing_living_to_ah.name} act")      
       
         # Sensors
         
@@ -1721,7 +1721,7 @@ class ResidentialAirflow < OpenStudio::Measure::ModelMeasure
         # Subroutine
         
         duct_lkage_subroutine = OpenStudio::Model::EnergyManagementSystemSubroutine.new(model)
-        duct_lkage_subroutine.setName("#{obj_name_ducts} lk subrout".gsub("|","_"))
+        duct_lkage_subroutine.setName("#{obj_name_ducts} lk subrout")
         duct_lkage_subroutine.addLine("Set f_sup = #{ducts.supply_duct_loss}")
         duct_lkage_subroutine.addLine("Set f_ret = #{ducts.return_duct_loss}")
         duct_lkage_subroutine.addLine("Set f_OA = #{ducts.frac_oa * ducts.total_duct_unbalance}")

@@ -778,14 +778,14 @@ class Constants
     if unit_name != self.ObjectNameBuildingUnit
       s_unit = "|#{unit_name}"
     end
-    return "residential solar hot water#{s_unit}"
+    return "res solar hot water#{s_unit}"
   end
   def self.ObjectNameWaterHeater(unit_name=self.ObjectNameBuildingUnit)
     s_unit = ""
     if unit_name != self.ObjectNameBuildingUnit
       s_unit = "|#{unit_name}"
     end
-    return "residential water heater#{s_unit}"
+    return "res wh#{s_unit}"
   end
   def self.ObjectNameWellPump(unit_name=self.ObjectNameBuildingUnit)
     s_unit = ""
