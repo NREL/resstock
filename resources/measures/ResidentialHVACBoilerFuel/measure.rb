@@ -16,7 +16,7 @@ class ProcessBoilerFuel < OpenStudio::Measure::ModelMeasure
 
   # human readable description
   def description
-    return "This measure removes any existing HVAC heating components from the building and adds a boiler along with constant speed pump and water baseboard coils to a hot water plant loop. For multifamily buildings, the supply components on the plant loop can be set for all units of the building."
+    return "This measure removes any existing HVAC heating components from the building and adds a boiler along with constant speed pump and water baseboard coils to a hot water plant loop. For multifamily buildings, the supply components on the plant loop can be set for all units of the building.#{Constants.WorkflowDescription}"
   end
 
   # human readable description of modeling approach
@@ -95,7 +95,7 @@ class ProcessBoilerFuel < OpenStudio::Measure::ModelMeasure
     args << boilerOATLowHWST        
     
     #make an argument for entering boiler design temp
-    boilerDesignTemp = OpenStudio::Measure::OSArgument::makeDoubleArgument("design_temp",false)
+    boilerDesignTemp = OpenStudio::Measure::OSArgument::makeDoubleArgument("design_temp",true)
     boilerDesignTemp.setDisplayName("Design Temperature")
     boilerDesignTemp.setUnits("degrees F")
     boilerDesignTemp.setDescription("Temperature of the outlet water.")

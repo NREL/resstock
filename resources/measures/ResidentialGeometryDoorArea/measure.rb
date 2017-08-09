@@ -14,7 +14,7 @@ class CreateResidentialDoorArea < OpenStudio::Measure::ModelMeasure
 
   # human readable description
   def description
-    return "Sets the opaque door area for the building. Doors with glazing should be set as window area. For multifamily buildings, door area can be set for all units of the building."
+    return "Sets the opaque door area for the building. Doors with glazing should be set as window area. For multifamily buildings, door area can be set for all units of the building.#{Constants.WorkflowDescription}"
   end
 
   # human readable description of modeling approach
@@ -45,7 +45,7 @@ class CreateResidentialDoorArea < OpenStudio::Measure::ModelMeasure
     if !runner.validateUserArguments(arguments(model), user_arguments)
       return false
     end
-	
+
     door_area = runner.getDoubleArgumentValue("door_area",user_arguments)
     
     model.getSubSurfaces.each do |sub_surface|

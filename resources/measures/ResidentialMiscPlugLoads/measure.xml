@@ -2,14 +2,33 @@
   <schema_version>3.0</schema_version>
   <name>residential_miscellaneous_electric_loads</name>
   <uid>3ac41688-ef52-4679-b79c-8cbdf7cbd0e7</uid>
-  <version_id>8e8c3ddf-8b40-4ccc-8d71-5fad61cd6f2a</version_id>
-  <version_modified>20170628T172606Z</version_modified>
+  <version_id>c755817a-624c-4143-8d8b-3a0fdd884265</version_id>
+  <version_modified>20170731T151922Z</version_modified>
   <xml_checksum>126F1C43</xml_checksum>
   <class_name>ResidentialMiscellaneousElectricLoads</class_name>
   <display_name>Set Residential Plug Loads</display_name>
-  <description>Adds (or replaces) residential plug loads with the specified efficiency and schedule in all finished spaces. For multifamily buildings, the plug loads can be set for all units of the building.</description>
+  <description>Adds (or replaces) residential plug loads with the specified efficiency and schedule in all finished spaces. For multifamily buildings, the plug loads can be set for all units of the building. See https://github.com/NREL/OpenStudio-BEopt#workflows for supported workflows using this measure.</description>
   <modeler_description>Since there is no Plug Loads object in OpenStudio/EnergyPlus, we look for an ElectricEquipment object with the name that denotes it is residential plug loads. If one is found, it is replaced with the specified properties. Otherwise, a new such object is added to the model. Note: This measure requires the number of bedrooms/bathrooms to have already been assigned.</modeler_description>
   <arguments>
+    <argument>
+      <name>option_type</name>
+      <display_name>Option Type</display_name>
+      <description>Inputs are used/ignored below based on the option type specified.</description>
+      <type>Choice</type>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>Multiplier</default_value>
+      <choices>
+        <choice>
+          <value>Multiplier</value>
+          <display_name>Multiplier</display_name>
+        </choice>
+        <choice>
+          <value>Annual Energy Use</value>
+          <display_name>Annual Energy Use</display_name>
+        </choice>
+      </choices>
+    </argument>
     <argument>
       <name>mult</name>
       <display_name>Multiplier</display_name>
@@ -18,6 +37,34 @@
       <required>true</required>
       <model_dependent>false</model_dependent>
       <default_value>1</default_value>
+    </argument>
+    <argument>
+      <name>energy_use</name>
+      <display_name>Annual Energy Use</display_name>
+      <description>Annual energy use of the plug loads.</description>
+      <type>Double</type>
+      <units>kWh/year</units>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>2000</default_value>
+    </argument>
+    <argument>
+      <name>sens_frac</name>
+      <display_name>Sensible Fraction</display_name>
+      <description>Fraction of internal gains that are sensible.</description>
+      <type>Double</type>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>0.93</default_value>
+    </argument>
+    <argument>
+      <name>lat_frac</name>
+      <display_name>Latent Fraction</display_name>
+      <description>Fraction of internal gains that are latent.</description>
+      <type>Double</type>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>0.021</default_value>
     </argument>
     <argument>
       <name>weekday_sch</name>
@@ -66,10 +113,28 @@
   </attributes>
   <files>
     <file>
+      <filename>schedules.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>E4C6BC93</checksum>
+    </file>
+    <file>
       <filename>ResidentialMiscellaneousElectricLoads_Test.rb</filename>
       <filetype>rb</filetype>
       <usage_type>test</usage_type>
-      <checksum>EC1A2DA8</checksum>
+      <checksum>8035ED20</checksum>
+    </file>
+    <file>
+      <filename>geometry.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>20190C86</checksum>
+    </file>
+    <file>
+      <filename>constants.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>B34275B6</checksum>
     </file>
     <file>
       <version>
@@ -80,49 +145,31 @@
       <filename>measure.rb</filename>
       <filetype>rb</filetype>
       <usage_type>script</usage_type>
-      <checksum>0048ED45</checksum>
-    </file>
-    <file>
-      <filename>geometry.rb</filename>
-      <filetype>rb</filetype>
-      <usage_type>resource</usage_type>
-      <checksum>31FE0BE6</checksum>
+      <checksum>F9D2CF89</checksum>
     </file>
     <file>
       <filename>SFD_2000sqft_2story_FB_GRG_UA.osm</filename>
       <filetype>osm</filetype>
       <usage_type>test</usage_type>
-      <checksum>AD531B32</checksum>
+      <checksum>4A4369FC</checksum>
     </file>
     <file>
       <filename>SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths.osm</filename>
       <filetype>osm</filetype>
       <usage_type>test</usage_type>
-      <checksum>619BA1D0</checksum>
+      <checksum>EEB150BD</checksum>
     </file>
     <file>
       <filename>MF_8units_1story_SL_3Beds_2Baths_Denver.osm</filename>
       <filetype>osm</filetype>
       <usage_type>test</usage_type>
-      <checksum>BA137D3B</checksum>
+      <checksum>DD3A4A07</checksum>
     </file>
     <file>
       <filename>SFA_4units_1story_FB_UA_3Beds_2Baths_Denver.osm</filename>
       <filetype>osm</filetype>
       <usage_type>test</usage_type>
-      <checksum>4F5E31EE</checksum>
-    </file>
-    <file>
-      <filename>schedules.rb</filename>
-      <filetype>rb</filetype>
-      <usage_type>resource</usage_type>
-      <checksum>E4C6BC93</checksum>
-    </file>
-    <file>
-      <filename>constants.rb</filename>
-      <filetype>rb</filetype>
-      <usage_type>resource</usage_type>
-      <checksum>C8CE4128</checksum>
+      <checksum>DD29FB28</checksum>
     </file>
   </files>
 </measure>

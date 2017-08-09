@@ -2,16 +2,16 @@
   <schema_version>3.0</schema_version>
   <name>residential_clothes_washer</name>
   <uid>640bfdca-ba67-461e-b517-1a7291c22b22</uid>
-  <version_id>38fef20e-d3ad-4ddc-b067-259f12da13bf</version_id>
-  <version_modified>20170630T203943Z</version_modified>
+  <version_id>d2bba385-e241-45cc-bb9a-9c13f8a41ddf</version_id>
+  <version_modified>20170731T151909Z</version_modified>
   <xml_checksum>126F1C43</xml_checksum>
   <class_name>ResidentialClothesWasher</class_name>
   <display_name>Set Residential Clothes Washer</display_name>
-  <description>Adds (or replaces) a residential clothes washer with the specified efficiency, operation, and schedule. For multifamily buildings, the clothes washer can be set for all units of the building.</description>
+  <description>Adds (or replaces) a residential clothes washer with the specified efficiency, operation, and schedule. For multifamily buildings, the clothes washer can be set for all units of the building. See https://github.com/NREL/OpenStudio-BEopt#workflows for supported workflows using this measure.</description>
   <modeler_description>Since there is no Clothes Washer object in OpenStudio/EnergyPlus, we look for an ElectricEquipment object with the name that denotes it is a residential clothes washer. If one is found, it is replaced with the specified properties. Otherwise, a new such object is added to the model. Note: This measure requires the number of bedrooms/bathrooms to have already been assigned.</modeler_description>
   <arguments>
     <argument>
-      <name>cw_imef</name>
+      <name>imef</name>
       <display_name>Integrated Modified Energy Factor</display_name>
       <description>The Integrated Modified Energy Factor (IMEF) is the capacity of the clothes container divided by the total clothes washer energy consumption per cycle, where the energy consumption is the sum of the machine electrical energy consumption, the hot water energy consumption, the energy required for removal of the remaining moisture in the wash load, standby energy, and off-mode energy consumption. If only a Modified Energy Factor (MEF) is available, convert using the equation: IMEF = (MEF - 0.503) / 0.95.</description>
       <type>Double</type>
@@ -21,7 +21,7 @@
       <default_value>0.95</default_value>
     </argument>
     <argument>
-      <name>cw_rated_annual_energy</name>
+      <name>rated_annual_energy</name>
       <display_name>Rated Annual Consumption</display_name>
       <description>The annual energy consumed by the clothes washer, as rated, obtained from the EnergyGuide label. This includes both the appliance electricity consumption and the energy required for water heating.</description>
       <type>Double</type>
@@ -31,7 +31,7 @@
       <default_value>387</default_value>
     </argument>
     <argument>
-      <name>cw_annual_cost</name>
+      <name>annual_cost</name>
       <display_name>Annual Cost with Gas DHW</display_name>
       <description>The annual cost of using the system under test conditions.  Input is obtained from the EnergyGuide label.</description>
       <type>Double</type>
@@ -41,7 +41,7 @@
       <default_value>24</default_value>
     </argument>
     <argument>
-      <name>cw_test_date</name>
+      <name>test_date</name>
       <display_name>Test Date</display_name>
       <description>Input obtained from EnergyGuide labels.  The new E-guide labels state that the test was performed under the 2004 DOE procedure, otherwise use year &lt; 2004.</description>
       <type>Integer</type>
@@ -50,7 +50,7 @@
       <default_value>2007</default_value>
     </argument>
     <argument>
-      <name>cw_drum_volume</name>
+      <name>drum_volume</name>
       <display_name>Drum Volume</display_name>
       <description>Volume of the washer drum.  Obtained from the EnergyStar website or the manufacturer's literature.</description>
       <type>Double</type>
@@ -60,7 +60,7 @@
       <default_value>3.5</default_value>
     </argument>
     <argument>
-      <name>cw_cold_cycle</name>
+      <name>cold_cycle</name>
       <display_name>Use Cold Cycle Only</display_name>
       <description>The washer is operated using only the cold cycle.</description>
       <type>Boolean</type>
@@ -79,7 +79,7 @@
       </choices>
     </argument>
     <argument>
-      <name>cw_thermostatic_control</name>
+      <name>thermostatic_control</name>
       <display_name>Thermostatic Control</display_name>
       <description>The clothes washer uses hot and cold water inlet valves to control temperature (varies hot water volume to control wash temperature).  Use this option for machines that use hot and cold inlet valves to control wash water temperature or machines that use both inlet valves AND internal electric heaters to control temperature of the wash water.  Input obtained from the manufacturer's literature.</description>
       <type>Boolean</type>
@@ -98,7 +98,7 @@
       </choices>
     </argument>
     <argument>
-      <name>cw_internal_heater</name>
+      <name>internal_heater</name>
       <display_name>Has Internal Heater Adjustment</display_name>
       <description>The washer uses an internal electric heater to adjust the temperature of wash water.  Use this option for washers that have hot and cold water connections but use an internal electric heater to adjust the wash water temperature.  Obtain the input from the manufacturer's literature.</description>
       <type>Boolean</type>
@@ -117,7 +117,7 @@
       </choices>
     </argument>
     <argument>
-      <name>cw_fill_sensor</name>
+      <name>fill_sensor</name>
       <display_name>Has Water Level Fill Sensor</display_name>
       <description>The washer has a vertical axis and water level fill sensor.  Input obtained from the manufacturer's literature.</description>
       <type>Boolean</type>
@@ -136,7 +136,7 @@
       </choices>
     </argument>
     <argument>
-      <name>cw_mult_e</name>
+      <name>mult_e</name>
       <display_name>Occupancy Energy Multiplier</display_name>
       <description>Appliance energy use is multiplied by this factor to account for occupancy usage that differs from the national average.</description>
       <type>Double</type>
@@ -145,7 +145,7 @@
       <default_value>1</default_value>
     </argument>
     <argument>
-      <name>cw_mult_hw</name>
+      <name>mult_hw</name>
       <display_name>Occupancy Hot Water Multiplier</display_name>
       <description>Appliance hot water use is multiplied by this factor to account for occupancy usage that differs from the national average. This should generally be equal to the Occupancy Energy Multiplier.</description>
       <type>Double</type>
@@ -527,64 +527,10 @@
       <checksum>3C131B97</checksum>
     </file>
     <file>
-      <filename>unit_conversions.rb</filename>
-      <filetype>rb</filetype>
-      <usage_type>resource</usage_type>
-      <checksum>DCB12FCF</checksum>
-    </file>
-    <file>
       <filename>weather.rb</filename>
       <filetype>rb</filetype>
       <usage_type>resource</usage_type>
       <checksum>36B7CAC2</checksum>
-    </file>
-    <file>
-      <filename>ResidentialClothesWasher_Test.rb</filename>
-      <filetype>rb</filetype>
-      <usage_type>test</usage_type>
-      <checksum>4DCA12F5</checksum>
-    </file>
-    <file>
-      <filename>geometry.rb</filename>
-      <filetype>rb</filetype>
-      <usage_type>resource</usage_type>
-      <checksum>31FE0BE6</checksum>
-    </file>
-    <file>
-      <filename>SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths.osm</filename>
-      <filetype>osm</filetype>
-      <usage_type>test</usage_type>
-      <checksum>619BA1D0</checksum>
-    </file>
-    <file>
-      <filename>SFD_2000sqft_2story_FB_GRG_UA_Denver.osm</filename>
-      <filetype>osm</filetype>
-      <usage_type>test</usage_type>
-      <checksum>37F6B36C</checksum>
-    </file>
-    <file>
-      <filename>SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver.osm</filename>
-      <filetype>osm</filetype>
-      <usage_type>test</usage_type>
-      <checksum>7FD51F33</checksum>
-    </file>
-    <file>
-      <filename>SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver_ElecWHTank.osm</filename>
-      <filetype>osm</filetype>
-      <usage_type>test</usage_type>
-      <checksum>0435122C</checksum>
-    </file>
-    <file>
-      <filename>MF_8units_1story_SL_3Beds_2Baths_Denver_ElecWHTank.osm</filename>
-      <filetype>osm</filetype>
-      <usage_type>test</usage_type>
-      <checksum>D6359D42</checksum>
-    </file>
-    <file>
-      <filename>SFA_4units_1story_FB_UA_3Beds_2Baths_Denver_ElecWHTank.osm</filename>
-      <filetype>osm</filetype>
-      <usage_type>test</usage_type>
-      <checksum>E018B645</checksum>
     </file>
     <file>
       <filename>schedules.rb</filename>
@@ -593,16 +539,40 @@
       <checksum>E4C6BC93</checksum>
     </file>
     <file>
-      <filename>SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver_ElecWHTankless.osm</filename>
-      <filetype>osm</filetype>
+      <filename>waterheater.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>B9EE062E</checksum>
+    </file>
+    <file>
+      <filename>unit_conversions.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>6BA22437</checksum>
+    </file>
+    <file>
+      <filename>ResidentialClothesWasher_Test.rb</filename>
+      <filetype>rb</filetype>
       <usage_type>test</usage_type>
-      <checksum>B1972E06</checksum>
+      <checksum>7ECC0C41</checksum>
+    </file>
+    <file>
+      <filename>geometry.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>20190C86</checksum>
+    </file>
+    <file>
+      <filename>util.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>64BC6389</checksum>
     </file>
     <file>
       <filename>constants.rb</filename>
       <filetype>rb</filetype>
       <usage_type>resource</usage_type>
-      <checksum>C8CE4128</checksum>
+      <checksum>B34275B6</checksum>
     </file>
     <file>
       <version>
@@ -613,19 +583,49 @@
       <filename>measure.rb</filename>
       <filetype>rb</filetype>
       <usage_type>script</usage_type>
-      <checksum>5EE3500A</checksum>
+      <checksum>44E201EB</checksum>
     </file>
     <file>
-      <filename>waterheater.rb</filename>
-      <filetype>rb</filetype>
-      <usage_type>resource</usage_type>
-      <checksum>B9EE062E</checksum>
+      <filename>SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>EEB150BD</checksum>
     </file>
     <file>
-      <filename>util.rb</filename>
-      <filetype>rb</filetype>
-      <usage_type>resource</usage_type>
-      <checksum>87C9A783</checksum>
+      <filename>SFD_2000sqft_2story_FB_GRG_UA_Denver.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>61F3EB13</checksum>
+    </file>
+    <file>
+      <filename>SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>AE29A5F8</checksum>
+    </file>
+    <file>
+      <filename>SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver_ElecWHTank.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>ADB2C537</checksum>
+    </file>
+    <file>
+      <filename>MF_8units_1story_SL_3Beds_2Baths_Denver_ElecWHTank.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>01936D22</checksum>
+    </file>
+    <file>
+      <filename>SFA_4units_1story_FB_UA_3Beds_2Baths_Denver_ElecWHTank.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>9D0754DC</checksum>
+    </file>
+    <file>
+      <filename>SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver_ElecWHTankless.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>4D7ADA4E</checksum>
     </file>
   </files>
 </measure>

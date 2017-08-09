@@ -14,7 +14,7 @@ class SetResidentialEPWFile < OpenStudio::Measure::ModelMeasure
 
   # human readable description
   def description
-    return "Sets the EPW weather file (EPW), supplemental data specific to the location, and daylight saving time start/end dates."
+    return "Sets the EPW weather file (EPW), supplemental data specific to the location, and daylight saving time start/end dates.#{Constants.WorkflowDescription}"
   end
 
   # human readable description of modeling approach

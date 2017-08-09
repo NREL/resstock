@@ -16,7 +16,7 @@ class ProcessDehumidifier < OpenStudio::Measure::ModelMeasure
 
   # human readable description
   def description
-    return "This measure removes any existing dehumidifiers from the building and adds a dehumidifier. For multifamily buildings, the dehumidifier can be set for all units of the building."
+    return "This measure removes any existing dehumidifiers from the building and adds a dehumidifier. For multifamily buildings, the dehumidifier can be set for all units of the building.#{Constants.WorkflowDescription}"
   end
 
   # human readable description of modeling approach
@@ -28,7 +28,7 @@ class ProcessDehumidifier < OpenStudio::Measure::ModelMeasure
   def arguments(model)
     args = OpenStudio::Measure::OSArgumentVector.new
 
-   	#Make a string argument for dehumidifier energy factor
+    #Make a string argument for dehumidifier energy factor
     energy_factor = OpenStudio::Measure::OSArgument::makeStringArgument("energy_factor", true)
     energy_factor.setDisplayName("Energy Factor")
     energy_factor.setDescription("The energy efficiency of dehumidifiers is measured by its energy factor, in liters of water removed per kilowatt-hour (kWh) of energy consumed or L/kWh.")
@@ -36,7 +36,7 @@ class ProcessDehumidifier < OpenStudio::Measure::ModelMeasure
     energy_factor.setDefaultValue(Constants.Auto)
     args << energy_factor
     
-   	#Make a string argument for dehumidifier water removal rate
+    #Make a string argument for dehumidifier water removal rate
     water_removal_rate = OpenStudio::Measure::OSArgument::makeStringArgument("water_removal_rate", true)
     water_removal_rate.setDisplayName("Water Removal Rate")
     water_removal_rate.setDescription("Dehumidifier rated water removal rate measured in pints per day at an inlet condition of 80 degrees F DB/60%RH.")
@@ -44,7 +44,7 @@ class ProcessDehumidifier < OpenStudio::Measure::ModelMeasure
     water_removal_rate.setDefaultValue(Constants.Auto)
     args << water_removal_rate
     
-   	#Make a string argument for dehumidifier air flow rate
+    #Make a string argument for dehumidifier air flow rate
     air_flow_rate = OpenStudio::Measure::OSArgument::makeStringArgument("air_flow_rate", true)
     air_flow_rate.setDisplayName("Air Flow Rate")
     air_flow_rate.setDescription("The dehumidifier rated air flow rate in CFM. If 'auto' is entered, the air flow will be determined using the rated water removal rate.")
@@ -52,7 +52,7 @@ class ProcessDehumidifier < OpenStudio::Measure::ModelMeasure
     air_flow_rate.setDefaultValue(Constants.Auto)
     args << air_flow_rate
     
-   	#Make a string argument for humidity setpoint
+    #Make a string argument for humidity setpoint
     humidity_setpoint = OpenStudio::Measure::OSArgument::makeDoubleArgument("humidity_setpoint", true)
     humidity_setpoint.setDisplayName("Annual Relative Humidity Setpoint")
     humidity_setpoint.setDescription("The annual relative humidity setpoint.")

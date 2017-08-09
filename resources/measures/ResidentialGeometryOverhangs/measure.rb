@@ -14,7 +14,7 @@ class CreateResidentialOverhangs < OpenStudio::Measure::ModelMeasure
 
   # human readable description
   def description
-    return "Sets presence/dimensions of overhangs for windows on the specified building facade(s)."
+    return "Sets presence/dimensions of overhangs for windows on the specified building facade(s).#{Constants.WorkflowDescription}"
   end
 
   # human readable description of modeling approach
@@ -26,6 +26,19 @@ class CreateResidentialOverhangs < OpenStudio::Measure::ModelMeasure
   def arguments(model)
     args = OpenStudio::Measure::OSArgumentVector.new
 
+    #make a choice argument for above-grade exterior walls adjacent to finished space or attic walls under insulated roofs
+    sub_surfaces = get_window_sub_surfaces(model)
+    sub_surfaces_args = OpenStudio::StringVector.new
+    sub_surfaces_args << Constants.Auto
+    sub_surfaces.each do |sub_surface|
+      sub_surfaces_args << sub_surface.name.to_s
+    end
+    surface = OpenStudio::Measure::OSArgument::makeChoiceArgument("sub_surface", sub_surfaces_args, false)
+    surface.setDisplayName("Sub Surface(s)")
+    surface.setDescription("Select the sub surface(s) to assign overhangs.")
+    surface.setDefaultValue(Constants.Auto)
+    args << surface
+    
     depth = OpenStudio::Measure::OSArgument::makeDoubleArgument("depth", true)
     depth.setDisplayName("Depth")
     depth.setUnits("ft")
@@ -74,6 +87,19 @@ class CreateResidentialOverhangs < OpenStudio::Measure::ModelMeasure
       return false
     end
 
+    sub_surface_s = runner.getOptionalStringArgumentValue("sub_surface",user_arguments)
+    if not sub_surface_s.is_initialized
+      sub_surface_s = Constants.Auto
+    else
+      sub_surface_s = sub_surface_s.get
+    end
+    
+    sub_surfaces = get_window_sub_surfaces(model)
+    
+    unless sub_surface_s == Constants.Auto
+      sub_surfaces.delete_if { |sub_surface| sub_surface.name.to_s != sub_surface_s }
+    end
+    
     depth = OpenStudio.convert(runner.getDoubleArgumentValue("depth",user_arguments), "ft", "m").get
     offset = OpenStudio.convert(runner.getDoubleArgumentValue("offset",user_arguments), "ft", "m").get
     # width_extension = OpenStudio.convert(runner.getDoubleArgumentValue("width_extension",user_arguments), "ft", "m").get
@@ -128,18 +154,15 @@ class CreateResidentialOverhangs < OpenStudio::Measure::ModelMeasure
     
     windows_found = false
     
-    subsurfaces = model.getSubSurfaces
-    subsurfaces.each do |subsurface|
-        
-        next if not subsurface.subSurfaceType.downcase.include? "window"
-        
+    sub_surfaces.each do |sub_surface|
+
         windows_found = true
-        facade = Geometry.get_facade_for_surface(subsurface)
+        facade = Geometry.get_facade_for_surface(sub_surface)
         next if facade.nil?
         next if !facade_bools_hash["#{facade} Facade"]
 
-        overhang = subsurface.addOverhang(depth, offset)
-        overhang.get.setName("#{subsurface.name} - Overhang")
+        overhang = sub_surface.addOverhang(depth, offset)
+        overhang.get.setName("#{sub_surface.name} - Overhang")
         
         runner.registerInfo("#{overhang.get.name.to_s} added.")
 
@@ -152,6 +175,15 @@ class CreateResidentialOverhangs < OpenStudio::Measure::ModelMeasure
     
     return true
     
+  end
+  
+  def get_window_sub_surfaces(model)
+    sub_surfaces = []
+    model.getSubSurfaces.each do |sub_surface|
+      next if not sub_surface.subSurfaceType.downcase.include? "window"
+      sub_surfaces << sub_surface
+    end
+    return sub_surfaces  
   end
   
 end

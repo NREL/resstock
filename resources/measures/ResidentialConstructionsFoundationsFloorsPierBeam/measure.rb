@@ -14,7 +14,7 @@ class ProcessConstructionsFoundationsFloorsPierBeam < OpenStudio::Measure::Model
   end
   
   def description
-    return "This measure assigns a wood stud construction to the ceiling of the pier & beam space."
+    return "This measure assigns a wood stud construction to the ceiling of the pier & beam space.#{Constants.WorkflowDescription}"
   end
   
   def modeler_description
@@ -25,6 +25,19 @@ class ProcessConstructionsFoundationsFloorsPierBeam < OpenStudio::Measure::Model
   def arguments(model)
     args = OpenStudio::Measure::OSArgumentVector.new
 
+    #make a choice argument for crawlspace ceilings, walls, and floors
+    surfaces, spaces = get_pier_beam_surfaces(model)
+    surfaces_args = OpenStudio::StringVector.new
+    surfaces_args << Constants.Auto
+    surfaces.each do |surface|
+      surfaces_args << surface.name.to_s
+    end
+    surface = OpenStudio::Measure::OSArgument::makeChoiceArgument("surface", surfaces_args, false)
+    surface.setDisplayName("Surface(s)")
+    surface.setDescription("Select the surface(s) to assign constructions.")
+    surface.setDefaultValue(Constants.Auto)
+    args << surface
+    
     #make a double argument for nominal R-value of cavity insulation
     cavity_r = OpenStudio::Measure::OSArgument::makeDoubleArgument("cavity_r", true)
     cavity_r.setDisplayName("Cavity Insulation Nominal R-value")
@@ -64,20 +77,24 @@ class ProcessConstructionsFoundationsFloorsPierBeam < OpenStudio::Measure::Model
       return false
     end
 
-    surfaces = []
-    spaces = Geometry.get_pier_beam_spaces(model.getSpaces)
-    spaces.each do |space|
-        space.surfaces.each do |surface|
-            next if surface.surfaceType.downcase != "roofceiling"
-            surfaces << surface
-        end
+    surface_s = runner.getOptionalStringArgumentValue("surface",user_arguments)
+    if not surface_s.is_initialized
+      surface_s = Constants.Auto
+    else
+      surface_s = surface_s.get
     end
+    
+    surfaces, spaces = get_pier_beam_surfaces(model)
     
     # Continue if no applicable surfaces
     if surfaces.empty?
       runner.registerAsNotApplicable("Measure not applied because no applicable surfaces were found.")
       return true
-    end        
+    end
+    
+    unless surface_s == Constants.Auto
+      surfaces.delete_if { |surface| surface.name.to_s != surface_s }
+    end
     
     # Get Inputs
     pbCeilingCavityInsRvalueNominal = runner.getDoubleArgumentValue("cavity_r",user_arguments)
@@ -143,6 +160,18 @@ class ProcessConstructionsFoundationsFloorsPierBeam < OpenStudio::Measure::Model
 
   end #end the run method
 
+  def get_pier_beam_surfaces(model)
+    surfaces = []
+    spaces = Geometry.get_pier_beam_spaces(model.getSpaces)
+    spaces.each do |space|
+        space.surfaces.each do |surface|
+            next if surface.surfaceType.downcase != "roofceiling"
+            surfaces << surface
+        end
+    end
+    return surfaces, spaces
+  end
+  
 end #end the measure
 
 #this allows the measure to be use by the application

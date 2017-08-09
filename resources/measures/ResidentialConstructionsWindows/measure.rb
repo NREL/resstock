@@ -23,7 +23,7 @@ class ProcessConstructionsWindows < OpenStudio::Measure::ModelMeasure
   end
   
   def description
-    return "This measure assigns a construction to windows. This measure also creates the interior shading schedule, which is based on shade multipliers and the heating and cooling season logic defined in the Building America House Simulation Protocols."
+    return "This measure assigns a construction to windows. This measure also creates the interior shading schedule, which is based on shade multipliers and the heating and cooling season logic defined in the Building America House Simulation Protocols.#{Constants.WorkflowDescription}"
   end
   
   def modeler_description
@@ -34,30 +34,47 @@ class ProcessConstructionsWindows < OpenStudio::Measure::ModelMeasure
   def arguments(model)
     args = OpenStudio::Measure::OSArgumentVector.new
 
-    #make an argument for entering optional window u-factor
-    ufactor = OpenStudio::Measure::OSArgument::makeDoubleArgument("ufactor",false)
-    ufactor.setDisplayName("U-Value")
+    #make a choice argument for window sub surfaces
+    sub_surfaces = get_window_sub_surfaces(model)
+    sub_surfaces_args = OpenStudio::StringVector.new
+    sub_surfaces_args << Constants.Auto
+    sub_surfaces_args << Constants.FacadeFront
+    sub_surfaces_args << Constants.FacadeBack
+    sub_surfaces_args << Constants.FacadeLeft
+    sub_surfaces_args << Constants.FacadeRight
+    sub_surfaces.each do |sub_surface|
+      sub_surfaces_args << sub_surface.name.to_s
+    end      
+    sub_surface = OpenStudio::Measure::OSArgument::makeChoiceArgument("sub_surface", sub_surfaces_args, false)
+    sub_surface.setDisplayName("Subsurface(s)")
+    sub_surface.setDescription("Select the sub surface(s) to assign constructions.")
+    sub_surface.setDefaultValue(Constants.Auto)
+    args << sub_surface
+    
+    #make an argument for entering front window u-factor
+    ufactor = OpenStudio::Measure::OSArgument::makeDoubleArgument("ufactor",true)
+    ufactor.setDisplayName("U-Factor")
     ufactor.setUnits("Btu/hr-ft^2-R")
     ufactor.setDescription("The heat transfer coefficient of the windows.")
     ufactor.setDefaultValue(0.37)
     args << ufactor
 
-    #make an argument for entering optional window shgc
-    shgc = OpenStudio::Measure::OSArgument::makeDoubleArgument("shgc",false)
+    #make an argument for entering front window shgc
+    shgc = OpenStudio::Measure::OSArgument::makeDoubleArgument("shgc",true)
     shgc.setDisplayName("SHGC")
-    shgc.setDescription("The ratio of solar heat gain through a glazing system compared to that of an unobstructed opening.")
+    shgc.setDescription("The ratio of solar heat gain through a glazing system compared to that of an unobstructed opening, for windows.")
     shgc.setDefaultValue(0.3)
     args << shgc
 
-    #make an argument for entering optional window u-factor
-    heating_shade_mult = OpenStudio::Measure::OSArgument::makeDoubleArgument("heating_shade_mult",false)
+    #make an argument for entering heating shade multiplier
+    heating_shade_mult = OpenStudio::Measure::OSArgument::makeDoubleArgument("heating_shade_mult",true)
     heating_shade_mult.setDisplayName("Heating Shade Multiplier")
     heating_shade_mult.setDescription("Interior shading multiplier for heating season. 1.0 indicates no reduction in solar gain, 0.85 indicates 15% reduction, etc.")
     heating_shade_mult.setDefaultValue(0.7)
     args << heating_shade_mult
 
-    #make an argument for entering optional window shgc
-    cooling_shade_mult = OpenStudio::Measure::OSArgument::makeDoubleArgument("cooling_shade_mult",false)
+    #make an argument for entering cooling shade multiplier
+    cooling_shade_mult = OpenStudio::Measure::OSArgument::makeDoubleArgument("cooling_shade_mult",true)
     cooling_shade_mult.setDisplayName("Cooling Shade Multiplier")
     cooling_shade_mult.setDescription("Interior shading multiplier for cooling season. 1.0 indicates no reduction in solar gain, 0.85 indicates 15% reduction, etc.")
     cooling_shade_mult.setDefaultValue(0.7)
@@ -75,36 +92,39 @@ class ProcessConstructionsWindows < OpenStudio::Measure::ModelMeasure
       return false
     end
     
-    # loop thru all the spaces
-    sub_surfaces = []
-    spaces = model.getSpaces
-    spaces.each do |space|
-        space.surfaces.each do |surface|
-            surface.subSurfaces.each do |subSurface|
-                next unless subSurface.subSurfaceType.downcase.include? "window"
-                sub_surfaces << subSurface
-            end
-        end
+    sub_surface_s = runner.getOptionalStringArgumentValue("sub_surface",user_arguments)
+    if not sub_surface_s.is_initialized
+      sub_surface_s = Constants.Auto
+    else
+      sub_surface_s = sub_surface_s.get
+    end
+    
+    sub_surfaces = get_window_sub_surfaces(model)
+    
+    if not [Constants.Auto, Constants.FacadeFront, Constants.FacadeBack, Constants.FacadeLeft, Constants.FacadeRight].include? sub_surface_s
+      sub_surfaces.delete_if { |sub_surface| sub_surface.name.to_s != sub_surface_s }
+    elsif not sub_surface_s == Constants.Auto
+      sub_surfaces.delete_if { |sub_surface| Geometry.get_facade_for_surface(sub_surface) != sub_surface_s }
     end
     
     # Continue if no applicable sub surfaces
     if sub_surfaces.empty?
       runner.registerAsNotApplicable("Measure not applied because no windows were found.")
       return true
-    end    
+    end
     
     ufactor = OpenStudio::convert(runner.getDoubleArgumentValue("ufactor",user_arguments),"Btu/hr*ft^2*R","W/m^2*K").get
     shgc = runner.getDoubleArgumentValue("shgc",user_arguments)
-
+    
     #error checking
     if ufactor <= 0
-      runner.registerError("Invalid window U-value.")
+      runner.registerError("Invalid window U-factor.")
       return false
     end
     if shgc <= 0
       runner.registerError("Invalid window SHGC.")
       return false
-    end
+    end      
 
     intShadeHeatingMultiplier = runner.getDoubleArgumentValue("heating_shade_mult",user_arguments)
     intShadeCoolingMultiplier = runner.getDoubleArgumentValue("cooling_shade_mult",user_arguments)
@@ -221,15 +241,27 @@ class ProcessConstructionsWindows < OpenStudio::Measure::ModelMeasure
             sub_surface.setShadingControl(sc)
         end
     end
+    
+    runner.registerInfo("Construction#{sc_msg} added to #{sub_surfaces.size.to_s} window(s).")
 
     # Remove any constructions/materials that aren't used
     HelperMethods.remove_unused_constructions_and_materials(model, runner)
     
-    runner.registerFinalCondition("Construction#{sc_msg} added to #{sub_surfaces.size.to_s} windows.")
+    # Reporting
+    runner.registerFinalCondition("All windows have been assigned constructions.")
     
     return true
  
   end #end the run method
+  
+  def get_window_sub_surfaces(model)
+    sub_surfaces = []
+    model.getSubSurfaces.each do |sub_surface|
+        next unless sub_surface.subSurfaceType.downcase.include? "window"
+        sub_surfaces << sub_surface
+    end
+    return sub_surfaces
+  end  
 
 end #end the measure
 

@@ -15,7 +15,7 @@ class ProcessConstructionsWallsExteriorICF < OpenStudio::Measure::ModelMeasure
 
   # human readable description
   def description
-    return "This measure assigns an ICF construction to above-grade exterior walls adjacent to finished space or attic walls under insulated roofs."
+    return "This measure assigns an ICF construction to above-grade exterior walls adjacent to finished space or attic walls under insulated roofs.#{Constants.WorkflowDescription}"
   end
 
   # human readable description of modeling approach

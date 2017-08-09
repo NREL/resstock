@@ -10,7 +10,7 @@ class ResidentialPoolHeaterGas < OpenStudio::Measure::ModelMeasure
   end
   
   def description
-    return "Adds (or replaces) a residential pool heater with the specified efficiency and schedule. The pool is assumed to be outdoors. For multifamily buildings, the pool heater is set for all units of the building."
+    return "Adds (or replaces) a residential pool heater with the specified efficiency and schedule. The pool is assumed to be outdoors. For multifamily buildings, the pool heater is set for all units of the building.#{Constants.WorkflowDescription}"
   end
   
   def modeler_description
@@ -21,48 +21,48 @@ class ResidentialPoolHeaterGas < OpenStudio::Measure::ModelMeasure
   def arguments(model)
     args = OpenStudio::Measure::OSArgumentVector.new
     
-	#make a double argument for Base Energy Use
-	base_energy = OpenStudio::Measure::OSArgument::makeDoubleArgument("base_energy")
-	base_energy.setDisplayName("Base Energy Use")
+    #make a double argument for Base Energy Use
+    base_energy = OpenStudio::Measure::OSArgument::makeDoubleArgument("base_energy")
+    base_energy.setDisplayName("Base Energy Use")
     base_energy.setUnits("therm/yr")
-	base_energy.setDescription("The national average (Building America Benchmark) energy use.")
-	base_energy.setDefaultValue(222)
-	args << base_energy
+    base_energy.setDescription("The national average (Building America Benchmark) energy use.")
+    base_energy.setDefaultValue(222)
+    args << base_energy
 
-	#make a double argument for Energy Multiplier
-	mult = OpenStudio::Measure::OSArgument::makeDoubleArgument("mult")
-	mult.setDisplayName("Energy Multiplier")
-	mult.setDescription("Sets the annual energy use equal to the base energy use times this multiplier.")
-	mult.setDefaultValue(1)
-	args << mult
-	
-    #make a boolean argument for Scale Energy Use
-	scale_energy = OpenStudio::Measure::OSArgument::makeBoolArgument("scale_energy",true)
-	scale_energy.setDisplayName("Scale Energy Use")
-	scale_energy.setDescription("If true, scales the energy use relative to a 3-bedroom, 1920 sqft house using the following equation: Fscale = (0.5 + 0.25 x Nbr/3 + 0.25 x FFA/1920) where Nbr is the number of bedrooms and FFA is the finished floor area.")
-	scale_energy.setDefaultValue(true)
-	args << scale_energy
-
-	#Make a string argument for 24 weekday schedule values
-	weekday_sch = OpenStudio::Measure::OSArgument::makeStringArgument("weekday_sch")
-	weekday_sch.setDisplayName("Weekday schedule")
-	weekday_sch.setDescription("Specify the 24-hour weekday schedule.")
-	weekday_sch.setDefaultValue("0.003, 0.003, 0.003, 0.004, 0.008, 0.015, 0.026, 0.044, 0.084, 0.121, 0.127, 0.121, 0.120, 0.090, 0.075, 0.061, 0.037, 0.023, 0.013, 0.008, 0.004, 0.003, 0.003, 0.003")
-	args << weekday_sch
+    #make a double argument for Energy Multiplier
+    mult = OpenStudio::Measure::OSArgument::makeDoubleArgument("mult")
+    mult.setDisplayName("Energy Multiplier")
+    mult.setDescription("Sets the annual energy use equal to the base energy use times this multiplier.")
+    mult.setDefaultValue(1)
+    args << mult
     
-	#Make a string argument for 24 weekend schedule values
-	weekend_sch = OpenStudio::Measure::OSArgument::makeStringArgument("weekend_sch")
-	weekend_sch.setDisplayName("Weekend schedule")
-	weekend_sch.setDescription("Specify the 24-hour weekend schedule.")
-	weekend_sch.setDefaultValue("0.003, 0.003, 0.003, 0.004, 0.008, 0.015, 0.026, 0.044, 0.084, 0.121, 0.127, 0.121, 0.120, 0.090, 0.075, 0.061, 0.037, 0.023, 0.013, 0.008, 0.004, 0.003, 0.003, 0.003")
-	args << weekend_sch
+    #make a boolean argument for Scale Energy Use
+    scale_energy = OpenStudio::Measure::OSArgument::makeBoolArgument("scale_energy",true)
+    scale_energy.setDisplayName("Scale Energy Use")
+    scale_energy.setDescription("If true, scales the energy use relative to a 3-bedroom, 1920 sqft house using the following equation: Fscale = (0.5 + 0.25 x Nbr/3 + 0.25 x FFA/1920) where Nbr is the number of bedrooms and FFA is the finished floor area.")
+    scale_energy.setDefaultValue(true)
+    args << scale_energy
 
-	#Make a string argument for 12 monthly schedule values
-	monthly_sch = OpenStudio::Measure::OSArgument::makeStringArgument("monthly_sch")
-	monthly_sch.setDisplayName("Month schedule")
-	monthly_sch.setDescription("Specify the 12-month schedule.")
-	monthly_sch.setDefaultValue("1.154, 1.161, 1.013, 1.010, 1.013, 0.888, 0.883, 0.883, 0.888, 0.978, 0.974, 1.154")
-	args << monthly_sch
+    #Make a string argument for 24 weekday schedule values
+    weekday_sch = OpenStudio::Measure::OSArgument::makeStringArgument("weekday_sch")
+    weekday_sch.setDisplayName("Weekday schedule")
+    weekday_sch.setDescription("Specify the 24-hour weekday schedule.")
+    weekday_sch.setDefaultValue("0.003, 0.003, 0.003, 0.004, 0.008, 0.015, 0.026, 0.044, 0.084, 0.121, 0.127, 0.121, 0.120, 0.090, 0.075, 0.061, 0.037, 0.023, 0.013, 0.008, 0.004, 0.003, 0.003, 0.003")
+    args << weekday_sch
+    
+    #Make a string argument for 24 weekend schedule values
+    weekend_sch = OpenStudio::Measure::OSArgument::makeStringArgument("weekend_sch")
+    weekend_sch.setDisplayName("Weekend schedule")
+    weekend_sch.setDescription("Specify the 24-hour weekend schedule.")
+    weekend_sch.setDefaultValue("0.003, 0.003, 0.003, 0.004, 0.008, 0.015, 0.026, 0.044, 0.084, 0.121, 0.127, 0.121, 0.120, 0.090, 0.075, 0.061, 0.037, 0.023, 0.013, 0.008, 0.004, 0.003, 0.003, 0.003")
+    args << weekend_sch
+
+    #Make a string argument for 12 monthly schedule values
+    monthly_sch = OpenStudio::Measure::OSArgument::makeStringArgument("monthly_sch")
+    monthly_sch.setDisplayName("Month schedule")
+    monthly_sch.setDescription("Specify the 12-month schedule.")
+    monthly_sch.setDefaultValue("1.154, 1.161, 1.013, 1.010, 1.013, 0.888, 0.883, 0.883, 0.888, 0.978, 0.974, 1.154")
+    args << monthly_sch
 
     return args
   end #end the arguments method
@@ -75,23 +75,23 @@ class ResidentialPoolHeaterGas < OpenStudio::Measure::ModelMeasure
     if not runner.validateUserArguments(arguments(model), user_arguments)
       return false
     end
-	
+    
     #assign the user inputs to variables
     base_energy = runner.getDoubleArgumentValue("base_energy",user_arguments)
-	mult = runner.getDoubleArgumentValue("mult",user_arguments)
+    mult = runner.getDoubleArgumentValue("mult",user_arguments)
     scale_energy = runner.getBoolArgumentValue("scale_energy",user_arguments)
-	weekday_sch = runner.getStringArgumentValue("weekday_sch",user_arguments)
-	weekend_sch = runner.getStringArgumentValue("weekend_sch",user_arguments)
-	monthly_sch = runner.getStringArgumentValue("monthly_sch",user_arguments)
+    weekday_sch = runner.getStringArgumentValue("weekday_sch",user_arguments)
+    weekend_sch = runner.getStringArgumentValue("weekend_sch",user_arguments)
+    monthly_sch = runner.getStringArgumentValue("monthly_sch",user_arguments)
     
     #check for valid inputs
     if base_energy < 0
-		runner.registerError("Base energy use must be greater than or equal to 0.")
-		return false
+        runner.registerError("Base energy use must be greater than or equal to 0.")
+        return false
     end
     if mult < 0
-		runner.registerError("Energy multiplier must be greater than or equal to 0.")
-		return false
+        runner.registerError("Energy multiplier must be greater than or equal to 0.")
+        return false
     end
     
     # Get building units

@@ -101,7 +101,7 @@ class ProcessHVACSizing < OpenStudio::Measure::ModelMeasure
   end
   
   def description
-    return "This measure performs HVAC sizing calculations via ACCA Manual J/S, as well as sizing calculations for ground source heat pumps and dehumidifiers."
+    return "This measure performs HVAC sizing calculations via ACCA Manual J/S, as well as sizing calculations for ground source heat pumps and dehumidifiers.#{Constants.WorkflowDescription}"
   end
   
   def modeler_description
@@ -751,8 +751,8 @@ class ProcessHVACSizing < OpenStudio::Measure::ModelMeasure
         wall.subSurfaces.each do |window|
             next if not window.subSurfaceType.downcase.include?("window")
             
-            # U-value
-            u_window = Construction.get_surface_uvalue(runner, window, window.subSurfaceType)
+            # U-factor
+            u_window = Construction.get_surface_ufactor(runner, window, window.subSurfaceType)
             return nil if u_window.nil?
             zone_loads.Heat_Windows += u_window * OpenStudio::convert(window.grossArea,"m^2","ft^2").get * htd
             zone_loads.Dehumid_Windows += u_window * OpenStudio::convert(window.grossArea,"m^2","ft^2").get * mj8.dtd
@@ -938,11 +938,11 @@ class ProcessHVACSizing < OpenStudio::Measure::ModelMeasure
     Geometry.get_spaces_above_grade_exterior_walls(thermal_zone.spaces).each do |wall|
         wall.subSurfaces.each do |door|
             next if not door.subSurfaceType.downcase.include?("door")
-            door_uvalue = Construction.get_surface_uvalue(runner, door, door.subSurfaceType)
-            return nil if door_uvalue.nil?
-            zone_loads.Heat_Doors += door_uvalue * OpenStudio::convert(door.grossArea,"m^2","ft^2").get * htd
-            zone_loads.Cool_Doors += door_uvalue * OpenStudio::convert(door.grossArea,"m^2","ft^2").get * cltd_Door
-            zone_loads.Dehumid_Doors += door_uvalue * OpenStudio::convert(door.grossArea,"m^2","ft^2").get * mj8.dtd
+            door_ufactor = Construction.get_surface_ufactor(runner, door, door.subSurfaceType)
+            return nil if door_ufactor.nil?
+            zone_loads.Heat_Doors += door_ufactor * OpenStudio::convert(door.grossArea,"m^2","ft^2").get * htd
+            zone_loads.Cool_Doors += door_ufactor * OpenStudio::convert(door.grossArea,"m^2","ft^2").get * cltd_Door
+            zone_loads.Dehumid_Doors += door_ufactor * OpenStudio::convert(door.grossArea,"m^2","ft^2").get * mj8.dtd
         end
     end
     
@@ -1003,21 +1003,21 @@ class ProcessHVACSizing < OpenStudio::Measure::ModelMeasure
             cltd_Wall = [cltd_Wall + cltd_corr, 0].max       # Assume zero cooling load for negative CLTD's
         end
 
-        wall_uvalue = Construction.get_surface_uvalue(runner, wall, wall.surfaceType)
-        return nil if wall_uvalue.nil?
-        zone_loads.Cool_Walls += wall_uvalue * OpenStudio::convert(wall.netArea,"m^2","ft^2").get * cltd_Wall
-        zone_loads.Heat_Walls += wall_uvalue * OpenStudio::convert(wall.netArea,"m^2","ft^2").get * htd
-        zone_loads.Dehumid_Walls += wall_uvalue * OpenStudio::convert(wall.netArea,"m^2","ft^2").get * mj8.dtd
+        wall_ufactor = Construction.get_surface_ufactor(runner, wall, wall.surfaceType)
+        return nil if wall_ufactor.nil?
+        zone_loads.Cool_Walls += wall_ufactor * OpenStudio::convert(wall.netArea,"m^2","ft^2").get * cltd_Wall
+        zone_loads.Heat_Walls += wall_ufactor * OpenStudio::convert(wall.netArea,"m^2","ft^2").get * htd
+        zone_loads.Dehumid_Walls += wall_ufactor * OpenStudio::convert(wall.netArea,"m^2","ft^2").get * mj8.dtd
     end
 
     # Interzonal Walls
     Geometry.get_spaces_interzonal_walls(thermal_zone.spaces).each do |wall|
-        wall_uvalue = Construction.get_surface_uvalue(runner, wall, wall.surfaceType)
-        return nil if wall_uvalue.nil?
+        wall_ufactor = Construction.get_surface_ufactor(runner, wall, wall.surfaceType)
+        return nil if wall_ufactor.nil?
         adjacent_space = wall.adjacentSurface.get.space.get
-        zone_loads.Cool_Walls += wall_uvalue * OpenStudio::convert(wall.netArea,"m^2","ft^2").get * (mj8.cool_design_temps[adjacent_space] - mj8.cool_setpoint)
-        zone_loads.Heat_Walls += wall_uvalue * OpenStudio::convert(wall.netArea,"m^2","ft^2").get * (mj8.heat_setpoint - mj8.heat_design_temps[adjacent_space])
-        zone_loads.Dehumid_Walls += wall_uvalue * OpenStudio::convert(wall.netArea,"m^2","ft^2").get * (mj8.cool_setpoint - mj8.dehum_design_temps[adjacent_space])
+        zone_loads.Cool_Walls += wall_ufactor * OpenStudio::convert(wall.netArea,"m^2","ft^2").get * (mj8.cool_design_temps[adjacent_space] - mj8.cool_setpoint)
+        zone_loads.Heat_Walls += wall_ufactor * OpenStudio::convert(wall.netArea,"m^2","ft^2").get * (mj8.heat_setpoint - mj8.heat_design_temps[adjacent_space])
+        zone_loads.Dehumid_Walls += wall_ufactor * OpenStudio::convert(wall.netArea,"m^2","ft^2").get * (mj8.cool_setpoint - mj8.dehum_design_temps[adjacent_space])
     end
         
     # Foundation walls
@@ -1028,8 +1028,8 @@ class ProcessHVACSizing < OpenStudio::Measure::ModelMeasure
         return nil if wall_ins_height.nil?
         
         k_soil = OpenStudio::convert(BaseMaterial.Soil.k_in,"in","ft").get
-        ins_wall_uvalue = 1.0 / wall_rvalue
-        unins_wall_uvalue = 1.0 / (Material.Concrete8in.rvalue + Material.AirFilmVertical.rvalue)
+        ins_wall_ufactor = 1.0 / wall_rvalue
+        unins_wall_ufactor = 1.0 / (Material.Concrete8in.rvalue + Material.AirFilmVertical.rvalue)
         above_grade_height = Geometry.space_height(wall.space.get) - Geometry.surface_height(wall)
         
         # Calculated based on Manual J 8th Ed. procedure in section A12-4 (15% decrease due to soil thermal storage)
@@ -1038,11 +1038,11 @@ class ProcessHVACSizing < OpenStudio::Measure::ModelMeasure
         for d in 1..wall_height_ft
             r_soil = (Math::PI * d / 2.0) / k_soil
             if d <= above_grade_height
-                r_wall = 1.0 / ins_wall_uvalue + AirFilms.OutsideR
+                r_wall = 1.0 / ins_wall_ufactor + AirFilms.OutsideR
             elsif d <= wall_ins_height
-                r_wall = 1.0 / ins_wall_uvalue
+                r_wall = 1.0 / ins_wall_ufactor
             else
-                r_wall = 1.0 / unins_wall_uvalue
+                r_wall = 1.0 / unins_wall_ufactor
             end
             u_value_mj8 += 1.0 / (r_soil + r_wall)
         end
@@ -1119,11 +1119,11 @@ class ProcessHVACSizing < OpenStudio::Measure::ModelMeasure
         # Adjust base CLTD for different CTD or DR
         cltd_FinishedRoof = cltd_FinishedRoof + (weather.design.CoolingDrybulb - 95) + mj8.daily_range_temp_adjust[mj8.daily_range_num]
 
-        roof_uvalue = Construction.get_surface_uvalue(runner, roof, roof.surfaceType)
-        return nil if roof_uvalue.nil?
-        zone_loads.Cool_Roofs += roof_uvalue * OpenStudio::convert(roof.netArea,"m^2","ft^2").get * cltd_FinishedRoof
-        zone_loads.Heat_Roofs += roof_uvalue * OpenStudio::convert(roof.netArea,"m^2","ft^2").get * htd
-        zone_loads.Dehumid_Roofs += roof_uvalue * OpenStudio::convert(roof.netArea,"m^2","ft^2").get * mj8.dtd
+        roof_ufactor = Construction.get_surface_ufactor(runner, roof, roof.surfaceType)
+        return nil if roof_ufactor.nil?
+        zone_loads.Cool_Roofs += roof_ufactor * OpenStudio::convert(roof.netArea,"m^2","ft^2").get * cltd_FinishedRoof
+        zone_loads.Heat_Roofs += roof_ufactor * OpenStudio::convert(roof.netArea,"m^2","ft^2").get * htd
+        zone_loads.Dehumid_Roofs += roof_ufactor * OpenStudio::convert(roof.netArea,"m^2","ft^2").get * mj8.dtd
     end
   
     return zone_loads
@@ -1142,21 +1142,21 @@ class ProcessHVACSizing < OpenStudio::Measure::ModelMeasure
     
     # Exterior Floors
     Geometry.get_spaces_above_grade_exterior_floors(thermal_zone.spaces).each do |floor|
-        floor_uvalue = Construction.get_surface_uvalue(runner, floor, floor.surfaceType)
-        return nil if floor_uvalue.nil?
-        zone_loads.Cool_Floors += floor_uvalue * OpenStudio::convert(floor.netArea,"m^2","ft^2").get * (mj8.ctd - 5 + mj8.daily_range_temp_adjust[mj8.daily_range_num])
-        zone_loads.Heat_Floors += floor_uvalue * OpenStudio::convert(floor.netArea,"m^2","ft^2").get * htd
-        zone_loads.Dehumid_Floors += floor_uvalue * OpenStudio::convert(floor.netArea,"m^2","ft^2").get * mj8.dtd
+        floor_ufactor = Construction.get_surface_ufactor(runner, floor, floor.surfaceType)
+        return nil if floor_ufactor.nil?
+        zone_loads.Cool_Floors += floor_ufactor * OpenStudio::convert(floor.netArea,"m^2","ft^2").get * (mj8.ctd - 5 + mj8.daily_range_temp_adjust[mj8.daily_range_num])
+        zone_loads.Heat_Floors += floor_ufactor * OpenStudio::convert(floor.netArea,"m^2","ft^2").get * htd
+        zone_loads.Dehumid_Floors += floor_ufactor * OpenStudio::convert(floor.netArea,"m^2","ft^2").get * mj8.dtd
     end
     
     # Interzonal Floors
     Geometry.get_spaces_interzonal_floors_and_ceilings(thermal_zone.spaces).each do |floor|
-        floor_uvalue = Construction.get_surface_uvalue(runner, floor, floor.surfaceType)
-        return nil if floor_uvalue.nil?
+        floor_ufactor = Construction.get_surface_ufactor(runner, floor, floor.surfaceType)
+        return nil if floor_ufactor.nil?
         adjacent_space = floor.adjacentSurface.get.space.get
-        zone_loads.Cool_Floors += floor_uvalue * OpenStudio::convert(floor.netArea,"m^2","ft^2").get * (mj8.cool_design_temps[adjacent_space] - mj8.cool_setpoint)
-        zone_loads.Heat_Floors += floor_uvalue * OpenStudio::convert(floor.netArea,"m^2","ft^2").get * (mj8.heat_setpoint - mj8.heat_design_temps[adjacent_space])
-        zone_loads.Dehumid_Floors += floor_uvalue * OpenStudio::convert(floor.netArea,"m^2","ft^2").get * (mj8.cool_setpoint - mj8.dehum_design_temps[adjacent_space])
+        zone_loads.Cool_Floors += floor_ufactor * OpenStudio::convert(floor.netArea,"m^2","ft^2").get * (mj8.cool_design_temps[adjacent_space] - mj8.cool_setpoint)
+        zone_loads.Heat_Floors += floor_ufactor * OpenStudio::convert(floor.netArea,"m^2","ft^2").get * (mj8.heat_setpoint - mj8.heat_design_temps[adjacent_space])
+        zone_loads.Dehumid_Floors += floor_ufactor * OpenStudio::convert(floor.netArea,"m^2","ft^2").get * (mj8.cool_setpoint - mj8.dehum_design_temps[adjacent_space])
     end
      
     # Foundation Floors
@@ -1173,14 +1173,14 @@ class ProcessHVACSizing < OpenStudio::Measure::ModelMeasure
     
     # Ground Floors (Slab)
     Geometry.get_spaces_above_grade_ground_floors(thermal_zone.spaces).each do |floor|
-        #Get stored u-value since the surface u-value is fictional
+        #Get stored u-factor since the surface u-factor is fictional
         #TODO: Revert this some day.
-        #floor_uvalue = Construction.get_surface_uvalue(runner, floor, floor.surfaceType)
-        #return nil if floor_uvalue.nil?
+        #floor_ufactor = Construction.get_surface_ufactor(runner, floor, floor.surfaceType)
+        #return nil if floor_ufactor.nil?
         floor_rvalue = get_unit_feature(runner, unit, Constants.SizingInfoSlabRvalue(floor), 'double')
         return nil if floor_rvalue.nil?
-        floor_uvalue = 1.0/floor_rvalue
-        zone_loads.Heat_Floors += floor_uvalue * OpenStudio::convert(floor.netArea,"m^2","ft^2").get * (mj8.heat_setpoint - weather.data.GroundMonthlyTemps[0])
+        floor_ufactor = 1.0/floor_rvalue
+        zone_loads.Heat_Floors += floor_ufactor * OpenStudio::convert(floor.netArea,"m^2","ft^2").get * (mj8.heat_setpoint - weather.data.GroundMonthlyTemps[0])
     end
     
     return zone_loads
@@ -3483,14 +3483,14 @@ class ProcessHVACSizing < OpenStudio::Measure::ModelMeasure
     
     # Surface UAs
     space.surfaces.each do |surface|
-        uvalue = Construction.get_surface_uvalue(runner, surface, surface.surfaceType)
-        return nil if uvalue.nil?
+        ufactor = Construction.get_surface_ufactor(runner, surface, surface.surfaceType)
+        return nil if ufactor.nil?
         
         # Exclude surfaces adjacent to unfinished space
         obc = surface.outsideBoundaryCondition.downcase
         next if not ['ground','outdoors'].include?(obc) and not Geometry.is_interzonal_surface(surface)
         
-        space_UAs[obc] += uvalue * OpenStudio::convert(surface.netArea,"m^2","ft^2").get
+        space_UAs[obc] += ufactor * OpenStudio::convert(surface.netArea,"m^2","ft^2").get
     end
     
     # Infiltration UA

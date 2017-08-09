@@ -16,7 +16,7 @@ class ProcessRoomAirConditioner < OpenStudio::Measure::ModelMeasure
 
   # human readable description
   def description
-    return "This measure removes any existing HVAC cooling components from the building and adds a room air conditioner. For multifamily buildings, the room air conditioner can be set for all units of the building."
+    return "This measure removes any existing HVAC cooling components from the building and adds a room air conditioner. For multifamily buildings, the room air conditioner can be set for all units of the building.#{Constants.WorkflowDescription}"
   end
 
   # human readable description of modeling approach

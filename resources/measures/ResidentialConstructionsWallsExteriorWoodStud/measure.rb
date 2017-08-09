@@ -15,16 +15,30 @@ class ProcessConstructionsWallsExteriorWoodStud < OpenStudio::Measure::ModelMeas
   end
   
   def description
-    return "This measure assigns a wood stud construction to above-grade exterior walls adjacent to finished space or attic walls under insulated roofs."
+    return "This measure assigns a wood stud construction to above-grade exterior walls adjacent to finished space or attic walls under insulated roofs.#{Constants.WorkflowDescription}"
   end
   
   def modeler_description
     return "Calculates and assigns material layer properties of wood stud constructions for 1) above-grade walls between finished space and outside, and 2) above-grade walls between attics under insulated roofs and outside. If the walls have an existing construction, the layers (other than exterior finish, wall sheathing, and wall mass) are replaced. This measure is intended to be used in conjunction with Exterior Finish, Wall Sheathing, and Exterior Wall Mass measures."
-  end  
+  end
   
   #define the arguments that the user will input
   def arguments(model)
     args = OpenStudio::Measure::OSArgumentVector.new
+    
+    #make a choice argument for above-grade exterior walls adjacent to finished space or attic walls under insulated roofs
+    runner = OpenStudio::Measure::OSRunner.new(OpenStudio::WorkflowJSON.new)
+    finished_surfaces, unfinished_surfaces = get_wood_stud_wall_surfaces(model, runner)
+    surfaces_args = OpenStudio::StringVector.new
+    surfaces_args << Constants.Auto
+    (finished_surfaces + unfinished_surfaces).each do |surface|
+      surfaces_args << surface.name.to_s
+    end
+    surface = OpenStudio::Measure::OSArgument::makeChoiceArgument("surface", surfaces_args, false)
+    surface.setDisplayName("Surface(s)")
+    surface.setDescription("Select the surface(s) to assign constructions.")
+    surface.setDefaultValue(Constants.Auto)
+    args << surface
 
     #make a double argument for R-value of installed cavity insulation
     cavity_r = OpenStudio::Measure::OSArgument::makeDoubleArgument("cavity_r", true)
@@ -80,33 +94,27 @@ class ProcessConstructionsWallsExteriorWoodStud < OpenStudio::Measure::ModelMeas
       return false
     end
     
-    finished_surfaces = []
-    unfinished_surfaces = []
-    model.getSpaces.each do |space|
-        # Wall between finished space and outdoors
-        if Geometry.space_is_finished(space) and Geometry.space_is_above_grade(space)
-            space.surfaces.each do |surface|
-                next if surface.surfaceType.downcase != "wall" or surface.outsideBoundaryCondition.downcase != "outdoors"
-                finished_surfaces << surface
-            end
-        # Attic wall under an insulated roof
-        elsif Geometry.is_unfinished_attic(space)
-            attic_roof_r = Construction.get_space_r_value(runner, space, "roofceiling")
-            next if attic_roof_r.nil? or attic_roof_r <= 5 # assume uninsulated if <= R-5 assembly
-            space.surfaces.each do |surface|
-                next if surface.surfaceType.downcase != "wall" or surface.outsideBoundaryCondition.downcase != "outdoors"
-                unfinished_surfaces << surface
-            end
-        end
+    surface_s = runner.getOptionalStringArgumentValue("surface",user_arguments)
+    if not surface_s.is_initialized
+      surface_s = Constants.Auto
+    else
+      surface_s = surface_s.get
+    end
+    
+    finished_surfaces, unfinished_surfaces = get_wood_stud_wall_surfaces(model, runner)
+    
+    unless surface_s == Constants.Auto
+      finished_surfaces.delete_if { |surface| surface.name.to_s != surface_s }
+      unfinished_surfaces.delete_if { |surface| surface.name.to_s != surface_s }
     end
     
     # Continue if no applicable surfaces
     if finished_surfaces.empty? and unfinished_surfaces.empty?
       runner.registerAsNotApplicable("Measure not applied because no applicable surfaces were found.")
       return true
-    end     
+    end
     
-    # Get inputs
+    # Get inputs    
     wsWallCavityInsRvalueInstalled = runner.getDoubleArgumentValue("cavity_r",user_arguments)
     wsWallInstallGrade = {"I"=>1, "II"=>2, "III"=>3}[runner.getStringArgumentValue("install_grade",user_arguments)]
     wsWallCavityDepth = runner.getDoubleArgumentValue("cavity_depth",user_arguments)
@@ -147,8 +155,7 @@ class ProcessConstructionsWallsExteriorWoodStud < OpenStudio::Measure::ModelMeas
 
     # Set paths
     gapFactor = Construction.get_wall_gap_factor(wsWallInstallGrade, wsWallFramingFactor, wsWallCavityInsRvalueInstalled)
-    path_fracs = [wsWallFramingFactor, 1 - wsWallFramingFactor - gapFactor, gapFactor]
-    
+    path_fracs = [wsWallFramingFactor, 1 - wsWallFramingFactor - gapFactor, gapFactor]    
     
     if not finished_surfaces.empty?
         # Define construction
@@ -201,6 +208,29 @@ class ProcessConstructionsWallsExteriorWoodStud < OpenStudio::Measure::ModelMeas
  
   end #end the run method
 
+  def get_wood_stud_wall_surfaces(model, runner)
+    finished_surfaces = []
+    unfinished_surfaces = []
+    model.getSpaces.each do |space|
+        # Wall between finished space and outdoors
+        if Geometry.space_is_finished(space) and Geometry.space_is_above_grade(space)
+            space.surfaces.each do |surface|
+                next if surface.surfaceType.downcase != "wall" or surface.outsideBoundaryCondition.downcase != "outdoors"
+                finished_surfaces << surface
+            end
+        # Attic wall under an insulated roof
+        elsif Geometry.is_unfinished_attic(space)
+            attic_roof_r = Construction.get_space_r_value(runner, space, "roofceiling")
+            next if attic_roof_r.nil? or attic_roof_r <= 5 # assume uninsulated if <= R-5 assembly
+            space.surfaces.each do |surface|
+                next if surface.surfaceType.downcase != "wall" or surface.outsideBoundaryCondition.downcase != "outdoors"
+                unfinished_surfaces << surface
+            end
+        end
+    end
+    return finished_surfaces, unfinished_surfaces
+  end
+  
 end #end the measure
 
 #this allows the measure to be use by the application

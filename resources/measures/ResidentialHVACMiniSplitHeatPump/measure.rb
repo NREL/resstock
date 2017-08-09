@@ -18,7 +18,7 @@ class ProcessVRFMinisplit < OpenStudio::Measure::ModelMeasure
 
   # human readable description
   def description
-    return "This measure removes any existing HVAC components from the building and adds a mini-split heat pump. For multifamily buildings, the mini-split heat pump can be set for all units of the building."
+    return "This measure removes any existing HVAC components from the building and adds a mini-split heat pump. For multifamily buildings, the mini-split heat pump can be set for all units of the building.#{Constants.WorkflowDescription}"
   end
 
   # human readable description of modeling approach

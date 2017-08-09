@@ -26,6 +26,19 @@ class ProcessConstructionsUninsulatedSurfaces < OpenStudio::Measure::ModelMeasur
   def arguments(model)
     args = OpenStudio::Measure::OSArgumentVector.new
 
+    #make a choice argument for uninsulated surfaces
+    ext_wall_surfaces, slab_surfaces, roof_surfaces, finished_wall_surfaces, unfinished_wall_surfaces, finished_floor_surfaces, unfinished_floor_surfaces = get_uninsulated_surfaces(model)
+    surfaces_args = OpenStudio::StringVector.new
+    surfaces_args << Constants.Auto
+    (ext_wall_surfaces + slab_surfaces + roof_surfaces + finished_wall_surfaces + unfinished_wall_surfaces + finished_floor_surfaces + unfinished_floor_surfaces).each do |surface|
+      surfaces_args << surface.name.to_s
+    end
+    surface = OpenStudio::Measure::OSArgument::makeChoiceArgument("surface", surfaces_args, false)
+    surface.setDisplayName("Surface(s)")
+    surface.setDescription("Select the surface(s) to assign constructions.")
+    surface.setDefaultValue(Constants.Auto)
+    args << surface
+    
     return args
   end #end the arguments method
 
@@ -38,123 +51,25 @@ class ProcessConstructionsUninsulatedSurfaces < OpenStudio::Measure::ModelMeasur
       return false
     end
 
-    # Above-grade walls between unfinished space and outdoors
-    ext_wall_surfaces = []
-    model.getSpaces.each do |space|
-        next if Geometry.space_is_finished(space)
-        next if Geometry.space_is_below_grade(space)
-        space.surfaces.each do |surface|
-            next if surface.surfaceType.downcase != "wall"
-            next if surface.outsideBoundaryCondition.downcase != "outdoors"
-            ext_wall_surfaces << surface
-        end
+    surface_s = runner.getOptionalStringArgumentValue("surface",user_arguments)
+    if not surface_s.is_initialized
+      surface_s = Constants.Auto
+    else
+      surface_s = surface_s.get
     end
     
-    # Walls between two finished spaces
-    finished_wall_surfaces = []
-    model.getSpaces.each do |space|
-        next if Geometry.space_is_unfinished(space)
-        space.surfaces.each do |surface|
-            next if surface.surfaceType.downcase != "wall"
-            next if not surface.adjacentSurface.is_initialized
-            next if not surface.adjacentSurface.get.space.is_initialized
-            adjacent_space = surface.adjacentSurface.get.space.get
-            next if Geometry.space_is_unfinished(adjacent_space)
-            finished_wall_surfaces << surface
-        end
-    end
+    ext_wall_surfaces, slab_surfaces, roof_surfaces, finished_wall_surfaces, unfinished_wall_surfaces, finished_floor_surfaces, unfinished_floor_surfaces = get_uninsulated_surfaces(model)
     
-    # Walls between two unfinished spaces
-    unfinished_wall_surfaces = []
-    model.getSpaces.each do |space|
-        next if Geometry.space_is_finished(space)
-        space.surfaces.each do |surface|
-            next if surface.surfaceType.downcase != "wall"
-            next if not surface.adjacentSurface.is_initialized
-            next if not surface.adjacentSurface.get.space.is_initialized
-            adjacent_space = surface.adjacentSurface.get.space.get
-            next if Geometry.space_is_finished(adjacent_space)
-            unfinished_wall_surfaces << surface
-        end
-    end
+    unless surface_s == Constants.Auto
+      ext_wall_surfaces.delete_if { |surface| surface.name.to_s != surface_s }
+      slab_surfaces.delete_if { |surface| surface.name.to_s != surface_s }
+      roof_surfaces.delete_if { |surface| surface.name.to_s != surface_s }
+      finished_wall_surfaces.delete_if { |surface| surface.name.to_s != surface_s }
+      unfinished_wall_surfaces.delete_if { |surface| surface.name.to_s != surface_s }
+      finished_floor_surfaces.delete_if { |surface| surface.name.to_s != surface_s }
+      unfinished_floor_surfaces.delete_if { |surface| surface.name.to_s != surface_s }
+    end    
     
-    # Floors between two finished spaces
-    finished_floor_surfaces = []
-    model.getSpaces.each do |space|
-        next if Geometry.space_is_unfinished(space)
-        space.surfaces.each do |surface|
-            next if surface.surfaceType.downcase != "floor"
-            next if not surface.adjacentSurface.is_initialized
-            next if not surface.adjacentSurface.get.space.is_initialized
-            adjacent_space = surface.adjacentSurface.get.space.get
-            next if Geometry.space_is_unfinished(adjacent_space)
-            # Floor between two finished spaces
-            finished_floor_surfaces << surface
-        end
-    end
-    
-    # Floors between two unfinished spaces
-    unfinished_floor_surfaces = []
-    model.getSpaces.each do |space|
-        next if Geometry.space_is_finished(space)
-        space.surfaces.each do |surface|
-            next if surface.surfaceType.downcase != "floor"
-            next if not surface.adjacentSurface.is_initialized
-            next if not surface.adjacentSurface.get.space.is_initialized
-            adjacent_space = surface.adjacentSurface.get.space.get
-            next if Geometry.space_is_finished(adjacent_space)
-            # Floor between two unfinished spaces
-            unfinished_floor_surfaces << surface
-        end
-    end
-    
-    # Slabs below unfinished space
-    slab_surfaces = []
-    model.getSpaces.each do |space|
-        next if Geometry.space_is_finished(space)
-        next if Geometry.space_is_below_grade(space)
-        space.surfaces.each do |surface|
-            next if surface.surfaceType.downcase != "floor"
-            next if surface.outsideBoundaryCondition.downcase != "ground"
-            # Floors between above-grade unfinished space and ground
-            slab_surfaces << surface
-        end
-    end
-    
-    # Roofs above unfinished space
-    roof_spaces = Geometry.get_non_attic_unfinished_roof_spaces(model.getSpaces, model)
-    roof_surfaces = []
-    roof_spaces.each do |space|
-        space.surfaces.each do |surface|
-            next if surface.surfaceType.downcase != "roofceiling"
-            next if surface.outsideBoundaryCondition.downcase != "outdoors"
-            roof_surfaces << surface
-        end
-    end
-    
-    # Adiabatic surfaces (assign construction for mass effects)
-    model.getSpaces.each do |space|
-        space.surfaces.each do |surface|
-            next if surface.outsideBoundaryCondition.downcase != "adiabatic"
-            if surface.surfaceType.downcase == "wall"
-                if Geometry.space_is_finished(space)
-                    finished_wall_surfaces << surface
-                else
-                    unfinished_wall_surfaces << surface
-                end
-            elsif surface.surfaceType.downcase == "roofceiling"
-                roof_surfaces << surface
-                roof_spaces << space
-            elsif surface.surfaceType.downcase == "floor"
-                if Geometry.space_is_finished(space)
-                    finished_floor_surfaces << surface
-                else
-                    unfinished_floor_surfaces << surface
-                end
-            end
-        end
-    end
-
     # Continue if no applicable surfaces
     if ext_wall_surfaces.empty? and finished_floor_surfaces.empty? and unfinished_floor_surfaces.empty? and slab_surfaces.empty? and roof_surfaces.empty? and finished_wall_surfaces.empty? and unfinished_wall_surfaces.empty?
         runner.registerAsNotApplicable("Measure not applied because no applicable surfaces were found.")
@@ -292,10 +207,138 @@ class ProcessConstructionsUninsulatedSurfaces < OpenStudio::Measure::ModelMeasur
     
     # Remove any constructions/materials that aren't used
     HelperMethods.remove_unused_constructions_and_materials(model, runner)
-	
+
     return true
  
   end #end the run method
+  
+  def get_uninsulated_surfaces(model)
+    # Above-grade walls between unfinished space and outdoors
+    ext_wall_surfaces = []
+    model.getSpaces.each do |space|
+        next if Geometry.space_is_finished(space)
+        next if Geometry.space_is_below_grade(space)
+        space.surfaces.each do |surface|
+            next if surface.construction.is_initialized
+            next if surface.surfaceType.downcase != "wall"
+            next if surface.outsideBoundaryCondition.downcase != "outdoors"
+            ext_wall_surfaces << surface
+        end
+    end
+    
+    # Walls between two finished spaces
+    finished_wall_surfaces = []
+    model.getSpaces.each do |space|
+        next if Geometry.space_is_unfinished(space)
+        space.surfaces.each do |surface|
+            next if surface.construction.is_initialized
+            next if surface.surfaceType.downcase != "wall"
+            next if not surface.adjacentSurface.is_initialized
+            next if not surface.adjacentSurface.get.space.is_initialized
+            adjacent_space = surface.adjacentSurface.get.space.get
+            next if Geometry.space_is_unfinished(adjacent_space)
+            finished_wall_surfaces << surface
+        end
+    end
+    
+    # Walls between two unfinished spaces
+    unfinished_wall_surfaces = []
+    model.getSpaces.each do |space|
+        next if Geometry.space_is_finished(space)
+        space.surfaces.each do |surface|
+            next if surface.construction.is_initialized
+            next if surface.surfaceType.downcase != "wall"
+            next if not surface.adjacentSurface.is_initialized
+            next if not surface.adjacentSurface.get.space.is_initialized
+            adjacent_space = surface.adjacentSurface.get.space.get
+            next if Geometry.space_is_finished(adjacent_space)
+            unfinished_wall_surfaces << surface
+        end
+    end
+    
+    # Floors between two finished spaces
+    finished_floor_surfaces = []
+    model.getSpaces.each do |space|
+        next if Geometry.space_is_unfinished(space)
+        space.surfaces.each do |surface|
+            next if surface.construction.is_initialized
+            next if surface.surfaceType.downcase != "floor"
+            next if not surface.adjacentSurface.is_initialized
+            next if not surface.adjacentSurface.get.space.is_initialized
+            adjacent_space = surface.adjacentSurface.get.space.get
+            next if Geometry.space_is_unfinished(adjacent_space)
+            # Floor between two finished spaces
+            finished_floor_surfaces << surface
+        end
+    end
+    
+    # Floors between two unfinished spaces
+    unfinished_floor_surfaces = []
+    model.getSpaces.each do |space|
+        next if Geometry.space_is_finished(space)
+        space.surfaces.each do |surface|
+            next if surface.construction.is_initialized
+            next if surface.surfaceType.downcase != "floor"
+            next if not surface.adjacentSurface.is_initialized
+            next if not surface.adjacentSurface.get.space.is_initialized
+            adjacent_space = surface.adjacentSurface.get.space.get
+            next if Geometry.space_is_finished(adjacent_space)
+            # Floor between two unfinished spaces
+            unfinished_floor_surfaces << surface
+        end
+    end
+    
+    # Slabs below unfinished space
+    slab_surfaces = []
+    model.getSpaces.each do |space|
+        next if Geometry.space_is_finished(space)
+        next if Geometry.space_is_below_grade(space)
+        space.surfaces.each do |surface|
+            next if surface.construction.is_initialized
+            next if surface.surfaceType.downcase != "floor"
+            next if surface.outsideBoundaryCondition.downcase != "ground"
+            # Floors between above-grade unfinished space and ground
+            slab_surfaces << surface
+        end
+    end
+    
+    # Roofs above unfinished space
+    roof_spaces = Geometry.get_non_attic_unfinished_roof_spaces(model.getSpaces, model)
+    roof_surfaces = []
+    roof_spaces.each do |space|
+        space.surfaces.each do |surface|
+            next if surface.construction.is_initialized
+            next if surface.surfaceType.downcase != "roofceiling"
+            next if surface.outsideBoundaryCondition.downcase != "outdoors"
+            roof_surfaces << surface
+        end
+    end
+    
+    # Adiabatic surfaces (assign construction for mass effects)
+    model.getSpaces.each do |space|
+        space.surfaces.each do |surface|
+            next if surface.construction.is_initialized
+            next if surface.outsideBoundaryCondition.downcase != "adiabatic"
+            if surface.surfaceType.downcase == "wall"
+                if Geometry.space_is_finished(space)
+                    finished_wall_surfaces << surface
+                else
+                    unfinished_wall_surfaces << surface
+                end
+            elsif surface.surfaceType.downcase == "roofceiling"
+                roof_surfaces << surface
+                roof_spaces << space
+            elsif surface.surfaceType.downcase == "floor"
+                if Geometry.space_is_finished(space)
+                    finished_floor_surfaces << surface
+                else
+                    unfinished_floor_surfaces << surface
+                end
+            end
+        end
+    end
+    return ext_wall_surfaces, slab_surfaces, roof_surfaces, finished_wall_surfaces, unfinished_wall_surfaces, finished_floor_surfaces, unfinished_floor_surfaces
+  end
 
 end #end the measure
 

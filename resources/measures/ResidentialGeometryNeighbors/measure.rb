@@ -13,7 +13,7 @@ class CreateResidentialNeighbors < OpenStudio::Measure::ModelMeasure
 
   # human readable description
   def description
-    return "Sets the neighbors (front, back, left, and/or right) of the building for shading purposes. Neighboring buildings will have the same geometry as the model building."
+    return "Sets the neighbors (front, back, left, and/or right) of the building for shading purposes. Neighboring buildings will have the same geometry as the model building.#{Constants.WorkflowDescription}"
   end
 
   # human readable description of modeling approach
@@ -24,7 +24,7 @@ class CreateResidentialNeighbors < OpenStudio::Measure::ModelMeasure
   # define the arguments that the user will input
   def arguments(model)
     args = OpenStudio::Measure::OSArgumentVector.new
-	
+    
     #make a double argument for left neighbor offset
     left_neighbor_offset = OpenStudio::Measure::OSArgument::makeDoubleArgument("left_offset", false)
     left_neighbor_offset.setDisplayName("Left Neighbor Offset")
@@ -40,7 +40,7 @@ class CreateResidentialNeighbors < OpenStudio::Measure::ModelMeasure
     right_neighbor_offset.setDescription("The minimum distance between the simulated house and the neighboring house to the right (not including eaves). A value of zero indicates no neighbors.")
     right_neighbor_offset.setDefaultValue(10.0)
     args << right_neighbor_offset
-	
+    
     #make a double argument for back neighbor offset
     back_neighbor_offset = OpenStudio::Measure::OSArgument::makeDoubleArgument("back_offset", false)
     back_neighbor_offset.setDisplayName("Back Neighbor Offset")
@@ -68,12 +68,12 @@ class CreateResidentialNeighbors < OpenStudio::Measure::ModelMeasure
     if !runner.validateUserArguments(arguments(model), user_arguments)
       return false
     end
-	
+    
     left_neighbor_offset = OpenStudio::convert(runner.getDoubleArgumentValue("left_offset",user_arguments),"ft","m").get
     right_neighbor_offset = OpenStudio::convert(runner.getDoubleArgumentValue("right_offset",user_arguments),"ft","m").get
     back_neighbor_offset = OpenStudio::convert(runner.getDoubleArgumentValue("back_offset",user_arguments),"ft","m").get
     front_neighbor_offset = OpenStudio::convert(runner.getDoubleArgumentValue("front_offset",user_arguments),"ft","m").get
-	
+    
     if left_neighbor_offset < 0 or right_neighbor_offset < 0 or back_neighbor_offset < 0 or front_neighbor_offset < 0
       runner.registerError("Neighbor offsets must be greater than or equal to 0.")
       return false
@@ -83,7 +83,7 @@ class CreateResidentialNeighbors < OpenStudio::Measure::ModelMeasure
     greatest_x = -1000
     least_y = 1000
     greatest_y = -1000
-	
+    
     surfaces = model.getSurfaces
     if surfaces.size == 0
       runner.registerAsNotApplicable("No surfaces found to copy for neighboring buildings.")
@@ -122,13 +122,13 @@ class CreateResidentialNeighbors < OpenStudio::Measure::ModelMeasure
         end
       end
     end
-	    
+        
     # this is maximum building length or width + user specified neighbor offset
     left_offset = ((greatest_x - least_x) + left_neighbor_offset)
     right_offset = -((greatest_x - least_x) + right_neighbor_offset)
     back_offset = -((greatest_y - least_y) + back_neighbor_offset)
     front_offset = ((greatest_y - least_y) + front_neighbor_offset)
-			
+            
     directions = [[Constants.FacadeLeft, left_neighbor_offset, left_offset, 0], [Constants.FacadeRight, right_neighbor_offset, right_offset, 0], [Constants.FacadeBack, back_neighbor_offset, 0, back_offset], [Constants.FacadeFront, front_neighbor_offset, 0, front_offset]]
             
     shading_surface_group = OpenStudio::Model::ShadingSurfaceGroup.new(model)
@@ -163,7 +163,7 @@ class CreateResidentialNeighbors < OpenStudio::Measure::ModelMeasure
           shading_surface = OpenStudio::Model::ShadingSurface.new(new_vertices, model)
           shading_surface.setName(Constants.ObjectNameNeighbors(facade))
           shading_surface.setShadingSurfaceGroup(shading_surface_group)
-          runner.registerInfo("Created '#{shading_surface.name}' from '#{existing_shading_surface.name}'")	            
+          runner.registerInfo("Created '#{shading_surface.name}' from '#{existing_shading_surface.name}'")                
         end
       end
     end     

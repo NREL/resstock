@@ -15,7 +15,7 @@ class ProcessConstructionsWallsSheathing < OpenStudio::Measure::ModelMeasure
 
   # human readable description
   def description
-    return "This measure assigns wall sheathing to all above-grade walls adjacent to finished space."
+    return "This measure assigns wall sheathing to all above-grade walls adjacent to finished space.#{Constants.WorkflowDescription}"
   end
 
   # human readable description of modeling approach
@@ -27,29 +27,43 @@ class ProcessConstructionsWallsSheathing < OpenStudio::Measure::ModelMeasure
   def arguments(model)
     args = OpenStudio::Measure::OSArgumentVector.new
 
-    #make a double argument for OSB/Plywood Thickness
-	osb_thick_in = OpenStudio::Measure::OSArgument::makeDoubleArgument("osb_thick_in",true)
-	osb_thick_in.setDisplayName("OSB/Plywood Thickness")
-    osb_thick_in.setUnits("in")
-	osb_thick_in.setDescription("Specifies the thickness of the walls' OSB/plywood sheathing. Enter 0 for no sheathing (if the wall has other means to handle the shear load on the wall such as cross-bracing).")
-	osb_thick_in.setDefaultValue(0.5)
-	args << osb_thick_in
+    #make a choice argument for finished, unfinished surfaces
+    runner = OpenStudio::Measure::OSRunner.new(OpenStudio::WorkflowJSON.new)
+    finished_surfaces, unfinished_surfaces = get_sheathing_wall_surfaces(model, runner)
+    surfaces_args = OpenStudio::StringVector.new
+    surfaces_args << Constants.Auto
+    (finished_surfaces + unfinished_surfaces).each do |surface|
+      surfaces_args << surface.name.to_s
+    end
+    surface = OpenStudio::Measure::OSArgument::makeChoiceArgument("surface", surfaces_args, false)
+    surface.setDisplayName("Surface(s)")
+    surface.setDescription("Select the surface(s) to assign constructions.")
+    surface.setDefaultValue(Constants.Auto)
+    args << surface
     
-	#make a double argument for Rigid Insulation R-value
-	rigid_r = OpenStudio::Measure::OSArgument::makeDoubleArgument("rigid_r",true)
-	rigid_r.setDisplayName("Continuous Insulation Nominal R-value")
+    #make a double argument for OSB/Plywood Thickness
+    osb_thick_in = OpenStudio::Measure::OSArgument::makeDoubleArgument("osb_thick_in",true)
+    osb_thick_in.setDisplayName("OSB/Plywood Thickness")
+    osb_thick_in.setUnits("in")
+    osb_thick_in.setDescription("Specifies the thickness of the walls' OSB/plywood sheathing. Enter 0 for no sheathing (if the wall has other means to handle the shear load on the wall such as cross-bracing).")
+    osb_thick_in.setDefaultValue(0.5)
+    args << osb_thick_in
+    
+    #make a double argument for Rigid Insulation R-value
+    rigid_r = OpenStudio::Measure::OSArgument::makeDoubleArgument("rigid_r",true)
+    rigid_r.setDisplayName("Continuous Insulation Nominal R-value")
     rigid_r.setUnits("h-ft^2-R/Btu")
     rigid_r.setDescription("The R-value of the continuous insulation.")
-	rigid_r.setDefaultValue(0.0)
-	args << rigid_r
+    rigid_r.setDefaultValue(0.0)
+    args << rigid_r
 
-	#make a double argument for Rigid Insulation Thickness
-	rigid_thick_in = OpenStudio::Measure::OSArgument::makeDoubleArgument("rigid_thick_in",true)
-	rigid_thick_in.setDisplayName("Continuous Insulation Thickness")
+    #make a double argument for Rigid Insulation Thickness
+    rigid_thick_in = OpenStudio::Measure::OSArgument::makeDoubleArgument("rigid_thick_in",true)
+    rigid_thick_in.setDisplayName("Continuous Insulation Thickness")
     rigid_thick_in.setUnits("in")
     rigid_thick_in.setDescription("The thickness of the continuous insulation.")
-	rigid_thick_in.setDefaultValue(0.0)
-	args << rigid_thick_in
+    rigid_thick_in.setDefaultValue(0.0)
+    args << rigid_thick_in
 
     return args
   end
@@ -63,33 +77,20 @@ class ProcessConstructionsWallsSheathing < OpenStudio::Measure::ModelMeasure
       return false
     end
     
-    finished_surfaces = []
-    unfinished_surfaces = []
-    model.getSpaces.each do |space|
-        # Walls adjacent to finished space
-        if Geometry.space_is_finished(space) and Geometry.space_is_above_grade(space)
-            space.surfaces.each do |surface|
-                next if surface.surfaceType.downcase != "wall"
-                if surface.outsideBoundaryCondition.downcase == "outdoors"
-                    # Above-grade wall between finished space and outside    
-                    finished_surfaces << surface
-                elsif surface.adjacentSurface.is_initialized and surface.adjacentSurface.get.space.is_initialized
-                    adjacent_space = surface.adjacentSurface.get.space.get
-                    next if Geometry.space_is_finished(adjacent_space)
-                    # Above-grade wall between finished space and unfinished space
-                    finished_surfaces << surface
-                end
-            end
-        # Attic wall under an insulated roof
-        elsif Geometry.is_unfinished_attic(space)
-            attic_roof_r = Construction.get_space_r_value(runner, space, "roofceiling")
-            next if attic_roof_r.nil? or attic_roof_r <= 5 # assume uninsulated if <= R-5 assembly
-            space.surfaces.each do |surface|
-                next if surface.surfaceType.downcase != "wall" or surface.outsideBoundaryCondition.downcase != "outdoors"
-                unfinished_surfaces << surface
-            end
-        end
+    surface_s = runner.getOptionalStringArgumentValue("surface",user_arguments)
+    if not surface_s.is_initialized
+      surface_s = Constants.Auto
+    else
+      surface_s = surface_s.get
     end
+    
+    finished_surfaces, unfinished_surfaces = get_sheathing_wall_surfaces(model, runner)
+    
+    unless surface_s == Constants.Auto
+      finished_surfaces.delete_if { |surface| surface.name.to_s != surface_s }
+      unfinished_surfaces.delete_if { |surface| surface.name.to_s != surface_s }
+    end
+    
     if finished_surfaces.empty? and unfinished_surfaces.empty?
         runner.registerAsNotApplicable("Measure not applied because no applicable surfaces were found.")
         return true
@@ -182,6 +183,37 @@ class ProcessConstructionsWallsSheathing < OpenStudio::Measure::ModelMeasure
     
     return true
 
+  end
+  
+  def get_sheathing_wall_surfaces(model, runner)
+    finished_surfaces = []
+    unfinished_surfaces = []
+    model.getSpaces.each do |space|
+        # Walls adjacent to finished space
+        if Geometry.space_is_finished(space) and Geometry.space_is_above_grade(space)
+            space.surfaces.each do |surface|
+                next if surface.surfaceType.downcase != "wall"
+                if surface.outsideBoundaryCondition.downcase == "outdoors"
+                    # Above-grade wall between finished space and outside    
+                    finished_surfaces << surface
+                elsif surface.adjacentSurface.is_initialized and surface.adjacentSurface.get.space.is_initialized
+                    adjacent_space = surface.adjacentSurface.get.space.get
+                    next if Geometry.space_is_finished(adjacent_space)
+                    # Above-grade wall between finished space and unfinished space
+                    finished_surfaces << surface
+                end
+            end
+        # Attic wall under an insulated roof
+        elsif Geometry.is_unfinished_attic(space)
+            attic_roof_r = Construction.get_space_r_value(runner, space, "roofceiling")
+            next if attic_roof_r.nil? or attic_roof_r <= 5 # assume uninsulated if <= R-5 assembly
+            space.surfaces.each do |surface|
+                next if surface.surfaceType.downcase != "wall" or surface.outsideBoundaryCondition.downcase != "outdoors"
+                unfinished_surfaces << surface
+            end
+        end
+    end
+    return finished_surfaces, unfinished_surfaces
   end
   
 end

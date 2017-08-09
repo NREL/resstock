@@ -34,12 +34,12 @@ class ResidentialPhotovoltaics < OpenStudio::Measure::ModelMeasure
 
   # human readable description
   def description
-    return "Adds (or replaces) residential photovoltaics with the specified efficiency, size, orientation, and tilt. For both single-family detached and multifamily buildings, one panel is added (or replaced)."
+    return "Adds (or replaces) residential photovoltaics with the specified efficiency, size, orientation, and tilt. For both single-family detached and multifamily buildings, one array is added (or replaced).#{Constants.WorkflowDescription}"
   end
 
   # human readable description of modeling approach
   def modeler_description
-    return "Any generators and electric load center distribution objects are removed. An electric load center distribution object is added with a track schedule equal to the hourly output from SAM. A micro turbine generator object is added to the electric load center distribution object. The fuel used to make the electricity is zeroed out."
+    return "Any generators and electric load center distribution objects are removed. An electric load center distribution object is added with a track schedule equal to the hourly output from SAM's PVWatts v5 model. A micro turbine generator object is added to the electric load center distribution object. The fuel used to make the electricity is zeroed out."
   end
 
   # define the arguments that the user will input

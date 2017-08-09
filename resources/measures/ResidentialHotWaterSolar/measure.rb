@@ -35,7 +35,7 @@ class ResidentialHotWaterSolar < OpenStudio::Measure::ModelMeasure
 
   # human readable description
   def description
-    return "Adds (or replaces) residential solar water heating to the model based on user inputs. For both single-family detached and multifamily buildings, the added storage tank and collector plate provide pre-heated water to the (existing) conventional water heater."
+    return "Adds (or replaces) residential solar water heating to the model based on user inputs. For both single-family detached and multifamily buildings, the added storage tank and collector plate provide pre-heated water to the (existing) conventional water heater.#{Constants.WorkflowDescription}"
   end
 
   # human readable description of modeling approach

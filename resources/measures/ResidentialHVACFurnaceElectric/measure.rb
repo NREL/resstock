@@ -23,7 +23,7 @@ class ProcessFurnaceElectric < OpenStudio::Measure::ModelMeasure
   end
   
   def description
-    return "This measure removes any existing HVAC heating components from the building and adds a furnace along with an on/off supply fan to a unitary air loop. For multifamily buildings, the furnace can be set for all units of the building."
+    return "This measure removes any existing HVAC heating components from the building and adds a furnace along with an on/off supply fan to a unitary air loop. For multifamily buildings, the furnace can be set for all units of the building.#{Constants.WorkflowDescription}"
   end
   
   def modeler_description
@@ -33,7 +33,7 @@ class ProcessFurnaceElectric < OpenStudio::Measure::ModelMeasure
   #define the arguments that the user will input
   def arguments(model)
     args = OpenStudio::Measure::OSArgumentVector.new
-	
+    
     #make an argument for entering furnace installed afue
     afue = OpenStudio::Measure::OSArgument::makeDoubleArgument("afue",true)
     afue.setDisplayName("Installed AFUE")
@@ -48,8 +48,8 @@ class ProcessFurnaceElectric < OpenStudio::Measure::ModelMeasure
     fanpower.setUnits("W/cfm")
     fanpower.setDescription("Fan power (in W) per delivered airflow rate (in cfm) of the indoor fan for the maximum fan speed under actual operating conditions.")
     fanpower.setDefaultValue(0.5)
-    args << fanpower	
-	
+    args << fanpower    
+    
     #make a string argument for furnace heating output capacity
     furnacecap = OpenStudio::Measure::OSArgument::makeStringArgument("capacity", true)
     furnacecap.setDisplayName("Heating Capacity")
@@ -69,7 +69,7 @@ class ProcessFurnaceElectric < OpenStudio::Measure::ModelMeasure
     if not runner.validateUserArguments(arguments(model), user_arguments)
       return false
     end
-	
+    
     furnaceInstalledAFUE = runner.getDoubleArgumentValue("afue",user_arguments)
     furnaceOutputCapacity = runner.getStringArgumentValue("capacity",user_arguments)
     if not furnaceOutputCapacity == Constants.SizingAuto
@@ -108,7 +108,7 @@ class ProcessFurnaceElectric < OpenStudio::Measure::ModelMeasure
       control_slave_zones_hash.each do |control_zone, slave_zones|
       
         # Remove existing equipment
-        clg_coil = HVAC.remove_existing_hvac_equipment(model, runner, Constants.ObjectNameFurnace, control_zone)
+        clg_coil, perf = HVAC.remove_existing_hvac_equipment(model, runner, Constants.ObjectNameFurnace, control_zone, true)
         
         # _processSystemHeatingCoil
         
@@ -143,6 +143,9 @@ class ProcessFurnaceElectric < OpenStudio::Measure::ModelMeasure
           air_loop_unitary.setCoolingCoil(clg_coil)
         else
           air_loop_unitary.setSupplyAirFlowRateDuringCoolingOperation(0.0000001) # this is when there is no cooling present
+        end
+        if not perf.nil?
+          air_loop_unitary.setDesignSpecificationMultispeedObject(perf)
         end
         air_loop_unitary.setSupplyFan(fan)
         air_loop_unitary.setFanPlacement("BlowThrough")
@@ -211,7 +214,7 @@ class ProcessFurnaceElectric < OpenStudio::Measure::ModelMeasure
       end
       
     end
-	
+    
     return true
  
   end #end the run method  

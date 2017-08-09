@@ -16,7 +16,7 @@ class ResidentialHotWaterHeaterTankFuel < OpenStudio::Measure::ModelMeasure
     end
   
     def description
-        return "This measure adds a new residential fuel storage water heater to the model based on user inputs. If there is already an existing residential water heater in the model, it is replaced. For multifamily buildings, the water heater can be set for all units of the building."
+        return "This measure adds a new residential fuel storage water heater to the model based on user inputs. If there is already an existing residential water heater in the model, it is replaced. For multifamily buildings, the water heater can be set for all units of the building.#{Constants.WorkflowDescription}"
     end
   
     def modeler_description
@@ -57,7 +57,7 @@ class ResidentialHotWaterHeaterTankFuel < OpenStudio::Measure::ModelMeasure
         dhw_setpoint.setUnits("F")
         dhw_setpoint.setDefaultValue(125)
         args << dhw_setpoint
-	
+    
         # make an argument for water_heater_location
         thermal_zones = model.getThermalZones
         thermal_zone_names = thermal_zones.select { |tz| not tz.name.empty?}.collect{|tz| tz.name.get }
@@ -66,7 +66,6 @@ class ResidentialHotWaterHeaterTankFuel < OpenStudio::Measure::ModelMeasure
         water_heater_location.setDefaultValue(Constants.Auto)
         water_heater_location.setDisplayName("Location")
         water_heater_location.setDescription("Thermal zone where the water heater is located. #{Constants.Auto} will locate the water heater according the BA House Simulation Protocols: A garage (if available) or the living space in hot-dry and hot-humid climates, a basement (finished or unfinished, if available) or living space in all other climates.")
-	
         args << water_heater_location
 
         # make an argument for water_heater_capacity
@@ -91,7 +90,7 @@ class ResidentialHotWaterHeaterTankFuel < OpenStudio::Measure::ModelMeasure
         water_heater_recovery_efficiency.setUnits("Frac")
         water_heater_recovery_efficiency.setDefaultValue(0.76)
         args << water_heater_recovery_efficiency
-	
+    
         # make an argument on cycle electricity consumption
         offcyc_power = osargument::makeDoubleArgument("offcyc_power", true)
         offcyc_power.setDisplayName("Parasitic Electric Power")
@@ -99,7 +98,7 @@ class ResidentialHotWaterHeaterTankFuel < OpenStudio::Measure::ModelMeasure
         offcyc_power.setUnits("W")
         offcyc_power.setDefaultValue(0)
         args << offcyc_power
-	
+    
         # make an argument on cycle electricity consumption
         oncyc_power = osargument::makeDoubleArgument("oncyc_power", true)
         oncyc_power.setDisplayName("Forced Draft Fan Power")
@@ -125,12 +124,12 @@ class ResidentialHotWaterHeaterTankFuel < OpenStudio::Measure::ModelMeasure
         t_set = runner.getDoubleArgumentValue("setpoint_temp",user_arguments).to_f
         oncycle_p = runner.getDoubleArgumentValue("oncyc_power",user_arguments)
         offcycle_p = runner.getDoubleArgumentValue("offcyc_power",user_arguments)
-	
+    
         #Validate inputs
         if not runner.validateUserArguments(arguments(model), user_arguments)
             return false
         end
-	
+    
         # Validate inputs further
         valid_vol = validate_storage_tank_volume(vol, runner)
         if valid_vol.nil?
@@ -153,7 +152,7 @@ class ResidentialHotWaterHeaterTankFuel < OpenStudio::Measure::ModelMeasure
             return false
         end
         valid_epar = validate_parasitic_elec(oncycle_p, offcycle_p, runner)
-	    if valid_epar.nil?
+        if valid_epar.nil?
             return false
         end
         

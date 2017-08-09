@@ -17,7 +17,7 @@ class ResidentialHotWaterDistribution < OpenStudio::Measure::ModelMeasure
     end
 
     def description
-        return "Adds a hot water distribution system, including pipes and any recirculation pumps, into the home. This measure must be run after hot water fixtures have been added to the home. For multifamily buildings, the hot water fixtures can be set for all units of the building."
+        return "Adds a hot water distribution system, including pipes and any recirculation pumps, into the home. This measure must be run after hot water fixtures have been added to the home. For multifamily buildings, the hot water fixtures can be set for all units of the building.#{Constants.WorkflowDescription}"
     end
       
     def modeler_description

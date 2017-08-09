@@ -14,7 +14,7 @@ class CreateResidentialSingleFamilyAttachedGeometry < OpenStudio::Measure::Model
 
   # human readable description
   def description
-    return "Sets the basic geometry for the building."
+    return "Sets the basic geometry for the building.#{Constants.WorkflowDescription}"
   end
 
   # human readable description of modeling approach
@@ -87,7 +87,7 @@ class CreateResidentialSingleFamilyAttachedGeometry < OpenStudio::Measure::Model
     foundation_display_names << Constants.CrawlFoundationType
     foundation_display_names << Constants.UnfinishedBasementFoundationType
     foundation_display_names << Constants.FinishedBasementFoundationType
-	
+    
     #make a choice argument for foundation type
     foundation_type = OpenStudio::Measure::OSArgument::makeChoiceArgument("foundation_type", foundation_display_names, true)
     foundation_type.setDisplayName("Foundation Type")
@@ -107,7 +107,7 @@ class CreateResidentialSingleFamilyAttachedGeometry < OpenStudio::Measure::Model
     attic_type_display_names = OpenStudio::StringVector.new
     attic_type_display_names << Constants.UnfinishedAtticType
     attic_type_display_names << Constants.FinishedAtticType
-	
+    
     #make a choice argument for attic type
     attic_type = OpenStudio::Measure::OSArgument::makeChoiceArgument("attic_type", attic_type_display_names, true)
     attic_type.setDisplayName("Attic Type")
@@ -120,14 +120,14 @@ class CreateResidentialSingleFamilyAttachedGeometry < OpenStudio::Measure::Model
     roof_type_display_names << Constants.RoofTypeGable
     roof_type_display_names << Constants.RoofTypeHip
     roof_type_display_names << Constants.RoofTypeFlat
-	
+    
     #make a choice argument for roof type
     roof_type = OpenStudio::Measure::OSArgument::makeChoiceArgument("roof_type", roof_type_display_names, true)
     roof_type.setDisplayName("Roof Type")
     roof_type.setDescription("The roof type of the building.")
     roof_type.setDefaultValue(Constants.RoofTypeGable)
     args << roof_type
-	
+    
     #make a choice argument for model objects
     roof_pitch_display_names = OpenStudio::StringVector.new
     roof_pitch_display_names << "1:12"
@@ -142,7 +142,7 @@ class CreateResidentialSingleFamilyAttachedGeometry < OpenStudio::Measure::Model
     roof_pitch_display_names << "10:12"
     roof_pitch_display_names << "11:12"
     roof_pitch_display_names << "12:12"
-	
+    
     #make a choice argument for roof pitch
     roof_pitch = OpenStudio::Measure::OSArgument::makeChoiceArgument("roof_pitch", roof_pitch_display_names, true)
     roof_pitch.setDisplayName("Roof Pitch")
@@ -923,7 +923,7 @@ class CreateResidentialSingleFamilyAttachedGeometry < OpenStudio::Measure::Model
     surface_e_roof.setOutsideBoundaryCondition("Outdoors")      
     surface_s_wall = OpenStudio::Model::Surface.new(polygon_s_wall, model)
     surface_s_wall.setSurfaceType(side_type) 
-    surface_s_wall.setOutsideBoundaryCondition("Outdoors")	
+    surface_s_wall.setOutsideBoundaryCondition("Outdoors")    
     surface_n_wall = OpenStudio::Model::Surface.new(polygon_n_wall, model)
     surface_n_wall.setSurfaceType(side_type)
     surface_n_wall.setOutsideBoundaryCondition("Outdoors")

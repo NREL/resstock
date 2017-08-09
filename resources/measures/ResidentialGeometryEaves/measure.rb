@@ -13,7 +13,7 @@ class CreateResidentialEaves < OpenStudio::Measure::ModelMeasure
 
   # human readable description
   def description
-    return "Sets the eaves for the building."
+    return "Sets the eaves for the building.#{Constants.WorkflowDescription}"
   end
 
   # human readable description of modeling approach
@@ -29,14 +29,14 @@ class CreateResidentialEaves < OpenStudio::Measure::ModelMeasure
     roof_structure_display_names = OpenStudio::StringVector.new
     roof_structure_display_names << Constants.RoofStructureTrussCantilever
     roof_structure_display_names << Constants.RoofStructureRafter
-	
+    
     #make a choice argument for roof type
     roof_structure = OpenStudio::Measure::OSArgument::makeChoiceArgument("roof_structure", roof_structure_display_names, true)
     roof_structure.setDisplayName("Roof Structure")
     roof_structure.setDescription("The roof structure of the building.")
     roof_structure.setDefaultValue(Constants.RoofStructureTrussCantilever)
-    args << roof_structure	
-	
+    args << roof_structure    
+    
     #make a choice argument for eaves depth
     eaves_depth = OpenStudio::Measure::OSArgument::makeDoubleArgument("eaves_depth", true)
     eaves_depth.setDisplayName("Eaves Depth")
@@ -159,7 +159,7 @@ class CreateResidentialEaves < OpenStudio::Measure::ModelMeasure
                 min_x = x_s.each_with_index.min
                 max_x = x_s.each_with_index.max
                 min_pt = OpenStudio::Point3d.new(x_s[min_x[1]] - eaves_depth + existing_eaves_depth, y_s[min_x[1]], z_s[min_x[1]])
-                max_pt = OpenStudio::Point3d.new(x_s[max_x[1]] + eaves_depth - existing_eaves_depth, y_s[max_x[1]], z_s[max_x[1]])						
+                max_pt = OpenStudio::Point3d.new(x_s[max_x[1]] + eaves_depth - existing_eaves_depth, y_s[max_x[1]], z_s[max_x[1]])                        
               else
                 min_x = x_s.each_with_index.min
                 max_x = x_s.each_with_index.max
@@ -380,7 +380,7 @@ class CreateResidentialEaves < OpenStudio::Measure::ModelMeasure
             new_vertices << OpenStudio::Transformation.new(m_left_mid_in) * left_lower
             new_vertices << OpenStudio::Transformation.new(m_right_mid_in) * right_lower
             new_vertices << OpenStudio::Transformation.new(m_right_mid_out) * right_lower
-            new_surface.setVertices(new_vertices)		
+            new_surface.setVertices(new_vertices)        
             shading_surface = OpenStudio::Model::ShadingSurface.new(new_surface.vertices, model)
             shading_surface.setName(Constants.ObjectNameEaves(Geometry.get_facade_for_surface(new_surface)))
             shading_surface.setShadingSurfaceGroup(shading_surface_group)
@@ -391,7 +391,7 @@ class CreateResidentialEaves < OpenStudio::Measure::ModelMeasure
             new_vertices << OpenStudio::Transformation.new(m_left_upper_in) * left_upper
             new_vertices << OpenStudio::Transformation.new(m_left_mid_out_left) * left_lower
             new_vertices << OpenStudio::Transformation.new(m_left_lower_out) * left_lower
-            new_surface.setVertices(new_vertices)		
+            new_surface.setVertices(new_vertices)        
             shading_surface = OpenStudio::Model::ShadingSurface.new(new_surface.vertices, model)
             shading_surface.setName(Constants.ObjectNameEaves(Geometry.get_facade_for_surface(new_surface)))
             shading_surface.setShadingSurfaceGroup(shading_surface_group)
@@ -402,7 +402,7 @@ class CreateResidentialEaves < OpenStudio::Measure::ModelMeasure
             new_vertices << OpenStudio::Transformation.new(m_right_lower_out) * right_lower
             new_vertices << OpenStudio::Transformation.new(m_right_mid_out_right) * right_lower
             new_vertices << OpenStudio::Transformation.new(m_right_upper_in) * right_upper
-            new_surface.setVertices(new_vertices)		
+            new_surface.setVertices(new_vertices)        
             shading_surface = OpenStudio::Model::ShadingSurface.new(new_surface.vertices, model)
             shading_surface.setName(Constants.ObjectNameEaves(Geometry.get_facade_for_surface(new_surface)))
             shading_surface.setShadingSurfaceGroup(shading_surface_group)
@@ -478,7 +478,7 @@ class CreateResidentialEaves < OpenStudio::Measure::ModelMeasure
             new_vertices << OpenStudio::Transformation.new(m_right_mid_out) * right_lower
             new_vertices << OpenStudio::Transformation.new(m_right_mid_in) * right_lower
             new_vertices << OpenStudio::Transformation.new(m_left_mid_in) * left_lower
-            new_surface.setVertices(new_vertices)		
+            new_surface.setVertices(new_vertices)        
             shading_surface = OpenStudio::Model::ShadingSurface.new(new_surface.vertices, model)
             shading_surface.setName(Constants.ObjectNameEaves(Geometry.get_facade_for_surface(new_surface)))
             shading_surface.setShadingSurfaceGroup(shading_surface_group)
@@ -489,7 +489,7 @@ class CreateResidentialEaves < OpenStudio::Measure::ModelMeasure
             new_vertices << OpenStudio::Transformation.new(m_left_lower_out) * left_lower
             new_vertices << OpenStudio::Transformation.new(m_left_mid_out_left) * left_lower
             new_vertices << OpenStudio::Transformation.new(m_left_upper_in) * left_upper
-            new_surface.setVertices(new_vertices)		
+            new_surface.setVertices(new_vertices)        
             shading_surface = OpenStudio::Model::ShadingSurface.new(new_surface.vertices, model)
             shading_surface.setName(Constants.ObjectNameEaves(Geometry.get_facade_for_surface(new_surface)))
             shading_surface.setShadingSurfaceGroup(shading_surface_group)
@@ -500,7 +500,7 @@ class CreateResidentialEaves < OpenStudio::Measure::ModelMeasure
             new_vertices << OpenStudio::Transformation.new(m_right_upper_in) * right_upper
             new_vertices << OpenStudio::Transformation.new(m_right_mid_out_right) * right_lower
             new_vertices << OpenStudio::Transformation.new(m_right_lower_out) * right_lower
-            new_surface.setVertices(new_vertices)		
+            new_surface.setVertices(new_vertices)        
             shading_surface = OpenStudio::Model::ShadingSurface.new(new_surface.vertices, model)
             shading_surface.setName(Constants.ObjectNameEaves(Geometry.get_facade_for_surface(new_surface)))
             shading_surface.setShadingSurfaceGroup(shading_surface_group)
@@ -576,7 +576,7 @@ class CreateResidentialEaves < OpenStudio::Measure::ModelMeasure
             new_vertices << OpenStudio::Transformation.new(m_left_mid_in) * left_lower
             new_vertices << OpenStudio::Transformation.new(m_right_mid_in) * right_lower
             new_vertices << OpenStudio::Transformation.new(m_right_mid_out) * right_lower
-            new_surface.setVertices(new_vertices)		
+            new_surface.setVertices(new_vertices)        
             shading_surface = OpenStudio::Model::ShadingSurface.new(new_surface.vertices, model)
             shading_surface.setName(Constants.ObjectNameEaves(Geometry.get_facade_for_surface(new_surface)))
             shading_surface.setShadingSurfaceGroup(shading_surface_group)
@@ -588,7 +588,7 @@ class CreateResidentialEaves < OpenStudio::Measure::ModelMeasure
               new_vertices << OpenStudio::Transformation.new(m_left_upper_in) * left_upper
               new_vertices << OpenStudio::Transformation.new(m_left_mid_out_left) * left_lower
               new_vertices << OpenStudio::Transformation.new(m_left_lower_out) * left_lower
-              new_surface.setVertices(new_vertices)		
+              new_surface.setVertices(new_vertices)        
               shading_surface = OpenStudio::Model::ShadingSurface.new(new_surface.vertices, model)
               shading_surface.setName(Constants.ObjectNameEaves(Geometry.get_facade_for_surface(new_surface)))
               shading_surface.setShadingSurfaceGroup(shading_surface_group)
@@ -600,7 +600,7 @@ class CreateResidentialEaves < OpenStudio::Measure::ModelMeasure
             new_vertices << OpenStudio::Transformation.new(m_right_lower_out) * right_lower
             new_vertices << OpenStudio::Transformation.new(m_right_mid_out_right) * right_lower
             new_vertices << OpenStudio::Transformation.new(m_right_upper_in) * right_upper
-            new_surface.setVertices(new_vertices)		
+            new_surface.setVertices(new_vertices)        
             shading_surface = OpenStudio::Model::ShadingSurface.new(new_surface.vertices, model)
             shading_surface.setName(Constants.ObjectNameEaves(Geometry.get_facade_for_surface(new_surface)))
             shading_surface.setShadingSurfaceGroup(shading_surface_group)
@@ -676,7 +676,7 @@ class CreateResidentialEaves < OpenStudio::Measure::ModelMeasure
             new_vertices << OpenStudio::Transformation.new(m_right_mid_out) * right_lower
             new_vertices << OpenStudio::Transformation.new(m_right_mid_in) * right_lower
             new_vertices << OpenStudio::Transformation.new(m_left_mid_in) * left_lower
-            new_surface.setVertices(new_vertices)		
+            new_surface.setVertices(new_vertices)        
             shading_surface = OpenStudio::Model::ShadingSurface.new(new_surface.vertices, model)
             shading_surface.setName(Constants.ObjectNameEaves(Geometry.get_facade_for_surface(new_surface)))
             shading_surface.setShadingSurfaceGroup(shading_surface_group)
@@ -688,7 +688,7 @@ class CreateResidentialEaves < OpenStudio::Measure::ModelMeasure
               new_vertices << OpenStudio::Transformation.new(m_left_lower_out) * left_lower
               new_vertices << OpenStudio::Transformation.new(m_left_mid_out_left) * left_lower
               new_vertices << OpenStudio::Transformation.new(m_left_upper_in) * left_upper
-              new_surface.setVertices(new_vertices)		
+              new_surface.setVertices(new_vertices)        
               shading_surface = OpenStudio::Model::ShadingSurface.new(new_surface.vertices, model)
               shading_surface.setName(Constants.ObjectNameEaves(Geometry.get_facade_for_surface(new_surface)))
               shading_surface.setShadingSurfaceGroup(shading_surface_group)
@@ -700,7 +700,7 @@ class CreateResidentialEaves < OpenStudio::Measure::ModelMeasure
             new_vertices << OpenStudio::Transformation.new(m_right_upper_in) * right_upper
             new_vertices << OpenStudio::Transformation.new(m_right_mid_out_right) * right_lower
             new_vertices << OpenStudio::Transformation.new(m_right_lower_out) * right_lower
-            new_surface.setVertices(new_vertices)		
+            new_surface.setVertices(new_vertices)        
             shading_surface = OpenStudio::Model::ShadingSurface.new(new_surface.vertices, model)
             shading_surface.setName(Constants.ObjectNameEaves(Geometry.get_facade_for_surface(new_surface)))
             shading_surface.setShadingSurfaceGroup(shading_surface_group)
@@ -869,7 +869,7 @@ class CreateResidentialEaves < OpenStudio::Measure::ModelMeasure
           
           elsif garage_roof and garage_pos == "Right"
           
-            new_surface_right.setVertices(new_vertices_right)		
+            new_surface_right.setVertices(new_vertices_right)        
             shading_surface = OpenStudio::Model::ShadingSurface.new(new_surface_right.vertices, model)
             shading_surface.setName(Constants.ObjectNameEaves(Geometry.get_facade_for_surface(new_surface_right)))
             shading_surface.setShadingSurfaceGroup(shading_surface_group)
@@ -980,7 +980,7 @@ class CreateResidentialEaves < OpenStudio::Measure::ModelMeasure
               nw_point = OpenStudio::Point3d.new(bottom_left.x-eaves_depth,bottom_left.y,bottom_left.z+z_offset)
               ne_point = OpenStudio::Point3d.new(top_mid.x,top_mid.y,top_mid.z+z_offset)
               se_point = OpenStudio::Point3d.new(top_mid.x,top_mid.y-eaves_depth,top_mid.z+z_offset)
-              new_vertices_bottom = Geometry.make_polygon(sw_point, nw_point, ne_point, se_point)	
+              new_vertices_bottom = Geometry.make_polygon(sw_point, nw_point, ne_point, se_point)    
 
               sw_point = OpenStudio::Point3d.new(top_left.x-eaves_depth,top_left.y,top_left.z+z_offset)
               nw_point = OpenStudio::Point3d.new(top_left.x-eaves_depth,top_left.y+eaves_depth,top_left.z+z_offset)
@@ -992,13 +992,13 @@ class CreateResidentialEaves < OpenStudio::Measure::ModelMeasure
               nw_point = OpenStudio::Point3d.new(top_left.x-eaves_depth,top_left.y,top_left.z+z_offset)
               ne_point = OpenStudio::Point3d.new(top_left.x,top_left.y,top_left.z+z_offset)
               se_point = OpenStudio::Point3d.new(bottom_left.x,bottom_left.y,bottom_left.z+z_offset)
-              new_vertices_left = Geometry.make_polygon(sw_point, nw_point, ne_point, se_point)	
+              new_vertices_left = Geometry.make_polygon(sw_point, nw_point, ne_point, se_point)    
 
               sw_point = OpenStudio::Point3d.new(bottom_right.x,bottom_right.y,bottom_right.z+z_offset)
               nw_point = OpenStudio::Point3d.new(top_right.x,top_right.y,top_right.z+z_offset)
               ne_point = OpenStudio::Point3d.new(top_right.x+eaves_depth,top_right.y,top_right.z+z_offset)
               se_point = OpenStudio::Point3d.new(bottom_right.x+eaves_depth,bottom_right.y,bottom_right.z+z_offset)
-              new_vertices_right = Geometry.make_polygon(sw_point, nw_point, ne_point, se_point)	
+              new_vertices_right = Geometry.make_polygon(sw_point, nw_point, ne_point, se_point)    
 
               if num_floors > 1 or garage_pos == "None"
                 sw_point = OpenStudio::Point3d.new(bottom_mid.x-eaves_depth,bottom_mid.y-eaves_depth,bottom_mid.z+z_offset)
@@ -1009,7 +1009,7 @@ class CreateResidentialEaves < OpenStudio::Measure::ModelMeasure
               end
               ne_point = OpenStudio::Point3d.new(bottom_right.x+eaves_depth,bottom_right.y,bottom_right.z+z_offset)
               se_point = OpenStudio::Point3d.new(bottom_right.x+eaves_depth,bottom_right.y-eaves_depth,bottom_right.z+z_offset)
-              new_vertices_inset_one = Geometry.make_polygon(sw_point, nw_point, ne_point, se_point)	
+              new_vertices_inset_one = Geometry.make_polygon(sw_point, nw_point, ne_point, se_point)    
 
               sw_point = OpenStudio::Point3d.new(bottom_mid.x-eaves_depth,bottom_mid.y,bottom_mid.z+z_offset)
               nw_point = OpenStudio::Point3d.new(top_mid.x-eaves_depth,top_mid.y-eaves_depth,top_mid.z+z_offset)
@@ -1067,7 +1067,7 @@ class CreateResidentialEaves < OpenStudio::Measure::ModelMeasure
               nw_point = OpenStudio::Point3d.new(bottom_left.x-eaves_depth,bottom_left.y,bottom_left.z+z_offset)
               ne_point = OpenStudio::Point3d.new(bottom_right.x+eaves_depth,bottom_right.y,bottom_right.z+z_offset)
               se_point = OpenStudio::Point3d.new(bottom_right.x+eaves_depth,bottom_right.y-eaves_depth,bottom_right.z+z_offset)
-              new_vertices_bottom = Geometry.make_polygon(sw_point, nw_point, ne_point, se_point)	
+              new_vertices_bottom = Geometry.make_polygon(sw_point, nw_point, ne_point, se_point)    
 
               sw_point = OpenStudio::Point3d.new(bottom_mid.x,bottom_mid.y,bottom_mid.z+z_offset)
               nw_point = OpenStudio::Point3d.new(bottom_mid.x,bottom_mid.y+eaves_depth,bottom_mid.z+z_offset)
@@ -1079,13 +1079,13 @@ class CreateResidentialEaves < OpenStudio::Measure::ModelMeasure
               nw_point = OpenStudio::Point3d.new(top_left.x-eaves_depth,top_left.y,top_left.z+z_offset)
               ne_point = OpenStudio::Point3d.new(top_left.x,top_left.y,top_left.z+z_offset)
               se_point = OpenStudio::Point3d.new(bottom_left.x,bottom_left.y,bottom_left.z+z_offset)
-              new_vertices_left = Geometry.make_polygon(sw_point, nw_point, ne_point, se_point)	
+              new_vertices_left = Geometry.make_polygon(sw_point, nw_point, ne_point, se_point)    
 
               sw_point = OpenStudio::Point3d.new(bottom_right.x,bottom_right.y,bottom_right.z+z_offset)
               nw_point = OpenStudio::Point3d.new(top_right.x,top_right.y,top_right.z+z_offset)
               ne_point = OpenStudio::Point3d.new(top_right.x+eaves_depth,top_right.y,top_right.z+z_offset)
               se_point = OpenStudio::Point3d.new(bottom_right.x+eaves_depth,bottom_right.y,bottom_right.z+z_offset)
-              new_vertices_right = Geometry.make_polygon(sw_point, nw_point, ne_point, se_point)	
+              new_vertices_right = Geometry.make_polygon(sw_point, nw_point, ne_point, se_point)    
 
               sw_point = OpenStudio::Point3d.new(top_left.x-eaves_depth,top_left.y,top_left.z+z_offset)
               nw_point = OpenStudio::Point3d.new(top_left.x-eaves_depth,top_left.y+eaves_depth,top_left.z+z_offset)
@@ -1153,7 +1153,7 @@ class CreateResidentialEaves < OpenStudio::Measure::ModelMeasure
               nw_point = OpenStudio::Point3d.new(top_mid.x,top_mid.y,top_mid.z+z_offset)
               ne_point = OpenStudio::Point3d.new(bottom_right.x+eaves_depth,bottom_right.y,bottom_right.z+z_offset)
               se_point = OpenStudio::Point3d.new(bottom_right.x+eaves_depth,bottom_right.y-eaves_depth,bottom_right.z+z_offset)
-              new_vertices_bottom = Geometry.make_polygon(sw_point, nw_point, ne_point, se_point)	
+              new_vertices_bottom = Geometry.make_polygon(sw_point, nw_point, ne_point, se_point)    
 
               sw_point = OpenStudio::Point3d.new(top_left.x-eaves_depth,top_left.y,top_left.z+z_offset)
               nw_point = OpenStudio::Point3d.new(top_left.x-eaves_depth,top_left.y+eaves_depth,top_left.z+z_offset)
@@ -1165,13 +1165,13 @@ class CreateResidentialEaves < OpenStudio::Measure::ModelMeasure
               nw_point = OpenStudio::Point3d.new(top_left.x-eaves_depth,top_left.y,top_left.z+z_offset)
               ne_point = OpenStudio::Point3d.new(top_left.x,top_left.y,top_left.z+z_offset)
               se_point = OpenStudio::Point3d.new(bottom_left.x,bottom_left.y,bottom_left.z+z_offset)
-              new_vertices_left = Geometry.make_polygon(sw_point, nw_point, ne_point, se_point)	
+              new_vertices_left = Geometry.make_polygon(sw_point, nw_point, ne_point, se_point)    
 
               sw_point = OpenStudio::Point3d.new(bottom_right.x,bottom_right.y,bottom_right.z+z_offset)
               nw_point = OpenStudio::Point3d.new(top_right.x,top_right.y,top_right.z+z_offset)
               ne_point = OpenStudio::Point3d.new(top_right.x+eaves_depth,top_right.y,top_right.z+z_offset)
               se_point = OpenStudio::Point3d.new(bottom_right.x+eaves_depth,bottom_right.y,bottom_right.z+z_offset)
-              new_vertices_right = Geometry.make_polygon(sw_point, nw_point, ne_point, se_point)	
+              new_vertices_right = Geometry.make_polygon(sw_point, nw_point, ne_point, se_point)    
 
               sw_point = OpenStudio::Point3d.new(bottom_left.x-eaves_depth,bottom_left.y-eaves_depth,bottom_left.z+z_offset)
               nw_point = OpenStudio::Point3d.new(bottom_left.x-eaves_depth,bottom_left.y,bottom_left.z+z_offset)
@@ -1182,7 +1182,7 @@ class CreateResidentialEaves < OpenStudio::Measure::ModelMeasure
                 ne_point = OpenStudio::Point3d.new(bottom_mid.x,bottom_mid.y,bottom_mid.z+z_offset)
                 se_point = OpenStudio::Point3d.new(bottom_mid.x,bottom_mid.y-eaves_depth,bottom_mid.z+z_offset)              
               end
-              new_vertices_inset_one = Geometry.make_polygon(sw_point, nw_point, ne_point, se_point)	
+              new_vertices_inset_one = Geometry.make_polygon(sw_point, nw_point, ne_point, se_point)    
 
               sw_point = OpenStudio::Point3d.new(bottom_mid.x,bottom_mid.y,bottom_mid.z+z_offset)
               nw_point = OpenStudio::Point3d.new(top_mid.x,top_mid.y-eaves_depth,top_mid.z+z_offset)
@@ -1240,7 +1240,7 @@ class CreateResidentialEaves < OpenStudio::Measure::ModelMeasure
               nw_point = OpenStudio::Point3d.new(bottom_left.x-eaves_depth,bottom_left.y,bottom_left.z+z_offset)
               ne_point = OpenStudio::Point3d.new(bottom_right.x+eaves_depth,bottom_right.y,bottom_right.z+z_offset)
               se_point = OpenStudio::Point3d.new(bottom_right.x+eaves_depth,bottom_right.y-eaves_depth,bottom_right.z+z_offset)
-              new_vertices_bottom = Geometry.make_polygon(sw_point, nw_point, ne_point, se_point)	
+              new_vertices_bottom = Geometry.make_polygon(sw_point, nw_point, ne_point, se_point)    
 
               sw_point = OpenStudio::Point3d.new(top_left.x-eaves_depth,top_left.y,top_left.z+z_offset)
               nw_point = OpenStudio::Point3d.new(top_left.x-eaves_depth,top_left.y+eaves_depth,top_left.z+z_offset)
@@ -1252,25 +1252,25 @@ class CreateResidentialEaves < OpenStudio::Measure::ModelMeasure
               nw_point = OpenStudio::Point3d.new(top_left.x-eaves_depth,top_left.y,top_left.z+z_offset)
               ne_point = OpenStudio::Point3d.new(top_left.x,top_left.y,top_left.z+z_offset)
               se_point = OpenStudio::Point3d.new(bottom_left.x,bottom_left.y,bottom_left.z+z_offset)
-              new_vertices_left = Geometry.make_polygon(sw_point, nw_point, ne_point, se_point)	
+              new_vertices_left = Geometry.make_polygon(sw_point, nw_point, ne_point, se_point)    
 
               sw_point = OpenStudio::Point3d.new(bottom_right.x,bottom_right.y,bottom_right.z+z_offset)
               nw_point = OpenStudio::Point3d.new(top_right.x,top_right.y,top_right.z+z_offset)
               ne_point = OpenStudio::Point3d.new(top_right.x+eaves_depth,top_right.y,top_right.z+z_offset)
               se_point = OpenStudio::Point3d.new(bottom_right.x+eaves_depth,bottom_right.y,bottom_right.z+z_offset)
-              new_vertices_right = Geometry.make_polygon(sw_point, nw_point, ne_point, se_point)	
+              new_vertices_right = Geometry.make_polygon(sw_point, nw_point, ne_point, se_point)    
 
               sw_point = OpenStudio::Point3d.new(top_mid.x-eaves_depth,top_mid.y,top_mid.z+z_offset)
               nw_point = OpenStudio::Point3d.new(top_mid.x-eaves_depth,top_mid.y+eaves_depth,top_mid.z+z_offset)
               ne_point = OpenStudio::Point3d.new(top_right.x+eaves_depth,top_right.y+eaves_depth,top_right.z+z_offset)
               se_point = OpenStudio::Point3d.new(top_right.x+eaves_depth,top_right.y,top_right.z+z_offset)
-              new_vertices_inset_one = Geometry.make_polygon(sw_point, nw_point, ne_point, se_point)	
+              new_vertices_inset_one = Geometry.make_polygon(sw_point, nw_point, ne_point, se_point)    
 
               sw_point = OpenStudio::Point3d.new(bottom_mid.x-eaves_depth,bottom_mid.y+eaves_depth,bottom_mid.z+z_offset)
               nw_point = OpenStudio::Point3d.new(top_mid.x-eaves_depth,top_mid.y,top_mid.z+z_offset)
               ne_point = OpenStudio::Point3d.new(top_mid.x,top_mid.y,top_mid.z+z_offset)
               se_point = OpenStudio::Point3d.new(bottom_mid.x,bottom_mid.y+eaves_depth,bottom_mid.z+z_offset)
-              new_vertices_inset_two = Geometry.make_polygon(sw_point, nw_point, ne_point, se_point)	            
+              new_vertices_inset_two = Geometry.make_polygon(sw_point, nw_point, ne_point, se_point)                
             
             end
             
@@ -1410,10 +1410,10 @@ class CreateResidentialEaves < OpenStudio::Measure::ModelMeasure
             new_vertices << transformation_left_upper * left
             new_vertices << transformation_right_upper * right
             new_vertices << transformation_right_lower * right
-            new_surface.setVertices(new_vertices)		
+            new_surface.setVertices(new_vertices)        
             shading_surface = OpenStudio::Model::ShadingSurface.new(new_surface.vertices, model)
             shading_surface.setName(Constants.ObjectNameEaves(Geometry.get_facade_for_surface(new_surface)))
-            shading_surface.setShadingSurfaceGroup(shading_surface_group)								
+            shading_surface.setShadingSurfaceGroup(shading_surface_group)                                
             
           elsif slope_dir == "pos_y"
           
@@ -1450,7 +1450,7 @@ class CreateResidentialEaves < OpenStudio::Measure::ModelMeasure
             new_vertices << transformation_left_upper * left
             new_vertices << transformation_right_upper * right
             new_vertices << transformation_right_lower * right
-            new_surface.setVertices(new_vertices)		
+            new_surface.setVertices(new_vertices)        
             shading_surface = OpenStudio::Model::ShadingSurface.new(new_surface.vertices, model)
             shading_surface.setName(Constants.ObjectNameEaves(Geometry.get_facade_for_surface(new_surface)))
             shading_surface.setShadingSurfaceGroup(shading_surface_group)
@@ -1490,10 +1490,10 @@ class CreateResidentialEaves < OpenStudio::Measure::ModelMeasure
             new_vertices << transformation_left_upper * left
             new_vertices << transformation_right_upper * right
             new_vertices << transformation_right_lower * right
-            new_surface.setVertices(new_vertices)		
+            new_surface.setVertices(new_vertices)        
             shading_surface = OpenStudio::Model::ShadingSurface.new(new_surface.vertices, model)
             shading_surface.setName(Constants.ObjectNameEaves(Geometry.get_facade_for_surface(new_surface)))
-            shading_surface.setShadingSurfaceGroup(shading_surface_group)								
+            shading_surface.setShadingSurfaceGroup(shading_surface_group)                                
             
           elsif slope_dir == "pos_x"
           
@@ -1530,10 +1530,10 @@ class CreateResidentialEaves < OpenStudio::Measure::ModelMeasure
             new_vertices << transformation_left_upper * left
             new_vertices << transformation_right_upper * right
             new_vertices << transformation_right_lower * right
-            new_surface.setVertices(new_vertices)		
+            new_surface.setVertices(new_vertices)        
             shading_surface = OpenStudio::Model::ShadingSurface.new(new_surface.vertices, model)
             shading_surface.setName(Constants.ObjectNameEaves(Geometry.get_facade_for_surface(new_surface)))
-            shading_surface.setShadingSurfaceGroup(shading_surface_group)								
+            shading_surface.setShadingSurfaceGroup(shading_surface_group)                                
             
           end
           

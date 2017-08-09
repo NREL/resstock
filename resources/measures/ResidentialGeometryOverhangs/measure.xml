@@ -2,14 +2,29 @@
   <schema_version>3.0</schema_version>
   <name>create_residential_overhangs</name>
   <uid>0821dae4-c0b6-4295-a7a5-ccaf9407dc77</uid>
-  <version_id>3e2f347e-bfb1-49a2-ad27-3489862df3ee</version_id>
-  <version_modified>20170628T172557Z</version_modified>
+  <version_id>d0e2b4f0-62e3-4e90-be6a-4223f864ce36</version_id>
+  <version_modified>20170731T151913Z</version_modified>
   <xml_checksum>9C8A26EB</xml_checksum>
   <class_name>CreateResidentialOverhangs</class_name>
   <display_name>Set Residential Overhangs</display_name>
-  <description>Sets presence/dimensions of overhangs for windows on the specified building facade(s).</description>
+  <description>Sets presence/dimensions of overhangs for windows on the specified building facade(s). See https://github.com/NREL/OpenStudio-BEopt#workflows for supported workflows using this measure.</description>
   <modeler_description>Creates overhang shading surfaces for windows on the specified building facade(s) and specified depth/offset. Any existing overhang shading surfaces are removed.</modeler_description>
   <arguments>
+    <argument>
+      <name>sub_surface</name>
+      <display_name>Sub Surface(s)</display_name>
+      <description>Select the sub surface(s) to assign overhangs.</description>
+      <type>Choice</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+      <default_value>auto</default_value>
+      <choices>
+        <choice>
+          <value>auto</value>
+          <display_name>auto</display_name>
+        </choice>
+      </choices>
+    </argument>
     <argument>
       <name>depth</name>
       <display_name>Depth</display_name>
@@ -136,6 +151,18 @@
   </attributes>
   <files>
     <file>
+      <filename>create_residential_overhangs.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>test</usage_type>
+      <checksum>57410F31</checksum>
+    </file>
+    <file>
+      <filename>geometry.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>20190C86</checksum>
+    </file>
+    <file>
       <version>
         <software_program>OpenStudio</software_program>
         <identifier>1.9.0</identifier>
@@ -144,61 +171,49 @@
       <filename>measure.rb</filename>
       <filetype>rb</filetype>
       <usage_type>script</usage_type>
-      <checksum>FDD8C3BC</checksum>
-    </file>
-    <file>
-      <filename>create_residential_overhangs.rb</filename>
-      <filetype>rb</filetype>
-      <usage_type>test</usage_type>
-      <checksum>14237DE1</checksum>
-    </file>
-    <file>
-      <filename>geometry.rb</filename>
-      <filetype>rb</filetype>
-      <usage_type>resource</usage_type>
-      <checksum>31FE0BE6</checksum>
-    </file>
-    <file>
-      <filename>SFD_2000sqft_2story_SL_UA_Windows.osm</filename>
-      <filetype>osm</filetype>
-      <usage_type>test</usage_type>
-      <checksum>4AD8B189</checksum>
-    </file>
-    <file>
-      <filename>MF_8units_1story_SL_Inset_Windows.osm</filename>
-      <filetype>osm</filetype>
-      <usage_type>test</usage_type>
-      <checksum>1BAA8B61</checksum>
-    </file>
-    <file>
-      <filename>SFA_4units_1story_SL_UA_Offset_Windows.osm</filename>
-      <filetype>osm</filetype>
-      <usage_type>test</usage_type>
-      <checksum>56DECA79</checksum>
-    </file>
-    <file>
-      <filename>MF_8units_1story_SL_Windows.osm</filename>
-      <filetype>osm</filetype>
-      <usage_type>test</usage_type>
-      <checksum>11C4FA19</checksum>
-    </file>
-    <file>
-      <filename>SFA_4units_1story_SL_UA_Windows.osm</filename>
-      <filetype>osm</filetype>
-      <usage_type>test</usage_type>
-      <checksum>06EE1C65</checksum>
-    </file>
-    <file>
-      <filename>SFD_2000sqft_2story_SL_UA.osm</filename>
-      <filetype>osm</filetype>
-      <usage_type>test</usage_type>
-      <checksum>39FFFE07</checksum>
+      <checksum>1528819B</checksum>
     </file>
     <file>
       <filename>constants.rb</filename>
       <filetype>rb</filetype>
       <usage_type>resource</usage_type>
-      <checksum>C8CE4128</checksum>
+      <checksum>B34275B6</checksum>
+    </file>
+    <file>
+      <filename>SFD_2000sqft_2story_SL_UA_Windows.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>3C0F96E3</checksum>
+    </file>
+    <file>
+      <filename>MF_8units_1story_SL_Inset_Windows.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>667B40B1</checksum>
+    </file>
+    <file>
+      <filename>SFA_4units_1story_SL_UA_Offset_Windows.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>6D82A165</checksum>
+    </file>
+    <file>
+      <filename>MF_8units_1story_SL_Windows.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>FD26C6EC</checksum>
+    </file>
+    <file>
+      <filename>SFA_4units_1story_SL_UA_Windows.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>CFF1C6E8</checksum>
+    </file>
+    <file>
+      <filename>SFD_2000sqft_2story_SL_UA.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>A6433770</checksum>
     </file>
   </files>
 </measure>

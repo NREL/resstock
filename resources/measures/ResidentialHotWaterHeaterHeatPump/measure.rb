@@ -17,7 +17,7 @@ class ResidentialHotWaterHeaterHeatPump < OpenStudio::Measure::ModelMeasure
     end
   
     def description
-        return "This measure adds a new residential heat pump water heater to the model based on user inputs. If there is already an existing residential water heater in the model, it is replaced. For multifamily buildings, the water heater can be set for all units of the building."
+        return "This measure adds a new residential heat pump water heater to the model based on user inputs. If there is already an existing residential water heater in the model, it is replaced. For multifamily buildings, the water heater can be set for all units of the building.#{Constants.WorkflowDescription}"
     end
   
     def modeler_description
@@ -41,7 +41,7 @@ class ResidentialHotWaterHeaterHeatPump < OpenStudio::Measure::ModelMeasure
         args << storage_tank_volume
 
         # make an argument for hot water setpoint temperature
-        dhw_setpoint = osargument::makeDoubleArgument("dhw_setpoint_temperature", true)
+        dhw_setpoint = osargument::makeDoubleArgument("setpoint_temp", true)
         dhw_setpoint.setDisplayName("Setpoint")
         dhw_setpoint.setDescription("Water heater setpoint temperature.")
         dhw_setpoint.setUnits("F")
@@ -181,7 +181,7 @@ class ResidentialHotWaterHeaterHeatPump < OpenStudio::Measure::ModelMeasure
         e_cap = runner.getDoubleArgumentValue("element_capacity",user_arguments)
         vol = runner.getDoubleArgumentValue("storage_tank_volume",user_arguments)
         water_heater_space_name = runner.getStringArgumentValue("space",user_arguments)
-        t_set = runner.getDoubleArgumentValue("dhw_setpoint_temperature",user_arguments).to_f
+        t_set = runner.getDoubleArgumentValue("setpoint_temp",user_arguments).to_f
         min_temp = runner.getDoubleArgumentValue("min_temp",user_arguments).to_f
         max_temp = runner.getDoubleArgumentValue("max_temp",user_arguments).to_f
         cap = runner.getDoubleArgumentValue("cap",user_arguments).to_f

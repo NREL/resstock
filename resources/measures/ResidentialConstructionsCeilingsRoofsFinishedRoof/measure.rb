@@ -14,7 +14,7 @@ class ProcessConstructionsCeilingsRoofsFinishedRoof < OpenStudio::Measure::Model
   end
   
   def description
-    return "This measure assigns a construction to finished roofs."
+    return "This measure assigns a construction to finished roofs.#{Constants.WorkflowDescription}"
   end
   
   def modeler_description
@@ -25,11 +25,24 @@ class ProcessConstructionsCeilingsRoofsFinishedRoof < OpenStudio::Measure::Model
   def arguments(model)
     args = OpenStudio::Measure::OSArgumentVector.new
 
+    #make a choice argument for roofs above finished space
+    surfaces = get_finished_roofs(model)
+    surfaces_args = OpenStudio::StringVector.new
+    surfaces_args << Constants.Auto
+    surfaces.each do |surface|
+      surfaces_args << surface.name.to_s
+    end   
+    surface = OpenStudio::Measure::OSArgument::makeChoiceArgument("surface", surfaces_args, false)
+    surface.setDisplayName("Surface(s)")
+    surface.setDescription("Select the surface(s) to assign constructions.")
+    surface.setDefaultValue(Constants.Auto)
+    args << surface
+    
     #make a double argument for finished roof insulation R-value
     cavity_r = OpenStudio::Measure::OSArgument::makeDoubleArgument("cavity_r", true)
     cavity_r.setDisplayName("Cavity Insulation Installed R-value")
-	cavity_r.setUnits("hr-ft^2-R/Btu")
-	cavity_r.setDescription("Refers to the R-value of the cavity insulation and not the overall R-value of the assembly. If batt insulation must be compressed to fit within the cavity (e.g., R19 in a 5.5\" 2x6 cavity), use an R-value that accounts for this effect (see HUD Mobile Home Construction and Safety Standards 3280.509 for reference).")
+    cavity_r.setUnits("hr-ft^2-R/Btu")
+    cavity_r.setDescription("Refers to the R-value of the cavity insulation and not the overall R-value of the assembly. If batt insulation must be compressed to fit within the cavity (e.g., R19 in a 5.5\" 2x6 cavity), use an R-value that accounts for this effect (see HUD Mobile Home Construction and Safety Standards 3280.509 for reference).")
     cavity_r.setDefaultValue(30.0)
     args << cavity_r
     
@@ -54,18 +67,18 @@ class ProcessConstructionsCeilingsRoofsFinishedRoof < OpenStudio::Measure::Model
     cavity_depth.setDefaultValue(9.25)
     args << cavity_depth
     
-	#make a bool argument for whether the cavity insulation fills the cavity
-	ins_fills_cavity = OpenStudio::Measure::OSArgument::makeBoolArgument("ins_fills_cavity", true)
-	ins_fills_cavity.setDisplayName("Insulation Fills Cavity")
-	ins_fills_cavity.setDescription("When the insulation does not completely fill the depth of the cavity, air film resistances are added to the insulation R-value.")
+    #make a bool argument for whether the cavity insulation fills the cavity
+    ins_fills_cavity = OpenStudio::Measure::OSArgument::makeBoolArgument("ins_fills_cavity", true)
+    ins_fills_cavity.setDisplayName("Insulation Fills Cavity")
+    ins_fills_cavity.setDescription("When the insulation does not completely fill the depth of the cavity, air film resistances are added to the insulation R-value.")
     ins_fills_cavity.setDefaultValue(false)
-	args << ins_fills_cavity
+    args << ins_fills_cavity
     
     #make a choice argument for finished roof framing factor
     framing_factor = OpenStudio::Measure::OSArgument::makeDoubleArgument("framing_factor", false)
     framing_factor.setDisplayName("Framing Factor")
-	framing_factor.setUnits("frac")
-	framing_factor.setDescription("The framing factor of the finished roof.")
+    framing_factor.setUnits("frac")
+    framing_factor.setDescription("The framing factor of the finished roof.")
     framing_factor.setDefaultValue(0.07)
     args << framing_factor
     
@@ -80,22 +93,27 @@ class ProcessConstructionsCeilingsRoofsFinishedRoof < OpenStudio::Measure::Model
     if not runner.validateUserArguments(arguments(model), user_arguments)
       return false
     end
-
-    # Roof above finished space
-    spaces = []
-    surfaces = []
-    model.getSpaces.each do |space|
-        next if Geometry.space_is_unfinished(space)
-        next if Geometry.space_is_below_grade(space)
-        space.surfaces.each do |surface|
-            next if surface.surfaceType.downcase != "roofceiling"
-            next if surface.outsideBoundaryCondition.downcase != "outdoors"
-            surfaces << surface
-            if not spaces.include? space
-                spaces << space
-            end
-        end
+    
+    surface_s = runner.getOptionalStringArgumentValue("surface",user_arguments)
+    if not surface_s.is_initialized
+      surface_s = Constants.Auto
+    else
+      surface_s = surface_s.get
     end
+    
+    surfaces = get_finished_roofs(model)
+    
+    unless surface_s == Constants.Auto
+      surfaces.delete_if { |surface| surface.name.to_s != surface_s }
+    end
+    
+    spaces = []
+    surfaces.each do |surface|
+      space = surface.space.get
+      if not spaces.include? space
+          spaces << space
+      end
+    end    
     
     # Continue if no applicable surfaces
     if surfaces.empty?
@@ -178,6 +196,20 @@ class ProcessConstructionsCeilingsRoofsFinishedRoof < OpenStudio::Measure::Model
     return true
  
   end #end the run method
+  
+  def get_finished_roofs(model)  
+    surfaces = []
+    model.getSpaces.each do |space|
+        next if Geometry.space_is_unfinished(space)
+        next if Geometry.space_is_below_grade(space)
+        space.surfaces.each do |surface|
+            next if surface.surfaceType.downcase != "roofceiling"
+            next if surface.outsideBoundaryCondition.downcase != "outdoors"
+            surfaces << surface
+        end
+    end
+    return surfaces
+  end
   
 end #end the measure
 

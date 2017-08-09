@@ -14,7 +14,7 @@ class ProcessConstructionsFoundationsFloorsInterzonalFloors < OpenStudio::Measur
   end
   
   def description
-    return "This measure assigns a wood stud construction to floors between finished space and unfinished space or floors below cantilevered finished space."
+    return "This measure assigns a wood stud construction to floors between finished space and unfinished space or floors below cantilevered finished space.#{Constants.WorkflowDescription}"
   end
   
   def modeler_description
@@ -25,6 +25,19 @@ class ProcessConstructionsFoundationsFloorsInterzonalFloors < OpenStudio::Measur
   def arguments(model)
     args = OpenStudio::Measure::OSArgumentVector.new
 
+    #make a choice argument for interzonal floor surfaces
+    surfaces = get_interzonal_floor_surfaces(model)
+    surfaces_args = OpenStudio::StringVector.new
+    surfaces_args << Constants.Auto
+    surfaces.each do |surface|
+      surfaces_args << surface.name.to_s
+    end
+    surface = OpenStudio::Measure::OSArgument::makeChoiceArgument("surface", surfaces_args, false)
+    surface.setDisplayName("Surface(s)")
+    surface.setDescription("Select the surface(s) to assign constructions.")
+    surface.setDefaultValue(Constants.Auto)
+    args << surface
+    
     #make a double argument for nominal R-value of cavity insulation
     cavity_r = OpenStudio::Measure::OSArgument::makeDoubleArgument("cavity_r", true)
     cavity_r.setDisplayName("Cavity Insulation Nominal R-value")
@@ -64,25 +77,17 @@ class ProcessConstructionsFoundationsFloorsInterzonalFloors < OpenStudio::Measur
       return false
     end
 
-    surfaces = []
-    model.getSpaces.each do |space|
-        next if Geometry.space_is_unfinished(space)
-        next if Geometry.space_is_below_grade(space)
-        next if Geometry.get_pier_beam_spaces([space]).size > 0
-        space.surfaces.each do |surface|
-            next if surface.surfaceType.downcase != "floor"
-            if surface.outsideBoundaryCondition.downcase == "outdoors"
-                # Cantilevered floor between above-grade finished space and outside    
-                surfaces << surface
-            elsif surface.adjacentSurface.is_initialized and surface.adjacentSurface.get.space.is_initialized
-                adjacent_space = surface.adjacentSurface.get.space.get
-                next if Geometry.space_is_finished(adjacent_space)
-                next if Geometry.space_is_below_grade(adjacent_space)
-                next if Geometry.get_pier_beam_spaces([adjacent_space]).size > 0
-                # Floor between above-grade finished space and above-grade unfinished space
-                surfaces << surface
-            end
-        end
+    surface_s = runner.getOptionalStringArgumentValue("surface",user_arguments)
+    if not surface_s.is_initialized
+      surface_s = Constants.Auto
+    else
+      surface_s = surface_s.get
+    end
+    
+    surfaces = get_interzonal_floor_surfaces(model)
+    
+    unless surface_s == Constants.Auto
+      surfaces.delete_if { |surface| surface.name.to_s != surface_s }
     end
     
     # Continue if no applicable surfaces
@@ -142,6 +147,30 @@ class ProcessConstructionsFoundationsFloorsInterzonalFloors < OpenStudio::Measur
 
   end #end the run method
 
+  def get_interzonal_floor_surfaces(model)
+    surfaces = []
+    model.getSpaces.each do |space|
+        next if Geometry.space_is_unfinished(space)
+        next if Geometry.space_is_below_grade(space)
+        next if Geometry.get_pier_beam_spaces([space]).size > 0
+        space.surfaces.each do |surface|
+            next if surface.surfaceType.downcase != "floor"
+            if surface.outsideBoundaryCondition.downcase == "outdoors"
+                # Cantilevered floor between above-grade finished space and outside    
+                surfaces << surface
+            elsif surface.adjacentSurface.is_initialized and surface.adjacentSurface.get.space.is_initialized
+                adjacent_space = surface.adjacentSurface.get.space.get
+                next if Geometry.space_is_finished(adjacent_space)
+                next if Geometry.space_is_below_grade(adjacent_space)
+                next if Geometry.get_pier_beam_spaces([adjacent_space]).size > 0
+                # Floor between above-grade finished space and above-grade unfinished space
+                surfaces << surface
+            end
+        end
+    end
+    return surfaces
+  end
+  
 end #end the measure
 
 #this allows the measure to be use by the application

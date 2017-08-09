@@ -15,7 +15,7 @@ class ProcessConstructionsCeilingsRoofsThermalMass < OpenStudio::Measure::ModelM
   end
   
   def description
-    return "This measure assigns thermal mass to ceilings adjacent to finished space."
+    return "This measure assigns thermal mass to ceilings adjacent to finished space.#{Constants.WorkflowDescription}"
   end
   
   def modeler_description
@@ -26,6 +26,19 @@ class ProcessConstructionsCeilingsRoofsThermalMass < OpenStudio::Measure::ModelM
   def arguments(model)
     args = OpenStudio::Measure::OSArgumentVector.new
 
+    #make a choice argument for ceilings of finished space
+    surfaces = get_roof_thermal_mass_surfaces(model)
+    surfaces_args = OpenStudio::StringVector.new
+    surfaces_args << Constants.Auto
+    surfaces.each do |surface|
+      surfaces_args << surface.name.to_s
+    end
+    surface = OpenStudio::Measure::OSArgument::makeChoiceArgument("surface", surfaces_args, false)
+    surface.setDisplayName("Surface(s)")
+    surface.setDescription("Select the surface(s) to assign constructions.")
+    surface.setDefaultValue(Constants.Auto)
+    args << surface
+    
     #make a double argument for layer 1: thickness
     thick_in1 = OpenStudio::Measure::OSArgument::makeDoubleArgument("thick_in1", true)
     thick_in1.setDisplayName("Thickness 1")
@@ -98,15 +111,17 @@ class ProcessConstructionsCeilingsRoofsThermalMass < OpenStudio::Measure::ModelM
       return false
     end
     
-    # Ceilings of finished space
-    surfaces = []
-    model.getSpaces.each do |space|
-        next if Geometry.space_is_unfinished(space)
-        space.surfaces.each do |surface|
-            if surface.surfaceType.downcase == "roofceiling"
-                surfaces << surface
-            end
-        end
+    surface_s = runner.getOptionalStringArgumentValue("surface",user_arguments)
+    if not surface_s.is_initialized
+      surface_s = Constants.Auto
+    else
+      surface_s = surface_s.get
+    end
+    
+    surfaces = get_roof_thermal_mass_surfaces(model)
+    
+    unless surface_s == Constants.Auto
+      surfaces.delete_if { |surface| surface.name.to_s != surface_s }
     end
     
     # Continue if no applicable surfaces
@@ -192,6 +207,20 @@ class ProcessConstructionsCeilingsRoofsThermalMass < OpenStudio::Measure::ModelM
     return true
 
   end #end the run method
+  
+  def get_roof_thermal_mass_surfaces(model)
+    # Ceilings of finished space
+    surfaces = []
+    model.getSpaces.each do |space|
+        next if Geometry.space_is_unfinished(space)
+        space.surfaces.each do |surface|
+            if surface.surfaceType.downcase == "roofceiling"
+                surfaces << surface
+            end
+        end
+    end
+    return surfaces
+  end
 
 end #end the measure
 

@@ -827,15 +827,15 @@ class Construction
         space.surfaces.each do |surface|
             next if surface.surfaceType.downcase != surface_type
             surf_area = OpenStudio::convert(surface.netArea,"m^2","ft^2").get
-            uvalue = self.get_surface_uvalue(runner, surface, surface_type)
-            return nil if uvalue.nil?
-            sum_surface_ua += surf_area * uvalue
+            ufactor = self.get_surface_ufactor(runner, surface, surface_type)
+            return nil if ufactor.nil?
+            sum_surface_ua += surf_area * ufactor
             total_area += surf_area
         end
         return total_area / sum_surface_ua
     end
     
-    def self.get_surface_uvalue(runner, surface, surface_type)
+    def self.get_surface_ufactor(runner, surface, surface_type)
         if surface_type.downcase.include?("window")
             simple_glazing = self.get_window_simple_glazing(runner, surface)
             return nil if simple_glazing.nil?
@@ -845,18 +845,18 @@ class Construction
                 runner.registerError("Construction not assigned to '#{surface.name.to_s}'.")
                 return nil
             end
-            uvalue = OpenStudio::convert(surface.uFactor.get,"W/m^2*K","Btu/ft^2*h*R").get
+            ufactor = OpenStudio::convert(surface.uFactor.get,"W/m^2*K","Btu/ft^2*h*R").get
             if surface.class.method_defined?('adjacentSurface') and surface.adjacentSurface.is_initialized
-                # Use average u-value of adjacent surface, as OpenStudio returns
+                # Use average u-factor of adjacent surface, as OpenStudio returns
                 # two different values for, e.g., floor vs adjacent roofceiling
                 if not surface.adjacentSurface.get.construction.is_initialized
                     runner.registerError("Construction not assigned to '#{surface.adjacentSurface.get.name.to_s}'.")
                     return nil
                 end
-                adjacent_uvalue = OpenStudio::convert(surface.adjacentSurface.get.uFactor.get,"W/m^2*K","Btu/ft^2*h*R").get
-                return (uvalue + adjacent_uvalue) / 2.0
+                adjacent_ufactor = OpenStudio::convert(surface.adjacentSurface.get.uFactor.get,"W/m^2*K","Btu/ft^2*h*R").get
+                return (ufactor + adjacent_ufactor) / 2.0
             end
-            return uvalue
+            return ufactor
         end
     end
   
@@ -1718,4 +1718,31 @@ class EnergyGuideLabel
         end
     end
   
+end
+
+class BuildingLoadVars
+
+  def self.get_space_heating_load_vars
+    return [
+            'Heating Coil Total Heating Energy',
+            'Heating Coil Air Heating Energy',
+            'Boiler Heating Energy',
+            'Baseboard Total Heating Energy',
+            'Heating Coil Heating Energy',
+           ]
+  end
+  
+  def self.get_space_cooling_load_vars
+    return [
+            'Cooling Coil Sensible Cooling Energy',
+            'Cooling Coil Latent Cooling Energy',
+           ]
+  end
+
+  def self.get_water_heating_load_vars
+    return [
+            'Water Use Connections Plant Hot Water Energy',
+           ]
+  end
+
 end

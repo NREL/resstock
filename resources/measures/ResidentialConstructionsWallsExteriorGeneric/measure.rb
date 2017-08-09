@@ -15,7 +15,7 @@ class ProcessConstructionsWallsExteriorGeneric < OpenStudio::Measure::ModelMeasu
   end
   
   def description
-    return "This measure assigns a generic layered construction to above-grade exterior walls adjacent to finished space or attic walls under insulated roofs."
+    return "This measure assigns a generic layered construction to above-grade exterior walls adjacent to finished space or attic walls under insulated roofs.#{Constants.WorkflowDescription}"
   end
   
   def modeler_description
@@ -26,6 +26,20 @@ class ProcessConstructionsWallsExteriorGeneric < OpenStudio::Measure::ModelMeasu
   def arguments(model)
     args = OpenStudio::Measure::OSArgumentVector.new
 
+    #make a choice argument for finished, unfinished surfaces
+    runner = OpenStudio::Measure::OSRunner.new(OpenStudio::WorkflowJSON.new)
+    finished_surfaces, unfinished_surfaces = get_generic_wall_surfaces(model, runner)
+    surfaces_args = OpenStudio::StringVector.new
+    surfaces_args << Constants.Auto
+    (finished_surfaces + unfinished_surfaces).each do |surface|
+      surfaces_args << surface.name.to_s
+    end
+    surface = OpenStudio::Measure::OSArgument::makeChoiceArgument("surface", surfaces_args, false)
+    surface.setDisplayName("Surface(s)")
+    surface.setDescription("Select the surface(s) to assign constructions.")
+    surface.setDefaultValue(Constants.Auto)
+    args << surface
+    
     #make a double argument for layer 1: thickness
     thick_in1 = OpenStudio::Measure::OSArgument::makeDoubleArgument("thick_in_1", true)
     thick_in1.setDisplayName("Thickness 1")
@@ -182,24 +196,18 @@ class ProcessConstructionsWallsExteriorGeneric < OpenStudio::Measure::ModelMeasu
       return false
     end
     
-    finished_surfaces = []
-    unfinished_surfaces = []
-    model.getSpaces.each do |space|
-        # Wall between finished space and outdoors
-        if Geometry.space_is_finished(space) and Geometry.space_is_above_grade(space)
-            space.surfaces.each do |surface|
-                next if surface.surfaceType.downcase != "wall" or surface.outsideBoundaryCondition.downcase != "outdoors"
-                finished_surfaces << surface
-            end
-        # Attic wall under an insulated roof
-        elsif Geometry.is_unfinished_attic(space)
-            attic_roof_r = Construction.get_space_r_value(runner, space, "roofceiling")
-            next if attic_roof_r.nil? or attic_roof_r <= 5 # assume uninsulated if <= R-5 assembly
-            space.surfaces.each do |surface|
-                next if surface.surfaceType.downcase != "wall" or surface.outsideBoundaryCondition.downcase != "outdoors"
-                unfinished_surfaces << surface
-            end
-        end
+    surface_s = runner.getOptionalStringArgumentValue("surface",user_arguments)
+    if not surface_s.is_initialized
+      surface_s = Constants.Auto
+    else
+      surface_s = surface_s.get
+    end
+    
+    finished_surfaces, unfinished_surfaces = get_generic_wall_surfaces(model, runner)
+    
+    unless surface_s == Constants.Auto
+      finished_surfaces.delete_if { |surface| surface.name.to_s != surface_s }
+      unfinished_surfaces.delete_if { |surface| surface.name.to_s != surface_s }
     end
     
     # Continue if no applicable surfaces
@@ -423,6 +431,29 @@ class ProcessConstructionsWallsExteriorGeneric < OpenStudio::Measure::ModelMeasu
  
   end #end the run method
 
+  def get_generic_wall_surfaces(model, runner)
+    finished_surfaces = []
+    unfinished_surfaces = []
+    model.getSpaces.each do |space|
+        # Wall between finished space and outdoors
+        if Geometry.space_is_finished(space) and Geometry.space_is_above_grade(space)
+            space.surfaces.each do |surface|
+                next if surface.surfaceType.downcase != "wall" or surface.outsideBoundaryCondition.downcase != "outdoors"
+                finished_surfaces << surface
+            end
+        # Attic wall under an insulated roof
+        elsif Geometry.is_unfinished_attic(space)
+            attic_roof_r = Construction.get_space_r_value(runner, space, "roofceiling")
+            next if attic_roof_r.nil? or attic_roof_r <= 5 # assume uninsulated if <= R-5 assembly
+            space.surfaces.each do |surface|
+                next if surface.surfaceType.downcase != "wall" or surface.outsideBoundaryCondition.downcase != "outdoors"
+                unfinished_surfaces << surface
+            end
+        end
+    end
+    return finished_surfaces, unfinished_surfaces
+  end
+  
 end #end the measure
 
 #this allows the measure to be use by the application

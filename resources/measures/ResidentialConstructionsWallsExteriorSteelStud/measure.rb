@@ -15,7 +15,7 @@ class ProcessConstructionsWallsExteriorSteelStud < OpenStudio::Measure::ModelMea
 
   # human readable description
   def description
-    return "This measure assigns a steel stud construction to above-grade exterior walls adjacent to finished space or attic walls under insulated roofs."
+    return "This measure assigns a steel stud construction to above-grade exterior walls adjacent to finished space or attic walls under insulated roofs.#{Constants.WorkflowDescription}"
   end
 
   # human readable description of modeling approach

@@ -17,7 +17,7 @@ class ProcessVariableSpeedCentralAirConditioner < OpenStudio::Measure::ModelMeas
   end
   
   def description
-    return "This measure removes any existing HVAC cooling components from the building and adds a variable-speed central air conditioner along with an on/off supply fan to a unitary air loop. For multifamily buildings, the variable-speed central air conditioner can be set for all units of the building."
+    return "This measure removes any existing HVAC cooling components from the building and adds a variable-speed central air conditioner along with an on/off supply fan to a unitary air loop. For multifamily buildings, the variable-speed central air conditioner can be set for all units of the building.#{Constants.WorkflowDescription}"
   end
   
   def modeler_description
@@ -238,7 +238,7 @@ class ProcessVariableSpeedCentralAirConditioner < OpenStudio::Measure::ModelMeas
     if not runner.validateUserArguments(arguments(model), user_arguments)
       return false
     end
-	  
+  
     acCoolingInstalledSEER = runner.getDoubleArgumentValue("seer",user_arguments)
     acCoolingEER = [runner.getDoubleArgumentValue("eer",user_arguments), runner.getDoubleArgumentValue("eer2",user_arguments), runner.getDoubleArgumentValue("eer3",user_arguments), runner.getDoubleArgumentValue("eer4",user_arguments)]
     acSHRRated = [runner.getDoubleArgumentValue("shr",user_arguments), runner.getDoubleArgumentValue("shr2",user_arguments), runner.getDoubleArgumentValue("shr3",user_arguments), runner.getDoubleArgumentValue("shr4",user_arguments)]
@@ -300,7 +300,7 @@ class ProcessVariableSpeedCentralAirConditioner < OpenStudio::Measure::ModelMeas
       control_slave_zones_hash.each do |control_zone, slave_zones|
     
         # Remove existing equipment
-        htg_coil = HVAC.remove_existing_hvac_equipment(model, runner, Constants.ObjectNameCentralAirConditioner, control_zone)
+        htg_coil, _perf = HVAC.remove_existing_hvac_equipment(model, runner, Constants.ObjectNameCentralAirConditioner, control_zone)
 
         # _processCurvesDXCooling
         
@@ -435,7 +435,7 @@ class ProcessVariableSpeedCentralAirConditioner < OpenStudio::Measure::ModelMeas
       unit.setFeature(Constants.SizingInfoHVACRatedCFMperTonCooling, cFM_TON_Rated.join(","))
       
     end # unit
-	
+
     return true
  
   end #end the run method

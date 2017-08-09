@@ -14,7 +14,7 @@ class ResidentialClothesWasher < OpenStudio::Measure::ModelMeasure
   end
 
   def description
-    return "Adds (or replaces) a residential clothes washer with the specified efficiency, operation, and schedule. For multifamily buildings, the clothes washer can be set for all units of the building."
+    return "Adds (or replaces) a residential clothes washer with the specified efficiency, operation, and schedule. For multifamily buildings, the clothes washer can be set for all units of the building.#{Constants.WorkflowDescription}"
   end
   
   def modeler_description
@@ -28,7 +28,7 @@ class ResidentialClothesWasher < OpenStudio::Measure::ModelMeasure
 	#TODO: New argument for demand response for clothes washer (alternate schedules if automatic DR control is specified)
 
 	#make a double argument for Integrated Modified Energy Factor
-	cw_imef = OpenStudio::Measure::OSArgument::makeDoubleArgument("cw_imef",true)
+	cw_imef = OpenStudio::Measure::OSArgument::makeDoubleArgument("imef",true)
 	cw_imef.setDisplayName("Integrated Modified Energy Factor")
     cw_imef.setUnits("ft^3/kWh-cycle")
     cw_imef.setDescription("The Integrated Modified Energy Factor (IMEF) is the capacity of the clothes container divided by the total clothes washer energy consumption per cycle, where the energy consumption is the sum of the machine electrical energy consumption, the hot water energy consumption, the energy required for removal of the remaining moisture in the wash load, standby energy, and off-mode energy consumption. If only a Modified Energy Factor (MEF) is available, convert using the equation: IMEF = (MEF - 0.503) / 0.95.")
@@ -36,7 +36,7 @@ class ResidentialClothesWasher < OpenStudio::Measure::ModelMeasure
 	args << cw_imef
     
     #make a double argument for Rated Annual Consumption
-    cw_rated_annual_energy = OpenStudio::Measure::OSArgument::makeDoubleArgument("cw_rated_annual_energy",true)
+    cw_rated_annual_energy = OpenStudio::Measure::OSArgument::makeDoubleArgument("rated_annual_energy",true)
 	cw_rated_annual_energy.setDisplayName("Rated Annual Consumption")
     cw_rated_annual_energy.setUnits("kWh")
     cw_rated_annual_energy.setDescription("The annual energy consumed by the clothes washer, as rated, obtained from the EnergyGuide label. This includes both the appliance electricity consumption and the energy required for water heating.")
@@ -44,7 +44,7 @@ class ResidentialClothesWasher < OpenStudio::Measure::ModelMeasure
 	args << cw_rated_annual_energy
     
     #make a double argument for Annual Cost With Gas DHW
-    cw_annual_cost = OpenStudio::Measure::OSArgument::makeDoubleArgument("cw_annual_cost",true)
+    cw_annual_cost = OpenStudio::Measure::OSArgument::makeDoubleArgument("annual_cost",true)
 	cw_annual_cost.setDisplayName("Annual Cost with Gas DHW")
     cw_annual_cost.setUnits("$")
     cw_annual_cost.setDescription("The annual cost of using the system under test conditions.  Input is obtained from the EnergyGuide label.")
@@ -52,14 +52,14 @@ class ResidentialClothesWasher < OpenStudio::Measure::ModelMeasure
 	args << cw_annual_cost
 	
 	#make an integer argument for Test Date
-	cw_test_date = OpenStudio::Measure::OSArgument::makeIntegerArgument("cw_test_date",true)
+	cw_test_date = OpenStudio::Measure::OSArgument::makeIntegerArgument("test_date",true)
 	cw_test_date.setDisplayName("Test Date")
 	cw_test_date.setDefaultValue(2007)
     cw_test_date.setDescription("Input obtained from EnergyGuide labels.  The new E-guide labels state that the test was performed under the 2004 DOE procedure, otherwise use year < 2004.")
 	args << cw_test_date
 
 	#make a double argument for Drum Volume
-	cw_drum_volume = OpenStudio::Measure::OSArgument::makeDoubleArgument("cw_drum_volume",true)
+	cw_drum_volume = OpenStudio::Measure::OSArgument::makeDoubleArgument("drum_volume",true)
 	cw_drum_volume.setDisplayName("Drum Volume")
     cw_drum_volume.setUnits("ft^3")
     cw_drum_volume.setDescription("Volume of the washer drum.  Obtained from the EnergyStar website or the manufacturer's literature.")
@@ -67,42 +67,42 @@ class ResidentialClothesWasher < OpenStudio::Measure::ModelMeasure
 	args << cw_drum_volume
     
     #make a boolean argument for Use Cold Cycle Only
-	cw_cold_cycle = OpenStudio::Measure::OSArgument::makeBoolArgument("cw_cold_cycle",true)
+	cw_cold_cycle = OpenStudio::Measure::OSArgument::makeBoolArgument("cold_cycle",true)
 	cw_cold_cycle.setDisplayName("Use Cold Cycle Only")
 	cw_cold_cycle.setDescription("The washer is operated using only the cold cycle.")
 	cw_cold_cycle.setDefaultValue(false)
 	args << cw_cold_cycle
 
     #make a boolean argument for Thermostatic Control
-	cw_thermostatic_control = OpenStudio::Measure::OSArgument::makeBoolArgument("cw_thermostatic_control",true)
+	cw_thermostatic_control = OpenStudio::Measure::OSArgument::makeBoolArgument("thermostatic_control",true)
 	cw_thermostatic_control.setDisplayName("Thermostatic Control")
 	cw_thermostatic_control.setDescription("The clothes washer uses hot and cold water inlet valves to control temperature (varies hot water volume to control wash temperature).  Use this option for machines that use hot and cold inlet valves to control wash water temperature or machines that use both inlet valves AND internal electric heaters to control temperature of the wash water.  Input obtained from the manufacturer's literature.")
 	cw_thermostatic_control.setDefaultValue(true)
 	args << cw_thermostatic_control
 
     #make a boolean argument for Has Internal Heater Adjustment
-	cw_internal_heater = OpenStudio::Measure::OSArgument::makeBoolArgument("cw_internal_heater",true)
+	cw_internal_heater = OpenStudio::Measure::OSArgument::makeBoolArgument("internal_heater",true)
 	cw_internal_heater.setDisplayName("Has Internal Heater Adjustment")
 	cw_internal_heater.setDescription("The washer uses an internal electric heater to adjust the temperature of wash water.  Use this option for washers that have hot and cold water connections but use an internal electric heater to adjust the wash water temperature.  Obtain the input from the manufacturer's literature.")
 	cw_internal_heater.setDefaultValue(false)
 	args << cw_internal_heater
 
     #make a boolean argument for Has Water Level Fill Sensor
-	cw_fill_sensor = OpenStudio::Measure::OSArgument::makeBoolArgument("cw_fill_sensor",true)
+	cw_fill_sensor = OpenStudio::Measure::OSArgument::makeBoolArgument("fill_sensor",true)
 	cw_fill_sensor.setDisplayName("Has Water Level Fill Sensor")
 	cw_fill_sensor.setDescription("The washer has a vertical axis and water level fill sensor.  Input obtained from the manufacturer's literature.")
 	cw_fill_sensor.setDefaultValue(false)
 	args << cw_fill_sensor
 
   	#make a double argument for occupancy energy multiplier
-	cw_mult_e = OpenStudio::Measure::OSArgument::makeDoubleArgument("cw_mult_e",true)
+	cw_mult_e = OpenStudio::Measure::OSArgument::makeDoubleArgument("mult_e",true)
 	cw_mult_e.setDisplayName("Occupancy Energy Multiplier")
 	cw_mult_e.setDescription("Appliance energy use is multiplied by this factor to account for occupancy usage that differs from the national average.")
 	cw_mult_e.setDefaultValue(1)
 	args << cw_mult_e
 
   	#make a double argument for occupancy water multiplier
-	cw_mult_hw = OpenStudio::Measure::OSArgument::makeDoubleArgument("cw_mult_hw",true)
+	cw_mult_hw = OpenStudio::Measure::OSArgument::makeDoubleArgument("mult_hw",true)
 	cw_mult_hw.setDisplayName("Occupancy Hot Water Multiplier")
 	cw_mult_hw.setDescription("Appliance hot water use is multiplied by this factor to account for occupancy usage that differs from the national average. This should generally be equal to the Occupancy Energy Multiplier.")
 	cw_mult_hw.setDefaultValue(1)
@@ -150,17 +150,17 @@ class ResidentialClothesWasher < OpenStudio::Measure::ModelMeasure
     end
 
     #assign the user inputs to variables
-	cw_imef = runner.getDoubleArgumentValue("cw_imef",user_arguments)
-    cw_rated_annual_energy = runner.getDoubleArgumentValue("cw_rated_annual_energy",user_arguments)
-    cw_annual_cost = runner.getDoubleArgumentValue("cw_annual_cost",user_arguments)
-	cw_test_date = runner.getIntegerArgumentValue("cw_test_date", user_arguments)
-	cw_drum_volume = runner.getDoubleArgumentValue("cw_drum_volume",user_arguments)
-    cw_cold_cycle = runner.getBoolArgumentValue("cw_cold_cycle",user_arguments)
-    cw_thermostatic_control = runner.getBoolArgumentValue("cw_thermostatic_control",user_arguments)
-    cw_internal_heater = runner.getBoolArgumentValue("cw_internal_heater",user_arguments)
-    cw_fill_sensor = runner.getBoolArgumentValue("cw_fill_sensor",user_arguments)
-	cw_mult_e = runner.getDoubleArgumentValue("cw_mult_e",user_arguments)
-    cw_mult_hw = runner.getDoubleArgumentValue("cw_mult_hw",user_arguments)
+	cw_imef = runner.getDoubleArgumentValue("imef",user_arguments)
+    cw_rated_annual_energy = runner.getDoubleArgumentValue("rated_annual_energy",user_arguments)
+    cw_annual_cost = runner.getDoubleArgumentValue("annual_cost",user_arguments)
+	cw_test_date = runner.getIntegerArgumentValue("test_date", user_arguments)
+	cw_drum_volume = runner.getDoubleArgumentValue("drum_volume",user_arguments)
+    cw_cold_cycle = runner.getBoolArgumentValue("cold_cycle",user_arguments)
+    cw_thermostatic_control = runner.getBoolArgumentValue("thermostatic_control",user_arguments)
+    cw_internal_heater = runner.getBoolArgumentValue("internal_heater",user_arguments)
+    cw_fill_sensor = runner.getBoolArgumentValue("fill_sensor",user_arguments)
+	cw_mult_e = runner.getDoubleArgumentValue("mult_e",user_arguments)
+    cw_mult_hw = runner.getDoubleArgumentValue("mult_hw",user_arguments)
 	space_r = runner.getStringArgumentValue("space",user_arguments)
     plant_loop_s = runner.getStringArgumentValue("plant_loop", user_arguments)
 

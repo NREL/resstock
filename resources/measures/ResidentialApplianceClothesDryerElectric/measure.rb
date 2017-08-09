@@ -10,7 +10,7 @@ class ResidentialClothesDryer < OpenStudio::Measure::ModelMeasure
   end
 
   def description
-    return "Adds (or replaces) a residential clothes dryer with the specified efficiency, operation, and schedule. For multifamily buildings, the clothes dryer can be set for all units of the building."
+    return "Adds (or replaces) a residential clothes dryer with the specified efficiency, operation, and schedule. For multifamily buildings, the clothes dryer can be set for all units of the building.#{Constants.WorkflowDescription}"
   end
   
   def modeler_description
@@ -21,43 +21,43 @@ class ResidentialClothesDryer < OpenStudio::Measure::ModelMeasure
   def arguments(model)
     args = OpenStudio::Measure::OSArgumentVector.new
     
-	#TODO: New argument for demand response for cds (alternate schedules if automatic DR control is specified)
+    #TODO: New argument for demand response for cds (alternate schedules if automatic DR control is specified)
 
-	#make a double argument for Energy Factor
-	cd_cef = OpenStudio::Measure::OSArgument::makeDoubleArgument("cd_cef",true)
-	cd_cef.setDisplayName("Combined Energy Factor")
+    #make a double argument for Energy Factor
+    cd_cef = OpenStudio::Measure::OSArgument::makeDoubleArgument("cef",true)
+    cd_cef.setDisplayName("Combined Energy Factor")
     cd_cef.setDescription("The Combined Energy Factor (CEF) measures the pounds of clothing that can be dried per kWh of electricity, including energy consumed during Stand-by and Off modes. If only an Energy Factor (EF) is available, convert using the equation: CEF = EF / 1.15.")
-	cd_cef.setDefaultValue(2.7)
+    cd_cef.setDefaultValue(2.7)
     cd_cef.setUnits("lb/kWh")
-	args << cd_cef
+    args << cd_cef
     
-	#make a double argument for occupancy energy multiplier
-	cd_mult = OpenStudio::Measure::OSArgument::makeDoubleArgument("cd_mult",true)
-	cd_mult.setDisplayName("Occupancy Energy Multiplier")
+    #make a double argument for occupancy energy multiplier
+    cd_mult = OpenStudio::Measure::OSArgument::makeDoubleArgument("mult",true)
+    cd_mult.setDisplayName("Occupancy Energy Multiplier")
     cd_mult.setDescription("Appliance energy use is multiplied by this factor to account for occupancy usage that differs from the national average.")
-	cd_mult.setDefaultValue(1)
-	args << cd_mult
+    cd_mult.setDefaultValue(1)
+    args << cd_mult
 
-   	#Make a string argument for 24 weekday schedule values
-	cd_weekday_sch = OpenStudio::Measure::OSArgument::makeStringArgument("cd_weekday_sch")
-	cd_weekday_sch.setDisplayName("Weekday schedule")
-	cd_weekday_sch.setDescription("Specify the 24-hour weekday schedule.")
-	cd_weekday_sch.setDefaultValue("0.010, 0.006, 0.004, 0.002, 0.004, 0.006, 0.016, 0.032, 0.048, 0.068, 0.078, 0.081, 0.074, 0.067, 0.057, 0.061, 0.055, 0.054, 0.051, 0.051, 0.052, 0.054, 0.044, 0.024")
-	args << cd_weekday_sch
+       #Make a string argument for 24 weekday schedule values
+    cd_weekday_sch = OpenStudio::Measure::OSArgument::makeStringArgument("weekday_sch")
+    cd_weekday_sch.setDisplayName("Weekday schedule")
+    cd_weekday_sch.setDescription("Specify the 24-hour weekday schedule.")
+    cd_weekday_sch.setDefaultValue("0.010, 0.006, 0.004, 0.002, 0.004, 0.006, 0.016, 0.032, 0.048, 0.068, 0.078, 0.081, 0.074, 0.067, 0.057, 0.061, 0.055, 0.054, 0.051, 0.051, 0.052, 0.054, 0.044, 0.024")
+    args << cd_weekday_sch
     
-	#Make a string argument for 24 weekend schedule values
-	cd_weekend_sch = OpenStudio::Measure::OSArgument::makeStringArgument("cd_weekend_sch")
-	cd_weekend_sch.setDisplayName("Weekend schedule")
-	cd_weekend_sch.setDescription("Specify the 24-hour weekend schedule.")
-	cd_weekend_sch.setDefaultValue("0.010, 0.006, 0.004, 0.002, 0.004, 0.006, 0.016, 0.032, 0.048, 0.068, 0.078, 0.081, 0.074, 0.067, 0.057, 0.061, 0.055, 0.054, 0.051, 0.051, 0.052, 0.054, 0.044, 0.024")
-	args << cd_weekend_sch
+    #Make a string argument for 24 weekend schedule values
+    cd_weekend_sch = OpenStudio::Measure::OSArgument::makeStringArgument("weekend_sch")
+    cd_weekend_sch.setDisplayName("Weekend schedule")
+    cd_weekend_sch.setDescription("Specify the 24-hour weekend schedule.")
+    cd_weekend_sch.setDefaultValue("0.010, 0.006, 0.004, 0.002, 0.004, 0.006, 0.016, 0.032, 0.048, 0.068, 0.078, 0.081, 0.074, 0.067, 0.057, 0.061, 0.055, 0.054, 0.051, 0.051, 0.052, 0.054, 0.044, 0.024")
+    args << cd_weekend_sch
 
-  	#Make a string argument for 12 monthly schedule values
-	cd_monthly_sch = OpenStudio::Measure::OSArgument::makeStringArgument("cd_monthly_sch", true)
-	cd_monthly_sch.setDisplayName("Month schedule")
-	cd_monthly_sch.setDescription("Specify the 12-month schedule.")
-	cd_monthly_sch.setDefaultValue("1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0")
-	args << cd_monthly_sch
+      #Make a string argument for 12 monthly schedule values
+    cd_monthly_sch = OpenStudio::Measure::OSArgument::makeStringArgument("monthly_sch", true)
+    cd_monthly_sch.setDisplayName("Month schedule")
+    cd_monthly_sch.setDescription("Specify the 12-month schedule.")
+    cd_monthly_sch.setDefaultValue("1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0")
+    args << cd_monthly_sch
 
     #make a choice argument for space
     spaces = Geometry.get_all_unit_spaces(model)
@@ -88,20 +88,20 @@ class ResidentialClothesDryer < OpenStudio::Measure::ModelMeasure
     end
 
     #assign the user inputs to variables
-	cd_cef = runner.getDoubleArgumentValue("cd_cef",user_arguments)
-	cd_mult = runner.getDoubleArgumentValue("cd_mult",user_arguments)
-	cd_weekday_sch = runner.getStringArgumentValue("cd_weekday_sch",user_arguments)
-	cd_weekend_sch = runner.getStringArgumentValue("cd_weekend_sch",user_arguments)
-    cd_monthly_sch = runner.getStringArgumentValue("cd_monthly_sch",user_arguments)
-	space_r = runner.getStringArgumentValue("space",user_arguments)
+    cd_cef = runner.getDoubleArgumentValue("cef",user_arguments)
+    cd_mult = runner.getDoubleArgumentValue("mult",user_arguments)
+    cd_weekday_sch = runner.getStringArgumentValue("weekday_sch",user_arguments)
+    cd_weekend_sch = runner.getStringArgumentValue("weekend_sch",user_arguments)
+    cd_monthly_sch = runner.getStringArgumentValue("monthly_sch",user_arguments)
+    space_r = runner.getStringArgumentValue("space",user_arguments)
     
     #Check for valid inputs
-	if cd_cef <= 0
-		runner.registerError("Combined energy factor must be greater than 0.0.")
+    if cd_cef <= 0
+        runner.registerError("Combined energy factor must be greater than 0.0.")
         return false
-	end
-	if cd_mult < 0
-		runner.registerError("Occupancy energy multiplier must be greater than or equal to 0.0.")
+    end
+    if cd_mult < 0
+        runner.registerError("Occupancy energy multiplier must be greater than or equal to 0.0.")
         return false
     end
 
@@ -284,7 +284,7 @@ class ResidentialClothesDryer < OpenStudio::Measure::ModelMeasure
     end
     
     return true
-	
+    
   end
 
 end #end the measure

@@ -2,17 +2,36 @@
   <schema_version>3.0</schema_version>
   <name>residential_lighting</name>
   <uid>82efbdfd-258d-421a-8c32-ff4636bea099</uid>
-  <version_id>94c1c103-d52a-4563-90e8-5812766d16d7</version_id>
-  <version_modified>20170630T203956Z</version_modified>
+  <version_id>f4ea89fd-7a6b-4f26-9ff5-fb7bc9c746f8</version_id>
+  <version_modified>20170731T151921Z</version_modified>
   <xml_checksum>2DDDDD82</xml_checksum>
   <class_name>ResidentialLighting</class_name>
   <display_name>Set Residential Lighting</display_name>
-  <description>Sets (or replaces) the lighting energy use, based on fractions of CFLs, LFLs, and LEDs, for finished spaces, the garage, and outside. For multifamily buildings, the lighting can be set for all units of the building.</description>
+  <description>Sets (or replaces) the lighting energy use, based on fractions of CFLs, LFLs, and LEDs, for finished spaces, the garage, and outside. For multifamily buildings, the lighting can be set for all units of the building. See https://github.com/NREL/OpenStudio-BEopt#workflows for supported workflows using this measure.</description>
   <modeler_description>Assigns a lighting energy use and schedule to finished spaces, the garage, and outside. The lighting schedule is calculated for the latitude/longitude of the weather location specified in the model.</modeler_description>
   <arguments>
     <argument>
+      <name>option_type</name>
+      <display_name>Option Type</display_name>
+      <description>Inputs are used/ignored below based on the option type specified.</description>
+      <type>Choice</type>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>Lamp Fractions</default_value>
+      <choices>
+        <choice>
+          <value>Lamp Fractions</value>
+          <display_name>Lamp Fractions</display_name>
+        </choice>
+        <choice>
+          <value>Annual Energy Uses</value>
+          <display_name>Annual Energy Uses</display_name>
+        </choice>
+      </choices>
+    </argument>
+    <argument>
       <name>hw_cfl</name>
-      <display_name>Hardwired Fraction CFL</display_name>
+      <display_name>Lamp Fractions: Hardwired Fraction CFL</display_name>
       <description>Fraction of all hardwired lamps (interior, garage, and exterior) that are compact fluorescent. Hardwired lighting not specified as CFL, LED, or LFL is assumed to be incandescent.</description>
       <type>Double</type>
       <required>true</required>
@@ -21,7 +40,7 @@
     </argument>
     <argument>
       <name>hw_led</name>
-      <display_name>Hardwired Fraction LED</display_name>
+      <display_name>Lamp Fractions: Hardwired Fraction LED</display_name>
       <description>Fraction of all hardwired lamps (interior, garage, and exterior) that are LED. Hardwired lighting not specified as CFL, LED, or LFL is assumed to be incandescent.</description>
       <type>Double</type>
       <required>true</required>
@@ -30,7 +49,7 @@
     </argument>
     <argument>
       <name>hw_lfl</name>
-      <display_name>Hardwired Fraction LFL</display_name>
+      <display_name>Lamp Fractions: Hardwired Fraction LFL</display_name>
       <description>Fraction of all hardwired lamps (interior, garage, and exterior) that are linear fluorescent. Hardwired lighting not specified as CFL, LED, or LFL is assumed to be incandescent.</description>
       <type>Double</type>
       <required>true</required>
@@ -39,7 +58,7 @@
     </argument>
     <argument>
       <name>pg_cfl</name>
-      <display_name>Plugin Fraction CFL</display_name>
+      <display_name>Lamp Fractions: Plugin Fraction CFL</display_name>
       <description>Fraction of all plugin lamps that are compact fluorescent. Plugin lighting not specified as CFL, LED, or LFL is assumed to be incandescent.</description>
       <type>Double</type>
       <required>true</required>
@@ -48,7 +67,7 @@
     </argument>
     <argument>
       <name>pg_led</name>
-      <display_name>Plugin Fraction LED</display_name>
+      <display_name>Lamp Fractions: Plugin Fraction LED</display_name>
       <description>Fraction of all plugin lamps that are LED. Plugin lighting not specified as CFL, LED, or LFL is assumed to be incandescent.</description>
       <type>Double</type>
       <required>true</required>
@@ -57,7 +76,7 @@
     </argument>
     <argument>
       <name>pg_lfl</name>
-      <display_name>Plugin Fraction LFL</display_name>
+      <display_name>Lamp Fractions: Plugin Fraction LFL</display_name>
       <description>Fraction of all plugin lamps that are linear fluorescent. Plugin lighting not specified as CFL, LED, or LFL is assumed to be incandescent.</description>
       <type>Double</type>
       <required>true</required>
@@ -66,7 +85,7 @@
     </argument>
     <argument>
       <name>in_eff</name>
-      <display_name>Incandescent Efficacy</display_name>
+      <display_name>Lamp Fractions: Incandescent Efficacy</display_name>
       <description>The ratio of light output from an incandescent lamp to the electric power it consumes.</description>
       <type>Double</type>
       <units>lm/W</units>
@@ -76,7 +95,7 @@
     </argument>
     <argument>
       <name>cfl_eff</name>
-      <display_name>CFL Efficacy</display_name>
+      <display_name>Lamp Fractions: CFL Efficacy</display_name>
       <description>The ratio of light output from a CFL lamp to the electric power it consumes.</description>
       <type>Double</type>
       <units>lm/W</units>
@@ -86,7 +105,7 @@
     </argument>
     <argument>
       <name>led_eff</name>
-      <display_name>LED Efficacy</display_name>
+      <display_name>Lamp Fractions: LED Efficacy</display_name>
       <description>The ratio of light output from a LED lamp to the electric power it consumes.</description>
       <type>Double</type>
       <units>lm/W</units>
@@ -96,13 +115,43 @@
     </argument>
     <argument>
       <name>lfl_eff</name>
-      <display_name>LFL Efficacy</display_name>
+      <display_name>Lamp Fractions: LFL Efficacy</display_name>
       <description>The ratio of light output from a LFL lamp to the electric power it consumes.</description>
       <type>Double</type>
       <units>lm/W</units>
       <required>true</required>
       <model_dependent>false</model_dependent>
       <default_value>88</default_value>
+    </argument>
+    <argument>
+      <name>energy_use_interior</name>
+      <display_name>Annual Energy Uses: Interior</display_name>
+      <description>Total interior annual lighting energy use (excluding garages).</description>
+      <type>Double</type>
+      <units>kWh/year</units>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>900</default_value>
+    </argument>
+    <argument>
+      <name>energy_use_garage</name>
+      <display_name>Annual Energy Uses: Garage</display_name>
+      <description>Total garage annual lighting energy use. Only applied if there is a garage space.</description>
+      <type>Double</type>
+      <units>kWh/year</units>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>100</default_value>
+    </argument>
+    <argument>
+      <name>energy_use_exterior</name>
+      <display_name>Annual Energy Uses: Exterior</display_name>
+      <description>Total exterior annual lighting energy use.</description>
+      <type>Double</type>
+      <units>kWh/year</units>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>300</default_value>
     </argument>
   </arguments>
   <outputs/>
@@ -154,10 +203,40 @@
       <checksum>3C131B97</checksum>
     </file>
     <file>
+      <filename>weather.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>36B7CAC2</checksum>
+    </file>
+    <file>
+      <filename>schedules.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>E4C6BC93</checksum>
+    </file>
+    <file>
       <filename>unit_conversions.rb</filename>
       <filetype>rb</filetype>
       <usage_type>resource</usage_type>
-      <checksum>DCB12FCF</checksum>
+      <checksum>6BA22437</checksum>
+    </file>
+    <file>
+      <filename>ResidentialLighting_Test.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>test</usage_type>
+      <checksum>0E1CE90D</checksum>
+    </file>
+    <file>
+      <filename>geometry.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>20190C86</checksum>
+    </file>
+    <file>
+      <filename>util.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>64BC6389</checksum>
     </file>
     <file>
       <version>
@@ -168,73 +247,43 @@
       <filename>measure.rb</filename>
       <filetype>rb</filetype>
       <usage_type>script</usage_type>
-      <checksum>667DF05C</checksum>
-    </file>
-    <file>
-      <filename>ResidentialLighting_Test.rb</filename>
-      <filetype>rb</filetype>
-      <usage_type>test</usage_type>
-      <checksum>133DF128</checksum>
-    </file>
-    <file>
-      <filename>weather.rb</filename>
-      <filetype>rb</filetype>
-      <usage_type>resource</usage_type>
-      <checksum>36B7CAC2</checksum>
-    </file>
-    <file>
-      <filename>geometry.rb</filename>
-      <filetype>rb</filetype>
-      <usage_type>resource</usage_type>
-      <checksum>31FE0BE6</checksum>
-    </file>
-    <file>
-      <filename>SFD_2000sqft_2story_FB_GRG_UA.osm</filename>
-      <filetype>osm</filetype>
-      <usage_type>test</usage_type>
-      <checksum>AD531B32</checksum>
-    </file>
-    <file>
-      <filename>SFD_2000sqft_2story_FB_GRG_UA_Anchorage.osm</filename>
-      <filetype>osm</filetype>
-      <usage_type>test</usage_type>
-      <checksum>B5A5DC5D</checksum>
-    </file>
-    <file>
-      <filename>SFD_2000sqft_2story_FB_GRG_UA_Denver.osm</filename>
-      <filetype>osm</filetype>
-      <usage_type>test</usage_type>
-      <checksum>37F6B36C</checksum>
-    </file>
-    <file>
-      <filename>MF_8units_1story_SL_Denver.osm</filename>
-      <filetype>osm</filetype>
-      <usage_type>test</usage_type>
-      <checksum>BE2216F9</checksum>
-    </file>
-    <file>
-      <filename>SFA_4units_1story_FB_UA_Denver.osm</filename>
-      <filetype>osm</filetype>
-      <usage_type>test</usage_type>
-      <checksum>A84F29D7</checksum>
-    </file>
-    <file>
-      <filename>schedules.rb</filename>
-      <filetype>rb</filetype>
-      <usage_type>resource</usage_type>
-      <checksum>E4C6BC93</checksum>
+      <checksum>F2C26B22</checksum>
     </file>
     <file>
       <filename>constants.rb</filename>
       <filetype>rb</filetype>
       <usage_type>resource</usage_type>
-      <checksum>C8CE4128</checksum>
+      <checksum>B34275B6</checksum>
     </file>
     <file>
-      <filename>util.rb</filename>
-      <filetype>rb</filetype>
-      <usage_type>resource</usage_type>
-      <checksum>87C9A783</checksum>
+      <filename>SFD_2000sqft_2story_FB_GRG_UA.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>4A4369FC</checksum>
+    </file>
+    <file>
+      <filename>SFD_2000sqft_2story_FB_GRG_UA_Anchorage.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>AEAD1902</checksum>
+    </file>
+    <file>
+      <filename>SFD_2000sqft_2story_FB_GRG_UA_Denver.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>61F3EB13</checksum>
+    </file>
+    <file>
+      <filename>MF_8units_1story_SL_Denver.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>D257FE0C</checksum>
+    </file>
+    <file>
+      <filename>SFA_4units_1story_FB_UA_Denver.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>3CF3D175</checksum>
     </file>
   </files>
 </measure>

@@ -21,7 +21,7 @@ class ResidentialMiscellaneousElectricLoads < OpenStudio::Measure::ModelMeasure
   end
   
   def description
-    return "Adds (or replaces) residential plug loads with the specified efficiency and schedule in all finished spaces. For multifamily buildings, the plug loads can be set for all units of the building."
+    return "Adds (or replaces) residential plug loads with the specified efficiency and schedule in all finished spaces. For multifamily buildings, the plug loads can be set for all units of the building.#{Constants.WorkflowDescription}"
   end
   
   def modeler_description
@@ -31,35 +31,67 @@ class ResidentialMiscellaneousElectricLoads < OpenStudio::Measure::ModelMeasure
   def arguments(model)
     args = OpenStudio::Measure::OSArgumentVector.new
     
-	#TODO: New argument for demand response for mels (alternate schedules if automatic DR control is specified)
-	
-	#make a double argument for BA Benchmark multiplier
-	mult = OpenStudio::Measure::OSArgument::makeDoubleArgument("mult")
-	mult.setDisplayName("Multiplier")
-	mult.setDefaultValue(1)
-	mult.setDescription("A multiplier on the national average energy use, which is calculated as: (1108.1 + 180.2 * Nbeds + 0.2785 * FFA), where Nbeds is the number of bedrooms and FFA is the finished floor area in sqft.")
-	args << mult
-	
-	#Make a string argument for 24 weekday schedule values
-	weekday_sch = OpenStudio::Measure::OSArgument::makeStringArgument("weekday_sch", true)
-	weekday_sch.setDisplayName("Weekday schedule")
-	weekday_sch.setDescription("Specify the 24-hour weekday schedule.")
-	weekday_sch.setDefaultValue("0.04, 0.037, 0.037, 0.036, 0.033, 0.036, 0.043, 0.047, 0.034, 0.023, 0.024, 0.025, 0.024, 0.028, 0.031, 0.032, 0.039, 0.053, 0.063, 0.067, 0.071, 0.069, 0.059, 0.05")
-	args << weekday_sch
+    #TODO: New argument for demand response for mels (alternate schedules if automatic DR control is specified)
     
-	#Make a string argument for 24 weekend schedule values
-	weekend_sch = OpenStudio::Measure::OSArgument::makeStringArgument("weekend_sch", true)
-	weekend_sch.setDisplayName("Weekend schedule")
-	weekend_sch.setDescription("Specify the 24-hour weekend schedule.")
-	weekend_sch.setDefaultValue("0.04, 0.037, 0.037, 0.036, 0.033, 0.036, 0.043, 0.047, 0.034, 0.023, 0.024, 0.025, 0.024, 0.028, 0.031, 0.032, 0.039, 0.053, 0.063, 0.067, 0.071, 0.069, 0.059, 0.05")
-	args << weekend_sch
+    #make a choice argument for option type
+    choices = []
+    choices << Constants.OptionTypePlugLoadsMultiplier
+    choices << Constants.OptionTypePlugLoadsEnergyUse
+    option_type = OpenStudio::Measure::OSArgument::makeChoiceArgument("option_type",choices,true)
+    option_type.setDisplayName("Option Type")
+    option_type.setDescription("Inputs are used/ignored below based on the option type specified.")
+    option_type.setDefaultValue(Constants.OptionTypePlugLoadsMultiplier)
+    args << option_type
+    
+    #make a double argument for BA Benchmark multiplier
+    mult = OpenStudio::Measure::OSArgument::makeDoubleArgument("mult", true)
+    mult.setDisplayName("#{Constants.OptionTypePlugLoadsMultiplier}")
+    mult.setDefaultValue(1)
+    mult.setDescription("A multiplier on the national average energy use, which is calculated as: (1108.1 + 180.2 * Nbeds + 0.2785 * FFA), where Nbeds is the number of bedrooms and FFA is the finished floor area in sqft.")
+    args << mult
+    
+    #make a double argument for annual energy use
+    energy_use = OpenStudio::Measure::OSArgument::makeDoubleArgument("energy_use", true)
+    energy_use.setDisplayName("#{Constants.OptionTypePlugLoadsEnergyUse}")
+    energy_use.setDefaultValue(2000)
+    energy_use.setDescription("Annual energy use of the plug loads.")
+    energy_use.setUnits("kWh/year")
+    args << energy_use
+    
+    # Make a double argument for sensible fraction
+    sens_frac = OpenStudio::Measure::OSArgument::makeDoubleArgument("sens_frac", true)
+    sens_frac.setDisplayName("Sensible Fraction")
+    sens_frac.setDescription("Fraction of internal gains that are sensible.")
+    sens_frac.setDefaultValue(0.93)
+    args << sens_frac
+    
+    # Make a double argument for latent fraction
+    lat_frac = OpenStudio::Measure::OSArgument::makeDoubleArgument("lat_frac", true)
+    lat_frac.setDisplayName("Latent Fraction")
+    lat_frac.setDescription("Fraction of internal gains that are latent.")
+    lat_frac.setDefaultValue(0.021)
+    args << lat_frac
+    
+    #Make a string argument for 24 weekday schedule values
+    weekday_sch = OpenStudio::Measure::OSArgument::makeStringArgument("weekday_sch", true)
+    weekday_sch.setDisplayName("Weekday schedule")
+    weekday_sch.setDescription("Specify the 24-hour weekday schedule.")
+    weekday_sch.setDefaultValue("0.04, 0.037, 0.037, 0.036, 0.033, 0.036, 0.043, 0.047, 0.034, 0.023, 0.024, 0.025, 0.024, 0.028, 0.031, 0.032, 0.039, 0.053, 0.063, 0.067, 0.071, 0.069, 0.059, 0.05")
+    args << weekday_sch
+    
+    #Make a string argument for 24 weekend schedule values
+    weekend_sch = OpenStudio::Measure::OSArgument::makeStringArgument("weekend_sch", true)
+    weekend_sch.setDisplayName("Weekend schedule")
+    weekend_sch.setDescription("Specify the 24-hour weekend schedule.")
+    weekend_sch.setDefaultValue("0.04, 0.037, 0.037, 0.036, 0.033, 0.036, 0.043, 0.047, 0.034, 0.023, 0.024, 0.025, 0.024, 0.028, 0.031, 0.032, 0.039, 0.053, 0.063, 0.067, 0.071, 0.069, 0.059, 0.05")
+    args << weekend_sch
 
-	#Make a string argument for 12 monthly schedule values
-	monthly_sch = OpenStudio::Measure::OSArgument::makeStringArgument("monthly_sch", true)
-	monthly_sch.setDisplayName("Month schedule")
-	monthly_sch.setDescription("Specify the 12-month schedule.")
-	monthly_sch.setDefaultValue("1.248, 1.257, 0.993, 0.989, 0.993, 0.827, 0.821, 0.821, 0.827, 0.99, 0.987, 1.248")
-	args << monthly_sch
+    #Make a string argument for 12 monthly schedule values
+    monthly_sch = OpenStudio::Measure::OSArgument::makeStringArgument("monthly_sch", true)
+    monthly_sch.setDisplayName("Month schedule")
+    monthly_sch.setDescription("Specify the 12-month schedule.")
+    monthly_sch.setDefaultValue("1.248, 1.257, 0.993, 0.989, 0.993, 0.827, 0.821, 0.821, 0.827, 0.99, 0.987, 1.248")
+    args << monthly_sch
 
     return args
   end #end the arguments method
@@ -74,15 +106,38 @@ class ResidentialMiscellaneousElectricLoads < OpenStudio::Measure::ModelMeasure
     end
 
     #assign the user inputs to variables
-	mult = runner.getDoubleArgumentValue("mult",user_arguments)
-	weekday_sch = runner.getStringArgumentValue("weekday_sch",user_arguments)
-	weekend_sch = runner.getStringArgumentValue("weekend_sch",user_arguments)
-	monthly_sch = runner.getStringArgumentValue("monthly_sch",user_arguments)
+    option_type = runner.getStringArgumentValue("option_type",user_arguments)
+    mult = runner.getDoubleArgumentValue("mult",user_arguments)
+    energy_use = runner.getDoubleArgumentValue("energy_use",user_arguments)
+    sens_frac = runner.getDoubleArgumentValue("sens_frac",user_arguments)
+    lat_frac = runner.getDoubleArgumentValue("lat_frac",user_arguments)
+    weekday_sch = runner.getStringArgumentValue("weekday_sch",user_arguments)
+    weekend_sch = runner.getStringArgumentValue("weekend_sch",user_arguments)
+    monthly_sch = runner.getStringArgumentValue("monthly_sch",user_arguments)
 
     #check for valid inputs
-    if mult < 0
-		runner.registerError("Multiplier must be greater than or equal to 0.")
-		return false
+    if option_type == Constants.OptionTypePlugLoadsMultiplier
+      if mult < 0
+        runner.registerError("#{Constants.OptionTypePlugLoadsMultiplier} must be greater than or equal to 0.")
+        return false
+      end
+    elsif option_type == Constants.OptionTypePlugLoadsEnergyUse
+      if energy_use < 0
+        runner.registerError("#{Constants.OptionTypePlugLoadsEnergyUse} must be greater than or equal to 0.")
+        return false
+      end
+    end
+    if sens_frac < 0 or sens_frac > 1
+      runner.registerError("Sensible fraction must be greater than or equal to 0 and less than or equal to 1.")
+      return false
+    end
+    if lat_frac < 0 or lat_frac > 1
+      runner.registerError("Latent fraction must be greater than or equal to 0 and less than or equal to 1.")
+      return false
+    end
+    if lat_frac + sens_frac > 1
+      runner.registerError("Sum of sensible and latent fractions must be less than or equal to 1.")
+      return false
     end
     
     # Get building units
@@ -108,7 +163,11 @@ class ResidentialMiscellaneousElectricLoads < OpenStudio::Measure::ModelMeasure
         end
         
         #Calculate electric mel daily energy use
-        mel_ann = (1108.1 + 180.2 * nbeds + 0.2785 * ffa) * mult
+        if option_type == Constants.OptionTypePlugLoadsMultiplier
+            mel_ann = (1108.1 + 180.2 * nbeds + 0.2785 * ffa) * mult
+        elsif option_type == Constants.OptionTypePlugLoadsEnergyUse
+            mel_ann = energy_use
+        end
         mel_daily = mel_ann / 365.0
         
         unit.spaces.each do |space|
@@ -159,9 +218,9 @@ class ResidentialMiscellaneousElectricLoads < OpenStudio::Measure::ModelMeasure
                 mel.setSpace(space)
                 mel_def.setName(space_obj_name)
                 mel_def.setDesignLevel(space_design_level)
-                mel_def.setFractionRadiant(0.558)
-                mel_def.setFractionLatent(0.021)
-                mel_def.setFractionLost(0.049)
+                mel_def.setFractionRadiant(0.6 * sens_frac)
+                mel_def.setFractionLatent(lat_frac)
+                mel_def.setFractionLost(1 - sens_frac - lat_frac)
                 mel.setSchedule(sch.schedule)
                 
                 msgs << "Plug loads with #{space_mel_ann.round} kWhs annual energy consumption has been assigned to space '#{space.name.to_s}'."
@@ -183,7 +242,7 @@ class ResidentialMiscellaneousElectricLoads < OpenStudio::Measure::ModelMeasure
     else
         runner.registerFinalCondition("No plug loads have been assigned.")
     end
-	
+    
     return true
  
   end #end the run method

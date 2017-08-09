@@ -22,7 +22,7 @@ class ProcessElectricBaseboard < OpenStudio::Measure::ModelMeasure
   end
   
   def description
-    return "This measure removes any existing electric baseboards from the building and adds electric baseboards. For multifamily buildings, the electric baseboard can be set for all units of the building."
+    return "This measure removes any existing electric baseboards from the building and adds electric baseboards. For multifamily buildings, the electric baseboard can be set for all units of the building.#{Constants.WorkflowDescription}"
   end
   
   def modeler_description
@@ -48,7 +48,7 @@ class ProcessElectricBaseboard < OpenStudio::Measure::ModelMeasure
     baseboardcap.setUnits("kBtu/hr")
     baseboardcap.setDefaultValue(Constants.SizingAuto)
     args << baseboardcap
-	
+    
     return args
   end #end the arguments method
 
@@ -60,7 +60,7 @@ class ProcessElectricBaseboard < OpenStudio::Measure::ModelMeasure
     if not runner.validateUserArguments(arguments(model), user_arguments)
       return false
     end
-	
+    
     baseboardEfficiency = runner.getDoubleArgumentValue("efficiency",user_arguments)
     baseboardOutputCapacity = runner.getStringArgumentValue("capacity",user_arguments)
     unless baseboardOutputCapacity == Constants.SizingAuto
@@ -128,7 +128,7 @@ class ProcessElectricBaseboard < OpenStudio::Measure::ModelMeasure
       end
       
     end
-	
+    
     return true
  
   end #end the run method

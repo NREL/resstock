@@ -176,6 +176,18 @@ class Constants
   def self.BuildingUnitTypeResidential
     return 'Residential'
   end
+  def self.CalcTypeERIRatedHome
+    return 'HERS Rated Home'
+  end
+  def self.CalcTypeERIReferenceHome
+    return 'HERS Reference Home'
+  end
+  def self.CalcTypeERIIndexAdjustmentDesign
+    return 'HERS Index Adjustment Design'
+  end
+  def self.CalcTypeStandard
+    return 'Standard'
+  end
   def self.CeilingFanControlTypical
     return 'typical'
   end
@@ -229,15 +241,6 @@ class Constants
   end
   def self.EndUseMechVentFan
     return 'residential mech vent fan'
-  end
-  def self.ERIRatedHome
-    return 'rated home'
-  end
-  def self.ERIReferenceHome
-    return 'reference home'
-  end
-  def self.ERIndexAdjustmentDesign
-    return 'index adjustment design'
   end
   def self.FacadeFront
     return 'front'
@@ -496,22 +499,30 @@ class Constants
     return "residential clothes washer#{s_unit}"
   end
   def self.ObjectNameClothesDryer(fueltype, unit_name=self.ObjectNameBuildingUnit)
+    s_fuel = ""
+    if not fueltype.nil?
+      s_fuel = " #{fueltype}"
+    end
     s_unit = ""
     if unit_name != self.ObjectNameBuildingUnit
       s_unit = "|#{unit_name}"
     end
-    return "residential clothes dryer #{fueltype}#{s_unit}"
+    return "residential clothes dryer#{s_fuel}#{s_unit}"
   end
   def self.ObjectNameCookingRange(fueltype, ignition=false, unit_name=self.ObjectNameBuildingUnit)
+    s_fuel = ""
+    if not fueltype.nil?
+      s_fuel = " #{fueltype}"
+    end
     s_ignition = ""
-    s_unit = ""
     if ignition
       s_ignition = " ignition"
     end
+    s_unit = ""
     if unit_name != self.ObjectNameBuildingUnit
       s_unit = "|#{unit_name}"
     end
-    return "residential range #{fueltype}#{s_ignition}#{s_unit}"
+    return "residential range#{s_fuel}#{s_ignition}#{s_unit}"
   end
   def self.ObjectNameCoolingSeason
     return 'residential cooling season'
@@ -796,6 +807,18 @@ class Constants
   end
   def self.ObjectNameWindowShading
     return 'residential window shading'
+  end
+  def self.OptionTypeLightingFractions
+    return 'Lamp Fractions'
+  end
+  def self.OptionTypeLightingEnergyUses
+    return 'Annual Energy Uses'
+  end
+  def self.OptionTypePlugLoadsMultiplier
+    return 'Multiplier'
+  end
+  def self.OptionTypePlugLoadsEnergyUse
+    return 'Annual Energy Use'
   end
   def self.PierBeamFoundationType
     return "pier and beam"
@@ -1141,6 +1164,9 @@ class Constants
   end
   def self.WaterHeaterTypeHeatPump
     return 'heatpump'
+  end
+  def self.WorkflowDescription
+    return ' See https://github.com/NREL/OpenStudio-BEopt#workflows for supported workflows using this measure.'
   end
     
 end

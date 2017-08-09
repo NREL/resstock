@@ -14,7 +14,7 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
 
   # human readable description
   def description
-    return "Sets the basic geometry for the building."
+    return "Sets the basic geometry for the building.#{Constants.WorkflowDescription}"
   end
 
   # human readable description of modeling approach
@@ -72,7 +72,7 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
     corr_pos_display_names << "Single Exterior (Front)"
     corr_pos_display_names << "Double Exterior"
     corr_pos_display_names << "None"
-	
+    
     corr_pos = OpenStudio::Measure::OSArgument::makeChoiceArgument("corr_pos", corr_pos_display_names, true)
     corr_pos.setDisplayName("Corridor Position")
     corr_pos.setDescription("The position of the corridor.")
@@ -107,7 +107,7 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
     inset_pos_display_names = OpenStudio::StringVector.new
     inset_pos_display_names << "Right"
     inset_pos_display_names << "Left"
-	
+    
     inset_pos = OpenStudio::Measure::OSArgument::makeChoiceArgument("inset_pos", inset_pos_display_names, true)
     inset_pos.setDisplayName("Inset Position")
     inset_pos.setDescription("The position of the inset.")
@@ -127,7 +127,7 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
     foundation_display_names << Constants.SlabFoundationType
     foundation_display_names << Constants.CrawlFoundationType
     foundation_display_names << Constants.UnfinishedBasementFoundationType
-	
+    
     #make a choice argument for foundation type
     foundation_type = OpenStudio::Measure::OSArgument::makeChoiceArgument("foundation_type", foundation_display_names, true)
     foundation_type.setDisplayName("Foundation Type")

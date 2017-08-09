@@ -23,7 +23,7 @@ class ProcessVariableSpeedAirSourceHeatPump < OpenStudio::Measure::ModelMeasure
   end
   
   def description
-    return "This measure removes any existing HVAC components from the building and adds a variable-speed air source heat pump along with an on/off supply fan to a unitary air loop. For multifamily buildings, the variable-speed air source heat pump can be set for all units of the building."
+    return "This measure removes any existing HVAC components from the building and adds a variable-speed air source heat pump along with an on/off supply fan to a unitary air loop. For multifamily buildings, the variable-speed air source heat pump can be set for all units of the building.#{Constants.WorkflowDescription}"
   end
   
   def modeler_description
@@ -622,7 +622,7 @@ class ProcessVariableSpeedAirSourceHeatPump < OpenStudio::Measure::ModelMeasure
       unit.setFeature(Constants.SizingInfoHVACRatedCFMperTonCooling, cFM_TON_Rated.join(","))
       
     end # unit
-	
+
     return true
  
   end #end the run method

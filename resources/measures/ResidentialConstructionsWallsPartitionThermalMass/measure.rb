@@ -21,7 +21,7 @@ class ProcessConstructionsWallsPartitionThermalMass < OpenStudio::Measure::Model
   end
   
   def description
-    return "This measure assigns partition wall mass to finished spaces."
+    return "This measure assigns partition wall mass to finished spaces.#{Constants.WorkflowDescription}"
   end
   
   def modeler_description
@@ -35,7 +35,7 @@ class ProcessConstructionsWallsPartitionThermalMass < OpenStudio::Measure::Model
     #make a double argument for fraction of floor area
     frac = OpenStudio::Measure::OSArgument::makeDoubleArgument("frac", true)
     frac.setDisplayName("Fraction of Floor Area")
-	frac.setDescription("Ratio of exposed partition wall area to total finished floor area and accounts for the area of both sides of partition walls.")
+    frac.setDescription("Ratio of exposed partition wall area to total finished floor area and accounts for the area of both sides of partition walls.")
     frac.setDefaultValue(1.0)
     args << frac
 
@@ -98,7 +98,7 @@ class ProcessConstructionsWallsPartitionThermalMass < OpenStudio::Measure::Model
     specheat2.setUnits("Btu/lb-R")
     specheat2.setDescription("Specific heat of the second layer. Leave blank if no second layer.")
     args << specheat2
-	
+    
     return args
   end #end the arguments method
 

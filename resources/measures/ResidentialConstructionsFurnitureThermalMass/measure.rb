@@ -21,7 +21,7 @@ class ProcessThermalMassFurniture < OpenStudio::Measure::ModelMeasure
   end
   
   def description
-    return "Adds (or replaces) furniture mass to finished and unfinished spaces."
+    return "Adds (or replaces) furniture mass to finished and unfinished spaces.#{Constants.WorkflowDescription}"
   end
   
   def modeler_description

@@ -105,6 +105,21 @@ class Geometry
       return space_min_zs.uniq.length
     end
 
+    def self.get_above_grade_building_stories(spaces)
+      space_min_zs = []
+      spaces.each do |space|
+        next if not self.space_is_finished(space)
+        next if not self.space_is_above_grade(space)
+        surfaces_min_zs = []
+        space.surfaces.each do |surface|
+          zvalues = self.getSurfaceZValues([surface])
+          surfaces_min_zs << zvalues.min + OpenStudio::convert(space.zOrigin,"m","ft").get
+        end
+        space_min_zs << surfaces_min_zs.min
+      end
+      return space_min_zs.uniq.length   
+    end
+    
     def self.make_one_space_from_multiple_spaces(model, spaces)
       new_space = OpenStudio::Model::Space.new(model)
       spaces.each do |space|
@@ -119,7 +134,7 @@ class Geometry
         space.remove
       end      
       return new_space
-    end
+    end   
 
     def self.make_polygon(*pts)
         p = OpenStudio::Point3dVector.new
@@ -298,9 +313,12 @@ class Geometry
         end
         volume += OpenStudio.convert(space.volume * mult,"m^3","ft^3").get
       end
+      if volume <= 0 # FIXME: until we figure out how to deal with volumes
+        return 0.001
+      end
       if volume == 0 and not runner.nil?
-          runner.registerError("Could not find any volume.")
-          return nil
+        runner.registerError("Could not find any volume.")
+        return nil
       end
       return volume    
     end
@@ -339,6 +357,26 @@ class Geometry
       return floor_area      
     end    
     
+    def self.get_finished_volume_from_spaces(spaces, apply_multipliers=false, runner=nil)
+      volume = 0
+      spaces.each do |space|
+        next if not self.space_is_finished(space)
+        mult = 1.0
+        if apply_multipliers
+            mult = space.multiplier.to_f
+        end
+        volume += OpenStudio.convert(space.volume * mult,"m^3","ft^3").get
+      end
+      if volume <= 0 # FIXME: until we figure out how to deal with volumes
+        return 0.001
+      end      
+      if volume == 0 and not runner.nil?
+          runner.registerError("Could not find any finished volume.")
+          return nil
+      end
+      return volume    
+    end    
+    
     def self.get_above_grade_finished_volume_from_spaces(spaces, apply_multipliers=false, runner=nil)
       volume = 0
       spaces.each do |space|
@@ -349,6 +387,9 @@ class Geometry
         end
         volume += OpenStudio.convert(space.volume * mult,"m^3","ft^3").get
       end
+      if volume <= 0 # FIXME: until we figure out how to deal with volumes
+        return 0.001
+      end      
       if volume == 0 and not runner.nil?
           runner.registerError("Could not find any above-grade finished volume.")
           return nil
@@ -853,6 +894,10 @@ class Geometry
         return true if space_or_zone.name.to_s.start_with?(Constants.GarageSpace) or space_or_zone.name.to_s.start_with?(Constants.GarageZone)
     end
     
+    def self.is_foundation(space_or_zone)
+      return true if self.is_pier_beam(space_or_zone) or self.is_crawl(space_or_zone) or self.is_finished_basement(space_or_zone) or self.is_unfinished_basement(space_or_zone)
+    end
+    
     def self.get_crawl_spaces(spaces)
         crawl_spaces = []
         spaces.each do |space|
@@ -1146,7 +1191,7 @@ class Geometry
         end
         return below_grade_exterior_walls
     end
-
+    
     def self.get_spaces_below_grade_exterior_floors(spaces)
         below_grade_exterior_floors = []
         spaces.each do |space|

@@ -1,6 +1,8 @@
 # see the URL below for information on how to write OpenStudio measures
 # http://nrel.github.io/OpenStudio-user-documentation/measures/measure_writing_guide/
 
+require "#{File.dirname(__FILE__)}/resources/constants"
+
 # start the measure
 class CreateResidentialOrientation < OpenStudio::Measure::ModelMeasure
 
@@ -11,7 +13,7 @@ class CreateResidentialOrientation < OpenStudio::Measure::ModelMeasure
 
   # human readable description
   def description
-    return "Sets the fixed orientation of the building."
+    return "Sets the fixed orientation of the building.#{Constants.WorkflowDescription}"
   end
 
   # human readable description of modeling approach
@@ -22,7 +24,7 @@ class CreateResidentialOrientation < OpenStudio::Measure::ModelMeasure
   # define the arguments that the user will input
   def arguments(model)
     args = OpenStudio::Measure::OSArgumentVector.new
-	
+    
     #make a choice argument for foundation type
     orientation = OpenStudio::Measure::OSArgument::makeDoubleArgument("orientation", true)
     orientation.setDisplayName("Azimuth")
@@ -44,7 +46,7 @@ class CreateResidentialOrientation < OpenStudio::Measure::ModelMeasure
     end
 
     orientation = runner.getDoubleArgumentValue("orientation",user_arguments)
-	
+    
     if orientation > 360 or orientation < 0
       runner.registerError("Invalid orientation entered.")
       return false
@@ -57,7 +59,7 @@ class CreateResidentialOrientation < OpenStudio::Measure::ModelMeasure
     runner.registerInitialCondition("The building's initial orientation was #{building.northAxis} azimuth.")
     building.setNorthAxis(orientation) # the shading surfaces representing neighbors have ShadingSurfaceType=Building, and so are oriented along with the building
     runner.registerFinalCondition("The building's final orientation was #{building.northAxis} azimuth.")
-	
+    
     return true
 
   end

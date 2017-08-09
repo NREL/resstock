@@ -10,7 +10,7 @@ class ResidentialRefrigerator < OpenStudio::Measure::ModelMeasure
   end
   
   def description
-    return "Adds (or replaces) a residential refrigerator with the specified efficiency, operation, and schedule. For multifamily buildings, the refrigerator can be set for all units of the building."
+    return "Adds (or replaces) a residential refrigerator with the specified efficiency, operation, and schedule. For multifamily buildings, the refrigerator can be set for all units of the building.#{Constants.WorkflowDescription}"
   end
   
   def modeler_description
@@ -21,43 +21,43 @@ class ResidentialRefrigerator < OpenStudio::Measure::ModelMeasure
   def arguments(model)
     args = OpenStudio::Measure::OSArgumentVector.new
     
-	#TODO: New argument for demand response for fridges (alternate schedules if automatic DR control is specified)
-	
-	#make a double argument for user defined fridge options
-	fridge_E = OpenStudio::Measure::OSArgument::makeDoubleArgument("fridge_E",true)
-	fridge_E.setDisplayName("Rated Annual Consumption")
-	fridge_E.setUnits("kWh/yr")
-	fridge_E.setDescription("The EnergyGuide rated annual energy consumption for a refrigerator.")
-	fridge_E.setDefaultValue(434)
-	args << fridge_E
-	
-	#make a double argument for Occupancy Energy Multiplier
-	mult = OpenStudio::Measure::OSArgument::makeDoubleArgument("mult")
-	mult.setDisplayName("Occupancy Energy Multiplier")
-	mult.setDescription("Appliance energy use is multiplied by this factor to account for occupancy usage that differs from the national average.")
-	mult.setDefaultValue(1)
-	args << mult
-	
-	#Make a string argument for 24 weekday schedule values
-	weekday_sch = OpenStudio::Measure::OSArgument::makeStringArgument("weekday_sch")
-	weekday_sch.setDisplayName("Weekday schedule")
-	weekday_sch.setDescription("Specify the 24-hour weekday schedule.")
-	weekday_sch.setDefaultValue("0.040, 0.039, 0.038, 0.037, 0.036, 0.036, 0.038, 0.040, 0.041, 0.041, 0.040, 0.040, 0.042, 0.042, 0.042, 0.041, 0.044, 0.048, 0.050, 0.048, 0.047, 0.046, 0.044, 0.041")
-	args << weekday_sch
+    #TODO: New argument for demand response for fridges (alternate schedules if automatic DR control is specified)
     
-	#Make a string argument for 24 weekend schedule values
-	weekend_sch = OpenStudio::Measure::OSArgument::makeStringArgument("weekend_sch")
-	weekend_sch.setDisplayName("Weekend schedule")
-	weekend_sch.setDescription("Specify the 24-hour weekend schedule.")
-	weekend_sch.setDefaultValue("0.040, 0.039, 0.038, 0.037, 0.036, 0.036, 0.038, 0.040, 0.041, 0.041, 0.040, 0.040, 0.042, 0.042, 0.042, 0.041, 0.044, 0.048, 0.050, 0.048, 0.047, 0.046, 0.044, 0.041")
-	args << weekend_sch
+    #make a double argument for user defined fridge options
+    fridge_E = OpenStudio::Measure::OSArgument::makeDoubleArgument("fridge_E",true)
+    fridge_E.setDisplayName("Rated Annual Consumption")
+    fridge_E.setUnits("kWh/yr")
+    fridge_E.setDescription("The EnergyGuide rated annual energy consumption for a refrigerator.")
+    fridge_E.setDefaultValue(434)
+    args << fridge_E
+    
+    #make a double argument for Occupancy Energy Multiplier
+    mult = OpenStudio::Measure::OSArgument::makeDoubleArgument("mult")
+    mult.setDisplayName("Occupancy Energy Multiplier")
+    mult.setDescription("Appliance energy use is multiplied by this factor to account for occupancy usage that differs from the national average.")
+    mult.setDefaultValue(1)
+    args << mult
+    
+    #Make a string argument for 24 weekday schedule values
+    weekday_sch = OpenStudio::Measure::OSArgument::makeStringArgument("weekday_sch")
+    weekday_sch.setDisplayName("Weekday schedule")
+    weekday_sch.setDescription("Specify the 24-hour weekday schedule.")
+    weekday_sch.setDefaultValue("0.040, 0.039, 0.038, 0.037, 0.036, 0.036, 0.038, 0.040, 0.041, 0.041, 0.040, 0.040, 0.042, 0.042, 0.042, 0.041, 0.044, 0.048, 0.050, 0.048, 0.047, 0.046, 0.044, 0.041")
+    args << weekday_sch
+    
+    #Make a string argument for 24 weekend schedule values
+    weekend_sch = OpenStudio::Measure::OSArgument::makeStringArgument("weekend_sch")
+    weekend_sch.setDisplayName("Weekend schedule")
+    weekend_sch.setDescription("Specify the 24-hour weekend schedule.")
+    weekend_sch.setDefaultValue("0.040, 0.039, 0.038, 0.037, 0.036, 0.036, 0.038, 0.040, 0.041, 0.041, 0.040, 0.040, 0.042, 0.042, 0.042, 0.041, 0.044, 0.048, 0.050, 0.048, 0.047, 0.046, 0.044, 0.041")
+    args << weekend_sch
 
-	#Make a string argument for 12 monthly schedule values
-	monthly_sch = OpenStudio::Measure::OSArgument::makeStringArgument("monthly_sch")
-	monthly_sch.setDisplayName("Month schedule")
-	monthly_sch.setDescription("Specify the 12-month schedule.")
-	monthly_sch.setDefaultValue("0.837, 0.835, 1.084, 1.084, 1.084, 1.096, 1.096, 1.096, 1.096, 0.931, 0.925, 0.837")
-	args << monthly_sch
+    #Make a string argument for 12 monthly schedule values
+    monthly_sch = OpenStudio::Measure::OSArgument::makeStringArgument("monthly_sch")
+    monthly_sch.setDisplayName("Month schedule")
+    monthly_sch.setDescription("Specify the 12-month schedule.")
+    monthly_sch.setDefaultValue("0.837, 0.835, 1.084, 1.084, 1.084, 1.096, 1.096, 1.096, 1.096, 0.931, 0.925, 0.837")
+    args << monthly_sch
 
     #make a choice argument for space
     spaces = model.getSpaces
@@ -83,23 +83,23 @@ class ResidentialRefrigerator < OpenStudio::Measure::ModelMeasure
     if not runner.validateUserArguments(arguments(model), user_arguments)
       return false
     end
-	
+    
     #assign the user inputs to variables
     fridge_E = runner.getDoubleArgumentValue("fridge_E",user_arguments)
-	mult = runner.getDoubleArgumentValue("mult",user_arguments)
-	weekday_sch = runner.getStringArgumentValue("weekday_sch",user_arguments)
-	weekend_sch = runner.getStringArgumentValue("weekend_sch",user_arguments)
-	monthly_sch = runner.getStringArgumentValue("monthly_sch",user_arguments)
-	space_r = runner.getStringArgumentValue("space",user_arguments)
-	
-	#check for valid inputs
-	if fridge_E < 0
-		runner.registerError("Rated annual consumption must be greater than or equal to 0.")
-		return false
-	end
+    mult = runner.getDoubleArgumentValue("mult",user_arguments)
+    weekday_sch = runner.getStringArgumentValue("weekday_sch",user_arguments)
+    weekend_sch = runner.getStringArgumentValue("weekend_sch",user_arguments)
+    monthly_sch = runner.getStringArgumentValue("monthly_sch",user_arguments)
+    space_r = runner.getStringArgumentValue("space",user_arguments)
+    
+    #check for valid inputs
+    if fridge_E < 0
+        runner.registerError("Rated annual consumption must be greater than or equal to 0.")
+        return false
+    end
     if mult < 0
-		runner.registerError("Occupancy energy multiplier must be greater than or equal to 0.")
-		return false
+        runner.registerError("Occupancy energy multiplier must be greater than or equal to 0.")
+        return false
     end
     
     # Get building units
@@ -108,8 +108,8 @@ class ResidentialRefrigerator < OpenStudio::Measure::ModelMeasure
         return false
     end
     
-	# Calculate fridge daily energy use
-	fridge_ann = fridge_E*mult
+    # Calculate fridge daily energy use
+    fridge_ann = fridge_E*mult
 
     tot_fridge_ann = 0
     msgs = []
@@ -199,7 +199,7 @@ class ResidentialRefrigerator < OpenStudio::Measure::ModelMeasure
     else
         runner.registerFinalCondition("No refrigerator has been assigned.")
     end
-	
+    
     return true
  
   end #end the run method

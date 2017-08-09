@@ -14,7 +14,7 @@ class SetResidentialWindowArea < OpenStudio::Measure::ModelMeasure
 
   # human readable description
   def description
-    return "Sets the window area for the building. Doors with glazing should be set as window area."
+    return "Sets the window area for the building. Doors with glazing should be set as window area.#{Constants.WorkflowDescription}"
   end
 
   # human readable description of modeling approach
@@ -29,30 +29,58 @@ class SetResidentialWindowArea < OpenStudio::Measure::ModelMeasure
     #make a double argument for front wwr
     front_wwr = OpenStudio::Measure::OSArgument::makeDoubleArgument("front_wwr", true)
     front_wwr.setDisplayName("Front Window-to-Wall Ratio")
-    front_wwr.setDescription("The ratio of window area to wall area for the building's front facade.")
+    front_wwr.setDescription("The ratio of window area to wall area for the building's front facade. Enter 0 if specifying Front Window Area instead.")
     front_wwr.setDefaultValue(0.18)
     args << front_wwr
 
     #make a double argument for back wwr
     back_wwr = OpenStudio::Measure::OSArgument::makeDoubleArgument("back_wwr", true)
     back_wwr.setDisplayName("Back Window-to-Wall Ratio")
-    back_wwr.setDescription("The ratio of window area to wall area for the building's back facade.")
+    back_wwr.setDescription("The ratio of window area to wall area for the building's back facade. Enter 0 if specifying Back Window Area instead.")
     back_wwr.setDefaultValue(0.18)
     args << back_wwr
 
     #make a double argument for left wwr
     left_wwr = OpenStudio::Measure::OSArgument::makeDoubleArgument("left_wwr", true)
     left_wwr.setDisplayName("Left Window-to-Wall Ratio")
-    left_wwr.setDescription("The ratio of window area to wall area for the building's left facade.")
+    left_wwr.setDescription("The ratio of window area to wall area for the building's left facade. Enter 0 if specifying Left Window Area instead.")
     left_wwr.setDefaultValue(0.18)
     args << left_wwr
 
     #make a double argument for right wwr
     right_wwr = OpenStudio::Measure::OSArgument::makeDoubleArgument("right_wwr", true)
     right_wwr.setDisplayName("Right Window-to-Wall Ratio")
-    right_wwr.setDescription("The ratio of window area to wall area for the building's right facade.")
+    right_wwr.setDescription("The ratio of window area to wall area for the building's right facade. Enter 0 if specifying Right Window Area instead.")
     right_wwr.setDefaultValue(0.18)
     args << right_wwr
+
+    #make a double argument for front area
+    front_area = OpenStudio::Measure::OSArgument::makeDoubleArgument("front_area", true)
+    front_area.setDisplayName("Front Window Area")
+    front_area.setDescription("The amount of window area on the building's front facade. Enter 0 if specifying Front Window-to-Wall Ratio instead.")
+    front_area.setDefaultValue(0)
+    args << front_area
+
+    #make a double argument for back area
+    back_area = OpenStudio::Measure::OSArgument::makeDoubleArgument("back_area", true)
+    back_area.setDisplayName("Back Window Area")
+    back_area.setDescription("The amount of window area on the building's back facade. Enter 0 if specifying Back Window-to-Wall Ratio instead.")
+    back_area.setDefaultValue(0)
+    args << back_area
+
+    #make a double argument for left area
+    left_area = OpenStudio::Measure::OSArgument::makeDoubleArgument("left_area", true)
+    left_area.setDisplayName("Left Window Area")
+    left_area.setDescription("The amount of window area on the building's left facade. Enter 0 if specifying Left Window-to-Wall Ratio instead.")
+    left_area.setDefaultValue(0)
+    args << left_area
+
+    #make a double argument for right area
+    right_area = OpenStudio::Measure::OSArgument::makeDoubleArgument("right_area", true)
+    right_area.setDisplayName("Right Window Area")
+    right_area.setDescription("The amount of window area on the building's right facade. Enter 0 if specifying Right Window-to-Wall Ratio instead.")
+    right_area.setDefaultValue(0)
+    args << right_area
 
     #make a double argument for aspect ratio
     aspect_ratio = OpenStudio::Measure::OSArgument::makeDoubleArgument("aspect_ratio", true)
@@ -74,12 +102,17 @@ class SetResidentialWindowArea < OpenStudio::Measure::ModelMeasure
     end
 
     facades = [Constants.FacadeFront, Constants.FacadeBack, Constants.FacadeLeft, Constants.FacadeRight]
-	
-    wwr = {}
-    wwr[Constants.FacadeFront] = runner.getDoubleArgumentValue("front_wwr",user_arguments)
-    wwr[Constants.FacadeBack] = runner.getDoubleArgumentValue("back_wwr",user_arguments)
-    wwr[Constants.FacadeLeft] = runner.getDoubleArgumentValue("left_wwr",user_arguments)
-    wwr[Constants.FacadeRight] = runner.getDoubleArgumentValue("right_wwr",user_arguments)
+
+    wwrs = {}
+    wwrs[Constants.FacadeFront] = runner.getDoubleArgumentValue("front_wwr",user_arguments)
+    wwrs[Constants.FacadeBack] = runner.getDoubleArgumentValue("back_wwr",user_arguments)
+    wwrs[Constants.FacadeLeft] = runner.getDoubleArgumentValue("left_wwr",user_arguments)
+    wwrs[Constants.FacadeRight] = runner.getDoubleArgumentValue("right_wwr",user_arguments)
+    areas = {}
+    areas[Constants.FacadeFront] = runner.getDoubleArgumentValue("front_area",user_arguments)
+    areas[Constants.FacadeBack] = runner.getDoubleArgumentValue("back_area",user_arguments)
+    areas[Constants.FacadeLeft] = runner.getDoubleArgumentValue("left_area",user_arguments)
+    areas[Constants.FacadeRight] = runner.getDoubleArgumentValue("right_area",user_arguments)
     aspect_ratio = runner.getDoubleArgumentValue("aspect_ratio",user_arguments)
 
     # Remove existing windows and store surfaces that should get windows by facade
@@ -105,30 +138,21 @@ class SetResidentialWindowArea < OpenStudio::Measure::ModelMeasure
     end
     
     # error checking
-    if wwr[Constants.FacadeFront] < 0 or wwr[Constants.FacadeFront] >= 1
-      runner.registerError("Front window-to-wall ratio must be greater than or equal to 0 and less than 1.")
-      return false
+    facades.each do |facade|
+      if wwrs[facade] > 0 and areas[facade] > 0
+        runner.registerError("Both #{facade} window-to-wall ratio and #{facade} window area are specified.")
+        return false
+      elsif wwrs[facade] < 0 or wwrs[facade] >= 1
+        runner.registerError("#{facade.capitalize} window-to-wall ratio must be greater than or equal to 0 and less than 1.")
+        return false
+      elsif areas[facade] < 0
+        runner.registerError("#{facade.capitalize} window area must be greater than or equal to 0.")
+        return false
+      end
     end
-    if wwr[Constants.FacadeBack] < 0 or wwr[Constants.FacadeBack] >= 1
-      runner.registerError("Back window-to-wall ratio must be greater than or equal to 0 and less than 1.")
-      return false
-    end
-    if wwr[Constants.FacadeLeft] < 0 or wwr[Constants.FacadeLeft] >= 1
-      runner.registerError("Left window-to-wall ratio must be greater than or equal to 0 and less than 1.")
-      return false
-    end
-    if wwr[Constants.FacadeRight] < 0 or wwr[Constants.FacadeRight] >= 1
-      runner.registerError("Right window-to-wall ratio must be greater than or equal to 0 and less than 1.")
-      return false
-    end    
     if aspect_ratio <= 0
       runner.registerError("Window Aspect Ratio must be greater than 0.")
       return false
-    end
-    
-    if wwr[Constants.FacadeFront] == 0 and wwr[Constants.FacadeFront] == 0 and wwr[Constants.FacadeFront] == 0 and wwr[Constants.FacadeFront] == 0
-      runner.registerFinalCondition("No windows added because all window-to-wall ratios were set to 0.")
-      return true
     end
     
     # Split any surfaces that have doors so that we can ignore them when adding windows
@@ -179,11 +203,16 @@ class SetResidentialWindowArea < OpenStudio::Measure::ModelMeasure
         end
     
         # Calculate target window area for this facade
-        wall_area = 0
-        surfaces[facade].each do |surface|
-            wall_area += OpenStudio.convert(surface.grossArea, "m^2", "ft^2").get
+        target_window_area = 0.0
+        if wwrs[facade] > 0
+          wall_area = 0
+          surfaces[facade].each do |surface|
+              wall_area += OpenStudio.convert(surface.grossArea, "m^2", "ft^2").get
+          end
+          target_window_area = wall_area * wwrs[facade]
+        else
+          target_window_area = areas[facade]
         end
-        target_window_area = wall_area * wwr[facade]
         
         next if target_window_area == 0
         
@@ -246,6 +275,11 @@ class SetResidentialWindowArea < OpenStudio::Measure::ModelMeasure
             end
             tot_win_area += surface_window_area[surface]
         end
+    end
+    
+    if tot_win_area == 0
+      runner.registerFinalCondition("No windows added.")
+      return true
     end
     
     runner.registerFinalCondition("The building has been assigned #{tot_win_area.round(1)} ft^2 total window area.")

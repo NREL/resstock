@@ -15,7 +15,7 @@ class AddResidentialBedroomsAndBathrooms < OpenStudio::Measure::ModelMeasure
 
   # human readable description
   def description
-    return "Sets the number of bedrooms and bathrooms in the building. For multifamily buildings, the bedrooms/bathrooms can be set for all units of the building."
+    return "Sets the number of bedrooms and bathrooms in the building. For multifamily buildings, the bedrooms/bathrooms can be set for all units of the building.#{Constants.WorkflowDescription}"
   end
 
   # human readable description of modeling approach
@@ -25,7 +25,7 @@ class AddResidentialBedroomsAndBathrooms < OpenStudio::Measure::ModelMeasure
 
   # define the arguments that the user will input
   def arguments(model)
-    args = OpenStudio::Measure::OSArgumentVector.new		
+    args = OpenStudio::Measure::OSArgumentVector.new        
 
     #make a string argument for number of bedrooms
     num_br = OpenStudio::Measure::OSArgument::makeStringArgument("num_bedrooms", false)
@@ -52,7 +52,7 @@ class AddResidentialBedroomsAndBathrooms < OpenStudio::Measure::ModelMeasure
     if !runner.validateUserArguments(arguments(model), user_arguments)
       return false
     end
-	
+    
     num_br = runner.getStringArgumentValue("num_bedrooms", user_arguments).split(",").map(&:strip)
     num_ba = runner.getStringArgumentValue("num_bathrooms", user_arguments).split(",").map(&:strip)
     

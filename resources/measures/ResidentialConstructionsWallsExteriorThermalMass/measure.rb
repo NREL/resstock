@@ -15,7 +15,7 @@ class ProcessConstructionsWallsExteriorThermalMass < OpenStudio::Measure::ModelM
   end
   
   def description
-    return "This measure assigns wall mass to above-grade exterior walls adjacent to finished space."
+    return "This measure assigns wall mass to above-grade exterior walls adjacent to finished space.#{Constants.WorkflowDescription}"
   end
   
   def modeler_description
@@ -26,6 +26,19 @@ class ProcessConstructionsWallsExteriorThermalMass < OpenStudio::Measure::ModelM
   def arguments(model)
     args = OpenStudio::Measure::OSArgumentVector.new
 
+    #make a choice argument for above-grade exterior walls
+    surfaces = get_exterior_thermal_mass_wall_surfaces(model)
+    surfaces_args = OpenStudio::StringVector.new
+    surfaces_args << Constants.Auto
+    surfaces.each do |surface|
+      surfaces_args << surface.name.to_s
+    end
+    surface = OpenStudio::Measure::OSArgument::makeChoiceArgument("surface", surfaces_args, false)
+    surface.setDisplayName("Surface(s)")
+    surface.setDescription("Select the surface(s) to assign constructions.")
+    surface.setDefaultValue(Constants.Auto)
+    args << surface
+    
     #make a double argument for layer 1: thickness
     thick_in1 = OpenStudio::Measure::OSArgument::makeDoubleArgument("thick_in1", true)
     thick_in1.setDisplayName("Thickness 1")
@@ -98,16 +111,17 @@ class ProcessConstructionsWallsExteriorThermalMass < OpenStudio::Measure::ModelM
       return false
     end
     
-    # Above-grade wall between finished space and outdoors
-    surfaces = []
-    model.getSpaces.each do |space|
-        next if Geometry.space_is_unfinished(space)
-        next if Geometry.space_is_below_grade(space)
-        space.surfaces.each do |surface|
-            if surface.surfaceType.downcase == "wall" and surface.outsideBoundaryCondition.downcase == "outdoors"
-                surfaces << surface
-            end
-        end
+    surface_s = runner.getOptionalStringArgumentValue("surface",user_arguments)
+    if not surface_s.is_initialized
+      surface_s = Constants.Auto
+    else
+      surface_s = surface_s.get
+    end
+    
+    surfaces = get_exterior_thermal_mass_wall_surfaces(model)
+    
+    unless surface_s == Constants.Auto
+      surfaces.delete_if { |surface| surface.name.to_s != surface_s }
     end
     
     # Continue if no applicable surfaces
@@ -200,6 +214,21 @@ class ProcessConstructionsWallsExteriorThermalMass < OpenStudio::Measure::ModelM
     return true
 
   end #end the run method
+  
+  def get_exterior_thermal_mass_wall_surfaces(model)
+    # Above-grade wall between finished space and outdoors
+    surfaces = []
+    model.getSpaces.each do |space|
+        next if Geometry.space_is_unfinished(space)
+        next if Geometry.space_is_below_grade(space)
+        space.surfaces.each do |surface|
+            if surface.surfaceType.downcase == "wall" and surface.outsideBoundaryCondition.downcase == "outdoors"
+                surfaces << surface
+            end
+        end
+    end
+    return surfaces
+  end  
 
 end #end the measure
 

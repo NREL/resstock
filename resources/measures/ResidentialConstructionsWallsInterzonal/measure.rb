@@ -15,7 +15,7 @@ class ProcessConstructionsWallsInterzonal < OpenStudio::Measure::ModelMeasure
   end
   
   def description
-    return "This measure assigns a wood stud construction to walls between finished space and unfinished space."
+    return "This measure assigns a wood stud construction to walls between finished space and unfinished space.#{Constants.WorkflowDescription}"
   end
   
   def modeler_description
@@ -26,6 +26,19 @@ class ProcessConstructionsWallsInterzonal < OpenStudio::Measure::ModelMeasure
   def arguments(model)
     args = OpenStudio::Measure::OSArgumentVector.new
 
+    #make a choice argument for interzonal wall surfaces
+    surfaces = get_interzonal_wall_surfaces(model)
+    surfaces_args = OpenStudio::StringVector.new
+    surfaces_args << Constants.Auto
+    surfaces.each do |surface|
+      surfaces_args << surface.name.to_s
+    end
+    surface = OpenStudio::Measure::OSArgument::makeChoiceArgument("surface", surfaces_args, false)
+    surface.setDisplayName("Surface(s)")
+    surface.setDescription("Select the surface(s) to assign constructions.")
+    surface.setDefaultValue(Constants.Auto)
+    args << surface    
+    
     #make a double argument for R-value of installed cavity insulation
     cavity_r = OpenStudio::Measure::OSArgument::makeDoubleArgument("cavity_r", true)
     cavity_r.setDisplayName("Cavity Insulation Installed R-value")
@@ -82,18 +95,17 @@ class ProcessConstructionsWallsInterzonal < OpenStudio::Measure::ModelMeasure
       return false
     end
 
-    # Walls between finished space and unfinished space
-    surfaces = []
-    model.getSpaces.each do |space|
-        next if Geometry.space_is_unfinished(space)
-        space.surfaces.each do |surface|
-            next if surface.surfaceType.downcase != "wall"
-            next if not surface.adjacentSurface.is_initialized
-            next if not surface.adjacentSurface.get.space.is_initialized
-            adjacent_space = surface.adjacentSurface.get.space.get
-            next if Geometry.space_is_finished(adjacent_space)
-            surfaces << surface
-        end
+    surface_s = runner.getOptionalStringArgumentValue("surface",user_arguments)
+    if not surface_s.is_initialized
+      surface_s = Constants.Auto
+    else
+      surface_s = surface_s.get
+    end
+    
+    surfaces = get_interzonal_wall_surfaces(model)
+    
+    unless surface_s == Constants.Auto
+      surfaces.delete_if { |surface| surface.name.to_s != surface_s }
     end
     
     # Continue if no applicable surfaces
@@ -164,6 +176,23 @@ class ProcessConstructionsWallsInterzonal < OpenStudio::Measure::ModelMeasure
     return true
  
   end #end the run method
+  
+  def get_interzonal_wall_surfaces(model)
+    # Walls between finished space and unfinished space
+    surfaces = []
+    model.getSpaces.each do |space|
+        next if Geometry.space_is_unfinished(space)
+        space.surfaces.each do |surface|
+            next if surface.surfaceType.downcase != "wall"
+            next if not surface.adjacentSurface.is_initialized
+            next if not surface.adjacentSurface.get.space.is_initialized
+            adjacent_space = surface.adjacentSurface.get.space.get
+            next if Geometry.space_is_finished(adjacent_space)
+            surfaces << surface
+        end
+    end
+    return surfaces
+  end
   
 end #end the measure
 

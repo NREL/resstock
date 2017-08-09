@@ -15,7 +15,7 @@ class ProcessConstructionsWallsExteriorFinish < OpenStudio::Measure::ModelMeasur
 
   # human readable description
   def description
-    return "This measure assigns the exterior finish to all above-grade exterior walls."
+    return "This measure assigns the exterior finish to all above-grade exterior walls.#{Constants.WorkflowDescription}"
   end
 
   # human readable description of modeling approach
@@ -27,51 +27,64 @@ class ProcessConstructionsWallsExteriorFinish < OpenStudio::Measure::ModelMeasur
   def arguments(model)
     args = OpenStudio::Measure::OSArgumentVector.new
 
-	#make a double argument for solar absorptivity
-	solar_abs = OpenStudio::Measure::OSArgument::makeDoubleArgument("solar_abs", true)
-	solar_abs.setDisplayName("Solar Absorptivity")
-	solar_abs.setDescription("Fraction of the incident radiation that is absorbed.")
-	solar_abs.setDefaultValue(0.3)
-	args << solar_abs
+    #make a choice argument for above-grade exterior walls
+    surfaces = get_exterior_finish_wall_surfaces(model)
+    surfaces_args = OpenStudio::StringVector.new
+    surfaces_args << Constants.Auto
+    surfaces.each do |surface|
+      surfaces_args << surface.name.to_s
+    end
+    surface = OpenStudio::Measure::OSArgument::makeChoiceArgument("surface", surfaces_args, false)
+    surface.setDisplayName("Surface(s)")
+    surface.setDescription("Select the surface(s) to assign constructions.")
+    surface.setDefaultValue(Constants.Auto)
+    args << surface
+    
+    #make a double argument for solar absorptivity
+    solar_abs = OpenStudio::Measure::OSArgument::makeDoubleArgument("solar_abs", true)
+    solar_abs.setDisplayName("Solar Absorptivity")
+    solar_abs.setDescription("Fraction of the incident radiation that is absorbed.")
+    solar_abs.setDefaultValue(0.3)
+    args << solar_abs
 
-	#make a double argument for conductivity
-	cond = OpenStudio::Measure::OSArgument::makeDoubleArgument("conductivity", true)
-	cond.setDisplayName("Conductivity")
+    #make a double argument for conductivity
+    cond = OpenStudio::Measure::OSArgument::makeDoubleArgument("conductivity", true)
+    cond.setDisplayName("Conductivity")
     cond.setUnits("Btu-in/h-ft^2-R")
-	cond.setDescription("Conductivity of the exterior finish assembly.")
-	cond.setDefaultValue(0.62)
-	args << cond
+    cond.setDescription("Conductivity of the exterior finish assembly.")
+    cond.setDefaultValue(0.62)
+    args << cond
 
-	#make a double argument for density
-	dens = OpenStudio::Measure::OSArgument::makeDoubleArgument("density", true)
-	dens.setDisplayName("Density")
+    #make a double argument for density
+    dens = OpenStudio::Measure::OSArgument::makeDoubleArgument("density", true)
+    dens.setDisplayName("Density")
     dens.setUnits("lb/ft^3")
-	dens.setDescription("Density of the exterior finish assembly.")
-	dens.setDefaultValue(11.1)
-	args << dens
+    dens.setDescription("Density of the exterior finish assembly.")
+    dens.setDefaultValue(11.1)
+    args << dens
 
     #make a double argument for specific heat
-	specheat = OpenStudio::Measure::OSArgument::makeDoubleArgument("specific_heat", true)
-	specheat.setDisplayName("Specific Heat")
+    specheat = OpenStudio::Measure::OSArgument::makeDoubleArgument("specific_heat", true)
+    specheat.setDisplayName("Specific Heat")
     specheat.setUnits("Btu/lb-R")
-	specheat.setDescription("Specific heat of the exterior finish assembly.")
-	specheat.setDefaultValue(0.25)
-	args << specheat
+    specheat.setDescription("Specific heat of the exterior finish assembly.")
+    specheat.setDefaultValue(0.25)
+    args << specheat
 
     #make a double argument for thickness
-	thick_in = OpenStudio::Measure::OSArgument::makeDoubleArgument("thick_in", true)
-	thick_in.setDisplayName("Thickness")
+    thick_in = OpenStudio::Measure::OSArgument::makeDoubleArgument("thick_in", true)
+    thick_in.setDisplayName("Thickness")
     thick_in.setUnits("in")
-	thick_in.setDescription("Thickness of the exterior finish assembly.")
-	thick_in.setDefaultValue(0.375)
-	args << thick_in
+    thick_in.setDescription("Thickness of the exterior finish assembly.")
+    thick_in.setDefaultValue(0.375)
+    args << thick_in
 
     #make a double argument for emissivity
-	emiss = OpenStudio::Measure::OSArgument::makeDoubleArgument("emissivity", true)
-	emiss.setDisplayName("Emissivity")
-	emiss.setDescription("Measure of the material's ability to emit infrared energy.")
-	emiss.setDefaultValue(0.9)
-	args << emiss
+    emiss = OpenStudio::Measure::OSArgument::makeDoubleArgument("emissivity", true)
+    emiss.setDisplayName("Emissivity")
+    emiss.setDescription("Measure of the material's ability to emit infrared energy.")
+    emiss.setDefaultValue(0.9)
+    args << emiss
     
     return args
   end
@@ -85,16 +98,19 @@ class ProcessConstructionsWallsExteriorFinish < OpenStudio::Measure::ModelMeasur
       return false
     end
     
-    # Above-grade walls adjacent to outdoors
-    surfaces = []
-    model.getSpaces.each do |space|
-        next if Geometry.space_is_below_grade(space)
-        space.surfaces.each do |surface|
-            if surface.surfaceType.downcase == "wall" and surface.outsideBoundaryCondition.downcase == "outdoors"
-                surfaces << surface
-            end
-        end
+    surface_s = runner.getOptionalStringArgumentValue("surface",user_arguments)
+    if not surface_s.is_initialized
+      surface_s = Constants.Auto
+    else
+      surface_s = surface_s.get
     end
+    
+    surfaces = get_exterior_finish_wall_surfaces(model)
+    
+    unless surface_s == Constants.Auto
+      surfaces.delete_if { |surface| surface.name.to_s != surface_s }
+    end
+    
     if surfaces.empty?
         runner.registerAsNotApplicable("Measure not applied because no applicable surfaces were found.")
         return true
@@ -151,6 +167,20 @@ class ProcessConstructionsWallsExteriorFinish < OpenStudio::Measure::ModelMeasur
     
     return true
 
+  end
+  
+  def get_exterior_finish_wall_surfaces(model)
+    # Above-grade walls adjacent to outdoors
+    surfaces = []
+    model.getSpaces.each do |space|
+        next if Geometry.space_is_below_grade(space)
+        space.surfaces.each do |surface|
+            if surface.surfaceType.downcase == "wall" and surface.outsideBoundaryCondition.downcase == "outdoors"
+                surfaces << surface
+            end
+        end
+    end
+    return surfaces
   end
   
 end

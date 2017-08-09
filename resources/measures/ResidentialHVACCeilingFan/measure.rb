@@ -28,7 +28,7 @@ class ProcessCeilingFan < OpenStudio::Measure::ModelMeasure
 
   # human readable description
   def description
-    return "Adds (or replaces) residential ceiling fan(s) and schedule in all finished spaces. For multifamily buildings, the ceiling fan(s) can be set for all units of the building."
+    return "Adds (or replaces) residential ceiling fan(s) and schedule in all finished spaces. For multifamily buildings, the ceiling fan(s) can be set for all units of the building.#{Constants.WorkflowDescription}"
   end
 
   # human readable description of modeling approach

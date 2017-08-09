@@ -23,7 +23,7 @@ class ProcessCoolingSetpoints < OpenStudio::Measure::ModelMeasure
   end
   
   def description
-    return "This measure creates the cooling season schedules based on weather data, and the cooling setpoint schedules."
+    return "This measure creates the cooling season schedules based on weather data, and the cooling setpoint schedules.#{Constants.WorkflowDescription}"
   end
   
   def modeler_description
@@ -34,7 +34,7 @@ class ProcessCoolingSetpoints < OpenStudio::Measure::ModelMeasure
   def arguments(model)
     args = OpenStudio::Measure::OSArgumentVector.new
   
-   	#Make a string argument for 24 weekday cooling set point values
+    #Make a string argument for 24 weekday cooling set point values
     clg_wkdy = OpenStudio::Measure::OSArgument::makeStringArgument("clg_wkdy", false)
     clg_wkdy.setDisplayName("Weekday Setpoint")
     clg_wkdy.setDescription("Specify a single cooling setpoint or a 24-hour comma-separated cooling schedule for the weekdays.")
@@ -42,14 +42,14 @@ class ProcessCoolingSetpoints < OpenStudio::Measure::ModelMeasure
     clg_wkdy.setDefaultValue("76")
     args << clg_wkdy  
     
-   	#Make a string argument for 24 weekend cooling set point values
+    #Make a string argument for 24 weekend cooling set point values
     clg_wked = OpenStudio::Measure::OSArgument::makeStringArgument("clg_wked", false)
     clg_wked.setDisplayName("Weekend Setpoint")
     clg_wked.setDescription("Specify a single cooling setpoint or a 24-hour comma-separated cooling schedule for the weekend.")
     clg_wked.setUnits("degrees F")
     clg_wked.setDefaultValue("76")
-    args << clg_wked	
-	
+    args << clg_wked    
+    
     return args
   end #end the arguments method
 

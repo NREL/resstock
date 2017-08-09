@@ -2,17 +2,32 @@
   <schema_version>3.0</schema_version>
   <name>process_constructions_doors</name>
   <uid>b78f10fa-b38d-4de2-86e9-344a78e68847</uid>
-  <version_id>c926eed7-221a-4121-8787-3be301344bdd</version_id>
-  <version_modified>20170630T203943Z</version_modified>
+  <version_id>d45d64c6-7efc-440f-a0a5-320cea22212b</version_id>
+  <version_modified>20170731T151910Z</version_modified>
   <xml_checksum>6FAFA9DE</xml_checksum>
   <class_name>ProcessConstructionsDoors</class_name>
   <display_name>Set Residential Door Construction</display_name>
-  <description>This measure assigns a construction to exterior doors adjacent to finished or unfinished space.</description>
+  <description>This measure assigns a construction to exterior doors adjacent to finished or unfinished space. See https://github.com/NREL/OpenStudio-BEopt#workflows for supported workflows using this measure.</description>
   <modeler_description>Calculates material layer properties of constructions for exterior door sub-surfaces adjacent to 1) finished space or 2) unfinished space.</modeler_description>
   <arguments>
     <argument>
-      <name>door_uvalue</name>
-      <display_name>U-Value for Finished Space Doors</display_name>
+      <name>sub_surface</name>
+      <display_name>Subsurface(s)</display_name>
+      <description>Select the sub surface(s) to assign constructions.</description>
+      <type>Choice</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+      <default_value>auto</default_value>
+      <choices>
+        <choice>
+          <value>auto</value>
+          <display_name>auto</display_name>
+        </choice>
+      </choices>
+    </argument>
+    <argument>
+      <name>door_ufactor</name>
+      <display_name>U-Factor</display_name>
       <description>The heat transfer coefficient of the doors adjacent to finished space.</description>
       <type>Double</type>
       <units>Btu/hr-ft^2-R</units>
@@ -43,7 +58,13 @@
       <filename>geometry.rb</filename>
       <filetype>rb</filetype>
       <usage_type>resource</usage_type>
-      <checksum>31FE0BE6</checksum>
+      <checksum>20190C86</checksum>
+    </file>
+    <file>
+      <filename>util.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>64BC6389</checksum>
     </file>
     <file>
       <version>
@@ -54,19 +75,25 @@
       <filename>measure.rb</filename>
       <filetype>rb</filetype>
       <usage_type>script</usage_type>
-      <checksum>E946D384</checksum>
+      <checksum>5A97D041</checksum>
     </file>
     <file>
       <filename>constants.rb</filename>
       <filetype>rb</filetype>
       <usage_type>resource</usage_type>
-      <checksum>C8CE4128</checksum>
+      <checksum>B34275B6</checksum>
     </file>
     <file>
-      <filename>util.rb</filename>
+      <filename>process_constructions_door_test.rb</filename>
       <filetype>rb</filetype>
-      <usage_type>resource</usage_type>
-      <checksum>87C9A783</checksum>
+      <usage_type>test</usage_type>
+      <checksum>04754713</checksum>
+    </file>
+    <file>
+      <filename>SFD_2000sqft_2story_SL_GRG_UA_Windows_Doors.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>27CE567C</checksum>
     </file>
   </files>
 </measure>
