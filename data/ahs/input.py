@@ -1,5 +1,3 @@
-__author__ = 'ewilson'
-
 import os
 import sys
 import numpy as np
@@ -140,7 +138,7 @@ def sum_cols(df, cols):
     df = df[cols]
     df_colsum = df.sum()
 
-    return df_colsum.div(df_colsum.sum(axis=1), axis=0)    
+    return df_colsum.div(df_colsum.sum(axis=1), axis=0)
     
 def add_option_prefix(df):
     for col in df.columns:
