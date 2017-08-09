@@ -12,7 +12,7 @@ class Create_DFs():
         self.session = pd.read_csv(file, index_col=['CONTROL'])
 
     def hvac_system_cooling_type(self):
-        df = pd.DataFrame({'Dependency=HVAC System Cooling': ['None',	'AC, SEER 8', 'AC, SEER 10', 'AC, SEER 13', 'AC, SEER 15', 'Room AC, EER 8.5, 20% Conditioned', 'Room AC, EER 10.7, 20% Conditioned'], 'Option=Central': [0, 1, 1, 1, 1, 0, 0], 'Option=Room':[0, 0, 0, 0, 0, 1, 1], 'Option=None':[1, 0, 0, 0, 0, 0, 0]}).set_index('Dependency=HVAC System Cooling')
+        df = pd.DataFrame({'Dependency=HVAC System Cooling': ['None',	'AC, SEER 8', 'AC, SEER 10', 'AC, SEER 13', 'AC, SEER 15', 'FIXME Room AC, EER 8.5, 20% Conditioned', 'FIXME Room AC, EER 10.7, 20% Conditioned'], 'Option=Central': [0, 1, 1, 1, 1, 0, 0], 'Option=Room':[0, 0, 0, 0, 0, 1, 1], 'Option=None':[1, 0, 0, 0, 0, 0, 0]}).set_index('Dependency=HVAC System Cooling')
         return df
         
     def federal_poverty_level(self):
