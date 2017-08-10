@@ -38,7 +38,7 @@ class Create_DFs():
     
     # Preprocess LMI file into vintage, etc. enumerations we use (divide by two)
     df['hfl index'] = df['hfl index'].apply(lambda x: assign_heating_fuel(x))
-    df = df.rename(columns={'ybl index': 'Dependency=Vintage', 'hfl index': 'Dependency=Heating Fuel', 'EPW': 'Dependency=Location EPW', 'puma10': 'Dependency=PUMA', 'county': 'Dependency=County'})
+    df = df.rename(columns={'ybl index': 'Dependency=Vintage', 'hfl index': 'Dependency=Heating Fuel', 'EPW': 'Dependency=Location EPW', 'tract_gisjoin': 'Dependency=Location Census Tract', 'county': 'Dependency=County'})
     
     for vintage in [4, 3, 2]:
       sub = df[df['Dependency=Vintage']==vintage].copy()
@@ -58,7 +58,7 @@ class Create_DFs():
     
     df['Dependency=Vintage'] = df['Dependency=Vintage'].map({'<1940': '<1950', '<1950': '<1950', '1950s': '1950s', '1960s': '1960s', '1970s': '1970s', '1980s': '1980s', '1990s': '1990s', '2000s': '2000s', '2010s': '2000s'})
     
-    df = df[np.concatenate([['Dependency=Vintage', 'Dependency=Heating Fuel', 'Dependency=Location EPW', 'Dependency=PUMA', 'Dependency=County'], options])]
+    df = df[np.concatenate([['Dependency=Vintage', 'Dependency=Heating Fuel', 'Dependency=Location EPW', 'Dependency=Location Census Tract', 'Dependency=County'], options])]
     df = add_option_prefix(df)
     
     return df
@@ -97,8 +97,7 @@ if __name__ == '__main__':
   df = pd.read_sql(sql, con)
   table_names = list(df['table_name'])
   table_names = [x for x in table_names if not 'cities' in x]
-  
-  tsvs = []
+
   for i, table_name in enumerate(table_names):
 
     print i+1, table_name
@@ -107,15 +106,14 @@ if __name__ == '__main__':
     for category in ['Area Median Income']:
       method = getattr(dfs, category.lower().replace(' ', '_'))
       df = method()
-      tsvs.append(df)
-  
-  df = pd.concat(tsvs)
 
-  df = df.groupby(['Dependency=Vintage', 'Dependency=Heating Fuel', 'Dependency=Location EPW', 'Dependency=PUMA', 'Dependency=County']).sum()
-  
-  count = df.sum(axis=1)
-  df = df.div(df.sum(axis=1), axis=0)
-  df['Count'] = count
-    
-  df.to_csv(os.path.join(datafiles_dir, '{}.tsv'.format(category)), sep='\t')
+    df = df.groupby(['Dependency=Vintage', 'Dependency=Heating Fuel', 'Dependency=Location EPW', 'Dependency=Location Census Tract', 'Dependency=County']).sum()
+
+    count = df.sum(axis=1)
+    df = df.div(df.sum(axis=1), axis=0)
+    df['Count'] = count
+      
+    if not df.empty:
+      df = df.fillna(0)    
+      df.to_csv(os.path.join(datafiles_dir, '{} {}.tsv'.format(category, table_name.split('_')[-1].upper())), sep='\t')
         
