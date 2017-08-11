@@ -11,6 +11,7 @@ Welcome to documentation of ResStock+ComStock!
    :caption: Contents:
    
    getting_started
+   applying_upgrades
 
 
 

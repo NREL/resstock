@@ -5,7 +5,7 @@ Install OpenStudio and PAT
 ==========================
 
 Download OpenStudio version 2.2 or greater from the `OpenStudio website <https://www.openstudio.net/downloads>`_.
-Do a default install including Parametric Analysis Tool (PAT). 
+Do a default install including Parametric Analysis Tool (PAT). If prompted, allow incoming connections from "mongod" (why?).
 
 Run an analysis on the cloud
 ============================
