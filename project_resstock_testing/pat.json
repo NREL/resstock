@@ -5,7 +5,7 @@
   "weatherFile": "Placeholder.epw",
   "analysis_type": "Algorithmic",
   "remoteSettings": {
-    "open": false,
+    "open": true,
     "remoteType": "Amazon Cloud",
     "remoteServerURL": "http://10.60.7.61/",
     "aws": {
@@ -28,9 +28,9 @@
       "user_id": "shorowit",
       "worker_node_number": 0,
       "aws_tags": [],
-      "cluster_status": "",
+      "cluster_status": "terminated",
       "openstudio_server_version": {
-        "name": "2.2.0-p0",
+        "name": "2.2.1-rc0",
         "standards": {
           "ref": "0.1.15",
           "repo": "nrel/openstudio-standards"
@@ -51,11 +51,11 @@
           "url_base": "https://s3.amazonaws.com/openstudio-builds/NUMBER/OpenStudio-NUMBER.SHA-Linux.deb"
         },
         "server": {
-          "ref": "182d809c00da3633076af187e286a11aa076d3bd",
+          "ref": "62016d6ea7d74648894849e645231ebff450dd0f",
           "repo": "nrel/openstudio-server"
         },
         "R": "3.2.3",
-        "ami": "ami-fdb8adeb"
+        "ami": "ami-ff92b284"
       },
       "server": {
         "dns": null
@@ -257,7 +257,7 @@
       "seed": "EmptySeedModel.osm",
       "workflow_index": 0,
       "options": [],
-      "instanceId": 0.4735621412177531,
+      "instanceId": 0.2410585198159798,
       "skip": false,
       "$$hashKey": "object:2655",
       "showWarningText": false,
@@ -522,7 +522,7 @@
       "seed": "EmptySeedModel.osm",
       "workflow_index": 1,
       "options": [],
-      "instanceId": 0.8558815043107844,
+      "instanceId": 0.7861929783862063,
       "skip": false,
       "$$hashKey": "object:12817",
       "outputMeasure": true,
@@ -1819,7 +1819,7 @@
       "seed": "EmptySeedModel.osm",
       "workflow_index": 2,
       "options": [],
-      "instanceId": 0.6956626995515589,
+      "instanceId": 0.46503306535403754,
       "skip": false,
       "$$hashKey": "object:12818",
       "outputMeasure": true,
@@ -3032,34 +3032,77 @@
       ]
     },
     {
-      "measure_dir": "C:\\Users\\shorowit\\Documents\\GitHub\\OpenStudio-BuildStock\\project_resstock_testing\\measures\\ServerDirectoryCleanup",
-      "name": "server_directory_cleanup",
-      "directory": "C:\\Users\\shorowit\\Documents\\GitHub\\OpenStudio-BuildStock\\project_resstock_testing\\measures\\ServerDirectoryCleanup",
-      "uid": "ec7d04ad-0b7b-495b-825a-e1b6d28d1d3f",
-      "uuid": "{ec7d04ad-0b7b-495b-825a-e1b6d28d1d3f}",
-      "version_id": "06036ce2-8e98-45e1-9043-78e2aa60a26a",
-      "version_uuid": "{06036ce2-8e98-45e1-9043-78e2aa60a26a}",
-      "version_modified": "20170511T212356Z",
-      "xml_checksum": "5F1EDF75",
-      "display_name": "Server Directory Cleanup",
-      "class_name": "ServerDirectoryCleanup",
-      "description": "Removes a significant portion of the saved results from each run, helping to alleviate memory problems.",
-      "modeler_description": "Use during large server runs, when individual sequel files and the like will not be needed.",
-      "tags": "Calibration",
+      "measure_dir": "C:\\Users\\shorowit\\Documents\\GitHub\\OpenStudio-BuildStock\\project_resstock_testing\\measures\\TimeseriesCSVExport",
+      "name": "timeseries_csv_export",
+      "directory": "C:/Users/shorowit/Documents/GitHub/OpenStudio-BuildStock/measures/TimeseriesCSVExport",
+      "uid": "2a3442c1-944d-4e91-9e11-11e0cf368c64",
+      "uuid": "{2a3442c1-944d-4e91-9e11-11e0cf368c64}",
+      "version_id": "3392aa31-2979-4635-a259-a4f17df3c8ac",
+      "version_uuid": "{3392aa31-2979-4635-a259-a4f17df3c8ac}",
+      "version_modified": "20170519T001656Z",
+      "xml_checksum": "15BF4E57",
+      "display_name": "Timeseries CSV Export",
+      "class_name": "TimeseriesCSVExport",
+      "description": "Exports all available hourly timeseries enduses to csv, and uses them for utility bill calculations.",
+      "modeler_description": "Exports all available hourly timeseries enduses to csv, and uses them for utility bill calculations.",
+      "tags": "Reporting.QAQC",
       "outputs": [],
       "attributes": [
         {
           "name": "Measure Type",
           "display_name": "Measure Type",
           "value": "ReportingMeasure"
-        },
-        {
-          "name": "Uses SketchUp API",
-          "display_name": "Uses SketchUp API",
-          "value": false
         }
       ],
-      "arguments": [],
+      "arguments": [
+        {
+          "name": "reporting_frequency",
+          "display_name": "Reporting Frequency",
+          "description": "",
+          "type": "Choice",
+          "required": true,
+          "model_dependent": false,
+          "default_value": "Hourly",
+          "choice_values": [
+            "Detailed",
+            "Timestep",
+            "Hourly",
+            "Daily",
+            "Monthly",
+            "Runperiod"
+          ],
+          "choice_display_names": [
+            "Detailed",
+            "Timestep",
+            "Hourly",
+            "Daily",
+            "Monthly",
+            "Runperiod"
+          ],
+          "display_name_short": "reporting_frequency",
+          "inputs": {
+            "relationship": null,
+            "choiceDisplayNames": [
+              "Detailed",
+              "Timestep",
+              "Hourly",
+              "Daily",
+              "Monthly",
+              "Runperiod"
+            ],
+            "variableSetting": "Argument",
+            "distribution": "Uniform",
+            "discreteVariables": [],
+            "maximum": "Hourly",
+            "minimum": "Hourly",
+            "mean": "Hourly",
+            "deltaX": "Hourly",
+            "stdDev": "Hourly",
+            "default_value": "Hourly"
+          },
+          "$$hashKey": "object:2025"
+        }
+      ],
       "edit": "",
       "status": "",
       "bcl_update": false,
@@ -3067,21 +3110,20 @@
       "add": "",
       "open": false,
       "addedToProject": true,
-      "date": "5/11/2017",
+      "date": "5/18/2017",
       "author": "",
       "type": "ReportingMeasure",
       "seed": "EmptySeedModel.osm",
       "workflow_index": 3,
       "options": [],
-      "instanceId": 0.20456938570281102,
-      "skip": false,
-      "$$hashKey": "object:15262",
-      "outputMeasure": false
+      "instanceId": 0.75986791584765,
+      "skip": true,
+      "$$hashKey": "object:1989"
     }
   ],
   "filesToInclude": [
     {
-      "dirToInclude": "..\\resources",
+      "dirToInclude": "../resources",
       "unpackDirName": "resources",
       "$$hashKey": "object:595"
     },

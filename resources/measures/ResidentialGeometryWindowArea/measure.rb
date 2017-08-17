@@ -188,6 +188,7 @@ class SetResidentialWindowArea < OpenStudio::Measure::ModelMeasure
             if not surface_avail_area.include? surface
                 surface_avail_area[surface] = 0
             end
+            next if surface.subSurfaces.size > 0
             area = get_wall_area_for_windows(surface, min_wall_height_for_window, min_window_width, runner)
             surface_avail_area[surface] += area
             facade_avail_area[facade] += area
@@ -195,6 +196,7 @@ class SetResidentialWindowArea < OpenStudio::Measure::ModelMeasure
     end
     
     surface_window_area = {}
+    target_facade_areas = {}
     facades.each do |facade|
     
         # Initialize
@@ -203,30 +205,30 @@ class SetResidentialWindowArea < OpenStudio::Measure::ModelMeasure
         end
     
         # Calculate target window area for this facade
-        target_window_area = 0.0
+        target_facade_areas[facade] = 0.0
         if wwrs[facade] > 0
           wall_area = 0
           surfaces[facade].each do |surface|
               wall_area += OpenStudio.convert(surface.grossArea, "m^2", "ft^2").get
           end
-          target_window_area = wall_area * wwrs[facade]
+          target_facade_areas[facade] = wall_area * wwrs[facade]
         else
-          target_window_area = areas[facade]
+          target_facade_areas[facade] = areas[facade]
         end
         
-        next if target_window_area == 0
+        next if target_facade_areas[facade] == 0
         
-        if target_window_area < min_single_window_area
+        if target_facade_areas[facade] < min_single_window_area
             # If the total window area for the facade is less than the minimum window area,
             # set all of the window area to the surface with the greatest available wall area
             surface = my_hash.max_by{|k,v| v}[0]
-            surface_window_area[surface] = target_window_area
+            surface_window_area[surface] = target_facade_areas[facade]
             next
         end
         
         # Initial guess for wall of this facade
         surfaces[facade].each do |surface|
-            surface_window_area[surface] = surface_avail_area[surface] / facade_avail_area[facade] * target_window_area
+            surface_window_area[surface] = surface_avail_area[surface] / facade_avail_area[facade] * target_facade_areas[facade]
         end
         
         # If window area for a surface is less than the minimum window area, 
@@ -261,19 +263,24 @@ class SetResidentialWindowArea < OpenStudio::Measure::ModelMeasure
         end
         next if sum_window_area == 0
         surfaces[facade].each do |surface|
-            surface_window_area[surface] += surface_window_area[surface] / sum_window_area * (target_window_area - sum_window_area)
+            surface_window_area[surface] += surface_window_area[surface] / sum_window_area * (target_facade_areas[facade] - sum_window_area)
         end
     
     end
     
     tot_win_area = 0
     facades.each do |facade|
+        facade_win_area = 0
         surfaces[facade].each do |surface|
             next if surface_window_area[surface] == 0
             if not add_windows_to_wall(surface, surface_window_area[surface], window_gap_y, window_gap_x, aspect_ratio, max_single_window_area, facade, model, runner)
                 return false
             end
             tot_win_area += surface_window_area[surface]
+            facade_win_area += surface_window_area[surface]
+        end
+        if (facade_win_area - target_facade_areas[facade]).abs > 0.1
+            runner.registerWarning("Unable to assign appropriate window area for #{facade} facade.")
         end
     end
     

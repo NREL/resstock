@@ -69,7 +69,7 @@ class TimeseriesCSVExport < OpenStudio::Measure::ReportingMeasure
     reporting_frequency_chs << "Daily"
     reporting_frequency_chs << "Monthly"
     reporting_frequency_chs << "Runperiod"
-    reporting_frequency = OpenStudio::Ruleset::OSArgument::makeChoiceArgument('reporting_frequency', reporting_frequency_chs, true)
+    reporting_frequency = OpenStudio::Measure::OSArgument::makeChoiceArgument('reporting_frequency', reporting_frequency_chs, true)
     reporting_frequency.setDisplayName("Reporting Frequency")
     reporting_frequency.setDefaultValue("Hourly")
     args << reporting_frequency
