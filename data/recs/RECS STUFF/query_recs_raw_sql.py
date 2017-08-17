@@ -17,10 +17,7 @@ from datetime import datetime
 import random
 import numpy as np
 from collections import OrderedDict
-
 startTime = datetime.now()
-
-
 race_dict = {1:'White Alone',
              2:'Black or African/American Alone',
              3:'American Indian Alone',
@@ -28,7 +25,6 @@ race_dict = {1:'White Alone',
              5:'Pacific Islander Alone',
              6:'Other Race Alone',
              7:'2 or More Races Selected'}
-
 education_dict = {0:'No Schooling Completed',
                   1:'Kindergarten to Grade 12',
                   2:'High School Diploma/GED',
@@ -38,8 +34,6 @@ education_dict = {0:'No Schooling Completed',
                   6:"Master's Degree",
                   7:'Professional Degree',
                   8:'Doctorate Degree'}
-
-
 region_def = {1:'CR01',
               2:'CR02',
               3:'CR03',
@@ -52,7 +46,6 @@ region_def = {1:'CR01',
               10:'CR10',
               11:'CR11',
               12:'CR12'}
-
 vintages = {1  :'1950-pre',
             2  :'1950s',
             3  :'1960s',
@@ -61,7 +54,6 @@ vintages = {1  :'1950-pre',
             6  :'1990s',
             7  :'2000s',
             8  :'2000s'}
-
 fuels = {1:'Natural Gas',
          2:'Propane/LPG',
          3:'Fuel Oil',
@@ -72,12 +64,10 @@ fuels = {1:'Natural Gas',
          9:'Other Fuel',
          21:'Other Fuel',
          -2:'None'}
-
 cooltype_dict = {1:'Central System',
                  2:'Window/wall Units',
                  3:'Both',
                  -2:'No A/C'}
-
 equipage_dict = {1: '< 2 yrs',
                2: '2-4 yrs',
                3: '5-9 yrs',
@@ -85,7 +75,6 @@ equipage_dict = {1: '< 2 yrs',
                42:'15-19 yrs',
                5: '20+ yrs',
                -2:'N/A'}
-
 agecenac_dict = {1: '< 2 yrs',
                2: '2-4 yrs',
                3: '5-9 yrs',
@@ -93,7 +82,6 @@ agecenac_dict = {1: '< 2 yrs',
                42:'15-19 yrs',
                5: '20+ yrs',
                -2:'N/A'}
-
 wwacage_dict = {1: '< 2 yrs',
                2: '2-4 yrs',
                3: '5-9 yrs',
@@ -101,7 +89,6 @@ wwacage_dict = {1: '< 2 yrs',
                42:'15-19 yrs',
                5: '20+ yrs',
                -2:'N/A'}
-
 typeglass_dict = {1:'1 Pane',
                   2:'2+ Pane',
                   3:'2+ Pane',
@@ -117,13 +104,11 @@ sizes = {500:'0-1499',
          8000:'3500+',
          9000:'3500+',
          10000:'3500+'}
-
 story_dict = {10:1,
               20:2,
               40:2,
               31:2,
               32:2}
-
 income_range = {    1:'$02,500 and under',
                     2:'$02,500 to $4,999',
                     3:'$05,000 to $7,499',
@@ -148,7 +133,6 @@ income_range = {    1:'$02,500 and under',
                     22:'$95,000 to $99,999',
                     23:'$100,000 to $119,999',
                     24:'$120,000 or More'}
-
 med_income ={1:1250,
              2:3250,
              3:6250,
@@ -173,7 +157,6 @@ med_income ={1:1250,
              22:97250,
              23:110000,
              24:120000}
-
 wall_type ={1:'Brick',
             2:'Wood',
             3:'Siding',
@@ -183,7 +166,6 @@ wall_type ={1:'Brick',
             7:'Concrete',
             8:'Glass',
             9:'Other'}
-
 roof_type ={1:'Ceramic/Clay',
             2:'Wood Shingles/Shakes',
             3:'Metal',
@@ -192,7 +174,6 @@ roof_type ={1:'Ceramic/Clay',
             6:'Asphalt',
             7:'Concrete Tiles',
             8:'Other'}
-
 fpl16 = {   1:11880,
             2:16020,
             3:20160,
@@ -201,7 +182,6 @@ fpl16 = {   1:11880,
             6:32580,
             7:36730,
             8:40890} #Add 4,180 for each additional person
-
 fpl09 = {   1:10830,
             2:14570,
             3:18310,
@@ -210,7 +190,6 @@ fpl09 = {   1:10830,
             6:29530,
             7:33270,
             8:37010}
-
 census_div = {1:'New England Census Division (CT, MA, ME, NH, RI, VT)',
               2:'Middle Atlantic Census Division (NJ, NY, PA)',
               3:'East North Central Census Division (IL, IN, MI, OH, WI)',
@@ -221,7 +200,6 @@ census_div = {1:'New England Census Division (CT, MA, ME, NH, RI, VT)',
               8:'Mountain North Sub-Division (CO, ID, MT, UT, WY)',
               9:'Mountain South Sub-Division (AZ, NM, NV)',
               10:'Pacific Census Division (AK, CA, HI, OR, WA)' }
-
 region_def = {1:3,
               2:3,
               3:7,
@@ -249,7 +227,6 @@ region_def = {1:3,
               25:10,
               26:11,
               27:6}
-
 cr_str = {1:'CR01',
           2:'CR02',
           3:'CR03',
@@ -262,12 +239,10 @@ cr_str = {1:'CR01',
           10:'CR10',
           11:'CR11',
           12:'CR12'}
-
 garage_dict = {1: "1 Car",
                2: "2 Car",
                3: "3+ Car",
                -2: "None"}
-
 stories_dict = {10: '1',
                 20: '2+',
                 31: '2+',
@@ -275,7 +250,6 @@ stories_dict = {10: '1',
                 40: '2+',
                 50: 'Other',
                 -2: 'N/a'}
-
 randincome_dict = {-1:0000,
                    0:0000,
                    1:2500,
@@ -303,11 +277,9 @@ randincome_dict = {-1:0000,
                    23:110000,
                    24:120000,
                    25:200000}
-
 numglass_dict = {'1 Pane',
                  '2+ Pane',
                  'No Windows'}
-
 fpl = fpl09
 heating_types = {    2: 'Steam or Hot Water System'        , #'Steam or Hot Water System',
                      3:    'Central Warm-Air Furnace'      , #'Central Warm-Air Furnace'      ,
@@ -331,9 +303,7 @@ def retrieve_data():
         df = pd.read_sql(sql, con)
         df.to_pickle('eia.recs_2009_microdata.pkl')
     df = pd.read_pickle('eia.recs_2009_microdata.pkl')
-
     return df
-
 def assign_size_bins(df):
     df['Intsize'] = df[['tothsqft', 'totcsqft']].max(axis=1)
     df.loc[:, 'Size'] = 0
@@ -342,12 +312,9 @@ def assign_size_bins(df):
     df.loc[(df['Intsize'] >= 2500) & (df['Intsize'] < 3500), 'Size'] = '2500-3499'
     df.loc[(df['Intsize'] >= 3500), 'Size'] = '3500+'
     return df
-
 def process_data(df):
     #create new fields for numerical processing later (correlation stuff)
-
     df['num_glass']=df.apply(lambda x: x['typeglass'] if x['typeglass'] > 0 else 0, axis = 1)
-
     #Select Single Family Detached Housing Only
     df = df.loc[df['typehuq'] == 2]
     df = df.reset_index()
@@ -369,23 +336,15 @@ def process_data(df):
                    'education':education_dict,
                    'sizeofgarage':garage_dict,
                    'stories':stories_dict}
-
     for field_name, field_dict in field_dicts.iteritems():
         for num, name in field_dict.iteritems():
             df.loc[:,field_name].replace(num, name, inplace=True)
-
-
     df = assign_size_bins(df)
-
     # Assign sample counts
     df['Count'] = 1
-
     return df
-
 def calc_general(df, cut_by, columns=None, outfile=None,norm=True,outpath="Probability Distributions"):
-
     if not outfile == 'Infiltration.tsv':
-
       #Start Analyzing Specific Data
       fields = cut_by + columns
       grouped = df.groupby(fields)
@@ -396,21 +355,18 @@ def calc_general(df, cut_by, columns=None, outfile=None,norm=True,outpath="Proba
               x = pandas.np.array(combos[i])
               combos[i] = list(x)
       full_index = pandas.MultiIndex.from_product(combos, names=fields)
-
       #Implement Total Weight of Each Type
       g = grouped.sum()
       g = g['nweight'].reindex(full_index)
       g = g.fillna(0).reset_index()
       g = pandas.pivot_table(g, values='nweight', index=cut_by, columns=columns).reset_index()
       Weight = g[g.columns[len(cut_by):]].sum(axis = 1)
-
       #Implement Count of Each Type
       ct = grouped.sum()
       ct = ct['Count'].reindex(full_index)
       ct = ct.fillna(0).reset_index()
       ct = pandas.pivot_table(ct, values='Count', index=cut_by, columns=columns).reset_index()
       Count = ct[ct.columns[len(cut_by):]].sum(axis=1)    #only adds Options, not Dependencies
-
       #Normalize Data
       if norm:
           total = g.sum(axis=1)
@@ -431,16 +387,13 @@ def calc_general(df, cut_by, columns=None, outfile=None,norm=True,outpath="Proba
       for col in g.columns:
         g = g.rename(columns={col: col.replace('Option=', '')})
         g = g.rename(columns={col: col.replace('Dependency=', '')})
-
     #Rename columns
     print cut_by
     cut_by = [x.replace('yearmaderange', 'Vintage') for x in cut_by]
     cut_by = [x.replace('Size', 'Geometry House Size') for x in cut_by]
     cut_by = [x.replace('CR', 'Location Region') for x in cut_by]
     cut_by = [x.replace('stories', 'Geometry Stories') for x in cut_by]
-
     g = g.rename(columns={'yearmaderange': 'Vintage', 'Size': 'Geometry House Size', '3+ Car': '3 Car', 'CR': 'Location Region', 'Region': 'Location Region', 'Stories': 'Geometry Stories', 'East North Central Census Division (IL, IN, MI, OH, WI)': 'East North Central', 'East South Central Census Division (AL, KY, MS, TN)': 'East South Central', 'Middle Atlantic Census Division (NJ, NY, PA)': 'Middle Atlantic', 'Mountain North Sub-Division (CO, ID, MT, UT, WY)': 'Mountain North', 'Mountain South Sub-Division (AZ, NM, NV)': 'Mountain South', 'New England Census Division (CT, MA, ME, NH, RI, VT)': 'New England', 'Pacific Census Division (AK, CA, HI, OR, WA)': 'Pacific', 'South Atlantic  Census Division (DC, DE, FL, GA, MD, NC, SC, VA, WV)': 'South Atlantic', 'West North Central Census Division (IA, KS, MN, MO, ND, NE, SD)': 'West North Central', 'West South Central Census Division (AR, LA, OK, TX)': 'West South Central'})
-
     if 'division' in columns:
       g['Mountain - Pacific'] = g['Mountain North'].values + g['Mountain South'].values + g['Pacific'].values
       del g['Mountain North']
@@ -469,15 +422,12 @@ def calc_general(df, cut_by, columns=None, outfile=None,norm=True,outpath="Proba
             rename_dict[col] = 'Dependency=' + str(col)        
           else:
             rename_dict[col] = 'Option=' + str(col)
-
     g = g.rename(columns=rename_dict)
-
     #Generate Outfile
     if not outfile is None:
         g.to_csv(os.path.join(outpath, outfile), sep='\t', index=False)
         print g
     return g
-
 def save_to_tsv(g, cut_by, columns, outfile):
     rename_dict = {}
     for col in g.columns:
@@ -488,26 +438,17 @@ def save_to_tsv(g, cut_by, columns, outfile):
     g = g.rename(columns=rename_dict)
     print g
     g.to_csv(outfile, sep='\t', index=False)
-
 def assign_poverty_levels(df):
-
     #Generate Random Income Distribution
-
     df['rand_income'] = df['moneypy']
-
     for i in range(0,df['moneypy'].count()):
         x = df.iloc[i]['moneypy']
         df.loc[(i,'rand_income')] = random.randint(randincome_dict[x],randincome_dict[(x+1)])
-
-
-
 #    for b in randincome_dict.iteritems():
 #        if b[0] == 25:
 #            break
 #
 #        df.loc[(df['moneypy']==(b[0]+1)),'rand_income']=random.randint(b[1],randincome_dict[(b[0]+1)])
-
-
     df['income_range'] = df['moneypy']
     df['income'] = df['moneypy']
     for income_range_num, income_range_name in income_range.iteritems():
@@ -516,25 +457,21 @@ def assign_poverty_levels(df):
         df['income'].replace(num, name, inplace=True)
     inflation_2009_to_2016 = 1.125344
     df['inf_income']=df['income']*inflation_2009_to_2016
-
     df['incomelimit'] = df['nhsldmem']
     for fpl_num,fpl_name in fpl.iteritems():
         for field in ['incomelimit']:
             df.loc[:,field].replace(fpl_num,fpl_name,inplace=True)
     df['FPL'] = df['income']/df['incomelimit']*100
-
     df['FPLALL'] = 1
     levels = ['FPL300','FPL250','FPL200','FPL150','FPL100','FPL50']
     for lvl in levels:
         df[lvl]=0
-
     df.loc[(df['FPL'] <= 300),'FPL300'] = 1
     df.loc[(df['FPL'] <= 250),'FPL250'] = 1
     df.loc[(df['FPL'] <= 200),'FPL200'] = 1
     df.loc[(df['FPL'] <= 150),'FPL150'] = 1
     df.loc[(df['FPL'] <= 100),'FPL100'] = 1
     df.loc[(df['FPL'] <= 50),'FPL50'] = 1
-
     #Create FPL Bins
     df['FPL_BINS'] = 0
     df.loc[(df['FPL'] >= 300),'FPL_BINS'] = "300+"
@@ -545,32 +482,21 @@ def assign_poverty_levels(df):
     df.loc[(df['FPL'] >= 50) & (df['FPL'] < 100),'FPL_BINS'] = "50-100"
     df.loc[(df['FPL'] < 50),'FPL_BINS'] = "0-50"
     return df
-
-
 def custom_region(df):
     df['CR'] = df['reportable_domain']
     df['CR'].replace(region_def, inplace=True)
-
 # Split out Kentucky and put in 8:
     df.ix[(df['reportable_domain'] == 18) & (df['aia_zone'] == 3), 'CR'] = 8
-
 # Split out Hawaii and put in 12:
     df.ix[(df['reportable_domain'] == 27) & ((df['aia_zone'] == 5) | (df['hdd65'] < 4000)), 'CR'] = 12
-
 # Split out Alaska and put in 1:
     df.ix[(df['reportable_domain'] == 27) & (df['hdd65'] > 6930), 'CR'] = 1 #Source for 6930 HDD: Dennis Barley
     return df
-
 def foundation_type(df):
-
-
     #Number of different foundation types
-
     df['numfoundations']= 0
     df['numfoundations']= df.apply(lambda x: x['crawl']+x['cellar']+x['concrete'] if x['crawl'] > -2 and x['cellar'] > -2 and x['concrete'] > -2 else 0, axis=1)
-
     #Foundation Type
-
     df['Foundation Type'] = 'Pier and Beam'
     df.loc[(df['numfoundations'] == 0),'Foundation Type'] = 'Pier and Beam'
 #    df.loc[(df['numfoundations'] > 1), 'Foundation Type'] = 'Multiple Foundation Types'
@@ -578,28 +504,20 @@ def foundation_type(df):
     df.loc[(df['numfoundations'] == 1) & (df['concrete'] == 1), 'Foundation Type'] = 'Slab'
     df.loc[(df['numfoundations'] == 1) & (df['cellar'] == 1) & (df['baseheat'] == 1), 'Foundation Type'] = 'Heated Basement'
     df.loc[(df['numfoundations'] == 1) & (df['cellar'] == 1) & (df['baseheat'] == 0), 'Foundation Type'] = 'Unheated Basement'
-
     #Implement Weight and Count Changes
-
     df['nweight'] = df.apply(lambda x: x['nweight'] / x['numfoundations'] if x['numfoundations'] > 1 else x['nweight'], axis = 1)
     df['Count'] = df.apply(lambda x: x['Count'] / x['numfoundations'] if x['numfoundations'] > 1 else x['Count'], axis = 1)
-
     df_new = pd.DataFrame()
-
     for fnd in ['concrete','crawl','cellar']:
         df_this_fnd = df.loc[(df['numfoundations'] > 1) & (df[fnd] == 1)]
         df_this_fnd.loc[df_this_fnd['Foundation Type'] == fnd]
         df_new = df_new.append(df_this_fnd)
-
     df_new.loc[(df_new['Foundation Type'] == 'cellar') & (df['baseheat'] == 1), 'Foundation Type'] = 'Heated Basement'
     df_new.loc[(df_new['Foundation Type'] == 'cellar') & (df['baseheat'] == 0), 'Foundation Type'] = 'Unheated Basement'
     df_new.loc[(df_new['Foundation Type'] == 'concrete'), 'Foundation Type'] = 'Slab'
     df_new.loc[(df_new['Foundation Type'] == 'crawl'), 'Foundation Type'] = 'Crawl'
-
     df = df.append(df_new)
-
     return df
-
 # def calc_occupancy(df):
 #     cut_by = ['Size']#,'Stories']
 #     for num, name in stories.iteritems():
@@ -615,7 +533,6 @@ def foundation_type(df):
 #         avg_baths = (group['NumBaths'] * group['NWEIGHT'] * 1.0).sum() / group['NWEIGHT'].sum()
 #         avg_size = (group['Size'] * group['NWEIGHT'] * 1.0).sum() / group['NWEIGHT'].sum()
 #         print ','.join([name, str(avg_occs), str(avg_baths), str(avg_size)])
-
 def query_stories(df, outfile='recs_query_stories.csv'):
     g = calc_general(df, cut_by=['yearmaderange','Size'],columns=['stories'], outfile=None)
     fnd_types = ['Crawl',
@@ -627,7 +544,6 @@ def query_stories(df, outfile='recs_query_stories.csv'):
     for fnd_type in fnd_types:
         df2 = g.copy()
         df2['Foundation Type'] = fnd_type
-
         # Redistribute 1-story weighting factors if not heated basement
         if fnd_type != 'Heated Basement':
             df2.loc[df2['Size'] == '4500+', 2] += df2.loc[df2['Size'] == '4500+', 1]
@@ -637,14 +553,12 @@ def query_stories(df, outfile='recs_query_stories.csv'):
     df = df[['yearmaderange','Size','Foundation Type',1,2,3]]
     df.to_csv(outfile, index=False)
     print df
-
 def corr(x,y,w):
     def m(x,w):
         return np.sum(x*w)/np.sum(w)
     def cov(x,y,w):
         return np.sum(w * (x - m(x,w)) * (y - m(y,w))) / np.sum(w)
     return cov(x,y,w) / np.sqrt(cov(x,x,w)*cov(y,y,w))
-
 def med_avg(slice_by, column,df,outfile):
     x = df[slice_by].value_counts()
     idx = sorted(x.index.tolist())
@@ -662,10 +576,7 @@ def med_avg(slice_by, column,df,outfile):
     g = pd.DataFrame(data)
     g.insert(0,slice_by,idx)
     g.to_csv(outfile, sep='\t', index=False)
-
-
 def regenerate():
-
     # Use this to regenerate processed data if changes are made to any of the classes below
     df = retrieve_data()
     df = assign_size_bins(df)
@@ -676,9 +587,7 @@ def regenerate():
     df = df.reset_index()
     df.to_pickle('processed_eia.recs_2009_microdata.pkl')
     return df
-
 def erin_boyd():
-
     years = ['2009', '2015']
     bldgtypes = {'singlefamily': [2, 3], 'multifamily': [4, 5], 'mobile': [1]}
     fields = ['percentage','number']
@@ -744,7 +653,6 @@ def erin_boyd():
                     else:
                         df = df_2009[df_2009['reverse']==1].groupby('division')['nweight'].sum()# 2009
                     dfs.append(df.to_frame((label + field_short_dict[field], year)))
-
                     label = 'Have central duct system'
                     if field == 'percentage':
                         # % of homes with central AC or Central AC/Room AC or furnace
@@ -760,6 +668,20 @@ def erin_boyd():
                         df = df_2009[((df_2009['cooltype']==2) & (df_2009['equipm']==3)) | (df_2009['cooltype']==3)].groupby('division')['nweight'].sum() / df_2009.groupby('division')['nweight'].sum() # 2009 
                     else:
                         df = df_2009[((df_2009['cooltype']==2) & (df_2009['equipm']==3)) | (df_2009['cooltype']==3)].groupby('division')['nweight'].sum() # 2009 
+                        dfs.append(df.to_frame((label + field_short_dict[field], year)))
+                    label = 'Have central duct system and room AC only'
+                    if field == 'percentage':
+                        # % of homes with both room ACs and central AC or central warm-air furnace
+                        df = df_2009[((df_2009['cooltype']==2) & (df_2009['equipm']==3))].groupby('division')['nweight'].sum() / df_2009.groupby('division')['nweight'].sum() # 2009 
+                    else:
+                        df = df_2009[((df_2009['cooltype']==2) & (df_2009['equipm']==3))].groupby('division')['nweight'].sum() # 2009 
+                    dfs.append(df.to_frame((label + field_short_dict[field], year)))
+                    label = 'Have central duct system and room AC only or unused central AC'
+                    if field == 'percentage':
+                        # % of homes with both room ACs and central AC or central warm-air furnace
+                        df = df_2009[((df_2009['cooltype']==2) & (df_2009['equipm']==3)) | (df_2009['cooltypenoac']==1) | (df_2009['cooltypenoac']==3)].groupby('division')['nweight'].sum() / df_2009.groupby('division')['nweight'].sum() # 2009 
+                    else:
+                        df = df_2009[((df_2009['cooltype']==2) & (df_2009['equipm']==3)) | (df_2009['cooltypenoac']==1) | (df_2009['cooltypenoac']==3)].groupby('division')['nweight'].sum() # 2009 
                     dfs.append(df.to_frame((label + field_short_dict[field], year))) 
                         
                     # #4
@@ -795,7 +717,6 @@ def erin_boyd():
                     else:
                         df = df_2009[df_2009['cooltype'].isin([2])].groupby('division')['nweight'].sum() # 2009
                     dfs.append(df.to_frame((label + field_short_dict[field], year)))
-
                     label = 'Room AC and Central AC used'
                     if field == 'percentage':
                         # % of homes with room AC
@@ -803,7 +724,6 @@ def erin_boyd():
                     else:
                         df = df_2009[df_2009['cooltype'].isin([2, 3])].groupby('division')['nweight'].sum() # 2009
                     dfs.append(df.to_frame((label + field_short_dict[field], year)))
-
                     # 07/20/17
                     label = 'Built-in electric units with ducts'
                     if field == 'percentage':
@@ -812,7 +732,6 @@ def erin_boyd():
                     else:
                         df = df_2009[((df_2009['cooltype']==1) | (df_2009['cooltype']==3)) & (df_2009['equipm']==5)].groupby('division')['nweight'].sum() # 2009 
                     dfs.append(df.to_frame((label + field_short_dict[field], year)))
-
                     label = 'Built-in electric units without ducts'
                     if field == 'percentage':
                         # % of homes with room AC or no AC. and built-in electric heat
@@ -893,6 +812,13 @@ def erin_boyd():
                         df = df_2015[((df_2015['COOLTYPE']==2) & (df_2015['EQUIPM']==3)) | (df_2015['COOLTYPE']==3)].groupby('division')['NWEIGHT'].sum() # 2015
                     dfs.append(df.to_frame((label + field_short_dict[field], year)))
    
+                    # label = 'Have central duct system and room AC only' 
+                    # if field == 'percentage':    
+                        # # % of homes with both room ACs and central AC or central warm-air furnace
+                        # df = df_2015[((df_2015['COOLTYPE']==2) & (df_2015['EQUIPM']==3)) | (df_2015['COOLTYPENOAC']==1) | (df_2015['COOLTYPENOAC']==3)].groupby('division')['NWEIGHT'].sum() / df_2015.groupby('division')['NWEIGHT'].sum() # 2015
+                    # else:
+                        # df = df_2015[((df_2015['COOLTYPE']==2) & (df_2015['EQUIPM']==3)) | (df_2015['COOLTYPENOAC']==1) | (df_2015['COOLTYPENOAC']==3)].groupby('division')['NWEIGHT'].sum() # 2015
+                    # dfs.append(df.to_frame((label + field_short_dict[field], year)))
                     # #4
                     label = 'Electric heat and central AC'
                     if field == 'percentage':    
@@ -926,7 +852,6 @@ def erin_boyd():
                     else:
                         df = df_2015[df_2015['COOLTYPE']==2].groupby('division')['NWEIGHT'].sum() # 2015
                     dfs.append(df.to_frame((label + field_short_dict[field], year)))                
-
                     label = 'Room AC and Central AC used'
                     if field == 'percentage':    
                         # % of homes with room AC
@@ -943,7 +868,6 @@ def erin_boyd():
                     else:
                         df = df_2015[((df_2015['COOLTYPE']==1) | (df_2015['COOLTYPE']==3)) & (df_2015['EQUIPM']==5)].groupby('division')['NWEIGHT'].sum() # 2015
                     dfs.append(df.to_frame((label + field_short_dict[field], year)))
-
                     label = 'Built-in electric units without ducts'
                     if field == 'percentage':
                         # % of homes with room AC or no AC. and built-in electric heat
@@ -956,10 +880,8 @@ def erin_boyd():
         df.to_csv('{}.csv'.format(k))
   
     sys.exit()
-
 #NEW QUERIES
 def query(df):
-
 #    calc_general(df, cut_by=['CR','FPL_BINS'], columns = ['yearmaderange'], outfile = 'output_calc_CR_FPL_by_vintage.tsv')
 #    calc_general(df, cut_by=['CR','FPL_BINS','yearmaderange'], columns = ['equipm'], outfile = 'heatingequipment_output_by_CR_FPL_vintage.tsv')
 #    calc_general(df, cut_by=['CR','FPL_BINS','yearmaderange'], columns = ['equipm'], outfile = 'heatingequipment_output_by_CR_FPL_vintage.tsv')
@@ -989,22 +911,13 @@ def query(df):
 #    calc_general(df, cut_by=['CR'], columns = ['division'], outfile = 'Location Census Division.tsv', outpath='../../../resources/inputs/national')
 #    calc_general(df, cut_by=['CR','yearmaderange','Size','stories'], columns = [], outfile = 'Infiltration.tsv', outpath='../../../project_resstock_national/housing_characteristics')
     pass
-
 if __name__ == '__main__':
     #Choose regerate if you want to redo the processed pkl file, otherwise comment out
-
     df = erin_boyd()
     
     df = regenerate()
-
     df = pd.read_pickle('processed_eia.recs_2009_microdata.pkl')
     query(df)
-
     # med_avg('Size','tothsqft',df,'Sizes_mean_median.tsv')
     # med_avg('income_range','rand_income',df,'Income_mean_median.tsv')
-
-
-
     print datetime.now() - startTime
-
-
