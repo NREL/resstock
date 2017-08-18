@@ -211,6 +211,7 @@ def integrity_check(project_dir_names=nil)
     end # parameter_name
     
     # Additional integrity checks for option_lookup.tsv
+    max_checks = 1000
     measures.keys.each do |measure_subdir|
       puts "Checking for issues with #{measure_subdir} measure..."
       # Check that measures exist
@@ -227,7 +228,12 @@ def integrity_check(project_dir_names=nil)
       end
       option_combinations = options_array.first.product(*options_array[1..-1])
       all_measure_args = []
-      option_combinations.each do |option_combination|
+      max_checks_reached = false
+      option_combinations.each_with_index do |option_combination, combo_num|
+        if combo_num > max_checks
+          max_checks_reached = true
+          break
+        end
         measure_args = {}
         option_combination.each_with_index do |option_name, idx|
             measures[measure_subdir][param_names[idx]][option_name].each do |k,v|
@@ -237,8 +243,11 @@ def integrity_check(project_dir_names=nil)
         next if all_measure_args.include?(measure_args)
         all_measure_args << measure_args
       end
-      all_measure_args.each do |measure_args|
-          validate_measure_args(measure_instances[measure_subdir].arguments(model), measure_args, lookup_file, measure_subdir, nil)
+      all_measure_args.shuffle.each_with_index do |measure_args, idx|
+        validate_measure_args(measure_instances[measure_subdir].arguments(model), measure_args, lookup_file, measure_subdir, nil)
+      end
+      if max_checks_reached
+        puts "Max number of checks (#{max_checks}) reached. Continuing..."
       end
     end
     
