@@ -27,7 +27,7 @@ class ProcessConstructionsUninsulatedSurfaces < OpenStudio::Measure::ModelMeasur
     args = OpenStudio::Measure::OSArgumentVector.new
 
     #make a choice argument for uninsulated surfaces
-    ext_wall_surfaces, slab_surfaces, roof_surfaces, finished_wall_surfaces, unfinished_wall_surfaces, finished_floor_surfaces, unfinished_floor_surfaces = get_uninsulated_surfaces(model)
+    ext_wall_surfaces, slab_surfaces, roof_surfaces, finished_wall_surfaces, unfinished_wall_surfaces, finished_floor_surfaces, unfinished_floor_surfaces, roof_spaces = get_uninsulated_surfaces(model)
     surfaces_args = OpenStudio::StringVector.new
     surfaces_args << Constants.Auto
     (ext_wall_surfaces + slab_surfaces + roof_surfaces + finished_wall_surfaces + unfinished_wall_surfaces + finished_floor_surfaces + unfinished_floor_surfaces).each do |surface|
@@ -58,7 +58,7 @@ class ProcessConstructionsUninsulatedSurfaces < OpenStudio::Measure::ModelMeasur
       surface_s = surface_s.get
     end
     
-    ext_wall_surfaces, slab_surfaces, roof_surfaces, finished_wall_surfaces, unfinished_wall_surfaces, finished_floor_surfaces, unfinished_floor_surfaces = get_uninsulated_surfaces(model)
+    ext_wall_surfaces, slab_surfaces, roof_surfaces, finished_wall_surfaces, unfinished_wall_surfaces, finished_floor_surfaces, unfinished_floor_surfaces, roof_spaces = get_uninsulated_surfaces(model)
     
     unless surface_s == Constants.Auto
       ext_wall_surfaces.delete_if { |surface| surface.name.to_s != surface_s }
@@ -337,7 +337,7 @@ class ProcessConstructionsUninsulatedSurfaces < OpenStudio::Measure::ModelMeasur
             end
         end
     end
-    return ext_wall_surfaces, slab_surfaces, roof_surfaces, finished_wall_surfaces, unfinished_wall_surfaces, finished_floor_surfaces, unfinished_floor_surfaces
+    return ext_wall_surfaces, slab_surfaces, roof_surfaces, finished_wall_surfaces, unfinished_wall_surfaces, finished_floor_surfaces, unfinished_floor_surfaces, roof_spaces
   end
 
 end #end the measure

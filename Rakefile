@@ -16,6 +16,7 @@ task :copy_beopt_files do
   project_dir_names = get_all_project_dir_names()
   extra_files = [
                  File.join("seeds", "EmptySeedModel.osm"),
+                 File.join("workflows", "measure-info.json"),
                  File.join("resources", "geometry.rb"), # Needed by SimulationOutputReport
                  File.join("resources", "constants.rb") # Needed by geometry.rb
                 ]
@@ -31,7 +32,7 @@ task :copy_beopt_files do
           FileUtils.cp(beopt_file, buildstock_file)
         end
       else # Copy to resources dir
-        buildstock_file = File.join(File.dirname(__FILE__), extra_file)
+        buildstock_file = File.join(File.dirname(__FILE__), "resources", File.basename(extra_file))
         if File.exists?(buildstock_file)
           FileUtils.rm(buildstock_file)
         end

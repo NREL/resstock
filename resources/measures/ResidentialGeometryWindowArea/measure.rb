@@ -118,13 +118,18 @@ class SetResidentialWindowArea < OpenStudio::Measure::ModelMeasure
     # Remove existing windows and store surfaces that should get windows by facade
     surfaces = {Constants.FacadeFront=>[], Constants.FacadeBack=>[],
                 Constants.FacadeLeft=>[], Constants.FacadeRight=>[]}
+    constructions = {}
     Geometry.get_finished_spaces(model.getSpaces).each do |space|
         space.surfaces.each do |surface|
             next if not (surface.surfaceType.downcase == "wall" and surface.outsideBoundaryCondition.downcase == "outdoors")
             next if (90 - surface.tilt*180/Math::PI).abs > 0.01 # Not a vertical wall
             win_removed = false
+            construction = nil
             surface.subSurfaces.each do |sub_surface|
                 next if sub_surface.subSurfaceType.downcase != "fixedwindow"
+                if sub_surface.construction.is_initialized
+                  construction = sub_surface.construction.get
+                end
                 sub_surface.remove
                 win_removed = true
             end
@@ -134,6 +139,9 @@ class SetResidentialWindowArea < OpenStudio::Measure::ModelMeasure
             facade = Geometry.get_facade_for_surface(surface)
             next if facade.nil?
             surfaces[facade] << surface
+            if not constructions.keys.include? facade
+              constructions[facade] = construction
+            end
         end
     end
     
@@ -273,7 +281,7 @@ class SetResidentialWindowArea < OpenStudio::Measure::ModelMeasure
         facade_win_area = 0
         surfaces[facade].each do |surface|
             next if surface_window_area[surface] == 0
-            if not add_windows_to_wall(surface, surface_window_area[surface], window_gap_y, window_gap_x, aspect_ratio, max_single_window_area, facade, model, runner)
+            if not add_windows_to_wall(surface, surface_window_area[surface], window_gap_y, window_gap_x, aspect_ratio, max_single_window_area, facade, constructions, model, runner)
                 return false
             end
             tot_win_area += surface_window_area[surface]
@@ -320,7 +328,7 @@ class SetResidentialWindowArea < OpenStudio::Measure::ModelMeasure
     return OpenStudio.convert(surface.grossArea, "m^2", "ft^2").get
   end
   
-  def add_windows_to_wall(surface, window_area, window_gap_y, window_gap_x, aspect_ratio, max_single_window_area, facade, model, runner)
+  def add_windows_to_wall(surface, window_area, window_gap_y, window_gap_x, aspect_ratio, max_single_window_area, facade, constructions, model, runner)
     wall_width = Geometry.get_surface_length(surface)
     wall_height = Geometry.get_surface_height(surface)
     
@@ -357,20 +365,20 @@ class SetResidentialWindowArea < OpenStudio::Measure::ModelMeasure
         if not (i == num_window_groups and num_windows % 2 == 1)
             # Two windows in group
             win_num += 1
-            add_window_to_wall(surface, window_width, window_height, group_cx - window_width/2.0 - window_gap_x/2.0, group_cy, win_num, facade, model, runner)
+            add_window_to_wall(surface, window_width, window_height, group_cx - window_width/2.0 - window_gap_x/2.0, group_cy, win_num, facade, constructions, model, runner)
             win_num += 1
-            add_window_to_wall(surface, window_width, window_height, group_cx + window_width/2.0 + window_gap_x/2.0, group_cy, win_num, facade, model, runner)
+            add_window_to_wall(surface, window_width, window_height, group_cx + window_width/2.0 + window_gap_x/2.0, group_cy, win_num, facade, constructions, model, runner)
         else
             # One window in group
             win_num += 1
-            add_window_to_wall(surface, window_width, window_height, group_cx, group_cy, win_num, facade, model, runner)
+            add_window_to_wall(surface, window_width, window_height, group_cx, group_cy, win_num, facade, constructions, model, runner)
         end
     end
     runner.registerInfo("Added #{num_windows.to_s} window(s), totaling #{window_area.round(1).to_s} ft^2, to #{surface.name}.")
     return true
   end
   
-  def add_window_to_wall(surface, win_width, win_height, win_center_x, win_center_y, win_num, facade, model, runner)
+  def add_window_to_wall(surface, win_width, win_height, win_center_x, win_center_y, win_num, facade, constructions, model, runner)
     
     # Create window vertices in relative coordinates, ft
     upperleft = [win_center_x - win_width/2.0, win_center_y + win_height/2.0]
@@ -412,6 +420,9 @@ class SetResidentialWindowArea < OpenStudio::Measure::ModelMeasure
     sub_surface.setName("#{surface.name} - Window #{win_num.to_s}")
     sub_surface.setSurface(surface)
     sub_surface.setSubSurfaceType("FixedWindow")
+    if not constructions[facade].nil?
+      sub_surface.setConstruction(constructions[facade])
+    end
     
   end
   
