@@ -187,6 +187,12 @@ class ApplyUpgrade < OpenStudio::Ruleset::ModelUserScript
     # Load helper_methods
     require File.join(File.dirname(helper_methods_file), File.basename(helper_methods_file, File.extname(helper_methods_file)))
     
+    # Retrieve workflow_json from BuildExistingModel measure if provided
+    workflow_json = get_value_from_runner_past_results(runner, "workflow_json", "build_existing_model", false)
+    if not workflow_json.nil?
+        workflow_json = File.join(resources_dir, workflow_json)
+    end
+    
     # Process package apply logic if provided
     apply_package_upgrade = true
     if not package_apply_logic.nil?
@@ -270,19 +276,8 @@ class ApplyUpgrade < OpenStudio::Ruleset::ModelUserScript
             
         end
         
-        # Call each measure for sample to build up model
-        measures.keys.each do |measure_subdir|
-            # Gather measure arguments and call measure
-            full_measure_path = File.join(measures_dir, measure_subdir, "measure.rb")
-            check_file_exists(full_measure_path, runner)
-            
-            measure_instance = get_measure_instance(full_measure_path)
-            argument_map = get_argument_map(model, measure_instance, measures[measure_subdir], lookup_file, measure_subdir, runner)
-            print_measure_call(measures[measure_subdir], measure_subdir, runner)
-
-            if not run_measure(model, measure_instance, argument_map, runner)
-                return false
-            end
+        if not apply_measures(measures_dir, measures, runner, model, workflow_json, "measures-upgrade.osw", true)
+          return false
         end
     
     end # apply_package_upgrade

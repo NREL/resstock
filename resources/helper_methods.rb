@@ -424,26 +424,50 @@ def run_measure(model, measure, argument_map, runner)
     return true
 end
 
-def apply_measures(measures_dir, measures, runner, model, show_measure_calls=true)
-  
-    # Get workflow order of measures
+def apply_measures(measures_dir, measures, runner, model, workflow_json=nil, osw_out=nil, show_measure_calls=true)
+    require 'openstudio'
+
     workflow_order = []
-    workflow_json = JSON.parse(File.read(File.join(File.dirname(__FILE__), "measure-info.json")), :symbolize_names=>true)
-    
-    workflow_json.each do |group|
-      group[:group_steps].each do |step|
-        step[:measures].each do |measure|
-          workflow_order << measure
+    if workflow_json.nil?
+      measures.keys.each do |measure_subdir|
+        workflow_order << measure_subdir
+      end
+    else
+      # Run measures in the order dictated by the json instead
+      JSON.parse(File.read(workflow_json), :symbolize_names=>true).each do |group|
+        group[:group_steps].each do |step|
+          step[:measures].each do |measure_subdir|
+            next unless measures.keys.include? measure_subdir
+            workflow_order << measure_subdir
+          end
         end
       end
     end
     
-    # Call each measure for sample to build up model
+    if not osw_out.nil?
+      # Create a workflow based on the measures we're going to call. Convenient for debugging.
+      workflowJSON = OpenStudio::WorkflowJSON.new
+      workflowJSON.setOswPath(File.expand_path("../#{osw_out}"))
+      workflowJSON.addMeasurePath("measures")
+      workflowJSON.setSeedFile("seeds/EmptySeedModel.osm")
+      steps = OpenStudio::WorkflowStepVector.new
+      workflow_order.each do |measure_subdir|
+        step = OpenStudio::MeasureStep.new(measure_subdir)
+        measures[measure_subdir].each do |k,v|
+          next if v.nil?
+          step.setArgument(k, v)
+        end
+        steps.push(step)
+      end
+      workflowJSON.setWorkflowSteps(steps)
+      workflowJSON.save
+    end
+    
+    # Call each measure in the specified order
     workflow_order.each do |measure_subdir|
-      next unless measures.keys.include? measure_subdir
-
       # Gather measure arguments and call measure
       full_measure_path = File.join(measures_dir, measure_subdir, "measure.rb")
+      check_file_exists(full_measure_path, runner)
       measure_instance = get_measure_instance(full_measure_path)
       argument_map = get_argument_map(model, measure_instance, measures[measure_subdir], nil, measure_subdir, runner)
       if show_measure_calls
