@@ -30,13 +30,20 @@ class ApplyUpgrade < OpenStudio::Ruleset::ModelUserScript
   end
   
   def num_costs_per_option
-    return 5 # Sync with SimulationOutputReport measure
+    return 2 # Sync with SimulationOutputReport measure
   end
   
   # define the arguments that the user will input
   def arguments(model)
     args = OpenStudio::Ruleset::OSArgumentVector.new
 
+    # Make string arg for upgrade name
+    upgrade_name = OpenStudio::Ruleset::OSArgument::makeStringArgument("upgrade_name",true)
+    upgrade_name.setDisplayName("Upgrade Name")
+    upgrade_name.setDescription("User-specificed name that describes the upgrade.")
+    upgrade_name.setDefaultValue("My Upgrade")
+    args << upgrade_name 
+    
     # Make integer arg to run measure [1 is run, 0 is no run]
     run_measure = OpenStudio::Ruleset::OSArgument::makeIntegerArgument("run_measure",true)
     run_measure.setDisplayName("Run Measure")
@@ -119,6 +126,8 @@ class ApplyUpgrade < OpenStudio::Ruleset::ModelUserScript
       runner.registerAsNotApplicable("Run Measure set to #{run_measure}.")
       return true     
     end
+    
+    upgrade_name = runner.getStringArgumentValue("upgrade_name",user_arguments)
 
     # Retrieve Option X argument values
     options = {}
@@ -281,6 +290,9 @@ class ApplyUpgrade < OpenStudio::Ruleset::ModelUserScript
         end
     
     end # apply_package_upgrade
+    
+    # Register the upgrade name
+    register_value(runner, "upgrade_name", upgrade_name)
     
     if measures.size == 0
         # Upgrade not applied; don't re-run existing home simulation

@@ -276,7 +276,7 @@
       "seed": "EmptySeedModel.osm",
       "workflow_index": 0,
       "options": [],
-      "instanceId": 0.5939247569544643,
+      "instanceId": 0.8210827975682347,
       "skip": false,
       "$$hashKey": "object:14896",
       "showWarningText": false,
@@ -285,12 +285,12 @@
     {
       "measure_dir": "C:\\Users\\shorowit\\Documents\\GitHub\\OpenStudio-BuildStock\\project_resstock_national\\measures\\ApplyUpgrade",
       "name": "apply_upgrade",
-      "directory": "C:\\Users\\shorowit\\Documents\\GitHub\\OpenStudio-BuildStock\\project_resstock_national\\measures\\ApplyUpgrade",
+      "directory": "C:/Users/shorowit/Documents/GitHub/OpenStudio-BuildStock/measures/ApplyUpgrade",
       "uid": "33f1654c-f734-43d1-b35d-9d2856e41b5a",
       "uuid": "{33f1654c-f734-43d1-b35d-9d2856e41b5a}",
-      "version_id": "7aefe40e-5ffe-4456-a55e-2cd5ef57f931",
-      "version_uuid": "{7aefe40e-5ffe-4456-a55e-2cd5ef57f931}",
-      "version_modified": "20170819T133725Z",
+      "version_id": "54e5d0fb-4224-4452-95bd-1818ab548150",
+      "version_uuid": "{54e5d0fb-4224-4452-95bd-1818ab548150}",
+      "version_modified": "20170824T182418Z",
       "xml_checksum": "9339BE01",
       "display_name": "Apply Upgrade",
       "class_name": "ApplyUpgrade",
@@ -352,6 +352,30 @@
       ],
       "arguments": [
         {
+          "name": "upgrade_name",
+          "display_name": "Upgrade Name",
+          "description": "User-specificed name that describes the upgrade.",
+          "type": "String",
+          "required": true,
+          "model_dependent": false,
+          "default_value": "My Upgrade",
+          "display_name_short": "upgrade_name",
+          "inputs": {
+            "relationship": null,
+            "choiceDisplayNames": [],
+            "variableSetting": "Argument",
+            "distribution": "Uniform",
+            "discreteVariables": [],
+            "maximum": "My Upgrade",
+            "minimum": "My Upgrade",
+            "mean": "My Upgrade",
+            "deltaX": "My Upgrade",
+            "stdDev": "My Upgrade",
+            "default_value": "Triple-Pane Windows"
+          },
+          "$$hashKey": "object:52537"
+        },
+        {
           "name": "run_measure",
           "display_name": "Run Measure",
           "description": "integer argument to run measure [1 is run, 0 is no run]",
@@ -369,12 +393,12 @@
               {
                 "value": 0,
                 "weight": 0.5,
-                "$$hashKey": "object:14160"
+                "$$hashKey": "object:54875"
               },
               {
                 "value": 1,
                 "weight": 0.5,
-                "$$hashKey": "object:14171"
+                "$$hashKey": "object:54886"
               }
             ],
             "maximum": 1,
@@ -385,7 +409,7 @@
             "default_value": 1,
             "showWarningIcon": false
           },
-          "$$hashKey": "object:9639"
+          "$$hashKey": "object:52538"
         },
         {
           "name": "option_1",
@@ -408,7 +432,7 @@
             "stdDev": "",
             "default_value": "Windows|Low-E, Triple, Non-metal, Air, L-Gain"
           },
-          "$$hashKey": "object:9640"
+          "$$hashKey": "object:52539"
         },
         {
           "name": "option_1_apply_logic",
@@ -431,7 +455,7 @@
             "stdDev": "",
             "default_value": "Windows|Clear, Single, Metal || Windows|Clear, Single, Non-metal"
           },
-          "$$hashKey": "object:9641"
+          "$$hashKey": "object:52540"
         },
         {
           "name": "option_1_cost_1_value",
@@ -455,7 +479,7 @@
             "stdDev": 0,
             "default_value": 39.54
           },
-          "$$hashKey": "object:9642"
+          "$$hashKey": "object:52541"
         },
         {
           "name": "option_1_cost_1_multiplier",
@@ -529,7 +553,7 @@
             "stdDev": "",
             "default_value": "Window Area (ft^2)"
           },
-          "$$hashKey": "object:9643"
+          "$$hashKey": "object:52542"
         },
         {
           "name": "option_1_cost_2_value",
@@ -553,7 +577,7 @@
             "stdDev": 0,
             "default_value": 0
           },
-          "$$hashKey": "object:9644"
+          "$$hashKey": "object:52543"
         },
         {
           "name": "option_1_cost_2_multiplier",
@@ -627,301 +651,7 @@
             "stdDev": "",
             "default_value": ""
           },
-          "$$hashKey": "object:9645"
-        },
-        {
-          "name": "option_1_cost_3_value",
-          "display_name": "Option 1 Cost 3 Value",
-          "description": "Total option 1 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).",
-          "type": "Double",
-          "required": false,
-          "model_dependent": false,
-          "units": "$",
-          "display_name_short": "option_1_cost_3_value",
-          "inputs": {
-            "relationship": null,
-            "choiceDisplayNames": [],
-            "variableSetting": "Argument",
-            "distribution": "Uniform",
-            "discreteVariables": [],
-            "maximum": 0,
-            "minimum": 0,
-            "mean": 0,
-            "deltaX": 0,
-            "stdDev": 0,
-            "default_value": 0
-          },
-          "$$hashKey": "object:9646"
-        },
-        {
-          "name": "option_1_cost_3_multiplier",
-          "display_name": "Option 1 Cost 3 Multiplier",
-          "description": "Total option 1 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).",
-          "type": "Choice",
-          "required": false,
-          "model_dependent": false,
-          "default_value": "",
-          "choice_values": [
-            "",
-            "Fixed (1)",
-            "Conditioned Floor Area (ft^2)",
-            "Conditioned Foundation Slab Area (ft^2)",
-            "Lighting Floor Area (ft^2)",
-            "Above-Grade Conditioned Wall Area (ft^2)",
-            "Above-Grade Total Wall Area (ft^2)",
-            "Below-Grade Conditioned Wall Area (ft^2)",
-            "Below-Grade Total Wall Area (ft^2)",
-            "Window Area (ft^2)",
-            "Roof Area (ft^2)",
-            "Door Area (ft^2)",
-            "Water Heater Tank Size (gal)",
-            "HVAC Cooling Capacity (kBtuh)",
-            "HVAC Heating Capacity (kBtuh)"
-          ],
-          "choice_display_names": [
-            "",
-            "Fixed (1)",
-            "Conditioned Floor Area (ft^2)",
-            "Conditioned Foundation Slab Area (ft^2)",
-            "Lighting Floor Area (ft^2)",
-            "Above-Grade Conditioned Wall Area (ft^2)",
-            "Above-Grade Total Wall Area (ft^2)",
-            "Below-Grade Conditioned Wall Area (ft^2)",
-            "Below-Grade Total Wall Area (ft^2)",
-            "Window Area (ft^2)",
-            "Roof Area (ft^2)",
-            "Door Area (ft^2)",
-            "Water Heater Tank Size (gal)",
-            "HVAC Cooling Capacity (kBtuh)",
-            "HVAC Heating Capacity (kBtuh)"
-          ],
-          "display_name_short": "option_1_cost_3_multiplier",
-          "inputs": {
-            "relationship": null,
-            "choiceDisplayNames": [
-              "",
-              "Fixed (1)",
-              "Conditioned Floor Area (ft^2)",
-              "Conditioned Foundation Slab Area (ft^2)",
-              "Lighting Floor Area (ft^2)",
-              "Above-Grade Conditioned Wall Area (ft^2)",
-              "Above-Grade Total Wall Area (ft^2)",
-              "Below-Grade Conditioned Wall Area (ft^2)",
-              "Below-Grade Total Wall Area (ft^2)",
-              "Window Area (ft^2)",
-              "Roof Area (ft^2)",
-              "Door Area (ft^2)",
-              "Water Heater Tank Size (gal)",
-              "HVAC Cooling Capacity (kBtuh)",
-              "HVAC Heating Capacity (kBtuh)"
-            ],
-            "variableSetting": "Argument",
-            "distribution": "Uniform",
-            "discreteVariables": [],
-            "maximum": "",
-            "minimum": "",
-            "mean": "",
-            "deltaX": "",
-            "stdDev": "",
-            "default_value": ""
-          },
-          "$$hashKey": "object:9647"
-        },
-        {
-          "name": "option_1_cost_4_value",
-          "display_name": "Option 1 Cost 4 Value",
-          "description": "Total option 1 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).",
-          "type": "Double",
-          "required": false,
-          "model_dependent": false,
-          "units": "$",
-          "display_name_short": "option_1_cost_4_value",
-          "inputs": {
-            "relationship": null,
-            "choiceDisplayNames": [],
-            "variableSetting": "Argument",
-            "distribution": "Uniform",
-            "discreteVariables": [],
-            "maximum": 0,
-            "minimum": 0,
-            "mean": 0,
-            "deltaX": 0,
-            "stdDev": 0,
-            "default_value": 0
-          },
-          "$$hashKey": "object:9648"
-        },
-        {
-          "name": "option_1_cost_4_multiplier",
-          "display_name": "Option 1 Cost 4 Multiplier",
-          "description": "Total option 1 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).",
-          "type": "Choice",
-          "required": false,
-          "model_dependent": false,
-          "default_value": "",
-          "choice_values": [
-            "",
-            "Fixed (1)",
-            "Conditioned Floor Area (ft^2)",
-            "Conditioned Foundation Slab Area (ft^2)",
-            "Lighting Floor Area (ft^2)",
-            "Above-Grade Conditioned Wall Area (ft^2)",
-            "Above-Grade Total Wall Area (ft^2)",
-            "Below-Grade Conditioned Wall Area (ft^2)",
-            "Below-Grade Total Wall Area (ft^2)",
-            "Window Area (ft^2)",
-            "Roof Area (ft^2)",
-            "Door Area (ft^2)",
-            "Water Heater Tank Size (gal)",
-            "HVAC Cooling Capacity (kBtuh)",
-            "HVAC Heating Capacity (kBtuh)"
-          ],
-          "choice_display_names": [
-            "",
-            "Fixed (1)",
-            "Conditioned Floor Area (ft^2)",
-            "Conditioned Foundation Slab Area (ft^2)",
-            "Lighting Floor Area (ft^2)",
-            "Above-Grade Conditioned Wall Area (ft^2)",
-            "Above-Grade Total Wall Area (ft^2)",
-            "Below-Grade Conditioned Wall Area (ft^2)",
-            "Below-Grade Total Wall Area (ft^2)",
-            "Window Area (ft^2)",
-            "Roof Area (ft^2)",
-            "Door Area (ft^2)",
-            "Water Heater Tank Size (gal)",
-            "HVAC Cooling Capacity (kBtuh)",
-            "HVAC Heating Capacity (kBtuh)"
-          ],
-          "display_name_short": "option_1_cost_4_multiplier",
-          "inputs": {
-            "relationship": null,
-            "choiceDisplayNames": [
-              "",
-              "Fixed (1)",
-              "Conditioned Floor Area (ft^2)",
-              "Conditioned Foundation Slab Area (ft^2)",
-              "Lighting Floor Area (ft^2)",
-              "Above-Grade Conditioned Wall Area (ft^2)",
-              "Above-Grade Total Wall Area (ft^2)",
-              "Below-Grade Conditioned Wall Area (ft^2)",
-              "Below-Grade Total Wall Area (ft^2)",
-              "Window Area (ft^2)",
-              "Roof Area (ft^2)",
-              "Door Area (ft^2)",
-              "Water Heater Tank Size (gal)",
-              "HVAC Cooling Capacity (kBtuh)",
-              "HVAC Heating Capacity (kBtuh)"
-            ],
-            "variableSetting": "Argument",
-            "distribution": "Uniform",
-            "discreteVariables": [],
-            "maximum": "",
-            "minimum": "",
-            "mean": "",
-            "deltaX": "",
-            "stdDev": "",
-            "default_value": ""
-          },
-          "$$hashKey": "object:9649"
-        },
-        {
-          "name": "option_1_cost_5_value",
-          "display_name": "Option 1 Cost 5 Value",
-          "description": "Total option 1 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).",
-          "type": "Double",
-          "required": false,
-          "model_dependent": false,
-          "units": "$",
-          "display_name_short": "option_1_cost_5_value",
-          "inputs": {
-            "relationship": null,
-            "choiceDisplayNames": [],
-            "variableSetting": "Argument",
-            "distribution": "Uniform",
-            "discreteVariables": [],
-            "maximum": 0,
-            "minimum": 0,
-            "mean": 0,
-            "deltaX": 0,
-            "stdDev": 0,
-            "default_value": 0
-          },
-          "$$hashKey": "object:9650"
-        },
-        {
-          "name": "option_1_cost_5_multiplier",
-          "display_name": "Option 1 Cost 5 Multiplier",
-          "description": "Total option 1 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).",
-          "type": "Choice",
-          "required": false,
-          "model_dependent": false,
-          "default_value": "",
-          "choice_values": [
-            "",
-            "Fixed (1)",
-            "Conditioned Floor Area (ft^2)",
-            "Conditioned Foundation Slab Area (ft^2)",
-            "Lighting Floor Area (ft^2)",
-            "Above-Grade Conditioned Wall Area (ft^2)",
-            "Above-Grade Total Wall Area (ft^2)",
-            "Below-Grade Conditioned Wall Area (ft^2)",
-            "Below-Grade Total Wall Area (ft^2)",
-            "Window Area (ft^2)",
-            "Roof Area (ft^2)",
-            "Door Area (ft^2)",
-            "Water Heater Tank Size (gal)",
-            "HVAC Cooling Capacity (kBtuh)",
-            "HVAC Heating Capacity (kBtuh)"
-          ],
-          "choice_display_names": [
-            "",
-            "Fixed (1)",
-            "Conditioned Floor Area (ft^2)",
-            "Conditioned Foundation Slab Area (ft^2)",
-            "Lighting Floor Area (ft^2)",
-            "Above-Grade Conditioned Wall Area (ft^2)",
-            "Above-Grade Total Wall Area (ft^2)",
-            "Below-Grade Conditioned Wall Area (ft^2)",
-            "Below-Grade Total Wall Area (ft^2)",
-            "Window Area (ft^2)",
-            "Roof Area (ft^2)",
-            "Door Area (ft^2)",
-            "Water Heater Tank Size (gal)",
-            "HVAC Cooling Capacity (kBtuh)",
-            "HVAC Heating Capacity (kBtuh)"
-          ],
-          "display_name_short": "option_1_cost_5_multiplier",
-          "inputs": {
-            "relationship": null,
-            "choiceDisplayNames": [
-              "",
-              "Fixed (1)",
-              "Conditioned Floor Area (ft^2)",
-              "Conditioned Foundation Slab Area (ft^2)",
-              "Lighting Floor Area (ft^2)",
-              "Above-Grade Conditioned Wall Area (ft^2)",
-              "Above-Grade Total Wall Area (ft^2)",
-              "Below-Grade Conditioned Wall Area (ft^2)",
-              "Below-Grade Total Wall Area (ft^2)",
-              "Window Area (ft^2)",
-              "Roof Area (ft^2)",
-              "Door Area (ft^2)",
-              "Water Heater Tank Size (gal)",
-              "HVAC Cooling Capacity (kBtuh)",
-              "HVAC Heating Capacity (kBtuh)"
-            ],
-            "variableSetting": "Argument",
-            "distribution": "Uniform",
-            "discreteVariables": [],
-            "maximum": "",
-            "minimum": "",
-            "mean": "",
-            "deltaX": "",
-            "stdDev": "",
-            "default_value": ""
-          },
-          "$$hashKey": "object:9651"
+          "$$hashKey": "object:52544"
         },
         {
           "name": "option_2",
@@ -944,7 +674,7 @@
             "stdDev": "",
             "default_value": ""
           },
-          "$$hashKey": "object:9652"
+          "$$hashKey": "object:52545"
         },
         {
           "name": "option_2_apply_logic",
@@ -967,7 +697,7 @@
             "stdDev": "",
             "default_value": ""
           },
-          "$$hashKey": "object:9653"
+          "$$hashKey": "object:52546"
         },
         {
           "name": "option_2_cost_1_value",
@@ -991,7 +721,7 @@
             "stdDev": 0,
             "default_value": 0
           },
-          "$$hashKey": "object:9654"
+          "$$hashKey": "object:52547"
         },
         {
           "name": "option_2_cost_1_multiplier",
@@ -1065,7 +795,7 @@
             "stdDev": "",
             "default_value": ""
           },
-          "$$hashKey": "object:9655"
+          "$$hashKey": "object:52548"
         },
         {
           "name": "option_2_cost_2_value",
@@ -1089,7 +819,7 @@
             "stdDev": 0,
             "default_value": 0
           },
-          "$$hashKey": "object:9656"
+          "$$hashKey": "object:52549"
         },
         {
           "name": "option_2_cost_2_multiplier",
@@ -1163,301 +893,7 @@
             "stdDev": "",
             "default_value": ""
           },
-          "$$hashKey": "object:9657"
-        },
-        {
-          "name": "option_2_cost_3_value",
-          "display_name": "Option 2 Cost 3 Value",
-          "description": "Total option 2 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).",
-          "type": "Double",
-          "required": false,
-          "model_dependent": false,
-          "units": "$",
-          "display_name_short": "option_2_cost_3_value",
-          "inputs": {
-            "relationship": null,
-            "choiceDisplayNames": [],
-            "variableSetting": "Argument",
-            "distribution": "Uniform",
-            "discreteVariables": [],
-            "maximum": 0,
-            "minimum": 0,
-            "mean": 0,
-            "deltaX": 0,
-            "stdDev": 0,
-            "default_value": 0
-          },
-          "$$hashKey": "object:9658"
-        },
-        {
-          "name": "option_2_cost_3_multiplier",
-          "display_name": "Option 2 Cost 3 Multiplier",
-          "description": "Total option 2 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).",
-          "type": "Choice",
-          "required": false,
-          "model_dependent": false,
-          "default_value": "",
-          "choice_values": [
-            "",
-            "Fixed (1)",
-            "Conditioned Floor Area (ft^2)",
-            "Conditioned Foundation Slab Area (ft^2)",
-            "Lighting Floor Area (ft^2)",
-            "Above-Grade Conditioned Wall Area (ft^2)",
-            "Above-Grade Total Wall Area (ft^2)",
-            "Below-Grade Conditioned Wall Area (ft^2)",
-            "Below-Grade Total Wall Area (ft^2)",
-            "Window Area (ft^2)",
-            "Roof Area (ft^2)",
-            "Door Area (ft^2)",
-            "Water Heater Tank Size (gal)",
-            "HVAC Cooling Capacity (kBtuh)",
-            "HVAC Heating Capacity (kBtuh)"
-          ],
-          "choice_display_names": [
-            "",
-            "Fixed (1)",
-            "Conditioned Floor Area (ft^2)",
-            "Conditioned Foundation Slab Area (ft^2)",
-            "Lighting Floor Area (ft^2)",
-            "Above-Grade Conditioned Wall Area (ft^2)",
-            "Above-Grade Total Wall Area (ft^2)",
-            "Below-Grade Conditioned Wall Area (ft^2)",
-            "Below-Grade Total Wall Area (ft^2)",
-            "Window Area (ft^2)",
-            "Roof Area (ft^2)",
-            "Door Area (ft^2)",
-            "Water Heater Tank Size (gal)",
-            "HVAC Cooling Capacity (kBtuh)",
-            "HVAC Heating Capacity (kBtuh)"
-          ],
-          "display_name_short": "option_2_cost_3_multiplier",
-          "inputs": {
-            "relationship": null,
-            "choiceDisplayNames": [
-              "",
-              "Fixed (1)",
-              "Conditioned Floor Area (ft^2)",
-              "Conditioned Foundation Slab Area (ft^2)",
-              "Lighting Floor Area (ft^2)",
-              "Above-Grade Conditioned Wall Area (ft^2)",
-              "Above-Grade Total Wall Area (ft^2)",
-              "Below-Grade Conditioned Wall Area (ft^2)",
-              "Below-Grade Total Wall Area (ft^2)",
-              "Window Area (ft^2)",
-              "Roof Area (ft^2)",
-              "Door Area (ft^2)",
-              "Water Heater Tank Size (gal)",
-              "HVAC Cooling Capacity (kBtuh)",
-              "HVAC Heating Capacity (kBtuh)"
-            ],
-            "variableSetting": "Argument",
-            "distribution": "Uniform",
-            "discreteVariables": [],
-            "maximum": "",
-            "minimum": "",
-            "mean": "",
-            "deltaX": "",
-            "stdDev": "",
-            "default_value": ""
-          },
-          "$$hashKey": "object:9659"
-        },
-        {
-          "name": "option_2_cost_4_value",
-          "display_name": "Option 2 Cost 4 Value",
-          "description": "Total option 2 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).",
-          "type": "Double",
-          "required": false,
-          "model_dependent": false,
-          "units": "$",
-          "display_name_short": "option_2_cost_4_value",
-          "inputs": {
-            "relationship": null,
-            "choiceDisplayNames": [],
-            "variableSetting": "Argument",
-            "distribution": "Uniform",
-            "discreteVariables": [],
-            "maximum": 0,
-            "minimum": 0,
-            "mean": 0,
-            "deltaX": 0,
-            "stdDev": 0,
-            "default_value": 0
-          },
-          "$$hashKey": "object:9660"
-        },
-        {
-          "name": "option_2_cost_4_multiplier",
-          "display_name": "Option 2 Cost 4 Multiplier",
-          "description": "Total option 2 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).",
-          "type": "Choice",
-          "required": false,
-          "model_dependent": false,
-          "default_value": "",
-          "choice_values": [
-            "",
-            "Fixed (1)",
-            "Conditioned Floor Area (ft^2)",
-            "Conditioned Foundation Slab Area (ft^2)",
-            "Lighting Floor Area (ft^2)",
-            "Above-Grade Conditioned Wall Area (ft^2)",
-            "Above-Grade Total Wall Area (ft^2)",
-            "Below-Grade Conditioned Wall Area (ft^2)",
-            "Below-Grade Total Wall Area (ft^2)",
-            "Window Area (ft^2)",
-            "Roof Area (ft^2)",
-            "Door Area (ft^2)",
-            "Water Heater Tank Size (gal)",
-            "HVAC Cooling Capacity (kBtuh)",
-            "HVAC Heating Capacity (kBtuh)"
-          ],
-          "choice_display_names": [
-            "",
-            "Fixed (1)",
-            "Conditioned Floor Area (ft^2)",
-            "Conditioned Foundation Slab Area (ft^2)",
-            "Lighting Floor Area (ft^2)",
-            "Above-Grade Conditioned Wall Area (ft^2)",
-            "Above-Grade Total Wall Area (ft^2)",
-            "Below-Grade Conditioned Wall Area (ft^2)",
-            "Below-Grade Total Wall Area (ft^2)",
-            "Window Area (ft^2)",
-            "Roof Area (ft^2)",
-            "Door Area (ft^2)",
-            "Water Heater Tank Size (gal)",
-            "HVAC Cooling Capacity (kBtuh)",
-            "HVAC Heating Capacity (kBtuh)"
-          ],
-          "display_name_short": "option_2_cost_4_multiplier",
-          "inputs": {
-            "relationship": null,
-            "choiceDisplayNames": [
-              "",
-              "Fixed (1)",
-              "Conditioned Floor Area (ft^2)",
-              "Conditioned Foundation Slab Area (ft^2)",
-              "Lighting Floor Area (ft^2)",
-              "Above-Grade Conditioned Wall Area (ft^2)",
-              "Above-Grade Total Wall Area (ft^2)",
-              "Below-Grade Conditioned Wall Area (ft^2)",
-              "Below-Grade Total Wall Area (ft^2)",
-              "Window Area (ft^2)",
-              "Roof Area (ft^2)",
-              "Door Area (ft^2)",
-              "Water Heater Tank Size (gal)",
-              "HVAC Cooling Capacity (kBtuh)",
-              "HVAC Heating Capacity (kBtuh)"
-            ],
-            "variableSetting": "Argument",
-            "distribution": "Uniform",
-            "discreteVariables": [],
-            "maximum": "",
-            "minimum": "",
-            "mean": "",
-            "deltaX": "",
-            "stdDev": "",
-            "default_value": ""
-          },
-          "$$hashKey": "object:9661"
-        },
-        {
-          "name": "option_2_cost_5_value",
-          "display_name": "Option 2 Cost 5 Value",
-          "description": "Total option 2 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).",
-          "type": "Double",
-          "required": false,
-          "model_dependent": false,
-          "units": "$",
-          "display_name_short": "option_2_cost_5_value",
-          "inputs": {
-            "relationship": null,
-            "choiceDisplayNames": [],
-            "variableSetting": "Argument",
-            "distribution": "Uniform",
-            "discreteVariables": [],
-            "maximum": 0,
-            "minimum": 0,
-            "mean": 0,
-            "deltaX": 0,
-            "stdDev": 0,
-            "default_value": 0
-          },
-          "$$hashKey": "object:9662"
-        },
-        {
-          "name": "option_2_cost_5_multiplier",
-          "display_name": "Option 2 Cost 5 Multiplier",
-          "description": "Total option 2 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).",
-          "type": "Choice",
-          "required": false,
-          "model_dependent": false,
-          "default_value": "",
-          "choice_values": [
-            "",
-            "Fixed (1)",
-            "Conditioned Floor Area (ft^2)",
-            "Conditioned Foundation Slab Area (ft^2)",
-            "Lighting Floor Area (ft^2)",
-            "Above-Grade Conditioned Wall Area (ft^2)",
-            "Above-Grade Total Wall Area (ft^2)",
-            "Below-Grade Conditioned Wall Area (ft^2)",
-            "Below-Grade Total Wall Area (ft^2)",
-            "Window Area (ft^2)",
-            "Roof Area (ft^2)",
-            "Door Area (ft^2)",
-            "Water Heater Tank Size (gal)",
-            "HVAC Cooling Capacity (kBtuh)",
-            "HVAC Heating Capacity (kBtuh)"
-          ],
-          "choice_display_names": [
-            "",
-            "Fixed (1)",
-            "Conditioned Floor Area (ft^2)",
-            "Conditioned Foundation Slab Area (ft^2)",
-            "Lighting Floor Area (ft^2)",
-            "Above-Grade Conditioned Wall Area (ft^2)",
-            "Above-Grade Total Wall Area (ft^2)",
-            "Below-Grade Conditioned Wall Area (ft^2)",
-            "Below-Grade Total Wall Area (ft^2)",
-            "Window Area (ft^2)",
-            "Roof Area (ft^2)",
-            "Door Area (ft^2)",
-            "Water Heater Tank Size (gal)",
-            "HVAC Cooling Capacity (kBtuh)",
-            "HVAC Heating Capacity (kBtuh)"
-          ],
-          "display_name_short": "option_2_cost_5_multiplier",
-          "inputs": {
-            "relationship": null,
-            "choiceDisplayNames": [
-              "",
-              "Fixed (1)",
-              "Conditioned Floor Area (ft^2)",
-              "Conditioned Foundation Slab Area (ft^2)",
-              "Lighting Floor Area (ft^2)",
-              "Above-Grade Conditioned Wall Area (ft^2)",
-              "Above-Grade Total Wall Area (ft^2)",
-              "Below-Grade Conditioned Wall Area (ft^2)",
-              "Below-Grade Total Wall Area (ft^2)",
-              "Window Area (ft^2)",
-              "Roof Area (ft^2)",
-              "Door Area (ft^2)",
-              "Water Heater Tank Size (gal)",
-              "HVAC Cooling Capacity (kBtuh)",
-              "HVAC Heating Capacity (kBtuh)"
-            ],
-            "variableSetting": "Argument",
-            "distribution": "Uniform",
-            "discreteVariables": [],
-            "maximum": "",
-            "minimum": "",
-            "mean": "",
-            "deltaX": "",
-            "stdDev": "",
-            "default_value": ""
-          },
-          "$$hashKey": "object:9663"
+          "$$hashKey": "object:52550"
         },
         {
           "name": "option_3",
@@ -1480,7 +916,7 @@
             "stdDev": "",
             "default_value": ""
           },
-          "$$hashKey": "object:9664"
+          "$$hashKey": "object:52551"
         },
         {
           "name": "option_3_apply_logic",
@@ -1503,7 +939,7 @@
             "stdDev": "",
             "default_value": ""
           },
-          "$$hashKey": "object:9665"
+          "$$hashKey": "object:52552"
         },
         {
           "name": "option_3_cost_1_value",
@@ -1527,7 +963,7 @@
             "stdDev": 0,
             "default_value": 0
           },
-          "$$hashKey": "object:9666"
+          "$$hashKey": "object:52553"
         },
         {
           "name": "option_3_cost_1_multiplier",
@@ -1601,7 +1037,7 @@
             "stdDev": "",
             "default_value": ""
           },
-          "$$hashKey": "object:9667"
+          "$$hashKey": "object:52554"
         },
         {
           "name": "option_3_cost_2_value",
@@ -1625,7 +1061,7 @@
             "stdDev": 0,
             "default_value": 0
           },
-          "$$hashKey": "object:9668"
+          "$$hashKey": "object:52555"
         },
         {
           "name": "option_3_cost_2_multiplier",
@@ -1699,301 +1135,7 @@
             "stdDev": "",
             "default_value": ""
           },
-          "$$hashKey": "object:9669"
-        },
-        {
-          "name": "option_3_cost_3_value",
-          "display_name": "Option 3 Cost 3 Value",
-          "description": "Total option 3 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).",
-          "type": "Double",
-          "required": false,
-          "model_dependent": false,
-          "units": "$",
-          "display_name_short": "option_3_cost_3_value",
-          "inputs": {
-            "relationship": null,
-            "choiceDisplayNames": [],
-            "variableSetting": "Argument",
-            "distribution": "Uniform",
-            "discreteVariables": [],
-            "maximum": 0,
-            "minimum": 0,
-            "mean": 0,
-            "deltaX": 0,
-            "stdDev": 0,
-            "default_value": 0
-          },
-          "$$hashKey": "object:9670"
-        },
-        {
-          "name": "option_3_cost_3_multiplier",
-          "display_name": "Option 3 Cost 3 Multiplier",
-          "description": "Total option 3 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).",
-          "type": "Choice",
-          "required": false,
-          "model_dependent": false,
-          "default_value": "",
-          "choice_values": [
-            "",
-            "Fixed (1)",
-            "Conditioned Floor Area (ft^2)",
-            "Conditioned Foundation Slab Area (ft^2)",
-            "Lighting Floor Area (ft^2)",
-            "Above-Grade Conditioned Wall Area (ft^2)",
-            "Above-Grade Total Wall Area (ft^2)",
-            "Below-Grade Conditioned Wall Area (ft^2)",
-            "Below-Grade Total Wall Area (ft^2)",
-            "Window Area (ft^2)",
-            "Roof Area (ft^2)",
-            "Door Area (ft^2)",
-            "Water Heater Tank Size (gal)",
-            "HVAC Cooling Capacity (kBtuh)",
-            "HVAC Heating Capacity (kBtuh)"
-          ],
-          "choice_display_names": [
-            "",
-            "Fixed (1)",
-            "Conditioned Floor Area (ft^2)",
-            "Conditioned Foundation Slab Area (ft^2)",
-            "Lighting Floor Area (ft^2)",
-            "Above-Grade Conditioned Wall Area (ft^2)",
-            "Above-Grade Total Wall Area (ft^2)",
-            "Below-Grade Conditioned Wall Area (ft^2)",
-            "Below-Grade Total Wall Area (ft^2)",
-            "Window Area (ft^2)",
-            "Roof Area (ft^2)",
-            "Door Area (ft^2)",
-            "Water Heater Tank Size (gal)",
-            "HVAC Cooling Capacity (kBtuh)",
-            "HVAC Heating Capacity (kBtuh)"
-          ],
-          "display_name_short": "option_3_cost_3_multiplier",
-          "inputs": {
-            "relationship": null,
-            "choiceDisplayNames": [
-              "",
-              "Fixed (1)",
-              "Conditioned Floor Area (ft^2)",
-              "Conditioned Foundation Slab Area (ft^2)",
-              "Lighting Floor Area (ft^2)",
-              "Above-Grade Conditioned Wall Area (ft^2)",
-              "Above-Grade Total Wall Area (ft^2)",
-              "Below-Grade Conditioned Wall Area (ft^2)",
-              "Below-Grade Total Wall Area (ft^2)",
-              "Window Area (ft^2)",
-              "Roof Area (ft^2)",
-              "Door Area (ft^2)",
-              "Water Heater Tank Size (gal)",
-              "HVAC Cooling Capacity (kBtuh)",
-              "HVAC Heating Capacity (kBtuh)"
-            ],
-            "variableSetting": "Argument",
-            "distribution": "Uniform",
-            "discreteVariables": [],
-            "maximum": "",
-            "minimum": "",
-            "mean": "",
-            "deltaX": "",
-            "stdDev": "",
-            "default_value": ""
-          },
-          "$$hashKey": "object:9671"
-        },
-        {
-          "name": "option_3_cost_4_value",
-          "display_name": "Option 3 Cost 4 Value",
-          "description": "Total option 3 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).",
-          "type": "Double",
-          "required": false,
-          "model_dependent": false,
-          "units": "$",
-          "display_name_short": "option_3_cost_4_value",
-          "inputs": {
-            "relationship": null,
-            "choiceDisplayNames": [],
-            "variableSetting": "Argument",
-            "distribution": "Uniform",
-            "discreteVariables": [],
-            "maximum": 0,
-            "minimum": 0,
-            "mean": 0,
-            "deltaX": 0,
-            "stdDev": 0,
-            "default_value": 0
-          },
-          "$$hashKey": "object:9672"
-        },
-        {
-          "name": "option_3_cost_4_multiplier",
-          "display_name": "Option 3 Cost 4 Multiplier",
-          "description": "Total option 3 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).",
-          "type": "Choice",
-          "required": false,
-          "model_dependent": false,
-          "default_value": "",
-          "choice_values": [
-            "",
-            "Fixed (1)",
-            "Conditioned Floor Area (ft^2)",
-            "Conditioned Foundation Slab Area (ft^2)",
-            "Lighting Floor Area (ft^2)",
-            "Above-Grade Conditioned Wall Area (ft^2)",
-            "Above-Grade Total Wall Area (ft^2)",
-            "Below-Grade Conditioned Wall Area (ft^2)",
-            "Below-Grade Total Wall Area (ft^2)",
-            "Window Area (ft^2)",
-            "Roof Area (ft^2)",
-            "Door Area (ft^2)",
-            "Water Heater Tank Size (gal)",
-            "HVAC Cooling Capacity (kBtuh)",
-            "HVAC Heating Capacity (kBtuh)"
-          ],
-          "choice_display_names": [
-            "",
-            "Fixed (1)",
-            "Conditioned Floor Area (ft^2)",
-            "Conditioned Foundation Slab Area (ft^2)",
-            "Lighting Floor Area (ft^2)",
-            "Above-Grade Conditioned Wall Area (ft^2)",
-            "Above-Grade Total Wall Area (ft^2)",
-            "Below-Grade Conditioned Wall Area (ft^2)",
-            "Below-Grade Total Wall Area (ft^2)",
-            "Window Area (ft^2)",
-            "Roof Area (ft^2)",
-            "Door Area (ft^2)",
-            "Water Heater Tank Size (gal)",
-            "HVAC Cooling Capacity (kBtuh)",
-            "HVAC Heating Capacity (kBtuh)"
-          ],
-          "display_name_short": "option_3_cost_4_multiplier",
-          "inputs": {
-            "relationship": null,
-            "choiceDisplayNames": [
-              "",
-              "Fixed (1)",
-              "Conditioned Floor Area (ft^2)",
-              "Conditioned Foundation Slab Area (ft^2)",
-              "Lighting Floor Area (ft^2)",
-              "Above-Grade Conditioned Wall Area (ft^2)",
-              "Above-Grade Total Wall Area (ft^2)",
-              "Below-Grade Conditioned Wall Area (ft^2)",
-              "Below-Grade Total Wall Area (ft^2)",
-              "Window Area (ft^2)",
-              "Roof Area (ft^2)",
-              "Door Area (ft^2)",
-              "Water Heater Tank Size (gal)",
-              "HVAC Cooling Capacity (kBtuh)",
-              "HVAC Heating Capacity (kBtuh)"
-            ],
-            "variableSetting": "Argument",
-            "distribution": "Uniform",
-            "discreteVariables": [],
-            "maximum": "",
-            "minimum": "",
-            "mean": "",
-            "deltaX": "",
-            "stdDev": "",
-            "default_value": ""
-          },
-          "$$hashKey": "object:9673"
-        },
-        {
-          "name": "option_3_cost_5_value",
-          "display_name": "Option 3 Cost 5 Value",
-          "description": "Total option 3 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).",
-          "type": "Double",
-          "required": false,
-          "model_dependent": false,
-          "units": "$",
-          "display_name_short": "option_3_cost_5_value",
-          "inputs": {
-            "relationship": null,
-            "choiceDisplayNames": [],
-            "variableSetting": "Argument",
-            "distribution": "Uniform",
-            "discreteVariables": [],
-            "maximum": 0,
-            "minimum": 0,
-            "mean": 0,
-            "deltaX": 0,
-            "stdDev": 0,
-            "default_value": 0
-          },
-          "$$hashKey": "object:9674"
-        },
-        {
-          "name": "option_3_cost_5_multiplier",
-          "display_name": "Option 3 Cost 5 Multiplier",
-          "description": "Total option 3 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).",
-          "type": "Choice",
-          "required": false,
-          "model_dependent": false,
-          "default_value": "",
-          "choice_values": [
-            "",
-            "Fixed (1)",
-            "Conditioned Floor Area (ft^2)",
-            "Conditioned Foundation Slab Area (ft^2)",
-            "Lighting Floor Area (ft^2)",
-            "Above-Grade Conditioned Wall Area (ft^2)",
-            "Above-Grade Total Wall Area (ft^2)",
-            "Below-Grade Conditioned Wall Area (ft^2)",
-            "Below-Grade Total Wall Area (ft^2)",
-            "Window Area (ft^2)",
-            "Roof Area (ft^2)",
-            "Door Area (ft^2)",
-            "Water Heater Tank Size (gal)",
-            "HVAC Cooling Capacity (kBtuh)",
-            "HVAC Heating Capacity (kBtuh)"
-          ],
-          "choice_display_names": [
-            "",
-            "Fixed (1)",
-            "Conditioned Floor Area (ft^2)",
-            "Conditioned Foundation Slab Area (ft^2)",
-            "Lighting Floor Area (ft^2)",
-            "Above-Grade Conditioned Wall Area (ft^2)",
-            "Above-Grade Total Wall Area (ft^2)",
-            "Below-Grade Conditioned Wall Area (ft^2)",
-            "Below-Grade Total Wall Area (ft^2)",
-            "Window Area (ft^2)",
-            "Roof Area (ft^2)",
-            "Door Area (ft^2)",
-            "Water Heater Tank Size (gal)",
-            "HVAC Cooling Capacity (kBtuh)",
-            "HVAC Heating Capacity (kBtuh)"
-          ],
-          "display_name_short": "option_3_cost_5_multiplier",
-          "inputs": {
-            "relationship": null,
-            "choiceDisplayNames": [
-              "",
-              "Fixed (1)",
-              "Conditioned Floor Area (ft^2)",
-              "Conditioned Foundation Slab Area (ft^2)",
-              "Lighting Floor Area (ft^2)",
-              "Above-Grade Conditioned Wall Area (ft^2)",
-              "Above-Grade Total Wall Area (ft^2)",
-              "Below-Grade Conditioned Wall Area (ft^2)",
-              "Below-Grade Total Wall Area (ft^2)",
-              "Window Area (ft^2)",
-              "Roof Area (ft^2)",
-              "Door Area (ft^2)",
-              "Water Heater Tank Size (gal)",
-              "HVAC Cooling Capacity (kBtuh)",
-              "HVAC Heating Capacity (kBtuh)"
-            ],
-            "variableSetting": "Argument",
-            "distribution": "Uniform",
-            "discreteVariables": [],
-            "maximum": "",
-            "minimum": "",
-            "mean": "",
-            "deltaX": "",
-            "stdDev": "",
-            "default_value": ""
-          },
-          "$$hashKey": "object:9675"
+          "$$hashKey": "object:52556"
         },
         {
           "name": "option_4",
@@ -2016,7 +1158,7 @@
             "stdDev": "",
             "default_value": ""
           },
-          "$$hashKey": "object:9676"
+          "$$hashKey": "object:52557"
         },
         {
           "name": "option_4_apply_logic",
@@ -2039,7 +1181,7 @@
             "stdDev": "",
             "default_value": ""
           },
-          "$$hashKey": "object:9677"
+          "$$hashKey": "object:52558"
         },
         {
           "name": "option_4_cost_1_value",
@@ -2063,7 +1205,7 @@
             "stdDev": 0,
             "default_value": 0
           },
-          "$$hashKey": "object:9678"
+          "$$hashKey": "object:52559"
         },
         {
           "name": "option_4_cost_1_multiplier",
@@ -2137,7 +1279,7 @@
             "stdDev": "",
             "default_value": ""
           },
-          "$$hashKey": "object:9679"
+          "$$hashKey": "object:52560"
         },
         {
           "name": "option_4_cost_2_value",
@@ -2161,7 +1303,7 @@
             "stdDev": 0,
             "default_value": 0
           },
-          "$$hashKey": "object:9680"
+          "$$hashKey": "object:52561"
         },
         {
           "name": "option_4_cost_2_multiplier",
@@ -2235,301 +1377,7 @@
             "stdDev": "",
             "default_value": ""
           },
-          "$$hashKey": "object:9681"
-        },
-        {
-          "name": "option_4_cost_3_value",
-          "display_name": "Option 4 Cost 3 Value",
-          "description": "Total option 4 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).",
-          "type": "Double",
-          "required": false,
-          "model_dependent": false,
-          "units": "$",
-          "display_name_short": "option_4_cost_3_value",
-          "inputs": {
-            "relationship": null,
-            "choiceDisplayNames": [],
-            "variableSetting": "Argument",
-            "distribution": "Uniform",
-            "discreteVariables": [],
-            "maximum": 0,
-            "minimum": 0,
-            "mean": 0,
-            "deltaX": 0,
-            "stdDev": 0,
-            "default_value": 0
-          },
-          "$$hashKey": "object:9682"
-        },
-        {
-          "name": "option_4_cost_3_multiplier",
-          "display_name": "Option 4 Cost 3 Multiplier",
-          "description": "Total option 4 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).",
-          "type": "Choice",
-          "required": false,
-          "model_dependent": false,
-          "default_value": "",
-          "choice_values": [
-            "",
-            "Fixed (1)",
-            "Conditioned Floor Area (ft^2)",
-            "Conditioned Foundation Slab Area (ft^2)",
-            "Lighting Floor Area (ft^2)",
-            "Above-Grade Conditioned Wall Area (ft^2)",
-            "Above-Grade Total Wall Area (ft^2)",
-            "Below-Grade Conditioned Wall Area (ft^2)",
-            "Below-Grade Total Wall Area (ft^2)",
-            "Window Area (ft^2)",
-            "Roof Area (ft^2)",
-            "Door Area (ft^2)",
-            "Water Heater Tank Size (gal)",
-            "HVAC Cooling Capacity (kBtuh)",
-            "HVAC Heating Capacity (kBtuh)"
-          ],
-          "choice_display_names": [
-            "",
-            "Fixed (1)",
-            "Conditioned Floor Area (ft^2)",
-            "Conditioned Foundation Slab Area (ft^2)",
-            "Lighting Floor Area (ft^2)",
-            "Above-Grade Conditioned Wall Area (ft^2)",
-            "Above-Grade Total Wall Area (ft^2)",
-            "Below-Grade Conditioned Wall Area (ft^2)",
-            "Below-Grade Total Wall Area (ft^2)",
-            "Window Area (ft^2)",
-            "Roof Area (ft^2)",
-            "Door Area (ft^2)",
-            "Water Heater Tank Size (gal)",
-            "HVAC Cooling Capacity (kBtuh)",
-            "HVAC Heating Capacity (kBtuh)"
-          ],
-          "display_name_short": "option_4_cost_3_multiplier",
-          "inputs": {
-            "relationship": null,
-            "choiceDisplayNames": [
-              "",
-              "Fixed (1)",
-              "Conditioned Floor Area (ft^2)",
-              "Conditioned Foundation Slab Area (ft^2)",
-              "Lighting Floor Area (ft^2)",
-              "Above-Grade Conditioned Wall Area (ft^2)",
-              "Above-Grade Total Wall Area (ft^2)",
-              "Below-Grade Conditioned Wall Area (ft^2)",
-              "Below-Grade Total Wall Area (ft^2)",
-              "Window Area (ft^2)",
-              "Roof Area (ft^2)",
-              "Door Area (ft^2)",
-              "Water Heater Tank Size (gal)",
-              "HVAC Cooling Capacity (kBtuh)",
-              "HVAC Heating Capacity (kBtuh)"
-            ],
-            "variableSetting": "Argument",
-            "distribution": "Uniform",
-            "discreteVariables": [],
-            "maximum": "",
-            "minimum": "",
-            "mean": "",
-            "deltaX": "",
-            "stdDev": "",
-            "default_value": ""
-          },
-          "$$hashKey": "object:9683"
-        },
-        {
-          "name": "option_4_cost_4_value",
-          "display_name": "Option 4 Cost 4 Value",
-          "description": "Total option 4 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).",
-          "type": "Double",
-          "required": false,
-          "model_dependent": false,
-          "units": "$",
-          "display_name_short": "option_4_cost_4_value",
-          "inputs": {
-            "relationship": null,
-            "choiceDisplayNames": [],
-            "variableSetting": "Argument",
-            "distribution": "Uniform",
-            "discreteVariables": [],
-            "maximum": 0,
-            "minimum": 0,
-            "mean": 0,
-            "deltaX": 0,
-            "stdDev": 0,
-            "default_value": 0
-          },
-          "$$hashKey": "object:9684"
-        },
-        {
-          "name": "option_4_cost_4_multiplier",
-          "display_name": "Option 4 Cost 4 Multiplier",
-          "description": "Total option 4 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).",
-          "type": "Choice",
-          "required": false,
-          "model_dependent": false,
-          "default_value": "",
-          "choice_values": [
-            "",
-            "Fixed (1)",
-            "Conditioned Floor Area (ft^2)",
-            "Conditioned Foundation Slab Area (ft^2)",
-            "Lighting Floor Area (ft^2)",
-            "Above-Grade Conditioned Wall Area (ft^2)",
-            "Above-Grade Total Wall Area (ft^2)",
-            "Below-Grade Conditioned Wall Area (ft^2)",
-            "Below-Grade Total Wall Area (ft^2)",
-            "Window Area (ft^2)",
-            "Roof Area (ft^2)",
-            "Door Area (ft^2)",
-            "Water Heater Tank Size (gal)",
-            "HVAC Cooling Capacity (kBtuh)",
-            "HVAC Heating Capacity (kBtuh)"
-          ],
-          "choice_display_names": [
-            "",
-            "Fixed (1)",
-            "Conditioned Floor Area (ft^2)",
-            "Conditioned Foundation Slab Area (ft^2)",
-            "Lighting Floor Area (ft^2)",
-            "Above-Grade Conditioned Wall Area (ft^2)",
-            "Above-Grade Total Wall Area (ft^2)",
-            "Below-Grade Conditioned Wall Area (ft^2)",
-            "Below-Grade Total Wall Area (ft^2)",
-            "Window Area (ft^2)",
-            "Roof Area (ft^2)",
-            "Door Area (ft^2)",
-            "Water Heater Tank Size (gal)",
-            "HVAC Cooling Capacity (kBtuh)",
-            "HVAC Heating Capacity (kBtuh)"
-          ],
-          "display_name_short": "option_4_cost_4_multiplier",
-          "inputs": {
-            "relationship": null,
-            "choiceDisplayNames": [
-              "",
-              "Fixed (1)",
-              "Conditioned Floor Area (ft^2)",
-              "Conditioned Foundation Slab Area (ft^2)",
-              "Lighting Floor Area (ft^2)",
-              "Above-Grade Conditioned Wall Area (ft^2)",
-              "Above-Grade Total Wall Area (ft^2)",
-              "Below-Grade Conditioned Wall Area (ft^2)",
-              "Below-Grade Total Wall Area (ft^2)",
-              "Window Area (ft^2)",
-              "Roof Area (ft^2)",
-              "Door Area (ft^2)",
-              "Water Heater Tank Size (gal)",
-              "HVAC Cooling Capacity (kBtuh)",
-              "HVAC Heating Capacity (kBtuh)"
-            ],
-            "variableSetting": "Argument",
-            "distribution": "Uniform",
-            "discreteVariables": [],
-            "maximum": "",
-            "minimum": "",
-            "mean": "",
-            "deltaX": "",
-            "stdDev": "",
-            "default_value": ""
-          },
-          "$$hashKey": "object:9685"
-        },
-        {
-          "name": "option_4_cost_5_value",
-          "display_name": "Option 4 Cost 5 Value",
-          "description": "Total option 4 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).",
-          "type": "Double",
-          "required": false,
-          "model_dependent": false,
-          "units": "$",
-          "display_name_short": "option_4_cost_5_value",
-          "inputs": {
-            "relationship": null,
-            "choiceDisplayNames": [],
-            "variableSetting": "Argument",
-            "distribution": "Uniform",
-            "discreteVariables": [],
-            "maximum": 0,
-            "minimum": 0,
-            "mean": 0,
-            "deltaX": 0,
-            "stdDev": 0,
-            "default_value": 0
-          },
-          "$$hashKey": "object:9686"
-        },
-        {
-          "name": "option_4_cost_5_multiplier",
-          "display_name": "Option 4 Cost 5 Multiplier",
-          "description": "Total option 4 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).",
-          "type": "Choice",
-          "required": false,
-          "model_dependent": false,
-          "default_value": "",
-          "choice_values": [
-            "",
-            "Fixed (1)",
-            "Conditioned Floor Area (ft^2)",
-            "Conditioned Foundation Slab Area (ft^2)",
-            "Lighting Floor Area (ft^2)",
-            "Above-Grade Conditioned Wall Area (ft^2)",
-            "Above-Grade Total Wall Area (ft^2)",
-            "Below-Grade Conditioned Wall Area (ft^2)",
-            "Below-Grade Total Wall Area (ft^2)",
-            "Window Area (ft^2)",
-            "Roof Area (ft^2)",
-            "Door Area (ft^2)",
-            "Water Heater Tank Size (gal)",
-            "HVAC Cooling Capacity (kBtuh)",
-            "HVAC Heating Capacity (kBtuh)"
-          ],
-          "choice_display_names": [
-            "",
-            "Fixed (1)",
-            "Conditioned Floor Area (ft^2)",
-            "Conditioned Foundation Slab Area (ft^2)",
-            "Lighting Floor Area (ft^2)",
-            "Above-Grade Conditioned Wall Area (ft^2)",
-            "Above-Grade Total Wall Area (ft^2)",
-            "Below-Grade Conditioned Wall Area (ft^2)",
-            "Below-Grade Total Wall Area (ft^2)",
-            "Window Area (ft^2)",
-            "Roof Area (ft^2)",
-            "Door Area (ft^2)",
-            "Water Heater Tank Size (gal)",
-            "HVAC Cooling Capacity (kBtuh)",
-            "HVAC Heating Capacity (kBtuh)"
-          ],
-          "display_name_short": "option_4_cost_5_multiplier",
-          "inputs": {
-            "relationship": null,
-            "choiceDisplayNames": [
-              "",
-              "Fixed (1)",
-              "Conditioned Floor Area (ft^2)",
-              "Conditioned Foundation Slab Area (ft^2)",
-              "Lighting Floor Area (ft^2)",
-              "Above-Grade Conditioned Wall Area (ft^2)",
-              "Above-Grade Total Wall Area (ft^2)",
-              "Below-Grade Conditioned Wall Area (ft^2)",
-              "Below-Grade Total Wall Area (ft^2)",
-              "Window Area (ft^2)",
-              "Roof Area (ft^2)",
-              "Door Area (ft^2)",
-              "Water Heater Tank Size (gal)",
-              "HVAC Cooling Capacity (kBtuh)",
-              "HVAC Heating Capacity (kBtuh)"
-            ],
-            "variableSetting": "Argument",
-            "distribution": "Uniform",
-            "discreteVariables": [],
-            "maximum": "",
-            "minimum": "",
-            "mean": "",
-            "deltaX": "",
-            "stdDev": "",
-            "default_value": ""
-          },
-          "$$hashKey": "object:9687"
+          "$$hashKey": "object:52562"
         },
         {
           "name": "option_5",
@@ -2552,7 +1400,7 @@
             "stdDev": "",
             "default_value": ""
           },
-          "$$hashKey": "object:9688"
+          "$$hashKey": "object:52563"
         },
         {
           "name": "option_5_apply_logic",
@@ -2575,7 +1423,7 @@
             "stdDev": "",
             "default_value": ""
           },
-          "$$hashKey": "object:9689"
+          "$$hashKey": "object:52564"
         },
         {
           "name": "option_5_cost_1_value",
@@ -2599,7 +1447,7 @@
             "stdDev": 0,
             "default_value": 0
           },
-          "$$hashKey": "object:9690"
+          "$$hashKey": "object:52565"
         },
         {
           "name": "option_5_cost_1_multiplier",
@@ -2673,7 +1521,7 @@
             "stdDev": "",
             "default_value": ""
           },
-          "$$hashKey": "object:9691"
+          "$$hashKey": "object:52566"
         },
         {
           "name": "option_5_cost_2_value",
@@ -2697,7 +1545,7 @@
             "stdDev": 0,
             "default_value": 0
           },
-          "$$hashKey": "object:9692"
+          "$$hashKey": "object:52567"
         },
         {
           "name": "option_5_cost_2_multiplier",
@@ -2771,301 +1619,7 @@
             "stdDev": "",
             "default_value": ""
           },
-          "$$hashKey": "object:9693"
-        },
-        {
-          "name": "option_5_cost_3_value",
-          "display_name": "Option 5 Cost 3 Value",
-          "description": "Total option 5 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).",
-          "type": "Double",
-          "required": false,
-          "model_dependent": false,
-          "units": "$",
-          "display_name_short": "option_5_cost_3_value",
-          "inputs": {
-            "relationship": null,
-            "choiceDisplayNames": [],
-            "variableSetting": "Argument",
-            "distribution": "Uniform",
-            "discreteVariables": [],
-            "maximum": 0,
-            "minimum": 0,
-            "mean": 0,
-            "deltaX": 0,
-            "stdDev": 0,
-            "default_value": 0
-          },
-          "$$hashKey": "object:9694"
-        },
-        {
-          "name": "option_5_cost_3_multiplier",
-          "display_name": "Option 5 Cost 3 Multiplier",
-          "description": "Total option 5 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).",
-          "type": "Choice",
-          "required": false,
-          "model_dependent": false,
-          "default_value": "",
-          "choice_values": [
-            "",
-            "Fixed (1)",
-            "Conditioned Floor Area (ft^2)",
-            "Conditioned Foundation Slab Area (ft^2)",
-            "Lighting Floor Area (ft^2)",
-            "Above-Grade Conditioned Wall Area (ft^2)",
-            "Above-Grade Total Wall Area (ft^2)",
-            "Below-Grade Conditioned Wall Area (ft^2)",
-            "Below-Grade Total Wall Area (ft^2)",
-            "Window Area (ft^2)",
-            "Roof Area (ft^2)",
-            "Door Area (ft^2)",
-            "Water Heater Tank Size (gal)",
-            "HVAC Cooling Capacity (kBtuh)",
-            "HVAC Heating Capacity (kBtuh)"
-          ],
-          "choice_display_names": [
-            "",
-            "Fixed (1)",
-            "Conditioned Floor Area (ft^2)",
-            "Conditioned Foundation Slab Area (ft^2)",
-            "Lighting Floor Area (ft^2)",
-            "Above-Grade Conditioned Wall Area (ft^2)",
-            "Above-Grade Total Wall Area (ft^2)",
-            "Below-Grade Conditioned Wall Area (ft^2)",
-            "Below-Grade Total Wall Area (ft^2)",
-            "Window Area (ft^2)",
-            "Roof Area (ft^2)",
-            "Door Area (ft^2)",
-            "Water Heater Tank Size (gal)",
-            "HVAC Cooling Capacity (kBtuh)",
-            "HVAC Heating Capacity (kBtuh)"
-          ],
-          "display_name_short": "option_5_cost_3_multiplier",
-          "inputs": {
-            "relationship": null,
-            "choiceDisplayNames": [
-              "",
-              "Fixed (1)",
-              "Conditioned Floor Area (ft^2)",
-              "Conditioned Foundation Slab Area (ft^2)",
-              "Lighting Floor Area (ft^2)",
-              "Above-Grade Conditioned Wall Area (ft^2)",
-              "Above-Grade Total Wall Area (ft^2)",
-              "Below-Grade Conditioned Wall Area (ft^2)",
-              "Below-Grade Total Wall Area (ft^2)",
-              "Window Area (ft^2)",
-              "Roof Area (ft^2)",
-              "Door Area (ft^2)",
-              "Water Heater Tank Size (gal)",
-              "HVAC Cooling Capacity (kBtuh)",
-              "HVAC Heating Capacity (kBtuh)"
-            ],
-            "variableSetting": "Argument",
-            "distribution": "Uniform",
-            "discreteVariables": [],
-            "maximum": "",
-            "minimum": "",
-            "mean": "",
-            "deltaX": "",
-            "stdDev": "",
-            "default_value": ""
-          },
-          "$$hashKey": "object:9695"
-        },
-        {
-          "name": "option_5_cost_4_value",
-          "display_name": "Option 5 Cost 4 Value",
-          "description": "Total option 5 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).",
-          "type": "Double",
-          "required": false,
-          "model_dependent": false,
-          "units": "$",
-          "display_name_short": "option_5_cost_4_value",
-          "inputs": {
-            "relationship": null,
-            "choiceDisplayNames": [],
-            "variableSetting": "Argument",
-            "distribution": "Uniform",
-            "discreteVariables": [],
-            "maximum": 0,
-            "minimum": 0,
-            "mean": 0,
-            "deltaX": 0,
-            "stdDev": 0,
-            "default_value": 0
-          },
-          "$$hashKey": "object:9696"
-        },
-        {
-          "name": "option_5_cost_4_multiplier",
-          "display_name": "Option 5 Cost 4 Multiplier",
-          "description": "Total option 5 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).",
-          "type": "Choice",
-          "required": false,
-          "model_dependent": false,
-          "default_value": "",
-          "choice_values": [
-            "",
-            "Fixed (1)",
-            "Conditioned Floor Area (ft^2)",
-            "Conditioned Foundation Slab Area (ft^2)",
-            "Lighting Floor Area (ft^2)",
-            "Above-Grade Conditioned Wall Area (ft^2)",
-            "Above-Grade Total Wall Area (ft^2)",
-            "Below-Grade Conditioned Wall Area (ft^2)",
-            "Below-Grade Total Wall Area (ft^2)",
-            "Window Area (ft^2)",
-            "Roof Area (ft^2)",
-            "Door Area (ft^2)",
-            "Water Heater Tank Size (gal)",
-            "HVAC Cooling Capacity (kBtuh)",
-            "HVAC Heating Capacity (kBtuh)"
-          ],
-          "choice_display_names": [
-            "",
-            "Fixed (1)",
-            "Conditioned Floor Area (ft^2)",
-            "Conditioned Foundation Slab Area (ft^2)",
-            "Lighting Floor Area (ft^2)",
-            "Above-Grade Conditioned Wall Area (ft^2)",
-            "Above-Grade Total Wall Area (ft^2)",
-            "Below-Grade Conditioned Wall Area (ft^2)",
-            "Below-Grade Total Wall Area (ft^2)",
-            "Window Area (ft^2)",
-            "Roof Area (ft^2)",
-            "Door Area (ft^2)",
-            "Water Heater Tank Size (gal)",
-            "HVAC Cooling Capacity (kBtuh)",
-            "HVAC Heating Capacity (kBtuh)"
-          ],
-          "display_name_short": "option_5_cost_4_multiplier",
-          "inputs": {
-            "relationship": null,
-            "choiceDisplayNames": [
-              "",
-              "Fixed (1)",
-              "Conditioned Floor Area (ft^2)",
-              "Conditioned Foundation Slab Area (ft^2)",
-              "Lighting Floor Area (ft^2)",
-              "Above-Grade Conditioned Wall Area (ft^2)",
-              "Above-Grade Total Wall Area (ft^2)",
-              "Below-Grade Conditioned Wall Area (ft^2)",
-              "Below-Grade Total Wall Area (ft^2)",
-              "Window Area (ft^2)",
-              "Roof Area (ft^2)",
-              "Door Area (ft^2)",
-              "Water Heater Tank Size (gal)",
-              "HVAC Cooling Capacity (kBtuh)",
-              "HVAC Heating Capacity (kBtuh)"
-            ],
-            "variableSetting": "Argument",
-            "distribution": "Uniform",
-            "discreteVariables": [],
-            "maximum": "",
-            "minimum": "",
-            "mean": "",
-            "deltaX": "",
-            "stdDev": "",
-            "default_value": ""
-          },
-          "$$hashKey": "object:9697"
-        },
-        {
-          "name": "option_5_cost_5_value",
-          "display_name": "Option 5 Cost 5 Value",
-          "description": "Total option 5 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).",
-          "type": "Double",
-          "required": false,
-          "model_dependent": false,
-          "units": "$",
-          "display_name_short": "option_5_cost_5_value",
-          "inputs": {
-            "relationship": null,
-            "choiceDisplayNames": [],
-            "variableSetting": "Argument",
-            "distribution": "Uniform",
-            "discreteVariables": [],
-            "maximum": 0,
-            "minimum": 0,
-            "mean": 0,
-            "deltaX": 0,
-            "stdDev": 0,
-            "default_value": 0
-          },
-          "$$hashKey": "object:9698"
-        },
-        {
-          "name": "option_5_cost_5_multiplier",
-          "display_name": "Option 5 Cost 5 Multiplier",
-          "description": "Total option 5 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).",
-          "type": "Choice",
-          "required": false,
-          "model_dependent": false,
-          "default_value": "",
-          "choice_values": [
-            "",
-            "Fixed (1)",
-            "Conditioned Floor Area (ft^2)",
-            "Conditioned Foundation Slab Area (ft^2)",
-            "Lighting Floor Area (ft^2)",
-            "Above-Grade Conditioned Wall Area (ft^2)",
-            "Above-Grade Total Wall Area (ft^2)",
-            "Below-Grade Conditioned Wall Area (ft^2)",
-            "Below-Grade Total Wall Area (ft^2)",
-            "Window Area (ft^2)",
-            "Roof Area (ft^2)",
-            "Door Area (ft^2)",
-            "Water Heater Tank Size (gal)",
-            "HVAC Cooling Capacity (kBtuh)",
-            "HVAC Heating Capacity (kBtuh)"
-          ],
-          "choice_display_names": [
-            "",
-            "Fixed (1)",
-            "Conditioned Floor Area (ft^2)",
-            "Conditioned Foundation Slab Area (ft^2)",
-            "Lighting Floor Area (ft^2)",
-            "Above-Grade Conditioned Wall Area (ft^2)",
-            "Above-Grade Total Wall Area (ft^2)",
-            "Below-Grade Conditioned Wall Area (ft^2)",
-            "Below-Grade Total Wall Area (ft^2)",
-            "Window Area (ft^2)",
-            "Roof Area (ft^2)",
-            "Door Area (ft^2)",
-            "Water Heater Tank Size (gal)",
-            "HVAC Cooling Capacity (kBtuh)",
-            "HVAC Heating Capacity (kBtuh)"
-          ],
-          "display_name_short": "option_5_cost_5_multiplier",
-          "inputs": {
-            "relationship": null,
-            "choiceDisplayNames": [
-              "",
-              "Fixed (1)",
-              "Conditioned Floor Area (ft^2)",
-              "Conditioned Foundation Slab Area (ft^2)",
-              "Lighting Floor Area (ft^2)",
-              "Above-Grade Conditioned Wall Area (ft^2)",
-              "Above-Grade Total Wall Area (ft^2)",
-              "Below-Grade Conditioned Wall Area (ft^2)",
-              "Below-Grade Total Wall Area (ft^2)",
-              "Window Area (ft^2)",
-              "Roof Area (ft^2)",
-              "Door Area (ft^2)",
-              "Water Heater Tank Size (gal)",
-              "HVAC Cooling Capacity (kBtuh)",
-              "HVAC Heating Capacity (kBtuh)"
-            ],
-            "variableSetting": "Argument",
-            "distribution": "Uniform",
-            "discreteVariables": [],
-            "maximum": "",
-            "minimum": "",
-            "mean": "",
-            "deltaX": "",
-            "stdDev": "",
-            "default_value": ""
-          },
-          "$$hashKey": "object:9699"
+          "$$hashKey": "object:52568"
         },
         {
           "name": "option_6",
@@ -3088,7 +1642,7 @@
             "stdDev": "",
             "default_value": ""
           },
-          "$$hashKey": "object:9700"
+          "$$hashKey": "object:52569"
         },
         {
           "name": "option_6_apply_logic",
@@ -3111,7 +1665,7 @@
             "stdDev": "",
             "default_value": ""
           },
-          "$$hashKey": "object:9701"
+          "$$hashKey": "object:52570"
         },
         {
           "name": "option_6_cost_1_value",
@@ -3135,7 +1689,7 @@
             "stdDev": 0,
             "default_value": 0
           },
-          "$$hashKey": "object:9702"
+          "$$hashKey": "object:52571"
         },
         {
           "name": "option_6_cost_1_multiplier",
@@ -3209,7 +1763,7 @@
             "stdDev": "",
             "default_value": ""
           },
-          "$$hashKey": "object:9703"
+          "$$hashKey": "object:52572"
         },
         {
           "name": "option_6_cost_2_value",
@@ -3233,7 +1787,7 @@
             "stdDev": 0,
             "default_value": 0
           },
-          "$$hashKey": "object:9704"
+          "$$hashKey": "object:52573"
         },
         {
           "name": "option_6_cost_2_multiplier",
@@ -3307,301 +1861,7 @@
             "stdDev": "",
             "default_value": ""
           },
-          "$$hashKey": "object:9705"
-        },
-        {
-          "name": "option_6_cost_3_value",
-          "display_name": "Option 6 Cost 3 Value",
-          "description": "Total option 6 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).",
-          "type": "Double",
-          "required": false,
-          "model_dependent": false,
-          "units": "$",
-          "display_name_short": "option_6_cost_3_value",
-          "inputs": {
-            "relationship": null,
-            "choiceDisplayNames": [],
-            "variableSetting": "Argument",
-            "distribution": "Uniform",
-            "discreteVariables": [],
-            "maximum": 0,
-            "minimum": 0,
-            "mean": 0,
-            "deltaX": 0,
-            "stdDev": 0,
-            "default_value": 0
-          },
-          "$$hashKey": "object:9706"
-        },
-        {
-          "name": "option_6_cost_3_multiplier",
-          "display_name": "Option 6 Cost 3 Multiplier",
-          "description": "Total option 6 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).",
-          "type": "Choice",
-          "required": false,
-          "model_dependent": false,
-          "default_value": "",
-          "choice_values": [
-            "",
-            "Fixed (1)",
-            "Conditioned Floor Area (ft^2)",
-            "Conditioned Foundation Slab Area (ft^2)",
-            "Lighting Floor Area (ft^2)",
-            "Above-Grade Conditioned Wall Area (ft^2)",
-            "Above-Grade Total Wall Area (ft^2)",
-            "Below-Grade Conditioned Wall Area (ft^2)",
-            "Below-Grade Total Wall Area (ft^2)",
-            "Window Area (ft^2)",
-            "Roof Area (ft^2)",
-            "Door Area (ft^2)",
-            "Water Heater Tank Size (gal)",
-            "HVAC Cooling Capacity (kBtuh)",
-            "HVAC Heating Capacity (kBtuh)"
-          ],
-          "choice_display_names": [
-            "",
-            "Fixed (1)",
-            "Conditioned Floor Area (ft^2)",
-            "Conditioned Foundation Slab Area (ft^2)",
-            "Lighting Floor Area (ft^2)",
-            "Above-Grade Conditioned Wall Area (ft^2)",
-            "Above-Grade Total Wall Area (ft^2)",
-            "Below-Grade Conditioned Wall Area (ft^2)",
-            "Below-Grade Total Wall Area (ft^2)",
-            "Window Area (ft^2)",
-            "Roof Area (ft^2)",
-            "Door Area (ft^2)",
-            "Water Heater Tank Size (gal)",
-            "HVAC Cooling Capacity (kBtuh)",
-            "HVAC Heating Capacity (kBtuh)"
-          ],
-          "display_name_short": "option_6_cost_3_multiplier",
-          "inputs": {
-            "relationship": null,
-            "choiceDisplayNames": [
-              "",
-              "Fixed (1)",
-              "Conditioned Floor Area (ft^2)",
-              "Conditioned Foundation Slab Area (ft^2)",
-              "Lighting Floor Area (ft^2)",
-              "Above-Grade Conditioned Wall Area (ft^2)",
-              "Above-Grade Total Wall Area (ft^2)",
-              "Below-Grade Conditioned Wall Area (ft^2)",
-              "Below-Grade Total Wall Area (ft^2)",
-              "Window Area (ft^2)",
-              "Roof Area (ft^2)",
-              "Door Area (ft^2)",
-              "Water Heater Tank Size (gal)",
-              "HVAC Cooling Capacity (kBtuh)",
-              "HVAC Heating Capacity (kBtuh)"
-            ],
-            "variableSetting": "Argument",
-            "distribution": "Uniform",
-            "discreteVariables": [],
-            "maximum": "",
-            "minimum": "",
-            "mean": "",
-            "deltaX": "",
-            "stdDev": "",
-            "default_value": ""
-          },
-          "$$hashKey": "object:9707"
-        },
-        {
-          "name": "option_6_cost_4_value",
-          "display_name": "Option 6 Cost 4 Value",
-          "description": "Total option 6 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).",
-          "type": "Double",
-          "required": false,
-          "model_dependent": false,
-          "units": "$",
-          "display_name_short": "option_6_cost_4_value",
-          "inputs": {
-            "relationship": null,
-            "choiceDisplayNames": [],
-            "variableSetting": "Argument",
-            "distribution": "Uniform",
-            "discreteVariables": [],
-            "maximum": 0,
-            "minimum": 0,
-            "mean": 0,
-            "deltaX": 0,
-            "stdDev": 0,
-            "default_value": 0
-          },
-          "$$hashKey": "object:9708"
-        },
-        {
-          "name": "option_6_cost_4_multiplier",
-          "display_name": "Option 6 Cost 4 Multiplier",
-          "description": "Total option 6 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).",
-          "type": "Choice",
-          "required": false,
-          "model_dependent": false,
-          "default_value": "",
-          "choice_values": [
-            "",
-            "Fixed (1)",
-            "Conditioned Floor Area (ft^2)",
-            "Conditioned Foundation Slab Area (ft^2)",
-            "Lighting Floor Area (ft^2)",
-            "Above-Grade Conditioned Wall Area (ft^2)",
-            "Above-Grade Total Wall Area (ft^2)",
-            "Below-Grade Conditioned Wall Area (ft^2)",
-            "Below-Grade Total Wall Area (ft^2)",
-            "Window Area (ft^2)",
-            "Roof Area (ft^2)",
-            "Door Area (ft^2)",
-            "Water Heater Tank Size (gal)",
-            "HVAC Cooling Capacity (kBtuh)",
-            "HVAC Heating Capacity (kBtuh)"
-          ],
-          "choice_display_names": [
-            "",
-            "Fixed (1)",
-            "Conditioned Floor Area (ft^2)",
-            "Conditioned Foundation Slab Area (ft^2)",
-            "Lighting Floor Area (ft^2)",
-            "Above-Grade Conditioned Wall Area (ft^2)",
-            "Above-Grade Total Wall Area (ft^2)",
-            "Below-Grade Conditioned Wall Area (ft^2)",
-            "Below-Grade Total Wall Area (ft^2)",
-            "Window Area (ft^2)",
-            "Roof Area (ft^2)",
-            "Door Area (ft^2)",
-            "Water Heater Tank Size (gal)",
-            "HVAC Cooling Capacity (kBtuh)",
-            "HVAC Heating Capacity (kBtuh)"
-          ],
-          "display_name_short": "option_6_cost_4_multiplier",
-          "inputs": {
-            "relationship": null,
-            "choiceDisplayNames": [
-              "",
-              "Fixed (1)",
-              "Conditioned Floor Area (ft^2)",
-              "Conditioned Foundation Slab Area (ft^2)",
-              "Lighting Floor Area (ft^2)",
-              "Above-Grade Conditioned Wall Area (ft^2)",
-              "Above-Grade Total Wall Area (ft^2)",
-              "Below-Grade Conditioned Wall Area (ft^2)",
-              "Below-Grade Total Wall Area (ft^2)",
-              "Window Area (ft^2)",
-              "Roof Area (ft^2)",
-              "Door Area (ft^2)",
-              "Water Heater Tank Size (gal)",
-              "HVAC Cooling Capacity (kBtuh)",
-              "HVAC Heating Capacity (kBtuh)"
-            ],
-            "variableSetting": "Argument",
-            "distribution": "Uniform",
-            "discreteVariables": [],
-            "maximum": "",
-            "minimum": "",
-            "mean": "",
-            "deltaX": "",
-            "stdDev": "",
-            "default_value": ""
-          },
-          "$$hashKey": "object:9709"
-        },
-        {
-          "name": "option_6_cost_5_value",
-          "display_name": "Option 6 Cost 5 Value",
-          "description": "Total option 6 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).",
-          "type": "Double",
-          "required": false,
-          "model_dependent": false,
-          "units": "$",
-          "display_name_short": "option_6_cost_5_value",
-          "inputs": {
-            "relationship": null,
-            "choiceDisplayNames": [],
-            "variableSetting": "Argument",
-            "distribution": "Uniform",
-            "discreteVariables": [],
-            "maximum": 0,
-            "minimum": 0,
-            "mean": 0,
-            "deltaX": 0,
-            "stdDev": 0,
-            "default_value": 0
-          },
-          "$$hashKey": "object:9710"
-        },
-        {
-          "name": "option_6_cost_5_multiplier",
-          "display_name": "Option 6 Cost 5 Multiplier",
-          "description": "Total option 6 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).",
-          "type": "Choice",
-          "required": false,
-          "model_dependent": false,
-          "default_value": "",
-          "choice_values": [
-            "",
-            "Fixed (1)",
-            "Conditioned Floor Area (ft^2)",
-            "Conditioned Foundation Slab Area (ft^2)",
-            "Lighting Floor Area (ft^2)",
-            "Above-Grade Conditioned Wall Area (ft^2)",
-            "Above-Grade Total Wall Area (ft^2)",
-            "Below-Grade Conditioned Wall Area (ft^2)",
-            "Below-Grade Total Wall Area (ft^2)",
-            "Window Area (ft^2)",
-            "Roof Area (ft^2)",
-            "Door Area (ft^2)",
-            "Water Heater Tank Size (gal)",
-            "HVAC Cooling Capacity (kBtuh)",
-            "HVAC Heating Capacity (kBtuh)"
-          ],
-          "choice_display_names": [
-            "",
-            "Fixed (1)",
-            "Conditioned Floor Area (ft^2)",
-            "Conditioned Foundation Slab Area (ft^2)",
-            "Lighting Floor Area (ft^2)",
-            "Above-Grade Conditioned Wall Area (ft^2)",
-            "Above-Grade Total Wall Area (ft^2)",
-            "Below-Grade Conditioned Wall Area (ft^2)",
-            "Below-Grade Total Wall Area (ft^2)",
-            "Window Area (ft^2)",
-            "Roof Area (ft^2)",
-            "Door Area (ft^2)",
-            "Water Heater Tank Size (gal)",
-            "HVAC Cooling Capacity (kBtuh)",
-            "HVAC Heating Capacity (kBtuh)"
-          ],
-          "display_name_short": "option_6_cost_5_multiplier",
-          "inputs": {
-            "relationship": null,
-            "choiceDisplayNames": [
-              "",
-              "Fixed (1)",
-              "Conditioned Floor Area (ft^2)",
-              "Conditioned Foundation Slab Area (ft^2)",
-              "Lighting Floor Area (ft^2)",
-              "Above-Grade Conditioned Wall Area (ft^2)",
-              "Above-Grade Total Wall Area (ft^2)",
-              "Below-Grade Conditioned Wall Area (ft^2)",
-              "Below-Grade Total Wall Area (ft^2)",
-              "Window Area (ft^2)",
-              "Roof Area (ft^2)",
-              "Door Area (ft^2)",
-              "Water Heater Tank Size (gal)",
-              "HVAC Cooling Capacity (kBtuh)",
-              "HVAC Heating Capacity (kBtuh)"
-            ],
-            "variableSetting": "Argument",
-            "distribution": "Uniform",
-            "discreteVariables": [],
-            "maximum": "",
-            "minimum": "",
-            "mean": "",
-            "deltaX": "",
-            "stdDev": "",
-            "default_value": ""
-          },
-          "$$hashKey": "object:9711"
+          "$$hashKey": "object:52574"
         },
         {
           "name": "option_7",
@@ -3624,7 +1884,7 @@
             "stdDev": "",
             "default_value": ""
           },
-          "$$hashKey": "object:9712"
+          "$$hashKey": "object:52575"
         },
         {
           "name": "option_7_apply_logic",
@@ -3647,7 +1907,7 @@
             "stdDev": "",
             "default_value": ""
           },
-          "$$hashKey": "object:9713"
+          "$$hashKey": "object:52576"
         },
         {
           "name": "option_7_cost_1_value",
@@ -3671,7 +1931,7 @@
             "stdDev": 0,
             "default_value": 0
           },
-          "$$hashKey": "object:9714"
+          "$$hashKey": "object:52577"
         },
         {
           "name": "option_7_cost_1_multiplier",
@@ -3745,7 +2005,7 @@
             "stdDev": "",
             "default_value": ""
           },
-          "$$hashKey": "object:9715"
+          "$$hashKey": "object:52578"
         },
         {
           "name": "option_7_cost_2_value",
@@ -3769,7 +2029,7 @@
             "stdDev": 0,
             "default_value": 0
           },
-          "$$hashKey": "object:9716"
+          "$$hashKey": "object:52579"
         },
         {
           "name": "option_7_cost_2_multiplier",
@@ -3843,301 +2103,7 @@
             "stdDev": "",
             "default_value": ""
           },
-          "$$hashKey": "object:9717"
-        },
-        {
-          "name": "option_7_cost_3_value",
-          "display_name": "Option 7 Cost 3 Value",
-          "description": "Total option 7 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).",
-          "type": "Double",
-          "required": false,
-          "model_dependent": false,
-          "units": "$",
-          "display_name_short": "option_7_cost_3_value",
-          "inputs": {
-            "relationship": null,
-            "choiceDisplayNames": [],
-            "variableSetting": "Argument",
-            "distribution": "Uniform",
-            "discreteVariables": [],
-            "maximum": 0,
-            "minimum": 0,
-            "mean": 0,
-            "deltaX": 0,
-            "stdDev": 0,
-            "default_value": 0
-          },
-          "$$hashKey": "object:9718"
-        },
-        {
-          "name": "option_7_cost_3_multiplier",
-          "display_name": "Option 7 Cost 3 Multiplier",
-          "description": "Total option 7 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).",
-          "type": "Choice",
-          "required": false,
-          "model_dependent": false,
-          "default_value": "",
-          "choice_values": [
-            "",
-            "Fixed (1)",
-            "Conditioned Floor Area (ft^2)",
-            "Conditioned Foundation Slab Area (ft^2)",
-            "Lighting Floor Area (ft^2)",
-            "Above-Grade Conditioned Wall Area (ft^2)",
-            "Above-Grade Total Wall Area (ft^2)",
-            "Below-Grade Conditioned Wall Area (ft^2)",
-            "Below-Grade Total Wall Area (ft^2)",
-            "Window Area (ft^2)",
-            "Roof Area (ft^2)",
-            "Door Area (ft^2)",
-            "Water Heater Tank Size (gal)",
-            "HVAC Cooling Capacity (kBtuh)",
-            "HVAC Heating Capacity (kBtuh)"
-          ],
-          "choice_display_names": [
-            "",
-            "Fixed (1)",
-            "Conditioned Floor Area (ft^2)",
-            "Conditioned Foundation Slab Area (ft^2)",
-            "Lighting Floor Area (ft^2)",
-            "Above-Grade Conditioned Wall Area (ft^2)",
-            "Above-Grade Total Wall Area (ft^2)",
-            "Below-Grade Conditioned Wall Area (ft^2)",
-            "Below-Grade Total Wall Area (ft^2)",
-            "Window Area (ft^2)",
-            "Roof Area (ft^2)",
-            "Door Area (ft^2)",
-            "Water Heater Tank Size (gal)",
-            "HVAC Cooling Capacity (kBtuh)",
-            "HVAC Heating Capacity (kBtuh)"
-          ],
-          "display_name_short": "option_7_cost_3_multiplier",
-          "inputs": {
-            "relationship": null,
-            "choiceDisplayNames": [
-              "",
-              "Fixed (1)",
-              "Conditioned Floor Area (ft^2)",
-              "Conditioned Foundation Slab Area (ft^2)",
-              "Lighting Floor Area (ft^2)",
-              "Above-Grade Conditioned Wall Area (ft^2)",
-              "Above-Grade Total Wall Area (ft^2)",
-              "Below-Grade Conditioned Wall Area (ft^2)",
-              "Below-Grade Total Wall Area (ft^2)",
-              "Window Area (ft^2)",
-              "Roof Area (ft^2)",
-              "Door Area (ft^2)",
-              "Water Heater Tank Size (gal)",
-              "HVAC Cooling Capacity (kBtuh)",
-              "HVAC Heating Capacity (kBtuh)"
-            ],
-            "variableSetting": "Argument",
-            "distribution": "Uniform",
-            "discreteVariables": [],
-            "maximum": "",
-            "minimum": "",
-            "mean": "",
-            "deltaX": "",
-            "stdDev": "",
-            "default_value": ""
-          },
-          "$$hashKey": "object:9719"
-        },
-        {
-          "name": "option_7_cost_4_value",
-          "display_name": "Option 7 Cost 4 Value",
-          "description": "Total option 7 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).",
-          "type": "Double",
-          "required": false,
-          "model_dependent": false,
-          "units": "$",
-          "display_name_short": "option_7_cost_4_value",
-          "inputs": {
-            "relationship": null,
-            "choiceDisplayNames": [],
-            "variableSetting": "Argument",
-            "distribution": "Uniform",
-            "discreteVariables": [],
-            "maximum": 0,
-            "minimum": 0,
-            "mean": 0,
-            "deltaX": 0,
-            "stdDev": 0,
-            "default_value": 0
-          },
-          "$$hashKey": "object:9720"
-        },
-        {
-          "name": "option_7_cost_4_multiplier",
-          "display_name": "Option 7 Cost 4 Multiplier",
-          "description": "Total option 7 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).",
-          "type": "Choice",
-          "required": false,
-          "model_dependent": false,
-          "default_value": "",
-          "choice_values": [
-            "",
-            "Fixed (1)",
-            "Conditioned Floor Area (ft^2)",
-            "Conditioned Foundation Slab Area (ft^2)",
-            "Lighting Floor Area (ft^2)",
-            "Above-Grade Conditioned Wall Area (ft^2)",
-            "Above-Grade Total Wall Area (ft^2)",
-            "Below-Grade Conditioned Wall Area (ft^2)",
-            "Below-Grade Total Wall Area (ft^2)",
-            "Window Area (ft^2)",
-            "Roof Area (ft^2)",
-            "Door Area (ft^2)",
-            "Water Heater Tank Size (gal)",
-            "HVAC Cooling Capacity (kBtuh)",
-            "HVAC Heating Capacity (kBtuh)"
-          ],
-          "choice_display_names": [
-            "",
-            "Fixed (1)",
-            "Conditioned Floor Area (ft^2)",
-            "Conditioned Foundation Slab Area (ft^2)",
-            "Lighting Floor Area (ft^2)",
-            "Above-Grade Conditioned Wall Area (ft^2)",
-            "Above-Grade Total Wall Area (ft^2)",
-            "Below-Grade Conditioned Wall Area (ft^2)",
-            "Below-Grade Total Wall Area (ft^2)",
-            "Window Area (ft^2)",
-            "Roof Area (ft^2)",
-            "Door Area (ft^2)",
-            "Water Heater Tank Size (gal)",
-            "HVAC Cooling Capacity (kBtuh)",
-            "HVAC Heating Capacity (kBtuh)"
-          ],
-          "display_name_short": "option_7_cost_4_multiplier",
-          "inputs": {
-            "relationship": null,
-            "choiceDisplayNames": [
-              "",
-              "Fixed (1)",
-              "Conditioned Floor Area (ft^2)",
-              "Conditioned Foundation Slab Area (ft^2)",
-              "Lighting Floor Area (ft^2)",
-              "Above-Grade Conditioned Wall Area (ft^2)",
-              "Above-Grade Total Wall Area (ft^2)",
-              "Below-Grade Conditioned Wall Area (ft^2)",
-              "Below-Grade Total Wall Area (ft^2)",
-              "Window Area (ft^2)",
-              "Roof Area (ft^2)",
-              "Door Area (ft^2)",
-              "Water Heater Tank Size (gal)",
-              "HVAC Cooling Capacity (kBtuh)",
-              "HVAC Heating Capacity (kBtuh)"
-            ],
-            "variableSetting": "Argument",
-            "distribution": "Uniform",
-            "discreteVariables": [],
-            "maximum": "",
-            "minimum": "",
-            "mean": "",
-            "deltaX": "",
-            "stdDev": "",
-            "default_value": ""
-          },
-          "$$hashKey": "object:9721"
-        },
-        {
-          "name": "option_7_cost_5_value",
-          "display_name": "Option 7 Cost 5 Value",
-          "description": "Total option 7 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).",
-          "type": "Double",
-          "required": false,
-          "model_dependent": false,
-          "units": "$",
-          "display_name_short": "option_7_cost_5_value",
-          "inputs": {
-            "relationship": null,
-            "choiceDisplayNames": [],
-            "variableSetting": "Argument",
-            "distribution": "Uniform",
-            "discreteVariables": [],
-            "maximum": 0,
-            "minimum": 0,
-            "mean": 0,
-            "deltaX": 0,
-            "stdDev": 0,
-            "default_value": 0
-          },
-          "$$hashKey": "object:9722"
-        },
-        {
-          "name": "option_7_cost_5_multiplier",
-          "display_name": "Option 7 Cost 5 Multiplier",
-          "description": "Total option 7 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).",
-          "type": "Choice",
-          "required": false,
-          "model_dependent": false,
-          "default_value": "",
-          "choice_values": [
-            "",
-            "Fixed (1)",
-            "Conditioned Floor Area (ft^2)",
-            "Conditioned Foundation Slab Area (ft^2)",
-            "Lighting Floor Area (ft^2)",
-            "Above-Grade Conditioned Wall Area (ft^2)",
-            "Above-Grade Total Wall Area (ft^2)",
-            "Below-Grade Conditioned Wall Area (ft^2)",
-            "Below-Grade Total Wall Area (ft^2)",
-            "Window Area (ft^2)",
-            "Roof Area (ft^2)",
-            "Door Area (ft^2)",
-            "Water Heater Tank Size (gal)",
-            "HVAC Cooling Capacity (kBtuh)",
-            "HVAC Heating Capacity (kBtuh)"
-          ],
-          "choice_display_names": [
-            "",
-            "Fixed (1)",
-            "Conditioned Floor Area (ft^2)",
-            "Conditioned Foundation Slab Area (ft^2)",
-            "Lighting Floor Area (ft^2)",
-            "Above-Grade Conditioned Wall Area (ft^2)",
-            "Above-Grade Total Wall Area (ft^2)",
-            "Below-Grade Conditioned Wall Area (ft^2)",
-            "Below-Grade Total Wall Area (ft^2)",
-            "Window Area (ft^2)",
-            "Roof Area (ft^2)",
-            "Door Area (ft^2)",
-            "Water Heater Tank Size (gal)",
-            "HVAC Cooling Capacity (kBtuh)",
-            "HVAC Heating Capacity (kBtuh)"
-          ],
-          "display_name_short": "option_7_cost_5_multiplier",
-          "inputs": {
-            "relationship": null,
-            "choiceDisplayNames": [
-              "",
-              "Fixed (1)",
-              "Conditioned Floor Area (ft^2)",
-              "Conditioned Foundation Slab Area (ft^2)",
-              "Lighting Floor Area (ft^2)",
-              "Above-Grade Conditioned Wall Area (ft^2)",
-              "Above-Grade Total Wall Area (ft^2)",
-              "Below-Grade Conditioned Wall Area (ft^2)",
-              "Below-Grade Total Wall Area (ft^2)",
-              "Window Area (ft^2)",
-              "Roof Area (ft^2)",
-              "Door Area (ft^2)",
-              "Water Heater Tank Size (gal)",
-              "HVAC Cooling Capacity (kBtuh)",
-              "HVAC Heating Capacity (kBtuh)"
-            ],
-            "variableSetting": "Argument",
-            "distribution": "Uniform",
-            "discreteVariables": [],
-            "maximum": "",
-            "minimum": "",
-            "mean": "",
-            "deltaX": "",
-            "stdDev": "",
-            "default_value": ""
-          },
-          "$$hashKey": "object:9723"
+          "$$hashKey": "object:52580"
         },
         {
           "name": "option_8",
@@ -4160,7 +2126,7 @@
             "stdDev": "",
             "default_value": ""
           },
-          "$$hashKey": "object:9724"
+          "$$hashKey": "object:52581"
         },
         {
           "name": "option_8_apply_logic",
@@ -4183,7 +2149,7 @@
             "stdDev": "",
             "default_value": ""
           },
-          "$$hashKey": "object:9725"
+          "$$hashKey": "object:52582"
         },
         {
           "name": "option_8_cost_1_value",
@@ -4207,7 +2173,7 @@
             "stdDev": 0,
             "default_value": 0
           },
-          "$$hashKey": "object:9726"
+          "$$hashKey": "object:52583"
         },
         {
           "name": "option_8_cost_1_multiplier",
@@ -4281,7 +2247,7 @@
             "stdDev": "",
             "default_value": ""
           },
-          "$$hashKey": "object:9727"
+          "$$hashKey": "object:52584"
         },
         {
           "name": "option_8_cost_2_value",
@@ -4305,7 +2271,7 @@
             "stdDev": 0,
             "default_value": 0
           },
-          "$$hashKey": "object:9728"
+          "$$hashKey": "object:52585"
         },
         {
           "name": "option_8_cost_2_multiplier",
@@ -4379,301 +2345,7 @@
             "stdDev": "",
             "default_value": ""
           },
-          "$$hashKey": "object:9729"
-        },
-        {
-          "name": "option_8_cost_3_value",
-          "display_name": "Option 8 Cost 3 Value",
-          "description": "Total option 8 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).",
-          "type": "Double",
-          "required": false,
-          "model_dependent": false,
-          "units": "$",
-          "display_name_short": "option_8_cost_3_value",
-          "inputs": {
-            "relationship": null,
-            "choiceDisplayNames": [],
-            "variableSetting": "Argument",
-            "distribution": "Uniform",
-            "discreteVariables": [],
-            "maximum": 0,
-            "minimum": 0,
-            "mean": 0,
-            "deltaX": 0,
-            "stdDev": 0,
-            "default_value": 0
-          },
-          "$$hashKey": "object:9730"
-        },
-        {
-          "name": "option_8_cost_3_multiplier",
-          "display_name": "Option 8 Cost 3 Multiplier",
-          "description": "Total option 8 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).",
-          "type": "Choice",
-          "required": false,
-          "model_dependent": false,
-          "default_value": "",
-          "choice_values": [
-            "",
-            "Fixed (1)",
-            "Conditioned Floor Area (ft^2)",
-            "Conditioned Foundation Slab Area (ft^2)",
-            "Lighting Floor Area (ft^2)",
-            "Above-Grade Conditioned Wall Area (ft^2)",
-            "Above-Grade Total Wall Area (ft^2)",
-            "Below-Grade Conditioned Wall Area (ft^2)",
-            "Below-Grade Total Wall Area (ft^2)",
-            "Window Area (ft^2)",
-            "Roof Area (ft^2)",
-            "Door Area (ft^2)",
-            "Water Heater Tank Size (gal)",
-            "HVAC Cooling Capacity (kBtuh)",
-            "HVAC Heating Capacity (kBtuh)"
-          ],
-          "choice_display_names": [
-            "",
-            "Fixed (1)",
-            "Conditioned Floor Area (ft^2)",
-            "Conditioned Foundation Slab Area (ft^2)",
-            "Lighting Floor Area (ft^2)",
-            "Above-Grade Conditioned Wall Area (ft^2)",
-            "Above-Grade Total Wall Area (ft^2)",
-            "Below-Grade Conditioned Wall Area (ft^2)",
-            "Below-Grade Total Wall Area (ft^2)",
-            "Window Area (ft^2)",
-            "Roof Area (ft^2)",
-            "Door Area (ft^2)",
-            "Water Heater Tank Size (gal)",
-            "HVAC Cooling Capacity (kBtuh)",
-            "HVAC Heating Capacity (kBtuh)"
-          ],
-          "display_name_short": "option_8_cost_3_multiplier",
-          "inputs": {
-            "relationship": null,
-            "choiceDisplayNames": [
-              "",
-              "Fixed (1)",
-              "Conditioned Floor Area (ft^2)",
-              "Conditioned Foundation Slab Area (ft^2)",
-              "Lighting Floor Area (ft^2)",
-              "Above-Grade Conditioned Wall Area (ft^2)",
-              "Above-Grade Total Wall Area (ft^2)",
-              "Below-Grade Conditioned Wall Area (ft^2)",
-              "Below-Grade Total Wall Area (ft^2)",
-              "Window Area (ft^2)",
-              "Roof Area (ft^2)",
-              "Door Area (ft^2)",
-              "Water Heater Tank Size (gal)",
-              "HVAC Cooling Capacity (kBtuh)",
-              "HVAC Heating Capacity (kBtuh)"
-            ],
-            "variableSetting": "Argument",
-            "distribution": "Uniform",
-            "discreteVariables": [],
-            "maximum": "",
-            "minimum": "",
-            "mean": "",
-            "deltaX": "",
-            "stdDev": "",
-            "default_value": ""
-          },
-          "$$hashKey": "object:9731"
-        },
-        {
-          "name": "option_8_cost_4_value",
-          "display_name": "Option 8 Cost 4 Value",
-          "description": "Total option 8 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).",
-          "type": "Double",
-          "required": false,
-          "model_dependent": false,
-          "units": "$",
-          "display_name_short": "option_8_cost_4_value",
-          "inputs": {
-            "relationship": null,
-            "choiceDisplayNames": [],
-            "variableSetting": "Argument",
-            "distribution": "Uniform",
-            "discreteVariables": [],
-            "maximum": 0,
-            "minimum": 0,
-            "mean": 0,
-            "deltaX": 0,
-            "stdDev": 0,
-            "default_value": 0
-          },
-          "$$hashKey": "object:9732"
-        },
-        {
-          "name": "option_8_cost_4_multiplier",
-          "display_name": "Option 8 Cost 4 Multiplier",
-          "description": "Total option 8 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).",
-          "type": "Choice",
-          "required": false,
-          "model_dependent": false,
-          "default_value": "",
-          "choice_values": [
-            "",
-            "Fixed (1)",
-            "Conditioned Floor Area (ft^2)",
-            "Conditioned Foundation Slab Area (ft^2)",
-            "Lighting Floor Area (ft^2)",
-            "Above-Grade Conditioned Wall Area (ft^2)",
-            "Above-Grade Total Wall Area (ft^2)",
-            "Below-Grade Conditioned Wall Area (ft^2)",
-            "Below-Grade Total Wall Area (ft^2)",
-            "Window Area (ft^2)",
-            "Roof Area (ft^2)",
-            "Door Area (ft^2)",
-            "Water Heater Tank Size (gal)",
-            "HVAC Cooling Capacity (kBtuh)",
-            "HVAC Heating Capacity (kBtuh)"
-          ],
-          "choice_display_names": [
-            "",
-            "Fixed (1)",
-            "Conditioned Floor Area (ft^2)",
-            "Conditioned Foundation Slab Area (ft^2)",
-            "Lighting Floor Area (ft^2)",
-            "Above-Grade Conditioned Wall Area (ft^2)",
-            "Above-Grade Total Wall Area (ft^2)",
-            "Below-Grade Conditioned Wall Area (ft^2)",
-            "Below-Grade Total Wall Area (ft^2)",
-            "Window Area (ft^2)",
-            "Roof Area (ft^2)",
-            "Door Area (ft^2)",
-            "Water Heater Tank Size (gal)",
-            "HVAC Cooling Capacity (kBtuh)",
-            "HVAC Heating Capacity (kBtuh)"
-          ],
-          "display_name_short": "option_8_cost_4_multiplier",
-          "inputs": {
-            "relationship": null,
-            "choiceDisplayNames": [
-              "",
-              "Fixed (1)",
-              "Conditioned Floor Area (ft^2)",
-              "Conditioned Foundation Slab Area (ft^2)",
-              "Lighting Floor Area (ft^2)",
-              "Above-Grade Conditioned Wall Area (ft^2)",
-              "Above-Grade Total Wall Area (ft^2)",
-              "Below-Grade Conditioned Wall Area (ft^2)",
-              "Below-Grade Total Wall Area (ft^2)",
-              "Window Area (ft^2)",
-              "Roof Area (ft^2)",
-              "Door Area (ft^2)",
-              "Water Heater Tank Size (gal)",
-              "HVAC Cooling Capacity (kBtuh)",
-              "HVAC Heating Capacity (kBtuh)"
-            ],
-            "variableSetting": "Argument",
-            "distribution": "Uniform",
-            "discreteVariables": [],
-            "maximum": "",
-            "minimum": "",
-            "mean": "",
-            "deltaX": "",
-            "stdDev": "",
-            "default_value": ""
-          },
-          "$$hashKey": "object:9733"
-        },
-        {
-          "name": "option_8_cost_5_value",
-          "display_name": "Option 8 Cost 5 Value",
-          "description": "Total option 8 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).",
-          "type": "Double",
-          "required": false,
-          "model_dependent": false,
-          "units": "$",
-          "display_name_short": "option_8_cost_5_value",
-          "inputs": {
-            "relationship": null,
-            "choiceDisplayNames": [],
-            "variableSetting": "Argument",
-            "distribution": "Uniform",
-            "discreteVariables": [],
-            "maximum": 0,
-            "minimum": 0,
-            "mean": 0,
-            "deltaX": 0,
-            "stdDev": 0,
-            "default_value": 0
-          },
-          "$$hashKey": "object:9734"
-        },
-        {
-          "name": "option_8_cost_5_multiplier",
-          "display_name": "Option 8 Cost 5 Multiplier",
-          "description": "Total option 8 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).",
-          "type": "Choice",
-          "required": false,
-          "model_dependent": false,
-          "default_value": "",
-          "choice_values": [
-            "",
-            "Fixed (1)",
-            "Conditioned Floor Area (ft^2)",
-            "Conditioned Foundation Slab Area (ft^2)",
-            "Lighting Floor Area (ft^2)",
-            "Above-Grade Conditioned Wall Area (ft^2)",
-            "Above-Grade Total Wall Area (ft^2)",
-            "Below-Grade Conditioned Wall Area (ft^2)",
-            "Below-Grade Total Wall Area (ft^2)",
-            "Window Area (ft^2)",
-            "Roof Area (ft^2)",
-            "Door Area (ft^2)",
-            "Water Heater Tank Size (gal)",
-            "HVAC Cooling Capacity (kBtuh)",
-            "HVAC Heating Capacity (kBtuh)"
-          ],
-          "choice_display_names": [
-            "",
-            "Fixed (1)",
-            "Conditioned Floor Area (ft^2)",
-            "Conditioned Foundation Slab Area (ft^2)",
-            "Lighting Floor Area (ft^2)",
-            "Above-Grade Conditioned Wall Area (ft^2)",
-            "Above-Grade Total Wall Area (ft^2)",
-            "Below-Grade Conditioned Wall Area (ft^2)",
-            "Below-Grade Total Wall Area (ft^2)",
-            "Window Area (ft^2)",
-            "Roof Area (ft^2)",
-            "Door Area (ft^2)",
-            "Water Heater Tank Size (gal)",
-            "HVAC Cooling Capacity (kBtuh)",
-            "HVAC Heating Capacity (kBtuh)"
-          ],
-          "display_name_short": "option_8_cost_5_multiplier",
-          "inputs": {
-            "relationship": null,
-            "choiceDisplayNames": [
-              "",
-              "Fixed (1)",
-              "Conditioned Floor Area (ft^2)",
-              "Conditioned Foundation Slab Area (ft^2)",
-              "Lighting Floor Area (ft^2)",
-              "Above-Grade Conditioned Wall Area (ft^2)",
-              "Above-Grade Total Wall Area (ft^2)",
-              "Below-Grade Conditioned Wall Area (ft^2)",
-              "Below-Grade Total Wall Area (ft^2)",
-              "Window Area (ft^2)",
-              "Roof Area (ft^2)",
-              "Door Area (ft^2)",
-              "Water Heater Tank Size (gal)",
-              "HVAC Cooling Capacity (kBtuh)",
-              "HVAC Heating Capacity (kBtuh)"
-            ],
-            "variableSetting": "Argument",
-            "distribution": "Uniform",
-            "discreteVariables": [],
-            "maximum": "",
-            "minimum": "",
-            "mean": "",
-            "deltaX": "",
-            "stdDev": "",
-            "default_value": ""
-          },
-          "$$hashKey": "object:9735"
+          "$$hashKey": "object:52586"
         },
         {
           "name": "option_9",
@@ -4696,7 +2368,7 @@
             "stdDev": "",
             "default_value": ""
           },
-          "$$hashKey": "object:9736"
+          "$$hashKey": "object:52587"
         },
         {
           "name": "option_9_apply_logic",
@@ -4719,7 +2391,7 @@
             "stdDev": "",
             "default_value": ""
           },
-          "$$hashKey": "object:9737"
+          "$$hashKey": "object:52588"
         },
         {
           "name": "option_9_cost_1_value",
@@ -4743,7 +2415,7 @@
             "stdDev": 0,
             "default_value": 0
           },
-          "$$hashKey": "object:9738"
+          "$$hashKey": "object:52589"
         },
         {
           "name": "option_9_cost_1_multiplier",
@@ -4817,7 +2489,7 @@
             "stdDev": "",
             "default_value": ""
           },
-          "$$hashKey": "object:9739"
+          "$$hashKey": "object:52590"
         },
         {
           "name": "option_9_cost_2_value",
@@ -4841,7 +2513,7 @@
             "stdDev": 0,
             "default_value": 0
           },
-          "$$hashKey": "object:9740"
+          "$$hashKey": "object:52591"
         },
         {
           "name": "option_9_cost_2_multiplier",
@@ -4915,301 +2587,7 @@
             "stdDev": "",
             "default_value": ""
           },
-          "$$hashKey": "object:9741"
-        },
-        {
-          "name": "option_9_cost_3_value",
-          "display_name": "Option 9 Cost 3 Value",
-          "description": "Total option 9 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).",
-          "type": "Double",
-          "required": false,
-          "model_dependent": false,
-          "units": "$",
-          "display_name_short": "option_9_cost_3_value",
-          "inputs": {
-            "relationship": null,
-            "choiceDisplayNames": [],
-            "variableSetting": "Argument",
-            "distribution": "Uniform",
-            "discreteVariables": [],
-            "maximum": 0,
-            "minimum": 0,
-            "mean": 0,
-            "deltaX": 0,
-            "stdDev": 0,
-            "default_value": 0
-          },
-          "$$hashKey": "object:9742"
-        },
-        {
-          "name": "option_9_cost_3_multiplier",
-          "display_name": "Option 9 Cost 3 Multiplier",
-          "description": "Total option 9 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).",
-          "type": "Choice",
-          "required": false,
-          "model_dependent": false,
-          "default_value": "",
-          "choice_values": [
-            "",
-            "Fixed (1)",
-            "Conditioned Floor Area (ft^2)",
-            "Conditioned Foundation Slab Area (ft^2)",
-            "Lighting Floor Area (ft^2)",
-            "Above-Grade Conditioned Wall Area (ft^2)",
-            "Above-Grade Total Wall Area (ft^2)",
-            "Below-Grade Conditioned Wall Area (ft^2)",
-            "Below-Grade Total Wall Area (ft^2)",
-            "Window Area (ft^2)",
-            "Roof Area (ft^2)",
-            "Door Area (ft^2)",
-            "Water Heater Tank Size (gal)",
-            "HVAC Cooling Capacity (kBtuh)",
-            "HVAC Heating Capacity (kBtuh)"
-          ],
-          "choice_display_names": [
-            "",
-            "Fixed (1)",
-            "Conditioned Floor Area (ft^2)",
-            "Conditioned Foundation Slab Area (ft^2)",
-            "Lighting Floor Area (ft^2)",
-            "Above-Grade Conditioned Wall Area (ft^2)",
-            "Above-Grade Total Wall Area (ft^2)",
-            "Below-Grade Conditioned Wall Area (ft^2)",
-            "Below-Grade Total Wall Area (ft^2)",
-            "Window Area (ft^2)",
-            "Roof Area (ft^2)",
-            "Door Area (ft^2)",
-            "Water Heater Tank Size (gal)",
-            "HVAC Cooling Capacity (kBtuh)",
-            "HVAC Heating Capacity (kBtuh)"
-          ],
-          "display_name_short": "option_9_cost_3_multiplier",
-          "inputs": {
-            "relationship": null,
-            "choiceDisplayNames": [
-              "",
-              "Fixed (1)",
-              "Conditioned Floor Area (ft^2)",
-              "Conditioned Foundation Slab Area (ft^2)",
-              "Lighting Floor Area (ft^2)",
-              "Above-Grade Conditioned Wall Area (ft^2)",
-              "Above-Grade Total Wall Area (ft^2)",
-              "Below-Grade Conditioned Wall Area (ft^2)",
-              "Below-Grade Total Wall Area (ft^2)",
-              "Window Area (ft^2)",
-              "Roof Area (ft^2)",
-              "Door Area (ft^2)",
-              "Water Heater Tank Size (gal)",
-              "HVAC Cooling Capacity (kBtuh)",
-              "HVAC Heating Capacity (kBtuh)"
-            ],
-            "variableSetting": "Argument",
-            "distribution": "Uniform",
-            "discreteVariables": [],
-            "maximum": "",
-            "minimum": "",
-            "mean": "",
-            "deltaX": "",
-            "stdDev": "",
-            "default_value": ""
-          },
-          "$$hashKey": "object:9743"
-        },
-        {
-          "name": "option_9_cost_4_value",
-          "display_name": "Option 9 Cost 4 Value",
-          "description": "Total option 9 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).",
-          "type": "Double",
-          "required": false,
-          "model_dependent": false,
-          "units": "$",
-          "display_name_short": "option_9_cost_4_value",
-          "inputs": {
-            "relationship": null,
-            "choiceDisplayNames": [],
-            "variableSetting": "Argument",
-            "distribution": "Uniform",
-            "discreteVariables": [],
-            "maximum": 0,
-            "minimum": 0,
-            "mean": 0,
-            "deltaX": 0,
-            "stdDev": 0,
-            "default_value": 0
-          },
-          "$$hashKey": "object:9744"
-        },
-        {
-          "name": "option_9_cost_4_multiplier",
-          "display_name": "Option 9 Cost 4 Multiplier",
-          "description": "Total option 9 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).",
-          "type": "Choice",
-          "required": false,
-          "model_dependent": false,
-          "default_value": "",
-          "choice_values": [
-            "",
-            "Fixed (1)",
-            "Conditioned Floor Area (ft^2)",
-            "Conditioned Foundation Slab Area (ft^2)",
-            "Lighting Floor Area (ft^2)",
-            "Above-Grade Conditioned Wall Area (ft^2)",
-            "Above-Grade Total Wall Area (ft^2)",
-            "Below-Grade Conditioned Wall Area (ft^2)",
-            "Below-Grade Total Wall Area (ft^2)",
-            "Window Area (ft^2)",
-            "Roof Area (ft^2)",
-            "Door Area (ft^2)",
-            "Water Heater Tank Size (gal)",
-            "HVAC Cooling Capacity (kBtuh)",
-            "HVAC Heating Capacity (kBtuh)"
-          ],
-          "choice_display_names": [
-            "",
-            "Fixed (1)",
-            "Conditioned Floor Area (ft^2)",
-            "Conditioned Foundation Slab Area (ft^2)",
-            "Lighting Floor Area (ft^2)",
-            "Above-Grade Conditioned Wall Area (ft^2)",
-            "Above-Grade Total Wall Area (ft^2)",
-            "Below-Grade Conditioned Wall Area (ft^2)",
-            "Below-Grade Total Wall Area (ft^2)",
-            "Window Area (ft^2)",
-            "Roof Area (ft^2)",
-            "Door Area (ft^2)",
-            "Water Heater Tank Size (gal)",
-            "HVAC Cooling Capacity (kBtuh)",
-            "HVAC Heating Capacity (kBtuh)"
-          ],
-          "display_name_short": "option_9_cost_4_multiplier",
-          "inputs": {
-            "relationship": null,
-            "choiceDisplayNames": [
-              "",
-              "Fixed (1)",
-              "Conditioned Floor Area (ft^2)",
-              "Conditioned Foundation Slab Area (ft^2)",
-              "Lighting Floor Area (ft^2)",
-              "Above-Grade Conditioned Wall Area (ft^2)",
-              "Above-Grade Total Wall Area (ft^2)",
-              "Below-Grade Conditioned Wall Area (ft^2)",
-              "Below-Grade Total Wall Area (ft^2)",
-              "Window Area (ft^2)",
-              "Roof Area (ft^2)",
-              "Door Area (ft^2)",
-              "Water Heater Tank Size (gal)",
-              "HVAC Cooling Capacity (kBtuh)",
-              "HVAC Heating Capacity (kBtuh)"
-            ],
-            "variableSetting": "Argument",
-            "distribution": "Uniform",
-            "discreteVariables": [],
-            "maximum": "",
-            "minimum": "",
-            "mean": "",
-            "deltaX": "",
-            "stdDev": "",
-            "default_value": ""
-          },
-          "$$hashKey": "object:9745"
-        },
-        {
-          "name": "option_9_cost_5_value",
-          "display_name": "Option 9 Cost 5 Value",
-          "description": "Total option 9 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).",
-          "type": "Double",
-          "required": false,
-          "model_dependent": false,
-          "units": "$",
-          "display_name_short": "option_9_cost_5_value",
-          "inputs": {
-            "relationship": null,
-            "choiceDisplayNames": [],
-            "variableSetting": "Argument",
-            "distribution": "Uniform",
-            "discreteVariables": [],
-            "maximum": 0,
-            "minimum": 0,
-            "mean": 0,
-            "deltaX": 0,
-            "stdDev": 0,
-            "default_value": 0
-          },
-          "$$hashKey": "object:9746"
-        },
-        {
-          "name": "option_9_cost_5_multiplier",
-          "display_name": "Option 9 Cost 5 Multiplier",
-          "description": "Total option 9 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).",
-          "type": "Choice",
-          "required": false,
-          "model_dependent": false,
-          "default_value": "",
-          "choice_values": [
-            "",
-            "Fixed (1)",
-            "Conditioned Floor Area (ft^2)",
-            "Conditioned Foundation Slab Area (ft^2)",
-            "Lighting Floor Area (ft^2)",
-            "Above-Grade Conditioned Wall Area (ft^2)",
-            "Above-Grade Total Wall Area (ft^2)",
-            "Below-Grade Conditioned Wall Area (ft^2)",
-            "Below-Grade Total Wall Area (ft^2)",
-            "Window Area (ft^2)",
-            "Roof Area (ft^2)",
-            "Door Area (ft^2)",
-            "Water Heater Tank Size (gal)",
-            "HVAC Cooling Capacity (kBtuh)",
-            "HVAC Heating Capacity (kBtuh)"
-          ],
-          "choice_display_names": [
-            "",
-            "Fixed (1)",
-            "Conditioned Floor Area (ft^2)",
-            "Conditioned Foundation Slab Area (ft^2)",
-            "Lighting Floor Area (ft^2)",
-            "Above-Grade Conditioned Wall Area (ft^2)",
-            "Above-Grade Total Wall Area (ft^2)",
-            "Below-Grade Conditioned Wall Area (ft^2)",
-            "Below-Grade Total Wall Area (ft^2)",
-            "Window Area (ft^2)",
-            "Roof Area (ft^2)",
-            "Door Area (ft^2)",
-            "Water Heater Tank Size (gal)",
-            "HVAC Cooling Capacity (kBtuh)",
-            "HVAC Heating Capacity (kBtuh)"
-          ],
-          "display_name_short": "option_9_cost_5_multiplier",
-          "inputs": {
-            "relationship": null,
-            "choiceDisplayNames": [
-              "",
-              "Fixed (1)",
-              "Conditioned Floor Area (ft^2)",
-              "Conditioned Foundation Slab Area (ft^2)",
-              "Lighting Floor Area (ft^2)",
-              "Above-Grade Conditioned Wall Area (ft^2)",
-              "Above-Grade Total Wall Area (ft^2)",
-              "Below-Grade Conditioned Wall Area (ft^2)",
-              "Below-Grade Total Wall Area (ft^2)",
-              "Window Area (ft^2)",
-              "Roof Area (ft^2)",
-              "Door Area (ft^2)",
-              "Water Heater Tank Size (gal)",
-              "HVAC Cooling Capacity (kBtuh)",
-              "HVAC Heating Capacity (kBtuh)"
-            ],
-            "variableSetting": "Argument",
-            "distribution": "Uniform",
-            "discreteVariables": [],
-            "maximum": "",
-            "minimum": "",
-            "mean": "",
-            "deltaX": "",
-            "stdDev": "",
-            "default_value": ""
-          },
-          "$$hashKey": "object:9747"
+          "$$hashKey": "object:52592"
         },
         {
           "name": "option_10",
@@ -5232,7 +2610,7 @@
             "stdDev": "",
             "default_value": ""
           },
-          "$$hashKey": "object:9748"
+          "$$hashKey": "object:52593"
         },
         {
           "name": "option_10_apply_logic",
@@ -5255,7 +2633,7 @@
             "stdDev": "",
             "default_value": ""
           },
-          "$$hashKey": "object:9749"
+          "$$hashKey": "object:52594"
         },
         {
           "name": "option_10_cost_1_value",
@@ -5279,7 +2657,7 @@
             "stdDev": 0,
             "default_value": 0
           },
-          "$$hashKey": "object:9750"
+          "$$hashKey": "object:52595"
         },
         {
           "name": "option_10_cost_1_multiplier",
@@ -5353,7 +2731,7 @@
             "stdDev": "",
             "default_value": ""
           },
-          "$$hashKey": "object:9751"
+          "$$hashKey": "object:52596"
         },
         {
           "name": "option_10_cost_2_value",
@@ -5377,7 +2755,7 @@
             "stdDev": 0,
             "default_value": 0
           },
-          "$$hashKey": "object:9752"
+          "$$hashKey": "object:52597"
         },
         {
           "name": "option_10_cost_2_multiplier",
@@ -5451,301 +2829,7 @@
             "stdDev": "",
             "default_value": ""
           },
-          "$$hashKey": "object:9753"
-        },
-        {
-          "name": "option_10_cost_3_value",
-          "display_name": "Option 10 Cost 3 Value",
-          "description": "Total option 10 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).",
-          "type": "Double",
-          "required": false,
-          "model_dependent": false,
-          "units": "$",
-          "display_name_short": "option_10_cost_3_value",
-          "inputs": {
-            "relationship": null,
-            "choiceDisplayNames": [],
-            "variableSetting": "Argument",
-            "distribution": "Uniform",
-            "discreteVariables": [],
-            "maximum": 0,
-            "minimum": 0,
-            "mean": 0,
-            "deltaX": 0,
-            "stdDev": 0,
-            "default_value": 0
-          },
-          "$$hashKey": "object:9754"
-        },
-        {
-          "name": "option_10_cost_3_multiplier",
-          "display_name": "Option 10 Cost 3 Multiplier",
-          "description": "Total option 10 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).",
-          "type": "Choice",
-          "required": false,
-          "model_dependent": false,
-          "default_value": "",
-          "choice_values": [
-            "",
-            "Fixed (1)",
-            "Conditioned Floor Area (ft^2)",
-            "Conditioned Foundation Slab Area (ft^2)",
-            "Lighting Floor Area (ft^2)",
-            "Above-Grade Conditioned Wall Area (ft^2)",
-            "Above-Grade Total Wall Area (ft^2)",
-            "Below-Grade Conditioned Wall Area (ft^2)",
-            "Below-Grade Total Wall Area (ft^2)",
-            "Window Area (ft^2)",
-            "Roof Area (ft^2)",
-            "Door Area (ft^2)",
-            "Water Heater Tank Size (gal)",
-            "HVAC Cooling Capacity (kBtuh)",
-            "HVAC Heating Capacity (kBtuh)"
-          ],
-          "choice_display_names": [
-            "",
-            "Fixed (1)",
-            "Conditioned Floor Area (ft^2)",
-            "Conditioned Foundation Slab Area (ft^2)",
-            "Lighting Floor Area (ft^2)",
-            "Above-Grade Conditioned Wall Area (ft^2)",
-            "Above-Grade Total Wall Area (ft^2)",
-            "Below-Grade Conditioned Wall Area (ft^2)",
-            "Below-Grade Total Wall Area (ft^2)",
-            "Window Area (ft^2)",
-            "Roof Area (ft^2)",
-            "Door Area (ft^2)",
-            "Water Heater Tank Size (gal)",
-            "HVAC Cooling Capacity (kBtuh)",
-            "HVAC Heating Capacity (kBtuh)"
-          ],
-          "display_name_short": "option_10_cost_3_multiplier",
-          "inputs": {
-            "relationship": null,
-            "choiceDisplayNames": [
-              "",
-              "Fixed (1)",
-              "Conditioned Floor Area (ft^2)",
-              "Conditioned Foundation Slab Area (ft^2)",
-              "Lighting Floor Area (ft^2)",
-              "Above-Grade Conditioned Wall Area (ft^2)",
-              "Above-Grade Total Wall Area (ft^2)",
-              "Below-Grade Conditioned Wall Area (ft^2)",
-              "Below-Grade Total Wall Area (ft^2)",
-              "Window Area (ft^2)",
-              "Roof Area (ft^2)",
-              "Door Area (ft^2)",
-              "Water Heater Tank Size (gal)",
-              "HVAC Cooling Capacity (kBtuh)",
-              "HVAC Heating Capacity (kBtuh)"
-            ],
-            "variableSetting": "Argument",
-            "distribution": "Uniform",
-            "discreteVariables": [],
-            "maximum": "",
-            "minimum": "",
-            "mean": "",
-            "deltaX": "",
-            "stdDev": "",
-            "default_value": ""
-          },
-          "$$hashKey": "object:9755"
-        },
-        {
-          "name": "option_10_cost_4_value",
-          "display_name": "Option 10 Cost 4 Value",
-          "description": "Total option 10 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).",
-          "type": "Double",
-          "required": false,
-          "model_dependent": false,
-          "units": "$",
-          "display_name_short": "option_10_cost_4_value",
-          "inputs": {
-            "relationship": null,
-            "choiceDisplayNames": [],
-            "variableSetting": "Argument",
-            "distribution": "Uniform",
-            "discreteVariables": [],
-            "maximum": 0,
-            "minimum": 0,
-            "mean": 0,
-            "deltaX": 0,
-            "stdDev": 0,
-            "default_value": 0
-          },
-          "$$hashKey": "object:9756"
-        },
-        {
-          "name": "option_10_cost_4_multiplier",
-          "display_name": "Option 10 Cost 4 Multiplier",
-          "description": "Total option 10 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).",
-          "type": "Choice",
-          "required": false,
-          "model_dependent": false,
-          "default_value": "",
-          "choice_values": [
-            "",
-            "Fixed (1)",
-            "Conditioned Floor Area (ft^2)",
-            "Conditioned Foundation Slab Area (ft^2)",
-            "Lighting Floor Area (ft^2)",
-            "Above-Grade Conditioned Wall Area (ft^2)",
-            "Above-Grade Total Wall Area (ft^2)",
-            "Below-Grade Conditioned Wall Area (ft^2)",
-            "Below-Grade Total Wall Area (ft^2)",
-            "Window Area (ft^2)",
-            "Roof Area (ft^2)",
-            "Door Area (ft^2)",
-            "Water Heater Tank Size (gal)",
-            "HVAC Cooling Capacity (kBtuh)",
-            "HVAC Heating Capacity (kBtuh)"
-          ],
-          "choice_display_names": [
-            "",
-            "Fixed (1)",
-            "Conditioned Floor Area (ft^2)",
-            "Conditioned Foundation Slab Area (ft^2)",
-            "Lighting Floor Area (ft^2)",
-            "Above-Grade Conditioned Wall Area (ft^2)",
-            "Above-Grade Total Wall Area (ft^2)",
-            "Below-Grade Conditioned Wall Area (ft^2)",
-            "Below-Grade Total Wall Area (ft^2)",
-            "Window Area (ft^2)",
-            "Roof Area (ft^2)",
-            "Door Area (ft^2)",
-            "Water Heater Tank Size (gal)",
-            "HVAC Cooling Capacity (kBtuh)",
-            "HVAC Heating Capacity (kBtuh)"
-          ],
-          "display_name_short": "option_10_cost_4_multiplier",
-          "inputs": {
-            "relationship": null,
-            "choiceDisplayNames": [
-              "",
-              "Fixed (1)",
-              "Conditioned Floor Area (ft^2)",
-              "Conditioned Foundation Slab Area (ft^2)",
-              "Lighting Floor Area (ft^2)",
-              "Above-Grade Conditioned Wall Area (ft^2)",
-              "Above-Grade Total Wall Area (ft^2)",
-              "Below-Grade Conditioned Wall Area (ft^2)",
-              "Below-Grade Total Wall Area (ft^2)",
-              "Window Area (ft^2)",
-              "Roof Area (ft^2)",
-              "Door Area (ft^2)",
-              "Water Heater Tank Size (gal)",
-              "HVAC Cooling Capacity (kBtuh)",
-              "HVAC Heating Capacity (kBtuh)"
-            ],
-            "variableSetting": "Argument",
-            "distribution": "Uniform",
-            "discreteVariables": [],
-            "maximum": "",
-            "minimum": "",
-            "mean": "",
-            "deltaX": "",
-            "stdDev": "",
-            "default_value": ""
-          },
-          "$$hashKey": "object:9757"
-        },
-        {
-          "name": "option_10_cost_5_value",
-          "display_name": "Option 10 Cost 5 Value",
-          "description": "Total option 10 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).",
-          "type": "Double",
-          "required": false,
-          "model_dependent": false,
-          "units": "$",
-          "display_name_short": "option_10_cost_5_value",
-          "inputs": {
-            "relationship": null,
-            "choiceDisplayNames": [],
-            "variableSetting": "Argument",
-            "distribution": "Uniform",
-            "discreteVariables": [],
-            "maximum": 0,
-            "minimum": 0,
-            "mean": 0,
-            "deltaX": 0,
-            "stdDev": 0,
-            "default_value": 0
-          },
-          "$$hashKey": "object:9758"
-        },
-        {
-          "name": "option_10_cost_5_multiplier",
-          "display_name": "Option 10 Cost 5 Multiplier",
-          "description": "Total option 10 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).",
-          "type": "Choice",
-          "required": false,
-          "model_dependent": false,
-          "default_value": "",
-          "choice_values": [
-            "",
-            "Fixed (1)",
-            "Conditioned Floor Area (ft^2)",
-            "Conditioned Foundation Slab Area (ft^2)",
-            "Lighting Floor Area (ft^2)",
-            "Above-Grade Conditioned Wall Area (ft^2)",
-            "Above-Grade Total Wall Area (ft^2)",
-            "Below-Grade Conditioned Wall Area (ft^2)",
-            "Below-Grade Total Wall Area (ft^2)",
-            "Window Area (ft^2)",
-            "Roof Area (ft^2)",
-            "Door Area (ft^2)",
-            "Water Heater Tank Size (gal)",
-            "HVAC Cooling Capacity (kBtuh)",
-            "HVAC Heating Capacity (kBtuh)"
-          ],
-          "choice_display_names": [
-            "",
-            "Fixed (1)",
-            "Conditioned Floor Area (ft^2)",
-            "Conditioned Foundation Slab Area (ft^2)",
-            "Lighting Floor Area (ft^2)",
-            "Above-Grade Conditioned Wall Area (ft^2)",
-            "Above-Grade Total Wall Area (ft^2)",
-            "Below-Grade Conditioned Wall Area (ft^2)",
-            "Below-Grade Total Wall Area (ft^2)",
-            "Window Area (ft^2)",
-            "Roof Area (ft^2)",
-            "Door Area (ft^2)",
-            "Water Heater Tank Size (gal)",
-            "HVAC Cooling Capacity (kBtuh)",
-            "HVAC Heating Capacity (kBtuh)"
-          ],
-          "display_name_short": "option_10_cost_5_multiplier",
-          "inputs": {
-            "relationship": null,
-            "choiceDisplayNames": [
-              "",
-              "Fixed (1)",
-              "Conditioned Floor Area (ft^2)",
-              "Conditioned Foundation Slab Area (ft^2)",
-              "Lighting Floor Area (ft^2)",
-              "Above-Grade Conditioned Wall Area (ft^2)",
-              "Above-Grade Total Wall Area (ft^2)",
-              "Below-Grade Conditioned Wall Area (ft^2)",
-              "Below-Grade Total Wall Area (ft^2)",
-              "Window Area (ft^2)",
-              "Roof Area (ft^2)",
-              "Door Area (ft^2)",
-              "Water Heater Tank Size (gal)",
-              "HVAC Cooling Capacity (kBtuh)",
-              "HVAC Heating Capacity (kBtuh)"
-            ],
-            "variableSetting": "Argument",
-            "distribution": "Uniform",
-            "discreteVariables": [],
-            "maximum": "",
-            "minimum": "",
-            "mean": "",
-            "deltaX": "",
-            "stdDev": "",
-            "default_value": ""
-          },
-          "$$hashKey": "object:9759"
+          "$$hashKey": "object:52598"
         },
         {
           "name": "package_apply_logic",
@@ -5768,7 +2852,7 @@
             "stdDev": "",
             "default_value": ""
           },
-          "$$hashKey": "object:9760"
+          "$$hashKey": "object:52599"
         }
       ],
       "edit": "",
@@ -5778,15 +2862,15 @@
       "add": "",
       "open": false,
       "addedToProject": true,
-      "date": "8/19/2017",
+      "date": "8/24/2017",
       "author": "",
       "type": "ModelMeasure",
       "seed": "EmptySeedModel.osm",
       "workflow_index": 1,
       "options": [],
-      "instanceId": 0.4086056738740722,
+      "instanceId": 0.03060321719583614,
       "skip": false,
-      "$$hashKey": "object:9603",
+      "$$hashKey": "object:52501",
       "showWarningText": false,
       "outputMeasure": false
     },
@@ -6695,7 +3779,7 @@
       "seed": "EmptySeedModel.osm",
       "workflow_index": 2,
       "options": [],
-      "instanceId": 0.4750439402213058,
+      "instanceId": 0.8902155525927393,
       "skip": false,
       "$$hashKey": "object:12818",
       "outputMeasure": true,
@@ -7902,14 +4986,14 @@
       ]
     },
     {
-      "measure_dir": "C:\\Users\\shorowit\\Documents\\GitHub\\OpenStudio-BuildStock\\project_resstock_national\\measures\\SimulationOutputReport",
+      "measure_dir": "C:/Users/shorowit/Documents/GitHub/OpenStudio-BuildStock/measures/SimulationOutputReport",
       "name": "simulation_output_report",
-      "directory": "C:\\Users\\shorowit\\Documents\\GitHub\\OpenStudio-BuildStock\\project_resstock_national\\measures\\SimulationOutputReport",
+      "directory": "C:/Users/shorowit/Documents/GitHub/OpenStudio-BuildStock/measures/SimulationOutputReport",
       "uid": "fc337100-8634-404e-8966-01243d292a79",
       "uuid": "{fc337100-8634-404e-8966-01243d292a79}",
-      "version_id": "b374e233-42ce-4c5f-9571-b68a1401fdc7",
-      "version_uuid": "{b374e233-42ce-4c5f-9571-b68a1401fdc7}",
-      "version_modified": "20170630T224753Z",
+      "version_id": "7d3c8688-2379-4809-b7bd-13f48d6f51e6",
+      "version_uuid": "{7d3c8688-2379-4809-b7bd-13f48d6f51e6}",
+      "version_modified": "20170824T182419Z",
       "xml_checksum": "2C8A3EEF",
       "display_name": "Simulation Output Report",
       "class_name": "SimulationOutputReport",
@@ -7923,7 +5007,9 @@
           "short_name": "total_site_energy_mbtu",
           "description": "",
           "type": "Double",
-          "model_dependent": false
+          "model_dependent": false,
+          "$$hashKey": "object:57626",
+          "checked": true
         },
         {
           "name": "total_site_electricity_kwh",
@@ -7931,7 +5017,9 @@
           "short_name": "total_site_electricity_kwh",
           "description": "",
           "type": "Double",
-          "model_dependent": false
+          "model_dependent": false,
+          "$$hashKey": "object:57627",
+          "checked": true
         },
         {
           "name": "total_site_natural_gas_therm",
@@ -7939,7 +5027,9 @@
           "short_name": "total_site_natural_gas_therm",
           "description": "",
           "type": "Double",
-          "model_dependent": false
+          "model_dependent": false,
+          "$$hashKey": "object:57628",
+          "checked": true
         },
         {
           "name": "total_site_other_fuel_mbtu",
@@ -7947,7 +5037,9 @@
           "short_name": "total_site_other_fuel_mbtu",
           "description": "",
           "type": "Double",
-          "model_dependent": false
+          "model_dependent": false,
+          "$$hashKey": "object:57629",
+          "checked": true
         },
         {
           "name": "net_site_energy_mbtu",
@@ -7955,7 +5047,9 @@
           "short_name": "net_site_energy_mbtu",
           "description": "",
           "type": "Double",
-          "model_dependent": false
+          "model_dependent": false,
+          "$$hashKey": "object:57630",
+          "checked": true
         },
         {
           "name": "net_site_electricity_kwh",
@@ -7963,7 +5057,9 @@
           "short_name": "net_site_electricity_kwh",
           "description": "",
           "type": "Double",
-          "model_dependent": false
+          "model_dependent": false,
+          "$$hashKey": "object:57631",
+          "checked": true
         },
         {
           "name": "electricity_heating_kwh",
@@ -7971,7 +5067,9 @@
           "short_name": "electricity_heating_kwh",
           "description": "",
           "type": "Double",
-          "model_dependent": false
+          "model_dependent": false,
+          "$$hashKey": "object:57632",
+          "checked": true
         },
         {
           "name": "electricity_cooling_kwh",
@@ -7979,7 +5077,9 @@
           "short_name": "electricity_cooling_kwh",
           "description": "",
           "type": "Double",
-          "model_dependent": false
+          "model_dependent": false,
+          "$$hashKey": "object:57633",
+          "checked": true
         },
         {
           "name": "electricity_interior_lighting_kwh",
@@ -7987,7 +5087,9 @@
           "short_name": "electricity_interior_lighting_kwh",
           "description": "",
           "type": "Double",
-          "model_dependent": false
+          "model_dependent": false,
+          "$$hashKey": "object:57634",
+          "checked": true
         },
         {
           "name": "electricity_exterior_lighting_kwh",
@@ -7995,7 +5097,9 @@
           "short_name": "electricity_exterior_lighting_kwh",
           "description": "",
           "type": "Double",
-          "model_dependent": false
+          "model_dependent": false,
+          "$$hashKey": "object:57635",
+          "checked": true
         },
         {
           "name": "electricity_interior_equipment_kwh",
@@ -8003,7 +5107,9 @@
           "short_name": "electricity_interior_equipment_kwh",
           "description": "",
           "type": "Double",
-          "model_dependent": false
+          "model_dependent": false,
+          "$$hashKey": "object:57636",
+          "checked": true
         },
         {
           "name": "electricity_fans_kwh",
@@ -8011,7 +5117,9 @@
           "short_name": "electricity_fans_kwh",
           "description": "",
           "type": "Double",
-          "model_dependent": false
+          "model_dependent": false,
+          "$$hashKey": "object:57637",
+          "checked": true
         },
         {
           "name": "electricity_pumps_kwh",
@@ -8019,7 +5127,9 @@
           "short_name": "electricity_pumps_kwh",
           "description": "",
           "type": "Double",
-          "model_dependent": false
+          "model_dependent": false,
+          "$$hashKey": "object:57638",
+          "checked": true
         },
         {
           "name": "electricity_water_systems_kwh",
@@ -8027,7 +5137,9 @@
           "short_name": "electricity_water_systems_kwh",
           "description": "",
           "type": "Double",
-          "model_dependent": false
+          "model_dependent": false,
+          "$$hashKey": "object:57639",
+          "checked": true
         },
         {
           "name": "electricity_pv_kwh",
@@ -8035,7 +5147,9 @@
           "short_name": "electricity_pv_kwh",
           "description": "",
           "type": "Double",
-          "model_dependent": false
+          "model_dependent": false,
+          "$$hashKey": "object:57640",
+          "checked": true
         },
         {
           "name": "natural_gas_heating_therm",
@@ -8043,7 +5157,9 @@
           "short_name": "natural_gas_heating_therm",
           "description": "",
           "type": "Double",
-          "model_dependent": false
+          "model_dependent": false,
+          "$$hashKey": "object:57641",
+          "checked": true
         },
         {
           "name": "natural_gas_interior_equipment_therm",
@@ -8051,7 +5167,9 @@
           "short_name": "natural_gas_interior_equipment_therm",
           "description": "",
           "type": "Double",
-          "model_dependent": false
+          "model_dependent": false,
+          "$$hashKey": "object:57642",
+          "checked": true
         },
         {
           "name": "natural_gas_water_systems_therm",
@@ -8059,7 +5177,9 @@
           "short_name": "natural_gas_water_systems_therm",
           "description": "",
           "type": "Double",
-          "model_dependent": false
+          "model_dependent": false,
+          "$$hashKey": "object:57643",
+          "checked": true
         },
         {
           "name": "other_fuel_heating_mbtu",
@@ -8067,7 +5187,9 @@
           "short_name": "other_fuel_heating_mbtu",
           "description": "",
           "type": "Double",
-          "model_dependent": false
+          "model_dependent": false,
+          "$$hashKey": "object:57644",
+          "checked": true
         },
         {
           "name": "other_fuel_interior_equipment_mbtu",
@@ -8075,7 +5197,9 @@
           "short_name": "other_fuel_interior_equipment_mbtu",
           "description": "",
           "type": "Double",
-          "model_dependent": false
+          "model_dependent": false,
+          "$$hashKey": "object:57645",
+          "checked": true
         },
         {
           "name": "other_fuel_water_systems_mbtu",
@@ -8083,7 +5207,9 @@
           "short_name": "other_fuel_water_systems_mbtu",
           "description": "",
           "type": "Double",
-          "model_dependent": false
+          "model_dependent": false,
+          "$$hashKey": "object:57646",
+          "checked": true
         },
         {
           "name": "hours_heating_setpoint_not_met",
@@ -8091,7 +5217,9 @@
           "short_name": "hours_heating_setpoint_not_met",
           "description": "",
           "type": "Double",
-          "model_dependent": false
+          "model_dependent": false,
+          "$$hashKey": "object:57647",
+          "checked": true
         },
         {
           "name": "hours_cooling_setpoint_not_met",
@@ -8099,7 +5227,9 @@
           "short_name": "hours_cooling_setpoint_not_met",
           "description": "",
           "type": "Double",
-          "model_dependent": false
+          "model_dependent": false,
+          "$$hashKey": "object:57648",
+          "checked": true
         },
         {
           "name": "hvac_cooling_capacity_w",
@@ -8107,7 +5237,9 @@
           "short_name": "hvac_cooling_capacity_w",
           "description": "",
           "type": "Double",
-          "model_dependent": false
+          "model_dependent": false,
+          "$$hashKey": "object:57649",
+          "checked": true
         },
         {
           "name": "hvac_heating_capacity_w",
@@ -8115,7 +5247,20 @@
           "short_name": "hvac_heating_capacity_w",
           "description": "",
           "type": "Double",
-          "model_dependent": false
+          "model_dependent": false,
+          "$$hashKey": "object:57650",
+          "checked": true
+        },
+        {
+          "name": "upgrade_name",
+          "display_name": "upgrade_name",
+          "short_name": "upgrade_name",
+          "description": "",
+          "type": "Double",
+          "model_dependent": false,
+          "$$hashKey": "object:57651",
+          "checked": true,
+          "visualize": "true"
         },
         {
           "name": "upgrade_cost_usd",
@@ -8123,7 +5268,9 @@
           "short_name": "upgrade_cost_usd",
           "description": "",
           "type": "Double",
-          "model_dependent": false
+          "model_dependent": false,
+          "$$hashKey": "object:57652",
+          "checked": true
         },
         {
           "name": "weight",
@@ -8131,7 +5278,9 @@
           "short_name": "weight",
           "description": "",
           "type": "Double",
-          "model_dependent": false
+          "model_dependent": false,
+          "$$hashKey": "object:57653",
+          "checked": true
         }
       ],
       "attributes": [
@@ -8154,13 +5303,13 @@
       "add": "",
       "open": false,
       "addedToProject": true,
-      "date": "6/30/2017",
+      "date": "8/24/2017",
       "author": "",
       "type": "ReportingMeasure",
       "seed": "EmptySeedModel.osm",
       "workflow_index": 3,
       "options": [],
-      "instanceId": 0.03359996838061541,
+      "instanceId": 0.772982635728533,
       "skip": false,
       "$$hashKey": "object:12817",
       "outputMeasure": true,
@@ -8543,6 +5692,17 @@
           "measure_class_name": "SimulationOutputReport",
           "measure_uid": "fc337100-8634-404e-8966-01243d292a79",
           "visualize": "true"
+        },
+        {
+          "name": "upgrade_name",
+          "display_name": "upgrade_name",
+          "short_name": "upgrade_name",
+          "description": "",
+          "type": "Double",
+          "model_dependent": false,
+          "$$hashKey": "object:57651",
+          "checked": true,
+          "visualize": "true"
         }
       ]
     },
@@ -8631,7 +5791,7 @@
       "seed": "EmptySeedModel.osm",
       "workflow_index": 4,
       "options": [],
-      "instanceId": 0.7431579482655162,
+      "instanceId": 0.44910428695767446,
       "skip": true,
       "$$hashKey": "object:119609",
       "outputMeasure": false
@@ -8678,9 +5838,10 @@
       "seed": "EmptySeedModel.osm",
       "workflow_index": 5,
       "options": [],
-      "instanceId": 0.05093475319391949,
+      "instanceId": 0.09613233988075987,
       "skip": false,
-      "$$hashKey": "object:663249"
+      "$$hashKey": "object:663249",
+      "outputMeasure": false
     }
   ],
   "filesToInclude": [
