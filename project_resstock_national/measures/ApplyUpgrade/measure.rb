@@ -44,13 +44,6 @@ class ApplyUpgrade < OpenStudio::Ruleset::ModelUserScript
     upgrade_name.setDefaultValue("My Upgrade")
     args << upgrade_name 
     
-    # Make integer arg to run measure [1 is run, 0 is no run]
-    run_measure = OpenStudio::Ruleset::OSArgument::makeIntegerArgument("run_measure",true)
-    run_measure.setDisplayName("Run Measure")
-    run_measure.setDescription("integer argument to run measure [1 is run, 0 is no run]")
-    run_measure.setDefaultValue(1)
-    args << run_measure 
-    
     for option_num in 1..num_options
     
         # Option name argument
@@ -107,6 +100,13 @@ class ApplyUpgrade < OpenStudio::Ruleset::ModelUserScript
     package_apply_logic.setDisplayName("Package Apply Logic")
     package_apply_logic.setDescription("Logic that specifies if the entire package upgrade (all options) will apply based on the existing building's options. Specify one or more parameter|option as found in resources\\options_lookup.tsv. When multiple are included, they must be separated by '||' for OR and '&&' for AND, and using parentheses as appropriate. Prefix an option with '!' for not.")
     args << package_apply_logic
+    
+    # Make integer arg to run measure [1 is run, 0 is no run]
+    run_measure = OpenStudio::Ruleset::OSArgument::makeIntegerArgument("run_measure",true)
+    run_measure.setDisplayName("Run Measure")
+    run_measure.setDescription("integer argument to run measure [1 is run, 0 is no run]")
+    run_measure.setDefaultValue(1)
+    args << run_measure 
     
     return args
   end
