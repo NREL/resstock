@@ -94,273 +94,287 @@ class ResidentialHotWaterFixtures < OpenStudio::Measure::ModelMeasure
 		end
 
 		#assign the user inputs to variables
-        sh_mult = runner.getDoubleArgumentValue("shower_mult",user_arguments)
-        s_mult = runner.getDoubleArgumentValue("sink_mult", user_arguments)
-        b_mult = runner.getDoubleArgumentValue("bath_mult", user_arguments)
-        space_r = runner.getStringArgumentValue("space",user_arguments)
-        plant_loop_s = runner.getStringArgumentValue("plant_loop", user_arguments)
-        
-        #Check for valid and reasonable inputs
-        if sh_mult < 0
-            runner.registerError("Shower hot water usage multiplier must be greater than or equal to 0.")
+    sh_mult = runner.getDoubleArgumentValue("shower_mult",user_arguments)
+    s_mult = runner.getDoubleArgumentValue("sink_mult", user_arguments)
+    b_mult = runner.getDoubleArgumentValue("bath_mult", user_arguments)
+    space_r = runner.getStringArgumentValue("space",user_arguments)
+    plant_loop_s = runner.getStringArgumentValue("plant_loop", user_arguments)
+    
+    #Check for valid and reasonable inputs
+    if sh_mult < 0
+        runner.registerError("Shower hot water usage multiplier must be greater than or equal to 0.")
+        return false
+    end
+    if s_mult < 0
+        runner.registerError("Sink hot water usage multiplier must be greater than or equal to 0.")
+        return false
+    end
+    if b_mult < 0
+        runner.registerError("Bath hot water usage multiplier must be greater than or equal to 0.")
+        return false
+    end
+    
+    # Get building units
+    units = Geometry.get_building_units(model, runner)
+    if units.nil?
+        return false
+    end
+
+    tot_sh_gpd = 0
+    tot_s_gpd = 0
+    tot_b_gpd = 0
+    msgs = []
+    units.each do |unit|
+        # Get unit beds/baths
+        nbeds, nbaths = Geometry.get_unit_beds_baths(model, unit, runner)
+        if nbeds.nil? or nbaths.nil?
             return false
         end
-        if s_mult < 0
-            runner.registerError("Sink hot water usage multiplier must be greater than or equal to 0.")
-            return false
-        end
-        if b_mult < 0
-            runner.registerError("Bath hot water usage multiplier must be greater than or equal to 0.")
-            return false
-        end
-        
-        # Get building units
-        units = Geometry.get_building_units(model, runner)
-        if units.nil?
+        sch_unit_index = Geometry.get_unit_dhw_sched_index(model, unit, runner)
+        if sch_unit_index.nil?
             return false
         end
 
-        tot_sh_gpd = 0
-        tot_s_gpd = 0
-        tot_b_gpd = 0
-        msgs = []
-        units.each do |unit|
-            # Get unit beds/baths
-            nbeds, nbaths = Geometry.get_unit_beds_baths(model, unit, runner)
-            if nbeds.nil? or nbaths.nil?
+        # Get space
+        space = Geometry.get_space_from_string(unit.spaces, space_r)
+        next if space.nil?
+
+        #Get plant loop
+        plant_loop = Waterheater.get_plant_loop_from_string(model.getPlantLoops, plant_loop_s, unit.spaces, Constants.ObjectNameWaterHeater(unit.name.to_s.gsub("unit", "u")).gsub("|","_"), runner)
+        if plant_loop.nil?
+            return false
+        end
+
+        obj_name_sh = Constants.ObjectNameShower(unit.name.to_s)
+        obj_name_s = Constants.ObjectNameSink(unit.name.to_s)
+        obj_name_b = Constants.ObjectNameBath(unit.name.to_s)
+        obj_name_recirc_pump = Constants.ObjectNameHotWaterRecircPump(unit.name.to_s)
+    
+        # Remove any existing ssb
+        objects_to_remove = []
+        recirc_pump = nil
+        space.otherEquipment.each do |space_equipment|
+            next if space_equipment.name.to_s != obj_name_sh and space_equipment.name.to_s != obj_name_s and space_equipment.name.to_s != obj_name_b
+            objects_to_remove << space_equipment
+            objects_to_remove << space_equipment.otherEquipmentDefinition
+            if space_equipment.schedule.is_initialized
+                # Check if there is a recirc pump referencing this schedule
+                model.getElectricEquipments.each do |ee|
+                    next if ee.name.to_s != obj_name_recirc_pump
+                    next if not ee.schedule.is_initialized
+                    next if ee.schedule.get.handle.to_s != space_equipment.schedule.get.handle.to_s
+                    recirc_pump = ee
+                end
+                objects_to_remove << space_equipment.schedule.get
+            end
+        end
+        space.waterUseEquipment.each do |space_equipment|
+            next if space_equipment.name.to_s != obj_name_sh and space_equipment.name.to_s != obj_name_s and space_equipment.name.to_s != obj_name_b
+            objects_to_remove << space_equipment
+            objects_to_remove << space_equipment.waterUseEquipmentDefinition
+            if space_equipment.flowRateFractionSchedule.is_initialized
+                objects_to_remove << space_equipment.flowRateFractionSchedule.get
+            end
+            if space_equipment.waterUseEquipmentDefinition.targetTemperatureSchedule.is_initialized
+                objects_to_remove << space_equipment.waterUseEquipmentDefinition.targetTemperatureSchedule.get
+            end
+        end
+        if objects_to_remove.size > 0
+            runner.registerInfo("Removed existing showers, sinks, and baths from space #{space.name.to_s}.")
+        end
+        objects_to_remove.uniq.each do |object|
+            begin
+                object.remove
+            rescue
+                # no op
+            end
+        end
+    
+        mixed_use_t = Constants.MixedUseT #F
+        
+        #Calc daily gpm and annual gain of each end use
+        sh_gpd = (14.0 + 4.67 * nbeds) * sh_mult
+        s_gpd = (12.5 + 4.16 * nbeds) * s_mult
+        b_gpd = (3.5 + 1.17 * nbeds) * b_mult
+        
+        # Shower internal gains
+        sh_sens_load = (741 + 247 * nbeds) * sh_mult # Btu/day
+        sh_lat_load = (703 + 235 * nbeds) * sh_mult # Btu/day
+        sh_tot_load = OpenStudio.convert(sh_sens_load + sh_lat_load, "Btu", "kWh").get #kWh/day
+        sh_lat = sh_lat_load / (sh_lat_load + sh_sens_load)
+
+        # Sink internal gains
+        s_sens_load = (310 + 103 * nbeds) * s_mult # Btu/day
+        s_lat_load = (140 + 47 * nbeds) * s_mult # Btu/day
+        s_tot_load = OpenStudio.convert(s_sens_load + s_lat_load, "Btu", "kWh").get #kWh/day
+        s_lat = s_lat_load / (s_lat_load + s_sens_load)
+    
+        # Bath internal gains
+        b_sens_load = (185 + 62 * nbeds) * b_mult # Btu/day
+        b_lat_load = 0 # Btu/day
+        b_tot_load = OpenStudio.convert(b_sens_load + b_lat_load, "Btu", "kWh").get #kWh/day
+        b_lat = b_lat_load / (b_lat_load + b_sens_load)
+        
+        if sh_gpd > 0 or s_gpd > 0 or b_gpd > 0
+        
+            #Reuse existing water use connection if possible
+            water_use_connection = nil
+            plant_loop.demandComponents.each do |component|
+                next unless component.to_WaterUseConnections.is_initialized
+                water_use_connection = component.to_WaterUseConnections.get
+                break
+            end
+            if water_use_connection.nil?
+                #Need new water heater connection
+                water_use_connection = OpenStudio::Model::WaterUseConnections.new(model)
+                plant_loop.addDemandBranchForComponent(water_use_connection)
+            end
+            
+        end
+        
+        # Showers
+        if sh_gpd > 0
+            
+            # Create schedule
+            sch_sh = HotWaterSchedule.new(model, runner, Constants.ObjectNameShower + " schedule", Constants.ObjectNameShower + " temperature schedule", nbeds, sch_unit_index, "Shower", mixed_use_t, File.dirname(__FILE__))
+            if not sch_sh.validated?
                 return false
             end
-            sch_unit_index = Geometry.get_unit_dhw_sched_index(model, unit, runner)
-            if sch_unit_index.nil?
-                return false
-            end
-
-            # Get space
-            space = Geometry.get_space_from_string(unit.spaces, space_r)
-            next if space.nil?
-
-            #Get plant loop
-            plant_loop = Waterheater.get_plant_loop_from_string(model.getPlantLoops, plant_loop_s, unit.spaces, Constants.ObjectNameWaterHeater(unit.name.to_s.gsub("unit", "u")).gsub("|","_"), runner)
-            if plant_loop.nil?
-                return false
-            end
-
-            obj_name_sh = Constants.ObjectNameShower(unit.name.to_s)
-            obj_name_s = Constants.ObjectNameSink(unit.name.to_s)
-            obj_name_b = Constants.ObjectNameBath(unit.name.to_s)
         
-            # Remove any existing ssb
-            objects_to_remove = []
-            space.otherEquipment.each do |space_equipment|
-                next if space_equipment.name.to_s != obj_name_sh and space_equipment.name.to_s != obj_name_s and space_equipment.name.to_s != obj_name_b
-                objects_to_remove << space_equipment
-                objects_to_remove << space_equipment.otherEquipmentDefinition
-                if space_equipment.schedule.is_initialized
-                    objects_to_remove << space_equipment.schedule.get
-                end
-            end
-            space.waterUseEquipment.each do |space_equipment|
-                next if space_equipment.name.to_s != obj_name_sh and space_equipment.name.to_s != obj_name_s and space_equipment.name.to_s != obj_name_b
-                objects_to_remove << space_equipment
-                objects_to_remove << space_equipment.waterUseEquipmentDefinition
-                if space_equipment.flowRateFractionSchedule.is_initialized
-                    objects_to_remove << space_equipment.flowRateFractionSchedule.get
-                end
-                if space_equipment.waterUseEquipmentDefinition.targetTemperatureSchedule.is_initialized
-                    objects_to_remove << space_equipment.waterUseEquipmentDefinition.targetTemperatureSchedule.get
-                end
-            end
-            if objects_to_remove.size > 0
-                runner.registerInfo("Removed existing showers, sinks, and baths from space #{space.name.to_s}.")
-            end
-            objects_to_remove.uniq.each do |object|
-                begin
-                    object.remove
-                rescue
-                    # no op
-                end
-            end
-        
-            mixed_use_t = Constants.MixedUseT #F
+            sh_peak_flow = sch_sh.calcPeakFlowFromDailygpm(sh_gpd)
+            sh_design_level = sch_sh.calcDesignLevelFromDailykWh(sh_tot_load)
             
-            #Calc daily gpm and annual gain of each end use
-            sh_gpd = (14.0 + 4.67 * nbeds) * sh_mult
-            s_gpd = (12.5 + 4.16 * nbeds) * s_mult
-            b_gpd = (3.5 + 1.17 * nbeds) * b_mult
+            #Add water use equipment objects
+            sh_wu_def = OpenStudio::Model::WaterUseEquipmentDefinition.new(model)
+            sh_wu = OpenStudio::Model::WaterUseEquipment.new(sh_wu_def)
+            sh_wu.setName(obj_name_sh)
+            sh_wu.setSpace(space)
+            sh_wu_def.setName(obj_name_sh)
+            sh_wu_def.setPeakFlowRate(sh_peak_flow)
+            sh_wu_def.setEndUseSubcategory(obj_name_sh)
+            sh_wu.setFlowRateFractionSchedule(sch_sh.schedule)
+            sh_wu_def.setTargetTemperatureSchedule(sch_sh.temperatureSchedule)
+            water_use_connection.addWaterUseEquipment(sh_wu)
             
-            # Shower internal gains
-            sh_sens_load = (741 + 247 * nbeds) * sh_mult # Btu/day
-            sh_lat_load = (703 + 235 * nbeds) * sh_mult # Btu/day
-            sh_tot_load = OpenStudio.convert(sh_sens_load + sh_lat_load, "Btu", "kWh").get #kWh/day
-            sh_lat = sh_lat_load / (sh_lat_load + sh_sens_load)
-
-            # Sink internal gains
-            s_sens_load = (310 + 103 * nbeds) * s_mult # Btu/day
-            s_lat_load = (140 + 47 * nbeds) * s_mult # Btu/day
-            s_tot_load = OpenStudio.convert(s_sens_load + s_lat_load, "Btu", "kWh").get #kWh/day
-            s_lat = s_lat_load / (s_lat_load + s_sens_load)
-        
-            # Bath internal gains
-            b_sens_load = (185 + 62 * nbeds) * b_mult # Btu/day
-            b_lat_load = 0 # Btu/day
-            b_tot_load = OpenStudio.convert(b_sens_load + b_lat_load, "Btu", "kWh").get #kWh/day
-            b_lat = b_lat_load / (b_lat_load + b_sens_load)
+            #Add other equipment
+            sh_oe_def = OpenStudio::Model::OtherEquipmentDefinition.new(model)
+            sh_oe = OpenStudio::Model::OtherEquipment.new(sh_oe_def)
+            sh_oe.setName(obj_name_sh)
+            sh_oe.setSpace(space)
+            sh_oe_def.setName(obj_name_sh)
+            sh_oe_def.setDesignLevel(sh_design_level)
+            sh_oe_def.setFractionRadiant(0)
+            sh_oe_def.setFractionLatent(sh_lat)
+            sh_oe_def.setFractionLost(0)
+            sh_oe.setSchedule(sch_sh.schedule)
             
-            if sh_gpd > 0 or s_gpd > 0 or b_gpd > 0
-            
-                #Reuse existing water use connection if possible
-                water_use_connection = nil
-                plant_loop.demandComponents.each do |component|
-                    next unless component.to_WaterUseConnections.is_initialized
-                    water_use_connection = component.to_WaterUseConnections.get
-                    break
-                end
-                if water_use_connection.nil?
-                    #Need new water heater connection
-                    water_use_connection = OpenStudio::Model::WaterUseConnections.new(model)
-                    plant_loop.addDemandBranchForComponent(water_use_connection)
-                end
-                
+            # Re-assign recirc pump schedule if needed
+            if not recirc_pump.nil?
+              recirc_pump.setSchedule(sch_sh.schedule)
             end
             
-            # Showers
-            if sh_gpd > 0
-                
-                # Create schedule
-                sch_sh = HotWaterSchedule.new(model, runner, Constants.ObjectNameShower + " schedule", Constants.ObjectNameShower + " temperature schedule", nbeds, sch_unit_index, "Shower", mixed_use_t, File.dirname(__FILE__))
-                if not sch_sh.validated?
-                    return false
-                end
-            
-                sh_peak_flow = sch_sh.calcPeakFlowFromDailygpm(sh_gpd)
-                sh_design_level = sch_sh.calcDesignLevelFromDailykWh(sh_tot_load)
-                
-                #Add water use equipment objects
-                sh_wu_def = OpenStudio::Model::WaterUseEquipmentDefinition.new(model)
-                sh_wu = OpenStudio::Model::WaterUseEquipment.new(sh_wu_def)
-                sh_wu.setName(obj_name_sh)
-                sh_wu.setSpace(space)
-                sh_wu_def.setName(obj_name_sh)
-                sh_wu_def.setPeakFlowRate(sh_peak_flow)
-                sh_wu_def.setEndUseSubcategory(obj_name_sh)
-                sh_wu.setFlowRateFractionSchedule(sch_sh.schedule)
-                sh_wu_def.setTargetTemperatureSchedule(sch_sh.temperatureSchedule)
-                water_use_connection.addWaterUseEquipment(sh_wu)
-                
-                #Add other equipment
-                sh_oe_def = OpenStudio::Model::OtherEquipmentDefinition.new(model)
-                sh_oe = OpenStudio::Model::OtherEquipment.new(sh_oe_def)
-                sh_oe.setName(obj_name_sh)
-                sh_oe.setSpace(space)
-                sh_oe_def.setName(obj_name_sh)
-                sh_oe_def.setDesignLevel(sh_design_level)
-                sh_oe_def.setFractionRadiant(0)
-                sh_oe_def.setFractionLatent(sh_lat)
-                sh_oe_def.setFractionLost(0)
-                sh_oe.setSchedule(sch_sh.schedule)
-                
-                tot_sh_gpd += sh_gpd
-            end
-            
-            # Sinks
-            if s_gpd > 0
-            
-                # Create schedule
-                sch_s = HotWaterSchedule.new(model, runner, Constants.ObjectNameSink + " schedule", Constants.ObjectNameSink + " temperature schedule", nbeds, sch_unit_index, "Sink", mixed_use_t, File.dirname(__FILE__))
-                if not sch_s.validated?
-                    return false
-                end
-            
-                s_peak_flow = sch_s.calcPeakFlowFromDailygpm(s_gpd)  
-                s_design_level = sch_s.calcDesignLevelFromDailykWh(s_tot_load)
-                
-                #Add water use equipment objects
-                s_wu_def = OpenStudio::Model::WaterUseEquipmentDefinition.new(model)
-                s_wu = OpenStudio::Model::WaterUseEquipment.new(s_wu_def)
-                s_wu.setName(obj_name_s)
-                s_wu.setSpace(space)
-                s_wu_def.setName(obj_name_s)
-                s_wu_def.setPeakFlowRate(s_peak_flow)
-                s_wu_def.setEndUseSubcategory(obj_name_s)
-                s_wu.setFlowRateFractionSchedule(sch_s.schedule)
-                s_wu_def.setTargetTemperatureSchedule(sch_s.temperatureSchedule)
-                water_use_connection.addWaterUseEquipment(s_wu)
-                
-                #Add other equipment
-                s_oe_def = OpenStudio::Model::OtherEquipmentDefinition.new(model)
-                s_oe = OpenStudio::Model::OtherEquipment.new(s_oe_def)
-                s_oe.setName(obj_name_s)
-                s_oe.setSpace(space)
-                s_oe_def.setName(obj_name_s)
-                s_oe_def.setDesignLevel(s_design_level)
-                s_oe_def.setFractionRadiant(0)
-                s_oe_def.setFractionLatent(s_lat)
-                s_oe_def.setFractionLost(0)
-                s_oe.setSchedule(sch_s.schedule)
-                
-                tot_s_gpd += s_gpd
-            end
-            
-            # Baths
-            if b_gpd > 0
-            
-                # Create schedule
-                sch_b = HotWaterSchedule.new(model, runner, Constants.ObjectNameBath + " schedule", Constants.ObjectNameBath + " temperature schedule", nbeds, sch_unit_index, "Bath", mixed_use_t, File.dirname(__FILE__))
-                if not sch_b.validated?
-                    return false
-                end
-            
-                b_peak_flow = sch_b.calcPeakFlowFromDailygpm(b_gpd)
-                b_design_level = sch_b.calcDesignLevelFromDailykWh(b_tot_load)
-                
-                #Add water use equipment objects
-                b_wu_def = OpenStudio::Model::WaterUseEquipmentDefinition.new(model)
-                b_wu = OpenStudio::Model::WaterUseEquipment.new(b_wu_def)
-                b_wu.setName(obj_name_b)
-                b_wu.setSpace(space)
-                b_wu_def.setName(obj_name_b)
-                b_wu_def.setPeakFlowRate(b_peak_flow)
-                b_wu_def.setEndUseSubcategory(obj_name_b)
-                b_wu.setFlowRateFractionSchedule(sch_b.schedule)
-                b_wu_def.setTargetTemperatureSchedule(sch_b.temperatureSchedule)
-                water_use_connection.addWaterUseEquipment(b_wu)
-                
-                #Add other equipment
-                b_oe_def = OpenStudio::Model::OtherEquipmentDefinition.new(model)
-                b_oe = OpenStudio::Model::OtherEquipment.new(b_oe_def)
-                b_oe.setName(obj_name_b)
-                b_oe.setSpace(space)
-                b_oe_def.setName(obj_name_b)
-                b_oe_def.setDesignLevel(b_design_level)
-                b_oe_def.setFractionRadiant(0)
-                b_oe_def.setFractionLatent(b_lat)
-                b_oe_def.setFractionLost(0)
-                b_oe.setSchedule(sch_b.schedule)
-                
-                tot_b_gpd += b_gpd
-            end
-            
-            if sh_gpd > 0 or s_gpd > 0 or b_gpd > 0
-                msgs << "Shower, sinks, and bath fixtures drawing #{sh_gpd.round(1)}, #{s_gpd.round(1)}, and #{b_gpd.round(1)} gal/day respectively have been added to plant loop '#{plant_loop.name}' and assigned to space '#{space.name.to_s}'."
-            end
-            
+            tot_sh_gpd += sh_gpd
         end
         
-        # Reporting
-        if msgs.size > 1
-            msgs.each do |msg|
-                runner.registerInfo(msg)
+        # Sinks
+        if s_gpd > 0
+        
+            # Create schedule
+            sch_s = HotWaterSchedule.new(model, runner, Constants.ObjectNameSink + " schedule", Constants.ObjectNameSink + " temperature schedule", nbeds, sch_unit_index, "Sink", mixed_use_t, File.dirname(__FILE__))
+            if not sch_s.validated?
+                return false
             end
-            runner.registerFinalCondition("The building has been assigned shower, sink, and bath fixtures drawing a total of #{(tot_sh_gpd + tot_s_gpd + tot_b_gpd).round(1)} gal/day across #{units.size} units.")
-        elsif msgs.size == 1
-            runner.registerFinalCondition(msgs[0])
-        else
-            runner.registerFinalCondition("No shower, sink, or bath fixtures have been assigned.")
+        
+            s_peak_flow = sch_s.calcPeakFlowFromDailygpm(s_gpd)  
+            s_design_level = sch_s.calcDesignLevelFromDailykWh(s_tot_load)
+            
+            #Add water use equipment objects
+            s_wu_def = OpenStudio::Model::WaterUseEquipmentDefinition.new(model)
+            s_wu = OpenStudio::Model::WaterUseEquipment.new(s_wu_def)
+            s_wu.setName(obj_name_s)
+            s_wu.setSpace(space)
+            s_wu_def.setName(obj_name_s)
+            s_wu_def.setPeakFlowRate(s_peak_flow)
+            s_wu_def.setEndUseSubcategory(obj_name_s)
+            s_wu.setFlowRateFractionSchedule(sch_s.schedule)
+            s_wu_def.setTargetTemperatureSchedule(sch_s.temperatureSchedule)
+            water_use_connection.addWaterUseEquipment(s_wu)
+            
+            #Add other equipment
+            s_oe_def = OpenStudio::Model::OtherEquipmentDefinition.new(model)
+            s_oe = OpenStudio::Model::OtherEquipment.new(s_oe_def)
+            s_oe.setName(obj_name_s)
+            s_oe.setSpace(space)
+            s_oe_def.setName(obj_name_s)
+            s_oe_def.setDesignLevel(s_design_level)
+            s_oe_def.setFractionRadiant(0)
+            s_oe_def.setFractionLatent(s_lat)
+            s_oe_def.setFractionLost(0)
+            s_oe.setSchedule(sch_s.schedule)
+            
+            tot_s_gpd += s_gpd
         end
-	
-        return true
+        
+        # Baths
+        if b_gpd > 0
+        
+            # Create schedule
+            sch_b = HotWaterSchedule.new(model, runner, Constants.ObjectNameBath + " schedule", Constants.ObjectNameBath + " temperature schedule", nbeds, sch_unit_index, "Bath", mixed_use_t, File.dirname(__FILE__))
+            if not sch_b.validated?
+                return false
+            end
+        
+            b_peak_flow = sch_b.calcPeakFlowFromDailygpm(b_gpd)
+            b_design_level = sch_b.calcDesignLevelFromDailykWh(b_tot_load)
+            
+            #Add water use equipment objects
+            b_wu_def = OpenStudio::Model::WaterUseEquipmentDefinition.new(model)
+            b_wu = OpenStudio::Model::WaterUseEquipment.new(b_wu_def)
+            b_wu.setName(obj_name_b)
+            b_wu.setSpace(space)
+            b_wu_def.setName(obj_name_b)
+            b_wu_def.setPeakFlowRate(b_peak_flow)
+            b_wu_def.setEndUseSubcategory(obj_name_b)
+            b_wu.setFlowRateFractionSchedule(sch_b.schedule)
+            b_wu_def.setTargetTemperatureSchedule(sch_b.temperatureSchedule)
+            water_use_connection.addWaterUseEquipment(b_wu)
+            
+            #Add other equipment
+            b_oe_def = OpenStudio::Model::OtherEquipmentDefinition.new(model)
+            b_oe = OpenStudio::Model::OtherEquipment.new(b_oe_def)
+            b_oe.setName(obj_name_b)
+            b_oe.setSpace(space)
+            b_oe_def.setName(obj_name_b)
+            b_oe_def.setDesignLevel(b_design_level)
+            b_oe_def.setFractionRadiant(0)
+            b_oe_def.setFractionLatent(b_lat)
+            b_oe_def.setFractionLost(0)
+            b_oe.setSchedule(sch_b.schedule)
+            
+            tot_b_gpd += b_gpd
+        end
+        
+        if sh_gpd > 0 or s_gpd > 0 or b_gpd > 0
+            msgs << "Shower, sinks, and bath fixtures drawing #{sh_gpd.round(1)}, #{s_gpd.round(1)}, and #{b_gpd.round(1)} gal/day respectively have been added to plant loop '#{plant_loop.name}' and assigned to space '#{space.name.to_s}'."
+        end
         
     end
+    
+    # Reporting
+    if msgs.size > 1
+        msgs.each do |msg|
+            runner.registerInfo(msg)
+        end
+        runner.registerFinalCondition("The building has been assigned shower, sink, and bath fixtures drawing a total of #{(tot_sh_gpd + tot_s_gpd + tot_b_gpd).round(1)} gal/day across #{units.size} units.")
+    elsif msgs.size == 1
+        runner.registerFinalCondition(msgs[0])
+    else
+        runner.registerFinalCondition("No shower, sink, or bath fixtures have been assigned.")
+    end
+
+    return true
+        
+  end
 end #end the measure
 
 #this allows the measure to be use by the application
