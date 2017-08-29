@@ -7,13 +7,15 @@ import psycopg2 as pg
 
 con_string = "host={} port={} dbname={} user={} password={}".format(os.environ['GIS_HOST'], os.environ['GIS_PORT'], os.environ['GIS_DBNAME'], os.environ['GIS_USER'], os.environ['GIS_PASSWORD'])
 
+fips_map = pd.read_csv('county_fips_2010.csv', header=None)
+
 class Create_DFs():
     
   def __init__(self, table_name):
     sql = "SELECT * FROM cleap_ami.{};".format(table_name)
     self.session = pd.read_sql(sql, con)
 
-  def area_median_income(self):
+  def area_median_income(self, st):
   
     df = self.session
     
@@ -38,7 +40,11 @@ class Create_DFs():
     
     # Preprocess LMI file into vintage, etc. enumerations we use (divide by two)
     df['hfl index'] = df['hfl index'].apply(lambda x: assign_heating_fuel(x))
-    df = df.rename(columns={'ybl index': 'Dependency=Vintage', 'hfl index': 'Dependency=Heating Fuel', 'EPW': 'Dependency=Location EPW', 'tract_gisjoin': 'Dependency=Location Census Tract', 'county': 'Dependency=County'})
+    df = df.rename(columns={'ybl index': 'Dependency=Vintage', 'hfl index': 'Dependency=Heating Fuel', 'EPW': 'Dependency=Location EPW', 'tract_gisjoin': 'Dependency=Location Census Tract', 'county': 'Dependency=Location County'})
+    
+    fips = fips_map[fips_map[0] == st]
+    fips = dict(zip(fips[2], fips[3]))
+    df['Dependency=Location County'] = df['Dependency=Location County'].apply(lambda x: fips[x])
     
     for vintage in [4, 3, 2]:
       sub = df[df['Dependency=Vintage']==vintage].copy()
@@ -58,7 +64,7 @@ class Create_DFs():
     
     df['Dependency=Vintage'] = df['Dependency=Vintage'].map({'<1940': '<1950', '<1950': '<1950', '1950s': '1950s', '1960s': '1960s', '1970s': '1970s', '1980s': '1980s', '1990s': '1990s', '2000s': '2000s', '2010s': '2000s'})
     
-    df = df[np.concatenate([['Dependency=Vintage', 'Dependency=Heating Fuel', 'Dependency=Location EPW', 'Dependency=Location Census Tract', 'Dependency=County'], options])]
+    df = df[np.concatenate([['Dependency=Vintage', 'Dependency=Heating Fuel', 'Dependency=Location EPW', 'Dependency=Location Census Tract', 'Dependency=Location County'], options])]
     df = add_option_prefix(df)
     
     return df
@@ -102,18 +108,20 @@ if __name__ == '__main__':
 
     print i+1, table_name
     dfs = Create_DFs(table_name)
+    
+    st = table_name.split('_')[-1].upper()
   
     for category in ['Area Median Income']:
       method = getattr(dfs, category.lower().replace(' ', '_'))
-      df = method()
+      df = method(st)
 
-    df = df.groupby(['Dependency=Vintage', 'Dependency=Heating Fuel', 'Dependency=Location EPW', 'Dependency=Location Census Tract', 'Dependency=County']).sum()
+    df = df.groupby(['Dependency=Vintage', 'Dependency=Heating Fuel', 'Dependency=Location EPW', 'Dependency=Location Census Tract', 'Dependency=Location County']).sum()
 
     count = df.sum(axis=1)
     df = df.div(df.sum(axis=1), axis=0)
     df['Count'] = count
       
     if not df.empty:
-      df = df.fillna(0)    
-      df.to_csv(os.path.join(datafiles_dir, '{} {}.tsv'.format(category, table_name.split('_')[-1].upper())), sep='\t')
+      df = df.fillna(0)
+      df.to_csv(os.path.join(datafiles_dir, '{} {}.tsv'.format(category, st)), sep='\t')
         
