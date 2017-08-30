@@ -323,7 +323,7 @@ class SimulationOutputReport < OpenStudio::Ruleset::ReportingUserScript
             
         elsif cost_mult_type == "HVAC Heating Capacity (kBtuh)"
             if heating_capacity_w.is_initialized
-                cost_mult = OpenStudio::convert(total_heating_capacity_w,"W","kBtu/h").get
+                cost_mult = OpenStudio::convert(heating_capacity_w.get,"W","kBtu/h").get
             end
             
         elsif cost_mult_type != ""
