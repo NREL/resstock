@@ -1,4 +1,6 @@
 require 'bundler'
+require 'rake'
+require 'rake/testtask'
 Bundler.setup
 
 desc 'Copy measures/osms from OpenStudio-BEopt repo'
@@ -78,6 +80,18 @@ task :copy_beopt_files do
   end
 end
 
+namespace :test do
+
+  desc 'Run unit tests for all measures'
+  Rake::TestTask.new('all') do |t|
+    t.libs << 'test'
+    t.test_files = Dir['project_*/tests/*.rb']
+    t.warning = false
+    t.verbose = true
+  end
+  
+end
+
 desc 'Perform integrity check on inputs for all projects'
 task :integrity_check_all do
     integrity_check()
@@ -141,7 +155,7 @@ def integrity_check(project_dir_names=nil)
       if last_size == parameters_processed.size
         # No additional processing occurred during last pass
         unprocessed_parameters = parameter_names - parameters_processed
-        puts "ERROR: Unable to process these parameters: #{unprocessed_parameters.join(', ')}."
+        err = "ERROR: Unable to process these parameters: #{unprocessed_parameters.join(', ')}."
         deps = []
         unprocessed_parameters.each do |p|
           tsvpath = File.join(project_dir_name, "housing_characteristics", "#{p}.tsv")
@@ -151,8 +165,8 @@ def integrity_check(project_dir_names=nil)
             deps << d
           end
         end
-        puts "       Perhaps one of these dependency files is missing? #{(deps - unprocessed_parameters - parameters_processed).join(', ')}."
-        exit
+        err += "       Perhaps one of these dependency files is missing? #{(deps - unprocessed_parameters - parameters_processed).join(', ')}."
+        raise err
       end
       
       last_size = parameters_processed.size
@@ -178,8 +192,13 @@ def integrity_check(project_dir_names=nil)
         
         # Test all possible combinations of dependency value combinations
         combo_hashes = get_combination_hashes(tsvfiles, tsvfile.dependency_cols.keys)
-        combo_hashes.each do |combo_hash|
-          _matched_option_name, matched_row_num = tsvfile.get_option_name_from_sample_number(1.0, combo_hash)
+        if combo_hashes.size > 0
+          combo_hashes.each do |combo_hash|
+            _matched_option_name, _matched_row_num = tsvfile.get_option_name_from_sample_number(1.0, combo_hash)
+          end
+        else
+          # global distribution
+          _matched_option_name, _matched_row_num = tsvfile.get_option_name_from_sample_number(1.0, nil)
         end
           
         # Integrity checks for option_lookup.tsv
@@ -260,6 +279,7 @@ def integrity_check(project_dir_names=nil)
     end
     
   end # project_dir_name
+  
 end
 
 def get_all_project_dir_names()

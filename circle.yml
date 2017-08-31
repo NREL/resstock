@@ -1,0 +1,27 @@
+machine:
+  services:
+    - docker
+    
+dependencies:
+  override:
+    - echo Running this echo command to skip CircleCI inferred bundle install command
+
+test:
+  override:
+    - mkdir -p $CIRCLE_TEST_REPORTS/minitest:
+        parallel: true
+    - mkdir -p test/reports:
+        parallel: true
+    - docker run -e CIRCLE_NODE_TOTAL -e CIRCLE_NODE_INDEX -v $(pwd):/OpenStudio-BuildStock nrel/openstudio /OpenStudio-BuildStock/test/bin/docker-run.sh:
+        parallel: true
+        timeout: 7200
+    - ls $CIRCLE_TEST_REPORTS/minitest:
+        parallel: true        
+    - rsync -av test/reports/ $CIRCLE_TEST_REPORTS/minitest/:
+        parallel: true
+    - ls $CIRCLE_TEST_REPORTS/minitest:
+        parallel: true
+
+notify:
+  webhooks:
+    - url: https://coveralls.io/webhook?repo_token=OuCYZyLc5DuZdoeoz5wcBZyjTJe6horEn

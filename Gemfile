@@ -1,11 +1,15 @@
 source 'http://rubygems.org'
 
-gem 'rake', '~> 11.1'
+gem 'rake', '~> 11.2.2'
 gem 'colored', '~> 1.2'
 gem 'git', require: false
 
-gem 'openstudio-aws', '~> 0.5.0-rc3'
-
-gem 'openstudio-analysis', '1.0.0.rc17'
-
-gem 'nokogiri', '1.6.8.1'
+group :test do
+  gem 'minitest', '~> 5.9'
+  gem 'rubocop', '~> 0.26.0'
+  gem 'rubocop-checkstyle_formatter', '~> 0.1.1'
+  gem 'ci_reporter_minitest', '~> 1.0.0'
+  gem 'coveralls'
+  gem 'minitest-reporters'
+  gem 'minitest-ci', :git => 'https://github.com/circleci/minitest-ci.git' # For CircleCI Automatic test metadata collection
+end

@@ -64,13 +64,18 @@ class TsvFile
         
         matched_option_name = nil
         matched_row_num = nil
+        
+        if dependency_values.nil?
+          dependency_values = []
+        end
+        
         deps_s = hash_to_string(dependency_values)
         
         @rows.each_with_index do |row, rownum|
         
             # Find appropriate row by matching dependency values
             found_row = false
-            if dependency_values.nil? or dependency_values.size == 0
+            if dependency_values.size == 0
                 found_row = true
             else
                 num_deps_matched = 0
@@ -505,8 +510,7 @@ def register_error(msg, runner=nil)
         runner.registerError(msg)
         fail msg # OS 2.0 will handle this more gracefully
     else
-        puts "ERROR: #{msg}"
-        exit
+        raise "ERROR: #{msg}"
     end
 end
 
