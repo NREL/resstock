@@ -5,6 +5,8 @@ BuildStock, built on the [OpenStudio platform](http://openstudio.net), is a proj
 
 This project is a <b>work-in-progress</b>.
 
+Unit Test Status: [![CircleCI](https://circleci.com/gh/NREL/OpenStudio-BuildStock/tree/master.svg?style=svg)](https://circleci.com/gh/NREL/OpenStudio-BuildStock/tree/master)
+
 For more information, please visit the [documentation](http://resstock.readthedocs.io/en/latest/).
 
 ![BuildStock workflow](https://user-images.githubusercontent.com/5861765/29423737-1932fb80-833a-11e7-979f-1d4e764858a6.png)
