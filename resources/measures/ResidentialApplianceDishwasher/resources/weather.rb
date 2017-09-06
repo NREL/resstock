@@ -63,7 +63,7 @@ class WeatherProcess
         if not File.exist?(epw_path)
           @runner.registerError("Cannot find weather file at #{epw_path}.")
           @error = true
-          return nil, nil
+          return nil, nil, nil
         end
 
         epw_file = OpenStudio::EpwFile.new(epw_path, !header_only)
@@ -105,14 +105,57 @@ class WeatherProcess
           hourdict['month'] = epwdata.month
           hourdict['day'] = epwdata.day
           hourdict['hour'] = epwdata.hour
-          hourdict['db'] = epwdata.dryBulbTemperature.get
-          hourdict['dp'] = epwdata.dewPointTemperature.get
-          hourdict['rh'] = epwdata.relativeHumidity.get / 100.0
-          hourdict['ethoriz'] = epwdata.extraterrestrialHorizontalRadiation.get
-          hourdict['ghoriz'] = epwdata.globalHorizontalRadiation.get
-          hourdict['dirnormal'] = epwdata.directNormalRadiation.get # W/m^2
-          hourdict['diffhoriz'] = epwdata.diffuseHorizontalRadiation.get # W/m^2
-          hourdict['ws'] = epwdata.windSpeed.get
+          if epwdata.dryBulbTemperature.is_initialized
+            hourdict['db'] = epwdata.dryBulbTemperature.get
+          else
+            @runner.registerError("Cannot retrieve dryBulbTemperature from the EPW for hour #{hournum+1}.")
+            @error = true
+          end
+          if epwdata.dewPointTemperature.is_initialized
+            hourdict['dp'] = epwdata.dewPointTemperature.get
+          else
+            @runner.registerError("Cannot retrieve dewPointTemperature from the EPW for hour #{hournum+1}.")
+            @error = true
+          end
+          if epwdata.relativeHumidity.is_initialized
+            hourdict['rh'] = epwdata.relativeHumidity.get / 100.0
+          else
+            @runner.registerError("Cannot retrieve relativeHumidity from the EPW for hour #{hournum+1}.")
+            @error = true
+          end
+          #if epwdata.extraterrestrialHorizontalRadiation.is_initialized
+          #  hourdict['ethoriz'] = epwdata.extraterrestrialHorizontalRadiation.get
+          #else
+          #  @runner.registerError("Cannot retrieve extraterrestrialHorizontalRadiation from the EPW for hour #{hournum+1}.")
+          #  @error = true
+          #end
+          #if epwdata.globalHorizontalRadiation.is_initialized
+          #  hourdict['ghoriz'] = epwdata.globalHorizontalRadiation.get
+          #else
+          #  @runner.registerError("Cannot retrieve globalHorizontalRadiation from the EPW for hour #{hournum+1}.")
+          #  @error = true
+          #end
+          if epwdata.directNormalRadiation.is_initialized
+            hourdict['dirnormal'] = epwdata.directNormalRadiation.get # W/m^2
+          else
+            @runner.registerError("Cannot retrieve directNormalRadiation from the EPW for hour #{hournum+1}.")
+            @error = true
+          end
+          if epwdata.diffuseHorizontalRadiation.is_initialized
+            hourdict['diffhoriz'] = epwdata.diffuseHorizontalRadiation.get # W/m^2
+          else
+            @runner.registerError("Cannot retrieve diffuseHorizontalRadiation from the EPW for hour #{hournum+1}.")
+            @error = true
+          end
+          if epwdata.windSpeed.is_initialized
+            hourdict['ws'] = epwdata.windSpeed.get
+          else
+            @runner.registerError("Cannot retrieve windSpeed from the EPW for hour #{hournum+1}.")
+            @error = true
+          end
+          if @error
+            return nil, nil, nil
+          end
           hourdata << hourdict
 
           if (hournum + 1) % 24 == 0
