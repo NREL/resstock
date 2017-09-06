@@ -423,6 +423,12 @@ def calc_general(df, cut_by, columns=None, outfile=None,norm=True,outpath="Proba
           else:
             rename_dict[col] = 'Option=' + str(col)
     g = g.rename(columns=rename_dict)
+    
+    #Reduce garage size for small houses
+    if outfile == 'Geometry Garage.tsv':
+      g.loc[g['Dependency=Geometry House Size']=='0-1499', 'Option=2 Car'] = g.loc[g['Dependency=Geometry House Size']=='0-1499', 'Option=2 Car'] + g.loc[g['Dependency=Geometry House Size']=='0-1499', 'Option=3 Car']
+      g.loc[g['Dependency=Geometry House Size']=='0-1499', 'Option=3 Car'] = 0
+    
     #Generate Outfile
     if not outfile is None:
         g.to_csv(os.path.join(outpath, outfile), sep='\t', index=False)
@@ -909,14 +915,14 @@ def query(df):
 #    calc_general(df, cut_by=['yearmaderange','Size'], columns = ['Foundation Type'], outfile = 'FoundationType_output_by_vintage_size.tsv')
 #    calc_general(df, cut_by=['CR','FPL_BINS','Size'], columns = ['sizeofgarage'], outfile = 'SizeofGarage_output_by_CR_FPL_Size.tsv')
 #    calc_general(df, cut_by=['yearmaderange','Size','Foundation Type'], columns = ['stories'], outfile = 'Stories_output_by_vin_size_fndtype.tsv')
-#    calc_general(df, cut_by=['yearmaderange','Size'], columns = ['stories'], outfile = 'Geometry Stories.tsv', outpath='../../../resources/inputs/national')
-#    calc_general(df, cut_by=['yearmaderange','Size'], columns = ['sizeofgarage'], outfile = 'Geometry Garage.tsv', outpath='../../../resources/inputs/national')
-#    calc_general(df, cut_by=['CR'], columns = ['division'], outfile = 'Location Census Division.tsv', outpath='../../../resources/inputs/national')
+#    calc_general(df, cut_by=['yearmaderange','Size'], columns = ['stories'], outfile = 'Geometry Stories.tsv', outpath='../../../project_resstock_national/housing_characteristics')
+#    calc_general(df, cut_by=['yearmaderange','Size'], columns = ['sizeofgarage'], outfile = 'Geometry Garage.tsv', outpath='../../../project_resstock_national/housing_characteristics')
+#    calc_general(df, cut_by=['CR'], columns = ['division'], outfile = 'Location Census Division.tsv', outpath='../../../project_resstock_national/housing_characteristicsl')
 #    calc_general(df, cut_by=['CR','yearmaderange','Size','stories'], columns = [], outfile = 'Infiltration.tsv', outpath='../../../project_resstock_national/housing_characteristics')
     pass
 if __name__ == '__main__':
     #Choose regerate if you want to redo the processed pkl file, otherwise comment out
-    df = erin_boyd()
+    # df = erin_boyd()
     
     df = regenerate()
     df = pd.read_pickle('processed_eia.recs_2009_microdata.pkl')
