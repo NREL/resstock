@@ -248,12 +248,14 @@ class ResidentialHotWaterHeaterTankFuel < OpenStudio::Measure::ModelMeasure
             end
         
             new_heater = Waterheater.create_new_heater(sch_unit_index, Constants.ObjectNameWaterHeater(unit.name.to_s), cap, fuel_type, vol, nbeds, nbaths, ef, re, t_set, water_heater_tz, oncycle_p, offcycle_p, Constants.WaterHeaterTypeTank, 0, File.dirname(__FILE__), model, runner)
-        
+
             storage_tank = Waterheater.get_shw_storage_tank(model, unit)
-        
+
             if storage_tank.nil?
               loop.addSupplyBranchForComponent(new_heater)
-            else
+            else              
+              storage_tank.setHeater1SetpointTemperatureSchedule(new_heater.setpointTemperatureSchedule.get)
+              storage_tank.setHeater2SetpointTemperatureSchedule(new_heater.setpointTemperatureSchedule.get)
               new_heater.addToNode(storage_tank.supplyOutletModelObject.get.to_Node.get)
             end
 
