@@ -4,7 +4,7 @@ module.exports = function(grunt) {
     pkg: grunt.file.readJSON('package.json'),
     exec: {
       build_sphinx: {
-        cmd: 'make html'
+        cmd: 'python -msphinx -b html source build || python2 -msphinx -b html source build'
       }
     },
     connect: {
