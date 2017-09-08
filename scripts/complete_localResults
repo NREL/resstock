@@ -63,7 +63,7 @@ def retrieve_dp_data(local_results_dir, server_api, interval=5, analysis_id=nil)
       if ok
         dest = File.join local_results_dir, dp[:_id]
         unzip_archive f, dest
-        File.delete f
+        FileUtils.mv File.join(local_results_dir, 'data_point.zip'), dest
       else
         puts "ERROR: Failed to download data point #{dp[:_id]}"
         dps_error_count += 1
