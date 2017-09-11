@@ -52,6 +52,21 @@ class UtilityBillCalculations < OpenStudio::Measure::ReportingMeasure
     return args
   end
   
+  def outputs
+    result = OpenStudio::Measure::OSOutputVector.new
+    result << OpenStudio::Measure::OSOutput.makeStringOutput("grid_cells")
+    result << OpenStudio::Measure::OSOutput.makeStringOutput("total_site_electricity")
+    buildstock_outputs = [
+                          "total_site_natural_gas",
+                          "total_site_propane",
+                          "total_site_other"
+                         ]    
+    buildstock_outputs.each do |output|
+        result << OpenStudio::Measure::OSOutput.makeDoubleOutput(output)
+    end
+    return result
+  end  
+  
   # define what happens when the measure is run
   def run(runner, user_arguments)
     super(runner, user_arguments)
@@ -101,14 +116,11 @@ class UtilityBillCalculations < OpenStudio::Measure::ReportingMeasure
       end
     end
     
-    resources_dir = nil
-    Dir.entries(run_dir).each do |entry|
-      if entry.include? "UtilityBillCalculations"
-        resources_dir = File.expand_path(File.join(run_dir, entry, "resources"))
-      end
+    if elec_generated.nil?
+      elec_generated = Array.new(elec_load.length, 0)
     end
     
-    cols = CSV.read(File.expand_path(File.join(resources_dir, "by_nsrdb.csv"))).transpose
+    cols = CSV.read("#{File.dirname(__FILE__)}/resources/by_nsrdb.csv").transpose
     weather_file = runner.lastOpenStudioModel.get.getSite.weatherFile.get
     
     # tariffs
@@ -138,15 +150,18 @@ class UtilityBillCalculations < OpenStudio::Measure::ReportingMeasure
       indexes = usafs.each_index.select{|i| usafs[i] == closest_usaf}
       utility_ids = {}
       indexes.each do |ix|
-        if utility_ids.keys.include? cols[20][ix]
-          utility_ids[cols[20][ix]] << cols[0][ix]
-        else
-           utility_ids[cols[20][ix]] = [cols[0][ix]]
+        next if cols[20][ix].nil?
+        cols[20][ix].split("|").each do |utility_id|        
+          if utility_ids.keys.include? utility_id
+            utility_ids[utility_id] << cols[0][ix]
+          else
+             utility_ids[utility_id] = [cols[0][ix]]
+          end
         end
       end
     
       utility_ixs = []
-      cols = CSV.read(File.expand_path(File.join(resources_dir, "utilities.csv")), {:encoding=>'ISO-8859-1'}).transpose
+      cols = CSV.read("#{File.dirname(__FILE__)}/resources/utilities.csv", {:encoding=>'ISO-8859-1'}).transpose
       cols.each do |col|
         unless col[0].nil?
           if col[0].include? "eiaid"
@@ -170,14 +185,21 @@ class UtilityBillCalculations < OpenStudio::Measure::ReportingMeasure
         params = {'version':3, 'format':'json', 'detail':'full', 'getpage':getpage, 'api_key':api_key}
         uri.query = URI.encode_www_form(params)
         response = Net::HTTP.get_response(uri)
-        tariffs[getpage] = [utility_id, JSON.parse(response.body, :symbolize_names=>true)[:items][0]]
+        response = JSON.parse(response.body, :symbolize_names=>true)
+        if response.keys.include? :error
+          runner.registerError(response[:error][:message])
+          return false
+        end
+        tariffs[getpage] = [utility_id, response[:items][0]]
       end
       
     else
       runner.registerError("Did not supply an API Key or a JSON File Path.")
       return false
     end
-
+    
+    grid_cells = []
+    electricity_bills = []
     tariffs.each do |getpage, tariff|
     
       # utilityrate3
@@ -189,6 +211,7 @@ class UtilityBillCalculations < OpenStudio::Measure::ReportingMeasure
       SscApi.set_number(p_data, 'system_use_lifetime_output', 0) # TODO: what should this be?
       SscApi.set_number(p_data, 'inflation_rate', 0) # TODO: assume what?
       SscApi.set_number(p_data, 'ur_flat_buy_rate', 0) # TODO: how to get this from list of energyratestructure rates?
+      next if tariff[1][:fixedmonthlycharge].nil?
       SscApi.set_number(p_data, 'ur_monthly_fixed_charge', tariff[1][:fixedmonthlycharge]) # $
       unless tariff[1][:demandratestructure].nil?
         SscApi.set_matrix(p_data, 'ur_dc_sched_weekday', Matrix.rows(tariff[1][:demandweekdayschedule]))
@@ -263,27 +286,36 @@ class UtilityBillCalculations < OpenStudio::Measure::ReportingMeasure
       # puts "annual energy charges: $#{(energy_charges_tou + energy_charges_flat).round(2)}"
       # puts "annual utility bill: $#{(utility_bills.inject(0){ |sum, x| sum + x }).round(2)}"
 
-      runner.registerValue(utility_ids[tariff[0]] * "_", (utility_bills.inject(0){ |sum, x| sum + x }).round(2))
+      grid_cells << utility_ids[tariff[0]] * ";"
+      electricity_bills << "#{tariff[0]}=#{(utility_bills.inject(0){ |sum, x| sum + x }).round(2)}"
       
     end
     
-    cols = CSV.read(File.expand_path(File.join(resources_dir, "Natural gas.csv")), {:encoding=>'ISO-8859-1'})[3..-1].transpose
-    cols[0].each_with_index do |state, i|
-      next unless state == weather_file.stateProvinceRegion
-      report_output(runner, "utility_bill.total_site_natural_gas", gas_load, "kBtu", "therm", cols[1][i])
-      break
+    runner.registerValue("grid_cells", grid_cells.join("|"))
+    runner.registerValue("total_site_electricity", electricity_bills.join("|"))
+    runner.registerInfo("Registering electricity bills.")
+    
+    fuels = ["Natural gas"]
+    fuels.each do |fuel|
+      cols = CSV.read("#{File.dirname(__FILE__)}/resources/#{fuel}.csv", {:encoding=>'ISO-8859-1'})[3..-1].transpose
+      cols[0].each_with_index do |state, i|
+        next unless state == weather_file.stateProvinceRegion
+        report_output(runner, "total_site_#{fuel.downcase}", gas_load, "kBtu", "therm", cols[1][i], fuel)
+        break
+      end
     end
 
     return true
  
   end
   
-  def report_output(runner, name, vals, os_units, desired_units, rate)
+  def report_output(runner, name, vals, os_units, desired_units, rate, fuel)
     total_val = 0.0
     vals.each do |val|
         total_val += val.to_f
     end
     runner.registerValue(name, (OpenStudio::convert(total_val, os_units, desired_units).get * rate.to_f).round(2))
+    runner.registerInfo("Registering #{fuel.downcase} utility bills.")
   end
   
   def closest_usaf_to_epw(bldg_lat, bldg_lon, usafs)
