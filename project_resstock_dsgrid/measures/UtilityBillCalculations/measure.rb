@@ -55,11 +55,11 @@ class UtilityBillCalculations < OpenStudio::Measure::ReportingMeasure
   def outputs
     result = OpenStudio::Measure::OSOutputVector.new
     result << OpenStudio::Measure::OSOutput.makeStringOutput("grid_cells")
-    result << OpenStudio::Measure::OSOutput.makeStringOutput("total_site_electricity")
+    result << OpenStudio::Measure::OSOutput.makeStringOutput("total_electricity")
     buildstock_outputs = [
-                          "total_site_natural_gas",
-                          "total_site_propane",
-                          "total_site_other"
+                          "total_natural_gas",
+                          "total_propane",
+                          "total_oil"
                          ]    
     buildstock_outputs.each do |output|
         result << OpenStudio::Measure::OSOutput.makeDoubleOutput(output)
@@ -106,6 +106,8 @@ class UtilityBillCalculations < OpenStudio::Measure::ReportingMeasure
     elec_load = nil
     elec_generated = nil
     gas_load = nil
+    oil_load = nil
+    prop_load = nil
     cols.each do |col|
       if col[0].include? "Electricity:Facility"
         elec_load = col[1..-1]
@@ -113,6 +115,10 @@ class UtilityBillCalculations < OpenStudio::Measure::ReportingMeasure
         elec_generated = col[1..-1]
       elsif col[0].include? "Gas:Facility"
         gas_load = col[1..-1]
+      elsif col[0].include? "FuelOil#1:Facility"
+        oil_load = col[1..-1]
+      elsif col[0].include? "Propane:Facility"
+        prop_load = col[1..-1]
       end
     end
     
@@ -211,8 +217,9 @@ class UtilityBillCalculations < OpenStudio::Measure::ReportingMeasure
       SscApi.set_number(p_data, 'system_use_lifetime_output', 0) # TODO: what should this be?
       SscApi.set_number(p_data, 'inflation_rate', 0) # TODO: assume what?
       SscApi.set_number(p_data, 'ur_flat_buy_rate', 0) # TODO: how to get this from list of energyratestructure rates?
-      next if tariff[1][:fixedmonthlycharge].nil?
-      SscApi.set_number(p_data, 'ur_monthly_fixed_charge', tariff[1][:fixedmonthlycharge]) # $
+      unless tariff[1][:fixedmonthlycharge].nil?
+        SscApi.set_number(p_data, 'ur_monthly_fixed_charge', tariff[1][:fixedmonthlycharge]) # $
+      end
       unless tariff[1][:demandratestructure].nil?
         SscApi.set_matrix(p_data, 'ur_dc_sched_weekday', Matrix.rows(tariff[1][:demandweekdayschedule]))
         SscApi.set_matrix(p_data, 'ur_dc_sched_weekend', Matrix.rows(tariff[1][:demandweekendschedule]))
@@ -290,17 +297,23 @@ class UtilityBillCalculations < OpenStudio::Measure::ReportingMeasure
       electricity_bills << "#{tariff[0]}=#{(utility_bills.inject(0){ |sum, x| sum + x }).round(2)}"
       
     end
-    
+
     runner.registerValue("grid_cells", grid_cells.join("|"))
-    runner.registerValue("total_site_electricity", electricity_bills.join("|"))
+    runner.registerValue("total_electricity", electricity_bills.join("|"))
     runner.registerInfo("Registering electricity bills.")
     
-    fuels = ["Natural gas"]
+    fuels = ["Natural gas", "Oil", "Propane"]
     fuels.each do |fuel|
       cols = CSV.read("#{File.dirname(__FILE__)}/resources/#{fuel}.csv", {:encoding=>'ISO-8859-1'})[3..-1].transpose
       cols[0].each_with_index do |state, i|
         next unless state == weather_file.stateProvinceRegion
-        report_output(runner, "total_site_#{fuel.downcase}", gas_load, "kBtu", "therm", cols[1][i], fuel)
+        if fuel == "Natural gas" and not gas_load.nil?
+          report_output(runner, "total_#{fuel.downcase}", gas_load, "kBtu", "therm", cols[1][i], fuel)
+        elsif fuel == "Oil" and not oil_load.nil?
+          report_output(runner, "total_#{fuel.downcase}", oil_load, "kBtu", "gal", cols[1][i], fuel)
+        elsif fuel == "Propane" and not prop_load.nil?
+          report_output(runner, "total_#{fuel.downcase}", prop_load, "kBtu", "gal", cols[1][i], fuel)
+        end
         break
       end
     end
@@ -314,7 +327,15 @@ class UtilityBillCalculations < OpenStudio::Measure::ReportingMeasure
     vals.each do |val|
         total_val += val.to_f
     end
-    runner.registerValue(name, (OpenStudio::convert(total_val, os_units, desired_units).get * rate.to_f).round(2))
+    unless desired_units == "gal"
+      runner.registerValue(name, (OpenStudio::convert(total_val, os_units, desired_units).get * rate.to_f).round(2))
+    else
+      if name.include? "oil"
+        runner.registerValue(name, (total_val * 1000.0 / 139000 * rate.to_f).round(2))
+      elsif name.include? "propane"
+        runner.registerValue(name, (total_val * 1000.0 / 91600 * rate.to_f).round(2))
+      end
+    end
     runner.registerInfo("Registering #{fuel.downcase} utility bills.")
   end
   
