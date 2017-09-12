@@ -117,5 +117,43 @@ When the cluster is running, start the analysis by clicking the **Run Entire Wor
 
 .. image:: images/tutorial/os_server_status.png
 
-Leave the PAT application open while your analysis runs. It could take a while. 
+Leave the PAT application open while your analysis runs. It could take a while.
 
+Download results
+----------------
+
+Eventually PAT will show in the status bar "Analysis completed". And the OpenStudio Server console will show the same.  
+
+.. image:: images/tutorial/os_server_complete.png
+
+.. image:: images/tutorial/pat_complete.png
+
+Clicking the **View Results** button in PAT will open the results.csv file for your analysis. It contains a row for every sampled building including all options selected for that building and annual energy simulation results. Often this is the only results you will need. That file is saved in your project in ``localResults/results.csv``. 
+
+Sometime you will need *all* the simulation results including timeseries results if you requested them. Clicking the **Results (cloud, down arrow)** button will pull down all of the simulation results from the server and save them to your project. Each result data point will be stored in a ``localResults/[GUID]`` folder in your project. 
+
+.. warning::
+   
+   Downloading all simulation results can be a lot of data. Make sure you're on a good connection and have enough room on your local machine. Be prepared for the download to take a while. 
+
+.. todo::
+   
+   Only 150 datapoints are downloading right now. There's a ticket to fix that. Ry has a script to do the downloading of all datapoints. Add those instructions here.
+
+Shutting Down the OpenStudio Server Cluster
+-------------------------------------------
+
+Once you have retrieved all the data you need from your analysis, it is a good idea to shut down the OpenStudio Server Cluster to stop incurring AWS costs. The most straightforward way to do that is to click the **Terminate** button on the Run tab of PAT.
+
+.. image:: images/tutorial/pat_terminate.png
+
+The PAT interface will indicate that the cluster has been shut down after a moment. Just to be sure, it's best to open the AWS cloud console either by clicking the **View AWS Console** button in PAT or visiting https://console.aws.amazon.com. Select "Services" > "EC2". Select "N. Virginia" in the region menu (upper right). You should see a terminated instance of OpenStudio-Server and potentially some workers if you chose to use workers above. 
+
+.. image:: images/tutorial/aws_console_terminated.png
+
+If it has been long enough the list will be empty. If for some reason the instances are still running, you can terminate them by right-clicking and selecting "Terminate". If PAT has been closed or crashed, this is how you will have to shut down the cluster. 
+
+Conclusion
+==========
+
+Congratulations, you have now completed your first ResStock analysis. See the other sections in this documentation for more advanced topics. 
