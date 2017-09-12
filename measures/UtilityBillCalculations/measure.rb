@@ -55,11 +55,11 @@ class UtilityBillCalculations < OpenStudio::Measure::ReportingMeasure
   def outputs
     result = OpenStudio::Measure::OSOutputVector.new
     result << OpenStudio::Measure::OSOutput.makeStringOutput("grid_cells")
-    result << OpenStudio::Measure::OSOutput.makeStringOutput("total_site_electricity")
+    result << OpenStudio::Measure::OSOutput.makeStringOutput("total_electricity")
     buildstock_outputs = [
-                          "total_site_natural_gas",
-                          "total_site_propane",
-                          "total_site_other"
+                          "total_natural_gas",
+                          "total_propane",
+                          "total_fuel_oil"
                          ]    
     buildstock_outputs.each do |output|
         result << OpenStudio::Measure::OSOutput.makeDoubleOutput(output)
@@ -292,7 +292,7 @@ class UtilityBillCalculations < OpenStudio::Measure::ReportingMeasure
     end
     
     runner.registerValue("grid_cells", grid_cells.join("|"))
-    runner.registerValue("total_site_electricity", electricity_bills.join("|"))
+    runner.registerValue("total_electricity", electricity_bills.join("|"))
     runner.registerInfo("Registering electricity bills.")
     
     fuels = ["Natural gas"]
@@ -300,7 +300,7 @@ class UtilityBillCalculations < OpenStudio::Measure::ReportingMeasure
       cols = CSV.read("#{File.dirname(__FILE__)}/resources/#{fuel}.csv", {:encoding=>'ISO-8859-1'})[3..-1].transpose
       cols[0].each_with_index do |state, i|
         next unless state == weather_file.stateProvinceRegion
-        report_output(runner, "total_site_#{fuel.downcase}", gas_load, "kBtu", "therm", cols[1][i], fuel)
+        report_output(runner, "total_#{fuel.downcase}", gas_load, "kBtu", "therm", cols[1][i], fuel)
         break
       end
     end
