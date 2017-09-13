@@ -1,0 +1,157 @@
+<measure>
+  <schema_version>3.0</schema_version>
+  <name>utility_bill_calculations</name>
+  <uid>872cd20c-55df-459e-9ac9-f42c93ab665c</uid>
+  <version_id>fef88289-b2ba-4e55-b35d-0b9746fc0523</version_id>
+  <version_modified>20170913T160328Z</version_modified>
+  <xml_checksum>6159342E</xml_checksum>
+  <class_name>UtilityBillCalculations</class_name>
+  <display_name>Utility Bill Calculations</display_name>
+  <description>Calls SAM SDK.</description>
+  <modeler_description>Calls SAM SDK.</modeler_description>
+  <arguments>
+    <argument>
+      <name>run_dir</name>
+      <display_name>Run Directory</display_name>
+      <description>Relative path of the run directory.</description>
+      <type>String</type>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>..</default_value>
+    </argument>
+    <argument>
+      <name>api_key</name>
+      <display_name>EIA API Key</display_name>
+      <description>Call the API and find EIA ID(s) matching the epw.</description>
+      <type>String</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>json_file_path</name>
+      <display_name>JSON File Path</display_name>
+      <description>Provide this instead of calling the API.</description>
+      <type>String</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>analysis_period</name>
+      <display_name>Analysis Period</display_name>
+      <type>Double</type>
+      <units>yrs</units>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+      <default_value>1</default_value>
+    </argument>
+  </arguments>
+  <outputs>
+    <output>
+      <name>grid_cells</name>
+      <display_name>grid_cells</display_name>
+      <short_name>grid_cells</short_name>
+      <type>String</type>
+      <model_dependent>false</model_dependent>
+    </output>
+    <output>
+      <name>total_electricity</name>
+      <display_name>total_electricity</display_name>
+      <short_name>total_electricity</short_name>
+      <type>String</type>
+      <model_dependent>false</model_dependent>
+    </output>
+    <output>
+      <name>total_natural_gas</name>
+      <display_name>total_natural_gas</display_name>
+      <short_name>total_natural_gas</short_name>
+      <type>Double</type>
+      <model_dependent>false</model_dependent>
+    </output>
+    <output>
+      <name>total_propane</name>
+      <display_name>total_propane</display_name>
+      <short_name>total_propane</short_name>
+      <type>Double</type>
+      <model_dependent>false</model_dependent>
+    </output>
+    <output>
+      <name>total_oil</name>
+      <display_name>total_oil</display_name>
+      <short_name>total_oil</short_name>
+      <type>Double</type>
+      <model_dependent>false</model_dependent>
+    </output>
+  </outputs>
+  <provenances/>
+  <tags>
+    <tag>Economics.Life Cycle Cost Analysis</tag>
+  </tags>
+  <attributes>
+    <attribute>
+      <name>Measure Type</name>
+      <value>ReportingMeasure</value>
+      <datatype>string</datatype>
+    </attribute>
+  </attributes>
+  <files>
+    <file>
+      <filename>ssc_api.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>C9F510A2</checksum>
+    </file>
+    <file>
+      <filename>sam-sdk-2017-1-17-r1.zip</filename>
+      <filetype>zip</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>14339B8F</checksum>
+    </file>
+    <file>
+      <filename>utilities.csv</filename>
+      <filetype>csv</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>49E7C310</checksum>
+    </file>
+    <file>
+      <filename>by_nsrdb.csv</filename>
+      <filetype>csv</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>D33BD8DE</checksum>
+    </file>
+    <file>
+      <filename>ssc_ffi.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>3ADEAEFE</checksum>
+    </file>
+    <file>
+      <filename>Natural gas.csv</filename>
+      <filetype>csv</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>43EDF817</checksum>
+    </file>
+    <file>
+      <filename>Oil.csv</filename>
+      <filetype>csv</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>FBAE07C0</checksum>
+    </file>
+    <file>
+      <filename>Propane.csv</filename>
+      <filetype>csv</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>D205D809</checksum>
+    </file>
+    <file>
+      <version>
+        <software_program>OpenStudio</software_program>
+        <identifier>2.0.5</identifier>
+        <min_compatible>2.0.5</min_compatible>
+      </version>
+      <filename>measure.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>script</usage_type>
+      <checksum>07180FC4</checksum>
+    </file>
+  </files>
+</measure>

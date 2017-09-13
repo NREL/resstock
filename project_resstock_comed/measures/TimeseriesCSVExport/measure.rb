@@ -26,10 +26,11 @@ class TimeseriesCSVExport < OpenStudio::Measure::ReportingMeasure
     fuel_types = [  
       'Electricity',
       'Gas',
-      'AdditionalFuel',
       'DistrictCooling',
       'DistrictHeating',
-      'Water'
+      'Water',
+      'FuelOil#1',
+      'Propane'
     ]
     
     return fuel_types
