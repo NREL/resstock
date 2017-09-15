@@ -22,7 +22,9 @@ def main(zip_file, format, package, func, file):
       if package == 'pandas':    
         write_pandas_hdf5(zip_file, file)      
       elif package == 'h5py':      
-        write_h5py_hdf5(zip_file, file)      
+        write_h5py_hdf5(zip_file, file)
+    elif format == 'csv':
+      write_csv(zip_file)
   elif func == 'read':  
     if format == 'zip':    
       print "Haven't written this code yet."      
@@ -50,6 +52,51 @@ def write_zip(dir):
   print "Created new zip file containing {} csv files.".format(len(new_zf.namelist()))
   new_zf.close()
 
+def write_csv(zip_file):
+  results_csv = pd.read_csv('../analysis_results/data_points/comed_savings.csv') # TODO
+  
+  dir = os.path.dirname(os.path.abspath(zip_file))
+    
+  folder_zf = zipfile.ZipFile(zip_file)
+  
+  df = pd.DataFrame()
+  
+  dfs = {}
+  for i, datapoint in enumerate(folder_zf.namelist()):
+  
+    if not datapoint.endswith('.zip'):
+      continue
+
+    id = datapoint.split('/')[1]
+    epw = results_csv.loc[results_csv['_id']==id, 'building_characteristics_report.location_epw'].values
+    if not len(epw) > 0: # this one is not in the results csv
+      continue
+    epw = epw[0]
+    
+    folder_zf.extract(datapoint, dir)
+    
+    with zipfile.ZipFile(os.path.join(dir, datapoint), 'r') as data_point_zf:
+  
+      if not 'enduse_timeseries.csv' in data_point_zf.namelist():
+        continue
+  
+      if not epw in dfs.keys():
+        df = pd.DataFrame()
+      else:
+        df = dfs[epw]
+  
+      if df.empty:
+        df = pd.read_csv(data_point_zf.open('enduse_timeseries.csv'), index_col='Time')
+      else:
+        df = df.add(pd.read_csv(data_point_zf.open('enduse_timeseries.csv'), index_col='Time'), fill_value=0)
+       
+      print i / 2, id, epw
+      dfs[epw] = df
+        
+  for epw, df in dfs.items():
+        
+    df.to_csv(epw.replace(".epw", ".csv")) 
+  
 def write_pandas_hdf5(zip_file, file):
 
   dir = os.path.dirname(os.path.abspath(zip_file))
@@ -112,41 +159,64 @@ def write_pandas_hdf5(zip_file, file):
 def write_h5py_hdf5(zip_file, file):  
   from dsgrid.dataformat import DSGridFile
 
+  results_csv = pd.read_csv('../analysis_results/data_points/comed_savings.csv') # TODO
+  
   dir = os.path.dirname(os.path.abspath(zip_file))
     
   folder_zf = zipfile.ZipFile(zip_file)
   
   df = pd.DataFrame()
   
-  for datapoint in folder_zf.namelist():
+  dfs = {}
+  for i, datapoint in enumerate(folder_zf.namelist()):
   
     if not datapoint.endswith('.zip'):
       continue
+
+    id = datapoint.split('/')[1]
+    epw = results_csv.loc[results_csv['_id']==id, 'building_characteristics_report.location_epw'].values
+    if not len(epw) > 0: # this one is not in the results csv
+      continue
+    epw = epw[0]
     
     folder_zf.extract(datapoint, dir)
     
     with zipfile.ZipFile(os.path.join(dir, datapoint), 'r') as data_point_zf:
   
+      if not 'enduse_timeseries.csv' in data_point_zf.namelist():
+        continue
+  
+      if not epw in dfs.keys():
+        df = pd.DataFrame()
+      else:
+        df = dfs[epw]
+  
       if df.empty:
         df = pd.read_csv(data_point_zf.open('enduse_timeseries.csv'), index_col='Time')
       else:
         df = df.add(pd.read_csv(data_point_zf.open('enduse_timeseries.csv'), index_col='Time'), fill_value=0)
+       
+      print i / 2, id, epw
+      dfs[epw] = df
         
-  df = df.reset_index()
-  del df['Time']
-  df.columns = [re.sub(r"[^\w\s]", '_', col).replace(' ', '').rstrip('_').replace('Electricity', 'Elec') for col in df.columns]
-  
   f = DSGridFile()
-  sector = f.add_sector('res', 'Residential')
-  subsector = sector.add_subsector("sf", "Single-Family", Hours(), df.columns.values)
-  subsector.add_data(df, (8, 59))
+  for epw, df in dfs.items():
+        
+    df = df.reset_index()
+    del df['Time']
+    df.columns = [re.sub(r"[^\w\s]", '_', col).replace(' ', '').rstrip('_').replace('Electricity', 'Elec') for col in df.columns]  
+    
+    sector = f.add_sector('res', 'Residential')
+    subsector = sector.add_subsector(epw[0:3], epw, Hours(), df.columns.values)
+    subsector.add_data(df, (8, 59))
+  
   f.write(file)
 
 from dsgrid.timeformats import TimeFormat
 class Hours(TimeFormat):
 
   def __init__(self):
-    TimeFormat.__init__(self, "Hours", 8760)
+    TimeFormat.__init__(self, "Hours", 8784)
 
   def timeindex(self):
     return pd.Index(range(self.periods))
@@ -219,8 +289,8 @@ if __name__ == '__main__':
   
   parser = argparse.ArgumentParser()
   parser.add_argument('--zip', default='../analysis_results/data_points/resstock_pnw_localResults.zip', help='Relative path of the localResults.zip file.')
-  formats = ['zip', 'hdf5']
-  parser.add_argument('--format', choices=formats, default='hdf5', help='Desired format of the stored output csv files.')
+  formats = ['zip', 'hdf5', 'csv']
+  parser.add_argument('--format', choices=formats, default='hdf5', help='Desired format of the stored output files.')
   packages = ['pandas', 'h5py']
   parser.add_argument('--package', choices=packages, default='pandas', help='HDF5 tool.')
   functions = ['read', 'write', 'build_db']
