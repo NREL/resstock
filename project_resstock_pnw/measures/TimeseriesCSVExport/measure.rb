@@ -26,10 +26,11 @@ class TimeseriesCSVExport < OpenStudio::Measure::ReportingMeasure
     fuel_types = [  
       'Electricity',
       'Gas',
-      'AdditionalFuel',
       'DistrictCooling',
       'DistrictHeating',
-      'Water'
+      'Water',
+      'FuelOil#1',
+      'Propane'
     ]
     
     return fuel_types
@@ -294,7 +295,7 @@ class TimeseriesCSVExport < OpenStudio::Measure::ReportingMeasure
       data_col = [col_name]
       #data_col << units
       data.each do |entry|
-        data_col << entry['y']
+        data_col << entry['y'].round(3)
       end
       cols << data_col
     end

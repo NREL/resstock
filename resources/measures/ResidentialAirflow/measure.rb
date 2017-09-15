@@ -961,6 +961,11 @@ class ResidentialAirflow < OpenStudio::Measure::ModelMeasure
       
       # Remove existing mechanical ventilation
     
+      model.getZoneHVACEnergyRecoveryVentilators.each do |erv|
+        next unless erv.name.to_s == obj_name_mechvent + " erv"
+        erv.remove
+      end
+    
       model.getScheduleRulesets.each do |schedule|
         next unless schedule.name.to_s == obj_name_mechvent + " energy schedule" or schedule.name.to_s == obj_name_mechvent + " schedule"
         schedule.remove

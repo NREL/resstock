@@ -115,7 +115,7 @@ class ProcessThermalMassFurniture < OpenStudio::Measure::ModelMeasure
     garageSpecHeat = BaseMaterial.Wood.cp
     
     # Remove any existing furniture mass.
-    furniture_removed = false
+    furniture_removed = false    
     model.getInternalMasss.each do |im|
         next if not im.name.get.include?(Constants.ObjectNameFurniture)
         md = im.internalMassDefinition
