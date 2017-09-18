@@ -122,6 +122,11 @@ task :integrity_check_resstock_comed do
     integrity_check(['project_resstock_comed'])
 end # rake task
 
+desc 'Perform integrity check on inputs for project_resstock_efs'
+task :integrity_check_resstock_efs do
+    integrity_check(['project_resstock_efs'])
+end # rake task
+
 def integrity_check(project_dir_names=nil)
   require 'openstudio'
   
