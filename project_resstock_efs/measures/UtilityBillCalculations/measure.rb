@@ -130,20 +130,20 @@ class UtilityBillCalculations < OpenStudio::Measure::ReportingMeasure
     weather_file = runner.lastOpenStudioModel.get.getSite.weatherFile.get
     
     # tariffs
-    tariffs = {}
+    tariffs = []
     if not json_file_path.nil?
 
       tariff = JSON.parse(File.read(json_file_path), :symbolize_names=>true)[:items][0]
-      tariffs[tariff[:label]] = [tariff[:eiaid].to_s, tariff]
+      tariffs << tariff
       
-      ids = cols[20].collect { |i| i.to_s }
+      ids = cols[2].collect { |i| i.to_s }
       indexes = ids.each_index.select{|i| ids[i] == tariff[:eiaid].to_s}
       utility_ids = {}
       indexes.each do |ix|
-        if utility_ids.keys.include? cols[20][ix]
-          utility_ids[cols[20][ix]] << cols[0][ix]
+        if utility_ids.keys.include? cols[2][ix]
+          utility_ids[cols[2][ix]] << cols[0][ix]
         else
-           utility_ids[cols[20][ix]] = [cols[0][ix]]
+           utility_ids[cols[2][ix]] = [cols[0][ix]]
         end
       end
       
@@ -156,8 +156,8 @@ class UtilityBillCalculations < OpenStudio::Measure::ReportingMeasure
       indexes = usafs.each_index.select{|i| usafs[i] == closest_usaf}
       utility_ids = {}
       indexes.each do |ix|
-        next if cols[20][ix].nil?
-        cols[20][ix].split("|").each do |utility_id|        
+        next if cols[2][ix].nil?
+        cols[2][ix].split("|").each do |utility_id|        
           if utility_ids.keys.include? utility_id
             utility_ids[utility_id] << cols[0][ix]
           else
@@ -196,7 +196,7 @@ class UtilityBillCalculations < OpenStudio::Measure::ReportingMeasure
           runner.registerError(response[:error][:message])
           return false
         end
-        tariffs[getpage] = [utility_id, response[:items][0]]
+        tariffs << response[:items][0]
       end
       
     else
@@ -206,7 +206,7 @@ class UtilityBillCalculations < OpenStudio::Measure::ReportingMeasure
     
     grid_cells = []
     electricity_bills = []
-    tariffs.each do |getpage, tariff|
+    tariffs.each do |tariff|
     
       # utilityrate3
       p_data = SscApi.create_data_object
@@ -217,14 +217,14 @@ class UtilityBillCalculations < OpenStudio::Measure::ReportingMeasure
       SscApi.set_number(p_data, 'system_use_lifetime_output', 0) # TODO: what should this be?
       SscApi.set_number(p_data, 'inflation_rate', 0) # TODO: assume what?
       SscApi.set_number(p_data, 'ur_flat_buy_rate', 0) # TODO: how to get this from list of energyratestructure rates?
-      unless tariff[1][:fixedmonthlycharge].nil?
-        SscApi.set_number(p_data, 'ur_monthly_fixed_charge', tariff[1][:fixedmonthlycharge]) # $
+      unless tariff[:fixedmonthlycharge].nil?
+        SscApi.set_number(p_data, 'ur_monthly_fixed_charge', tariff[:fixedmonthlycharge]) # $
       end
-      unless tariff[1][:demandratestructure].nil?
-        SscApi.set_matrix(p_data, 'ur_dc_sched_weekday', Matrix.rows(tariff[1][:demandweekdayschedule]))
-        SscApi.set_matrix(p_data, 'ur_dc_sched_weekend', Matrix.rows(tariff[1][:demandweekendschedule]))
+      unless tariff[:demandratestructure].nil?
+        SscApi.set_matrix(p_data, 'ur_dc_sched_weekday', Matrix.rows(tariff[:demandweekdayschedule]))
+        SscApi.set_matrix(p_data, 'ur_dc_sched_weekend', Matrix.rows(tariff[:demandweekendschedule]))
         SscApi.set_number(p_data, 'ur_dc_enable', 1)
-        tariff[1][:demandratestructure].each_with_index do |period, i|
+        tariff[:demandratestructure].each_with_index do |period, i|
           period.each_with_index do |tier, j|
             unless tier[:adj].nil?
               SscApi.set_number(p_data, "ur_dc_p#{i+1}_t#{j+1}_dc", tier[:rate] + tier[:adj])
@@ -240,9 +240,9 @@ class UtilityBillCalculations < OpenStudio::Measure::ReportingMeasure
         end
       end
       SscApi.set_number(p_data, 'ur_ec_enable', 1)
-      SscApi.set_matrix(p_data, 'ur_ec_sched_weekday', Matrix.rows(tariff[1][:energyweekdayschedule]))
-      SscApi.set_matrix(p_data, 'ur_ec_sched_weekend', Matrix.rows(tariff[1][:energyweekendschedule]))
-      tariff[1][:energyratestructure].each_with_index do |period, i|
+      SscApi.set_matrix(p_data, 'ur_ec_sched_weekday', Matrix.rows(tariff[:energyweekdayschedule]))
+      SscApi.set_matrix(p_data, 'ur_ec_sched_weekend', Matrix.rows(tariff[:energyweekendschedule]))
+      tariff[:energyratestructure].each_with_index do |period, i|
         period.each_with_index do |tier, j|
           unless tier[:adj].nil?
             SscApi.set_number(p_data, "ur_ec_p#{i+1}_t#{j+1}_br", tier[:rate] + tier[:adj])
@@ -293,8 +293,8 @@ class UtilityBillCalculations < OpenStudio::Measure::ReportingMeasure
       # puts "annual energy charges: $#{(energy_charges_tou + energy_charges_flat).round(2)}"
       # puts "annual utility bill: $#{(utility_bills.inject(0){ |sum, x| sum + x }).round(2)}"
 
-      grid_cells << utility_ids[tariff[0]] * ";"
-      electricity_bills << "#{tariff[0]}=#{(utility_bills.inject(0){ |sum, x| sum + x }).round(2)}"
+      grid_cells << utility_ids[tariff[:eiaid].to_s] * ";"
+      electricity_bills << "#{tariff[:eiaid].to_s}=#{(utility_bills.inject(0){ |sum, x| sum + x }).round(2)}"
       
     end
 
