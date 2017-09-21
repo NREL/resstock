@@ -6,6 +6,7 @@ Bundler.setup
 desc 'Copy measures/osms from OpenStudio-BEopt repo'
 task :copy_beopt_files do
   require 'fileutils'
+  require 'openstudio'
 
   # TODO: Should really grab latest from https://github.com/NREL/OpenStudio-BEopt/archive/master.zip
   beopt_measures_dir = File.join(File.dirname(__FILE__), "..", "OpenStudio-BEopt", "measures")
@@ -75,6 +76,20 @@ task :copy_beopt_files do
       buildstock_measure_subdir = File.join(buildstock_measures_dir, other_measure, subdir)
       if Dir.exist?(buildstock_measure_subdir)
         FileUtils.rm_rf("#{buildstock_measure_subdir}/.", secure: true)
+      end
+    end
+    if other_measure == "UtilityBillCalculations"
+      ["resources"].each do |subdir|
+        buildstock_measure_subdir = File.join(buildstock_measures_dir, other_measure, subdir)
+        unzip_file = OpenStudio::UnzipFile.new(File.join(buildstock_measure_subdir, "sam-sdk-2017-1-17-r1.zip"))
+        unzip_file.extractAllFiles(OpenStudio::toPath(File.join(buildstock_measure_subdir, "sam-sdk-2017-1-17-r1")))
+        ["osx64", "win32", "win64"].each do |platform|
+          FileUtils.rm_rf(File.join(buildstock_measure_subdir, "sam-sdk-2017-1-17-r1", platform))
+        end
+        sam_sdk_zip = OpenStudio::toPath(File.join(buildstock_measure_subdir, "sam-sdk-2017-1-17-r1.zip"))
+        zip_file = OpenStudio::ZipFile.new(sam_sdk_zip, false)
+        zip_file.addDirectory(File.join(buildstock_measure_subdir, "sam-sdk-2017-1-17-r1"), OpenStudio::toPath("/"))
+        FileUtils.rm_rf(File.join(buildstock_measure_subdir, "sam-sdk-2017-1-17-r1"))
       end
     end
   end
