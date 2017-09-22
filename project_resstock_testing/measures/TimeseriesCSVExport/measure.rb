@@ -56,7 +56,17 @@ class TimeseriesCSVExport < OpenStudio::Measure::ReportingMeasure
     ]
     
     return end_uses
-  end  
+  end
+  
+  def output_vars
+    output_vars = [
+      'Zone Mean Air Temperature',
+      'Zone Mean Air Humidity Ratio',
+      'Fan Runtime Fraction'
+    ]
+    
+    return output_vars
+  end
   
   # define the arguments that the user will input
   def arguments()
@@ -77,6 +87,12 @@ class TimeseriesCSVExport < OpenStudio::Measure::ReportingMeasure
     
     # TODO: argument for subset of output meters
     
+    #make an argument for including optional output variables
+    inc_output_variables = OpenStudio::Measure::OSArgument::makeBoolArgument("inc_output_variables", true)
+    inc_output_variables.setDisplayName("Include Output Variables")
+    inc_output_variables.setDefaultValue(false)
+    args << inc_output_variables    
+    
     return args
   end 
   
@@ -87,6 +103,7 @@ class TimeseriesCSVExport < OpenStudio::Measure::ReportingMeasure
     result = OpenStudio::IdfObjectVector.new
 
     reporting_frequency = runner.getStringArgumentValue("reporting_frequency",user_arguments)
+    inc_output_variables = runner.getBoolArgumentValue("inc_output_variables",user_arguments)
 
     # Request the output for each end use/fuel type combination
     end_uses.each do |end_use|
@@ -97,6 +114,13 @@ class TimeseriesCSVExport < OpenStudio::Measure::ReportingMeasure
                   "#{end_use}:#{fuel_type}"
                 end
         result << OpenStudio::IdfObject.load("Output:Meter,#{variable_name},#{reporting_frequency};").get
+      end
+    end
+    
+    # Request the output for each variable
+    if inc_output_variables
+      output_vars.each do |output_var|
+        result << OpenStudio::IdfObject.load("Output:Variable,#{output_var},#{reporting_frequency},*;").get
       end
     end
     
@@ -114,6 +138,7 @@ class TimeseriesCSVExport < OpenStudio::Measure::ReportingMeasure
     
     # Assign the user inputs to variables
     reporting_frequency = runner.getStringArgumentValue("reporting_frequency",user_arguments)
+    inc_output_variables = runner.getBoolArgumentValue("inc_output_variables",user_arguments)
     
     # get the last model and sql file
     model = runner.lastOpenStudioModel
@@ -122,6 +147,7 @@ class TimeseriesCSVExport < OpenStudio::Measure::ReportingMeasure
       return false
     end
     model = model.get
+    epw_file = OpenStudio::EpwFile.new(File.expand_path(model.getWeatherFile.path.get.to_s))
 
     sql = runner.lastEnergyPlusSqlFile
     if sql.empty?
@@ -153,7 +179,7 @@ class TimeseriesCSVExport < OpenStudio::Measure::ReportingMeasure
     # 2009-May-14 00:10:00   Raw string
     # Javascript time
     # 2009/07/12 12:34:56
-    def to_JSTime(os_time)
+    def to_JSTime(os_time, year_description)
       js_time = os_time.to_s
       # Replace the '-' with '/'
       js_time = js_time.gsub('-','/')
@@ -170,7 +196,57 @@ class TimeseriesCSVExport < OpenStudio::Measure::ReportingMeasure
       js_time = js_time.gsub('Oct','10')
       js_time = js_time.gsub('Nov','11')
       js_time = js_time.gsub('Dec','12')
-      
+
+      # manually shift timestamps for leap years
+      if year_description.isLeapYear
+        date, time = js_time.split(" ")
+        year, month, day = date.split("/")
+        year = year.to_f
+        month = month.to_f
+        day = day.to_f
+        if not ( month == 1 and year == 2009 ) and not ( month == 2 and year == 2009 )
+          day -= 1
+          if day == 0
+            month -= 1
+            if month == 0
+              month = 12
+              day = 31              
+            elsif month == 1
+              day = 31
+            elsif month == 2
+              day = 29
+            elsif month == 3
+              day = 31
+            elsif month == 4
+              day = 28
+            elsif month == 5
+              day = 31
+            elsif month == 6
+              day = 30
+            elsif month == 7
+              day = 31
+            elsif month == 8
+              day = 31
+            elsif month == 9
+              day = 30
+            elsif month == 10
+              day = 31
+            elsif month == 11
+              day = 30
+            end
+          end
+        end
+        js_time = "#{year.to_i}/#{month.to_i.to_s.rjust(2, "0")}/#{day.to_i.to_s.rjust(2, "0")} #{time}"
+        offset = 0
+        if month == 1 and year == 2010
+          offset = 1
+        end
+      end
+
+      unless year_description.calendarYear.empty?
+        js_time[0..3] = (year_description.calendarYear.get + offset).to_i.to_s
+      end
+
       return js_time
 
     end     
@@ -186,6 +262,14 @@ class TimeseriesCSVExport < OpenStudio::Measure::ReportingMeasure
                         end
         variables_to_graph << [variable_name, reporting_frequency, '']
         runner.registerInfo("Exporting #{variable_name}")
+      end
+    end
+    if inc_output_variables
+      output_vars.each do |output_var|
+        sql.availableKeyValues(ann_env_pd, reporting_frequency, output_var).each do |key_value|
+          variables_to_graph << [output_var, reporting_frequency, key_value]
+          runner.registerInfo("Exporting #{key_value} #{output_var}")
+        end
       end
     end
 
@@ -227,11 +311,16 @@ class TimeseriesCSVExport < OpenStudio::Measure::ReportingMeasure
         y_timeseries = y_timeseries.get
       end
       y_vals = y_timeseries.values
-            
-      # Convert time stamp format to be more readable
+
+      # Convert time stamp format to be more readable      
+      year_description = model.getYearDescription
+      unless epw_file.startDateActualYear.empty?
+        year_description.setCalendarYear(epw_file.startDateActualYear.get)
+      end
+
       js_date_times = []
       y_timeseries.dateTimes.each do |date_time|
-        js_date_times << to_JSTime(date_time)
+        js_date_times << to_JSTime(date_time, year_description)
       end    
       
       # Store the timeseries data to hash for later
