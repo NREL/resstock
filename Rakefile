@@ -65,6 +65,12 @@ task :copy_beopt_files do
         FileUtils.rm_rf("#{buildstock_resource_measures_subdir}/.", secure: true)
       end
     end
+    if beopt_measure == "ResidentialPhotovoltaics"
+      ["resources"].each do |subdir|
+        beopt_measure_subdir = File.join(buildstock_resource_measures_dir, beopt_measure, subdir)
+        remove_items_from_zip_file(beopt_measure_subdir, "sam-sdk-2017-1-17-r1.zip", ["osx64", "win32", "win64"])
+      end
+    end    
   end
   
   # Copy other measures to measure/ dir
@@ -82,18 +88,22 @@ task :copy_beopt_files do
     if other_measure == "UtilityBillCalculations"
       ["resources"].each do |subdir|
         buildstock_measure_subdir = File.join(buildstock_measures_dir, other_measure, subdir)
-        unzip_file = OpenStudio::UnzipFile.new(File.join(buildstock_measure_subdir, "sam-sdk-2017-1-17-r1.zip"))
-        unzip_file.extractAllFiles(OpenStudio::toPath(File.join(buildstock_measure_subdir, "sam-sdk-2017-1-17-r1")))
-        ["osx64", "win32", "win64"].each do |platform|
-          FileUtils.rm_rf(File.join(buildstock_measure_subdir, "sam-sdk-2017-1-17-r1", platform))
-        end
-        sam_sdk_zip = OpenStudio::toPath(File.join(buildstock_measure_subdir, "sam-sdk-2017-1-17-r1.zip"))
-        zip_file = OpenStudio::ZipFile.new(sam_sdk_zip, false)
-        zip_file.addDirectory(File.join(buildstock_measure_subdir, "sam-sdk-2017-1-17-r1"), OpenStudio::toPath("/"))
-        FileUtils.rm_rf(File.join(buildstock_measure_subdir, "sam-sdk-2017-1-17-r1"))
+        remove_items_from_zip_file(buildstock_measure_subdir, "sam-sdk-2017-1-17-r1.zip", ["osx64", "win32", "win64"])
       end
     end
   end
+end
+
+def remove_items_from_zip_file(dir, zip_file_name, items)
+  unzip_file = OpenStudio::UnzipFile.new(File.join(dir, zip_file_name))
+  unzip_file.extractAllFiles(OpenStudio::toPath(File.join(dir, zip_file_name.gsub(".zip", ""))))
+  items.each do |item|
+    FileUtils.rm_rf(File.join(dir, zip_file_name.gsub(".zip", ""), item))
+  end
+  sam_sdk_zip = OpenStudio::toPath(File.join(dir, zip_file_name))
+  zip_file = OpenStudio::ZipFile.new(sam_sdk_zip, false)
+  zip_file.addDirectory(File.join(dir, zip_file_name.gsub(".zip", "")), OpenStudio::toPath("/"))
+  FileUtils.rm_rf(File.join(dir, zip_file_name.gsub(".zip", "")))
 end
 
 namespace :test do
@@ -313,6 +323,7 @@ def get_all_project_dir_names()
     Dir.entries(File.dirname(__FILE__)).each do |entry|
         next if not Dir.exist?(entry)
         next if not entry.start_with?("project_")
+        next if entry.end_with?("efs")
         project_dir_names << entry
     end
     return project_dir_names
