@@ -89,9 +89,9 @@ class SimulationOutputReport < OpenStudio::Ruleset::ReportingUserScript
     geometry_file = File.join(resources_dir, "geometry.rb")
     require File.join(File.dirname(geometry_file), File.basename(geometry_file, File.extname(geometry_file)))
     
-    # Load helper_methods
-    helper_methods_file = File.join(resources_dir, "helper_methods.rb")
-    require File.join(File.dirname(helper_methods_file), File.basename(helper_methods_file, File.extname(helper_methods_file)))
+    # Load buildstock_file
+    buildstock_file = File.join(resources_dir, "buildstock.rb")
+    require File.join(File.dirname(buildstock_file), File.basename(buildstock_file, File.extname(buildstock_file)))
     
     total_site_units = "MBtu"
     elec_site_units = "kWh"

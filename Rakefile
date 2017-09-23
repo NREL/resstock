@@ -21,7 +21,8 @@ task :copy_beopt_files do
                  File.join("seeds", "EmptySeedModel.osm"),
                  File.join("workflows", "measure-info.json"),
                  File.join("resources", "geometry.rb"), # Needed by SimulationOutputReport
-                 File.join("resources", "constants.rb") # Needed by geometry.rb
+                 File.join("resources", "constants.rb"), # Needed by geometry.rb
+                 File.join("resources", "meta_measure.rb") # Needed by buildstock.rb
                 ]
   extra_files.each do |extra_file|
       puts "Copying #{extra_file}..."
@@ -151,7 +152,7 @@ def integrity_check(project_dir_names=nil)
 
   # Load helper file and sampling file
   resources_dir = File.join(File.dirname(__FILE__), 'resources')
-  require File.join(resources_dir, 'helper_methods')
+  require File.join(resources_dir, 'buildstock')
   require File.join(resources_dir, 'run_sampling')
     
   # Setup
