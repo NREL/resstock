@@ -23,8 +23,8 @@ class BuildingCharacteristicsReport < OpenStudio::Ruleset::ReportingUserScript
     # Note: Not every parameter is used by every project; non-applicable outputs
     #       for a given project can be removed via a server finalization script.
     resources_dir = File.absolute_path(File.join(File.dirname(__FILE__), "..", "..", "resources"))
-    helper_methods_file = File.join(resources_dir, "helper_methods.rb")
-    require File.join(File.dirname(helper_methods_file), File.basename(helper_methods_file, File.extname(helper_methods_file)))
+    buildstock_file = File.join(resources_dir, "buildstock.rb")
+    require File.join(File.dirname(buildstock_file), File.basename(buildstock_file, File.extname(buildstock_file)))
     parameters = get_parameters_ordered_from_options_lookup_tsv(resources_dir)
     parameters.each do |parameter|
         result << OpenStudio::Measure::OSOutput.makeStringOutput(OpenStudio::toUnderscoreCase(parameter))

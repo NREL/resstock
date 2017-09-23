@@ -5,7 +5,7 @@
 
 require 'csv'
 require 'optparse'
-require_relative '../resources/helper_methods'
+require_relative '../resources/buildstock'
 
 class RunSampling
 
