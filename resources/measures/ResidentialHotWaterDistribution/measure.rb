@@ -216,9 +216,10 @@ class ResidentialHotWaterDistribution < OpenStudio::Measure::ModelMeasure
             end
         
             # Create temporary HotWaterSchedule objects solely to calculate daily gpm
-            sch_sh = HotWaterSchedule.new(model, runner, "", "", nbeds, sch_unit_index, "Shower", Constants.MixedUseT, File.dirname(__FILE__), false)
-            sch_s = HotWaterSchedule.new(model, runner, "",  "", nbeds, sch_unit_index, "Sink", Constants.MixedUseT, File.dirname(__FILE__), false)
-            sch_b = HotWaterSchedule.new(model, runner, "",  "", nbeds, sch_unit_index, "Bath", Constants.MixedUseT, File.dirname(__FILE__), false)
+            #Since this is only used to calculate the gpm, it doesn't need to have the corrrect day shift
+            sch_sh = HotWaterSchedule.new(model, runner, "", "", nbeds, sch_unit_index, 0, "Shower", Constants.MixedUseT, File.dirname(__FILE__), false)
+            sch_s = HotWaterSchedule.new(model, runner, "",  "", nbeds, sch_unit_index, 0, "Sink", Constants.MixedUseT, File.dirname(__FILE__), false)
+            sch_b = HotWaterSchedule.new(model, runner, "",  "", nbeds, sch_unit_index, 0, "Bath", Constants.MixedUseT, File.dirname(__FILE__), false)
             if not sch_sh.validated? or not sch_s.validated? or not sch_b.validated?
                 return false
             end

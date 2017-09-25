@@ -119,6 +119,7 @@ class SetResidentialWindowArea < OpenStudio::Measure::ModelMeasure
     surfaces = {Constants.FacadeFront=>[], Constants.FacadeBack=>[],
                 Constants.FacadeLeft=>[], Constants.FacadeRight=>[]}
     constructions = {}
+    warn_msg = nil
     Geometry.get_finished_spaces(model.getSpaces).each do |space|
         space.surfaces.each do |surface|
             next if not (surface.surfaceType.downcase == "wall" and surface.outsideBoundaryCondition.downcase == "outdoors")
@@ -128,6 +129,9 @@ class SetResidentialWindowArea < OpenStudio::Measure::ModelMeasure
             surface.subSurfaces.each do |sub_surface|
                 next if sub_surface.subSurfaceType.downcase != "fixedwindow"
                 if sub_surface.construction.is_initialized
+                  if not construction.nil?
+                    warn_msg = "Multiple constructions found. An arbitrary construction may be assigned to new window(s)."
+                  end
                   construction = sub_surface.construction.get
                 end
                 sub_surface.remove
@@ -143,6 +147,9 @@ class SetResidentialWindowArea < OpenStudio::Measure::ModelMeasure
               constructions[facade] = construction
             end
         end
+    end
+    if not warn_msg.nil?
+      runner.registerWarning(warn_msg)
     end
     
     # error checking

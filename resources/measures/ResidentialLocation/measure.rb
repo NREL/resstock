@@ -186,8 +186,8 @@ class SetResidentialEPWFile < OpenStudio::Measure::ModelMeasure
     
     s_gt_d = model.getSiteGroundTemperatureDeep
     s_gt_d.resetAllMonths
-    s_gt_d.setAllMonthlyTemperatures(annual_temps)
-    
+    s_gt_d.setAllMonthlyTemperatures(annual_temps)    
+
     # report final condition
     final_design_days = model.getDesignDays
     if site.weatherFile.is_initialized

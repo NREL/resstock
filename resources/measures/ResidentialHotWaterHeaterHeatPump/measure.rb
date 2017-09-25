@@ -942,6 +942,8 @@ class ResidentialHotWaterHeaterHeatPump < OpenStudio::Measure::ModelMeasure
             if storage_tank.nil?
               loop.addSupplyBranchForComponent(tank)
             else
+              storage_tank.setHeater1SetpointTemperatureSchedule(tank.heater1SetpointTemperatureSchedule)
+              storage_tank.setHeater2SetpointTemperatureSchedule(tank.heater2SetpointTemperatureSchedule)            
               tank.addToNode(storage_tank.supplyOutletModelObject.get.to_Node.get)
             end
             

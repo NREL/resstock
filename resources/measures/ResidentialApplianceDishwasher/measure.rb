@@ -25,75 +25,75 @@ class ResidentialDishwasher < OpenStudio::Measure::ModelMeasure
   def arguments(model)
     args = OpenStudio::Measure::OSArgumentVector.new
     
-	#TODO: New argument for demand response for dws (alternate schedules if automatic DR control is specified)
-	
-	#make an integer argument for number of place settings
-	num_settings = OpenStudio::Measure::OSArgument::makeIntegerArgument("num_settings",true)
-	num_settings.setDisplayName("Number of Place Settings")
-	num_settings.setUnits("#")
-	num_settings.setDescription("The number of place settings for the unit. Data obtained from manufacturer's literature.")
-	num_settings.setDefaultValue(12)
-	args << num_settings
-	
-	#make a double argument for rated annual consumption
-	dw_E = OpenStudio::Measure::OSArgument::makeDoubleArgument("dw_E",true)
-	dw_E.setDisplayName("Rated Annual Consumption")
-	dw_E.setUnits("kWh")
-	dw_E.setDescription("The annual energy consumed by the dishwasher, as rated, obtained from the EnergyGuide label. This includes both the appliance electricity consumption and the energy required for water heating.")
-	dw_E.setDefaultValue(290)
-	args << dw_E
-	
-	#make a bool argument for internal heater adjustment
-	int_htr = OpenStudio::Measure::OSArgument::makeBoolArgument("int_htr",true)
-	int_htr.setDisplayName("Internal Heater Adjustment")
-	int_htr.setDescription("Does the system use an internal electric heater to adjust water temperature? Input obtained from manufacturer's literature.")
-	int_htr.setDefaultValue("true")
-	args << int_htr
+    #TODO: New argument for demand response for dws (alternate schedules if automatic DR control is specified)
 
-	#make a bool argument for cold water inlet only
-	cold_inlet = OpenStudio::Measure::OSArgument::makeBoolArgument("cold_inlet",true)
-	cold_inlet.setDisplayName("Cold Water Inlet Only")
-	cold_inlet.setDescription("Does the dishwasher use a cold water connection only.   Input obtained from manufacturer's literature.")
-	cold_inlet.setDefaultValue("false")
-	args << cold_inlet
-	
-	#make a double argument for cold water connection use
-	cold_use = OpenStudio::Measure::OSArgument::makeDoubleArgument("cold_use",true)
-	cold_use.setDisplayName("Cold Water Conn Use Per Cycle")
-	cold_use.setUnits("gal/cycle")
-	cold_use.setDescription("Volume of water per cycle used if there is only a cold water inlet connection, for the dishwasher. Input obtained from manufacturer's literature.")
-	cold_use.setDefaultValue(0)
-	args << cold_use
+    #make an integer argument for number of place settings
+    num_settings = OpenStudio::Measure::OSArgument::makeIntegerArgument("num_settings",true)
+    num_settings.setDisplayName("Number of Place Settings")
+    num_settings.setUnits("#")
+    num_settings.setDescription("The number of place settings for the unit. Data obtained from manufacturer's literature.")
+    num_settings.setDefaultValue(12)
+    args << num_settings
 
-	#make an integer argument for energy guide date
-	eg_date = OpenStudio::Measure::OSArgument::makeIntegerArgument("eg_date",true)
-	eg_date.setDisplayName("Energy Guide Date")
-	eg_date.setDescription("Energy Guide test date.")
-	eg_date.setDefaultValue(2007)
-	args << eg_date
-	
-	#make a double argument for energy guide annual gas cost
-	eg_gas_cost = OpenStudio::Measure::OSArgument::makeDoubleArgument("eg_gas_cost",true)
-	eg_gas_cost.setDisplayName("Energy Guide Annual Gas Cost")
-	eg_gas_cost.setUnits("$/yr")
-	eg_gas_cost.setDescription("Annual cost of gas, as rated.  Obtained from the EnergyGuide label.")
-	eg_gas_cost.setDefaultValue(23)
-	args << eg_gas_cost
-	
-	#make a double argument for occupancy energy multiplier
-	mult_e = OpenStudio::Measure::OSArgument::makeDoubleArgument("mult_e",true)
-	mult_e.setDisplayName("Occupancy Energy Multiplier")
-	mult_e.setDescription("Appliance energy use is multiplied by this factor to account for occupancy usage that differs from the national average.")
-	mult_e.setDefaultValue(1)
-	args << mult_e
+    #make a double argument for rated annual consumption
+    dw_E = OpenStudio::Measure::OSArgument::makeDoubleArgument("dw_E",true)
+    dw_E.setDisplayName("Rated Annual Consumption")
+    dw_E.setUnits("kWh")
+    dw_E.setDescription("The annual energy consumed by the dishwasher, as rated, obtained from the EnergyGuide label. This includes both the appliance electricity consumption and the energy required for water heating.")
+    dw_E.setDefaultValue(290)
+    args << dw_E
 
-	#make a double argument for occupancy water multiplier
-	mult_hw = OpenStudio::Measure::OSArgument::makeDoubleArgument("mult_hw",true)
-	mult_hw.setDisplayName("Occupancy Hot Water Multiplier")
-	mult_hw.setDescription("Appliance hot water use is multiplied by this factor to account for occupancy usage that differs from the national average. This should generally be equal to the Occupancy Energy Multiplier.")
-	mult_hw.setDefaultValue(1)
-	args << mult_hw
-	
+    #make a bool argument for internal heater adjustment
+    int_htr = OpenStudio::Measure::OSArgument::makeBoolArgument("int_htr",true)
+    int_htr.setDisplayName("Internal Heater Adjustment")
+    int_htr.setDescription("Does the system use an internal electric heater to adjust water temperature? Input obtained from manufacturer's literature.")
+    int_htr.setDefaultValue("true")
+    args << int_htr
+
+    #make a bool argument for cold water inlet only
+    cold_inlet = OpenStudio::Measure::OSArgument::makeBoolArgument("cold_inlet",true)
+    cold_inlet.setDisplayName("Cold Water Inlet Only")
+    cold_inlet.setDescription("Does the dishwasher use a cold water connection only.   Input obtained from manufacturer's literature.")
+    cold_inlet.setDefaultValue("false")
+    args << cold_inlet
+
+    #make a double argument for cold water connection use
+    cold_use = OpenStudio::Measure::OSArgument::makeDoubleArgument("cold_use",true)
+    cold_use.setDisplayName("Cold Water Conn Use Per Cycle")
+    cold_use.setUnits("gal/cycle")
+    cold_use.setDescription("Volume of water per cycle used if there is only a cold water inlet connection, for the dishwasher. Input obtained from manufacturer's literature.")
+    cold_use.setDefaultValue(0)
+    args << cold_use
+
+    #make an integer argument for energy guide date
+    eg_date = OpenStudio::Measure::OSArgument::makeIntegerArgument("eg_date",true)
+    eg_date.setDisplayName("Energy Guide Date")
+    eg_date.setDescription("Energy Guide test date.")
+    eg_date.setDefaultValue(2007)
+    args << eg_date
+
+    #make a double argument for energy guide annual gas cost
+    eg_gas_cost = OpenStudio::Measure::OSArgument::makeDoubleArgument("eg_gas_cost",true)
+    eg_gas_cost.setDisplayName("Energy Guide Annual Gas Cost")
+    eg_gas_cost.setUnits("$/yr")
+    eg_gas_cost.setDescription("Annual cost of gas, as rated.  Obtained from the EnergyGuide label.")
+    eg_gas_cost.setDefaultValue(23)
+    args << eg_gas_cost
+
+    #make a double argument for occupancy energy multiplier
+    mult_e = OpenStudio::Measure::OSArgument::makeDoubleArgument("mult_e",true)
+    mult_e.setDisplayName("Occupancy Energy Multiplier")
+    mult_e.setDescription("Appliance energy use is multiplied by this factor to account for occupancy usage that differs from the national average.")
+    mult_e.setDefaultValue(1)
+    args << mult_e
+
+    #make a double argument for occupancy water multiplier
+    mult_hw = OpenStudio::Measure::OSArgument::makeDoubleArgument("mult_hw",true)
+    mult_hw.setDisplayName("Occupancy Hot Water Multiplier")
+    mult_hw.setDescription("Appliance hot water use is multiplied by this factor to account for occupancy usage that differs from the national average. This should generally be equal to the Occupancy Energy Multiplier.")
+    mult_hw.setDefaultValue(1)
+    args << mult_hw
+
     #make a choice argument for space
     spaces = Geometry.get_all_unit_spaces(model)
     if spaces.nil?
@@ -122,6 +122,13 @@ class ResidentialDishwasher < OpenStudio::Measure::ModelMeasure
     plant_loop.setDescription("Select the plant loop for the dishwasher. '#{Constants.Auto}' will try to choose the plant loop associated with the specified space. For multifamily buildings, '#{Constants.Auto}' will choose the plant loop for each unit of the building.")
     plant_loop.setDefaultValue(Constants.Auto)
 	args << plant_loop
+    
+    #make an argument for the number of days to shift the draw profile by
+    schedule_day_shift = OpenStudio::Measure::OSArgument::makeIntegerArgument("schedule_day_shift",true)
+    schedule_day_shift.setDisplayName("Schedule Day Shift")
+    schedule_day_shift.setDescription("Draw profiles are shifted to prevent coincident hot water events when performing portfolio analyses. For multifamily buildings, draw profiles for each unit are automatically shifted by one week.")
+    schedule_day_shift.setDefaultValue(0)
+    args << schedule_day_shift
 
     return args
   end #end the arguments method
@@ -136,47 +143,52 @@ class ResidentialDishwasher < OpenStudio::Measure::ModelMeasure
     end
 
     #assign the user inputs to variables
-	dw_capacity = runner.getIntegerArgumentValue("num_settings",user_arguments).to_f
-	dw_energy_guide_annual_energy = runner.getDoubleArgumentValue("dw_E", user_arguments)
-	dw_is_cold_water_inlet_only = runner.getBoolArgumentValue("cold_inlet", user_arguments)
-	dw_internal_heater_adjustment = runner.getBoolArgumentValue("int_htr", user_arguments)
-	dw_cold_water_conn_use_per_cycle = runner.getDoubleArgumentValue("cold_use", user_arguments)
-	dw_energy_guide_date = runner.getIntegerArgumentValue("eg_date", user_arguments)
-	dw_energy_guide_annual_gas_cost = runner.getDoubleArgumentValue("eg_gas_cost", user_arguments)
-	dw_energy_multiplier = runner.getDoubleArgumentValue("mult_e", user_arguments)
-	dw_hot_water_multiplier = runner.getDoubleArgumentValue("mult_hw", user_arguments)
-	space_r = runner.getStringArgumentValue("space",user_arguments)
+    dw_capacity = runner.getIntegerArgumentValue("num_settings",user_arguments).to_f
+    dw_energy_guide_annual_energy = runner.getDoubleArgumentValue("dw_E", user_arguments)
+    dw_is_cold_water_inlet_only = runner.getBoolArgumentValue("cold_inlet", user_arguments)
+    dw_internal_heater_adjustment = runner.getBoolArgumentValue("int_htr", user_arguments)
+    dw_cold_water_conn_use_per_cycle = runner.getDoubleArgumentValue("cold_use", user_arguments)
+    dw_energy_guide_date = runner.getIntegerArgumentValue("eg_date", user_arguments)
+    dw_energy_guide_annual_gas_cost = runner.getDoubleArgumentValue("eg_gas_cost", user_arguments)
+    dw_energy_multiplier = runner.getDoubleArgumentValue("mult_e", user_arguments)
+    dw_hot_water_multiplier = runner.getDoubleArgumentValue("mult_hw", user_arguments)
+    space_r = runner.getStringArgumentValue("space",user_arguments)
     plant_loop_s = runner.getStringArgumentValue("plant_loop", user_arguments)
-	
-	#Check for valid inputs
-	if dw_capacity < 1
-		runner.registerError("Number of place settings must be greater than or equal to 1.")
-		return false
-	end
-	if dw_energy_guide_annual_energy < 0
-		runner.registerError("Rated annual energy consumption must be greater than or equal to 0.")
-		return false
-	end
-	if dw_cold_water_conn_use_per_cycle < 0
-		runner.registerError("Cold water connection use must be greater than or equal to 0.")
-		return false
-	end
-	if dw_energy_guide_date < 1900
-		runner.registerError("Energy Guide date must be greater than or equal to 1900.")
-		return false
-	end
-	if dw_energy_guide_annual_gas_cost <= 0
-		runner.registerError("Energy Guide annual gas cost must be greater than 0.")
-		return false
-	end
-	if dw_energy_multiplier < 0
-		runner.registerError("Occupancy energy multiplier must be greater than or equal to 0.")
-		return false
-	end
-	if dw_hot_water_multiplier < 0
-		runner.registerError("Occupancy hot water multiplier must be greater than or equal to 0.")
-		return false
-	end
+    d_sh = runner.getIntegerArgumentValue("schedule_day_shift",user_arguments)
+
+    #Check for valid inputs
+    if dw_capacity < 1
+        runner.registerError("Number of place settings must be greater than or equal to 1.")
+        return false
+    end
+    if dw_energy_guide_annual_energy < 0
+        runner.registerError("Rated annual energy consumption must be greater than or equal to 0.")
+        return false
+    end
+    if dw_cold_water_conn_use_per_cycle < 0
+        runner.registerError("Cold water connection use must be greater than or equal to 0.")
+        return false
+    end
+    if dw_energy_guide_date < 1900
+        runner.registerError("Energy Guide date must be greater than or equal to 1900.")
+        return false
+    end
+    if dw_energy_guide_annual_gas_cost <= 0
+        runner.registerError("Energy Guide annual gas cost must be greater than 0.")
+        return false
+    end
+    if dw_energy_multiplier < 0
+        runner.registerError("Occupancy energy multiplier must be greater than or equal to 0.")
+        return false
+    end
+    if dw_hot_water_multiplier < 0
+        runner.registerError("Occupancy hot water multiplier must be greater than or equal to 0.")
+        return false
+    end
+    if d_sh < 0 or d_sh > 364
+        runner.registerError("Hot water draw profile can only be shifted by 0-364 days.")
+        return false
+    end
     
     # Get building units
     units = Geometry.get_building_units(model, runner)
@@ -424,7 +436,7 @@ class ResidentialDishwasher < OpenStudio::Measure::ModelMeasure
         if dw_ann > 0
             
             # Create schedule
-            sch = HotWaterSchedule.new(model, runner, Constants.ObjectNameDishwasher + " schedule", Constants.ObjectNameDishwasher + " temperature schedule", nbeds, sch_unit_index, "Dishwasher", wh_setpoint, File.dirname(__FILE__))
+            sch = HotWaterSchedule.new(model, runner, Constants.ObjectNameDishwasher + " schedule", Constants.ObjectNameDishwasher + " temperature schedule", nbeds, sch_unit_index, d_sh, "Dishwasher", wh_setpoint, File.dirname(__FILE__))
             if not sch.validated?
                 return false
             end
