@@ -100,8 +100,8 @@ def remove_items_from_zip_file(dir, zip_file_name, items)
   items.each do |item|
     FileUtils.rm_rf(File.join(dir, zip_file_name.gsub(".zip", ""), item))
   end
-  sam_sdk_zip = OpenStudio::toPath(File.join(dir, zip_file_name))
-  zip_file = OpenStudio::ZipFile.new(sam_sdk_zip, false)
+  zip_path = OpenStudio::toPath(File.join(dir, zip_file_name))
+  zip_file = OpenStudio::ZipFile.new(zip_path, false)
   zip_file.addDirectory(File.join(dir, zip_file_name.gsub(".zip", "")), OpenStudio::toPath("/"))
   FileUtils.rm_rf(File.join(dir, zip_file_name.gsub(".zip", "")))
 end
@@ -323,7 +323,6 @@ def get_all_project_dir_names()
     Dir.entries(File.dirname(__FILE__)).each do |entry|
         next if not Dir.exist?(entry)
         next if not entry.start_with?("project_")
-        next if entry.end_with?("efs")
         project_dir_names << entry
     end
     return project_dir_names
