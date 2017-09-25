@@ -52,7 +52,7 @@ source_suffix = '.rst'
 master_doc = 'index'
 
 # General information about the project.
-project = u'BuildStock'
+project = u'ResStock'
 copyright = u'2017, NREL'
 author = u'Noel Merket'
 

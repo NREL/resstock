@@ -13,7 +13,11 @@ class Create_DFs():
     sql = "SELECT * FROM cleap_ami.{};".format(table_name)
     self.session = pd.read_sql(sql, con)
 
-  def area_median_income(self):
+  def area_median_income(self, st):
+  
+    def tract_to_tract_gisjoin(tract):
+      tract = str(int(tract))
+      return 'G' + tract.zfill(11)[0:2] + tract.zfill(11)[2:5].zfill(4) + tract.zfill(11)[5:12].zfill(7)
   
     df = self.session
     
@@ -24,6 +28,7 @@ class Create_DFs():
 
     df = df[~df['hfl index'].isin([4, 6])] # Remove COAL, SOLAR
     df = df[df['bld index'].isin([0])] # Only '1 DETACHED'
+    df['tract_gisjoin'] = df.apply(lambda x: tract_to_tract_gisjoin(x['tract']), axis=1) # TODO
     df = df.merge(tract_to_nsrdb, on='tract_gisjoin', how='left')
     df = df.merge(nsrdb_gid_old_to_new, left_on='nsrdb_gid', right_on='nsrdb_gid_old')
     df = df.merge(nsrdb_grid_to_station_lkup_tmy3, left_on='nsrdb_gid_new', right_on='nsrdb_gid')    
@@ -38,7 +43,9 @@ class Create_DFs():
     
     # Preprocess LMI file into vintage, etc. enumerations we use (divide by two)
     df['hfl index'] = df['hfl index'].apply(lambda x: assign_heating_fuel(x))
-    df = df.rename(columns={'ybl index': 'Dependency=Vintage', 'hfl index': 'Dependency=Heating Fuel', 'EPW': 'Dependency=Location EPW', 'tract_gisjoin': 'Dependency=Location Census Tract', 'county': 'Dependency=County'})
+    df = df.rename(columns={'ybl index': 'Dependency=Vintage', 'hfl index': 'Dependency=Heating Fuel', 'EPW': 'Dependency=Location EPW', 'tract_gisjoin': 'Dependency=Location Census Tract', 'countyfp': 'Dependency=Location County'})
+
+    df['Dependency=Location County'] = df['Dependency=Location County'].apply(lambda x: str(x).zfill(5))
     
     for vintage in [4, 3, 2]:
       sub = df[df['Dependency=Vintage']==vintage].copy()
@@ -58,7 +65,7 @@ class Create_DFs():
     
     df['Dependency=Vintage'] = df['Dependency=Vintage'].map({'<1940': '<1950', '<1950': '<1950', '1950s': '1950s', '1960s': '1960s', '1970s': '1970s', '1980s': '1980s', '1990s': '1990s', '2000s': '2000s', '2010s': '2000s'})
     
-    df = df[np.concatenate([['Dependency=Vintage', 'Dependency=Heating Fuel', 'Dependency=Location EPW', 'Dependency=Location Census Tract', 'Dependency=County'], options])]
+    df = df[np.concatenate([['Dependency=Vintage', 'Dependency=Heating Fuel', 'Dependency=Location EPW', 'Dependency=Location Census Tract', 'Dependency=Location County'], options])]
     df = add_option_prefix(df)
     
     return df
@@ -96,24 +103,27 @@ if __name__ == '__main__':
   sql = "SELECT table_name FROM information_schema.tables WHERE table_schema='cleap_ami';"
   df = pd.read_sql(sql, con)
   table_names = list(df['table_name'])
-  table_names = [x for x in table_names if not 'cities' in x]
-
+  table_names = [x for x in table_names if not 'utility' in x]
+  table_names = ['tract_ct']
+  
   for i, table_name in enumerate(table_names):
 
     print i+1, table_name
     dfs = Create_DFs(table_name)
+    
+    st = table_name.split('_')[-1].upper()
   
     for category in ['Area Median Income']:
       method = getattr(dfs, category.lower().replace(' ', '_'))
-      df = method()
+      df = method(st)
 
-    df = df.groupby(['Dependency=Vintage', 'Dependency=Heating Fuel', 'Dependency=Location EPW', 'Dependency=Location Census Tract', 'Dependency=County']).sum()
+    df = df.groupby(['Dependency=Vintage', 'Dependency=Heating Fuel', 'Dependency=Location EPW', 'Dependency=Location Census Tract', 'Dependency=Location County']).sum()
 
     count = df.sum(axis=1)
     df = df.div(df.sum(axis=1), axis=0)
     df['Count'] = count
       
     if not df.empty:
-      df = df.fillna(0)    
-      df.to_csv(os.path.join(datafiles_dir, '{} {}.tsv'.format(category, table_name.split('_')[-1].upper())), sep='\t')
+      df = df.fillna(0)
+      df.to_csv(os.path.join(datafiles_dir, '{} {}.tsv'.format(category, st)), sep='\t')
         

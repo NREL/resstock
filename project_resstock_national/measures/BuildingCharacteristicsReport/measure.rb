@@ -23,8 +23,8 @@ class BuildingCharacteristicsReport < OpenStudio::Ruleset::ReportingUserScript
     # Note: Not every parameter is used by every project; non-applicable outputs
     #       for a given project can be removed via a server finalization script.
     resources_dir = File.absolute_path(File.join(File.dirname(__FILE__), "..", "..", "resources"))
-    helper_methods_file = File.join(resources_dir, "helper_methods.rb")
-    require File.join(File.dirname(helper_methods_file), File.basename(helper_methods_file, File.extname(helper_methods_file)))
+    buildstock_file = File.join(resources_dir, "buildstock.rb")
+    require File.join(File.dirname(buildstock_file), File.basename(buildstock_file, File.extname(buildstock_file)))
     parameters = get_parameters_ordered_from_options_lookup_tsv(resources_dir)
     parameters.each do |parameter|
         result << OpenStudio::Measure::OSOutput.makeStringOutput(OpenStudio::toUnderscoreCase(parameter))
@@ -53,26 +53,18 @@ class BuildingCharacteristicsReport < OpenStudio::Ruleset::ReportingUserScript
 
     characteristics = {}
     
+    # Exit if this is an upgrade datapoint
+    upgrade_name = get_value_from_runner_past_results(runner, "upgrade_name", "apply_upgrade", false)
+    if not upgrade_name.nil?
+        runner.registerInfo("Upgrade datapoint, no building characteristics will be reported.")
+        return true
+    end
+    
     # Get existing building characteristics
     runner.workflow.workflowSteps.each do |step|
         next if not step.result.is_initialized
         step_result = step.result.get
         next if !step_result.measureName.is_initialized or step_result.measureName.get != "build_existing_model"
-        step_result.stepValues.each do |step_value|
-            begin
-                # All building characteristics will be strings
-                characteristics[step_value.name] = step_value.valueAsString
-            rescue
-                runner.registerInfo("Skipping #{step_value.name}.")
-            end
-        end
-    end
-    
-    # Override building characteristics with any upgrades that applied
-    runner.workflow.workflowSteps.each do |step|
-        next if not step.result.is_initialized
-        step_result = step.result.get
-        next if !step_result.measureName.is_initialized or step_result.measureName.get != "apply_upgrade"
         step_result.stepValues.each do |step_value|
             begin
                 # All building characteristics will be strings

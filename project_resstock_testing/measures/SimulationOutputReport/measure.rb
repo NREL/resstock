@@ -47,6 +47,7 @@ class SimulationOutputReport < OpenStudio::Ruleset::ReportingUserScript
                           "hours_cooling_setpoint_not_met",
                           "hvac_cooling_capacity_w",
                           "hvac_heating_capacity_w",
+                          "upgrade_name",
                           "upgrade_cost_usd",
                           "weight"
                          ]
@@ -88,9 +89,9 @@ class SimulationOutputReport < OpenStudio::Ruleset::ReportingUserScript
     geometry_file = File.join(resources_dir, "geometry.rb")
     require File.join(File.dirname(geometry_file), File.basename(geometry_file, File.extname(geometry_file)))
     
-    # Load helper_methods
-    helper_methods_file = File.join(resources_dir, "helper_methods.rb")
-    require File.join(File.dirname(helper_methods_file), File.basename(helper_methods_file, File.extname(helper_methods_file)))
+    # Load buildstock_file
+    buildstock_file = File.join(resources_dir, "buildstock.rb")
+    require File.join(File.dirname(buildstock_file), File.basename(buildstock_file, File.extname(buildstock_file)))
     
     total_site_units = "MBtu"
     elec_site_units = "kWh"
@@ -199,6 +200,14 @@ class SimulationOutputReport < OpenStudio::Ruleset::ReportingUserScript
         runner.registerInfo("Registering #{weight} for weight.")
     end
     
+    # UPGRADE NAME
+    upgrade_name = get_value_from_runner_past_results(runner, "upgrade_name", "apply_upgrade", false)
+    if upgrade_name.nil?
+        upgrade_name = ""
+    end
+    runner.registerValue("upgrade_name", upgrade_name)
+    runner.registerInfo("Registering #{upgrade_name} for upgrade_name.")
+    
     # UPGRADE COSTS
     
     upgrade_cost_name = "upgrade_cost_usd"
@@ -206,7 +215,7 @@ class SimulationOutputReport < OpenStudio::Ruleset::ReportingUserScript
     # Get upgrade cost value/multiplier pairs from the upgrade measure
     cost_pairs = []
     for option_num in 1..10 # Sync with ApplyUpgrade measure
-        for cost_num in 1..5 # Sync with ApplyUpgrade measure
+        for cost_num in 1..2 # Sync with ApplyUpgrade measure
             cost_value = get_value_from_runner_past_results(runner, "option_#{option_num}_cost_#{cost_num}_value_to_apply", "apply_upgrade", false)
             next if cost_value.nil?
             cost_mult_type = get_value_from_runner_past_results(runner, "option_#{option_num}_cost_#{cost_num}_multiplier_to_apply", "apply_upgrade", false)
@@ -314,7 +323,7 @@ class SimulationOutputReport < OpenStudio::Ruleset::ReportingUserScript
             
         elsif cost_mult_type == "HVAC Heating Capacity (kBtuh)"
             if heating_capacity_w.is_initialized
-                cost_mult = OpenStudio::convert(total_heating_capacity_w,"W","kBtu/h").get
+                cost_mult = OpenStudio::convert(heating_capacity_w.get,"W","kBtu/h").get
             end
             
         elsif cost_mult_type != ""
