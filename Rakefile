@@ -7,9 +7,39 @@ desc 'Copy measures/osms from OpenStudio-BEopt repo'
 task :copy_beopt_files do
   require 'fileutils'
   require 'openstudio'
+  require 'net/http'
+  require 'openssl'
 
-  puts "Downloading latest residential measures..."
-  system("curl -L https://github.com/NREL/OpenStudio-BEopt/archive/master.zip > master.zip")
+  if File.exists? File.join(File.dirname(__FILE__), "master.zip")
+    FileUtils.rm(File.join(File.dirname(__FILE__), "master.zip"))
+  end
+  
+  url = URI.parse('https://codeload.github.com/NREL/OpenStudio-BEopt/zip/master')
+  http = Net::HTTP.new(url.host, url.port)
+  http.use_ssl = true
+  http.verify_mode = OpenSSL::SSL::VERIFY_NONE
+
+  params = { 'User-Agent' => 'curl/7.43.0', 'Accept-Encoding' => 'identity' }
+  request = Net::HTTP::Get.new(url.path, params)
+  request.content_type = 'application/zip, application/octet-stream'
+
+  http.request request do |response|
+    total = response.header["Content-Length"].to_i
+    size = 0
+    progress = 0
+    open 'master.zip', 'wb' do |io|
+      response.read_body do |chunk|
+        io.write chunk
+        size += chunk.size
+        new_progress = (size * 100) / total
+        unless new_progress == progress
+          puts "Downloading %s (%3d%%) " % [url.path, new_progress]
+        end
+        progress = new_progress
+      end
+    end
+  end
+
   puts "Extracting latest residential measures..."
   unzip_file = OpenStudio::UnzipFile.new(File.join(File.dirname(__FILE__), "master.zip"))
   unzip_file.extractAllFiles(OpenStudio::toPath(File.join(File.dirname(__FILE__), "master")))
@@ -328,7 +358,6 @@ def get_all_project_dir_names()
     Dir.entries(File.dirname(__FILE__)).each do |entry|
         next if not Dir.exist?(entry)
         next if not entry.start_with?("project_")
-        next if entry.end_with?("efs") # puts
         project_dir_names << entry
     end
     return project_dir_names
