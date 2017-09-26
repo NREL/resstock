@@ -8,12 +8,14 @@ task :copy_beopt_files do
   require 'fileutils'
   require 'openstudio'
 
-  # TODO: Should really grab latest from https://github.com/NREL/OpenStudio-BEopt/archive/master.zip
-  beopt_measures_dir = File.join(File.dirname(__FILE__), "..", "OpenStudio-BEopt", "measures")
+  puts "Downloading latest residential measures..."
+  system("curl -L https://github.com/NREL/OpenStudio-BEopt/archive/master.zip > master.zip")
+  puts "Extracting latest residential measures..."
+  unzip_file = OpenStudio::UnzipFile.new(File.join(File.dirname(__FILE__), "master.zip"))
+  unzip_file.extractAllFiles(OpenStudio::toPath(File.join(File.dirname(__FILE__), "master")))
+
+  beopt_measures_dir = File.join(File.dirname(__FILE__), "master", "OpenStudio-BEopt-master", "measures")
   buildstock_resource_measures_dir = File.join(File.dirname(__FILE__), "resources", "measures")
-  if not Dir.exist?(beopt_measures_dir)
-    puts "Cannot find OpenStudio-BEopt measures dir at #{beopt_measures_dir}."
-  end
   
   # Copy seed osm and other needed resource files
   project_dir_names = get_all_project_dir_names()
@@ -26,7 +28,7 @@ task :copy_beopt_files do
                 ]
   extra_files.each do |extra_file|
       puts "Copying #{extra_file}..."
-      beopt_file = File.join(File.dirname(__FILE__), "..", "OpenStudio-BEopt", extra_file)
+      beopt_file = File.join(File.dirname(__FILE__), "master", "OpenStudio-BEopt-master", extra_file)
       if extra_file.start_with?("seeds") # Distribute to all projects
         project_dir_names.each do |project_dir_name|
           buildstock_file = File.join(File.dirname(__FILE__), project_dir_name, extra_file)
@@ -92,6 +94,9 @@ task :copy_beopt_files do
       end
     end
   end
+
+  FileUtils.rm_rf(File.join(File.dirname(__FILE__), "master"))
+
 end
 
 def remove_items_from_zip_file(dir, zip_file_name, items)
@@ -323,6 +328,7 @@ def get_all_project_dir_names()
     Dir.entries(File.dirname(__FILE__)).each do |entry|
         next if not Dir.exist?(entry)
         next if not entry.start_with?("project_")
+        next if entry.end_with?("efs") # puts
         project_dir_names << entry
     end
     return project_dir_names

@@ -2,8 +2,8 @@
   <schema_version>3.0</schema_version>
   <name>residential_dishwasher</name>
   <uid>09ea4570-4666-4a55-812f-5e90091f5325</uid>
-  <version_id>d94f8d36-f956-4c00-9213-045b37921c7b</version_id>
-  <version_modified>20170906T152600Z</version_modified>
+  <version_id>045aeacb-5914-496a-863a-dc6f288ad10b</version_id>
+  <version_modified>20170922T152408Z</version_modified>
   <xml_checksum>126F1C43</xml_checksum>
   <class_name>ResidentialDishwasher</class_name>
   <display_name>Set Residential Dishwasher</display_name>
@@ -145,6 +145,15 @@
         </choice>
       </choices>
     </argument>
+    <argument>
+      <name>schedule_day_shift</name>
+      <display_name>Schedule Day Shift</display_name>
+      <description>Draw profiles are shifted to prevent coincident hot water events when performing portfolio analyses. For multifamily buildings, draw profiles for each unit are automatically shifted by one week.</description>
+      <type>Integer</type>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>0</default_value>
+    </argument>
   </arguments>
   <outputs/>
   <provenances/>
@@ -165,12 +174,6 @@
   </attributes>
   <files>
     <file>
-      <filename>MinuteDrawProfilesMaxFlows.csv</filename>
-      <filetype>csv</filetype>
-      <usage_type>resource</usage_type>
-      <checksum>9D722D63</checksum>
-    </file>
-    <file>
       <filename>USA_CO_Denver_Intl_AP_725650_TMY3.ddy</filename>
       <filetype>ddy</filetype>
       <usage_type>test</usage_type>
@@ -181,306 +184,6 @@
       <filetype>epw</filetype>
       <usage_type>test</usage_type>
       <checksum>E23378AA</checksum>
-    </file>
-    <file>
-      <filename>DishwasherSchedule_1bed_unit0.csv</filename>
-      <filetype>csv</filetype>
-      <usage_type>resource</usage_type>
-      <checksum>90A550A7</checksum>
-    </file>
-    <file>
-      <filename>DishwasherSchedule_2bed_unit0.csv</filename>
-      <filetype>csv</filetype>
-      <usage_type>resource</usage_type>
-      <checksum>31430460</checksum>
-    </file>
-    <file>
-      <filename>DishwasherSchedule_3bed_unit0.csv</filename>
-      <filetype>csv</filetype>
-      <usage_type>resource</usage_type>
-      <checksum>09793B3A</checksum>
-    </file>
-    <file>
-      <filename>DishwasherSchedule_4bed_unit0.csv</filename>
-      <filetype>csv</filetype>
-      <usage_type>resource</usage_type>
-      <checksum>09D885F6</checksum>
-    </file>
-    <file>
-      <filename>DishwasherSchedule_5bed_unit0.csv</filename>
-      <filetype>csv</filetype>
-      <usage_type>resource</usage_type>
-      <checksum>E6724679</checksum>
-    </file>
-    <file>
-      <filename>DishwasherSchedule_1bed_unit1.csv</filename>
-      <filetype>csv</filetype>
-      <usage_type>resource</usage_type>
-      <checksum>B901DCBB</checksum>
-    </file>
-    <file>
-      <filename>DishwasherSchedule_1bed_unit2.csv</filename>
-      <filetype>csv</filetype>
-      <usage_type>resource</usage_type>
-      <checksum>79C0EC0E</checksum>
-    </file>
-    <file>
-      <filename>DishwasherSchedule_1bed_unit3.csv</filename>
-      <filetype>csv</filetype>
-      <usage_type>resource</usage_type>
-      <checksum>1353688E</checksum>
-    </file>
-    <file>
-      <filename>DishwasherSchedule_1bed_unit4.csv</filename>
-      <filetype>csv</filetype>
-      <usage_type>resource</usage_type>
-      <checksum>C48A4F75</checksum>
-    </file>
-    <file>
-      <filename>DishwasherSchedule_1bed_unit5.csv</filename>
-      <filetype>csv</filetype>
-      <usage_type>resource</usage_type>
-      <checksum>9206464B</checksum>
-    </file>
-    <file>
-      <filename>DishwasherSchedule_1bed_unit6.csv</filename>
-      <filetype>csv</filetype>
-      <usage_type>resource</usage_type>
-      <checksum>92C8C79C</checksum>
-    </file>
-    <file>
-      <filename>DishwasherSchedule_1bed_unit7.csv</filename>
-      <filetype>csv</filetype>
-      <usage_type>resource</usage_type>
-      <checksum>7D49E53D</checksum>
-    </file>
-    <file>
-      <filename>DishwasherSchedule_1bed_unit8.csv</filename>
-      <filetype>csv</filetype>
-      <usage_type>resource</usage_type>
-      <checksum>F171BEE8</checksum>
-    </file>
-    <file>
-      <filename>DishwasherSchedule_1bed_unit9.csv</filename>
-      <filetype>csv</filetype>
-      <usage_type>resource</usage_type>
-      <checksum>D1CC0F2A</checksum>
-    </file>
-    <file>
-      <filename>DishwasherSchedule_2bed_unit1.csv</filename>
-      <filetype>csv</filetype>
-      <usage_type>resource</usage_type>
-      <checksum>CFC8B6E0</checksum>
-    </file>
-    <file>
-      <filename>DishwasherSchedule_2bed_unit2.csv</filename>
-      <filetype>csv</filetype>
-      <usage_type>resource</usage_type>
-      <checksum>D6A36F27</checksum>
-    </file>
-    <file>
-      <filename>DishwasherSchedule_2bed_unit3.csv</filename>
-      <filetype>csv</filetype>
-      <usage_type>resource</usage_type>
-      <checksum>90F26D1A</checksum>
-    </file>
-    <file>
-      <filename>DishwasherSchedule_2bed_unit4.csv</filename>
-      <filetype>csv</filetype>
-      <usage_type>resource</usage_type>
-      <checksum>6B4937DF</checksum>
-    </file>
-    <file>
-      <filename>DishwasherSchedule_2bed_unit5.csv</filename>
-      <filetype>csv</filetype>
-      <usage_type>resource</usage_type>
-      <checksum>C75A22AF</checksum>
-    </file>
-    <file>
-      <filename>DishwasherSchedule_2bed_unit6.csv</filename>
-      <filetype>csv</filetype>
-      <usage_type>resource</usage_type>
-      <checksum>274A7D9F</checksum>
-    </file>
-    <file>
-      <filename>DishwasherSchedule_2bed_unit7.csv</filename>
-      <filetype>csv</filetype>
-      <usage_type>resource</usage_type>
-      <checksum>3D8E7D7E</checksum>
-    </file>
-    <file>
-      <filename>DishwasherSchedule_2bed_unit8.csv</filename>
-      <filetype>csv</filetype>
-      <usage_type>resource</usage_type>
-      <checksum>CEC085E1</checksum>
-    </file>
-    <file>
-      <filename>DishwasherSchedule_2bed_unit9.csv</filename>
-      <filetype>csv</filetype>
-      <usage_type>resource</usage_type>
-      <checksum>B355094F</checksum>
-    </file>
-    <file>
-      <filename>DishwasherSchedule_3bed_unit1.csv</filename>
-      <filetype>csv</filetype>
-      <usage_type>resource</usage_type>
-      <checksum>C31D730D</checksum>
-    </file>
-    <file>
-      <filename>DishwasherSchedule_3bed_unit2.csv</filename>
-      <filetype>csv</filetype>
-      <usage_type>resource</usage_type>
-      <checksum>7306B55D</checksum>
-    </file>
-    <file>
-      <filename>DishwasherSchedule_3bed_unit3.csv</filename>
-      <filetype>csv</filetype>
-      <usage_type>resource</usage_type>
-      <checksum>6CFCD153</checksum>
-    </file>
-    <file>
-      <filename>DishwasherSchedule_3bed_unit4.csv</filename>
-      <filetype>csv</filetype>
-      <usage_type>resource</usage_type>
-      <checksum>860B049D</checksum>
-    </file>
-    <file>
-      <filename>DishwasherSchedule_3bed_unit5.csv</filename>
-      <filetype>csv</filetype>
-      <usage_type>resource</usage_type>
-      <checksum>5AD7E833</checksum>
-    </file>
-    <file>
-      <filename>DishwasherSchedule_3bed_unit6.csv</filename>
-      <filetype>csv</filetype>
-      <usage_type>resource</usage_type>
-      <checksum>15E69DFE</checksum>
-    </file>
-    <file>
-      <filename>DishwasherSchedule_3bed_unit7.csv</filename>
-      <filetype>csv</filetype>
-      <usage_type>resource</usage_type>
-      <checksum>E8737DEA</checksum>
-    </file>
-    <file>
-      <filename>DishwasherSchedule_3bed_unit8.csv</filename>
-      <filetype>csv</filetype>
-      <usage_type>resource</usage_type>
-      <checksum>6B3E3469</checksum>
-    </file>
-    <file>
-      <filename>DishwasherSchedule_3bed_unit9.csv</filename>
-      <filetype>csv</filetype>
-      <usage_type>resource</usage_type>
-      <checksum>14BAF9E4</checksum>
-    </file>
-    <file>
-      <filename>DishwasherSchedule_4bed_unit1.csv</filename>
-      <filetype>csv</filetype>
-      <usage_type>resource</usage_type>
-      <checksum>56248810</checksum>
-    </file>
-    <file>
-      <filename>DishwasherSchedule_4bed_unit2.csv</filename>
-      <filetype>csv</filetype>
-      <usage_type>resource</usage_type>
-      <checksum>E7D901CA</checksum>
-    </file>
-    <file>
-      <filename>DishwasherSchedule_4bed_unit3.csv</filename>
-      <filetype>csv</filetype>
-      <usage_type>resource</usage_type>
-      <checksum>FB426295</checksum>
-    </file>
-    <file>
-      <filename>DishwasherSchedule_4bed_unit4.csv</filename>
-      <filetype>csv</filetype>
-      <usage_type>resource</usage_type>
-      <checksum>5F9BF284</checksum>
-    </file>
-    <file>
-      <filename>DishwasherSchedule_4bed_unit5.csv</filename>
-      <filetype>csv</filetype>
-      <usage_type>resource</usage_type>
-      <checksum>1BA06B8E</checksum>
-    </file>
-    <file>
-      <filename>DishwasherSchedule_4bed_unit6.csv</filename>
-      <filetype>csv</filetype>
-      <usage_type>resource</usage_type>
-      <checksum>3D2D0330</checksum>
-    </file>
-    <file>
-      <filename>DishwasherSchedule_4bed_unit7.csv</filename>
-      <filetype>csv</filetype>
-      <usage_type>resource</usage_type>
-      <checksum>0E81224A</checksum>
-    </file>
-    <file>
-      <filename>DishwasherSchedule_4bed_unit8.csv</filename>
-      <filetype>csv</filetype>
-      <usage_type>resource</usage_type>
-      <checksum>17B4A869</checksum>
-    </file>
-    <file>
-      <filename>DishwasherSchedule_4bed_unit9.csv</filename>
-      <filetype>csv</filetype>
-      <usage_type>resource</usage_type>
-      <checksum>E732F0E8</checksum>
-    </file>
-    <file>
-      <filename>DishwasherSchedule_5bed_unit1.csv</filename>
-      <filetype>csv</filetype>
-      <usage_type>resource</usage_type>
-      <checksum>4DF431C6</checksum>
-    </file>
-    <file>
-      <filename>DishwasherSchedule_5bed_unit2.csv</filename>
-      <filetype>csv</filetype>
-      <usage_type>resource</usage_type>
-      <checksum>DCA9833F</checksum>
-    </file>
-    <file>
-      <filename>DishwasherSchedule_5bed_unit3.csv</filename>
-      <filetype>csv</filetype>
-      <usage_type>resource</usage_type>
-      <checksum>C8A470B4</checksum>
-    </file>
-    <file>
-      <filename>DishwasherSchedule_5bed_unit4.csv</filename>
-      <filetype>csv</filetype>
-      <usage_type>resource</usage_type>
-      <checksum>D6725D80</checksum>
-    </file>
-    <file>
-      <filename>DishwasherSchedule_5bed_unit5.csv</filename>
-      <filetype>csv</filetype>
-      <usage_type>resource</usage_type>
-      <checksum>2554CFF0</checksum>
-    </file>
-    <file>
-      <filename>DishwasherSchedule_5bed_unit6.csv</filename>
-      <filetype>csv</filetype>
-      <usage_type>resource</usage_type>
-      <checksum>B2125FB6</checksum>
-    </file>
-    <file>
-      <filename>DishwasherSchedule_5bed_unit7.csv</filename>
-      <filetype>csv</filetype>
-      <usage_type>resource</usage_type>
-      <checksum>F3E76D21</checksum>
-    </file>
-    <file>
-      <filename>DishwasherSchedule_5bed_unit8.csv</filename>
-      <filetype>csv</filetype>
-      <usage_type>resource</usage_type>
-      <checksum>20575351</checksum>
-    </file>
-    <file>
-      <filename>DishwasherSchedule_5bed_unit9.csv</filename>
-      <filetype>csv</filetype>
-      <usage_type>resource</usage_type>
-      <checksum>91C6AF57</checksum>
     </file>
     <file>
       <filename>psychrometrics.rb</filename>
@@ -495,39 +198,10 @@
       <checksum>EAA3293B</checksum>
     </file>
     <file>
-      <filename>schedules.rb</filename>
-      <filetype>rb</filetype>
-      <usage_type>resource</usage_type>
-      <checksum>E4C6BC93</checksum>
-    </file>
-    <file>
-      <filename>waterheater.rb</filename>
-      <filetype>rb</filetype>
-      <usage_type>resource</usage_type>
-      <checksum>B9EE062E</checksum>
-    </file>
-    <file>
-      <version>
-        <software_program>OpenStudio</software_program>
-        <identifier>1.4.0</identifier>
-        <min_compatible>2.0.4</min_compatible>
-      </version>
-      <filename>measure.rb</filename>
-      <filetype>rb</filetype>
-      <usage_type>script</usage_type>
-      <checksum>E546EC6A</checksum>
-    </file>
-    <file>
       <filename>unit_conversions.rb</filename>
       <filetype>rb</filetype>
       <usage_type>resource</usage_type>
       <checksum>6BA22437</checksum>
-    </file>
-    <file>
-      <filename>geometry.rb</filename>
-      <filetype>rb</filetype>
-      <usage_type>resource</usage_type>
-      <checksum>20190C86</checksum>
     </file>
     <file>
       <filename>util.rb</filename>
@@ -588,6 +262,71 @@
       <filetype>rb</filetype>
       <usage_type>resource</usage_type>
       <checksum>8F96C373</checksum>
+    </file>
+    <file>
+      <filename>MinuteDrawProfilesMaxFlows.csv</filename>
+      <filetype>csv</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>5CD21305</checksum>
+    </file>
+    <file>
+      <filename>waterheater.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>1C144F9B</checksum>
+    </file>
+    <file>
+      <filename>geometry.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>6A82C5DA</checksum>
+    </file>
+    <file>
+      <filename>schedules.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>7BFE5DD7</checksum>
+    </file>
+    <file>
+      <version>
+        <software_program>OpenStudio</software_program>
+        <identifier>1.4.0</identifier>
+        <min_compatible>2.0.4</min_compatible>
+      </version>
+      <filename>measure.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>script</usage_type>
+      <checksum>93CA79E8</checksum>
+    </file>
+    <file>
+      <filename>DishwasherSchedule_1bed.csv</filename>
+      <filetype>csv</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>42A2D406</checksum>
+    </file>
+    <file>
+      <filename>DishwasherSchedule_2bed.csv</filename>
+      <filetype>csv</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>8C62EE2B</checksum>
+    </file>
+    <file>
+      <filename>DishwasherSchedule_3bed.csv</filename>
+      <filetype>csv</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>9575CF98</checksum>
+    </file>
+    <file>
+      <filename>DishwasherSchedule_4bed.csv</filename>
+      <filetype>csv</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>E645EB0E</checksum>
+    </file>
+    <file>
+      <filename>DishwasherSchedule_5bed.csv</filename>
+      <filetype>csv</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>33CBAEFF</checksum>
     </file>
   </files>
 </measure>

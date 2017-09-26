@@ -201,9 +201,8 @@ class Geometry
         dhw_sched_index = unit.getFeatureAsInteger(Constants.BuildingUnitFeatureDHWSchedIndex)
         if not dhw_sched_index.is_initialized
             # Assign DHW schedule index values for every building unit.
-            # Hot water schedules vary by number of bedrooms. For a given number 
-            # of bedroom, there are 10 different schedules available for different 
-            # units in a multifamily building.
+            # For each unit, the DHW schedule is shifted by one week,
+            # allowing for up to 365 day shifted schedules for each end use.
             dhw_sched_index_hash = {}
             num_bed_options = (1..5)
             num_bed_options.each do |num_bed_option|
@@ -212,7 +211,7 @@ class Geometry
             units = self.get_building_units(model, runner)
             units.each do |unit|
                 nbeds, nbaths = Geometry.get_unit_beds_baths(model, unit, runner)
-                dhw_sched_index_hash[nbeds] = (dhw_sched_index_hash[nbeds] + 1) % 10
+                dhw_sched_index_hash[nbeds] = (dhw_sched_index_hash[nbeds]) % 365
                 unit.setFeature(Constants.BuildingUnitFeatureDHWSchedIndex, dhw_sched_index_hash[nbeds])
             end
             dhw_sched_index = unit.getFeatureAsInteger(Constants.BuildingUnitFeatureDHWSchedIndex).get
