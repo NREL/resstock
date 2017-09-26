@@ -391,21 +391,21 @@ end
 
 class HotWaterSchedule
 
-    def initialize(model, runner, sch_name, temperature_sch_name, num_bedrooms, unit_index, file_prefix, target_water_temperature, measure_dir, create_sch_object=true)
+    def initialize(model, runner, sch_name, temperature_sch_name, num_bedrooms, unit_index, days_shift, file_prefix, target_water_temperature, measure_dir, create_sch_object=true)
         @validated = true
         @model = model
         @runner = runner
         @sch_name = sch_name
         @schedule = nil
         @temperature_sch_name = temperature_sch_name
-        @unit_index = unit_index
+        @days_shift = days_shift
         @nbeds = ([num_bedrooms, 5].min).to_i
         @file_prefix = file_prefix
         @target_water_temperature = OpenStudio.convert(target_water_temperature, "F", "C").get
         
         timestep_minutes = (60/@model.getTimestep.numberOfTimestepsPerHour).to_i
         
-        data = loadMinuteDrawProfileFromFile(timestep_minutes, measure_dir)
+        data = loadMinuteDrawProfileFromFile(timestep_minutes, unit_index, days_shift, measure_dir)
         @totflow, @maxflow, @ontime = loadDrawProfileStatsFromFile(measure_dir)
         if data.nil? or @totflow.nil? or @maxflow.nil? or @ontime.nil?
             @validated = false
@@ -449,7 +449,7 @@ class HotWaterSchedule
     
     private
     
-        def loadMinuteDrawProfileFromFile(timestep_minutes, measure_dir)
+        def loadMinuteDrawProfileFromFile(timestep_minutes, unit_index, days_shift, measure_dir)
             data = []
             
             if @file_prefix.nil?
@@ -457,16 +457,20 @@ class HotWaterSchedule
             end
 
             # Get appropriate file
-            minute_draw_profile = "#{measure_dir}/resources/#{@file_prefix}Schedule_#{@nbeds}bed_unit#{@unit_index}.csv"
+            minute_draw_profile = "#{measure_dir}/resources/#{@file_prefix}Schedule_#{@nbeds}bed.csv"
             if not File.file?(minute_draw_profile)
                 @runner.registerError("Unable to find file: #{minute_draw_profile}")
                 return nil
             end
             
+            #For MF homes, shift each unit by an additional week
+            days_shift = days_shift + 7 * (unit_index - 1)
+            
             minutes_in_year = 8760*60
             
             # Read data into minute array
             skippedheader = false
+            min_shift = 24*60*days_shift
             items = [0]*minutes_in_year
             File.open(minute_draw_profile).each do |line|
                 linedata = line.strip.split(',')
@@ -475,8 +479,12 @@ class HotWaterSchedule
                     next
                 end
                 minute = linedata[0].to_i
+                shifted_min = minute + min_shift
+                if shifted_min > minutes_in_year
+                    shifted_min = shifted_min - minutes_in_year
+                end
                 value = linedata[1].to_f
-                items[minute] = value
+                items[shifted_min] = value
             end
             
             # Aggregate minute schedule up to the timestep level to reduce the size 
@@ -518,7 +526,7 @@ class HotWaterSchedule
                     ontime_col_num = linedata.index(ontime_column_header)
                     next
                 end
-                if linedata[0].to_i == @nbeds and linedata[1].to_i == @unit_index
+                if linedata[0].to_i == @nbeds
                     datafound = true
                     if not totflow_col_num.nil?
                         totflow = linedata[totflow_col_num].to_f
@@ -534,7 +542,7 @@ class HotWaterSchedule
             end
             
             if not datafound
-                @runner.registerError("Unable to find data for bedrooms = #{@nbeds} and unit index = #{@unit_index}.")
+                @runner.registerError("Unable to find data for bedrooms = #{@nbeds}.")
                 return nil, nil, nil
             end
             return totflow, maxflow, ontime

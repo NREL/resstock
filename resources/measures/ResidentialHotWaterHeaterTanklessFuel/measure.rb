@@ -235,7 +235,7 @@ class ResidentialHotWaterHeaterTanklessFuel < OpenStudio::Measure::ModelMeasure
                 new_manager.addToNode(loop.supplyOutletNode)
             end
         
-            new_heater = Waterheater.create_new_heater(sch_unit_index, Constants.ObjectNameWaterHeater(unit.name.to_s), cap, fuel_type, 1, nbeds, nbaths, ef, 0, t_set, water_heater_tz, oncycle_p, offcycle_p, Constants.WaterHeaterTypeTankless, cd, File.dirname(__FILE__), model, runner)
+            new_heater = Waterheater.create_new_heater(Constants.ObjectNameWaterHeater(unit.name.to_s), cap, fuel_type, 1, nbeds, nbaths, ef, 0, t_set, water_heater_tz, oncycle_p, offcycle_p, Constants.WaterHeaterTypeTankless, cd, File.dirname(__FILE__), model, runner)
         
             storage_tank = Waterheater.get_shw_storage_tank(model, unit)
         
