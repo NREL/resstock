@@ -324,7 +324,7 @@ class Waterheater
         OpenStudio::Model::SetpointManagerScheduled.new(model, new_schedule)
     end 
     
-    def self.create_new_heater(unit_index, name, cap, fuel, vol, nbeds, nbaths, ef, re, t_set, thermal_zone, oncycle_p, offcycle_p, tanktype, cyc_derate, measure_dir, model, runner)
+    def self.create_new_heater(name, cap, fuel, vol, nbeds, nbaths, ef, re, t_set, thermal_zone, oncycle_p, offcycle_p, tanktype, cyc_derate, measure_dir, model, runner)
     
         new_heater = OpenStudio::Model::WaterHeaterMixed.new(model)
         new_heater.setName(name)
@@ -360,11 +360,9 @@ class Waterheater
             # Tankless WHs are set to "modulate", not "cycle", so they end up
             # effectively always on. Thus, we need to use a weighted-average of
             # on-cycle and off-cycle parasitics.
-            sch = HotWaterSchedule.new(model, runner, "", "", nbeds, unit_index, nil, 0, measure_dir, false)
-            if not sch.validated?
-                return nil
-            end
-            runtime_frac = sch.getOntimeFraction
+            # Values used here are based on the average across 10 units originally used when modeling MF buildings
+            avg_runtime_frac = [0.0268,0.0333,0.0397,0.0462,0.0529]
+            runtime_frac = avg_runtime_frac[nbeds-1]
             avg_elec = oncycle_p * runtime_frac + offcycle_p * (1-runtime_frac)
             
             new_heater.setOnCycleParasiticFuelConsumptionRate(avg_elec)

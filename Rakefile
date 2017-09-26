@@ -6,6 +6,7 @@ Bundler.setup
 desc 'Copy measures/osms from OpenStudio-BEopt repo'
 task :copy_beopt_files do
   require 'fileutils'
+  require 'openstudio'
 
   # TODO: Should really grab latest from https://github.com/NREL/OpenStudio-BEopt/archive/master.zip
   beopt_measures_dir = File.join(File.dirname(__FILE__), "..", "OpenStudio-BEopt", "measures")
@@ -20,7 +21,8 @@ task :copy_beopt_files do
                  File.join("seeds", "EmptySeedModel.osm"),
                  File.join("workflows", "measure-info.json"),
                  File.join("resources", "geometry.rb"), # Needed by SimulationOutputReport
-                 File.join("resources", "constants.rb") # Needed by geometry.rb
+                 File.join("resources", "constants.rb"), # Needed by geometry.rb
+                 File.join("resources", "meta_measure.rb") # Needed by buildstock.rb
                 ]
   extra_files.each do |extra_file|
       puts "Copying #{extra_file}..."
@@ -63,6 +65,12 @@ task :copy_beopt_files do
         FileUtils.rm_rf("#{buildstock_resource_measures_subdir}/.", secure: true)
       end
     end
+    if beopt_measure == "ResidentialPhotovoltaics"
+      ["resources"].each do |subdir|
+        beopt_measure_subdir = File.join(buildstock_resource_measures_dir, beopt_measure, subdir)
+        remove_items_from_zip_file(beopt_measure_subdir, "sam-sdk-2017-1-17-r1.zip", ["osx64", "win32", "win64"])
+      end
+    end    
   end
   
   # Copy other measures to measure/ dir
@@ -77,7 +85,25 @@ task :copy_beopt_files do
         FileUtils.rm_rf("#{buildstock_measure_subdir}/.", secure: true)
       end
     end
+    if other_measure == "UtilityBillCalculations"
+      ["resources"].each do |subdir|
+        buildstock_measure_subdir = File.join(buildstock_measures_dir, other_measure, subdir)
+        remove_items_from_zip_file(buildstock_measure_subdir, "sam-sdk-2017-1-17-r1.zip", ["osx64", "win32", "win64"])
+      end
+    end
   end
+end
+
+def remove_items_from_zip_file(dir, zip_file_name, items)
+  unzip_file = OpenStudio::UnzipFile.new(File.join(dir, zip_file_name))
+  unzip_file.extractAllFiles(OpenStudio::toPath(File.join(dir, zip_file_name.gsub(".zip", ""))))
+  items.each do |item|
+    FileUtils.rm_rf(File.join(dir, zip_file_name.gsub(".zip", ""), item))
+  end
+  zip_path = OpenStudio::toPath(File.join(dir, zip_file_name))
+  zip_file = OpenStudio::ZipFile.new(zip_path, false)
+  zip_file.addDirectory(File.join(dir, zip_file_name.gsub(".zip", "")), OpenStudio::toPath("/"))
+  FileUtils.rm_rf(File.join(dir, zip_file_name.gsub(".zip", "")))
 end
 
 namespace :test do
@@ -136,7 +162,7 @@ def integrity_check(project_dir_names=nil)
 
   # Load helper file and sampling file
   resources_dir = File.join(File.dirname(__FILE__), 'resources')
-  require File.join(resources_dir, 'helper_methods')
+  require File.join(resources_dir, 'buildstock')
   require File.join(resources_dir, 'run_sampling')
     
   # Setup
