@@ -120,10 +120,10 @@ class TimeseriesCSVExport < OpenStudio::Measure::ReportingMeasure
     # Request the output for each variable
     if inc_output_variables
       output_vars.each do |output_var|
-        result << OpenStudio::IdfObject.load("Output:Variable,#{output_var},#{reporting_frequency},*;").get
+        result << OpenStudio::IdfObject.load("Output:Variable,#{output_var},#{reporting_frequency};").get
       end
     end
-    
+
     return result
   end
   
@@ -148,6 +148,12 @@ class TimeseriesCSVExport < OpenStudio::Measure::ReportingMeasure
     end
     model = model.get
     epw_file = OpenStudio::EpwFile.new(File.expand_path(model.getWeatherFile.path.get.to_s))
+    
+    # Convert time stamp format to be more readable      
+    year_description = model.getYearDescription
+    unless epw_file.startDateActualYear.empty?
+      year_description.setCalendarYear(epw_file.startDateActualYear.get)
+    end
 
     sql = runner.lastEnergyPlusSqlFile
     if sql.empty?
@@ -272,7 +278,7 @@ class TimeseriesCSVExport < OpenStudio::Measure::ReportingMeasure
         end
       end
     end
-
+    
     # Create a new series like this
     # for each condition series we want to plot
     # {"name" : "series 1",
@@ -312,16 +318,10 @@ class TimeseriesCSVExport < OpenStudio::Measure::ReportingMeasure
       end
       y_vals = y_timeseries.values
 
-      # Convert time stamp format to be more readable      
-      year_description = model.getYearDescription
-      unless epw_file.startDateActualYear.empty?
-        year_description.setCalendarYear(epw_file.startDateActualYear.get)
-      end
-
       js_date_times = []
       y_timeseries.dateTimes.each do |date_time|
         js_date_times << to_JSTime(date_time, year_description)
-      end    
+      end
       
       # Store the timeseries data to hash for later
       # export to the HTML file
@@ -357,6 +357,7 @@ class TimeseriesCSVExport < OpenStudio::Measure::ReportingMeasure
         point["time"] = time_i
         data << point
       end
+      next if data.all? {|x| x["y"] == 0}
       series["data"] = data
       all_series << series        
         
@@ -384,7 +385,7 @@ class TimeseriesCSVExport < OpenStudio::Measure::ReportingMeasure
       data_col = [col_name]
       #data_col << units
       data.each do |entry|
-        data_col << entry['y'].round(3)
+        data_col << entry['y'].round(2)
       end
       cols << data_col
     end
@@ -399,40 +400,6 @@ class TimeseriesCSVExport < OpenStudio::Measure::ReportingMeasure
     end    
     csv_path = File.absolute_path(csv_path)
     runner.registerFinalCondition("CSV file saved to <a href='file:///#{csv_path}'>enduse_timeseries.csv</a>.")
-
-    # # Convert all_series to JSON.
-    # # This JSON will be substituted
-    # # into the HTML file.
-    # require 'json'
-    # all_series = all_series.to_json
-    
-    # # read in template
-    # html_in_path = "#{File.dirname(__FILE__)}/resources/report.html.erb"
-    # if File.exist?(html_in_path)
-      # html_in_path = html_in_path
-    # else
-      # html_in_path = "#{File.dirname(__FILE__)}/report.html.erb"
-    # end
-    # html_in = ""
-    # File.open(html_in_path, 'r') do |file|
-      # html_in = file.read
-    # end
-
-    # # configure template with variable values
-    # renderer = ERB.new(html_in)
-    # html_out = renderer.result(binding)
-    
-    # # write html file
-    # html_out_path = "./report.html"
-    # File.open(html_out_path, 'w') do |file|
-      # file << html_out
-      # # make sure data is written to the disk one way or the other
-      # begin
-        # file.fsync
-      # rescue
-        # file.flush
-      # end
-    # end
     
     # close the sql file
     sql.close()
