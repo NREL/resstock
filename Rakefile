@@ -7,13 +7,45 @@ desc 'Copy measures/osms from OpenStudio-BEopt repo'
 task :copy_beopt_files do
   require 'fileutils'
   require 'openstudio'
+  require 'net/http'
+  require 'openssl'
 
-  # TODO: Should really grab latest from https://github.com/NREL/OpenStudio-BEopt/archive/master.zip
-  beopt_measures_dir = File.join(File.dirname(__FILE__), "..", "OpenStudio-BEopt", "measures")
-  buildstock_resource_measures_dir = File.join(File.dirname(__FILE__), "resources", "measures")
-  if not Dir.exist?(beopt_measures_dir)
-    puts "Cannot find OpenStudio-BEopt measures dir at #{beopt_measures_dir}."
+  if File.exists? File.join(File.dirname(__FILE__), "master.zip")
+    FileUtils.rm(File.join(File.dirname(__FILE__), "master.zip"))
   end
+  
+  url = URI.parse('https://codeload.github.com/NREL/OpenStudio-BEopt/zip/master')
+  http = Net::HTTP.new(url.host, url.port)
+  http.use_ssl = true
+  http.verify_mode = OpenSSL::SSL::VERIFY_NONE
+
+  params = { 'User-Agent' => 'curl/7.43.0', 'Accept-Encoding' => 'identity' }
+  request = Net::HTTP::Get.new(url.path, params)
+  request.content_type = 'application/zip, application/octet-stream'
+
+  http.request request do |response|
+    total = response.header["Content-Length"].to_i
+    size = 0
+    progress = 0
+    open 'master.zip', 'wb' do |io|
+      response.read_body do |chunk|
+        io.write chunk
+        size += chunk.size
+        new_progress = (size * 100) / total
+        unless new_progress == progress
+          puts "Downloading %s (%3d%%) " % [url.path, new_progress]
+        end
+        progress = new_progress
+      end
+    end
+  end
+
+  puts "Extracting latest residential measures..."
+  unzip_file = OpenStudio::UnzipFile.new(File.join(File.dirname(__FILE__), "master.zip"))
+  unzip_file.extractAllFiles(OpenStudio::toPath(File.join(File.dirname(__FILE__), "master")))
+
+  beopt_measures_dir = File.join(File.dirname(__FILE__), "master", "OpenStudio-BEopt-master", "measures")
+  buildstock_resource_measures_dir = File.join(File.dirname(__FILE__), "resources", "measures")
   
   # Copy seed osm and other needed resource files
   project_dir_names = get_all_project_dir_names()
@@ -26,7 +58,7 @@ task :copy_beopt_files do
                 ]
   extra_files.each do |extra_file|
       puts "Copying #{extra_file}..."
-      beopt_file = File.join(File.dirname(__FILE__), "..", "OpenStudio-BEopt", extra_file)
+      beopt_file = File.join(File.dirname(__FILE__), "master", "OpenStudio-BEopt-master", extra_file)
       if extra_file.start_with?("seeds") # Distribute to all projects
         project_dir_names.each do |project_dir_name|
           buildstock_file = File.join(File.dirname(__FILE__), project_dir_name, extra_file)
@@ -92,6 +124,9 @@ task :copy_beopt_files do
       end
     end
   end
+
+  FileUtils.rm_rf(File.join(File.dirname(__FILE__), "master"))
+
 end
 
 def remove_items_from_zip_file(dir, zip_file_name, items)
