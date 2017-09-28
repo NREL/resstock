@@ -266,10 +266,12 @@ class ApplyUpgrade < OpenStudio::Ruleset::ModelUserScript
                 get_measure_args_from_option_name(lookup_file, existing_option_name, parameter_name, runner).each do |measure_subdir2, args_hash|
                     next if measure_subdir != measure_subdir2
                     # Append any new arguments
+                    new_args_hash = {}
                     args_hash.each do |k, v|
-                        next if measures[measure_subdir].has_key?(k)
-                        measures[measure_subdir][k] = v
+                        next if measures[measure_subdir][0].has_key?(k)
+                        new_args_hash[k] = v
                     end
+                    update_args_hash(measures, measure_subdir, new_args_hash, add_new=false)
                 end
                 
             end
