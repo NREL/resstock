@@ -33,12 +33,14 @@ def apply_measures(measures_dir, measures, runner, model, workflow_json=nil, osw
       workflowJSON.setSeedFile("seeds/EmptySeedModel.osm")
       steps = OpenStudio::WorkflowStepVector.new
       workflow_order.each do |measure_subdir|
-        step = OpenStudio::MeasureStep.new(measure_subdir)
-        measures[measure_subdir].each do |k,v|
-          next if v.nil?
-          step.setArgument(k, v)
+        measures[measure_subdir].each do |args|
+          step = OpenStudio::MeasureStep.new(measure_subdir)
+          args.each do |k,v|
+            next if v.nil?
+            step.setArgument(k, v)
+          end
+          steps.push(step)
         end
-        steps.push(step)
       end
       workflowJSON.setWorkflowSteps(steps)
       workflowJSON.save
