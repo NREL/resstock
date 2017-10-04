@@ -343,11 +343,26 @@ def remove_upgrades(df):
               df = df[df[col]==0]
     return df
         
-class Create_DFs():
+class TSV():
     
     def __init__(self, file):
         self.session = pd.read_csv(file)
         self.session = self.weather_normalize(self.session)
+        self.recs_to_resstock_enum_map = {
+                                          'Dependency=Location Region': {1: 'CR01', 2: 'CR02', 3: 'CR03', 4: 'CR04', 5: 'CR05', 6: 'CR06', 7: 'CR07', 8: 'CR08', 9: 'CR09', 10: 'CR10', 11: 'CR11', 12: 'CR12'},
+                                          'Dependency=Federal Poverty Level': {'0-50': '0-50', '50-100': '50-100', '100-150': '100-150', '150-200': '150-200', '200-250': '200-250', '250-300': '250-300', '300+': '300+'},
+                                          'Dependency=Vintage': {'1950-pre': '<1950', '1950s': '1950s', '1960s': '1960s', '1970s': '1970s', '1980s': '1980s', '1990s': '1990s', '2000s': '2000s'},
+                                          'Dependency=Heating Fuel': {'Electricity': 'Electricity', 'Natural Gas': 'Natural Gas', 'Propane/LPG': 'Propane/LPG', 'Fuel Oil': 'Fuel Oil', 'Other Fuel': 'Other Fuel', 'None': 'None'},
+                                          'Dependency=Geometry House Size': {'0-1499': '0-1499', '1500-2499': '1500-2499', '2500-3499': '2500-3499', '3500+': '3500+'}
+                                          }
+        self.recs_to_resstock_cols_map = {
+                                          'Size': 'Dependency=Geometry House Size', 
+                                          'yearmaderange': 'Dependency=Vintage', 
+                                          'fuelheat': 'Dependency=Heating Fuel', 
+                                          'CR': 'Dependency=Location Region', 
+                                          'FPL_BINS': 'Dependency=Federal Poverty Level', 
+                                          'nweight': 'Weight'
+                                          }
         
     def weather_normalize(self, df):
     
@@ -375,448 +390,29 @@ class Create_DFs():
     
         return df
         
-    def electricity_consumption_location_region(self):
-        df = self.session
-        df = df[['CR', 'kwhel_nrm', 'nweight']]
-        df = df.rename(columns={'CR': 'Dependency=Location Region', 'nweight': 'Weight'})
-        df['Dependency=Location Region'] = df['Dependency=Location Region'].replace({1: 'CR01', 2: 'CR02', 3: 'CR03', 4: 'CR04', 5: 'CR05', 6: 'CR06', 7: 'CR07', 8: 'CR08', 9: 'CR09', 10: 'CR10', 11: 'CR11', 12: 'CR12'})
-        df = df.groupby(['Dependency=Location Region'])
-        count = df.agg(['count']).ix[:, 0]
-        weight = df.agg(['sum'])['Weight']
-        df = df[['kwhel_nrm']].sum()
-        df['Count'] = count
-        df['Weight'] = weight
-        df['kwhel_nrm_per_home'] = df['kwhel_nrm'] / df['Count']
-        df['kwhel_nrm_total'] = df['kwhel_nrm_per_home'] * df['Weight']
-        df = df.reset_index()
-        df['Dependency=Location Region'] = pd.Categorical(df['Dependency=Location Region'], ['CR01', 'CR02', 'CR03', 'CR04', 'CR05', 'CR06', 'CR07', 'CR08', 'CR09', 'CR10', 'CR11', 'CR12'])
-        df = df.sort_values(by=['Dependency=Location Region']).set_index(['Dependency=Location Region'])             
-        return df
-        
-    def electricity_consumption_vintage(self):
-        df = self.session
-        df = df[['yearmaderange', 'kwhel_nrm', 'nweight']]
-        df = df.rename(columns={'yearmaderange': 'Dependency=Vintage', 'nweight': 'Weight'})
-        df['Dependency=Vintage'] = df['Dependency=Vintage'].replace({'1950-pre': '<1950'})
-        df = df.groupby(['Dependency=Vintage'])
-        count = df.agg(['count']).ix[:, 0]
-        weight = df.agg(['sum'])['Weight']
-        df = df[['kwhel_nrm']].sum()
-        df['Count'] = count
-        df['Weight'] = weight
-        df['kwhel_nrm_per_home'] = df['kwhel_nrm'] / df['Count']
-        df['kwhel_nrm_total'] = df['kwhel_nrm_per_home'] * df['Weight']
-        df = df.reset_index()
-        df['Dependency=Vintage'] = pd.Categorical(df['Dependency=Vintage'], ['<1950', '1950s', '1960s', '1970s', '1980s', '1990s', '2000s'])
-        df = df.sort_values(by=['Dependency=Vintage']).set_index(['Dependency=Vintage'])             
-        return df
-
-    def electricity_consumption_heating_fuel(self):
-        df = self.session
-        df = df[['fuelheat', 'kwhel_nrm', 'nweight']]
-        df = df.rename(columns={'fuelheat': 'Dependency=Heating Fuel', 'nweight': 'Weight'})
-        df = df.groupby(['Dependency=Heating Fuel'])
-        count = df.agg(['count']).ix[:, 0]
-        weight = df.agg(['sum'])['Weight']
-        df = df[['kwhel_nrm']].sum()
-        df['Count'] = count
-        df['Weight'] = weight
-        df['kwhel_nrm_per_home'] = df['kwhel_nrm'] / df['Count']
-        df['kwhrl_nrm_total'] = df['kwhel_nrm_per_home'] * df['Weight']
-        df = df.reset_index()
-        df = df.sort_values(by=['Dependency=Heating Fuel']).set_index(['Dependency=Heating Fuel'])             
-        return df
-        
-    def electricity_consumption_geometry_house_size(self):
-        df = self.session
-        df = df[['Size', 'kwhel_nrm', 'nweight']]
-        df = df.rename(columns={'Size': 'Dependency=Geometry House Size', 'nweight': 'Weight'})
-        df = df.groupby(['Dependency=Geometry House Size'])
-        count = df.agg(['count']).ix[:, 0]
-        weight = df.agg(['sum'])['Weight']
-        df = df[['kwhel_nrm']].sum()
-        df['Count'] = count
-        df['Weight'] = weight
-        df['kwhel_nrm_per_home'] = df['kwhel_nrm'] / df['Count']
-        df['kwhrl_nrm_total'] = df['kwhel_nrm_per_home'] * df['Weight']
-        df = df.reset_index()
-        df = df.sort_values(by=['Dependency=Geometry House Size']).set_index(['Dependency=Geometry House Size'])             
-        return df
-        
-    def electricity_consumption_federal_poverty_level(self):
-        df = self.session
-        df = df[['FPL_BINS', 'kwhel_nrm', 'nweight']]
-        df = df.rename(columns={'FPL_BINS': 'Dependency=Federal Poverty Level', 'nweight': 'Weight'})
-        df = df.groupby(['Dependency=Federal Poverty Level'])
-        count = df.agg(['count']).ix[:, 0]
-        weight = df.agg(['sum'])['Weight']
-        df = df[['kwhel_nrm']].sum()
-        df['Count'] = count
-        df['Weight'] = weight
-        df['kwhel_nrm_per_home'] = df['kwhel_nrm'] / df['Count']
-        df['kwhrl_nrm_total'] = df['kwhel_nrm_per_home'] * df['Weight']
-        df = df.reset_index()
-        df['Dependency=Federal Poverty Level'] = pd.Categorical(df['Dependency=Federal Poverty Level'], ['0-50', '50-100', '100-150', '150-200', '200-250', '250-300', '300+'])
-        df = df.sort_values(by=['Dependency=Federal Poverty Level']).set_index(['Dependency=Federal Poverty Level'])
-        return df
-        
-    def electricity_consumption_location_region_vintage(self):
-        df = self.session
-        df = df[['CR', 'yearmaderange', 'kwhel_nrm', 'nweight']]
-        df = df.rename(columns={'CR': 'Dependency=Location Region', 'yearmaderange': 'Dependency=Vintage', 'nweight': 'Weight'})
-        df['Dependency=Location Region'] = df['Dependency=Location Region'].replace({1: 'CR01', 2: 'CR02', 3: 'CR03', 4: 'CR04', 5: 'CR05', 6: 'CR06', 7: 'CR07', 8: 'CR08', 9: 'CR09', 10: 'CR10', 11: 'CR11', 12: 'CR12'})
-        df['Dependency=Vintage'] = df['Dependency=Vintage'].replace({'1950-pre': '<1950'})
-        df = df.groupby(['Dependency=Location Region', 'Dependency=Vintage'])
-        count = df.agg(['count']).ix[:, 0]
-        weight = df.agg(['sum'])['Weight']
-        df = df[['kwhel_nrm']].sum()
-        df['Count'] = count
-        df['Weight'] = weight
-        df['kwhel_nrm_per_home'] = df['kwhel_nrm'] / df['Count']
-        df['kwhrl_nrm_total'] = df['kwhel_nrm_per_home'] * df['Weight']
-        df = df.reset_index()
-        df['Dependency=Location Region'] = pd.Categorical(df['Dependency=Location Region'], ['CR01', 'CR02', 'CR03', 'CR04', 'CR05', 'CR06', 'CR07', 'CR08', 'CR09', 'CR10', 'CR11', 'CR12'])
-        df['Dependency=Vintage'] = pd.Categorical(df['Dependency=Vintage'], ['<1950', '1950s', '1960s', '1970s', '1980s', '1990s', '2000s'])
-        df = df.sort_values(by=['Dependency=Location Region', 'Dependency=Vintage']).set_index(['Dependency=Location Region', 'Dependency=Vintage'])
-        return df
-        
-    def electricity_consumption_location_region_heating_fuel(self):
-        df = self.session
-        df = df[['CR', 'fuelheat', 'kwhel_nrm', 'nweight']]
-        df = df.rename(columns={'CR': 'Dependency=Location Region', 'fuelheat': 'Dependency=Heating Fuel', 'nweight': 'Weight'})
-        df['Dependency=Location Region'] = df['Dependency=Location Region'].replace({1: 'CR01', 2: 'CR02', 3: 'CR03', 4: 'CR04', 5: 'CR05', 6: 'CR06', 7: 'CR07', 8: 'CR08', 9: 'CR09', 10: 'CR10', 11: 'CR11', 12: 'CR12'})
-        df = df.groupby(['Dependency=Location Region', 'Dependency=Heating Fuel'])
-        count = df.agg(['count']).ix[:, 0]
-        weight = df.agg(['sum'])['Weight']
-        df = df[['kwhel_nrm']].sum()
-        df['Count'] = count
-        df['Weight'] = weight
-        df['kwhel_nrm_per_home'] = df['kwhel_nrm'] / df['Count']
-        df['kwhrl_nrm_total'] = df['kwhel_nrm_per_home'] * df['Weight']
-        df = df.reset_index()
-        df['Dependency=Location Region'] = pd.Categorical(df['Dependency=Location Region'], ['CR01', 'CR02', 'CR03', 'CR04', 'CR05', 'CR06', 'CR07', 'CR08', 'CR09', 'CR10', 'CR11', 'CR12'])
-        df = df.sort_values(by=['Dependency=Location Region', 'Dependency=Heating Fuel']).set_index(['Dependency=Location Region', 'Dependency=Heating Fuel'])
-        return df
-        
-    def electricity_consumption_location_region_federal_poverty_level(self):
-        df = self.session
-        df = df[['CR', 'FPL_BINS', 'kwhel_nrm', 'nweight']]
-        df = df.rename(columns={'CR': 'Dependency=Location Region', 'FPL_BINS': 'Dependency=Federal Poverty Level', 'nweight': 'Weight'})
-        df['Dependency=Location Region'] = df['Dependency=Location Region'].replace({1: 'CR01', 2: 'CR02', 3: 'CR03', 4: 'CR04', 5: 'CR05', 6: 'CR06', 7: 'CR07', 8: 'CR08', 9: 'CR09', 10: 'CR10', 11: 'CR11', 12: 'CR12'})
-        df = df.groupby(['Dependency=Location Region', 'Dependency=Federal Poverty Level'])
-        count = df.agg(['count']).ix[:, 0]
-        weight = df.agg(['sum'])['Weight']
-        df = df[['kwhel_nrm']].sum()
-        df['Count'] = count
-        df['Weight'] = weight
-        df['kwhel_nrm_per_home'] = df['kwhel_nrm'] / df['Count']
-        df['kwhrl_nrm_total'] = df['kwhel_nrm_per_home'] * df['Weight']
-        df = df.reset_index()
-        df['Dependency=Location Region'] = pd.Categorical(df['Dependency=Location Region'], ['CR01', 'CR02', 'CR03', 'CR04', 'CR05', 'CR06', 'CR07', 'CR08', 'CR09', 'CR10', 'CR11', 'CR12'])
-        df['Dependency=Federal Poverty Level'] = pd.Categorical(df['Dependency=Federal Poverty Level'], ['0-50', '50-100', '100-150', '150-200', '200-250', '250-300', '300+'])
-        df = df.sort_values(by=['Dependency=Location Region', 'Dependency=Federal Poverty Level']).set_index(['Dependency=Location Region', 'Dependency=Federal Poverty Level'])
-        return df
-        
-    def natural_gas_consumption_location_region(self):
-        df = self.session
-        df = df[['CR', 'btung_nrm', 'nweight']]
-        df['thmng_nrm'] = df.apply(lambda x: units_Btu2Therm(x.btung_nrm), axis=1)
-        df = df.rename(columns={'CR': 'Dependency=Location Region', 'nweight': 'Weight'})
-        df['Dependency=Location Region'] = df['Dependency=Location Region'].replace({1: 'CR01', 2: 'CR02', 3: 'CR03', 4: 'CR04', 5: 'CR05', 6: 'CR06', 7: 'CR07', 8: 'CR08', 9: 'CR09', 10: 'CR10', 11: 'CR11', 12: 'CR12'})
-        df = df.groupby(['Dependency=Location Region'])
-        count = df.agg(['count']).ix[:, 0]
-        weight = df.agg(['sum'])['Weight']
-        df = df[['thmng_nrm']].sum()
-        df['Count'] = count
-        df['Weight'] = weight
-        df['thmng_nrm_per_home'] = df['thmng_nrm'] / df['Count']
-        df['thmng_nrm_total'] = df['thmng_nrm_per_home'] * df['Weight']
-        df = df.reset_index()
-        df['Dependency=Location Region'] = pd.Categorical(df['Dependency=Location Region'], ['CR01', 'CR02', 'CR03', 'CR04', 'CR05', 'CR06', 'CR07', 'CR08', 'CR09', 'CR10', 'CR11', 'CR12'])
-        df = df.sort_values(by=['Dependency=Location Region']).set_index(['Dependency=Location Region'])             
-        return df
-        
-    def natural_gas_consumption_vintage(self):
-        df = self.session
-        df = df[['yearmaderange', 'btung_nrm', 'nweight']]
-        df['thmng_nrm'] = df.apply(lambda x: units_Btu2Therm(x.btung_nrm), axis=1)
-        df = df.rename(columns={'yearmaderange': 'Dependency=Vintage', 'nweight': 'Weight'})
-        df['Dependency=Vintage'] = df['Dependency=Vintage'].replace({'1950-pre': '<1950'})
-        df = df.groupby(['Dependency=Vintage'])
-        count = df.agg(['count']).ix[:, 0]
-        weight = df.agg(['sum'])['Weight']
-        df = df[['thmng_nrm']].sum()
-        df['Count'] = count
-        df['Weight'] = weight
-        df['thmng_nrm_per_home'] = df['thmng_nrm'] / df['Count']
-        df['thmng_nrm_total'] = df['thmng_nrm_per_home'] * df['Weight']
-        df = df.reset_index()
-        df['Dependency=Vintage'] = pd.Categorical(df['Dependency=Vintage'], ['<1950', '1950s', '1960s', '1970s', '1980s', '1990s', '2000s'])
-        df = df.sort_values(by=['Dependency=Vintage']).set_index(['Dependency=Vintage'])
-        return df
-
-    def natural_gas_consumption_heating_fuel(self):
-        df = self.session
-        df = df[['fuelheat', 'btung_nrm', 'nweight']]
-        df['thmng_nrm'] = df.apply(lambda x: units_Btu2Therm(x.btung_nrm), axis=1)
-        df = df.rename(columns={'fuelheat': 'Dependency=Heating Fuel', 'nweight': 'Weight'})
-        df = df.groupby(['Dependency=Heating Fuel'])
-        count = df.agg(['count']).ix[:, 0]
-        weight = df.agg(['sum'])['Weight']
-        df = df[['thmng_nrm']].sum()
-        df['Count'] = count
-        df['Weight'] = weight
-        df['thmng_nrm_per_home'] = df['thmng_nrm'] / df['Count']
-        df['thmng_nrm_total'] = df['thmng_nrm_per_home'] * df['Weight']
-        df = df.reset_index()
-        df = df.sort_values(by=['Dependency=Heating Fuel']).set_index(['Dependency=Heating Fuel'])             
-        return df
-        
-    def natural_gas_consumption_geometry_house_size(self):
-        df = self.session
-        df = df[['Size', 'btung_nrm', 'nweight']]
-        df['thmng_nrm'] = df.apply(lambda x: units_Btu2Therm(x.btung_nrm), axis=1)
-        df = df.rename(columns={'Size': 'Dependency=Geometry House Size', 'nweight': 'Weight'})
-        df = df.groupby(['Dependency=Geometry House Size'])
-        count = df.agg(['count']).ix[:, 0]
-        weight = df.agg(['sum'])['Weight']
-        df = df[['thmng_nrm']].sum()
-        df['Count'] = count
-        df['Weight'] = weight
-        df['thmng_nrm_per_home'] = df['thmng_nrm'] / df['Count']
-        df['thmng_nrm_total'] = df['thmng_nrm_per_home'] * df['Weight']
-        df = df.reset_index()
-        df = df.sort_values(by=['Dependency=Geometry House Size']).set_index(['Dependency=Geometry House Size'])             
-        return df
-        
-    def natural_gas_consumption_federal_poverty_level(self):
-        df = self.session
-        df = df[['FPL_BINS', 'btung_nrm', 'nweight']]
-        df['thmng_nrm'] = df.apply(lambda x: units_Btu2Therm(x.btung_nrm), axis=1)
-        df = df.rename(columns={'FPL_BINS': 'Dependency=Federal Poverty Level', 'nweight': 'Weight'})
-        df = df.groupby(['Dependency=Federal Poverty Level'])
-        count = df.agg(['count']).ix[:, 0]
-        weight = df.agg(['sum'])['Weight']
-        df = df[['thmng_nrm']].sum()
-        df['Count'] = count
-        df['Weight'] = weight
-        df['thmng_nrm_per_home'] = df['thmng_nrm'] / df['Count']
-        df['thmng_nrm_total'] = df['thmng_nrm_per_home'] * df['Weight']
-        df = df.reset_index()
-        df['Dependency=Federal Poverty Level'] = pd.Categorical(df['Dependency=Federal Poverty Level'], ['0-50', '50-100', '100-150', '150-200', '200-250', '250-300', '300+'])
-        df = df.sort_values(by=['Dependency=Federal Poverty Level']).set_index(['Dependency=Federal Poverty Level'])             
-        return df
-        
-    def natural_gas_consumption_location_region_vintage(self):
-        df = self.session
-        df = df[['CR', 'yearmaderange', 'btung_nrm', 'nweight']]
-        df['thmng_nrm'] = df.apply(lambda x: units_Btu2Therm(x.btung_nrm), axis=1)
-        df = df.rename(columns={'CR': 'Dependency=Location Region', 'yearmaderange': 'Dependency=Vintage', 'nweight': 'Weight'})
-        df['Dependency=Location Region'] = df['Dependency=Location Region'].replace({1: 'CR01', 2: 'CR02', 3: 'CR03', 4: 'CR04', 5: 'CR05', 6: 'CR06', 7: 'CR07', 8: 'CR08', 9: 'CR09', 10: 'CR10', 11: 'CR11', 12: 'CR12'})
-        df['Dependency=Vintage'] = df['Dependency=Vintage'].replace({'1950-pre': '<1950'})
-        df = df.groupby(['Dependency=Location Region', 'Dependency=Vintage'])
-        count = df.agg(['count']).ix[:, 0]
-        weight = df.agg(['sum'])['Weight']
-        df = df[['thmng_nrm']].sum()
-        df['Count'] = count
-        df['Weight'] = weight
-        df['thmng_nrm_per_home'] = df['thmng_nrm'] / df['Count']
-        df['thmng_nrm_total'] = df['thmng_nrm_per_home'] * df['Weight']
-        df = df.reset_index()
-        df['Dependency=Location Region'] = pd.Categorical(df['Dependency=Location Region'], ['CR01', 'CR02', 'CR03', 'CR04', 'CR05', 'CR06', 'CR07', 'CR08', 'CR09', 'CR10', 'CR11', 'CR12'])
-        df['Dependency=Vintage'] = pd.Categorical(df['Dependency=Vintage'], ['<1950', '1950s', '1960s', '1970s', '1980s', '1990s', '2000s'])
-        df = df.sort_values(by=['Dependency=Location Region', 'Dependency=Vintage']).set_index(['Dependency=Location Region', 'Dependency=Vintage'])             
-        return df
-        
-    def natural_gas_consumption_location_region_heating_fuel(self):
-        df = self.session
-        df = df[['CR', 'fuelheat', 'btung_nrm', 'nweight']]
-        df['thmng_nrm'] = df.apply(lambda x: units_Btu2Therm(x.btung_nrm), axis=1)
-        df = df.rename(columns={'CR': 'Dependency=Location Region', 'fuelheat': 'Dependency=Heating Fuel', 'nweight': 'Weight'})
-        df['Dependency=Location Region'] = df['Dependency=Location Region'].replace({1: 'CR01', 2: 'CR02', 3: 'CR03', 4: 'CR04', 5: 'CR05', 6: 'CR06', 7: 'CR07', 8: 'CR08', 9: 'CR09', 10: 'CR10', 11: 'CR11', 12: 'CR12'})
-        df = df.groupby(['Dependency=Location Region', 'Dependency=Heating Fuel'])
-        count = df.agg(['count']).ix[:, 0]
-        weight = df.agg(['sum'])['Weight']
-        df = df[['thmng_nrm']].sum()
-        df['Count'] = count
-        df['Weight'] = weight
-        df['thmng_nrm_per_home'] = df['thmng_nrm'] / df['Count']
-        df['thmng_nrm_total'] = df['thmng_nrm_per_home'] * df['Weight']
-        df = df.reset_index()
-        df['Dependency=Location Region'] = pd.Categorical(df['Dependency=Location Region'], ['CR01', 'CR02', 'CR03', 'CR04', 'CR05', 'CR06', 'CR07', 'CR08', 'CR09', 'CR10', 'CR11', 'CR12'])
-        df = df.sort_values(by=['Dependency=Location Region', 'Dependency=Heating Fuel']).set_index(['Dependency=Location Region', 'Dependency=Heating Fuel'])             
-        return df
-        
-    def natural_gas_consumption_location_region_federal_poverty_level(self):
-        df = self.session
-        df = df[['CR', 'FPL_BINS', 'btung_nrm', 'nweight']]
-        df['thmng_nrm'] = df.apply(lambda x: units_Btu2Therm(x.btung_nrm), axis=1)
-        df = df.rename(columns={'CR': 'Dependency=Location Region', 'FPL_BINS': 'Dependency=Federal Poverty Level', 'nweight': 'Weight'})
-        df['Dependency=Location Region'] = df['Dependency=Location Region'].replace({1: 'CR01', 2: 'CR02', 3: 'CR03', 4: 'CR04', 5: 'CR05', 6: 'CR06', 7: 'CR07', 8: 'CR08', 9: 'CR09', 10: 'CR10', 11: 'CR11', 12: 'CR12'})
-        df = df.groupby(['Dependency=Location Region', 'Dependency=Federal Poverty Level'])
-        count = df.agg(['count']).ix[:, 0]
-        weight = df.agg(['sum'])['Weight']
-        df = df[['thmng_nrm']].sum()
-        df['Count'] = count
-        df['Weight'] = weight
-        df['thmng_nrm_per_home'] = df['thmng_nrm'] / df['Count']
-        df['thmng_nrm_total'] = df['thmng_nrm_per_home'] * df['Weight']
-        df = df.reset_index()
-        df['Dependency=Location Region'] = pd.Categorical(df['Dependency=Location Region'], ['CR01', 'CR02', 'CR03', 'CR04', 'CR05', 'CR06', 'CR07', 'CR08', 'CR09', 'CR10', 'CR11', 'CR12'])
-        df['Dependency=Federal Poverty Level'] = pd.Categorical(df['Dependency=Federal Poverty Level'], ['0-50', '50-100', '100-150', '150-200', '200-250', '250-300', '300+'])
-        df = df.sort_values(by=['Dependency=Location Region', 'Dependency=Federal Poverty Level']).set_index(['Dependency=Location Region', 'Dependency=Federal Poverty Level'])             
-        return df
-        
-    def other_consumption_location_region(self):
-        df = self.session
-        df = df[['CR', 'btuoth_nrm', 'nweight']]
-        df['thmoth_nrm'] = df.apply(lambda x: units_Btu2Therm(x.btuoth_nrm), axis=1)
-        df = df.rename(columns={'CR': 'Dependency=Location Region', 'nweight': 'Weight'})
-        df['Dependency=Location Region'] = df['Dependency=Location Region'].replace({1: 'CR01', 2: 'CR02', 3: 'CR03', 4: 'CR04', 5: 'CR05', 6: 'CR06', 7: 'CR07', 8: 'CR08', 9: 'CR09', 10: 'CR10', 11: 'CR11', 12: 'CR12'})
-        df = df.groupby(['Dependency=Location Region'])
-        count = df.agg(['count']).ix[:, 0]
-        weight = df.agg(['sum'])['Weight']
-        df = df[['thmoth_nrm']].sum()
-        df['Count'] = count
-        df['Weight'] = weight
-        df['thmoth_nrm_per_home'] = df['thmoth_nrm'] / df['Count']
-        df['thmoth_nrm_total'] = df['thmoth_nrm_per_home'] * df['Weight']
-        df = df.reset_index()
-        df['Dependency=Location Region'] = pd.Categorical(df['Dependency=Location Region'], ['CR01', 'CR02', 'CR03', 'CR04', 'CR05', 'CR06', 'CR07', 'CR08', 'CR09', 'CR10', 'CR11', 'CR12'])
-        df = df.sort_values(by=['Dependency=Location Region']).set_index(['Dependency=Location Region'])             
-        return df
-        
-    def other_consumption_vintage(self):
-        df = self.session
-        df = df[['yearmaderange', 'btuoth_nrm', 'nweight']]
-        df['thmoth_nrm'] = df.apply(lambda x: units_Btu2Therm(x.btuoth_nrm), axis=1)
-        df = df.rename(columns={'yearmaderange': 'Dependency=Vintage', 'nweight': 'Weight'})
-        df['Dependency=Vintage'] = df['Dependency=Vintage'].replace({'1950-pre': '<1950'})
-        df = df.groupby(['Dependency=Vintage'])
-        count = df.agg(['count']).ix[:, 0]
-        weight = df.agg(['sum'])['Weight']
-        df = df[['thmoth_nrm']].sum()
-        df['Count'] = count
-        df['Weight'] = weight
-        df['thmoth_nrm_per_home'] = df['thmoth_nrm'] / df['Count']
-        df['thmoth_nrm_total'] = df['thmoth_nrm_per_home'] * df['Weight']
-        df = df.reset_index()
-        df['Dependency=Vintage'] = pd.Categorical(df['Dependency=Vintage'], ['<1950', '1950s', '1960s', '1970s', '1980s', '1990s', '2000s'])
-        df = df.sort_values(by=['Dependency=Vintage']).set_index(['Dependency=Vintage'])
-        return df
-
-    def other_consumption_heating_fuel(self):
-        df = self.session
-        df = df[['fuelheat', 'btuoth_nrm', 'nweight']]
-        df['thmoth_nrm'] = df.apply(lambda x: units_Btu2Therm(x.btuoth_nrm), axis=1)
-        df = df.rename(columns={'fuelheat': 'Dependency=Heating Fuel', 'nweight': 'Weight'})
-        df = df.groupby(['Dependency=Heating Fuel'])
-        count = df.agg(['count']).ix[:, 0]
-        weight = df.agg(['sum'])['Weight']
-        df = df[['thmoth_nrm']].sum()
-        df['Count'] = count
-        df['Weight'] = weight
-        df['thmoth_nrm_per_home'] = df['thmoth_nrm'] / df['Count']
-        df['thmoth_nrm_total'] = df['thmoth_nrm_per_home'] * df['Weight']
-        df = df.reset_index()
-        df = df.sort_values(by=['Dependency=Heating Fuel']).set_index(['Dependency=Heating Fuel'])             
-        return df
-        
-    def other_consumption_geometry_house_size(self):
-        df = self.session
-        df = df[['Size', 'btuoth_nrm', 'nweight']]
-        df['thmoth_nrm'] = df.apply(lambda x: units_Btu2Therm(x.btuoth_nrm), axis=1)
-        df = df.rename(columns={'Size': 'Dependency=Geometry House Size', 'nweight': 'Weight'})
-        df = df.groupby(['Dependency=Geometry House Size'])
-        count = df.agg(['count']).ix[:, 0]
-        weight = df.agg(['sum'])['Weight']
-        df = df[['thmoth_nrm']].sum()
-        df['Count'] = count
-        df['Weight'] = weight
-        df['thmoth_nrm_per_home'] = df['thmoth_nrm'] / df['Count']
-        df['thmoth_nrm_total'] = df['thmoth_nrm_per_home'] * df['Weight']
-        df = df.reset_index()
-        df = df.sort_values(by=['Dependency=Geometry House Size']).set_index(['Dependency=Geometry House Size'])             
-        return df
-        
-    def other_consumption_federal_poverty_level(self):
-        df = self.session
-        df = df[['FPL_BINS', 'btuoth_nrm', 'nweight']]
-        df['thmoth_nrm'] = df.apply(lambda x: units_Btu2Therm(x.btuoth_nrm), axis=1)
-        df = df.rename(columns={'FPL_BINS': 'Dependency=Federal Poverty Level', 'nweight': 'Weight'})
-        df = df.groupby(['Dependency=Federal Poverty Level'])
-        count = df.agg(['count']).ix[:, 0]
-        weight = df.agg(['sum'])['Weight']
-        df = df[['thmoth_nrm']].sum()
-        df['Count'] = count
-        df['Weight'] = weight
-        df['thmoth_nrm_per_home'] = df['thmoth_nrm'] / df['Count']
-        df['thmoth_nrm_total'] = df['thmoth_nrm_per_home'] * df['Weight']
-        df = df.reset_index()
-        df['Dependency=Federal Poverty Level'] = pd.Categorical(df['Dependency=Federal Poverty Level'], ['0-50', '50-100', '100-150', '150-200', '200-250', '250-300', '300+'])
-        df = df.sort_values(by=['Dependency=Federal Poverty Level']).set_index(['Dependency=Federal Poverty Level'])             
-        return df
-        
-    def other_consumption_location_region_vintage(self):
-        df = self.session
-        df = df[['CR', 'yearmaderange', 'btuoth_nrm', 'nweight']]
-        df['thmoth_nrm'] = df.apply(lambda x: units_Btu2Therm(x.btuoth_nrm), axis=1)
-        df = df.rename(columns={'CR': 'Dependency=Location Region', 'yearmaderange': 'Dependency=Vintage', 'nweight': 'Weight'})
-        df['Dependency=Location Region'] = df['Dependency=Location Region'].replace({1: 'CR01', 2: 'CR02', 3: 'CR03', 4: 'CR04', 5: 'CR05', 6: 'CR06', 7: 'CR07', 8: 'CR08', 9: 'CR09', 10: 'CR10', 11: 'CR11', 12: 'CR12'})
-        df['Dependency=Vintage'] = df['Dependency=Vintage'].replace({'1950-pre': '<1950'})
-        df = df.groupby(['Dependency=Location Region', 'Dependency=Vintage'])
-        count = df.agg(['count']).ix[:, 0]
-        weight = df.agg(['sum'])['Weight']
-        df = df[['thmoth_nrm']].sum()
-        df['Count'] = count
-        df['Weight'] = weight
-        df['thmoth_nrm_per_home'] = df['thmoth_nrm'] / df['Count']
-        df['thmoth_nrm_total'] = df['thmoth_nrm_per_home'] * df['Weight']
-        df = df.reset_index()
-        df['Dependency=Location Region'] = pd.Categorical(df['Dependency=Location Region'], ['CR01', 'CR02', 'CR03', 'CR04', 'CR05', 'CR06', 'CR07', 'CR08', 'CR09', 'CR10', 'CR11', 'CR12'])
-        df['Dependency=Vintage'] = pd.Categorical(df['Dependency=Vintage'], ['<1950', '1950s', '1960s', '1970s', '1980s', '1990s', '2000s'])
-        df = df.sort_values(by=['Dependency=Location Region', 'Dependency=Vintage']).set_index(['Dependency=Location Region', 'Dependency=Vintage'])             
-        return df
-        
-    def other_consumption_location_region_heating_fuel(self):
-        df = self.session
-        df = df[['CR', 'fuelheat', 'btuoth_nrm', 'nweight']]
-        df['thmoth_nrm'] = df.apply(lambda x: units_Btu2Therm(x.btuoth_nrm), axis=1)
-        df = df.rename(columns={'CR': 'Dependency=Location Region', 'fuelheat': 'Dependency=Heating Fuel', 'nweight': 'Weight'})
-        df['Dependency=Location Region'] = df['Dependency=Location Region'].replace({1: 'CR01', 2: 'CR02', 3: 'CR03', 4: 'CR04', 5: 'CR05', 6: 'CR06', 7: 'CR07', 8: 'CR08', 9: 'CR09', 10: 'CR10', 11: 'CR11', 12: 'CR12'})
-        df = df.groupby(['Dependency=Location Region', 'Dependency=Heating Fuel'])
-        count = df.agg(['count']).ix[:, 0]
-        weight = df.agg(['sum'])['Weight']
-        df = df[['thmoth_nrm']].sum()
-        df['Count'] = count
-        df['Weight'] = weight
-        df['thmoth_nrm_per_home'] = df['thmoth_nrm'] / df['Count']
-        df['thmoth_nrm_total'] = df['thmoth_nrm_per_home'] * df['Weight']
-        df = df.reset_index()
-        df['Dependency=Location Region'] = pd.Categorical(df['Dependency=Location Region'], ['CR01', 'CR02', 'CR03', 'CR04', 'CR05', 'CR06', 'CR07', 'CR08', 'CR09', 'CR10', 'CR11', 'CR12'])
-        df = df.sort_values(by=['Dependency=Location Region', 'Dependency=Heating Fuel']).set_index(['Dependency=Location Region', 'Dependency=Heating Fuel'])             
-        return df
-        
-    def other_consumption_location_region_federal_poverty_level(self):
-        df = self.session
-        df = df[['CR', 'FPL_BINS', 'btuoth_nrm', 'nweight']]
-        df['thmoth_nrm'] = df.apply(lambda x: units_Btu2Therm(x.btuoth_nrm), axis=1)
-        df = df.rename(columns={'CR': 'Dependency=Location Region', 'FPL_BINS': 'Dependency=Federal Poverty Level', 'nweight': 'Weight'})
-        df['Dependency=Location Region'] = df['Dependency=Location Region'].replace({1: 'CR01', 2: 'CR02', 3: 'CR03', 4: 'CR04', 5: 'CR05', 6: 'CR06', 7: 'CR07', 8: 'CR08', 9: 'CR09', 10: 'CR10', 11: 'CR11', 12: 'CR12'})
-        df = df.groupby(['Dependency=Location Region', 'Dependency=Federal Poverty Level'])
-        count = df.agg(['count']).ix[:, 0]
-        weight = df.agg(['sum'])['Weight']
-        df = df[['thmoth_nrm']].sum()
-        df['Count'] = count
-        df['Weight'] = weight
-        df['thmoth_nrm_per_home'] = df['thmoth_nrm'] / df['Count']
-        df['thmoth_nrm_total'] = df['thmoth_nrm_per_home'] * df['Weight']
-        df = df.reset_index()
-        df['Dependency=Location Region'] = pd.Categorical(df['Dependency=Location Region'], ['CR01', 'CR02', 'CR03', 'CR04', 'CR05', 'CR06', 'CR07', 'CR08', 'CR09', 'CR10', 'CR11', 'CR12'])
-        df['Dependency=Federal Poverty Level'] = pd.Categorical(df['Dependency=Federal Poverty Level'], ['0-50', '50-100', '100-150', '150-200', '200-250', '250-300', '300+'])
-        df = df.sort_values(by=['Dependency=Location Region', 'Dependency=Federal Poverty Level']).set_index(['Dependency=Location Region', 'Dependency=Federal Poverty Level'])             
-        return df
-
+    def create_consumption_tsv(self, cols, nrm, groups):
+      df = self.session
+      df = df[cols + [nrm]]
+      if 'btu' in nrm:
+        nrm = nrm.replace('btu', 'thm')
+        df[nrm] = df.apply(lambda x: units_Btu2Therm(x[nrm.replace('thm', 'btu')]), axis=1)
+      df = df.rename(columns=self.recs_to_resstock_cols_map)
+      for group in groups:
+        df[group] = df[group].replace(self.recs_to_resstock_enum_map[group])
+      df = df.groupby(groups)
+      count = df.agg(['count']).ix[:, 0]
+      weight = df.agg(['sum'])['Weight']
+      df = df[[nrm]].sum()
+      df['Count'] = count
+      df['Weight'] = weight
+      df['{}_per_home'.format(nrm)] = df[nrm] / df['Count']
+      df['{}_total'.format(nrm)] = df['{}_per_home'.format(nrm)] * df['Weight']
+      df = df.reset_index()
+      for group in groups:
+        df[group] = pd.Categorical(df[group], self.recs_to_resstock_enum_map[group].values())
+      df = df.sort_values(by=groups).set_index(groups)
+      return df
+      
 if __name__ == '__main__':
     
   parser = argparse.ArgumentParser()
@@ -829,41 +425,49 @@ if __name__ == '__main__':
   datafiles_dir = './outputs'
   if not os.path.exists(datafiles_dir):
     os.makedirs(datafiles_dir)
-  dfs = Create_DFs(args.source)
+  tsv = TSV(args.source)
   
-  categories = [
-               'Electricity Consumption Location Region',
-               'Electricity Consumption Vintage', 
-               'Electricity Consumption Heating Fuel',
-               'Electricity Consumption Geometry House Size', 
-               'Electricity Consumption Location Region Vintage', 
-               'Electricity Consumption Location Region Heating Fuel', 
-               'Natural Gas Consumption Location Region',
-               'Natural Gas Consumption Vintage', 
-               'Natural Gas Consumption Heating Fuel',
-               'Natural Gas Consumption Geometry House Size',
-               'Natural Gas Consumption Location Region Vintage',
-               'Natural Gas Consumption Location Region Heating Fuel',
-               'Other Consumption Location Region',
-               'Other Consumption Vintage', 
-               'Other Consumption Heating Fuel',
-               'Other Consumption Geometry House Size',
-               'Other Consumption Location Region Vintage',
-               'Other Consumption Location Region Heating Fuel'               
-               ]
+  categories = {
+               'Electricity Consumption Location Region.tsv': {'cols': ['CR', 'nweight'], 'nrm': 'kwhel_nrm', 'groups': ['Dependency=Location Region']},
+               'Electricity Consumption Vintage.tsv': {'cols': ['yearmaderange', 'nweight'], 'nrm': 'kwhel_nrm', 'groups': ['Dependency=Vintage']}, 
+               'Electricity Consumption Heating Fuel.tsv': {'cols': ['fuelheat', 'nweight'], 'nrm': 'kwhel_nrm', 'groups': ['Dependency=Heating Fuel']},
+               'Electricity Consumption Geometry House Size.tsv': {'cols': ['Size', 'nweight'], 'nrm': 'kwhel_nrm', 'groups': ['Dependency=Geometry House Size']}, 
+               'Electricity Consumption Location Region Vintage.tsv': {'cols': ['CR', 'yearmaderange', 'nweight'], 'nrm': 'kwhel_nrm', 'groups': ['Dependency=Location Region', 'Dependency=Vintage']}, 
+               'Electricity Consumption Location Region Heating Fuel.tsv': {'cols': ['CR', 'fuelheat', 'nweight'], 'nrm': 'kwhel_nrm', 'groups': ['Dependency=Location Region', 'Dependency=Heating Fuel']},
+               'Natural Gas Consumption Location Region.tsv': {'cols': ['CR', 'nweight'], 'nrm': 'btung_nrm', 'groups': ['Dependency=Location Region']},
+               'Natural Gas Consumption Vintage.tsv': {'cols': ['yearmaderange', 'nweight'], 'nrm': 'btung_nrm', 'groups': ['Dependency=Vintage']}, 
+               'Natural Gas Consumption Heating Fuel.tsv': {'cols': ['fuelheat', 'nweight'], 'nrm': 'btung_nrm', 'groups': ['Dependency=Heating Fuel']},
+               'Natural Gas Consumption Geometry House Size.tsv': {'cols': ['Size', 'nweight'], 'nrm': 'btung_nrm', 'groups': ['Dependency=Geometry House Size']},
+               'Natural Gas Consumption Location Region Vintage.tsv': {'cols': ['CR', 'yearmaderange', 'nweight'], 'nrm': 'btung_nrm', 'groups': ['Dependency=Location Region', 'Dependency=Vintage']},
+               'Natural Gas Consumption Location Region Heating Fuel.tsv': {'cols': ['CR', 'fuelheat', 'nweight'], 'nrm': 'btung_nrm', 'groups': ['Dependency=Location Region', 'Dependency=Heating Fuel']},
+               'Other Consumption Location Region.tsv': {'cols': ['CR', 'nweight'], 'nrm': 'btuoth_nrm', 'groups': ['Dependency=Location Region']},
+               'Other Consumption Vintage.tsv': {'cols': ['yearmaderange', 'nweight'], 'nrm': 'btuoth_nrm', 'groups': ['Dependency=Vintage']},
+               'Other Consumption Heating Fuel.tsv': {'cols': ['fuelheat', 'nweight'], 'nrm': 'btuoth_nrm', 'groups': ['Dependency=Heating Fuel']},
+               'Other Consumption Geometry House Size.tsv': {'cols': ['Size', 'nweight'], 'nrm': 'btuoth_nrm', 'groups': ['Dependency=Geometry House Size']},
+               'Other Consumption Location Region Vintage.tsv': {'cols': ['CR', 'yearmaderange', 'nweight'], 'nrm': 'btuoth_nrm', 'groups': ['Dependency=Location Region', 'Dependency=Vintage']},
+               'Other Consumption Location Region Heating Fuel.tsv': {'cols': ['CR', 'fuelheat', 'nweight'], 'nrm': 'btuoth_nrm', 'groups': ['Dependency=Location Region', 'Dependency=Heating Fuel']}
+               }
+  
+  if args.tsv_file:
+  
+    tsv_to_recs_enum_map = {
+                            'Federal Poverty Level': 'FPL_BINS'
+                            }  
+  
+    categories['Electricity Consumption {}'.format(os.path.basename(args.tsv_file))] = {'cols': [tsv_to_recs_enum_map[os.path.basename(args.tsv_file).replace('.tsv', '')], 'nweight'], 'nrm': 'kwhel_nrm', 'groups': ['Dependency={}'.format(os.path.basename(args.tsv_file).replace('.tsv', ''))]}
+    categories['Natural Gas Consumption {}'.format(os.path.basename(args.tsv_file))] = {'cols': [tsv_to_recs_enum_map[os.path.basename(args.tsv_file).replace('.tsv', '')], 'nweight'], 'nrm': 'btung_nrm', 'groups': ['Dependency={}'.format(os.path.basename(args.tsv_file).replace('.tsv', ''))]}
+    categories['Other Consumption {}'.format(os.path.basename(args.tsv_file))] = {'cols': [tsv_to_recs_enum_map[os.path.basename(args.tsv_file).replace('.tsv', '')], 'nweight'], 'nrm': 'btuoth_nrm', 'groups': ['Dependency={}'.format(os.path.basename(args.tsv_file).replace('.tsv', ''))]}
+    categories['Electricity Consumption Location Region {}'.format(os.path.basename(args.tsv_file))] = {'cols': ['CR', tsv_to_recs_enum_map[os.path.basename(args.tsv_file).replace('.tsv', '')], 'nweight'], 'nrm': 'kwhel_nrm', 'groups': ['Dependency=Location Region', 'Dependency={}'.format(os.path.basename(args.tsv_file).replace('.tsv', ''))]}
+    categories['Natural Gas Consumption Location Region {}'.format(os.path.basename(args.tsv_file))] = {'cols': ['CR', tsv_to_recs_enum_map[os.path.basename(args.tsv_file).replace('.tsv', '')], 'nweight'], 'nrm': 'btung_nrm', 'groups': ['Dependency=Location Region', 'Dependency={}'.format(os.path.basename(args.tsv_file).replace('.tsv', ''))]}
+    categories['Other Consumption Location Region {}'.format(os.path.basename(args.tsv_file))] = {'cols': ['CR', tsv_to_recs_enum_map[os.path.basename(args.tsv_file).replace('.tsv', '')], 'nweight'], 'nrm': 'btuoth_nrm', 'groups': ['Dependency=Location Region', 'Dependency={}'.format(os.path.basename(args.tsv_file).replace('.tsv', ''))]}
 
-  categories += ['Electricity Consumption {}'.format(os.path.basename(args.tsv_file).replace('.tsv', '')), 'Natural Gas Consumption {}'.format(os.path.basename(args.tsv_file).replace('.tsv', '')), 'Other Consumption {}'.format(os.path.basename(args.tsv_file).replace('.tsv', ''))]
-  categories += ['Electricity Consumption Location Region {}'.format(os.path.basename(args.tsv_file).replace('.tsv', '')), 'Natural Gas Consumption Location Region {}'.format(os.path.basename(args.tsv_file).replace('.tsv', '')), 'Other Consumption Location Region {}'.format(os.path.basename(args.tsv_file).replace('.tsv', ''))]
-    
-  for category in categories:
+  for tsv_file, arguments in categories.items():
                    
-      print category
-      method = getattr(dfs, category.lower().replace(' ', '_'))
-      df = method()
-      df.to_csv(os.path.join(datafiles_dir, '{}.tsv'.format(category)), sep='\t')
-      
+      print tsv_file
+      df = tsv.create_consumption_tsv(arguments['cols'], arguments['nrm'], arguments['groups'])
+      df.to_csv(os.path.join(datafiles_dir, tsv_file), sep='\t')
+
   slices = [
-            # 'Location Region',
             'Vintage',
             'Heating Fuel',
             'Geometry House Size',
