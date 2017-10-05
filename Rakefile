@@ -184,9 +184,19 @@ task :integrity_check_resstock_dsgrid do
     integrity_check(['project_resstock_dsgrid'])
 end # rake task
 
-desc 'Perform integrity check on inputs for project_resstock_comed'
-task :integrity_check_resstock_comed do
-    integrity_check(['project_resstock_comed'])
+desc 'Perform integrity check on inputs for project_resstock_comed_2012'
+task :integrity_check_resstock_comed_2012 do
+    integrity_check(['project_resstock_comed_2012'])
+end # rake task
+
+desc 'Perform integrity check on inputs for project_resstock_comed_2013'
+task :integrity_check_resstock_comed_2013 do
+    integrity_check(['project_resstock_comed_2013'])
+end # rake task
+
+desc 'Perform integrity check on inputs for project_resstock_comed_2014'
+task :integrity_check_resstock_comed_2014 do
+    integrity_check(['project_resstock_comed_2014'])
 end # rake task
 
 desc 'Perform integrity check on inputs for project_resstock_efs'
