@@ -10,11 +10,17 @@ task :copy_beopt_files do
   require 'net/http'
   require 'openssl'
 
-  if File.exists? File.join(File.dirname(__FILE__), "master.zip")
-    FileUtils.rm(File.join(File.dirname(__FILE__), "master.zip"))
+  STDOUT.puts "Enter branch of repo (<ENTER> for master):"
+  branch = STDIN.gets.strip
+  if branch.empty?
+    branch = "master"
   end
   
-  url = URI.parse('https://codeload.github.com/NREL/OpenStudio-BEopt/zip/master')
+  if File.exists? File.join(File.dirname(__FILE__), "#{branch}.zip")
+    FileUtils.rm(File.join(File.dirname(__FILE__), "#{branch}.zip"))
+  end
+
+  url = URI.parse("https://codeload.github.com/NREL/OpenStudio-BEopt/zip/#{branch}")
   http = Net::HTTP.new(url.host, url.port)
   http.use_ssl = true
   http.verify_mode = OpenSSL::SSL::VERIFY_NONE
@@ -27,7 +33,7 @@ task :copy_beopt_files do
     total = response.header["Content-Length"].to_i
     size = 0
     progress = 0
-    open 'master.zip', 'wb' do |io|
+    open "#{branch}.zip", 'wb' do |io|
       response.read_body do |chunk|
         io.write chunk
         size += chunk.size
@@ -41,10 +47,10 @@ task :copy_beopt_files do
   end
 
   puts "Extracting latest residential measures..."
-  unzip_file = OpenStudio::UnzipFile.new(File.join(File.dirname(__FILE__), "master.zip"))
-  unzip_file.extractAllFiles(OpenStudio::toPath(File.join(File.dirname(__FILE__), "master")))
+  unzip_file = OpenStudio::UnzipFile.new(File.join(File.dirname(__FILE__), "#{branch}.zip"))
+  unzip_file.extractAllFiles(OpenStudio::toPath(File.join(File.dirname(__FILE__), branch)))
 
-  beopt_measures_dir = File.join(File.dirname(__FILE__), "master", "OpenStudio-BEopt-master", "measures")
+  beopt_measures_dir = File.join(File.dirname(__FILE__), branch, "OpenStudio-BEopt-#{branch}", "measures")
   buildstock_resource_measures_dir = File.join(File.dirname(__FILE__), "resources", "measures")
   
   # Copy seed osm and other needed resource files
@@ -58,7 +64,7 @@ task :copy_beopt_files do
                 ]
   extra_files.each do |extra_file|
       puts "Copying #{extra_file}..."
-      beopt_file = File.join(File.dirname(__FILE__), "master", "OpenStudio-BEopt-master", extra_file)
+      beopt_file = File.join(File.dirname(__FILE__), branch, "OpenStudio-BEopt-#{branch}", extra_file)
       if extra_file.start_with?("seeds") # Distribute to all projects
         project_dir_names.each do |project_dir_name|
           buildstock_file = File.join(File.dirname(__FILE__), project_dir_name, extra_file)
@@ -125,7 +131,7 @@ task :copy_beopt_files do
     end
   end
 
-  FileUtils.rm_rf(File.join(File.dirname(__FILE__), "master"))
+  FileUtils.rm_rf(File.join(File.dirname(__FILE__), branch))
 
 end
 
