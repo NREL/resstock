@@ -204,6 +204,7 @@ class TimeseriesCSVExport < OpenStudio::Measure::ReportingMeasure
       js_time = js_time.gsub('Dec','12')
 
       # manually shift timestamps for leap years
+      offset = 0
       if year_description.isLeapYear
         date, time = js_time.split(" ")
         year, month, day = date.split("/")
