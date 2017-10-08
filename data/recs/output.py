@@ -4,9 +4,11 @@ import sys
 import numpy as np
 import itertools
 import pandas as pd
+pd.options.mode.chained_assignment = None
 import matplotlib as mpl
 from PIL import Image
 import zipfile
+import argparse
 
 def trim_white(filename):
     im = Image.open(filename)
@@ -46,6 +48,8 @@ def draw_scatter_plot(df, cols, marker_labels, slicer, weighted_area=True, setli
             marker_color_all = 'r'
         elif 'gas' in cols[0].lower():
             marker_color_all = 'b'
+        elif 'other' in cols[0].lower():
+          marker_color_all = 'c'
         else:
             marker_color_all = 'k'
 
@@ -151,13 +155,6 @@ def expand(predicted, tsv_file):
     if 'Dependency=' in col:
       tsv = tsv.rename(columns={col: col.replace('Dependency=', 'building_characteristics_report.').lower().replace(' ', '_')})
       on.append(col.replace('Dependency=', 'building_characteristics_report.').lower().replace(' ', '_'))
-    # elif 'Option=' in col:
-      # tsv = tsv.rename(columns={col: col.replace('Option=', '')})
-  
-  # TODO: following is temp code until we can successfully run the national analysis with all the updated tsv files
-  predicted['building_characteristics_report.location_census_division'] = np.random.choice(['New England', 'East North Central', 'Middle Atlantic', 'Mountain - Pacific', 'South Atlantic - East South Central', 'West North Central', 'West South Central'], predicted.shape[0])
-  predicted['building_characteristics_report.hvac_system_cooling_type'] = np.random.choice(['Central', 'Room', 'None'], predicted.shape[0])
-  #
 
   try:
     predicted = predicted.reset_index()
@@ -179,9 +176,7 @@ def expand(predicted, tsv_file):
     
   return melted
     
-def do_plot(slices, fields, size='medium', weighted_area=True, save=False, setlims=None, marker_color=False, marker_shape=False, version=None, marker_color_all=None, show_labels=True, leg_label=None, num_slices=1, zip_file='resstock_national', tsv_file=None):
-
-    consumption_folder = 'outputs'
+def do_plot(zip_or_dir, datafiles_dir, slices, fields, size='medium', weighted_area=True, save=False, setlims=None, marker_color=False, marker_shape=False, version=None, marker_color_all=None, show_labels=True, leg_label=None, num_slices=1, tsv_file=None):
 
     if size == 'large':
         plt.rcParams['figure.figsize'] = 20, 20 # 20, 20 # set image size
@@ -195,14 +190,25 @@ def do_plot(slices, fields, size='medium', weighted_area=True, save=False, setli
     
     for i, slicer in enumerate(slices):
     
-        dir = os.path.dirname(zip_file)
-        folder_zf = zipfile.ZipFile(zip_file)    
-        for item in folder_zf.namelist():    
-          if not item.endswith('results.csv'):
-            continue      
-          folder_zf.extract(item, dir)
-          predicted = pd.read_csv(os.path.join(dir, item), index_col=['_id'])
-          predicted = remove_upgrades(predicted)
+      if zip_or_dir.endswith('.zip'):
+        dir = os.path.dirname(zip_or_dir)
+        folder_zf = zipfile.ZipFile(zip_or_dir)
+        folder = folder_zf.namelist()
+      else:
+        dir = zip_or_dir
+        folder = os.listdir(zip_or_dir)
+
+      full = None
+      for item in folder:
+      
+        if not item.endswith('results.csv') and not item.endswith('results_combined.csv'):
+          continue
+
+        if zip_or_dir.endswith('.zip'):
+          extracted_folder = folder_zf.extract(item, dir)
+          
+        predicted = pd.read_csv(os.path.join(dir, item), index_col=['_id'])
+        predicted = remove_upgrades(predicted)
           
         if tsv_file:
           predicted = expand(predicted, tsv_file)
@@ -215,11 +221,11 @@ def do_plot(slices, fields, size='medium', weighted_area=True, save=False, setli
             continue # TODO
         elif num_slices == 1:
           if 'electricity_and_gas' in fields:
-              measured_elec = pd.read_csv(os.path.join(consumption_folder, 'Electricity Consumption {}.tsv'.format(slicer)), index_col=['Dependency={}'.format(slicer)], sep='\t')[['kwh_nrm_per_home']]
-              measured_gas = pd.read_csv(os.path.join(consumption_folder, 'Natural Gas Consumption {}.tsv'.format(slicer)), index_col=['Dependency={}'.format(slicer)], sep='\t')[['thm_nrm_per_home']]
+              measured_elec = pd.read_csv(os.path.join(datafiles_dir, 'Electricity Consumption {}.tsv'.format(slicer)), index_col=['Dependency={}'.format(slicer)], sep='\t')[['kwhel_nrm_per_home']]
+              measured_gas = pd.read_csv(os.path.join(datafiles_dir, 'Natural Gas Consumption {}.tsv'.format(slicer)), index_col=['Dependency={}'.format(slicer)], sep='\t')[['thmng_nrm_per_home']]
               measured = measured_elec.join(measured_gas)
-              measured['Measured Per House Site Electricity+Gas MBtu'] = units_kWh2MBtu(measured['kwh_nrm_per_home']) + units_Therm2MBtu(measured['thm_nrm_per_home'])
-              house_count = pd.read_csv(os.path.join(consumption_folder, 'Electricity Consumption {}.tsv'.format(slicer)), index_col=['Dependency={}'.format(slicer)], sep='\t')[['Weight']].sum().values[0]
+              measured['Measured Per House Site Electricity+Gas MBtu'] = units_kWh2MBtu(measured['kwhel_nrm_per_home']) + units_Therm2MBtu(measured['thmng_nrm_per_home'])
+              house_count = pd.read_csv(os.path.join(datafiles_dir, 'Electricity Consumption {}.tsv'.format(slicer)), index_col=['Dependency={}'.format(slicer)], sep='\t')[['Weight']].sum().values[0]
               predicted['Weight'] = house_count / len(predicted.index.unique())
               predicted['Predicted Total Site Electricity+Gas MBtu'] = (units_kWh2MBtu(predicted['simulation_output_report.total_site_electricity_kwh']) + units_Therm2MBtu(predicted['simulation_output_report.total_site_natural_gas_therm'])) * predicted['Weight']
               if 'frac' in predicted.columns:
@@ -229,9 +235,9 @@ def do_plot(slices, fields, size='medium', weighted_area=True, save=False, setli
               predicted['Predicted Per House Site Electricity+Gas MBtu'] = predicted['Predicted Total Site Electricity+Gas MBtu'] / predicted['Weight']
               cols = ['Measured Per House Site Electricity+Gas MBtu', 'Predicted Per House Site Electricity+Gas MBtu', 'Weight']
           elif 'electricity' in fields:
-              measured = pd.read_csv(os.path.join(consumption_folder, 'Electricity Consumption {}.tsv'.format(slicer)), index_col=['Dependency={}'.format(slicer)], sep='\t')[['kwh_nrm_per_home']]
-              measured['Measured Per House Site Electricity MBtu'] = units_kWh2MBtu(measured['kwh_nrm_per_home'])
-              house_count = pd.read_csv(os.path.join(consumption_folder, 'Electricity Consumption {}.tsv'.format(slicer)), index_col=['Dependency={}'.format(slicer)], sep='\t')[['Weight']].sum().values[0]
+              measured = pd.read_csv(os.path.join(datafiles_dir, 'Electricity Consumption {}.tsv'.format(slicer)), index_col=['Dependency={}'.format(slicer)], sep='\t')[['kwhel_nrm_per_home']]
+              measured['Measured Per House Site Electricity MBtu'] = units_kWh2MBtu(measured['kwhel_nrm_per_home'])
+              house_count = pd.read_csv(os.path.join(datafiles_dir, 'Electricity Consumption {}.tsv'.format(slicer)), index_col=['Dependency={}'.format(slicer)], sep='\t')[['Weight']].sum().values[0]
               predicted['Weight'] = house_count / len(predicted.index.unique())
               predicted['Predicted Total Site Electricity MBtu'] = units_kWh2MBtu(predicted['simulation_output_report.total_site_electricity_kwh']) * predicted['Weight']
               if 'frac' in predicted.columns:
@@ -241,9 +247,9 @@ def do_plot(slices, fields, size='medium', weighted_area=True, save=False, setli
               predicted['Predicted Per House Site Electricity MBtu'] = predicted['Predicted Total Site Electricity MBtu'] / predicted['Weight']
               cols = ['Measured Per House Site Electricity MBtu', 'Predicted Per House Site Electricity MBtu', 'Weight']
           elif 'gas' in fields:
-              measured = pd.read_csv(os.path.join(consumption_folder, 'Natural Gas Consumption {}.tsv'.format(slicer)), index_col=['Dependency={}'.format(slicer)], sep='\t')[['thm_nrm_per_home']]
-              measured['Measured Per House Site Gas MBtu'] = units_Therm2MBtu(measured['thm_nrm_per_home'])
-              house_count = pd.read_csv(os.path.join(consumption_folder, 'Natural Gas Consumption {}.tsv'.format(slicer)), index_col=['Dependency={}'.format(slicer)], sep='\t')[['Weight']].sum().values[0]
+              measured = pd.read_csv(os.path.join(datafiles_dir, 'Natural Gas Consumption {}.tsv'.format(slicer)), index_col=['Dependency={}'.format(slicer)], sep='\t')[['thmng_nrm_per_home']]
+              measured['Measured Per House Site Gas MBtu'] = units_Therm2MBtu(measured['thmng_nrm_per_home'])
+              house_count = pd.read_csv(os.path.join(datafiles_dir, 'Natural Gas Consumption {}.tsv'.format(slicer)), index_col=['Dependency={}'.format(slicer)], sep='\t')[['Weight']].sum().values[0]
               predicted['Weight'] = house_count / len(predicted.index.unique())
               predicted['Predicted Total Site Gas MBtu'] = units_Therm2MBtu(predicted['simulation_output_report.total_site_natural_gas_therm'] * predicted['Weight'])
               if 'frac' in predicted.columns:
@@ -252,14 +258,26 @@ def do_plot(slices, fields, size='medium', weighted_area=True, save=False, setli
               predicted = predicted.groupby('building_characteristics_report.{}'.format(slicer.lower().replace(' ', '_'))).sum()
               predicted['Predicted Per House Site Gas MBtu'] = predicted['Predicted Total Site Gas MBtu'] / predicted['Weight']
               cols = ['Measured Per House Site Gas MBtu', 'Predicted Per House Site Gas MBtu', 'Weight']
+          elif 'other' in fields:
+              measured = pd.read_csv(os.path.join(datafiles_dir, 'Other Consumption {}.tsv'.format(slicer)), index_col=['Dependency={}'.format(slicer)], sep='\t')[['thmoth_nrm_per_home']]
+              measured['Measured Per House Site Other MBtu'] = units_Therm2MBtu(measured['thmoth_nrm_per_home'])
+              house_count = pd.read_csv(os.path.join(datafiles_dir, 'Other Consumption {}.tsv'.format(slicer)), index_col=['Dependency={}'.format(slicer)], sep='\t')[['Weight']].sum().values[0]
+              predicted['Weight'] = house_count / len(predicted.index.unique())
+              predicted['Predicted Total Site Other MBtu'] = predicted['simulation_output_report.total_site_other_fuel_mbtu'] * predicted['Weight']
+              if 'frac' in predicted.columns:
+                predicted['Weight'] = predicted['Weight'] * predicted['frac']
+                predicted['Predicted Total Site Other MBtu'] = predicted['Predicted Total Site Other MBtu'] * predicted['frac']
+              predicted = predicted.groupby('building_characteristics_report.{}'.format(slicer.lower().replace(' ', '_'))).sum()
+              predicted['Predicted Per House Site Other MBtu'] = predicted['Predicted Total Site Other MBtu'] / predicted['Weight']
+              cols = ['Measured Per House Site Other MBtu', 'Predicted Per House Site Other MBtu', 'Weight']              
         elif num_slices == 2:
           sub_slicer = slicer.replace("Location Region ","") # Assumes first slice is Location Region; will error out if not
           if sub_slicer == slicer:
             sys.exit("Unexpected slicer: %s" % slicer)
           if 'electricity' in fields:
-              measured = pd.read_csv(os.path.join(consumption_folder, 'Electricity Consumption {}.tsv'.format(slicer)), index_col=['Dependency=Location Region', 'Dependency={}'.format(sub_slicer)], sep='\t')[['kwh_nrm_per_home']]
-              measured['Measured Per House Site Electricity MBtu'] = units_kWh2MBtu(measured['kwh_nrm_per_home'])
-              house_count = pd.read_csv(os.path.join(consumption_folder, 'Electricity Consumption {}.tsv'.format(slicer)), index_col=['Dependency=Location Region', 'Dependency={}'.format(sub_slicer)], sep='\t')[['Weight']].sum().values[0]
+              measured = pd.read_csv(os.path.join(datafiles_dir, 'Electricity Consumption {}.tsv'.format(slicer)), index_col=['Dependency=Location Region', 'Dependency={}'.format(sub_slicer)], sep='\t')[['kwhel_nrm_per_home']]
+              measured['Measured Per House Site Electricity MBtu'] = units_kWh2MBtu(measured['kwhel_nrm_per_home'])
+              house_count = pd.read_csv(os.path.join(datafiles_dir, 'Electricity Consumption {}.tsv'.format(slicer)), index_col=['Dependency=Location Region', 'Dependency={}'.format(sub_slicer)], sep='\t')[['Weight']].sum().values[0]
               predicted['Weight'] = house_count / len(predicted.index.unique())
               predicted['Predicted Total Site Electricity MBtu'] = units_kWh2MBtu(predicted['simulation_output_report.total_site_electricity_kwh']) * predicted['Weight']
               predicted = predicted.rename(columns={"building_characteristics_report.Location Region": "Dependency=Location Region", "building_characteristics_report.{}".format(sub_slicer.lower().replace(' ', '_')): "Dependency={}".format(sub_slicer.lower().replace(' ', '_'))})
@@ -270,9 +288,9 @@ def do_plot(slices, fields, size='medium', weighted_area=True, save=False, setli
               predicted['Predicted Per House Site Electricity MBtu'] = predicted['Predicted Total Site Electricity MBtu'] / predicted['Weight']
               cols = ['Measured Per House Site Electricity MBtu', 'Predicted Per House Site Electricity MBtu', 'Weight']
           elif 'gas' in fields:
-              measured = pd.read_csv(os.path.join(consumption_folder, 'Natural Gas Consumption {}.tsv'.format(slicer)), index_col=['Dependency=Location Region', 'Dependency={}'.format(sub_slicer)], sep='\t')[['thm_nrm_per_home']]
-              measured['Measured Per House Site Gas MBtu'] = units_Therm2MBtu(measured['thm_nrm_per_home'])
-              house_count = pd.read_csv(os.path.join(consumption_folder, 'Natural Gas Consumption {}.tsv'.format(slicer)), index_col=['Dependency=Location Region', 'Dependency={}'.format(sub_slicer)], sep='\t')[['Weight']].sum().values[0]
+              measured = pd.read_csv(os.path.join(datafiles_dir, 'Natural Gas Consumption {}.tsv'.format(slicer)), index_col=['Dependency=Location Region', 'Dependency={}'.format(sub_slicer)], sep='\t')[['thmng_nrm_per_home']]
+              measured['Measured Per House Site Gas MBtu'] = units_Therm2MBtu(measured['thmng_nrm_per_home'])
+              house_count = pd.read_csv(os.path.join(datafiles_dir, 'Natural Gas Consumption {}.tsv'.format(slicer)), index_col=['Dependency=Location Region', 'Dependency={}'.format(sub_slicer)], sep='\t')[['Weight']].sum().values[0]
               predicted['Weight'] = house_count / len(predicted.index.unique())
               predicted['Predicted Total Site Gas MBtu'] = units_Therm2MBtu(predicted['simulation_output_report.total_site_natural_gas_therm']) * predicted['Weight']
               predicted = predicted.rename(columns={"building_characteristics_report.Location Region": "Dependency=Location Region", "building_characteristics_report.{}".format(sub_slicer.lower().replace(' ', '_')): "Dependency={}".format(sub_slicer.lower().replace(' ', '_'))})
@@ -282,6 +300,19 @@ def do_plot(slices, fields, size='medium', weighted_area=True, save=False, setli
               predicted = predicted.groupby(['Dependency=Location Region', 'Dependency={}'.format(sub_slicer)]).sum()
               predicted['Predicted Per House Site Gas MBtu'] = predicted['Predicted Total Site Gas MBtu'] / predicted['Weight']
               cols = ['Measured Per House Site Gas MBtu', 'Predicted Per House Site Gas MBtu', 'Weight']
+          elif 'other' in fields:
+              measured = pd.read_csv(os.path.join(datafiles_dir, 'Other Consumption {}.tsv'.format(slicer)), index_col=['Dependency=Location Region', 'Dependency={}'.format(sub_slicer)], sep='\t')[['thmoth_nrm_per_home']]
+              measured['Measured Per House Site Other MBtu'] = units_Therm2MBtu(measured['thmoth_nrm_per_home'])
+              house_count = pd.read_csv(os.path.join(datafiles_dir, 'Other Consumption {}.tsv'.format(slicer)), index_col=['Dependency=Location Region', 'Dependency={}'.format(sub_slicer)], sep='\t')[['Weight']].sum().values[0]
+              predicted['Weight'] = house_count / len(predicted.index.unique())
+              predicted['Predicted Total Site Other MBtu'] = predicted['simulation_output_report.total_site_other_fuel_mbtu'] * predicted['Weight']
+              predicted = predicted.rename(columns={"building_characteristics_report.Location Region": "Dependency=Location Region", "building_characteristics_report.{}".format(sub_slicer.lower().replace(' ', '_')): "Dependency={}".format(sub_slicer.lower().replace(' ', '_'))})
+              if 'frac' in predicted.columns:
+                predicted['Weight'] = predicted['Weight'] * predicted['frac']
+                predicted['Predicted Total Site Other MBtu'] = predicted['Predicted Total Site Other MBtu'] * predicted['frac']
+              predicted = predicted.groupby(['Dependency=Location Region', 'Dependency={}'.format(sub_slicer)]).sum()
+              predicted['Predicted Per House Site Other MBtu'] = predicted['Predicted Total Site Other MBtu'] / predicted['Weight']
+              cols = ['Measured Per House Site Other MBtu', 'Predicted Per House Site Other MBtu', 'Weight']              
         else:
             sys.exit("Unexpected num_slices: %s" % num_slices)
            
@@ -298,371 +329,162 @@ def do_plot(slices, fields, size='medium', weighted_area=True, save=False, setli
                           marker_color_all=marker_color_all, show_labels=show_labels, leg_label=leg_label,
                           max_marker_size=max_marker_size)
     if save:
-        filename = os.path.join('outputs', 'Scatter_{}slice_{}.png'.format(num_slices, fields))
+        filename = os.path.join(datafiles_dir, 'Scatter_{}slice_{}.png'.format(num_slices, fields))
         plt.savefig(filename, bbox_inches='tight', dpi=200)
         trim_white(filename)
         plt.close()
 
-class Create_DFs():
+def remove_upgrades(df):
+    if 'simulation_output_report.upgrade_name' in df.columns:
+      df = df[pd.isnull(df['simulation_output_report.upgrade_name'])]
+    else:
+      for col in df.columns:
+          if col.endswith('.run_measure'):
+              df = df[df[col]==0]
+    return df
+        
+class TSV():
     
     def __init__(self, file):
         self.session = pd.read_csv(file)
+        self.session = self.weather_normalize(self.session)
+        self.recs_to_resstock_enum_map = {
+                                          'Dependency=Location Region': {1: 'CR01', 2: 'CR02', 3: 'CR03', 4: 'CR04', 5: 'CR05', 6: 'CR06', 7: 'CR07', 8: 'CR08', 9: 'CR09', 10: 'CR10', 11: 'CR11', 12: 'CR12'},
+                                          'Dependency=Federal Poverty Level': {'0-50': '0-50', '50-100': '50-100', '100-150': '100-150', '150-200': '150-200', '200-250': '200-250', '250-300': '250-300', '300+': '300+'},
+                                          'Dependency=Vintage': {'1950-pre': '<1950', '1950s': '1950s', '1960s': '1960s', '1970s': '1970s', '1980s': '1980s', '1990s': '1990s', '2000s': '2000s'},
+                                          'Dependency=Heating Fuel': {'Electricity': 'Electricity', 'Natural Gas': 'Natural Gas', 'Propane/LPG': 'Propane/LPG', 'Fuel Oil': 'Fuel Oil', 'Other Fuel': 'Other Fuel', 'None': 'None'},
+                                          'Dependency=Geometry House Size': {'0-1499': '0-1499', '1500-2499': '1500-2499', '2500-3499': '2500-3499', '3500+': '3500+'}
+                                          }
+        self.recs_to_resstock_cols_map = {
+                                          'Size': 'Dependency=Geometry House Size', 
+                                          'yearmaderange': 'Dependency=Vintage', 
+                                          'fuelheat': 'Dependency=Heating Fuel', 
+                                          'CR': 'Dependency=Location Region', 
+                                          'FPL_BINS': 'Dependency=Federal Poverty Level', 
+                                          'nweight': 'Weight'
+                                          }
         
-    def electricity_consumption_location_region(self):
-        df = self.session
-        df = df[['CR', 'btuel', 'nweight']]
-        df['kwh_nrm'] = df.apply(lambda x: units_Btu2kWh(x.btuel), axis=1)
-        df = df.rename(columns={'CR': 'Dependency=Location Region', 'nweight': 'Weight'})
-        df['Dependency=Location Region'] = df['Dependency=Location Region'].replace({1: 'CR01', 2: 'CR02', 3: 'CR03', 4: 'CR04', 5: 'CR05', 6: 'CR06', 7: 'CR07', 8: 'CR08', 9: 'CR09', 10: 'CR10', 11: 'CR11', 12: 'CR12'})
-        df = df.groupby(['Dependency=Location Region'])
-        count = df.agg(['count']).ix[:, 0]
-        weight = df.agg(['sum'])['Weight']
-        df = df[['kwh_nrm']].sum()
-        df['Count'] = count
-        df['Weight'] = weight
-        df['kwh_nrm_per_home'] = df['kwh_nrm'] / df['Count']
-        df['kwh_nrm_total'] = df['kwh_nrm_per_home'] * df['Weight']
-        df = df.reset_index()
-        df['Dependency=Location Region'] = pd.Categorical(df['Dependency=Location Region'], ['CR01', 'CR02', 'CR03', 'CR04', 'CR05', 'CR06', 'CR07', 'CR08', 'CR09', 'CR10', 'CR11', 'CR12'])
-        df = df.sort_values(by=['Dependency=Location Region']).set_index(['Dependency=Location Region'])             
-        return df
-        
-    def electricity_consumption_vintage(self):
-        df = self.session
-        df = df[['yearmaderange', 'btuel', 'nweight']]
-        df['kwh_nrm'] = df.apply(lambda x: units_Btu2kWh(x.btuel), axis=1)
-        df = df.rename(columns={'yearmaderange': 'Dependency=Vintage', 'nweight': 'Weight'})
-        df['Dependency=Vintage'] = df['Dependency=Vintage'].replace({'1950-pre': '<1950'})
-        df = df.groupby(['Dependency=Vintage'])
-        count = df.agg(['count']).ix[:, 0]
-        weight = df.agg(['sum'])['Weight']
-        df = df[['kwh_nrm']].sum()
-        df['Count'] = count
-        df['Weight'] = weight
-        df['kwh_nrm_per_home'] = df['kwh_nrm'] / df['Count']
-        df['kwh_nrm_total'] = df['kwh_nrm_per_home'] * df['Weight']
-        df = df.reset_index()
-        df['Dependency=Vintage'] = pd.Categorical(df['Dependency=Vintage'], ['<1950', '1950s', '1960s', '1970s', '1980s', '1990s', '2000s'])
-        df = df.sort_values(by=['Dependency=Vintage']).set_index(['Dependency=Vintage'])             
-        return df
-
-    def electricity_consumption_heating_fuel(self):
-        df = self.session
-        df = df[['fuelheat', 'btuel', 'nweight']]
-        df['kwh_nrm'] = df.apply(lambda x: units_Btu2kWh(x.btuel), axis=1)
-        df = df.rename(columns={'fuelheat': 'Dependency=Heating Fuel', 'nweight': 'Weight'})
-        df = df.groupby(['Dependency=Heating Fuel'])
-        count = df.agg(['count']).ix[:, 0]
-        weight = df.agg(['sum'])['Weight']
-        df = df[['kwh_nrm']].sum()
-        df['Count'] = count
-        df['Weight'] = weight
-        df['kwh_nrm_per_home'] = df['kwh_nrm'] / df['Count']
-        df['kwh_nrm_total'] = df['kwh_nrm_per_home'] * df['Weight']
-        df = df.reset_index()
-        df = df.sort_values(by=['Dependency=Heating Fuel']).set_index(['Dependency=Heating Fuel'])             
-        return df
-        
-    def electricity_consumption_geometry_house_size(self):
-        df = self.session
-        df = df[['Size', 'btuel', 'nweight']]
-        df['kwh_nrm'] = df.apply(lambda x: units_Btu2kWh(x.btuel), axis=1)
-        df = df.rename(columns={'Size': 'Dependency=Geometry House Size', 'nweight': 'Weight'})
-        df = df.groupby(['Dependency=Geometry House Size'])
-        count = df.agg(['count']).ix[:, 0]
-        weight = df.agg(['sum'])['Weight']
-        df = df[['kwh_nrm']].sum()
-        df['Count'] = count
-        df['Weight'] = weight
-        df['kwh_nrm_per_home'] = df['kwh_nrm'] / df['Count']
-        df['kwh_nrm_total'] = df['kwh_nrm_per_home'] * df['Weight']
-        df = df.reset_index()
-        df = df.sort_values(by=['Dependency=Geometry House Size']).set_index(['Dependency=Geometry House Size'])             
-        return df
-        
-    def electricity_consumption_federal_poverty_level(self):
-        df = self.session
-        df = df[['FPL_BINS', 'btuel', 'nweight']]
-        df['kwh_nrm'] = df.apply(lambda x: units_Btu2kWh(x.btuel), axis=1)
-        df = df.rename(columns={'FPL_BINS': 'Dependency=Federal Poverty Level', 'nweight': 'Weight'})
-        df = df.groupby(['Dependency=Federal Poverty Level'])
-        count = df.agg(['count']).ix[:, 0]
-        weight = df.agg(['sum'])['Weight']
-        df = df[['kwh_nrm']].sum()
-        df['Count'] = count
-        df['Weight'] = weight
-        df['kwh_nrm_per_home'] = df['kwh_nrm'] / df['Count']
-        df['kwh_nrm_total'] = df['kwh_nrm_per_home'] * df['Weight']
-        df = df.reset_index()
-        df['Dependency=Federal Poverty Level'] = pd.Categorical(df['Dependency=Federal Poverty Level'], ['0-50', '50-100', '100-150', '150-200', '200-250', '250-300', '300+'])
-        df = df.sort_values(by=['Dependency=Federal Poverty Level']).set_index(['Dependency=Federal Poverty Level'])
-        return df
-        
-    def electricity_consumption_location_region_vintage(self):
-        df = self.session
-        df = df[['CR', 'yearmaderange', 'btuel', 'nweight']]
-        df['kwh_nrm'] = df.apply(lambda x: units_Btu2kWh(x.btuel), axis=1)
-        df = df.rename(columns={'CR': 'Dependency=Location Region', 'yearmaderange': 'Dependency=Vintage', 'nweight': 'Weight'})
-        df['Dependency=Location Region'] = df['Dependency=Location Region'].replace({1: 'CR01', 2: 'CR02', 3: 'CR03', 4: 'CR04', 5: 'CR05', 6: 'CR06', 7: 'CR07', 8: 'CR08', 9: 'CR09', 10: 'CR10', 11: 'CR11', 12: 'CR12'})
-        df['Dependency=Vintage'] = df['Dependency=Vintage'].replace({'1950-pre': '<1950'})
-        df = df.groupby(['Dependency=Location Region', 'Dependency=Vintage'])
-        count = df.agg(['count']).ix[:, 0]
-        weight = df.agg(['sum'])['Weight']
-        df = df[['kwh_nrm']].sum()
-        df['Count'] = count
-        df['Weight'] = weight
-        df['kwh_nrm_per_home'] = df['kwh_nrm'] / df['Count']
-        df['kwh_nrm_total'] = df['kwh_nrm_per_home'] * df['Weight']
-        df = df.reset_index()
-        df['Dependency=Location Region'] = pd.Categorical(df['Dependency=Location Region'], ['CR01', 'CR02', 'CR03', 'CR04', 'CR05', 'CR06', 'CR07', 'CR08', 'CR09', 'CR10', 'CR11', 'CR12'])
-        df['Dependency=Vintage'] = pd.Categorical(df['Dependency=Vintage'], ['<1950', '1950s', '1960s', '1970s', '1980s', '1990s', '2000s'])
-        df = df.sort_values(by=['Dependency=Location Region', 'Dependency=Vintage']).set_index(['Dependency=Location Region', 'Dependency=Vintage'])
-        return df
-        
-    def electricity_consumption_location_region_heating_fuel(self):
-        df = self.session
-        df = df[['CR', 'fuelheat', 'btuel', 'nweight']]
-        df['kwh_nrm'] = df.apply(lambda x: units_Btu2kWh(x.btuel), axis=1)
-        df = df.rename(columns={'CR': 'Dependency=Location Region', 'fuelheat': 'Dependency=Heating Fuel', 'nweight': 'Weight'})
-        df['Dependency=Location Region'] = df['Dependency=Location Region'].replace({1: 'CR01', 2: 'CR02', 3: 'CR03', 4: 'CR04', 5: 'CR05', 6: 'CR06', 7: 'CR07', 8: 'CR08', 9: 'CR09', 10: 'CR10', 11: 'CR11', 12: 'CR12'})
-        df = df.groupby(['Dependency=Location Region', 'Dependency=Heating Fuel'])
-        count = df.agg(['count']).ix[:, 0]
-        weight = df.agg(['sum'])['Weight']
-        df = df[['kwh_nrm']].sum()
-        df['Count'] = count
-        df['Weight'] = weight
-        df['kwh_nrm_per_home'] = df['kwh_nrm'] / df['Count']
-        df['kwh_nrm_total'] = df['kwh_nrm_per_home'] * df['Weight']
-        df = df.reset_index()
-        df['Dependency=Location Region'] = pd.Categorical(df['Dependency=Location Region'], ['CR01', 'CR02', 'CR03', 'CR04', 'CR05', 'CR06', 'CR07', 'CR08', 'CR09', 'CR10', 'CR11', 'CR12'])
-        df = df.sort_values(by=['Dependency=Location Region', 'Dependency=Heating Fuel']).set_index(['Dependency=Location Region', 'Dependency=Heating Fuel'])
-        return df
-        
-    def electricity_consumption_location_region_federal_poverty_level(self):
-        df = self.session
-        df = df[['CR', 'FPL_BINS', 'btuel', 'nweight']]
-        df['kwh_nrm'] = df.apply(lambda x: units_Btu2kWh(x.btuel), axis=1)
-        df = df.rename(columns={'CR': 'Dependency=Location Region', 'FPL_BINS': 'Dependency=Federal Poverty Level', 'nweight': 'Weight'})
-        df['Dependency=Location Region'] = df['Dependency=Location Region'].replace({1: 'CR01', 2: 'CR02', 3: 'CR03', 4: 'CR04', 5: 'CR05', 6: 'CR06', 7: 'CR07', 8: 'CR08', 9: 'CR09', 10: 'CR10', 11: 'CR11', 12: 'CR12'})
-        df = df.groupby(['Dependency=Location Region', 'Dependency=Federal Poverty Level'])
-        count = df.agg(['count']).ix[:, 0]
-        weight = df.agg(['sum'])['Weight']
-        df = df[['kwh_nrm']].sum()
-        df['Count'] = count
-        df['Weight'] = weight
-        df['kwh_nrm_per_home'] = df['kwh_nrm'] / df['Count']
-        df['kwh_nrm_total'] = df['kwh_nrm_per_home'] * df['Weight']
-        df = df.reset_index()
-        df['Dependency=Location Region'] = pd.Categorical(df['Dependency=Location Region'], ['CR01', 'CR02', 'CR03', 'CR04', 'CR05', 'CR06', 'CR07', 'CR08', 'CR09', 'CR10', 'CR11', 'CR12'])
-        df['Dependency=Federal Poverty Level'] = pd.Categorical(df['Dependency=Federal Poverty Level'], ['0-50', '50-100', '100-150', '150-200', '200-250', '250-300', '300+'])
-        df = df.sort_values(by=['Dependency=Location Region', 'Dependency=Federal Poverty Level']).set_index(['Dependency=Location Region', 'Dependency=Federal Poverty Level'])
-        return df        
-        
-    def natural_gas_consumption_location_region(self):
-        df = self.session
-        df = df[['CR', 'btung', 'nweight']]
-        df['thm_nrm'] = df.apply(lambda x: units_Btu2Therm(x.btung), axis=1)
-        df = df.rename(columns={'CR': 'Dependency=Location Region', 'nweight': 'Weight'})
-        df['Dependency=Location Region'] = df['Dependency=Location Region'].replace({1: 'CR01', 2: 'CR02', 3: 'CR03', 4: 'CR04', 5: 'CR05', 6: 'CR06', 7: 'CR07', 8: 'CR08', 9: 'CR09', 10: 'CR10', 11: 'CR11', 12: 'CR12'})
-        df = df.groupby(['Dependency=Location Region'])
-        count = df.agg(['count']).ix[:, 0]
-        weight = df.agg(['sum'])['Weight']
-        df = df[['thm_nrm']].sum()
-        df['Count'] = count
-        df['Weight'] = weight
-        df['thm_nrm_per_home'] = df['thm_nrm'] / df['Count']
-        df['thm_nrm_total'] = df['thm_nrm_per_home'] * df['Weight']
-        df = df.reset_index()
-        df['Dependency=Location Region'] = pd.Categorical(df['Dependency=Location Region'], ['CR01', 'CR02', 'CR03', 'CR04', 'CR05', 'CR06', 'CR07', 'CR08', 'CR09', 'CR10', 'CR11', 'CR12'])
-        df = df.sort_values(by=['Dependency=Location Region']).set_index(['Dependency=Location Region'])             
-        return df
-        
-    def natural_gas_consumption_vintage(self):
-        df = self.session
-        df = df[['yearmaderange', 'btung', 'nweight']]
-        df['thm_nrm'] = df.apply(lambda x: units_Btu2Therm(x.btung), axis=1)
-        df = df.rename(columns={'yearmaderange': 'Dependency=Vintage', 'nweight': 'Weight'})
-        df['Dependency=Vintage'] = df['Dependency=Vintage'].replace({'1950-pre': '<1950'})
-        df = df.groupby(['Dependency=Vintage'])
-        count = df.agg(['count']).ix[:, 0]
-        weight = df.agg(['sum'])['Weight']
-        df = df[['thm_nrm']].sum()
-        df['Count'] = count
-        df['Weight'] = weight
-        df['thm_nrm_per_home'] = df['thm_nrm'] / df['Count']
-        df['thm_nrm_total'] = df['thm_nrm_per_home'] * df['Weight']
-        df = df.reset_index()
-        df['Dependency=Vintage'] = pd.Categorical(df['Dependency=Vintage'], ['<1950', '1950s', '1960s', '1970s', '1980s', '1990s', '2000s'])
-        df = df.sort_values(by=['Dependency=Vintage']).set_index(['Dependency=Vintage'])
-        return df
-
-    def natural_gas_consumption_heating_fuel(self):
-        df = self.session
-        df = df[['fuelheat', 'btung', 'nweight']]
-        df['thm_nrm'] = df.apply(lambda x: units_Btu2Therm(x.btung), axis=1)
-        df = df.rename(columns={'fuelheat': 'Dependency=Heating Fuel', 'nweight': 'Weight'})
-        df = df.groupby(['Dependency=Heating Fuel'])
-        count = df.agg(['count']).ix[:, 0]
-        weight = df.agg(['sum'])['Weight']
-        df = df[['thm_nrm']].sum()
-        df['Count'] = count
-        df['Weight'] = weight
-        df['thm_nrm_per_home'] = df['thm_nrm'] / df['Count']
-        df['thm_nrm_total'] = df['thm_nrm_per_home'] * df['Weight']
-        df = df.reset_index()
-        df = df.sort_values(by=['Dependency=Heating Fuel']).set_index(['Dependency=Heating Fuel'])             
-        return df
-        
-    def natural_gas_consumption_geometry_house_size(self):
-        df = self.session
-        df = df[['Size', 'btung', 'nweight']]
-        df['thm_nrm'] = df.apply(lambda x: units_Btu2Therm(x.btung), axis=1)
-        df = df.rename(columns={'Size': 'Dependency=Geometry House Size', 'nweight': 'Weight'})
-        df = df.groupby(['Dependency=Geometry House Size'])
-        count = df.agg(['count']).ix[:, 0]
-        weight = df.agg(['sum'])['Weight']
-        df = df[['thm_nrm']].sum()
-        df['Count'] = count
-        df['Weight'] = weight
-        df['thm_nrm_per_home'] = df['thm_nrm'] / df['Count']
-        df['thm_nrm_total'] = df['thm_nrm_per_home'] * df['Weight']
-        df = df.reset_index()
-        df = df.sort_values(by=['Dependency=Geometry House Size']).set_index(['Dependency=Geometry House Size'])             
-        return df
-        
-    def natural_gas_consumption_federal_poverty_level(self):
-        df = self.session
-        df = df[['FPL_BINS', 'btung', 'nweight']]
-        df['thm_nrm'] = df.apply(lambda x: units_Btu2Therm(x.btung), axis=1)
-        df = df.rename(columns={'FPL_BINS': 'Dependency=Federal Poverty Level', 'nweight': 'Weight'})
-        df = df.groupby(['Dependency=Federal Poverty Level'])
-        count = df.agg(['count']).ix[:, 0]
-        weight = df.agg(['sum'])['Weight']
-        df = df[['thm_nrm']].sum()
-        df['Count'] = count
-        df['Weight'] = weight
-        df['thm_nrm_per_home'] = df['thm_nrm'] / df['Count']
-        df['thm_nrm_total'] = df['thm_nrm_per_home'] * df['Weight']
-        df = df.reset_index()
-        df['Dependency=Federal Poverty Level'] = pd.Categorical(df['Dependency=Federal Poverty Level'], ['0-50', '50-100', '100-150', '150-200', '200-250', '250-300', '300+'])
-        df = df.sort_values(by=['Dependency=Federal Poverty Level']).set_index(['Dependency=Federal Poverty Level'])             
-        return df
-        
-    def natural_gas_consumption_location_region_vintage(self):
-        df = self.session
-        df = df[['CR', 'yearmaderange', 'btung', 'nweight']]
-        df['thm_nrm'] = df.apply(lambda x: units_Btu2Therm(x.btung), axis=1)
-        df = df.rename(columns={'CR': 'Dependency=Location Region', 'yearmaderange': 'Dependency=Vintage', 'nweight': 'Weight'})
-        df['Dependency=Location Region'] = df['Dependency=Location Region'].replace({1: 'CR01', 2: 'CR02', 3: 'CR03', 4: 'CR04', 5: 'CR05', 6: 'CR06', 7: 'CR07', 8: 'CR08', 9: 'CR09', 10: 'CR10', 11: 'CR11', 12: 'CR12'})
-        df['Dependency=Vintage'] = df['Dependency=Vintage'].replace({'1950-pre': '<1950'})
-        df = df.groupby(['Dependency=Location Region', 'Dependency=Vintage'])
-        count = df.agg(['count']).ix[:, 0]
-        weight = df.agg(['sum'])['Weight']
-        df = df[['thm_nrm']].sum()
-        df['Count'] = count
-        df['Weight'] = weight
-        df['thm_nrm_per_home'] = df['thm_nrm'] / df['Count']
-        df['thm_nrm_total'] = df['thm_nrm_per_home'] * df['Weight']
-        df = df.reset_index()
-        df['Dependency=Location Region'] = pd.Categorical(df['Dependency=Location Region'], ['CR01', 'CR02', 'CR03', 'CR04', 'CR05', 'CR06', 'CR07', 'CR08', 'CR09', 'CR10', 'CR11', 'CR12'])
-        df['Dependency=Vintage'] = pd.Categorical(df['Dependency=Vintage'], ['<1950', '1950s', '1960s', '1970s', '1980s', '1990s', '2000s'])
-        df = df.sort_values(by=['Dependency=Location Region', 'Dependency=Vintage']).set_index(['Dependency=Location Region', 'Dependency=Vintage'])             
-        return df
-        
-    def natural_gas_consumption_location_region_heating_fuel(self):
-        df = self.session
-        df = df[['CR', 'fuelheat', 'btung', 'nweight']]
-        df['thm_nrm'] = df.apply(lambda x: units_Btu2Therm(x.btung), axis=1)
-        df = df.rename(columns={'CR': 'Dependency=Location Region', 'fuelheat': 'Dependency=Heating Fuel', 'nweight': 'Weight'})
-        df['Dependency=Location Region'] = df['Dependency=Location Region'].replace({1: 'CR01', 2: 'CR02', 3: 'CR03', 4: 'CR04', 5: 'CR05', 6: 'CR06', 7: 'CR07', 8: 'CR08', 9: 'CR09', 10: 'CR10', 11: 'CR11', 12: 'CR12'})
-        df = df.groupby(['Dependency=Location Region', 'Dependency=Heating Fuel'])
-        count = df.agg(['count']).ix[:, 0]
-        weight = df.agg(['sum'])['Weight']
-        df = df[['thm_nrm']].sum()
-        df['Count'] = count
-        df['Weight'] = weight
-        df['thm_nrm_per_home'] = df['thm_nrm'] / df['Count']
-        df['thm_nrm_total'] = df['thm_nrm_per_home'] * df['Weight']
-        df = df.reset_index()
-        df['Dependency=Location Region'] = pd.Categorical(df['Dependency=Location Region'], ['CR01', 'CR02', 'CR03', 'CR04', 'CR05', 'CR06', 'CR07', 'CR08', 'CR09', 'CR10', 'CR11', 'CR12'])
-        df = df.sort_values(by=['Dependency=Location Region', 'Dependency=Heating Fuel']).set_index(['Dependency=Location Region', 'Dependency=Heating Fuel'])             
-        return df
-        
-    def natural_gas_consumption_location_region_federal_poverty_level(self):
-        df = self.session
-        df = df[['CR', 'FPL_BINS', 'btung', 'nweight']]
-        df['thm_nrm'] = df.apply(lambda x: units_Btu2Therm(x.btung), axis=1)
-        df = df.rename(columns={'CR': 'Dependency=Location Region', 'FPL_BINS': 'Dependency=Federal Poverty Level', 'nweight': 'Weight'})
-        df['Dependency=Location Region'] = df['Dependency=Location Region'].replace({1: 'CR01', 2: 'CR02', 3: 'CR03', 4: 'CR04', 5: 'CR05', 6: 'CR06', 7: 'CR07', 8: 'CR08', 9: 'CR09', 10: 'CR10', 11: 'CR11', 12: 'CR12'})
-        df = df.groupby(['Dependency=Location Region', 'Dependency=Federal Poverty Level'])
-        count = df.agg(['count']).ix[:, 0]
-        weight = df.agg(['sum'])['Weight']
-        df = df[['thm_nrm']].sum()
-        df['Count'] = count
-        df['Weight'] = weight
-        df['thm_nrm_per_home'] = df['thm_nrm'] / df['Count']
-        df['thm_nrm_total'] = df['thm_nrm_per_home'] * df['Weight']
-        df = df.reset_index()
-        df['Dependency=Location Region'] = pd.Categorical(df['Dependency=Location Region'], ['CR01', 'CR02', 'CR03', 'CR04', 'CR05', 'CR06', 'CR07', 'CR08', 'CR09', 'CR10', 'CR11', 'CR12'])
-        df['Dependency=Federal Poverty Level'] = pd.Categorical(df['Dependency=Federal Poverty Level'], ['0-50', '50-100', '100-150', '150-200', '200-250', '250-300', '300+'])
-        df = df.sort_values(by=['Dependency=Location Region', 'Dependency=Federal Poverty Level']).set_index(['Dependency=Location Region', 'Dependency=Federal Poverty Level'])             
-        return df
+    def weather_normalize(self, df):
     
-def remove_upgrades(df):
-    for col in df.columns:
-        if col.endswith('.run_measure'):
-            df = df[df[col]==0]
-    return df
-   
+        df = df[df['hdd65']>0]
+        df = df[df['cdd65']>0]
+
+        # electricity
+        df['kwhsph_nrm'] = df['kwhsph'] * ( df['hdd30yr'] / df['hdd65'] )
+        df['kwhcol_nrm'] = df['kwhcol'] * ( df['cdd30yr'] / df['cdd65'] )
+        df['kwhel_nrm'] = df['kwhsph_nrm'] + df['kwhcol_nrm'] + df['kwhwth'] + df['kwhrfg'] + df['kwhoth']
+        
+        # natural gas
+        df['btungsph_nrm'] = df['btungsph'] * ( df['hdd30yr'] / df['hdd65'] )
+        df['btung_nrm'] = df['btungsph_nrm'] + df['btungwth'] + df['btungoth']
+        
+        # propane
+        df['btulpsph_nrm'] = df['btulpsph'] * ( df['hdd30yr'] / df['hdd65'] )
+        df['btulp_nrm'] = df['btulpsph_nrm'] + df['btulpwth'] + df['btulpoth']
+        
+        # fuel oil
+        df['btufosph_nrm'] = df['btufosph'] * ( df['hdd30yr'] / df['hdd65'] )
+        df['btufo_nrm'] = df['btufosph_nrm'] + df['btufowth'] + df['btufooth']
+        
+        df['btuoth_nrm'] = df['btulp_nrm'] + df['btufo_nrm']
+    
+        return df
+        
+    def create_consumption_tsv(self, cols, nrm, groups):
+      df = self.session
+      df = df[cols + [nrm]]
+      if 'btu' in nrm:
+        nrm = nrm.replace('btu', 'thm')
+        df[nrm] = df.apply(lambda x: units_Btu2Therm(x[nrm.replace('thm', 'btu')]), axis=1)
+      df = df.rename(columns=self.recs_to_resstock_cols_map)
+      for group in groups:
+        df[group] = df[group].replace(self.recs_to_resstock_enum_map[group])
+      df = df.groupby(groups)
+      count = df.agg(['count']).ix[:, 0]
+      weight = df.agg(['sum'])['Weight']
+      df = df[[nrm]].sum()
+      df['Count'] = count
+      df['Weight'] = weight
+      df['{}_per_home'.format(nrm)] = df[nrm] / df['Count']
+      df['{}_total'.format(nrm)] = df['{}_per_home'.format(nrm)] * df['Weight']
+      df = df.reset_index()
+      for group in groups:
+        df[group] = pd.Categorical(df[group], self.recs_to_resstock_enum_map[group].values())
+      df = df.sort_values(by=groups).set_index(groups)
+      return df
+      
 if __name__ == '__main__':
     
-    datafiles_dir = 'outputs'
-    zip_file = '../../analysis_results/data_points/resstock_pnw_localResults_100homes_2upgrades.zip'
-
-    dfs = Create_DFs('MLR/recs.csv')
+  parser = argparse.ArgumentParser()
     
-    for category in [
-                     # 'Electricity Consumption Location Region',
-                     # 'Electricity Consumption Vintage', 
-                     # 'Electricity Consumption Heating Fuel',
-                     # 'Electricity Consumption Geometry House Size', 
-                     # 'Electricity Consumption Federal Poverty Level',
-                     # 'Electricity Consumption Location Region Vintage', 
-                     # 'Electricity Consumption Location Region Heating Fuel', 
-                     # 'Electricity Consumption Location Region Federal Poverty Level',
-                     # 'Natural Gas Consumption Location Region',
-                     # 'Natural Gas Consumption Vintage', 
-                     # 'Natural Gas Consumption Heating Fuel',
-                     # 'Natural Gas Consumption Geometry House Size',
-                     # 'Natural Gas Consumption Federal Poverty Level',
-                     # 'Natural Gas Consumption Location Region Vintage',
-                     # 'Natural Gas Consumption Location Region Heating Fuel',
-                     # 'Natural Gas Consumption Location Region Federal Poverty Level'
-                     ]:
-                     
-        print category
-        method = getattr(dfs, category.lower().replace(' ', '_'))
-        df = method()
-        df.to_csv(os.path.join(datafiles_dir, '{}.tsv'.format(category)), sep='\t')
-        
-    slices = [
-              # 'Location Region',
-              'Vintage',
-              'Heating Fuel',
-              'Geometry House Size',
-              'Federal Poverty Level'
-              ]
+  parser.add_argument('--zip_or_dir', default='../../../../buildstockdb/data/analysis_results/resstock_national_results.zip', help='Relative path containing the data_point files (zip or dir).')
+  parser.add_argument('--source', default='./MLR/recs.csv', help='Source of actual energy usage.')
+  parser.add_argument('--tsv_file', default='../../../../buildstockdb/data/housing_characteristics/Federal Poverty Level.tsv', help='File with fractions.')
+  args = parser.parse_args()
+    
+  datafiles_dir = './outputs'
+  if not os.path.exists(datafiles_dir):
+    os.makedirs(datafiles_dir)
+  tsv = TSV(args.source)
+  
+  categories = {
+               'Electricity Consumption Location Region.tsv': {'cols': ['CR', 'nweight'], 'nrm': 'kwhel_nrm', 'groups': ['Dependency=Location Region']},
+               'Electricity Consumption Vintage.tsv': {'cols': ['yearmaderange', 'nweight'], 'nrm': 'kwhel_nrm', 'groups': ['Dependency=Vintage']}, 
+               'Electricity Consumption Heating Fuel.tsv': {'cols': ['fuelheat', 'nweight'], 'nrm': 'kwhel_nrm', 'groups': ['Dependency=Heating Fuel']},
+               'Electricity Consumption Geometry House Size.tsv': {'cols': ['Size', 'nweight'], 'nrm': 'kwhel_nrm', 'groups': ['Dependency=Geometry House Size']}, 
+               'Electricity Consumption Location Region Vintage.tsv': {'cols': ['CR', 'yearmaderange', 'nweight'], 'nrm': 'kwhel_nrm', 'groups': ['Dependency=Location Region', 'Dependency=Vintage']}, 
+               'Electricity Consumption Location Region Heating Fuel.tsv': {'cols': ['CR', 'fuelheat', 'nweight'], 'nrm': 'kwhel_nrm', 'groups': ['Dependency=Location Region', 'Dependency=Heating Fuel']},
+               'Natural Gas Consumption Location Region.tsv': {'cols': ['CR', 'nweight'], 'nrm': 'btung_nrm', 'groups': ['Dependency=Location Region']},
+               'Natural Gas Consumption Vintage.tsv': {'cols': ['yearmaderange', 'nweight'], 'nrm': 'btung_nrm', 'groups': ['Dependency=Vintage']}, 
+               'Natural Gas Consumption Heating Fuel.tsv': {'cols': ['fuelheat', 'nweight'], 'nrm': 'btung_nrm', 'groups': ['Dependency=Heating Fuel']},
+               'Natural Gas Consumption Geometry House Size.tsv': {'cols': ['Size', 'nweight'], 'nrm': 'btung_nrm', 'groups': ['Dependency=Geometry House Size']},
+               'Natural Gas Consumption Location Region Vintage.tsv': {'cols': ['CR', 'yearmaderange', 'nweight'], 'nrm': 'btung_nrm', 'groups': ['Dependency=Location Region', 'Dependency=Vintage']},
+               'Natural Gas Consumption Location Region Heating Fuel.tsv': {'cols': ['CR', 'fuelheat', 'nweight'], 'nrm': 'btung_nrm', 'groups': ['Dependency=Location Region', 'Dependency=Heating Fuel']},
+               'Other Consumption Location Region.tsv': {'cols': ['CR', 'nweight'], 'nrm': 'btuoth_nrm', 'groups': ['Dependency=Location Region']},
+               'Other Consumption Vintage.tsv': {'cols': ['yearmaderange', 'nweight'], 'nrm': 'btuoth_nrm', 'groups': ['Dependency=Vintage']},
+               'Other Consumption Heating Fuel.tsv': {'cols': ['fuelheat', 'nweight'], 'nrm': 'btuoth_nrm', 'groups': ['Dependency=Heating Fuel']},
+               'Other Consumption Geometry House Size.tsv': {'cols': ['Size', 'nweight'], 'nrm': 'btuoth_nrm', 'groups': ['Dependency=Geometry House Size']},
+               'Other Consumption Location Region Vintage.tsv': {'cols': ['CR', 'yearmaderange', 'nweight'], 'nrm': 'btuoth_nrm', 'groups': ['Dependency=Location Region', 'Dependency=Vintage']},
+               'Other Consumption Location Region Heating Fuel.tsv': {'cols': ['CR', 'fuelheat', 'nweight'], 'nrm': 'btuoth_nrm', 'groups': ['Dependency=Location Region', 'Dependency=Heating Fuel']}
+               }
+  
+  if args.tsv_file:
+  
+    tsv_to_recs_enum_map = {
+                            'Federal Poverty Level': 'FPL_BINS'
+                            }  
+  
+    categories['Electricity Consumption {}'.format(os.path.basename(args.tsv_file))] = {'cols': [tsv_to_recs_enum_map[os.path.basename(args.tsv_file).replace('.tsv', '')], 'nweight'], 'nrm': 'kwhel_nrm', 'groups': ['Dependency={}'.format(os.path.basename(args.tsv_file).replace('.tsv', ''))]}
+    categories['Natural Gas Consumption {}'.format(os.path.basename(args.tsv_file))] = {'cols': [tsv_to_recs_enum_map[os.path.basename(args.tsv_file).replace('.tsv', '')], 'nweight'], 'nrm': 'btung_nrm', 'groups': ['Dependency={}'.format(os.path.basename(args.tsv_file).replace('.tsv', ''))]}
+    categories['Other Consumption {}'.format(os.path.basename(args.tsv_file))] = {'cols': [tsv_to_recs_enum_map[os.path.basename(args.tsv_file).replace('.tsv', '')], 'nweight'], 'nrm': 'btuoth_nrm', 'groups': ['Dependency={}'.format(os.path.basename(args.tsv_file).replace('.tsv', ''))]}
+    categories['Electricity Consumption Location Region {}'.format(os.path.basename(args.tsv_file))] = {'cols': ['CR', tsv_to_recs_enum_map[os.path.basename(args.tsv_file).replace('.tsv', '')], 'nweight'], 'nrm': 'kwhel_nrm', 'groups': ['Dependency=Location Region', 'Dependency={}'.format(os.path.basename(args.tsv_file).replace('.tsv', ''))]}
+    categories['Natural Gas Consumption Location Region {}'.format(os.path.basename(args.tsv_file))] = {'cols': ['CR', tsv_to_recs_enum_map[os.path.basename(args.tsv_file).replace('.tsv', '')], 'nweight'], 'nrm': 'btung_nrm', 'groups': ['Dependency=Location Region', 'Dependency={}'.format(os.path.basename(args.tsv_file).replace('.tsv', ''))]}
+    categories['Other Consumption Location Region {}'.format(os.path.basename(args.tsv_file))] = {'cols': ['CR', tsv_to_recs_enum_map[os.path.basename(args.tsv_file).replace('.tsv', '')], 'nweight'], 'nrm': 'btuoth_nrm', 'groups': ['Dependency=Location Region', 'Dependency={}'.format(os.path.basename(args.tsv_file).replace('.tsv', ''))]}
 
-    do_plot(slices=slices, fields='electricity_and_gas_perhouse', save=True, setlims=[0,None], num_slices=1, zip_file=zip_file, tsv_file='../../project_resstock_national/housing_characteristics/Federal Poverty Level.tsv')
-    do_plot(slices=slices, fields='electricity_perhouse', save=True, setlims=[0,None], num_slices=1, zip_file=zip_file, tsv_file='../../project_resstock_national/housing_characteristics/Federal Poverty Level.tsv')
-    do_plot(slices=slices, fields='gas_perhouse', save=True, setlims=[0,None], num_slices=1, zip_file=zip_file, tsv_file='../../project_resstock_national/housing_characteristics/Federal Poverty Level.tsv')
-    sys.exit()
-    slices = [
-              # 'Location Region Vintage',
-              # 'Location Region Heating Fuel',
-              # 'Location Region Geometry House Size',
-              # 'Location Region Federal Poverty Level'
-              ]
+  for tsv_file, arguments in categories.items():
+                   
+      print tsv_file
+      df = tsv.create_consumption_tsv(arguments['cols'], arguments['nrm'], arguments['groups'])
+      df.to_csv(os.path.join(datafiles_dir, tsv_file), sep='\t')
 
-    do_plot(slices=slices, fields='electricity_perhouse', save=True, size='medium', marker_color=True, setlims=[0,None], num_slices=2, zip_file=zip_file)
-    do_plot(slices=slices, fields='gas_perhouse', save=True, size='medium', marker_color=True, setlims=[0,None], num_slices=2, zip_file=zip_file)
+  slices = [
+            'Vintage',
+            'Heating Fuel',
+            'Geometry House Size',
+            ]
+  slices += [os.path.basename(args.tsv_file).replace('.tsv', '')]
+
+  do_plot(args.zip_or_dir, datafiles_dir, slices=slices, fields='electricity_and_gas_perhouse', save=True, setlims=[0,None], num_slices=1, tsv_file=args.tsv_file)
+  do_plot(args.zip_or_dir, datafiles_dir, slices=slices, fields='electricity_perhouse', save=True, setlims=[0,None], num_slices=1, tsv_file=args.tsv_file)
+  do_plot(args.zip_or_dir, datafiles_dir, slices=slices, fields='gas_perhouse', save=True, setlims=[0,None], num_slices=1, tsv_file=args.tsv_file)
+  do_plot(args.zip_or_dir, datafiles_dir, slices=slices, fields='other_perhouse', save=True, setlims=[0,None], num_slices=1, tsv_file=args.tsv_file)
+
+  slices = [
+            'Location Region Vintage',
+            'Location Region Heating Fuel',
+            'Location Region Geometry House Size',
+            'Location Region Federal Poverty Level'
+            ]
+
+  # do_plot(args.zip_or_dir, datafiles_dir, slices=slices, fields='electricity_perhouse', save=True, size='medium', marker_color=True, setlims=[0,None], num_slices=2)
+  # do_plot(args.zip_or_dir, datafiles_dir, slices=slices, fields='gas_perhouse', save=True, size='medium', marker_color=True, setlims=[0,None], num_slices=2)
