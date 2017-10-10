@@ -391,6 +391,17 @@ class TSV():
         return df
         
     def create_consumption_tsv(self, cols, nrm, groups):
+      '''Creates tsv files with actual recs consumption (weather-normalized), sliced by various meta parameters.
+      
+      Args:
+        cols (list): Meta parameters + weight columns. Must be found in keys of self.recs_to_resstock_cols_map.
+        nrm (str): Normalized fuel column. These are calculated in the weather_normalize method.
+        groups (list): Enumerations corresponding to meta parameters. Must be found in keys of self.recs_to_resstock_enum_map.
+        
+      Returns:
+        A pandas dataframe that is eventually written to csv, in the data/recs/outputs folder.
+      
+      '''
       df = self.session
       df = df[cols + [nrm]]
       if 'btu' in nrm:
