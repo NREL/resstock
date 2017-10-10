@@ -62,7 +62,7 @@ class Create_DFs():
     for col in df.columns:
       if 'owner' in col or 'renter' in col:
         df.loc[df['Dependency=Vintage'].isin(['<1950', '1950s', '1960s', '1970s', '1980s', '1990s']), col] *= 0.5
-    
+
     df['Dependency=Vintage'] = df['Dependency=Vintage'].map({'<1940': '<1950', '<1950': '<1950', '1950s': '1950s', '1960s': '1960s', '1970s': '1970s', '1980s': '1980s', '1990s': '1990s', '2000s': '2000s', '2010s': '2000s'})
     
     df = df[np.concatenate([['Dependency=Vintage', 'Dependency=Heating Fuel', 'Dependency=Location EPW', 'Dependency=Location Census Tract', 'Dependency=Location County'], options])]
@@ -104,7 +104,6 @@ if __name__ == '__main__':
   df = pd.read_sql(sql, con)
   table_names = list(df['table_name'])
   table_names = [x for x in table_names if not 'utility' in x]
-  table_names = ['tract_ct']
   
   for i, table_name in enumerate(table_names):
 
