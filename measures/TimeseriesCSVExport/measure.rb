@@ -204,6 +204,7 @@ class TimeseriesCSVExport < OpenStudio::Measure::ReportingMeasure
       js_time = js_time.gsub('Dec','12')
 
       # manually shift timestamps for leap years
+      offset = 0
       if year_description.isLeapYear
         date, time = js_time.split(" ")
         year, month, day = date.split("/")
@@ -224,7 +225,7 @@ class TimeseriesCSVExport < OpenStudio::Measure::ReportingMeasure
             elsif month == 3
               day = 31
             elsif month == 4
-              day = 28
+              day = 30
             elsif month == 5
               day = 31
             elsif month == 6
@@ -243,7 +244,6 @@ class TimeseriesCSVExport < OpenStudio::Measure::ReportingMeasure
           end
         end
         js_time = "#{year.to_i}/#{month.to_i.to_s.rjust(2, "0")}/#{day.to_i.to_s.rjust(2, "0")} #{time}"
-        offset = 0
         if month == 1 and year == 2010
           offset = 1
         end
