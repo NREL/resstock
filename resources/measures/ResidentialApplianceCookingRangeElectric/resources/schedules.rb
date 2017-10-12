@@ -451,7 +451,6 @@ class HotWaterSchedule
     
         def loadMinuteDrawProfileFromFile(timestep_minutes, unit_index, days_shift, measure_dir)
             data = []
-            
             if @file_prefix.nil?
                 return data
             end
@@ -464,13 +463,12 @@ class HotWaterSchedule
             end
             
             #For MF homes, shift each unit by an additional week
-            days_shift = days_shift + 7 * (unit_index - 1)
-            
-            minutes_in_year = 8760*60
+            days_shift = (days_shift + 7 * (unit_index + 1)) % 365
+            minutes_in_year = 8760 * 60
             
             # Read data into minute array
             skippedheader = false
-            min_shift = 24*60*days_shift
+            min_shift = 24 * 60 * days_shift
             items = [0]*minutes_in_year
             File.open(minute_draw_profile).each do |line|
                 linedata = line.strip.split(',')
