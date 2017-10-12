@@ -2,21 +2,29 @@
   <schema_version>3.0</schema_version>
   <name>custom_run_period_range</name>
   <uid>813a33fe-fc8d-43e4-89ee-15fff910386e</uid>
-  <version_id>853106e8-d22b-4e83-a804-bf8b36411e16</version_id>
-  <version_modified>20171011T224258Z</version_modified>
+  <version_id>d0bd9487-f354-4733-8a3c-5c2735f5bb2c</version_id>
+  <version_modified>20171012T181805Z</version_modified>
   <xml_checksum>D21D6A93</xml_checksum>
   <class_name>CustomRunPeriodRange</class_name>
   <display_name>CustomRunPeriodRange</display_name>
-  <description></description>
-  <modeler_description></modeler_description>
+  <description>Update the workspace with a custom run period range.</description>
+  <modeler_description>Remove the RunPeriod object which defaults to 1/1 to 12/31, and replace with RunPeriod:CustomRange object which allows a custom range, e.g. 12/31/2011 to 12/31/2012.</modeler_description>
   <arguments>
     <argument>
-      <name>zone_name</name>
-      <display_name>New zone name</display_name>
-      <description>This name will be used as the name of the new zone.</description>
+      <name>run_start_date</name>
+      <display_name>Simulation Start Date</display_name>
       <type>String</type>
       <required>true</required>
       <model_dependent>false</model_dependent>
+      <default_value>January 1 2012</default_value>
+    </argument>
+    <argument>
+      <name>run_end_date</name>
+      <display_name>Simulation End Date</display_name>
+      <type>String</type>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>December 31 2012</default_value>
     </argument>
   </arguments>
   <outputs/>
@@ -41,13 +49,25 @@
       <filename>measure.rb</filename>
       <filetype>rb</filetype>
       <usage_type>script</usage_type>
-      <checksum>7D37B3DB</checksum>
+      <checksum>6C7FB244</checksum>
     </file>
     <file>
       <filename>custom_run_period_range_test.rb</filename>
       <filetype>rb</filetype>
       <usage_type>test</usage_type>
-      <checksum>16C8E1AB</checksum>
+      <checksum>60A83BA6</checksum>
+    </file>
+    <file>
+      <filename>DuPage_17043_725300_880860.epw</filename>
+      <filetype>epw</filetype>
+      <usage_type>test</usage_type>
+      <checksum>335AE046</checksum>
+    </file>
+    <file>
+      <filename>SFD_Successful_EnergyPlus_Run_AMY.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>9D71F795</checksum>
     </file>
   </files>
 </measure>

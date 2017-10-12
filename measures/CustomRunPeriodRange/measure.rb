@@ -1,8 +1,10 @@
 # see the URL below for information on how to write OpenStudio measures
 # http://nrel.github.io/OpenStudio-user-documentation/reference/measure_writing_guide/
 
+require "#{File.dirname(__FILE__)}/resources/weather"
+
 # start the measure
-class CustomRunPeriodRange < OpenStudio::Ruleset::WorkspaceUserScript
+class CustomRunPeriodRange < OpenStudio::Measure::EnergyPlusMeasure
 
   # human readable name
   def name
@@ -11,17 +13,17 @@ class CustomRunPeriodRange < OpenStudio::Ruleset::WorkspaceUserScript
 
   # human readable description
   def description
-    return ""
+    return "Update the workspace with a custom run period range."
   end
 
   # human readable description of modeling approach
   def modeler_description
-    return ""
+    return "Remove the RunPeriod object which defaults to 1/1 to 12/31, and replace with RunPeriod:CustomRange object which allows a custom range, e.g. 12/31/2011 to 12/31/2012."
   end
 
   # define the arguments that the user will input
   def arguments(workspace)
-    args = OpenStudio::Ruleset::OSArgumentVector.new
+    args = OpenStudio::Measure::OSArgumentVector.new
 
     arg = OpenStudio::Measure::OSArgument.makeStringArgument("run_start_date", true)
     arg.setDisplayName("Simulation Start Date")
@@ -55,16 +57,32 @@ class CustomRunPeriodRange < OpenStudio::Ruleset::WorkspaceUserScript
     run_end_month, run_end_day, run_end_year = run_end_date.split
     run_end_month = OpenStudio::monthOfYear(run_end_month).value
       
+    # get the last model
+    model = runner.lastOpenStudioModel
+    if model.empty?
+      runner.registerError("Cannot find last model.")
+      return false
+    end
+    model = model.get
+      
+    weather = WeatherProcess.new(model, runner, File.dirname(__FILE__))
+    if weather.error?
+      return false
+    end
+    epw_timestamps = weather.epw_timestamps.sort
+    ts_start_year, = epw_timestamps[0].split("/")
+    ts_end_year, = epw_timestamps[-1].split("/")
+      
     # update epw file DATA PERIODS
     lines = File.readlines("../in.epw")
-    string1, num1, num2, string2, day_of_week, epw_start_date, epw_end_date = lines[7].strip.split(",")
-    unless epw_start_date.end_with? run_start_year
-      epw_start_date += "/#{run_start_year}"
+    string1, num1, num2, string2, day_of_week, header_start_date, header_end_date = lines[7].strip.split(",")
+    unless header_start_date.end_with? ts_start_year
+      header_start_date += "/#{ts_start_year}"
     end
-    unless epw_end_date.end_with? run_end_year
-      epw_end_date += "/#{run_end_year}"
+    unless header_end_date.end_with? ts_end_year
+      header_end_date += "/#{ts_end_year}"
     end
-    lines[7] = "#{string1},#{num1},#{num2},#{string2},#{day_of_week},#{epw_start_date},#{epw_end_date}"
+    lines[7] = "#{string1},#{num1},#{num2},#{string2},#{day_of_week},#{header_start_date},#{header_end_date}"
     File.open("../in.epw", "w") do |f|
       lines.each { |line| f.puts(line) }
     end
@@ -75,7 +93,6 @@ class CustomRunPeriodRange < OpenStudio::Ruleset::WorkspaceUserScript
     apply_wknd_holiday_rule = nil
     use_weather_file_rain = nil
     use_weather_file_snow = nil
-    times_runperiod_repeated = nil
       
     # remove the existing RunPeriod object
     workspace.getObjectsByType("RunPeriod".to_IddObjectType).each do |object|
@@ -85,7 +102,6 @@ class CustomRunPeriodRange < OpenStudio::Ruleset::WorkspaceUserScript
       apply_wknd_holiday_rule = object.getString(8).to_s
       use_weather_file_rain = object.getString(9).to_s
       use_weather_file_snow = object.getString(10).to_s
-      times_runperiod_repeated = object.getString(11).to_s
       object.remove
     end
       
@@ -100,12 +116,11 @@ class CustomRunPeriodRange < OpenStudio::Ruleset::WorkspaceUserScript
        #{run_end_day},                            !- End Day of Month
        #{run_end_year},                           !- End Year
        UseWeatherFile,                            !- Day of Week for Start Day
-       #{holidays_and_special_days},               !- Use Weather File Holidays and Special Days
+       #{holidays_and_special_days},              !- Use Weather File Holidays and Special Days
        #{daylight_saving_period},                 !- Use Weather File Daylight Saving Period
        #{apply_wknd_holiday_rule},                !- Apply Weekend Holiday Rule
        #{use_weather_file_rain},                  !- Use Weather File Rain Indicators
        #{use_weather_file_snow};                  !- Use Weather File Snow Indicators
-       #{times_runperiod_repeated}                !- Number of Time Runperiod to be Repeated
        "      
       
     # add the new RunPeriod:CustomRange object
