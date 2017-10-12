@@ -200,17 +200,6 @@ class TimeseriesCSVExport < OpenStudio::Measure::ReportingMeasure
       return false
     end
     epw_timestamps = weather.epw_timestamps
-    
-    run_period = model.getRunPeriod
-    run_start_month = run_period.getBeginMonth
-    run_start_day = run_period.getBeginDayOfMonth
-    run_end_month = run_period.getEndMonth
-    run_end_day = run_period.getEndDayOfMonth
-    start_index, end_index = get_start_end_indexes(runner, epw_timestamps.length, run_start_month, run_start_day, run_end_month, run_end_day)
-    if start_index.nil? or end_index.nil?
-      return false
-    end
-    epw_timestamps = epw_timestamps[start_index...end_index]
 
     all_series = []
     # Sort by fuel, putting the total (Facility) column at the end of the fuel.
@@ -331,28 +320,6 @@ class TimeseriesCSVExport < OpenStudio::Measure::ReportingMeasure
     
     return true
  
-  end
-  
-  def get_start_end_indexes(runner, num_timestamps, run_start_month, run_start_day, run_end_month, run_end_day)
-
-    num_hours = {1=>0, 2=>31*24, 3=>28*24, 4=>31*24, 5=>30*24, 6=>31*24, 7=>30*24, 8=>31*24, 9=>31*24, 10=>30*24, 11=>31*24, 12=>30*24}
-
-    if num_timestamps == 8760
-    elsif num_timestamps == 8784
-      num_hours[3] += 24
-    else
-      runner.register("EPW is neither a full year or full leap year.")
-      return nil, nil
-    end
-    start_index = 0
-    num_hours.each do |month, days|
-      next if month == 1
-      num_hours[month] += num_hours[month-1]
-    end
-
-    start_index = num_hours[run_start_month] + (run_start_day-1)*24
-    end_index = num_hours[run_end_month] + run_end_day*24
-    return start_index, end_index
   end
 
 end
