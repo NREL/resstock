@@ -65,14 +65,29 @@ class CustomRunPeriodRange < OpenStudio::Measure::EnergyPlusMeasure
     end
     model = model.get
       
+    # get timestamps from the weather file
     weather = WeatherProcess.new(model, runner, File.dirname(__FILE__))
     if weather.error?
       return false
     end
     epw_timestamps = weather.epw_timestamps.sort
-    ts_start_year, = epw_timestamps[0].split("/")
-    ts_end_year, = epw_timestamps[-1].split("/")
-      
+    ts_start_year, ts_start_month, ts_start_day, = epw_timestamps[0].split("/")
+    ts_end_year, ts_end_month, ts_end_day, = epw_timestamps[-1].split("/")
+
+    # error checking
+    run_start = Time.new(run_start_year, run_start_month, run_start_day).to_i
+    run_end = Time.new(run_end_year, run_end_month, run_end_day).to_i
+    epw_start = Time.new(ts_start_year, ts_start_month, ts_start_day).to_i
+    epw_end = Time.new(ts_end_year, ts_end_month, ts_end_day).to_i
+    if run_start < epw_start or run_start > epw_end
+      runner.registerError("The run period start date is not within the epw data period.")
+      return false
+    end
+    if run_end > epw_end or run_end < epw_start
+      runner.registerError("The run period end date is not within the epw data period.")
+      return false
+    end
+
     # update epw file DATA PERIODS
     lines = File.readlines("../in.epw")
     string1, num1, num2, string2, day_of_week, header_start_date, header_end_date = lines[7].strip.split(",")
@@ -86,15 +101,14 @@ class CustomRunPeriodRange < OpenStudio::Measure::EnergyPlusMeasure
     File.open("../in.epw", "w") do |f|
       lines.each { |line| f.puts(line) }
     end
-      
+
+    # remove the existing RunPeriod object
     name = nil
     holidays_and_special_days = nil
     daylight_saving_period = nil
     apply_wknd_holiday_rule = nil
     use_weather_file_rain = nil
-    use_weather_file_snow = nil
-      
-    # remove the existing RunPeriod object
+    use_weather_file_snow = nil    
     workspace.getObjectsByType("RunPeriod".to_IddObjectType).each do |object|
       name = object.getString(0).to_s
       holidays_and_special_days = object.getString(6).to_s

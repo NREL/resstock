@@ -7,13 +7,31 @@ require 'fileutils'
 
 class CustomRunPeriodRangeTest < MiniTest::Test
   
+  def test_start_date_outside_of_epw_period
+    args_hash = {}
+    args_hash["run_start_date"] = "December 30 2011"
+    result = _test_error("SFD_Successful_EnergyPlus_Run_AMY.osm", args_hash, "0884454_United_States_IL_Cook_17031_725300_41.97_-87.9_NSRDB_2.0.1_2012_AMY.epw")
+    assert(result.errors.size == 1)
+    assert_equal("Fail", result.value.valueName)
+    assert_includes(result.errors.map{ |x| x.logMessage }, "The run period start date is not within the epw data period.")       
+  end
+  
+  def test_end_date_outside_of_epw_period
+    args_hash = {}
+    args_hash["run_end_date"] = "December 31 2013"
+    result = _test_error("SFD_Successful_EnergyPlus_Run_AMY.osm", args_hash, "0884454_United_States_IL_Cook_17031_725300_41.97_-87.9_NSRDB_2.0.1_2012_AMY.epw")
+    assert(result.errors.size == 1)
+    assert_equal("Fail", result.value.valueName)
+    assert_includes(result.errors.map{ |x| x.logMessage }, "The run period end date is not within the epw data period.")       
+  end
+  
   def test_new_start_date
     args_hash = {}
     args_hash["run_start_date"] = "December 31 2011"
     expected_num_del_objects = {"RunPeriod"=>1}
     expected_num_new_objects = {"RunPeriodCustomRange"=>1}
     expected_values = {"StartMonth"=>"12", "StartDay"=>"31", "StartYear"=>"2011", "EndMonth"=>"12", "EndDay"=>"31", "EndYear"=>"2012"}
-    _test_measure("SFD_Successful_EnergyPlus_Run_AMY.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, __method__, "0884454_United_States_IL_Cook_17031_725300_41.97_-87.9_NSRDB_2.0.1_2012_AMY.epw", 0, 1)
+    _test_measure("SFD_Successful_EnergyPlus_Run_AMY.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, "0884454_United_States_IL_Cook_17031_725300_41.97_-87.9_NSRDB_2.0.1_2012_AMY.epw", 0, 1)
   end
   
   private
@@ -31,7 +49,7 @@ class CustomRunPeriodRangeTest < MiniTest::Test
   end
 
   # create test files if they do not exist when the test first runs
-  def setup_test(test_name, epw_path, model_in_path)
+  def setup_test(epw_path, model_in_path)
 
     assert(File.exist?(model_in_path))
     
@@ -50,7 +68,43 @@ class CustomRunPeriodRangeTest < MiniTest::Test
     
   end
   
-  def _test_measure(osm_file_or_model, args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, test_name, epw_name, num_infos=0, num_warnings=0)
+  def _test_error(osm_file_or_model, args_hash, epw_name)
+    # create an instance of the measure
+    measure = CustomRunPeriodRange.new
+
+    # create an instance of a runner
+    runner = OpenStudio::Measure::OSRunner.new(OpenStudio::WorkflowJSON.new)
+
+    model = get_model(File.dirname(__FILE__), osm_file_or_model)
+
+    # mimic the process of running this measure in OS App or PAT. Optionally set custom model_in_path and custom epw_path.
+    workspace = setup_test(File.expand_path(epw_path_default(epw_name)), model_in_path_default(osm_file_or_model))
+    
+    # get arguments
+    arguments = measure.arguments(workspace)
+    argument_map = OpenStudio::Measure.convertOSArgumentVectorToMap(arguments)
+
+    # populate argument with specified hash value if specified
+    arguments.each do |arg|
+      temp_arg_var = arg.clone
+      if args_hash[arg.name]
+        assert(temp_arg_var.setValue(args_hash[arg.name]))
+      end
+      argument_map[arg.name] = temp_arg_var
+    end
+
+    # set up runner, this will happen automatically when measure is run in PAT or OpenStudio
+    runner.setLastOpenStudioModelPath(OpenStudio::Path.new(model_in_path_default(osm_file_or_model)))
+    
+    # run the measure
+    measure.run(workspace, runner, argument_map)
+    result = runner.result
+      
+    return result
+    
+  end
+  
+  def _test_measure(osm_file_or_model, args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, epw_name, num_infos=0, num_warnings=0)
     # create an instance of the measure
     measure = CustomRunPeriodRange.new
 
@@ -65,7 +119,7 @@ class CustomRunPeriodRangeTest < MiniTest::Test
     model = get_model(File.dirname(__FILE__), osm_file_or_model)
 
     # mimic the process of running this measure in OS App or PAT. Optionally set custom model_in_path and custom epw_path.
-    workspace = setup_test(test_name, File.expand_path(epw_path_default(epw_name)), model_in_path_default(osm_file_or_model))    
+    workspace = setup_test(File.expand_path(epw_path_default(epw_name)), model_in_path_default(osm_file_or_model))    
 
     # get the initial objects in the workspace
     initial_objects = get_workspace_objects(workspace)
