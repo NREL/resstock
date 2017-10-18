@@ -48,7 +48,7 @@ class SetResidentialEPWFile < OpenStudio::Measure::ModelMeasure
     arg.setDisplayName("Daylight Saving End Date")
     arg.setDescription("Set to 'NA' if no daylight saving.")
     arg.setDefaultValue("October 26")
-    args << arg      
+    args << arg
     
     return args
   end
@@ -66,7 +66,7 @@ class SetResidentialEPWFile < OpenStudio::Measure::ModelMeasure
     weather_directory = runner.getStringArgumentValue("weather_directory", user_arguments)
     weather_file_name = runner.getStringArgumentValue("weather_file_name", user_arguments)
     dst_start_date = runner.getStringArgumentValue("dst_start_date", user_arguments)
-    dst_end_date = runner.getStringArgumentValue("dst_end_date", user_arguments)
+    dst_end_date = runner.getStringArgumentValue("dst_end_date", user_arguments)   
     
     # ----------------
     # Set weather file
@@ -145,7 +145,7 @@ class SetResidentialEPWFile < OpenStudio::Measure::ModelMeasure
     swmt.setAnnualAverageOutdoorAirTemperature avgOAT
     swmt.setMaximumDifferenceInMonthlyAverageOutdoorAirTemperatures maxDiffOAT
     runner.registerInfo("Setting mains water temperature profile with an average temperature of #{weather.data.MainsAvgTemp.round(1)} F.")
-
+    
     # ----------------
     # Set daylight saving time
     # ----------------    

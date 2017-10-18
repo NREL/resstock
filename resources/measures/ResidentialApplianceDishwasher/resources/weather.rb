@@ -51,6 +51,15 @@ class WeatherProcess
     return @epw_path
   end
   
+  def epw_timestamps
+    epw_file = OpenStudio::EpwFile.new(epw_path)
+    timestamps = []
+    epw_file.data.each do |epw_data|
+      timestamps << "#{epw_data.year}/#{epw_data.month.to_s.rjust(2, "0")}/#{epw_data.day.to_s.rjust(2, "0")} #{epw_data.hour.to_s.rjust(2, "0")}:#{epw_data.minute.to_s.rjust(2, "0")}:00"
+    end
+    return timestamps
+  end
+  
   def error?
     return @error
   end
