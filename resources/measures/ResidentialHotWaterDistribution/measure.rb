@@ -8,7 +8,6 @@ require "#{File.dirname(__FILE__)}/resources/waterheater"
 
 #start the measure
 class ResidentialHotWaterDistribution < OpenStudio::Measure::ModelMeasure
-    OSM = OpenStudio::Model
             
     #define the name that a user will see, this method may be deprecated as
     #the display name in PAT comes from the name field in measure.xml
@@ -438,13 +437,13 @@ class ResidentialHotWaterDistribution < OpenStudio::Measure::ModelMeasure
             sch_s_temperatureSchedule = nil
             sch_b_temperatureSchedule = nil
             model.getWaterUseEquipments.each do |space_equipment|
-                if space_equipment.name.to_s == Constants.ObjectNameShower
+                if space_equipment.name.to_s == obj_name_sh
                     sch_sh_schedule = space_equipment.flowRateFractionSchedule.get
                     sch_sh_temperatureSchedule = space_equipment.waterUseEquipmentDefinition.targetTemperatureSchedule.get
-                elsif space_equipment.name.to_s == Constants.ObjectNameSink
+                elsif space_equipment.name.to_s == obj_name_s
                     sch_s_schedule = space_equipment.flowRateFractionSchedule.get
                     sch_s_temperatureSchedule = space_equipment.waterUseEquipmentDefinition.targetTemperatureSchedule.get
-                elsif space_equipment.name.to_s == Constants.ObjectNameBath
+                elsif space_equipment.name.to_s == obj_name_b
                     sch_b_schedule = space_equipment.flowRateFractionSchedule.get
                     sch_b_temperatureSchedule = space_equipment.waterUseEquipmentDefinition.targetTemperatureSchedule.get
                 end

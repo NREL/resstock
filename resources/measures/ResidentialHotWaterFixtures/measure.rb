@@ -9,7 +9,6 @@ require "#{File.dirname(__FILE__)}/resources/waterheater"
 
 #start the measure
 class ResidentialHotWaterFixtures < OpenStudio::Measure::ModelMeasure
-    OSM = OpenStudio::Model
             
     #define the name that a user will see, this method may be deprecated as
     #the display name in PAT comes from the name field in measure.xml
@@ -159,14 +158,23 @@ class ResidentialHotWaterFixtures < OpenStudio::Measure::ModelMeasure
             obj_name_sh = Constants.ObjectNameShower(unit.name.to_s)
             obj_name_s = Constants.ObjectNameSink(unit.name.to_s)
             obj_name_b = Constants.ObjectNameBath(unit.name.to_s)
-        
+            obj_name_recirc_pump = Constants.ObjectNameHotWaterRecircPump(unit.name.to_s)
+            
             # Remove any existing ssb
             objects_to_remove = []
+            recirc_pump = nil
             space.otherEquipment.each do |space_equipment|
                 next if space_equipment.name.to_s != obj_name_sh and space_equipment.name.to_s != obj_name_s and space_equipment.name.to_s != obj_name_b
                 objects_to_remove << space_equipment
                 objects_to_remove << space_equipment.otherEquipmentDefinition
                 if space_equipment.schedule.is_initialized
+                    # Check if there is a recirc pump referencing this schedule
+                    model.getElectricEquipments.each do |ee|
+                        next if ee.name.to_s != obj_name_recirc_pump
+                        next if not ee.schedule.is_initialized
+                        next if ee.schedule.get.handle.to_s != space_equipment.schedule.get.handle.to_s
+                        recirc_pump = ee
+                    end
                     objects_to_remove << space_equipment.schedule.get
                 end
             end
@@ -269,6 +277,11 @@ class ResidentialHotWaterFixtures < OpenStudio::Measure::ModelMeasure
                 sh_oe_def.setFractionLatent(sh_lat)
                 sh_oe_def.setFractionLost(0)
                 sh_oe.setSchedule(sch_sh.schedule)
+                
+                # Re-assign recirc pump schedule if needed
+                if not recirc_pump.nil?
+                  recirc_pump.setSchedule(sch_sh.schedule)
+                end
                 
                 tot_sh_gpd += sh_gpd
             end
