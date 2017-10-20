@@ -108,7 +108,7 @@ class ProcessFurnaceElectric < OpenStudio::Measure::ModelMeasure
       control_slave_zones_hash.each do |control_zone, slave_zones|
       
         # Remove existing equipment
-        clg_coil, perf = HVAC.remove_existing_hvac_equipment(model, runner, Constants.ObjectNameFurnace, control_zone, true)
+        clg_coil, perf = HVAC.remove_existing_hvac_equipment(model, runner, Constants.ObjectNameFurnace, control_zone, true, unit)
         
         # _processSystemHeatingCoil
         
@@ -195,7 +195,7 @@ class ProcessFurnaceElectric < OpenStudio::Measure::ModelMeasure
         slave_zones.each do |slave_zone|
         
           # Remove existing equipment
-          HVAC.remove_existing_hvac_equipment(model, runner, Constants.ObjectNameFurnace, slave_zone)        
+          HVAC.remove_existing_hvac_equipment(model, runner, Constants.ObjectNameFurnace, slave_zone, false, unit)
         
           diffuser_fbsmt = OpenStudio::Model::AirTerminalSingleDuctUncontrolled.new(model, model.alwaysOnDiscreteSchedule)
           diffuser_fbsmt.setName(obj_name + " #{slave_zone.name} direct air")
