@@ -297,15 +297,7 @@ class ProcessVRFMinisplit < OpenStudio::Measure::ModelMeasure
     if units.nil?
       return false
     end
-    
-    model.getOutputVariables.each do |output_var|
-      next unless output_var.name.to_s == Constants.ObjectNameMiniSplitHeatPump + " vrf heat energy output var"
-      output_var.remove
-    end
-    model.getOutputVariables.each do |output_var|
-      next unless output_var.name.to_s == Constants.ObjectNameMiniSplitHeatPump + " zone outdoor air drybulb temp output var"
-      output_var.remove
-    end    
+
     if miniSplitHPPanHeaterPowerPerUnit > 0    
       vrf_heating_output_var = OpenStudio::Model::OutputVariable.new("VRF Heat Pump Heating Electric Energy", model)
       vrf_heating_output_var.setName(Constants.ObjectNameMiniSplitHeatPump + " vrf heat energy output var")
@@ -316,44 +308,11 @@ class ProcessVRFMinisplit < OpenStudio::Measure::ModelMeasure
     units.each do |unit|
     
       obj_name = Constants.ObjectNameMiniSplitHeatPump(unit.name.to_s)
-
-      # Remove existing mini-split heat pump pan heater
-      model.getEnergyManagementSystemSensors.each do |sensor|
-        next unless sensor.name.to_s == "#{obj_name} vrf energy sensor".gsub(" ","_").gsub("|","_")
-        sensor.remove
-      end
-      model.getEnergyManagementSystemSensors.each do |sensor|
-        next unless sensor.name.to_s == "#{obj_name} vrf fbsmt energy sensor".gsub(" ","_").gsub("|","_")
-        sensor.remove
-      end
-      model.getEnergyManagementSystemSensors.each do |sensor|
-        next unless sensor.name.to_s == "#{obj_name} tout sensor".gsub(" ","_").gsub("|","_")
-        sensor.remove
-      end
-      model.getEnergyManagementSystemActuators.each do |actuator|
-        next unless actuator.name.to_s == "#{obj_name} pan heater actuator".gsub(" ","_").gsub("|","_")
-        actuator.remove
-      end
-      model.getEnergyManagementSystemPrograms.each do |program|
-        next unless program.name.to_s == "#{obj_name} pan heater program".gsub(" ","_")
-        program.remove
-      end          
-      model.getEnergyManagementSystemProgramCallingManagers.each do |program_calling_manager|
-        next unless program_calling_manager.name.to_s == obj_name + " pan heater program calling manager"
-        program_calling_manager.remove
-      end
     
       thermal_zones = Geometry.get_thermal_zones_from_spaces(unit.spaces)
       
       control_slave_zones_hash = HVAC.get_control_and_slave_zones(thermal_zones)
       control_slave_zones_hash.each do |control_zone, slave_zones|
-      
-        control_zone.spaces.each do |space|
-          space.electricEquipment.each do |equip|
-            next unless equip.name.to_s == obj_name + " pan heater equip"
-            equip.electricEquipmentDefinition.remove
-          end
-        end
       
         total_slave_zone_floor_area = 0
         slave_zones.each do |slave_zone|
@@ -361,7 +320,7 @@ class ProcessVRFMinisplit < OpenStudio::Measure::ModelMeasure
         end
       
         # Remove existing equipment
-        HVAC.remove_existing_hvac_equipment(model, runner, Constants.ObjectNameMiniSplitHeatPump, control_zone)
+        HVAC.remove_existing_hvac_equipment(model, runner, Constants.ObjectNameMiniSplitHeatPump, control_zone, false, unit)
       
         # _processSystemHeatingCoil
         
@@ -463,7 +422,7 @@ class ProcessVRFMinisplit < OpenStudio::Measure::ModelMeasure
         slave_zones.each do |slave_zone|
 
           # Remove existing equipment
-          HVAC.remove_existing_hvac_equipment(model, runner, Constants.ObjectNameMiniSplitHeatPump, slave_zone)
+          HVAC.remove_existing_hvac_equipment(model, runner, Constants.ObjectNameMiniSplitHeatPump, slave_zone, false, unit)
           
           htg_coil = OpenStudio::Model::CoilHeatingDXVariableRefrigerantFlow.new(model)
           htg_coil.setName(obj_name + " #{slave_zone.name} heating coil")

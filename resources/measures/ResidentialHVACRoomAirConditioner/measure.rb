@@ -114,7 +114,7 @@ class ProcessRoomAirConditioner < OpenStudio::Measure::ModelMeasure
         next unless Geometry.zone_is_above_grade(control_zone)
 
         # Remove existing equipment
-        HVAC.remove_existing_hvac_equipment(model, runner, Constants.ObjectNameRoomAirConditioner, control_zone)    
+        HVAC.remove_existing_hvac_equipment(model, runner, Constants.ObjectNameRoomAirConditioner, control_zone, false, unit)
       
         # _processSystemRoomAC
       
@@ -155,7 +155,7 @@ class ProcessRoomAirConditioner < OpenStudio::Measure::ModelMeasure
         slave_zones.each do |slave_zone|
 
           # Remove existing equipment
-          HVAC.remove_existing_hvac_equipment(model, runner, Constants.ObjectNameRoomAirConditioner, slave_zone)
+          HVAC.remove_existing_hvac_equipment(model, runner, Constants.ObjectNameRoomAirConditioner, slave_zone, false, unit)
 
           HVAC.prioritize_zone_hvac(model, runner, slave_zone).reverse.each do |object|
             slave_zone.setCoolingPriority(object, 1)
