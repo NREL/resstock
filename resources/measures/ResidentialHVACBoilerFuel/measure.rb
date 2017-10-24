@@ -318,7 +318,7 @@ class ProcessBoilerFuel < OpenStudio::Measure::ModelMeasure
       control_slave_zones_hash.each do |control_zone, slave_zones|
 
         # Remove existing equipment
-        HVAC.remove_existing_hvac_equipment(model, runner, Constants.ObjectNameBoiler, control_zone)
+        HVAC.remove_existing_hvac_equipment(model, runner, Constants.ObjectNameBoiler, control_zone, false, unit)
       
         baseboard_coil = OpenStudio::Model::CoilHeatingWaterBaseboard.new(model)
         baseboard_coil.setName(obj_name + " #{control_zone.name} heating coil")
@@ -345,7 +345,7 @@ class ProcessBoilerFuel < OpenStudio::Measure::ModelMeasure
         slave_zones.each do |slave_zone|
 
           # Remove existing equipment
-          HVAC.remove_existing_hvac_equipment(model, runner, Constants.ObjectNameBoiler, slave_zone)       
+          HVAC.remove_existing_hvac_equipment(model, runner, Constants.ObjectNameBoiler, slave_zone, false, unit)
         
           baseboard_coil = OpenStudio::Model::CoilHeatingWaterBaseboard.new(model)
           baseboard_coil.setName(obj_name + " #{slave_zone.name} heating coil")

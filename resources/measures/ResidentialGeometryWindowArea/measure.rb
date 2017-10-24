@@ -129,7 +129,7 @@ class SetResidentialWindowArea < OpenStudio::Measure::ModelMeasure
             surface.subSurfaces.each do |sub_surface|
                 next if sub_surface.subSurfaceType.downcase != "fixedwindow"
                 if sub_surface.construction.is_initialized
-                  if not construction.nil?
+                  if not construction.nil? and construction != sub_surface.construction.get
                     warn_msg = "Multiple constructions found. An arbitrary construction may be assigned to new window(s)."
                   end
                   construction = sub_surface.construction.get
@@ -143,7 +143,7 @@ class SetResidentialWindowArea < OpenStudio::Measure::ModelMeasure
             facade = Geometry.get_facade_for_surface(surface)
             next if facade.nil?
             surfaces[facade] << surface
-            if not constructions.keys.include? facade
+            if not construction.nil? and not constructions.keys.include? facade
               constructions[facade] = construction
             end
         end

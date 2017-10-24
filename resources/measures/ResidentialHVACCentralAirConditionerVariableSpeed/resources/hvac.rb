@@ -703,7 +703,7 @@ class HVAC
       return nil
     end
     
-    def self.has_mini_split_heat_pump(model, runner, thermal_zone, remove=false)
+    def self.has_mini_split_heat_pump(model, runner, thermal_zone, unit, remove=false)
       model.getAirConditionerVariableRefrigerantFlows.each do |vrf|
         vrf.terminals.each do |terminal|
           next unless thermal_zone.handle.to_s == terminal.thermalZone.get.handle.to_s
@@ -711,6 +711,50 @@ class HVAC
             runner.registerInfo("Removed '#{terminal.name}' from #{thermal_zone.name}.")
             terminal.remove
             vrf.remove
+
+            obj_name = Constants.ObjectNameMiniSplitHeatPump(unit.name.to_s)
+            
+            model.getOutputVariables.each do |output_var|
+              next unless output_var.name.to_s == Constants.ObjectNameMiniSplitHeatPump + " vrf heat energy output var"
+              output_var.remove
+            end
+            model.getOutputVariables.each do |output_var|
+              next unless output_var.name.to_s == Constants.ObjectNameMiniSplitHeatPump + " zone outdoor air drybulb temp output var"
+              output_var.remove
+            end
+
+            model.getEnergyManagementSystemSensors.each do |sensor|
+              next unless sensor.name.to_s == "#{obj_name} vrf energy sensor".gsub(" ","_").gsub("|","_")
+              sensor.remove
+            end
+            model.getEnergyManagementSystemSensors.each do |sensor|
+              next unless sensor.name.to_s == "#{obj_name} vrf fbsmt energy sensor".gsub(" ","_").gsub("|","_")
+              sensor.remove
+            end
+            model.getEnergyManagementSystemSensors.each do |sensor|
+              next unless sensor.name.to_s == "#{obj_name} tout sensor".gsub(" ","_").gsub("|","_")
+              sensor.remove
+            end
+            model.getEnergyManagementSystemActuators.each do |actuator|
+              next unless actuator.name.to_s == "#{obj_name} pan heater actuator".gsub(" ","_").gsub("|","_")
+              actuator.remove
+            end
+            model.getEnergyManagementSystemPrograms.each do |program|
+              next unless program.name.to_s == "#{obj_name} pan heater program".gsub(" ","_")
+              program.remove
+            end          
+            model.getEnergyManagementSystemProgramCallingManagers.each do |program_calling_manager|
+              next unless program_calling_manager.name.to_s == obj_name + " pan heater program calling manager"
+              program_calling_manager.remove
+            end
+            
+            thermal_zone.spaces.each do |space|
+              space.electricEquipment.each do |equip|
+                next unless equip.name.to_s == obj_name + " pan heater equip"
+                equip.electricEquipmentDefinition.remove
+              end
+            end
+            
           end
           return true
         end        
@@ -783,13 +827,13 @@ class HVAC
       return zone_hvac_list
     end
     
-    def self.remove_existing_hvac_equipment(model, runner, new_equip, thermal_zone, clone_perf=false)
+    def self.remove_existing_hvac_equipment(model, runner, new_equip, thermal_zone, clone_perf=false, unit=nil)
       counterpart_equip = nil
       perf = nil
       case new_equip
       when Constants.ObjectNameCentralAirConditioner
         removed_ashp = self.has_air_source_heat_pump(model, runner, thermal_zone, true)
-        removed_mshp = self.has_mini_split_heat_pump(model, runner, thermal_zone, true)
+        removed_mshp = self.has_mini_split_heat_pump(model, runner, thermal_zone, unit, true)
         counterpart_equip = self.has_furnace(model, runner, thermal_zone)
         removed_ac = self.has_central_air_conditioner(model, runner, thermal_zone, true)
         removed_room_ac = self.has_room_air_conditioner(model, runner, thermal_zone, true)
@@ -805,7 +849,7 @@ class HVAC
         end
       when Constants.ObjectNameRoomAirConditioner
         removed_ashp = self.has_air_source_heat_pump(model, runner, thermal_zone, true)
-        removed_mshp = self.has_mini_split_heat_pump(model, runner, thermal_zone, true)      
+        removed_mshp = self.has_mini_split_heat_pump(model, runner, thermal_zone, unit, true)
         removed_room_ac = self.has_room_air_conditioner(model, runner, thermal_zone, true)
         removed_ac = self.has_central_air_conditioner(model, runner, thermal_zone, true)
         removed_gshp_vert_bore = self.has_gshp_vert_bore(model, runner, thermal_zone, true)
@@ -820,7 +864,7 @@ class HVAC
         end        
       when Constants.ObjectNameFurnace
         removed_ashp = self.has_air_source_heat_pump(model, runner, thermal_zone, true)
-        removed_mshp = self.has_mini_split_heat_pump(model, runner, thermal_zone, true)      
+        removed_mshp = self.has_mini_split_heat_pump(model, runner, thermal_zone, unit, true)
         counterpart_equip = self.has_central_air_conditioner(model, runner, thermal_zone)
         removed_furnace = self.has_furnace(model, runner, thermal_zone, true)
         removed_boiler = self.has_boiler(model, runner, thermal_zone, true)
@@ -837,7 +881,7 @@ class HVAC
         removed_furnace = self.has_furnace(model, runner, thermal_zone, true)
         removed_elec_baseboard = self.has_electric_baseboard(model, runner, thermal_zone, true)
         removed_ashp = self.has_air_source_heat_pump(model, runner, thermal_zone, true)
-        removed_mshp = self.has_mini_split_heat_pump(model, runner, thermal_zone, true)
+        removed_mshp = self.has_mini_split_heat_pump(model, runner, thermal_zone, unit, true)
         removed_gshp_vert_bore = self.has_gshp_vert_bore(model, runner, thermal_zone, true)
         if removed_furnace or removed_ashp or removed_mshp or removed_gshp_vert_bore
           self.has_air_loop(model, runner, thermal_zone, true)
@@ -847,14 +891,14 @@ class HVAC
         removed_furnace = self.has_furnace(model, runner, thermal_zone, true)
         removed_boiler = self.has_boiler(model, runner, thermal_zone, true)
         removed_ashp = self.has_air_source_heat_pump(model, runner, thermal_zone, true)
-        removed_mshp = self.has_mini_split_heat_pump(model, runner, thermal_zone, true)
+        removed_mshp = self.has_mini_split_heat_pump(model, runner, thermal_zone, unit, true)
         removed_gshp_vert_bore = self.has_gshp_vert_bore(model, runner, thermal_zone, true)
         if removed_furnace or removed_ashp or removed_gshp_vert_bore
           self.has_air_loop(model, runner, thermal_zone, true)
         end
       when Constants.ObjectNameAirSourceHeatPump
         removed_ashp = self.has_air_source_heat_pump(model, runner, thermal_zone, true)
-        removed_mshp = self.has_mini_split_heat_pump(model, runner, thermal_zone, true)
+        removed_mshp = self.has_mini_split_heat_pump(model, runner, thermal_zone, unit, true)
         removed_ac = self.has_central_air_conditioner(model, runner, thermal_zone, true)
         removed_room_ac = self.has_room_air_conditioner(model, runner, thermal_zone, true)
         removed_furnace = self.has_furnace(model, runner, thermal_zone, true)
@@ -865,7 +909,7 @@ class HVAC
           self.has_air_loop(model, runner, thermal_zone, true)
         end
       when Constants.ObjectNameMiniSplitHeatPump
-        removed_mshp = self.has_mini_split_heat_pump(model, runner, thermal_zone, true)
+        removed_mshp = self.has_mini_split_heat_pump(model, runner, thermal_zone, unit, true)
         removed_ashp = self.has_air_source_heat_pump(model, runner, thermal_zone, true)
         removed_ac = self.has_central_air_conditioner(model, runner, thermal_zone, true)
         removed_room_ac = self.has_room_air_conditioner(model, runner, thermal_zone, true)
@@ -878,7 +922,7 @@ class HVAC
         end
       when Constants.ObjectNameGroundSourceHeatPumpVerticalBore
         removed_ashp = self.has_air_source_heat_pump(model, runner, thermal_zone, true)
-        removed_mshp = self.has_mini_split_heat_pump(model, runner, thermal_zone, true)
+        removed_mshp = self.has_mini_split_heat_pump(model, runner, thermal_zone, unit, true)
         removed_ac = self.has_central_air_conditioner(model, runner, thermal_zone, true)
         removed_room_ac = self.has_room_air_conditioner(model, runner, thermal_zone, true)
         removed_furnace = self.has_furnace(model, runner, thermal_zone, true)

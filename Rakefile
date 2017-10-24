@@ -31,6 +31,9 @@ task :copy_beopt_files do
 
   http.request request do |response|
     total = response.header["Content-Length"].to_i
+    if total == 0
+      fail "Did not successfully download zip file."
+    end
     size = 0
     progress = 0
     open "#{branch}.zip", 'wb' do |io|
@@ -132,6 +135,7 @@ task :copy_beopt_files do
   end
 
   FileUtils.rm_rf(File.join(File.dirname(__FILE__), branch))
+  FileUtils.rm(File.join(File.dirname(__FILE__), "#{branch}.zip"))
 
 end
 
@@ -152,7 +156,7 @@ namespace :test do
   desc 'Run unit tests for all measures'
   Rake::TestTask.new('all') do |t|
     t.libs << 'test'
-    t.test_files = Dir['project_*/tests/*.rb']
+    t.test_files = Dir['project_*/tests/*.rb'] + Dir['measures/*/tests/*.rb']
     t.warning = false
     t.verbose = true
   end

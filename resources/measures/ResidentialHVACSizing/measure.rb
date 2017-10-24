@@ -2991,7 +2991,7 @@ class ProcessHVACSizing < OpenStudio::Measure::ModelMeasure
     if not HVAC.has_air_source_heat_pump(model, runner, control_zone, false).nil?
         hvac.HasAirSourceHeatPump = true
     end
-    if not HVAC.has_mini_split_heat_pump(model, runner, control_zone, false).nil?
+    if not HVAC.has_mini_split_heat_pump(model, runner, control_zone, unit, false).nil?
         hvac.HasMiniSplitHeatPump = true
     end
     if not HVAC.has_gshp_vert_bore(model, runner, control_zone, false).nil?
