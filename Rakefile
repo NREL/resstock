@@ -135,7 +135,6 @@ task :copy_beopt_files do
   end
 
   FileUtils.rm_rf(File.join(File.dirname(__FILE__), branch))
-  FileUtils.rm(File.join(File.dirname(__FILE__), "#{branch}.zip"))
 
 end
 
