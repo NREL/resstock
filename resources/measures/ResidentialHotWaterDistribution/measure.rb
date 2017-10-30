@@ -182,7 +182,7 @@ class ResidentialHotWaterDistribution < OpenStudio::Measure::ModelMeasure
                 end
             end
             if dist_removed
-                runner.registerInfo("Removed existing hot water distribution from space #{dist_space.name.to_s}.")
+                runner.registerInfo("Removed existing hot water distribution from space '#{dist_space.name.to_s}'.")
             end
             
             # Find which space the showers, sinks, and baths were previously assigned to and get the peak flow rates

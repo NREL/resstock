@@ -259,7 +259,7 @@ class ResidentialDishwasher < OpenStudio::Measure::ModelMeasure
             end
         end
         if objects_to_remove.size > 0
-            runner.registerInfo("Removed existing dishwasher from space #{space.name.to_s}.")
+            runner.registerInfo("Removed existing dishwasher from space '#{space.name.to_s}'.")
         end
         objects_to_remove.uniq.each do |object|
             begin

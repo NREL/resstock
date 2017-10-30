@@ -112,11 +112,6 @@ class ProcessCoolingSetpoints < OpenStudio::Measure::ModelMeasure
       end
     end
     
-    unless has_clg_equip
-      runner.registerWarning("No cooling equipment found.")
-      return true
-    end
-    
     # Convert to 24-values if a single value entered
     if not clg_wkdy.include?(",")
       clg_wkdy = Array.new(24, clg_wkdy).join(", ")
