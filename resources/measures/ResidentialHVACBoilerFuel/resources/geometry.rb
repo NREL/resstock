@@ -152,19 +152,14 @@ class Geometry
             return nil
         end
         
-        units = model.getBuildingUnits
-        
-        # Remove any units from list that have no associated spaces or are not residential
-        to_remove = []
-        units.each do |unit|
-            next if unit.spaces.size > 0 and unit.buildingUnitType == Constants.BuildingUnitTypeResidential
-            to_remove << unit
-        end
-        to_remove.each do |unit|
-            units.delete(unit)
+        return_units = []
+        model.getBuildingUnits.each do |unit|
+            # Remove any units from list that have no associated spaces or are not residential
+            next if not (unit.spaces.size > 0 and unit.buildingUnitType == Constants.BuildingUnitTypeResidential)
+            return_units << unit
         end
         
-        if units.size == 0
+        if return_units.size == 0
             # Assume SFD; create single building unit for entire model
             if !runner.nil?
                 runner.registerWarning("No building units defined; assuming single-family detached building.")
@@ -175,10 +170,12 @@ class Geometry
             model.getSpaces.each do |space|
                 space.setBuildingUnit(unit)
             end
-            units = model.getBuildingUnits
+            model.getBuildingUnits.each do |unit|
+              return_units << unit
+            end
         end
         
-        return units
+        return return_units
     end
     
     def self.get_unit_beds_baths(model, unit, runner=nil)
@@ -201,8 +198,6 @@ class Geometry
         dhw_sched_index = unit.getFeatureAsInteger(Constants.BuildingUnitFeatureDHWSchedIndex)
         if not dhw_sched_index.is_initialized
             # Assign DHW schedule index values for every building unit.
-            # For each unit, the DHW schedule is shifted by one week,
-            # allowing for up to 365 day shifted schedules for each end use.
             dhw_sched_index_hash = {}
             num_bed_options = (1..5)
             num_bed_options.each do |num_bed_option|
@@ -211,7 +206,7 @@ class Geometry
             units = self.get_building_units(model, runner)
             units.each do |unit|
                 nbeds, nbaths = Geometry.get_unit_beds_baths(model, unit, runner)
-                dhw_sched_index_hash[nbeds] = (dhw_sched_index_hash[nbeds]) % 365
+                dhw_sched_index_hash[nbeds] = (dhw_sched_index_hash[nbeds]+1) % 365
                 unit.setFeature(Constants.BuildingUnitFeatureDHWSchedIndex, dhw_sched_index_hash[nbeds])
             end
             dhw_sched_index = unit.getFeatureAsInteger(Constants.BuildingUnitFeatureDHWSchedIndex).get

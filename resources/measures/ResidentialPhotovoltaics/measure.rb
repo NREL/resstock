@@ -155,8 +155,8 @@ class ResidentialPhotovoltaics < OpenStudio::Measure::ModelMeasure
     pv_azimuth = PVAzimuth.new
     pv_tilt = PVTilt.new
     
-    @weather = WeatherProcess.new(model, runner, File.dirname(__FILE__), header_only=true)
-    if @weather.error?
+    weather = WeatherProcess.new(model, runner, File.dirname(__FILE__))
+    if weather.error?
       return false
     end
     
@@ -170,7 +170,7 @@ class ResidentialPhotovoltaics < OpenStudio::Measure::ModelMeasure
     pv_system.inv_eff = inverter_efficiency * 100.0
     pv_system.losses = system_losses * 100.0
     pv_azimuth.abs = Geometry.get_abs_azimuth(azimuth_type, azimuth, model.getBuilding.northAxis)
-    pv_tilt.abs = Geometry.get_abs_tilt(tilt_type, tilt, roof_tilt, @weather.header.Latitude)
+    pv_tilt.abs = Geometry.get_abs_tilt(tilt_type, tilt, roof_tilt, weather.header.Latitude)
                 
     p_data = SscApi.create_data_object
     SscApi.set_number(p_data, 'system_capacity', pv_system.size)
@@ -181,7 +181,7 @@ class ResidentialPhotovoltaics < OpenStudio::Measure::ModelMeasure
     SscApi.set_number(p_data, 'azimuth', pv_azimuth.abs)
     SscApi.set_number(p_data, 'tilt', pv_tilt.abs)    
     SscApi.set_number(p_data, 'adjust:constant', 0)
-    SscApi.set_string(p_data, 'solar_resource_file', @weather.epw_path)
+    SscApi.set_string(p_data, 'solar_resource_file', weather.epw_path)
     p_mod = SscApi.create_module("pvwattsv5")
     SscApi.set_print(false)
     SscApi.execute_module(p_mod, p_data)

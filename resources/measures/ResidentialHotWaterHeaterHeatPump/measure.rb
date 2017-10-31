@@ -343,6 +343,12 @@ class ResidentialHotWaterHeaterHeatPump < OpenStudio::Measure::ModelMeasure
             ue_p = output_var
           end
         end
+        
+        weather = WeatherProcess.new(model, runner, File.dirname(__FILE__))
+        if weather.error?
+            return false
+        end
+        alt = weather.header.Altitude
 
         units.each do |unit|
 
@@ -466,11 +472,6 @@ class ResidentialHotWaterHeaterHeatPump < OpenStudio::Measure::ModelMeasure
             rated_edb_F = 67.5
             rated_ewb = OpenStudio.convert(rated_ewb_F,"F","C").get
             rated_edb = OpenStudio.convert(rated_edb_F,"F","C").get
-            weather = WeatherProcess.new(model, runner, File.dirname(__FILE__), header_only=true)
-            if weather.error?
-                return false
-            end
-            alt = weather.header.Altitude
             w_rated = Psychrometrics.w_fT_Twb_P(rated_edb_F,rated_ewb_F,14.7)
             dp_rated = Psychrometrics.Tdp_fP_w(14.7, w_rated)
             p_atm = Psychrometrics.Pstd_fZ(alt)

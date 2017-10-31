@@ -120,11 +120,6 @@ class ProcessHeatingSetpoints < OpenStudio::Measure::ModelMeasure
       end
     end
     
-    unless has_htg_equip
-      runner.registerWarning("No heating equipment found.")
-      return true
-    end    
-    
     # Convert to 24-values if a single value entered
     if not htg_wkdy.include?(",")
       htg_wkdy = Array.new(24, htg_wkdy).join(", ")

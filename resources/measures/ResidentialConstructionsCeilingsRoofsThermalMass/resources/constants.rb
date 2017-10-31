@@ -254,6 +254,20 @@ class Constants
     end
     return "crawl zone#{s_unit}"
   end
+  def self.DSESpace(unit_name=self.ObjectNameBuildingUnit)
+    s_unit = ""
+    if unit_name != self.ObjectNameBuildingUnit
+      s_unit = "|#{unit_name}"
+    end
+    return "dse space#{s_unit}"
+  end
+  def self.DSEZone(unit_name=self.ObjectNameBuildingUnit)
+    s_unit = ""
+    if unit_name != self.ObjectNameBuildingUnit
+      s_unit = "|#{unit_name}"
+    end
+    return "dse zone#{s_unit}"
+  end
   def self.EndUseHVACFan
     return 'residential hvac fan'
   end
@@ -953,6 +967,9 @@ class Constants
   end
   def self.SizingInfoCMUWallFurringInsRvalue(surface) # FUTURE: Use StandardsInfo object
     return self.SizingInfo(__method__.to_s, surface)
+  end
+  def self.SizingInfoDuctsDSE # FUTURE: Use StandardsInfo object
+    return self.SizingInfo(__method__.to_s)
   end
   def self.SizingInfoDuctsLocationFrac # FUTURE: Use StandardsInfo object
     return self.SizingInfo(__method__.to_s)
