@@ -1108,7 +1108,7 @@ class ResidentialAirflow < OpenStudio::Measure::ModelMeasure
       
       infil, building, unit = _processInfiltrationForUnit(infil, wind_speed, building, unit, has_hvac_flue, has_water_heater_flue, has_fireplace_chimney, runner)
       mech_vent = _processMechanicalVentilationForUnit(model, runner, infil, mech_vent, building, unit)
-      nat_vent = _processNaturalVentilationForUnit(model, runner, nat_vent, wind_speed, infil, building, unit)   
+      nat_vent = _processNaturalVentilationForUnit(model, runner, nat_vent, wind_speed, infil, building, unit)
       ducts = _processDuctsForUnit(model, runner, ducts, building, unit)
       
       schedules.BathExhaust = HourlyByMonthSchedule.new(model, runner, obj_name_infil + " bath exhaust schedule", [Array.new(6, 0.0) + [1.0] + Array.new(17, 0.0)] * 12, [Array.new(6, 0.0) + [1.0] + Array.new(17, 0.0)] * 12, normalize_values = false)
