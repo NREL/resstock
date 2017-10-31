@@ -195,11 +195,7 @@ class TimeseriesCSVExport < OpenStudio::Measure::ReportingMeasure
       end
     end
 
-    weather = WeatherProcess.new(model, runner, File.dirname(__FILE__))
-    if weather.error?
-      return false
-    end
-    epw_timestamps = weather.epw_timestamps
+    epw_timestamps = WeatherProcess.epw_timestamps(model, runner, File.dirname(__FILE__))
 
     all_series = []
     # Sort by fuel, putting the total (Facility) column at the end of the fuel.

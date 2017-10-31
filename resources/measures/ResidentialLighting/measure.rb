@@ -271,7 +271,7 @@ class ResidentialLighting < OpenStudio::Measure::ModelMeasure
     smrt_replace_f = (0.1672 * hw_inc ** 4 - 0.4817 * hw_inc ** 3 + 0.6336 * hw_inc ** 2 - 0.492 * hw_inc + 1.1561)
 
     # Calculate the lighting schedule
-    weather = WeatherProcess.new(model, runner, File.dirname(__FILE__), header_only=true)
+    weather = WeatherProcess.new(model, runner, File.dirname(__FILE__))
     if weather.error?
         return false
     end

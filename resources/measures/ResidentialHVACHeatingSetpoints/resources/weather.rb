@@ -4,54 +4,62 @@ require "#{File.dirname(__FILE__)}/constants"
 class WeatherHeader
   def initialize
   end
-  attr_accessor(:City, :State, :Country, :DataSource, :Station, :Latitude, :Longitude, :Timezone, :Altitude, :LocalPressure)
+  ATTRS ||= [:City, :State, :Country, :DataSource, :Station, :Latitude, :Longitude, :Timezone, :Altitude, :LocalPressure]
+  attr_accessor(*ATTRS)
 end
 
 class WeatherData
   def initialize
   end
-  attr_accessor(:AnnualAvgDrybulb, :AnnualMinDrybulb, :AnnualMaxDrybulb, :CDD50F, :CDD65F, :HDD50F, :HDD65F, :DailyAvgDrybulbs, :DailyMaxDrybulbs, :DailyMinDrybulbs, :AnnualAvgWindspeed, :MonthlyAvgDrybulbs, :MainsDailyTemps, :MainsMonthlyTemps, :MainsAvgTemp, :GroundMonthlyTemps, :WSF, :MonthlyAvgDailyHighDrybulbs, :MonthlyAvgDailyLowDrybulbs)
+  ATTRS ||= [:AnnualAvgDrybulb, :AnnualMinDrybulb, :AnnualMaxDrybulb, :CDD50F, :CDD65F, :HDD50F, :HDD65F, :AnnualAvgWindspeed, :MonthlyAvgDrybulbs, :MainsDailyTemps, :MainsMonthlyTemps, :MainsAvgTemp, :GroundMonthlyTemps, :WSF, :MonthlyAvgDailyHighDrybulbs, :MonthlyAvgDailyLowDrybulbs]
+  attr_accessor(*ATTRS)
 end
 
 class WeatherDesign
   def initialize
   end
-  attr_accessor(:HeatingDrybulb, :HeatingWindspeed, :CoolingDrybulb, :CoolingWetbulb, :CoolingHumidityRatio, :CoolingWindspeed, :DailyTemperatureRange, :DehumidDrybulb, :DehumidHumidityRatio, :CoolingDirectNormal, :CoolingDiffuseHorizontal)
+  ATTRS ||= [:HeatingDrybulb, :HeatingWindspeed, :CoolingDrybulb, :CoolingWetbulb, :CoolingHumidityRatio, :CoolingWindspeed, :DailyTemperatureRange, :DehumidDrybulb, :DehumidHumidityRatio, :CoolingDirectNormal, :CoolingDiffuseHorizontal]
+  attr_accessor(*ATTRS)
 end
 
 class WeatherProcess
 
-  def initialize(model, runner, measure_dir, header_only=false)
+  def initialize(model, runner, measure_dir)
+  
+    @error = false
+    
     @model = model
     @runner = runner
     @measure_dir = measure_dir
-    if model.weatherFile.is_initialized
-      # OpenStudio measures
-      wf = model.weatherFile.get
-      # Sometimes path is available, sometimes just url. Should be improved in OS 2.0.
-      if wf.path.is_initialized
-        @epw_path = wf.path.get.to_s
-      else
-        @epw_path = wf.url.to_s.sub("file:///","").sub("file://","").sub("file:","")
-      end
-      if not File.exist? @epw_path # Handle relative paths for unit tests
-        epw_path2 = File.join(measure_dir, "resources", @epw_path)
-        if File.exist? epw_path2
-            @epw_path = epw_path2
-        end
-      end
-      @header, @data, @design = process_epw(@epw_path, header_only)
-    else
-      runner.registerError("Model has not been assigned a weather file.")
+    
+    @header = WeatherHeader.new
+    @data = WeatherData.new
+    @design = WeatherDesign.new
+    
+    @epw_path = WeatherProcess.get_epw_path(model, runner, measure_dir)
+    if @epw_path.nil?
       @error = true
+      return
     end
+    
+    unit = get_weather_building_unit(model)
+  
+    cached = get_cached_weather(unit)
+    return if cached or @error
+    
+    process_epw(@epw_path)
+    return if @error
+    
+    cache_weather(unit)
+      
   end
 
   def epw_path
     return @epw_path
   end
   
-  def epw_timestamps
+  def self.epw_timestamps(model, runner, measure_dir)
+    epw_path = get_epw_path(model, runner, measure_dir)
     epw_file = OpenStudio::EpwFile.new(epw_path)
     timestamps = []
     epw_file.data.each do |epw_data|
@@ -68,38 +76,177 @@ class WeatherProcess
   
   private
   
-      def process_epw(epw_path, header_only)
+      def self.get_epw_path(model, runner, measure_dir)
+        if model.weatherFile.is_initialized
+        
+          wf = model.weatherFile.get
+          # Sometimes path is available, sometimes just url. Should be improved in OS 2.0.
+          if wf.path.is_initialized
+            epw_path = wf.path.get.to_s
+          else
+            epw_path = wf.url.to_s.sub("file:///","").sub("file://","").sub("file:","")
+          end
+          if not File.exist? epw_path # Handle relative paths for unit tests
+            epw_path2 = File.join(measure_dir, "resources", epw_path)
+            if File.exist? epw_path2
+                epw_path = epw_path2
+            end
+          end
+          return epw_path
+        end
+        
+        runner.registerError("Model has not been assigned a weather file.")
+        return nil
+      end
+  
+      def get_weather_building_unit(model)
+        unit_name = "EPWWeatherInfo"
+        
+        # Look for existing unit with weather data
+        unit = nil
+        model.getBuildingUnits.each do |u|
+          next if u.name.to_s != unit_name
+          unit = u
+        end
+        
+        if unit.nil?
+          # Create new unit to store weather data
+          unit = OpenStudio::Model::BuildingUnit.new(model)
+          unit.setBuildingUnitType("Residential")
+          unit.setName(unit_name)
+        end
+        
+        return unit
+        
+      end
+      
+      def cache_weather(unit)
+        
+        # Header
+        WeatherHeader::ATTRS.each do |k|
+          k = k.to_s
+          # string
+          if ['City','State','Country','DataSource','Station'].include? k
+            unit.setFeature("EPWHeader#{k}", @header.send(k).to_s)
+          # double
+          elsif ['Latitude','Longitude','Timezone','Altitude','LocalPressure'].include? k
+            unit.setFeature("EPWHeader#{k}", @header.send(k).to_f)
+          else
+            @runner.registerError("Weather header key #{k} not handled.")
+            @error = true
+            return false
+          end
+        end
+        
+        # Data
+        WeatherData::ATTRS.each do |k|
+          k = k.to_s
+          # double
+          if ['AnnualAvgDrybulb','AnnualMinDrybulb','AnnualMaxDrybulb','CDD50F','CDD65F',
+                 'HDD50F','HDD65F','AnnualAvgWindspeed','MainsAvgTemp','WSF'].include? k
+            unit.setFeature("EPWData#{k}", @data.send(k).to_f)
+          # array
+          elsif ['MonthlyAvgDrybulbs','MainsDailyTemps','MainsMonthlyTemps','GroundMonthlyTemps',
+                 'MonthlyAvgDailyHighDrybulbs','MonthlyAvgDailyLowDrybulbs'].include? k
+            unit.setFeature("EPWData#{k}", @data.send(k).join(","))
+          else
+            @runner.registerError("Weather data key #{k} not handled.")
+            @error = true
+            return false
+          end
+        end
+        
+        # Design
+        WeatherDesign::ATTRS.each do |k|
+          k = k.to_s
+          # double
+          unit.setFeature("EPWDesign#{k}", @design.send(k).to_f)
+        end
+        
+      end
+  
+      def get_cached_weather(unit)
+        
+        # Header
+        WeatherHeader::ATTRS.each do |k|
+          k = k.to_s
+          # string
+          if ['City','State','Country','DataSource','Station'].include? k
+            @header.send(k+"=", unit.getFeatureAsString("EPWHeader#{k}"))
+            return false if !@header.send(k).is_initialized
+            @header.send(k+"=", @header.send(k).get)
+          # double
+          elsif ['Latitude','Longitude','Timezone','Altitude','LocalPressure'].include? k
+            @header.send(k+"=", unit.getFeatureAsDouble("EPWHeader#{k}"))
+            return false if !@header.send(k).is_initialized
+            @header.send(k+"=", @header.send(k).get)
+          else
+            @runner.registerError("Weather header key #{k} not handled.")
+            @error = true
+            return false
+          end
+        end
+        
+        # Data
+        WeatherData::ATTRS.each do |k|
+          k = k.to_s
+          # double
+          if ['AnnualAvgDrybulb','AnnualMinDrybulb','AnnualMaxDrybulb','CDD50F','CDD65F',
+                 'HDD50F','HDD65F','AnnualAvgWindspeed','MainsAvgTemp','WSF'].include? k
+            @data.send(k+"=", unit.getFeatureAsDouble("EPWData#{k}"))
+            return false if !@data.send(k).is_initialized
+            @data.send(k+"=", @data.send(k).get)
+          # array
+          elsif ['MonthlyAvgDrybulbs','MainsDailyTemps','MainsMonthlyTemps','GroundMonthlyTemps',
+                 'MonthlyAvgDailyHighDrybulbs','MonthlyAvgDailyLowDrybulbs'].include? k
+            @data.send(k+"=", unit.getFeatureAsString("EPWData#{k}"))
+            return false if !@data.send(k).is_initialized
+            @data.send(k+"=", @data.send(k).get.split(",").map(&:to_f))
+          else
+            @runner.registerError("Weather data key #{k} not handled.")
+            @error = true
+            return false
+          end
+        end
+        
+        # Design
+        WeatherDesign::ATTRS.each do |k|
+          k = k.to_s
+          # double
+          @design.send(k+"=", unit.getFeatureAsDouble("EPWDesign#{k}"))
+          return false if !@design.send(k).is_initialized
+          @design.send(k+"=", @design.send(k).get)
+        end
+        
+        return true
+      end
+  
+      def process_epw(epw_path)
         if not File.exist?(epw_path)
           @runner.registerError("Cannot find weather file at #{epw_path}.")
           @error = true
-          return nil, nil, nil
+          return
         end
 
-        epw_file = OpenStudio::EpwFile.new(epw_path, !header_only)
+        epw_file = OpenStudio::EpwFile.new(epw_path, true)
 
         # Header info:
-        header = WeatherHeader.new
-        header.City = epw_file.city
-        header.State = epw_file.stateProvinceRegion
-        header.Country = epw_file.country
-        header.DataSource = epw_file.dataSource
-        header.Station = epw_file.wmoNumber
-        header.Latitude = epw_file.latitude
-        header.Longitude = epw_file.longitude
-        header.Timezone = epw_file.timeZone
-        header.Altitude = OpenStudio::convert(epw_file.elevation,"m","ft").get
-        header.LocalPressure = Math::exp(-0.0000368 * header.Altitude) # atm
+        @header.City = epw_file.city
+        @header.State = epw_file.stateProvinceRegion
+        @header.Country = epw_file.country
+        @header.DataSource = epw_file.dataSource
+        @header.Station = epw_file.wmoNumber
+        @header.Latitude = epw_file.latitude
+        @header.Longitude = epw_file.longitude
+        @header.Timezone = epw_file.timeZone
+        @header.Altitude = OpenStudio::convert(epw_file.elevation,"m","ft").get
+        @header.LocalPressure = Math::exp(-0.0000368 * @header.Altitude) # atm
         
-        if header_only
-          return header, nil, nil
-        end
-        
-        design = WeatherDesign.new
         ddy_path = epw_path.gsub(".epw",".ddy")
         epwHasDesignData = false
         if File.exist?(ddy_path)
           epwHasDesignData = true
-          design = get_design_info_from_ddy(design, ddy_path, header.Altitude)
+          @design = get_design_info_from_ddy(@design, ddy_path, @header.Altitude)
         end
         
         # Timeseries data:
@@ -163,7 +310,7 @@ class WeatherProcess
             @error = true
           end
           if @error
-            return nil, nil, nil
+            return
           end
           hourdata << hourdict
 
@@ -190,25 +337,22 @@ class WeatherProcess
 
         end
 
-        data = WeatherData.new
-        data = calc_annual_drybulbs(data, hourdata)
-        data = calc_monthly_drybulbs(data, hourdata)
-        data = calc_heat_cool_degree_days(data, hourdata, dailydbs)
-        data = calc_avg_highs_lows(data, dailyhighdbs, dailylowdbs)
-        data = calc_avg_windspeed(data, hourdata)
-        data = calc_mains_temperature(data, header)
-        data = calc_ground_temperatures(data)
-        data.WSF = get_ashrae_622_wsf(header.Station)
+        @data = calc_annual_drybulbs(@data, hourdata)
+        @data = calc_monthly_drybulbs(@data, hourdata)
+        @data = calc_heat_cool_degree_days(@data, hourdata, dailydbs)
+        @data = calc_avg_highs_lows(@data, dailyhighdbs, dailylowdbs)
+        @data = calc_avg_windspeed(@data, hourdata)
+        @data = calc_mains_temperature(@data, @header)
+        @data = calc_ground_temperatures(@data)
+        @data.WSF = get_ashrae_622_wsf(@header.Station)
         
         if not epwHasDesignData
           @runner.registerWarning("No DDY file found; calculating design conditions from EPW weather data.")
-          design = calc_design_info(design, hourdata, header.Altitude)
-          design.DailyTemperatureRange = data.MonthlyAvgDailyHighDrybulbs[7] - data.MonthlyAvgDailyLowDrybulbs[7]
+          @design = calc_design_info(@design, hourdata, @header.Altitude)
+          @design.DailyTemperatureRange = @data.MonthlyAvgDailyHighDrybulbs[7] - @data.MonthlyAvgDailyLowDrybulbs[7]
         end
         
-        design = calc_design_solar_radiation(design, hourdata)
-        
-        return header, data, design
+        @design = calc_design_solar_radiation(@design, hourdata)
 
       end
 
