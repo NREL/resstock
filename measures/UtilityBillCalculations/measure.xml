@@ -2,8 +2,8 @@
   <schema_version>3.0</schema_version>
   <name>utility_bill_calculations</name>
   <uid>872cd20c-55df-459e-9ac9-f42c93ab665c</uid>
-  <version_id>a507f32e-1f63-4b3b-9941-5f321afa2604</version_id>
-  <version_modified>20171031T200658Z</version_modified>
+  <version_id>0595c614-e1e1-4f10-b52e-6a324e398cb1</version_id>
+  <version_modified>20170922T195704Z</version_modified>
   <xml_checksum>6159342E</xml_checksum>
   <class_name>UtilityBillCalculations</class_name>
   <display_name>Utility Bill Calculations</display_name>
@@ -21,28 +21,82 @@
     </argument>
     <argument>
       <name>api_key</name>
-      <display_name>EIA API Key</display_name>
-      <description>Call the API and find EIA ID(s) matching the epw.</description>
+      <display_name>API Key</display_name>
+      <description>Call the API and pull JSON tariff file(s) with EIA ID corresponding to the EPW region.</description>
       <type>String</type>
       <required>false</required>
       <model_dependent>false</model_dependent>
     </argument>
     <argument>
-      <name>json_file_path</name>
-      <display_name>JSON File Path</display_name>
-      <description>Provide this instead of calling the API.</description>
+      <name>tariff_directory</name>
+      <display_name>Tariff Directory</display_name>
+      <description>Absolute (or relative) directory to tariff files.</description>
+      <type>String</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+      <default_value>./resources/tariffs</default_value>
+    </argument>
+    <argument>
+      <name>tariff_file_name</name>
+      <display_name>Tariff File Name</display_name>
+      <description>Name of the JSON tariff file. Leave blank if pulling JSON tariff file(s) with EIA ID corresponding to the EPW region.</description>
       <type>String</type>
       <required>false</required>
       <model_dependent>false</model_dependent>
     </argument>
     <argument>
-      <name>analysis_period</name>
-      <display_name>Analysis Period</display_name>
-      <type>Double</type>
-      <units>yrs</units>
+      <name>elec_fixed</name>
+      <display_name>Electricity Fixed Cost</display_name>
+      <description>Total fixed cost of electricity.</description>
+      <type>String</type>
+      <units>$</units>
       <required>false</required>
       <model_dependent>false</model_dependent>
-      <default_value>1</default_value>
+    </argument>
+    <argument>
+      <name>elec_rate</name>
+      <display_name>Electricity Unit Cost</display_name>
+      <description>Price per kWh for electricity.</description>
+      <type>String</type>
+      <units>$/kWh</units>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>ng_fixed</name>
+      <display_name>Natural Gas Fixed Cost</display_name>
+      <description>Total fixed cost of natural gas.</description>
+      <type>String</type>
+      <units>$</units>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>ng_rate</name>
+      <display_name>Natural Gas Unit Cost</display_name>
+      <description>Price per therm for natural gas.</description>
+      <type>String</type>
+      <units>$/therm</units>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>oil_rate</name>
+      <display_name>Fuel Oil Unit Cost</display_name>
+      <description>Price per gallon for fuel oil.</description>
+      <type>String</type>
+      <units>$/gal</units>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>prop_rate</name>
+      <display_name>Propane Unit Cost</display_name>
+      <description>Price per gallon for propane.</description>
+      <type>String</type>
+      <units>$/gal</units>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
     </argument>
   </arguments>
   <outputs>
@@ -101,27 +155,34 @@
       <checksum>C9F510A2</checksum>
     </file>
     <file>
+      <filename>USA_CO_Denver_Intl_AP_725650_TMY3.epw</filename>
+      <filetype>epw</filetype>
+      <usage_type>test</usage_type>
+      <checksum>E23378AA</checksum>
+    </file>
+    <file>
+      <filename>sam-sdk-2017-1-17-r1.zip</filename>
+      <filetype>zip</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>14339B8F</checksum>
+    </file>
+    <file>
       <filename>utilities.csv</filename>
       <filetype>csv</filetype>
       <usage_type>resource</usage_type>
       <checksum>49E7C310</checksum>
     </file>
     <file>
-      <filename>by_nsrdb.csv</filename>
-      <filetype>csv</filetype>
+      <filename>ssc_ffi.rb</filename>
+      <filetype>rb</filetype>
       <usage_type>resource</usage_type>
-      <checksum>D33BD8DE</checksum>
+      <checksum>3ADEAEFE</checksum>
     </file>
     <file>
-      <version>
-        <software_program>OpenStudio</software_program>
-        <identifier>2.0.5</identifier>
-        <min_compatible>2.0.5</min_compatible>
-      </version>
-      <filename>measure.rb</filename>
-      <filetype>rb</filetype>
-      <usage_type>script</usage_type>
-      <checksum>07180FC4</checksum>
+      <filename>SFD_2000sqft_2story_SL_UA_Denver.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>15DB60CF</checksum>
     </file>
     <file>
       <filename>Natural gas.csv</filename>
@@ -142,16 +203,45 @@
       <checksum>D205D809</checksum>
     </file>
     <file>
-      <filename>ssc_ffi.rb</filename>
-      <filetype>rb</filetype>
-      <usage_type>resource</usage_type>
-      <checksum>DD7DE19B</checksum>
+      <filename>enduse_timeseries.csv</filename>
+      <filetype>csv</filetype>
+      <usage_type>test</usage_type>
+      <checksum>86775404</checksum>
     </file>
     <file>
-      <filename>sam-sdk-2017-1-17-r1.zip</filename>
+      <filename>by_nsrdb.csv</filename>
+      <filetype>csv</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>EB68CF2B</checksum>
+    </file>
+    <file>
+      <filename>Electricity.csv</filename>
+      <filetype>csv</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>6C2CC8FC</checksum>
+    </file>
+    <file>
+      <filename>utility_bill_calculations_test.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>test</usage_type>
+      <checksum>27B636A2</checksum>
+    </file>
+    <file>
+      <version>
+        <software_program>OpenStudio</software_program>
+        <identifier>2.0.5</identifier>
+        <min_compatible>2.0.5</min_compatible>
+      </version>
+      <filename>measure.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>script</usage_type>
+      <checksum>2C7BDB05</checksum>
+    </file>
+    <file>
+      <filename>tariffs.zip</filename>
       <filetype>zip</filetype>
       <usage_type>resource</usage_type>
-      <checksum>9E486EA4</checksum>
+      <checksum>59E89075</checksum>
     </file>
   </files>
 </measure>
