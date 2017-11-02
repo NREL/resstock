@@ -130,6 +130,7 @@ task :copy_beopt_files do
       ["resources"].each do |subdir|
         buildstock_measure_subdir = File.join(buildstock_measures_dir, other_measure, subdir)
         remove_items_from_zip_file(buildstock_measure_subdir, "sam-sdk-2017-1-17-r1.zip", ["osx64", "win32", "win64"])
+        move_and_extract_zip_file(buildstock_measure_subdir, "tariffs.zip", "./resources")
       end
     end
   end
@@ -148,6 +149,12 @@ def remove_items_from_zip_file(dir, zip_file_name, items)
   zip_file = OpenStudio::ZipFile.new(zip_path, false)
   zip_file.addDirectory(File.join(dir, zip_file_name.gsub(".zip", "")), OpenStudio::toPath("/"))
   FileUtils.rm_rf(File.join(dir, zip_file_name.gsub(".zip", "")))
+end
+
+def move_and_extract_zip_file(dir, zip_file_name, target)
+  unzip_file = OpenStudio::UnzipFile.new(File.join(dir, zip_file_name))
+  unzip_file.extractAllFiles(OpenStudio::toPath(File.join(dir, zip_file_name.gsub(".zip", ""))))
+  FileUtils.mv(File.join(dir, zip_file_name.gsub(".zip", "")), target)
 end
 
 namespace :test do
