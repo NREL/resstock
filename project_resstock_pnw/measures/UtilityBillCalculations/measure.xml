@@ -2,8 +2,8 @@
   <schema_version>3.0</schema_version>
   <name>utility_bill_calculations</name>
   <uid>872cd20c-55df-459e-9ac9-f42c93ab665c</uid>
-  <version_id>a507f32e-1f63-4b3b-9941-5f321afa2604</version_id>
-  <version_modified>20171031T200658Z</version_modified>
+  <version_id>af3d95fe-dd84-4482-978d-a419052ed19f</version_id>
+  <version_modified>20171106T230417Z</version_modified>
   <xml_checksum>6159342E</xml_checksum>
   <class_name>UtilityBillCalculations</class_name>
   <display_name>Utility Bill Calculations</display_name>
@@ -21,63 +21,128 @@
     </argument>
     <argument>
       <name>api_key</name>
-      <display_name>EIA API Key</display_name>
-      <description>Call the API and find EIA ID(s) matching the epw.</description>
+      <display_name>API Key</display_name>
+      <description>Call the API and pull JSON tariff file(s) with EIA ID corresponding to the EPW region.</description>
       <type>String</type>
       <required>false</required>
       <model_dependent>false</model_dependent>
     </argument>
     <argument>
-      <name>json_file_path</name>
-      <display_name>JSON File Path</display_name>
-      <description>Provide this instead of calling the API.</description>
+      <name>tariff_directory</name>
+      <display_name>Tariff Directory</display_name>
+      <description>Absolute (or relative) directory to tariff files.</description>
       <type>String</type>
       <required>false</required>
       <model_dependent>false</model_dependent>
     </argument>
     <argument>
-      <name>analysis_period</name>
-      <display_name>Analysis Period</display_name>
-      <type>Double</type>
-      <units>yrs</units>
+      <name>tariff_file_name</name>
+      <display_name>Tariff File Name</display_name>
+      <description>Name of the JSON tariff file. Leave blank if pulling JSON tariff file(s) with EIA ID corresponding to the EPW region.</description>
+      <type>String</type>
       <required>false</required>
       <model_dependent>false</model_dependent>
-      <default_value>1</default_value>
+    </argument>
+    <argument>
+      <name>elec_fixed</name>
+      <display_name>Electricity Fixed Cost</display_name>
+      <description>Annual fixed cost of electricity.</description>
+      <type>String</type>
+      <units>$</units>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>elec_rate</name>
+      <display_name>Electricity Unit Cost</display_name>
+      <description>Price per kilowatt-hour for electricity.</description>
+      <type>String</type>
+      <units>$/kWh</units>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>ng_fixed</name>
+      <display_name>Natural Gas Fixed Cost</display_name>
+      <description>Annual fixed cost of natural gas.</description>
+      <type>String</type>
+      <units>$</units>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>ng_rate</name>
+      <display_name>Natural Gas Unit Cost</display_name>
+      <description>Price per therm for natural gas.</description>
+      <type>String</type>
+      <units>$/therm</units>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>oil_rate</name>
+      <display_name>Fuel Oil Unit Cost</display_name>
+      <description>Price per gallon for fuel oil.</description>
+      <type>String</type>
+      <units>$/gal</units>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>prop_rate</name>
+      <display_name>Propane Unit Cost</display_name>
+      <description>Price per gallon for propane.</description>
+      <type>String</type>
+      <units>$/gal</units>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>avg_rates</name>
+      <display_name>Average Residential Rates</display_name>
+      <description>Average across residential rates in a given EIA ID.</description>
+      <type>Boolean</type>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>false</default_value>
+      <choices>
+        <choice>
+          <value>true</value>
+          <display_name>true</display_name>
+        </choice>
+        <choice>
+          <value>false</value>
+          <display_name>false</display_name>
+        </choice>
+      </choices>
     </argument>
   </arguments>
   <outputs>
     <output>
-      <name>grid_cells</name>
-      <display_name>grid_cells</display_name>
-      <short_name>grid_cells</short_name>
+      <name>electricity</name>
+      <display_name>electricity</display_name>
+      <short_name>electricity</short_name>
       <type>String</type>
       <model_dependent>false</model_dependent>
     </output>
     <output>
-      <name>total_electricity</name>
-      <display_name>total_electricity</display_name>
-      <short_name>total_electricity</short_name>
-      <type>String</type>
-      <model_dependent>false</model_dependent>
-    </output>
-    <output>
-      <name>total_natural_gas</name>
-      <display_name>total_natural_gas</display_name>
-      <short_name>total_natural_gas</short_name>
+      <name>natural_gas</name>
+      <display_name>natural_gas</display_name>
+      <short_name>natural_gas</short_name>
       <type>Double</type>
       <model_dependent>false</model_dependent>
     </output>
     <output>
-      <name>total_propane</name>
-      <display_name>total_propane</display_name>
-      <short_name>total_propane</short_name>
+      <name>propane</name>
+      <display_name>propane</display_name>
+      <short_name>propane</short_name>
       <type>Double</type>
       <model_dependent>false</model_dependent>
     </output>
     <output>
-      <name>total_oil</name>
-      <display_name>total_oil</display_name>
-      <short_name>total_oil</short_name>
+      <name>fuel_oil</name>
+      <display_name>fuel_oil</display_name>
+      <short_name>fuel_oil</short_name>
       <type>Double</type>
       <model_dependent>false</model_dependent>
     </output>
@@ -107,23 +172,6 @@
       <checksum>49E7C310</checksum>
     </file>
     <file>
-      <filename>by_nsrdb.csv</filename>
-      <filetype>csv</filetype>
-      <usage_type>resource</usage_type>
-      <checksum>D33BD8DE</checksum>
-    </file>
-    <file>
-      <version>
-        <software_program>OpenStudio</software_program>
-        <identifier>2.0.5</identifier>
-        <min_compatible>2.0.5</min_compatible>
-      </version>
-      <filename>measure.rb</filename>
-      <filetype>rb</filetype>
-      <usage_type>script</usage_type>
-      <checksum>07180FC4</checksum>
-    </file>
-    <file>
       <filename>Natural gas.csv</filename>
       <filetype>csv</filetype>
       <usage_type>resource</usage_type>
@@ -142,16 +190,45 @@
       <checksum>D205D809</checksum>
     </file>
     <file>
-      <filename>ssc_ffi.rb</filename>
-      <filetype>rb</filetype>
+      <filename>by_nsrdb.csv</filename>
+      <filetype>csv</filetype>
       <usage_type>resource</usage_type>
-      <checksum>DD7DE19B</checksum>
+      <checksum>EB68CF2B</checksum>
+    </file>
+    <file>
+      <filename>Electricity.csv</filename>
+      <filetype>csv</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>6C2CC8FC</checksum>
+    </file>
+    <file>
+      <filename>tariffs.zip</filename>
+      <filetype>zip</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>59E89075</checksum>
     </file>
     <file>
       <filename>sam-sdk-2017-1-17-r1.zip</filename>
       <filetype>zip</filetype>
       <usage_type>resource</usage_type>
       <checksum>9E486EA4</checksum>
+    </file>
+    <file>
+      <filename>ssc_ffi.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>DD7DE19B</checksum>
+    </file>
+    <file>
+      <version>
+        <software_program>OpenStudio</software_program>
+        <identifier>2.0.5</identifier>
+        <min_compatible>2.0.5</min_compatible>
+      </version>
+      <filename>measure.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>script</usage_type>
+      <checksum>D453FDA2</checksum>
     </file>
   </files>
 </measure>
