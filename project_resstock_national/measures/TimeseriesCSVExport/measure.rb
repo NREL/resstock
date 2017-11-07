@@ -31,7 +31,8 @@ class TimeseriesCSVExport < OpenStudio::Measure::ReportingMeasure
       'DistrictHeating',
       'Water',
       'FuelOil#1',
-      'Propane'
+      'Propane',
+      'ElectricityProduced'
     ]
     
     return fuel_types
@@ -52,7 +53,6 @@ class TimeseriesCSVExport < OpenStudio::Measure::ReportingMeasure
       'HeatRecovery',
       'WaterSystems',
       'Refrigeration',
-      'Generators',
       'Facility'
     ]
     
@@ -271,7 +271,7 @@ class TimeseriesCSVExport < OpenStudio::Measure::ReportingMeasure
         point["time"] = time_i
         data << point
       end
-      next if data.all? {|x| x["y"] == 0}
+      next if data.all? {|x| x["y"].abs < 0.000000001}
       series["data"] = data
       all_series << series
         
