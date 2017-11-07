@@ -56,3 +56,7 @@ grunt
 This will compile the HTML documentation and open a new browser tab to see the built version of the docs.
 As you make changes and save them, it will update and refresh the preview. When you're done, do a `Ctrl-C`
 in the grunt window to stop Grunt.
+
+## Edit the Docs
+
+In the `source` folder there are a number of `*.rst` files. They are in the reStructuredText format. There's a [guide for how to edit it on the Sphinx website](http://www.sphinx-doc.org/en/stable/rest.html). Upon committing and pushing, the docs will be updated automatically on [Read The Docs](http://resstock.readthedocs.io/en/latest/).
