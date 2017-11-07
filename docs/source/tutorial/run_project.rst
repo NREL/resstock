@@ -46,6 +46,8 @@ Sometime you will need *all* the simulation results including timeseries results
    
    Downloading all simulation results can be a lot of data. Make sure you're on a good connection and have enough room on your local machine. Be prepared for the download to take a while. 
 
+.. _download:
+   
 .. todo::
    
    Only 150 datapoints are downloading right now. There's a ticket to fix that. Ry has a script to do the downloading of all datapoints. Add those instructions here.
