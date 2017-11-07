@@ -14,7 +14,7 @@ First, you will need some AWS credentials to allow PAT to start compute instance
 Cluster Settings and Starting the Cluster
 -----------------------------------------
 
-We will leave most of the defaults, but because we're doing a small analysis here, we're going to set the number of worker nodes to zero. For guidance on cluster settings for your analysis including instance selection and worker nodes see :doc:`../aws_cluster_config`.
+Select the ``2.2.1-ls0`` AMI. We will leave most of the rest of the defaults, but because we're doing a small analysis here, we're going to set the number of worker nodes to zero. For guidance on cluster settings for your analysis including instance selection and worker nodes see :doc:`../aws_cluster_config`.
 
 .. image:: ../images/tutorial/run_on_cloud.png
 
