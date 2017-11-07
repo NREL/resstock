@@ -10,22 +10,12 @@ Open PAT and open one of the analysis project folders:
 
 For this example we'll use the project_resstock_national analysis. Select "Open Existing Project" and choose the project_resstock_national directory in the repository you just downloaded. You may be asked if you want "mongod" to accept incoming connections. Select "Allow".
 
-Algorithm Settings
-------------------
+You will leave the settings in **Algorithm Settings**, **Additional Analysis Files**, and **Server Scripts** alone for most analyses. 
 
-Open the Algorithm Settings box on the measure selection tab and modify the settings as described for your use case.
-
-.. image:: ../images/tutorial/algorithm_settings_open.png
-
-**Run Baseline**
-  Enter ``1`` here to run the existing stock and the upgrades. Enter ``0`` to run only upgrades.
-
-**Number of Samples**
-  *Do not change this value.* Leave it as ``1``. The number of simulations per upgrade scenario is set in :ref:`build-existing-model`.
-  
-.. todo::
-    
-   Describe how to pass user defined weather files by changing the script argument to the **Worker Initialization Script** under **Server Settings**.
+.. note::
+   
+   The **Algorithm Settings > Number of Samples** input is not where the number of simulations is set.
+   The number of simulations per upgrade scenario is set in :ref:`build-existing-model`.
 
 OpenStudio Measures
 -------------------
