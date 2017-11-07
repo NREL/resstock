@@ -2,8 +2,8 @@
   <schema_version>3.0</schema_version>
   <name>utility_bill_calculations</name>
   <uid>872cd20c-55df-459e-9ac9-f42c93ab665c</uid>
-  <version_id>0595c614-e1e1-4f10-b52e-6a324e398cb1</version_id>
-  <version_modified>20170922T195704Z</version_modified>
+  <version_id>f60c93f6-b7eb-4f8e-9a25-cfc7329b1d1c</version_id>
+  <version_modified>20171106T235824Z</version_modified>
   <xml_checksum>6159342E</xml_checksum>
   <class_name>UtilityBillCalculations</class_name>
   <display_name>Utility Bill Calculations</display_name>
@@ -34,7 +34,6 @@
       <type>String</type>
       <required>false</required>
       <model_dependent>false</model_dependent>
-      <default_value>./resources/tariffs</default_value>
     </argument>
     <argument>
       <name>tariff_file_name</name>
@@ -47,7 +46,7 @@
     <argument>
       <name>elec_fixed</name>
       <display_name>Electricity Fixed Cost</display_name>
-      <description>Total fixed cost of electricity.</description>
+      <description>Annual fixed cost of electricity.</description>
       <type>String</type>
       <units>$</units>
       <required>false</required>
@@ -56,7 +55,7 @@
     <argument>
       <name>elec_rate</name>
       <display_name>Electricity Unit Cost</display_name>
-      <description>Price per kWh for electricity.</description>
+      <description>Price per kilowatt-hour for electricity.</description>
       <type>String</type>
       <units>$/kWh</units>
       <required>false</required>
@@ -65,7 +64,7 @@
     <argument>
       <name>ng_fixed</name>
       <display_name>Natural Gas Fixed Cost</display_name>
-      <description>Total fixed cost of natural gas.</description>
+      <description>Annual fixed cost of natural gas.</description>
       <type>String</type>
       <units>$</units>
       <required>false</required>
@@ -98,40 +97,52 @@
       <required>false</required>
       <model_dependent>false</model_dependent>
     </argument>
+    <argument>
+      <name>avg_rates</name>
+      <display_name>Average Residential Rates</display_name>
+      <description>Average across residential rates in a given EIA ID.</description>
+      <type>Boolean</type>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>false</default_value>
+      <choices>
+        <choice>
+          <value>true</value>
+          <display_name>true</display_name>
+        </choice>
+        <choice>
+          <value>false</value>
+          <display_name>false</display_name>
+        </choice>
+      </choices>
+    </argument>
   </arguments>
   <outputs>
     <output>
-      <name>grid_cells</name>
-      <display_name>grid_cells</display_name>
-      <short_name>grid_cells</short_name>
+      <name>electricity</name>
+      <display_name>electricity</display_name>
+      <short_name>electricity</short_name>
       <type>String</type>
       <model_dependent>false</model_dependent>
     </output>
     <output>
-      <name>total_electricity</name>
-      <display_name>total_electricity</display_name>
-      <short_name>total_electricity</short_name>
-      <type>String</type>
-      <model_dependent>false</model_dependent>
-    </output>
-    <output>
-      <name>total_natural_gas</name>
-      <display_name>total_natural_gas</display_name>
-      <short_name>total_natural_gas</short_name>
+      <name>natural_gas</name>
+      <display_name>natural_gas</display_name>
+      <short_name>natural_gas</short_name>
       <type>Double</type>
       <model_dependent>false</model_dependent>
     </output>
     <output>
-      <name>total_propane</name>
-      <display_name>total_propane</display_name>
-      <short_name>total_propane</short_name>
+      <name>propane</name>
+      <display_name>propane</display_name>
+      <short_name>propane</short_name>
       <type>Double</type>
       <model_dependent>false</model_dependent>
     </output>
     <output>
-      <name>total_oil</name>
-      <display_name>total_oil</display_name>
-      <short_name>total_oil</short_name>
+      <name>fuel_oil</name>
+      <display_name>fuel_oil</display_name>
+      <short_name>fuel_oil</short_name>
       <type>Double</type>
       <model_dependent>false</model_dependent>
     </output>
@@ -155,34 +166,10 @@
       <checksum>C9F510A2</checksum>
     </file>
     <file>
-      <filename>USA_CO_Denver_Intl_AP_725650_TMY3.epw</filename>
-      <filetype>epw</filetype>
-      <usage_type>test</usage_type>
-      <checksum>E23378AA</checksum>
-    </file>
-    <file>
-      <filename>sam-sdk-2017-1-17-r1.zip</filename>
-      <filetype>zip</filetype>
-      <usage_type>resource</usage_type>
-      <checksum>14339B8F</checksum>
-    </file>
-    <file>
       <filename>utilities.csv</filename>
       <filetype>csv</filetype>
       <usage_type>resource</usage_type>
       <checksum>49E7C310</checksum>
-    </file>
-    <file>
-      <filename>ssc_ffi.rb</filename>
-      <filetype>rb</filetype>
-      <usage_type>resource</usage_type>
-      <checksum>3ADEAEFE</checksum>
-    </file>
-    <file>
-      <filename>SFD_2000sqft_2story_SL_UA_Denver.osm</filename>
-      <filetype>osm</filetype>
-      <usage_type>test</usage_type>
-      <checksum>15DB60CF</checksum>
     </file>
     <file>
       <filename>Natural gas.csv</filename>
@@ -203,12 +190,6 @@
       <checksum>D205D809</checksum>
     </file>
     <file>
-      <filename>enduse_timeseries.csv</filename>
-      <filetype>csv</filetype>
-      <usage_type>test</usage_type>
-      <checksum>86775404</checksum>
-    </file>
-    <file>
       <filename>by_nsrdb.csv</filename>
       <filetype>csv</filetype>
       <usage_type>resource</usage_type>
@@ -221,10 +202,22 @@
       <checksum>6C2CC8FC</checksum>
     </file>
     <file>
-      <filename>utility_bill_calculations_test.rb</filename>
+      <filename>tariffs.zip</filename>
+      <filetype>zip</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>59E89075</checksum>
+    </file>
+    <file>
+      <filename>sam-sdk-2017-1-17-r1.zip</filename>
+      <filetype>zip</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>9E486EA4</checksum>
+    </file>
+    <file>
+      <filename>ssc_ffi.rb</filename>
       <filetype>rb</filetype>
-      <usage_type>test</usage_type>
-      <checksum>27B636A2</checksum>
+      <usage_type>resource</usage_type>
+      <checksum>DD7DE19B</checksum>
     </file>
     <file>
       <version>
@@ -235,13 +228,7 @@
       <filename>measure.rb</filename>
       <filetype>rb</filetype>
       <usage_type>script</usage_type>
-      <checksum>2C7BDB05</checksum>
-    </file>
-    <file>
-      <filename>tariffs.zip</filename>
-      <filetype>zip</filetype>
-      <usage_type>resource</usage_type>
-      <checksum>59E89075</checksum>
+      <checksum>D453FDA2</checksum>
     </file>
   </files>
 </measure>
