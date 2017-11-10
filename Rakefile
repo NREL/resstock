@@ -189,11 +189,6 @@ task :integrity_check_resstock_testing do
     integrity_check(['project_resstock_testing'])
 end # rake task
 
-desc 'Perform integrity check on inputs for project_resstock_dsgrid'
-task :integrity_check_resstock_dsgrid do
-    integrity_check(['project_resstock_dsgrid'])
-end # rake task
-
 desc 'Perform integrity check on inputs for project_resstock_comed'
 task :integrity_check_resstock_comed do
     integrity_check(['project_resstock_comed'])
