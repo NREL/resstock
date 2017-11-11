@@ -61,8 +61,6 @@ task :copy_beopt_files do
   extra_files = [
                  File.join("seeds", "EmptySeedModel.osm"),
                  File.join("workflows", "measure-info.json"),
-                 File.join("resources", "geometry.rb"), # Needed by SimulationOutputReport
-                 File.join("resources", "constants.rb"), # Needed by geometry.rb
                  File.join("resources", "meta_measure.rb") # Needed by buildstock.rb
                 ]
   extra_files.each do |extra_file|
@@ -130,11 +128,13 @@ task :copy_beopt_files do
       ["resources"].each do |subdir|
         buildstock_measure_subdir = File.join(buildstock_measures_dir, other_measure, subdir)
         remove_items_from_zip_file(buildstock_measure_subdir, "sam-sdk-2017-1-17-r1.zip", ["osx64", "win32", "win64"])
+        puts "Extracting tariffs..."
         move_and_extract_zip_file(buildstock_measure_subdir, "tariffs.zip", "./resources")
       end
     end
   end
 
+  puts "Cleaning up..."
   FileUtils.rm_rf(File.join(File.dirname(__FILE__), branch))
 
 end
@@ -154,17 +154,85 @@ end
 def move_and_extract_zip_file(dir, zip_file_name, target)
   unzip_file = OpenStudio::UnzipFile.new(File.join(dir, zip_file_name))
   unzip_file.extractAllFiles(OpenStudio::toPath(File.join(dir, zip_file_name.gsub(".zip", ""))))
+  FileUtils.rm_rf(File.join(target, zip_file_name.gsub(".zip", "")))
   FileUtils.mv(File.join(dir, zip_file_name.gsub(".zip", "")), target)
 end
 
 namespace :test do
 
-  desc 'Run unit tests for all measures'
+  desc 'Run unit tests for all projects/measures'
   Rake::TestTask.new('all') do |t|
     t.libs << 'test'
-    t.test_files = Dir['project_*/tests/*.rb']
+    t.test_files = Dir['project_*/tests/*.rb'] + Dir['measures/*/tests/*.rb']
     t.warning = false
     t.verbose = true
+  end
+  
+  desc 'regenerate SimulationOutputReport test osm files from osw files'
+  task :regenerate_osms do
+
+    num_tot = 0
+    num_success = 0
+    
+    osw_path = File.expand_path("../test/osw_files/", __FILE__)
+  
+    osw_files = Dir.entries(osw_path).select {|entry| entry.end_with?(".osw")}
+    if File.exists?(File.expand_path("../log", __FILE__))
+        FileUtils.rm(File.expand_path("../log", __FILE__))
+    end
+    
+    os_cli = get_os_cli()
+
+    osw_files.each do |osw|
+
+        # Generate osm from osw
+        osw_filename = osw
+        num_tot += 1
+        
+        puts "[#{num_tot}/#{osw_files.size}] Regenerating osm from #{osw}..."
+        osw = File.expand_path("../test/osw_files/#{osw}", __FILE__)
+        osm = File.expand_path("../test/osw_files/run/in.osm", __FILE__)
+        command = "\"#{os_cli}\" run -w #{osw} -m >> log"
+        for _retry in 1..3
+            system(command)
+            break if File.exists?(osm)
+        end
+        if not File.exists?(osm)
+            puts "  ERROR: Could not generate osm."
+            exit
+        end
+
+        # Add auto-generated message to top of file
+        file_text = File.readlines(osm)
+        File.open(osm, "w") do |f|
+            f.write("!- NOTE: Auto-generated from #{osw.gsub(File.dirname(__FILE__), "")}\n")
+            file_text.each do |file_line|
+                f.write(file_line)
+            end
+        end
+
+        # Copy to appropriate measure test dirs
+        osm_filename = osw_filename.gsub(".osw", ".osm")
+        measure_test_dir = File.expand_path("../measures/SimulationOutputReport/tests/", __FILE__)
+        if not Dir.exists?(measure_test_dir)
+            puts "  ERROR: Could not copy osm to #{measure_test_dir}."
+            exit
+        end
+        FileUtils.cp(osm, File.expand_path("#{measure_test_dir}/#{osm_filename}", __FILE__))
+        num_success += 1
+
+        # Clean up
+        run_dir = File.expand_path("../test/osw_files/run", __FILE__)
+        if Dir.exists?(run_dir)
+            FileUtils.rmtree(run_dir)
+        end
+        if File.exists?(File.expand_path("../test/osw_files/out.osw", __FILE__))
+            FileUtils.rm(File.expand_path("../test/osw_files/out.osw", __FILE__))
+        end
+    end
+    
+    puts "Completed. #{num_success} of #{num_tot} osm files were regenerated successfully."
+    
   end
   
 end
@@ -372,4 +440,14 @@ def get_all_project_dir_names()
         project_dir_names << entry
     end
     return project_dir_names
+end
+
+def get_os_cli
+  # Get latest installed version of openstudio.exe
+  os_clis = Dir["C:/openstudio-*/bin/openstudio.exe"] + Dir["/usr/bin/openstudio"] + Dir["/usr/local/bin/openstudio"]
+  if os_clis.size == 0
+      puts "ERROR: Could not find the openstudio binary. You may need to install the OpenStudio Command Line Interface."
+      exit
+  end
+  return os_clis[-1]
 end

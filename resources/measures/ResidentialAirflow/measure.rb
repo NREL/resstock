@@ -1283,7 +1283,7 @@ class ResidentialAirflow < OpenStudio::Measure::ModelMeasure
       equip_def.setFractionLatent(0)
       equip_def.setFractionLost(1.0 - mech_vent.percent_fan_heat_to_space)
       equip.setSchedule(model.alwaysOnDiscreteSchedule)
-      equip.setEndUseSubcategory("VentFans")
+      equip.setEndUseSubcategory(Constants.EndUseMechVentFan)
       
       whole_house_fan_actuator = OpenStudio::Model::EnergyManagementSystemActuator.new(equip, "ElectricEquipment", "Electric Power Level")
       whole_house_fan_actuator.setName("#{equip.name} act")        
@@ -1297,7 +1297,7 @@ class ResidentialAirflow < OpenStudio::Measure::ModelMeasure
       equip_def.setFractionLatent(0)
       equip_def.setFractionLost(1)
       equip.setSchedule(model.alwaysOnDiscreteSchedule)
-      equip.setEndUseSubcategory("VentFans")
+      equip.setEndUseSubcategory(Constants.EndUseMechVentFan)
 
       range_hood_fan_actuator = OpenStudio::Model::EnergyManagementSystemActuator.new(equip, "ElectricEquipment", "Electric Power Level")
       range_hood_fan_actuator.setName("#{equip.name} act")           
@@ -1311,7 +1311,7 @@ class ResidentialAirflow < OpenStudio::Measure::ModelMeasure
       equip_def.setFractionLatent(0)
       equip_def.setFractionLost(1)
       equip.setSchedule(model.alwaysOnDiscreteSchedule)
-      equip.setEndUseSubcategory("VentFans")
+      equip.setEndUseSubcategory(Constants.EndUseMechVentFan)
       
       bath_exhaust_fan_actuator = OpenStudio::Model::EnergyManagementSystemActuator.new(equip, "ElectricEquipment", "Electric Power Level")
       bath_exhaust_fan_actuator.setName("#{equip.name} act")
