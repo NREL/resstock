@@ -329,9 +329,9 @@ def evaluate_logic(option_apply_logic, runner)
     end
     ruby_eval_str.chomp!(" or ")
     result = eval(ruby_eval_str)
-    #runner.registerInfo("Evaluating logic: #{option_apply_logic}.")
-    #runner.registerInfo("Converted to Ruby: #{ruby_eval_str}.")
-    #runner.registerInfo("Ruby Evaluation: #{result.to_s}.")
+    runner.registerInfo("Evaluating logic: #{option_apply_logic}.")
+    runner.registerInfo("Converted to Ruby: #{ruby_eval_str}.")
+    runner.registerInfo("Ruby Evaluation: #{result.to_s}.")
     if not [true, false].include?(result)
         runner.registerError("Logic was not successfully evaluated: #{ruby_eval_str}")
         return nil

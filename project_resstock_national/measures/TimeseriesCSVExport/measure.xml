@@ -2,8 +2,8 @@
   <schema_version>3.0</schema_version>
   <name>timeseries_csv_export</name>
   <uid>2a3442c1-944d-4e91-9e11-11e0cf368c64</uid>
-  <version_id>3150289d-6824-48a9-98d8-9c14c342e827</version_id>
-  <version_modified>20171106T235824Z</version_modified>
+  <version_id>e3cc3b4a-fd92-495b-bd22-400dd272b1ee</version_id>
+  <version_modified>20171111T015720Z</version_modified>
   <xml_checksum>15BF4E57</xml_checksum>
   <class_name>TimeseriesCSVExport</class_name>
   <display_name>Timeseries CSV Export</display_name>
@@ -45,6 +45,24 @@
       </choices>
     </argument>
     <argument>
+      <name>inc_end_use_subcategories</name>
+      <display_name>Include End Use Subcategories</display_name>
+      <type>Boolean</type>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>false</default_value>
+      <choices>
+        <choice>
+          <value>true</value>
+          <display_name>true</display_name>
+        </choice>
+        <choice>
+          <value>false</value>
+          <display_name>false</display_name>
+        </choice>
+      </choices>
+    </argument>
+    <argument>
       <name>inc_output_variables</name>
       <display_name>Include Output Variables</display_name>
       <type>Boolean</type>
@@ -61,6 +79,14 @@
           <display_name>false</display_name>
         </choice>
       </choices>
+    </argument>
+    <argument>
+      <name>output_variables</name>
+      <display_name>Output Variables</display_name>
+      <type>String</type>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>Zone Mean Air Temperature, Zone Mean Air Humidity Ratio, Fan Runtime Fraction</default_value>
     </argument>
   </arguments>
   <outputs/>
@@ -115,7 +141,7 @@
       <filename>measure.rb</filename>
       <filetype>rb</filetype>
       <usage_type>script</usage_type>
-      <checksum>BE9BB6F3</checksum>
+      <checksum>5247DCD9</checksum>
     </file>
   </files>
 </measure>
