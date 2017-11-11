@@ -85,6 +85,7 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
     model.setSqlFile(sqlFile)
     
     # Load buildstock_file
+    resources_dir = File.absolute_path(File.join(File.dirname(__FILE__), "..", "..", "lib", "resources")) # Should have been uploaded per 'Other Library Files' in analysis spreadsheet
     buildstock_file = File.join(resources_dir, "buildstock.rb")
     require File.join(File.dirname(buildstock_file), File.basename(buildstock_file, File.extname(buildstock_file)))
     
@@ -142,8 +143,8 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
     return false if hvac_cooling_capacity_kbtuh.nil?
     hvac_heating_capacity_kbtuh = get_cost_multiplier("Size, Heating System (kBtu/h)", model, runner, conditioned_zones)
     return false if hvac_heating_capacity_kbtuh.nil?
-    report_sim_output(runner, "hvac_cooling_capacity_w", [OpenStudio::convert(cooling_capacity_w, "kBtu/h", "W").get], "W", "W")
-    report_sim_output(runner, "hvac_heating_capacity_w", [OpenStudio::convert(heating_capacity_w, "kBtu/h", "W").get], "W", "W")
+    report_sim_output(runner, "hvac_cooling_capacity_w", [OpenStudio::OptionalDouble.new(hvac_cooling_capacity_kbtuh)], "kBtu/h", "W")
+    report_sim_output(runner, "hvac_heating_capacity_w", [OpenStudio::OptionalDouble.new(hvac_heating_capacity_kbtuh)], "kBtu/h", "W")
     
     sqlFile.close()
     
