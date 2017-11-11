@@ -93,6 +93,13 @@ class ApplyUpgrade < OpenStudio::Ruleset::ModelUserScript
             
         end
 
+        # Option Lifetime argument
+        option_lifetime = OpenStudio::Ruleset::OSArgument.makeDoubleArgument("option_#{option_num}_lifetime", false)
+        option_lifetime.setDisplayName("Option #{option_num} Lifetime")
+        option_lifetime.setDescription("The option lifetime.")
+        option_lifetime.setUnits("years")
+        args << option_lifetime
+        
     end
     
     # Package Apply Logic argument
@@ -238,13 +245,15 @@ class ApplyUpgrade < OpenStudio::Ruleset::ModelUserScript
             print_option_assignment(parameter_name, option_name, runner)
             register_value(runner, parameter_name, option_name)
             
-            # Register cost values/multipliers for applied options; used by the SimulationOutputReport measure
+            # Register cost values/multipliers/lifetime for applied options; used by the SimulationOutputReport measure
             for cost_num in 1..num_costs_per_option
                 cost_value = runner.getDoubleArgumentValue("option_#{option_num}_cost_#{cost_num}_value",user_arguments)
                 cost_mult = runner.getStringArgumentValue("option_#{option_num}_cost_#{cost_num}_multiplier",user_arguments)
                 register_value(runner, "option_#{option_num}_cost_#{cost_num}_value_to_apply", cost_value.to_s)
                 register_value(runner, "option_#{option_num}_cost_#{cost_num}_multiplier_to_apply", cost_mult)
             end
+            lifetime = runner.getDoubleArgumentValue("option_#{option_num}_lifetime",user_arguments)
+            register_value(runner, "option_#{option_num}_lifetime_to_apply", lifetime.to_s)
             
             # Check file/dir paths exist
             check_file_exists(lookup_file, runner)
