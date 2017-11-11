@@ -209,9 +209,6 @@ class ProcessBoilerFuel < OpenStudio::Measure::ModelMeasure
     
     pump = OpenStudio::Model::PumpVariableSpeed.new(model)
     pump.setName(Constants.ObjectNameBoiler(boilerFuelType) + " hydronic pump")
-    if boilerOutputCapacity != Constants.SizingAuto
-      pump.setRatedFlowRate(OpenStudio::convert(boilerOutputCapacity/20.0/500.0,"gal/min","m^3/s").get)
-    end
     pump.setRatedPumpHead(179352)
     pump.setMotorEfficiency(0.9)
     pump.setFractionofMotorInefficienciestoFluidStream(0)
@@ -225,7 +222,7 @@ class ProcessBoilerFuel < OpenStudio::Measure::ModelMeasure
     boiler.setName(Constants.ObjectNameBoiler(boilerFuelType))
     boiler.setFuelType(HelperMethods.eplus_fuel_map(boilerFuelType))
     if boilerOutputCapacity != Constants.SizingAuto
-      boiler.setNominalCapacity(OpenStudio::convert(boilerOutputCapacity,"Btu/h","W").get)
+      boiler.setNominalCapacity(OpenStudio::convert(boilerOutputCapacity,"Btu/h","W").get) # Used by HVACSizing measure
     end
     if boilerType == Constants.BoilerTypeCondensing
       # Convert Rated Efficiency at 80F and 1.0PLR where the performance curves are derived from to Design condition as input
@@ -323,10 +320,7 @@ class ProcessBoilerFuel < OpenStudio::Measure::ModelMeasure
         baseboard_coil = OpenStudio::Model::CoilHeatingWaterBaseboard.new(model)
         baseboard_coil.setName(obj_name + " #{control_zone.name} heating coil")
         if boilerOutputCapacity != Constants.SizingAuto
-          bb_UA = OpenStudio::convert(boilerOutputCapacity,"Btu/h","W").get / (OpenStudio::convert(boilerDesignTemp - 10.0 - 95.0,"R","K").get) * 3
-          bb_max_flow = OpenStudio::convert(boilerOutputCapacity,"Btu/h","W").get / OpenStudio::convert(20.0,"R","K").get / 4.186 / 998.2 / 1000 * 2.0    
-          baseboard_coil.setUFactorTimesAreaValue(bb_UA)
-          baseboard_coil.setMaximumWaterFlowRate(bb_max_flow)      
+          baseboard_coil.setHeatingDesignCapacity(OpenStudio::convert(boilerOutputCapacity,"Btu/h","W").get) # Used by HVACSizing measure
         end
         baseboard_coil.setConvergenceTolerance(0.001)
         
@@ -350,10 +344,7 @@ class ProcessBoilerFuel < OpenStudio::Measure::ModelMeasure
           baseboard_coil = OpenStudio::Model::CoilHeatingWaterBaseboard.new(model)
           baseboard_coil.setName(obj_name + " #{slave_zone.name} heating coil")
           if boilerOutputCapacity != Constants.SizingAuto
-            bb_UA = OpenStudio::convert(boilerOutputCapacity,"Btu/h","W").get / (OpenStudio::convert(boilerDesignTemp - 10.0 - 95.0,"R","K").get) * 3
-            bb_max_flow = OpenStudio::convert(boilerOutputCapacity,"Btu/h","W").get / OpenStudio::convert(20.0,"R","K").get / 4.186 / 998.2 / 1000 * 2.0    
-            baseboard_coil.setUFactorTimesAreaValue(bb_UA)
-            baseboard_coil.setMaximumWaterFlowRate(bb_max_flow)      
+            baseboard_coil.setHeatingDesignCapacity(OpenStudio::convert(boilerOutputCapacity,"Btu/h","W").get) # Used by HVACSizing measure
           end
           baseboard_coil.setConvergenceTolerance(0.001)
         
