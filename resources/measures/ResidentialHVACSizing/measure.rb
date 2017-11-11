@@ -2043,13 +2043,12 @@ class ProcessHVACSizing < OpenStudio::Measure::ModelMeasure
 
     elsif hvac.HasAirSourceHeatPump
         
-        if not hvac.FixedSuppHeatingCapacity.nil? or not hvac.FixedCoolingCapacity.nil?
-            unit_final.Heat_Capacity = unit_final.Heat_Load
-        else
+        if hvac.FixedCoolingCapacity.nil?
             unit_final = processHeatPumpAdjustment(runner, mj8, unit, unit_final, weather, hvac, ducts, nbeds, unit_ffa, unit_shelter_class)
             return nil if unit_final.nil?
         end
             
+        unit_final.Heat_Capacity = unit_final.Cool_Capacity
         unit_final.Heat_Capacity_Supp = unit_final.Heat_Load
             
         if unit_final.Cool_Capacity > @minCoolingCapacity

@@ -1,6 +1,6 @@
 require 'openstudio'
 
-class BuildingCharacteristicsReport < OpenStudio::Ruleset::ReportingUserScript
+class BuildingCharacteristicsReport < OpenStudio::Measure::ReportingMeasure
 
   def name
     return "Building Characteristics Report"
