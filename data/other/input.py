@@ -56,7 +56,7 @@ def _calc_degree_days(epwfile, base_temp_f, is_heating):
     
     daily_dbs = _get_daily_dbs(epwfile)
     
-    base_temp_c = base_temp_f / 1.8
+    base_temp_c = (base_temp_f - 32.)/1.8
     if is_heating:
         deg_days = sum([(base_temp_c-x) for x in daily_dbs if x < base_temp_c])
     else:
@@ -64,6 +64,7 @@ def _calc_degree_days(epwfile, base_temp_f, is_heating):
     return deg_days * 1.8
     
 def _get_daily_dbs(epwfile):
+    '''This snippet of code taken from BEopt's weather.py for retrieving daily dry-bulb temperatures'''
 
     f = open(epwfile, 'r')
     epwlines = f.readlines()
@@ -116,13 +117,13 @@ class Create_DFs():
         del df['TotalSFD']
         del df['Weight']
         df = add_option_prefix(df)
-        df = df[['Option=62F', 'Option=63F', 'Option=64F', 'Option=65F', 'Option=66F', 'Option=67F']]
+        df = df[['Option=66F', 'Option=67F', 'Option=68F', 'Option=69F', 'Option=70F']]
         return df
 
     def cooling_setpoint(self):
         df = pd.read_csv('by_usaf.csv', usecols=['EPW'])
         df = df.rename(columns={'EPW': 'Dependency=Location EPW'})
-        df['cdd'] = df['Dependency=Location EPW'].apply(lambda x: _calc_degree_days(x, 65, True))
+        df['cdd'] = df['Dependency=Location EPW'].apply(lambda x: _calc_degree_days(x, 65, False))
         df['setpoint'] = df['cdd'].apply(lambda x: '{}F'.format(int(round(_get_cooling_set_point_auto(x)[0]))))
         df['TotalSFD'] = 1
         df, cols = categories_to_columns(df, 'setpoint', False)
@@ -132,7 +133,7 @@ class Create_DFs():
         del df['TotalSFD']
         del df['Weight']
         df = add_option_prefix(df)
-        df = df[['Option=80F', 'Option=81F', 'Option=82F', 'Option=83F', 'Option=84F', 'Option=85F', 'Option=86F', 'Option=87F', 'Option=88F', 'Option=89F', 'Option=90F', 'Option=92F', 'Option=93F', 'Option=94F', 'Option=95F', 'Option=96F', 'Option=97F']]
+        df = df[['Option=72F', 'Option=73F', 'Option=74F', 'Option=75F', 'Option=76F', 'Option=77F']]
         return df
         
     def location_iecc_epw(self):
@@ -252,11 +253,11 @@ def add_option_prefix(df):
     
 if __name__ == '__main__':
     
-    datafiles_dir = '../../project_resstock_comed/housing_characteristics'
+    datafiles_dir = '../../project_resstock_national/housing_characteristics'
 
     dfs = Create_DFs('Zones.csv')
 
-    for category in ['Heating Setpoint', 'Cooling Setpoint', 'Location Census Division', 'Location IECC EPW', 'Location BA EPW', 'Location NSRDB']:
+    for category in ['Heating Setpoint', 'Cooling Setpoint', 'Location Census Division', 'Location IECC EPW', 'Location BA EPW', 'Location NSRDB']:for category in ['Heating Setpoint', 'Cooling Setpoint', 'Location Census Division', 'Location IECC EPW', 'Location BA EPW', 'Location NSRDB']:
         print category
         method = getattr(dfs, category.lower().replace(' ', '_'))
         df = method()
