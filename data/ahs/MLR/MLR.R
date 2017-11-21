@@ -11,11 +11,17 @@ df = subset(df, select=c('NUNIT2', 'ROOMS', 'BEDRMS', 'size', 'vintage', 'heatin
 df$NUNIT2 = as.numeric(gsub("'", "", df$NUNIT2))
 df = rename(df, c('ZINC2'='income', 'POOR'='fpl'))
 
-x.vars.con = c('income')
+# x.vars.con = c('income')
+x.vars.con = c()
 
-y.vars.con = c('fpl')
+y.vars.con = c('income')
 
-x.vars.cat = c('vintage', 'size', 'heatingfuel', 'actype', 'metro3', 'division')
+# x.vars.cat = c('vintage', 'size', 'heatingfuel', 'actype', 'metro3', 'division')
+x.vars.cat = c('vintage', 'size', 'heatingfuel', 'actype')
+# x.vars.cat = c('vintage', 'size', 'actype')
+# x.vars.cat = c('vintage', 'size')
+# x.vars.cat = c('heatingfuel')
+# x.vars.cat = c()
 
 y.vars.cat = c()
 
@@ -23,6 +29,7 @@ df$values = 'actual'
 
 df[c(x.vars.cat, y.vars.cat)] = lapply(df[c(x.vars.cat, y.vars.cat)], factor) # apply factor to each of the categorical vars
 df = na.omit(df) # this removes rows with at least one NA
+df = df[df$size!='Blank', ]
 
 dep_vars = c(y.vars.con, y.vars.cat)
 indep_vars = c(x.vars.con, x.vars.cat)
