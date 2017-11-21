@@ -36,7 +36,7 @@ df = read.csv('pums.csv')
 df[df$rooms==1, 'rooms'] = 2 # change all pums rooms=1 to rooms=2 since recs doesn't have totrooms=1
 df$bedrooms = as.factor(df$bedrooms)
 df$rooms = as.factor(df$rooms)
-df$totsqft = predict(df.lm0, newdata=df)
+df$totsqft = predict(df.lm0, newdata=df) # predict total sqft based on linear model developed from recs data
 df[df$totsqft < 1500, 'size'] = '0-1499'
 df[df$totsqft >= 1500 & df$totsqft < 2500, 'size'] = '1500-2499'
 df[df$totsqft >= 2500 & df$totsqft < 3500, 'size'] = '2500-3499'
