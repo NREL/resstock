@@ -7,21 +7,23 @@ library(plyr)
 
 df = read.csv('ahs.csv', na.strings='')
 
-df = subset(df, select=c('NUNIT2', 'ROOMS', 'BEDRMS', 'size', 'vintage', 'heatingfuel', 'actype', 'ZINC2', 'POOR', 'WEIGHT', 'smsa', 'cmsa', 'metro3', 'division'))
+df = subset(df, select=c('NUNIT2', 'ROOMS', 'BEDRMS', 'size', 'vintage', 'heatingfuel', 'actype', 'ZINC2', 'POOR', 'WEIGHT', 'smsa', 'cmsa', 'metro3', 'division', 'location'))
 df$NUNIT2 = as.numeric(gsub("'", "", df$NUNIT2))
 df = rename(df, c('ZINC2'='income', 'POOR'='fpl'))
 
-# x.vars.con = c('income')
 x.vars.con = c()
 
 y.vars.con = c('income')
+# y.vars.con = c('fpl')
 
-# x.vars.cat = c('vintage', 'size', 'heatingfuel', 'actype', 'metro3', 'division')
-x.vars.cat = c('vintage', 'size', 'heatingfuel', 'actype')
-# x.vars.cat = c('vintage', 'size', 'actype')
-# x.vars.cat = c('vintage', 'size')
-# x.vars.cat = c('heatingfuel')
-# x.vars.cat = c()
+x.vars.cat = c('vintage', 'size', 'heatingfuel', 'actype', 'division')
+# x.vars.cat = c('vintage', 'size', 'heatingfuel', 'actype', 'smsa')
+# x.vars.cat = c('vintage') # 0.030
+# x.vars.cat = c('size') # 0.105
+# x.vars.cat = c('heatingfuel') # 0.009
+# x.vars.cat = c('actype') # 0.014
+# x.vars.cat = c('division') # 0.012
+# x.vars.cat = c('smsa') # 0.023
 
 y.vars.cat = c()
 
@@ -38,8 +40,13 @@ indep_vars = c(x.vars.con, x.vars.cat)
 attach(df)
 df.lm1 = lm(paste(dep_vars, paste(indep_vars, collapse=' + '), sep=' ~ '), weights=WEIGHT, data=df, x=T)
 detach(df)
-summary(df.lm1)
-write.csv(summary(df.lm1)$coefficients, 'lm1.csv') # write out first pass to csv
+table = as.data.frame.matrix(summary(df.lm1)$coefficients)
+table = table[order(table[['Pr(>|t|)']]), ]
+table = round(table, 4)
+print(table)
+write.csv(table, 'lm1.csv') # write out first pass to csv
+summary(df.lm1)$r.squared
+summary(df.lm1)$adj.r.squared
 ###
 
 sig_indep_vars_factors = rownames(data.frame(summary(df.lm1)$coefficients)[data.frame(summary(df.lm1)$coefficients)$'Pr...t..' <= 0.05, ]) # remove insignificant vars
@@ -59,9 +66,16 @@ for (x in indep_vars) {
 attach(df)
 df.lm2 = lm(paste(dep_vars, paste(sig_indep_vars, collapse=' + '), sep=' ~ '), weights=WEIGHT, data=df, x=T)
 detach(df)
-summary(df.lm2)
-write.csv(summary(df.lm2)$coefficients, 'lm2.csv') # write out first pass to csv
+table = as.data.frame.matrix(summary(df.lm1)$coefficients)
+table = table[order(table[['Pr(>|t|)']]), ]
+table = round(table, 4)
+print(table)
+write.csv(table, 'lm2.csv') # write out second pass to csv
+summary(df.lm2)$r.squared
+summary(df.lm2)$adj.r.squared
 ###
+
+stop()
 
 df2 = df
 df2$values = 'predict'

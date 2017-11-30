@@ -9,7 +9,19 @@ x.vars.con = c()
 
 y.vars.con = c('rand_income')
 
-x.vars.cat = c('vintage', 'size')
+x.vars.cat = c('vintage', 'size', 'reportable_domain', 'equipm', 'fuelheat', 'equipage', 'temphome', 'cooltype', 'agecenac', 'temphomeac', 'typeglass', 'nhsldmem')
+# x.vars.cat = c('vintage') # 0.039
+# x.vars.cat = c('size') # 0.150
+# x.vars.cat = c('reportable_domain') # 0.044
+# x.vars.cat = c('equipm') # 0.040
+# x.vars.cat = c('fuelheat') # 0.009
+# x.vars.cat = c('equipage') # 0.008
+# x.vars.cat = c('temphome') # 0.040
+# x.vars.cat = c('cooltype') # 0.023
+# x.vars.cat = c('agecenac') # 0.026
+# x.vars.cat = c('temphomeac') # 0.020
+# x.vars.cat = c('typeglass') # 0.045
+# x.vars.cat = c('nhsldmem') # 0.080
 
 y.vars.cat = c()
 
@@ -17,6 +29,10 @@ dep_vars = c(y.vars.con, y.vars.cat)
 indep_vars = c(x.vars.con, x.vars.cat)
 
 df = read.csv('recs.csv')
+
+# filters
+df[df==-2] = NA
+
 levels(df$yearmaderange) = c(levels(df$yearmaderange), '<1950')
 df[df$yearmaderange=='1950-pre', 'yearmaderange'] = '<1950'
 df$yearmaderange = as.factor(df$yearmaderange)
@@ -28,12 +44,20 @@ df$values = 'actual'
 df[c(x.vars.cat, y.vars.cat)] = lapply(df[c(x.vars.cat, y.vars.cat)], factor) # apply factor to each of the categorical vars
 df = na.omit(df) # this removes rows with at least one NA
 
+# change the reference factors
+# df$heatingfuel = relevel(df$heatingfuel, ref='Other Fuel')
+
 # FIRST PASS
 attach(df)
 df.lm1 = lm(paste(dep_vars, paste(indep_vars, collapse=' + '), sep=' ~ '), weights=nweight, data=df, x=T)
 detach(df)
-summary(df.lm1)
-write.csv(summary(df.lm1)$coefficients, 'lm1.csv') # write out first pass to csv
+table = as.data.frame.matrix(summary(df.lm1)$coefficients)
+table = table[order(table[['Pr(>|t|)']]), ]
+table = round(table, 4)
+print(table)
+write.csv(table, 'lm1.csv') # write out first pass to csv
+summary(df.lm1)$r.squared
+summary(df.lm1)$adj.r.squared
 ###
 
 sig_indep_vars_factors = rownames(data.frame(summary(df.lm1)$coefficients)[data.frame(summary(df.lm1)$coefficients)$'Pr...t..' <= 0.05, ]) # remove insignificant vars
@@ -53,9 +77,16 @@ for (x in indep_vars) {
 attach(df)
 df.lm2 = lm(paste(dep_vars, paste(sig_indep_vars, collapse=' + '), sep=' ~ '), weights=nweight, data=df, x=T)
 detach(df)
-summary(df.lm2)
-write.csv(summary(df.lm2)$coefficients, 'lm2.csv') # write out first pass to csv
+table = as.data.frame.matrix(summary(df.lm1)$coefficients)
+table = table[order(table[['Pr(>|t|)']]), ]
+table = round(table, 4)
+print(table)
+write.csv(table, 'lm2.csv') # write out second pass to csv
+summary(df.lm2)$r.squared
+summary(df.lm2)$adj.r.squared
 ###
+
+stop()
 
 df2 = df
 df2$values = 'predict'
