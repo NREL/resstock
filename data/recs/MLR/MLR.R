@@ -45,7 +45,15 @@ df[c(x.vars.cat, y.vars.cat)] = lapply(df[c(x.vars.cat, y.vars.cat)], factor) # 
 df = na.omit(df) # this removes rows with at least one NA
 
 # change the reference factors
-# df$heatingfuel = relevel(df$heatingfuel, ref='Other Fuel')
+df$vintage = relevel(df$vintage, ref='1960s')
+df$reportable_domain = relevel(df$reportable_domain, ref='15')
+df$temphome = relevel(df$temphome, ref='50')
+df$temphomeac = relevel(df$temphomeac, ref='63')
+df$equipm = relevel(df$equipm, ref='Floor or Wall Pipeless Furnace')
+df$fuelheat = relevel(df$fuelheat, ref='Other Fuel')
+df$equipage = relevel(df$equipage, ref='15-19 yrs')
+df$agecenac = relevel(df$agecenac, ref='20+ yrs')
+df$nhsldmem = relevel(df$nhsldmem, ref='10')
 
 # FIRST PASS
 attach(df)
@@ -53,7 +61,7 @@ df.lm1 = lm(paste(dep_vars, paste(indep_vars, collapse=' + '), sep=' ~ '), weigh
 detach(df)
 table = as.data.frame.matrix(summary(df.lm1)$coefficients)
 table = table[order(table[['Pr(>|t|)']]), ]
-table = round(table, 4)
+table = round(table, 5)
 print(table)
 write.csv(table, 'lm1.csv') # write out first pass to csv
 summary(df.lm1)$r.squared
@@ -79,7 +87,7 @@ df.lm2 = lm(paste(dep_vars, paste(sig_indep_vars, collapse=' + '), sep=' ~ '), w
 detach(df)
 table = as.data.frame.matrix(summary(df.lm1)$coefficients)
 table = table[order(table[['Pr(>|t|)']]), ]
-table = round(table, 4)
+table = round(table, 5)
 print(table)
 write.csv(table, 'lm2.csv') # write out second pass to csv
 summary(df.lm2)$r.squared
