@@ -49,6 +49,26 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
                           "hvac_heating_capacity_w",
                           "upgrade_name",
                           "upgrade_cost_usd",
+                          "upgrade_option_01_cost_usd",
+                          "upgrade_option_01_lifetime_yrs",
+                          "upgrade_option_02_cost_usd",
+                          "upgrade_option_02_lifetime_yrs",
+                          "upgrade_option_03_cost_usd",
+                          "upgrade_option_03_lifetime_yrs",
+                          "upgrade_option_04_cost_usd",
+                          "upgrade_option_04_lifetime_yrs",
+                          "upgrade_option_05_cost_usd",
+                          "upgrade_option_05_lifetime_yrs",
+                          "upgrade_option_06_cost_usd",
+                          "upgrade_option_06_lifetime_yrs",
+                          "upgrade_option_07_cost_usd",
+                          "upgrade_option_07_lifetime_yrs",
+                          "upgrade_option_08_cost_usd",
+                          "upgrade_option_08_lifetime_yrs",
+                          "upgrade_option_09_cost_usd",
+                          "upgrade_option_09_lifetime_yrs",
+                          "upgrade_option_10_cost_usd",
+                          "upgrade_option_10_lifetime_yrs",
                           "weight"
                          ]
     result = OpenStudio::Measure::OSOutputVector.new
@@ -168,19 +188,27 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
     
     upgrade_cost_name = "upgrade_cost_usd"
     
-    # Get upgrade cost value/multiplier pairs from the upgrade measure
-    cost_pairs = []
+    # Get upgrade cost value/multiplier pairs and lifetimes from the upgrade measure
+    has_costs = false
+    option_cost_pairs = {}
+    option_lifetimes = {}
     for option_num in 1..10 # Sync with ApplyUpgrade measure
+        option_cost_pairs[option_num] = []
+        option_lifetimes[option_num] = nil
         for cost_num in 1..2 # Sync with ApplyUpgrade measure
             cost_value = get_value_from_runner_past_results(runner, "option_#{option_num}_cost_#{cost_num}_value_to_apply", "apply_upgrade", false)
             next if cost_value.nil?
             cost_mult_type = get_value_from_runner_past_results(runner, "option_#{option_num}_cost_#{cost_num}_multiplier_to_apply", "apply_upgrade", false)
             next if cost_mult_type.nil?
-            cost_pairs << [cost_value.to_f, cost_mult_type]
+            has_costs = true
+            option_cost_pairs[option_num] << [cost_value.to_f, cost_mult_type]
         end
+        lifetime = get_value_from_runner_past_results(runner, "option_#{option_num}_lifetime_to_apply", "apply_upgrade", false)
+        next if lifetime.nil?
+        option_lifetimes[option_num] = lifetime.to_f
     end
     
-    if cost_pairs.size == 0
+    if not has_costs
         runner.registerValue(upgrade_cost_name, "")
         runner.registerInfo("Registering (blank) for #{upgrade_cost_name}.")
         return true
@@ -188,16 +216,33 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
     
     # Obtain cost multiplier values and calculate upgrade costs
     upgrade_cost = 0.0
-    cost_pairs.each do |cost_value, cost_mult_type|
-        
-        cost_mult = get_cost_multiplier(cost_mult_type, model, runner, conditioned_zones)
-        if cost_mult.nil?
-            return false
+    option_cost_pairs.keys.each do |option_num|
+        option_cost = 0.0
+        option_cost_pairs[option_num].each do |cost_value, cost_mult_type|
+            cost_mult = get_cost_multiplier(cost_mult_type, model, runner, conditioned_zones)
+            if cost_mult.nil?
+                return false
+            end
+            total_cost = cost_value * cost_mult
+            option_cost += total_cost
+            runner.registerInfo("Upgrade cost addition: $#{cost_value} x #{cost_mult} [#{cost_mult_type}] = #{total_cost}.")
         end
-        
-        total_cost = cost_value * cost_mult
-        runner.registerInfo("Upgrade cost addition: $#{cost_value} x #{cost_mult} [#{cost_mult_type}] = #{total_cost}.")
-        upgrade_cost += total_cost
+        upgrade_cost += option_cost
+
+        # Save option cost/lifetime to results.csv
+        if option_cost != 0
+            option_num_str = option_num.to_s.rjust(2, '0')
+            option_cost_str = option_cost.round(2).to_s
+            option_cost_name = "upgrade_option_#{option_num_str}_cost_usd"
+            runner.registerValue(option_cost_name, option_cost_str)
+            runner.registerInfo("Registering #{option_cost_str} for #{option_cost_name}.")
+            if not option_lifetimes[option_num].nil? and option_lifetimes[option_num] != 0
+                lifetime_str = option_lifetimes[option_num].round(2).to_s
+                option_lifetime_name = "upgrade_option_#{option_num_str}_lifetime_yrs"
+                runner.registerValue(option_lifetime_name, lifetime_str)
+                runner.registerInfo("Registering #{lifetime_str} for #{option_lifetime_name}.")            
+            end
+        end
     end
     upgrade_cost_str = upgrade_cost.round(2).to_s
     runner.registerValue(upgrade_cost_name, upgrade_cost_str)
