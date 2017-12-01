@@ -12,7 +12,7 @@ y.vars.con = c('hhincome')
 x.vars.cat = c('vintage', 'heatingfuel', 'rooms')
 # x.vars.cat = c('vintage') # 0.032
 # x.vars.cat = c('heatingfuel') # 0.009
-# x.vars.cat = c('rooms') # 0.126 
+# x.vars.cat = c('rooms') # 0.126
 
 y.vars.cat = c()
 
@@ -33,8 +33,8 @@ dep_vars = c(y.vars.con, y.vars.cat)
 indep_vars = c(x.vars.con, x.vars.cat)
 
 # change the reference factors
-# df$heatingfuel = relevel(df$heatingfuel, ref='Other Fuel')
-# df$rooms = relevel(df$rooms, ref='2')
+df$heatingfuel = relevel(df$heatingfuel, ref='Other Fuel')
+df$rooms = relevel(df$rooms, ref='2')
 
 # FIRST PASS
 attach(df)
@@ -42,7 +42,7 @@ df.lm1 = lm(paste(dep_vars, paste(indep_vars, collapse=' + '), sep=' ~ '), weigh
 detach(df)
 table = as.data.frame.matrix(summary(df.lm1)$coefficients)
 table = table[order(table[['Pr(>|t|)']]), ]
-table = round(table, 4)
+table = round(table, 5)
 print(table)
 write.csv(table, 'lm1.csv') # write out first pass to csv
 summary(df.lm1)$r.squared
@@ -68,7 +68,7 @@ df.lm2 = lm(paste(dep_vars, paste(sig_indep_vars, collapse=' + '), sep=' ~ '), w
 detach(df)
 table = as.data.frame.matrix(summary(df.lm1)$coefficients)
 table = table[order(table[['Pr(>|t|)']]), ]
-table = round(table, 4)
+table = round(table, 5)
 print(table)
 write.csv(table, 'lm2.csv') # write out second pass to csv
 summary(df.lm2)$r.squared
