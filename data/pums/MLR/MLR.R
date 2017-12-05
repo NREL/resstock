@@ -19,6 +19,7 @@ y.vars.cat = c()
 df = read.csv('pums.csv')
 
 # filters
+df = df[df$unitsstr==3, ]
 df = df[df$hhincome>=0, ]
 df = df[df$nfams==1, ]
 
