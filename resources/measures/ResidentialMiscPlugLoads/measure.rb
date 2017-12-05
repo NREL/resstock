@@ -76,14 +76,14 @@ class ResidentialMiscellaneousElectricLoads < OpenStudio::Measure::ModelMeasure
     weekday_sch = OpenStudio::Measure::OSArgument::makeStringArgument("weekday_sch", true)
     weekday_sch.setDisplayName("Weekday schedule")
     weekday_sch.setDescription("Specify the 24-hour weekday schedule.")
-    weekday_sch.setDefaultValue("0.04, 0.037, 0.037, 0.036, 0.033, 0.036, 0.043, 0.047, 0.034, 0.023, 0.024, 0.025, 0.024, 0.028, 0.031, 0.032, 0.039, 0.053, 0.063, 0.067, 0.071, 0.069, 0.059, 0.05")
+    weekday_sch.setDefaultValue("0.035, 0.033, 0.032, 0.031, 0.032, 0.033, 0.037, 0.042, 0.043, 0.043, 0.043, 0.044, 0.045, 0.045, 0.044, 0.046, 0.048, 0.052, 0.053, 0.05, 0.047, 0.045, 0.04, 0.036")
     args << weekday_sch
     
     #Make a string argument for 24 weekend schedule values
     weekend_sch = OpenStudio::Measure::OSArgument::makeStringArgument("weekend_sch", true)
     weekend_sch.setDisplayName("Weekend schedule")
     weekend_sch.setDescription("Specify the 24-hour weekend schedule.")
-    weekend_sch.setDefaultValue("0.04, 0.037, 0.037, 0.036, 0.033, 0.036, 0.043, 0.047, 0.034, 0.023, 0.024, 0.025, 0.024, 0.028, 0.031, 0.032, 0.039, 0.053, 0.063, 0.067, 0.071, 0.069, 0.059, 0.05")
+    weekend_sch.setDefaultValue("0.035, 0.033, 0.032, 0.031, 0.032, 0.033, 0.037, 0.042, 0.043, 0.043, 0.043, 0.044, 0.045, 0.045, 0.044, 0.046, 0.048, 0.052, 0.053, 0.05, 0.047, 0.045, 0.04, 0.036")
     args << weekend_sch
 
     #Make a string argument for 12 monthly schedule values

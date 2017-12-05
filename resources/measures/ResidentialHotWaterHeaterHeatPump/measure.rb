@@ -145,7 +145,7 @@ class ResidentialHotWaterHeaterHeatPump < OpenStudio::Measure::ModelMeasure
         # make an argument for int_factor
         int_factor = osargument::makeDoubleArgument("int_factor", true)
         int_factor.setDisplayName("Interaction Factor")
-        int_factor.setDescription("Specifies how much the HPWH space conditioning impact interacts with the building's HVAC equipment. This can be used to account for situations such as wehen a HPWH is in a closet and only a portion of the HPWH's space cooling affects the HVAC system.")
+        int_factor.setDescription("Specifies how much the HPWH space conditioning impact interacts with the building's HVAC equipment. This can be used to account for situations such as when a HPWH is in a closet and only a portion of the HPWH's space cooling affects the HVAC system.")
         int_factor.setDefaultValue(1.0)
         args << int_factor
         
@@ -421,7 +421,7 @@ class ResidentialHotWaterHeaterHeatPump < OpenStudio::Measure::ModelMeasure
             if loop.nil?
                 runner.registerInfo("A new plant loop for DHW will be added to the model")
                 runner.registerInitialCondition("There is no existing water heater")
-                loop = Waterheater.create_new_loop(model, Constants.PlantLoopDomesticWater(unit.name.to_s), t_set, "hpwh")
+                loop = Waterheater.create_new_loop(model, Constants.PlantLoopDomesticWater(unit.name.to_s), t_set, Constants.WaterHeaterTypeHeatPump)
             else
                 runner.registerInitialCondition("An existing water heater was found in the model. This water heater will be removed and replace with a heat pump water heater")
             end
@@ -432,7 +432,7 @@ class ResidentialHotWaterHeaterHeatPump < OpenStudio::Measure::ModelMeasure
             end
 
             if loop.supplyOutletNode.setpointManagers.empty?
-                new_manager = Waterheater.create_new_schedule_manager(t_set, model, "hpwh")
+                new_manager = Waterheater.create_new_schedule_manager(t_set, model, Constants.WaterHeaterTypeHeatPump)
                 new_manager.addToNode(loop.supplyOutletNode)
             end
 

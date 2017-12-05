@@ -69,6 +69,13 @@ class ProcessFurnaceFuel < OpenStudio::Measure::ModelMeasure
     furnacecap.setDefaultValue(Constants.SizingAuto)
     args << furnacecap
     
+    #make a string argument for distribution system efficiency
+    dist_system_eff = OpenStudio::Measure::OSArgument::makeStringArgument("dse", true)
+    dist_system_eff.setDisplayName("Distribution System Efficiency")
+    dist_system_eff.setDescription("Defines the energy losses associated with the delivery of energy from the equipment to the source of the load.")
+    dist_system_eff.setDefaultValue("NA")
+    args << dist_system_eff  
+    
     return args
   end #end the arguments method
 
@@ -88,6 +95,12 @@ class ProcessFurnaceFuel < OpenStudio::Measure::ModelMeasure
       furnaceOutputCapacity = OpenStudio::convert(furnaceOutputCapacity.to_f,"kBtu/h","Btu/h").get
     end
     furnaceInstalledSupplyFanPower = runner.getDoubleArgumentValue("fan_power_installed",user_arguments)
+    dse = runner.getStringArgumentValue("dse",user_arguments)
+    if dse.to_f > 0
+      dse = dse.to_f
+    else
+      dse = 1.0
+    end
     
     # _processAirSystem
     
@@ -126,7 +139,7 @@ class ProcessFurnaceFuel < OpenStudio::Measure::ModelMeasure
 
         htg_coil = OpenStudio::Model::CoilHeatingGas.new(model)
         htg_coil.setName(obj_name + " heating coil")
-        htg_coil.setGasBurnerEfficiency(1.0 / hir)
+        htg_coil.setGasBurnerEfficiency(dse / hir)
         if furnaceOutputCapacity != Constants.SizingAuto
           htg_coil.setNominalCapacity(OpenStudio::convert(furnaceOutputCapacity,"Btu/h","W").get) # Used by HVACSizing measure
         end
@@ -143,10 +156,10 @@ class ProcessFurnaceFuel < OpenStudio::Measure::ModelMeasure
         fan = OpenStudio::Model::FanOnOff.new(model, model.alwaysOnDiscreteSchedule)
         fan.setName(obj_name + " supply fan")
         fan.setEndUseSubcategory(Constants.EndUseHVACFan)
-        fan.setFanEfficiency(OpenStudio::convert(static / furnaceInstalledSupplyFanPower,"cfm","m^3/s").get) # Overall Efficiency of the Supply Fan, Motor and Drive
+        fan.setFanEfficiency(dse * OpenStudio::convert(static / furnaceInstalledSupplyFanPower,"cfm","m^3/s").get) # Overall Efficiency of the Supply Fan, Motor and Drive
         fan.setPressureRise(static)
-        fan.setMotorEfficiency(1)
-        fan.setMotorInAirstreamFraction(1)  
+        fan.setMotorEfficiency(dse * 1.0)
+        fan.setMotorInAirstreamFraction(1.0)  
       
         # _processSystemAir
         
