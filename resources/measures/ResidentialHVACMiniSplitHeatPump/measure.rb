@@ -181,6 +181,13 @@ class ProcessVRFMinisplit < OpenStudio::Measure::ModelMeasure
     baseboardcap.setDefaultValue(Constants.SizingAuto)
     args << baseboardcap  
     
+    #make a string argument for distribution system efficiency
+    dist_system_eff = OpenStudio::Measure::OSArgument::makeStringArgument("dse", true)
+    dist_system_eff.setDisplayName("Distribution System Efficiency")
+    dist_system_eff.setDescription("Defines the energy losses associated with the delivery of energy from the equipment to the source of the load.")
+    dist_system_eff.setDefaultValue("NA")
+    args << dist_system_eff 
+    
     return args
   end
 
@@ -218,6 +225,12 @@ class ProcessVRFMinisplit < OpenStudio::Measure::ModelMeasure
     unless baseboardOutputCapacity == Constants.SizingAuto
       baseboardOutputCapacity = OpenStudio::convert(baseboardOutputCapacity.to_f,"kBtu/h","Btu/h").get
     end    
+    dse = runner.getStringArgumentValue("dse",user_arguments)
+    if dse.to_f > 0
+      dse = dse.to_f
+    else
+      dse = 1.0
+    end
     
     number_Speeds = 10
     max_defrost_temp = 40.0 # F
@@ -345,7 +358,7 @@ class ProcessVRFMinisplit < OpenStudio::Measure::ModelMeasure
         vrf = OpenStudio::Model::AirConditionerVariableRefrigerantFlow.new(model)
         vrf.setName(obj_name + " #{control_zone.name} ac vrf")
         vrf.setAvailabilitySchedule(model.alwaysOnDiscreteSchedule)
-        vrf.setRatedCoolingCOP(1.0 / coolingEIR[-1])
+        vrf.setRatedCoolingCOP(dse / coolingEIR[-1])
         vrf.setMinimumOutdoorTemperatureinCoolingMode(-6)
         vrf.setMaximumOutdoorTemperatureinCoolingMode(60)
         vrf.setCoolingCapacityRatioModifierFunctionofLowTemperatureCurve(cool_cap_ft_curve)    
@@ -353,7 +366,7 @@ class ProcessVRFMinisplit < OpenStudio::Measure::ModelMeasure
         vrf.setCoolingEnergyInputRatioModifierFunctionofLowPartLoadRatioCurve(cool_eir_fplr_curve)
         vrf.setCoolingPartLoadFractionCorrelationCurve(cool_plf_fplr_curve)
         vrf.setRatedTotalHeatingCapacitySizingRatio(1)
-        vrf.setRatedHeatingCOP(1.0 / heatingEIR[-1])
+        vrf.setRatedHeatingCOP(dse / heatingEIR[-1])
         vrf.setMinimumOutdoorTemperatureinHeatingMode(OpenStudio::convert(min_hp_temp,"F","C").get)
         vrf.setMaximumOutdoorTemperatureinHeatingMode(40)
         vrf.setHeatingCapacityRatioModifierFunctionofLowTemperatureCurve(heat_cap_ft_curve)
@@ -383,10 +396,10 @@ class ProcessVRFMinisplit < OpenStudio::Measure::ModelMeasure
         fan = OpenStudio::Model::FanOnOff.new(model, model.alwaysOnDiscreteSchedule)
         fan.setName(obj_name + " #{control_zone.name} supply fan")
         fan.setEndUseSubcategory(Constants.EndUseHVACFan)
-        fan.setFanEfficiency(HVAC.calculate_fan_efficiency(static, miniSplitHPSupplyFanPower))
+        fan.setFanEfficiency(dse * HVAC.calculate_fan_efficiency(static, miniSplitHPSupplyFanPower))
         fan.setPressureRise(static)
-        fan.setMotorEfficiency(1)
-        fan.setMotorInAirstreamFraction(1)       
+        fan.setMotorEfficiency(dse * 1.0)
+        fan.setMotorInAirstreamFraction(1.0)       
         
         # _processSystemDemandSideAir
         
@@ -438,7 +451,7 @@ class ProcessVRFMinisplit < OpenStudio::Measure::ModelMeasure
           vrf = OpenStudio::Model::AirConditionerVariableRefrigerantFlow.new(model)
           vrf.setName(obj_name + " #{slave_zone.name} ac vrf")
           vrf.setAvailabilitySchedule(model.alwaysOnDiscreteSchedule)          
-          vrf.setRatedCoolingCOP(1.0 / coolingEIR[-1])
+          vrf.setRatedCoolingCOP(dse / coolingEIR[-1])
           vrf.setMinimumOutdoorTemperatureinCoolingMode(-6)
           vrf.setMaximumOutdoorTemperatureinCoolingMode(60)          
           vrf.setCoolingCapacityRatioModifierFunctionofLowTemperatureCurve(cool_cap_ft_curve)   
@@ -446,7 +459,7 @@ class ProcessVRFMinisplit < OpenStudio::Measure::ModelMeasure
           vrf.setCoolingEnergyInputRatioModifierFunctionofLowPartLoadRatioCurve(cool_eir_fplr_curve)
           vrf.setCoolingPartLoadFractionCorrelationCurve(cool_plf_fplr_curve)
           vrf.setRatedTotalHeatingCapacitySizingRatio(1)
-          vrf.setRatedHeatingCOP(1.0 / heatingEIR[-1])
+          vrf.setRatedHeatingCOP(dse / heatingEIR[-1])
           vrf.setMinimumOutdoorTemperatureinHeatingMode(OpenStudio::convert(min_hp_temp,"F","C").get)
           vrf.setMaximumOutdoorTemperatureinHeatingMode(40)
           vrf.setHeatingCapacityRatioModifierFunctionofLowTemperatureCurve(heat_cap_ft_curve)
@@ -474,10 +487,10 @@ class ProcessVRFMinisplit < OpenStudio::Measure::ModelMeasure
           fan = OpenStudio::Model::FanOnOff.new(model, model.alwaysOnDiscreteSchedule)
           fan.setName(obj_name + " #{slave_zone.name} supply fan")
           fan.setEndUseSubcategory(Constants.EndUseHVACFan)
-          fan.setFanEfficiency(HVAC.calculate_fan_efficiency(static, miniSplitHPSupplyFanPower))
+          fan.setFanEfficiency(dse * HVAC.calculate_fan_efficiency(static, miniSplitHPSupplyFanPower))
           fan.setPressureRise(static)
-          fan.setMotorEfficiency(1)
-          fan.setMotorInAirstreamFraction(1)
+          fan.setMotorEfficiency(dse * 1.0)
+          fan.setMotorInAirstreamFraction(1.0)
                     
           tu_vrf = OpenStudio::Model::ZoneHVACTerminalUnitVariableRefrigerantFlow.new(model, clg_coil, htg_coil, fan)
           tu_vrf.setName(obj_name + " #{slave_zone.name} zone vrf")

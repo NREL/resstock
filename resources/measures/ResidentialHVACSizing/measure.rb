@@ -91,7 +91,7 @@ class ProcessHVACSizing < OpenStudio::Measure::ModelMeasure
     end
     attr_accessor(:Has, :NotInLiving, :SupplySurfaceArea, :ReturnSurfaceArea, 
                   :SupplyLoss, :ReturnLoss, :SupplyRvalue, :ReturnRvalue,
-                  :Location, :LocationSpace, :LocationFrac, :DuctSystemEfficiency)
+                  :Location, :LocationSpace, :LocationFrac)
   end
   
   #define the name that a user will see, this method may be deprecated as
@@ -1501,14 +1501,10 @@ class ProcessHVACSizing < OpenStudio::Measure::ModelMeasure
     unit_final.dse_Fregain = nil
     
     # Distribution system efficiency (DSE) calculations based on ASHRAE Standard 152
-    if (ducts.Has and ducts.NotInLiving) or not ducts.DuctSystemEfficiency.nil?
+    if ducts.Has and ducts.NotInLiving
         # dse_Fregain values comes from MJ8 pg 204 and Walker (1998) "Technical background for default 
         # values used for forced air systems in proposed ASHRAE Std. 152"
-        if not ducts.DuctSystemEfficiency.nil?
-            #Regain is already incorporated into the DSE
-            unit_final.dse_Fregain = 0.0
-        
-        elsif Geometry.is_unfinished_basement(ducts.LocationSpace) or Geometry.is_finished_basement(ducts.LocationSpace)
+        if Geometry.is_unfinished_basement(ducts.LocationSpace) or Geometry.is_finished_basement(ducts.LocationSpace)
 
             walls_insulated = get_unit_feature(runner, unit, Constants.SizingInfoSpaceWallsInsulated(ducts.LocationSpace), 'boolean')
             ceiling_insulated = get_unit_feature(runner, unit, Constants.SizingInfoSpaceCeilingInsulated(ducts.LocationSpace), 'boolean')
@@ -1595,9 +1591,7 @@ class ProcessHVACSizing < OpenStudio::Measure::ModelMeasure
     if ducts.Has and ducts.NotInLiving and hvac.HasForcedAirHeating
         dse_Tamb_heating = mj8.heat_design_temps[ducts.LocationSpace]
         unit_final.Heat_Load_Ducts = calc_heat_duct_load(ducts, mj8.acf, mj8.heat_setpoint, unit_final.dse_Fregain, heatingLoad, hvac.HtgSupplyAirTemp, dse_Tamb_heating)
-        if not ducts.DuctSystemEfficiency.nil?
-            unit_final.Heat_Load = heatingLoad + unit_final.Heat_Load_Ducts
-        elsif Geometry.space_is_finished(ducts.LocationSpace)
+        if Geometry.space_is_finished(ducts.LocationSpace)
             # Ducts in finished spaces shouldn't affect the total heating capacity
             unit_final.Heat_Load = heatingLoad
         else
@@ -1760,10 +1754,6 @@ class ProcessHVACSizing < OpenStudio::Measure::ModelMeasure
 
         # Limit the DE to a reasonable value to prevent negative values and huge equipment
         dse_DEcorr_dehumid = [dse_DEcorr_dehumid, 0.25].max
-        
-        if not ducts.DuctSystemEfficiency.nil?
-            dse_DEcorr_dehumid = ducts.DuctSystemEfficiency
-        end
         
         # Calculate the increase in sensible dehumidification load due to ducts
         unit_final.Dehumid_Load_Sens = unit_init.Dehumid_Load_Sens / dse_DEcorr_dehumid
@@ -2850,10 +2840,6 @@ class ProcessHVACSizing < OpenStudio::Measure::ModelMeasure
     dse_DEcorr = [dse_DEcorr, 0.25].max
     dse_DEcorr = [dse_DEcorr, 1.00].min
     
-    if not ducts.DuctSystemEfficiency.nil?
-        dse_DEcorr = ducts.DuctSystemEfficiency
-    end
-    
     return dse_DEcorr
   end
   
@@ -2876,23 +2862,6 @@ class ProcessHVACSizing < OpenStudio::Measure::ModelMeasure
     if (hvac.HasForcedAirHeating or hvac.HasForcedAirCooling) and not hvac.HasMiniSplitHeatPump
         ducts.Has = true
         ducts.NotInLiving = false # init
-        
-        ducts.DuctSystemEfficiency = get_unit_feature(runner, unit, Constants.SizingInfoDuctsDSE, 'double', false)
-        if not ducts.DuctSystemEfficiency.nil?
-            ducts.LocationFrac = 1.0
-            ducts.SupplyLoss = 0.0
-            ducts.ReturnLoss = 0.0
-            ducts.SupplyRvalue = 1.0
-            ducts.ReturnRvalue = 1.0
-            unit.spaces.each do |s|
-              next if not s.name.to_s.start_with? Constants.LivingSpace
-              ducts.LocationSpace = s
-            end
-            ducts.SupplySurfaceArea = 0.0
-            ducts.ReturnSurfaceArea = 0.0
-            ducts.NotInLiving = true
-            return ducts
-        end
         
         ducts.SupplySurfaceArea = get_unit_feature(runner, unit, Constants.SizingInfoDuctsSupplySurfaceArea, 'double')
         ducts.ReturnSurfaceArea = get_unit_feature(runner, unit, Constants.SizingInfoDuctsReturnSurfaceArea, 'double')
@@ -3002,30 +2971,14 @@ class ProcessHVACSizing < OpenStudio::Measure::ModelMeasure
         htg_equips << htg_equip
     end
     
-    if not HVAC.has_central_air_conditioner(model, runner, control_zone, false, false).nil?
-        hvac.HasCentralAirConditioner = true
-    end
-    if not HVAC.has_room_air_conditioner(model, runner, control_zone, false).nil?
-        hvac.HasRoomAirConditioner = true
-    end
-    if not HVAC.has_furnace(model, runner, control_zone, false, false).nil?
-        hvac.HasFurnace = true
-    end
-    if not HVAC.has_boiler(model, runner, control_zone, false).nil?
-        hvac.HasBoiler = true
-    end
-    if not HVAC.has_electric_baseboard(model, runner, control_zone, false).nil?
-        hvac.HasElecBaseboard = true
-    end
-    if not HVAC.has_air_source_heat_pump(model, runner, control_zone, false).nil?
-        hvac.HasAirSourceHeatPump = true
-    end
-    if not HVAC.has_mini_split_heat_pump(model, runner, control_zone, unit, false).nil?
-        hvac.HasMiniSplitHeatPump = true
-    end
-    if not HVAC.has_gshp_vert_bore(model, runner, control_zone, false).nil?
-        hvac.HasGroundSourceHeatPump = true
-    end
+    hvac.HasCentralAirConditioner = HVAC.has_central_ac(model, runner, control_zone)
+    hvac.HasRoomAirConditioner = HVAC.has_room_ac(model, runner, control_zone)
+    hvac.HasFurnace = HVAC.has_furnace(model, runner, control_zone)
+    hvac.HasBoiler = HVAC.has_boiler(model, runner, control_zone)
+    hvac.HasElecBaseboard = HVAC.has_electric_baseboard(model, runner, control_zone)
+    hvac.HasAirSourceHeatPump = HVAC.has_ashp(model, runner, control_zone)
+    hvac.HasMiniSplitHeatPump = HVAC.has_mshp(model, runner, control_zone)
+    hvac.HasGroundSourceHeatPump = HVAC.has_gshp(model, runner, control_zone)
     
     if hvac.HasAirSourceHeatPump or hvac.HasMiniSplitHeatPump
         hvac.HPSizedForMaxLoad = get_unit_feature(runner, unit, Constants.SizingInfoHPSizedForMaxLoad, 'boolean', true)
@@ -4248,26 +4201,16 @@ class ProcessHVACSizing < OpenStudio::Measure::ModelMeasure
     control_and_slave_zones = HVAC.get_control_and_slave_zones(thermal_zones)
     
     # Air Terminals
-    dse = ducts.DuctSystemEfficiency
-    if dse.nil?
-        dse = 1.0
-    end
     control_and_slave_zones.each do |control_zone, slave_zones|
         next if not control_zone.airLoopHVACTerminal.is_initialized
         aterm = control_zone.airLoopHVACTerminal.get.to_AirTerminalSingleDuctUncontrolled.get
-        aterm.setMaximumAirFlowRate(OpenStudio.convert(unit_final.Fan_Airflow,"cfm","m^3/s").get * unit_final.Zone_FlowRatios[control_zone] * dse)
+        aterm.setMaximumAirFlowRate(OpenStudio.convert(unit_final.Fan_Airflow,"cfm","m^3/s").get * unit_final.Zone_FlowRatios[control_zone])
         
         slave_zones.each do |slave_zone|
             next if not slave_zone.airLoopHVACTerminal.is_initialized
             aterm = slave_zone.airLoopHVACTerminal.get.to_AirTerminalSingleDuctUncontrolled.get
-            aterm.setMaximumAirFlowRate(OpenStudio.convert(unit_final.Fan_Airflow,"cfm","m^3/s").get * unit_final.Zone_FlowRatios[slave_zone] * dse)
+            aterm.setMaximumAirFlowRate(OpenStudio.convert(unit_final.Fan_Airflow,"cfm","m^3/s").get * unit_final.Zone_FlowRatios[slave_zone])
         end
-    end
-    thermal_zones.each do |zone|
-        next if not zone.airLoopHVACTerminal.is_initialized
-        next if not zone.name.to_s.start_with?(Constants.DSEZone)
-        aterm = zone.airLoopHVACTerminal.get.to_AirTerminalSingleDuctUncontrolled.get
-        aterm.setMaximumAirFlowRate(OpenStudio.convert(unit_final.Fan_Airflow,"cfm","m^3/s").get * (1.0 - dse))
     end
     
     # Zone HVAC Window AC
