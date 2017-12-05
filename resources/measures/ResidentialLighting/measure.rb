@@ -310,39 +310,40 @@ class ResidentialLighting < OpenStudio::Measure::ModelMeasure
                 
     dec_kws = [0.075, 0.055, 0.040, 0.035, 0.030, 0.025, 0.025, 0.025, 0.025, 0.025, 0.025, 0.030, 0.045, 0.075, 0.130, 0.160, 0.140, 0.100, 0.075, 0.065, 0.060, 0.050, 0.045, 0.045, 0.045, 0.045, 0.045, 0.045, 0.050, 0.060, 0.080, 0.130, 0.190, 0.230, 0.250, 0.260, 0.260, 0.250, 0.240, 0.225, 0.225, 0.220, 0.210, 0.200, 0.180, 0.155, 0.125, 0.100]
     june_kws = [0.060, 0.040, 0.035, 0.025, 0.020, 0.020, 0.020, 0.020, 0.020, 0.020, 0.020, 0.020, 0.020, 0.025, 0.030, 0.030, 0.025, 0.020, 0.015, 0.015, 0.015, 0.015, 0.015, 0.015, 0.015, 0.015, 0.015, 0.015, 0.015, 0.015, 0.015, 0.015, 0.020, 0.020, 0.020, 0.025, 0.025, 0.030, 0.030, 0.035, 0.045, 0.060, 0.085, 0.125, 0.145, 0.130, 0.105, 0.080]
-                        
+    lighting_seasonal_multiplier =   [1.075, 1.064951905, 1.0375, 1.0, 0.9625, 0.935048095, 0.925, 0.935048095, 0.9625, 1.0, 1.0375, 1.064951905]          
     amplConst1 = 0.929707907917098
     sunsetLag1 = 2.45016230615269
     stdDevCons1 = 1.58679810983444
     amplConst2 = 1.1372291802273
     sunsetLag2 = 20.1501965859073
     stdDevCons2 = 2.36567663279954
+
     monthly_kwh_per_day = []
     days_m = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
     wtd_avg_monthly_kwh_per_day = 0
     for monthNum in 1..12
         month = monthNum-1
-        monthHalfHourKWHs = []
+        monthHalfHourKWHs = [0]
         # Calculate hour 12.5 first; others depend on it
-        monthHalfHourKWHs[24] = june_kws[24] + ((dec_kws[24] - june_kws[24]) / 2.0 / 0.266 * (1.0 / 1.5 / ((2.0*pi)**0.5)) * Math.exp(-0.5 * (((6 - monthNum).abs - 6) / 1.5)**2)) + ((dec_kws[24] - june_kws[24]) / 2 / 0.399 * (1 / 1 / ((2 * pi)**0.5)) * Math.exp(-0.5 * (((4.847 - sunrise_hour[month]).abs - 3.2) / 1.0)**2))
-        for hourNum in 0..10
+        #monthHalfHourKWHs[24] = june_kws[24] + ((dec_kws[24] - june_kws[24]) / 2.0 / 0.266 * (1.0 / 1.5 / ((2.0*pi)**0.5)) * Math.exp(-0.5 * (((6 - monthNum).abs - 6) / 1.5)**2)) + ((dec_kws[24] - june_kws[24]) / 2 / 0.399 * (1 / 1 / ((2 * pi)**0.5)) * Math.exp(-0.5 * (((4.847 - sunrise_hour[month]).abs - 3.2) / 1.0)**2))
+        for hourNum in 0..9
             monthHalfHourKWHs[hourNum] = june_kws[hourNum]
         end
-        for hourNum in 11..16
+        for hourNum in 9..17
             hour = (hourNum + 1.0) * 0.5
-            monthHalfHourKWHs[hourNum] = june_kws[11] + 0.005 * (sunrise_hour[month] - 3.0)**2.4 * Math.exp(-1.0 * ((hour - 8.0)**2) / (2.0 * 0.8**2)) / (0.8 * (2.0 * pi)**0.5)
+            monthHalfHourKWHs[hourNum] = (monthHalfHourKWHs[8]  - (0.15 / (2 * pi)) * Math.sin((2 * pi) * (hour - 4.5) / 3.5) + (0.15 / 3.5) * (hour - 4.5)) * lighting_seasonal_multiplier[month] 
         end
-        for hourNum in 16..24
+        for hourNum in 17..29
             hour = (hourNum + 1.0) * 0.5
-            monthHalfHourKWHs[hourNum] = monthHalfHourKWHs[24] + 0.005 * (sunrise_hour[month] - 3.0)**2.4 * Math.exp(-1.0 * ((hour - 8.0)**2) / (2.0 * 0.8**2.0)) / (0.8 * (2.0 * pi)**0.5)
+            monthHalfHourKWHs[hourNum] = (monthHalfHourKWHs[16] - (-0.02 / (2 * pi)) * Math.sin((2 * pi) * (hour - 8.5) / 5.5) + (-0.02 / 5.5) * (hour - 8.5)) * lighting_seasonal_multiplier[month]
         end
-        for hourNum in 25..38
+        for hourNum in 29..45
             hour = (hourNum + 1.0) * 0.5
-            monthHalfHourKWHs[hourNum] = (monthHalfHourKWHs[24] + amplConst1 * Math.exp((-1.0 * (hour - (sunset_hour[month] + sunsetLag1))**2) / (2.0 * ((25.5 / ((6.5 - monthNum).abs + 20.0)) * stdDevCons1)**2)) / ((25.5 / ((6.5 - monthNum).abs + 20.0)) * stdDevCons1 * (2.0*pi)**0.5))
+            monthHalfHourKWHs[hourNum] = (monthHalfHourKWHs[28] + amplConst1 * Math.exp((-1.0 * (hour - (sunset_hour[month] + sunsetLag1))**2) / (2.0 * ((25.5 / ((6.5 - monthNum).abs + 20.0)) * stdDevCons1)**2)) / ((25.5 / ((6.5 - monthNum).abs + 20.0)) * stdDevCons1 * (2.0*pi)**0.5))
         end
-        for hourNum in 38..44
+        for hourNum in 45..46
             hour = (hourNum + 1.0) * 0.5
-            temp1 = (monthHalfHourKWHs[24] + amplConst1 * Math.exp((-1.0 * (hour - (sunset_hour[month] + sunsetLag1))**2) / (2.0 * ((25.5 / ((6.5 - monthNum).abs + 20.0)) * stdDevCons1)**2)) / ((25.5 / ((6.5 - monthNum).abs + 20.0)) * stdDevCons1 * (2.0*pi)**0.5))
+            temp1 = (monthHalfHourKWHs[44] + amplConst1 * Math.exp((-1.0 * (hour - (sunset_hour[month] + sunsetLag1))**2) / (2.0 * ((25.5 / ((6.5 - monthNum).abs + 20.0)) * stdDevCons1)**2)) / ((25.5 / ((6.5 - monthNum).abs + 20.0)) * stdDevCons1 * (2.0*pi)**0.5))
             temp2 = (0.04 + amplConst2 * Math.exp((-1.0 * (hour - (sunsetLag2))**2) / (2.0 * (stdDevCons2)**2)) / (stdDevCons2 * (2.0*pi)**0.5))
             if sunsetLag2 < sunset_hour[month] + sunsetLag1
                 monthHalfHourKWHs[hourNum] = [temp1, temp2].min
@@ -350,10 +351,11 @@ class ResidentialLighting < OpenStudio::Measure::ModelMeasure
                 monthHalfHourKWHs[hourNum] = [temp1, temp2].max
             end
         end
-        for hourNum in 44..48
+        for hourNum in 46..47
             hour = (hourNum + 1) * 0.5
-            monthHalfHourKWHs[hourNum] = (0.04 + amplConst2 * Math.exp((-1 * (hour - (sunsetLag2))**2) / (2 * (stdDevCons2)**2)) / (stdDevCons2 * (2*pi)**0.5))
+            monthHalfHourKWHs[hourNum] = (0.04 + amplConst2 * Math.exp((-1.0 * (hour - (sunsetLag2))**2) / (2.0 * (stdDevCons2)**2)) / (stdDevCons2 * (2.0*pi)**0.5))
         end
+
         sum_kWh = 0.0
         for timenum in 0..47
             sum_kWh = sum_kWh + monthHalfHourKWHs[timenum]
@@ -363,7 +365,6 @@ class ResidentialLighting < OpenStudio::Measure::ModelMeasure
             normalized_hourly_lighting[month][hour] = ltg_hour/sum_kWh
             monthly_kwh_per_day[month] = sum_kWh/2.0 
        end
-       
        wtd_avg_monthly_kwh_per_day = wtd_avg_monthly_kwh_per_day + monthly_kwh_per_day[month] * days_m[month]/365.0
     end
     

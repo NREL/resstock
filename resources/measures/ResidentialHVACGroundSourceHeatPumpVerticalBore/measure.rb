@@ -218,7 +218,14 @@ class ProcessGroundSourceHeatPumpVerticalBore < OpenStudio::Measure::ModelMeasur
     supcap.setDescription("The output heating capacity of the supplemental heater.")
     supcap.setUnits("kBtu/hr")
     supcap.setDefaultValue(Constants.SizingAuto)
-    args << supcap     
+    args << supcap   
+
+    #make a string argument for distribution system efficiency
+    dist_system_eff = OpenStudio::Measure::OSArgument::makeStringArgument("dse", true)
+    dist_system_eff.setDisplayName("Distribution System Efficiency")
+    dist_system_eff.setDescription("Defines the energy losses associated with the delivery of energy from the equipment to the source of the load.")
+    dist_system_eff.setDefaultValue("NA")
+    args << dist_system_eff        
     
     return args
   end
@@ -259,6 +266,12 @@ class ProcessGroundSourceHeatPumpVerticalBore < OpenStudio::Measure::ModelMeasur
     supp_capacity = runner.getStringArgumentValue("supplemental_capacity",user_arguments)
     unless supp_capacity == Constants.SizingAuto
       supp_capacity = OpenStudio::convert(supp_capacity.to_f,"kBtu/h","Btu/h").get
+    end
+    dse = runner.getStringArgumentValue("dse",user_arguments)
+    if dse.to_f > 0
+      dse = dse.to_f
+    else
+      dse = 1.0
     end
     
     if frac_glycol == 0
@@ -349,7 +362,7 @@ class ProcessGroundSourceHeatPumpVerticalBore < OpenStudio::Measure::ModelMeasur
     pump = OpenStudio::Model::PumpVariableSpeed.new(model)
     pump.setName(Constants.ObjectNameGroundSourceHeatPumpVerticalBore + " pump")
     pump.setRatedPumpHead(pump_head)
-    pump.setMotorEfficiency(0.77 * 0.6)
+    pump.setMotorEfficiency(dse * 0.77 * 0.6)
     pump.setFractionofMotorInefficienciestoFluidStream(0)
     pump.setCoefficient1ofthePartLoadPerformanceCurve(0)
     pump.setCoefficient2ofthePartLoadPerformanceCurve(1)
@@ -398,7 +411,7 @@ class ProcessGroundSourceHeatPumpVerticalBore < OpenStudio::Measure::ModelMeasur
         if gshp_capacity != Constants.SizingAuto
           htg_coil.setRatedHeatingCapacity(OpenStudio::OptionalDouble.new(OpenStudio::convert(gshp_capacity,"Btu/h","W").get)) # Used by HVACSizing measure
         end
-        htg_coil.setRatedHeatingCoefficientofPerformance(1.0 / heatingEIR)
+        htg_coil.setRatedHeatingCoefficientofPerformance(dse / heatingEIR)
         htg_coil.setHeatingCapacityCoefficient1(gshp_HEAT_CAP_fT_coeff[0])
         htg_coil.setHeatingCapacityCoefficient2(gshp_HEAT_CAP_fT_coeff[1])
         htg_coil.setHeatingCapacityCoefficient3(gshp_HEAT_CAP_fT_coeff[2])
@@ -414,7 +427,7 @@ class ProcessGroundSourceHeatPumpVerticalBore < OpenStudio::Measure::ModelMeasur
         
         supp_htg_coil = OpenStudio::Model::CoilHeatingElectric.new(model, model.alwaysOnDiscreteSchedule)
         supp_htg_coil.setName(obj_name + " supp heater")
-        supp_htg_coil.setEfficiency(supp_eff)
+        supp_htg_coil.setEfficiency(dse * supp_eff)
         if supp_capacity != Constants.SizingAuto
           supp_htg_coil.setNominalCapacity(OpenStudio::convert(supp_capacity,"Btu/h","W").get) # Used by HVACSizing measure
         end        
@@ -428,7 +441,7 @@ class ProcessGroundSourceHeatPumpVerticalBore < OpenStudio::Measure::ModelMeasur
         if gshp_capacity != Constants.SizingAuto
           clg_coil.setRatedTotalCoolingCapacity(OpenStudio::convert(gshp_capacity,"Btu/h","W").get) # Used by HVACSizing measure
         end
-        clg_coil.setRatedCoolingCoefficientofPerformance(1.0 / coolingEIR)
+        clg_coil.setRatedCoolingCoefficientofPerformance(dse / coolingEIR)
         clg_coil.setTotalCoolingCapacityCoefficient1(gshp_COOL_CAP_fT_coeff[0])
         clg_coil.setTotalCoolingCapacityCoefficient2(gshp_COOL_CAP_fT_coeff[1])
         clg_coil.setTotalCoolingCapacityCoefficient3(gshp_COOL_CAP_fT_coeff[2])
@@ -453,10 +466,10 @@ class ProcessGroundSourceHeatPumpVerticalBore < OpenStudio::Measure::ModelMeasur
         fan = OpenStudio::Model::FanOnOff.new(model, model.alwaysOnDiscreteSchedule)
         fan.setName(obj_name + " #{control_zone.name} supply fan")
         fan.setEndUseSubcategory(Constants.EndUseHVACFan)
-        fan.setFanEfficiency(HVAC.calculate_fan_efficiency(static, supply_fan_power))
+        fan.setFanEfficiency(dse * HVAC.calculate_fan_efficiency(static, supply_fan_power))
         fan.setPressureRise(static)
-        fan.setMotorEfficiency(1)
-        fan.setMotorInAirstreamFraction(1)
+        fan.setMotorEfficiency(dse * 1.0)
+        fan.setMotorInAirstreamFraction(1.0)
           
         air_loop_unitary = OpenStudio::Model::AirLoopHVACUnitarySystem.new(model)
         air_loop_unitary.setName(obj_name + " unitary system")

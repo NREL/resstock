@@ -15,7 +15,7 @@ require "#{File.dirname(__FILE__)}/resources/airflow"
 class ResidentialAirflow < OpenStudio::Measure::ModelMeasure
 
   class Ducts
-    def initialize(ductTotalLeakage, ductNormLeakageToOutside, ductSupplySurfaceAreaMultiplier, ductReturnSurfaceAreaMultiplier, ductRvalue, ductSupplyLeakageFractionOfTotal, ductReturnLeakageFractionOfTotal, ductAHSupplyLeakageFractionOfTotal, ductAHReturnLeakageFractionOfTotal, ductSystemEfficiency, ductLocationFrac, ductNumReturns, ductLocation)
+    def initialize(ductTotalLeakage, ductNormLeakageToOutside, ductSupplySurfaceAreaMultiplier, ductReturnSurfaceAreaMultiplier, ductRvalue, ductSupplyLeakageFractionOfTotal, ductReturnLeakageFractionOfTotal, ductAHSupplyLeakageFractionOfTotal, ductAHReturnLeakageFractionOfTotal, ductLocationFrac, ductNumReturns, ductLocation)
       @DuctTotalLeakage = ductTotalLeakage
       @DuctNormLeakageToOutside = ductNormLeakageToOutside
       @DuctSupplySurfaceAreaMultiplier = ductSupplySurfaceAreaMultiplier
@@ -25,12 +25,11 @@ class ResidentialAirflow < OpenStudio::Measure::ModelMeasure
       @DuctReturnLeakageFractionOfTotal = ductReturnLeakageFractionOfTotal
       @DuctAHSupplyLeakageFractionOfTotal = ductAHSupplyLeakageFractionOfTotal
       @DuctAHReturnLeakageFractionOfTotal = ductAHReturnLeakageFractionOfTotal
-      @DuctSystemEfficiency = ductSystemEfficiency
       @DuctLocationFrac = ductLocationFrac
       @DuctNumReturns = ductNumReturns
       @DuctLocation = ductLocation
     end
-    attr_accessor(:DuctTotalLeakage, :DuctNormLeakageToOutside, :DuctSupplySurfaceAreaMultiplier, :DuctReturnSurfaceAreaMultiplier, :DuctRvalue, :DuctSupplyLeakageFractionOfTotal, :DuctReturnLeakageFractionOfTotal, :DuctAHSupplyLeakageFractionOfTotal, :DuctAHReturnLeakageFractionOfTotal, :DuctSystemEfficiency, :duct_location_zone, :duct_location_name, :has_ducts, :ducts_not_in_living, :num_stories, :num_stories_for_ducts, :DuctLocationFrac, :DuctLocationFracLeakage, :DuctLocationFracConduction, :DuctSupplyLeakageFractionOfTotal, :DuctReturnLeakageFractionOfTotal, :DuctAHSupplyLeakageFractionOfTotal, :DuctAHReturnLeakageFractionOfTotal, :DuctSupplyLeakage, :DuctReturnLeakage, :DuctAHSupplyLeakage, :DuctAHReturnLeakage, :DuctNumReturns, :supply_duct_surface_area, :return_duct_surface_area, :unconditioned_duct_area, :supply_duct_r, :return_duct_r, :unconditioned_duct_ua, :return_duct_ua, :supply_duct_volume, :return_duct_volume, :direct_oa_supply_duct_loss, :supply_duct_loss, :return_duct_loss, :supply_lk_oper, :return_lk_oper, :ah_supply_lk_oper, :ah_return_lk_oper, :total_duct_unbalance, :frac_oa, :oa_duct_makeup, :has_forced_air_equipment, :DuctLocationFrac, :DuctNumReturns, :DuctLocation)
+    attr_accessor(:DuctTotalLeakage, :DuctNormLeakageToOutside, :DuctSupplySurfaceAreaMultiplier, :DuctReturnSurfaceAreaMultiplier, :DuctRvalue, :DuctSupplyLeakageFractionOfTotal, :DuctReturnLeakageFractionOfTotal, :DuctAHSupplyLeakageFractionOfTotal, :DuctAHReturnLeakageFractionOfTotal, :duct_location_zone, :duct_location_name, :has_ducts, :ducts_not_in_living, :num_stories, :num_stories_for_ducts, :DuctLocationFrac, :DuctLocationFracLeakage, :DuctLocationFracConduction, :DuctSupplyLeakageFractionOfTotal, :DuctReturnLeakageFractionOfTotal, :DuctAHSupplyLeakageFractionOfTotal, :DuctAHReturnLeakageFractionOfTotal, :DuctSupplyLeakage, :DuctReturnLeakage, :DuctAHSupplyLeakage, :DuctAHReturnLeakage, :DuctNumReturns, :supply_duct_surface_area, :return_duct_surface_area, :unconditioned_duct_area, :supply_duct_r, :return_duct_r, :unconditioned_duct_ua, :return_duct_ua, :supply_duct_volume, :return_duct_volume, :direct_oa_supply_duct_loss, :supply_duct_loss, :return_duct_loss, :supply_lk_oper, :return_lk_oper, :ah_supply_lk_oper, :ah_return_lk_oper, :total_duct_unbalance, :frac_oa, :oa_duct_makeup, :has_forced_air_equipment, :DuctLocationFrac, :DuctNumReturns, :DuctLocation)
   end
 
   class Infiltration
@@ -460,7 +459,6 @@ class ResidentialAirflow < OpenStudio::Measure::ModelMeasure
     duct_locations << Constants.Auto
     duct_locations << Constants.LivingZone
     duct_locations << Constants.AtticZone
-    duct_locations << Constants.FinishedAtticZone
     duct_locations << Constants.UnfinishedAtticZone
     duct_locations << Constants.BasementZone
     duct_locations << Constants.FinishedBasementZone
@@ -562,13 +560,6 @@ class ResidentialAirflow < OpenStudio::Measure::ModelMeasure
     duct_r.setDefaultValue(0.0)
     args << duct_r
     
-    #make a string argument for distribution system efficiency
-    dist_system_eff = OpenStudio::Measure::OSArgument::makeStringArgument("duct_dse", false)
-    dist_system_eff.setDisplayName("Ducts: Distribution System Efficiency")
-    dist_system_eff.setDescription("Defines the energy losses associated with the delivery of energy from the equipment to the source of the load. If provided, overrides all other duct inputs.")
-    dist_system_eff.setDefaultValue("NA")
-    args << dist_system_eff    
-
     return args
   end
 
@@ -641,57 +632,38 @@ class ResidentialAirflow < OpenStudio::Measure::ModelMeasure
     ductSupplySurfaceAreaMultiplier = runner.getDoubleArgumentValue("duct_supply_area_mult",user_arguments)
     ductReturnSurfaceAreaMultiplier = runner.getDoubleArgumentValue("duct_return_area_mult",user_arguments)
     ductRvalue = runner.getDoubleArgumentValue("duct_r",user_arguments)
-    ductSystemEfficiency = runner.getStringArgumentValue("duct_dse",user_arguments)
-    unless ductSystemEfficiency == "NA"
-      ductSystemEfficiency = ductSystemEfficiency.to_f
-      ductLocation = "none"
-    else
-      ductSystemEfficiency = nil
+    
+    if ductTotalLeakage < 0
+      runner.registerError("Ducts: Total Leakage must be greater than or equal to 0.")
+      return false
     end
-    
-    #Check for valid inputs
-    if not ductSystemEfficiency.nil?
-    
-      if ductSystemEfficiency <= 0 or ductSystemEfficiency >= 1
-        runner.registerError("Ducts: Distribution System Efficiency must be greater than 0 and less than 1.")
-        return false
-      end
-      
-    else
-    
-      if ductTotalLeakage < 0
-        runner.registerError("Ducts: Total Leakage must be greater than or equal to 0.")
-        return false
-      end
-      if ductSupplyLeakageFractionOfTotal < 0 or ductSupplyLeakageFractionOfTotal > 1
-        runner.registerError("Ducts: Supply Leakage Fraction of Total must be greater than or equal to 0 and less than or equal to 1.")
-        return false
-      end
-      if ductReturnLeakageFractionOfTotal < 0 or ductReturnLeakageFractionOfTotal > 1
-        runner.registerError("Ducts: Return Leakage Fraction of Total must be greater than or equal to 0 and less than or equal to 1.")
-        return false
-      end
-      if ductAHSupplyLeakageFractionOfTotal < 0 or ductAHSupplyLeakageFractionOfTotal > 1
-        runner.registerError("Ducts: Supply Air Handler Leakage Fraction of Total must be greater than or equal to 0 and less than or equal to 1.")
-        return false
-      end
-      if ductAHReturnLeakageFractionOfTotal < 0 or ductAHReturnLeakageFractionOfTotal > 1
-        runner.registerError("Ducts: Return Air Handler Leakage Fraction of Total must be greater than or equal to 0 and less than or equal to 1.")
-        return false
-      end
-      if ductRvalue < 0
-        runner.registerError("Ducts: Insulation Nominal R-Value must be greater than or equal to 0.")
-        return false
-      end
-      if ductSupplySurfaceAreaMultiplier < 0
-        runner.registerError("Ducts: Supply Surface Area Multiplier must be greater than or equal to 0.")
-        return false
-      end
-      if ductReturnSurfaceAreaMultiplier < 0
-        runner.registerError("Ducts: Return Surface Area Multiplier must be greater than or equal to 0.")
-        return false
-      end
-
+    if ductSupplyLeakageFractionOfTotal < 0 or ductSupplyLeakageFractionOfTotal > 1
+      runner.registerError("Ducts: Supply Leakage Fraction of Total must be greater than or equal to 0 and less than or equal to 1.")
+      return false
+    end
+    if ductReturnLeakageFractionOfTotal < 0 or ductReturnLeakageFractionOfTotal > 1
+      runner.registerError("Ducts: Return Leakage Fraction of Total must be greater than or equal to 0 and less than or equal to 1.")
+      return false
+    end
+    if ductAHSupplyLeakageFractionOfTotal < 0 or ductAHSupplyLeakageFractionOfTotal > 1
+      runner.registerError("Ducts: Supply Air Handler Leakage Fraction of Total must be greater than or equal to 0 and less than or equal to 1.")
+      return false
+    end
+    if ductAHReturnLeakageFractionOfTotal < 0 or ductAHReturnLeakageFractionOfTotal > 1
+      runner.registerError("Ducts: Return Air Handler Leakage Fraction of Total must be greater than or equal to 0 and less than or equal to 1.")
+      return false
+    end
+    if ductRvalue < 0
+      runner.registerError("Ducts: Insulation Nominal R-Value must be greater than or equal to 0.")
+      return false
+    end
+    if ductSupplySurfaceAreaMultiplier < 0
+      runner.registerError("Ducts: Supply Surface Area Multiplier must be greater than or equal to 0.")
+      return false
+    end
+    if ductReturnSurfaceAreaMultiplier < 0
+      runner.registerError("Ducts: Return Surface Area Multiplier must be greater than or equal to 0.")
+      return false
     end
     
     @infMethodRes = 'RESIDENTIAL'
@@ -705,7 +677,7 @@ class ResidentialAirflow < OpenStudio::Measure::ModelMeasure
     building = Building.new
     nat_vent = NaturalVentilation.new(natVentHtgSsnSetpointOffset, natVentClgSsnSetpointOffset, natVentOvlpSsnSetpointOffset, natVentHeatingSeason, natVentCoolingSeason, natVentOverlapSeason, natVentNumberWeekdays, natVentNumberWeekendDays, natVentFractionWindowsOpen, natVentFractionWindowAreaOpen, natVentMaxOAHumidityRatio, natVentMaxOARelativeHumidity)
     schedules = Schedules.new
-    ducts = Ducts.new(ductTotalLeakage, ductNormLeakageToOutside, ductSupplySurfaceAreaMultiplier, ductReturnSurfaceAreaMultiplier, ductRvalue, ductSupplyLeakageFractionOfTotal, ductReturnLeakageFractionOfTotal, ductAHSupplyLeakageFractionOfTotal, ductAHReturnLeakageFractionOfTotal, ductSystemEfficiency, ductLocationFrac, ductNumReturns, ductLocation)
+    ducts = Ducts.new(ductTotalLeakage, ductNormLeakageToOutside, ductSupplySurfaceAreaMultiplier, ductReturnSurfaceAreaMultiplier, ductRvalue, ductSupplyLeakageFractionOfTotal, ductReturnLeakageFractionOfTotal, ductAHSupplyLeakageFractionOfTotal, ductAHReturnLeakageFractionOfTotal, ductLocationFrac, ductNumReturns, ductLocation)
     
     @weather = WeatherProcess.new(model, runner, File.dirname(__FILE__))
     if @weather.error?
@@ -1496,40 +1468,6 @@ class ResidentialAirflow < OpenStudio::Measure::ModelMeasure
 
       end
       
-      if not ducts.DuctSystemEfficiency.nil?
-        
-        dse_zone = OpenStudio::Model::ThermalZone.new(model)
-        dse_zone.setName(Constants.DSEZone(building_unit.name.to_s))
-        dse_zone.setVolume(0)
-        
-        sw_point = OpenStudio::Point3d.new(30, 50, 0)
-        nw_point = OpenStudio::Point3d.new(30, 50.5, 0)
-        ne_point = OpenStudio::Point3d.new(30.5, 50.5, 0)
-        se_point = OpenStudio::Point3d.new(30.5, 50, 0)
-        dse_polygon = Geometry.make_polygon(sw_point, nw_point, ne_point, se_point)
-        
-        dse_space = OpenStudio::Model::Space::fromFloorPrint(dse_polygon, 0.5, model)
-        dse_space = dse_space.get
-        dse_space.setName(Constants.DSESpace(building_unit.name.to_s))
-        dse_space.setThermalZone(dse_zone)
-        dse_space.setBuildingUnit(building_unit)
-        
-        dse_space.surfaces.each do |surface|
-          surface.setConstruction(adiabatic_const)
-          surface.setOutsideBoundaryCondition("Adiabatic")
-          surface.setSunExposure("NoSun")
-          surface.setWindExposure("NoWind")
-        end
-        
-        model.getAirLoopHVACs.each do |air_loop|
-          next unless air_loop.thermalZones.include? unit.living_zone # get the correct air loop for this unit
-          dse_diffuser = OpenStudio::Model::AirTerminalSingleDuctUncontrolled.new(model, model.alwaysOnDiscreteSchedule)
-          dse_diffuser.setName(obj_name_ducts + " dist system eff zone direct air")
-          air_loop.addBranchForZone(dse_zone, dse_diffuser.to_StraightComponent)
-        end
-          
-      end            
-    
       ra_duct_zone = OpenStudio::Model::ThermalZone.new(model)
       ra_duct_zone.setName(obj_name_ducts + " ret air zone")
       ra_duct_zone.setVolume(OpenStudio.convert(ducts.return_duct_volume,"ft^3","m^3").get)
@@ -1911,18 +1849,14 @@ class ResidentialAirflow < OpenStudio::Measure::ModelMeasure
       building_unit.setFeature(Constants.SizingInfoMechVentLatentEffectiveness, mech_vent.MechVentLatentEffectiveness.to_f)
       building_unit.setFeature(Constants.SizingInfoMechVentApparentSensibleEffectiveness, mech_vent.MechVentApparentSensibleEffectiveness.to_f)
       building_unit.setFeature(Constants.SizingInfoMechVentWholeHouseRate, mech_vent.whole_house_vent_rate.to_f)
-      if not ducts.DuctSystemEfficiency.nil?
-        building_unit.setFeature(Constants.SizingInfoDuctsDSE, ducts.DuctSystemEfficiency.to_f)
-      else
-        building_unit.setFeature(Constants.SizingInfoDuctsSupplyRvalue, ducts.supply_duct_r.to_f)
-        building_unit.setFeature(Constants.SizingInfoDuctsReturnRvalue, ducts.return_duct_r.to_f)
-        building_unit.setFeature(Constants.SizingInfoDuctsSupplyLoss, ducts.supply_duct_loss.to_f)
-        building_unit.setFeature(Constants.SizingInfoDuctsReturnLoss, ducts.return_duct_loss.to_f)
-        building_unit.setFeature(Constants.SizingInfoDuctsSupplySurfaceArea, ducts.supply_duct_surface_area.to_f)
-        building_unit.setFeature(Constants.SizingInfoDuctsReturnSurfaceArea, ducts.return_duct_surface_area.to_f)
-        building_unit.setFeature(Constants.SizingInfoDuctsLocationZone, ducts.duct_location_name)
-        building_unit.setFeature(Constants.SizingInfoDuctsLocationFrac, ducts.DuctLocationFracLeakage.to_f)
-      end
+      building_unit.setFeature(Constants.SizingInfoDuctsSupplyRvalue, ducts.supply_duct_r.to_f)
+      building_unit.setFeature(Constants.SizingInfoDuctsReturnRvalue, ducts.return_duct_r.to_f)
+      building_unit.setFeature(Constants.SizingInfoDuctsSupplyLoss, ducts.supply_duct_loss.to_f)
+      building_unit.setFeature(Constants.SizingInfoDuctsReturnLoss, ducts.return_duct_loss.to_f)
+      building_unit.setFeature(Constants.SizingInfoDuctsSupplySurfaceArea, ducts.supply_duct_surface_area.to_f)
+      building_unit.setFeature(Constants.SizingInfoDuctsReturnSurfaceArea, ducts.return_duct_surface_area.to_f)
+      building_unit.setFeature(Constants.SizingInfoDuctsLocationZone, ducts.duct_location_name)
+      building_unit.setFeature(Constants.SizingInfoDuctsLocationFrac, ducts.DuctLocationFracLeakage.to_f)
       if not unit.living.ELA.nil?
         building_unit.setFeature(Constants.SizingInfoZoneInfiltrationELA(unit.living_zone), unit.living.ELA.to_f)
         building_unit.setFeature(Constants.SizingInfoZoneInfiltrationCFM(unit.living_zone), unit.living.inf_flow.to_f)
@@ -2609,22 +2543,21 @@ class ResidentialAirflow < OpenStudio::Measure::ModelMeasure
       ducts.has_forced_air_equipment = true
     end
     
-    if (ducts.DuctLocation != "none" or not ducts.DuctSystemEfficiency.nil?) and not ducts.has_forced_air_equipment
+    if ducts.DuctLocation != "none" and not ducts.has_forced_air_equipment
       runner.registerWarning("No ducted HVAC equipment was found but ducts were specified. Overriding duct specification.")
       ducts.DuctLocation = "none"
-      ducts.DuctSystemEfficiency = nil
     end        
     
     ducts.duct_location_zone, ducts.duct_location_name = get_duct_location(runner, ducts.DuctLocation, building, unit)
 
     ducts.has_ducts = true  
-    if ducts.duct_location_name == "none" or not ducts.DuctSystemEfficiency.nil?
+    if ducts.duct_location_name == "none"
       ducts.duct_location_zone = unit.living_zone
       ducts.duct_location_name = unit.living_zone.name.to_s
       ducts.has_ducts = false
     end      
     
-    unless HVAC.has_mini_split_heat_pump(model, runner, unit.living_zone, unit, false).nil?
+    if HVAC.has_mshp(model, runner, unit.living_zone)
       ducts.duct_location_zone = unit.living_zone
       ducts.duct_location_name = unit.living_zone.name.to_s
       ducts.has_ducts = false
@@ -2636,11 +2569,6 @@ class ResidentialAirflow < OpenStudio::Measure::ModelMeasure
     ducts.ducts_not_in_living = true
     if ducts.duct_location_name == unit.living_zone.name.to_s
       ducts.ducts_not_in_living = false
-    end
-    
-    if not ducts.DuctSystemEfficiency.nil? and ducts.has_forced_air_equipment    
-      ducts.ducts_not_in_living = true
-      ducts.has_ducts = true      
     end
     
     ducts.num_stories_for_ducts = building.stories
@@ -2827,7 +2755,7 @@ class ResidentialAirflow < OpenStudio::Measure::ModelMeasure
         duct_location_zone = unit.living_zone
         duct_location_name = unit.living_zone.name.to_s
       end
-    elsif duct_location == Constants.LivingZone or duct_location == Constants.FinishedAtticZone
+    elsif duct_location == Constants.LivingZone
       duct_location_zone = unit.living_zone
       duct_location_name = unit.living_zone.name.to_s
     elsif duct_location == Constants.GarageZone
