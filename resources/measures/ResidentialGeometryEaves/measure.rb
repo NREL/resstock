@@ -86,8 +86,11 @@ class CreateResidentialEaves < OpenStudio::Measure::ModelMeasure
       existing_eaves_depth = 0
     end    
     
+    units = Geometry.get_building_units(model, runner)
+    return false if units.nil?
+    
     building_type = Geometry.get_building_type(model)
-    roof_type = determine_roof_type(model.getSurfaces, model.getBuildingUnits.length, building_type)
+    roof_type = determine_roof_type(model.getSurfaces, units.length, building_type)
     garage_pos, garage_width, garage_depth, garage_protrusion = get_garage_dimensions(model.getSurfaces)
     inset_position = determine_inset_position(model.getSurfaces)
     top_floor_z = determine_top_floor_z(model.getSpaces)

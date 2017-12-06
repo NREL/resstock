@@ -1,6 +1,6 @@
 require 'openstudio'
 
-class BuildingCharacteristicsReport < OpenStudio::Ruleset::ReportingUserScript
+class BuildingCharacteristicsReport < OpenStudio::Measure::ReportingMeasure
 
   def name
     return "Building Characteristics Report"
@@ -90,7 +90,7 @@ class BuildingCharacteristicsReport < OpenStudio::Ruleset::ReportingUserScript
     end
     model = model.get
 
-    weather = WeatherProcess.new(model, runner, File.dirname(__FILE__), header_only=true)
+    weather = WeatherProcess.new(model, runner, File.dirname(__FILE__))
     if !weather.error?
       runner.registerInfo("Registering #{weather.header.City} for location_city.")
       runner.registerValue("location_city", weather.header.City)

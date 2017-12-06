@@ -207,7 +207,7 @@ class ProcessHVACSizing < OpenStudio::Measure::ModelMeasure
         end
         
         # Set object values
-        if not setObjectValues(runner, model, unit, hvac, clg_equips, htg_equips, unit_final)
+        if not setObjectValues(runner, model, unit, hvac, ducts, clg_equips, htg_equips, unit_final)
             return false
         end
         
@@ -2033,13 +2033,12 @@ class ProcessHVACSizing < OpenStudio::Measure::ModelMeasure
 
     elsif hvac.HasAirSourceHeatPump
         
-        if not hvac.FixedSuppHeatingCapacity.nil? or not hvac.FixedCoolingCapacity.nil?
-            unit_final.Heat_Capacity = unit_final.Heat_Load
-        else
+        if hvac.FixedCoolingCapacity.nil?
             unit_final = processHeatPumpAdjustment(runner, mj8, unit, unit_final, weather, hvac, ducts, nbeds, unit_ffa, unit_shelter_class)
             return nil if unit_final.nil?
         end
             
+        unit_final.Heat_Capacity = unit_final.Cool_Capacity
         unit_final.Heat_Capacity_Supp = unit_final.Heat_Load
             
         if unit_final.Cool_Capacity > @minCoolingCapacity
@@ -2764,7 +2763,6 @@ class ProcessHVACSizing < OpenStudio::Measure::ModelMeasure
     '''
     Calculate the Distribution System Efficiency using the method of ASHRAE Standard 152 (used for heating and cooling).
     '''
-    
     dse_Bs, dse_Br, dse_a_s, dse_a_r, dse_dTe, dse_dT = _calc_dse_init(ducts, acf, cfm_inter, load_Inter_Sens, dse_Tamb, dse_As, dse_Ar, t_setpoint)
     dse_DE = _calc_dse_DE_heating(dse_a_s, dse_Bs, dse_a_r, dse_Br, dse_dT, dse_dTe)
     dse_DEcorr = _calc_dse_DEcorr(ducts, dse_DE, dse_Fregain, dse_Br, dse_a_r)
@@ -2973,30 +2971,14 @@ class ProcessHVACSizing < OpenStudio::Measure::ModelMeasure
         htg_equips << htg_equip
     end
     
-    if not HVAC.has_central_air_conditioner(model, runner, control_zone, false, false).nil?
-        hvac.HasCentralAirConditioner = true
-    end
-    if not HVAC.has_room_air_conditioner(model, runner, control_zone, false).nil?
-        hvac.HasRoomAirConditioner = true
-    end
-    if not HVAC.has_furnace(model, runner, control_zone, false, false).nil?
-        hvac.HasFurnace = true
-    end
-    if not HVAC.has_boiler(model, runner, control_zone, false).nil?
-        hvac.HasBoiler = true
-    end
-    if not HVAC.has_electric_baseboard(model, runner, control_zone, false).nil?
-        hvac.HasElecBaseboard = true
-    end
-    if not HVAC.has_air_source_heat_pump(model, runner, control_zone, false).nil?
-        hvac.HasAirSourceHeatPump = true
-    end
-    if not HVAC.has_mini_split_heat_pump(model, runner, control_zone, unit, false).nil?
-        hvac.HasMiniSplitHeatPump = true
-    end
-    if not HVAC.has_gshp_vert_bore(model, runner, control_zone, false).nil?
-        hvac.HasGroundSourceHeatPump = true
-    end
+    hvac.HasCentralAirConditioner = HVAC.has_central_ac(model, runner, control_zone)
+    hvac.HasRoomAirConditioner = HVAC.has_room_ac(model, runner, control_zone)
+    hvac.HasFurnace = HVAC.has_furnace(model, runner, control_zone)
+    hvac.HasBoiler = HVAC.has_boiler(model, runner, control_zone)
+    hvac.HasElecBaseboard = HVAC.has_electric_baseboard(model, runner, control_zone)
+    hvac.HasAirSourceHeatPump = HVAC.has_ashp(model, runner, control_zone)
+    hvac.HasMiniSplitHeatPump = HVAC.has_mshp(model, runner, control_zone)
+    hvac.HasGroundSourceHeatPump = HVAC.has_gshp(model, runner, control_zone)
     
     if hvac.HasAirSourceHeatPump or hvac.HasMiniSplitHeatPump
         hvac.HPSizedForMaxLoad = get_unit_feature(runner, unit, Constants.SizingInfoHPSizedForMaxLoad, 'boolean', true)
@@ -4056,7 +4038,7 @@ class ProcessHVACSizing < OpenStudio::Measure::ModelMeasure
     return val.get
   end
   
-  def setObjectValues(runner, model, unit, hvac, clg_equips, htg_equips, unit_final)
+  def setObjectValues(runner, model, unit, hvac, ducts, clg_equips, htg_equips, unit_final)
     # Updates object properties in the model
     
     # Cooling coils

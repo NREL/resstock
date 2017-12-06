@@ -2,8 +2,8 @@
   <schema_version>3.0</schema_version>
   <name>timeseries_csv_export</name>
   <uid>2a3442c1-944d-4e91-9e11-11e0cf368c64</uid>
-  <version_id>fd515a90-f179-472b-8d56-112fa406e76f</version_id>
-  <version_modified>20171024T164913Z</version_modified>
+  <version_id>cb819942-c9bf-4c12-a9e8-fa866cf0f4be</version_id>
+  <version_modified>20171206T172450Z</version_modified>
   <xml_checksum>15BF4E57</xml_checksum>
   <class_name>TimeseriesCSVExport</class_name>
   <display_name>Timeseries CSV Export</display_name>
@@ -45,6 +45,24 @@
       </choices>
     </argument>
     <argument>
+      <name>inc_end_use_subcategories</name>
+      <display_name>Include End Use Subcategories</display_name>
+      <type>Boolean</type>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>false</default_value>
+      <choices>
+        <choice>
+          <value>true</value>
+          <display_name>true</display_name>
+        </choice>
+        <choice>
+          <value>false</value>
+          <display_name>false</display_name>
+        </choice>
+      </choices>
+    </argument>
+    <argument>
       <name>inc_output_variables</name>
       <display_name>Include Output Variables</display_name>
       <type>Boolean</type>
@@ -62,6 +80,14 @@
         </choice>
       </choices>
     </argument>
+    <argument>
+      <name>output_variables</name>
+      <display_name>Output Variables</display_name>
+      <type>String</type>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>Zone Mean Air Temperature, Zone Mean Air Humidity Ratio, Fan Runtime Fraction</default_value>
+    </argument>
   </arguments>
   <outputs/>
   <provenances/>
@@ -76,12 +102,6 @@
     </attribute>
   </attributes>
   <files>
-    <file>
-      <filename>constants.rb</filename>
-      <filetype>rb</filetype>
-      <usage_type>resource</usage_type>
-      <checksum>B34275B6</checksum>
-    </file>
     <file>
       <filename>psychrometrics.rb</filename>
       <filetype>rb</filetype>
@@ -104,7 +124,13 @@
       <filename>weather.rb</filename>
       <filetype>rb</filetype>
       <usage_type>resource</usage_type>
-      <checksum>03F09690</checksum>
+      <checksum>15957C1C</checksum>
+    </file>
+    <file>
+      <filename>constants.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>260EF643</checksum>
     </file>
     <file>
       <version>
@@ -115,7 +141,7 @@
       <filename>measure.rb</filename>
       <filetype>rb</filetype>
       <usage_type>script</usage_type>
-      <checksum>4B17843A</checksum>
+      <checksum>148F6FCE</checksum>
     </file>
   </files>
 </measure>
