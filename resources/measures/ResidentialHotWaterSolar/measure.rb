@@ -190,8 +190,8 @@ class ResidentialHotWaterSolar < OpenStudio::Measure::ModelMeasure
     shw_azimuth = SHWAzimuth.new
     shw_tilt = SHWTilt.new
     
-    @weather = WeatherProcess.new(model, runner, File.dirname(__FILE__), header_only=true)
-    if @weather.error?
+    weather = WeatherProcess.new(model, runner, File.dirname(__FILE__))
+    if weather.error?
       return false
     end
         
@@ -203,7 +203,7 @@ class ResidentialHotWaterSolar < OpenStudio::Measure::ModelMeasure
     else
       shw_azimuth.abs = Geometry.get_abs_azimuth(azimuth_type, azimuth, 0, -model.getBuilding.northAxis)
     end
-    shw_tilt.abs = Geometry.get_abs_tilt(tilt_type, tilt, roof_tilt, @weather.header.Latitude)
+    shw_tilt.abs = Geometry.get_abs_tilt(tilt_type, tilt, roof_tilt, weather.header.Latitude)
     
     # Get building units
     units = Geometry.get_building_units(model, runner)

@@ -9,4 +9,4 @@ Unit Test Status: [![CircleCI](https://circleci.com/gh/NREL/OpenStudio-BuildStoc
 
 For more information, please visit the [documentation](http://resstock.readthedocs.io/en/latest/).
 
-![BuildStock workflow](https://user-images.githubusercontent.com/5861765/29423737-1932fb80-833a-11e7-979f-1d4e764858a6.png)
+![BuildStock workflow](https://user-images.githubusercontent.com/5861765/32569254-da2895c8-c47d-11e7-93cb-05fb4c8806d7.png)

@@ -145,7 +145,7 @@ class ResidentialHotWaterHeaterHeatPump < OpenStudio::Measure::ModelMeasure
         # make an argument for int_factor
         int_factor = osargument::makeDoubleArgument("int_factor", true)
         int_factor.setDisplayName("Interaction Factor")
-        int_factor.setDescription("Specifies how much the HPWH space conditioning impact interacts with the building's HVAC equipment. This can be used to account for situations such as wehen a HPWH is in a closet and only a portion of the HPWH's space cooling affects the HVAC system.")
+        int_factor.setDescription("Specifies how much the HPWH space conditioning impact interacts with the building's HVAC equipment. This can be used to account for situations such as when a HPWH is in a closet and only a portion of the HPWH's space cooling affects the HVAC system.")
         int_factor.setDefaultValue(1.0)
         args << int_factor
         
@@ -343,6 +343,12 @@ class ResidentialHotWaterHeaterHeatPump < OpenStudio::Measure::ModelMeasure
             ue_p = output_var
           end
         end
+        
+        weather = WeatherProcess.new(model, runner, File.dirname(__FILE__))
+        if weather.error?
+            return false
+        end
+        alt = weather.header.Altitude
 
         units.each do |unit|
 
@@ -415,7 +421,7 @@ class ResidentialHotWaterHeaterHeatPump < OpenStudio::Measure::ModelMeasure
             if loop.nil?
                 runner.registerInfo("A new plant loop for DHW will be added to the model")
                 runner.registerInitialCondition("There is no existing water heater")
-                loop = Waterheater.create_new_loop(model, Constants.PlantLoopDomesticWater(unit.name.to_s), t_set, "hpwh")
+                loop = Waterheater.create_new_loop(model, Constants.PlantLoopDomesticWater(unit.name.to_s), t_set, Constants.WaterHeaterTypeHeatPump)
             else
                 runner.registerInitialCondition("An existing water heater was found in the model. This water heater will be removed and replace with a heat pump water heater")
             end
@@ -426,7 +432,7 @@ class ResidentialHotWaterHeaterHeatPump < OpenStudio::Measure::ModelMeasure
             end
 
             if loop.supplyOutletNode.setpointManagers.empty?
-                new_manager = Waterheater.create_new_schedule_manager(t_set, model, "hpwh")
+                new_manager = Waterheater.create_new_schedule_manager(t_set, model, Constants.WaterHeaterTypeHeatPump)
                 new_manager.addToNode(loop.supplyOutletNode)
             end
 
@@ -466,11 +472,6 @@ class ResidentialHotWaterHeaterHeatPump < OpenStudio::Measure::ModelMeasure
             rated_edb_F = 67.5
             rated_ewb = OpenStudio.convert(rated_ewb_F,"F","C").get
             rated_edb = OpenStudio.convert(rated_edb_F,"F","C").get
-            weather = WeatherProcess.new(model, runner, File.dirname(__FILE__), header_only=true)
-            if weather.error?
-                return false
-            end
-            alt = weather.header.Altitude
             w_rated = Psychrometrics.w_fT_Twb_P(rated_edb_F,rated_ewb_F,14.7)
             dp_rated = Psychrometrics.Tdp_fP_w(14.7, w_rated)
             p_atm = Psychrometrics.Pstd_fZ(alt)

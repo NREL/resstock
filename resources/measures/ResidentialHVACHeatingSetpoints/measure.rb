@@ -23,11 +23,11 @@ class ProcessHeatingSetpoints < OpenStudio::Measure::ModelMeasure
   end
   
   def description
-    return "This measure creates the heating season schedules based on weather data, and the heating setpoint schedules.#{Constants.WorkflowDescription}"
+    return "This measure creates the heating season schedules and the heating setpoint schedules.#{Constants.WorkflowDescription}"
   end
   
   def modeler_description
-    return "This measure creates #{Constants.ObjectNameHeatingSeason} ruleset objects. Schedule values are populated based on information contained in the EPW file. This measure also creates #{Constants.ObjectNameHeatingSetpoint} ruleset objects. Schedule values are populated based on information input by the user as well as contained in the #{Constants.ObjectNameHeatingSeason}. The heating setpoint schedules are added to the living zone's thermostat."
+    return "This measure creates #{Constants.ObjectNameHeatingSeason} ruleset objects. Schedule values are either user-defined or populated based on information contained in the EPW file. This measure also creates #{Constants.ObjectNameHeatingSetpoint} ruleset objects. Schedule values are populated based on information input by the user as well as contained in the #{Constants.ObjectNameHeatingSeason}. The heating setpoint schedules are added to the living zone's thermostat."
   end     
   
   #define the arguments that the user will input
@@ -35,7 +35,7 @@ class ProcessHeatingSetpoints < OpenStudio::Measure::ModelMeasure
     args = OpenStudio::Measure::OSArgumentVector.new
 
    #Make a string argument for 24 weekday heating set point values
-    htg_wkdy = OpenStudio::Measure::OSArgument::makeStringArgument("htg_wkdy", false)
+    htg_wkdy = OpenStudio::Measure::OSArgument::makeStringArgument("weekday_setpoint", true)
     htg_wkdy.setDisplayName("Weekday Setpoint")
     htg_wkdy.setDescription("Specify a single heating setpoint or a 24-hour comma-separated heating schedule for the weekdays.")
     htg_wkdy.setUnits("degrees F")
@@ -43,13 +43,47 @@ class ProcessHeatingSetpoints < OpenStudio::Measure::ModelMeasure
     args << htg_wkdy
 
     #Make a string argument for 24 weekend heating set point values
-    htg_wked = OpenStudio::Measure::OSArgument::makeStringArgument("htg_wked", false)
+    htg_wked = OpenStudio::Measure::OSArgument::makeStringArgument("weekend_setpoint", true)
     htg_wked.setDisplayName("Weekend Setpoint")
     htg_wked.setDescription("Specify a single heating setpoint or a 24-hour comma-separated heating schedule for the weekend.")
     htg_wked.setUnits("degrees F")
     htg_wked.setDefaultValue("71")
     args << htg_wked
 
+    #make a bool argument for using hsp season or not
+    arg = OpenStudio::Measure::OSArgument::makeBoolArgument("use_auto_season", true)
+    arg.setDisplayName("Use Auto Heating Season")
+    arg.setDescription("Specifies whether to automatically define the heating season based on the weather file. User-defined heating season start/end months will be ignored if this is selected")
+    arg.setDefaultValue(false)
+    args << arg
+    
+    #make a choice argument for months of the year
+    month_display_names = OpenStudio::StringVector.new
+    month_display_names << "Jan"
+    month_display_names << "Feb"
+    month_display_names << "Mar"
+    month_display_names << "Apr"
+    month_display_names << "May"
+    month_display_names << "Jun"
+    month_display_names << "Jul"
+    month_display_names << "Aug"
+    month_display_names << "Sep"
+    month_display_names << "Oct"
+    month_display_names << "Nov"
+    month_display_names << "Dec"
+    
+    arg = OpenStudio::Measure::OSArgument::makeChoiceArgument("season_start_month", month_display_names, false)
+    arg.setDisplayName("Heating Season Start Month")
+    arg.setDescription("Start month of the heating season.")
+    arg.setDefaultValue("Jan")
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument::makeChoiceArgument("season_end_month", month_display_names, false)
+    arg.setDisplayName("Heating Season End Month")
+    arg.setDescription("End month of the heating season.")
+    arg.setDefaultValue("Dec")
+    args << arg
+    
     return args
   end #end the arguments method
 
@@ -62,17 +96,36 @@ class ProcessHeatingSetpoints < OpenStudio::Measure::ModelMeasure
       return false
     end
 
-    htg_wkdy = runner.getStringArgumentValue("htg_wkdy",user_arguments)
-    htg_wked = runner.getStringArgumentValue("htg_wked",user_arguments)
+    htg_wkdy = runner.getStringArgumentValue("weekday_setpoint",user_arguments)
+    htg_wked = runner.getStringArgumentValue("weekend_setpoint",user_arguments)
+    use_auto_season = runner.getBoolArgumentValue("use_auto_season",user_arguments)
+    htg_start_month = runner.getOptionalStringArgumentValue("season_start_month",user_arguments)
+    htg_end_month = runner.getOptionalStringArgumentValue("season_end_month",user_arguments)    
     
     weather = WeatherProcess.new(model, runner, File.dirname(__FILE__))
     if weather.error?
       return false
     end
-    
-    heating_season, cooling_season = HVAC.calc_heating_and_cooling_seasons(model, weather, runner)
+
+    # Get heating season
+    if use_auto_season
+      heating_season, cooling_season = HVAC.calc_heating_and_cooling_seasons(model, weather, runner)
+    else
+      month_map = {"Jan"=>1, "Feb"=>2, "Mar"=>3, "Apr"=>4, "May"=>5, "Jun"=>6, "Jul"=>7, "Aug"=>8, "Sep"=>9, "Oct"=>10, "Nov"=>11, "Dec"=>12}
+      if htg_start_month.is_initialized
+        htg_start_month = month_map[htg_start_month.get]
+      end
+      if htg_end_month.is_initialized
+        htg_end_month = month_map[htg_end_month.get]
+      end
+      if htg_start_month <= htg_end_month
+        heating_season = Array.new(htg_start_month-1, 0) + Array.new(htg_end_month-htg_start_month+1, 1) + Array.new(12-htg_end_month, 0)
+      elsif htg_start_month > htg_end_month
+        heating_season = Array.new(htg_end_month, 1) + Array.new(htg_start_month-htg_end_month-1, 0) + Array.new(12-htg_start_month+1, 1)
+      end
+    end
     if heating_season.nil?
-        return false
+      return false
     end
     
     # Remove existing heating season schedule
@@ -119,11 +172,6 @@ class ProcessHeatingSetpoints < OpenStudio::Measure::ModelMeasure
         end
       end
     end
-    
-    unless has_htg_equip
-      runner.registerWarning("No heating equipment found.")
-      return true
-    end    
     
     # Convert to 24-values if a single value entered
     if not htg_wkdy.include?(",")

@@ -175,7 +175,7 @@ class ResidentialHotWaterHeaterTanklessElectric < OpenStudio::Measure::ModelMeas
                     end
                 end
                 if objects_to_remove.size > 0
-                    runner.registerInfo("Removed existing water heater from plant loop #{pl.name.to_s}.")
+                    runner.registerInfo("Removed existing water heater from plant loop '#{pl.name.to_s}'.")
                 end
                 objects_to_remove.uniq.each do |object|
                     begin
@@ -189,7 +189,7 @@ class ResidentialHotWaterHeaterTanklessElectric < OpenStudio::Measure::ModelMeas
             if loop.nil?
                 runner.registerInfo("A new plant loop for DHW will be added to the model")
                 runner.registerInitialCondition("No water heater model currently exists")
-                loop = Waterheater.create_new_loop(model, Constants.PlantLoopDomesticWater(unit.name.to_s), t_set, "tankless")
+                loop = Waterheater.create_new_loop(model, Constants.PlantLoopDomesticWater(unit.name.to_s), t_set, Constants.WaterHeaterTypeTankless)
             end
 
             if loop.components(OpenStudio::Model::PumpVariableSpeed::iddObjectType).empty?
@@ -198,7 +198,7 @@ class ResidentialHotWaterHeaterTanklessElectric < OpenStudio::Measure::ModelMeas
             end
 
             if loop.supplyOutletNode.setpointManagers.empty?
-                new_manager = Waterheater.create_new_schedule_manager(t_set, model,"tankless")
+                new_manager = Waterheater.create_new_schedule_manager(t_set, model, Constants.WaterHeaterTypeTankless)
                 new_manager.addToNode(loop.supplyOutletNode)
             end
 

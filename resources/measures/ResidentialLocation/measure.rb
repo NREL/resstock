@@ -145,11 +145,19 @@ class SetResidentialEPWFile < OpenStudio::Measure::ModelMeasure
     swmt.setAnnualAverageOutdoorAirTemperature avgOAT
     swmt.setMaximumDifferenceInMonthlyAverageOutdoorAirTemperatures maxDiffOAT
     runner.registerInfo("Setting mains water temperature profile with an average temperature of #{weather.data.MainsAvgTemp.round(1)} F.")
+
+    # ----------------
+    # Set the actual year
+    # ----------------
+    yd = model.getYearDescription
+    if epw_file.startDateActualYear.is_initialized
+      yd.setCalendarYear(epw_file.startDateActualYear.get)
+    end
     
     # ----------------
     # Set daylight saving time
-    # ----------------    
-    
+    # ----------------
+
     if not (dst_start_date.downcase == 'na' and dst_end_date.downcase == 'na')
         begin
             dst_start_date_month = OpenStudio::monthOfYear(dst_start_date.split[0])
