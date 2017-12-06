@@ -119,6 +119,12 @@ class CustomRunPeriodRange < OpenStudio::Measure::EnergyPlusMeasure
       object.remove
     end
       
+    # get day of week for start day
+    yd = model.getYearDescription
+    yd.setCalendarYear(run_start_year.to_i)
+    yd.makeDate(ts_start_month.to_i, ts_start_day.to_i)
+    day_of_week_for_start_day = yd.dayofWeekforStartDay
+      
     # create the new RunPeriod:CustomRange object
     run_period_custom_range = "
     RunPeriod:CustomRange,
@@ -129,7 +135,7 @@ class CustomRunPeriodRange < OpenStudio::Measure::EnergyPlusMeasure
        #{run_end_month},                          !- End Month
        #{run_end_day},                            !- End Day of Month
        #{run_end_year},                           !- End Year
-       UseWeatherFile,                            !- Day of Week for Start Day
+       #{day_of_week_for_start_day},              !- Day of Week for Start Day
        #{holidays_and_special_days},              !- Use Weather File Holidays and Special Days
        #{daylight_saving_period},                 !- Use Weather File Daylight Saving Period
        #{apply_wknd_holiday_rule},                !- Apply Weekend Holiday Rule
