@@ -25,7 +25,7 @@ class CreateResidentialOrientation < OpenStudio::Measure::ModelMeasure
   def arguments(model)
     args = OpenStudio::Measure::OSArgumentVector.new
     
-    #make a choice argument for foundation type
+    #make a double argument for orientation
     orientation = OpenStudio::Measure::OSArgument::makeDoubleArgument("orientation", true)
     orientation.setDisplayName("Azimuth")
     orientation.setUnits("degrees")

@@ -331,7 +331,7 @@ class ProcessCeilingFan < OpenStudio::Measure::ModelMeasure
       end    
 
       if clg_wkdy.nil? and clg_wked.nil?
-        runner.registerWarning("No cooling equipment found. Assuming #{Constants.DefaultCoolingSetpoint} F for ceiling fan operation.")
+        runner.registerWarning("No cooling setpoint schedule found. Assuming #{Constants.DefaultCoolingSetpoint} F for ceiling fan operation.")
         clg_wkdy = Array.new(24, Constants.DefaultCoolingSetpoint)
         clg_wked = Array.new(24, Constants.DefaultCoolingSetpoint)
       end

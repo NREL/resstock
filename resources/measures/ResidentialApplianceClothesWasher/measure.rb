@@ -5,6 +5,7 @@ require "#{File.dirname(__FILE__)}/resources/weather"
 require "#{File.dirname(__FILE__)}/resources/unit_conversions"
 require "#{File.dirname(__FILE__)}/resources/geometry"
 require "#{File.dirname(__FILE__)}/resources/waterheater"
+require "#{File.dirname(__FILE__)}/resources/clothesdryer"
 
 #start the measure
 class ResidentialClothesWasher < OpenStudio::Measure::ModelMeasure
@@ -224,6 +225,8 @@ class ResidentialClothesWasher < OpenStudio::Measure::ModelMeasure
     tot_cw_ann_e = 0
     
     msgs = []
+    cd_msgs = []
+    cd_sch = nil
     units.each do |unit|
         # Get unit beds/baths
         nbeds, nbaths = Geometry.get_unit_beds_baths(model, unit, runner)
@@ -275,7 +278,7 @@ class ResidentialClothesWasher < OpenStudio::Measure::ModelMeasure
             end
         end
         if objects_to_remove.size > 0
-            runner.registerInfo("Removed existing clothes washer from space #{space.name.to_s}.")
+            runner.registerInfo("Removed existing clothes washer from space '#{space.name.to_s}'.")
         end
         objects_to_remove.uniq.each do |object|
             begin
@@ -595,14 +598,62 @@ class ResidentialClothesWasher < OpenStudio::Measure::ModelMeasure
             unit.setFeature(Constants.ClothesWasherIMEF(cw), cw_imef)
             unit.setFeature(Constants.ClothesWasherRatedAnnualEnergy(cw), cw_rated_annual_energy)
             unit.setFeature(Constants.ClothesWasherDrumVolume(cw), cw_drum_volume)
+            
+            # Check if there's a clothes dryer that needs to be updated
+            cd = nil
+            model.getElectricEquipments.each do |ee|
+                next if not ee.name.to_s.start_with?(Constants.ObjectNameClothesDryer(nil))
+                cd = ee
+            end
+            model.getOtherEquipments.each do |oe|
+                next if not oe.name.to_s.start_with?(Constants.ObjectNameClothesDryer(nil))
+                cd = oe
+            end
+            next if cd.nil?
+            
+            # Get clothes dryer properties
+            cd_cef = unit.getFeatureAsDouble(Constants.ClothesDryerCEF(cd))
+            cd_mult = unit.getFeatureAsDouble(Constants.ClothesDryerMult(cd))
+            cd_weekday_sch = unit.getFeatureAsString(Constants.ClothesDryerWeekdaySch(cd))
+            cd_weekend_sch = unit.getFeatureAsString(Constants.ClothesDryerWeekendSch(cd))
+            cd_monthly_sch = unit.getFeatureAsString(Constants.ClothesDryerMonthlySch(cd))
+            cd_fuel_type = unit.getFeatureAsString(Constants.ClothesDryerFuelType(cd))
+            cd_fuel_split = unit.getFeatureAsDouble(Constants.ClothesDryerFuelSplit(cd))
+            if !cd_cef.is_initialized or !cd_mult.is_initialized or !cd_weekday_sch.is_initialized or !cd_weekend_sch.is_initialized or !cd_monthly_sch.is_initialized or !cd_fuel_type.is_initialized or !cd_fuel_split.is_initialized
+                runner.registerError("Could not find clothes dryer properties.")
+                return false
+            end
+            cd_cef = cd_cef.get
+            cd_mult = cd_mult.get
+            cd_weekday_sch = cd_weekday_sch.get
+            cd_weekend_sch = cd_weekend_sch.get
+            cd_monthly_sch = cd_monthly_sch.get
+            cd_fuel_type = cd_fuel_type.get
+            cd_fuel_split = cd_fuel_split.get
+            
+            # Update clothes dryer
+            success, cd_ann_e, cd_ann_f, cd_sch = ClothesDryer.apply(model, unit, runner, cd_sch, cd_cef, cd_mult, cd_weekday_sch, cd_weekend_sch, cd_monthly_sch, 
+                                                                     cd.space.get, cd_fuel_type, cd_fuel_split, false)
+            
+            if not success
+                return false
+            end
+            
+            next if cd_ann_e == 0 and cd_ann_f == 0
+            
+            cd_msgs << "The clothes dryer assigned to space '#{space.name.to_s}' has been updated."
+            
         end
         
     end
     
     # Reporting
-    if msgs.size > 1
+    if (msgs.size + cd_msgs.size) > 1
         msgs.each do |msg|
             runner.registerInfo(msg)
+        end
+        cd_msgs.each do |cd_msg|
+            runner.registerInfo(cd_msg)
         end
         runner.registerFinalCondition("The building has been assigned clothes washers totaling #{tot_cw_ann_e.round} kWhs annual energy consumption across #{units.size} units.")
     elsif msgs.size == 1

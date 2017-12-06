@@ -1,5 +1,5 @@
 #start the measure
-class ServerDirectoryCleanup < OpenStudio::Ruleset::ReportingUserScript
+class ServerDirectoryCleanup < OpenStudio::Measure::ReportingMeasure
 
   #define the name that a user will see, this method may be deprecated as
   #the display name in PAT comes from the name field in measure.xml

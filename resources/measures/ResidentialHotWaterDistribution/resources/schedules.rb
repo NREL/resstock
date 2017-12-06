@@ -463,7 +463,7 @@ class HotWaterSchedule
             end
             
             #For MF homes, shift each unit by an additional week
-            days_shift = (days_shift + 7 * (unit_index + 1)) % 365
+            days_shift = (days_shift + 7 * unit_index) % 365
             minutes_in_year = 8760 * 60
             
             # Read data into minute array

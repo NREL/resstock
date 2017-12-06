@@ -360,6 +360,13 @@ class ProcessVariableSpeedAirSourceHeatPump < OpenStudio::Measure::ModelMeasure
     supcap.setDefaultValue(Constants.SizingAuto)
     args << supcap 
     
+    #make a string argument for distribution system efficiency
+    dist_system_eff = OpenStudio::Measure::OSArgument::makeStringArgument("dse", true)
+    dist_system_eff.setDisplayName("Distribution System Efficiency")
+    dist_system_eff.setDescription("Defines the energy losses associated with the delivery of energy from the equipment to the source of the load.")
+    dist_system_eff.setDefaultValue("NA")
+    args << dist_system_eff
+    
     return args
   end #end the arguments method
 
@@ -405,6 +412,12 @@ class ProcessVariableSpeedAirSourceHeatPump < OpenStudio::Measure::ModelMeasure
     supplementalOutputCapacity = runner.getStringArgumentValue("supplemental_capacity",user_arguments)
     unless supplementalOutputCapacity == Constants.SizingAuto
       supplementalOutputCapacity = OpenStudio::convert(supplementalOutputCapacity.to_f,"kBtu/h","Btu/h").get
+    end
+    dse = runner.getStringArgumentValue("dse",user_arguments)
+    if dse.to_f > 0
+      dse = dse.to_f
+    else
+      dse = 1.0
     end
     
     number_Speeds = 4
@@ -474,7 +487,7 @@ class ProcessVariableSpeedAirSourceHeatPump < OpenStudio::Measure::ModelMeasure
       
         # _processCurvesDXHeating
         
-        htg_coil_stage_data = HVAC.calc_coil_stage_data_heating(model, hpOutputCapacity, number_Speeds, heatingEIR, hEAT_CAP_FT_SPEC, hEAT_EIR_FT_SPEC, hEAT_CLOSS_FPLR_SPEC, hEAT_CAP_FFLOW_SPEC, hEAT_EIR_FFLOW_SPEC)
+        htg_coil_stage_data = HVAC.calc_coil_stage_data_heating(model, hpOutputCapacity, number_Speeds, heatingEIR, hEAT_CAP_FT_SPEC, hEAT_EIR_FT_SPEC, hEAT_CLOSS_FPLR_SPEC, hEAT_CAP_FFLOW_SPEC, hEAT_EIR_FFLOW_SPEC, dse)
       
         # _processSystemHeatingCoil        
 
@@ -496,14 +509,14 @@ class ProcessVariableSpeedAirSourceHeatPump < OpenStudio::Measure::ModelMeasure
         
         supp_htg_coil = OpenStudio::Model::CoilHeatingElectric.new(model, model.alwaysOnDiscreteSchedule)
         supp_htg_coil.setName(obj_name + " supp heater")
-        supp_htg_coil.setEfficiency(supplementalEfficiency)
+        supp_htg_coil.setEfficiency(dse * supplementalEfficiency)
         if supplementalOutputCapacity != Constants.SizingAuto
           supp_htg_coil.setNominalCapacity(OpenStudio::convert(supplementalOutputCapacity,"Btu/h","W").get) # Used by HVACSizing measure
         end
         
         # _processCurvesDXCooling
 
-        clg_coil_stage_data = HVAC.calc_coil_stage_data_cooling(model, hpOutputCapacity, number_Speeds, coolingEIR, sHR_Rated_Gross, cOOL_CAP_FT_SPEC, cOOL_EIR_FT_SPEC, cOOL_CLOSS_FPLR_SPEC, cOOL_CAP_FFLOW_SPEC, cOOL_EIR_FFLOW_SPEC)
+        clg_coil_stage_data = HVAC.calc_coil_stage_data_cooling(model, hpOutputCapacity, number_Speeds, coolingEIR, sHR_Rated_Gross, cOOL_CAP_FT_SPEC, cOOL_EIR_FT_SPEC, cOOL_CLOSS_FPLR_SPEC, cOOL_CAP_FFLOW_SPEC, cOOL_EIR_FFLOW_SPEC, dse)
         
         # _processSystemCoolingCoil
         
@@ -526,10 +539,10 @@ class ProcessVariableSpeedAirSourceHeatPump < OpenStudio::Measure::ModelMeasure
         fan = OpenStudio::Model::FanOnOff.new(model, model.alwaysOnDiscreteSchedule, fan_power_curve, fan_eff_curve)
         fan.setName(obj_name + " supply fan")
         fan.setEndUseSubcategory(Constants.EndUseHVACFan)
-        fan.setFanEfficiency(HVAC.calculate_fan_efficiency(static, hpSupplyFanPowerInstalled))
+        fan.setFanEfficiency(dse * HVAC.calculate_fan_efficiency(static, hpSupplyFanPowerInstalled))
         fan.setPressureRise(static)
-        fan.setMotorEfficiency(1)
-        fan.setMotorInAirstreamFraction(1)    
+        fan.setMotorEfficiency(dse * 1.0)
+        fan.setMotorInAirstreamFraction(1.0)    
         
         # _processSystemAir
                  
