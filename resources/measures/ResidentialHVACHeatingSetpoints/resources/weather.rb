@@ -58,14 +58,23 @@ class WeatherProcess
     return @epw_path
   end
   
-  def self.epw_timestamps(model, runner, measure_dir)
+  def self.actual_timestamps(model, runner, measure_dir)
     epw_path = get_epw_path(model, runner, measure_dir)
     epw_file = OpenStudio::EpwFile.new(epw_path)
-    timestamps = []
-    epw_file.data.each do |epw_data|
-      timestamps << "#{epw_data.year}/#{epw_data.month.to_s.rjust(2, "0")}/#{epw_data.day.to_s.rjust(2, "0")} #{epw_data.hour.to_s.rjust(2, "0")}:#{epw_data.minute.to_s.rjust(2, "0")}:00"
+    if epw_file.startDateActualYear.is_initialized
+      actual_timestamps = []
+      epw_file.data.each do |epw_data_row|
+        year = epw_data_row.year
+        month = epw_data_row.month.to_s.rjust(2, "0")
+        day = epw_data_row.day.to_s.rjust(2, "0")
+        hour = epw_data_row.hour.to_s.rjust(2, "0")
+        minute = epw_data_row.minute.to_s.rjust(2, "0")
+        second = "00"
+        actual_timestamps << "#{year}/#{month}/#{day} #{hour}:#{minute}:#{second}"
+      end
+      return actual_timestamps
     end
-    return timestamps
+    return nil
   end
   
   def error?
