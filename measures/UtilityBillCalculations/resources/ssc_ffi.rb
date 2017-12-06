@@ -30,27 +30,27 @@ module SscApi
     end
     ffi_lib ssc_path
 
-    SSC_INVALID = 0
-    SSC_STRING = 1
-    SSC_NUMBER = 2
-    SSC_ARRAY = 3
-    SSC_MATRIX = 4
-    SSC_TABLE = 5
+    SSC_INVALID ||= 0
+    SSC_STRING ||= 1
+    SSC_NUMBER ||= 2
+    SSC_ARRAY ||= 3
+    SSC_MATRIX ||= 4
+    SSC_TABLE ||= 5
 
-    SSC_INPUT = 1
-    SSC_OUTPUT = 2
-    SSC_INOUT = 3
+    SSC_INPUT ||= 1
+    SSC_OUTPUT ||= 2
+    SSC_INOUT ||= 3
 
-    SSC_LOG = 0
-    SSC_UPDATE = 1
-    SSC_EXECUTE = 2
+    SSC_LOG ||= 0
+    SSC_UPDATE ||= 1
+    SSC_EXECUTE ||= 2
 
-    SSC_NOTICE = 1
-    SSC_WARNING = 2
-    SSC_ERROR = 3
+    SSC_NOTICE ||= 1
+    SSC_WARNING ||= 2
+    SSC_ERROR ||= 3
 
-    SSC_FALSE = 0
-    SSC_TRUE = 1
+    SSC_FALSE ||= 0
+    SSC_TRUE ||= 1
 
     attach_function :ssc_version, [  ], :int
     attach_function :ssc_build_info, [  ], :string

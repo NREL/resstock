@@ -3,6 +3,7 @@
 
 require 'erb'
 require 'csv'
+require "#{File.dirname(__FILE__)}/resources/weather"
 
 #start the measure
 class TimeseriesCSVExport < OpenStudio::Measure::ReportingMeasure
@@ -30,9 +31,9 @@ class TimeseriesCSVExport < OpenStudio::Measure::ReportingMeasure
       'DistrictHeating',
       'Water',
       'FuelOil#1',
-      'Propane'
-    ]
-    
+      'Propane',
+      'ElectricityProduced'
+    ]    
     return fuel_types
   end
   
@@ -51,21 +52,38 @@ class TimeseriesCSVExport < OpenStudio::Measure::ReportingMeasure
       'HeatRecovery',
       'WaterSystems',
       'Refrigeration',
-      'Generators',
       'Facility'
-    ]
-    
+    ]    
     return end_uses
   end
-  
-  def output_vars
-    output_vars = [
-      'Zone Mean Air Temperature',
-      'Zone Mean Air Humidity Ratio',
-      'Fan Runtime Fraction'
-    ]
-    
-    return output_vars
+
+  def end_use_subcategories(model)
+    end_use_subcategories = []
+    model.getElectricEquipments.each do |equip|
+      next if equip.endUseSubcategory.empty?
+      end_uses.each do |end_use|
+        next if end_use_subcategories.include? "#{equip.endUseSubcategory}:#{end_use}:Electricity"
+        end_use_subcategories << "#{equip.endUseSubcategory}:#{end_use}:Electricity"
+      end
+    end
+    model.getGasEquipments.each do |equip|
+      next if equip.endUseSubcategory.empty?
+      end_uses.each do |end_use|
+        next if end_use_subcategories.include? "#{equip.endUseSubcategory}:#{end_use}:Gas"
+        end_use_subcategories << "#{equip.endUseSubcategory}:#{end_use}:Gas"
+      end
+    end
+    model.getOtherEquipments.each do |equip|
+      next if equip.endUseSubcategory.empty?
+      next if equip.fuelType.empty? or equip.fuelType == "None"
+      end_uses.each do |end_use|
+        variable_name = "#{equip.endUseSubcategory}:#{end_use}:#{equip.fuelType}"
+        variable_name = variable_name.gsub("NaturalGas", "Gas").gsub("PropaneGas", "Propane")
+        next if end_use_subcategories.include? variable_name
+        end_use_subcategories << variable_name
+      end
+    end
+    return end_use_subcategories
   end
   
   # define the arguments that the user will input
@@ -80,18 +98,28 @@ class TimeseriesCSVExport < OpenStudio::Measure::ReportingMeasure
     reporting_frequency_chs << "Daily"
     reporting_frequency_chs << "Monthly"
     reporting_frequency_chs << "Runperiod"
-    reporting_frequency = OpenStudio::Measure::OSArgument::makeChoiceArgument('reporting_frequency', reporting_frequency_chs, true)
-    reporting_frequency.setDisplayName("Reporting Frequency")
-    reporting_frequency.setDefaultValue("Hourly")
-    args << reporting_frequency
+    arg = OpenStudio::Measure::OSArgument::makeChoiceArgument("reporting_frequency", reporting_frequency_chs, true)
+    arg.setDisplayName("Reporting Frequency")
+    arg.setDefaultValue("Hourly")
+    args << arg
     
-    # TODO: argument for subset of output meters
+    #make an argument for including optional end use subcategories
+    arg = OpenStudio::Measure::OSArgument::makeBoolArgument("inc_end_use_subcategories", true)
+    arg.setDisplayName("Include End Use Subcategories")
+    arg.setDefaultValue(false)
+    args << arg    
     
     #make an argument for including optional output variables
-    inc_output_variables = OpenStudio::Measure::OSArgument::makeBoolArgument("inc_output_variables", true)
-    inc_output_variables.setDisplayName("Include Output Variables")
-    inc_output_variables.setDefaultValue(false)
-    args << inc_output_variables    
+    arg = OpenStudio::Measure::OSArgument::makeBoolArgument("inc_output_variables", true)
+    arg.setDisplayName("Include Output Variables")
+    arg.setDefaultValue(false)
+    args << arg
+    
+    #make an argument for optional output variables
+    arg = OpenStudio::Measure::OSArgument::makeStringArgument("output_variables", true)
+    arg.setDisplayName("Output Variables")
+    arg.setDefaultValue("Zone Mean Air Temperature, Zone Mean Air Humidity Ratio, Fan Runtime Fraction")
+    args << arg
     
     return args
   end 
@@ -103,24 +131,40 @@ class TimeseriesCSVExport < OpenStudio::Measure::ReportingMeasure
     result = OpenStudio::IdfObjectVector.new
 
     reporting_frequency = runner.getStringArgumentValue("reporting_frequency",user_arguments)
+    inc_end_use_subcategories = runner.getBoolArgumentValue("inc_end_use_subcategories",user_arguments)
     inc_output_variables = runner.getBoolArgumentValue("inc_output_variables",user_arguments)
+    output_vars = runner.getStringArgumentValue("output_variables",user_arguments).split(",")
 
     # Request the output for each end use/fuel type combination
     end_uses.each do |end_use|
       fuel_types.each do |fuel_type|
         variable_name = if end_use == 'Facility'
-                  "#{fuel_type}:#{end_use}"
-                else
-                  "#{end_use}:#{fuel_type}"
-                end
+            "#{fuel_type}:#{end_use}"
+          else
+            "#{end_use}:#{fuel_type}"
+          end
         result << OpenStudio::IdfObject.load("Output:Meter,#{variable_name},#{reporting_frequency};").get
       end
     end
     
-    # Request the output for each variable
+    # Request the output for each electric equipment object
+    if inc_end_use_subcategories
+      # get the last model and sql file
+      model = runner.lastOpenStudioModel
+      if model.empty?
+        runner.registerError("Cannot find last model.")
+        return false
+      end
+      model = model.get
+      end_use_subcategories(model).each do |variable_name|
+        result << OpenStudio::IdfObject.load("Output:Meter,#{variable_name},#{reporting_frequency};").get
+      end
+    end
+    
+    # Request the output for each output variable
     if inc_output_variables
       output_vars.each do |output_var|
-        result << OpenStudio::IdfObject.load("Output:Variable,#{output_var},#{reporting_frequency};").get
+        result << OpenStudio::IdfObject.load("Output:Variable,#{output_var.strip},#{reporting_frequency};").get
       end
     end
 
@@ -138,7 +182,9 @@ class TimeseriesCSVExport < OpenStudio::Measure::ReportingMeasure
     
     # Assign the user inputs to variables
     reporting_frequency = runner.getStringArgumentValue("reporting_frequency",user_arguments)
+    inc_end_use_subcategories = runner.getBoolArgumentValue("inc_end_use_subcategories",user_arguments)
     inc_output_variables = runner.getBoolArgumentValue("inc_output_variables",user_arguments)
+    output_vars = runner.getStringArgumentValue("output_variables",user_arguments).split(",")
     
     # get the last model and sql file
     model = runner.lastOpenStudioModel
@@ -147,14 +193,7 @@ class TimeseriesCSVExport < OpenStudio::Measure::ReportingMeasure
       return false
     end
     model = model.get
-    epw_file = OpenStudio::EpwFile.new(File.expand_path(model.getWeatherFile.path.get.to_s))
     
-    # Convert time stamp format to be more readable      
-    year_description = model.getYearDescription
-    unless epw_file.startDateActualYear.empty?
-      year_description.setCalendarYear(epw_file.startDateActualYear.get)
-    end
-
     sql = runner.lastEnergyPlusSqlFile
     if sql.empty?
       runner.registerError("Cannot find last sql file.")
@@ -178,115 +217,37 @@ class TimeseriesCSVExport < OpenStudio::Measure::ReportingMeasure
       runner.registerError("Can't find a weather runperiod, make sure you ran an annual simulation, not just the design days.")
       return false
     end
-    
-    # Method to translate from OpenStudio's time formatting
-    # to Javascript time formatting
-    # OpenStudio time
-    # 2009-May-14 00:10:00   Raw string
-    # Javascript time
-    # 2009/07/12 12:34:56
-    def to_JSTime(os_time, year_description)
-      js_time = os_time.to_s
-      # Replace the '-' with '/'
-      js_time = js_time.gsub('-','/')
-      # Replace month abbreviations with numbers
-      js_time = js_time.gsub('Jan','01')
-      js_time = js_time.gsub('Feb','02')
-      js_time = js_time.gsub('Mar','03')
-      js_time = js_time.gsub('Apr','04')
-      js_time = js_time.gsub('May','05')
-      js_time = js_time.gsub('Jun','06')
-      js_time = js_time.gsub('Jul','07')
-      js_time = js_time.gsub('Aug','08')
-      js_time = js_time.gsub('Sep','09')
-      js_time = js_time.gsub('Oct','10')
-      js_time = js_time.gsub('Nov','11')
-      js_time = js_time.gsub('Dec','12')
 
-      # manually shift timestamps for leap years
-      if year_description.isLeapYear
-        date, time = js_time.split(" ")
-        year, month, day = date.split("/")
-        year = year.to_f
-        month = month.to_f
-        day = day.to_f
-        if not ( month == 1 and year == 2009 ) and not ( month == 2 and year == 2009 )
-          day -= 1
-          if day == 0
-            month -= 1
-            if month == 0
-              month = 12
-              day = 31              
-            elsif month == 1
-              day = 31
-            elsif month == 2
-              day = 29
-            elsif month == 3
-              day = 31
-            elsif month == 4
-              day = 28
-            elsif month == 5
-              day = 31
-            elsif month == 6
-              day = 30
-            elsif month == 7
-              day = 31
-            elsif month == 8
-              day = 31
-            elsif month == 9
-              day = 30
-            elsif month == 10
-              day = 31
-            elsif month == 11
-              day = 30
-            end
-          end
-        end
-        js_time = "#{year.to_i}/#{month.to_i.to_s.rjust(2, "0")}/#{day.to_i.to_s.rjust(2, "0")} #{time}"
-        offset = 0
-        if month == 1 and year == 2010
-          offset = 1
-        end
-      end
-
-      unless year_description.calendarYear.empty?
-        js_time[0..3] = (year_description.calendarYear.get + offset).to_i.to_s
-      end
-
-      return js_time
-
-    end     
-        
     # Create an array of arrays of variables
     variables_to_graph = []
     end_uses.each do |end_use|
       fuel_types.each do |fuel_type|
         variable_name = if end_use == 'Facility'
-                          "#{fuel_type}:#{end_use}"
-                        else
-                          "#{end_use}:#{fuel_type}"
-                        end
+            "#{fuel_type}:#{end_use}"
+          else
+            "#{end_use}:#{fuel_type}"
+          end
         variables_to_graph << [variable_name, reporting_frequency, '']
         runner.registerInfo("Exporting #{variable_name}")
       end
     end
+    if inc_end_use_subcategories
+      end_use_subcategories(model).each do |variable_name|
+        variables_to_graph << [variable_name, reporting_frequency, '']
+        runner.registerInfo("Exporting #{variable_name}")
+      end
+    end    
     if inc_output_variables
       output_vars.each do |output_var|
-        sql.availableKeyValues(ann_env_pd, reporting_frequency, output_var).each do |key_value|
-          variables_to_graph << [output_var, reporting_frequency, key_value]
-          runner.registerInfo("Exporting #{key_value} #{output_var}")
+        sql.availableKeyValues(ann_env_pd, reporting_frequency, output_var.strip).each do |key_value|
+          variables_to_graph << [output_var.strip, reporting_frequency, key_value]
+          runner.registerInfo("Exporting #{key_value} #{output_var.strip}")
         end
       end
     end
-    
-    # Create a new series like this
-    # for each condition series we want to plot
-    # {"name" : "series 1",
-    # "color" : "purple",
-    # "data" :[{ "x": 20, "y": 0.015, "time": "2009/07/12 12:34:56"},
-            # { "x": 25, "y": 0.008, "time": "2009/07/12 12:34:56"},
-            # { "x": 30, "y": 0.005, "time": "2009/07/12 12:34:56"}]
-    # }
+
+    epw_timestamps = WeatherProcess.epw_timestamps(model, runner, File.dirname(__FILE__))
+
     all_series = []
     # Sort by fuel, putting the total (Facility) column at the end of the fuel.
     variables_to_graph.sort_by! do |i| 
@@ -319,8 +280,12 @@ class TimeseriesCSVExport < OpenStudio::Measure::ReportingMeasure
       y_vals = y_timeseries.values
 
       js_date_times = []
-      y_timeseries.dateTimes.each do |date_time|
-        js_date_times << to_JSTime(date_time, year_description)
+      y_timeseries.dateTimes.each_with_index do |date_time, i|
+        if reporting_frequency == "Hourly"
+          js_date_times << epw_timestamps[i]
+        else
+          js_date_times << i+1
+        end
       end
       
       # Store the timeseries data to hash for later
@@ -357,12 +322,9 @@ class TimeseriesCSVExport < OpenStudio::Measure::ReportingMeasure
         point["time"] = time_i
         data << point
       end
-      next if data.all? {|x| x["y"] == 0}
+      next if data.all? {|x| x["y"].abs < 0.000000001}
       series["data"] = data
-      all_series << series        
-        
-      # increment color selection
-      j += 1  
+      all_series << series
         
     end
         
@@ -374,7 +336,6 @@ class TimeseriesCSVExport < OpenStudio::Measure::ReportingMeasure
       # Record the timestamps and units on the first pass only
       if k == 0
         time_col = ['Time']
-        #time_col << "#{reporting_frequency}"
         data.each do |entry|
           time_col << entry['time']
         end
@@ -383,13 +344,15 @@ class TimeseriesCSVExport < OpenStudio::Measure::ReportingMeasure
       # Record the data
       col_name = "#{series['type']} #{series['name']} [#{series['units']}]"
       data_col = [col_name]
-      #data_col << units
       data.each do |entry|
         data_col << entry['y'].round(2)
       end
       cols << data_col
     end
     rows = cols.transpose
+    
+    # Get the rows into sequential order based on the timestamps    
+    rows = [rows[0]] + rows[1..-1].sort {|a, b| a[0] <=> b[0]}
     
     # Write the rows out to CSV
     csv_path = File.expand_path("../enduse_timeseries.csv")

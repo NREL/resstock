@@ -99,6 +99,13 @@ class ProcessBoilerElectric < OpenStudio::Measure::ModelMeasure
     boilerOutputCapacity.setDefaultValue(Constants.SizingAuto)
     args << boilerOutputCapacity  
 
+    #make a string argument for distribution system efficiency
+    dist_system_eff = OpenStudio::Measure::OSArgument::makeStringArgument("dse", true)
+    dist_system_eff.setDisplayName("Distribution System Efficiency")
+    dist_system_eff.setDescription("Defines the energy losses associated with the delivery of energy from the equipment to the source of the load.")
+    dist_system_eff.setDefaultValue("NA")
+    args << dist_system_eff  
+
     return args
   end
 
@@ -127,6 +134,12 @@ class ProcessBoilerElectric < OpenStudio::Measure::ModelMeasure
       boilerOutputCapacity = OpenStudio::convert(boilerOutputCapacity.to_f,"kBtu/h","Btu/h").get
     end
     boilerDesignTemp = runner.getDoubleArgumentValue("design_temp",user_arguments)
+    dse = runner.getStringArgumentValue("dse",user_arguments)
+    if dse.to_f > 0
+      dse = dse.to_f
+    else
+      dse = 1.0
+    end
     
     hasBoilerCondensing = false
     if boilerType == Constants.BoilerTypeCondensing
@@ -183,7 +196,7 @@ class ProcessBoilerElectric < OpenStudio::Measure::ModelMeasure
     pump = OpenStudio::Model::PumpVariableSpeed.new(model)
     pump.setName(Constants.ObjectNameBoiler(Constants.FuelTypeElectric) + " hydronic pump")
     pump.setRatedPumpHead(179352)
-    pump.setMotorEfficiency(0.9)
+    pump.setMotorEfficiency(dse * 0.9)
     pump.setFractionofMotorInefficienciestoFluidStream(0)
     pump.setCoefficient1ofthePartLoadPerformanceCurve(0)
     pump.setCoefficient2ofthePartLoadPerformanceCurve(1)
@@ -206,14 +219,14 @@ class ProcessBoilerElectric < OpenStudio::Measure::ModelMeasure
       condBlr_TE_Coeff = condensingBlr_TE_FT_coefficients   # The coefficients are normalized at 80F HWRT
       boilerEff_Norm = 1.0 / boiler_hir / (condBlr_TE_Coeff[0] - condBlr_TE_Coeff[1] * plr_Rated - condBlr_TE_Coeff[2] * plr_Rated**2 - condBlr_TE_Coeff[3] * boiler_RatedHWRT + condBlr_TE_Coeff[4] * boiler_RatedHWRT**2 + condBlr_TE_Coeff[5] * boiler_RatedHWRT * plr_Rated)
       boilerEff_Design = boilerEff_Norm * (condBlr_TE_Coeff[0] - condBlr_TE_Coeff[1] * plr_Design - condBlr_TE_Coeff[2] * plr_Design**2 - condBlr_TE_Coeff[3] * boiler_DesignHWRT + condBlr_TE_Coeff[4] * boiler_DesignHWRT**2 + condBlr_TE_Coeff[5] * boiler_DesignHWRT * plr_Design)
-      boiler.setNominalThermalEfficiency(boilerEff_Design)
+      boiler.setNominalThermalEfficiency(dse * boilerEff_Design)
       boiler.setEfficiencyCurveTemperatureEvaluationVariable("EnteringBoiler")
       boiler.setNormalizedBoilerEfficiencyCurve(boiler_eff_curve)
       boiler.setDesignWaterOutletTemperature(OpenStudio::convert(boilerDesignTemp - 32.0,"R","K").get)
       boiler.setMinimumPartLoadRatio(0.0) 
       boiler.setMaximumPartLoadRatio(1.0)
     else
-      boiler.setNominalThermalEfficiency(1.0 / boiler_hir)
+      boiler.setNominalThermalEfficiency(dse / boiler_hir)
       boiler.setEfficiencyCurveTemperatureEvaluationVariable("LeavingBoiler")
       boiler.setNormalizedBoilerEfficiencyCurve(boiler_eff_curve)
       boiler.setDesignWaterOutletTemperature(OpenStudio::convert(boilerDesignTemp - 32.0,"R","K").get)
