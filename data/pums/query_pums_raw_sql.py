@@ -5,7 +5,7 @@ import psycopg2 as pg
 
 con_string = "host={} port={} dbname={} user={} password={}".format(os.environ['GIS_HOST'], os.environ['GIS_PORT'], os.environ['GIS_DBNAME'], os.environ['GIS_USER'], os.environ['GIS_PASSWORD'])
 
-cols = ['serial', 'unitsstr', 'hhincome', 'repwt', 'hhwt', 'builtyr2', 'rooms', 'fuelheat', 'bedrooms', 'hhtype', 'region', 'stateicp', 'statefip', 'vacancy', 'state_abbr', 'nfams', 'famsize', 'ftotinc']
+cols = ['serial', 'unitsstr', 'hhincome', 'repwt', 'hhwt', 'builtyr2', 'rooms', 'fuelheat', 'bedrooms', 'region', 'vacancy', 'state_abbr', 'nfams', 'famsize', 'ftotinc', 'numprec', 'gq', 'gqtype']
 
 def retrieve_tables():
     con = pg.connect(con_string)
@@ -23,9 +23,7 @@ def retrieve_data(table):
     pkls = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'pkls')
     if not os.path.exists(os.path.join(pkls, '{}.pkl'.format(table))):
       con = pg.connect(con_string)
-      # sql = """SELECT {} FROM pums_2011.{} where unitsstr='3' order by random() limit 1000;""".format(",".join(cols), table)
-      sql = """SELECT {} FROM pums_2011.{} where unitsstr='3' limit 50000;""".format(",".join(cols), table)
-      # sql = """SELECT {} FROM pums_2011.{};""".format(",".join(cols), table)
+      sql = """SELECT {} FROM pums_2011.{};""".format(",".join(cols), table)
       try:
         df = pd.read_sql(sql, con)
         df.to_pickle(os.path.join(pkls, '{}.pkl'.format(table)))
@@ -112,8 +110,8 @@ if __name__ == '__main__':
     df = retrieve_data(table)
     if df is None:
       continue
-    df = df.drop_duplicates()
-    df = df.groupby(['serial', 'unitsstr', 'hhincome', 'repwt', 'hhwt', 'builtyr2', 'rooms', 'fuelheat', 'bedrooms', 'hhtype', 'region', 'stateicp', 'statefip', 'vacancy', 'state_abbr', 'nfams']).sum().reset_index() # for each unique structure, sum / famsize / ftotinc
+    # df = df.drop_duplicates()
+    # df = df.groupby(['serial', 'unitsstr', 'hhincome', 'repwt', 'hhwt', 'builtyr2', 'rooms', 'fuelheat', 'bedrooms', 'hhtype', 'region', 'stateicp', 'statefip', 'vacancy', 'state_abbr', 'nfams']).sum().reset_index() # for each unique structure, sum / famsize / ftotinc
     df = assign_vintage(df)
     df = assign_heating_fuel(df)
     df = assign_federal_poverty_level(df)
