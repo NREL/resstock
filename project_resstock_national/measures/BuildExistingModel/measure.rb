@@ -92,7 +92,8 @@ class BuildExistingModel < OpenStudio::Ruleset::ModelUserScript
         print_option_assignment(parameter_name, option_name, runner)
         register_value(runner, parameter_name, option_name)
 
-        get_measure_args_from_option_name(lookup_file, option_name, parameter_name, runner).each do |measure_subdir, args_hash|
+        options_measure_args = get_measure_args_from_option_names(lookup_file, [option_name], parameter_name, runner)
+        options_measure_args[option_name].each do |measure_subdir, args_hash|
             update_args_hash(measures, measure_subdir, args_hash, add_new=false)
         end
 

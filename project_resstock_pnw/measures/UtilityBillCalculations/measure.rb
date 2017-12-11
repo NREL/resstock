@@ -5,7 +5,7 @@ require 'erb'
 require 'csv'
 require 'matrix'
 
-#start the measure
+#start the measure 
 class UtilityBillCalculations < OpenStudio::Measure::ReportingMeasure
 
   # human readable name
