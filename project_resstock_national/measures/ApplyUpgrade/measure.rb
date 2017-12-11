@@ -263,7 +263,8 @@ class ApplyUpgrade < OpenStudio::Ruleset::ModelUserScript
             check_file_exists(lookup_file, runner)
 
             # Get measure name and arguments associated with the option
-            get_measure_args_from_option_name(lookup_file, option_name, parameter_name, runner).each do |measure_subdir, args_hash|
+            options_measure_args = get_measure_args_from_option_names(lookup_file, [option_name], parameter_name, runner)
+            options_measure_args[option_name].each do |measure_subdir, args_hash|
                 update_args_hash(measures, measure_subdir, args_hash, add_new=false)
             end
             
@@ -276,7 +277,8 @@ class ApplyUpgrade < OpenStudio::Ruleset::ModelUserScript
             parameters.each do |parameter_name|
                 existing_option_name = get_value_from_runner_past_results(runner, parameter_name, "build_existing_model")
                 
-                get_measure_args_from_option_name(lookup_file, existing_option_name, parameter_name, runner).each do |measure_subdir2, args_hash|
+                options_measure_args = get_measure_args_from_option_names(lookup_file, [existing_option_name], parameter_name, runner)
+                options_measure_args[existing_option_name].each do |measure_subdir2, args_hash|
                     next if measure_subdir != measure_subdir2
                     # Append any new arguments
                     new_args_hash = {}
