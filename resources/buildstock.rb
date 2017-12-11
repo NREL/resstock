@@ -151,12 +151,12 @@ end
 
 def get_parameters_ordered_from_options_lookup_tsv(resources_dir, characteristics_dir=nil)
     # Obtain full list of parameters and their order
-    params_file = File.join(resources_dir, 'options_lookup.tsv')
-    if not File.exist?(params_file)
-        fail "ERROR: Cannot find #{params_file}."
+    lookup_file = File.join(resources_dir, 'options_lookup.tsv')
+    if not File.exist?(lookup_file)
+        fail "ERROR: Cannot find #{lookup_file}."
     end
     params = []
-    CSV.foreach(params_file, { :col_sep => "\t" }) do |row|
+    CSV.foreach(lookup_file, { :col_sep => "\t" }) do |row|
         next if row.size < 2
         next if row[0].nil? or row[0].downcase == "parameter name" or row[1].nil?
         next if params.include?(row[0])
@@ -168,6 +168,22 @@ def get_parameters_ordered_from_options_lookup_tsv(resources_dir, characteristic
     end
     
     return params
+end
+
+def get_options_for_parameter_from_options_lookup_tsv(resources_dir, parameter_name)
+    lookup_file = File.join(resources_dir, 'options_lookup.tsv')
+    if not File.exist?(lookup_file)
+        fail "ERROR: Cannot find #{lookup_file}."
+    end
+    options = []
+    CSV.foreach(lookup_file, { :col_sep => "\t" }) do |row|
+        next if row.size < 2
+        next if row[0].nil? or row[0].downcase == "parameter name" or row[1].nil?
+        next if row[0].downcase != parameter_name.downcase
+        options << row[1]
+    end
+    
+    return options
 end
   
 def get_combination_hashes(tsvfiles, dependencies)
@@ -225,53 +241,51 @@ def get_value_from_runner_past_results(runner, key_lookup, measure_name, error_i
     return nil
 end
   
-def get_measure_args_from_option_name(lookup_file, option_name, parameter_name, runner=nil)
-    found_option = false
-    measure_args = {}
+def get_measure_args_from_option_names(lookup_file, option_names, parameter_name, runner=nil)
+    found_options = {}
+    options_measure_args = {}
+    option_names.each do |option_name|
+      found_options[option_name] = false
+      options_measure_args[option_name] = {}
+    end
+    current_option = nil
+    
     CSV.foreach(lookup_file, { :col_sep => "\t" }) do |row|
         next if row.size < 2
-        if not found_option
-            # Found option row?
-            if not row[0].nil? and not row[1].nil? and row[0].downcase == parameter_name.downcase and row[1].downcase == option_name.downcase
-                found_option = true
-                if row.size >= 3 and not row[2].nil?
-                    measure_dir = row[2]
-                    args = {}
-                    for col in 3..(row.size-1)
-                        next if row[col].nil? or not row[col].include?("=")
-                        data = row[col].split("=")
-                        arg_name = data[0]
-                        arg_val = data[1]
-                        args[arg_name] = arg_val
-                    end
-                    measure_args[measure_dir] = args
+        # Found option row?
+        if not row[0].nil? and not row[1].nil?
+            current_option = nil # reset
+            option_names.each do |option_name|
+                if row[0].downcase == parameter_name.downcase and row[1].downcase == option_name.downcase
+                    current_option = option_name
+                    break
                 end
-                next
-            end
-        else
-            # Additional rows for option?
-            if row[0].nil? and row[1].nil?
-                if row.size >= 3 and not row[2].nil?
-                    measure_dir = row[2]
-                    args = {}
-                    for col in 3..(row.size-1)
-                        next if row[col].nil? or not row[col].include?("=")
-                        data = row[col].split("=")
-                        arg_name = data[0]
-                        arg_val = data[1]
-                        args[arg_name] = arg_val
-                    end
-                    measure_args[measure_dir] = args
-                end
-            else
-                break # we're done searching
             end
         end
+        if not current_option.nil?
+            found_options[current_option] = true
+            if row.size >= 3 and not row[2].nil?
+                measure_dir = row[2]
+                args = {}
+                for col in 3..(row.size-1)
+                    next if row[col].nil? or not row[col].include?("=")
+                    data = row[col].split("=")
+                    arg_name = data[0]
+                    arg_val = data[1]
+                    args[arg_name] = arg_val
+                end
+                options_measure_args[current_option][measure_dir] = args
+            end
+        else
+            break if found_options.all? { |elem| elem == true }
+        end
     end
-    if not found_option
-        register_error("Could not find parameter '#{parameter_name.to_s}' and option '#{option_name.to_s}' in #{lookup_file.to_s}.", runner)
+    option_names.each do |option_name|
+        if not found_options[option_name]
+            register_error("Could not find parameter '#{parameter_name.to_s}' and option '#{option_name.to_s}' in #{lookup_file.to_s}.", runner)
+        end
     end
-    return measure_args
+    return options_measure_args
 end
 
 def print_option_assignment(parameter_name, option_name, runner)

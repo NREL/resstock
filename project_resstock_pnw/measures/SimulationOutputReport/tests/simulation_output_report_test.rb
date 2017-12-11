@@ -4,7 +4,7 @@ require 'minitest/autorun'
 require_relative '../measure.rb'
 require 'fileutils'
 
-class ResidentialAirflowTest < MiniTest::Test
+class SimulationOutputReportTest < MiniTest::Test
 
   def test_SFD_1story_FB_UA_GRG_MSHP_FuelTanklessWH
     cost_multipliers = {
