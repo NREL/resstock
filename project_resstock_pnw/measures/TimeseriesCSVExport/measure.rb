@@ -1,6 +1,7 @@
 # see the URL below for information on how to write OpenStudio measures
 # http://nrel.github.io/OpenStudio-user-documentation/reference/measure_writing_guide/
 
+# require 'ruby-prof'
 require 'erb'
 require 'csv'
 require "#{File.dirname(__FILE__)}/resources/weather"
@@ -25,34 +26,34 @@ class TimeseriesCSVExport < OpenStudio::Measure::ReportingMeasure
 
   def fuel_types
     fuel_types = [  
-      'Electricity',
-      'Gas',
-      'DistrictCooling',
-      'DistrictHeating',
-      'Water',
-      'FuelOil#1',
-      'Propane',
-      'ElectricityProduced'
+      "Electricity",
+      "Gas",
+      "DistrictCooling",
+      "DistrictHeating",
+      "Water",
+      "FuelOil#1",
+      "Propane",
+      "ElectricityProduced"
     ]    
     return fuel_types
   end
   
   def end_uses
     end_uses = [
-      'Heating',
-      'Cooling',
-      'InteriorLights',
-      'ExteriorLights',
-      'InteriorEquipment',
-      'ExteriorEquipment',
-      'Fans',
-      'Pumps',
-      'HeatRejection',
-      'Humidifier',
-      'HeatRecovery',
-      'WaterSystems',
-      'Refrigeration',
-      'Facility'
+      "Heating",
+      "Cooling",
+      "InteriorLights",
+      "ExteriorLights",
+      "InteriorEquipment",
+      "ExteriorEquipment",
+      "Fans",
+      "Pumps",
+      "HeatRejection",
+      "Humidifier",
+      "HeatRecovery",
+      "WaterSystems",
+      "Refrigeration",
+      "Facility"
     ]    
     return end_uses
   end
@@ -138,7 +139,7 @@ class TimeseriesCSVExport < OpenStudio::Measure::ReportingMeasure
     # Request the output for each end use/fuel type combination
     end_uses.each do |end_use|
       fuel_types.each do |fuel_type|
-        variable_name = if end_use == 'Facility'
+        variable_name = if end_use == "Facility"
             "#{fuel_type}:#{end_use}"
           else
             "#{end_use}:#{fuel_type}"
@@ -170,7 +171,7 @@ class TimeseriesCSVExport < OpenStudio::Measure::ReportingMeasure
 
     return result
   end
-  
+
   # define what happens when the measure is run
   def run(runner, user_arguments)
     super(runner, user_arguments)
@@ -186,7 +187,7 @@ class TimeseriesCSVExport < OpenStudio::Measure::ReportingMeasure
     inc_output_variables = runner.getBoolArgumentValue("inc_output_variables",user_arguments)
     output_vars = runner.getStringArgumentValue("output_variables",user_arguments).split(",")
     
-    # get the last model and sql file
+    # Get the last model
     model = runner.lastOpenStudioModel
     if model.empty?
       runner.registerError("Cannot find last model.")
@@ -194,6 +195,7 @@ class TimeseriesCSVExport < OpenStudio::Measure::ReportingMeasure
     end
     model = model.get
     
+    # Get the last sql file
     sql = runner.lastEnergyPlusSqlFile
     if sql.empty?
       runner.registerError("Cannot find last sql file.")
@@ -212,7 +214,6 @@ class TimeseriesCSVExport < OpenStudio::Measure::ReportingMeasure
         end
       end
     end
-
     if ann_env_pd == false
       runner.registerError("Can't find a weather runperiod, make sure you ran an annual simulation, not just the design days.")
       return false
@@ -222,18 +223,18 @@ class TimeseriesCSVExport < OpenStudio::Measure::ReportingMeasure
     variables_to_graph = []
     end_uses.each do |end_use|
       fuel_types.each do |fuel_type|
-        variable_name = if end_use == 'Facility'
+        variable_name = if end_use == "Facility"
             "#{fuel_type}:#{end_use}"
           else
             "#{end_use}:#{fuel_type}"
           end
-        variables_to_graph << [variable_name, reporting_frequency, '']
+        variables_to_graph << [variable_name, reporting_frequency, ""]
         runner.registerInfo("Exporting #{variable_name}")
       end
     end
     if inc_end_use_subcategories
       end_use_subcategories(model).each do |variable_name|
-        variables_to_graph << [variable_name, reporting_frequency, '']
+        variables_to_graph << [variable_name, reporting_frequency, ""]
         runner.registerInfo("Exporting #{variable_name}")
       end
     end    
@@ -246,23 +247,11 @@ class TimeseriesCSVExport < OpenStudio::Measure::ReportingMeasure
       end
     end
 
-    epw_timestamps = WeatherProcess.epw_timestamps(model, runner, File.dirname(__FILE__))
-
-    all_series = []
-    # Sort by fuel, putting the total (Facility) column at the end of the fuel.
-    variables_to_graph.sort_by! do |i| 
-      fuel_type = if i[0].include?('Facility')
-                    i[0].gsub(/:Facility/, '')
-                  else
-                    i[0].gsub(/.*:/, '')
-                  end
-      end_use = if i[0].include?('Facility')
-                  'ZZZ' # so it will be last
-                else
-                  i[0].gsub(/:.*/, '')
-                end
-      sort_key = "#{fuel_type}#{end_use}"
-    end
+    # Get the timestamps for actual year epw file
+    actual_timestamps = WeatherProcess.actual_timestamps(model, runner, File.dirname(__FILE__))
+    
+    date_times = []
+    cols = []
     variables_to_graph.each_with_index do |var_to_graph, j|
     
       var_name = var_to_graph[0]
@@ -276,28 +265,13 @@ class TimeseriesCSVExport < OpenStudio::Measure::ReportingMeasure
         next
       else
         y_timeseries = y_timeseries.get
+        values = y_timeseries.values
       end
-      y_vals = y_timeseries.values
 
-      js_date_times = []
-      y_timeseries.dateTimes.each_with_index do |date_time, i|
-        if reporting_frequency == "Hourly"
-          js_date_times << epw_timestamps[i]
-        else
-          js_date_times << i+1
-        end
-      end
-      
-      # Store the timeseries data to hash for later
-      # export to the HTML file
-      series = {}
-      series["name"] = "#{kv}"
-      series["type"] = "#{var_name}"
-      # Unit conversion
-      old_units = y_timeseries.units
+      old_units = y_timeseries.units      
       new_units = case old_units
                   when "J"
-                    if var_name.include?('Electricity')
+                    if var_name.include?("Electricity")
                       "kWh"
                     else
                       "kBtu"
@@ -305,56 +279,56 @@ class TimeseriesCSVExport < OpenStudio::Measure::ReportingMeasure
                   when "m3"
                     old_units = "m^3"
                     "gal"
+                  when "C"
+                    "F"
                   else
                     old_units
                   end
-      series["units"] = new_units
-      data = []
-      for i in 0..(js_date_times.size - 1)
-        point = {}
-        val_i = y_vals[i]
-        # Unit conversion
-        unless new_units == old_units
-          val_i = OpenStudio.convert(val_i, old_units, new_units).get
+      unit_conv = nil
+      if ["J", "m^3"].include? old_units
+        unit_conv = OpenStudio.convert(1.0, old_units, new_units).get
+      elsif not (old_units == "C" and new_units == "F")
+        unless old_units.empty?
+          runner.registerInfo("Have not yet defined a conversion from #{old_units} to other units.")
         end
-        time_i = js_date_times[i]
-        point["y"] = val_i
-        point["time"] = time_i
-        data << point
       end
-      next if data.all? {|x| x["y"].abs < 0.000000001}
-      series["data"] = data
-      all_series << series
-        
-    end
-        
-    # Transform the data to CSV
-    cols = []
-    all_series.each_with_index do |series, k|
-      data = series['data']
-      units = series['units']
-      # Record the timestamps and units on the first pass only
-      if k == 0
-        time_col = ['Time']
-        data.each do |entry|
-          time_col << entry['time']
+      
+      y_vals = ["#{var_name} #{kv} [#{new_units}]"]
+      y_timeseries.dateTimes.each_with_index do |date_time, i|
+        if date_times.empty?
+          date_times << "Time"
         end
-        cols << time_col
+        if cols.empty?
+          if reporting_frequency == "Hourly"
+            if actual_timestamps.nil?
+              date_times << format_datetime(date_time.to_s) # timestamps from the sqlfile (TMY)
+            else
+              date_times << actual_timestamps[i] # timestamps from the epw (AMY)
+            end
+          else
+            date_times << i+1
+          end
+        end
+        y_val = values[i]
+        if unit_conv.nil? # these unit conversions are not scalars
+          if old_units == "C" and new_units == "F"
+            y_val = 1.8 * y_val + 32.0 # convert C to F
+          end
+        else # these are scalars
+          y_val *= unit_conv
+        end
+        y_vals << y_val.round(3)
       end
-      # Record the data
-      col_name = "#{series['type']} #{series['name']} [#{series['units']}]"
-      data_col = [col_name]
-      data.each do |entry|
-        data_col << entry['y'].round(2)
-      end
-      cols << data_col
+
+      if cols.empty?
+        cols << date_times
+      end      
+      cols << y_vals
+
     end
+
+    # Write the rows out to csv
     rows = cols.transpose
-    
-    # Get the rows into sequential order based on the timestamps    
-    rows = [rows[0]] + rows[1..-1].sort {|a, b| a[0] <=> b[0]}
-    
-    # Write the rows out to CSV
     csv_path = File.expand_path("../enduse_timeseries.csv")
     CSV.open(csv_path, "wb") do |csv|
       rows.each do |row|
@@ -363,14 +337,31 @@ class TimeseriesCSVExport < OpenStudio::Measure::ReportingMeasure
     end    
     csv_path = File.absolute_path(csv_path)
     runner.registerFinalCondition("CSV file saved to <a href='file:///#{csv_path}'>enduse_timeseries.csv</a>.")
-    
+
     # close the sql file
     sql.close()
     
     return true
  
   end
-
+  
+  def format_datetime(date_time)
+    date_time = date_time.gsub("-", "/")
+    date_time = date_time.gsub("Jan", "01")
+    date_time = date_time.gsub("Feb", "02")
+    date_time = date_time.gsub("Mar", "03")
+    date_time = date_time.gsub("Apr", "04")
+    date_time = date_time.gsub("May", "05")
+    date_time = date_time.gsub("Jun", "06")
+    date_time = date_time.gsub("Jul", "07")
+    date_time = date_time.gsub("Aug", "08")
+    date_time = date_time.gsub("Sep", "09")
+    date_time = date_time.gsub("Oct", "10")
+    date_time = date_time.gsub("Nov", "11")
+    date_time = date_time.gsub("Dec", "12")
+    return date_time
+  end
+  
 end
 
 # register the measure to be used by the application

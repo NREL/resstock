@@ -433,6 +433,9 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
             sum_value = 0.0
             model.getZoneHVACTerminalUnitVariableRefrigerantFlows.each do |sys|
                 component = sys.heatingCoil
+                if component.is_a? OpenStudio::Model::OptionalCoilHeatingDXVariableRefrigerantFlow
+                    component = component.get
+                end
                 next if not component.ratedTotalHeatingCapacity.is_initialized
                 sum_value += component.ratedTotalHeatingCapacity.get
             end
@@ -515,6 +518,9 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
             sum_value = 0.0
             model.getZoneHVACTerminalUnitVariableRefrigerantFlows.each do |sys|
                 component = sys.coolingCoil
+                if component.is_a? OpenStudio::Model::OptionalCoilCoolingDXVariableRefrigerantFlow
+                    component = component.get
+                end
                 next if not component.ratedTotalCoolingCapacity.is_initialized
                 sum_value += component.ratedTotalCoolingCapacity.get
             end

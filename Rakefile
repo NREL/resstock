@@ -240,36 +240,40 @@ end
 desc 'Perform integrity check on inputs for all projects'
 task :integrity_check_all do
     integrity_check()
+    integrity_check_options_lookup_tsv()
 end # rake task
 
 desc 'Perform integrity check on inputs for project_resstock_national'
 task :integrity_check_resstock_national do
     integrity_check(['project_resstock_national'])
+    integrity_check_options_lookup_tsv()
 end # rake task
 
 desc 'Perform integrity check on inputs for project_resstock_pnw'
 task :integrity_check_resstock_pnw do
     integrity_check(['project_resstock_pnw'])
+    integrity_check_options_lookup_tsv()
 end # rake task
 
 desc 'Perform integrity check on inputs for project_resstock_testing'
 task :integrity_check_resstock_testing do
     integrity_check(['project_resstock_testing'])
+    integrity_check_options_lookup_tsv()
 end # rake task
 
 desc 'Perform integrity check on inputs for project_resstock_comed'
 task :integrity_check_resstock_comed do
     integrity_check(['project_resstock_comed'])
+    integrity_check_options_lookup_tsv()
 end # rake task
 
 desc 'Perform integrity check on inputs for project_resstock_efs'
 task :integrity_check_resstock_efs do
     integrity_check(['project_resstock_efs'])
+    integrity_check_options_lookup_tsv()
 end # rake task
 
 def integrity_check(project_dir_names=nil)
-  require 'openstudio'
-  
   if project_dir_names.nil?
     project_dir_names = get_all_project_dir_names()
   end
@@ -282,15 +286,11 @@ def integrity_check(project_dir_names=nil)
   # Setup
   lookup_file = File.join(resources_dir, 'options_lookup.tsv')
   check_file_exists(lookup_file, nil)
-  model = OpenStudio::Model::Model.new
-  measure_instances = {}
   
   project_dir_names.each do |project_dir_name|
     # Perform various checks on each probability distribution file
     parameters_processed = []
-    option_names = {}
     tsvfiles = {}
-    measures = {}
     last_size = -1
   
     parameter_names = []
@@ -351,75 +351,8 @@ def integrity_check(project_dir_names=nil)
           _matched_option_name, _matched_row_num = tsvfile.get_option_name_from_sample_number(1.0, nil)
         end
           
-        # Integrity checks for option_lookup.tsv
-        tsvfiles[parameter_name].option_cols.keys.each do |option_name|
-          # Check for (parameter, option) names
-          # Get measure name and arguments associated with the option
-          get_measure_args_from_option_name(lookup_file, option_name, parameter_name, nil).each do |measure_subdir, args_hash|
-            if not measures.has_key?(measure_subdir)
-              measures[measure_subdir] = {}
-            end
-            if not measures[measure_subdir].has_key?(parameter_name)
-              measures[measure_subdir][parameter_name] = {}
-            end
-                
-            # Skip options with duplicate argument values as a previous option; speeds up processing.
-            duplicate_args = false
-            measures[measure_subdir][parameter_name].keys.each do |opt_name|
-              next if measures[measure_subdir][parameter_name][opt_name].to_s != args_hash.to_s
-              duplicate_args = true
-              break
-            end
-            next if duplicate_args
-                
-            # Store arguments
-            measures[measure_subdir][parameter_name][option_name] = args_hash
-                
-          end
-        end
       end
     end # parameter_name
-    
-    # Additional integrity checks for option_lookup.tsv
-    max_checks = 1000
-    measures.keys.each do |measure_subdir|
-      puts "Checking for issues with #{measure_subdir} measure..."
-      # Check that measures exist
-      if not measure_instances.keys.include?(measure_subdir)
-        measurerb_path = File.absolute_path(File.join(File.dirname(lookup_file), 'measures', measure_subdir, 'measure.rb'))
-        check_file_exists(measurerb_path, nil)
-        measure_instances[measure_subdir] = get_measure_instance(measurerb_path)
-      end
-      # Validate measure arguments for each combination of options
-      param_names = measures[measure_subdir].keys()
-      options_array = []
-      param_names.each do |parameter_name|
-        options_array << measures[measure_subdir][parameter_name].keys()
-      end
-      option_combinations = options_array.first.product(*options_array[1..-1])
-      all_measure_args = []
-      max_checks_reached = false
-      option_combinations.each_with_index do |option_combination, combo_num|
-        if combo_num > max_checks
-          max_checks_reached = true
-          break
-        end
-        measure_args = {}
-        option_combination.each_with_index do |option_name, idx|
-            measures[measure_subdir][param_names[idx]][option_name].each do |k,v|
-                measure_args[k] = v
-            end
-        end
-        next if all_measure_args.include?(measure_args)
-        all_measure_args << measure_args
-      end
-      all_measure_args.shuffle.each_with_index do |measure_args, idx|
-        validate_measure_args(measure_instances[measure_subdir].arguments(model), measure_args, lookup_file, measure_subdir, nil)
-      end
-      if max_checks_reached
-        puts "Max number of checks (#{max_checks}) reached. Continuing..."
-      end
-    end
     
     # Test sampling
     r = RunSampling.new
@@ -429,6 +362,98 @@ def integrity_check(project_dir_names=nil)
     end
     
   end # project_dir_name
+  
+end
+
+def integrity_check_options_lookup_tsv()
+
+  require 'openstudio'
+
+  # Load helper file and sampling file
+  resources_dir = File.join(File.dirname(__FILE__), 'resources')
+  require File.join(resources_dir, 'buildstock')
+    
+  # Setup
+  lookup_file = File.join(resources_dir, 'options_lookup.tsv')
+  check_file_exists(lookup_file, nil)
+
+  # Integrity checks for option_lookup.tsv
+  measures = {}
+  model = OpenStudio::Model::Model.new
+  
+  # Gather all options/arguments
+  parameter_names = get_parameters_ordered_from_options_lookup_tsv(resources_dir)
+  parameter_names.each do |parameter_name|
+    option_names = get_options_for_parameter_from_options_lookup_tsv(resources_dir, parameter_name)
+    options_measure_args = get_measure_args_from_option_names(lookup_file, option_names, parameter_name, nil)
+    option_names.each do |option_name|
+      # Check for (parameter, option) names
+      # Get measure name and arguments associated with the option
+      options_measure_args[option_name].each do |measure_subdir, args_hash|
+        if not measures.has_key?(measure_subdir)
+          measures[measure_subdir] = {}
+        end
+        if not measures[measure_subdir].has_key?(parameter_name)
+          measures[measure_subdir][parameter_name] = {}
+        end
+            
+        # Skip options with duplicate argument values as a previous option; speeds up processing.
+        duplicate_args = false
+        measures[measure_subdir][parameter_name].keys.each do |opt_name|
+          next if measures[measure_subdir][parameter_name][opt_name].to_s != args_hash.to_s
+          duplicate_args = true
+          break
+        end
+        next if duplicate_args
+            
+        # Store arguments
+        measures[measure_subdir][parameter_name][option_name] = args_hash
+            
+      end
+    end
+  end
+
+  max_checks = 1000
+  measures.keys.each do |measure_subdir|
+    puts "Checking for issues with #{measure_subdir} measure..."
+
+    measurerb_path = File.absolute_path(File.join(File.dirname(lookup_file), 'measures', measure_subdir, 'measure.rb'))
+    check_file_exists(measurerb_path, nil)
+    measure_instance = get_measure_instance(measurerb_path)
+
+    # Validate measure arguments for each combination of options
+    param_names = measures[measure_subdir].keys()
+    options_array = []
+    param_names.each do |parameter_name|
+      options_array << measures[measure_subdir][parameter_name].keys()
+    end
+    option_combinations = options_array.first.product(*options_array[1..-1])
+    
+    all_measure_args = []
+    max_checks_reached = false
+    option_combinations.each_with_index do |option_combination, combo_num|
+      if combo_num > max_checks
+        max_checks_reached = true
+        break
+      end
+      measure_args = {}
+      option_combination.each_with_index do |option_name, idx|
+          measures[measure_subdir][param_names[idx]][option_name].each do |k,v|
+              measure_args[k] = v
+          end
+      end
+      next if all_measure_args.include?(measure_args)
+      all_measure_args << measure_args
+    end
+    
+    all_measure_args.shuffle.each_with_index do |measure_args, idx|
+      validate_measure_args(measure_instance.arguments(model), measure_args, lookup_file, measure_subdir, nil)
+    end
+    
+    if max_checks_reached
+      puts "Max number of checks (#{max_checks}) reached. Continuing..."
+    end
+  end
   
 end
 
