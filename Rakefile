@@ -273,6 +273,12 @@ task :integrity_check_resstock_efs do
     integrity_check_options_lookup_tsv()
 end # rake task
 
+desc 'Perform integrity check on inputs for project_resstock_multifamily'
+task :integrity_check_resstock_multifamily do
+    integrity_check(['project_resstock_multifamily'])
+    integrity_check_options_lookup_tsv()
+end # rake task
+
 def integrity_check(project_dir_names=nil)
   if project_dir_names.nil?
     project_dir_names = get_all_project_dir_names()
