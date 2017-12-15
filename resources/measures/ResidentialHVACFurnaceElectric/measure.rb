@@ -80,7 +80,7 @@ class ProcessFurnaceElectric < OpenStudio::Measure::ModelMeasure
     furnaceInstalledAFUE = runner.getDoubleArgumentValue("afue",user_arguments)
     furnaceOutputCapacity = runner.getStringArgumentValue("capacity",user_arguments)
     if not furnaceOutputCapacity == Constants.SizingAuto
-      furnaceOutputCapacity = OpenStudio::convert(furnaceOutputCapacity.to_f,"kBtu/h","Btu/h").get
+      furnaceOutputCapacity = UnitConversions.convert(furnaceOutputCapacity.to_f,"kBtu/hr","Btu/hr")
     end
     furnaceInstalledSupplyFanPower = runner.getDoubleArgumentValue("fan_power_installed",user_arguments)
     dse = runner.getStringArgumentValue("dse",user_arguments)
@@ -92,7 +92,7 @@ class ProcessFurnaceElectric < OpenStudio::Measure::ModelMeasure
     
     # _processAirSystem
     
-    static = UnitConversion.inH2O2Pa(0.5) # Pascal
+    static = UnitConversions.convert(0.5,"inH2O","Pa") # Pascal
 
     hir = HVAC.get_furnace_hir(furnaceInstalledAFUE)
 
@@ -129,7 +129,7 @@ class ProcessFurnaceElectric < OpenStudio::Measure::ModelMeasure
         htg_coil.setName(obj_name + " heating coil")
         htg_coil.setEfficiency(dse / hir)
         if furnaceOutputCapacity != Constants.SizingAuto
-          htg_coil.setNominalCapacity(OpenStudio::convert(furnaceOutputCapacity,"Btu/h","W").get) # Used by HVACSizing measure
+          htg_coil.setNominalCapacity(UnitConversions.convert(furnaceOutputCapacity,"Btu/hr","W")) # Used by HVACSizing measure
         end
         
         # _processSystemFan
@@ -140,7 +140,7 @@ class ProcessFurnaceElectric < OpenStudio::Measure::ModelMeasure
         fan = OpenStudio::Model::FanOnOff.new(model, model.alwaysOnDiscreteSchedule)
         fan.setName(obj_name + " supply fan")
         fan.setEndUseSubcategory(Constants.EndUseHVACFan)
-        fan.setFanEfficiency(dse * OpenStudio::convert(static / furnaceInstalledSupplyFanPower,"cfm","m^3/s").get) # Overall Efficiency of the Supply Fan, Motor and Drive
+        fan.setFanEfficiency(dse * UnitConversions.convert(static / furnaceInstalledSupplyFanPower,"cfm","m^3/s")) # Overall Efficiency of the Supply Fan, Motor and Drive
         fan.setPressureRise(static)
         fan.setMotorEfficiency(dse * 1.0)
         fan.setMotorInAirstreamFraction(1.0)
@@ -163,7 +163,7 @@ class ProcessFurnaceElectric < OpenStudio::Measure::ModelMeasure
         air_loop_unitary.setSupplyFan(fan)
         air_loop_unitary.setFanPlacement("BlowThrough")
         air_loop_unitary.setSupplyAirFanOperatingModeSchedule(model.alwaysOffDiscreteSchedule)
-        air_loop_unitary.setMaximumSupplyAirTemperature(OpenStudio::convert(120.0,"F","C").get)      
+        air_loop_unitary.setMaximumSupplyAirTemperature(UnitConversions.convert(120.0,"F","C"))      
         air_loop_unitary.setSupplyAirFlowRateWhenNoCoolingorHeatingisRequired(0)
 
         air_loop = OpenStudio::Model::AirLoopHVAC.new(model)

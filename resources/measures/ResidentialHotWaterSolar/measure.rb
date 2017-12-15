@@ -6,6 +6,7 @@ require "#{File.dirname(__FILE__)}/resources/weather"
 require "#{File.dirname(__FILE__)}/resources/hvac"
 require "#{File.dirname(__FILE__)}/resources/geometry"
 require "#{File.dirname(__FILE__)}/resources/waterheater"
+require "#{File.dirname(__FILE__)}/resources/unit_conversions"
 
 # start the measure
 class ResidentialHotWaterSolar < OpenStudio::Measure::ModelMeasure
@@ -196,7 +197,7 @@ class ResidentialHotWaterSolar < OpenStudio::Measure::ModelMeasure
     end
         
     highest_roof_pitch = Geometry.get_roof_pitch(model.getSurfaces)
-    roof_tilt = OpenStudio::convert(Math.atan(highest_roof_pitch),"rad","deg").get # tan(x) = opp/adj = highest_roof_pitch  
+    roof_tilt = UnitConversions.convert(Math.atan(highest_roof_pitch),"rad","deg") # tan(x) = opp/adj = highest_roof_pitch  
     
     if azimuth_type == Constants.CoordRelative
       shw_azimuth.abs = Geometry.get_abs_azimuth(azimuth_type, azimuth, 0, 0)
@@ -213,8 +214,8 @@ class ResidentialHotWaterSolar < OpenStudio::Measure::ModelMeasure
 
     shw_system.collector_area = calc_shw_collector_area(collector_area, units.size)
     shw_system.pump_power = calc_shw_pump_power(collector_area, pump_power)
-    shw_system.storage_vol = OpenStudio.convert(calc_shw_storage_volume(shw_system.collector_area, storage_vol),"gal","ft^3").get
-    shw_system.test_flow = 55.0 / UnitConversion.lbm_min2kg_hr(1.0) / Liquid.H2O_l.rho * OpenStudio.convert(1.0,"ft^2","m^2").get # cfm/ft^2
+    shw_system.storage_vol = UnitConversions.convert(calc_shw_storage_volume(shw_system.collector_area, storage_vol),"gal","ft^3")
+    shw_system.test_flow = 55.0 / UnitConversions.convert(1.0,"lbm/min","kg/hr") / Liquid.H2O_l.rho * UnitConversions.convert(1.0,"ft^2","m^2") # cfm/ft^2
     shw_system.coll_flow = shw_system.test_flow * shw_system.collector_area # cfm
     shw_system.storage_diam = (4.0 * shw_system.storage_vol / 3 / Math::PI) ** (1.0 / 3.0) # ft
     shw_system.storage_ht = 3.0 * shw_system.storage_diam # ft
@@ -244,6 +245,9 @@ class ResidentialHotWaterSolar < OpenStudio::Measure::ModelMeasure
               component.to_SolarCollectorFlatPlateWater.get.surface.get.to_ShadingSurface.get.shadingSurfaceGroup.get.remove
             end
             component.remove
+          end
+          plant_loop.availabilityManagers.each do |am|
+            am.remove
           end
           plant_loop.remove
         end    
@@ -298,7 +302,7 @@ class ResidentialHotWaterSolar < OpenStudio::Measure::ModelMeasure
         sizing_plant = plant_loop.sizingPlant
         sizing_plant.setLoopType('Heating')
         sizing_plant.setDesignLoopExitTemperature(dhw_loop.sizingPlant.designLoopExitTemperature)
-        sizing_plant.setLoopDesignTemperatureDifference(OpenStudio.convert(10.0,"R","K").get)
+        sizing_plant.setLoopDesignTemperatureDifference(UnitConversions.convert(10.0,"R","K"))
         
         setpoint_manager = OpenStudio::Model::SetpointManagerScheduled.new(model, dhw_setpoint_manager.schedule)
         setpoint_manager.setName(obj_name + " setpoint mgr")
@@ -311,17 +315,17 @@ class ResidentialHotWaterSolar < OpenStudio::Measure::ModelMeasure
         pump.setMotorEfficiency(0.3)
         pump.setFractionofMotorInefficienciestoFluidStream(0.2)
         pump.setPumpControlType('Intermittent')
-        pump.setRatedFlowRate(OpenStudio.convert(shw_system.coll_flow,"cfm","m^3/s").get) #
+        pump.setRatedFlowRate(UnitConversions.convert(shw_system.coll_flow,"cfm","m^3/s")) #
         pump.addToNode(plant_loop.supplyInletNode)
 
-        panel_length = OpenStudio.convert(shw_system.collector_area,"ft^2","m^2").get ** 0.5
+        panel_length = UnitConversions.convert(shw_system.collector_area,"ft^2","m^2") ** 0.5
         run = Math::cos(shw_tilt.abs * Math::PI / 180) * panel_length
         
         vertices = OpenStudio::Point3dVector.new
-        vertices << OpenStudio::Point3d.new(OpenStudio.convert(100.0,"ft","m").get, OpenStudio.convert(100.0,"ft","m").get, 0)
-        vertices << OpenStudio::Point3d.new(OpenStudio.convert(100.0,"ft","m").get + panel_length, OpenStudio.convert(100.0,"ft","m").get, 0)
-        vertices << OpenStudio::Point3d.new(OpenStudio.convert(100.0,"ft","m").get + panel_length, OpenStudio.convert(100.0,"ft","m").get + run, (panel_length ** 2 - run ** 2) ** 0.5)
-        vertices << OpenStudio::Point3d.new(OpenStudio.convert(100.0,"ft","m").get, OpenStudio::convert(100.0,"ft","m").get + run, (panel_length ** 2 - run ** 2) ** 0.5)
+        vertices << OpenStudio::Point3d.new(UnitConversions.convert(100.0,"ft","m"), UnitConversions.convert(100.0,"ft","m"), 0)
+        vertices << OpenStudio::Point3d.new(UnitConversions.convert(100.0,"ft","m") + panel_length, UnitConversions.convert(100.0,"ft","m"), 0)
+        vertices << OpenStudio::Point3d.new(UnitConversions.convert(100.0,"ft","m") + panel_length, UnitConversions.convert(100.0,"ft","m") + run, (panel_length ** 2 - run ** 2) ** 0.5)
+        vertices << OpenStudio::Point3d.new(UnitConversions.convert(100.0,"ft","m"), UnitConversions.convert(100.0,"ft","m") + run, (panel_length ** 2 - run ** 2) ** 0.5)
         
         m = OpenStudio::Matrix.new(4,4,0)
         m[0,0] = Math::cos(-shw_azimuth.abs * Math::PI / 180)
@@ -343,15 +347,15 @@ class ResidentialHotWaterSolar < OpenStudio::Measure::ModelMeasure
         collector_plate = OpenStudio::Model::SolarCollectorFlatPlateWater.new(model)
         collector_plate.setName(obj_name + " coll plate")
         collector_plate.setSurface(shading_surface)
-        collector_plate.setMaximumFlowRate(OpenStudio.convert(shw_system.coll_flow,"cfm","m^3/s").get)
+        collector_plate.setMaximumFlowRate(UnitConversions.convert(shw_system.coll_flow,"cfm","m^3/s"))
         collector_performance = collector_plate.solarCollectorPerformance
         collector_performance.setName(obj_name + " coll perf")
-        collector_performance.setGrossArea(OpenStudio.convert(shw_system.collector_area,"ft^2","m^2").get)
+        collector_performance.setGrossArea(UnitConversions.convert(shw_system.collector_area,"ft^2","m^2"))
         collector_performance.setTestFluid('Water')
-        collector_performance.setTestFlowRate(OpenStudio.convert(shw_system.coll_flow,"cfm","m^3/s").get)
+        collector_performance.setTestFlowRate(UnitConversions.convert(shw_system.coll_flow,"cfm","m^3/s"))
         collector_performance.setTestCorrelationType('Inlet')
         collector_performance.setCoefficient1ofEfficiencyEquation(frta)
-        collector_performance.setCoefficient2ofEfficiencyEquation(-OpenStudio.convert(frul,"Btu/hr*ft^2*R","W/m^2*K").get)
+        collector_performance.setCoefficient2ofEfficiencyEquation(-UnitConversions.convert(frul,"Btu/(hr*ft^2*F)","W/(m^2*K)"))
         collector_performance.setCoefficient2ofIncidentAngleModifier(-iam)
         
         plant_loop.addSupplyBranchForComponent(collector_plate)
@@ -373,10 +377,10 @@ class ResidentialHotWaterSolar < OpenStudio::Measure::ModelMeasure
     
         storage_tank = OpenStudio::Model::WaterHeaterStratified.new(model)
         storage_tank.setName(obj_name + " storage tank")
-        storage_tank.setTankVolume(OpenStudio.convert(shw_system.storage_vol,"ft^3","m^3").get)
-        storage_tank.setTankHeight(OpenStudio.convert(shw_system.storage_ht,"in","m").get)
+        storage_tank.setTankVolume(UnitConversions.convert(shw_system.storage_vol,"ft^3","m^3"))
+        storage_tank.setTankHeight(UnitConversions.convert(shw_system.storage_ht,"in","m"))
         storage_tank.setTankShape('VerticalCylinder')
-        storage_tank.setTankPerimeter(Math::PI * OpenStudio.convert(shw_system.storage_diam,"in","m").get)
+        storage_tank.setTankPerimeter(Math::PI * UnitConversions.convert(shw_system.storage_diam,"in","m"))
         storage_tank.setMaximumTemperatureLimit(99)
         storage_tank.heater1SetpointTemperatureSchedule.remove
         storage_tank.setHeater1SetpointTemperatureSchedule(setpoint_schedule_one)
@@ -391,14 +395,14 @@ class ResidentialHotWaterSolar < OpenStudio::Measure::ModelMeasure
         storage_tank.ambientTemperatureSchedule.get.remove
         storage_tank.setAmbientTemperatureThermalZone(control_zone)
         storage_tank.setAmbientTemperatureIndicator('ThermalZone')
-        storage_tank.setUniformSkinLossCoefficientperUnitAreatoAmbientTemperature(OpenStudio.convert(shw_system.storage_Uvalue,"Btu/hr*ft^2*R","W/m^2*K").get)
+        storage_tank.setUniformSkinLossCoefficientperUnitAreatoAmbientTemperature(UnitConversions.convert(shw_system.storage_Uvalue,"Btu/(hr*ft^2*F)","W/(m^2*K)"))
         storage_tank.setSkinLossFractiontoZone(1)
         storage_tank.setOffCycleFlueLossFractiontoZone(1)
         storage_tank.setUseSideEffectiveness(1)
         storage_tank.setUseSideInletHeight(0)
-        storage_tank.setUseSideOutletHeight(OpenStudio.convert(shw_system.storage_ht,"in","m").get)
+        storage_tank.setUseSideOutletHeight(UnitConversions.convert(shw_system.storage_ht,"in","m"))
         storage_tank.setSourceSideEffectiveness(heat_ex_eff)
-        storage_tank.setSourceSideInletHeight(OpenStudio.convert(shw_system.storage_ht,"in","m").get / 3.0)
+        storage_tank.setSourceSideInletHeight(UnitConversions.convert(shw_system.storage_ht,"in","m") / 3.0)
         storage_tank.setSourceSideOutletHeight(0)
         storage_tank.setInletMode('Fixed')
         storage_tank.setIndirectWaterHeatingRecoveryTime(1.5)
@@ -406,7 +410,7 @@ class ResidentialHotWaterSolar < OpenStudio::Measure::ModelMeasure
         storage_tank.setAdditionalDestratificationConductivity(0)
         storage_tank.setNode1AdditionalLossCoefficient(0)
         storage_tank.setNode6AdditionalLossCoefficient(0)
-        storage_tank.setSourceSideDesignFlowRate(OpenStudio.convert(shw_system.coll_flow,"cfm","m^3/s").get)
+        storage_tank.setSourceSideDesignFlowRate(UnitConversions.convert(shw_system.coll_flow,"cfm","m^3/s"))
         
         plant_loop.addDemandBranchForComponent(storage_tank)
         runner.registerInfo("Added '#{storage_tank.name}' to demand branch of '#{plant_loop.name}'.")

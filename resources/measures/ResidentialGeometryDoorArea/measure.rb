@@ -3,6 +3,7 @@
 
 require "#{File.dirname(__FILE__)}/resources/constants"
 require "#{File.dirname(__FILE__)}/resources/geometry"
+require "#{File.dirname(__FILE__)}/resources/unit_conversions"
 
 # start the measure
 class CreateResidentialDoorArea < OpenStudio::Measure::ModelMeasure
@@ -163,7 +164,7 @@ class CreateResidentialDoorArea < OpenStudio::Measure::ModelMeasure
       door_sub_surface = nil
       min_story_avail_walls.each do |min_story_avail_wall|
       
-        wall_gross_area = OpenStudio.convert(min_story_avail_wall.grossArea, "m^2", "ft^2").get
+        wall_gross_area = UnitConversions.convert(min_story_avail_wall.grossArea, "m^2", "ft^2")
         
         # Try to place door on any surface with enough area
         next if door_area >= wall_gross_area
@@ -214,9 +215,9 @@ class CreateResidentialDoorArea < OpenStudio::Measure::ModelMeasure
         bottomz = Geometry.getSurfaceZValues([min_story_avail_wall]).min
         
         [upperleft, lowerleft, lowerright, upperright ].each do |coord|
-            newx = OpenStudio.convert(leftx + multx * coord[0], "ft", "m").get
-            newy = OpenStudio.convert(lefty + multy * coord[0], "ft", "m").get
-            newz = OpenStudio.convert(bottomz + coord[1], "ft", "m").get
+            newx = UnitConversions.convert(leftx + multx * coord[0], "ft", "m")
+            newy = UnitConversions.convert(lefty + multy * coord[0], "ft", "m")
+            newz = UnitConversions.convert(bottomz + coord[1], "ft", "m")
             door_vertex = OpenStudio::Point3d.new(newx, newy, newz)
             door_polygon << door_vertex
         end

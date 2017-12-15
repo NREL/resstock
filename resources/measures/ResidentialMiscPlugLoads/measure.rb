@@ -10,6 +10,7 @@
 require "#{File.dirname(__FILE__)}/resources/constants"
 require "#{File.dirname(__FILE__)}/resources/schedules"
 require "#{File.dirname(__FILE__)}/resources/geometry"
+require "#{File.dirname(__FILE__)}/resources/unit_conversions"
 
 #start the measure
 class ResidentialMiscellaneousElectricLoads < OpenStudio::Measure::ModelMeasure
@@ -207,7 +208,7 @@ class ResidentialMiscellaneousElectricLoads < OpenStudio::Measure::ModelMeasure
                     end
                 end
             
-                space_mel_ann = mel_ann * OpenStudio.convert(space.floorArea, "m^2", "ft^2").get/ffa
+                space_mel_ann = mel_ann * UnitConversions.convert(space.floorArea, "m^2", "ft^2")/ffa
                 space_design_level = sch.calcDesignLevelFromDailykWh(space_mel_ann/365.0)
 
                 #Add electric equipment for the mel

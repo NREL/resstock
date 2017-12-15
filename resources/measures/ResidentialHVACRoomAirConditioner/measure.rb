@@ -5,6 +5,7 @@ require "#{File.dirname(__FILE__)}/resources/util"
 require "#{File.dirname(__FILE__)}/resources/constants"
 require "#{File.dirname(__FILE__)}/resources/geometry"
 require "#{File.dirname(__FILE__)}/resources/hvac"
+require "#{File.dirname(__FILE__)}/resources/unit_conversions"
 
 # start the measure
 class ProcessRoomAirConditioner < OpenStudio::Measure::ModelMeasure
@@ -75,7 +76,7 @@ class ProcessRoomAirConditioner < OpenStudio::Measure::ModelMeasure
     coolingCFMs = [runner.getDoubleArgumentValue("airflow_rate",user_arguments)]
     acOutputCapacity = runner.getStringArgumentValue("capacity",user_arguments)
     unless acOutputCapacity == Constants.SizingAuto
-      acOutputCapacity = OpenStudio::convert(acOutputCapacity.to_f,"ton","Btu/h").get
+      acOutputCapacity = UnitConversions.convert(acOutputCapacity.to_f,"ton","Btu/hr")
     end     
     
     # Performance curves
@@ -121,10 +122,10 @@ class ProcessRoomAirConditioner < OpenStudio::Measure::ModelMeasure
         clg_coil = OpenStudio::Model::CoilCoolingDXSingleSpeed.new(model, model.alwaysOnDiscreteSchedule, roomac_cap_ft_curve, roomac_cap_fff_curve, roomac_eir_ft_curve, roomcac_eir_fff_curve, roomac_plf_fplr_curve)
         clg_coil.setName(obj_name + " cooling coil")
         if acOutputCapacity != Constants.SizingAuto
-          clg_coil.setRatedTotalCoolingCapacity(OpenStudio::convert(acOutputCapacity,"Btu/h","W").get) # Used by HVACSizing measure
+          clg_coil.setRatedTotalCoolingCapacity(UnitConversions.convert(acOutputCapacity,"Btu/hr","W")) # Used by HVACSizing measure
         end
         clg_coil.setRatedSensibleHeatRatio(sHR_Rated)
-        clg_coil.setRatedCOP(OpenStudio::OptionalDouble.new(OpenStudio::convert(roomaceer, "Btu/h", "W").get))
+        clg_coil.setRatedCOP(OpenStudio::OptionalDouble.new(UnitConversions.convert(roomaceer, "Btu/hr", "W")))
         clg_coil.setRatedEvaporatorFanPowerPerVolumeFlowRate(OpenStudio::OptionalDouble.new(773.3))
         clg_coil.setEvaporativeCondenserEffectiveness(OpenStudio::OptionalDouble.new(0.9))
         clg_coil.setMaximumOutdoorDryBulbTemperatureForCrankcaseHeaterOperation(OpenStudio::OptionalDouble.new(10))

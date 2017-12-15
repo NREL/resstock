@@ -11,6 +11,7 @@ require "#{File.dirname(__FILE__)}/resources/util"
 require "#{File.dirname(__FILE__)}/resources/constants"
 require "#{File.dirname(__FILE__)}/resources/geometry"
 require "#{File.dirname(__FILE__)}/resources/hvac"
+require "#{File.dirname(__FILE__)}/resources/unit_conversions"
 
 #start the measure
 class ProcessElectricBaseboard < OpenStudio::Measure::ModelMeasure
@@ -64,7 +65,7 @@ class ProcessElectricBaseboard < OpenStudio::Measure::ModelMeasure
     baseboardEfficiency = runner.getDoubleArgumentValue("efficiency",user_arguments)
     baseboardOutputCapacity = runner.getStringArgumentValue("capacity",user_arguments)
     unless baseboardOutputCapacity == Constants.SizingAuto
-      baseboardOutputCapacity = OpenStudio::convert(baseboardOutputCapacity.to_f,"kBtu/h","Btu/h").get
+      baseboardOutputCapacity = UnitConversions.convert(baseboardOutputCapacity.to_f,"kBtu/hr","Btu/hr")
     end
    
     # Remove boiler hot water loop if it exists
@@ -91,7 +92,7 @@ class ProcessElectricBaseboard < OpenStudio::Measure::ModelMeasure
         htg_coil = OpenStudio::Model::ZoneHVACBaseboardConvectiveElectric.new(model)
         htg_coil.setName(obj_name + " #{control_zone.name} convective electric")
         if baseboardOutputCapacity != Constants.SizingAuto
-            htg_coil.setNominalCapacity(OpenStudio::convert(baseboardOutputCapacity,"Btu/h","W").get) # Used by HVACSizing measure
+            htg_coil.setNominalCapacity(UnitConversions.convert(baseboardOutputCapacity,"Btu/hr","W")) # Used by HVACSizing measure
         end
         htg_coil.setEfficiency(baseboardEfficiency)
 
@@ -111,7 +112,7 @@ class ProcessElectricBaseboard < OpenStudio::Measure::ModelMeasure
           htg_coil = OpenStudio::Model::ZoneHVACBaseboardConvectiveElectric.new(model)
           htg_coil.setName(obj_name + " #{slave_zone.name} convective electric")
           if baseboardOutputCapacity != Constants.SizingAuto
-              htg_coil.setNominalCapacity(OpenStudio::convert(baseboardOutputCapacity,"Btu/h","W").get) # Used by HVACSizing measure
+              htg_coil.setNominalCapacity(UnitConversions.convert(baseboardOutputCapacity,"Btu/hr","W")) # Used by HVACSizing measure
           end
           htg_coil.setEfficiency(baseboardEfficiency)
 

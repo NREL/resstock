@@ -1,15 +1,16 @@
 require "#{File.dirname(__FILE__)}/constants"
 require "#{File.dirname(__FILE__)}/geometry"
 require "#{File.dirname(__FILE__)}/util"
+require "#{File.dirname(__FILE__)}/unit_conversions"
 
 class HVAC
 
     def self.calc_EIR_from_COP(cop, supplyFanPower_Rated)
-        return OpenStudio::convert((OpenStudio::convert(1,"Btu","W*h").get + supplyFanPower_Rated * 0.03333) / cop - supplyFanPower_Rated * 0.03333,"W*h","Btu").get
+        return UnitConversions.convert((UnitConversions.convert(1,"Btu","Wh") + supplyFanPower_Rated * 0.03333) / cop - supplyFanPower_Rated * 0.03333,"Wh","Btu")
     end
   
     def self.calc_EIR_from_EER(eer, supplyFanPower_Rated)
-        return OpenStudio::convert((1 - OpenStudio::convert(supplyFanPower_Rated * 0.03333,"W*h","Btu").get) / eer - supplyFanPower_Rated * 0.03333,"W*h","Btu").get
+        return UnitConversions.convert((1 - UnitConversions.convert(supplyFanPower_Rated * 0.03333,"Wh","Btu")) / eer - supplyFanPower_Rated * 0.03333,"Wh","Btu")
     end
     
     def self.calc_cfm_ton_rated(rated_airflow_rate, fanspeed_ratios, capacity_ratios)
@@ -199,7 +200,7 @@ class HVAC
                                                                              cool_plf_fplr_curve, 
                                                                              const_biquadratic)
         if outputCapacity != Constants.SizingAuto and outputCapacity != Constants.SizingAutoMaxLoad
-          stage_data.setGrossRatedTotalCoolingCapacity(OpenStudio::convert(outputCapacity,"Btu/h","W").get) # Used by HVACSizing measure
+          stage_data.setGrossRatedTotalCoolingCapacity(UnitConversions.convert(outputCapacity,"Btu/hr","W")) # Used by HVACSizing measure
         end
         stage_data.setGrossRatedSensibleHeatRatio(shr_Rated_Gross[speed])
         stage_data.setGrossRatedCoolingCOP(distributionSystemEfficiency / coolingEIR[speed])
@@ -235,7 +236,7 @@ class HVAC
                                                                              hp_heat_plf_fplr_curve, 
                                                                              const_biquadratic)
         if outputCapacity != Constants.SizingAuto and outputCapacity != Constants.SizingAutoMaxLoad
-          stage_data.setGrossRatedHeatingCapacity(OpenStudio::convert(outputCapacity,"Btu/h","W").get) # Used by HVACSizing measure
+          stage_data.setGrossRatedHeatingCapacity(UnitConversions.convert(outputCapacity,"Btu/hr","W")) # Used by HVACSizing measure
         end   
         stage_data.setGrossRatedHeatingCOP(distributionSystemEfficiency / heatingEIR[speed])
         stage_data.setRatedWasteHeatFractionofPowerInput(0.2)
@@ -270,8 +271,8 @@ class HVAC
 
           qtot_net_nominal = 12000.0
           qsens_net_nominal = qtot_net_nominal * shr_Rated_Net[speed]
-          qtot_gross_nominal = qtot_net_nominal + OpenStudio::convert(cFM_TON_Rated[speed] * supplyFanPower_Rated,"Wh","Btu").get
-          qsens_gross_nominal = qsens_net_nominal + OpenStudio::convert(cFM_TON_Rated[speed] * supplyFanPower_Rated,"Wh","Btu").get
+          qtot_gross_nominal = qtot_net_nominal + UnitConversions.convert(cFM_TON_Rated[speed] * supplyFanPower_Rated,"Wh","Btu")
+          qsens_gross_nominal = qsens_net_nominal + UnitConversions.convert(cFM_TON_Rated[speed] * supplyFanPower_Rated,"Wh","Btu")
           sHR_Rated_Gross << (qsens_gross_nominal / qtot_gross_nominal)
 
           # Make sure SHR's are in valid range based on E+ model limits.
@@ -339,7 +340,7 @@ class HVAC
     end
   
     def self.calculate_fan_efficiency(static, fan_power)
-        return OpenStudio::convert(static / fan_power,"cfm","m^3/s").get # Overall Efficiency of the Supply Fan, Motor and Drive
+        return UnitConversions.convert(static / fan_power,"cfm","m^3/s") # Overall Efficiency of the Supply Fan, Motor and Drive
     end
 
     def self.get_furnace_hir(furnaceInstalledAFUE)
@@ -443,9 +444,38 @@ class HVAC
         heating_equipment << system
       end
       return heating_equipment
-    end  
+    end
+    
+    def self.get_coils_from_hvac_equip(hvac_equip)
+      # Returns the clg coil, htg coil, and supp htg coil as applicable
+      clg_coil = nil
+      htg_coil = nil
+      supp_htg_coil = nil
+      if hvac_equip.is_a? OpenStudio::Model::AirLoopHVACUnitarySystem
+        htg_coil = HVAC.get_coil_from_hvac_component(hvac_equip.heatingCoil)
+        clg_coil = HVAC.get_coil_from_hvac_component(hvac_equip.coolingCoil)
+        supp_htg_coil = HVAC.get_coil_from_hvac_component(hvac_equip.supplementalHeatingCoil)
+      elsif hvac_equip.to_ZoneHVACTerminalUnitVariableRefrigerantFlow.is_initialized
+        htg_coil = HVAC.get_coil_from_hvac_component(hvac_equip.heatingCoil)
+        clg_coil = HVAC.get_coil_from_hvac_component(hvac_equip.coolingCoil)
+      elsif hvac_equip.is_a? OpenStudio::Model::ZoneHVACBaseboardConvectiveWater
+        htg_coil = HVAC.get_coil_from_hvac_component(hvac_equip.heatingCoil)
+      elsif hvac_equip.is_a? OpenStudio::Model::ZoneHVACPackagedTerminalAirConditioner
+        htg_coil = HVAC.get_coil_from_hvac_component(hvac_equip.heatingCoil)
+        clg_coil = HVAC.get_coil_from_hvac_component(hvac_equip.coolingCoil)
+      end
+      return clg_coil, htg_coil, supp_htg_coil
+    end
 
     def self.get_coil_from_hvac_component(hvac_component)
+      # Check for optional objects
+      if (hvac_component.is_a? OpenStudio::Model::OptionalHVACComponent or
+          hvac_component.is_a? OpenStudio::Model::OptionalCoilHeatingDXVariableRefrigerantFlow or
+          hvac_component.is_a? OpenStudio::Model::OptionalCoilCoolingDXVariableRefrigerantFlow)
+        return nil if not hvac_component.is_initialized
+        hvac_component = hvac_component.get
+      end
+    
       # Cooling coils
       if hvac_component.to_CoilCoolingDXSingleSpeed.is_initialized
         return hvac_component.to_CoilCoolingDXSingleSpeed.get

@@ -347,7 +347,7 @@ class ResidentialClothesWasher < OpenStudio::Measure::ModelMeasure
         # Use the EnergyGuide Label information (eq. 4 Eastment and Hendron, NREL/CP-550-39769, 2006).
         cw_gas_consumption_for_dhw_per_cycle_test = ((cw_rated_annual_energy * cw_energy_guide_elec_cost - 
                                                     cw_annual_cost) / 
-                                                    (OpenStudio.convert(cw_gas_dhw_heater_efficiency_test, "therm", "kWh").get * 
+                                                    (UnitConversions.convert(cw_gas_dhw_heater_efficiency_test, "therm", "kWh") * 
                                                     cw_energy_guide_elec_cost - cw_energy_guide_gas_cost) / 
                                                     cw_cycles_per_year_test) # therms/cycle
 
@@ -357,7 +357,7 @@ class ResidentialClothesWasher < OpenStudio::Measure::ModelMeasure
         # in this value.
         cw_elec_use_per_cycle_test = (cw_rated_annual_energy / cw_cycles_per_year_test -
                                      cw_gas_consumption_for_dhw_per_cycle_test * 
-                                     OpenStudio.convert(cw_gas_dhw_heater_efficiency_test, "therm", "kWh").get) # kWh/cycle 
+                                     UnitConversions.convert(cw_gas_dhw_heater_efficiency_test, "therm", "kWh")) # kWh/cycle 
         
         if cw_test_date < 2004
             # (see 10CFR Part 430, Subpt. B, App. J, Section 4.1.2, DOE 1999)
@@ -372,9 +372,9 @@ class ResidentialClothesWasher < OpenStudio::Measure::ModelMeasure
         # Eastment and Hendron, NREL/CP-550-39769, 2006).
         water_dens = Liquid.H2O_l.rho # lbm/ft^3
         water_sh = Liquid.H2O_l.cp  # Btu/lbm-R
-        cw_dhw_use_per_cycle_test = ((OpenStudio.convert(cw_gas_consumption_for_dhw_per_cycle_test, "therm", "kWh").get * 
+        cw_dhw_use_per_cycle_test = ((UnitConversions.convert(cw_gas_consumption_for_dhw_per_cycle_test, "therm", "kWh") * 
                                     cw_gas_dhw_heater_efficiency_test) / (cw_dhw_deltaT_test * 
-                                    water_dens * water_sh * OpenStudio.convert(1.0, "Btu", "kWh").get / UnitConversion.ft32gal(1.0)))
+                                    water_dens * water_sh * UnitConversions.convert(1.0, "Btu", "kWh") / UnitConversions.convert(1.0,"ft^3","gal")))
          
         if cw_fill_sensor and cw_test_date < 2004
             # For vertical axis washers that are sensor-filled, use a multiplying factor of 0.94 
@@ -480,8 +480,8 @@ class ResidentialClothesWasher < OpenStudio::Measure::ModelMeasure
                                                                 (cw_cold_water_inlet_temp_test - 
                                                                 monthly_main)) * 
                                                                 (water_dens * water_sh * 
-                                                                OpenStudio.convert(1.0, "Btu", "kWh").get / 
-                                                                UnitConversion.ft32gal(1.0))) # kWh/cycle
+                                                                UnitConversions.convert(1.0, "Btu", "kWh") / 
+                                                                UnitConversions.convert(1.0,"ft^3","gal"))) # kWh/cycle
 
                 # Compensation for the change in sensible heat due to a difference in hot water 
                 # amounts due to thermostatic control.
@@ -489,8 +489,8 @@ class ResidentialClothesWasher < OpenStudio::Measure::ModelMeasure
                                                                     (cw_cold_water_inlet_temp_test - 
                                                                     cw_hot_water_inlet_temperature_test) * 
                                                                     (water_dens * water_sh * 
-                                                                    OpenStudio.convert(1.0, "Btu", "kWh").get /
-                                                                    UnitConversion.ft32gal(1.0))) # kWh/cycle
+                                                                    UnitConversions.convert(1.0, "Btu", "kWh") /
+                                                                    UnitConversions.convert(1.0,"ft^3","gal"))) # kWh/cycle
 
                 # Compensation for the change in sensible heat due to a difference in operating 
                 # temperature vs. test temperature (applies only to cold cycle only).
@@ -502,8 +502,8 @@ class ResidentialClothesWasher < OpenStudio::Measure::ModelMeasure
                 cw_elec_use_per_cycle_adjustment_operating_temp = (actual_cw_total_per_cycle_water_use * 
                                                                   (cw_water_temp - mixed_cycle_temperature_test) * 
                                                                   (water_dens * water_sh * 
-                                                                  OpenStudio.convert(1.0, "Btu", "kWh").get / 
-                                                                  UnitConversion.ft32gal(1.0))) # kWh/cycle
+                                                                  UnitConversions.convert(1.0, "Btu", "kWh") / 
+                                                                  UnitConversions.convert(1.0,"ft^3","gal"))) # kWh/cycle
 
                 # Sum the three adjustments above
                 cw_elec_use_per_cycle_adjustment = cw_elec_use_per_cycle_adjustment_supply_temps + 

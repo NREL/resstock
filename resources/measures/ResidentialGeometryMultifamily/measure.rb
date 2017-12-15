@@ -3,6 +3,7 @@
 
 require "#{File.dirname(__FILE__)}/resources/constants"
 require "#{File.dirname(__FILE__)}/resources/geometry"
+require "#{File.dirname(__FILE__)}/resources/unit_conversions"
 
 # start the measure
 class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
@@ -169,17 +170,17 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
       return false
     end
     
-    unit_ffa = OpenStudio.convert(runner.getDoubleArgumentValue("unit_ffa",user_arguments),"ft^2","m^2").get
-    living_height = OpenStudio.convert(runner.getDoubleArgumentValue("living_height",user_arguments),"ft","m").get
+    unit_ffa = UnitConversions.convert(runner.getDoubleArgumentValue("unit_ffa",user_arguments),"ft^2","m^2")
+    living_height = UnitConversions.convert(runner.getDoubleArgumentValue("living_height",user_arguments),"ft","m")
     building_num_floors = runner.getIntegerArgumentValue("building_num_floors",user_arguments)
     num_units_per_floor = runner.getIntegerArgumentValue("num_units_per_floor",user_arguments)
     unit_aspect_ratio = runner.getDoubleArgumentValue("unit_aspect_ratio",user_arguments)
     corr_pos = runner.getStringArgumentValue("corr_pos",user_arguments)
-    corr_width = OpenStudio::convert(runner.getDoubleArgumentValue("corr_width",user_arguments),"ft","m").get    
-    inset_width = OpenStudio::convert(runner.getDoubleArgumentValue("inset_width",user_arguments),"ft","m").get
-    inset_depth = OpenStudio::convert(runner.getDoubleArgumentValue("inset_depth",user_arguments),"ft","m").get
+    corr_width = UnitConversions.convert(runner.getDoubleArgumentValue("corr_width",user_arguments),"ft","m")    
+    inset_width = UnitConversions.convert(runner.getDoubleArgumentValue("inset_width",user_arguments),"ft","m")
+    inset_depth = UnitConversions.convert(runner.getDoubleArgumentValue("inset_depth",user_arguments),"ft","m")
     inset_pos = runner.getStringArgumentValue("inset_pos",user_arguments)
-    balc_depth = OpenStudio::convert(runner.getDoubleArgumentValue("balc_depth",user_arguments),"ft","m").get
+    balc_depth = UnitConversions.convert(runner.getDoubleArgumentValue("balc_depth",user_arguments),"ft","m")
     foundation_type = runner.getStringArgumentValue("foundation_type",user_arguments)
     foundation_height = runner.getDoubleArgumentValue("foundation_height",user_arguments)
     use_zone_mult = runner.getBoolArgumentValue("use_zone_mult",user_arguments)
@@ -229,7 +230,7 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
     end
     
     # Convert to SI
-    foundation_height = OpenStudio.convert(foundation_height,"ft","m").get    
+    foundation_height = UnitConversions.convert(foundation_height,"ft","m")    
     
     num_units = num_units_per_floor * building_num_floors
     

@@ -5,6 +5,7 @@ require "#{File.dirname(__FILE__)}/resources/constants"
 require "#{File.dirname(__FILE__)}/resources/geometry"
 require "#{File.dirname(__FILE__)}/resources/schedules"
 require "#{File.dirname(__FILE__)}/resources/util"
+require "#{File.dirname(__FILE__)}/resources/unit_conversions"
 
 # start the measure
 class ProcessCeilingFan < OpenStudio::Measure::ModelMeasure
@@ -281,7 +282,7 @@ class ProcessCeilingFan < OpenStudio::Measure::ModelMeasure
       # off during the setup period).
       
       if ceiling_fan_num > 0
-        ceiling_fans_max_power = ceiling_fan_num * power * ceiling_fan_control_factor / OpenStudio::convert(1.0,"kW","W").get # kW
+        ceiling_fans_max_power = ceiling_fan_num * power * ceiling_fan_control_factor / UnitConversions.convert(1.0,"kW","W") # kW
       else
         ceiling_fans_max_power = 0
       end
@@ -304,7 +305,7 @@ class ProcessCeilingFan < OpenStudio::Measure::ModelMeasure
           coolingSetpoint = Array.new(24, Constants.NoCoolingSetpoint)
           rule.daySchedule.values.each_with_index do |value, hour|
             if value < coolingSetpoint[hour]
-              coolingSetpoint[hour] = OpenStudio::convert(value,"C","F").get + cooling_setpoint_offset
+              coolingSetpoint[hour] = UnitConversions.convert(value,"C","F") + cooling_setpoint_offset
             end
           end
           # weekday
@@ -312,7 +313,7 @@ class ProcessCeilingFan < OpenStudio::Measure::ModelMeasure
             unless rule.daySchedule.values.all? {|x| x == Constants.NoCoolingSetpoint}
               rule.daySchedule.clearValues
               coolingSetpoint.each_with_index do |value, hour|
-                rule.daySchedule.addValue(OpenStudio::Time.new(0,hour+1,0,0), OpenStudio::convert(value,"F","C").get)
+                rule.daySchedule.addValue(OpenStudio::Time.new(0,hour+1,0,0), UnitConversions.convert(value,"F","C"))
               end
               clg_wkdy = coolingSetpoint
             end            
@@ -322,7 +323,7 @@ class ProcessCeilingFan < OpenStudio::Measure::ModelMeasure
             unless rule.daySchedule.values.all? {|x| x == Constants.NoCoolingSetpoint}          
               rule.daySchedule.clearValues
               coolingSetpoint.each_with_index do |value, hour|
-                rule.daySchedule.addValue(OpenStudio::Time.new(0,hour+1,0,0), OpenStudio::convert(value,"F","C").get)
+                rule.daySchedule.addValue(OpenStudio::Time.new(0,hour+1,0,0), UnitConversions.convert(value,"F","C"))
               end
               clg_wked = coolingSetpoint
             end            
@@ -388,7 +389,7 @@ class ProcessCeilingFan < OpenStudio::Measure::ModelMeasure
       equip = OpenStudio::Model::ElectricEquipment.new(equip_def)
       equip.setName(equip_def.name.to_s)
       equip.setSpace(unit.living_zone.spaces[0])
-      equip_def.setDesignLevel(OpenStudio::convert(ceiling_fans_max_power,"kW","W").get)
+      equip_def.setDesignLevel(UnitConversions.convert(ceiling_fans_max_power,"kW","W"))
       equip_def.setFractionRadiant(0.558)
       equip_def.setFractionLatent(0)
       equip_def.setFractionLost(0.07)
@@ -413,7 +414,7 @@ class ProcessCeilingFan < OpenStudio::Measure::ModelMeasure
       program.addLine("If #{sched_val_sensor.name} == 0")
       program.addLine("Set #{sched_override_actuator.name} = 0")
       # Subtract 0.1 from cooling setpoint to avoid fans cycling on and off with minor temperature variations.
-      program.addLine("ElseIf #{tin_sensor.name} < #{OpenStudio::convert(unit.cooling_setpoint_min-0.1-32.0,"R","K").get.round(3)}")
+      program.addLine("ElseIf #{tin_sensor.name} < #{UnitConversions.convert(unit.cooling_setpoint_min-0.1-32.0,"R","K").round(3)}")
       program.addLine("Set #{sched_override_actuator.name} = 0")
       program.addLine("Else")
       program.addLine("Set #{sched_override_actuator.name} = 1")
@@ -451,7 +452,7 @@ class ProcessCeilingFan < OpenStudio::Measure::ModelMeasure
             end
           end
           
-          space_mel_ann = mel_ann * OpenStudio.convert(space.floorArea,"m^2","ft^2").get / unit.finished_floor_area
+          space_mel_ann = mel_ann * UnitConversions.convert(space.floorArea,"m^2","ft^2") / unit.finished_floor_area
           space_design_level = sch.calcDesignLevelFromDailykWh(space_mel_ann / 365.0)
 
           mel_def = OpenStudio::Model::ElectricEquipmentDefinition.new(model)

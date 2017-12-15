@@ -88,7 +88,7 @@ class ProcessVRFMinisplit < OpenStudio::Measure::ModelMeasure
     #make a double argument for minisplit heating capacity offset
     miniSplitHPHeatingCapacityOffset = OpenStudio::Measure::OSArgument::makeDoubleArgument("heating_capacity_offset", true)
     miniSplitHPHeatingCapacityOffset.setDisplayName("Heating Capacity Offset")
-    miniSplitHPHeatingCapacityOffset.setUnits("Btu/h")
+    miniSplitHPHeatingCapacityOffset.setUnits("Btu/hr")
     miniSplitHPHeatingCapacityOffset.setDescription("The difference between the nominal rated heating capacity and the nominal rated cooling capacity.")
     miniSplitHPHeatingCapacityOffset.setDefaultValue(2300.0)
     args << miniSplitHPHeatingCapacityOffset    
@@ -156,6 +156,13 @@ class ProcessVRFMinisplit < OpenStudio::Measure::ModelMeasure
     miniSplitHPSupplyFanPower.setDescription("Fan power (in W) per delivered airflow rate (in cfm) of the fan.")
     miniSplitHPSupplyFanPower.setDefaultValue(0.07)
     args << miniSplitHPSupplyFanPower
+
+    #make a bool argument for whether the minisplit is ducted or ductless
+    miniSplitHPIsDucted = OpenStudio::Measure::OSArgument::makeBoolArgument("is_ducted", true)
+    miniSplitHPIsDucted.setDisplayName("Is Ducted")
+    miniSplitHPIsDucted.setDescription("Specified whether the mini-split heat pump is ducted or ductless.")
+    miniSplitHPIsDucted.setDefaultValue(false)
+    args << miniSplitHPIsDucted
     
     #make a string argument for minisplit cooling output capacity
     miniSplitCoolingOutputCapacity = OpenStudio::Measure::OSArgument::makeStringArgument("heat_pump_capacity", true)
@@ -216,14 +223,15 @@ class ProcessVRFMinisplit < OpenStudio::Measure::ModelMeasure
     miniSplitHPCapacityRetentionTemperature = runner.getDoubleArgumentValue("cap_retention_temp",user_arguments)
     miniSplitHPPanHeaterPowerPerUnit = runner.getDoubleArgumentValue("pan_heater_power",user_arguments)    
     miniSplitHPSupplyFanPower = runner.getDoubleArgumentValue("fan_power",user_arguments)
+    miniSplitHPIsDucted = runner.getBoolArgumentValue("is_ducted",user_arguments)
     miniSplitCoolingOutputCapacity = runner.getStringArgumentValue("heat_pump_capacity",user_arguments)
     unless miniSplitCoolingOutputCapacity == Constants.SizingAuto or miniSplitCoolingOutputCapacity == Constants.SizingAutoMaxLoad
-      miniSplitCoolingOutputCapacity = OpenStudio::convert(miniSplitCoolingOutputCapacity.to_f,"ton","Btu/h").get
+      miniSplitCoolingOutputCapacity = UnitConversions.convert(miniSplitCoolingOutputCapacity.to_f,"ton","Btu/hr")
     end
     baseboardEfficiency = runner.getDoubleArgumentValue("supplemental_efficiency",user_arguments)
     baseboardOutputCapacity = runner.getStringArgumentValue("supplemental_capacity",user_arguments)
     unless baseboardOutputCapacity == Constants.SizingAuto
-      baseboardOutputCapacity = OpenStudio::convert(baseboardOutputCapacity.to_f,"kBtu/h","Btu/h").get
+      baseboardOutputCapacity = UnitConversions.convert(baseboardOutputCapacity.to_f,"kBtu/hr","Btu/hr")
     end    
     dse = runner.getStringArgumentValue("dse",user_arguments)
     if dse.to_f > 0
@@ -235,7 +243,7 @@ class ProcessVRFMinisplit < OpenStudio::Measure::ModelMeasure
     number_Speeds = 10
     max_defrost_temp = 40.0 # F
     min_hp_temp = -30.0 # F; Minimum temperature for Heat Pump operation
-    static = UnitConversion.inH2O2Pa(0.1) # Pascal
+    static = UnitConversions.convert(0.1,"inH2O","Pa") # Pascal
         
     # Performance curves
     
@@ -247,9 +255,9 @@ class ProcessVRFMinisplit < OpenStudio::Measure::ModelMeasure
     # Mini-Split Heat Pump Heating Curve Coefficients
     # Derive coefficients from user input for capacity retention at outdoor drybulb temperature X [C].
     # Biquadratic: capacity multiplier = a + b*IAT + c*IAT^2 + d*OAT + e*OAT^2 + f*IAT*OAT
-    x_A = OpenStudio::convert(miniSplitHPCapacityRetentionTemperature,"F", "C").get
+    x_A = UnitConversions.convert(miniSplitHPCapacityRetentionTemperature,"F", "C")
     y_A = miniSplitHPCapacityRetentionFraction
-    x_B = OpenStudio::convert(47.0,"F","C").get # 47F is the rating point
+    x_B = UnitConversions.convert(47.0,"F","C") # 47F is the rating point
     y_B = 1.0 # Maximum capacity factor is 1 at the rating point, by definition (this is maximum capacity, not nominal capacity)
     oat_slope = (y_B - y_A) / (x_B - x_A)
     oat_intercept = y_A - (x_A*oat_slope)
@@ -347,7 +355,7 @@ class ProcessVRFMinisplit < OpenStudio::Measure::ModelMeasure
         clg_coil = OpenStudio::Model::CoilCoolingDXVariableRefrigerantFlow.new(model)
         clg_coil.setName(obj_name + " #{control_zone.name} cooling coil")
         if miniSplitCoolingOutputCapacity != Constants.SizingAuto and miniSplitCoolingOutputCapacity != Constants.SizingAutoMaxLoad
-          clg_coil.setRatedTotalCoolingCapacity(OpenStudio::convert(miniSplitCoolingOutputCapacity,"Btu/h","W").get) # Used by HVACSizing measure
+          clg_coil.setRatedTotalCoolingCapacity(UnitConversions.convert(miniSplitCoolingOutputCapacity,"Btu/hr","W")) # Used by HVACSizing measure
         end
         clg_coil.setRatedSensibleHeatRatio(sHR_Rated[mshp_indices[-1]])
         clg_coil.setCoolingCapacityRatioModifierFunctionofTemperatureCurve(constant_cubic_curve)
@@ -367,7 +375,7 @@ class ProcessVRFMinisplit < OpenStudio::Measure::ModelMeasure
         vrf.setCoolingPartLoadFractionCorrelationCurve(cool_plf_fplr_curve)
         vrf.setRatedTotalHeatingCapacitySizingRatio(1)
         vrf.setRatedHeatingCOP(dse / heatingEIR[-1])
-        vrf.setMinimumOutdoorTemperatureinHeatingMode(OpenStudio::convert(min_hp_temp,"F","C").get)
+        vrf.setMinimumOutdoorTemperatureinHeatingMode(UnitConversions.convert(min_hp_temp,"F","C"))
         vrf.setMaximumOutdoorTemperatureinHeatingMode(40)
         vrf.setHeatingCapacityRatioModifierFunctionofLowTemperatureCurve(heat_cap_ft_curve)
         vrf.setHeatingEnergyInputRatioModifierFunctionofLowTemperatureCurve(heat_eir_ft_curve)
@@ -384,7 +392,7 @@ class ProcessVRFMinisplit < OpenStudio::Measure::ModelMeasure
         vrf.setDefrostStrategy("ReverseCycle")
         vrf.setDefrostControl("OnDemand")
         vrf.setDefrostEnergyInputRatioModifierFunctionofTemperatureCurve(defrost_eir_curve)        
-        vrf.setMaximumOutdoorDrybulbTemperatureforDefrostOperation(OpenStudio::convert(max_defrost_temp,"F","C").get)
+        vrf.setMaximumOutdoorDrybulbTemperatureforDefrostOperation(UnitConversions.convert(max_defrost_temp,"F","C"))
         vrf.setFuelType("Electricity")
         vrf.setEquivalentPipingLengthusedforPipingCorrectionFactorinCoolingMode(0)
         vrf.setVerticalHeightusedforPipingCorrectionFactor(0)
@@ -424,7 +432,7 @@ class ProcessVRFMinisplit < OpenStudio::Measure::ModelMeasure
           supp_htg_coil = OpenStudio::Model::ZoneHVACBaseboardConvectiveElectric.new(model)
           supp_htg_coil.setName(obj_name + " #{control_zone.name} supp heater")
           if baseboardOutputCapacity != Constants.SizingAuto
-            supp_htg_coil.setNominalCapacity(OpenStudio::convert(baseboardOutputCapacity,"Btu/h","W").get) # Used by HVACSizing measure
+            supp_htg_coil.setNominalCapacity(UnitConversions.convert(baseboardOutputCapacity,"Btu/hr","W")) # Used by HVACSizing measure
           end
           supp_htg_coil.setEfficiency(baseboardEfficiency)
           supp_htg_coil.addToThermalZone(control_zone)
@@ -460,7 +468,7 @@ class ProcessVRFMinisplit < OpenStudio::Measure::ModelMeasure
           vrf.setCoolingPartLoadFractionCorrelationCurve(cool_plf_fplr_curve)
           vrf.setRatedTotalHeatingCapacitySizingRatio(1)
           vrf.setRatedHeatingCOP(dse / heatingEIR[-1])
-          vrf.setMinimumOutdoorTemperatureinHeatingMode(OpenStudio::convert(min_hp_temp,"F","C").get)
+          vrf.setMinimumOutdoorTemperatureinHeatingMode(UnitConversions.convert(min_hp_temp,"F","C"))
           vrf.setMaximumOutdoorTemperatureinHeatingMode(40)
           vrf.setHeatingCapacityRatioModifierFunctionofLowTemperatureCurve(heat_cap_ft_curve)
           vrf.setHeatingEnergyInputRatioModifierFunctionofLowTemperatureCurve(heat_eir_ft_curve)
@@ -477,7 +485,7 @@ class ProcessVRFMinisplit < OpenStudio::Measure::ModelMeasure
           vrf.setDefrostStrategy("ReverseCycle")
           vrf.setDefrostControl("OnDemand")           
           vrf.setDefrostEnergyInputRatioModifierFunctionofTemperatureCurve(defrost_eir_curve)          
-          vrf.setMaximumOutdoorDrybulbTemperatureforDefrostOperation(OpenStudio::convert(max_defrost_temp,"F","C").get)
+          vrf.setMaximumOutdoorDrybulbTemperatureforDefrostOperation(UnitConversions.convert(max_defrost_temp,"F","C"))
           vrf.setFuelType("Electricity")
           vrf.setEquivalentPipingLengthusedforPipingCorrectionFactorinCoolingMode(0)
           vrf.setVerticalHeightusedforPipingCorrectionFactor(0)
@@ -555,7 +563,7 @@ class ProcessVRFMinisplit < OpenStudio::Measure::ModelMeasure
           program = OpenStudio::Model::EnergyManagementSystemProgram.new(model)
           program.setName(obj_name + " pan heater program")
           if miniSplitCoolingOutputCapacity != Constants.SizingAuto and miniSplitCoolingOutputCapacity != Constants.SizingAutoMaxLoad
-            num_outdoor_units = (OpenStudio::convert(miniSplitCoolingOutputCapacity,"Btu/h","ton").get / 1.5).ceil # Assume 1.5 tons max per outdoor unit
+            num_outdoor_units = (UnitConversions.convert(miniSplitCoolingOutputCapacity,"Btu/hr","ton") / 1.5).ceil # Assume 1.5 tons max per outdoor unit
           else
             num_outdoor_units = 2
           end
@@ -571,7 +579,7 @@ class ProcessVRFMinisplit < OpenStudio::Measure::ModelMeasure
             program.addLine("Set #{vrf_fbsmt_sensor.name} = 0")
             program.addLine("If #{vrf_sensor.name} > 0 || #{vrf_fbsmt_sensor.name} > 0")
           end          
-          program.addLine("If #{tout_sensor.name} <= #{OpenStudio::convert(32.0,"F","C").get.round(3)}")
+          program.addLine("If #{tout_sensor.name} <= #{UnitConversions.convert(32.0,"F","C").round(3)}")
           program.addLine("Set #{pan_heater_actuator.name} = #{pan_heater_power}")
           program.addLine("EndIf")
           program.addLine("EndIf")
@@ -584,6 +592,9 @@ class ProcessVRFMinisplit < OpenStudio::Measure::ModelMeasure
         end # slave_zone
       
       end # control_zone
+      
+      # Store miniSplitHPIsDucted bool
+      unit.setFeature(Constants.DuctedInfoMiniSplitHeatPump, miniSplitHPIsDucted)
       
       # Store info for HVAC Sizing measure
       unit.setFeature(Constants.SizingInfoHVACCapacityRatioCooling, capacity_Ratio_Cooling.join(","))
@@ -610,13 +621,13 @@ class ProcessVRFMinisplit < OpenStudio::Measure::ModelMeasure
     cap_nom_per = cap_max_per
     cfm_ton_nom = ((cfm_ton_max - cfm_ton_min)/(cap_max_per - cap_min_per)) * (cap_nom_per - cap_min_per) + cfm_ton_min
     
-    ao = Psychrometrics.CoilAoFactor(dB_rated, wB_rated, Constants.Patm, OpenStudio::convert(1,"ton","kBtu/h").get, cfm_ton_nom, shr)
+    ao = Psychrometrics.CoilAoFactor(dB_rated, wB_rated, Constants.Patm, UnitConversions.convert(1,"ton","kBtu/hr"), cfm_ton_nom, shr)
     
     (0...number_Speeds).each do |i|
         capacity_Ratio_Cooling[i] = cap_min_per + i*(cap_max_per - cap_min_per)/(number_Speeds-1)
         coolingCFMs[i] = cfm_ton_min + i*(cfm_ton_max - cfm_ton_min)/(number_Speeds-1)
         # Calculate the SHR for each speed. Use minimum value of 0.98 to prevent E+ bypass factor calculation errors
-        sHR_Rated[i] = [Psychrometrics.CalculateSHR(dB_rated, wB_rated, Constants.Patm, OpenStudio::convert(capacity_Ratio_Cooling[i],"ton","kBtu/h").get, coolingCFMs[i], ao), 0.98].min
+        sHR_Rated[i] = [Psychrometrics.CalculateSHR(dB_rated, wB_rated, Constants.Patm, UnitConversions.convert(capacity_Ratio_Cooling[i],"ton","kBtu/hr"), coolingCFMs[i], ao), 0.98].min
     end
   
     return coolingCFMs, capacity_Ratio_Cooling, sHR_Rated
@@ -635,7 +646,7 @@ class ProcessVRFMinisplit < OpenStudio::Measure::ModelMeasure
     
     (0...number_Speeds).each do |i|
         fanPowsRated[i] = supplyFanPower * fanPows_Norm[i] 
-        eers_Rated[i] = OpenStudio::convert(cop_maxSpeed,"W","Btu/h").get * cops_Norm[i]   
+        eers_Rated[i] = UnitConversions.convert(cop_maxSpeed,"W","Btu/hr") * cops_Norm[i]   
     end 
         
     cop_maxSpeed_1 = cop_maxSpeed
@@ -651,7 +662,7 @@ class ProcessVRFMinisplit < OpenStudio::Measure::ModelMeasure
     (1...itmax+1).each do |n|
         final_n = n
         (0...number_Speeds).each do |i|
-            eers_Rated[i] = OpenStudio::convert(cop_maxSpeed,"W","Btu/h").get * cops_Norm[i]
+            eers_Rated[i] = UnitConversions.convert(cop_maxSpeed,"W","Btu/hr") * cops_Norm[i]
         end
         
         error = coolingSEER - calc_SEER_VariableSpeed(eers_Rated, c_d, capacity_Ratio_Cooling, coolingCFMs, fanPowsRated, true, cOOL_EIR_FT_SPEC, cOOL_CAP_FT_SPEC)
@@ -664,12 +675,12 @@ class ProcessVRFMinisplit < OpenStudio::Measure::ModelMeasure
     end
 
     if not cvg or final_n > itmax
-        cop_maxSpeed = OpenStudio::convert(0.547*coolingSEER - 0.104,"Btu/h","W").get  # Correlation developed from JonW's MatLab scripts. Only used is an EER cannot be found.   
+        cop_maxSpeed = UnitConversions.convert(0.547*coolingSEER - 0.104,"Btu/hr","W")  # Correlation developed from JonW's MatLab scripts. Only used is an EER cannot be found.   
         runner.registerWarning('Mini-split heat pump COP iteration failed to converge. Setting to default value.')
     end
         
     (0...number_Speeds).each do |i|
-        coolingEIR[i] = HVAC.calc_EIR_from_EER(OpenStudio::convert(cop_maxSpeed,"W","Btu/h").get * cops_Norm[i], fanPowsRated[i])
+        coolingEIR[i] = HVAC.calc_EIR_from_EER(UnitConversions.convert(cop_maxSpeed,"W","Btu/hr") * cops_Norm[i], fanPowsRated[i])
     end
 
     return coolingEIR
@@ -682,10 +693,10 @@ class ProcessVRFMinisplit < OpenStudio::Measure::ModelMeasure
     n_min = 0.0
     n_int = (n_min + (n_max-n_min)/3.0).ceil.to_i
 
-    wBin = OpenStudio::convert(67.0,"F","C").get
-    tout_B = OpenStudio::convert(82.0,"F","C").get
-    tout_E = OpenStudio::convert(87.0,"F","C").get
-    tout_F = OpenStudio::convert(67.0,"F","C").get
+    wBin = UnitConversions.convert(67.0,"F","C")
+    tout_B = UnitConversions.convert(82.0,"F","C")
+    tout_E = UnitConversions.convert(87.0,"F","C")
+    tout_F = UnitConversions.convert(67.0,"F","C")
 
     eir_A2 = HVAC.calc_EIR_from_EER(eer_A[n_max], supplyFanPower_Rated[n_max])    
     eir_B2 = eir_A2 * MathTools.biquadratic(wBin, tout_B, cOOL_EIR_FT_SPEC[n_max]) 
@@ -703,17 +714,17 @@ class ProcessVRFMinisplit < OpenStudio::Measure::ModelMeasure
     q_B1 = capacityRatio[n_min] * MathTools.biquadratic(wBin, tout_B, cOOL_CAP_FT_SPEC[n_min])
     q_F1 = capacityRatio[n_min] * MathTools.biquadratic(wBin, tout_F, cOOL_CAP_FT_SPEC[n_min])
             
-    q_A2_net = q_A2 - supplyFanPower_Rated[n_max] * OpenStudio::convert(1,"W","Btu/h").get * cfm_Tons[n_max] / OpenStudio::convert(1,"ton","Btu/h").get
-    q_B2_net = q_B2 - supplyFanPower_Rated[n_max] * OpenStudio::convert(1,"W","Btu/h").get * cfm_Tons[n_max] / OpenStudio::convert(1,"ton","Btu/h").get       
-    q_Ev_net = q_Ev - supplyFanPower_Rated[n_int] * OpenStudio::convert(1,"W","Btu/h").get * cfm_Tons[n_int] / OpenStudio::convert(1,"ton","Btu/h").get
-    q_B1_net = q_B1 - supplyFanPower_Rated[n_min] * OpenStudio::convert(1,"W","Btu/h").get * cfm_Tons[n_min] / OpenStudio::convert(1,"ton","Btu/h").get
-    q_F1_net = q_F1 - supplyFanPower_Rated[n_min] * OpenStudio::convert(1,"W","Btu/h").get * cfm_Tons[n_min] / OpenStudio::convert(1,"ton","Btu/h").get
+    q_A2_net = q_A2 - supplyFanPower_Rated[n_max] * UnitConversions.convert(1,"W","Btu/hr") * cfm_Tons[n_max] / UnitConversions.convert(1,"ton","Btu/hr")
+    q_B2_net = q_B2 - supplyFanPower_Rated[n_max] * UnitConversions.convert(1,"W","Btu/hr") * cfm_Tons[n_max] / UnitConversions.convert(1,"ton","Btu/hr")       
+    q_Ev_net = q_Ev - supplyFanPower_Rated[n_int] * UnitConversions.convert(1,"W","Btu/hr") * cfm_Tons[n_int] / UnitConversions.convert(1,"ton","Btu/hr")
+    q_B1_net = q_B1 - supplyFanPower_Rated[n_min] * UnitConversions.convert(1,"W","Btu/hr") * cfm_Tons[n_min] / UnitConversions.convert(1,"ton","Btu/hr")
+    q_F1_net = q_F1 - supplyFanPower_Rated[n_min] * UnitConversions.convert(1,"W","Btu/hr") * cfm_Tons[n_min] / UnitConversions.convert(1,"ton","Btu/hr")
     
-    p_A2 = OpenStudio::convert(q_A2 * eir_A2,"Btu","W*h").get + supplyFanPower_Rated[n_max] * cfm_Tons[n_max] / OpenStudio::convert(1,"ton","Btu/h").get
-    p_B2 = OpenStudio::convert(q_B2 * eir_B2,"Btu","W*h").get + supplyFanPower_Rated[n_max] * cfm_Tons[n_max] / OpenStudio::convert(1,"ton","Btu/h").get
-    p_Ev = OpenStudio::convert(q_Ev * eir_Ev,"Btu","W*h").get + supplyFanPower_Rated[n_int] * cfm_Tons[n_int] / OpenStudio::convert(1,"ton","Btu/h").get
-    p_B1 = OpenStudio::convert(q_B1 * eir_B1,"Btu","W*h").get + supplyFanPower_Rated[n_min] * cfm_Tons[n_min] / OpenStudio::convert(1,"ton","Btu/h").get
-    p_F1 = OpenStudio::convert(q_F1 * eir_F1,"Btu","W*h").get + supplyFanPower_Rated[n_min] * cfm_Tons[n_min] / OpenStudio::convert(1,"ton","Btu/h").get
+    p_A2 = UnitConversions.convert(q_A2 * eir_A2,"Btu","Wh") + supplyFanPower_Rated[n_max] * cfm_Tons[n_max] / UnitConversions.convert(1,"ton","Btu/hr")
+    p_B2 = UnitConversions.convert(q_B2 * eir_B2,"Btu","Wh") + supplyFanPower_Rated[n_max] * cfm_Tons[n_max] / UnitConversions.convert(1,"ton","Btu/hr")
+    p_Ev = UnitConversions.convert(q_Ev * eir_Ev,"Btu","Wh") + supplyFanPower_Rated[n_int] * cfm_Tons[n_int] / UnitConversions.convert(1,"ton","Btu/hr")
+    p_B1 = UnitConversions.convert(q_B1 * eir_B1,"Btu","Wh") + supplyFanPower_Rated[n_min] * cfm_Tons[n_min] / UnitConversions.convert(1,"ton","Btu/hr")
+    p_F1 = UnitConversions.convert(q_F1 * eir_F1,"Btu","Wh") + supplyFanPower_Rated[n_min] * cfm_Tons[n_min] / UnitConversions.convert(1,"ton","Btu/hr")
     
     q_k1_87 = q_F1_net + (q_B1_net - q_F1_net) / (82.0 - 67.0) * (87 - 67.0)
     q_k2_87 = q_B2_net + (q_A2_net - q_B2_net) / (95.0 - 82.0) * (87.0 - 82.0)
@@ -842,7 +853,7 @@ class ProcessVRFMinisplit < OpenStudio::Measure::ModelMeasure
     end
     
     if not cvg or final_n > itmax
-        cop_maxSpeed = OpenStudio::convert(0.4174*heatingHSPF - 1.1134,"Btu/h","W").get  # Correlation developed from JonW's MatLab scripts. Only used if a COP cannot be found.   
+        cop_maxSpeed = UnitConversions.convert(0.4174*heatingHSPF - 1.1134,"Btu/hr","W")  # Correlation developed from JonW's MatLab scripts. Only used if a COP cannot be found.   
         runner.registerWarning('Mini-split heat pump COP iteration failed to converge. Setting to default value.')
     end
 
@@ -860,10 +871,10 @@ class ProcessVRFMinisplit < OpenStudio::Measure::ModelMeasure
     n_min = 0
     n_int = (n_min + (n_max-n_min)/3.0).ceil.to_i
 
-    tin = OpenStudio::convert(70.0,"F","C").get
-    tout_3 = OpenStudio::convert(17.0,"F","C").get
-    tout_2 = OpenStudio::convert(35.0,"F","C").get
-    tout_0 = OpenStudio::convert(62.0,"F","C").get
+    tin = UnitConversions.convert(70.0,"F","C")
+    tout_3 = UnitConversions.convert(17.0,"F","C")
+    tout_2 = UnitConversions.convert(35.0,"F","C")
+    tout_0 = UnitConversions.convert(62.0,"F","C")
     
     eir_H1_2 = HVAC.calc_EIR_from_COP(cop_47[n_max], supplyFanPower_Rated[n_max])    
     eir_H3_2 = eir_H1_2 * MathTools.biquadratic(tin, tout_3, hEAT_EIR_FT_SPEC[n_max])
@@ -882,17 +893,17 @@ class ProcessVRFMinisplit < OpenStudio::Measure::ModelMeasure
     q_H1_1 = capacityRatio[n_min]
     q_H0_1 = q_H1_1 * MathTools.biquadratic(tin, tout_0, hEAT_CAP_FT_SPEC[n_min])
                                   
-    q_H1_2_net = q_H1_2 + supplyFanPower_Rated[n_max] * OpenStudio::convert(1,"W","Btu/h").get * cfm_Tons[n_max] / OpenStudio::convert(1,"ton","Btu/h").get
-    q_H3_2_net = q_H3_2 + supplyFanPower_Rated[n_max] * OpenStudio::convert(1,"W","Btu/h").get * cfm_Tons[n_max] / OpenStudio::convert(1,"ton","Btu/h").get
-    q_H2_v_net = q_H2_v + supplyFanPower_Rated[n_int] * OpenStudio::convert(1,"W","Btu/h").get * cfm_Tons[n_int] / OpenStudio::convert(1,"ton","Btu/h").get
-    q_H1_1_net = q_H1_1 + supplyFanPower_Rated[n_min] * OpenStudio::convert(1,"W","Btu/h").get * cfm_Tons[n_min] / OpenStudio::convert(1,"ton","Btu/h").get
-    q_H0_1_net = q_H0_1 + supplyFanPower_Rated[n_min] * OpenStudio::convert(1,"W","Btu/h").get * cfm_Tons[n_min] / OpenStudio::convert(1,"ton","Btu/h").get
+    q_H1_2_net = q_H1_2 + supplyFanPower_Rated[n_max] * UnitConversions.convert(1,"W","Btu/hr") * cfm_Tons[n_max] / UnitConversions.convert(1,"ton","Btu/hr")
+    q_H3_2_net = q_H3_2 + supplyFanPower_Rated[n_max] * UnitConversions.convert(1,"W","Btu/hr") * cfm_Tons[n_max] / UnitConversions.convert(1,"ton","Btu/hr")
+    q_H2_v_net = q_H2_v + supplyFanPower_Rated[n_int] * UnitConversions.convert(1,"W","Btu/hr") * cfm_Tons[n_int] / UnitConversions.convert(1,"ton","Btu/hr")
+    q_H1_1_net = q_H1_1 + supplyFanPower_Rated[n_min] * UnitConversions.convert(1,"W","Btu/hr") * cfm_Tons[n_min] / UnitConversions.convert(1,"ton","Btu/hr")
+    q_H0_1_net = q_H0_1 + supplyFanPower_Rated[n_min] * UnitConversions.convert(1,"W","Btu/hr") * cfm_Tons[n_min] / UnitConversions.convert(1,"ton","Btu/hr")
                                  
-    p_H1_2 = q_H1_2 * eir_H1_2 + supplyFanPower_Rated[n_max] * OpenStudio::convert(1,"W","Btu/h").get * cfm_Tons[n_max] / OpenStudio::convert(1,"ton","Btu/h").get
-    p_H3_2 = q_H3_2 * eir_H3_2 + supplyFanPower_Rated[n_max] * OpenStudio::convert(1,"W","Btu/h").get * cfm_Tons[n_max] / OpenStudio::convert(1,"ton","Btu/h").get
-    p_H2_v = q_H2_v * eir_H2_v + supplyFanPower_Rated[n_int] * OpenStudio::convert(1,"W","Btu/h").get * cfm_Tons[n_int] / OpenStudio::convert(1,"ton","Btu/h").get
-    p_H1_1 = q_H1_1 * eir_H1_1 + supplyFanPower_Rated[n_min] * OpenStudio::convert(1,"W","Btu/h").get * cfm_Tons[n_min] / OpenStudio::convert(1,"ton","Btu/h").get
-    p_H0_1 = q_H0_1 * eir_H0_1 + supplyFanPower_Rated[n_min] * OpenStudio::convert(1,"W","Btu/h").get * cfm_Tons[n_min] / OpenStudio::convert(1,"ton","Btu/h").get
+    p_H1_2 = q_H1_2 * eir_H1_2 + supplyFanPower_Rated[n_max] * UnitConversions.convert(1,"W","Btu/hr") * cfm_Tons[n_max] / UnitConversions.convert(1,"ton","Btu/hr")
+    p_H3_2 = q_H3_2 * eir_H3_2 + supplyFanPower_Rated[n_max] * UnitConversions.convert(1,"W","Btu/hr") * cfm_Tons[n_max] / UnitConversions.convert(1,"ton","Btu/hr")
+    p_H2_v = q_H2_v * eir_H2_v + supplyFanPower_Rated[n_int] * UnitConversions.convert(1,"W","Btu/hr") * cfm_Tons[n_int] / UnitConversions.convert(1,"ton","Btu/hr")
+    p_H1_1 = q_H1_1 * eir_H1_1 + supplyFanPower_Rated[n_min] * UnitConversions.convert(1,"W","Btu/hr") * cfm_Tons[n_min] / UnitConversions.convert(1,"ton","Btu/hr")
+    p_H0_1 = q_H0_1 * eir_H0_1 + supplyFanPower_Rated[n_min] * UnitConversions.convert(1,"W","Btu/hr") * cfm_Tons[n_min] / UnitConversions.convert(1,"ton","Btu/hr")
         
     q_H35_2 = 0.9 * (q_H3_2_net + 0.6 * (q_H1_2_net - q_H3_2_net))
     p_H35_2 = 0.985 * (p_H3_2 + 0.6 * (p_H1_2 - p_H3_2))
@@ -980,7 +991,7 @@ class ProcessVRFMinisplit < OpenStudio::Measure::ModelMeasure
         etot = etot + e_Tj_n
     end
 
-    hspf = bLtot / OpenStudio::convert(etot,"Btu/h","W").get    
+    hspf = bLtot / UnitConversions.convert(etot,"Btu/hr","W")    
     return hspf
   end    
   

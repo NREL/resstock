@@ -5,6 +5,7 @@ require "#{File.dirname(__FILE__)}/resources/util"
 require "#{File.dirname(__FILE__)}/resources/waterheater"
 require "#{File.dirname(__FILE__)}/resources/constants"
 require "#{File.dirname(__FILE__)}/resources/geometry"
+require "#{File.dirname(__FILE__)}/resources/unit_conversions"
 
 #start the measure
 class ResidentialHotWaterHeaterTanklessFuel < OpenStudio::Measure::ModelMeasure
@@ -271,9 +272,9 @@ class ResidentialHotWaterHeaterTanklessFuel < OpenStudio::Measure::ModelMeasure
             loopname = heater.plantLoop.get.name.get
 
             capacity_si = heater.getHeaterMaximumCapacity.get
-            capacity = OpenStudio.convert(capacity_si.value, capacity_si.units.standardString, "kBtu/hr").get
+            capacity = UnitConversions.convert(capacity_si.value, "W", "kBtu/hr")
             volume_si = heater.getTankVolume.get
-            volume = OpenStudio.convert(volume_si.value, volume_si.units.standardString, "gal").get
+            volume = UnitConversions.convert(volume_si.value, "m^3", "gal")
             te = heater.getHeaterThermalEfficiency.get.value
           
             water_heaters << "Water heater '#{heatername}' added to plant loop '#{loopname}', with a capacity of #{capacity.round(1)} kBtu/hr" +

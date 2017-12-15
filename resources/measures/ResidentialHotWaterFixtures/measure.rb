@@ -210,19 +210,19 @@ class ResidentialHotWaterFixtures < OpenStudio::Measure::ModelMeasure
             # Shower internal gains
             sh_sens_load = (741 + 247 * nbeds) * sh_mult # Btu/day
             sh_lat_load = (703 + 235 * nbeds) * sh_mult # Btu/day
-            sh_tot_load = OpenStudio.convert(sh_sens_load + sh_lat_load, "Btu", "kWh").get #kWh/day
+            sh_tot_load = UnitConversions.convert(sh_sens_load + sh_lat_load, "Btu", "kWh") #kWh/day
             sh_lat = sh_lat_load / (sh_lat_load + sh_sens_load)
 
             # Sink internal gains
             s_sens_load = (310 + 103 * nbeds) * s_mult # Btu/day
             s_lat_load = (140 + 47 * nbeds) * s_mult # Btu/day
-            s_tot_load = OpenStudio.convert(s_sens_load + s_lat_load, "Btu", "kWh").get #kWh/day
+            s_tot_load = UnitConversions.convert(s_sens_load + s_lat_load, "Btu", "kWh") #kWh/day
             s_lat = s_lat_load / (s_lat_load + s_sens_load)
         
             # Bath internal gains
             b_sens_load = (185 + 62 * nbeds) * b_mult # Btu/day
             b_lat_load = 0 # Btu/day
-            b_tot_load = OpenStudio.convert(b_sens_load + b_lat_load, "Btu", "kWh").get #kWh/day
+            b_tot_load = UnitConversions.convert(b_sens_load + b_lat_load, "Btu", "kWh") #kWh/day
             b_lat = b_lat_load / (b_lat_load + b_sens_load)
             
             if sh_gpd > 0 or s_gpd > 0 or b_gpd > 0
