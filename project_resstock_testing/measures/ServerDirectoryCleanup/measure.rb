@@ -40,6 +40,10 @@ class ServerDirectoryCleanup < OpenStudio::Measure::ReportingMeasure
       File.delete(f)
       runner.registerInfo("Deleted #{f} from the run directory.") if !File.exist?(f)
     end
+    Dir.glob("./../../in.osm").each do |f|
+      File.delete(f)
+      runner.registerInfo("Deleted #{f} from the run directory.") if !File.exist?(f)
+    end
     Dir.glob("./../*.bnd").each do |f|
       File.delete(f)
       runner.registerInfo("Deleted #{f} from the run directory.") if !File.exist?(f)
