@@ -6,6 +6,7 @@ require "#{File.dirname(__FILE__)}/resources/waterheater"
 require "#{File.dirname(__FILE__)}/resources/constants"
 require "#{File.dirname(__FILE__)}/resources/geometry"
 require "#{File.dirname(__FILE__)}/resources/psychrometrics"
+require "#{File.dirname(__FILE__)}/resources/unit_conversions"
 
 #start the measure
 class ResidentialHotWaterHeaterHeatPump < OpenStudio::Measure::ModelMeasure
@@ -196,7 +197,7 @@ class ResidentialHotWaterHeaterHeatPump < OpenStudio::Measure::ModelMeasure
         #ducting = runner.getStringArgumentValue("ducting",user_arguments)
         ducting = "none"
         
-        input_power_w = OpenStudio.convert(cap,"kW","W").get 
+        input_power_w = UnitConversions.convert(cap,"kW","W") 
         rated_heat_cap = input_power_w * cop
         
         #Validate inputs
@@ -448,9 +449,9 @@ class ResidentialHotWaterHeaterHeatPump < OpenStudio::Measure::ModelMeasure
             h_tank = 0.0188 * vol + 0.0935 #Linear relationship that gets GE height at 50 gal and AO Smith height at 80 gal
             v_actual = 0.9 * vol
             pi = Math::PI
-            r_tank = (OpenStudio.convert(v_actual,"gal","m^3").get / (pi * h_tank))**0.5
+            r_tank = (UnitConversions.convert(v_actual,"gal","m^3") / (pi * h_tank))**0.5
             a_tank = 2 * pi * r_tank * (r_tank + h_tank)
-            u_tank = (5.678 * tank_ua) / OpenStudio.convert(a_tank, "m^2", "ft^2").get
+            u_tank = (5.678 * tank_ua) / UnitConversions.convert(a_tank, "m^2", "ft^2")
                 
             if hpwh_param == 50
                 h_UE = (1 - (3.5/12)) * h_tank #in the 4th node of the tank (counting from top)
@@ -470,8 +471,8 @@ class ResidentialHotWaterHeaterHeatPump < OpenStudio::Measure::ModelMeasure
             #Calculate an altitude adjusted rated evaporator wetbulb temperature
             rated_ewb_F = 56.4
             rated_edb_F = 67.5
-            rated_ewb = OpenStudio.convert(rated_ewb_F,"F","C").get
-            rated_edb = OpenStudio.convert(rated_edb_F,"F","C").get
+            rated_ewb = UnitConversions.convert(rated_ewb_F,"F","C")
+            rated_edb = UnitConversions.convert(rated_edb_F,"F","C")
             w_rated = Psychrometrics.w_fT_Twb_P(rated_edb_F,rated_ewb_F,14.7)
             dp_rated = Psychrometrics.Tdp_fP_w(14.7, w_rated)
             p_atm = Psychrometrics.Pstd_fZ(alt)
@@ -493,7 +494,7 @@ class ResidentialHotWaterHeaterHeatPump < OpenStudio::Measure::ModelMeasure
                 hpwh_tamb2.setValue(23)
             end
             
-            tset_C = OpenStudio.convert(t_set,"F","C").to_f.round(2)
+            tset_C = UnitConversions.convert(t_set,"F","C").to_f.round(2)
             hp_setpoint = OpenStudio::Model::ScheduleConstant.new(model)
             hp_setpoint.setName("#{obj_name_hpwh} WaterHeaterHPSchedule")
             hp_setpoint.setValue(tset_C)
@@ -525,12 +526,12 @@ class ResidentialHotWaterHeaterHeatPump < OpenStudio::Measure::ModelMeasure
             end
             hpwh.setCondenserBottomLocation(h_condbot)
             hpwh.setCondenserTopLocation(h_condtop)
-            hpwh.setEvaporatorAirFlowRate(OpenStudio.convert(airflow_rate,"ft^3/min","m^3/s").get)
+            hpwh.setEvaporatorAirFlowRate(UnitConversions.convert(airflow_rate,"ft^3/min","m^3/s"))
             hpwh.setInletAirConfiguration("Schedule")
             hpwh.setInletAirTemperatureSchedule(hpwh_tamb)
             hpwh.setInletAirHumiditySchedule(hpwh_rhamb)
-            hpwh.setMinimumInletAirTemperatureforCompressorOperation(OpenStudio.convert(min_temp,"F","C").get)
-            hpwh.setMaximumInletAirTemperatureforCompressorOperation(OpenStudio.convert(max_temp,"F","C").get)
+            hpwh.setMinimumInletAirTemperatureforCompressorOperation(UnitConversions.convert(min_temp,"F","C"))
+            hpwh.setMaximumInletAirTemperatureforCompressorOperation(UnitConversions.convert(max_temp,"F","C"))
             hpwh.setCompressorLocation("Schedule")
             hpwh.setCompressorAmbientTemperatureSchedule(hpwh_tamb)
             hpwh.setFanPlacement("DrawThrough")
@@ -582,9 +583,9 @@ class ResidentialHotWaterHeaterHeatPump < OpenStudio::Measure::ModelMeasure
             coil.setRatedCOP(cop)
             coil.setRatedSensibleHeatRatio(shr)
             coil.setRatedEvaporatorInletAirDryBulbTemperature(rated_edb)
-            coil.setRatedEvaporatorInletAirWetBulbTemperature(OpenStudio.convert(twb_adj,"F","C").get)
+            coil.setRatedEvaporatorInletAirWetBulbTemperature(UnitConversions.convert(twb_adj,"F","C"))
             coil.setRatedCondenserWaterTemperature(48.89)
-            coil.setRatedEvaporatorAirFlowRate(OpenStudio.convert(airflow_rate,"ft^3/min","m^3/s").get)
+            coil.setRatedEvaporatorAirFlowRate(UnitConversions.convert(airflow_rate,"ft^3/min","m^3/s"))
             coil.setEvaporatorFanPowerIncludedinRatedCOP(true)
             coil.setEvaporatorAirTemperatureTypeforCurveObjects("WetBulbTemperature")
             coil.setHeatingCapacityFunctionofTemperatureCurve(hpwh_cap)
@@ -595,12 +596,12 @@ class ResidentialHotWaterHeaterHeatPump < OpenStudio::Measure::ModelMeasure
             tank = hpwh.tank.to_WaterHeaterStratified.get
             tank.setName("#{obj_name_hpwh} tank")
             tank.setEndUseSubcategory("Domestic Hot Water")
-            tank.setTankVolume(OpenStudio.convert(v_actual,"gal","m^3").get)
+            tank.setTankVolume(UnitConversions.convert(v_actual,"gal","m^3"))
             tank.setTankHeight(h_tank)
             tank.setMaximumTemperatureLimit(90)
             tank.setHeaterPriorityControl("MasterSlave")
             tank.setHeater1SetpointTemperatureSchedule(hpwh_top_element_sp) #Overwritten later by EMS
-            tank.setHeater1Capacity(OpenStudio.convert(e_cap,"kW","W").get)
+            tank.setHeater1Capacity(UnitConversions.convert(e_cap,"kW","W"))
             tank.setHeater1Height(h_UE)
             if hpwh_param == 50
                 tank.setHeater1DeadbandTemperatureDifference(25)
@@ -608,7 +609,7 @@ class ResidentialHotWaterHeaterHeatPump < OpenStudio::Measure::ModelMeasure
                 tank.setHeater1DeadbandTemperatureDifference(18.5)
             end
             tank.setHeater2SetpointTemperatureSchedule(hpwh_bottom_element_sp)
-            tank.setHeater2Capacity(OpenStudio.convert(e_cap,"kW","W").get)
+            tank.setHeater2Capacity(UnitConversions.convert(e_cap,"kW","W"))
             tank.setHeater2Height(h_LE)
             if hpwh_param == 50
                 tank.setHeater2DeadbandTemperatureDifference(30)
@@ -642,7 +643,7 @@ class ResidentialHotWaterHeaterHeatPump < OpenStudio::Measure::ModelMeasure
             tank.setNode10AdditionalLossCoefficient(0)
             tank.setNode11AdditionalLossCoefficient(0)
             tank.setNode12AdditionalLossCoefficient(0)
-            tank.setUseSideDesignFlowRate((OpenStudio.convert(v_actual,"gal","m^3").get)/60.1)
+            tank.setUseSideDesignFlowRate((UnitConversions.convert(v_actual,"gal","m^3"))/60.1)
             tank.setSourceSideDesignFlowRate(0)
             tank.setSourceSideFlowControlMode("")
             tank.setSourceSideInletHeight(0)
@@ -652,13 +653,13 @@ class ResidentialHotWaterHeaterHeatPump < OpenStudio::Measure::ModelMeasure
             fan = hpwh.fan.to_FanOnOff.get
             fan.setName("#{obj_name_hpwh} fan")
             if hpwh_param == 50
-                fan.setFanEfficiency(23/fan_power * OpenStudio.convert(1,"ft^3/min","m^3/s").get)
+                fan.setFanEfficiency(23/fan_power * UnitConversions.convert(1,"ft^3/min","m^3/s"))
                 fan.setPressureRise(23)
             else
-                fan.setFanEfficiency(65/fan_power * OpenStudio.convert(1,"ft^3/min","m^3/s").get)
+                fan.setFanEfficiency(65/fan_power * UnitConversions.convert(1,"ft^3/min","m^3/s"))
                 fan.setPressureRise(65)
             end
-            fan.setMaximumFlowRate(OpenStudio.convert(airflow_rate,"ft^3/min","m^3/s").get)
+            fan.setMaximumFlowRate(UnitConversions.convert(airflow_rate,"ft^3/min","m^3/s"))
             fan.setMotorEfficiency(1.0)
             fan.setMotorInAirstreamFraction(1.0)
             fan.setEndUseSubcategory("Domestic Hot Water")
@@ -873,9 +874,9 @@ class ResidentialHotWaterHeaterHeatPump < OpenStudio::Measure::ModelMeasure
                 hpwh_ctrl_program = OpenStudio::Model::EnergyManagementSystemProgram.new(model)
                 hpwh_ctrl_program.setName("#{obj_name_hpwh} Control")
                 if ducting == Constants.VentTypeSupply or ducting == Constants.VentTypeBalanced
-                    hpwh_ctrl_program.addLine("If (HPWH_out_temp_#{unit_num} < #{OpenStudio.convert(min_temp,"F","C").get}) || (HPWH_out_temp_#{unit_num} > #{OpenStudio.convert(max_temp,"F","C").get})")
+                    hpwh_ctrl_program.addLine("If (HPWH_out_temp_#{unit_num} < #{UnitConversions.convert(min_temp,"F","C")}) || (HPWH_out_temp_#{unit_num} > #{UnitConversions.convert(max_temp,"F","C")})")
                 else
-                    hpwh_ctrl_program.addLine("If (#{amb_temp_sensor.name}<#{OpenStudio.convert(min_temp,"F","C").get.round(2)}) || (#{amb_temp_sensor.name}>#{OpenStudio.convert(max_temp,"F","C").get.round(2)})")
+                    hpwh_ctrl_program.addLine("If (#{amb_temp_sensor.name}<#{UnitConversions.convert(min_temp,"F","C").round(2)}) || (#{amb_temp_sensor.name}>#{UnitConversions.convert(max_temp,"F","C").round(2)})")
                 end
                 hpwh_ctrl_program.addLine("Set #{leschedoverride_actuator.name} = #{tset_C}")
                 hpwh_ctrl_program.addLine("Else")
@@ -950,7 +951,7 @@ class ResidentialHotWaterHeaterHeatPump < OpenStudio::Measure::ModelMeasure
             
         end
         
-        rated_heat_cap_kW = OpenStudio.convert(rated_heat_cap,"W","kW").get 
+        rated_heat_cap_kW = UnitConversions.convert(rated_heat_cap,"W","kW") 
         runner.registerFinalCondition("A new  #{vol.round} gallon heat pump water heater, with a rated COP of #{cop} and a nominal heat pump capacity of #{rated_heat_cap_kW.round(2)} kW has been added to the model")
         
         return true

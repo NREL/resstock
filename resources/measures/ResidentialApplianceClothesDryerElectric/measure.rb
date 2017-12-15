@@ -2,6 +2,7 @@ require "#{File.dirname(__FILE__)}/resources/schedules"
 require "#{File.dirname(__FILE__)}/resources/constants"
 require "#{File.dirname(__FILE__)}/resources/geometry"
 require "#{File.dirname(__FILE__)}/resources/clothesdryer"
+require "#{File.dirname(__FILE__)}/resources/unit_conversions"
 
 #start the measure
 class ResidentialClothesDryer < OpenStudio::Measure::ModelMeasure

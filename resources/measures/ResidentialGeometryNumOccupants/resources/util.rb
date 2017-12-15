@@ -1,6 +1,6 @@
-
 # Add classes or functions here than can be used across a variety of our python classes and modules.
 require "#{File.dirname(__FILE__)}/constants"
+require "#{File.dirname(__FILE__)}/unit_conversions"
 
 class HelperMethods
     
@@ -344,13 +344,13 @@ class Material
         
         if not thick_in.nil?
             @thick_in = thick_in # in
-            @thick = OpenStudio::convert(thick_in,"in","ft").get # ft
+            @thick = UnitConversions.convert(thick_in,"in","ft") # ft
         end
         
         if not mat_base.nil?
             @k_in = mat_base.k_in # Btu-in/h-ft^2-F
             if not mat_base.k_in.nil?
-                @k = OpenStudio::convert(mat_base.k_in,"in","ft").get # Btu/h-ft-F
+                @k = UnitConversions.convert(mat_base.k_in,"in","ft") # Btu/h-ft-F
             else
                 @k = nil
             end
@@ -366,7 +366,7 @@ class Material
         # Override the base material if both are included
         if not k_in.nil?
             @k_in = k_in # Btu-in/h-ft^2-F
-            @k = OpenStudio::convert(k_in,"in","ft").get # Btu/h-ft-F
+            @k = UnitConversions.convert(k_in,"in","ft") # Btu/h-ft-F
         end
         if not rho.nil?
             @rho = rho # lb/ft^3
@@ -655,9 +655,9 @@ class Construction
             else
                 infos << "layer name: #{@layers_names[idx]}"
             end
-            infos << "layer thick: #{OpenStudio::convert(layer_materials[0].thick_in,"in","ft").get.round(5).to_s}"
+            infos << "layer thick: #{UnitConversions.convert(layer_materials[0].thick_in,"in","ft").round(5).to_s}"
             layer_materials.each do |mat|
-                infos << "layer cond:  #{OpenStudio::convert(mat.k_in,"in","ft").get.round(5).to_s}"
+                infos << "layer cond:  #{UnitConversions.convert(mat.k_in,"in","ft").round(5).to_s}"
             end
             infos << "------"
         end
@@ -826,7 +826,7 @@ class Construction
         total_area = 0.0
         space.surfaces.each do |surface|
             next if surface.surfaceType.downcase != surface_type
-            surf_area = OpenStudio::convert(surface.netArea,"m^2","ft^2").get
+            surf_area = UnitConversions.convert(surface.netArea,"m^2","ft^2")
             ufactor = self.get_surface_ufactor(runner, surface, surface_type)
             return nil if ufactor.nil?
             sum_surface_ua += surf_area * ufactor
@@ -839,13 +839,13 @@ class Construction
         if surface_type.downcase.include?("window")
             simple_glazing = self.get_window_simple_glazing(runner, surface)
             return nil if simple_glazing.nil?
-            return OpenStudio::convert(simple_glazing.uFactor,"W/m^2*K","Btu/ft^2*h*R").get
+            return UnitConversions.convert(simple_glazing.uFactor,"W/(m^2*K)","Btu/(hr*ft^2*F)")
         else
             if not surface.construction.is_initialized
                 runner.registerError("Construction not assigned to '#{surface.name.to_s}'.")
                 return nil
             end
-            ufactor = OpenStudio::convert(surface.uFactor.get,"W/m^2*K","Btu/ft^2*h*R").get
+            ufactor = UnitConversions.convert(surface.uFactor.get,"W/(m^2*K)","Btu/(hr*ft^2*F)")
             if surface.class.method_defined?('adjacentSurface') and surface.adjacentSurface.is_initialized
                 # Use average u-factor of adjacent surface, as OpenStudio returns
                 # two different values for, e.g., floor vs adjacent roofceiling
@@ -853,7 +853,7 @@ class Construction
                     runner.registerError("Construction not assigned to '#{surface.adjacentSurface.get.name.to_s}'.")
                     return nil
                 end
-                adjacent_ufactor = OpenStudio::convert(surface.adjacentSurface.get.uFactor.get,"W/m^2*K","Btu/ft^2*h*R").get
+                adjacent_ufactor = UnitConversions.convert(surface.adjacentSurface.get.uFactor.get,"W/(m^2*K)","Btu/(hr*ft^2*F)")
                 return (ufactor + adjacent_ufactor) / 2.0
             end
             return ufactor
@@ -1282,14 +1282,14 @@ class Construction
                 model.getMasslessOpaqueMaterials.each do |mat|
                     next if mat.name.to_s != name.to_s
                     next if mat.roughness.downcase.to_s != "rough"
-                    next if (mat.thermalResistance - OpenStudio::convert(material.rvalue,"hr*ft^2*R/Btu","m^2*K/W").get).abs > tolerance
+                    next if (mat.thermalResistance - UnitConversions.convert(material.rvalue,"hr*ft^2*F/Btu","m^2*K/W")).abs > tolerance
                     return mat
                 end
                 # New material
                 mat = OpenStudio::Model::MasslessOpaqueMaterial.new(model)
                 mat.setName(name)
                 mat.setRoughness("Rough")
-                mat.setThermalResistance(OpenStudio::convert(material.rvalue,"hr*ft^2*R/Btu","m^2*K/W").get)
+                mat.setThermalResistance(UnitConversions.convert(material.rvalue,"hr*ft^2*F/Btu","m^2*K/W"))
             elsif material.is_a? GlazingMaterial
                 # Material already exists?
                 model.getSimpleGlazings.each do |mat|
@@ -1308,10 +1308,10 @@ class Construction
                 model.getStandardOpaqueMaterials.each do |mat|
                     next if mat.name.to_s != name.to_s
                     next if mat.roughness.downcase.to_s != "rough"
-                    next if (mat.thickness - OpenStudio::convert(material.thick_in,"in","m").get).abs > tolerance
-                    next if (mat.conductivity - OpenStudio::convert(material.k,"Btu/hr*ft*R","W/m*K").get).abs > tolerance
-                    next if (mat.density - OpenStudio::convert(material.rho,"lb/ft^3","kg/m^3").get).abs > tolerance
-                    next if (mat.specificHeat - OpenStudio::convert(material.cp,"Btu/lb*R","J/kg*K").get).abs > tolerance
+                    next if (mat.thickness - UnitConversions.convert(material.thick_in,"in","m")).abs > tolerance
+                    next if (mat.conductivity - UnitConversions.convert(material.k,"Btu/(hr*ft*R)","W/(m*K)")).abs > tolerance
+                    next if (mat.density - UnitConversions.convert(material.rho,"lbm/ft^3","kg/m^3")).abs > tolerance
+                    next if (mat.specificHeat - UnitConversions.convert(material.cp,"Btu/(lbm*R)","J/(kg*K)")).abs > tolerance
                     next if not material.tAbs.nil? and (mat.thermalAbsorptance - material.tAbs).abs > tolerance
                     next if not material.sAbs.nil? and (mat.solarAbsorptance - material.sAbs).abs > tolerance
                     next if not material.vAbs.nil? and (mat.visibleAbsorptance - material.vAbs).abs > tolerance
@@ -1321,10 +1321,10 @@ class Construction
                 mat = OpenStudio::Model::StandardOpaqueMaterial.new(model)
                 mat.setName(name)
                 mat.setRoughness("Rough")
-                mat.setThickness(OpenStudio::convert(material.thick_in,"in","m").get)
-                mat.setConductivity(OpenStudio::convert(material.k,"Btu/hr*ft*R","W/m*K").get)
-                mat.setDensity(OpenStudio::convert(material.rho,"lb/ft^3","kg/m^3").get)
-                mat.setSpecificHeat(OpenStudio::convert(material.cp,"Btu/lb*R","J/kg*K").get)
+                mat.setThickness(UnitConversions.convert(material.thick_in,"in","m"))
+                mat.setConductivity(UnitConversions.convert(material.k,"Btu/(hr*ft*R)","W/(m*K)"))
+                mat.setDensity(UnitConversions.convert(material.rho,"lbm/ft^3","kg/m^3"))
+                mat.setSpecificHeat(UnitConversions.convert(material.cp,"Btu/(lbm*R)","J/(kg*K)"))
                 if not material.tAbs.nil?
                     mat.setThermalAbsorptance(material.tAbs)
                 end

@@ -3,6 +3,7 @@
 
 require "#{File.dirname(__FILE__)}/resources/constants"
 require "#{File.dirname(__FILE__)}/resources/geometry"
+require "#{File.dirname(__FILE__)}/resources/unit_conversions"
 
 # start the measure
 class CreateResidentialSingleFamilyDetachedGeometry < OpenStudio::Measure::ModelMeasure
@@ -223,11 +224,11 @@ class CreateResidentialSingleFamilyDetachedGeometry < OpenStudio::Measure::Model
     end
     
     # Convert to SI
-    total_ffa = OpenStudio.convert(total_ffa,"ft^2","m^2").get
-    living_height = OpenStudio.convert(living_height,"ft","m").get
-    garage_width = OpenStudio::convert(garage_width,"ft","m").get
-    garage_depth = OpenStudio::convert(garage_depth,"ft","m").get
-    foundation_height = OpenStudio.convert(foundation_height,"ft","m").get
+    total_ffa = UnitConversions.convert(total_ffa,"ft^2","m^2")
+    living_height = UnitConversions.convert(living_height,"ft","m")
+    garage_width = UnitConversions.convert(garage_width,"ft","m")
+    garage_depth = UnitConversions.convert(garage_depth,"ft","m")
+    foundation_height = UnitConversions.convert(foundation_height,"ft","m")
     
     garage_area = garage_width * garage_depth
     has_garage = false

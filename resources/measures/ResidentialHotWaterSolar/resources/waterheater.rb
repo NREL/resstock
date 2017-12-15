@@ -4,6 +4,7 @@ require "#{File.dirname(__FILE__)}/util"
 require "#{File.dirname(__FILE__)}/weather"
 require "#{File.dirname(__FILE__)}/geometry"
 require "#{File.dirname(__FILE__)}/schedules"
+require "#{File.dirname(__FILE__)}/unit_conversions"
 
 class Waterheater
 
@@ -308,7 +309,7 @@ class Waterheater
     def self.create_new_schedule_manager(t_set, model, wh_type)
         new_schedule = OpenStudio::Model::ScheduleConstant.new(model)
         new_schedule.setName("dhw temp")
-        new_schedule.setValue(OpenStudio::convert(t_set,"F","C").get + self.deadband(wh_type)/2.0)
+        new_schedule.setValue(UnitConversions.convert(t_set,"F","C") + self.deadband(wh_type)/2.0)
         OpenStudio::Model::SetpointManagerScheduled.new(model, new_schedule)
     end 
     
@@ -319,9 +320,9 @@ class Waterheater
         fuel_eplus = HelperMethods.eplus_fuel_map(fuel)
         capacity = self.calc_capacity(cap, fuel, nbeds, nbaths)
         if fuel != Constants.FuelTypeElectric
-            capacity_w = OpenStudio::convert(capacity,"kBtu/hr","W").get
+            capacity_w = UnitConversions.convert(capacity,"kBtu/hr","W")
         else
-            capacity_w = OpenStudio::convert(capacity,"kW","W").get
+            capacity_w = UnitConversions.convert(capacity,"kW","W")
         end
         nom_vol = self.calc_nom_tankvol(vol, fuel, nbeds, nbaths)
         act_vol = self.calc_actual_tankvol(nom_vol, fuel, wh_type)
@@ -336,7 +337,7 @@ class Waterheater
         end
         new_heater.setDeadbandTemperatureDifference(self.deadband(wh_type))
         
-        vol_m3 = OpenStudio::convert(act_vol, "gal", "m^3").get
+        vol_m3 = UnitConversions.convert(act_vol, "gal", "m^3")
         new_heater.setHeaterMinimumCapacity(0.0)
         new_heater.setHeaterMaximumCapacity(capacity_w)
         new_heater.setHeaterFuelType(fuel_eplus)
@@ -384,7 +385,7 @@ class Waterheater
         if new_heater.ambientTemperatureSchedule.is_initialized
             new_heater.ambientTemperatureSchedule.get.remove
         end
-        ua_w_k = OpenStudio::convert(ua, "Btu/hr*R", "W/K").get
+        ua_w_k = UnitConversions.convert(ua,"Btu/(hr*F)","W/K")
         new_heater.setOnCycleLossCoefficienttoAmbientTemperature(ua_w_k)
         new_heater.setOffCycleLossCoefficienttoAmbientTemperature(ua_w_k)
         
@@ -392,7 +393,7 @@ class Waterheater
     end 
   
     def self.configure_setpoint_schedule(new_heater, t_set, wh_type, model)
-        set_temp_c = OpenStudio::convert(t_set,"F","C").get + self.deadband(wh_type)/2.0 #Half the deadband to account for E+ deadband
+        set_temp_c = UnitConversions.convert(t_set,"F","C") + self.deadband(wh_type)/2.0 #Half the deadband to account for E+ deadband
         new_schedule = OpenStudio::Model::ScheduleConstant.new(model)
         new_schedule.setName("WH Setpoint Temp")
         new_schedule.setValue(set_temp_c)
@@ -406,8 +407,8 @@ class Waterheater
         #Create a new plant loop for the water heater
         loop = OpenStudio::Model::PlantLoop.new(model)
         loop.setName(name)
-        loop.sizingPlant.setDesignLoopExitTemperature(OpenStudio::convert(t_set,"F","C").get + self.deadband(wh_type)/2.0)
-        loop.sizingPlant.setLoopDesignTemperatureDifference(OpenStudio::convert(10,"R","K").get)
+        loop.sizingPlant.setDesignLoopExitTemperature(UnitConversions.convert(t_set,"F","C") + self.deadband(wh_type)/2.0)
+        loop.sizingPlant.setLoopDesignTemperatureDifference(UnitConversions.convert(10,"R","K"))
         loop.setPlantLoopVolume(0.003) #~1 gal
         loop.setMaximumLoopFlowRate(0.01) # This size represents the physical limitations to flow due to losses in the piping system. For BEopt we assume that the pipes are always adequately sized
             
@@ -445,13 +446,13 @@ class Waterheater
                 runner.registerError("Water heater found without a setpoint temperature schedule.")
                 return nil
             end
-            return OpenStudio.convert(waterHeater.setpointTemperatureSchedule.get.to_ScheduleConstant.get.value - waterHeater.deadbandTemperatureDifference/2.0,"C","F").get
+            return UnitConversions.convert(waterHeater.setpointTemperatureSchedule.get.to_ScheduleConstant.get.value - waterHeater.deadbandTemperatureDifference/2.0,"C","F")
         elsif waterHeater.is_a? OpenStudio::Model::WaterHeaterHeatPumpWrappedCondenser
             if waterHeater.compressorSetpointTemperatureSchedule.nil?
                 runner.registerError("Heat pump water heater found without a setpoint temperature schedule.")
                 return nil
             end
-            return OpenStudio.convert(waterHeater.compressorSetpointTemperatureSchedule.to_ScheduleConstant.get.value,"C","F").get
+            return UnitConversions.convert(waterHeater.compressorSetpointTemperatureSchedule.to_ScheduleConstant.get.value,"C","F")
         end
         return nil
     end

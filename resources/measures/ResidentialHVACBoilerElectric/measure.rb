@@ -5,6 +5,7 @@ require "#{File.dirname(__FILE__)}/resources/util"
 require "#{File.dirname(__FILE__)}/resources/constants"
 require "#{File.dirname(__FILE__)}/resources/geometry"
 require "#{File.dirname(__FILE__)}/resources/hvac"
+require "#{File.dirname(__FILE__)}/resources/unit_conversions"
 
 # start the measure
 class ProcessBoilerElectric < OpenStudio::Measure::ModelMeasure
@@ -131,7 +132,7 @@ class ProcessBoilerElectric < OpenStudio::Measure::ModelMeasure
     boilerOATLowHWST.is_initialized ? boilerOATLowHWST = boilerOATLowHWST.get : boilerOATLowHWST = nil      
     boilerOutputCapacity = runner.getStringArgumentValue("capacity",user_arguments)
     if not boilerOutputCapacity == Constants.SizingAuto
-      boilerOutputCapacity = OpenStudio::convert(boilerOutputCapacity.to_f,"kBtu/h","Btu/h").get
+      boilerOutputCapacity = UnitConversions.convert(boilerOutputCapacity.to_f,"kBtu/hr","Btu/hr")
     end
     boilerDesignTemp = runner.getDoubleArgumentValue("design_temp",user_arguments)
     dse = runner.getStringArgumentValue("dse",user_arguments)
@@ -190,8 +191,8 @@ class ProcessBoilerElectric < OpenStudio::Measure::ModelMeasure
     
     loop_sizing = plant_loop.sizingPlant
     loop_sizing.setLoopType("Heating")
-    loop_sizing.setDesignLoopExitTemperature(OpenStudio::convert(boilerDesignTemp - 32.0,"R","K").get)
-    loop_sizing.setLoopDesignTemperatureDifference(OpenStudio::convert(20.0,"R","K").get)
+    loop_sizing.setDesignLoopExitTemperature(UnitConversions.convert(boilerDesignTemp - 32.0,"R","K"))
+    loop_sizing.setLoopDesignTemperatureDifference(UnitConversions.convert(20.0,"R","K"))
     
     pump = OpenStudio::Model::PumpVariableSpeed.new(model)
     pump.setName(Constants.ObjectNameBoiler(Constants.FuelTypeElectric) + " hydronic pump")
@@ -208,28 +209,28 @@ class ProcessBoilerElectric < OpenStudio::Measure::ModelMeasure
     boiler.setName(Constants.ObjectNameBoiler(Constants.FuelTypeElectric))
     boiler.setFuelType(HelperMethods.eplus_fuel_map(Constants.FuelTypeElectric))
     if boilerOutputCapacity != Constants.SizingAuto
-      boiler.setNominalCapacity(OpenStudio::convert(boilerOutputCapacity,"Btu/h","W").get) # Used by HVACSizing measure
+      boiler.setNominalCapacity(UnitConversions.convert(boilerOutputCapacity,"Btu/hr","W")) # Used by HVACSizing measure
     end
     if boilerType == Constants.BoilerTypeCondensing
       # Convert Rated Efficiency at 80F and 1.0PLR where the performance curves are derived from to Design condition as input
-      boiler_RatedHWRT = OpenStudio::convert(80.0-32.0,"R","K").get
+      boiler_RatedHWRT = UnitConversions.convert(80.0-32.0,"R","K")
       plr_Rated = 1.0
       plr_Design = 1.0
-      boiler_DesignHWRT = OpenStudio::convert(boilerDesignTemp - 20.0 - 32.0,"R","K").get
+      boiler_DesignHWRT = UnitConversions.convert(boilerDesignTemp - 20.0 - 32.0,"R","K")
       condBlr_TE_Coeff = condensingBlr_TE_FT_coefficients   # The coefficients are normalized at 80F HWRT
       boilerEff_Norm = 1.0 / boiler_hir / (condBlr_TE_Coeff[0] - condBlr_TE_Coeff[1] * plr_Rated - condBlr_TE_Coeff[2] * plr_Rated**2 - condBlr_TE_Coeff[3] * boiler_RatedHWRT + condBlr_TE_Coeff[4] * boiler_RatedHWRT**2 + condBlr_TE_Coeff[5] * boiler_RatedHWRT * plr_Rated)
       boilerEff_Design = boilerEff_Norm * (condBlr_TE_Coeff[0] - condBlr_TE_Coeff[1] * plr_Design - condBlr_TE_Coeff[2] * plr_Design**2 - condBlr_TE_Coeff[3] * boiler_DesignHWRT + condBlr_TE_Coeff[4] * boiler_DesignHWRT**2 + condBlr_TE_Coeff[5] * boiler_DesignHWRT * plr_Design)
       boiler.setNominalThermalEfficiency(dse * boilerEff_Design)
       boiler.setEfficiencyCurveTemperatureEvaluationVariable("EnteringBoiler")
       boiler.setNormalizedBoilerEfficiencyCurve(boiler_eff_curve)
-      boiler.setDesignWaterOutletTemperature(OpenStudio::convert(boilerDesignTemp - 32.0,"R","K").get)
+      boiler.setDesignWaterOutletTemperature(UnitConversions.convert(boilerDesignTemp - 32.0,"R","K"))
       boiler.setMinimumPartLoadRatio(0.0) 
       boiler.setMaximumPartLoadRatio(1.0)
     else
       boiler.setNominalThermalEfficiency(dse / boiler_hir)
       boiler.setEfficiencyCurveTemperatureEvaluationVariable("LeavingBoiler")
       boiler.setNormalizedBoilerEfficiencyCurve(boiler_eff_curve)
-      boiler.setDesignWaterOutletTemperature(OpenStudio::convert(boilerDesignTemp - 32.0,"R","K").get)
+      boiler.setDesignWaterOutletTemperature(UnitConversions.convert(boilerDesignTemp - 32.0,"R","K"))
       boiler.setMinimumPartLoadRatio(0.0) 
       boiler.setMaximumPartLoadRatio(1.1)
     end
@@ -242,16 +243,16 @@ class ProcessBoilerElectric < OpenStudio::Measure::ModelMeasure
       setpoint_manager_oar = OpenStudio::Model::SetpointManagerOutdoorAirReset.new(model)
       setpoint_manager_oar.setName(Constants.ObjectNameBoiler(Constants.FuelTypeElectric) + " outdoor reset")
       setpoint_manager_oar.setControlVariable("Temperature")
-      setpoint_manager_oar.setSetpointatOutdoorLowTemperature(OpenStudio::convert(boilerOATLowHWST,"F","C").get)
-      setpoint_manager_oar.setOutdoorLowTemperature(OpenStudio::convert(boilerOATLow,"F","C").get)
-      setpoint_manager_oar.setSetpointatOutdoorHighTemperature(OpenStudio::convert(boilerOATHighHWST,"F","C").get)
-      setpoint_manager_oar.setOutdoorHighTemperature(OpenStudio::convert(boilerOATHigh,"F","C").get)
+      setpoint_manager_oar.setSetpointatOutdoorLowTemperature(UnitConversions.convert(boilerOATLowHWST,"F","C"))
+      setpoint_manager_oar.setOutdoorLowTemperature(UnitConversions.convert(boilerOATLow,"F","C"))
+      setpoint_manager_oar.setSetpointatOutdoorHighTemperature(UnitConversions.convert(boilerOATHighHWST,"F","C"))
+      setpoint_manager_oar.setOutdoorHighTemperature(UnitConversions.convert(boilerOATHigh,"F","C"))
       setpoint_manager_oar.addToNode(plant_loop.supplyOutletNode)      
     end
     
     hydronic_heat_supply_setpoint = OpenStudio::Model::ScheduleConstant.new(model)
     hydronic_heat_supply_setpoint.setName(Constants.ObjectNameBoiler(Constants.FuelTypeElectric) + " hydronic heat supply setpoint")
-    hydronic_heat_supply_setpoint.setValue(OpenStudio::convert(boilerDesignTemp,"F","C").get)    
+    hydronic_heat_supply_setpoint.setValue(UnitConversions.convert(boilerDesignTemp,"F","C"))    
     
     setpoint_manager_scheduled = OpenStudio::Model::SetpointManagerScheduled.new(model, hydronic_heat_supply_setpoint)
     setpoint_manager_scheduled.setName(Constants.ObjectNameBoiler(Constants.FuelTypeElectric) + " hydronic heat loop setpoint manager")
@@ -293,7 +294,7 @@ class ProcessBoilerElectric < OpenStudio::Measure::ModelMeasure
         baseboard_coil = OpenStudio::Model::CoilHeatingWaterBaseboard.new(model)
         baseboard_coil.setName(obj_name + " #{control_zone.name} heating coil")
         if boilerOutputCapacity != Constants.SizingAuto
-          baseboard_coil.setHeatingDesignCapacity(OpenStudio::convert(boilerOutputCapacity,"Btu/h","W").get) # Used by HVACSizing measure
+          baseboard_coil.setHeatingDesignCapacity(UnitConversions.convert(boilerOutputCapacity,"Btu/hr","W")) # Used by HVACSizing measure
         end
         baseboard_coil.setConvergenceTolerance(0.001)
         
@@ -317,7 +318,7 @@ class ProcessBoilerElectric < OpenStudio::Measure::ModelMeasure
           baseboard_coil = OpenStudio::Model::CoilHeatingWaterBaseboard.new(model)
           baseboard_coil.setName(obj_name + " #{slave_zone.name} heating coil")
           if boilerOutputCapacity != Constants.SizingAuto
-            baseboard_coil.setHeatingDesignCapacity(OpenStudio::convert(boilerOutputCapacity,"Btu/h","W").get) # Used by HVACSizing measure
+            baseboard_coil.setHeatingDesignCapacity(UnitConversions.convert(boilerOutputCapacity,"Btu/hr","W")) # Used by HVACSizing measure
           end
           baseboard_coil.setConvergenceTolerance(0.001)
         

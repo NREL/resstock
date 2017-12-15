@@ -205,7 +205,7 @@ class ProcessTwoSpeedCentralAirConditioner < OpenStudio::Measure::ModelMeasure
     acEERCapacityDerateFactor = [acEERCapacityDerateFactor1ton, acEERCapacityDerateFactor2ton, acEERCapacityDerateFactor3ton, acEERCapacityDerateFactor4ton, acEERCapacityDerateFactor5ton]
     acOutputCapacity = runner.getStringArgumentValue("capacity",user_arguments)
     unless acOutputCapacity == Constants.SizingAuto
-      acOutputCapacity = OpenStudio::convert(acOutputCapacity.to_f,"ton","Btu/h").get
+      acOutputCapacity = UnitConversions.convert(acOutputCapacity.to_f,"ton","Btu/hr")
     end 
     dse = runner.getStringArgumentValue("dse",user_arguments)
     if dse.to_f > 0
@@ -228,7 +228,7 @@ class ProcessTwoSpeedCentralAirConditioner < OpenStudio::Measure::ModelMeasure
     cOOL_EIR_FFLOW_SPEC = [[1.562945114, -0.791859997, 0.230030877], 
                            [1.31565404, -0.482467162, 0.166239001]]
     
-    static = UnitConversion.inH2O2Pa(0.5) # Pascal
+    static = UnitConversions.convert(0.5,"inH2O","Pa") # Pascal
 
     # Cooling Coil
     acRatedAirFlowRate = 355.2 # cfm
@@ -266,8 +266,8 @@ class ProcessTwoSpeedCentralAirConditioner < OpenStudio::Measure::ModelMeasure
         clg_coil.setCondenserType("AirCooled")
         clg_coil.setApplyPartLoadFractiontoSpeedsGreaterthan1(false)
         clg_coil.setApplyLatentDegradationtoSpeedsGreaterthan1(false)
-        clg_coil.setCrankcaseHeaterCapacity(OpenStudio::convert(acCrankcase,"kW","W").get)
-        clg_coil.setMaximumOutdoorDryBulbTemperatureforCrankcaseHeaterOperation(OpenStudio::convert(acCrankcaseMaxT,"F","C").get)
+        clg_coil.setCrankcaseHeaterCapacity(UnitConversions.convert(acCrankcase,"kW","W"))
+        clg_coil.setMaximumOutdoorDryBulbTemperatureforCrankcaseHeaterOperation(UnitConversions.convert(acCrankcaseMaxT,"F","C"))
         
         clg_coil.setFuelType("Electricity")
              
@@ -311,7 +311,7 @@ class ProcessTwoSpeedCentralAirConditioner < OpenStudio::Measure::ModelMeasure
         air_loop_unitary.setSupplyFan(fan)
         air_loop_unitary.setFanPlacement("BlowThrough")
         air_loop_unitary.setSupplyAirFanOperatingModeSchedule(model.alwaysOffDiscreteSchedule)
-        air_loop_unitary.setMaximumSupplyAirTemperature(OpenStudio::convert(120.0,"F","C").get)
+        air_loop_unitary.setMaximumSupplyAirTemperature(UnitConversions.convert(120.0,"F","C"))
         air_loop_unitary.setSupplyAirFlowRateWhenNoCoolingorHeatingisRequired(0)    
         
         perf = OpenStudio::Model::UnitarySystemPerformanceMultispeed.new(model)

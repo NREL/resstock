@@ -160,7 +160,7 @@ class ProcessSingleSpeedCentralAirConditioner < OpenStudio::Measure::ModelMeasur
     acEERCapacityDerateFactor = [acEERCapacityDerateFactor1ton, acEERCapacityDerateFactor2ton, acEERCapacityDerateFactor3ton, acEERCapacityDerateFactor4ton, acEERCapacityDerateFactor5ton]
     acOutputCapacity = runner.getStringArgumentValue("capacity",user_arguments)
     unless acOutputCapacity == Constants.SizingAuto
-      acOutputCapacity = OpenStudio::convert(acOutputCapacity.to_f,"ton","Btu/h").get
+      acOutputCapacity = UnitConversions.convert(acOutputCapacity.to_f,"ton","Btu/hr")
     end 
     dse = runner.getStringArgumentValue("dse",user_arguments)
     if dse.to_f > 0
@@ -178,7 +178,7 @@ class ProcessSingleSpeedCentralAirConditioner < OpenStudio::Measure::ModelMeasur
     cOOL_CAP_FFLOW_SPEC = [[0.718605468, 0.410099989, -0.128705457]]
     cOOL_EIR_FFLOW_SPEC = [[1.32299905, -0.477711207, 0.154712157]]
     
-    static = UnitConversion.inH2O2Pa(0.5) # Pascal
+    static = UnitConversions.convert(0.5,"inH2O","Pa") # Pascal
 
     acCapacityRatio = [1.0]
     acFanspeedRatio = [1.0]
@@ -218,11 +218,11 @@ class ProcessSingleSpeedCentralAirConditioner < OpenStudio::Measure::ModelMeasur
         clg_coil_stage_data[0].remove
         clg_coil.setName(obj_name + " cooling coil")
         if acOutputCapacity != Constants.SizingAuto
-          clg_coil.setRatedTotalCoolingCapacity(OpenStudio::convert(acOutputCapacity,"Btu/h","W").get) # Used by HVACSizing measure
+          clg_coil.setRatedTotalCoolingCapacity(UnitConversions.convert(acOutputCapacity,"Btu/hr","W")) # Used by HVACSizing measure
         end
         clg_coil.setRatedSensibleHeatRatio(sHR_Rated_Gross[0])
         clg_coil.setRatedCOP(OpenStudio::OptionalDouble.new(dse / coolingEIR[0]))
-        clg_coil.setRatedEvaporatorFanPowerPerVolumeFlowRate(OpenStudio::OptionalDouble.new(acSupplyFanPowerRated / OpenStudio::convert(1.0,"cfm","m^3/s").get))
+        clg_coil.setRatedEvaporatorFanPowerPerVolumeFlowRate(OpenStudio::OptionalDouble.new(acSupplyFanPowerRated / UnitConversions.convert(1.0,"cfm","m^3/s")))
 
         clg_coil.setNominalTimeForCondensateRemovalToBegin(OpenStudio::OptionalDouble.new(1000.0))
         clg_coil.setRatioOfInitialMoistureEvaporationRateAndSteadyStateLatentCapacity(OpenStudio::OptionalDouble.new(1.5))
@@ -230,8 +230,8 @@ class ProcessSingleSpeedCentralAirConditioner < OpenStudio::Measure::ModelMeasur
         clg_coil.setLatentCapacityTimeConstant(OpenStudio::OptionalDouble.new(45.0))
 
         clg_coil.setCondenserType("AirCooled")
-        clg_coil.setCrankcaseHeaterCapacity(OpenStudio::OptionalDouble.new(OpenStudio::convert(acCrankcase,"kW","W").get))
-        clg_coil.setMaximumOutdoorDryBulbTemperatureForCrankcaseHeaterOperation(OpenStudio::OptionalDouble.new(OpenStudio::convert(acCrankcaseMaxT,"F","C").get))
+        clg_coil.setCrankcaseHeaterCapacity(OpenStudio::OptionalDouble.new(UnitConversions.convert(acCrankcase,"kW","W")))
+        clg_coil.setMaximumOutdoorDryBulbTemperatureForCrankcaseHeaterOperation(OpenStudio::OptionalDouble.new(UnitConversions.convert(acCrankcaseMaxT,"F","C")))
           
         # _processSystemFan
         if not htg_coil.nil?
@@ -266,7 +266,7 @@ class ProcessSingleSpeedCentralAirConditioner < OpenStudio::Measure::ModelMeasur
         air_loop_unitary.setSupplyFan(fan)
         air_loop_unitary.setFanPlacement("BlowThrough")
         air_loop_unitary.setSupplyAirFanOperatingModeSchedule(model.alwaysOffDiscreteSchedule)
-        air_loop_unitary.setMaximumSupplyAirTemperature(OpenStudio::convert(120.0,"F","C").get)
+        air_loop_unitary.setMaximumSupplyAirTemperature(UnitConversions.convert(120.0,"F","C"))
         air_loop_unitary.setSupplyAirFlowRateWhenNoCoolingorHeatingisRequired(0)    
         
         air_loop = OpenStudio::Model::AirLoopHVAC.new(model)

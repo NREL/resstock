@@ -10,6 +10,7 @@
 require "#{File.dirname(__FILE__)}/resources/util"
 require "#{File.dirname(__FILE__)}/resources/constants"
 require "#{File.dirname(__FILE__)}/resources/geometry"
+require "#{File.dirname(__FILE__)}/resources/unit_conversions"
 
 #start the measure
 class ProcessConstructionsWallsPartitionThermalMass < OpenStudio::Measure::ModelMeasure

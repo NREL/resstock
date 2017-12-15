@@ -3,6 +3,7 @@
 
 require "#{File.dirname(__FILE__)}/resources/constants"
 require "#{File.dirname(__FILE__)}/resources/geometry"
+require "#{File.dirname(__FILE__)}/resources/unit_conversions"
 
 # start the measure
 class SetResidentialWindowArea < OpenStudio::Measure::ModelMeasure
@@ -224,7 +225,7 @@ class SetResidentialWindowArea < OpenStudio::Measure::ModelMeasure
         if wwrs[facade] > 0
           wall_area = 0
           surfaces[facade].each do |surface|
-              wall_area += OpenStudio.convert(surface.grossArea, "m^2", "ft^2").get
+              wall_area += UnitConversions.convert(surface.grossArea, "m^2", "ft^2")
           end
           target_facade_areas[facade] = wall_area * wwrs[facade]
         else
@@ -332,7 +333,7 @@ class SetResidentialWindowArea < OpenStudio::Measure::ModelMeasure
         return 0.0
     end
 
-    return OpenStudio.convert(surface.grossArea, "m^2", "ft^2").get
+    return UnitConversions.convert(surface.grossArea, "m^2", "ft^2")
   end
   
   def add_windows_to_wall(surface, window_area, window_gap_y, window_gap_x, aspect_ratio, max_single_window_area, facade, constructions, model, runner)
@@ -417,9 +418,9 @@ class SetResidentialWindowArea < OpenStudio::Measure::ModelMeasure
     end
     bottomz = Geometry.getSurfaceZValues([surface]).min
     [upperleft, lowerleft, lowerright, upperright ].each do |coord|
-        newx = OpenStudio.convert(leftx + multx * coord[0], "ft", "m").get
-        newy = OpenStudio.convert(lefty + multy * coord[0], "ft", "m").get
-        newz = OpenStudio.convert(bottomz + coord[1], "ft", "m").get
+        newx = UnitConversions.convert(leftx + multx * coord[0], "ft", "m")
+        newy = UnitConversions.convert(lefty + multy * coord[0], "ft", "m")
+        newz = UnitConversions.convert(bottomz + coord[1], "ft", "m")
         window_vertex = OpenStudio::Point3d.new(newx, newy, newz)
         window_polygon << window_vertex
     end

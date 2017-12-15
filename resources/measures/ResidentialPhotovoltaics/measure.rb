@@ -5,6 +5,7 @@ require "#{File.dirname(__FILE__)}/resources/constants"
 require "#{File.dirname(__FILE__)}/resources/weather"
 require "#{File.dirname(__FILE__)}/resources/hvac"
 require "#{File.dirname(__FILE__)}/resources/geometry"
+require "#{File.dirname(__FILE__)}/resources/unit_conversions"
 
 # start the measure
 class ResidentialPhotovoltaics < OpenStudio::Measure::ModelMeasure
@@ -163,7 +164,7 @@ class ResidentialPhotovoltaics < OpenStudio::Measure::ModelMeasure
     obj_name = Constants.ObjectNamePhotovoltaics
     
     highest_roof_pitch = Geometry.get_roof_pitch(model.getSurfaces)
-    roof_tilt = OpenStudio::convert(Math.atan(highest_roof_pitch),"rad","deg").get # tan(x) = opp/adj = highest_roof_pitch
+    roof_tilt = UnitConversions.convert(Math.atan(highest_roof_pitch),"rad","deg") # tan(x) = opp/adj = highest_roof_pitch
     
     pv_system.size = size
     pv_system.module_type = {Constants.PVModuleTypeStandard=>0, Constants.PVModuleTypePremium=>1, Constants.PVModuleTypeThinFilm=>2}[module_type]

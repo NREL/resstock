@@ -250,12 +250,12 @@ class ProcessSingleSpeedAirSourceHeatPump < OpenStudio::Measure::ModelMeasure
     hpCOPCapacityDerateFactor = [hpCOPCapacityDerateFactor1ton, hpCOPCapacityDerateFactor2ton, hpCOPCapacityDerateFactor3ton, hpCOPCapacityDerateFactor4ton, hpCOPCapacityDerateFactor5ton]
     hpOutputCapacity = runner.getStringArgumentValue("heat_pump_capacity",user_arguments)
     unless hpOutputCapacity == Constants.SizingAuto or hpOutputCapacity == Constants.SizingAutoMaxLoad
-      hpOutputCapacity = OpenStudio::convert(hpOutputCapacity.to_f,"ton","Btu/h").get
+      hpOutputCapacity = UnitConversions.convert(hpOutputCapacity.to_f,"ton","Btu/hr")
     end
     supplementalEfficiency = runner.getDoubleArgumentValue("supplemental_efficiency",user_arguments)
     supplementalOutputCapacity = runner.getStringArgumentValue("supplemental_capacity",user_arguments)
     unless supplementalOutputCapacity == Constants.SizingAuto
-      supplementalOutputCapacity = OpenStudio::convert(supplementalOutputCapacity.to_f,"kBtu/h","Btu/h").get
+      supplementalOutputCapacity = UnitConversions.convert(supplementalOutputCapacity.to_f,"kBtu/hr","Btu/hr")
     end
     dse = runner.getStringArgumentValue("dse",user_arguments)
     if dse.to_f > 0
@@ -282,7 +282,7 @@ class ProcessSingleSpeedAirSourceHeatPump < OpenStudio::Measure::ModelMeasure
     hEAT_CAP_FFLOW_SPEC = [[0.694045465, 0.474207981, -0.168253446]]
     hEAT_EIR_FFLOW_SPEC = [[2.185418751, -1.942827919, 0.757409168]]
 
-    static = UnitConversion.inH2O2Pa(0.5) # Pascal
+    static = UnitConversions.convert(0.5,"inH2O","Pa") # Pascal
 
     hpCapacityRatio = [1.0]
     hpFanspeedRatioCooling = [1.0]
@@ -334,15 +334,15 @@ class ProcessSingleSpeedAirSourceHeatPump < OpenStudio::Measure::ModelMeasure
         htg_coil_stage_data[0].remove
         htg_coil.setName(obj_name + " heating coil")
         if hpOutputCapacity != Constants.SizingAuto and hpOutputCapacity != Constants.SizingAutoMaxLoad
-          htg_coil.setRatedTotalHeatingCapacity(OpenStudio::convert(hpOutputCapacity,"Btu/h","W").get) # Used by HVACSizing measure
+          htg_coil.setRatedTotalHeatingCapacity(UnitConversions.convert(hpOutputCapacity,"Btu/hr","W")) # Used by HVACSizing measure
         end
         htg_coil.setRatedCOP(dse / heatingEIR[0])
-        htg_coil.setRatedSupplyFanPowerPerVolumeFlowRate(hpSupplyFanPowerRated / OpenStudio::convert(1.0,"cfm","m^3/s").get)
+        htg_coil.setRatedSupplyFanPowerPerVolumeFlowRate(hpSupplyFanPowerRated / UnitConversions.convert(1.0,"cfm","m^3/s"))
         htg_coil.setDefrostEnergyInputRatioFunctionofTemperatureCurve(defrost_eir_curve)
-        htg_coil.setMinimumOutdoorDryBulbTemperatureforCompressorOperation(OpenStudio::convert(hpMinT,"F","C").get)
-        htg_coil.setMaximumOutdoorDryBulbTemperatureforDefrostOperation(OpenStudio::convert(40.0,"F","C").get)
-        htg_coil.setCrankcaseHeaterCapacity(OpenStudio::convert(hpCrankcase,"kW","W").get)
-        htg_coil.setMaximumOutdoorDryBulbTemperatureforCrankcaseHeaterOperation(OpenStudio::convert(hpCrankcaseMaxT,"F","C").get)
+        htg_coil.setMinimumOutdoorDryBulbTemperatureforCompressorOperation(UnitConversions.convert(hpMinT,"F","C"))
+        htg_coil.setMaximumOutdoorDryBulbTemperatureforDefrostOperation(UnitConversions.convert(40.0,"F","C"))
+        htg_coil.setCrankcaseHeaterCapacity(UnitConversions.convert(hpCrankcase,"kW","W"))
+        htg_coil.setMaximumOutdoorDryBulbTemperatureforCrankcaseHeaterOperation(UnitConversions.convert(hpCrankcaseMaxT,"F","C"))
         htg_coil.setDefrostStrategy("ReverseCycle")
         htg_coil.setDefrostControl("OnDemand")
         
@@ -350,7 +350,7 @@ class ProcessSingleSpeedAirSourceHeatPump < OpenStudio::Measure::ModelMeasure
         supp_htg_coil.setName(obj_name + " supp heater")
         supp_htg_coil.setEfficiency(dse * supplementalEfficiency)
         if supplementalOutputCapacity != Constants.SizingAuto
-          supp_htg_coil.setNominalCapacity(OpenStudio::convert(supplementalOutputCapacity,"Btu/h","W").get) # Used by HVACSizing measure
+          supp_htg_coil.setNominalCapacity(UnitConversions.convert(supplementalOutputCapacity,"Btu/hr","W")) # Used by HVACSizing measure
         end
         
         # _processCurvesDXCooling
@@ -363,11 +363,11 @@ class ProcessSingleSpeedAirSourceHeatPump < OpenStudio::Measure::ModelMeasure
         clg_coil_stage_data[0].remove
         clg_coil.setName(obj_name + " cooling coil")
         if hpOutputCapacity != Constants.SizingAuto and hpOutputCapacity != Constants.SizingAutoMaxLoad
-          clg_coil.setRatedTotalCoolingCapacity(OpenStudio::convert(hpOutputCapacity,"Btu/h","W").get) # Used by HVACSizing measure
+          clg_coil.setRatedTotalCoolingCapacity(UnitConversions.convert(hpOutputCapacity,"Btu/hr","W")) # Used by HVACSizing measure
         end
         clg_coil.setRatedSensibleHeatRatio(sHR_Rated_Gross[0])
         clg_coil.setRatedCOP(OpenStudio::OptionalDouble.new(dse / coolingEIR[0]))
-        clg_coil.setRatedEvaporatorFanPowerPerVolumeFlowRate(OpenStudio::OptionalDouble.new(hpSupplyFanPowerRated / OpenStudio::convert(1.0,"cfm","m^3/s").get))
+        clg_coil.setRatedEvaporatorFanPowerPerVolumeFlowRate(OpenStudio::OptionalDouble.new(hpSupplyFanPowerRated / UnitConversions.convert(1.0,"cfm","m^3/s")))
         clg_coil.setNominalTimeForCondensateRemovalToBegin(OpenStudio::OptionalDouble.new(1000.0))
         clg_coil.setRatioOfInitialMoistureEvaporationRateAndSteadyStateLatentCapacity(OpenStudio::OptionalDouble.new(1.5))
         clg_coil.setMaximumCyclingRate(OpenStudio::OptionalDouble.new(3.0))
@@ -395,8 +395,8 @@ class ProcessSingleSpeedAirSourceHeatPump < OpenStudio::Measure::ModelMeasure
         air_loop_unitary.setSupplementalHeatingCoil(supp_htg_coil)
         air_loop_unitary.setFanPlacement("BlowThrough")
         air_loop_unitary.setSupplyAirFanOperatingModeSchedule(model.alwaysOffDiscreteSchedule)
-        air_loop_unitary.setMaximumSupplyAirTemperature(OpenStudio::convert(170.0,"F","C").get) # higher temp for supplemental heat as to not severely limit its use, resulting in unmet hours.
-        air_loop_unitary.setMaximumOutdoorDryBulbTemperatureforSupplementalHeaterOperation(OpenStudio::convert(40.0,"F","C").get)
+        air_loop_unitary.setMaximumSupplyAirTemperature(UnitConversions.convert(170.0,"F","C")) # higher temp for supplemental heat as to not severely limit its use, resulting in unmet hours.
+        air_loop_unitary.setMaximumOutdoorDryBulbTemperatureforSupplementalHeaterOperation(UnitConversions.convert(40.0,"F","C"))
         air_loop_unitary.setSupplyAirFlowRateWhenNoCoolingorHeatingisRequired(0)
           
         air_loop = OpenStudio::Model::AirLoopHVAC.new(model)
