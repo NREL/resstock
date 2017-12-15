@@ -1383,7 +1383,7 @@ class ProcessHVACSizing < OpenStudio::Measure::ModelMeasure
             return nil
         end
         if sched_values.size != 24
-            runner.registerWarning("Expected 24 schedule values for object '#{gain.name.to_s}'.")
+            runner.registerError("Expected 24 schedule values for object '#{gain.name.to_s}' but found #{sched_values.size} values.")
             return nil
         end
         
