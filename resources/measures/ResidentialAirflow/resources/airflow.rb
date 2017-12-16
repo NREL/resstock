@@ -1,4 +1,5 @@
 require "#{File.dirname(__FILE__)}/constants"
+require "#{File.dirname(__FILE__)}/unit_conversions"
 
 class Airflow
 
@@ -36,12 +37,12 @@ class Airflow
 
   def self.get_infiltration_SLA_from_ACH50(ach50, n_i, conditionedFloorArea, conditionedVolume, pressure_difference_Pa=50)
     # Returns the infiltration SLA given a ACH50.
-    return ((ach50 * 0.2835 * 4.0 ** n_i * conditionedVolume) / (conditionedFloorArea * OpenStudio.convert(1.0,"ft^2","in^2").get * pressure_difference_Pa ** n_i * 60.0))
+    return ((ach50 * 0.2835 * 4.0 ** n_i * conditionedVolume) / (conditionedFloorArea * UnitConversions.convert(1.0,"ft^2","in^2") * pressure_difference_Pa ** n_i * 60.0))
   end  
   
   def self.get_infiltration_ACH50_from_SLA(sla, n_i, conditionedFloorArea, conditionedVolume, pressure_difference_Pa=50)
     # Returns the infiltration ACH50 given a SLA.
-    return ((sla * conditionedFloorArea * OpenStudio.convert(1.0,"ft^2","in^2").get * pressure_difference_Pa ** n_i * 60.0)/(0.2835 * 4.0 ** n_i * conditionedVolume))
+    return ((sla * conditionedFloorArea * UnitConversions.convert(1.0,"ft^2","in^2") * pressure_difference_Pa ** n_i * 60.0)/(0.2835 * 4.0 ** n_i * conditionedVolume))
   end
 
 

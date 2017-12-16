@@ -10,6 +10,7 @@
 require "#{File.dirname(__FILE__)}/resources/constants"
 require "#{File.dirname(__FILE__)}/resources/util"
 require "#{File.dirname(__FILE__)}/resources/geometry"
+require "#{File.dirname(__FILE__)}/resources/unit_conversions"
 
 #start the measure
 class ProcessThermalMassFurniture < OpenStudio::Measure::ModelMeasure
@@ -179,10 +180,10 @@ class ProcessThermalMassFurniture < OpenStudio::Measure::ModelMeasure
         fm = OpenStudio::Model::StandardOpaqueMaterial.new(model)
         fm.setName(mat_obj_name_space)
         fm.setRoughness("Rough")
-        fm.setThickness(OpenStudio::convert(furnThickness,"ft","m").get)
-        fm.setConductivity(OpenStudio::convert(furnConductivity,"Btu*in/hr*ft^2*R","W/m*K").get)
-        fm.setDensity(OpenStudio::convert(furnDensity,"lb/ft^3","kg/m^3").get)
-        fm.setSpecificHeat(OpenStudio::convert(furnSpecHeat,"Btu/lb*R","J/kg*K").get)
+        fm.setThickness(UnitConversions.convert(furnThickness,"ft","m"))
+        fm.setConductivity(UnitConversions.convert(furnConductivity,"Btu*in/(hr*ft^2*R)","W/(m*K)"))
+        fm.setDensity(UnitConversions.convert(furnDensity,"lbm/ft^3","kg/m^3"))
+        fm.setSpecificHeat(UnitConversions.convert(furnSpecHeat,"Btu/(lbm*R)","J/(kg*K)"))
         fm.setThermalAbsorptance(0.9)
         fm.setSolarAbsorptance(furnSolarAbsorptance)
         fm.setVisibleAbsorptance(0.1)

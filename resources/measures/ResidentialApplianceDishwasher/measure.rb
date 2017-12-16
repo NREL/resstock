@@ -317,7 +317,7 @@ class ResidentialDishwasher < OpenStudio::Measure::ModelMeasure
             test_dw_gas_use_per_cycle = ((dw_energy_guide_annual_energy * 
                                          dw_energy_guide_elec_cost - 
                                          dw_energy_guide_annual_gas_cost) / 
-                                        (OpenStudio.convert(test_dw_gas_dhw_heater_efficiency, "therm", "kWh").get * 
+                                        (UnitConversions.convert(test_dw_gas_dhw_heater_efficiency, "therm", "kWh") * 
                                          dw_energy_guide_elec_cost - 
                                          dw_energy_guide_gas_cost) / 
                                         test_dw_cycles_per_year) # Therns/cycle
@@ -330,7 +330,7 @@ class ResidentialDishwasher < OpenStudio::Measure::ModelMeasure
         # included in this value.
         test_dw_elec_use_per_cycle = dw_energy_guide_annual_energy / \
                 test_dw_cycles_per_year - \
-                OpenStudio.convert(test_dw_gas_dhw_heater_efficiency, "therm", "kWh").get * \
+                UnitConversions.convert(test_dw_gas_dhw_heater_efficiency, "therm", "kWh") * \
                 test_dw_gas_use_per_cycle # kWh/cycle
 
         if dw_is_cold_water_inlet_only
@@ -355,11 +355,11 @@ class ResidentialDishwasher < OpenStudio::Measure::ModelMeasure
             # the amount of gas used in the test to heat the water and the
             # temperature rise in the water heater in the test (eq. 3
             # Eastment and Hendron, NREL/CP-550-39769, 2006).
-            test_dw_dhw_use_per_cycle = (OpenStudio.convert(test_dw_gas_use_per_cycle, "therm", "kWh").get * \
+            test_dw_dhw_use_per_cycle = (UnitConversions.convert(test_dw_gas_use_per_cycle, "therm", "kWh") * \
                                          test_dw_gas_dhw_heater_efficiency) / \
                                          (test_dw_water_heater_temp_diff * \
                                           water_dens * water_sh * \
-                                          OpenStudio.convert(1, "Btu", "kWh").get / UnitConversion.ft32gal(1)) # gal/cycle (hot water)
+                                          UnitConversions.convert(1, "Btu", "kWh") / UnitConversions.convert(1,"ft^3","gal")) # gal/cycle (hot water)
         end
                                           
         # (eq. 16 Eastment and Hendron, NREL/CP-550-39769, 2006)
@@ -391,8 +391,8 @@ class ResidentialDishwasher < OpenStudio::Measure::ModelMeasure
                 actual_dw_elec_use_per_cycle = test_dw_elec_use_per_cycle + \
                                                (test_dw_mains_temp - monthly_main) * \
                                                dw_cold_water_conn_use_per_cycle * \
-                                               (water_dens * water_sh * OpenStudio.convert(1, "Btu", "kWh").get / 
-                                               UnitConversion.ft32gal(1)) # kWh/cycle
+                                               (water_dens * water_sh * UnitConversions.convert(1, "Btu", "kWh") / 
+                                               UnitConversions.convert(1,"ft^3","gal")) # kWh/cycle
                 monthly_dishwasher_energy[i] = (actual_dw_elec_use_per_cycle * \
                                                 Constants.MonthNumDays[i] * \
                                                 actual_dw_cycles_per_year / \
@@ -409,8 +409,8 @@ class ResidentialDishwasher < OpenStudio::Measure::ModelMeasure
                     (test_dw_dhw_temp - wh_setpoint) * \
                     test_dw_dhw_use_per_cycle * \
                     (water_dens * water_sh * \
-                     OpenStudio.convert(1, "Btu", "kWh").get / 
-                     UnitConversion.ft32gal(1)) # kWh/cycle
+                     UnitConversions.convert(1, "Btu", "kWh") / 
+                     UnitConversions.convert(1,"ft^3","gal")) # kWh/cycle
             daily_energy = actual_dw_elec_use_per_cycle * \
                     actual_dw_cycles_per_year / 365 # kWh/day
 

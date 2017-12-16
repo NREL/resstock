@@ -1,4 +1,5 @@
 require "#{File.dirname(__FILE__)}/constants"
+require "#{File.dirname(__FILE__)}/unit_conversions"
 
 class Geometry
 
@@ -98,7 +99,7 @@ class Geometry
         surfaces_min_zs = []
         space.surfaces.each do |surface|
           zvalues = self.getSurfaceZValues([surface])
-          surfaces_min_zs << zvalues.min + OpenStudio::convert(space.zOrigin,"m","ft").get
+          surfaces_min_zs << zvalues.min + UnitConversions.convert(space.zOrigin,"m","ft")
         end
         space_min_zs << surfaces_min_zs.min
       end
@@ -113,7 +114,7 @@ class Geometry
         surfaces_min_zs = []
         space.surfaces.each do |surface|
           zvalues = self.getSurfaceZValues([surface])
-          surfaces_min_zs << zvalues.min + OpenStudio::convert(space.zOrigin,"m","ft").get
+          surfaces_min_zs << zvalues.min + UnitConversions.convert(space.zOrigin,"m","ft")
         end
         space_min_zs << surfaces_min_zs.min
       end
@@ -262,7 +263,7 @@ class Geometry
         unit_spaces.each do |s|
             next if self.space_is_below_grade(s)
             next if self.space_is_unfinished(s)
-            space_min_z = self.getSurfaceZValues(s.surfaces).min + OpenStudio::convert(s.zOrigin,"m","ft").get
+            space_min_z = self.getSurfaceZValues(s.surfaces).min + UnitConversions.convert(s.zOrigin,"m","ft")
             next if space_min_z >= bldg_min_z
             bldg_min_z = space_min_z
             space = s
@@ -289,7 +290,7 @@ class Geometry
             if apply_multipliers
                 mult = space.multiplier.to_f
             end
-            floor_area += OpenStudio.convert(space.floorArea * mult, "m^2", "ft^2").get
+            floor_area += UnitConversions.convert(space.floorArea * mult, "m^2", "ft^2")
         end
         if floor_area == 0 and not runner.nil?
             runner.registerError("Could not find any floor area.")
@@ -305,7 +306,7 @@ class Geometry
         if apply_multipliers
             mult = space.multiplier.to_f
         end
-        volume += OpenStudio.convert(space.volume * mult,"m^3","ft^3").get
+        volume += UnitConversions.convert(space.volume * mult,"m^3","ft^3")
       end
       if volume <= 0 # FIXME: until we figure out how to deal with volumes
         return 0.001
@@ -325,7 +326,7 @@ class Geometry
             if apply_multipliers
                 mult = space.multiplier.to_f
             end
-            floor_area += OpenStudio.convert(space.floorArea * mult,"m^2","ft^2").get
+            floor_area += UnitConversions.convert(space.floorArea * mult,"m^2","ft^2")
         end
         if floor_area == 0 and not runner.nil?
             runner.registerError("Could not find any finished floor area.")
@@ -342,7 +343,7 @@ class Geometry
         if apply_multipliers
             mult = space.multiplier.to_f
         end
-        floor_area += OpenStudio.convert(space.floorArea * mult,"m^2","ft^2").get
+        floor_area += UnitConversions.convert(space.floorArea * mult,"m^2","ft^2")
       end
       if floor_area == 0 and not runner.nil?
           runner.registerError("Could not find any above-grade finished floor area.")
@@ -359,7 +360,7 @@ class Geometry
         if apply_multipliers
             mult = space.multiplier.to_f
         end
-        volume += OpenStudio.convert(space.volume * mult,"m^3","ft^3").get
+        volume += UnitConversions.convert(space.volume * mult,"m^3","ft^3")
       end
       if volume <= 0 # FIXME: until we figure out how to deal with volumes
         return 0.001
@@ -379,7 +380,7 @@ class Geometry
         if apply_multipliers
             mult = space.multiplier.to_f
         end
-        volume += OpenStudio.convert(space.volume * mult,"m^3","ft^3").get
+        volume += UnitConversions.convert(space.volume * mult,"m^3","ft^3")
       end
       if volume <= 0 # FIXME: until we figure out how to deal with volumes
         return 0.001
@@ -401,7 +402,7 @@ class Geometry
         space.surfaces.each do |surface|
           surface.subSurfaces.each do |subsurface|
             next if subsurface.subSurfaceType.downcase != "fixedwindow"
-            window_area += OpenStudio::convert(subsurface.grossArea * mult,"m^2","ft^2").get
+            window_area += UnitConversions.convert(subsurface.grossArea * mult,"m^2","ft^2")
           end
         end
       end
@@ -418,8 +419,8 @@ class Geometry
       maxzs = []
       spaces.each do |space|
         zvalues = self.getSurfaceZValues(space.surfaces)
-        minzs << zvalues.min + OpenStudio::convert(space.zOrigin,"m","ft").get
-        maxzs << zvalues.max + OpenStudio::convert(space.zOrigin,"m","ft").get
+        minzs << zvalues.min + UnitConversions.convert(space.zOrigin,"m","ft")
+        maxzs << zvalues.max + UnitConversions.convert(space.zOrigin,"m","ft")
       end
       return maxzs.max - minzs.min
     end
@@ -575,7 +576,7 @@ class Geometry
         xValueArray = []
         surfaceArray.each do |surface|
             surface.vertices.each do |vertex|
-                xValueArray << OpenStudio.convert(vertex.x, "m", "ft").get
+                xValueArray << UnitConversions.convert(vertex.x, "m", "ft")
             end
         end
         return xValueArray
@@ -586,7 +587,7 @@ class Geometry
         yValueArray = []
         surfaceArray.each do |surface|
             surface.vertices.each do |vertex|
-                yValueArray << OpenStudio.convert(vertex.y, "m", "ft").get
+                yValueArray << UnitConversions.convert(vertex.y, "m", "ft")
             end
         end
         return yValueArray
@@ -597,7 +598,7 @@ class Geometry
         zValueArray = []
         surfaceArray.each do |surface|
             surface.vertices.each do |vertex|
-                zValueArray << OpenStudio.convert(vertex.z, "m", "ft").get
+                zValueArray << UnitConversions.convert(vertex.z, "m", "ft")
             end
         end
         return zValueArray
@@ -613,7 +614,7 @@ class Geometry
     def self.get_z_origin_for_zone(zone)
       z_origins = []
       zone.spaces.each do |space|
-        z_origins << OpenStudio.convert(space.zOrigin,"m","ft").get
+        z_origins << UnitConversions.convert(space.zOrigin,"m","ft")
       end
       return z_origins.min
     end
@@ -631,7 +632,7 @@ class Geometry
     def self.calculate_total_area_from_surfaces(surfaces)
         total_area = 0
         surfaces.each do |surface|
-            total_area += OpenStudio.convert(surface.grossArea, "m^2", "ft^2").get
+            total_area += UnitConversions.convert(surface.grossArea, "m^2", "ft^2")
         end
         return total_area
     end
@@ -647,7 +648,7 @@ class Geometry
             space.surfaces.each do |surface|
                 next if surface.surfaceType.downcase != "wall"
                 next if surface.isGroundSurface
-                wall_area += OpenStudio.convert(surface.grossArea * mult, "m^2", "ft^2").get
+                wall_area += UnitConversions.convert(surface.grossArea * mult, "m^2", "ft^2")
             end
         end
         return wall_area
@@ -665,7 +666,7 @@ class Geometry
                 next if surface.outsideBoundaryCondition.downcase != "outdoors"
                 next if surface.isGroundSurface
                 next unless self.space_is_finished(surface.space.get)
-                wall_area += OpenStudio.convert(surface.grossArea * mult, "m^2", "ft^2").get
+                wall_area += UnitConversions.convert(surface.grossArea * mult, "m^2", "ft^2")
             end
         end
         return wall_area
@@ -763,7 +764,7 @@ class Geometry
             end
         end
     
-        return OpenStudio.convert(perimeter, "m", "ft").get
+        return UnitConversions.convert(perimeter, "m", "ft")
     end
     
     def self.get_edges_for_surfaces(surfaces, use_top_edge, combine_adjacent=false)
@@ -780,7 +781,7 @@ class Geometry
             vertex_hash = {}
             vertex_counter = 0
             surface.vertices.each do |vertex|
-                next if (OpenStudio.convert(vertex.z, "m", "ft").get - matchz).abs > 0.0001
+                next if (UnitConversions.convert(vertex.z, "m", "ft") - matchz).abs > 0.0001
                 vertex_counter += 1
                 vertex_hash[vertex_counter] = [vertex.x + surface.space.get.xOrigin,
                                                vertex.y + surface.space.get.yOrigin,
@@ -1082,7 +1083,7 @@ class Geometry
         if neighbor_offsets.empty?
           return 0
         end    
-        return OpenStudio::convert(neighbor_offsets.min,"m","ft").get
+        return UnitConversions.convert(neighbor_offsets.min,"m","ft")
     end
     
     def self.get_spaces_above_grade_exterior_walls(spaces)

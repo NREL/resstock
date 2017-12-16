@@ -10,6 +10,7 @@
 require "#{File.dirname(__FILE__)}/resources/geometry"
 require "#{File.dirname(__FILE__)}/resources/schedules"
 require "#{File.dirname(__FILE__)}/resources/weather"
+require "#{File.dirname(__FILE__)}/resources/unit_conversions"
 
 #start the measure
 class ResidentialLighting < OpenStudio::Measure::ModelMeasure
@@ -477,9 +478,9 @@ class ResidentialLighting < OpenStudio::Measure::ModelMeasure
             end
             
             if unit_finished_spaces.include?(space)
-                space_ltg_ann = ltg_ann * OpenStudio.convert(space.floorArea, "m^2", "ft^2").get / ffa
+                space_ltg_ann = ltg_ann * UnitConversions.convert(space.floorArea, "m^2", "ft^2") / ffa
             elsif unit_garage_spaces.include?(space)
-                space_ltg_ann = garage_ann * OpenStudio.convert(space.floorArea, "m^2", "ft^2").get / gfa
+                space_ltg_ann = garage_ann * UnitConversions.convert(space.floorArea, "m^2", "ft^2") / gfa
             end
             space_design_level = sch.calcDesignLevel(sch_max*space_ltg_ann)
         
@@ -524,7 +525,7 @@ class ResidentialLighting < OpenStudio::Measure::ModelMeasure
             end
         end
         
-        space_ltg_ann = common_garage_ann * OpenStudio.convert(garage_space.floorArea, "m^2", "ft^2").get / common_gfa
+        space_ltg_ann = common_garage_ann * UnitConversions.convert(garage_space.floorArea, "m^2", "ft^2") / common_gfa
         space_design_level = sch.calcDesignLevel(sch_max*space_ltg_ann)
     
         # Add lighting

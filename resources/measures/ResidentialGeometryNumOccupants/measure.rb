@@ -5,6 +5,7 @@ require "#{File.dirname(__FILE__)}/resources/constants"
 require "#{File.dirname(__FILE__)}/resources/geometry"
 require "#{File.dirname(__FILE__)}/resources/schedules"
 require "#{File.dirname(__FILE__)}/resources/util"
+require "#{File.dirname(__FILE__)}/resources/unit_conversions"
 
 # start the measure
 class AddResidentialOccupants < OpenStudio::Measure::ModelMeasure
@@ -134,7 +135,7 @@ class AddResidentialOccupants < OpenStudio::Measure::ModelMeasure
       return false
     end
     
-    activity_per_person = OpenStudio::convert(occ_gain, "Btu/h", "W").get
+    activity_per_person = UnitConversions.convert(occ_gain, "Btu/hr", "W")
 
     #hard coded convective, radiative, latent, and lost fractions
     occ_lat = lat_frac
@@ -213,7 +214,7 @@ class AddResidentialOccupants < OpenStudio::Measure::ModelMeasure
               end
           end
 
-          space_num_occ = unit_occ * OpenStudio.convert(space.floorArea, "m^2", "ft^2").get / ffa
+          space_num_occ = unit_occ * UnitConversions.convert(space.floorArea, "m^2", "ft^2") / ffa
           
           if space_num_occ > 0
           
