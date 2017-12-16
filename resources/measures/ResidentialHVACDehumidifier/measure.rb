@@ -149,7 +149,7 @@ class ProcessDehumidifier < OpenStudio::Measure::ModelMeasure
         zone_hvac.setName(obj_name + " #{control_zone.name} dx")
         zone_hvac.setAvailabilitySchedule(model.alwaysOnDiscreteSchedule)
         if water_removal_rate != Constants.Auto
-          zone_hvac.setRatedWaterRemoval(UnitConversion.pint2liter(water_removal_rate.to_f))
+          zone_hvac.setRatedWaterRemoval(UnitConversions.convert(water_removal_rate.to_f,"pint","L"))
         else
           zone_hvac.setRatedWaterRemoval(Constants.small) # Autosize flag for HVACSizing measure
         end
@@ -159,7 +159,7 @@ class ProcessDehumidifier < OpenStudio::Measure::ModelMeasure
           zone_hvac.setRatedEnergyFactor(Constants.small) # Autosize flag for HVACSizing measure
         end
         if air_flow_rate != Constants.Auto
-          zone_hvac.setRatedAirFlowRate(OpenStudio::convert(air_flow_rate.to_f,"cfm","m^3/s").get)
+          zone_hvac.setRatedAirFlowRate(UnitConversions.convert(air_flow_rate.to_f,"cfm","m^3/s"))
         else
           zone_hvac.setRatedAirFlowRate(Constants.small) # Autosize flag for HVACSizing measure
         end
@@ -197,7 +197,7 @@ class ProcessDehumidifier < OpenStudio::Measure::ModelMeasure
           # zone_hvac.setName(obj_name + " #{slave_zone.name} dx")
           # zone_hvac.setAvailabilitySchedule(model.alwaysOnDiscreteSchedule)
           #if water_removal_rate != Constants.Auto
-          #  zone_hvac.setRatedWaterRemoval(UnitConversion.pint2liter(water_removal_rate.to_f))
+          #  zone_hvac.setRatedWaterRemoval(UnitConversions.convert(water_removal_rate.to_f,"pint","L"))
           #else
           #  zone_hvac.setRatedWaterRemoval(Constants.small) # Autosize flag for HVACSizing measure
           #end
@@ -207,7 +207,7 @@ class ProcessDehumidifier < OpenStudio::Measure::ModelMeasure
           #  zone_hvac.setRatedEnergyFactor(Constants.small) # Autosize flag for HVACSizing measure
           #end
           #if air_flow_rate != Constants.Auto
-          #  zone_hvac.setRatedAirFlowRate(OpenStudio::convert(air_flow_rate.to_f,"cfm","m^3/s").get)
+          #  zone_hvac.setRatedAirFlowRate(UnitConversions.convert(air_flow_rate.to_f,"cfm","m^3/s"))
           #else
           #  zone_hvac.setRatedAirFlowRate(Constants.small) # Autosize flag for HVACSizing measure
           #end

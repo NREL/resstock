@@ -1,4 +1,5 @@
 require "#{File.dirname(__FILE__)}/constants"
+require "#{File.dirname(__FILE__)}/unit_conversions"
 
 class ClothesDryer
 
@@ -133,7 +134,7 @@ class ClothesDryer
       ann_f = 0
       if fuel_type != Constants.FuelTypeElectric
           daily_energy_fuel = actual_cd_cycles_per_year * actual_cd_fuel_use_per_cycle / 365 # kWh/day
-          daily_energy_fuel = OpenStudio.convert(daily_energy_fuel * mult, "kWh", "therm").get # therm/day
+          daily_energy_fuel = UnitConversions.convert(daily_energy_fuel * mult, "kWh", "therm") # therm/day
           ann_f = daily_energy_fuel * 365.0 # therms/yr
       end
 

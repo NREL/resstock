@@ -2,6 +2,7 @@
 # http://nrel.github.io/OpenStudio-user-documentation/measures/measure_writing_guide/
 
 require "#{File.dirname(__FILE__)}/resources/geometry"
+require "#{File.dirname(__FILE__)}/resources/unit_conversions"
 
 # start the measure
 class CreateResidentialNeighbors < OpenStudio::Measure::ModelMeasure
@@ -69,10 +70,10 @@ class CreateResidentialNeighbors < OpenStudio::Measure::ModelMeasure
       return false
     end
     
-    left_neighbor_offset = OpenStudio::convert(runner.getDoubleArgumentValue("left_offset",user_arguments),"ft","m").get
-    right_neighbor_offset = OpenStudio::convert(runner.getDoubleArgumentValue("right_offset",user_arguments),"ft","m").get
-    back_neighbor_offset = OpenStudio::convert(runner.getDoubleArgumentValue("back_offset",user_arguments),"ft","m").get
-    front_neighbor_offset = OpenStudio::convert(runner.getDoubleArgumentValue("front_offset",user_arguments),"ft","m").get
+    left_neighbor_offset = UnitConversions.convert(runner.getDoubleArgumentValue("left_offset",user_arguments),"ft","m")
+    right_neighbor_offset = UnitConversions.convert(runner.getDoubleArgumentValue("right_offset",user_arguments),"ft","m")
+    back_neighbor_offset = UnitConversions.convert(runner.getDoubleArgumentValue("back_offset",user_arguments),"ft","m")
+    front_neighbor_offset = UnitConversions.convert(runner.getDoubleArgumentValue("front_offset",user_arguments),"ft","m")
     
     if left_neighbor_offset < 0 or right_neighbor_offset < 0 or back_neighbor_offset < 0 or front_neighbor_offset < 0
       runner.registerError("Neighbor offsets must be greater than or equal to 0.")

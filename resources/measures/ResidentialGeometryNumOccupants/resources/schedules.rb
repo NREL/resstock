@@ -1,4 +1,5 @@
 # TODO: Need to handle vacations
+require "#{File.dirname(__FILE__)}/unit_conversions"
 
 # Annual schedule defined by 12 24-hour values for weekdays and weekends.
 class HourlyByMonthSchedule
@@ -81,8 +82,15 @@ class HourlyByMonthSchedule
         def createSchedule()
             wkdy = []
             wknd = []
-            day_endm = [0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334, 365]
-            day_startm = [0, 1, 32, 60, 91, 121, 152, 182, 213, 244, 274, 305, 335]
+
+            yd = @model.yearDescription.get
+            if not yd.isLeapYear
+              day_endm = [0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334, 365]
+              day_startm = [0, 1, 32, 60, 91, 121, 152, 182, 213, 244, 274, 305, 335]
+            else
+              day_endm = [0, 31, 60, 91, 121, 152, 182, 213, 244, 274, 305, 335, 366]
+              day_startm = [0, 1, 32, 61, 92, 122, 153, 183, 214, 245, 275, 306, 336]
+            end  
             
             time = []
             for h in 1..24
@@ -93,8 +101,8 @@ class HourlyByMonthSchedule
             schedule.setName(@sch_name)
             
             for m in 1..12
-                date_s = OpenStudio::Date::fromDayOfYear(day_startm[m])
-                date_e = OpenStudio::Date::fromDayOfYear(day_endm[m])
+                date_s = OpenStudio::Date::fromDayOfYear(day_startm[m], yd.assumedYear)
+                date_e = OpenStudio::Date::fromDayOfYear(day_endm[m], yd.assumedYear)
                 
                 wkdy_vals = []
                 wknd_vals = []
@@ -210,7 +218,7 @@ class MonthWeekdayWeekendSchedule
     end
 
     def calcDesignLevelFromDailyTherm(daily_therm)
-        return calcDesignLevelFromDailykWh(OpenStudio.convert(daily_therm, "therm", "kWh").get)
+        return calcDesignLevelFromDailykWh(UnitConversions.convert(daily_therm, "therm", "kWh"))
     end
     
     def schedule
@@ -305,8 +313,15 @@ class MonthWeekdayWeekendSchedule
         def createSchedule()
             wkdy = []
             wknd = []
-            day_endm = [0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334, 365]
-            day_startm = [0, 1, 32, 60, 91, 121, 152, 182, 213, 244, 274, 305, 335]
+            
+            yd = @model.yearDescription.get
+            if not yd.isLeapYear
+              day_endm = [0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334, 365]
+              day_startm = [0, 1, 32, 60, 91, 121, 152, 182, 213, 244, 274, 305, 335]
+            else
+              day_endm = [0, 31, 60, 91, 121, 152, 182, 213, 244, 274, 305, 335, 366]
+              day_startm = [0, 1, 32, 61, 92, 122, 153, 183, 214, 245, 275, 306, 336]
+            end            
             
             time = []
             for h in 1..24
@@ -317,8 +332,8 @@ class MonthWeekdayWeekendSchedule
             schedule.setName(@sch_name)
             
             for m in 1..12
-                date_s = OpenStudio::Date::fromDayOfYear(day_startm[m])
-                date_e = OpenStudio::Date::fromDayOfYear(day_endm[m])
+                date_s = OpenStudio::Date::fromDayOfYear(day_startm[m], yd.assumedYear)
+                date_e = OpenStudio::Date::fromDayOfYear(day_endm[m], yd.assumedYear)
                 
                 wkdy_vals = []
                 wknd_vals = []
@@ -401,7 +416,7 @@ class HotWaterSchedule
         @days_shift = days_shift
         @nbeds = ([num_bedrooms, 5].min).to_i
         @file_prefix = file_prefix
-        @target_water_temperature = OpenStudio.convert(target_water_temperature, "F", "C").get
+        @target_water_temperature = UnitConversions.convert(target_water_temperature, "F", "C")
         
         timestep_minutes = (60/@model.getTimestep.numberOfTimestepsPerHour).to_i
         
@@ -421,15 +436,15 @@ class HotWaterSchedule
     end
     
     def calcDesignLevelFromDailykWh(daily_kWh)
-        return OpenStudio.convert(daily_kWh * 365 * 60 / (365 * @totflow / @maxflow), "kW", "W").get
+        return UnitConversions.convert(daily_kWh * 365 * 60 / (365 * @totflow / @maxflow), "kW", "W")
     end
     
     def calcPeakFlowFromDailygpm(daily_water)
-        return OpenStudio.convert(@maxflow * daily_water / @totflow, "gal/min", "m^3/s").get
+        return UnitConversions.convert(@maxflow * daily_water / @totflow, "gal/min", "m^3/s")
     end
     
     def calcDailyGpmFromPeakFlow(peak_flow)
-        return OpenStudio.convert(@totflow * peak_flow / @maxflow, "m^3/s", "gal/min").get 
+        return UnitConversions.convert(@totflow * peak_flow / @maxflow, "m^3/s", "gal/min")
     end
     
     def schedule

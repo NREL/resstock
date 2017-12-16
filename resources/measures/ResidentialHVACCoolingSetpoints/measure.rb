@@ -12,6 +12,7 @@ require "#{File.dirname(__FILE__)}/resources/weather"
 require "#{File.dirname(__FILE__)}/resources/geometry"
 require "#{File.dirname(__FILE__)}/resources/schedules"
 require "#{File.dirname(__FILE__)}/resources/hvac"
+require "#{File.dirname(__FILE__)}/resources/unit_conversions"
 
 #start the measure
 class ProcessCoolingSetpoints < OpenStudio::Measure::ModelMeasure
@@ -140,27 +141,13 @@ class ProcessCoolingSetpoints < OpenStudio::Measure::ModelMeasure
     end
 
     # assign the availability schedules to the equipment objects
-    has_clg_equip = false
     model.getThermalZones.each do |thermal_zone|
       cooling_equipment = HVAC.existing_cooling_equipment(model, runner, thermal_zone)
       cooling_equipment.each do |clg_equip|
-        has_clg_equip = true
-        clg_obj = nil
-        if clg_equip.is_a? OpenStudio::Model::AirLoopHVACUnitarySystem
-          if clg_equip.coolingCoil.is_initialized
-            clg_obj = HVAC.get_coil_from_hvac_component(clg_equip.coolingCoil.get)
-          end
-        elsif clg_equip.is_a? OpenStudio::Model::ZoneHVACPackagedTerminalAirConditioner
-          clg_obj = HVAC.get_coil_from_hvac_component(clg_equip.coolingCoil)
-        elsif clg_equip.is_a? OpenStudio::Model::ZoneHVACTerminalUnitVariableRefrigerantFlow
-          clg_obj = HVAC.get_coil_from_hvac_component(clg_equip.coolingCoil)
-        else
-          runner.registerError("Unexpected cooling system: '#{clg_equip.name}'.")
-          return false
-        end
-        unless clg_obj.nil? or clg_obj.to_CoilCoolingWaterToAirHeatPumpEquationFit.is_initialized
-          clg_obj.setAvailabilitySchedule(coolingseasonschedule.schedule)
-          runner.registerInfo("Added availability schedule to #{clg_obj.name}.")
+        clg_coil, htg_coil, supp_htg_coil = HVAC.get_coils_from_hvac_equip(clg_equip)
+        unless clg_coil.nil? or clg_coil.to_CoilCoolingWaterToAirHeatPumpEquationFit.is_initialized
+          clg_coil.setAvailabilitySchedule(coolingseasonschedule.schedule)
+          runner.registerInfo("Added availability schedule to #{clg_coil.name}.")
         end
       end
     end
@@ -173,8 +160,8 @@ class ProcessCoolingSetpoints < OpenStudio::Measure::ModelMeasure
       clg_wked = Array.new(24, clg_wked).join(", ")
     end
 
-    clg_wkdy = clg_wkdy.split(",").map {|i| OpenStudio::convert(i.to_f,"F","C").get}
-    clg_wked = clg_wked.split(",").map {|i| OpenStudio::convert(i.to_f,"F","C").get}  
+    clg_wkdy = clg_wkdy.split(",").map {|i| UnitConversions.convert(i.to_f,"F","C")}
+    clg_wked = clg_wked.split(",").map {|i| UnitConversions.convert(i.to_f,"F","C")}  
     
     finished_zones = []
     model.getThermalZones.each do |thermal_zone|
