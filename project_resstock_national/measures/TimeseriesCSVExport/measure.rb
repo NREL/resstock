@@ -5,6 +5,7 @@
 require 'erb'
 require 'csv'
 require "#{File.dirname(__FILE__)}/resources/weather"
+require "#{File.dirname(__FILE__)}/resources/unit_conversions"
 
 #start the measure
 class TimeseriesCSVExport < OpenStudio::Measure::ReportingMeasure
@@ -286,7 +287,7 @@ class TimeseriesCSVExport < OpenStudio::Measure::ReportingMeasure
                   end
       unit_conv = nil
       if ["J", "m^3"].include? old_units
-        unit_conv = OpenStudio.convert(1.0, old_units, new_units).get
+        unit_conv = UnitConversions.convert(1.0, old_units, new_units)
       elsif not (old_units == "C" and new_units == "F")
         unless old_units.empty?
           runner.registerInfo("Have not yet defined a conversion from #{old_units} to other units.")
@@ -300,7 +301,7 @@ class TimeseriesCSVExport < OpenStudio::Measure::ReportingMeasure
         end
         if cols.empty?
           if reporting_frequency == "Hourly"
-            if actual_timestamps.nil?
+            if actual_timestamps.empty?
               date_times << format_datetime(date_time.to_s) # timestamps from the sqlfile (TMY)
             else
               date_times << actual_timestamps[i] # timestamps from the epw (AMY)

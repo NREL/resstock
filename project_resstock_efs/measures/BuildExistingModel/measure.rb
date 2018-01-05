@@ -104,7 +104,7 @@ class BuildExistingModel < OpenStudio::Ruleset::ModelUserScript
     end
     
     # Determine weight
-    if not number_of_buildings_represented.nil?
+    if number_of_buildings_represented.is_initialized
         total_samples = nil
         runner.analysis[:analysis][:problem][:workflow].each do |wf|
             next if wf[:name] != 'build_existing_model'
