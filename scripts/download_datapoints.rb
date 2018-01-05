@@ -14,6 +14,23 @@ require 'net/http'
 require 'openssl'
 require 'csv'
 
+# Unzip an archive to a destination directory using Rubyzip gem
+#
+# @param archive [:string] archive path for extraction
+# @param dest [:string] path for archived file to be extracted to
+def unzip_archive(archive, dest)
+  # Adapted from examples at...
+  # https://github.com/rubyzip/rubyzip
+  # http://seenuvasan.wordpress.com/2010/09/21/unzip-files-using-ruby/
+  Zip::File.open(archive) do |zf|
+    zf.each do |f|
+      f_path = File.join(dest, f.name)
+      FileUtils.mkdir_p(File.dirname(f_path))
+      zf.extract(f, f_path) unless File.exist?(f_path) # No overwrite
+    end
+  end
+end
+
 def retrieve_dps(local_results_dir)
   dps = []
   Dir["#{local_results_dir}/*.csv"].each do |item|
@@ -30,7 +47,7 @@ end
 #
 # @param local_result_dir [::String] path to the localResults directory
 # @return [logical] Indicates if any errors were caught
-def retrieve_dp_data(local_results_dir, server_dns=nil)
+def retrieve_dp_data(local_results_dir, server_dns=nil, unzip=false)
   # Verify localResults directory
   unless File.basename(local_results_dir) == 'localResults'
     fail "ERROR: input #{local_results_dir} does not point to localResults"
@@ -50,8 +67,11 @@ def retrieve_dp_data(local_results_dir, server_dns=nil)
   
     dest = File.join local_results_dir, dp[:_id]
     dp[:file] = File.join(dest, 'data_point.zip')
-    next if File.exist? dp[:file]
-
+    if File.exist? dp[:file]
+      puts "INFO: #{dp[:file]} already downloaded"
+      next
+    end
+      
     url = URI.parse("#{server_dns}/data_points/#{dp[:_id]}/download_result_file?")
     http = Net::HTTP.new(url.host, url.port)
     # http.use_ssl = true
@@ -62,7 +82,10 @@ def retrieve_dp_data(local_results_dir, server_dns=nil)
     request = Net::HTTP::Get.new(url.request_uri)
     
     http.request request do |response|
-      next unless response.kind_of? Net::HTTPSuccess
+      unless response.kind_of? Net::HTTPSuccess
+        puts "INCOMPLETE: #{dp[:file]}"
+        next
+      end
       if not File.exist? dest
         Dir.mkdir dest
       end
@@ -70,7 +93,12 @@ def retrieve_dp_data(local_results_dir, server_dns=nil)
         response.read_body do |chunk|
           io.write chunk
         end
-        puts "INFO: Downloaded #{dp[:file]}"
+        puts "DOWNLOADED: #{dp[:file]}"
+      end
+      
+      if unzip
+        unzip_archive(dp[:file], dest)
+        File.delete(dp[:file])
       end
       
     end
@@ -93,7 +121,7 @@ options = {}
 # -s --server_dns [string]
 # -p --project_dir [string]
 optparse = OptionParser.new do |opts|
-  opts.banner = 'Usage:    complete_localResults [-s] <server_dns> [-p] <project_dir> -a <analysis_id> [-u] [-h]'
+  opts.banner = 'Usage:    complete_localResults [-s] <server_dns> [-p] <project_dir> [-u] [-h]'
 
   options[:project_dir] = nil
   opts.on('-p', '--project_dir <dir>', 'specified project DIRECTORY') do |dir|
@@ -103,6 +131,11 @@ optparse = OptionParser.new do |opts|
   options[:dns] = nil
   opts.on('-s', '--server_dns <DNS>', 'specified server DNS') do |dns|
     options[:dns] = dns
+  end
+  
+  options[:unzip] = false
+  opts.on('-u', '--unzip', 'extract data_point.zip contents') do |zip|
+    options[:unzip] = true
   end
   
   opts.on_tail('-h', '--help', 'display help') do
@@ -130,4 +163,4 @@ end
 
 # Retrieve the datapoints and indicate success
 Zip.warn_invalid_date = false
-retrieve_dp_data(local_results_dir, options[:dns])
+retrieve_dp_data(local_results_dir, options[:dns], options[:unzip])
