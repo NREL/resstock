@@ -13,6 +13,7 @@ require 'zip'
 require 'net/http'
 require 'openssl'
 require 'csv'
+require 'parallel'
 
 # Unzip an archive to a destination directory using Rubyzip gem
 #
@@ -58,19 +59,17 @@ def retrieve_dp_data(local_results_dir, server_dns=nil, unzip=false)
   if dps.empty?
     fail 'ERROR: No datapoints found. You must download the results csv first.'
   end
-
+  
   # Only download datapoints which do not already exist
   interval = 1
   report_at = interval
-  timestep = Time.now 
-  dps.each_with_index do |dp, i|
-  
+  timestep = Time.now
+  num_parallel = 8
+  Parallel.each_with_index(dps, in_threads: num_parallel) do |dp, i|
+
     dest = File.join local_results_dir, dp[:_id]
     dp[:file] = File.join(dest, 'data_point.zip')
-    if File.exist? dp[:file]
-      puts "INFO: #{dp[:file]} already downloaded"
-      next
-    end
+    next if File.exist? dp[:file]
       
     url = URI.parse("#{server_dns}/data_points/#{dp[:_id]}/download_result_file?")
     http = Net::HTTP.new(url.host, url.port)
@@ -82,10 +81,7 @@ def retrieve_dp_data(local_results_dir, server_dns=nil, unzip=false)
     request = Net::HTTP::Get.new(url.request_uri)
     
     http.request request do |response|
-      unless response.kind_of? Net::HTTPSuccess
-        puts "INCOMPLETE: #{dp[:file]}"
-        next
-      end
+      next unless response.kind_of? Net::HTTPSuccess
       if not File.exist? dest
         Dir.mkdir dest
       end
@@ -93,7 +89,7 @@ def retrieve_dp_data(local_results_dir, server_dns=nil, unzip=false)
         response.read_body do |chunk|
           io.write chunk
         end
-        puts "DOWNLOADED: #{dp[:file]}"
+        puts "Worker #{Parallel.worker_number}, DOWNLOADED: #{dp[:file]}"
       end
       
       if unzip
