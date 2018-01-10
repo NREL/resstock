@@ -117,7 +117,7 @@ options = {}
 # -s --server_dns [string]
 # -p --project_dir [string]
 optparse = OptionParser.new do |opts|
-  opts.banner = 'Usage:    complete_localResults [-s] <server_dns> [-p] <project_dir> [-u] [-h]'
+  opts.banner = 'Usage:    download_datapoints [-s] <server_dns> [-p] <project_dir> [-u] [-h]'
 
   options[:project_dir] = nil
   opts.on('-p', '--project_dir <dir>', 'specified project DIRECTORY') do |dir|
