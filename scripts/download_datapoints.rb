@@ -57,7 +57,7 @@ def retrieve_dp_data(local_results_dir, server_dns=nil, unzip=false)
   # Ensure there are datapoints to download
   dps = retrieve_dps(local_results_dir)
   if dps.empty?
-    fail 'ERROR: No datapoints found. You must download the results csv first.'
+    fail "ERROR: No datapoints found. You must download the results csv first."
   end
   
   # Only download datapoints which do not already exist
@@ -73,30 +73,36 @@ def retrieve_dp_data(local_results_dir, server_dns=nil, unzip=false)
       
     url = URI.parse("#{server_dns}/data_points/#{dp[:_id]}/download_result_file?")
     http = Net::HTTP.new(url.host, url.port)
-    # http.use_ssl = true
-    # http.verify_mode = OpenSSL::SSL::VERIFY_NONE
 
-    params = { 'filename' => 'data_point.zip'}
+    params = { 'filename' => 'data_point.zip' }
     url.query = URI.encode_www_form(params)
     request = Net::HTTP::Get.new(url.request_uri)
     
-    http.request request do |response|
-      next unless response.kind_of? Net::HTTPSuccess
-      if not File.exist? dest
-        Dir.mkdir dest
-      end
-      open dp[:file], 'wb' do |io|
-        response.read_body do |chunk|
-          io.write chunk
+    begin
+      http.request request do |response|
+        next unless response.kind_of? Net::HTTPSuccess
+        if not File.exist? dest
+          Dir.mkdir dest
         end
-        puts "Worker #{Parallel.worker_number}, DOWNLOADED: #{dp[:file]}"
+        open dp[:file], 'wb' do |io|
+          response.read_body do |chunk|
+            io.write chunk
+          end
+          puts "Worker #{Parallel.worker_number}, DOWNLOADED: #{dp[:file]}"
+        end
+        
+        if unzip
+          unzip_archive(dp[:file], dest)
+          File.delete(dp[:file])
+        end
+        
       end
-      
-      if unzip
-        unzip_archive(dp[:file], dest)
-        File.delete(dp[:file])
+    rescue => error
+      puts "Datapoint #{File.basename(File.dirname(dp[:file]))}, ERROR:"
+      error.backtrace.each do |trace|
+        puts "\t#{trace}"
       end
-      
+      next
     end
     
     # Report out progress
@@ -146,9 +152,6 @@ optparse.parse!
 # Check inputs for basic compliance criteria
 unless Dir.exists?(options[:project_dir])
   fail "ERROR: Could not find #{options[:project_dir]}"
-end
-unless Dir.entries(options[:project_dir]).include? 'pat.json'
-  fail "ERROR: pat.json file not found in #{options[:project_dir]}"
 end
 
 # Create the localResults directory should it not exist
