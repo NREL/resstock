@@ -974,9 +974,6 @@ class Constants
   def self.SizingInfoDuctsSupplySurfaceArea # FUTURE: Use StandardsInfo object
     return self.SizingInfo(__method__.to_s)
   end
-  def self.SizingInfoGarageFracUnderFinishedSpace # FUTURE: Use StandardsInfo object
-    return self.SizingInfo(__method__.to_s)
-  end
   def self.SizingInfoGSHPBoreConfig # FUTURE: Use StandardsInfo object
     return self.SizingInfo(__method__.to_s)
   end

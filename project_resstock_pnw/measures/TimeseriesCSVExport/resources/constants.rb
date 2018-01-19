@@ -254,6 +254,9 @@ class Constants
     end
     return "crawl zone#{s_unit}"
   end
+  def self.DuctedInfoMiniSplitHeatPump
+    return __method__.to_s
+  end
   def self.EndUseHVACFan
     return 'residential hvac fan'
   end
@@ -969,9 +972,6 @@ class Constants
     return self.SizingInfo(__method__.to_s)
   end
   def self.SizingInfoDuctsSupplySurfaceArea # FUTURE: Use StandardsInfo object
-    return self.SizingInfo(__method__.to_s)
-  end
-  def self.SizingInfoGarageFracUnderFinishedSpace # FUTURE: Use StandardsInfo object
     return self.SizingInfo(__method__.to_s)
   end
   def self.SizingInfoGSHPBoreConfig # FUTURE: Use StandardsInfo object

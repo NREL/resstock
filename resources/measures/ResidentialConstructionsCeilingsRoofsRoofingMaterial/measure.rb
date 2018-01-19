@@ -139,13 +139,9 @@ class ProcessConstructionsCeilingsRoofsRoofingMaterial < OpenStudio::Measure::Mo
     end
     
     # Store info for HVAC Sizing measure
-    units = Geometry.get_building_units(model, runner)
-    if units.nil?
-        return false
-    end
     surfaces.each do |surface|
-        units.each do |unit|
-            next if not unit.spaces.include?(surface.space.get)
+        model.getBuildingUnits.each do |unit|
+            next if unit.spaces.size == 0
             unit.setFeature(Constants.SizingInfoRoofColor(surface), manual_j_color)
             unit.setFeature(Constants.SizingInfoRoofMaterial(surface), manual_j_material)
         end

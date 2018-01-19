@@ -987,7 +987,10 @@ class HVAC
           zone_hvac_list << new_object
         end
       end
-      return zone_hvac_list
+      zone_hvac_list.reverse.each do |object|
+        zone.setCoolingPriority(object, 1)
+        zone.setHeatingPriority(object, 1)
+      end
     end
     
     # Calculates heating/cooling seasons from BAHSP definition

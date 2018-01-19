@@ -170,7 +170,7 @@ class ResidentialHotWaterHeaterTanklessFuel < OpenStudio::Measure::ModelMeasure
     
             #If location is Auto, get the location
             if water_heater_loc == Constants.Auto
-                water_heater_tz = Waterheater.get_water_heater_location_auto(model, unit.spaces, runner)
+                water_heater_tz = Waterheater.get_water_heater_location_auto(model, unit, runner)
                 if water_heater_tz.nil?
                     runner.registerError("The water heater cannot be automatically assigned to a thermal zone. Please manually select which zone the water heater should be located in.")
                     return false

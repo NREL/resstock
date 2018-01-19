@@ -86,48 +86,27 @@ class ProcessElectricBaseboard < OpenStudio::Measure::ModelMeasure
       control_slave_zones_hash = HVAC.get_control_and_slave_zones(thermal_zones)
       control_slave_zones_hash.each do |control_zone, slave_zones|
     
-        # Remove existing equipment
-        HVAC.remove_existing_hvac_equipment(model, runner, Constants.ObjectNameElectricBaseboard, control_zone, false, unit)
-      
-        htg_coil = OpenStudio::Model::ZoneHVACBaseboardConvectiveElectric.new(model)
-        htg_coil.setName(obj_name + " #{control_zone.name} convective electric")
-        if baseboardOutputCapacity != Constants.SizingAuto
-            htg_coil.setNominalCapacity(UnitConversions.convert(baseboardOutputCapacity,"Btu/hr","W")) # Used by HVACSizing measure
-        end
-        htg_coil.setEfficiency(baseboardEfficiency)
-
-        htg_coil.addToThermalZone(control_zone)
-        runner.registerInfo("Added '#{htg_coil.name}' to '#{control_zone.name}' of #{unit.name}")
-       
-        HVAC.prioritize_zone_hvac(model, runner, control_zone).reverse.each do |object|
-          control_zone.setCoolingPriority(object, 1)
-          control_zone.setHeatingPriority(object, 1)
-        end
-        
-        slave_zones.each do |slave_zone|
+        ([control_zone] + slave_zones).each do |zone|
         
           # Remove existing equipment
-          HVAC.remove_existing_hvac_equipment(model, runner, Constants.ObjectNameElectricBaseboard, slave_zone, false, unit)
+          HVAC.remove_existing_hvac_equipment(model, runner, Constants.ObjectNameElectricBaseboard, zone, false, unit)
         
           htg_coil = OpenStudio::Model::ZoneHVACBaseboardConvectiveElectric.new(model)
-          htg_coil.setName(obj_name + " #{slave_zone.name} convective electric")
+          htg_coil.setName(obj_name + " #{zone.name} convective electric")
           if baseboardOutputCapacity != Constants.SizingAuto
               htg_coil.setNominalCapacity(UnitConversions.convert(baseboardOutputCapacity,"Btu/hr","W")) # Used by HVACSizing measure
           end
           htg_coil.setEfficiency(baseboardEfficiency)
 
-          htg_coil.addToThermalZone(slave_zone)
-          runner.registerInfo("Added '#{htg_coil.name}' to '#{slave_zone.name}' of #{unit.name}")
-
-          HVAC.prioritize_zone_hvac(model, runner, slave_zone).reverse.each do |object|
-            slave_zone.setCoolingPriority(object, 1)
-            slave_zone.setHeatingPriority(object, 1)
-          end
+          htg_coil.addToThermalZone(zone)
+          runner.registerInfo("Added '#{htg_coil.name}' to '#{zone.name}' of #{unit.name}")
+         
+          HVAC.prioritize_zone_hvac(model, runner, zone)
           
         end
-      
+        
       end
-      
+        
     end
     
     return true

@@ -22,13 +22,21 @@ class Waterheater
       
       model.getEnergyManagementSystemActuators.each do |actuator|
         next unless ["#{obj_name_hpwh} Tamb act2", "#{obj_name_hpwh} Tamb act", "#{obj_name_hpwh} RHamb act", "#{obj_name_hpwh} on off", "#{obj_name_hpwh} LESchedOverride", "#{obj_name_hpwh} HPSchedOverride", "#{obj_name_hpwh} UESchedOverride"].map{|x| x.gsub(" ","_")}.include? actuator.name.to_s
-        actuator.actuatedComponent.remove
+        actuatedComponent = actuator.actuatedComponent
+        if actuatedComponent.is_a? OpenStudio::Model::OptionalModelObject # 2.4.0 or higher
+          actuatedComponent = actuatedComponent.get
+        end
+        actuatedComponent.remove
         actuator.remove
       end
       
       model.getEnergyManagementSystemActuators.each do |actuator|
         next unless ["#{obj_name_hpwh} sens act", "#{obj_name_hpwh} lat act"].map{|x| x.gsub(" ","_")}.include? actuator.name.to_s
-        actuator.actuatedComponent.to_OtherEquipment.get.otherEquipmentDefinition.remove
+        actuatedComponent = actuator.actuatedComponent
+        if actuatedComponent.is_a? OpenStudio::Model::OptionalModelObject # 2.4.0 or higher
+          actuatedComponent = actuatedComponent.get
+        end
+        actuatedComponent.to_OtherEquipment.get.otherEquipmentDefinition.remove
         actuator.remove
       end
       
@@ -61,9 +69,9 @@ class Waterheater
         return nil
     end
   
-    def self.get_plant_loop_from_string(plant_loops, plantloop_s, spaces, obj_name_hpwh, runner=nil)
+    def self.get_plant_loop_from_string(plant_loops, plantloop_s, unit, obj_name_hpwh, runner=nil)
         if plantloop_s == Constants.Auto
-            return self.get_plant_loop_for_spaces(plant_loops, spaces, obj_name_hpwh, runner)
+            return self.get_plant_loop_for_spaces(plant_loops, unit, obj_name_hpwh, runner)
         end
         plant_loop = nil
         plant_loops.each do |pl|
@@ -78,7 +86,8 @@ class Waterheater
         return plant_loop
     end
     
-    def self.get_plant_loop_for_spaces(plant_loops, spaces, obj_name_hpwh, runner=nil)
+    def self.get_plant_loop_for_spaces(plant_loops, unit, obj_name_hpwh, runner=nil)
+        spaces = unit.spaces + Geometry.get_unit_adjacent_common_spaces(unit)
         # We obtain the plant loop for a given set of space by comparing 
         # their associated thermal zones to the thermal zone that each plant
         # loop water heater is located in.
@@ -475,7 +484,8 @@ class Waterheater
         return nil
     end
     
-    def self.get_water_heater_location_auto(model, spaces, runner)
+    def self.get_water_heater_location_auto(model, unit, runner)
+        spaces = unit.spaces + Geometry.get_unit_adjacent_common_spaces(unit)
         #If auto is picked, get the BA climate zone, 
         #check if the building has a garage/basement, 
         #and assign the water heater location appropriately

@@ -117,21 +117,11 @@ class ResidentialRefrigerator < OpenStudio::Measure::ModelMeasure
     sch = nil
     units.each_with_index do |unit, unit_index|
         
-        unit_spaces = []
-        unit.spaces.each do |unit_space|
-            unit_spaces << unit_space
-        end
-        
-        if unit_index == 0 and space_r != Constants.Auto
-            # Append spaces not associated with a unit
-            model.getSpaces.each do |space|
-                next if Geometry.space_is_finished(space)
-                unit_spaces << space
-            end
-        end
-        
         # Get space
-        space = Geometry.get_space_from_string(unit_spaces, space_r)
+        space = Geometry.get_space_from_string(unit.spaces, space_r)
+        if space.nil? and unit_index == 0 and space_r != Constants.Auto
+            space = Geometry.get_space_from_string(Geometry.get_common_spaces(model), space_r)
+        end
         next if space.nil?
         
         unit_obj_name = Constants.ObjectNameRefrigerator(unit.name.to_s)

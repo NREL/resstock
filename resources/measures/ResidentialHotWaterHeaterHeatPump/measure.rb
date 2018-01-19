@@ -50,13 +50,9 @@ class ResidentialHotWaterHeaterHeatPump < OpenStudio::Measure::ModelMeasure
         args << dhw_setpoint
         
         #make a choice argument for water heater location
-        spaces = Geometry.get_all_unit_spaces(model)
-        if spaces.nil?
-            spaces = []
-        end
         space_args = OpenStudio::StringVector.new
         space_args << Constants.Auto
-        spaces.each do |space|
+        model.getSpaces.each do |space|
             space_args << space.name.to_s
         end
         space = OpenStudio::Ruleset::OSArgument::makeChoiceArgument("space", space_args, true)
@@ -372,7 +368,7 @@ class ResidentialHotWaterHeaterHeatPump < OpenStudio::Measure::ModelMeasure
             if water_heater_space_name != Constants.Auto
                 water_heater_tz = Geometry.get_thermal_zones_from_spaces([Geometry.get_space_from_string(model.getSpaces, water_heater_space_name)])[0]
             else
-                water_heater_tz = Waterheater.get_water_heater_location_auto(model, unit.spaces, runner)
+                water_heater_tz = Waterheater.get_water_heater_location_auto(model, unit, runner)
                 if water_heater_tz.nil?
                     runner.registerError("The water heater cannot be automatically assigned to a thermal zone. Please manually select which zone the water heater should be located in.")
                     return false

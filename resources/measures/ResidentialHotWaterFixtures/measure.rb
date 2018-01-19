@@ -52,13 +52,9 @@ class ResidentialHotWaterFixtures < OpenStudio::Measure::ModelMeasure
         args << bath_mult
         
         #make a choice argument for space
-        spaces = Geometry.get_all_unit_spaces(model)
-        if spaces.nil?
-            spaces = []
-        end
         space_args = OpenStudio::StringVector.new
         space_args << Constants.Auto
-        spaces.each do |space|
+        model.getSpaces.each do |space|
             space_args << space.name.to_s
         end
         space = OpenStudio::Measure::OSArgument::makeChoiceArgument("space", space_args, true)
@@ -134,7 +130,8 @@ class ResidentialHotWaterFixtures < OpenStudio::Measure::ModelMeasure
         tot_s_gpd = 0
         tot_b_gpd = 0
         msgs = []
-        units.each do |unit|
+        units.each_with_index do |unit, unit_index|
+        
             # Get unit beds/baths
             nbeds, nbaths = Geometry.get_unit_beds_baths(model, unit, runner)
             if nbeds.nil? or nbaths.nil?
@@ -147,10 +144,13 @@ class ResidentialHotWaterFixtures < OpenStudio::Measure::ModelMeasure
 
             # Get space
             space = Geometry.get_space_from_string(unit.spaces, space_r)
+            if space.nil? and unit_index == 0 and space_r != Constants.Auto
+                space = Geometry.get_space_from_string(Geometry.get_common_spaces(model), space_r)
+            end
             next if space.nil?
 
             #Get plant loop
-            plant_loop = Waterheater.get_plant_loop_from_string(model.getPlantLoops, plant_loop_s, unit.spaces, Constants.ObjectNameWaterHeater(unit.name.to_s.gsub("unit", "u")).gsub("|","_"), runner)
+            plant_loop = Waterheater.get_plant_loop_from_string(model.getPlantLoops, plant_loop_s, unit, Constants.ObjectNameWaterHeater(unit.name.to_s.gsub("unit", "u")).gsub("|","_"), runner)
             if plant_loop.nil?
                 return false
             end

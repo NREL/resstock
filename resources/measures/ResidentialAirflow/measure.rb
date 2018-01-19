@@ -939,13 +939,21 @@ class ResidentialAirflow < OpenStudio::Measure::ModelMeasure
       
       model.getEnergyManagementSystemActuators.each do |actuator|
         next unless [obj_name_infil + " flow"].map{|x| "#{x} act".gsub(" ","_")}.include? actuator.name.to_s or [obj_name_natvent + " flow"].map{|x| "#{x} act".gsub(" ","_")}.include? actuator.name.to_s
-        actuator.actuatedComponent.remove
+        actuatedComponent = actuator.actuatedComponent
+        if actuatedComponent.is_a? OpenStudio::Model::OptionalModelObject # 2.4.0 or higher
+          actuatedComponent = actuatedComponent.get
+        end
+        actuatedComponent.remove
         actuator.remove      
       end      
       
       model.getEnergyManagementSystemActuators.each do |actuator|
         next unless [obj_name_infil + " house exh", obj_name_infil + " range hood", obj_name_infil + " bath exh"].map{|x| "#{x} fan load equip act".gsub(" ","_")}.include? actuator.name.to_s
-        actuator.actuatedComponent.to_ElectricEquipment.get.electricEquipmentDefinition.remove
+        actuatedComponent = actuator.actuatedComponent
+        if actuatedComponent.is_a? OpenStudio::Model::OptionalModelObject # 2.4.0 or higher
+          actuatedComponent = actuatedComponent.get
+        end
+        actuatedComponent.to_ElectricEquipment.get.electricEquipmentDefinition.remove
         actuator.remove
       end
       
@@ -1009,7 +1017,11 @@ class ResidentialAirflow < OpenStudio::Measure::ModelMeasure
       living_to_air_handler_flow_rate = "#{obj_name_ducts} liv to ah".gsub(" ","_")
       model.getEnergyManagementSystemActuators.each do |actuator|
         next unless [air_handler_to_living_flow_rate, living_to_air_handler_flow_rate].map{|x| "#{x} mix act".gsub(" ","_")}.include? actuator.name.to_s
-        actuator.actuatedComponent.remove
+        actuatedComponent = actuator.actuatedComponent
+        if actuatedComponent.is_a? OpenStudio::Model::OptionalModelObject # 2.4.0 or higher
+          actuatedComponent = actuatedComponent.get
+        end
+        actuatedComponent.remove
         actuator.remove
       end
       
@@ -1031,7 +1043,11 @@ class ResidentialAirflow < OpenStudio::Measure::ModelMeasure
       
       model.getEnergyManagementSystemActuators.each do |actuator|
         next unless [supply_sensible_lkage_to_living, supply_latent_lkage_to_living, supply_duct_conduction_to_living, supply_duct_conduction_to_air_handler, return_duct_conduction_to_plenum, return_duct_conduction_to_air_handler, supply_sensible_lkage_to_air_handler, supply_latent_lkage_to_air_handler, return_sensible_lkage, return_latent_lkage].map{|x| "#{x} equip act".gsub(" ","_")}.include? actuator.name.to_s
-        actuator.actuatedComponent.to_OtherEquipment.get.otherEquipmentDefinition.remove
+        actuatedComponent = actuator.actuatedComponent
+        if actuatedComponent.is_a? OpenStudio::Model::OptionalModelObject # 2.4.0 or higher
+          actuatedComponent = actuatedComponent.get
+        end
+        actuatedComponent.to_OtherEquipment.get.otherEquipmentDefinition.remove
         actuator.remove
       end
     
@@ -1467,10 +1483,7 @@ class ResidentialAirflow < OpenStudio::Measure::ModelMeasure
         zone_hvac.setVentilationRateperOccupant(0)
         zone_hvac.addToThermalZone(unit.living_zone)
         
-        HVAC.prioritize_zone_hvac(model, runner, unit.living_zone).reverse.each do |object|
-          unit.living_zone.setCoolingPriority(object, 1)
-          unit.living_zone.setHeatingPriority(object, 1)
-        end
+        HVAC.prioritize_zone_hvac(model, runner, unit.living_zone)
 
       end
       
@@ -2577,13 +2590,13 @@ class ResidentialAirflow < OpenStudio::Measure::ModelMeasure
       end
     end
 
-    no_ducted_equip = !HVAC.has_central_ac(model, runner, unit.living_zone) && !HVAC.has_furnace(model, runner, unit.living_zone) && !HVAC.has_ashp(model, runner, unit.living_zone) && !HVAC.has_gshp(model, runner, unit.living_zone).nil? && !unit.has_mini_split_heat_pump
+    no_ducted_equip = !HVAC.has_central_ac(model, runner, unit.living_zone) && !HVAC.has_furnace(model, runner, unit.living_zone) && !HVAC.has_ashp(model, runner, unit.living_zone) && !HVAC.has_gshp(model, runner, unit.living_zone) && !unit.has_mini_split_heat_pump
     if ducts.DuctLocation != "none" and no_ducted_equip
       runner.registerWarning("No ducted HVAC equipment was found but ducts were specified. Overriding duct specification.")
       ducts.DuctLocation = "none"
     end
     
-    ducts.duct_location_zone, ducts.duct_location_name = get_duct_location(ducts.DuctLocation, building, unit)
+    ducts.duct_location_zone, ducts.duct_location_name = get_duct_location(ducts.DuctLocation, building, unit, building_unit)
 
     ducts.has_ducts = true
     if ducts.duct_location_name == "none"
@@ -2730,96 +2743,76 @@ class ResidentialAirflow < OpenStudio::Measure::ModelMeasure
   
   end
   
-  def get_duct_location(duct_location, building, unit)
-    # FIXME: Need to improve this
-    duct_location_zone = true
+  def get_duct_location(duct_location, building, unit, building_unit)
+    duct_location_zone = nil
     duct_location_name = "none"
+    
+    zones = []
+    
     if duct_location == Constants.Auto
-      if not unit.finished_basement_zone.nil?
-        duct_location_zone = unit.finished_basement_zone
-        duct_location_name = unit.finished_basement_zone.name.to_s
-      elsif not building.unfinished_basement_zone.nil?
-        duct_location_zone = building.unfinished_basement_zone
-        duct_location_name = building.unfinished_basement_zone.name.to_s
-      elsif not building.crawlspace_zone.nil?
-        duct_location_zone = building.crawlspace_zone
-        duct_location_name = building.crawlspace_zone.name.to_s
-      elsif not building.pierbeam_zone.nil?
-        duct_location_zone = building.pierbeam_zone
-        duct_location_name = building.pierbeam_zone.name.to_s
-      elsif not building.unfinished_attic_zone.nil?
-        duct_location_zone = building.unfinished_attic_zone
-        duct_location_name = building.unfinished_attic_zone.name.to_s
-      elsif not building.garage_zone.nil?
-        duct_location_zone = building.garage_zone
-        duct_location_name = building.garage_zone.name.to_s
-      else
-        duct_location_zone = unit.living_zone
-        duct_location_name = unit.living_zone.name.to_s
-      end
+    
+      zones = [unit.finished_basement_zone,
+               building.unfinished_basement_zone,
+               building.crawlspace_zone,
+               building.pierbeam_zone,
+               building.unfinished_attic_zone,
+               building.garage_zone,
+               unit.living_zone]
+      
     elsif duct_location == Constants.BasementZone
-      if not unit.finished_basement_zone.nil?
-        duct_location_zone = unit.finished_basement_zone
-        duct_location_name = unit.finished_basement_zone.name.to_s
-      elsif not building.unfinished_basement_zone.nil?
-        duct_location_zone = building.unfinished_basement_zone
-        duct_location_name = building.unfinished_basement_zone.name.to_s
-      else
-        duct_location_zone = unit.living_zone
-        duct_location_name = unit.living_zone.name.to_s
-      end
+    
+      zones = [unit.finished_basement_zone,
+               building.unfinished_basement_zone,
+               unit.living_zone]
+
     elsif duct_location == Constants.FinishedBasementZone
-      if not unit.finished_basement_zone.nil?
-        duct_location_zone = unit.finished_basement_zone
-        duct_location_name = unit.finished_basement_zone.name.to_s
-      else
-        duct_location_zone = unit.living_zone
-        duct_location_name = unit.living_zone.name.to_s
-      end
+    
+      zones = [unit.finished_basement_zone,
+               unit.living_zone]
+
     elsif duct_location == Constants.UnfinishedBasementZone
-      if not building.unfinished_basement_zone.nil?
-        duct_location_zone = building.unfinished_basement_zone
-        duct_location_name = building.unfinished_basement_zone.name.to_s
-      else
-        duct_location_zone = unit.living_zone
-        duct_location_name = unit.living_zone.name.to_s
-      end
+    
+      zones = [building.unfinished_basement_zone,
+               unit.living_zone]
+
     elsif duct_location == Constants.AtticZone or duct_location == Constants.UnfinishedAtticZone
-      if not building.unfinished_attic_zone.nil?
-        duct_location_zone = building.unfinished_attic_zone
-        duct_location_name = building.unfinished_attic_zone.name.to_s
-      else
-        duct_location_zone = unit.living_zone
-        duct_location_name = unit.living_zone.name.to_s
-      end
+    
+      zones = [building.unfinished_attic_zone,
+               unit.living_zone]
+
     elsif duct_location == Constants.LivingZone
-      duct_location_zone = unit.living_zone
-      duct_location_name = unit.living_zone.name.to_s
+    
+      zones = [unit.living_zone]
+
     elsif duct_location == Constants.GarageZone
-      if not building.garage_zone.nil?
-        duct_location_zone = building.garage_zone
-        duct_location_name = building.garage_zone.name.to_s
-      else
-        duct_location_zone = unit.living_zone
-        duct_location_name = unit.living_zone.name.to_s
-      end
+    
+      zones = [building.garage_zone,
+               unit.living_zone]
+
     elsif duct_location == Constants.CrawlZone
-      if not building.crawlspace_zone.nil?
-        duct_location_zone = building.crawlspace_zone
-        duct_location_name = building.crawlspace_zone.name.to_s
-      else
-        duct_location_zone = unit.living_zone
-        duct_location_name = unit.living_zone.name.to_s
-      end
+    
+      zones = [building.crawlspace_zone,
+               unit.living_zone]
+
     elsif duct_location == Constants.PierBeamZone
-      if not building.pierbeam_zone.nil?
-        duct_location_zone = building.pierbeam_zone
-        duct_location_name = building.pierbeam_zone.name.to_s
-      else
-        duct_location_zone = unit.living_zone
-        duct_location_name = unit.living_zone.name.to_s
-      end
+    
+      zones = [building.pierbeam_zone,
+               unit.living_zone]
+
     end
+    
+    unit_zones = Geometry.get_thermal_zones_from_spaces(building_unit.spaces)
+    adjacent_common_spaces = Geometry.get_unit_adjacent_common_spaces(building_unit)
+    adjacent_common_zones = Geometry.get_thermal_zones_from_spaces(adjacent_common_spaces)
+    
+    zones.each do |zone|
+      next if zone.nil?
+      next if not (unit_zones.include?(zone) or adjacent_common_zones.include?(zone))
+      duct_location_zone = zone
+      duct_location_name = zone.name.to_s
+      break
+    end
+    
     return duct_location_zone, duct_location_name
   end  
   

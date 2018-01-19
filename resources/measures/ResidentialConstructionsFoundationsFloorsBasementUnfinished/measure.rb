@@ -409,21 +409,16 @@ class ProcessConstructionsFoundationsFloorsBasementUnfinished < OpenStudio::Meas
     end
     
     # Store info for HVAC Sizing measure
-    units = Geometry.get_building_units(model, runner)
-    if units.nil?
-        return false
-    end
-    units.each do |unit|
-        unit.spaces.each do |space|
-            next if not spaces.include?(space)
+    model.getBuildingUnits.each do |unit|
+        spaces.each do |space|
             unit.setFeature(Constants.SizingInfoSpaceWallsInsulated(space), ((ufbsmtWallCavityDepth > 0 and ufbsmtWallCavityInsRvalueInstalled > 0) or (ufbsmtWallContInsThickness > 0 and ufbsmtWallContInsRvalue > 0)))
             unit.setFeature(Constants.SizingInfoSpaceCeilingInsulated(space), (ufbsmtCeilingCavityInsRvalueNominal > 0))
         end
     end
     if not wall_surfaces.empty?
         wall_surfaces.each do |surface|
-            units.each do |unit|
-                next if not unit.spaces.include?(surface.space.get)
+            model.getBuildingUnits.each do |unit|
+                next if unit.spaces.size == 0
                 unit.setFeature(Constants.SizingInfoBasementWallInsulationHeight(surface), ufbsmtWallInsHeight)
                 unit.setFeature(Constants.SizingInfoBasementWallRvalue(surface), overall_wall_Rvalue)
             end

@@ -100,9 +100,11 @@ class HourlyByMonthSchedule
             schedule = OpenStudio::Model::ScheduleRuleset.new(@model)
             schedule.setName(@sch_name)
             
+            assumedYear = yd.assumedYear # prevent excessive OS warnings about 'UseWeatherFile'
+            
             for m in 1..12
-                date_s = OpenStudio::Date::fromDayOfYear(day_startm[m], yd.assumedYear)
-                date_e = OpenStudio::Date::fromDayOfYear(day_endm[m], yd.assumedYear)
+                date_s = OpenStudio::Date::fromDayOfYear(day_startm[m], assumedYear)
+                date_e = OpenStudio::Date::fromDayOfYear(day_endm[m], assumedYear)
                 
                 wkdy_vals = []
                 wknd_vals = []
@@ -331,9 +333,11 @@ class MonthWeekdayWeekendSchedule
             schedule = OpenStudio::Model::ScheduleRuleset.new(@model)
             schedule.setName(@sch_name)
             
+            assumedYear = yd.assumedYear # prevent excessive OS warnings about 'UseWeatherFile'
+            
             for m in 1..12
-                date_s = OpenStudio::Date::fromDayOfYear(day_startm[m], yd.assumedYear)
-                date_e = OpenStudio::Date::fromDayOfYear(day_endm[m], yd.assumedYear)
+                date_s = OpenStudio::Date::fromDayOfYear(day_startm[m], assumedYear)
+                date_e = OpenStudio::Date::fromDayOfYear(day_endm[m], assumedYear)
                 
                 wkdy_vals = []
                 wknd_vals = []

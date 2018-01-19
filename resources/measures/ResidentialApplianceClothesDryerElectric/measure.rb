@@ -62,13 +62,9 @@ class ResidentialClothesDryer < OpenStudio::Measure::ModelMeasure
     args << cd_monthly_sch
 
     #make a choice argument for space
-    spaces = Geometry.get_all_unit_spaces(model)
-    if spaces.nil?
-        spaces = []
-    end
     space_args = OpenStudio::StringVector.new
     space_args << Constants.Auto
-    spaces.each do |space|
+    model.getSpaces.each do |space|
         space_args << space.name.to_s
     end
     space = OpenStudio::Measure::OSArgument::makeChoiceArgument("space", space_args, true)
@@ -116,10 +112,13 @@ class ResidentialClothesDryer < OpenStudio::Measure::ModelMeasure
     tot_ann_e = 0
     msgs = []
     sch = nil
-    units.each do |unit|
+    units.each_with_index do |unit, unit_index|
     
         # Get space
         space = Geometry.get_space_from_string(unit.spaces, space_r)
+        if space.nil? and unit_index == 0 and space_r != Constants.Auto
+            space = Geometry.get_space_from_string(Geometry.get_common_spaces(model), space_r)
+        end
         next if space.nil?
         
         success, ann_e, ann_f, sch = ClothesDryer.apply(model, unit, runner, sch, cef, mult, weekday_sch, weekend_sch, monthly_sch, 

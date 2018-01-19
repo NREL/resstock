@@ -233,27 +233,6 @@ class Geometry
         return unit_number
     end
 
-    # Returns all spaces in the model associated with a unit
-    def self.get_all_unit_spaces(model, runner=nil)
-        all_unit_spaces = []
-        units = self.get_building_units(model, runner)
-        if units.nil?
-            return all_unit_spaces
-        end
-        units.each do |unit|
-            unit.spaces.each do |unit_space|
-                next if all_unit_spaces.include?(unit_space)
-                all_unit_spaces << unit_space
-            end
-        end
-        return all_unit_spaces
-    end
-    
-    # Returns all spaces in the model not associated with a unit
-    def self.get_all_common_spaces(model, runner=nil)
-        return (model.getSpaces - self.get_all_unit_spaces(model, runner))
-    end
-    
     def self.get_unit_default_finished_space(unit_spaces, runner)
         # For the specified unit, chooses an arbitrary finished space on the lowest above-grade story.
         # If no above-grade finished spaces are available, reverts to an arbitrary below-grade finished space.
@@ -281,6 +260,34 @@ class Geometry
             runner.registerError("Could not find a finished space for unit #{unit_num}.")
         end
         return space
+    end
+    
+    def self.get_unit_adjacent_common_spaces(unit)
+      # Returns a list of spaces adjacent to the unit that are not assigned
+      # to a building unit.
+      spaces = []
+      
+      unit.spaces.each do |space|
+        space.surfaces.each do |surface|
+          next if not surface.adjacentSurface.is_initialized
+          adjacent_surface = surface.adjacentSurface.get
+          next if not adjacent_surface.space.is_initialized
+          adjacent_space = adjacent_surface.space.get
+          next if adjacent_space.buildingUnit.is_initialized
+          spaces << adjacent_space
+        end
+      end
+      
+      return spaces.uniq
+    end
+    
+    def self.get_common_spaces(model)
+      spaces = []
+      model.getSpaces.each do |space|
+        next if space.buildingUnit.is_initialized
+        spaces << space
+      end
+      return spaces
     end
     
     def self.get_floor_area_from_spaces(spaces, apply_multipliers=false, runner=nil)

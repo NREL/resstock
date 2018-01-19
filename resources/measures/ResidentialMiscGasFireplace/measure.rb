@@ -66,13 +66,9 @@ class ResidentialGasFireplace < OpenStudio::Measure::ModelMeasure
     args << monthly_sch
 
     #make a choice argument for space
-    spaces = Geometry.get_all_unit_spaces(model)
-    if spaces.nil?
-        spaces = []
-    end
     space_args = OpenStudio::StringVector.new
     space_args << Constants.Auto
-    spaces.each do |space|
+    model.getSpaces.each do |space|
         space_args << space.name.to_s
     end
     space = OpenStudio::Measure::OSArgument::makeChoiceArgument("space", space_args, true)
@@ -121,7 +117,8 @@ class ResidentialGasFireplace < OpenStudio::Measure::ModelMeasure
     tot_gf_ann_g = 0
     msgs = []
     sch = nil
-    units.each do |unit|
+    units.each_with_index do |unit, unit_index|
+    
         # Get unit beds/baths
         nbeds, nbaths = Geometry.get_unit_beds_baths(model, unit, runner)
         if nbeds.nil? or nbaths.nil?
@@ -136,6 +133,9 @@ class ResidentialGasFireplace < OpenStudio::Measure::ModelMeasure
         
         # Get space
         space = Geometry.get_space_from_string(unit.spaces, space_r)
+        if space.nil? and unit_index == 0 and space_r != Constants.Auto
+            space = Geometry.get_space_from_string(Geometry.get_common_spaces(model), space_r)
+        end
         next if space.nil?
 
         unit_obj_name = Constants.ObjectNameGasFireplace(unit.name.to_s)
