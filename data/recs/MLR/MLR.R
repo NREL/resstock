@@ -5,11 +5,11 @@ library(leaps)
 library(reshape2)
 library(plyr)
 
-x.vars.con = c()
+x.vars.con = c('temphome', 'temphomeac')
 
 y.vars.con = c('rand_income')
 
-x.vars.cat = c('vintage', 'size', 'reportable_domain', 'equipm', 'fuelheat', 'equipage', 'temphome', 'cooltype', 'agecenac', 'temphomeac', 'typeglass', 'nhsldmem')
+x.vars.cat = c('vintage', 'size', 'reportable_domain', 'equipm', 'fuelheat', 'equipage', 'cooltype', 'agecenac', 'typeglass', 'nhsldmem')
 # x.vars.cat = c('vintage') # 0.039
 # x.vars.cat = c('size') # 0.150
 # x.vars.cat = c('reportable_domain') # 0.044
@@ -47,8 +47,8 @@ df = na.omit(df) # this removes rows with at least one NA
 # change the reference factors
 df$vintage = relevel(df$vintage, ref='1960s')
 df$reportable_domain = relevel(df$reportable_domain, ref='15')
-df$temphome = relevel(df$temphome, ref='50')
-df$temphomeac = relevel(df$temphomeac, ref='63')
+# df$temphome = relevel(df$temphome, ref='50')
+# df$temphomeac = relevel(df$temphomeac, ref='63')
 df$equipm = relevel(df$equipm, ref='Floor or Wall Pipeless Furnace')
 df$fuelheat = relevel(df$fuelheat, ref='Other Fuel')
 df$equipage = relevel(df$equipage, ref='15-19 yrs')
