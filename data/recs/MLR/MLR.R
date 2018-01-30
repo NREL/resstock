@@ -5,11 +5,11 @@ library(leaps)
 library(reshape2)
 library(plyr)
 
-x.vars.con = c('temphome', 'temphomeac')
+x.vars.con = c('temphome', 'temphomeac', 'nhsldmem')
 
 y.vars.con = c('rand_income')
 
-x.vars.cat = c('vintage', 'size', 'reportable_domain', 'equipm', 'fuelheat', 'equipage', 'cooltype', 'agecenac', 'typeglass', 'nhsldmem')
+x.vars.cat = c('vintage', 'size', 'reportable_domain', 'equipm', 'fuelheat', 'equipage', 'cooltype', 'agecenac', 'typeglass')
 # x.vars.cat = c('vintage') # 0.039
 # x.vars.cat = c('size') # 0.150
 # x.vars.cat = c('reportable_domain') # 0.044
@@ -53,19 +53,18 @@ df$equipm = relevel(df$equipm, ref='Floor or Wall Pipeless Furnace')
 df$fuelheat = relevel(df$fuelheat, ref='Other Fuel')
 df$equipage = relevel(df$equipage, ref='15-19 yrs')
 df$agecenac = relevel(df$agecenac, ref='20+ yrs')
-df$nhsldmem = relevel(df$nhsldmem, ref='10')
+# df$nhsldmem = relevel(df$nhsldmem, ref='10')
 
 # FIRST PASS
 attach(df)
 df.lm1 = lm(paste(dep_vars, paste(indep_vars, collapse=' + '), sep=' ~ '), weights=nweight, data=df, x=T)
 detach(df)
+summary(df.lm1)
 table = as.data.frame.matrix(summary(df.lm1)$coefficients)
 table = table[order(table[['Pr(>|t|)']]), ]
 table = round(table, 5)
-print(table)
 write.csv(table, 'lm1.csv') # write out first pass to csv
-summary(df.lm1)$r.squared
-summary(df.lm1)$adj.r.squared
+write.csv(data.frame("R^2"=summary(df.lm1)$r.squared[1], "Adj-R^2"=summary(df.lm1)$adj.r.squared[1]), "stat1.csv", row.names=F)
 ###
 
 sig_indep_vars_factors = rownames(data.frame(summary(df.lm1)$coefficients)[data.frame(summary(df.lm1)$coefficients)$'Pr...t..' <= 0.05, ]) # remove insignificant vars
@@ -85,13 +84,12 @@ for (x in indep_vars) {
 attach(df)
 df.lm2 = lm(paste(dep_vars, paste(sig_indep_vars, collapse=' + '), sep=' ~ '), weights=nweight, data=df, x=T)
 detach(df)
+summary(df.lm2)
 table = as.data.frame.matrix(summary(df.lm1)$coefficients)
 table = table[order(table[['Pr(>|t|)']]), ]
 table = round(table, 5)
-print(table)
 write.csv(table, 'lm2.csv') # write out second pass to csv
-summary(df.lm2)$r.squared
-summary(df.lm2)$adj.r.squared
+write.csv(data.frame("R^2"=summary(df.lm2)$r.squared[1], "Adj-R^2"=summary(df.lm2)$adj.r.squared[1]), "stat2.csv", row.names=F)
 ###
 
 stop()
