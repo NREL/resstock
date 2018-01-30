@@ -85,7 +85,7 @@ attach(df)
 df.lm2 = lm(paste(dep_vars, paste(sig_indep_vars, collapse=' + '), sep=' ~ '), weights=nweight, data=df, x=T)
 detach(df)
 summary(df.lm2)
-table = as.data.frame.matrix(summary(df.lm1)$coefficients)
+table = as.data.frame.matrix(summary(df.lm2)$coefficients)
 table = table[order(table[['Pr(>|t|)']]), ]
 table = round(table, 5)
 write.csv(table, 'lm2.csv') # write out second pass to csv
