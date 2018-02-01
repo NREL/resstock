@@ -65,17 +65,17 @@ class ResidentialGasFireplace < OpenStudio::Measure::ModelMeasure
     monthly_sch.setDefaultValue("1.154, 1.161, 1.013, 1.010, 1.013, 0.888, 0.883, 0.883, 0.888, 0.978, 0.974, 1.154")
     args << monthly_sch
 
-    #make a choice argument for space
-    space_args = OpenStudio::StringVector.new
-    space_args << Constants.Auto
-    model.getSpaces.each do |space|
-        space_args << space.name.to_s
+    #make a choice argument for location
+    location_args = OpenStudio::StringVector.new
+    location_args << Constants.Auto
+    Geometry.get_model_locations(model).each do |loc|
+        location_args << loc
     end
-    space = OpenStudio::Measure::OSArgument::makeChoiceArgument("space", space_args, true)
-    space.setDisplayName("Location")
-    space.setDescription("Select the space where the cooking range is located. '#{Constants.Auto}' will choose the lowest above-grade finished space available (e.g., first story living space), or a below-grade finished space as last resort. For multifamily buildings, '#{Constants.Auto}' will choose a space for each unit of the building.")
-    space.setDefaultValue(Constants.Auto)
-    args << space
+    location = OpenStudio::Measure::OSArgument::makeChoiceArgument("location", location_args, true)
+    location.setDisplayName("Location")
+    location.setDescription("The space type for the location. '#{Constants.Auto}' will automatically choose a space type based on the space types found in the model.")
+    location.setDefaultValue(Constants.Auto)
+    args << location
 
     return args
   end #end the arguments method
@@ -96,7 +96,7 @@ class ResidentialGasFireplace < OpenStudio::Measure::ModelMeasure
     weekday_sch = runner.getStringArgumentValue("weekday_sch",user_arguments)
     weekend_sch = runner.getStringArgumentValue("weekend_sch",user_arguments)
     monthly_sch = runner.getStringArgumentValue("monthly_sch",user_arguments)
-    space_r = runner.getStringArgumentValue("space",user_arguments)
+    location = runner.getStringArgumentValue("location",user_arguments)
 
     #check for valid inputs
     if base_energy < 0
@@ -114,6 +114,15 @@ class ResidentialGasFireplace < OpenStudio::Measure::ModelMeasure
         return false
     end
     
+    # Remove all existing objects
+    obj_name = Constants.ObjectNameGasFireplace
+    model.getSpaces.each do |space|
+        remove_existing(runner, space, obj_name)
+    end
+    
+    location_hierarchy = [Constants.SpaceTypeLiving,
+                          Constants.SpaceTypeFinishedBasement]
+
     tot_gf_ann_g = 0
     msgs = []
     sch = nil
@@ -132,34 +141,10 @@ class ResidentialGasFireplace < OpenStudio::Measure::ModelMeasure
         end
         
         # Get space
-        space = Geometry.get_space_from_string(unit.spaces, space_r)
-        if space.nil? and unit_index == 0 and space_r != Constants.Auto
-            space = Geometry.get_space_from_string(Geometry.get_common_spaces(model), space_r)
-        end
+        space = Geometry.get_space_from_location(unit, location, location_hierarchy)
         next if space.nil?
-
+        
         unit_obj_name = Constants.ObjectNameGasFireplace(unit.name.to_s)
-
-        # Remove any existing gas fireplace
-        objects_to_remove = []
-        space.gasEquipment.each do |space_equipment|
-            next if space_equipment.name.to_s != unit_obj_name
-            objects_to_remove << space_equipment
-            objects_to_remove << space_equipment.gasEquipmentDefinition
-            if space_equipment.schedule.is_initialized
-                objects_to_remove << space_equipment.schedule.get
-            end
-        end
-        if objects_to_remove.size > 0
-            runner.registerInfo("Removed existing gas fireplace from space '#{space.name.to_s}'.")
-        end
-        objects_to_remove.uniq.each do |object|
-            begin
-                object.remove
-            rescue
-                # no op
-            end
-        end
 
         #Calculate annual energy use
         ann_g = base_energy * mult # therm/yr
@@ -221,6 +206,29 @@ class ResidentialGasFireplace < OpenStudio::Measure::ModelMeasure
     return true
  
   end #end the run method
+  
+  def remove_existing(runner, space, obj_name)
+    # Remove any existing gas fireplace
+    objects_to_remove = []
+    space.gasEquipment.each do |space_equipment|
+        next if not space_equipment.name.to_s.start_with? obj_name
+        objects_to_remove << space_equipment
+        objects_to_remove << space_equipment.gasEquipmentDefinition
+        if space_equipment.schedule.is_initialized
+            objects_to_remove << space_equipment.schedule.get
+        end
+    end
+    if objects_to_remove.size > 0
+        runner.registerInfo("Removed existing gas fireplace from space '#{space.name.to_s}'.")
+    end
+    objects_to_remove.uniq.each do |object|
+        begin
+            object.remove
+        rescue
+            # no op
+        end
+    end
+  end
 
 end #end the measure
 

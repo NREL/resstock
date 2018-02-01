@@ -82,17 +82,17 @@ class ResidentialCookingRangeFuel < OpenStudio::Measure::ModelMeasure
     monthly_sch.setDefaultValue("1.097, 1.097, 0.991, 0.987, 0.991, 0.890, 0.896, 0.896, 0.890, 1.085, 1.085, 1.097")
     args << monthly_sch
 
-    #make a choice argument for space
-    space_args = OpenStudio::StringVector.new
-    space_args << Constants.Auto
-    model.getSpaces.each do |space|
-        space_args << space.name.to_s
+    #make a choice argument for location
+    location_args = OpenStudio::StringVector.new
+    location_args << Constants.Auto
+    Geometry.get_model_locations(model).each do |loc|
+        location_args << loc
     end
-    space = OpenStudio::Measure::OSArgument::makeChoiceArgument("space", space_args, true)
-    space.setDisplayName("Location")
-    space.setDescription("Select the space where the cooking range is located. '#{Constants.Auto}' will choose the lowest above-grade finished space available (e.g., first story living space), or a below-grade finished space as last resort. For multifamily buildings, '#{Constants.Auto}' will choose a space for each unit of the building.")
-    space.setDefaultValue(Constants.Auto)
-    args << space
+    location = OpenStudio::Measure::OSArgument::makeChoiceArgument("location", location_args, true)
+    location.setDisplayName("Location")
+    location.setDescription("The space type for the location. '#{Constants.Auto}' will automatically choose a space type based on the space types found in the model.")
+    location.setDefaultValue(Constants.Auto)
+    args << location
 
     return args
   end #end the arguments method
@@ -115,7 +115,7 @@ class ResidentialCookingRangeFuel < OpenStudio::Measure::ModelMeasure
     weekday_sch = runner.getStringArgumentValue("weekday_sch",user_arguments)
     weekend_sch = runner.getStringArgumentValue("weekend_sch",user_arguments)
     monthly_sch = runner.getStringArgumentValue("monthly_sch",user_arguments)
-    space_r = runner.getStringArgumentValue("space",user_arguments)
+    location = runner.getStringArgumentValue("location",user_arguments)
     
     #check for valid inputs
     if o_ef <= 0 or o_ef > 1
@@ -137,6 +137,18 @@ class ResidentialCookingRangeFuel < OpenStudio::Measure::ModelMeasure
         return false
     end
     
+    # Remove all existing objects
+    obj_name = Constants.ObjectNameCookingRange(nil)
+    model.getSpaces.each do |space|
+        remove_existing(runner, space, obj_name)
+    end
+    
+    location_hierarchy = [Constants.SpaceTypeKitchen, 
+                          Constants.SpaceTypeLiving, 
+                          Constants.SpaceTypeFinishedBasement, 
+                          Constants.SpaceTypeUnfinishedBasement, 
+                          Constants.SpaceTypeGarage]
+
     tot_range_ann_f = 0
     tot_range_ann_i = 0
     msgs = []
@@ -150,46 +162,11 @@ class ResidentialCookingRangeFuel < OpenStudio::Measure::ModelMeasure
         end
         
         # Get space
-        space = Geometry.get_space_from_string(unit.spaces, space_r)
-        if space.nil? and unit_index == 0 and space_r != Constants.Auto
-            space = Geometry.get_space_from_string(Geometry.get_common_spaces(model), space_r)
-        end
+        space = Geometry.get_space_from_location(unit, location, location_hierarchy)
         next if space.nil?
 
-        unit_obj_name_e = Constants.ObjectNameCookingRange(Constants.FuelTypeElectric, false, unit.name.to_s)
-        unit_obj_name_g = Constants.ObjectNameCookingRange(Constants.FuelTypeGas, false, unit.name.to_s)
-        unit_obj_name_p = Constants.ObjectNameCookingRange(Constants.FuelTypePropane, false, unit.name.to_s)
         unit_obj_name_i = Constants.ObjectNameCookingRange(Constants.FuelTypeElectric, true, unit.name.to_s)
         unit_obj_name_f = Constants.ObjectNameCookingRange(fuel_type, false, unit.name.to_s)
-
-        # Remove any existing cooking range
-        objects_to_remove = []
-        space.electricEquipment.each do |space_equipment|
-            next if space_equipment.name.to_s != unit_obj_name_e and space_equipment.name.to_s != unit_obj_name_i
-            objects_to_remove << space_equipment
-            objects_to_remove << space_equipment.electricEquipmentDefinition
-            if space_equipment.schedule.is_initialized
-                objects_to_remove << space_equipment.schedule.get
-            end
-        end
-        space.otherEquipment.each do |space_equipment|
-            next if space_equipment.name.to_s != unit_obj_name_g and space_equipment.name.to_s != unit_obj_name_p
-            objects_to_remove << space_equipment
-            objects_to_remove << space_equipment.otherEquipmentDefinition
-            if space_equipment.schedule.is_initialized
-                objects_to_remove << space_equipment.schedule.get
-            end
-        end
-        if objects_to_remove.size > 0
-            runner.registerInfo("Removed existing cooking range from space '#{space.name.to_s}'.")
-        end
-        objects_to_remove.uniq.each do |object|
-            begin
-                object.remove
-            rescue
-                # no op
-            end
-        end
 
         #Calculate fuel range daily energy use
         range_ann_f = ((2.64 + 0.88 * nbeds) / c_ef + (0.44 + 0.15 * nbeds) / o_ef)*mult # therm/yr
@@ -284,6 +261,37 @@ class ResidentialCookingRangeFuel < OpenStudio::Measure::ModelMeasure
     return true
 
   end #end the run method
+  
+  def remove_existing(runner, space, obj_name)
+    # Remove any existing cooking range
+    objects_to_remove = []
+    space.electricEquipment.each do |space_equipment|
+        next if not space_equipment.name.to_s.start_with? obj_name
+        objects_to_remove << space_equipment
+        objects_to_remove << space_equipment.electricEquipmentDefinition
+        if space_equipment.schedule.is_initialized
+            objects_to_remove << space_equipment.schedule.get
+        end
+    end
+    space.otherEquipment.each do |space_equipment|
+        next if not space_equipment.name.to_s.start_with? obj_name
+        objects_to_remove << space_equipment
+        objects_to_remove << space_equipment.otherEquipmentDefinition
+        if space_equipment.schedule.is_initialized
+            objects_to_remove << space_equipment.schedule.get
+        end
+    end
+    if objects_to_remove.size > 0
+        runner.registerInfo("Removed existing cooking range from space '#{space.name.to_s}'.")
+    end
+    objects_to_remove.uniq.each do |object|
+        begin
+            object.remove
+        rescue
+            # no op
+        end
+    end
+  end
 
 end #end the measure
 

@@ -107,6 +107,8 @@ class ProcessCoolingSetpoints < OpenStudio::Measure::ModelMeasure
     if weather.error?
       return false
     end
+    
+    model_zones = model.getThermalZones
 
     # Get cooling season
     if use_auto_season
@@ -141,7 +143,7 @@ class ProcessCoolingSetpoints < OpenStudio::Measure::ModelMeasure
     end
 
     # assign the availability schedules to the equipment objects
-    model.getThermalZones.each do |thermal_zone|
+    model_zones.each do |thermal_zone|
       cooling_equipment = HVAC.existing_cooling_equipment(model, runner, thermal_zone)
       cooling_equipment.each do |clg_equip|
         clg_coil, htg_coil, supp_htg_coil = HVAC.get_coils_from_hvac_equip(clg_equip)
@@ -164,7 +166,7 @@ class ProcessCoolingSetpoints < OpenStudio::Measure::ModelMeasure
     clg_wked = clg_wked.split(",").map {|i| UnitConversions.convert(i.to_f,"F","C")}  
     
     finished_zones = []
-    model.getThermalZones.each do |thermal_zone|
+    model_zones.each do |thermal_zone|
       if Geometry.zone_is_finished(thermal_zone)
         finished_zones << thermal_zone
       end

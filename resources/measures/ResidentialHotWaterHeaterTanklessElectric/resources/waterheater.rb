@@ -8,55 +8,6 @@ require "#{File.dirname(__FILE__)}/unit_conversions"
 
 class Waterheater
 
-    def self.remove_existing_hpwh(model, obj_name_hpwh)
-      
-      model.getEnergyManagementSystemProgramCallingManagers.each do |program_calling_manager|
-        next unless program_calling_manager.name.to_s == obj_name_hpwh + " ProgramManager"
-        program_calling_manager.remove
-      end
-      
-      model.getEnergyManagementSystemSensors.each do |sensor|
-        next unless ["#{obj_name_hpwh} amb temp", "#{obj_name_hpwh} amb rh", "#{obj_name_hpwh} tl", "#{obj_name_hpwh} sens cool", "#{obj_name_hpwh} lat cool", "#{obj_name_hpwh} fan pwr", "#{obj_name_hpwh} amb w", "#{obj_name_hpwh} amb p", "#{obj_name_hpwh} tair out", "#{obj_name_hpwh} wair out", "#{obj_name_hpwh} v air", "#{obj_name_hpwh} T ctrl", "#{obj_name_hpwh} LE P", "#{obj_name_hpwh} UE P", "#{obj_name_hpwh} Tout", "#{obj_name_hpwh} RHout"].map{|x| x.gsub(" ","_")}.include? sensor.name.to_s
-        sensor.remove
-      end      
-      
-      model.getEnergyManagementSystemActuators.each do |actuator|
-        next unless ["#{obj_name_hpwh} Tamb act2", "#{obj_name_hpwh} Tamb act", "#{obj_name_hpwh} RHamb act", "#{obj_name_hpwh} on off", "#{obj_name_hpwh} LESchedOverride", "#{obj_name_hpwh} HPSchedOverride", "#{obj_name_hpwh} UESchedOverride"].map{|x| x.gsub(" ","_")}.include? actuator.name.to_s
-        actuatedComponent = actuator.actuatedComponent
-        if actuatedComponent.is_a? OpenStudio::Model::OptionalModelObject # 2.4.0 or higher
-          actuatedComponent = actuatedComponent.get
-        end
-        actuatedComponent.remove
-        actuator.remove
-      end
-      
-      model.getEnergyManagementSystemActuators.each do |actuator|
-        next unless ["#{obj_name_hpwh} sens act", "#{obj_name_hpwh} lat act"].map{|x| x.gsub(" ","_")}.include? actuator.name.to_s
-        actuatedComponent = actuator.actuatedComponent
-        if actuatedComponent.is_a? OpenStudio::Model::OptionalModelObject # 2.4.0 or higher
-          actuatedComponent = actuatedComponent.get
-        end
-        actuatedComponent.to_OtherEquipment.get.otherEquipmentDefinition.remove
-        actuator.remove
-      end
-      
-      model.getScheduleConstants.each do |schedule|
-        next unless ["#{obj_name_hpwh} Tamb act", "#{obj_name_hpwh} RHamb act", "#{obj_name_hpwh} Tamb act2", "#{obj_name_hpwh} WaterHeaterHPSchedule", "#{obj_name_hpwh} BottomElementSetpoint", "#{obj_name_hpwh} TopElementSetpoint"].map{|x| x.gsub("|","_")}.include? schedule.name.to_s
-        schedule.remove
-      end
-      
-      model.getEnergyManagementSystemPrograms.each do |program|
-        next unless ["#{obj_name_hpwh} InletAir", "#{obj_name_hpwh} Control"].map{|x| x.gsub(" ","_").gsub("|","_")}.include? program.name.to_s
-        program.remove
-      end      
-      
-      model.getEnergyManagementSystemTrendVariables.each do |trend_var|
-        next unless ["#{obj_name_hpwh} on off", "#{obj_name_hpwh} UETrend", "#{obj_name_hpwh} LETrend"].map{|x| x.gsub(" ","_").gsub("|","_")}.include? trend_var.name.to_s
-        trend_var.remove
-      end
-      
-    end
-
     def self.get_shw_storage_tank(model, unit)
         model.getPlantLoops.each do |plant_loop|
           next unless plant_loop.name.to_s == Constants.PlantLoopSolarHotWater(unit.name.to_s)
@@ -484,55 +435,100 @@ class Waterheater
         return nil
     end
     
-    def self.get_water_heater_location_auto(model, unit, runner)
-        spaces = unit.spaces + Geometry.get_unit_adjacent_common_spaces(unit)
-        #If auto is picked, get the BA climate zone, 
-        #check if the building has a garage/basement, 
-        #and assign the water heater location appropriately
-        climateZones = model.getClimateZones
-        ba_cz_name = ""
-        climateZones.climateZones.each do |climateZone|
-            if climateZone.institution == Constants.BuildingAmericaClimateZone
-                ba_cz_name = climateZone.value.to_s
-            end
+    def self.get_location_hierarchy(ba_cz_name)
+        if [Constants.BAZoneHotDry, Constants.BAZoneHotHumid].include? ba_cz_name
+            return [Constants.SpaceTypeGarage,
+                    Constants.SpaceTypeLiving, 
+                    Constants.SpaceTypeFinishedBasement,
+                    Constants.SpaceTypeLaundryRoom, 
+                    Constants.SpaceTypeCrawl, 
+                    Constants.SpaceTypeUnfinishedAttic]
+                                  
+        elsif [Constants.BAZoneMarine, Constants.BAZoneMixedHumid, Constants.BAZoneMixedHumid, Constants.BAZoneCold, Constants.BAZoneVeryCold, Constants.BAZoneSubarctic].include? ba_cz_name
+            return [Constants.SpaceTypeFinishedBasement,
+                    Constants.SpaceTypeUnfinishedBasement, 
+                    Constants.SpaceTypeLiving, 
+                    Constants.SpaceTypeLaundryRoom, 
+                    Constants.SpaceTypeCrawl, 
+                    Constants.SpaceTypeUnfinishedAttic]
         end
-        living = Geometry.get_unit_default_finished_space(spaces, runner)
-        garage = Geometry.get_garage_spaces(spaces, model)
-        fin_basement = Geometry.get_finished_basement_spaces(spaces)
-        unfin_basement = Geometry.get_unfinished_basement_spaces(spaces)
-        wh_tz = nil
-        if ba_cz_name == Constants.BAZoneHotDry or ba_cz_name == Constants.BAZoneHotHumid
-            #check if the building has a garage
-            if garage.length > 0
-                wh_tz = garage[0].thermalZone.get
-            elsif not living.nil? #no garage, in living space
-                wh_tz = living.thermalZone.get
-            end
-        elsif ba_cz_name == Constants.BAZoneMarine or ba_cz_name == Constants.BAZoneMixedHumid or ba_cz_name == Constants.BAZoneMixedHumid or ba_cz_name == Constants.BAZoneCold or ba_cz_name == Constants.BAZoneVeryCold or ba_cz_name == Constants.BAZoneSubarctic
-            #TODO: always locating the water heater in the first unconditioned space, what if there's multiple
-            if fin_basement.length > 0
-                wh_tz = fin_basement[0].thermalZone.get
-            elsif unfin_basement.length > 0
-                wh_tz = unfin_basement[0].thermalZone.get
-            elsif not living.nil? #no basement, in living space
-                wh_tz = living.thermalZone.get
-            end
-        else
-            runner.registerWarning("No Building America climate zone has been assigned. The water heater location will be chosen with the following priority: basement > garage > living")
-            #check for suitable WH locations
-            #TODO: in BEopt, priority goes living>fin attic. Since we always assign a zone as the living space in OS, this is the final location.
-            #If geometry.rb is changed to better identify living zones, update this code to differentiate between living tz and fin attic tz
-            if fin_basement.length > 0
-                wh_tz = fin_basement[0].thermalZone.get
-            elsif unfin_basement.length > 0
-                wh_tz = unfin_basement[0].thermalZone.get
-            elsif garage.length > 0
-                wh_tz = garage[0].thermalZone.get
-            elsif not living.nil? #no basement or garage, in living space
-                wh_tz = living.thermalZone.get
-            end
-        end
-        
-        return wh_tz
+        return nil
     end
+    
+    def self.remove_existing(runner, pl, obj_name, model) # TODO: Should not pass in model
+        #Remove any existing water heater
+        objects_to_remove = []
+        pl.supplyComponents.each do |wh|
+            next if !wh.to_WaterHeaterMixed.is_initialized and !wh.to_WaterHeaterStratified.is_initialized
+            if wh.to_WaterHeaterMixed.is_initialized
+                objects_to_remove << wh
+                if wh.to_WaterHeaterMixed.get.setpointTemperatureSchedule.is_initialized
+                  objects_to_remove << wh.to_WaterHeaterMixed.get.setpointTemperatureSchedule.get
+                end
+            elsif wh.to_WaterHeaterStratified.is_initialized
+                if not wh.to_WaterHeaterStratified.get.secondaryPlantLoop.is_initialized
+                  model.getWaterHeaterHeatPumpWrappedCondensers.each do |hpwh|
+                    objects_to_remove << hpwh.tank
+                    objects_to_remove << hpwh                            
+                  end
+                  objects_to_remove << wh.to_WaterHeaterStratified.get.heater1SetpointTemperatureSchedule
+                  objects_to_remove << wh.to_WaterHeaterStratified.get.heater2SetpointTemperatureSchedule
+                  Waterheater.remove_existing_hpwh(model, obj_name)
+                end
+            end
+        end
+        if objects_to_remove.size > 0
+            runner.registerInfo("Removed existing water heater from plant loop '#{pl.name.to_s}'.")
+        end
+        objects_to_remove.uniq.each do |object|
+            begin
+                object.remove
+            rescue
+                # no op
+            end
+        end
+    end
+
+    def self.remove_existing_hpwh(model, obj_name_hpwh)
+      obj_name_hpwh_underscore = obj_name_hpwh.gsub(" ","_")
+      
+      model.getEnergyManagementSystemProgramCallingManagers.each do |program_calling_manager|
+        next unless program_calling_manager.name.to_s.include? obj_name_hpwh
+        program_calling_manager.remove
+      end
+      
+      model.getEnergyManagementSystemSensors.each do |sensor|
+        next unless sensor.name.to_s.include? obj_name_hpwh_underscore
+        sensor.remove
+      end      
+      
+      model.getEnergyManagementSystemActuators.each do |actuator|
+        next unless actuator.name.to_s.include? obj_name_hpwh_underscore
+        actuatedComponent = actuator.actuatedComponent
+        if actuatedComponent.is_a? OpenStudio::Model::OptionalModelObject # 2.4.0 or higher
+          actuatedComponent = actuatedComponent.get
+        end
+        if actuatedComponent.to_OtherEquipment.is_initialized
+          actuatedComponent.to_OtherEquipment.get.otherEquipmentDefinition.remove
+        end
+        actuator.remove
+      end
+      
+      model.getScheduleConstants.each do |schedule|
+        next unless schedule.name.to_s.include? obj_name_hpwh
+        schedule.remove
+      end
+      
+      model.getEnergyManagementSystemPrograms.each do |program|
+        next unless program.name.to_s.include? obj_name_hpwh_underscore
+        program.remove
+      end      
+      
+      model.getEnergyManagementSystemTrendVariables.each do |trend_var|
+        next unless trend_var.name.to_s.include? obj_name_hpwh_underscore
+        trend_var.remove
+      end
+      
+    end
+    
 end

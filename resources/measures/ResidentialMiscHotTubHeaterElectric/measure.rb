@@ -102,6 +102,15 @@ class ResidentialHotTubHeaterElec < OpenStudio::Measure::ModelMeasure
     if units.nil?
         return false
     end
+    
+    # Remove all existing objects
+    obj_name = Constants.ObjectNameHotTubHeater(nil)
+    model.getSpaces.each do |space|
+        remove_existing(runner, space, obj_name)
+    end
+
+    location_hierarchy = [Constants.SpaceTypeLiving,
+                          Constants.SpaceTypeFinishedBasement]
 
     tot_hth_ann = 0
     msgs = []
@@ -120,40 +129,10 @@ class ResidentialHotTubHeaterElec < OpenStudio::Measure::ModelMeasure
         end
         
         # Get space
-        space = Geometry.get_space_from_string(unit.spaces, Constants.Auto)
+        space = Geometry.get_space_from_location(unit, Constants.Auto, location_hierarchy)
         next if space.nil?
 
-        unit_obj_name_e = Constants.ObjectNameHotTubHeater(Constants.FuelTypeElectric, unit.name.to_s)
-        unit_obj_name_g = Constants.ObjectNameHotTubHeater(Constants.FuelTypeGas, unit.name.to_s)
-    
-        # Remove any existing hot tub heater
-        objects_to_remove = []
-        space.electricEquipment.each do |space_equipment|
-            next if space_equipment.name.to_s != unit_obj_name_e
-            objects_to_remove << space_equipment
-            objects_to_remove << space_equipment.electricEquipmentDefinition
-            if space_equipment.schedule.is_initialized
-                objects_to_remove << space_equipment.schedule.get
-            end
-        end
-        space.gasEquipment.each do |space_equipment|
-            next if space_equipment.name.to_s != unit_obj_name_g
-            objects_to_remove << space_equipment
-            objects_to_remove << space_equipment.gasEquipmentDefinition
-            if space_equipment.schedule.is_initialized
-                objects_to_remove << space_equipment.schedule.get
-            end
-        end
-        if objects_to_remove.size > 0
-            runner.registerInfo("Removed existing hot tub heater from outside.")
-        end
-        objects_to_remove.uniq.each do |object|
-            begin
-                object.remove
-            rescue
-                # no op
-            end
-        end
+        unit_obj_name = Constants.ObjectNameHotTubHeater(Constants.FuelTypeElectric, unit.name.to_s)
     
         #Calculate annual energy use
         ann_elec = base_energy * mult # kWh/yr
@@ -183,10 +162,10 @@ class ResidentialHotTubHeaterElec < OpenStudio::Measure::ModelMeasure
             #Add electric equipment for the hot tub heater
             hth_def = OpenStudio::Model::ElectricEquipmentDefinition.new(model)
             hth = OpenStudio::Model::ElectricEquipment.new(hth_def)
-            hth.setName(unit_obj_name_e)
-            hth.setEndUseSubcategory(unit_obj_name_e)
+            hth.setName(unit_obj_name)
+            hth.setEndUseSubcategory(unit_obj_name)
             hth.setSpace(space)
-            hth_def.setName(unit_obj_name_e)
+            hth_def.setName(unit_obj_name)
             hth_def.setDesignLevel(design_level)
             hth_def.setFractionRadiant(0)
             hth_def.setFractionLatent(0)
@@ -215,6 +194,37 @@ class ResidentialHotTubHeaterElec < OpenStudio::Measure::ModelMeasure
     return true
  
   end #end the run method
+  
+  def remove_existing(runner, space, obj_name)
+    # Remove any existing hot tub heater
+    objects_to_remove = []
+    space.electricEquipment.each do |space_equipment|
+        next if not space_equipment.name.to_s.start_with? obj_name
+        objects_to_remove << space_equipment
+        objects_to_remove << space_equipment.electricEquipmentDefinition
+        if space_equipment.schedule.is_initialized
+            objects_to_remove << space_equipment.schedule.get
+        end
+    end
+    space.gasEquipment.each do |space_equipment|
+        next if not space_equipment.name.to_s.start_with? obj_name
+        objects_to_remove << space_equipment
+        objects_to_remove << space_equipment.gasEquipmentDefinition
+        if space_equipment.schedule.is_initialized
+            objects_to_remove << space_equipment.schedule.get
+        end
+    end
+    if objects_to_remove.size > 0
+        runner.registerInfo("Removed existing hot tub heater from outside.")
+    end
+    objects_to_remove.uniq.each do |object|
+        begin
+            object.remove
+        rescue
+            # no op
+        end
+    end
+  end
 
 end #end the measure
 

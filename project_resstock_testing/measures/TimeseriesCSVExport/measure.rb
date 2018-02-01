@@ -17,12 +17,12 @@ class TimeseriesCSVExport < OpenStudio::Measure::ReportingMeasure
 
   # human readable description
   def description
-    return "Exports all available hourly timeseries enduses to csv, and uses them for utility bill calculations."
+    return "Exports all available hourly timeseries enduses to csv."
   end
 
   # human readable description of modeling approach
   def modeler_description
-    return "Exports all available hourly timeseries enduses to csv, and uses them for utility bill calculations."
+    return "Exports all available hourly timeseries enduses to csv."
   end
 
   def fuel_types

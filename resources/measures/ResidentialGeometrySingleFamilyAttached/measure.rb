@@ -84,16 +84,16 @@ class CreateResidentialSingleFamilyAttachedGeometry < OpenStudio::Measure::Model
     
     #make a choice argument for model objects
     foundation_display_names = OpenStudio::StringVector.new
-    foundation_display_names << Constants.SlabFoundationType
-    foundation_display_names << Constants.CrawlFoundationType
-    foundation_display_names << Constants.UnfinishedBasementFoundationType
-    foundation_display_names << Constants.FinishedBasementFoundationType
+    foundation_display_names << "slab"
+    foundation_display_names << "crawlspace"
+    foundation_display_names << "unfinished basement"
+    foundation_display_names << "finished basement"
     
     #make a choice argument for foundation type
     foundation_type = OpenStudio::Measure::OSArgument::makeChoiceArgument("foundation_type", foundation_display_names, true)
     foundation_type.setDisplayName("Foundation Type")
     foundation_type.setDescription("The foundation type of the building.")
-    foundation_type.setDefaultValue(Constants.SlabFoundationType)
+    foundation_type.setDefaultValue("slab")
     args << foundation_type
 
     #make an argument for crawlspace height
@@ -106,14 +106,14 @@ class CreateResidentialSingleFamilyAttachedGeometry < OpenStudio::Measure::Model
     
     #make a choice argument for model objects
     attic_type_display_names = OpenStudio::StringVector.new
-    attic_type_display_names << Constants.UnfinishedAtticType
-    attic_type_display_names << Constants.FinishedAtticType
+    attic_type_display_names << "unfinished attic"
+    attic_type_display_names << "finished attic"
     
     #make a choice argument for attic type
     attic_type = OpenStudio::Measure::OSArgument::makeChoiceArgument("attic_type", attic_type_display_names, true)
     attic_type.setDisplayName("Attic Type")
     attic_type.setDescription("The attic type of the building.")
-    attic_type.setDefaultValue(Constants.UnfinishedAtticType)
+    attic_type.setDefaultValue("unfinished attic")
     args << attic_type
     
     #make a choice argument for model objects
@@ -185,9 +185,9 @@ class CreateResidentialSingleFamilyAttachedGeometry < OpenStudio::Measure::Model
     roof_pitch = {"1:12"=>1.0/12.0, "2:12"=>2.0/12.0, "3:12"=>3.0/12.0, "4:12"=>4.0/12.0, "5:12"=>5.0/12.0, "6:12"=>6.0/12.0, "7:12"=>7.0/12.0, "8:12"=>8.0/12.0, "9:12"=>9.0/12.0, "10:12"=>10.0/12.0, "11:12"=>11.0/12.0, "12:12"=>12.0/12.0}[runner.getStringArgumentValue("roof_pitch",user_arguments)]    
     use_zone_mult = false #runner.getBoolArgumentValue("use_zone_mult",user_arguments)
     
-    if foundation_type == Constants.SlabFoundationType
+    if foundation_type == "slab"
       foundation_height = 0.0
-    elsif foundation_type == Constants.UnfinishedBasementFoundationType or foundation_type == Constants.FinishedBasementFoundationType
+    elsif foundation_type == "unfinished basement" or foundation_type == "finished basement"
       foundation_height = 8.0
     end    
     
@@ -196,7 +196,7 @@ class CreateResidentialSingleFamilyAttachedGeometry < OpenStudio::Measure::Model
       runner.registerError("Starting model is not empty.")
       return false
     end
-    if foundation_type == Constants.CrawlFoundationType and ( foundation_height < 1.5 or foundation_height > 5.0 )
+    if foundation_type == "crawlspace" and ( foundation_height < 1.5 or foundation_height > 5.0 )
       runner.registerError("The crawlspace height can be set between 1.5 and 5 ft.")
       return false
     end
@@ -210,14 +210,16 @@ class CreateResidentialSingleFamilyAttachedGeometry < OpenStudio::Measure::Model
     end
     
     # Convert to SI
-    foundation_height = UnitConversions.convert(foundation_height,"ft","m")    
+    foundation_height = UnitConversions.convert(foundation_height,"ft","m")
+    
+    space_types_hash = {}
         
     # starting spaces
     runner.registerInitialCondition("The building started with #{model.getSpaces.size} spaces.")
     
-    if foundation_type == Constants.FinishedBasementFoundationType and attic_type == Constants.FinishedAtticType
+    if foundation_type == "finished basement" and attic_type == "finished attic"
       footprint = unit_ffa / (num_floors + 2)
-    elsif foundation_type == Constants.FinishedBasementFoundationType or attic_type == Constants.FinishedAtticType
+    elsif foundation_type == "finished basement" or attic_type == "finished attic"
       footprint = unit_ffa / (num_floors + 1)
     else
       footprint = unit_ffa / num_floors
@@ -244,13 +246,21 @@ class CreateResidentialSingleFamilyAttachedGeometry < OpenStudio::Measure::Model
            
     # create living zone
     living_zone = OpenStudio::Model::ThermalZone.new(model)
-    living_zone.setName(Constants.LivingZone(Constants.ObjectNameBuildingUnit(1)))
+    living_zone.setName("living zone")
     
     # first floor front
     living_spaces_front = []
     living_space = OpenStudio::Model::Space::fromFloorPrint(living_polygon, wall_height, model)
     living_space = living_space.get
-    living_space.setName(Constants.LivingSpace(1, Constants.ObjectNameBuildingUnit(1)))
+    living_space.setName("living space")
+    if space_types_hash.keys.include? Constants.SpaceTypeLiving
+      living_space_type = space_types_hash[Constants.SpaceTypeLiving]
+    else
+      living_space_type = OpenStudio::Model::SpaceType.new(model)
+      living_space_type.setStandardsSpaceType(Constants.SpaceTypeLiving)
+      space_types_hash[Constants.SpaceTypeLiving] = living_space_type
+    end
+    living_space.setSpaceType(living_space_type)
     living_space.setThermalZone(living_zone)
     
     living_spaces_front << living_space
@@ -263,7 +273,8 @@ class CreateResidentialSingleFamilyAttachedGeometry < OpenStudio::Measure::Model
     (2..num_floors).to_a.each do |story|
     
       new_living_space = living_space.clone.to_Space.get
-      new_living_space.setName(Constants.LivingSpace(story, Constants.ObjectNameBuildingUnit(1)))
+      new_living_space.setName("living space|story #{story}")
+      new_living_space.setSpaceType(living_space_type)
       
       m = Geometry.initialize_transformation_matrix(OpenStudio::Matrix.new(4,4,0))
       m[2,3] = wall_height * (story - 1)
@@ -277,14 +288,22 @@ class CreateResidentialSingleFamilyAttachedGeometry < OpenStudio::Measure::Model
     # attic
     if roof_type != Constants.RoofTypeFlat
       attic_space = get_attic_space(model, x, y, wall_height, num_floors, roof_pitch, roof_type)
-      if attic_type == Constants.FinishedAtticType
-        attic_space.setName(Constants.FinishedAtticSpace(Constants.ObjectNameBuildingUnit(1)))
+      if attic_type == "finished attic"
+        attic_space.setName("finished attic space")
         attic_space.setThermalZone(living_zone)
         living_spaces_front << attic_space
       else
         attic_spaces << attic_space
         attic_space_front = attic_space
       end
+      if space_types_hash.keys.include? Constants.SpaceTypeLiving
+        attic_space_type = space_types_hash[Constants.SpaceTypeLiving]
+      else
+        attic_space_type = OpenStudio::Model::SpaceType.new(model)
+        attic_space_type.setStandardsSpaceType(Constants.SpaceTypeLiving)
+        space_types_hash[Constants.SpaceTypeLiving] = attic_space_type
+      end
+      attic_space.setSpaceType(attic_space_type)
     end    
     
     # create the unit
@@ -307,13 +326,14 @@ class CreateResidentialSingleFamilyAttachedGeometry < OpenStudio::Measure::Model
       
       # create living zone
       living_zone = OpenStudio::Model::ThermalZone.new(model)
-      living_zone.setName(Constants.LivingZone(Constants.ObjectNameBuildingUnit(2)))
+      living_zone.setName("living zone|#{Constants.ObjectNameBuildingUnit(2)}")
       
       # first floor back
       living_spaces_back = []
       living_space = OpenStudio::Model::Space::fromFloorPrint(living_polygon, wall_height, model)
       living_space = living_space.get
-      living_space.setName(Constants.LivingSpace(1, Constants.ObjectNameBuildingUnit(2)))
+      living_space.setName("living space|#{Constants.ObjectNameBuildingUnit(2)}")
+      living_space.setSpaceType(living_space_type)
       living_space.setThermalZone(living_zone) 
       
       living_spaces_back << living_space
@@ -322,7 +342,8 @@ class CreateResidentialSingleFamilyAttachedGeometry < OpenStudio::Measure::Model
       (2..num_floors).to_a.each do |story|
       
         new_living_space = living_space.clone.to_Space.get
-        new_living_space.setName(Constants.LivingSpace(story, Constants.ObjectNameBuildingUnit(2)))
+        new_living_space.setName("living space|#{Constants.ObjectNameBuildingUnit(2)}|story #{story}")
+        new_living_space.setSpaceType(living_space_type)
         
         m = Geometry.initialize_transformation_matrix(OpenStudio::Matrix.new(4,4,0))
         m[2,3] = wall_height * (story - 1)
@@ -336,14 +357,15 @@ class CreateResidentialSingleFamilyAttachedGeometry < OpenStudio::Measure::Model
       # attic
       if roof_type != Constants.RoofTypeFlat
         attic_space = get_attic_space(model, x, -y, wall_height, num_floors, roof_pitch, roof_type)
-        if attic_type == Constants.FinishedAtticType
-          attic_space.setName(Constants.FinishedAtticSpace(Constants.ObjectNameBuildingUnit(2)))
+        if attic_type == "finished attic"
+          attic_space.setName("finished attic space|#{Constants.ObjectNameBuildingUnit(2)}")
           attic_space.setThermalZone(living_zone)        
           living_spaces_back << attic_space
         else
           attic_spaces << attic_space
           attic_space_back = attic_space
         end
+        attic_space.setSpaceType(attic_space_type)
       end      
       
       # create the back unit
@@ -361,17 +383,18 @@ class CreateResidentialSingleFamilyAttachedGeometry < OpenStudio::Measure::Model
         end
         
         living_zone = OpenStudio::Model::ThermalZone.new(model)
-        living_zone.setName(Constants.LivingZone(Constants.ObjectNameBuildingUnit(unit_num)))
+        living_zone.setName("living zone|#{Constants.ObjectNameBuildingUnit(unit_num)}")
       
         new_living_spaces = []
         living_spaces.each_with_index do |living_space, story|
       
           new_living_space = living_space.clone.to_Space.get
           if story == num_floors
-            new_living_space.setName(Constants.FinishedAtticSpace(Constants.ObjectNameBuildingUnit(unit_num)))
+            new_living_space.setName("finished attic space|#{Constants.ObjectNameBuildingUnit(unit_num)}")
           else
-            new_living_space.setName(Constants.LivingSpace(story + 1, Constants.ObjectNameBuildingUnit(unit_num)))
+            new_living_space.setName("living space|#{Constants.ObjectNameBuildingUnit(unit_num)}|story #{story+1}")
           end
+          new_living_space.setSpaceType(living_space_type)
         
           m = Geometry.initialize_transformation_matrix(OpenStudio::Matrix.new(4,4,0))
           m[0,3] = -pos * x
@@ -390,7 +413,7 @@ class CreateResidentialSingleFamilyAttachedGeometry < OpenStudio::Measure::Model
       
         # attic
         if roof_type != Constants.RoofTypeFlat
-          if attic_type == Constants.UnfinishedAtticType
+          if attic_type == "unfinished attic"
             # front or back unit
             if unit_num % 2 != 0 # odd unit number
               attic_space = attic_space_front
@@ -428,7 +451,7 @@ class CreateResidentialSingleFamilyAttachedGeometry < OpenStudio::Measure::Model
         pos += 1
         
         living_zone = OpenStudio::Model::ThermalZone.new(model)
-        living_zone.setName(Constants.LivingZone(Constants.ObjectNameBuildingUnit(unit_num)))
+        living_zone.setName("living zone|#{Constants.ObjectNameBuildingUnit(unit_num)}")
       
         new_living_spaces = []
         living_spaces.each_with_index do |living_space, story|
@@ -436,10 +459,11 @@ class CreateResidentialSingleFamilyAttachedGeometry < OpenStudio::Measure::Model
           new_living_space = living_space.clone.to_Space.get
           
           if story == num_floors
-            new_living_space.setName(Constants.FinishedAtticSpace(Constants.ObjectNameBuildingUnit(unit_num)))
+            new_living_space.setName("finished attic space|#{Constants.ObjectNameBuildingUnit(unit_num)}")
           else
-            new_living_space.setName(Constants.LivingSpace(story + 1, Constants.ObjectNameBuildingUnit(unit_num)))
-          end          
+            new_living_space.setName("living space|#{Constants.ObjectNameBuildingUnit(unit_num)}|story #{story+1}")
+          end  
+          new_living_space.setSpaceType(living_space_type)          
         
           m = Geometry.initialize_transformation_matrix(OpenStudio::Matrix.new(4,4,0))
           m[0,3] = -pos * x
@@ -458,7 +482,7 @@ class CreateResidentialSingleFamilyAttachedGeometry < OpenStudio::Measure::Model
 
         # attic
         if roof_type != Constants.RoofTypeFlat
-          if attic_type == Constants.UnfinishedAtticType
+          if attic_type == "unfinished attic"
 
             attic_space = attic_space_front
           
@@ -501,17 +525,25 @@ class CreateResidentialSingleFamilyAttachedGeometry < OpenStudio::Measure::Model
       foundation_space.setYOrigin(0)
       foundation_space.setZOrigin(0)
       
-      if foundation_type == Constants.FinishedBasementFoundationType
+      if foundation_type == "finished basement"
         foundation_zone = OpenStudio::Model::ThermalZone.new(model)
-        foundation_space.setName(Constants.FinishedBasementSpace(Constants.ObjectNameBuildingUnit(1)))
-        foundation_zone.setName(Constants.FinishedBasementZone(Constants.ObjectNameBuildingUnit(1)))
+        foundation_space.setName("finished basement space")
+        foundation_zone.setName("finished basement zone")
         foundation_space.setThermalZone(foundation_zone)
+        if space_types_hash.keys.include? Constants.SpaceTypeFinishedBasement
+          foundation_space_type = space_types_hash[Constants.SpaceTypeFinishedBasement]
+        else
+          foundation_space_type = OpenStudio::Model::SpaceType.new(model)
+          foundation_space_type.setStandardsSpaceType(Constants.SpaceTypeFinishedBasement)
+          space_types_hash[Constants.SpaceTypeFinishedBasement] = foundation_space_type
+        end
+        foundation_space.setSpaceType(foundation_space_type)
       end
       
       foundation_space_front << foundation_space
       foundation_spaces << foundation_space
       
-      if foundation_type == Constants.FinishedBasementFoundationType
+      if foundation_type == "finished basement"
         unit_spaces_hash[1] << foundation_space
       end
 
@@ -528,18 +560,19 @@ class CreateResidentialSingleFamilyAttachedGeometry < OpenStudio::Measure::Model
         foundation_space.setYOrigin(0)
         foundation_space.setZOrigin(0)
         
-        if foundation_type == Constants.FinishedBasementFoundationType
+        if foundation_type == "finished basement"
           foundation_zone = OpenStudio::Model::ThermalZone.new(model)
-          foundation_space.setName(Constants.FinishedBasementSpace(Constants.ObjectNameBuildingUnit(2)))
-          foundation_zone.setName(Constants.FinishedBasementZone(Constants.ObjectNameBuildingUnit(2)))
+          foundation_space.setName("finished basement space|#{Constants.ObjectNameBuildingUnit(2)}")
+          foundation_zone.setName("finished basement zone|#{Constants.ObjectNameBuildingUnit(2)}")
           foundation_space.setThermalZone(foundation_zone)
+          foundation_space.setSpaceType(foundation_space_type)
         end
         
         foundation_space_back << foundation_space
         foundation_spaces << foundation_space
         
         # create the unit
-        if foundation_type == Constants.FinishedBasementFoundationType
+        if foundation_type == "finished basement"
           unit_spaces_hash[2] << foundation_space
         end
     
@@ -548,22 +581,23 @@ class CreateResidentialSingleFamilyAttachedGeometry < OpenStudio::Measure::Model
 
           # front or back unit
           if unit_num % 2 != 0 # odd unit number
-            living_spaces = foundation_space_front
+            fnd_spaces = foundation_space_front
             pos += 1
           else # even unit number
-            living_spaces = foundation_space_back
+            fnd_spaces = foundation_space_back
           end
           
-          if foundation_type == Constants.FinishedBasementFoundationType
-            living_zone = OpenStudio::Model::ThermalZone.new(model)
-            living_zone.setName(Constants.FinishedBasementZone(Constants.ObjectNameBuildingUnit(unit_num)))
+          if foundation_type == "finished basement"
+            basement_zone = OpenStudio::Model::ThermalZone.new(model)
+            basement_zone.setName("finished basement zone|#{Constants.ObjectNameBuildingUnit(unit_num)}")
           end
         
-          living_spaces.each do |living_space|
+          fnd_spaces.each do |fnd_space|
         
-            new_living_space = living_space.clone.to_Space.get
-            if foundation_type == Constants.FinishedBasementFoundationType
-              new_living_space.setName(Constants.FinishedBasementSpace(Constants.ObjectNameBuildingUnit(unit_num)))
+            new_fnd_space = fnd_space.clone.to_Space.get
+            if foundation_type == "finished basement"
+              new_fnd_space.setName("finished basement space|#{Constants.ObjectNameBuildingUnit(unit_num)}")
+              new_fnd_space.setSpaceType(foundation_space_type)
             end
           
             m = Geometry.initialize_transformation_matrix(OpenStudio::Matrix.new(4,4,0))
@@ -571,18 +605,18 @@ class CreateResidentialSingleFamilyAttachedGeometry < OpenStudio::Measure::Model
             if (pos + 1) % 2 == 0
               m[1,3] = -offset
             end          
-            new_living_space.changeTransformation(OpenStudio::Transformation.new(m))
-            new_living_space.setXOrigin(0)
-            new_living_space.setYOrigin(0)
-            new_living_space.setZOrigin(0)
-            if foundation_type == Constants.FinishedBasementFoundationType
-              new_living_space.setThermalZone(living_zone)
+            new_fnd_space.changeTransformation(OpenStudio::Transformation.new(m))
+            new_fnd_space.setXOrigin(0)
+            new_fnd_space.setYOrigin(0)
+            new_fnd_space.setZOrigin(0)
+            if foundation_type == "finished basement"
+              new_fnd_space.setThermalZone(basement_zone)
             end
          
-            foundation_spaces << new_living_space
+            foundation_spaces << new_fnd_space
             
-            if foundation_type == Constants.FinishedBasementFoundationType
-              unit_spaces_hash[unit_num] << new_living_space
+            if foundation_type == "finished basement"
+              unit_spaces_hash[unit_num] << new_fnd_space
             end            
           
           end
@@ -594,19 +628,20 @@ class CreateResidentialSingleFamilyAttachedGeometry < OpenStudio::Measure::Model
         pos = 0
         (2..num_units).to_a.each do |unit_num|
 
-          living_spaces = foundation_space_front
+          fnd_spaces = foundation_space_front
           pos += 1
           
-          if foundation_type == Constants.FinishedBasementFoundationType
-            living_zone = OpenStudio::Model::ThermalZone.new(model)
-            living_zone.setName(Constants.FinishedBasementZone(Constants.ObjectNameBuildingUnit(unit_num)))
+          if foundation_type == "finished basement"
+            basement_zone = OpenStudio::Model::ThermalZone.new(model)
+            basement_zone.setName("finished basement zone|#{Constants.ObjectNameBuildingUnit(unit_num)}")
           end
         
-          living_spaces.each do |living_space|
+          fnd_spaces.each do |fnd_space|
             
-            new_living_space = living_space.clone.to_Space.get
-            if foundation_type == Constants.FinishedBasementFoundationType
-              new_living_space.setName(Constants.FinishedBasementSpace(Constants.ObjectNameBuildingUnit(unit_num)))
+            new_fnd_space = fnd_space.clone.to_Space.get
+            if foundation_type == "finished basement"
+              new_fnd_space.setName("finished basement space|#{Constants.ObjectNameBuildingUnit(unit_num)}")
+              new_fnd_space.setSpaceType(foundation_space_type)
             end
           
             m = Geometry.initialize_transformation_matrix(OpenStudio::Matrix.new(4,4,0))
@@ -614,18 +649,18 @@ class CreateResidentialSingleFamilyAttachedGeometry < OpenStudio::Measure::Model
             if (pos + 1) % 2 == 0
               m[1,3] = -offset
             end          
-            new_living_space.changeTransformation(OpenStudio::Transformation.new(m))
-            new_living_space.setXOrigin(0)
-            new_living_space.setYOrigin(0)
-            new_living_space.setZOrigin(0)
-            if foundation_type == Constants.FinishedBasementFoundationType
-              new_living_space.setThermalZone(living_zone)
+            new_fnd_space.changeTransformation(OpenStudio::Transformation.new(m))
+            new_fnd_space.setXOrigin(0)
+            new_fnd_space.setYOrigin(0)
+            new_fnd_space.setZOrigin(0)
+            if foundation_type == "finished basement"
+              new_fnd_space.setThermalZone(basement_zone)
             end
          
-            foundation_spaces << new_living_space
+            foundation_spaces << new_fnd_space
           
-            if foundation_type == Constants.FinishedBasementFoundationType
-              unit_spaces_hash[unit_num] << new_living_space
+            if foundation_type == "finished basement"
+              unit_spaces_hash[unit_num] << new_fnd_space
             end
             
           end
@@ -644,25 +679,41 @@ class CreateResidentialSingleFamilyAttachedGeometry < OpenStudio::Measure::Model
       OpenStudio::Model.intersectSurfaces(spaces)
       OpenStudio::Model.matchSurfaces(spaces)    
     
-      if [Constants.CrawlFoundationType, Constants.UnfinishedBasementFoundationType].include? foundation_type
+      if ["crawlspace", "unfinished basement"].include? foundation_type
         foundation_space = Geometry.make_one_space_from_multiple_spaces(model, foundation_spaces)
-        if foundation_type == Constants.CrawlFoundationType
-          foundation_space.setName(Constants.CrawlSpace)
+        if foundation_type == "crawlspace"
+          foundation_space.setName("crawl space")
           foundation_zone = OpenStudio::Model::ThermalZone.new(model)
-          foundation_zone.setName(Constants.CrawlZone)
+          foundation_zone.setName("crawl zone")
           foundation_space.setThermalZone(foundation_zone)
-        elsif foundation_type == Constants.UnfinishedBasementFoundationType
-          foundation_space.setName(Constants.UnfinishedBasementSpace)
+          if space_types_hash.keys.include? Constants.SpaceTypeCrawl
+            foundation_space_type = space_types_hash[Constants.SpaceTypeCrawl]
+          else
+            foundation_space_type = OpenStudio::Model::SpaceType.new(model)
+            foundation_space_type.setStandardsSpaceType(Constants.SpaceTypeCrawl)
+            space_types_hash[Constants.SpaceTypeCrawl] = foundation_space_type
+          end
+          foundation_space.setSpaceType(foundation_space_type)
+        elsif foundation_type == "unfinished basement"
+          foundation_space.setName("unfinished basement space")
           foundation_zone = OpenStudio::Model::ThermalZone.new(model)
-          foundation_zone.setName(Constants.UnfinishedBasementZone)
+          foundation_zone.setName("unfinished basement zone")
           foundation_space.setThermalZone(foundation_zone)
+          if space_types_hash.keys.include? Constants.SpaceTypeUnfinishedBasement
+            foundation_space_type = space_types_hash[Constants.SpaceTypeUnfinishedBasement]
+          else
+            foundation_space_type = OpenStudio::Model::SpaceType.new(model)
+            foundation_space_type.setStandardsSpaceType(Constants.SpaceTypeUnfinishedBasement)
+            space_types_hash[Constants.SpaceTypeUnfinishedBasement] = foundation_space_type
+          end
+          foundation_space.setSpaceType(foundation_space_type)
         end
       end
     
       # set foundation walls to ground
       spaces = model.getSpaces
       spaces.each do |space|
-        if Geometry.is_crawl(space) or Geometry.is_unfinished_basement(space) or Geometry.is_finished_basement(space)
+        if Geometry.get_space_floor_z(space) + OpenStudio.convert(space.zOrigin,"m","ft").get < 0
           surfaces = space.surfaces
           surfaces.each do |surface|
             next if surface.surfaceType.downcase != "wall"
@@ -683,12 +734,20 @@ class CreateResidentialSingleFamilyAttachedGeometry < OpenStudio::Measure::Model
     OpenStudio::Model.intersectSurfaces(spaces)
     OpenStudio::Model.matchSurfaces(spaces)    
     
-    if attic_type == Constants.UnfinishedAtticType and roof_type != Constants.RoofTypeFlat
+    if attic_type == "unfinished attic" and roof_type != Constants.RoofTypeFlat
       attic_space = Geometry.make_one_space_from_multiple_spaces(model, attic_spaces)
-      attic_space.setName(Constants.UnfinishedAtticSpace)
+      attic_space.setName("unfinished attic space")
       attic_zone = OpenStudio::Model::ThermalZone.new(model)
-      attic_zone.setName(Constants.UnfinishedAtticZone)
+      attic_zone.setName("unfinished attic zone")
       attic_space.setThermalZone(attic_zone)
+      if space_types_hash.keys.include? Constants.SpaceTypeUnfinishedAttic
+        attic_space_type = space_types_hash[Constants.SpaceTypeUnfinishedAttic]
+      else
+        attic_space_type = OpenStudio::Model::SpaceType.new(model)
+        attic_space_type.setStandardsSpaceType(Constants.SpaceTypeUnfinishedAttic)
+        space_types_hash[Constants.SpaceTypeUnfinishedAttic] = attic_space_type
+      end
+      attic_space.setSpaceType(attic_space_type)
     end
     
     unit_hash = {}
@@ -803,11 +862,11 @@ class CreateResidentialSingleFamilyAttachedGeometry < OpenStudio::Measure::Model
     model.getBuilding.setStandardsNumberOfLivingUnits(num_units)
     
     # Store number of stories
-    if attic_type == Constants.FinishedAtticType
+    if attic_type == "finished attic"
       num_floors += 1
     end        
     model.getBuilding.setStandardsNumberOfAboveGroundStories(num_floors)
-    if foundation_type == Constants.UnfinishedBasementFoundationType or foundation_type == Constants.FinishedBasementFoundationType
+    if foundation_type == "unfinished basement" or foundation_type == "finished basement"
       num_floors += 1
     end
     model.getBuilding.setStandardsNumberOfStories(num_floors)

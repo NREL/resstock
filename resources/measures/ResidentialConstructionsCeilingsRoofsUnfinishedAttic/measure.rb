@@ -27,7 +27,7 @@ class ProcessConstructionsCeilingsRoofsUnfinishedAttic < OpenStudio::Measure::Mo
     args = OpenStudio::Measure::OSArgumentVector.new
     
     #make a choice argument for unfinished attic floors and ceilings
-    ceiling_surfaces, roof_surfaces, spaces = get_unfinished_attic_ceilings_and_roofs_surfaces(model)
+    ceiling_surfaces, roof_surfaces = get_unfinished_attic_ceilings_and_roofs_surfaces(model)
     surfaces_args = OpenStudio::StringVector.new
     surfaces_args << Constants.Auto
     (ceiling_surfaces + roof_surfaces).each do |surface|
@@ -142,7 +142,7 @@ class ProcessConstructionsCeilingsRoofsUnfinishedAttic < OpenStudio::Measure::Mo
       surface_s = surface_s.get
     end
     
-    ceiling_surfaces, roof_surfaces, spaces = get_unfinished_attic_ceilings_and_roofs_surfaces(model)
+    ceiling_surfaces, roof_surfaces = get_unfinished_attic_ceilings_and_roofs_surfaces(model)
     
     unless surface_s == Constants.Auto
       ceiling_surfaces.delete_if { |surface| surface.name.to_s != surface_s }
@@ -206,8 +206,6 @@ class ProcessConstructionsCeilingsRoofsUnfinishedAttic < OpenStudio::Measure::Mo
     # -------------------------------
     # Process the attic ceiling
     # -------------------------------
-
-    mat_film_roof = Material.AirFilmRoof(Geometry.calculate_avg_roof_pitch(spaces))
 
     if not ceiling_surfaces.empty?
 
@@ -286,7 +284,7 @@ class ProcessConstructionsCeilingsRoofsUnfinishedAttic < OpenStudio::Measure::Mo
         
         # Define construction
         roof = Construction.new(path_fracs)
-        roof.add_layer(mat_film_roof, false)
+        roof.add_layer(Material.AirFilmRoof(Geometry.get_roof_pitch(roof_surfaces)), false)
         roof.add_layer([mat_framing, mat_cavity, mat_gap], true, "UARoofIns")
         roof.add_layer(Material.DefaultRoofSheathing, false) # roof sheathing added in separate measure
         roof.add_layer(Material.DefaultRoofMaterial, false) # roof material added in separate measure
@@ -308,10 +306,11 @@ class ProcessConstructionsCeilingsRoofsUnfinishedAttic < OpenStudio::Measure::Mo
   
   def get_unfinished_attic_ceilings_and_roofs_surfaces(model)
   
-    spaces = Geometry.get_unfinished_attic_spaces(model.getSpaces, model)
+    model_spaces = model.getSpaces
 
     ceiling_surfaces = []
-    spaces.each do |space|
+    model_spaces.each do |space|
+        next if not Geometry.is_unfinished_attic(space)
         space.surfaces.each do |surface|
             next if surface.surfaceType.downcase != "floor"
             next if not surface.adjacentSurface.is_initialized
@@ -323,14 +322,15 @@ class ProcessConstructionsCeilingsRoofsUnfinishedAttic < OpenStudio::Measure::Mo
     end 
     
     roof_surfaces = []
-    spaces.each do |space|
+    model_spaces.each do |space|
+        next if not Geometry.is_unfinished_attic(space)
         space.surfaces.each do |surface|
             next if surface.surfaceType.downcase != "roofceiling" or surface.outsideBoundaryCondition.downcase != "outdoors"
             roof_surfaces << surface
         end   
     end  
   
-    return ceiling_surfaces, roof_surfaces, spaces
+    return ceiling_surfaces, roof_surfaces
   
   end
 

@@ -142,9 +142,11 @@ class ProcessConstructionsDoors < OpenStudio::Measure::ModelMeasure
   
   def get_door_sub_surfaces(model)
   
+    model_spaces = model.getSpaces
+  
     # Sub-surface between finished space and outdoors
     finished_sub_surfaces = []
-    model.getSpaces.each do |space|
+    model_spaces.each do |space|
         next if Geometry.space_is_unfinished(space)
         space.surfaces.each do |surface|
             next if surface.surfaceType.downcase != "wall" or ( surface.outsideBoundaryCondition.downcase != "outdoors" and surface.outsideBoundaryCondition.downcase != "adiabatic" )
@@ -157,7 +159,7 @@ class ProcessConstructionsDoors < OpenStudio::Measure::ModelMeasure
 
     # Sub-surface between unfinished space and outdoors
     unfinished_sub_surfaces = []
-    model.getSpaces.each do |space|
+    model_spaces.each do |space|
         next if Geometry.space_is_finished(space)
         space.surfaces.each do |surface|
             next if surface.surfaceType.downcase != "wall" or ( surface.outsideBoundaryCondition.downcase != "outdoors" and surface.outsideBoundaryCondition.downcase != "adiabatic" )

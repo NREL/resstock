@@ -138,11 +138,14 @@ class ProcessThermalMassFurniture < OpenStudio::Measure::ModelMeasure
         runner.registerInfo("Removed existing furniture mass.")
     end
     
+    model_spaces = model.getSpaces
+    
+    finished_spaces = Geometry.get_finished_spaces(model_spaces)
+    unfinished_basement_spaces = Geometry.get_unfinished_basement_spaces(model_spaces)
+    garage_spaces = Geometry.get_garage_spaces(model_spaces)
+    
     # Add user-specified furniture mass
-    finished_spaces = Geometry.get_finished_spaces(model.getSpaces)
-    unfinished_basement_spaces = Geometry.get_unfinished_basement_spaces(model.getSpaces)
-    garage_spaces = Geometry.get_garage_spaces(model.getSpaces, model)
-    model.getSpaces.each do |space|
+    model_spaces.each do |space|
         furnAreaFraction = nil
         if finished_spaces.include?(space)
             furnAreaFraction = finishedAreaFraction

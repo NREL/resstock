@@ -16,12 +16,12 @@ class UtilityBillCalculationsSimple < OpenStudio::Measure::ReportingMeasure
 
   # human readable description
   def description
-    return "Calculate utility bills using a simple method."
+    return "Calculate utility bills for simple electricity tariffs."
   end
 
   # human readable description of modeling approach
   def modeler_description
-    return "Calculate utility bills based on fixed charges for electric and gas, and marginal rates for all fuel types. If '#{Constants.Auto}' is selected for marginal rates, the state average is used. User can also specify net metering or feed-in tariff PV compensation types, along with corresponding rates."
+    return "Calculate utility bills based on fixed charges for electric and gas, and marginal rates for all fuel types. User can specify PV compensation types of '#{Constants.PVNetMetering}' or '#{Constants.PVFeedInTariff}', along with corresponding rates."
   end 
   
   def fuel_types
@@ -58,7 +58,7 @@ class UtilityBillCalculationsSimple < OpenStudio::Measure::ReportingMeasure
     arg = OpenStudio::Measure::OSArgument::makeStringArgument("elec_rate", true)
     arg.setDisplayName("Electricity: Marginal Rate")
     arg.setUnits("$/kWh")
-    arg.setDescription("Price per kilowatt-hour for electricity.")
+    arg.setDescription("Price per kilowatt-hour for electricity. Use '#{Constants.Auto} for state-average value from EIA.")
     arg.setDefaultValue(Constants.Auto)
     args << arg
     
@@ -72,44 +72,44 @@ class UtilityBillCalculationsSimple < OpenStudio::Measure::ReportingMeasure
     arg = OpenStudio::Measure::OSArgument::makeStringArgument("gas_rate", true)
     arg.setDisplayName("Natural Gas: Marginal Rate")
     arg.setUnits("$/therm")
-    arg.setDescription("Price per therm for natural gas.")
+    arg.setDescription("Price per therm for natural gas. Use '#{Constants.Auto} for state-average value from EIA.")
     arg.setDefaultValue(Constants.Auto)
     args << arg
     
     arg = OpenStudio::Measure::OSArgument::makeStringArgument("oil_rate", true)
     arg.setDisplayName("Oil: Marginal Rate")
     arg.setUnits("$/gal")
-    arg.setDescription("Price per gallon for fuel oil.")
+    arg.setDescription("Price per gallon for fuel oil. Use '#{Constants.Auto} for state-average value from EIA.")
     arg.setDefaultValue(Constants.Auto)
     args << arg
     
     arg = OpenStudio::Measure::OSArgument::makeStringArgument("prop_rate", true)
     arg.setDisplayName("Propane: Marginal Rate")
     arg.setUnits("$/gal")
-    arg.setDescription("Price per gallon for propane.")
+    arg.setDescription("Price per gallon for propane. Use '#{Constants.Auto} for state-average value from EIA.")
     arg.setDefaultValue(Constants.Auto)
     args << arg
 
     pv_compensation_types = OpenStudio::StringVector.new
-    pv_compensation_types << "Net Metering"
-    pv_compensation_types << "Feed-In Tariff"
+    pv_compensation_types << Constants.PVNetMetering
+    pv_compensation_types << Constants.PVFeedInTariff
     arg = OpenStudio::Measure::OSArgument::makeChoiceArgument("pv_compensation_type", pv_compensation_types, true)
     arg.setDisplayName("PV: Compensation Type")
     arg.setDescription("The type of compensation for PV.")
-    arg.setDefaultValue("Net Metering")
+    arg.setDefaultValue(Constants.PVNetMetering)
     args << arg    
     
     arg = OpenStudio::Measure::OSArgument::makeStringArgument("pv_sellback_rate", true)
     arg.setDisplayName("PV: Net Metering Annual Excess Sellback Rate")
     arg.setUnits("$/kWh")
-    arg.setDescription("The annual excess/net sellback rate for PV. Only applies if the PV compensation type is 'Net Metering'.")
+    arg.setDescription("The annual excess/net sellback rate for PV. Only applies if the PV compensation type is '#{Constants.PVNetMetering}'.")
     arg.setDefaultValue("0.03")
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeStringArgument("pv_tariff_rate", true)
     arg.setDisplayName("PV: Feed-In Tariff Rate")
     arg.setUnits("$/kWh")
-    arg.setDescription("The annual full/gross tariff rate for PV. Only applies if the PV compensation type is 'Feed-In Tariff'.")
+    arg.setDescription("The annual full/gross tariff rate for PV. Only applies if the PV compensation type is '#{Constants.PVFeedInTariff}'.")
     arg.setDefaultValue("0.12")
     args << arg
     
@@ -161,10 +161,8 @@ class UtilityBillCalculationsSimple < OpenStudio::Measure::ReportingMeasure
     end
     
     # Assign the user inputs to variables
-    elec_fixed = runner.getOptionalStringArgumentValue("elec_fixed", user_arguments)
-    elec_fixed.is_initialized ? elec_fixed = elec_fixed.get : elec_fixed = 0
-    gas_fixed = runner.getOptionalStringArgumentValue("gas_fixed", user_arguments)
-    gas_fixed.is_initialized ? gas_fixed = gas_fixed.get : gas_fixed = 0
+    elec_fixed = runner.getStringArgumentValue("elec_fixed", user_arguments)
+    gas_fixed = runner.getStringArgumentValue("gas_fixed", user_arguments)
     pv_compensation_type = runner.getStringArgumentValue("pv_compensation_type", user_arguments)
     pv_sellback_rate = runner.getStringArgumentValue("pv_sellback_rate", user_arguments)
     pv_tariff_rate = runner.getStringArgumentValue("pv_tariff_rate", user_arguments)
@@ -181,13 +179,20 @@ class UtilityBillCalculationsSimple < OpenStudio::Measure::ReportingMeasure
                       Constants.FuelTypePropane=>runner.getStringArgumentValue("prop_rate", user_arguments)
                      }
 
-    # get the last model
+    # Get the last model
     model = runner.lastOpenStudioModel
     if model.empty?
       runner.registerError("Cannot find last model.")
       return false
     end
     model = model.get
+    
+    # Get weather file and state
+    weather_file = model.getSite.weatherFile.get
+    weather_file_state = weather_file.stateProvinceRegion
+    if HelperMethods.state_code_map.keys.include? weather_file_state
+      weather_file_state = HelperMethods.state_code_map[weather_file_state]
+    end
 
     # Get the last sql file      
     sql = runner.lastEnergyPlusSqlFile
@@ -243,14 +248,20 @@ class UtilityBillCalculationsSimple < OpenStudio::Measure::ReportingMeasure
       end
     end
     
-    weather_file_state = model.getSite.weatherFile.get.stateProvinceRegion
-    calculate_utility_bills(runner, timeseries, weather_file_state, marginal_rates, fixed_rates, pv_compensation_type, pv_sellback_rate, pv_tariff_rate)
+    result = calculate_utility_bills(runner, timeseries, weather_file_state, marginal_rates, fixed_rates, pv_compensation_type, pv_sellback_rate, pv_tariff_rate)
 
-    return true
+    return result
  
   end
   
   def calculate_utility_bills(runner, timeseries, weather_file_state, marginal_rates, fixed_rates, pv_compensation_type, pv_sellback_rate, pv_tariff_rate)
+  
+    if marginal_rates.values.include? Constants.Auto
+      unless HelperMethods.state_code_map.values.include? weather_file_state
+        runner.registerError("Rates do not exist for '#{weather_file_state}'.")
+        return false
+      end
+    end
   
     if timeseries["ElectricityProduced:Facility"].empty?
       timeseries["ElectricityProduced:Facility"] = Array.new(timeseries["Electricity:Facility"].length, 0)
@@ -260,15 +271,13 @@ class UtilityBillCalculationsSimple < OpenStudio::Measure::ReportingMeasure
       timeseries["Electricity:Facility"][i] += timeseries["ElectricityProduced:Facility"][i] # http://bigladdersoftware.com/epx/docs/8-7/input-output-reference/input-for-output.html
     end
 
+    total_bill = 0
     fuels = {Constants.FuelTypeElectric=>"Electricity", Constants.FuelTypeGas=>"Natural gas", Constants.FuelTypeOil=>"Oil", Constants.FuelTypePropane=>"Propane"}
     fuels.each do |fuel, file|
 
       cols = CSV.read("#{File.dirname(__FILE__)}/resources/#{file}.csv", {:encoding=>'ISO-8859-1'})[3..-1].transpose
       cols[0].each_with_index do |rate_state, i|
 
-        unless HelperMethods.state_code_map(weather_file_state).nil?
-          weather_file_state = HelperMethods.state_code_map(weather_file_state)
-        end
         next unless rate_state == weather_file_state
 
         marginal_rate = marginal_rates[fuel]
@@ -291,20 +300,29 @@ class UtilityBillCalculationsSimple < OpenStudio::Measure::ReportingMeasure
           require "#{File.dirname(__FILE__)}/resources/ssc_api"
           timeseries["Electricity:Facility"] = UtilityBill.remove_leap_day(timeseries["Electricity:Facility"])
           timeseries["ElectricityProduced:Facility"] = UtilityBill.remove_leap_day(timeseries["ElectricityProduced:Facility"])
-          total_bill = UtilityBill.calculate_simple_electric(timeseries["Electricity:Facility"], timeseries["ElectricityProduced:Facility"], fixed_rates[fuel], marginal_rate, pv_compensation_type, pv_sellback_rate, pv_tariff_rate)
+          elec_bill = UtilityBill.calculate_simple_electric(timeseries["Electricity:Facility"], timeseries["ElectricityProduced:Facility"], fixed_rates[fuel], marginal_rate, pv_compensation_type, pv_sellback_rate, pv_tariff_rate)
+          runner.registerValue(fuel, elec_bill)
+          total_bill += elec_bill
         elsif fuel == Constants.FuelTypeGas and not timeseries["Gas:Facility"].empty?
-          total_bill = UtilityBill.calculate_simple(timeseries["Gas:Facility"], fixed_rates[fuel], marginal_rate)
+          gas_bill = UtilityBill.calculate_simple(timeseries["Gas:Facility"], fixed_rates[fuel], marginal_rate)
+          runner.registerValue(fuel, gas_bill)
+          total_bill += gas_bill
         elsif fuel == Constants.FuelTypeOil and not timeseries["FuelOil#1:Facility"].empty?
-          total_bill = UtilityBill.calculate_simple(timeseries["FuelOil#1:Facility"], 0, marginal_rate)
+          oil_bill = UtilityBill.calculate_simple(timeseries["FuelOil#1:Facility"], 0, marginal_rate)
+          runner.registerValue(fuel, oil_bill)
+          total_bill += oil_bill
         elsif fuel == Constants.FuelTypePropane and not timeseries["Propane:Facility"].empty?
-          total_bill = UtilityBill.calculate_simple(timeseries["Propane:Facility"], 0, marginal_rate)
+          prop_bill = UtilityBill.calculate_simple(timeseries["Propane:Facility"], 0, marginal_rate)
+          runner.registerValue(fuel, prop_bill)
+          total_bill += prop_bill
         end
 
-        unless total_bill.nil?
-          UtilityBill.report_output(runner, fuel, total_bill)
-        end
       end
-    end  
+    end
+    
+    runner.registerInfo("Calculated utility bill: #{total_bill}")
+    
+    return true
 
   end
   

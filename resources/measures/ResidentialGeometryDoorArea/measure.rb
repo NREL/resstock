@@ -126,7 +126,7 @@ class CreateResidentialDoorArea < OpenStudio::Measure::ModelMeasure
               next unless surface.surfaceType.downcase == "wall"
               next unless surface.outsideBoundaryCondition.downcase == "adiabatic"
               model.getSpaces.each do |potential_corridor_space|
-                  next unless potential_corridor_space.name.to_s.include? Constants.CorridorSpace
+                  next unless Geometry.is_corridor(potential_corridor_space)
                   potential_corridor_space.surfaces.each do |potential_corridor_surface|
                       next unless surface.reverseEqualVertices(potential_corridor_surface)
                       corridor_walls << potential_corridor_surface
