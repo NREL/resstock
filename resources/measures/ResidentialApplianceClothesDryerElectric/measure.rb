@@ -40,7 +40,7 @@ class ResidentialClothesDryer < OpenStudio::Measure::ModelMeasure
     cd_mult.setDefaultValue(1)
     args << cd_mult
 
-       #Make a string argument for 24 weekday schedule values
+    #Make a string argument for 24 weekday schedule values
     cd_weekday_sch = OpenStudio::Measure::OSArgument::makeStringArgument("weekday_sch")
     cd_weekday_sch.setDisplayName("Weekday schedule")
     cd_weekday_sch.setDescription("Specify the 24-hour weekday schedule.")
@@ -54,28 +54,24 @@ class ResidentialClothesDryer < OpenStudio::Measure::ModelMeasure
     cd_weekend_sch.setDefaultValue("0.010, 0.006, 0.004, 0.002, 0.004, 0.006, 0.016, 0.032, 0.048, 0.068, 0.078, 0.081, 0.074, 0.067, 0.057, 0.061, 0.055, 0.054, 0.051, 0.051, 0.052, 0.054, 0.044, 0.024")
     args << cd_weekend_sch
 
-      #Make a string argument for 12 monthly schedule values
+    #Make a string argument for 12 monthly schedule values
     cd_monthly_sch = OpenStudio::Measure::OSArgument::makeStringArgument("monthly_sch", true)
     cd_monthly_sch.setDisplayName("Month schedule")
     cd_monthly_sch.setDescription("Specify the 12-month schedule.")
     cd_monthly_sch.setDefaultValue("1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0")
     args << cd_monthly_sch
 
-    #make a choice argument for space
-    spaces = Geometry.get_all_unit_spaces(model)
-    if spaces.nil?
-        spaces = []
+    #make a choice argument for location
+    location_args = OpenStudio::StringVector.new
+    location_args << Constants.Auto
+    Geometry.get_model_locations(model).each do |loc|
+        location_args << loc
     end
-    space_args = OpenStudio::StringVector.new
-    space_args << Constants.Auto
-    spaces.each do |space|
-        space_args << space.name.to_s
-    end
-    space = OpenStudio::Measure::OSArgument::makeChoiceArgument("space", space_args, true)
-    space.setDisplayName("Location")
-    space.setDescription("Select the space where the cooking range is located. '#{Constants.Auto}' will choose the lowest above-grade finished space available (e.g., first story living space), or a below-grade finished space as last resort. For multifamily buildings, '#{Constants.Auto}' will choose a space for each unit of the building.")
-    space.setDefaultValue(Constants.Auto)
-    args << space
+    location = OpenStudio::Measure::OSArgument::makeChoiceArgument("location", location_args, true)
+    location.setDisplayName("Location")
+    location.setDescription("The space type for the location. '#{Constants.Auto}' will automatically choose a space type based on the space types found in the model.")
+    location.setDefaultValue(Constants.Auto)
+    args << location
     
     return args
   end #end the arguments method
@@ -95,7 +91,7 @@ class ResidentialClothesDryer < OpenStudio::Measure::ModelMeasure
     weekday_sch = runner.getStringArgumentValue("weekday_sch",user_arguments)
     weekend_sch = runner.getStringArgumentValue("weekend_sch",user_arguments)
     monthly_sch = runner.getStringArgumentValue("monthly_sch",user_arguments)
-    space_r = runner.getStringArgumentValue("space",user_arguments)
+    location = runner.getStringArgumentValue("location",user_arguments)
     
     #Check for valid inputs
     if cef <= 0
@@ -113,13 +109,25 @@ class ResidentialClothesDryer < OpenStudio::Measure::ModelMeasure
         return false
     end
     
+    # Remove all existing objects
+    obj_name = Constants.ObjectNameClothesDryer(nil)
+    model.getSpaces.each do |space|
+        ClothesDryer.remove_existing(runner, space, obj_name)
+    end
+    
+    location_hierarchy = [Constants.SpaceTypeLaundryRoom, 
+                          Constants.SpaceTypeLiving, 
+                          Constants.SpaceTypeFinishedBasement, 
+                          Constants.SpaceTypeUnfinishedBasement, 
+                          Constants.SpaceTypeGarage]
+    
     tot_ann_e = 0
     msgs = []
     sch = nil
-    units.each do |unit|
+    units.each_with_index do |unit, unit_index|
     
         # Get space
-        space = Geometry.get_space_from_string(unit.spaces, space_r)
+        space = Geometry.get_space_from_location(unit, location, location_hierarchy)
         next if space.nil?
         
         success, ann_e, ann_f, sch = ClothesDryer.apply(model, unit, runner, sch, cef, mult, weekday_sch, weekend_sch, monthly_sch, 

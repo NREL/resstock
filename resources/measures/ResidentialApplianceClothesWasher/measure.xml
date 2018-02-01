@@ -2,8 +2,8 @@
   <schema_version>3.0</schema_version>
   <name>residential_clothes_washer</name>
   <uid>640bfdca-ba67-461e-b517-1a7291c22b22</uid>
-  <version_id>bc8a1993-5444-4173-b978-1f1c74da6cb8</version_id>
-  <version_modified>20171215T192519Z</version_modified>
+  <version_id>56015e58-362b-472b-b1a1-d3e07888fce4</version_id>
+  <version_modified>20180131T180649Z</version_modified>
   <xml_checksum>126F1C43</xml_checksum>
   <class_name>ResidentialClothesWasher</class_name>
   <display_name>Set Residential Clothes Washer</display_name>
@@ -154,9 +154,9 @@
       <default_value>1</default_value>
     </argument>
     <argument>
-      <name>space</name>
+      <name>location</name>
       <display_name>Location</display_name>
-      <description>Select the space where the dishwasher is located. 'auto' will choose the lowest above-grade finished space available (e.g., first story living space), or a below-grade finished space as last resort. For multifamily buildings, 'auto' will choose a space for each unit of the building.</description>
+      <description>The space type for the location. 'auto' will automatically choose a space type based on the space types found in the model.</description>
       <type>Choice</type>
       <required>true</required>
       <model_dependent>false</model_dependent>
@@ -266,76 +266,112 @@
       <checksum>11E27E42</checksum>
     </file>
     <file>
+      <filename>weather.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>82988A63</checksum>
+    </file>
+    <file>
+      <filename>schedules.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>A299BFF0</checksum>
+    </file>
+    <file>
       <filename>unit_conversions.rb</filename>
       <filetype>rb</filetype>
       <usage_type>resource</usage_type>
-      <checksum>31924A51</checksum>
+      <checksum>3E1D973D</checksum>
     </file>
     <file>
-      <filename>util.rb</filename>
+      <filename>clothesdryer.rb</filename>
       <filetype>rb</filetype>
       <usage_type>resource</usage_type>
-      <checksum>BE5BF810</checksum>
-    </file>
-    <file>
-      <filename>SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths.osm</filename>
-      <filetype>osm</filetype>
-      <usage_type>test</usage_type>
-      <checksum>AF2537C3</checksum>
-    </file>
-    <file>
-      <filename>SFD_2000sqft_2story_FB_GRG_UA_Denver.osm</filename>
-      <filetype>osm</filetype>
-      <usage_type>test</usage_type>
-      <checksum>9260C2F4</checksum>
-    </file>
-    <file>
-      <filename>SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver.osm</filename>
-      <filetype>osm</filetype>
-      <usage_type>test</usage_type>
-      <checksum>239DBF88</checksum>
-    </file>
-    <file>
-      <filename>SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver_ElecWHTank.osm</filename>
-      <filetype>osm</filetype>
-      <usage_type>test</usage_type>
-      <checksum>858B867E</checksum>
-    </file>
-    <file>
-      <filename>MF_8units_1story_SL_3Beds_2Baths_Denver_ElecWHTank.osm</filename>
-      <filetype>osm</filetype>
-      <usage_type>test</usage_type>
-      <checksum>1EB3EBD3</checksum>
-    </file>
-    <file>
-      <filename>SFA_4units_1story_FB_UA_3Beds_2Baths_Denver_ElecWHTank.osm</filename>
-      <filetype>osm</filetype>
-      <usage_type>test</usage_type>
-      <checksum>52E5C90F</checksum>
-    </file>
-    <file>
-      <filename>SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver_ElecWHTankless.osm</filename>
-      <filetype>osm</filetype>
-      <usage_type>test</usage_type>
-      <checksum>6B1FD88A</checksum>
+      <checksum>EC0190DE</checksum>
     </file>
     <file>
       <filename>waterheater.rb</filename>
       <filetype>rb</filetype>
       <usage_type>resource</usage_type>
-      <checksum>A9CCB075</checksum>
-    </file>
-    <file>
-      <filename>ResidentialClothesWasher_Test.rb</filename>
-      <filetype>rb</filetype>
-      <usage_type>test</usage_type>
-      <checksum>509E63E1</checksum>
+      <checksum>44487178</checksum>
     </file>
     <file>
       <filename>geometry.rb</filename>
       <filetype>rb</filetype>
       <usage_type>resource</usage_type>
-      <checksum>A9382DBC</checksum>
+      <checksum>9B96D48D</checksum>
+    </file>
+    <file>
+      <filename>ResidentialClothesWasher_Test.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>test</usage_type>
+      <checksum>FE559E96</checksum>
+    </file>
+    <file>
+      <filename>SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>09D30BA0</checksum>
+    </file>
+    <file>
+      <filename>SFD_2000sqft_2story_FB_GRG_UA_Denver.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>876F6266</checksum>
+    </file>
+    <file>
+      <filename>SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>31E024F6</checksum>
+    </file>
+    <file>
+      <filename>SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver_ElecWHTank.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>265F0193</checksum>
+    </file>
+    <file>
+      <filename>SFA_4units_1story_FB_UA_3Beds_2Baths_Denver_ElecWHTank.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>AE41E3EE</checksum>
+    </file>
+    <file>
+      <filename>SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver_ElecWHTankless.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>00363066</checksum>
+    </file>
+    <file>
+      <filename>SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver_ElecWHTank_ClothesWasher_ElecClothesDryer.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>F94EC1C0</checksum>
+    </file>
+    <file>
+      <filename>SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver_ElecWHTank_ClothesWasher_GasClothesDryer.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>85CCDB73</checksum>
+    </file>
+    <file>
+      <filename>SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver_ElecWHTank_ClothesWasher_PropaneClothesDryer.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>4A16CDDF</checksum>
+    </file>
+    <file>
+      <filename>MF_8units_1story_SL_3Beds_2Baths_Denver_ElecWHTank.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>57F043D7</checksum>
+    </file>
+    <file>
+      <filename>SFA_4units_1story_UB_UA_3Beds_2Baths_Denver_ElecWHTank.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>9FA32819</checksum>
     </file>
     <file>
       <version>
@@ -346,49 +382,19 @@
       <filename>measure.rb</filename>
       <filetype>rb</filetype>
       <usage_type>script</usage_type>
-      <checksum>8A86EEAE</checksum>
+      <checksum>FB38AEB2</checksum>
     </file>
     <file>
       <filename>constants.rb</filename>
       <filetype>rb</filetype>
       <usage_type>resource</usage_type>
-      <checksum>022C15E2</checksum>
+      <checksum>FDA82DA6</checksum>
     </file>
     <file>
-      <filename>SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver_ElecWHTank_ClothesWasher_ElecClothesDryer.osm</filename>
-      <filetype>osm</filetype>
-      <usage_type>test</usage_type>
-      <checksum>C2347E2C</checksum>
-    </file>
-    <file>
-      <filename>SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver_ElecWHTank_ClothesWasher_GasClothesDryer.osm</filename>
-      <filetype>osm</filetype>
-      <usage_type>test</usage_type>
-      <checksum>16ABD5D1</checksum>
-    </file>
-    <file>
-      <filename>SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver_ElecWHTank_ClothesWasher_PropaneClothesDryer.osm</filename>
-      <filetype>osm</filetype>
-      <usage_type>test</usage_type>
-      <checksum>49DCC41F</checksum>
-    </file>
-    <file>
-      <filename>clothesdryer.rb</filename>
+      <filename>util.rb</filename>
       <filetype>rb</filetype>
       <usage_type>resource</usage_type>
-      <checksum>0489B75C</checksum>
-    </file>
-    <file>
-      <filename>weather.rb</filename>
-      <filetype>rb</filetype>
-      <usage_type>resource</usage_type>
-      <checksum>82988A63</checksum>
-    </file>
-    <file>
-      <filename>schedules.rb</filename>
-      <filetype>rb</filetype>
-      <usage_type>resource</usage_type>
-      <checksum>7826E992</checksum>
+      <checksum>1189E680</checksum>
     </file>
   </files>
 </measure>

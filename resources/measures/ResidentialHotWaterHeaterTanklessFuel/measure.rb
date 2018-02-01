@@ -50,16 +50,17 @@ class ResidentialHotWaterHeaterTanklessFuel < OpenStudio::Measure::ModelMeasure
         dhw_setpoint.setDefaultValue(125)
         args << dhw_setpoint
     
-        # make an argument for water_heater_location
-        thermal_zones = model.getThermalZones
-        thermal_zone_names = thermal_zones.select { |tz| not tz.name.empty?}.collect{|tz| tz.name.get }
-        thermal_zone_names << Constants.Auto
-        water_heater_location = osargument::makeChoiceArgument("location",thermal_zone_names, true)
-        water_heater_location.setDefaultValue(Constants.Auto)
-        water_heater_location.setDisplayName("Location")
-        water_heater_location.setDescription("Thermal zone where the water heater is located. #{Constants.Auto} will locate the water heater according the BA House Simulation Protocols: A garage (if available) or the living space in hot-dry and hot-humid climates, a basement (finished or unfinished, if available) or living space in all other climates.")
-    
-        args << water_heater_location
+        #make a choice argument for location
+        location_args = OpenStudio::StringVector.new
+        location_args << Constants.Auto
+        Geometry.get_model_locations(model).each do |loc|
+            location_args << loc
+        end
+        location = OpenStudio::Measure::OSArgument::makeChoiceArgument("location", location_args, true)
+        location.setDisplayName("Location")
+        location.setDescription("The space type for the location. '#{Constants.Auto}' will automatically choose a space type based on the space types found in the model.")
+        location.setDefaultValue(Constants.Auto)
+        args << location
 
         # make an argument for water_heater_capacity
         water_heater_capacity = osargument::makeDoubleArgument("capacity", true)
@@ -113,7 +114,7 @@ class ResidentialHotWaterHeaterTanklessFuel < OpenStudio::Measure::ModelMeasure
         cap = runner.getDoubleArgumentValue("capacity",user_arguments)
         ef = runner.getDoubleArgumentValue("energy_factor",user_arguments)
         cd = runner.getDoubleArgumentValue("cycling_derate",user_arguments)
-        water_heater_loc = runner.getStringArgumentValue("location",user_arguments)
+        location = runner.getStringArgumentValue("location",user_arguments)
         t_set = runner.getDoubleArgumentValue("setpoint_temp",user_arguments).to_f
         oncycle_p = runner.getDoubleArgumentValue("oncyc_power",user_arguments)
         offcycle_p = runner.getDoubleArgumentValue("offcyc_power",user_arguments)
@@ -157,7 +158,27 @@ class ResidentialHotWaterHeaterTanklessFuel < OpenStudio::Measure::ModelMeasure
             return false
         end
         
-        units.each do |unit|
+        # Get Building America climate zone
+        ba_cz_name = nil
+        model.getClimateZones.climateZones.each do |climateZone|
+            next if climateZone.institution != Constants.BuildingAmericaClimateZone
+            ba_cz_name = climateZone.value.to_s
+        end
+        if ba_cz_name.nil?
+            runner.registerError("No Building America climate zone has been assigned.")
+            return false
+        end
+
+        # Remove all existing objects
+        obj_name = Constants.ObjectNameWaterHeater
+        model.getPlantLoops.each do |pl|
+            next if not pl.name.to_s.start_with? Constants.PlantLoopDomesticWater
+            Waterheater.remove_existing(runner, pl, obj_name, model)
+        end
+        
+        location_hierarchy = Waterheater.get_location_hierarchy(ba_cz_name)
+        
+        units.each_with_index do |unit, unit_index|
             # Get unit beds/baths
             nbeds, nbaths = Geometry.get_unit_beds_baths(model, unit, runner)
             if nbeds.nil? or nbaths.nil?
@@ -167,57 +188,17 @@ class ResidentialHotWaterHeaterTanklessFuel < OpenStudio::Measure::ModelMeasure
             if sch_unit_index.nil?
                 return false
             end
-    
-            #If location is Auto, get the location
-            if water_heater_loc == Constants.Auto
-                water_heater_tz = Waterheater.get_water_heater_location_auto(model, unit.spaces, runner)
-                if water_heater_tz.nil?
-                    runner.registerError("The water heater cannot be automatically assigned to a thermal zone. Please manually select which zone the water heater should be located in.")
-                    return false
-                end
-            else
-                unit_zones = Geometry.get_thermal_zones_from_spaces(unit.spaces)
-                water_heater_tz = Geometry.get_thermal_zone_from_string(unit_zones, water_heater_loc.to_s)
-                next if water_heater_tz.nil?
-            end
-
+            
+            # Get space
+            space = Geometry.get_space_from_location(unit, location, location_hierarchy)
+            next if space.nil?
+            water_heater_tz = space.thermalZone.get
+        
             #Check if a DHW plant loop already exists, if not add it
             loop = nil
-        
             model.getPlantLoops.each do |pl|
                 next if pl.name.to_s != Constants.PlantLoopDomesticWater(unit.name.to_s)
                 loop = pl
-                #Remove any existing water heater
-                objects_to_remove = []
-                pl.supplyComponents.each do |wh|
-                    next if !wh.to_WaterHeaterMixed.is_initialized and !wh.to_WaterHeaterStratified.is_initialized
-                    if wh.to_WaterHeaterMixed.is_initialized
-                        objects_to_remove << wh
-                        if wh.to_WaterHeaterMixed.get.setpointTemperatureSchedule.is_initialized
-                          objects_to_remove << wh.to_WaterHeaterMixed.get.setpointTemperatureSchedule.get
-                        end
-                    elsif wh.to_WaterHeaterStratified.is_initialized
-                        if not wh.to_WaterHeaterStratified.get.secondaryPlantLoop.is_initialized
-                          model.getWaterHeaterHeatPumpWrappedCondensers.each do |hpwh|
-                            objects_to_remove << hpwh.tank
-                            objects_to_remove << hpwh                            
-                          end
-                          objects_to_remove << wh.to_WaterHeaterStratified.get.heater1SetpointTemperatureSchedule
-                          objects_to_remove << wh.to_WaterHeaterStratified.get.heater2SetpointTemperatureSchedule
-                          Waterheater.remove_existing_hpwh(model, Constants.ObjectNameWaterHeater(unit.name.to_s.gsub("unit", "u")).gsub("|","_"))
-                        end
-                    end
-                end
-                if objects_to_remove.size > 0
-                    runner.registerInfo("Removed existing water heater from plant loop '#{pl.name.to_s}'.")
-                end
-                objects_to_remove.uniq.each do |object|
-                    begin
-                        object.remove
-                    rescue
-                        # no op
-                    end
-                end
             end
             
             if loop.nil?
@@ -326,8 +307,7 @@ class ResidentialHotWaterHeaterTanklessFuel < OpenStudio::Measure::ModelMeasure
         end
         return true
     end
-  
-  
+    
 end #end the measure
 
 #this allows the measure to be use by the application

@@ -2,8 +2,8 @@
   <schema_version>3.0</schema_version>
   <name>residential_freezer</name>
   <uid>8cf2bd55-56a1-416f-b2a1-ff6a8f617e49</uid>
-  <version_id>0c1adc23-a685-40d3-936d-dea73ef4b309</version_id>
-  <version_modified>20171215T192527Z</version_modified>
+  <version_id>6d77aa23-fb33-421e-9784-4a051532dbf9</version_id>
+  <version_modified>20180131T144441Z</version_modified>
   <xml_checksum>126F1C43</xml_checksum>
   <class_name>ResidentialFreezer</class_name>
   <display_name>Set Residential Freezer</display_name>
@@ -57,9 +57,9 @@
       <default_value>0.837, 0.835, 1.084, 1.084, 1.084, 1.096, 1.096, 1.096, 1.096, 0.931, 0.925, 0.837</default_value>
     </argument>
     <argument>
-      <name>space</name>
+      <name>location</name>
       <display_name>Location</display_name>
-      <description>Select the space where the freezer is located. 'auto' will choose the lowest above-grade finished space available (e.g., first story living space), or a below-grade finished space as last resort. For multifamily buildings, 'auto' will choose a space for each unit of the building.</description>
+      <description>The space type for the location. 'auto' will automatically choose a space type based on the space types found in the model.</description>
       <type>Choice</type>
       <required>true</required>
       <model_dependent>false</model_dependent>
@@ -91,10 +91,22 @@
   </attributes>
   <files>
     <file>
-      <filename>ResidentialFreezer_Test.rb</filename>
+      <filename>schedules.rb</filename>
       <filetype>rb</filetype>
-      <usage_type>test</usage_type>
-      <checksum>31A54583</checksum>
+      <usage_type>resource</usage_type>
+      <checksum>A299BFF0</checksum>
+    </file>
+    <file>
+      <filename>unit_conversions.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>3E1D973D</checksum>
+    </file>
+    <file>
+      <filename>geometry.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>9B96D48D</checksum>
     </file>
     <file>
       <version>
@@ -105,55 +117,43 @@
       <filename>measure.rb</filename>
       <filetype>rb</filetype>
       <usage_type>script</usage_type>
-      <checksum>75A51B8A</checksum>
+      <checksum>AC022660</checksum>
+    </file>
+    <file>
+      <filename>ResidentialFreezer_Test.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>test</usage_type>
+      <checksum>CD27C8D9</checksum>
     </file>
     <file>
       <filename>SFD_2000sqft_2story_FB_GRG_UA.osm</filename>
       <filetype>osm</filetype>
       <usage_type>test</usage_type>
-      <checksum>CA321119</checksum>
+      <checksum>7521C266</checksum>
     </file>
     <file>
       <filename>SFA_4units_1story_UB_UA_Denver.osm</filename>
       <filetype>osm</filetype>
       <usage_type>test</usage_type>
-      <checksum>E2CD20BB</checksum>
-    </file>
-    <file>
-      <filename>MF_8units_1story_SL_Denver.osm</filename>
-      <filetype>osm</filetype>
-      <usage_type>test</usage_type>
-      <checksum>1261A2EF</checksum>
+      <checksum>FC6F72EB</checksum>
     </file>
     <file>
       <filename>SFA_4units_1story_FB_UA_Denver.osm</filename>
       <filetype>osm</filetype>
       <usage_type>test</usage_type>
-      <checksum>792B763B</checksum>
+      <checksum>EF208595</checksum>
     </file>
     <file>
-      <filename>geometry.rb</filename>
-      <filetype>rb</filetype>
-      <usage_type>resource</usage_type>
-      <checksum>A9382DBC</checksum>
+      <filename>MF_8units_1story_SL_Denver.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>5FD44F84</checksum>
     </file>
     <file>
       <filename>constants.rb</filename>
       <filetype>rb</filetype>
       <usage_type>resource</usage_type>
-      <checksum>022C15E2</checksum>
-    </file>
-    <file>
-      <filename>unit_conversions.rb</filename>
-      <filetype>rb</filetype>
-      <usage_type>resource</usage_type>
-      <checksum>31924A51</checksum>
-    </file>
-    <file>
-      <filename>schedules.rb</filename>
-      <filetype>rb</filetype>
-      <usage_type>resource</usage_type>
-      <checksum>7826E992</checksum>
+      <checksum>FDA82DA6</checksum>
     </file>
   </files>
 </measure>

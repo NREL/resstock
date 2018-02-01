@@ -100,6 +100,15 @@ class ResidentialGasLighting < OpenStudio::Measure::ModelMeasure
     if units.nil?
         return false
     end
+    
+    # Remove all existing objects
+    obj_name = Constants.ObjectNameGasLighting
+    model.getSpaces.each do |space|
+        remove_existing(runner, space, obj_name)
+    end
+
+    location_hierarchy = [Constants.SpaceTypeLiving,
+                          Constants.SpaceTypeFinishedBasement]
 
     tot_gl_ann_g = 0
     msgs = []
@@ -118,31 +127,10 @@ class ResidentialGasLighting < OpenStudio::Measure::ModelMeasure
         end
         
         # Get space
-        space = Geometry.get_space_from_string(unit.spaces, Constants.Auto)
+        space = Geometry.get_space_from_location(unit, Constants.Auto, location_hierarchy)
         next if space.nil?
 
         unit_obj_name = Constants.ObjectNameGasLighting(unit.name.to_s)
-    
-        # Remove any existing gas lighting
-        objects_to_remove = []
-        space.gasEquipment.each do |space_equipment|
-            next if space_equipment.name.to_s != unit_obj_name
-            objects_to_remove << space_equipment
-            objects_to_remove << space_equipment.gasEquipmentDefinition
-            if space_equipment.schedule.is_initialized
-                objects_to_remove << space_equipment.schedule.get
-            end
-        end
-        if objects_to_remove.size > 0
-            runner.registerInfo("Removed existing gas lighting from outside.")
-        end
-        objects_to_remove.uniq.each do |object|
-            begin
-                object.remove
-            rescue
-                # no op
-            end
-        end
     
         #Calculate annual energy use
         ann_g = base_energy * mult # therm/yr
@@ -204,6 +192,29 @@ class ResidentialGasLighting < OpenStudio::Measure::ModelMeasure
     return true
  
   end #end the run method
+  
+  def remove_existing(runner, space, obj_name)
+    # Remove any existing gas lighting
+    objects_to_remove = []
+    space.gasEquipment.each do |space_equipment|
+        next if not space_equipment.name.to_s.start_with? obj_name
+        objects_to_remove << space_equipment
+        objects_to_remove << space_equipment.gasEquipmentDefinition
+        if space_equipment.schedule.is_initialized
+            objects_to_remove << space_equipment.schedule.get
+        end
+    end
+    if objects_to_remove.size > 0
+        runner.registerInfo("Removed existing gas lighting from outside.")
+    end
+    objects_to_remove.uniq.each do |object|
+        begin
+            object.remove
+        rescue
+            # no op
+        end
+    end
+  end
 
 end #end the measure
 

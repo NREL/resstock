@@ -90,26 +90,30 @@ class CreateResidentialEaves < OpenStudio::Measure::ModelMeasure
     units = Geometry.get_building_units(model, runner)
     return false if units.nil?
     
+    model_spaces = model.getSpaces
+    model_surfaces = model.getSurfaces
+    
     building_type = Geometry.get_building_type(model)
-    roof_type = determine_roof_type(model.getSurfaces, units.length, building_type)
-    garage_pos, garage_width, garage_depth, garage_protrusion = get_garage_dimensions(model.getSurfaces)
-    inset_position = determine_inset_position(model.getSurfaces)
-    top_floor_z = determine_top_floor_z(model.getSpaces)
-    num_floors = Geometry.get_building_stories(model.getSpaces)    
+    roof_type = determine_roof_type(model_surfaces, units.length, building_type)
+    garage_pos, garage_width, garage_depth, garage_protrusion = get_garage_dimensions(model_surfaces)
+    inset_position = determine_inset_position(model_surfaces)
+    top_floor_z = determine_top_floor_z(model_spaces)
+    num_floors = Geometry.get_building_stories(model_spaces)    
     
     surfaces_modified = false
     
     shading_surface_group = OpenStudio::Model::ShadingSurfaceGroup.new(model)
     shading_surface_group.setName(Constants.ObjectNameEaves)
+    roof_pitch = Geometry.get_roof_pitch(model_surfaces)
 
     case roof_type
     when Constants.RoofTypeGable
 
-      attic_increase_existing = Geometry.get_roof_pitch(model.getSurfaces) * existing_eaves_depth
-      attic_increase_new = Geometry.get_roof_pitch(model.getSurfaces) * eaves_depth      
+      attic_increase_existing = roof_pitch * existing_eaves_depth
+      attic_increase_new = roof_pitch * eaves_depth      
       attic_increase_delta = attic_increase_new - attic_increase_existing
       
-      model.getSurfaces.each do |surface|
+      model_surfaces.each do |surface|
         if surface.surfaceType.downcase == "roofceiling" and surface.outsideBoundaryCondition.downcase == "outdoors" # roof decks
         elsif surface.surfaceType.downcase == "wall" and surface.outsideBoundaryCondition.downcase == "outdoors" and surface.vertices.length == 3 # attic walls
         elsif surface.surfaceType.downcase == "roofceiling" and surface.vertices.length == 3 # wall between living and garage attics
@@ -719,7 +723,7 @@ class CreateResidentialEaves < OpenStudio::Measure::ModelMeasure
      
     when Constants.RoofTypeFlat
     
-      model.getSurfaces.each do |surface|
+      model_surfaces.each do |surface|
         if surface.surfaceType.downcase == "roofceiling" and surface.outsideBoundaryCondition.downcase == "outdoors"
         elsif surface.surfaceType.downcase == "roofceiling" and surface.outsideBoundaryCondition.downcase == "adiabatic" and surface.vertices.length == 4 # corridor roof deck
         else
@@ -1346,11 +1350,11 @@ class CreateResidentialEaves < OpenStudio::Measure::ModelMeasure
     
     when Constants.RoofTypeHip
     
-      attic_increase_existing = Geometry.get_roof_pitch(model.getSurfaces) * existing_eaves_depth
-      attic_increase_new = Geometry.get_roof_pitch(model.getSurfaces) * eaves_depth
+      attic_increase_existing = roof_pitch * existing_eaves_depth
+      attic_increase_new = roof_pitch * eaves_depth
       attic_increase_delta = attic_increase_new - attic_increase_existing    
       
-      model.getSurfaces.each do |surface|
+      model_surfaces.each do |surface|
         next unless surface.surfaceType.downcase == "roofceiling" and surface.outsideBoundaryCondition.downcase == "outdoors"      
         surfaces_modified = true
         
@@ -1566,7 +1570,7 @@ class CreateResidentialEaves < OpenStudio::Measure::ModelMeasure
     roof_decks = []
     gable_walls = []
     surfaces.each do |surface|
-      next if Geometry.is_garage(surface.space.get) or surface.space.get.name.to_s.downcase.include? Constants.CorridorSpace
+      next if Geometry.is_garage(surface.space.get) or Geometry.is_corridor(surface.space.get)
       if surface.surfaceType.downcase == "roofceiling" and surface.outsideBoundaryCondition.downcase == "outdoors"
         roof_decks << surface
       elsif surface.surfaceType.downcase == "wall" and surface.outsideBoundaryCondition.downcase == "outdoors" and surface.vertices.length == 3

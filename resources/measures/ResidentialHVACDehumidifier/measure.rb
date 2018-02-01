@@ -169,61 +169,8 @@ class ProcessDehumidifier < OpenStudio::Measure::ModelMeasure
         zone_hvac.addToThermalZone(control_zone)
         runner.registerInfo("Added '#{zone_hvac.name}' to '#{control_zone.name}' of #{unit.name}")
         
-        HVAC.prioritize_zone_hvac(model, runner, control_zone).reverse.each do |object|
-          control_zone.setCoolingPriority(object, 1)
-          control_zone.setHeatingPriority(object, 1)
-        end
-        
-        # slave_zones.each do |slave_zone|
-        
-          # # Remove existing dehumidifier
-          # model.getZoneHVACDehumidifierDXs.each do |dehumidifier|
-            # next unless slave_zone.handle.to_s == dehumidifier.thermalZone.get.handle.to_s
-            # runner.registerInfo("Removed '#{dehumidifier.name}' from #{slave_zone.name}.")
-            # dehumidifier.remove
-          # end
-          
-          # humidistat = slave_zone.zoneControlHumidistat
-          # if humidistat.is_initialized
-            # humidistat.get.remove
-          # end
-          # humidistat = OpenStudio::Model::ZoneControlHumidistat.new(model)
-          # humidistat.setName(obj_name + " #{slave_zone.name} humidistat")
-          # humidistat.setHumidifyingRelativeHumiditySetpointSchedule(relative_humidity_setpoint_sch)
-          # humidistat.setDehumidifyingRelativeHumiditySetpointSchedule(relative_humidity_setpoint_sch)
-          # slave_zone.setZoneControlHumidistat(humidistat)
-        
-          # zone_hvac = OpenStudio::Model::ZoneHVACDehumidifierDX.new(model, water_removal_curve, energy_factor_curve, part_load_frac_curve)
-          # zone_hvac.setName(obj_name + " #{slave_zone.name} dx")
-          # zone_hvac.setAvailabilitySchedule(model.alwaysOnDiscreteSchedule)
-          #if water_removal_rate != Constants.Auto
-          #  zone_hvac.setRatedWaterRemoval(UnitConversions.convert(water_removal_rate.to_f,"pint","L"))
-          #else
-          #  zone_hvac.setRatedWaterRemoval(Constants.small) # Autosize flag for HVACSizing measure
-          #end
-          #if energy_factor != Constants.Auto
-          #  zone_hvac.setRatedEnergyFactor(energy_factor.to_f)
-          #else
-          #  zone_hvac.setRatedEnergyFactor(Constants.small) # Autosize flag for HVACSizing measure
-          #end
-          #if air_flow_rate != Constants.Auto
-          #  zone_hvac.setRatedAirFlowRate(UnitConversions.convert(air_flow_rate.to_f,"cfm","m^3/s"))
-          #else
-          #  zone_hvac.setRatedAirFlowRate(Constants.small) # Autosize flag for HVACSizing measure
-          #end
-          # zone_hvac.setMinimumDryBulbTemperatureforDehumidifierOperation(10)
-          # zone_hvac.setMaximumDryBulbTemperatureforDehumidifierOperation(40)
-          
-          # zone_hvac.addToThermalZone(slave_zone)
-          # runner.registerInfo("Added '#{zone_hvac.name}' to '#{slave_zone.name}' of #{unit.name}")
-        
-          # HVAC.prioritize_zone_hvac(model, runner, slave_zone).reverse.each do |object|
-            # slave_zone.setCoolingPriority(object, 1)
-            # slave_zone.setHeatingPriority(object, 1)
-          # end
-        
-        # end
-      
+        HVAC.prioritize_zone_hvac(model, runner, control_zone)
+              
       end
     
     end

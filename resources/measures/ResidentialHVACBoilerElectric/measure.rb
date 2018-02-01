@@ -287,55 +287,30 @@ class ProcessBoilerElectric < OpenStudio::Measure::ModelMeasure
 
       control_slave_zones_hash = HVAC.get_control_and_slave_zones(thermal_zones)
       control_slave_zones_hash.each do |control_zone, slave_zones|
-
-        # Remove existing equipment
-        HVAC.remove_existing_hvac_equipment(model, runner, Constants.ObjectNameBoiler, control_zone, false, unit)
       
-        baseboard_coil = OpenStudio::Model::CoilHeatingWaterBaseboard.new(model)
-        baseboard_coil.setName(obj_name + " #{control_zone.name} heating coil")
-        if boilerOutputCapacity != Constants.SizingAuto
-          baseboard_coil.setHeatingDesignCapacity(UnitConversions.convert(boilerOutputCapacity,"Btu/hr","W")) # Used by HVACSizing measure
-        end
-        baseboard_coil.setConvergenceTolerance(0.001)
+        ([control_zone] + slave_zones).each do |zone|
         
-        living_baseboard_heater = OpenStudio::Model::ZoneHVACBaseboardConvectiveWater.new(model, model.alwaysOnDiscreteSchedule, baseboard_coil)
-        living_baseboard_heater.setName(obj_name + " #{control_zone.name} convective water")
-        living_baseboard_heater.addToThermalZone(control_zone)
-        runner.registerInfo("Added '#{living_baseboard_heater.name}' to '#{control_zone.name}' of #{unit.name}")
-        
-        HVAC.prioritize_zone_hvac(model, runner, control_zone).reverse.each do |object|
-          control_zone.setCoolingPriority(object, 1)
-          control_zone.setHeatingPriority(object, 1)
-        end
-        
-        plant_loop.addDemandBranchForComponent(baseboard_coil)
-        
-        slave_zones.each do |slave_zone|
-
           # Remove existing equipment
-          HVAC.remove_existing_hvac_equipment(model, runner, Constants.ObjectNameBoiler, slave_zone, false, unit)
+          HVAC.remove_existing_hvac_equipment(model, runner, Constants.ObjectNameBoiler, zone, false, unit)
         
           baseboard_coil = OpenStudio::Model::CoilHeatingWaterBaseboard.new(model)
-          baseboard_coil.setName(obj_name + " #{slave_zone.name} heating coil")
+          baseboard_coil.setName(obj_name + " #{zone.name} heating coil")
           if boilerOutputCapacity != Constants.SizingAuto
             baseboard_coil.setHeatingDesignCapacity(UnitConversions.convert(boilerOutputCapacity,"Btu/hr","W")) # Used by HVACSizing measure
           end
           baseboard_coil.setConvergenceTolerance(0.001)
-        
-          fbasement_baseboard_heater = OpenStudio::Model::ZoneHVACBaseboardConvectiveWater.new(model, model.alwaysOnDiscreteSchedule, baseboard_coil)
-          fbasement_baseboard_heater.setName(obj_name + " #{slave_zone.name} convective water")
-          fbasement_baseboard_heater.addToThermalZone(slave_zone)
-          runner.registerInfo("Added '#{fbasement_baseboard_heater.name}' to '#{slave_zone.name}' of #{unit.name}")
           
-          HVAC.prioritize_zone_hvac(model, runner, slave_zone).reverse.each do |object|
-            slave_zone.setCoolingPriority(object, 1)
-            slave_zone.setHeatingPriority(object, 1)
-          end          
+          baseboard_heater = OpenStudio::Model::ZoneHVACBaseboardConvectiveWater.new(model, model.alwaysOnDiscreteSchedule, baseboard_coil)
+          baseboard_heater.setName(obj_name + " #{zone.name} convective water")
+          baseboard_heater.addToThermalZone(zone)
+          runner.registerInfo("Added '#{baseboard_heater.name}' to '#{zone.name}' of #{unit.name}")
+          
+          HVAC.prioritize_zone_hvac(model, runner, zone)
           
           plant_loop.addDemandBranchForComponent(baseboard_coil)
 
         end
-      
+
       end
       
     end

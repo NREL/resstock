@@ -94,21 +94,17 @@ class ResidentialDishwasher < OpenStudio::Measure::ModelMeasure
     mult_hw.setDefaultValue(1)
     args << mult_hw
 
-    #make a choice argument for space
-    spaces = Geometry.get_all_unit_spaces(model)
-    if spaces.nil?
-        spaces = []
+    #make a choice argument for location
+    location_args = OpenStudio::StringVector.new
+    location_args << Constants.Auto
+    Geometry.get_model_locations(model).each do |loc|
+        location_args << loc
     end
-    space_args = OpenStudio::StringVector.new
-    space_args << Constants.Auto
-    spaces.each do |space|
-        space_args << space.name.to_s
-    end
-    space = OpenStudio::Measure::OSArgument::makeChoiceArgument("space", space_args, true)
-    space.setDisplayName("Location")
-    space.setDescription("Select the space where the dishwasher is located. '#{Constants.Auto}' will choose the lowest above-grade finished space available (e.g., first story living space), or a below-grade finished space as last resort. For multifamily buildings, '#{Constants.Auto}' will choose a space for each unit of the building.")
-    space.setDefaultValue(Constants.Auto)
-    args << space
+    location = OpenStudio::Measure::OSArgument::makeChoiceArgument("location", location_args, true)
+    location.setDisplayName("Location")
+    location.setDescription("The space type for the location. '#{Constants.Auto}' will automatically choose a space type based on the space types found in the model.")
+    location.setDefaultValue(Constants.Auto)
+    args << location
     
     #make a choice argument for plant loop
     plant_loops = model.getPlantLoops
@@ -121,7 +117,7 @@ class ResidentialDishwasher < OpenStudio::Measure::ModelMeasure
     plant_loop.setDisplayName("Plant Loop")
     plant_loop.setDescription("Select the plant loop for the dishwasher. '#{Constants.Auto}' will try to choose the plant loop associated with the specified space. For multifamily buildings, '#{Constants.Auto}' will choose the plant loop for each unit of the building.")
     plant_loop.setDefaultValue(Constants.Auto)
-	args << plant_loop
+	  args << plant_loop
     
     #make an argument for the number of days to shift the draw profile by
     schedule_day_shift = OpenStudio::Measure::OSArgument::makeIntegerArgument("schedule_day_shift",true)
@@ -152,7 +148,7 @@ class ResidentialDishwasher < OpenStudio::Measure::ModelMeasure
     dw_energy_guide_annual_gas_cost = runner.getDoubleArgumentValue("eg_gas_cost", user_arguments)
     dw_energy_multiplier = runner.getDoubleArgumentValue("mult_e", user_arguments)
     dw_hot_water_multiplier = runner.getDoubleArgumentValue("mult_hw", user_arguments)
-    space_r = runner.getStringArgumentValue("space",user_arguments)
+    location = runner.getStringArgumentValue("location",user_arguments)
     plant_loop_s = runner.getStringArgumentValue("plant_loop", user_arguments)
     d_sh = runner.getIntegerArgumentValue("schedule_day_shift",user_arguments)
 
@@ -206,9 +202,22 @@ class ResidentialDishwasher < OpenStudio::Measure::ModelMeasure
         mainsMonthlyTemps = WeatherProcess.get_mains_temperature(site.siteWaterMainsTemperature.get, site.latitude)[1]
     end
     
+    # Remove all existing objects
+    obj_name = Constants.ObjectNameDishwasher
+    model.getSpaces.each do |space|
+        remove_existing(runner, space, obj_name)
+    end
+    
+    location_hierarchy = [Constants.SpaceTypeKitchen, 
+                          Constants.SpaceTypeLiving, 
+                          Constants.SpaceTypeLiving, 
+                          Constants.SpaceTypeUnfinishedBasement, 
+                          Constants.SpaceTypeGarage]
+
     tot_dw_ann = 0
     msgs = []
-    units.each do |unit|
+    units.each_with_index do |unit, unit_index|
+    
         # Get unit beds/baths
         nbeds, nbaths = Geometry.get_unit_beds_baths(model, unit, runner)
         if nbeds.nil? or nbaths.nil?
@@ -220,11 +229,11 @@ class ResidentialDishwasher < OpenStudio::Measure::ModelMeasure
         end
         
         # Get space
-        space = Geometry.get_space_from_string(unit.spaces, space_r)
+        space = Geometry.get_space_from_location(unit, location, location_hierarchy)
         next if space.nil?
 
         #Get plant loop
-        plant_loop = Waterheater.get_plant_loop_from_string(model.getPlantLoops, plant_loop_s, unit.spaces, Constants.ObjectNameWaterHeater(unit.name.to_s.gsub("unit", "u")).gsub("|","_"), runner)
+        plant_loop = Waterheater.get_plant_loop_from_string(model.getPlantLoops, plant_loop_s, unit, Constants.ObjectNameWaterHeater(unit.name.to_s.gsub("unit ", "")).gsub("|","_"), runner)
         if plant_loop.nil?
             return false
         end
@@ -235,40 +244,8 @@ class ResidentialDishwasher < OpenStudio::Measure::ModelMeasure
             return false
         end
 
-        obj_name = Constants.ObjectNameDishwasher(unit.name.to_s)
+        unit_obj_name = Constants.ObjectNameDishwasher(unit.name.to_s)
 
-        # Remove any existing dishwasher
-        objects_to_remove = []
-        space.electricEquipment.each do |space_equipment|
-            next if space_equipment.name.to_s != obj_name
-            objects_to_remove << space_equipment
-            objects_to_remove << space_equipment.electricEquipmentDefinition
-            if space_equipment.schedule.is_initialized
-                objects_to_remove << space_equipment.schedule.get
-            end
-        end
-        space.waterUseEquipment.each do |space_equipment|
-            next if space_equipment.name.to_s != obj_name
-            objects_to_remove << space_equipment
-            objects_to_remove << space_equipment.waterUseEquipmentDefinition
-            if space_equipment.flowRateFractionSchedule.is_initialized
-                objects_to_remove << space_equipment.flowRateFractionSchedule.get
-            end
-            if space_equipment.waterUseEquipmentDefinition.targetTemperatureSchedule.is_initialized
-                objects_to_remove << space_equipment.waterUseEquipmentDefinition.targetTemperatureSchedule.get
-            end
-        end
-        if objects_to_remove.size > 0
-            runner.registerInfo("Removed existing dishwasher from space '#{space.name.to_s}'.")
-        end
-        objects_to_remove.uniq.each do |object|
-            begin
-                object.remove
-            rescue
-                # no op
-            end
-        end
-        
         # The water used in dishwashers must be heated, either internally or
         # externally, to at least 140 degF for proper operation (dissolving of
         # detergent, cleaning of dishes).
@@ -460,10 +437,10 @@ class ResidentialDishwasher < OpenStudio::Measure::ModelMeasure
             #Add electric equipment for the dw
             dw_def = OpenStudio::Model::ElectricEquipmentDefinition.new(model)
             dw = OpenStudio::Model::ElectricEquipment.new(dw_def)
-            dw.setName(obj_name)
-            dw.setEndUseSubcategory(obj_name)
+            dw.setName(unit_obj_name)
+            dw.setEndUseSubcategory(unit_obj_name)
             dw.setSpace(space)
-            dw_def.setName(obj_name)
+            dw_def.setName(unit_obj_name)
             dw_def.setDesignLevel(design_level)
             dw_def.setFractionRadiant(0.36)
             dw_def.setFractionLatent(0.15)
@@ -473,11 +450,11 @@ class ResidentialDishwasher < OpenStudio::Measure::ModelMeasure
             #Add water use equipment for the dw
             dw_def2 = OpenStudio::Model::WaterUseEquipmentDefinition.new(model)
             dw2 = OpenStudio::Model::WaterUseEquipment.new(dw_def2)
-            dw2.setName(obj_name)
+            dw2.setName(unit_obj_name)
             dw2.setSpace(space)
-            dw_def2.setName(obj_name)
+            dw_def2.setName(unit_obj_name)
             dw_def2.setPeakFlowRate(peak_flow)
-            dw_def2.setEndUseSubcategory(obj_name)
+            dw_def2.setEndUseSubcategory(unit_obj_name)
             dw2.setFlowRateFractionSchedule(sch.schedule)
             dw_def2.setTargetTemperatureSchedule(sch.temperatureSchedule)
             water_use_connection.addWaterUseEquipment(dw2)
@@ -504,6 +481,40 @@ class ResidentialDishwasher < OpenStudio::Measure::ModelMeasure
     return true
  
   end #end the run method
+  
+  def remove_existing(runner, space, obj_name)
+    # Remove any existing dishwasher
+    objects_to_remove = []
+    space.electricEquipment.each do |space_equipment|
+        next if not space_equipment.name.to_s.start_with? obj_name
+        objects_to_remove << space_equipment
+        objects_to_remove << space_equipment.electricEquipmentDefinition
+        if space_equipment.schedule.is_initialized
+            objects_to_remove << space_equipment.schedule.get
+        end
+    end
+    space.waterUseEquipment.each do |space_equipment|
+        next if not space_equipment.name.to_s.start_with? obj_name
+        objects_to_remove << space_equipment
+        objects_to_remove << space_equipment.waterUseEquipmentDefinition
+        if space_equipment.flowRateFractionSchedule.is_initialized
+            objects_to_remove << space_equipment.flowRateFractionSchedule.get
+        end
+        if space_equipment.waterUseEquipmentDefinition.targetTemperatureSchedule.is_initialized
+            objects_to_remove << space_equipment.waterUseEquipmentDefinition.targetTemperatureSchedule.get
+        end
+    end
+    if objects_to_remove.size > 0
+        runner.registerInfo("Removed existing dishwasher from space '#{space.name.to_s}'.")
+    end
+    objects_to_remove.uniq.each do |object|
+        begin
+            object.remove
+        rescue
+            # no op
+        end
+    end
+  end
 
 end #end the measure
 

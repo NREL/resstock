@@ -108,14 +108,6 @@ class ProcessConstructionsCeilingsRoofsFinishedRoof < OpenStudio::Measure::Model
       surfaces.delete_if { |surface| surface.name.to_s != surface_s }
     end
     
-    spaces = []
-    surfaces.each do |surface|
-      space = surface.space.get
-      if not spaces.include? space
-          spaces << space
-      end
-    end    
-    
     # Continue if no applicable surfaces
     if surfaces.empty?
       runner.registerAsNotApplicable("Measure not applied because no applicable surfaces were found.")
@@ -167,7 +159,7 @@ class ProcessConstructionsCeilingsRoofsFinishedRoof < OpenStudio::Measure::Model
     
     # Define construction
     roof = Construction.new(path_fracs)
-    roof.add_layer(Material.AirFilmRoof(Geometry.calculate_avg_roof_pitch(spaces)), false)
+    roof.add_layer(Material.AirFilmRoof(Geometry.get_roof_pitch(surfaces)), false)
     roof.add_layer(Material.DefaultCeilingMass, false) # thermal mass added in separate measure
     roof.add_layer([mat_framing, mat_cavity, mat_gap], true, "RoofIns")
     roof.add_layer(Material.DefaultRoofSheathing, false) # roof sheathing added in separate measure
@@ -180,13 +172,9 @@ class ProcessConstructionsCeilingsRoofsFinishedRoof < OpenStudio::Measure::Model
     end
     
     # Store info for HVAC Sizing measure
-    units = Geometry.get_building_units(model, runner)
-    if units.nil?
-        return false
-    end
     surfaces.each do |surface|
-        units.each do |unit|
-            next if not unit.spaces.include?(surface.space.get)
+        model.getBuildingUnits.each do |unit|
+            next if unit.spaces.size == 0
             unit.setFeature(Constants.SizingInfoRoofCavityRvalue(surface), frRoofCavityInsRvalueInstalled)
         end
     end

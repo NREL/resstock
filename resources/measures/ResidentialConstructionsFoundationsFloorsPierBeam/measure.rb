@@ -142,13 +142,8 @@ class ProcessConstructionsFoundationsFloorsPierBeam < OpenStudio::Measure::Model
     end
     
     # Store info for HVAC Sizing measure
-    units = Geometry.get_building_units(model, runner)
-    if units.nil?
-        return false
-    end
-    units.each do |unit|
-        unit.spaces.each do |space|
-            next if not spaces.include?(space)
+    model.getBuildingUnits.each do |unit|
+        spaces.each do |space|
             unit.setFeature(Constants.SizingInfoSpaceWallsInsulated(space), false)
             unit.setFeature(Constants.SizingInfoSpaceCeilingInsulated(space), (pbCeilingCavityInsRvalueNominal > 0))
         end

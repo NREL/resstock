@@ -109,21 +109,17 @@ class ResidentialClothesWasher < OpenStudio::Measure::ModelMeasure
     cw_mult_hw.setDefaultValue(1)
     args << cw_mult_hw
 
-    #make a choice argument for space
-    spaces = Geometry.get_all_unit_spaces(model)
-    if spaces.nil?
-        spaces = []
+    #make a choice argument for location
+    location_args = OpenStudio::StringVector.new
+    location_args << Constants.Auto
+    Geometry.get_model_locations(model).each do |loc|
+        location_args << loc
     end
-    space_args = OpenStudio::StringVector.new
-    space_args << Constants.Auto
-    spaces.each do |space|
-        space_args << space.name.to_s
-    end
-    space = OpenStudio::Measure::OSArgument::makeChoiceArgument("space", space_args, true)
-    space.setDisplayName("Location")
-    space.setDescription("Select the space where the dishwasher is located. '#{Constants.Auto}' will choose the lowest above-grade finished space available (e.g., first story living space), or a below-grade finished space as last resort. For multifamily buildings, '#{Constants.Auto}' will choose a space for each unit of the building.")
-    space.setDefaultValue(Constants.Auto)
-    args << space
+    location = OpenStudio::Measure::OSArgument::makeChoiceArgument("location", location_args, true)
+    location.setDisplayName("Location")
+    location.setDescription("The space type for the location. '#{Constants.Auto}' will automatically choose a space type based on the space types found in the model.")
+    location.setDefaultValue(Constants.Auto)
+    args << location
     
     #make a choice argument for plant loop
     plant_loops = model.getPlantLoops
@@ -138,7 +134,6 @@ class ResidentialClothesWasher < OpenStudio::Measure::ModelMeasure
     plant_loop.setDefaultValue(Constants.Auto)
     args << plant_loop
     
-        
     #make an argument for the number of days to shift the draw profile by
     schedule_day_shift = OpenStudio::Measure::OSArgument::makeIntegerArgument("schedule_day_shift",true)
     schedule_day_shift.setDisplayName("Schedule Day Shift")
@@ -170,7 +165,7 @@ class ResidentialClothesWasher < OpenStudio::Measure::ModelMeasure
     cw_fill_sensor = runner.getBoolArgumentValue("fill_sensor",user_arguments)
     cw_mult_e = runner.getDoubleArgumentValue("mult_e",user_arguments)
     cw_mult_hw = runner.getDoubleArgumentValue("mult_hw",user_arguments)
-    space_r = runner.getStringArgumentValue("space",user_arguments)
+    location = runner.getStringArgumentValue("location",user_arguments)
     plant_loop_s = runner.getStringArgumentValue("plant_loop", user_arguments)
     d_sh = runner.getIntegerArgumentValue("schedule_day_shift",user_arguments)
 
@@ -222,12 +217,24 @@ class ResidentialClothesWasher < OpenStudio::Measure::ModelMeasure
     end
     mainsMonthlyTemps = WeatherProcess.get_mains_temperature(site.siteWaterMainsTemperature.get, site.latitude)[1]
     
-    tot_cw_ann_e = 0
+    # Remove all existing objects
+    obj_name = Constants.ObjectNameClothesWasher
+    model.getSpaces.each do |space|
+        remove_existing(runner, space, obj_name)
+    end
     
+    location_hierarchy = [Constants.SpaceTypeLaundryRoom, 
+                          Constants.SpaceTypeLiving, 
+                          Constants.SpaceTypeFinishedBasement, 
+                          Constants.SpaceTypeUnfinishedBasement, 
+                          Constants.SpaceTypeGarage]
+
+    tot_cw_ann_e = 0
     msgs = []
     cd_msgs = []
     cd_sch = nil
-    units.each do |unit|
+    units.each_with_index do |unit, unit_index|
+    
         # Get unit beds/baths
         nbeds, nbaths = Geometry.get_unit_beds_baths(model, unit, runner)
         if nbeds.nil? or nbaths.nil?
@@ -239,11 +246,11 @@ class ResidentialClothesWasher < OpenStudio::Measure::ModelMeasure
         end
         
         # Get space
-        space = Geometry.get_space_from_string(unit.spaces, space_r)
+        space = Geometry.get_space_from_location(unit, location, location_hierarchy)
         next if space.nil?
 
         #Get plant loop
-        plant_loop = Waterheater.get_plant_loop_from_string(model.getPlantLoops, plant_loop_s, unit.spaces, Constants.ObjectNameWaterHeater(unit.name.to_s.gsub("unit", "u")).gsub("|","_"), runner)
+        plant_loop = Waterheater.get_plant_loop_from_string(model.getPlantLoops, plant_loop_s, unit, Constants.ObjectNameWaterHeater(unit.name.to_s.gsub("unit ", "")).gsub("|","_"), runner)
         if plant_loop.nil?
             return false
         end
@@ -254,40 +261,8 @@ class ResidentialClothesWasher < OpenStudio::Measure::ModelMeasure
             return false
         end
 
-        obj_name = Constants.ObjectNameClothesWasher(unit.name.to_s)
+        unit_obj_name = Constants.ObjectNameClothesWasher(unit.name.to_s)
 
-        # Remove any existing clothes washer
-        objects_to_remove = []
-        space.electricEquipment.each do |space_equipment|
-            next if space_equipment.name.to_s != obj_name
-            objects_to_remove << space_equipment
-            objects_to_remove << space_equipment.electricEquipmentDefinition
-            if space_equipment.schedule.is_initialized
-                objects_to_remove << space_equipment.schedule.get
-            end
-        end
-        space.waterUseEquipment.each do |space_equipment|
-            next if space_equipment.name.to_s != obj_name
-            objects_to_remove << space_equipment
-            objects_to_remove << space_equipment.waterUseEquipmentDefinition
-            if space_equipment.flowRateFractionSchedule.is_initialized
-                objects_to_remove << space_equipment.flowRateFractionSchedule.get
-            end
-            if space_equipment.waterUseEquipmentDefinition.targetTemperatureSchedule.is_initialized
-                objects_to_remove << space_equipment.waterUseEquipmentDefinition.targetTemperatureSchedule.get
-            end
-        end
-        if objects_to_remove.size > 0
-            runner.registerInfo("Removed existing clothes washer from space '#{space.name.to_s}'.")
-        end
-        objects_to_remove.uniq.each do |object|
-            begin
-                object.remove
-            rescue
-                # no op
-            end
-        end
-        
         # Use EnergyGuide Label test data to calculate per-cycle energy and water consumption.
         # Calculations are based on "Method for Evaluating Energy Use of Dishwashers, Clothes Washers, 
         # and Clothes Dryers" by Eastment and Hendron, Conference Paper NREL/CP-550-39769, August 2006.
@@ -568,10 +543,10 @@ class ResidentialClothesWasher < OpenStudio::Measure::ModelMeasure
             #Add equipment for the cw
             cw_def = OpenStudio::Model::ElectricEquipmentDefinition.new(model)
             cw = OpenStudio::Model::ElectricEquipment.new(cw_def)
-            cw.setName(obj_name)
-            cw.setEndUseSubcategory(obj_name)
+            cw.setName(unit_obj_name)
+            cw.setEndUseSubcategory(unit_obj_name)
             cw.setSpace(space)
-            cw_def.setName(obj_name)
+            cw_def.setName(unit_obj_name)
             cw_def.setDesignLevel(design_level)
             cw_def.setFractionRadiant(0.48)
             cw_def.setFractionLatent(0.0)
@@ -581,11 +556,11 @@ class ResidentialClothesWasher < OpenStudio::Measure::ModelMeasure
             #Add water use equipment for the dw
             cw_def2 = OpenStudio::Model::WaterUseEquipmentDefinition.new(model)
             cw2 = OpenStudio::Model::WaterUseEquipment.new(cw_def2)
-            cw2.setName(obj_name)
+            cw2.setName(unit_obj_name)
             cw2.setSpace(space)
-            cw_def2.setName(obj_name)
+            cw_def2.setName(unit_obj_name)
             cw_def2.setPeakFlowRate(peak_flow)
-            cw_def2.setEndUseSubcategory(obj_name)
+            cw_def2.setEndUseSubcategory(unit_obj_name)
             cw2.setFlowRateFractionSchedule(sch.schedule)
             cw_def2.setTargetTemperatureSchedule(sch.temperatureSchedule)
             water_use_connection.addWaterUseEquipment(cw2)
@@ -600,13 +575,16 @@ class ResidentialClothesWasher < OpenStudio::Measure::ModelMeasure
             unit.setFeature(Constants.ClothesWasherDrumVolume(cw), cw_drum_volume)
             
             # Check if there's a clothes dryer that needs to be updated
+            cd_unit_obj_name = Constants.ObjectNameClothesDryer(nil)
             cd = nil
             model.getElectricEquipments.each do |ee|
-                next if not ee.name.to_s.start_with?(Constants.ObjectNameClothesDryer(nil))
+                next if not ee.name.to_s.start_with? cd_unit_obj_name
+                next if not unit.spaces.include? ee.space.get
                 cd = ee
             end
             model.getOtherEquipments.each do |oe|
-                next if not oe.name.to_s.start_with?(Constants.ObjectNameClothesDryer(nil))
+                next if not oe.name.to_s.start_with? cd_unit_obj_name
+                next if not unit.spaces.include? oe.space.get
                 cd = oe
             end
             next if cd.nil?
@@ -632,8 +610,10 @@ class ResidentialClothesWasher < OpenStudio::Measure::ModelMeasure
             cd_fuel_split = cd_fuel_split.get
             
             # Update clothes dryer
+            cd_space = cd.space.get
+            ClothesDryer.remove_existing(runner, cd_space, cd_unit_obj_name, false)
             success, cd_ann_e, cd_ann_f, cd_sch = ClothesDryer.apply(model, unit, runner, cd_sch, cd_cef, cd_mult, cd_weekday_sch, cd_weekend_sch, cd_monthly_sch, 
-                                                                     cd.space.get, cd_fuel_type, cd_fuel_split, false)
+                                                                     cd_space, cd_fuel_type, cd_fuel_split)
             
             if not success
                 return false
@@ -664,6 +644,40 @@ class ResidentialClothesWasher < OpenStudio::Measure::ModelMeasure
     
     return true
 	
+  end
+  
+  def remove_existing(runner, space, obj_name)
+    # Remove any existing clothes washer
+    objects_to_remove = []
+    space.electricEquipment.each do |space_equipment|
+        next if not space_equipment.name.to_s.start_with? obj_name
+        objects_to_remove << space_equipment
+        objects_to_remove << space_equipment.electricEquipmentDefinition
+        if space_equipment.schedule.is_initialized
+            objects_to_remove << space_equipment.schedule.get
+        end
+    end
+    space.waterUseEquipment.each do |space_equipment|
+        next if not space_equipment.name.to_s.start_with? obj_name
+        objects_to_remove << space_equipment
+        objects_to_remove << space_equipment.waterUseEquipmentDefinition
+        if space_equipment.flowRateFractionSchedule.is_initialized
+            objects_to_remove << space_equipment.flowRateFractionSchedule.get
+        end
+        if space_equipment.waterUseEquipmentDefinition.targetTemperatureSchedule.is_initialized
+            objects_to_remove << space_equipment.waterUseEquipmentDefinition.targetTemperatureSchedule.get
+        end
+    end
+    if objects_to_remove.size > 0
+        runner.registerInfo("Removed existing clothes washer from space '#{space.name.to_s}'.")
+    end
+    objects_to_remove.uniq.each do |object|
+        begin
+            object.remove
+        rescue
+            # no op
+        end
+    end
   end
 
 end #end the measure

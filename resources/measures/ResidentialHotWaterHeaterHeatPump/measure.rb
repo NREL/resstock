@@ -49,21 +49,17 @@ class ResidentialHotWaterHeaterHeatPump < OpenStudio::Measure::ModelMeasure
         dhw_setpoint.setDefaultValue(125)
         args << dhw_setpoint
         
-        #make a choice argument for water heater location
-        spaces = Geometry.get_all_unit_spaces(model)
-        if spaces.nil?
-            spaces = []
+        #make a choice argument for location
+        location_args = OpenStudio::StringVector.new
+        location_args << Constants.Auto
+        Geometry.get_model_locations(model).each do |loc|
+            location_args << loc
         end
-        space_args = OpenStudio::StringVector.new
-        space_args << Constants.Auto
-        spaces.each do |space|
-            space_args << space.name.to_s
-        end
-        space = OpenStudio::Ruleset::OSArgument::makeChoiceArgument("space", space_args, true)
-        space.setDisplayName("Location")
-        space.setDescription("Select the space where the water heater is located. #{Constants.Auto} will locate the water heater according the BA House Simulation Protocols: A garage (if available) or the living space in hot-dry and hot-humid climates, a basement (finished or unfinished, if available) or living space in all other climates.")
-        space.setDefaultValue(Constants.Auto)
-        args << space
+        location = OpenStudio::Measure::OSArgument::makeChoiceArgument("location", location_args, true)
+        location.setDisplayName("Location")
+        location.setDescription("The space type for the location. '#{Constants.Auto}' will automatically choose a space type based on the space types found in the model.")
+        location.setDefaultValue(Constants.Auto)
+        args << location
         
         # make an argument for element_capacity
         element_capacity = osargument::makeDoubleArgument("element_capacity", true)
@@ -181,7 +177,7 @@ class ResidentialHotWaterHeaterHeatPump < OpenStudio::Measure::ModelMeasure
         #Assign user inputs to variables
         e_cap = runner.getDoubleArgumentValue("element_capacity",user_arguments)
         vol = runner.getDoubleArgumentValue("storage_tank_volume",user_arguments)
-        water_heater_space_name = runner.getStringArgumentValue("space",user_arguments)
+        location = runner.getStringArgumentValue("location",user_arguments)
         t_set = runner.getDoubleArgumentValue("setpoint_temp",user_arguments).to_f
         min_temp = runner.getDoubleArgumentValue("min_temp",user_arguments).to_f
         max_temp = runner.getDoubleArgumentValue("max_temp",user_arguments).to_f
@@ -285,6 +281,26 @@ class ResidentialHotWaterHeaterHeatPump < OpenStudio::Measure::ModelMeasure
             runner.registerError("Mains water temperature has not been set.")
             return false
         end
+        
+        # Get Building America climate zone
+        ba_cz_name = nil
+        model.getClimateZones.climateZones.each do |climateZone|
+            next if climateZone.institution != Constants.BuildingAmericaClimateZone
+            ba_cz_name = climateZone.value.to_s
+        end
+        if ba_cz_name.nil?
+            runner.registerError("No Building America climate zone has been assigned.")
+            return false
+        end
+
+        # Remove all existing objects
+        obj_name = Constants.ObjectNameWaterHeater
+        model.getPlantLoops.each do |pl|
+            next if not pl.name.to_s.start_with? Constants.PlantLoopDomesticWater
+            Waterheater.remove_existing(runner, pl, obj_name, model)
+        end
+
+        location_hierarchy = Waterheater.get_location_hierarchy(ba_cz_name)
 
         ["Zone Outdoor Air Drybulb Temperature", "Zone Outdoor Air Relative Humidity", "Zone Mean Air Temperature", "Zone Air Relative Humidity", "Water Heater Heat Loss Rate", "Cooling Coil Sensible Cooling Rate", "Cooling Coil Latent Cooling Rate", "Fan Electric Power", "Zone Mean Air Humidity Ratio", "System Node Pressure", "System Node Temperature", "System Node Humidity Ratio", "System Node Current Density Volume Flow Rate", "Water Heater Temperature Node 3", "Water Heater Heater 2 Heating Energy", "Water Heater Heater 1 Heating Energy"].each do |output_var_name|
           unless model.getOutputVariables.any? {|existing_output_var| existing_output_var.name.to_s == output_var_name} 
@@ -351,11 +367,9 @@ class ResidentialHotWaterHeaterHeatPump < OpenStudio::Measure::ModelMeasure
         end
         alt = weather.header.Altitude
 
-        units.each do |unit|
+        units.each_with_index do |unit, unit_index|
 
-            obj_name_hpwh = Constants.ObjectNameWaterHeater(unit.name.to_s.gsub("unit", "u")).gsub("|","_")
-
-            unit_num = Geometry.get_unit_number(model, unit, runner)
+            obj_name_hpwh = Constants.ObjectNameWaterHeater(unit.name.to_s.gsub("unit ", "")).gsub("|","_")
 
             # Get unit beds/baths
             nbeds, nbaths = Geometry.get_unit_beds_baths(model, unit, runner)
@@ -367,58 +381,18 @@ class ResidentialHotWaterHeaterHeatPump < OpenStudio::Measure::ModelMeasure
                 return false
             end
 
-            #If location is Auto, get the location
-            water_heater_tz = nil
-            if water_heater_space_name != Constants.Auto
-                water_heater_tz = Geometry.get_thermal_zones_from_spaces([Geometry.get_space_from_string(model.getSpaces, water_heater_space_name)])[0]
-            else
-                water_heater_tz = Waterheater.get_water_heater_location_auto(model, unit.spaces, runner)
-                if water_heater_tz.nil?
-                    runner.registerError("The water heater cannot be automatically assigned to a thermal zone. Please manually select which zone the water heater should be located in.")
-                    return false
-                end
-            end
-            water_heater_space = water_heater_tz.spaces[0] #first space in the zone
-        
+            # Get space
+            space = Geometry.get_space_from_location(unit, location, location_hierarchy)
+            next if space.nil?
+            water_heater_tz = space.thermalZone.get
+            
             #Check if a DHW plant loop already exists, if not add it
             loop = nil
-        
             model.getPlantLoops.each do |pl|
                 next if pl.name.to_s != Constants.PlantLoopDomesticWater(unit.name.to_s)
                 loop = pl
-                #Remove any existing water heater
-                objects_to_remove = []
-                pl.supplyComponents.each do |wh|
-                    next if !wh.to_WaterHeaterMixed.is_initialized and !wh.to_WaterHeaterStratified.is_initialized
-                    if wh.to_WaterHeaterMixed.is_initialized
-                        objects_to_remove << wh
-                        if wh.to_WaterHeaterMixed.get.setpointTemperatureSchedule.is_initialized
-                          objects_to_remove << wh.to_WaterHeaterMixed.get.setpointTemperatureSchedule.get
-                        end
-                    elsif wh.to_WaterHeaterStratified.is_initialized
-                        if not wh.to_WaterHeaterStratified.get.secondaryPlantLoop.is_initialized
-                          model.getWaterHeaterHeatPumpWrappedCondensers.each do |hpwh|
-                            objects_to_remove << hpwh.tank
-                            objects_to_remove << hpwh                            
-                          end
-                          objects_to_remove << wh.to_WaterHeaterStratified.get.heater1SetpointTemperatureSchedule
-                          objects_to_remove << wh.to_WaterHeaterStratified.get.heater2SetpointTemperatureSchedule
-                          Waterheater.remove_existing_hpwh(model, obj_name_hpwh)
-                        end
-                    end
-                end
-                if objects_to_remove.size > 0
-                    runner.registerInfo("Removed the existing water heater from plant loop #{pl.name.to_s}.")
-                end
-                objects_to_remove.uniq.each do |object|
-                    begin
-                        object.remove
-                    rescue
-                        # no op
-                    end
-                end
             end
-
+            
             if loop.nil?
                 runner.registerInfo("A new plant loop for DHW will be added to the model")
                 runner.registerInitialCondition("There is no existing water heater")
@@ -675,7 +649,7 @@ class ResidentialHotWaterHeaterHeatPump < OpenStudio::Measure::ModelMeasure
             hpwh_sens_def.setName("#{obj_name_hpwh} sens")
             hpwh_sens = OpenStudio::Model::OtherEquipment.new(hpwh_sens_def)
             hpwh_sens.setName(hpwh_sens_def.name.to_s)
-            hpwh_sens.setSpace(water_heater_space)            
+            hpwh_sens.setSpace(space)            
             hpwh_sens_def.setDesignLevel(0)
             hpwh_sens_def.setFractionRadiant(0)
             hpwh_sens_def.setFractionLatent(0)
@@ -686,7 +660,7 @@ class ResidentialHotWaterHeaterHeatPump < OpenStudio::Measure::ModelMeasure
             hpwh_lat_def.setName("#{obj_name_hpwh} lat")
             hpwh_lat = OpenStudio::Model::OtherEquipment.new(hpwh_lat_def)
             hpwh_lat.setName(hpwh_lat_def.name.to_s)
-            hpwh_lat.setSpace(water_heater_space)            
+            hpwh_lat.setSpace(space)            
             hpwh_lat_def.setDesignLevel(0)
             hpwh_lat_def.setFractionRadiant(0)
             hpwh_lat_def.setFractionLatent(1)
@@ -784,37 +758,37 @@ class ResidentialHotWaterHeaterHeatPump < OpenStudio::Measure::ModelMeasure
             #EMS Program for ducting
             hpwh_ducting_program = OpenStudio::Model::EnergyManagementSystemProgram.new(model)
             hpwh_ducting_program.setName("#{obj_name_hpwh} InletAir")
-            if not (water_heater_tz.name.to_s.start_with?(Constants.FinishedBasementZone) or water_heater_tz.name.to_s.start_with?(Constants.LivingZone))
+            if not (Geometry.is_finished_basement(water_heater_tz) or Geometry.is_living(water_heater_tz))
                 runner.registerWarning("Confined space installations are typically used represent installations in locations like a utility closet. Utility closets installations are typically only done in conditioned spaces.")
             end
             if temp_depress_c > 0 and ducting == "none"
-                hpwh_ducting_program.addLine("Set HPWH_last_#{unit_num} = (@TrendValue #{on_off_trend_var.name} 1)")
-                hpwh_ducting_program.addLine("Set HPWH_now_#{unit_num} = #{on_off_trend_var.name}")
+                hpwh_ducting_program.addLine("Set HPWH_last_#{unit_index} = (@TrendValue #{on_off_trend_var.name} 1)")
+                hpwh_ducting_program.addLine("Set HPWH_now_#{unit_index} = #{on_off_trend_var.name}")
                 hpwh_ducting_program.addLine("Set num = (@Ln 2)")
-                hpwh_ducting_program.addLine("If (HPWH_last_#{unit_num} == 0) && (HPWH_now_#{unit_num}<>0)") #HPWH just turned on
-                hpwh_ducting_program.addLine("Set HPWHOn_#{unit_num} = 0")
-                hpwh_ducting_program.addLine("Set exp = -(HPWHOn_#{unit_num} / 9.4) * num")
+                hpwh_ducting_program.addLine("If (HPWH_last_#{unit_index} == 0) && (HPWH_now_#{unit_index}<>0)") #HPWH just turned on
+                hpwh_ducting_program.addLine("Set HPWHOn_#{unit_index} = 0")
+                hpwh_ducting_program.addLine("Set exp = -(HPWHOn_#{unit_index} / 9.4) * num")
                 hpwh_ducting_program.addLine("Set exponent = (@Exp exp)")
                 hpwh_ducting_program.addLine("Set T_dep = (#{temp_depress_c} * exponent) - #{temp_depress_c}")
-                hpwh_ducting_program.addLine("Set HPWHOn_#{unit_num} = HPWHOn_#{unit_num} + #{timestep_minutes}")
-                hpwh_ducting_program.addLine("ElseIf (HPWH_last_#{unit_num} <> 0) && (HPWH_now_#{unit_num}<>0)") #HPWH has been running for more than 1 timestep
-                hpwh_ducting_program.addLine("Set exp = -(HPWHOn_#{unit_num} / 9.4) * num")
+                hpwh_ducting_program.addLine("Set HPWHOn_#{unit_index} = HPWHOn_#{unit_index} + #{timestep_minutes}")
+                hpwh_ducting_program.addLine("ElseIf (HPWH_last_#{unit_index} <> 0) && (HPWH_now_#{unit_index}<>0)") #HPWH has been running for more than 1 timestep
+                hpwh_ducting_program.addLine("Set exp = -(HPWHOn_#{unit_index} / 9.4) * num")
                 hpwh_ducting_program.addLine("If exp < -20")
                 hpwh_ducting_program.addLine("Set exponent = 0")
                 hpwh_ducting_program.addLine("Else")
                 hpwh_ducting_program.addLine("Set exponent = (@Exp exp)")
                 hpwh_ducting_program.addLine("EndIf")
                 hpwh_ducting_program.addLine("Set T_dep = (#{temp_depress_c} * exponent) - #{temp_depress_c}")
-                hpwh_ducting_program.addLine("Set HPWHOn_#{unit_num} = HPWHOn_#{unit_num} + #{timestep_minutes}")
+                hpwh_ducting_program.addLine("Set HPWHOn_#{unit_index} = HPWHOn_#{unit_index} + #{timestep_minutes}")
                 hpwh_ducting_program.addLine("Else")
                 hpwh_ducting_program.addLine("If (Hour == 0) && (DayOfYear == 1)")
-                hpwh_ducting_program.addLine("Set HPWHOn_#{unit_num} = 0") #Assume HPWH starts off for initial conditions
+                hpwh_ducting_program.addLine("Set HPWHOn_#{unit_index} = 0") #Assume HPWH starts off for initial conditions
                 hpwh_ducting_program.addLine("EndIF")
-                hpwh_ducting_program.addLine("Set HPWHOn_#{unit_num} = HPWHOn_#{unit_num} - #{timestep_minutes}")
-                hpwh_ducting_program.addLine("If HPWHOn_#{unit_num} < 0")
-                hpwh_ducting_program.addLine("Set HPWHOn_#{unit_num} = 0")
+                hpwh_ducting_program.addLine("Set HPWHOn_#{unit_index} = HPWHOn_#{unit_index} - #{timestep_minutes}")
+                hpwh_ducting_program.addLine("If HPWHOn_#{unit_index} < 0")
+                hpwh_ducting_program.addLine("Set HPWHOn_#{unit_index} = 0")
                 hpwh_ducting_program.addLine("EndIf")
-                hpwh_ducting_program.addLine("Set exp = -(HPWHOn_#{unit_num} / 9.4) * num")
+                hpwh_ducting_program.addLine("Set exp = -(HPWHOn_#{unit_index} / 9.4) * num")
                 hpwh_ducting_program.addLine("If exp < -20")
                 hpwh_ducting_program.addLine("Set exponent = 0")
                 hpwh_ducting_program.addLine("Else")
@@ -822,47 +796,47 @@ class ResidentialHotWaterHeaterHeatPump < OpenStudio::Measure::ModelMeasure
                 hpwh_ducting_program.addLine("EndIf")
                 hpwh_ducting_program.addLine("Set T_dep = (#{temp_depress_c} * exponent) - #{temp_depress_c}")
                 hpwh_ducting_program.addLine("EndIf")
-                hpwh_ducting_program.addLine("Set T_hpwh_inlet_#{unit_num} = #{amb_temp_sensor.name} + T_dep")
+                hpwh_ducting_program.addLine("Set T_hpwh_inlet_#{unit_index} = #{amb_temp_sensor.name} + T_dep")
             else
                 if ducting == Constants.VentTypeBalanced or ducting == Constants.VentTypeSupply
-                    hpwh_ducting_program.addLine("Set T_hpwh_inlet_#{unit_num} = HPWH_out_temp_#{unit_num}")
+                    hpwh_ducting_program.addLine("Set T_hpwh_inlet_#{unit_index} = HPWH_out_temp_#{unit_index}")
                 else
-                    hpwh_ducting_program.addLine("Set T_hpwh_inlet_#{unit_num} = #{amb_temp_sensor.name}")
+                    hpwh_ducting_program.addLine("Set T_hpwh_inlet_#{unit_index} = #{amb_temp_sensor.name}")
                 end
             end
             if ducting == "none"
-                hpwh_ducting_program.addLine("Set #{tamb_act_actuator.name} = T_hpwh_inlet_#{unit_num}")
+                hpwh_ducting_program.addLine("Set #{tamb_act_actuator.name} = T_hpwh_inlet_#{unit_index}")
                 hpwh_ducting_program.addLine("Set #{rhamb_act_actuator.name} = #{amb_rh_sensor.name}/100")
                 hpwh_ducting_program.addLine("Set temp1=(#{tl_sensor.name}*#{int_factor})+#{fan_power_sensor.name}*#{int_factor}")
                 hpwh_ducting_program.addLine("Set #{sens_act_actuator.name} = 0-(#{sens_cool_sensor.name}*#{int_factor})-temp1")
                 hpwh_ducting_program.addLine("Set #{lat_act_actuator.name} = 0 - #{lat_cool_sensor.name} * #{int_factor}")
             elsif ducting == Constants.VentTypeBalanced
-                hpwh_ducting_program.addLine("Set #{tamb_act_actuator.name} = T_hpwh_inlet_#{unit_num}")
+                hpwh_ducting_program.addLine("Set #{tamb_act_actuator.name} = T_hpwh_inlet_#{unit_index}")
                 hpwh_ducting_program.addLine("Set #{tamb_act2_actuator.name} = #{amb_temp_sensor.name}")
-                hpwh_ducting_program.addLine("Set #{rhamb_act_actuator.name} = HPWH_out_rh_#{unit_num}/100")
+                hpwh_ducting_program.addLine("Set #{rhamb_act_actuator.name} = HPWH_out_rh_#{unit_index}/100")
                 hpwh_ducting_program.addLine("Set #{sens_act_actuator.name} = 0 - #{tl_sensor.name}")
                 hpwh_ducting_program.addLine("Set #{lat_act_actuator.name} = 0")
             elsif ducting == Constants.VentTypeSupply
-                hpwh_ducting_program.addLine("Set rho = (@RhoAirFnPbTdbW HPWH_amb_P_#{unit_num} HPWHTair_out_#{unit_num} HPWHWair_out_#{unit_num})")
-                hpwh_ducting_program.addLine("Set cp = (@CpAirFnWTdb HPWHWair_out_#{unit_num} HPWHTair_out_#{unit_num})")
-                hpwh_ducting_program.addLine("Set h = (@HFnTdbW HPWHTair_out_#{unit_num} HPWHWair_out_#{unit_num})")
-                hpwh_ducting_program.addLine("Set HPWH_sens_gain = rho*cp*(HPWHTair_out_#{unit_num}-#{amb_temp_sensor.name})*V_airHPWH_#{unit_num}")
-                hpwh_ducting_program.addLine("Set HPWH_lat_gain = h*rho*(HPWHWair_out_#{unit_num}-#{amb_w_sensor.name})*V_airHPWH_#{unit_num}")
-                hpwh_ducting_program.addLine("Set #{tamb_act_actuator.name} = T_hpwh_inlet_#{unit_num}")
+                hpwh_ducting_program.addLine("Set rho = (@RhoAirFnPbTdbW HPWH_amb_P_#{unit_index} HPWHTair_out_#{unit_index} HPWHWair_out_#{unit_index})")
+                hpwh_ducting_program.addLine("Set cp = (@CpAirFnWTdb HPWHWair_out_#{unit_index} HPWHTair_out_#{unit_index})")
+                hpwh_ducting_program.addLine("Set h = (@HFnTdbW HPWHTair_out_#{unit_index} HPWHWair_out_#{unit_index})")
+                hpwh_ducting_program.addLine("Set HPWH_sens_gain = rho*cp*(HPWHTair_out_#{unit_index}-#{amb_temp_sensor.name})*V_airHPWH_#{unit_index}")
+                hpwh_ducting_program.addLine("Set HPWH_lat_gain = h*rho*(HPWHWair_out_#{unit_index}-#{amb_w_sensor.name})*V_airHPWH_#{unit_index}")
+                hpwh_ducting_program.addLine("Set #{tamb_act_actuator.name} = T_hpwh_inlet_#{unit_index}")
                 hpwh_ducting_program.addLine("Set #{tamb_act2_actuator.name} = #{amb_temp_sensor.name}")
-                hpwh_ducting_program.addLine("Set #{rhamb_act_actuator.name} = HPWH_out_rh_#{unit_num}/100")
-                hpwh_ducting_program.addLine("Set #{sens_act_actuator.name} = HPWH_sens_gain_#{unit_num} - #{tl_sensor.name}")
-                hpwh_ducting_program.addLine("Set #{lat_act_actuator.name} = HPWH_lat_gain_#{unit_num}")
+                hpwh_ducting_program.addLine("Set #{rhamb_act_actuator.name} = HPWH_out_rh_#{unit_index}/100")
+                hpwh_ducting_program.addLine("Set #{sens_act_actuator.name} = HPWH_sens_gain_#{unit_index} - #{tl_sensor.name}")
+                hpwh_ducting_program.addLine("Set #{lat_act_actuator.name} = HPWH_lat_gain_#{unit_index}")
             elsif ducting == Constants.VentTypeExhaust
-                hpwh_ducting_program.addLine("Set rho = (@RhoAirFnPbTdbW HPWH_amb_P_#{unit_num} HPWHTair_out_#{unit_num} HPWHWair_out_#{unit_num})")
-                hpwh_ducting_program.addLine("Set cp = (@CpAirFnWTdb HPWHWair_out_#{unit_num} HPWHTair_out_#{unit_num})")
-                hpwh_ducting_program.addLine("Set h = (@HFnTdbW HPWHTair_out_#{unit_num} HPWHWair_out_#{unit_num})")
-                hpwh_ducting_program.addLine("Set HPWH_sens_gain = rho*cp*(#{tout_sensor.name}-#{amb_temp_sensor.name})*V_airHPWH_#{unit_num}")
-                hpwh_ducting_program.addLine("Set HPWH_lat_gain = h*rho*(Wout_#{unit_num}-#{amb_w_sensor.name})*V_airHPWH_#{unit_num}")
-                hpwh_ducting_program.addLine("Set #{tamb_act_actuator.name} = T_hpwh_inlet_#{unit_num}")
+                hpwh_ducting_program.addLine("Set rho = (@RhoAirFnPbTdbW HPWH_amb_P_#{unit_index} HPWHTair_out_#{unit_index} HPWHWair_out_#{unit_index})")
+                hpwh_ducting_program.addLine("Set cp = (@CpAirFnWTdb HPWHWair_out_#{unit_index} HPWHTair_out_#{unit_index})")
+                hpwh_ducting_program.addLine("Set h = (@HFnTdbW HPWHTair_out_#{unit_index} HPWHWair_out_#{unit_index})")
+                hpwh_ducting_program.addLine("Set HPWH_sens_gain = rho*cp*(#{tout_sensor.name}-#{amb_temp_sensor.name})*V_airHPWH_#{unit_index}")
+                hpwh_ducting_program.addLine("Set HPWH_lat_gain = h*rho*(Wout_#{unit_index}-#{amb_w_sensor.name})*V_airHPWH_#{unit_index}")
+                hpwh_ducting_program.addLine("Set #{tamb_act_actuator.name} = T_hpwh_inlet_#{unit_index}")
                 hpwh_ducting_program.addLine("Set #{rhamb_act_actuator.name} = #{amb_rh_sensor.name}/100")
-                hpwh_ducting_program.addLine("Set #{sens_act_actuator.name} = HPWH_sens_gain_#{unit_num} - #{tl_sensor.name}")
-                hpwh_ducting_program.addLine("Set #{lat_act_actuator.name} = HPWH_lat_gain_#{unit_num}")
+                hpwh_ducting_program.addLine("Set #{sens_act_actuator.name} = HPWH_sens_gain_#{unit_index} - #{tl_sensor.name}")
+                hpwh_ducting_program.addLine("Set #{lat_act_actuator.name} = HPWH_lat_gain_#{unit_index}")
             end
             
             leschedoverride_actuator = OpenStudio::Model::EnergyManagementSystemActuator.new(hpwh_bottom_element_sp,"Schedule:Constant", "Schedule Value")
@@ -874,7 +848,7 @@ class ResidentialHotWaterHeaterHeatPump < OpenStudio::Measure::ModelMeasure
                 hpwh_ctrl_program = OpenStudio::Model::EnergyManagementSystemProgram.new(model)
                 hpwh_ctrl_program.setName("#{obj_name_hpwh} Control")
                 if ducting == Constants.VentTypeSupply or ducting == Constants.VentTypeBalanced
-                    hpwh_ctrl_program.addLine("If (HPWH_out_temp_#{unit_num} < #{UnitConversions.convert(min_temp,"F","C")}) || (HPWH_out_temp_#{unit_num} > #{UnitConversions.convert(max_temp,"F","C")})")
+                    hpwh_ctrl_program.addLine("If (HPWH_out_temp_#{unit_index} < #{UnitConversions.convert(min_temp,"F","C")}) || (HPWH_out_temp_#{unit_index} > #{UnitConversions.convert(max_temp,"F","C")})")
                 else
                     hpwh_ctrl_program.addLine("If (#{amb_temp_sensor.name}<#{UnitConversions.convert(min_temp,"F","C").round(2)}) || (#{amb_temp_sensor.name}>#{UnitConversions.convert(max_temp,"F","C").round(2)})")
                 end
@@ -919,10 +893,10 @@ class ResidentialHotWaterHeaterHeatPump < OpenStudio::Measure::ModelMeasure
                 hpwh_ctrl_program.setName("#{obj_name_hpwh} Control")
                 hpwh_ctrl_program.addLine("Set #{ueschedoverride_actuator.name} = #{ueschedoverridetemp}")
                 hpwh_ctrl_program.addLine("Set #{hpschedoverride_actuator.name} = #{tset_C}")
-                hpwh_ctrl_program.addLine("Set UEMax_#{unit_num} = (@TrendMax #{uetrend_trend_var.name} 2)")
-                hpwh_ctrl_program.addLine("Set LEMax_#{unit_num} = (@TrendMax #{letrend_trend_var.name} 2)")
-                hpwh_ctrl_program.addLine("Set ElemOn_#{unit_num} = (@Max UEMax_#{unit_num} LEMax_#{unit_num})")
-                hpwh_ctrl_program.addLine("If (#{t_ctrl_sensor.name}<#{t_ems_control1}) || ((ElemOn_#{unit_num}>0) && (#{t_ctrl_sensor.name}<#{t_ems_control2}))") #Small offset in second value is to prevent the element overshooting the setpoint due to mixing
+                hpwh_ctrl_program.addLine("Set UEMax_#{unit_index} = (@TrendMax #{uetrend_trend_var.name} 2)")
+                hpwh_ctrl_program.addLine("Set LEMax_#{unit_index} = (@TrendMax #{letrend_trend_var.name} 2)")
+                hpwh_ctrl_program.addLine("Set ElemOn_#{unit_index} = (@Max UEMax_#{unit_index} LEMax_#{unit_index})")
+                hpwh_ctrl_program.addLine("If (#{t_ctrl_sensor.name}<#{t_ems_control1}) || ((ElemOn_#{unit_index}>0) && (#{t_ctrl_sensor.name}<#{t_ems_control2}))") #Small offset in second value is to prevent the element overshooting the setpoint due to mixing
                 hpwh_ctrl_program.addLine("Set #{leschedoverride_actuator.name} = 70")
                 hpwh_ctrl_program.addLine("Set #{hpschedoverride_actuator.name} = 0")
                 hpwh_ctrl_program.addLine("Else")

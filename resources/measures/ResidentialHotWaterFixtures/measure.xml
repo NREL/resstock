@@ -2,8 +2,8 @@
   <schema_version>3.0</schema_version>
   <name>residential_hot_water_fixtures</name>
   <uid>6159fd36-6bfa-4907-9200-9cb852d50799</uid>
-  <version_id>00a1f82c-2313-4129-9318-f810311757c7</version_id>
-  <version_modified>20171215T192521Z</version_modified>
+  <version_id>b430bff9-743f-403d-87db-21a9a86adcfe</version_id>
+  <version_modified>20180131T180652Z</version_modified>
   <xml_checksum>A6ACD89C</xml_checksum>
   <class_name>ResidentialHotWaterFixtures</class_name>
   <display_name>Set Residential Hot Water Fixtures</display_name>
@@ -36,21 +36,6 @@
       <required>true</required>
       <model_dependent>false</model_dependent>
       <default_value>1</default_value>
-    </argument>
-    <argument>
-      <name>space</name>
-      <display_name>Location</display_name>
-      <description>Select the space where the hot water fixtures are located. 'auto' will choose the lowest above-grade finished space available (e.g., first story living space), or a below-grade finished space as last resort. For multifamily buildings, 'auto' will choose a space for each unit of the building.</description>
-      <type>Choice</type>
-      <required>true</required>
-      <model_dependent>false</model_dependent>
-      <default_value>auto</default_value>
-      <choices>
-        <choice>
-          <value>auto</value>
-          <display_name>auto</display_name>
-        </choice>
-      </choices>
     </argument>
     <argument>
       <name>plant_loop</name>
@@ -210,70 +195,76 @@
       <checksum>11E27E42</checksum>
     </file>
     <file>
+      <filename>weather.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>82988A63</checksum>
+    </file>
+    <file>
+      <filename>schedules.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>A299BFF0</checksum>
+    </file>
+    <file>
       <filename>unit_conversions.rb</filename>
       <filetype>rb</filetype>
       <usage_type>resource</usage_type>
-      <checksum>31924A51</checksum>
-    </file>
-    <file>
-      <filename>util.rb</filename>
-      <filetype>rb</filetype>
-      <usage_type>resource</usage_type>
-      <checksum>BE5BF810</checksum>
-    </file>
-    <file>
-      <filename>SFD_2000sqft_2story_FB_GRG_UA.osm</filename>
-      <filetype>osm</filetype>
-      <usage_type>test</usage_type>
-      <checksum>CA321119</checksum>
-    </file>
-    <file>
-      <filename>SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths.osm</filename>
-      <filetype>osm</filetype>
-      <usage_type>test</usage_type>
-      <checksum>AF2537C3</checksum>
-    </file>
-    <file>
-      <filename>SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver_ElecWHTank.osm</filename>
-      <filetype>osm</filetype>
-      <usage_type>test</usage_type>
-      <checksum>858B867E</checksum>
-    </file>
-    <file>
-      <filename>MF_8units_1story_SL_3Beds_2Baths_Denver_ElecWHTank.osm</filename>
-      <filetype>osm</filetype>
-      <usage_type>test</usage_type>
-      <checksum>1EB3EBD3</checksum>
-    </file>
-    <file>
-      <filename>SFA_4units_1story_FB_UA_3Beds_2Baths_Denver_ElecWHTank.osm</filename>
-      <filetype>osm</filetype>
-      <usage_type>test</usage_type>
-      <checksum>52E5C90F</checksum>
-    </file>
-    <file>
-      <filename>SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver_ElecWHTank_HWFixtures_RecircDist.osm</filename>
-      <filetype>osm</filetype>
-      <usage_type>test</usage_type>
-      <checksum>D31653A8</checksum>
+      <checksum>3E1D973D</checksum>
     </file>
     <file>
       <filename>waterheater.rb</filename>
       <filetype>rb</filetype>
       <usage_type>resource</usage_type>
-      <checksum>A9CCB075</checksum>
+      <checksum>44487178</checksum>
     </file>
     <file>
       <filename>geometry.rb</filename>
       <filetype>rb</filetype>
       <usage_type>resource</usage_type>
-      <checksum>A9382DBC</checksum>
+      <checksum>9B96D48D</checksum>
     </file>
     <file>
       <filename>ResidentialHotWaterFixtures_Test.rb</filename>
       <filetype>rb</filetype>
       <usage_type>test</usage_type>
-      <checksum>8391DF06</checksum>
+      <checksum>F1F38827</checksum>
+    </file>
+    <file>
+      <filename>SFD_2000sqft_2story_FB_GRG_UA.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>7521C266</checksum>
+    </file>
+    <file>
+      <filename>SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>09D30BA0</checksum>
+    </file>
+    <file>
+      <filename>SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver_ElecWHTank.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>265F0193</checksum>
+    </file>
+    <file>
+      <filename>SFA_4units_1story_FB_UA_3Beds_2Baths_Denver_ElecWHTank.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>AE41E3EE</checksum>
+    </file>
+    <file>
+      <filename>SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver_ElecWHTank_HWFixtures_RecircDist.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>EAA31904</checksum>
+    </file>
+    <file>
+      <filename>MF_8units_1story_SL_3Beds_2Baths_Denver_ElecWHTank.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>57F043D7</checksum>
     </file>
     <file>
       <version>
@@ -284,25 +275,19 @@
       <filename>measure.rb</filename>
       <filetype>rb</filetype>
       <usage_type>script</usage_type>
-      <checksum>C8BC4862</checksum>
+      <checksum>F9DDCC9D</checksum>
     </file>
     <file>
       <filename>constants.rb</filename>
       <filetype>rb</filetype>
       <usage_type>resource</usage_type>
-      <checksum>022C15E2</checksum>
+      <checksum>FDA82DA6</checksum>
     </file>
     <file>
-      <filename>weather.rb</filename>
+      <filename>util.rb</filename>
       <filetype>rb</filetype>
       <usage_type>resource</usage_type>
-      <checksum>82988A63</checksum>
-    </file>
-    <file>
-      <filename>schedules.rb</filename>
-      <filetype>rb</filetype>
-      <usage_type>resource</usage_type>
-      <checksum>7826E992</checksum>
+      <checksum>1189E680</checksum>
     </file>
   </files>
 </measure>

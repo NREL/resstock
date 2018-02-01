@@ -51,22 +51,6 @@ class ResidentialHotWaterFixtures < OpenStudio::Measure::ModelMeasure
         bath_mult.setDefaultValue(1.0)
         args << bath_mult
         
-        #make a choice argument for space
-        spaces = Geometry.get_all_unit_spaces(model)
-        if spaces.nil?
-            spaces = []
-        end
-        space_args = OpenStudio::StringVector.new
-        space_args << Constants.Auto
-        spaces.each do |space|
-            space_args << space.name.to_s
-        end
-        space = OpenStudio::Measure::OSArgument::makeChoiceArgument("space", space_args, true)
-        space.setDisplayName("Location")
-        space.setDescription("Select the space where the hot water fixtures are located. '#{Constants.Auto}' will choose the lowest above-grade finished space available (e.g., first story living space), or a below-grade finished space as last resort. For multifamily buildings, '#{Constants.Auto}' will choose a space for each unit of the building.")
-        space.setDefaultValue(Constants.Auto)
-        args << space
-
         #make a choice argument for plant loop
         plant_loops = model.getPlantLoops
         plant_loop_args = OpenStudio::StringVector.new
@@ -103,7 +87,6 @@ class ResidentialHotWaterFixtures < OpenStudio::Measure::ModelMeasure
         sh_mult = runner.getDoubleArgumentValue("shower_mult",user_arguments)
         s_mult = runner.getDoubleArgumentValue("sink_mult", user_arguments)
         b_mult = runner.getDoubleArgumentValue("bath_mult", user_arguments)
-        space_r = runner.getStringArgumentValue("space",user_arguments)
         plant_loop_s = runner.getStringArgumentValue("plant_loop", user_arguments)
         d_sh = runner.getIntegerArgumentValue("schedule_day_shift",user_arguments)
         
@@ -124,17 +107,31 @@ class ResidentialHotWaterFixtures < OpenStudio::Measure::ModelMeasure
             runner.registerError("Hot water draw profile can only be shifted by 0-364 days.")
             return false
         end
+        
         # Get building units
         units = Geometry.get_building_units(model, runner)
         if units.nil?
             return false
         end
-
+        
+        # Remove all existing objects
+        obj_names = [Constants.ObjectNameShower,
+                     Constants.ObjectNameSink,
+                     Constants.ObjectNameBath]
+        model.getSpaces.each do |space|
+            remove_existing(runner, space, obj_names)
+        end
+        
+        location_hierarchy = [Constants.SpaceTypeBathroom,
+                              Constants.SpaceTypeLiving,
+                              Constants.SpaceTypeFinishedBasement]
+                          
         tot_sh_gpd = 0
         tot_s_gpd = 0
         tot_b_gpd = 0
         msgs = []
-        units.each do |unit|
+        units.each_with_index do |unit, unit_index|
+        
             # Get unit beds/baths
             nbeds, nbaths = Geometry.get_unit_beds_baths(model, unit, runner)
             if nbeds.nil? or nbaths.nil?
@@ -146,11 +143,11 @@ class ResidentialHotWaterFixtures < OpenStudio::Measure::ModelMeasure
             end
 
             # Get space
-            space = Geometry.get_space_from_string(unit.spaces, space_r)
+            space = Geometry.get_space_from_location(unit, Constants.Auto, location_hierarchy)
             next if space.nil?
-
+            
             #Get plant loop
-            plant_loop = Waterheater.get_plant_loop_from_string(model.getPlantLoops, plant_loop_s, unit.spaces, Constants.ObjectNameWaterHeater(unit.name.to_s.gsub("unit", "u")).gsub("|","_"), runner)
+            plant_loop = Waterheater.get_plant_loop_from_string(model.getPlantLoops, plant_loop_s, unit, Constants.ObjectNameWaterHeater(unit.name.to_s.gsub("unit ", "")).gsub("|","_"), runner)
             if plant_loop.nil?
                 return false
             end
@@ -160,46 +157,6 @@ class ResidentialHotWaterFixtures < OpenStudio::Measure::ModelMeasure
             obj_name_b = Constants.ObjectNameBath(unit.name.to_s)
             obj_name_recirc_pump = Constants.ObjectNameHotWaterRecircPump(unit.name.to_s)
             
-            # Remove any existing ssb
-            objects_to_remove = []
-            recirc_pump = nil
-            space.otherEquipment.each do |space_equipment|
-                next if space_equipment.name.to_s != obj_name_sh and space_equipment.name.to_s != obj_name_s and space_equipment.name.to_s != obj_name_b
-                objects_to_remove << space_equipment
-                objects_to_remove << space_equipment.otherEquipmentDefinition
-                if space_equipment.schedule.is_initialized
-                    # Check if there is a recirc pump referencing this schedule
-                    model.getElectricEquipments.each do |ee|
-                        next if ee.name.to_s != obj_name_recirc_pump
-                        next if not ee.schedule.is_initialized
-                        next if ee.schedule.get.handle.to_s != space_equipment.schedule.get.handle.to_s
-                        recirc_pump = ee
-                    end
-                    objects_to_remove << space_equipment.schedule.get
-                end
-            end
-            space.waterUseEquipment.each do |space_equipment|
-                next if space_equipment.name.to_s != obj_name_sh and space_equipment.name.to_s != obj_name_s and space_equipment.name.to_s != obj_name_b
-                objects_to_remove << space_equipment
-                objects_to_remove << space_equipment.waterUseEquipmentDefinition
-                if space_equipment.flowRateFractionSchedule.is_initialized
-                    objects_to_remove << space_equipment.flowRateFractionSchedule.get
-                end
-                if space_equipment.waterUseEquipmentDefinition.targetTemperatureSchedule.is_initialized
-                    objects_to_remove << space_equipment.waterUseEquipmentDefinition.targetTemperatureSchedule.get
-                end
-            end
-            if objects_to_remove.size > 0
-                runner.registerInfo("Removed existing showers, sinks, and baths from space '#{space.name.to_s}'.")
-            end
-            objects_to_remove.uniq.each do |object|
-                begin
-                    object.remove
-                rescue
-                    # no op
-                end
-            end
-        
             mixed_use_t = Constants.MixedUseT #F
             
             #Calc daily gpm and annual gain of each end use
@@ -279,6 +236,19 @@ class ResidentialHotWaterFixtures < OpenStudio::Measure::ModelMeasure
                 sh_oe.setSchedule(sch_sh.schedule)
                 
                 # Re-assign recirc pump schedule if needed
+                recirc_pump = nil
+                space.otherEquipment.each do |space_equipment|
+                  next if not space_equipment.name.to_s.start_with? Constants.ObjectNameShower
+                  if space_equipment.schedule.is_initialized
+                    # Check if there is a recirc pump referencing this schedule
+                    model.getElectricEquipments.each do |ee|
+                      next if ee.name.to_s != obj_name_recirc_pump
+                      next if not ee.schedule.is_initialized
+                      next if ee.schedule.get.handle.to_s != space_equipment.schedule.get.handle.to_s
+                      recirc_pump = ee
+                    end
+                  end
+                end
                 if not recirc_pump.nil?
                   recirc_pump.setSchedule(sch_sh.schedule)
                 end
@@ -385,6 +355,54 @@ class ResidentialHotWaterFixtures < OpenStudio::Measure::ModelMeasure
         return true
         
     end
+    
+    def remove_existing(runner, space, obj_names)
+        # Remove any existing ssb
+        objects_to_remove = []
+        space.otherEquipment.each do |space_equipment|
+            found = false
+            obj_names.each do |obj_name|
+                next if not space_equipment.name.to_s.start_with? obj_name
+                next if space_equipment.name.to_s.include? "=" # TODO: Skip dummy distribution objects; can remove once we are using AdditionalProperties
+                found = true
+            end
+            next if not found
+            objects_to_remove << space_equipment
+            objects_to_remove << space_equipment.otherEquipmentDefinition
+            if space_equipment.schedule.is_initialized
+                objects_to_remove << space_equipment.schedule.get
+            end
+        end
+        space.waterUseEquipment.each do |space_equipment|
+            found = false
+            obj_names.each do |obj_name|
+                next if not space_equipment.name.to_s.start_with? obj_name
+                next if space_equipment.name.to_s.include? "=" # TODO: Skip dummy distribution objects; can remove once we are using AdditionalProperties
+                found = true
+            end
+            next if not found
+            objects_to_remove << space_equipment
+            objects_to_remove << space_equipment.waterUseEquipmentDefinition
+            if space_equipment.flowRateFractionSchedule.is_initialized
+                objects_to_remove << space_equipment.flowRateFractionSchedule.get
+            end
+            if space_equipment.waterUseEquipmentDefinition.targetTemperatureSchedule.is_initialized
+                objects_to_remove << space_equipment.waterUseEquipmentDefinition.targetTemperatureSchedule.get
+            end
+        end
+        if objects_to_remove.size > 0
+            runner.registerInfo("Removed existing showers, sinks, and baths from space '#{space.name.to_s}'.")
+        end
+        objects_to_remove.uniq.each do |object|
+            begin
+                object.remove
+            rescue
+                # no op
+            end
+        end
+    end
+    
+    
 end #end the measure
 
 #this allows the measure to be use by the application

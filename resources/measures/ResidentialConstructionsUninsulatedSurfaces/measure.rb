@@ -28,7 +28,7 @@ class ProcessConstructionsUninsulatedSurfaces < OpenStudio::Measure::ModelMeasur
     args = OpenStudio::Measure::OSArgumentVector.new
 
     #make a choice argument for uninsulated surfaces
-    ext_wall_surfaces, slab_surfaces, roof_surfaces, finished_wall_surfaces, unfinished_wall_surfaces, finished_floor_surfaces, unfinished_floor_surfaces, roof_spaces = get_uninsulated_surfaces(model)
+    ext_wall_surfaces, slab_surfaces, roof_surfaces, finished_wall_surfaces, unfinished_wall_surfaces, finished_floor_surfaces, unfinished_floor_surfaces = get_uninsulated_surfaces(model)
     surfaces_args = OpenStudio::StringVector.new
     surfaces_args << Constants.Auto
     (ext_wall_surfaces + slab_surfaces + roof_surfaces + finished_wall_surfaces + unfinished_wall_surfaces + finished_floor_surfaces + unfinished_floor_surfaces).each do |surface|
@@ -59,7 +59,7 @@ class ProcessConstructionsUninsulatedSurfaces < OpenStudio::Measure::ModelMeasur
       surface_s = surface_s.get
     end
     
-    ext_wall_surfaces, slab_surfaces, roof_surfaces, finished_wall_surfaces, unfinished_wall_surfaces, finished_floor_surfaces, unfinished_floor_surfaces, roof_spaces = get_uninsulated_surfaces(model)
+    ext_wall_surfaces, slab_surfaces, roof_surfaces, finished_wall_surfaces, unfinished_wall_surfaces, finished_floor_surfaces, unfinished_floor_surfaces = get_uninsulated_surfaces(model)
     
     unless surface_s == Constants.Auto
       ext_wall_surfaces.delete_if { |surface| surface.name.to_s != surface_s }
@@ -198,7 +198,7 @@ class ProcessConstructionsUninsulatedSurfaces < OpenStudio::Measure::ModelMeasur
         roof_const.add_layer(Material.DefaultRoofMaterial, false) # roof material added in separate measure
         roof_const.add_layer(Material.DefaultRoofSheathing, false) # sheathing added in separate measure
         roof_const.add_layer([mat_framing, mat_cavity], true, "StudAndAirRoof")
-        roof_const.add_layer(Material.AirFilmRoof(Geometry.calculate_avg_roof_pitch(roof_spaces)), false)
+        roof_const.add_layer(Material.AirFilmRoof(Geometry.get_roof_pitch(roof_surfaces)), false)
 
         # Create and assign construction to surfaces
         if not roof_const.create_and_assign_constructions(roof_surfaces, runner, model, name="UnfinUninsExtRoof")
@@ -214,9 +214,11 @@ class ProcessConstructionsUninsulatedSurfaces < OpenStudio::Measure::ModelMeasur
   end #end the run method
   
   def get_uninsulated_surfaces(model)
+    model_spaces = model.getSpaces
+  
     # Above-grade walls between unfinished space and outdoors
     ext_wall_surfaces = []
-    model.getSpaces.each do |space|
+    model_spaces.each do |space|
         next if Geometry.space_is_finished(space)
         next if Geometry.space_is_below_grade(space)
         space.surfaces.each do |surface|
@@ -229,7 +231,7 @@ class ProcessConstructionsUninsulatedSurfaces < OpenStudio::Measure::ModelMeasur
     
     # Walls between two finished spaces
     finished_wall_surfaces = []
-    model.getSpaces.each do |space|
+    model_spaces.each do |space|
         next if Geometry.space_is_unfinished(space)
         space.surfaces.each do |surface|
             next if surface.construction.is_initialized
@@ -244,7 +246,7 @@ class ProcessConstructionsUninsulatedSurfaces < OpenStudio::Measure::ModelMeasur
     
     # Walls between two unfinished spaces
     unfinished_wall_surfaces = []
-    model.getSpaces.each do |space|
+    model_spaces.each do |space|
         next if Geometry.space_is_finished(space)
         space.surfaces.each do |surface|
             next if surface.construction.is_initialized
@@ -259,7 +261,7 @@ class ProcessConstructionsUninsulatedSurfaces < OpenStudio::Measure::ModelMeasur
     
     # Floors between two finished spaces
     finished_floor_surfaces = []
-    model.getSpaces.each do |space|
+    model_spaces.each do |space|
         next if Geometry.space_is_unfinished(space)
         space.surfaces.each do |surface|
             next if surface.construction.is_initialized
@@ -275,7 +277,7 @@ class ProcessConstructionsUninsulatedSurfaces < OpenStudio::Measure::ModelMeasur
     
     # Floors between two unfinished spaces
     unfinished_floor_surfaces = []
-    model.getSpaces.each do |space|
+    model_spaces.each do |space|
         next if Geometry.space_is_finished(space)
         space.surfaces.each do |surface|
             next if surface.construction.is_initialized
@@ -291,7 +293,7 @@ class ProcessConstructionsUninsulatedSurfaces < OpenStudio::Measure::ModelMeasur
     
     # Slabs below unfinished space
     slab_surfaces = []
-    model.getSpaces.each do |space|
+    model_spaces.each do |space|
         next if Geometry.space_is_finished(space)
         next if Geometry.space_is_below_grade(space)
         space.surfaces.each do |surface|
@@ -303,10 +305,11 @@ class ProcessConstructionsUninsulatedSurfaces < OpenStudio::Measure::ModelMeasur
         end
     end
     
-    # Roofs above unfinished space
-    roof_spaces = Geometry.get_non_attic_unfinished_roof_spaces(model.getSpaces, model)
     roof_surfaces = []
-    roof_spaces.each do |space|
+    model_spaces.each do |space|
+        next if Geometry.space_is_finished(space)
+        next if not Geometry.space_has_roof(space)
+        next if Geometry.space_below_is_finished(space)
         space.surfaces.each do |surface|
             next if surface.construction.is_initialized
             next if surface.surfaceType.downcase != "roofceiling"
@@ -316,7 +319,7 @@ class ProcessConstructionsUninsulatedSurfaces < OpenStudio::Measure::ModelMeasur
     end
     
     # Adiabatic surfaces (assign construction for mass effects)
-    model.getSpaces.each do |space|
+    model_spaces.each do |space|
         space.surfaces.each do |surface|
             next if surface.construction.is_initialized
             next if surface.outsideBoundaryCondition.downcase != "adiabatic"
@@ -328,7 +331,6 @@ class ProcessConstructionsUninsulatedSurfaces < OpenStudio::Measure::ModelMeasur
                 end
             elsif surface.surfaceType.downcase == "roofceiling"
                 roof_surfaces << surface
-                roof_spaces << space
             elsif surface.surfaceType.downcase == "floor"
                 if Geometry.space_is_finished(space)
                     finished_floor_surfaces << surface
@@ -338,7 +340,8 @@ class ProcessConstructionsUninsulatedSurfaces < OpenStudio::Measure::ModelMeasur
             end
         end
     end
-    return ext_wall_surfaces, slab_surfaces, roof_surfaces, finished_wall_surfaces, unfinished_wall_surfaces, finished_floor_surfaces, unfinished_floor_surfaces, roof_spaces
+    
+    return ext_wall_surfaces, slab_surfaces, roof_surfaces, finished_wall_surfaces, unfinished_wall_surfaces, finished_floor_surfaces, unfinished_floor_surfaces
   end
 
 end #end the measure

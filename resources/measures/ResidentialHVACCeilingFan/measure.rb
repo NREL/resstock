@@ -198,11 +198,7 @@ class ProcessCeilingFan < OpenStudio::Measure::ModelMeasure
         schedule.remove
       end
       model.getEnergyManagementSystemSensors.each do |sensor|
-        next unless sensor.name.to_s == "#{obj_name} sched val sensor".gsub(" ","_").gsub("|","_")
-        sensor.remove
-      end
-      model.getEnergyManagementSystemSensors.each do |sensor|
-        next unless sensor.name.to_s == "#{obj_name} tin sensor".gsub(" ","_").gsub("|","_")
+        next unless sensor.name.to_s == "#{obj_name} sched val sensor".gsub(" ","_").gsub("|","_") or sensor.name.to_s == "#{obj_name} tin sensor".gsub(" ","_").gsub("|","_")
         sensor.remove
       end
       model.getEnergyManagementSystemActuators.each do |actuator|

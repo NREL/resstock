@@ -107,6 +107,8 @@ class ProcessHeatingSetpoints < OpenStudio::Measure::ModelMeasure
     if weather.error?
       return false
     end
+    
+    model_zones = model.getThermalZones
 
     # Get heating season
     if use_auto_season
@@ -141,7 +143,7 @@ class ProcessHeatingSetpoints < OpenStudio::Measure::ModelMeasure
     end
 
     # assign the availability schedules to the equipment objects
-    model.getThermalZones.each do |thermal_zone|
+    model_zones.each do |thermal_zone|
       heating_equipment = HVAC.existing_heating_equipment(model, runner, thermal_zone)
       heating_equipment.each do |htg_equip|
         htg_obj = nil
@@ -175,7 +177,7 @@ class ProcessHeatingSetpoints < OpenStudio::Measure::ModelMeasure
     htg_wked = htg_wked.split(",").map {|i| UnitConversions.convert(i.to_f,"F","C")}   
     
     finished_zones = []
-    model.getThermalZones.each do |thermal_zone|
+    model_zones.each do |thermal_zone|
       if Geometry.zone_is_finished(thermal_zone)
         finished_zones << thermal_zone
       end

@@ -112,8 +112,10 @@ class ProcessConstructionsWallsPartitionThermalMass < OpenStudio::Measure::Model
       return false
     end
     
+    model_spaces = model.getSpaces
+    
     surfaces = []
-    model.getSpaces.each do |space|
+    model_spaces.each do |space|
         next if Geometry.space_is_unfinished(space)
         space.surfaces.each do |surface|
             next if surface.surfaceType.downcase != "wall"
@@ -187,7 +189,7 @@ class ProcessConstructionsWallsPartitionThermalMass < OpenStudio::Measure::Model
     # Constants
     mat_wood = BaseMaterial.Wood
  
-    spaces = Geometry.get_finished_spaces(model.getSpaces)
+    spaces = Geometry.get_finished_spaces(model_spaces)
     
     if spaces.size == 0
         runner.registerAsNotApplicable("Measure not applied because no applicable spaces were found.")

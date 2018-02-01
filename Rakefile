@@ -55,7 +55,7 @@ task :copy_beopt_files do
 
   beopt_measures_dir = File.join(File.dirname(__FILE__), branch, "OpenStudio-BEopt-#{branch}", "measures")
   buildstock_resource_measures_dir = File.join(File.dirname(__FILE__), "resources", "measures")
-  
+
   # Copy seed osm and other needed resource files
   project_dir_names = get_all_project_dir_names()
   extra_files = [
@@ -113,7 +113,7 @@ task :copy_beopt_files do
   end
   
   # Copy other measures to measure/ dir
-  other_measures = ["TimeseriesCSVExport", "UtilityBillCalculations"]
+  other_measures = ["TimeseriesCSVExport", "UtilityBillCalculationsSimple", "UtilityBillCalculationsDetailed"]
   buildstock_measures_dir = buildstock_resource_measures_dir = File.join(File.dirname(__FILE__), "measures")
   other_measures.each do |other_measure|
     puts "Copying #{other_measure} measure..."
@@ -124,18 +124,17 @@ task :copy_beopt_files do
         FileUtils.rm_rf("#{buildstock_measure_subdir}/.", secure: true)
       end
     end
-    if other_measure == "UtilityBillCalculations"
+    if ["UtilityBillCalculationsSimple", "UtilityBillCalculationsDetailed"].include? other_measure
       ["resources"].each do |subdir|
         buildstock_measure_subdir = File.join(buildstock_measures_dir, other_measure, subdir)
         remove_items_from_zip_file(buildstock_measure_subdir, "sam-sdk-2017-1-17-r1.zip", ["osx64", "win32", "win64"])
-        puts "Extracting tariffs..."
-        move_and_extract_zip_file(buildstock_measure_subdir, "tariffs.zip", "./resources")
       end
     end
   end
 
   puts "Cleaning up..."
   FileUtils.rm_rf(File.join(File.dirname(__FILE__), branch))
+  FileUtils.rm_rf(File.join(File.dirname(__FILE__), "#{branch}.zip"))
 
 end
 
@@ -149,13 +148,6 @@ def remove_items_from_zip_file(dir, zip_file_name, items)
   zip_file = OpenStudio::ZipFile.new(zip_path, false)
   zip_file.addDirectory(File.join(dir, zip_file_name.gsub(".zip", "")), OpenStudio::toPath("/"))
   FileUtils.rm_rf(File.join(dir, zip_file_name.gsub(".zip", "")))
-end
-
-def move_and_extract_zip_file(dir, zip_file_name, target)
-  unzip_file = OpenStudio::UnzipFile.new(File.join(dir, zip_file_name))
-  unzip_file.extractAllFiles(OpenStudio::toPath(File.join(dir, zip_file_name.gsub(".zip", ""))))
-  FileUtils.rm_rf(File.join(target, zip_file_name.gsub(".zip", "")))
-  FileUtils.mv(File.join(dir, zip_file_name.gsub(".zip", "")), target)
 end
 
 namespace :test do

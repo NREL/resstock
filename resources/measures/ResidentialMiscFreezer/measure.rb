@@ -60,18 +60,17 @@ class ResidentialFreezer < OpenStudio::Measure::ModelMeasure
     monthly_sch.setDefaultValue("0.837, 0.835, 1.084, 1.084, 1.084, 1.096, 1.096, 1.096, 1.096, 0.931, 0.925, 0.837")
     args << monthly_sch
 
-    #make a choice argument for space
-    spaces = model.getSpaces
-    space_args = OpenStudio::StringVector.new
-    space_args << Constants.Auto
-    spaces.each do |space|
-        space_args << space.name.to_s
+    #make a choice argument for location
+    location_args = OpenStudio::StringVector.new
+    location_args << Constants.Auto
+    Geometry.get_model_locations(model).each do |loc|
+        location_args << loc
     end
-    space = OpenStudio::Measure::OSArgument::makeChoiceArgument("space", space_args, true)
-    space.setDisplayName("Location")
-    space.setDescription("Select the space where the freezer is located. '#{Constants.Auto}' will choose the lowest above-grade finished space available (e.g., first story living space), or a below-grade finished space as last resort. For multifamily buildings, '#{Constants.Auto}' will choose a space for each unit of the building.")
-    space.setDefaultValue(Constants.Auto)
-    args << space
+    location = OpenStudio::Measure::OSArgument::makeChoiceArgument("location", location_args, true)
+    location.setDisplayName("Location")
+    location.setDescription("The space type for the location. '#{Constants.Auto}' will automatically choose a space type based on the space types found in the model.")
+    location.setDefaultValue(Constants.Auto)
+    args << location
 
     return args
   end #end the arguments method
@@ -91,7 +90,7 @@ class ResidentialFreezer < OpenStudio::Measure::ModelMeasure
     weekday_sch = runner.getStringArgumentValue("weekday_sch",user_arguments)
     weekend_sch = runner.getStringArgumentValue("weekend_sch",user_arguments)
     monthly_sch = runner.getStringArgumentValue("monthly_sch",user_arguments)
-    space_r = runner.getStringArgumentValue("space",user_arguments)
+    location = runner.getStringArgumentValue("location",user_arguments)
     
     #check for valid inputs
     if freezer_E < 0
@@ -109,55 +108,31 @@ class ResidentialFreezer < OpenStudio::Measure::ModelMeasure
         return false
     end
     
+    # Remove all existing objects
+    obj_name = Constants.ObjectNameFreezer
+    model.getSpaces.each do |space|
+        remove_existing(runner, space, obj_name)
+    end
+    
     #Calculate freezer daily energy use
     freezer_ann = freezer_E*mult
     
+    location_hierarchy = [Constants.SpaceTypeGarage, 
+                          Constants.SpaceTypeFinishedBasement,
+                          Constants.SpaceTypeUnfinishedBasement, 
+                          Constants.SpaceTypeLiving]
+
     tot_freezer_ann = 0
     msgs = []
     sch = nil
     units.each_with_index do |unit, unit_index|
         
-        unit_spaces = []
-        unit.spaces.each do |unit_space|
-            unit_spaces << unit_space
-        end
-        
-        if unit_index == 0 and space_r != Constants.Auto
-            # Append spaces not associated with a unit
-            model.getSpaces.each do |space|
-                next if Geometry.space_is_finished(space)
-                unit_spaces << space
-            end
-        end
-
         # Get space
-        space = Geometry.get_space_from_string(unit_spaces, space_r)
+        space = Geometry.get_space_from_location(unit, location, location_hierarchy)
         next if space.nil?
         
         unit_obj_name = Constants.ObjectNameFreezer(unit.name.to_s)
     
-        # Remove any existing freezer
-        frz_removed = false
-        objects_to_remove = []
-        space.electricEquipment.each do |space_equipment|
-            next if space_equipment.name.to_s != unit_obj_name
-            objects_to_remove << space_equipment
-            objects_to_remove << space_equipment.electricEquipmentDefinition
-            if space_equipment.schedule.is_initialized
-                objects_to_remove << space_equipment.schedule.get
-            end
-        end
-        if objects_to_remove.size > 0
-            runner.registerInfo("Removed existing freezer from space '#{space.name.to_s}'.")
-        end
-        objects_to_remove.uniq.each do |object|
-            begin
-                object.remove
-            rescue
-                # no op
-            end
-        end
-
         if freezer_ann > 0
         
             if sch.nil?
@@ -204,6 +179,29 @@ class ResidentialFreezer < OpenStudio::Measure::ModelMeasure
     return true
  
   end #end the run method
+  
+  def remove_existing(runner, space, obj_name)
+    # Remove any existing freezer
+    objects_to_remove = []
+    space.electricEquipment.each do |space_equipment|
+        next if not space_equipment.name.to_s.start_with? obj_name
+        objects_to_remove << space_equipment
+        objects_to_remove << space_equipment.electricEquipmentDefinition
+        if space_equipment.schedule.is_initialized
+            objects_to_remove << space_equipment.schedule.get
+        end
+    end
+    if objects_to_remove.size > 0
+        runner.registerInfo("Removed existing freezer from space '#{space.name.to_s}'.")
+    end
+    objects_to_remove.uniq.each do |object|
+        begin
+            object.remove
+        rescue
+            # no op
+        end
+    end
+  end
 
 end #end the measure
 

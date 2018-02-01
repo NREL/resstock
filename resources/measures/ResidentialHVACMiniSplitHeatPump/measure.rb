@@ -335,208 +335,118 @@ class ProcessVRFMinisplit < OpenStudio::Measure::ModelMeasure
       control_slave_zones_hash = HVAC.get_control_and_slave_zones(thermal_zones)
       control_slave_zones_hash.each do |control_zone, slave_zones|
       
-        total_slave_zone_floor_area = 0
-        slave_zones.each do |slave_zone|
-          total_slave_zone_floor_area += slave_zone.floorArea
-        end
-      
-        # Remove existing equipment
-        HVAC.remove_existing_hvac_equipment(model, runner, Constants.ObjectNameMiniSplitHeatPump, control_zone, false, unit)
-      
-        # _processSystemHeatingCoil
+        ([control_zone] + slave_zones).each do |zone|
         
-        htg_coil = OpenStudio::Model::CoilHeatingDXVariableRefrigerantFlow.new(model)
-        htg_coil.setName(obj_name + " #{control_zone.name} heating coil")
-        htg_coil.setHeatingCapacityRatioModifierFunctionofTemperatureCurve(constant_cubic_curve)
-        htg_coil.setHeatingCapacityModifierFunctionofFlowFractionCurve(constant_cubic_curve)        
-      
-        # _processSystemCoolingCoil
-        
-        clg_coil = OpenStudio::Model::CoilCoolingDXVariableRefrigerantFlow.new(model)
-        clg_coil.setName(obj_name + " #{control_zone.name} cooling coil")
-        if miniSplitCoolingOutputCapacity != Constants.SizingAuto and miniSplitCoolingOutputCapacity != Constants.SizingAutoMaxLoad
-          clg_coil.setRatedTotalCoolingCapacity(UnitConversions.convert(miniSplitCoolingOutputCapacity,"Btu/hr","W")) # Used by HVACSizing measure
-        end
-        clg_coil.setRatedSensibleHeatRatio(sHR_Rated[mshp_indices[-1]])
-        clg_coil.setCoolingCapacityRatioModifierFunctionofTemperatureCurve(constant_cubic_curve)
-        clg_coil.setCoolingCapacityModifierCurveFunctionofFlowFraction(constant_cubic_curve)
-      
-        # _processSystemAir
-        
-        vrf = OpenStudio::Model::AirConditionerVariableRefrigerantFlow.new(model)
-        vrf.setName(obj_name + " #{control_zone.name} ac vrf")
-        vrf.setAvailabilitySchedule(model.alwaysOnDiscreteSchedule)
-        vrf.setRatedCoolingCOP(dse / coolingEIR[-1])
-        vrf.setMinimumOutdoorTemperatureinCoolingMode(-6)
-        vrf.setMaximumOutdoorTemperatureinCoolingMode(60)
-        vrf.setCoolingCapacityRatioModifierFunctionofLowTemperatureCurve(cool_cap_ft_curve)    
-        vrf.setCoolingEnergyInputRatioModifierFunctionofLowTemperatureCurve(cool_eir_ft_curve)
-        vrf.setCoolingEnergyInputRatioModifierFunctionofLowPartLoadRatioCurve(cool_eir_fplr_curve)
-        vrf.setCoolingPartLoadFractionCorrelationCurve(cool_plf_fplr_curve)
-        vrf.setRatedTotalHeatingCapacitySizingRatio(1)
-        vrf.setRatedHeatingCOP(dse / heatingEIR[-1])
-        vrf.setMinimumOutdoorTemperatureinHeatingMode(UnitConversions.convert(min_hp_temp,"F","C"))
-        vrf.setMaximumOutdoorTemperatureinHeatingMode(40)
-        vrf.setHeatingCapacityRatioModifierFunctionofLowTemperatureCurve(heat_cap_ft_curve)
-        vrf.setHeatingEnergyInputRatioModifierFunctionofLowTemperatureCurve(heat_eir_ft_curve)
-        vrf.setHeatingPerformanceCurveOutdoorTemperatureType("DryBulbTemperature")   
-        vrf.setHeatingEnergyInputRatioModifierFunctionofLowPartLoadRatioCurve(heat_eir_fplr_curve)
-        vrf.setHeatingPartLoadFractionCorrelationCurve(heat_plf_fplr_curve)        
-        vrf.setMinimumHeatPumpPartLoadRatio([min_plr_heat, min_plr_cool].min)
-        vrf.setZoneforMasterThermostatLocation(control_zone)
-        vrf.setMasterThermostatPriorityControlType("LoadPriority")
-        vrf.setHeatPumpWasteHeatRecovery(false)
-        vrf.setCrankcaseHeaterPowerperCompressor(0)
-        vrf.setNumberofCompressors(1)
-        vrf.setRatioofCompressorSizetoTotalCompressorCapacity(1)
-        vrf.setDefrostStrategy("ReverseCycle")
-        vrf.setDefrostControl("OnDemand")
-        vrf.setDefrostEnergyInputRatioModifierFunctionofTemperatureCurve(defrost_eir_curve)        
-        vrf.setMaximumOutdoorDrybulbTemperatureforDefrostOperation(UnitConversions.convert(max_defrost_temp,"F","C"))
-        vrf.setFuelType("Electricity")
-        vrf.setEquivalentPipingLengthusedforPipingCorrectionFactorinCoolingMode(0)
-        vrf.setVerticalHeightusedforPipingCorrectionFactor(0)
-        vrf.setPipingCorrectionFactorforHeightinCoolingModeCoefficient(0)
-        vrf.setEquivalentPipingLengthusedforPipingCorrectionFactorinHeatingMode(0)
-
-        # _processSystemFan
-
-        fan = OpenStudio::Model::FanOnOff.new(model, model.alwaysOnDiscreteSchedule)
-        fan.setName(obj_name + " #{control_zone.name} supply fan")
-        fan.setEndUseSubcategory(Constants.EndUseHVACFan)
-        fan.setFanEfficiency(dse * HVAC.calculate_fan_efficiency(static, miniSplitHPSupplyFanPower))
-        fan.setPressureRise(static)
-        fan.setMotorEfficiency(dse * 1.0)
-        fan.setMotorInAirstreamFraction(1.0)       
-        
-        # _processSystemDemandSideAir
-        
-        tu_vrf = OpenStudio::Model::ZoneHVACTerminalUnitVariableRefrigerantFlow.new(model, clg_coil, htg_coil, fan)
-        tu_vrf.setName(obj_name + " #{control_zone.name} zone vrf")
-        tu_vrf.setTerminalUnitAvailabilityschedule(model.alwaysOnDiscreteSchedule)
-        tu_vrf.setSupplyAirFanOperatingModeSchedule(model.alwaysOffDiscreteSchedule)
-        tu_vrf.setZoneTerminalUnitOnParasiticElectricEnergyUse(0)
-        tu_vrf.setZoneTerminalUnitOffParasiticElectricEnergyUse(0)
-        tu_vrf.setRatedTotalHeatingCapacitySizingRatio(1)
-        tu_vrf.addToThermalZone(control_zone)
-        vrf.addTerminal(tu_vrf)
-        runner.registerInfo("Added '#{tu_vrf.name}' to '#{control_zone.name}' of #{unit.name}")        
-        
-        HVAC.prioritize_zone_hvac(model, runner, control_zone).reverse.each do |object|
-          control_zone.setCoolingPriority(object, 1)
-          control_zone.setHeatingPriority(object, 1)
-        end
-        
-        # Supplemental heat
-        unless baseboardOutputCapacity == 0.0
-          supp_htg_coil = OpenStudio::Model::ZoneHVACBaseboardConvectiveElectric.new(model)
-          supp_htg_coil.setName(obj_name + " #{control_zone.name} supp heater")
-          if baseboardOutputCapacity != Constants.SizingAuto
-            supp_htg_coil.setNominalCapacity(UnitConversions.convert(baseboardOutputCapacity,"Btu/hr","W")) # Used by HVACSizing measure
-          end
-          supp_htg_coil.setEfficiency(baseboardEfficiency)
-          supp_htg_coil.addToThermalZone(control_zone)
-          runner.registerInfo("Added '#{supp_htg_coil.name}' to '#{control_zone.name}' of #{unit.name}")     
-        end
-        
-        vrf_fbsmt_sensor = nil
-        slave_zones.each do |slave_zone|
-
-          # Remove existing equipment
-          HVAC.remove_existing_hvac_equipment(model, runner, Constants.ObjectNameMiniSplitHeatPump, slave_zone, false, unit)
+            # Remove existing equipment
+            HVAC.remove_existing_hvac_equipment(model, runner, Constants.ObjectNameMiniSplitHeatPump, zone, false, unit)
           
-          htg_coil = OpenStudio::Model::CoilHeatingDXVariableRefrigerantFlow.new(model)
-          htg_coil.setName(obj_name + " #{slave_zone.name} heating coil")
-          htg_coil.setHeatingCapacityRatioModifierFunctionofTemperatureCurve(constant_cubic_curve)
-          htg_coil.setHeatingCapacityModifierFunctionofFlowFractionCurve(constant_cubic_curve)        
-                  
-          clg_coil = OpenStudio::Model::CoilCoolingDXVariableRefrigerantFlow.new(model)
-          clg_coil.setName(obj_name + " #{slave_zone.name} cooling coil")
-          clg_coil.setRatedSensibleHeatRatio(sHR_Rated[mshp_indices[-1]])
-          clg_coil.setCoolingCapacityRatioModifierFunctionofTemperatureCurve(constant_cubic_curve)
-          clg_coil.setCoolingCapacityModifierCurveFunctionofFlowFraction(constant_cubic_curve)
-                
-          vrf = OpenStudio::Model::AirConditionerVariableRefrigerantFlow.new(model)
-          vrf.setName(obj_name + " #{slave_zone.name} ac vrf")
-          vrf.setAvailabilitySchedule(model.alwaysOnDiscreteSchedule)          
-          vrf.setRatedCoolingCOP(dse / coolingEIR[-1])
-          vrf.setMinimumOutdoorTemperatureinCoolingMode(-6)
-          vrf.setMaximumOutdoorTemperatureinCoolingMode(60)          
-          vrf.setCoolingCapacityRatioModifierFunctionofLowTemperatureCurve(cool_cap_ft_curve)   
-          vrf.setCoolingEnergyInputRatioModifierFunctionofLowTemperatureCurve(cool_eir_ft_curve)
-          vrf.setCoolingEnergyInputRatioModifierFunctionofLowPartLoadRatioCurve(cool_eir_fplr_curve)
-          vrf.setCoolingPartLoadFractionCorrelationCurve(cool_plf_fplr_curve)
-          vrf.setRatedTotalHeatingCapacitySizingRatio(1)
-          vrf.setRatedHeatingCOP(dse / heatingEIR[-1])
-          vrf.setMinimumOutdoorTemperatureinHeatingMode(UnitConversions.convert(min_hp_temp,"F","C"))
-          vrf.setMaximumOutdoorTemperatureinHeatingMode(40)
-          vrf.setHeatingCapacityRatioModifierFunctionofLowTemperatureCurve(heat_cap_ft_curve)
-          vrf.setHeatingEnergyInputRatioModifierFunctionofLowTemperatureCurve(heat_eir_ft_curve)
-          vrf.setHeatingPerformanceCurveOutdoorTemperatureType("DryBulbTemperature")       
-          vrf.setHeatingEnergyInputRatioModifierFunctionofLowPartLoadRatioCurve(heat_eir_fplr_curve)
-          vrf.setHeatingPartLoadFractionCorrelationCurve(heat_plf_fplr_curve)          
-          vrf.setMinimumHeatPumpPartLoadRatio([min_plr_heat, min_plr_cool].min)
-          vrf.setZoneforMasterThermostatLocation(control_zone)
-          vrf.setMasterThermostatPriorityControlType("LoadPriority")
-          vrf.setHeatPumpWasteHeatRecovery(false)
-          vrf.setCrankcaseHeaterPowerperCompressor(0)
-          vrf.setNumberofCompressors(1)
-          vrf.setRatioofCompressorSizetoTotalCompressorCapacity(1)
-          vrf.setDefrostStrategy("ReverseCycle")
-          vrf.setDefrostControl("OnDemand")           
-          vrf.setDefrostEnergyInputRatioModifierFunctionofTemperatureCurve(defrost_eir_curve)          
-          vrf.setMaximumOutdoorDrybulbTemperatureforDefrostOperation(UnitConversions.convert(max_defrost_temp,"F","C"))
-          vrf.setFuelType("Electricity")
-          vrf.setEquivalentPipingLengthusedforPipingCorrectionFactorinCoolingMode(0)
-          vrf.setVerticalHeightusedforPipingCorrectionFactor(0)
-          vrf.setPipingCorrectionFactorforHeightinCoolingModeCoefficient(0)
-          vrf.setEquivalentPipingLengthusedforPipingCorrectionFactorinHeatingMode(0)     
-
-          fan = OpenStudio::Model::FanOnOff.new(model, model.alwaysOnDiscreteSchedule)
-          fan.setName(obj_name + " #{slave_zone.name} supply fan")
-          fan.setEndUseSubcategory(Constants.EndUseHVACFan)
-          fan.setFanEfficiency(dse * HVAC.calculate_fan_efficiency(static, miniSplitHPSupplyFanPower))
-          fan.setPressureRise(static)
-          fan.setMotorEfficiency(dse * 1.0)
-          fan.setMotorInAirstreamFraction(1.0)
-                    
-          tu_vrf = OpenStudio::Model::ZoneHVACTerminalUnitVariableRefrigerantFlow.new(model, clg_coil, htg_coil, fan)
-          tu_vrf.setName(obj_name + " #{slave_zone.name} zone vrf")
-          tu_vrf.setTerminalUnitAvailabilityschedule(model.alwaysOnDiscreteSchedule)
-          tu_vrf.setSupplyAirFanOperatingModeSchedule(model.alwaysOffDiscreteSchedule)
-          tu_vrf.setZoneTerminalUnitOnParasiticElectricEnergyUse(0)
-          tu_vrf.setZoneTerminalUnitOffParasiticElectricEnergyUse(0)
-          tu_vrf.setRatedTotalHeatingCapacitySizingRatio(1)
-          tu_vrf.addToThermalZone(slave_zone)
-          vrf.addTerminal(tu_vrf)
-          runner.registerInfo("Added '#{tu_vrf.name}' to '#{slave_zone.name}' of #{unit.name}") 
-          
-          HVAC.prioritize_zone_hvac(model, runner, slave_zone).reverse.each do |object|
-            slave_zone.setCoolingPriority(object, 1)
-            slave_zone.setHeatingPriority(object, 1)
-          end
-          
-          unless baseboardOutputCapacity == 0.0
-            supp_htg_coil = OpenStudio::Model::ZoneHVACBaseboardConvectiveElectric.new(model)
-            supp_htg_coil.setName(obj_name + " #{slave_zone.name} supp heater")
-            supp_htg_coil.setEfficiency(baseboardEfficiency)
-            supp_htg_coil.addToThermalZone(slave_zone)
-            runner.registerInfo("Added '#{supp_htg_coil.name}' to '#{slave_zone.name}' of #{unit.name}")
-          end
-          
-          if miniSplitHPPanHeaterPowerPerUnit > 0            
-            vrf_fbsmt_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, vrf_heating_output_var)
-            vrf_fbsmt_sensor.setName("#{obj_name} vrf fbsmt energy sensor".gsub("|","_"))
-            vrf_fbsmt_sensor.setKeyName(obj_name + " #{slave_zone.name} ac vrf")
-          end
+            # _processSystemHeatingCoil
             
+            htg_coil = OpenStudio::Model::CoilHeatingDXVariableRefrigerantFlow.new(model)
+            htg_coil.setName(obj_name + " #{zone.name} heating coil")
+            htg_coil.setHeatingCapacityRatioModifierFunctionofTemperatureCurve(constant_cubic_curve)
+            htg_coil.setHeatingCapacityModifierFunctionofFlowFractionCurve(constant_cubic_curve)        
+          
+            # _processSystemCoolingCoil
+            
+            clg_coil = OpenStudio::Model::CoilCoolingDXVariableRefrigerantFlow.new(model)
+            clg_coil.setName(obj_name + " #{zone.name} cooling coil")
+            if miniSplitCoolingOutputCapacity != Constants.SizingAuto and miniSplitCoolingOutputCapacity != Constants.SizingAutoMaxLoad
+              clg_coil.setRatedTotalCoolingCapacity(UnitConversions.convert(miniSplitCoolingOutputCapacity,"Btu/hr","W")) # Used by HVACSizing measure
+            end
+            clg_coil.setRatedSensibleHeatRatio(sHR_Rated[mshp_indices[-1]])
+            clg_coil.setCoolingCapacityRatioModifierFunctionofTemperatureCurve(constant_cubic_curve)
+            clg_coil.setCoolingCapacityModifierCurveFunctionofFlowFraction(constant_cubic_curve)
+          
+            # _processSystemAir
+            
+            vrf = OpenStudio::Model::AirConditionerVariableRefrigerantFlow.new(model)
+            vrf.setName(obj_name + " #{zone.name} ac vrf")
+            vrf.setAvailabilitySchedule(model.alwaysOnDiscreteSchedule)
+            vrf.setRatedCoolingCOP(dse / coolingEIR[-1])
+            vrf.setMinimumOutdoorTemperatureinCoolingMode(-6)
+            vrf.setMaximumOutdoorTemperatureinCoolingMode(60)
+            vrf.setCoolingCapacityRatioModifierFunctionofLowTemperatureCurve(cool_cap_ft_curve)    
+            vrf.setCoolingEnergyInputRatioModifierFunctionofLowTemperatureCurve(cool_eir_ft_curve)
+            vrf.setCoolingEnergyInputRatioModifierFunctionofLowPartLoadRatioCurve(cool_eir_fplr_curve)
+            vrf.setCoolingPartLoadFractionCorrelationCurve(cool_plf_fplr_curve)
+            vrf.setRatedTotalHeatingCapacitySizingRatio(1)
+            vrf.setRatedHeatingCOP(dse / heatingEIR[-1])
+            vrf.setMinimumOutdoorTemperatureinHeatingMode(UnitConversions.convert(min_hp_temp,"F","C"))
+            vrf.setMaximumOutdoorTemperatureinHeatingMode(40)
+            vrf.setHeatingCapacityRatioModifierFunctionofLowTemperatureCurve(heat_cap_ft_curve)
+            vrf.setHeatingEnergyInputRatioModifierFunctionofLowTemperatureCurve(heat_eir_ft_curve)
+            vrf.setHeatingPerformanceCurveOutdoorTemperatureType("DryBulbTemperature")   
+            vrf.setHeatingEnergyInputRatioModifierFunctionofLowPartLoadRatioCurve(heat_eir_fplr_curve)
+            vrf.setHeatingPartLoadFractionCorrelationCurve(heat_plf_fplr_curve)        
+            vrf.setMinimumHeatPumpPartLoadRatio([min_plr_heat, min_plr_cool].min)
+            vrf.setZoneforMasterThermostatLocation(zone)
+            vrf.setMasterThermostatPriorityControlType("LoadPriority")
+            vrf.setHeatPumpWasteHeatRecovery(false)
+            vrf.setCrankcaseHeaterPowerperCompressor(0)
+            vrf.setNumberofCompressors(1)
+            vrf.setRatioofCompressorSizetoTotalCompressorCapacity(1)
+            vrf.setDefrostStrategy("ReverseCycle")
+            vrf.setDefrostControl("OnDemand")
+            vrf.setDefrostEnergyInputRatioModifierFunctionofTemperatureCurve(defrost_eir_curve)        
+            vrf.setMaximumOutdoorDrybulbTemperatureforDefrostOperation(UnitConversions.convert(max_defrost_temp,"F","C"))
+            vrf.setFuelType("Electricity")
+            vrf.setEquivalentPipingLengthusedforPipingCorrectionFactorinCoolingMode(0)
+            vrf.setVerticalHeightusedforPipingCorrectionFactor(0)
+            vrf.setPipingCorrectionFactorforHeightinCoolingModeCoefficient(0)
+            vrf.setEquivalentPipingLengthusedforPipingCorrectionFactorinHeatingMode(0)
+
+            # _processSystemFan
+
+            fan = OpenStudio::Model::FanOnOff.new(model, model.alwaysOnDiscreteSchedule)
+            fan.setName(obj_name + " #{zone.name} supply fan")
+            fan.setEndUseSubcategory(Constants.EndUseHVACFan)
+            fan.setFanEfficiency(dse * HVAC.calculate_fan_efficiency(static, miniSplitHPSupplyFanPower))
+            fan.setPressureRise(static)
+            fan.setMotorEfficiency(dse * 1.0)
+            fan.setMotorInAirstreamFraction(1.0)       
+            
+            # _processSystemDemandSideAir
+            
+            tu_vrf = OpenStudio::Model::ZoneHVACTerminalUnitVariableRefrigerantFlow.new(model, clg_coil, htg_coil, fan)
+            tu_vrf.setName(obj_name + " #{zone.name} zone vrf")
+            tu_vrf.setTerminalUnitAvailabilityschedule(model.alwaysOnDiscreteSchedule)
+            tu_vrf.setSupplyAirFanOperatingModeSchedule(model.alwaysOffDiscreteSchedule)
+            tu_vrf.setZoneTerminalUnitOnParasiticElectricEnergyUse(0)
+            tu_vrf.setZoneTerminalUnitOffParasiticElectricEnergyUse(0)
+            tu_vrf.setRatedTotalHeatingCapacitySizingRatio(1)
+            tu_vrf.addToThermalZone(zone)
+            vrf.addTerminal(tu_vrf)
+            runner.registerInfo("Added '#{tu_vrf.name}' to '#{zone.name}' of #{unit.name}")        
+            
+            HVAC.prioritize_zone_hvac(model, runner, zone)
+            
+            # Supplemental heat
+            unless baseboardOutputCapacity == 0.0
+              supp_htg_coil = OpenStudio::Model::ZoneHVACBaseboardConvectiveElectric.new(model)
+              supp_htg_coil.setName(obj_name + " #{zone.name} supp heater")
+              if baseboardOutputCapacity != Constants.SizingAuto
+                supp_htg_coil.setNominalCapacity(UnitConversions.convert(baseboardOutputCapacity,"Btu/hr","W")) # Used by HVACSizing measure
+              end
+              supp_htg_coil.setEfficiency(baseboardEfficiency)
+              supp_htg_coil.addToThermalZone(zone)
+              runner.registerInfo("Added '#{supp_htg_coil.name}' to '#{zone.name}' of #{unit.name}")     
+            end
+        
         end
-      
+        
         if miniSplitHPPanHeaterPowerPerUnit > 0
 
           vrf_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, vrf_heating_output_var)
           vrf_sensor.setName("#{obj_name} vrf energy sensor".gsub("|","_"))
           vrf_sensor.setKeyName(obj_name + " #{control_zone.name} ac vrf")
+          
+          vrf_fbsmt_sensor = nil
+          slave_zones.each do |slave_zone|
+            vrf_fbsmt_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, vrf_heating_output_var)
+            vrf_fbsmt_sensor.setName("#{obj_name} vrf fbsmt energy sensor".gsub("|","_"))
+            vrf_fbsmt_sensor.setKeyName(obj_name + " #{slave_zone.name} ac vrf")
+          end
      
           equip_def = OpenStudio::Model::ElectricEquipmentDefinition.new(model)
           equip_def.setName(obj_name + " pan heater equip")

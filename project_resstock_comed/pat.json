@@ -104,6 +104,15 @@
       "$$hashKey": "object:188"
     },
     {
+      "name": "seed",
+      "displayName": "Seed",
+      "description": "Integer seed for random number generator",
+      "defaultValue": null,
+      "type": "number",
+      "value": null,
+      "$$hashKey": "object:102"
+    },
+    {
       "name": "failed_f_value",
       "displayName": "Failed F Value",
       "description": "Return Value for F(x) if F fails",
@@ -281,7 +290,7 @@
       "seed": "EmptySeedModel.osm",
       "workflow_index": 0,
       "options": [],
-      "instanceId": 0.03943352183603621,
+      "instanceId": 0.8682084405148414,
       "skip": false,
       "$$hashKey": "object:14896",
       "showWarningText": false,
@@ -1018,7 +1027,7 @@
       "seed": "EmptySeedModel.osm",
       "workflow_index": 1,
       "options": [],
-      "instanceId": 0.6459934954982898,
+      "instanceId": 0.07756568606456371,
       "skip": false,
       "$$hashKey": "object:12818",
       "outputMeasure": true,
@@ -2657,7 +2666,7 @@
       "seed": "EmptySeedModel.osm",
       "workflow_index": 2,
       "options": [],
-      "instanceId": 0.10296446365936829,
+      "instanceId": 0.08494772187271993,
       "skip": false,
       "$$hashKey": "object:12817",
       "outputMeasure": true,
@@ -3343,14 +3352,14 @@
       "directory": "C:/OpenStudio/OpenStudio-BuildStock/measures/TimeseriesCSVExport",
       "uid": "2a3442c1-944d-4e91-9e11-11e0cf368c64",
       "uuid": "{2a3442c1-944d-4e91-9e11-11e0cf368c64}",
-      "version_id": "ab17aba8-ba25-42d4-a176-65a2548e1de4",
-      "version_uuid": "{ab17aba8-ba25-42d4-a176-65a2548e1de4}",
-      "version_modified": "20171215T220211Z",
+      "version_id": "ddfdc858-8767-4beb-8eee-ddb2661c5eda",
+      "version_uuid": "{ddfdc858-8767-4beb-8eee-ddb2661c5eda}",
+      "version_modified": "20180201T020148Z",
       "xml_checksum": "15BF4E57",
       "display_name": "Timeseries CSV Export",
       "class_name": "TimeseriesCSVExport",
-      "description": "Exports all available hourly timeseries enduses to csv, and uses them for utility bill calculations.",
-      "modeler_description": "Exports all available hourly timeseries enduses to csv, and uses them for utility bill calculations.",
+      "description": "Exports all available hourly timeseries enduses to csv.",
+      "modeler_description": "Exports all available hourly timeseries enduses to csv.",
       "tags": "Reporting.QAQC",
       "outputs": [],
       "attributes": [
@@ -3406,31 +3415,7 @@
             "stdDev": "Hourly",
             "default_value": "Hourly"
           },
-          "$$hashKey": "object:119645"
-        },
-        {
-          "name": "inc_output_variables",
-          "display_name": "Include Output Variables",
-          "description": "",
-          "type": "Boolean",
-          "required": true,
-          "model_dependent": false,
-          "default_value": false,
-          "$$hashKey": "object:1641",
-          "inputs": {
-            "default_value": false,
-            "minimum": false,
-            "maximum": false,
-            "relationship": null,
-            "choiceDisplayNames": [],
-            "variableSetting": "Argument",
-            "distribution": "Uniform",
-            "discreteVariables": [],
-            "mean": false,
-            "deltaX": false,
-            "stdDev": false
-          },
-          "display_name_short": "inc_output_variables"
+          "$$hashKey": "object:3392"
         },
         {
           "name": "inc_end_use_subcategories",
@@ -3440,21 +3425,45 @@
           "required": true,
           "model_dependent": false,
           "default_value": false,
-          "$$hashKey": "object:4504",
+          "display_name_short": "inc_end_use_subcategories",
           "inputs": {
-            "default_value": false,
-            "minimum": false,
-            "maximum": false,
             "relationship": null,
             "choiceDisplayNames": [],
             "variableSetting": "Argument",
             "distribution": "Uniform",
             "discreteVariables": [],
+            "maximum": false,
+            "minimum": false,
             "mean": false,
             "deltaX": false,
-            "stdDev": false
+            "stdDev": false,
+            "default_value": false
           },
-          "display_name_short": "inc_end_use_subcategories"
+          "$$hashKey": "object:3393"
+        },
+        {
+          "name": "inc_output_variables",
+          "display_name": "Include Output Variables",
+          "description": "",
+          "type": "Boolean",
+          "required": true,
+          "model_dependent": false,
+          "default_value": false,
+          "display_name_short": "inc_output_variables",
+          "inputs": {
+            "relationship": null,
+            "choiceDisplayNames": [],
+            "variableSetting": "Argument",
+            "distribution": "Uniform",
+            "discreteVariables": [],
+            "maximum": false,
+            "minimum": false,
+            "mean": false,
+            "deltaX": false,
+            "stdDev": false,
+            "default_value": false
+          },
+          "$$hashKey": "object:3394"
         },
         {
           "name": "output_variables",
@@ -3464,7 +3473,6 @@
           "required": true,
           "model_dependent": false,
           "default_value": "Zone Mean Air Temperature, Zone Mean Air Humidity Ratio, Fan Runtime Fraction",
-          "$$hashKey": "object:4505",
           "display_name_short": "output_variables",
           "inputs": {
             "relationship": null,
@@ -3478,7 +3486,8 @@
             "deltaX": "Zone Mean Air Temperature, Zone Mean Air Humidity Ratio, Fan Runtime Fraction",
             "stdDev": "Zone Mean Air Temperature, Zone Mean Air Humidity Ratio, Fan Runtime Fraction",
             "default_value": "Zone Mean Air Temperature, Zone Mean Air Humidity Ratio, Fan Runtime Fraction"
-          }
+          },
+          "$$hashKey": "object:3395"
         }
       ],
       "edit": "",
@@ -3488,16 +3497,15 @@
       "add": "",
       "open": false,
       "addedToProject": true,
-      "date": "12/15/2017",
+      "date": "1/31/2018",
       "author": "",
       "type": "ReportingMeasure",
       "seed": "EmptySeedModel.osm",
       "workflow_index": 3,
       "options": [],
-      "instanceId": 0.06800739296007374,
+      "instanceId": 0.7893776056638331,
       "skip": false,
-      "$$hashKey": "object:119609",
-      "outputMeasure": false
+      "$$hashKey": "object:3356"
     },
     {
       "measure_dir": "C:\\OpenStudio\\OpenStudio-BuildStock\\project_resstock_comed\\measures\\ServerDirectoryCleanup",
@@ -3541,7 +3549,7 @@
       "seed": "EmptySeedModel.osm",
       "workflow_index": 4,
       "options": [],
-      "instanceId": 0.5430398662276266,
+      "instanceId": 0.4970476384025815,
       "skip": false,
       "$$hashKey": "object:663249",
       "outputMeasure": false
@@ -3580,6 +3588,6 @@
     }
   },
   "designAlternatives": [],
-  "analysisID": null,
+  "analysisID": "",
   "datapoints": []
 }

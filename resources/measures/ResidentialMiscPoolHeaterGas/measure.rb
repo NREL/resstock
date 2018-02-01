@@ -100,6 +100,15 @@ class ResidentialPoolHeaterGas < OpenStudio::Measure::ModelMeasure
     if units.nil?
         return false
     end
+    
+    # Remove all existing objects
+    obj_name = Constants.ObjectNamePoolHeater(nil)
+    model.getSpaces.each do |space|
+        remove_existing(runner, space, obj_name)
+    end
+
+    location_hierarchy = [Constants.SpaceTypeLiving,
+                          Constants.SpaceTypeFinishedBasement]
 
     tot_ph_ann_g = 0
     msgs = []
@@ -118,40 +127,10 @@ class ResidentialPoolHeaterGas < OpenStudio::Measure::ModelMeasure
         end
         
         # Get space
-        space = Geometry.get_space_from_string(unit.spaces, Constants.Auto)
+        space = Geometry.get_space_from_location(unit, Constants.Auto, location_hierarchy)
         next if space.nil?
 
-        unit_obj_name_e = Constants.ObjectNamePoolHeater(Constants.FuelTypeElectric, unit.name.to_s)
-        unit_obj_name_g = Constants.ObjectNamePoolHeater(Constants.FuelTypeGas, unit.name.to_s)
-    
-        # Remove any existing pool heater
-        objects_to_remove = []
-        space.electricEquipment.each do |space_equipment|
-            next if space_equipment.name.to_s != unit_obj_name_e
-            objects_to_remove << space_equipment
-            objects_to_remove << space_equipment.electricEquipmentDefinition
-            if space_equipment.schedule.is_initialized
-                objects_to_remove << space_equipment.schedule.get
-            end
-        end
-        space.gasEquipment.each do |space_equipment|
-            next if space_equipment.name.to_s != unit_obj_name_g
-            objects_to_remove << space_equipment
-            objects_to_remove << space_equipment.gasEquipmentDefinition
-            if space_equipment.schedule.is_initialized
-                objects_to_remove << space_equipment.schedule.get
-            end
-        end
-        if objects_to_remove.size > 0
-            runner.registerInfo("Removed existing pool heater from outside.")
-        end
-        objects_to_remove.uniq.each do |object|
-            begin
-                object.remove
-            rescue
-                # no op
-            end
-        end
+        unit_obj_name = Constants.ObjectNamePoolHeater(Constants.FuelTypeGas, unit.name.to_s)
     
         #Calculate annual energy use
         ann_g = base_energy * mult # therm/yr
@@ -181,10 +160,10 @@ class ResidentialPoolHeaterGas < OpenStudio::Measure::ModelMeasure
             #Add gas equipment for the pool heater
             ph_def = OpenStudio::Model::GasEquipmentDefinition.new(model)
             ph = OpenStudio::Model::GasEquipment.new(ph_def)
-            ph.setName(unit_obj_name_g)
-            ph.setEndUseSubcategory(unit_obj_name_g)
+            ph.setName(unit_obj_name)
+            ph.setEndUseSubcategory(unit_obj_name)
             ph.setSpace(space)
-            ph_def.setName(unit_obj_name_g)
+            ph_def.setName(unit_obj_name)
             ph_def.setDesignLevel(design_level)
             ph_def.setFractionRadiant(0)
             ph_def.setFractionLatent(0)
@@ -213,6 +192,37 @@ class ResidentialPoolHeaterGas < OpenStudio::Measure::ModelMeasure
     return true
 
   end #end the run method
+  
+  def remove_existing(runner, space, obj_name)
+    # Remove any existing pool heater
+    objects_to_remove = []
+    space.electricEquipment.each do |space_equipment|
+        next if not space_equipment.name.to_s.start_with? obj_name
+        objects_to_remove << space_equipment
+        objects_to_remove << space_equipment.electricEquipmentDefinition
+        if space_equipment.schedule.is_initialized
+            objects_to_remove << space_equipment.schedule.get
+        end
+    end
+    space.gasEquipment.each do |space_equipment|
+        next if not space_equipment.name.to_s.start_with? obj_name
+        objects_to_remove << space_equipment
+        objects_to_remove << space_equipment.gasEquipmentDefinition
+        if space_equipment.schedule.is_initialized
+            objects_to_remove << space_equipment.schedule.get
+        end
+    end
+    if objects_to_remove.size > 0
+        runner.registerInfo("Removed existing pool heater from outside.")
+    end
+    objects_to_remove.uniq.each do |object|
+        begin
+            object.remove
+        rescue
+            # no op
+        end
+    end
+  end
 
 end #end the measure
 

@@ -4,7 +4,7 @@ require "#{File.dirname(__FILE__)}/unit_conversions"
 class ClothesDryer
 
   def self.apply(model, unit, runner, sch, cef, mult, weekday_sch, weekend_sch, monthly_sch, 
-                 space, fuel_type, fuel_split, display_remove_msg=true)
+                 space, fuel_type, fuel_split)
   
       # Get unit beds/baths
       nbeds, nbaths = Geometry.get_unit_beds_baths(model, unit, runner)
@@ -34,38 +34,7 @@ class ClothesDryer
       cw_rated_annual_energy = cw_rated_annual_energy.get
       
       unit_obj_name_e = Constants.ObjectNameClothesDryer(Constants.FuelTypeElectric, unit.name.to_s)
-      unit_obj_name_g = Constants.ObjectNameClothesDryer(Constants.FuelTypeGas, unit.name.to_s)
-      unit_obj_name_p = Constants.ObjectNameClothesDryer(Constants.FuelTypePropane, unit.name.to_s)
       unit_obj_name_f = Constants.ObjectNameClothesDryer(fuel_type, unit.name.to_s)
-  
-      # Remove any existing clothes dryer
-      objects_to_remove = []
-      space.electricEquipment.each do |space_equipment|
-          next if space_equipment.name.to_s != unit_obj_name_e
-          objects_to_remove << space_equipment
-          objects_to_remove << space_equipment.electricEquipmentDefinition
-          if space_equipment.schedule.is_initialized
-              objects_to_remove << space_equipment.schedule.get
-          end
-      end
-      space.otherEquipment.each do |space_equipment|
-          next if space_equipment.name.to_s != unit_obj_name_g and space_equipment.name.to_s != unit_obj_name_p
-          objects_to_remove << space_equipment
-          objects_to_remove << space_equipment.otherEquipmentDefinition
-          if space_equipment.schedule.is_initialized
-              objects_to_remove << space_equipment.schedule.get
-          end
-      end
-      if objects_to_remove.size > 0 and display_remove_msg
-          runner.registerInfo("Removed existing clothes dryer from space '#{space.name.to_s}'.")
-      end
-      objects_to_remove.uniq.each do |object|
-          begin
-              object.remove
-          rescue
-              # no op
-          end
-      end
       
       ef = cef * 1.15 # RESNET interpretation
       cw_mef = 0.503 + 0.95 * cw_imef # RESNET interpretation
@@ -214,6 +183,37 @@ class ClothesDryer
       
       return true, ann_e, ann_f, sch
   
+  end
+  
+  def self.remove_existing(runner, space, obj_name, display_remove_msg=true)
+      # Remove any existing clothes dryer
+      objects_to_remove = []
+      space.electricEquipment.each do |space_equipment|
+          next if not space_equipment.name.to_s.start_with? obj_name
+          objects_to_remove << space_equipment
+          objects_to_remove << space_equipment.electricEquipmentDefinition
+          if space_equipment.schedule.is_initialized
+              objects_to_remove << space_equipment.schedule.get
+          end
+      end
+      space.otherEquipment.each do |space_equipment|
+          next if not space_equipment.name.to_s.start_with? obj_name
+          objects_to_remove << space_equipment
+          objects_to_remove << space_equipment.otherEquipmentDefinition
+          if space_equipment.schedule.is_initialized
+              objects_to_remove << space_equipment.schedule.get
+          end
+      end
+      if objects_to_remove.size > 0 and display_remove_msg
+          runner.registerInfo("Removed existing clothes dryer from space '#{space.name.to_s}'.")
+      end
+      objects_to_remove.uniq.each do |object|
+          begin
+              object.remove
+          rescue
+              # no op
+          end
+      end
   end
 
 end 
