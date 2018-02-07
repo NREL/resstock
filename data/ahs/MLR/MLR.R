@@ -14,7 +14,7 @@ df = rename(df, c('ZINC2'='income', 'POOR'='fpl'))
 x.vars.con = c()
 
 y.vars.con = c('income')
-y.vars.con = c('fpl')
+# y.vars.con = c('fpl')
 
 x.vars.cat = c('vintage', 'size', 'heatingtype', 'heatingfuel', 'actype', 'division')
 # x.vars.cat = c('vintage', 'size', 'heatingtype', 'heatingfuel', 'actype', 'smsa')
@@ -49,13 +49,12 @@ df$division = relevel(df$division, ref='South Atlantic - East South Central')
 attach(df)
 df.lm1 = lm(paste(dep_vars, paste(indep_vars, collapse=' + '), sep=' ~ '), weights=WEIGHT, data=df, x=T)
 detach(df)
+summary(df.lm1)
 table = as.data.frame.matrix(summary(df.lm1)$coefficients)
 table = table[order(table[['Pr(>|t|)']]), ]
 table = round(table, 5)
-print(table)
 write.csv(table, 'lm1.csv') # write out first pass to csv
-summary(df.lm1)$r.squared
-summary(df.lm1)$adj.r.squared
+write.csv(data.frame("R^2"=summary(df.lm1)$r.squared[1], "Adj-R^2"=summary(df.lm1)$adj.r.squared[1]), "stat1.csv", row.names=F)
 ###
 
 sig_indep_vars_factors = rownames(data.frame(summary(df.lm1)$coefficients)[data.frame(summary(df.lm1)$coefficients)$'Pr...t..' <= 0.05, ]) # remove insignificant vars
@@ -75,13 +74,12 @@ for (x in indep_vars) {
 attach(df)
 df.lm2 = lm(paste(dep_vars, paste(sig_indep_vars, collapse=' + '), sep=' ~ '), weights=WEIGHT, data=df, x=T)
 detach(df)
-table = as.data.frame.matrix(summary(df.lm1)$coefficients)
+summary(df.lm2)
+table = as.data.frame.matrix(summary(df.lm2)$coefficients)
 table = table[order(table[['Pr(>|t|)']]), ]
 table = round(table, 5)
-print(table)
 write.csv(table, 'lm2.csv') # write out second pass to csv
-summary(df.lm2)$r.squared
-summary(df.lm2)$adj.r.squared
+write.csv(data.frame("R^2"=summary(df.lm2)$r.squared[1], "Adj-R^2"=summary(df.lm2)$adj.r.squared[1]), "stat2.csv", row.names=F)
 ###
 
 stop()
