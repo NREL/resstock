@@ -316,7 +316,7 @@ def process_data(df):
     #create new fields for numerical processing later (correlation stuff)
     df['num_glass']=df.apply(lambda x: x['typeglass'] if x['typeglass'] > 0 else 0, axis = 1)
     #Select Single Family Detached Housing Only
-    df = df.loc[df['typehuq'] == 2]
+    df = df.loc[df['typehuq'] == 4]
     df = df.reset_index()
     # Apply dictionaries for mapping RECS response fields
     field_dicts = {'equipm': heating_types,
@@ -343,7 +343,7 @@ def process_data(df):
     # Assign sample counts
     df['Count'] = 1
     return df
-def calc_general(df, cut_by, columns=None, outfile=None,norm=True,outpath="Probability Distributions"):
+def calc_general(df, cut_by, columns=None, outfile=None,norm=True,outpath="housing_characteristics"):
     if not outfile == 'Infiltration.tsv':
       #Start Analyzing Specific Data
       fields = cut_by + columns
@@ -383,7 +383,7 @@ def calc_general(df, cut_by, columns=None, outfile=None,norm=True,outpath="Proba
     
     else:
     
-      g = pd.read_csv('Probability Distributions/Infiltration.tsv', delimiter='\t')
+      g = pd.read_csv('housing_characteristics/Infiltration.tsv', delimiter='\t')
       for col in g.columns:
         g = g.rename(columns={col: col.replace('Option=', '')})
         g = g.rename(columns={col: col.replace('Dependency=', '')})
@@ -915,11 +915,11 @@ def query(df):
 #    calc_general(df, cut_by=['yearmaderange','Size'], columns = ['Foundation Type'], outfile = 'FoundationType_output_by_vintage_size.tsv')
 #    calc_general(df, cut_by=['CR','FPL_BINS','Size'], columns = ['sizeofgarage'], outfile = 'SizeofGarage_output_by_CR_FPL_Size.tsv')
 #    calc_general(df, cut_by=['yearmaderange','Size','Foundation Type'], columns = ['stories'], outfile = 'Stories_output_by_vin_size_fndtype.tsv')
-#    calc_general(df, cut_by=['yearmaderange','Size'], columns = ['stories'], outfile = 'Geometry Stories.tsv', outpath='../../../project_resstock_national/housing_characteristics')
+     calc_general(df, cut_by=['yearmaderange','Size'], columns = ['stories'], outfile = 'Geometry Stories.tsv')
 #    calc_general(df, cut_by=['yearmaderange','Size'], columns = ['sizeofgarage'], outfile = 'Geometry Garage.tsv', outpath='../../../project_resstock_national/housing_characteristics')
 #    calc_general(df, cut_by=['CR'], columns = ['division'], outfile = 'Location Census Division.tsv', outpath='../../../project_resstock_national/housing_characteristicsl')
 #    calc_general(df, cut_by=['CR','yearmaderange','Size','stories'], columns = [], outfile = 'Infiltration.tsv', outpath='../../../project_resstock_national/housing_characteristics')
-    pass
+     pass
 if __name__ == '__main__':
     #Choose regerate if you want to redo the processed pkl file, otherwise comment out
     # df = erin_boyd()
