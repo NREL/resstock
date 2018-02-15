@@ -161,5 +161,5 @@ unless Dir.exists? local_results_dir
 end
 
 # Retrieve the datapoints and indicate success
-Zip.warn_invalid_date = false
+#Zip.warn_invalid_date = false
 retrieve_dp_data(local_results_dir, options[:dns], options[:unzip])
