@@ -123,48 +123,74 @@ If you do not need the timeseries data for your simulations, you can skip this m
 
 .. _utility-bill-calculations:
 
-Utility Bill Calculations
+Simple Utility Bill Calculations
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
-This measure calculates sets of utility bills for each datapoint included in the analysis. Utility bills can be calculated based on rates (stored in json format) from OpenEI's `Utility Rate Database`_ (URDB), state-average rates, or user-specified rates. When calculating bills based on rates from the URDB, this measure will first find the tariff whose EIAID and Label are nearest the latitude/longitude of the datapoint's weather file. Simply leaving all arguments set to their default values will cause utility bills to be calculated based on rates from the URDB.
+The simple utility bill measure calculates utility bills based on fixed charges for electric and gas, and marginal rates for all fuel types. Users can specify PV compensation types of **net metering** or **feed-in tariff**, along with corresponding rates.
 
-.. _Utility Rate Database: https://openei.org/wiki/Utility_Rate_Database
+.. image:: ../images/tutorial/utility_bill_calculations_simple.png
 
-.. image:: ../images/tutorial/utility_bill_calculations.png
-
-**Run Directory**
-  *Do not change this value.* Leave it as ``..``.
-
-**API Key**
-  Supply a URDB api key if you will be downloading rate structures that are not already contained in the **Tariff Directory**. If you do not already have an api key, you can `sign up for an api key`_.
+**Electricity: Fixed Charge**
+  Monthly fixed charge for electricity.
   
-.. _sign up for an api key: https://openei.org/services/api/signup
+**Electricity: Marginal Rate**
+  Price per kilowatt-hour for electricity. Use 'auto' for state-average value from EIA.
+  
+**Natural Gas: Fixed Charge**
+  Monthly fixed charge for natural gas.
+  
+**Natural Gas: Marginal Rate**
+  Price per therm for natural gas. Use 'auto' for state-average value from EIA.
+  
+**Oil: Marginal Rate**
+  Price per gallon for fuel oil. Use 'auto' for state-average value from EIA.
+  
+**Propane: Marginal Rate**
+  Price per gallon for propane. Use 'auto' for state-average value from EIA.
+  
+**PV: Compensation Type**
+  The type of compensation for PV.
+  
+**PV: Net Metering Annual Excess Sellback Rate**
+  The annual excess/net sellback rate for PV. Only applies if the PV compensation type is 'net metering'.
+  
+**PV: Feed-In Tariff Rate**
+  The annual full/gross tariff rate for PV. Only applies if the PV compensation type is 'feed-in tariff'.
 
-**Tariff Directory**
-  The repository comes packaged with a set of residential tariff files. Each file in the set represents the residential rate structure for a given ``<EIAID>_<Label>`` pair. To draw from this set of rates, set this value to `../../lib/resources/tariffs`.
+Detailed Utility Bill Calculations
+^^^^^^^^^^^^^^^^^^^^^^^^^
 
-**Tariff File Name**
-  To calculate utility bills based on a user-supplied rate structure, specify the path to your json file here.
+The detailed utility bill measure calculates electric utility bills based on tariffs from the `OpenEI Utility Rate Database`_ (URDB); it calculates other utility bills based on fixed charges for gas, and marginal rates for gas, oil, and propane. Users can specify PV compensation types of **net metering** or **feed-in tariff**, along with corresponding rates.
 
-**Electricity Fixed Cost**
-  User-specified annual fixed cost of electricity.
+.. _OpenEI Utility Rate Database: https://openei.org/wiki/Utility_Rate_Database
 
-**Electricity Unit Cost**
-  User-specified price per kilowatt-hour for electricity.
+.. image:: ../images/tutorial/utility_bill_calculations_detailed.png
 
-**Natural Gas Fixed Cost**
-  User-specified annual fixed cost of natural gas.
+**Electricity: Tariff**
+  Choose either 'Autoselect Tariff(s)', 'Custom Tariff', or a prepackaged tariff. If 'Autoselect Tariff(s)' is selected, tariff(s) from nearby utilities will be selected.
+  
+**Electricity: Custom Tariff File Location**
+  Absolute path to custom tariff file. See resources/tariffs.zip for example tariff files. Only applies if Tariff is 'Custom Tariff'.
+  
+**Natural Gas: Fixed Charge**
+  Monthly fixed charge for natural gas.
+  
+**Natural Gas: Marginal Rate**
+  Price per therm for natural gas. Use 'auto' for state-average value from EIA.
+  
+**Oil: Marginal Rate**
+  Price per gallon for fuel oil. Use 'auto' for state-average value from EIA.
+  
+**Propane: Marginal Rate**
+  Price per gallon for propane. Use 'auto' for state-average value from EIA.
+  
+**PV: Compensation Type**
+  The type of compensation for PV.
+  
+**PV: Net Metering Annual Excess Sellback Rate**
+  The annual excess/net sellback rate for PV. Only applies if the PV compensation type is 'net metering'.
+  
+**PV: Feed-In Tariff Rate**
+  The annual full/gross tariff rate for PV. Only applies if the PV compensation type is 'feed-in tariff'.
 
-**Natural Gas Unit Cost**
-  User-specified price per therm for natural gas.
-
-**Fuel Oil Unit Cost**
-  User-specified price per gallon for fuel oil.
-
-**Propane Unit Cost**
-  User-specified price per gallon for propane.
-
-**Average Residential Rates**
-  By default, utility bills will be calculated based on rate structures found in **Tariff Directory**. Choose this option to calculate utility bills based on state-average residential rates instead.
-
-Now switch to the Outputs tab. Select "Utility Bill Calculations" from the dropdown and click on **Add Measure**. Click on **Select Outputs**, then on **Select All**, then on **+ Add Output**, and finally on **OK**. This will ensure that the calculated utility bills are registered to the results.csv file.
+Now switch to the Outputs tab. Select either "Calculate Simple Utility Bills" or "Calculate Detailed Utility Bills from the dropdown (depending on which one you are using) and click on **Add Measure**. Click on **Select Outputs**, then on **Select All**, then on **+ Add Output**, and finally on **OK**. This will ensure that the calculated utility bills are registered to the results.csv file.
