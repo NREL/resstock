@@ -354,6 +354,27 @@ class ResidentialAirflow < OpenStudio::Measure::ModelMeasure
     is_existing_home.setDefaultValue(false)
     args << is_existing_home
     
+    #make an integer argument for hour of range spot ventilation
+    range_spot_vent = OpenStudio::Measure::OSArgument::makeIntegerArgument("range_spot_vent",true)
+    range_spot_vent.setDisplayName("Hour of range spot ventilation")
+    range_spot_vent.setDescription("Hour in which range spot ventilation occurs. Values indicate the time of spot ventilation, which lasts for 1 hour.")
+    range_spot_vent.setDefaultValue(16)
+    args << range_spot_vent
+    
+    #make an integer argument for hour of bathroom spot ventilation
+    bathroom_spot_vent = OpenStudio::Measure::OSArgument::makeIntegerArgument("bathroom_spot_vent",true)
+    bathroom_spot_vent.setDisplayName("Hour of bathroom spot ventilation")
+    bathroom_spot_vent.setDescription("Hour in which bathroom spot ventilation occurs. Values indicate the time of spot ventilation, which lasts for 1 hour.")
+    bathroom_spot_vent.setDefaultValue(5)
+    args << bathroom_spot_vent
+    
+    #make an integer argument for hour of clothes dryer spot ventilation
+    clothes_dryer_spot_vent = OpenStudio::Measure::OSArgument::makeIntegerArgument("clothes_dryer_spot_vent",true)
+    clothes_dryer_spot_vent.setDisplayName("Hour of clothes dryer spot ventilation")
+    clothes_dryer_spot_vent.setDescription("Hour in which clothes dryer spot ventilation occurs. Values indicate the time of spot ventilation, which lasts for 1 hour.")
+    clothes_dryer_spot_vent.setDefaultValue(9)
+    args << clothes_dryer_spot_vent
+    
     #make a double argument for dryer exhaust
     clothes_dryer_exhaust = OpenStudio::Measure::OSArgument::makeDoubleArgument("clothes_dryer_exhaust",false)
     clothes_dryer_exhaust.setDisplayName("Clothes Dryer: Exhaust")
@@ -600,6 +621,9 @@ class ResidentialAirflow < OpenStudio::Measure::ModelMeasure
       mechVentTotalEfficiency = 0.0
       mechVentSensibleEfficiency = 0.0
     end
+    rangeExhaustTime = runner.getIntegerArgumentValue("range_spot_vent",user_arguments)
+    bathroomExhaustTime = runner.getIntegerArgumentValue("bathroom_spot_vent",user_arguments)
+    clothesDryerExhaustTime = runner.getIntegerArgumentValue("clothes_dryer_spot_vent",user_arguments)
     dryerExhaust = runner.getDoubleArgumentValue("clothes_dryer_exhaust",user_arguments)
     is_existing_home = runner.getBoolArgumentValue("is_existing_home",user_arguments)
     natVentHtgSsnSetpointOffset = runner.getDoubleArgumentValue("nat_vent_htg_offset",user_arguments)
@@ -1089,10 +1113,34 @@ class ResidentialAirflow < OpenStudio::Measure::ModelMeasure
         return false
       end
       
-      schedules.BathExhaust = HourlyByMonthSchedule.new(model, runner, obj_name_infil + " bath exhaust schedule", [Array.new(6, 0.0) + [1.0] + Array.new(17, 0.0)] * 12, [Array.new(6, 0.0) + [1.0] + Array.new(17, 0.0)] * 12, normalize_values = false)
-      schedules.ClothesDryerExhaust = HourlyByMonthSchedule.new(model, runner, obj_name_infil + " clothes dryer exhaust schedule", [Array.new(10, 0.0) + [1.0] + Array.new(13, 0.0)] * 12, [Array.new(10, 0.0) + [1.0] + Array.new(13, 0.0)] * 12, normalize_values = false)
-      schedules.RangeHood = HourlyByMonthSchedule.new(model, runner, obj_name_infil + " range hood schedule", [Array.new(17, 0.0) + [1.0] + Array.new(6, 0.0)] * 12, [Array.new(17, 0.0) + [1.0] + Array.new(6, 0.0)] * 12, normalize_values = false)
-      
+      range_array = []
+      for h in 0..23
+        if h == rangeExhaustTime
+          range_array.concat([1.0])
+        else
+          range_array.concat([0.0])
+        end
+      end
+      bathroom_array = []
+      for h in 0..23
+        if h == bathroomExhaustTime
+          bathroom_array.concat([1.0])
+        else
+          bathroom_array.concat([0.0])
+        end
+      end
+      clothes_dryer_array = []
+      for h in 0..23
+        if h == clothesDryerExhaustTime
+          clothes_dryer_array.concat([1.0])
+        else
+          clothes_dryer_array.concat([0.0])
+        end
+      end
+      schedules.BathExhaust = HourlyByMonthSchedule.new(model, runner, obj_name_infil + " bath exhaust schedule", [bathroom_array] * 12, normalize_values = false)
+      schedules.RangeHood = HourlyByMonthSchedule.new(model, runner, obj_name_infil + " range hood schedule", [range_array] * 12, normalize_values = false)
+      schedules.ClothesDryerExhaust = HourlyByMonthSchedule.new(model, runner, obj_name_infil + " clothes dryer exhaust schedule", [clothes_dryer_array] * 12, normalize_values = false)
+       
       schedules.MechanicalVentilationEnergy = HourlyByMonthSchedule.new(model, runner, obj_name_mechvent + " energy schedule", [mech_vent.hourly_energy_schedule] * 12, [mech_vent.hourly_energy_schedule] * 12, normalize_values = false)
       schedules.MechanicalVentilation = HourlyByMonthSchedule.new(model, runner, obj_name_mechvent + " schedule", [mech_vent.hourly_schedule] * 12, [mech_vent.hourly_schedule] * 12, normalize_values = false)      
       
