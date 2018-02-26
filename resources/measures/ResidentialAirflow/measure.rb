@@ -1137,9 +1137,9 @@ class ResidentialAirflow < OpenStudio::Measure::ModelMeasure
           clothes_dryer_array.concat([0.0])
         end
       end
-      schedules.BathExhaust = HourlyByMonthSchedule.new(model, runner, obj_name_infil + " bath exhaust schedule", [bathroom_array] * 12, normalize_values = false)
-      schedules.RangeHood = HourlyByMonthSchedule.new(model, runner, obj_name_infil + " range hood schedule", [range_array] * 12, normalize_values = false)
-      schedules.ClothesDryerExhaust = HourlyByMonthSchedule.new(model, runner, obj_name_infil + " clothes dryer exhaust schedule", [clothes_dryer_array] * 12, normalize_values = false)
+      schedules.BathExhaust = HourlyByMonthSchedule.new(model, runner, obj_name_infil + " bath exhaust schedule", [bathroom_array] * 12, [bathroom_array] * 12, normalize_values = false)
+      schedules.RangeHood = HourlyByMonthSchedule.new(model, runner, obj_name_infil + " range hood schedule", [range_array] * 12, [range_array] * 12, normalize_values = false)
+      schedules.ClothesDryerExhaust = HourlyByMonthSchedule.new(model, runner, obj_name_infil + " clothes dryer exhaust schedule", [clothes_dryer_array] * 12, [clothes_dryer_array] * 12, normalize_values = false)
        
       schedules.MechanicalVentilationEnergy = HourlyByMonthSchedule.new(model, runner, obj_name_mechvent + " energy schedule", [mech_vent.hourly_energy_schedule] * 12, [mech_vent.hourly_energy_schedule] * 12, normalize_values = false)
       schedules.MechanicalVentilation = HourlyByMonthSchedule.new(model, runner, obj_name_mechvent + " schedule", [mech_vent.hourly_schedule] * 12, [mech_vent.hourly_schedule] * 12, normalize_values = false)      
