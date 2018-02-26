@@ -1114,7 +1114,7 @@ class ResidentialAirflow < OpenStudio::Measure::ModelMeasure
       end
       
       range_array = []
-      for h in 0..23
+      for h in 1..24
         if h == rangeExhaustTime
           range_array.concat([1.0])
         else
@@ -1122,7 +1122,7 @@ class ResidentialAirflow < OpenStudio::Measure::ModelMeasure
         end
       end
       bathroom_array = []
-      for h in 0..23
+      for h in 1..24
         if h == bathroomExhaustTime
           bathroom_array.concat([1.0])
         else
@@ -1130,7 +1130,7 @@ class ResidentialAirflow < OpenStudio::Measure::ModelMeasure
         end
       end
       clothes_dryer_array = []
-      for h in 0..23
+      for h in 1..24
         if h == clothesDryerExhaustTime
           clothes_dryer_array.concat([1.0])
         else
