@@ -16,5 +16,4 @@ source activate ruby
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 cd $DIR
 cd ..
-time ruby scripts/download_datapoints.rb -p ../project_resstock_efs -s $OS_SERVER_URL
-
+time ruby scripts/download_datapoints.rb -p $PROJECT_DIR -s $OS_SERVER_URL
