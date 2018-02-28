@@ -64,7 +64,7 @@ def retrieve_dp_data(local_results_dir, server_dns=nil, unzip=false)
   interval = 1
   report_at = interval
   timestep = Time.now
-  num_parallel = 8
+  num_parallel = Etc.nprocessors
   Parallel.each_with_index(dps, in_threads: num_parallel) do |dp, i|
 
     dest = File.join local_results_dir, dp[:_id]
