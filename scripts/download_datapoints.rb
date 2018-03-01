@@ -15,6 +15,53 @@ require 'openssl'
 require 'csv'
 require 'parallel'
 
+# Download the results csv if it doesn't already exist
+#
+# @param local_result_dir [::String] path to the localResults directory
+def retrieve_results_csv(local_results_dir, server_dns=nil, analysis_id=nil)
+  # Verify localResults directory
+  unless File.basename(local_results_dir) == 'localResults'
+    fail "ERROR: input #{local_results_dir} does not point to localResults"
+  end
+
+  dest = nil
+  Dir["#{local_results_dir}/*.csv"].each do |item|
+    dest = item
+  end
+
+  return unless dest.nil?
+  dest = File.join local_results_dir, "results.csv"
+
+  url = URI.parse("#{server_dns}/analyses/#{analysis_id}/download_data.csv?")
+  http = Net::HTTP.new(url.host, url.port)
+  http.read_timeout = 1000 # seconds
+
+  params = { 'export' => 'true' }
+  url.query = URI.encode_www_form(params)
+  request = Net::HTTP::Get.new(url.request_uri)
+
+  http.request request do |response|
+    total = response.header["Content-Length"].to_i
+    if total == 0
+      fail "Did not successfully download zip file."
+    end
+    size = 0
+    progress = 0
+    open dest, 'wb' do |io|
+      response.read_body do |chunk|
+        io.write chunk
+        size += chunk.size
+        new_progress = (size * 100) / total
+        unless new_progress == progress
+          puts "Downloading %s (%3d%%) " % [dest, new_progress]
+        end
+        progress = new_progress
+      end
+    end
+  end
+
+end
+
 # Unzip an archive to a destination directory using Rubyzip gem
 #
 # @param archive [:string] archive path for extraction
@@ -57,7 +104,7 @@ def retrieve_dp_data(local_results_dir, server_dns=nil, unzip=false)
   # Ensure there are datapoints to download
   dps = retrieve_dps(local_results_dir)
   if dps.empty?
-    fail "ERROR: No datapoints found. You must download the results csv first."
+    fail "ERROR: No datapoints were found. Unable to download the results csv."
   end
   
   # Only download datapoints which do not already exist
@@ -120,21 +167,27 @@ end
 options = {}
 
 # Define allowed ARGV input
-# -s --server_dns [string]
 # -p --project_dir [string]
+# -s --server_dns [string]
+# -a --analysis_id [string]
 optparse = OptionParser.new do |opts|
-  opts.banner = 'Usage:    download_datapoints [-s] <server_dns> [-p] <project_dir> [-u] [-h]'
+  opts.banner = 'Usage:    download_datapoints [-p] <project_dir> [-s] <server_dns> [-a] <analysis_id> [-u] [-h]'
 
   options[:project_dir] = nil
   opts.on('-p', '--project_dir <dir>', 'specified project DIRECTORY') do |dir|
     options[:project_dir] = dir
   end
 
-  options[:dns] = nil
+  options[:server_dns] = nil
   opts.on('-s', '--server_dns <DNS>', 'specified server DNS') do |dns|
-    options[:dns] = dns
+    options[:server_dns] = dns
   end
-  
+
+  options[:analysis_id] = nil
+  opts.on('-a', '--analysis_id <id>', 'specified analysis ID') do |id|
+    options[:analysis_id] = id
+  end
+
   options[:unzip] = false
   opts.on('-u', '--unzip', 'extract data_point.zip contents') do |zip|
     options[:unzip] = true
@@ -161,5 +214,5 @@ unless Dir.exists? local_results_dir
 end
 
 # Retrieve the datapoints and indicate success
-#Zip.warn_invalid_date = false
-retrieve_dp_data(local_results_dir, options[:dns], options[:unzip])
+retrieve_results_csv(local_results_dir, options[:server_dns], options[:analysis_id])
+retrieve_dp_data(local_results_dir, options[:server_dns], options[:unzip])
