@@ -4,8 +4,9 @@
 require 'erb'
 require 'csv'
 require 'matrix'
+require "#{File.dirname(__FILE__)}/resources/unit_conversions"
 
-#start the measure 
+#start the measure
 class UtilityBillCalculations < OpenStudio::Measure::ReportingMeasure
 
   # human readable name
@@ -280,9 +281,9 @@ class UtilityBillCalculations < OpenStudio::Measure::ReportingMeasure
                     
         values.each do |value|
           if timeseries.keys.include? var_name
-            timeseries[var_name] << OpenStudio.convert(value, old_units, new_units).get
+            timeseries[var_name] << UnitConversions.convert(value, old_units, new_units)
           else
-            timeseries[var_name] = [OpenStudio.convert(value, old_units, new_units).get]
+            timeseries[var_name] = [UnitConversions.convert(value, old_units, new_units)]
           end
         end
         
@@ -610,7 +611,7 @@ class UtilityBillCalculations < OpenStudio::Measure::ReportingMeasure
       total_val += val.to_f
     end
     unless desired_units == "gal"
-      runner.registerValue(name, (OpenStudio::convert(total_val, os_units, desired_units).get * rate.to_f + fixed.to_f).round(2))
+      runner.registerValue(name, (UnitConversions.convert(total_val, os_units, desired_units) * rate.to_f + fixed.to_f).round(2))
     else
       if name.include? "oil"
         runner.registerValue("fuel_oil", (total_val * 1000.0 / 139000 * rate.to_f + fixed.to_f).round(2))
@@ -637,7 +638,7 @@ class UtilityBillCalculations < OpenStudio::Measure::ReportingMeasure
   def haversine(lat1, lon1, lat2, lon2)
     # convert decimal degrees to radians
     [lon1, lat1, lon2, lat2].each do |l|
-      l = OpenStudio.convert(l,"deg","rad").get
+      l = UnitConversions.convert(l,"deg","rad")
     end
     # haversine formula 
     dlon = lon2 - lon1 
