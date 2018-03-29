@@ -368,6 +368,9 @@ def integrity_check(project_dir_names=nil)
           # global distribution
           _matched_option_name, _matched_row_num = tsvfile.get_option_name_from_sample_number(1.0, nil)
         end
+        
+        # Check for all options defined in options_lookup.tsv
+        get_measure_args_from_option_names(lookup_file, tsvfile.option_cols.keys, parameter_name)
           
       end
     end # parameter_name
