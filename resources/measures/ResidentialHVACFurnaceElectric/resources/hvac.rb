@@ -1,17 +1,18 @@
 require "#{File.dirname(__FILE__)}/constants"
 require "#{File.dirname(__FILE__)}/geometry"
 require "#{File.dirname(__FILE__)}/util"
+require "#{File.dirname(__FILE__)}/unit_conversions"
 
 class HVAC
 
     def self.calc_EIR_from_COP(cop, supplyFanPower_Rated)
-        return OpenStudio::convert((OpenStudio::convert(1,"Btu","W*h").get + supplyFanPower_Rated * 0.03333) / cop - supplyFanPower_Rated * 0.03333,"W*h","Btu").get
+        return UnitConversions.convert((UnitConversions.convert(1,"Btu","Wh") + supplyFanPower_Rated * 0.03333) / cop - supplyFanPower_Rated * 0.03333,"Wh","Btu")
     end
-  
+
     def self.calc_EIR_from_EER(eer, supplyFanPower_Rated)
-        return OpenStudio::convert((1 - OpenStudio::convert(supplyFanPower_Rated * 0.03333,"W*h","Btu").get) / eer - supplyFanPower_Rated * 0.03333,"W*h","Btu").get
+        return UnitConversions.convert((1 - UnitConversions.convert(supplyFanPower_Rated * 0.03333,"Wh","Btu")) / eer - supplyFanPower_Rated * 0.03333,"Wh","Btu")
     end
-    
+
     def self.calc_cfm_ton_rated(rated_airflow_rate, fanspeed_ratios, capacity_ratios)
         array = []
         fanspeed_ratios.each_with_index do |fanspeed_ratio, i|
@@ -19,8 +20,8 @@ class HVAC
             array << fanspeed_ratio * rated_airflow_rate / capacity_ratio
         end
         return array
-    end      
-    
+    end
+
     def self.create_curve_biquadratic_constant(model)
         const_biquadratic = OpenStudio::Model::CurveBiquadratic.new(model)
         const_biquadratic.setName("ConstantBiquadratic")
@@ -33,10 +34,10 @@ class HVAC
         const_biquadratic.setMinimumValueofx(-100)
         const_biquadratic.setMaximumValueofx(100)
         const_biquadratic.setMinimumValueofy(-100)
-        const_biquadratic.setMaximumValueofy(100)   
+        const_biquadratic.setMaximumValueofy(100)
         return const_biquadratic
     end
-    
+
     def self.create_curve_cubic_constant(model)
         constant_cubic = OpenStudio::Model::CurveCubic.new(model)
         constant_cubic.setName("ConstantCubic")
@@ -58,7 +59,7 @@ class HVAC
             si_coeff << 81.0 / 25.0 * coeff[2]
             si_coeff << 9.0 / 5.0 * coeff[3] + 576.0 / 5.0 * coeff[4] + 288.0 / 5.0 * coeff[5]
             si_coeff << 81.0 / 25.0 * coeff[4]
-            si_coeff << 81.0 / 25.0 * coeff[5]        
+            si_coeff << 81.0 / 25.0 * coeff[5]
             return si_coeff
         else
             # Convert SI curves to IP curves
@@ -72,7 +73,7 @@ class HVAC
             return ip_coeff
         end
     end
-    
+
     def self.convert_curve_gshp(coeff, gshp_to_biquadratic)
         m1 = 32 - 273.15 * 1.8
         m2 = 283 * 1.8
@@ -95,7 +96,7 @@ class HVAC
             return gsph_coeff
         end
     end
-    
+
     def self.create_curve_biquadratic(model, coeff, name, minX, maxX, minY, maxY)
         curve = OpenStudio::Model::CurveBiquadratic.new(model)
         curve.setName(name)
@@ -111,7 +112,7 @@ class HVAC
         curve.setMaximumValueofy(maxY)
         return curve
     end
-    
+
     def self.create_curve_bicubic(model, coeff, name, minX, maxX, minY, maxY)
         curve = OpenStudio::Model::CurveBicubic.new(model)
         curve.setName(name)
@@ -131,7 +132,7 @@ class HVAC
         curve.setMaximumValueofy(maxY)
         return curve
     end
-    
+
     def self.create_curve_quadratic(model, coeff, name, minX, maxX, minY, maxY, is_dimensionless=false)
         curve = OpenStudio::Model::CurveQuadratic.new(model)
         curve.setName(name)
@@ -152,8 +153,8 @@ class HVAC
         end
         return curve
     end
-    
-    def self.create_curve_cubic(model, coeff, name, minX, maxX, minY, maxY)    
+
+    def self.create_curve_cubic(model, coeff, name, minX, maxX, minY, maxY)
       curve = OpenStudio::Model::CurveCubic.new(model)
       curve.setName(name)
       curve.setCoefficient1Constant(coeff[0])
@@ -166,7 +167,7 @@ class HVAC
       curve.setMaximumCurveOutput(maxY)
       return curve
     end
-    
+
     def self.create_curve_exponent(model, coeff, name, minX, maxX)
       curve = OpenStudio::Model::CurveExponent.new(model)
       curve.setName(name)
@@ -177,29 +178,29 @@ class HVAC
       curve.setMaximumValueofx(maxX)
       return curve
     end
-      
+
     def self.calc_coil_stage_data_cooling(model, outputCapacity, number_Speeds, coolingEIR, shr_Rated_Gross, cOOL_CAP_FT_SPEC, cOOL_EIR_FT_SPEC, cOOL_CLOSS_FPLR_SPEC, cOOL_CAP_FFLOW_SPEC, cOOL_EIR_FFLOW_SPEC, distributionSystemEfficiency)
 
       const_biquadratic = self.create_curve_biquadratic_constant(model)
-    
+
       clg_coil_stage_data = []
       (0...number_Speeds).to_a.each do |speed|
-      
+
         cool_cap_ft_curve = self.create_curve_biquadratic(model, self.convert_curve_biquadratic(cOOL_CAP_FT_SPEC[speed], true), "Cool-Cap-fT#{speed+1}", 13.88, 23.88, 18.33, 51.66)
         cool_eir_ft_curve = self.create_curve_biquadratic(model, self.convert_curve_biquadratic(cOOL_EIR_FT_SPEC[speed], true), "Cool-EIR-fT#{speed+1}", 13.88, 23.88, 18.33, 51.66)
         cool_plf_fplr_curve = self.create_curve_quadratic(model, cOOL_CLOSS_FPLR_SPEC[speed], "Cool-PLF-fPLR#{speed+1}", 0, 1, 0.7, 1)
         cool_cap_fff_curve = self.create_curve_quadratic(model, cOOL_CAP_FFLOW_SPEC[speed], "Cool-Cap-fFF#{speed+1}", 0, 2, 0, 2)
         cool_eir_fff_curve = self.create_curve_quadratic(model, cOOL_EIR_FFLOW_SPEC[speed], "Cool-EIR-fFF#{speed+1}", 0, 2, 0, 2)
 
-        stage_data = OpenStudio::Model::CoilCoolingDXMultiSpeedStageData.new(model, 
-                                                                             cool_cap_ft_curve, 
-                                                                             cool_cap_fff_curve, 
-                                                                             cool_eir_ft_curve, 
-                                                                             cool_eir_fff_curve, 
-                                                                             cool_plf_fplr_curve, 
+        stage_data = OpenStudio::Model::CoilCoolingDXMultiSpeedStageData.new(model,
+                                                                             cool_cap_ft_curve,
+                                                                             cool_cap_fff_curve,
+                                                                             cool_eir_ft_curve,
+                                                                             cool_eir_fff_curve,
+                                                                             cool_plf_fplr_curve,
                                                                              const_biquadratic)
         if outputCapacity != Constants.SizingAuto and outputCapacity != Constants.SizingAutoMaxLoad
-          stage_data.setGrossRatedTotalCoolingCapacity(OpenStudio::convert(outputCapacity,"Btu/h","W").get) # Used by HVACSizing measure
+          stage_data.setGrossRatedTotalCoolingCapacity(UnitConversions.convert(outputCapacity,"Btu/hr","W")) # Used by HVACSizing measure
         end
         stage_data.setGrossRatedSensibleHeatRatio(shr_Rated_Gross[speed])
         stage_data.setGrossRatedCoolingCOP(distributionSystemEfficiency / coolingEIR[speed])
@@ -212,11 +213,11 @@ class HVAC
       end
       return clg_coil_stage_data
     end
-      
+
     def self.calc_coil_stage_data_heating(model, outputCapacity, number_Speeds, heatingEIR, hEAT_CAP_FT_SPEC, hEAT_EIR_FT_SPEC, hEAT_CLOSS_FPLR_SPEC, hEAT_CAP_FFLOW_SPEC, hEAT_EIR_FFLOW_SPEC, distributionSystemEfficiency)
-    
+
       const_biquadratic = self.create_curve_biquadratic_constant(model)
-    
+
       htg_coil_stage_data = []
       # Loop through speeds to create curves for each speed
       (0...number_Speeds).to_a.each do |speed|
@@ -226,24 +227,24 @@ class HVAC
         hp_heat_plf_fplr_curve = self.create_curve_quadratic(model, hEAT_CLOSS_FPLR_SPEC[speed], "HP_Heat-PLF-fPLR#{speed+1}", 0, 1, 0.7, 1)
         hp_heat_cap_fff_curve = self.create_curve_quadratic(model, hEAT_CAP_FFLOW_SPEC[speed], "HP_Heat-CAP-fFF#{speed+1}", 0, 2, 0, 2)
         hp_heat_eir_fff_curve = self.create_curve_quadratic(model, hEAT_EIR_FFLOW_SPEC[speed], "HP_Heat-EIR-fFF#{speed+1}", 0, 2, 0, 2)
-      
-        stage_data = OpenStudio::Model::CoilHeatingDXMultiSpeedStageData.new(model, 
-                                                                             hp_heat_cap_ft_curve, 
-                                                                             hp_heat_cap_fff_curve, 
-                                                                             hp_heat_eir_ft_curve, 
-                                                                             hp_heat_eir_fff_curve, 
-                                                                             hp_heat_plf_fplr_curve, 
+
+        stage_data = OpenStudio::Model::CoilHeatingDXMultiSpeedStageData.new(model,
+                                                                             hp_heat_cap_ft_curve,
+                                                                             hp_heat_cap_fff_curve,
+                                                                             hp_heat_eir_ft_curve,
+                                                                             hp_heat_eir_fff_curve,
+                                                                             hp_heat_plf_fplr_curve,
                                                                              const_biquadratic)
         if outputCapacity != Constants.SizingAuto and outputCapacity != Constants.SizingAutoMaxLoad
-          stage_data.setGrossRatedHeatingCapacity(OpenStudio::convert(outputCapacity,"Btu/h","W").get) # Used by HVACSizing measure
-        end   
+          stage_data.setGrossRatedHeatingCapacity(UnitConversions.convert(outputCapacity,"Btu/hr","W")) # Used by HVACSizing measure
+        end
         stage_data.setGrossRatedHeatingCOP(distributionSystemEfficiency / heatingEIR[speed])
         stage_data.setRatedWasteHeatFractionofPowerInput(0.2)
         htg_coil_stage_data[speed] = stage_data
       end
       return htg_coil_stage_data
     end
-    
+
     def self.calc_cooling_eir(number_Speeds, coolingEER, supplyFanPower_Rated)
         coolingEIR = []
         (0...number_Speeds).to_a.each do |speed|
@@ -252,7 +253,7 @@ class HVAC
         end
         return coolingEIR
     end
-    
+
     def self.calc_heating_eir(number_Speeds, heatingCOP, supplyFanPower_Rated)
         heatingEIR = []
         (0...number_Speeds).to_a.each do |speed|
@@ -261,17 +262,17 @@ class HVAC
         end
         return heatingEIR
     end
-    
+
     def self.calc_shr_rated_gross(number_Speeds, shr_Rated_Net, supplyFanPower_Rated, cFM_TON_Rated)
-    
+
         # Convert SHRs from net to gross
         sHR_Rated_Gross = []
         (0...number_Speeds).to_a.each do |speed|
 
           qtot_net_nominal = 12000.0
           qsens_net_nominal = qtot_net_nominal * shr_Rated_Net[speed]
-          qtot_gross_nominal = qtot_net_nominal + OpenStudio::convert(cFM_TON_Rated[speed] * supplyFanPower_Rated,"Wh","Btu").get
-          qsens_gross_nominal = qsens_net_nominal + OpenStudio::convert(cFM_TON_Rated[speed] * supplyFanPower_Rated,"Wh","Btu").get
+          qtot_gross_nominal = qtot_net_nominal + UnitConversions.convert(cFM_TON_Rated[speed] * supplyFanPower_Rated,"Wh","Btu")
+          qsens_gross_nominal = qsens_net_nominal + UnitConversions.convert(cFM_TON_Rated[speed] * supplyFanPower_Rated,"Wh","Btu")
           sHR_Rated_Gross << (qsens_gross_nominal / qtot_gross_nominal)
 
           # Make sure SHR's are in valid range based on E+ model limits.
@@ -281,25 +282,25 @@ class HVAC
           minSHR = 0.60   # Approximate minimum SHR such that an ADP exists
           sHR_Rated_Gross[speed] = [sHR_Rated_Gross[speed], minSHR].max
         end
-        
+
         return sHR_Rated_Gross
-    
+
     end
-    
+
     def self.calc_plr_coefficients_cooling(number_Speeds, coolingSEER, c_d=nil)
         if c_d.nil?
           c_d = self.get_c_d_cooling(number_Speeds, coolingSEER)
         end
         return [(1.0 - c_d), c_d, 0.0] # Linear part load model
     end
-    
+
     def self.calc_plr_coefficients_heating(number_Speeds, heatingHSPF, c_d=nil)
         if c_d.nil?
           c_d = self.get_c_d_heating(number_Speeds, heatingHSPF)
         end
         return [(1 - c_d), c_d, 0] # Linear part load model
     end
-    
+
     def self.get_c_d_cooling(number_Speeds, coolingSEER)
         # Degradation coefficient for cooling
         if number_Speeds == 1
@@ -314,7 +315,7 @@ class HVAC
           return 0.25
         end
     end
-    
+
     def self.get_c_d_heating(number_Speeds, heatingHSPF)
         # Degradation coefficient for heating
         if number_Speeds == 1
@@ -329,7 +330,7 @@ class HVAC
           return 0.24
         end
     end
-    
+
     def self.get_boiler_curve(model, isCondensing)
         if isCondensing
             return HVAC.create_curve_biquadratic(model, [1.058343061, -0.052650153, -0.0087272, -0.001742217, 0.00000333715, 0.000513723], "CondensingBoilerEff", 0.2, 1.0, 30.0, 85.0)
@@ -337,9 +338,9 @@ class HVAC
             return HVAC.create_curve_bicubic(model, [1.111720116, 0.078614078, -0.400425756, 0.0, -0.000156783, 0.009384599, 0.234257955, 1.32927e-06, -0.004446701, -1.22498e-05], "NonCondensingBoilerEff", 0.1, 1.0, 20.0, 80.0)
         end
     end
-  
+
     def self.calculate_fan_efficiency(static, fan_power)
-        return OpenStudio::convert(static / fan_power,"cfm","m^3/s").get # Overall Efficiency of the Supply Fan, Motor and Drive
+        return UnitConversions.convert(static / fan_power,"cfm","m^3/s") # Overall Efficiency of the Supply Fan, Motor and Drive
     end
 
     def self.get_furnace_hir(furnaceInstalledAFUE)
@@ -352,8 +353,8 @@ class HVAC
 
       hir = 1.0 / furnaceInstalledAFUE
       return hir
-    end  
-  
+    end
+
     def self.get_control_and_slave_zones(thermal_zones)
       control_slave_zones_hash = {}
       finished_above_grade_zones, finished_below_grade_zones = Geometry.get_finished_above_and_below_grade_zones(thermal_zones)
@@ -373,23 +374,23 @@ class HVAC
       end
       return control_slave_zones_hash
     end
-  
+
     def self.existing_cooling_equipment(model, runner, thermal_zone)
       # Returns a list of cooling equipment objects
       cooling_equipment = []
       if self.has_ashp(model, runner, thermal_zone)
         runner.registerInfo("Found air source heat pump in #{thermal_zone.name}.")
-        system, clg_coil, htg_coil, air_loop = self.get_unitary_system(model, runner, thermal_zone)
+        system, clg_coil, htg_coil, air_loop = self.get_unitary_system_air_loop(model, runner, thermal_zone)
         cooling_equipment << system
       end
       if self.has_central_ac(model, runner, thermal_zone)
         runner.registerInfo("Found central air conditioner in #{thermal_zone.name}.")
-        system, clg_coil, htg_coil, air_loop = self.get_unitary_system(model, runner, thermal_zone)
+        system, clg_coil, htg_coil, air_loop = self.get_unitary_system_air_loop(model, runner, thermal_zone)
         cooling_equipment << system
       end
       if self.has_room_ac(model, runner, thermal_zone)
         runner.registerInfo("Found room air conditioner in #{thermal_zone.name}.")
-        ptac = self.get_ptac(model, runner, thermal_zone)
+        ptac = self.get_room_ac(model, runner, thermal_zone)
         cooling_equipment << ptac
       end
       if self.has_mshp(model, runner, thermal_zone)
@@ -400,24 +401,34 @@ class HVAC
         end
       end
       if self.has_gshp(model, runner, thermal_zone)
-        system, clg_coil, htg_coil, air_loop = self.get_unitary_system(model, runner, thermal_zone)
+        system, clg_coil, htg_coil, air_loop = self.get_unitary_system_air_loop(model, runner, thermal_zone)
         runner.registerInfo("Found ground source heat pump in #{thermal_zone.name}.")
         cooling_equipment << system
       end
+      if self.has_central_ptac(model, runner, thermal_zone)
+        runner.registerInfo("Found central ptac in #{thermal_zone.name}.")
+        ptac = self.get_central_ptac(model, runner, thermal_zone)
+        cooling_equipment << ptac
+      end
+      if self.has_central_fan_coil(model, runner, thermal_zone)
+        runner.registerInfo("Found central fan coil in #{thermal_zone.name}.")
+        fcu = self.get_central_fan_coil(model, runner, thermal_zone)
+        cooling_equipment << fcu
+      end
       return cooling_equipment
     end
-    
+
     def self.existing_heating_equipment(model, runner, thermal_zone)
       # Returns a list of heating equipment objects
       heating_equipment = []
       if self.has_ashp(model, runner, thermal_zone)
         runner.registerInfo("Found air source heat pump in #{thermal_zone.name}.")
-        system, clg_coil, htg_coil, air_loop = self.get_unitary_system(model, runner, thermal_zone)
+        system, clg_coil, htg_coil, air_loop = self.get_unitary_system_air_loop(model, runner, thermal_zone)
         heating_equipment << system
       end
       if self.has_furnace(model, runner, thermal_zone)
         runner.registerInfo("Found furnace in #{thermal_zone.name}.")
-        system, clg_coil, htg_coil, air_loop = self.get_unitary_system(model, runner, thermal_zone)
+        system, clg_coil, htg_coil, air_loop = self.get_unitary_system_air_loop(model, runner, thermal_zone)
         heating_equipment << system
       end
       if self.has_boiler(model, runner, thermal_zone)
@@ -439,13 +450,65 @@ class HVAC
       end
       if self.has_gshp(model, runner, thermal_zone)
         runner.registerInfo("Found ground source heat pump in #{thermal_zone.name}.")
-        system, clg_coil, htg_coil, air_loop = self.get_unitary_system(model, runner, thermal_zone)
+        system, clg_coil, htg_coil, air_loop = self.get_unitary_system_air_loop(model, runner, thermal_zone)
         heating_equipment << system
       end
+      if self.has_unit_heater(model, runner, thermal_zone)
+        runner.registerInfo("Found unit heater in #{thermal_zone.name}.")
+        system, clg_coil, htg_coil = self.get_unitary_system_zone_hvac(model, runner, thermal_zone)
+        heating_equipment << system
+      end
+      if self.has_central_ptac(model, runner, thermal_zone)
+        runner.registerInfo("Found central ptac in #{thermal_zone.name}.")
+        ptac = self.get_central_ptac(model, runner, thermal_zone)
+        heating_equipment << ptac
+      end
+      if self.has_central_fan_coil(model, runner, thermal_zone)
+        runner.registerInfo("Found central fan coil in #{thermal_zone.name}.")
+        fcu = self.get_central_fan_coil(model, runner, thermal_zone)
+        heating_equipment << fcu
+      end
+      if self.has_central_unit_heater(model, runner, thermal_zone)
+        runner.registerInfo("Found central unit heater in #{thermal_zone.name}.")
+        uh = self.get_central_unit_heater(model, runner, thermal_zone)
+        heating_equipment << uh
+      end
       return heating_equipment
-    end  
+    end
+
+    def self.get_coils_from_hvac_equip(hvac_equip)
+      # Returns the clg coil, htg coil, and supp htg coil as applicable
+      clg_coil = nil
+      htg_coil = nil
+      supp_htg_coil = nil
+      if hvac_equip.is_a? OpenStudio::Model::AirLoopHVACUnitarySystem
+        htg_coil = HVAC.get_coil_from_hvac_component(hvac_equip.heatingCoil)
+        clg_coil = HVAC.get_coil_from_hvac_component(hvac_equip.coolingCoil)
+        supp_htg_coil = HVAC.get_coil_from_hvac_component(hvac_equip.supplementalHeatingCoil)
+      elsif hvac_equip.to_ZoneHVACTerminalUnitVariableRefrigerantFlow.is_initialized
+        htg_coil = HVAC.get_coil_from_hvac_component(hvac_equip.heatingCoil)
+        clg_coil = HVAC.get_coil_from_hvac_component(hvac_equip.coolingCoil)
+      elsif hvac_equip.is_a? OpenStudio::Model::ZoneHVACBaseboardConvectiveWater
+        htg_coil = HVAC.get_coil_from_hvac_component(hvac_equip.heatingCoil)
+      elsif hvac_equip.is_a? OpenStudio::Model::ZoneHVACPackagedTerminalAirConditioner
+        htg_coil = HVAC.get_coil_from_hvac_component(hvac_equip.heatingCoil)
+        clg_coil = HVAC.get_coil_from_hvac_component(hvac_equip.coolingCoil)
+      elsif hvac_equip.is_a? OpenStudio::Model::ZoneHVACFourPipeFanCoil
+        htg_coil = HVAC.get_coil_from_hvac_component(hvac_equip.heatingCoil)
+        clg_coil = HVAC.get_coil_from_hvac_component(hvac_equip.coolingCoil)
+      end
+      return clg_coil, htg_coil, supp_htg_coil
+    end
 
     def self.get_coil_from_hvac_component(hvac_component)
+      # Check for optional objects
+      if (hvac_component.is_a? OpenStudio::Model::OptionalHVACComponent or
+          hvac_component.is_a? OpenStudio::Model::OptionalCoilHeatingDXVariableRefrigerantFlow or
+          hvac_component.is_a? OpenStudio::Model::OptionalCoilCoolingDXVariableRefrigerantFlow)
+        return nil if not hvac_component.is_initialized
+        hvac_component = hvac_component.get
+      end
+
       # Cooling coils
       if hvac_component.to_CoilCoolingDXSingleSpeed.is_initialized
         return hvac_component.to_CoilCoolingDXSingleSpeed.get
@@ -455,9 +518,11 @@ class HVAC
         return hvac_component.to_CoilCoolingDXVariableRefrigerantFlow.get
       elsif hvac_component.to_CoilCoolingWaterToAirHeatPumpEquationFit.is_initialized
         return hvac_component.to_CoilCoolingWaterToAirHeatPumpEquationFit.get
+      elsif hvac_component.to_CoilCoolingWater.is_initialized
+        return hvac_component.to_CoilCoolingWater.get
       end
-        
-      # Heating coils  
+
+      # Heating coils
       if hvac_component.to_CoilHeatingDXSingleSpeed.is_initialized
         return hvac_component.to_CoilHeatingDXSingleSpeed.get
       elsif hvac_component.to_CoilHeatingDXMultiSpeed.is_initialized
@@ -472,11 +537,13 @@ class HVAC
         return hvac_component.to_CoilHeatingWaterBaseboard.get
       elsif hvac_component.to_CoilHeatingWaterToAirHeatPumpEquationFit.is_initialized
         return hvac_component.to_CoilHeatingWaterToAirHeatPumpEquationFit.get
+      elsif hvac_component.to_CoilHeatingWater.is_initialized
+        return hvac_component.to_CoilHeatingWater.get
       end
       return hvac_component
     end
-    
-    def self.get_unitary_system(model, runner, thermal_zone)
+
+    def self.get_unitary_system_air_loop(model, runner, thermal_zone)
       # Returns the unitary system, cooling coil, heating coil, and air loop if available
       model.getAirLoopHVACs.each do |air_loop|
         air_loop.thermalZones.each do |thermalZone|
@@ -498,9 +565,28 @@ class HVAC
       end
       return nil, nil, nil, nil
     end
-    
+
+    def self.get_unitary_system_zone_hvac(model, runner, thermal_zone)
+      # Returns the unitary system, cooling coil, and heating coil if available
+      thermal_zone.equipment.each do |equipment|
+        next unless equipment.to_AirLoopHVACUnitarySystem.is_initialized
+        system = equipment.to_AirLoopHVACUnitarySystem.get
+        clg_coil = nil
+        htg_coil = nil
+        if system.coolingCoil.is_initialized
+          clg_coil = system.coolingCoil.get
+        end
+        if system.heatingCoil.is_initialized
+          htg_coil = system.heatingCoil.get
+        end
+        return system, clg_coil, htg_coil
+      end
+
+      return nil, nil, nil, nil
+    end
+
     def self.get_vrf(model, runner, thermal_zone)
-      # Returns the VRF or nil
+      # Returns the VRF if available
       model.getAirConditionerVariableRefrigerantFlows.each do |vrf|
         vrf.terminals.each do |terminal|
           next unless thermal_zone.handle.to_s == terminal.thermalZone.get.handle.to_s
@@ -509,38 +595,76 @@ class HVAC
       end
       return nil
     end
-    
-    def self.get_ptac(model, runner, thermal_zone)
-      # Returns the PTAC or nil
+
+    def self.get_room_ac(model, runner, thermal_zone)
+      # Returns the PTAC if available
       model.getZoneHVACPackagedTerminalAirConditioners.each do |ptac|
         next unless thermal_zone.handle.to_s == ptac.thermalZone.get.handle.to_s
+        next if ptac.heatingCoil.to_CoilHeatingWater.is_initialized
         return ptac
       end
       return nil
     end
-    
+
+    def self.get_central_ptac(model, runner, thermal_zone)
+      # Returns the central PTAC if available
+      model.getZoneHVACPackagedTerminalAirConditioners.each do |ptac|
+        next unless thermal_zone.handle.to_s == ptac.thermalZone.get.handle.to_s
+        next unless ptac.heatingCoil.to_CoilHeatingWater.is_initialized
+        return ptac
+      end
+      return nil
+    end
+
     def self.get_baseboard_water(model, runner, thermal_zone)
-      # Returns the water baseboard or nil
+      # Returns the water baseboard if available
       model.getZoneHVACBaseboardConvectiveWaters.each do |baseboard|
         next unless thermal_zone.handle.to_s == baseboard.thermalZone.get.handle.to_s
         return baseboard
       end
       return nil
     end
-    
+
     def self.get_baseboard_electric(model, runner, thermal_zone)
-      # Returns the electric baseboard or nil
+      # Returns the electric baseboard if available
       model.getZoneHVACBaseboardConvectiveElectrics.each do |baseboard|
         next unless thermal_zone.handle.to_s == baseboard.thermalZone.get.handle.to_s
         return baseboard
       end
       return nil
     end
+
+    def self.get_dehumidifier(model, runner, thermal_zone)
+      # Returns the dehumidifier if available
+      model.getZoneHVACDehumidifierDXs.each do |dehum|
+        next unless thermal_zone.handle.to_s == dehum.thermalZone.get.handle.to_s
+        return dehum
+      end
+      return nil
+    end
+
+    def self.get_central_fan_coil(model, runner, thermal_zone)
+      # Returns the fan coil if available
+      model.getZoneHVACFourPipeFanCoils.each do |fcu|
+        next unless thermal_zone.handle.to_s == fcu.thermalZone.get.handle.to_s
+        return fcu
+      end
+      return nil
+    end
     
+    def self.get_central_unit_heater(model, runner, thermal_zone)
+      # Returns the unit heater if available
+      model.getZoneHVACUnitHeaters.each do |uh|
+        next unless thermal_zone.handle.to_s == uh.thermalZone.get.handle.to_s
+        return uh
+      end
+      return nil
+    end
+
     # Has Equipment methods
-    
+
     def self.has_central_ac(model, runner, thermal_zone)
-      system, clg_coil, htg_coil, air_loop = self.get_unitary_system(model, runner, thermal_zone)
+      system, clg_coil, htg_coil, air_loop = self.get_unitary_system_air_loop(model, runner, thermal_zone)
       if system.nil? or clg_coil.nil?
         return false
       end
@@ -554,9 +678,9 @@ class HVAC
       end
       return true
     end
-    
+
     def self.has_ashp(model, runner, thermal_zone)
-      system, clg_coil, htg_coil, air_loop = self.get_unitary_system(model, runner, thermal_zone)
+      system, clg_coil, htg_coil, air_loop = self.get_unitary_system_air_loop(model, runner, thermal_zone)
       if system.nil? or clg_coil.nil? or htg_coil.nil?
         return false
       end
@@ -568,9 +692,9 @@ class HVAC
       end
       return true
     end
-    
+
     def self.has_gshp(model, runner, thermal_zone)
-      system, clg_coil, htg_coil, air_loop = self.get_unitary_system(model, runner, thermal_zone)
+      system, clg_coil, htg_coil, air_loop = self.get_unitary_system_air_loop(model, runner, thermal_zone)
       if system.nil? or clg_coil.nil? or htg_coil.nil?
         return false
       end
@@ -582,9 +706,9 @@ class HVAC
       end
       return true
     end
-    
+
     def self.has_furnace(model, runner, thermal_zone)
-      system, clg_coil, htg_coil, air_loop = self.get_unitary_system(model, runner, thermal_zone)
+      system, clg_coil, htg_coil, air_loop = self.get_unitary_system_air_loop(model, runner, thermal_zone)
       if system.nil? or htg_coil.nil?
         return false
       end
@@ -593,7 +717,7 @@ class HVAC
       end
       return true
     end
-    
+
     def self.has_mshp(model, runner, thermal_zone)
       vrf = self.get_vrf(model, runner, thermal_zone)
       if vrf.nil?
@@ -601,15 +725,31 @@ class HVAC
       end
       return true
     end
-    
+
+    def self.has_ducted_mshp(model, runner, thermal_zone)
+      if not self.has_mshp(model, runner, thermal_zone)
+        return false
+      end
+      model.getBuildingUnits.each do |unit|
+        next if not Geometry.get_thermal_zones_from_spaces(unit.spaces).include?(thermal_zone)
+        is_ducted = unit.getFeatureAsBoolean(Constants.DuctedInfoMiniSplitHeatPump)
+        if not is_ducted.is_initialized
+          runner.registerError("Could not find value for '#{Constants.DuctedInfoMiniSplitHeatPump}' with datatype boolean.")
+          return nil
+        end
+        return is_ducted.get
+      end
+      return false
+    end
+
     def self.has_room_ac(model, runner, thermal_zone)
-      ptac = self.get_ptac(model, runner, thermal_zone)
+      ptac = self.get_room_ac(model, runner, thermal_zone)
       if not ptac.nil?
         return true
       end
       return false
     end
-    
+
     def self.has_boiler(model, runner, thermal_zone)
       baseboard = self.get_baseboard_water(model, runner, thermal_zone)
       if not baseboard.nil?
@@ -617,7 +757,7 @@ class HVAC
       end
       return false
     end
-    
+
     def self.has_electric_baseboard(model, runner, thermal_zone)
       baseboard = self.get_baseboard_electric(model, runner, thermal_zone)
       if not baseboard.nil?
@@ -625,56 +765,111 @@ class HVAC
       end
       return false
     end
+
+    def self.has_unit_heater(model, runner, thermal_zone)
+      system, clg_coil, htg_coil = self.get_unitary_system_zone_hvac(model, runner, thermal_zone)
+      if system.nil? or htg_coil.nil?
+        return false
+      end
+      return true
+    end
+
+    def self.has_central_ptac(model, runner, thermal_zone)
+      ptac = self.get_central_ptac(model, runner, thermal_zone)
+      if not ptac.nil?
+        return true
+      end
+      return false
+    end
+
+    def self.has_central_fan_coil(model, runner, thermal_zone)
+      fcu = self.get_central_fan_coil(model, runner, thermal_zone)
+      if not fcu.nil?
+        return true
+      end
+      return false
+    end
     
+    def self.has_central_unit_heater(model, runner, thermal_zone)
+      uh = self.get_central_unit_heater(model, runner, thermal_zone)
+      if not uh.nil?
+        return true
+      end
+      return false
+    end
+
+    def self.has_dehumidifier(model, runner, thermal_zone)
+      dehum = self.get_dehumidifier(model, runner, thermal_zone)
+      if dehum.nil?
+        return false
+      end
+      return true
+    end
+
+    def self.has_ducted_equipment(model, runner, thermal_zone)
+      if HVAC.has_central_ac(model, runner, thermal_zone)
+        return true
+      elsif HVAC.has_furnace(model, runner, thermal_zone)
+        return true
+      elsif HVAC.has_ashp(model, runner, thermal_zone)
+        return true
+      elsif HVAC.has_gshp(model, runner, thermal_zone)
+        return true
+      elsif HVAC.has_ducted_mshp(model, runner, thermal_zone)
+        return true
+      end
+      return false
+    end
+
     # Remove Equipment methods
-    
+
     def self.remove_central_ac(model, runner, thermal_zone)
       # Returns true if the object was removed
       return false if not self.has_central_ac(model, runner, thermal_zone)
-      system, clg_coil, htg_coil, air_loop = self.get_unitary_system(model, runner, thermal_zone)
+      system, clg_coil, htg_coil, air_loop = self.get_unitary_system_air_loop(model, runner, thermal_zone)
       runner.registerInfo("Removed '#{clg_coil.name}' from '#{air_loop.name}'.")
       system.resetCoolingCoil
       clg_coil.remove
       system.supplyFan.get.remove
       return true
     end
-    
-    
+
     def self.remove_ashp(model, runner, thermal_zone)
       # Returns true if the object was removed
       return false if not self.has_ashp(model, runner, thermal_zone)
-      system, clg_coil, htg_coil, air_loop = self.get_unitary_system(model, runner, thermal_zone)
+      system, clg_coil, htg_coil, air_loop = self.get_unitary_system_air_loop(model, runner, thermal_zone)
       runner.registerInfo("Removed '#{clg_coil.name}' and '#{htg_coil.name}' from '#{air_loop.name}'.")
       system.resetHeatingCoil
-      system.resetCoolingCoil              
+      system.resetCoolingCoil
       htg_coil.remove
       clg_coil.remove
       return true
     end
-    
+
     def self.remove_gshp(model, runner, thermal_zone)
       # Returns true if the object was removed
       return false if not self.has_gshp(model, runner, thermal_zone)
-      system, clg_coil, htg_coil, air_loop = self.get_unitary_system(model, runner, thermal_zone)
+      system, clg_coil, htg_coil, air_loop = self.get_unitary_system_air_loop(model, runner, thermal_zone)
+      self.remove_boiler_and_gshp_loops(model, runner, thermal_zone)
       runner.registerInfo("Removed '#{clg_coil.name}' and '#{htg_coil.name}' from '#{air_loop.name}'.")
       system.resetHeatingCoil
-      system.resetCoolingCoil              
+      system.resetCoolingCoil
       htg_coil.remove
       clg_coil.remove
       return true
     end
-    
+
     def self.remove_furnace(model, runner, thermal_zone)
       # Returns true if the object was removed
       return false if not self.has_furnace(model, runner, thermal_zone)
-      system, clg_coil, htg_coil, air_loop = self.get_unitary_system(model, runner, thermal_zone)
+      system, clg_coil, htg_coil, air_loop = self.get_unitary_system_air_loop(model, runner, thermal_zone)
       runner.registerInfo("Removed '#{htg_coil.name}' from '#{air_loop.name}'.")
       system.resetHeatingCoil
       htg_coil.remove
       system.supplyFan.get.remove
       return true
     end
-    
+
     def self.remove_mshp(model, runner, thermal_zone, unit)
       # Returns true if the object was removed
       return false if not self.has_mshp(model, runner, thermal_zone)
@@ -686,7 +881,7 @@ class HVAC
       vrf.remove
 
       obj_name = Constants.ObjectNameMiniSplitHeatPump(unit.name.to_s)
-      
+
       model.getOutputVariables.each do |output_var|
         next unless output_var.name.to_s == Constants.ObjectNameMiniSplitHeatPump + " vrf heat energy output var"
         output_var.remove
@@ -715,12 +910,12 @@ class HVAC
       model.getEnergyManagementSystemPrograms.each do |program|
         next unless program.name.to_s == "#{obj_name} pan heater program".gsub(" ","_")
         program.remove
-      end          
+      end
       model.getEnergyManagementSystemProgramCallingManagers.each do |program_calling_manager|
         next unless program_calling_manager.name.to_s == obj_name + " pan heater program calling manager"
         program_calling_manager.remove
       end
-      
+
       thermal_zone.spaces.each do |space|
         space.electricEquipment.each do |equip|
           next unless equip.name.to_s == obj_name + " pan heater equip"
@@ -729,25 +924,26 @@ class HVAC
       end
       return true
     end
-    
+
     def self.remove_room_ac(model, runner, thermal_zone)
       # Returns true if the object was removed
       return false if not self.has_room_ac(model, runner, thermal_zone)
-      ptac = self.get_ptac(model, runner, thermal_zone)
+      ptac = self.get_room_ac(model, runner, thermal_zone)
       runner.registerInfo("Removed '#{ptac.name}' from #{thermal_zone.name}.")
       ptac.remove
       return true
     end
-    
+
     def self.remove_boiler(model, runner, thermal_zone)
       # Returns true if the object was removed
       return false if not self.has_boiler(model, runner, thermal_zone)
+      self.remove_boiler_and_gshp_loops(model, runner, thermal_zone)
       baseboard = self.get_baseboard_water(model, runner, thermal_zone)
       runner.registerInfo("Removed '#{baseboard.name}' from #{thermal_zone.name}.")
       baseboard.remove
       return true
     end
-    
+
     def self.remove_electric_baseboard(model, runner, thermal_zone)
       # Returns true if the object was removed
       return false if not self.has_electric_baseboard(model, runner, thermal_zone)
@@ -756,11 +952,53 @@ class HVAC
       baseboard.remove
       return true
     end
-    
-    def self.remove_boiler_and_gshp_loops(model, runner)
-      # TODO: Add a BuildingUnit argument
+
+    def self.remove_unit_heater(model, runner, thermal_zone)
+      # Returns true if the object was removed
+      return false if not self.has_unit_heater(model, runner, thermal_zone)
+      system, clg_coil, htg_coil = self.get_unitary_system_zone_hvac(model, runner, thermal_zone)
+      runner.registerInfo("Removed '#{system.name}' from '#{thermal_zone.name}'.")
+      system.resetHeatingCoil
+      htg_coil.remove
+      if system.supplyFan.is_initialized
+        system.supplyFan.get.remove
+      end
+      system.remove
+      return true
+    end
+
+    def self.remove_boiler_and_gshp_loops(model, runner, thermal_zone)
       model.getPlantLoops.each do |plant_loop|
         remove = false
+        
+        # Ensure we're operating on the right plant loop
+        is_specified_zone = false
+        plant_loop.demandComponents.each do |demand_component|
+          demand_coil = nil
+          if demand_component.to_CoilHeatingWaterBaseboard.is_initialized
+            demand_coil = demand_component.to_CoilHeatingWaterBaseboard.get
+          elsif demand_component.to_CoilHeatingWaterToAirHeatPumpEquationFit.is_initialized
+            demand_coil = demand_component.to_CoilHeatingWaterToAirHeatPumpEquationFit.get
+          elsif demand_component.to_CoilCoolingWaterToAirHeatPumpEquationFit.is_initialized
+            demand_coil = demand_component.to_CoilCoolingWaterToAirHeatPumpEquationFit.get
+          end
+          next if demand_coil.nil?
+          if demand_coil.containingZoneHVACComponent.is_initialized
+            demand_hvac = demand_coil.containingZoneHVACComponent.get
+            next if not demand_hvac.thermalZone.is_initialized or demand_hvac.thermalZone.get != thermal_zone
+            is_specified_zone = true
+          elsif demand_coil.containingHVACComponent.is_initialized
+            demand_hvac = demand_coil.containingHVACComponent.get
+            next if not demand_hvac.airLoopHVAC.is_initialized
+            demand_air_loop = demand_hvac.airLoopHVAC.get
+            demand_air_loop.thermalZones.each do |thermalZone|
+              next if thermal_zone.handle.to_s != thermalZone.handle.to_s
+              is_specified_zone = true
+            end
+          end
+        end
+        next if not is_specified_zone
+        
         plant_loop.supplyComponents.each do |supply_component|
           if supply_component.to_BoilerHotWater.is_initialized or supply_component.to_GroundHeatExchangerVertical.is_initialized or supply_component.to_GroundHeatExchangerHorizontalTrench.is_initialized
             remove = true
@@ -771,8 +1009,8 @@ class HVAC
           plant_loop.remove
         end
       end
-    end 
-    
+    end
+
     def self.remove_air_loop(model, runner, thermal_zone, clone_perf=false)
       # Returns the cloned perf or nil
       model.getAirLoopHVACs.each do |air_loop|
@@ -796,13 +1034,13 @@ class HVAC
       end
       return nil
     end
-    
+
     # Reset Equipment methods
-    
+
     def self.reset_central_ac(model, runner, thermal_zone)
       # Returns the cloned coil or nil
       return nil if not self.has_central_ac(model, runner, thermal_zone)
-      system, clg_coil, htg_coil, air_loop = self.get_unitary_system(model, runner, thermal_zone)
+      system, clg_coil, htg_coil, air_loop = self.get_unitary_system_air_loop(model, runner, thermal_zone)
       cloned_clg_coil = clg_coil.clone
       system.resetCoolingCoil
       clg_coil.remove
@@ -811,11 +1049,11 @@ class HVAC
       cloned_clg_coil.setName(clg_coil.name.to_s)
       return cloned_clg_coil
     end
-    
+
     def self.reset_furnace(model, runner, thermal_zone)
       # Returns the cloned coil or nil
       return nil if not self.has_furnace(model, runner, thermal_zone)
-      system, clg_coil, htg_coil, air_loop = self.get_unitary_system(model, runner, thermal_zone)
+      system, clg_coil, htg_coil, air_loop = self.get_unitary_system_air_loop(model, runner, thermal_zone)
       cloned_htg_coil = htg_coil.clone
       system.resetHeatingCoil
       htg_coil.remove
@@ -828,7 +1066,7 @@ class HVAC
       cloned_htg_coil.setName(htg_coil.name.to_s)
       return cloned_htg_coil
     end
-    
+
     def self.remove_existing_hvac_equipment(model, runner, new_equip, thermal_zone, clone_perf, unit)
       counterpart_equip = nil
       perf = nil
@@ -846,9 +1084,6 @@ class HVAC
         if counterpart_equip or removed_ac or removed_ashp or removed_gshp
           self.remove_air_loop(model, runner, thermal_zone)
         end
-        if removed_gshp
-          self.remove_boiler_and_gshp_loops(model, runner)
-        end
       when Constants.ObjectNameRoomAirConditioner
         removed_ashp = self.remove_ashp(model, runner, thermal_zone)
         removed_mshp = self.remove_mshp(model, runner, thermal_zone, unit)
@@ -857,19 +1092,17 @@ class HVAC
         removed_gshp = self.remove_gshp(model, runner, thermal_zone)
         if removed_mshp
           removed_elec_baseboard = self.remove_electric_baseboard(model, runner, thermal_zone)
-        end        
+        end
         if removed_ac or removed_ashp or removed_gshp
           self.remove_air_loop(model, runner, thermal_zone)
         end
-        if removed_gshp
-          self.remove_boiler_and_gshp_loops(model, runner)
-        end        
       when Constants.ObjectNameFurnace
         removed_ashp = self.remove_ashp(model, runner, thermal_zone)
         removed_mshp = self.remove_mshp(model, runner, thermal_zone, unit)
         counterpart_equip = self.reset_central_ac(model, runner, thermal_zone)
         removed_furnace = self.remove_furnace(model, runner, thermal_zone)
         removed_boiler = self.remove_boiler(model, runner, thermal_zone)
+        removed_heater = self.remove_unit_heater(model, runner, thermal_zone)
         removed_elec_baseboard = self.remove_electric_baseboard(model, runner, thermal_zone)
         removed_gshp = self.remove_gshp(model, runner, thermal_zone)
         if counterpart_equip or removed_furnace or removed_ashp or removed_gshp
@@ -880,6 +1113,7 @@ class HVAC
         end
       when Constants.ObjectNameBoiler
         removed_boiler = self.remove_boiler(model, runner, thermal_zone)
+        removed_heater = self.remove_unit_heater(model, runner, thermal_zone)
         removed_furnace = self.remove_furnace(model, runner, thermal_zone)
         removed_elec_baseboard = self.remove_electric_baseboard(model, runner, thermal_zone)
         removed_ashp = self.remove_ashp(model, runner, thermal_zone)
@@ -892,6 +1126,7 @@ class HVAC
         removed_elec_baseboard = self.remove_electric_baseboard(model, runner, thermal_zone)
         removed_furnace = self.remove_furnace(model, runner, thermal_zone)
         removed_boiler = self.remove_boiler(model, runner, thermal_zone)
+        removed_heater = self.remove_unit_heater(model, runner, thermal_zone)
         removed_ashp = self.remove_ashp(model, runner, thermal_zone)
         removed_mshp = self.remove_mshp(model, runner, thermal_zone, unit)
         removed_gshp = self.remove_gshp(model, runner, thermal_zone)
@@ -905,6 +1140,7 @@ class HVAC
         removed_room_ac = self.remove_room_ac(model, runner, thermal_zone)
         removed_furnace = self.remove_furnace(model, runner, thermal_zone)
         removed_boiler = self.remove_boiler(model, runner, thermal_zone)
+        removed_heater = self.remove_unit_heater(model, runner, thermal_zone)
         removed_elec_baseboard = self.remove_electric_baseboard(model, runner, thermal_zone)
         removed_gshp = self.remove_gshp(model, runner, thermal_zone)
         if removed_ashp or removed_ac or removed_furnace or removed_gshp
@@ -917,6 +1153,7 @@ class HVAC
         removed_room_ac = self.remove_room_ac(model, runner, thermal_zone)
         removed_furnace = self.remove_furnace(model, runner, thermal_zone)
         removed_boiler = self.remove_boiler(model, runner, thermal_zone)
+        removed_heater = self.remove_unit_heater(model, runner, thermal_zone)
         removed_elec_baseboard = self.remove_electric_baseboard(model, runner, thermal_zone)
         removed_gshp = self.remove_gshp(model, runner, thermal_zone)
         if removed_ac or removed_furnace or removed_ashp or removed_gshp
@@ -929,25 +1166,38 @@ class HVAC
         removed_room_ac = self.remove_room_ac(model, runner, thermal_zone)
         removed_furnace = self.remove_furnace(model, runner, thermal_zone)
         removed_boiler = self.remove_boiler(model, runner, thermal_zone)
+        removed_heater = self.remove_unit_heater(model, runner, thermal_zone)
         removed_elec_baseboard = self.remove_electric_baseboard(model, runner, thermal_zone)
         removed_gshp = self.remove_gshp(model, runner, thermal_zone)
         if removed_ashp or removed_ac or removed_furnace or removed_gshp
           self.remove_air_loop(model, runner, thermal_zone)
         end
+      when Constants.ObjectNameUnitHeater
+        removed_elec_baseboard = self.remove_electric_baseboard(model, runner, thermal_zone)
+        removed_furnace = self.remove_furnace(model, runner, thermal_zone)
+        removed_boiler = self.remove_boiler(model, runner, thermal_zone)
+        removed_heater = self.remove_unit_heater(model, runner, thermal_zone)
+        removed_ashp = self.remove_ashp(model, runner, thermal_zone)
+        removed_mshp = self.remove_mshp(model, runner, thermal_zone, unit)
+        removed_gshp = self.remove_gshp(model, runner, thermal_zone)
+        if removed_furnace or removed_ashp or removed_gshp
+          self.remove_air_loop(model, runner, thermal_zone)
+        end
       end
       return counterpart_equip, perf
-    end   
-    
+    end
+
     def self.prioritize_zone_hvac(model, runner, zone)
       zone_hvac_priority_list = [
-                                 "ZoneHVACEnergyRecoveryVentilator", 
-                                 "ZoneHVACTerminalUnitVariableRefrigerantFlow", 
-                                 "ZoneHVACBaseboardConvectiveElectric", 
-                                 "ZoneHVACBaseboardConvectiveWater", 
-                                 "AirTerminalSingleDuctUncontrolled", 
-                                 "ZoneHVACDehumidifierDX", 
+                                 "ZoneHVACEnergyRecoveryVentilator",
+                                 "ZoneHVACTerminalUnitVariableRefrigerantFlow",
+                                 "AirLoopHVACUnitarySystem",
+                                 "ZoneHVACBaseboardConvectiveElectric",
+                                 "ZoneHVACBaseboardConvectiveWater",
+                                 "AirTerminalSingleDuctUncontrolled",
+                                 "ZoneHVACDehumidifierDX",
                                  "ZoneHVACPackagedTerminalAirConditioner"
-                                ]    
+                                ]
       zone_hvac_list = []
       zone_hvac_priority_list.each do |zone_hvac_type|
         zone.equipment.each do |object|
@@ -957,14 +1207,17 @@ class HVAC
           zone_hvac_list << new_object
         end
       end
-      return zone_hvac_list
+      zone_hvac_list.reverse.each do |object|
+        zone.setCoolingPriority(object, 1)
+        zone.setHeatingPriority(object, 1)
+      end
     end
-    
+
     # Calculates heating/cooling seasons from BAHSP definition
     def self.calc_heating_and_cooling_seasons(model, weather, runner=nil)
         monthly_temps = weather.data.MonthlyAvgDrybulbs
         heat_design_db = weather.design.HeatingDrybulb
-        
+
         # create basis lists with zero for every month
         cooling_season_temp_basis = Array.new(monthly_temps.length, 0.0)
         heating_season_temp_basis = Array.new(monthly_temps.length, 0.0)
@@ -1014,8 +1267,8 @@ class HVAC
             break
           end
         end
-        
+
         return heating_season, cooling_season
     end
-    
+
 end

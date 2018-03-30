@@ -2,8 +2,8 @@
   <schema_version>3.0</schema_version>
   <name>residential_gas_fireplace</name>
   <uid>0565d3b2-593b-480b-a742-a6ec7058d3c4</uid>
-  <version_id>c3ef2947-6010-44cc-b928-3712e56d4e59</version_id>
-  <version_modified>20171204T215146Z</version_modified>
+  <version_id>16874f0a-5666-48e6-a73b-57fe55cc5af3</version_id>
+  <version_modified>20180218T020716Z</version_modified>
   <xml_checksum>25A40D75</xml_checksum>
   <class_name>ResidentialGasFireplace</class_name>
   <display_name>Set Residential Gas Fireplace</display_name>
@@ -76,9 +76,9 @@
       <default_value>1.154, 1.161, 1.013, 1.010, 1.013, 0.888, 0.883, 0.883, 0.888, 0.978, 0.974, 1.154</default_value>
     </argument>
     <argument>
-      <name>space</name>
+      <name>location</name>
       <display_name>Location</display_name>
-      <description>Select the space where the cooking range is located. 'auto' will choose the lowest above-grade finished space available (e.g., first story living space), or a below-grade finished space as last resort. For multifamily buildings, 'auto' will choose a space for each unit of the building.</description>
+      <description>The space type for the location. 'auto' will automatically choose a space type based on the space types found in the model.</description>
       <type>Choice</type>
       <required>true</required>
       <model_dependent>false</model_dependent>
@@ -110,10 +110,16 @@
   </attributes>
   <files>
     <file>
-      <filename>ResidentialGasFireplace_Test.rb</filename>
+      <filename>schedules.rb</filename>
       <filetype>rb</filetype>
-      <usage_type>test</usage_type>
-      <checksum>BCD7DC1D</checksum>
+      <usage_type>resource</usage_type>
+      <checksum>A299BFF0</checksum>
+    </file>
+    <file>
+      <filename>unit_conversions.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>3E1D973D</checksum>
     </file>
     <file>
       <version>
@@ -124,49 +130,55 @@
       <filename>measure.rb</filename>
       <filetype>rb</filetype>
       <usage_type>script</usage_type>
-      <checksum>59374868</checksum>
+      <checksum>B2923DCA</checksum>
     </file>
     <file>
-      <filename>schedules.rb</filename>
+      <filename>ResidentialGasFireplace_Test.rb</filename>
       <filetype>rb</filetype>
-      <usage_type>resource</usage_type>
-      <checksum>535A818D</checksum>
+      <usage_type>test</usage_type>
+      <checksum>A3F7241E</checksum>
     </file>
     <file>
       <filename>SFD_2000sqft_2story_FB_GRG_UA.osm</filename>
       <filetype>osm</filetype>
       <usage_type>test</usage_type>
-      <checksum>4D491EAF</checksum>
+      <checksum>7521C266</checksum>
     </file>
     <file>
       <filename>SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths.osm</filename>
       <filetype>osm</filetype>
       <usage_type>test</usage_type>
-      <checksum>77D7B4AF</checksum>
-    </file>
-    <file>
-      <filename>MF_8units_1story_SL_3Beds_2Baths_Denver.osm</filename>
-      <filetype>osm</filetype>
-      <usage_type>test</usage_type>
-      <checksum>BE440FAC</checksum>
-    </file>
-    <file>
-      <filename>SFA_4units_1story_FB_UA_3Beds_2Baths_Denver.osm</filename>
-      <filetype>osm</filetype>
-      <usage_type>test</usage_type>
-      <checksum>7FDF279B</checksum>
-    </file>
-    <file>
-      <filename>geometry.rb</filename>
-      <filetype>rb</filetype>
-      <usage_type>resource</usage_type>
-      <checksum>EF3CCE9D</checksum>
+      <checksum>09D30BA0</checksum>
     </file>
     <file>
       <filename>constants.rb</filename>
       <filetype>rb</filetype>
       <usage_type>resource</usage_type>
-      <checksum>260EF643</checksum>
+      <checksum>FDA82DA6</checksum>
+    </file>
+    <file>
+      <filename>SFA_4units_1story_UB_UA_3Beds_2Baths_Denver.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>8226FD3F</checksum>
+    </file>
+    <file>
+      <filename>SFA_4units_1story_FB_UA_3Beds_2Baths_Denver.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>3A762F83</checksum>
+    </file>
+    <file>
+      <filename>MF_8units_1story_SL_3Beds_2Baths_Denver.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>3BFBCB29</checksum>
+    </file>
+    <file>
+      <filename>geometry.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>15FAD11A</checksum>
     </file>
   </files>
 </measure>

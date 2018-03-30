@@ -3,6 +3,7 @@
 
 require "#{File.dirname(__FILE__)}/resources/util"
 require "#{File.dirname(__FILE__)}/resources/geometry"
+require "#{File.dirname(__FILE__)}/resources/unit_conversions"
 
 #start the measure
 class ProcessConstructionsFoundationsFloorsSlab < OpenStudio::Measure::ModelMeasure
@@ -297,13 +298,9 @@ class ProcessConstructionsFoundationsFloorsSlab < OpenStudio::Measure::ModelMeas
     end
     
     # Store info for HVAC Sizing measure
-    units = Geometry.get_building_units(model, runner)
-    if units.nil?
-        return false
-    end
     surfaces.each do |surface|
-        units.each do |unit|
-            next if not unit.spaces.include?(surface.space.get)
+        model.getBuildingUnits.each do |unit|
+            next if unit.spaces.size == 0
             unit.setFeature(Constants.SizingInfoSlabRvalue(surface), effective_slab_Rvalue)
         end
     end
