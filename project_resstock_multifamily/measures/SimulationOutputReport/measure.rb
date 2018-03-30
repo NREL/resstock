@@ -270,10 +270,12 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
   end
   
   def get_cost_multiplier(cost_mult_type, model, runner, conditioned_zones)
+    # FIXME: Add unit tests for SFA/MF
+  
     cost_mult = 0.0
     
     if cost_mult_type == "Fixed (1)"
-        cost_mult = 1.0
+        cost_mult = 1.0 # FIXME: Number of units instead? Separate cost mult types?
         
     elsif cost_mult_type == "Wall Area, Above-Grade, Conditioned (ft^2)"
         # Walls between conditioned space and 1) outdoors or 2) unconditioned space
@@ -368,10 +370,6 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
         # Duct supply+return surface area
         model.getBuildingUnits.each do |unit|
             next if unit.spaces.size == 0
-            if cost_mult > 0
-                runner.registerError("Multiple building units found. This code should be reevaluated for correctness.")
-                return nil
-            end
             supply_area = unit.getFeatureAsDouble("SizingInfoDuctsSupplySurfaceArea")
             if supply_area.is_initialized
                 cost_mult += supply_area.get
@@ -389,13 +387,7 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
         component = nil
         model.getAirLoopHVACUnitarySystems.each do |sys|
             next if not sys.heatingCoil.is_initialized
-            if not component.nil?
-                runner.registerError("Multiple heating systems found. This code should be reevaluated for correctness.")
-                return nil
-            end
             component = sys.heatingCoil.get
-        end
-        if not component.nil?
             if component.to_CoilHeatingDXSingleSpeed.is_initialized
                 coil = component.to_CoilHeatingDXSingleSpeed.get
                 if coil.ratedTotalHeatingCapacity.is_initialized
@@ -445,7 +437,7 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
         
         # Electric baseboard?
         if component.nil?
-            max_value = 0.0
+            max_value = 0.0 # FIXME: Need to handle multiple units vs. multiple systems in one unit
             model.getZoneHVACBaseboardConvectiveElectrics.each do |sys|
                 component = sys
                 next if not component.nominalCapacity.is_initialized
@@ -457,7 +449,7 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
         
         # Boiler?
         if component.nil?
-            max_value = 0.0
+            max_value = 0.0 # FIXME: Need to handle multiple units vs. multiple systems in one unit
             model.getPlantLoops.each do |pl|
                 pl.components.each do |plc|
                     next if not plc.to_BoilerHotWater.is_initialized
@@ -477,20 +469,7 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
         component = nil
         model.getAirLoopHVACUnitarySystems.each do |sys|
             next if not sys.coolingCoil.is_initialized
-            if not component.nil?
-                runner.registerError("Multiple cooling systems found. This code should be reevaluated for correctness.")
-                return nil
-            end
             component = sys.coolingCoil.get
-        end
-        model.getZoneHVACPackagedTerminalAirConditioners.each do |sys|
-            if not component.nil?
-                runner.registerError("Multiple cooling systems found. This code should be reevaluated for correctness.")
-                return nil
-            end
-            component = sys.coolingCoil
-        end
-        if not component.nil?
             if component.to_CoilCoolingDXSingleSpeed.is_initialized
                 coil = component.to_CoilCoolingDXSingleSpeed.get
                 if coil.ratedTotalCoolingCapacity.is_initialized
@@ -513,6 +492,19 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
             end
         end
         
+        # Window AC?
+        if component.nil?
+            model.getZoneHVACPackagedTerminalAirConditioners.each do |sys|
+                component = sys.coolingCoil
+                if component.to_CoilCoolingDXSingleSpeed.is_initialized
+                    coil = component.to_CoilCoolingDXSingleSpeed.get
+                    if coil.ratedTotalCoolingCapacity.is_initialized
+                        cost_mult += OpenStudio::convert(coil.ratedTotalCoolingCapacity.get, "W", "kBtu/h").get
+                    end
+                end
+            end
+        end
+        
         # VRF?
         if component.nil?
             sum_value = 0.0
@@ -530,22 +522,12 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
         
     elsif cost_mult_type == "Size, Water Heater (gal)"
         # Water heater tank volume
+        
+        # Tank water heater?
         wh_tank = nil
         model.getWaterHeaterMixeds.each do |wh|
-            if not wh_tank.nil?
-                runner.registerError("Multiple water heaters found. This code should be reevaluated for correctness.")
-                return nil
-            end
             wh_tank = wh
-        end
-        model.getWaterHeaterHeatPumpWrappedCondensers.each do |wh|
-            if not wh_tank.nil?
-                runner.registerError("Multiple water heaters found. This code should be reevaluated for correctness.")
-                return nil
-            end
-            wh_tank = wh.tank.to_WaterHeaterStratified.get
-        end
-        if wh_tank.tankVolume.is_initialized
+            next if not wh_tank.tankVolume.is_initialized
             volume = OpenStudio::convert(wh_tank.tankVolume.get, "m^3", "gal").get
             if volume >= 1.0 # skip tankless
                 # FIXME: Remove actual->nominal size logic by storing nominal size in the OSM
@@ -553,6 +535,23 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
                     cost_mult += volume / 0.9
                 else
                     cost_mult += volume / 0.95
+                end
+            end
+        end
+        
+        # HPWH?
+        if wh_tank.nil?
+            model.getWaterHeaterHeatPumpWrappedCondensers.each do |wh|
+                wh_tank = wh.tank.to_WaterHeaterStratified.get
+                next if not wh_tank.tankVolume.is_initialized
+                volume = OpenStudio::convert(wh_tank.tankVolume.get, "m^3", "gal").get
+                if volume >= 1.0 # skip tankless
+                    # FIXME: Remove actual->nominal size logic by storing nominal size in the OSM
+                    if wh_tank.heaterFuelType.downcase == "electricity"
+                        cost_mult += volume / 0.9
+                    else
+                        cost_mult += volume / 0.95
+                    end
                 end
             end
         end
@@ -603,9 +602,9 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
     # Override capacity ratio for residential multispeed systems
     model.getBuildingUnits.each do |unit|
         next if unit.spaces.size == 0
-        capacity_ratio_str = unit.getFeatureAsString(capacity_ratio_str)
-        next if not capacity_ratio_str.is_initialized
-        capacity_ratio = capacity_ratio_str.get.split(",").map(&:to_f)[-1]
+        str = unit.getFeatureAsString(capacity_ratio_str)
+        next if not str.is_initialized
+        capacity_ratio = str.get.split(",").map(&:to_f)[-1]
     end
     
     return capacity_ratio

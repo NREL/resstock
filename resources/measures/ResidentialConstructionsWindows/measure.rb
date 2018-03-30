@@ -12,6 +12,7 @@ require "#{File.dirname(__FILE__)}/resources/constants"
 require "#{File.dirname(__FILE__)}/resources/weather"
 require "#{File.dirname(__FILE__)}/resources/schedules"
 require "#{File.dirname(__FILE__)}/resources/hvac"
+require "#{File.dirname(__FILE__)}/resources/unit_conversions"
 
 #start the measure
 class ProcessConstructionsWindows < OpenStudio::Measure::ModelMeasure
@@ -113,7 +114,7 @@ class ProcessConstructionsWindows < OpenStudio::Measure::ModelMeasure
       return true
     end
     
-    ufactor = OpenStudio::convert(runner.getDoubleArgumentValue("ufactor",user_arguments),"Btu/hr*ft^2*R","W/m^2*K").get
+    ufactor = UnitConversions.convert(runner.getDoubleArgumentValue("ufactor",user_arguments),"Btu/(hr*ft^2*F)","W/(m^2*K)")
     shgc = runner.getDoubleArgumentValue("shgc",user_arguments)
     
     #error checking

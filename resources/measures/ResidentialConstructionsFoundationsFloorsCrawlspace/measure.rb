@@ -4,6 +4,7 @@
 require "#{File.dirname(__FILE__)}/resources/util"
 require "#{File.dirname(__FILE__)}/resources/constants"
 require "#{File.dirname(__FILE__)}/resources/geometry"
+require "#{File.dirname(__FILE__)}/resources/unit_conversions"
 
 #start the measure
 class ProcessConstructionsFoundationsFloorsCrawlspace < OpenStudio::Measure::ModelMeasure
@@ -286,13 +287,8 @@ class ProcessConstructionsFoundationsFloorsCrawlspace < OpenStudio::Measure::Mod
     end
 
     # Store info for HVAC Sizing measure
-    units = Geometry.get_building_units(model, runner)
-    if units.nil?
-        return false
-    end
-    units.each do |unit|
-        unit.spaces.each do |space|
-            next if not spaces.include?(space)
+    model.getBuildingUnits.each do |unit|
+        spaces.each do |space|
             unit.setFeature(Constants.SizingInfoSpaceWallsInsulated(space), (crawlWallContInsThickness > 0 and crawlWallContInsRvalueNominal > 0))
             unit.setFeature(Constants.SizingInfoSpaceCeilingInsulated(space), (crawlCeilingCavityInsRvalueNominal > 0))
         end
