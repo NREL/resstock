@@ -51,13 +51,13 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
     num_floors.setDefaultValue(1)
     args << num_floors
 
-    #make an argument for number of units per floor
-    num_units_per_floor = OpenStudio::Measure::OSArgument::makeIntegerArgument("num_units_per_floor",true)
-    num_units_per_floor.setDisplayName("Num Units Per Floor")
-    num_units_per_floor.setUnits("#")
-    num_units_per_floor.setDescription("The number of units per floor.")
-    num_units_per_floor.setDefaultValue(2)
-    args << num_units_per_floor
+    #make an argument for number of units
+    num_units = OpenStudio::Measure::OSArgument::makeIntegerArgument("num_units",true)
+    num_units.setDisplayName("Num Units")
+    num_units.setUnits("#")
+    num_units.setDescription("The number of units. This must be divisible by the number of floors.")
+    num_units.setDefaultValue(2)
+    args << num_units
     
     #make an argument for unit aspect ratio
     unit_aspect_ratio = OpenStudio::Measure::OSArgument::makeDoubleArgument("unit_aspect_ratio",true)
@@ -177,7 +177,7 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
     unit_ffa = UnitConversions.convert(runner.getDoubleArgumentValue("unit_ffa",user_arguments),"ft^2","m^2")
     wall_height = UnitConversions.convert(runner.getDoubleArgumentValue("wall_height",user_arguments),"ft","m")
     num_floors = runner.getIntegerArgumentValue("num_floors",user_arguments)
-    num_units_per_floor = runner.getIntegerArgumentValue("num_units_per_floor",user_arguments)
+    num_units = runner.getIntegerArgumentValue("num_units",user_arguments)
     unit_aspect_ratio = runner.getDoubleArgumentValue("unit_aspect_ratio",user_arguments)
     corridor_position = runner.getStringArgumentValue("corridor_position",user_arguments)
     corridor_width = UnitConversions.convert(runner.getDoubleArgumentValue("corridor_width",user_arguments),"ft","m")    
@@ -195,6 +195,7 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
     elsif foundation_type == "unfinished basement"
       foundation_height = 8.0
     end
+    num_units_per_floor = num_units / num_floors
     num_units_per_floor_actual = num_units_per_floor
     
     # error checking
@@ -204,6 +205,10 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
     end
     if foundation_type == "crawlspace" and ( foundation_height < 1.5 or foundation_height > 5.0 )
       runner.registerError("The crawlspace height can be set between 1.5 and 5 ft.")
+      return false
+    end
+    if num_units % num_floors != 0
+      runner.registerError("The number of units must be divisible by the number of floors.")
       return false
     end
     if num_units_per_floor == 1 and (corridor_position == "Double-Loaded Interior" or corridor_position == "Double Exterior")
