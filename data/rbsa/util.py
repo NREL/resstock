@@ -14,7 +14,7 @@ def create_dataframe(session, rdb, only_single_family=True, screen_scen='No Scre
     df = pd.DataFrame([(br.siteid, dt.datetime.now(), br) for br in session.query(rdb.SFMasterLocation)], columns=['siteid', 'created', 'object']).set_index('siteid')
     if only_single_family:
         df['building_type'] = df.apply(lambda x: x.object.sfmasterhousegeometry.sfbuildingtype, axis=1)
-        df = df[df.building_type=='Single Family, Detached']
+        df = df[df.building_typev == 'Single Family, Detached', ]
         del df['building_type']
 
     if not screen_scen == 'No Screens':
