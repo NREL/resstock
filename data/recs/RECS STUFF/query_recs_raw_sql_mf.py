@@ -22,27 +22,31 @@ from collections import OrderedDict
 
 startTime = datetime.now()
 #Dictionary for RECS to ResStock terminology
-dependency_dict = {'typehuq': 'Building_Type',
-                   'regionc': 'Census_Region',
-                   'stories': 'Geometry_Stories',
-                   'cr': 'Location_Region',
-                   'Size': 'Geometry_House_Size',
+dependency_dict = {
+                   'numapts': 'Geometry Number Units',
+                   'typehuq': 'Geometry Building Type',
+                   'regionc': 'Census Region',
+                   'stories': 'Geometry Stories',
+                   'reportable_domain': 'Location Region',
+                   'Size': 'Geometry House Size',
                    'yearmaderange': 'Vintage',
-                   'equipm': 'Heating_Equipment',
-                   'fuelh2o': 'Heater_Fuel_Water',
-                   'rngfuel': 'Heating_Fuel_Stove',
-                   'dryrfuel': 'Heating_Fuel_Dryer',
-                   'equipage': 'Heating_Equipment_Age',
-                   'cooltype': 'AC_Type',
-                   'agecenac': 'Central_AC_Sys_Age',
-                   'wwacage': 'Window_AC_Sys_Age',
-                   'sizeofgarage': 'Size_of_Garage',
-                   'division': 'Location_Census_division',
-                   'region': 'Location_Region',
-                   'fuelheat': 'Heating_Fuel_Type',
-                   'typeglass': 'Glazing_Type',
-                   'householder_race': 'Household_Race',
+                   'equipm': 'Heating Equipment',
+                   'fuelh2o': 'Heater Fuel Water',
+                   'rngfuel': 'Heating Fuel Stove',
+                   'dryrfuel': 'Heating Fuel Dryer',
+                   'equipage': 'Heating Equipment Age',
+                   'cooltype': 'AC Type',
+                   'agecenac': 'Central AC Sys Age',
+                   'wwacage': 'Window AC Sys Age',
+                   'sizeofgarage': 'Size of Garage',
+                   'division': 'Location Census division',
+                   'region': 'Location Region',
+                   'fuelheat': 'Heating Fuel',
+                   'typeglass': 'Glazing Type',
+                   'householder_race': 'Household Race',
                    'education': 'Education',
+                   'acothers': 'Cooling Shared',
+                   'heatoth': 'Heating Shared',
                   }
 
 bldg_typ_dict = {1: 'Mobile Home',
@@ -87,7 +91,7 @@ vintages = {1: '1950-pre',
             7: '2000s',
             8: '2000s'}
 fuels = {1: 'Natural Gas',
-         2: 'Propane/LPG',
+         2: 'Propane',
          3: 'Fuel Oil',
          5: 'Electricity',
          4: 'Other Fuel',
@@ -232,45 +236,45 @@ census_div = {1: 'New England Census Division (CT, MA, ME, NH, RI, VT)',
               8: 'Mountain North Sub-Division (CO, ID, MT, UT, WY)',
               9: 'Mountain South Sub-Division (AZ, NM, NV)',
               10: 'Pacific Census Division (AK, CA, HI, OR, WA)'}
-region_def = {1: 3,
-              2: 3,
-              3: 7,
-              4: 7,
-              5: 7,
-              6: 4,
-              7: 4,
-              8: 4,
-              9: 2,
-              10: 2,
-              11: 8,
-              12: 8,
-              13: 8,
-              14: 8,
-              15: 9,
-              16: 9,
-              17: 9,
-              18: 9,
-              19: 8,
-              20: 9,
-              21: 9,
-              22: 5,
-              23: 5,
-              24: 10,
-              25: 10,
-              26: 11,
-              27: 6}
-cr_str = {1: 'CR01',
-          2: 'CR02',
-          3: 'CR03',
-          4: 'CR04',
-          5: 'CR05',
-          6: 'CR06',
-          7: 'CR07',
-          8: 'CR08',
-          9: 'CR09',
-          10: 'CR10',
-          11: 'CR11',
-          12: 'CR12'}
+region_def = {1: 'C3',
+              2: 'C3',
+              3: 'C7',
+              4: 'C7',
+              5: 'C7',
+              6: 'C4',
+              7: 'C4',
+              8: 'C4',
+              9: 'C2',
+              10: 'C2',
+              11: 'C8',
+              12: 'C8',
+              13: 'C8',
+              14: 'C8',
+              15: 'C9',
+              16: 'C9',
+              17: 'C9',
+              18: 'C9',
+              19: 'C8',
+              20: 'C9',
+              21: 'C9',
+              22: 'C5',
+              23: 'C5',
+              24: 'C10',
+              25: 'C10',
+              26: 'C11',
+              27: 'C6'}
+cr_str = {'C1': 'CR01',
+          'C2': 'CR02',
+          'C3': 'CR03',
+          'C4': 'CR04',
+          'C5': 'CR05',
+          'C6': 'CR06',
+          'C7': 'CR07',
+          'C8': 'CR08',
+          'C9': 'CR09',
+          'C10': 'CR10',
+          'C11': 'CR11',
+          'C12': 'CR12'}
 garage_dict = {1: "1 Car",
                2: "2 Car",
                3: "3+ Car",
@@ -312,6 +316,9 @@ randincome_dict = {-1: 0000,
 numglass_dict = {'1 Pane',
                  '2+ Pane',
                  'No Windows'}
+shared_syst_dict = {0: 'Not Shared',
+                    1: 'Shared',
+                    -2: 'Not Shared'}
 fpl = fpl09
 heating_types = {2: 'Steam or Hot Water System',  # 'Steam or Hot Water System',
                  3: 'Central Warm-Air Furnace',  # 'Central Warm-Air Furnace'      ,
@@ -351,34 +358,39 @@ def assign_size_bins(df):
 
 
 def process_data(df):
+    # recs_column_names = df.columns.values
+    df.columns = [dependency_dict.get(x, x) for x in df.columns]
     # create new fields for numerical processing later (correlation stuff)
-    df['num_glass'] = df.apply(lambda x: x['typeglass'] if x['typeglass'] > 0 else 0, axis=1)
+    df['num_glass'] = df.apply(lambda x: x['Glazing Type'] if x['Glazing Type'] > 0 else 0, axis=1)
     # Select Single Family Detached Housing Only
     #df = df.loc[df['typehuq'] == {1,2,3,4,5}]
     df = df.reset_index()
 
-    # recs_column_names = df.columns.values
-    df.columns = [dependency_dict.get(x,x) for x in df.columns]
+
 
     # Apply dictionaries for mapping RECS response fields
     field_dicts = {
-                   'Building_Type': bldg_typ_dict,
-                   'Heating_Equipment': heating_types,
-                   'Location_Census_division': census_div,
-                   'AC_Type': cooltype_dict,
+                   'Geometry Building Type': bldg_typ_dict,
+                   'Heating Equipment': heating_types,
+                   'Location Census division': census_div,
+                   'AC Type': cooltype_dict,
                    'Vintage': vintages,
-                   'Heating_Fuel_Type': fuels,
-                   'Heater_Fuel_Water': fuels,
-                   'Heating_Fuel_Stove': fuels,
-                   'Heating_Fuel_Dryer': fuels,
-                   'Heating_Equipment_Age': equipage_dict,
-                   'Central_AC_Sys_Age': agecenac_dict,
-                   'Window_AC_Sys_Age': wwacage_dict,
-                   'Glazing_Type': typeglass_dict,
-                   'Household_Race': race_dict,
+                   'Heating Fuel': fuels,
+                   'Heater Fuel Water': fuels,
+                   'Heating Fuel Stove': fuels,
+                   'Heating Fuel Dryer': fuels,
+                   'Heating Equipment Age': equipage_dict,
+                   'Central AC Sys Age': agecenac_dict,
+                   'Window AC Sys Age': wwacage_dict,
+                   'Glazing Type': typeglass_dict,
+                   'Household Race': race_dict,
                    'Education': education_dict,
-                   'Size_of_Garage': garage_dict,
-                   'Geometry_Stories': stories_dict}
+                   'Size of Garage': garage_dict,
+                   'Geometry Stories': stories_dict,
+                   'Location Region': region_def,
+                   'Cooling Shared': shared_syst_dict,
+                   'Heating Shared': shared_syst_dict,
+    }
     for field_name, field_dict in field_dicts.iteritems():
         for num, name in field_dict.iteritems():
             df.loc[:, field_name].replace(num, name, inplace=True)
@@ -388,9 +400,8 @@ def process_data(df):
     return df
 
 
-def calc_general(df, dependency, char_pd=None, outfile=None, norm=True, outpath="housing_characteristics"):
+def calc_general(df, dependency, options=None, outfile=None, norm=True, outpath="housing_characteristics"):
 
-    dependency = dependency + ['Building_Type']
 
     if not outfile == 'Infiltration.tsv':
 
@@ -402,7 +413,7 @@ def calc_general(df, dependency, char_pd=None, outfile=None, norm=True, outpath=
         # create pivot table with dependencies as index and "vintage options as values"
 
         #1. Create the concatenate dependency column by creating a combined list of all the dependencies
-        fields = dependency + char_pd
+        fields = dependency + options
         combos = [list(set(df[field])) for field in fields]  # changes into a list format
 
         # 2. utilize advanced indexing capabilities of pandas for creating a multiindex
@@ -414,7 +425,7 @@ def calc_general(df, dependency, char_pd=None, outfile=None, norm=True, outpath=
         g = df.groupby(fields).sum()
         g = g['nweight'].reindex(index)
         g = g.fillna(0).reset_index()
-        g = pd.pivot_table(g, index=dependency, columns=char_pd, values='nweight').reset_index()
+        g = pd.pivot_table(g, index=dependency, columns=options, values='nweight').reset_index()
         # add 2 coulmns to the pivot table corresponding to the count and total weightage of each dependency
         #                                                                                       combination "dependency"
         # for now, store the weightage in a seaprate tuple Weight, will add to the dataframe after
@@ -431,7 +442,7 @@ def calc_general(df, dependency, char_pd=None, outfile=None, norm=True, outpath=
                             # set the multiindex output as the index of the dataframe containin only the Count coulmn
         ct = ct.fillna(0).reset_index()
                             # fill the empty values with 0 and  get the indexed columns back in dataframe
-        ct = pd.pivot_table(ct, index=dependency, columns=char_pd, values='Count').reset_index()
+        ct = pd.pivot_table(ct, index=dependency, columns=options, values='Count').reset_index()
                             # set up the pivot table with the dependencies as index, columnns as column headers and
                             # their corresponding counts as the Values of the pivot table
         length = len(dependency)
@@ -461,7 +472,7 @@ def calc_general(df, dependency, char_pd=None, outfile=None, norm=True, outpath=
 
         g = pd.read_csv('housing_characteristics/Infiltration.tsv', delimiter='\t')
         for col in g.columns:
-            g = g.rename(columns={col: col.replace('char_pd=', '')})
+            g = g.rename(columns={col: col.replace('Option=', '')})
             g = g.rename(columns={col: col.replace('Dependency=', '')})
     #Rename columns
     # print dependency
@@ -470,7 +481,7 @@ def calc_general(df, dependency, char_pd=None, outfile=None, norm=True, outpath=
     # dependency = [x.replace('Size', 'Geometry House Size') for x in dependency]
     # dependency = [x.replace('CR', 'Location Region') for x in dependency]
     # dependency = [x.replace('stories', 'Geometry Stories') for x in dependency]
-    
+
     g = g.rename(
         columns={'3+ Car': '3 Car',
                  'East North Central Census Division (IL, IN, MI, OH, WI)': 'East North Central',
@@ -496,7 +507,7 @@ def calc_general(df, dependency, char_pd=None, outfile=None, norm=True, outpath=
         #            'South Atlantic  Census Division (DC, DE, FL, GA, MD, NC, SC, VA, WV)': 'South Atlantic',
         #            'West North Central Census Division (IA, KS, MN, MO, ND, NE, SD)': 'West North Central',
         #            'West South Central Census Division (AR, LA, OK, TX)': 'West South Central'})
-    if 'Location_Census_division' in g.columns:
+    if 'Location Census division' in g.columns:
         g['Mountain - Pacific'] = g['Mountain North'].values + g['Mountain South'].values + g['Pacific'].values
         del g['Mountain North']
         del g['Mountain South']
@@ -513,11 +524,11 @@ def calc_general(df, dependency, char_pd=None, outfile=None, norm=True, outpath=
         g['Vintage'] = g['Vintage'].replace({'1950-pre': '<1950'})
         g['Vintage'] = g['Vintage'].replace({'pre-1950': '<1950'})
     if 'Location Region' in g.columns:
-        g['Location Region'] = g['Location Region'].replace({1: 'CR01',
-            2: 'CR02', 3: 'CR03', 4: 'CR04', 5: 'CR05', 6: 'CR06', 7: 'CR07', 8: 'CR08', 9: 'CR09',
-            10: 'CR10', 11: 'CR11', 12: 'CR12'})
+        g['Location Region'] = g['Location Region'].replace({'C1': 'CR01',
+            'C2': 'CR02', 'C3': 'CR03', 'C4': 'CR04', 'C5': 'CR05', 'C6': 'CR06', 'C7': 'CR07', 'C8': 'CR08', 'C9': 'CR09',
+            'C10': 'CR10', 'C11': 'CR11', 'C12': 'CR12'})
 
-    # Add Headers for char_pd and Dependency
+    # Add Headers for options and Dependency
     rename_dict = {}
     for col in g.columns:
         if col in ['Weight', 'Count']:
@@ -526,30 +537,37 @@ def calc_general(df, dependency, char_pd=None, outfile=None, norm=True, outpath=
             if col in dependency:
                 rename_dict[col] = 'Dependency=' + str(col)
             else:
-                rename_dict[col] = 'char_pd=' + str(col)
+                rename_dict[col] = 'Option=' + str(col)
     g = g.rename(columns=rename_dict)
 
     # Reduce garage size for small houses
     if outfile == 'Geometry Garage.tsv':
         g = g.fillna(0)
-        g.loc[g['Dependency=Building_Type'] == 'Mobile Home', 'char_pd=1 Car'] = 0
-        g.loc[g['Dependency=Building_Type'] == 'Mobile Home', 'char_pd=2 Car'] = 0
-        g.loc[g['Dependency=Building_Type'] == 'Mobile Home', 'char_pd=3 Car'] = 0
-        g.loc[g['Dependency=Building_Type'] == 'Mobile Home', 'char_pd=None'] = 1
 
-        g.loc[g['Dependency=Building_Type'] == 'Multi-Family with 2 - 4 Units', 'char_pd=1 Car'] = 0
-        g.loc[g['Dependency=Building_Type'] == 'Multi-Family with 2 - 4 Units', 'char_pd=2 Car'] = 0
-        g.loc[g['Dependency=Building_Type'] == 'Multi-Family with 2 - 4 Units', 'char_pd=3 Car'] = 0
-        g.loc[g['Dependency=Building_Type'] == 'Multi-Family with 2 - 4 Units', 'char_pd=None'] = 1
+        for building_type in ['Mobile Home', 'Multi-Family with 2 - 4 Units', 'Multi-Family with 5+ Units']:
+            for options in ['1 Car', '2 Car', '3 Car']:
+                g.loc[g['Dependency=Building Type'] == building_type, 'Option={}'.format(options)] = 0
+            g.loc[g['Dependency=Building Type'] == building_type, 'Option=None'] = 1
 
-        g.loc[g['Dependency=Building_Type'] == 'Multi-Family with 5+ Units', 'char_pd=1 Car'] = 0
-        g.loc[g['Dependency=Building_Type'] == 'Multi-Family with 5+ Units', 'char_pd=2 Car'] = 0
-        g.loc[g['Dependency=Building_Type'] == 'Multi-Family with 5+ Units', 'char_pd=3 Car'] = 0
-        g.loc[g['Dependency=Building_Type'] == 'Multi-Family with 5+ Units', 'char_pd=None'] = 1
-        g.loc[g['Dependency=Geometry_House_Size'] == '0-1499', 'char_pd=2 Car'] =\
-            g.loc[g['Dependency=Geometry_House_Size'] == '0-1499', 'char_pd=2 Car'] +\
-            g.loc[g['Dependency=Geometry_House_Size'] == '0-1499', 'char_pd=3 Car']
-        g.loc[g['Dependency=Geometry_House_Size'] == '0-1499', 'char_pd=3 Car'] = 0
+
+        # g.loc[g['Dependency=Building_Type'] == 'Mobile Home', 'options=1 Car'] = 0
+        # g.loc[g['Dependency=Building_Type'] == 'Mobile Home', 'options=2 Car'] = 0
+        # g.loc[g['Dependency=Building_Type'] == 'Mobile Home', 'options=3 Car'] = 0
+        # g.loc[g['Dependency=Building_Type'] == 'Mobile Home', 'options=None'] = 1
+        #
+        # g.loc[g['Dependency=Building_Type'] == 'Multi-Family with 2 - 4 Units', 'options=1 Car'] = 0
+        # g.loc[g['Dependency=Building_Type'] == 'Multi-Family with 2 - 4 Units', 'options=2 Car'] = 0
+        # g.loc[g['Dependency=Building_Type'] == 'Multi-Family with 2 - 4 Units', 'options=3 Car'] = 0
+        # g.loc[g['Dependency=Building_Type'] == 'Multi-Family with 2 - 4 Units', 'options=None'] = 1
+        #
+        # g.loc[g['Dependency=Building_Type'] == 'Multi-Family with 5+ Units', 'options=1 Car'] = 0
+        # g.loc[g['Dependency=Building_Type'] == 'Multi-Family with 5+ Units', 'options=2 Car'] = 0
+        # g.loc[g['Dependency=Building_Type'] == 'Multi-Family with 5+ Units', 'options=3 Car'] = 0
+        # g.loc[g['Dependency=Building_Type'] == 'Multi-Family with 5+ Units', 'options=None'] = 1
+        g.loc[g['Dependency=Geometry House Size'] == '0-1499', 'options=2 Car'] =\
+            g.loc[g['Dependency=Geometry House Size'] == '0-1499', 'options=2 Car'] +\
+            g.loc[g['Dependency=Geometry House Size'] == '0-1499', 'options=3 Car']
+        g.loc[g['Dependency=Geometry House Size'] == '0-1499', 'options=3 Car'] = 0
 
     # Generate Outfile
     if not outfile is None:
@@ -559,14 +577,14 @@ def calc_general(df, dependency, char_pd=None, outfile=None, norm=True, outpath=
     return g
 
 
-def save_to_tsv(g, dependency, char_pd, outfile):
+def save_to_tsv(g, dependency, options, outfile):
     rename_dict = {}
     for col in g.columns:
         if col in dependency:
             rename_dict[col] = 'Dependency=' + col
-        if col in char_pd:
-            rename_dict[col] = 'char_pd=' + col
-    g = g.rename(char_pd=rename_dict)
+        if col in options:
+            rename_dict[col] = 'options=' + col
+    g = g.rename(options=rename_dict)
     print g
     g.to_csv(outfile, sep='\t', index=False)
 
@@ -618,14 +636,14 @@ def assign_poverty_levels(df):
 
 
 def custom_region(df):
-    df['CR'] = df['reportable_domain']
+    df['CR'] = df['Location Region']
     df['CR'].replace(region_def, inplace=True)
     # Split out Kentucky and put in 8:
-    df.ix[(df['reportable_domain'] == 18) & (df['aia_zone'] == 3), 'CR'] = 8
+    df.ix[(df['Location Region'] == 18) & (df['aia_zone'] == 3), 'CR'] = 8
     # Split out Hawaii and put in 12:
-    df.ix[(df['reportable_domain'] == 27) & ((df['aia_zone'] == 5) | (df['hdd65'] < 4000)), 'CR'] = 12
+    df.ix[(df['Location Region'] == 27) & ((df['aia_zone'] == 5) | (df['hdd65'] < 4000)), 'CR'] = 12
     # Split out Alaska and put in 1:
-    df.ix[(df['reportable_domain'] == 27) & (df['hdd65'] > 6930), 'CR'] = 1  # Source for 6930 HDD: Dennis Barley
+    df.ix[(df['Location Region'] == 27) & (df['hdd65'] > 6930), 'CR'] = 1  # Source for 6930 HDD: Dennis Barley
     return df
 
 
@@ -679,7 +697,7 @@ def foundation_type(df):
 #         avg_size = (group['Size'] * group['NWEIGHT'] * 1.0).sum() / group['NWEIGHT'].sum()
 #         print ','.join([name, str(avg_occs), str(avg_baths), str(avg_size)])
 def query_stories(df, outfile='recs_query_stories.csv'):
-    g = calc_general(df, dependency=['Vintage', 'Size'], char_pd=['stories'], outfile='Geometry stories.tsv')
+    g = calc_general(df, dependency=['Vintage', 'Size'], options=['stories'], outfile='Geometry stories.tsv')
     fnd_types = ['Crawl',
                  'Heated Basement',
                  'Pier and Beam',
@@ -728,6 +746,15 @@ def med_avg(slice_by, column, df, outfile):
     g.insert(0, slice_by, idx)
     g.to_csv(outfile, sep='\t', index=False)
 
+def shared_system(df):
+    df['Shared System'] = 'SHARED'
+    df.loc[(df['Cooling Shared'] == 'Shared') & (df['Heating Shared'] == 'Shared'), 'Shared System'] = 'Both Shared'
+    df.loc[(df['Cooling Shared'] == 'Shared') & (df['Heating Shared'] == 'Not Shared'), 'Shared System'] = 'Only Cooling Shared'
+    df.loc[(df['Cooling Shared'] == 'Not Shared') & (df['Heating Shared'] == 'Shared'), 'Shared System'] = 'Only Heating Shared'
+    df.loc[(df['Cooling Shared'] == 'Not Shared') & (df['Heating Shared'] == 'Not Shared'), 'Shared System'] = 'Neither Shared'
+    return df
+
+
 
 def regenerate():
     # Use this to regenerate processed data if changes are made to any of the classes below
@@ -736,6 +763,7 @@ def regenerate():
     df = process_data(df)
     df = custom_region(df)
     df = assign_poverty_levels(df)
+    df = shared_system(df)
     # df = foundation_type(df)
     df = df.reset_index()
     df.to_pickle('processed_eia.recs_2009_microdata.pkl')
@@ -1115,43 +1143,46 @@ def erin_boyd():
 
 # NEW QUERIES
 def query(df):
-    #    calc_general(df, dependency=['CR', 'FPL_BINS'], char_pd=['Vintage'], outfile='output_calc_CR_FPL_by_vintage.tsv')
-    #    calc_general(df, dependency=['CR','FPL_BINS','Vintage'], char_pd = ['equipm'], outfile = 'heatingequipment_output_by_CR_FPL_vintage.tsv')
-    #    calc_general(df, dependency=['CR','FPL_BINS','Vintage'], char_pd = ['equipm'], outfile = 'heatingequipment_output_by_CR_FPL_vintage.tsv')
-    #    calc_general(df, dependency=['CR','FPL_BINS','Vintage'], char_pd = ['fuelheat'], outfile = 'heatingfuel_output_by_CR_FPL_vintage.tsv')
-    #    calc_general(df, dependency=['CR','FPL_BINS','Vintage'], char_pd = ['Size'], outfile = 'Size_output_by_CR_FPL_vintage.tsv')
-    #    calc_general(df, dependency=['CR','FPL_BINS','Vintage'], char_pd = ['equipage'], outfile = 'heating_equipment_age_output_by_CR_FPL_vintage.tsv')
-    #    calc_general(df, dependency=['CR','FPL_BINS','Vintage'], char_pd = ['cooltype'], outfile = 'AC_type_output_by_CR_FPL_vintage.tsv')
-    #    calc_general(df, dependency=['CR','FPL_BINS','Vintage'], char_pd = ['agecenac'], outfile = 'Central-AC-Sys-Age_output_by_CR_FPL_vintage.tsv')
-    #    calc_general(df, dependency=['CR','FPL_BINS','Vintage'], char_pd = ['wwacage'], outfile = 'Window-AC-Sys-Age_output_by_CR_FPL_vintage.tsv')
-    #    calc_general(df, dependency=['CR','FPL_BINS','Vintage'], char_pd = ['temphome'], outfile = 'Temp-Winter-Home_output_by_CR_FPL_vintage.tsv')
-    #    calc_general(df, dependency=['CR','FPL_BINS','Vintage'], char_pd = ['tempgone'], outfile = 'Temp-Winter-Gone_output_by_CR_FPL_vintage.tsv')
-    #    calc_general(df, dependency=['CR','FPL_BINS','Vintage'], char_pd = ['tempnite'], outfile = 'Temp-Winter-Night_output_by_CR_FPL_vintage.tsv')
-    #    calc_general(df, dependency=['CR','FPL_BINS','Vintage'], char_pd = ['temphomeac'], outfile = 'Temp-Summer-Home_output_by_CR_FPL_vintage.tsv')
-    #    calc_general(df, dependency=['CR','FPL_BINS','Vintage'], char_pd = ['tempgoneac'], outfile = 'Temp-Summer-Gone_output_by_CR_FPL_vintage.tsv')
-    #    calc_general(df, dependency=['CR','FPL_BINS','Vintage'], char_pd = ['tempniteac'], outfile = 'Temp-Summer-Night_output_by_CR_FPL_vintage.tsv')
-    #    calc_general(df, dependency=['CR','FPL_BINS','Vintage'], char_pd = ['typeglass'], outfile = 'Window-Type_output_by_CR_FPL_vintage.tsv')
-    #    calc_general(df, dependency=['CR','FPL_BINS','Vintage'], char_pd = ['nhsldmem'], outfile = 'Household-Occ-Num_output_by_CR_FPL_vintage.tsv')
+    #    calc_general(df, dependency=['CR', 'FPL_BINS'], options=['Vintage'], outfile='output_calc_CR_FPL_by_vintage.tsv')
+    #    calc_general(df, dependency=['CR','FPL_BINS','Vintage'], options = ['equipm'], outfile = 'heatingequipment_output_by_CR_FPL_vintage.tsv')
+    #    calc_general(df, dependency=['CR','FPL_BINS','Vintage'], options = ['equipm'], outfile = 'heatingequipment_output_by_CR_FPL_vintage.tsv')
+    #    calc_general(df, dependency=['CR','FPL_BINS','Vintage'], options = ['fuelheat'], outfile = 'heatingfuel_output_by_CR_FPL_vintage.tsv')
+    #    calc_general(df, dependency=['CR','FPL_BINS','Vintage'], options = ['Size'], outfile = 'Size_output_by_CR_FPL_vintage.tsv')
+    #    calc_general(df, dependency=['CR','FPL_BINS','Vintage'], options = ['equipage'], outfile = 'heating_equipment_age_output_by_CR_FPL_vintage.tsv')
+    #    calc_general(df, dependency=['CR','FPL_BINS','Vintage'], options = ['cooltype'], outfile = 'AC_type_output_by_CR_FPL_vintage.tsv')
+    #    calc_general(df, dependency=['CR','FPL_BINS','Vintage'], options = ['agecenac'], outfile = 'Central-AC-Sys-Age_output_by_CR_FPL_vintage.tsv')
+    #    calc_general(df, dependency=['CR','FPL_BINS','Vintage'], options = ['wwacage'], outfile = 'Window-AC-Sys-Age_output_by_CR_FPL_vintage.tsv')
+    #    calc_general(df, dependency=['CR','FPL_BINS','Vintage'], options = ['temphome'], outfile = 'Temp-Winter-Home_output_by_CR_FPL_vintage.tsv')
+    #    calc_general(df, dependency=['CR','FPL_BINS','Vintage'], options = ['tempgone'], outfile = 'Temp-Winter-Gone_output_by_CR_FPL_vintage.tsv')
+    #    calc_general(df, dependency=['CR','FPL_BINS','Vintage'], options = ['tempnite'], outfile = 'Temp-Winter-Night_output_by_CR_FPL_vintage.tsv')
+    #    calc_general(df, dependency=['CR','FPL_BINS','Vintage'], options = ['temphomeac'], outfile = 'Temp-Summer-Home_output_by_CR_FPL_vintage.tsv')
+    #    calc_general(df, dependency=['CR','FPL_BINS','Vintage'], options = ['tempgoneac'], outfile = 'Temp-Summer-Gone_output_by_CR_FPL_vintage.tsv')
+    #    calc_general(df, dependency=['CR','FPL_BINS','Vintage'], options = ['tempniteac'], outfile = 'Temp-Summer-Night_output_by_CR_FPL_vintage.tsv')
+    #    calc_general(df, dependency=['CR','FPL_BINS','Vintage'], options = ['typeglass'], outfile = 'Window-Type_output_by_CR_FPL_vintage.tsv')
+    #    calc_general(df, dependency=['CR','FPL_BINS','Vintage'], options = ['nhsldmem'], outfile = 'Household-Occ-Num_output_by_CR_FPL_vintage.tsv')
     #     calc_general(df, dependency=['CR','FPL_BINS','Vintage'], outfile = '_output_by_CR_FPL_vintage.tsv')
-    #    calc_general(df, dependency=['CR','FPL_BINS','Vintage'], char_pd = ['Size_of_Garage'], outfile = 'SizeofGarage_output_by_CR_FPL_vintage.tsv')
-    #    calc_general(df, dependency=['FPL_BINS','Vintage'], char_pd = ['Size_of_Garage'], outfile = 'SizeofGarage_output_by_FPL_vintage.tsv')
-    #    calc_general(df, dependency=['Vintage','Size'], char_pd = ['Size_of_Garage'], outfile = 'SizeofGarage_output_by_vintage_size.tsv')
-    #    calc_general(df, dependency=['Vintage','Size'], char_pd = ['Foundation Type'], outfile = 'FoundationType_output_by_vintage_size.tsv')
-    #    calc_general(df, dependency=['CR','FPL_BINS','Size'], char_pd = ['Size_of_Garage'], outfile = 'SizeofGarage_output_by_CR_FPL_Size.tsv')
-    #    calc_general(df, dependency=['Vintage','Size','Foundation Type'], char_pd = ['stories'], outfile = 'Stories_output_by_vin_size_fndtype.tsv')
-     #   calc_general(df, dependency=['Vintage', 'Size'], char_pd=['stories'], outfile='Geometry Stories.tsv',outpath='../../../project_resstock_multifamily/housing_characteristics')
-    #    calc_general(df, dependency=['Vintage','Size'], char_pd = ['Size_of_Garage'], outfile = 'Geometry Garage.tsv', outpath='../../../project_resstock_multifamily/housing_characteristics')
-    #    calc_general(df, dependency=['CR'], char_pd = ['division'], outfile = 'Location Census Division.tsv', outpath='../../../project_resstock_national/housing_characteristicsl')
-    #    calc_general(df, dependency=['CR','Vintage','Size','stories'], char_pd = [], outfile = 'Infiltration.tsv', outpath='../../../project_resstock_national/housing_characteristics')
-    #    calc_general(df, dependency=['CR', 'Vintage','fuels'], char_pd=['stories'], outfile='Geometry Stories.tsv',
+    #    calc_general(df, dependency=['CR','FPL_BINS','Vintage'], options = ['Size_of_Garage'], outfile = 'SizeofGarage_output_by_CR_FPL_vintage.tsv')
+    #    calc_general(df, dependency=['FPL_BINS','Vintage'], options = ['Size_of_Garage'], outfile = 'SizeofGarage_output_by_FPL_vintage.tsv')
+    #    calc_general(df, dependency=['Vintage','Size'], options = ['Size_of_Garage'], outfile = 'SizeofGarage_output_by_vintage_size.tsv')
+    #    calc_general(df, dependency=['Vintage','Size'], options = ['Foundation Type'], outfile = 'FoundationType_output_by_vintage_size.tsv')
+    #    calc_general(df, dependency=['CR','FPL_BINS','Size'], options = ['Size_of_Garage'], outfile = 'SizeofGarage_output_by_CR_FPL_Size.tsv')
+    #    calc_general(df, dependency=['Vintage','Size','Foundation Type'], options = ['stories'], outfile = 'Stories_output_by_vin_size_fndtype.tsv')
+     #   calc_general(df, dependency=['Vintage', 'Size'], options=['stories'], outfile='Geometry Stories.tsv',outpath='../../../project_resstock_multifamily/housing_characteristics')
+    #    calc_general(df, dependency=['Vintage','Size'], options = ['Size_of_Garage'], outfile = 'Geometry Garage.tsv', outpath='../../../project_resstock_multifamily/housing_characteristics')
+    #    calc_general(df, dependency=['CR'], options = ['division'], outfile = 'Location Census Division.tsv', outpath='../../../project_resstock_national/housing_characteristicsl')
+    #    calc_general(df, dependency=['CR','Vintage','Size','stories'], options = [], outfile = 'Infiltration.tsv', outpath='../../../project_resstock_national/housing_characteristics')
+    #    calc_general(df, dependency=['CR', 'Vintage','fuels'], options=['stories'], outfile='Geometry Stories.tsv',
                  #outpath='../../../project_resstock_multifamily/housing_characteristics')
-    #    calc_general(df, dependency=['CR', 'Vintage', 'fuelheat'], char_pd=['equipm'],
+    #    calc_general(df, dependency=['CR', 'Vintage', 'fuelheat'], options=['equipm'],
     #        outfile='heatingequipment_output_by_CR_fuel_vintage.tsv')
-        calc_general(df, dependency=['Vintage', 'Geometry_House_Size'], char_pd = ['Size_of_Garage'], outfile = 'Geometry Garage.tsv',outpath='../../../project_resstock_multifamily/housing_characteristics')
+    #     calc_general(df, dependency=['Location Region'], options=['Building Type'], outfile='Geometry Building Type.tsv', outpath='../../../project_resstock_multifamily/housing_characteristics')
+        calc_general(df, dependency=['Geometry Building Type'], options=['Geometry Number Units'], outfile='Geometry Number Units.tsv',
+                 outpath='../../../project_resstock_multifamily/housing_characteristics')
         pass
 
 
 if __name__ == '__main__':
+    # Choose regerate if you want to redo the processed pkl file, otherwise comment out
     # Choose regerate if you want to redo the processed pkl file, otherwise comment out
     # df = erin_boyd()
 
