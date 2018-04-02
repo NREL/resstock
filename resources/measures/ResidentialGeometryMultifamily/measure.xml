@@ -2,8 +2,8 @@
   <schema_version>3.0</schema_version>
   <name>create_residential_multifamily_geometry</name>
   <uid>9bc07973-98a4-46fc-b643-e280628817c5</uid>
-  <version_id>c3fe1494-3a2a-40bd-9c6c-03d09f2e75c2</version_id>
-  <version_modified>20171204T215138Z</version_modified>
+  <version_id>90bc39ef-2b0a-4a7c-99df-286807c88a5f</version_id>
+  <version_modified>20180218T020703Z</version_modified>
   <xml_checksum>2AF3A68E</xml_checksum>
   <class_name>CreateResidentialMultifamilyGeometry</class_name>
   <display_name>Create Residential Multifamily Geometry</display_name>
@@ -21,7 +21,7 @@
       <default_value>900</default_value>
     </argument>
     <argument>
-      <name>living_height</name>
+      <name>wall_height</name>
       <display_name>Wall Height (Per Floor)</display_name>
       <description>The height of the living space walls.</description>
       <type>Double</type>
@@ -31,7 +31,7 @@
       <default_value>8</default_value>
     </argument>
     <argument>
-      <name>building_num_floors</name>
+      <name>num_floors</name>
       <display_name>Building Num Floors</display_name>
       <description>The number of floors above grade.</description>
       <type>Integer</type>
@@ -61,7 +61,7 @@
       <default_value>2</default_value>
     </argument>
     <argument>
-      <name>corr_pos</name>
+      <name>corridor_position</name>
       <display_name>Corridor Position</display_name>
       <description>The position of the corridor.</description>
       <type>Choice</type>
@@ -88,7 +88,7 @@
       </choices>
     </argument>
     <argument>
-      <name>corr_width</name>
+      <name>corridor_width</name>
       <display_name>Corridor Width</display_name>
       <description>The width of the corridor.</description>
       <type>Double</type>
@@ -118,7 +118,7 @@
       <default_value>0</default_value>
     </argument>
     <argument>
-      <name>inset_pos</name>
+      <name>inset_position</name>
       <display_name>Inset Position</display_name>
       <description>The position of the inset.</description>
       <type>Choice</type>
@@ -137,7 +137,7 @@
       </choices>
     </argument>
     <argument>
-      <name>balc_depth</name>
+      <name>balcony_depth</name>
       <display_name>Balcony Depth</display_name>
       <description>The depth of the balcony.</description>
       <type>Double</type>
@@ -179,44 +179,6 @@
       <model_dependent>false</model_dependent>
       <default_value>3</default_value>
     </argument>
-    <argument>
-      <name>use_zone_mult</name>
-      <display_name>Use Zone Multipliers?</display_name>
-      <description>Model only one interior unit per floor with its thermal zone multiplier equal to the number of interior units per floor.</description>
-      <type>Boolean</type>
-      <required>true</required>
-      <model_dependent>false</model_dependent>
-      <default_value>false</default_value>
-      <choices>
-        <choice>
-          <value>true</value>
-          <display_name>true</display_name>
-        </choice>
-        <choice>
-          <value>false</value>
-          <display_name>false</display_name>
-        </choice>
-      </choices>
-    </argument>
-    <argument>
-      <name>use_floor_mult</name>
-      <display_name>Use Floor Multipliers?</display_name>
-      <description>Model only one interior floor with thermal zone multipliers equal to the number of interior floors.</description>
-      <type>Boolean</type>
-      <required>true</required>
-      <model_dependent>false</model_dependent>
-      <default_value>false</default_value>
-      <choices>
-        <choice>
-          <value>true</value>
-          <display_name>true</display_name>
-        </choice>
-        <choice>
-          <value>false</value>
-          <display_name>false</display_name>
-        </choice>
-      </choices>
-    </argument>
   </arguments>
   <outputs/>
   <provenances/>
@@ -247,10 +209,10 @@
   </attributes>
   <files>
     <file>
-      <filename>create_residential_multifamily_geometry_test.rb</filename>
+      <filename>unit_conversions.rb</filename>
       <filetype>rb</filetype>
-      <usage_type>test</usage_type>
-      <checksum>D54FD74A</checksum>
+      <usage_type>resource</usage_type>
+      <checksum>3E1D973D</checksum>
     </file>
     <file>
       <version>
@@ -261,25 +223,31 @@
       <filename>measure.rb</filename>
       <filetype>rb</filetype>
       <usage_type>script</usage_type>
-      <checksum>CDB8B4B7</checksum>
+      <checksum>A2F4FCD0</checksum>
     </file>
     <file>
       <filename>MF_8units_1story_SL_Denver.osm</filename>
       <filetype>osm</filetype>
       <usage_type>test</usage_type>
-      <checksum>6ADAF527</checksum>
-    </file>
-    <file>
-      <filename>geometry.rb</filename>
-      <filetype>rb</filetype>
-      <usage_type>resource</usage_type>
-      <checksum>EF3CCE9D</checksum>
+      <checksum>5FD44F84</checksum>
     </file>
     <file>
       <filename>constants.rb</filename>
       <filetype>rb</filetype>
       <usage_type>resource</usage_type>
-      <checksum>260EF643</checksum>
+      <checksum>FDA82DA6</checksum>
+    </file>
+    <file>
+      <filename>create_residential_multifamily_geometry_test.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>test</usage_type>
+      <checksum>70BBF7F2</checksum>
+    </file>
+    <file>
+      <filename>geometry.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>15FAD11A</checksum>
     </file>
   </files>
 </measure>

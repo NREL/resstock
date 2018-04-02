@@ -2,8 +2,8 @@
   <schema_version>3.0</schema_version>
   <name>create_residential_single_family_attached_geometry</name>
   <uid>fb4e4db8-1b29-4cbf-abcd-6af194ad945c</uid>
-  <version_id>43b48036-6087-4f15-9ba0-a4fecbe4b5e3</version_id>
-  <version_modified>20171204T215138Z</version_modified>
+  <version_id>af94fb6f-0dcf-41eb-bb81-139b5d40184e</version_id>
+  <version_modified>20180218T020704Z</version_modified>
   <xml_checksum>2AF3A68E</xml_checksum>
   <class_name>CreateResidentialSingleFamilyAttachedGeometry</class_name>
   <display_name>Create Residential Single-Family Attached Geometry</display_name>
@@ -21,7 +21,7 @@
       <default_value>900</default_value>
     </argument>
     <argument>
-      <name>living_height</name>
+      <name>wall_height</name>
       <display_name>Wall Height (Per Floor)</display_name>
       <description>The height of the living space walls.</description>
       <type>Double</type>
@@ -31,7 +31,7 @@
       <default_value>8</default_value>
     </argument>
     <argument>
-      <name>building_num_floors</name>
+      <name>num_floors</name>
       <display_name>Building Num Floors</display_name>
       <description>The number of floors above grade.</description>
       <type>Integer</type>
@@ -227,25 +227,6 @@
         </choice>
       </choices>
     </argument>
-    <argument>
-      <name>use_zone_mult</name>
-      <display_name>Use Zone Multipliers?</display_name>
-      <description>Model only one interior unit with its thermal zone multiplier equal to the number of interior units.</description>
-      <type>Boolean</type>
-      <required>true</required>
-      <model_dependent>false</model_dependent>
-      <default_value>false</default_value>
-      <choices>
-        <choice>
-          <value>true</value>
-          <display_name>true</display_name>
-        </choice>
-        <choice>
-          <value>false</value>
-          <display_name>false</display_name>
-        </choice>
-      </choices>
-    </argument>
   </arguments>
   <outputs/>
   <provenances/>
@@ -276,10 +257,16 @@
   </attributes>
   <files>
     <file>
-      <filename>create_residential_single_family_attached_geometry_test.rb</filename>
+      <filename>unit_conversions.rb</filename>
       <filetype>rb</filetype>
-      <usage_type>test</usage_type>
-      <checksum>9B6A7C2E</checksum>
+      <usage_type>resource</usage_type>
+      <checksum>3E1D973D</checksum>
+    </file>
+    <file>
+      <filename>constants.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>FDA82DA6</checksum>
     </file>
     <file>
       <version>
@@ -290,25 +277,25 @@
       <filename>measure.rb</filename>
       <filetype>rb</filetype>
       <usage_type>script</usage_type>
-      <checksum>033682C3</checksum>
+      <checksum>BD131536</checksum>
     </file>
     <file>
       <filename>SFA_4units_1story_FB_UA_Denver.osm</filename>
       <filetype>osm</filetype>
       <usage_type>test</usage_type>
-      <checksum>35EF81E9</checksum>
+      <checksum>E87566BD</checksum>
+    </file>
+    <file>
+      <filename>create_residential_single_family_attached_geometry_test.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>test</usage_type>
+      <checksum>4E96265F</checksum>
     </file>
     <file>
       <filename>geometry.rb</filename>
       <filetype>rb</filetype>
       <usage_type>resource</usage_type>
-      <checksum>EF3CCE9D</checksum>
-    </file>
-    <file>
-      <filename>constants.rb</filename>
-      <filetype>rb</filetype>
-      <usage_type>resource</usage_type>
-      <checksum>260EF643</checksum>
+      <checksum>15FAD11A</checksum>
     </file>
   </files>
 </measure>

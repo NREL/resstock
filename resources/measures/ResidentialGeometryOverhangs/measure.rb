@@ -3,6 +3,7 @@
 
 require "#{File.dirname(__FILE__)}/resources/constants"
 require "#{File.dirname(__FILE__)}/resources/geometry"
+require "#{File.dirname(__FILE__)}/resources/unit_conversions"
 
 # start the measure
 class CreateResidentialOverhangs < OpenStudio::Measure::ModelMeasure
@@ -100,9 +101,9 @@ class CreateResidentialOverhangs < OpenStudio::Measure::ModelMeasure
       sub_surfaces.delete_if { |sub_surface| sub_surface.name.to_s != sub_surface_s }
     end
     
-    depth = OpenStudio.convert(runner.getDoubleArgumentValue("depth",user_arguments), "ft", "m").get
-    offset = OpenStudio.convert(runner.getDoubleArgumentValue("offset",user_arguments), "ft", "m").get
-    # width_extension = OpenStudio.convert(runner.getDoubleArgumentValue("width_extension",user_arguments), "ft", "m").get
+    depth = UnitConversions.convert(runner.getDoubleArgumentValue("depth",user_arguments), "ft", "m")
+    offset = UnitConversions.convert(runner.getDoubleArgumentValue("offset",user_arguments), "ft", "m")
+    # width_extension = UnitConversions.convert(runner.getDoubleArgumentValue("width_extension",user_arguments), "ft", "m")
     facade_bools = OpenStudio::StringVector.new
     facade_bools << "#{Constants.FacadeFront} Facade"
     facade_bools << "#{Constants.FacadeBack} Facade"

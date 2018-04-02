@@ -59,12 +59,6 @@ class Constants
 
   # Strings --------------------
   
-  def self.AtticSpace
-    return 'attic space'
-  end
-  def self.AtticZone
-    return 'attic zone'
-  end
   def self.Auto
     return 'auto'
   end
@@ -85,12 +79,6 @@ class Constants
   end
   def self.CoordAbsolute
     return 'absolute'
-  end
-  def self.BasementSpace
-    return 'basement space'
-  end
-  def self.BasementZone
-    return 'basement zone'
   end
   def self.BAZoneCold
     return 'Cold'
@@ -164,9 +152,6 @@ class Constants
   def self.BuildingUnitFeatureDHWSchedIndex
     return 'DHWSchedIndex'
   end
-  def self.BuildingUnitFeatureUnitNumber
-    return 'UnitNumber'
-  end
   def self.BuildingUnitFeatureNumBathrooms
     return 'NumberOfBathrooms'
   end
@@ -227,32 +212,8 @@ class Constants
   def self.CondenserTypeWater
     return 'watercooled'
   end
-  def self.CorridorSpace(story=1)
-    s_story = ""
-    if story > 1 or story == 0
-      s_story = "|story #{story}"
-    end
-    return "corridor space#{s_story}"
-  end
-  def self.CorridorZone
-    return 'corridor zone'
-  end
-  def self.CrawlFoundationType
-    return 'crawlspace'
-  end
-  def self.CrawlSpace(unit_name=self.ObjectNameBuildingUnit)
-    s_unit = ""
-    if unit_name != self.ObjectNameBuildingUnit
-      s_unit = "|#{unit_name}"
-    end
-    return "crawl space#{s_unit}"
-  end
-  def self.CrawlZone(unit_name=self.ObjectNameBuildingUnit)
-    s_unit = ""
-    if unit_name != self.ObjectNameBuildingUnit
-      s_unit = "|#{unit_name}"
-    end
-    return "crawl zone#{s_unit}"
+  def self.DuctedInfoMiniSplitHeatPump
+    return __method__.to_s
   end
   def self.EndUseHVACFan
     return 'residential hvac fan'
@@ -271,33 +232,6 @@ class Constants
   end
   def self.FacadeRight
     return 'right'
-  end
-  def self.FinishedAtticSpace(unit_name=self.ObjectNameBuildingUnit)
-    s_unit = ""
-    if unit_name != self.ObjectNameBuildingUnit
-      s_unit = "|#{unit_name}"
-    end
-    return "finished attic space#{s_unit}"
-  end
-  def self.FinishedAtticType
-    return 'finished attic'
-  end
-  def self.FinishedBasementFoundationType
-    return 'finished basement'
-  end
-  def self.FinishedBasementSpace(unit_name=self.ObjectNameBuildingUnit)
-    s_unit = ""
-    if unit_name != self.ObjectNameBuildingUnit
-      s_unit = "|#{unit_name}"
-    end
-    return "finished basement space#{s_unit}"
-  end
-  def self.FinishedBasementZone(unit_name=self.ObjectNameBuildingUnit)
-    s_unit = ""
-    if unit_name != self.ObjectNameBuildingUnit
-      s_unit = "|#{unit_name}"
-    end
-    return "finished basement zone#{s_unit}"
   end
   def self.FluidWater
     return 'water'
@@ -320,51 +254,8 @@ class Constants
   def self.FuelTypeOil
     return 'oil'
   end
-  def self.GarageSpace(unit_name=self.ObjectNameBuildingUnit)
-    s_unit = ""
-    if unit_name != self.ObjectNameBuildingUnit
-      s_unit = "|#{unit_name}"
-    end
-    return "garage space#{s_unit}"
-  end
-  def self.GarageAtticSpace(unit_name=self.ObjectNameBuildingUnit)
-    s_unit = ""
-    if unit_name != self.ObjectNameBuildingUnit
-      s_unit = "|#{unit_name}"
-    end
-    return "garage attic space#{s_unit}"
-  end
-  def self.GarageFinishedAtticSpace(unit_name=self.ObjectNameBuildingUnit)
-    s_unit = ""
-    if unit_name != self.ObjectNameBuildingUnit
-      s_unit = "|#{unit_name}"
-    end
-    return "garage finished attic space#{s_unit}"
-  end
-  def self.GarageZone(unit_name=self.ObjectNameBuildingUnit)
-    s_unit = ""
-    if unit_name != self.ObjectNameBuildingUnit
-      s_unit = "|#{unit_name}"
-    end
-    return "garage zone#{s_unit}"
-  end
-  def self.LivingSpace(story=1, unit_name=self.ObjectNameBuildingUnit)
-    s_unit = ""
-    s_story = ""
-    if unit_name != self.ObjectNameBuildingUnit
-      s_unit = "|#{unit_name}"
-    end
-    if story > 1
-      s_story = "|story #{story}"
-    end
-    return "living space#{s_unit}#{s_story}"
-  end
-  def self.LivingZone(unit_name=self.ObjectNameBuildingUnit)
-    s_unit = ""
-    if unit_name != self.ObjectNameBuildingUnit
-      s_unit = "|#{unit_name}"
-    end
-    return "living zone#{s_unit}"
+  def self.FuelTypeWood
+    return 'wood'
   end
   def self.LocationInterior
     return 'interior'
@@ -447,6 +338,12 @@ class Constants
   def self.PVModuleTypeThinFilm
     return 'thin film'
   end
+  def self.PVNetMetering
+    return 'Net Metering'
+  end
+  def self.PVFeedInTariff
+    return 'Feed-In Tariff'
+  end  
   def self.MonthNames
     return ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
   end
@@ -802,6 +699,13 @@ class Constants
     end
     return "res solar hot water#{s_unit}"
   end
+  def self.ObjectNameUnitHeater(fueltype="", unit_name=self.ObjectNameBuildingUnit)
+    s_unit = ""
+    if unit_name != self.ObjectNameBuildingUnit
+      s_unit = "|#{unit_name}"
+    end
+    return "residential unit heater #{fueltype}#{s_unit}"
+  end
   def self.ObjectNameWaterHeater(unit_name=self.ObjectNameBuildingUnit)
     s_unit = ""
     if unit_name != self.ObjectNameBuildingUnit
@@ -830,23 +734,6 @@ class Constants
   end
   def self.OptionTypePlugLoadsEnergyUse
     return 'Annual Energy Use'
-  end
-  def self.PierBeamFoundationType
-    return "pier and beam"
-  end
-  def self.PierBeamSpace(unit_name=self.ObjectNameBuildingUnit)
-    s_unit = ""
-    if unit_name != self.ObjectNameBuildingUnit
-      s_unit = "|#{unit_name}"
-    end
-    return "pier and beam space#{s_unit}"
-  end
-  def self.PierBeamZone(unit_name=self.ObjectNameBuildingUnit)
-    s_unit = ""
-    if unit_name != self.ObjectNameBuildingUnit
-      s_unit = "|#{unit_name}"
-    end
-    return "pier and beam zone#{s_unit}"
   end
   def self.PipeTypeTrunkBranch
     return 'trunk and branch'
@@ -971,9 +858,6 @@ class Constants
   def self.SizingInfoDuctsSupplySurfaceArea # FUTURE: Use StandardsInfo object
     return self.SizingInfo(__method__.to_s)
   end
-  def self.SizingInfoGarageFracUnderFinishedSpace # FUTURE: Use StandardsInfo object
-    return self.SizingInfo(__method__.to_s)
-  end
   def self.SizingInfoGSHPBoreConfig # FUTURE: Use StandardsInfo object
     return self.SizingInfo(__method__.to_s)
   end
@@ -1091,8 +975,41 @@ class Constants
   def self.SizingInfoZoneInfiltrationELA(zone) # FUTURE: Use StandardsInfo object
     return self.SizingInfo(__method__.to_s, zone)
   end
-  def self.SlabFoundationType
-    return 'slab'
+  def self.SpaceTypeBathroom
+    return 'bathroom' # only used by multi-zone simulations
+  end
+  def self.SpaceTypeBedroom
+    return 'bedroom' # only used by multi-zone simulations
+  end
+  def self.SpaceTypeCorridor
+    return 'corridor'
+  end
+  def self.SpaceTypeCrawl
+    return 'crawlspace'
+  end
+  def self.SpaceTypeFinishedBasement
+    return 'finished basement'
+  end
+  def self.SpaceTypeGarage
+    return 'garage'
+  end
+  def self.SpaceTypeKitchen
+    return 'kitchen' # only used by multi-zone simulations
+  end
+  def self.SpaceTypeLaundryRoom
+    return 'laundry room' # only used by multi-zone simulations
+  end
+  def self.SpaceTypeLiving
+    return 'living'
+  end
+  def self.SpaceTypePierBeam
+    return 'pier and beam'
+  end
+  def self.SpaceTypeUnfinishedAttic
+    return 'unfinished attic'
+  end
+  def self.SpaceTypeUnfinishedBasement
+    return 'unfinished basement'
   end
   def self.TerrainOcean
     return 'ocean'
@@ -1115,43 +1032,6 @@ class Constants
   def self.TiltLatitude
     return 'latitude'
   end
-  def self.UnfinishedAtticSpace(unit_name=self.ObjectNameBuildingUnit)
-    s_unit = ""
-    if unit_name != self.ObjectNameBuildingUnit
-      s_unit = "|#{unit_name}"
-    end
-    return "unfinished attic space#{s_unit}"
-  end
-  def self.UnfinishedAtticType
-    return 'unfinished attic'
-  end
-  def self.UnfinishedAtticZone(unit_name=self.ObjectNameBuildingUnit)
-    s_unit = ""
-    if unit_name != self.ObjectNameBuildingUnit
-      s_unit = "|#{unit_name}"
-    end
-    return "unfinished attic zone#{s_unit}"
-  end
-  def self.UnfinishedBasementFoundationType
-    return 'unfinished basement'
-  end
-  def self.UnfinishedBasementSpace(unit_name=self.ObjectNameBuildingUnit)
-    s_unit = ""
-    if unit_name != self.ObjectNameBuildingUnit
-      s_unit = "|#{unit_name}"
-    end
-    return "unfinished basement space#{s_unit}"
-  end
-  def self.UnfinishedBasementZone(unit_name=self.ObjectNameBuildingUnit)
-    s_unit = ""
-    if unit_name != self.ObjectNameBuildingUnit
-      s_unit = "|#{unit_name}"
-    end
-    return "unfinished basement zone#{s_unit}"
-  end
-  def self.URBANoptFinishedZoneIdentifier
-    return 'Story'
-  end
   def self.VentTypeExhaust
     return 'exhaust'
   end
@@ -1163,6 +1043,9 @@ class Constants
   end
   def self.VentTypeBalanced
     return 'balanced'
+  end
+  def self.VentTypeCFIS
+    return 'central fan integrated supply'
   end
   def self.WaterHeaterTypeTankless
     return 'tankless'
@@ -1176,5 +1059,19 @@ class Constants
   def self.WorkflowDescription
     return ' See https://github.com/NREL/OpenStudio-BEopt#workflows for supported workflows using this measure.'
   end
-    
+  def self.ExpectedSpaceTypes
+    return [self.SpaceTypeBathroom,
+            self.SpaceTypeBedroom,
+            self.SpaceTypeCorridor,
+            self.SpaceTypeCrawl,
+            self.SpaceTypeFinishedBasement,
+            self.SpaceTypeGarage,
+            self.SpaceTypeKitchen,
+            self.SpaceTypeLaundryRoom,
+            self.SpaceTypeLiving,
+            self.SpaceTypePierBeam,
+            self.SpaceTypeUnfinishedAttic,
+            self.SpaceTypeUnfinishedBasement]
+  end 
+  
 end

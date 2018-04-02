@@ -1,6 +1,6 @@
-
 # Add classes or functions here than can be used across a variety of our python classes and modules.
 require "#{File.dirname(__FILE__)}/constants"
+require "#{File.dirname(__FILE__)}/unit_conversions"
 
 class HelperMethods
     
@@ -13,6 +13,8 @@ class HelperMethods
             return "FuelOil#1"
         elsif fuel == Constants.FuelTypePropane
             return "PropaneGas"
+        elsif fuel == Constants.FuelTypeWood
+            return "OtherFuel1"
         end
     end
     
@@ -25,8 +27,22 @@ class HelperMethods
             return Constants.FuelTypeOil
         elsif fuel == "PropaneGas"
             return Constants.FuelTypePropane
+        elsif fuel == "OtherFuel1"
+            return Constants.FuelTypeWood
         end
-    end    
+    end
+    
+    def self.reverse_openstudio_fuel_map(fuel)
+        if fuel == "Electricity"
+            return Constants.FuelTypeElectric
+        elsif fuel == "Gas"
+            return Constants.FuelTypeGas
+        elsif fuel == "FuelOil#1"
+            return Constants.FuelTypeOil
+        elsif fuel == "Propane"
+            return Constants.FuelTypePropane
+        end
+    end
     
     def self.remove_unused_constructions_and_materials(model, runner)
         # Code from https://bcl.nrel.gov/node/82267 (remove_orphan_objects_and_unused_resources measure)
@@ -43,6 +59,15 @@ class HelperMethods
                 resource.remove
             end
         end
+    end
+    
+    def self.state_code_map
+      return {"Alabama"=>"AL", "Alaska"=>"AK", "Arizona"=>"AZ", "Arkansas"=>"AR","California"=>"CA","Colorado"=>"CO", "Connecticut"=>"CT", "Delaware"=>"DE", "District of Columbia"=>"DC",
+              "Florida"=>"FL", "Georgia"=>"GA", "Hawaii"=>"HI", "Idaho"=>"ID", "Illinois"=>"IL","Indiana"=>"IN", "Iowa"=>"IA","Kansas"=>"KS", "Kentucky"=>"KY", "Louisiana"=>"LA",
+              "Maine"=>"ME","Maryland"=>"MD", "Massachusetts"=>"MA", "Michigan"=>"MI", "Minnesota"=>"MN","Mississippi"=>"MS", "Missouri"=>"MO", "Montana"=>"MT","Nebraska"=>"NE", "Nevada"=>"NV",
+              "New Hampshire"=>"NH", "New Jersey"=>"NJ", "New Mexico"=>"NM", "New York"=>"NY","North Carolina"=>"NC", "North Dakota"=>"ND", "Ohio"=>"OH", "Oklahoma"=>"OK",
+              "Oregon"=>"OR", "Pennsylvania"=>"PA", "Puerto Rico"=>"PR", "Rhode Island"=>"RI","South Carolina"=>"SC", "South Dakota"=>"SD", "Tennessee"=>"TN", "Texas"=>"TX",
+              "Utah"=>"UT", "Vermont"=>"VT", "Virginia"=>"VA", "Washington"=>"WA", "West Virginia"=>"WV","Wisconsin"=>"WI", "Wyoming"=>"WY"}
     end
 
 end
@@ -344,13 +369,13 @@ class Material
         
         if not thick_in.nil?
             @thick_in = thick_in # in
-            @thick = OpenStudio::convert(thick_in,"in","ft").get # ft
+            @thick = UnitConversions.convert(thick_in,"in","ft") # ft
         end
         
         if not mat_base.nil?
             @k_in = mat_base.k_in # Btu-in/h-ft^2-F
             if not mat_base.k_in.nil?
-                @k = OpenStudio::convert(mat_base.k_in,"in","ft").get # Btu/h-ft-F
+                @k = UnitConversions.convert(mat_base.k_in,"in","ft") # Btu/h-ft-F
             else
                 @k = nil
             end
@@ -366,7 +391,7 @@ class Material
         # Override the base material if both are included
         if not k_in.nil?
             @k_in = k_in # Btu-in/h-ft^2-F
-            @k = OpenStudio::convert(k_in,"in","ft").get # Btu/h-ft-F
+            @k = UnitConversions.convert(k_in,"in","ft") # Btu/h-ft-F
         end
         if not rho.nil?
             @rho = rho # lb/ft^3
@@ -436,59 +461,59 @@ class Material
         return self.new(name=nil, thick_in=1.0, mat_base=nil, k_in=1.0/rvalue)
     end
 
-    def self.AirFilmSlopeEnhanced(highest_roof_pitch)
+    def self.AirFilmSlopeEnhanced(roof_pitch)
         # Correlation functions used to interpolate between values provided
         # in ASHRAE 2005, F25.2, Table 1 - which only provides values for
         # 0, 45, and 90 degrees. Values are for non-reflective materials of 
         # emissivity = 0.90.
-        rvalue = 0.002 * Math::exp(0.0398 * highest_roof_pitch) + 0.608 # hr-ft-F/Btu (evaluates to film_flat_enhanced at 0 degrees, 0.62 at 45 degrees, and film_vertical at 90 degrees)
+        rvalue = 0.002 * Math::exp(0.0398 * roof_pitch) + 0.608 # hr-ft-F/Btu (evaluates to film_flat_enhanced at 0 degrees, 0.62 at 45 degrees, and film_vertical at 90 degrees)
         return self.new(name=nil, thick_in=1.0, mat_base=nil, k_in=1.0/rvalue)
     end
 
-    def self.AirFilmSlopeReduced(highest_roof_pitch)
+    def self.AirFilmSlopeReduced(roof_pitch)
         # Correlation functions used to interpolate between values provided
         # in ASHRAE 2005, F25.2, Table 1 - which only provides values for
         # 0, 45, and 90 degrees. Values are for non-reflective materials of 
         # emissivity = 0.90.
-        rvalue = 0.32 * Math::exp(-0.0154 * highest_roof_pitch) + 0.6 # hr-ft-F/Btu (evaluates to film_flat_reduced at 0 degrees, 0.76 at 45 degrees, and film_vertical at 90 degrees)
+        rvalue = 0.32 * Math::exp(-0.0154 * roof_pitch) + 0.6 # hr-ft-F/Btu (evaluates to film_flat_reduced at 0 degrees, 0.76 at 45 degrees, and film_vertical at 90 degrees)
         return self.new(name=nil, thick_in=1.0, mat_base=nil, k_in=1.0/rvalue)
     end
 
-    def self.AirFilmSlopeEnhancedReflective(highest_roof_pitch)
+    def self.AirFilmSlopeEnhancedReflective(roof_pitch)
         # Correlation functions used to interpolate between values provided
         # in ASHRAE 2005, F25.2, Table 1 - which only provides values for
         # 0, 45, and 90 degrees. Values are for reflective materials of 
         # emissivity = 0.05.
-        rvalue = 0.00893 * Math::exp(0.0419 * highest_roof_pitch) + 1.311 # hr-ft-F/Btu (evaluates to 1.32 at 0 degrees, 1.37 at 45 degrees, and 1.70 at 90 degrees)
+        rvalue = 0.00893 * Math::exp(0.0419 * roof_pitch) + 1.311 # hr-ft-F/Btu (evaluates to 1.32 at 0 degrees, 1.37 at 45 degrees, and 1.70 at 90 degrees)
         return self.new(name=nil, thick_in=1.0, mat_base=nil, k_in=1.0/rvalue)
     end
 
-    def self.AirFilmSlopeReducedReflective(highest_roof_pitch)
+    def self.AirFilmSlopeReducedReflective(roof_pitch)
         # Correlation functions used to interpolate between values provided
         # in ASHRAE 2005, F25.2, Table 1 - which only provides values for
         # 0, 45, and 90 degrees. Values are for reflective materials of 
         # emissivity = 0.05.
-        rvalue = 2.999 * Math::exp(-0.0333 * highest_roof_pitch) + 1.551 # hr-ft-F/Btu (evaluates to 4.55 at 0 degrees, 2.22 at 45 degrees, and 1.70 at 90 degrees)
+        rvalue = 2.999 * Math::exp(-0.0333 * roof_pitch) + 1.551 # hr-ft-F/Btu (evaluates to 4.55 at 0 degrees, 2.22 at 45 degrees, and 1.70 at 90 degrees)
         return self.new(name=nil, thick_in=1.0, mat_base=nil, k_in=1.0/rvalue)
     end
 
-    def self.AirFilmRoof(highest_roof_pitch)
+    def self.AirFilmRoof(roof_pitch)
         # Use weighted average between enhanced and reduced convection based on degree days.
         #hdd_frac = hdd65f / (hdd65f + cdd65f)
         #cdd_frac = cdd65f / (hdd65f + cdd65f)
-        #return self.AirFilmSlopeEnhanced(highest_roof_pitch).rvalue * hdd_frac + self.AirFilmSlopeReduced(highest_roof_pitch).rvalue * cdd_frac # hr-ft-F/Btu
+        #return self.AirFilmSlopeEnhanced(roof_pitch).rvalue * hdd_frac + self.AirFilmSlopeReduced(roof_pitch).rvalue * cdd_frac # hr-ft-F/Btu
         # Simplification to not depend on weather
-        rvalue = (self.AirFilmSlopeEnhanced(highest_roof_pitch).rvalue + self.AirFilmSlopeReduced(highest_roof_pitch).rvalue) / 2.0 # hr-ft-F/Btu
+        rvalue = (self.AirFilmSlopeEnhanced(roof_pitch).rvalue + self.AirFilmSlopeReduced(roof_pitch).rvalue) / 2.0 # hr-ft-F/Btu
         return self.new(name=nil, thick_in=1.0, mat_base=nil, k_in=1.0/rvalue)
     end
 
-    def self.AirFilmRoofRadiantBarrier(highest_roof_pitch)
+    def self.AirFilmRoofRadiantBarrier(roof_pitch)
         # Use weighted average between enhanced and reduced convection based on degree days.
         #hdd_frac = hdd65f / (hdd65f + cdd65f)
         #cdd_frac = cdd65f / (hdd65f + cdd65f)
-        #return self.AirFilmSlopeEnhancedReflective(highest_roof_pitch).rvalue * hdd_frac + self.AirFilmSlopeReducedReflective(highest_roof_pitch).rvalue * cdd_frac # hr-ft-F/Btu
+        #return self.AirFilmSlopeEnhancedReflective(roof_pitch).rvalue * hdd_frac + self.AirFilmSlopeReducedReflective(roof_pitch).rvalue * cdd_frac # hr-ft-F/Btu
         # Simplification to not depend on weather
-        rvalue = (self.AirFilmSlopeEnhancedReflective(highest_roof_pitch).rvalue + self.AirFilmSlopeReducedReflective(highest_roof_pitch).rvalue) / 2.0 # hr-ft-F/Btu
+        rvalue = (self.AirFilmSlopeEnhancedReflective(roof_pitch).rvalue + self.AirFilmSlopeReducedReflective(roof_pitch).rvalue) / 2.0 # hr-ft-F/Btu
         return self.new(name=nil, thick_in=1.0, mat_base=nil, k_in=1.0/rvalue)
     end
 
@@ -655,9 +680,9 @@ class Construction
             else
                 infos << "layer name: #{@layers_names[idx]}"
             end
-            infos << "layer thick: #{OpenStudio::convert(layer_materials[0].thick_in,"in","ft").get.round(5).to_s}"
+            infos << "layer thick: #{UnitConversions.convert(layer_materials[0].thick_in,"in","ft").round(5).to_s}"
             layer_materials.each do |mat|
-                infos << "layer cond:  #{OpenStudio::convert(mat.k_in,"in","ft").get.round(5).to_s}"
+                infos << "layer cond:  #{UnitConversions.convert(mat.k_in,"in","ft").round(5).to_s}"
             end
             infos << "------"
         end
@@ -826,7 +851,7 @@ class Construction
         total_area = 0.0
         space.surfaces.each do |surface|
             next if surface.surfaceType.downcase != surface_type
-            surf_area = OpenStudio::convert(surface.netArea,"m^2","ft^2").get
+            surf_area = UnitConversions.convert(surface.netArea,"m^2","ft^2")
             ufactor = self.get_surface_ufactor(runner, surface, surface_type)
             return nil if ufactor.nil?
             sum_surface_ua += surf_area * ufactor
@@ -839,13 +864,13 @@ class Construction
         if surface_type.downcase.include?("window")
             simple_glazing = self.get_window_simple_glazing(runner, surface)
             return nil if simple_glazing.nil?
-            return OpenStudio::convert(simple_glazing.uFactor,"W/m^2*K","Btu/ft^2*h*R").get
+            return UnitConversions.convert(simple_glazing.uFactor,"W/(m^2*K)","Btu/(hr*ft^2*F)")
         else
             if not surface.construction.is_initialized
                 runner.registerError("Construction not assigned to '#{surface.name.to_s}'.")
                 return nil
             end
-            ufactor = OpenStudio::convert(surface.uFactor.get,"W/m^2*K","Btu/ft^2*h*R").get
+            ufactor = UnitConversions.convert(surface.uFactor.get,"W/(m^2*K)","Btu/(hr*ft^2*F)")
             if surface.class.method_defined?('adjacentSurface') and surface.adjacentSurface.is_initialized
                 # Use average u-factor of adjacent surface, as OpenStudio returns
                 # two different values for, e.g., floor vs adjacent roofceiling
@@ -853,7 +878,7 @@ class Construction
                     runner.registerError("Construction not assigned to '#{surface.adjacentSurface.get.name.to_s}'.")
                     return nil
                 end
-                adjacent_ufactor = OpenStudio::convert(surface.adjacentSurface.get.uFactor.get,"W/m^2*K","Btu/ft^2*h*R").get
+                adjacent_ufactor = UnitConversions.convert(surface.adjacentSurface.get.uFactor.get,"W/(m^2*K)","Btu/(hr*ft^2*F)")
                 return (ufactor + adjacent_ufactor) / 2.0
             end
             return ufactor
@@ -1282,14 +1307,14 @@ class Construction
                 model.getMasslessOpaqueMaterials.each do |mat|
                     next if mat.name.to_s != name.to_s
                     next if mat.roughness.downcase.to_s != "rough"
-                    next if (mat.thermalResistance - OpenStudio::convert(material.rvalue,"hr*ft^2*R/Btu","m^2*K/W").get).abs > tolerance
+                    next if (mat.thermalResistance - UnitConversions.convert(material.rvalue,"hr*ft^2*F/Btu","m^2*K/W")).abs > tolerance
                     return mat
                 end
                 # New material
                 mat = OpenStudio::Model::MasslessOpaqueMaterial.new(model)
                 mat.setName(name)
                 mat.setRoughness("Rough")
-                mat.setThermalResistance(OpenStudio::convert(material.rvalue,"hr*ft^2*R/Btu","m^2*K/W").get)
+                mat.setThermalResistance(UnitConversions.convert(material.rvalue,"hr*ft^2*F/Btu","m^2*K/W"))
             elsif material.is_a? GlazingMaterial
                 # Material already exists?
                 model.getSimpleGlazings.each do |mat|
@@ -1308,10 +1333,10 @@ class Construction
                 model.getStandardOpaqueMaterials.each do |mat|
                     next if mat.name.to_s != name.to_s
                     next if mat.roughness.downcase.to_s != "rough"
-                    next if (mat.thickness - OpenStudio::convert(material.thick_in,"in","m").get).abs > tolerance
-                    next if (mat.conductivity - OpenStudio::convert(material.k,"Btu/hr*ft*R","W/m*K").get).abs > tolerance
-                    next if (mat.density - OpenStudio::convert(material.rho,"lb/ft^3","kg/m^3").get).abs > tolerance
-                    next if (mat.specificHeat - OpenStudio::convert(material.cp,"Btu/lb*R","J/kg*K").get).abs > tolerance
+                    next if (mat.thickness - UnitConversions.convert(material.thick_in,"in","m")).abs > tolerance
+                    next if (mat.conductivity - UnitConversions.convert(material.k,"Btu/(hr*ft*R)","W/(m*K)")).abs > tolerance
+                    next if (mat.density - UnitConversions.convert(material.rho,"lbm/ft^3","kg/m^3")).abs > tolerance
+                    next if (mat.specificHeat - UnitConversions.convert(material.cp,"Btu/(lbm*R)","J/(kg*K)")).abs > tolerance
                     next if not material.tAbs.nil? and (mat.thermalAbsorptance - material.tAbs).abs > tolerance
                     next if not material.sAbs.nil? and (mat.solarAbsorptance - material.sAbs).abs > tolerance
                     next if not material.vAbs.nil? and (mat.visibleAbsorptance - material.vAbs).abs > tolerance
@@ -1321,10 +1346,10 @@ class Construction
                 mat = OpenStudio::Model::StandardOpaqueMaterial.new(model)
                 mat.setName(name)
                 mat.setRoughness("Rough")
-                mat.setThickness(OpenStudio::convert(material.thick_in,"in","m").get)
-                mat.setConductivity(OpenStudio::convert(material.k,"Btu/hr*ft*R","W/m*K").get)
-                mat.setDensity(OpenStudio::convert(material.rho,"lb/ft^3","kg/m^3").get)
-                mat.setSpecificHeat(OpenStudio::convert(material.cp,"Btu/lb*R","J/kg*K").get)
+                mat.setThickness(UnitConversions.convert(material.thick_in,"in","m"))
+                mat.setConductivity(UnitConversions.convert(material.k,"Btu/(hr*ft*R)","W/(m*K)"))
+                mat.setDensity(UnitConversions.convert(material.rho,"lbm/ft^3","kg/m^3"))
+                mat.setSpecificHeat(UnitConversions.convert(material.cp,"Btu/(lbm*R)","J/(kg*K)"))
                 if not material.tAbs.nil?
                     mat.setThermalAbsorptance(material.tAbs)
                 end
@@ -1498,54 +1523,54 @@ class AirFilms
         return self.FlatReducedR # hr-ft-F/Btu
     end
   
-    def self.SlopeEnhancedR(highest_roof_pitch)
+    def self.SlopeEnhancedR(roof_pitch)
         # Correlation functions used to interpolate between values provided
         # in ASHRAE 2005, F25.2, Table 1 - which only provides values for
         # 0, 45, and 90 degrees. Values are for non-reflective materials of 
         # emissivity = 0.90.
-        return 0.002 * Math::exp(0.0398 * highest_roof_pitch) + 0.608 # hr-ft-F/Btu (evaluates to film_flat_enhanced at 0 degrees, 0.62 at 45 degrees, and film_vertical at 90 degrees)
+        return 0.002 * Math::exp(0.0398 * roof_pitch) + 0.608 # hr-ft-F/Btu (evaluates to film_flat_enhanced at 0 degrees, 0.62 at 45 degrees, and film_vertical at 90 degrees)
     end
   
-    def self.SlopeReducedR(highest_roof_pitch)
+    def self.SlopeReducedR(roof_pitch)
         # Correlation functions used to interpolate between values provided
         # in ASHRAE 2005, F25.2, Table 1 - which only provides values for
         # 0, 45, and 90 degrees. Values are for non-reflective materials of 
         # emissivity = 0.90.
-        return 0.32 * Math::exp(-0.0154 * highest_roof_pitch) + 0.6 # hr-ft-F/Btu (evaluates to film_flat_reduced at 0 degrees, 0.76 at 45 degrees, and film_vertical at 90 degrees)
+        return 0.32 * Math::exp(-0.0154 * roof_pitch) + 0.6 # hr-ft-F/Btu (evaluates to film_flat_reduced at 0 degrees, 0.76 at 45 degrees, and film_vertical at 90 degrees)
     end
   
-    def self.SlopeEnhancedReflectiveR(highest_roof_pitch)
+    def self.SlopeEnhancedReflectiveR(roof_pitch)
         # Correlation functions used to interpolate between values provided
         # in ASHRAE 2005, F25.2, Table 1 - which only provides values for
         # 0, 45, and 90 degrees. Values are for reflective materials of 
         # emissivity = 0.05.
-        return 0.00893 * Math::exp(0.0419 * highest_roof_pitch) + 1.311 # hr-ft-F/Btu (evaluates to 1.32 at 0 degrees, 1.37 at 45 degrees, and 1.70 at 90 degrees)
+        return 0.00893 * Math::exp(0.0419 * roof_pitch) + 1.311 # hr-ft-F/Btu (evaluates to 1.32 at 0 degrees, 1.37 at 45 degrees, and 1.70 at 90 degrees)
     end
   
-    def self.SlopeReducedReflectiveR(highest_roof_pitch)
+    def self.SlopeReducedReflectiveR(roof_pitch)
         # Correlation functions used to interpolate between values provided
         # in ASHRAE 2005, F25.2, Table 1 - which only provides values for
         # 0, 45, and 90 degrees. Values are for reflective materials of 
         # emissivity = 0.05.
-        return 2.999 * Math::exp(-0.0333 * highest_roof_pitch) + 1.551 # hr-ft-F/Btu (evaluates to 4.55 at 0 degrees, 2.22 at 45 degrees, and 1.70 at 90 degrees)
+        return 2.999 * Math::exp(-0.0333 * roof_pitch) + 1.551 # hr-ft-F/Btu (evaluates to 4.55 at 0 degrees, 2.22 at 45 degrees, and 1.70 at 90 degrees)
     end
   
-    def self.RoofR(highest_roof_pitch)
+    def self.RoofR(roof_pitch)
         # Use weighted average between enhanced and reduced convection based on degree days.
         #hdd_frac = hdd65f / (hdd65f + cdd65f)
         #cdd_frac = cdd65f / (hdd65f + cdd65f)
-        #return self.SlopeEnhancedR(highest_roof_pitch) * hdd_frac + self.SlopeReducedR(highest_roof_pitch) * cdd_frac # hr-ft-F/Btu
+        #return self.SlopeEnhancedR(roof_pitch) * hdd_frac + self.SlopeReducedR(roof_pitch) * cdd_frac # hr-ft-F/Btu
         # Simplification to not depend on weather
-        return (self.SlopeEnhancedR(highest_roof_pitch) + self.SlopeReducedR(highest_roof_pitch)) / 2.0 # hr-ft-F/Btu
+        return (self.SlopeEnhancedR(roof_pitch) + self.SlopeReducedR(roof_pitch)) / 2.0 # hr-ft-F/Btu
     end
   
-    def self.RoofRadiantBarrierR(highest_roof_pitch)
+    def self.RoofRadiantBarrierR(roof_pitch)
         # Use weighted average between enhanced and reduced convection based on degree days.
         #hdd_frac = hdd65f / (hdd65f + cdd65f)
         #cdd_frac = cdd65f / (hdd65f + cdd65f)
-        #return self.SlopeEnhancedReflectiveR(highest_roof_pitch) * hdd_frac + self.SlopeReducedReflectiveR(highest_roof_pitch) * cdd_frac # hr-ft-F/Btu
+        #return self.SlopeEnhancedReflectiveR(roof_pitch) * hdd_frac + self.SlopeReducedReflectiveR(roof_pitch) * cdd_frac # hr-ft-F/Btu
         # Simplification to not depend on weather
-        return (self.SlopeEnhancedReflectiveR(highest_roof_pitch) + self.SlopeReducedReflectiveR(highest_roof_pitch)) / 2.0 # hr-ft-F/Btu
+        return (self.SlopeEnhancedReflectiveR(roof_pitch) + self.SlopeReducedReflectiveR(roof_pitch)) / 2.0 # hr-ft-F/Btu
     end
     
 end
@@ -1745,4 +1770,159 @@ class BuildingLoadVars
            ]
   end
 
+end
+
+class UtilityBill
+
+  def self.calculate_simple(annual_energy, fixed_rate, marginal_rate)
+    total_annual_energy = annual_energy.inject(0){ |sum, x| sum + x }
+    total_bill = 12.0 * fixed_rate + total_annual_energy * marginal_rate
+    return total_bill
+  end
+  
+  def self.remove_leap_day(timeseries)
+    if timeseries.length == 8784 # leap year
+      timeseries = timeseries[0..1415] + timeseries[1440..-1] # remove leap day
+    end
+    return timeseries
+  end
+  
+  def self.calculate_simple_electric(load, gen, ur_monthly_fixed_charge, ur_flat_buy_rate, pv_compensation_type, pv_sellback_rate, pv_tariff_rate)
+  
+    analysis_period = 1
+    degradation = [0]
+    system_use_lifetime_output = 0
+    inflation_rate = 0
+    ur_flat_sell_rate = 0
+    ur_nm_yearend_sell_rate = 0
+    ur_enable_net_metering = 1
+    if pv_compensation_type == Constants.PVNetMetering
+      ur_nm_yearend_sell_rate = pv_sellback_rate.to_f
+    elsif pv_compensation_type == Constants.PVFeedInTariff
+      ur_enable_net_metering = 0
+      ur_flat_sell_rate = pv_tariff_rate.to_f
+    end
+  
+    p_data = SscApi.create_data_object
+    SscApi.set_number(p_data, "analysis_period", analysis_period)
+    SscApi.set_array(p_data, "degradation", degradation)
+    SscApi.set_array(p_data, "gen", gen)
+    SscApi.set_array(p_data, "load", load)
+    SscApi.set_number(p_data, "system_use_lifetime_output", system_use_lifetime_output)
+    SscApi.set_number(p_data, "inflation_rate", inflation_rate)
+    SscApi.set_number(p_data, "ur_flat_buy_rate", ur_flat_buy_rate)
+    SscApi.set_number(p_data, "ur_flat_sell_rate", ur_flat_sell_rate)
+    SscApi.set_number(p_data, "ur_enable_net_metering", ur_enable_net_metering)
+    SscApi.set_number(p_data, "ur_nm_yearend_sell_rate", ur_nm_yearend_sell_rate)
+    SscApi.set_number(p_data, "ur_monthly_fixed_charge", ur_monthly_fixed_charge)
+    
+    p_mod = SscApi.create_module("utilityrate3")
+    SscApi.execute_module(p_mod, p_data)
+
+    utility_bills = SscApi.get_array(p_data, "utility_bill_w_sys")
+    total_bill = utility_bills[1]
+    
+    return total_bill
+  
+  end
+  
+  def self.calculate_detailed_electric(load, gen, pv_compensation_type, pv_sellback_rate, pv_tariff_rate, tariff)
+  
+    analysis_period = 1
+    degradation = [0]
+    system_use_lifetime_output = 0
+    inflation_rate = 0
+    ur_flat_buy_rate = 0
+    ur_flat_sell_rate = 0
+    ur_nm_yearend_sell_rate = 0
+    ur_enable_net_metering = 1
+    if pv_compensation_type == Constants.PVNetMetering
+      ur_nm_yearend_sell_rate = pv_sellback_rate.to_f
+    elsif pv_compensation_type == Constants.PVFeedInTariff
+      ur_enable_net_metering = 0
+      ur_flat_sell_rate = pv_tariff_rate.to_f
+    end
+
+    p_data = SscApi.create_data_object
+    SscApi.set_number(p_data, "analysis_period", analysis_period)
+    SscApi.set_array(p_data, "degradation", degradation)
+    SscApi.set_array(p_data, "gen", gen)
+    SscApi.set_array(p_data, "load", load)
+    SscApi.set_number(p_data, "system_use_lifetime_output", system_use_lifetime_output)
+    SscApi.set_number(p_data, "inflation_rate", inflation_rate)
+    SscApi.set_number(p_data, "ur_flat_buy_rate", ur_flat_buy_rate)
+    SscApi.set_number(p_data, "ur_flat_sell_rate", ur_flat_sell_rate)
+    SscApi.set_number(p_data, "ur_enable_net_metering", ur_enable_net_metering)
+    SscApi.set_number(p_data, "ur_nm_yearend_sell_rate", ur_nm_yearend_sell_rate)
+
+    unless tariff[:fixedmonthlycharge].nil?
+      SscApi.set_number(p_data, "ur_monthly_fixed_charge", tariff[:fixedmonthlycharge])
+    end
+    
+    SscApi.set_number(p_data, "ur_ec_enable", 1)
+    SscApi.set_matrix(p_data, "ur_ec_sched_weekday", Matrix.rows(tariff[:energyweekdayschedule]) + Matrix.rows(Array.new(12, Array.new(24, 1))))
+    SscApi.set_matrix(p_data, "ur_ec_sched_weekend", Matrix.rows(tariff[:energyweekendschedule]) + Matrix.rows(Array.new(12, Array.new(24, 1))))
+    tariff[:energyratestructure].each_with_index do |period, i|
+      period_num = i + 1
+      period.each_with_index do |tier, j|
+        tier_num = j + 1
+        rate = 0
+        unless tier[:rate].nil?
+          rate += tier[:rate]
+        end
+        unless tier[:adj].nil?
+          rate += tier[:adj]
+        end
+        SscApi.set_number(p_data, "ur_ec_p#{period_num}_t#{tier_num}_br", rate)
+        unless tier[:sell].nil?
+          SscApi.set_number(p_data, "ur_ec_p#{period_num}_t#{tier_num}_sr", tier[:sell])
+        end
+        max = 1000000000.0
+        unless tier[:max].nil?
+          max = tier[:max]
+        end
+        SscApi.set_number(p_data, "ur_ec_p#{period_num}_t#{tier_num}_ub", max)
+      end
+    end
+
+    unless tariff[:demandratestructure].nil?
+      SscApi.set_number(p_data, "ur_dc_enable", 1)
+      SscApi.set_matrix(p_data, "ur_dc_sched_weekday", Matrix.rows(tariff[:demandweekdayschedule]))
+      SscApi.set_matrix(p_data, "ur_dc_sched_weekend", Matrix.rows(tariff[:demandweekendschedule]))      
+      tariff[:demandratestructure].each_with_index do |period, i|
+        period_num = i + 1
+        period.each_with_index do |tier, j|
+          tier_num = j + 1
+          rate = tier[:rate]
+          unless tier[:adj].nil?
+            rate += tier[:adj]
+          end
+          SscApi.set_number(p_data, "ur_dc_p#{period_num}_t#{tier_num}_dc", rate)
+          max = 1000000000.0
+          unless tier[:max].nil?
+            max = tier[:max]
+          end
+          SscApi.set_number(p_data, "ur_dc_p#{period_num}_t#{tier_num}_ub", max)
+        end
+      end
+    end
+    
+    p_mod = SscApi.create_module("utilityrate3")
+    SscApi.execute_module(p_mod, p_data)
+
+    utility_bills = SscApi.get_array(p_data, "utility_bill_w_sys")
+    total_bill = utility_bills[1]
+    
+    return total_bill
+  
+  end
+  
+  def self.validate_tariff(tariff)
+    return false if tariff.nil?
+    rate_structures_available = [:energyratestructure, :demandratestructure]
+    rate_structures_contained = tariff.keys & rate_structures_available
+    return false if rate_structures_contained.empty?
+    return true
+  end
+  
 end
