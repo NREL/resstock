@@ -1,0 +1,227 @@
+<measure>
+  <schema_version>3.0</schema_version>
+  <name>utility_bill_calculations_simple</name>
+  <uid>872cd20c-55df-459e-9ac9-f42c93ab665c</uid>
+  <version_id>d3bc6cbf-c34c-4d93-a51d-4f3b9d2d0e4a</version_id>
+  <version_modified>20180330T194824Z</version_modified>
+  <xml_checksum>6159342E</xml_checksum>
+  <class_name>UtilityBillCalculationsSimple</class_name>
+  <display_name>Calculate Simple Utility Bills</display_name>
+  <description>Calculate utility bills for simple electricity tariffs.</description>
+  <modeler_description>Calculate utility bills based on fixed charges for electric and gas, and marginal rates for all fuel types. User can specify PV compensation types of 'Net Metering' or 'Feed-In Tariff', along with corresponding rates.</modeler_description>
+  <arguments>
+    <argument>
+      <name>elec_fixed</name>
+      <display_name>Electricity: Fixed Charge</display_name>
+      <description>Monthly fixed charge for electricity.</description>
+      <type>String</type>
+      <units>$/month</units>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>12.0</default_value>
+    </argument>
+    <argument>
+      <name>elec_rate</name>
+      <display_name>Electricity: Marginal Rate</display_name>
+      <description>Price per kilowatt-hour for electricity. Use 'auto for state-average value from EIA.</description>
+      <type>String</type>
+      <units>$/kWh</units>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>auto</default_value>
+    </argument>
+    <argument>
+      <name>gas_fixed</name>
+      <display_name>Natural Gas: Fixed Charge</display_name>
+      <description>Monthly fixed charge for natural gas.</description>
+      <type>String</type>
+      <units>$/month</units>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>8.0</default_value>
+    </argument>
+    <argument>
+      <name>gas_rate</name>
+      <display_name>Natural Gas: Marginal Rate</display_name>
+      <description>Price per therm for natural gas. Use 'auto for state-average value from EIA.</description>
+      <type>String</type>
+      <units>$/therm</units>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>auto</default_value>
+    </argument>
+    <argument>
+      <name>oil_rate</name>
+      <display_name>Oil: Marginal Rate</display_name>
+      <description>Price per gallon for fuel oil. Use 'auto for state-average value from EIA.</description>
+      <type>String</type>
+      <units>$/gal</units>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>auto</default_value>
+    </argument>
+    <argument>
+      <name>prop_rate</name>
+      <display_name>Propane: Marginal Rate</display_name>
+      <description>Price per gallon for propane. Use 'auto for state-average value from EIA.</description>
+      <type>String</type>
+      <units>$/gal</units>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>auto</default_value>
+    </argument>
+    <argument>
+      <name>pv_compensation_type</name>
+      <display_name>PV: Compensation Type</display_name>
+      <description>The type of compensation for PV.</description>
+      <type>Choice</type>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>Net Metering</default_value>
+      <choices>
+        <choice>
+          <value>Net Metering</value>
+          <display_name>Net Metering</display_name>
+        </choice>
+        <choice>
+          <value>Feed-In Tariff</value>
+          <display_name>Feed-In Tariff</display_name>
+        </choice>
+      </choices>
+    </argument>
+    <argument>
+      <name>pv_sellback_rate</name>
+      <display_name>PV: Net Metering Annual Excess Sellback Rate</display_name>
+      <description>The annual excess/net sellback rate for PV. Only applies if the PV compensation type is 'Net Metering'.</description>
+      <type>String</type>
+      <units>$/kWh</units>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>0.03</default_value>
+    </argument>
+    <argument>
+      <name>pv_tariff_rate</name>
+      <display_name>PV: Feed-In Tariff Rate</display_name>
+      <description>The annual full/gross tariff rate for PV. Only applies if the PV compensation type is 'Feed-In Tariff'.</description>
+      <type>String</type>
+      <units>$/kWh</units>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>0.12</default_value>
+    </argument>
+  </arguments>
+  <outputs>
+    <output>
+      <name>electric</name>
+      <display_name>electric</display_name>
+      <short_name>electric</short_name>
+      <type>Double</type>
+      <model_dependent>false</model_dependent>
+    </output>
+    <output>
+      <name>gas</name>
+      <display_name>gas</display_name>
+      <short_name>gas</short_name>
+      <type>Double</type>
+      <model_dependent>false</model_dependent>
+    </output>
+    <output>
+      <name>propane</name>
+      <display_name>propane</display_name>
+      <short_name>propane</short_name>
+      <type>Double</type>
+      <model_dependent>false</model_dependent>
+    </output>
+    <output>
+      <name>oil</name>
+      <display_name>oil</display_name>
+      <short_name>oil</short_name>
+      <type>Double</type>
+      <model_dependent>false</model_dependent>
+    </output>
+  </outputs>
+  <provenances/>
+  <tags>
+    <tag>Economics.Life Cycle Cost Analysis</tag>
+  </tags>
+  <attributes>
+    <attribute>
+      <name>Measure Type</name>
+      <value>ReportingMeasure</value>
+      <datatype>string</datatype>
+    </attribute>
+  </attributes>
+  <files>
+    <file>
+      <filename>Electricity.csv</filename>
+      <filetype>csv</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>6C2CC8FC</checksum>
+    </file>
+    <file>
+      <filename>Natural gas.csv</filename>
+      <filetype>csv</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>43EDF817</checksum>
+    </file>
+    <file>
+      <filename>Oil.csv</filename>
+      <filetype>csv</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>FBAE07C0</checksum>
+    </file>
+    <file>
+      <filename>Propane.csv</filename>
+      <filetype>csv</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>D205D809</checksum>
+    </file>
+    <file>
+      <filename>ssc_api.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>C9F510A2</checksum>
+    </file>
+    <file>
+      <filename>ssc_ffi.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>DD7DE19B</checksum>
+    </file>
+    <file>
+      <filename>unit_conversions.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>3E1D973D</checksum>
+    </file>
+    <file>
+      <filename>constants.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>FDA82DA6</checksum>
+    </file>
+    <file>
+      <filename>util.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>1189E680</checksum>
+    </file>
+    <file>
+      <version>
+        <software_program>OpenStudio</software_program>
+        <identifier>2.0.5</identifier>
+        <min_compatible>2.0.5</min_compatible>
+      </version>
+      <filename>measure.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>script</usage_type>
+      <checksum>DB2D25E9</checksum>
+    </file>
+    <file>
+      <filename>sam-sdk-2017-1-17-r1.zip</filename>
+      <filetype>zip</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>9E486EA4</checksum>
+    </file>
+  </files>
+</measure>

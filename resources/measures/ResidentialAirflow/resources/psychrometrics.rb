@@ -68,8 +68,8 @@ class Psychrometrics
     c12 = -2.4780681e-9
     c13 = 6.5459673
 
-    t_abs = OpenStudio::convert(tdb,"F","R").get
-    t_frz_abs = OpenStudio::convert(Liquid.H2O_l.t_frz,"F","R").get
+    t_abs = UnitConversions.convert(tdb,"F","R")
+    t_frz_abs = UnitConversions.convert(Liquid.H2O_l.t_frz,"F","R")
 
     # If below freezing, calculate saturation pressure over ice
     if t_abs < t_frz_abs
@@ -203,7 +203,7 @@ class Psychrometrics
         rhoD    float      density of dry air    (lbm/ft3)
     '''
     pair = Gas.PsychMassRat * p / (Gas.PsychMassRat + w) # (psia)
-    rhoD = OpenStudio::convert(pair,"psi","Btu/ft^3").get / Gas.Air.r / (OpenStudio::convert(tdb,"F","R").get) # (lbm/ft3)
+    rhoD = UnitConversions.convert(pair,"psi","Btu/ft^3") / Gas.Air.r / (UnitConversions.convert(tdb,"F","R")) # (lbm/ft3)
 
     return rhoD
 
@@ -396,7 +396,7 @@ class Psychrometrics
     '''
     
     bf = self.CoilBypassFactor(dBin, wBin, p, qdot, cfm, shr)        
-    mfr = UnitConversion.lbm_min2kg_s(self.CalculateMassflowRate(dBin, wBin, p, cfm))
+    mfr = UnitConversions.convert(self.CalculateMassflowRate(dBin, wBin, p, cfm),"lbm/min","kg/s")
     
     ntu = -1.0 * Math.log(bf)
     ao = ntu * mfr
@@ -428,13 +428,13 @@ class Psychrometrics
         CBF    float    Coil Bypass Factor
     '''
         
-    mfr = UnitConversion.lbm_min2kg_s(self.CalculateMassflowRate(dBin, wBin, p, cfm))
+    mfr = UnitConversions.convert(self.CalculateMassflowRate(dBin, wBin, p, cfm),"lbm/min","kg/s")
 
-    tin = OpenStudio::convert(dBin,"F","C").get
+    tin = UnitConversions.convert(dBin,"F","C")
     win = self.w_fT_Twb_P(dBin, wBin, p)
-    p = OpenStudio::convert(p,"psi","kPa").get
+    p = UnitConversions.convert(p,"psi","kPa")
                     
-    dH = OpenStudio::convert(qdot,"kBtu/h","W").get / mfr
+    dH = UnitConversions.convert(qdot,"kBtu/hr","W") / mfr
     hin = self.h_fT_w_SI(tin, win)
     h_Tin_Wout = hin - (1-shr)*dH
     wout = self.w_fT_h_SI(tin,h_Tin_Wout)
@@ -567,7 +567,7 @@ class Psychrometrics
     --------
         R       float      relative humidity     (1/1)
     '''
-    return self.R_fT_w_P(OpenStudio::convert(tdb,"C","F").get, w, OpenStudio::convert(p,"kPa","psi").get)     
+    return self.R_fT_w_P(UnitConversions.convert(tdb,"C","F"), w, UnitConversions.convert(p,"kPa","psi"))     
   end
   
   def self.Tdp_fP_w_SI(p, w)
@@ -596,7 +596,7 @@ class Psychrometrics
     --------
         Tdp     float      dewpoint temperature  (degC)            
     '''
-    return OpenStudio::convert(self.Tdp_fP_w(OpenStudio::convert(p,"kPa","psi").get, w),"F","C").get
+    return UnitConversions.convert(self.Tdp_fP_w(UnitConversions.convert(p,"kPa","psi"), w),"F","C")
   end        
   
   def self.w_fT_Twb_P_SI(tdb, twb, p)
@@ -621,7 +621,7 @@ class Psychrometrics
         w       float      humidity ratio        (g/g)
     '''
         
-    return self.w_fT_Twb_P(OpenStudio::convert(tdb,"C","F").get, OpenStudio::convert(twb,"C","F").get, OpenStudio::convert(p,"kPa","psi").get)      
+    return self.w_fT_Twb_P(UnitConversions.convert(tdb,"C","F"), UnitConversions.convert(twb,"C","F"), UnitConversions.convert(p,"kPa","psi"))      
   end        
   
   def self.w_fT_Twb_P(tdb, twb, p)
@@ -788,14 +788,14 @@ class Psychrometrics
         SHR    float    Sensible Heat Ratio
     '''
         
-    mfr = UnitConversion.lbm_min2kg_s(self.CalculateMassflowRate(dBin, wBin, p, cfm))
+    mfr = UnitConversions.convert(self.CalculateMassflowRate(dBin, wBin, p, cfm),"lbm/min","kg/s")
     bf = Math.exp(-1.0*ao/mfr)
     
     win = self.w_fT_Twb_P(dBin, wBin, p)
-    p = OpenStudio::convert(p,"psi","kPa").get
-    tin = OpenStudio::convert(dBin,"F","C").get
+    p = UnitConversions.convert(p,"psi","kPa")
+    tin = UnitConversions.convert(dBin,"F","C")
     hin = self.h_fT_w_SI(tin, win)
-    dH = OpenStudio::convert(q,"kBtu/h","W").get / mfr
+    dH = UnitConversions.convert(q,"kBtu/hr","W") / mfr
     h_ADP = hin - dH / (1-bf)
     
     # T_ADP = self.Tsat_fh_P_SI(H_ADP, P)
@@ -888,7 +888,7 @@ class Psychrometrics
     --------
         w       float      humidity ratio        (g/g)
     '''
-    pws = OpenStudio::convert(self.Psat_fT(OpenStudio::convert(tdb,"C","F").get),"psi","kPa").get
+    pws = UnitConversions.convert(self.Psat_fT(UnitConversions.convert(tdb,"C","F")),"psi","kPa")
     pw = r * pws
     w = 0.62198 * pw / (p - pw)
     return w

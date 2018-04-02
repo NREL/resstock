@@ -15,7 +15,7 @@ task :copy_beopt_files do
   if branch.empty?
     branch = "master"
   end
-  
+
   if File.exists? File.join(File.dirname(__FILE__), "#{branch}.zip")
     FileUtils.rm(File.join(File.dirname(__FILE__), "#{branch}.zip"))
   end
@@ -113,7 +113,7 @@ task :copy_beopt_files do
   end
   
   # Copy other measures to measure/ dir
-  other_measures = ["TimeseriesCSVExport", "UtilityBillCalculations"]
+  other_measures = ["TimeseriesCSVExport", "UtilityBillCalculationsSimple", "UtilityBillCalculationsDetailed"]
   buildstock_measures_dir = buildstock_resource_measures_dir = File.join(File.dirname(__FILE__), "measures")
   other_measures.each do |other_measure|
     puts "Copying #{other_measure} measure..."
@@ -124,12 +124,10 @@ task :copy_beopt_files do
         FileUtils.rm_rf("#{buildstock_measure_subdir}/.", secure: true)
       end
     end
-    if other_measure == "UtilityBillCalculations"
+    if ["UtilityBillCalculationsSimple", "UtilityBillCalculationsDetailed"].include? other_measure
       ["resources"].each do |subdir|
         buildstock_measure_subdir = File.join(buildstock_measures_dir, other_measure, subdir)
         remove_items_from_zip_file(buildstock_measure_subdir, "sam-sdk-2017-1-17-r1.zip", ["osx64", "win32", "win64"])
-        puts "Extracting tariffs..."
-        move_and_extract_zip_file(buildstock_measure_subdir, "tariffs.zip", "./resources")
       end
     end
   end
@@ -149,13 +147,6 @@ def remove_items_from_zip_file(dir, zip_file_name, items)
   zip_file = OpenStudio::ZipFile.new(zip_path, false)
   zip_file.addDirectory(File.join(dir, zip_file_name.gsub(".zip", "")), OpenStudio::toPath("/"))
   FileUtils.rm_rf(File.join(dir, zip_file_name.gsub(".zip", "")))
-end
-
-def move_and_extract_zip_file(dir, zip_file_name, target)
-  unzip_file = OpenStudio::UnzipFile.new(File.join(dir, zip_file_name))
-  unzip_file.extractAllFiles(OpenStudio::toPath(File.join(dir, zip_file_name.gsub(".zip", ""))))
-  FileUtils.rm_rf(File.join(target, zip_file_name.gsub(".zip", "")))
-  FileUtils.mv(File.join(dir, zip_file_name.gsub(".zip", "")), target)
 end
 
 namespace :test do
@@ -321,7 +312,19 @@ def integrity_check(project_dir_names=nil)
             deps << d
           end
         end
-        err += "       Perhaps one of these dependency files is missing? #{(deps - unprocessed_parameters - parameters_processed).join(', ')}."
+        undefined_deps = deps - unprocessed_parameters - parameters_processed
+        # Check if undefined deps exist but are undefined simply because they're not in options_lookup.tsv
+        undefined_deps_exist = true
+        undefined_deps.each do |undefined_dep|
+          tsvpath = File.join(project_dir_name, "housing_characteristics", "#{undefined_dep}.tsv")
+          next if File.exist?(tsvpath)
+          undefined_deps_exist = false
+        end
+        if undefined_deps_exist
+          err += "\nPerhaps one of these dependency files has options missing from options_lookup.tsv? #{undefined_deps.join(', ')}."
+        else
+          err += "\nPerhaps one of these dependency files is missing? #{undefined_deps.join(', ')}."
+        end
         raise err
       end
       
@@ -356,6 +359,9 @@ def integrity_check(project_dir_names=nil)
           # global distribution
           _matched_option_name, _matched_row_num = tsvfile.get_option_name_from_sample_number(1.0, nil)
         end
+        
+        # Check for all options defined in options_lookup.tsv
+        get_measure_args_from_option_names(lookup_file, tsvfile.option_cols.keys, parameter_name)
           
       end
     end # parameter_name
