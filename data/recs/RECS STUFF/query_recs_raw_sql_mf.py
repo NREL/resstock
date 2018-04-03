@@ -27,6 +27,7 @@ dependency_dict = {
                    'typehuq': 'Geometry Building Type',
                    'regionc': 'Census Region',
                    'stories': 'Geometry Stories',
+                   'naptflrs': 'Geometry Floors',
                    'reportable_domain': 'Location Region',
                    'Size': 'Geometry House Size',
                    'yearmaderange': 'Vintage',
@@ -280,12 +281,22 @@ garage_dict = {1: "1 Car",
                3: "3+ Car",
                -2: "None"}
 stories_dict = {10: '1',
-                20: '2+',
-                31: '2+',
-                32: '2+',
-                40: '2+',
+                20: '2',
+                31: '3',
+                32: '4+',
+                40: '4+',
                 50: 'Other',
                 -2: 'N/a'}
+floors_dict = {1: '1',
+               2: '2',
+               3: '3',
+               4: '4+',
+               5: '4+',
+               6: '4+',
+               7: '4+',
+               8: '4+',
+               9: '4+',
+               -2: 'N/a'}
 randincome_dict = {-1: 0000,
                    0: 0000,
                    1: 2500,
@@ -363,7 +374,7 @@ def process_data(df):
     # create new fields for numerical processing later (correlation stuff)
     df['num_glass'] = df.apply(lambda x: x['Glazing Type'] if x['Glazing Type'] > 0 else 0, axis=1)
     # Select Single Family Detached Housing Only
-    #df = df.loc[df['typehuq'] == {1,2,3,4,5}]
+    # df = df.loc[df['Geometry Building Type'] == {1,2,3}]
     df = df.reset_index()
 
 
@@ -387,6 +398,7 @@ def process_data(df):
                    'Education': education_dict,
                    'Size of Garage': garage_dict,
                    'Geometry Stories': stories_dict,
+                   'Geometry Floors': floors_dict,
                    'Location Region': region_def,
                    'Cooling Shared': shared_syst_dict,
                    'Heating Shared': shared_syst_dict,
@@ -1176,7 +1188,7 @@ def query(df):
     #    calc_general(df, dependency=['CR', 'Vintage', 'fuelheat'], options=['equipm'],
     #        outfile='heatingequipment_output_by_CR_fuel_vintage.tsv')
     #     calc_general(df, dependency=['Location Region'], options=['Building Type'], outfile='Geometry Building Type.tsv', outpath='../../../project_resstock_multifamily/housing_characteristics')
-        calc_general(df, dependency=['Geometry Building Type'], options=['Geometry Number Units'], outfile='Geometry Number Units.tsv',
+        calc_general(df, dependency=['Geometry Building Type', 'Vintage', 'Geometry House Size'], options=['Geometry Floors'], outfile='Geometry Unit Stories MF.tsv',
                  outpath='../../../project_resstock_multifamily/housing_characteristics')
         pass
 
