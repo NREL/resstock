@@ -23,11 +23,12 @@ from collections import OrderedDict
 startTime = datetime.now()
 #Dictionary for RECS to ResStock terminology
 dependency_dict = {
-                   'numapts': 'Geometry Number Units',
+                   'numapts': 'Number Units',
                    'typehuq': 'Geometry Building Type',
                    'regionc': 'Census Region',
                    'stories': 'Geometry Stories',
                    'naptflrs': 'Geometry Floors',
+                   'numflrs': 'Geometry Bldg Floors',
                    'reportable_domain': 'Location Region',
                    'Size': 'Geometry House Size',
                    'yearmaderange': 'Vintage',
@@ -141,11 +142,7 @@ sizes = {500: '0-1499',
          8000: '3500+',
          9000: '3500+',
          10000: '3500+'}
-story_dict = {10: 1,
-              20: 2,
-              40: 2,
-              31: 2,
-              32: 2}
+
 income_range = {1: '$02,500 and under',
                 2: '$02,500 to $4,999',
                 3: '$05,000 to $7,499',
@@ -374,7 +371,7 @@ def process_data(df):
     # create new fields for numerical processing later (correlation stuff)
     df['num_glass'] = df.apply(lambda x: x['Glazing Type'] if x['Glazing Type'] > 0 else 0, axis=1)
     # Select Single Family Detached Housing Only
-    # df = df.loc[df['Geometry Building Type'] == {1,2,3}]
+    # df = df.loc[df['Geometry Building Type'] == {1,2,3,4,5}]
     df = df.reset_index()
 
 
@@ -729,6 +726,16 @@ def query_stories(df, outfile='recs_query_stories.csv'):
     df.to_csv(outfile, index=False)
     print df
 
+def bin_stories(df):
+    df['Building Floors'] = df['Geometry Bldg Floors']
+    df.loc[(df['Geometry Bldg Floors'] >= 4), 'Building Floors'] = '4+'
+    df.loc[(df['Geometry Bldg Floors'] == -2), 'Building Floors'] = 'None'
+    return df
+
+def num_units(df):
+    df['Geometry Number Units'] = df['Number Units']
+    df.loc[(df['Number Units'] == -2),'Geometry Number Units'] = '<5'
+    return df
 
 def corr(x, y, w):
     def m(x, w):
@@ -776,6 +783,8 @@ def regenerate():
     df = custom_region(df)
     df = assign_poverty_levels(df)
     df = shared_system(df)
+    df = bin_stories(df)
+    df = num_units(df)
     # df = foundation_type(df)
     df = df.reset_index()
     df.to_pickle('processed_eia.recs_2009_microdata.pkl')
@@ -1188,9 +1197,10 @@ def query(df):
     #    calc_general(df, dependency=['CR', 'Vintage', 'fuelheat'], options=['equipm'],
     #        outfile='heatingequipment_output_by_CR_fuel_vintage.tsv')
     #     calc_general(df, dependency=['Location Region'], options=['Building Type'], outfile='Geometry Building Type.tsv', outpath='../../../project_resstock_multifamily/housing_characteristics')
-        calc_general(df, dependency=['Geometry Building Type', 'Vintage', 'Geometry House Size'], options=['Geometry Floors'], outfile='Geometry Unit Stories MF.tsv',
+        calc_general(df, dependency=['Location Region'], options=['Geometry Building Type'], outfile='Geometry Building type.tsv',
                  outpath='../../../project_resstock_multifamily/housing_characteristics')
         pass
+
 
 
 if __name__ == '__main__':
