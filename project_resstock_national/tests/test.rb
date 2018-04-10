@@ -11,6 +11,7 @@ class TestResStockNational < MiniTest::Test
     
       project_dir_name = File.basename(File.dirname(File.dirname(__FILE__)))
       integrity_check([project_dir_name])
+      integrity_check_options_lookup_tsv()
       
     rescue Exception => e
       
