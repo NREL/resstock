@@ -1,5 +1,6 @@
 require "#{File.dirname(__FILE__)}/psychrometrics"
 require "#{File.dirname(__FILE__)}/constants"
+require "#{File.dirname(__FILE__)}/unit_conversions"
 
 class WeatherHeader
   def initialize
@@ -74,7 +75,7 @@ class WeatherProcess
       end
       return actual_timestamps
     end
-    return nil
+    return []
   end
   
   def error?
@@ -248,7 +249,7 @@ class WeatherProcess
         @header.Latitude = epw_file.latitude
         @header.Longitude = epw_file.longitude
         @header.Timezone = epw_file.timeZone
-        @header.Altitude = OpenStudio::convert(epw_file.elevation,"m","ft").get
+        @header.Altitude = UnitConversions.convert(epw_file.elevation,"m","ft")
         @header.LocalPressure = Math::exp(-0.0000368 * @header.Altitude) # atm
         
         ddy_path = epw_path.gsub(".epw",".ddy")
@@ -380,11 +381,11 @@ class WeatherProcess
           db << x['db']
         end
 
-        data.AnnualAvgDrybulb = OpenStudio::convert(db.inject{ |sum, n| sum + n } / 8760.0,"C","F").get
+        data.AnnualAvgDrybulb = UnitConversions.convert(db.inject{ |sum, n| sum + n } / 8760.0,"C","F")
 
         # Peak temperatures:
-        data.AnnualMinDrybulb = OpenStudio::convert(mindict['db'],"C","F").get
-        data.AnnualMaxDrybulb = OpenStudio::convert(maxdict['db'],"C","F").get
+        data.AnnualMinDrybulb = UnitConversions.convert(mindict['db'],"C","F")
+        data.AnnualMaxDrybulb = UnitConversions.convert(maxdict['db'],"C","F")
 
         return data
 
@@ -402,7 +403,7 @@ class WeatherProcess
           end
           month_dbtotal = y.inject{ |sum, n| sum + n }
           month_hours = y.length
-          data.MonthlyAvgDrybulbs << OpenStudio::convert(month_dbtotal / month_hours,"C","F").get
+          data.MonthlyAvgDrybulbs << UnitConversions.convert(month_dbtotal / month_hours,"C","F")
         end
 
         return data
@@ -432,7 +433,7 @@ class WeatherProcess
 
       def calc_degree_days(daily_dbs, base_temp_f, is_heating)
         # Calculates and returns degree days from a base temperature for either heating or cooling
-        base_temp_c = OpenStudio::convert(base_temp_f,"F","C").get
+        base_temp_c = UnitConversions.convert(base_temp_f,"F","C")
 
         deg_days = []
         if is_heating
@@ -469,8 +470,8 @@ class WeatherProcess
           end
           avg_high = daily_high_dbs[first_day, ndays].inject{ |sum, n| sum + n } / ndays.to_f
           avg_low = daily_low_dbs[first_day, ndays].inject{ |sum, n| sum + n } / ndays.to_f
-          data.MonthlyAvgDailyHighDrybulbs << OpenStudio::convert(avg_high,"C","F").get
-          data.MonthlyAvgDailyLowDrybulbs << OpenStudio::convert(avg_low,"C","F").get
+          data.MonthlyAvgDailyHighDrybulbs << UnitConversions.convert(avg_high,"C","F")
+          data.MonthlyAvgDailyLowDrybulbs << UnitConversions.convert(avg_low,"C","F")
         end
         return data
       end
@@ -517,8 +518,8 @@ class WeatherProcess
           return nil, nil, nil
         end
         
-        avgOAT = OpenStudio.convert(waterMainsTemperature.annualAverageOutdoorAirTemperature.get, "C", "F").get
-        maxDiffMonthlyAvgOAT = OpenStudio.convert(waterMainsTemperature.maximumDifferenceInMonthlyAverageOutdoorAirTemperatures.get, "K", "R").get
+        avgOAT = UnitConversions.convert(waterMainsTemperature.annualAverageOutdoorAirTemperature.get, "C", "F")
+        maxDiffMonthlyAvgOAT = UnitConversions.convert(waterMainsTemperature.maximumDifferenceInMonthlyAverageOutdoorAirTemperatures.get, "K", "R")
         
         return self._calculate_mains_temperature(avgOAT, maxDiffMonthlyAvgOAT, latitude)
       end
@@ -573,18 +574,18 @@ class WeatherProcess
         ddy_model.getObjectsByType("OS:SizingPeriod:DesignDay".to_IddObjectType).each do |d|
           designDay = d.to_DesignDay.get
           if d.name.get.include?("Ann Htg 99% Condns DB")
-            design.HeatingDrybulb = OpenStudio::convert(designDay.maximumDryBulbTemperature,"C","F").get
+            design.HeatingDrybulb = UnitConversions.convert(designDay.maximumDryBulbTemperature,"C","F")
           elsif d.name.get.include?("Ann Htg Wind 99% Condns WS=>MCDB")
             # FIXME: Is this correct? Or should be wind speed coincident with heating drybulb?
             design.HeatingWindspeed = designDay.windSpeed
           elsif d.name.get.include?("Ann Clg 1% Condns DB=>MWB")
-            design.CoolingDrybulb = OpenStudio::convert(designDay.maximumDryBulbTemperature,"C","F").get
-            design.CoolingWetbulb = OpenStudio::convert(designDay.humidityIndicatingConditionsAtMaximumDryBulb,"C","F").get
+            design.CoolingDrybulb = UnitConversions.convert(designDay.maximumDryBulbTemperature,"C","F")
+            design.CoolingWetbulb = UnitConversions.convert(designDay.humidityIndicatingConditionsAtMaximumDryBulb,"C","F")
             design.CoolingWindspeed = designDay.windSpeed
-            design.DailyTemperatureRange = OpenStudio::convert(designDay.dailyDryBulbTemperatureRange,"K","R").get
+            design.DailyTemperatureRange = UnitConversions.convert(designDay.dailyDryBulbTemperatureRange,"K","R")
           elsif d.name.get.include?("Ann Clg 2% Condns DP=>MDB")
-            design.DehumidDrybulb = OpenStudio::convert(designDay.maximumDryBulbTemperature,"C","F").get
-            dehum02per_dp = OpenStudio::convert(designDay.humidityIndicatingConditionsAtMaximumDryBulb,"C","F").get
+            design.DehumidDrybulb = UnitConversions.convert(designDay.maximumDryBulbTemperature,"C","F")
+            dehum02per_dp = UnitConversions.convert(designDay.humidityIndicatingConditionsAtMaximumDryBulb,"C","F")
           end
         end
         std_press = Psychrometrics.Pstd_fZ(altitude)
@@ -617,7 +618,7 @@ class WeatherProcess
         for i in 0..(annual_hd_sorted_by_db.size - 1)
           if (annual_hd_sorted_by_db[i]['db'] > cool01per_db - 0.5) and (annual_hd_sorted_by_db[i]['db'] < cool01per_db + 0.5)
             cool_windspeed << annual_hd_sorted_by_db[i]['ws']
-            wb = Psychrometrics.Twb_fT_R_P(OpenStudio::convert(annual_hd_sorted_by_db[i]['db'],"C","F").get, annual_hd_sorted_by_db[i]['rh'], std_press)
+            wb = Psychrometrics.Twb_fT_R_P(UnitConversions.convert(annual_hd_sorted_by_db[i]['db'],"C","F"), annual_hd_sorted_by_db[i]['rh'], std_press)
             cool_wetbulb << wb
           end
         end
@@ -641,16 +642,16 @@ class WeatherProcess
         dehum_design_db = dehum_drybulb.inject{ |sum, n| sum + n } / dehum_drybulb.size
         
 
-        design.CoolingDrybulb = OpenStudio::convert(cool01per_db,"C","F").get
+        design.CoolingDrybulb = UnitConversions.convert(cool01per_db,"C","F")
         design.CoolingWetbulb = cool_design_wb
         design.CoolingHumidityRatio = Psychrometrics.w_fT_Twb_P(design.CoolingDrybulb, design.CoolingWetbulb, std_press)
         design.CoolingWindspeed = cool_windspeed.inject{ |sum, n| sum + n } / cool_windspeed.size
         
-        design.HeatingDrybulb = OpenStudio::convert(heat99per_db,"C","F").get
+        design.HeatingDrybulb = UnitConversions.convert(heat99per_db,"C","F")
         design.HeatingWindspeed = heat_windspeed.inject{ |sum, n| sum + n } / heat_windspeed.size
         
-        design.DehumidDrybulb = OpenStudio::convert(dehum_design_db,"C","F").get
-        design.DehumidHumidityRatio = Psychrometrics.w_fT_Twb_P(OpenStudio::convert(dehum02per_dp,"C","F").get, OpenStudio::convert(dehum02per_dp,"C","F").get, std_press)
+        design.DehumidDrybulb = UnitConversions.convert(dehum_design_db,"C","F")
+        design.DehumidHumidityRatio = Psychrometrics.w_fT_Twb_P(UnitConversions.convert(dehum02per_dp,"C","F"), UnitConversions.convert(dehum02per_dp,"C","F"), std_press)
         
         return design
         
@@ -662,7 +663,7 @@ class WeatherProcess
         amon = [15.0, 46.0, 74.0, 95.0, 135.0, 166.0, 196.0, 227.0, 258.0, 288.0, 319.0, 349.0]
         po = 0.6
         dif = 0.025
-        p = OpenStudio::convert(1.0,"yr","hr").get
+        p = UnitConversions.convert(1.0,"yr","hr")
 
         beta = Math::sqrt(Math::PI / (p * dif)) * 10.0
         x = Math::exp(-beta)
@@ -678,7 +679,7 @@ class WeatherProcess
         data.GroundMonthlyTemps = []
         (0...12).to_a.each do |i|
           theta = amon[i] * 24.0
-          data.GroundMonthlyTemps << OpenStudio::convert(data.AnnualAvgDrybulb - bo * Math::cos(2.0 * Math::PI / p * theta - po - phi) * gm + 460.0,"R","F").get
+          data.GroundMonthlyTemps << UnitConversions.convert(data.AnnualAvgDrybulb - bo * Math::cos(2.0 * Math::PI / p * theta - po - phi) * gm + 460.0,"R","F")
         end
 
         return data

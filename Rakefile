@@ -15,7 +15,7 @@ task :copy_beopt_files do
   if branch.empty?
     branch = "master"
   end
-
+  
   if File.exists? File.join(File.dirname(__FILE__), "#{branch}.zip")
     FileUtils.rm(File.join(File.dirname(__FILE__), "#{branch}.zip"))
   end
@@ -113,7 +113,7 @@ task :copy_beopt_files do
   end
   
   # Copy other measures to measure/ dir
-  other_measures = ["TimeseriesCSVExport", "UtilityBillCalculationsSimple", "UtilityBillCalculationsDetailed"]
+  other_measures = ["TimeseriesCSVExport", "UtilityBillCalculations"]
   buildstock_measures_dir = buildstock_resource_measures_dir = File.join(File.dirname(__FILE__), "measures")
   other_measures.each do |other_measure|
     puts "Copying #{other_measure} measure..."
@@ -124,10 +124,12 @@ task :copy_beopt_files do
         FileUtils.rm_rf("#{buildstock_measure_subdir}/.", secure: true)
       end
     end
-    if ["UtilityBillCalculationsSimple", "UtilityBillCalculationsDetailed"].include? other_measure
+    if other_measure == "UtilityBillCalculations"
       ["resources"].each do |subdir|
         buildstock_measure_subdir = File.join(buildstock_measures_dir, other_measure, subdir)
         remove_items_from_zip_file(buildstock_measure_subdir, "sam-sdk-2017-1-17-r1.zip", ["osx64", "win32", "win64"])
+        puts "Extracting tariffs..."
+        move_and_extract_zip_file(buildstock_measure_subdir, "tariffs.zip", "./resources")
       end
     end
   end
@@ -149,6 +151,13 @@ def remove_items_from_zip_file(dir, zip_file_name, items)
   FileUtils.rm_rf(File.join(dir, zip_file_name.gsub(".zip", "")))
 end
 
+def move_and_extract_zip_file(dir, zip_file_name, target)
+  unzip_file = OpenStudio::UnzipFile.new(File.join(dir, zip_file_name))
+  unzip_file.extractAllFiles(OpenStudio::toPath(File.join(dir, zip_file_name.gsub(".zip", ""))))
+  FileUtils.rm_rf(File.join(target, zip_file_name.gsub(".zip", "")))
+  FileUtils.mv(File.join(dir, zip_file_name.gsub(".zip", "")), target)
+end
+
 namespace :test do
 
   desc 'Run unit tests for all projects/measures'
@@ -161,6 +170,7 @@ namespace :test do
   
   desc 'regenerate SimulationOutputReport test osm files from osw files'
   task :regenerate_osms do
+    require 'openstudio'
 
     num_tot = 0
     num_success = 0
@@ -172,7 +182,7 @@ namespace :test do
         FileUtils.rm(File.expand_path("../log", __FILE__))
     end
     
-    os_cli = get_os_cli()
+    cli_path = OpenStudio.getOpenStudioCLI
 
     osw_files.each do |osw|
 
@@ -183,7 +193,7 @@ namespace :test do
         puts "[#{num_tot}/#{osw_files.size}] Regenerating osm from #{osw}..."
         osw = File.expand_path("../test/osw_files/#{osw}", __FILE__)
         osm = File.expand_path("../test/osw_files/run/in.osm", __FILE__)
-        command = "\"#{os_cli}\" run -w #{osw} -m >> log"
+        command = "\"#{cli_path}\" run -w #{osw} -m >> log"
         for _retry in 1..3
             system(command)
             break if File.exists?(osm)
@@ -264,12 +274,6 @@ task :integrity_check_resstock_efs do
     integrity_check_options_lookup_tsv()
 end # rake task
 
-desc 'Perform integrity check on inputs for project_resstock_multifamily'
-task :integrity_check_resstock_multifamily do
-    integrity_check(['project_resstock_multifamily'])
-    integrity_check_options_lookup_tsv()
-end # rake task
-
 def integrity_check(project_dir_names=nil)
   if project_dir_names.nil?
     project_dir_names = get_all_project_dir_names()
@@ -312,19 +316,7 @@ def integrity_check(project_dir_names=nil)
             deps << d
           end
         end
-        undefined_deps = deps - unprocessed_parameters - parameters_processed
-        # Check if undefined deps exist but are undefined simply because they're not in options_lookup.tsv
-        undefined_deps_exist = true
-        undefined_deps.each do |undefined_dep|
-          tsvpath = File.join(project_dir_name, "housing_characteristics", "#{undefined_dep}.tsv")
-          next if File.exist?(tsvpath)
-          undefined_deps_exist = false
-        end
-        if undefined_deps_exist
-          err += "\nPerhaps one of these dependency files has options missing from options_lookup.tsv? #{undefined_deps.join(', ')}."
-        else
-          err += "\nPerhaps one of these dependency files is missing? #{undefined_deps.join(', ')}."
-        end
+        err += "       Perhaps one of these dependency files is missing? #{(deps - unprocessed_parameters - parameters_processed).join(', ')}."
         raise err
       end
       
@@ -360,8 +352,8 @@ def integrity_check(project_dir_names=nil)
           _matched_option_name, _matched_row_num = tsvfile.get_option_name_from_sample_number(1.0, nil)
         end
         
-        # Check for all options defined in options_lookup.tsv
-        get_measure_args_from_option_names(lookup_file, tsvfile.option_cols.keys, parameter_name)
+        # Check for all options in options_lookup.tsv
+        get_measure_args_from_option_names(lookup_file, tsvfile.option_cols.keys, parameter_name, nil)
           
       end
     end # parameter_name
@@ -477,14 +469,4 @@ def get_all_project_dir_names()
         project_dir_names << entry
     end
     return project_dir_names
-end
-
-def get_os_cli
-  # Get latest installed version of openstudio.exe
-  os_clis = Dir["C:/openstudio-*/bin/openstudio.exe"] + Dir["/usr/bin/openstudio"] + Dir["/usr/local/bin/openstudio"]
-  if os_clis.size == 0
-      puts "ERROR: Could not find the openstudio binary. You may need to install the OpenStudio Command Line Interface."
-      exit
-  end
-  return os_clis[-1]
 end
