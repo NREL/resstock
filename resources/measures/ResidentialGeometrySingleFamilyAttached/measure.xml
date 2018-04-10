@@ -2,8 +2,8 @@
   <schema_version>3.0</schema_version>
   <name>create_residential_single_family_attached_geometry</name>
   <uid>fb4e4db8-1b29-4cbf-abcd-6af194ad945c</uid>
-  <version_id>af94fb6f-0dcf-41eb-bb81-139b5d40184e</version_id>
-  <version_modified>20180218T020704Z</version_modified>
+  <version_id>6726de4f-3911-4724-b779-5aba904a8b42</version_id>
+  <version_modified>20180410T212123Z</version_modified>
   <xml_checksum>2AF3A68E</xml_checksum>
   <class_name>CreateResidentialSingleFamilyAttachedGeometry</class_name>
   <display_name>Create Residential Single-Family Attached Geometry</display_name>
@@ -227,6 +227,25 @@
         </choice>
       </choices>
     </argument>
+    <argument>
+      <name>use_zone_mult</name>
+      <display_name>Use Zone Multipliers?</display_name>
+      <description>Model only one interior unit with its thermal zone multiplier equal to the number of interior units.</description>
+      <type>Boolean</type>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>false</default_value>
+      <choices>
+        <choice>
+          <value>true</value>
+          <display_name>true</display_name>
+        </choice>
+        <choice>
+          <value>false</value>
+          <display_name>false</display_name>
+        </choice>
+      </choices>
+    </argument>
   </arguments>
   <outputs/>
   <provenances/>
@@ -263,10 +282,16 @@
       <checksum>3E1D973D</checksum>
     </file>
     <file>
+      <filename>geometry.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>15FAD11A</checksum>
+    </file>
+    <file>
       <filename>constants.rb</filename>
       <filetype>rb</filetype>
       <usage_type>resource</usage_type>
-      <checksum>FDA82DA6</checksum>
+      <checksum>A682F61A</checksum>
     </file>
     <file>
       <version>
@@ -277,25 +302,19 @@
       <filename>measure.rb</filename>
       <filetype>rb</filetype>
       <usage_type>script</usage_type>
-      <checksum>BD131536</checksum>
+      <checksum>8D4F0E58</checksum>
     </file>
     <file>
       <filename>SFA_4units_1story_FB_UA_Denver.osm</filename>
       <filetype>osm</filetype>
       <usage_type>test</usage_type>
-      <checksum>E87566BD</checksum>
+      <checksum>F9777FDB</checksum>
     </file>
     <file>
       <filename>create_residential_single_family_attached_geometry_test.rb</filename>
       <filetype>rb</filetype>
       <usage_type>test</usage_type>
-      <checksum>4E96265F</checksum>
-    </file>
-    <file>
-      <filename>geometry.rb</filename>
-      <filetype>rb</filetype>
-      <usage_type>resource</usage_type>
-      <checksum>15FAD11A</checksum>
+      <checksum>0742FE92</checksum>
     </file>
   </files>
 </measure>

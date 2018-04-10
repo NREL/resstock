@@ -57,27 +57,6 @@ class ResidentialClothesDryerFuel < OpenStudio::Measure::ModelMeasure
     cd_mult.setDefaultValue(1)
     args << cd_mult
 
-    #Make a string argument for 24 weekday schedule values
-    cd_weekday_sch = OpenStudio::Measure::OSArgument::makeStringArgument("weekday_sch")
-    cd_weekday_sch.setDisplayName("Weekday schedule")
-    cd_weekday_sch.setDescription("Specify the 24-hour weekday schedule.")
-    cd_weekday_sch.setDefaultValue("0.010, 0.006, 0.004, 0.002, 0.004, 0.006, 0.016, 0.032, 0.048, 0.068, 0.078, 0.081, 0.074, 0.067, 0.057, 0.061, 0.055, 0.054, 0.051, 0.051, 0.052, 0.054, 0.044, 0.024")
-    args << cd_weekday_sch
-    
-    #Make a string argument for 24 weekend schedule values
-    cd_weekend_sch = OpenStudio::Measure::OSArgument::makeStringArgument("weekend_sch")
-    cd_weekend_sch.setDisplayName("Weekend schedule")
-    cd_weekend_sch.setDescription("Specify the 24-hour weekend schedule.")
-    cd_weekend_sch.setDefaultValue("0.010, 0.006, 0.004, 0.002, 0.004, 0.006, 0.016, 0.032, 0.048, 0.068, 0.078, 0.081, 0.074, 0.067, 0.057, 0.061, 0.055, 0.054, 0.051, 0.051, 0.052, 0.054, 0.044, 0.024")
-    args << cd_weekend_sch
-
-    #Make a string argument for 12 monthly schedule values
-    cd_monthly_sch = OpenStudio::Measure::OSArgument::makeStringArgument("monthly_sch", true)
-    cd_monthly_sch.setDisplayName("Month schedule")
-    cd_monthly_sch.setDescription("Specify the 12-month schedule.")
-    cd_monthly_sch.setDefaultValue("1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0")
-    args << cd_monthly_sch
-
     #make a choice argument for location
     location_args = OpenStudio::StringVector.new
     location_args << Constants.Auto
@@ -107,9 +86,6 @@ class ResidentialClothesDryerFuel < OpenStudio::Measure::ModelMeasure
     cef = runner.getDoubleArgumentValue("cef",user_arguments)
     fuel_split = runner.getDoubleArgumentValue("fuel_split",user_arguments)
     mult = runner.getDoubleArgumentValue("mult",user_arguments)
-    weekday_sch = runner.getStringArgumentValue("weekday_sch",user_arguments)
-    weekend_sch = runner.getStringArgumentValue("weekend_sch",user_arguments)
-    monthly_sch = runner.getStringArgumentValue("monthly_sch",user_arguments)
     location = runner.getStringArgumentValue("location",user_arguments)
 
     #Check for valid inputs
@@ -153,7 +129,7 @@ class ResidentialClothesDryerFuel < OpenStudio::Measure::ModelMeasure
         space = Geometry.get_space_from_location(unit, location, location_hierarchy)
         next if space.nil?
         
-        success, ann_e, ann_f, sch = ClothesDryer.apply(model, unit, runner, sch, cef, mult, weekday_sch, weekend_sch, monthly_sch, 
+        success, ann_e, ann_f, sch = ClothesDryer.apply(model, unit, runner, sch, cef, mult, 
                                                         space, fuel_type, fuel_split)
         
         if not success

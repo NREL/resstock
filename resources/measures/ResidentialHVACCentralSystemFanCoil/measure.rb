@@ -64,7 +64,7 @@ class ProcessCentralSystemFanCoil < OpenStudio::Measure::ModelMeasure
     if !runner.validateUserArguments(arguments(model), user_arguments)
       return false
     end
-    
+
     return true # FIXME: remove
 
     require "openstudio-standards"

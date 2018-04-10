@@ -1383,6 +1383,9 @@ class ProcessHVACSizing < OpenStudio::Measure::ModelMeasure
             elsif gain.name.to_s.start_with?(Constants.ObjectNameClothesWasher)
                 sched_values = [0.009, 0.007, 0.004, 0.004, 0.007, 0.011, 0.022, 0.049, 0.073, 0.086, 0.084, 0.075, 0.067, 0.060, 0.049, 0.052, 0.050, 0.049, 0.049, 0.049, 0.049, 0.047, 0.032, 0.017]
                 max_mult = 1.15 * 1.04
+            elsif gain.name.to_s.start_with?(Constants.ObjectNameClothesDryer(nil))
+                sched_values = [0.010, 0.006, 0.004, 0.002, 0.004, 0.006, 0.016, 0.032, 0.048, 0.068, 0.078, 0.081, 0.074, 0.067, 0.057, 0.061, 0.055, 0.054, 0.051, 0.051, 0.052, 0.054, 0.044, 0.024]
+                max_mult = 1.15 * 1.04
             else
                 runner.registerError("Unexpected gain '#{gain.name.to_s}' with ScheduleFixedInterval in processInternalGains.")
                 return nil
