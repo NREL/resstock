@@ -2,8 +2,8 @@
   <schema_version>3.0</schema_version>
   <name>create_residential_multifamily_geometry</name>
   <uid>9bc07973-98a4-46fc-b643-e280628817c5</uid>
-  <version_id>9551e880-452a-4964-8d9b-c9c3acf3eaeb</version_id>
-  <version_modified>20180409T205122Z</version_modified>
+  <version_id>c777bb8f-9182-4846-8cea-5f0a613ff6e6</version_id>
+  <version_modified>20180410T212123Z</version_modified>
   <xml_checksum>2AF3A68E</xml_checksum>
   <class_name>CreateResidentialMultifamilyGeometry</class_name>
   <display_name>Create Residential Multifamily Geometry</display_name>
@@ -179,6 +179,44 @@
       <model_dependent>false</model_dependent>
       <default_value>3</default_value>
     </argument>
+    <argument>
+      <name>use_zone_mult</name>
+      <display_name>Use Zone Multipliers?</display_name>
+      <description>Model only one interior unit per floor with its thermal zone multiplier equal to the number of interior units per floor.</description>
+      <type>Boolean</type>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>false</default_value>
+      <choices>
+        <choice>
+          <value>true</value>
+          <display_name>true</display_name>
+        </choice>
+        <choice>
+          <value>false</value>
+          <display_name>false</display_name>
+        </choice>
+      </choices>
+    </argument>
+    <argument>
+      <name>use_floor_mult</name>
+      <display_name>Use Floor Multipliers?</display_name>
+      <description>Model only one interior floor with thermal zone multipliers equal to the number of interior floors.</description>
+      <type>Boolean</type>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>false</default_value>
+      <choices>
+        <choice>
+          <value>true</value>
+          <display_name>true</display_name>
+        </choice>
+        <choice>
+          <value>false</value>
+          <display_name>false</display_name>
+        </choice>
+      </choices>
+    </argument>
   </arguments>
   <outputs/>
   <provenances/>
@@ -215,16 +253,16 @@
       <checksum>3E1D973D</checksum>
     </file>
     <file>
-      <filename>constants.rb</filename>
-      <filetype>rb</filetype>
-      <usage_type>resource</usage_type>
-      <checksum>FDA82DA6</checksum>
-    </file>
-    <file>
       <filename>geometry.rb</filename>
       <filetype>rb</filetype>
       <usage_type>resource</usage_type>
       <checksum>15FAD11A</checksum>
+    </file>
+    <file>
+      <filename>constants.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>A682F61A</checksum>
     </file>
     <file>
       <version>
@@ -235,19 +273,19 @@
       <filename>measure.rb</filename>
       <filetype>rb</filetype>
       <usage_type>script</usage_type>
-      <checksum>7F4403D9</checksum>
+      <checksum>35763FFD</checksum>
     </file>
     <file>
       <filename>create_residential_multifamily_geometry_test.rb</filename>
       <filetype>rb</filetype>
       <usage_type>test</usage_type>
-      <checksum>D5C60917</checksum>
+      <checksum>BEF91C30</checksum>
     </file>
     <file>
       <filename>MF_8units_1story_SL_Denver.osm</filename>
       <filetype>osm</filetype>
       <usage_type>test</usage_type>
-      <checksum>2E86360D</checksum>
+      <checksum>1B35E722</checksum>
     </file>
   </files>
 </measure>

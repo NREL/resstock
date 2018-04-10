@@ -208,8 +208,8 @@ class CreateResidentialSingleFamilyAttachedGeometry < OpenStudio::Measure::Model
       return false
     end
     if has_rear_units and num_units % 2 != 0
-      runner.registerError("Cannot specify building with rear units when there is an odd number of units.")
-      return false
+      runner.registerWarning("Specified a building with rear units and an odd number of units. Subtracting one unit.")
+      num_units -= 1
     end
     
     # Convert to SI

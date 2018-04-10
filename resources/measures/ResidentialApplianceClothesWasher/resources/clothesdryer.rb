@@ -3,7 +3,7 @@ require "#{File.dirname(__FILE__)}/unit_conversions"
 
 class ClothesDryer
 
-  def self.apply(model, unit, runner, sch, cef, mult, weekday_sch, weekend_sch, monthly_sch, 
+  def self.apply(model, unit, runner, sch, cef, mult, 
                  space, fuel_type, fuel_split)
   
       # Get unit beds/baths
@@ -25,13 +25,18 @@ class ClothesDryer
       cw_drum_volume = unit.getFeatureAsDouble(Constants.ClothesWasherDrumVolume(cw))
       cw_imef = unit.getFeatureAsDouble(Constants.ClothesWasherIMEF(cw))
       cw_rated_annual_energy = unit.getFeatureAsDouble(Constants.ClothesWasherRatedAnnualEnergy(cw))
-      if !cw_drum_volume.is_initialized or !cw_imef.is_initialized or !cw_rated_annual_energy.is_initialized
+      cw_day_shift = unit.getFeatureAsDouble(Constants.ClothesWasherDayShift(cw))
+      if !cw_day_shift.is_initialized
+          runner.registerError("Could not find day shift.")
+      end
+      if !cw_drum_volume.is_initialized or !cw_imef.is_initialized or !cw_rated_annual_energy.is_initialized or !cw_day_shift.is_initialized
           runner.registerError("Could not find clothes washer properties.")
           return false
       end
       cw_drum_volume = cw_drum_volume.get
       cw_imef = cw_imef.get
       cw_rated_annual_energy = cw_rated_annual_energy.get
+      cw_day_shift = cw_day_shift.get
       
       unit_obj_name_e = Constants.ObjectNameClothesDryer(Constants.FuelTypeElectric, unit.name.to_s)
       unit_obj_name_f = Constants.ObjectNameClothesDryer(fuel_type, unit.name.to_s)
@@ -111,9 +116,9 @@ class ClothesDryer
       
           if sch.nil?
               # Create schedule
-              mult_weekend = 1.15
-              mult_weekday = 0.94
-              sch = MonthWeekdayWeekendSchedule.new(model, runner, Constants.ObjectNameClothesDryer(fuel_type) + " schedule", weekday_sch, weekend_sch, monthly_sch, mult_weekday, mult_weekend)
+              hr_shift = cw_day_shift + 1.0 / 24.0
+              sch_unit_index = Geometry.get_unit_dhw_sched_index(model, unit, runner)
+              sch = HotWaterSchedule.new(model, runner, unit_obj_name_f + " schedule", unit_obj_name_f + " temperature schedule", nbeds, sch_unit_index, hr_shift, "ClothesDryer", 0, File.dirname(File.expand_path('..', __FILE__)))
               if not sch.validated?
                   return false
               end
@@ -137,7 +142,7 @@ class ClothesDryer
               cd.setSchedule(sch.schedule)
               
           else
-          
+              
               design_level_e = sch.calcDesignLevelFromDailykWh(daily_energy_elec)
               
               if design_level_e > 0
@@ -153,7 +158,7 @@ class ClothesDryer
                   cd_def2.setFractionLost(0.0)
                   cd2.setSchedule(sch.schedule)
               end
-              
+
               design_level_f = sch.calcDesignLevelFromDailyTherm(daily_energy_fuel)
               
               cd_def = OpenStudio::Model::OtherEquipmentDefinition.new(model)
@@ -173,9 +178,6 @@ class ClothesDryer
           
           unit.setFeature(Constants.ClothesDryerCEF(cd), cef.to_f)
           unit.setFeature(Constants.ClothesDryerMult(cd), mult.to_f)
-          unit.setFeature(Constants.ClothesDryerWeekdaySch(cd), weekday_sch.to_s)
-          unit.setFeature(Constants.ClothesDryerWeekendSch(cd), weekend_sch.to_s)
-          unit.setFeature(Constants.ClothesDryerMonthlySch(cd), monthly_sch.to_s)
           unit.setFeature(Constants.ClothesDryerFuelType(cd), fuel_type.to_s)
           unit.setFeature(Constants.ClothesDryerFuelSplit(cd), fuel_split.to_f)
           

@@ -356,6 +356,20 @@ class ResidentialAirflow < OpenStudio::Measure::ModelMeasure
     is_existing_home.setDescription("Specifies whether the building is an existing home or new construction.")
     is_existing_home.setDefaultValue(false)
     args << is_existing_home
+    
+    #make an integer argument for hour of range spot ventilation
+    range_spot_vent_hour = OpenStudio::Measure::OSArgument::makeIntegerArgument("range_spot_vent_hour",true)
+    range_spot_vent_hour.setDisplayName("Hour of range spot ventilation")
+    range_spot_vent_hour.setDescription("Hour in which range spot ventilation occurs. Values indicate the time of spot ventilation, which lasts for 1 hour.")
+    range_spot_vent_hour.setDefaultValue(16)
+    args << range_spot_vent_hour
+    
+    #make an integer argument for hour of bathroom spot ventilation
+    bathroom_spot_vent_hour = OpenStudio::Measure::OSArgument::makeIntegerArgument("bathroom_spot_vent_hour",true)
+    bathroom_spot_vent_hour.setDisplayName("Hour of bathroom spot ventilation")
+    bathroom_spot_vent_hour.setDescription("Hour in which bathroom spot ventilation occurs. Values indicate the time of spot ventilation, which lasts for 1 hour.")
+    bathroom_spot_vent_hour.setDefaultValue(5)
+    args << bathroom_spot_vent_hour
 
     #make a double argument for cfis open time
     mech_vent_cfis_open_time = OpenStudio::Measure::OSArgument::makeDoubleArgument("mech_vent_cfis_open_time",true)
@@ -375,7 +389,7 @@ class ResidentialAirflow < OpenStudio::Measure::ModelMeasure
     clothes_dryer_exhaust = OpenStudio::Measure::OSArgument::makeDoubleArgument("clothes_dryer_exhaust",true)
     clothes_dryer_exhaust.setDisplayName("Clothes Dryer: Exhaust")
     clothes_dryer_exhaust.setUnits("cfm")
-    clothes_dryer_exhaust.setDescription("Rated flow capacity of the clothes dryer exhaust. This fan is assumed to run 60 min/day between 11am and 12pm.")
+    clothes_dryer_exhaust.setDescription("Rated flow capacity of the clothes dryer exhaust. This fan is assumed to run after any clothes dryer events.")
     clothes_dryer_exhaust.setDefaultValue(100.0)
     args << clothes_dryer_exhaust
 
@@ -613,6 +627,8 @@ class ResidentialAirflow < OpenStudio::Measure::ModelMeasure
       mechVentTotalEfficiency = 0.0
       mechVentSensibleEfficiency = 0.0
     end
+    rangeExhaustHour = runner.getIntegerArgumentValue("range_spot_vent_hour",user_arguments)
+    bathroomExhaustHour = runner.getIntegerArgumentValue("bathroom_spot_vent_hour",user_arguments)
     dryerExhaust = runner.getDoubleArgumentValue("clothes_dryer_exhaust",user_arguments)
     is_existing_home = runner.getBoolArgumentValue("is_existing_home",user_arguments)
     natVentHtgSsnSetpointOffset = runner.getDoubleArgumentValue("nat_vent_htg_offset",user_arguments)
@@ -1079,15 +1095,31 @@ class ResidentialAirflow < OpenStudio::Measure::ModelMeasure
         thermal_zone.removeReturnPlenum
         thermal_zone.remove
       end
-
-      # Search for clothes dryer
-      (model.getElectricEquipments + model.getOtherEquipments).each do |equip|
-        next unless equip.name.to_s == Constants.ObjectNameClothesDryer(Constants.FuelTypeElectric, building_unit.name.to_s) or equip.name.to_s == Constants.ObjectNameClothesDryer(Constants.FuelTypeGas, building_unit.name.to_s) or equip.name.to_s == Constants.ObjectNameClothesDryer(Constants.FuelTypePropane, building_unit.name.to_s)
-        unit.dryer_exhaust = dryerExhaust
+      
+      cw_day_shift = nil
+      #Get the clothes washer so we can use the day shift for the clothes dryer
+      model.getElectricEquipments.each do |ee|
+        next if ee.name.to_s != Constants.ObjectNameClothesWasher(building_unit.name.to_s)
+        cw_day_shift = building_unit.getFeatureAsDouble(Constants.ClothesWasherDayShift(ee))
         break
       end
+      
+      #Create the clothes dryer exhaust schedule
+      dryer_name = nil
+      (model.getElectricEquipments + model.getOtherEquipments).each do |equip|
+        next unless equip.name.to_s == Constants.ObjectNameClothesDryer(Constants.FuelTypeElectric, building_unit.name.to_s) or equip.name.to_s == Constants.ObjectNameClothesDryer(Constants.FuelTypeGas, building_unit.name.to_s) or equip.name.to_s == Constants.ObjectNameClothesDryer(Constants.FuelTypePropane, building_unit.name.to_s)
+        dryer_name = equip.name.to_s
+        unit.dryer_exhaust = dryerExhaust
+        hr_shift = cw_day_shift.to_f + 1.0 / 24.0
+        sch_unit_index = Geometry.get_unit_dhw_sched_index(model, building_unit, runner)
+        schedules.ClothesDryerExhaust = HotWaterSchedule.new(model, runner, dryer_name + " exhaust schedule", dryer_name + " exhaust temperature schedule", unit.num_bedrooms, sch_unit_index, hr_shift, "ClothesDryerExhaust", 0, File.dirname(__FILE__))
+        break
+      end
+      
       if unit.dryer_exhaust.nil?
-        runner.registerWarning("No clothes dryer object was found in #{building_unit.name.to_s} but the clothes dryer exhaust specified is non-zero. Overriding clothes dryer exhaust to be zero.")
+        if dryerExhaust > 0
+          runner.registerWarning("No clothes dryer object was found in #{building_unit.name.to_s} but the clothes dryer exhaust specified is non-zero. Overriding clothes dryer exhaust to be zero.")
+        end
         unit.dryer_exhaust = 0
       end
 
@@ -1104,11 +1136,15 @@ class ResidentialAirflow < OpenStudio::Measure::ModelMeasure
       if mech_vent.nil?
         return false
       end
+      
+      range_array = [0.0] * 24
+      range_array[rangeExhaustHour - 1] = 1.0
+      bathroom_array = [0.0] * 24
+      bathroom_array[bathroomExhaustHour - 1] = 1.0
 
-      schedules.BathExhaust = HourlyByMonthSchedule.new(model, runner, obj_name_infil + " bath exhaust schedule", [Array.new(6, 0.0) + [1.0] + Array.new(17, 0.0)] * 12, [Array.new(6, 0.0) + [1.0] + Array.new(17, 0.0)] * 12, normalize_values = false)
-      schedules.ClothesDryerExhaust = HourlyByMonthSchedule.new(model, runner, obj_name_infil + " clothes dryer exhaust schedule", [Array.new(10, 0.0) + [1.0] + Array.new(13, 0.0)] * 12, [Array.new(10, 0.0) + [1.0] + Array.new(13, 0.0)] * 12, normalize_values = false)
-      schedules.RangeHood = HourlyByMonthSchedule.new(model, runner, obj_name_infil + " range hood schedule", [Array.new(17, 0.0) + [1.0] + Array.new(6, 0.0)] * 12, [Array.new(17, 0.0) + [1.0] + Array.new(6, 0.0)] * 12, normalize_values = false)
-
+      schedules.BathExhaust = HourlyByMonthSchedule.new(model, runner, obj_name_infil + " bath exhaust schedule", [bathroom_array] * 12, [bathroom_array] * 12, normalize_values = false)
+      schedules.RangeHood = HourlyByMonthSchedule.new(model, runner, obj_name_infil + " range hood schedule", [range_array] * 12, [range_array] * 12, normalize_values = false)
+       
       schedules.MechanicalVentilationEnergy = HourlyByMonthSchedule.new(model, runner, obj_name_mechvent + " energy schedule", [mech_vent.hourly_energy_schedule] * 12, [mech_vent.hourly_energy_schedule] * 12, normalize_values = false)
       schedules.MechanicalVentilation = HourlyByMonthSchedule.new(model, runner, obj_name_mechvent + " schedule", [mech_vent.hourly_schedule] * 12, [mech_vent.hourly_schedule] * 12, normalize_values = false)
 
@@ -1363,10 +1399,12 @@ class ResidentialAirflow < OpenStudio::Measure::ModelMeasure
       bath_sch_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, schedule_value_output_var)
       bath_sch_sensor.setName("#{obj_name_infil} bath sch s")
       bath_sch_sensor.setKeyName(schedules.BathExhaust.schedule.name.to_s)
-
-      clothes_dryer_sch_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, schedule_value_output_var)
-      clothes_dryer_sch_sensor.setName("#{obj_name_infil} clothes dryer sch s")
-      clothes_dryer_sch_sensor.setKeyName(schedules.ClothesDryerExhaust.schedule.name.to_s)
+      
+      if unit.dryer_exhaust != 0
+        clothes_dryer_sch_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, schedule_value_output_var)
+        clothes_dryer_sch_sensor.setName("#{obj_name_infil} clothes dryer sch s")
+        clothes_dryer_sch_sensor.setKeyName(dryer_name + " exhaust schedule")
+      end
 
       nvavail_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, schedule_value_output_var)
       nvavail_sensor.setName("#{obj_name_natvent} nva s")
@@ -1920,7 +1958,11 @@ class ResidentialAirflow < OpenStudio::Measure::ModelMeasure
       end
 
       infil_program.addLine("Set Qrange = #{range_sch_sensor.name}*#{UnitConversions.convert(mech_vent.range_hood_hour_avg_exhaust,"cfm","m^3/s").round(4)}")
-      infil_program.addLine("Set Qdryer = #{clothes_dryer_sch_sensor.name}*#{UnitConversions.convert(mech_vent.clothes_dryer_hour_avg_exhaust,"cfm","m^3/s")}")
+      if unit.dryer_exhaust > 0
+        infil_program.addLine("Set Qdryer = #{clothes_dryer_sch_sensor.name}*#{UnitConversions.convert(unit.dryer_exhaust,"cfm","m^3/s")}")
+      else
+        infil_program.addLine("Set Qdryer = 0")
+      end
       infil_program.addLine("Set Qbath = #{bath_sch_sensor.name}*#{UnitConversions.convert(mech_vent.bathroom_hour_avg_exhaust,"cfm","m^3/s").round(4)}")
       infil_program.addLine("Set QhpwhOut = 0")
       infil_program.addLine("Set QhpwhIn = 0")
@@ -2463,7 +2505,6 @@ class ResidentialAirflow < OpenStudio::Measure::ModelMeasure
 
     mech_vent.bathroom_hour_avg_exhaust = mech_vent.MechVentBathroomExhaust * unit.num_bathrooms * mech_vent.bath_exhaust_operation / 60.0 # cfm
     mech_vent.range_hood_hour_avg_exhaust = mech_vent.MechVentRangeHoodExhaust * mech_vent.range_hood_exhaust_operation / 60.0 # cfm
-    mech_vent.clothes_dryer_hour_avg_exhaust = unit.dryer_exhaust * mech_vent.clothes_dryer_exhaust_operation / 60.0 # cfm
 
     mech_vent.max_power = [mech_vent.bathroom_hour_avg_exhaust * mech_vent.MechVentSpotFanPower + mech_vent.whole_house_vent_rate * mech_vent.MechVentHouseFanPower * mech_vent.num_vent_fans, mech_vent.range_hood_hour_avg_exhaust * mech_vent.MechVentSpotFanPower + mech_vent.whole_house_vent_rate * mech_vent.MechVentHouseFanPower * mech_vent.num_vent_fans].max / UnitConversions.convert(1.0,"kW","W") # kW
 
@@ -2480,15 +2521,14 @@ class ResidentialAirflow < OpenStudio::Measure::ModelMeasure
     end
 
     mech_vent.base_vent_rate = mech_vent.whole_house_vent_rate * (1.0 - mech_vent.MechVentTotalEfficiency)
-    mech_vent.max_vent_rate = [mech_vent.bathroom_hour_avg_exhaust, mech_vent.range_hood_hour_avg_exhaust, mech_vent.clothes_dryer_hour_avg_exhaust].max + mech_vent.base_vent_rate
+    mech_vent.max_vent_rate = [mech_vent.bathroom_hour_avg_exhaust, mech_vent.range_hood_hour_avg_exhaust].max + mech_vent.base_vent_rate
 
     # Ventilation schedule (as fraction of maximum flow). Assume bathroom
-    # exhaust at 7:00am, range hood exhaust at 6:00pm, and clothes dryer
-    # exhaust at 11am.
+    # exhaust at 7:00am, range hood exhaust at 6:00pm 
+    # Clothes dryer exhaust follows timestep level clothes dryer schedule
     if mech_vent.max_vent_rate > 0
       mech_vent.hourly_schedule = Array.new(24, mech_vent.base_vent_rate / mech_vent.max_vent_rate)
       mech_vent.hourly_schedule[6] = (mech_vent.bathroom_hour_avg_exhaust + mech_vent.base_vent_rate) / mech_vent.max_vent_rate
-      mech_vent.hourly_schedule[10] = (mech_vent.clothes_dryer_hour_avg_exhaust + mech_vent.base_vent_rate) / mech_vent.max_vent_rate
       mech_vent.hourly_schedule[17] = (mech_vent.range_hood_hour_avg_exhaust + mech_vent.base_vent_rate) / mech_vent.max_vent_rate
     else
       mech_vent.hourly_schedule = Array.new(24, 0.0)

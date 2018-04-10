@@ -185,15 +185,6 @@ class Constants
   def self.ClothesDryerMult(clothes_dryer) # FUTURE: Use StandardsInfo object
     return "#{__method__.to_s}|#{clothes_dryer.handle.to_s}"
   end
-  def self.ClothesDryerWeekdaySch(clothes_dryer) # FUTURE: Use StandardsInfo object
-    return "#{__method__.to_s}|#{clothes_dryer.handle.to_s}"
-  end
-  def self.ClothesDryerWeekendSch(clothes_dryer) # FUTURE: Use StandardsInfo object
-    return "#{__method__.to_s}|#{clothes_dryer.handle.to_s}"
-  end
-  def self.ClothesDryerMonthlySch(clothes_dryer) # FUTURE: Use StandardsInfo object
-    return "#{__method__.to_s}|#{clothes_dryer.handle.to_s}"
-  end
   def self.ClothesDryerFuelType(clothes_dryer) # FUTURE: Use StandardsInfo object
     return "#{__method__.to_s}|#{clothes_dryer.handle.to_s}"
   end
@@ -209,11 +200,11 @@ class Constants
   def self.ClothesWasherRatedAnnualEnergy(clothes_washer) # FUTURE: Use StandardsInfo object
     return "#{__method__.to_s}|#{clothes_washer.handle.to_s}"
   end
+  def self.ClothesWasherDayShift(clothes_washer) # FUTURE: Use StandardsInfo object
+    return "#{__method__.to_s}|#{clothes_washer.handle.to_s}"
+  end
   def self.CondenserTypeWater
     return 'watercooled'
-  end
-  def self.DuctedInfoMiniSplitHeatPump
-    return __method__.to_s
   end
   def self.DuctedInfoMiniSplitHeatPump
     return __method__.to_s
@@ -408,6 +399,13 @@ class Constants
       s_unit = "|#{unit_name}"
     end
     return "residential clothes washer#{s_unit}"
+  end
+  def self.ObjectNameClothesWasherDayShift(unit_name=self.ObjectNameBuildingUnit)
+    s_unit = ""
+    if unit_name != self.ObjectNameBuildingUnit
+      s_unit = "|#{unit_name}"
+    end
+    return "residential clothes washer day shift#{s_unit}"
   end
   def self.ObjectNameClothesDryer(fueltype, unit_name=self.ObjectNameBuildingUnit)
     s_fuel = ""

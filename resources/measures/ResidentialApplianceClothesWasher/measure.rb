@@ -573,6 +573,7 @@ class ResidentialClothesWasher < OpenStudio::Measure::ModelMeasure
             unit.setFeature(Constants.ClothesWasherIMEF(cw), cw_imef)
             unit.setFeature(Constants.ClothesWasherRatedAnnualEnergy(cw), cw_rated_annual_energy)
             unit.setFeature(Constants.ClothesWasherDrumVolume(cw), cw_drum_volume)
+            unit.setFeature(Constants.ClothesWasherDayShift(cw), d_sh.to_f)
             
             # Check if there's a clothes dryer that needs to be updated
             cd_unit_obj_name = Constants.ObjectNameClothesDryer(nil)
@@ -592,27 +593,22 @@ class ResidentialClothesWasher < OpenStudio::Measure::ModelMeasure
             # Get clothes dryer properties
             cd_cef = unit.getFeatureAsDouble(Constants.ClothesDryerCEF(cd))
             cd_mult = unit.getFeatureAsDouble(Constants.ClothesDryerMult(cd))
-            cd_weekday_sch = unit.getFeatureAsString(Constants.ClothesDryerWeekdaySch(cd))
-            cd_weekend_sch = unit.getFeatureAsString(Constants.ClothesDryerWeekendSch(cd))
-            cd_monthly_sch = unit.getFeatureAsString(Constants.ClothesDryerMonthlySch(cd))
             cd_fuel_type = unit.getFeatureAsString(Constants.ClothesDryerFuelType(cd))
             cd_fuel_split = unit.getFeatureAsDouble(Constants.ClothesDryerFuelSplit(cd))
-            if !cd_cef.is_initialized or !cd_mult.is_initialized or !cd_weekday_sch.is_initialized or !cd_weekend_sch.is_initialized or !cd_monthly_sch.is_initialized or !cd_fuel_type.is_initialized or !cd_fuel_split.is_initialized
+            
+            if !cd_cef.is_initialized or !cd_mult.is_initialized or !cd_fuel_type.is_initialized or !cd_fuel_split.is_initialized
                 runner.registerError("Could not find clothes dryer properties.")
                 return false
             end
             cd_cef = cd_cef.get
             cd_mult = cd_mult.get
-            cd_weekday_sch = cd_weekday_sch.get
-            cd_weekend_sch = cd_weekend_sch.get
-            cd_monthly_sch = cd_monthly_sch.get
             cd_fuel_type = cd_fuel_type.get
             cd_fuel_split = cd_fuel_split.get
             
             # Update clothes dryer
             cd_space = cd.space.get
             ClothesDryer.remove_existing(runner, cd_space, cd_unit_obj_name, false)
-            success, cd_ann_e, cd_ann_f, cd_sch = ClothesDryer.apply(model, unit, runner, cd_sch, cd_cef, cd_mult, cd_weekday_sch, cd_weekend_sch, cd_monthly_sch, 
+            success, cd_ann_e, cd_ann_f, cd_sch = ClothesDryer.apply(model, unit, runner, cd_sch, cd_cef, cd_mult, 
                                                                      cd_space, cd_fuel_type, cd_fuel_split)
             
             if not success
