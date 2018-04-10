@@ -316,7 +316,19 @@ def integrity_check(project_dir_names=nil)
             deps << d
           end
         end
-        err += "       Perhaps one of these dependency files is missing? #{(deps - unprocessed_parameters - parameters_processed).join(', ')}."
+        undefined_deps = deps - unprocessed_parameters - parameters_processed
+        # Check if undefined deps exist but are undefined simply because they're not in options_lookup.tsv
+        undefined_deps_exist = true
+        undefined_deps.each do |undefined_dep|
+          tsvpath = File.join(project_dir_name, "housing_characteristics", "#{undefined_dep}.tsv")
+          next if File.exist?(tsvpath)
+          undefined_deps_exist = false
+        end
+        if undefined_deps_exist
+          err += "\nPerhaps one of these dependency files has options missing from options_lookup.tsv? #{undefined_deps.join(', ')}."
+        else
+          err += "\nPerhaps one of these dependency files is missing? #{undefined_deps.join(', ')}."
+        end
         raise err
       end
       
@@ -352,8 +364,8 @@ def integrity_check(project_dir_names=nil)
           _matched_option_name, _matched_row_num = tsvfile.get_option_name_from_sample_number(1.0, nil)
         end
         
-        # Check for all options in options_lookup.tsv
-        get_measure_args_from_option_names(lookup_file, tsvfile.option_cols.keys, parameter_name, nil)
+        # Check for all options defined in options_lookup.tsv
+        get_measure_args_from_option_names(lookup_file, tsvfile.option_cols.keys, parameter_name)
           
       end
     end # parameter_name
@@ -429,7 +441,13 @@ def integrity_check_options_lookup_tsv()
     param_names = measures[measure_subdir].keys()
     options_array = []
     param_names.each do |parameter_name|
-      options_array << measures[measure_subdir][parameter_name].keys()
+      if ["Bathroom Spot Vent Hour", "Clothes Dryer Spot Vent Hour", "Range Spot Vent Hour"].include? parameter_name
+        # Prevent "too big to product" error for airflow measure by just 
+        # using first option for these parameters.
+        options_array << [measures[measure_subdir][parameter_name].keys()[0]]
+      else
+        options_array << measures[measure_subdir][parameter_name].keys()
+      end
     end
     option_combinations = options_array.first.product(*options_array[1..-1])
     
