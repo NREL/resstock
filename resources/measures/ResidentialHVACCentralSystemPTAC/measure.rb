@@ -3,6 +3,7 @@
 
 require "#{File.dirname(__FILE__)}/resources/unit_conversions"
 require "#{File.dirname(__FILE__)}/resources/geometry"
+require "#{File.dirname(__FILE__)}/resources/util"
 
 # start the measure
 class ProcessCentralSystemPTAC < OpenStudio::Measure::ModelMeasure
@@ -14,27 +15,17 @@ class ProcessCentralSystemPTAC < OpenStudio::Measure::ModelMeasure
 
   # human readable description
   def description
-    return "Description"
+    return "Adds a central hot water boiler to the model connected to zones through PTAC units."
   end
 
   # human readable description of modeling approach
   def modeler_description
-    return "Modeler Description"
+    return "Adds a hot water boiler with variable-speed pump to a single plant loop. Also adds zone hvac packaged terminal air conditioner objects with coil heating water and single-speed coil dx objects to each zone in the model."
   end
 
   # define the arguments that the user will input
   def arguments(model)
     args = OpenStudio::Measure::OSArgumentVector.new
-    
-    #make a string argument for central boiler system type
-    central_boiler_system_type_names = OpenStudio::StringVector.new
-    central_boiler_system_type_names << Constants.BoilerTypeForcedDraft
-    central_boiler_system_type_names << Constants.BoilerTypeSteam
-    central_boiler_system_type = OpenStudio::Measure::OSArgument::makeChoiceArgument("central_boiler_system_type", central_boiler_system_type_names, true)
-    central_boiler_system_type.setDisplayName("Central Boiler System Type")
-    central_boiler_system_type.setDescription("The system type of the central boiler.")
-    central_boiler_system_type.setDefaultValue(Constants.BoilerTypeForcedDraft)
-    args << central_boiler_system_type
     
     #make a string argument for central boiler fuel type
     central_boiler_fuel_type_names = OpenStudio::StringVector.new
@@ -59,11 +50,12 @@ class ProcessCentralSystemPTAC < OpenStudio::Measure::ModelMeasure
     if !runner.validateUserArguments(arguments(model), user_arguments)
       return false
     end
+    
+    return true # FIXME: remove
 
     require "openstudio-standards"
 
-    central_boiler_system_type = runner.getStringArgumentValue("central_boiler_system_type",user_arguments)
-    central_boiler_fuel_type = {Constants.FuelTypeElectric=>"Electricity", Constants.FuelTypeGas=>"NaturalGas", Constants.FuelTypeOil=>"FuelOil#1", Constants.FuelTypePropane=>"PropaneGas"}[runner.getStringArgumentValue("central_boiler_fuel_type",user_arguments)]
+    central_boiler_fuel_type = HelperMethods.eplus_fuel_map(runner.getStringArgumentValue("central_boiler_fuel_type",user_arguments))
 
     std = Standard.build("90.1-2013")
 
@@ -78,18 +70,10 @@ class ProcessCentralSystemPTAC < OpenStudio::Measure::ModelMeasure
 
       hot_water_loop = std.model_get_or_add_hot_water_loop(model, central_boiler_fuel_type)
       std.model_add_ptac(model, sys_name=nil, hot_water_loop, zones, fan_type="ConstantVolume", "Water", cooling_type="Single Speed DX AC")
-    
-      if central_boiler_system_type == Constants.BoilerTypeSteam
-        plant_loop = model.getPlantLoopByName("Hot Water Loop").get
-        plant_loop.supplyComponents.each do |supply_component|
-          next unless supply_component.to_PumpVariableSpeed.is_initialized
-          pump = supply_component.to_PumpVariableSpeed.get
-          # TODO: how to zero out the pumping energy?
-        end
-      end
+
     end
 
-    runner.registerInfo("Added #{central_boiler_system_type} PTAC to the building.")
+    runner.registerInfo("Added PTAC to the building.")
     
     return true
 

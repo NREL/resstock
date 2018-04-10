@@ -471,15 +471,15 @@ Usage Level	Medium
 Usage Level	High																																														
 Usage Level	Average																																														
 Geometry Building Type	Single-Family Detached	ResidentialGeometrySingleFamilyDetached																																													
-Geometry Building Type	Single-Family Attached	ResidentialGeometrySingleFamilyAttached																																													
-Geometry Building Type	Multi-Family with 2 - 4 Units	ResidentialGeometryMultifamily																																													
-Geometry Building Type	Multi-Family with 5+ Units	ResidentialGeometryMultifamily																																													
+Geometry Building Type	Single-Family Attached	ResidentialGeometrySingleFamilyAttached	use_zone_mult=true																																												
+Geometry Building Type	Multi-Family with 2 - 4 Units	ResidentialGeometryMultifamily	use_zone_mult=true	use_floor_mult=true																																											
+Geometry Building Type	Multi-Family with 5+ Units	ResidentialGeometryMultifamily	use_zone_mult=true	use_floor_mult=true																																											
 Geometry Building Type	Mobile Home	ResidentialGeometrySingleFamilyDetached																																													
 Geometry Number Units	1																																														
 Geometry Number Units	2	ResidentialGeometrySingleFamilyAttached	num_units=2																																												
 		ResidentialGeometryMultifamily	num_units=2																																												
 Geometry Number Units	3	ResidentialGeometrySingleFamilyAttached	num_units=3																																												
-		ResidentialGeometryMultifamily	num_units=4																																												
+		ResidentialGeometryMultifamily	num_units=3																																												
 Geometry Number Units	4	ResidentialGeometrySingleFamilyAttached	num_units=4																																												
 		ResidentialGeometryMultifamily	num_units=4																																												
 Geometry Number Units	10	ResidentialGeometrySingleFamilyAttached	num_units=10																																												
@@ -845,11 +845,12 @@ Solar Hot Water	"40 sqft, Back Roof, 10 degrees"	ResidentialHotWaterSolar	collec
 Solar Hot Water	"40 sqft, Back Roof, 70 degrees"	ResidentialHotWaterSolar	collector_area=40	frta=0.77	frul=0.793	iam=0.1	storage_vol=auto	tank_r=10	fluid_type=propylene-glycol	heat_ex_eff=0.7	pump_power=0.8	azimuth_type=relative	azimuth=180	tilt_type=absolute	tilt=70																																
 Solar Hot Water	"40 sqft, Back Roof, Latitude - 15 degrees"	ResidentialHotWaterSolar	collector_area=40	frta=0.77	frul=0.793	iam=0.1	storage_vol=auto	tank_r=10	fluid_type=propylene-glycol	heat_ex_eff=0.7	pump_power=0.8	azimuth_type=relative	azimuth=180	tilt_type=latitude	tilt=-15																																
 Solar Hot Water	"40 sqft, Back Roof, Latitude + 15 degrees"	ResidentialHotWaterSolar	collector_area=40	frta=0.77	frul=0.793	iam=0.1	storage_vol=auto	tank_r=10	fluid_type=propylene-glycol	heat_ex_eff=0.7	pump_power=0.8	azimuth_type=relative	azimuth=180	tilt_type=latitude	tilt=15																																
-HVAC System Central	Both Shared	ResidentialHVACCentralSystemBoilerBaseboards	"central_boiler_system_type=hot water, forced draft"	central_boiler_fuel_type=gas																																											
+HVAC System Central	Both Shared	ResidentialHVACCentralSystemFanCoil	fan_coil_heating=true	fan_coil_cooling=true	central_boiler_fuel_type=gas																																										
 		ResidentialAirflow	has_hvac_flue=true																																												
 		ResidentialHVACSizing	show_debug_info=false																																												
 HVAC System Central	Neither Shared																																														
-HVAC System Central	Only Cooling Shared																																														
+HVAC System Central	Only Cooling Shared	ResidentialHVACCentralSystemFanCoil	fan_coil_heating=false	fan_coil_cooling=true	central_boiler_fuel_type=gas																																										
+		ResidentialHVACSizing	show_debug_info=false																																												
 HVAC System Central	Only Heating Shared	ResidentialHVACCentralSystemBoilerBaseboards	"central_boiler_system_type=hot water, forced draft"	central_boiler_fuel_type=gas																																											
 		ResidentialAirflow	has_hvac_flue=true																																												
 		ResidentialHVACSizing	show_debug_info=false																																												
@@ -913,7 +914,7 @@ HVAC System Combined	GSHP	ResidentialHVACGroundSourceHeatPumpVerticalBore	cop=3.
 HVAC System Combined	"FIXME Dual-Fuel ASHP, SEER 14, 8.2 HSPF"	ResidentialHVACAirSourceHeatPumpSingleSpeed	seer=14.0	hspf=8.2	eer=12.2	cop=3.35	shr=0.73	fan_power_rated=0.365	fan_power_installed=0.5	min_temp=0.0	crankcase_capacity=0.02	crankcase_max_temp=55.0	eer_capacity_derate_1ton=1.0	eer_capacity_derate_2ton=1.0	eer_capacity_derate_3ton=1.0	eer_capacity_derate_4ton=1.0	eer_capacity_derate_5ton=1.0	cop_capacity_derate_1ton=1.0	cop_capacity_derate_2ton=1.0	cop_capacity_derate_3ton=1.0	cop_capacity_derate_4ton=1.0	cop_capacity_derate_5ton=1.0	heat_pump_capacity=autosize	supplemental_efficiency=1.0	supplemental_capacity=autosize	dse=NA																					
 		ResidentialAirflow	has_hvac_flue=false																																												
 		ResidentialHVACSizing	show_debug_info=false																																												
-HVAC System Heating Electricity	None																																														
+HVAC System Heating Electricity	None	ResidentialAirflow	has_hvac_flue=false																																												
 HVAC System Heating Electricity	Electric Baseboard	ResidentialHVACElectricBaseboard	efficiency=1.0	capacity=autosize																																											
 		ResidentialAirflow	has_hvac_flue=false																																												
 		ResidentialHVACSizing	show_debug_info=false																																												
@@ -923,7 +924,7 @@ HVAC System Heating Electricity	Electric Furnace	ResidentialHVACFurnaceElectric	
 HVAC System Heating Electricity	Electric Boiler	ResidentialHVACBoilerElectric	"system_type=hot water, forced draft"	afue=1.0	oat_reset_enabled=false	oat_high=0.0	oat_low=0.0	oat_hwst_high=0.0	oat_hwst_low=0.0	design_temp=180.0	capacity=autosize	dse=NA																																			
 		ResidentialAirflow	has_hvac_flue=false																																												
 		ResidentialHVACSizing	show_debug_info=false																																												
-HVAC System Heating Natural Gas	None																																														
+HVAC System Heating Natural Gas	None	ResidentialAirflow	has_hvac_flue=false																																												
 HVAC System Heating Natural Gas	"Gas Furnace, 60% AFUE"	ResidentialHVACFurnaceFuel	fuel_type=gas	afue=0.6	capacity=autosize	fan_power_installed=0.5	dse=NA																																								
 		ResidentialAirflow	has_hvac_flue=true																																												
 		ResidentialHVACSizing	show_debug_info=false																																												
@@ -972,7 +973,7 @@ HVAC System Heating Natural Gas	"Gas Boiler, 95% AFUE, OAT Reset"	ResidentialHVA
 HVAC System Heating Natural Gas	"Gas Boiler, 96% AFUE"	ResidentialHVACBoilerFuel	fuel_type=gas	"system_type=hot water, condensing"	afue=0.96	oat_reset_enabled=false	oat_high=0.0	oat_low=0.0	oat_hwst_high=0.0	oat_hwst_low=0.0	design_temp=150.0	capacity=autosize	modulation=true	dse=NA																																	
 		ResidentialAirflow	has_hvac_flue=false																																												
 		ResidentialHVACSizing	show_debug_info=false																																												
-HVAC System Heating Propane	None																																														
+HVAC System Heating Propane	None	ResidentialAirflow	has_hvac_flue=false																																												
 HVAC System Heating Propane	"Propane Furnace, 60% AFUE"	ResidentialHVACFurnaceFuel	fuel_type=propane	afue=0.6	capacity=autosize	fan_power_installed=0.5	dse=NA																																								
 		ResidentialAirflow	has_hvac_flue=true																																												
 		ResidentialHVACSizing	show_debug_info=false																																												
@@ -1009,7 +1010,7 @@ HVAC System Heating Propane	"Propane Boiler, 80% AFUE"	ResidentialHVACBoilerFuel
 HVAC System Heating Propane	Propane Boiler	ResidentialHVACBoilerFuel	fuel_type=propane	"system_type=hot water, forced draft"	afue=0.8	oat_reset_enabled=false	oat_high=0.0	oat_low=0.0	oat_hwst_high=0.0	oat_hwst_low=0.0	design_temp=180.0	capacity=autosize	modulation=false	dse=NA																																	
 		ResidentialAirflow	has_hvac_flue=true																																												
 		ResidentialHVACSizing	show_debug_info=false																																												
-HVAC System Heating Fuel Oil	None																																														
+HVAC System Heating Fuel Oil	None	ResidentialAirflow	has_hvac_flue=false																																												
 HVAC System Heating Fuel Oil	"Oil Furnace, 76% AFUE"	ResidentialHVACFurnaceFuel	fuel_type=oil	afue=0.76	capacity=autosize	fan_power_installed=0.5	dse=NA																																								
 		ResidentialAirflow	has_hvac_flue=true																																												
 		ResidentialHVACSizing	show_debug_info=false																																												
@@ -1049,10 +1050,10 @@ HVAC System Heating Fuel Oil	"Oil Boiler, 90% AFUE"	ResidentialHVACBoilerFuel	fu
 HVAC System Heating Fuel Oil	Oil Boiler	ResidentialHVACBoilerFuel	fuel_type=oil	"system_type=hot water, forced draft"	afue=0.76	oat_reset_enabled=false	oat_high=0.0	oat_low=0.0	oat_hwst_high=0.0	oat_hwst_low=0.0	design_temp=180.0	capacity=autosize	modulation=false	dse=NA																																	
 		ResidentialAirflow	has_hvac_flue=true																																												
 		ResidentialHVACSizing	show_debug_info=false																																												
-HVAC System Heating Wood	None																																														
+HVAC System Heating Wood	None	ResidentialAirflow	has_hvac_flue=false																																												
 HVAC System Heating Wood	FIXME Wood Stove	ResidentialAirflow	has_hvac_flue=true																																												
-HVAC System Heating Other Fuel	None																																														
-HVAC System Heating None	None																																														
+HVAC System Heating Other Fuel	None	ResidentialAirflow	has_hvac_flue=false																																												
+HVAC System Heating None	None	ResidentialAirflow	has_hvac_flue=false																																												
 HVAC System Cooling	None																																														
 HVAC System Cooling	"AC, SEER 8"	ResidentialHVACCentralAirConditionerSingleSpeed	seer=8.0	eer=7.3	shr=0.73	fan_power_rated=0.365	fan_power_installed=0.5	crankcase_capacity=0.0	crankcase_max_temp=55	eer_capacity_derate_1ton=1.0	eer_capacity_derate_2ton=1.0	eer_capacity_derate_3ton=1.0	eer_capacity_derate_4ton=1.0	eer_capacity_derate_5ton=1.0	capacity=autosize	dse=NA																															
 		ResidentialAirflow																																													
@@ -2451,3 +2452,5 @@ Days Shifted	Day363	ResidentialHotWaterFixtures	schedule_day_shift=363
 		ResidentialApplianceClothesWasher	schedule_day_shift=363																																												
 		ResidentialApplianceDishwasher	schedule_day_shift=363																																												
 Days Shifted	Day364	ResidentialHotWaterFixtures	schedule_day_shift=364																																												
+		ResidentialApplianceClothesWasher	schedule_day_shift=364																																												
+		ResidentialApplianceDishwasher	schedule_day_shift=364																																												
