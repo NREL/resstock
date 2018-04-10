@@ -149,16 +149,15 @@ class CreateResidentialSingleFamilyAttachedGeometry < OpenStudio::Measure::Model
     roof_pitch.setDisplayName("Roof Pitch")
     roof_pitch.setDescription("The roof pitch of the attic.")
     roof_pitch.setDefaultValue("6:12")
-    args << roof_pitch    
-    
-    #TODO: Needs more testing
+    args << roof_pitch
+
     #make an argument for using zone multipliers
-    #use_zone_mult = OpenStudio::Measure::OSArgument::makeBoolArgument("use_zone_mult", true)
-    #use_zone_mult.setDisplayName("Use Zone Multipliers?")
-    #use_zone_mult.setDescription("Model only one interior unit with its thermal zone multiplier equal to the number of interior units.")
-    #use_zone_mult.setDefaultValue(false)
-    #args << use_zone_mult
-    
+    use_zone_mult = OpenStudio::Measure::OSArgument::makeBoolArgument("use_zone_mult", true)
+    use_zone_mult.setDisplayName("Use Zone Multipliers?")
+    use_zone_mult.setDescription("Model only one interior unit with its thermal zone multiplier equal to the number of interior units.")
+    use_zone_mult.setDefaultValue(false)
+    args << use_zone_mult
+
     return args
   end
 
@@ -183,7 +182,7 @@ class CreateResidentialSingleFamilyAttachedGeometry < OpenStudio::Measure::Model
     attic_type = runner.getStringArgumentValue("attic_type",user_arguments)
     roof_type = runner.getStringArgumentValue("roof_type",user_arguments)
     roof_pitch = {"1:12"=>1.0/12.0, "2:12"=>2.0/12.0, "3:12"=>3.0/12.0, "4:12"=>4.0/12.0, "5:12"=>5.0/12.0, "6:12"=>6.0/12.0, "7:12"=>7.0/12.0, "8:12"=>8.0/12.0, "9:12"=>9.0/12.0, "10:12"=>10.0/12.0, "11:12"=>11.0/12.0, "12:12"=>12.0/12.0}[runner.getStringArgumentValue("roof_pitch",user_arguments)]    
-    use_zone_mult = false #runner.getBoolArgumentValue("use_zone_mult",user_arguments)
+    use_zone_mult = runner.getBoolArgumentValue("use_zone_mult",user_arguments)
     
     if foundation_type == "slab"
       foundation_height = 0.0
@@ -206,6 +205,10 @@ class CreateResidentialSingleFamilyAttachedGeometry < OpenStudio::Measure::Model
     end    
     if unit_aspect_ratio < 0
       runner.registerError("Invalid aspect ratio entered.")
+      return false
+    end
+    if has_rear_units and num_units % 2 != 0
+      runner.registerError("Cannot specify building with rear units when there is an odd number of units.")
       return false
     end
     
@@ -749,13 +752,13 @@ class CreateResidentialSingleFamilyAttachedGeometry < OpenStudio::Measure::Model
     OpenStudio::Model.intersectSurfaces(spaces)
     OpenStudio::Model.matchSurfaces(spaces)
     
-    # Apply zone multiplier
+    # Apply zone multipliers
     if use_zone_mult and ((num_units > 3 and not has_rear_units) or (num_units > 7 and has_rear_units))
       (2..num_units).to_a.each do |unit_num|
 
         if not has_rear_units
-          
-          zone_names_for_multiplier_adjustment = []        
+
+          zone_names_for_multiplier_adjustment = []
           space_names_to_remove = []
           unit_spaces = unit_hash[unit_num].spaces
           if unit_num == 2 # leftmost interior unit
@@ -769,7 +772,7 @@ class CreateResidentialSingleFamilyAttachedGeometry < OpenStudio::Measure::Model
                   thermal_zone.setMultiplier(num_units - 2)
                 end
               end
-            end            
+            end
           elsif unit_num < num_units # interior units that get removed
             unit_spaces.each do |space|
               space_names_to_remove << space.name.to_s
@@ -786,12 +789,12 @@ class CreateResidentialSingleFamilyAttachedGeometry < OpenStudio::Measure::Model
                 end
               end
             end
-          end       
-          
+          end
+
         else # has rear units
           next unless unit_num > 2
 
-          zone_names_for_multiplier_adjustment = []        
+          zone_names_for_multiplier_adjustment = []
           space_names_to_remove = []
           unit_spaces = unit_hash[unit_num].spaces
           if unit_num == 3 or unit_num == 4 # leftmost interior units
@@ -823,12 +826,12 @@ class CreateResidentialSingleFamilyAttachedGeometry < OpenStudio::Measure::Model
               end
             end
           end
-        
+
         end
-        
+
       end
-    end  
-    
+    end
+
     model.getSurfaces.each do |surface|
       next unless surface.outsideBoundaryCondition.downcase == "surface"
       next if surface.adjacentSurface.is_initialized

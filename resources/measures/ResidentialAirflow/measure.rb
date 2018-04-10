@@ -947,28 +947,30 @@ class ResidentialAirflow < OpenStudio::Measure::ModelMeasure
       obj_name_ducts_underscore = obj_name_ducts.gsub(" ","_")
 
       model.getEnergyManagementSystemProgramCallingManagers.each do |pcm|
-        if (pcm.name.to_s.start_with? obj_name_airflow or
-            pcm.name.to_s.start_with? obj_name_natvent or
-            pcm.name.to_s.start_with? obj_name_infil or
-            pcm.name.to_s.start_with? obj_name_ducts)
+        if (pcm.name.to_s.start_with? "#{obj_name_airflow} program calling manager" or
+            pcm.name.to_s.start_with? "#{obj_name_natvent} program calling manager" or
+            pcm.name.to_s.start_with? "#{obj_name_infil} program calling manager" or
+            pcm.name.to_s.start_with? "#{obj_name_ducts} program calling manager" or
+            pcm.name.to_s.start_with? "#{obj_name_ducts} cfis init program 1 calling manager" or
+            pcm.name.to_s.start_with? "#{obj_name_ducts} cfis init program 2 calling manager")
           pcm.remove
         end
       end
 
       model.getEnergyManagementSystemSensors.each do |sensor|
-        if (sensor.name.to_s.start_with? obj_name_airflow_underscore or
-            sensor.name.to_s.start_with? obj_name_natvent_underscore or
-            sensor.name.to_s.start_with? obj_name_infil_underscore or
-            sensor.name.to_s.start_with? obj_name_ducts_underscore)
+        if (sensor.name.to_s.start_with? "#{obj_name_airflow_underscore}_" or
+            sensor.name.to_s.start_with? "#{obj_name_natvent_underscore}_" or
+            sensor.name.to_s.start_with? "#{obj_name_infil_underscore}_" or
+            sensor.name.to_s.start_with? "#{obj_name_ducts_underscore}_")
           sensor.remove
         end
       end
 
       model.getEnergyManagementSystemActuators.each do |actuator|
-        if (actuator.name.to_s.start_with? obj_name_airflow_underscore or
-            actuator.name.to_s.start_with? obj_name_natvent_underscore or
-            actuator.name.to_s.start_with? obj_name_infil_underscore or
-            actuator.name.to_s.start_with? obj_name_ducts_underscore)
+        if (actuator.name.to_s.start_with? "#{obj_name_airflow_underscore}_" or
+            actuator.name.to_s.start_with? "#{obj_name_natvent_underscore}_" or
+            actuator.name.to_s.start_with? "#{obj_name_infil_underscore}_" or
+            actuator.name.to_s.start_with? "#{obj_name_ducts_underscore}_")
           actuatedComponent = actuator.actuatedComponent
           if actuatedComponent.is_a? OpenStudio::Model::OptionalModelObject # 2.4.0 or higher
             actuatedComponent = actuatedComponent.get
@@ -985,46 +987,46 @@ class ResidentialAirflow < OpenStudio::Measure::ModelMeasure
       end
 
       model.getEnergyManagementSystemPrograms.each do |program|
-        if (program.name.to_s.start_with? obj_name_airflow_underscore or
-            program.name.to_s.start_with? obj_name_natvent_underscore or
-            program.name.to_s.start_with? obj_name_infil_underscore or
-            program.name.to_s.start_with? obj_name_ducts_underscore)
+        if (program.name.to_s.start_with? "#{obj_name_airflow_underscore}_" or
+            program.name.to_s.start_with? "#{obj_name_natvent_underscore}_" or
+            program.name.to_s.start_with? "#{obj_name_infil_underscore}_" or
+            program.name.to_s.start_with? "#{obj_name_ducts_underscore}_")
           program.remove
         end
       end
 
       model.getEnergyManagementSystemOutputVariables.each do |output_var|
-        if (output_var.name.to_s.start_with? obj_name_airflow or
-            output_var.name.to_s.start_with? obj_name_natvent or
-            output_var.name.to_s.start_with? obj_name_infil or
-            output_var.name.to_s.start_with? obj_name_ducts)
+        if (output_var.name.to_s.start_with? "#{obj_name_airflow}_" or
+            output_var.name.to_s.start_with? "#{obj_name_natvent}_" or
+            output_var.name.to_s.start_with? "#{obj_name_infil}_" or
+            output_var.name.to_s.start_with? "#{obj_name_ducts}_")
           output_var.remove
         end
       end
 
       model.getEnergyManagementSystemSubroutines.each do |subroutine|
-        if (subroutine.name.to_s.start_with? obj_name_airflow_underscore or
-            subroutine.name.to_s.start_with? obj_name_natvent_underscore or
-            subroutine.name.to_s.start_with? obj_name_infil_underscore or
-            subroutine.name.to_s.start_with? obj_name_ducts_underscore)
+        if (subroutine.name.to_s.start_with? "#{obj_name_airflow_underscore}_" or
+            subroutine.name.to_s.start_with? "#{obj_name_natvent_underscore}_" or
+            subroutine.name.to_s.start_with? "#{obj_name_infil_underscore}_" or
+            subroutine.name.to_s.start_with? "#{obj_name_ducts_underscore}_")
           subroutine.remove
         end
       end
 
       model.getEnergyManagementSystemGlobalVariables.each do |ems_global_var|
-        if (ems_global_var.name.to_s.start_with? obj_name_airflow_underscore or
-            ems_global_var.name.to_s.start_with? obj_name_natvent_underscore or
-            ems_global_var.name.to_s.start_with? obj_name_infil_underscore or
-            ems_global_var.name.to_s.start_with? obj_name_ducts_underscore)
+        if (ems_global_var.name.to_s.start_with? "#{obj_name_airflow_underscore}_" or
+            ems_global_var.name.to_s.start_with? "#{obj_name_natvent_underscore}_" or
+            ems_global_var.name.to_s.start_with? "#{obj_name_infil_underscore}_" or
+            ems_global_var.name.to_s.start_with? "#{obj_name_ducts_underscore}_")
           ems_global_var.remove
         end
       end
 
       model.getEnergyManagementSystemInternalVariables.each do |ems_internal_var|
-        if (ems_internal_var.name.to_s.start_with? obj_name_airflow_underscore or
-            ems_internal_var.name.to_s.start_with? obj_name_natvent_underscore or
-            ems_internal_var.name.to_s.start_with? obj_name_infil_underscore or
-            ems_internal_var.name.to_s.start_with? obj_name_ducts_underscore)
+        if (ems_internal_var.name.to_s.start_with? "#{obj_name_airflow_underscore}_" or
+            ems_internal_var.name.to_s.start_with? "#{obj_name_natvent_underscore}_" or
+            ems_internal_var.name.to_s.start_with? "#{obj_name_infil_underscore}_" or
+            ems_internal_var.name.to_s.start_with? "#{obj_name_ducts_underscore}_")
           ems_internal_var.remove
         end
       end
@@ -1032,33 +1034,40 @@ class ResidentialAirflow < OpenStudio::Measure::ModelMeasure
       # Remove existing infiltration
 
       model.getScheduleRulesets.each do |schedule|
-        next unless schedule.name.to_s.start_with? obj_name_infil
-        schedule.remove
+        if (schedule.name.to_s.start_with? "#{obj_name_infil} clothes dryer exhaust schedule" or
+            schedule.name.to_s.start_with? "#{obj_name_infil} range hood schedule" or
+            schedule.name.to_s.start_with? "#{obj_name_infil} bath exhaust schedule")
+          schedule.remove
+        end
       end
 
       # Remove existing natural ventilation
 
       model.getScheduleRulesets.each do |schedule|
-        next unless schedule.name.to_s.start_with? obj_name_natvent
-        schedule.remove
+        if (schedule.name.to_s.start_with? "#{obj_name_natvent} temp schedule" or
+            schedule.name.to_s.start_with? "#{obj_name_natvent} avail schedule")
+          schedule.remove
+        end
       end
 
       # Remove existing mechanical ventilation
 
       model.getZoneHVACEnergyRecoveryVentilators.each do |erv|
-        next unless erv.name.to_s.start_with? obj_name_mechvent
+        next unless erv.name.to_s.start_with? "#{obj_name_mechvent} erv"
         erv.remove
       end
 
       model.getScheduleRulesets.each do |schedule|
-        next unless schedule.name.to_s.start_with? obj_name_mechvent
-        schedule.remove
+        if (schedule.name.to_s.start_with? "#{obj_name_mechvent} schedule" or
+            schedule.name.to_s.start_with? "#{obj_name_mechvent} energy schedule")
+          schedule.remove
+        end
       end
 
       # Remove existing ducts
 
       model.getThermalZones.each do |thermal_zone|
-        next unless thermal_zone.name.to_s.start_with? obj_name_ducts
+        next unless thermal_zone.name.to_s.start_with? "#{obj_name_ducts} ret air zone"
         thermal_zone.spaces.each do |space|
           space.surfaces.each do |surface|
             if surface.surfacePropertyConvectionCoefficients.is_initialized

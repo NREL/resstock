@@ -3,6 +3,7 @@
 
 require "#{File.dirname(__FILE__)}/resources/unit_conversions"
 require "#{File.dirname(__FILE__)}/resources/geometry"
+require "#{File.dirname(__FILE__)}/resources/util"
 
 # start the measure
 class ProcessCentralSystemBoilerBaseboards < OpenStudio::Measure::ModelMeasure
@@ -14,12 +15,12 @@ class ProcessCentralSystemBoilerBaseboards < OpenStudio::Measure::ModelMeasure
 
   # human readable description
   def description
-    return "Description"
+    return "Adds a central hot water (or steam) boiler to the model. Also adds baseboards to each finished zone."
   end
 
   # human readable description of modeling approach
   def modeler_description
-    return "Modeler Description"
+    return "Adds a hot water (or steam) boiler with variable-speed pump to a single plant loop. Also adds zone hvac convective water objects with coil heating water baseboard objects to the demand side of the plant loop."
   end
 
   # define the arguments that the user will input
@@ -60,10 +61,12 @@ class ProcessCentralSystemBoilerBaseboards < OpenStudio::Measure::ModelMeasure
       return false
     end
 
+    return true # FIXME: remove
+    
     require "openstudio-standards"
 
     central_boiler_system_type = runner.getStringArgumentValue("central_boiler_system_type",user_arguments)
-    central_boiler_fuel_type = {Constants.FuelTypeElectric=>"Electricity", Constants.FuelTypeGas=>"NaturalGas", Constants.FuelTypeOil=>"FuelOil#1", Constants.FuelTypePropane=>"PropaneGas"}[runner.getStringArgumentValue("central_boiler_fuel_type",user_arguments)]
+    central_boiler_fuel_type = HelperMethods.eplus_fuel_map(runner.getStringArgumentValue("central_boiler_fuel_type",user_arguments))
 
     std = Standard.build("90.1-2013")
     # std = Standard.build("DOE Ref Pre-1980")

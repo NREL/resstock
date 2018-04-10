@@ -2,13 +2,13 @@
   <schema_version>3.0</schema_version>
   <name>process_central_system_fan_coil</name>
   <uid>76aec197-3459-4562-8f74-4741271d9d2f</uid>
-  <version_id>207c8faf-0aff-4785-89b8-5d49adafed04</version_id>
-  <version_modified>20180330T171548Z</version_modified>
+  <version_id>bb4d9396-a080-4b44-bbcb-368947407ed7</version_id>
+  <version_modified>20180409T152014Z</version_modified>
   <xml_checksum>ED6112BA</xml_checksum>
   <class_name>ProcessCentralSystemFanCoil</class_name>
   <display_name>ResidentialHVACCentralSystemFanCoil</display_name>
-  <description>Description</description>
-  <modeler_description>Modeler Description</modeler_description>
+  <description>Adds either: (1) a central boiler/chiller with fan coil units to the model, (2) a central chiller with cooling-only fan coil units to the model, or (3) a central boiler with heating-only unit heaters to the model.</description>
+  <modeler_description>Adds either: (1) hot water boiler and electric chiller with variable-speed pumps to two plant loops, along with coil heating/cooling water objects on zone hvac four pipe fan coil objects, (2) an electric chiller with variable-speed pump to a single plant loop, along with coil cooling water objects on cooling-only zone hvac four pipe fan coil objects, or (3) a hot water boiler with variable-speed pump to a single plant loop, along with coil heating water objects on heating-only zone hvac unit heater objects.</modeler_description>
   <arguments>
     <argument>
       <name>fan_coil_heating</name>
@@ -45,25 +45,6 @@
         <choice>
           <value>false</value>
           <display_name>false</display_name>
-        </choice>
-      </choices>
-    </argument>
-    <argument>
-      <name>central_boiler_system_type</name>
-      <display_name>Central Boiler System Type</display_name>
-      <description>The system type of the central boiler.</description>
-      <type>Choice</type>
-      <required>true</required>
-      <model_dependent>false</model_dependent>
-      <default_value>hot water, forced draft</default_value>
-      <choices>
-        <choice>
-          <value>hot water, forced draft</value>
-          <display_name>hot water, forced draft</display_name>
-        </choice>
-        <choice>
-          <value>steam</value>
-          <display_name>steam</display_name>
         </choice>
       </choices>
     </argument>
@@ -151,6 +132,18 @@
       <checksum>D76ED2E8</checksum>
     </file>
     <file>
+      <filename>process_central_system_fan_coil_test.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>test</usage_type>
+      <checksum>D8C0D24A</checksum>
+    </file>
+    <file>
+      <filename>util.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>1189E680</checksum>
+    </file>
+    <file>
       <version>
         <software_program>OpenStudio</software_program>
         <identifier>2.4.0</identifier>
@@ -159,13 +152,7 @@
       <filename>measure.rb</filename>
       <filetype>rb</filetype>
       <usage_type>script</usage_type>
-      <checksum>D07D4352</checksum>
-    </file>
-    <file>
-      <filename>process_central_system_fan_coil_test.rb</filename>
-      <filetype>rb</filetype>
-      <usage_type>test</usage_type>
-      <checksum>D8C0D24A</checksum>
+      <checksum>589477B0</checksum>
     </file>
   </files>
 </measure>
