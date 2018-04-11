@@ -3,7 +3,7 @@ require 'minitest/autorun'
 $LOAD_PATH.unshift File.join(File.dirname(__FILE__), "..", "..")
 load 'Rakefile'
 
-class TestResStockMultifamily < MiniTest::Test
+class TestResStockMultifamilyZoneMult < MiniTest::Test
 
   def test_housing_characteristics
   
@@ -11,6 +11,7 @@ class TestResStockMultifamily < MiniTest::Test
     
       project_dir_name = File.basename(File.dirname(File.dirname(__FILE__)))
       integrity_check([project_dir_name])
+      integrity_check_options_lookup_tsv()
       
     rescue Exception => e
       
