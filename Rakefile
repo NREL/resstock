@@ -377,6 +377,18 @@ def integrity_check(project_dir_names=nil)
       File.delete(output_file) # Clean up
     end
     
+    # Unused TSVs?
+    err = ""
+    Dir[File.join(project_dir_name, "housing_characteristics", "*.tsv")].each do |tsvpath|
+      parameter_name = File.basename(tsvpath, ".*")
+      if not parameter_names.include? parameter_name
+        err += "ERROR: TSV file #{tsvpath} not used in options_lookup.tsv.\n"
+      end
+    end
+    if not err.empty?
+      raise err
+    end
+    
   end # project_dir_name
   
 end
