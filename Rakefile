@@ -281,7 +281,6 @@ task :integrity_check_resstock_multifamily do
 end # rake task
 
 def integrity_check(project_dir_name)
-
   # Load helper file and sampling file
   resources_dir = File.join(File.dirname(__FILE__), 'resources')
   require File.join(resources_dir, 'buildstock')
@@ -302,9 +301,8 @@ def integrity_check(project_dir_name)
     next if not File.exist?(tsvpath) # Not every parameter used by every project
     parameter_names << parameter_name
   end
-  
+
   while parameters_processed.size != parameter_names.size
-  
     if last_size == parameters_processed.size
       # No additional processing occurred during last pass
       unprocessed_parameters = parameter_names - parameters_processed
