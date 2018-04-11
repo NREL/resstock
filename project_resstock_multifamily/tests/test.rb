@@ -10,8 +10,8 @@ class TestResStockMultifamily < MiniTest::Test
     begin
     
       project_dir_name = File.basename(File.dirname(File.dirname(__FILE__)))
-      integrity_check([project_dir_name])
-      integrity_check_options_lookup_tsv()
+      integrity_check(project_dir_name)
+      integrity_check_options_lookup_tsv(project_dir_name)
       
     rescue Exception => e
       
