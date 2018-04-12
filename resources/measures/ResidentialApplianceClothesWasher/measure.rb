@@ -115,7 +115,7 @@ class ResidentialClothesWasher < OpenStudio::Measure::ModelMeasure
     Geometry.get_model_locations(model).each do |loc|
         location_args << loc
     end
-    location = OpenStudio::Measure::OSArgument::makeChoiceArgument("location", location_args, true)
+    location = OpenStudio::Measure::OSArgument::makeChoiceArgument("location", location_args, true, true)
     location.setDisplayName("Location")
     location.setDescription("The space type for the location. '#{Constants.Auto}' will automatically choose a space type based on the space types found in the model.")
     location.setDefaultValue(Constants.Auto)
@@ -128,7 +128,7 @@ class ResidentialClothesWasher < OpenStudio::Measure::ModelMeasure
     plant_loops.each do |plant_loop|
         plant_loop_args << plant_loop.name.to_s
     end
-    plant_loop = OpenStudio::Measure::OSArgument::makeChoiceArgument("plant_loop", plant_loop_args, true)
+    plant_loop = OpenStudio::Measure::OSArgument::makeChoiceArgument("plant_loop", plant_loop_args, true, true)
     plant_loop.setDisplayName("Plant Loop")
     plant_loop.setDescription("Select the plant loop for the dishwasher. '#{Constants.Auto}' will try to choose the plant loop associated with the specified space. For multifamily buildings, '#{Constants.Auto}' will choose the plant loop for each unit of the building.")
     plant_loop.setDefaultValue(Constants.Auto)

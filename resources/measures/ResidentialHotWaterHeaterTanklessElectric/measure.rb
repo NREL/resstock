@@ -46,7 +46,7 @@ class ResidentialHotWaterHeaterTanklessElectric < OpenStudio::Measure::ModelMeas
         Geometry.get_model_locations(model).each do |loc|
             location_args << loc
         end
-        location = OpenStudio::Measure::OSArgument::makeChoiceArgument("location", location_args, true)
+        location = OpenStudio::Measure::OSArgument::makeChoiceArgument("location", location_args, true, true)
         location.setDisplayName("Location")
         location.setDescription("The space type for the location. '#{Constants.Auto}' will automatically choose a space type based on the space types found in the model.")
         location.setDefaultValue(Constants.Auto)

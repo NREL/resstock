@@ -491,7 +491,7 @@ class ResidentialAirflow < OpenStudio::Measure::ModelMeasure
     Geometry.get_model_locations(model).each do |loc|
         location_args << loc
     end
-    duct_location = OpenStudio::Measure::OSArgument::makeChoiceArgument("duct_location", location_args, true)
+    duct_location = OpenStudio::Measure::OSArgument::makeChoiceArgument("duct_location", location_args, true, true)
     duct_location.setDisplayName("Ducts: Location")
     duct_location.setDescription("The primary location of ducts.")
     duct_location.setDefaultValue(Constants.Auto)
