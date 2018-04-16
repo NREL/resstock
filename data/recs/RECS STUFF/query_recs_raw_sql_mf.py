@@ -735,6 +735,12 @@ def bin_stories(df):
 def num_units(df):
     df['Geometry Number Units'] = df['Number Units']
     df.loc[(df['Number Units'] == -2),'Geometry Number Units'] = '<5'
+
+    #  for ACS bins
+    # df.loc[(df['Number Units'] >= 5) & (df['Number Units'] <= 9), 'Geometry Number Units'] = '5 to 9 Units'
+    # df.loc[(df['Number Units'] >= 10) & (df['Number Units'] <= 19), 'Geometry Number Units'] = '10 to 19 Units'
+    # df.loc[(df['Number Units'] >= 20) & (df['Number Units'] <= 49), 'Geometry Number Units'] = '20 to 49 Units'
+    # df.loc[(df['Number Units'] >= 50), 'Geometry Number Units'] = '50 or more'
     return df
 
 def corr(x, y, w):
@@ -771,6 +777,7 @@ def shared_system(df):
     df.loc[(df['Cooling Shared'] == 'Shared') & (df['Heating Shared'] == 'Not Shared'), 'Shared System'] = 'Only Cooling Shared'
     df.loc[(df['Cooling Shared'] == 'Not Shared') & (df['Heating Shared'] == 'Shared'), 'Shared System'] = 'Only Heating Shared'
     df.loc[(df['Cooling Shared'] == 'Not Shared') & (df['Heating Shared'] == 'Not Shared'), 'Shared System'] = 'Neither Shared'
+
     return df
 
 
@@ -1197,7 +1204,7 @@ def query(df):
     #    calc_general(df, dependency=['CR', 'Vintage', 'fuelheat'], options=['equipm'],
     #        outfile='heatingequipment_output_by_CR_fuel_vintage.tsv')
     #     calc_general(df, dependency=['Location Region'], options=['Building Type'], outfile='Geometry Building Type.tsv', outpath='../../../project_resstock_multifamily/housing_characteristics')
-        calc_general(df, dependency=['Location Region'], options=['Geometry Building Type'], outfile='Geometry Building type.tsv',
+        calc_general(df, dependency=['Geometry Building Type'], options=['Geometry Number Units'], outfile='Geometry Number Units.tsv',
                  outpath='../../../project_resstock_multifamily/housing_characteristics')
         pass
 
