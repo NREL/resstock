@@ -1204,7 +1204,7 @@ def query(df):
     #    calc_general(df, dependency=['CR', 'Vintage', 'fuelheat'], options=['equipm'],
     #        outfile='heatingequipment_output_by_CR_fuel_vintage.tsv')
     #     calc_general(df, dependency=['Location Region'], options=['Building Type'], outfile='Geometry Building Type.tsv', outpath='../../../project_resstock_multifamily/housing_characteristics')
-        calc_general(df, dependency=['Geometry Building Type'], options=['Geometry Number Units'], outfile='Geometry Number Units.tsv',
+        calc_general(df, dependency=['Geometry Building Type', 'Location Region', 'Vintage'], options=['Size'], outfile='Geometry House Size mf.tsv',
                  outpath='../../../project_resstock_multifamily/housing_characteristics')
         pass
 
