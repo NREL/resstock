@@ -1,5 +1,5 @@
 require 'openstudio'
-
+ 
 class BuildingCharacteristicsReport < OpenStudio::Measure::ReportingMeasure
 
   def name

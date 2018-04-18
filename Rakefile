@@ -185,6 +185,8 @@ namespace :test do
     cli_path = OpenStudio.getOpenStudioCLI
 
     osw_files.each do |osw|
+    
+        next if File.basename(osw) == 'out.osw'
 
         # Generate osm from osw
         osw_filename = osw

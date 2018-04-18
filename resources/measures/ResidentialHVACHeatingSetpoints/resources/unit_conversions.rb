@@ -3,7 +3,7 @@ class UnitConversions
     # As there is a performance penalty to using OpenStudio's built-in unit convert() 
     # method, we use, our own methods here.
     
-    def self.convert(x, from, to)
+    def self.convert(x, from, to, fuel_type=nil)
       
       from.downcase!
       to.downcase!
@@ -18,14 +18,18 @@ class UnitConversions
       elsif from == 'btu' and to == 'wh'
         return x / 3.412141633127942
       elsif from == 'j' and to == 'btu'
-        return x / 1055.05585262
+        return x * 3412.141633127942 / 1000.0 / 3600.0
       elsif from == 'j' and to == 'kbtu'
-        return x / 1055055.85262
+        return x * 3412.141633127942 / 1000.0 / 3600.0 / 1000.0
       elsif from == 'j' and to == 'kwh'
         return x / 3600000.0
       elsif from == 'kbtu' and to == 'therm'
         return x / 100.0
+      elsif from == 'j' and to == 'therm'
+        return x * 3412.141633127942 / 1000.0 / 3600.0 / 1000.0 / 100.0
       elsif from == 'kj' and to == 'btu'
+        return x * 0.9478171203133172
+      elsif from == 'gj' and to == 'mbtu'
         return x * 0.9478171203133172
       elsif from == 'kwh' and to == 'btu'
         return x * 3412.141633127942
@@ -53,6 +57,22 @@ class UnitConversions
         return x / 29307.10701722222
       elsif from == 'wh' and to == 'mbtu'
         return x / 293071.0701722222
+      elsif from == 'kbtu' and to == 'btu'
+        return x * 1000.0
+      elsif from == 'btu' and to == 'gal'
+        if fuel_type == Constants.FuelTypePropane
+          return x / 91600.0
+        elsif fuel_type == Constants.FuelTypeOil
+          return x / 139000.0
+        end
+        fail "Unhandled unit conversion from #{from} to #{to} for #{fuel_type}."
+      elsif from == 'j' and to == 'gal'
+        if fuel_type == Constants.FuelTypePropane
+          return x * 3412.141633127942 / 1000.0 / 3600.0 / 91600.0
+        elsif fuel_type == Constants.FuelTypeOil
+          return x * 3412.141633127942 / 1000.0 / 3600.0 / 139000.0
+        end
+        fail "Unhandled unit conversion from #{from} to #{to} for #{fuel_type}."
       
       # Power
       elsif from == 'btu/hr' and to == 'ton'
@@ -61,6 +81,8 @@ class UnitConversions
         return x * 0.2930710701722222
       elsif from == 'kbtu/hr' and to == 'btu/hr'
         return x * 1000.0
+      elsif from == 'btu/hr' and to == 'kbtu/hr'
+        return x / 1000.0
       elsif from == 'kbtu/hr' and to == 'w'
         return x * 293.0710701722222
       elsif from == 'kw' and to == 'w'
@@ -79,6 +101,10 @@ class UnitConversions
         return x / 1000.0
       elsif from == 'w' and to == 'ton'
         return x / 3516.85284207
+      elsif from == 'kw' and to == 'kbtu/hr'
+      return x / 0.2930710701722222
+      elsif from == 'kbtu/hr' and to == 'kw'
+        return x * 0.2930710701722222
       
       # Power Flux
       elsif from == 'w/m^2' and to == 'btu/(hr*ft^2)'
@@ -249,6 +275,8 @@ class UnitConversions
       # R-Value
       elsif from == 'hr*ft^2*f/btu' and to == 'm^2*k/w'
         return x * 0.1761
+      elsif from == 'm^2*k/w' and to == 'hr*ft^2*f/btu'
+        return x / 0.1761
       
       # U-Factor
       elsif from == 'btu/(hr*ft^2*f)' and to == 'w/(m^2*k)'
@@ -286,14 +314,26 @@ class UnitConversions
       fail "Unhandled unit conversion from #{from} to #{to}."
     end
     
-    def self.btu2gal(btu, fueltype)
-      # Btu -> gal
-      if fueltype == Constants.FuelTypePropane
-        return btu/91600.0
-      elsif fueltype == Constants.FuelTypeOil
-        return btu/139000.0
+    def self.get_scalar_unit_conversion(var_name, old_units, fuel_type)
+
+      if old_units == "m3"
+        old_units = "m^3"
       end
-      fail "Unhandled unit conversion for #{fueltype}."
-    end
+      
+      new_units = nil
+      if ["J", "m^3", "m3"].include? old_units
+        if var_name.downcase.include? "electricity"
+          new_units = "kWh"
+        elsif var_name.downcase.include? "gas"
+          new_units = "therm"
+        else
+          new_units = "gal"
+        end
+        return new_units, self.convert(1.0, old_units, new_units, fuel_type)
+      else 
+        return nil, nil
+      end
+
+    end    
 
 end

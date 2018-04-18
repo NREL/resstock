@@ -163,8 +163,7 @@ class ResidentialPhotovoltaics < OpenStudio::Measure::ModelMeasure
     
     obj_name = Constants.ObjectNamePhotovoltaics
     
-    highest_roof_pitch = Geometry.get_roof_pitch(model.getSurfaces)
-    roof_tilt = UnitConversions.convert(Math.atan(highest_roof_pitch),"rad","deg") # tan(x) = opp/adj = highest_roof_pitch
+    roof_tilt = Geometry.get_roof_pitch(model.getSurfaces)
     
     pv_system.size = size
     pv_system.module_type = {Constants.PVModuleTypeStandard=>0, Constants.PVModuleTypePremium=>1, Constants.PVModuleTypeThinFilm=>2}[module_type]
