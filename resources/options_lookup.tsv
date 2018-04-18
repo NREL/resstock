@@ -500,12 +500,16 @@ Geometry Foundation Type	Slab	ResidentialGeometrySingleFamilyDetached	foundation
 		ResidentialGeometryMultifamily	foundation_type=slab	foundation_height=0																																											
 Geometry Heated Basement	No																																														
 Geometry Heated Basement	Yes																																														
-Geometry Stories	1	ResidentialGeometrySingleFamilyDetached	num_floors=1																																												
+Geometry Building Floors	1	ResidentialGeometrySingleFamilyDetached	num_floors=1																																												
 		ResidentialGeometrySingleFamilyAttached	num_floors=1	has_rear_units=false																																											
 		ResidentialGeometryMultifamily	num_floors=1																																												
-Geometry Stories	2+	ResidentialGeometrySingleFamilyDetached	num_floors=2																																												
+Geometry Building Floors	2	ResidentialGeometrySingleFamilyDetached	num_floors=2																																												
 		ResidentialGeometrySingleFamilyAttached	num_floors=2	has_rear_units=true																																											
 		ResidentialGeometryMultifamily	num_floors=2																																												
+Geometry Building Floors	3	ResidentialGeometrySingleFamilyAttached	num_floors=3																																												
+		ResidentialGeometryMultifamily	num_floors=3	has_rear_units=true																																											
+Geometry Building Floors	4+	ResidentialGeometrySingleFamilyAttached	num_floors=4																																												
+		ResidentialGeometryMultifamily	num_floors=4	has_rear_units=true																																											
 Geometry Garage	None	ResidentialGeometrySingleFamilyDetached	garage_width=0	garage_depth=24	garage_protrusion=0.5	garage_pos=Right																																									
 Geometry Garage	1 Car	ResidentialGeometrySingleFamilyDetached	garage_width=12	garage_depth=24	garage_protrusion=0.5	garage_pos=Right																																									
 Geometry Garage	2 Car	ResidentialGeometrySingleFamilyDetached	garage_width=24	garage_depth=24	garage_protrusion=0.5	garage_pos=Right																																									
@@ -845,14 +849,26 @@ Solar Hot Water	"40 sqft, Back Roof, 10 degrees"	ResidentialHotWaterSolar	collec
 Solar Hot Water	"40 sqft, Back Roof, 70 degrees"	ResidentialHotWaterSolar	collector_area=40	frta=0.77	frul=0.793	iam=0.1	storage_vol=auto	tank_r=10	fluid_type=propylene-glycol	heat_ex_eff=0.7	pump_power=0.8	azimuth_type=relative	azimuth=180	tilt_type=absolute	tilt=70																																
 Solar Hot Water	"40 sqft, Back Roof, Latitude - 15 degrees"	ResidentialHotWaterSolar	collector_area=40	frta=0.77	frul=0.793	iam=0.1	storage_vol=auto	tank_r=10	fluid_type=propylene-glycol	heat_ex_eff=0.7	pump_power=0.8	azimuth_type=relative	azimuth=180	tilt_type=latitude	tilt=-15																																
 Solar Hot Water	"40 sqft, Back Roof, Latitude + 15 degrees"	ResidentialHotWaterSolar	collector_area=40	frta=0.77	frul=0.793	iam=0.1	storage_vol=auto	tank_r=10	fluid_type=propylene-glycol	heat_ex_eff=0.7	pump_power=0.8	azimuth_type=relative	azimuth=180	tilt_type=latitude	tilt=15																																
-HVAC System Central	Both Shared	ResidentialHVACCentralSystemBoilerBaseboards	"central_boiler_system_type=hot water, forced draft"	central_boiler_fuel_type=gas																																											
+HVAC System Central	None																																														
+HVAC System Central	Fan coil with chiller/Boiler	ResidentialHVACCentralSystemBoilerBaseboards	"central_boiler_system_type=hot water, forced draft"	central_boiler_fuel_type=gas																																											
 		ResidentialAirflow	has_hvac_flue=true																																												
 		ResidentialHVACSizing	show_debug_info=false																																												
-HVAC System Central	Neither Shared																																														
-HVAC System Central	Only Cooling Shared																																														
-HVAC System Central	Only Heating Shared	ResidentialHVACCentralSystemBoilerBaseboards	"central_boiler_system_type=hot water, forced draft"	central_boiler_fuel_type=gas																																											
+HVAC System Central	Fan coil with chiller	ResidentialHVACCentralSystemBoilerBaseboards	"central_boiler_system_type=hot water, forced draft"	central_boiler_fuel_type=gas																																											
 		ResidentialAirflow	has_hvac_flue=true																																												
 		ResidentialHVACSizing	show_debug_info=false																																												
+HVAC System Central	radiators with boiler steam/HW	ResidentialHVACCentralSystemBoilerBaseboards	"central_boiler_system_type=hot water, forced draft"	central_boiler_fuel_type=gas																																											
+		ResidentialAirflow	has_hvac_flue=true																																												
+		ResidentialHVACSizing	show_debug_info=false																																												
+HVAC System Central	fan coil with boiler HW	ResidentialHVACCentralSystemBoilerBaseboards	"central_boiler_system_type=hot water, forced draft"																																												
+		ResidentialAirflow	has_hvac_flue=true																																												
+		ResidentialHVACSizing	show_debug_info=false																																												
+HVAC System Central	PTACs with boiler HW	ResidentialHVACCentralSystemBoilerBaseboards	"central_boiler_system_type=hot water, forced draft"																																												
+		ResidentialAirflow	has_hvac_flue=true																																												
+		ResidentialHVACSizing	show_debug_info=false																																												
+HVAC System Is Central	Both Shared																																														
+HVAC System Is Central	Neither Shared																																														
+HVAC System Is Central	Only Cooling Shared																																														
+HVAC System Is Central	Only Heating Shared																																														
 HVAC System Is Combined	No																																														
 HVAC System Is Combined	Yes																																														
 HVAC System Combined	None																																														
