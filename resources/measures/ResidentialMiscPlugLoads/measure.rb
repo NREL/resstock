@@ -8,12 +8,11 @@
 # http://openstudio.nrel.gov/sites/openstudio.nrel.gov/files/nv_data/cpp_documentation_it/model/html/namespaces.html
 
 require "#{File.dirname(__FILE__)}/resources/constants"
-require "#{File.dirname(__FILE__)}/resources/schedules"
 require "#{File.dirname(__FILE__)}/resources/geometry"
-require "#{File.dirname(__FILE__)}/resources/unit_conversions"
+require "#{File.dirname(__FILE__)}/resources/misc_loads"
 
 #start the measure
-class ResidentialMiscellaneousElectricLoads < OpenStudio::Measure::ModelMeasure
+class ResidentialMiscElectricLoads < OpenStudio::Measure::ModelMeasure
   
   #define the name that a user will see, this method may be deprecated as
   #the display name in PAT comes from the name field in measure.xml
@@ -116,120 +115,51 @@ class ResidentialMiscellaneousElectricLoads < OpenStudio::Measure::ModelMeasure
     weekend_sch = runner.getStringArgumentValue("weekend_sch",user_arguments)
     monthly_sch = runner.getStringArgumentValue("monthly_sch",user_arguments)
 
-    #check for valid inputs
-    if option_type == Constants.OptionTypePlugLoadsMultiplier
-      if mult < 0
-        runner.registerError("#{Constants.OptionTypePlugLoadsMultiplier} must be greater than or equal to 0.")
-        return false
-      end
-    elsif option_type == Constants.OptionTypePlugLoadsEnergyUse
-      if energy_use < 0
-        runner.registerError("#{Constants.OptionTypePlugLoadsEnergyUse} must be greater than or equal to 0.")
-        return false
-      end
-    end
-    if sens_frac < 0 or sens_frac > 1
-      runner.registerError("Sensible fraction must be greater than or equal to 0 and less than or equal to 1.")
-      return false
-    end
-    if lat_frac < 0 or lat_frac > 1
-      runner.registerError("Latent fraction must be greater than or equal to 0 and less than or equal to 1.")
-      return false
-    end
-    if lat_frac + sens_frac > 1
-      runner.registerError("Sum of sensible and latent fractions must be less than or equal to 1.")
-      return false
-    end
-    
     # Get building units
     units = Geometry.get_building_units(model, runner)
     if units.nil?
         return false
     end
     
+    # Remove all existing objects
+    model.getSpaces.each do |space|
+        MiscLoads.remove(runner, space, [Constants.ObjectNameMiscPlugLoads])
+    end
+    
     tot_mel_ann = 0
     msgs = []
     sch = nil
     units.each do |unit|
-        # Get unit beds/baths
-        nbeds, nbaths = Geometry.get_unit_beds_baths(model, unit, runner)
-        if nbeds.nil? or nbaths.nil?
-            return false
-        end
-        
-        # Get unit ffa
-        ffa = Geometry.get_finished_floor_area_from_spaces(unit.spaces, false, runner)
-        if ffa.nil?
-            return false
-        end
         
         #Calculate electric mel daily energy use
         if option_type == Constants.OptionTypePlugLoadsMultiplier
+            # Get unit beds/baths
+            nbeds, nbaths = Geometry.get_unit_beds_baths(model, unit, runner)
+            if nbeds.nil? or nbaths.nil?
+                return false
+            end
+            
+            # Get unit ffa
+            ffa = Geometry.get_finished_floor_area_from_spaces(unit.spaces, false, runner)
+            if ffa.nil?
+                return false
+            end
+            
             mel_ann = (1108.1 + 180.2 * nbeds + 0.2785 * ffa) * mult
         elsif option_type == Constants.OptionTypePlugLoadsEnergyUse
             mel_ann = energy_use
         end
-        mel_daily = mel_ann / 365.0
         
-        unit.spaces.each do |space|
-            next if Geometry.space_is_unfinished(space)
+        success, sch = MiscLoads.apply_plug(model, unit, runner, mel_ann, 
+                                            sens_frac, lat_frac, weekday_sch, 
+                                            weekend_sch, monthly_sch, sch)
+        
+        return false if not success
             
-            obj_name = "#{Constants.ObjectNameMiscPlugLoads(unit.name.to_s)}"
-            space_obj_name = "#{obj_name}|#{space.name.to_s}"
-            
-            # Remove any existing mels
-            objects_to_remove = []
-            space.electricEquipment.each do |space_equipment|
-                next if space_equipment.name.to_s != space_obj_name
-                objects_to_remove << space_equipment
-                objects_to_remove << space_equipment.electricEquipmentDefinition
-                if space_equipment.schedule.is_initialized
-                    objects_to_remove << space_equipment.schedule.get
-                end
-            end
-            if objects_to_remove.size > 0
-                runner.registerInfo("Removed existing plug loads from space '#{space.name.to_s}'.")
-            end
-            objects_to_remove.uniq.each do |object|
-                begin
-                    object.remove
-                rescue
-                    # no op
-                end
-            end
-            
-            if mel_ann > 0
-
-                if sch.nil?
-                    # Create schedule
-                    sch = MonthWeekdayWeekendSchedule.new(model, runner, Constants.ObjectNameMiscPlugLoads + " schedule", weekday_sch, weekend_sch, monthly_sch)
-                    if not sch.validated?
-                        return false
-                    end
-                end
-            
-                space_mel_ann = mel_ann * UnitConversions.convert(space.floorArea, "m^2", "ft^2")/ffa
-                space_design_level = sch.calcDesignLevelFromDailykWh(space_mel_ann/365.0)
-
-                #Add electric equipment for the mel
-                mel_def = OpenStudio::Model::ElectricEquipmentDefinition.new(model)
-                mel = OpenStudio::Model::ElectricEquipment.new(mel_def)
-                mel.setName(space_obj_name)
-                mel.setEndUseSubcategory(obj_name)
-                mel.setSpace(space)
-                mel_def.setName(space_obj_name)
-                mel_def.setDesignLevel(space_design_level)
-                mel_def.setFractionRadiant(0.6 * sens_frac)
-                mel_def.setFractionLatent(lat_frac)
-                mel_def.setFractionLost(1 - sens_frac - lat_frac)
-                mel.setSchedule(sch.schedule)
-                
-                msgs << "Plug loads with #{space_mel_ann.round} kWhs annual energy consumption has been assigned to space '#{space.name.to_s}'."
-                tot_mel_ann += space_mel_ann
-            end
-
+        if mel_ann > 0
+            msgs << "Plug loads with #{mel_ann.round} kWhs annual energy consumption has been assigned to unit '#{unit.name.to_s}'."
+            tot_mel_ann += mel_ann
         end
-        
     end
 
     # Reporting
@@ -251,4 +181,4 @@ class ResidentialMiscellaneousElectricLoads < OpenStudio::Measure::ModelMeasure
 end #end the measure
 
 #this allows the measure to be use by the application
-ResidentialMiscellaneousElectricLoads.new.registerWithApplication
+ResidentialMiscElectricLoads.new.registerWithApplication

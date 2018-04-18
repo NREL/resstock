@@ -195,9 +195,8 @@ class ResidentialHotWaterSolar < OpenStudio::Measure::ModelMeasure
     if weather.error?
       return false
     end
-        
-    highest_roof_pitch = Geometry.get_roof_pitch(model.getSurfaces)
-    roof_tilt = UnitConversions.convert(Math.atan(highest_roof_pitch),"rad","deg") # tan(x) = opp/adj = highest_roof_pitch  
+    
+    roof_tilt = Geometry.get_roof_pitch(model.getSurfaces)
     
     if azimuth_type == Constants.CoordRelative
       shw_azimuth.abs = Geometry.get_abs_azimuth(azimuth_type, azimuth, 0, 0)
@@ -211,6 +210,8 @@ class ResidentialHotWaterSolar < OpenStudio::Measure::ModelMeasure
     if units.nil?
       return false
     end
+    
+    model_plant_loops = model.getPlantLoops
 
     shw_system.collector_area = calc_shw_collector_area(collector_area, units.size)
     shw_system.pump_power = calc_shw_pump_power(collector_area, pump_power)
@@ -232,7 +233,7 @@ class ResidentialHotWaterSolar < OpenStudio::Measure::ModelMeasure
       control_slave_zones_hash.each do |control_zone, slave_zones|    
     
         # Remove existing equipment
-        model.getPlantLoops.each do |plant_loop|
+        model_plant_loops.each do |plant_loop|
           next unless plant_loop.name.to_s == Constants.PlantLoopSolarHotWater(unit.name.to_s)
           components_to_remove = []
           (plant_loop.supplyComponents + plant_loop.demandComponents).each do |component|
@@ -256,7 +257,7 @@ class ResidentialHotWaterSolar < OpenStudio::Measure::ModelMeasure
         water_heater = nil
         setpoint_schedule_one = nil
         setpoint_schedule_two = nil
-        model.getPlantLoops.each do |plant_loop|
+        model_plant_loops.each do |plant_loop|
           next if plant_loop.name.to_s != Constants.PlantLoopDomesticWater(unit.name.to_s)
           dhw_loop = plant_loop
           dhw_loop.supplyComponents.each do |supply_component|
