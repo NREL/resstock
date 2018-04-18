@@ -185,6 +185,8 @@ namespace :test do
     cli_path = OpenStudio.getOpenStudioCLI
 
     osw_files.each do |osw|
+    
+        next if File.basename(osw) == 'out.osw'
 
         # Generate osm from osw
         osw_filename = osw
@@ -240,45 +242,43 @@ end
 
 desc 'Perform integrity check on inputs for all projects'
 task :integrity_check_all do
-    integrity_check()
-    integrity_check_options_lookup_tsv()
+    get_all_project_dir_names().each do |project_dir_name|
+      integrity_check(project_dir_name)
+      integrity_check_options_lookup_tsv(project_dir_name)
+    end
 end # rake task
 
 desc 'Perform integrity check on inputs for project_resstock_national'
 task :integrity_check_resstock_national do
-    integrity_check(['project_resstock_national'])
-    integrity_check_options_lookup_tsv()
+    integrity_check('project_resstock_national')
+    integrity_check_options_lookup_tsv('project_resstock_national')
 end # rake task
 
 desc 'Perform integrity check on inputs for project_resstock_pnw'
 task :integrity_check_resstock_pnw do
-    integrity_check(['project_resstock_pnw'])
-    integrity_check_options_lookup_tsv()
+    integrity_check('project_resstock_pnw')
+    integrity_check_options_lookup_tsv('project_resstock_pnw')
 end # rake task
 
 desc 'Perform integrity check on inputs for project_resstock_testing'
 task :integrity_check_resstock_testing do
-    integrity_check(['project_resstock_testing'])
-    integrity_check_options_lookup_tsv()
+    integrity_check('project_resstock_testing')
+    integrity_check_options_lookup_tsv('project_resstock_testing')
 end # rake task
 
 desc 'Perform integrity check on inputs for project_resstock_comed'
 task :integrity_check_resstock_comed do
-    integrity_check(['project_resstock_comed'])
-    integrity_check_options_lookup_tsv()
+    integrity_check('project_resstock_comed')
+    integrity_check_options_lookup_tsv('project_resstock_comed')
 end # rake task
 
 desc 'Perform integrity check on inputs for project_resstock_efs'
 task :integrity_check_resstock_efs do
-    integrity_check(['project_resstock_efs'])
-    integrity_check_options_lookup_tsv()
+    integrity_check('project_resstock_efs')
+    integrity_check_options_lookup_tsv('project_resstock_efs')
 end # rake task
 
-def integrity_check(project_dir_names=nil)
-  if project_dir_names.nil?
-    project_dir_names = get_all_project_dir_names()
-  end
-
+def integrity_check(project_dir_name)
   # Load helper file and sampling file
   resources_dir = File.join(File.dirname(__FILE__), 'resources')
   require File.join(resources_dir, 'buildstock')
@@ -288,100 +288,109 @@ def integrity_check(project_dir_names=nil)
   lookup_file = File.join(resources_dir, 'options_lookup.tsv')
   check_file_exists(lookup_file, nil)
   
-  project_dir_names.each do |project_dir_name|
-    # Perform various checks on each probability distribution file
-    parameters_processed = []
-    tsvfiles = {}
-    last_size = -1
+  # Perform various checks on each probability distribution file
+  parameters_processed = []
+  tsvfiles = {}
+  last_size = -1
+
+  parameter_names = []
+  get_parameters_ordered_from_options_lookup_tsv(resources_dir).each do |parameter_name|
+    tsvpath = File.join(project_dir_name, "housing_characteristics", "#{parameter_name}.tsv")
+    next if not File.exist?(tsvpath) # Not every parameter used by every project
+    parameter_names << parameter_name
+  end
   
-    parameter_names = []
-    get_parameters_ordered_from_options_lookup_tsv(resources_dir).each do |parameter_name|
-      tsvpath = File.join(project_dir_name, "housing_characteristics", "#{parameter_name}.tsv")
-      next if not File.exist?(tsvpath) # Not every parameter used by every project
-      parameter_names << parameter_name
+  while parameters_processed.size != parameter_names.size
+  
+    if last_size == parameters_processed.size
+      # No additional processing occurred during last pass
+      unprocessed_parameters = parameter_names - parameters_processed
+      err = "ERROR: Unable to process these parameters: #{unprocessed_parameters.join(', ')}."
+      deps = []
+      unprocessed_parameters.each do |p|
+        tsvpath = File.join(project_dir_name, "housing_characteristics", "#{p}.tsv")
+        tsvfile = TsvFile.new(tsvpath, nil)
+        tsvfile.dependency_cols.keys.each do |d|
+          next if deps.include?(d)
+          deps << d
+        end
+      end
+      undefined_deps = deps - unprocessed_parameters - parameters_processed
+      # Check if undefined deps exist but are undefined simply because they're not in options_lookup.tsv
+      undefined_deps_exist = true
+      undefined_deps.each do |undefined_dep|
+        tsvpath = File.join(project_dir_name, "housing_characteristics", "#{undefined_dep}.tsv")
+        next if File.exist?(tsvpath)
+        undefined_deps_exist = false
+      end
+      if undefined_deps_exist
+        err += "\nPerhaps one of these dependency files has options missing from options_lookup.tsv? #{undefined_deps.join(', ')}."
+      else
+        err += "\nPerhaps one of these dependency files is missing? #{undefined_deps.join(', ')}."
+      end
+      raise err
     end
     
-    while parameters_processed.size != parameter_names.size
-    
-      if last_size == parameters_processed.size
-        # No additional processing occurred during last pass
-        unprocessed_parameters = parameter_names - parameters_processed
-        err = "ERROR: Unable to process these parameters: #{unprocessed_parameters.join(', ')}."
-        deps = []
-        unprocessed_parameters.each do |p|
-          tsvpath = File.join(project_dir_name, "housing_characteristics", "#{p}.tsv")
-          tsvfile = TsvFile.new(tsvpath, nil)
-          tsvfile.dependency_cols.keys.each do |d|
-            next if deps.include?(d)
-            deps << d
-          end
+    last_size = parameters_processed.size
+    parameter_names.each do |parameter_name|
+      # Already processed? Skip
+      next if parameters_processed.include?(parameter_name)
+      
+      tsvpath = File.join(project_dir_name, "housing_characteristics", "#{parameter_name}.tsv")
+      check_file_exists(tsvpath, nil)
+      tsvfile = TsvFile.new(tsvpath, nil)
+      tsvfiles[parameter_name] = tsvfile
+      
+      # Dependencies not yet processed? Skip until a subsequent pass
+      skip = false
+      tsvfile.dependency_cols.keys.each do |dep|
+        next if parameters_processed.include?(dep)
+        skip = true
+      end
+      next if skip
+
+      puts "Checking for issues with #{project_dir_name}/#{parameter_name}..."
+      parameters_processed << parameter_name
+      
+      # Test all possible combinations of dependency value combinations
+      combo_hashes = get_combination_hashes(tsvfiles, tsvfile.dependency_cols.keys)
+      if combo_hashes.size > 0
+        combo_hashes.each do |combo_hash|
+          _matched_option_name, _matched_row_num = tsvfile.get_option_name_from_sample_number(1.0, combo_hash)
         end
-        undefined_deps = deps - unprocessed_parameters - parameters_processed
-        # Check if undefined deps exist but are undefined simply because they're not in options_lookup.tsv
-        undefined_deps_exist = true
-        undefined_deps.each do |undefined_dep|
-          tsvpath = File.join(project_dir_name, "housing_characteristics", "#{undefined_dep}.tsv")
-          next if File.exist?(tsvpath)
-          undefined_deps_exist = false
-        end
-        if undefined_deps_exist
-          err += "\nPerhaps one of these dependency files has options missing from options_lookup.tsv? #{undefined_deps.join(', ')}."
-        else
-          err += "\nPerhaps one of these dependency files is missing? #{undefined_deps.join(', ')}."
-        end
-        raise err
+      else
+        # global distribution
+        _matched_option_name, _matched_row_num = tsvfile.get_option_name_from_sample_number(1.0, nil)
       end
       
-      last_size = parameters_processed.size
-      parameter_names.each do |parameter_name|
-        # Already processed? Skip
-        next if parameters_processed.include?(parameter_name)
+      # Check for all options defined in options_lookup.tsv
+      get_measure_args_from_option_names(lookup_file, tsvfile.option_cols.keys, parameter_name)
         
-        tsvpath = File.join(project_dir_name, "housing_characteristics", "#{parameter_name}.tsv")
-        check_file_exists(tsvpath, nil)
-        tsvfile = TsvFile.new(tsvpath, nil)
-        tsvfiles[parameter_name] = tsvfile
-        
-        # Dependencies not yet processed? Skip until a subsequent pass
-        skip = false
-        tsvfile.dependency_cols.keys.each do |dep|
-          next if parameters_processed.include?(dep)
-          skip = true
-        end
-        next if skip
-
-        puts "Checking for issues with #{project_dir_name}/#{parameter_name}..."
-        parameters_processed << parameter_name
-        
-        # Test all possible combinations of dependency value combinations
-        combo_hashes = get_combination_hashes(tsvfiles, tsvfile.dependency_cols.keys)
-        if combo_hashes.size > 0
-          combo_hashes.each do |combo_hash|
-            _matched_option_name, _matched_row_num = tsvfile.get_option_name_from_sample_number(1.0, combo_hash)
-          end
-        else
-          # global distribution
-          _matched_option_name, _matched_row_num = tsvfile.get_option_name_from_sample_number(1.0, nil)
-        end
-        
-        # Check for all options defined in options_lookup.tsv
-        get_measure_args_from_option_names(lookup_file, tsvfile.option_cols.keys, parameter_name)
-          
-      end
-    end # parameter_name
-    
-    # Test sampling
-    r = RunSampling.new
-    output_file = r.run(project_dir_name, 1000, 'buildstock.csv')
-    if File.exist?(output_file)
-      File.delete(output_file) # Clean up
     end
-    
-  end # project_dir_name
+  end # parameter_name
+  
+  # Test sampling
+  r = RunSampling.new
+  output_file = r.run(project_dir_name, 1000, 'buildstock.csv')
+  if File.exist?(output_file)
+    File.delete(output_file) # Clean up
+  end
+  
+  # Unused TSVs?
+  err = ""
+  Dir[File.join(project_dir_name, "housing_characteristics", "*.tsv")].each do |tsvpath|
+    parameter_name = File.basename(tsvpath, ".*")
+    if not parameter_names.include? parameter_name
+      err += "ERROR: TSV file #{tsvpath} not used in options_lookup.tsv.\n"
+    end
+  end
+  if not err.empty?
+    raise err
+  end
   
 end
 
-def integrity_check_options_lookup_tsv()
+def integrity_check_options_lookup_tsv(project_dir_name)
 
   require 'openstudio'
 
@@ -400,6 +409,10 @@ def integrity_check_options_lookup_tsv()
   # Gather all options/arguments
   parameter_names = get_parameters_ordered_from_options_lookup_tsv(resources_dir)
   parameter_names.each do |parameter_name|
+    
+    tsvpath = File.join(project_dir_name, "housing_characteristics", "#{parameter_name}.tsv")
+    next if not File.exist?(tsvpath) # Not every parameter used by every project
+  
     option_names = get_options_for_parameter_from_options_lookup_tsv(resources_dir, parameter_name)
     options_measure_args = get_measure_args_from_option_names(lookup_file, option_names, parameter_name, nil)
     option_names.each do |option_name|
@@ -453,7 +466,7 @@ def integrity_check_options_lookup_tsv()
     
     all_measure_args = []
     max_checks_reached = false
-    option_combinations.each_with_index do |option_combination, combo_num|
+    option_combinations.shuffle.each_with_index do |option_combination, combo_num|
       if combo_num > max_checks
         max_checks_reached = true
         break

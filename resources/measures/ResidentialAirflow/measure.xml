@@ -2,8 +2,8 @@
   <schema_version>3.0</schema_version>
   <name>residential_airflow</name>
   <uid>7d2adf5c-9995-49be-b662-a23d2452bb36</uid>
-  <version_id>c53d4d4b-8239-4149-acf0-faa14307e2d9</version_id>
-  <version_modified>20171215T192518Z</version_modified>
+  <version_id>6a3e5421-258a-4d88-a613-e47acbf8daa6</version_id>
+  <version_modified>20180417T142341Z</version_modified>
   <xml_checksum>19EEDBBB</xml_checksum>
   <class_name>ResidentialAirflow</class_name>
   <display_name>Set Residential Airflow</display_name>
@@ -16,7 +16,7 @@
       <description>Air exchange rate, in Air Changes per Hour at 50 Pascals (ACH50), for above-grade living space (including finished attic).</description>
       <type>Double</type>
       <units>1/hr</units>
-      <required>false</required>
+      <required>true</required>
       <model_dependent>false</model_dependent>
       <default_value>7</default_value>
     </argument>
@@ -26,7 +26,7 @@
       <description>Air exchange rate, in Air Changes per Hour at 50 Pascals (ACH50), for the garage.</description>
       <type>Double</type>
       <units>1/hr</units>
-      <required>false</required>
+      <required>true</required>
       <model_dependent>false</model_dependent>
       <default_value>7</default_value>
     </argument>
@@ -36,7 +36,7 @@
       <description>Constant air exchange rate, in Air Changes per Hour (ACH), for the finished basement.</description>
       <type>Double</type>
       <units>1/hr</units>
-      <required>false</required>
+      <required>true</required>
       <model_dependent>false</model_dependent>
       <default_value>0</default_value>
     </argument>
@@ -46,7 +46,7 @@
       <description>Constant air exchange rate, in Air Changes per Hour (ACH), for the unfinished basement. A value of 0.10 ACH or greater is recommended for modeling Heat Pump Water Heaters in unfinished basements.</description>
       <type>Double</type>
       <units>1/hr</units>
-      <required>false</required>
+      <required>true</required>
       <model_dependent>false</model_dependent>
       <default_value>0.1</default_value>
     </argument>
@@ -56,7 +56,7 @@
       <description>Air exchange rate, in Air Changes per Hour at 50 Pascals (ACH50), for the crawlspace.</description>
       <type>Double</type>
       <units>1/hr</units>
-      <required>false</required>
+      <required>true</required>
       <model_dependent>false</model_dependent>
       <default_value>0</default_value>
     </argument>
@@ -66,7 +66,7 @@
       <description>Air exchange rate, in Air Changes per Hour at 50 Pascals (ACH50), for the pier &amp; beam foundation.</description>
       <type>Double</type>
       <units>1/hr</units>
-      <required>false</required>
+      <required>true</required>
       <model_dependent>false</model_dependent>
       <default_value>100</default_value>
     </argument>
@@ -75,7 +75,7 @@
       <display_name>Air Leakage: Unfinished Attic SLA</display_name>
       <description>Ratio of the effective leakage area (infiltration and/or ventilation) in the unfinished attic to the total floor area of the attic.</description>
       <type>Double</type>
-      <required>false</required>
+      <required>true</required>
       <model_dependent>false</model_dependent>
       <default_value>0.00333</default_value>
     </argument>
@@ -84,7 +84,7 @@
       <display_name>Air Leakage: Shelter Coefficient</display_name>
       <description>The local shelter coefficient (AIM-2 infiltration model) accounts for nearby buildings, trees and obstructions.</description>
       <type>String</type>
-      <required>false</required>
+      <required>true</required>
       <model_dependent>false</model_dependent>
       <default_value>auto</default_value>
     </argument>
@@ -93,7 +93,7 @@
       <display_name>Air Leakage: Has Open HVAC Flue</display_name>
       <description>Specifies whether the building has an open flue associated with the HVAC system.</description>
       <type>Boolean</type>
-      <required>false</required>
+      <required>true</required>
       <model_dependent>false</model_dependent>
       <default_value>false</default_value>
       <choices>
@@ -112,7 +112,7 @@
       <display_name>Air Leakage: Has Open Water Heater Flue</display_name>
       <description>Specifies whether the building has an open flue associated with the water heater.</description>
       <type>Boolean</type>
-      <required>false</required>
+      <required>true</required>
       <model_dependent>false</model_dependent>
       <default_value>false</default_value>
       <choices>
@@ -131,7 +131,7 @@
       <display_name>Air Leakage: Has Open HVAC Flue</display_name>
       <description>Specifies whether the building has an open chimney associated with a fireplace.</description>
       <type>Boolean</type>
-      <required>false</required>
+      <required>true</required>
       <model_dependent>false</model_dependent>
       <default_value>false</default_value>
       <choices>
@@ -181,7 +181,7 @@
       <display_name>Mechanical Ventilation: Ventilation Type</display_name>
       <description>Whole house ventilation strategy used.</description>
       <type>Choice</type>
-      <required>false</required>
+      <required>true</required>
       <model_dependent>false</model_dependent>
       <default_value>exhaust</default_value>
       <choices>
@@ -198,38 +198,42 @@
           <display_name>supply</display_name>
         </choice>
         <choice>
+          <value>central fan integrated supply</value>
+          <display_name>central fan integrated supply</display_name>
+        </choice>
+        <choice>
           <value>balanced</value>
           <display_name>balanced</display_name>
         </choice>
       </choices>
     </argument>
     <argument>
+      <name>mech_vent_fan_power</name>
+      <display_name>Mechanical Ventilation: Fan Power</display_name>
+      <description>Fan power (in W) per delivered airflow rate (in cfm) of fan(s) providing whole house ventilation. If the house uses a balanced ventilation system there is assumed to be two fans operating at this efficiency. Not used for central fan integrated supply systems.</description>
+      <type>Double</type>
+      <units>W/cfm</units>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>0.15</default_value>
+    </argument>
+    <argument>
       <name>mech_vent_total_efficiency</name>
       <display_name>Mechanical Ventilation: Total Recovery Efficiency</display_name>
-      <description>The net total energy (sensible plus latent, also called enthalpy) recovered by the supply airstream adjusted by electric consumption, case heat loss or heat gain, air leakage and airflow mass imbalance between the two airstreams, as a percent of the potential total energy that could be recovered plus the exhaust fan energy.</description>
+      <description>The net total energy (sensible plus latent, also called enthalpy) recovered by the supply airstream adjusted by electric consumption, case heat loss or heat gain, air leakage and airflow mass imbalance between the two airstreams, as a percent of the potential total energy that could be recovered plus the exhaust fan energy. Only used for balanced systems.</description>
       <type>Double</type>
-      <required>false</required>
+      <required>true</required>
       <model_dependent>false</model_dependent>
       <default_value>0</default_value>
     </argument>
     <argument>
       <name>mech_vent_sensible_efficiency</name>
       <display_name>Mechanical Ventilation: Sensible Recovery Efficiency</display_name>
-      <description>The net sensible energy recovered by the supply airstream as adjusted by electric consumption, case heat loss or heat gain, air leakage, airflow mass imbalance between the two airstreams and the energy used for defrost (when running the Very Low Temperature Test), as a percent of the potential sensible energy that could be recovered plus the exhaust fan energy.</description>
+      <description>The net sensible energy recovered by the supply airstream as adjusted by electric consumption, case heat loss or heat gain, air leakage, airflow mass imbalance between the two airstreams and the energy used for defrost (when running the Very Low Temperature Test), as a percent of the potential sensible energy that could be recovered plus the exhaust fan energy. Only used for balanced systems.</description>
       <type>Double</type>
-      <required>false</required>
+      <required>true</required>
       <model_dependent>false</model_dependent>
       <default_value>0</default_value>
-    </argument>
-    <argument>
-      <name>mech_vent_fan_power</name>
-      <display_name>Mechanical Ventilation: Fan Power</display_name>
-      <description>Fan power (in W) per delivered airflow rate (in cfm) of fan(s) providing whole house ventilation. If the house uses a balanced ventilation system there is assumed to be two fans operating at this efficiency.</description>
-      <type>Double</type>
-      <units>W/cfm</units>
-      <required>false</required>
-      <model_dependent>false</model_dependent>
-      <default_value>0.3</default_value>
     </argument>
     <argument>
       <name>mech_vent_frac_62_2</name>
@@ -237,7 +241,7 @@
       <description>Fraction of the ventilation rate (including any infiltration credit) specified by ASHRAE 62.2 that is desired in the building.</description>
       <type>Double</type>
       <units>frac</units>
-      <required>false</required>
+      <required>true</required>
       <model_dependent>false</model_dependent>
       <default_value>1</default_value>
     </argument>
@@ -246,7 +250,7 @@
       <display_name>Mechanical Ventilation: ASHRAE 62.2 Standard</display_name>
       <description>Specifies which version (year) of the ASHRAE 62.2 Standard should be used.</description>
       <type>Choice</type>
-      <required>false</required>
+      <required>true</required>
       <model_dependent>false</model_dependent>
       <default_value>2010</default_value>
       <choices>
@@ -265,7 +269,7 @@
       <display_name>Mechanical Ventilation: Allow Infiltration Credit</display_name>
       <description>Defines whether the infiltration credit allowed per the ASHRAE 62.2 Standard will be included in the calculation of the mechanical ventilation rate. If True, the infiltration credit will apply 1) to new/existing single-family detached homes for 2013 ASHRAE 62.2, or 2) to existing single-family detached or multi-family homes for 2010 ASHRAE 62.2.</description>
       <type>Boolean</type>
-      <required>false</required>
+      <required>true</required>
       <model_dependent>false</model_dependent>
       <default_value>true</default_value>
       <choices>
@@ -299,12 +303,48 @@
       </choices>
     </argument>
     <argument>
+      <name>mech_vent_cfis_open_time</name>
+      <display_name>Mechanical Ventilation: CFIS Damper Open Time</display_name>
+      <description>Minimum damper open time for a central fan integrated supply system.</description>
+      <type>Double</type>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>20</default_value>
+    </argument>
+    <argument>
+      <name>mech_vent_cfis_airflow_frac</name>
+      <display_name>Mechanical Ventilation: CFIS Ventilation Mode Airflow Fraction</display_name>
+      <description>Blower airflow rate, when the central fan integrated supply system is operating in ventilation mode, as a fraction of maximum blower airflow rate.</description>
+      <type>Double</type>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>1</default_value>
+    </argument>
+    <argument>
+      <name>range_exhaust_hour</name>
+      <display_name>Spot Ventilation: Hour of range spot ventilation</display_name>
+      <description>Hour in which range spot ventilation occurs. Values indicate the time of spot ventilation, which lasts for 1 hour.</description>
+      <type>Integer</type>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>16</default_value>
+    </argument>
+    <argument>
+      <name>bathroom_exhaust_hour</name>
+      <display_name>Spot Ventilation: Hour of bathroom spot ventilation</display_name>
+      <description>Hour in which bathroom spot ventilation occurs. Values indicate the time of spot ventilation, which lasts for 1 hour.</description>
+      <type>Integer</type>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>5</default_value>
+    </argument>
+    <argument>
       <name>clothes_dryer_exhaust</name>
       <display_name>Clothes Dryer: Exhaust</display_name>
-      <description>Rated flow capacity of the clothes dryer exhaust. This fan is assumed to run 60 min/day between 11am and 12pm.</description>
+      <description>Rated flow capacity of the clothes dryer exhaust. This fan is assumed to run after any clothes dryer events.</description>
       <type>Double</type>
       <units>cfm</units>
-      <required>false</required>
+      <required>true</required>
       <model_dependent>false</model_dependent>
       <default_value>100</default_value>
     </argument>
@@ -314,7 +354,7 @@
       <description>The temperature offset below the hourly cooling setpoint, to which the living space is allowed to cool during months that are only in the heating season.</description>
       <type>Double</type>
       <units>degrees F</units>
-      <required>false</required>
+      <required>true</required>
       <model_dependent>false</model_dependent>
       <default_value>1</default_value>
     </argument>
@@ -324,7 +364,7 @@
       <description>The temperature offset above the hourly heating setpoint, to which the living space is allowed to cool during months that are only in the cooling season.</description>
       <type>Double</type>
       <units>degrees F</units>
-      <required>false</required>
+      <required>true</required>
       <model_dependent>false</model_dependent>
       <default_value>1</default_value>
     </argument>
@@ -334,7 +374,7 @@
       <description>The temperature offset above the maximum heating setpoint, to which the living space is allowed to cool during months that are in both the heating season and cooling season.</description>
       <type>Double</type>
       <units>degrees F</units>
-      <required>false</required>
+      <required>true</required>
       <model_dependent>false</model_dependent>
       <default_value>1</default_value>
     </argument>
@@ -343,7 +383,7 @@
       <display_name>Natural Ventilation: Heating Season</display_name>
       <description>True if windows are allowed to be opened during months that are only in the heating season.</description>
       <type>Boolean</type>
-      <required>false</required>
+      <required>true</required>
       <model_dependent>false</model_dependent>
       <default_value>true</default_value>
       <choices>
@@ -362,7 +402,7 @@
       <display_name>Natural Ventilation: Cooling Season</display_name>
       <description>True if windows are allowed to be opened during months that are only in the cooling season.</description>
       <type>Boolean</type>
-      <required>false</required>
+      <required>true</required>
       <model_dependent>false</model_dependent>
       <default_value>true</default_value>
       <choices>
@@ -381,7 +421,7 @@
       <display_name>Natural Ventilation: Overlap Season</display_name>
       <description>True if windows are allowed to be opened during months that are in both the heating season and cooling season.</description>
       <type>Boolean</type>
-      <required>false</required>
+      <required>true</required>
       <model_dependent>false</model_dependent>
       <default_value>true</default_value>
       <choices>
@@ -400,7 +440,7 @@
       <display_name>Natural Ventilation: Number Weekdays</display_name>
       <description>Number of weekdays in the week that natural ventilation can occur.</description>
       <type>Integer</type>
-      <required>false</required>
+      <required>true</required>
       <model_dependent>false</model_dependent>
       <default_value>3</default_value>
     </argument>
@@ -409,7 +449,7 @@
       <display_name>Natural Ventilation: Number Weekend Days</display_name>
       <description>Number of weekend days in the week that natural ventilation can occur.</description>
       <type>Integer</type>
-      <required>false</required>
+      <required>true</required>
       <model_dependent>false</model_dependent>
       <default_value>0</default_value>
     </argument>
@@ -419,7 +459,7 @@
       <description>Specifies the fraction of the total openable window area in the building that is opened for ventilation.</description>
       <type>Double</type>
       <units>frac</units>
-      <required>false</required>
+      <required>true</required>
       <model_dependent>false</model_dependent>
       <default_value>0.33</default_value>
     </argument>
@@ -429,7 +469,7 @@
       <description>Specifies the fraction of total window area in the home that can be opened (e.g. typical sliding windows can be opened to half of their area).</description>
       <type>Double</type>
       <units>frac</units>
-      <required>false</required>
+      <required>true</required>
       <model_dependent>false</model_dependent>
       <default_value>0.2</default_value>
     </argument>
@@ -439,7 +479,7 @@
       <description>Outdoor air humidity ratio above which windows will not open for natural ventilation.</description>
       <type>Double</type>
       <units>frac</units>
-      <required>false</required>
+      <required>true</required>
       <model_dependent>false</model_dependent>
       <default_value>0.0115</default_value>
     </argument>
@@ -449,17 +489,17 @@
       <description>Outdoor air relative humidity (0-1) above which windows will not open for natural ventilation.</description>
       <type>Double</type>
       <units>frac</units>
-      <required>false</required>
+      <required>true</required>
       <model_dependent>false</model_dependent>
       <default_value>0.7</default_value>
     </argument>
     <argument>
       <name>duct_location</name>
       <display_name>Ducts: Location</display_name>
-      <description>The space with the primary location of ducts.</description>
+      <description>The primary location of ducts.</description>
       <type>Choice</type>
       <required>true</required>
-      <model_dependent>false</model_dependent>
+      <model_dependent>true</model_dependent>
       <default_value>auto</default_value>
       <choices>
         <choice>
@@ -470,42 +510,6 @@
           <value>auto</value>
           <display_name>auto</display_name>
         </choice>
-        <choice>
-          <value>living zone</value>
-          <display_name>living zone</display_name>
-        </choice>
-        <choice>
-          <value>attic zone</value>
-          <display_name>attic zone</display_name>
-        </choice>
-        <choice>
-          <value>unfinished attic zone</value>
-          <display_name>unfinished attic zone</display_name>
-        </choice>
-        <choice>
-          <value>basement zone</value>
-          <display_name>basement zone</display_name>
-        </choice>
-        <choice>
-          <value>finished basement zone</value>
-          <display_name>finished basement zone</display_name>
-        </choice>
-        <choice>
-          <value>unfinished basement zone</value>
-          <display_name>unfinished basement zone</display_name>
-        </choice>
-        <choice>
-          <value>crawl zone</value>
-          <display_name>crawl zone</display_name>
-        </choice>
-        <choice>
-          <value>pier and beam zone</value>
-          <display_name>pier and beam zone</display_name>
-        </choice>
-        <choice>
-          <value>garage zone</value>
-          <display_name>garage zone</display_name>
-        </choice>
       </choices>
     </argument>
     <argument>
@@ -514,7 +518,7 @@
       <description>The total amount of air flow leakage expressed as a fraction of the total air flow rate.</description>
       <type>Double</type>
       <units>frac</units>
-      <required>false</required>
+      <required>true</required>
       <model_dependent>false</model_dependent>
       <default_value>0.3</default_value>
     </argument>
@@ -524,7 +528,7 @@
       <description>The amount of air flow leakage leaking out from the supply duct expressed as a fraction of the total duct leakage.</description>
       <type>Double</type>
       <units>frac</units>
-      <required>false</required>
+      <required>true</required>
       <model_dependent>false</model_dependent>
       <default_value>0.6</default_value>
     </argument>
@@ -534,7 +538,7 @@
       <description>The amount of air flow leakage leaking into the return duct expressed as a fraction of the total duct leakage.</description>
       <type>Double</type>
       <units>frac</units>
-      <required>false</required>
+      <required>true</required>
       <model_dependent>false</model_dependent>
       <default_value>0.067</default_value>
     </argument>
@@ -544,7 +548,7 @@
       <description>The amount of air flow leakage leaking out from the supply-side of the air handler expressed as a fraction of the total duct leakage.</description>
       <type>Double</type>
       <units>frac</units>
-      <required>false</required>
+      <required>true</required>
       <model_dependent>false</model_dependent>
       <default_value>0.067</default_value>
     </argument>
@@ -554,14 +558,14 @@
       <description>The amount of air flow leakage leaking out from the return-side of the air handler expressed as a fraction of the total duct leakage.</description>
       <type>Double</type>
       <units>frac</units>
-      <required>false</required>
+      <required>true</required>
       <model_dependent>false</model_dependent>
       <default_value>0.267</default_value>
     </argument>
     <argument>
       <name>duct_location_frac</name>
       <display_name>Ducts: Location Fraction</display_name>
-      <description>Fraction of supply ducts in the space specified by Duct Location; the remainder of supply ducts will be located in above-grade conditioned space.</description>
+      <description>Fraction of supply ducts in the specified Duct Location; the remainder of supply ducts will be located in above-grade conditioned space.</description>
       <type>String</type>
       <units>frac</units>
       <required>true</required>
@@ -659,127 +663,91 @@
       <filename>psychrometrics.rb</filename>
       <filetype>rb</filetype>
       <usage_type>resource</usage_type>
-      <checksum>11E27E42</checksum>
+      <checksum>208441EA</checksum>
     </file>
     <file>
-      <filename>unit_conversions.rb</filename>
+      <filename>materials.rb</filename>
       <filetype>rb</filetype>
       <usage_type>resource</usage_type>
-      <checksum>31924A51</checksum>
+      <checksum>D5E9964F</checksum>
     </file>
     <file>
       <filename>util.rb</filename>
       <filetype>rb</filetype>
       <usage_type>resource</usage_type>
-      <checksum>BE5BF810</checksum>
+      <checksum>A001EED9</checksum>
     </file>
     <file>
-      <filename>airflow.rb</filename>
+      <filename>weather.rb</filename>
       <filetype>rb</filetype>
       <usage_type>resource</usage_type>
-      <checksum>8A1556D0</checksum>
+      <checksum>825D6D42</checksum>
     </file>
     <file>
-      <filename>SFD_2000sqft_2story_SL_UA_3Beds_2Baths_Denver.osm</filename>
-      <filetype>osm</filetype>
-      <usage_type>test</usage_type>
-      <checksum>35D6CC6C</checksum>
-    </file>
-    <file>
-      <filename>SFD_2000sqft_2story_CS_UA_3Beds_2Baths_Denver_Furnace_CentralAC.osm</filename>
-      <filetype>osm</filetype>
-      <usage_type>test</usage_type>
-      <checksum>D969CF3C</checksum>
-    </file>
-    <file>
-      <filename>SFD_2000sqft_2story_FB_UA_3Beds_2Baths_Denver_Furnace_CentralAC.osm</filename>
-      <filetype>osm</filetype>
-      <usage_type>test</usage_type>
-      <checksum>DB856698</checksum>
-    </file>
-    <file>
-      <filename>SFD_2000sqft_2story_PB_UA_3Beds_2Baths_Denver_Furnace_CentralAC.osm</filename>
-      <filetype>osm</filetype>
-      <usage_type>test</usage_type>
-      <checksum>5E2EE379</checksum>
-    </file>
-    <file>
-      <filename>SFD_2000sqft_2story_SL_GRG_UA_3Beds_2Baths_Denver_Furnace_CentralAC.osm</filename>
-      <filetype>osm</filetype>
-      <usage_type>test</usage_type>
-      <checksum>E6867E4D</checksum>
-    </file>
-    <file>
-      <filename>SFD_2000sqft_2story_SL_UA_3Beds_2Baths_Denver_ElectricBaseboard.osm</filename>
-      <filetype>osm</filetype>
-      <usage_type>test</usage_type>
-      <checksum>D688E3A0</checksum>
-    </file>
-    <file>
-      <filename>SFD_2000sqft_2story_SL_UA_3Beds_2Baths_Denver_Furnace_CentralAC.osm</filename>
-      <filetype>osm</filetype>
-      <usage_type>test</usage_type>
-      <checksum>FF5FCD79</checksum>
-    </file>
-    <file>
-      <filename>SFD_2000sqft_2story_SL_UA_3Beds_2Baths_Denver_Furnace_CentralAC_Neighbors.osm</filename>
-      <filetype>osm</filetype>
-      <usage_type>test</usage_type>
-      <checksum>449CE50D</checksum>
-    </file>
-    <file>
-      <filename>SFD_2000sqft_2story_UB_UA_3Beds_2Baths_Denver_Furnace_CentralAC.osm</filename>
-      <filetype>osm</filetype>
-      <usage_type>test</usage_type>
-      <checksum>A31B3138</checksum>
-    </file>
-    <file>
-      <filename>MF_8units_1story_SL_3Beds_2Baths_Denver_Furnace_CentralAC.osm</filename>
-      <filetype>osm</filetype>
-      <usage_type>test</usage_type>
-      <checksum>9236438A</checksum>
-    </file>
-    <file>
-      <filename>SFA_4units_1story_SL_UA_3Beds_2Baths_Denver_Furnace_CentralAC.osm</filename>
-      <filetype>osm</filetype>
-      <usage_type>test</usage_type>
-      <checksum>2FEE0C42</checksum>
-    </file>
-    <file>
-      <filename>SFD_2000sqft_2story_SL_GRG_FR_3Beds_2Baths_Denver_Furnace_CentralAC.osm</filename>
-      <filetype>osm</filetype>
-      <usage_type>test</usage_type>
-      <checksum>27289160</checksum>
-    </file>
-    <file>
-      <filename>SFD_2000sqft_2story_SL_UA_3Beds_2Baths_Denver_Furnace_CentralAC_ElecWHTank_ClothesWasher_ClothesDryer.osm</filename>
-      <filetype>osm</filetype>
-      <usage_type>test</usage_type>
-      <checksum>01614130</checksum>
-    </file>
-    <file>
-      <filename>geometry.rb</filename>
+      <filename>unit_conversions.rb</filename>
       <filetype>rb</filetype>
       <usage_type>resource</usage_type>
-      <checksum>A9382DBC</checksum>
+      <checksum>91D17463</checksum>
     </file>
     <file>
       <filename>hvac.rb</filename>
       <filetype>rb</filetype>
       <usage_type>resource</usage_type>
-      <checksum>3A9A4850</checksum>
+      <checksum>DC1B3053</checksum>
+    </file>
+    <file>
+      <filename>geometry.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>92D32A87</checksum>
+    </file>
+    <file>
+      <filename>schedules.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>9EEA7BBB</checksum>
+    </file>
+    <file>
+      <filename>ClothesDryerExhaustSchedule_1bed.csv</filename>
+      <filetype>csv</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>7F6FD85E</checksum>
+    </file>
+    <file>
+      <filename>ClothesDryerExhaustSchedule_2bed.csv</filename>
+      <filetype>csv</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>D16F0515</checksum>
+    </file>
+    <file>
+      <filename>ClothesDryerExhaustSchedule_3bed.csv</filename>
+      <filetype>csv</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>904A871F</checksum>
+    </file>
+    <file>
+      <filename>ClothesDryerExhaustSchedule_4bed.csv</filename>
+      <filetype>csv</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>9B151B0A</checksum>
+    </file>
+    <file>
+      <filename>ClothesDryerExhaustSchedule_5bed.csv</filename>
+      <filetype>csv</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>6B9E0CD2</checksum>
+    </file>
+    <file>
+      <filename>MinuteDrawProfilesMaxFlows.csv</filename>
+      <filetype>csv</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>396FD822</checksum>
     </file>
     <file>
       <filename>constants.rb</filename>
       <filetype>rb</filetype>
       <usage_type>resource</usage_type>
-      <checksum>022C15E2</checksum>
-    </file>
-    <file>
-      <filename>residential_airflow_test.rb</filename>
-      <filetype>rb</filetype>
-      <usage_type>test</usage_type>
-      <checksum>BC5FB971</checksum>
+      <checksum>9DF8CF0F</checksum>
     </file>
     <file>
       <version>
@@ -790,31 +758,109 @@
       <filename>measure.rb</filename>
       <filetype>rb</filetype>
       <usage_type>script</usage_type>
-      <checksum>253C843D</checksum>
+      <checksum>84536DA5</checksum>
+    </file>
+    <file>
+      <filename>SFD_2000sqft_2story_UB_UA_3Beds_2Baths_Denver_Furnace_CentralAC.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>455AC684</checksum>
+    </file>
+    <file>
+      <filename>SFD_2000sqft_2story_SL_UA_3Beds_2Baths_Denver.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>128938CF</checksum>
+    </file>
+    <file>
+      <filename>SFD_2000sqft_2story_SL_UA_3Beds_2Baths_Denver_ElectricBaseboard.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>4A90510C</checksum>
+    </file>
+    <file>
+      <filename>SFD_2000sqft_2story_SL_UA_3Beds_2Baths_Denver_Furnace_CentralAC.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>73E44065</checksum>
+    </file>
+    <file>
+      <filename>SFD_2000sqft_2story_SL_UA_3Beds_2Baths_Denver_Furnace_CentralAC_Neighbors.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>0FEB0D76</checksum>
+    </file>
+    <file>
+      <filename>SFD_2000sqft_2story_SL_UA_3Beds_2Baths_Denver_Furnace_CentralAC_ElecWHTank_ClothesWasher_ClothesDryer.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>09BCD986</checksum>
     </file>
     <file>
       <filename>SFD_2000sqft_2story_SL_UA_3Beds_2Baths_Denver_MSHP.osm</filename>
       <filetype>osm</filetype>
       <usage_type>test</usage_type>
-      <checksum>69FA1BAA</checksum>
+      <checksum>3BAD99E4</checksum>
     </file>
     <file>
       <filename>SFD_2000sqft_2story_SL_UA_3Beds_2Baths_Denver_MSHPDucted.osm</filename>
       <filetype>osm</filetype>
       <usage_type>test</usage_type>
-      <checksum>B5E48388</checksum>
+      <checksum>6961A0A6</checksum>
     </file>
     <file>
-      <filename>weather.rb</filename>
-      <filetype>rb</filetype>
-      <usage_type>resource</usage_type>
-      <checksum>82988A63</checksum>
+      <filename>SFD_2000sqft_2story_SL_GRG_UA_3Beds_2Baths_Denver_Furnace_CentralAC.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>8950A58C</checksum>
     </file>
     <file>
-      <filename>schedules.rb</filename>
+      <filename>SFD_2000sqft_2story_SL_GRG_FR_3Beds_2Baths_Denver_Furnace_CentralAC.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>0AE8023B</checksum>
+    </file>
+    <file>
+      <filename>SFD_2000sqft_2story_PB_UA_3Beds_2Baths_Denver_Furnace_CentralAC.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>30297A29</checksum>
+    </file>
+    <file>
+      <filename>SFD_2000sqft_2story_FB_UA_3Beds_2Baths_Denver_Furnace_CentralAC.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>4465A504</checksum>
+    </file>
+    <file>
+      <filename>SFD_2000sqft_2story_CS_UA_3Beds_2Baths_Denver_Furnace_CentralAC.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>DC5C76DA</checksum>
+    </file>
+    <file>
+      <filename>SFA_4units_1story_SL_UA_3Beds_2Baths_Denver_Furnace_CentralAC.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>8CD3F2BF</checksum>
+    </file>
+    <file>
+      <filename>MF_8units_1story_SL_3Beds_2Baths_Denver_Furnace_CentralAC.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>6929296B</checksum>
+    </file>
+    <file>
+      <filename>airflow.rb</filename>
       <filetype>rb</filetype>
       <usage_type>resource</usage_type>
-      <checksum>7826E992</checksum>
+      <checksum>E503AFAB</checksum>
+    </file>
+    <file>
+      <filename>residential_airflow_test.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>test</usage_type>
+      <checksum>C94D0819</checksum>
     </file>
   </files>
 </measure>
