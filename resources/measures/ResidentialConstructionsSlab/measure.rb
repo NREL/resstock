@@ -101,9 +101,9 @@ class ProcessConstructionsSlab < OpenStudio::Measure::ModelMeasure
         if not FoundationConstructions.apply_slab(runner, model, 
                                                   floor_surface,
                                                   Constants.SurfaceTypeFloorFndGrndFinSlab,
-                                                  perimeter_r, perimeter_width,
-                                                  gap_r, exterior_r, exterior_depth,
-                                                  whole_r, 4.0, false, nil, nil)
+                                                  perimeter_r, perimeter_width, gap_r, 
+                                                  exterior_r, exterior_depth, whole_r, 4.0, 
+                                                  Material.CoveringBare, false, nil, nil)
             return false
         end
     end
@@ -112,7 +112,7 @@ class ProcessConstructionsSlab < OpenStudio::Measure::ModelMeasure
         if not FoundationConstructions.apply_slab(runner, model, 
                                                   surface,
                                                   Constants.SurfaceTypeFloorFndGrndUnfinSlab,
-                                                  0, 0, 0, 0, 0, 0, 4.0, false, nil, nil)
+                                                  0, 0, 0, 0, 0, 0, 4.0, nil, false, nil, nil)
             return false
         end
     end
