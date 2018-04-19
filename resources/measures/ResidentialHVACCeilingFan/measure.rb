@@ -153,41 +153,7 @@ class ProcessCeilingFan < OpenStudio::Measure::ModelMeasure
     sch = nil
     units.each do |unit|
     
-<<<<<<< HEAD
-      # Remove existing ceiling fan
-      model.getScheduleRulesets.each do |schedule|
-        next unless schedule.name.to_s == obj_name + " schedule"
-        schedule.remove
-      end
-      model.getEnergyManagementSystemSensors.each do |sensor|
-        next unless sensor.name.to_s == "#{obj_name} sched val sensor".gsub(" ","_").gsub("|","_") or sensor.name.to_s == "#{obj_name} tin sensor".gsub(" ","_").gsub("|","_")
-        sensor.remove
-      end
-      model.getEnergyManagementSystemActuators.each do |actuator|
-        next unless actuator.name.to_s == "#{obj_name} sched override".gsub(" ","_").gsub("|","_")
-        actuator.remove
-      end
-      model.getEnergyManagementSystemPrograms.each do |program|
-        next unless program.name.to_s == "#{obj_name} schedule program".gsub(" ","_")
-        program.remove
-      end      
-      model.getEnergyManagementSystemProgramCallingManagers.each do |program_calling_manager|
-        next unless program_calling_manager.name.to_s == obj_name + " program calling manager"
-        program_calling_manager.remove
-      end
-    
-      unit = Unit.new
-      unit.num_bedrooms, unit.num_bathrooms = Geometry.get_unit_beds_baths(model, building_unit, runner)      
-      if unit.num_bedrooms.nil? or unit.num_bathrooms.nil?
-        return false
-      end      
-      unit.above_grade_finished_floor_area = Geometry.get_above_grade_finished_floor_area_from_spaces(building_unit.spaces, false, runner)
-      unit.finished_floor_area = Geometry.get_finished_floor_area_from_spaces(building_unit.spaces, false, runner)
-
-      schedules = Schedules.new
-=======
       HVAC.remove_ceiling_fans(runner, model, unit)
->>>>>>> master
     
       success, sch = HVAC.apply_ceiling_fans(model, unit, runner, coverage, specified_num, power,
                                              control, use_benchmark_energy, cooling_setpoint_offset,

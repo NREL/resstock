@@ -56,31 +56,21 @@ task :copy_beopt_files do
   beopt_measures_dir = File.join(File.dirname(__FILE__), branch, "OpenStudio-BEopt-#{branch}", "measures")
   buildstock_resource_measures_dir = File.join(File.dirname(__FILE__), "resources", "measures")
 
-  # Copy seed osm and other needed resource files
+  # Copy needed resource files
   project_dir_names = get_all_project_dir_names()
   extra_files = [
-                 File.join("seeds", "EmptySeedModel.osm"),
                  File.join("workflows", "measure-info.json"),
                  File.join("resources", "meta_measure.rb") # Needed by buildstock.rb
                 ]
   extra_files.each do |extra_file|
       puts "Copying #{extra_file}..."
       beopt_file = File.join(File.dirname(__FILE__), branch, "OpenStudio-BEopt-#{branch}", extra_file)
-      if extra_file.start_with?("seeds") # Distribute to all projects
-        project_dir_names.each do |project_dir_name|
-          buildstock_file = File.join(File.dirname(__FILE__), project_dir_name, extra_file)
-          if File.exists?(buildstock_file)
-            FileUtils.rm(buildstock_file)
-          end
-          FileUtils.cp(beopt_file, buildstock_file)
-        end
-      else # Copy to resources dir
-        buildstock_file = File.join(File.dirname(__FILE__), "resources", File.basename(extra_file))
-        if File.exists?(buildstock_file)
-          FileUtils.rm(buildstock_file)
-        end
-        FileUtils.cp(beopt_file, buildstock_file)
+      # Copy to resources dir
+      buildstock_file = File.join(File.dirname(__FILE__), "resources", File.basename(extra_file))
+      if File.exists?(buildstock_file)
+        FileUtils.rm(buildstock_file)
       end
+      FileUtils.cp(beopt_file, buildstock_file)
   end
   
   # Clean out resources/measures/ dir

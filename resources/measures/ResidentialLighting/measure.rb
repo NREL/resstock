@@ -278,168 +278,11 @@ class ResidentialLighting < OpenStudio::Measure::ModelMeasure
     
     Lighting.remove(model, runner)
 
-<<<<<<< HEAD
-    monthly_kwh_per_day = []
-    days_m = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
-    wtd_avg_monthly_kwh_per_day = 0
-    for monthNum in 1..12
-        month = monthNum-1
-        monthHalfHourKWHs = [0]
-        for hourNum in 0..9
-            monthHalfHourKWHs[hourNum] = june_kws[hourNum]
-        end
-        for hourNum in 9..17
-            hour = (hourNum + 1.0) * 0.5
-            monthHalfHourKWHs[hourNum] = (monthHalfHourKWHs[8]  - (0.15 / (2 * pi)) * Math.sin((2 * pi) * (hour - 4.5) / 3.5) + (0.15 / 3.5) * (hour - 4.5)) * lighting_seasonal_multiplier[month] 
-        end
-        for hourNum in 17..29
-            hour = (hourNum + 1.0) * 0.5
-            monthHalfHourKWHs[hourNum] = (monthHalfHourKWHs[16] - (-0.02 / (2 * pi)) * Math.sin((2 * pi) * (hour - 8.5) / 5.5) + (-0.02 / 5.5) * (hour - 8.5)) * lighting_seasonal_multiplier[month]
-        end
-        for hourNum in 29..45
-            hour = (hourNum + 1.0) * 0.5
-            monthHalfHourKWHs[hourNum] = (monthHalfHourKWHs[28] + amplConst1 * Math.exp((-1.0 * (hour - (sunset_hour[month] + sunsetLag1))**2) / (2.0 * ((25.5 / ((6.5 - monthNum).abs + 20.0)) * stdDevCons1)**2)) / ((25.5 / ((6.5 - monthNum).abs + 20.0)) * stdDevCons1 * (2.0*pi)**0.5))
-        end
-        for hourNum in 45..46
-            hour = (hourNum + 1.0) * 0.5
-            temp1 = (monthHalfHourKWHs[44] + amplConst1 * Math.exp((-1.0 * (hour - (sunset_hour[month] + sunsetLag1))**2) / (2.0 * ((25.5 / ((6.5 - monthNum).abs + 20.0)) * stdDevCons1)**2)) / ((25.5 / ((6.5 - monthNum).abs + 20.0)) * stdDevCons1 * (2.0*pi)**0.5))
-            temp2 = (0.04 + amplConst2 * Math.exp((-1.0 * (hour - (sunsetLag2))**2) / (2.0 * (stdDevCons2)**2)) / (stdDevCons2 * (2.0*pi)**0.5))
-            if sunsetLag2 < sunset_hour[month] + sunsetLag1
-                monthHalfHourKWHs[hourNum] = [temp1, temp2].min
-            else
-                monthHalfHourKWHs[hourNum] = [temp1, temp2].max
-            end
-        end
-        for hourNum in 46..47
-            hour = (hourNum + 1) * 0.5
-            monthHalfHourKWHs[hourNum] = (0.04 + amplConst2 * Math.exp((-1.0 * (hour - (sunsetLag2))**2) / (2.0 * (stdDevCons2)**2)) / (stdDevCons2 * (2.0*pi)**0.5))
-        end
-
-        sum_kWh = 0.0
-        for timenum in 0..47
-            sum_kWh = sum_kWh + monthHalfHourKWHs[timenum]
-        end
-        for hour in 0..23
-            ltg_hour = (monthHalfHourKWHs[hour*2] + monthHalfHourKWHs[hour*2+1]).to_f
-            normalized_hourly_lighting[month][hour] = ltg_hour/sum_kWh
-            monthly_kwh_per_day[month] = sum_kWh/2.0 
-       end
-       wtd_avg_monthly_kwh_per_day = wtd_avg_monthly_kwh_per_day + monthly_kwh_per_day[month] * days_m[month]/365.0
-    end
-    
-    # Calculate normalized monthly lighting fractions
-    seasonal_multiplier = []
-    sumproduct_seasonal_multiplier = 0
-    normalized_monthly_lighting = seasonal_multiplier
-    for month in 0..11
-        seasonal_multiplier[month] = (monthly_kwh_per_day[month]/wtd_avg_monthly_kwh_per_day)
-        sumproduct_seasonal_multiplier += seasonal_multiplier[month] * days_m[month]
-    end
-    
-    for month in 0..11
-        normalized_monthly_lighting[month] = seasonal_multiplier[month] * days_m[month] / sumproduct_seasonal_multiplier
-    end
-    
-    # Calc schedule values
-    lighting_sch = [[],[],[],[],[],[],[],[],[],[],[],[]]
-    sch_max = 0.0
-    for month in 0..11
-        for hour in 0..23
-            lighting_sch[month][hour] = normalized_monthly_lighting[month]*normalized_hourly_lighting[month][hour]/days_m[month]
-            if lighting_sch[month][hour] > sch_max
-                sch_max = lighting_sch[month][hour]
-            end
-        end
-    end
-    
-    # Remove all existing lighting
-    objects_to_remove = []
-    model.getExteriorLightss.each do |exterior_light|
-        objects_to_remove << exterior_light
-        objects_to_remove << exterior_light.exteriorLightsDefinition
-        if exterior_light.schedule.is_initialized
-            objects_to_remove << exterior_light.schedule.get
-        end
-    end
-    model.getLightss.each do |light|
-        objects_to_remove << light
-        objects_to_remove << light.lightsDefinition
-        if light.schedule.is_initialized
-            objects_to_remove << light.schedule.get
-        end
-    end
-    if objects_to_remove.size > 0
-        runner.registerInfo("Removed existing interior/exterior lighting from the model.")
-    end
-    objects_to_remove.uniq.each do |object|
-        begin
-            object.remove
-        rescue
-            # no op
-        end
-    end
-
-    tot_ltg = 0
-=======
     tot_ltg_e = 0
->>>>>>> master
     msgs = []
     sch = nil
     units.each do |unit|
         
-<<<<<<< HEAD
-        # Get unit ffa and finished spaces
-        unit_finished_spaces = Geometry.get_finished_spaces(unit.spaces)
-        ffa = Geometry.get_finished_floor_area_from_spaces(unit.spaces, false, runner)
-        if ffa.nil?
-            return false
-        end
-        
-        # Interior lighting
-        if option_type == Constants.OptionTypeLightingEnergyUses
-            ltg_ann = energy_use_interior
-        elsif option_type == Constants.OptionTypeLightingFractions
-            bm_hw_e = frac_hw * (ffa * 0.542 + 334)
-            bm_pg_e = frac_pg * (ffa * 0.542 + 334)
-            int_hw_e = (bm_hw_e * (((hw_inc * er_inc + (1 - bab_frac_inc) * bab_er_inc) + (hw_cfl * er_cfl - bab_frac_cfl * bab_er_cfl) + (hw_led * er_led - bab_frac_led * bab_er_led) + (hw_lfl * er_lfl - bab_frac_lfl * bab_er_lfl)) * smrt_replace_f * 0.9 + 0.1))
-            int_pg_e = (bm_pg_e * (((pg_inc * er_inc + (1 - bab_frac_inc) * bab_er_inc) + (pg_cfl * er_cfl - bab_frac_cfl * bab_er_cfl) + (pg_led * er_led - bab_frac_led * bab_er_led) + (pg_lfl * er_lfl - bab_frac_lfl * bab_er_lfl)) * smrt_replace_f * 0.9 + 0.1))
-            ltg_ann = int_hw_e + int_pg_e
-        end
-    
-        # Finished spaces for the unit
-        unit_finished_spaces.each do |space|
-            space_obj_name = "#{Constants.ObjectNameLighting(unit.name.to_s)} #{space.name.to_s}"
-
-            if sch.nil?
-                # Create schedule
-                sch = HourlyByMonthSchedule.new(model, runner, Constants.ObjectNameLighting + " schedule", lighting_sch, lighting_sch)
-                if not sch.validated?
-                    return false
-                end
-            end
-            
-            if unit_finished_spaces.include?(space)
-                space_ltg_ann = ltg_ann * UnitConversions.convert(space.floorArea, "m^2", "ft^2") / ffa
-            end
-            space_design_level = sch.calcDesignLevel(sch_max*space_ltg_ann)
-        
-            # Add lighting
-            ltg_def = OpenStudio::Model::LightsDefinition.new(model)
-            ltg = OpenStudio::Model::Lights.new(ltg_def)
-            ltg.setName(space_obj_name)
-            ltg.setSpace(space)
-            ltg_def.setName(space_obj_name)
-            ltg_def.setLightingLevel(space_design_level)
-            ltg_def.setFractionRadiant(0.6)
-            ltg_def.setFractionVisible(0.2)
-            ltg_def.setReturnAirFraction(0.0)
-            ltg.setSchedule(sch.schedule)
-
-            msgs << "Lighting with #{space_ltg_ann.round} kWhs annual energy consumption has been assigned to space '#{space.name.to_s}'."
-            tot_ltg += space_ltg_ann
-            
-        end
-=======
       # Interior lighting
       unit_finished_spaces = Geometry.get_finished_spaces(unit.spaces)
       ffa = Geometry.get_finished_floor_area_from_spaces(unit.spaces, false, runner)
@@ -461,17 +304,11 @@ class ResidentialLighting < OpenStudio::Measure::ModelMeasure
       
       msgs << "Lighting with #{interior_ann.round} kWhs annual energy consumption has been assigned to unit '#{unit.name.to_s}'."
       tot_ltg_e += interior_ann
->>>>>>> master
         
     end
     
     # Garage lighting (garages not associated with a unit)
-<<<<<<< HEAD
-    model_spaces = model.getSpaces
-    garage_spaces = Geometry.get_garage_spaces(model_spaces)
-=======
     garage_spaces = Geometry.get_garage_spaces(model.getSpaces)
->>>>>>> master
     gfa = Geometry.get_floor_area_from_spaces(garage_spaces)
     if option_type == Constants.OptionTypeLightingEnergyUses
         garage_ann = energy_use_garage
@@ -480,51 +317,18 @@ class ResidentialLighting < OpenStudio::Measure::ModelMeasure
         garage_ann = (common_bm_garage_e * (((hw_inc * er_inc + (1 - bab_frac_inc) * bab_er_inc) + (hw_cfl * er_cfl - bab_frac_cfl * bab_er_cfl) + (hw_led * er_led - bab_frac_led * bab_er_led) + (hw_lfl * er_lfl - bab_frac_lfl * bab_er_lfl)) * smrt_replace_f * 0.9 + 0.1))
     end
     
-<<<<<<< HEAD
-    garage_spaces.each do |garage_space|
-        space_obj_name = "#{Constants.ObjectNameLighting} #{garage_space.name.to_s}"
-    
-        if sch.nil?
-            # Create schedule
-            sch = HourlyByMonthSchedule.new(model, runner, Constants.ObjectNameLighting + " schedule", lighting_sch, lighting_sch)
-            if not sch.validated?
-                return false
-            end
-        end
-        
-        space_ltg_ann = garage_ann * UnitConversions.convert(garage_space.floorArea, "m^2", "ft^2") / gfa
-        space_design_level = sch.calcDesignLevel(sch_max*space_ltg_ann)
-    
-        # Add lighting
-        ltg_def = OpenStudio::Model::LightsDefinition.new(model)
-        ltg = OpenStudio::Model::Lights.new(ltg_def)
-        ltg.setName(space_obj_name)
-        ltg.setSpace(garage_space)
-        ltg_def.setName(space_obj_name)
-        ltg_def.setLightingLevel(space_design_level)
-        ltg_def.setFractionRadiant(0.6)
-        ltg_def.setFractionVisible(0.2)
-        ltg_def.setReturnAirFraction(0.0)
-        ltg.setSchedule(sch.schedule)
-
-        msgs << "Lighting with #{space_ltg_ann.round} kWhs annual energy consumption has been assigned to space '#{garage_space.name.to_s}'."
-        tot_ltg += space_ltg_ann
-        
-    end
-=======
     success = Lighting.apply_garage(model, runner, sch, garage_ann)
     return false if not success
     
     msgs << "Lighting with #{garage_ann.round} kWhs annual energy consumption has been assigned to the garage(s)."
     tot_ltg_e += garage_ann
->>>>>>> master
     
     # Exterior Lighting
     exterior_ann = 0
     if option_type == Constants.OptionTypeLightingEnergyUses
         exterior_ann = energy_use_exterior
     elsif option_type == Constants.OptionTypeLightingFractions
-        total_ffa = Geometry.get_finished_floor_area_from_spaces(model_spaces, true, runner)
+        total_ffa = Geometry.get_finished_floor_area_from_spaces(model.getSpaces, true, runner)
         bm_outside_e = 0.145 * total_ffa
         exterior_ann = (bm_outside_e * (((hw_inc * er_inc + (1 - bab_frac_inc) * bab_er_inc) + (hw_cfl * er_cfl - bab_frac_cfl * bab_er_cfl) + (hw_led * er_led - bab_frac_led * bab_er_led) + (hw_lfl * er_lfl - bab_frac_lfl * bab_er_lfl)) * smrt_replace_f * 0.9 + 0.1))
     end

@@ -61,8 +61,6 @@ class ProcessCentralSystemBoilerBaseboards < OpenStudio::Measure::ModelMeasure
       return false
     end
 
-    return true # FIXME: remove
-
     require "openstudio-standards"
 
     central_boiler_system_type = runner.getStringArgumentValue("central_boiler_system_type",user_arguments)

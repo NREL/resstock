@@ -104,55 +104,6 @@ class ProcessCoolingSetpoints < OpenStudio::Measure::ModelMeasure
     if weather.error?
       return false
     end
-<<<<<<< HEAD
-    
-    model_zones = model.getThermalZones
-
-    # Get cooling season
-    if use_auto_season
-      heating_season, cooling_season = HVAC.calc_heating_and_cooling_seasons(model, weather, runner)
-    else
-      month_map = {"Jan"=>1, "Feb"=>2, "Mar"=>3, "Apr"=>4, "May"=>5, "Jun"=>6, "Jul"=>7, "Aug"=>8, "Sep"=>9, "Oct"=>10, "Nov"=>11, "Dec"=>12}
-      if clg_start_month.is_initialized
-        clg_start_month = month_map[clg_start_month.get]
-      end
-      if clg_end_month.is_initialized
-        clg_end_month = month_map[clg_end_month.get]
-      end
-      if clg_start_month <= clg_end_month
-        cooling_season = Array.new(clg_start_month-1, 0) + Array.new(clg_end_month-clg_start_month+1, 1) + Array.new(12-clg_end_month, 0)
-      elsif clg_start_month > clg_end_month
-        cooling_season = Array.new(clg_end_month, 1) + Array.new(clg_start_month-clg_end_month-1, 0) + Array.new(12-clg_start_month+1, 1)
-      end
-    end
-    if cooling_season.nil?
-      return false
-    end
-    
-    # Remove existing cooling season schedule
-    model.getScheduleRulesets.each do |sch|
-      next unless sch.name.to_s == Constants.ObjectNameCoolingSeason
-      sch.remove
-    end    
-    coolingseasonschedule = MonthWeekdayWeekendSchedule.new(model, runner, Constants.ObjectNameCoolingSeason, Array.new(24, 1), Array.new(24, 1), cooling_season, mult_weekday=1.0, mult_weekend=1.0, normalize_values=false)  
-    
-    unless coolingseasonschedule.validated?
-      return false
-    end
-
-    # assign the availability schedules to the equipment objects
-    model_zones.each do |thermal_zone|
-      cooling_equipment = HVAC.existing_cooling_equipment(model, runner, thermal_zone)
-      cooling_equipment.each do |clg_equip|
-        clg_obj, htg_obj, supp_htg_obj = HVAC.get_coils_from_hvac_equip(clg_equip)
-        unless clg_obj.nil? or clg_obj.to_CoilCoolingWaterToAirHeatPumpEquationFit.is_initialized
-          clg_obj.setAvailabilitySchedule(coolingseasonschedule.schedule)
-          runner.registerInfo("Added availability schedule to #{clg_obj.name}.")
-        end
-      end
-    end
-=======
->>>>>>> master
     
     # Convert to 24-values if a single value entered
     if not weekday_setpoint.include?(",")
@@ -160,22 +111,10 @@ class ProcessCoolingSetpoints < OpenStudio::Measure::ModelMeasure
     else
       weekday_setpoints = weekday_setpoint.split(",").map(&:to_f)
     end
-<<<<<<< HEAD
-
-    clg_wkdy = clg_wkdy.split(",").map {|i| UnitConversions.convert(i.to_f,"F","C")}
-    clg_wked = clg_wked.split(",").map {|i| UnitConversions.convert(i.to_f,"F","C")}  
-    
-    finished_zones = []
-    model_zones.each do |thermal_zone|
-      if Geometry.zone_is_finished(thermal_zone)
-        finished_zones << thermal_zone
-      end
-=======
     if not weekend_setpoint.include?(",")
       weekend_setpoints = Array.new(24, weekend_setpoint.to_f)
     else
       weekend_setpoints = weekend_setpoint.split(",").map(&:to_f)
->>>>>>> master
     end
     
     # Convert to month int or nil

@@ -88,19 +88,6 @@ class ResidentialRefrigerator < OpenStudio::Measure::ModelMeasure
     weekend_sch = runner.getStringArgumentValue("weekend_sch",user_arguments)
     monthly_sch = runner.getStringArgumentValue("monthly_sch",user_arguments)
     location = runner.getStringArgumentValue("location",user_arguments)
-<<<<<<< HEAD
-    
-    #check for valid inputs
-    if fridge_E < 0
-        runner.registerError("Rated annual consumption must be greater than or equal to 0.")
-        return false
-    end
-    if mult < 0
-        runner.registerError("Occupancy energy multiplier must be greater than or equal to 0.")
-        return false
-    end
-=======
->>>>>>> master
     
     # Get building units
     units = Geometry.get_building_units(model, runner)
@@ -111,21 +98,6 @@ class ResidentialRefrigerator < OpenStudio::Measure::ModelMeasure
     # Remove all existing objects
     obj_name = Constants.ObjectNameRefrigerator
     model.getSpaces.each do |space|
-<<<<<<< HEAD
-        remove_existing(runner, space, obj_name)
-    end
-    
-    # Calculate fridge daily energy use
-    fridge_ann = fridge_E*mult
-
-    location_hierarchy = [Constants.SpaceTypeKitchen, 
-                          Constants.SpaceTypeLiving, 
-                          Constants.SpaceTypeGarage, 
-                          Constants.SpaceTypeLiving, 
-                          Constants.SpaceTypeUnfinishedBasement]
-
-    tot_fridge_ann = 0
-=======
         Refrigerator.remove(runner, space, obj_name)
     end
     
@@ -136,7 +108,6 @@ class ResidentialRefrigerator < OpenStudio::Measure::ModelMeasure
                           Constants.SpaceTypeUnfinishedBasement]
 
     tot_ann_e = 0
->>>>>>> master
     msgs = []
     sch = nil
     units.each_with_index do |unit, unit_index|
@@ -145,18 +116,12 @@ class ResidentialRefrigerator < OpenStudio::Measure::ModelMeasure
         space = Geometry.get_space_from_location(unit, location, location_hierarchy)
         next if space.nil?
         
-<<<<<<< HEAD
-        unit_obj_name = Constants.ObjectNameRefrigerator(unit.name.to_s)
-
-        if fridge_ann > 0
-=======
         success, ann_e, sch = Refrigerator.apply(model, unit, runner, rated_annual_energy, mult,
                                                  weekday_sch, weekend_sch, monthly_sch, sch, space)
         
         if not success
             return false
         end
->>>>>>> master
         
         if ann_e > 0
             msgs << "A refrigerator with #{ann_e.round} kWhs annual energy consumption has been assigned to space '#{space.name.to_s}'."
@@ -182,32 +147,6 @@ class ResidentialRefrigerator < OpenStudio::Measure::ModelMeasure
  
   end #end the run method
   
-<<<<<<< HEAD
-  def remove_existing(runner, space, obj_name)
-    # Remove any existing refrigerator
-    objects_to_remove = []
-    space.electricEquipment.each do |space_equipment|
-        next if not space_equipment.name.to_s.start_with? obj_name
-        objects_to_remove << space_equipment
-        objects_to_remove << space_equipment.electricEquipmentDefinition
-        if space_equipment.schedule.is_initialized
-            objects_to_remove << space_equipment.schedule.get
-        end
-    end
-    if objects_to_remove.size > 0
-        runner.registerInfo("Removed existing refrigerator from space '#{space.name.to_s}'.")
-    end
-    objects_to_remove.uniq.each do |object|
-        begin
-            object.remove
-        rescue
-            # no op
-        end
-    end
-  end
-
-=======
->>>>>>> master
 end #end the measure
 
 #this allows the measure to be use by the application

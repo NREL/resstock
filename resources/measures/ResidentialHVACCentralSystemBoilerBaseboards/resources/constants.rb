@@ -23,23 +23,11 @@ class Constants
   def self.DefaultHumiditySetpoint
     return 0.60
   end
-  def self.DefaultSolarAbsCeiling
-    return 0.3
-  end
-  def self.DefaultSolarAbsFloor
-    return 0.6
-  end
-  def self.DefaultSolarAbsWall
-    return 0.5
-  end
   def self.g
     return 32.174    # gravity (ft/s2)
   end
   def self.MixedUseT
     return 110 # F
-  end
-  def self.MinimumBasementHeight
-    return 7 # ft
   end
   def self.MonthNumDays
     return [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
@@ -59,6 +47,9 @@ class Constants
 
   # Strings --------------------
   
+  def self.AirFilm
+    return 'AirFilm'
+  end
   def self.Auto
     return 'auto'
   end
@@ -227,6 +218,9 @@ class Constants
   def self.FacadeRight
     return 'right'
   end
+  def self.FacadeNone
+    return 'none'
+  end
   def self.FluidWater
     return 'water'
   end
@@ -271,57 +265,6 @@ class Constants
   end
   def self.MaterialPEX
     return 'pex'
-  end
-  def self.MaterialCeilingMass
-    return 'ResCeilingMass1'
-  end
-  def self.MaterialCeilingMass2
-    return 'ResCeilingMass2'
-  end
-  def self.MaterialFloorMass
-    return 'ResFloorMass'
-  end
-  def self.MaterialFloorCovering
-    return 'ResFloorCovering'
-  end
-  def self.MaterialFloorRigidIns
-    return 'ResFloorRigidIns'
-  end
-  def self.MaterialFloorSheathing
-    return 'ResFloorSheathing'
-  end
-  def self.MaterialRadiantBarrier
-    return 'ResRadiantBarrier'
-  end
-  def self.MaterialRoofMaterial
-    return 'ResRoofMaterial'
-  end
-  def self.MaterialRoofRigidIns
-    return 'ResRoofRigidIns'
-  end
-  def self.MaterialRoofSheathing
-    return 'ResRoofSheathing'
-  end
-  def self.MaterialWallExtFinish
-    return 'ResExtFinish'
-  end
-  def self.MaterialWallMass
-    return 'ResExtWallMass1'
-  end
-  def self.MaterialWallMass2
-    return 'ResExtWallMass2'
-  end
-  def self.MaterialWallMassOtherSide
-    return 'ResExtWallMassOtherSide1'
-  end
-  def self.MaterialWallMassOtherSide2
-    return 'ResExtWallMassOtherSide2'
-  end
-  def self.MaterialWallRigidIns
-    return 'ResExtWallRigidIns'
-  end
-  def self.MaterialWallSheathing
-    return 'ResExtWallSheathing'
   end
   def self.PVModuleTypeStandard
     return 'standard'
@@ -400,13 +343,6 @@ class Constants
     end
     return "residential clothes washer#{s_unit}"
   end
-  def self.ObjectNameClothesWasherDayShift(unit_name=self.ObjectNameBuildingUnit)
-    s_unit = ""
-    if unit_name != self.ObjectNameBuildingUnit
-      s_unit = "|#{unit_name}"
-    end
-    return "residential clothes washer day shift#{s_unit}"
-  end
   def self.ObjectNameClothesDryer(fueltype, unit_name=self.ObjectNameBuildingUnit)
     s_fuel = ""
     if not fueltype.nil?
@@ -418,20 +354,16 @@ class Constants
     end
     return "residential clothes dryer#{s_fuel}#{s_unit}"
   end
-  def self.ObjectNameCookingRange(fueltype, ignition=false, unit_name=self.ObjectNameBuildingUnit)
+  def self.ObjectNameCookingRange(fueltype, unit_name=self.ObjectNameBuildingUnit)
     s_fuel = ""
     if not fueltype.nil?
       s_fuel = " #{fueltype}"
-    end
-    s_ignition = ""
-    if ignition
-      s_ignition = " ignition"
     end
     s_unit = ""
     if unit_name != self.ObjectNameBuildingUnit
       s_unit = "|#{unit_name}"
     end
-    return "residential range#{s_fuel}#{s_ignition}#{s_unit}"
+    return "residential range#{s_fuel}#{s_unit}"
   end
   def self.ObjectNameCoolingSeason
     return 'residential cooling season'
@@ -461,9 +393,6 @@ class Constants
     return "res ds#{s_unit}"
   end  
   def self.ObjectNameEaves(facade="")
-    if facade.nil?
-      facade = ""
-    end
     if facade != ""
       facade = " #{facade}"
     end
@@ -612,9 +541,6 @@ class Constants
     return "res nv#{s_unit}"
   end
   def self.ObjectNameNeighbors(facade="")
-    if facade.nil?
-      facade = ""
-    end
     if facade != ""
       facade = " #{facade}"
     end
@@ -626,6 +552,12 @@ class Constants
       s_unit = "|#{unit_name}"
     end
     return "residential occupants#{s_unit}"
+  end
+  def self.ObjectNameOverhangs(facade="")
+    if facade != ""
+      facade = " #{facade}"
+    end
+    return "residential overhangs#{facade}"
   end
   def self.ObjectNamePhotovoltaics(unit_name=self.ObjectNameBuildingUnit)
     s_unit = ""
@@ -655,8 +587,12 @@ class Constants
     end
     return "residential refrigerator#{s_unit}"
   end
-  def self.ObjectNameRelativeHumiditySetpoint
-    return 'residential relative humidity setpoint'
+  def self.ObjectNameRelativeHumiditySetpoint(unit_name=self.ObjectNameBuildingUnit)
+    s_unit = ""
+    if unit_name != self.ObjectNameBuildingUnit
+      s_unit = "|#{unit_name}"
+    end
+    return "residential rh setpoint#{s_unit}"
   end
   def self.ObjectNameRoomAirConditioner(unit_name=self.ObjectNameBuildingUnit)
     s_unit = ""
@@ -720,9 +656,6 @@ class Constants
       s_unit = "|#{unit_name}"
     end
     return "residential well pump#{s_unit}"
-  end
-  def self.ObjectNameWindowShading
-    return 'residential window shading'
   end
   def self.OptionTypeLightingFractions
     return 'Lamp Fractions'
@@ -825,12 +758,6 @@ class Constants
         s_obj = "|#{obj.handle.to_s}"
     end
     return "#{property}#{s_obj}"
-  end
-  def self.SizingInfoBasementWallInsulationHeight(surface) # FUTURE: Use StandardsInfo object
-    return self.SizingInfo(__method__.to_s, surface)
-  end
-  def self.SizingInfoBasementWallRvalue(surface) # FUTURE: Use StandardsInfo object
-    return self.SizingInfo(__method__.to_s, surface)
   end
   def self.SizingInfoCMUWallFurringInsRvalue(surface) # FUTURE: Use StandardsInfo object
     return self.SizingInfo(__method__.to_s, surface)
@@ -952,12 +879,6 @@ class Constants
   def self.SizingInfoSlabRvalue(surface) # FUTURE: Use StandardsInfo object
     return self.SizingInfo(__method__.to_s, surface)
   end
-  def self.SizingInfoSpaceCeilingInsulated(space) # FUTURE: Use StandardsInfo object
-    return self.SizingInfo(__method__.to_s, space)
-  end
-  def self.SizingInfoSpaceWallsInsulated(space) # FUTURE: Use StandardsInfo object
-    return self.SizingInfo(__method__.to_s, space)
-  end
   def self.SizingInfoStudWallCavityRvalue(surface) # FUTURE: Use StandardsInfo object
     return self.SizingInfo(__method__.to_s, surface)
   end
@@ -1011,6 +932,78 @@ class Constants
   end
   def self.SpaceTypeUnfinishedBasement
     return 'unfinished basement'
+  end
+  def self.SurfaceTypeFloorFinInsUnfinAttic # unfinished attic floor
+    return 'FloorFinInsUnfinAttic'
+  end
+  def self.SurfaceTypeFloorFinInsUnfin # interzonal or cantilevered floor
+    return 'FloorFinInsUnfin'
+  end
+  def self.SurfaceTypeFloorFinUninsFin # floor between 1st/2nd story living spaces
+    return 'FloorFinUninsFin'
+  end
+  def self.SurfaceTypeFloorUnfinUninsUnfin # floor between garage and attic
+    return 'FloorUnfinUninsUnfin'
+  end
+  def self.SurfaceTypeFloorFndGrndFinB # finished basement floor
+    return 'FloorFndGrndFinB'
+  end
+  def self.SurfaceTypeFloorFndGrndUnfinB # unfinished basement floor
+    return 'FloorFndGrndUnfinB'
+  end
+  def self.SurfaceTypeFloorFndGrndFinSlab # finished slab
+    return 'FloorFndGrndFinSlab'
+  end
+  def self.SurfaceTypeFloorFndGrndUnfinSlab # garage slab
+    return 'FloorFndGrndUnfinSlab'
+  end
+  def self.SurfaceTypeFloorUnfinBInsFin # unfinished basement ceiling
+    return 'FloorUnfinBInsFin'
+  end
+  def self.SurfaceTypeFloorCSInsFin # crawlspace ceiling
+    return 'FloorCSInsFin'
+  end
+  def self.SurfaceTypeFloorPBInsFin # pier beam ceiling
+    return 'FloorPBInsFin'
+  end
+  def self.SurfaceTypeFloorFndGrndCS # crawlspace floor
+    return 'FloorFndGrndCS'
+  end
+  def self.SurfaceTypeRoofUnfinUninsExt # garage roof
+    return 'RoofUnfinUninsExt'
+  end
+  def self.SurfaceTypeRoofUnfinInsExt # unfinished attic roof
+    return 'RoofUnfinInsExt'
+  end
+  def self.SurfaceTypeRoofFinInsExt # finished attic roof
+    return 'RoofFinInsExt'
+  end
+  def self.SurfaceTypeWallExtInsFin # living exterior wall
+    return 'WallExtInsFin'
+  end
+  def self.SurfaceTypeWallExtInsUnfin # attic gable wall under insulated roof
+    return 'WallExtInsUnfin'
+  end
+  def self.SurfaceTypeWallExtUninsUnfin # garage exterior wall or attic gable wall under uninsulated roof
+    return 'WallExtUninsUnfin'
+  end
+  def self.SurfaceTypeWallFndGrndFinB # finished basement wall
+    return 'WallFndGrndFinB'
+  end
+  def self.SurfaceTypeWallFndGrndUnfinB # unfinished basement wall
+    return 'WallFndGrndUnfinB'
+  end
+  def self.SurfaceTypeWallFndGrndCS  # crawlspace wall
+    return 'WallFndGrndCS'
+  end
+  def self.SurfaceTypeWallIntFinInsUnfin # interzonal wall
+    return 'WallIntFinInsUnfin'
+  end
+  def self.SurfaceTypeWallIntFinUninsFin # wall between two finished spaces
+    return 'WallIntFinUninsFin'
+  end
+  def self.SurfaceTypeWallIntUnfinUninsUnfin # wall between two unfinished spaces
+    return 'WallIntUnfinUninsUnfin'
   end
   def self.TerrainOcean
     return 'ocean'

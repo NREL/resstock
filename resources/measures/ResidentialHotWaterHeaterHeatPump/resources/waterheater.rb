@@ -9,8 +9,6 @@ require "#{File.dirname(__FILE__)}/psychrometrics"
 
 class Waterheater
 
-<<<<<<< HEAD
-=======
     def self.apply_tank(model, unit, runner, space, fuel_type, 
                         cap, vol, ef, re, t_set, oncycle_p, offcycle_p)
     
@@ -1235,7 +1233,6 @@ class Waterheater
         water_use_connection.addWaterUseEquipment(wu)
     end
 
->>>>>>> master
     def self.get_shw_storage_tank(model, unit)
         model.getPlantLoops.each do |plant_loop|
           next unless plant_loop.name.to_s == Constants.PlantLoopSolarHotWater(unit.name.to_s)
@@ -1250,11 +1247,7 @@ class Waterheater
   
     def self.get_plant_loop_from_string(plant_loops, plantloop_s, unit, obj_name_hpwh, runner=nil)
         if plantloop_s == Constants.Auto
-<<<<<<< HEAD
-            return self.get_plant_loop_for_spaces(plant_loops, unit, obj_name_hpwh, runner)
-=======
             return get_plant_loop_for_spaces(plant_loops, unit, obj_name_hpwh, runner)
->>>>>>> master
         end
         plant_loop = nil
         plant_loops.each do |pl|
@@ -1538,102 +1531,4 @@ class Waterheater
         return nil
     end
     
-<<<<<<< HEAD
-    def self.get_location_hierarchy(ba_cz_name)
-        if [Constants.BAZoneHotDry, Constants.BAZoneHotHumid].include? ba_cz_name
-            return [Constants.SpaceTypeGarage,
-                    Constants.SpaceTypeLiving, 
-                    Constants.SpaceTypeFinishedBasement,
-                    Constants.SpaceTypeLaundryRoom, 
-                    Constants.SpaceTypeCrawl, 
-                    Constants.SpaceTypeUnfinishedAttic]
-        elsif [Constants.BAZoneMarine, Constants.BAZoneMixedHumid, Constants.BAZoneMixedDry, Constants.BAZoneCold, Constants.BAZoneVeryCold, Constants.BAZoneSubarctic].include? ba_cz_name
-            return [Constants.SpaceTypeFinishedBasement,
-                    Constants.SpaceTypeUnfinishedBasement, 
-                    Constants.SpaceTypeLiving, 
-                    Constants.SpaceTypeLaundryRoom, 
-                    Constants.SpaceTypeCrawl, 
-                    Constants.SpaceTypeUnfinishedAttic]
-        end
-        return nil
-    end
-    
-    def self.remove_existing(runner, pl, obj_name, model) # TODO: Should not pass in model
-        #Remove any existing water heater
-        objects_to_remove = []
-        pl.supplyComponents.each do |wh|
-            next if !wh.to_WaterHeaterMixed.is_initialized and !wh.to_WaterHeaterStratified.is_initialized
-            if wh.to_WaterHeaterMixed.is_initialized
-                objects_to_remove << wh
-                if wh.to_WaterHeaterMixed.get.setpointTemperatureSchedule.is_initialized
-                  objects_to_remove << wh.to_WaterHeaterMixed.get.setpointTemperatureSchedule.get
-                end
-            elsif wh.to_WaterHeaterStratified.is_initialized
-                if not wh.to_WaterHeaterStratified.get.secondaryPlantLoop.is_initialized
-                  model.getWaterHeaterHeatPumpWrappedCondensers.each do |hpwh|
-                    objects_to_remove << hpwh.tank
-                    objects_to_remove << hpwh                            
-                  end
-                  objects_to_remove << wh.to_WaterHeaterStratified.get.heater1SetpointTemperatureSchedule
-                  objects_to_remove << wh.to_WaterHeaterStratified.get.heater2SetpointTemperatureSchedule
-                  Waterheater.remove_existing_hpwh(model, obj_name)
-                end
-            end
-        end
-        if objects_to_remove.size > 0
-            runner.registerInfo("Removed existing water heater from plant loop '#{pl.name.to_s}'.")
-        end
-        objects_to_remove.uniq.each do |object|
-            begin
-                object.remove
-            rescue
-                # no op
-            end
-        end
-    end
-
-    def self.remove_existing_hpwh(model, obj_name_hpwh)
-      obj_name_hpwh_underscore = obj_name_hpwh.gsub(" ","_")
-      
-      model.getEnergyManagementSystemProgramCallingManagers.each do |program_calling_manager|
-        next unless program_calling_manager.name.to_s.include? obj_name_hpwh
-        program_calling_manager.remove
-      end
-      
-      model.getEnergyManagementSystemSensors.each do |sensor|
-        next unless sensor.name.to_s.include? obj_name_hpwh_underscore
-        sensor.remove
-      end      
-      
-      model.getEnergyManagementSystemActuators.each do |actuator|
-        next unless actuator.name.to_s.include? obj_name_hpwh_underscore
-        actuatedComponent = actuator.actuatedComponent
-        if actuatedComponent.is_a? OpenStudio::Model::OptionalModelObject # 2.4.0 or higher
-          actuatedComponent = actuatedComponent.get
-        end
-        if actuatedComponent.to_OtherEquipment.is_initialized
-          actuatedComponent.to_OtherEquipment.get.otherEquipmentDefinition.remove
-        end
-        actuator.remove
-      end
-      
-      model.getScheduleConstants.each do |schedule|
-        next unless schedule.name.to_s.include? obj_name_hpwh
-        schedule.remove
-      end
-      
-      model.getEnergyManagementSystemPrograms.each do |program|
-        next unless program.name.to_s.include? obj_name_hpwh_underscore
-        program.remove
-      end      
-      
-      model.getEnergyManagementSystemTrendVariables.each do |trend_var|
-        next unless trend_var.name.to_s.include? obj_name_hpwh_underscore
-        trend_var.remove
-      end
-      
-    end
-    
-=======
->>>>>>> master
 end

@@ -102,15 +102,6 @@ class HourlyByMonthSchedule
 
             schedule = OpenStudio::Model::ScheduleRuleset.new(@model)
             schedule.setName(@sch_name)
-<<<<<<< HEAD
-            
-            assumedYear = yd.assumedYear # prevent excessive OS warnings about 'UseWeatherFile'
-            
-            for m in 1..12
-                date_s = OpenStudio::Date::fromDayOfYear(day_startm[m], assumedYear)
-                date_e = OpenStudio::Date::fromDayOfYear(day_endm[m], assumedYear)
-                
-=======
 
             assumedYear = year_description.assumedYear # prevent excessive OS warnings about 'UseWeatherFile'
 
@@ -118,7 +109,6 @@ class HourlyByMonthSchedule
                 date_s = OpenStudio::Date::fromDayOfYear(day_startm[m], assumedYear)
                 date_e = OpenStudio::Date::fromDayOfYear(day_endm[m], assumedYear)
 
->>>>>>> master
                 wkdy_vals = []
                 wknd_vals = []
                 for h in 1..24
@@ -344,15 +334,6 @@ class MonthWeekdayWeekendSchedule
 
             schedule = OpenStudio::Model::ScheduleRuleset.new(@model)
             schedule.setName(@sch_name)
-<<<<<<< HEAD
-            
-            assumedYear = yd.assumedYear # prevent excessive OS warnings about 'UseWeatherFile'
-            
-            for m in 1..12
-                date_s = OpenStudio::Date::fromDayOfYear(day_startm[m], assumedYear)
-                date_e = OpenStudio::Date::fromDayOfYear(day_endm[m], assumedYear)
-                
-=======
 
             assumedYear = year_description.assumedYear # prevent excessive OS warnings about 'UseWeatherFile'
 
@@ -360,7 +341,6 @@ class MonthWeekdayWeekendSchedule
                 date_s = OpenStudio::Date::fromDayOfYear(day_startm[m], assumedYear)
                 date_e = OpenStudio::Date::fromDayOfYear(day_endm[m], assumedYear)
 
->>>>>>> master
                 wkdy_vals = []
                 wknd_vals = []
                 for h in 1..24

@@ -51,8 +51,6 @@ class ProcessCentralSystemPTAC < OpenStudio::Measure::ModelMeasure
       return false
     end
 
-    return true # FIXME: remove
-
     require "openstudio-standards"
 
     central_boiler_fuel_type = HelperMethods.eplus_fuel_map(runner.getStringArgumentValue("central_boiler_fuel_type",user_arguments))

@@ -286,77 +286,7 @@ class ProcessVariableSpeedCentralAirConditioner < OpenStudio::Measure::ModelMeas
           existing_objects[zone] = HVAC.remove_hvac_equipment(model, runner, zone, unit,
                                                               Constants.ObjectNameCentralAirConditioner)
         end
-<<<<<<< HEAD
-        air_loop_unitary.setSupplyFan(fan)
-        air_loop_unitary.setFanPlacement("BlowThrough")
-        air_loop_unitary.setSupplyAirFanOperatingModeSchedule(model.alwaysOffDiscreteSchedule)
-        air_loop_unitary.setMaximumSupplyAirTemperature(UnitConversions.convert(120.0,"F","C"))
-        air_loop_unitary.setSupplyAirFlowRateWhenNoCoolingorHeatingisRequired(0)    
-        
-        perf = OpenStudio::Model::UnitarySystemPerformanceMultispeed.new(model)
-        air_loop_unitary.setDesignSpecificationMultispeedObject(perf)
-        perf.setSingleModeOperation(false)
-        for speed in 1..number_Speeds
-          f = OpenStudio::Model::SupplyAirflowRatioField.fromCoolingRatio(acFanspeedRatio[speed-1])
-          perf.addSupplyAirflowRatioField(f)
-        end
-        
-        air_loop = OpenStudio::Model::AirLoopHVAC.new(model)
-        air_loop.setName(obj_name + " central air system")
-        air_supply_inlet_node = air_loop.supplyInletNode
-        air_supply_outlet_node = air_loop.supplyOutletNode
-        air_demand_inlet_node = air_loop.demandInletNode
-        air_demand_outlet_node = air_loop.demandOutletNode    
-        
-        air_loop_unitary.addToNode(air_supply_inlet_node)
-        
-        runner.registerInfo("Added '#{fan.name}' to #{air_loop_unitary.name}' of '#{air_loop.name}'")
-        runner.registerInfo("Added '#{clg_coil.name}' to #{air_loop_unitary.name}' of '#{air_loop.name}'")
-        unless htg_coil.nil?
-          runner.registerInfo("Added '#{htg_coil.name}' to '#{air_loop_unitary.name}' of '#{air_loop.name}'")
-        end
-        
-        air_loop_unitary.setControllingZoneorThermostatLocation(control_zone)
-        
-        # _processSystemDemandSideAir
-        # Demand Side
-
-        # Supply Air
-        zone_splitter = air_loop.zoneSplitter
-        zone_splitter.setName(obj_name + " zone splitter")
-        
-        zone_mixer = air_loop.zoneMixer
-        zone_mixer.setName(obj_name + " zone mixer")
-
-        diffuser_living = OpenStudio::Model::AirTerminalSingleDuctUncontrolled.new(model, model.alwaysOnDiscreteSchedule)
-        diffuser_living.setName(obj_name + " #{control_zone.name} direct air")
-        air_loop.addBranchForZone(control_zone, diffuser_living.to_StraightComponent)
-
-        air_loop.addBranchForZone(control_zone)
-        runner.registerInfo("Added '#{air_loop.name}' to '#{control_zone.name}' of #{unit.name}")
-
-        HVAC.prioritize_zone_hvac(model, runner, control_zone)
-        
-        slave_zones.each do |slave_zone|
-
-          # Remove existing equipment
-          HVAC.remove_existing_hvac_equipment(model, runner, Constants.ObjectNameCentralAirConditioner, slave_zone, false, unit)
-      
-          diffuser_fbsmt = OpenStudio::Model::AirTerminalSingleDuctUncontrolled.new(model, model.alwaysOnDiscreteSchedule)
-          diffuser_fbsmt.setName(obj_name + " #{slave_zone.name} direct air")
-          air_loop.addBranchForZone(slave_zone, diffuser_fbsmt.to_StraightComponent)
-
-          air_loop.addBranchForZone(slave_zone)
-          runner.registerInfo("Added '#{air_loop.name}' to '#{slave_zone.name}' of #{unit.name}")
-
-          HVAC.prioritize_zone_hvac(model, runner, slave_zone)
-          
-        end # slave_zone
-      
-      end # control_zone
-=======
       end
->>>>>>> master
       
       success = HVAC.apply_central_ac_4speed(model, unit, runner, seer, eers, shrs,
                                              capacity_ratios, fan_speed_ratios,

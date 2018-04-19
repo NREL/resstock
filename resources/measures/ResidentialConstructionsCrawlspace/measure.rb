@@ -115,11 +115,11 @@ class ProcessConstructionsCrawlspace < OpenStudio::Measure::ModelMeasure
                                                             wall_rigid_r, 0, 8.0, crawl_height,
                                                             floor_surface, 
                                                             Constants.SurfaceTypeFloorFndGrndCS,
-                                                            slab_whole_r)
+                                                            slab_whole_r, nil, true)
             return false
         end
     end
-    
+
     if not FloorConstructions.apply_foundation_ceiling(runner, model,
                                                        floors_by_type[Constants.SurfaceTypeFloorCSInsFin],
                                                        Constants.SurfaceTypeFloorCSInsFin,
@@ -128,12 +128,12 @@ class ProcessConstructionsCrawlspace < OpenStudio::Measure::ModelMeasure
                                                        0.75, Material.FloorWood, Material.CoveringBare)
         return false
     end
-    
+
     floors_by_type[Constants.SurfaceTypeFloorFndGrndUnfinSlab].each do |surface|
         if not FoundationConstructions.apply_slab(runner, model, 
                                                   surface,
                                                   Constants.SurfaceTypeFloorFndGrndUnfinSlab,
-                                                  0, 0, 0, 0, 0, 0, 4.0, false, nil, nil)
+                                                  0, 0, 0, 0, 0, 0, 4.0, nil, false, nil, nil, true)
             return false
         end
     end

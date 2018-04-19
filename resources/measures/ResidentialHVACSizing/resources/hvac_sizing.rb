@@ -4122,7 +4122,7 @@ class HVACSizing
     
     # Window AC
     thermal_zones.each do |thermal_zone|
-        ptac = HVAC.get_ptac(model, runner, thermal_zone)
+        ptac = HVAC.get_room_ac(model, runner, thermal_zone)
         next if ptac.nil?
         
         # PTAC
