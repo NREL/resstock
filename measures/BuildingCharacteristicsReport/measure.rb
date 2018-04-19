@@ -5,7 +5,7 @@ class BuildingCharacteristicsReport < OpenStudio::Measure::ReportingMeasure
   def name
     return "Building Characteristics Report"
   end
-  
+
   def description
     return "Reports building characteristics for each simulation."
   end
