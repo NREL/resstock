@@ -75,32 +75,6 @@ class ProcessElectricBaseboard < OpenStudio::Measure::ModelMeasure
     units.each do |unit|
       
       thermal_zones = Geometry.get_thermal_zones_from_spaces(unit.spaces)
-<<<<<<< HEAD
-
-      control_slave_zones_hash = HVAC.get_control_and_slave_zones(thermal_zones)
-      control_slave_zones_hash.each do |control_zone, slave_zones|
-    
-        ([control_zone] + slave_zones).each do |zone|
-        
-          # Remove existing equipment
-          HVAC.remove_existing_hvac_equipment(model, runner, Constants.ObjectNameElectricBaseboard, zone, false, unit)
-        
-          htg_coil = OpenStudio::Model::ZoneHVACBaseboardConvectiveElectric.new(model)
-          htg_coil.setName(obj_name + " #{zone.name} convective electric")
-          if baseboardOutputCapacity != Constants.SizingAuto
-              htg_coil.setNominalCapacity(UnitConversions.convert(baseboardOutputCapacity,"Btu/hr","W")) # Used by HVACSizing measure
-          end
-          htg_coil.setEfficiency(baseboardEfficiency)
-
-          htg_coil.addToThermalZone(zone)
-          runner.registerInfo("Added '#{htg_coil.name}' to '#{zone.name}' of #{unit.name}")
-         
-          HVAC.prioritize_zone_hvac(model, runner, zone)
-          
-        end
-        
-      end
-=======
       HVAC.get_control_and_slave_zones(thermal_zones).each do |control_zone, slave_zones|
         ([control_zone] + slave_zones).each do |zone|
           HVAC.remove_hvac_equipment(model, runner, zone, unit,
@@ -110,7 +84,6 @@ class ProcessElectricBaseboard < OpenStudio::Measure::ModelMeasure
     
       success = HVAC.apply_electric_baseboard(model, unit, runner, efficiency, capacity)
       return false if not success
->>>>>>> master
         
     end
     

@@ -44,7 +44,7 @@ class Airflow
     end
     building.stories = model.getBuilding.standardsNumberOfAboveGroundStories.get
     building.above_grade_volume = Geometry.get_above_grade_finished_volume(model, true)
-    building.ag_ext_wall_area = Geometry.calculate_above_grade_exterior_wall_area(model_spaces, false)
+    building.ag_ext_wall_area = Geometry.calculate_above_grade_exterior_wall_area(model_spaces, true)
     model.getThermalZones.each do |thermal_zone|
       if Geometry.is_garage(thermal_zone)
         building.garage = ZoneInfo.new(thermal_zone, Geometry.get_height_of_spaces(thermal_zone.spaces), UnitConversions.convert(thermal_zone.floorArea,"m^2","ft^2"), Geometry.get_zone_volume(thermal_zone, false, runner), Geometry.get_z_origin_for_zone(thermal_zone), nil, nil)

@@ -2,13 +2,8 @@
   <schema_version>3.0</schema_version>
   <name>create_residential_single_family_attached_geometry</name>
   <uid>fb4e4db8-1b29-4cbf-abcd-6af194ad945c</uid>
-<<<<<<< HEAD:resources/measures/ResidentialGeometrySingleFamilyAttached/measure.xml
-  <version_id>6726de4f-3911-4724-b779-5aba904a8b42</version_id>
-  <version_modified>20180410T212123Z</version_modified>
-=======
-  <version_id>0decf94f-dc47-46e3-823a-51e38b198ef0</version_id>
-  <version_modified>20180416T163842Z</version_modified>
->>>>>>> master:resources/measures/ResidentialGeometryCreateSingleFamilyAttached/measure.xml
+  <version_id>c707a693-1c4f-40aa-bdf8-321fa9a645e6</version_id>
+  <version_modified>20180419T151832Z</version_modified>
   <xml_checksum>2AF3A68E</xml_checksum>
   <class_name>CreateResidentialSingleFamilyAttachedGeometry</class_name>
   <display_name>Create Residential Single-Family Attached Geometry</display_name>
@@ -262,6 +257,64 @@
       <default_value>2</default_value>
     </argument>
     <argument>
+      <name>use_zone_mult</name>
+      <display_name>Use Zone Multipliers?</display_name>
+      <description>Model only one interior unit with its thermal zone multiplier equal to the number of interior units.</description>
+      <type>Boolean</type>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>false</default_value>
+      <choices>
+        <choice>
+          <value>true</value>
+          <display_name>true</display_name>
+        </choice>
+        <choice>
+          <value>false</value>
+          <display_name>false</display_name>
+        </choice>
+      </choices>
+    </argument>
+    <argument>
+      <name>shared_building_facades</name>
+      <display_name>Shared Building Facade(s)</display_name>
+      <description>The facade(s) of the building that are shared. Surfaces on these facades become adiabatic.</description>
+      <type>Choice</type>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>none</default_value>
+      <choices>
+        <choice>
+          <value>none</value>
+          <display_name>none</display_name>
+        </choice>
+        <choice>
+          <value>back</value>
+          <display_name>back</display_name>
+        </choice>
+        <choice>
+          <value>left</value>
+          <display_name>left</display_name>
+        </choice>
+        <choice>
+          <value>right</value>
+          <display_name>right</display_name>
+        </choice>
+        <choice>
+          <value>left, right</value>
+          <display_name>left, right</display_name>
+        </choice>
+        <choice>
+          <value>left, back</value>
+          <display_name>left, back</display_name>
+        </choice>
+        <choice>
+          <value>back, right</value>
+          <display_name>back, right</display_name>
+        </choice>
+      </choices>
+    </argument>
+    <argument>
       <name>num_bedrooms</name>
       <display_name>Number of Bedrooms</display_name>
       <description>Specify the number of bedrooms. Used to determine the energy usage of appliances and plug loads, hot water usage, mechanical ventilation rate, etc.</description>
@@ -395,73 +448,16 @@
   </attributes>
   <files>
     <file>
-<<<<<<< HEAD:resources/measures/ResidentialGeometrySingleFamilyAttached/measure.xml
-      <filename>unit_conversions.rb</filename>
-      <filetype>rb</filetype>
-      <usage_type>resource</usage_type>
-      <checksum>3E1D973D</checksum>
-    </file>
-    <file>
-      <filename>geometry.rb</filename>
-      <filetype>rb</filetype>
-      <usage_type>resource</usage_type>
-      <checksum>15FAD11A</checksum>
-    </file>
-    <file>
-      <filename>constants.rb</filename>
-      <filetype>rb</filetype>
-      <usage_type>resource</usage_type>
-      <checksum>A682F61A</checksum>
-=======
       <filename>util.rb</filename>
       <filetype>rb</filetype>
       <usage_type>resource</usage_type>
       <checksum>A001EED9</checksum>
     </file>
     <file>
-      <filename>create_residential_single_family_attached_geometry_test.rb</filename>
-      <filetype>rb</filetype>
-      <usage_type>test</usage_type>
-      <checksum>67099C38</checksum>
-    </file>
-    <file>
       <filename>unit_conversions.rb</filename>
       <filetype>rb</filetype>
       <usage_type>resource</usage_type>
       <checksum>91D17463</checksum>
->>>>>>> master:resources/measures/ResidentialGeometryCreateSingleFamilyAttached/measure.xml
-    </file>
-    <file>
-      <version>
-        <software_program>OpenStudio</software_program>
-        <identifier>1.12.2</identifier>
-        <min_compatible>2.0.4</min_compatible>
-      </version>
-      <filename>measure.rb</filename>
-      <filetype>rb</filetype>
-      <usage_type>script</usage_type>
-<<<<<<< HEAD:resources/measures/ResidentialGeometrySingleFamilyAttached/measure.xml
-      <checksum>8D4F0E58</checksum>
-    </file>
-    <file>
-      <filename>SFA_4units_1story_FB_UA_Denver.osm</filename>
-      <filetype>osm</filetype>
-      <usage_type>test</usage_type>
-      <checksum>F9777FDB</checksum>
-    </file>
-    <file>
-      <filename>create_residential_single_family_attached_geometry_test.rb</filename>
-      <filetype>rb</filetype>
-      <usage_type>test</usage_type>
-      <checksum>0742FE92</checksum>
-=======
-      <checksum>D6ABFD9A</checksum>
-    </file>
-    <file>
-      <filename>geometry.rb</filename>
-      <filetype>rb</filetype>
-      <usage_type>resource</usage_type>
-      <checksum>92D32A87</checksum>
     </file>
     <file>
       <filename>schedules.rb</filename>
@@ -476,11 +472,33 @@
       <checksum>9DF8CF0F</checksum>
     </file>
     <file>
+      <filename>create_residential_single_family_attached_geometry_test.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>test</usage_type>
+      <checksum>C0A602D8</checksum>
+    </file>
+    <file>
+      <filename>geometry.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>36E97B7F</checksum>
+    </file>
+    <file>
       <filename>SFA_4units_1story_FB_UA_Denver.osm</filename>
       <filetype>osm</filetype>
       <usage_type>test</usage_type>
-      <checksum>DB75EBBD</checksum>
->>>>>>> master:resources/measures/ResidentialGeometryCreateSingleFamilyAttached/measure.xml
+      <checksum>EB732DBD</checksum>
+    </file>
+    <file>
+      <version>
+        <software_program>OpenStudio</software_program>
+        <identifier>1.12.2</identifier>
+        <min_compatible>2.0.4</min_compatible>
+      </version>
+      <filename>measure.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>script</usage_type>
+      <checksum>123692B1</checksum>
     </file>
   </files>
 </measure>

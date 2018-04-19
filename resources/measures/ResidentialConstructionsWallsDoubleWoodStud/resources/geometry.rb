@@ -222,19 +222,19 @@ class Geometry
   end
 
   def self.get_floor_area_from_spaces(spaces, apply_multipliers=false, runner=nil)
-      floor_area = 0
-      spaces.each do |space|
-          mult = 1.0
-          if apply_multipliers
-              mult = space.multiplier.to_f
-          end
-          floor_area += UnitConversions.convert(space.floorArea * mult, "m^2", "ft^2")
+    floor_area = 0
+    spaces.each do |space|
+      mult = 1.0
+      if apply_multipliers
+        mult = space.multiplier.to_f
       end
-      if floor_area == 0 and not runner.nil?
-          runner.registerError("Could not find any floor area.")
-          return nil
-      end
-      return floor_area
+      floor_area += UnitConversions.convert(space.floorArea * mult, "m^2", "ft^2")
+    end
+    if floor_area == 0 and not runner.nil?
+      runner.registerError("Could not find any floor area.")
+      return nil
+    end
+    return floor_area
   end
   
   def self.get_zone_volume(zone, apply_multipliers=false, runner=nil)
@@ -650,134 +650,142 @@ class Geometry
   # TODO: Has not been tested on buildings with multiple foundations
   #        (aside from basements/crawls with attached garages over slabs)
   # TODO: Update code to work for non-rectangular buildings.
-  def self.calculate_exposed_perimeter(model, ground_floor_surfaces, has_foundation_walls=false)
+    def self.calculate_exposed_perimeter(model, ground_floor_surfaces, has_foundation_walls=false, apply_multipliers=false)
 
-      perimeter = 0
+        perimeter = 0
 
-      # Get ground edges
-      if not has_foundation_walls
-          # Use edges from floor surface
-          ground_edges = self.get_edges_for_surfaces(ground_floor_surfaces, false)
-      else
-          # Use top edges from foundation walls instead
-          surfaces = []
-          ground_floor_surfaces.each do |ground_floor_surface|
-              next if not ground_floor_surface.space.is_initialized
-              foundation_space = ground_floor_surface.space.get
-              foundation_space.surfaces.each do |surface|
-                  next if not surface.surfaceType.downcase == "wall"
-                  next if surfaces.include? surface
-                  surfaces << surface
-              end
-          end
-          ground_edges = self.get_edges_for_surfaces(surfaces, true)
-      end
+        # Get ground edges
+        if not has_foundation_walls
+            # Use edges from floor surface
+            ground_edges = self.get_edges_for_surfaces(ground_floor_surfaces, false, false, apply_multipliers)
+        else
+            # Use top edges from foundation walls instead
+            surfaces = []
+            ground_floor_surfaces.each do |ground_floor_surface|
+                next if not ground_floor_surface.space.is_initialized
+                foundation_space = ground_floor_surface.space.get
+                foundation_space.surfaces.each do |surface|
+                    next if not surface.surfaceType.downcase == "wall"
+                    next if surfaces.include? surface
+                    surfaces << surface
+                end
+            end
+            ground_edges = self.get_edges_for_surfaces(surfaces, true, false, apply_multipliers)
+        end
 
-      # Get bottom edges of exterior exposed walls or interzonal walls or pier & beam walls
-      surfaces = []
-      model.getSurfaces.each do |surface|
-          next if not surface.surfaceType.downcase == "wall"
-          next if not (self.is_exterior_surface(surface) or self.is_interzonal_surface(surface) or self.is_pier_beam_surface(surface))
-          surfaces << surface
-      end
-      model_edges = self.get_edges_for_surfaces(surfaces, false, true)
+        # Get bottom edges of exterior exposed walls or interzonal walls or pier & beam walls
+        surfaces = []
+        model.getSurfaces.each do |surface|
+            next if not surface.surfaceType.downcase == "wall"
+            next if not (self.is_exterior_surface(surface) or self.is_interzonal_surface(surface) or self.is_pier_beam_surface(surface))
+            surfaces << surface
+        end
+        model_edges = self.get_edges_for_surfaces(surfaces, false, true, apply_multipliers)
 
-      # check edges for matches
-      ground_edges.each do |e1|
-          model_edges.each do |e2|
-              next if not ((equal_vertices(e1[0], e2[1]) and equal_vertices(e1[1], e2[0])) or (equal_vertices(e1[0], e2[0]) and equal_vertices(e1[1], e2[1])))
-              point_one = OpenStudio::Point3d.new(e1[0][0],e1[0][1],e1[0][2])
-              point_two = OpenStudio::Point3d.new(e1[1][0],e1[1][1],e1[1][2])
-              length = OpenStudio::Vector3d.new(point_one - point_two).length
-              perimeter += length
-              break
-          end
-      end
+        # check edges for matches
+        ground_edges.each do |e1|
+            model_edges.each do |e2|
+                next if not ((equal_vertices(e1[0], e2[1]) and equal_vertices(e1[1], e2[0])) or (equal_vertices(e1[0], e2[0]) and equal_vertices(e1[1], e2[1])))
+                point_one = OpenStudio::Point3d.new(e1[0][0],e1[0][1],e1[0][2])
+                point_two = OpenStudio::Point3d.new(e1[1][0],e1[1][1],e1[1][2])
+                length = OpenStudio::Vector3d.new(point_one - point_two).length
+                perimeter += length
+                break
+            end
+        end
 
-      return UnitConversions.convert(perimeter, "m", "ft")
-  end
+        return UnitConversions.convert(perimeter, "m", "ft")
+    end
 
-  def self.equal_vertices(v1, v2)
-    tol = 0.001
-    return false if (v1[0] - v2[0]).abs > tol
-    return false if (v1[1] - v2[1]).abs > tol
-    return false if (v1[2] - v2[2]).abs > tol
-    return true
-  end
+    def self.equal_vertices(v1, v2)
+      tol = 0.001
+      return false if (v1[0] - v2[0]).abs > tol
+      return false if (v1[1] - v2[1]).abs > tol
+      return false if (v1[2] - v2[2]).abs > tol
+      return true
+    end
 
-  def self.get_edges_for_surfaces(surfaces, use_top_edge, combine_adjacent=false)
-      edges = []
-      edge_counter = 0
-      surfaces.each do |surface|
-          # ensure we only process bottom or top edge of wall surfaces
-          if use_top_edge
-              matchz = self.getSurfaceZValues([surface]).max
-          else
-              matchz = self.getSurfaceZValues([surface]).min
-          end
-          # get vertices
-          vertex_hash = {}
-          vertex_counter = 0
-          surface.vertices.each do |vertex|
-              next if (UnitConversions.convert(vertex.z, "m", "ft") - matchz).abs > 0.0001
-              vertex_counter += 1
-              vertex_hash[vertex_counter] = [vertex.x + surface.space.get.xOrigin,
-                                             vertex.y + surface.space.get.yOrigin,
-                                             vertex.z + surface.space.get.zOrigin]
-          end
-          # make edges
-          counter = 0
-          vertex_hash.each do |k,v|
-              edge_counter += 1
-              counter += 1
-              if vertex_hash.size != counter
-                  edges << [v, vertex_hash[counter+1], self.get_facade_for_surface(surface)]
-              elsif vertex_hash.size > 2 # different code for wrap around vertex (if > 2 vertices)
-                  edges << [v, vertex_hash[1], self.get_facade_for_surface(surface)]
-              end
-          end
-      end
-
-      if combine_adjacent
-          # Create combinations of adjacent edges (e.g., front wall surface split into multiple surfaces because of the door)
-          loop do
-              new_combi_edges = []
-              edges.each_with_index do |e1, i1|
-                  edges.each_with_index do |e2, i2|
-                      next if i2 <= i1
-                      next if e1[2] != e2[2] # different facades
-                      # Check if shared vertex and not overlapping
-                      new_combi_edge = nil
-                      if e1[0] == e2[1]
-                          next if not self.vertices_straddle_base_vertex?(e1[0], e1[1], e2[0], e1[2])
-                          new_combi_edge = [e1[1], e2[0], e1[2]]
-                      elsif e1[1] == e2[0]
-                          next if not self.vertices_straddle_base_vertex?(e1[1], e1[0], e2[1], e1[2])
-                          new_combi_edge = [e1[0], e2[1], e1[2]]
-                      elsif e1[1] == e2[1]
-                          next if not self.vertices_straddle_base_vertex?(e1[1], e1[0], e2[0], e1[2])
-                          new_combi_edge = [e1[0], e2[0], e1[2]]
-                      elsif e1[0] == e2[0]
-                          next if not self.vertices_straddle_base_vertex?(e1[0], e1[1], e2[1], e1[2])
-                          new_combi_edge = [e1[1], e2[1], e1[2]]
-                      end
-                      next if new_combi_edge.nil?
-                      next if edges.include?(new_combi_edge)
-                      new_combi_edges << new_combi_edge
+    def self.get_edges_for_surfaces(surfaces, use_top_edge, combine_adjacent=false, apply_multipliers=false)
+        edges = []
+        edge_counter = 0
+        surfaces.each do |surface|
+            mult = 1.0
+            if apply_multipliers
+                space = surface.space.get
+                mult = space.multiplier.to_f
+            end
+        
+            # ensure we only process bottom or top edge of wall surfaces
+            if use_top_edge
+                matchz = self.getSurfaceZValues([surface]).max
+            else
+                matchz = self.getSurfaceZValues([surface]).min
+            end
+            # get vertices
+            vertex_hash = {}
+            vertex_counter = 0
+            surface.vertices.each do |vertex|
+                next if (UnitConversions.convert(vertex.z, "m", "ft") - matchz).abs > 0.0001
+                vertex_counter += 1
+                vertex_hash[vertex_counter] = [vertex.x + surface.space.get.xOrigin,
+                                               vertex.y + surface.space.get.yOrigin,
+                                               vertex.z + surface.space.get.zOrigin]
+            end
+            # make edges
+            counter = 0
+            vertex_hash.each do |k,v|
+                edge_counter += 1
+                counter += 1
+                (1..mult).to_a.each do |m|
+                  if vertex_hash.size != counter
+                      edges << [v, vertex_hash[counter+1], self.get_facade_for_surface(surface)]
+                  elsif vertex_hash.size > 2 # different code for wrap around vertex (if > 2 vertices)
+                      edges << [v, vertex_hash[1], self.get_facade_for_surface(surface)]
                   end
-              end
+                end
+            end
+        end
 
-              # Add new_combi_edges to edges
-              new_combi_edges.each do |new_combi_edge|
-                  edges << new_combi_edge
-              end
+        if combine_adjacent
+            # Create combinations of adjacent edges (e.g., front wall surface split into multiple surfaces because of the door)
+            loop do
+                new_combi_edges = []
+                edges.each_with_index do |e1, i1|
+                    edges.each_with_index do |e2, i2|
+                        next if i2 <= i1
+                        next if e1[2] != e2[2] # different facades
+                        # Check if shared vertex and not overlapping
+                        new_combi_edge = nil
+                        if e1[0] == e2[1]
+                            next if not self.vertices_straddle_base_vertex?(e1[0], e1[1], e2[0], e1[2])
+                            new_combi_edge = [e1[1], e2[0], e1[2]]
+                        elsif e1[1] == e2[0]
+                            next if not self.vertices_straddle_base_vertex?(e1[1], e1[0], e2[1], e1[2])
+                            new_combi_edge = [e1[0], e2[1], e1[2]]
+                        elsif e1[1] == e2[1]
+                            next if not self.vertices_straddle_base_vertex?(e1[1], e1[0], e2[0], e1[2])
+                            new_combi_edge = [e1[0], e2[0], e1[2]]
+                        elsif e1[0] == e2[0]
+                            next if not self.vertices_straddle_base_vertex?(e1[0], e1[1], e2[1], e1[2])
+                            new_combi_edge = [e1[1], e2[1], e1[2]]
+                        end
+                        next if new_combi_edge.nil?
+                        next if edges.include?(new_combi_edge)
+                        new_combi_edges << new_combi_edge
+                    end
+                end
 
-              break if new_combi_edges.size == 0 # no new combinations found
-          end
-      end
+                # Add new_combi_edges to edges
+                new_combi_edges.each do |new_combi_edge|
+                    edges << new_combi_edge
+                end
 
-      return edges
-  end
+                break if new_combi_edges.size == 0 # no new combinations found
+            end
+        end
+
+        return edges
+    end
 
   def self.vertices_straddle_base_vertex?(b, v1, v2, facade)
       # Checks if v1 and v2 are on opposite sides of b
@@ -1352,7 +1360,7 @@ class Geometry
 
   end
 
-  def self.process_occupants(model, runner, num_occ, occ_gain, sens_frac, lat_frac, weekday_sch, weekend_sch, monthly_sch)
+  def self.process_occupants(model, runner, num_occ, occ_gain, sens_frac, lat_frac, weekday_sch, weekend_sch, monthly_sch, apply_multipliers=false)
 
     num_occ = num_occ.split(",").map(&:strip)
 
@@ -1493,7 +1501,11 @@ class Geometry
             end
           end
 
-          space_num_occ = unit_occ * UnitConversions.convert(space.floorArea, "m^2", "ft^2") / ffa
+          mult = 1.0
+          if apply_multipliers
+            mult = space.multiplier.to_f
+          end
+          space_num_occ = unit_occ * UnitConversions.convert(space.floorArea * mult, "m^2", "ft^2") / ffa
 
           if space_num_occ > 0
 

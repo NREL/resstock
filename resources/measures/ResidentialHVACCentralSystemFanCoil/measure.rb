@@ -65,8 +65,6 @@ class ProcessCentralSystemFanCoil < OpenStudio::Measure::ModelMeasure
       return false
     end
 
-    return true # FIXME: remove
-
     require "openstudio-standards"
 
     fan_coil_heating = runner.getBoolArgumentValue("fan_coil_heating",user_arguments)

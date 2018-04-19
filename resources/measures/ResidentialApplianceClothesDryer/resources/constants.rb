@@ -47,12 +47,9 @@ class Constants
 
   # Strings --------------------
   
-<<<<<<< HEAD:resources/measures/ResidentialApplianceClothesDryerElectric/resources/constants.rb
-=======
   def self.AirFilm
     return 'AirFilm'
   end
->>>>>>> master:resources/measures/ResidentialApplianceClothesDryer/resources/constants.rb
   def self.Auto
     return 'auto'
   end
@@ -221,12 +218,9 @@ class Constants
   def self.FacadeRight
     return 'right'
   end
-<<<<<<< HEAD:resources/measures/ResidentialApplianceClothesDryerElectric/resources/constants.rb
-=======
   def self.FacadeNone
     return 'none'
   end
->>>>>>> master:resources/measures/ResidentialApplianceClothesDryer/resources/constants.rb
   def self.FluidWater
     return 'water'
   end
@@ -348,13 +342,6 @@ class Constants
       s_unit = "|#{unit_name}"
     end
     return "residential clothes washer#{s_unit}"
-  end
-  def self.ObjectNameClothesWasherDayShift(unit_name=self.ObjectNameBuildingUnit)
-    s_unit = ""
-    if unit_name != self.ObjectNameBuildingUnit
-      s_unit = "|#{unit_name}"
-    end
-    return "residential clothes washer day shift#{s_unit}"
   end
   def self.ObjectNameClothesDryer(fueltype, unit_name=self.ObjectNameBuildingUnit)
     s_fuel = ""
@@ -945,8 +932,6 @@ class Constants
   end
   def self.SpaceTypeUnfinishedBasement
     return 'unfinished basement'
-<<<<<<< HEAD:resources/measures/ResidentialApplianceClothesDryerElectric/resources/constants.rb
-=======
   end
   def self.SurfaceTypeFloorFinInsUnfinAttic # unfinished attic floor
     return 'FloorFinInsUnfinAttic'
@@ -1019,7 +1004,6 @@ class Constants
   end
   def self.SurfaceTypeWallIntUnfinUninsUnfin # wall between two unfinished spaces
     return 'WallIntUnfinUninsUnfin'
->>>>>>> master:resources/measures/ResidentialApplianceClothesDryer/resources/constants.rb
   end
   def self.TerrainOcean
     return 'ocean'

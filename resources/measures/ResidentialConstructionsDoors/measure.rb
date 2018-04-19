@@ -85,43 +85,6 @@ class ProcessConstructionsDoors < OpenStudio::Measure::ModelMeasure
  
   end #end the run method
   
-<<<<<<< HEAD
-  def get_door_sub_surfaces(model)
-  
-    model_spaces = model.getSpaces
-  
-    # Sub-surface between finished space and outdoors
-    finished_sub_surfaces = []
-    model_spaces.each do |space|
-        next if Geometry.space_is_unfinished(space)
-        space.surfaces.each do |surface|
-            next if surface.surfaceType.downcase != "wall" or ( surface.outsideBoundaryCondition.downcase != "outdoors" and surface.outsideBoundaryCondition.downcase != "adiabatic" )
-            surface.subSurfaces.each do |sub_surface|
-                next if not sub_surface.subSurfaceType.downcase.include? "door"
-                finished_sub_surfaces << sub_surface
-            end
-        end
-    end
-
-    # Sub-surface between unfinished space and outdoors
-    unfinished_sub_surfaces = []
-    model_spaces.each do |space|
-        next if Geometry.space_is_finished(space)
-        space.surfaces.each do |surface|
-            next if surface.surfaceType.downcase != "wall" or ( surface.outsideBoundaryCondition.downcase != "outdoors" and surface.outsideBoundaryCondition.downcase != "adiabatic" )
-            surface.subSurfaces.each do |sub_surface|
-                next if not sub_surface.subSurfaceType.downcase.include? "door"
-                unfinished_sub_surfaces << sub_surface
-            end
-        end
-    end
-
-    return finished_sub_surfaces, unfinished_sub_surfaces
-  
-  end
-
-=======
->>>>>>> master
 end #end the measure
 
 #this allows the measure to be use by the application

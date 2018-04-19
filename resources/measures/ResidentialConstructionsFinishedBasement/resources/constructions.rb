@@ -1278,7 +1278,7 @@ class FoundationConstructions
                                   walls_cavity_depth_in, walls_filled_cavity, walls_framing_factor, 
                                   walls_rigid_r, walls_drywall_thick_in, walls_concrete_thick_in, 
                                   space_height, slab_surface, slab_constr_name,
-                                  slab_whole_r, exposed_perimeter=nil)
+                                  slab_whole_r, exposed_perimeter=nil, apply_multipliers=false)
     
         return true if slab_surface.nil?
     
@@ -1340,7 +1340,8 @@ class FoundationConstructions
         end
         
         if not apply_slab(runner, model, slab_surface, slab_constr_name,
-                          0, 0, 0, 0, 0, slab_whole_r, 4.0, true, exposed_perimeter, foundation)
+                          0, 0, 0, 0, 0, slab_whole_r, 4.0, nil, true, 
+                          exposed_perimeter, foundation, apply_multipliers)
             return false
         end
         
@@ -1351,9 +1352,9 @@ class FoundationConstructions
     def self.apply_slab(runner, model, surface, constr_name,
                         perimeter_r, perimeter_width,
                         gap_r, exterior_r, exterior_depth,
-                        whole_r, concrete_thick_in, 
+                        whole_r, concrete_thick_in, mat_carpet=nil,
                         has_fnd_walls=false, exposed_perimeter=nil, 
-                        foundation=nil)
+                        foundation=nil, apply_multipliers=false)
 
         return true if surface.nil?
         
@@ -1401,9 +1402,12 @@ class FoundationConstructions
 
         # Define construction
         constr = Construction.new(constr_name, [1.0])
-        constr.add_layer(mat_concrete)
         if not mat_rigid.nil?
             constr.add_layer(mat_rigid)
+        end
+        constr.add_layer(mat_concrete)
+        if not mat_carpet.nil?
+          constr.add_layer(mat_carpet)
         end
         
         # Create and assign construction to surfaces
@@ -1413,7 +1417,7 @@ class FoundationConstructions
         
         # Exposed perimeter
         if exposed_perimeter.nil?
-            exposed_perimeter = Geometry.calculate_exposed_perimeter(model, [surface], has_fnd_walls)
+            exposed_perimeter = Geometry.calculate_exposed_perimeter(model, [surface], has_fnd_walls, apply_multipliers)
         end
         if exposed_perimeter <= 0
           runner.registerError("Calculated an exposed perimeter <= 0 for slab '#{surface.name.to_s}'.")

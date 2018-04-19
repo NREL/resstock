@@ -2274,7 +2274,9 @@ class HVAC
           htg_obj = nil
           supp_htg_obj = nil
           if (htg_equip.is_a? OpenStudio::Model::AirLoopHVACUnitarySystem or
-              htg_equip.is_a? OpenStudio::Model::ZoneHVACTerminalUnitVariableRefrigerantFlow)
+              htg_equip.is_a? OpenStudio::Model::ZoneHVACTerminalUnitVariableRefrigerantFlow or
+              htg_equip.is_a? OpenStudio::Model::ZoneHVACPackagedTerminalAirConditioner or
+              htg_equip.is_a? OpenStudio::Model::ZoneHVACFourPipeFanCoil)
             clg_obj, htg_obj, supp_htg_obj = get_coils_from_hvac_equip(htg_equip)
           elsif htg_equip.to_ZoneHVACComponent.is_initialized
             htg_obj = htg_equip
@@ -3466,7 +3468,7 @@ class HVAC
       end
       if self.has_room_ac(model, runner, thermal_zone)
         runner.registerInfo("Found room air conditioner in #{thermal_zone.name}.")
-        ptac = self.get_ptac(model, runner, thermal_zone)
+        ptac = self.get_room_ac(model, runner, thermal_zone)
         cooling_equipment << ptac
       end
       if self.has_mshp(model, runner, thermal_zone)
@@ -3480,6 +3482,16 @@ class HVAC
         system, clg_coil, htg_coil, air_loop = self.get_unitary_system_air_loop(model, runner, thermal_zone)
         runner.registerInfo("Found ground source heat pump in #{thermal_zone.name}.")
         cooling_equipment << system
+      end
+      if self.has_central_ptac(model, runner, thermal_zone)
+        runner.registerInfo("Found central ptac in #{thermal_zone.name}.")
+        ptac = self.get_central_ptac(model, runner, thermal_zone)
+        cooling_equipment << ptac
+      end
+      if self.has_central_fan_coil(model, runner, thermal_zone)
+        runner.registerInfo("Found central fan coil in #{thermal_zone.name}.")
+        fcu = self.get_central_fan_coil(model, runner, thermal_zone)
+        cooling_equipment << fcu
       end
       return cooling_equipment
     end
@@ -3524,6 +3536,16 @@ class HVAC
         system, clg_coil, htg_coil = self.get_unitary_system_zone_hvac(model, runner, thermal_zone)
         heating_equipment << system
       end
+      if self.has_central_ptac(model, runner, thermal_zone)
+        runner.registerInfo("Found central ptac in #{thermal_zone.name}.")
+        ptac = self.get_central_ptac(model, runner, thermal_zone)
+        heating_equipment << ptac
+      end
+      if self.has_central_fan_coil(model, runner, thermal_zone)
+        runner.registerInfo("Found central fan coil in #{thermal_zone.name}.")
+        fcu = self.get_central_fan_coil(model, runner, thermal_zone)
+        heating_equipment << fcu
+      end
       return heating_equipment
     end
     
@@ -3544,6 +3566,9 @@ class HVAC
       elsif hvac_equip.is_a? OpenStudio::Model::ZoneHVACPackagedTerminalAirConditioner
         htg_coil = get_coil_from_hvac_component(hvac_equip.heatingCoil)
         clg_coil = get_coil_from_hvac_component(hvac_equip.coolingCoil)
+      elsif hvac_equip.is_a? OpenStudio::Model::ZoneHVACFourPipeFanCoil
+        htg_coil = HVAC.get_coil_from_hvac_component(hvac_equip.heatingCoil)
+        clg_coil = HVAC.get_coil_from_hvac_component(hvac_equip.coolingCoil)
       end
       return clg_coil, htg_coil, supp_htg_coil
     end
@@ -3566,6 +3591,8 @@ class HVAC
         return hvac_component.to_CoilCoolingDXVariableRefrigerantFlow.get
       elsif hvac_component.to_CoilCoolingWaterToAirHeatPumpEquationFit.is_initialized
         return hvac_component.to_CoilCoolingWaterToAirHeatPumpEquationFit.get
+      elsif hvac_component.to_CoilCoolingWater.is_initialized
+        return hvac_component.to_CoilCoolingWater.get
       end
         
       # Heating coils  
@@ -3583,6 +3610,8 @@ class HVAC
         return hvac_component.to_CoilHeatingWaterBaseboard.get
       elsif hvac_component.to_CoilHeatingWaterToAirHeatPumpEquationFit.is_initialized
         return hvac_component.to_CoilHeatingWaterToAirHeatPumpEquationFit.get
+      elsif hvac_component.to_CoilHeatingWater.is_initialized
+        return hvac_component.to_CoilHeatingWater.get
       end
       return hvac_component
     end
@@ -3640,11 +3669,31 @@ class HVAC
       return nil
     end
     
-    def self.get_ptac(model, runner, thermal_zone)
+    def self.get_room_ac(model, runner, thermal_zone)
       # Returns the PTAC if available
       model.getZoneHVACPackagedTerminalAirConditioners.each do |ptac|
         next unless thermal_zone.handle.to_s == ptac.thermalZone.get.handle.to_s
+        next if ptac.heatingCoil.to_CoilHeatingWater.is_initialized
         return ptac
+      end
+      return nil
+    end
+    
+    def self.get_central_ptac(model, runner, thermal_zone)
+      # Returns the central PTAC if available
+      model.getZoneHVACPackagedTerminalAirConditioners.each do |ptac|
+        next unless thermal_zone.handle.to_s == ptac.thermalZone.get.handle.to_s
+        next unless ptac.heatingCoil.to_CoilHeatingWater.is_initialized
+        return ptac
+      end
+      return nil
+    end
+    
+    def self.get_central_fan_coil(model, runner, thermal_zone)
+      # Returns the fan coil if available
+      model.getZoneHVACFourPipeFanCoils.each do |fcu|
+        next unless thermal_zone.handle.to_s == fcu.thermalZone.get.handle.to_s
+        return fcu
       end
       return nil
     end
@@ -3758,7 +3807,7 @@ class HVAC
     end
     
     def self.has_room_ac(model, runner, thermal_zone)
-      ptac = self.get_ptac(model, runner, thermal_zone)
+      ptac = self.get_room_ac(model, runner, thermal_zone)
       if not ptac.nil?
         return true
       end
@@ -3787,6 +3836,22 @@ class HVAC
         return false
       end
       return true
+    end
+    
+    def self.has_central_ptac(model, runner, thermal_zone)
+      ptac = self.get_central_ptac(model, runner, thermal_zone)
+      if not ptac.nil?
+        return true
+      end
+      return false
+    end
+    
+    def self.has_central_fan_coil(model, runner, thermal_zone)
+      fcu = self.get_central_fan_coil(model, runner, thermal_zone)
+      if not fcu.nil?
+        return true
+      end
+      return false
     end
     
     def self.has_dehumidifier(model, runner, thermal_zone)
@@ -3919,7 +3984,7 @@ class HVAC
     def self.remove_room_ac(model, runner, thermal_zone)
       # Returns true if the object was removed
       return false if not self.has_room_ac(model, runner, thermal_zone)
-      ptac = self.get_ptac(model, runner, thermal_zone)
+      ptac = self.get_room_ac(model, runner, thermal_zone)
       runner.registerInfo("Removed '#{ptac.name}' from #{thermal_zone.name}.")
       ptac.remove
       return true

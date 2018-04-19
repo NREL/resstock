@@ -97,19 +97,11 @@ class ResidentialClothesWasher < OpenStudio::Measure::ModelMeasure
     args << mult_e
 
     #make a double argument for occupancy water multiplier
-<<<<<<< HEAD
-    cw_mult_hw = OpenStudio::Measure::OSArgument::makeDoubleArgument("mult_hw",true)
-    cw_mult_hw.setDisplayName("Occupancy Hot Water Multiplier")
-    cw_mult_hw.setDescription("Appliance hot water use is multiplied by this factor to account for occupancy usage that differs from the national average. This should generally be equal to the Occupancy Energy Multiplier.")
-    cw_mult_hw.setDefaultValue(1)
-    args << cw_mult_hw
-=======
     mult_hw = OpenStudio::Measure::OSArgument::makeDoubleArgument("mult_hw",true)
     mult_hw.setDisplayName("Occupancy Hot Water Multiplier")
     mult_hw.setDescription("Appliance hot water use is multiplied by this factor to account for occupancy usage that differs from the national average. This should generally be equal to the Occupancy Energy Multiplier.")
     mult_hw.setDefaultValue(1)
     args << mult_hw
->>>>>>> master
 
     #make a choice argument for location
     location_args = OpenStudio::StringVector.new
@@ -156,19 +148,6 @@ class ResidentialClothesWasher < OpenStudio::Measure::ModelMeasure
     end
 
     #assign the user inputs to variables
-<<<<<<< HEAD
-    cw_imef = runner.getDoubleArgumentValue("imef",user_arguments)
-    cw_rated_annual_energy = runner.getDoubleArgumentValue("rated_annual_energy",user_arguments)
-    cw_annual_cost = runner.getDoubleArgumentValue("annual_cost",user_arguments)
-    cw_test_date = runner.getIntegerArgumentValue("test_date", user_arguments)
-    cw_drum_volume = runner.getDoubleArgumentValue("drum_volume",user_arguments)
-    cw_cold_cycle = runner.getBoolArgumentValue("cold_cycle",user_arguments)
-    cw_thermostatic_control = runner.getBoolArgumentValue("thermostatic_control",user_arguments)
-    cw_internal_heater = runner.getBoolArgumentValue("internal_heater",user_arguments)
-    cw_fill_sensor = runner.getBoolArgumentValue("fill_sensor",user_arguments)
-    cw_mult_e = runner.getDoubleArgumentValue("mult_e",user_arguments)
-    cw_mult_hw = runner.getDoubleArgumentValue("mult_hw",user_arguments)
-=======
     imef = runner.getDoubleArgumentValue("imef",user_arguments)
     rated_annual_energy = runner.getDoubleArgumentValue("rated_annual_energy",user_arguments)
     annual_cost = runner.getDoubleArgumentValue("annual_cost",user_arguments)
@@ -180,7 +159,6 @@ class ResidentialClothesWasher < OpenStudio::Measure::ModelMeasure
     fill_sensor = runner.getBoolArgumentValue("fill_sensor",user_arguments)
     mult_e = runner.getDoubleArgumentValue("mult_e",user_arguments)
     mult_hw = runner.getDoubleArgumentValue("mult_hw",user_arguments)
->>>>>>> master
     location = runner.getStringArgumentValue("location",user_arguments)
     plant_loop_s = runner.getStringArgumentValue("plant_loop", user_arguments)
     d_sh = runner.getIntegerArgumentValue("schedule_day_shift",user_arguments)
@@ -196,16 +174,6 @@ class ResidentialClothesWasher < OpenStudio::Measure::ModelMeasure
     model.getSpaces.each do |space|
         ClothesWasher.remove(runner, space, obj_name)
     end
-<<<<<<< HEAD
-    mainsMonthlyTemps = WeatherProcess.get_mains_temperature(site.siteWaterMainsTemperature.get, site.latitude)[1]
-    
-    # Remove all existing objects
-    obj_name = Constants.ObjectNameClothesWasher
-    model.getSpaces.each do |space|
-        remove_existing(runner, space, obj_name)
-    end
-=======
->>>>>>> master
     
     location_hierarchy = [Constants.SpaceTypeLaundryRoom, 
                           Constants.SpaceTypeLiving, 
@@ -213,24 +181,6 @@ class ResidentialClothesWasher < OpenStudio::Measure::ModelMeasure
                           Constants.SpaceTypeUnfinishedBasement, 
                           Constants.SpaceTypeGarage]
 
-<<<<<<< HEAD
-    tot_cw_ann_e = 0
-    msgs = []
-    cd_msgs = []
-    cd_sch = nil
-    units.each_with_index do |unit, unit_index|
-    
-        # Get unit beds/baths
-        nbeds, nbaths = Geometry.get_unit_beds_baths(model, unit, runner)
-        if nbeds.nil? or nbaths.nil?
-            return false
-        end
-        sch_unit_index = Geometry.get_unit_dhw_sched_index(model, unit, runner)
-        if sch_unit_index.nil?
-            return false
-        end
-        
-=======
     tot_ann_e = 0
     msgs = []
     cd_msgs = []
@@ -238,7 +188,6 @@ class ResidentialClothesWasher < OpenStudio::Measure::ModelMeasure
     mains_temps = nil
     units.each_with_index do |unit, unit_index|
     
->>>>>>> master
         # Get space
         space = Geometry.get_space_from_location(unit, location, location_hierarchy)
         next if space.nil?
@@ -249,66 +198,6 @@ class ResidentialClothesWasher < OpenStudio::Measure::ModelMeasure
             return false
         end
     
-<<<<<<< HEAD
-        # Get water heater setpoint
-        wh_setpoint = Waterheater.get_water_heater_setpoint(model, plant_loop, runner)
-        if wh_setpoint.nil?
-            return false
-        end
-
-        unit_obj_name = Constants.ObjectNameClothesWasher(unit.name.to_s)
-
-        # Use EnergyGuide Label test data to calculate per-cycle energy and water consumption.
-        # Calculations are based on "Method for Evaluating Energy Use of Dishwashers, Clothes Washers, 
-        # and Clothes Dryers" by Eastment and Hendron, Conference Paper NREL/CP-550-39769, August 2006.
-        # Their paper is in part based on the energy use calculations  presented in the 10CFR Part 430,
-        # Subpt. B, App. J1 (DOE 1999),
-        # http://ecfr.gpoaccess.gov/cgi/t/text/text-idx?c=ecfr&tpl=/ecfrbrowse/Title10/10cfr430_main_02.tpl
-
-        # Set the number of cycles per year for test conditions
-        cw_cycles_per_year_test = 392 # (see Eastment and Hendron, NREL/CP-550-39769, 2006)
-
-        # The water heater recovery efficiency - how efficiently the heat from natural gas is transferred 
-        # to the water in the water heater. The DOE 10CFR Part 430 assumes a nominal gas water heater
-        # recovery efficiency of 0.75.
-        cw_gas_dhw_heater_efficiency_test = 0.75
-
-        # Calculate test load weight (correlation based on data in Table 5.1 of 10CFR Part 430,
-        # Subpt. B, App. J1, DOE 1999)
-        cw_test_load = 4.103003337 * cw_drum_volume + 0.198242492 # lb
-
-        # Set the Hot Water Inlet Temperature for test conditions
-        if cw_test_date < 2004
-            # (see 10CFR Part 430, Subpt. B, App. J, Section 2.3, DOE 1999)
-            cw_hot_water_inlet_temperature_test = 140 # degF
-        elsif cw_test_date >= 2004
-            # (see 10CFR Part 430, Subpt. B, App. J1, Section 2.3, DOE 1999)
-            cw_hot_water_inlet_temperature_test = 135 # degF
-        end
-
-        # Set the cold water inlet temperature for test conditions (see 10CFR Part 430, Subpt. B, App. J, 
-        # Section 2.3, DOE 1999)
-        cw_cold_water_inlet_temp_test = 60 #degF
-
-        # Set/calculate the hot water fraction and mixed water temperature for test conditions.
-        # Washer varies relative amounts of hot and cold water (by opening and closing valves) to achieve 
-        # a specific wash temperature. This includes the option to simulate washers operating on cold
-        # cycle only (cw_cold_cycle = True). This is an operating choice for the occupant - the 
-        # washer itself was tested under normal test conditions (not cold cycle).
-        if cw_thermostatic_control
-            # (see p. 10 of Eastment and Hendron, NREL/CP-550-39769, 2006)
-            mixed_cycle_temperature_test = 92.5 # degF
-            # (eq. 17 Eastment and Hendron, NREL/CP-550-39769, 2006)
-            hot_water_vol_frac_test = ((mixed_cycle_temperature_test - cw_cold_water_inlet_temp_test) / 
-                                      (cw_hot_water_inlet_temperature_test - cw_cold_water_inlet_temp_test))
-        else
-            # Note: if washer only has cold water supply then the following code will run and 
-            # incorrectly set the hot water fraction to 0.5. However, the code below will correctly 
-            # determine hot and cold water usage.
-            hot_water_vol_frac_test = 0.5
-            mixed_cycle_temperature_test = ((cw_hot_water_inlet_temperature_test - cw_cold_water_inlet_temp_test) * \
-                                           hot_water_vol_frac_test + cw_cold_water_inlet_temp_test) # degF
-=======
         success, ann_e, cd_updated, cd_sch, mains_temps = ClothesWasher.apply(model, unit, runner, imef, rated_annual_energy, annual_cost,
                                                                               test_date, drum_volume, cold_cycle, thermostatic_control,
                                                                               internal_heater, fill_sensor, mult_e, mult_hw, d_sh, cd_sch,
@@ -316,120 +205,13 @@ class ResidentialClothesWasher < OpenStudio::Measure::ModelMeasure
         
         if not success
             return false
->>>>>>> master
         end
         
         if ann_e > 0
             msgs << "A clothes washer with #{ann_e.round} kWhs annual energy consumption has been added to plant loop '#{plant_loop.name}' and assigned to space '#{space.name.to_s}'."
         end
         
-<<<<<<< HEAD
-        cw_ann_e = daily_energy * 365
-    
-        if cw_ann_e > 0
-        
-            # Create schedule
-            sch = HotWaterSchedule.new(model, runner, Constants.ObjectNameClothesWasher + " schedule", Constants.ObjectNameClothesWasher + " temperature schedule", nbeds, sch_unit_index, d_sh, "ClothesWasher", cw_water_temp, File.dirname(__FILE__))
-            if not sch.validated?
-                return false
-            end
-            
-            #Reuse existing water use connection if possible
-            water_use_connection = nil
-            plant_loop.demandComponents.each do |component|
-                next unless component.to_WaterUseConnections.is_initialized
-                water_use_connection = component.to_WaterUseConnections.get
-                break
-            end
-            if water_use_connection.nil?
-                #Need new water heater connection
-                water_use_connection = OpenStudio::Model::WaterUseConnections.new(model)
-                plant_loop.addDemandBranchForComponent(water_use_connection)
-            end
-
-            design_level = sch.calcDesignLevelFromDailykWh(daily_energy)
-            peak_flow = sch.calcPeakFlowFromDailygpm(total_daily_water_use)
-
-            #Add equipment for the cw
-            cw_def = OpenStudio::Model::ElectricEquipmentDefinition.new(model)
-            cw = OpenStudio::Model::ElectricEquipment.new(cw_def)
-            cw.setName(unit_obj_name)
-            cw.setEndUseSubcategory(unit_obj_name)
-            cw.setSpace(space)
-            cw_def.setName(unit_obj_name)
-            cw_def.setDesignLevel(design_level)
-            cw_def.setFractionRadiant(0.48)
-            cw_def.setFractionLatent(0.0)
-            cw_def.setFractionLost(0.2)
-            cw.setSchedule(sch.schedule)
-
-            #Add water use equipment for the dw
-            cw_def2 = OpenStudio::Model::WaterUseEquipmentDefinition.new(model)
-            cw2 = OpenStudio::Model::WaterUseEquipment.new(cw_def2)
-            cw2.setName(unit_obj_name)
-            cw2.setSpace(space)
-            cw_def2.setName(unit_obj_name)
-            cw_def2.setPeakFlowRate(peak_flow)
-            cw_def2.setEndUseSubcategory(unit_obj_name)
-            cw2.setFlowRateFractionSchedule(sch.schedule)
-            cw_def2.setTargetTemperatureSchedule(sch.temperatureSchedule)
-            water_use_connection.addWaterUseEquipment(cw2)
-            
-            msgs << "A clothes washer with #{cw_ann_e.round} kWhs annual energy consumption has been added to plant loop '#{plant_loop.name}' and assigned to space '#{space.name.to_s}'."
-            
-            tot_cw_ann_e += cw_ann_e
-            
-            # Store some info for Clothes Dryer measures
-            unit.setFeature(Constants.ClothesWasherIMEF(cw), cw_imef)
-            unit.setFeature(Constants.ClothesWasherRatedAnnualEnergy(cw), cw_rated_annual_energy)
-            unit.setFeature(Constants.ClothesWasherDrumVolume(cw), cw_drum_volume)
-            unit.setFeature(Constants.ClothesWasherDayShift(cw), d_sh.to_f)
-            
-            # Check if there's a clothes dryer that needs to be updated
-            cd_unit_obj_name = Constants.ObjectNameClothesDryer(nil)
-            cd = nil
-            model.getElectricEquipments.each do |ee|
-                next if not ee.name.to_s.start_with? cd_unit_obj_name
-                next if not unit.spaces.include? ee.space.get
-                cd = ee
-            end
-            model.getOtherEquipments.each do |oe|
-                next if not oe.name.to_s.start_with? cd_unit_obj_name
-                next if not unit.spaces.include? oe.space.get
-                cd = oe
-            end
-            next if cd.nil?
-            
-            # Get clothes dryer properties
-            cd_cef = unit.getFeatureAsDouble(Constants.ClothesDryerCEF(cd))
-            cd_mult = unit.getFeatureAsDouble(Constants.ClothesDryerMult(cd))
-            cd_fuel_type = unit.getFeatureAsString(Constants.ClothesDryerFuelType(cd))
-            cd_fuel_split = unit.getFeatureAsDouble(Constants.ClothesDryerFuelSplit(cd))
-            
-            if !cd_cef.is_initialized or !cd_mult.is_initialized or !cd_fuel_type.is_initialized or !cd_fuel_split.is_initialized
-                runner.registerError("Could not find clothes dryer properties.")
-                return false
-            end
-            cd_cef = cd_cef.get
-            cd_mult = cd_mult.get
-            cd_fuel_type = cd_fuel_type.get
-            cd_fuel_split = cd_fuel_split.get
-            
-            # Update clothes dryer
-            cd_space = cd.space.get
-            ClothesDryer.remove_existing(runner, cd_space, cd_unit_obj_name, false)
-            success, cd_ann_e, cd_ann_f, cd_sch = ClothesDryer.apply(model, unit, runner, cd_sch, cd_cef, cd_mult, 
-                                                                     cd_space, cd_fuel_type, cd_fuel_split)
-            
-            if not success
-                return false
-            end
-            
-            next if cd_ann_e == 0 and cd_ann_f == 0
-            
-=======
         if cd_updated
->>>>>>> master
             cd_msgs << "The clothes dryer assigned to space '#{space.name.to_s}' has been updated."
         end
         
@@ -456,43 +238,6 @@ class ResidentialClothesWasher < OpenStudio::Measure::ModelMeasure
 	
   end
   
-<<<<<<< HEAD
-  def remove_existing(runner, space, obj_name)
-    # Remove any existing clothes washer
-    objects_to_remove = []
-    space.electricEquipment.each do |space_equipment|
-        next if not space_equipment.name.to_s.start_with? obj_name
-        objects_to_remove << space_equipment
-        objects_to_remove << space_equipment.electricEquipmentDefinition
-        if space_equipment.schedule.is_initialized
-            objects_to_remove << space_equipment.schedule.get
-        end
-    end
-    space.waterUseEquipment.each do |space_equipment|
-        next if not space_equipment.name.to_s.start_with? obj_name
-        objects_to_remove << space_equipment
-        objects_to_remove << space_equipment.waterUseEquipmentDefinition
-        if space_equipment.flowRateFractionSchedule.is_initialized
-            objects_to_remove << space_equipment.flowRateFractionSchedule.get
-        end
-        if space_equipment.waterUseEquipmentDefinition.targetTemperatureSchedule.is_initialized
-            objects_to_remove << space_equipment.waterUseEquipmentDefinition.targetTemperatureSchedule.get
-        end
-    end
-    if objects_to_remove.size > 0
-        runner.registerInfo("Removed existing clothes washer from space '#{space.name.to_s}'.")
-    end
-    objects_to_remove.uniq.each do |object|
-        begin
-            object.remove
-        rescue
-            # no op
-        end
-    end
-  end
-
-=======
->>>>>>> master
 end #end the measure
 
 #this allows the measure to be use by the application

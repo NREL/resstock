@@ -91,46 +91,7 @@ class ProcessRoomAirConditioner < OpenStudio::Measure::ModelMeasure
           HVAC.remove_hvac_equipment(model, runner, zone, unit,
                                      Constants.ObjectNameRoomAirConditioner)
         end
-<<<<<<< HEAD
-        clg_coil.setRatedSensibleHeatRatio(sHR_Rated)
-        clg_coil.setRatedCOP(OpenStudio::OptionalDouble.new(UnitConversions.convert(roomaceer, "Btu/hr", "W")))
-        clg_coil.setRatedEvaporatorFanPowerPerVolumeFlowRate(OpenStudio::OptionalDouble.new(773.3))
-        clg_coil.setEvaporativeCondenserEffectiveness(OpenStudio::OptionalDouble.new(0.9))
-        clg_coil.setMaximumOutdoorDryBulbTemperatureForCrankcaseHeaterOperation(OpenStudio::OptionalDouble.new(10))
-        clg_coil.setBasinHeaterSetpointTemperature(OpenStudio::OptionalDouble.new(2))
-        
-        fan = OpenStudio::Model::FanOnOff.new(model, model.alwaysOnDiscreteSchedule)
-        fan.setName(obj_name + " supply fan")
-        fan.setEndUseSubcategory(Constants.EndUseHVACFan)
-        fan.setFanEfficiency(1)
-        fan.setPressureRise(0)
-        fan.setMotorEfficiency(1)
-        fan.setMotorInAirstreamFraction(0)
-        
-        htg_coil = OpenStudio::Model::CoilHeatingElectric.new(model, model.alwaysOffDiscreteSchedule())
-        htg_coil.setName(obj_name + " always off heating coil")
-        
-        ptac = OpenStudio::Model::ZoneHVACPackagedTerminalAirConditioner.new(model, model.alwaysOnDiscreteSchedule, fan, htg_coil, clg_coil)
-        ptac.setName(obj_name + " zone ptac")
-        ptac.setSupplyAirFanOperatingModeSchedule(model.alwaysOffDiscreteSchedule)
-        ptac.addToThermalZone(control_zone)
-        runner.registerInfo("Added '#{ptac.name}' to '#{control_zone.name}' of #{unit.name}")
-              
-        HVAC.prioritize_zone_hvac(model, runner, control_zone)
-      
-        slave_zones.each do |slave_zone|
-
-          # Remove existing equipment
-          HVAC.remove_existing_hvac_equipment(model, runner, Constants.ObjectNameRoomAirConditioner, slave_zone, false, unit)
-
-          HVAC.prioritize_zone_hvac(model, runner, slave_zone)
-          
-        end # slave_zone
-      
-      end # control_zone
-=======
       end
->>>>>>> master
       
       success = HVAC.apply_room_ac(model, unit, runner, eer, shr,
                                    airflow_rate, capacity)

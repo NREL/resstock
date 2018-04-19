@@ -134,17 +134,6 @@ class ResidentialDishwasher < OpenStudio::Measure::ModelMeasure
     end
 
     #assign the user inputs to variables
-<<<<<<< HEAD
-    dw_capacity = runner.getIntegerArgumentValue("num_settings",user_arguments).to_f
-    dw_energy_guide_annual_energy = runner.getDoubleArgumentValue("dw_E", user_arguments)
-    dw_is_cold_water_inlet_only = runner.getBoolArgumentValue("cold_inlet", user_arguments)
-    dw_internal_heater_adjustment = runner.getBoolArgumentValue("int_htr", user_arguments)
-    dw_cold_water_conn_use_per_cycle = runner.getDoubleArgumentValue("cold_use", user_arguments)
-    dw_energy_guide_date = runner.getIntegerArgumentValue("eg_date", user_arguments)
-    dw_energy_guide_annual_gas_cost = runner.getDoubleArgumentValue("eg_gas_cost", user_arguments)
-    dw_energy_multiplier = runner.getDoubleArgumentValue("mult_e", user_arguments)
-    dw_hot_water_multiplier = runner.getDoubleArgumentValue("mult_hw", user_arguments)
-=======
     num_settings = runner.getIntegerArgumentValue("num_settings",user_arguments).to_f
     rated_annual_energy = runner.getDoubleArgumentValue("rated_annual_energy", user_arguments)
     cold_inlet = runner.getBoolArgumentValue("cold_inlet", user_arguments)
@@ -154,7 +143,6 @@ class ResidentialDishwasher < OpenStudio::Measure::ModelMeasure
     annual_gas_cost = runner.getDoubleArgumentValue("annual_gas_cost", user_arguments)
     mult_e = runner.getDoubleArgumentValue("mult_e", user_arguments)
     mult_hw = runner.getDoubleArgumentValue("mult_hw", user_arguments)
->>>>>>> master
     location = runner.getStringArgumentValue("location",user_arguments)
     plant_loop_s = runner.getStringArgumentValue("plant_loop", user_arguments)
     d_sh = runner.getIntegerArgumentValue("schedule_day_shift",user_arguments)
@@ -171,43 +159,17 @@ class ResidentialDishwasher < OpenStudio::Measure::ModelMeasure
         Dishwasher.remove(runner, space, obj_name)
     end
     
-<<<<<<< HEAD
-    # Remove all existing objects
-    obj_name = Constants.ObjectNameDishwasher
-    model.getSpaces.each do |space|
-        remove_existing(runner, space, obj_name)
-    end
-    
-=======
->>>>>>> master
     location_hierarchy = [Constants.SpaceTypeKitchen, 
                           Constants.SpaceTypeLiving, 
                           Constants.SpaceTypeLiving, 
                           Constants.SpaceTypeUnfinishedBasement, 
                           Constants.SpaceTypeGarage]
 
-<<<<<<< HEAD
-    tot_dw_ann = 0
-    msgs = []
-    units.each_with_index do |unit, unit_index|
-    
-        # Get unit beds/baths
-        nbeds, nbaths = Geometry.get_unit_beds_baths(model, unit, runner)
-        if nbeds.nil? or nbaths.nil?
-            return false
-        end
-        sch_unit_index = Geometry.get_unit_dhw_sched_index(model, unit, runner)
-        if sch_unit_index.nil?
-            return false
-        end
-        
-=======
     tot_ann_e = 0
     msgs = []
     mains_temps = nil
     units.each_with_index do |unit, unit_index|
     
->>>>>>> master
         # Get space
         space = Geometry.get_space_from_location(unit, location, location_hierarchy)
         next if space.nil?
@@ -218,81 +180,14 @@ class ResidentialDishwasher < OpenStudio::Measure::ModelMeasure
             return false
         end
     
-<<<<<<< HEAD
-        # Get water heater setpoint
-        wh_setpoint = Waterheater.get_water_heater_setpoint(model, plant_loop, runner)
-        if wh_setpoint.nil?
-            return false
-        end
-
-        unit_obj_name = Constants.ObjectNameDishwasher(unit.name.to_s)
-
-        # The water used in dishwashers must be heated, either internally or
-        # externally, to at least 140 degF for proper operation (dissolving of
-        # detergent, cleaning of dishes).
-        dw_operating_water_temp = 140 # degF
-=======
         success, ann_e, mains_temps = Dishwasher.apply(model, unit, runner, num_settings, rated_annual_energy,
                                                        cold_inlet, has_internal_heater, cold_use, test_date,
                                                        annual_gas_cost, mult_e, mult_hw, d_sh, space, plant_loop, 
                                                        mains_temps, File.dirname(__FILE__))
->>>>>>> master
         
         if not success
             return false
         end
-<<<<<<< HEAD
-        
-        if dw_ann > 0
-            
-            # Create schedule
-            sch = HotWaterSchedule.new(model, runner, Constants.ObjectNameDishwasher + " schedule", Constants.ObjectNameDishwasher + " temperature schedule", nbeds, sch_unit_index, d_sh, "Dishwasher", wh_setpoint, File.dirname(__FILE__))
-            if not sch.validated?
-                return false
-            end
-            
-            #Reuse existing water use connection if possible
-            water_use_connection = nil
-            plant_loop.demandComponents.each do |component|
-                next unless component.to_WaterUseConnections.is_initialized
-                water_use_connection = component.to_WaterUseConnections.get
-                break
-            end
-            if water_use_connection.nil?
-                #Need new water heater connection
-                water_use_connection = OpenStudio::Model::WaterUseConnections.new(model)
-                plant_loop.addDemandBranchForComponent(water_use_connection)
-            end
-            
-            design_level = sch.calcDesignLevelFromDailykWh(daily_energy)
-            peak_flow = sch.calcPeakFlowFromDailygpm(daily_dishwasher_water)
-            
-            #Add electric equipment for the dw
-            dw_def = OpenStudio::Model::ElectricEquipmentDefinition.new(model)
-            dw = OpenStudio::Model::ElectricEquipment.new(dw_def)
-            dw.setName(unit_obj_name)
-            dw.setEndUseSubcategory(unit_obj_name)
-            dw.setSpace(space)
-            dw_def.setName(unit_obj_name)
-            dw_def.setDesignLevel(design_level)
-            dw_def.setFractionRadiant(0.36)
-            dw_def.setFractionLatent(0.15)
-            dw_def.setFractionLost(0.25)
-            dw.setSchedule(sch.schedule)
-            
-            #Add water use equipment for the dw
-            dw_def2 = OpenStudio::Model::WaterUseEquipmentDefinition.new(model)
-            dw2 = OpenStudio::Model::WaterUseEquipment.new(dw_def2)
-            dw2.setName(unit_obj_name)
-            dw2.setSpace(space)
-            dw_def2.setName(unit_obj_name)
-            dw_def2.setPeakFlowRate(peak_flow)
-            dw_def2.setEndUseSubcategory(unit_obj_name)
-            dw2.setFlowRateFractionSchedule(sch.schedule)
-            dw_def2.setTargetTemperatureSchedule(sch.temperatureSchedule)
-            water_use_connection.addWaterUseEquipment(dw2)
-=======
->>>>>>> master
 
         if ann_e > 0
             msgs << "A dishwasher with #{ann_e.round} kWhs annual energy consumption has been added to plant loop '#{plant_loop.name}' and assigned to space '#{space.name.to_s}'."
@@ -318,43 +213,6 @@ class ResidentialDishwasher < OpenStudio::Measure::ModelMeasure
  
   end #end the run method
   
-<<<<<<< HEAD
-  def remove_existing(runner, space, obj_name)
-    # Remove any existing dishwasher
-    objects_to_remove = []
-    space.electricEquipment.each do |space_equipment|
-        next if not space_equipment.name.to_s.start_with? obj_name
-        objects_to_remove << space_equipment
-        objects_to_remove << space_equipment.electricEquipmentDefinition
-        if space_equipment.schedule.is_initialized
-            objects_to_remove << space_equipment.schedule.get
-        end
-    end
-    space.waterUseEquipment.each do |space_equipment|
-        next if not space_equipment.name.to_s.start_with? obj_name
-        objects_to_remove << space_equipment
-        objects_to_remove << space_equipment.waterUseEquipmentDefinition
-        if space_equipment.flowRateFractionSchedule.is_initialized
-            objects_to_remove << space_equipment.flowRateFractionSchedule.get
-        end
-        if space_equipment.waterUseEquipmentDefinition.targetTemperatureSchedule.is_initialized
-            objects_to_remove << space_equipment.waterUseEquipmentDefinition.targetTemperatureSchedule.get
-        end
-    end
-    if objects_to_remove.size > 0
-        runner.registerInfo("Removed existing dishwasher from space '#{space.name.to_s}'.")
-    end
-    objects_to_remove.uniq.each do |object|
-        begin
-            object.remove
-        rescue
-            # no op
-        end
-    end
-  end
-
-=======
->>>>>>> master
 end #end the measure
 
 #this allows the measure to be use by the application
