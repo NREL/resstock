@@ -94,7 +94,7 @@ class ProcessConstructionsPierBeam < OpenStudio::Measure::ModelMeasure
         if not FoundationConstructions.apply_slab(runner, model, 
                                                   surface,
                                                   Constants.SurfaceTypeFloorFndGrndUnfinSlab,
-                                                  0, 0, 0, 0, 0, 0, 4.0, false, nil, nil)
+                                                  0, 0, 0, 0, 0, 0, 4.0, nil, false, nil, nil)
             return false
         end
     end
