@@ -2,7 +2,6 @@
 # http://nrel.github.io/OpenStudio-user-documentation/reference/measure_writing_guide/
 
 require "#{File.dirname(__FILE__)}/resources/geometry"
-require "#{File.dirname(__FILE__)}/resources/unit_conversions"
 require "#{File.dirname(__FILE__)}/resources/hvac"
 require "#{File.dirname(__FILE__)}/resources/constants"
 
@@ -77,42 +76,6 @@ class ProcessDehumidifier < OpenStudio::Measure::ModelMeasure
     air_flow_rate = runner.getStringArgumentValue("air_flow_rate",user_arguments)
     humidity_setpoint = runner.getDoubleArgumentValue("humidity_setpoint",user_arguments)
     
-    # error checking
-    if humidity_setpoint < 0 or humidity_setpoint > 1
-      runner.registerError("Invalid humidity setpoint value entered.")
-      return false
-    end
-    
-    model.getScheduleConstants.each do |sch|
-      next unless sch.name.to_s == Constants.ObjectNameRelativeHumiditySetpoint
-      sch.remove
-    end
-    
-    avg_rh_setpoint = humidity_setpoint * 100.0 # (EnergyPlus uses 60 for 60% RH)
-    relative_humidity_setpoint_sch = OpenStudio::Model::ScheduleConstant.new(model)
-    relative_humidity_setpoint_sch.setName(Constants.ObjectNameRelativeHumiditySetpoint)
-    relative_humidity_setpoint_sch.setValue(avg_rh_setpoint)
-    
-    # error checking
-    if water_removal_rate != Constants.Auto and water_removal_rate.to_f <= 0
-      runner.registerError("Invalid water removal rate value entered.")
-      return false
-    end    
-    if energy_factor != Constants.Auto and energy_factor.to_f < 0
-      runner.registerError("Invalid energy factor value entered.")
-      return false
-    end
-    if air_flow_rate != Constants.Auto and air_flow_rate.to_f < 0
-      runner.registerError("Invalid air flow rate value entered.")
-      return false
-    end
-
-    # Dehumidifier coefficients
-    # Generic model coefficients from Winkler, Christensen, and Tomerlin (2011)
-    water_removal_curve = HVAC.create_curve_biquadratic(model, [-1.162525707, 0.02271469, -0.000113208, 0.021110538, -0.0000693034, 0.000378843], "DXDH-WaterRemove-Cap-fT", -100, 100, -100, 100)
-    energy_factor_curve = HVAC.create_curve_biquadratic(model, [-1.902154518, 0.063466565, -0.000622839, 0.039540407, -0.000125637, -0.000176722], "DXDH-EnergyFactor-fT", -100, 100, -100, 100)
-    part_load_frac_curve = HVAC.create_curve_quadratic(model, [0.90, 0.10, 0.0], "DXDH-PLF-fPLR", 0, 1, 0.7, 1)
-    
     # Get building units
     units = Geometry.get_building_units(model, runner)
     if units.nil?
@@ -121,6 +84,7 @@ class ProcessDehumidifier < OpenStudio::Measure::ModelMeasure
     
     units.each do |unit|
     
+<<<<<<< HEAD
       obj_name = Constants.ObjectNameDehumidifier(unit.name.to_s)    
     
       thermal_zones = Geometry.get_thermal_zones_from_spaces(unit.spaces)
@@ -171,7 +135,15 @@ class ProcessDehumidifier < OpenStudio::Measure::ModelMeasure
         
         HVAC.prioritize_zone_hvac(model, runner, control_zone)
               
+=======
+      Geometry.get_thermal_zones_from_spaces(unit.spaces).each do |zone|
+        HVAC.remove_dehumidifier(runner, model, zone, unit)
+>>>>>>> master
       end
+    
+      success = HVAC.apply_dehumidifier(model, unit, runner, energy_factor, 
+                                        water_removal_rate, air_flow_rate, humidity_setpoint)
+      return false if not success
     
     end
     

@@ -8,9 +8,8 @@
 # http://openstudio.nrel.gov/sites/openstudio.nrel.gov/files/nv_data/cpp_documentation_it/model/html/namespaces.html
 
 require "#{File.dirname(__FILE__)}/resources/geometry"
-require "#{File.dirname(__FILE__)}/resources/schedules"
 require "#{File.dirname(__FILE__)}/resources/weather"
-require "#{File.dirname(__FILE__)}/resources/unit_conversions"
+require "#{File.dirname(__FILE__)}/resources/lighting"
 
 #start the measure
 class ResidentialLighting < OpenStudio::Measure::ModelMeasure
@@ -234,13 +233,19 @@ class ResidentialLighting < OpenStudio::Measure::ModelMeasure
           return false
       end
     end
-    
+
     # Get building units
     units = Geometry.get_building_units(model, runner)
     if units.nil?
-        return false
+      return false
     end
 
+    # Calculate the lighting schedule
+    weather = WeatherProcess.new(model, runner, File.dirname(__FILE__))
+    if weather.error?
+      return false
+    end
+    
     # Fractions hardwired vs plugin
     frac_hw = 0.8
     frac_pg = 0.2
@@ -270,55 +275,10 @@ class ResidentialLighting < OpenStudio::Measure::ModelMeasure
 
     # Smart Replacement Factor
     smrt_replace_f = (0.1672 * hw_inc ** 4 - 0.4817 * hw_inc ** 3 + 0.6336 * hw_inc ** 2 - 0.492 * hw_inc + 1.1561)
-
-    # Calculate the lighting schedule
-    weather = WeatherProcess.new(model, runner, File.dirname(__FILE__))
-    if weather.error?
-        return false
-    end
-    lat = weather.header.Latitude
-    long = weather.header.Longitude
-    tz = weather.header.Timezone
-    std_long = -tz*15
-    pi = Math::PI
     
-    # Sunrise and sunset hours
-    sunrise_hour = []
-    sunset_hour = []
-    normalized_hourly_lighting = [[1..24],[1..24],[1..24],[1..24],[1..24],[1..24],[1..24],[1..24],[1..24],[1..24],[1..24],[1..24]]
-    for month in 0..11
-        if lat < 51.49
-            m_num = month+1
-            jul_day = m_num*30-15
-            if not (m_num < 4 or m_num > 10)
-                offset = 1
-            else
-                offset = 0
-            end
-            declination = 23.45 * Math.sin(0.9863 * (284 + jul_day) * 0.01745329)
-            deg_rad = pi/180
-            rad_deg = 1/deg_rad
-            b = (jul_day-1) * 0.9863
-            equation_of_time = (0.01667 * (0.01719 + 0.42815 * Math.cos(deg_rad*b) - 7.35205 * Math.sin(deg_rad*b) - 3.34976 * Math.cos(deg_rad*(2*b)) - 9.37199 * Math.sin(deg_rad*(2*b))))
-            sunset_hour_angle = rad_deg * (Math.acos(-1 * Math.tan(deg_rad*lat) * Math.tan(deg_rad*declination)))
-            sunrise_hour[month] =  offset + (12.0 - 1 * sunset_hour_angle/15.0) - equation_of_time - (std_long + long)/15
-            sunset_hour[month] = offset + (12.0 + 1 * sunset_hour_angle/15.0) - equation_of_time - (std_long + long)/15
-        else
-            sunrise_hour = [8.125726064, 7.449258072, 6.388688653, 6.232405257, 5.27722936, 4.84705384, 5.127512162, 5.860163988, 6.684378904, 7.521267411, 7.390441945, 8.080667697]
-            sunset_hour = [16.22214058, 17.08642353, 17.98324493, 19.83547864, 20.65149672, 21.20662992, 21.12124777, 20.37458274, 19.25834757, 18.08155615, 16.14359164, 15.75571306]
-        end
-    end
-                
-    dec_kws = [0.075, 0.055, 0.040, 0.035, 0.030, 0.025, 0.025, 0.025, 0.025, 0.025, 0.025, 0.030, 0.045, 0.075, 0.130, 0.160, 0.140, 0.100, 0.075, 0.065, 0.060, 0.050, 0.045, 0.045, 0.045, 0.045, 0.045, 0.045, 0.050, 0.060, 0.080, 0.130, 0.190, 0.230, 0.250, 0.260, 0.260, 0.250, 0.240, 0.225, 0.225, 0.220, 0.210, 0.200, 0.180, 0.155, 0.125, 0.100]
-    june_kws = [0.060, 0.040, 0.035, 0.025, 0.020, 0.020, 0.020, 0.020, 0.020, 0.020, 0.020, 0.020, 0.020, 0.025, 0.030, 0.030, 0.025, 0.020, 0.015, 0.015, 0.015, 0.015, 0.015, 0.015, 0.015, 0.015, 0.015, 0.015, 0.015, 0.015, 0.015, 0.015, 0.020, 0.020, 0.020, 0.025, 0.025, 0.030, 0.030, 0.035, 0.045, 0.060, 0.085, 0.125, 0.145, 0.130, 0.105, 0.080]
-    lighting_seasonal_multiplier =   [1.075, 1.064951905, 1.0375, 1.0, 0.9625, 0.935048095, 0.925, 0.935048095, 0.9625, 1.0, 1.0375, 1.064951905]          
-    amplConst1 = 0.929707907917098
-    sunsetLag1 = 2.45016230615269
-    stdDevCons1 = 1.58679810983444
-    amplConst2 = 1.1372291802273
-    sunsetLag2 = 20.1501965859073
-    stdDevCons2 = 2.36567663279954
+    Lighting.remove(model, runner)
 
+<<<<<<< HEAD
     monthly_kwh_per_day = []
     days_m = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
     wtd_avg_monthly_kwh_per_day = 0
@@ -420,10 +380,14 @@ class ResidentialLighting < OpenStudio::Measure::ModelMeasure
     end
 
     tot_ltg = 0
+=======
+    tot_ltg_e = 0
+>>>>>>> master
     msgs = []
     sch = nil
     units.each do |unit|
         
+<<<<<<< HEAD
         # Get unit ffa and finished spaces
         unit_finished_spaces = Geometry.get_finished_spaces(unit.spaces)
         ffa = Geometry.get_finished_floor_area_from_spaces(unit.spaces, false, runner)
@@ -475,12 +439,39 @@ class ResidentialLighting < OpenStudio::Measure::ModelMeasure
             tot_ltg += space_ltg_ann
             
         end
+=======
+      # Interior lighting
+      unit_finished_spaces = Geometry.get_finished_spaces(unit.spaces)
+      ffa = Geometry.get_finished_floor_area_from_spaces(unit.spaces, false, runner)
+      if ffa.nil?
+          return false
+      end
+      if option_type == Constants.OptionTypeLightingEnergyUses
+          interior_ann = energy_use_interior
+      elsif option_type == Constants.OptionTypeLightingFractions
+          bm_hw_e = frac_hw * (ffa * 0.542 + 334)
+          bm_pg_e = frac_pg * (ffa * 0.542 + 334)
+          int_hw_e = (bm_hw_e * (((hw_inc * er_inc + (1 - bab_frac_inc) * bab_er_inc) + (hw_cfl * er_cfl - bab_frac_cfl * bab_er_cfl) + (hw_led * er_led - bab_frac_led * bab_er_led) + (hw_lfl * er_lfl - bab_frac_lfl * bab_er_lfl)) * smrt_replace_f * 0.9 + 0.1))
+          int_pg_e = (bm_pg_e * (((pg_inc * er_inc + (1 - bab_frac_inc) * bab_er_inc) + (pg_cfl * er_cfl - bab_frac_cfl * bab_er_cfl) + (pg_led * er_led - bab_frac_led * bab_er_led) + (pg_lfl * er_lfl - bab_frac_lfl * bab_er_lfl)) * smrt_replace_f * 0.9 + 0.1))
+          interior_ann = int_hw_e + int_pg_e
+      end
+    
+      success, sch = Lighting.apply_interior(model, unit, runner, weather, sch, interior_ann)
+      return false if not success
+      
+      msgs << "Lighting with #{interior_ann.round} kWhs annual energy consumption has been assigned to unit '#{unit.name.to_s}'."
+      tot_ltg_e += interior_ann
+>>>>>>> master
         
     end
     
     # Garage lighting (garages not associated with a unit)
+<<<<<<< HEAD
     model_spaces = model.getSpaces
     garage_spaces = Geometry.get_garage_spaces(model_spaces)
+=======
+    garage_spaces = Geometry.get_garage_spaces(model.getSpaces)
+>>>>>>> master
     gfa = Geometry.get_floor_area_from_spaces(garage_spaces)
     if option_type == Constants.OptionTypeLightingEnergyUses
         garage_ann = energy_use_garage
@@ -489,6 +480,7 @@ class ResidentialLighting < OpenStudio::Measure::ModelMeasure
         garage_ann = (common_bm_garage_e * (((hw_inc * er_inc + (1 - bab_frac_inc) * bab_er_inc) + (hw_cfl * er_cfl - bab_frac_cfl * bab_er_cfl) + (hw_led * er_led - bab_frac_led * bab_er_led) + (hw_lfl * er_lfl - bab_frac_lfl * bab_er_lfl)) * smrt_replace_f * 0.9 + 0.1))
     end
     
+<<<<<<< HEAD
     garage_spaces.each do |garage_space|
         space_obj_name = "#{Constants.ObjectNameLighting} #{garage_space.name.to_s}"
     
@@ -519,40 +511,40 @@ class ResidentialLighting < OpenStudio::Measure::ModelMeasure
         tot_ltg += space_ltg_ann
         
     end
+=======
+    success = Lighting.apply_garage(model, runner, sch, garage_ann)
+    return false if not success
+    
+    msgs << "Lighting with #{garage_ann.round} kWhs annual energy consumption has been assigned to the garage(s)."
+    tot_ltg_e += garage_ann
+>>>>>>> master
     
     # Exterior Lighting
+    exterior_ann = 0
     if option_type == Constants.OptionTypeLightingEnergyUses
-        outside_ann = energy_use_exterior
+        exterior_ann = energy_use_exterior
     elsif option_type == Constants.OptionTypeLightingFractions
         total_ffa = Geometry.get_finished_floor_area_from_spaces(model_spaces, true, runner)
         bm_outside_e = 0.145 * total_ffa
-        outside_ann = (bm_outside_e * (((hw_inc * er_inc + (1 - bab_frac_inc) * bab_er_inc) + (hw_cfl * er_cfl - bab_frac_cfl * bab_er_cfl) + (hw_led * er_led - bab_frac_led * bab_er_led) + (hw_lfl * er_lfl - bab_frac_lfl * bab_er_lfl)) * smrt_replace_f * 0.9 + 0.1))
+        exterior_ann = (bm_outside_e * (((hw_inc * er_inc + (1 - bab_frac_inc) * bab_er_inc) + (hw_cfl * er_cfl - bab_frac_cfl * bab_er_cfl) + (hw_led * er_led - bab_frac_led * bab_er_led) + (hw_lfl * er_lfl - bab_frac_lfl * bab_er_lfl)) * smrt_replace_f * 0.9 + 0.1))
     end
-
-    space_design_level = sch.calcDesignLevel(sch_max*outside_ann)
-    space_obj_name = "#{Constants.ObjectNameLighting} exterior"
     
-    # Add exterior lighting
-    ltg_def = OpenStudio::Model::ExteriorLightsDefinition.new(model)
-    ltg = OpenStudio::Model::ExteriorLights.new(ltg_def)
-    ltg.setName(space_obj_name)
-    ltg_def.setName(space_obj_name)
-    ltg_def.setDesignLevel(space_design_level)
-    ltg.setSchedule(sch.schedule)
+    success = Lighting.apply_exterior(model, runner, sch, exterior_ann)
+    return false if not success
     
-    msgs << "Lighting with #{outside_ann.round} kWhs annual energy consumption has been assigned to the exterior'."
-    tot_ltg += outside_ann
+    msgs << "Lighting with #{exterior_ann.round} kWhs annual energy consumption has been assigned to the exterior."
+    tot_ltg_e += exterior_ann
 
     #reporting final condition of model
     if msgs.size > 1
-        msgs.each do |msg|
-            runner.registerInfo(msg)
-        end
-        runner.registerFinalCondition("The building has been assigned lighting totaling #{tot_ltg.round} kWhs annual energy consumption across #{units.size} units.")
+      msgs.each do |msg|
+        runner.registerInfo(msg)
+      end
+      runner.registerFinalCondition("The building has been assigned lighting totaling #{tot_ltg_e.round} kWhs annual energy consumption across #{units.size} units.")
     elsif msgs.size == 1
-        runner.registerFinalCondition(msgs[0])
+      runner.registerFinalCondition(msgs[0])
     else
-        runner.registerFinalCondition("No lighting has been assigned.")
+      runner.registerFinalCondition("No lighting has been assigned.")
     end
 
     return true

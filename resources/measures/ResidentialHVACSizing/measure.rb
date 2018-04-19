@@ -7,16 +7,15 @@
 #see the URL below for access to C++ documentation on model objects (click on "model" in the main window to view model objects)
 # http://openstudio.nrel.gov/sites/openstudio.nrel.gov/files/nv_data/cpp_documentation_it/model/html/namespaces.html
 
-require "#{File.dirname(__FILE__)}/resources/geometry"
-require "#{File.dirname(__FILE__)}/resources/hvac"
-require "#{File.dirname(__FILE__)}/resources/unit_conversions"
-require "#{File.dirname(__FILE__)}/resources/util"
+require "#{File.dirname(__FILE__)}/resources/hvac_sizing"
 require "#{File.dirname(__FILE__)}/resources/weather"
-require "#{File.dirname(__FILE__)}/resources/schedules"
+require "#{File.dirname(__FILE__)}/resources/constants"
+require "#{File.dirname(__FILE__)}/resources/geometry"
 
 #start the measure
 class ProcessHVACSizing < OpenStudio::Measure::ModelMeasure
 
+<<<<<<< HEAD
   class MJ8
     def initialize
     end
@@ -94,6 +93,8 @@ class ProcessHVACSizing < OpenStudio::Measure::ModelMeasure
                   :Location, :LocationSpace, :LocationFrac)
   end
   
+=======
+>>>>>>> master
   #define the name that a user will see, this method may be deprecated as
   #the display name in PAT comes from the name field in measure.xml
   def name
@@ -113,7 +114,7 @@ class ProcessHVACSizing < OpenStudio::Measure::ModelMeasure
     args = OpenStudio::Measure::OSArgumentVector.new
   
     #make a bool argument for showing debug information
-    show_debug_info = OpenStudio::Measure::OSArgument::makeBoolArgument("show_debug_info", true)
+    show_debug_info = OpenStudio::Measure::OSArgument::makeBoolArgument("show_debug_info", false)
     show_debug_info.setDisplayName("Show Debug Info")
     show_debug_info.setDescription("Displays various intermediate calculation results.")
     show_debug_info.setDefaultValue(false)
@@ -145,28 +146,8 @@ class ProcessHVACSizing < OpenStudio::Measure::ModelMeasure
         return false
     end
     
-    # Get year of model
-    @modelYear = model.yearDescription.get.assumedYear
-    
-    @northAxis = model.getBuilding.northAxis
-    @minCoolingCapacity = 1 # Btu/hr
-    
-    # Based on EnergyPlus's model for calculating SHR at off-rated conditions. This curve fit 
-    # avoids the iterations in the actual model. It does not account for altitude or variations 
-    # in the SHRRated. It is a function of ODB (MJ design temp) and CFM/Ton (from MJ)
-    @shr_biquadratic = [1.08464364, 0.002096954, 0, -0.005766327, 0, -0.000011147]
-    
-    @finished_heat_design_temp = 70 # Indoor heating design temperature according to acca MANUAL J
-    @finished_cool_design_temp = 75 # Indoor heating design temperature according to acca MANUAL J
-    @finished_dehum_design_temp = 75
-    
-    assumed_inside_temp = 73.5 # F
-    @inside_air_dens = UnitConversions.convert(weather.header.LocalPressure,"atm","Btu/ft^3") / (Gas.Air.r * (assumed_inside_temp + 460.0))
-    
-    mj8 = processSiteCalcsAndDesignTemps(runner, mj8, weather, model)
-    return false if mj8.nil?
-        
     units.each do |unit|
+<<<<<<< HEAD
         # Get unit beds/baths
         nbeds, nbaths = Geometry.get_unit_beds_baths(model, unit, runner)
         if nbeds.nil? or nbaths.nil?
@@ -209,6 +190,11 @@ class ProcessHVACSizing < OpenStudio::Measure::ModelMeasure
         if not setObjectValues(runner, model, unit, hvac, ducts, unit_final)
             return false
         end
+=======
+    
+      success = HVACSizing.apply(model, unit, runner, weather, show_debug_info)
+      return false if not success
+>>>>>>> master
         
     end # unit
     
@@ -218,6 +204,7 @@ class ProcessHVACSizing < OpenStudio::Measure::ModelMeasure
  
   end #end the run method
   
+<<<<<<< HEAD
   def processSiteCalcsAndDesignTemps(runner, mj8, weather, model)
     '''
     Site Calculations and Design Temperatures
@@ -4589,16 +4576,9 @@ class ProcessHVACSizing < OpenStudio::Measure::ModelMeasure
     runner.registerInfo("#{s}\n")
   end
   
+=======
+>>>>>>> master
 end #end the measure
-
-class Numeric
-  def deg2rad
-    self * Math::PI / 180 
-  end
-  def rad2deg
-    self * 180 / Math::PI 
-  end
-end
 
 #this allows the measure to be use by the application
 ProcessHVACSizing.new.registerWithApplication

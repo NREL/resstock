@@ -330,6 +330,7 @@ class MathTools
     
 end
 
+<<<<<<< HEAD
 class SimpleMaterial
 
     def initialize(name=nil, rvalue=nil)
@@ -1745,6 +1746,8 @@ class EnergyGuideLabel
   
 end
 
+=======
+>>>>>>> master
 class BuildingLoadVars
 
   def self.get_space_heating_load_vars
