@@ -15,68 +15,26 @@
     "group_name": "2. Geometry",
     "group_steps": [
       {
-        "name": "1. Geometry - Single-Family Detached (or Single-Family Attached or Multifamily)",
+        "name": "1. Geometry - Create Single-Family Detached (or Single-Family Attached or Multifamily)",
         "dependencies": "",
         "measures": [
-          "ResidentialGeometrySingleFamilyDetached",
-          "ResidentialGeometrySingleFamilyAttached",
-          "ResidentialGeometryMultifamily"
+          "ResidentialGeometryCreateSingleFamilyDetached",
+          "ResidentialGeometryCreateSingleFamilyAttached",
+          "ResidentialGeometryCreateMultifamily"
         ]
       },
       {
-        "name": "2. Number of Beds and Baths",
-        "dependencies": "",
-        "measures": [
-          "ResidentialGeometryNumBedsAndBaths"
-        ]
-      },
-      {
-        "name": "3. Number of Occupants",
-        "dependencies": "Beds/Baths",
-        "measures": [
-          "ResidentialGeometryNumOccupants"
-        ]
-      },
-      {
-        "name": "4. Orientation",
-        "dependencies": "",
-        "measures": [
-          "ResidentialGeometryOrientation"
-        ]
-      },
-      {
-        "name": "5. Eaves",
-        "dependencies": "",
-        "measures": [
-          "ResidentialGeometryEaves"
-        ]
-      },
-      {
-        "name": "6. Door Area",
+        "name": "2. Door Area",
         "dependencies": "",
         "measures": [
           "ResidentialGeometryDoorArea"
         ]
       },
       {
-        "name": "7. Window Areas",
+        "name": "3. Window/Skylight Area",
         "dependencies": "",
         "measures": [
-          "ResidentialGeometryWindowArea"
-        ]
-      },
-      {
-        "name": "8. Overhangs",
-        "dependencies": "Window Areas",
-        "measures": [
-          "ResidentialGeometryOverhangs"
-        ]
-      },
-      {
-        "name": "9. Neighbors",
-        "dependencies": "",
-        "measures": [
-          "ResidentialGeometryNeighbors"
+          "ResidentialGeometryWindowSkylightArea"
         ]
       }
     ]
@@ -85,154 +43,56 @@
     "group_name": "3. Envelope Constructions",
     "group_steps": [
       {
-        "name": "1. Uninsulated Surfaces",
+        "name": "1. Unfinished Attic (or Finished Roof)",
         "dependencies": "",
         "measures": [
-          "ResidentialConstructionsUninsulatedSurfaces"
+          "ResidentialConstructionsUnfinishedAttic",
+          "ResidentialConstructionsFinishedRoof"
         ]
       },
       {
-        "name": "2. Ceilings/Roofs - Unfinished Attic (or Finished Roof)",
+        "name": "2. Wood Stud Walls (or Double Stud, CMU, SIP, etc.)",
         "dependencies": "",
         "measures": [
-          "ResidentialConstructionsCeilingsRoofsUnfinishedAttic",
-          "ResidentialConstructionsCeilingsRoofsFinishedRoof"
+          "ResidentialConstructionsWallsWoodStud",
+          "ResidentialConstructionsWallsDoubleWoodStud",
+          "ResidentialConstructionsWallsSteelStud",
+          "ResidentialConstructionsWallsCMU",
+          "ResidentialConstructionsWallsICF",
+          "ResidentialConstructionsWallsSIP",
+          "ResidentialConstructionsWallsGeneric"
         ]
       },
       {
-        "name": "3. Ceilings/Roofs - Roof Sheathing",
+        "name": "3. Slab (or Finished Basement, Unfinished Basement, Crawlspace, Pier & Beam)",
         "dependencies": "",
         "measures": [
-          "ResidentialConstructionsCeilingsRoofsSheathing"
+          "ResidentialConstructionsSlab",
+          "ResidentialConstructionsUnfinishedBasement",
+          "ResidentialConstructionsFinishedBasement",
+          "ResidentialConstructionsCrawlspace",
+          "ResidentialConstructionsPierBeam"
         ]
       },
       {
-        "name": "4. Ceilings/Roofs - Roofing Material",
+        "name": "4. Floors",
         "dependencies": "",
         "measures": [
-          "ResidentialConstructionsCeilingsRoofsRoofingMaterial"
+          "ResidentialConstructionsFloors"
         ]
       },
       {
-        "name": "5. Ceilings/Roofs - Radiant Barrier",
-        "dependencies": "",
+        "name": "5. Windows/Skylights",
+        "dependencies": "Window/Skylight Area, Location",
         "measures": [
-          "ResidentialConstructionsCeilingsRoofsRadiantBarrier"
+          "ResidentialConstructionsWindowsSkylights"
         ]
       },
       {
-        "name": "6. Ceilings/Roofs - Ceiling Thermal Mass",
-        "dependencies": "",
-        "measures": [
-          "ResidentialConstructionsCeilingsRoofsThermalMass"
-        ]
-      },
-      {
-        "name": "7. Foundations/Floors - Slab (or Finished Basement, Unfinished Basement, Crawlspace, Pier & Beam)",
-        "dependencies": "",
-        "measures": [
-          "ResidentialConstructionsFoundationsFloorsSlab",
-          "ResidentialConstructionsFoundationsFloorsBasementUnfinished",
-          "ResidentialConstructionsFoundationsFloorsBasementFinished",
-          "ResidentialConstructionsFoundationsFloorsCrawlspace",
-          "ResidentialConstructionsFoundationsFloorsPierBeam"
-        ]
-      },
-      {
-        "name": "8. Foundations/Floors - Interzonal Floor Construction",
-        "dependencies": "",
-        "measures": [
-          "ResidentialConstructionsFoundationsFloorsInterzonalFloors"
-        ]
-      },
-      {
-        "name": "9. Foundations/Floors - Floor Covering",
-        "dependencies": "",
-        "measures": [
-          "ResidentialConstructionsFoundationsFloorsCovering"
-        ]
-      },
-      {
-        "name": "10. Foundations/Floors - Floor Sheathing",
-        "dependencies": "",
-        "measures": [
-          "ResidentialConstructionsFoundationsFloorsSheathing"
-        ]
-      },
-      {
-        "name": "11. Foundations/Floors - Floor Thermal Mass",
-        "dependencies": "",
-        "measures": [
-          "ResidentialConstructionsFoundationsFloorsThermalMass"
-        ]
-      },
-      {
-        "name": "12. Walls - Wood Stud (or Double Stud, CMU, etc.)",
-        "dependencies": "",
-        "measures": [
-          "ResidentialConstructionsWallsExteriorWoodStud",
-          "ResidentialConstructionsWallsExteriorDoubleWoodStud",
-          "ResidentialConstructionsWallsExteriorSteelStud",
-          "ResidentialConstructionsWallsExteriorCMU",
-          "ResidentialConstructionsWallsExteriorICF",
-          "ResidentialConstructionsWallsExteriorSIP",
-          "ResidentialConstructionsWallsExteriorGeneric"
-        ]
-      },
-      {
-        "name": "13. Walls - Interzonal Construction",
-        "dependencies": "",
-        "measures": [
-          "ResidentialConstructionsWallsInterzonal"
-        ]
-      },
-      {
-        "name": "14. Walls - Wall Sheathing",
-        "dependencies": "",
-        "measures": [
-          "ResidentialConstructionsWallsSheathing"
-        ]
-      },
-      {
-        "name": "15. Walls - Exterior Finish",
-        "dependencies": "",
-        "measures": [
-          "ResidentialConstructionsWallsExteriorFinish"
-        ]
-      },
-      {
-        "name": "16. Walls - Exterior Thermal Mass",
-        "dependencies": "",
-        "measures": [
-          "ResidentialConstructionsWallsExteriorThermalMass"
-        ]
-      },
-      {
-        "name": "17. Walls - Partition Thermal Mass",
-        "dependencies": "",
-        "measures": [
-          "ResidentialConstructionsWallsPartitionThermalMass"
-        ]
-      },
-      {
-        "name": "18. Window Construction",
-        "dependencies": "Window Areas, Location",
-        "measures": [
-          "ResidentialConstructionsWindows"
-        ]
-      },
-      {
-        "name": "19. Door Construction",
+        "name": "6. Doors",
         "dependencies": "Door Area",
         "measures": [
           "ResidentialConstructionsDoors"
-        ]
-      },
-      {
-        "name": "20. Furniture Thermal Mass",
-        "dependencies": "",
-        "measures": [
-          "ResidentialConstructionsFurnitureThermalMass"
         ]
       }
     ]
@@ -241,13 +101,11 @@
     "group_name": "4. Domestic Hot Water",
     "group_steps": [
       {
-        "name": "1. Water Heater - Fuel Tank (or Electric Tank, Fuel Tankless, Heat Pump, etc.)",
-        "dependencies": "Beds/Baths",
+        "name": "1. Water Heater - Tank (or Tankless, Heat Pump, etc.)",
+        "dependencies": "",
         "measures": [
-          "ResidentialHotWaterHeaterTankFuel",
-          "ResidentialHotWaterHeaterTankElectric",
-          "ResidentialHotWaterHeaterTanklessElectric",
-          "ResidentialHotWaterHeaterTanklessFuel",
+          "ResidentialHotWaterHeaterTank",
+          "ResidentialHotWaterHeaterTankless",
           "ResidentialHotWaterHeaterHeatPump"
         ]
       },
@@ -284,14 +142,12 @@
           "ResidentialHVACAirSourceHeatPumpSingleSpeed",     
           "ResidentialHVACAirSourceHeatPumpTwoSpeed",
           "ResidentialHVACAirSourceHeatPumpVariableSpeed",
-          "ResidentialHVACBoilerElectric",
-          "ResidentialHVACBoilerFuel",
+          "ResidentialHVACBoiler",
           "ResidentialHVACCentralAirConditionerSingleSpeed", 
           "ResidentialHVACCentralAirConditionerTwoSpeed",
           "ResidentialHVACCentralAirConditionerVariableSpeed",
           "ResidentialHVACElectricBaseboard",
-          "ResidentialHVACFurnaceElectric",
-          "ResidentialHVACFurnaceFuel",
+          "ResidentialHVACFurnace",
           "ResidentialHVACGroundSourceHeatPumpVerticalBore",
           "ResidentialHVACMiniSplitHeatPump",
           "ResidentialHVACRoomAirConditioner",
@@ -317,7 +173,7 @@
       },
       {
         "name": "4. Ceiling Fan",
-        "dependencies": "Cooling Setpoint, Beds/Baths",
+        "dependencies": "Cooling Setpoint",
         "measures": [
           "ResidentialHVACCeilingFan"
         ]
@@ -349,11 +205,10 @@
         ]
       },
       {
-        "name": "3. Clothes Dryer - Electric (or Fuel)",
-        "dependencies": "Beds/Baths, Clothes Washer",
+        "name": "3. Clothes Dryer",
+        "dependencies": "Clothes Washer",
         "measures": [
-          "ResidentialApplianceClothesDryerElectric",
-          "ResidentialApplianceClothesDryerFuel"
+          "ResidentialApplianceClothesDryer"
         ]
       },
       {
@@ -364,11 +219,10 @@
         ]
       },
       {
-        "name": "5. Cooking Range - Electric (or Fuel)",
-        "dependencies": "Beds/Baths",
+        "name": "5. Cooking Range",
+        "dependencies": "",
         "measures": [
-          "ResidentialApplianceCookingRangeElectric",
-          "ResidentialApplianceCookingRangeFuel"
+          "ResidentialApplianceCookingRange"
         ]
       }
     ]
@@ -390,81 +244,16 @@
     "group_steps": [
       {
         "name": "1. Plug Loads",
-        "dependencies": "Beds/Baths",
+        "dependencies": "",
         "measures": [
           "ResidentialMiscPlugLoads"
         ]
       },
       {
-        "name": "2. Extra Refrigerator",
+        "name": "2. Large, Uncommon Loads",
         "dependencies": "",
         "measures": [
-          "ResidentialMiscExtraRefrigerator"
-        ]
-      },
-      {
-        "name": "3. Freezer",
-        "dependencies": "",
-        "measures": [
-          "ResidentialMiscFreezer"
-        ]
-      },
-      {
-        "name": "4. Hot Tub Heater - Electric (or Gas)",
-        "dependencies": "Beds/Baths",
-        "measures": [
-          "ResidentialMiscHotTubHeaterElectric",
-          "ResidentialMiscHotTubHeaterGas"
-        ]
-      },
-      {
-        "name": "5. Hot Tub Pump",
-        "dependencies": "Beds/Baths",
-        "measures": [
-          "ResidentialMiscHotTubPump"
-        ]
-      },
-      {
-        "name": "6. Pool Heater - Electric (or Gas)",
-        "dependencies": "Beds/Baths",
-        "measures": [
-          "ResidentialMiscPoolHeaterElectric",
-          "ResidentialMiscPoolHeaterGas"
-        ]
-      },
-      {
-        "name": "7. Pool Pump",
-        "dependencies": "Beds/Baths",
-        "measures": [
-          "ResidentialMiscPoolPump"
-        ]
-      },
-      {
-        "name": "8. Well Pump",
-        "dependencies": "Beds/Baths",
-        "measures": [
-          "ResidentialMiscWellPump"
-        ]
-      },
-      {
-        "name": "9. Gas Fireplace",
-        "dependencies": "Beds/Baths",
-        "measures": [
-          "ResidentialMiscGasFireplace"
-        ]
-      },
-      {
-        "name": "10. Gas Grill",
-        "dependencies": "Beds/Baths",
-        "measures": [
-          "ResidentialMiscGasGrill"
-        ]
-      },
-      {
-        "name": "11. Gas Lighting",
-        "dependencies": "Beds/Baths",
-        "measures": [
-          "ResidentialMiscGasLighting"
+          "ResidentialMiscLargeUncommonLoads"
         ]
       }
     ]
@@ -474,7 +263,7 @@
     "group_steps": [
       {
         "name": "1. Airflow",
-        "dependencies": "Location, Beds/Baths, HVAC Equipment, Clothes Dryer",
+        "dependencies": "Location, HVAC Equipment, Clothes Dryer",
         "measures": [
           "ResidentialAirflow"
         ]

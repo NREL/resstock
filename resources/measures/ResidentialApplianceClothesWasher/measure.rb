@@ -1,11 +1,7 @@
-require "#{File.dirname(__FILE__)}/resources/schedules"
 require "#{File.dirname(__FILE__)}/resources/constants"
-require "#{File.dirname(__FILE__)}/resources/util"
-require "#{File.dirname(__FILE__)}/resources/weather"
-require "#{File.dirname(__FILE__)}/resources/unit_conversions"
 require "#{File.dirname(__FILE__)}/resources/geometry"
 require "#{File.dirname(__FILE__)}/resources/waterheater"
-require "#{File.dirname(__FILE__)}/resources/clothesdryer"
+require "#{File.dirname(__FILE__)}/resources/appliances"
 
 #start the measure
 class ResidentialClothesWasher < OpenStudio::Measure::ModelMeasure
@@ -26,88 +22,94 @@ class ResidentialClothesWasher < OpenStudio::Measure::ModelMeasure
   def arguments(model)
     args = OpenStudio::Measure::OSArgumentVector.new
     
-    #TODO: New argument for demand response for clothes washer (alternate schedules if automatic DR control is specified)
-
     #make a double argument for Integrated Modified Energy Factor
-    cw_imef = OpenStudio::Measure::OSArgument::makeDoubleArgument("imef",true)
-    cw_imef.setDisplayName("Integrated Modified Energy Factor")
-    cw_imef.setUnits("ft^3/kWh-cycle")
-    cw_imef.setDescription("The Integrated Modified Energy Factor (IMEF) is the capacity of the clothes container divided by the total clothes washer energy consumption per cycle, where the energy consumption is the sum of the machine electrical energy consumption, the hot water energy consumption, the energy required for removal of the remaining moisture in the wash load, standby energy, and off-mode energy consumption. If only a Modified Energy Factor (MEF) is available, convert using the equation: IMEF = (MEF - 0.503) / 0.95.")
-    cw_imef.setDefaultValue(0.95)
-    args << cw_imef
+    imef = OpenStudio::Measure::OSArgument::makeDoubleArgument("imef",true)
+    imef.setDisplayName("Integrated Modified Energy Factor")
+    imef.setUnits("ft^3/kWh-cycle")
+    imef.setDescription("The Integrated Modified Energy Factor (IMEF) is the capacity of the clothes container divided by the total clothes washer energy consumption per cycle, where the energy consumption is the sum of the machine electrical energy consumption, the hot water energy consumption, the energy required for removal of the remaining moisture in the wash load, standby energy, and off-mode energy consumption. If only a Modified Energy Factor (MEF) is available, convert using the equation: IMEF = (MEF - 0.503) / 0.95.")
+    imef.setDefaultValue(0.95)
+    args << imef
 
     #make a double argument for Rated Annual Consumption
-    cw_rated_annual_energy = OpenStudio::Measure::OSArgument::makeDoubleArgument("rated_annual_energy",true)
-    cw_rated_annual_energy.setDisplayName("Rated Annual Consumption")
-    cw_rated_annual_energy.setUnits("kWh")
-    cw_rated_annual_energy.setDescription("The annual energy consumed by the clothes washer, as rated, obtained from the EnergyGuide label. This includes both the appliance electricity consumption and the energy required for water heating.")
-    cw_rated_annual_energy.setDefaultValue(387.0)
-    args << cw_rated_annual_energy
+    rated_annual_energy = OpenStudio::Measure::OSArgument::makeDoubleArgument("rated_annual_energy",true)
+    rated_annual_energy.setDisplayName("Rated Annual Consumption")
+    rated_annual_energy.setUnits("kWh")
+    rated_annual_energy.setDescription("The annual energy consumed by the clothes washer, as rated, obtained from the EnergyGuide label. This includes both the appliance electricity consumption and the energy required for water heating.")
+    rated_annual_energy.setDefaultValue(387.0)
+    args << rated_annual_energy
 
     #make a double argument for Annual Cost With Gas DHW
-    cw_annual_cost = OpenStudio::Measure::OSArgument::makeDoubleArgument("annual_cost",true)
-    cw_annual_cost.setDisplayName("Annual Cost with Gas DHW")
-    cw_annual_cost.setUnits("$")
-    cw_annual_cost.setDescription("The annual cost of using the system under test conditions.  Input is obtained from the EnergyGuide label.")
-    cw_annual_cost.setDefaultValue(24.0)
-    args << cw_annual_cost
+    annual_cost = OpenStudio::Measure::OSArgument::makeDoubleArgument("annual_cost",true)
+    annual_cost.setDisplayName("Annual Cost with Gas DHW")
+    annual_cost.setUnits("$")
+    annual_cost.setDescription("The annual cost of using the system under test conditions.  Input is obtained from the EnergyGuide label.")
+    annual_cost.setDefaultValue(24.0)
+    args << annual_cost
 
     #make an integer argument for Test Date
-    cw_test_date = OpenStudio::Measure::OSArgument::makeIntegerArgument("test_date",true)
-    cw_test_date.setDisplayName("Test Date")
-    cw_test_date.setDefaultValue(2007)
-    cw_test_date.setDescription("Input obtained from EnergyGuide labels.  The new E-guide labels state that the test was performed under the 2004 DOE procedure, otherwise use year < 2004.")
-    args << cw_test_date
+    test_date = OpenStudio::Measure::OSArgument::makeIntegerArgument("test_date",true)
+    test_date.setDisplayName("Test Date")
+    test_date.setDefaultValue(2007)
+    test_date.setDescription("Input obtained from EnergyGuide labels.  The new E-guide labels state that the test was performed under the 2004 DOE procedure, otherwise use year < 2004.")
+    args << test_date
 
     #make a double argument for Drum Volume
-    cw_drum_volume = OpenStudio::Measure::OSArgument::makeDoubleArgument("drum_volume",true)
-    cw_drum_volume.setDisplayName("Drum Volume")
-    cw_drum_volume.setUnits("ft^3")
-    cw_drum_volume.setDescription("Volume of the washer drum.  Obtained from the EnergyStar website or the manufacturer's literature.")
-    cw_drum_volume.setDefaultValue(3.5)
-    args << cw_drum_volume
+    drum_volume = OpenStudio::Measure::OSArgument::makeDoubleArgument("drum_volume",true)
+    drum_volume.setDisplayName("Drum Volume")
+    drum_volume.setUnits("ft^3")
+    drum_volume.setDescription("Volume of the washer drum.  Obtained from the EnergyStar website or the manufacturer's literature.")
+    drum_volume.setDefaultValue(3.5)
+    args << drum_volume
 
     #make a boolean argument for Use Cold Cycle Only
-    cw_cold_cycle = OpenStudio::Measure::OSArgument::makeBoolArgument("cold_cycle",true)
-    cw_cold_cycle.setDisplayName("Use Cold Cycle Only")
-    cw_cold_cycle.setDescription("The washer is operated using only the cold cycle.")
-    cw_cold_cycle.setDefaultValue(false)
-    args << cw_cold_cycle
+    cold_cycle = OpenStudio::Measure::OSArgument::makeBoolArgument("cold_cycle",true)
+    cold_cycle.setDisplayName("Use Cold Cycle Only")
+    cold_cycle.setDescription("The washer is operated using only the cold cycle.")
+    cold_cycle.setDefaultValue(false)
+    args << cold_cycle
 
     #make a boolean argument for Thermostatic Control
-    cw_thermostatic_control = OpenStudio::Measure::OSArgument::makeBoolArgument("thermostatic_control",true)
-    cw_thermostatic_control.setDisplayName("Thermostatic Control")
-    cw_thermostatic_control.setDescription("The clothes washer uses hot and cold water inlet valves to control temperature (varies hot water volume to control wash temperature).  Use this option for machines that use hot and cold inlet valves to control wash water temperature or machines that use both inlet valves AND internal electric heaters to control temperature of the wash water.  Input obtained from the manufacturer's literature.")
-    cw_thermostatic_control.setDefaultValue(true)
-    args << cw_thermostatic_control
+    thermostatic_control = OpenStudio::Measure::OSArgument::makeBoolArgument("thermostatic_control",true)
+    thermostatic_control.setDisplayName("Thermostatic Control")
+    thermostatic_control.setDescription("The clothes washer uses hot and cold water inlet valves to control temperature (varies hot water volume to control wash temperature).  Use this option for machines that use hot and cold inlet valves to control wash water temperature or machines that use both inlet valves AND internal electric heaters to control temperature of the wash water.  Input obtained from the manufacturer's literature.")
+    thermostatic_control.setDefaultValue(true)
+    args << thermostatic_control
 
     #make a boolean argument for Has Internal Heater Adjustment
-    cw_internal_heater = OpenStudio::Measure::OSArgument::makeBoolArgument("internal_heater",true)
-    cw_internal_heater.setDisplayName("Has Internal Heater Adjustment")
-    cw_internal_heater.setDescription("The washer uses an internal electric heater to adjust the temperature of wash water.  Use this option for washers that have hot and cold water connections but use an internal electric heater to adjust the wash water temperature.  Obtain the input from the manufacturer's literature.")
-    cw_internal_heater.setDefaultValue(false)
-    args << cw_internal_heater
+    internal_heater = OpenStudio::Measure::OSArgument::makeBoolArgument("internal_heater",true)
+    internal_heater.setDisplayName("Has Internal Heater Adjustment")
+    internal_heater.setDescription("The washer uses an internal electric heater to adjust the temperature of wash water.  Use this option for washers that have hot and cold water connections but use an internal electric heater to adjust the wash water temperature.  Obtain the input from the manufacturer's literature.")
+    internal_heater.setDefaultValue(false)
+    args << internal_heater
 
     #make a boolean argument for Has Water Level Fill Sensor
-    cw_fill_sensor = OpenStudio::Measure::OSArgument::makeBoolArgument("fill_sensor",true)
-    cw_fill_sensor.setDisplayName("Has Water Level Fill Sensor")
-    cw_fill_sensor.setDescription("The washer has a vertical axis and water level fill sensor.  Input obtained from the manufacturer's literature.")
-    cw_fill_sensor.setDefaultValue(false)
-    args << cw_fill_sensor
+    fill_sensor = OpenStudio::Measure::OSArgument::makeBoolArgument("fill_sensor",true)
+    fill_sensor.setDisplayName("Has Water Level Fill Sensor")
+    fill_sensor.setDescription("The washer has a vertical axis and water level fill sensor.  Input obtained from the manufacturer's literature.")
+    fill_sensor.setDefaultValue(false)
+    args << fill_sensor
 
     #make a double argument for occupancy energy multiplier
-    cw_mult_e = OpenStudio::Measure::OSArgument::makeDoubleArgument("mult_e",true)
-    cw_mult_e.setDisplayName("Occupancy Energy Multiplier")
-    cw_mult_e.setDescription("Appliance energy use is multiplied by this factor to account for occupancy usage that differs from the national average.")
-    cw_mult_e.setDefaultValue(1)
-    args << cw_mult_e
+    mult_e = OpenStudio::Measure::OSArgument::makeDoubleArgument("mult_e",true)
+    mult_e.setDisplayName("Occupancy Energy Multiplier")
+    mult_e.setDescription("Appliance energy use is multiplied by this factor to account for occupancy usage that differs from the national average.")
+    mult_e.setDefaultValue(1)
+    args << mult_e
 
     #make a double argument for occupancy water multiplier
+<<<<<<< HEAD
     cw_mult_hw = OpenStudio::Measure::OSArgument::makeDoubleArgument("mult_hw",true)
     cw_mult_hw.setDisplayName("Occupancy Hot Water Multiplier")
     cw_mult_hw.setDescription("Appliance hot water use is multiplied by this factor to account for occupancy usage that differs from the national average. This should generally be equal to the Occupancy Energy Multiplier.")
     cw_mult_hw.setDefaultValue(1)
     args << cw_mult_hw
+=======
+    mult_hw = OpenStudio::Measure::OSArgument::makeDoubleArgument("mult_hw",true)
+    mult_hw.setDisplayName("Occupancy Hot Water Multiplier")
+    mult_hw.setDescription("Appliance hot water use is multiplied by this factor to account for occupancy usage that differs from the national average. This should generally be equal to the Occupancy Energy Multiplier.")
+    mult_hw.setDefaultValue(1)
+    args << mult_hw
+>>>>>>> master
 
     #make a choice argument for location
     location_args = OpenStudio::StringVector.new
@@ -154,6 +156,7 @@ class ResidentialClothesWasher < OpenStudio::Measure::ModelMeasure
     end
 
     #assign the user inputs to variables
+<<<<<<< HEAD
     cw_imef = runner.getDoubleArgumentValue("imef",user_arguments)
     cw_rated_annual_energy = runner.getDoubleArgumentValue("rated_annual_energy",user_arguments)
     cw_annual_cost = runner.getDoubleArgumentValue("annual_cost",user_arguments)
@@ -165,56 +168,35 @@ class ResidentialClothesWasher < OpenStudio::Measure::ModelMeasure
     cw_fill_sensor = runner.getBoolArgumentValue("fill_sensor",user_arguments)
     cw_mult_e = runner.getDoubleArgumentValue("mult_e",user_arguments)
     cw_mult_hw = runner.getDoubleArgumentValue("mult_hw",user_arguments)
+=======
+    imef = runner.getDoubleArgumentValue("imef",user_arguments)
+    rated_annual_energy = runner.getDoubleArgumentValue("rated_annual_energy",user_arguments)
+    annual_cost = runner.getDoubleArgumentValue("annual_cost",user_arguments)
+    test_date = runner.getIntegerArgumentValue("test_date", user_arguments)
+    drum_volume = runner.getDoubleArgumentValue("drum_volume",user_arguments)
+    cold_cycle = runner.getBoolArgumentValue("cold_cycle",user_arguments)
+    thermostatic_control = runner.getBoolArgumentValue("thermostatic_control",user_arguments)
+    internal_heater = runner.getBoolArgumentValue("internal_heater",user_arguments)
+    fill_sensor = runner.getBoolArgumentValue("fill_sensor",user_arguments)
+    mult_e = runner.getDoubleArgumentValue("mult_e",user_arguments)
+    mult_hw = runner.getDoubleArgumentValue("mult_hw",user_arguments)
+>>>>>>> master
     location = runner.getStringArgumentValue("location",user_arguments)
     plant_loop_s = runner.getStringArgumentValue("plant_loop", user_arguments)
     d_sh = runner.getIntegerArgumentValue("schedule_day_shift",user_arguments)
 
-    #Check for valid inputs
-    if cw_imef <= 0
-        runner.registerError("Integrated modified energy factor must be greater than 0.0.")
-        return false
-    end
-    if cw_rated_annual_energy <= 0
-        runner.registerError("Rated annual consumption must be greater than 0.0.")
-        return false
-    end
-    if cw_annual_cost <= 0
-        runner.registerError("Annual cost with gas DHW must be greater than 0.0.")
-        return false
-    end
-    if cw_test_date < 1900
-        runner.registerError("Test date must be greater than or equal to 1900.")
-        return false
-    end
-    if cw_drum_volume <= 0
-        runner.registerError("Drum volume must be greater than 0.0.")
-        return false
-    end
-    if cw_mult_e < 0
-        runner.registerError("Occupancy energy multiplier must be greater than or equal to 0.0.")
-        return false
-    end
-    if cw_mult_hw < 0
-        runner.registerError("Occupancy hot water multiplier must be greater than or equal to 0.0.")
-        return false
-    end
-    if d_sh < 0 or d_sh > 364
-        runner.registerError("Hot water draw profile can only be shifted by 0-364 days.")
-        return false
-    end
-    
     # Get building units
     units = Geometry.get_building_units(model, runner)
     if units.nil?
         return false
     end
 
-    # Get mains monthly temperatures
-    site = model.getSite
-    if !site.siteWaterMainsTemperature.is_initialized
-        runner.registerError("Mains water temperature has not been set.")
-        return false
+    # Remove all existing objects
+    obj_name = Constants.ObjectNameClothesWasher
+    model.getSpaces.each do |space|
+        ClothesWasher.remove(runner, space, obj_name)
     end
+<<<<<<< HEAD
     mainsMonthlyTemps = WeatherProcess.get_mains_temperature(site.siteWaterMainsTemperature.get, site.latitude)[1]
     
     # Remove all existing objects
@@ -222,6 +204,8 @@ class ResidentialClothesWasher < OpenStudio::Measure::ModelMeasure
     model.getSpaces.each do |space|
         remove_existing(runner, space, obj_name)
     end
+=======
+>>>>>>> master
     
     location_hierarchy = [Constants.SpaceTypeLaundryRoom, 
                           Constants.SpaceTypeLiving, 
@@ -229,6 +213,7 @@ class ResidentialClothesWasher < OpenStudio::Measure::ModelMeasure
                           Constants.SpaceTypeUnfinishedBasement, 
                           Constants.SpaceTypeGarage]
 
+<<<<<<< HEAD
     tot_cw_ann_e = 0
     msgs = []
     cd_msgs = []
@@ -245,6 +230,15 @@ class ResidentialClothesWasher < OpenStudio::Measure::ModelMeasure
             return false
         end
         
+=======
+    tot_ann_e = 0
+    msgs = []
+    cd_msgs = []
+    cd_sch = nil
+    mains_temps = nil
+    units.each_with_index do |unit, unit_index|
+    
+>>>>>>> master
         # Get space
         space = Geometry.get_space_from_location(unit, location, location_hierarchy)
         next if space.nil?
@@ -255,6 +249,7 @@ class ResidentialClothesWasher < OpenStudio::Measure::ModelMeasure
             return false
         end
     
+<<<<<<< HEAD
         # Get water heater setpoint
         wh_setpoint = Waterheater.get_water_heater_setpoint(model, plant_loop, runner)
         if wh_setpoint.nil?
@@ -313,207 +308,22 @@ class ResidentialClothesWasher < OpenStudio::Measure::ModelMeasure
             hot_water_vol_frac_test = 0.5
             mixed_cycle_temperature_test = ((cw_hot_water_inlet_temperature_test - cw_cold_water_inlet_temp_test) * \
                                            hot_water_vol_frac_test + cw_cold_water_inlet_temp_test) # degF
-        end
-                                               
-        # Determine the Gas use for domestic hot water per cycle for test conditions
-        cw_energy_guide_gas_cost = EnergyGuideLabel.get_energy_guide_gas_cost(cw_test_date)/100
-        cw_energy_guide_elec_cost = EnergyGuideLabel.get_energy_guide_elec_cost(cw_test_date)/100
+=======
+        success, ann_e, cd_updated, cd_sch, mains_temps = ClothesWasher.apply(model, unit, runner, imef, rated_annual_energy, annual_cost,
+                                                                              test_date, drum_volume, cold_cycle, thermostatic_control,
+                                                                              internal_heater, fill_sensor, mult_e, mult_hw, d_sh, cd_sch,
+                                                                              space, plant_loop, mains_temps, File.dirname(__FILE__))
         
-        # Use the EnergyGuide Label information (eq. 4 Eastment and Hendron, NREL/CP-550-39769, 2006).
-        cw_gas_consumption_for_dhw_per_cycle_test = ((cw_rated_annual_energy * cw_energy_guide_elec_cost - 
-                                                    cw_annual_cost) / 
-                                                    (UnitConversions.convert(cw_gas_dhw_heater_efficiency_test, "therm", "kWh") * 
-                                                    cw_energy_guide_elec_cost - cw_energy_guide_gas_cost) / 
-                                                    cw_cycles_per_year_test) # therms/cycle
-
-        # Use additional EnergyGuide Label information to determine how  much electricity was used in 
-        # the test to power the clothes washer's internal machinery (eq. 5 Eastment and Hendron, 
-        # NREL/CP-550-39769, 2006). Any energy required for internal water heating will be included
-        # in this value.
-        cw_elec_use_per_cycle_test = (cw_rated_annual_energy / cw_cycles_per_year_test -
-                                     cw_gas_consumption_for_dhw_per_cycle_test * 
-                                     UnitConversions.convert(cw_gas_dhw_heater_efficiency_test, "therm", "kWh")) # kWh/cycle 
+        if not success
+            return false
+>>>>>>> master
+        end
         
-        if cw_test_date < 2004
-            # (see 10CFR Part 430, Subpt. B, App. J, Section 4.1.2, DOE 1999)
-            cw_dhw_deltaT_test = 90
-        else
-            # (see 10CFR Part 430, Subpt. B, App. J1, Section 4.1.2, DOE 1999)
-            cw_dhw_deltaT_test = 75
+        if ann_e > 0
+            msgs << "A clothes washer with #{ann_e.round} kWhs annual energy consumption has been added to plant loop '#{plant_loop.name}' and assigned to space '#{space.name.to_s}'."
         end
-
-        # Determine how much hot water was used in the test based on the amount of gas used in the 
-        # test to heat the water and the temperature rise in the water heater in the test (eq. 6 
-        # Eastment and Hendron, NREL/CP-550-39769, 2006).
-        water_dens = Liquid.H2O_l.rho # lbm/ft^3
-        water_sh = Liquid.H2O_l.cp  # Btu/lbm-R
-        cw_dhw_use_per_cycle_test = ((UnitConversions.convert(cw_gas_consumption_for_dhw_per_cycle_test, "therm", "kWh") * 
-                                    cw_gas_dhw_heater_efficiency_test) / (cw_dhw_deltaT_test * 
-                                    water_dens * water_sh * UnitConversions.convert(1.0, "Btu", "kWh") / UnitConversions.convert(1.0,"ft^3","gal")))
-         
-        if cw_fill_sensor and cw_test_date < 2004
-            # For vertical axis washers that are sensor-filled, use a multiplying factor of 0.94 
-            # (see 10CFR Part 430, Subpt. B, App. J, Section 4.1.2, DOE 1999)
-            cw_dhw_use_per_cycle_test = cw_dhw_use_per_cycle_test / 0.94
-        end
-
-        # Calculate total per-cycle usage of water (combined from hot and cold supply).
-        # Note that the actual total amount of water used per cycle is assumed to be the same as 
-        # the total amount of water used per cycle in the test. Under actual conditions, however, 
-        # the ratio of hot and cold water can vary with thermostatic control (see below).
-        actual_cw_total_per_cycle_water_use = cw_dhw_use_per_cycle_test / hot_water_vol_frac_test # gal/cycle
-
-        # Set actual clothes washer water temperature for calculations below.
-        if cw_cold_cycle
-            # To model occupant behavior of using only a cold cycle.
-            cw_water_temp = mainsMonthlyTemps.inject(:+)/12 # degF
-        elsif cw_thermostatic_control
-            # Washer is being operated "normally" - at the same temperature as in the test.
-            cw_water_temp = mixed_cycle_temperature_test # degF
-        else
-            cw_water_temp = wh_setpoint # degF
-        end
-
-        # (eq. 14 Eastment and Hendron, NREL/CP-550-39769, 2006)
-        actual_cw_cycles_per_year = (cw_cycles_per_year_test * (0.5 + nbeds / 6) * 
-                                    (12.5 / cw_test_load)) # cycles/year
-
-        cw_total_daily_water_use = (actual_cw_total_per_cycle_water_use * actual_cw_cycles_per_year / 
-                                   365) # gal/day
-
-        # Calculate actual DHW use and elecricity use.
-        # First calculate per-cycle usages.
-        #    If the clothes washer has thermostatic control, then the test per-cycle DHW usage 
-        #    amounts will have to be adjusted (up or down) to account for differences between 
-        #    actual water supply temperatures and test conditions. If the clothes washer has 
-        #    an internal heater, then the test per-cycle electricity usage amounts will have to 
-        #    be adjusted (up or down) to account for differences between actual water supply 
-        #    temperatures and hot water amounts and test conditions.
-        # The calculations are done on a monthly basis to reflect monthly variations in TMains 
-        # temperatures. Per-cycle amounts are then used to calculate monthly amounts and finally 
-        # daily amounts.
-
-        monthly_clothes_washer_dhw = Array.new(12, 0)
-        monthly_clothes_washer_energy = Array.new(12, 0)
-
-        mainsMonthlyTemps.each_with_index do |monthly_main, i|
-
-            # Adjust per-cycle DHW amount.
-            if cw_thermostatic_control
-                # If the washer has thermostatic control then its use of DHW will vary as the 
-                # cold and hot water supply temperatures vary.
-
-                if cw_cold_cycle and monthly_main >= cw_water_temp
-                    # In this special case, the washer uses only a cold cycle and the TMains 
-                    # temperature exceeds the desired cold cycle temperature. In this case, no 
-                    # DHW will be used (the adjustment is -100%). A special calculation is 
-                    # needed here since the formula for the general case (below) would imply
-                    # that a negative volume of DHW is used.
-                    cw_dhw_use_per_cycle_adjustment = -1 * cw_dhw_use_per_cycle_test # gal/cycle
-
-                else
-                    # With thermostatic control, the washer will adjust the amount of hot water 
-                    # when either the hot water or cold water supply temperatures vary (eq. 18 
-                    # Eastment and Hendron, NREL/CP-550-39769, 2006).
-                    cw_dhw_use_per_cycle_adjustment = (cw_dhw_use_per_cycle_test * 
-                                                      ((1 / hot_water_vol_frac_test) * 
-                                                      (cw_water_temp - monthly_main) + 
-                                                      monthly_main - wh_setpoint) / 
-                                                      (wh_setpoint - monthly_main)) # gal/cycle
-                             
-                end
-
-            else
-                # Without thermostatic control, the washer will not adjust the amount of hot water.
-                cw_dhw_use_per_cycle_adjustment = 0 # gal/cycle
-            end
-
-            # Calculate actual water usage amounts for the current month in the loop.
-            actual_cw_dhw_use_per_cycle = (cw_dhw_use_per_cycle_test + 
-                                          cw_dhw_use_per_cycle_adjustment) # gal/cycle
-
-            # Adjust per-cycle electricity amount.
-            if cw_internal_heater
-                # If the washer heats the water internally, then its use of electricity will vary 
-                # as the cold and hot water supply temperatures vary.
-
-                # Calculate cold water usage per cycle to facilitate calculation of electricity 
-                # usage below.
-                actual_cw_cold_water_use_per_cycle = (actual_cw_total_per_cycle_water_use - 
-                                                     actual_cw_dhw_use_per_cycle) # gal/cycle
-
-                # With an internal heater, the washer will adjust its heating (up or down) when 
-                # actual conditions differ from test conditions according to the following three 
-                # equations. Compensation for changes in sensible heat due to:
-                # 1) a difference in hot water supply temperatures and
-                # 2) a difference in cold water supply temperatures
-                # (modified version of eq. 20 Eastment and Hendron, NREL/CP-550-39769, 2006).
-                cw_elec_use_per_cycle_adjustment_supply_temps = ((actual_cw_dhw_use_per_cycle * 
-                                                                (cw_hot_water_inlet_temperature_test - 
-                                                                wh_setpoint) + 
-                                                                actual_cw_cold_water_use_per_cycle * 
-                                                                (cw_cold_water_inlet_temp_test - 
-                                                                monthly_main)) * 
-                                                                (water_dens * water_sh * 
-                                                                UnitConversions.convert(1.0, "Btu", "kWh") / 
-                                                                UnitConversions.convert(1.0,"ft^3","gal"))) # kWh/cycle
-
-                # Compensation for the change in sensible heat due to a difference in hot water 
-                # amounts due to thermostatic control.
-                cw_elec_use_per_cycle_adjustment_hot_water_amount = (cw_dhw_use_per_cycle_adjustment * 
-                                                                    (cw_cold_water_inlet_temp_test - 
-                                                                    cw_hot_water_inlet_temperature_test) * 
-                                                                    (water_dens * water_sh * 
-                                                                    UnitConversions.convert(1.0, "Btu", "kWh") /
-                                                                    UnitConversions.convert(1.0,"ft^3","gal"))) # kWh/cycle
-
-                # Compensation for the change in sensible heat due to a difference in operating 
-                # temperature vs. test temperature (applies only to cold cycle only).
-                # Note: This adjustment can result in the calculation of zero electricity use 
-                # per cycle below. This would not be correct (the washer will always use some 
-                # electricity to operate). However, if the washer has an internal heater, it is 
-                # not possible to determine how much of the electricity was  used for internal 
-                # heating of water and how much for other machine operations.
-                cw_elec_use_per_cycle_adjustment_operating_temp = (actual_cw_total_per_cycle_water_use * 
-                                                                  (cw_water_temp - mixed_cycle_temperature_test) * 
-                                                                  (water_dens * water_sh * 
-                                                                  UnitConversions.convert(1.0, "Btu", "kWh") / 
-                                                                  UnitConversions.convert(1.0,"ft^3","gal"))) # kWh/cycle
-
-                # Sum the three adjustments above
-                cw_elec_use_per_cycle_adjustment = cw_elec_use_per_cycle_adjustment_supply_temps + 
-                                                   cw_elec_use_per_cycle_adjustment_hot_water_amount + 
-                                                   cw_elec_use_per_cycle_adjustment_operating_temp
-
-            else
-
-                cw_elec_use_per_cycle_adjustment = 0 # kWh/cycle
-                
-            end
-
-            # Calculate actual electricity usage amount for the current month in the loop.
-            actual_cw_elec_use_per_cycle = (cw_elec_use_per_cycle_test + 
-                                           cw_elec_use_per_cycle_adjustment) # kWh/cycle
-
-            # Do not allow negative electricity use
-            if actual_cw_elec_use_per_cycle < 0
-                actual_cw_elec_use_per_cycle = 0
-            end
-
-            # Calculate monthly totals
-            monthly_clothes_washer_dhw[i] = ((actual_cw_dhw_use_per_cycle * 
-                                            actual_cw_cycles_per_year * 
-                                            Constants.MonthNumDays[i] / 365)) # gal/month
-            monthly_clothes_washer_energy[i] = ((actual_cw_elec_use_per_cycle * 
-                                               actual_cw_cycles_per_year * 
-                                               Constants.MonthNumDays[i] / 365)) # kWh/month
-        end
-
-        daily_energy = monthly_clothes_washer_energy.inject(:+) / 365
-                    
-        daily_energy = daily_energy * cw_mult_e
-        total_daily_water_use = cw_total_daily_water_use * cw_mult_hw
         
+<<<<<<< HEAD
         cw_ann_e = daily_energy * 365
     
         if cw_ann_e > 0
@@ -617,9 +427,13 @@ class ResidentialClothesWasher < OpenStudio::Measure::ModelMeasure
             
             next if cd_ann_e == 0 and cd_ann_f == 0
             
+=======
+        if cd_updated
+>>>>>>> master
             cd_msgs << "The clothes dryer assigned to space '#{space.name.to_s}' has been updated."
-            
         end
+        
+        tot_ann_e += ann_e
         
     end
     
@@ -631,7 +445,7 @@ class ResidentialClothesWasher < OpenStudio::Measure::ModelMeasure
         cd_msgs.each do |cd_msg|
             runner.registerInfo(cd_msg)
         end
-        runner.registerFinalCondition("The building has been assigned clothes washers totaling #{tot_cw_ann_e.round} kWhs annual energy consumption across #{units.size} units.")
+        runner.registerFinalCondition("The building has been assigned clothes washers totaling #{tot_ann_e.round} kWhs annual energy consumption across #{units.size} units.")
     elsif msgs.size == 1
         runner.registerFinalCondition(msgs[0])
     else
@@ -642,6 +456,7 @@ class ResidentialClothesWasher < OpenStudio::Measure::ModelMeasure
 	
   end
   
+<<<<<<< HEAD
   def remove_existing(runner, space, obj_name)
     # Remove any existing clothes washer
     objects_to_remove = []
@@ -676,6 +491,8 @@ class ResidentialClothesWasher < OpenStudio::Measure::ModelMeasure
     end
   end
 
+=======
+>>>>>>> master
 end #end the measure
 
 #this allows the measure to be use by the application

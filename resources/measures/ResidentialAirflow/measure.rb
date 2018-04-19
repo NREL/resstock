@@ -3,17 +3,12 @@
 
 require "#{File.dirname(__FILE__)}/resources/constants"
 require "#{File.dirname(__FILE__)}/resources/geometry"
-require "#{File.dirname(__FILE__)}/resources/schedules"
-require "#{File.dirname(__FILE__)}/resources/weather"
-require "#{File.dirname(__FILE__)}/resources/util"
-require "#{File.dirname(__FILE__)}/resources/psychrometrics"
-require "#{File.dirname(__FILE__)}/resources/unit_conversions"
-require "#{File.dirname(__FILE__)}/resources/hvac"
 require "#{File.dirname(__FILE__)}/resources/airflow"
 
 # start the measure
 class ResidentialAirflow < OpenStudio::Measure::ModelMeasure
 
+<<<<<<< HEAD
   class Ducts
     def initialize(ductTotalLeakage, ductNormLeakageToOutside, ductSupplySurfaceAreaMultiplier, ductReturnSurfaceAreaMultiplier, ductRvalue, ductSupplyLeakageFractionOfTotal, ductReturnLeakageFractionOfTotal, ductAHSupplyLeakageFractionOfTotal, ductAHReturnLeakageFractionOfTotal, ductLocationFrac, ductNumReturns, ductLocation)
       @DuctTotalLeakage = ductTotalLeakage
@@ -173,6 +168,8 @@ class ResidentialAirflow < OpenStudio::Measure::ModelMeasure
     attr_accessor(:MechanicalVentilationEnergy, :MechanicalVentilation, :BathExhaust, :ClothesDryerExhaust, :RangeHood, :NatVentProbability, :NatVentAvailability, :NatVentTemp)
   end
 
+=======
+>>>>>>> master
   # human readable name
   def name
     return "Set Residential Airflow"
@@ -356,8 +353,23 @@ class ResidentialAirflow < OpenStudio::Measure::ModelMeasure
     is_existing_home.setDescription("Specifies whether the building is an existing home or new construction.")
     is_existing_home.setDefaultValue(false)
     args << is_existing_home
-    
+
+    #make a double argument for cfis open time
+    mech_vent_cfis_open_time = OpenStudio::Measure::OSArgument::makeDoubleArgument("mech_vent_cfis_open_time",true)
+    mech_vent_cfis_open_time.setDisplayName("Mechanical Ventilation: CFIS Damper Open Time")
+    mech_vent_cfis_open_time.setDescription("Minimum damper open time for a #{Constants.VentTypeCFIS} system.")
+    mech_vent_cfis_open_time.setDefaultValue(20.0)
+    args << mech_vent_cfis_open_time
+
+    #make a double argument for cfis airflow fraction
+    mech_vent_cfis_airflow_frac = OpenStudio::Measure::OSArgument::makeDoubleArgument("mech_vent_cfis_airflow_frac",true)
+    mech_vent_cfis_airflow_frac.setDisplayName("Mechanical Ventilation: CFIS Ventilation Mode Airflow Fraction")
+    mech_vent_cfis_airflow_frac.setDescription("Blower airflow rate, when the #{Constants.VentTypeCFIS} system is operating in ventilation mode, as a fraction of maximum blower airflow rate.")
+    mech_vent_cfis_airflow_frac.setDefaultValue(1.0)
+    args << mech_vent_cfis_airflow_frac
+
     #make an integer argument for hour of range spot ventilation
+<<<<<<< HEAD
     range_spot_vent_hour = OpenStudio::Measure::OSArgument::makeIntegerArgument("range_spot_vent_hour",true)
     range_spot_vent_hour.setDisplayName("Hour of range spot ventilation")
     range_spot_vent_hour.setDescription("Hour in which range spot ventilation occurs. Values indicate the time of spot ventilation, which lasts for 1 hour.")
@@ -385,6 +397,21 @@ class ResidentialAirflow < OpenStudio::Measure::ModelMeasure
     mech_vent_cfis_airflow_frac.setDefaultValue(1.0)
     args << mech_vent_cfis_airflow_frac
 
+=======
+    range_exhaust_hour = OpenStudio::Measure::OSArgument::makeIntegerArgument("range_exhaust_hour",true)
+    range_exhaust_hour.setDisplayName("Spot Ventilation: Hour of range spot ventilation")
+    range_exhaust_hour.setDescription("Hour in which range spot ventilation occurs. Values indicate the time of spot ventilation, which lasts for 1 hour.")
+    range_exhaust_hour.setDefaultValue(16)
+    args << range_exhaust_hour
+    
+    #make an integer argument for hour of bathroom spot ventilation
+    bathroom_exhaust_hour = OpenStudio::Measure::OSArgument::makeIntegerArgument("bathroom_exhaust_hour",true)
+    bathroom_exhaust_hour.setDisplayName("Spot Ventilation: Hour of bathroom spot ventilation")
+    bathroom_exhaust_hour.setDescription("Hour in which bathroom spot ventilation occurs. Values indicate the time of spot ventilation, which lasts for 1 hour.")
+    bathroom_exhaust_hour.setDefaultValue(5)
+    args << bathroom_exhaust_hour
+    
+>>>>>>> master
     #make a double argument for dryer exhaust
     clothes_dryer_exhaust = OpenStudio::Measure::OSArgument::makeDoubleArgument("clothes_dryer_exhaust",true)
     clothes_dryer_exhaust.setDisplayName("Clothes Dryer: Exhaust")
@@ -597,20 +624,19 @@ class ResidentialAirflow < OpenStudio::Measure::ModelMeasure
       return false
     end
 
-    infiltrationLivingSpaceACH50 = runner.getDoubleArgumentValue("living_ach50",user_arguments)
-    if infiltrationLivingSpaceACH50 == 0
-      infiltrationLivingSpaceACH50 = nil
-    end
-    infiltrationGarageACH50 = runner.getDoubleArgumentValue("garage_ach50",user_arguments)
-    crawlACH = runner.getDoubleArgumentValue("crawl_ach",user_arguments)
-    pierbeamACH = runner.getDoubleArgumentValue("pier_beam_ach",user_arguments)
-    fbsmtACH = runner.getDoubleArgumentValue("finished_basement_ach",user_arguments)
-    ufbsmtACH = runner.getDoubleArgumentValue("unfinished_basement_ach",user_arguments)
-    uaSLA = runner.getDoubleArgumentValue("unfinished_attic_sla",user_arguments)
-    infiltrationShelterCoefficient = runner.getStringArgumentValue("shelter_coef",user_arguments)
+    # Air leakage
+    living_ach50 = runner.getDoubleArgumentValue("living_ach50",user_arguments)
+    garage_ach50 = runner.getDoubleArgumentValue("garage_ach50",user_arguments)
+    crawl_ach = runner.getDoubleArgumentValue("crawl_ach",user_arguments)
+    pier_beam_ach = runner.getDoubleArgumentValue("pier_beam_ach",user_arguments)
+    finished_basement_ach = runner.getDoubleArgumentValue("finished_basement_ach",user_arguments)
+    unfinished_basement_ach = runner.getDoubleArgumentValue("unfinished_basement_ach",user_arguments)
+    unfinished_attic_sla = runner.getDoubleArgumentValue("unfinished_attic_sla",user_arguments)
+    shelter_coef = runner.getStringArgumentValue("shelter_coef",user_arguments)
     has_hvac_flue = runner.getBoolArgumentValue("has_hvac_flue",user_arguments)
     has_water_heater_flue = runner.getBoolArgumentValue("has_water_heater_flue",user_arguments)
     has_fireplace_chimney = runner.getBoolArgumentValue("has_fireplace_chimney",user_arguments)
+<<<<<<< HEAD
     terrainType = runner.getStringArgumentValue("terrain",user_arguments)
     mechVentType = runner.getStringArgumentValue("mech_vent_type",user_arguments)
     mechVentInfilCredit = runner.getBoolArgumentValue("mech_vent_infil_credit",user_arguments)
@@ -3004,6 +3030,87 @@ class ResidentialAirflow < OpenStudio::Measure::ModelMeasure
     return ducts
   end
 
+=======
+    terrain = runner.getStringArgumentValue("terrain",user_arguments)
+    
+    # Mechanical Ventilation
+    mech_vent_type = runner.getStringArgumentValue("mech_vent_type",user_arguments)
+    mech_vent_infil_credit = runner.getBoolArgumentValue("mech_vent_infil_credit",user_arguments)
+    mech_vent_total_efficiency = runner.getDoubleArgumentValue("mech_vent_total_efficiency",user_arguments)
+    mech_vent_sensible_efficiency = runner.getDoubleArgumentValue("mech_vent_sensible_efficiency",user_arguments)
+    mech_vent_fan_power = runner.getDoubleArgumentValue("mech_vent_fan_power",user_arguments)
+    mech_vent_frac_62_2 = runner.getDoubleArgumentValue("mech_vent_frac_62_2",user_arguments)
+    mech_vent_ashrae_std = runner.getStringArgumentValue("mech_vent_ashrae_std",user_arguments)
+    mech_vent_cfis_open_time = runner.getDoubleArgumentValue("mech_vent_cfis_open_time",user_arguments)
+    mech_vent_cfis_airflow_frac = runner.getDoubleArgumentValue("mech_vent_cfis_airflow_frac",user_arguments)
+    if mech_vent_type == Constants.VentTypeNone
+      mech_vent_frac_62_2 = 0.0
+      mech_vent_fan_power = 0.0
+      mech_vent_total_efficiency = 0.0
+      mech_vent_sensible_efficiency = 0.0
+    end
+    range_exhaust_hour = runner.getIntegerArgumentValue("range_exhaust_hour",user_arguments)
+    bathroom_exhaust_hour = runner.getIntegerArgumentValue("bathroom_exhaust_hour",user_arguments)
+    clothes_dryer_exhaust = runner.getDoubleArgumentValue("clothes_dryer_exhaust",user_arguments)
+    is_existing_home = runner.getBoolArgumentValue("is_existing_home",user_arguments)
+    
+    # Natural Ventilation
+    nat_vent_htg_offset = runner.getDoubleArgumentValue("nat_vent_htg_offset",user_arguments)
+    nat_vent_clg_offset = runner.getDoubleArgumentValue("nat_vent_clg_offset",user_arguments)
+    nat_vent_ovlp_offset = runner.getDoubleArgumentValue("nat_vent_ovlp_offset",user_arguments)
+    nat_vent_htg_season = runner.getBoolArgumentValue("nat_vent_htg_season",user_arguments)
+    nat_vent_clg_season = runner.getBoolArgumentValue("nat_vent_clg_season",user_arguments)
+    nat_vent_ovlp_season = runner.getBoolArgumentValue("nat_vent_ovlp_season",user_arguments)
+    nat_vent_num_weekdays = runner.getIntegerArgumentValue("nat_vent_num_weekdays",user_arguments)
+    nat_vent_num_weekends = runner.getIntegerArgumentValue("nat_vent_num_weekends",user_arguments)
+    nat_vent_frac_windows_open = runner.getDoubleArgumentValue("nat_vent_frac_windows_open",user_arguments)
+    nat_vent_frac_window_area_openable = runner.getDoubleArgumentValue("nat_vent_frac_window_area_openable",user_arguments)
+    nat_vent_max_oa_hr = runner.getDoubleArgumentValue("nat_vent_max_oa_hr",user_arguments)
+    nat_vent_max_oa_rh = runner.getDoubleArgumentValue("nat_vent_max_oa_rh",user_arguments)
+    
+    # Ducts
+    duct_location = runner.getStringArgumentValue("duct_location",user_arguments)
+    duct_total_leakage = runner.getDoubleArgumentValue("duct_total_leakage",user_arguments)
+    duct_supply_frac = runner.getDoubleArgumentValue("duct_supply_frac",user_arguments)
+    duct_return_frac = runner.getDoubleArgumentValue("duct_return_frac",user_arguments)
+    duct_ah_supply_frac = runner.getDoubleArgumentValue("duct_ah_supply_frac",user_arguments)
+    duct_ah_return_frac = runner.getDoubleArgumentValue("duct_ah_return_frac",user_arguments)
+    # duct_norm_leakage_25pa = runner.getStringArgumentValue("duct_norm_leakage_25pa",user_arguments)
+    duct_norm_leakage_25pa = "NA"
+    unless duct_norm_leakage_25pa == "NA"
+      duct_norm_leakage_25pa = duct_norm_leakage_25pa.to_f
+    else
+      duct_norm_leakage_25pa = nil
+    end
+    duct_location_frac = runner.getStringArgumentValue("duct_location_frac",user_arguments)
+    duct_num_returns = runner.getStringArgumentValue("duct_num_returns",user_arguments)
+    duct_supply_area_mult = runner.getDoubleArgumentValue("duct_supply_area_mult",user_arguments)
+    duct_return_area_mult = runner.getDoubleArgumentValue("duct_return_area_mult",user_arguments)
+    duct_r = runner.getDoubleArgumentValue("duct_r",user_arguments)
+
+    Airflow.remove(model, 
+                   Constants.ObjectNameAirflow, 
+                   Constants.ObjectNameNaturalVentilation, 
+                   Constants.ObjectNameInfiltration, 
+                   Constants.ObjectNameDucts, 
+                   Constants.ObjectNameMechanicalVentilation)
+    
+    # Create the airflow objects
+    has_flue_chimney = (has_hvac_flue or has_water_heater_flue or has_fireplace_chimney)
+    infil = Infiltration.new(living_ach50, shelter_coef, garage_ach50, crawl_ach, unfinished_attic_sla, unfinished_basement_ach, finished_basement_ach, pier_beam_ach, has_flue_chimney, is_existing_home, terrain)
+    mech_vent = MechanicalVentilation.new(mech_vent_type, mech_vent_infil_credit, mech_vent_total_efficiency, mech_vent_frac_62_2, mech_vent_fan_power, mech_vent_sensible_efficiency, mech_vent_ashrae_std, mech_vent_cfis_open_time, mech_vent_cfis_airflow_frac, clothes_dryer_exhaust, range_exhaust_hour, bathroom_exhaust_hour)
+    nat_vent = NaturalVentilation.new(nat_vent_htg_offset, nat_vent_clg_offset, nat_vent_ovlp_offset, nat_vent_htg_season, nat_vent_clg_season, nat_vent_ovlp_season, nat_vent_num_weekdays, nat_vent_num_weekends, nat_vent_frac_windows_open, nat_vent_frac_window_area_openable, nat_vent_max_oa_hr, nat_vent_max_oa_rh)
+    ducts = Ducts.new(duct_total_leakage, duct_norm_leakage_25pa, duct_supply_area_mult, duct_return_area_mult, duct_r, duct_supply_frac, duct_return_frac, duct_ah_supply_frac, duct_ah_return_frac, duct_location_frac, duct_num_returns, duct_location)
+    
+    if not Airflow.apply(model, runner, infil, mech_vent, nat_vent, ducts, File.dirname(__FILE__))
+      return false
+    end
+
+    return true
+
+  end
+
+>>>>>>> master
 end
 
 # register the measure to be used by the application

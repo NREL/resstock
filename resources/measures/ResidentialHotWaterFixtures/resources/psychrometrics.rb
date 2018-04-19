@@ -1,5 +1,6 @@
 require "#{File.dirname(__FILE__)}/constants"
 require "#{File.dirname(__FILE__)}/unit_conversions"
+require "#{File.dirname(__FILE__)}/materials"
 require "#{File.dirname(__FILE__)}/util"
 
 class Psychrometrics

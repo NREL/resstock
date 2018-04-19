@@ -1,11 +1,9 @@
 # see the URL below for information on how to write OpenStudio measures
 # http://nrel.github.io/OpenStudio-user-documentation/measures/measure_writing_guide/
 
-require "#{File.dirname(__FILE__)}/resources/util"
 require "#{File.dirname(__FILE__)}/resources/waterheater"
 require "#{File.dirname(__FILE__)}/resources/constants"
 require "#{File.dirname(__FILE__)}/resources/geometry"
-require "#{File.dirname(__FILE__)}/resources/psychrometrics"
 require "#{File.dirname(__FILE__)}/resources/unit_conversions"
 
 #start the measure
@@ -193,80 +191,8 @@ class ResidentialHotWaterHeaterHeatPump < OpenStudio::Measure::ModelMeasure
         #ducting = runner.getStringArgumentValue("ducting",user_arguments)
         ducting = "none"
         
-        input_power_w = UnitConversions.convert(cap,"kW","W") 
-        rated_heat_cap = input_power_w * cop
-        
         #Validate inputs
         if not runner.validateUserArguments(arguments(model), user_arguments)
-            return false
-        end
-        
-        # Validate inputs further
-        valid_vol = validate_storage_tank_volume(vol, runner)
-        if valid_vol.nil?
-            return false
-        end
-        valid_t_set = validate_setpoint_temperature(t_set, runner)
-        if valid_t_set.nil?
-            return false
-        end
-        valid_cap = validate_element_capacity(e_cap, runner)
-        if valid_cap.nil?
-            return false
-        end
-        
-        valid_min_temp = validate_min_temp(min_temp,runner)
-        if valid_min_temp.nil?
-            return false
-        end
-        
-        valid_max_temp = validate_max_temp(max_temp,runner)
-        if valid_max_temp.nil?
-            return false
-        end
-        
-        valid_cap = validate_cap(cap,runner)
-        if valid_cap.nil?
-            return false
-        end
-        
-        valid_cop = validate_cop(cop,runner)
-        if valid_cop.nil?
-            return false
-        end
-        
-        valid_shr = validate_shr(shr,runner)
-        if valid_shr.nil?
-            return false
-        end
-        
-        valid_airflow_rate = validate_airflow_rate(airflow_rate,runner)
-        if valid_airflow_rate.nil?
-            return false
-        end
-        
-        valid_fan_power = validate_fan_power(fan_power,runner)
-        if valid_fan_power.nil?
-            return false
-        end
-        
-        valid_parasitics = validate_parasitics(parasitics,runner)
-        if valid_parasitics.nil?
-            return false
-        end
-        
-        valid_ua = validate_tank_ua(tank_ua,runner)
-        if valid_ua.nil?
-            return false
-        end
-        
-        valid_int_factor = validate_int_factor(int_factor,runner)
-        if valid_int_factor.nil?
-            return false
-        end
-        
-        valid_temp_depress = validate_temp_depress(temp_depress,runner)
-        if valid_temp_depress.nil?
             return false
         end
         
@@ -281,6 +207,7 @@ class ResidentialHotWaterHeaterHeatPump < OpenStudio::Measure::ModelMeasure
             runner.registerError("Mains water temperature has not been set.")
             return false
         end
+<<<<<<< HEAD
         
         # Get Building America climate zone
         ba_cz_name = nil
@@ -308,63 +235,20 @@ class ResidentialHotWaterHeaterHeatPump < OpenStudio::Measure::ModelMeasure
             output_var.setName(output_var_name)
           end
         end
+=======
+>>>>>>> master
         
-        zone_outdoor_air_drybulb_temp_output_var = nil
-        zone_outdoor_air_relative_humidity_output_var = nil
-        space_temp_output_var = nil
-        space_rh_output_var = nil
-        wh_tank_losses = nil
-        hpwh_sensible_cooling = nil
-        hpwh_latent_cooling = nil
-        hpwh_fan_power = nil
-        hpwh_amb_w = nil
-        hpwh_amb_p = nil
-        hpwh_tair_out = nil
-        hpwh_wair_out = nil
-        hpwh_v_air = nil
-        t_ctrl = nil
-        le_p = nil
-        ue_p = nil
-        model.getOutputVariables.each do |output_var|
-          if output_var.name.to_s == "Zone Outdoor Air Drybulb Temperature"
-            zone_outdoor_air_drybulb_temp_output_var = output_var
-          elsif output_var.name.to_s == "Zone Outdoor Air Relative Humidity"
-            zone_outdoor_air_relative_humidity_output_var = output_var
-          elsif output_var.name.to_s == "Zone Mean Air Temperature"
-            space_temp_output_var = output_var
-          elsif output_var.name.to_s == "Zone Air Relative Humidity"
-            space_rh_output_var = output_var
-          elsif output_var.name.to_s == "Water Heater Heat Loss Rate"
-            wh_tank_losses = output_var
-          elsif output_var.name.to_s == "Cooling Coil Sensible Cooling Rate"
-            hpwh_sensible_cooling = output_var
-          elsif output_var.name.to_s == "Cooling Coil Latent Cooling Rate"
-            hpwh_latent_cooling = output_var
-          elsif output_var.name.to_s == "Fan Electric Power"
-            hpwh_fan_power = output_var
-          elsif output_var.name.to_s == "Zone Mean Air Humidity Ratio"
-            hpwh_amb_w = output_var
-          elsif output_var.name.to_s == "System Node Pressure"
-            hpwh_amb_p = output_var
-          elsif output_var.name.to_s == "System Node Temperature"
-            hpwh_tair_out = output_var       
-          elsif output_var.name.to_s == "System Node Humidity Ratio"
-            hpwh_wair_out = output_var
-          elsif output_var.name.to_s == "System Node Current Density Volume Flow Rate"
-            hpwh_v_air = output_var
-          elsif output_var.name.to_s == "Water Heater Temperature Node 3"
-            t_ctrl = output_var
-          elsif output_var.name.to_s == "Water Heater Heater 2 Heating Energy"
-            le_p = output_var  
-          elsif output_var.name.to_s == "Water Heater Heater 1 Heating Energy"
-            ue_p = output_var
-          end
+        # Get Building America climate zone
+        ba_cz_name = nil
+        model.getClimateZones.climateZones.each do |climateZone|
+            next if climateZone.institution != Constants.BuildingAmericaClimateZone
+            ba_cz_name = climateZone.value.to_s
         end
-        
-        weather = WeatherProcess.new(model, runner, File.dirname(__FILE__))
-        if weather.error?
+        if ba_cz_name.nil?
+            runner.registerError("No Building America climate zone has been assigned.")
             return false
         end
+<<<<<<< HEAD
         alt = weather.header.Altitude
 
         units.each_with_index do |unit, unit_index|
@@ -858,25 +742,21 @@ class ResidentialHotWaterHeaterHeatPump < OpenStudio::Measure::ModelMeasure
                 hpwh_ctrl_program.addLine("EndIf")
                 
             else #hpwh_param == 50
+=======
 
-                t_ctrl_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, t_ctrl)
-                t_ctrl_sensor.setName("#{obj_name_hpwh} T ctrl")
-                t_ctrl_sensor.setKeyName("#{obj_name_hpwh} tank")
-                
-                le_p_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, le_p)
-                le_p_sensor.setName("#{obj_name_hpwh} LE P")
-                le_p_sensor.setKeyName("#{obj_name_hpwh} tank")
-                
-                ue_p_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, ue_p)
-                ue_p_sensor.setName("#{obj_name_hpwh} UE P")
-                ue_p_sensor.setKeyName("#{obj_name_hpwh} tank")
-                
-                hpschedoverride_actuator = OpenStudio::Model::EnergyManagementSystemActuator.new(hp_setpoint,"Schedule:Constant", "Schedule Value")
-                hpschedoverride_actuator.setName("#{obj_name_hpwh} HPSchedOverride")
-                
-                ueschedoverride_actuator = OpenStudio::Model::EnergyManagementSystemActuator.new(hpwh_top_element_sp,"Schedule:Constant", "Schedule Value")
-                ueschedoverride_actuator.setName("#{obj_name_hpwh} UESchedOverride")
+        location_hierarchy = Waterheater.get_location_hierarchy(ba_cz_name)
+        
+        Waterheater.remove(model, runner)
 
+        weather = WeatherProcess.new(model, runner, File.dirname(__FILE__))
+        if weather.error?
+            return false
+        end
+>>>>>>> master
+
+        units.each_with_index do |unit, unit_index|
+
+<<<<<<< HEAD
                 uetrend_trend_var = OpenStudio::Model::EnergyManagementSystemTrendVariable.new(model, ue_p_sensor.name.to_s)
                 uetrend_trend_var.setName("#{obj_name_hpwh} UETrend")
                 uetrend_trend_var.setNumberOfTimestepsToBeLogged(2)
@@ -905,207 +785,27 @@ class ResidentialHotWaterHeaterHeatPump < OpenStudio::Measure::ModelMeasure
                 hpwh_ctrl_program.addLine("EndIf")
                 
             end
+=======
+            # Get space
+            space = Geometry.get_space_from_location(unit, location, location_hierarchy)
+            next if space.nil?
+>>>>>>> master
             
-            #ProgramCallingManagers
-            program_calling_manager = OpenStudio::Model::EnergyManagementSystemProgramCallingManager.new(model)
-            program_calling_manager.setName("#{obj_name_hpwh} ProgramManager")
-            program_calling_manager.setCallingPoint("InsideHVACSystemIterationLoop")
-            program_calling_manager.addProgram(hpwh_ctrl_program)
-            program_calling_manager.addProgram(hpwh_ducting_program)
-            
-            storage_tank = Waterheater.get_shw_storage_tank(model, unit)
-        
-            if storage_tank.nil?
-              loop.addSupplyBranchForComponent(tank)
-            else
-              storage_tank.setHeater1SetpointTemperatureSchedule(tank.heater1SetpointTemperatureSchedule)
-              storage_tank.setHeater2SetpointTemperatureSchedule(tank.heater2SetpointTemperatureSchedule)            
-              tank.addToNode(storage_tank.supplyOutletModelObject.get.to_Node.get)
-            end
+            success = Waterheater.apply_heatpump(model, unit, runner, space, weather,
+                                                 e_cap, vol, t_set, min_temp, max_temp,
+                                                 cap, cop, shr, airflow_rate, fan_power,
+                                                 parasitics, tank_ua, int_factor, temp_depress,
+                                                 ducting, unit_index)
+            return false if not success
             
         end
         
-        rated_heat_cap_kW = UnitConversions.convert(rated_heat_cap,"W","kW") 
-        runner.registerFinalCondition("A new  #{vol.round} gallon heat pump water heater, with a rated COP of #{cop} and a nominal heat pump capacity of #{rated_heat_cap_kW.round(2)} kW has been added to the model")
+        runner.registerFinalCondition("A new #{vol.round} gallon heat pump water heater, with a rated COP of #{cop} and a nominal heat pump capacity of #{(cap * cop).round(2)} kW has been added to the model")
         
         return true
  
     end #end the run method
 
-    private
-    
-    def validate_storage_tank_volume(vol, runner)
-        vol = vol.to_f
-        if vol <= 0.0
-            runner.registerError("Storage tank volume must be greater than 0.")   
-            return nil
-        end
-        if vol < 20.0
-            runner.registerWarning("Tank volume seems low, double check inputs.")
-        elsif vol > 120.0
-            runner.registerWarning("Tank volume seems high, double check inputs.")
-        end
-        return true
-    end
-  
-    def validate_setpoint_temperature(t_set, runner)
-        if (t_set <= 0.0 or t_set >= 212.0)
-            runner.registerError("Hot water temperature must be greater than 0 and less than 212.")
-            return nil
-        end
-        if t_set < 100.0
-            runner.registerInfo("Setpoint temperature seems low, which could lead to bacteria growth in the tank. Double check inputs.")
-        elsif t_set > 140.0
-            runner.registerWarning("Setpoint temperature seems high, which may present a scalding risk. Double check inputs.")
-        end
-        return true
-    end
-
-    def validate_element_capacity(e_cap, runner)
-        if e_cap < 0.0
-            runner.registerError("Element capacity must be greater than 0.")
-            return nil
-        end
-        if e_cap == 0.0
-            runner.registerWarning("Element capacity of 0 wil disable the electric elements in the tank, double check inputs.")
-        elsif e_cap < 2.0
-            runner.registerWarning("Element capacity seems low, double check inputs.")
-        elsif e_cap > 10.0
-            runner.registerWarning("Element capacity seems high, double check inputs.")
-        end
-        return true
-    end
-    
-    def validate_min_temp(min_temp, runner)
-        if min_temp >= 80.0
-            runner.registerError("Minimum temperature will prevent HPWH from running, double check inputs.")
-            return nil
-        end
-        if min_temp <= -30.0
-            runner.registerWarning("Minimum temperature seems low, double check inputs.")
-        elsif min_temp >= 50.0
-            runner.registerWarning("Minimum temperature seems high, double check inputs.")
-        end
-        return true
-    end
-    
-    def validate_max_temp(max_temp, runner)
-        if max_temp <= 0.0
-            runner.registerError("Maximum temperature will prevent HPWH from running, double check inputs.")
-            return nil
-        end
-        if max_temp <= 100.0
-            runner.registerWarning("Maximum temperature seems low, double check inputs.")
-        elsif max_temp >= 140.0
-            runner.registerWarning("Maximum temperature seems high, double check inputs.")
-        end
-        return true
-    end
-    
-    def validate_cap(cap, runner)
-        if cap <= 0.0
-            runner.registerError("Rated capacity must be greater than 0.")
-            return nil
-        end
-        if cap <= 0.2
-            runner.registerWarning("Rated capacity seems low, double check inputs.")
-        elsif cap >= 4.0
-            runner.registerWarning("Rated capacity seems high, double check inputs")
-        end
-        return true
-    end
-    
-    def validate_cop(cop, runner)
-        if cop <= 0.0
-            runner.registerError("Rated COP must be greater than 0.")
-            return nil
-        end
-        if cop <= 1.0
-            runner.registerWarning("Rated COP seems low, double check inputs.")
-        elsif cop >= 6.0
-            runner.registerWarning("Rated COP seems high, double check inputs.")
-        end
-        return true
-    end
-    
-    def validate_shr(shr, runner)
-        if (shr < 0.0 or shr > 1.0)
-            runner.registerError("Rated sensible heat ratio must be between 0 and 1.")
-            return nil
-        end
-        if shr <= 0.7
-            runner.registerWarning("Rated sensible heat ratio seems low, double check inputs.")
-        end
-        return true
-    end
-    
-    def validate_airflow_rate(airflow_rate, runner)
-        if airflow_rate <= 0.0
-            runner.registerError("Airflow rate must be greater than 0.")
-            return nil
-        end
-        if airflow_rate <= 50.0
-            runner.registerWarning("Airflow rate seems low, double check inputs.")
-        elsif airflow_rate >= 1000.0
-            runner.registerWarning("Airflow rate seems high, double check inputs.")
-        end
-        return true
-    end
-    
-    def validate_fan_power(fan_power, runner)
-        if fan_power <= 0.0
-            runner.registerError("Fan power must be greater than 0.")
-            return nil
-        end
-        if fan_power > 1.0
-            runner.registerWarning("Fan power seems high, double check inputs.")
-        end
-        return true
-    end
-    
-	def validate_parasitics(parasitics, runner)
-        if parasitics < 0.0
-            runner.registerError("Parasitics must be greater than 0.")
-            return nil
-        end
-        if parasitics > 20.0
-            runner.registerWarning("Parasitics seem high, double check inputs.")
-        end
-        return true
-    end
-    
-    def validate_tank_ua(tank_ua, runner)
-        if tank_ua <= 0.0
-            runner.registerError("Tank UA must be greater than 0.")
-            return nil
-        end
-        if tank_ua <= 1.0
-            runner.registerWarning("Tank UA seems low, double check inputs.")
-        elsif tank_ua > 10.0
-            runner.registerWarning("Tank UA seems high, double check inputs.")
-        end
-        return true
-    end
-    
-    def validate_int_factor(int_factor, runner)
-        if (int_factor < 0.0 or int_factor > 1.0)
-            runner.registerError("Interaction factor must be between 0 and 1.")
-            return nil
-        end
-        return true
-    end
-    
-    def validate_temp_depress(temp_depress, runner)
-        if temp_depress < 0.0 
-            runner.registerError("Temperature depression must be greater than 0.")
-            return nil
-        end
-        if temp_depress > 15.0
-            runner.registerWarning("Temperature depression seems large, double check inputs.")
-        end
-        return true
-    end
-  
 end #end the measure
 
 #this allows the measure to be use by the application

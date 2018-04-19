@@ -23,6 +23,7 @@ class Constants
   def self.DefaultHumiditySetpoint
     return 0.60
   end
+<<<<<<< HEAD
   def self.DefaultSolarAbsCeiling
     return 0.3
   end
@@ -32,15 +33,20 @@ class Constants
   def self.DefaultSolarAbsWall
     return 0.5
   end
+=======
+>>>>>>> master
   def self.g
     return 32.174    # gravity (ft/s2)
   end
   def self.MixedUseT
     return 110 # F
   end
+<<<<<<< HEAD
   def self.MinimumBasementHeight
     return 7 # ft
   end
+=======
+>>>>>>> master
   def self.MonthNumDays
     return [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
   end
@@ -59,6 +65,12 @@ class Constants
 
   # Strings --------------------
   
+<<<<<<< HEAD
+=======
+  def self.AirFilm
+    return 'AirFilm'
+  end
+>>>>>>> master
   def self.Auto
     return 'auto'
   end
@@ -227,6 +239,12 @@ class Constants
   def self.FacadeRight
     return 'right'
   end
+<<<<<<< HEAD
+=======
+  def self.FacadeNone
+    return 'none'
+  end
+>>>>>>> master
   def self.FluidWater
     return 'water'
   end
@@ -272,6 +290,7 @@ class Constants
   def self.MaterialPEX
     return 'pex'
   end
+<<<<<<< HEAD
   def self.MaterialCeilingMass
     return 'ResCeilingMass1'
   end
@@ -323,6 +342,8 @@ class Constants
   def self.MaterialWallSheathing
     return 'ResExtWallSheathing'
   end
+=======
+>>>>>>> master
   def self.PVModuleTypeStandard
     return 'standard'
   end
@@ -400,6 +421,7 @@ class Constants
     end
     return "residential clothes washer#{s_unit}"
   end
+<<<<<<< HEAD
   def self.ObjectNameClothesWasherDayShift(unit_name=self.ObjectNameBuildingUnit)
     s_unit = ""
     if unit_name != self.ObjectNameBuildingUnit
@@ -407,6 +429,8 @@ class Constants
     end
     return "residential clothes washer day shift#{s_unit}"
   end
+=======
+>>>>>>> master
   def self.ObjectNameClothesDryer(fueltype, unit_name=self.ObjectNameBuildingUnit)
     s_fuel = ""
     if not fueltype.nil?
@@ -418,20 +442,31 @@ class Constants
     end
     return "residential clothes dryer#{s_fuel}#{s_unit}"
   end
+<<<<<<< HEAD
   def self.ObjectNameCookingRange(fueltype, ignition=false, unit_name=self.ObjectNameBuildingUnit)
+=======
+  def self.ObjectNameCookingRange(fueltype, unit_name=self.ObjectNameBuildingUnit)
+>>>>>>> master
     s_fuel = ""
     if not fueltype.nil?
       s_fuel = " #{fueltype}"
     end
+<<<<<<< HEAD
     s_ignition = ""
     if ignition
       s_ignition = " ignition"
     end
+=======
+>>>>>>> master
     s_unit = ""
     if unit_name != self.ObjectNameBuildingUnit
       s_unit = "|#{unit_name}"
     end
+<<<<<<< HEAD
     return "residential range#{s_fuel}#{s_ignition}#{s_unit}"
+=======
+    return "residential range#{s_fuel}#{s_unit}"
+>>>>>>> master
   end
   def self.ObjectNameCoolingSeason
     return 'residential cooling season'
@@ -461,9 +496,12 @@ class Constants
     return "res ds#{s_unit}"
   end  
   def self.ObjectNameEaves(facade="")
+<<<<<<< HEAD
     if facade.nil?
       facade = ""
     end
+=======
+>>>>>>> master
     if facade != ""
       facade = " #{facade}"
     end
@@ -612,9 +650,12 @@ class Constants
     return "res nv#{s_unit}"
   end
   def self.ObjectNameNeighbors(facade="")
+<<<<<<< HEAD
     if facade.nil?
       facade = ""
     end
+=======
+>>>>>>> master
     if facade != ""
       facade = " #{facade}"
     end
@@ -627,6 +668,15 @@ class Constants
     end
     return "residential occupants#{s_unit}"
   end
+<<<<<<< HEAD
+=======
+  def self.ObjectNameOverhangs(facade="")
+    if facade != ""
+      facade = " #{facade}"
+    end
+    return "residential overhangs#{facade}"
+  end
+>>>>>>> master
   def self.ObjectNamePhotovoltaics(unit_name=self.ObjectNameBuildingUnit)
     s_unit = ""
     if unit_name != self.ObjectNameBuildingUnit
@@ -655,8 +705,17 @@ class Constants
     end
     return "residential refrigerator#{s_unit}"
   end
+<<<<<<< HEAD
   def self.ObjectNameRelativeHumiditySetpoint
     return 'residential relative humidity setpoint'
+=======
+  def self.ObjectNameRelativeHumiditySetpoint(unit_name=self.ObjectNameBuildingUnit)
+    s_unit = ""
+    if unit_name != self.ObjectNameBuildingUnit
+      s_unit = "|#{unit_name}"
+    end
+    return "residential rh setpoint#{s_unit}"
+>>>>>>> master
   end
   def self.ObjectNameRoomAirConditioner(unit_name=self.ObjectNameBuildingUnit)
     s_unit = ""
@@ -721,9 +780,12 @@ class Constants
     end
     return "residential well pump#{s_unit}"
   end
+<<<<<<< HEAD
   def self.ObjectNameWindowShading
     return 'residential window shading'
   end
+=======
+>>>>>>> master
   def self.OptionTypeLightingFractions
     return 'Lamp Fractions'
   end
@@ -826,12 +888,15 @@ class Constants
     end
     return "#{property}#{s_obj}"
   end
+<<<<<<< HEAD
   def self.SizingInfoBasementWallInsulationHeight(surface) # FUTURE: Use StandardsInfo object
     return self.SizingInfo(__method__.to_s, surface)
   end
   def self.SizingInfoBasementWallRvalue(surface) # FUTURE: Use StandardsInfo object
     return self.SizingInfo(__method__.to_s, surface)
   end
+=======
+>>>>>>> master
   def self.SizingInfoCMUWallFurringInsRvalue(surface) # FUTURE: Use StandardsInfo object
     return self.SizingInfo(__method__.to_s, surface)
   end
@@ -952,12 +1017,15 @@ class Constants
   def self.SizingInfoSlabRvalue(surface) # FUTURE: Use StandardsInfo object
     return self.SizingInfo(__method__.to_s, surface)
   end
+<<<<<<< HEAD
   def self.SizingInfoSpaceCeilingInsulated(space) # FUTURE: Use StandardsInfo object
     return self.SizingInfo(__method__.to_s, space)
   end
   def self.SizingInfoSpaceWallsInsulated(space) # FUTURE: Use StandardsInfo object
     return self.SizingInfo(__method__.to_s, space)
   end
+=======
+>>>>>>> master
   def self.SizingInfoStudWallCavityRvalue(surface) # FUTURE: Use StandardsInfo object
     return self.SizingInfo(__method__.to_s, surface)
   end
@@ -1012,6 +1080,81 @@ class Constants
   def self.SpaceTypeUnfinishedBasement
     return 'unfinished basement'
   end
+<<<<<<< HEAD
+=======
+  def self.SurfaceTypeFloorFinInsUnfinAttic # unfinished attic floor
+    return 'FloorFinInsUnfinAttic'
+  end
+  def self.SurfaceTypeFloorFinInsUnfin # interzonal or cantilevered floor
+    return 'FloorFinInsUnfin'
+  end
+  def self.SurfaceTypeFloorFinUninsFin # floor between 1st/2nd story living spaces
+    return 'FloorFinUninsFin'
+  end
+  def self.SurfaceTypeFloorUnfinUninsUnfin # floor between garage and attic
+    return 'FloorUnfinUninsUnfin'
+  end
+  def self.SurfaceTypeFloorFndGrndFinB # finished basement floor
+    return 'FloorFndGrndFinB'
+  end
+  def self.SurfaceTypeFloorFndGrndUnfinB # unfinished basement floor
+    return 'FloorFndGrndUnfinB'
+  end
+  def self.SurfaceTypeFloorFndGrndFinSlab # finished slab
+    return 'FloorFndGrndFinSlab'
+  end
+  def self.SurfaceTypeFloorFndGrndUnfinSlab # garage slab
+    return 'FloorFndGrndUnfinSlab'
+  end
+  def self.SurfaceTypeFloorUnfinBInsFin # unfinished basement ceiling
+    return 'FloorUnfinBInsFin'
+  end
+  def self.SurfaceTypeFloorCSInsFin # crawlspace ceiling
+    return 'FloorCSInsFin'
+  end
+  def self.SurfaceTypeFloorPBInsFin # pier beam ceiling
+    return 'FloorPBInsFin'
+  end
+  def self.SurfaceTypeFloorFndGrndCS # crawlspace floor
+    return 'FloorFndGrndCS'
+  end
+  def self.SurfaceTypeRoofUnfinUninsExt # garage roof
+    return 'RoofUnfinUninsExt'
+  end
+  def self.SurfaceTypeRoofUnfinInsExt # unfinished attic roof
+    return 'RoofUnfinInsExt'
+  end
+  def self.SurfaceTypeRoofFinInsExt # finished attic roof
+    return 'RoofFinInsExt'
+  end
+  def self.SurfaceTypeWallExtInsFin # living exterior wall
+    return 'WallExtInsFin'
+  end
+  def self.SurfaceTypeWallExtInsUnfin # attic gable wall under insulated roof
+    return 'WallExtInsUnfin'
+  end
+  def self.SurfaceTypeWallExtUninsUnfin # garage exterior wall or attic gable wall under uninsulated roof
+    return 'WallExtUninsUnfin'
+  end
+  def self.SurfaceTypeWallFndGrndFinB # finished basement wall
+    return 'WallFndGrndFinB'
+  end
+  def self.SurfaceTypeWallFndGrndUnfinB # unfinished basement wall
+    return 'WallFndGrndUnfinB'
+  end
+  def self.SurfaceTypeWallFndGrndCS  # crawlspace wall
+    return 'WallFndGrndCS'
+  end
+  def self.SurfaceTypeWallIntFinInsUnfin # interzonal wall
+    return 'WallIntFinInsUnfin'
+  end
+  def self.SurfaceTypeWallIntFinUninsFin # wall between two finished spaces
+    return 'WallIntFinUninsFin'
+  end
+  def self.SurfaceTypeWallIntUnfinUninsUnfin # wall between two unfinished spaces
+    return 'WallIntUnfinUninsUnfin'
+  end
+>>>>>>> master
   def self.TerrainOcean
     return 'ocean'
   end

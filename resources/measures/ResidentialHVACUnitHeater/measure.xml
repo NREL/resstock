@@ -1,14 +1,26 @@
 <measure>
   <schema_version>3.0</schema_version>
+<<<<<<< HEAD:resources/measures/ResidentialHVACFurnaceElectric/measure.xml
+  <name>process_furnace_electric</name>
+  <uid>18ba60d7-82a7-45c7-a0ed-bafb828ca0e2</uid>
+  <version_id>5aeea96a-cf66-4d0c-b516-ea17bd24fedb</version_id>
+  <version_modified>20180410T212128Z</version_modified>
+  <xml_checksum>0DA5C9E6</xml_checksum>
+  <class_name>ProcessFurnaceElectric</class_name>
+  <display_name>Set Residential Furnace Electric</display_name>
+  <description>This measure removes any existing HVAC heating components from the building and adds a furnace along with an on/off supply fan to a unitary air loop. For multifamily buildings, the furnace can be set for all units of the building. See https://github.com/NREL/OpenStudio-BEopt#workflows for supported workflows using this measure.</description>
+  <modeler_description>Any heating components or baseboard convective electrics/waters are removed from any existing air/plant loops or zones. Any existing air/plant loops are also removed. An electric heating coil and an on/off supply fan are added to a unitary air loop. The unitary air loop is added to the supply inlet node of the air loop. This air loop is added to a branch for the living zone. A diffuser is added to the branch for the living zone as well as for the finished basement if it exists.</modeler_description>
+=======
   <name>process_unit_heater</name>
   <uid>1a71ae9e-5485-4cca-a369-16c6b8a9c1d8</uid>
-  <version_id>ac94b653-7230-492a-baa0-a71c3189818b</version_id>
-  <version_modified>20180410T212134Z</version_modified>
+  <version_id>f568b9cb-08a4-4276-8490-92382f35abfe</version_id>
+  <version_modified>20180416T163852Z</version_modified>
   <xml_checksum>470FC630</xml_checksum>
   <class_name>ProcessUnitHeater</class_name>
   <display_name>Set Residential Unit Heater</display_name>
   <description>This measure removes any existing HVAC heating components from the building and adds a unit heater along with an optional on/off fan. For multifamily buildings, the unit heater can be set for all units of the building. See https://github.com/NREL/OpenStudio-BEopt#workflows for supported workflows using this measure.</description>
   <modeler_description>Any heating components or baseboard convective electrics/waters are removed from any existing air/plant loops or zones. Any existing air/plant loops are also removed. A unitary system with a fuel heating coil and an optional on/off fan are added to each zone.</modeler_description>
+>>>>>>> master:resources/measures/ResidentialHVACUnitHeater/measure.xml
   <arguments>
     <argument>
       <name>fuel_type</name>
@@ -58,7 +70,7 @@
       <default_value>0</default_value>
     </argument>
     <argument>
-      <name>airflow</name>
+      <name>airflow_rate</name>
       <display_name>Airflow Rate</display_name>
       <description>Fan airflow rate as a function of heating capacity. A value of 0 implies there is no fan.</description>
       <type>Double</type>
@@ -107,15 +119,61 @@
   </attributes>
   <files>
     <file>
-      <filename>unit_conversions.rb</filename>
-      <filetype>rb</filetype>
-      <usage_type>resource</usage_type>
-      <checksum>3E1D973D</checksum>
-    </file>
-    <file>
       <filename>util.rb</filename>
       <filetype>rb</filetype>
       <usage_type>resource</usage_type>
+      <checksum>A001EED9</checksum>
+    </file>
+    <file>
+      <filename>process_unit_heater_test.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>test</usage_type>
+      <checksum>D34FB866</checksum>
+    </file>
+    <file>
+      <filename>materials.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>D5E9964F</checksum>
+    </file>
+    <file>
+      <filename>psychrometrics.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>208441EA</checksum>
+    </file>
+    <file>
+      <version>
+        <software_program>OpenStudio</software_program>
+        <identifier>1.13.2</identifier>
+        <min_compatible>2.0.4</min_compatible>
+      </version>
+      <filename>measure.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>script</usage_type>
+      <checksum>744A2349</checksum>
+    </file>
+    <file>
+      <filename>unit_conversions.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>resource</usage_type>
+<<<<<<< HEAD:resources/measures/ResidentialHVACFurnaceElectric/measure.xml
+      <checksum>3E1D973D</checksum>
+    </file>
+    <file>
+      <filename>process_furnace_electric_test.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>test</usage_type>
+      <checksum>66DBBCBB</checksum>
+=======
+      <checksum>91D17463</checksum>
+>>>>>>> master:resources/measures/ResidentialHVACUnitHeater/measure.xml
+    </file>
+    <file>
+      <filename>hvac.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>resource</usage_type>
+<<<<<<< HEAD:resources/measures/ResidentialHVACFurnaceElectric/measure.xml
       <checksum>1189E680</checksum>
     </file>
     <file>
@@ -127,13 +185,13 @@
     <file>
       <version>
         <software_program>OpenStudio</software_program>
-        <identifier>1.13.2</identifier>
+        <identifier>1.4.0</identifier>
         <min_compatible>2.0.4</min_compatible>
       </version>
       <filename>measure.rb</filename>
       <filetype>rb</filetype>
       <usage_type>script</usage_type>
-      <checksum>9F77016D</checksum>
+      <checksum>CABA7859</checksum>
     </file>
     <file>
       <filename>hvac.rb</filename>
@@ -142,82 +200,196 @@
       <checksum>5AE2597B</checksum>
     </file>
     <file>
-      <filename>process_unit_heater_test.rb</filename>
-      <filetype>rb</filetype>
-      <usage_type>test</usage_type>
-      <checksum>5967CDC4</checksum>
-    </file>
-    <file>
-      <filename>SFD_2000sqft_2story_SL_UA_Denver.osm</filename>
-      <filetype>osm</filetype>
-      <usage_type>test</usage_type>
-      <checksum>B4FCA294</checksum>
-    </file>
-    <file>
-      <filename>SFD_2000sqft_2story_FB_UA_Denver.osm</filename>
-      <filetype>osm</filetype>
-      <usage_type>test</usage_type>
-      <checksum>CCDDD6E9</checksum>
-    </file>
-    <file>
       <filename>SFD_2000sqft_2story_FB_UA_Denver_ASHP.osm</filename>
       <filetype>osm</filetype>
       <usage_type>test</usage_type>
       <checksum>190701F2</checksum>
     </file>
     <file>
-      <filename>SFD_2000sqft_2story_FB_UA_Denver_ASHP2.osm</filename>
+      <filename>SFD_2000sqft_2story_FB_UA_Denver_CentralAC.osm</filename>
       <filetype>osm</filetype>
       <usage_type>test</usage_type>
-      <checksum>A53F4E90</checksum>
+      <checksum>308CF127</checksum>
+=======
+      <checksum>DC1B3053</checksum>
     </file>
     <file>
-      <filename>SFD_2000sqft_2story_FB_UA_Denver_Boiler.osm</filename>
-      <filetype>osm</filetype>
-      <usage_type>test</usage_type>
-      <checksum>E69C973F</checksum>
+      <filename>geometry.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>92D32A87</checksum>
     </file>
     <file>
-      <filename>SFD_2000sqft_2story_FB_UA_Denver_Boiler_CentralAC.osm</filename>
-      <filetype>osm</filetype>
-      <usage_type>test</usage_type>
-      <checksum>B70D7A2E</checksum>
+      <filename>schedules.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>9EEA7BBB</checksum>
+>>>>>>> master:resources/measures/ResidentialHVACUnitHeater/measure.xml
     </file>
     <file>
-      <filename>SFD_2000sqft_2story_FB_UA_Denver_Boiler_RoomAC.osm</filename>
+      <filename>constants.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>9DF8CF0F</checksum>
+    </file>
+    <file>
+      <filename>SFD_2000sqft_2story_SL_UA_Denver.osm</filename>
       <filetype>osm</filetype>
       <usage_type>test</usage_type>
-      <checksum>87478EAF</checksum>
+<<<<<<< HEAD:resources/measures/ResidentialHVACFurnaceElectric/measure.xml
+      <checksum>7ABEE39D</checksum>
+=======
+      <checksum>3E755292</checksum>
+>>>>>>> master:resources/measures/ResidentialHVACUnitHeater/measure.xml
+    </file>
+    <file>
+      <filename>SFD_2000sqft_2story_FB_UA_Denver_MSHP.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+<<<<<<< HEAD:resources/measures/ResidentialHVACFurnaceElectric/measure.xml
+      <checksum>27E8A666</checksum>
+=======
+      <checksum>5545F17E</checksum>
+>>>>>>> master:resources/measures/ResidentialHVACUnitHeater/measure.xml
+    </file>
+    <file>
+      <filename>SFD_2000sqft_2story_FB_UA_Denver_RoomAC.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+<<<<<<< HEAD:resources/measures/ResidentialHVACFurnaceElectric/measure.xml
+      <checksum>12DD9B11</checksum>
+=======
+      <checksum>F027A024</checksum>
+>>>>>>> master:resources/measures/ResidentialHVACUnitHeater/measure.xml
+    </file>
+    <file>
+      <filename>SFD_2000sqft_2story_FB_UA_Denver_UnitHeater.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+<<<<<<< HEAD:resources/measures/ResidentialHVACFurnaceElectric/measure.xml
+      <checksum>69AB1E0C</checksum>
+=======
+      <checksum>6945C050</checksum>
+>>>>>>> master:resources/measures/ResidentialHVACUnitHeater/measure.xml
+    </file>
+    <file>
+      <filename>SFD_2000sqft_2story_FB_UA_Denver_UnitHeater_CentralAC.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+<<<<<<< HEAD:resources/measures/ResidentialHVACFurnaceElectric/measure.xml
+      <checksum>8845E264</checksum>
+=======
+      <checksum>F9C4554D</checksum>
+>>>>>>> master:resources/measures/ResidentialHVACUnitHeater/measure.xml
+    </file>
+    <file>
+      <filename>SFD_2000sqft_2story_FB_UA_Denver_UnitHeater_RoomAC.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+<<<<<<< HEAD:resources/measures/ResidentialHVACFurnaceElectric/measure.xml
+      <checksum>B5A9B1A1</checksum>
+=======
+      <checksum>007338CA</checksum>
+>>>>>>> master:resources/measures/ResidentialHVACUnitHeater/measure.xml
     </file>
     <file>
       <filename>SFD_2000sqft_2story_FB_UA_Denver_CentralAC.osm</filename>
       <filetype>osm</filetype>
       <usage_type>test</usage_type>
-      <checksum>308CF127</checksum>
+<<<<<<< HEAD:resources/measures/ResidentialHVACFurnaceElectric/measure.xml
+      <checksum>155F24D9</checksum>
+=======
+      <checksum>6B37004C</checksum>
     </file>
     <file>
       <filename>SFD_2000sqft_2story_FB_UA_Denver_CentralAC2.osm</filename>
       <filetype>osm</filetype>
       <usage_type>test</usage_type>
-      <checksum>93663002</checksum>
+      <checksum>D6DACB58</checksum>
     </file>
     <file>
       <filename>SFD_2000sqft_2story_FB_UA_Denver_ElectricBaseboard.osm</filename>
       <filetype>osm</filetype>
       <usage_type>test</usage_type>
-      <checksum>7ABEE39D</checksum>
+      <checksum>86765E12</checksum>
+>>>>>>> master:resources/measures/ResidentialHVACUnitHeater/measure.xml
     </file>
     <file>
       <filename>SFD_2000sqft_2story_FB_UA_Denver_ElectricBaseboard_CentralAC.osm</filename>
       <filetype>osm</filetype>
       <usage_type>test</usage_type>
-      <checksum>27E8A666</checksum>
+<<<<<<< HEAD:resources/measures/ResidentialHVACFurnaceElectric/measure.xml
+      <checksum>B4FCA294</checksum>
+=======
+      <checksum>34BEBA83</checksum>
+>>>>>>> master:resources/measures/ResidentialHVACUnitHeater/measure.xml
     </file>
     <file>
       <filename>SFD_2000sqft_2story_FB_UA_Denver_ElectricBaseboard_RoomAC.osm</filename>
       <filetype>osm</filetype>
       <usage_type>test</usage_type>
-      <checksum>12DD9B11</checksum>
+<<<<<<< HEAD:resources/measures/ResidentialHVACFurnaceElectric/measure.xml
+      <checksum>E69C973F</checksum>
+=======
+      <checksum>21FC156E</checksum>
+>>>>>>> master:resources/measures/ResidentialHVACUnitHeater/measure.xml
+    </file>
+    <file>
+      <filename>SFD_2000sqft_2story_FB_UA_Denver_Furnace.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+<<<<<<< HEAD:resources/measures/ResidentialHVACFurnaceElectric/measure.xml
+      <checksum>B70D7A2E</checksum>
+=======
+      <checksum>6BAEC82A</checksum>
+>>>>>>> master:resources/measures/ResidentialHVACUnitHeater/measure.xml
+    </file>
+    <file>
+      <filename>SFD_2000sqft_2story_FB_UA_Denver_Furnace_CentralAC.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+<<<<<<< HEAD:resources/measures/ResidentialHVACFurnaceElectric/measure.xml
+      <checksum>87478EAF</checksum>
+=======
+      <checksum>76B7D6E5</checksum>
+>>>>>>> master:resources/measures/ResidentialHVACUnitHeater/measure.xml
+    </file>
+    <file>
+      <filename>SFD_2000sqft_2story_FB_UA_Denver_Furnace_CentralAC2.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+<<<<<<< HEAD:resources/measures/ResidentialHVACFurnaceElectric/measure.xml
+      <checksum>CCDDD6E9</checksum>
+=======
+      <checksum>C2D602B9</checksum>
+>>>>>>> master:resources/measures/ResidentialHVACUnitHeater/measure.xml
+    </file>
+    <file>
+      <filename>SFD_2000sqft_2story_FB_UA_Denver_Furnace_RoomAC.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+<<<<<<< HEAD:resources/measures/ResidentialHVACFurnaceElectric/measure.xml
+      <checksum>93663002</checksum>
+=======
+      <checksum>B616C2E4</checksum>
+>>>>>>> master:resources/measures/ResidentialHVACUnitHeater/measure.xml
+    </file>
+    <file>
+      <filename>SFD_2000sqft_2story_FB_UA_Denver_GSHPVertBore.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+<<<<<<< HEAD:resources/measures/ResidentialHVACFurnaceElectric/measure.xml
+      <checksum>A53F4E90</checksum>
+=======
+      <checksum>0D42EB1D</checksum>
+>>>>>>> master:resources/measures/ResidentialHVACUnitHeater/measure.xml
+    </file>
+    <file>
+      <filename>SFD_2000sqft_2story_FB_UA_Denver_Boiler_CentralAC.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+<<<<<<< HEAD:resources/measures/ResidentialHVACFurnaceElectric/measure.xml
+      <checksum>1341CC69</checksum>
     </file>
     <file>
       <filename>SFD_2000sqft_2story_FB_UA_Denver_Furnace.osm</filename>
@@ -226,40 +398,10 @@
       <checksum>9A0D582F</checksum>
     </file>
     <file>
-      <filename>SFD_2000sqft_2story_FB_UA_Denver_Furnace_CentralAC.osm</filename>
-      <filetype>osm</filetype>
-      <usage_type>test</usage_type>
-      <checksum>69AB1E0C</checksum>
-    </file>
-    <file>
-      <filename>SFD_2000sqft_2story_FB_UA_Denver_Furnace_CentralAC2.osm</filename>
-      <filetype>osm</filetype>
-      <usage_type>test</usage_type>
-      <checksum>1341CC69</checksum>
-    </file>
-    <file>
-      <filename>SFD_2000sqft_2story_FB_UA_Denver_Furnace_RoomAC.osm</filename>
-      <filetype>osm</filetype>
-      <usage_type>test</usage_type>
-      <checksum>8845E264</checksum>
-    </file>
-    <file>
-      <filename>SFD_2000sqft_2story_FB_UA_Denver_GSHPVertBore.osm</filename>
-      <filetype>osm</filetype>
-      <usage_type>test</usage_type>
-      <checksum>B5A9B1A1</checksum>
-    </file>
-    <file>
       <filename>SFD_2000sqft_2story_FB_UA_Denver_MSHP.osm</filename>
       <filetype>osm</filetype>
       <usage_type>test</usage_type>
       <checksum>5FAD3803</checksum>
-    </file>
-    <file>
-      <filename>SFD_2000sqft_2story_FB_UA_Denver_RoomAC.osm</filename>
-      <filetype>osm</filetype>
-      <usage_type>test</usage_type>
-      <checksum>155F24D9</checksum>
     </file>
     <file>
       <filename>SFD_2000sqft_2story_FB_UA_Denver_UnitHeater.osm</filename>
@@ -296,6 +438,51 @@
       <filetype>osm</filetype>
       <usage_type>test</usage_type>
       <checksum>1B35E722</checksum>
+=======
+      <checksum>9DBC516C</checksum>
+    </file>
+    <file>
+      <filename>SFD_2000sqft_2story_FB_UA_Denver_Boiler_RoomAC.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>F73D66CD</checksum>
+    </file>
+    <file>
+      <filename>SFD_2000sqft_2story_FB_UA_Denver.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>1F0CF4E2</checksum>
+    </file>
+    <file>
+      <filename>SFD_2000sqft_2story_FB_UA_Denver_ASHP.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>A5E31896</checksum>
+    </file>
+    <file>
+      <filename>SFD_2000sqft_2story_FB_UA_Denver_ASHP2.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>95DBB0A7</checksum>
+    </file>
+    <file>
+      <filename>SFD_2000sqft_2story_FB_UA_Denver_Boiler.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>9B8325C4</checksum>
+    </file>
+    <file>
+      <filename>SFA_4units_1story_FB_UA_Denver.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>DB75EBBD</checksum>
+    </file>
+    <file>
+      <filename>MF_8units_1story_SL_Denver.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>6B113EBA</checksum>
+>>>>>>> master:resources/measures/ResidentialHVACUnitHeater/measure.xml
     </file>
   </files>
 </measure>

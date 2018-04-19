@@ -2,8 +2,13 @@
   <schema_version>3.0</schema_version>
   <name>process_vrf_minisplit</name>
   <uid>402b168f-ed99-46bb-b367-103937011e91</uid>
+<<<<<<< HEAD
   <version_id>c8b0c739-55e8-4adc-8860-a1e816eb8d00</version_id>
   <version_modified>20180410T212129Z</version_modified>
+=======
+  <version_id>006524ac-053c-4e97-ac73-2af843eede9f</version_id>
+  <version_modified>20180416T163847Z</version_modified>
+>>>>>>> master
   <xml_checksum>470FC630</xml_checksum>
   <class_name>ProcessVRFMinisplit</class_name>
   <display_name>Set Residential Mini-Split Heat Pump</display_name>
@@ -19,6 +24,25 @@
       <required>true</required>
       <model_dependent>false</model_dependent>
       <default_value>14.5</default_value>
+    </argument>
+    <argument>
+      <name>hspf</name>
+      <display_name>Rated HSPF</display_name>
+      <description>The Heating Seasonal Performance Factor (HSPF) is a measure of a heat pump's energy efficiency over one heating season.</description>
+      <type>Double</type>
+      <units>Btu/W-h</units>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>8.2</default_value>
+    </argument>
+    <argument>
+      <name>shr</name>
+      <display_name>Rated SHR</display_name>
+      <description>The sensible heat ratio (ratio of the sensible portion of the load to the total load) at the nominal rated capacity.</description>
+      <type>Double</type>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>0.73</default_value>
     </argument>
     <argument>
       <name>min_cooling_capacity</name>
@@ -41,15 +65,6 @@
       <default_value>1.2</default_value>
     </argument>
     <argument>
-      <name>shr</name>
-      <display_name>Rated SHR</display_name>
-      <description>The sensible heat ratio (ratio of the sensible portion of the load to the total load) at the nominal rated capacity.</description>
-      <type>Double</type>
-      <required>true</required>
-      <model_dependent>false</model_dependent>
-      <default_value>0.73</default_value>
-    </argument>
-    <argument>
       <name>min_cooling_airflow_rate</name>
       <display_name>Minimum Cooling Airflow</display_name>
       <description>Minimum cooling cfm divided by the nominal rated cooling capacity.</description>
@@ -68,26 +83,6 @@
       <required>true</required>
       <model_dependent>false</model_dependent>
       <default_value>425</default_value>
-    </argument>
-    <argument>
-      <name>hspf</name>
-      <display_name>Rated HSPF</display_name>
-      <description>The Heating Seasonal Performance Factor (HSPF) is a measure of a heat pump's energy efficiency over one heating season.</description>
-      <type>Double</type>
-      <units>Btu/W-h</units>
-      <required>true</required>
-      <model_dependent>false</model_dependent>
-      <default_value>8.2</default_value>
-    </argument>
-    <argument>
-      <name>heating_capacity_offset</name>
-      <display_name>Heating Capacity Offset</display_name>
-      <description>The difference between the nominal rated heating capacity and the nominal rated cooling capacity.</description>
-      <type>Double</type>
-      <units>Btu/hr</units>
-      <required>true</required>
-      <model_dependent>false</model_dependent>
-      <default_value>2300</default_value>
     </argument>
     <argument>
       <name>min_heating_capacity</name>
@@ -128,6 +123,16 @@
       <required>true</required>
       <model_dependent>false</model_dependent>
       <default_value>400</default_value>
+    </argument>
+    <argument>
+      <name>heating_capacity_offset</name>
+      <display_name>Heating Capacity Offset</display_name>
+      <description>The difference between the nominal rated heating capacity and the nominal rated cooling capacity.</description>
+      <type>Double</type>
+      <units>Btu/hr</units>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>2300</default_value>
     </argument>
     <argument>
       <name>cap_retention_frac</name>
@@ -272,18 +277,23 @@
       <filename>psychrometrics.rb</filename>
       <filetype>rb</filetype>
       <usage_type>resource</usage_type>
-      <checksum>11E27E42</checksum>
+      <checksum>208441EA</checksum>
     </file>
     <file>
-      <filename>unit_conversions.rb</filename>
+      <filename>materials.rb</filename>
       <filetype>rb</filetype>
       <usage_type>resource</usage_type>
+<<<<<<< HEAD
       <checksum>3E1D973D</checksum>
+=======
+      <checksum>D5E9964F</checksum>
+>>>>>>> master
     </file>
     <file>
       <filename>util.rb</filename>
       <filetype>rb</filetype>
       <usage_type>resource</usage_type>
+<<<<<<< HEAD
       <checksum>1189E680</checksum>
     </file>
     <file>
@@ -314,11 +324,15 @@
       <filetype>rb</filetype>
       <usage_type>test</usage_type>
       <checksum>1DB9142C</checksum>
+=======
+      <checksum>A001EED9</checksum>
+>>>>>>> master
     </file>
     <file>
-      <filename>SFD_2000sqft_2story_FB_UA_Denver_ASHP.osm</filename>
-      <filetype>osm</filetype>
+      <filename>process_mini_split_heat_pump_test.rb</filename>
+      <filetype>rb</filetype>
       <usage_type>test</usage_type>
+<<<<<<< HEAD
       <checksum>190701F2</checksum>
     </file>
     <file>
@@ -326,47 +340,116 @@
       <filetype>osm</filetype>
       <usage_type>test</usage_type>
       <checksum>308CF127</checksum>
+=======
+      <checksum>276BF8AC</checksum>
     </file>
     <file>
-      <filename>SFD_2000sqft_2story_FB_UA_Denver_ElectricBaseboard.osm</filename>
-      <filetype>osm</filetype>
-      <usage_type>test</usage_type>
-      <checksum>7ABEE39D</checksum>
+      <version>
+        <software_program>OpenStudio</software_program>
+        <identifier>1.12.4</identifier>
+        <min_compatible>2.0.4</min_compatible>
+      </version>
+      <filename>measure.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>script</usage_type>
+      <checksum>E8BBC4D9</checksum>
+>>>>>>> master
     </file>
     <file>
-      <filename>SFD_2000sqft_2story_FB_UA_Denver_ElectricBaseboard_CentralAC.osm</filename>
-      <filetype>osm</filetype>
-      <usage_type>test</usage_type>
-      <checksum>27E8A666</checksum>
+      <filename>unit_conversions.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>91D17463</checksum>
     </file>
     <file>
-      <filename>SFD_2000sqft_2story_FB_UA_Denver_ElectricBaseboard_RoomAC.osm</filename>
-      <filetype>osm</filetype>
-      <usage_type>test</usage_type>
-      <checksum>12DD9B11</checksum>
+      <filename>hvac.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>DC1B3053</checksum>
     </file>
     <file>
-      <filename>SFD_2000sqft_2story_FB_UA_Denver_Furnace_CentralAC.osm</filename>
-      <filetype>osm</filetype>
-      <usage_type>test</usage_type>
-      <checksum>69AB1E0C</checksum>
+      <filename>geometry.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>92D32A87</checksum>
     </file>
     <file>
-      <filename>SFD_2000sqft_2story_FB_UA_Denver_Furnace_RoomAC.osm</filename>
-      <filetype>osm</filetype>
-      <usage_type>test</usage_type>
-      <checksum>8845E264</checksum>
+      <filename>schedules.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>9EEA7BBB</checksum>
     </file>
     <file>
-      <filename>SFD_2000sqft_2story_FB_UA_Denver_GSHPVertBore.osm</filename>
-      <filetype>osm</filetype>
-      <usage_type>test</usage_type>
-      <checksum>B5A9B1A1</checksum>
+      <filename>constants.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>9DF8CF0F</checksum>
     </file>
     <file>
       <filename>SFD_2000sqft_2story_FB_UA_Denver_RoomAC.osm</filename>
       <filetype>osm</filetype>
       <usage_type>test</usage_type>
+<<<<<<< HEAD
+      <checksum>7ABEE39D</checksum>
+=======
+      <checksum>F027A024</checksum>
+>>>>>>> master
+    </file>
+    <file>
+      <filename>SFD_2000sqft_2story_FB_UA_Denver_MSHP.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+<<<<<<< HEAD
+      <checksum>27E8A666</checksum>
+=======
+      <checksum>5545F17E</checksum>
+>>>>>>> master
+    </file>
+    <file>
+      <filename>SFD_2000sqft_2story_FB_UA_Denver_UnitHeater.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+<<<<<<< HEAD
+      <checksum>12DD9B11</checksum>
+=======
+      <checksum>6945C050</checksum>
+>>>>>>> master
+    </file>
+    <file>
+      <filename>SFD_2000sqft_2story_FB_UA_Denver_UnitHeater_CentralAC.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+<<<<<<< HEAD
+      <checksum>69AB1E0C</checksum>
+=======
+      <checksum>F9C4554D</checksum>
+>>>>>>> master
+    </file>
+    <file>
+      <filename>SFD_2000sqft_2story_FB_UA_Denver_UnitHeater_RoomAC.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+<<<<<<< HEAD
+      <checksum>8845E264</checksum>
+=======
+      <checksum>007338CA</checksum>
+>>>>>>> master
+    </file>
+    <file>
+      <filename>SFD_2000sqft_2story_FB_UA_Denver_CentralAC.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+<<<<<<< HEAD
+      <checksum>B5A9B1A1</checksum>
+=======
+      <checksum>6B37004C</checksum>
+>>>>>>> master
+    </file>
+    <file>
+      <filename>SFD_2000sqft_2story_FB_UA_Denver_ElectricBaseboard.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+<<<<<<< HEAD
       <checksum>155F24D9</checksum>
     </file>
     <file>
@@ -404,17 +487,61 @@
       <filetype>osm</filetype>
       <usage_type>test</usage_type>
       <checksum>A53F4E90</checksum>
+=======
+      <checksum>86765E12</checksum>
+    </file>
+    <file>
+      <filename>SFD_2000sqft_2story_FB_UA_Denver_ElectricBaseboard_CentralAC.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>34BEBA83</checksum>
+    </file>
+    <file>
+      <filename>SFD_2000sqft_2story_FB_UA_Denver_ElectricBaseboard_RoomAC.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>21FC156E</checksum>
+    </file>
+    <file>
+      <filename>SFD_2000sqft_2story_FB_UA_Denver_Furnace_CentralAC.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>76B7D6E5</checksum>
+    </file>
+    <file>
+      <filename>SFD_2000sqft_2story_FB_UA_Denver_Furnace_RoomAC.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>B616C2E4</checksum>
+    </file>
+    <file>
+      <filename>SFD_2000sqft_2story_FB_UA_Denver_GSHPVertBore.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>0D42EB1D</checksum>
+    </file>
+    <file>
+      <filename>SFD_2000sqft_2story_FB_UA_Denver_CentralAC2.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>D6DACB58</checksum>
+>>>>>>> master
     </file>
     <file>
       <filename>SFD_2000sqft_2story_FB_UA_Denver_Furnace_CentralAC2.osm</filename>
       <filetype>osm</filetype>
       <usage_type>test</usage_type>
+<<<<<<< HEAD
       <checksum>1341CC69</checksum>
+=======
+      <checksum>C2D602B9</checksum>
+>>>>>>> master
     </file>
     <file>
       <filename>SFD_2000sqft_2story_FB_UA_Denver_Furnace.osm</filename>
       <filetype>osm</filetype>
       <usage_type>test</usage_type>
+<<<<<<< HEAD
       <checksum>9A0D582F</checksum>
     </file>
     <file>
@@ -452,12 +579,61 @@
       <filetype>osm</filetype>
       <usage_type>test</usage_type>
       <checksum>F9777FDB</checksum>
+=======
+      <checksum>6BAEC82A</checksum>
+    </file>
+    <file>
+      <filename>SFD_2000sqft_2story_FB_UA_Denver_Boiler_CentralAC.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>9DBC516C</checksum>
+    </file>
+    <file>
+      <filename>SFD_2000sqft_2story_FB_UA_Denver_Boiler_RoomAC.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>F73D66CD</checksum>
+    </file>
+    <file>
+      <filename>SFD_2000sqft_2story_FB_UA_Denver_ASHP.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>A5E31896</checksum>
+    </file>
+    <file>
+      <filename>SFD_2000sqft_2story_FB_UA_Denver_Boiler.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>9B8325C4</checksum>
+    </file>
+    <file>
+      <filename>SFD_2000sqft_2story_FB_UA_Denver.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>1F0CF4E2</checksum>
+    </file>
+    <file>
+      <filename>SFD_2000sqft_2story_FB_UA_Denver_ASHP2.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>95DBB0A7</checksum>
+    </file>
+    <file>
+      <filename>SFA_4units_1story_FB_UA_Denver.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>DB75EBBD</checksum>
+>>>>>>> master
     </file>
     <file>
       <filename>MF_8units_1story_SL_Denver.osm</filename>
       <filetype>osm</filetype>
       <usage_type>test</usage_type>
+<<<<<<< HEAD
       <checksum>1B35E722</checksum>
+=======
+      <checksum>6B113EBA</checksum>
+>>>>>>> master
     </file>
   </files>
 </measure>
