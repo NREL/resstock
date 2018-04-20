@@ -136,7 +136,7 @@ def validate_measure_args(measure_args, provided_args, lookup_file, measure_name
         when "string"
             # no op
         when "choice"
-            if not arg.choiceValues.include?(provided_args[arg.name])
+            if not arg.choiceValues.include?(provided_args[arg.name]) and not arg.modelDependent
                 register_error("Value of '#{provided_args[arg.name].to_s}' for argument '#{arg.name.to_s}' and measure '#{measure_name.to_s}' must be one of: #{arg.choiceValues.to_s}.", runner)
             end
         end
@@ -153,7 +153,7 @@ def get_argument_map(model, measure, provided_args, lookup_file, measure_name, r
     argument_map = OpenStudio::Measure.convertOSArgumentVectorToMap(measure_args)
     measure_args.each do |arg|
         temp_arg_var = arg.clone
-        if provided_args[arg.name]
+        if !provided_args[arg.name].nil?
             temp_arg_var.setValue(provided_args[arg.name])
         end
         argument_map[arg.name] = temp_arg_var
