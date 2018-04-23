@@ -10,7 +10,6 @@ x.vars.con = c()
 y.vars.con = c('hhincome')
 
 x.vars.cat = c('vintage', 'heatingfuel', 'rooms')
-# x.vars.cat = c('vintage') # 0.032
 # x.vars.cat = c('heatingfuel') # 0.009
 # x.vars.cat = c('rooms') # 0.126
 
@@ -44,7 +43,10 @@ detach(df)
 summary(df.lm1)
 table = as.data.frame.matrix(summary(df.lm1)$coefficients)
 table = table[order(table[['Pr(>|t|)']]), ]
-table = round(table, 5)
+table[['Pr(>|t|)']] = formatC(table[['Pr(>|t|)']], format='e', digits=5)
+table[['Estimate']] = round(table[['Estimate']], 5)
+table[['Std. Error']] = round(table[['Std. Error']], 5)
+table[['t value']] = round(table[['t value']], 5)
 write.csv(table, 'lm1.csv') # write out first pass to csv
 write.csv(data.frame("R^2"=summary(df.lm1)$r.squared[1], "Adj-R^2"=summary(df.lm1)$adj.r.squared[1]), "stat1.csv", row.names=F)
 ###
@@ -69,7 +71,10 @@ detach(df)
 summary(df.lm2)
 table = as.data.frame.matrix(summary(df.lm2)$coefficients)
 table = table[order(table[['Pr(>|t|)']]), ]
-table = round(table, 5)
+table[['Pr(>|t|)']] = formatC(table[['Pr(>|t|)']], format='e', digits=5)
+table[['Estimate']] = round(table[['Estimate']], 5)
+table[['Std. Error']] = round(table[['Std. Error']], 5)
+table[['t value']] = round(table[['t value']], 5)
 write.csv(table, 'lm2.csv') # write out second pass to csv
 write.csv(data.frame("R^2"=summary(df.lm2)$r.squared[1], "Adj-R^2"=summary(df.lm2)$adj.r.squared[1]), "stat2.csv", row.names=F)
 ###
