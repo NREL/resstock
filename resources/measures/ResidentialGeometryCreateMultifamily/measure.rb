@@ -153,13 +153,6 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
     eaves_depth.setDefaultValue(2.0)
     args << eaves_depth
 
-    #make an argument for using zone multipliers
-    use_zone_mult = OpenStudio::Measure::OSArgument::makeBoolArgument("use_zone_mult", true)
-    use_zone_mult.setDisplayName("Use Zone Multipliers?")
-    use_zone_mult.setDescription("Model only one interior unit per floor with its thermal zone multiplier equal to the number of interior units per floor.")
-    use_zone_mult.setDefaultValue(false)
-    args << use_zone_mult
-
     #make a choice argument for model objects
     building_facades = OpenStudio::StringVector.new
     building_facades << Constants.FacadeNone
@@ -287,7 +280,6 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
     foundation_type = runner.getStringArgumentValue("foundation_type",user_arguments)
     foundation_height = runner.getDoubleArgumentValue("foundation_height",user_arguments)
     eaves_depth = UnitConversions.convert(runner.getDoubleArgumentValue("eaves_depth",user_arguments),"ft","m")
-    use_zone_mult = runner.getBoolArgumentValue("use_zone_mult",user_arguments)
     shared_building_facades = runner.getStringArgumentValue("shared_building_facades",user_arguments)
     num_br = runner.getStringArgumentValue("num_bedrooms", user_arguments).split(",").map(&:strip)
     num_ba = runner.getStringArgumentValue("num_bathrooms", user_arguments).split(",").map(&:strip)
@@ -899,7 +891,6 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
 
     end
 
-    unit_hash = {}
     unit_spaces_hash.each do |unit_num, spaces|
       # Store building unit information
       unit = OpenStudio::Model::BuildingUnit.new(model)
@@ -908,7 +899,6 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
       spaces.each do |space|
         space.setBuildingUnit(unit)
       end
-      unit_hash[unit_num] = unit
     end
 
     # put all of the spaces in the model into a vector
@@ -922,157 +912,35 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
     OpenStudio::Model.matchSurfaces(spaces)
 
     # Make shared building facade surfaces adiabatic
-    if shared_building_facades != "None"
+    if shared_building_facades != Constants.FacadeNone
+      mat = OpenStudio::Model::MasslessOpaqueMaterial.new(model)
+      mat.setName(Constants.SurfaceTypeAdiabatic)
+      mat.setRoughness("Rough")
+      mat.setThermalResistance(UnitConversions.convert(1000.0, "hr*ft^2*F/Btu", "m^2*K/W"))
+      constr = OpenStudio::Model::Construction.new(model)
+      constr.setName(Constants.SurfaceTypeAdiabatic)
+      constr.setLayers([mat])
       shared_building_facades = shared_building_facades.split(", ")
       shared_building_facades.each do |shared_building_facade|
         model.getSurfaces.each do |surface|
           next unless surface.surfaceType.downcase == "wall"
-          next unless ["outdoors", "ground", "foundation"].include? surface.outsideBoundaryCondition.downcase
+          next unless surface.outsideBoundaryCondition.downcase == "outdoors"
           next if surface.adjacentSurface.is_initialized
           next unless Geometry.get_facade_for_surface(surface) == shared_building_facade
-          surface.setOutsideBoundaryCondition("Adiabatic")
+          surface.setConstruction(constr)
         end
       end
     end
-    
-    # Apply zone multipliers
-    if use_zone_mult and ((num_units_per_floor > 3 and not has_rear_units) or (num_units_per_floor > 7 and has_rear_units))
-
-      (1..num_units_per_floor).to_a.each do |unit_num_per_floor|
-        (1..num_floors).to_a.each do |building_floor|
-
-          unit_num = unit_num_per_floor + (num_units_per_floor * (building_floor - 1))
-
-          if not has_rear_units
-
-            zone_names_for_multiplier_adjustment = []
-            space_names_to_remove = []
-            unit_spaces = unit_hash[unit_num].spaces
-            if unit_num == 1 + (num_units_per_floor * (building_floor - 1)) # leftmost unit
-            elsif unit_num == 2 + (num_units_per_floor * (building_floor - 1)) # leftmost interior unit
-              unit_spaces.each do |space|
-                thermal_zone = space.thermalZone.get
-                zone_names_for_multiplier_adjustment << thermal_zone.name.to_s
-              end
-              model.getThermalZones.each do |thermal_zone|
-                zone_names_for_multiplier_adjustment.each do |tz|
-                  if thermal_zone.name.to_s == tz
-                    thermal_zone.setMultiplier(num_units_per_floor - 2)
-                  end
-                end
-              end
-            elsif unit_num < building_floor * num_units_per_floor # interior units that get removed
-              unit_spaces.each do |space|
-                space_names_to_remove << space.name.to_s
-              end
-              unit_hash[unit_num].remove
-              model.getSpaces.each do |space|
-                space_names_to_remove.each do |s|
-                  if space.name.to_s == s
-                    if space.thermalZone.is_initialized
-                      space.thermalZone.get.remove
-                    end
-                    space.remove
-                  end
-                end
-              end
-            end
-
-          else # has rear units
-
-            zone_names_for_multiplier_adjustment = []
-            space_names_to_remove = []
-            unit_spaces = unit_hash[unit_num].spaces
-            if unit_num == 1 + (num_units_per_floor * (building_floor - 1)) or unit_num == 2 + (num_units_per_floor * (building_floor - 1)) # leftmost units
-            elsif unit_num == 3 + (num_units_per_floor * (building_floor - 1)) or unit_num == 4 + (num_units_per_floor * (building_floor - 1)) # leftmost interior units
-              unit_spaces.each do |space|
-                thermal_zone = space.thermalZone.get
-                zone_names_for_multiplier_adjustment << thermal_zone.name.to_s
-              end
-              model.getThermalZones.each do |thermal_zone|
-                zone_names_for_multiplier_adjustment.each do |tz|
-                  if thermal_zone.name.to_s == tz
-                    thermal_zone.setMultiplier(num_units_per_floor / 2 - 2)
-                  end
-                end
-              end
-            elsif unit_num != (building_floor * num_units_per_floor) - 1 and unit_num != building_floor * num_units_per_floor # interior units that get removed
-              unit_spaces.each do |space|
-                space_names_to_remove << space.name.to_s
-              end
-              unit_hash[unit_num].remove
-              model.getSpaces.each do |space|
-                space_names_to_remove.each do |s|
-                  if space.name.to_s == s
-                    if space.thermalZone.is_initialized
-                      space.thermalZone.get.remove
-                    end
-                    space.remove
-                  end
-                end
-              end
-            end
-
-          end
-        end # end building floor
-      end # end unit per floor
-    end # end zone mult
-    
-    # Apply floor multiplier
-    if use_zone_mult and num_floors > 3
-    
-      floor_zs = []
-      model.getSurfaces.each do |surface|
-        next unless surface.surfaceType.downcase == "floor"
-        floor_zs << Geometry.getSurfaceZValues([surface])[0]
-      end
-      floor_zs = floor_zs.uniq.sort.select{|x| x >= 0}
-      
-      floor_zs[2..-2].each do |floor_z|
-        units_to_remove = []
-        Geometry.get_building_units(model, runner).each do |unit|
-          unit.spaces.each do |space|
-            next unless floor_z == Geometry.get_space_floor_z(space)
-            next if units_to_remove.include? unit
-            units_to_remove << unit
-          end
-        end
-        units_to_remove.each do |unit|
-          unit.spaces.each do |space|
-            if space.thermalZone.is_initialized
-              space.thermalZone.get.remove
-            end
-            space.remove
-          end
-          unit.remove
-        end      
-      end
-      
-      Geometry.get_building_units(model, runner).each do |unit|
-        unit.spaces.each do |space|
-          next unless floor_zs[1] == Geometry.get_space_floor_z(space)
-          thermal_zone = space.thermalZone.get
-          thermal_zone.setMultiplier(thermal_zone.multiplier * (num_floors - 2))
-        end
-      end
-      
-    end # end floor mult
 
     # make all surfaces adjacent to corridor spaces into adiabatic surfaces
     model.getSpaces.each do |space|
       next unless Geometry.is_corridor(space)
       space.surfaces.each do |surface|
-        if surface.adjacentSurface.is_initialized
+        if surface.adjacentSurface.is_initialized # only set to adiabatic if the corridor surface is adjacent to another surface
           surface.adjacentSurface.get.setOutsideBoundaryCondition("Adiabatic")
+          surface.setOutsideBoundaryCondition("Adiabatic")
         end
-        surface.setOutsideBoundaryCondition("Adiabatic")
       end
-    end
-
-    model.getSurfaces.each do |surface|
-      next unless surface.outsideBoundaryCondition.downcase == "surface"
-      next if surface.adjacentSurface.is_initialized
-      surface.setOutsideBoundaryCondition("Adiabatic")
     end
 
     # set foundation outside boundary condition to Kiva "foundation"
@@ -1099,7 +967,7 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
       return false
     end
 
-    result = Geometry.process_occupants(model, runner, num_occupants, occ_gain=384.0, sens_frac=0.573, lat_frac=0.427, occupants_weekday_sch, occupants_weekend_sch, occupants_monthly_sch, true)
+    result = Geometry.process_occupants(model, runner, num_occupants, occ_gain=384.0, sens_frac=0.573, lat_frac=0.427, occupants_weekday_sch, occupants_weekend_sch, occupants_monthly_sch)
     unless result
       return false
     end
