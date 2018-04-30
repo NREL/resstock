@@ -43,24 +43,24 @@ class Airflow
       return false
     end
     building.stories = model.getBuilding.standardsNumberOfAboveGroundStories.get
-    building.above_grade_volume = Geometry.get_above_grade_finished_volume(model, true)
-    building.ag_ext_wall_area = Geometry.calculate_above_grade_exterior_wall_area(model_spaces, true)
+    building.above_grade_volume = Geometry.get_above_grade_finished_volume(model)
+    building.ag_ext_wall_area = Geometry.calculate_above_grade_exterior_wall_area(model_spaces)
     model.getThermalZones.each do |thermal_zone|
       if Geometry.is_garage(thermal_zone)
-        building.garage = ZoneInfo.new(thermal_zone, Geometry.get_height_of_spaces(thermal_zone.spaces), UnitConversions.convert(thermal_zone.floorArea,"m^2","ft^2"), Geometry.get_zone_volume(thermal_zone, false, runner), Geometry.get_z_origin_for_zone(thermal_zone), nil, nil)
+        building.garage = ZoneInfo.new(thermal_zone, Geometry.get_height_of_spaces(thermal_zone.spaces), UnitConversions.convert(thermal_zone.floorArea,"m^2","ft^2"), Geometry.get_zone_volume(thermal_zone, runner), Geometry.get_z_origin_for_zone(thermal_zone), nil, nil)
       elsif Geometry.is_unfinished_basement(thermal_zone)
-        building.unfinished_basement = ZoneInfo.new(thermal_zone, Geometry.get_height_of_spaces(thermal_zone.spaces), UnitConversions.convert(thermal_zone.floorArea,"m^2","ft^2"), Geometry.get_zone_volume(thermal_zone, false, runner), Geometry.get_z_origin_for_zone(thermal_zone), infil.unfinished_basement_ach, nil)
+        building.unfinished_basement = ZoneInfo.new(thermal_zone, Geometry.get_height_of_spaces(thermal_zone.spaces), UnitConversions.convert(thermal_zone.floorArea,"m^2","ft^2"), Geometry.get_zone_volume(thermal_zone, runner), Geometry.get_z_origin_for_zone(thermal_zone), infil.unfinished_basement_ach, nil)
       elsif Geometry.is_crawl(thermal_zone)
-        building.crawlspace = ZoneInfo.new(thermal_zone, Geometry.get_height_of_spaces(thermal_zone.spaces), UnitConversions.convert(thermal_zone.floorArea,"m^2","ft^2"), Geometry.get_zone_volume(thermal_zone, false, runner), Geometry.get_z_origin_for_zone(thermal_zone), infil.crawl_ach, nil)
+        building.crawlspace = ZoneInfo.new(thermal_zone, Geometry.get_height_of_spaces(thermal_zone.spaces), UnitConversions.convert(thermal_zone.floorArea,"m^2","ft^2"), Geometry.get_zone_volume(thermal_zone, runner), Geometry.get_z_origin_for_zone(thermal_zone), infil.crawl_ach, nil)
       elsif Geometry.is_pier_beam(thermal_zone)
-        building.pierbeam = ZoneInfo.new(thermal_zone, Geometry.get_height_of_spaces(thermal_zone.spaces), UnitConversions.convert(thermal_zone.floorArea,"m^2","ft^2"), Geometry.get_zone_volume(thermal_zone, false, runner), Geometry.get_z_origin_for_zone(thermal_zone), infil.pier_beam_ach, nil)
+        building.pierbeam = ZoneInfo.new(thermal_zone, Geometry.get_height_of_spaces(thermal_zone.spaces), UnitConversions.convert(thermal_zone.floorArea,"m^2","ft^2"), Geometry.get_zone_volume(thermal_zone, runner), Geometry.get_z_origin_for_zone(thermal_zone), infil.pier_beam_ach, nil)
       elsif Geometry.is_unfinished_attic(thermal_zone)
-        building.unfinished_attic = ZoneInfo.new(thermal_zone, Geometry.get_height_of_spaces(thermal_zone.spaces), UnitConversions.convert(thermal_zone.floorArea,"m^2","ft^2"), Geometry.get_zone_volume(thermal_zone, false, runner), Geometry.get_z_origin_for_zone(thermal_zone), nil, infil.unfinished_attic_sla)
+        building.unfinished_attic = ZoneInfo.new(thermal_zone, Geometry.get_height_of_spaces(thermal_zone.spaces), UnitConversions.convert(thermal_zone.floorArea,"m^2","ft^2"), Geometry.get_zone_volume(thermal_zone, runner), Geometry.get_z_origin_for_zone(thermal_zone), nil, infil.unfinished_attic_sla)
       end
     end
-    building.ffa = Geometry.get_finished_floor_area_from_spaces(model_spaces, true, runner)
+    building.ffa = Geometry.get_finished_floor_area_from_spaces(model_spaces, runner)
     return false if building.ffa.nil?
-    building.ag_ffa = Geometry.get_above_grade_finished_floor_area_from_spaces(model_spaces, true, runner)
+    building.ag_ffa = Geometry.get_above_grade_finished_floor_area_from_spaces(model_spaces, runner)
     return false if building.ag_ffa.nil?
 
     wind_speed = process_wind_speed_correction(infil.terrain, infil.shelter_coef, Geometry.get_closest_neighbor_distance(model), building.building_height)
@@ -103,10 +103,10 @@ class Airflow
       if nbeds.nil? or nbaths.nil?
         return false
       end
-      unit_ag_ext_wall_area = Geometry.calculate_above_grade_exterior_wall_area(unit.spaces, false)
-      unit_ag_ffa = Geometry.get_above_grade_finished_floor_area_from_spaces(unit.spaces, false, runner)
-      unit_ffa = Geometry.get_finished_floor_area_from_spaces(unit.spaces, false, runner)
-      unit_window_area = Geometry.get_window_area_from_spaces(unit.spaces, false)
+      unit_ag_ext_wall_area = Geometry.calculate_above_grade_exterior_wall_area(unit.spaces)
+      unit_ag_ffa = Geometry.get_above_grade_finished_floor_area_from_spaces(unit.spaces, runner)
+      unit_ffa = Geometry.get_finished_floor_area_from_spaces(unit.spaces, runner)
+      unit_window_area = Geometry.get_window_area_from_spaces(unit.spaces)
       
       sch_unit_index = Geometry.get_unit_dhw_sched_index(model, unit, runner)
 
@@ -115,9 +115,9 @@ class Airflow
       unit_finished_basement = nil
       Geometry.get_thermal_zones_from_spaces(unit.spaces).each do |thermal_zone|
         if Geometry.is_finished_basement(thermal_zone)
-          unit_finished_basement = ZoneInfo.new(thermal_zone, Geometry.get_height_of_spaces(thermal_zone.spaces), UnitConversions.convert(thermal_zone.floorArea,"m^2","ft^2"), Geometry.get_zone_volume(thermal_zone, false, runner), Geometry.get_z_origin_for_zone(thermal_zone), infil.finished_basement_ach, nil)
+          unit_finished_basement = ZoneInfo.new(thermal_zone, Geometry.get_height_of_spaces(thermal_zone.spaces), UnitConversions.convert(thermal_zone.floorArea,"m^2","ft^2"), Geometry.get_zone_volume(thermal_zone, runner), Geometry.get_z_origin_for_zone(thermal_zone), infil.finished_basement_ach, nil)
         elsif Geometry.is_living(thermal_zone)
-          unit_living = ZoneInfo.new(thermal_zone, Geometry.get_height_of_spaces(thermal_zone.spaces), UnitConversions.convert(thermal_zone.floorArea,"m^2","ft^2"), Geometry.get_zone_volume(thermal_zone, false, runner), Geometry.get_z_origin_for_zone(thermal_zone), nil, nil)
+          unit_living = ZoneInfo.new(thermal_zone, Geometry.get_height_of_spaces(thermal_zone.spaces), UnitConversions.convert(thermal_zone.floorArea,"m^2","ft^2"), Geometry.get_zone_volume(thermal_zone, runner), Geometry.get_z_origin_for_zone(thermal_zone), nil, nil)
         end
       end
       

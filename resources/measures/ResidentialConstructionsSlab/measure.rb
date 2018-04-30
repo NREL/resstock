@@ -103,7 +103,7 @@ class ProcessConstructionsSlab < OpenStudio::Measure::ModelMeasure
                                                   Constants.SurfaceTypeFloorFndGrndFinSlab,
                                                   perimeter_r, perimeter_width, gap_r, 
                                                   exterior_r, exterior_depth, whole_r, 4.0, 
-                                                  Material.CoveringBare, false, nil, nil, true)
+                                                  Material.CoveringBare, false, nil, nil)
             return false
         end
     end
@@ -112,7 +112,7 @@ class ProcessConstructionsSlab < OpenStudio::Measure::ModelMeasure
         if not FoundationConstructions.apply_slab(runner, model, 
                                                   surface,
                                                   Constants.SurfaceTypeFloorFndGrndUnfinSlab,
-                                                  0, 0, 0, 0, 0, 0, 4.0, nil, false, nil, nil, true)
+                                                  0, 0, 0, 0, 0, 0, 4.0, nil, false, nil, nil)
             return false
         end
     end
@@ -131,7 +131,7 @@ class ProcessConstructionsSlab < OpenStudio::Measure::ModelMeasure
     slab_perimeter_conduction = slabCarpetPerimeterConduction * carpetFloorFraction + slabBarePerimeterConduction * (1 - carpetFloorFraction)
 
     surfaces.each do |surface|
-        slabExtPerimeter = Geometry.calculate_exposed_perimeter(model, [surface], false, true)
+        slabExtPerimeter = Geometry.calculate_exposed_perimeter(model, [surface], false)
         
         if slabExtPerimeter > 0
             effective_slab_Rvalue = slabArea / (slabExtPerimeter * slab_perimeter_conduction)

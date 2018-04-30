@@ -2754,8 +2754,8 @@ class HVAC
       if num_bedrooms.nil? or num_bathrooms.nil?
         return false
       end      
-      above_grade_finished_floor_area = Geometry.get_above_grade_finished_floor_area_from_spaces(unit.spaces, false, runner)
-      finished_floor_area = Geometry.get_finished_floor_area_from_spaces(unit.spaces, false, runner)
+      above_grade_finished_floor_area = Geometry.get_above_grade_finished_floor_area_from_spaces(unit.spaces, runner)
+      finished_floor_area = Geometry.get_finished_floor_area_from_spaces(unit.spaces, runner)
 
       # Determine geometry for spaces and zones that are unit specific
       living_zone = nil
