@@ -49,6 +49,7 @@ dependency_dict = {
                    'education': 'Education',
                    'acothers': 'Cooling Shared',
                    'heatoth': 'Heating Shared',
+                   'cenachp': 'Cooling Heat Pump'
                   }
 
 bldg_typ_dict = {1: 'Mobile Home',
@@ -113,6 +114,7 @@ equipage_dict = {1: '< 2 yrs',
                  42: '15-19 yrs',
                  5: '20+ yrs',
                  -2: 'N/A'}
+
 agecenac_dict = {1: '< 2 yrs',
                  2: '2-4 yrs',
                  3: '5-9 yrs',
@@ -327,6 +329,10 @@ numglass_dict = {'1 Pane',
 shared_syst_dict = {0: 'Not Shared',
                     1: 'Shared',
                     -2: 'Not Shared'}
+heat_pump_dict = {0: 'No',
+             1: 'Yes',
+             -2: 'No'
+             }
 fpl = fpl09
 heating_types = {2: 'Steam or Hot Water System',  # 'Steam or Hot Water System',
                  3: 'Central Warm-Air Furnace',  # 'Central Warm-Air Furnace'      ,
@@ -399,6 +405,7 @@ def process_data(df):
                    'Location Region': region_def,
                    'Cooling Shared': shared_syst_dict,
                    'Heating Shared': shared_syst_dict,
+                   'Cooling Heat Pump': heat_pump_dict,
     }
     for field_name, field_dict in field_dicts.iteritems():
         for num, name in field_dict.iteritems():
@@ -1204,7 +1211,7 @@ def query(df):
     #    calc_general(df, dependency=['CR', 'Vintage', 'fuelheat'], options=['equipm'],
     #        outfile='heatingequipment_output_by_CR_fuel_vintage.tsv')
     #     calc_general(df, dependency=['Location Region'], options=['Building Type'], outfile='Geometry Building Type.tsv', outpath='../../../project_resstock_multifamily/housing_characteristics')
-        calc_general(df, dependency=['Geometry Building Type', 'Location Region', 'Vintage'], options=['Size'], outfile='Geometry House Size mf.tsv',
+        calc_general(df, dependency=[ 'Location Region', 'Vintage', 'Heating Fuel', 'Shared System'], options=['Cooling Heat Pump'], outfile='HVAC System Is Combined.tsv',
                  outpath='../../../project_resstock_multifamily/housing_characteristics')
         pass
 
