@@ -841,15 +841,23 @@ Solar Hot Water	"40 sqft, Back Roof, 10 degrees"	ResidentialHotWaterSolar	collec
 Solar Hot Water	"40 sqft, Back Roof, 70 degrees"	ResidentialHotWaterSolar	collector_area=40	frta=0.77	frul=0.793	iam=0.1	storage_vol=auto	tank_r=10	fluid_type=propylene-glycol	heat_ex_eff=0.7	pump_power=0.8	azimuth_type=relative	azimuth=180	tilt_type=absolute	tilt=70																																
 Solar Hot Water	"40 sqft, Back Roof, Latitude - 15 degrees"	ResidentialHotWaterSolar	collector_area=40	frta=0.77	frul=0.793	iam=0.1	storage_vol=auto	tank_r=10	fluid_type=propylene-glycol	heat_ex_eff=0.7	pump_power=0.8	azimuth_type=relative	azimuth=180	tilt_type=latitude	tilt=-15																																
 Solar Hot Water	"40 sqft, Back Roof, Latitude + 15 degrees"	ResidentialHotWaterSolar	collector_area=40	frta=0.77	frul=0.793	iam=0.1	storage_vol=auto	tank_r=10	fluid_type=propylene-glycol	heat_ex_eff=0.7	pump_power=0.8	azimuth_type=relative	azimuth=180	tilt_type=latitude	tilt=15																																
-HVAC System Central	Both Shared	ResidentialHVACCentralSystemFanCoil	fan_coil_heating=true	fan_coil_cooling=true	central_boiler_fuel_type=gas																																										
+HVAC System Central	None
+HVAC System Central	Fan coil with chiller/Boiler	ResidentialHVACCentralSystemFanCoil	fan_coil_heating=true	fan_coil_cooling=true	central_boiler_fuel_type=gas
 		ResidentialAirflow	has_hvac_flue=true																																												
-		ResidentialHVACSizing	show_debug_info=false																																												
-HVAC System Central	Neither Shared																																														
-HVAC System Central	Only Cooling Shared	ResidentialHVACCentralSystemFanCoil	fan_coil_heating=false	fan_coil_cooling=true	central_boiler_fuel_type=gas																																										
-		ResidentialHVACSizing	show_debug_info=false																																												
-HVAC System Central	Only Heating Shared	ResidentialHVACCentralSystemBoilerBaseboards	"central_boiler_system_type=hot water, forced draft"	central_boiler_fuel_type=gas																																											
-		ResidentialAirflow	has_hvac_flue=true																																												
-		ResidentialHVACSizing	show_debug_info=false																																												
+		ResidentialHVACSizing	show_debug_info=false	
+HVAC System Central	Fan coil with chiller	ResidentialHVACCentralSystemFanCoil	fan_coil_heating=false	fan_coil_cooling=true	central_boiler_fuel_type=gas
+		ResidentialAirflow  has_hvac_flue=true      
+        ResidentialHVACSizing   show_debug_info=false  	
+HVAC System Central radiators with boiler steam/HW  ResidentialHVACCentralSystemBoilerBaseboards    central_boiler_system_type=hot water, forced draft  central_boiler_fuel_type=gas    
+        ResidentialAirflow  has_hvac_flue=true      
+        ResidentialHVACSizing   show_debug_info=false       
+HVAC System Central fan coil with boiler HW ResidentialHVACCentralSystemFanCoil fan_coil_heating=true   fan_coil_cooling=false  central_boiler_fuel_type=gas
+        ResidentialAirflow  has_hvac_flue=true      
+        ResidentialHVACSizing   show_debug_info=false       
+HVAC System Central PTACs with boiler HW    ResidentialHVACCentralSystemPTAC    central_boiler_fuel_type=gas        
+        ResidentialAirflow  has_hvac_flue=true      
+        ResidentialHVACSizing   show_debug_info=false       
+																																										
 HVAC System Is Central	Both Shared																																														
 HVAC System Is Central	Neither Shared																																														
 HVAC System Is Central	Only Cooling Shared																																														
