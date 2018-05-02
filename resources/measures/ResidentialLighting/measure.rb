@@ -285,7 +285,7 @@ class ResidentialLighting < OpenStudio::Measure::ModelMeasure
         
       # Interior lighting
       unit_finished_spaces = Geometry.get_finished_spaces(unit.spaces)
-      ffa = Geometry.get_finished_floor_area_from_spaces(unit.spaces, false, runner)
+      ffa = Geometry.get_finished_floor_area_from_spaces(unit.spaces, runner)
       if ffa.nil?
           return false
       end
@@ -328,7 +328,7 @@ class ResidentialLighting < OpenStudio::Measure::ModelMeasure
     if option_type == Constants.OptionTypeLightingEnergyUses
         exterior_ann = energy_use_exterior
     elsif option_type == Constants.OptionTypeLightingFractions
-        total_ffa = Geometry.get_finished_floor_area_from_spaces(model.getSpaces, true, runner)
+        total_ffa = Geometry.get_finished_floor_area_from_spaces(model.getSpaces, runner)
         bm_outside_e = 0.145 * total_ffa
         exterior_ann = (bm_outside_e * (((hw_inc * er_inc + (1 - bab_frac_inc) * bab_er_inc) + (hw_cfl * er_cfl - bab_frac_cfl * bab_er_cfl) + (hw_led * er_led - bab_frac_led * bab_er_led) + (hw_lfl * er_lfl - bab_frac_lfl * bab_er_lfl)) * smrt_replace_f * 0.9 + 0.1))
     end

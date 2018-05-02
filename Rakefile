@@ -103,8 +103,8 @@ task :copy_beopt_files do
   end
 
   # Copy other measures to measure/ dir
-  other_measures = ["TimeseriesCSVExport", "UtilityBillCalculationsSimple", "UtilityBillCalculationsDetailed"]
-  buildstock_measures_dir = buildstock_resource_measures_dir = File.join(File.dirname(__FILE__), "measures")
+  other_measures = ["TimeseriesCSVExport", "UtilityBillCalculationsSimple", "UtilityBillCalculationsDetailed", "ZoneMultipliers"]
+  buildstock_measures_dir = File.join(File.dirname(__FILE__), "measures")
   other_measures.each do |other_measure|
     puts "Copying #{other_measure} measure..."
     FileUtils.cp_r(File.join(beopt_measures_dir, other_measure), buildstock_measures_dir)

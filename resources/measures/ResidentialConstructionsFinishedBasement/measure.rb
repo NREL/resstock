@@ -143,7 +143,7 @@ class ProcessConstructionsFinishedBasement < OpenStudio::Measure::ModelMeasure
                                                             8.0, basement_height, 
                                                             floor_surface,
                                                             Constants.SurfaceTypeFloorFndGrndFinB,
-                                                            slab_whole_r, nil, true)
+                                                            slab_whole_r, nil)
             return false
         end
     end
@@ -152,7 +152,7 @@ class ProcessConstructionsFinishedBasement < OpenStudio::Measure::ModelMeasure
         if not FoundationConstructions.apply_slab(runner, model, 
                                                   surface,
                                                   Constants.SurfaceTypeFloorFndGrndUnfinSlab,
-                                                  0, 0, 0, 0, 0, 0, 4.0, nil, false, nil, nil, true)
+                                                  0, 0, 0, 0, 0, 0, 4.0, nil, false, nil, nil)
             return false
         end
     end

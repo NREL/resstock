@@ -115,7 +115,7 @@ class ProcessConstructionsCrawlspace < OpenStudio::Measure::ModelMeasure
                                                             wall_rigid_r, 0, 8.0, crawl_height,
                                                             floor_surface, 
                                                             Constants.SurfaceTypeFloorFndGrndCS,
-                                                            slab_whole_r, nil, true)
+                                                            slab_whole_r, nil)
             return false
         end
     end
@@ -133,7 +133,7 @@ class ProcessConstructionsCrawlspace < OpenStudio::Measure::ModelMeasure
         if not FoundationConstructions.apply_slab(runner, model, 
                                                   surface,
                                                   Constants.SurfaceTypeFloorFndGrndUnfinSlab,
-                                                  0, 0, 0, 0, 0, 0, 4.0, nil, false, nil, nil, true)
+                                                  0, 0, 0, 0, 0, 0, 4.0, nil, false, nil, nil)
             return false
         end
     end

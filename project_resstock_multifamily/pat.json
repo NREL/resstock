@@ -8,7 +8,7 @@
   "remoteSettings": {
     "open": true,
     "remoteType": "Amazon Cloud",
-    "remoteServerURL": "http://ec2-54-145-139-97.compute-1.amazonaws.com/",
+    "remoteServerURL": "http://ec2-34-228-140-187.compute-1.amazonaws.com/",
     "aws": {
       "cluster_name": "resstock",
       "connected": false,
@@ -27,7 +27,7 @@
         "cost": "$1.68/hr"
       },
       "user_id": "jrobert1",
-      "worker_node_number": 0,
+      "worker_node_number": 2,
       "aws_tags": [],
       "openstudio_server_version": {
         "openstudio": {
@@ -62,7 +62,8 @@
       "cluster_status": "running",
       "server": {
         "dns": null
-      }
+      },
+      "open": false
     },
     "credentials": {
       "yamlFilename": "jrobert1",
@@ -212,7 +213,7 @@
             "variableSetting": "Pivot",
             "distribution": "Integer Sequence",
             "discreteVariables": [],
-            "maximum": 100,
+            "maximum": 1000,
             "minimum": 1,
             "mean": 0,
             "deltaX": 0,
@@ -282,10 +283,52 @@
       "seed": "EmptySeedModel.osm",
       "workflow_index": 0,
       "options": [],
-      "instanceId": 0.3309747289127871,
+      "instanceId": 0.7311960484900109,
       "skip": false,
       "$$hashKey": "object:14896",
       "showWarningText": false,
+      "outputMeasure": false
+    },
+    {
+      "measure_dir": "C:\\OpenStudio\\OpenStudio-BuildStock\\project_resstock_multifamily\\measures\\ZoneMultipliers",
+      "name": "zone_multipliers",
+      "directory": "C:\\OpenStudio\\OpenStudio-BuildStock\\project_resstock_multifamily\\measures\\ZoneMultipliers",
+      "uid": "9e803190-83b8-4d75-859a-e632bfcba57d",
+      "uuid": "{9e803190-83b8-4d75-859a-e632bfcba57d}",
+      "version_id": "811480ba-d75c-4483-b6ab-2167f82005cf",
+      "version_uuid": "{811480ba-d75c-4483-b6ab-2167f82005cf}",
+      "version_modified": "20180430T180125Z",
+      "xml_checksum": "2C38F48B",
+      "display_name": "Apply Zone Multipliers",
+      "class_name": "ZoneMultipliers",
+      "description": "Model only one interior unit per floor with its thermal zone multiplier equal to the number of interior units per floor.",
+      "modeler_description": "Loop through building unit thermal zones and update multipliers based on location within the building and number of zones represented (removed from the model).",
+      "tags": "Whole Building.Space Types",
+      "outputs": [],
+      "attributes": [
+        {
+          "name": "Measure Type",
+          "display_name": "Measure Type",
+          "value": "ModelMeasure"
+        }
+      ],
+      "arguments": [],
+      "edit": "",
+      "status": "",
+      "bcl_update": false,
+      "location": "my",
+      "add": "",
+      "open": false,
+      "addedToProject": true,
+      "date": "4/30/2018",
+      "author": "",
+      "type": "ModelMeasure",
+      "seed": "EmptySeedModel.osm",
+      "workflow_index": 1,
+      "options": [],
+      "instanceId": 0.42928909381955926,
+      "skip": false,
+      "$$hashKey": "object:1790",
       "outputMeasure": false
     },
     {
@@ -1463,9 +1506,9 @@
       "author": "",
       "type": "ReportingMeasure",
       "seed": "EmptySeedModel.osm",
-      "workflow_index": 1,
+      "workflow_index": 2,
       "options": [],
-      "instanceId": 0.41790556906254994,
+      "instanceId": 0.645271157298164,
       "skip": false,
       "$$hashKey": "object:15135",
       "outputMeasure": true,
@@ -2613,9 +2656,9 @@
       "directory": "C:\\OpenStudio\\OpenStudio-BuildStock\\project_resstock_multifamily\\measures\\SimulationOutputReport",
       "uid": "fc337100-8634-404e-8966-01243d292a79",
       "uuid": "{fc337100-8634-404e-8966-01243d292a79}",
-      "version_id": "a1333011-38ef-4a28-b541-b1a28112c8e1",
-      "version_uuid": "{a1333011-38ef-4a28-b541-b1a28112c8e1}",
-      "version_modified": "20180330T202217Z",
+      "version_id": "d346bcfe-9487-45cd-846e-a583e34df9f1",
+      "version_uuid": "{d346bcfe-9487-45cd-846e-a583e34df9f1}",
+      "version_modified": "20180430T223215Z",
       "xml_checksum": "2C8A3EEF",
       "display_name": "Simulation Output Report",
       "class_name": "SimulationOutputReport",
@@ -2630,12 +2673,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:17943",
-          "checked": true,
-          "visualize": "true",
-          "measure_name": "simulation_output_report",
-          "measure_class_name": "SimulationOutputReport",
-          "measure_uid": "fc337100-8634-404e-8966-01243d292a79"
+          "checked": true
         },
         {
           "name": "total_site_electricity_kwh",
@@ -2644,12 +2682,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:17944",
-          "checked": true,
-          "visualize": "true",
-          "measure_name": "simulation_output_report",
-          "measure_class_name": "SimulationOutputReport",
-          "measure_uid": "fc337100-8634-404e-8966-01243d292a79"
+          "checked": true
         },
         {
           "name": "total_site_natural_gas_therm",
@@ -2658,12 +2691,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:17945",
-          "checked": true,
-          "visualize": "true",
-          "measure_name": "simulation_output_report",
-          "measure_class_name": "SimulationOutputReport",
-          "measure_uid": "fc337100-8634-404e-8966-01243d292a79"
+          "checked": true
         },
         {
           "name": "total_site_other_fuel_mbtu",
@@ -2672,12 +2700,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:17946",
-          "checked": true,
-          "visualize": "true",
-          "measure_name": "simulation_output_report",
-          "measure_class_name": "SimulationOutputReport",
-          "measure_uid": "fc337100-8634-404e-8966-01243d292a79"
+          "checked": true
         },
         {
           "name": "net_site_energy_mbtu",
@@ -2686,12 +2709,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:17947",
-          "checked": true,
-          "visualize": "true",
-          "measure_name": "simulation_output_report",
-          "measure_class_name": "SimulationOutputReport",
-          "measure_uid": "fc337100-8634-404e-8966-01243d292a79"
+          "checked": true
         },
         {
           "name": "net_site_electricity_kwh",
@@ -2700,12 +2718,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:17948",
-          "checked": true,
-          "visualize": "true",
-          "measure_name": "simulation_output_report",
-          "measure_class_name": "SimulationOutputReport",
-          "measure_uid": "fc337100-8634-404e-8966-01243d292a79"
+          "checked": true
         },
         {
           "name": "electricity_heating_kwh",
@@ -2714,12 +2727,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:17949",
-          "checked": true,
-          "visualize": "true",
-          "measure_name": "simulation_output_report",
-          "measure_class_name": "SimulationOutputReport",
-          "measure_uid": "fc337100-8634-404e-8966-01243d292a79"
+          "checked": true
         },
         {
           "name": "electricity_cooling_kwh",
@@ -2728,12 +2736,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:17950",
-          "checked": true,
-          "visualize": "true",
-          "measure_name": "simulation_output_report",
-          "measure_class_name": "SimulationOutputReport",
-          "measure_uid": "fc337100-8634-404e-8966-01243d292a79"
+          "checked": true
         },
         {
           "name": "electricity_interior_lighting_kwh",
@@ -2742,12 +2745,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:17951",
-          "checked": true,
-          "visualize": "true",
-          "measure_name": "simulation_output_report",
-          "measure_class_name": "SimulationOutputReport",
-          "measure_uid": "fc337100-8634-404e-8966-01243d292a79"
+          "checked": true
         },
         {
           "name": "electricity_exterior_lighting_kwh",
@@ -2756,12 +2754,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:17952",
-          "checked": true,
-          "visualize": "true",
-          "measure_name": "simulation_output_report",
-          "measure_class_name": "SimulationOutputReport",
-          "measure_uid": "fc337100-8634-404e-8966-01243d292a79"
+          "checked": true
         },
         {
           "name": "electricity_interior_equipment_kwh",
@@ -2770,12 +2763,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:17953",
-          "checked": true,
-          "visualize": "true",
-          "measure_name": "simulation_output_report",
-          "measure_class_name": "SimulationOutputReport",
-          "measure_uid": "fc337100-8634-404e-8966-01243d292a79"
+          "checked": true
         },
         {
           "name": "electricity_fans_kwh",
@@ -2784,12 +2772,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:17954",
-          "checked": true,
-          "visualize": "true",
-          "measure_name": "simulation_output_report",
-          "measure_class_name": "SimulationOutputReport",
-          "measure_uid": "fc337100-8634-404e-8966-01243d292a79"
+          "checked": true
         },
         {
           "name": "electricity_pumps_kwh",
@@ -2798,12 +2781,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:17955",
-          "checked": true,
-          "visualize": "true",
-          "measure_name": "simulation_output_report",
-          "measure_class_name": "SimulationOutputReport",
-          "measure_uid": "fc337100-8634-404e-8966-01243d292a79"
+          "checked": true
         },
         {
           "name": "electricity_water_systems_kwh",
@@ -2812,12 +2790,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:17956",
-          "checked": true,
-          "visualize": "true",
-          "measure_name": "simulation_output_report",
-          "measure_class_name": "SimulationOutputReport",
-          "measure_uid": "fc337100-8634-404e-8966-01243d292a79"
+          "checked": true
         },
         {
           "name": "electricity_pv_kwh",
@@ -2826,12 +2799,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:17957",
-          "checked": true,
-          "visualize": "true",
-          "measure_name": "simulation_output_report",
-          "measure_class_name": "SimulationOutputReport",
-          "measure_uid": "fc337100-8634-404e-8966-01243d292a79"
+          "checked": true
         },
         {
           "name": "natural_gas_heating_therm",
@@ -2840,12 +2808,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:17958",
-          "checked": true,
-          "visualize": "true",
-          "measure_name": "simulation_output_report",
-          "measure_class_name": "SimulationOutputReport",
-          "measure_uid": "fc337100-8634-404e-8966-01243d292a79"
+          "checked": true
         },
         {
           "name": "natural_gas_interior_equipment_therm",
@@ -2854,12 +2817,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:17959",
-          "checked": true,
-          "visualize": "true",
-          "measure_name": "simulation_output_report",
-          "measure_class_name": "SimulationOutputReport",
-          "measure_uid": "fc337100-8634-404e-8966-01243d292a79"
+          "checked": true
         },
         {
           "name": "natural_gas_water_systems_therm",
@@ -2868,12 +2826,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:17960",
-          "checked": true,
-          "visualize": "true",
-          "measure_name": "simulation_output_report",
-          "measure_class_name": "SimulationOutputReport",
-          "measure_uid": "fc337100-8634-404e-8966-01243d292a79"
+          "checked": true
         },
         {
           "name": "other_fuel_heating_mbtu",
@@ -2882,12 +2835,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:17961",
-          "checked": true,
-          "visualize": "true",
-          "measure_name": "simulation_output_report",
-          "measure_class_name": "SimulationOutputReport",
-          "measure_uid": "fc337100-8634-404e-8966-01243d292a79"
+          "checked": true
         },
         {
           "name": "other_fuel_interior_equipment_mbtu",
@@ -2896,12 +2844,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:17962",
-          "checked": true,
-          "visualize": "true",
-          "measure_name": "simulation_output_report",
-          "measure_class_name": "SimulationOutputReport",
-          "measure_uid": "fc337100-8634-404e-8966-01243d292a79"
+          "checked": true
         },
         {
           "name": "other_fuel_water_systems_mbtu",
@@ -2910,12 +2853,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:17963",
-          "checked": true,
-          "visualize": "true",
-          "measure_name": "simulation_output_report",
-          "measure_class_name": "SimulationOutputReport",
-          "measure_uid": "fc337100-8634-404e-8966-01243d292a79"
+          "checked": true
         },
         {
           "name": "hours_heating_setpoint_not_met",
@@ -2924,12 +2862,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:17964",
-          "checked": true,
-          "visualize": "true",
-          "measure_name": "simulation_output_report",
-          "measure_class_name": "SimulationOutputReport",
-          "measure_uid": "fc337100-8634-404e-8966-01243d292a79"
+          "checked": true
         },
         {
           "name": "hours_cooling_setpoint_not_met",
@@ -2938,12 +2871,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:17965",
-          "checked": true,
-          "visualize": "true",
-          "measure_name": "simulation_output_report",
-          "measure_class_name": "SimulationOutputReport",
-          "measure_uid": "fc337100-8634-404e-8966-01243d292a79"
+          "checked": true
         },
         {
           "name": "hvac_cooling_capacity_w",
@@ -2952,12 +2880,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:17966",
-          "checked": true,
-          "visualize": "true",
-          "measure_name": "simulation_output_report",
-          "measure_class_name": "SimulationOutputReport",
-          "measure_uid": "fc337100-8634-404e-8966-01243d292a79"
+          "checked": true
         },
         {
           "name": "hvac_heating_capacity_w",
@@ -2966,12 +2889,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:17967",
-          "checked": true,
-          "visualize": "true",
-          "measure_name": "simulation_output_report",
-          "measure_class_name": "SimulationOutputReport",
-          "measure_uid": "fc337100-8634-404e-8966-01243d292a79"
+          "checked": true
         },
         {
           "name": "upgrade_name",
@@ -2980,12 +2898,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:17968",
-          "checked": true,
-          "visualize": "true",
-          "measure_name": "simulation_output_report",
-          "measure_class_name": "SimulationOutputReport",
-          "measure_uid": "fc337100-8634-404e-8966-01243d292a79"
+          "checked": true
         },
         {
           "name": "upgrade_cost_usd",
@@ -2994,12 +2907,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:17969",
-          "checked": true,
-          "visualize": "true",
-          "measure_name": "simulation_output_report",
-          "measure_class_name": "SimulationOutputReport",
-          "measure_uid": "fc337100-8634-404e-8966-01243d292a79"
+          "checked": true
         },
         {
           "name": "upgrade_option_01_cost_usd",
@@ -3008,12 +2916,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:17970",
-          "checked": true,
-          "visualize": "true",
-          "measure_name": "simulation_output_report",
-          "measure_class_name": "SimulationOutputReport",
-          "measure_uid": "fc337100-8634-404e-8966-01243d292a79"
+          "checked": true
         },
         {
           "name": "upgrade_option_01_lifetime_yrs",
@@ -3022,12 +2925,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:17971",
-          "checked": true,
-          "visualize": "true",
-          "measure_name": "simulation_output_report",
-          "measure_class_name": "SimulationOutputReport",
-          "measure_uid": "fc337100-8634-404e-8966-01243d292a79"
+          "checked": true
         },
         {
           "name": "upgrade_option_02_cost_usd",
@@ -3036,12 +2934,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:17972",
-          "checked": true,
-          "visualize": "true",
-          "measure_name": "simulation_output_report",
-          "measure_class_name": "SimulationOutputReport",
-          "measure_uid": "fc337100-8634-404e-8966-01243d292a79"
+          "checked": true
         },
         {
           "name": "upgrade_option_02_lifetime_yrs",
@@ -3050,12 +2943,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:17973",
-          "checked": true,
-          "visualize": "true",
-          "measure_name": "simulation_output_report",
-          "measure_class_name": "SimulationOutputReport",
-          "measure_uid": "fc337100-8634-404e-8966-01243d292a79"
+          "checked": true
         },
         {
           "name": "upgrade_option_03_cost_usd",
@@ -3064,12 +2952,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:17974",
-          "checked": true,
-          "visualize": "true",
-          "measure_name": "simulation_output_report",
-          "measure_class_name": "SimulationOutputReport",
-          "measure_uid": "fc337100-8634-404e-8966-01243d292a79"
+          "checked": true
         },
         {
           "name": "upgrade_option_03_lifetime_yrs",
@@ -3078,12 +2961,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:17975",
-          "checked": true,
-          "visualize": "true",
-          "measure_name": "simulation_output_report",
-          "measure_class_name": "SimulationOutputReport",
-          "measure_uid": "fc337100-8634-404e-8966-01243d292a79"
+          "checked": true
         },
         {
           "name": "upgrade_option_04_cost_usd",
@@ -3092,12 +2970,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:17976",
-          "checked": true,
-          "visualize": "true",
-          "measure_name": "simulation_output_report",
-          "measure_class_name": "SimulationOutputReport",
-          "measure_uid": "fc337100-8634-404e-8966-01243d292a79"
+          "checked": true
         },
         {
           "name": "upgrade_option_04_lifetime_yrs",
@@ -3106,12 +2979,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:17977",
-          "checked": true,
-          "visualize": "true",
-          "measure_name": "simulation_output_report",
-          "measure_class_name": "SimulationOutputReport",
-          "measure_uid": "fc337100-8634-404e-8966-01243d292a79"
+          "checked": true
         },
         {
           "name": "upgrade_option_05_cost_usd",
@@ -3120,12 +2988,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:17978",
-          "checked": true,
-          "visualize": "true",
-          "measure_name": "simulation_output_report",
-          "measure_class_name": "SimulationOutputReport",
-          "measure_uid": "fc337100-8634-404e-8966-01243d292a79"
+          "checked": true
         },
         {
           "name": "upgrade_option_05_lifetime_yrs",
@@ -3134,12 +2997,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:17979",
-          "checked": true,
-          "visualize": "true",
-          "measure_name": "simulation_output_report",
-          "measure_class_name": "SimulationOutputReport",
-          "measure_uid": "fc337100-8634-404e-8966-01243d292a79"
+          "checked": true
         },
         {
           "name": "upgrade_option_06_cost_usd",
@@ -3148,12 +3006,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:17980",
-          "checked": true,
-          "visualize": "true",
-          "measure_name": "simulation_output_report",
-          "measure_class_name": "SimulationOutputReport",
-          "measure_uid": "fc337100-8634-404e-8966-01243d292a79"
+          "checked": true
         },
         {
           "name": "upgrade_option_06_lifetime_yrs",
@@ -3162,12 +3015,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:17981",
-          "checked": true,
-          "visualize": "true",
-          "measure_name": "simulation_output_report",
-          "measure_class_name": "SimulationOutputReport",
-          "measure_uid": "fc337100-8634-404e-8966-01243d292a79"
+          "checked": true
         },
         {
           "name": "upgrade_option_07_cost_usd",
@@ -3176,12 +3024,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:17982",
-          "checked": true,
-          "visualize": "true",
-          "measure_name": "simulation_output_report",
-          "measure_class_name": "SimulationOutputReport",
-          "measure_uid": "fc337100-8634-404e-8966-01243d292a79"
+          "checked": true
         },
         {
           "name": "upgrade_option_07_lifetime_yrs",
@@ -3190,12 +3033,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:17983",
-          "checked": true,
-          "visualize": "true",
-          "measure_name": "simulation_output_report",
-          "measure_class_name": "SimulationOutputReport",
-          "measure_uid": "fc337100-8634-404e-8966-01243d292a79"
+          "checked": true
         },
         {
           "name": "upgrade_option_08_cost_usd",
@@ -3204,12 +3042,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:17984",
-          "checked": true,
-          "visualize": "true",
-          "measure_name": "simulation_output_report",
-          "measure_class_name": "SimulationOutputReport",
-          "measure_uid": "fc337100-8634-404e-8966-01243d292a79"
+          "checked": true
         },
         {
           "name": "upgrade_option_08_lifetime_yrs",
@@ -3218,12 +3051,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:17985",
-          "checked": true,
-          "visualize": "true",
-          "measure_name": "simulation_output_report",
-          "measure_class_name": "SimulationOutputReport",
-          "measure_uid": "fc337100-8634-404e-8966-01243d292a79"
+          "checked": true
         },
         {
           "name": "upgrade_option_09_cost_usd",
@@ -3232,12 +3060,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:17986",
-          "checked": true,
-          "visualize": "true",
-          "measure_name": "simulation_output_report",
-          "measure_class_name": "SimulationOutputReport",
-          "measure_uid": "fc337100-8634-404e-8966-01243d292a79"
+          "checked": true
         },
         {
           "name": "upgrade_option_09_lifetime_yrs",
@@ -3246,12 +3069,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:17987",
-          "checked": true,
-          "visualize": "true",
-          "measure_name": "simulation_output_report",
-          "measure_class_name": "SimulationOutputReport",
-          "measure_uid": "fc337100-8634-404e-8966-01243d292a79"
+          "checked": true
         },
         {
           "name": "upgrade_option_10_cost_usd",
@@ -3260,12 +3078,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:17988",
-          "checked": true,
-          "visualize": "true",
-          "measure_name": "simulation_output_report",
-          "measure_class_name": "SimulationOutputReport",
-          "measure_uid": "fc337100-8634-404e-8966-01243d292a79"
+          "checked": true
         },
         {
           "name": "upgrade_option_10_lifetime_yrs",
@@ -3274,12 +3087,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:17989",
-          "checked": true,
-          "visualize": "true",
-          "measure_name": "simulation_output_report",
-          "measure_class_name": "SimulationOutputReport",
-          "measure_uid": "fc337100-8634-404e-8966-01243d292a79"
+          "checked": true
         },
         {
           "name": "weight",
@@ -3288,12 +3096,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:17990",
-          "checked": true,
-          "visualize": "true",
-          "measure_name": "simulation_output_report",
-          "measure_class_name": "SimulationOutputReport",
-          "measure_uid": "fc337100-8634-404e-8966-01243d292a79"
+          "checked": true
         }
       ],
       "attributes": [
@@ -3316,13 +3119,13 @@
       "add": "",
       "open": false,
       "addedToProject": true,
-      "date": "3/30/2018",
+      "date": "4/30/2018",
       "author": "",
       "type": "ReportingMeasure",
       "seed": "EmptySeedModel.osm",
-      "workflow_index": 2,
+      "workflow_index": 3,
       "options": [],
-      "instanceId": 0.5014014061139052,
+      "instanceId": 0.386456262076879,
       "skip": false,
       "$$hashKey": "object:5798",
       "outputMeasure": true,
@@ -4008,9 +3811,9 @@
       "directory": "C:\\OpenStudio\\OpenStudio-BuildStock\\project_resstock_multifamily\\measures\\TimeseriesCSVExport",
       "uid": "2a3442c1-944d-4e91-9e11-11e0cf368c64",
       "uuid": "{2a3442c1-944d-4e91-9e11-11e0cf368c64}",
-      "version_id": "3c00c736-493c-44f7-b294-5ec8ba8eab87",
-      "version_uuid": "{3c00c736-493c-44f7-b294-5ec8ba8eab87}",
-      "version_modified": "20180419T181805Z",
+      "version_id": "73078a0a-c270-4fcf-a09d-aa210279843e",
+      "version_uuid": "{73078a0a-c270-4fcf-a09d-aa210279843e}",
+      "version_modified": "20180430T180121Z",
       "xml_checksum": "15BF4E57",
       "display_name": "Timeseries CSV Export",
       "class_name": "TimeseriesCSVExport",
@@ -4153,13 +3956,13 @@
       "add": "",
       "open": false,
       "addedToProject": true,
-      "date": "4/19/2018",
+      "date": "4/30/2018",
       "author": "",
       "type": "ReportingMeasure",
       "seed": "EmptySeedModel.osm",
-      "workflow_index": 3,
+      "workflow_index": 4,
       "options": [],
-      "instanceId": 0.2213927348694058,
+      "instanceId": 0.961527205251933,
       "skip": false,
       "$$hashKey": "object:15284",
       "outputMeasure": false
@@ -4204,9 +4007,9 @@
       "author": "",
       "type": "ReportingMeasure",
       "seed": "EmptySeedModel.osm",
-      "workflow_index": 4,
+      "workflow_index": 5,
       "options": [],
-      "instanceId": 0.051740242363540245,
+      "instanceId": 0.4025414391435078,
       "skip": false,
       "$$hashKey": "object:663249",
       "outputMeasure": false

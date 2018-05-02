@@ -50,8 +50,6 @@ class ProcessCentralSystemPTAC < OpenStudio::Measure::ModelMeasure
     if !runner.validateUserArguments(arguments(model), user_arguments)
       return false
     end
-    
-    return true # TODO: remove
 
     require "openstudio-standards"
 
