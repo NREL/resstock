@@ -65,7 +65,22 @@ class ProcessHVACSizing < OpenStudio::Measure::ModelMeasure
     if weather.error?
         return false
     end
+
+    # Determine e+ autosizing or not
+    simulation_control = model.getSimulationControl
+    if simulation_control.runSimulationforSizingPeriods
     
+      require "openstudio-standards"
+      std = Standard.build("90.1-2013")
+      climate_zone = Location.get_climate_zone_iecc(model.getWeatherFile.wMONumber)
+      std.model_add_design_days_and_weather_file(model, climate_zone, nil)
+
+      runner.registerFinalCondition("Design days for #{climate_zone} added to the model for autosizing.")
+
+      return true
+
+    end
+
     units.each do |unit|
     
       success = HVACSizing.apply(model, unit, runner, weather, show_debug_info)

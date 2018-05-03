@@ -38,6 +38,7 @@ class ZoneMultipliers < OpenStudio::Measure::ModelMeasure
     end
     
     runner.registerInitialCondition("Model started with #{model.getThermalZones.length} thermal zones.")
+    runner.registerValue("zones_represented", model.getThermalZones.length.to_s)
 
     units = Geometry.get_building_units(model, runner)
     if units.nil?
@@ -343,6 +344,7 @@ class ZoneMultipliers < OpenStudio::Measure::ModelMeasure
     end
 
     runner.registerFinalCondition("Model finished with #{model.getThermalZones.length} thermal zones.")
+    runner.registerValue("zones_modeled", model.getThermalZones.length.to_s)
 
     return true
 

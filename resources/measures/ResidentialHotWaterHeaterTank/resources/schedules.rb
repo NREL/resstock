@@ -105,6 +105,9 @@ class HourlyByMonthSchedule
 
             assumedYear = year_description.assumedYear # prevent excessive OS warnings about 'UseWeatherFile'
 
+            winterDesignDaySchedule = nil
+            summerDesignDaySchedule = nil
+            
             for m in 1..12
                 date_s = OpenStudio::Date::fromDayOfYear(day_startm[m], assumedYear)
                 date_e = OpenStudio::Date::fromDayOfYear(day_endm[m], assumedYear)
@@ -171,7 +174,16 @@ class HourlyByMonthSchedule
                     wknd_rule.setStartDate(date_s)
                     wknd_rule.setEndDate(date_e)
                 end
+                if m == 1
+                  winterDesignDaySchedule = wkdy_rule.daySchedule
+                elsif m == 7
+                  summerDesignDaySchedule = wkdy_rule.daySchedule
+                end
+
             end
+
+            schedule.setWinterDesignDaySchedule(winterDesignDaySchedule)
+            schedule.setSummerDesignDaySchedule(summerDesignDaySchedule)
 
             return schedule
         end
@@ -336,6 +348,9 @@ class MonthWeekdayWeekendSchedule
             schedule.setName(@sch_name)
 
             assumedYear = year_description.assumedYear # prevent excessive OS warnings about 'UseWeatherFile'
+            
+            winterDesignDaySchedule = nil
+            summerDesignDaySchedule = nil
 
             for m in 1..12
                 date_s = OpenStudio::Date::fromDayOfYear(day_startm[m], assumedYear)
@@ -403,7 +418,16 @@ class MonthWeekdayWeekendSchedule
                     wknd_rule.setStartDate(date_s)
                     wknd_rule.setEndDate(date_e)
                 end
+                if m == 1
+                  winterDesignDaySchedule = wkdy_rule.daySchedule
+                elsif m == 7
+                  summerDesignDaySchedule = wkdy_rule.daySchedule
+                end
+                
             end
+            
+            schedule.setWinterDesignDaySchedule(winterDesignDaySchedule)
+            schedule.setSummerDesignDaySchedule(summerDesignDaySchedule)
 
             return schedule
         end

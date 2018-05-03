@@ -473,8 +473,10 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
                   next if not component.ratedTotalHeatingCapacity.is_initialized
                   sum_value += component.ratedTotalHeatingCapacity.get
               end
-              capacity_ratio = get_highest_stage_capacity_ratio(model, "SizingInfoHVACCapacityRatioHeating")
-              cost_mult += OpenStudio::convert(sum_value/capacity_ratio, "W", "kBtu/h").get
+              if sum_value > 0
+                capacity_ratio = get_highest_stage_capacity_ratio(model, "SizingInfoHVACCapacityRatioHeating")
+                cost_mult += OpenStudio::convert(sum_value/capacity_ratio, "W", "kBtu/h").get
+              end
           end
           
           # Electric baseboard?
@@ -487,7 +489,9 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
                   next if component.nominalCapacity.get <= max_value
                   max_value = component.nominalCapacity.get
               end
-              cost_mult += OpenStudio::convert(max_value, "W", "kBtu/h").get
+              if max_value > 0
+                cost_mult += OpenStudio::convert(max_value, "W", "kBtu/h").get
+              end
           end
           
           # Boiler?
@@ -502,7 +506,9 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
                       max_value = component.nominalCapacity.get
                   end
               end
-              cost_mult += OpenStudio::convert(max_value, "W", "kBtu/h").get
+              if max_value > 0
+                cost_mult += OpenStudio::convert(max_value, "W", "kBtu/h").get
+              end
           end
           
         end
@@ -591,8 +597,10 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
                   next if not component.ratedTotalCoolingCapacity.is_initialized
                   sum_value += component.ratedTotalCoolingCapacity.get
               end
-              capacity_ratio = get_highest_stage_capacity_ratio(model, "SizingInfoHVACCapacityRatioCooling")
-              cost_mult += OpenStudio::convert(sum_value/capacity_ratio, "W", "kBtu/h").get
+              if sum_value > 0
+                capacity_ratio = get_highest_stage_capacity_ratio(model, "SizingInfoHVACCapacityRatioCooling")
+                cost_mult += OpenStudio::convert(sum_value/capacity_ratio, "W", "kBtu/h").get
+              end
           end
          
        end

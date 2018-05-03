@@ -57,22 +57,32 @@ class ProcessCentralSystemPTAC < OpenStudio::Measure::ModelMeasure
 
     std = Standard.build("90.1-2013")
 
-    thermal_zones = []
-    model.getThermalZones.each do |thermal_zone|
-      next unless Geometry.zone_is_of_type(thermal_zone, Constants.SpaceTypeLiving) or Geometry.zone_is_of_type(thermal_zone, Constants.SpaceTypeFinishedBasement)
-      thermal_zones << thermal_zone
+    hot_water_loop = std.model_get_or_add_hot_water_loop(model, central_boiler_fuel_type)
+    
+    # Get building units
+    units = Geometry.get_building_units(model, runner)
+    if units.nil?
+      return false
     end
-    # story_groups = std.model_group_zones_by_story(model, model.getThermalZones) # TODO: need to write our own "zones by stories" method since we don't use BuildingStory
-    story_groups = [thermal_zones]
-    story_groups.each do |zones|
-
-      hot_water_loop = std.model_get_or_add_hot_water_loop(model, central_boiler_fuel_type)
-      std.model_add_ptac(model, sys_name=nil, hot_water_loop, zones, fan_type="ConstantVolume", "Water", cooling_type="Single Speed DX AC")
-
+    
+    units.each do |unit|
+    
+      thermal_zones = []
+      unit.spaces.each do |space|
+        thermal_zone = space.thermalZone.get
+        next if thermal_zones.include? thermal_zone
+        thermal_zones << thermal_zone
+      end
+    
+      std.model_add_ptac(model, sys_name=nil, hot_water_loop, thermal_zones, fan_type="ConstantVolume", "Water", cooling_type="Single Speed DX AC")
+    
     end
+
+    simulation_control = model.getSimulationControl
+    simulation_control.setRunSimulationforSizingPeriods(true)
 
     runner.registerInfo("Added PTAC to the building.")
-    
+
     return true
 
   end
