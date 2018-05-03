@@ -1863,6 +1863,7 @@ class HVACSizing
                                        (1 + (1 - hvac.CoilBF * unit_final.BypassFactor_CurveValue) * 
                                        (80 - mj8.cool_setpoint) / (mj8.cool_setpoint - unit_init.LAT)))
             unit_final.Cool_Airflow = (cool_Load_SensCap_Design / (1.1 * mj8.acf * (mj8.cool_setpoint - unit_init.LAT)))
+        
         else
         
             runner.registerError("Unexpected cooling system.")
@@ -2361,7 +2362,7 @@ class HVACSizing
     '''
     
     return nil if mj8.nil? or unit_init.nil? or unit_final.nil?
-    
+
     if hvac.HasCooling and unit_final.Cool_Capacity > @minCoolingCapacity
     
         dehum_design_db = weather.design.DehumidDrybulb
@@ -3033,7 +3034,7 @@ class HVACSizing
             end
             
             hvac.CoolingEIR = 1.0 / clg_coil.ratedCoolingCoefficientofPerformance
-            
+
         else
             runner.registerError("Unexpected cooling coil: #{clg_coil.name}.")
             return nil
@@ -3156,7 +3157,7 @@ class HVACSizing
             end
             
             hvac.HeatingEIR = 1.0 / htg_coil.ratedHeatingCoefficientofPerformance
-            
+
         elsif not htg_coil.nil?
             runner.registerError("Unexpected heating coil: #{htg_coil.name}.")
             return nil

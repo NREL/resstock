@@ -90,24 +90,33 @@ class ProcessCentralSystemFanCoil < OpenStudio::Measure::ModelMeasure
       hot_water_loop = std.model_get_or_add_hot_water_loop(model, central_boiler_fuel_type)
       msg = "boiler with heating-only zone hvac unit heaters"
     end
-
-    thermal_zones = []
-    model.getThermalZones.each do |thermal_zone|
-      next unless Geometry.zone_is_of_type(thermal_zone, Constants.SpaceTypeLiving) or Geometry.zone_is_of_type(thermal_zone, Constants.SpaceTypeFinishedBasement)
-      thermal_zones << thermal_zone
+    
+    # Get building units
+    units = Geometry.get_building_units(model, runner)
+    if units.nil?
+      return false
     end
-    # story_groups = std.model_group_zones_by_story(model, model.getThermalZones) # TODO: need to write our own "zones by stories" method since we don't use BuildingStory
-    story_groups = [thermal_zones]
-    story_groups.each do |zones|
-
-      if fan_coil_heating and not fan_coil_cooling
-        std.model_add_unitheater(model, sys_name=nil, zones, hvac_op_sch=nil, fan_control_type="ConstantVolume", fan_pressure_rise=OpenStudio.convert(0.2, "inH_{2}O", "Pa").get, "DistrictHeating", hot_water_loop)
-      else
-        std.model_add_four_pipe_fan_coil(model, hot_water_loop, chilled_water_loop, zones)
+    
+    units.each do |unit|
+    
+      thermal_zones = []
+      unit.spaces.each do |space|
+        thermal_zone = space.thermalZone.get
+        next if thermal_zones.include? thermal_zone
+        thermal_zones << thermal_zone
       end
-
+    
+      if fan_coil_heating and not fan_coil_cooling
+        std.model_add_unitheater(model, sys_name=nil, thermal_zones, hvac_op_sch=nil, fan_control_type="ConstantVolume", fan_pressure_rise=OpenStudio.convert(0.2, "inH_{2}O", "Pa").get, "DistrictHeating", hot_water_loop)
+      else
+        std.model_add_four_pipe_fan_coil(model, hot_water_loop, chilled_water_loop, thermal_zones)
+      end
+    
     end
 
+    simulation_control = model.getSimulationControl
+    simulation_control.setRunSimulationforSizingPeriods(true) # indicate e+ autosizing
+    
     runner.registerInfo("Added #{msg} to the building.")
 
     return true
