@@ -4,6 +4,7 @@
 require "#{File.dirname(__FILE__)}/resources/constants"
 require "#{File.dirname(__FILE__)}/resources/geometry"
 require "#{File.dirname(__FILE__)}/resources/hvac"
+require "#{File.dirname(__FILE__)}/resources/airflow"
 
 #start the measure
 class ProcessSingleSpeedCentralAirConditioner < OpenStudio::Measure::ModelMeasure
@@ -64,7 +65,7 @@ class ProcessSingleSpeedCentralAirConditioner < OpenStudio::Measure::ModelMeasur
     fan_power_installed.setDescription("Fan power (in W) per delivered airflow rate (in cfm) of the outdoor fan for the maximum fan speed under actual operating conditions.")
     fan_power_installed.setDefaultValue(0.5)
     args << fan_power_installed
-    
+
     #make a double argument for central ac crankcase
     crankcase_capacity = OpenStudio::Measure::OSArgument::makeDoubleArgument("crankcase_capacity", true)
     crankcase_capacity.setDisplayName("Crankcase")
@@ -129,8 +130,24 @@ class ProcessSingleSpeedCentralAirConditioner < OpenStudio::Measure::ModelMeasur
     dse.setDisplayName("Distribution System Efficiency")
     dse.setDescription("Defines the energy losses associated with the delivery of energy from the equipment to the source of the load.")
     dse.setDefaultValue("NA")
-    args << dse  
+    args << dse
     
+    #make a double argument for central ac rated cfm per ton
+    rated_cfm_per_ton = OpenStudio::Measure::OSArgument::makeDoubleArgument("rated_cfm_per_ton", true)
+    rated_cfm_per_ton.setDisplayName("Rated CFM Per Ton")
+    rated_cfm_per_ton.setUnits("cfm/ton")
+    rated_cfm_per_ton.setDescription("TODO.")
+    rated_cfm_per_ton.setDefaultValue(400.0)
+    args << rated_cfm_per_ton
+    
+    #make a double argument for central ac actual cfm per ton
+    actual_cfm_per_ton = OpenStudio::Measure::OSArgument::makeDoubleArgument("actual_cfm_per_ton", true)
+    actual_cfm_per_ton.setDisplayName("Actual CFM Per Ton")
+    actual_cfm_per_ton.setUnits("cfm/ton")
+    actual_cfm_per_ton.setDescription("TODO.")
+    actual_cfm_per_ton.setDefaultValue(400.0)
+    args << actual_cfm_per_ton
+
     return args
   end #end the arguments method
 
@@ -166,12 +183,26 @@ class ProcessSingleSpeedCentralAirConditioner < OpenStudio::Measure::ModelMeasur
     else
       dse = 1.0
     end
+    rated_cfm_per_ton = runner.getDoubleArgumentValue("rated_cfm_per_ton",user_arguments)
+    actual_cfm_per_ton = runner.getDoubleArgumentValue("actual_cfm_per_ton",user_arguments)
     
+    # Error checking
+    if ( rated_cfm_per_ton < 150 or actual_cfm_per_ton < 150 ) or ( rated_cfm_per_ton > 750 or actual_cfm_per_ton > 750 )
+      runner.registerError("Air flow rate input(s) are outside the valid range.")
+      return false
+    end
+    if ( rated_cfm_per_ton < 200 or actual_cfm_per_ton < 200 ) or ( rated_cfm_per_ton > 600 or actual_cfm_per_ton > 600 )
+      runner.registerWarning("Air flow rate input(s) are almost outside the valid range.")
+    end
+    
+    # Remove any existing installation quality fault programs
+    HVAC.remove_fault_ems(model, Constants.ObjectNameInstallationQualityFault)
+
     # Get building units
     units = Geometry.get_building_units(model, runner)
     if units.nil?
       return false
-    end 
+    end
     
     units.each do |unit|
     
@@ -188,9 +219,22 @@ class ProcessSingleSpeedCentralAirConditioner < OpenStudio::Measure::ModelMeasur
                                              fan_power_rated, fan_power_installed,
                                              crankcase_capacity, crankcase_temp,
                                              eer_capacity_derates, capacity, dse,
-                                             existing_objects)
+                                             rated_cfm_per_ton, existing_objects)
       return false if not success
       
+      if rated_cfm_per_ton != actual_cfm_per_ton
+
+        HVAC.get_control_and_slave_zones(thermal_zones).each do |control_zone, slave_zones|
+          success = HVAC.write_fault_ems(model, unit, runner, control_zone, 
+                                         rated_cfm_per_ton, actual_cfm_per_ton, 
+                                         false)
+          return false if not success
+        end
+
+      end
+
+      unit.setFeature(Constants.SizingInfoHVACActualCFMperTonCooling, actual_cfm_per_ton)
+
     end # unit
 
     return true

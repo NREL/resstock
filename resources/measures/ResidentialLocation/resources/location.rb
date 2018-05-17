@@ -9,6 +9,9 @@ class Location
         success, weather, epw_file = apply_weather_file(model, runner, weather_file_path)
         return false if not success
         
+        success = apply_year(model, runner, epw_file)
+        return false if not success
+        
         success = apply_site(model, runner, epw_file)
         return false if not success
 
@@ -16,9 +19,6 @@ class Location
         return false if not success
         
         success = apply_mains_temp(model, runner, weather)
-        return false if not success
-
-        success = apply_year(model, runner, epw_file)
         return false if not success
 
         success = apply_dst(model, runner, dst_start_date, dst_end_date)
@@ -98,8 +98,10 @@ class Location
     def self.apply_year(model, runner, epw_file)
     
         year_description = model.getYearDescription
-        if epw_file.startDateActualYear.is_initialized
+        if epw_file.startDateActualYear.is_initialized # AMY
           year_description.setCalendarYear(epw_file.startDateActualYear.get)
+        else # TMY
+          year_description.setDayofWeekforStartDay('Monday') # For consistency with SAM utility bill calculations
         end
         
         return true
