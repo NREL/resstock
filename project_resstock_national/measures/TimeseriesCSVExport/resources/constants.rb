@@ -140,6 +140,9 @@ class Constants
   def self.BuildingTypeSingleFamilyDetached
     return 'singlefamilydetached'
   end
+  def self.BuildingUnitFeatureDHWSchedIndex
+    return 'DHWSchedIndex'
+  end
   def self.BuildingUnitFeatureNumBathrooms
     return 'NumberOfBathrooms'
   end

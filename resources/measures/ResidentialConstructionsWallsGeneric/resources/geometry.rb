@@ -525,6 +525,7 @@ class Geometry
 
   # Takes in a list of spaces and returns the average space height
   def self.spaces_avg_height(spaces)
+      return nil if spaces.size == 0
       sum_height = 0
       spaces.each do |space|
           sum_height += self.space_height(space)
