@@ -678,8 +678,8 @@ class Waterheater
         #EMS Program for ducting
         hpwh_ducting_program = OpenStudio::Model::EnergyManagementSystemProgram.new(model)
         hpwh_ducting_program.setName("#{obj_name_hpwh} InletAir")
-        if not (Geometry.is_finished_basement(water_heater_tz) or Geometry.is_living(water_heater_tz))
-            runner.registerWarning("Confined space installations are typically used represent installations in locations like a utility closet. Utility closets installations are typically only done in conditioned spaces.")
+        if not (Geometry.is_finished_basement(water_heater_tz) or Geometry.is_living(water_heater_tz)) and temp_depress_c > 0
+            runner.registerWarning("Confined space HPWH installations are typically used to represent installations in locations like a utility closet. Utility closets installations are typically only done in conditioned spaces.")
         end
         if temp_depress_c > 0 and ducting == "none"
             hpwh_ducting_program.addLine("Set HPWH_last_#{unit_index} = (@TrendValue #{on_off_trend_var.name} 1)")

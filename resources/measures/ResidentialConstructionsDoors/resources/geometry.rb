@@ -170,29 +170,6 @@ class Geometry
     return [nbeds, nbaths]
   end
 
-  def self.get_unit_dhw_sched_index(model, unit, runner=nil)
-      dhw_sched_index = unit.getFeatureAsInteger(Constants.BuildingUnitFeatureDHWSchedIndex)
-      if not dhw_sched_index.is_initialized
-          # Assign DHW schedule index values for every building unit.
-          dhw_sched_index_hash = {}
-          num_bed_options = (1..5)
-          num_bed_options.each do |num_bed_option|
-              dhw_sched_index_hash[num_bed_option.to_f] = -1 # initialize
-          end
-          units = self.get_building_units(model, runner)
-          units.each do |unit|
-              nbeds, nbaths = Geometry.get_unit_beds_baths(model, unit, runner)
-              dhw_sched_index_hash[nbeds] = (dhw_sched_index_hash[nbeds]+1) % 365
-              unit.setFeature(Constants.BuildingUnitFeatureDHWSchedIndex, dhw_sched_index_hash[nbeds])
-          end
-          dhw_sched_index = unit.getFeatureAsInteger(Constants.BuildingUnitFeatureDHWSchedIndex).get
-      else
-          # Value already assigned.
-          dhw_sched_index = dhw_sched_index.get
-      end
-      return dhw_sched_index
-  end
-
   def self.get_unit_adjacent_common_spaces(unit)
     # Returns a list of spaces adjacent to the unit that are not assigned
     # to a building unit.

@@ -1,11 +1,11 @@
 require 'openstudio'
- 
+
 class BuildingCharacteristicsReport < OpenStudio::Measure::ReportingMeasure
 
   def name
     return "Building Characteristics Report"
   end
-  
+
   def description
     return "Reports building characteristics for each simulation."
   end
@@ -16,7 +16,7 @@ class BuildingCharacteristicsReport < OpenStudio::Measure::ReportingMeasure
 
     return args
   end
-  
+
   def outputs
     result = OpenStudio::Measure::OSOutputVector.new
     # Outputs based on parameters in options_lookup.tsv

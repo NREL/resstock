@@ -7,11 +7,155 @@ require "#{File.dirname(__FILE__)}/schedules"
 
 class HVAC
 
+    def self.write_fault_ems(model, unit, runner, control_zone, rated_airflow_rate, installed_airflow_rate, is_heat_pump)
+
+      obj_name = Constants.ObjectNameInstallationQualityFault(unit.name.to_s.gsub("unit ", "")).gsub("|", "_")
+
+      thermal_zones = Geometry.get_thermal_zones_from_spaces(unit.spaces)
+
+      unit_living = nil
+      thermal_zones.each do |thermal_zone|
+        if Geometry.is_finished_basement(thermal_zone)
+          unit_finished_basement = thermal_zone
+        elsif Geometry.is_living(thermal_zone)
+          unit_living = thermal_zone
+        end
+      end
+
+      system, clg_coil, htg_coil, air_loop = get_unitary_system_air_loop(model, runner, control_zone)
+      unless htg_coil.nil?
+        htg_coil = get_coil_from_hvac_component(htg_coil)
+      end
+      unless clg_coil.nil?
+        clg_coil = get_coil_from_hvac_component(clg_coil)
+      end
+      
+      if clg_coil.to_CoilCoolingDXMultiSpeed.is_initialized
+
+        runner.registerWarning("Currently can only apply fault program to single-speed equipment.")
+        return true
+
+      end
+
+      # Output variables
+      output_vars = Airflow.create_output_vars(model, ["Zone Mean Air Temperature", "Zone Outdoor Air Drybulb Temperature"])
+
+      tin_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, output_vars["Zone Mean Air Temperature"])
+      tin_sensor.setName("#{obj_name} tin s")
+      tin_sensor.setKeyName(unit_living.name.to_s)
+
+      tout_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, output_vars["Zone Outdoor Air Drybulb Temperature"])
+      tout_sensor.setName("#{obj_name} tt s")
+      tout_sensor.setKeyName(unit_living.name.to_s)
+
+      cool_cap_fff_curve = clg_coil.totalCoolingCapacityFunctionOfFlowFractionCurve
+      cool_eir_fff_curve = clg_coil.energyInputRatioFunctionOfFlowFractionCurve
+
+      cool_cap_fff_act = OpenStudio::Model::EnergyManagementSystemActuator.new(cool_cap_fff_curve, "Curve", "Curve Result")
+      cool_cap_fff_act.setName("#{obj_name} cap clg act")
+
+      cool_eir_fff_act = OpenStudio::Model::EnergyManagementSystemActuator.new(cool_eir_fff_curve, "Curve", "Curve Result")
+      cool_eir_fff_act.setName("#{obj_name} eir clg act")
+    
+      fault_program = OpenStudio::Model::EnergyManagementSystemProgram.new(model)
+      fault_program.setName("#{obj_name} prog")
+
+      f = installed_airflow_rate / rated_airflow_rate - 1.0
+
+      fault_program.addLine("Set F = #{f.round(3)}")
+      fault_program.addLine("Set a1_AF_Qgr_c = 0.295")
+      fault_program.addLine("Set a2_AF_Qgr_c = -0.00117")
+      fault_program.addLine("Set a3_AF_Qgr_c = -0.00157")
+      fault_program.addLine("Set a4_AF_Qgr_c = 0.0692")
+      fault_program.addLine("Set q0 = a1_AF_Qgr_c")
+      fault_program.addLine("Set q1 = a2_AF_Qgr_c*#{tin_sensor.name}")
+      fault_program.addLine("Set q2 = a3_AF_Qgr_c*#{tout_sensor.name}")
+      fault_program.addLine("Set q3 = a4_AF_Qgr_c*F")
+      fault_program.addLine("Set Y_AF_Q_R_c = 1 + ((q0+(q1)+(q2)+(q3))*F)")
+      fault_program.addLine("Set #{cool_cap_fff_act.name} = Y_AF_Q_R_c")
+
+      fault_program.addLine("Set a1_AF_Wodu_c = -0.103")
+      fault_program.addLine("Set a2_AF_Wodu_c = 0.00412")
+      fault_program.addLine("Set a3_AF_Wodu_c = 0.00238")
+      fault_program.addLine("Set a4_AF_Wodu_c = 0.21")
+      fault_program.addLine("Set w1 = a1_AF_Wodu_c")
+      fault_program.addLine("Set w2 = a2_AF_Wodu_c*#{tin_sensor.name}")
+      fault_program.addLine("Set w3 = a3_AF_Wodu_c*#{tout_sensor.name}")
+      fault_program.addLine("Set w4 = a4_AF_Wodu_c*F")
+      fault_program.addLine("Set Y_AF_OD_c = 1 + ((w1+(w2)+(w3)+(w4))*F)")
+      fault_program.addLine("Set #{cool_eir_fff_act.name} = Y_AF_OD_c / Y_AF_Q_R_c")
+
+      if is_heat_pump
+
+        hp_heat_cap_fff_curve = htg_coil.totalHeatingCapacityFunctionofFlowFractionCurve
+        hp_heat_eir_fff_curve = htg_coil.energyInputRatioFunctionofFlowFractionCurve
+      
+        hp_heat_cap_fff_act = OpenStudio::Model::EnergyManagementSystemActuator.new(hp_heat_cap_fff_curve, "Curve", "Curve Result")
+        hp_heat_cap_fff_act.setName("#{obj_name} cap htg act")
+
+        hp_heat_eir_fff_act = OpenStudio::Model::EnergyManagementSystemActuator.new(hp_heat_eir_fff_curve, "Curve", "Curve Result")
+        hp_heat_eir_fff_act.setName("#{obj_name} eir htg act")
+
+        fault_program.addLine("Set a1_AF_Qgr_h = 0.0009404")
+        fault_program.addLine("Set a2_AF_Qgr_h = 0.0065171")
+        fault_program.addLine("Set a3_AF_Qgr_h = -0.3464391")
+        fault_program.addLine("Set qh1 = a1_AF_Qgr_h")
+        fault_program.addLine("Set qh2 = a2_AF_Qgr_h*#{tout_sensor.name}")
+        fault_program.addLine("Set qh3 = a3_AF_Qgr_h*F")
+        fault_program.addLine("Set Y_AF_Q_R_h = 1 + ((qh1+(qh2)+(qh3))*F)")
+        fault_program.addLine("Set #{hp_heat_cap_fff_act.name} = Y_AF_Q_R_h")
+
+        fault_program.addLine("Set a1_AF_Wodu_h = -0.177359")
+        fault_program.addLine("Set a2_AF_Wodu_h = -0.0125111")
+        fault_program.addLine("Set a3_AF_Wodu_h = 0.4784914")
+        fault_program.addLine("Set wh1 = a1_AF_Wodu_h")
+        fault_program.addLine("Set wh2 = a2_AF_Wodu_h*#{tout_sensor.name}")
+        fault_program.addLine("Set wh3 = a3_AF_Wodu_h*F")
+        fault_program.addLine("Set Y_AF_OD_h = 1 + ((wh1+(wh2)+(wh3))*F)")
+        fault_program.addLine("Set #{hp_heat_eir_fff_act.name} = Y_AF_OD_h / Y_AF_Q_R_h")
+
+      end
+      
+      program_calling_manager = OpenStudio::Model::EnergyManagementSystemProgramCallingManager.new(model)
+      program_calling_manager.setName("#{obj_name} prog man")
+      program_calling_manager.setCallingPoint("InsideHVACSystemIterationLoop")
+      program_calling_manager.addProgram(fault_program)
+      
+      return true
+
+    end
+    
+    def self.remove_fault_ems(model, obj_name)
+    
+      # Remove existing EMS
+
+      model.getEnergyManagementSystemProgramCallingManagers.each do |pcm|
+        next unless pcm.name.to_s.start_with? obj_name
+        pcm.remove
+      end
+      
+      model.getEnergyManagementSystemSensors.each do |sensor|
+        next unless sensor.name.to_s.start_with? obj_name.gsub(" ", "_")
+        sensor.remove
+      end
+      
+      model.getEnergyManagementSystemActuators.each do |actuator|
+        next unless actuator.name.to_s.start_with? obj_name.gsub(" ", "_")
+        actuator.remove
+      end
+      
+      model.getEnergyManagementSystemPrograms.each do |program|
+        next unless program.name.to_s.start_with? obj_name.gsub(" ", "_")
+        program.remove
+      end
+    
+    end
+
     def self.apply_central_ac_1speed(model, unit, runner, seer, eers, shrs,
                                      fan_power_rated, fan_power_installed,
                                      crankcase_capacity, crankcase_temp,
-                                     eer_capacity_derates, capacity, dse, 
-                                     existing_objects={})
+                                     eer_capacity_derates, capacity, dse,
+                                     rated_airflow_rate, existing_objects={})
     
       num_speeds = 1
 
@@ -28,8 +172,8 @@ class HVAC
       fan_speed_ratios = [1.0]
       
       # Cooling Coil
-      rated_airflow_rate = 386.1 # cfm
-      cfms_ton_rated = calc_cfms_ton_rated(rated_airflow_rate, fan_speed_ratios, capacity_ratios)
+      rated_airflow_rate_cooling = rated_airflow_rate # cfm/ton
+      cfms_ton_rated = calc_cfms_ton_rated(rated_airflow_rate_cooling, fan_speed_ratios, capacity_ratios)
       cooling_eirs = calc_cooling_eirs(num_speeds, eers, fan_power_rated)
       shrs_rated_gross = calc_shrs_rated_gross(num_speeds, shrs, fan_power_rated, cfms_ton_rated)
       cOOL_CLOSS_FPLR_SPEC = [calc_plr_coefficients_cooling(num_speeds, seer)]
@@ -499,7 +643,7 @@ class HVAC
                                        crankcase_capacity, crankcase_temp,
                                        eer_capacity_derates, cop_capacity_derates,
                                        heat_pump_capacity, supplemental_efficiency,
-                                       supplemental_capacity, dse)
+                                       supplemental_capacity, dse, rated_airflow_rate)
     
       if heat_pump_capacity == Constants.SizingAutoMaxLoad
           runner.registerWarning("Using #{Constants.SizingAutoMaxLoad} is not recommended for single-speed heat pumps. When sized larger than the cooling load, this can lead to humidity concerns due to reduced dehumidification performance by the heat pump.")
@@ -525,14 +669,14 @@ class HVAC
       fan_speed_ratios_heating = [1.0]
       
       # Cooling Coil
-      rated_airflow_rate_cooling = 394.2 # cfm
+      rated_airflow_rate_cooling = rated_airflow_rate # cfm/ton
       cfms_ton_rated_cooling = calc_cfms_ton_rated(rated_airflow_rate_cooling, fan_speed_ratios_cooling, capacity_ratios)
       cooling_eirs = calc_cooling_eirs(num_speeds, eers, fan_power_rated)
       shrs_rated_gross = calc_shrs_rated_gross(num_speeds, shrs, fan_power_rated, cfms_ton_rated_cooling)
       cOOL_CLOSS_FPLR_SPEC = [calc_plr_coefficients_cooling(num_speeds, seer)]
 
       # Heating Coil
-      rated_airflow_rate_heating = 384.1 # cfm
+      rated_airflow_rate_heating = rated_airflow_rate # cfm/ton
       cfms_ton_rated_heating = calc_cfms_ton_rated(rated_airflow_rate_heating, fan_speed_ratios_heating, capacity_ratios)
       heating_eirs = calc_heating_eirs(num_speeds, cops, fan_power_rated)
       hEAT_CLOSS_FPLR_SPEC = [calc_plr_coefficients_heating(num_speeds, hspf)]
@@ -2322,14 +2466,17 @@ class HVAC
           cooling_season = Array.new(12, 0.0)
           thermostat_setpoint.coolingSetpointTemperatureSchedule.get.to_Schedule.get.to_ScheduleRuleset.get.scheduleRules.each do |rule|
             if rule.applyMonday and rule.applyTuesday and rule.applyWednesday and rule.applyThursday and rule.applyFriday
-              rule.daySchedule.values.each_with_index do |value, hour|
+              rule.daySchedule.values.each_with_index do |value, i|
+                hour = rule.daySchedule.times[i].hours - 1
                 if value < clg_wkdy[hour]
                   clg_wkdy[hour] = value
                 end
               end
             end
+            clg_wkdy = backfill_schedule_values(clg_wkdy, Constants.NoCoolingSetpoint)
             if rule.applySaturday and rule.applySunday
-              rule.daySchedule.values.each_with_index do |value, hour|
+              rule.daySchedule.values.each_with_index do |value, i|
+                hour = rule.daySchedule.times[i].hours - 1
                 if value < clg_wked[hour]
                   clg_wked[hour] = value
                 end
@@ -2338,6 +2485,7 @@ class HVAC
                 end
               end
             end
+            clg_wked = backfill_schedule_values(clg_wked, Constants.NoCoolingSetpoint)
           end
           
           htg_wkdy_monthly = []
@@ -2508,14 +2656,17 @@ class HVAC
           heating_season = Array.new(12, 0.0)
           thermostat_setpoint.heatingSetpointTemperatureSchedule.get.to_Schedule.get.to_ScheduleRuleset.get.scheduleRules.each do |rule|
             if rule.applyMonday and rule.applyTuesday and rule.applyWednesday and rule.applyThursday and rule.applyFriday
-              rule.daySchedule.values.each_with_index do |value, hour|
+              rule.daySchedule.values.each_with_index do |value, i|
+                hour = rule.daySchedule.times[i].hours - 1
                 if value > htg_wkdy[hour]
                   htg_wkdy[hour] = value
                 end
               end
             end
+            htg_wkdy = backfill_schedule_values(htg_wkdy, Constants.NoHeatingSetpoint)
             if rule.applySaturday and rule.applySunday
-              rule.daySchedule.values.each_with_index do |value, hour|
+              rule.daySchedule.values.each_with_index do |value, i|
+                hour = rule.daySchedule.times[i].hours - 1
                 if value > htg_wked[hour]
                   htg_wked[hour] = value
                 end
@@ -2524,6 +2675,7 @@ class HVAC
                 end
               end
             end
+            htg_wked = backfill_schedule_values(htg_wked, Constants.NoHeatingSetpoint)
           end
           
           htg_wkdy_monthly = []
@@ -2832,11 +2984,13 @@ class HVAC
       if thermostatsetpointdualsetpoint.is_initialized
         thermostatsetpointdualsetpoint.get.coolingSetpointTemperatureSchedule.get.to_Schedule.get.to_ScheduleRuleset.get.scheduleRules.each do |rule|
           coolingSetpoint = Array.new(24, Constants.NoCoolingSetpoint)
-          rule.daySchedule.values.each_with_index do |value, hour|
+          rule.daySchedule.values.each_with_index do |value, i|
+            hour = rule.daySchedule.times[i].hours - 1
             if value < coolingSetpoint[hour]
               coolingSetpoint[hour] = UnitConversions.convert(value,"C","F") + cooling_setpoint_offset
             end
           end
+          coolingSetpoint = backfill_schedule_values(coolingSetpoint, Constants.NoCoolingSetpoint)
           # weekday
           if rule.applyMonday and rule.applyTuesday and rule.applyWednesday and rule.applyThursday and rule.applyFriday
             unless rule.daySchedule.values.all? {|x| x == Constants.NoCoolingSetpoint}
@@ -3036,6 +3190,20 @@ class HVAC
     end
     
     private
+    
+    def self.backfill_schedule_values(values, no_setpoint)
+      # backfill the array values
+      values = values.reverse 
+      previous_value = values[0]
+      values.each_with_index do |c, i|
+        if values[i+1] == no_setpoint
+          values[i+1] = previous_value
+        end
+        previous_value = values[i+1]
+      end
+      values = values.reverse
+      return values
+    end
     
     def self.get_gshp_hx_pipe_diameters(pipe_size)
       # Pipe norminal size convertion to pipe outside diameter and inside diameter, 

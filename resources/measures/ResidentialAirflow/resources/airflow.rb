@@ -108,8 +108,6 @@ class Airflow
       unit_ffa = Geometry.get_finished_floor_area_from_spaces(unit.spaces, false, runner)
       unit_window_area = Geometry.get_window_area_from_spaces(unit.spaces, false)
       
-      sch_unit_index = Geometry.get_unit_dhw_sched_index(model, unit, runner)
-
       # Determine geometry for spaces and zones that are unit specific
       unit_living = nil
       unit_finished_basement = nil
@@ -167,7 +165,7 @@ class Airflow
       
       duct_program, cfis_program, cfis_output = create_ducts_objects(model, runner, output_vars, obj_name_ducts, unit_living, unit_finished_basement, ducts, mech_vent, ducts_output, tin_sensor, pbar_sensor, duct_lk_supply_fan_equiv_var, duct_lk_return_fan_equiv_var, has_forced_air_equipment, unit_has_mshp, adiabatic_const)
       
-      infil_program = create_infil_mech_vent_objects(model, runner, output_vars, obj_name_infil, obj_name_mech_vent, unit_living, infil, mech_vent, wind_speed, mv_output, infil_output, tin_sensor, tout_sensor, vwind_sensor, duct_lk_supply_fan_equiv_var, duct_lk_return_fan_equiv_var, cfis_output, sch_unit_index, nbeds)
+      infil_program = create_infil_mech_vent_objects(model, runner, output_vars, obj_name_infil, obj_name_mech_vent, unit_living, infil, mech_vent, wind_speed, mv_output, infil_output, tin_sensor, tout_sensor, vwind_sensor, duct_lk_supply_fan_equiv_var, duct_lk_return_fan_equiv_var, cfis_output, nbeds)
       
       create_ems_program_managers(model, infil_program, nv_program, cfis_program, 
                                   duct_program, obj_name_airflow, obj_name_ducts)
@@ -381,10 +379,9 @@ class Airflow
 
   private
   
-  def self.create_output_vars(model)
+  def self.create_output_vars(model, output_var_names=["Zone Outdoor Air Drybulb Temperature", "Site Outdoor Air Barometric Pressure", "Zone Mean Air Temperature", "Zone Air Relative Humidity", "Site Outdoor Air Humidity Ratio", "Zone Mean Air Humidity Ratio", "Site Wind Speed", "Schedule Value", "System Node Mass Flow Rate", "Fan Runtime Fraction", "System Node Current Density Volume Flow Rate", "System Node Temperature", "System Node Humidity Ratio", "Zone Air Temperature"])
     output_vars = {}
-    
-    output_var_names = ["Zone Outdoor Air Drybulb Temperature", "Site Outdoor Air Barometric Pressure", "Zone Mean Air Temperature", "Zone Air Relative Humidity", "Site Outdoor Air Humidity Ratio", "Zone Mean Air Humidity Ratio", "Site Wind Speed", "Schedule Value", "System Node Mass Flow Rate", "Fan Runtime Fraction", "System Node Current Density Volume Flow Rate", "System Node Temperature", "System Node Humidity Ratio", "Zone Air Temperature"]
+
     model_output_vars = model.getOutputVariables
     
     output_var_names.each do |output_var_name|
@@ -1796,7 +1793,7 @@ class Airflow
     
   end
   
-  def self.create_infil_mech_vent_objects(model, runner, output_vars, obj_name_infil, obj_name_mech_vent, unit_living, infil, mech_vent, wind_speed, mv_output, infil_output, tin_sensor, tout_sensor, vwind_sensor, duct_lk_supply_fan_equiv_var, duct_lk_return_fan_equiv_var, cfis_output, sch_unit_index, nbeds)
+  def self.create_infil_mech_vent_objects(model, runner, output_vars, obj_name_infil, obj_name_mech_vent, unit_living, infil, mech_vent, wind_speed, mv_output, infil_output, tin_sensor, tout_sensor, vwind_sensor, duct_lk_supply_fan_equiv_var, duct_lk_return_fan_equiv_var, cfis_output, nbeds)
 
     # Sensors
   
@@ -1815,7 +1812,7 @@ class Airflow
     bath_sch_sensor.setKeyName(bath_exhaust_sch.schedule.name.to_s)
 
     if mv_output.has_dryer and mech_vent.dryer_exhaust > 0
-      dryer_exhaust_sch = HotWaterSchedule.new(model, runner, obj_name_mech_vent + " dryer exhaust schedule", obj_name_mech_vent + " dryer exhaust temperature schedule", nbeds, sch_unit_index, mv_output.dryer_exhaust_day_shift, "ClothesDryerExhaust", 0, @measure_dir)
+      dryer_exhaust_sch = HotWaterSchedule.new(model, runner, obj_name_mech_vent + " dryer exhaust schedule", obj_name_mech_vent + " dryer exhaust temperature schedule", nbeds, mv_output.dryer_exhaust_day_shift, "ClothesDryerExhaust", 0, @measure_dir)
       dryer_sch_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, output_vars["Schedule Value"])
       dryer_sch_sensor.setName("#{obj_name_infil} dryer sch s")
       dryer_sch_sensor.setKeyName(dryer_exhaust_sch.schedule.name.to_s)

@@ -267,13 +267,13 @@ class Constants
     return 'pex'
   end
   def self.PVModuleTypeStandard
-    return 'standard'
+    return 'Standard'
   end
   def self.PVModuleTypePremium
-    return 'premium'
+    return 'Premium'
   end
   def self.PVModuleTypeThinFilm
-    return 'thin film'
+    return 'ThinFilm'
   end
   def self.PVNetMetering
     return 'Net Metering'
@@ -504,6 +504,13 @@ class Constants
       s_unit = "|#{unit_name}"
     end
     return "res infil#{s_unit}"
+  end
+  def self.ObjectNameInstallationQualityFault(unit_name=self.ObjectNameBuildingUnit)
+    s_unit = ""
+    if unit_name != self.ObjectNameBuildingUnit
+      s_unit = "|#{unit_name}"
+    end
+    return "res installation quality fault#{s_unit}"
   end
   def self.ObjectNameLighting(unit_name=self.ObjectNameBuildingUnit)
     s_unit = ""
@@ -758,6 +765,9 @@ class Constants
         s_obj = "|#{obj.handle.to_s}"
     end
     return "#{property}#{s_obj}"
+  end
+  def self.SizingInfoHVACActualCFMperTonCooling
+    return self.SizingInfo(__method__.to_s)
   end
   def self.SizingInfoCMUWallFurringInsRvalue(surface) # FUTURE: Use StandardsInfo object
     return self.SizingInfo(__method__.to_s, surface)

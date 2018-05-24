@@ -123,10 +123,6 @@ class ResidentialHotWaterDistribution < OpenStudio::Measure::ModelMeasure
             if nbeds.nil? or nbaths.nil?
                 return false
             end
-            sch_unit_index = Geometry.get_unit_dhw_sched_index(model, unit, runner)
-            if sch_unit_index.nil?
-                return false
-            end
             
             # Get plant loop
             plant_loop = Waterheater.get_plant_loop_from_string(model.getPlantLoops, Constants.Auto, unit, Constants.ObjectNameWaterHeater(unit.name.to_s.gsub("unit ", "")).gsub("|","_"), runner)
@@ -215,10 +211,10 @@ class ResidentialHotWaterDistribution < OpenStudio::Measure::ModelMeasure
             end
         
             # Create temporary HotWaterSchedule objects solely to calculate daily gpm
-            #Since this is only used to calculate the gpm, it doesn't need to have the corrrect day shift
-            sch_sh = HotWaterSchedule.new(model, runner, "", "", nbeds, sch_unit_index, 0, "Shower", Constants.MixedUseT, File.dirname(__FILE__), false)
-            sch_s = HotWaterSchedule.new(model, runner, "",  "", nbeds, sch_unit_index, 0, "Sink", Constants.MixedUseT, File.dirname(__FILE__), false)
-            sch_b = HotWaterSchedule.new(model, runner, "",  "", nbeds, sch_unit_index, 0, "Bath", Constants.MixedUseT, File.dirname(__FILE__), false)
+            #Since this is only used to calculate the gpm, it doesn't need to have the correct day shift
+            sch_sh = HotWaterSchedule.new(model, runner, "", "", nbeds, 0, "Shower", Constants.MixedUseT, File.dirname(__FILE__), false)
+            sch_s = HotWaterSchedule.new(model, runner, "",  "", nbeds, 0, "Sink", Constants.MixedUseT, File.dirname(__FILE__), false)
+            sch_b = HotWaterSchedule.new(model, runner, "",  "", nbeds, 0, "Bath", Constants.MixedUseT, File.dirname(__FILE__), false)
             if not sch_sh.validated? or not sch_s.validated? or not sch_b.validated?
                 return false
             end

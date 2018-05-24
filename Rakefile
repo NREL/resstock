@@ -15,7 +15,7 @@ task :copy_beopt_files do
   if branch.empty?
     branch = "master"
   end
-  
+
   if File.exists? File.join(File.dirname(__FILE__), "#{branch}.zip")
     FileUtils.rm(File.join(File.dirname(__FILE__), "#{branch}.zip"))
   end
@@ -106,7 +106,7 @@ task :copy_beopt_files do
   end
   
   # Copy other measures to measure/ dir
-  other_measures = ["TimeseriesCSVExport"] # Still under development: "UtilityBillCalculationsSimple", "UtilityBillCalculationsDetailed"
+  other_measures = ["TimeseriesCSVExport", "UtilityBillCalculationsSimple", "UtilityBillCalculationsDetailed"]
   buildstock_measures_dir = buildstock_resource_measures_dir = File.join(File.dirname(__FILE__), "measures")
   other_measures.each do |other_measure|
     puts "Copying #{other_measure} measure..."
@@ -140,6 +140,13 @@ def remove_items_from_zip_file(dir, zip_file_name, items)
   zip_file = OpenStudio::ZipFile.new(zip_path, false)
   zip_file.addDirectory(File.join(dir, zip_file_name.gsub(".zip", "")), OpenStudio::toPath("/"))
   FileUtils.rm_rf(File.join(dir, zip_file_name.gsub(".zip", "")))
+end
+
+def move_and_extract_zip_file(dir, zip_file_name, target)
+  unzip_file = OpenStudio::UnzipFile.new(File.join(dir, zip_file_name))
+  unzip_file.extractAllFiles(OpenStudio::toPath(File.join(dir, zip_file_name.gsub(".zip", ""))))
+  FileUtils.rm_rf(File.join(target, zip_file_name.gsub(".zip", "")))
+  FileUtils.mv(File.join(dir, zip_file_name.gsub(".zip", "")), target)
 end
 
 namespace :test do
