@@ -58,7 +58,7 @@ class ResidentialHotWaterFixtures < OpenStudio::Measure::ModelMeasure
         plant_loops.each do |plant_loop|
             plant_loop_args << plant_loop.name.to_s
         end
-        plant_loop = OpenStudio::Measure::OSArgument::makeChoiceArgument("plant_loop", plant_loop_args, true)
+        plant_loop = OpenStudio::Measure::OSArgument::makeChoiceArgument("plant_loop", plant_loop_args, true, true)
         plant_loop.setDisplayName("Plant Loop")
         plant_loop.setDescription("Select the plant loop for the hot water fixtures. '#{Constants.Auto}' will try to choose the plant loop associated with the specified space. For multifamily buildings, '#{Constants.Auto}' will choose the plant loop for each unit of the building.")
         plant_loop.setDefaultValue(Constants.Auto)

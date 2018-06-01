@@ -2,31 +2,16 @@
   <schema_version>3.0</schema_version>
   <name>process_constructions_doors</name>
   <uid>b78f10fa-b38d-4de2-86e9-344a78e68847</uid>
-  <version_id>e1af59b2-6b03-45ff-a951-937d0e191be1</version_id>
-  <version_modified>20180218T020700Z</version_modified>
+  <version_id>ef45dd01-a2c6-4a93-a338-35db2c78f21e</version_id>
+  <version_modified>20180430T170338Z</version_modified>
   <xml_checksum>6FAFA9DE</xml_checksum>
   <class_name>ProcessConstructionsDoors</class_name>
   <display_name>Set Residential Door Construction</display_name>
-  <description>This measure assigns a construction to exterior doors adjacent to finished or unfinished space. See https://github.com/NREL/OpenStudio-BEopt#workflows for supported workflows using this measure.</description>
-  <modeler_description>Calculates material layer properties of constructions for exterior door sub-surfaces adjacent to 1) finished space or 2) unfinished space.</modeler_description>
+  <description>This measure assigns a construction to exterior doors. See https://github.com/NREL/OpenStudio-BEopt#workflows for supported workflows using this measure.</description>
+  <modeler_description>Calculates material layer properties of constructions for exterior door sub-surfaces. Any existing constructions for these sub-surfaces will be removed.</modeler_description>
   <arguments>
     <argument>
-      <name>sub_surface</name>
-      <display_name>Subsurface(s)</display_name>
-      <description>Select the sub surface(s) to assign constructions.</description>
-      <type>Choice</type>
-      <required>false</required>
-      <model_dependent>false</model_dependent>
-      <default_value>auto</default_value>
-      <choices>
-        <choice>
-          <value>auto</value>
-          <display_name>auto</display_name>
-        </choice>
-      </choices>
-    </argument>
-    <argument>
-      <name>door_ufactor</name>
+      <name>ufactor</name>
       <display_name>U-Factor</display_name>
       <description>The heat transfer coefficient of the doors adjacent to finished space.</description>
       <type>Double</type>
@@ -55,16 +40,10 @@
   </attributes>
   <files>
     <file>
-      <filename>process_constructions_door_test.rb</filename>
-      <filetype>rb</filetype>
-      <usage_type>test</usage_type>
-      <checksum>04754713</checksum>
-    </file>
-    <file>
-      <filename>unit_conversions.rb</filename>
+      <filename>materials.rb</filename>
       <filetype>rb</filetype>
       <usage_type>resource</usage_type>
-      <checksum>3E1D973D</checksum>
+      <checksum>D5E9964F</checksum>
     </file>
     <file>
       <version>
@@ -75,31 +54,49 @@
       <filename>measure.rb</filename>
       <filetype>rb</filetype>
       <usage_type>script</usage_type>
-      <checksum>73A7FDC3</checksum>
+      <checksum>69B1D0B1</checksum>
     </file>
     <file>
-      <filename>SFD_2000sqft_2story_SL_GRG_UA_Windows_Doors.osm</filename>
-      <filetype>osm</filetype>
-      <usage_type>test</usage_type>
-      <checksum>8728C6B4</checksum>
-    </file>
-    <file>
-      <filename>constants.rb</filename>
+      <filename>process_constructions_door_test.rb</filename>
       <filetype>rb</filetype>
-      <usage_type>resource</usage_type>
-      <checksum>FDA82DA6</checksum>
+      <usage_type>test</usage_type>
+      <checksum>02354C8A</checksum>
     </file>
     <file>
       <filename>util.rb</filename>
       <filetype>rb</filetype>
       <usage_type>resource</usage_type>
-      <checksum>1189E680</checksum>
+      <checksum>A001EED9</checksum>
+    </file>
+    <file>
+      <filename>unit_conversions.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>91D17463</checksum>
+    </file>
+    <file>
+      <filename>SFD_2000sqft_2story_SL_GRG_UA_Windows_Doors.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>D641A0E2</checksum>
+    </file>
+    <file>
+      <filename>constructions.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>4B7F5D21</checksum>
     </file>
     <file>
       <filename>geometry.rb</filename>
       <filetype>rb</filetype>
       <usage_type>resource</usage_type>
-      <checksum>15FAD11A</checksum>
+      <checksum>89162886</checksum>
+    </file>
+    <file>
+      <filename>constants.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>E9527043</checksum>
     </file>
   </files>
 </measure>
