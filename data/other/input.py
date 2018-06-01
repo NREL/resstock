@@ -257,7 +257,8 @@ if __name__ == '__main__':
 
     dfs = Create_DFs('Zones.csv')
 
-    for category in ['Heating Setpoint', 'Cooling Setpoint', 'Location Census Division', 'Location IECC EPW', 'Location BA EPW', 'Location NSRDB']:for category in ['Heating Setpoint', 'Cooling Setpoint', 'Location Census Division', 'Location IECC EPW', 'Location BA EPW', 'Location NSRDB']:
+    # for category in ['Heating Setpoint', 'Cooling Setpoint', 'Location Census Division', 'Location IECC EPW', 'Location BA EPW', 'Location NSRDB']:
+    for category in ['Heating Setpoint', 'Cooling Setpoint']:
         print category
         method = getattr(dfs, category.lower().replace(' ', '_'))
         df = method()

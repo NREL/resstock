@@ -531,7 +531,7 @@ class WeatherProcess
             
         # Sets the WSF value.
         
-        ashrae_csv = File.join(@measure_dir, "resources", 'ASHRAE622WSF.csv')
+        ashrae_csv = File.join(@measure_dir, 'ASHRAE622WSF.csv')
         if not File.exists?(ashrae_csv)
           return nil
         end

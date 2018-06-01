@@ -7,11 +7,9 @@
 #see the URL below for access to C++ documentation on model objects (click on "model" in the main window to view model objects)
 # http://openstudio.nrel.gov/sites/openstudio.nrel.gov/files/nv_data/cpp_documentation_it/model/html/namespaces.html
 
-require "#{File.dirname(__FILE__)}/resources/util"
 require "#{File.dirname(__FILE__)}/resources/constants"
 require "#{File.dirname(__FILE__)}/resources/geometry"
 require "#{File.dirname(__FILE__)}/resources/hvac"
-require "#{File.dirname(__FILE__)}/resources/unit_conversions"
 
 #start the measure
 class ProcessElectricBaseboard < OpenStudio::Measure::ModelMeasure
@@ -35,20 +33,20 @@ class ProcessElectricBaseboard < OpenStudio::Measure::ModelMeasure
     args = OpenStudio::Measure::OSArgumentVector.new
 
     #make an argument for entering baseboard efficiency
-    baseboardeff = OpenStudio::Measure::OSArgument::makeDoubleArgument("efficiency",true)
-    baseboardeff.setDisplayName("Efficiency")
-    baseboardeff.setUnits("Btu/Btu")
-    baseboardeff.setDescription("The efficiency of the electric baseboard.")
-    baseboardeff.setDefaultValue(1.0)
-    args << baseboardeff
+    efficiency = OpenStudio::Measure::OSArgument::makeDoubleArgument("efficiency",true)
+    efficiency.setDisplayName("Efficiency")
+    efficiency.setUnits("Btu/Btu")
+    efficiency.setDescription("The efficiency of the electric baseboard.")
+    efficiency.setDefaultValue(1.0)
+    args << efficiency
 
     #make a string argument for baseboard heating output capacity
-    baseboardcap = OpenStudio::Measure::OSArgument::makeStringArgument("capacity", true)
-    baseboardcap.setDisplayName("Heating Capacity")
-    baseboardcap.setDescription("The output heating capacity of the electric baseboard. If using '#{Constants.SizingAuto}', the autosizing algorithm will use ACCA Manual S to set the capacity.")
-    baseboardcap.setUnits("kBtu/hr")
-    baseboardcap.setDefaultValue(Constants.SizingAuto)
-    args << baseboardcap
+    capacity = OpenStudio::Measure::OSArgument::makeStringArgument("capacity", true)
+    capacity.setDisplayName("Heating Capacity")
+    capacity.setDescription("The output heating capacity of the electric baseboard. If using '#{Constants.SizingAuto}', the autosizing algorithm will use ACCA Manual S to set the capacity.")
+    capacity.setUnits("kBtu/hr")
+    capacity.setDefaultValue(Constants.SizingAuto)
+    args << capacity
     
     return args
   end #end the arguments method
@@ -62,47 +60,30 @@ class ProcessElectricBaseboard < OpenStudio::Measure::ModelMeasure
       return false
     end
     
-    baseboardEfficiency = runner.getDoubleArgumentValue("efficiency",user_arguments)
-    baseboardOutputCapacity = runner.getStringArgumentValue("capacity",user_arguments)
-    unless baseboardOutputCapacity == Constants.SizingAuto
-      baseboardOutputCapacity = UnitConversions.convert(baseboardOutputCapacity.to_f,"kBtu/hr","Btu/hr")
+    efficiency = runner.getDoubleArgumentValue("efficiency",user_arguments)
+    capacity = runner.getStringArgumentValue("capacity",user_arguments)
+    unless capacity == Constants.SizingAuto
+      capacity = UnitConversions.convert(capacity.to_f,"kBtu/hr","Btu/hr")
     end
    
     # Get building units
     units = Geometry.get_building_units(model, runner)
     if units.nil?
-        return false
+      return false
     end
     
     units.each do |unit|
       
-      obj_name = Constants.ObjectNameElectricBaseboard(unit.name.to_s)
-      
       thermal_zones = Geometry.get_thermal_zones_from_spaces(unit.spaces)
-
-      control_slave_zones_hash = HVAC.get_control_and_slave_zones(thermal_zones)
-      control_slave_zones_hash.each do |control_zone, slave_zones|
-    
+      HVAC.get_control_and_slave_zones(thermal_zones).each do |control_zone, slave_zones|
         ([control_zone] + slave_zones).each do |zone|
-        
-          # Remove existing equipment
-          HVAC.remove_existing_hvac_equipment(model, runner, Constants.ObjectNameElectricBaseboard, zone, false, unit)
-        
-          htg_coil = OpenStudio::Model::ZoneHVACBaseboardConvectiveElectric.new(model)
-          htg_coil.setName(obj_name + " #{zone.name} convective electric")
-          if baseboardOutputCapacity != Constants.SizingAuto
-              htg_coil.setNominalCapacity(UnitConversions.convert(baseboardOutputCapacity,"Btu/hr","W")) # Used by HVACSizing measure
-          end
-          htg_coil.setEfficiency(baseboardEfficiency)
-
-          htg_coil.addToThermalZone(zone)
-          runner.registerInfo("Added '#{htg_coil.name}' to '#{zone.name}' of #{unit.name}")
-         
-          HVAC.prioritize_zone_hvac(model, runner, zone)
-          
+          HVAC.remove_hvac_equipment(model, runner, zone, unit,
+                                     Constants.ObjectNameElectricBaseboard)
         end
-        
       end
+    
+      success = HVAC.apply_electric_baseboard(model, unit, runner, efficiency, capacity)
+      return false if not success
         
     end
     
