@@ -135,7 +135,7 @@ class Constants
     return 'multifamily'
   end
   def self.BuildingTypeSingleFamilyAttached
-    return 'singlefamilyattached'
+    return 'singlefamilyttached'
   end
   def self.BuildingTypeSingleFamilyDetached
     return 'singlefamilydetached'
@@ -932,9 +932,6 @@ class Constants
   end
   def self.SpaceTypeUnfinishedBasement
     return 'unfinished basement'
-  end
-  def self.SurfaceTypeAdiabatic # adiabatic construction instead of adiabatic outside boundary condition
-    return 'Adiabatic'
   end
   def self.SurfaceTypeFloorFinInsUnfinAttic # unfinished attic floor
     return 'FloorFinInsUnfinAttic'
