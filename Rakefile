@@ -15,7 +15,7 @@ task :copy_beopt_files do
   if branch.empty?
     branch = "master"
   end
-
+  
   if File.exists? File.join(File.dirname(__FILE__), "#{branch}.zip")
     FileUtils.rm(File.join(File.dirname(__FILE__), "#{branch}.zip"))
   end
@@ -55,8 +55,8 @@ task :copy_beopt_files do
 
   beopt_measures_dir = File.join(File.dirname(__FILE__), branch, "OpenStudio-BEopt-#{branch}", "measures")
   buildstock_resource_measures_dir = File.join(File.dirname(__FILE__), "resources", "measures")
-
-  # Copy needed resource files
+  
+  # Copy seed osm and other needed resource files
   project_dir_names = get_all_project_dir_names()
   extra_files = [
                  File.join("workflows", "measure-info.json"),
@@ -65,12 +65,21 @@ task :copy_beopt_files do
   extra_files.each do |extra_file|
       puts "Copying #{extra_file}..."
       beopt_file = File.join(File.dirname(__FILE__), branch, "OpenStudio-BEopt-#{branch}", extra_file)
-      # Copy to resources dir
-      buildstock_file = File.join(File.dirname(__FILE__), "resources", File.basename(extra_file))
-      if File.exists?(buildstock_file)
-        FileUtils.rm(buildstock_file)
+      if extra_file.start_with?("seeds") # Distribute to all projects
+        project_dir_names.each do |project_dir_name|
+          buildstock_file = File.join(File.dirname(__FILE__), project_dir_name, extra_file)
+          if File.exists?(buildstock_file)
+            FileUtils.rm(buildstock_file)
+          end
+          FileUtils.cp(beopt_file, buildstock_file)
+        end
+      else # Copy to resources dir
+        buildstock_file = File.join(File.dirname(__FILE__), "resources", File.basename(extra_file))
+        if File.exists?(buildstock_file)
+          FileUtils.rm(buildstock_file)
+        end
+        FileUtils.cp(beopt_file, buildstock_file)
       end
-      FileUtils.cp(beopt_file, buildstock_file)
   end
   
   # Clean out resources/measures/ dir
@@ -94,17 +103,11 @@ task :copy_beopt_files do
         FileUtils.rm_rf("#{buildstock_resource_measures_subdir}/.", secure: true)
       end
     end
-    if beopt_measure == "ResidentialPhotovoltaics"
-      ["resources"].each do |subdir|
-        beopt_measure_subdir = File.join(buildstock_resource_measures_dir, beopt_measure, subdir)
-        remove_items_from_zip_file(beopt_measure_subdir, "sam-sdk-2017-1-17-r1.zip", ["osx64", "win32", "win64"])
-      end
-    end
   end
-
+  
   # Copy other measures to measure/ dir
-  other_measures = ["TimeseriesCSVExport", "UtilityBillCalculationsSimple", "UtilityBillCalculationsDetailed", "ZoneMultipliers"]
-  buildstock_measures_dir = File.join(File.dirname(__FILE__), "measures")
+  other_measures = ["TimeseriesCSVExport"] # Still under development: "UtilityBillCalculationsSimple", "UtilityBillCalculationsDetailed"
+  buildstock_measures_dir = buildstock_resource_measures_dir = File.join(File.dirname(__FILE__), "measures")
   other_measures.each do |other_measure|
     puts "Copying #{other_measure} measure..."
     FileUtils.cp_r(File.join(beopt_measures_dir, other_measure), buildstock_measures_dir)
@@ -137,13 +140,6 @@ def remove_items_from_zip_file(dir, zip_file_name, items)
   zip_file = OpenStudio::ZipFile.new(zip_path, false)
   zip_file.addDirectory(File.join(dir, zip_file_name.gsub(".zip", "")), OpenStudio::toPath("/"))
   FileUtils.rm_rf(File.join(dir, zip_file_name.gsub(".zip", "")))
-end
-
-def move_and_extract_zip_file(dir, zip_file_name, target)
-  unzip_file = OpenStudio::UnzipFile.new(File.join(dir, zip_file_name))
-  unzip_file.extractAllFiles(OpenStudio::toPath(File.join(dir, zip_file_name.gsub(".zip", ""))))
-  FileUtils.rm_rf(File.join(target, zip_file_name.gsub(".zip", "")))
-  FileUtils.mv(File.join(dir, zip_file_name.gsub(".zip", "")), target)
 end
 
 namespace :test do
@@ -266,12 +262,6 @@ task :integrity_check_resstock_efs do
     integrity_check_options_lookup_tsv('project_resstock_efs')
 end # rake task
 
-desc 'Perform integrity check on inputs for project_resstock_multifamily'
-task :integrity_check_resstock_multifamily do
-    integrity_check('project_resstock_multifamily')
-    integrity_check_options_lookup_tsv('project_resstock_multifamily')
-end # rake task
-
 def integrity_check(project_dir_name)
   # Load helper file and sampling file
   resources_dir = File.join(File.dirname(__FILE__), 'resources')
@@ -293,8 +283,9 @@ def integrity_check(project_dir_name)
     next if not File.exist?(tsvpath) # Not every parameter used by every project
     parameter_names << parameter_name
   end
-
+  
   while parameters_processed.size != parameter_names.size
+  
     if last_size == parameters_processed.size
       # No additional processing occurred during last pass
       unprocessed_parameters = parameter_names - parameters_processed
