@@ -58,7 +58,26 @@ class WeatherProcess
   def epw_path
     return @epw_path
   end
-  
+
+  def add_design_days(model)
+    # TODO: when EpwDesignConditions method is available, update this method to use that instead of requiring a ddy file
+
+    # Remove any existing Design Day objects that are in the file
+    model.getDesignDays.each(&:remove)
+
+    # Load in the ddy file based on convention that it is in
+    # the same directory and has the same basename as the epw file.
+    ddy_path = @epw_path.gsub(".epw",".ddy")
+    ddy_model = OpenStudio::EnergyPlus.loadAndTranslateIdf(ddy_path).get
+    ddy_model.getObjectsByType('OS:SizingPeriod:DesignDay'.to_IddObjectType).each do |d|
+      # Import the 99.6% Heating and 0.4% Cooling design days
+      ddy_list = /(Htg 99.6. Condns DB)|(Clg .4% Condns DB=>MWB)/
+      if d.name.get =~ ddy_list
+        model.addObject(d.clone)
+      end
+    end
+  end
+
   def self.actual_timestamps(model, runner, measure_dir)
     epw_path = get_epw_path(model, runner, measure_dir)
     epw_file = OpenStudio::EpwFile.new(epw_path)

@@ -4,6 +4,7 @@
 require "#{File.dirname(__FILE__)}/resources/unit_conversions"
 require "#{File.dirname(__FILE__)}/resources/geometry"
 require "#{File.dirname(__FILE__)}/resources/util"
+require "#{File.dirname(__FILE__)}/resources/hvac"
 
 # start the measure
 class ProcessCentralSystemPTAC < OpenStudio::Measure::ModelMeasure
@@ -57,14 +58,24 @@ class ProcessCentralSystemPTAC < OpenStudio::Measure::ModelMeasure
 
     std = Standard.build("90.1-2013")
 
-    hot_water_loop = std.model_get_or_add_hot_water_loop(model, central_boiler_fuel_type)
-    
     # Get building units
     units = Geometry.get_building_units(model, runner)
     if units.nil?
       return false
     end
-    
+
+    units.each do |unit|
+      thermal_zones = Geometry.get_thermal_zones_from_spaces(unit.spaces)
+      HVAC.get_control_and_slave_zones(thermal_zones).each do |control_zone, slave_zones|
+        ([control_zone] + slave_zones).each do |zone|
+          HVAC.remove_hvac_equipment(model, runner, zone, unit,
+                                     Constants.ObjectNameCentralSystemPTAC)
+        end
+      end
+    end
+
+    hot_water_loop = std.model_get_or_add_hot_water_loop(model, central_boiler_fuel_type)
+
     units.each do |unit|
     
       thermal_zones = []

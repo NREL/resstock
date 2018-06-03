@@ -167,8 +167,8 @@ class ProcessConstructionsUnfinishedBasement < OpenStudio::Measure::ModelMeasure
     
     # Apply constructions
     floors_by_type[Constants.SurfaceTypeFloorFndGrndUnfinB].each do |floor_surface|
-        wall_surfaces = Geometry.get_walls_connected_to_floor(walls_by_type[Constants.SurfaceTypeWallFndGrndUnfinB], 
-                                                              floor_surface)
+        wall_surfaces = FoundationConstructions.get_walls_connected_to_floor(walls_by_type[Constants.SurfaceTypeWallFndGrndUnfinB], 
+                                                                             floor_surface)
         if not FoundationConstructions.apply_walls_and_slab(runner, model,
                                                             wall_surfaces, 
                                                             Constants.SurfaceTypeWallFndGrndUnfinB, 
@@ -178,7 +178,7 @@ class ProcessConstructionsUnfinishedBasement < OpenStudio::Measure::ModelMeasure
                                                             basement_height,
                                                             floor_surface,
                                                             Constants.SurfaceTypeFloorFndGrndUnfinB,
-                                                            slab_whole_r, nil)
+                                                            slab_whole_r, 4.0)
             return false
         end
     end
