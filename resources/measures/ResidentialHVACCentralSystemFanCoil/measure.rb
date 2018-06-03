@@ -4,6 +4,7 @@
 require "#{File.dirname(__FILE__)}/resources/unit_conversions"
 require "#{File.dirname(__FILE__)}/resources/geometry"
 require "#{File.dirname(__FILE__)}/resources/util"
+require "#{File.dirname(__FILE__)}/resources/hvac"
 
 # start the measure
 class ProcessCentralSystemFanCoil < OpenStudio::Measure::ModelMeasure
@@ -71,11 +72,27 @@ class ProcessCentralSystemFanCoil < OpenStudio::Measure::ModelMeasure
     fan_coil_cooling = runner.getBoolArgumentValue("fan_coil_cooling",user_arguments)
     central_boiler_fuel_type = HelperMethods.eplus_fuel_map(runner.getStringArgumentValue("central_boiler_fuel_type",user_arguments))
 
-    std = Standard.build("90.1-2013")
-
     if not fan_coil_heating and not fan_coil_cooling
       runner.registerError("Must specify at least heating or cooling.")
       return false
+    end
+
+    std = Standard.build("90.1-2013")
+
+    # Get building units
+    units = Geometry.get_building_units(model, runner)
+    if units.nil?
+      return false
+    end
+
+    units.each do |unit|
+      thermal_zones = Geometry.get_thermal_zones_from_spaces(unit.spaces)
+      HVAC.get_control_and_slave_zones(thermal_zones).each do |control_zone, slave_zones|
+        ([control_zone] + slave_zones).each do |zone|
+          HVAC.remove_hvac_equipment(model, runner, zone, unit,
+                                     Constants.ObjectNameCentralSystemFanCoil)
+        end
+      end
     end
 
     if fan_coil_heating and fan_coil_cooling
@@ -90,13 +107,7 @@ class ProcessCentralSystemFanCoil < OpenStudio::Measure::ModelMeasure
       hot_water_loop = std.model_get_or_add_hot_water_loop(model, central_boiler_fuel_type)
       msg = "boiler with heating-only zone hvac unit heaters"
     end
-    
-    # Get building units
-    units = Geometry.get_building_units(model, runner)
-    if units.nil?
-      return false
-    end
-    
+
     units.each do |unit|
     
       thermal_zones = []
@@ -116,7 +127,7 @@ class ProcessCentralSystemFanCoil < OpenStudio::Measure::ModelMeasure
 
     simulation_control = model.getSimulationControl
     simulation_control.setRunSimulationforSizingPeriods(true) # indicate e+ autosizing
-    
+
     runner.registerInfo("Added #{msg} to the building.")
 
     return true

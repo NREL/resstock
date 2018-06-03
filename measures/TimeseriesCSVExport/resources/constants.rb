@@ -135,13 +135,10 @@ class Constants
     return 'multifamily'
   end
   def self.BuildingTypeSingleFamilyAttached
-    return 'singlefamilyttached'
+    return 'singlefamilyattached'
   end
   def self.BuildingTypeSingleFamilyDetached
     return 'singlefamilydetached'
-  end
-  def self.BuildingUnitFeatureDHWSchedIndex
-    return 'DHWSchedIndex'
   end
   def self.BuildingUnitFeatureNumBathrooms
     return 'NumberOfBathrooms'
@@ -267,13 +264,13 @@ class Constants
     return 'pex'
   end
   def self.PVModuleTypeStandard
-    return 'standard'
+    return 'Standard'
   end
   def self.PVModuleTypePremium
-    return 'premium'
+    return 'Premium'
   end
   def self.PVModuleTypeThinFilm
-    return 'thin film'
+    return 'ThinFilm'
   end
   def self.PVNetMetering
     return 'Net Metering'
@@ -335,7 +332,28 @@ class Constants
       s_unit = "|#{unit_name}"
     end
     return "residential central ac#{s_unit}"
-  end  
+  end
+  def self.ObjectNameCentralSystemBoilerBaseboards(unit_name=self.ObjectNameBuildingUnit)
+    s_unit = ""
+    if unit_name != self.ObjectNameBuildingUnit
+      s_unit = "|#{unit_name}"
+    end
+    return "res central system boiler baseboards#{s_unit}"
+  end
+  def self.ObjectNameCentralSystemFanCoil(unit_name=self.ObjectNameBuildingUnit)
+    s_unit = ""
+    if unit_name != self.ObjectNameBuildingUnit
+      s_unit = "|#{unit_name}"
+    end
+    return "res central system fan coil#{s_unit}"
+  end
+  def self.ObjectNameCentralSystemPTAC(unit_name=self.ObjectNameBuildingUnit)
+    s_unit = ""
+    if unit_name != self.ObjectNameBuildingUnit
+      s_unit = "|#{unit_name}"
+    end
+    return "res central system ptac#{s_unit}"
+  end
   def self.ObjectNameClothesWasher(unit_name=self.ObjectNameBuildingUnit)
     s_unit = ""
     if unit_name != self.ObjectNameBuildingUnit
@@ -532,6 +550,13 @@ class Constants
       s_unit = "|#{unit_name}"
     end
     return "residential misc plug loads#{s_unit}"
+  end
+  def self.ObjectNameMiscTelevision(unit_name=self.ObjectNameBuildingUnit)
+    s_unit = ""
+    if unit_name != self.ObjectNameBuildingUnit
+      s_unit = "|#{unit_name}"
+    end
+    return "residential misc television#{s_unit}"
   end
   def self.ObjectNameNaturalVentilation(unit_name=self.ObjectNameBuildingUnit)
     s_unit = ""
@@ -932,6 +957,9 @@ class Constants
   end
   def self.SpaceTypeUnfinishedBasement
     return 'unfinished basement'
+  end
+  def self.SurfaceTypeAdiabatic # adiabatic construction instead of adiabatic outside boundary condition
+    return 'Adiabatic'
   end
   def self.SurfaceTypeFloorFinInsUnfinAttic # unfinished attic floor
     return 'FloorFinInsUnfinAttic'

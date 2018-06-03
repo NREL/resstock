@@ -106,8 +106,8 @@ class ProcessConstructionsCrawlspace < OpenStudio::Measure::ModelMeasure
     
     # Apply constructions
     floors_by_type[Constants.SurfaceTypeFloorFndGrndCS].each do |floor_surface|
-        wall_surfaces = Geometry.get_walls_connected_to_floor(walls_by_type[Constants.SurfaceTypeWallFndGrndCS], 
-                                                              floor_surface)
+        wall_surfaces = FoundationConstructions.get_walls_connected_to_floor(walls_by_type[Constants.SurfaceTypeWallFndGrndCS], 
+                                                                             floor_surface)
         if not FoundationConstructions.apply_walls_and_slab(runner, model,
                                                             wall_surfaces, 
                                                             Constants.SurfaceTypeWallFndGrndCS, 
@@ -115,11 +115,11 @@ class ProcessConstructionsCrawlspace < OpenStudio::Measure::ModelMeasure
                                                             wall_rigid_r, 0, 8.0, crawl_height,
                                                             floor_surface, 
                                                             Constants.SurfaceTypeFloorFndGrndCS,
-                                                            slab_whole_r, nil)
+                                                            slab_whole_r, 4.0)
             return false
         end
     end
-
+    
     if not FloorConstructions.apply_foundation_ceiling(runner, model,
                                                        floors_by_type[Constants.SurfaceTypeFloorCSInsFin],
                                                        Constants.SurfaceTypeFloorCSInsFin,
@@ -128,7 +128,7 @@ class ProcessConstructionsCrawlspace < OpenStudio::Measure::ModelMeasure
                                                        0.75, Material.FloorWood, Material.CoveringBare)
         return false
     end
-
+    
     floors_by_type[Constants.SurfaceTypeFloorFndGrndUnfinSlab].each do |surface|
         if not FoundationConstructions.apply_slab(runner, model, 
                                                   surface,

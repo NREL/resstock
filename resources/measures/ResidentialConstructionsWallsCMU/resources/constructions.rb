@@ -776,7 +776,7 @@ class RoofConstructions
             runner.registerError("Roof Framing Factor must be greater than or equal to 0 and less than 1.")
             return false
         end
-        if framing_thick_in <= 0.0
+        if framing_thick_in < 0.0
             runner.registerError("Roof Framing Thickness must be greater than 0.")
             return false
         end
@@ -829,7 +829,9 @@ class RoofConstructions
         if not mat_osb.nil?
             constr.add_layer(mat_osb)
         end
-        constr.add_layer([mat_framing, mat_cavity, mat_gap], "RoofUARoofIns")
+        if framing_thick_in > 0
+            constr.add_layer([mat_framing, mat_cavity, mat_gap], "RoofUARoofIns")
+        end
         if not mat_rb.nil?
             constr.add_layer(mat_rb)
         end
@@ -1278,7 +1280,7 @@ class FoundationConstructions
                                   walls_cavity_depth_in, walls_filled_cavity, walls_framing_factor, 
                                   walls_rigid_r, walls_drywall_thick_in, walls_concrete_thick_in, 
                                   space_height, slab_surface, slab_constr_name,
-                                  slab_whole_r, exposed_perimeter=nil)
+                                  slab_whole_r, slab_concrete_thick_in, exposed_perimeter=nil)
     
         return true if slab_surface.nil?
     
@@ -1319,7 +1321,7 @@ class FoundationConstructions
         end
         
         # Create Kiva foundation
-        foundation = create_kiva_crawl_or_basement_foundation(model, runner, int_wall_Rvalue, space_height, 
+        foundation = create_kiva_crawl_or_basement_foundation(model, int_wall_Rvalue, space_height, 
                                                               walls_rigid_r, walls_ins_height)
 
         # Define materials
@@ -1340,8 +1342,8 @@ class FoundationConstructions
         end
         
         if not apply_slab(runner, model, slab_surface, slab_constr_name,
-                          0, 0, 0, 0, 0, slab_whole_r, 4.0, nil, true, 
-                          exposed_perimeter, foundation)
+                          0, 0, 0, 0, 0, slab_whole_r, slab_concrete_thick_in, 
+                          nil, true, exposed_perimeter, foundation)
             return false
         end
         
@@ -1386,13 +1388,20 @@ class FoundationConstructions
         
         if foundation.nil?
             # Create Kiva foundation
-            concrete_thick = UnitConversions.convert(concrete_thick_in,"in","ft")
-            foundation = create_kiva_slab_foundation(model, runner, perimeter_r, perimeter_width, gap_r, 
-                                                     concrete_thick, exterior_r, exterior_depth)
+            thick = UnitConversions.convert(concrete_thick_in,"in","ft")
+            foundation = create_kiva_slab_foundation(model, perimeter_r, perimeter_width, 
+                                                     gap_r, thick, exterior_r, exterior_depth)
         end
         
         # Define materials
-        mat_concrete = Material.Concrete(concrete_thick_in)
+        mat_concrete = nil
+        mat_soil = nil
+        if concrete_thick_in > 0
+          mat_concrete = Material.Concrete(concrete_thick_in)
+        else
+          # Use 0.5 - 1.0 inches of soil, per Neal Kruis recommendation
+          mat_soil = Material.Soil(0.5)
+        end
         mat_rigid = nil
         if whole_r > 0
             rigid_thick_in = whole_r * BaseMaterial.InsulationRigid.k_in
@@ -1404,9 +1413,14 @@ class FoundationConstructions
         if not mat_rigid.nil?
             constr.add_layer(mat_rigid)
         end
-        constr.add_layer(mat_concrete)
+        if not mat_concrete.nil?
+          constr.add_layer(mat_concrete)
+        end
+        if not mat_soil.nil?
+          constr.add_layer(mat_soil)
+        end
         if not mat_carpet.nil?
-            constr.add_layer(mat_carpet)
+          constr.add_layer(mat_carpet)
         end
         
         # Create and assign construction to surfaces
@@ -1419,8 +1433,8 @@ class FoundationConstructions
             exposed_perimeter = Geometry.calculate_exposed_perimeter(model, [surface], has_fnd_walls)
         end
         if exposed_perimeter <= 0
-            runner.registerError("Calculated an exposed perimeter <= 0 for slab '#{surface.name.to_s}'.")
-            return false
+          runner.registerError("Calculated an exposed perimeter <= 0 for slab '#{surface.name.to_s}'.")
+          return false
         end
         
         # Assign surface to Kiva foundation
@@ -1428,6 +1442,25 @@ class FoundationConstructions
         surface.createSurfacePropertyExposedFoundationPerimeter("TotalExposedPerimeter", UnitConversions.convert(exposed_perimeter,"ft","m"))
         
         return true
+    end
+    
+    def self.get_walls_connected_to_floor(wall_surfaces, floor_surface)
+        adjacent_wall_surfaces = []
+        
+        # Note: Algorithm assumes that walls span an entire edge of the floor.
+        tol = 0.001
+        wall_surfaces.each do |wall_surface|
+            next if wall_surface.space.get != floor_surface.space.get
+            wall_surface.vertices.each do |v1|
+                floor_surface.vertices.each do |v2|
+                    if (v1.x - v2.x).abs < tol and (v1.y - v2.y).abs < tol
+                        adjacent_wall_surfaces << wall_surface
+                    end
+                end
+            end
+        end
+        
+        return adjacent_wall_surfaces.uniq!
     end
     
     private
@@ -1481,7 +1514,7 @@ class FoundationConstructions
         return constr.assembly_rvalue(runner) - rigid_r
     end
 
-    def self.create_kiva_slab_foundation(model, runner, int_horiz_r, int_horiz_width, int_vert_r, 
+    def self.create_kiva_slab_foundation(model, int_horiz_r, int_horiz_width, int_vert_r, 
                                          int_vert_depth, ext_vert_r, ext_vert_depth)
                                     
         # Create the Foundation:Kiva object for slab foundations
@@ -1489,7 +1522,7 @@ class FoundationConstructions
         
         # Interior horizontal insulation
         if int_horiz_r > 0 and int_horiz_width > 0
-            int_horiz_mat = create_insulation_material(model, runner, "FoundationIntHorizIns", int_horiz_r)
+            int_horiz_mat = create_insulation_material(model, "FoundationIntHorizIns", int_horiz_r)
             foundation.setInteriorHorizontalInsulationMaterial(int_horiz_mat)
             foundation.setInteriorHorizontalInsulationDepth(0)
             foundation.setInteriorHorizontalInsulationWidth(UnitConversions.convert(int_horiz_width,"ft","m"))
@@ -1497,14 +1530,14 @@ class FoundationConstructions
         
         # Interior vertical insulation
         if int_vert_r > 0
-            int_vert_mat = create_insulation_material(model, runner, "FoundationIntVertIns", int_vert_r)
+            int_vert_mat = create_insulation_material(model, "FoundationIntVertIns", int_vert_r)
             foundation.setInteriorVerticalInsulationMaterial(int_vert_mat)
             foundation.setInteriorVerticalInsulationDepth(UnitConversions.convert(int_vert_depth,"ft","m"))
         end
         
         # Exterior vertical insulation
         if ext_vert_r > 0 and ext_vert_depth > 0
-            ext_vert_mat = create_insulation_material(model, runner, "FoundationExtVertIns", ext_vert_r)
+            ext_vert_mat = create_insulation_material(model, "FoundationExtVertIns", ext_vert_r)
             foundation.setExteriorVerticalInsulationMaterial(ext_vert_mat)
             foundation.setExteriorVerticalInsulationDepth(UnitConversions.convert(ext_vert_depth,"ft","m"))
         end
@@ -1513,15 +1546,17 @@ class FoundationConstructions
         foundation.setWallDepthBelowSlab(UnitConversions.convert(8.0,"in","m"))
         
         # Footing wall construction
-        footing_constr = create_footing_construction(model, runner)
+        footing_mat = create_footing_material(model, "FootingMaterial")
+        footing_constr = OpenStudio::Model::Construction.new([footing_mat])
+        footing_constr.setName("FootingConstruction") 
         foundation.setFootingWallConstruction(footing_constr)
         
-        apply_kiva_settings(model, BaseMaterial.Soil)
+        apply_kiva_settings(model)
         
         return foundation
     end
     
-    def self.create_kiva_crawl_or_basement_foundation(model, runner, int_vert_r, int_vert_depth, 
+    def self.create_kiva_crawl_or_basement_foundation(model, int_vert_r, int_vert_depth, 
                                                       ext_vert_r, ext_vert_depth)
                                                  
         # Create the Foundation:Kiva object for crawl/basement foundations
@@ -1529,14 +1564,14 @@ class FoundationConstructions
         
         # Interior vertical insulation
         if int_vert_r > 0 and int_vert_depth > 0
-            int_vert_mat = create_insulation_material(model, runner, "FoundationIntVertIns", int_vert_r)
+            int_vert_mat = create_insulation_material(model, "FoundationIntVertIns", int_vert_r)
             foundation.setInteriorVerticalInsulationMaterial(int_vert_mat)
             foundation.setInteriorVerticalInsulationDepth(UnitConversions.convert(int_vert_depth,"ft","m"))
         end
         
         # Exterior vertical insulation
         if ext_vert_r > 0 and ext_vert_depth > 0
-            ext_vert_mat = create_insulation_material(model, runner, "FoundationExtVertIns", ext_vert_r)
+            ext_vert_mat = create_insulation_material(model, "FoundationExtVertIns", ext_vert_r)
             foundation.setExteriorVerticalInsulationMaterial(ext_vert_mat)
             foundation.setExteriorVerticalInsulationDepth(UnitConversions.convert(ext_vert_depth,"ft","m"))
         end
@@ -1544,13 +1579,14 @@ class FoundationConstructions
         foundation.setWallHeightAboveGrade(UnitConversions.convert(8.0,"in","m"))
         foundation.setWallDepthBelowSlab(UnitConversions.convert(8.0,"in","m"))
         
-        apply_kiva_settings(model, BaseMaterial.Soil)
+        apply_kiva_settings(model)
         
         return foundation
     end
 
-    def self.apply_kiva_settings(model, soil_mat)
+    def self.apply_kiva_settings(model)
         # Set the Foundation:Kiva:Settings object
+        soil_mat = BaseMaterial.Soil
         settings = model.getFoundationKivaSettings
         settings.setSoilConductivity(UnitConversions.convert(soil_mat.k_in,"Btu*in/(hr*ft^2*R)","W/(m*K)"))
         settings.setSoilDensity(UnitConversions.convert(soil_mat.rho,"lbm/ft^3","kg/m^3"))
@@ -1566,25 +1602,29 @@ class FoundationConstructions
         settings.setSimulationTimestep("Hourly")
     end
     
-    def self.create_insulation_material(model, runner, name, rvalue)
-        rigid_thick_in = rvalue * BaseMaterial.InsulationRigid.k_in
-        mat_rigid = Material.new(name=name, thick_in=rigid_thick_in, mat_base=BaseMaterial.InsulationRigid, k_in=rigid_thick_in/rvalue)
-        return Construction.create_os_material(model, runner, mat_rigid)
+    def self.create_insulation_material(model, name, rvalue)
+        rigid_mat = BaseMaterial.InsulationRigid
+        mat = OpenStudio::Model::StandardOpaqueMaterial.new(model)
+        mat.setName(name)
+        mat.setRoughness("Rough")
+        mat.setThickness(UnitConversions.convert(rvalue*rigid_mat.k_in,"in","m"))
+        mat.setConductivity(UnitConversions.convert(rigid_mat.k_in,"Btu*in/(hr*ft^2*R)","W/(m*K)"))
+        mat.setDensity(UnitConversions.convert(rigid_mat.rho,"lbm/ft^3","kg/m^3"))
+        mat.setSpecificHeat(UnitConversions.convert(rigid_mat.cp,"Btu/(lbm*R)","J/(kg*K)"))
+        return mat
     end
     
-    def self.create_footing_construction(model, runner)
-        # Already exists?
-        model.getConstructions.each do |constr|
-            next if constr.name.to_s != "FootingConstruction"
-            return constr
-        end
-        
-        # Create new
-        mat_conc = Material.new(name="FootingMaterial", thick_in=8.0, mat_base=BaseMaterial.Concrete)
-        footing_mat = Construction.create_os_material(model, runner, mat_conc)
-        footing_constr = OpenStudio::Model::Construction.new([footing_mat])
-        footing_constr.setName("FootingConstruction") 
-        return footing_constr
+    def self.create_footing_material(model, name)
+        footing_mat = Material.Concrete(8.0)
+        mat = OpenStudio::Model::StandardOpaqueMaterial.new(model)
+        mat.setName(name)
+        mat.setRoughness("Rough")
+        mat.setThickness(UnitConversions.convert(footing_mat.thick_in,"in","m"))
+        mat.setConductivity(UnitConversions.convert(footing_mat.k_in,"Btu*in/(hr*ft^2*R)","W/(m*K)"))
+        mat.setDensity(UnitConversions.convert(footing_mat.rho,"lbm/ft^3","kg/m^3"))
+        mat.setSpecificHeat(UnitConversions.convert(footing_mat.cp,"Btu/(lbm*R)","J/(kg*K)"))
+        mat.setThermalAbsorptance(footing_mat.tAbs)
+        return mat
     end
   
 end
@@ -2061,69 +2101,6 @@ class Construction
         return true
     end
     
-    # Creates (or returns an existing) OpenStudio Material from our own Material object
-    def self.create_os_material(model, runner, material)
-        name = material.name
-        tolerance = 0.0001
-        if material.is_a? SimpleMaterial
-            # Material already exists?
-            model.getMasslessOpaqueMaterials.each do |mat|
-                next if mat.roughness.downcase.to_s != "rough"
-                next if (mat.thermalResistance - UnitConversions.convert(material.rvalue,"hr*ft^2*F/Btu","m^2*K/W")).abs > tolerance
-                return mat
-            end
-            # New material
-            mat = OpenStudio::Model::MasslessOpaqueMaterial.new(model)
-            mat.setName(name)
-            mat.setRoughness("Rough")
-            mat.setThermalResistance(UnitConversions.convert(material.rvalue,"hr*ft^2*F/Btu","m^2*K/W"))
-        elsif material.is_a? GlazingMaterial
-            # Material already exists?
-            model.getSimpleGlazings.each do |mat|
-                next if (mat.uFactor - UnitConversions.convert(material.ufactor,"Btu/(hr*ft^2*F)","W/(m^2*K)")).abs > tolerance
-                next if (mat.solarHeatGainCoefficient - material.shgc).abs > tolerance
-                return mat
-            end
-            # New material
-            mat = OpenStudio::Model::SimpleGlazing.new(model)
-            mat.setName(name)
-            mat.setUFactor(UnitConversions.convert(material.ufactor,"Btu/(hr*ft^2*F)","W/(m^2*K)"))
-            mat.setSolarHeatGainCoefficient(material.shgc)
-        else
-            # Material already exists?
-            model.getStandardOpaqueMaterials.each do |mat|
-                next if mat.roughness.downcase.to_s != "rough"
-                next if (mat.thickness - UnitConversions.convert(material.thick_in,"in","m")).abs > tolerance
-                next if (mat.conductivity - UnitConversions.convert(material.k,"Btu/(hr*ft*R)","W/(m*K)")).abs > tolerance
-                next if (mat.density - UnitConversions.convert(material.rho,"lbm/ft^3","kg/m^3")).abs > tolerance
-                next if (mat.specificHeat - UnitConversions.convert(material.cp,"Btu/(lbm*R)","J/(kg*K)")).abs > tolerance
-                next if not material.tAbs.nil? and (mat.thermalAbsorptance - material.tAbs).abs > tolerance
-                next if not material.sAbs.nil? and (mat.solarAbsorptance - material.sAbs).abs > tolerance
-                next if not material.vAbs.nil? and (mat.visibleAbsorptance - material.vAbs).abs > tolerance
-                return mat
-            end
-            # New material
-            mat = OpenStudio::Model::StandardOpaqueMaterial.new(model)
-            mat.setName(name)
-            mat.setRoughness("Rough")
-            mat.setThickness(UnitConversions.convert(material.thick_in,"in","m"))
-            mat.setConductivity(UnitConversions.convert(material.k,"Btu/(hr*ft*R)","W/(m*K)"))
-            mat.setDensity(UnitConversions.convert(material.rho,"lbm/ft^3","kg/m^3"))
-            mat.setSpecificHeat(UnitConversions.convert(material.cp,"Btu/(lbm*R)","J/(kg*K)"))
-            if not material.tAbs.nil?
-                mat.setThermalAbsorptance(material.tAbs)
-            end
-            if not material.sAbs.nil?
-                mat.setSolarAbsorptance(material.sAbs)
-            end
-            if not material.vAbs.nil?
-                mat.setVisibleAbsorptance(material.vAbs)
-            end
-        end
-        runner.registerInfo("Material '#{mat.name.to_s}' was created.")
-        return mat
-    end
-    
     private
     
     def get_parallel_material(curr_layer_num, runner, name)
@@ -2284,6 +2261,69 @@ class Construction
         return true
     end
     
+    # Creates (or returns an existing) OpenStudio Material from our own Material object
+    def self.create_os_material(model, runner, material)
+        name = material.name
+        tolerance = 0.0001
+        if material.is_a? SimpleMaterial
+            # Material already exists?
+            model.getMasslessOpaqueMaterials.each do |mat|
+                next if mat.roughness.downcase.to_s != "rough"
+                next if (mat.thermalResistance - UnitConversions.convert(material.rvalue,"hr*ft^2*F/Btu","m^2*K/W")).abs > tolerance
+                return mat
+            end
+            # New material
+            mat = OpenStudio::Model::MasslessOpaqueMaterial.new(model)
+            mat.setName(name)
+            mat.setRoughness("Rough")
+            mat.setThermalResistance(UnitConversions.convert(material.rvalue,"hr*ft^2*F/Btu","m^2*K/W"))
+        elsif material.is_a? GlazingMaterial
+            # Material already exists?
+            model.getSimpleGlazings.each do |mat|
+                next if (mat.uFactor - UnitConversions.convert(material.ufactor,"Btu/(hr*ft^2*F)","W/(m^2*K)")).abs > tolerance
+                next if (mat.solarHeatGainCoefficient - material.shgc).abs > tolerance
+                return mat
+            end
+            # New material
+            mat = OpenStudio::Model::SimpleGlazing.new(model)
+            mat.setName(name)
+            mat.setUFactor(UnitConversions.convert(material.ufactor,"Btu/(hr*ft^2*F)","W/(m^2*K)"))
+            mat.setSolarHeatGainCoefficient(material.shgc)
+        else
+            # Material already exists?
+            model.getStandardOpaqueMaterials.each do |mat|
+                next if mat.roughness.downcase.to_s != "rough"
+                next if (mat.thickness - UnitConversions.convert(material.thick_in,"in","m")).abs > tolerance
+                next if (mat.conductivity - UnitConversions.convert(material.k,"Btu/(hr*ft*R)","W/(m*K)")).abs > tolerance
+                next if (mat.density - UnitConversions.convert(material.rho,"lbm/ft^3","kg/m^3")).abs > tolerance
+                next if (mat.specificHeat - UnitConversions.convert(material.cp,"Btu/(lbm*R)","J/(kg*K)")).abs > tolerance
+                next if not material.tAbs.nil? and (mat.thermalAbsorptance - material.tAbs).abs > tolerance
+                next if not material.sAbs.nil? and (mat.solarAbsorptance - material.sAbs).abs > tolerance
+                next if not material.vAbs.nil? and (mat.visibleAbsorptance - material.vAbs).abs > tolerance
+                return mat
+            end
+            # New material
+            mat = OpenStudio::Model::StandardOpaqueMaterial.new(model)
+            mat.setName(name)
+            mat.setRoughness("Rough")
+            mat.setThickness(UnitConversions.convert(material.thick_in,"in","m"))
+            mat.setConductivity(UnitConversions.convert(material.k,"Btu/(hr*ft*R)","W/(m*K)"))
+            mat.setDensity(UnitConversions.convert(material.rho,"lbm/ft^3","kg/m^3"))
+            mat.setSpecificHeat(UnitConversions.convert(material.cp,"Btu/(lbm*R)","J/(kg*K)"))
+            if not material.tAbs.nil?
+                mat.setThermalAbsorptance(material.tAbs)
+            end
+            if not material.sAbs.nil?
+                mat.setSolarAbsorptance(material.sAbs)
+            end
+            if not material.vAbs.nil?
+                mat.setVisibleAbsorptance(material.vAbs)
+            end
+        end
+        runner.registerInfo("Material '#{mat.name.to_s}' was created.")
+        return mat
+    end
+
     def print_construction_creation(runner, surface)
         s = ""
         num_layers = surface.construction.get.to_LayeredConstruction.get.layers.size

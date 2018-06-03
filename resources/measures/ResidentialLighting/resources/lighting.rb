@@ -125,13 +125,19 @@ class Lighting
         return false
     end
     
+    # Design day schedules used when autosizing
+    winter_design_day_sch = OpenStudio::Model::ScheduleDay.new(model)
+    winter_design_day_sch.addValue(OpenStudio::Time.new(0,24,0,0), 0)
+    summer_design_day_sch = OpenStudio::Model::ScheduleDay.new(model)
+    summer_design_day_sch.addValue(OpenStudio::Time.new(0,24,0,0), 1)
+    
     # Finished spaces for the unit
     unit_finished_spaces.each do |space|
         space_obj_name = "#{Constants.ObjectNameLighting(unit.name.to_s)} #{space.name.to_s}"
 
         if sch.nil?
             # Create schedule
-            sch = HourlyByMonthSchedule.new(model, runner, Constants.ObjectNameLighting + " schedule", lighting_sch, lighting_sch)
+            sch = HourlyByMonthSchedule.new(model, runner, Constants.ObjectNameLighting + " schedule", lighting_sch, lighting_sch, normalize_values=true, create_sch_object=true, winter_design_day_sch, summer_design_day_sch)
             if not sch.validated?
                 return false
             end

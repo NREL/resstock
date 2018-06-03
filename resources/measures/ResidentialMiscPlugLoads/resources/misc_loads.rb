@@ -31,10 +31,16 @@ class MiscLoads
           return false
       end
       
+      # Design day schedules used when autosizing
+      winter_design_day_sch = OpenStudio::Model::ScheduleDay.new(model)
+      winter_design_day_sch.addValue(OpenStudio::Time.new(0,24,0,0), 0)
+      summer_design_day_sch = OpenStudio::Model::ScheduleDay.new(model)
+      summer_design_day_sch.addValue(OpenStudio::Time.new(0,24,0,0), 1)
+      
       unit.spaces.each do |space|
           next if Geometry.space_is_unfinished(space)
           
-          obj_name = "#{Constants.ObjectNameMiscPlugLoads(unit.name.to_s)}"
+          obj_name = Constants.ObjectNameMiscPlugLoads(unit.name.to_s)
           space_obj_name = "#{obj_name}|#{space.name.to_s}"
           
           # Remove any existing mels
@@ -62,7 +68,7 @@ class MiscLoads
 
               if sch.nil?
                   # Create schedule
-                  sch = MonthWeekdayWeekendSchedule.new(model, runner, Constants.ObjectNameMiscPlugLoads + " schedule", weekday_sch, weekend_sch, monthly_sch)
+                  sch = MonthWeekdayWeekendSchedule.new(model, runner, Constants.ObjectNameMiscPlugLoads + " schedule", weekday_sch, weekend_sch, monthly_sch, mult_weekday=1.0, mult_weekend=1.0, normalize_values=true, create_sch_object=true, winter_design_day_sch, summer_design_day_sch)
                   if not sch.validated?
                       return false
                   end
@@ -128,12 +134,18 @@ class MiscLoads
           ffa_coef = 1.0/4/1920
           ann_e = ann_e * (constant + nbr_coef * nbeds + ffa_coef * ffa) # kWh/yr
       end
+      
+      # Design day schedules used when autosizing
+      winter_design_day_sch = OpenStudio::Model::ScheduleDay.new(model)
+      winter_design_day_sch.addValue(OpenStudio::Time.new(0,24,0,0), 0)
+      summer_design_day_sch = OpenStudio::Model::ScheduleDay.new(model)
+      summer_design_day_sch.addValue(OpenStudio::Time.new(0,24,0,0), 1)
 
       if ann_e > 0
       
           if sch.nil?
               # Create schedule
-              sch = MonthWeekdayWeekendSchedule.new(model, runner, unit_obj_name + " schedule", weekday_sch, weekend_sch, monthly_sch)
+              sch = MonthWeekdayWeekendSchedule.new(model, runner, unit_obj_name + " schedule", weekday_sch, weekend_sch, monthly_sch, mult_weekday=1.0, mult_weekend=1.0, normalize_values=true, create_sch_object=true, winter_design_day_sch, summer_design_day_sch)
               if not sch.validated?
                   return false
               end
@@ -203,11 +215,17 @@ class MiscLoads
           ann_g = ann_g * (constant + nbr_coef * nbeds + ffa_coef * ffa) # therm/yr
       end
 
+      # Design day schedules used when autosizing
+      winter_design_day_sch = OpenStudio::Model::ScheduleDay.new(model)
+      winter_design_day_sch.addValue(OpenStudio::Time.new(0,24,0,0), 0)
+      summer_design_day_sch = OpenStudio::Model::ScheduleDay.new(model)
+      summer_design_day_sch.addValue(OpenStudio::Time.new(0,24,0,0), 1)
+      
       if ann_g > 0
       
           if sch.nil?
               # Create schedule
-              sch = MonthWeekdayWeekendSchedule.new(model, runner, unit_obj_name + " schedule", weekday_sch, weekend_sch, monthly_sch)
+              sch = MonthWeekdayWeekendSchedule.new(model, runner, unit_obj_name + " schedule", weekday_sch, weekend_sch, monthly_sch, mult_weekday=1.0, mult_weekend=1.0, normalize_values=true, create_sch_object=true, winter_design_day_sch, summer_design_day_sch)
               if not sch.validated?
                   return false
               end
@@ -281,4 +299,26 @@ class MiscLoads
       end
   end
 
+  def self.apply_tv(model, unit, runner, annual_energy, sch, space)
+  
+      name = Constants.ObjectNameMiscTelevision(unit.name.to_s)
+      design_level = sch.calcDesignLevelFromDailykWh(annual_energy/365.0)
+      sens_frac = 1.0
+      lat_frac = 0.0
+
+      #Add electric equipment for the mel
+      mel_def = OpenStudio::Model::ElectricEquipmentDefinition.new(model)
+      mel = OpenStudio::Model::ElectricEquipment.new(mel_def)
+      mel.setName(name)
+      mel.setEndUseSubcategory(name)
+      mel.setSpace(space)
+      mel_def.setName(name)
+      mel_def.setDesignLevel(design_level)
+      mel_def.setFractionRadiant(0.6 * sens_frac)
+      mel_def.setFractionLatent(lat_frac)
+      mel_def.setFractionLost(1 - sens_frac - lat_frac)
+      mel.setSchedule(sch.schedule)
+
+      return true      
+  end
 end

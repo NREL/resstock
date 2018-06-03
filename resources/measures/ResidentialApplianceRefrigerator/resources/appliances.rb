@@ -21,6 +21,12 @@ class Refrigerator
       
       unit_obj_name = Constants.ObjectNameRefrigerator(unit.name.to_s)
       
+      # Design day schedules used when autosizing
+      winter_design_day_sch = OpenStudio::Model::ScheduleDay.new(model)
+      winter_design_day_sch.addValue(OpenStudio::Time.new(0,24,0,0), 0)
+      summer_design_day_sch = OpenStudio::Model::ScheduleDay.new(model)
+      summer_design_day_sch.addValue(OpenStudio::Time.new(0,24,0,0), 1)
+      
       # Calculate fridge daily energy use
       ann_e = rated_annual_energy * mult
 
@@ -28,7 +34,7 @@ class Refrigerator
       
           if sch.nil?
               # Create schedule
-              sch = MonthWeekdayWeekendSchedule.new(model, runner, Constants.ObjectNameRefrigerator + " schedule", weekday_sch, weekend_sch, monthly_sch)
+              sch = MonthWeekdayWeekendSchedule.new(model, runner, Constants.ObjectNameRefrigerator + " schedule", weekday_sch, weekend_sch, monthly_sch, mult_weekday=1.0, mult_weekend=1.0, normalize_values=true, create_sch_object=true, winter_design_day_sch, summer_design_day_sch)
               if not sch.validated?
                   return false
               end
@@ -127,11 +133,6 @@ class ClothesWasher
           return false
       end
 
-      sch_unit_index = Geometry.get_unit_dhw_sched_index(model, unit, runner)
-      if sch_unit_index.nil?
-          return false
-      end
-      
       # Get water heater setpoint
       wh_setpoint = Waterheater.get_water_heater_setpoint(model, plant_loop, runner)
       if wh_setpoint.nil?
@@ -410,8 +411,7 @@ class ClothesWasher
           # Create schedule
           sch = HotWaterSchedule.new(model, runner, Constants.ObjectNameClothesWasher + " schedule", 
                                      Constants.ObjectNameClothesWasher + " temperature schedule", 
-                                     nbeds, sch_unit_index, d_sh, "ClothesWasher", water_temp, 
-                                     measure_dir)
+                                     nbeds, d_sh, "ClothesWasher", water_temp, measure_dir)
           if not sch.validated?
               return false
           end
@@ -676,11 +676,9 @@ class ClothesDryer
           if sch.nil?
               # Create schedule
               hr_shift = day_shift + 1.0 / 24.0
-              sch_unit_index = Geometry.get_unit_dhw_sched_index(model, unit, runner)
               sch = HotWaterSchedule.new(model, runner, unit_obj_name_f + " schedule", 
                                          unit_obj_name_f + " temperature schedule", nbeds, 
-                                         sch_unit_index, hr_shift, "ClothesDryer", 0, 
-                                         measure_dir)
+                                         hr_shift, "ClothesDryer", 0, measure_dir)
               if not sch.validated?
                   return false
               end
@@ -810,6 +808,12 @@ class CookingRange
         
       unit_obj_name = Constants.ObjectNameCookingRange(fuel_type, unit.name.to_s)
 
+      # Design day schedules used when autosizing
+      winter_design_day_sch = OpenStudio::Model::ScheduleDay.new(model)
+      winter_design_day_sch.addValue(OpenStudio::Time.new(0,24,0,0), 0)
+      summer_design_day_sch = OpenStudio::Model::ScheduleDay.new(model)
+      summer_design_day_sch.addValue(OpenStudio::Time.new(0,24,0,0), 1)
+      
       #Calculate range daily energy use
       if fuel_type == Constants.FuelTypeElectric
           ann_e = ((86.5 + 28.9 * nbeds) / cooktop_ef + (14.6 + 4.9 * nbeds) / oven_ef)*mult #kWh/yr
@@ -829,7 +833,7 @@ class CookingRange
 
           if sch.nil?
               # Create schedule
-              sch = MonthWeekdayWeekendSchedule.new(model, runner, Constants.ObjectNameCookingRange(fuel_type, false) + " schedule", weekday_sch, weekend_sch, monthly_sch)
+              sch = MonthWeekdayWeekendSchedule.new(model, runner, Constants.ObjectNameCookingRange(fuel_type, false) + " schedule", weekday_sch, weekend_sch, monthly_sch, mult_weekday=1.0, mult_weekend=1.0, normalize_values=true, create_sch_object=true, winter_design_day_sch, summer_design_day_sch)
               if not sch.validated?
                   return false
               end
@@ -970,11 +974,6 @@ class Dishwasher
       # Get unit beds/baths
       nbeds, nbaths = Geometry.get_unit_beds_baths(model, unit, runner)
       if nbeds.nil? or nbaths.nil?
-          return false
-      end
-      
-      sch_unit_index = Geometry.get_unit_dhw_sched_index(model, unit, runner)
-      if sch_unit_index.nil?
           return false
       end
       
@@ -1165,8 +1164,7 @@ class Dishwasher
           # Create schedule
           sch = HotWaterSchedule.new(model, runner, Constants.ObjectNameDishwasher + " schedule", 
                                      Constants.ObjectNameDishwasher + " temperature schedule", 
-                                     nbeds, sch_unit_index, d_sh, "Dishwasher", wh_setpoint, 
-                                     measure_dir)
+                                     nbeds, d_sh, "Dishwasher", wh_setpoint, measure_dir)
           if not sch.validated?
               return false
           end

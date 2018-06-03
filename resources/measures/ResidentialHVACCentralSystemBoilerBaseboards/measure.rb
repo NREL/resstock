@@ -4,6 +4,7 @@
 require "#{File.dirname(__FILE__)}/resources/unit_conversions"
 require "#{File.dirname(__FILE__)}/resources/geometry"
 require "#{File.dirname(__FILE__)}/resources/util"
+require "#{File.dirname(__FILE__)}/resources/hvac"
 
 # start the measure
 class ProcessCentralSystemBoilerBaseboards < OpenStudio::Measure::ModelMeasure
@@ -67,14 +68,6 @@ class ProcessCentralSystemBoilerBaseboards < OpenStudio::Measure::ModelMeasure
     central_boiler_fuel_type = HelperMethods.eplus_fuel_map(runner.getStringArgumentValue("central_boiler_fuel_type",user_arguments))
 
     std = Standard.build("90.1-2013")
-    # std = Standard.build("DOE Ref Pre-1980")
-    # std = Standard.build("DOE Ref 1980-2004")
-    # std = Standard.build("90.1-2010")
-    # std = Standard.build("90.1-2007")
-    # std = Standard.build("90.1-2004")
-    # std = Standard.build("90.1-2004_MidriseApartment") # with template
-
-    hot_water_loop = std.model_get_or_add_hot_water_loop(model, central_boiler_fuel_type)
 
     # Get building units
     units = Geometry.get_building_units(model, runner)
@@ -83,15 +76,27 @@ class ProcessCentralSystemBoilerBaseboards < OpenStudio::Measure::ModelMeasure
     end
     
     units.each do |unit|
-    
-      thermal_zones = []
-      unit.spaces.each do |space|
-        thermal_zone = space.thermalZone.get
-        next if thermal_zones.include? thermal_zone
-        thermal_zones << thermal_zone
+      thermal_zones = Geometry.get_thermal_zones_from_spaces(unit.spaces)
+      HVAC.get_control_and_slave_zones(thermal_zones).each do |control_zone, slave_zones|
+        ([control_zone] + slave_zones).each do |zone|
+          HVAC.remove_hvac_equipment(model, runner, zone, unit,
+                                     Constants.ObjectNameCentralSystemBoilerBaseboards)
+        end
       end
+    end
     
-      std.model_add_baseboard(model, hot_water_loop, thermal_zones)
+    hot_water_loop = std.model_get_or_add_hot_water_loop(model, central_boiler_fuel_type)
+    
+    units.each do |unit|
+    
+      zones = []
+      unit.spaces.each do |space|
+        zone = space.thermalZone.get
+        next if zones.include? zone
+        zones << zone
+      end
+
+      std.model_add_baseboard(model, hot_water_loop, zones)
     
     end
     
