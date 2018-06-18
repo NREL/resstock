@@ -776,7 +776,7 @@ class RoofConstructions
             runner.registerError("Roof Framing Factor must be greater than or equal to 0 and less than 1.")
             return false
         end
-        if framing_thick_in <= 0.0
+        if framing_thick_in < 0.0
             runner.registerError("Roof Framing Thickness must be greater than 0.")
             return false
         end
@@ -829,7 +829,9 @@ class RoofConstructions
         if not mat_osb.nil?
             constr.add_layer(mat_osb)
         end
-        constr.add_layer([mat_framing, mat_cavity, mat_gap], "RoofUARoofIns")
+        if framing_thick_in > 0
+            constr.add_layer([mat_framing, mat_cavity, mat_gap], "RoofUARoofIns")
+        end
         if not mat_rb.nil?
             constr.add_layer(mat_rb)
         end
@@ -1278,7 +1280,7 @@ class FoundationConstructions
                                   walls_cavity_depth_in, walls_filled_cavity, walls_framing_factor, 
                                   walls_rigid_r, walls_drywall_thick_in, walls_concrete_thick_in, 
                                   space_height, slab_surface, slab_constr_name,
-                                  slab_whole_r, exposed_perimeter=nil)
+                                  slab_whole_r, slab_concrete_thick_in, exposed_perimeter=nil)
     
         return true if slab_surface.nil?
     
@@ -1340,8 +1342,8 @@ class FoundationConstructions
         end
         
         if not apply_slab(runner, model, slab_surface, slab_constr_name,
-                          0, 0, 0, 0, 0, slab_whole_r, 4.0, nil, true, 
-                          exposed_perimeter, foundation)
+                          0, 0, 0, 0, 0, slab_whole_r, slab_concrete_thick_in, 
+                          nil, true, exposed_perimeter, foundation)
             return false
         end
         
@@ -1386,14 +1388,20 @@ class FoundationConstructions
         
         if foundation.nil?
             # Create Kiva foundation
-            concrete_thick = UnitConversions.convert(concrete_thick_in,"in","ft")
+            thick = UnitConversions.convert(concrete_thick_in,"in","ft")
             foundation = create_kiva_slab_foundation(model, perimeter_r, perimeter_width, 
-                                                     gap_r, concrete_thick, 
-                                                     exterior_r, exterior_depth)
+                                                     gap_r, thick, exterior_r, exterior_depth)
         end
         
         # Define materials
-        mat_concrete = Material.Concrete(concrete_thick_in)
+        mat_concrete = nil
+        mat_soil = nil
+        if concrete_thick_in > 0
+          mat_concrete = Material.Concrete(concrete_thick_in)
+        else
+          # Use 0.5 - 1.0 inches of soil, per Neal Kruis recommendation
+          mat_soil = Material.Soil(0.5)
+        end
         mat_rigid = nil
         if whole_r > 0
             rigid_thick_in = whole_r * BaseMaterial.InsulationRigid.k_in
@@ -1405,7 +1413,12 @@ class FoundationConstructions
         if not mat_rigid.nil?
             constr.add_layer(mat_rigid)
         end
-        constr.add_layer(mat_concrete)
+        if not mat_concrete.nil?
+          constr.add_layer(mat_concrete)
+        end
+        if not mat_soil.nil?
+          constr.add_layer(mat_soil)
+        end
         if not mat_carpet.nil?
           constr.add_layer(mat_carpet)
         end
@@ -1538,7 +1551,7 @@ class FoundationConstructions
         footing_constr.setName("FootingConstruction") 
         foundation.setFootingWallConstruction(footing_constr)
         
-        apply_kiva_settings(model, BaseMaterial.Soil)
+        apply_kiva_settings(model)
         
         return foundation
     end
@@ -1566,13 +1579,14 @@ class FoundationConstructions
         foundation.setWallHeightAboveGrade(UnitConversions.convert(8.0,"in","m"))
         foundation.setWallDepthBelowSlab(UnitConversions.convert(8.0,"in","m"))
         
-        apply_kiva_settings(model, BaseMaterial.Soil)
+        apply_kiva_settings(model)
         
         return foundation
     end
 
-    def self.apply_kiva_settings(model, soil_mat)
+    def self.apply_kiva_settings(model)
         # Set the Foundation:Kiva:Settings object
+        soil_mat = BaseMaterial.Soil
         settings = model.getFoundationKivaSettings
         settings.setSoilConductivity(UnitConversions.convert(soil_mat.k_in,"Btu*in/(hr*ft^2*R)","W/(m*K)"))
         settings.setSoilDensity(UnitConversions.convert(soil_mat.rho,"lbm/ft^3","kg/m^3"))

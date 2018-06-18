@@ -178,7 +178,7 @@ class ProcessConstructionsUnfinishedBasement < OpenStudio::Measure::ModelMeasure
                                                             basement_height,
                                                             floor_surface,
                                                             Constants.SurfaceTypeFloorFndGrndUnfinB,
-                                                            slab_whole_r)
+                                                            slab_whole_r, 4.0)
             return false
         end
     end

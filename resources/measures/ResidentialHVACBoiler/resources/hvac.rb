@@ -1161,13 +1161,6 @@ class HVAC
       constant_cubic_curve = create_curve_cubic_constant(model)
       defrost_eir_curve = create_curve_biquadratic(model, [0.1528, 0, 0, 0, 0, 0], "DefrostEIR", -100, 100, -100, 100)
     
-      if pan_heater_power > 0    
-        vrf_heating_output_var = OpenStudio::Model::OutputVariable.new("VRF Heat Pump Heating Electric Energy", model)
-        vrf_heating_output_var.setName(Constants.ObjectNameMiniSplitHeatPump(unit.name.to_s) + " vrf heat energy output var")
-        zone_outdoor_air_drybulb_temp_output_var = OpenStudio::Model::OutputVariable.new("Zone Outdoor Air Drybulb Temperature", model)
-        zone_outdoor_air_drybulb_temp_output_var.setName(Constants.ObjectNameMiniSplitHeatPump(unit.name.to_s) + " zone outdoor air drybulb temp output var")
-      end
-
       obj_name = Constants.ObjectNameMiniSplitHeatPump(unit.name.to_s)
     
       thermal_zones = Geometry.get_thermal_zones_from_spaces(unit.spaces)
@@ -1274,13 +1267,13 @@ class HVAC
         
         if pan_heater_power > 0
 
-          vrf_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, vrf_heating_output_var)
+          vrf_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, "VRF Heat Pump Heating Electric Energy")
           vrf_sensor.setName("#{obj_name} vrf energy sensor".gsub("|","_"))
           vrf_sensor.setKeyName(obj_name + " #{control_zone.name} ac vrf")
           
           vrf_fbsmt_sensor = nil
           slave_zones.each do |slave_zone|
-            vrf_fbsmt_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, vrf_heating_output_var)
+            vrf_fbsmt_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, "VRF Heat Pump Heating Electric Energy")
             vrf_fbsmt_sensor.setName("#{obj_name} vrf fbsmt energy sensor".gsub("|","_"))
             vrf_fbsmt_sensor.setKeyName(obj_name + " #{slave_zone.name} ac vrf")
           end
@@ -1298,7 +1291,7 @@ class HVAC
           pan_heater_actuator = OpenStudio::Model::EnergyManagementSystemActuator.new(equip, "ElectricEquipment", "Electric Power Level")
           pan_heater_actuator.setName("#{obj_name} pan heater actuator".gsub("|","_"))
 
-          tout_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, zone_outdoor_air_drybulb_temp_output_var)
+          tout_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, "Zone Outdoor Air Drybulb Temperature")
           tout_sensor.setName("#{obj_name} tout sensor".gsub("|","_"))
           thermal_zones.each do |thermal_zone|
             if Geometry.is_living(thermal_zone)
@@ -2322,14 +2315,17 @@ class HVAC
           cooling_season = Array.new(12, 0.0)
           thermostat_setpoint.coolingSetpointTemperatureSchedule.get.to_Schedule.get.to_ScheduleRuleset.get.scheduleRules.each do |rule|
             if rule.applyMonday and rule.applyTuesday and rule.applyWednesday and rule.applyThursday and rule.applyFriday
-              rule.daySchedule.values.each_with_index do |value, hour|
+              rule.daySchedule.values.each_with_index do |value, i|
+                hour = rule.daySchedule.times[i].hours - 1
                 if value < clg_wkdy[hour]
                   clg_wkdy[hour] = value
                 end
               end
             end
+            clg_wkdy = backfill_schedule_values(clg_wkdy, Constants.NoCoolingSetpoint)
             if rule.applySaturday and rule.applySunday
-              rule.daySchedule.values.each_with_index do |value, hour|
+              rule.daySchedule.values.each_with_index do |value, i|
+                hour = rule.daySchedule.times[i].hours - 1
                 if value < clg_wked[hour]
                   clg_wked[hour] = value
                 end
@@ -2338,6 +2334,7 @@ class HVAC
                 end
               end
             end
+            clg_wked = backfill_schedule_values(clg_wked, Constants.NoCoolingSetpoint)
           end
           
           htg_wkdy_monthly = []
@@ -2508,14 +2505,17 @@ class HVAC
           heating_season = Array.new(12, 0.0)
           thermostat_setpoint.heatingSetpointTemperatureSchedule.get.to_Schedule.get.to_ScheduleRuleset.get.scheduleRules.each do |rule|
             if rule.applyMonday and rule.applyTuesday and rule.applyWednesday and rule.applyThursday and rule.applyFriday
-              rule.daySchedule.values.each_with_index do |value, hour|
+              rule.daySchedule.values.each_with_index do |value, i|
+                hour = rule.daySchedule.times[i].hours - 1
                 if value > htg_wkdy[hour]
                   htg_wkdy[hour] = value
                 end
               end
             end
+            htg_wkdy = backfill_schedule_values(htg_wkdy, Constants.NoHeatingSetpoint)
             if rule.applySaturday and rule.applySunday
-              rule.daySchedule.values.each_with_index do |value, hour|
+              rule.daySchedule.values.each_with_index do |value, i|
+                hour = rule.daySchedule.times[i].hours - 1
                 if value > htg_wked[hour]
                   htg_wked[hour] = value
                 end
@@ -2524,6 +2524,7 @@ class HVAC
                 end
               end
             end
+            htg_wked = backfill_schedule_values(htg_wked, Constants.NoHeatingSetpoint)
           end
           
           htg_wkdy_monthly = []
@@ -2729,23 +2730,6 @@ class HVAC
         return false
       end    
       
-      ["Schedule Value", "Zone Mean Air Temperature"].each do |output_var_name|
-        unless model.getOutputVariables.any? {|existing_output_var| existing_output_var.name.to_s == output_var_name} 
-          output_var = OpenStudio::Model::OutputVariable.new(output_var_name, model)
-          output_var.setName(output_var_name)
-        end
-      end
-
-      schedule_value_output_var = nil
-      zone_mean_air_temp_output_var = nil
-      model.getOutputVariables.each do |output_var|
-        if output_var.name.to_s == "Schedule Value"
-          schedule_value_output_var = output_var
-        elsif output_var.name.to_s == "Zone Mean Air Temperature"
-          zone_mean_air_temp_output_var = output_var
-        end
-      end
-      
       obj_name = Constants.ObjectNameCeilingFan(unit.name.to_s)
     
       num_bedrooms, num_bathrooms = Geometry.get_unit_beds_baths(model, unit, runner)      
@@ -2832,11 +2816,13 @@ class HVAC
       if thermostatsetpointdualsetpoint.is_initialized
         thermostatsetpointdualsetpoint.get.coolingSetpointTemperatureSchedule.get.to_Schedule.get.to_ScheduleRuleset.get.scheduleRules.each do |rule|
           coolingSetpoint = Array.new(24, Constants.NoCoolingSetpoint)
-          rule.daySchedule.values.each_with_index do |value, hour|
+          rule.daySchedule.values.each_with_index do |value, i|
+            hour = rule.daySchedule.times[i].hours - 1
             if value < coolingSetpoint[hour]
               coolingSetpoint[hour] = UnitConversions.convert(value,"C","F") + cooling_setpoint_offset
             end
           end
+          coolingSetpoint = backfill_schedule_values(coolingSetpoint, Constants.NoCoolingSetpoint)
           # weekday
           if rule.applyMonday and rule.applyTuesday and rule.applyWednesday and rule.applyThursday and rule.applyFriday
             unless rule.daySchedule.values.all? {|x| x == Constants.NoCoolingSetpoint}
@@ -2919,11 +2905,11 @@ class HVAC
       equip.setSchedule(ceiling_fan_master_sch)
       
       # Sensor that reports the value of the schedule CeilingFan (0 if cooling setpoint setup is in effect, 1 otherwise).
-      sched_val_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, schedule_value_output_var)
+      sched_val_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, "Schedule Value")
       sched_val_sensor.setName("#{obj_name} sched val sensor".gsub("|","_"))
       sched_val_sensor.setKeyName(obj_name + " schedule")
 
-      tin_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, zone_mean_air_temp_output_var)
+      tin_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, "Zone Mean Air Temperature")
       tin_sensor.setName("#{obj_name} tin sensor".gsub("|","_"))
       tin_sensor.setKeyName(living_zone.name.to_s)
       
@@ -3036,6 +3022,20 @@ class HVAC
     end
     
     private
+    
+    def self.backfill_schedule_values(values, no_setpoint)
+      # backfill the array values
+      values = values.reverse 
+      previous_value = values[0]
+      values.each_with_index do |c, i|
+        if values[i+1] == no_setpoint
+          values[i+1] = previous_value
+        end
+        previous_value = values[i+1]
+      end
+      values = values.reverse
+      return values
+    end
     
     def self.get_gshp_hx_pipe_diameters(pipe_size)
       # Pipe norminal size convertion to pipe outside diameter and inside diameter, 
@@ -3873,15 +3873,6 @@ class HVAC
 
       obj_name = Constants.ObjectNameMiniSplitHeatPump(unit.name.to_s)
       
-      model.getOutputVariables.each do |output_var|
-        next unless output_var.name.to_s == "#{obj_name} vrf heat energy output var"
-        output_var.remove
-      end
-      model.getOutputVariables.each do |output_var|
-        next unless output_var.name.to_s == "#{obj_name} zone outdoor air drybulb temp output var"
-        output_var.remove
-      end
-
       model.getEnergyManagementSystemSensors.each do |sensor|
         next unless sensor.name.to_s == "#{obj_name} vrf energy sensor".gsub(" ","_").gsub("|","_")
         sensor.remove

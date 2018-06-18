@@ -115,7 +115,7 @@ class ProcessConstructionsCrawlspace < OpenStudio::Measure::ModelMeasure
                                                             wall_rigid_r, 0, 8.0, crawl_height,
                                                             floor_surface, 
                                                             Constants.SurfaceTypeFloorFndGrndCS,
-                                                            slab_whole_r)
+                                                            slab_whole_r, 4.0)
             return false
         end
     end

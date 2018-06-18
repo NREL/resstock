@@ -9,6 +9,9 @@ class Location
         success, weather, epw_file = apply_weather_file(model, runner, weather_file_path)
         return false if not success
         
+        success = apply_year(model, runner, epw_file)
+        return false if not success
+        
         success = apply_site(model, runner, epw_file)
         return false if not success
 
@@ -16,9 +19,6 @@ class Location
         return false if not success
         
         success = apply_mains_temp(model, runner, weather)
-        return false if not success
-
-        success = apply_year(model, runner, epw_file)
         return false if not success
 
         success = apply_dst(model, runner, dst_start_date, dst_end_date)
@@ -68,6 +68,7 @@ class Location
     def self.apply_climate_zones(model, runner, epw_file)
       
         ba_zone = get_climate_zone_ba(epw_file.wmoNumber)
+        return true if ba_zone.nil?
         climateZones = model.getClimateZones
         climateZones.setClimateZone(Constants.BuildingAmericaClimateZone, ba_zone)
         runner.registerInfo("Setting #{Constants.BuildingAmericaClimateZone} climate zone to #{ba_zone}.")
@@ -98,8 +99,10 @@ class Location
     def self.apply_year(model, runner, epw_file)
     
         year_description = model.getYearDescription
-        if epw_file.startDateActualYear.is_initialized
+        if epw_file.startDateActualYear.is_initialized # AMY
           year_description.setCalendarYear(epw_file.startDateActualYear.get)
+        else # TMY
+          year_description.setDayofWeekforStartDay('Monday') # For consistency with SAM utility bill calculations
         end
         
         return true
@@ -141,7 +144,7 @@ class Location
     end
    
     def self.get_climate_zone_ba(wmo)
-        ba_zone = "NA"
+        ba_zone = nil
 
         zones_csv = File.join(File.dirname(__FILE__), "climate_zones.csv")
         if not File.exists?(zones_csv)

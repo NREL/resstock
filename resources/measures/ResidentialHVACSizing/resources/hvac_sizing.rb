@@ -1152,10 +1152,7 @@ class HVACSizing
         gains.push(*space.otherEquipment)
     end
     
-    july_dates = []
-    for day in 1..31
-        july_dates << OpenStudio::Date.new(OpenStudio::MonthOfYear.new('July'), day, @modelYear)
-    end
+    july_1 = OpenStudio::Date.new(OpenStudio::MonthOfYear.new('July'), 1, @modelYear)
 
     int_Sens_Hr = [0]*24
     int_Lat_Hr = [0]*24
@@ -1214,24 +1211,18 @@ class HVACSizing
         elsif sched_base.to_ScheduleConstant.is_initialized 
             sched = sched_base.to_ScheduleConstant.get
         else
-            runner.registerWarning("Expected ScheduleRuleset or ScheduleFixedInterval for object '#{gain.name.to_s}'. Skipping...")
+            runner.registerWarning("Expected type for object '#{gain.name.to_s}'. Skipping...")
             next
         end
         next if sched.nil?
         
         # Get schedule hourly values
-        if sched.is_a? OpenStudio::Model::ScheduleRuleset
-            sched_values = sched.getDaySchedules(july_dates[0], july_dates[1])[0].values
-        elsif sched.is_a? OpenStudio::Model::ScheduleConstant
-            sched_values = [sched.value]*24
-        elsif sched.is_a? OpenStudio::Model::ScheduleFixedInterval
-            # Override with smoothed schedules
-            # TODO: Is there a better approach here?
+        if sched.is_a? OpenStudio::Model::ScheduleRuleset or sched.is_a? OpenStudio::Model::ScheduleFixedInterval
+            # Override any hot water schedules with smoothed schedules; TODO: Is there a better approach?
+            max_mult = nil
             if gain.name.to_s.start_with?(Constants.ObjectNameShower)
                 sched_values = [0.011, 0.005, 0.003, 0.005, 0.014, 0.052, 0.118, 0.117, 0.095, 0.074, 0.060, 0.047, 0.034, 0.029, 0.026, 0.025, 0.030, 0.039, 0.042, 0.042, 0.042, 0.041, 0.029, 0.021]
                 max_mult = 1.05 * 1.04
-                annual_energy = Schedule.annual_equivalent_full_load_hrs(@modelYear, sched) * design_level_w * gain.multiplier # Wh
-                daily_load = UnitConversions.convert(annual_energy, "Wh", "Btu") / 365.0 # Btu/day
             elsif gain.name.to_s.start_with?(Constants.ObjectNameSink)
                 sched_values = [0.014, 0.007, 0.005, 0.005, 0.007, 0.018, 0.042, 0.062, 0.066, 0.062, 0.054, 0.050, 0.049, 0.045, 0.043, 0.041, 0.048, 0.065, 0.075, 0.069, 0.057, 0.048, 0.040, 0.027]
                 max_mult = 1.04 * 1.04
@@ -1248,17 +1239,30 @@ class HVACSizing
                 sched_values = [0.010, 0.006, 0.004, 0.002, 0.004, 0.006, 0.016, 0.032, 0.048, 0.068, 0.078, 0.081, 0.074, 0.067, 0.057, 0.061, 0.055, 0.054, 0.051, 0.051, 0.052, 0.054, 0.044, 0.024]
                 max_mult = 1.15 * 1.04
             else
-                runner.registerError("Unexpected gain '#{gain.name.to_s}' with ScheduleFixedInterval in process_internal_gains.")
-                return nil
+                day_sched = sched.getDaySchedules(july_1, july_1)[0]
+                # Convert to 24 hour values
+                sched_values = []
+                previous_time_decimal = 0
+                day_sched.times.each_with_index do |time, i|
+                    time_decimal = (time.days*24.0) + time.hours + (time.minutes/60.0) + (time.seconds/3600.0)
+                    # Back-fill in hourly values
+                    for hr in sched_values.size+1..time_decimal.floor
+                        sched_values[hr-1] = day_sched.values[i]
+                    end
+                end
             end
-            # Calculate daily load
-            annual_energy = Schedule.annual_equivalent_full_load_hrs(@modelYear, sched) * design_level_w * gain.multiplier # Wh
-            daily_load = UnitConversions.convert(annual_energy, "Wh", "Btu") / 365.0 # Btu/day
-            # Calculate design level in Btu/hr
-            design_level = sched_values.max * daily_load * max_mult # Btu/hr
-            # Normalize schedule values to be max=1 from sum=1
-            sched_values_max = sched_values.max
-            sched_values = sched_values.collect { |n| n / sched_values_max }
+            if not max_mult.nil?
+                # Calculate daily load
+                annual_energy = Schedule.annual_equivalent_full_load_hrs(@modelYear, sched) * design_level_w * gain.multiplier # Wh
+                daily_load = UnitConversions.convert(annual_energy, "Wh", "Btu") / 365.0 # Btu/day
+                # Calculate design level in Btu/hr
+                design_level = sched_values.max * daily_load * max_mult # Btu/hr
+                # Normalize schedule values to be max=1 from sum=1
+                sched_values_max = sched_values.max
+                sched_values = sched_values.collect { |n| n / sched_values_max }
+            end
+        elsif sched.is_a? OpenStudio::Model::ScheduleConstant
+            sched_values = [sched.value]*24
         else
             runner.registerError("Unexpected type for object '#{sched.name.to_s}' in process_internal_gains.")
             return nil

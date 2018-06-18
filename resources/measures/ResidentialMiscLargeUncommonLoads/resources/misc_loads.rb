@@ -34,7 +34,7 @@ class MiscLoads
       unit.spaces.each do |space|
           next if Geometry.space_is_unfinished(space)
           
-          obj_name = "#{Constants.ObjectNameMiscPlugLoads(unit.name.to_s)}"
+          obj_name = Constants.ObjectNameMiscPlugLoads(unit.name.to_s)
           space_obj_name = "#{obj_name}|#{space.name.to_s}"
           
           # Remove any existing mels
@@ -281,4 +281,26 @@ class MiscLoads
       end
   end
 
+  def self.apply_tv(model, unit, runner, annual_energy, sch, space)
+  
+      name = Constants.ObjectNameMiscTelevision(unit.name.to_s)
+      design_level = sch.calcDesignLevelFromDailykWh(annual_energy/365.0)
+      sens_frac = 1.0
+      lat_frac = 0.0
+
+      #Add electric equipment for the mel
+      mel_def = OpenStudio::Model::ElectricEquipmentDefinition.new(model)
+      mel = OpenStudio::Model::ElectricEquipment.new(mel_def)
+      mel.setName(name)
+      mel.setEndUseSubcategory(name)
+      mel.setSpace(space)
+      mel_def.setName(name)
+      mel_def.setDesignLevel(design_level)
+      mel_def.setFractionRadiant(0.6 * sens_frac)
+      mel_def.setFractionLatent(lat_frac)
+      mel_def.setFractionLost(1 - sens_frac - lat_frac)
+      mel.setSchedule(sch.schedule)
+
+      return true      
+  end
 end

@@ -170,29 +170,6 @@ class Geometry
     return [nbeds, nbaths]
   end
 
-  def self.get_unit_dhw_sched_index(model, unit, runner=nil)
-      dhw_sched_index = unit.getFeatureAsInteger(Constants.BuildingUnitFeatureDHWSchedIndex)
-      if not dhw_sched_index.is_initialized
-          # Assign DHW schedule index values for every building unit.
-          dhw_sched_index_hash = {}
-          num_bed_options = (1..5)
-          num_bed_options.each do |num_bed_option|
-              dhw_sched_index_hash[num_bed_option.to_f] = -1 # initialize
-          end
-          units = self.get_building_units(model, runner)
-          units.each do |unit|
-              nbeds, nbaths = Geometry.get_unit_beds_baths(model, unit, runner)
-              dhw_sched_index_hash[nbeds] = (dhw_sched_index_hash[nbeds]+1) % 365
-              unit.setFeature(Constants.BuildingUnitFeatureDHWSchedIndex, dhw_sched_index_hash[nbeds])
-          end
-          dhw_sched_index = unit.getFeatureAsInteger(Constants.BuildingUnitFeatureDHWSchedIndex).get
-      else
-          # Value already assigned.
-          dhw_sched_index = dhw_sched_index.get
-      end
-      return dhw_sched_index
-  end
-
   def self.get_unit_adjacent_common_spaces(unit)
     # Returns a list of spaces adjacent to the unit that are not assigned
     # to a building unit.
@@ -1815,11 +1792,6 @@ class Geometry
       return false
     end
 
-    least_x = 9e99
-    greatest_x = -9e99
-    least_y = 9e99
-    greatest_y = -9e99
-
     surfaces = model.getSurfaces
     if surfaces.size == 0
       runner.registerInfo("No surfaces found to copy for neighboring buildings.")
@@ -1843,71 +1815,72 @@ class Geometry
       return true
     end
 
-    # Get x and y minima and maxima of wall surfaces
+    # Get x, y, z minima and maxima of wall surfaces
+    least_x = 9e99
+    greatest_x = -9e99
+    least_y = 9e99
+    greatest_y = -9e99
+    greatest_z = -9e99
     surfaces.each do |surface|
-      if surface.surfaceType.downcase == "wall"
-        vertices = surface.vertices
-        vertices.each do |vertex|
-          if vertex.x > greatest_x
-            greatest_x = vertex.x
-          end
-          if vertex.x < least_x
-            least_x = vertex.x
-          end
-          if vertex.y > greatest_y
-            greatest_y = vertex.y
-          end
-          if vertex.y < least_y
-            least_y = vertex.y
-          end
+      next unless surface.surfaceType.downcase == "wall"
+      space = surface.space.get
+      surface.vertices.each do |vertex|
+        if vertex.x > greatest_x
+          greatest_x = vertex.x
+        end
+        if vertex.x < least_x
+          least_x = vertex.x
+        end
+        if vertex.y > greatest_y
+          greatest_y = vertex.y
+        end
+        if vertex.y < least_y
+          least_y = vertex.y
+        end
+        if vertex.z + space.zOrigin > greatest_z
+          greatest_z = vertex.z + space.zOrigin
         end
       end
+
     end
 
-    # This is maximum building length or width + user specified neighbor offset
-    left_offset = ((greatest_x - least_x) + left_neighbor_offset)
-    right_offset = -((greatest_x - least_x) + right_neighbor_offset)
-    back_offset = -((greatest_y - least_y) + back_neighbor_offset)
-    front_offset = ((greatest_y - least_y) + front_neighbor_offset)
-
-    directions = [[Constants.FacadeLeft, left_neighbor_offset, left_offset, 0], [Constants.FacadeRight, right_neighbor_offset, right_offset, 0], [Constants.FacadeBack, back_neighbor_offset, 0, back_offset], [Constants.FacadeFront, front_neighbor_offset, 0, front_offset]]
+    directions = [[Constants.FacadeLeft, left_neighbor_offset], [Constants.FacadeRight, right_neighbor_offset], [Constants.FacadeBack, back_neighbor_offset], [Constants.FacadeFront, front_neighbor_offset]]
 
     shading_surface_group = OpenStudio::Model::ShadingSurfaceGroup.new(model)
     shading_surface_group.setName(Constants.ObjectNameNeighbors)
 
     num_added = 0
-    directions.each do |facade, neighbor_offset, x_offset, y_offset|
-      if neighbor_offset != 0
-        model.getSpaces.each do |space|
-          space.surfaces.each do |existing_surface|
-            next if existing_surface.outsideBoundaryCondition.downcase != "outdoors" and existing_surface.outsideBoundaryCondition.downcase != "adiabatic"
-            next if existing_surface.adjacentSurface.is_initialized
-            next if existing_surface.outsideBoundaryCondition.downcase == "adiabatic" and !Geometry.is_corridor(space)
-            m = Geometry.initialize_transformation_matrix(OpenStudio::Matrix.new(4,4,0))
-            m[0,3] = -x_offset
-            m[1,3] = -y_offset
-            m[2,3] = space.zOrigin
-            transformation = OpenStudio::Transformation.new(m)
-            new_vertices = transformation * existing_surface.vertices
-            shading_surface = OpenStudio::Model::ShadingSurface.new(new_vertices, model)
-            shading_surface.setName(Constants.ObjectNameNeighbors(facade))
-            shading_surface.setShadingSurfaceGroup(shading_surface_group)
-            num_added += 1
-          end
-        end
-        model.getShadingSurfaces.each do |existing_shading_surface|
-          next unless existing_shading_surface.name.to_s.downcase.include? Constants.ObjectNameEaves
-          m = Geometry.initialize_transformation_matrix(OpenStudio::Matrix.new(4,4,0))
-          m[0,3] = -x_offset
-          m[1,3] = -y_offset
-          transformation = OpenStudio::Transformation.new(m)
-          new_vertices = transformation * existing_shading_surface.vertices
-          shading_surface = OpenStudio::Model::ShadingSurface.new(new_vertices, model)
-          shading_surface.setName(Constants.ObjectNameNeighbors(facade))
-          shading_surface.setShadingSurfaceGroup(shading_surface_group)
-          num_added += 1
-        end
+    directions.each do |facade, neighbor_offset|
+      next unless neighbor_offset > 0
+      vertices = OpenStudio::Point3dVector.new
+      m = Geometry.initialize_transformation_matrix(OpenStudio::Matrix.new(4,4,0))
+      transformation = OpenStudio::Transformation.new(m)
+      if facade == Constants.FacadeLeft
+        vertices << OpenStudio::Point3d.new(least_x - neighbor_offset, least_y, 0)
+        vertices << OpenStudio::Point3d.new(least_x - neighbor_offset, least_y, greatest_z)
+        vertices << OpenStudio::Point3d.new(least_x - neighbor_offset, greatest_y, greatest_z)
+        vertices << OpenStudio::Point3d.new(least_x - neighbor_offset, greatest_y, 0)
+      elsif facade == Constants.FacadeRight
+        vertices << OpenStudio::Point3d.new(greatest_x + neighbor_offset, greatest_y, 0)
+        vertices << OpenStudio::Point3d.new(greatest_x + neighbor_offset, greatest_y, greatest_z)
+        vertices << OpenStudio::Point3d.new(greatest_x + neighbor_offset, least_y, greatest_z)
+        vertices << OpenStudio::Point3d.new(greatest_x + neighbor_offset, least_y, 0)
+      elsif facade == Constants.FacadeFront
+        vertices << OpenStudio::Point3d.new(greatest_x, least_y - neighbor_offset, 0)
+        vertices << OpenStudio::Point3d.new(greatest_x, least_y - neighbor_offset, greatest_z)
+        vertices << OpenStudio::Point3d.new(least_x, least_y - neighbor_offset, greatest_z)
+        vertices << OpenStudio::Point3d.new(least_x, least_y - neighbor_offset, 0)
+      elsif facade == Constants.FacadeBack
+        vertices << OpenStudio::Point3d.new(least_x, greatest_y + neighbor_offset, 0)
+        vertices << OpenStudio::Point3d.new(least_x, greatest_y + neighbor_offset, greatest_z)
+        vertices << OpenStudio::Point3d.new(greatest_x, greatest_y + neighbor_offset, greatest_z)
+        vertices << OpenStudio::Point3d.new(greatest_x, greatest_y + neighbor_offset, 0)
       end
+      vertices = transformation * vertices
+      shading_surface = OpenStudio::Model::ShadingSurface.new(vertices, model)
+      shading_surface.setName(Constants.ObjectNameNeighbors(facade))
+      shading_surface.setShadingSurfaceGroup(shading_surface_group)
+      num_added += 1
     end
     
     runner.registerInfo("Added #{num_added} #{Constants.ObjectNameNeighbors} shading surfaces.")

@@ -140,9 +140,6 @@ class Constants
   def self.BuildingTypeSingleFamilyDetached
     return 'singlefamilydetached'
   end
-  def self.BuildingUnitFeatureDHWSchedIndex
-    return 'DHWSchedIndex'
-  end
   def self.BuildingUnitFeatureNumBathrooms
     return 'NumberOfBathrooms'
   end
@@ -267,13 +264,13 @@ class Constants
     return 'pex'
   end
   def self.PVModuleTypeStandard
-    return 'standard'
+    return 'Standard'
   end
   def self.PVModuleTypePremium
-    return 'premium'
+    return 'Premium'
   end
   def self.PVModuleTypeThinFilm
-    return 'thin film'
+    return 'ThinFilm'
   end
   def self.PVNetMetering
     return 'Net Metering'
@@ -532,6 +529,13 @@ class Constants
       s_unit = "|#{unit_name}"
     end
     return "residential misc plug loads#{s_unit}"
+  end
+  def self.ObjectNameMiscTelevision(unit_name=self.ObjectNameBuildingUnit)
+    s_unit = ""
+    if unit_name != self.ObjectNameBuildingUnit
+      s_unit = "|#{unit_name}"
+    end
+    return "residential misc television#{s_unit}"
   end
   def self.ObjectNameNaturalVentilation(unit_name=self.ObjectNameBuildingUnit)
     s_unit = ""
