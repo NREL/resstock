@@ -137,10 +137,6 @@ class ResidentialHotWaterFixtures < OpenStudio::Measure::ModelMeasure
             if nbeds.nil? or nbaths.nil?
                 return false
             end
-            sch_unit_index = Geometry.get_unit_dhw_sched_index(model, unit, runner)
-            if sch_unit_index.nil?
-                return false
-            end
 
             # Get space
             space = Geometry.get_space_from_location(unit, Constants.Auto, location_hierarchy)
@@ -203,7 +199,7 @@ class ResidentialHotWaterFixtures < OpenStudio::Measure::ModelMeasure
             if sh_gpd > 0
                 
                 # Create schedule
-                sch_sh = HotWaterSchedule.new(model, runner, Constants.ObjectNameShower + " schedule", Constants.ObjectNameShower + " temperature schedule", nbeds, sch_unit_index, d_sh, "Shower", mixed_use_t, File.dirname(__FILE__))
+                sch_sh = HotWaterSchedule.new(model, runner, Constants.ObjectNameShower + " schedule", Constants.ObjectNameShower + " temperature schedule", nbeds, d_sh, "Shower", mixed_use_t, File.dirname(__FILE__))
                 if not sch_sh.validated?
                     return false
                 end
@@ -260,7 +256,7 @@ class ResidentialHotWaterFixtures < OpenStudio::Measure::ModelMeasure
             if s_gpd > 0
             
                 # Create schedule
-                sch_s = HotWaterSchedule.new(model, runner, Constants.ObjectNameSink + " schedule", Constants.ObjectNameSink + " temperature schedule", nbeds, sch_unit_index, d_sh, "Sink", mixed_use_t, File.dirname(__FILE__))
+                sch_s = HotWaterSchedule.new(model, runner, Constants.ObjectNameSink + " schedule", Constants.ObjectNameSink + " temperature schedule", nbeds, d_sh, "Sink", mixed_use_t, File.dirname(__FILE__))
                 if not sch_s.validated?
                     return false
                 end
@@ -299,7 +295,7 @@ class ResidentialHotWaterFixtures < OpenStudio::Measure::ModelMeasure
             if b_gpd > 0
             
                 # Create schedule
-                sch_b = HotWaterSchedule.new(model, runner, Constants.ObjectNameBath + " schedule", Constants.ObjectNameBath + " temperature schedule", nbeds, sch_unit_index, d_sh, "Bath", mixed_use_t, File.dirname(__FILE__))
+                sch_b = HotWaterSchedule.new(model, runner, Constants.ObjectNameBath + " schedule", Constants.ObjectNameBath + " temperature schedule", nbeds, d_sh, "Bath", mixed_use_t, File.dirname(__FILE__))
                 if not sch_b.validated?
                     return false
                 end

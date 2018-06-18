@@ -127,11 +127,6 @@ class ClothesWasher
           return false
       end
 
-      sch_unit_index = Geometry.get_unit_dhw_sched_index(model, unit, runner)
-      if sch_unit_index.nil?
-          return false
-      end
-      
       # Get water heater setpoint
       wh_setpoint = Waterheater.get_water_heater_setpoint(model, plant_loop, runner)
       if wh_setpoint.nil?
@@ -410,8 +405,7 @@ class ClothesWasher
           # Create schedule
           sch = HotWaterSchedule.new(model, runner, Constants.ObjectNameClothesWasher + " schedule", 
                                      Constants.ObjectNameClothesWasher + " temperature schedule", 
-                                     nbeds, sch_unit_index, d_sh, "ClothesWasher", water_temp, 
-                                     measure_dir)
+                                     nbeds, d_sh, "ClothesWasher", water_temp, measure_dir)
           if not sch.validated?
               return false
           end
@@ -676,11 +670,9 @@ class ClothesDryer
           if sch.nil?
               # Create schedule
               hr_shift = day_shift + 1.0 / 24.0
-              sch_unit_index = Geometry.get_unit_dhw_sched_index(model, unit, runner)
               sch = HotWaterSchedule.new(model, runner, unit_obj_name_f + " schedule", 
                                          unit_obj_name_f + " temperature schedule", nbeds, 
-                                         sch_unit_index, hr_shift, "ClothesDryer", 0, 
-                                         measure_dir)
+                                         hr_shift, "ClothesDryer", 0, measure_dir)
               if not sch.validated?
                   return false
               end
@@ -973,11 +965,6 @@ class Dishwasher
           return false
       end
       
-      sch_unit_index = Geometry.get_unit_dhw_sched_index(model, unit, runner)
-      if sch_unit_index.nil?
-          return false
-      end
-      
       # Get water heater setpoint
       wh_setpoint = Waterheater.get_water_heater_setpoint(model, plant_loop, runner)
       if wh_setpoint.nil?
@@ -1165,8 +1152,7 @@ class Dishwasher
           # Create schedule
           sch = HotWaterSchedule.new(model, runner, Constants.ObjectNameDishwasher + " schedule", 
                                      Constants.ObjectNameDishwasher + " temperature schedule", 
-                                     nbeds, sch_unit_index, d_sh, "Dishwasher", wh_setpoint, 
-                                     measure_dir)
+                                     nbeds, d_sh, "Dishwasher", wh_setpoint, measure_dir)
           if not sch.validated?
               return false
           end
