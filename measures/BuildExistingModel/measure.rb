@@ -46,8 +46,8 @@ class BuildExistingModel < OpenStudio::Ruleset::ModelUserScript
     args << number_of_buildings_represented
     
     # Option Downselect Logic argument
-    downselect_logic = OpenStudio::Ruleset::OSArgument.makeStringArgument("downselect_#{option_num}_logic", false)
-    downselect_logic.setDisplayName("Downselect #{option_num} Apply Logic")
+    downselect_logic = OpenStudio::Ruleset::OSArgument.makeStringArgument("downselect_logic", false)
+    downselect_logic.setDisplayName("Downselect Logic")
     downselect_logic.setDefaultValue("Location EPW|USA_TX_Houston-Bush.Intercontinental.AP.722430_TMY3.epw && Vintage|<1950 && Vintage|2000s")
     downselect_logic.setDescription("Logic that specifies if Downselect #{option_num} will apply based on the existing building's options. Specify one or more parameter|option as found in resources\\options_lookup.tsv. When multiple are included, they must be separated by '||' for OR and '&&' for AND, and using parentheses as appropriate. Prefix an option with '!' for not.")
     args << downselect_logic
@@ -80,7 +80,7 @@ class BuildExistingModel < OpenStudio::Ruleset::ModelUserScript
     else
         workflow_json = nil
     end
-    downselect_logic = runner.getOptionalStringArgumentValue("option_#{option_num}",user_arguments)
+    downselect_logic = runner.getOptionalStringArgumentValue("downselect_logic",user_arguments)
     
     # Load buildstock_file
     require File.join(File.dirname(buildstock_file), File.basename(buildstock_file, File.extname(buildstock_file)))
@@ -89,13 +89,16 @@ class BuildExistingModel < OpenStudio::Ruleset::ModelUserScript
     if not File.exists? buildstock_csv
 
       runner.registerInfo("Generating buildstock.csv sampling results.")
-      analysis = JSON.parse("analysis.json")
+    
+      require 'json'
+      analysis = JSON.parse(File.absolute_path(File.join(File.dirname(__FILE__), "..", "..", "analysis.json")))
       runner.registerInfo(analysis)
       num_datapoints = 50 # TODO: NUMDATAPOINTS=`awk -F\"maximum\": 'NF>=2 {print $2}' analysis.json | sed 's/,//g' | head -n1 | xargs` # Yes, this is gross.
 
+      require_relative File.join(resources_dir, 'run_sampling')
       r = RunSampling.new
       r.run("NA", num_datapoints, "buildstock.csv")
-      
+
       FileUtils.cp File.join(resources_dir, "buildstock.csv"), buildstock_csv
 
       runner.registerInfo("NUMDATAPOINTS is #{num_datapoints}.")

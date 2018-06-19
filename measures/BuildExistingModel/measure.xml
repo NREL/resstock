@@ -2,8 +2,8 @@
   <schema_version>3.0</schema_version>
   <name>build_existing_model</name>
   <uid>943cde68-f4bf-4e2e-a984-ab70cba2669c</uid>
-  <version_id>3073ebac-6706-46ac-8cba-9a286a6c0bef</version_id>
-  <version_modified>20180618T213523Z</version_modified>
+  <version_id>bd3a7aec-1b40-4015-941d-5231581ad07c</version_id>
+  <version_modified>20180618T225148Z</version_modified>
   <xml_checksum>9339BE01</xml_checksum>
   <class_name>BuildExistingModel</class_name>
   <display_name>Build Existing Model</display_name>
@@ -35,13 +35,13 @@
       <model_dependent>false</model_dependent>
     </argument>
     <argument>
-      <name>downselect_1_logic</name>
-      <display_name>Downselect 1 Apply Logic</display_name>
+      <name>downselect_logic</name>
+      <display_name>Downselect Logic</display_name>
       <description>Logic that specifies if Downselect 1 will apply based on the existing building's options. Specify one or more parameter|option as found in resources\options_lookup.tsv. When multiple are included, they must be separated by '||' for OR and '&amp;&amp;' for AND, and using parentheses as appropriate. Prefix an option with '!' for not.</description>
       <type>String</type>
       <required>false</required>
       <model_dependent>false</model_dependent>
-      <default_value>Location EPW=USA_TX_Houston-Bush.Intercontinental.AP.722430_TMY3.epw|Vintage=&lt;1950,2000s</default_value>
+      <default_value>Location EPW|USA_TX_Houston-Bush.Intercontinental.AP.722430_TMY3.epw &amp;&amp; Vintage|&lt;1950 &amp;&amp; Vintage|2000s</default_value>
     </argument>
   </arguments>
   <outputs/>
@@ -111,7 +111,7 @@
       <filename>measure.rb</filename>
       <filetype>rb</filetype>
       <usage_type>script</usage_type>
-      <checksum>3B1B307F</checksum>
+      <checksum>17F3CAF1</checksum>
     </file>
   </files>
 </measure>
