@@ -21,10 +21,6 @@ class BuildExistingModel < OpenStudio::Ruleset::ModelUserScript
   def modeler_description
     return "Builds the OpenStudio Model using the sampling csv file, which contains the specified parameters for each existing building. Based on the supplied building number, those parameters are used to run the OpenStudio measures with appropriate arguments and build up the OpenStudio model."
   end
-  
-  def option_num
-    return 1
-  end
 
   # define the arguments that the user will input
   def arguments(model)
@@ -48,8 +44,7 @@ class BuildExistingModel < OpenStudio::Ruleset::ModelUserScript
     # Option Downselect Logic argument
     downselect_logic = OpenStudio::Ruleset::OSArgument.makeStringArgument("downselect_logic", false)
     downselect_logic.setDisplayName("Downselect Logic")
-    downselect_logic.setDefaultValue("Location EPW|USA_TX_Houston-Bush.Intercontinental.AP.722430_TMY3.epw || Vintage|<1950")
-    downselect_logic.setDescription("Logic that specifies if Downselect #{option_num} will apply based on the existing building's options. Specify one or more parameter|option as found in resources\\options_lookup.tsv. When multiple are included, they must be separated by '||' for OR and '&&' for AND, and using parentheses as appropriate. Prefix an option with '!' for not.")
+    downselect_logic.setDescription("Logic that specifies the subset of the building stock to be considered in the analysis. Specify one or more parameter|option as found in resources\\options_lookup.tsv. When multiple are included, they must be separated by '||' for OR and '&&' for AND, and using parentheses as appropriate. Prefix an option with '!' for not.")
     args << downselect_logic
     
     return args
@@ -86,23 +81,29 @@ class BuildExistingModel < OpenStudio::Ruleset::ModelUserScript
     require File.join(File.dirname(buildstock_file), File.basename(buildstock_file, File.extname(buildstock_file)))
 
     # Run sampling script; if sampling has been done, use that instead.
-    runner.registerInfo(buildstock_csv)
     if not File.exists? buildstock_csv
 
       runner.registerInfo("Generating buildstock.csv sampling results.")
-    
-      require 'json'
-      # analysis = JSON.parse(File.absolute_path(File.join(File.dirname(__FILE__), "..", "..", "analysis.json")))
-      # runner.registerInfo(analysis)
-      num_datapoints = 100 # TODO: NUMDATAPOINTS=`awk -F\"maximum\": 'NF>=2 {print $2}' analysis.json | sed 's/,//g' | head -n1 | xargs` # Yes, this is gross.
+
+      num_datapoints = nil
+      File.readlines(File.absolute_path(File.join(File.dirname(__FILE__), "..", "..", "analysis.json"))).each do |line|
+        if matches = line.match(%r{\s+"maximum":\s+(?<num_datapoints>\d+)})
+          matches[:num_datapoints]
+        end
+        next if matches.nil?
+        num_datapoints = matches[:num_datapoints].strip.to_i
+        break
+      end
+      if num_datapoints.nil?
+        runner.registerError("Could not determine the number of datapoints to sample.")
+        return false
+      end
+      runner.registerInfo("NUMDATAPOINTS is #{num_datapoints}.")
 
       require_relative File.join(resources_dir, 'run_sampling')
       r = RunSampling.new
       r.run("NA", num_datapoints, "buildstock.csv")
-
       FileUtils.cp File.join(resources_dir, "buildstock.csv"), buildstock_csv
-
-      runner.registerInfo("NUMDATAPOINTS is #{num_datapoints}.")
 
     else
 
