@@ -44,8 +44,6 @@ if ! [ -f $FILENAME ]; then
   
   done
   
-  cd ..
-  
 else
 
   NUMEPWS=$(ls -l *.epw | wc -l)
