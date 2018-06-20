@@ -40,8 +40,7 @@ class BuildExistingModel < OpenStudio::Ruleset::ModelUserScript
     number_of_buildings_represented.setDisplayName("Number of Buildings Represented")
     number_of_buildings_represented.setDescription("The total number of buildings represented by the existing building models.")
     args << number_of_buildings_represented
-    
-    # Option Downselect Logic argument
+
     downselect_logic = OpenStudio::Ruleset::OSArgument.makeStringArgument("downselect_logic", false)
     downselect_logic.setDisplayName("Downselect Logic")
     downselect_logic.setDescription("Logic that specifies the subset of the building stock to be considered in the analysis. Specify one or more parameter|option as found in resources\\options_lookup.tsv. When multiple are included, they must be separated by '||' for OR and '&&' for AND, and using parentheses as appropriate. Prefix an option with '!' for not.")
@@ -62,6 +61,7 @@ class BuildExistingModel < OpenStudio::Ruleset::ModelUserScript
     building_id = runner.getIntegerArgumentValue("building_id",user_arguments)
     workflow_json = runner.getOptionalStringArgumentValue("workflow_json",user_arguments)
     number_of_buildings_represented = runner.getOptionalIntegerArgumentValue("number_of_buildings_represented",user_arguments)
+    downselect_logic = runner.getOptionalStringArgumentValue("downselect_logic",user_arguments)
     
     # Get file/dir paths
     resources_dir = File.absolute_path(File.join(File.dirname(__FILE__), "..", "..", "lib", "resources")) # Should have been uploaded per 'Additional Analysis Files' in PAT
@@ -75,34 +75,31 @@ class BuildExistingModel < OpenStudio::Ruleset::ModelUserScript
     else
         workflow_json = nil
     end
-    downselect_logic = runner.getOptionalStringArgumentValue("downselect_logic",user_arguments)
-    
+
     # Load buildstock_file
     require File.join(File.dirname(buildstock_file), File.basename(buildstock_file, File.extname(buildstock_file)))
 
+    # Retrieve the number of samples
+    total_samples = nil
+    runner.analysis[:analysis][:problem][:workflow].each do |wf|
+      next if wf[:name] != 'build_existing_model'
+      wf[:variables].each do |v|
+        next if v[:argument][:name] != 'building_id'
+        total_samples = v[:maximum].to_f
+      end
+    end
+    if total_samples.nil?
+      runner.registerError("Could not determine the number of datapoints to sample.")
+      return false
+    end
+    
     # Run sampling script; if sampling has been done, use that instead.
     if not File.exists? buildstock_csv
 
-      runner.registerInfo("Generating buildstock.csv sampling results.")
-
-      num_datapoints = nil
-      File.readlines(File.absolute_path(File.join(File.dirname(__FILE__), "..", "..", "analysis.json"))).each do |line|
-        if matches = line.match(%r{\s+"maximum":\s+(?<num_datapoints>\d+)})
-          matches[:num_datapoints]
-        end
-        next if matches.nil?
-        num_datapoints = matches[:num_datapoints].strip.to_i
-        break
-      end
-      if num_datapoints.nil?
-        runner.registerError("Could not determine the number of datapoints to sample.")
-        return false
-      end
-      runner.registerInfo("NUMDATAPOINTS is #{num_datapoints}.")
-
+      runner.registerInfo("Generating buildstock.csv sampling results, #{total_samples.to_i} datapoints.")
       require_relative File.join(resources_dir, 'run_sampling')
       r = RunSampling.new
-      r.run("NA", num_datapoints, "buildstock.csv")
+      r.run("NA", total_samples, "buildstock.csv")
       FileUtils.cp File.join(resources_dir, "buildstock.csv"), buildstock_csv
 
     else
@@ -127,14 +124,7 @@ class BuildExistingModel < OpenStudio::Ruleset::ModelUserScript
     parameters_ordered.each do |parameter_name|
         # Get measure name and arguments associated with the option
         option_name = bldg_data[parameter_name]
-        print_option_assignment(parameter_name, option_name, runner)
         register_value(runner, parameter_name, option_name)
-
-        options_measure_args = get_measure_args_from_option_names(lookup_file, [option_name], parameter_name, runner)
-        options_measure_args[option_name].each do |measure_subdir, args_hash|
-            update_args_hash(measures, measure_subdir, args_hash, add_new=false)
-        end
-
     end
     
     # Do the downselecting
@@ -150,30 +140,28 @@ class BuildExistingModel < OpenStudio::Ruleset::ModelUserScript
       
       unless downselected
         # Not in downselection; don't run existing home simulation
+        runner.registerInfo("Sample is not in downselected parameters; will be registered as invalid.")
         runner.haltWorkflow('Invalid')
         return false
       end
 
     end
-    
+
+    parameters_ordered.each do |parameter_name|
+        option_name = bldg_data[parameter_name]
+        print_option_assignment(parameter_name, option_name, runner)
+        options_measure_args = get_measure_args_from_option_names(lookup_file, [option_name], parameter_name, runner)
+        options_measure_args[option_name].each do |measure_subdir, args_hash|
+            update_args_hash(measures, measure_subdir, args_hash, add_new=false)
+        end
+    end
+
     if not apply_measures(measures_dir, measures, runner, model, workflow_json, "measures.osw", true)
       return false
     end
     
     # Determine weight
     if not number_of_buildings_represented.nil?
-        total_samples = nil
-        runner.analysis[:analysis][:problem][:workflow].each do |wf|
-            next if wf[:name] != 'build_existing_model'
-            wf[:variables].each do |v|
-                next if v[:argument][:name] != 'building_id'
-                total_samples = v[:maximum].to_f
-            end
-        end
-        if total_samples.nil?
-            runner.registerError("Could not retrieve value for number_of_buildings_represented.")
-            return false
-        end
         weight = number_of_buildings_represented.get / total_samples
         register_value(runner, "weight", weight.to_s)
     end
