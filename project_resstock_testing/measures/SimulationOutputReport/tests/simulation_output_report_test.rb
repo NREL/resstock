@@ -1,3 +1,4 @@
+require_relative '../../../test/minitest_helper'
 require 'openstudio'
 require 'openstudio/ruleset/ShowRunnerOutput'
 require 'minitest/autorun'
@@ -20,6 +21,7 @@ class SimulationOutputReportTest < MiniTest::Test
                          "Door Area (ft^2)"=>30,
                          "Duct Surface Area (ft^2)"=>1440,
                          "Size, Heating System (kBtu/h)"=>60, # hp, not backup
+                         "Size, Heating Supplemental System (kBtu/h)"=>200, # backup
                          "Size, Cooling System (kBtu/h)"=>60,
                          "Size, Water Heater (gal)"=>0,
                         }
@@ -60,6 +62,7 @@ class SimulationOutputReportTest < MiniTest::Test
                          "Door Area (ft^2)"=>40,
                          "Duct Surface Area (ft^2)"=>1110,
                          "Size, Heating System (kBtu/h)"=>60, # hp, not backup
+                         "Size, Heating Supplemental System (kBtu/h)"=>100, # backup
                          "Size, Cooling System (kBtu/h)"=>60,
                          "Size, Water Heater (gal)"=>50,
                         }
@@ -120,6 +123,7 @@ class SimulationOutputReportTest < MiniTest::Test
                          "Door Area (ft^2)"=>20,
                          "Duct Surface Area (ft^2)"=>960,
                          "Size, Heating System (kBtu/h)"=>60, # hp, not backup
+                         "Size, Heating Supplemental System (kBtu/h)"=>100, # backup
                          "Size, Cooling System (kBtu/h)"=>60,
                          "Size, Water Heater (gal)"=>0,
                         }
@@ -220,6 +224,7 @@ class SimulationOutputReportTest < MiniTest::Test
                          "Door Area (ft^2)"=>40,
                          "Duct Surface Area (ft^2)"=>960,
                          "Size, Heating System (kBtu/h)"=>60, # hp, not backup
+                         "Size, Heating Supplemental System (kBtu/h)"=>100, # backup
                          "Size, Cooling System (kBtu/h)"=>60,
                          "Size, Water Heater (gal)"=>0,
                         }

@@ -26,7 +26,7 @@ class TimeseriesCSVExport < OpenStudio::Measure::ReportingMeasure
   end
 
   def fuel_types
-    fuel_types = [  
+    fuel_types = [
       "Electricity",
       "Gas",
       "DistrictCooling",
@@ -35,10 +35,10 @@ class TimeseriesCSVExport < OpenStudio::Measure::ReportingMeasure
       "FuelOil#1",
       "Propane",
       "ElectricityProduced"
-    ]    
+    ]
     return fuel_types
   end
-  
+
   def end_uses
     end_uses = [
       "Heating",
@@ -55,7 +55,7 @@ class TimeseriesCSVExport < OpenStudio::Measure::ReportingMeasure
       "WaterSystems",
       "Refrigeration",
       "Facility"
-    ]    
+    ]
     return end_uses
   end
 
@@ -87,11 +87,11 @@ class TimeseriesCSVExport < OpenStudio::Measure::ReportingMeasure
     end
     return end_use_subcategories
   end
-  
+
   # define the arguments that the user will input
   def arguments()
     args = OpenStudio::Measure::OSArgumentVector.new
-     
+
     #make an argument for the frequency
     reporting_frequency_chs = OpenStudio::StringVector.new
     reporting_frequency_chs << "Detailed"
@@ -104,28 +104,28 @@ class TimeseriesCSVExport < OpenStudio::Measure::ReportingMeasure
     arg.setDisplayName("Reporting Frequency")
     arg.setDefaultValue("Hourly")
     args << arg
-    
+
     #make an argument for including optional end use subcategories
     arg = OpenStudio::Measure::OSArgument::makeBoolArgument("inc_end_use_subcategories", true)
     arg.setDisplayName("Include End Use Subcategories")
     arg.setDefaultValue(false)
-    args << arg    
-    
+    args << arg
+
     #make an argument for including optional output variables
     arg = OpenStudio::Measure::OSArgument::makeBoolArgument("inc_output_variables", true)
     arg.setDisplayName("Include Output Variables")
     arg.setDefaultValue(false)
     args << arg
-    
+
     #make an argument for optional output variables
     arg = OpenStudio::Measure::OSArgument::makeStringArgument("output_variables", true)
     arg.setDisplayName("Output Variables")
     arg.setDefaultValue("Zone Mean Air Temperature, Zone Mean Air Humidity Ratio, Fan Runtime Fraction")
     args << arg
-    
+
     return args
-  end 
-  
+  end
+
   # return a vector of IdfObject's to request EnergyPlus objects needed by the run method
   def energyPlusOutputRequests(runner, user_arguments)
     super(runner, user_arguments)
