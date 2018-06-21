@@ -167,7 +167,6 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
     return false if hvac_heating_capacity_kbtuh.nil?
     report_sim_output(runner, "hvac_heating_capacity_w", [OpenStudio::OptionalDouble.new(hvac_heating_capacity_kbtuh)], "kBtu/h", "W")
     hvac_heating_supp_capacity_kbtuh = get_cost_multiplier("Size, Heating Supplemental System (kBtu/h)", model, runner, conditioned_zones)
-    puts hvac_heating_supp_capacity_kbtuh
     return false if hvac_heating_supp_capacity_kbtuh.nil?
     report_sim_output(runner, "hvac_heating_supp_capacity_w", [OpenStudio::OptionalDouble.new(hvac_heating_supp_capacity_kbtuh)], "kBtu/h", "W")
     
@@ -276,7 +275,7 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
   
   def get_cost_multiplier(cost_mult_type, model, runner, conditioned_zones)
     cost_mult = 0.0
-    
+
     if cost_mult_type == "Fixed (1)"
         cost_mult = 1.0
         
@@ -389,9 +388,9 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
         
     elsif cost_mult_type == "Size, Heating System (kBtu/h)"
         # Heating system capacity
-        
+
         component = nil
-        
+
         # Unit heater?
         if component.nil?
             model.getThermalZones.each do |zone|
@@ -495,13 +494,16 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
         end
         
     elsif cost_mult_type == "Size, Heating Supplemental System (kBtu/h)"
-    
+        # Supplemental heating system capacity
+
+        component = nil
+
         # Unitary system?
         if component.nil?
             model.getAirLoopHVACUnitarySystems.each do |sys|
                 next if not sys.supplementalHeatingCoil.is_initialized
                 if not component.nil?
-                    runner.registerError("Multiple heating systems found. This code should be reevaluated for correctness.")
+                    runner.registerError("Multiple supplemental heating systems found. This code should be reevaluated for correctness.")
                     return nil
                 end
                 component = sys.supplementalHeatingCoil.get
@@ -523,17 +525,22 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
                 component = sys.heatingCoil
             end
             if not component.nil?
+              max_value = 0.0
               model.getZoneHVACBaseboardConvectiveElectrics.each do |sys|
-                cost_mult += OpenStudio::convert(sys.nominalCapacity.get, "W", "kBtu/h").get
+                next if not sys.nominalCapacity.is_initialized
+                next if sys.nominalCapacity.get <= max_value
+                max_value = sys.nominalCapacity.get
               end
+              cost_mult += OpenStudio::convert(max_value, "W", "kBtu/h").get
             end
         end
     
     elsif cost_mult_type == "Size, Cooling System (kBtu/h)"
         # Cooling system capacity
-    
-        # Unitary system or PTAC?
+
         component = nil
+
+        # Unitary system or PTAC?
         model.getAirLoopHVACUnitarySystems.each do |sys|
             next if not sys.coolingCoil.is_initialized
             if not component.nil?
@@ -615,11 +622,12 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
                 end
             end
         end
-        
+
     elsif cost_mult_type != ""
         runner.registerError("Unhandled cost multiplier: #{cost_mult_type.to_s}. Aborting...")
         return nil
     end
+    
     return cost_mult
         
   end
