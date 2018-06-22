@@ -6,9 +6,9 @@
   "weatherFile": "Placeholder.epw",
   "analysis_type": "Algorithmic",
   "remoteSettings": {
-    "open": true,
+    "open": false,
     "remoteType": "Amazon Cloud",
-    "remoteServerURL": "http://ec2-52-23-225-175.compute-1.amazonaws.com/",
+    "remoteServerURL": "http://ec2-54-145-139-97.compute-1.amazonaws.com/",
     "aws": {
       "cluster_name": "resstock",
       "connected": false,
@@ -59,7 +59,7 @@
         "energyplus": "8.9",
         "recommend": ""
       },
-      "cluster_status": "terminated",
+      "cluster_status": "",
       "server": {
         "dns": null
       }
@@ -130,14 +130,14 @@
   "openstudioMD5": "",
   "measures": [
     {
-      "measure_dir": "C:/OpenStudio/OpenStudio-BuildStock/measures/BuildExistingModel",
+      "measure_dir": "C:\\OpenStudio\\OpenStudio-BuildStock\\project_resstock_national\\measures\\BuildExistingModel",
       "name": "build_existing_model",
-      "directory": "C:/OpenStudio/OpenStudio-BuildStock/measures/BuildExistingModel",
+      "directory": "C:\\OpenStudio\\OpenStudio-BuildStock\\project_resstock_national\\measures\\BuildExistingModel",
       "uid": "943cde68-f4bf-4e2e-a984-ab70cba2669c",
       "uuid": "{943cde68-f4bf-4e2e-a984-ab70cba2669c}",
-      "version_id": "02aa5f50-4cec-4a30-a4ec-1c6da4651def",
-      "version_uuid": "{02aa5f50-4cec-4a30-a4ec-1c6da4651def}",
-      "version_modified": "20180620T203300Z",
+      "version_id": "6cda3b62-2aa4-4343-b622-9708be752693",
+      "version_uuid": "{6cda3b62-2aa4-4343-b622-9708be752693}",
+      "version_modified": "20171211T160737Z",
       "xml_checksum": "9339BE01",
       "display_name": "Build Existing Model",
       "class_name": "BuildExistingModel",
@@ -211,14 +211,8 @@
             "choiceDisplayNames": [],
             "variableSetting": "Pivot",
             "distribution": "Integer Sequence",
-            "discreteVariables": [
-              {
-                "value": "",
-                "weight": "",
-                "$$hashKey": "object:4920"
-              }
-            ],
-            "maximum": 350000,
+            "discreteVariables": [],
+            "maximum": 50,
             "minimum": 1,
             "mean": 0,
             "deltaX": 0,
@@ -226,30 +220,7 @@
             "default_value": 0,
             "showWarningIcon": false
           },
-          "$$hashKey": "object:4758"
-        },
-        {
-          "name": "workflow_json",
-          "display_name": "Workflow JSON",
-          "description": "The name of the JSON file (in the resources dir) that dictates the order in which measures are to be run. If not provided, the order specified in resources/options_lookup.tsv will be used.",
-          "type": "String",
-          "required": false,
-          "model_dependent": false,
-          "display_name_short": "workflow_json",
-          "inputs": {
-            "relationship": null,
-            "choiceDisplayNames": [],
-            "variableSetting": "Argument",
-            "distribution": "Uniform",
-            "discreteVariables": [],
-            "maximum": "",
-            "minimum": "",
-            "mean": "",
-            "deltaX": "",
-            "stdDev": "",
-            "default_value": "measure-info.json"
-          },
-          "$$hashKey": "object:4759"
+          "$$hashKey": "object:14932"
         },
         {
           "name": "number_of_buildings_represented",
@@ -272,31 +243,29 @@
             "stdDev": 0,
             "default_value": 80000000
           },
-          "$$hashKey": "object:4760"
+          "$$hashKey": "object:14933"
         },
         {
-          "name": "downselect_logic",
-          "display_name": "Downselect Logic",
-          "description": "Logic that specifies the subset of the building stock to be considered in the analysis. Specify one or more parameter|option as found in resources\\options_lookup.tsv. When multiple are included, they must be separated by '||' for OR and '&&' for AND, and using parentheses as appropriate. Prefix an option with '!' for not.",
+          "name": "workflow_json",
+          "display_name": "Workflow JSON",
+          "description": "The name of the JSON file (in the resources dir) that dictates the order in which measures are to be run. If not provided, the order specified in resources/options_lookup.tsv will be used.",
           "type": "String",
           "required": false,
           "model_dependent": false,
-          "default_value": "Location EPW|USA_TX_Houston-Bush.Intercontinental.AP.722430_TMY3.epw || Vintage|<1950",
-          "variable": false,
-          "$$hashKey": "object:5762",
-          "display_name_short": "downselect_logic",
+          "$$hashKey": "object:7251",
+          "display_name_short": "workflow_json",
           "inputs": {
             "relationship": null,
             "choiceDisplayNames": [],
             "variableSetting": "Argument",
             "distribution": "Uniform",
             "discreteVariables": [],
-            "maximum": "Location EPW|USA_TX_Houston-Bush.Intercontinental.AP.722430_TMY3.epw && Vintage|<1950 && Vintage|2000s",
-            "minimum": "Location EPW|USA_TX_Houston-Bush.Intercontinental.AP.722430_TMY3.epw && Vintage|<1950 && Vintage|2000s",
-            "mean": "Location EPW|USA_TX_Houston-Bush.Intercontinental.AP.722430_TMY3.epw && Vintage|<1950 && Vintage|2000s",
-            "deltaX": "Location EPW|USA_TX_Houston-Bush.Intercontinental.AP.722430_TMY3.epw && Vintage|<1950 && Vintage|2000s",
-            "stdDev": "Location EPW|USA_TX_Houston-Bush.Intercontinental.AP.722430_TMY3.epw && Vintage|<1950 && Vintage|2000s",
-            "default_value": "Location EPW|USA_CA_Los.Angeles.Intl.AP.722950_TMY3.epw"
+            "maximum": "",
+            "minimum": "",
+            "mean": "",
+            "deltaX": "",
+            "stdDev": "",
+            "default_value": "measure-info.json"
           }
         }
       ],
@@ -305,17 +274,17 @@
       "bcl_update": false,
       "location": "my",
       "add": "",
-      "open": true,
+      "open": false,
       "addedToProject": true,
-      "date": "6/20/2018",
+      "date": "12/11/2017",
       "author": "",
       "type": "ModelMeasure",
       "seed": "EmptySeedModel.osm",
       "workflow_index": 0,
       "options": [],
-      "instanceId": 0.2305416672707128,
+      "instanceId": 0.049374791052649636,
       "skip": false,
-      "$$hashKey": "object:4715",
+      "$$hashKey": "object:14896",
       "showWarningText": false,
       "outputMeasure": false
     },
@@ -3145,10 +3114,2842 @@
       "seed": "EmptySeedModel.osm",
       "workflow_index": 1,
       "options": [],
-      "instanceId": 0.7564554322622548,
-      "skip": true,
+      "instanceId": 0.527617116208067,
+      "skip": false,
       "$$hashKey": "object:31044",
       "showWarningText": false,
+      "outputMeasure": false
+    },
+    {
+      "measure_dir": "C:\\OpenStudio\\OpenStudio-BuildStock\\project_resstock_national\\measures\\ApplyUpgrade",
+      "name": "apply_upgrade_2",
+      "directory": "C:\\OpenStudio\\OpenStudio-BuildStock\\project_resstock_national\\measures\\ApplyUpgrade",
+      "uid": "33f1654c-f734-43d1-b35d-9d2856e41b5a",
+      "uuid": "{33f1654c-f734-43d1-b35d-9d2856e41b5a}",
+      "version_id": "c57fb504-f56b-41b6-9f40-07901f241787",
+      "version_uuid": "{c57fb504-f56b-41b6-9f40-07901f241787}",
+      "version_modified": "20171211T160737Z",
+      "xml_checksum": "9339BE01",
+      "display_name": "Apply Upgrade 2",
+      "class_name": "ApplyUpgrade",
+      "description": "Measure that applies an upgrade (one or more child measures) to a building model based on the specified logic.",
+      "modeler_description": "Determines if the upgrade should apply to a given building model. If so, calls one or more child measures with the appropriate arguments.",
+      "tags": "Whole Building.Space Types",
+      "outputs": [],
+      "attributes": [
+        {
+          "name": "Intended Software Tool",
+          "display_name": "Intended Software Tool",
+          "value": "Apply Measure Now"
+        },
+        {
+          "name": "Intended Software Tool",
+          "display_name": "Intended Software Tool",
+          "value": "OpenStudio Application"
+        },
+        {
+          "name": "Intended Software Tool",
+          "display_name": "Intended Software Tool",
+          "value": "Parametric Analysis Tool"
+        },
+        {
+          "name": "Intended Software Tool",
+          "display_name": "Intended Software Tool",
+          "value": "Apply Measure Now"
+        },
+        {
+          "name": "Intended Software Tool",
+          "display_name": "Intended Software Tool",
+          "value": "OpenStudio Application"
+        },
+        {
+          "name": "Intended Software Tool",
+          "display_name": "Intended Software Tool",
+          "value": "Parametric Analysis Tool"
+        },
+        {
+          "name": "Measure Type",
+          "display_name": "Measure Type",
+          "value": "ModelMeasure"
+        },
+        {
+          "name": "Intended Software Tool",
+          "display_name": "Intended Software Tool",
+          "value": "Apply Measure Now"
+        },
+        {
+          "name": "Intended Software Tool",
+          "display_name": "Intended Software Tool",
+          "value": "OpenStudio Application"
+        },
+        {
+          "name": "Intended Software Tool",
+          "display_name": "Intended Software Tool",
+          "value": "Parametric Analysis Tool"
+        }
+      ],
+      "arguments": [
+        {
+          "name": "upgrade_name",
+          "display_name": "Upgrade Name",
+          "description": "User-specificed name that describes the upgrade.",
+          "type": "String",
+          "required": true,
+          "model_dependent": false,
+          "default_value": "My Upgrade",
+          "display_name_short": "upgrade_name",
+          "inputs": {
+            "relationship": null,
+            "choiceDisplayNames": [],
+            "variableSetting": "Argument",
+            "distribution": "Uniform",
+            "discreteVariables": [],
+            "maximum": "My Upgrade",
+            "minimum": "My Upgrade",
+            "mean": "My Upgrade",
+            "deltaX": "My Upgrade",
+            "stdDev": "My Upgrade",
+            "default_value": "R-13 Wall Insulation"
+          },
+          "$$hashKey": "object:33847"
+        },
+        {
+          "name": "option_1",
+          "display_name": "Option 1",
+          "description": "Specify the parameter|option as found in resources\\options_lookup.tsv.",
+          "type": "String",
+          "required": true,
+          "model_dependent": false,
+          "display_name_short": "option_1",
+          "inputs": {
+            "relationship": null,
+            "choiceDisplayNames": [],
+            "variableSetting": "Argument",
+            "distribution": "Uniform",
+            "discreteVariables": [],
+            "maximum": "",
+            "minimum": "",
+            "mean": "",
+            "deltaX": "",
+            "stdDev": "",
+            "default_value": "Insulation Wall|Wood Stud, R-13"
+          },
+          "$$hashKey": "object:33848"
+        },
+        {
+          "name": "option_1_apply_logic",
+          "display_name": "Option 1 Apply Logic",
+          "description": "Logic that specifies if the Option 1 upgrade will apply based on the existing building's options. Specify one or more parameter|option as found in resources\\options_lookup.tsv. When multiple are included, they must be separated by '||' for OR and '&&' for AND, and using parentheses as appropriate. Prefix an option with '!' for not.",
+          "type": "String",
+          "required": false,
+          "model_dependent": false,
+          "display_name_short": "option_1_apply_logic",
+          "inputs": {
+            "relationship": null,
+            "choiceDisplayNames": [],
+            "variableSetting": "Argument",
+            "distribution": "Uniform",
+            "discreteVariables": [],
+            "maximum": "",
+            "minimum": "",
+            "mean": "",
+            "deltaX": "",
+            "stdDev": "",
+            "default_value": "Insulation Wall|Wood Stud, Uninsulated"
+          },
+          "$$hashKey": "object:33849"
+        },
+        {
+          "name": "option_1_cost_1_value",
+          "display_name": "Option 1 Cost 1 Value",
+          "description": "Total option 1 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).",
+          "type": "Double",
+          "required": false,
+          "model_dependent": false,
+          "units": "$",
+          "display_name_short": "option_1_cost_1_value",
+          "inputs": {
+            "relationship": null,
+            "choiceDisplayNames": [],
+            "variableSetting": "Argument",
+            "distribution": "Uniform",
+            "discreteVariables": [],
+            "maximum": 0,
+            "minimum": 0,
+            "mean": 0,
+            "deltaX": 0,
+            "stdDev": 0,
+            "default_value": 2.21
+          },
+          "$$hashKey": "object:33850"
+        },
+        {
+          "name": "option_1_cost_1_multiplier",
+          "display_name": "Option 1 Cost 1 Multiplier",
+          "description": "Total option 1 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).",
+          "type": "Choice",
+          "required": false,
+          "model_dependent": false,
+          "default_value": "",
+          "choice_values": [
+            "",
+            "Fixed (1)",
+            "Wall Area, Above-Grade, Conditioned (ft^2)",
+            "Wall Area, Above-Grade, Exterior (ft^2)",
+            "Wall Area, Below-Grade (ft^2)",
+            "Floor Area, Conditioned (ft^2)",
+            "Floor Area, Attic (ft^2)",
+            "Floor Area, Lighting (ft^2)",
+            "Roof Area (ft^2)",
+            "Window Area (ft^2)",
+            "Door Area (ft^2)",
+            "Duct Surface Area (ft^2)",
+            "Size, Heating System (kBtu/h)",
+            "Size, Cooling System (kBtu/h)",
+            "Size, Water Heater (gal)"
+          ],
+          "choice_display_names": [
+            "",
+            "Fixed (1)",
+            "Wall Area, Above-Grade, Conditioned (ft^2)",
+            "Wall Area, Above-Grade, Exterior (ft^2)",
+            "Wall Area, Below-Grade (ft^2)",
+            "Floor Area, Conditioned (ft^2)",
+            "Floor Area, Attic (ft^2)",
+            "Floor Area, Lighting (ft^2)",
+            "Roof Area (ft^2)",
+            "Window Area (ft^2)",
+            "Door Area (ft^2)",
+            "Duct Surface Area (ft^2)",
+            "Size, Heating System (kBtu/h)",
+            "Size, Cooling System (kBtu/h)",
+            "Size, Water Heater (gal)"
+          ],
+          "display_name_short": "option_1_cost_1_multiplier",
+          "inputs": {
+            "relationship": null,
+            "choiceDisplayNames": [
+              "",
+              "Fixed (1)",
+              "Wall Area, Above-Grade, Conditioned (ft^2)",
+              "Wall Area, Above-Grade, Exterior (ft^2)",
+              "Wall Area, Below-Grade (ft^2)",
+              "Floor Area, Conditioned (ft^2)",
+              "Floor Area, Attic (ft^2)",
+              "Floor Area, Lighting (ft^2)",
+              "Roof Area (ft^2)",
+              "Window Area (ft^2)",
+              "Door Area (ft^2)",
+              "Duct Surface Area (ft^2)",
+              "Size, Heating System (kBtu/h)",
+              "Size, Cooling System (kBtu/h)",
+              "Size, Water Heater (gal)"
+            ],
+            "variableSetting": "Argument",
+            "distribution": "Uniform",
+            "discreteVariables": [],
+            "maximum": "",
+            "minimum": "",
+            "mean": "",
+            "deltaX": "",
+            "stdDev": "",
+            "default_value": "Wall Area, Above-Grade, Conditioned (ft^2)"
+          },
+          "$$hashKey": "object:33851"
+        },
+        {
+          "name": "option_1_cost_2_value",
+          "display_name": "Option 1 Cost 2 Value",
+          "description": "Total option 1 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).",
+          "type": "Double",
+          "required": false,
+          "model_dependent": false,
+          "units": "$",
+          "display_name_short": "option_1_cost_2_value",
+          "inputs": {
+            "relationship": null,
+            "choiceDisplayNames": [],
+            "variableSetting": "Argument",
+            "distribution": "Uniform",
+            "discreteVariables": [],
+            "maximum": 0,
+            "minimum": 0,
+            "mean": 0,
+            "deltaX": 0,
+            "stdDev": 0,
+            "default_value": 0
+          },
+          "$$hashKey": "object:33852"
+        },
+        {
+          "name": "option_1_cost_2_multiplier",
+          "display_name": "Option 1 Cost 2 Multiplier",
+          "description": "Total option 1 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).",
+          "type": "Choice",
+          "required": false,
+          "model_dependent": false,
+          "default_value": "",
+          "choice_values": [
+            "",
+            "Fixed (1)",
+            "Wall Area, Above-Grade, Conditioned (ft^2)",
+            "Wall Area, Above-Grade, Exterior (ft^2)",
+            "Wall Area, Below-Grade (ft^2)",
+            "Floor Area, Conditioned (ft^2)",
+            "Floor Area, Attic (ft^2)",
+            "Floor Area, Lighting (ft^2)",
+            "Roof Area (ft^2)",
+            "Window Area (ft^2)",
+            "Door Area (ft^2)",
+            "Duct Surface Area (ft^2)",
+            "Size, Heating System (kBtu/h)",
+            "Size, Cooling System (kBtu/h)",
+            "Size, Water Heater (gal)"
+          ],
+          "choice_display_names": [
+            "",
+            "Fixed (1)",
+            "Wall Area, Above-Grade, Conditioned (ft^2)",
+            "Wall Area, Above-Grade, Exterior (ft^2)",
+            "Wall Area, Below-Grade (ft^2)",
+            "Floor Area, Conditioned (ft^2)",
+            "Floor Area, Attic (ft^2)",
+            "Floor Area, Lighting (ft^2)",
+            "Roof Area (ft^2)",
+            "Window Area (ft^2)",
+            "Door Area (ft^2)",
+            "Duct Surface Area (ft^2)",
+            "Size, Heating System (kBtu/h)",
+            "Size, Cooling System (kBtu/h)",
+            "Size, Water Heater (gal)"
+          ],
+          "display_name_short": "option_1_cost_2_multiplier",
+          "inputs": {
+            "relationship": null,
+            "choiceDisplayNames": [
+              "",
+              "Fixed (1)",
+              "Wall Area, Above-Grade, Conditioned (ft^2)",
+              "Wall Area, Above-Grade, Exterior (ft^2)",
+              "Wall Area, Below-Grade (ft^2)",
+              "Floor Area, Conditioned (ft^2)",
+              "Floor Area, Attic (ft^2)",
+              "Floor Area, Lighting (ft^2)",
+              "Roof Area (ft^2)",
+              "Window Area (ft^2)",
+              "Door Area (ft^2)",
+              "Duct Surface Area (ft^2)",
+              "Size, Heating System (kBtu/h)",
+              "Size, Cooling System (kBtu/h)",
+              "Size, Water Heater (gal)"
+            ],
+            "variableSetting": "Argument",
+            "distribution": "Uniform",
+            "discreteVariables": [],
+            "maximum": "",
+            "minimum": "",
+            "mean": "",
+            "deltaX": "",
+            "stdDev": "",
+            "default_value": ""
+          },
+          "$$hashKey": "object:33853"
+        },
+        {
+          "name": "option_1_lifetime",
+          "display_name": "Option 1 Lifetime",
+          "description": "The option lifetime.",
+          "type": "Double",
+          "required": false,
+          "model_dependent": false,
+          "units": "years",
+          "display_name_short": "option_1_lifetime",
+          "inputs": {
+            "relationship": null,
+            "choiceDisplayNames": [],
+            "variableSetting": "Argument",
+            "distribution": "Uniform",
+            "discreteVariables": [],
+            "maximum": 0,
+            "minimum": 0,
+            "mean": 0,
+            "deltaX": 0,
+            "stdDev": 0,
+            "default_value": 999
+          },
+          "$$hashKey": "object:33854"
+        },
+        {
+          "name": "option_2",
+          "display_name": "Option 2",
+          "description": "Specify the parameter|option as found in resources\\options_lookup.tsv.",
+          "type": "String",
+          "required": false,
+          "model_dependent": false,
+          "display_name_short": "option_2",
+          "inputs": {
+            "relationship": null,
+            "choiceDisplayNames": [],
+            "variableSetting": "Argument",
+            "distribution": "Uniform",
+            "discreteVariables": [],
+            "maximum": "",
+            "minimum": "",
+            "mean": "",
+            "deltaX": "",
+            "stdDev": "",
+            "default_value": ""
+          },
+          "$$hashKey": "object:33855"
+        },
+        {
+          "name": "option_2_apply_logic",
+          "display_name": "Option 2 Apply Logic",
+          "description": "Logic that specifies if the Option 2 upgrade will apply based on the existing building's options. Specify one or more parameter|option as found in resources\\options_lookup.tsv. When multiple are included, they must be separated by '||' for OR and '&&' for AND, and using parentheses as appropriate. Prefix an option with '!' for not.",
+          "type": "String",
+          "required": false,
+          "model_dependent": false,
+          "display_name_short": "option_2_apply_logic",
+          "inputs": {
+            "relationship": null,
+            "choiceDisplayNames": [],
+            "variableSetting": "Argument",
+            "distribution": "Uniform",
+            "discreteVariables": [],
+            "maximum": "",
+            "minimum": "",
+            "mean": "",
+            "deltaX": "",
+            "stdDev": "",
+            "default_value": ""
+          },
+          "$$hashKey": "object:33856"
+        },
+        {
+          "name": "option_2_cost_1_value",
+          "display_name": "Option 2 Cost 1 Value",
+          "description": "Total option 2 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).",
+          "type": "Double",
+          "required": false,
+          "model_dependent": false,
+          "units": "$",
+          "display_name_short": "option_2_cost_1_value",
+          "inputs": {
+            "relationship": null,
+            "choiceDisplayNames": [],
+            "variableSetting": "Argument",
+            "distribution": "Uniform",
+            "discreteVariables": [],
+            "maximum": 0,
+            "minimum": 0,
+            "mean": 0,
+            "deltaX": 0,
+            "stdDev": 0,
+            "default_value": 0
+          },
+          "$$hashKey": "object:33857"
+        },
+        {
+          "name": "option_2_cost_1_multiplier",
+          "display_name": "Option 2 Cost 1 Multiplier",
+          "description": "Total option 2 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).",
+          "type": "Choice",
+          "required": false,
+          "model_dependent": false,
+          "default_value": "",
+          "choice_values": [
+            "",
+            "Fixed (1)",
+            "Wall Area, Above-Grade, Conditioned (ft^2)",
+            "Wall Area, Above-Grade, Exterior (ft^2)",
+            "Wall Area, Below-Grade (ft^2)",
+            "Floor Area, Conditioned (ft^2)",
+            "Floor Area, Attic (ft^2)",
+            "Floor Area, Lighting (ft^2)",
+            "Roof Area (ft^2)",
+            "Window Area (ft^2)",
+            "Door Area (ft^2)",
+            "Duct Surface Area (ft^2)",
+            "Size, Heating System (kBtu/h)",
+            "Size, Cooling System (kBtu/h)",
+            "Size, Water Heater (gal)"
+          ],
+          "choice_display_names": [
+            "",
+            "Fixed (1)",
+            "Wall Area, Above-Grade, Conditioned (ft^2)",
+            "Wall Area, Above-Grade, Exterior (ft^2)",
+            "Wall Area, Below-Grade (ft^2)",
+            "Floor Area, Conditioned (ft^2)",
+            "Floor Area, Attic (ft^2)",
+            "Floor Area, Lighting (ft^2)",
+            "Roof Area (ft^2)",
+            "Window Area (ft^2)",
+            "Door Area (ft^2)",
+            "Duct Surface Area (ft^2)",
+            "Size, Heating System (kBtu/h)",
+            "Size, Cooling System (kBtu/h)",
+            "Size, Water Heater (gal)"
+          ],
+          "display_name_short": "option_2_cost_1_multiplier",
+          "inputs": {
+            "relationship": null,
+            "choiceDisplayNames": [
+              "",
+              "Fixed (1)",
+              "Wall Area, Above-Grade, Conditioned (ft^2)",
+              "Wall Area, Above-Grade, Exterior (ft^2)",
+              "Wall Area, Below-Grade (ft^2)",
+              "Floor Area, Conditioned (ft^2)",
+              "Floor Area, Attic (ft^2)",
+              "Floor Area, Lighting (ft^2)",
+              "Roof Area (ft^2)",
+              "Window Area (ft^2)",
+              "Door Area (ft^2)",
+              "Duct Surface Area (ft^2)",
+              "Size, Heating System (kBtu/h)",
+              "Size, Cooling System (kBtu/h)",
+              "Size, Water Heater (gal)"
+            ],
+            "variableSetting": "Argument",
+            "distribution": "Uniform",
+            "discreteVariables": [],
+            "maximum": "",
+            "minimum": "",
+            "mean": "",
+            "deltaX": "",
+            "stdDev": "",
+            "default_value": ""
+          },
+          "$$hashKey": "object:33858"
+        },
+        {
+          "name": "option_2_cost_2_value",
+          "display_name": "Option 2 Cost 2 Value",
+          "description": "Total option 2 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).",
+          "type": "Double",
+          "required": false,
+          "model_dependent": false,
+          "units": "$",
+          "display_name_short": "option_2_cost_2_value",
+          "inputs": {
+            "relationship": null,
+            "choiceDisplayNames": [],
+            "variableSetting": "Argument",
+            "distribution": "Uniform",
+            "discreteVariables": [],
+            "maximum": 0,
+            "minimum": 0,
+            "mean": 0,
+            "deltaX": 0,
+            "stdDev": 0,
+            "default_value": 0
+          },
+          "$$hashKey": "object:33859"
+        },
+        {
+          "name": "option_2_cost_2_multiplier",
+          "display_name": "Option 2 Cost 2 Multiplier",
+          "description": "Total option 2 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).",
+          "type": "Choice",
+          "required": false,
+          "model_dependent": false,
+          "default_value": "",
+          "choice_values": [
+            "",
+            "Fixed (1)",
+            "Wall Area, Above-Grade, Conditioned (ft^2)",
+            "Wall Area, Above-Grade, Exterior (ft^2)",
+            "Wall Area, Below-Grade (ft^2)",
+            "Floor Area, Conditioned (ft^2)",
+            "Floor Area, Attic (ft^2)",
+            "Floor Area, Lighting (ft^2)",
+            "Roof Area (ft^2)",
+            "Window Area (ft^2)",
+            "Door Area (ft^2)",
+            "Duct Surface Area (ft^2)",
+            "Size, Heating System (kBtu/h)",
+            "Size, Cooling System (kBtu/h)",
+            "Size, Water Heater (gal)"
+          ],
+          "choice_display_names": [
+            "",
+            "Fixed (1)",
+            "Wall Area, Above-Grade, Conditioned (ft^2)",
+            "Wall Area, Above-Grade, Exterior (ft^2)",
+            "Wall Area, Below-Grade (ft^2)",
+            "Floor Area, Conditioned (ft^2)",
+            "Floor Area, Attic (ft^2)",
+            "Floor Area, Lighting (ft^2)",
+            "Roof Area (ft^2)",
+            "Window Area (ft^2)",
+            "Door Area (ft^2)",
+            "Duct Surface Area (ft^2)",
+            "Size, Heating System (kBtu/h)",
+            "Size, Cooling System (kBtu/h)",
+            "Size, Water Heater (gal)"
+          ],
+          "display_name_short": "option_2_cost_2_multiplier",
+          "inputs": {
+            "relationship": null,
+            "choiceDisplayNames": [
+              "",
+              "Fixed (1)",
+              "Wall Area, Above-Grade, Conditioned (ft^2)",
+              "Wall Area, Above-Grade, Exterior (ft^2)",
+              "Wall Area, Below-Grade (ft^2)",
+              "Floor Area, Conditioned (ft^2)",
+              "Floor Area, Attic (ft^2)",
+              "Floor Area, Lighting (ft^2)",
+              "Roof Area (ft^2)",
+              "Window Area (ft^2)",
+              "Door Area (ft^2)",
+              "Duct Surface Area (ft^2)",
+              "Size, Heating System (kBtu/h)",
+              "Size, Cooling System (kBtu/h)",
+              "Size, Water Heater (gal)"
+            ],
+            "variableSetting": "Argument",
+            "distribution": "Uniform",
+            "discreteVariables": [],
+            "maximum": "",
+            "minimum": "",
+            "mean": "",
+            "deltaX": "",
+            "stdDev": "",
+            "default_value": ""
+          },
+          "$$hashKey": "object:33860"
+        },
+        {
+          "name": "option_2_lifetime",
+          "display_name": "Option 2 Lifetime",
+          "description": "The option lifetime.",
+          "type": "Double",
+          "required": false,
+          "model_dependent": false,
+          "units": "years",
+          "display_name_short": "option_2_lifetime",
+          "inputs": {
+            "relationship": null,
+            "choiceDisplayNames": [],
+            "variableSetting": "Argument",
+            "distribution": "Uniform",
+            "discreteVariables": [],
+            "maximum": 0,
+            "minimum": 0,
+            "mean": 0,
+            "deltaX": 0,
+            "stdDev": 0,
+            "default_value": 0
+          },
+          "$$hashKey": "object:33861"
+        },
+        {
+          "name": "option_3",
+          "display_name": "Option 3",
+          "description": "Specify the parameter|option as found in resources\\options_lookup.tsv.",
+          "type": "String",
+          "required": false,
+          "model_dependent": false,
+          "display_name_short": "option_3",
+          "inputs": {
+            "relationship": null,
+            "choiceDisplayNames": [],
+            "variableSetting": "Argument",
+            "distribution": "Uniform",
+            "discreteVariables": [],
+            "maximum": "",
+            "minimum": "",
+            "mean": "",
+            "deltaX": "",
+            "stdDev": "",
+            "default_value": ""
+          },
+          "$$hashKey": "object:33862"
+        },
+        {
+          "name": "option_3_apply_logic",
+          "display_name": "Option 3 Apply Logic",
+          "description": "Logic that specifies if the Option 3 upgrade will apply based on the existing building's options. Specify one or more parameter|option as found in resources\\options_lookup.tsv. When multiple are included, they must be separated by '||' for OR and '&&' for AND, and using parentheses as appropriate. Prefix an option with '!' for not.",
+          "type": "String",
+          "required": false,
+          "model_dependent": false,
+          "display_name_short": "option_3_apply_logic",
+          "inputs": {
+            "relationship": null,
+            "choiceDisplayNames": [],
+            "variableSetting": "Argument",
+            "distribution": "Uniform",
+            "discreteVariables": [],
+            "maximum": "",
+            "minimum": "",
+            "mean": "",
+            "deltaX": "",
+            "stdDev": "",
+            "default_value": ""
+          },
+          "$$hashKey": "object:33863"
+        },
+        {
+          "name": "option_3_cost_1_value",
+          "display_name": "Option 3 Cost 1 Value",
+          "description": "Total option 3 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).",
+          "type": "Double",
+          "required": false,
+          "model_dependent": false,
+          "units": "$",
+          "display_name_short": "option_3_cost_1_value",
+          "inputs": {
+            "relationship": null,
+            "choiceDisplayNames": [],
+            "variableSetting": "Argument",
+            "distribution": "Uniform",
+            "discreteVariables": [],
+            "maximum": 0,
+            "minimum": 0,
+            "mean": 0,
+            "deltaX": 0,
+            "stdDev": 0,
+            "default_value": 0
+          },
+          "$$hashKey": "object:33864"
+        },
+        {
+          "name": "option_3_cost_1_multiplier",
+          "display_name": "Option 3 Cost 1 Multiplier",
+          "description": "Total option 3 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).",
+          "type": "Choice",
+          "required": false,
+          "model_dependent": false,
+          "default_value": "",
+          "choice_values": [
+            "",
+            "Fixed (1)",
+            "Wall Area, Above-Grade, Conditioned (ft^2)",
+            "Wall Area, Above-Grade, Exterior (ft^2)",
+            "Wall Area, Below-Grade (ft^2)",
+            "Floor Area, Conditioned (ft^2)",
+            "Floor Area, Attic (ft^2)",
+            "Floor Area, Lighting (ft^2)",
+            "Roof Area (ft^2)",
+            "Window Area (ft^2)",
+            "Door Area (ft^2)",
+            "Duct Surface Area (ft^2)",
+            "Size, Heating System (kBtu/h)",
+            "Size, Cooling System (kBtu/h)",
+            "Size, Water Heater (gal)"
+          ],
+          "choice_display_names": [
+            "",
+            "Fixed (1)",
+            "Wall Area, Above-Grade, Conditioned (ft^2)",
+            "Wall Area, Above-Grade, Exterior (ft^2)",
+            "Wall Area, Below-Grade (ft^2)",
+            "Floor Area, Conditioned (ft^2)",
+            "Floor Area, Attic (ft^2)",
+            "Floor Area, Lighting (ft^2)",
+            "Roof Area (ft^2)",
+            "Window Area (ft^2)",
+            "Door Area (ft^2)",
+            "Duct Surface Area (ft^2)",
+            "Size, Heating System (kBtu/h)",
+            "Size, Cooling System (kBtu/h)",
+            "Size, Water Heater (gal)"
+          ],
+          "display_name_short": "option_3_cost_1_multiplier",
+          "inputs": {
+            "relationship": null,
+            "choiceDisplayNames": [
+              "",
+              "Fixed (1)",
+              "Wall Area, Above-Grade, Conditioned (ft^2)",
+              "Wall Area, Above-Grade, Exterior (ft^2)",
+              "Wall Area, Below-Grade (ft^2)",
+              "Floor Area, Conditioned (ft^2)",
+              "Floor Area, Attic (ft^2)",
+              "Floor Area, Lighting (ft^2)",
+              "Roof Area (ft^2)",
+              "Window Area (ft^2)",
+              "Door Area (ft^2)",
+              "Duct Surface Area (ft^2)",
+              "Size, Heating System (kBtu/h)",
+              "Size, Cooling System (kBtu/h)",
+              "Size, Water Heater (gal)"
+            ],
+            "variableSetting": "Argument",
+            "distribution": "Uniform",
+            "discreteVariables": [],
+            "maximum": "",
+            "minimum": "",
+            "mean": "",
+            "deltaX": "",
+            "stdDev": "",
+            "default_value": ""
+          },
+          "$$hashKey": "object:33865"
+        },
+        {
+          "name": "option_3_cost_2_value",
+          "display_name": "Option 3 Cost 2 Value",
+          "description": "Total option 3 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).",
+          "type": "Double",
+          "required": false,
+          "model_dependent": false,
+          "units": "$",
+          "display_name_short": "option_3_cost_2_value",
+          "inputs": {
+            "relationship": null,
+            "choiceDisplayNames": [],
+            "variableSetting": "Argument",
+            "distribution": "Uniform",
+            "discreteVariables": [],
+            "maximum": 0,
+            "minimum": 0,
+            "mean": 0,
+            "deltaX": 0,
+            "stdDev": 0,
+            "default_value": 0
+          },
+          "$$hashKey": "object:33866"
+        },
+        {
+          "name": "option_3_cost_2_multiplier",
+          "display_name": "Option 3 Cost 2 Multiplier",
+          "description": "Total option 3 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).",
+          "type": "Choice",
+          "required": false,
+          "model_dependent": false,
+          "default_value": "",
+          "choice_values": [
+            "",
+            "Fixed (1)",
+            "Wall Area, Above-Grade, Conditioned (ft^2)",
+            "Wall Area, Above-Grade, Exterior (ft^2)",
+            "Wall Area, Below-Grade (ft^2)",
+            "Floor Area, Conditioned (ft^2)",
+            "Floor Area, Attic (ft^2)",
+            "Floor Area, Lighting (ft^2)",
+            "Roof Area (ft^2)",
+            "Window Area (ft^2)",
+            "Door Area (ft^2)",
+            "Duct Surface Area (ft^2)",
+            "Size, Heating System (kBtu/h)",
+            "Size, Cooling System (kBtu/h)",
+            "Size, Water Heater (gal)"
+          ],
+          "choice_display_names": [
+            "",
+            "Fixed (1)",
+            "Wall Area, Above-Grade, Conditioned (ft^2)",
+            "Wall Area, Above-Grade, Exterior (ft^2)",
+            "Wall Area, Below-Grade (ft^2)",
+            "Floor Area, Conditioned (ft^2)",
+            "Floor Area, Attic (ft^2)",
+            "Floor Area, Lighting (ft^2)",
+            "Roof Area (ft^2)",
+            "Window Area (ft^2)",
+            "Door Area (ft^2)",
+            "Duct Surface Area (ft^2)",
+            "Size, Heating System (kBtu/h)",
+            "Size, Cooling System (kBtu/h)",
+            "Size, Water Heater (gal)"
+          ],
+          "display_name_short": "option_3_cost_2_multiplier",
+          "inputs": {
+            "relationship": null,
+            "choiceDisplayNames": [
+              "",
+              "Fixed (1)",
+              "Wall Area, Above-Grade, Conditioned (ft^2)",
+              "Wall Area, Above-Grade, Exterior (ft^2)",
+              "Wall Area, Below-Grade (ft^2)",
+              "Floor Area, Conditioned (ft^2)",
+              "Floor Area, Attic (ft^2)",
+              "Floor Area, Lighting (ft^2)",
+              "Roof Area (ft^2)",
+              "Window Area (ft^2)",
+              "Door Area (ft^2)",
+              "Duct Surface Area (ft^2)",
+              "Size, Heating System (kBtu/h)",
+              "Size, Cooling System (kBtu/h)",
+              "Size, Water Heater (gal)"
+            ],
+            "variableSetting": "Argument",
+            "distribution": "Uniform",
+            "discreteVariables": [],
+            "maximum": "",
+            "minimum": "",
+            "mean": "",
+            "deltaX": "",
+            "stdDev": "",
+            "default_value": ""
+          },
+          "$$hashKey": "object:33867"
+        },
+        {
+          "name": "option_3_lifetime",
+          "display_name": "Option 3 Lifetime",
+          "description": "The option lifetime.",
+          "type": "Double",
+          "required": false,
+          "model_dependent": false,
+          "units": "years",
+          "display_name_short": "option_3_lifetime",
+          "inputs": {
+            "relationship": null,
+            "choiceDisplayNames": [],
+            "variableSetting": "Argument",
+            "distribution": "Uniform",
+            "discreteVariables": [],
+            "maximum": 0,
+            "minimum": 0,
+            "mean": 0,
+            "deltaX": 0,
+            "stdDev": 0,
+            "default_value": 0
+          },
+          "$$hashKey": "object:33868"
+        },
+        {
+          "name": "option_4",
+          "display_name": "Option 4",
+          "description": "Specify the parameter|option as found in resources\\options_lookup.tsv.",
+          "type": "String",
+          "required": false,
+          "model_dependent": false,
+          "display_name_short": "option_4",
+          "inputs": {
+            "relationship": null,
+            "choiceDisplayNames": [],
+            "variableSetting": "Argument",
+            "distribution": "Uniform",
+            "discreteVariables": [],
+            "maximum": "",
+            "minimum": "",
+            "mean": "",
+            "deltaX": "",
+            "stdDev": "",
+            "default_value": ""
+          },
+          "$$hashKey": "object:33869"
+        },
+        {
+          "name": "option_4_apply_logic",
+          "display_name": "Option 4 Apply Logic",
+          "description": "Logic that specifies if the Option 4 upgrade will apply based on the existing building's options. Specify one or more parameter|option as found in resources\\options_lookup.tsv. When multiple are included, they must be separated by '||' for OR and '&&' for AND, and using parentheses as appropriate. Prefix an option with '!' for not.",
+          "type": "String",
+          "required": false,
+          "model_dependent": false,
+          "display_name_short": "option_4_apply_logic",
+          "inputs": {
+            "relationship": null,
+            "choiceDisplayNames": [],
+            "variableSetting": "Argument",
+            "distribution": "Uniform",
+            "discreteVariables": [],
+            "maximum": "",
+            "minimum": "",
+            "mean": "",
+            "deltaX": "",
+            "stdDev": "",
+            "default_value": ""
+          },
+          "$$hashKey": "object:33870"
+        },
+        {
+          "name": "option_4_cost_1_value",
+          "display_name": "Option 4 Cost 1 Value",
+          "description": "Total option 4 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).",
+          "type": "Double",
+          "required": false,
+          "model_dependent": false,
+          "units": "$",
+          "display_name_short": "option_4_cost_1_value",
+          "inputs": {
+            "relationship": null,
+            "choiceDisplayNames": [],
+            "variableSetting": "Argument",
+            "distribution": "Uniform",
+            "discreteVariables": [],
+            "maximum": 0,
+            "minimum": 0,
+            "mean": 0,
+            "deltaX": 0,
+            "stdDev": 0,
+            "default_value": 0
+          },
+          "$$hashKey": "object:33871"
+        },
+        {
+          "name": "option_4_cost_1_multiplier",
+          "display_name": "Option 4 Cost 1 Multiplier",
+          "description": "Total option 4 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).",
+          "type": "Choice",
+          "required": false,
+          "model_dependent": false,
+          "default_value": "",
+          "choice_values": [
+            "",
+            "Fixed (1)",
+            "Wall Area, Above-Grade, Conditioned (ft^2)",
+            "Wall Area, Above-Grade, Exterior (ft^2)",
+            "Wall Area, Below-Grade (ft^2)",
+            "Floor Area, Conditioned (ft^2)",
+            "Floor Area, Attic (ft^2)",
+            "Floor Area, Lighting (ft^2)",
+            "Roof Area (ft^2)",
+            "Window Area (ft^2)",
+            "Door Area (ft^2)",
+            "Duct Surface Area (ft^2)",
+            "Size, Heating System (kBtu/h)",
+            "Size, Cooling System (kBtu/h)",
+            "Size, Water Heater (gal)"
+          ],
+          "choice_display_names": [
+            "",
+            "Fixed (1)",
+            "Wall Area, Above-Grade, Conditioned (ft^2)",
+            "Wall Area, Above-Grade, Exterior (ft^2)",
+            "Wall Area, Below-Grade (ft^2)",
+            "Floor Area, Conditioned (ft^2)",
+            "Floor Area, Attic (ft^2)",
+            "Floor Area, Lighting (ft^2)",
+            "Roof Area (ft^2)",
+            "Window Area (ft^2)",
+            "Door Area (ft^2)",
+            "Duct Surface Area (ft^2)",
+            "Size, Heating System (kBtu/h)",
+            "Size, Cooling System (kBtu/h)",
+            "Size, Water Heater (gal)"
+          ],
+          "display_name_short": "option_4_cost_1_multiplier",
+          "inputs": {
+            "relationship": null,
+            "choiceDisplayNames": [
+              "",
+              "Fixed (1)",
+              "Wall Area, Above-Grade, Conditioned (ft^2)",
+              "Wall Area, Above-Grade, Exterior (ft^2)",
+              "Wall Area, Below-Grade (ft^2)",
+              "Floor Area, Conditioned (ft^2)",
+              "Floor Area, Attic (ft^2)",
+              "Floor Area, Lighting (ft^2)",
+              "Roof Area (ft^2)",
+              "Window Area (ft^2)",
+              "Door Area (ft^2)",
+              "Duct Surface Area (ft^2)",
+              "Size, Heating System (kBtu/h)",
+              "Size, Cooling System (kBtu/h)",
+              "Size, Water Heater (gal)"
+            ],
+            "variableSetting": "Argument",
+            "distribution": "Uniform",
+            "discreteVariables": [],
+            "maximum": "",
+            "minimum": "",
+            "mean": "",
+            "deltaX": "",
+            "stdDev": "",
+            "default_value": ""
+          },
+          "$$hashKey": "object:33872"
+        },
+        {
+          "name": "option_4_cost_2_value",
+          "display_name": "Option 4 Cost 2 Value",
+          "description": "Total option 4 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).",
+          "type": "Double",
+          "required": false,
+          "model_dependent": false,
+          "units": "$",
+          "display_name_short": "option_4_cost_2_value",
+          "inputs": {
+            "relationship": null,
+            "choiceDisplayNames": [],
+            "variableSetting": "Argument",
+            "distribution": "Uniform",
+            "discreteVariables": [],
+            "maximum": 0,
+            "minimum": 0,
+            "mean": 0,
+            "deltaX": 0,
+            "stdDev": 0,
+            "default_value": 0
+          },
+          "$$hashKey": "object:33873"
+        },
+        {
+          "name": "option_4_cost_2_multiplier",
+          "display_name": "Option 4 Cost 2 Multiplier",
+          "description": "Total option 4 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).",
+          "type": "Choice",
+          "required": false,
+          "model_dependent": false,
+          "default_value": "",
+          "choice_values": [
+            "",
+            "Fixed (1)",
+            "Wall Area, Above-Grade, Conditioned (ft^2)",
+            "Wall Area, Above-Grade, Exterior (ft^2)",
+            "Wall Area, Below-Grade (ft^2)",
+            "Floor Area, Conditioned (ft^2)",
+            "Floor Area, Attic (ft^2)",
+            "Floor Area, Lighting (ft^2)",
+            "Roof Area (ft^2)",
+            "Window Area (ft^2)",
+            "Door Area (ft^2)",
+            "Duct Surface Area (ft^2)",
+            "Size, Heating System (kBtu/h)",
+            "Size, Cooling System (kBtu/h)",
+            "Size, Water Heater (gal)"
+          ],
+          "choice_display_names": [
+            "",
+            "Fixed (1)",
+            "Wall Area, Above-Grade, Conditioned (ft^2)",
+            "Wall Area, Above-Grade, Exterior (ft^2)",
+            "Wall Area, Below-Grade (ft^2)",
+            "Floor Area, Conditioned (ft^2)",
+            "Floor Area, Attic (ft^2)",
+            "Floor Area, Lighting (ft^2)",
+            "Roof Area (ft^2)",
+            "Window Area (ft^2)",
+            "Door Area (ft^2)",
+            "Duct Surface Area (ft^2)",
+            "Size, Heating System (kBtu/h)",
+            "Size, Cooling System (kBtu/h)",
+            "Size, Water Heater (gal)"
+          ],
+          "display_name_short": "option_4_cost_2_multiplier",
+          "inputs": {
+            "relationship": null,
+            "choiceDisplayNames": [
+              "",
+              "Fixed (1)",
+              "Wall Area, Above-Grade, Conditioned (ft^2)",
+              "Wall Area, Above-Grade, Exterior (ft^2)",
+              "Wall Area, Below-Grade (ft^2)",
+              "Floor Area, Conditioned (ft^2)",
+              "Floor Area, Attic (ft^2)",
+              "Floor Area, Lighting (ft^2)",
+              "Roof Area (ft^2)",
+              "Window Area (ft^2)",
+              "Door Area (ft^2)",
+              "Duct Surface Area (ft^2)",
+              "Size, Heating System (kBtu/h)",
+              "Size, Cooling System (kBtu/h)",
+              "Size, Water Heater (gal)"
+            ],
+            "variableSetting": "Argument",
+            "distribution": "Uniform",
+            "discreteVariables": [],
+            "maximum": "",
+            "minimum": "",
+            "mean": "",
+            "deltaX": "",
+            "stdDev": "",
+            "default_value": ""
+          },
+          "$$hashKey": "object:33874"
+        },
+        {
+          "name": "option_4_lifetime",
+          "display_name": "Option 4 Lifetime",
+          "description": "The option lifetime.",
+          "type": "Double",
+          "required": false,
+          "model_dependent": false,
+          "units": "years",
+          "display_name_short": "option_4_lifetime",
+          "inputs": {
+            "relationship": null,
+            "choiceDisplayNames": [],
+            "variableSetting": "Argument",
+            "distribution": "Uniform",
+            "discreteVariables": [],
+            "maximum": 0,
+            "minimum": 0,
+            "mean": 0,
+            "deltaX": 0,
+            "stdDev": 0,
+            "default_value": 0
+          },
+          "$$hashKey": "object:33875"
+        },
+        {
+          "name": "option_5",
+          "display_name": "Option 5",
+          "description": "Specify the parameter|option as found in resources\\options_lookup.tsv.",
+          "type": "String",
+          "required": false,
+          "model_dependent": false,
+          "display_name_short": "option_5",
+          "inputs": {
+            "relationship": null,
+            "choiceDisplayNames": [],
+            "variableSetting": "Argument",
+            "distribution": "Uniform",
+            "discreteVariables": [],
+            "maximum": "",
+            "minimum": "",
+            "mean": "",
+            "deltaX": "",
+            "stdDev": "",
+            "default_value": ""
+          },
+          "$$hashKey": "object:33876"
+        },
+        {
+          "name": "option_5_apply_logic",
+          "display_name": "Option 5 Apply Logic",
+          "description": "Logic that specifies if the Option 5 upgrade will apply based on the existing building's options. Specify one or more parameter|option as found in resources\\options_lookup.tsv. When multiple are included, they must be separated by '||' for OR and '&&' for AND, and using parentheses as appropriate. Prefix an option with '!' for not.",
+          "type": "String",
+          "required": false,
+          "model_dependent": false,
+          "display_name_short": "option_5_apply_logic",
+          "inputs": {
+            "relationship": null,
+            "choiceDisplayNames": [],
+            "variableSetting": "Argument",
+            "distribution": "Uniform",
+            "discreteVariables": [],
+            "maximum": "",
+            "minimum": "",
+            "mean": "",
+            "deltaX": "",
+            "stdDev": "",
+            "default_value": ""
+          },
+          "$$hashKey": "object:33877"
+        },
+        {
+          "name": "option_5_cost_1_value",
+          "display_name": "Option 5 Cost 1 Value",
+          "description": "Total option 5 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).",
+          "type": "Double",
+          "required": false,
+          "model_dependent": false,
+          "units": "$",
+          "display_name_short": "option_5_cost_1_value",
+          "inputs": {
+            "relationship": null,
+            "choiceDisplayNames": [],
+            "variableSetting": "Argument",
+            "distribution": "Uniform",
+            "discreteVariables": [],
+            "maximum": 0,
+            "minimum": 0,
+            "mean": 0,
+            "deltaX": 0,
+            "stdDev": 0,
+            "default_value": 0
+          },
+          "$$hashKey": "object:33878"
+        },
+        {
+          "name": "option_5_cost_1_multiplier",
+          "display_name": "Option 5 Cost 1 Multiplier",
+          "description": "Total option 5 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).",
+          "type": "Choice",
+          "required": false,
+          "model_dependent": false,
+          "default_value": "",
+          "choice_values": [
+            "",
+            "Fixed (1)",
+            "Wall Area, Above-Grade, Conditioned (ft^2)",
+            "Wall Area, Above-Grade, Exterior (ft^2)",
+            "Wall Area, Below-Grade (ft^2)",
+            "Floor Area, Conditioned (ft^2)",
+            "Floor Area, Attic (ft^2)",
+            "Floor Area, Lighting (ft^2)",
+            "Roof Area (ft^2)",
+            "Window Area (ft^2)",
+            "Door Area (ft^2)",
+            "Duct Surface Area (ft^2)",
+            "Size, Heating System (kBtu/h)",
+            "Size, Cooling System (kBtu/h)",
+            "Size, Water Heater (gal)"
+          ],
+          "choice_display_names": [
+            "",
+            "Fixed (1)",
+            "Wall Area, Above-Grade, Conditioned (ft^2)",
+            "Wall Area, Above-Grade, Exterior (ft^2)",
+            "Wall Area, Below-Grade (ft^2)",
+            "Floor Area, Conditioned (ft^2)",
+            "Floor Area, Attic (ft^2)",
+            "Floor Area, Lighting (ft^2)",
+            "Roof Area (ft^2)",
+            "Window Area (ft^2)",
+            "Door Area (ft^2)",
+            "Duct Surface Area (ft^2)",
+            "Size, Heating System (kBtu/h)",
+            "Size, Cooling System (kBtu/h)",
+            "Size, Water Heater (gal)"
+          ],
+          "display_name_short": "option_5_cost_1_multiplier",
+          "inputs": {
+            "relationship": null,
+            "choiceDisplayNames": [
+              "",
+              "Fixed (1)",
+              "Wall Area, Above-Grade, Conditioned (ft^2)",
+              "Wall Area, Above-Grade, Exterior (ft^2)",
+              "Wall Area, Below-Grade (ft^2)",
+              "Floor Area, Conditioned (ft^2)",
+              "Floor Area, Attic (ft^2)",
+              "Floor Area, Lighting (ft^2)",
+              "Roof Area (ft^2)",
+              "Window Area (ft^2)",
+              "Door Area (ft^2)",
+              "Duct Surface Area (ft^2)",
+              "Size, Heating System (kBtu/h)",
+              "Size, Cooling System (kBtu/h)",
+              "Size, Water Heater (gal)"
+            ],
+            "variableSetting": "Argument",
+            "distribution": "Uniform",
+            "discreteVariables": [],
+            "maximum": "",
+            "minimum": "",
+            "mean": "",
+            "deltaX": "",
+            "stdDev": "",
+            "default_value": ""
+          },
+          "$$hashKey": "object:33879"
+        },
+        {
+          "name": "option_5_cost_2_value",
+          "display_name": "Option 5 Cost 2 Value",
+          "description": "Total option 5 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).",
+          "type": "Double",
+          "required": false,
+          "model_dependent": false,
+          "units": "$",
+          "display_name_short": "option_5_cost_2_value",
+          "inputs": {
+            "relationship": null,
+            "choiceDisplayNames": [],
+            "variableSetting": "Argument",
+            "distribution": "Uniform",
+            "discreteVariables": [],
+            "maximum": 0,
+            "minimum": 0,
+            "mean": 0,
+            "deltaX": 0,
+            "stdDev": 0,
+            "default_value": 0
+          },
+          "$$hashKey": "object:33880"
+        },
+        {
+          "name": "option_5_cost_2_multiplier",
+          "display_name": "Option 5 Cost 2 Multiplier",
+          "description": "Total option 5 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).",
+          "type": "Choice",
+          "required": false,
+          "model_dependent": false,
+          "default_value": "",
+          "choice_values": [
+            "",
+            "Fixed (1)",
+            "Wall Area, Above-Grade, Conditioned (ft^2)",
+            "Wall Area, Above-Grade, Exterior (ft^2)",
+            "Wall Area, Below-Grade (ft^2)",
+            "Floor Area, Conditioned (ft^2)",
+            "Floor Area, Attic (ft^2)",
+            "Floor Area, Lighting (ft^2)",
+            "Roof Area (ft^2)",
+            "Window Area (ft^2)",
+            "Door Area (ft^2)",
+            "Duct Surface Area (ft^2)",
+            "Size, Heating System (kBtu/h)",
+            "Size, Cooling System (kBtu/h)",
+            "Size, Water Heater (gal)"
+          ],
+          "choice_display_names": [
+            "",
+            "Fixed (1)",
+            "Wall Area, Above-Grade, Conditioned (ft^2)",
+            "Wall Area, Above-Grade, Exterior (ft^2)",
+            "Wall Area, Below-Grade (ft^2)",
+            "Floor Area, Conditioned (ft^2)",
+            "Floor Area, Attic (ft^2)",
+            "Floor Area, Lighting (ft^2)",
+            "Roof Area (ft^2)",
+            "Window Area (ft^2)",
+            "Door Area (ft^2)",
+            "Duct Surface Area (ft^2)",
+            "Size, Heating System (kBtu/h)",
+            "Size, Cooling System (kBtu/h)",
+            "Size, Water Heater (gal)"
+          ],
+          "display_name_short": "option_5_cost_2_multiplier",
+          "inputs": {
+            "relationship": null,
+            "choiceDisplayNames": [
+              "",
+              "Fixed (1)",
+              "Wall Area, Above-Grade, Conditioned (ft^2)",
+              "Wall Area, Above-Grade, Exterior (ft^2)",
+              "Wall Area, Below-Grade (ft^2)",
+              "Floor Area, Conditioned (ft^2)",
+              "Floor Area, Attic (ft^2)",
+              "Floor Area, Lighting (ft^2)",
+              "Roof Area (ft^2)",
+              "Window Area (ft^2)",
+              "Door Area (ft^2)",
+              "Duct Surface Area (ft^2)",
+              "Size, Heating System (kBtu/h)",
+              "Size, Cooling System (kBtu/h)",
+              "Size, Water Heater (gal)"
+            ],
+            "variableSetting": "Argument",
+            "distribution": "Uniform",
+            "discreteVariables": [],
+            "maximum": "",
+            "minimum": "",
+            "mean": "",
+            "deltaX": "",
+            "stdDev": "",
+            "default_value": ""
+          },
+          "$$hashKey": "object:33881"
+        },
+        {
+          "name": "option_5_lifetime",
+          "display_name": "Option 5 Lifetime",
+          "description": "The option lifetime.",
+          "type": "Double",
+          "required": false,
+          "model_dependent": false,
+          "units": "years",
+          "display_name_short": "option_5_lifetime",
+          "inputs": {
+            "relationship": null,
+            "choiceDisplayNames": [],
+            "variableSetting": "Argument",
+            "distribution": "Uniform",
+            "discreteVariables": [],
+            "maximum": 0,
+            "minimum": 0,
+            "mean": 0,
+            "deltaX": 0,
+            "stdDev": 0,
+            "default_value": 0
+          },
+          "$$hashKey": "object:33882"
+        },
+        {
+          "name": "option_6",
+          "display_name": "Option 6",
+          "description": "Specify the parameter|option as found in resources\\options_lookup.tsv.",
+          "type": "String",
+          "required": false,
+          "model_dependent": false,
+          "display_name_short": "option_6",
+          "inputs": {
+            "relationship": null,
+            "choiceDisplayNames": [],
+            "variableSetting": "Argument",
+            "distribution": "Uniform",
+            "discreteVariables": [],
+            "maximum": "",
+            "minimum": "",
+            "mean": "",
+            "deltaX": "",
+            "stdDev": "",
+            "default_value": ""
+          },
+          "$$hashKey": "object:33883"
+        },
+        {
+          "name": "option_6_apply_logic",
+          "display_name": "Option 6 Apply Logic",
+          "description": "Logic that specifies if the Option 6 upgrade will apply based on the existing building's options. Specify one or more parameter|option as found in resources\\options_lookup.tsv. When multiple are included, they must be separated by '||' for OR and '&&' for AND, and using parentheses as appropriate. Prefix an option with '!' for not.",
+          "type": "String",
+          "required": false,
+          "model_dependent": false,
+          "display_name_short": "option_6_apply_logic",
+          "inputs": {
+            "relationship": null,
+            "choiceDisplayNames": [],
+            "variableSetting": "Argument",
+            "distribution": "Uniform",
+            "discreteVariables": [],
+            "maximum": "",
+            "minimum": "",
+            "mean": "",
+            "deltaX": "",
+            "stdDev": "",
+            "default_value": ""
+          },
+          "$$hashKey": "object:33884"
+        },
+        {
+          "name": "option_6_cost_1_value",
+          "display_name": "Option 6 Cost 1 Value",
+          "description": "Total option 6 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).",
+          "type": "Double",
+          "required": false,
+          "model_dependent": false,
+          "units": "$",
+          "display_name_short": "option_6_cost_1_value",
+          "inputs": {
+            "relationship": null,
+            "choiceDisplayNames": [],
+            "variableSetting": "Argument",
+            "distribution": "Uniform",
+            "discreteVariables": [],
+            "maximum": 0,
+            "minimum": 0,
+            "mean": 0,
+            "deltaX": 0,
+            "stdDev": 0,
+            "default_value": 0
+          },
+          "$$hashKey": "object:33885"
+        },
+        {
+          "name": "option_6_cost_1_multiplier",
+          "display_name": "Option 6 Cost 1 Multiplier",
+          "description": "Total option 6 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).",
+          "type": "Choice",
+          "required": false,
+          "model_dependent": false,
+          "default_value": "",
+          "choice_values": [
+            "",
+            "Fixed (1)",
+            "Wall Area, Above-Grade, Conditioned (ft^2)",
+            "Wall Area, Above-Grade, Exterior (ft^2)",
+            "Wall Area, Below-Grade (ft^2)",
+            "Floor Area, Conditioned (ft^2)",
+            "Floor Area, Attic (ft^2)",
+            "Floor Area, Lighting (ft^2)",
+            "Roof Area (ft^2)",
+            "Window Area (ft^2)",
+            "Door Area (ft^2)",
+            "Duct Surface Area (ft^2)",
+            "Size, Heating System (kBtu/h)",
+            "Size, Cooling System (kBtu/h)",
+            "Size, Water Heater (gal)"
+          ],
+          "choice_display_names": [
+            "",
+            "Fixed (1)",
+            "Wall Area, Above-Grade, Conditioned (ft^2)",
+            "Wall Area, Above-Grade, Exterior (ft^2)",
+            "Wall Area, Below-Grade (ft^2)",
+            "Floor Area, Conditioned (ft^2)",
+            "Floor Area, Attic (ft^2)",
+            "Floor Area, Lighting (ft^2)",
+            "Roof Area (ft^2)",
+            "Window Area (ft^2)",
+            "Door Area (ft^2)",
+            "Duct Surface Area (ft^2)",
+            "Size, Heating System (kBtu/h)",
+            "Size, Cooling System (kBtu/h)",
+            "Size, Water Heater (gal)"
+          ],
+          "display_name_short": "option_6_cost_1_multiplier",
+          "inputs": {
+            "relationship": null,
+            "choiceDisplayNames": [
+              "",
+              "Fixed (1)",
+              "Wall Area, Above-Grade, Conditioned (ft^2)",
+              "Wall Area, Above-Grade, Exterior (ft^2)",
+              "Wall Area, Below-Grade (ft^2)",
+              "Floor Area, Conditioned (ft^2)",
+              "Floor Area, Attic (ft^2)",
+              "Floor Area, Lighting (ft^2)",
+              "Roof Area (ft^2)",
+              "Window Area (ft^2)",
+              "Door Area (ft^2)",
+              "Duct Surface Area (ft^2)",
+              "Size, Heating System (kBtu/h)",
+              "Size, Cooling System (kBtu/h)",
+              "Size, Water Heater (gal)"
+            ],
+            "variableSetting": "Argument",
+            "distribution": "Uniform",
+            "discreteVariables": [],
+            "maximum": "",
+            "minimum": "",
+            "mean": "",
+            "deltaX": "",
+            "stdDev": "",
+            "default_value": ""
+          },
+          "$$hashKey": "object:33886"
+        },
+        {
+          "name": "option_6_cost_2_value",
+          "display_name": "Option 6 Cost 2 Value",
+          "description": "Total option 6 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).",
+          "type": "Double",
+          "required": false,
+          "model_dependent": false,
+          "units": "$",
+          "display_name_short": "option_6_cost_2_value",
+          "inputs": {
+            "relationship": null,
+            "choiceDisplayNames": [],
+            "variableSetting": "Argument",
+            "distribution": "Uniform",
+            "discreteVariables": [],
+            "maximum": 0,
+            "minimum": 0,
+            "mean": 0,
+            "deltaX": 0,
+            "stdDev": 0,
+            "default_value": 0
+          },
+          "$$hashKey": "object:33887"
+        },
+        {
+          "name": "option_6_cost_2_multiplier",
+          "display_name": "Option 6 Cost 2 Multiplier",
+          "description": "Total option 6 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).",
+          "type": "Choice",
+          "required": false,
+          "model_dependent": false,
+          "default_value": "",
+          "choice_values": [
+            "",
+            "Fixed (1)",
+            "Wall Area, Above-Grade, Conditioned (ft^2)",
+            "Wall Area, Above-Grade, Exterior (ft^2)",
+            "Wall Area, Below-Grade (ft^2)",
+            "Floor Area, Conditioned (ft^2)",
+            "Floor Area, Attic (ft^2)",
+            "Floor Area, Lighting (ft^2)",
+            "Roof Area (ft^2)",
+            "Window Area (ft^2)",
+            "Door Area (ft^2)",
+            "Duct Surface Area (ft^2)",
+            "Size, Heating System (kBtu/h)",
+            "Size, Cooling System (kBtu/h)",
+            "Size, Water Heater (gal)"
+          ],
+          "choice_display_names": [
+            "",
+            "Fixed (1)",
+            "Wall Area, Above-Grade, Conditioned (ft^2)",
+            "Wall Area, Above-Grade, Exterior (ft^2)",
+            "Wall Area, Below-Grade (ft^2)",
+            "Floor Area, Conditioned (ft^2)",
+            "Floor Area, Attic (ft^2)",
+            "Floor Area, Lighting (ft^2)",
+            "Roof Area (ft^2)",
+            "Window Area (ft^2)",
+            "Door Area (ft^2)",
+            "Duct Surface Area (ft^2)",
+            "Size, Heating System (kBtu/h)",
+            "Size, Cooling System (kBtu/h)",
+            "Size, Water Heater (gal)"
+          ],
+          "display_name_short": "option_6_cost_2_multiplier",
+          "inputs": {
+            "relationship": null,
+            "choiceDisplayNames": [
+              "",
+              "Fixed (1)",
+              "Wall Area, Above-Grade, Conditioned (ft^2)",
+              "Wall Area, Above-Grade, Exterior (ft^2)",
+              "Wall Area, Below-Grade (ft^2)",
+              "Floor Area, Conditioned (ft^2)",
+              "Floor Area, Attic (ft^2)",
+              "Floor Area, Lighting (ft^2)",
+              "Roof Area (ft^2)",
+              "Window Area (ft^2)",
+              "Door Area (ft^2)",
+              "Duct Surface Area (ft^2)",
+              "Size, Heating System (kBtu/h)",
+              "Size, Cooling System (kBtu/h)",
+              "Size, Water Heater (gal)"
+            ],
+            "variableSetting": "Argument",
+            "distribution": "Uniform",
+            "discreteVariables": [],
+            "maximum": "",
+            "minimum": "",
+            "mean": "",
+            "deltaX": "",
+            "stdDev": "",
+            "default_value": ""
+          },
+          "$$hashKey": "object:33888"
+        },
+        {
+          "name": "option_6_lifetime",
+          "display_name": "Option 6 Lifetime",
+          "description": "The option lifetime.",
+          "type": "Double",
+          "required": false,
+          "model_dependent": false,
+          "units": "years",
+          "display_name_short": "option_6_lifetime",
+          "inputs": {
+            "relationship": null,
+            "choiceDisplayNames": [],
+            "variableSetting": "Argument",
+            "distribution": "Uniform",
+            "discreteVariables": [],
+            "maximum": 0,
+            "minimum": 0,
+            "mean": 0,
+            "deltaX": 0,
+            "stdDev": 0,
+            "default_value": 0
+          },
+          "$$hashKey": "object:33889"
+        },
+        {
+          "name": "option_7",
+          "display_name": "Option 7",
+          "description": "Specify the parameter|option as found in resources\\options_lookup.tsv.",
+          "type": "String",
+          "required": false,
+          "model_dependent": false,
+          "display_name_short": "option_7",
+          "inputs": {
+            "relationship": null,
+            "choiceDisplayNames": [],
+            "variableSetting": "Argument",
+            "distribution": "Uniform",
+            "discreteVariables": [],
+            "maximum": "",
+            "minimum": "",
+            "mean": "",
+            "deltaX": "",
+            "stdDev": "",
+            "default_value": ""
+          },
+          "$$hashKey": "object:33890"
+        },
+        {
+          "name": "option_7_apply_logic",
+          "display_name": "Option 7 Apply Logic",
+          "description": "Logic that specifies if the Option 7 upgrade will apply based on the existing building's options. Specify one or more parameter|option as found in resources\\options_lookup.tsv. When multiple are included, they must be separated by '||' for OR and '&&' for AND, and using parentheses as appropriate. Prefix an option with '!' for not.",
+          "type": "String",
+          "required": false,
+          "model_dependent": false,
+          "display_name_short": "option_7_apply_logic",
+          "inputs": {
+            "relationship": null,
+            "choiceDisplayNames": [],
+            "variableSetting": "Argument",
+            "distribution": "Uniform",
+            "discreteVariables": [],
+            "maximum": "",
+            "minimum": "",
+            "mean": "",
+            "deltaX": "",
+            "stdDev": "",
+            "default_value": ""
+          },
+          "$$hashKey": "object:33891"
+        },
+        {
+          "name": "option_7_cost_1_value",
+          "display_name": "Option 7 Cost 1 Value",
+          "description": "Total option 7 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).",
+          "type": "Double",
+          "required": false,
+          "model_dependent": false,
+          "units": "$",
+          "display_name_short": "option_7_cost_1_value",
+          "inputs": {
+            "relationship": null,
+            "choiceDisplayNames": [],
+            "variableSetting": "Argument",
+            "distribution": "Uniform",
+            "discreteVariables": [],
+            "maximum": 0,
+            "minimum": 0,
+            "mean": 0,
+            "deltaX": 0,
+            "stdDev": 0,
+            "default_value": 0
+          },
+          "$$hashKey": "object:33892"
+        },
+        {
+          "name": "option_7_cost_1_multiplier",
+          "display_name": "Option 7 Cost 1 Multiplier",
+          "description": "Total option 7 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).",
+          "type": "Choice",
+          "required": false,
+          "model_dependent": false,
+          "default_value": "",
+          "choice_values": [
+            "",
+            "Fixed (1)",
+            "Wall Area, Above-Grade, Conditioned (ft^2)",
+            "Wall Area, Above-Grade, Exterior (ft^2)",
+            "Wall Area, Below-Grade (ft^2)",
+            "Floor Area, Conditioned (ft^2)",
+            "Floor Area, Attic (ft^2)",
+            "Floor Area, Lighting (ft^2)",
+            "Roof Area (ft^2)",
+            "Window Area (ft^2)",
+            "Door Area (ft^2)",
+            "Duct Surface Area (ft^2)",
+            "Size, Heating System (kBtu/h)",
+            "Size, Cooling System (kBtu/h)",
+            "Size, Water Heater (gal)"
+          ],
+          "choice_display_names": [
+            "",
+            "Fixed (1)",
+            "Wall Area, Above-Grade, Conditioned (ft^2)",
+            "Wall Area, Above-Grade, Exterior (ft^2)",
+            "Wall Area, Below-Grade (ft^2)",
+            "Floor Area, Conditioned (ft^2)",
+            "Floor Area, Attic (ft^2)",
+            "Floor Area, Lighting (ft^2)",
+            "Roof Area (ft^2)",
+            "Window Area (ft^2)",
+            "Door Area (ft^2)",
+            "Duct Surface Area (ft^2)",
+            "Size, Heating System (kBtu/h)",
+            "Size, Cooling System (kBtu/h)",
+            "Size, Water Heater (gal)"
+          ],
+          "display_name_short": "option_7_cost_1_multiplier",
+          "inputs": {
+            "relationship": null,
+            "choiceDisplayNames": [
+              "",
+              "Fixed (1)",
+              "Wall Area, Above-Grade, Conditioned (ft^2)",
+              "Wall Area, Above-Grade, Exterior (ft^2)",
+              "Wall Area, Below-Grade (ft^2)",
+              "Floor Area, Conditioned (ft^2)",
+              "Floor Area, Attic (ft^2)",
+              "Floor Area, Lighting (ft^2)",
+              "Roof Area (ft^2)",
+              "Window Area (ft^2)",
+              "Door Area (ft^2)",
+              "Duct Surface Area (ft^2)",
+              "Size, Heating System (kBtu/h)",
+              "Size, Cooling System (kBtu/h)",
+              "Size, Water Heater (gal)"
+            ],
+            "variableSetting": "Argument",
+            "distribution": "Uniform",
+            "discreteVariables": [],
+            "maximum": "",
+            "minimum": "",
+            "mean": "",
+            "deltaX": "",
+            "stdDev": "",
+            "default_value": ""
+          },
+          "$$hashKey": "object:33893"
+        },
+        {
+          "name": "option_7_cost_2_value",
+          "display_name": "Option 7 Cost 2 Value",
+          "description": "Total option 7 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).",
+          "type": "Double",
+          "required": false,
+          "model_dependent": false,
+          "units": "$",
+          "display_name_short": "option_7_cost_2_value",
+          "inputs": {
+            "relationship": null,
+            "choiceDisplayNames": [],
+            "variableSetting": "Argument",
+            "distribution": "Uniform",
+            "discreteVariables": [],
+            "maximum": 0,
+            "minimum": 0,
+            "mean": 0,
+            "deltaX": 0,
+            "stdDev": 0,
+            "default_value": 0
+          },
+          "$$hashKey": "object:33894"
+        },
+        {
+          "name": "option_7_cost_2_multiplier",
+          "display_name": "Option 7 Cost 2 Multiplier",
+          "description": "Total option 7 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).",
+          "type": "Choice",
+          "required": false,
+          "model_dependent": false,
+          "default_value": "",
+          "choice_values": [
+            "",
+            "Fixed (1)",
+            "Wall Area, Above-Grade, Conditioned (ft^2)",
+            "Wall Area, Above-Grade, Exterior (ft^2)",
+            "Wall Area, Below-Grade (ft^2)",
+            "Floor Area, Conditioned (ft^2)",
+            "Floor Area, Attic (ft^2)",
+            "Floor Area, Lighting (ft^2)",
+            "Roof Area (ft^2)",
+            "Window Area (ft^2)",
+            "Door Area (ft^2)",
+            "Duct Surface Area (ft^2)",
+            "Size, Heating System (kBtu/h)",
+            "Size, Cooling System (kBtu/h)",
+            "Size, Water Heater (gal)"
+          ],
+          "choice_display_names": [
+            "",
+            "Fixed (1)",
+            "Wall Area, Above-Grade, Conditioned (ft^2)",
+            "Wall Area, Above-Grade, Exterior (ft^2)",
+            "Wall Area, Below-Grade (ft^2)",
+            "Floor Area, Conditioned (ft^2)",
+            "Floor Area, Attic (ft^2)",
+            "Floor Area, Lighting (ft^2)",
+            "Roof Area (ft^2)",
+            "Window Area (ft^2)",
+            "Door Area (ft^2)",
+            "Duct Surface Area (ft^2)",
+            "Size, Heating System (kBtu/h)",
+            "Size, Cooling System (kBtu/h)",
+            "Size, Water Heater (gal)"
+          ],
+          "display_name_short": "option_7_cost_2_multiplier",
+          "inputs": {
+            "relationship": null,
+            "choiceDisplayNames": [
+              "",
+              "Fixed (1)",
+              "Wall Area, Above-Grade, Conditioned (ft^2)",
+              "Wall Area, Above-Grade, Exterior (ft^2)",
+              "Wall Area, Below-Grade (ft^2)",
+              "Floor Area, Conditioned (ft^2)",
+              "Floor Area, Attic (ft^2)",
+              "Floor Area, Lighting (ft^2)",
+              "Roof Area (ft^2)",
+              "Window Area (ft^2)",
+              "Door Area (ft^2)",
+              "Duct Surface Area (ft^2)",
+              "Size, Heating System (kBtu/h)",
+              "Size, Cooling System (kBtu/h)",
+              "Size, Water Heater (gal)"
+            ],
+            "variableSetting": "Argument",
+            "distribution": "Uniform",
+            "discreteVariables": [],
+            "maximum": "",
+            "minimum": "",
+            "mean": "",
+            "deltaX": "",
+            "stdDev": "",
+            "default_value": ""
+          },
+          "$$hashKey": "object:33895"
+        },
+        {
+          "name": "option_7_lifetime",
+          "display_name": "Option 7 Lifetime",
+          "description": "The option lifetime.",
+          "type": "Double",
+          "required": false,
+          "model_dependent": false,
+          "units": "years",
+          "display_name_short": "option_7_lifetime",
+          "inputs": {
+            "relationship": null,
+            "choiceDisplayNames": [],
+            "variableSetting": "Argument",
+            "distribution": "Uniform",
+            "discreteVariables": [],
+            "maximum": 0,
+            "minimum": 0,
+            "mean": 0,
+            "deltaX": 0,
+            "stdDev": 0,
+            "default_value": 0
+          },
+          "$$hashKey": "object:33896"
+        },
+        {
+          "name": "option_8",
+          "display_name": "Option 8",
+          "description": "Specify the parameter|option as found in resources\\options_lookup.tsv.",
+          "type": "String",
+          "required": false,
+          "model_dependent": false,
+          "display_name_short": "option_8",
+          "inputs": {
+            "relationship": null,
+            "choiceDisplayNames": [],
+            "variableSetting": "Argument",
+            "distribution": "Uniform",
+            "discreteVariables": [],
+            "maximum": "",
+            "minimum": "",
+            "mean": "",
+            "deltaX": "",
+            "stdDev": "",
+            "default_value": ""
+          },
+          "$$hashKey": "object:33897"
+        },
+        {
+          "name": "option_8_apply_logic",
+          "display_name": "Option 8 Apply Logic",
+          "description": "Logic that specifies if the Option 8 upgrade will apply based on the existing building's options. Specify one or more parameter|option as found in resources\\options_lookup.tsv. When multiple are included, they must be separated by '||' for OR and '&&' for AND, and using parentheses as appropriate. Prefix an option with '!' for not.",
+          "type": "String",
+          "required": false,
+          "model_dependent": false,
+          "display_name_short": "option_8_apply_logic",
+          "inputs": {
+            "relationship": null,
+            "choiceDisplayNames": [],
+            "variableSetting": "Argument",
+            "distribution": "Uniform",
+            "discreteVariables": [],
+            "maximum": "",
+            "minimum": "",
+            "mean": "",
+            "deltaX": "",
+            "stdDev": "",
+            "default_value": ""
+          },
+          "$$hashKey": "object:33898"
+        },
+        {
+          "name": "option_8_cost_1_value",
+          "display_name": "Option 8 Cost 1 Value",
+          "description": "Total option 8 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).",
+          "type": "Double",
+          "required": false,
+          "model_dependent": false,
+          "units": "$",
+          "display_name_short": "option_8_cost_1_value",
+          "inputs": {
+            "relationship": null,
+            "choiceDisplayNames": [],
+            "variableSetting": "Argument",
+            "distribution": "Uniform",
+            "discreteVariables": [],
+            "maximum": 0,
+            "minimum": 0,
+            "mean": 0,
+            "deltaX": 0,
+            "stdDev": 0,
+            "default_value": 0
+          },
+          "$$hashKey": "object:33899"
+        },
+        {
+          "name": "option_8_cost_1_multiplier",
+          "display_name": "Option 8 Cost 1 Multiplier",
+          "description": "Total option 8 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).",
+          "type": "Choice",
+          "required": false,
+          "model_dependent": false,
+          "default_value": "",
+          "choice_values": [
+            "",
+            "Fixed (1)",
+            "Wall Area, Above-Grade, Conditioned (ft^2)",
+            "Wall Area, Above-Grade, Exterior (ft^2)",
+            "Wall Area, Below-Grade (ft^2)",
+            "Floor Area, Conditioned (ft^2)",
+            "Floor Area, Attic (ft^2)",
+            "Floor Area, Lighting (ft^2)",
+            "Roof Area (ft^2)",
+            "Window Area (ft^2)",
+            "Door Area (ft^2)",
+            "Duct Surface Area (ft^2)",
+            "Size, Heating System (kBtu/h)",
+            "Size, Cooling System (kBtu/h)",
+            "Size, Water Heater (gal)"
+          ],
+          "choice_display_names": [
+            "",
+            "Fixed (1)",
+            "Wall Area, Above-Grade, Conditioned (ft^2)",
+            "Wall Area, Above-Grade, Exterior (ft^2)",
+            "Wall Area, Below-Grade (ft^2)",
+            "Floor Area, Conditioned (ft^2)",
+            "Floor Area, Attic (ft^2)",
+            "Floor Area, Lighting (ft^2)",
+            "Roof Area (ft^2)",
+            "Window Area (ft^2)",
+            "Door Area (ft^2)",
+            "Duct Surface Area (ft^2)",
+            "Size, Heating System (kBtu/h)",
+            "Size, Cooling System (kBtu/h)",
+            "Size, Water Heater (gal)"
+          ],
+          "display_name_short": "option_8_cost_1_multiplier",
+          "inputs": {
+            "relationship": null,
+            "choiceDisplayNames": [
+              "",
+              "Fixed (1)",
+              "Wall Area, Above-Grade, Conditioned (ft^2)",
+              "Wall Area, Above-Grade, Exterior (ft^2)",
+              "Wall Area, Below-Grade (ft^2)",
+              "Floor Area, Conditioned (ft^2)",
+              "Floor Area, Attic (ft^2)",
+              "Floor Area, Lighting (ft^2)",
+              "Roof Area (ft^2)",
+              "Window Area (ft^2)",
+              "Door Area (ft^2)",
+              "Duct Surface Area (ft^2)",
+              "Size, Heating System (kBtu/h)",
+              "Size, Cooling System (kBtu/h)",
+              "Size, Water Heater (gal)"
+            ],
+            "variableSetting": "Argument",
+            "distribution": "Uniform",
+            "discreteVariables": [],
+            "maximum": "",
+            "minimum": "",
+            "mean": "",
+            "deltaX": "",
+            "stdDev": "",
+            "default_value": ""
+          },
+          "$$hashKey": "object:33900"
+        },
+        {
+          "name": "option_8_cost_2_value",
+          "display_name": "Option 8 Cost 2 Value",
+          "description": "Total option 8 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).",
+          "type": "Double",
+          "required": false,
+          "model_dependent": false,
+          "units": "$",
+          "display_name_short": "option_8_cost_2_value",
+          "inputs": {
+            "relationship": null,
+            "choiceDisplayNames": [],
+            "variableSetting": "Argument",
+            "distribution": "Uniform",
+            "discreteVariables": [],
+            "maximum": 0,
+            "minimum": 0,
+            "mean": 0,
+            "deltaX": 0,
+            "stdDev": 0,
+            "default_value": 0
+          },
+          "$$hashKey": "object:33901"
+        },
+        {
+          "name": "option_8_cost_2_multiplier",
+          "display_name": "Option 8 Cost 2 Multiplier",
+          "description": "Total option 8 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).",
+          "type": "Choice",
+          "required": false,
+          "model_dependent": false,
+          "default_value": "",
+          "choice_values": [
+            "",
+            "Fixed (1)",
+            "Wall Area, Above-Grade, Conditioned (ft^2)",
+            "Wall Area, Above-Grade, Exterior (ft^2)",
+            "Wall Area, Below-Grade (ft^2)",
+            "Floor Area, Conditioned (ft^2)",
+            "Floor Area, Attic (ft^2)",
+            "Floor Area, Lighting (ft^2)",
+            "Roof Area (ft^2)",
+            "Window Area (ft^2)",
+            "Door Area (ft^2)",
+            "Duct Surface Area (ft^2)",
+            "Size, Heating System (kBtu/h)",
+            "Size, Cooling System (kBtu/h)",
+            "Size, Water Heater (gal)"
+          ],
+          "choice_display_names": [
+            "",
+            "Fixed (1)",
+            "Wall Area, Above-Grade, Conditioned (ft^2)",
+            "Wall Area, Above-Grade, Exterior (ft^2)",
+            "Wall Area, Below-Grade (ft^2)",
+            "Floor Area, Conditioned (ft^2)",
+            "Floor Area, Attic (ft^2)",
+            "Floor Area, Lighting (ft^2)",
+            "Roof Area (ft^2)",
+            "Window Area (ft^2)",
+            "Door Area (ft^2)",
+            "Duct Surface Area (ft^2)",
+            "Size, Heating System (kBtu/h)",
+            "Size, Cooling System (kBtu/h)",
+            "Size, Water Heater (gal)"
+          ],
+          "display_name_short": "option_8_cost_2_multiplier",
+          "inputs": {
+            "relationship": null,
+            "choiceDisplayNames": [
+              "",
+              "Fixed (1)",
+              "Wall Area, Above-Grade, Conditioned (ft^2)",
+              "Wall Area, Above-Grade, Exterior (ft^2)",
+              "Wall Area, Below-Grade (ft^2)",
+              "Floor Area, Conditioned (ft^2)",
+              "Floor Area, Attic (ft^2)",
+              "Floor Area, Lighting (ft^2)",
+              "Roof Area (ft^2)",
+              "Window Area (ft^2)",
+              "Door Area (ft^2)",
+              "Duct Surface Area (ft^2)",
+              "Size, Heating System (kBtu/h)",
+              "Size, Cooling System (kBtu/h)",
+              "Size, Water Heater (gal)"
+            ],
+            "variableSetting": "Argument",
+            "distribution": "Uniform",
+            "discreteVariables": [],
+            "maximum": "",
+            "minimum": "",
+            "mean": "",
+            "deltaX": "",
+            "stdDev": "",
+            "default_value": ""
+          },
+          "$$hashKey": "object:33902"
+        },
+        {
+          "name": "option_8_lifetime",
+          "display_name": "Option 8 Lifetime",
+          "description": "The option lifetime.",
+          "type": "Double",
+          "required": false,
+          "model_dependent": false,
+          "units": "years",
+          "display_name_short": "option_8_lifetime",
+          "inputs": {
+            "relationship": null,
+            "choiceDisplayNames": [],
+            "variableSetting": "Argument",
+            "distribution": "Uniform",
+            "discreteVariables": [],
+            "maximum": 0,
+            "minimum": 0,
+            "mean": 0,
+            "deltaX": 0,
+            "stdDev": 0,
+            "default_value": 0
+          },
+          "$$hashKey": "object:33903"
+        },
+        {
+          "name": "option_9",
+          "display_name": "Option 9",
+          "description": "Specify the parameter|option as found in resources\\options_lookup.tsv.",
+          "type": "String",
+          "required": false,
+          "model_dependent": false,
+          "display_name_short": "option_9",
+          "inputs": {
+            "relationship": null,
+            "choiceDisplayNames": [],
+            "variableSetting": "Argument",
+            "distribution": "Uniform",
+            "discreteVariables": [],
+            "maximum": "",
+            "minimum": "",
+            "mean": "",
+            "deltaX": "",
+            "stdDev": "",
+            "default_value": ""
+          },
+          "$$hashKey": "object:33904"
+        },
+        {
+          "name": "option_9_apply_logic",
+          "display_name": "Option 9 Apply Logic",
+          "description": "Logic that specifies if the Option 9 upgrade will apply based on the existing building's options. Specify one or more parameter|option as found in resources\\options_lookup.tsv. When multiple are included, they must be separated by '||' for OR and '&&' for AND, and using parentheses as appropriate. Prefix an option with '!' for not.",
+          "type": "String",
+          "required": false,
+          "model_dependent": false,
+          "display_name_short": "option_9_apply_logic",
+          "inputs": {
+            "relationship": null,
+            "choiceDisplayNames": [],
+            "variableSetting": "Argument",
+            "distribution": "Uniform",
+            "discreteVariables": [],
+            "maximum": "",
+            "minimum": "",
+            "mean": "",
+            "deltaX": "",
+            "stdDev": "",
+            "default_value": ""
+          },
+          "$$hashKey": "object:33905"
+        },
+        {
+          "name": "option_9_cost_1_value",
+          "display_name": "Option 9 Cost 1 Value",
+          "description": "Total option 9 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).",
+          "type": "Double",
+          "required": false,
+          "model_dependent": false,
+          "units": "$",
+          "display_name_short": "option_9_cost_1_value",
+          "inputs": {
+            "relationship": null,
+            "choiceDisplayNames": [],
+            "variableSetting": "Argument",
+            "distribution": "Uniform",
+            "discreteVariables": [],
+            "maximum": 0,
+            "minimum": 0,
+            "mean": 0,
+            "deltaX": 0,
+            "stdDev": 0,
+            "default_value": 0
+          },
+          "$$hashKey": "object:33906"
+        },
+        {
+          "name": "option_9_cost_1_multiplier",
+          "display_name": "Option 9 Cost 1 Multiplier",
+          "description": "Total option 9 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).",
+          "type": "Choice",
+          "required": false,
+          "model_dependent": false,
+          "default_value": "",
+          "choice_values": [
+            "",
+            "Fixed (1)",
+            "Wall Area, Above-Grade, Conditioned (ft^2)",
+            "Wall Area, Above-Grade, Exterior (ft^2)",
+            "Wall Area, Below-Grade (ft^2)",
+            "Floor Area, Conditioned (ft^2)",
+            "Floor Area, Attic (ft^2)",
+            "Floor Area, Lighting (ft^2)",
+            "Roof Area (ft^2)",
+            "Window Area (ft^2)",
+            "Door Area (ft^2)",
+            "Duct Surface Area (ft^2)",
+            "Size, Heating System (kBtu/h)",
+            "Size, Cooling System (kBtu/h)",
+            "Size, Water Heater (gal)"
+          ],
+          "choice_display_names": [
+            "",
+            "Fixed (1)",
+            "Wall Area, Above-Grade, Conditioned (ft^2)",
+            "Wall Area, Above-Grade, Exterior (ft^2)",
+            "Wall Area, Below-Grade (ft^2)",
+            "Floor Area, Conditioned (ft^2)",
+            "Floor Area, Attic (ft^2)",
+            "Floor Area, Lighting (ft^2)",
+            "Roof Area (ft^2)",
+            "Window Area (ft^2)",
+            "Door Area (ft^2)",
+            "Duct Surface Area (ft^2)",
+            "Size, Heating System (kBtu/h)",
+            "Size, Cooling System (kBtu/h)",
+            "Size, Water Heater (gal)"
+          ],
+          "display_name_short": "option_9_cost_1_multiplier",
+          "inputs": {
+            "relationship": null,
+            "choiceDisplayNames": [
+              "",
+              "Fixed (1)",
+              "Wall Area, Above-Grade, Conditioned (ft^2)",
+              "Wall Area, Above-Grade, Exterior (ft^2)",
+              "Wall Area, Below-Grade (ft^2)",
+              "Floor Area, Conditioned (ft^2)",
+              "Floor Area, Attic (ft^2)",
+              "Floor Area, Lighting (ft^2)",
+              "Roof Area (ft^2)",
+              "Window Area (ft^2)",
+              "Door Area (ft^2)",
+              "Duct Surface Area (ft^2)",
+              "Size, Heating System (kBtu/h)",
+              "Size, Cooling System (kBtu/h)",
+              "Size, Water Heater (gal)"
+            ],
+            "variableSetting": "Argument",
+            "distribution": "Uniform",
+            "discreteVariables": [],
+            "maximum": "",
+            "minimum": "",
+            "mean": "",
+            "deltaX": "",
+            "stdDev": "",
+            "default_value": ""
+          },
+          "$$hashKey": "object:33907"
+        },
+        {
+          "name": "option_9_cost_2_value",
+          "display_name": "Option 9 Cost 2 Value",
+          "description": "Total option 9 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).",
+          "type": "Double",
+          "required": false,
+          "model_dependent": false,
+          "units": "$",
+          "display_name_short": "option_9_cost_2_value",
+          "inputs": {
+            "relationship": null,
+            "choiceDisplayNames": [],
+            "variableSetting": "Argument",
+            "distribution": "Uniform",
+            "discreteVariables": [],
+            "maximum": 0,
+            "minimum": 0,
+            "mean": 0,
+            "deltaX": 0,
+            "stdDev": 0,
+            "default_value": 0
+          },
+          "$$hashKey": "object:33908"
+        },
+        {
+          "name": "option_9_cost_2_multiplier",
+          "display_name": "Option 9 Cost 2 Multiplier",
+          "description": "Total option 9 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).",
+          "type": "Choice",
+          "required": false,
+          "model_dependent": false,
+          "default_value": "",
+          "choice_values": [
+            "",
+            "Fixed (1)",
+            "Wall Area, Above-Grade, Conditioned (ft^2)",
+            "Wall Area, Above-Grade, Exterior (ft^2)",
+            "Wall Area, Below-Grade (ft^2)",
+            "Floor Area, Conditioned (ft^2)",
+            "Floor Area, Attic (ft^2)",
+            "Floor Area, Lighting (ft^2)",
+            "Roof Area (ft^2)",
+            "Window Area (ft^2)",
+            "Door Area (ft^2)",
+            "Duct Surface Area (ft^2)",
+            "Size, Heating System (kBtu/h)",
+            "Size, Cooling System (kBtu/h)",
+            "Size, Water Heater (gal)"
+          ],
+          "choice_display_names": [
+            "",
+            "Fixed (1)",
+            "Wall Area, Above-Grade, Conditioned (ft^2)",
+            "Wall Area, Above-Grade, Exterior (ft^2)",
+            "Wall Area, Below-Grade (ft^2)",
+            "Floor Area, Conditioned (ft^2)",
+            "Floor Area, Attic (ft^2)",
+            "Floor Area, Lighting (ft^2)",
+            "Roof Area (ft^2)",
+            "Window Area (ft^2)",
+            "Door Area (ft^2)",
+            "Duct Surface Area (ft^2)",
+            "Size, Heating System (kBtu/h)",
+            "Size, Cooling System (kBtu/h)",
+            "Size, Water Heater (gal)"
+          ],
+          "display_name_short": "option_9_cost_2_multiplier",
+          "inputs": {
+            "relationship": null,
+            "choiceDisplayNames": [
+              "",
+              "Fixed (1)",
+              "Wall Area, Above-Grade, Conditioned (ft^2)",
+              "Wall Area, Above-Grade, Exterior (ft^2)",
+              "Wall Area, Below-Grade (ft^2)",
+              "Floor Area, Conditioned (ft^2)",
+              "Floor Area, Attic (ft^2)",
+              "Floor Area, Lighting (ft^2)",
+              "Roof Area (ft^2)",
+              "Window Area (ft^2)",
+              "Door Area (ft^2)",
+              "Duct Surface Area (ft^2)",
+              "Size, Heating System (kBtu/h)",
+              "Size, Cooling System (kBtu/h)",
+              "Size, Water Heater (gal)"
+            ],
+            "variableSetting": "Argument",
+            "distribution": "Uniform",
+            "discreteVariables": [],
+            "maximum": "",
+            "minimum": "",
+            "mean": "",
+            "deltaX": "",
+            "stdDev": "",
+            "default_value": ""
+          },
+          "$$hashKey": "object:33909"
+        },
+        {
+          "name": "option_9_lifetime",
+          "display_name": "Option 9 Lifetime",
+          "description": "The option lifetime.",
+          "type": "Double",
+          "required": false,
+          "model_dependent": false,
+          "units": "years",
+          "display_name_short": "option_9_lifetime",
+          "inputs": {
+            "relationship": null,
+            "choiceDisplayNames": [],
+            "variableSetting": "Argument",
+            "distribution": "Uniform",
+            "discreteVariables": [],
+            "maximum": 0,
+            "minimum": 0,
+            "mean": 0,
+            "deltaX": 0,
+            "stdDev": 0,
+            "default_value": 0
+          },
+          "$$hashKey": "object:33910"
+        },
+        {
+          "name": "option_10",
+          "display_name": "Option 10",
+          "description": "Specify the parameter|option as found in resources\\options_lookup.tsv.",
+          "type": "String",
+          "required": false,
+          "model_dependent": false,
+          "display_name_short": "option_10",
+          "inputs": {
+            "relationship": null,
+            "choiceDisplayNames": [],
+            "variableSetting": "Argument",
+            "distribution": "Uniform",
+            "discreteVariables": [],
+            "maximum": "",
+            "minimum": "",
+            "mean": "",
+            "deltaX": "",
+            "stdDev": "",
+            "default_value": ""
+          },
+          "$$hashKey": "object:33911"
+        },
+        {
+          "name": "option_10_apply_logic",
+          "display_name": "Option 10 Apply Logic",
+          "description": "Logic that specifies if the Option 10 upgrade will apply based on the existing building's options. Specify one or more parameter|option as found in resources\\options_lookup.tsv. When multiple are included, they must be separated by '||' for OR and '&&' for AND, and using parentheses as appropriate. Prefix an option with '!' for not.",
+          "type": "String",
+          "required": false,
+          "model_dependent": false,
+          "display_name_short": "option_10_apply_logic",
+          "inputs": {
+            "relationship": null,
+            "choiceDisplayNames": [],
+            "variableSetting": "Argument",
+            "distribution": "Uniform",
+            "discreteVariables": [],
+            "maximum": "",
+            "minimum": "",
+            "mean": "",
+            "deltaX": "",
+            "stdDev": "",
+            "default_value": ""
+          },
+          "$$hashKey": "object:33912"
+        },
+        {
+          "name": "option_10_cost_1_value",
+          "display_name": "Option 10 Cost 1 Value",
+          "description": "Total option 10 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).",
+          "type": "Double",
+          "required": false,
+          "model_dependent": false,
+          "units": "$",
+          "display_name_short": "option_10_cost_1_value",
+          "inputs": {
+            "relationship": null,
+            "choiceDisplayNames": [],
+            "variableSetting": "Argument",
+            "distribution": "Uniform",
+            "discreteVariables": [],
+            "maximum": 0,
+            "minimum": 0,
+            "mean": 0,
+            "deltaX": 0,
+            "stdDev": 0,
+            "default_value": 0
+          },
+          "$$hashKey": "object:33913"
+        },
+        {
+          "name": "option_10_cost_1_multiplier",
+          "display_name": "Option 10 Cost 1 Multiplier",
+          "description": "Total option 10 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).",
+          "type": "Choice",
+          "required": false,
+          "model_dependent": false,
+          "default_value": "",
+          "choice_values": [
+            "",
+            "Fixed (1)",
+            "Wall Area, Above-Grade, Conditioned (ft^2)",
+            "Wall Area, Above-Grade, Exterior (ft^2)",
+            "Wall Area, Below-Grade (ft^2)",
+            "Floor Area, Conditioned (ft^2)",
+            "Floor Area, Attic (ft^2)",
+            "Floor Area, Lighting (ft^2)",
+            "Roof Area (ft^2)",
+            "Window Area (ft^2)",
+            "Door Area (ft^2)",
+            "Duct Surface Area (ft^2)",
+            "Size, Heating System (kBtu/h)",
+            "Size, Cooling System (kBtu/h)",
+            "Size, Water Heater (gal)"
+          ],
+          "choice_display_names": [
+            "",
+            "Fixed (1)",
+            "Wall Area, Above-Grade, Conditioned (ft^2)",
+            "Wall Area, Above-Grade, Exterior (ft^2)",
+            "Wall Area, Below-Grade (ft^2)",
+            "Floor Area, Conditioned (ft^2)",
+            "Floor Area, Attic (ft^2)",
+            "Floor Area, Lighting (ft^2)",
+            "Roof Area (ft^2)",
+            "Window Area (ft^2)",
+            "Door Area (ft^2)",
+            "Duct Surface Area (ft^2)",
+            "Size, Heating System (kBtu/h)",
+            "Size, Cooling System (kBtu/h)",
+            "Size, Water Heater (gal)"
+          ],
+          "display_name_short": "option_10_cost_1_multiplier",
+          "inputs": {
+            "relationship": null,
+            "choiceDisplayNames": [
+              "",
+              "Fixed (1)",
+              "Wall Area, Above-Grade, Conditioned (ft^2)",
+              "Wall Area, Above-Grade, Exterior (ft^2)",
+              "Wall Area, Below-Grade (ft^2)",
+              "Floor Area, Conditioned (ft^2)",
+              "Floor Area, Attic (ft^2)",
+              "Floor Area, Lighting (ft^2)",
+              "Roof Area (ft^2)",
+              "Window Area (ft^2)",
+              "Door Area (ft^2)",
+              "Duct Surface Area (ft^2)",
+              "Size, Heating System (kBtu/h)",
+              "Size, Cooling System (kBtu/h)",
+              "Size, Water Heater (gal)"
+            ],
+            "variableSetting": "Argument",
+            "distribution": "Uniform",
+            "discreteVariables": [],
+            "maximum": "",
+            "minimum": "",
+            "mean": "",
+            "deltaX": "",
+            "stdDev": "",
+            "default_value": ""
+          },
+          "$$hashKey": "object:33914"
+        },
+        {
+          "name": "option_10_cost_2_value",
+          "display_name": "Option 10 Cost 2 Value",
+          "description": "Total option 10 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).",
+          "type": "Double",
+          "required": false,
+          "model_dependent": false,
+          "units": "$",
+          "display_name_short": "option_10_cost_2_value",
+          "inputs": {
+            "relationship": null,
+            "choiceDisplayNames": [],
+            "variableSetting": "Argument",
+            "distribution": "Uniform",
+            "discreteVariables": [],
+            "maximum": 0,
+            "minimum": 0,
+            "mean": 0,
+            "deltaX": 0,
+            "stdDev": 0,
+            "default_value": 0
+          },
+          "$$hashKey": "object:33915"
+        },
+        {
+          "name": "option_10_cost_2_multiplier",
+          "display_name": "Option 10 Cost 2 Multiplier",
+          "description": "Total option 10 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).",
+          "type": "Choice",
+          "required": false,
+          "model_dependent": false,
+          "default_value": "",
+          "choice_values": [
+            "",
+            "Fixed (1)",
+            "Wall Area, Above-Grade, Conditioned (ft^2)",
+            "Wall Area, Above-Grade, Exterior (ft^2)",
+            "Wall Area, Below-Grade (ft^2)",
+            "Floor Area, Conditioned (ft^2)",
+            "Floor Area, Attic (ft^2)",
+            "Floor Area, Lighting (ft^2)",
+            "Roof Area (ft^2)",
+            "Window Area (ft^2)",
+            "Door Area (ft^2)",
+            "Duct Surface Area (ft^2)",
+            "Size, Heating System (kBtu/h)",
+            "Size, Cooling System (kBtu/h)",
+            "Size, Water Heater (gal)"
+          ],
+          "choice_display_names": [
+            "",
+            "Fixed (1)",
+            "Wall Area, Above-Grade, Conditioned (ft^2)",
+            "Wall Area, Above-Grade, Exterior (ft^2)",
+            "Wall Area, Below-Grade (ft^2)",
+            "Floor Area, Conditioned (ft^2)",
+            "Floor Area, Attic (ft^2)",
+            "Floor Area, Lighting (ft^2)",
+            "Roof Area (ft^2)",
+            "Window Area (ft^2)",
+            "Door Area (ft^2)",
+            "Duct Surface Area (ft^2)",
+            "Size, Heating System (kBtu/h)",
+            "Size, Cooling System (kBtu/h)",
+            "Size, Water Heater (gal)"
+          ],
+          "display_name_short": "option_10_cost_2_multiplier",
+          "inputs": {
+            "relationship": null,
+            "choiceDisplayNames": [
+              "",
+              "Fixed (1)",
+              "Wall Area, Above-Grade, Conditioned (ft^2)",
+              "Wall Area, Above-Grade, Exterior (ft^2)",
+              "Wall Area, Below-Grade (ft^2)",
+              "Floor Area, Conditioned (ft^2)",
+              "Floor Area, Attic (ft^2)",
+              "Floor Area, Lighting (ft^2)",
+              "Roof Area (ft^2)",
+              "Window Area (ft^2)",
+              "Door Area (ft^2)",
+              "Duct Surface Area (ft^2)",
+              "Size, Heating System (kBtu/h)",
+              "Size, Cooling System (kBtu/h)",
+              "Size, Water Heater (gal)"
+            ],
+            "variableSetting": "Argument",
+            "distribution": "Uniform",
+            "discreteVariables": [],
+            "maximum": "",
+            "minimum": "",
+            "mean": "",
+            "deltaX": "",
+            "stdDev": "",
+            "default_value": ""
+          },
+          "$$hashKey": "object:33916"
+        },
+        {
+          "name": "option_10_lifetime",
+          "display_name": "Option 10 Lifetime",
+          "description": "The option lifetime.",
+          "type": "Double",
+          "required": false,
+          "model_dependent": false,
+          "units": "years",
+          "display_name_short": "option_10_lifetime",
+          "inputs": {
+            "relationship": null,
+            "choiceDisplayNames": [],
+            "variableSetting": "Argument",
+            "distribution": "Uniform",
+            "discreteVariables": [],
+            "maximum": 0,
+            "minimum": 0,
+            "mean": 0,
+            "deltaX": 0,
+            "stdDev": 0,
+            "default_value": 0
+          },
+          "$$hashKey": "object:33917"
+        },
+        {
+          "name": "package_apply_logic",
+          "display_name": "Package Apply Logic",
+          "description": "Logic that specifies if the entire package upgrade (all options) will apply based on the existing building's options. Specify one or more parameter|option as found in resources\\options_lookup.tsv. When multiple are included, they must be separated by '||' for OR and '&&' for AND, and using parentheses as appropriate. Prefix an option with '!' for not.",
+          "type": "String",
+          "required": false,
+          "model_dependent": false,
+          "display_name_short": "package_apply_logic",
+          "inputs": {
+            "relationship": null,
+            "choiceDisplayNames": [],
+            "variableSetting": "Argument",
+            "distribution": "Uniform",
+            "discreteVariables": [],
+            "maximum": "",
+            "minimum": "",
+            "mean": "",
+            "deltaX": "",
+            "stdDev": "",
+            "default_value": ""
+          },
+          "$$hashKey": "object:33918"
+        },
+        {
+          "name": "run_measure",
+          "display_name": "Run Measure",
+          "description": "integer argument to run measure [1 is run, 0 is no run]",
+          "type": "Integer",
+          "required": true,
+          "model_dependent": false,
+          "default_value": 1,
+          "display_name_short": "run_measure",
+          "inputs": {
+            "relationship": null,
+            "choiceDisplayNames": [],
+            "variableSetting": "Discrete",
+            "distribution": "Uniform",
+            "discreteVariables": [
+              {
+                "value": 0,
+                "weight": 0.5,
+                "$$hashKey": "object:36553"
+              },
+              {
+                "value": 1,
+                "weight": 0.5,
+                "$$hashKey": "object:36554"
+              }
+            ],
+            "maximum": 1,
+            "minimum": 1,
+            "mean": 1,
+            "deltaX": 1,
+            "stdDev": 1,
+            "default_value": 1,
+            "showWarningIcon": false
+          },
+          "$$hashKey": "object:33919"
+        }
+      ],
+      "edit": "",
+      "status": "",
+      "bcl_update": false,
+      "location": "my",
+      "add": "",
+      "open": false,
+      "addedToProject": true,
+      "date": "12/11/2017",
+      "author": "",
+      "type": "ModelMeasure",
+      "seed": "EmptySeedModel.osm",
+      "workflow_index": 2,
+      "options": [],
+      "instanceId": 0.1387669190951688,
+      "skip": false,
+      "showWarningText": false,
+      "$$hashKey": "object:33811",
       "outputMeasure": false
     },
     {
@@ -4028,9 +6829,9 @@
       "author": "",
       "type": "ReportingMeasure",
       "seed": "EmptySeedModel.osm",
-      "workflow_index": 2,
+      "workflow_index": 3,
       "options": [],
-      "instanceId": 0.4944431835230998,
+      "instanceId": 0.8957316530486716,
       "skip": false,
       "$$hashKey": "object:12818",
       "outputMeasure": true,
@@ -4045,10 +6846,7 @@
           "model_dependent": false,
           "$$hashKey": "object:18958",
           "checked": true,
-          "visualize": "true",
-          "measure_name": "building_characteristics_report",
-          "measure_class_name": "BuildingCharacteristicsReport",
-          "measure_uid": "90eecbe2-d8e2-47db-9079-5d9029fb3e67"
+          "visualize": "true"
         },
         {
           "name": "location_heating_region",
@@ -4059,10 +6857,7 @@
           "model_dependent": false,
           "$$hashKey": "object:18959",
           "checked": true,
-          "visualize": "true",
-          "measure_name": "building_characteristics_report",
-          "measure_class_name": "BuildingCharacteristicsReport",
-          "measure_uid": "90eecbe2-d8e2-47db-9079-5d9029fb3e67"
+          "visualize": "true"
         },
         {
           "name": "location_cooling_region",
@@ -4073,10 +6868,7 @@
           "model_dependent": false,
           "$$hashKey": "object:18960",
           "checked": true,
-          "visualize": "true",
-          "measure_name": "building_characteristics_report",
-          "measure_class_name": "BuildingCharacteristicsReport",
-          "measure_uid": "90eecbe2-d8e2-47db-9079-5d9029fb3e67"
+          "visualize": "true"
         },
         {
           "name": "location_epw",
@@ -4087,10 +6879,7 @@
           "model_dependent": false,
           "$$hashKey": "object:18961",
           "checked": true,
-          "visualize": "true",
-          "measure_name": "building_characteristics_report",
-          "measure_class_name": "BuildingCharacteristicsReport",
-          "measure_uid": "90eecbe2-d8e2-47db-9079-5d9029fb3e67"
+          "visualize": "true"
         },
         {
           "name": "vintage",
@@ -4101,10 +6890,7 @@
           "model_dependent": false,
           "$$hashKey": "object:18962",
           "checked": true,
-          "visualize": "true",
-          "measure_name": "building_characteristics_report",
-          "measure_class_name": "BuildingCharacteristicsReport",
-          "measure_uid": "90eecbe2-d8e2-47db-9079-5d9029fb3e67"
+          "visualize": "true"
         },
         {
           "name": "heating_fuel",
@@ -4115,10 +6901,7 @@
           "model_dependent": false,
           "$$hashKey": "object:18963",
           "checked": true,
-          "visualize": "true",
-          "measure_name": "building_characteristics_report",
-          "measure_class_name": "BuildingCharacteristicsReport",
-          "measure_uid": "90eecbe2-d8e2-47db-9079-5d9029fb3e67"
+          "visualize": "true"
         },
         {
           "name": "usage_level",
@@ -4129,10 +6912,7 @@
           "model_dependent": false,
           "$$hashKey": "object:18964",
           "checked": true,
-          "visualize": "true",
-          "measure_name": "building_characteristics_report",
-          "measure_class_name": "BuildingCharacteristicsReport",
-          "measure_uid": "90eecbe2-d8e2-47db-9079-5d9029fb3e67"
+          "visualize": "true"
         },
         {
           "name": "geometry_foundation_type",
@@ -4143,10 +6923,7 @@
           "model_dependent": false,
           "$$hashKey": "object:18965",
           "checked": true,
-          "visualize": "true",
-          "measure_name": "building_characteristics_report",
-          "measure_class_name": "BuildingCharacteristicsReport",
-          "measure_uid": "90eecbe2-d8e2-47db-9079-5d9029fb3e67"
+          "visualize": "true"
         },
         {
           "name": "geometry_heated_basement",
@@ -4157,10 +6934,7 @@
           "model_dependent": false,
           "$$hashKey": "object:18966",
           "checked": true,
-          "visualize": "true",
-          "measure_name": "building_characteristics_report",
-          "measure_class_name": "BuildingCharacteristicsReport",
-          "measure_uid": "90eecbe2-d8e2-47db-9079-5d9029fb3e67"
+          "visualize": "true"
         },
         {
           "name": "geometry_stories",
@@ -4171,10 +6945,7 @@
           "model_dependent": false,
           "$$hashKey": "object:18967",
           "checked": true,
-          "visualize": "true",
-          "measure_name": "building_characteristics_report",
-          "measure_class_name": "BuildingCharacteristicsReport",
-          "measure_uid": "90eecbe2-d8e2-47db-9079-5d9029fb3e67"
+          "visualize": "true"
         },
         {
           "name": "geometry_garage",
@@ -4185,10 +6956,7 @@
           "model_dependent": false,
           "$$hashKey": "object:18968",
           "checked": true,
-          "visualize": "true",
-          "measure_name": "building_characteristics_report",
-          "measure_class_name": "BuildingCharacteristicsReport",
-          "measure_uid": "90eecbe2-d8e2-47db-9079-5d9029fb3e67"
+          "visualize": "true"
         },
         {
           "name": "geometry_house_size",
@@ -4199,10 +6967,7 @@
           "model_dependent": false,
           "$$hashKey": "object:18969",
           "checked": true,
-          "visualize": "true",
-          "measure_name": "building_characteristics_report",
-          "measure_class_name": "BuildingCharacteristicsReport",
-          "measure_uid": "90eecbe2-d8e2-47db-9079-5d9029fb3e67"
+          "visualize": "true"
         },
         {
           "name": "occupants",
@@ -4213,10 +6978,7 @@
           "model_dependent": false,
           "$$hashKey": "object:18970",
           "checked": true,
-          "visualize": "true",
-          "measure_name": "building_characteristics_report",
-          "measure_class_name": "BuildingCharacteristicsReport",
-          "measure_uid": "90eecbe2-d8e2-47db-9079-5d9029fb3e67"
+          "visualize": "true"
         },
         {
           "name": "orientation",
@@ -4227,10 +6989,7 @@
           "model_dependent": false,
           "$$hashKey": "object:18971",
           "checked": true,
-          "visualize": "true",
-          "measure_name": "building_characteristics_report",
-          "measure_class_name": "BuildingCharacteristicsReport",
-          "measure_uid": "90eecbe2-d8e2-47db-9079-5d9029fb3e67"
+          "visualize": "true"
         },
         {
           "name": "eaves",
@@ -4241,10 +7000,7 @@
           "model_dependent": false,
           "$$hashKey": "object:18972",
           "checked": true,
-          "visualize": "true",
-          "measure_name": "building_characteristics_report",
-          "measure_class_name": "BuildingCharacteristicsReport",
-          "measure_uid": "90eecbe2-d8e2-47db-9079-5d9029fb3e67"
+          "visualize": "true"
         },
         {
           "name": "door_area",
@@ -4255,10 +7011,7 @@
           "model_dependent": false,
           "$$hashKey": "object:18973",
           "checked": true,
-          "visualize": "true",
-          "measure_name": "building_characteristics_report",
-          "measure_class_name": "BuildingCharacteristicsReport",
-          "measure_uid": "90eecbe2-d8e2-47db-9079-5d9029fb3e67"
+          "visualize": "true"
         },
         {
           "name": "window_areas",
@@ -4269,10 +7022,7 @@
           "model_dependent": false,
           "$$hashKey": "object:18974",
           "checked": true,
-          "visualize": "true",
-          "measure_name": "building_characteristics_report",
-          "measure_class_name": "BuildingCharacteristicsReport",
-          "measure_uid": "90eecbe2-d8e2-47db-9079-5d9029fb3e67"
+          "visualize": "true"
         },
         {
           "name": "overhangs",
@@ -4283,10 +7033,7 @@
           "model_dependent": false,
           "$$hashKey": "object:18975",
           "checked": true,
-          "visualize": "true",
-          "measure_name": "building_characteristics_report",
-          "measure_class_name": "BuildingCharacteristicsReport",
-          "measure_uid": "90eecbe2-d8e2-47db-9079-5d9029fb3e67"
+          "visualize": "true"
         },
         {
           "name": "neighbors",
@@ -4297,10 +7044,7 @@
           "model_dependent": false,
           "$$hashKey": "object:18976",
           "checked": true,
-          "visualize": "true",
-          "measure_name": "building_characteristics_report",
-          "measure_class_name": "BuildingCharacteristicsReport",
-          "measure_uid": "90eecbe2-d8e2-47db-9079-5d9029fb3e67"
+          "visualize": "true"
         },
         {
           "name": "insulation_unfinished_attic",
@@ -4311,10 +7055,7 @@
           "model_dependent": false,
           "$$hashKey": "object:18977",
           "checked": true,
-          "visualize": "true",
-          "measure_name": "building_characteristics_report",
-          "measure_class_name": "BuildingCharacteristicsReport",
-          "measure_uid": "90eecbe2-d8e2-47db-9079-5d9029fb3e67"
+          "visualize": "true"
         },
         {
           "name": "roof_material",
@@ -4325,10 +7066,7 @@
           "model_dependent": false,
           "$$hashKey": "object:18978",
           "checked": true,
-          "visualize": "true",
-          "measure_name": "building_characteristics_report",
-          "measure_class_name": "BuildingCharacteristicsReport",
-          "measure_uid": "90eecbe2-d8e2-47db-9079-5d9029fb3e67"
+          "visualize": "true"
         },
         {
           "name": "insulation_slab",
@@ -4339,10 +7077,7 @@
           "model_dependent": false,
           "$$hashKey": "object:18979",
           "checked": true,
-          "visualize": "true",
-          "measure_name": "building_characteristics_report",
-          "measure_class_name": "BuildingCharacteristicsReport",
-          "measure_uid": "90eecbe2-d8e2-47db-9079-5d9029fb3e67"
+          "visualize": "true"
         },
         {
           "name": "insulation_crawlspace",
@@ -4353,10 +7088,7 @@
           "model_dependent": false,
           "$$hashKey": "object:18980",
           "checked": true,
-          "visualize": "true",
-          "measure_name": "building_characteristics_report",
-          "measure_class_name": "BuildingCharacteristicsReport",
-          "measure_uid": "90eecbe2-d8e2-47db-9079-5d9029fb3e67"
+          "visualize": "true"
         },
         {
           "name": "insulation_unfinished_basement",
@@ -4367,10 +7099,7 @@
           "model_dependent": false,
           "$$hashKey": "object:18981",
           "checked": true,
-          "visualize": "true",
-          "measure_name": "building_characteristics_report",
-          "measure_class_name": "BuildingCharacteristicsReport",
-          "measure_uid": "90eecbe2-d8e2-47db-9079-5d9029fb3e67"
+          "visualize": "true"
         },
         {
           "name": "insulation_finished_basement",
@@ -4381,10 +7110,7 @@
           "model_dependent": false,
           "$$hashKey": "object:18982",
           "checked": true,
-          "visualize": "true",
-          "measure_name": "building_characteristics_report",
-          "measure_class_name": "BuildingCharacteristicsReport",
-          "measure_uid": "90eecbe2-d8e2-47db-9079-5d9029fb3e67"
+          "visualize": "true"
         },
         {
           "name": "insulation_pier_beam",
@@ -4395,10 +7121,7 @@
           "model_dependent": false,
           "$$hashKey": "object:18983",
           "checked": true,
-          "visualize": "true",
-          "measure_name": "building_characteristics_report",
-          "measure_class_name": "BuildingCharacteristicsReport",
-          "measure_uid": "90eecbe2-d8e2-47db-9079-5d9029fb3e67"
+          "visualize": "true"
         },
         {
           "name": "insulation_interzonal_floor",
@@ -4409,10 +7132,7 @@
           "model_dependent": false,
           "$$hashKey": "object:18984",
           "checked": true,
-          "visualize": "true",
-          "measure_name": "building_characteristics_report",
-          "measure_class_name": "BuildingCharacteristicsReport",
-          "measure_uid": "90eecbe2-d8e2-47db-9079-5d9029fb3e67"
+          "visualize": "true"
         },
         {
           "name": "insulation_wall",
@@ -4423,10 +7143,7 @@
           "model_dependent": false,
           "$$hashKey": "object:18985",
           "checked": true,
-          "visualize": "true",
-          "measure_name": "building_characteristics_report",
-          "measure_class_name": "BuildingCharacteristicsReport",
-          "measure_uid": "90eecbe2-d8e2-47db-9079-5d9029fb3e67"
+          "visualize": "true"
         },
         {
           "name": "windows",
@@ -4437,10 +7154,7 @@
           "model_dependent": false,
           "$$hashKey": "object:18986",
           "checked": true,
-          "visualize": "true",
-          "measure_name": "building_characteristics_report",
-          "measure_class_name": "BuildingCharacteristicsReport",
-          "measure_uid": "90eecbe2-d8e2-47db-9079-5d9029fb3e67"
+          "visualize": "true"
         },
         {
           "name": "doors",
@@ -4451,10 +7165,7 @@
           "model_dependent": false,
           "$$hashKey": "object:18987",
           "checked": true,
-          "visualize": "true",
-          "measure_name": "building_characteristics_report",
-          "measure_class_name": "BuildingCharacteristicsReport",
-          "measure_uid": "90eecbe2-d8e2-47db-9079-5d9029fb3e67"
+          "visualize": "true"
         },
         {
           "name": "water_heater",
@@ -4465,10 +7176,7 @@
           "model_dependent": false,
           "$$hashKey": "object:18988",
           "checked": true,
-          "visualize": "true",
-          "measure_name": "building_characteristics_report",
-          "measure_class_name": "BuildingCharacteristicsReport",
-          "measure_uid": "90eecbe2-d8e2-47db-9079-5d9029fb3e67"
+          "visualize": "true"
         },
         {
           "name": "hot_water_fixtures",
@@ -4479,10 +7187,7 @@
           "model_dependent": false,
           "$$hashKey": "object:18989",
           "checked": true,
-          "visualize": "true",
-          "measure_name": "building_characteristics_report",
-          "measure_class_name": "BuildingCharacteristicsReport",
-          "measure_uid": "90eecbe2-d8e2-47db-9079-5d9029fb3e67"
+          "visualize": "true"
         },
         {
           "name": "hot_water_distribution",
@@ -4493,10 +7198,7 @@
           "model_dependent": false,
           "$$hashKey": "object:18990",
           "checked": true,
-          "visualize": "true",
-          "measure_name": "building_characteristics_report",
-          "measure_class_name": "BuildingCharacteristicsReport",
-          "measure_uid": "90eecbe2-d8e2-47db-9079-5d9029fb3e67"
+          "visualize": "true"
         },
         {
           "name": "solar_hot_water",
@@ -4507,10 +7209,7 @@
           "model_dependent": false,
           "$$hashKey": "object:18991",
           "checked": true,
-          "visualize": "true",
-          "measure_name": "building_characteristics_report",
-          "measure_class_name": "BuildingCharacteristicsReport",
-          "measure_uid": "90eecbe2-d8e2-47db-9079-5d9029fb3e67"
+          "visualize": "true"
         },
         {
           "name": "hvac_system_is_combined",
@@ -4521,10 +7220,7 @@
           "model_dependent": false,
           "$$hashKey": "object:18992",
           "checked": true,
-          "visualize": "true",
-          "measure_name": "building_characteristics_report",
-          "measure_class_name": "BuildingCharacteristicsReport",
-          "measure_uid": "90eecbe2-d8e2-47db-9079-5d9029fb3e67"
+          "visualize": "true"
         },
         {
           "name": "hvac_system_combined",
@@ -4535,10 +7231,7 @@
           "model_dependent": false,
           "$$hashKey": "object:18993",
           "checked": true,
-          "visualize": "true",
-          "measure_name": "building_characteristics_report",
-          "measure_class_name": "BuildingCharacteristicsReport",
-          "measure_uid": "90eecbe2-d8e2-47db-9079-5d9029fb3e67"
+          "visualize": "true"
         },
         {
           "name": "hvac_system_heating_electricity",
@@ -4549,10 +7242,7 @@
           "model_dependent": false,
           "$$hashKey": "object:18994",
           "checked": true,
-          "visualize": "true",
-          "measure_name": "building_characteristics_report",
-          "measure_class_name": "BuildingCharacteristicsReport",
-          "measure_uid": "90eecbe2-d8e2-47db-9079-5d9029fb3e67"
+          "visualize": "true"
         },
         {
           "name": "hvac_system_heating_natural_gas",
@@ -4563,10 +7253,7 @@
           "model_dependent": false,
           "$$hashKey": "object:18995",
           "checked": true,
-          "visualize": "true",
-          "measure_name": "building_characteristics_report",
-          "measure_class_name": "BuildingCharacteristicsReport",
-          "measure_uid": "90eecbe2-d8e2-47db-9079-5d9029fb3e67"
+          "visualize": "true"
         },
         {
           "name": "hvac_system_heating_propane",
@@ -4577,10 +7264,7 @@
           "model_dependent": false,
           "$$hashKey": "object:18996",
           "checked": true,
-          "visualize": "true",
-          "measure_name": "building_characteristics_report",
-          "measure_class_name": "BuildingCharacteristicsReport",
-          "measure_uid": "90eecbe2-d8e2-47db-9079-5d9029fb3e67"
+          "visualize": "true"
         },
         {
           "name": "hvac_system_heating_fuel_oil",
@@ -4591,10 +7275,7 @@
           "model_dependent": false,
           "$$hashKey": "object:18997",
           "checked": true,
-          "visualize": "true",
-          "measure_name": "building_characteristics_report",
-          "measure_class_name": "BuildingCharacteristicsReport",
-          "measure_uid": "90eecbe2-d8e2-47db-9079-5d9029fb3e67"
+          "visualize": "true"
         },
         {
           "name": "hvac_system_heating_wood",
@@ -4605,10 +7286,7 @@
           "model_dependent": false,
           "$$hashKey": "object:18998",
           "checked": true,
-          "visualize": "true",
-          "measure_name": "building_characteristics_report",
-          "measure_class_name": "BuildingCharacteristicsReport",
-          "measure_uid": "90eecbe2-d8e2-47db-9079-5d9029fb3e67"
+          "visualize": "true"
         },
         {
           "name": "hvac_system_heating_other_fuel",
@@ -4619,10 +7297,7 @@
           "model_dependent": false,
           "$$hashKey": "object:18999",
           "checked": true,
-          "visualize": "true",
-          "measure_name": "building_characteristics_report",
-          "measure_class_name": "BuildingCharacteristicsReport",
-          "measure_uid": "90eecbe2-d8e2-47db-9079-5d9029fb3e67"
+          "visualize": "true"
         },
         {
           "name": "hvac_system_heating_none",
@@ -4633,10 +7308,7 @@
           "model_dependent": false,
           "$$hashKey": "object:19000",
           "checked": true,
-          "visualize": "true",
-          "measure_name": "building_characteristics_report",
-          "measure_class_name": "BuildingCharacteristicsReport",
-          "measure_uid": "90eecbe2-d8e2-47db-9079-5d9029fb3e67"
+          "visualize": "true"
         },
         {
           "name": "hvac_system_cooling",
@@ -4647,10 +7319,7 @@
           "model_dependent": false,
           "$$hashKey": "object:19001",
           "checked": true,
-          "visualize": "true",
-          "measure_name": "building_characteristics_report",
-          "measure_class_name": "BuildingCharacteristicsReport",
-          "measure_uid": "90eecbe2-d8e2-47db-9079-5d9029fb3e67"
+          "visualize": "true"
         },
         {
           "name": "hvac_system_cooling_type",
@@ -4661,10 +7330,7 @@
           "model_dependent": false,
           "$$hashKey": "object:19002",
           "checked": true,
-          "visualize": "true",
-          "measure_name": "building_characteristics_report",
-          "measure_class_name": "BuildingCharacteristicsReport",
-          "measure_uid": "90eecbe2-d8e2-47db-9079-5d9029fb3e67"
+          "visualize": "true"
         },
         {
           "name": "heating_setpoint",
@@ -4675,10 +7341,7 @@
           "model_dependent": false,
           "$$hashKey": "object:19003",
           "checked": true,
-          "visualize": "true",
-          "measure_name": "building_characteristics_report",
-          "measure_class_name": "BuildingCharacteristicsReport",
-          "measure_uid": "90eecbe2-d8e2-47db-9079-5d9029fb3e67"
+          "visualize": "true"
         },
         {
           "name": "cooling_setpoint",
@@ -4689,10 +7352,7 @@
           "model_dependent": false,
           "$$hashKey": "object:19004",
           "checked": true,
-          "visualize": "true",
-          "measure_name": "building_characteristics_report",
-          "measure_class_name": "BuildingCharacteristicsReport",
-          "measure_uid": "90eecbe2-d8e2-47db-9079-5d9029fb3e67"
+          "visualize": "true"
         },
         {
           "name": "ceiling_fan",
@@ -4703,10 +7363,7 @@
           "model_dependent": false,
           "$$hashKey": "object:19005",
           "checked": true,
-          "visualize": "true",
-          "measure_name": "building_characteristics_report",
-          "measure_class_name": "BuildingCharacteristicsReport",
-          "measure_uid": "90eecbe2-d8e2-47db-9079-5d9029fb3e67"
+          "visualize": "true"
         },
         {
           "name": "dehumidifier",
@@ -4717,10 +7374,7 @@
           "model_dependent": false,
           "$$hashKey": "object:19006",
           "checked": true,
-          "visualize": "true",
-          "measure_name": "building_characteristics_report",
-          "measure_class_name": "BuildingCharacteristicsReport",
-          "measure_uid": "90eecbe2-d8e2-47db-9079-5d9029fb3e67"
+          "visualize": "true"
         },
         {
           "name": "refrigerator",
@@ -4731,10 +7385,7 @@
           "model_dependent": false,
           "$$hashKey": "object:19007",
           "checked": true,
-          "visualize": "true",
-          "measure_name": "building_characteristics_report",
-          "measure_class_name": "BuildingCharacteristicsReport",
-          "measure_uid": "90eecbe2-d8e2-47db-9079-5d9029fb3e67"
+          "visualize": "true"
         },
         {
           "name": "cooking_range",
@@ -4745,10 +7396,7 @@
           "model_dependent": false,
           "$$hashKey": "object:19008",
           "checked": true,
-          "visualize": "true",
-          "measure_name": "building_characteristics_report",
-          "measure_class_name": "BuildingCharacteristicsReport",
-          "measure_uid": "90eecbe2-d8e2-47db-9079-5d9029fb3e67"
+          "visualize": "true"
         },
         {
           "name": "dishwasher",
@@ -4759,10 +7407,7 @@
           "model_dependent": false,
           "$$hashKey": "object:19009",
           "checked": true,
-          "visualize": "true",
-          "measure_name": "building_characteristics_report",
-          "measure_class_name": "BuildingCharacteristicsReport",
-          "measure_uid": "90eecbe2-d8e2-47db-9079-5d9029fb3e67"
+          "visualize": "true"
         },
         {
           "name": "clothes_washer",
@@ -4773,10 +7418,7 @@
           "model_dependent": false,
           "$$hashKey": "object:19010",
           "checked": true,
-          "visualize": "true",
-          "measure_name": "building_characteristics_report",
-          "measure_class_name": "BuildingCharacteristicsReport",
-          "measure_uid": "90eecbe2-d8e2-47db-9079-5d9029fb3e67"
+          "visualize": "true"
         },
         {
           "name": "clothes_dryer",
@@ -4787,10 +7429,7 @@
           "model_dependent": false,
           "$$hashKey": "object:19011",
           "checked": true,
-          "visualize": "true",
-          "measure_name": "building_characteristics_report",
-          "measure_class_name": "BuildingCharacteristicsReport",
-          "measure_uid": "90eecbe2-d8e2-47db-9079-5d9029fb3e67"
+          "visualize": "true"
         },
         {
           "name": "lighting",
@@ -4801,10 +7440,7 @@
           "model_dependent": false,
           "$$hashKey": "object:19012",
           "checked": true,
-          "visualize": "true",
-          "measure_name": "building_characteristics_report",
-          "measure_class_name": "BuildingCharacteristicsReport",
-          "measure_uid": "90eecbe2-d8e2-47db-9079-5d9029fb3e67"
+          "visualize": "true"
         },
         {
           "name": "plug_loads",
@@ -4815,10 +7451,7 @@
           "model_dependent": false,
           "$$hashKey": "object:19013",
           "checked": true,
-          "visualize": "true",
-          "measure_name": "building_characteristics_report",
-          "measure_class_name": "BuildingCharacteristicsReport",
-          "measure_uid": "90eecbe2-d8e2-47db-9079-5d9029fb3e67"
+          "visualize": "true"
         },
         {
           "name": "misc_extra_refrigerator",
@@ -4829,10 +7462,7 @@
           "model_dependent": false,
           "$$hashKey": "object:19014",
           "checked": true,
-          "visualize": "true",
-          "measure_name": "building_characteristics_report",
-          "measure_class_name": "BuildingCharacteristicsReport",
-          "measure_uid": "90eecbe2-d8e2-47db-9079-5d9029fb3e67"
+          "visualize": "true"
         },
         {
           "name": "misc_freezer",
@@ -4843,10 +7473,7 @@
           "model_dependent": false,
           "$$hashKey": "object:19015",
           "checked": true,
-          "visualize": "true",
-          "measure_name": "building_characteristics_report",
-          "measure_class_name": "BuildingCharacteristicsReport",
-          "measure_uid": "90eecbe2-d8e2-47db-9079-5d9029fb3e67"
+          "visualize": "true"
         },
         {
           "name": "misc_gas_fireplace",
@@ -4857,10 +7484,7 @@
           "model_dependent": false,
           "$$hashKey": "object:19016",
           "checked": true,
-          "visualize": "true",
-          "measure_name": "building_characteristics_report",
-          "measure_class_name": "BuildingCharacteristicsReport",
-          "measure_uid": "90eecbe2-d8e2-47db-9079-5d9029fb3e67"
+          "visualize": "true"
         },
         {
           "name": "misc_gas_grill",
@@ -4871,10 +7495,7 @@
           "model_dependent": false,
           "$$hashKey": "object:19017",
           "checked": true,
-          "visualize": "true",
-          "measure_name": "building_characteristics_report",
-          "measure_class_name": "BuildingCharacteristicsReport",
-          "measure_uid": "90eecbe2-d8e2-47db-9079-5d9029fb3e67"
+          "visualize": "true"
         },
         {
           "name": "misc_gas_lighting",
@@ -4885,10 +7506,7 @@
           "model_dependent": false,
           "$$hashKey": "object:19018",
           "checked": true,
-          "visualize": "true",
-          "measure_name": "building_characteristics_report",
-          "measure_class_name": "BuildingCharacteristicsReport",
-          "measure_uid": "90eecbe2-d8e2-47db-9079-5d9029fb3e67"
+          "visualize": "true"
         },
         {
           "name": "misc_hot_tub_spa",
@@ -4899,10 +7517,7 @@
           "model_dependent": false,
           "$$hashKey": "object:19019",
           "checked": true,
-          "visualize": "true",
-          "measure_name": "building_characteristics_report",
-          "measure_class_name": "BuildingCharacteristicsReport",
-          "measure_uid": "90eecbe2-d8e2-47db-9079-5d9029fb3e67"
+          "visualize": "true"
         },
         {
           "name": "misc_pool",
@@ -4913,10 +7528,7 @@
           "model_dependent": false,
           "$$hashKey": "object:19020",
           "checked": true,
-          "visualize": "true",
-          "measure_name": "building_characteristics_report",
-          "measure_class_name": "BuildingCharacteristicsReport",
-          "measure_uid": "90eecbe2-d8e2-47db-9079-5d9029fb3e67"
+          "visualize": "true"
         },
         {
           "name": "misc_well_pump",
@@ -4927,10 +7539,7 @@
           "model_dependent": false,
           "$$hashKey": "object:19021",
           "checked": true,
-          "visualize": "true",
-          "measure_name": "building_characteristics_report",
-          "measure_class_name": "BuildingCharacteristicsReport",
-          "measure_uid": "90eecbe2-d8e2-47db-9079-5d9029fb3e67"
+          "visualize": "true"
         },
         {
           "name": "ducts",
@@ -4941,10 +7550,7 @@
           "model_dependent": false,
           "$$hashKey": "object:19022",
           "checked": true,
-          "visualize": "true",
-          "measure_name": "building_characteristics_report",
-          "measure_class_name": "BuildingCharacteristicsReport",
-          "measure_uid": "90eecbe2-d8e2-47db-9079-5d9029fb3e67"
+          "visualize": "true"
         },
         {
           "name": "infiltration",
@@ -4955,10 +7561,7 @@
           "model_dependent": false,
           "$$hashKey": "object:19023",
           "checked": true,
-          "visualize": "true",
-          "measure_name": "building_characteristics_report",
-          "measure_class_name": "BuildingCharacteristicsReport",
-          "measure_uid": "90eecbe2-d8e2-47db-9079-5d9029fb3e67"
+          "visualize": "true"
         },
         {
           "name": "natural_ventilation",
@@ -4969,10 +7572,7 @@
           "model_dependent": false,
           "$$hashKey": "object:19024",
           "checked": true,
-          "visualize": "true",
-          "measure_name": "building_characteristics_report",
-          "measure_class_name": "BuildingCharacteristicsReport",
-          "measure_uid": "90eecbe2-d8e2-47db-9079-5d9029fb3e67"
+          "visualize": "true"
         },
         {
           "name": "mechanical_ventilation",
@@ -4983,10 +7583,7 @@
           "model_dependent": false,
           "$$hashKey": "object:19025",
           "checked": true,
-          "visualize": "true",
-          "measure_name": "building_characteristics_report",
-          "measure_class_name": "BuildingCharacteristicsReport",
-          "measure_uid": "90eecbe2-d8e2-47db-9079-5d9029fb3e67"
+          "visualize": "true"
         },
         {
           "name": "bathroom_spot_vent_hour",
@@ -4997,10 +7594,7 @@
           "model_dependent": false,
           "$$hashKey": "object:19026",
           "checked": true,
-          "visualize": "true",
-          "measure_name": "building_characteristics_report",
-          "measure_class_name": "BuildingCharacteristicsReport",
-          "measure_uid": "90eecbe2-d8e2-47db-9079-5d9029fb3e67"
+          "visualize": "true"
         },
         {
           "name": "range_spot_vent_hour",
@@ -5011,10 +7605,7 @@
           "model_dependent": false,
           "$$hashKey": "object:19027",
           "checked": true,
-          "visualize": "true",
-          "measure_name": "building_characteristics_report",
-          "measure_class_name": "BuildingCharacteristicsReport",
-          "measure_uid": "90eecbe2-d8e2-47db-9079-5d9029fb3e67"
+          "visualize": "true"
         },
         {
           "name": "pv",
@@ -5025,10 +7616,7 @@
           "model_dependent": false,
           "$$hashKey": "object:19028",
           "checked": true,
-          "visualize": "true",
-          "measure_name": "building_characteristics_report",
-          "measure_class_name": "BuildingCharacteristicsReport",
-          "measure_uid": "90eecbe2-d8e2-47db-9079-5d9029fb3e67"
+          "visualize": "true"
         },
         {
           "name": "days_shifted",
@@ -5039,10 +7627,7 @@
           "model_dependent": false,
           "$$hashKey": "object:19029",
           "checked": true,
-          "visualize": "true",
-          "measure_name": "building_characteristics_report",
-          "measure_class_name": "BuildingCharacteristicsReport",
-          "measure_uid": "90eecbe2-d8e2-47db-9079-5d9029fb3e67"
+          "visualize": "true"
         },
         {
           "name": "location_city",
@@ -5053,10 +7638,7 @@
           "model_dependent": false,
           "$$hashKey": "object:19030",
           "checked": true,
-          "visualize": "true",
-          "measure_name": "building_characteristics_report",
-          "measure_class_name": "BuildingCharacteristicsReport",
-          "measure_uid": "90eecbe2-d8e2-47db-9079-5d9029fb3e67"
+          "visualize": "true"
         },
         {
           "name": "location_state",
@@ -5067,10 +7649,7 @@
           "model_dependent": false,
           "$$hashKey": "object:19031",
           "checked": true,
-          "visualize": "true",
-          "measure_name": "building_characteristics_report",
-          "measure_class_name": "BuildingCharacteristicsReport",
-          "measure_uid": "90eecbe2-d8e2-47db-9079-5d9029fb3e67"
+          "visualize": "true"
         },
         {
           "name": "location_latitude",
@@ -5081,10 +7660,7 @@
           "model_dependent": false,
           "$$hashKey": "object:19032",
           "checked": true,
-          "visualize": "true",
-          "measure_name": "building_characteristics_report",
-          "measure_class_name": "BuildingCharacteristicsReport",
-          "measure_uid": "90eecbe2-d8e2-47db-9079-5d9029fb3e67"
+          "visualize": "true"
         },
         {
           "name": "location_longitude",
@@ -5095,22 +7671,19 @@
           "model_dependent": false,
           "$$hashKey": "object:19033",
           "checked": true,
-          "visualize": "true",
-          "measure_name": "building_characteristics_report",
-          "measure_class_name": "BuildingCharacteristicsReport",
-          "measure_uid": "90eecbe2-d8e2-47db-9079-5d9029fb3e67"
+          "visualize": "true"
         }
       ]
     },
     {
       "measure_dir": "C:\\OpenStudio\\OpenStudio-BuildStock\\project_resstock_national\\measures\\SimulationOutputReport",
       "name": "simulation_output_report",
-      "directory": "C:\\OpenStudio\\OpenStudio-BuildStock\\project_resstock_national\\measures\\SimulationOutputReport",
+      "directory": "C:/OpenStudio/OpenStudio-BuildStock/measures/SimulationOutputReport",
       "uid": "fc337100-8634-404e-8966-01243d292a79",
       "uuid": "{fc337100-8634-404e-8966-01243d292a79}",
-      "version_id": "a1bfb944-1780-4beb-a09f-b346224a14ed",
-      "version_uuid": "{a1bfb944-1780-4beb-a09f-b346224a14ed}",
-      "version_modified": "20180419T023049Z",
+      "version_id": "62a04a2a-f9b0-40ca-9d89-c39c2a6ec461",
+      "version_uuid": "{62a04a2a-f9b0-40ca-9d89-c39c2a6ec461}",
+      "version_modified": "20180620T222925Z",
       "xml_checksum": "2C8A3EEF",
       "display_name": "Simulation Output Report",
       "class_name": "SimulationOutputReport",
@@ -5125,7 +7698,9 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "checked": true
+          "$$hashKey": "object:26225",
+          "checked": true,
+          "visualize": "true"
         },
         {
           "name": "total_site_electricity_kwh",
@@ -5134,7 +7709,9 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "checked": true
+          "$$hashKey": "object:26226",
+          "checked": true,
+          "visualize": "true"
         },
         {
           "name": "total_site_natural_gas_therm",
@@ -5143,7 +7720,9 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "checked": true
+          "$$hashKey": "object:26227",
+          "checked": true,
+          "visualize": "true"
         },
         {
           "name": "total_site_other_fuel_mbtu",
@@ -5152,7 +7731,9 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "checked": true
+          "$$hashKey": "object:26228",
+          "checked": true,
+          "visualize": "true"
         },
         {
           "name": "net_site_energy_mbtu",
@@ -5161,7 +7742,9 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "checked": true
+          "$$hashKey": "object:26229",
+          "checked": true,
+          "visualize": "true"
         },
         {
           "name": "net_site_electricity_kwh",
@@ -5170,7 +7753,9 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "checked": true
+          "$$hashKey": "object:26230",
+          "checked": true,
+          "visualize": "true"
         },
         {
           "name": "electricity_heating_kwh",
@@ -5179,7 +7764,9 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "checked": true
+          "$$hashKey": "object:26231",
+          "checked": true,
+          "visualize": "true"
         },
         {
           "name": "electricity_cooling_kwh",
@@ -5188,7 +7775,9 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "checked": true
+          "$$hashKey": "object:26232",
+          "checked": true,
+          "visualize": "true"
         },
         {
           "name": "electricity_interior_lighting_kwh",
@@ -5197,7 +7786,9 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "checked": true
+          "$$hashKey": "object:26233",
+          "checked": true,
+          "visualize": "true"
         },
         {
           "name": "electricity_exterior_lighting_kwh",
@@ -5206,7 +7797,9 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "checked": true
+          "$$hashKey": "object:26234",
+          "checked": true,
+          "visualize": "true"
         },
         {
           "name": "electricity_interior_equipment_kwh",
@@ -5215,7 +7808,9 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "checked": true
+          "$$hashKey": "object:26235",
+          "checked": true,
+          "visualize": "true"
         },
         {
           "name": "electricity_fans_kwh",
@@ -5224,7 +7819,9 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "checked": true
+          "$$hashKey": "object:26236",
+          "checked": true,
+          "visualize": "true"
         },
         {
           "name": "electricity_pumps_kwh",
@@ -5233,7 +7830,9 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "checked": true
+          "$$hashKey": "object:26237",
+          "checked": true,
+          "visualize": "true"
         },
         {
           "name": "electricity_water_systems_kwh",
@@ -5242,7 +7841,9 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "checked": true
+          "$$hashKey": "object:26238",
+          "checked": true,
+          "visualize": "true"
         },
         {
           "name": "electricity_pv_kwh",
@@ -5251,7 +7852,9 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "checked": true
+          "$$hashKey": "object:26239",
+          "checked": true,
+          "visualize": "true"
         },
         {
           "name": "natural_gas_heating_therm",
@@ -5260,7 +7863,9 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "checked": true
+          "$$hashKey": "object:26240",
+          "checked": true,
+          "visualize": "true"
         },
         {
           "name": "natural_gas_interior_equipment_therm",
@@ -5269,7 +7874,9 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "checked": true
+          "$$hashKey": "object:26241",
+          "checked": true,
+          "visualize": "true"
         },
         {
           "name": "natural_gas_water_systems_therm",
@@ -5278,7 +7885,9 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "checked": true
+          "$$hashKey": "object:26242",
+          "checked": true,
+          "visualize": "true"
         },
         {
           "name": "other_fuel_heating_mbtu",
@@ -5287,7 +7896,9 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "checked": true
+          "$$hashKey": "object:26243",
+          "checked": true,
+          "visualize": "true"
         },
         {
           "name": "other_fuel_interior_equipment_mbtu",
@@ -5296,7 +7907,9 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "checked": true
+          "$$hashKey": "object:26244",
+          "checked": true,
+          "visualize": "true"
         },
         {
           "name": "other_fuel_water_systems_mbtu",
@@ -5305,7 +7918,9 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "checked": true
+          "$$hashKey": "object:26245",
+          "checked": true,
+          "visualize": "true"
         },
         {
           "name": "hours_heating_setpoint_not_met",
@@ -5314,7 +7929,9 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "checked": true
+          "$$hashKey": "object:26246",
+          "checked": true,
+          "visualize": "true"
         },
         {
           "name": "hours_cooling_setpoint_not_met",
@@ -5323,7 +7940,9 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "checked": true
+          "$$hashKey": "object:26247",
+          "checked": true,
+          "visualize": "true"
         },
         {
           "name": "hvac_cooling_capacity_w",
@@ -5332,7 +7951,9 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "checked": true
+          "$$hashKey": "object:26248",
+          "checked": true,
+          "visualize": "true"
         },
         {
           "name": "hvac_heating_capacity_w",
@@ -5341,7 +7962,20 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "checked": true
+          "$$hashKey": "object:26249",
+          "checked": true,
+          "visualize": "true"
+        },
+        {
+          "name": "hvac_heating_supp_capacity_w",
+          "display_name": "hvac_heating_supp_capacity_w",
+          "short_name": "hvac_heating_supp_capacity_w",
+          "description": "",
+          "type": "Double",
+          "model_dependent": false,
+          "$$hashKey": "object:26250",
+          "checked": true,
+          "visualize": "true"
         },
         {
           "name": "upgrade_name",
@@ -5350,7 +7984,9 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "checked": true
+          "$$hashKey": "object:26251",
+          "checked": true,
+          "visualize": "true"
         },
         {
           "name": "upgrade_cost_usd",
@@ -5359,7 +7995,9 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "checked": true
+          "$$hashKey": "object:26252",
+          "checked": true,
+          "visualize": "true"
         },
         {
           "name": "upgrade_option_01_cost_usd",
@@ -5368,7 +8006,9 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "checked": true
+          "$$hashKey": "object:26253",
+          "checked": true,
+          "visualize": "true"
         },
         {
           "name": "upgrade_option_01_lifetime_yrs",
@@ -5377,7 +8017,9 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "checked": true
+          "$$hashKey": "object:26254",
+          "checked": true,
+          "visualize": "true"
         },
         {
           "name": "upgrade_option_02_cost_usd",
@@ -5386,7 +8028,9 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "checked": true
+          "$$hashKey": "object:26255",
+          "checked": true,
+          "visualize": "true"
         },
         {
           "name": "upgrade_option_02_lifetime_yrs",
@@ -5395,7 +8039,9 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "checked": true
+          "$$hashKey": "object:26256",
+          "checked": true,
+          "visualize": "true"
         },
         {
           "name": "upgrade_option_03_cost_usd",
@@ -5404,7 +8050,9 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "checked": true
+          "$$hashKey": "object:26257",
+          "checked": true,
+          "visualize": "true"
         },
         {
           "name": "upgrade_option_03_lifetime_yrs",
@@ -5413,7 +8061,9 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "checked": true
+          "$$hashKey": "object:26258",
+          "checked": true,
+          "visualize": "true"
         },
         {
           "name": "upgrade_option_04_cost_usd",
@@ -5422,7 +8072,9 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "checked": true
+          "$$hashKey": "object:26259",
+          "checked": true,
+          "visualize": "true"
         },
         {
           "name": "upgrade_option_04_lifetime_yrs",
@@ -5431,7 +8083,9 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "checked": true
+          "$$hashKey": "object:26260",
+          "checked": true,
+          "visualize": "true"
         },
         {
           "name": "upgrade_option_05_cost_usd",
@@ -5440,7 +8094,9 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "checked": true
+          "$$hashKey": "object:26261",
+          "checked": true,
+          "visualize": "true"
         },
         {
           "name": "upgrade_option_05_lifetime_yrs",
@@ -5449,7 +8105,9 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "checked": true
+          "$$hashKey": "object:26262",
+          "checked": true,
+          "visualize": "true"
         },
         {
           "name": "upgrade_option_06_cost_usd",
@@ -5458,7 +8116,9 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "checked": true
+          "$$hashKey": "object:26263",
+          "checked": true,
+          "visualize": "true"
         },
         {
           "name": "upgrade_option_06_lifetime_yrs",
@@ -5467,7 +8127,9 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "checked": true
+          "$$hashKey": "object:26264",
+          "checked": true,
+          "visualize": "true"
         },
         {
           "name": "upgrade_option_07_cost_usd",
@@ -5476,7 +8138,9 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "checked": true
+          "$$hashKey": "object:26265",
+          "checked": true,
+          "visualize": "true"
         },
         {
           "name": "upgrade_option_07_lifetime_yrs",
@@ -5485,7 +8149,9 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "checked": true
+          "$$hashKey": "object:26266",
+          "checked": true,
+          "visualize": "true"
         },
         {
           "name": "upgrade_option_08_cost_usd",
@@ -5494,7 +8160,9 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "checked": true
+          "$$hashKey": "object:26267",
+          "checked": true,
+          "visualize": "true"
         },
         {
           "name": "upgrade_option_08_lifetime_yrs",
@@ -5503,7 +8171,9 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "checked": true
+          "$$hashKey": "object:26268",
+          "checked": true,
+          "visualize": "true"
         },
         {
           "name": "upgrade_option_09_cost_usd",
@@ -5512,7 +8182,9 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "checked": true
+          "$$hashKey": "object:26269",
+          "checked": true,
+          "visualize": "true"
         },
         {
           "name": "upgrade_option_09_lifetime_yrs",
@@ -5521,7 +8193,9 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "checked": true
+          "$$hashKey": "object:26270",
+          "checked": true,
+          "visualize": "true"
         },
         {
           "name": "upgrade_option_10_cost_usd",
@@ -5530,7 +8204,9 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "checked": true
+          "$$hashKey": "object:26271",
+          "checked": true,
+          "visualize": "true"
         },
         {
           "name": "upgrade_option_10_lifetime_yrs",
@@ -5539,7 +8215,9 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "checked": true
+          "$$hashKey": "object:26272",
+          "checked": true,
+          "visualize": "true"
         },
         {
           "name": "weight",
@@ -5548,7 +8226,9 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "checked": true
+          "$$hashKey": "object:26273",
+          "checked": true,
+          "visualize": "true"
         }
       ],
       "attributes": [
@@ -5571,15 +8251,15 @@
       "add": "",
       "open": false,
       "addedToProject": true,
-      "date": "4/18/2018",
+      "date": "6/20/2018",
       "author": "",
       "type": "ReportingMeasure",
       "seed": "EmptySeedModel.osm",
-      "workflow_index": 3,
+      "workflow_index": 4,
       "options": [],
-      "instanceId": 0.7694294481550352,
+      "instanceId": 0.14083091748731902,
       "skip": false,
-      "$$hashKey": "object:12817",
+      "$$hashKey": "object:24191",
       "outputMeasure": true,
       "userDefinedOutputs": [],
       "analysisOutputs": [
@@ -5590,11 +8270,8 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:9249",
+          "$$hashKey": "object:26225",
           "checked": true,
-          "measure_name": "simulation_output_report",
-          "measure_class_name": "SimulationOutputReport",
-          "measure_uid": "fc337100-8634-404e-8966-01243d292a79",
           "visualize": "true"
         },
         {
@@ -5604,11 +8281,8 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:9250",
+          "$$hashKey": "object:26226",
           "checked": true,
-          "measure_name": "simulation_output_report",
-          "measure_class_name": "SimulationOutputReport",
-          "measure_uid": "fc337100-8634-404e-8966-01243d292a79",
           "visualize": "true"
         },
         {
@@ -5618,11 +8292,8 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:9251",
+          "$$hashKey": "object:26227",
           "checked": true,
-          "measure_name": "simulation_output_report",
-          "measure_class_name": "SimulationOutputReport",
-          "measure_uid": "fc337100-8634-404e-8966-01243d292a79",
           "visualize": "true"
         },
         {
@@ -5632,11 +8303,8 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:9252",
+          "$$hashKey": "object:26228",
           "checked": true,
-          "measure_name": "simulation_output_report",
-          "measure_class_name": "SimulationOutputReport",
-          "measure_uid": "fc337100-8634-404e-8966-01243d292a79",
           "visualize": "true"
         },
         {
@@ -5646,11 +8314,8 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:9253",
+          "$$hashKey": "object:26229",
           "checked": true,
-          "measure_name": "simulation_output_report",
-          "measure_class_name": "SimulationOutputReport",
-          "measure_uid": "fc337100-8634-404e-8966-01243d292a79",
           "visualize": "true"
         },
         {
@@ -5660,11 +8325,8 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:9254",
+          "$$hashKey": "object:26230",
           "checked": true,
-          "measure_name": "simulation_output_report",
-          "measure_class_name": "SimulationOutputReport",
-          "measure_uid": "fc337100-8634-404e-8966-01243d292a79",
           "visualize": "true"
         },
         {
@@ -5674,11 +8336,8 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:9255",
+          "$$hashKey": "object:26231",
           "checked": true,
-          "measure_name": "simulation_output_report",
-          "measure_class_name": "SimulationOutputReport",
-          "measure_uid": "fc337100-8634-404e-8966-01243d292a79",
           "visualize": "true"
         },
         {
@@ -5688,11 +8347,8 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:9256",
+          "$$hashKey": "object:26232",
           "checked": true,
-          "measure_name": "simulation_output_report",
-          "measure_class_name": "SimulationOutputReport",
-          "measure_uid": "fc337100-8634-404e-8966-01243d292a79",
           "visualize": "true"
         },
         {
@@ -5702,11 +8358,8 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:9257",
+          "$$hashKey": "object:26233",
           "checked": true,
-          "measure_name": "simulation_output_report",
-          "measure_class_name": "SimulationOutputReport",
-          "measure_uid": "fc337100-8634-404e-8966-01243d292a79",
           "visualize": "true"
         },
         {
@@ -5716,11 +8369,8 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:9258",
+          "$$hashKey": "object:26234",
           "checked": true,
-          "measure_name": "simulation_output_report",
-          "measure_class_name": "SimulationOutputReport",
-          "measure_uid": "fc337100-8634-404e-8966-01243d292a79",
           "visualize": "true"
         },
         {
@@ -5730,11 +8380,8 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:9259",
+          "$$hashKey": "object:26235",
           "checked": true,
-          "measure_name": "simulation_output_report",
-          "measure_class_name": "SimulationOutputReport",
-          "measure_uid": "fc337100-8634-404e-8966-01243d292a79",
           "visualize": "true"
         },
         {
@@ -5744,11 +8391,8 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:9260",
+          "$$hashKey": "object:26236",
           "checked": true,
-          "measure_name": "simulation_output_report",
-          "measure_class_name": "SimulationOutputReport",
-          "measure_uid": "fc337100-8634-404e-8966-01243d292a79",
           "visualize": "true"
         },
         {
@@ -5758,11 +8402,8 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:9261",
+          "$$hashKey": "object:26237",
           "checked": true,
-          "measure_name": "simulation_output_report",
-          "measure_class_name": "SimulationOutputReport",
-          "measure_uid": "fc337100-8634-404e-8966-01243d292a79",
           "visualize": "true"
         },
         {
@@ -5772,11 +8413,8 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:9262",
+          "$$hashKey": "object:26238",
           "checked": true,
-          "measure_name": "simulation_output_report",
-          "measure_class_name": "SimulationOutputReport",
-          "measure_uid": "fc337100-8634-404e-8966-01243d292a79",
           "visualize": "true"
         },
         {
@@ -5786,11 +8424,8 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:9263",
+          "$$hashKey": "object:26239",
           "checked": true,
-          "measure_name": "simulation_output_report",
-          "measure_class_name": "SimulationOutputReport",
-          "measure_uid": "fc337100-8634-404e-8966-01243d292a79",
           "visualize": "true"
         },
         {
@@ -5800,11 +8435,8 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:9264",
+          "$$hashKey": "object:26240",
           "checked": true,
-          "measure_name": "simulation_output_report",
-          "measure_class_name": "SimulationOutputReport",
-          "measure_uid": "fc337100-8634-404e-8966-01243d292a79",
           "visualize": "true"
         },
         {
@@ -5814,11 +8446,8 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:9265",
+          "$$hashKey": "object:26241",
           "checked": true,
-          "measure_name": "simulation_output_report",
-          "measure_class_name": "SimulationOutputReport",
-          "measure_uid": "fc337100-8634-404e-8966-01243d292a79",
           "visualize": "true"
         },
         {
@@ -5828,11 +8457,8 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:9266",
+          "$$hashKey": "object:26242",
           "checked": true,
-          "measure_name": "simulation_output_report",
-          "measure_class_name": "SimulationOutputReport",
-          "measure_uid": "fc337100-8634-404e-8966-01243d292a79",
           "visualize": "true"
         },
         {
@@ -5842,11 +8468,8 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:9267",
+          "$$hashKey": "object:26243",
           "checked": true,
-          "measure_name": "simulation_output_report",
-          "measure_class_name": "SimulationOutputReport",
-          "measure_uid": "fc337100-8634-404e-8966-01243d292a79",
           "visualize": "true"
         },
         {
@@ -5856,11 +8479,8 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:9268",
+          "$$hashKey": "object:26244",
           "checked": true,
-          "measure_name": "simulation_output_report",
-          "measure_class_name": "SimulationOutputReport",
-          "measure_uid": "fc337100-8634-404e-8966-01243d292a79",
           "visualize": "true"
         },
         {
@@ -5870,11 +8490,8 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:9269",
+          "$$hashKey": "object:26245",
           "checked": true,
-          "measure_name": "simulation_output_report",
-          "measure_class_name": "SimulationOutputReport",
-          "measure_uid": "fc337100-8634-404e-8966-01243d292a79",
           "visualize": "true"
         },
         {
@@ -5884,11 +8501,8 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:9270",
+          "$$hashKey": "object:26246",
           "checked": true,
-          "measure_name": "simulation_output_report",
-          "measure_class_name": "SimulationOutputReport",
-          "measure_uid": "fc337100-8634-404e-8966-01243d292a79",
           "visualize": "true"
         },
         {
@@ -5898,11 +8512,8 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:9271",
+          "$$hashKey": "object:26247",
           "checked": true,
-          "measure_name": "simulation_output_report",
-          "measure_class_name": "SimulationOutputReport",
-          "measure_uid": "fc337100-8634-404e-8966-01243d292a79",
           "visualize": "true"
         },
         {
@@ -5912,11 +8523,8 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:9272",
+          "$$hashKey": "object:26248",
           "checked": true,
-          "measure_name": "simulation_output_report",
-          "measure_class_name": "SimulationOutputReport",
-          "measure_uid": "fc337100-8634-404e-8966-01243d292a79",
           "visualize": "true"
         },
         {
@@ -5926,39 +8534,19 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:9273",
+          "$$hashKey": "object:26249",
           "checked": true,
-          "measure_name": "simulation_output_report",
-          "measure_class_name": "SimulationOutputReport",
-          "measure_uid": "fc337100-8634-404e-8966-01243d292a79",
           "visualize": "true"
         },
         {
-          "name": "upgrade_cost_usd",
-          "display_name": "upgrade_cost_usd",
-          "short_name": "upgrade_cost_usd",
+          "name": "hvac_heating_supp_capacity_w",
+          "display_name": "hvac_heating_supp_capacity_w",
+          "short_name": "hvac_heating_supp_capacity_w",
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:9274",
+          "$$hashKey": "object:26250",
           "checked": true,
-          "measure_name": "simulation_output_report",
-          "measure_class_name": "SimulationOutputReport",
-          "measure_uid": "fc337100-8634-404e-8966-01243d292a79",
-          "visualize": "true"
-        },
-        {
-          "name": "weight",
-          "display_name": "weight",
-          "short_name": "weight",
-          "description": "",
-          "type": "Double",
-          "model_dependent": false,
-          "$$hashKey": "object:9275",
-          "checked": true,
-          "measure_name": "simulation_output_report",
-          "measure_class_name": "SimulationOutputReport",
-          "measure_uid": "fc337100-8634-404e-8966-01243d292a79",
           "visualize": "true"
         },
         {
@@ -5968,12 +8556,20 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:57651",
+          "$$hashKey": "object:26251",
           "checked": true,
-          "visualize": "true",
-          "measure_name": "simulation_output_report",
-          "measure_class_name": "SimulationOutputReport",
-          "measure_uid": "fc337100-8634-404e-8966-01243d292a79"
+          "visualize": "true"
+        },
+        {
+          "name": "upgrade_cost_usd",
+          "display_name": "upgrade_cost_usd",
+          "short_name": "upgrade_cost_usd",
+          "description": "",
+          "type": "Double",
+          "model_dependent": false,
+          "$$hashKey": "object:26252",
+          "checked": true,
+          "visualize": "true"
         },
         {
           "name": "upgrade_option_01_cost_usd",
@@ -5982,12 +8578,9 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:44842",
+          "$$hashKey": "object:26253",
           "checked": true,
-          "visualize": "true",
-          "measure_name": "simulation_output_report",
-          "measure_class_name": "SimulationOutputReport",
-          "measure_uid": "fc337100-8634-404e-8966-01243d292a79"
+          "visualize": "true"
         },
         {
           "name": "upgrade_option_01_lifetime_yrs",
@@ -5996,12 +8589,9 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:44843",
+          "$$hashKey": "object:26254",
           "checked": true,
-          "visualize": "true",
-          "measure_name": "simulation_output_report",
-          "measure_class_name": "SimulationOutputReport",
-          "measure_uid": "fc337100-8634-404e-8966-01243d292a79"
+          "visualize": "true"
         },
         {
           "name": "upgrade_option_02_cost_usd",
@@ -6010,12 +8600,9 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:44844",
+          "$$hashKey": "object:26255",
           "checked": true,
-          "visualize": "true",
-          "measure_name": "simulation_output_report",
-          "measure_class_name": "SimulationOutputReport",
-          "measure_uid": "fc337100-8634-404e-8966-01243d292a79"
+          "visualize": "true"
         },
         {
           "name": "upgrade_option_02_lifetime_yrs",
@@ -6024,12 +8611,9 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:44845",
+          "$$hashKey": "object:26256",
           "checked": true,
-          "visualize": "true",
-          "measure_name": "simulation_output_report",
-          "measure_class_name": "SimulationOutputReport",
-          "measure_uid": "fc337100-8634-404e-8966-01243d292a79"
+          "visualize": "true"
         },
         {
           "name": "upgrade_option_03_cost_usd",
@@ -6038,12 +8622,9 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:44846",
+          "$$hashKey": "object:26257",
           "checked": true,
-          "visualize": "true",
-          "measure_name": "simulation_output_report",
-          "measure_class_name": "SimulationOutputReport",
-          "measure_uid": "fc337100-8634-404e-8966-01243d292a79"
+          "visualize": "true"
         },
         {
           "name": "upgrade_option_03_lifetime_yrs",
@@ -6052,12 +8633,9 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:44847",
+          "$$hashKey": "object:26258",
           "checked": true,
-          "visualize": "true",
-          "measure_name": "simulation_output_report",
-          "measure_class_name": "SimulationOutputReport",
-          "measure_uid": "fc337100-8634-404e-8966-01243d292a79"
+          "visualize": "true"
         },
         {
           "name": "upgrade_option_04_cost_usd",
@@ -6066,12 +8644,9 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:44848",
+          "$$hashKey": "object:26259",
           "checked": true,
-          "visualize": "true",
-          "measure_name": "simulation_output_report",
-          "measure_class_name": "SimulationOutputReport",
-          "measure_uid": "fc337100-8634-404e-8966-01243d292a79"
+          "visualize": "true"
         },
         {
           "name": "upgrade_option_04_lifetime_yrs",
@@ -6080,12 +8655,9 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:44849",
+          "$$hashKey": "object:26260",
           "checked": true,
-          "visualize": "true",
-          "measure_name": "simulation_output_report",
-          "measure_class_name": "SimulationOutputReport",
-          "measure_uid": "fc337100-8634-404e-8966-01243d292a79"
+          "visualize": "true"
         },
         {
           "name": "upgrade_option_05_cost_usd",
@@ -6094,12 +8666,9 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:44850",
+          "$$hashKey": "object:26261",
           "checked": true,
-          "visualize": "true",
-          "measure_name": "simulation_output_report",
-          "measure_class_name": "SimulationOutputReport",
-          "measure_uid": "fc337100-8634-404e-8966-01243d292a79"
+          "visualize": "true"
         },
         {
           "name": "upgrade_option_05_lifetime_yrs",
@@ -6108,12 +8677,9 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:44851",
+          "$$hashKey": "object:26262",
           "checked": true,
-          "visualize": "true",
-          "measure_name": "simulation_output_report",
-          "measure_class_name": "SimulationOutputReport",
-          "measure_uid": "fc337100-8634-404e-8966-01243d292a79"
+          "visualize": "true"
         },
         {
           "name": "upgrade_option_06_cost_usd",
@@ -6122,12 +8688,9 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:44852",
+          "$$hashKey": "object:26263",
           "checked": true,
-          "visualize": "true",
-          "measure_name": "simulation_output_report",
-          "measure_class_name": "SimulationOutputReport",
-          "measure_uid": "fc337100-8634-404e-8966-01243d292a79"
+          "visualize": "true"
         },
         {
           "name": "upgrade_option_06_lifetime_yrs",
@@ -6136,12 +8699,9 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:44853",
+          "$$hashKey": "object:26264",
           "checked": true,
-          "visualize": "true",
-          "measure_name": "simulation_output_report",
-          "measure_class_name": "SimulationOutputReport",
-          "measure_uid": "fc337100-8634-404e-8966-01243d292a79"
+          "visualize": "true"
         },
         {
           "name": "upgrade_option_07_cost_usd",
@@ -6150,12 +8710,9 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:44854",
+          "$$hashKey": "object:26265",
           "checked": true,
-          "visualize": "true",
-          "measure_name": "simulation_output_report",
-          "measure_class_name": "SimulationOutputReport",
-          "measure_uid": "fc337100-8634-404e-8966-01243d292a79"
+          "visualize": "true"
         },
         {
           "name": "upgrade_option_07_lifetime_yrs",
@@ -6164,12 +8721,9 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:44855",
+          "$$hashKey": "object:26266",
           "checked": true,
-          "visualize": "true",
-          "measure_name": "simulation_output_report",
-          "measure_class_name": "SimulationOutputReport",
-          "measure_uid": "fc337100-8634-404e-8966-01243d292a79"
+          "visualize": "true"
         },
         {
           "name": "upgrade_option_08_cost_usd",
@@ -6178,12 +8732,9 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:44856",
+          "$$hashKey": "object:26267",
           "checked": true,
-          "visualize": "true",
-          "measure_name": "simulation_output_report",
-          "measure_class_name": "SimulationOutputReport",
-          "measure_uid": "fc337100-8634-404e-8966-01243d292a79"
+          "visualize": "true"
         },
         {
           "name": "upgrade_option_08_lifetime_yrs",
@@ -6192,12 +8743,9 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:44857",
+          "$$hashKey": "object:26268",
           "checked": true,
-          "visualize": "true",
-          "measure_name": "simulation_output_report",
-          "measure_class_name": "SimulationOutputReport",
-          "measure_uid": "fc337100-8634-404e-8966-01243d292a79"
+          "visualize": "true"
         },
         {
           "name": "upgrade_option_09_cost_usd",
@@ -6206,12 +8754,9 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:44858",
+          "$$hashKey": "object:26269",
           "checked": true,
-          "visualize": "true",
-          "measure_name": "simulation_output_report",
-          "measure_class_name": "SimulationOutputReport",
-          "measure_uid": "fc337100-8634-404e-8966-01243d292a79"
+          "visualize": "true"
         },
         {
           "name": "upgrade_option_09_lifetime_yrs",
@@ -6220,12 +8765,9 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:44859",
+          "$$hashKey": "object:26270",
           "checked": true,
-          "visualize": "true",
-          "measure_name": "simulation_output_report",
-          "measure_class_name": "SimulationOutputReport",
-          "measure_uid": "fc337100-8634-404e-8966-01243d292a79"
+          "visualize": "true"
         },
         {
           "name": "upgrade_option_10_cost_usd",
@@ -6234,12 +8776,9 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:44860",
+          "$$hashKey": "object:26271",
           "checked": true,
-          "visualize": "true",
-          "measure_name": "simulation_output_report",
-          "measure_class_name": "SimulationOutputReport",
-          "measure_uid": "fc337100-8634-404e-8966-01243d292a79"
+          "visualize": "true"
         },
         {
           "name": "upgrade_option_10_lifetime_yrs",
@@ -6248,24 +8787,32 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:44861",
+          "$$hashKey": "object:26272",
           "checked": true,
-          "visualize": "true",
-          "measure_name": "simulation_output_report",
-          "measure_class_name": "SimulationOutputReport",
-          "measure_uid": "fc337100-8634-404e-8966-01243d292a79"
+          "visualize": "true"
+        },
+        {
+          "name": "weight",
+          "display_name": "weight",
+          "short_name": "weight",
+          "description": "",
+          "type": "Double",
+          "model_dependent": false,
+          "$$hashKey": "object:26273",
+          "checked": true,
+          "visualize": "true"
         }
       ]
     },
     {
-      "measure_dir": "C:\\OpenStudio\\OpenStudio-BuildStock\\project_resstock_national\\measures\\TimeseriesCSVExport",
+      "measure_dir": "C:/OpenStudio/OpenStudio-BuildStock/measures/TimeseriesCSVExport",
       "name": "timeseries_csv_export",
-      "directory": "C:\\OpenStudio\\OpenStudio-BuildStock\\project_resstock_national\\measures\\TimeseriesCSVExport",
+      "directory": "C:/OpenStudio/OpenStudio-BuildStock/measures/TimeseriesCSVExport",
       "uid": "2a3442c1-944d-4e91-9e11-11e0cf368c64",
       "uuid": "{2a3442c1-944d-4e91-9e11-11e0cf368c64}",
-      "version_id": "df1bf360-a173-4a68-9b67-a432a7a60350",
-      "version_uuid": "{df1bf360-a173-4a68-9b67-a432a7a60350}",
-      "version_modified": "20180618T203632Z",
+      "version_id": "b86af643-8c32-40ea-82cb-e799aaff1b39",
+      "version_uuid": "{b86af643-8c32-40ea-82cb-e799aaff1b39}",
+      "version_modified": "20180620T222925Z",
       "xml_checksum": "15BF4E57",
       "display_name": "Timeseries CSV Export",
       "class_name": "TimeseriesCSVExport",
@@ -6326,7 +8873,7 @@
             "stdDev": "Hourly",
             "default_value": "Hourly"
           },
-          "$$hashKey": "object:31180"
+          "$$hashKey": "object:15774"
         },
         {
           "name": "inc_end_use_subcategories",
@@ -6336,21 +8883,21 @@
           "required": true,
           "model_dependent": false,
           "default_value": false,
-          "display_name_short": "inc_end_use_subcategories",
+          "$$hashKey": "object:15415",
           "inputs": {
+            "default_value": false,
+            "minimum": false,
+            "maximum": false,
             "relationship": null,
             "choiceDisplayNames": [],
             "variableSetting": "Argument",
             "distribution": "Uniform",
             "discreteVariables": [],
-            "maximum": false,
-            "minimum": false,
             "mean": false,
             "deltaX": false,
-            "stdDev": false,
-            "default_value": true
+            "stdDev": false
           },
-          "$$hashKey": "object:31181"
+          "display_name_short": "inc_end_use_subcategories"
         },
         {
           "name": "inc_output_variables",
@@ -6374,7 +8921,7 @@
             "stdDev": false,
             "default_value": false
           },
-          "$$hashKey": "object:31182"
+          "$$hashKey": "object:15775"
         },
         {
           "name": "output_variables",
@@ -6384,6 +8931,7 @@
           "required": true,
           "model_dependent": false,
           "default_value": "Zone Mean Air Temperature, Zone Mean Air Humidity Ratio, Fan Runtime Fraction",
+          "$$hashKey": "object:15416",
           "display_name_short": "output_variables",
           "inputs": {
             "relationship": null,
@@ -6397,8 +8945,7 @@
             "deltaX": "Zone Mean Air Temperature, Zone Mean Air Humidity Ratio, Fan Runtime Fraction",
             "stdDev": "Zone Mean Air Temperature, Zone Mean Air Humidity Ratio, Fan Runtime Fraction",
             "default_value": "Zone Mean Air Temperature, Zone Mean Air Humidity Ratio, Fan Runtime Fraction"
-          },
-          "$$hashKey": "object:31183"
+          }
         }
       ],
       "edit": "",
@@ -6408,15 +8955,16 @@
       "add": "",
       "open": false,
       "addedToProject": true,
-      "date": "6/18/2018",
+      "date": "6/20/2018",
       "author": "",
       "type": "ReportingMeasure",
       "seed": "EmptySeedModel.osm",
-      "workflow_index": 4,
+      "workflow_index": 5,
       "options": [],
-      "instanceId": 0.04198154816304189,
+      "instanceId": 0.6826348062165473,
       "skip": false,
-      "$$hashKey": "object:31137"
+      "$$hashKey": "object:15284",
+      "outputMeasure": false
     },
     {
       "measure_dir": "C:\\OpenStudio\\OpenStudio-BuildStock\\project_resstock_national\\measures\\ServerDirectoryCleanup",
@@ -6458,9 +9006,9 @@
       "author": "",
       "type": "ReportingMeasure",
       "seed": "EmptySeedModel.osm",
-      "workflow_index": 5,
+      "workflow_index": 6,
       "options": [],
-      "instanceId": 0.9024512036268859,
+      "instanceId": 0.8070066852897997,
       "skip": false,
       "$$hashKey": "object:663249",
       "outputMeasure": false
@@ -6499,6 +9047,6 @@
     }
   },
   "designAlternatives": [],
-  "analysisID": null,
+  "analysisID": "",
   "datapoints": []
 }
