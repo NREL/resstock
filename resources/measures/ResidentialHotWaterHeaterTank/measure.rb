@@ -151,10 +151,6 @@ class ResidentialHotWaterHeaterTank < OpenStudio::Measure::ModelMeasure
             next if climateZone.institution != Constants.BuildingAmericaClimateZone
             ba_cz_name = climateZone.value.to_s
         end
-        if ba_cz_name.nil?
-            runner.registerError("No Building America climate zone has been assigned.")
-            return false
-        end
 
         location_hierarchy = Waterheater.get_location_hierarchy(ba_cz_name)
         
@@ -180,7 +176,7 @@ class ResidentialHotWaterHeaterTank < OpenStudio::Measure::ModelMeasure
             success = Waterheater.apply_tank(model, unit, runner, space, fuel_type, 
                                              capacity, tank_volume, energy_factor, 
                                              recovery_efficiency, setpoint_temp, 
-                                             oncycle_power, offcycle_power)
+                                             oncycle_power, offcycle_power, 1.0)
             return false if not success
 
         end
