@@ -9,8 +9,8 @@ require "#{File.dirname(__FILE__)}/psychrometrics"
 
 class Waterheater
 
-    def self.apply_tank(model, unit, runner, space, fuel_type, 
-                        cap, vol, ef, re, t_set, oncycle_p, offcycle_p)
+    def self.apply_tank(model, unit, runner, space, fuel_type, cap, vol, ef, 
+                        re, t_set, oncycle_p, offcycle_p, ec_adj)
     
         # Validate inputs
         if vol <= 0
@@ -77,7 +77,7 @@ class Waterheater
             new_manager.addToNode(loop.supplyOutletNode)
         end
     
-        new_heater = create_new_heater(Constants.ObjectNameWaterHeater(unit.name.to_s), cap, fuel_type, vol, ef, re, t_set, space.thermalZone.get, oncycle_p, offcycle_p, Constants.WaterHeaterTypeTank, 0, nbeds, File.dirname(__FILE__), model, runner)
+        new_heater = create_new_heater(Constants.ObjectNameWaterHeater(unit.name.to_s), cap, fuel_type, vol, ef, re, t_set, space.thermalZone.get, oncycle_p, offcycle_p, ec_adj, Constants.WaterHeaterTypeTank, 0, nbeds, File.dirname(__FILE__), model, runner)
 
         storage_tank = get_shw_storage_tank(model, unit)
 
@@ -93,8 +93,8 @@ class Waterheater
         
     end
     
-    def self.apply_tankless(model, unit, runner, space, fuel_type,
-                            cap, ef, cd, t_set, oncycle_p, offcycle_p)
+    def self.apply_tankless(model, unit, runner, space, fuel_type, cap, ef, 
+                            cd, t_set, oncycle_p, offcycle_p, ec_adj)
 
         # Validate inputs
         if ef >= 1 or ef <= 0
@@ -156,7 +156,7 @@ class Waterheater
             new_manager.addToNode(loop.supplyOutletNode)
         end
     
-        new_heater = Waterheater.create_new_heater(Constants.ObjectNameWaterHeater(unit.name.to_s), cap, fuel_type, 1, ef, 0, t_set, space.thermalZone.get, oncycle_p, offcycle_p, Constants.WaterHeaterTypeTankless, cd, nbeds, File.dirname(__FILE__), model, runner)
+        new_heater = Waterheater.create_new_heater(Constants.ObjectNameWaterHeater(unit.name.to_s), cap, fuel_type, 1, ef, 0, t_set, space.thermalZone.get, oncycle_p, offcycle_p, ec_adj, Constants.WaterHeaterTypeTankless, cd, nbeds, File.dirname(__FILE__), model, runner)
     
         storage_tank = Waterheater.get_shw_storage_tank(model, unit)
     
@@ -1064,8 +1064,12 @@ class Waterheater
                     Constants.SpaceTypeLaundryRoom, 
                     Constants.SpaceTypeCrawl, 
                     Constants.SpaceTypeUnfinishedAttic]
+        elsif ba_cz_name.nil?
+            return [Constants.SpaceTypeFinishedBasement,
+                    Constants.SpaceTypeUnfinishedBasement,
+                    Constants.SpaceTypeGarage,
+                    Constants.SpaceTypeLiving]
         end
-        return nil
     end
     
     def self.calc_capacity(cap, fuel, num_beds, num_baths)
@@ -1311,7 +1315,7 @@ class Waterheater
         OpenStudio::Model::SetpointManagerScheduled.new(model, new_schedule)
     end 
     
-    def self.create_new_heater(name, cap, fuel, vol, ef, re, t_set, thermal_zone, oncycle_p, offcycle_p, wh_type, cyc_derate, nbeds, measure_dir, model, runner)
+    def self.create_new_heater(name, cap, fuel, vol, ef, re, t_set, thermal_zone, oncycle_p, offcycle_p, ec_adj, wh_type, cyc_derate, nbeds, measure_dir, model, runner)
     
         new_heater = OpenStudio::Model::WaterHeaterMixed.new(model)
         new_heater.setName(name)
@@ -1329,7 +1333,7 @@ class Waterheater
         new_heater.setHeaterMinimumCapacity(0.0)
         new_heater.setHeaterMaximumCapacity(UnitConversions.convert(cap,"kBtu/hr","W"))
         new_heater.setHeaterFuelType(HelperMethods.eplus_fuel_map(fuel))
-        new_heater.setHeaterThermalEfficiency(eta_c)
+        new_heater.setHeaterThermalEfficiency(eta_c / ec_adj)
         new_heater.setTankVolume(UnitConversions.convert(act_vol, "gal", "m^3"))
         
         #Set parasitic power consumption
