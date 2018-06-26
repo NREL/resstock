@@ -29,6 +29,8 @@ class UnitConversions
         return x * 3412.141633127942 / 1000.0 / 3600.0 / 1000.0 / 100.0
       elsif from == 'kj' and to == 'btu'
         return x * 0.9478171203133172
+      elsif from == 'gj' and to == 'mbtu'
+        return x * 0.9478171203133172
       elsif from == 'kwh' and to == 'btu'
         return x * 3412.141633127942
       elsif from == 'kwh' and to == 'j'
@@ -79,6 +81,8 @@ class UnitConversions
         return x * 0.2930710701722222
       elsif from == 'kbtu/hr' and to == 'btu/hr'
         return x * 1000.0
+      elsif from == 'btu/hr' and to == 'kbtu/hr'
+        return x / 1000.0
       elsif from == 'kbtu/hr' and to == 'w'
         return x * 293.0710701722222
       elsif from == 'kw' and to == 'w'
@@ -97,6 +101,10 @@ class UnitConversions
         return x / 1000.0
       elsif from == 'w' and to == 'ton'
         return x / 3516.85284207
+      elsif from == 'kw' and to == 'kbtu/hr'
+      return x / 0.2930710701722222
+      elsif from == 'kbtu/hr' and to == 'kw'
+        return x * 0.2930710701722222
       
       # Power Flux
       elsif from == 'w/m^2' and to == 'btu/(hr*ft^2)'
@@ -267,6 +275,8 @@ class UnitConversions
       # R-Value
       elsif from == 'hr*ft^2*f/btu' and to == 'm^2*k/w'
         return x * 0.1761
+      elsif from == 'm^2*k/w' and to == 'hr*ft^2*f/btu'
+        return x / 0.1761
       
       # U-Factor
       elsif from == 'btu/(hr*ft^2*f)' and to == 'w/(m^2*k)'

@@ -59,7 +59,6 @@ task :copy_beopt_files do
   # Copy seed osm and other needed resource files
   project_dir_names = get_all_project_dir_names()
   extra_files = [
-                 File.join("seeds", "EmptySeedModel.osm"),
                  File.join("workflows", "measure-info.json"),
                  File.join("resources", "meta_measure.rb") # Needed by buildstock.rb
                 ]
@@ -104,16 +103,10 @@ task :copy_beopt_files do
         FileUtils.rm_rf("#{buildstock_resource_measures_subdir}/.", secure: true)
       end
     end
-    if beopt_measure == "ResidentialPhotovoltaics"
-      ["resources"].each do |subdir|
-        beopt_measure_subdir = File.join(buildstock_resource_measures_dir, beopt_measure, subdir)
-        remove_items_from_zip_file(beopt_measure_subdir, "sam-sdk-2017-1-17-r1.zip", ["osx64", "win32", "win64"])
-      end
-    end    
   end
   
   # Copy other measures to measure/ dir
-  other_measures = ["TimeseriesCSVExport", "UtilityBillCalculationsSimple", "UtilityBillCalculationsDetailed"]
+  other_measures = ["TimeseriesCSVExport"] # Still under development: "UtilityBillCalculationsSimple", "UtilityBillCalculationsDetailed"
   buildstock_measures_dir = buildstock_resource_measures_dir = File.join(File.dirname(__FILE__), "measures")
   other_measures.each do |other_measure|
     puts "Copying #{other_measure} measure..."

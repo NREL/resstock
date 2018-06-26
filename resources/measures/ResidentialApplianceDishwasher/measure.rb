@@ -1,10 +1,7 @@
-require "#{File.dirname(__FILE__)}/resources/schedules"
 require "#{File.dirname(__FILE__)}/resources/constants"
-require "#{File.dirname(__FILE__)}/resources/util"
-require "#{File.dirname(__FILE__)}/resources/weather"
-require "#{File.dirname(__FILE__)}/resources/unit_conversions"
 require "#{File.dirname(__FILE__)}/resources/geometry"
 require "#{File.dirname(__FILE__)}/resources/waterheater"
+require "#{File.dirname(__FILE__)}/resources/appliances"
 
 #start the measure
 class ResidentialDishwasher < OpenStudio::Measure::ModelMeasure
@@ -25,8 +22,6 @@ class ResidentialDishwasher < OpenStudio::Measure::ModelMeasure
   def arguments(model)
     args = OpenStudio::Measure::OSArgumentVector.new
     
-    #TODO: New argument for demand response for dws (alternate schedules if automatic DR control is specified)
-
     #make an integer argument for number of place settings
     num_settings = OpenStudio::Measure::OSArgument::makeIntegerArgument("num_settings",true)
     num_settings.setDisplayName("Number of Place Settings")
@@ -36,19 +31,19 @@ class ResidentialDishwasher < OpenStudio::Measure::ModelMeasure
     args << num_settings
 
     #make a double argument for rated annual consumption
-    dw_E = OpenStudio::Measure::OSArgument::makeDoubleArgument("dw_E",true)
-    dw_E.setDisplayName("Rated Annual Consumption")
-    dw_E.setUnits("kWh")
-    dw_E.setDescription("The annual energy consumed by the dishwasher, as rated, obtained from the EnergyGuide label. This includes both the appliance electricity consumption and the energy required for water heating.")
-    dw_E.setDefaultValue(290)
-    args << dw_E
+    rated_annual_energy = OpenStudio::Measure::OSArgument::makeDoubleArgument("rated_annual_energy",true)
+    rated_annual_energy.setDisplayName("Rated Annual Consumption")
+    rated_annual_energy.setUnits("kWh")
+    rated_annual_energy.setDescription("The annual energy consumed by the dishwasher, as rated, obtained from the EnergyGuide label. This includes both the appliance electricity consumption and the energy required for water heating.")
+    rated_annual_energy.setDefaultValue(290)
+    args << rated_annual_energy
 
     #make a bool argument for internal heater adjustment
-    int_htr = OpenStudio::Measure::OSArgument::makeBoolArgument("int_htr",true)
-    int_htr.setDisplayName("Internal Heater Adjustment")
-    int_htr.setDescription("Does the system use an internal electric heater to adjust water temperature? Input obtained from manufacturer's literature.")
-    int_htr.setDefaultValue("true")
-    args << int_htr
+    has_internal_heater = OpenStudio::Measure::OSArgument::makeBoolArgument("has_internal_heater",true)
+    has_internal_heater.setDisplayName("Internal Heater Adjustment")
+    has_internal_heater.setDescription("Does the system use an internal electric heater to adjust water temperature? Input obtained from manufacturer's literature.")
+    has_internal_heater.setDefaultValue("true")
+    args << has_internal_heater
 
     #make a bool argument for cold water inlet only
     cold_inlet = OpenStudio::Measure::OSArgument::makeBoolArgument("cold_inlet",true)
@@ -66,19 +61,19 @@ class ResidentialDishwasher < OpenStudio::Measure::ModelMeasure
     args << cold_use
 
     #make an integer argument for energy guide date
-    eg_date = OpenStudio::Measure::OSArgument::makeIntegerArgument("eg_date",true)
-    eg_date.setDisplayName("Energy Guide Date")
-    eg_date.setDescription("Energy Guide test date.")
-    eg_date.setDefaultValue(2007)
-    args << eg_date
+    test_date = OpenStudio::Measure::OSArgument::makeIntegerArgument("test_date",true)
+    test_date.setDisplayName("Energy Guide Date")
+    test_date.setDescription("Energy Guide test date.")
+    test_date.setDefaultValue(2007)
+    args << test_date
 
     #make a double argument for energy guide annual gas cost
-    eg_gas_cost = OpenStudio::Measure::OSArgument::makeDoubleArgument("eg_gas_cost",true)
-    eg_gas_cost.setDisplayName("Energy Guide Annual Gas Cost")
-    eg_gas_cost.setUnits("$/yr")
-    eg_gas_cost.setDescription("Annual cost of gas, as rated.  Obtained from the EnergyGuide label.")
-    eg_gas_cost.setDefaultValue(23)
-    args << eg_gas_cost
+    annual_gas_cost = OpenStudio::Measure::OSArgument::makeDoubleArgument("annual_gas_cost",true)
+    annual_gas_cost.setDisplayName("Energy Guide Annual Gas Cost")
+    annual_gas_cost.setUnits("$/yr")
+    annual_gas_cost.setDescription("Annual cost of gas, as rated.  Obtained from the EnergyGuide label.")
+    annual_gas_cost.setDefaultValue(23)
+    args << annual_gas_cost
 
     #make a double argument for occupancy energy multiplier
     mult_e = OpenStudio::Measure::OSArgument::makeDoubleArgument("mult_e",true)
@@ -100,7 +95,7 @@ class ResidentialDishwasher < OpenStudio::Measure::ModelMeasure
     Geometry.get_model_locations(model).each do |loc|
         location_args << loc
     end
-    location = OpenStudio::Measure::OSArgument::makeChoiceArgument("location", location_args, true)
+    location = OpenStudio::Measure::OSArgument::makeChoiceArgument("location", location_args, true, true)
     location.setDisplayName("Location")
     location.setDescription("The space type for the location. '#{Constants.Auto}' will automatically choose a space type based on the space types found in the model.")
     location.setDefaultValue(Constants.Auto)
@@ -113,7 +108,7 @@ class ResidentialDishwasher < OpenStudio::Measure::ModelMeasure
     plant_loops.each do |plant_loop|
         plant_loop_args << plant_loop.name.to_s
     end
-    plant_loop = OpenStudio::Measure::OSArgument::makeChoiceArgument("plant_loop", plant_loop_args, true)
+    plant_loop = OpenStudio::Measure::OSArgument::makeChoiceArgument("plant_loop", plant_loop_args, true, true)
     plant_loop.setDisplayName("Plant Loop")
     plant_loop.setDescription("Select the plant loop for the dishwasher. '#{Constants.Auto}' will try to choose the plant loop associated with the specified space. For multifamily buildings, '#{Constants.Auto}' will choose the plant loop for each unit of the building.")
     plant_loop.setDefaultValue(Constants.Auto)
@@ -139,73 +134,29 @@ class ResidentialDishwasher < OpenStudio::Measure::ModelMeasure
     end
 
     #assign the user inputs to variables
-    dw_capacity = runner.getIntegerArgumentValue("num_settings",user_arguments).to_f
-    dw_energy_guide_annual_energy = runner.getDoubleArgumentValue("dw_E", user_arguments)
-    dw_is_cold_water_inlet_only = runner.getBoolArgumentValue("cold_inlet", user_arguments)
-    dw_internal_heater_adjustment = runner.getBoolArgumentValue("int_htr", user_arguments)
-    dw_cold_water_conn_use_per_cycle = runner.getDoubleArgumentValue("cold_use", user_arguments)
-    dw_energy_guide_date = runner.getIntegerArgumentValue("eg_date", user_arguments)
-    dw_energy_guide_annual_gas_cost = runner.getDoubleArgumentValue("eg_gas_cost", user_arguments)
-    dw_energy_multiplier = runner.getDoubleArgumentValue("mult_e", user_arguments)
-    dw_hot_water_multiplier = runner.getDoubleArgumentValue("mult_hw", user_arguments)
+    num_settings = runner.getIntegerArgumentValue("num_settings",user_arguments).to_f
+    rated_annual_energy = runner.getDoubleArgumentValue("rated_annual_energy", user_arguments)
+    cold_inlet = runner.getBoolArgumentValue("cold_inlet", user_arguments)
+    has_internal_heater = runner.getBoolArgumentValue("has_internal_heater", user_arguments)
+    cold_use = runner.getDoubleArgumentValue("cold_use", user_arguments)
+    test_date = runner.getIntegerArgumentValue("test_date", user_arguments)
+    annual_gas_cost = runner.getDoubleArgumentValue("annual_gas_cost", user_arguments)
+    mult_e = runner.getDoubleArgumentValue("mult_e", user_arguments)
+    mult_hw = runner.getDoubleArgumentValue("mult_hw", user_arguments)
     location = runner.getStringArgumentValue("location",user_arguments)
     plant_loop_s = runner.getStringArgumentValue("plant_loop", user_arguments)
     d_sh = runner.getIntegerArgumentValue("schedule_day_shift",user_arguments)
 
-    #Check for valid inputs
-    if dw_capacity < 1
-        runner.registerError("Number of place settings must be greater than or equal to 1.")
-        return false
-    end
-    if dw_energy_guide_annual_energy < 0
-        runner.registerError("Rated annual energy consumption must be greater than or equal to 0.")
-        return false
-    end
-    if dw_cold_water_conn_use_per_cycle < 0
-        runner.registerError("Cold water connection use must be greater than or equal to 0.")
-        return false
-    end
-    if dw_energy_guide_date < 1900
-        runner.registerError("Energy Guide date must be greater than or equal to 1900.")
-        return false
-    end
-    if dw_energy_guide_annual_gas_cost <= 0
-        runner.registerError("Energy Guide annual gas cost must be greater than 0.")
-        return false
-    end
-    if dw_energy_multiplier < 0
-        runner.registerError("Occupancy energy multiplier must be greater than or equal to 0.")
-        return false
-    end
-    if dw_hot_water_multiplier < 0
-        runner.registerError("Occupancy hot water multiplier must be greater than or equal to 0.")
-        return false
-    end
-    if d_sh < 0 or d_sh > 364
-        runner.registerError("Hot water draw profile can only be shifted by 0-364 days.")
-        return false
-    end
-    
     # Get building units
     units = Geometry.get_building_units(model, runner)
     if units.nil?
         return false
     end
     
-    # Get mains monthly temperatures if needed
-    if dw_is_cold_water_inlet_only
-        site = model.getSite
-        if !site.siteWaterMainsTemperature.is_initialized
-            runner.registerError("Mains water temperature has not been set.")
-            return false
-        end
-        mainsMonthlyTemps = WeatherProcess.get_mains_temperature(site.siteWaterMainsTemperature.get, site.latitude)[1]
-    end
-    
     # Remove all existing objects
     obj_name = Constants.ObjectNameDishwasher
     model.getSpaces.each do |space|
-        remove_existing(runner, space, obj_name)
+        Dishwasher.remove(runner, space, obj_name)
     end
     
     location_hierarchy = [Constants.SpaceTypeKitchen, 
@@ -214,20 +165,11 @@ class ResidentialDishwasher < OpenStudio::Measure::ModelMeasure
                           Constants.SpaceTypeUnfinishedBasement, 
                           Constants.SpaceTypeGarage]
 
-    tot_dw_ann = 0
+    tot_ann_e = 0
     msgs = []
+    mains_temps = nil
     units.each_with_index do |unit, unit_index|
     
-        # Get unit beds/baths
-        nbeds, nbaths = Geometry.get_unit_beds_baths(model, unit, runner)
-        if nbeds.nil? or nbaths.nil?
-            return false
-        end
-        sch_unit_index = Geometry.get_unit_dhw_sched_index(model, unit, runner)
-        if sch_unit_index.nil?
-            return false
-        end
-        
         # Get space
         space = Geometry.get_space_from_location(unit, location, location_hierarchy)
         next if space.nil?
@@ -238,231 +180,20 @@ class ResidentialDishwasher < OpenStudio::Measure::ModelMeasure
             return false
         end
     
-        # Get water heater setpoint
-        wh_setpoint = Waterheater.get_water_heater_setpoint(model, plant_loop, runner)
-        if wh_setpoint.nil?
+        success, ann_e, mains_temps = Dishwasher.apply(model, unit, runner, num_settings, rated_annual_energy,
+                                                       cold_inlet, has_internal_heater, cold_use, test_date,
+                                                       annual_gas_cost, mult_e, mult_hw, d_sh, space, plant_loop, 
+                                                       mains_temps, File.dirname(__FILE__))
+        
+        if not success
             return false
         end
 
-        unit_obj_name = Constants.ObjectNameDishwasher(unit.name.to_s)
-
-        # The water used in dishwashers must be heated, either internally or
-        # externally, to at least 140 degF for proper operation (dissolving of
-        # detergent, cleaning of dishes).
-        dw_operating_water_temp = 140 # degF
-        
-        water_dens = Liquid.H2O_l.rho # lbm/ft^3
-        water_sh = Liquid.H2O_l.cp  # Btu/lbm-R
-
-        # Use EnergyGuide Label test data to calculate per-cycle energy and
-        # water consumption. Calculations are based on "Method for
-        # Evaluating Energy Use of Dishwashers, Clothes Washers, and
-        # Clothes Dryers" by Eastment and Hendron, Conference Paper
-        # NREL/CP-550-39769, August 2006. Their paper is in part based on
-        # the energy use calculations presented in the 10CFR Part 430,
-        # Subpt. B, App. C (DOE 1999),
-        # http://ecfr.gpoaccess.gov/cgi/t/text/text-idx?c=ecfr&tpl=/ecfrbrowse/Title10/10cfr430_main_02.tpl
-        if dw_energy_guide_date <= 2002
-            test_dw_cycles_per_year = 322
-        elsif dw_energy_guide_date < 2004
-            test_dw_cycles_per_year = 264
-        else
-            test_dw_cycles_per_year = 215
-        end
-
-        # The water heater recovery efficiency - how efficiently the heat
-        # from natural gas is transferred to the water in the water heater.
-        # The DOE 10CFR Part 430 assumes a nominal gas water heater
-        # recovery efficiency of 0.75.
-        test_dw_gas_dhw_heater_efficiency = 0.75
-
-        # Cold water supply temperature during tests (see 10CFR Part 430,
-        # Subpt. B, App. C, Section 1.19, DOE 1999).
-        test_dw_mains_temp = 50 # degF
-        # Hot water supply temperature during tests (see 10CFR Part 430,
-        # Subpt. B, App. C, Section 1.19, DOE 1999).
-        test_dw_dhw_temp = 120 # degF
-
-        # Determine the Gas use for domestic hot water per cycle for test conditions
-        if dw_is_cold_water_inlet_only
-            test_dw_gas_use_per_cycle = 0 # therms/cycle
-        else
-            # Use the EnergyGuide Label information (eq. 1 Eastment and
-            # Hendron, NREL/CP-550-39769, 2006).
-            dw_energy_guide_gas_cost = EnergyGuideLabel.get_energy_guide_gas_cost(dw_energy_guide_date)/100
-            dw_energy_guide_elec_cost = EnergyGuideLabel.get_energy_guide_elec_cost(dw_energy_guide_date)/100
-            test_dw_gas_use_per_cycle = ((dw_energy_guide_annual_energy * 
-                                         dw_energy_guide_elec_cost - 
-                                         dw_energy_guide_annual_gas_cost) / 
-                                        (UnitConversions.convert(test_dw_gas_dhw_heater_efficiency, "therm", "kWh") * 
-                                         dw_energy_guide_elec_cost - 
-                                         dw_energy_guide_gas_cost) / 
-                                        test_dw_cycles_per_year) # Therns/cycle
+        if ann_e > 0
+            msgs << "A dishwasher with #{ann_e.round} kWhs annual energy consumption has been added to plant loop '#{plant_loop.name}' and assigned to space '#{space.name.to_s}'."
         end
         
-        # Use additional EnergyGuide Label information to determine how much
-        # electricity was used in the test to power the dishwasher's
-        # internal machinery (eq. 2 Eastment and Hendron, NREL/CP-550-39769,
-        # 2006). Any energy required for internal water heating will be
-        # included in this value.
-        test_dw_elec_use_per_cycle = dw_energy_guide_annual_energy / \
-                test_dw_cycles_per_year - \
-                UnitConversions.convert(test_dw_gas_dhw_heater_efficiency, "therm", "kWh") * \
-                test_dw_gas_use_per_cycle # kWh/cycle
-
-        if dw_is_cold_water_inlet_only
-            # for Type 3 Dishwashers - those with an electric element
-            # internal to the machine to provide all of the water heating
-            # (see Eastment and Hendron, NREL/CP-550-39769, 2006)
-            test_dw_dhw_use_per_cycle = 0 # gal/cycle
-        else
-            if dw_internal_heater_adjustment
-                # for Type 2 Dishwashers - those with an electric element
-                # internal to the machine for providing auxiliary water
-                # heating (see Eastment and Hendron, NREL/CP-550-39769,
-                # 2006)
-                test_dw_water_heater_temp_diff = test_dw_dhw_temp - \
-                        test_dw_mains_temp # degF water heater temperature rise in the test
-            else
-                test_dw_water_heater_temp_diff = dw_operating_water_temp - \
-                        test_dw_mains_temp # water heater temperature rise in the test
-            end
-            
-            # Determine how much hot water was used in the test based on
-            # the amount of gas used in the test to heat the water and the
-            # temperature rise in the water heater in the test (eq. 3
-            # Eastment and Hendron, NREL/CP-550-39769, 2006).
-            test_dw_dhw_use_per_cycle = (UnitConversions.convert(test_dw_gas_use_per_cycle, "therm", "kWh") * \
-                                         test_dw_gas_dhw_heater_efficiency) / \
-                                         (test_dw_water_heater_temp_diff * \
-                                          water_dens * water_sh * \
-                                          UnitConversions.convert(1, "Btu", "kWh") / UnitConversions.convert(1,"ft^3","gal")) # gal/cycle (hot water)
-        end
-                                          
-        # (eq. 16 Eastment and Hendron, NREL/CP-550-39769, 2006)
-        actual_dw_cycles_per_year = 215 * (0.5 + nbeds / 6) * (8 / dw_capacity) # cycles/year
-
-        daily_dishwasher_dhw = actual_dw_cycles_per_year * test_dw_dhw_use_per_cycle / 365 # gal/day (hot water)
-
-        # Calculate total (hot or cold) daily water usage.
-        if dw_is_cold_water_inlet_only
-            # From the 2010 BA Benchmark for dishwasher hot water
-            # consumption. Should be appropriate for cold-water-inlet-only
-            # dishwashers also.
-            daily_dishwasher_water = 2.5 + 0.833 * nbeds # gal/day
-        else
-            # Dishwasher uses only hot water so total water usage = DHW usage.
-            daily_dishwasher_water = daily_dishwasher_dhw # gal/day
-        end
-        
-        # Calculate actual electricity use per cycle by adjusting test
-        # electricity use per cycle (up or down) to account for differences
-        # between actual water supply temperatures and test conditions.
-        # Also convert from per-cycle to daily electricity usage amounts.
-        if dw_is_cold_water_inlet_only
-
-            monthly_dishwasher_energy = Array.new(12, 0)
-            mainsMonthlyTemps.each_with_index do |monthly_main, i|
-                # Adjust for monthly variation in Tmains vs. test cold
-                # water supply temperature.
-                actual_dw_elec_use_per_cycle = test_dw_elec_use_per_cycle + \
-                                               (test_dw_mains_temp - monthly_main) * \
-                                               dw_cold_water_conn_use_per_cycle * \
-                                               (water_dens * water_sh * UnitConversions.convert(1, "Btu", "kWh") / 
-                                               UnitConversions.convert(1,"ft^3","gal")) # kWh/cycle
-                monthly_dishwasher_energy[i] = (actual_dw_elec_use_per_cycle * \
-                                                Constants.MonthNumDays[i] * \
-                                                actual_dw_cycles_per_year / \
-                                                365) # kWh/month
-            end
-
-            daily_energy = monthly_dishwasher_energy.inject(:+) / 365 # kWh/day
-
-        elsif dw_internal_heater_adjustment
-
-            # Adjust for difference in water heater supply temperature vs.
-            # test hot water supply temperature.
-            actual_dw_elec_use_per_cycle = test_dw_elec_use_per_cycle + \
-                    (test_dw_dhw_temp - wh_setpoint) * \
-                    test_dw_dhw_use_per_cycle * \
-                    (water_dens * water_sh * \
-                     UnitConversions.convert(1, "Btu", "kWh") / 
-                     UnitConversions.convert(1,"ft^3","gal")) # kWh/cycle
-            daily_energy = actual_dw_elec_use_per_cycle * \
-                    actual_dw_cycles_per_year / 365 # kWh/day
-
-        else
-
-            # Dishwasher has no internal heater
-            actual_dw_elec_use_per_cycle = test_dw_elec_use_per_cycle # kWh/cycle
-            daily_energy = actual_dw_elec_use_per_cycle * \
-                    actual_dw_cycles_per_year / 365 # kWh/day
-        
-        end
-        
-        daily_energy = daily_energy * dw_energy_multiplier
-        daily_dishwasher_water = daily_dishwasher_water * dw_hot_water_multiplier
-
-        dw_ann = daily_energy * 365
-
-        if daily_energy < 0
-            runner.registerError("The inputs for the dishwasher resulted in a negative amount of energy consumption.")
-            return false
-        end
-        
-        if dw_ann > 0
-            
-            # Create schedule
-            sch = HotWaterSchedule.new(model, runner, Constants.ObjectNameDishwasher + " schedule", Constants.ObjectNameDishwasher + " temperature schedule", nbeds, sch_unit_index, d_sh, "Dishwasher", wh_setpoint, File.dirname(__FILE__))
-            if not sch.validated?
-                return false
-            end
-            
-            #Reuse existing water use connection if possible
-            water_use_connection = nil
-            plant_loop.demandComponents.each do |component|
-                next unless component.to_WaterUseConnections.is_initialized
-                water_use_connection = component.to_WaterUseConnections.get
-                break
-            end
-            if water_use_connection.nil?
-                #Need new water heater connection
-                water_use_connection = OpenStudio::Model::WaterUseConnections.new(model)
-                plant_loop.addDemandBranchForComponent(water_use_connection)
-            end
-            
-            design_level = sch.calcDesignLevelFromDailykWh(daily_energy)
-            peak_flow = sch.calcPeakFlowFromDailygpm(daily_dishwasher_water)
-            
-            #Add electric equipment for the dw
-            dw_def = OpenStudio::Model::ElectricEquipmentDefinition.new(model)
-            dw = OpenStudio::Model::ElectricEquipment.new(dw_def)
-            dw.setName(unit_obj_name)
-            dw.setEndUseSubcategory(unit_obj_name)
-            dw.setSpace(space)
-            dw_def.setName(unit_obj_name)
-            dw_def.setDesignLevel(design_level)
-            dw_def.setFractionRadiant(0.36)
-            dw_def.setFractionLatent(0.15)
-            dw_def.setFractionLost(0.25)
-            dw.setSchedule(sch.schedule)
-            
-            #Add water use equipment for the dw
-            dw_def2 = OpenStudio::Model::WaterUseEquipmentDefinition.new(model)
-            dw2 = OpenStudio::Model::WaterUseEquipment.new(dw_def2)
-            dw2.setName(unit_obj_name)
-            dw2.setSpace(space)
-            dw_def2.setName(unit_obj_name)
-            dw_def2.setPeakFlowRate(peak_flow)
-            dw_def2.setEndUseSubcategory(unit_obj_name)
-            dw2.setFlowRateFractionSchedule(sch.schedule)
-            dw_def2.setTargetTemperatureSchedule(sch.temperatureSchedule)
-            water_use_connection.addWaterUseEquipment(dw2)
-
-            msgs << "A dishwasher with #{dw_ann.round} kWhs annual energy consumption has been added to plant loop '#{plant_loop.name}' and assigned to space '#{space.name.to_s}'."
-            
-            tot_dw_ann += dw_ann
-        end
+        tot_ann_e += ann_e
         
     end
 	
@@ -471,7 +202,7 @@ class ResidentialDishwasher < OpenStudio::Measure::ModelMeasure
         msgs.each do |msg|
             runner.registerInfo(msg)
         end
-        runner.registerFinalCondition("The building has been assigned dishwashers totaling #{tot_dw_ann.round} kWhs annual energy consumption across #{units.size} units.")
+        runner.registerFinalCondition("The building has been assigned dishwashers totaling #{tot_ann_e.round} kWhs annual energy consumption across #{units.size} units.")
     elsif msgs.size == 1
         runner.registerFinalCondition(msgs[0])
     else
@@ -482,40 +213,6 @@ class ResidentialDishwasher < OpenStudio::Measure::ModelMeasure
  
   end #end the run method
   
-  def remove_existing(runner, space, obj_name)
-    # Remove any existing dishwasher
-    objects_to_remove = []
-    space.electricEquipment.each do |space_equipment|
-        next if not space_equipment.name.to_s.start_with? obj_name
-        objects_to_remove << space_equipment
-        objects_to_remove << space_equipment.electricEquipmentDefinition
-        if space_equipment.schedule.is_initialized
-            objects_to_remove << space_equipment.schedule.get
-        end
-    end
-    space.waterUseEquipment.each do |space_equipment|
-        next if not space_equipment.name.to_s.start_with? obj_name
-        objects_to_remove << space_equipment
-        objects_to_remove << space_equipment.waterUseEquipmentDefinition
-        if space_equipment.flowRateFractionSchedule.is_initialized
-            objects_to_remove << space_equipment.flowRateFractionSchedule.get
-        end
-        if space_equipment.waterUseEquipmentDefinition.targetTemperatureSchedule.is_initialized
-            objects_to_remove << space_equipment.waterUseEquipmentDefinition.targetTemperatureSchedule.get
-        end
-    end
-    if objects_to_remove.size > 0
-        runner.registerInfo("Removed existing dishwasher from space '#{space.name.to_s}'.")
-    end
-    objects_to_remove.uniq.each do |object|
-        begin
-            object.remove
-        rescue
-            # no op
-        end
-    end
-  end
-
 end #end the measure
 
 #this allows the measure to be use by the application

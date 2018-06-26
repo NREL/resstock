@@ -3,6 +3,8 @@
 
 require "#{File.dirname(__FILE__)}/resources/unit_conversions"
 require "#{File.dirname(__FILE__)}/resources/geometry"
+require "#{File.dirname(__FILE__)}/resources/util"
+require "#{File.dirname(__FILE__)}/resources/hvac"
 
 # start the measure
 class ProcessCentralSystemFanCoil < OpenStudio::Measure::ModelMeasure
@@ -14,12 +16,12 @@ class ProcessCentralSystemFanCoil < OpenStudio::Measure::ModelMeasure
 
   # human readable description
   def description
-    return "Description"
+    return "Adds either: (1) a central boiler/chiller with fan coil units to the model, (2) a central chiller with cooling-only fan coil units to the model, or (3) a central boiler with heating-only unit heaters to the model."
   end
 
   # human readable description of modeling approach
   def modeler_description
-    return "Modeler Description"
+    return "Adds either: (1) hot water boiler and electric chiller with variable-speed pumps to two plant loops, along with coil heating/cooling water objects on zone hvac four pipe fan coil objects, (2) an electric chiller with variable-speed pump to a single plant loop, along with coil cooling water objects on cooling-only zone hvac four pipe fan coil objects, or (3) a hot water boiler with variable-speed pump to a single plant loop, along with coil heating water objects on heating-only zone hvac unit heater objects."
   end
 
   # define the arguments that the user will input
@@ -39,16 +41,6 @@ class ProcessCentralSystemFanCoil < OpenStudio::Measure::ModelMeasure
     fan_coil_cooling.setDescription("When the fan coil provides cooling in addition to heating, a four pipe fan coil system is modeled.")
     fan_coil_cooling.setDefaultValue(true)
     args << fan_coil_cooling
-
-    #make a string argument for central boiler system type
-    central_boiler_system_type_names = OpenStudio::StringVector.new
-    central_boiler_system_type_names << Constants.BoilerTypeForcedDraft
-    central_boiler_system_type_names << Constants.BoilerTypeSteam
-    central_boiler_system_type = OpenStudio::Measure::OSArgument::makeChoiceArgument("central_boiler_system_type", central_boiler_system_type_names, true)
-    central_boiler_system_type.setDisplayName("Central Boiler System Type")
-    central_boiler_system_type.setDescription("The system type of the central boiler.")
-    central_boiler_system_type.setDefaultValue(Constants.BoilerTypeForcedDraft)
-    args << central_boiler_system_type
     
     #make a string argument for central boiler fuel type
     central_boiler_fuel_type_names = OpenStudio::StringVector.new
@@ -78,56 +70,63 @@ class ProcessCentralSystemFanCoil < OpenStudio::Measure::ModelMeasure
 
     fan_coil_heating = runner.getBoolArgumentValue("fan_coil_heating",user_arguments)
     fan_coil_cooling = runner.getBoolArgumentValue("fan_coil_cooling",user_arguments)
-    central_boiler_system_type = runner.getStringArgumentValue("central_boiler_system_type",user_arguments)
-    central_boiler_fuel_type = {Constants.FuelTypeElectric=>"Electricity", Constants.FuelTypeGas=>"NaturalGas", Constants.FuelTypeOil=>"FuelOil#1", Constants.FuelTypePropane=>"PropaneGas"}[runner.getStringArgumentValue("central_boiler_fuel_type",user_arguments)]
-
-    std = Standard.build("90.1-2013")
+    central_boiler_fuel_type = HelperMethods.eplus_fuel_map(runner.getStringArgumentValue("central_boiler_fuel_type",user_arguments))
 
     if not fan_coil_heating and not fan_coil_cooling
       runner.registerError("Must specify at least heating or cooling.")
       return false
     end
 
+    std = Standard.build("90.1-2013")
+
+    # Get building units
+    units = Geometry.get_building_units(model, runner)
+    if units.nil?
+      return false
+    end
+
+    units.each do |unit|
+      thermal_zones = Geometry.get_thermal_zones_from_spaces(unit.spaces)
+      HVAC.get_control_and_slave_zones(thermal_zones).each do |control_zone, slave_zones|
+        ([control_zone] + slave_zones).each do |zone|
+          HVAC.remove_hvac_equipment(model, runner, zone, unit,
+                                     Constants.ObjectNameCentralSystemFanCoil)
+        end
+      end
+    end
+
     if fan_coil_heating and fan_coil_cooling
       hot_water_loop = std.model_get_or_add_hot_water_loop(model, central_boiler_fuel_type)
       chilled_water_loop = std.model_get_or_add_chilled_water_loop(model, "Electricity", air_cooled=true)
-      msg = "heating/cooling fan coil unit"
-    elsif fan_coil_cooling # TODO: manually add strip heat or gas wall furnace, or is there another standards method to do this?
+      msg = "boiler/chiller with fan coil units"
+    elsif fan_coil_cooling
       hot_water_loop = nil
       chilled_water_loop = std.model_get_or_add_chilled_water_loop(model, "Electricity", air_cooled=true)
-      msg = "cooling-only fan coil unit"
+      msg = "chiller with cooling-only fan coil units"
     elsif fan_coil_heating
       hot_water_loop = std.model_get_or_add_hot_water_loop(model, central_boiler_fuel_type)
-      msg = "central zone hvac unit heaters"
+      msg = "boiler with heating-only zone hvac unit heaters"
     end
 
-    thermal_zones = []
-    model.getThermalZones.each do |thermal_zone|
-      next unless Geometry.zone_is_of_type(thermal_zone, Constants.SpaceTypeLiving) or Geometry.zone_is_of_type(thermal_zone, Constants.SpaceTypeFinishedBasement)
-      thermal_zones << thermal_zone
-    end
-    # story_groups = std.model_group_zones_by_story(model, model.getThermalZones) # TODO: need to write our own "zones by stories" method since we don't use BuildingStory
-    story_groups = [thermal_zones]
-    story_groups.each do |zones|
-
+    units.each do |unit|
+    
+      thermal_zones = []
+      unit.spaces.each do |space|
+        thermal_zone = space.thermalZone.get
+        next if thermal_zones.include? thermal_zone
+        thermal_zones << thermal_zone
+      end
+    
       if fan_coil_heating and not fan_coil_cooling
-        std.model_add_unitheater(model, sys_name=nil, zones, hvac_op_sch=nil, fan_control_type="ConstantVolume", fan_pressure_rise=OpenStudio.convert(0.2, "inH_{2}O", "Pa").get, "DistrictHeating", hot_water_loop)
+        std.model_add_unitheater(model, sys_name=nil, thermal_zones, hvac_op_sch=nil, fan_control_type="ConstantVolume", fan_pressure_rise=OpenStudio.convert(0.2, "inH_{2}O", "Pa").get, "DistrictHeating", hot_water_loop)
       else
-        std.model_add_four_pipe_fan_coil(model, hot_water_loop, chilled_water_loop, zones)
+        std.model_add_four_pipe_fan_coil(model, hot_water_loop, chilled_water_loop, thermal_zones)
       end
-      
-      if fan_coil_heating
-        if central_boiler_system_type == Constants.BoilerTypeSteam
-          plant_loop = model.getPlantLoopByName("Hot Water Loop").get
-          plant_loop.supplyComponents.each do |supply_component|
-            next unless supply_component.to_PumpVariableSpeed.is_initialized
-            pump = supply_component.to_PumpVariableSpeed.get
-            # TODO: how to zero out the pumping energy?
-          end
-        end
-      end
-
+    
     end
+
+    simulation_control = model.getSimulationControl
+    simulation_control.setRunSimulationforSizingPeriods(true) # indicate e+ autosizing
 
     runner.registerInfo("Added #{msg} to the building.")
 

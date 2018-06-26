@@ -2,8 +2,8 @@
   <schema_version>3.0</schema_version>
   <name>residential_dishwasher</name>
   <uid>09ea4570-4666-4a55-812f-5e90091f5325</uid>
-  <version_id>eb390bc1-9e46-429d-8498-ba655e048318</version_id>
-  <version_modified>20180218T020659Z</version_modified>
+  <version_id>a73c80ce-a0b2-43d0-ae60-cd833b03cb41</version_id>
+  <version_modified>20180604T161107Z</version_modified>
   <xml_checksum>126F1C43</xml_checksum>
   <class_name>ResidentialDishwasher</class_name>
   <display_name>Set Residential Dishwasher</display_name>
@@ -21,7 +21,7 @@
       <default_value>12</default_value>
     </argument>
     <argument>
-      <name>dw_E</name>
+      <name>rated_annual_energy</name>
       <display_name>Rated Annual Consumption</display_name>
       <description>The annual energy consumed by the dishwasher, as rated, obtained from the EnergyGuide label. This includes both the appliance electricity consumption and the energy required for water heating.</description>
       <type>Double</type>
@@ -31,7 +31,7 @@
       <default_value>290</default_value>
     </argument>
     <argument>
-      <name>int_htr</name>
+      <name>has_internal_heater</name>
       <display_name>Internal Heater Adjustment</display_name>
       <description>Does the system use an internal electric heater to adjust water temperature? Input obtained from manufacturer's literature.</description>
       <type>Boolean</type>
@@ -79,7 +79,7 @@
       <default_value>0</default_value>
     </argument>
     <argument>
-      <name>eg_date</name>
+      <name>test_date</name>
       <display_name>Energy Guide Date</display_name>
       <description>Energy Guide test date.</description>
       <type>Integer</type>
@@ -88,7 +88,7 @@
       <default_value>2007</default_value>
     </argument>
     <argument>
-      <name>eg_gas_cost</name>
+      <name>annual_gas_cost</name>
       <display_name>Energy Guide Annual Gas Cost</display_name>
       <description>Annual cost of gas, as rated.  Obtained from the EnergyGuide label.</description>
       <type>Double</type>
@@ -121,7 +121,7 @@
       <description>The space type for the location. 'auto' will automatically choose a space type based on the space types found in the model.</description>
       <type>Choice</type>
       <required>true</required>
-      <model_dependent>false</model_dependent>
+      <model_dependent>true</model_dependent>
       <default_value>auto</default_value>
       <choices>
         <choice>
@@ -136,7 +136,7 @@
       <description>Select the plant loop for the dishwasher. 'auto' will try to choose the plant loop associated with the specified space. For multifamily buildings, 'auto' will choose the plant loop for each unit of the building.</description>
       <type>Choice</type>
       <required>true</required>
-      <model_dependent>false</model_dependent>
+      <model_dependent>true</model_dependent>
       <default_value>auto</default_value>
       <choices>
         <choice>
@@ -186,112 +186,34 @@
       <checksum>E23378AA</checksum>
     </file>
     <file>
-      <filename>MinuteDrawProfilesMaxFlows.csv</filename>
-      <filetype>csv</filetype>
-      <usage_type>resource</usage_type>
-      <checksum>5CD21305</checksum>
-    </file>
-    <file>
-      <filename>DishwasherSchedule_1bed.csv</filename>
-      <filetype>csv</filetype>
-      <usage_type>resource</usage_type>
-      <checksum>42A2D406</checksum>
-    </file>
-    <file>
-      <filename>DishwasherSchedule_2bed.csv</filename>
-      <filetype>csv</filetype>
-      <usage_type>resource</usage_type>
-      <checksum>8C62EE2B</checksum>
-    </file>
-    <file>
-      <filename>DishwasherSchedule_3bed.csv</filename>
-      <filetype>csv</filetype>
-      <usage_type>resource</usage_type>
-      <checksum>9575CF98</checksum>
-    </file>
-    <file>
-      <filename>DishwasherSchedule_4bed.csv</filename>
-      <filetype>csv</filetype>
-      <usage_type>resource</usage_type>
-      <checksum>E645EB0E</checksum>
-    </file>
-    <file>
-      <filename>DishwasherSchedule_5bed.csv</filename>
-      <filetype>csv</filetype>
-      <usage_type>resource</usage_type>
-      <checksum>33CBAEFF</checksum>
-    </file>
-    <file>
       <filename>psychrometrics.rb</filename>
       <filetype>rb</filetype>
       <usage_type>resource</usage_type>
-      <checksum>11E27E42</checksum>
+      <checksum>208441EA</checksum>
+    </file>
+    <file>
+      <filename>util.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>A001EED9</checksum>
     </file>
     <file>
       <filename>weather.rb</filename>
       <filetype>rb</filetype>
       <usage_type>resource</usage_type>
-      <checksum>82988A63</checksum>
-    </file>
-    <file>
-      <filename>schedules.rb</filename>
-      <filetype>rb</filetype>
-      <usage_type>resource</usage_type>
-      <checksum>A299BFF0</checksum>
+      <checksum>825D6D42</checksum>
     </file>
     <file>
       <filename>unit_conversions.rb</filename>
       <filetype>rb</filetype>
       <usage_type>resource</usage_type>
-      <checksum>3E1D973D</checksum>
-    </file>
-    <file>
-      <filename>waterheater.rb</filename>
-      <filetype>rb</filetype>
-      <usage_type>resource</usage_type>
-      <checksum>44487178</checksum>
+      <checksum>91D17463</checksum>
     </file>
     <file>
       <filename>ResidentialDishwasher_Test.rb</filename>
       <filetype>rb</filetype>
       <usage_type>test</usage_type>
-      <checksum>022054AF</checksum>
-    </file>
-    <file>
-      <filename>SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths.osm</filename>
-      <filetype>osm</filetype>
-      <usage_type>test</usage_type>
-      <checksum>09D30BA0</checksum>
-    </file>
-    <file>
-      <filename>SFD_2000sqft_2story_FB_GRG_UA_Denver.osm</filename>
-      <filetype>osm</filetype>
-      <usage_type>test</usage_type>
-      <checksum>876F6266</checksum>
-    </file>
-    <file>
-      <filename>SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver.osm</filename>
-      <filetype>osm</filetype>
-      <usage_type>test</usage_type>
-      <checksum>31E024F6</checksum>
-    </file>
-    <file>
-      <filename>SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver_ElecWHTank.osm</filename>
-      <filetype>osm</filetype>
-      <usage_type>test</usage_type>
-      <checksum>265F0193</checksum>
-    </file>
-    <file>
-      <filename>SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver_ElecWHTankless.osm</filename>
-      <filetype>osm</filetype>
-      <usage_type>test</usage_type>
-      <checksum>00363066</checksum>
-    </file>
-    <file>
-      <filename>MF_8units_1story_SL_3Beds_2Baths_Denver_ElecWHTank.osm</filename>
-      <filetype>osm</filetype>
-      <usage_type>test</usage_type>
-      <checksum>57F043D7</checksum>
+      <checksum>73474418</checksum>
     </file>
     <file>
       <version>
@@ -302,37 +224,115 @@
       <filename>measure.rb</filename>
       <filetype>rb</filetype>
       <usage_type>script</usage_type>
-      <checksum>5351FE3D</checksum>
+      <checksum>790952CA</checksum>
+    </file>
+    <file>
+      <filename>MinuteDrawProfilesMaxFlows.csv</filename>
+      <filetype>csv</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>0E1048A3</checksum>
+    </file>
+    <file>
+      <filename>schedules.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>1C22DD2A</checksum>
+    </file>
+    <file>
+      <filename>appliances.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>E17E48DF</checksum>
+    </file>
+    <file>
+      <filename>DishwasherSchedule_1bed.csv</filename>
+      <filetype>csv</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>736F23BC</checksum>
+    </file>
+    <file>
+      <filename>DishwasherSchedule_2bed.csv</filename>
+      <filetype>csv</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>ADCCC080</checksum>
+    </file>
+    <file>
+      <filename>DishwasherSchedule_3bed.csv</filename>
+      <filetype>csv</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>54BA8BB0</checksum>
+    </file>
+    <file>
+      <filename>DishwasherSchedule_4bed.csv</filename>
+      <filetype>csv</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>F34BF3A8</checksum>
+    </file>
+    <file>
+      <filename>DishwasherSchedule_5bed.csv</filename>
+      <filetype>csv</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>DAF9D44B</checksum>
+    </file>
+    <file>
+      <filename>materials.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>3AF0D408</checksum>
     </file>
     <file>
       <filename>constants.rb</filename>
       <filetype>rb</filetype>
       <usage_type>resource</usage_type>
-      <checksum>FDA82DA6</checksum>
+      <checksum>C7B12E42</checksum>
     </file>
     <file>
-      <filename>util.rb</filename>
-      <filetype>rb</filetype>
-      <usage_type>resource</usage_type>
-      <checksum>1189E680</checksum>
-    </file>
-    <file>
-      <filename>SFA_4units_1story_FB_UA_3Beds_2Baths_Denver_ElecWHTank.osm</filename>
+      <filename>SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver.osm</filename>
       <filetype>osm</filetype>
       <usage_type>test</usage_type>
-      <checksum>F0B35774</checksum>
+      <checksum>CE549E3B</checksum>
     </file>
     <file>
-      <filename>SFA_4units_1story_UB_UA_3Beds_2Baths_Denver_ElecWHTank.osm</filename>
+      <filename>SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver_WHTank.osm</filename>
       <filetype>osm</filetype>
       <usage_type>test</usage_type>
-      <checksum>BFA5B8F6</checksum>
+      <checksum>BB56835D</checksum>
+    </file>
+    <file>
+      <filename>SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver_WHTankless.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>6BBB0A7A</checksum>
+    </file>
+    <file>
+      <filename>SFA_4units_1story_UB_UA_3Beds_2Baths_Denver_WHTank.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>3190BDF8</checksum>
+    </file>
+    <file>
+      <filename>SFA_4units_1story_FB_UA_3Beds_2Baths_Denver_WHTank.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>B8CCFB0D</checksum>
+    </file>
+    <file>
+      <filename>MF_8units_1story_SL_3Beds_2Baths_Denver_WHTank.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>6AA9D980</checksum>
     </file>
     <file>
       <filename>geometry.rb</filename>
       <filetype>rb</filetype>
       <usage_type>resource</usage_type>
-      <checksum>15FAD11A</checksum>
+      <checksum>7D6EC9CC</checksum>
+    </file>
+    <file>
+      <filename>waterheater.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>1147C7F1</checksum>
     </file>
   </files>
 </measure>
