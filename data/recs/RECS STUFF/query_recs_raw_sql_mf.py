@@ -27,7 +27,7 @@ dependency_dict = {
                    'typehuq': 'Geometry Building Type',
                    'regionc': 'Census Region',
                    'stories': 'Geometry Stories',
-                   'naptflrs': 'Geometry Floors',
+                   'naptflrs': 'Geometry Unit Floors',
                    'numflrs': 'Geometry Bldg Floors',
                    'reportable_domain': 'Location Region',
                    'Size': 'Geometry House Size',
@@ -401,7 +401,7 @@ def process_data(df):
                    'Education': education_dict,
                    'Size of Garage': garage_dict,
                    'Geometry Stories': stories_dict,
-                   'Geometry Floors': floors_dict,
+                   'Geometry Unit Floors': floors_dict,
                    'Location Region': region_def,
                    'Cooling Shared': shared_syst_dict,
                    'Heating Shared': shared_syst_dict,
@@ -733,21 +733,17 @@ def query_stories(df, outfile='recs_query_stories.csv'):
     df.to_csv(outfile, index=False)
     print df
 
-def bin_stories(df):
-    df['Building Floors'] = df['Geometry Bldg Floors']
-    df.loc[(df['Geometry Bldg Floors'] >= 4), 'Building Floors'] = '4+'
-    df.loc[(df['Geometry Bldg Floors'] == -2), 'Building Floors'] = 'None'
-    return df
+
 
 def num_units(df):
     df['Geometry Number Units'] = df['Number Units']
-    df.loc[(df['Number Units'] == -2),'Geometry Number Units'] = '<5'
+    df.loc[(df['Number Units'] == -2), 'Geometry Number Units'] = '<5'
 
-    #  for ACS bins
-    # df.loc[(df['Number Units'] >= 5) & (df['Number Units'] <= 9), 'Geometry Number Units'] = '5 to 9 Units'
-    # df.loc[(df['Number Units'] >= 10) & (df['Number Units'] <= 19), 'Geometry Number Units'] = '10 to 19 Units'
-    # df.loc[(df['Number Units'] >= 20) & (df['Number Units'] <= 49), 'Geometry Number Units'] = '20 to 49 Units'
-    # df.loc[(df['Number Units'] >= 50), 'Geometry Number Units'] = '50 or more'
+     # for ACS bins
+    df.loc[(df['Number Units'] >= 5) & (df['Number Units'] <= 9), 'Geometry Number Units'] = '5 to 9 Units'
+    df.loc[(df['Number Units'] >= 10) & (df['Number Units'] <= 19), 'Geometry Number Units'] = '10 to 19 Units'
+    df.loc[(df['Number Units'] >= 20) & (df['Number Units'] <= 49), 'Geometry Number Units'] = '20 to 49 Units'
+    df.loc[(df['Number Units'] >= 50), 'Geometry Number Units'] = '50 or more'
     return df
 
 def corr(x, y, w):
@@ -787,7 +783,18 @@ def shared_system(df):
 
     return df
 
+def bin_stories(df):
+    df['Geometry Building Floors'] = df['Geometry Bldg Floors']
+    df.loc[(df['Geometry Bldg Floors'] == 1), 'Geometry Building Floors'] = '1'
+    df.loc[(df['Geometry Bldg Floors'] == 2), 'Geometry Building Floors'] = '2'
+    df.loc[(df['Geometry Bldg Floors'] == 3), 'Geometry Building Floors'] = '3'
+    df.loc[(df['Geometry Bldg Floors'] >= 4), 'Geometry Building Floors'] = '4+'
+    df.loc[(df['Geometry Bldg Floors'] == -2), 'Geometry Building Floors'] = '4+'
+    return df
 
+def floors_units(df):
+    df['Floors Units Combined'] = df['Geometry Building Floors'] + ' Floors ' + df['Geometry Number Units']
+    return df
 
 def regenerate():
     # Use this to regenerate processed data if changes are made to any of the classes below
@@ -799,6 +806,7 @@ def regenerate():
     df = shared_system(df)
     df = bin_stories(df)
     df = num_units(df)
+    df = floors_units(df)
     # df = foundation_type(df)
     df = df.reset_index()
     df.to_pickle('processed_eia.recs_2009_microdata.pkl')
@@ -1211,7 +1219,10 @@ def query(df):
     #    calc_general(df, dependency=['CR', 'Vintage', 'fuelheat'], options=['equipm'],
     #        outfile='heatingequipment_output_by_CR_fuel_vintage.tsv')
     #     calc_general(df, dependency=['Location Region'], options=['Building Type'], outfile='Geometry Building Type.tsv', outpath='../../../project_resstock_multifamily/housing_characteristics')
-        calc_general(df, dependency=[ 'Location Region', 'Vintage', 'Heating Fuel', 'Shared System'], options=['Cooling Heat Pump'], outfile='HVAC System Is Combined.tsv',
+    #     calc_general(df, dependency=[ 'Geometry Building Type', 'Vintage', 'Heating Fuel'], options=['Shared System'], outfile='HVAC System Is Central.tsv',
+    #              outpath='../../../project_resstock_multifamily/housing_characteristics')
+        calc_general(df, dependency=[ 'Geometry Building Type', 'Geometry Building Floors', 'Geometry Number Units'], options=['Number Units'],
+                     outfile='Geometry Building Number Units SFAMF.tsv',
                  outpath='../../../project_resstock_multifamily/housing_characteristics')
         pass
 
