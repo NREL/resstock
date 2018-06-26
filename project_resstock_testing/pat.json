@@ -1,11 +1,12 @@
 {
   "projectName": "project_resstock_testing",
-  "projectDir": "C:\\Users\\shorowit\\Documents\\GitHub\\OpenStudio-BuildStock\\project_resstock_testing",
+  "projectDir": "C:\\OpenStudio\\OpenStudio-BuildStock\\project_resstock_testing",
+  "analysisName": "project_resstock_testing",
   "seed": "EmptySeedModel.osm",
   "weatherFile": "Placeholder.epw",
   "analysis_type": "Algorithmic",
   "remoteSettings": {
-    "open": false,
+    "open": true,
     "remoteType": "Amazon Cloud",
     "remoteServerURL": "http://10.60.7.61/",
     "aws": {
@@ -28,35 +29,36 @@
       "user_id": "shorowit",
       "worker_node_number": 0,
       "aws_tags": [],
-      "cluster_status": "running",
+      "cluster_status": "terminated",
       "openstudio_server_version": {
-        "name": "2.2.1-rc0",
-        "notes": "",
-        "standards": {
-          "ref": "0.1.15",
-          "repo": "nrel/openstudio-standards"
-        },
-        "workflow": {
-          "ref": "1.3.1",
-          "repo": "nrel/openstudio-workflow-gem"
-        },
-        "energyplus": "8.7",
-        "radiance": "5.0.a.12",
-        "analysis": {
-          "ref": "1.0.0.rc18",
-          "repo": "nrel/openstudio-analysis-gem"
-        },
         "openstudio": {
-          "version_number": "2.2.0",
-          "version_sha": "0a5e9cec3f",
+          "version_sha": "366cbe0e3a",
+          "version_number": "2.5.0",
           "url_base": "https://s3.amazonaws.com/openstudio-builds/NUMBER/OpenStudio-NUMBER.SHA-Linux.deb"
         },
-        "server": {
-          "ref": "62016d6ea7d74648894849e645231ebff450dd0f",
-          "repo": "nrel/openstudio-server"
+        "ami": "ami-1784206a",
+        "radiance": "NREL 5.0.a",
+        "workflow": {
+          "repo": "nrel/openstudio-workflow-gem",
+          "ref": "1.3.2"
         },
-        "R": "3.2.3",
-        "ami": "ami-ff92b284"
+        "R": "3.4.2",
+        "standards": {
+          "repo": "nrel/openstudio-standards",
+          "ref": "0.2.0"
+        },
+        "name": "2.5.0",
+        "notes": "Official automated release of OpenStudio Server 2.5.0 by NREL",
+        "analysis": {
+          "repo": "nrel/openstudio-analysis-gem",
+          "ref": "1.0.0"
+        },
+        "server": {
+          "repo": "nrel/openstudio-server",
+          "ref": "517600bc9cee58cec2101bdc6817b06e59d6327a"
+        },
+        "energyplus": "8.9",
+        "recommend": ""
       },
       "server": {
         "dns": null
@@ -86,15 +88,6 @@
       "$$hashKey": "object:186"
     },
     {
-      "name": "number_of_samples",
-      "displayName": "Number of Samples",
-      "description": "Positive integer (if individual, total simulations is this times each variable)",
-      "defaultValue": 2,
-      "type": "number",
-      "value": 1,
-      "$$hashKey": "object:187"
-    },
-    {
       "name": "run_baseline",
       "displayName": "Run Baseline?",
       "description": "Options: 1 or 0 (True or False)",
@@ -102,6 +95,15 @@
       "type": "number",
       "value": 1,
       "$$hashKey": "object:188"
+    },
+    {
+      "name": "seed",
+      "displayName": "Seed",
+      "description": "Integer seed for random number generator",
+      "defaultValue": null,
+      "type": "number",
+      "value": null,
+      "$$hashKey": "object:102"
     },
     {
       "name": "failed_f_value",
@@ -129,9 +131,9 @@
   "openstudioMD5": "",
   "measures": [
     {
-      "measure_dir": "C:\\Users\\shorowit\\Documents\\GitHub\\OpenStudio-BuildStock\\project_resstock_testing\\measures\\BuildExistingModel",
+      "measure_dir": "C:\\OpenStudio\\OpenStudio-BuildStock\\project_resstock_testing\\measures\\BuildExistingModel",
       "name": "build_existing_model",
-      "directory": "C:\\Users\\shorowit\\Documents\\GitHub\\OpenStudio-BuildStock\\project_resstock_testing\\measures\\BuildExistingModel",
+      "directory": "C:\\OpenStudio\\OpenStudio-BuildStock\\project_resstock_testing\\measures\\BuildExistingModel",
       "uid": "943cde68-f4bf-4e2e-a984-ab70cba2669c",
       "uuid": "{943cde68-f4bf-4e2e-a984-ab70cba2669c}",
       "version_id": "6cda3b62-2aa4-4343-b622-9708be752693",
@@ -281,16 +283,16 @@
       "seed": "EmptySeedModel.osm",
       "workflow_index": 0,
       "options": [],
-      "instanceId": 0.9007549008243072,
+      "instanceId": 0.2942540141533665,
       "skip": false,
       "$$hashKey": "object:2655",
       "showWarningText": false,
       "outputMeasure": false
     },
     {
-      "measure_dir": "C:\\Users\\shorowit\\Documents\\GitHub\\OpenStudio-BuildStock\\project_resstock_testing\\measures\\ApplyUpgrade",
+      "measure_dir": "C:\\OpenStudio\\OpenStudio-BuildStock\\project_resstock_testing\\measures\\ApplyUpgrade",
       "name": "apply_upgrade",
-      "directory": "C:\\Users\\shorowit\\Documents\\GitHub\\OpenStudio-BuildStock\\project_resstock_testing\\measures\\ApplyUpgrade",
+      "directory": "C:\\OpenStudio\\OpenStudio-BuildStock\\project_resstock_testing\\measures\\ApplyUpgrade",
       "uid": "33f1654c-f734-43d1-b35d-9d2856e41b5a",
       "uuid": "{33f1654c-f734-43d1-b35d-9d2856e41b5a}",
       "version_id": "c57fb504-f56b-41b6-9f40-07901f241787",
@@ -3113,16 +3115,16 @@
       "seed": "EmptySeedModel.osm",
       "workflow_index": 1,
       "options": [],
-      "instanceId": 0.5565157169063693,
+      "instanceId": 0.3539318815616397,
       "skip": false,
       "$$hashKey": "object:7751",
       "showWarningText": false,
       "outputMeasure": false
     },
     {
-      "measure_dir": "C:\\Users\\shorowit\\Documents\\GitHub\\OpenStudio-BuildStock\\project_resstock_testing\\measures\\ApplyUpgrade",
+      "measure_dir": "C:\\OpenStudio\\OpenStudio-BuildStock\\project_resstock_testing\\measures\\ApplyUpgrade",
       "name": "apply_upgrade_2",
-      "directory": "C:\\Users\\shorowit\\Documents\\GitHub\\OpenStudio-BuildStock\\project_resstock_testing\\measures\\ApplyUpgrade",
+      "directory": "C:\\OpenStudio\\OpenStudio-BuildStock\\project_resstock_testing\\measures\\ApplyUpgrade",
       "uid": "33f1654c-f734-43d1-b35d-9d2856e41b5a",
       "uuid": "{33f1654c-f734-43d1-b35d-9d2856e41b5a}",
       "version_id": "c57fb504-f56b-41b6-9f40-07901f241787",
@@ -5945,21 +5947,21 @@
       "seed": "EmptySeedModel.osm",
       "workflow_index": 2,
       "options": [],
-      "instanceId": 0.3354692093136169,
+      "instanceId": 0.8935452752130741,
       "skip": false,
       "$$hashKey": "object:10502",
       "showWarningText": false,
       "outputMeasure": false
     },
     {
-      "measure_dir": "C:\\Users\\shorowit\\Documents\\GitHub\\OpenStudio-BuildStock\\project_resstock_testing\\measures\\BuildingCharacteristicsReport",
+      "measure_dir": "C:\\OpenStudio\\OpenStudio-BuildStock\\project_resstock_testing\\measures\\BuildingCharacteristicsReport",
       "name": "building_characteristics_report",
-      "directory": "C:\\Users\\shorowit\\Documents\\GitHub\\OpenStudio-BuildStock\\project_resstock_testing\\measures\\BuildingCharacteristicsReport",
+      "directory": "C:\\OpenStudio\\OpenStudio-BuildStock\\project_resstock_testing\\measures\\BuildingCharacteristicsReport",
       "uid": "90eecbe2-d8e2-47db-9079-5d9029fb3e67",
       "uuid": "{90eecbe2-d8e2-47db-9079-5d9029fb3e67}",
-      "version_id": "cae94613-93e3-4a56-ae85-552b25e6c26c",
-      "version_uuid": "{cae94613-93e3-4a56-ae85-552b25e6c26c}",
-      "version_modified": "20171110T171847Z",
+      "version_id": "1f848f10-8062-4188-b247-7d7575776506",
+      "version_uuid": "{1f848f10-8062-4188-b247-7d7575776506}",
+      "version_modified": "20180418T020018Z",
       "xml_checksum": "2EA103AF",
       "display_name": "Building Characteristics Report",
       "class_name": "BuildingCharacteristicsReport",
@@ -5973,7 +5975,10 @@
           "short_name": "location_region",
           "description": "",
           "type": "String",
-          "model_dependent": false
+          "model_dependent": false,
+          "$$hashKey": "object:39680",
+          "checked": true,
+          "visualize": "true"
         },
         {
           "name": "location_heating_region",
@@ -5981,7 +5986,10 @@
           "short_name": "location_heating_region",
           "description": "",
           "type": "String",
-          "model_dependent": false
+          "model_dependent": false,
+          "$$hashKey": "object:39681",
+          "checked": true,
+          "visualize": "true"
         },
         {
           "name": "location_cooling_region",
@@ -5989,7 +5997,10 @@
           "short_name": "location_cooling_region",
           "description": "",
           "type": "String",
-          "model_dependent": false
+          "model_dependent": false,
+          "$$hashKey": "object:39682",
+          "checked": true,
+          "visualize": "true"
         },
         {
           "name": "location_epw",
@@ -5997,15 +6008,10 @@
           "short_name": "location_epw",
           "description": "",
           "type": "String",
-          "model_dependent": false
-        },
-        {
-          "name": "location_census_division",
-          "display_name": "location_census_division",
-          "short_name": "location_census_division",
-          "description": "",
-          "type": "String",
-          "model_dependent": false
+          "model_dependent": false,
+          "$$hashKey": "object:39683",
+          "checked": true,
+          "visualize": "true"
         },
         {
           "name": "vintage",
@@ -6013,7 +6019,10 @@
           "short_name": "vintage",
           "description": "",
           "type": "String",
-          "model_dependent": false
+          "model_dependent": false,
+          "$$hashKey": "object:39684",
+          "checked": true,
+          "visualize": "true"
         },
         {
           "name": "heating_fuel",
@@ -6021,7 +6030,10 @@
           "short_name": "heating_fuel",
           "description": "",
           "type": "String",
-          "model_dependent": false
+          "model_dependent": false,
+          "$$hashKey": "object:39685",
+          "checked": true,
+          "visualize": "true"
         },
         {
           "name": "usage_level",
@@ -6029,7 +6041,10 @@
           "short_name": "usage_level",
           "description": "",
           "type": "String",
-          "model_dependent": false
+          "model_dependent": false,
+          "$$hashKey": "object:39686",
+          "checked": true,
+          "visualize": "true"
         },
         {
           "name": "geometry_foundation_type",
@@ -6037,7 +6052,10 @@
           "short_name": "geometry_foundation_type",
           "description": "",
           "type": "String",
-          "model_dependent": false
+          "model_dependent": false,
+          "$$hashKey": "object:39687",
+          "checked": true,
+          "visualize": "true"
         },
         {
           "name": "geometry_heated_basement",
@@ -6045,7 +6063,10 @@
           "short_name": "geometry_heated_basement",
           "description": "",
           "type": "String",
-          "model_dependent": false
+          "model_dependent": false,
+          "$$hashKey": "object:39688",
+          "checked": true,
+          "visualize": "true"
         },
         {
           "name": "geometry_stories",
@@ -6053,7 +6074,10 @@
           "short_name": "geometry_stories",
           "description": "",
           "type": "String",
-          "model_dependent": false
+          "model_dependent": false,
+          "$$hashKey": "object:39689",
+          "checked": true,
+          "visualize": "true"
         },
         {
           "name": "geometry_garage",
@@ -6061,7 +6085,10 @@
           "short_name": "geometry_garage",
           "description": "",
           "type": "String",
-          "model_dependent": false
+          "model_dependent": false,
+          "$$hashKey": "object:39690",
+          "checked": true,
+          "visualize": "true"
         },
         {
           "name": "geometry_house_size",
@@ -6069,7 +6096,10 @@
           "short_name": "geometry_house_size",
           "description": "",
           "type": "String",
-          "model_dependent": false
+          "model_dependent": false,
+          "$$hashKey": "object:39691",
+          "checked": true,
+          "visualize": "true"
         },
         {
           "name": "occupants",
@@ -6077,7 +6107,10 @@
           "short_name": "occupants",
           "description": "",
           "type": "String",
-          "model_dependent": false
+          "model_dependent": false,
+          "$$hashKey": "object:39692",
+          "checked": true,
+          "visualize": "true"
         },
         {
           "name": "orientation",
@@ -6085,7 +6118,10 @@
           "short_name": "orientation",
           "description": "",
           "type": "String",
-          "model_dependent": false
+          "model_dependent": false,
+          "$$hashKey": "object:39693",
+          "checked": true,
+          "visualize": "true"
         },
         {
           "name": "eaves",
@@ -6093,7 +6129,10 @@
           "short_name": "eaves",
           "description": "",
           "type": "String",
-          "model_dependent": false
+          "model_dependent": false,
+          "$$hashKey": "object:39694",
+          "checked": true,
+          "visualize": "true"
         },
         {
           "name": "door_area",
@@ -6101,7 +6140,10 @@
           "short_name": "door_area",
           "description": "",
           "type": "String",
-          "model_dependent": false
+          "model_dependent": false,
+          "$$hashKey": "object:39695",
+          "checked": true,
+          "visualize": "true"
         },
         {
           "name": "window_areas",
@@ -6109,7 +6151,10 @@
           "short_name": "window_areas",
           "description": "",
           "type": "String",
-          "model_dependent": false
+          "model_dependent": false,
+          "$$hashKey": "object:39696",
+          "checked": true,
+          "visualize": "true"
         },
         {
           "name": "overhangs",
@@ -6117,7 +6162,10 @@
           "short_name": "overhangs",
           "description": "",
           "type": "String",
-          "model_dependent": false
+          "model_dependent": false,
+          "$$hashKey": "object:39697",
+          "checked": true,
+          "visualize": "true"
         },
         {
           "name": "neighbors",
@@ -6125,7 +6173,10 @@
           "short_name": "neighbors",
           "description": "",
           "type": "String",
-          "model_dependent": false
+          "model_dependent": false,
+          "$$hashKey": "object:39698",
+          "checked": true,
+          "visualize": "true"
         },
         {
           "name": "insulation_unfinished_attic",
@@ -6133,15 +6184,10 @@
           "short_name": "insulation_unfinished_attic",
           "description": "",
           "type": "String",
-          "model_dependent": false
-        },
-        {
-          "name": "roof_sheathing",
-          "display_name": "roof_sheathing",
-          "short_name": "roof_sheathing",
-          "description": "",
-          "type": "String",
-          "model_dependent": false
+          "model_dependent": false,
+          "$$hashKey": "object:39699",
+          "checked": true,
+          "visualize": "true"
         },
         {
           "name": "roof_material",
@@ -6149,15 +6195,10 @@
           "short_name": "roof_material",
           "description": "",
           "type": "String",
-          "model_dependent": false
-        },
-        {
-          "name": "thermal_mass_ceiling",
-          "display_name": "thermal_mass_ceiling",
-          "short_name": "thermal_mass_ceiling",
-          "description": "",
-          "type": "String",
-          "model_dependent": false
+          "model_dependent": false,
+          "$$hashKey": "object:39700",
+          "checked": true,
+          "visualize": "true"
         },
         {
           "name": "insulation_slab",
@@ -6165,7 +6206,10 @@
           "short_name": "insulation_slab",
           "description": "",
           "type": "String",
-          "model_dependent": false
+          "model_dependent": false,
+          "$$hashKey": "object:39701",
+          "checked": true,
+          "visualize": "true"
         },
         {
           "name": "insulation_crawlspace",
@@ -6173,7 +6217,10 @@
           "short_name": "insulation_crawlspace",
           "description": "",
           "type": "String",
-          "model_dependent": false
+          "model_dependent": false,
+          "$$hashKey": "object:39702",
+          "checked": true,
+          "visualize": "true"
         },
         {
           "name": "insulation_unfinished_basement",
@@ -6181,7 +6228,10 @@
           "short_name": "insulation_unfinished_basement",
           "description": "",
           "type": "String",
-          "model_dependent": false
+          "model_dependent": false,
+          "$$hashKey": "object:39703",
+          "checked": true,
+          "visualize": "true"
         },
         {
           "name": "insulation_finished_basement",
@@ -6189,7 +6239,10 @@
           "short_name": "insulation_finished_basement",
           "description": "",
           "type": "String",
-          "model_dependent": false
+          "model_dependent": false,
+          "$$hashKey": "object:39704",
+          "checked": true,
+          "visualize": "true"
         },
         {
           "name": "insulation_pier_beam",
@@ -6197,7 +6250,10 @@
           "short_name": "insulation_pier_beam",
           "description": "",
           "type": "String",
-          "model_dependent": false
+          "model_dependent": false,
+          "$$hashKey": "object:39705",
+          "checked": true,
+          "visualize": "true"
         },
         {
           "name": "insulation_interzonal_floor",
@@ -6205,31 +6261,10 @@
           "short_name": "insulation_interzonal_floor",
           "description": "",
           "type": "String",
-          "model_dependent": false
-        },
-        {
-          "name": "floor_sheathing",
-          "display_name": "floor_sheathing",
-          "short_name": "floor_sheathing",
-          "description": "",
-          "type": "String",
-          "model_dependent": false
-        },
-        {
-          "name": "floor_covering",
-          "display_name": "floor_covering",
-          "short_name": "floor_covering",
-          "description": "",
-          "type": "String",
-          "model_dependent": false
-        },
-        {
-          "name": "thermal_mass_floor",
-          "display_name": "thermal_mass_floor",
-          "short_name": "thermal_mass_floor",
-          "description": "",
-          "type": "String",
-          "model_dependent": false
+          "model_dependent": false,
+          "$$hashKey": "object:39706",
+          "checked": true,
+          "visualize": "true"
         },
         {
           "name": "insulation_wall",
@@ -6237,47 +6272,10 @@
           "short_name": "insulation_wall",
           "description": "",
           "type": "String",
-          "model_dependent": false
-        },
-        {
-          "name": "wall_sheathing",
-          "display_name": "wall_sheathing",
-          "short_name": "wall_sheathing",
-          "description": "",
-          "type": "String",
-          "model_dependent": false
-        },
-        {
-          "name": "exterior_finish",
-          "display_name": "exterior_finish",
-          "short_name": "exterior_finish",
-          "description": "",
-          "type": "String",
-          "model_dependent": false
-        },
-        {
-          "name": "thermal_mass_exterior_wall",
-          "display_name": "thermal_mass_exterior_wall",
-          "short_name": "thermal_mass_exterior_wall",
-          "description": "",
-          "type": "String",
-          "model_dependent": false
-        },
-        {
-          "name": "thermal_mass_partition_wall",
-          "display_name": "thermal_mass_partition_wall",
-          "short_name": "thermal_mass_partition_wall",
-          "description": "",
-          "type": "String",
-          "model_dependent": false
-        },
-        {
-          "name": "uninsulated_surfaces",
-          "display_name": "uninsulated_surfaces",
-          "short_name": "uninsulated_surfaces",
-          "description": "",
-          "type": "String",
-          "model_dependent": false
+          "model_dependent": false,
+          "$$hashKey": "object:39707",
+          "checked": true,
+          "visualize": "true"
         },
         {
           "name": "windows",
@@ -6285,7 +6283,10 @@
           "short_name": "windows",
           "description": "",
           "type": "String",
-          "model_dependent": false
+          "model_dependent": false,
+          "$$hashKey": "object:39708",
+          "checked": true,
+          "visualize": "true"
         },
         {
           "name": "doors",
@@ -6293,15 +6294,10 @@
           "short_name": "doors",
           "description": "",
           "type": "String",
-          "model_dependent": false
-        },
-        {
-          "name": "thermal_mass_furniture",
-          "display_name": "thermal_mass_furniture",
-          "short_name": "thermal_mass_furniture",
-          "description": "",
-          "type": "String",
-          "model_dependent": false
+          "model_dependent": false,
+          "$$hashKey": "object:39709",
+          "checked": true,
+          "visualize": "true"
         },
         {
           "name": "water_heater",
@@ -6309,7 +6305,10 @@
           "short_name": "water_heater",
           "description": "",
           "type": "String",
-          "model_dependent": false
+          "model_dependent": false,
+          "$$hashKey": "object:39710",
+          "checked": true,
+          "visualize": "true"
         },
         {
           "name": "hot_water_fixtures",
@@ -6317,7 +6316,10 @@
           "short_name": "hot_water_fixtures",
           "description": "",
           "type": "String",
-          "model_dependent": false
+          "model_dependent": false,
+          "$$hashKey": "object:39711",
+          "checked": true,
+          "visualize": "true"
         },
         {
           "name": "hot_water_distribution",
@@ -6325,7 +6327,10 @@
           "short_name": "hot_water_distribution",
           "description": "",
           "type": "String",
-          "model_dependent": false
+          "model_dependent": false,
+          "$$hashKey": "object:39712",
+          "checked": true,
+          "visualize": "true"
         },
         {
           "name": "solar_hot_water",
@@ -6333,7 +6338,10 @@
           "short_name": "solar_hot_water",
           "description": "",
           "type": "String",
-          "model_dependent": false
+          "model_dependent": false,
+          "$$hashKey": "object:39713",
+          "checked": true,
+          "visualize": "true"
         },
         {
           "name": "hvac_system_is_combined",
@@ -6341,7 +6349,10 @@
           "short_name": "hvac_system_is_combined",
           "description": "",
           "type": "String",
-          "model_dependent": false
+          "model_dependent": false,
+          "$$hashKey": "object:39714",
+          "checked": true,
+          "visualize": "true"
         },
         {
           "name": "hvac_system_combined",
@@ -6349,7 +6360,10 @@
           "short_name": "hvac_system_combined",
           "description": "",
           "type": "String",
-          "model_dependent": false
+          "model_dependent": false,
+          "$$hashKey": "object:39715",
+          "checked": true,
+          "visualize": "true"
         },
         {
           "name": "hvac_system_heating_electricity",
@@ -6357,7 +6371,10 @@
           "short_name": "hvac_system_heating_electricity",
           "description": "",
           "type": "String",
-          "model_dependent": false
+          "model_dependent": false,
+          "$$hashKey": "object:39716",
+          "checked": true,
+          "visualize": "true"
         },
         {
           "name": "hvac_system_heating_natural_gas",
@@ -6365,7 +6382,10 @@
           "short_name": "hvac_system_heating_natural_gas",
           "description": "",
           "type": "String",
-          "model_dependent": false
+          "model_dependent": false,
+          "$$hashKey": "object:39717",
+          "checked": true,
+          "visualize": "true"
         },
         {
           "name": "hvac_system_heating_propane",
@@ -6373,7 +6393,10 @@
           "short_name": "hvac_system_heating_propane",
           "description": "",
           "type": "String",
-          "model_dependent": false
+          "model_dependent": false,
+          "$$hashKey": "object:39718",
+          "checked": true,
+          "visualize": "true"
         },
         {
           "name": "hvac_system_heating_fuel_oil",
@@ -6381,7 +6404,10 @@
           "short_name": "hvac_system_heating_fuel_oil",
           "description": "",
           "type": "String",
-          "model_dependent": false
+          "model_dependent": false,
+          "$$hashKey": "object:39719",
+          "checked": true,
+          "visualize": "true"
         },
         {
           "name": "hvac_system_heating_wood",
@@ -6389,7 +6415,10 @@
           "short_name": "hvac_system_heating_wood",
           "description": "",
           "type": "String",
-          "model_dependent": false
+          "model_dependent": false,
+          "$$hashKey": "object:39720",
+          "checked": true,
+          "visualize": "true"
         },
         {
           "name": "hvac_system_heating_other_fuel",
@@ -6397,7 +6426,10 @@
           "short_name": "hvac_system_heating_other_fuel",
           "description": "",
           "type": "String",
-          "model_dependent": false
+          "model_dependent": false,
+          "$$hashKey": "object:39721",
+          "checked": true,
+          "visualize": "true"
         },
         {
           "name": "hvac_system_heating_none",
@@ -6405,7 +6437,10 @@
           "short_name": "hvac_system_heating_none",
           "description": "",
           "type": "String",
-          "model_dependent": false
+          "model_dependent": false,
+          "$$hashKey": "object:39722",
+          "checked": true,
+          "visualize": "true"
         },
         {
           "name": "hvac_system_cooling",
@@ -6413,7 +6448,10 @@
           "short_name": "hvac_system_cooling",
           "description": "",
           "type": "String",
-          "model_dependent": false
+          "model_dependent": false,
+          "$$hashKey": "object:39723",
+          "checked": true,
+          "visualize": "true"
         },
         {
           "name": "hvac_system_cooling_type",
@@ -6421,7 +6459,10 @@
           "short_name": "hvac_system_cooling_type",
           "description": "",
           "type": "String",
-          "model_dependent": false
+          "model_dependent": false,
+          "$$hashKey": "object:39724",
+          "checked": true,
+          "visualize": "true"
         },
         {
           "name": "heating_setpoint",
@@ -6429,7 +6470,10 @@
           "short_name": "heating_setpoint",
           "description": "",
           "type": "String",
-          "model_dependent": false
+          "model_dependent": false,
+          "$$hashKey": "object:39725",
+          "checked": true,
+          "visualize": "true"
         },
         {
           "name": "cooling_setpoint",
@@ -6437,7 +6481,10 @@
           "short_name": "cooling_setpoint",
           "description": "",
           "type": "String",
-          "model_dependent": false
+          "model_dependent": false,
+          "$$hashKey": "object:39726",
+          "checked": true,
+          "visualize": "true"
         },
         {
           "name": "ceiling_fan",
@@ -6445,7 +6492,10 @@
           "short_name": "ceiling_fan",
           "description": "",
           "type": "String",
-          "model_dependent": false
+          "model_dependent": false,
+          "$$hashKey": "object:39727",
+          "checked": true,
+          "visualize": "true"
         },
         {
           "name": "dehumidifier",
@@ -6453,7 +6503,10 @@
           "short_name": "dehumidifier",
           "description": "",
           "type": "String",
-          "model_dependent": false
+          "model_dependent": false,
+          "$$hashKey": "object:39728",
+          "checked": true,
+          "visualize": "true"
         },
         {
           "name": "refrigerator",
@@ -6461,7 +6514,10 @@
           "short_name": "refrigerator",
           "description": "",
           "type": "String",
-          "model_dependent": false
+          "model_dependent": false,
+          "$$hashKey": "object:39729",
+          "checked": true,
+          "visualize": "true"
         },
         {
           "name": "cooking_range",
@@ -6469,7 +6525,10 @@
           "short_name": "cooking_range",
           "description": "",
           "type": "String",
-          "model_dependent": false
+          "model_dependent": false,
+          "$$hashKey": "object:39730",
+          "checked": true,
+          "visualize": "true"
         },
         {
           "name": "dishwasher",
@@ -6477,7 +6536,10 @@
           "short_name": "dishwasher",
           "description": "",
           "type": "String",
-          "model_dependent": false
+          "model_dependent": false,
+          "$$hashKey": "object:39731",
+          "checked": true,
+          "visualize": "true"
         },
         {
           "name": "clothes_washer",
@@ -6485,7 +6547,10 @@
           "short_name": "clothes_washer",
           "description": "",
           "type": "String",
-          "model_dependent": false
+          "model_dependent": false,
+          "$$hashKey": "object:39732",
+          "checked": true,
+          "visualize": "true"
         },
         {
           "name": "clothes_dryer",
@@ -6493,7 +6558,10 @@
           "short_name": "clothes_dryer",
           "description": "",
           "type": "String",
-          "model_dependent": false
+          "model_dependent": false,
+          "$$hashKey": "object:39733",
+          "checked": true,
+          "visualize": "true"
         },
         {
           "name": "lighting",
@@ -6501,7 +6569,10 @@
           "short_name": "lighting",
           "description": "",
           "type": "String",
-          "model_dependent": false
+          "model_dependent": false,
+          "$$hashKey": "object:39734",
+          "checked": true,
+          "visualize": "true"
         },
         {
           "name": "plug_loads",
@@ -6509,7 +6580,10 @@
           "short_name": "plug_loads",
           "description": "",
           "type": "String",
-          "model_dependent": false
+          "model_dependent": false,
+          "$$hashKey": "object:39735",
+          "checked": true,
+          "visualize": "true"
         },
         {
           "name": "misc_extra_refrigerator",
@@ -6517,7 +6591,10 @@
           "short_name": "misc_extra_refrigerator",
           "description": "",
           "type": "String",
-          "model_dependent": false
+          "model_dependent": false,
+          "$$hashKey": "object:39736",
+          "checked": true,
+          "visualize": "true"
         },
         {
           "name": "misc_freezer",
@@ -6525,7 +6602,10 @@
           "short_name": "misc_freezer",
           "description": "",
           "type": "String",
-          "model_dependent": false
+          "model_dependent": false,
+          "$$hashKey": "object:39737",
+          "checked": true,
+          "visualize": "true"
         },
         {
           "name": "misc_gas_fireplace",
@@ -6533,7 +6613,10 @@
           "short_name": "misc_gas_fireplace",
           "description": "",
           "type": "String",
-          "model_dependent": false
+          "model_dependent": false,
+          "$$hashKey": "object:39738",
+          "checked": true,
+          "visualize": "true"
         },
         {
           "name": "misc_gas_grill",
@@ -6541,7 +6624,10 @@
           "short_name": "misc_gas_grill",
           "description": "",
           "type": "String",
-          "model_dependent": false
+          "model_dependent": false,
+          "$$hashKey": "object:39739",
+          "checked": true,
+          "visualize": "true"
         },
         {
           "name": "misc_gas_lighting",
@@ -6549,7 +6635,10 @@
           "short_name": "misc_gas_lighting",
           "description": "",
           "type": "String",
-          "model_dependent": false
+          "model_dependent": false,
+          "$$hashKey": "object:39740",
+          "checked": true,
+          "visualize": "true"
         },
         {
           "name": "misc_hot_tub_spa",
@@ -6557,7 +6646,10 @@
           "short_name": "misc_hot_tub_spa",
           "description": "",
           "type": "String",
-          "model_dependent": false
+          "model_dependent": false,
+          "$$hashKey": "object:39741",
+          "checked": true,
+          "visualize": "true"
         },
         {
           "name": "misc_pool",
@@ -6565,7 +6657,10 @@
           "short_name": "misc_pool",
           "description": "",
           "type": "String",
-          "model_dependent": false
+          "model_dependent": false,
+          "$$hashKey": "object:39742",
+          "checked": true,
+          "visualize": "true"
         },
         {
           "name": "misc_well_pump",
@@ -6573,7 +6668,10 @@
           "short_name": "misc_well_pump",
           "description": "",
           "type": "String",
-          "model_dependent": false
+          "model_dependent": false,
+          "$$hashKey": "object:39743",
+          "checked": true,
+          "visualize": "true"
         },
         {
           "name": "ducts",
@@ -6581,7 +6679,10 @@
           "short_name": "ducts",
           "description": "",
           "type": "String",
-          "model_dependent": false
+          "model_dependent": false,
+          "$$hashKey": "object:39744",
+          "checked": true,
+          "visualize": "true"
         },
         {
           "name": "infiltration",
@@ -6589,7 +6690,10 @@
           "short_name": "infiltration",
           "description": "",
           "type": "String",
-          "model_dependent": false
+          "model_dependent": false,
+          "$$hashKey": "object:39745",
+          "checked": true,
+          "visualize": "true"
         },
         {
           "name": "natural_ventilation",
@@ -6597,7 +6701,10 @@
           "short_name": "natural_ventilation",
           "description": "",
           "type": "String",
-          "model_dependent": false
+          "model_dependent": false,
+          "$$hashKey": "object:39746",
+          "checked": true,
+          "visualize": "true"
         },
         {
           "name": "mechanical_ventilation",
@@ -6605,7 +6712,32 @@
           "short_name": "mechanical_ventilation",
           "description": "",
           "type": "String",
-          "model_dependent": false
+          "model_dependent": false,
+          "$$hashKey": "object:39747",
+          "checked": true,
+          "visualize": "true"
+        },
+        {
+          "name": "bathroom_spot_vent_hour",
+          "display_name": "bathroom_spot_vent_hour",
+          "short_name": "bathroom_spot_vent_hour",
+          "description": "",
+          "type": "String",
+          "model_dependent": false,
+          "$$hashKey": "object:39748",
+          "checked": true,
+          "visualize": "true"
+        },
+        {
+          "name": "range_spot_vent_hour",
+          "display_name": "range_spot_vent_hour",
+          "short_name": "range_spot_vent_hour",
+          "description": "",
+          "type": "String",
+          "model_dependent": false,
+          "$$hashKey": "object:39749",
+          "checked": true,
+          "visualize": "true"
         },
         {
           "name": "pv",
@@ -6613,7 +6745,10 @@
           "short_name": "pv",
           "description": "",
           "type": "String",
-          "model_dependent": false
+          "model_dependent": false,
+          "$$hashKey": "object:39750",
+          "checked": true,
+          "visualize": "true"
         },
         {
           "name": "days_shifted",
@@ -6621,7 +6756,10 @@
           "short_name": "days_shifted",
           "description": "",
           "type": "String",
-          "model_dependent": false
+          "model_dependent": false,
+          "$$hashKey": "object:39751",
+          "checked": true,
+          "visualize": "true"
         },
         {
           "name": "location_city",
@@ -6629,7 +6767,10 @@
           "short_name": "location_city",
           "description": "",
           "type": "String",
-          "model_dependent": false
+          "model_dependent": false,
+          "$$hashKey": "object:39752",
+          "checked": true,
+          "visualize": "true"
         },
         {
           "name": "location_state",
@@ -6637,7 +6778,10 @@
           "short_name": "location_state",
           "description": "",
           "type": "String",
-          "model_dependent": false
+          "model_dependent": false,
+          "$$hashKey": "object:39753",
+          "checked": true,
+          "visualize": "true"
         },
         {
           "name": "location_latitude",
@@ -6645,7 +6789,10 @@
           "short_name": "location_latitude",
           "description": "",
           "type": "String",
-          "model_dependent": false
+          "model_dependent": false,
+          "$$hashKey": "object:39754",
+          "checked": true,
+          "visualize": "true"
         },
         {
           "name": "location_longitude",
@@ -6653,7 +6800,10 @@
           "short_name": "location_longitude",
           "description": "",
           "type": "String",
-          "model_dependent": false
+          "model_dependent": false,
+          "$$hashKey": "object:39755",
+          "checked": true,
+          "visualize": "true"
         }
       ],
       "attributes": [
@@ -6676,13 +6826,13 @@
       "add": "",
       "open": false,
       "addedToProject": true,
-      "date": "11/10/2017",
+      "date": "4/17/2018",
       "author": "",
       "type": "ReportingMeasure",
       "seed": "EmptySeedModel.osm",
       "workflow_index": 3,
       "options": [],
-      "instanceId": 0.9391455235089416,
+      "instanceId": 0.7622878565261819,
       "skip": false,
       "$$hashKey": "object:12818",
       "outputMeasure": true,
@@ -6695,11 +6845,8 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:22172",
+          "$$hashKey": "object:39680",
           "checked": true,
-          "measure_name": "building_characteristics_report",
-          "measure_class_name": "BuildingCharacteristicsReport",
-          "measure_uid": "90eecbe2-d8e2-47db-9079-5d9029fb3e67",
           "visualize": "true"
         },
         {
@@ -6709,11 +6856,8 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:22173",
+          "$$hashKey": "object:39681",
           "checked": true,
-          "measure_name": "building_characteristics_report",
-          "measure_class_name": "BuildingCharacteristicsReport",
-          "measure_uid": "90eecbe2-d8e2-47db-9079-5d9029fb3e67",
           "visualize": "true"
         },
         {
@@ -6723,11 +6867,8 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:22174",
+          "$$hashKey": "object:39682",
           "checked": true,
-          "measure_name": "building_characteristics_report",
-          "measure_class_name": "BuildingCharacteristicsReport",
-          "measure_uid": "90eecbe2-d8e2-47db-9079-5d9029fb3e67",
           "visualize": "true"
         },
         {
@@ -6737,25 +6878,8 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:22175",
+          "$$hashKey": "object:39683",
           "checked": true,
-          "measure_name": "building_characteristics_report",
-          "measure_class_name": "BuildingCharacteristicsReport",
-          "measure_uid": "90eecbe2-d8e2-47db-9079-5d9029fb3e67",
-          "visualize": "true"
-        },
-        {
-          "name": "location_census_division",
-          "display_name": "location_census_division",
-          "short_name": "location_census_division",
-          "description": "",
-          "type": "String",
-          "model_dependent": false,
-          "$$hashKey": "object:22176",
-          "checked": true,
-          "measure_name": "building_characteristics_report",
-          "measure_class_name": "BuildingCharacteristicsReport",
-          "measure_uid": "90eecbe2-d8e2-47db-9079-5d9029fb3e67",
           "visualize": "true"
         },
         {
@@ -6765,11 +6889,8 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:22177",
+          "$$hashKey": "object:39684",
           "checked": true,
-          "measure_name": "building_characteristics_report",
-          "measure_class_name": "BuildingCharacteristicsReport",
-          "measure_uid": "90eecbe2-d8e2-47db-9079-5d9029fb3e67",
           "visualize": "true"
         },
         {
@@ -6779,11 +6900,8 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:22178",
+          "$$hashKey": "object:39685",
           "checked": true,
-          "measure_name": "building_characteristics_report",
-          "measure_class_name": "BuildingCharacteristicsReport",
-          "measure_uid": "90eecbe2-d8e2-47db-9079-5d9029fb3e67",
           "visualize": "true"
         },
         {
@@ -6793,11 +6911,8 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:22179",
+          "$$hashKey": "object:39686",
           "checked": true,
-          "measure_name": "building_characteristics_report",
-          "measure_class_name": "BuildingCharacteristicsReport",
-          "measure_uid": "90eecbe2-d8e2-47db-9079-5d9029fb3e67",
           "visualize": "true"
         },
         {
@@ -6807,11 +6922,8 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:22180",
+          "$$hashKey": "object:39687",
           "checked": true,
-          "measure_name": "building_characteristics_report",
-          "measure_class_name": "BuildingCharacteristicsReport",
-          "measure_uid": "90eecbe2-d8e2-47db-9079-5d9029fb3e67",
           "visualize": "true"
         },
         {
@@ -6821,11 +6933,8 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:22181",
+          "$$hashKey": "object:39688",
           "checked": true,
-          "measure_name": "building_characteristics_report",
-          "measure_class_name": "BuildingCharacteristicsReport",
-          "measure_uid": "90eecbe2-d8e2-47db-9079-5d9029fb3e67",
           "visualize": "true"
         },
         {
@@ -6835,11 +6944,8 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:22182",
+          "$$hashKey": "object:39689",
           "checked": true,
-          "measure_name": "building_characteristics_report",
-          "measure_class_name": "BuildingCharacteristicsReport",
-          "measure_uid": "90eecbe2-d8e2-47db-9079-5d9029fb3e67",
           "visualize": "true"
         },
         {
@@ -6849,11 +6955,8 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:22183",
+          "$$hashKey": "object:39690",
           "checked": true,
-          "measure_name": "building_characteristics_report",
-          "measure_class_name": "BuildingCharacteristicsReport",
-          "measure_uid": "90eecbe2-d8e2-47db-9079-5d9029fb3e67",
           "visualize": "true"
         },
         {
@@ -6863,11 +6966,8 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:22184",
+          "$$hashKey": "object:39691",
           "checked": true,
-          "measure_name": "building_characteristics_report",
-          "measure_class_name": "BuildingCharacteristicsReport",
-          "measure_uid": "90eecbe2-d8e2-47db-9079-5d9029fb3e67",
           "visualize": "true"
         },
         {
@@ -6877,11 +6977,8 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:22185",
+          "$$hashKey": "object:39692",
           "checked": true,
-          "measure_name": "building_characteristics_report",
-          "measure_class_name": "BuildingCharacteristicsReport",
-          "measure_uid": "90eecbe2-d8e2-47db-9079-5d9029fb3e67",
           "visualize": "true"
         },
         {
@@ -6891,11 +6988,8 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:22186",
+          "$$hashKey": "object:39693",
           "checked": true,
-          "measure_name": "building_characteristics_report",
-          "measure_class_name": "BuildingCharacteristicsReport",
-          "measure_uid": "90eecbe2-d8e2-47db-9079-5d9029fb3e67",
           "visualize": "true"
         },
         {
@@ -6905,11 +6999,8 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:22187",
+          "$$hashKey": "object:39694",
           "checked": true,
-          "measure_name": "building_characteristics_report",
-          "measure_class_name": "BuildingCharacteristicsReport",
-          "measure_uid": "90eecbe2-d8e2-47db-9079-5d9029fb3e67",
           "visualize": "true"
         },
         {
@@ -6919,11 +7010,8 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:22188",
+          "$$hashKey": "object:39695",
           "checked": true,
-          "measure_name": "building_characteristics_report",
-          "measure_class_name": "BuildingCharacteristicsReport",
-          "measure_uid": "90eecbe2-d8e2-47db-9079-5d9029fb3e67",
           "visualize": "true"
         },
         {
@@ -6933,11 +7021,8 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:22189",
+          "$$hashKey": "object:39696",
           "checked": true,
-          "measure_name": "building_characteristics_report",
-          "measure_class_name": "BuildingCharacteristicsReport",
-          "measure_uid": "90eecbe2-d8e2-47db-9079-5d9029fb3e67",
           "visualize": "true"
         },
         {
@@ -6947,11 +7032,8 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:22190",
+          "$$hashKey": "object:39697",
           "checked": true,
-          "measure_name": "building_characteristics_report",
-          "measure_class_name": "BuildingCharacteristicsReport",
-          "measure_uid": "90eecbe2-d8e2-47db-9079-5d9029fb3e67",
           "visualize": "true"
         },
         {
@@ -6961,11 +7043,8 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:22191",
+          "$$hashKey": "object:39698",
           "checked": true,
-          "measure_name": "building_characteristics_report",
-          "measure_class_name": "BuildingCharacteristicsReport",
-          "measure_uid": "90eecbe2-d8e2-47db-9079-5d9029fb3e67",
           "visualize": "true"
         },
         {
@@ -6975,25 +7054,8 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:22192",
+          "$$hashKey": "object:39699",
           "checked": true,
-          "measure_name": "building_characteristics_report",
-          "measure_class_name": "BuildingCharacteristicsReport",
-          "measure_uid": "90eecbe2-d8e2-47db-9079-5d9029fb3e67",
-          "visualize": "true"
-        },
-        {
-          "name": "roof_sheathing",
-          "display_name": "roof_sheathing",
-          "short_name": "roof_sheathing",
-          "description": "",
-          "type": "String",
-          "model_dependent": false,
-          "$$hashKey": "object:22193",
-          "checked": true,
-          "measure_name": "building_characteristics_report",
-          "measure_class_name": "BuildingCharacteristicsReport",
-          "measure_uid": "90eecbe2-d8e2-47db-9079-5d9029fb3e67",
           "visualize": "true"
         },
         {
@@ -7003,25 +7065,8 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:22194",
+          "$$hashKey": "object:39700",
           "checked": true,
-          "measure_name": "building_characteristics_report",
-          "measure_class_name": "BuildingCharacteristicsReport",
-          "measure_uid": "90eecbe2-d8e2-47db-9079-5d9029fb3e67",
-          "visualize": "true"
-        },
-        {
-          "name": "thermal_mass_ceiling",
-          "display_name": "thermal_mass_ceiling",
-          "short_name": "thermal_mass_ceiling",
-          "description": "",
-          "type": "String",
-          "model_dependent": false,
-          "$$hashKey": "object:22195",
-          "checked": true,
-          "measure_name": "building_characteristics_report",
-          "measure_class_name": "BuildingCharacteristicsReport",
-          "measure_uid": "90eecbe2-d8e2-47db-9079-5d9029fb3e67",
           "visualize": "true"
         },
         {
@@ -7031,11 +7076,8 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:22196",
+          "$$hashKey": "object:39701",
           "checked": true,
-          "measure_name": "building_characteristics_report",
-          "measure_class_name": "BuildingCharacteristicsReport",
-          "measure_uid": "90eecbe2-d8e2-47db-9079-5d9029fb3e67",
           "visualize": "true"
         },
         {
@@ -7045,11 +7087,8 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:22197",
+          "$$hashKey": "object:39702",
           "checked": true,
-          "measure_name": "building_characteristics_report",
-          "measure_class_name": "BuildingCharacteristicsReport",
-          "measure_uid": "90eecbe2-d8e2-47db-9079-5d9029fb3e67",
           "visualize": "true"
         },
         {
@@ -7059,11 +7098,8 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:22198",
+          "$$hashKey": "object:39703",
           "checked": true,
-          "measure_name": "building_characteristics_report",
-          "measure_class_name": "BuildingCharacteristicsReport",
-          "measure_uid": "90eecbe2-d8e2-47db-9079-5d9029fb3e67",
           "visualize": "true"
         },
         {
@@ -7073,11 +7109,8 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:22199",
+          "$$hashKey": "object:39704",
           "checked": true,
-          "measure_name": "building_characteristics_report",
-          "measure_class_name": "BuildingCharacteristicsReport",
-          "measure_uid": "90eecbe2-d8e2-47db-9079-5d9029fb3e67",
           "visualize": "true"
         },
         {
@@ -7087,11 +7120,8 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:22200",
+          "$$hashKey": "object:39705",
           "checked": true,
-          "measure_name": "building_characteristics_report",
-          "measure_class_name": "BuildingCharacteristicsReport",
-          "measure_uid": "90eecbe2-d8e2-47db-9079-5d9029fb3e67",
           "visualize": "true"
         },
         {
@@ -7101,53 +7131,8 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:22201",
+          "$$hashKey": "object:39706",
           "checked": true,
-          "measure_name": "building_characteristics_report",
-          "measure_class_name": "BuildingCharacteristicsReport",
-          "measure_uid": "90eecbe2-d8e2-47db-9079-5d9029fb3e67",
-          "visualize": "true"
-        },
-        {
-          "name": "floor_sheathing",
-          "display_name": "floor_sheathing",
-          "short_name": "floor_sheathing",
-          "description": "",
-          "type": "String",
-          "model_dependent": false,
-          "$$hashKey": "object:22202",
-          "checked": true,
-          "measure_name": "building_characteristics_report",
-          "measure_class_name": "BuildingCharacteristicsReport",
-          "measure_uid": "90eecbe2-d8e2-47db-9079-5d9029fb3e67",
-          "visualize": "true"
-        },
-        {
-          "name": "floor_covering",
-          "display_name": "floor_covering",
-          "short_name": "floor_covering",
-          "description": "",
-          "type": "String",
-          "model_dependent": false,
-          "$$hashKey": "object:22203",
-          "checked": true,
-          "measure_name": "building_characteristics_report",
-          "measure_class_name": "BuildingCharacteristicsReport",
-          "measure_uid": "90eecbe2-d8e2-47db-9079-5d9029fb3e67",
-          "visualize": "true"
-        },
-        {
-          "name": "thermal_mass_floor",
-          "display_name": "thermal_mass_floor",
-          "short_name": "thermal_mass_floor",
-          "description": "",
-          "type": "String",
-          "model_dependent": false,
-          "$$hashKey": "object:22204",
-          "checked": true,
-          "measure_name": "building_characteristics_report",
-          "measure_class_name": "BuildingCharacteristicsReport",
-          "measure_uid": "90eecbe2-d8e2-47db-9079-5d9029fb3e67",
           "visualize": "true"
         },
         {
@@ -7157,81 +7142,8 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:22205",
+          "$$hashKey": "object:39707",
           "checked": true,
-          "measure_name": "building_characteristics_report",
-          "measure_class_name": "BuildingCharacteristicsReport",
-          "measure_uid": "90eecbe2-d8e2-47db-9079-5d9029fb3e67",
-          "visualize": "true"
-        },
-        {
-          "name": "wall_sheathing",
-          "display_name": "wall_sheathing",
-          "short_name": "wall_sheathing",
-          "description": "",
-          "type": "String",
-          "model_dependent": false,
-          "$$hashKey": "object:22206",
-          "checked": true,
-          "measure_name": "building_characteristics_report",
-          "measure_class_name": "BuildingCharacteristicsReport",
-          "measure_uid": "90eecbe2-d8e2-47db-9079-5d9029fb3e67",
-          "visualize": "true"
-        },
-        {
-          "name": "exterior_finish",
-          "display_name": "exterior_finish",
-          "short_name": "exterior_finish",
-          "description": "",
-          "type": "String",
-          "model_dependent": false,
-          "$$hashKey": "object:22207",
-          "checked": true,
-          "measure_name": "building_characteristics_report",
-          "measure_class_name": "BuildingCharacteristicsReport",
-          "measure_uid": "90eecbe2-d8e2-47db-9079-5d9029fb3e67",
-          "visualize": "true"
-        },
-        {
-          "name": "thermal_mass_exterior_wall",
-          "display_name": "thermal_mass_exterior_wall",
-          "short_name": "thermal_mass_exterior_wall",
-          "description": "",
-          "type": "String",
-          "model_dependent": false,
-          "$$hashKey": "object:22208",
-          "checked": true,
-          "measure_name": "building_characteristics_report",
-          "measure_class_name": "BuildingCharacteristicsReport",
-          "measure_uid": "90eecbe2-d8e2-47db-9079-5d9029fb3e67",
-          "visualize": "true"
-        },
-        {
-          "name": "thermal_mass_partition_wall",
-          "display_name": "thermal_mass_partition_wall",
-          "short_name": "thermal_mass_partition_wall",
-          "description": "",
-          "type": "String",
-          "model_dependent": false,
-          "$$hashKey": "object:22209",
-          "checked": true,
-          "measure_name": "building_characteristics_report",
-          "measure_class_name": "BuildingCharacteristicsReport",
-          "measure_uid": "90eecbe2-d8e2-47db-9079-5d9029fb3e67",
-          "visualize": "true"
-        },
-        {
-          "name": "uninsulated_surfaces",
-          "display_name": "uninsulated_surfaces",
-          "short_name": "uninsulated_surfaces",
-          "description": "",
-          "type": "String",
-          "model_dependent": false,
-          "$$hashKey": "object:22210",
-          "checked": true,
-          "measure_name": "building_characteristics_report",
-          "measure_class_name": "BuildingCharacteristicsReport",
-          "measure_uid": "90eecbe2-d8e2-47db-9079-5d9029fb3e67",
           "visualize": "true"
         },
         {
@@ -7241,11 +7153,8 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:22211",
+          "$$hashKey": "object:39708",
           "checked": true,
-          "measure_name": "building_characteristics_report",
-          "measure_class_name": "BuildingCharacteristicsReport",
-          "measure_uid": "90eecbe2-d8e2-47db-9079-5d9029fb3e67",
           "visualize": "true"
         },
         {
@@ -7255,25 +7164,8 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:22212",
+          "$$hashKey": "object:39709",
           "checked": true,
-          "measure_name": "building_characteristics_report",
-          "measure_class_name": "BuildingCharacteristicsReport",
-          "measure_uid": "90eecbe2-d8e2-47db-9079-5d9029fb3e67",
-          "visualize": "true"
-        },
-        {
-          "name": "thermal_mass_furniture",
-          "display_name": "thermal_mass_furniture",
-          "short_name": "thermal_mass_furniture",
-          "description": "",
-          "type": "String",
-          "model_dependent": false,
-          "$$hashKey": "object:22213",
-          "checked": true,
-          "measure_name": "building_characteristics_report",
-          "measure_class_name": "BuildingCharacteristicsReport",
-          "measure_uid": "90eecbe2-d8e2-47db-9079-5d9029fb3e67",
           "visualize": "true"
         },
         {
@@ -7283,11 +7175,8 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:22214",
+          "$$hashKey": "object:39710",
           "checked": true,
-          "measure_name": "building_characteristics_report",
-          "measure_class_name": "BuildingCharacteristicsReport",
-          "measure_uid": "90eecbe2-d8e2-47db-9079-5d9029fb3e67",
           "visualize": "true"
         },
         {
@@ -7297,11 +7186,8 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:22215",
+          "$$hashKey": "object:39711",
           "checked": true,
-          "measure_name": "building_characteristics_report",
-          "measure_class_name": "BuildingCharacteristicsReport",
-          "measure_uid": "90eecbe2-d8e2-47db-9079-5d9029fb3e67",
           "visualize": "true"
         },
         {
@@ -7311,543 +7197,8 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:22216",
+          "$$hashKey": "object:39712",
           "checked": true,
-          "measure_name": "building_characteristics_report",
-          "measure_class_name": "BuildingCharacteristicsReport",
-          "measure_uid": "90eecbe2-d8e2-47db-9079-5d9029fb3e67",
-          "visualize": "true"
-        },
-        {
-          "name": "hvac_system_is_combined",
-          "display_name": "hvac_system_is_combined",
-          "short_name": "hvac_system_is_combined",
-          "description": "",
-          "type": "String",
-          "model_dependent": false,
-          "$$hashKey": "object:22217",
-          "checked": true,
-          "measure_name": "building_characteristics_report",
-          "measure_class_name": "BuildingCharacteristicsReport",
-          "measure_uid": "90eecbe2-d8e2-47db-9079-5d9029fb3e67",
-          "visualize": "true"
-        },
-        {
-          "name": "hvac_system_combined",
-          "display_name": "hvac_system_combined",
-          "short_name": "hvac_system_combined",
-          "description": "",
-          "type": "String",
-          "model_dependent": false,
-          "$$hashKey": "object:22218",
-          "checked": true,
-          "measure_name": "building_characteristics_report",
-          "measure_class_name": "BuildingCharacteristicsReport",
-          "measure_uid": "90eecbe2-d8e2-47db-9079-5d9029fb3e67",
-          "visualize": "true"
-        },
-        {
-          "name": "hvac_system_heating_electricity",
-          "display_name": "hvac_system_heating_electricity",
-          "short_name": "hvac_system_heating_electricity",
-          "description": "",
-          "type": "String",
-          "model_dependent": false,
-          "$$hashKey": "object:22219",
-          "checked": true,
-          "measure_name": "building_characteristics_report",
-          "measure_class_name": "BuildingCharacteristicsReport",
-          "measure_uid": "90eecbe2-d8e2-47db-9079-5d9029fb3e67",
-          "visualize": "true"
-        },
-        {
-          "name": "hvac_system_heating_natural_gas",
-          "display_name": "hvac_system_heating_natural_gas",
-          "short_name": "hvac_system_heating_natural_gas",
-          "description": "",
-          "type": "String",
-          "model_dependent": false,
-          "$$hashKey": "object:22220",
-          "checked": true,
-          "measure_name": "building_characteristics_report",
-          "measure_class_name": "BuildingCharacteristicsReport",
-          "measure_uid": "90eecbe2-d8e2-47db-9079-5d9029fb3e67",
-          "visualize": "true"
-        },
-        {
-          "name": "hvac_system_heating_propane",
-          "display_name": "hvac_system_heating_propane",
-          "short_name": "hvac_system_heating_propane",
-          "description": "",
-          "type": "String",
-          "model_dependent": false,
-          "$$hashKey": "object:22221",
-          "checked": true,
-          "measure_name": "building_characteristics_report",
-          "measure_class_name": "BuildingCharacteristicsReport",
-          "measure_uid": "90eecbe2-d8e2-47db-9079-5d9029fb3e67",
-          "visualize": "true"
-        },
-        {
-          "name": "hvac_system_heating_fuel_oil",
-          "display_name": "hvac_system_heating_fuel_oil",
-          "short_name": "hvac_system_heating_fuel_oil",
-          "description": "",
-          "type": "String",
-          "model_dependent": false,
-          "$$hashKey": "object:22222",
-          "checked": true,
-          "measure_name": "building_characteristics_report",
-          "measure_class_name": "BuildingCharacteristicsReport",
-          "measure_uid": "90eecbe2-d8e2-47db-9079-5d9029fb3e67",
-          "visualize": "true"
-        },
-        {
-          "name": "hvac_system_heating_wood",
-          "display_name": "hvac_system_heating_wood",
-          "short_name": "hvac_system_heating_wood",
-          "description": "",
-          "type": "String",
-          "model_dependent": false,
-          "$$hashKey": "object:22223",
-          "checked": true,
-          "measure_name": "building_characteristics_report",
-          "measure_class_name": "BuildingCharacteristicsReport",
-          "measure_uid": "90eecbe2-d8e2-47db-9079-5d9029fb3e67",
-          "visualize": "true"
-        },
-        {
-          "name": "hvac_system_heating_other_fuel",
-          "display_name": "hvac_system_heating_other_fuel",
-          "short_name": "hvac_system_heating_other_fuel",
-          "description": "",
-          "type": "String",
-          "model_dependent": false,
-          "$$hashKey": "object:22224",
-          "checked": true,
-          "measure_name": "building_characteristics_report",
-          "measure_class_name": "BuildingCharacteristicsReport",
-          "measure_uid": "90eecbe2-d8e2-47db-9079-5d9029fb3e67",
-          "visualize": "true"
-        },
-        {
-          "name": "hvac_system_heating_none",
-          "display_name": "hvac_system_heating_none",
-          "short_name": "hvac_system_heating_none",
-          "description": "",
-          "type": "String",
-          "model_dependent": false,
-          "$$hashKey": "object:22225",
-          "checked": true,
-          "measure_name": "building_characteristics_report",
-          "measure_class_name": "BuildingCharacteristicsReport",
-          "measure_uid": "90eecbe2-d8e2-47db-9079-5d9029fb3e67",
-          "visualize": "true"
-        },
-        {
-          "name": "hvac_system_cooling",
-          "display_name": "hvac_system_cooling",
-          "short_name": "hvac_system_cooling",
-          "description": "",
-          "type": "String",
-          "model_dependent": false,
-          "$$hashKey": "object:22226",
-          "checked": true,
-          "measure_name": "building_characteristics_report",
-          "measure_class_name": "BuildingCharacteristicsReport",
-          "measure_uid": "90eecbe2-d8e2-47db-9079-5d9029fb3e67",
-          "visualize": "true"
-        },
-        {
-          "name": "hvac_system_cooling_type",
-          "display_name": "hvac_system_cooling_type",
-          "short_name": "hvac_system_cooling_type",
-          "description": "",
-          "type": "String",
-          "model_dependent": false,
-          "$$hashKey": "object:22227",
-          "checked": true,
-          "measure_name": "building_characteristics_report",
-          "measure_class_name": "BuildingCharacteristicsReport",
-          "measure_uid": "90eecbe2-d8e2-47db-9079-5d9029fb3e67",
-          "visualize": "true"
-        },
-        {
-          "name": "heating_setpoint",
-          "display_name": "heating_setpoint",
-          "short_name": "heating_setpoint",
-          "description": "",
-          "type": "String",
-          "model_dependent": false,
-          "$$hashKey": "object:22228",
-          "checked": true,
-          "measure_name": "building_characteristics_report",
-          "measure_class_name": "BuildingCharacteristicsReport",
-          "measure_uid": "90eecbe2-d8e2-47db-9079-5d9029fb3e67",
-          "visualize": "true"
-        },
-        {
-          "name": "cooling_setpoint",
-          "display_name": "cooling_setpoint",
-          "short_name": "cooling_setpoint",
-          "description": "",
-          "type": "String",
-          "model_dependent": false,
-          "$$hashKey": "object:22229",
-          "checked": true,
-          "measure_name": "building_characteristics_report",
-          "measure_class_name": "BuildingCharacteristicsReport",
-          "measure_uid": "90eecbe2-d8e2-47db-9079-5d9029fb3e67",
-          "visualize": "true"
-        },
-        {
-          "name": "ceiling_fan",
-          "display_name": "ceiling_fan",
-          "short_name": "ceiling_fan",
-          "description": "",
-          "type": "String",
-          "model_dependent": false,
-          "$$hashKey": "object:22230",
-          "checked": true,
-          "measure_name": "building_characteristics_report",
-          "measure_class_name": "BuildingCharacteristicsReport",
-          "measure_uid": "90eecbe2-d8e2-47db-9079-5d9029fb3e67",
-          "visualize": "true"
-        },
-        {
-          "name": "refrigerator",
-          "display_name": "refrigerator",
-          "short_name": "refrigerator",
-          "description": "",
-          "type": "String",
-          "model_dependent": false,
-          "$$hashKey": "object:22231",
-          "checked": true,
-          "measure_name": "building_characteristics_report",
-          "measure_class_name": "BuildingCharacteristicsReport",
-          "measure_uid": "90eecbe2-d8e2-47db-9079-5d9029fb3e67",
-          "visualize": "true"
-        },
-        {
-          "name": "cooking_range",
-          "display_name": "cooking_range",
-          "short_name": "cooking_range",
-          "description": "",
-          "type": "String",
-          "model_dependent": false,
-          "$$hashKey": "object:22232",
-          "checked": true,
-          "measure_name": "building_characteristics_report",
-          "measure_class_name": "BuildingCharacteristicsReport",
-          "measure_uid": "90eecbe2-d8e2-47db-9079-5d9029fb3e67",
-          "visualize": "true"
-        },
-        {
-          "name": "dishwasher",
-          "display_name": "dishwasher",
-          "short_name": "dishwasher",
-          "description": "",
-          "type": "String",
-          "model_dependent": false,
-          "$$hashKey": "object:22233",
-          "checked": true,
-          "measure_name": "building_characteristics_report",
-          "measure_class_name": "BuildingCharacteristicsReport",
-          "measure_uid": "90eecbe2-d8e2-47db-9079-5d9029fb3e67",
-          "visualize": "true"
-        },
-        {
-          "name": "clothes_washer",
-          "display_name": "clothes_washer",
-          "short_name": "clothes_washer",
-          "description": "",
-          "type": "String",
-          "model_dependent": false,
-          "$$hashKey": "object:22234",
-          "checked": true,
-          "measure_name": "building_characteristics_report",
-          "measure_class_name": "BuildingCharacteristicsReport",
-          "measure_uid": "90eecbe2-d8e2-47db-9079-5d9029fb3e67",
-          "visualize": "true"
-        },
-        {
-          "name": "clothes_dryer",
-          "display_name": "clothes_dryer",
-          "short_name": "clothes_dryer",
-          "description": "",
-          "type": "String",
-          "model_dependent": false,
-          "$$hashKey": "object:22235",
-          "checked": true,
-          "measure_name": "building_characteristics_report",
-          "measure_class_name": "BuildingCharacteristicsReport",
-          "measure_uid": "90eecbe2-d8e2-47db-9079-5d9029fb3e67",
-          "visualize": "true"
-        },
-        {
-          "name": "lighting",
-          "display_name": "lighting",
-          "short_name": "lighting",
-          "description": "",
-          "type": "String",
-          "model_dependent": false,
-          "$$hashKey": "object:22236",
-          "checked": true,
-          "measure_name": "building_characteristics_report",
-          "measure_class_name": "BuildingCharacteristicsReport",
-          "measure_uid": "90eecbe2-d8e2-47db-9079-5d9029fb3e67",
-          "visualize": "true"
-        },
-        {
-          "name": "plug_loads",
-          "display_name": "plug_loads",
-          "short_name": "plug_loads",
-          "description": "",
-          "type": "String",
-          "model_dependent": false,
-          "$$hashKey": "object:22237",
-          "checked": true,
-          "measure_name": "building_characteristics_report",
-          "measure_class_name": "BuildingCharacteristicsReport",
-          "measure_uid": "90eecbe2-d8e2-47db-9079-5d9029fb3e67",
-          "visualize": "true"
-        },
-        {
-          "name": "misc_extra_refrigerator",
-          "display_name": "misc_extra_refrigerator",
-          "short_name": "misc_extra_refrigerator",
-          "description": "",
-          "type": "String",
-          "model_dependent": false,
-          "$$hashKey": "object:22238",
-          "checked": true,
-          "measure_name": "building_characteristics_report",
-          "measure_class_name": "BuildingCharacteristicsReport",
-          "measure_uid": "90eecbe2-d8e2-47db-9079-5d9029fb3e67",
-          "visualize": "true"
-        },
-        {
-          "name": "misc_freezer",
-          "display_name": "misc_freezer",
-          "short_name": "misc_freezer",
-          "description": "",
-          "type": "String",
-          "model_dependent": false,
-          "$$hashKey": "object:22239",
-          "checked": true,
-          "measure_name": "building_characteristics_report",
-          "measure_class_name": "BuildingCharacteristicsReport",
-          "measure_uid": "90eecbe2-d8e2-47db-9079-5d9029fb3e67",
-          "visualize": "true"
-        },
-        {
-          "name": "misc_gas_fireplace",
-          "display_name": "misc_gas_fireplace",
-          "short_name": "misc_gas_fireplace",
-          "description": "",
-          "type": "String",
-          "model_dependent": false,
-          "$$hashKey": "object:22240",
-          "checked": true,
-          "measure_name": "building_characteristics_report",
-          "measure_class_name": "BuildingCharacteristicsReport",
-          "measure_uid": "90eecbe2-d8e2-47db-9079-5d9029fb3e67",
-          "visualize": "true"
-        },
-        {
-          "name": "misc_gas_grill",
-          "display_name": "misc_gas_grill",
-          "short_name": "misc_gas_grill",
-          "description": "",
-          "type": "String",
-          "model_dependent": false,
-          "$$hashKey": "object:22241",
-          "checked": true,
-          "measure_name": "building_characteristics_report",
-          "measure_class_name": "BuildingCharacteristicsReport",
-          "measure_uid": "90eecbe2-d8e2-47db-9079-5d9029fb3e67",
-          "visualize": "true"
-        },
-        {
-          "name": "misc_gas_lighting",
-          "display_name": "misc_gas_lighting",
-          "short_name": "misc_gas_lighting",
-          "description": "",
-          "type": "String",
-          "model_dependent": false,
-          "$$hashKey": "object:22242",
-          "checked": true,
-          "measure_name": "building_characteristics_report",
-          "measure_class_name": "BuildingCharacteristicsReport",
-          "measure_uid": "90eecbe2-d8e2-47db-9079-5d9029fb3e67",
-          "visualize": "true"
-        },
-        {
-          "name": "misc_hot_tub_spa",
-          "display_name": "misc_hot_tub_spa",
-          "short_name": "misc_hot_tub_spa",
-          "description": "",
-          "type": "String",
-          "model_dependent": false,
-          "$$hashKey": "object:22243",
-          "checked": true,
-          "measure_name": "building_characteristics_report",
-          "measure_class_name": "BuildingCharacteristicsReport",
-          "measure_uid": "90eecbe2-d8e2-47db-9079-5d9029fb3e67",
-          "visualize": "true"
-        },
-        {
-          "name": "misc_pool",
-          "display_name": "misc_pool",
-          "short_name": "misc_pool",
-          "description": "",
-          "type": "String",
-          "model_dependent": false,
-          "$$hashKey": "object:22244",
-          "checked": true,
-          "measure_name": "building_characteristics_report",
-          "measure_class_name": "BuildingCharacteristicsReport",
-          "measure_uid": "90eecbe2-d8e2-47db-9079-5d9029fb3e67",
-          "visualize": "true"
-        },
-        {
-          "name": "misc_well_pump",
-          "display_name": "misc_well_pump",
-          "short_name": "misc_well_pump",
-          "description": "",
-          "type": "String",
-          "model_dependent": false,
-          "$$hashKey": "object:22245",
-          "checked": true,
-          "measure_name": "building_characteristics_report",
-          "measure_class_name": "BuildingCharacteristicsReport",
-          "measure_uid": "90eecbe2-d8e2-47db-9079-5d9029fb3e67",
-          "visualize": "true"
-        },
-        {
-          "name": "ducts",
-          "display_name": "ducts",
-          "short_name": "ducts",
-          "description": "",
-          "type": "String",
-          "model_dependent": false,
-          "$$hashKey": "object:22246",
-          "checked": true,
-          "measure_name": "building_characteristics_report",
-          "measure_class_name": "BuildingCharacteristicsReport",
-          "measure_uid": "90eecbe2-d8e2-47db-9079-5d9029fb3e67",
-          "visualize": "true"
-        },
-        {
-          "name": "infiltration",
-          "display_name": "infiltration",
-          "short_name": "infiltration",
-          "description": "",
-          "type": "String",
-          "model_dependent": false,
-          "$$hashKey": "object:22247",
-          "checked": true,
-          "measure_name": "building_characteristics_report",
-          "measure_class_name": "BuildingCharacteristicsReport",
-          "measure_uid": "90eecbe2-d8e2-47db-9079-5d9029fb3e67",
-          "visualize": "true"
-        },
-        {
-          "name": "natural_ventilation",
-          "display_name": "natural_ventilation",
-          "short_name": "natural_ventilation",
-          "description": "",
-          "type": "String",
-          "model_dependent": false,
-          "$$hashKey": "object:22248",
-          "checked": true,
-          "measure_name": "building_characteristics_report",
-          "measure_class_name": "BuildingCharacteristicsReport",
-          "measure_uid": "90eecbe2-d8e2-47db-9079-5d9029fb3e67",
-          "visualize": "true"
-        },
-        {
-          "name": "mechanical_ventilation",
-          "display_name": "mechanical_ventilation",
-          "short_name": "mechanical_ventilation",
-          "description": "",
-          "type": "String",
-          "model_dependent": false,
-          "$$hashKey": "object:22249",
-          "checked": true,
-          "measure_name": "building_characteristics_report",
-          "measure_class_name": "BuildingCharacteristicsReport",
-          "measure_uid": "90eecbe2-d8e2-47db-9079-5d9029fb3e67",
-          "visualize": "true"
-        },
-        {
-          "name": "pv",
-          "display_name": "pv",
-          "short_name": "pv",
-          "description": "",
-          "type": "String",
-          "model_dependent": false,
-          "$$hashKey": "object:22250",
-          "checked": true,
-          "measure_name": "building_characteristics_report",
-          "measure_class_name": "BuildingCharacteristicsReport",
-          "measure_uid": "90eecbe2-d8e2-47db-9079-5d9029fb3e67",
-          "visualize": "true"
-        },
-        {
-          "name": "location_city",
-          "display_name": "location_city",
-          "short_name": "location_city",
-          "description": "",
-          "type": "String",
-          "model_dependent": false,
-          "$$hashKey": "object:22252",
-          "checked": true,
-          "measure_name": "building_characteristics_report",
-          "measure_class_name": "BuildingCharacteristicsReport",
-          "measure_uid": "90eecbe2-d8e2-47db-9079-5d9029fb3e67",
-          "visualize": "true"
-        },
-        {
-          "name": "location_state",
-          "display_name": "location_state",
-          "short_name": "location_state",
-          "description": "",
-          "type": "String",
-          "model_dependent": false,
-          "$$hashKey": "object:22253",
-          "checked": true,
-          "measure_name": "building_characteristics_report",
-          "measure_class_name": "BuildingCharacteristicsReport",
-          "measure_uid": "90eecbe2-d8e2-47db-9079-5d9029fb3e67",
-          "visualize": "true"
-        },
-        {
-          "name": "location_latitude",
-          "display_name": "location_latitude",
-          "short_name": "location_latitude",
-          "description": "",
-          "type": "String",
-          "model_dependent": false,
-          "$$hashKey": "object:22254",
-          "checked": true,
-          "measure_name": "building_characteristics_report",
-          "measure_class_name": "BuildingCharacteristicsReport",
-          "measure_uid": "90eecbe2-d8e2-47db-9079-5d9029fb3e67",
-          "visualize": "true"
-        },
-        {
-          "name": "location_longitude",
-          "display_name": "location_longitude",
-          "short_name": "location_longitude",
-          "description": "",
-          "type": "String",
-          "model_dependent": false,
-          "$$hashKey": "object:22255",
-          "checked": true,
-          "measure_name": "building_characteristics_report",
-          "measure_class_name": "BuildingCharacteristicsReport",
-          "measure_uid": "90eecbe2-d8e2-47db-9079-5d9029fb3e67",
           "visualize": "true"
         },
         {
@@ -7857,12 +7208,163 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:42944",
+          "$$hashKey": "object:39713",
           "checked": true,
-          "visualize": "true",
-          "measure_name": "building_characteristics_report",
-          "measure_class_name": "BuildingCharacteristicsReport",
-          "measure_uid": "90eecbe2-d8e2-47db-9079-5d9029fb3e67"
+          "visualize": "true"
+        },
+        {
+          "name": "hvac_system_is_combined",
+          "display_name": "hvac_system_is_combined",
+          "short_name": "hvac_system_is_combined",
+          "description": "",
+          "type": "String",
+          "model_dependent": false,
+          "$$hashKey": "object:39714",
+          "checked": true,
+          "visualize": "true"
+        },
+        {
+          "name": "hvac_system_combined",
+          "display_name": "hvac_system_combined",
+          "short_name": "hvac_system_combined",
+          "description": "",
+          "type": "String",
+          "model_dependent": false,
+          "$$hashKey": "object:39715",
+          "checked": true,
+          "visualize": "true"
+        },
+        {
+          "name": "hvac_system_heating_electricity",
+          "display_name": "hvac_system_heating_electricity",
+          "short_name": "hvac_system_heating_electricity",
+          "description": "",
+          "type": "String",
+          "model_dependent": false,
+          "$$hashKey": "object:39716",
+          "checked": true,
+          "visualize": "true"
+        },
+        {
+          "name": "hvac_system_heating_natural_gas",
+          "display_name": "hvac_system_heating_natural_gas",
+          "short_name": "hvac_system_heating_natural_gas",
+          "description": "",
+          "type": "String",
+          "model_dependent": false,
+          "$$hashKey": "object:39717",
+          "checked": true,
+          "visualize": "true"
+        },
+        {
+          "name": "hvac_system_heating_propane",
+          "display_name": "hvac_system_heating_propane",
+          "short_name": "hvac_system_heating_propane",
+          "description": "",
+          "type": "String",
+          "model_dependent": false,
+          "$$hashKey": "object:39718",
+          "checked": true,
+          "visualize": "true"
+        },
+        {
+          "name": "hvac_system_heating_fuel_oil",
+          "display_name": "hvac_system_heating_fuel_oil",
+          "short_name": "hvac_system_heating_fuel_oil",
+          "description": "",
+          "type": "String",
+          "model_dependent": false,
+          "$$hashKey": "object:39719",
+          "checked": true,
+          "visualize": "true"
+        },
+        {
+          "name": "hvac_system_heating_wood",
+          "display_name": "hvac_system_heating_wood",
+          "short_name": "hvac_system_heating_wood",
+          "description": "",
+          "type": "String",
+          "model_dependent": false,
+          "$$hashKey": "object:39720",
+          "checked": true,
+          "visualize": "true"
+        },
+        {
+          "name": "hvac_system_heating_other_fuel",
+          "display_name": "hvac_system_heating_other_fuel",
+          "short_name": "hvac_system_heating_other_fuel",
+          "description": "",
+          "type": "String",
+          "model_dependent": false,
+          "$$hashKey": "object:39721",
+          "checked": true,
+          "visualize": "true"
+        },
+        {
+          "name": "hvac_system_heating_none",
+          "display_name": "hvac_system_heating_none",
+          "short_name": "hvac_system_heating_none",
+          "description": "",
+          "type": "String",
+          "model_dependent": false,
+          "$$hashKey": "object:39722",
+          "checked": true,
+          "visualize": "true"
+        },
+        {
+          "name": "hvac_system_cooling",
+          "display_name": "hvac_system_cooling",
+          "short_name": "hvac_system_cooling",
+          "description": "",
+          "type": "String",
+          "model_dependent": false,
+          "$$hashKey": "object:39723",
+          "checked": true,
+          "visualize": "true"
+        },
+        {
+          "name": "hvac_system_cooling_type",
+          "display_name": "hvac_system_cooling_type",
+          "short_name": "hvac_system_cooling_type",
+          "description": "",
+          "type": "String",
+          "model_dependent": false,
+          "$$hashKey": "object:39724",
+          "checked": true,
+          "visualize": "true"
+        },
+        {
+          "name": "heating_setpoint",
+          "display_name": "heating_setpoint",
+          "short_name": "heating_setpoint",
+          "description": "",
+          "type": "String",
+          "model_dependent": false,
+          "$$hashKey": "object:39725",
+          "checked": true,
+          "visualize": "true"
+        },
+        {
+          "name": "cooling_setpoint",
+          "display_name": "cooling_setpoint",
+          "short_name": "cooling_setpoint",
+          "description": "",
+          "type": "String",
+          "model_dependent": false,
+          "$$hashKey": "object:39726",
+          "checked": true,
+          "visualize": "true"
+        },
+        {
+          "name": "ceiling_fan",
+          "display_name": "ceiling_fan",
+          "short_name": "ceiling_fan",
+          "description": "",
+          "type": "String",
+          "model_dependent": false,
+          "$$hashKey": "object:39727",
+          "checked": true,
+          "visualize": "true"
         },
         {
           "name": "dehumidifier",
@@ -7871,12 +7373,251 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:42959",
+          "$$hashKey": "object:39728",
           "checked": true,
-          "visualize": "true",
-          "measure_name": "building_characteristics_report",
-          "measure_class_name": "BuildingCharacteristicsReport",
-          "measure_uid": "90eecbe2-d8e2-47db-9079-5d9029fb3e67"
+          "visualize": "true"
+        },
+        {
+          "name": "refrigerator",
+          "display_name": "refrigerator",
+          "short_name": "refrigerator",
+          "description": "",
+          "type": "String",
+          "model_dependent": false,
+          "$$hashKey": "object:39729",
+          "checked": true,
+          "visualize": "true"
+        },
+        {
+          "name": "cooking_range",
+          "display_name": "cooking_range",
+          "short_name": "cooking_range",
+          "description": "",
+          "type": "String",
+          "model_dependent": false,
+          "$$hashKey": "object:39730",
+          "checked": true,
+          "visualize": "true"
+        },
+        {
+          "name": "dishwasher",
+          "display_name": "dishwasher",
+          "short_name": "dishwasher",
+          "description": "",
+          "type": "String",
+          "model_dependent": false,
+          "$$hashKey": "object:39731",
+          "checked": true,
+          "visualize": "true"
+        },
+        {
+          "name": "clothes_washer",
+          "display_name": "clothes_washer",
+          "short_name": "clothes_washer",
+          "description": "",
+          "type": "String",
+          "model_dependent": false,
+          "$$hashKey": "object:39732",
+          "checked": true,
+          "visualize": "true"
+        },
+        {
+          "name": "clothes_dryer",
+          "display_name": "clothes_dryer",
+          "short_name": "clothes_dryer",
+          "description": "",
+          "type": "String",
+          "model_dependent": false,
+          "$$hashKey": "object:39733",
+          "checked": true,
+          "visualize": "true"
+        },
+        {
+          "name": "lighting",
+          "display_name": "lighting",
+          "short_name": "lighting",
+          "description": "",
+          "type": "String",
+          "model_dependent": false,
+          "$$hashKey": "object:39734",
+          "checked": true,
+          "visualize": "true"
+        },
+        {
+          "name": "plug_loads",
+          "display_name": "plug_loads",
+          "short_name": "plug_loads",
+          "description": "",
+          "type": "String",
+          "model_dependent": false,
+          "$$hashKey": "object:39735",
+          "checked": true,
+          "visualize": "true"
+        },
+        {
+          "name": "misc_extra_refrigerator",
+          "display_name": "misc_extra_refrigerator",
+          "short_name": "misc_extra_refrigerator",
+          "description": "",
+          "type": "String",
+          "model_dependent": false,
+          "$$hashKey": "object:39736",
+          "checked": true,
+          "visualize": "true"
+        },
+        {
+          "name": "misc_freezer",
+          "display_name": "misc_freezer",
+          "short_name": "misc_freezer",
+          "description": "",
+          "type": "String",
+          "model_dependent": false,
+          "$$hashKey": "object:39737",
+          "checked": true,
+          "visualize": "true"
+        },
+        {
+          "name": "misc_gas_fireplace",
+          "display_name": "misc_gas_fireplace",
+          "short_name": "misc_gas_fireplace",
+          "description": "",
+          "type": "String",
+          "model_dependent": false,
+          "$$hashKey": "object:39738",
+          "checked": true,
+          "visualize": "true"
+        },
+        {
+          "name": "misc_gas_grill",
+          "display_name": "misc_gas_grill",
+          "short_name": "misc_gas_grill",
+          "description": "",
+          "type": "String",
+          "model_dependent": false,
+          "$$hashKey": "object:39739",
+          "checked": true,
+          "visualize": "true"
+        },
+        {
+          "name": "misc_gas_lighting",
+          "display_name": "misc_gas_lighting",
+          "short_name": "misc_gas_lighting",
+          "description": "",
+          "type": "String",
+          "model_dependent": false,
+          "$$hashKey": "object:39740",
+          "checked": true,
+          "visualize": "true"
+        },
+        {
+          "name": "misc_hot_tub_spa",
+          "display_name": "misc_hot_tub_spa",
+          "short_name": "misc_hot_tub_spa",
+          "description": "",
+          "type": "String",
+          "model_dependent": false,
+          "$$hashKey": "object:39741",
+          "checked": true,
+          "visualize": "true"
+        },
+        {
+          "name": "misc_pool",
+          "display_name": "misc_pool",
+          "short_name": "misc_pool",
+          "description": "",
+          "type": "String",
+          "model_dependent": false,
+          "$$hashKey": "object:39742",
+          "checked": true,
+          "visualize": "true"
+        },
+        {
+          "name": "misc_well_pump",
+          "display_name": "misc_well_pump",
+          "short_name": "misc_well_pump",
+          "description": "",
+          "type": "String",
+          "model_dependent": false,
+          "$$hashKey": "object:39743",
+          "checked": true,
+          "visualize": "true"
+        },
+        {
+          "name": "ducts",
+          "display_name": "ducts",
+          "short_name": "ducts",
+          "description": "",
+          "type": "String",
+          "model_dependent": false,
+          "$$hashKey": "object:39744",
+          "checked": true,
+          "visualize": "true"
+        },
+        {
+          "name": "infiltration",
+          "display_name": "infiltration",
+          "short_name": "infiltration",
+          "description": "",
+          "type": "String",
+          "model_dependent": false,
+          "$$hashKey": "object:39745",
+          "checked": true,
+          "visualize": "true"
+        },
+        {
+          "name": "natural_ventilation",
+          "display_name": "natural_ventilation",
+          "short_name": "natural_ventilation",
+          "description": "",
+          "type": "String",
+          "model_dependent": false,
+          "$$hashKey": "object:39746",
+          "checked": true,
+          "visualize": "true"
+        },
+        {
+          "name": "mechanical_ventilation",
+          "display_name": "mechanical_ventilation",
+          "short_name": "mechanical_ventilation",
+          "description": "",
+          "type": "String",
+          "model_dependent": false,
+          "$$hashKey": "object:39747",
+          "checked": true,
+          "visualize": "true"
+        },
+        {
+          "name": "bathroom_spot_vent_hour",
+          "display_name": "bathroom_spot_vent_hour",
+          "short_name": "bathroom_spot_vent_hour",
+          "description": "",
+          "type": "String",
+          "model_dependent": false,
+          "$$hashKey": "object:39748",
+          "checked": true,
+          "visualize": "true"
+        },
+        {
+          "name": "range_spot_vent_hour",
+          "display_name": "range_spot_vent_hour",
+          "short_name": "range_spot_vent_hour",
+          "description": "",
+          "type": "String",
+          "model_dependent": false,
+          "$$hashKey": "object:39749",
+          "checked": true,
+          "visualize": "true"
+        },
+        {
+          "name": "pv",
+          "display_name": "pv",
+          "short_name": "pv",
+          "description": "",
+          "type": "String",
+          "model_dependent": false,
+          "$$hashKey": "object:39750",
+          "checked": true,
+          "visualize": "true"
         },
         {
           "name": "days_shifted",
@@ -7885,21 +7626,65 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:9075",
+          "$$hashKey": "object:39751",
+          "checked": true,
+          "visualize": "true"
+        },
+        {
+          "name": "location_city",
+          "display_name": "location_city",
+          "short_name": "location_city",
+          "description": "",
+          "type": "String",
+          "model_dependent": false,
+          "$$hashKey": "object:39752",
+          "checked": true,
+          "visualize": "true"
+        },
+        {
+          "name": "location_state",
+          "display_name": "location_state",
+          "short_name": "location_state",
+          "description": "",
+          "type": "String",
+          "model_dependent": false,
+          "$$hashKey": "object:39753",
+          "checked": true,
+          "visualize": "true"
+        },
+        {
+          "name": "location_latitude",
+          "display_name": "location_latitude",
+          "short_name": "location_latitude",
+          "description": "",
+          "type": "String",
+          "model_dependent": false,
+          "$$hashKey": "object:39754",
+          "checked": true,
+          "visualize": "true"
+        },
+        {
+          "name": "location_longitude",
+          "display_name": "location_longitude",
+          "short_name": "location_longitude",
+          "description": "",
+          "type": "String",
+          "model_dependent": false,
+          "$$hashKey": "object:39755",
           "checked": true,
           "visualize": "true"
         }
       ]
     },
     {
-      "measure_dir": "C:/Users/shorowit/Documents/GitHub/OpenStudio-BuildStock/measures/SimulationOutputReport",
+      "measure_dir": "C:\\OpenStudio\\OpenStudio-BuildStock\\project_resstock_testing\\measures\\SimulationOutputReport",
       "name": "simulation_output_report",
-      "directory": "C:/Users/shorowit/Documents/GitHub/OpenStudio-BuildStock/measures/SimulationOutputReport",
+      "directory": "C:/OpenStudio/OpenStudio-BuildStock/measures/SimulationOutputReport",
       "uid": "fc337100-8634-404e-8966-01243d292a79",
       "uuid": "{fc337100-8634-404e-8966-01243d292a79}",
-      "version_id": "a1cc25aa-f4f2-4c63-90ae-0fa662042b30",
-      "version_uuid": "{a1cc25aa-f4f2-4c63-90ae-0fa662042b30}",
-      "version_modified": "20171211T165135Z",
+      "version_id": "62a04a2a-f9b0-40ca-9d89-c39c2a6ec461",
+      "version_uuid": "{62a04a2a-f9b0-40ca-9d89-c39c2a6ec461}",
+      "version_modified": "20180620T222925Z",
       "xml_checksum": "2C8A3EEF",
       "display_name": "Simulation Output Report",
       "class_name": "SimulationOutputReport",
@@ -7913,7 +7698,10 @@
           "short_name": "total_site_energy_mbtu",
           "description": "",
           "type": "Double",
-          "model_dependent": false
+          "model_dependent": false,
+          "$$hashKey": "object:8534",
+          "checked": true,
+          "visualize": "true"
         },
         {
           "name": "total_site_electricity_kwh",
@@ -7921,7 +7709,10 @@
           "short_name": "total_site_electricity_kwh",
           "description": "",
           "type": "Double",
-          "model_dependent": false
+          "model_dependent": false,
+          "$$hashKey": "object:8535",
+          "checked": true,
+          "visualize": "true"
         },
         {
           "name": "total_site_natural_gas_therm",
@@ -7929,7 +7720,10 @@
           "short_name": "total_site_natural_gas_therm",
           "description": "",
           "type": "Double",
-          "model_dependent": false
+          "model_dependent": false,
+          "$$hashKey": "object:8536",
+          "checked": true,
+          "visualize": "true"
         },
         {
           "name": "total_site_other_fuel_mbtu",
@@ -7937,7 +7731,10 @@
           "short_name": "total_site_other_fuel_mbtu",
           "description": "",
           "type": "Double",
-          "model_dependent": false
+          "model_dependent": false,
+          "$$hashKey": "object:8537",
+          "checked": true,
+          "visualize": "true"
         },
         {
           "name": "net_site_energy_mbtu",
@@ -7945,7 +7742,10 @@
           "short_name": "net_site_energy_mbtu",
           "description": "",
           "type": "Double",
-          "model_dependent": false
+          "model_dependent": false,
+          "$$hashKey": "object:8538",
+          "checked": true,
+          "visualize": "true"
         },
         {
           "name": "net_site_electricity_kwh",
@@ -7953,7 +7753,10 @@
           "short_name": "net_site_electricity_kwh",
           "description": "",
           "type": "Double",
-          "model_dependent": false
+          "model_dependent": false,
+          "$$hashKey": "object:8539",
+          "checked": true,
+          "visualize": "true"
         },
         {
           "name": "electricity_heating_kwh",
@@ -7961,7 +7764,10 @@
           "short_name": "electricity_heating_kwh",
           "description": "",
           "type": "Double",
-          "model_dependent": false
+          "model_dependent": false,
+          "$$hashKey": "object:8540",
+          "checked": true,
+          "visualize": "true"
         },
         {
           "name": "electricity_cooling_kwh",
@@ -7969,7 +7775,10 @@
           "short_name": "electricity_cooling_kwh",
           "description": "",
           "type": "Double",
-          "model_dependent": false
+          "model_dependent": false,
+          "$$hashKey": "object:8541",
+          "checked": true,
+          "visualize": "true"
         },
         {
           "name": "electricity_interior_lighting_kwh",
@@ -7977,7 +7786,10 @@
           "short_name": "electricity_interior_lighting_kwh",
           "description": "",
           "type": "Double",
-          "model_dependent": false
+          "model_dependent": false,
+          "$$hashKey": "object:8542",
+          "checked": true,
+          "visualize": "true"
         },
         {
           "name": "electricity_exterior_lighting_kwh",
@@ -7985,7 +7797,10 @@
           "short_name": "electricity_exterior_lighting_kwh",
           "description": "",
           "type": "Double",
-          "model_dependent": false
+          "model_dependent": false,
+          "$$hashKey": "object:8543",
+          "checked": true,
+          "visualize": "true"
         },
         {
           "name": "electricity_interior_equipment_kwh",
@@ -7993,7 +7808,10 @@
           "short_name": "electricity_interior_equipment_kwh",
           "description": "",
           "type": "Double",
-          "model_dependent": false
+          "model_dependent": false,
+          "$$hashKey": "object:8544",
+          "checked": true,
+          "visualize": "true"
         },
         {
           "name": "electricity_fans_kwh",
@@ -8001,7 +7819,10 @@
           "short_name": "electricity_fans_kwh",
           "description": "",
           "type": "Double",
-          "model_dependent": false
+          "model_dependent": false,
+          "$$hashKey": "object:8545",
+          "checked": true,
+          "visualize": "true"
         },
         {
           "name": "electricity_pumps_kwh",
@@ -8009,7 +7830,10 @@
           "short_name": "electricity_pumps_kwh",
           "description": "",
           "type": "Double",
-          "model_dependent": false
+          "model_dependent": false,
+          "$$hashKey": "object:8546",
+          "checked": true,
+          "visualize": "true"
         },
         {
           "name": "electricity_water_systems_kwh",
@@ -8017,7 +7841,10 @@
           "short_name": "electricity_water_systems_kwh",
           "description": "",
           "type": "Double",
-          "model_dependent": false
+          "model_dependent": false,
+          "$$hashKey": "object:8547",
+          "checked": true,
+          "visualize": "true"
         },
         {
           "name": "electricity_pv_kwh",
@@ -8025,7 +7852,10 @@
           "short_name": "electricity_pv_kwh",
           "description": "",
           "type": "Double",
-          "model_dependent": false
+          "model_dependent": false,
+          "$$hashKey": "object:8548",
+          "checked": true,
+          "visualize": "true"
         },
         {
           "name": "natural_gas_heating_therm",
@@ -8033,7 +7863,10 @@
           "short_name": "natural_gas_heating_therm",
           "description": "",
           "type": "Double",
-          "model_dependent": false
+          "model_dependent": false,
+          "$$hashKey": "object:8549",
+          "checked": true,
+          "visualize": "true"
         },
         {
           "name": "natural_gas_interior_equipment_therm",
@@ -8041,7 +7874,10 @@
           "short_name": "natural_gas_interior_equipment_therm",
           "description": "",
           "type": "Double",
-          "model_dependent": false
+          "model_dependent": false,
+          "$$hashKey": "object:8550",
+          "checked": true,
+          "visualize": "true"
         },
         {
           "name": "natural_gas_water_systems_therm",
@@ -8049,7 +7885,10 @@
           "short_name": "natural_gas_water_systems_therm",
           "description": "",
           "type": "Double",
-          "model_dependent": false
+          "model_dependent": false,
+          "$$hashKey": "object:8551",
+          "checked": true,
+          "visualize": "true"
         },
         {
           "name": "other_fuel_heating_mbtu",
@@ -8057,7 +7896,10 @@
           "short_name": "other_fuel_heating_mbtu",
           "description": "",
           "type": "Double",
-          "model_dependent": false
+          "model_dependent": false,
+          "$$hashKey": "object:8552",
+          "checked": true,
+          "visualize": "true"
         },
         {
           "name": "other_fuel_interior_equipment_mbtu",
@@ -8065,7 +7907,10 @@
           "short_name": "other_fuel_interior_equipment_mbtu",
           "description": "",
           "type": "Double",
-          "model_dependent": false
+          "model_dependent": false,
+          "$$hashKey": "object:8553",
+          "checked": true,
+          "visualize": "true"
         },
         {
           "name": "other_fuel_water_systems_mbtu",
@@ -8073,7 +7918,10 @@
           "short_name": "other_fuel_water_systems_mbtu",
           "description": "",
           "type": "Double",
-          "model_dependent": false
+          "model_dependent": false,
+          "$$hashKey": "object:8554",
+          "checked": true,
+          "visualize": "true"
         },
         {
           "name": "hours_heating_setpoint_not_met",
@@ -8081,7 +7929,10 @@
           "short_name": "hours_heating_setpoint_not_met",
           "description": "",
           "type": "Double",
-          "model_dependent": false
+          "model_dependent": false,
+          "$$hashKey": "object:8555",
+          "checked": true,
+          "visualize": "true"
         },
         {
           "name": "hours_cooling_setpoint_not_met",
@@ -8089,7 +7940,10 @@
           "short_name": "hours_cooling_setpoint_not_met",
           "description": "",
           "type": "Double",
-          "model_dependent": false
+          "model_dependent": false,
+          "$$hashKey": "object:8556",
+          "checked": true,
+          "visualize": "true"
         },
         {
           "name": "hvac_cooling_capacity_w",
@@ -8097,7 +7951,10 @@
           "short_name": "hvac_cooling_capacity_w",
           "description": "",
           "type": "Double",
-          "model_dependent": false
+          "model_dependent": false,
+          "$$hashKey": "object:8557",
+          "checked": true,
+          "visualize": "true"
         },
         {
           "name": "hvac_heating_capacity_w",
@@ -8105,7 +7962,21 @@
           "short_name": "hvac_heating_capacity_w",
           "description": "",
           "type": "Double",
-          "model_dependent": false
+          "model_dependent": false,
+          "$$hashKey": "object:8558",
+          "checked": true,
+          "visualize": "true"
+        },
+        {
+          "name": "hvac_heating_supp_capacity_w",
+          "display_name": "hvac_heating_supp_capacity_w",
+          "short_name": "hvac_heating_supp_capacity_w",
+          "description": "",
+          "type": "Double",
+          "model_dependent": false,
+          "$$hashKey": "object:8559",
+          "checked": true,
+          "visualize": "true"
         },
         {
           "name": "upgrade_name",
@@ -8113,7 +7984,10 @@
           "short_name": "upgrade_name",
           "description": "",
           "type": "Double",
-          "model_dependent": false
+          "model_dependent": false,
+          "$$hashKey": "object:8560",
+          "checked": true,
+          "visualize": "true"
         },
         {
           "name": "upgrade_cost_usd",
@@ -8121,7 +7995,10 @@
           "short_name": "upgrade_cost_usd",
           "description": "",
           "type": "Double",
-          "model_dependent": false
+          "model_dependent": false,
+          "$$hashKey": "object:8561",
+          "checked": true,
+          "visualize": "true"
         },
         {
           "name": "upgrade_option_01_cost_usd",
@@ -8129,7 +8006,10 @@
           "short_name": "upgrade_option_01_cost_usd",
           "description": "",
           "type": "Double",
-          "model_dependent": false
+          "model_dependent": false,
+          "$$hashKey": "object:8562",
+          "checked": true,
+          "visualize": "true"
         },
         {
           "name": "upgrade_option_01_lifetime_yrs",
@@ -8137,7 +8017,10 @@
           "short_name": "upgrade_option_01_lifetime_yrs",
           "description": "",
           "type": "Double",
-          "model_dependent": false
+          "model_dependent": false,
+          "$$hashKey": "object:8563",
+          "checked": true,
+          "visualize": "true"
         },
         {
           "name": "upgrade_option_02_cost_usd",
@@ -8145,7 +8028,10 @@
           "short_name": "upgrade_option_02_cost_usd",
           "description": "",
           "type": "Double",
-          "model_dependent": false
+          "model_dependent": false,
+          "$$hashKey": "object:8564",
+          "checked": true,
+          "visualize": "true"
         },
         {
           "name": "upgrade_option_02_lifetime_yrs",
@@ -8153,7 +8039,10 @@
           "short_name": "upgrade_option_02_lifetime_yrs",
           "description": "",
           "type": "Double",
-          "model_dependent": false
+          "model_dependent": false,
+          "$$hashKey": "object:8565",
+          "checked": true,
+          "visualize": "true"
         },
         {
           "name": "upgrade_option_03_cost_usd",
@@ -8161,7 +8050,10 @@
           "short_name": "upgrade_option_03_cost_usd",
           "description": "",
           "type": "Double",
-          "model_dependent": false
+          "model_dependent": false,
+          "$$hashKey": "object:8566",
+          "checked": true,
+          "visualize": "true"
         },
         {
           "name": "upgrade_option_03_lifetime_yrs",
@@ -8169,7 +8061,10 @@
           "short_name": "upgrade_option_03_lifetime_yrs",
           "description": "",
           "type": "Double",
-          "model_dependent": false
+          "model_dependent": false,
+          "$$hashKey": "object:8567",
+          "checked": true,
+          "visualize": "true"
         },
         {
           "name": "upgrade_option_04_cost_usd",
@@ -8177,7 +8072,10 @@
           "short_name": "upgrade_option_04_cost_usd",
           "description": "",
           "type": "Double",
-          "model_dependent": false
+          "model_dependent": false,
+          "$$hashKey": "object:8568",
+          "checked": true,
+          "visualize": "true"
         },
         {
           "name": "upgrade_option_04_lifetime_yrs",
@@ -8185,7 +8083,10 @@
           "short_name": "upgrade_option_04_lifetime_yrs",
           "description": "",
           "type": "Double",
-          "model_dependent": false
+          "model_dependent": false,
+          "$$hashKey": "object:8569",
+          "checked": true,
+          "visualize": "true"
         },
         {
           "name": "upgrade_option_05_cost_usd",
@@ -8193,7 +8094,10 @@
           "short_name": "upgrade_option_05_cost_usd",
           "description": "",
           "type": "Double",
-          "model_dependent": false
+          "model_dependent": false,
+          "$$hashKey": "object:8570",
+          "checked": true,
+          "visualize": "true"
         },
         {
           "name": "upgrade_option_05_lifetime_yrs",
@@ -8201,7 +8105,10 @@
           "short_name": "upgrade_option_05_lifetime_yrs",
           "description": "",
           "type": "Double",
-          "model_dependent": false
+          "model_dependent": false,
+          "$$hashKey": "object:8571",
+          "checked": true,
+          "visualize": "true"
         },
         {
           "name": "upgrade_option_06_cost_usd",
@@ -8209,7 +8116,10 @@
           "short_name": "upgrade_option_06_cost_usd",
           "description": "",
           "type": "Double",
-          "model_dependent": false
+          "model_dependent": false,
+          "$$hashKey": "object:8572",
+          "checked": true,
+          "visualize": "true"
         },
         {
           "name": "upgrade_option_06_lifetime_yrs",
@@ -8217,7 +8127,10 @@
           "short_name": "upgrade_option_06_lifetime_yrs",
           "description": "",
           "type": "Double",
-          "model_dependent": false
+          "model_dependent": false,
+          "$$hashKey": "object:8573",
+          "checked": true,
+          "visualize": "true"
         },
         {
           "name": "upgrade_option_07_cost_usd",
@@ -8225,7 +8138,10 @@
           "short_name": "upgrade_option_07_cost_usd",
           "description": "",
           "type": "Double",
-          "model_dependent": false
+          "model_dependent": false,
+          "$$hashKey": "object:8574",
+          "checked": true,
+          "visualize": "true"
         },
         {
           "name": "upgrade_option_07_lifetime_yrs",
@@ -8233,7 +8149,10 @@
           "short_name": "upgrade_option_07_lifetime_yrs",
           "description": "",
           "type": "Double",
-          "model_dependent": false
+          "model_dependent": false,
+          "$$hashKey": "object:8575",
+          "checked": true,
+          "visualize": "true"
         },
         {
           "name": "upgrade_option_08_cost_usd",
@@ -8241,7 +8160,10 @@
           "short_name": "upgrade_option_08_cost_usd",
           "description": "",
           "type": "Double",
-          "model_dependent": false
+          "model_dependent": false,
+          "$$hashKey": "object:8576",
+          "checked": true,
+          "visualize": "true"
         },
         {
           "name": "upgrade_option_08_lifetime_yrs",
@@ -8249,7 +8171,10 @@
           "short_name": "upgrade_option_08_lifetime_yrs",
           "description": "",
           "type": "Double",
-          "model_dependent": false
+          "model_dependent": false,
+          "$$hashKey": "object:8577",
+          "checked": true,
+          "visualize": "true"
         },
         {
           "name": "upgrade_option_09_cost_usd",
@@ -8257,7 +8182,10 @@
           "short_name": "upgrade_option_09_cost_usd",
           "description": "",
           "type": "Double",
-          "model_dependent": false
+          "model_dependent": false,
+          "$$hashKey": "object:8578",
+          "checked": true,
+          "visualize": "true"
         },
         {
           "name": "upgrade_option_09_lifetime_yrs",
@@ -8265,7 +8193,10 @@
           "short_name": "upgrade_option_09_lifetime_yrs",
           "description": "",
           "type": "Double",
-          "model_dependent": false
+          "model_dependent": false,
+          "$$hashKey": "object:8579",
+          "checked": true,
+          "visualize": "true"
         },
         {
           "name": "upgrade_option_10_cost_usd",
@@ -8273,7 +8204,10 @@
           "short_name": "upgrade_option_10_cost_usd",
           "description": "",
           "type": "Double",
-          "model_dependent": false
+          "model_dependent": false,
+          "$$hashKey": "object:8580",
+          "checked": true,
+          "visualize": "true"
         },
         {
           "name": "upgrade_option_10_lifetime_yrs",
@@ -8281,7 +8215,10 @@
           "short_name": "upgrade_option_10_lifetime_yrs",
           "description": "",
           "type": "Double",
-          "model_dependent": false
+          "model_dependent": false,
+          "$$hashKey": "object:8581",
+          "checked": true,
+          "visualize": "true"
         },
         {
           "name": "weight",
@@ -8289,7 +8226,10 @@
           "short_name": "weight",
           "description": "",
           "type": "Double",
-          "model_dependent": false
+          "model_dependent": false,
+          "$$hashKey": "object:8582",
+          "checked": true,
+          "visualize": "true"
         }
       ],
       "attributes": [
@@ -8312,15 +8252,15 @@
       "add": "",
       "open": false,
       "addedToProject": true,
-      "date": "12/11/2017",
+      "date": "6/20/2018",
       "author": "",
       "type": "ReportingMeasure",
       "seed": "EmptySeedModel.osm",
       "workflow_index": 4,
       "options": [],
-      "instanceId": 0.7712862143310157,
+      "instanceId": 0.3523061880365792,
       "skip": false,
-      "$$hashKey": "object:12817",
+      "$$hashKey": "object:6493",
       "outputMeasure": true,
       "userDefinedOutputs": [],
       "analysisOutputs": [
@@ -8331,11 +8271,8 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:28142",
+          "$$hashKey": "object:8534",
           "checked": true,
-          "measure_name": "simulation_output_report",
-          "measure_class_name": "SimulationOutputReport",
-          "measure_uid": "fc337100-8634-404e-8966-01243d292a79",
           "visualize": "true"
         },
         {
@@ -8345,11 +8282,8 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:28143",
+          "$$hashKey": "object:8535",
           "checked": true,
-          "measure_name": "simulation_output_report",
-          "measure_class_name": "SimulationOutputReport",
-          "measure_uid": "fc337100-8634-404e-8966-01243d292a79",
           "visualize": "true"
         },
         {
@@ -8359,11 +8293,8 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:28144",
+          "$$hashKey": "object:8536",
           "checked": true,
-          "measure_name": "simulation_output_report",
-          "measure_class_name": "SimulationOutputReport",
-          "measure_uid": "fc337100-8634-404e-8966-01243d292a79",
           "visualize": "true"
         },
         {
@@ -8373,11 +8304,8 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:28145",
+          "$$hashKey": "object:8537",
           "checked": true,
-          "measure_name": "simulation_output_report",
-          "measure_class_name": "SimulationOutputReport",
-          "measure_uid": "fc337100-8634-404e-8966-01243d292a79",
           "visualize": "true"
         },
         {
@@ -8387,11 +8315,8 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:28146",
+          "$$hashKey": "object:8538",
           "checked": true,
-          "measure_name": "simulation_output_report",
-          "measure_class_name": "SimulationOutputReport",
-          "measure_uid": "fc337100-8634-404e-8966-01243d292a79",
           "visualize": "true"
         },
         {
@@ -8401,11 +8326,8 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:28147",
+          "$$hashKey": "object:8539",
           "checked": true,
-          "measure_name": "simulation_output_report",
-          "measure_class_name": "SimulationOutputReport",
-          "measure_uid": "fc337100-8634-404e-8966-01243d292a79",
           "visualize": "true"
         },
         {
@@ -8415,11 +8337,8 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:28148",
+          "$$hashKey": "object:8540",
           "checked": true,
-          "measure_name": "simulation_output_report",
-          "measure_class_name": "SimulationOutputReport",
-          "measure_uid": "fc337100-8634-404e-8966-01243d292a79",
           "visualize": "true"
         },
         {
@@ -8429,11 +8348,8 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:28149",
+          "$$hashKey": "object:8541",
           "checked": true,
-          "measure_name": "simulation_output_report",
-          "measure_class_name": "SimulationOutputReport",
-          "measure_uid": "fc337100-8634-404e-8966-01243d292a79",
           "visualize": "true"
         },
         {
@@ -8443,11 +8359,8 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:28150",
+          "$$hashKey": "object:8542",
           "checked": true,
-          "measure_name": "simulation_output_report",
-          "measure_class_name": "SimulationOutputReport",
-          "measure_uid": "fc337100-8634-404e-8966-01243d292a79",
           "visualize": "true"
         },
         {
@@ -8457,11 +8370,8 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:28151",
+          "$$hashKey": "object:8543",
           "checked": true,
-          "measure_name": "simulation_output_report",
-          "measure_class_name": "SimulationOutputReport",
-          "measure_uid": "fc337100-8634-404e-8966-01243d292a79",
           "visualize": "true"
         },
         {
@@ -8471,11 +8381,8 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:28152",
+          "$$hashKey": "object:8544",
           "checked": true,
-          "measure_name": "simulation_output_report",
-          "measure_class_name": "SimulationOutputReport",
-          "measure_uid": "fc337100-8634-404e-8966-01243d292a79",
           "visualize": "true"
         },
         {
@@ -8485,11 +8392,8 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:28153",
+          "$$hashKey": "object:8545",
           "checked": true,
-          "measure_name": "simulation_output_report",
-          "measure_class_name": "SimulationOutputReport",
-          "measure_uid": "fc337100-8634-404e-8966-01243d292a79",
           "visualize": "true"
         },
         {
@@ -8499,11 +8403,8 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:28154",
+          "$$hashKey": "object:8546",
           "checked": true,
-          "measure_name": "simulation_output_report",
-          "measure_class_name": "SimulationOutputReport",
-          "measure_uid": "fc337100-8634-404e-8966-01243d292a79",
           "visualize": "true"
         },
         {
@@ -8513,11 +8414,8 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:28155",
+          "$$hashKey": "object:8547",
           "checked": true,
-          "measure_name": "simulation_output_report",
-          "measure_class_name": "SimulationOutputReport",
-          "measure_uid": "fc337100-8634-404e-8966-01243d292a79",
           "visualize": "true"
         },
         {
@@ -8527,11 +8425,8 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:28156",
+          "$$hashKey": "object:8548",
           "checked": true,
-          "measure_name": "simulation_output_report",
-          "measure_class_name": "SimulationOutputReport",
-          "measure_uid": "fc337100-8634-404e-8966-01243d292a79",
           "visualize": "true"
         },
         {
@@ -8541,11 +8436,8 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:28157",
+          "$$hashKey": "object:8549",
           "checked": true,
-          "measure_name": "simulation_output_report",
-          "measure_class_name": "SimulationOutputReport",
-          "measure_uid": "fc337100-8634-404e-8966-01243d292a79",
           "visualize": "true"
         },
         {
@@ -8555,11 +8447,8 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:28158",
+          "$$hashKey": "object:8550",
           "checked": true,
-          "measure_name": "simulation_output_report",
-          "measure_class_name": "SimulationOutputReport",
-          "measure_uid": "fc337100-8634-404e-8966-01243d292a79",
           "visualize": "true"
         },
         {
@@ -8569,11 +8458,8 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:28159",
+          "$$hashKey": "object:8551",
           "checked": true,
-          "measure_name": "simulation_output_report",
-          "measure_class_name": "SimulationOutputReport",
-          "measure_uid": "fc337100-8634-404e-8966-01243d292a79",
           "visualize": "true"
         },
         {
@@ -8583,11 +8469,8 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:28160",
+          "$$hashKey": "object:8552",
           "checked": true,
-          "measure_name": "simulation_output_report",
-          "measure_class_name": "SimulationOutputReport",
-          "measure_uid": "fc337100-8634-404e-8966-01243d292a79",
           "visualize": "true"
         },
         {
@@ -8597,11 +8480,8 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:28161",
+          "$$hashKey": "object:8553",
           "checked": true,
-          "measure_name": "simulation_output_report",
-          "measure_class_name": "SimulationOutputReport",
-          "measure_uid": "fc337100-8634-404e-8966-01243d292a79",
           "visualize": "true"
         },
         {
@@ -8611,11 +8491,8 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:28162",
+          "$$hashKey": "object:8554",
           "checked": true,
-          "measure_name": "simulation_output_report",
-          "measure_class_name": "SimulationOutputReport",
-          "measure_uid": "fc337100-8634-404e-8966-01243d292a79",
           "visualize": "true"
         },
         {
@@ -8625,11 +8502,8 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:28163",
+          "$$hashKey": "object:8555",
           "checked": true,
-          "measure_name": "simulation_output_report",
-          "measure_class_name": "SimulationOutputReport",
-          "measure_uid": "fc337100-8634-404e-8966-01243d292a79",
           "visualize": "true"
         },
         {
@@ -8639,11 +8513,8 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:28164",
+          "$$hashKey": "object:8556",
           "checked": true,
-          "measure_name": "simulation_output_report",
-          "measure_class_name": "SimulationOutputReport",
-          "measure_uid": "fc337100-8634-404e-8966-01243d292a79",
           "visualize": "true"
         },
         {
@@ -8653,11 +8524,8 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:28165",
+          "$$hashKey": "object:8557",
           "checked": true,
-          "measure_name": "simulation_output_report",
-          "measure_class_name": "SimulationOutputReport",
-          "measure_uid": "fc337100-8634-404e-8966-01243d292a79",
           "visualize": "true"
         },
         {
@@ -8667,39 +8535,19 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:28166",
+          "$$hashKey": "object:8558",
           "checked": true,
-          "measure_name": "simulation_output_report",
-          "measure_class_name": "SimulationOutputReport",
-          "measure_uid": "fc337100-8634-404e-8966-01243d292a79",
           "visualize": "true"
         },
         {
-          "name": "upgrade_cost_usd",
-          "display_name": "upgrade_cost_usd",
-          "short_name": "upgrade_cost_usd",
+          "name": "hvac_heating_supp_capacity_w",
+          "display_name": "hvac_heating_supp_capacity_w",
+          "short_name": "hvac_heating_supp_capacity_w",
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:28167",
+          "$$hashKey": "object:8559",
           "checked": true,
-          "measure_name": "simulation_output_report",
-          "measure_class_name": "SimulationOutputReport",
-          "measure_uid": "fc337100-8634-404e-8966-01243d292a79",
-          "visualize": "true"
-        },
-        {
-          "name": "weight",
-          "display_name": "weight",
-          "short_name": "weight",
-          "description": "",
-          "type": "Double",
-          "model_dependent": false,
-          "$$hashKey": "object:28168",
-          "checked": true,
-          "measure_name": "simulation_output_report",
-          "measure_class_name": "SimulationOutputReport",
-          "measure_uid": "fc337100-8634-404e-8966-01243d292a79",
           "visualize": "true"
         },
         {
@@ -8709,12 +8557,20 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:9369",
+          "$$hashKey": "object:8560",
           "checked": true,
-          "visualize": "true",
-          "measure_name": "simulation_output_report",
-          "measure_class_name": "SimulationOutputReport",
-          "measure_uid": "fc337100-8634-404e-8966-01243d292a79"
+          "visualize": "true"
+        },
+        {
+          "name": "upgrade_cost_usd",
+          "display_name": "upgrade_cost_usd",
+          "short_name": "upgrade_cost_usd",
+          "description": "",
+          "type": "Double",
+          "model_dependent": false,
+          "$$hashKey": "object:8561",
+          "checked": true,
+          "visualize": "true"
         },
         {
           "name": "upgrade_option_01_cost_usd",
@@ -8723,7 +8579,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:9874",
+          "$$hashKey": "object:8562",
           "checked": true,
           "visualize": "true"
         },
@@ -8734,7 +8590,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:9875",
+          "$$hashKey": "object:8563",
           "checked": true,
           "visualize": "true"
         },
@@ -8745,7 +8601,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:9876",
+          "$$hashKey": "object:8564",
           "checked": true,
           "visualize": "true"
         },
@@ -8756,7 +8612,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:9877",
+          "$$hashKey": "object:8565",
           "checked": true,
           "visualize": "true"
         },
@@ -8767,7 +8623,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:9878",
+          "$$hashKey": "object:8566",
           "checked": true,
           "visualize": "true"
         },
@@ -8778,7 +8634,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:9879",
+          "$$hashKey": "object:8567",
           "checked": true,
           "visualize": "true"
         },
@@ -8789,7 +8645,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:9880",
+          "$$hashKey": "object:8568",
           "checked": true,
           "visualize": "true"
         },
@@ -8800,7 +8656,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:9881",
+          "$$hashKey": "object:8569",
           "checked": true,
           "visualize": "true"
         },
@@ -8811,7 +8667,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:9882",
+          "$$hashKey": "object:8570",
           "checked": true,
           "visualize": "true"
         },
@@ -8822,7 +8678,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:9883",
+          "$$hashKey": "object:8571",
           "checked": true,
           "visualize": "true"
         },
@@ -8833,7 +8689,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:9884",
+          "$$hashKey": "object:8572",
           "checked": true,
           "visualize": "true"
         },
@@ -8844,7 +8700,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:9885",
+          "$$hashKey": "object:8573",
           "checked": true,
           "visualize": "true"
         },
@@ -8855,7 +8711,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:9886",
+          "$$hashKey": "object:8574",
           "checked": true,
           "visualize": "true"
         },
@@ -8866,7 +8722,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:9887",
+          "$$hashKey": "object:8575",
           "checked": true,
           "visualize": "true"
         },
@@ -8877,7 +8733,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:9888",
+          "$$hashKey": "object:8576",
           "checked": true,
           "visualize": "true"
         },
@@ -8888,7 +8744,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:9889",
+          "$$hashKey": "object:8577",
           "checked": true,
           "visualize": "true"
         },
@@ -8899,7 +8755,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:9890",
+          "$$hashKey": "object:8578",
           "checked": true,
           "visualize": "true"
         },
@@ -8910,7 +8766,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:9891",
+          "$$hashKey": "object:8579",
           "checked": true,
           "visualize": "true"
         },
@@ -8921,7 +8777,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:9892",
+          "$$hashKey": "object:8580",
           "checked": true,
           "visualize": "true"
         },
@@ -8932,26 +8788,37 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:9893",
+          "$$hashKey": "object:8581",
+          "checked": true,
+          "visualize": "true"
+        },
+        {
+          "name": "weight",
+          "display_name": "weight",
+          "short_name": "weight",
+          "description": "",
+          "type": "Double",
+          "model_dependent": false,
+          "$$hashKey": "object:8582",
           "checked": true,
           "visualize": "true"
         }
       ]
     },
     {
-      "measure_dir": "C:\\Users\\shorowit\\Documents\\GitHub\\OpenStudio-BuildStock\\project_resstock_testing\\measures\\TimeseriesCSVExport",
+      "measure_dir": "C:/OpenStudio/OpenStudio-BuildStock/measures/TimeseriesCSVExport",
       "name": "timeseries_csv_export",
-      "directory": "C:\\Users\\shorowit\\Documents\\GitHub\\OpenStudio-BuildStock\\project_resstock_testing\\measures\\TimeseriesCSVExport",
+      "directory": "C:/OpenStudio/OpenStudio-BuildStock/measures/TimeseriesCSVExport",
       "uid": "2a3442c1-944d-4e91-9e11-11e0cf368c64",
       "uuid": "{2a3442c1-944d-4e91-9e11-11e0cf368c64}",
-      "version_id": "cb819942-c9bf-4c12-a9e8-fa866cf0f4be",
-      "version_uuid": "{cb819942-c9bf-4c12-a9e8-fa866cf0f4be}",
-      "version_modified": "20171206T172450Z",
+      "version_id": "b86af643-8c32-40ea-82cb-e799aaff1b39",
+      "version_uuid": "{b86af643-8c32-40ea-82cb-e799aaff1b39}",
+      "version_modified": "20180620T222925Z",
       "xml_checksum": "15BF4E57",
       "display_name": "Timeseries CSV Export",
       "class_name": "TimeseriesCSVExport",
-      "description": "Exports all available hourly timeseries enduses to csv, and uses them for utility bill calculations.",
-      "modeler_description": "Exports all available hourly timeseries enduses to csv, and uses them for utility bill calculations.",
+      "description": "Exports all available hourly timeseries enduses to csv.",
+      "modeler_description": "Exports all available hourly timeseries enduses to csv.",
       "tags": "Reporting.QAQC",
       "outputs": [],
       "attributes": [
@@ -9010,30 +8877,6 @@
           "$$hashKey": "object:2025"
         },
         {
-          "name": "inc_output_variables",
-          "display_name": "Include Output Variables",
-          "description": "",
-          "type": "Boolean",
-          "required": true,
-          "model_dependent": false,
-          "default_value": false,
-          "$$hashKey": "object:22153",
-          "inputs": {
-            "default_value": false,
-            "minimum": false,
-            "maximum": false,
-            "relationship": null,
-            "choiceDisplayNames": [],
-            "variableSetting": "Argument",
-            "distribution": "Uniform",
-            "discreteVariables": [],
-            "mean": false,
-            "deltaX": false,
-            "stdDev": false
-          },
-          "display_name_short": "inc_output_variables"
-        },
-        {
           "name": "inc_end_use_subcategories",
           "display_name": "Include End Use Subcategories",
           "description": "",
@@ -9056,6 +8899,30 @@
             "stdDev": false
           },
           "display_name_short": "inc_end_use_subcategories"
+        },
+        {
+          "name": "inc_output_variables",
+          "display_name": "Include Output Variables",
+          "description": "",
+          "type": "Boolean",
+          "required": true,
+          "model_dependent": false,
+          "default_value": false,
+          "$$hashKey": "object:22153",
+          "inputs": {
+            "default_value": false,
+            "minimum": false,
+            "maximum": false,
+            "relationship": null,
+            "choiceDisplayNames": [],
+            "variableSetting": "Argument",
+            "distribution": "Uniform",
+            "discreteVariables": [],
+            "mean": false,
+            "deltaX": false,
+            "stdDev": false
+          },
+          "display_name_short": "inc_output_variables"
         },
         {
           "name": "output_variables",
@@ -9089,26 +8956,26 @@
       "add": "",
       "open": false,
       "addedToProject": true,
-      "date": "12/6/2017",
+      "date": "6/20/2018",
       "author": "",
       "type": "ReportingMeasure",
       "seed": "EmptySeedModel.osm",
       "workflow_index": 5,
       "options": [],
-      "instanceId": 0.8818746719523929,
+      "instanceId": 0.9667874109803045,
       "skip": true,
       "$$hashKey": "object:1989",
       "outputMeasure": false
     },
     {
-      "measure_dir": "C:\\Users\\shorowit\\Documents\\GitHub\\OpenStudio-BuildStock\\project_resstock_testing\\measures\\ServerDirectoryCleanup",
+      "measure_dir": "C:\\OpenStudio\\OpenStudio-BuildStock\\project_resstock_testing\\measures\\ServerDirectoryCleanup",
       "name": "server_directory_cleanup",
-      "directory": "C:\\Users\\shorowit\\Documents\\GitHub\\OpenStudio-BuildStock\\project_resstock_testing\\measures\\ServerDirectoryCleanup",
+      "directory": "C:\\OpenStudio\\OpenStudio-BuildStock\\project_resstock_testing\\measures\\ServerDirectoryCleanup",
       "uid": "ec7d04ad-0b7b-495b-825a-e1b6d28d1d3f",
       "uuid": "{ec7d04ad-0b7b-495b-825a-e1b6d28d1d3f}",
-      "version_id": "7eab998b-c176-438b-abcd-a0799dba53ac",
-      "version_uuid": "{7eab998b-c176-438b-abcd-a0799dba53ac}",
-      "version_modified": "20171110T171847Z",
+      "version_id": "9d0335bf-8823-468f-971e-3a53fe35248d",
+      "version_uuid": "{9d0335bf-8823-468f-971e-3a53fe35248d}",
+      "version_modified": "20171215T033256Z",
       "xml_checksum": "5F1EDF75",
       "display_name": "Server Directory Cleanup",
       "class_name": "ServerDirectoryCleanup",
@@ -9136,13 +9003,13 @@
       "add": "",
       "open": false,
       "addedToProject": true,
-      "date": "11/10/2017",
+      "date": "12/14/2017",
       "author": "",
       "type": "ReportingMeasure",
       "seed": "EmptySeedModel.osm",
       "workflow_index": 6,
       "options": [],
-      "instanceId": 0.6956768560478146,
+      "instanceId": 0.5795455529607019,
       "skip": false,
       "$$hashKey": "object:512021",
       "outputMeasure": false

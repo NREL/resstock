@@ -3,6 +3,8 @@
 
 require "#{File.dirname(__FILE__)}/resources/unit_conversions"
 require "#{File.dirname(__FILE__)}/resources/geometry"
+require "#{File.dirname(__FILE__)}/resources/util"
+require "#{File.dirname(__FILE__)}/resources/hvac"
 
 # start the measure
 class ProcessCentralSystemBoilerBaseboards < OpenStudio::Measure::ModelMeasure
@@ -14,12 +16,12 @@ class ProcessCentralSystemBoilerBaseboards < OpenStudio::Measure::ModelMeasure
 
   # human readable description
   def description
-    return "Description"
+    return "Adds a central hot water (or steam) boiler to the model. Also adds baseboards to each finished zone."
   end
 
   # human readable description of modeling approach
   def modeler_description
-    return "Modeler Description"
+    return "Adds a hot water (or steam) boiler with variable-speed pump to a single plant loop. Also adds zone hvac convective water objects with coil heating water baseboard objects to the demand side of the plant loop."
   end
 
   # define the arguments that the user will input
@@ -63,38 +65,52 @@ class ProcessCentralSystemBoilerBaseboards < OpenStudio::Measure::ModelMeasure
     require "openstudio-standards"
 
     central_boiler_system_type = runner.getStringArgumentValue("central_boiler_system_type",user_arguments)
-    central_boiler_fuel_type = {Constants.FuelTypeElectric=>"Electricity", Constants.FuelTypeGas=>"NaturalGas", Constants.FuelTypeOil=>"FuelOil#1", Constants.FuelTypePropane=>"PropaneGas"}[runner.getStringArgumentValue("central_boiler_fuel_type",user_arguments)]
+    central_boiler_fuel_type = HelperMethods.eplus_fuel_map(runner.getStringArgumentValue("central_boiler_fuel_type",user_arguments))
 
     std = Standard.build("90.1-2013")
-    # std = Standard.build("DOE Ref Pre-1980")
-    # std = Standard.build("DOE Ref 1980-2004")
-    # std = Standard.build("90.1-2010")
-    # std = Standard.build("90.1-2007")
-    # std = Standard.build("90.1-2004")
-    # std = Standard.build("90.1-2004_MidriseApartment") # with template
 
-    thermal_zones = []
-    model.getThermalZones.each do |thermal_zone|
-      next unless Geometry.zone_is_of_type(thermal_zone, Constants.SpaceTypeLiving) or Geometry.zone_is_of_type(thermal_zone, Constants.SpaceTypeFinishedBasement)
-      thermal_zones << thermal_zone
+    # Get building units
+    units = Geometry.get_building_units(model, runner)
+    if units.nil?
+      return false
     end
-    # story_groups = std.model_group_zones_by_story(model, model.getThermalZones) # TODO: need to write our own "zones by stories" method since we don't use BuildingStory
-    story_groups = [thermal_zones]
-    story_groups.each do |zones|
-
-      hot_water_loop = std.model_get_or_add_hot_water_loop(model, central_boiler_fuel_type)
-      std.model_add_baseboard(model, hot_water_loop, zones)
-      
-      if central_boiler_system_type == Constants.BoilerTypeSteam
-        plant_loop = model.getPlantLoopByName("Hot Water Loop").get
-        plant_loop.supplyComponents.each do |supply_component|
-          next unless supply_component.to_PumpVariableSpeed.is_initialized
-          pump = supply_component.to_PumpVariableSpeed.get
-          # TODO: how to zero out the pumping energy?
+    
+    units.each do |unit|
+      thermal_zones = Geometry.get_thermal_zones_from_spaces(unit.spaces)
+      HVAC.get_control_and_slave_zones(thermal_zones).each do |control_zone, slave_zones|
+        ([control_zone] + slave_zones).each do |zone|
+          HVAC.remove_hvac_equipment(model, runner, zone, unit,
+                                     Constants.ObjectNameCentralSystemBoilerBaseboards)
         end
       end
-
     end
+    
+    hot_water_loop = std.model_get_or_add_hot_water_loop(model, central_boiler_fuel_type)
+    
+    units.each do |unit|
+    
+      zones = []
+      unit.spaces.each do |space|
+        zone = space.thermalZone.get
+        next if zones.include? zone
+        zones << zone
+      end
+
+      std.model_add_baseboard(model, hot_water_loop, zones)
+    
+    end
+    
+    if central_boiler_system_type == Constants.BoilerTypeSteam
+      plant_loop = model.getPlantLoopByName("Hot Water Loop").get
+      plant_loop.supplyComponents.each do |supply_component|
+        next unless supply_component.to_PumpVariableSpeed.is_initialized
+        pump = supply_component.to_PumpVariableSpeed.get
+        # TODO: how to zero out the pumping energy?
+      end
+    end
+    
+    simulation_control = model.getSimulationControl
+    simulation_control.setRunSimulationforSizingPeriods(true) # indicate e+ autosizing
 
     runner.registerInfo("Added #{central_boiler_system_type} central boiler and baseboards to the building.")
     

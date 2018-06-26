@@ -2,13 +2,13 @@
   <schema_version>3.0</schema_version>
   <name>process_central_system_boiler_baseboards</name>
   <uid>76aec197-3459-4562-8f74-4741271d9d2f</uid>
-  <version_id>bf2ff936-c18c-49d6-8722-d169212527ec</version_id>
-  <version_modified>20180330T171548Z</version_modified>
+  <version_id>f2149c36-9981-456a-a009-298c50cf7f86</version_id>
+  <version_modified>20180602T030342Z</version_modified>
   <xml_checksum>ED6112BA</xml_checksum>
   <class_name>ProcessCentralSystemBoilerBaseboards</class_name>
   <display_name>ResidentialHVACCentralSystemBoilerBaseboards</display_name>
-  <description>Description</description>
-  <modeler_description>Modeler Description</modeler_description>
+  <description>Adds a central hot water (or steam) boiler to the model. Also adds baseboards to each finished zone.</description>
+  <modeler_description>Adds a hot water (or steam) boiler with variable-speed pump to a single plant loop. Also adds zone hvac convective water objects with coil heating water baseboard objects to the demand side of the plant loop.</modeler_description>
   <arguments>
     <argument>
       <name>central_boiler_system_type</name>
@@ -71,52 +71,22 @@
   </attributes>
   <files>
     <file>
-      <filename>SFA_4units_1story_FB_UA_3Beds_2Baths_Denver.osm</filename>
-      <filetype>osm</filetype>
-      <usage_type>test</usage_type>
-      <checksum>3A762F83</checksum>
-    </file>
-    <file>
       <filename>unit_conversions.rb</filename>
       <filetype>rb</filetype>
       <usage_type>resource</usage_type>
-      <checksum>3E1D973D</checksum>
+      <checksum>91D17463</checksum>
     </file>
     <file>
-      <filename>constants.rb</filename>
+      <filename>util.rb</filename>
       <filetype>rb</filetype>
       <usage_type>resource</usage_type>
-      <checksum>FDA82DA6</checksum>
+      <checksum>A001EED9</checksum>
     </file>
     <file>
-      <filename>MF_8units_1story_SL_3Beds_2Baths_Denver.osm</filename>
-      <filetype>osm</filetype>
-      <usage_type>test</usage_type>
-      <checksum>3BFBCB29</checksum>
-    </file>
-    <file>
-      <filename>geometry.rb</filename>
+      <filename>psychrometrics.rb</filename>
       <filetype>rb</filetype>
       <usage_type>resource</usage_type>
-      <checksum>15FAD11A</checksum>
-    </file>
-    <file>
-      <filename>apply_central_system_to_this.osm</filename>
-      <filetype>osm</filetype>
-      <usage_type>test</usage_type>
-      <checksum>E5AC2128</checksum>
-    </file>
-    <file>
-      <filename>test_simulation_baseboards.osw</filename>
-      <filetype>osw</filetype>
-      <usage_type>test</usage_type>
-      <checksum>3ABB7DC7</checksum>
-    </file>
-    <file>
-      <filename>process_central_system_boiler_baseboards_test.rb</filename>
-      <filetype>rb</filetype>
-      <usage_type>test</usage_type>
-      <checksum>AC3C28CA</checksum>
+      <checksum>208441EA</checksum>
     </file>
     <file>
       <version>
@@ -127,7 +97,127 @@
       <filename>measure.rb</filename>
       <filetype>rb</filetype>
       <usage_type>script</usage_type>
-      <checksum>D41D96DD</checksum>
+      <checksum>159F2955</checksum>
+    </file>
+    <file>
+      <filename>schedules.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>9AD5E2A5</checksum>
+    </file>
+    <file>
+      <filename>constants.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>A2FB817B</checksum>
+    </file>
+    <file>
+      <filename>materials.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>3AF0D408</checksum>
+    </file>
+    <file>
+      <filename>geometry.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>6CA0FF8C</checksum>
+    </file>
+    <file>
+      <filename>hvac.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>30E5B83C</checksum>
+    </file>
+    <file>
+      <filename>process_central_system_boiler_baseboards_test.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>test</usage_type>
+      <checksum>92BFB0E1</checksum>
+    </file>
+    <file>
+      <filename>SFA_4units_1story_SL_UA_3Beds_2Baths_Denver_ASHP.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>B158CDF0</checksum>
+    </file>
+    <file>
+      <filename>SFA_4units_1story_SL_UA_3Beds_2Baths_Denver_Boiler.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>57E4A62A</checksum>
+    </file>
+    <file>
+      <filename>SFA_4units_1story_SL_UA_3Beds_2Baths_Denver_CentralAC.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>7EC64E45</checksum>
+    </file>
+    <file>
+      <filename>SFA_4units_1story_SL_UA_3Beds_2Baths_Denver_ElectricBaseboard.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>A833D662</checksum>
+    </file>
+    <file>
+      <filename>SFA_4units_1story_SL_UA_3Beds_2Baths_Denver_Furnace.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>94311165</checksum>
+    </file>
+    <file>
+      <filename>SFA_4units_1story_SL_UA_3Beds_2Baths_Denver_GSHPVertBore.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>243B3225</checksum>
+    </file>
+    <file>
+      <filename>SFA_4units_1story_SL_UA_3Beds_2Baths_Denver_MSHP.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>CAADC76A</checksum>
+    </file>
+    <file>
+      <filename>SFA_4units_1story_SL_UA_3Beds_2Baths_Denver_RoomAC.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>25B2E40F</checksum>
+    </file>
+    <file>
+      <filename>SFA_4units_1story_SL_UA_3Beds_2Baths_Denver_UnitHeater.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>F4383A5B</checksum>
+    </file>
+    <file>
+      <filename>SFA_4units_1story_SL_UA_3Beds_2Baths_Denver_Central_System_Boiler_Baseboards.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>6BBBBE64</checksum>
+    </file>
+    <file>
+      <filename>SFA_4units_1story_SL_UA_3Beds_2Baths_Denver_Central_System_Fan_Coil.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>5132F987</checksum>
+    </file>
+    <file>
+      <filename>SFA_4units_1story_SL_UA_3Beds_2Baths_Denver_Central_System_PTAC.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>589610CA</checksum>
+    </file>
+    <file>
+      <filename>SFA_4units_1story_FB_UA_3Beds_2Baths_Denver.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>7543A826</checksum>
+    </file>
+    <file>
+      <filename>MF_8units_1story_SL_3Beds_2Baths_Denver.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>77D08484</checksum>
     </file>
   </files>
 </measure>

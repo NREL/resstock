@@ -5,6 +5,7 @@
 require 'erb'
 require 'csv'
 require "#{File.dirname(__FILE__)}/resources/weather"
+require "#{File.dirname(__FILE__)}/resources/unit_conversions"
 
 #start the measure
 class TimeseriesCSVExport < OpenStudio::Measure::ReportingMeasure
@@ -16,16 +17,16 @@ class TimeseriesCSVExport < OpenStudio::Measure::ReportingMeasure
 
   # human readable description
   def description
-    return "Exports all available hourly timeseries enduses to csv, and uses them for utility bill calculations."
+    return "Exports all available hourly timeseries enduses to csv."
   end
 
   # human readable description of modeling approach
   def modeler_description
-    return "Exports all available hourly timeseries enduses to csv, and uses them for utility bill calculations."
+    return "Exports all available hourly timeseries enduses to csv."
   end
 
   def fuel_types
-    fuel_types = [  
+    fuel_types = [
       "Electricity",
       "Gas",
       "DistrictCooling",
@@ -34,10 +35,10 @@ class TimeseriesCSVExport < OpenStudio::Measure::ReportingMeasure
       "FuelOil#1",
       "Propane",
       "ElectricityProduced"
-    ]    
+    ]
     return fuel_types
   end
-  
+
   def end_uses
     end_uses = [
       "Heating",
@@ -54,7 +55,7 @@ class TimeseriesCSVExport < OpenStudio::Measure::ReportingMeasure
       "WaterSystems",
       "Refrigeration",
       "Facility"
-    ]    
+    ]
     return end_uses
   end
 
@@ -86,11 +87,11 @@ class TimeseriesCSVExport < OpenStudio::Measure::ReportingMeasure
     end
     return end_use_subcategories
   end
-  
+
   # define the arguments that the user will input
   def arguments()
     args = OpenStudio::Measure::OSArgumentVector.new
-     
+
     #make an argument for the frequency
     reporting_frequency_chs = OpenStudio::StringVector.new
     reporting_frequency_chs << "Detailed"
@@ -103,28 +104,28 @@ class TimeseriesCSVExport < OpenStudio::Measure::ReportingMeasure
     arg.setDisplayName("Reporting Frequency")
     arg.setDefaultValue("Hourly")
     args << arg
-    
+
     #make an argument for including optional end use subcategories
     arg = OpenStudio::Measure::OSArgument::makeBoolArgument("inc_end_use_subcategories", true)
     arg.setDisplayName("Include End Use Subcategories")
     arg.setDefaultValue(false)
-    args << arg    
-    
+    args << arg
+
     #make an argument for including optional output variables
     arg = OpenStudio::Measure::OSArgument::makeBoolArgument("inc_output_variables", true)
     arg.setDisplayName("Include Output Variables")
     arg.setDefaultValue(false)
     args << arg
-    
+
     #make an argument for optional output variables
     arg = OpenStudio::Measure::OSArgument::makeStringArgument("output_variables", true)
     arg.setDisplayName("Output Variables")
     arg.setDefaultValue("Zone Mean Air Temperature, Zone Mean Air Humidity Ratio, Fan Runtime Fraction")
     args << arg
-    
+
     return args
-  end 
-  
+  end
+
   # return a vector of IdfObject's to request EnergyPlus objects needed by the run method
   def energyPlusOutputRequests(runner, user_arguments)
     super(runner, user_arguments)
@@ -224,10 +225,10 @@ class TimeseriesCSVExport < OpenStudio::Measure::ReportingMeasure
     end_uses.each do |end_use|
       fuel_types.each do |fuel_type|
         variable_name = if end_use == "Facility"
-            "#{fuel_type}:#{end_use}"
-          else
-            "#{end_use}:#{fuel_type}"
-          end
+          "#{fuel_type}:#{end_use}"
+        else
+          "#{end_use}:#{fuel_type}"
+        end
         variables_to_graph << [variable_name, reporting_frequency, ""]
         runner.registerInfo("Exporting #{variable_name}")
       end
@@ -253,7 +254,7 @@ class TimeseriesCSVExport < OpenStudio::Measure::ReportingMeasure
     date_times = []
     cols = []
     variables_to_graph.each_with_index do |var_to_graph, j|
-    
+
       var_name = var_to_graph[0]
       freq = var_to_graph[1]
       kv = var_to_graph[2]
@@ -286,7 +287,7 @@ class TimeseriesCSVExport < OpenStudio::Measure::ReportingMeasure
                   end
       unit_conv = nil
       if ["J", "m^3"].include? old_units
-        unit_conv = OpenStudio.convert(1.0, old_units, new_units).get
+        unit_conv = UnitConversions.convert(1.0, old_units, new_units)
       elsif not (old_units == "C" and new_units == "F")
         unless old_units.empty?
           runner.registerInfo("Have not yet defined a conversion from #{old_units} to other units.")
@@ -300,7 +301,7 @@ class TimeseriesCSVExport < OpenStudio::Measure::ReportingMeasure
         end
         if cols.empty?
           if reporting_frequency == "Hourly"
-            if actual_timestamps.nil?
+            if actual_timestamps.empty?
               date_times << format_datetime(date_time.to_s) # timestamps from the sqlfile (TMY)
             else
               date_times << actual_timestamps[i] # timestamps from the epw (AMY)
@@ -312,7 +313,7 @@ class TimeseriesCSVExport < OpenStudio::Measure::ReportingMeasure
         y_val = values[i]
         if unit_conv.nil? # these unit conversions are not scalars
           if old_units == "C" and new_units == "F"
-            y_val = 1.8 * y_val + 32.0 # convert C to F
+            y_val = UnitConversions.convert(y_val, "C", "F") # convert C to F
           end
         else # these are scalars
           y_val *= unit_conv
@@ -334,7 +335,7 @@ class TimeseriesCSVExport < OpenStudio::Measure::ReportingMeasure
       rows.each do |row|
         csv << row
       end
-    end    
+    end
     csv_path = File.absolute_path(csv_path)
     runner.registerFinalCondition("CSV file saved to <a href='file:///#{csv_path}'>enduse_timeseries.csv</a>.")
 

@@ -1,3 +1,4 @@
+require_relative '../../../test/minitest_helper'
 require 'openstudio'
 require 'openstudio/ruleset/ShowRunnerOutput'
 require 'minitest/autorun'
@@ -10,7 +11,7 @@ class SimulationOutputReportTest < MiniTest::Test
     cost_multipliers = {
                          "Fixed (1)"=>1,
                          "Wall Area, Above-Grade, Conditioned (ft^2)"=>1633.82,
-                         "Wall Area, Above-Grade, Exterior (ft^2)"=>2317.23,
+                         "Wall Area, Above-Grade, Exterior (ft^2)"=>2176.31,
                          "Wall Area, Below-Grade (ft^2)"=>1633.82,
                          "Floor Area, Conditioned (ft^2)"=>4500,
                          "Floor Area, Attic (ft^2)"=>2250,
@@ -20,6 +21,7 @@ class SimulationOutputReportTest < MiniTest::Test
                          "Door Area (ft^2)"=>30,
                          "Duct Surface Area (ft^2)"=>1440,
                          "Size, Heating System (kBtu/h)"=>60, # hp, not backup
+                         "Size, Heating Supplemental System (kBtu/h)"=>100, # backup
                          "Size, Cooling System (kBtu/h)"=>60,
                          "Size, Water Heater (gal)"=>0,
                         }
@@ -30,7 +32,7 @@ class SimulationOutputReportTest < MiniTest::Test
     cost_multipliers = {
                          "Fixed (1)"=>1,
                          "Wall Area, Above-Grade, Conditioned (ft^2)"=>1129.42,
-                         "Wall Area, Above-Grade, Exterior (ft^2)"=>1605.44,
+                         "Wall Area, Above-Grade, Exterior (ft^2)"=>1498.30,
                          "Wall Area, Below-Grade (ft^2)"=>1129.42,
                          "Floor Area, Conditioned (ft^2)"=>2000,
                          "Floor Area, Attic (ft^2)"=>1000,
@@ -50,7 +52,7 @@ class SimulationOutputReportTest < MiniTest::Test
     cost_multipliers = {
                          "Fixed (1)"=>1,
                          "Wall Area, Above-Grade, Conditioned (ft^2)"=>1828.95,
-                         "Wall Area, Above-Grade, Exterior (ft^2)"=>2331.27,
+                         "Wall Area, Above-Grade, Exterior (ft^2)"=>2245.61,
                          "Wall Area, Below-Grade (ft^2)"=>1828.95,
                          "Floor Area, Conditioned (ft^2)"=>3000,
                          "Floor Area, Attic (ft^2)"=>3000,
@@ -60,6 +62,7 @@ class SimulationOutputReportTest < MiniTest::Test
                          "Door Area (ft^2)"=>40,
                          "Duct Surface Area (ft^2)"=>1110,
                          "Size, Heating System (kBtu/h)"=>60, # hp, not backup
+                         "Size, Heating Supplemental System (kBtu/h)"=>100, # backup
                          "Size, Cooling System (kBtu/h)"=>60,
                          "Size, Water Heater (gal)"=>50,
                         }
@@ -70,7 +73,7 @@ class SimulationOutputReportTest < MiniTest::Test
     cost_multipliers = {
                          "Fixed (1)"=>1,
                          "Wall Area, Above-Grade, Conditioned (ft^2)"=>2275.56,
-                         "Wall Area, Above-Grade, Exterior (ft^2)"=>3188.86,
+                         "Wall Area, Above-Grade, Exterior (ft^2)"=>3130.55,
                          "Wall Area, Below-Grade (ft^2)"=>2275.56,
                          "Floor Area, Conditioned (ft^2)"=>4500,
                          "Floor Area, Attic (ft^2)"=>4500,
@@ -110,7 +113,7 @@ class SimulationOutputReportTest < MiniTest::Test
     cost_multipliers = {
                          "Fixed (1)"=>1,
                          "Wall Area, Above-Grade, Conditioned (ft^2)"=>2778.52,
-                         "Wall Area, Above-Grade, Exterior (ft^2)"=>3233.22,
+                         "Wall Area, Above-Grade, Exterior (ft^2)"=>3196.86,
                          "Wall Area, Below-Grade (ft^2)"=>646.63,
                          "Floor Area, Conditioned (ft^2)"=>3000,
                          "Floor Area, Attic (ft^2)"=>1644,
@@ -120,6 +123,7 @@ class SimulationOutputReportTest < MiniTest::Test
                          "Door Area (ft^2)"=>20,
                          "Duct Surface Area (ft^2)"=>960,
                          "Size, Heating System (kBtu/h)"=>60, # hp, not backup
+                         "Size, Heating Supplemental System (kBtu/h)"=>100, # backup
                          "Size, Cooling System (kBtu/h)"=>60,
                          "Size, Water Heater (gal)"=>0,
                         }
@@ -130,7 +134,7 @@ class SimulationOutputReportTest < MiniTest::Test
     cost_multipliers = {
                          "Fixed (1)"=>1,
                          "Wall Area, Above-Grade, Conditioned (ft^2)"=>2819.59,
-                         "Wall Area, Above-Grade, Exterior (ft^2)"=>3321.24,
+                         "Wall Area, Above-Grade, Exterior (ft^2)"=>3244.58,
                          "Wall Area, Below-Grade (ft^2)"=>1313.79,
                          "Floor Area, Conditioned (ft^2)"=>4500,
                          "Floor Area, Attic (ft^2)"=>1692,
@@ -146,11 +150,31 @@ class SimulationOutputReportTest < MiniTest::Test
     _test_cost_multipliers("SFD_2story_FB_UA_GRG_AC1_ElecBaseboard_FuelTankWH.osm", cost_multipliers)       
   end
     
+  def test_SFD_2story_FB_UA_GRG_AC1_UnitHeater_FuelTankWH
+    cost_multipliers = {
+                         "Fixed (1)"=>1,
+                         "Wall Area, Above-Grade, Conditioned (ft^2)"=>2819.59,
+                         "Wall Area, Above-Grade, Exterior (ft^2)"=>3244.58,
+                         "Wall Area, Below-Grade (ft^2)"=>1313.79,
+                         "Floor Area, Conditioned (ft^2)"=>4500,
+                         "Floor Area, Attic (ft^2)"=>1692,
+                         "Floor Area, Lighting (ft^2)"=>4788,
+                         "Roof Area (ft^2)"=>1891.72,
+                         "Window Area (ft^2)"=>468.61,
+                         "Door Area (ft^2)"=>20,
+                         "Duct Surface Area (ft^2)"=>1620,
+                         "Size, Heating System (kBtu/h)"=>100,
+                         "Size, Cooling System (kBtu/h)"=>60,
+                         "Size, Water Heater (gal)"=>40,
+                        }
+    _test_cost_multipliers("SFD_2story_FB_UA_GRG_AC1_UnitHeater_FuelTankWH.osm", cost_multipliers)       
+  end
+    
   def test_SFD_2story_FB_UA_GRG_GSHP_ElecTanklessWH
     cost_multipliers = {
                          "Fixed (1)"=>1,
                          "Wall Area, Above-Grade, Conditioned (ft^2)"=>2819.58,
-                         "Wall Area, Above-Grade, Exterior (ft^2)"=>3281.41,
+                         "Wall Area, Above-Grade, Exterior (ft^2)"=>3244.58,
                          "Wall Area, Below-Grade (ft^2)"=>1313.79,
                          "Floor Area, Conditioned (ft^2)"=>4500,
                          "Floor Area, Attic (ft^2)"=>1692,
@@ -159,7 +183,8 @@ class SimulationOutputReportTest < MiniTest::Test
                          "Window Area (ft^2)"=>311.03,
                          "Door Area (ft^2)"=>30,
                          "Duct Surface Area (ft^2)"=>1620,
-                         "Size, Heating System (kBtu/h)"=>60,
+                         "Size, Heating System (kBtu/h)"=>60, # hp, not backup
+                         "Size, Heating Supplemental System (kBtu/h)"=>100, # backup
                          "Size, Cooling System (kBtu/h)"=>60,
                          "Size, Water Heater (gal)"=>0,
                         }
@@ -170,7 +195,7 @@ class SimulationOutputReportTest < MiniTest::Test
     cost_multipliers = {
                          "Fixed (1)"=>1,
                          "Wall Area, Above-Grade, Conditioned (ft^2)"=>2111.89,
-                         "Wall Area, Above-Grade, Exterior (ft^2)"=>2829.89,
+                         "Wall Area, Above-Grade, Exterior (ft^2)"=>2778.75,
                          "Wall Area, Below-Grade (ft^2)"=>0,
                          "Floor Area, Conditioned (ft^2)"=>2000,
                          "Floor Area, Attic (ft^2)"=>1000,
@@ -200,10 +225,49 @@ class SimulationOutputReportTest < MiniTest::Test
                          "Door Area (ft^2)"=>40,
                          "Duct Surface Area (ft^2)"=>960,
                          "Size, Heating System (kBtu/h)"=>60, # hp, not backup
+                         "Size, Heating Supplemental System (kBtu/h)"=>100, # backup
                          "Size, Cooling System (kBtu/h)"=>60,
                          "Size, Water Heater (gal)"=>0,
                         }
-    _test_cost_multipliers("SFD_2story_S_UA_GRG_ASHP1_FuelTanklessWH.osm", cost_multipliers)       
+    _test_cost_multipliers("SFD_2story_S_UA_GRG_ASHP1_FuelTanklessWH.osm", cost_multipliers)
+  end
+  
+  def test_SFA_2story_UB_Furnace_RoomAC_FuelTankWH
+    cost_multipliers = {
+                         "Fixed (1)"=>1,
+                         "Wall Area, Above-Grade, Conditioned (ft^2)"=>2187.32,
+                         "Wall Area, Above-Grade, Exterior (ft^2)"=>2299.82,
+                         "Wall Area, Below-Grade (ft^2)"=>1093.66,
+                         "Floor Area, Conditioned (ft^2)"=>2000,
+                         "Floor Area, Attic (ft^2)"=>1000,
+                         "Floor Area, Lighting (ft^2)"=>2000,
+                         "Roof Area (ft^2)"=>1118.03,
+                         "Window Area (ft^2)"=>376.30,
+                         "Door Area (ft^2)"=>80,
+                         "Size, Heating System (kBtu/h)"=>45.16,
+                         "Size, Cooling System (kBtu/h)"=>19.93,
+                         "Size, Water Heater (gal)"=>120,
+                        }
+    _test_cost_multipliers("SFA_2story_UB_Furnace_RoomAC_FuelTankWH.osm", cost_multipliers)
+  end
+  
+  def test_MF_2story_UB_Furnace_AC1_FuelTankWH
+    cost_multipliers = {
+                         "Fixed (1)"=>1,
+                         "Wall Area, Above-Grade, Conditioned (ft^2)"=>2986.66,
+                         "Wall Area, Above-Grade, Exterior (ft^2)"=>3306.66,
+                         "Wall Area, Below-Grade (ft^2)"=>1653.33,
+                         "Floor Area, Conditioned (ft^2)"=>4000,
+                         "Floor Area, Attic (ft^2)"=>0,
+                         "Floor Area, Lighting (ft^2)"=>4000,
+                         "Roof Area (ft^2)"=>2333.33,
+                         "Window Area (ft^2)"=>537.60,
+                         "Door Area (ft^2)"=>160,
+                         "Size, Heating System (kBtu/h)"=>62,
+                         "Size, Cooling System (kBtu/h)"=>32,
+                         "Size, Water Heater (gal)"=>240,
+                        }
+    _test_cost_multipliers("MF_2story_UB_Furnace_AC1_FuelTankWH.osm", cost_multipliers)
   end
     
   private
@@ -223,8 +287,8 @@ class SimulationOutputReportTest < MiniTest::Test
     runner = OpenStudio::Measure::OSRunner.new(OpenStudio::WorkflowJSON.new)
     
     # Check for correct cost multiplier values
-    conditioned_zones = measure.get_conditioned_zones(model)
     cost_multipliers.each do |mult_type, mult_value|
+      conditioned_zones = measure.get_conditioned_zones(model)
       value = measure.get_cost_multiplier(mult_type, model, runner, conditioned_zones)
       assert(!value.nil?)
       if mult_type.include? "ft^2" or mult_type.include? "gal"

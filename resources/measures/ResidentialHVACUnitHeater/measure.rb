@@ -9,8 +9,6 @@
 
 require "#{File.dirname(__FILE__)}/resources/constants"
 require "#{File.dirname(__FILE__)}/resources/geometry"
-require "#{File.dirname(__FILE__)}/resources/util"
-require "#{File.dirname(__FILE__)}/resources/unit_conversions"
 require "#{File.dirname(__FILE__)}/resources/hvac"
 
 #start the measure
@@ -40,43 +38,43 @@ class ProcessUnitHeater < OpenStudio::Measure::ModelMeasure
     fuel_display_names << Constants.FuelTypeOil
     fuel_display_names << Constants.FuelTypePropane
     fuel_display_names << Constants.FuelTypeWood
-    fueltype = OpenStudio::Measure::OSArgument::makeChoiceArgument("fuel_type", fuel_display_names, true)
-    fueltype.setDisplayName("Fuel Type")
-    fueltype.setDescription("Type of fuel used for heating.")
-    fueltype.setDefaultValue(Constants.FuelTypeGas)
-    args << fueltype  
+    fuel_type = OpenStudio::Measure::OSArgument::makeChoiceArgument("fuel_type", fuel_display_names, true)
+    fuel_type.setDisplayName("Fuel Type")
+    fuel_type.setDescription("Type of fuel used for heating.")
+    fuel_type.setDefaultValue(Constants.FuelTypeGas)
+    args << fuel_type  
     
     #make an argument for entering efficiency
-    heatereff = OpenStudio::Measure::OSArgument::makeDoubleArgument("efficiency",true)
-    heatereff.setDisplayName("Efficiency")
-    heatereff.setUnits("Btu/Btu")
-    heatereff.setDescription("The efficiency of the heater.")
-    heatereff.setDefaultValue(0.78)
-    args << heatereff
+    efficiency = OpenStudio::Measure::OSArgument::makeDoubleArgument("efficiency",true)
+    efficiency.setDisplayName("Efficiency")
+    efficiency.setUnits("Btu/Btu")
+    efficiency.setDescription("The efficiency of the heater.")
+    efficiency.setDefaultValue(0.78)
+    args << efficiency
 
     #make an argument for entering fan power
-    fanpower = OpenStudio::Measure::OSArgument::makeDoubleArgument("fan_power",true)
-    fanpower.setDisplayName("Fan Power")
-    fanpower.setUnits("W/cfm")
-    fanpower.setDescription("Fan power (in W) per delivered airflow rate (in cfm) of the fan. A value of 0 implies there is no fan.")
-    fanpower.setDefaultValue(0.0)
-    args << fanpower    
+    fan_power = OpenStudio::Measure::OSArgument::makeDoubleArgument("fan_power",true)
+    fan_power.setDisplayName("Fan Power")
+    fan_power.setUnits("W/cfm")
+    fan_power.setDescription("Fan power (in W) per delivered airflow rate (in cfm) of the fan. A value of 0 implies there is no fan.")
+    fan_power.setDefaultValue(0.0)
+    args << fan_power    
     
     #make an argument for entering airflow rate
-    airflow = OpenStudio::Measure::OSArgument::makeDoubleArgument("airflow",true)
-    airflow.setDisplayName("Airflow Rate")
-    airflow.setUnits("cfm/ton")
-    airflow.setDescription("Fan airflow rate as a function of heating capacity. A value of 0 implies there is no fan.")
-    airflow.setDefaultValue(0.0)
-    args << airflow    
+    airflow_rate = OpenStudio::Measure::OSArgument::makeDoubleArgument("airflow_rate",true)
+    airflow_rate.setDisplayName("Airflow Rate")
+    airflow_rate.setUnits("cfm/ton")
+    airflow_rate.setDescription("Fan airflow rate as a function of heating capacity. A value of 0 implies there is no fan.")
+    airflow_rate.setDefaultValue(0.0)
+    args << airflow_rate    
     
     #make a string argument for heating output capacity
-    heatercap = OpenStudio::Measure::OSArgument::makeStringArgument("capacity", true)
-    heatercap.setDisplayName("Heating Capacity")
-    heatercap.setDescription("The output heating capacity of the heater. If using '#{Constants.SizingAuto}', the autosizing algorithm will use ACCA Manual S to set the capacity.")
-    heatercap.setUnits("kBtu/hr")
-    heatercap.setDefaultValue(Constants.SizingAuto)
-    args << heatercap
+    capacity = OpenStudio::Measure::OSArgument::makeStringArgument("capacity", true)
+    capacity.setDisplayName("Heating Capacity")
+    capacity.setDescription("The output heating capacity of the heater. If using '#{Constants.SizingAuto}', the autosizing algorithm will use ACCA Manual S to set the capacity.")
+    capacity.setUnits("kBtu/hr")
+    capacity.setDefaultValue(Constants.SizingAuto)
+    args << capacity
     
     return args
   end #end the arguments method
@@ -90,102 +88,35 @@ class ProcessUnitHeater < OpenStudio::Measure::ModelMeasure
       return false
     end
     
-    heaterFuelType = runner.getStringArgumentValue("fuel_type",user_arguments)
-    heaterEfficiency = runner.getDoubleArgumentValue("efficiency",user_arguments)
-    heaterOutputCapacity = runner.getStringArgumentValue("capacity",user_arguments)
-    if not heaterOutputCapacity == Constants.SizingAuto
-      heaterOutputCapacity = UnitConversions.convert(heaterOutputCapacity.to_f,"kBtu/hr","Btu/hr")
+    fuel_type = runner.getStringArgumentValue("fuel_type",user_arguments)
+    efficiency = runner.getDoubleArgumentValue("efficiency",user_arguments)
+    capacity = runner.getStringArgumentValue("capacity",user_arguments)
+    if not capacity == Constants.SizingAuto
+      capacity = UnitConversions.convert(capacity.to_f,"kBtu/hr","Btu/hr")
     end
-    heaterFanPower = runner.getDoubleArgumentValue("fan_power",user_arguments)
-    heaterAirflow = runner.getDoubleArgumentValue("airflow",user_arguments)
+    fan_power = runner.getDoubleArgumentValue("fan_power",user_arguments)
+    airflow_rate = runner.getDoubleArgumentValue("airflow_rate",user_arguments)
     
-    if heaterFanPower > 0 and heaterAirflow == 0
-      runner.registerError("If Fan Power > 0, then Airflow Rate cannot be zero.")
-      return false
-    end
-    
-    # _processAirSystem
-    
-    static = UnitConversions.convert(0.5,"inH2O","Pa") # Pascal
-
     # Get building units
     units = Geometry.get_building_units(model, runner)
     if units.nil?
-        return false
+      return false
     end
     
     units.each do |unit|
     
-      obj_name = Constants.ObjectNameUnitHeater(heaterFuelType, unit.name.to_s)
-    
       thermal_zones = Geometry.get_thermal_zones_from_spaces(unit.spaces)
-
-      control_slave_zones_hash = HVAC.get_control_and_slave_zones(thermal_zones)
-      control_slave_zones_hash.each do |control_zone, slave_zones|
-      
+      HVAC.get_control_and_slave_zones(thermal_zones).each do |control_zone, slave_zones|
         ([control_zone] + slave_zones).each do |zone|
-      
-          # Remove existing equipment
-          HVAC.remove_existing_hvac_equipment(model, runner, Constants.ObjectNameUnitHeater, zone, true, unit)
-          
-          # _processSystemHeatingCoil
-
-          htg_coil = OpenStudio::Model::CoilHeatingGas.new(model)
-          htg_coil.setName(obj_name + " heating coil")
-          htg_coil.setGasBurnerEfficiency(heaterEfficiency)
-          if heaterOutputCapacity != Constants.SizingAuto
-            htg_coil.setNominalCapacity(UnitConversions.convert(heaterOutputCapacity,"Btu/hr","W")) # Used by HVACSizing measure
-          end
-          htg_coil.setParasiticElectricLoad(0.0)
-          htg_coil.setParasiticGasLoad(0)
-          htg_coil.setFuelType(HelperMethods.eplus_fuel_map(heaterFuelType))
-          
-          
-          fan = OpenStudio::Model::FanOnOff.new(model, model.alwaysOnDiscreteSchedule)
-          fan.setName(obj_name + " fan")
-          fan.setEndUseSubcategory(Constants.EndUseHVACFan)
-          if heaterFanPower > 0
-            fan.setFanEfficiency(UnitConversions.convert(static / heaterFanPower,"cfm","m^3/s")) # Overall Efficiency of the Fan, Motor and Drive
-            fan.setPressureRise(static)
-            fan.setMotorEfficiency(1.0)
-            fan.setMotorInAirstreamFraction(1.0)  
-          else
-            fan.setFanEfficiency(1) # Overall Efficiency of the Fan, Motor and Drive
-            fan.setPressureRise(0)
-            fan.setMotorEfficiency(1.0)
-            fan.setMotorInAirstreamFraction(1.0)  
-          end
-          
-        
-          # _processSystemAir
-          
-          unitary_system = OpenStudio::Model::AirLoopHVACUnitarySystem.new(model)
-          unitary_system.setName(obj_name + " unitary system")
-          unitary_system.setAvailabilitySchedule(model.alwaysOnDiscreteSchedule)
-          unitary_system.setHeatingCoil(htg_coil)
-          unitary_system.setSupplyAirFlowRateMethodDuringCoolingOperation("SupplyAirFlowRate")
-          unitary_system.setSupplyAirFlowRateDuringCoolingOperation(0.00001)
-          unitary_system.setSupplyFan(fan)
-          unitary_system.setFanPlacement("BlowThrough")
-          unitary_system.setSupplyAirFanOperatingModeSchedule(model.alwaysOffDiscreteSchedule)
-          unitary_system.setMaximumSupplyAirTemperature(UnitConversions.convert(120.0,"F","C"))      
-          unitary_system.setSupplyAirFlowRateWhenNoCoolingorHeatingisRequired(0)
-
-          #unitary_system.addToNode(air_supply_inlet_node)
-
-          runner.registerInfo("Added '#{fan.name}' to '#{unitary_system.name}''")
-          runner.registerInfo("Added '#{htg_coil.name}' to '#{unitary_system.name}'")
-
-          unitary_system.setControllingZoneorThermostatLocation(zone)
-          unitary_system.addToThermalZone(zone)
-
-          HVAC.prioritize_zone_hvac(model, runner, zone)
-          
+          HVAC.remove_hvac_equipment(model, runner, zone, unit,
+                                     Constants.ObjectNameUnitHeater)
         end
-      
       end
-      
-      unit.setFeature(Constants.SizingInfoHVACRatedCFMperTonHeating, heaterAirflow.to_s)
+    
+      success = HVAC.apply_unit_heater(model, unit, runner, fuel_type,
+                                       efficiency, capacity, fan_power,
+                                       airflow_rate)
+      return false if not success
       
     end
     
