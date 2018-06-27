@@ -49,7 +49,9 @@ dependency_dict = {
                    'education': 'Education',
                    'acothers': 'Cooling Shared',
                    'heatoth': 'Heating Shared',
-                   'cenachp': 'Cooling Heat Pump'
+                   'cenachp': 'Cooling Heat Pump',
+                   'FPL_BINS':  'Federal Poverty Level',
+                   'nweight': 'Weight'
                   }
 
 bldg_typ_dict = {1: 'Mobile Home',
@@ -788,7 +790,6 @@ def shared_system(df):
     return df
 
 
-
 def regenerate():
     # Use this to regenerate processed data if changes are made to any of the classes below
     df = retrieve_data()
@@ -1211,8 +1212,9 @@ def query(df):
     #    calc_general(df, dependency=['CR', 'Vintage', 'fuelheat'], options=['equipm'],
     #        outfile='heatingequipment_output_by_CR_fuel_vintage.tsv')
     #     calc_general(df, dependency=['Location Region'], options=['Building Type'], outfile='Geometry Building Type.tsv', outpath='../../../project_resstock_multifamily/housing_characteristics')
-        calc_general(df, dependency=[ 'Location Region', 'Vintage', 'Heating Fuel', 'Shared System'], options=['Cooling Heat Pump'], outfile='HVAC System Is Combined.tsv',
-                 outpath='../../../project_resstock_multifamily/housing_characteristics')
+    #     calc_general(df, dependency=[ 'Location Region', 'Vintage', 'Heating Fuel', 'Shared System'], options=['Cooling Heat Pump'], outfile='HVAC System Is Combined.tsv',
+    #              outpath='../../../project_resstock_multifamily/housing_characteristics')
+        df.to_csv(r'C:/Users/mpathak/Documents/Github/OpenStudio-BuildStock MF/data/recs/recs/recs_mf.csv')
         pass
 
 
@@ -1224,6 +1226,7 @@ if __name__ == '__main__':
 
     df = regenerate()
     df = pd.read_pickle('processed_eia.recs_2009_microdata.pkl')
+
     query(df)
     # med_avg('Size','tothsqft',df,'Sizes_mean_median.tsv')
     # med_avg('income_range','rand_income',df,'Income_mean_median.tsv')
