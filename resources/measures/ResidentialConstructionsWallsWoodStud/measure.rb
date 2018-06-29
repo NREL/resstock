@@ -103,7 +103,7 @@ class ProcessConstructionsWallsWoodStud < OpenStudio::Measure::ModelMeasure
     exterior_finish.setDescription("The exterior finish material.")
     exterior_finish.setDefaultValue(Material.ExtFinishVinylLight.name)
     args << exterior_finish
-        
+
     return args
   end #end the arguments method
 
@@ -128,7 +128,7 @@ class ProcessConstructionsWallsWoodStud < OpenStudio::Measure::ModelMeasure
     osb_thick_in = runner.getDoubleArgumentValue("osb_thick_in",user_arguments)
     rigid_r = runner.getDoubleArgumentValue("rigid_r",user_arguments)
     mat_ext_finish = WallConstructions.get_exterior_finish_material(runner.getStringArgumentValue("exterior_finish",user_arguments))
-    
+
     # Apply constructions
     if not WallConstructions.apply_wood_stud(runner, model,
                                              walls_by_type[Constants.SurfaceTypeWallExtInsFin], 
@@ -166,7 +166,7 @@ class ProcessConstructionsWallsWoodStud < OpenStudio::Measure::ModelMeasure
                                           drywall_thick_in)
         return false
     end
-    
+
     # Remove any constructions/materials that aren't used
     HelperMethods.remove_unused_constructions_and_materials(model, runner)
 
