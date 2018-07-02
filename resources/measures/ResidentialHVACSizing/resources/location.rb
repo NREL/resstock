@@ -68,6 +68,7 @@ class Location
     def self.apply_climate_zones(model, runner, epw_file)
       
         ba_zone = get_climate_zone_ba(epw_file.wmoNumber)
+        return true if ba_zone.nil?
         climateZones = model.getClimateZones
         climateZones.setClimateZone(Constants.BuildingAmericaClimateZone, ba_zone)
         runner.registerInfo("Setting #{Constants.BuildingAmericaClimateZone} climate zone to #{ba_zone}.")
@@ -143,7 +144,7 @@ class Location
     end
    
     def self.get_climate_zone_ba(wmo)
-        ba_zone = "NA"
+        ba_zone = nil
 
         zones_csv = File.join(File.dirname(__FILE__), "climate_zones.csv")
         if not File.exists?(zones_csv)

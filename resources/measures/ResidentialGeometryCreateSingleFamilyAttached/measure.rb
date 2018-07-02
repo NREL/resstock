@@ -172,23 +172,6 @@ class CreateResidentialSingleFamilyAttachedGeometry < OpenStudio::Measure::Model
     eaves_depth.setDefaultValue(2.0)
     args << eaves_depth
 
-    #make a choice argument for model objects
-    building_facades = OpenStudio::StringVector.new
-    building_facades << Constants.FacadeNone
-    building_facades << Constants.FacadeBack
-    building_facades << Constants.FacadeLeft
-    building_facades << Constants.FacadeRight
-    building_facades << "#{Constants.FacadeLeft}, #{Constants.FacadeRight}"
-    building_facades << "#{Constants.FacadeLeft}, #{Constants.FacadeBack}"
-    building_facades << "#{Constants.FacadeBack}, #{Constants.FacadeRight}"
-
-    #make an argument for shared building facade
-    shared_building_facades = OpenStudio::Measure::OSArgument::makeChoiceArgument("shared_building_facades", building_facades, true)
-    shared_building_facades.setDisplayName("Shared Building Facade(s)")
-    shared_building_facades.setDescription("The facade(s) of the building that are shared. Surfaces on these facades become adiabatic.")
-    shared_building_facades.setDefaultValue(Constants.FacadeNone)
-    args << shared_building_facades
-
     #make a string argument for number of bedrooms
     num_br = OpenStudio::Measure::OSArgument::makeStringArgument("num_bedrooms", false)
     num_br.setDisplayName("Number of Bedrooms")
@@ -297,7 +280,6 @@ class CreateResidentialSingleFamilyAttachedGeometry < OpenStudio::Measure::Model
     roof_pitch = {"1:12"=>1.0/12.0, "2:12"=>2.0/12.0, "3:12"=>3.0/12.0, "4:12"=>4.0/12.0, "5:12"=>5.0/12.0, "6:12"=>6.0/12.0, "7:12"=>7.0/12.0, "8:12"=>8.0/12.0, "9:12"=>9.0/12.0, "10:12"=>10.0/12.0, "11:12"=>11.0/12.0, "12:12"=>12.0/12.0}[runner.getStringArgumentValue("roof_pitch",user_arguments)]
     roof_structure = runner.getStringArgumentValue("roof_structure",user_arguments)
     eaves_depth = UnitConversions.convert(runner.getDoubleArgumentValue("eaves_depth",user_arguments),"ft","m")
-    shared_building_facades = runner.getStringArgumentValue("shared_building_facades",user_arguments)
     num_br = runner.getStringArgumentValue("num_bedrooms", user_arguments).split(",").map(&:strip)
     num_ba = runner.getStringArgumentValue("num_bathrooms", user_arguments).split(",").map(&:strip)
     num_occupants = runner.getStringArgumentValue("num_occupants",user_arguments)
@@ -875,27 +857,6 @@ class CreateResidentialSingleFamilyAttachedGeometry < OpenStudio::Measure::Model
     # intersect and match surfaces for each space in the vector
     OpenStudio::Model.intersectSurfaces(spaces)
     OpenStudio::Model.matchSurfaces(spaces)
-
-    # Make shared building facade surfaces adiabatic
-    if shared_building_facades != Constants.FacadeNone
-      mat = OpenStudio::Model::MasslessOpaqueMaterial.new(model)
-      mat.setName(Constants.SurfaceTypeAdiabatic)
-      mat.setRoughness("Rough")
-      mat.setThermalResistance(UnitConversions.convert(1000.0, "hr*ft^2*F/Btu", "m^2*K/W"))
-      constr = OpenStudio::Model::Construction.new(model)
-      constr.setName(Constants.SurfaceTypeAdiabatic)
-      constr.setLayers([mat])
-      shared_building_facades = shared_building_facades.split(", ")
-      shared_building_facades.each do |shared_building_facade|
-        model.getSurfaces.each do |surface|
-          next unless surface.surfaceType.downcase == "wall"
-          next unless surface.outsideBoundaryCondition.downcase == "outdoors"
-          next if surface.adjacentSurface.is_initialized
-          next unless Geometry.get_facade_for_surface(surface) == shared_building_facade
-          surface.setConstruction(constr)
-        end
-      end
-    end
 
     # set foundation outside boundary condition to Kiva "foundation"
     model.getSurfaces.each do |surface|

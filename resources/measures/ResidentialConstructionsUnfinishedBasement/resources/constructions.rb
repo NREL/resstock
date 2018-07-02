@@ -725,6 +725,30 @@ class WallConstructions
         return true
     end
     
+    def self.apply_adiabatic(runner, model, shared_building_facades)
+
+      mat = OpenStudio::Model::MasslessOpaqueMaterial.new(model)
+      mat.setName(Constants.SurfaceTypeAdiabatic)
+      mat.setRoughness("Rough")
+      mat.setThermalResistance(UnitConversions.convert(1000.0, "hr*ft^2*F/Btu", "m^2*K/W"))
+      constr = OpenStudio::Model::Construction.new(model)
+      constr.setName(Constants.SurfaceTypeAdiabatic)
+      constr.setLayers([mat])
+      shared_building_facades = shared_building_facades.split(", ")
+      shared_building_facades.each do |shared_building_facade|
+        model.getSurfaces.each do |surface|
+          next unless surface.surfaceType.downcase == "wall"
+          next unless ["outdoors", "foundation"].include? surface.outsideBoundaryCondition.downcase
+          next if surface.adjacentSurface.is_initialized
+          next unless Geometry.get_facade_for_surface(surface) == shared_building_facade
+          surface.setConstruction(constr)
+          surface.setOutsideBoundaryCondition("Adiabatic")
+          runner.registerInfo("Surface '#{surface.name}' on #{shared_building_facade} facade is now a shared wall.")
+        end
+      end
+
+    end
+    
     def self.get_exterior_finish_materials
         mats = []
         mats << Material.ExtFinishStuccoMedDark
@@ -2430,7 +2454,7 @@ class SurfaceTypes
                 # Adiabatic unfinished
                 elsif obc_is_adiabatic and not is_finished
                     surfaces[Constants.SurfaceTypeWallIntUnfinUninsUnfin] << surface
-                
+
                 end
             
             end
