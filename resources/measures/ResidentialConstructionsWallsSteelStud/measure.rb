@@ -111,7 +111,7 @@ class ProcessConstructionsWallsSteelStud < OpenStudio::Measure::ModelMeasure
     exterior_finish.setDescription("The exterior finish material.")
     exterior_finish.setDefaultValue(Material.ExtFinishVinylLight.name)
     args << exterior_finish
-
+    
     return args
   end
 
