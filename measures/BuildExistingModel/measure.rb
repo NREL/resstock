@@ -40,7 +40,12 @@ class BuildExistingModel < OpenStudio::Ruleset::ModelUserScript
     number_of_buildings_represented.setDisplayName("Number of Buildings Represented")
     number_of_buildings_represented.setDescription("The total number of buildings represented by the existing building models.")
     args << number_of_buildings_represented
-    
+
+    sample_weight = OpenStudio::Ruleset::OSArgument.makeDoubleArgument("sample_weight", false)
+    sample_weight.setDisplayName("Sample Weight of Simulation")
+    sample_weight.setDescription("Number of buildings this simulation represents.")
+    args << sample_weight
+
     return args
   end
 
@@ -56,6 +61,7 @@ class BuildExistingModel < OpenStudio::Ruleset::ModelUserScript
     building_id = runner.getIntegerArgumentValue("building_id",user_arguments)
     workflow_json = runner.getOptionalStringArgumentValue("workflow_json",user_arguments)
     number_of_buildings_represented = runner.getOptionalIntegerArgumentValue("number_of_buildings_represented",user_arguments)
+    sample_weight = runner.getOptionalDoubleArgumentValue("sample_weight",user_arguments)
     
     # Get file/dir paths
     resources_dir = File.absolute_path(File.join(File.dirname(__FILE__), "..", "..", "lib", "resources")) # Should have been uploaded per 'Additional Analysis Files' in PAT
@@ -104,7 +110,7 @@ class BuildExistingModel < OpenStudio::Ruleset::ModelUserScript
     end
     
     # Determine weight
-    if not number_of_buildings_represented.nil?
+    if number_of_buildings_represented.is_initialized
         total_samples = nil
         runner.analysis[:analysis][:problem][:workflow].each do |wf|
             next if wf[:name] != 'build_existing_model'
@@ -119,6 +125,10 @@ class BuildExistingModel < OpenStudio::Ruleset::ModelUserScript
         end
         weight = number_of_buildings_represented.get / total_samples
         register_value(runner, "weight", weight.to_s)
+    end
+
+    if sample_weight.is_initialized
+        register_value(runner, "weight", sample_weight.get.to_s)
     end
     
     if not workflow_json.nil?
