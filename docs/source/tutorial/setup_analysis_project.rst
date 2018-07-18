@@ -3,18 +3,18 @@ Set Up the Analysis Project
 
 Open PAT and open one of the analysis project folders:
 
- - project_resstock_dsgrid
+ - project_resstock_comed
+ - project_resstock_efs
  - project_resstock_national
  - project_resstock_pnw
  - project_resstock_testing
 
 For this example we'll use the project_resstock_national analysis. Select "Open Existing Project" and choose the project_resstock_national directory in the repository you just downloaded. You may be asked if you want "mongod" to accept incoming connections. Select "Allow".
 
-You will leave the settings in **Algorithm Settings**, **Additional Analysis Files**, and **Server Scripts** alone for most analyses. 
+You will leave dropdown options for **Algorithmic Method**, **Default Seed Model**, and **Default Weather File** alone. Additionally, you will leave the settings in **Algorithm Settings**, **Additional Analysis Files**, and **Server Scripts** alone for most analyses. 
 
 .. note::
    
-   The **Algorithm Settings > Number of Samples** input is not where the number of simulations is set.
    The number of simulations per upgrade scenario is set in :ref:`build-existing-model`.
   
 Server Scripts
@@ -22,10 +22,14 @@ Server Scripts
 
 Although you will leave these settings alone for most analyses, you do have the ability to change arguments for initialization and finalization scripts that are run on the remote server. In the case you want to change the set of epw weather files used for your project, see :ref:`worker-initialization-script`.
 
+.. _server-initialization-script:
+
 Server Initialization Script
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Ignore this for now.
+
+.. _server-finalization-script:
 
 Server Finalization Script
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -58,6 +62,8 @@ To zip and upload new weather files to the S3 bucket:
 .. note::
 
    Changing this path from the default will most likely require additional changes to your project. Any weather file names in your ``housing_characteristics`` folder's tsv files will need to be updated to reflect those in the S3 bucket file. Any simulation on the remote server that points to an invalid weather file path will fail.
+ 
+.. _worker-finalization-script:
  
 Worker Finalization Script
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -106,6 +112,20 @@ Reporting Measures
 
 Scroll down to the bottom on the measures selection tab, and you will see the **Reporting Measures** section. This section is where you can request timeseries data and utility bills for the analysis. In general, reporting measures process data after the simulation has finished and produced results. As a note, make sure that the **Timeseries CSV Export** and **Utility Bill Calculations** measures are placed before the **Server Directory Cleanup** measure.
 
+.. _building-characteristics-report:
+
+Building Charactertistics Report
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Leave this alone.
+
+.. _simulation-output-report:
+
+Simulation Output Report
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+Leave this alone.
+
 .. _timeseries-csv-export:
 
 Timeseries CSV Export
@@ -118,53 +138,18 @@ If you do not need the timeseries data for your simulations, you can skip this m
 **Reporting Frequency**
   The timeseries data will be reported at hourly intervals unless otherwise specified. Other options include Detailed, Timestep, Daily, Monthly, and RunPeriod.
 
+**Include End Use Subcategories**
+  Select this to include end use subcategories. The default is to not include end use subcategories.
+  
 **Include Output Variables**
-  For now, ignore this argument.
+  Select this to include output variables. The default is to not include output variables.
+  
+**Output Variables**
+  If you choose to include output variables, the default output variables reported will be Zone Mean Air Temperature, Zone Mean Air Humidity Ratio, and Fan Runtime Fraction.
 
 .. _utility-bill-calculations:
 
 Utility Bill Calculations
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
-This measure calculates sets of utility bills for each datapoint included in the analysis. Utility bills can be calculated based on rates (stored in json format) from OpenEI's `Utility Rate Database`_ (URDB), state-average rates, or user-specified rates. When calculating bills based on rates from the URDB, this measure will first find the tariff whose EIAID and Label are nearest the latitude/longitude of the datapoint's weather file. Simply leaving all arguments set to their default values will cause utility bills to be calculated based on rates from the URDB.
-
-.. _Utility Rate Database: https://openei.org/wiki/Utility_Rate_Database
-
-.. image:: ../images/tutorial/utility_bill_calculations.png
-
-**Run Directory**
-  *Do not change this value.* Leave it as ``..``.
-
-**API Key**
-  Supply a URDB api key if you will be downloading rate structures that are not already contained in the **Tariff Directory**. If you do not already have an api key, you can `sign up for an api key`_.
-  
-.. _sign up for an api key: https://openei.org/services/api/signup
-
-**Tariff Directory**
-  The repository comes packaged with a set of residential tariff files. Each file in the set represents the residential rate structure for a given ``<EIAID>_<Label>`` pair. To draw from this set of rates, set this value to `../../lib/resources/tariffs`.
-
-**Tariff File Name**
-  To calculate utility bills based on a user-supplied rate structure, specify the path to your json file here.
-
-**Electricity Fixed Cost**
-  User-specified annual fixed cost of electricity.
-
-**Electricity Unit Cost**
-  User-specified price per kilowatt-hour for electricity.
-
-**Natural Gas Fixed Cost**
-  User-specified annual fixed cost of natural gas.
-
-**Natural Gas Unit Cost**
-  User-specified price per therm for natural gas.
-
-**Fuel Oil Unit Cost**
-  User-specified price per gallon for fuel oil.
-
-**Propane Unit Cost**
-  User-specified price per gallon for propane.
-
-**Average Residential Rates**
-  By default, utility bills will be calculated based on rate structures found in **Tariff Directory**. Choose this option to calculate utility bills based on state-average residential rates instead.
-
-Now switch to the Outputs tab. Select "Utility Bill Calculations" from the dropdown and click on **Add Measure**. Click on **Select Outputs**, then on **Select All**, then on **+ Add Output**, and finally on **OK**. This will ensure that the calculated utility bills are registered to the results.csv file.
+This measure is currently under construction. Do not include it in your PAT analysis.
