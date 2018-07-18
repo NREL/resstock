@@ -3,11 +3,8 @@ Set Up the Analysis Project
 
 Open PAT and open one of the analysis project folders:
 
- - project_resstock_comed
- - project_resstock_efs
  - project_resstock_national
  - project_resstock_pnw
- - project_resstock_testing
 
 For this example we'll use the project_resstock_national analysis. Select "Open Existing Project" and choose the project_resstock_national directory in the repository you just downloaded. You may be asked if you want "mongod" to accept incoming connections. Select "Allow".
 
@@ -136,11 +133,30 @@ If you do not need the timeseries data for your simulations, you can skip this m
 .. image:: ../images/tutorial/timeseries_csv_export.png
 
 **Reporting Frequency**
-  The timeseries data will be reported at hourly intervals unless otherwise specified. Other options include Detailed, Timestep, Daily, Monthly, and RunPeriod.
+  The timeseries data will be reported at hourly intervals unless otherwise specified. Other options include:
+
+  * Detailed
+  * Timestep
+  * Daily
+  * Monthly
+  * RunPeriod
+  
+  Setting the reporting frequency to "Timestep" will give you 10-min interval output because ResStock simulations use a 10-min timestep by default. You can change the number of timesteps per hour by modifying /resources/measures/ResidentialLocation/measure.rb by changing the line:
+  ``success = Simulation.apply(model, runner, timesteps_per_hr=6)`` (10-min) to ``success = Simulation.apply(model, runner, timesteps_per_hr=4)`` (15-min) or ``success = Simulation.apply(model, runner, timesteps_per_hr=12)`` (5-min).
 
 **Include End Use Subcategories**
-  Select this to include end use subcategories. The default is to not include end use subcategories.
-  
+  Select this to include end use subcategories. The default is to not include end use subcategories. End use subcategories include:
+
+  * residential misc plug loads:InteriorEquipment:Electricity  [kwh]
+  * residential refrigerator:InteriorEquipment:Electricity  [kwh]
+  * residential clothes washer:InteriorEquipment:Electricity  [kwh]
+  * residential clothes dryer electric:InteriorEquipment:Electricity  [kwh]
+  * residential mech vent fan:InteriorEquipment:Electricity  [kwh]
+  * residential dishwasher:InteriorEquipment:Electricity  [kwh]
+  * residential range electric:InteriorEquipment:Electricity  [kwh]
+  * residential clothes dryer gas:InteriorEquipment:Gas  [kbtu]
+  * residential range gas:InteriorEquipment:Gas  [kbtu]
+
 **Include Output Variables**
   Select this to include output variables. The default is to not include output variables.
   
