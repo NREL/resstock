@@ -512,7 +512,7 @@ class ResidentialAirflow < OpenStudio::Measure::ModelMeasure
     
     # Create the airflow objects
     has_flue_chimney = (has_hvac_flue or has_water_heater_flue or has_fireplace_chimney)
-    infil = Infiltration.new(living_ach50, shelter_coef, garage_ach50, crawl_ach, unfinished_attic_sla, unfinished_basement_ach, finished_basement_ach, pier_beam_ach, has_flue_chimney, is_existing_home, terrain)
+    infil = Infiltration.new(living_ach50, nil, shelter_coef, garage_ach50, crawl_ach, unfinished_attic_sla, nil, unfinished_basement_ach, finished_basement_ach, pier_beam_ach, has_flue_chimney, is_existing_home, terrain)
     mech_vent = MechanicalVentilation.new(mech_vent_type, mech_vent_infil_credit, mech_vent_total_efficiency, mech_vent_frac_62_2, nil, mech_vent_fan_power, mech_vent_sensible_efficiency, mech_vent_ashrae_std, mech_vent_cfis_open_time, mech_vent_cfis_airflow_frac, clothes_dryer_exhaust, range_exhaust, range_exhaust_hour, bathroom_exhaust, bathroom_exhaust_hour)
     nat_vent = NaturalVentilation.new(nat_vent_htg_offset, nat_vent_clg_offset, nat_vent_ovlp_offset, nat_vent_htg_season, nat_vent_clg_season, nat_vent_ovlp_season, nat_vent_num_weekdays, nat_vent_num_weekends, nat_vent_frac_windows_open, nat_vent_frac_window_area_openable, nat_vent_max_oa_hr, nat_vent_max_oa_rh)
     ducts = Ducts.new(duct_total_leakage, duct_norm_leakage_25pa, duct_supply_area_mult, duct_return_area_mult, duct_r, duct_supply_frac, duct_return_frac, duct_ah_supply_frac, duct_ah_return_frac, duct_location_frac, duct_num_returns, duct_location)

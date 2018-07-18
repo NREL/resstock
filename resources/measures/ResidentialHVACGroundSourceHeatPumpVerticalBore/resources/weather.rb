@@ -12,7 +12,7 @@ end
 class WeatherData
   def initialize
   end
-  ATTRS ||= [:AnnualAvgDrybulb, :AnnualMinDrybulb, :AnnualMaxDrybulb, :CDD50F, :CDD65F, :HDD50F, :HDD65F, :AnnualAvgWindspeed, :MonthlyAvgDrybulbs, :MainsDailyTemps, :MainsMonthlyTemps, :MainsAvgTemp, :GroundMonthlyTemps, :WSF, :MonthlyAvgDailyHighDrybulbs, :MonthlyAvgDailyLowDrybulbs]
+  ATTRS ||= [:AnnualAvgDrybulb, :AnnualMinDrybulb, :AnnualMaxDrybulb, :CDD50F, :CDD65F, :HDD50F, :HDD65F, :AnnualAvgWindspeed, :MonthlyAvgDrybulbs, :GroundMonthlyTemps, :WSF, :MonthlyAvgDailyHighDrybulbs, :MonthlyAvgDailyLowDrybulbs]
   attr_accessor(*ATTRS)
 end
 
@@ -82,6 +82,81 @@ class WeatherProcess
     return @error
   end
   
+  def get_weather_building_unit(model)
+    unit_name = "EPWWeatherInfo"
+    
+    # Look for existing unit with weather data
+    unit = nil
+    model.getBuildingUnits.each do |u|
+      next if u.name.to_s != unit_name
+      unit = u
+    end
+    
+    if unit.nil?
+      # Create new unit to store weather data
+      unit = OpenStudio::Model::BuildingUnit.new(model)
+      unit.setBuildingUnitType("Residential")
+      unit.setName(unit_name)
+    end
+    
+    return unit
+    
+  end
+  
+  def cache_weather(unit)
+    
+    # Header
+    WeatherHeader::ATTRS.each do |k|
+      k = k.to_s
+      # string
+      if ['City','State','Country','DataSource','Station'].include? k
+        unit.setFeature("EPWHeader#{k}", @header.send(k).to_s)
+      # double
+      elsif ['Latitude','Longitude','Timezone','Altitude','LocalPressure'].include? k
+        unit.setFeature("EPWHeader#{k}", @header.send(k).to_f)
+      else
+        @runner.registerError("Weather header key #{k} not handled.")
+        @error = true
+        return false
+      end
+    end
+    
+    # Data
+    WeatherData::ATTRS.each do |k|
+      k = k.to_s
+      # double
+      if ['AnnualAvgDrybulb','AnnualMinDrybulb','AnnualMaxDrybulb','CDD50F','CDD65F',
+             'HDD50F','HDD65F','AnnualAvgWindspeed','WSF'].include? k
+        unit.setFeature("EPWData#{k}", @data.send(k).to_f)
+      # array
+      elsif ['MonthlyAvgDrybulbs','GroundMonthlyTemps',
+             'MonthlyAvgDailyHighDrybulbs','MonthlyAvgDailyLowDrybulbs'].include? k
+        unit.setFeature("EPWData#{k}", @data.send(k).join(","))
+      else
+        @runner.registerError("Weather data key #{k} not handled.")
+        @error = true
+        return false
+      end
+    end
+    
+    # Design
+    WeatherDesign::ATTRS.each do |k|
+      k = k.to_s
+      # double
+      unit.setFeature("EPWDesign#{k}", @design.send(k).to_f)
+    end
+    
+  end
+  
+  def marshal_dump
+    return [@header, @data, @design]
+  end
+  
+  def marshal_load(array)
+    @header, @data, @design = array
+    
+  end
+  
   attr_accessor(:header, :data, :design)
   
   private
@@ -107,72 +182,6 @@ class WeatherProcess
         
         runner.registerError("Model has not been assigned a weather file.")
         return nil
-      end
-  
-      def get_weather_building_unit(model)
-        unit_name = "EPWWeatherInfo"
-        
-        # Look for existing unit with weather data
-        unit = nil
-        model.getBuildingUnits.each do |u|
-          next if u.name.to_s != unit_name
-          unit = u
-        end
-        
-        if unit.nil?
-          # Create new unit to store weather data
-          unit = OpenStudio::Model::BuildingUnit.new(model)
-          unit.setBuildingUnitType("Residential")
-          unit.setName(unit_name)
-        end
-        
-        return unit
-        
-      end
-      
-      def cache_weather(unit)
-        
-        # Header
-        WeatherHeader::ATTRS.each do |k|
-          k = k.to_s
-          # string
-          if ['City','State','Country','DataSource','Station'].include? k
-            unit.setFeature("EPWHeader#{k}", @header.send(k).to_s)
-          # double
-          elsif ['Latitude','Longitude','Timezone','Altitude','LocalPressure'].include? k
-            unit.setFeature("EPWHeader#{k}", @header.send(k).to_f)
-          else
-            @runner.registerError("Weather header key #{k} not handled.")
-            @error = true
-            return false
-          end
-        end
-        
-        # Data
-        WeatherData::ATTRS.each do |k|
-          k = k.to_s
-          # double
-          if ['AnnualAvgDrybulb','AnnualMinDrybulb','AnnualMaxDrybulb','CDD50F','CDD65F',
-                 'HDD50F','HDD65F','AnnualAvgWindspeed','MainsAvgTemp','WSF'].include? k
-            unit.setFeature("EPWData#{k}", @data.send(k).to_f)
-          # array
-          elsif ['MonthlyAvgDrybulbs','MainsDailyTemps','MainsMonthlyTemps','GroundMonthlyTemps',
-                 'MonthlyAvgDailyHighDrybulbs','MonthlyAvgDailyLowDrybulbs'].include? k
-            unit.setFeature("EPWData#{k}", @data.send(k).join(","))
-          else
-            @runner.registerError("Weather data key #{k} not handled.")
-            @error = true
-            return false
-          end
-        end
-        
-        # Design
-        WeatherDesign::ATTRS.each do |k|
-          k = k.to_s
-          # double
-          unit.setFeature("EPWDesign#{k}", @design.send(k).to_f)
-        end
-        
       end
   
       def get_cached_weather(unit)
@@ -202,12 +211,12 @@ class WeatherProcess
           k = k.to_s
           # double
           if ['AnnualAvgDrybulb','AnnualMinDrybulb','AnnualMaxDrybulb','CDD50F','CDD65F',
-                 'HDD50F','HDD65F','AnnualAvgWindspeed','MainsAvgTemp','WSF'].include? k
+                 'HDD50F','HDD65F','AnnualAvgWindspeed','WSF'].include? k
             @data.send(k+"=", unit.getFeatureAsDouble("EPWData#{k}"))
             return false if !@data.send(k).is_initialized
             @data.send(k+"=", @data.send(k).get)
           # array
-          elsif ['MonthlyAvgDrybulbs','MainsDailyTemps','MainsMonthlyTemps','GroundMonthlyTemps',
+          elsif ['MonthlyAvgDrybulbs','GroundMonthlyTemps',
                  'MonthlyAvgDailyHighDrybulbs','MonthlyAvgDailyLowDrybulbs'].include? k
             @data.send(k+"=", unit.getFeatureAsString("EPWData#{k}"))
             return false if !@data.send(k).is_initialized
@@ -352,7 +361,6 @@ class WeatherProcess
         @data = calc_heat_cool_degree_days(@data, hourdata, dailydbs)
         @data = calc_avg_highs_lows(@data, dailyhighdbs, dailylowdbs)
         @data = calc_avg_windspeed(@data, hourdata)
-        @data = calc_mains_temperature(@data, @header)
         @data = calc_ground_temperatures(@data)
         @data.WSF = get_ashrae_622_wsf(@header.Station)
         
@@ -499,31 +507,6 @@ class WeatherProcess
         return design
       end
 
-      def calc_mains_temperature(data, header)
-        #Calculates and returns the annual average, daily, and monthly mains water temperature
-        #Only use this method if no OS:Site:WaterMainsTemperature object exists.
-        
-        avgOAT = data.AnnualAvgDrybulb
-        maxDiffMonthlyAvgOAT = data.MonthlyAvgDrybulbs.max - data.MonthlyAvgDrybulbs.min
-
-        data.MainsAvgTemp, data.MainsMonthlyTemps, data.MainsDailyTemps = WeatherProcess._calculate_mains_temperature(avgOAT, maxDiffMonthlyAvgOAT, header.Latitude)
-        
-        return data
-      end
-      
-      def self.get_mains_temperature(waterMainsTemperature, latitude)
-        #Use this static method if OS:Site:WaterMainsTemperature object exists.
-        if waterMainsTemperature.calculationMethod == 'Schedule'
-          # We only currently support the Correlation method
-          return nil, nil, nil
-        end
-        
-        avgOAT = UnitConversions.convert(waterMainsTemperature.annualAverageOutdoorAirTemperature.get, "C", "F")
-        maxDiffMonthlyAvgOAT = UnitConversions.convert(waterMainsTemperature.maximumDifferenceInMonthlyAverageOutdoorAirTemperatures.get, "K", "R")
-        
-        return self._calculate_mains_temperature(avgOAT, maxDiffMonthlyAvgOAT, latitude)
-      end
-      
       def get_ashrae_622_wsf(wmo)
         # Looks up the ASHRAE 62.2 weather and shielding factor from ASHRAE622WSF
         # for the specified WMO station number. If not found, uses the average value 
@@ -686,9 +669,7 @@ class WeatherProcess
 
       end
       
-      private
-      
-      def self._calculate_mains_temperature(avgOAT, maxDiffMonthlyAvgOAT, latitude)
+      def self.calc_mains_temperatures(avgOAT, maxDiffMonthlyAvgOAT, latitude)
         pi = Math::PI
         deg_rad = pi/180
         mainsDailyTemps = Array.new(365, 0)

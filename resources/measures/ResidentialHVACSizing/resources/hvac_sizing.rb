@@ -2856,11 +2856,13 @@ class HVACSizing
     
     HVAC.existing_cooling_equipment(model, runner, control_zone).each do |clg_equip|
         next if clg_equips.include? clg_equip
+        next if clg_equip.is_a? OpenStudio::Model::ZoneHVACIdealLoadsAirSystem
         clg_equips << clg_equip
     end
     
     HVAC.existing_heating_equipment(model, runner, control_zone).each do |htg_equip|
         next if htg_equips.include? htg_equip
+        next if htg_equip.is_a? OpenStudio::Model::ZoneHVACIdealLoadsAirSystem
         htg_equips << htg_equip
     end
     
@@ -3038,7 +3040,7 @@ class HVACSizing
             
             hvac.CoolingEIR = 1.0 / clg_coil.ratedCoolingCoefficientofPerformance
             
-        else
+        elsif not clg_coil.nil?
             runner.registerError("Unexpected cooling coil: #{clg_coil.name}.")
             return nil
         end
