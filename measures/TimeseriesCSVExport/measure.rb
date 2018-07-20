@@ -166,7 +166,7 @@ class TimeseriesCSVExport < OpenStudio::Measure::ReportingMeasure
     # Request the output for each output variable
     if inc_output_variables
       output_vars.each do |output_var|
-        result << OpenStudio::IdfObject.load("Output:Variable,#{output_var.strip},#{reporting_frequency};").get
+        result << OpenStudio::IdfObject.load("Output:Variable,*,#{output_var.strip},#{reporting_frequency};").get
       end
     end
 

@@ -7,8 +7,8 @@
   "analysis_type": "Algorithmic",
   "remoteSettings": {
     "open": true,
-    "remoteType": "Amazon Cloud",
-    "remoteServerURL": "http://ec2-54-145-139-97.compute-1.amazonaws.com/",
+    "remoteType": "Existing Remote Server",
+    "remoteServerURL": "http://ec2-52-72-168-152.compute-1.amazonaws.com/",
     "aws": {
       "cluster_name": "resstock",
       "connected": false,
@@ -59,7 +59,7 @@
         "energyplus": "8.9",
         "recommend": ""
       },
-      "cluster_status": "running",
+      "cluster_status": "terminated",
       "server": {
         "dns": null
       }
@@ -282,7 +282,7 @@
       "seed": "EmptySeedModel.osm",
       "workflow_index": 0,
       "options": [],
-      "instanceId": 0.4674385128790195,
+      "instanceId": 0.4030683342332342,
       "skip": false,
       "$$hashKey": "object:14896",
       "showWarningText": false,
@@ -3114,7 +3114,7 @@
       "seed": "EmptySeedModel.osm",
       "workflow_index": 1,
       "options": [],
-      "instanceId": 0.8088131856102438,
+      "instanceId": 0.3177225056933113,
       "skip": true,
       "$$hashKey": "object:31044",
       "showWarningText": false,
@@ -5946,7 +5946,7 @@
       "seed": "EmptySeedModel.osm",
       "workflow_index": 2,
       "options": [],
-      "instanceId": 0.7420230347302923,
+      "instanceId": 0.5483362193177426,
       "skip": true,
       "showWarningText": false,
       "$$hashKey": "object:33811",
@@ -6831,7 +6831,7 @@
       "seed": "EmptySeedModel.osm",
       "workflow_index": 3,
       "options": [],
-      "instanceId": 0.5527941446269533,
+      "instanceId": 0.9507119903273449,
       "skip": false,
       "$$hashKey": "object:12818",
       "outputMeasure": true,
@@ -7904,9 +7904,9 @@
       ]
     },
     {
-      "measure_dir": "C:/OpenStudio/OpenStudio-BuildStock/measures/SimulationOutputReport",
+      "measure_dir": "C:\\OpenStudio\\OpenStudio-BuildStock\\project_resstock_national\\measures\\SimulationOutputReport",
       "name": "simulation_output_report",
-      "directory": "C:/OpenStudio/OpenStudio-BuildStock/measures/SimulationOutputReport",
+      "directory": "C:\\OpenStudio\\OpenStudio-BuildStock\\project_resstock_national\\measures\\SimulationOutputReport",
       "uid": "fc337100-8634-404e-8966-01243d292a79",
       "uuid": "{fc337100-8634-404e-8966-01243d292a79}",
       "version_id": "aba6fa61-598e-4a43-a632-1fe57fb67b0f",
@@ -8387,7 +8387,7 @@
       "seed": "EmptySeedModel.osm",
       "workflow_index": 4,
       "options": [],
-      "instanceId": 0.7640664615287165,
+      "instanceId": 0.977079696075823,
       "skip": false,
       "$$hashKey": "object:24191",
       "outputMeasure": true,
@@ -9087,9 +9087,9 @@
       "directory": "C:/OpenStudio/OpenStudio-BuildStock/measures/ResilienceMetricsReport",
       "uid": "91833857-52f8-47de-8366-349bb17a8d74",
       "uuid": "{91833857-52f8-47de-8366-349bb17a8d74}",
-      "version_id": "8893e563-b43a-4702-a6df-8f361f6a9545",
-      "version_uuid": "{8893e563-b43a-4702-a6df-8f361f6a9545}",
-      "version_modified": "20180719T222025Z",
+      "version_id": "a64aa931-79fe-487f-9ffc-3c76f215996b",
+      "version_uuid": "{a64aa931-79fe-487f-9ffc-3c76f215996b}",
+      "version_modified": "20180720T155359Z",
       "xml_checksum": "15BF4E57",
       "display_name": "Resilience Metrics Report",
       "class_name": "ResilienceMetricsReport",
@@ -9114,6 +9114,24 @@
           "type": "Double",
           "model_dependent": false,
           "checked": true
+        },
+        {
+          "name": "living_zone_zone_air_relative_humidity",
+          "display_name": "living_zone_zone_air_relative_humidity",
+          "short_name": "living_zone_zone_air_relative_humidity",
+          "description": "",
+          "type": "Double",
+          "model_dependent": false,
+          "checked": true
+        },
+        {
+          "name": "finished_basement_zone_zone_air_relative_humidity",
+          "display_name": "finished_basement_zone_zone_air_relative_humidity",
+          "short_name": "finished_basement_zone_zone_air_relative_humidity",
+          "description": "",
+          "type": "Double",
+          "model_dependent": false,
+          "checked": true
         }
       ],
       "attributes": [
@@ -9125,54 +9143,104 @@
       ],
       "arguments": [
         {
-          "name": "min",
+          "name": "min_temp",
           "display_name": "Minimum Comfortable Temperature",
-          "description": "TODO.",
+          "description": "The minimum temperature for which someone is comfortable.",
           "type": "Double",
           "required": true,
           "model_dependent": false,
           "units": "deg F",
-          "default_value": 65,
-          "display_name_short": "min",
+          "default_value": 60,
+          "display_name_short": "min_temp",
           "inputs": {
             "relationship": null,
             "choiceDisplayNames": [],
             "variableSetting": "Argument",
             "distribution": "Uniform",
             "discreteVariables": [],
-            "maximum": 65,
-            "minimum": 65,
-            "mean": 65,
-            "deltaX": 65,
-            "stdDev": 65,
-            "default_value": 65
+            "maximum": 60,
+            "minimum": 60,
+            "mean": 60,
+            "deltaX": 60,
+            "stdDev": 60,
+            "default_value": 60
           },
-          "$$hashKey": "object:76242"
+          "$$hashKey": "object:51333"
         },
         {
-          "name": "max",
+          "name": "max_temp",
           "display_name": "Maximum Comfortable Temperature",
-          "description": "TODO.",
+          "description": "The maximum temperature for which someone is comfortable.",
           "type": "Double",
           "required": true,
           "model_dependent": false,
           "units": "deg F",
-          "default_value": 75,
-          "display_name_short": "max",
+          "default_value": 80,
+          "display_name_short": "max_temp",
           "inputs": {
             "relationship": null,
             "choiceDisplayNames": [],
             "variableSetting": "Argument",
             "distribution": "Uniform",
             "discreteVariables": [],
-            "maximum": 75,
-            "minimum": 75,
-            "mean": 75,
-            "deltaX": 75,
-            "stdDev": 75,
-            "default_value": 75
+            "maximum": 80,
+            "minimum": 80,
+            "mean": 80,
+            "deltaX": 80,
+            "stdDev": 80,
+            "default_value": 80
           },
-          "$$hashKey": "object:76243"
+          "$$hashKey": "object:51334"
+        },
+        {
+          "name": "min_hum",
+          "display_name": "Minimum Comfortable Relative Humidity",
+          "description": "The minimum relative humidity for which someone is comfortable.",
+          "type": "Double",
+          "required": true,
+          "model_dependent": false,
+          "units": "%",
+          "default_value": 10,
+          "display_name_short": "min_hum",
+          "inputs": {
+            "relationship": null,
+            "choiceDisplayNames": [],
+            "variableSetting": "Argument",
+            "distribution": "Uniform",
+            "discreteVariables": [],
+            "maximum": 10,
+            "minimum": 10,
+            "mean": 10,
+            "deltaX": 10,
+            "stdDev": 10,
+            "default_value": 10
+          },
+          "$$hashKey": "object:51335"
+        },
+        {
+          "name": "max_hum",
+          "display_name": "Maximum Comfortable Relative Humidity",
+          "description": "The maximum relative humidity for which someone is comfortable.",
+          "type": "Double",
+          "required": true,
+          "model_dependent": false,
+          "units": "%",
+          "default_value": 60,
+          "display_name_short": "max_hum",
+          "inputs": {
+            "relationship": null,
+            "choiceDisplayNames": [],
+            "variableSetting": "Argument",
+            "distribution": "Uniform",
+            "discreteVariables": [],
+            "maximum": 60,
+            "minimum": 60,
+            "mean": 60,
+            "deltaX": 60,
+            "stdDev": 60,
+            "default_value": 60
+          },
+          "$$hashKey": "object:51336"
         }
       ],
       "edit": "",
@@ -9182,15 +9250,15 @@
       "add": "",
       "open": false,
       "addedToProject": true,
-      "date": "7/19/2018",
+      "date": "7/20/2018",
       "author": "",
       "type": "ReportingMeasure",
       "seed": "EmptySeedModel.osm",
       "workflow_index": 5,
       "options": [],
-      "instanceId": 0.8294584597175929,
+      "instanceId": 0.005209338529388319,
       "skip": false,
-      "$$hashKey": "object:76199",
+      "$$hashKey": "object:51274",
       "outputMeasure": true,
       "userDefinedOutputs": [],
       "analysisOutputs": [
@@ -9201,7 +9269,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:79526",
+          "$$hashKey": "object:54863",
           "checked": true,
           "visualize": "true",
           "measure_name": "resilience_metrics_report",
@@ -9215,7 +9283,35 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:79527",
+          "$$hashKey": "object:54864",
+          "checked": true,
+          "visualize": "true",
+          "measure_name": "resilience_metrics_report",
+          "measure_class_name": "ResilienceMetricsReport",
+          "measure_uid": "91833857-52f8-47de-8366-349bb17a8d74"
+        },
+        {
+          "name": "living_zone_zone_air_relative_humidity",
+          "display_name": "living_zone_zone_air_relative_humidity",
+          "short_name": "living_zone_zone_air_relative_humidity",
+          "description": "",
+          "type": "Double",
+          "model_dependent": false,
+          "$$hashKey": "object:54865",
+          "checked": true,
+          "visualize": "true",
+          "measure_name": "resilience_metrics_report",
+          "measure_class_name": "ResilienceMetricsReport",
+          "measure_uid": "91833857-52f8-47de-8366-349bb17a8d74"
+        },
+        {
+          "name": "finished_basement_zone_zone_air_relative_humidity",
+          "display_name": "finished_basement_zone_zone_air_relative_humidity",
+          "short_name": "finished_basement_zone_zone_air_relative_humidity",
+          "description": "",
+          "type": "Double",
+          "model_dependent": false,
+          "$$hashKey": "object:54866",
           "checked": true,
           "visualize": "true",
           "measure_name": "resilience_metrics_report",
@@ -9227,12 +9323,12 @@
     {
       "measure_dir": "C:\\OpenStudio\\OpenStudio-BuildStock\\project_resstock_national\\measures\\TimeseriesCSVExport",
       "name": "timeseries_csv_export",
-      "directory": "C:\\OpenStudio\\OpenStudio-BuildStock\\project_resstock_national\\measures\\TimeseriesCSVExport",
+      "directory": "C:/OpenStudio/OpenStudio-BuildStock/measures/TimeseriesCSVExport",
       "uid": "2a3442c1-944d-4e91-9e11-11e0cf368c64",
       "uuid": "{2a3442c1-944d-4e91-9e11-11e0cf368c64}",
-      "version_id": "b86af643-8c32-40ea-82cb-e799aaff1b39",
-      "version_uuid": "{b86af643-8c32-40ea-82cb-e799aaff1b39}",
-      "version_modified": "20180620T222925Z",
+      "version_id": "4f91768d-0d59-4fd8-883c-774229b2fc56",
+      "version_uuid": "{4f91768d-0d59-4fd8-883c-774229b2fc56}",
+      "version_modified": "20180720T145909Z",
       "xml_checksum": "15BF4E57",
       "display_name": "Timeseries CSV Export",
       "class_name": "TimeseriesCSVExport",
@@ -9293,7 +9389,7 @@
             "stdDev": "Hourly",
             "default_value": "Hourly"
           },
-          "$$hashKey": "object:15774"
+          "$$hashKey": "object:51495"
         },
         {
           "name": "inc_end_use_subcategories",
@@ -9303,21 +9399,21 @@
           "required": true,
           "model_dependent": false,
           "default_value": false,
-          "$$hashKey": "object:15415",
+          "display_name_short": "inc_end_use_subcategories",
           "inputs": {
-            "default_value": false,
-            "minimum": false,
-            "maximum": false,
             "relationship": null,
             "choiceDisplayNames": [],
             "variableSetting": "Argument",
             "distribution": "Uniform",
             "discreteVariables": [],
+            "maximum": false,
+            "minimum": false,
             "mean": false,
             "deltaX": false,
-            "stdDev": false
+            "stdDev": false,
+            "default_value": false
           },
-          "display_name_short": "inc_end_use_subcategories"
+          "$$hashKey": "object:51496"
         },
         {
           "name": "inc_output_variables",
@@ -9339,9 +9435,9 @@
             "mean": false,
             "deltaX": false,
             "stdDev": false,
-            "default_value": false
+            "default_value": true
           },
-          "$$hashKey": "object:15775"
+          "$$hashKey": "object:51497"
         },
         {
           "name": "output_variables",
@@ -9351,7 +9447,6 @@
           "required": true,
           "model_dependent": false,
           "default_value": "Zone Mean Air Temperature, Zone Mean Air Humidity Ratio, Fan Runtime Fraction",
-          "$$hashKey": "object:15416",
           "display_name_short": "output_variables",
           "inputs": {
             "relationship": null,
@@ -9364,8 +9459,9 @@
             "mean": "Zone Mean Air Temperature, Zone Mean Air Humidity Ratio, Fan Runtime Fraction",
             "deltaX": "Zone Mean Air Temperature, Zone Mean Air Humidity Ratio, Fan Runtime Fraction",
             "stdDev": "Zone Mean Air Temperature, Zone Mean Air Humidity Ratio, Fan Runtime Fraction",
-            "default_value": "Zone Mean Air Temperature, Zone Mean Air Humidity Ratio, Fan Runtime Fraction"
-          }
+            "default_value": "Zone Mean Air Temperature, Zone Air Relative Humidity"
+          },
+          "$$hashKey": "object:51498"
         }
       ],
       "edit": "",
@@ -9373,17 +9469,17 @@
       "bcl_update": false,
       "location": "my",
       "add": "",
-      "open": false,
+      "open": true,
       "addedToProject": true,
-      "date": "6/20/2018",
+      "date": "7/20/2018",
       "author": "",
       "type": "ReportingMeasure",
       "seed": "EmptySeedModel.osm",
       "workflow_index": 6,
       "options": [],
-      "instanceId": 0.28954633645777617,
+      "instanceId": 0.3350835667018339,
       "skip": false,
-      "$$hashKey": "object:15284",
+      "$$hashKey": "object:51275",
       "outputMeasure": false
     },
     {
@@ -9428,7 +9524,7 @@
       "seed": "EmptySeedModel.osm",
       "workflow_index": 7,
       "options": [],
-      "instanceId": 0.06715466024415084,
+      "instanceId": 0.193770812165865,
       "skip": false,
       "$$hashKey": "object:663249",
       "outputMeasure": false

@@ -2,8 +2,8 @@
   <schema_version>3.0</schema_version>
   <name>resilience_metrics_report</name>
   <uid>91833857-52f8-47de-8366-349bb17a8d74</uid>
-  <version_id>8893e563-b43a-4702-a6df-8f361f6a9545</version_id>
-  <version_modified>20180719T222025Z</version_modified>
+  <version_id>a64aa931-79fe-487f-9ffc-3c76f215996b</version_id>
+  <version_modified>20180720T155359Z</version_modified>
   <xml_checksum>15BF4E57</xml_checksum>
   <class_name>ResilienceMetricsReport</class_name>
   <display_name>Resilience Metrics Report</display_name>
@@ -11,24 +11,44 @@
   <modeler_description>TODO</modeler_description>
   <arguments>
     <argument>
-      <name>min</name>
+      <name>min_temp</name>
       <display_name>Minimum Comfortable Temperature</display_name>
-      <description>TODO.</description>
+      <description>The minimum temperature for which someone is comfortable.</description>
       <type>Double</type>
       <units>deg F</units>
       <required>true</required>
       <model_dependent>false</model_dependent>
-      <default_value>65</default_value>
+      <default_value>60</default_value>
     </argument>
     <argument>
-      <name>max</name>
+      <name>max_temp</name>
       <display_name>Maximum Comfortable Temperature</display_name>
-      <description>TODO.</description>
+      <description>The maximum temperature for which someone is comfortable.</description>
       <type>Double</type>
       <units>deg F</units>
       <required>true</required>
       <model_dependent>false</model_dependent>
-      <default_value>75</default_value>
+      <default_value>80</default_value>
+    </argument>
+    <argument>
+      <name>min_hum</name>
+      <display_name>Minimum Comfortable Relative Humidity</display_name>
+      <description>The minimum relative humidity for which someone is comfortable.</description>
+      <type>Double</type>
+      <units>%</units>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>10</default_value>
+    </argument>
+    <argument>
+      <name>max_hum</name>
+      <display_name>Maximum Comfortable Relative Humidity</display_name>
+      <description>The maximum relative humidity for which someone is comfortable.</description>
+      <type>Double</type>
+      <units>%</units>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>60</default_value>
     </argument>
   </arguments>
   <outputs>
@@ -43,6 +63,20 @@
       <name>finished_basement_zone_zone_mean_air_temperature</name>
       <display_name>finished_basement_zone_zone_mean_air_temperature</display_name>
       <short_name>finished_basement_zone_zone_mean_air_temperature</short_name>
+      <type>Double</type>
+      <model_dependent>false</model_dependent>
+    </output>
+    <output>
+      <name>living_zone_zone_air_relative_humidity</name>
+      <display_name>living_zone_zone_air_relative_humidity</display_name>
+      <short_name>living_zone_zone_air_relative_humidity</short_name>
+      <type>Double</type>
+      <model_dependent>false</model_dependent>
+    </output>
+    <output>
+      <name>finished_basement_zone_zone_air_relative_humidity</name>
+      <display_name>finished_basement_zone_zone_air_relative_humidity</display_name>
+      <short_name>finished_basement_zone_zone_air_relative_humidity</short_name>
       <type>Double</type>
       <model_dependent>false</model_dependent>
     </output>
@@ -68,7 +102,7 @@
       <filename>measure.rb</filename>
       <filetype>rb</filetype>
       <usage_type>script</usage_type>
-      <checksum>459FB95C</checksum>
+      <checksum>7F905F2F</checksum>
     </file>
   </files>
 </measure>
