@@ -44,6 +44,27 @@ if ! [ -f $FILENAME ]; then
   
   done
   
+  cd ..
+
+  # Run sampling script; if script has been uploaded, use that instead.
+  OUTCSV="buildstock.csv"
+  if ! [ -f "lib/housing_characteristics/$OUTCSV" ]; then
+  
+    echo "Generating buildstock.csv sampling results."
+    
+    NUMDATAPOINTS=`awk -F\"maximum\": 'NF>=2 {print $2}' analysis.json | sed 's/,//g' | head -n1 | xargs` # Yes, this is gross.
+    echo "NUMDATAPOINTS is $NUMDATAPOINTS"
+
+    ruby lib/resources/run_sampling.rb -p NA -n $NUMDATAPOINTS -o $OUTCSV
+
+    cp "lib/resources/$OUTCSV" "lib/housing_characteristics/$OUTCSV"
+    
+  else
+  
+    echo "Using uploaded buildstock.csv."
+  
+  fi
+  
 else
 
   NUMEPWS=$(ls -l *.epw | wc -l)
