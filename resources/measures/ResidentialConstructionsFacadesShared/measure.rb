@@ -28,6 +28,7 @@ class ProcessConstructionsFacadesShared < OpenStudio::Measure::ModelMeasure
 
     #make a choice argument for model objects
     building_facades = OpenStudio::StringVector.new
+    building_facades << Constants.FacadeNone
     building_facades << Constants.FacadeBack
     building_facades << Constants.FacadeLeft
     building_facades << Constants.FacadeRight
@@ -40,7 +41,7 @@ class ProcessConstructionsFacadesShared < OpenStudio::Measure::ModelMeasure
     shared_building_facades = OpenStudio::Measure::OSArgument::makeChoiceArgument("shared_building_facades", building_facades, true)
     shared_building_facades.setDisplayName("Shared Building Facade(s)")
     shared_building_facades.setDescription("The facade(s) of the building that are shared. Surfaces on these facades become adiabatic.")
-    shared_building_facades.setDefaultValue("#{Constants.FacadeLeft}, #{Constants.FacadeRight}")
+    shared_building_facades.setDefaultValue("#{Constants.FacadeNone}")
     args << shared_building_facades
 
     return args
@@ -57,16 +58,7 @@ class ProcessConstructionsFacadesShared < OpenStudio::Measure::ModelMeasure
     
     shared_building_facades = runner.getStringArgumentValue("shared_building_facades",user_arguments)
 
-    # Get building units
-    units = Geometry.get_building_units(model, runner)
-    if units.nil?
-      return false
-    end
-    
-    if units.length == 1
-      runner.registerWarning("Building is a single unit, and so would not have any shared facades.")
-      return true
-    end
+    return true if shared_building_facades == Constants.FacadeNone
     
     if not WallConstructions.apply_adiabatic(runner, model, shared_building_facades)
       return false

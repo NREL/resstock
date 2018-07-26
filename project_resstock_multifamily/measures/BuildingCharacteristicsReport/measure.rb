@@ -2,7 +2,7 @@ require 'openstudio'
  
 class BuildingCharacteristicsReport < OpenStudio::Measure::ReportingMeasure
 
-  def name
+  def name 
     return "Building Characteristics Report"
   end
 
