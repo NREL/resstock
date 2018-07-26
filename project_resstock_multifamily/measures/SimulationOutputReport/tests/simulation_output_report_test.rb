@@ -1,3 +1,4 @@
+require_relative '../../../test/minitest_helper'
 require 'openstudio'
 require 'openstudio/ruleset/ShowRunnerOutput'
 require 'minitest/autorun'
@@ -20,6 +21,7 @@ class SimulationOutputReportTest < MiniTest::Test
                          "Door Area (ft^2)"=>30,
                          "Duct Surface Area (ft^2)"=>1440,
                          "Size, Heating System (kBtu/h)"=>60, # hp, not backup
+                         "Size, Heating Supplemental System (kBtu/h)"=>100, # backup
                          "Size, Cooling System (kBtu/h)"=>60,
                          "Size, Water Heater (gal)"=>0,
                         }
@@ -40,6 +42,7 @@ class SimulationOutputReportTest < MiniTest::Test
                          "Door Area (ft^2)"=>40,
                          "Duct Surface Area (ft^2)"=>640,
                          "Size, Heating System (kBtu/h)"=>100,
+                         "Size, Heating Supplemental System (kBtu/h)"=>0, # backup
                          "Size, Cooling System (kBtu/h)"=>36,
                          "Size, Water Heater (gal)"=>0,
                         }
@@ -60,6 +63,7 @@ class SimulationOutputReportTest < MiniTest::Test
                          "Door Area (ft^2)"=>40,
                          "Duct Surface Area (ft^2)"=>1110,
                          "Size, Heating System (kBtu/h)"=>60, # hp, not backup
+                         "Size, Heating Supplemental System (kBtu/h)"=>100, # backup
                          "Size, Cooling System (kBtu/h)"=>60,
                          "Size, Water Heater (gal)"=>50,
                         }
@@ -80,6 +84,7 @@ class SimulationOutputReportTest < MiniTest::Test
                          "Door Area (ft^2)"=>20,
                          "Duct Surface Area (ft^2)"=>1665,
                          "Size, Heating System (kBtu/h)"=>100,
+                         "Size, Heating Supplemental System (kBtu/h)"=>0, # backup
                          "Size, Cooling System (kBtu/h)"=>60,
                          "Size, Water Heater (gal)"=>50,
                         }
@@ -100,6 +105,7 @@ class SimulationOutputReportTest < MiniTest::Test
                          "Door Area (ft^2)"=>20,
                          "Duct Surface Area (ft^2)"=>640,
                          "Size, Heating System (kBtu/h)"=>100,
+                         "Size, Heating Supplemental System (kBtu/h)"=>0, # backup
                          "Size, Cooling System (kBtu/h)"=>60,
                          "Size, Water Heater (gal)"=>40,
                         }
@@ -120,6 +126,7 @@ class SimulationOutputReportTest < MiniTest::Test
                          "Door Area (ft^2)"=>20,
                          "Duct Surface Area (ft^2)"=>960,
                          "Size, Heating System (kBtu/h)"=>60, # hp, not backup
+                         "Size, Heating Supplemental System (kBtu/h)"=>100, # backup
                          "Size, Cooling System (kBtu/h)"=>60,
                          "Size, Water Heater (gal)"=>0,
                         }
@@ -140,6 +147,7 @@ class SimulationOutputReportTest < MiniTest::Test
                          "Door Area (ft^2)"=>20,
                          "Duct Surface Area (ft^2)"=>1620,
                          "Size, Heating System (kBtu/h)"=>100,
+                         "Size, Heating Supplemental System (kBtu/h)"=>0, # backup
                          "Size, Cooling System (kBtu/h)"=>60,
                          "Size, Water Heater (gal)"=>40,
                         }
@@ -160,6 +168,7 @@ class SimulationOutputReportTest < MiniTest::Test
                          "Door Area (ft^2)"=>20,
                          "Duct Surface Area (ft^2)"=>1620,
                          "Size, Heating System (kBtu/h)"=>100,
+                         "Size, Heating Supplemental System (kBtu/h)"=>0, # backup
                          "Size, Cooling System (kBtu/h)"=>60,
                          "Size, Water Heater (gal)"=>40,
                         }
@@ -179,7 +188,8 @@ class SimulationOutputReportTest < MiniTest::Test
                          "Window Area (ft^2)"=>311.03,
                          "Door Area (ft^2)"=>30,
                          "Duct Surface Area (ft^2)"=>1620,
-                         "Size, Heating System (kBtu/h)"=>60,
+                         "Size, Heating System (kBtu/h)"=>60, # hp, not backup
+                         "Size, Heating Supplemental System (kBtu/h)"=>100, # backup
                          "Size, Cooling System (kBtu/h)"=>60,
                          "Size, Water Heater (gal)"=>0,
                         }
@@ -200,6 +210,7 @@ class SimulationOutputReportTest < MiniTest::Test
                          "Door Area (ft^2)"=>40,
                          "Duct Surface Area (ft^2)"=>640,
                          "Size, Heating System (kBtu/h)"=>100,
+                         "Size, Heating Supplemental System (kBtu/h)"=>0, # backup
                          "Size, Cooling System (kBtu/h)"=>0,
                          "Size, Water Heater (gal)"=>66,
                         }
@@ -220,6 +231,7 @@ class SimulationOutputReportTest < MiniTest::Test
                          "Door Area (ft^2)"=>40,
                          "Duct Surface Area (ft^2)"=>960,
                          "Size, Heating System (kBtu/h)"=>60, # hp, not backup
+                         "Size, Heating Supplemental System (kBtu/h)"=>100, # backup
                          "Size, Cooling System (kBtu/h)"=>60,
                          "Size, Water Heater (gal)"=>0,
                         }
@@ -237,9 +249,10 @@ class SimulationOutputReportTest < MiniTest::Test
                          "Floor Area, Lighting (ft^2)"=>2000,
                          "Roof Area (ft^2)"=>1118.03,
                          "Window Area (ft^2)"=>376.30,
-                         "Door Area (ft^2)"=>80,
-                         "Size, Heating System (kBtu/h)"=>45.16,
-                         "Size, Cooling System (kBtu/h)"=>19.93,
+                         "Door Area (ft^2)"=>20*4,
+                         "Size, Heating System (kBtu/h)"=>100*4,
+                         "Size, Heating Supplemental System (kBtu/h)"=>0, # backup
+                         "Size, Cooling System (kBtu/h)"=>36*4,
                          "Size, Water Heater (gal)"=>120,
                         }
     _test_cost_multipliers("SFA_2story_UB_Furnace_RoomAC_FuelTankWH.osm", cost_multipliers)
@@ -256,12 +269,93 @@ class SimulationOutputReportTest < MiniTest::Test
                          "Floor Area, Lighting (ft^2)"=>4000,
                          "Roof Area (ft^2)"=>2333.33,
                          "Window Area (ft^2)"=>537.60,
-                         "Door Area (ft^2)"=>160,
-                         "Size, Heating System (kBtu/h)"=>62,
-                         "Size, Cooling System (kBtu/h)"=>32,
+                         "Door Area (ft^2)"=>20*8,
+                         "Size, Heating System (kBtu/h)"=>100*8,
+                         "Size, Heating Supplemental System (kBtu/h)"=>0, # backup
+                         "Size, Cooling System (kBtu/h)"=>60*8,
                          "Size, Water Heater (gal)"=>240,
                         }
     _test_cost_multipliers("MF_2story_UB_Furnace_AC1_FuelTankWH.osm", cost_multipliers)
+  end
+
+  def test_SFA_2story_UB_FuelBoiler_RoomAC_FuelTankWH
+    cost_multipliers = {
+                         "Fixed (1)"=>1,
+                         "Wall Area, Above-Grade, Conditioned (ft^2)"=>2187.32,
+                         "Wall Area, Above-Grade, Exterior (ft^2)"=>2299.82,
+                         "Wall Area, Below-Grade (ft^2)"=>1093.66,
+                         "Floor Area, Conditioned (ft^2)"=>2000,
+                         "Floor Area, Attic (ft^2)"=>1000,
+                         "Floor Area, Lighting (ft^2)"=>2000,
+                         "Roof Area (ft^2)"=>1118.03,
+                         "Window Area (ft^2)"=>376.30,
+                         "Door Area (ft^2)"=>20*4,
+                         "Size, Heating System (kBtu/h)"=>100*4,
+                         "Size, Heating Supplemental System (kBtu/h)"=>0, # backup
+                         "Size, Cooling System (kBtu/h)"=>36*4,
+                         "Size, Water Heater (gal)"=>120,
+                        }
+    _test_cost_multipliers("SFA_2story_UB_FuelBoiler_RoomAC_FuelTankWH.osm", cost_multipliers)
+  end
+  
+  def test_MF_2story_UB_FuelBoiler_AC1_FuelTankWH
+    cost_multipliers = {
+                         "Fixed (1)"=>1,
+                         "Wall Area, Above-Grade, Conditioned (ft^2)"=>2986.66,
+                         "Wall Area, Above-Grade, Exterior (ft^2)"=>3306.66,
+                         "Wall Area, Below-Grade (ft^2)"=>1653.33,
+                         "Floor Area, Conditioned (ft^2)"=>4000,
+                         "Floor Area, Attic (ft^2)"=>0,
+                         "Floor Area, Lighting (ft^2)"=>4000,
+                         "Roof Area (ft^2)"=>2333.33,
+                         "Window Area (ft^2)"=>537.60,
+                         "Door Area (ft^2)"=>20*8,
+                         "Size, Heating System (kBtu/h)"=>100*8,
+                         "Size, Heating Supplemental System (kBtu/h)"=>0, # backup
+                         "Size, Cooling System (kBtu/h)"=>60*8,
+                         "Size, Water Heater (gal)"=>240,
+                        }
+    _test_cost_multipliers("MF_2story_UB_FuelBoiler_AC1_FuelTankWH.osm", cost_multipliers)
+  end
+
+  def test_SFA_2story_UB_ASHP2_HPWH
+    cost_multipliers = {
+                         "Fixed (1)"=>1,
+                         "Wall Area, Above-Grade, Conditioned (ft^2)"=>2187.32,
+                         "Wall Area, Above-Grade, Exterior (ft^2)"=>2299.82,
+                         "Wall Area, Below-Grade (ft^2)"=>1093.66,
+                         "Floor Area, Conditioned (ft^2)"=>2000,
+                         "Floor Area, Attic (ft^2)"=>1000,
+                         "Floor Area, Lighting (ft^2)"=>2000,
+                         "Roof Area (ft^2)"=>1118.03,
+                         "Window Area (ft^2)"=>376.30,
+                         "Door Area (ft^2)"=>20*4,
+                         "Size, Heating System (kBtu/h)"=>60*4,
+                         "Size, Heating Supplemental System (kBtu/h)"=>100*4, # backup
+                         "Size, Cooling System (kBtu/h)"=>60*4,
+                         "Size, Water Heater (gal)"=>50*4,
+                        }
+    _test_cost_multipliers("SFA_2story_UB_ASHP2_HPWH.osm", cost_multipliers)       
+  end
+
+  def test_MF_2story_UB_ASHP2_HPWH
+    cost_multipliers = {
+                         "Fixed (1)"=>1,
+                         "Wall Area, Above-Grade, Conditioned (ft^2)"=>2986.66,
+                         "Wall Area, Above-Grade, Exterior (ft^2)"=>3306.66,
+                         "Wall Area, Below-Grade (ft^2)"=>1653.33,
+                         "Floor Area, Conditioned (ft^2)"=>4000,
+                         "Floor Area, Attic (ft^2)"=>0,
+                         "Floor Area, Lighting (ft^2)"=>4000,
+                         "Roof Area (ft^2)"=>2333.33,
+                         "Window Area (ft^2)"=>537.60,
+                         "Door Area (ft^2)"=>20*8,
+                         "Size, Heating System (kBtu/h)"=>60*8,
+                         "Size, Heating Supplemental System (kBtu/h)"=>100*8, # backup
+                         "Size, Cooling System (kBtu/h)"=>60*8,
+                         "Size, Water Heater (gal)"=>50*8,
+                        }
+    _test_cost_multipliers("MF_2story_UB_ASHP2_HPWH.osm", cost_multipliers)       
   end
     
   private

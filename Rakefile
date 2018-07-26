@@ -15,7 +15,7 @@ task :copy_beopt_files do
   if branch.empty?
     branch = "master"
   end
-
+  
   if File.exists? File.join(File.dirname(__FILE__), "#{branch}.zip")
     FileUtils.rm(File.join(File.dirname(__FILE__), "#{branch}.zip"))
   end
@@ -154,6 +154,7 @@ namespace :test do
   
   desc 'regenerate SimulationOutputReport test osm files from osw files'
   task :regenerate_osms do
+    require 'openstudio'
 
     num_tot = 0
     num_success = 0
@@ -165,9 +166,11 @@ namespace :test do
         FileUtils.rm(File.expand_path("../log", __FILE__))
     end
     
-    os_cli = get_os_cli()
+    cli_path = OpenStudio.getOpenStudioCLI
 
     osw_files.each do |osw|
+    
+        next if File.basename(osw) == 'out.osw'
 
         # Generate osm from osw
         osw_filename = osw
@@ -176,7 +179,7 @@ namespace :test do
         puts "[#{num_tot}/#{osw_files.size}] Regenerating osm from #{osw}..."
         osw = File.expand_path("../test/osw_files/#{osw}", __FILE__)
         osm = File.expand_path("../test/osw_files/run/in.osm", __FILE__)
-        command = "\"#{os_cli}\" run -w #{osw} -m >> log"
+        command = "\"#{cli_path}\" run -w #{osw} -m >> log"
         for _retry in 1..3
             system(command)
             break if File.exists?(osm)
@@ -266,7 +269,6 @@ task :integrity_check_resstock_multifamily do
 end # rake task
 
 def integrity_check(project_dir_name)
-
   # Load helper file and sampling file
   resources_dir = File.join(File.dirname(__FILE__), 'resources')
   require File.join(resources_dir, 'buildstock')
@@ -488,14 +490,4 @@ def get_all_project_dir_names()
         project_dir_names << entry
     end
     return project_dir_names
-end
-
-def get_os_cli
-  # Get latest installed version of openstudio.exe
-  os_clis = Dir["C:/openstudio-*/bin/openstudio.exe"] + Dir["/usr/bin/openstudio"] + Dir["/usr/local/bin/openstudio"]
-  if os_clis.size == 0
-      puts "ERROR: Could not find the openstudio binary. You may need to install the OpenStudio Command Line Interface."
-      exit
-  end
-  return os_clis[-1]
 end
