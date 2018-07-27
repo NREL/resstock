@@ -240,6 +240,17 @@ def get_value_from_runner_past_results(runner, key_lookup, measure_name, error_i
     end
     return nil
 end
+
+def get_value_from_runner(runner, key_lookup, error_if_missing=true)
+  key_lookup = OpenStudio::toUnderscoreCase(key_lookup)
+  runner.result.stepValues.each do |step_value|
+    next if step_value.name != key_lookup
+    return step_value.valueAsString
+  end
+  if error_if_missing
+    register_error("Could not find value for '#{key_lookup}'.", runner)
+  end
+end
   
 def get_measure_args_from_option_names(lookup_file, option_names, parameter_name, runner=nil)
     found_options = {}
@@ -296,7 +307,7 @@ def register_value(runner, parameter_name, option_name)
     runner.registerValue(parameter_name, option_name)
 end
 
-def evaluate_logic(option_apply_logic, runner)
+def evaluate_logic(option_apply_logic, runner, past_results=true)
     # Convert to appropriate ruby statement for evaluation
     if option_apply_logic.count("(") != option_apply_logic.count(")")
         runner.registerError("Inconsistent number of open and close parentheses in logic.")
@@ -334,7 +345,11 @@ def evaluate_logic(option_apply_logic, runner)
             segment_parameter, segment_option = segment[rindex,lindex-rindex].strip.split("|")
             
             # Get existing building option name for the same parameter
-            segment_existing_option = get_value_from_runner_past_results(runner, segment_parameter, "build_existing_model")
+            if past_results
+              segment_existing_option = get_value_from_runner_past_results(runner, segment_parameter, "build_existing_model")
+            else
+              segment_existing_option = get_value_from_runner(runner, segment_parameter)
+            end
             
             ruby_eval_str += segment_open + "'" + segment_existing_option + segment_equality + segment_option + "'" + segment_close + " and "
         end
