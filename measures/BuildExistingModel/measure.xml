@@ -2,8 +2,8 @@
   <schema_version>3.0</schema_version>
   <name>build_existing_model</name>
   <uid>943cde68-f4bf-4e2e-a984-ab70cba2669c</uid>
-  <version_id>488c81d1-a6e3-4050-a6c9-9934aafbfff3</version_id>
-  <version_modified>20180419T200646Z</version_modified>
+  <version_id>128bf685-6403-4892-9315-d2f664f768dc</version_id>
+  <version_modified>20180725T182543Z</version_modified>
   <xml_checksum>9339BE01</xml_checksum>
   <class_name>BuildExistingModel</class_name>
   <display_name>Build Existing Model</display_name>
@@ -31,6 +31,14 @@
       <display_name>Number of Buildings Represented</display_name>
       <description>The total number of buildings represented by the existing building models.</description>
       <type>Integer</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>downselect_logic</name>
+      <display_name>Downselect Logic</display_name>
+      <description>Logic that specifies the subset of the building stock to be considered in the analysis. Specify one or more parameter|option as found in resources\options_lookup.tsv. When multiple are included, they must be separated by '||' for OR and '&amp;&amp;' for AND, and using parentheses as appropriate. Prefix an option with '!' for not.</description>
+      <type>String</type>
       <required>false</required>
       <model_dependent>false</model_dependent>
     </argument>
@@ -102,7 +110,7 @@
       <filename>measure.rb</filename>
       <filetype>rb</filetype>
       <usage_type>script</usage_type>
-      <checksum>CF9A0119</checksum>
+      <checksum>642CEC73</checksum>
     </file>
   </files>
 </measure>
