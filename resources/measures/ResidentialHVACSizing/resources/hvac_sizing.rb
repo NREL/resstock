@@ -2857,11 +2857,13 @@ class HVACSizing
     
     HVAC.existing_cooling_equipment(model, runner, control_zone).each do |clg_equip|
         next if clg_equips.include? clg_equip
+        next if clg_equip.is_a? OpenStudio::Model::ZoneHVACIdealLoadsAirSystem
         clg_equips << clg_equip
     end
     
     HVAC.existing_heating_equipment(model, runner, control_zone).each do |htg_equip|
         next if htg_equips.include? htg_equip
+        next if htg_equip.is_a? OpenStudio::Model::ZoneHVACIdealLoadsAirSystem
         htg_equips << htg_equip
     end
     
@@ -3038,8 +3040,8 @@ class HVACSizing
             end
             
             hvac.CoolingEIR = 1.0 / clg_coil.ratedCoolingCoefficientofPerformance
-
-        else
+            
+        elsif not clg_coil.nil?
             runner.registerError("Unexpected cooling coil: #{clg_coil.name}.")
             return nil
         end
@@ -3270,7 +3272,10 @@ class HVACSizing
   def self.true_azimuth(surface)
     true_azimuth = nil
     facade = Geometry.get_facade_for_surface(surface)
-    if facade == Constants.FacadeFront
+    if facade.nil?
+        relative_azimuth = UnitConversions.convert(surface.azimuth,"rad","deg")
+        true_azimuth = @northAxis + relative_azimuth + 180.0
+    elsif facade == Constants.FacadeFront
         true_azimuth = @northAxis
     elsif facade == Constants.FacadeBack
         true_azimuth = @northAxis + 180
@@ -3279,7 +3284,7 @@ class HVACSizing
     elsif facade == Constants.FacadeRight
         true_azimuth = @northAxis + 270
     end
-    if not true_azimuth.nil? and true_azimuth >= 360
+    if true_azimuth >= 360
         true_azimuth = true_azimuth - 360
     end
     return true_azimuth

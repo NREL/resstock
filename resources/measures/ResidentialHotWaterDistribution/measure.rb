@@ -113,7 +113,11 @@ class ResidentialHotWaterDistribution < OpenStudio::Measure::ModelMeasure
             runner.registerError("Mains water temperature has not been set.")
             return false
         end
-        mainsMonthlyTemps = WeatherProcess.get_mains_temperature(site.siteWaterMainsTemperature.get, site.latitude)[1]
+        
+        waterMainsTemperature = site.siteWaterMainsTemperature.get
+        avgOAT = UnitConversions.convert(waterMainsTemperature.annualAverageOutdoorAirTemperature.get, "C", "F")
+        maxDiffMonthlyAvgOAT = UnitConversions.convert(waterMainsTemperature.maximumDifferenceInMonthlyAverageOutdoorAirTemperatures.get, "K", "R")
+        mainsMonthlyTemps = WeatherProcess.calc_mains_temperatures(avgOAT, maxDiffMonthlyAvgOAT, site.latitude)[1]
         
         tot_pump_e_ann = 0
         msgs = []

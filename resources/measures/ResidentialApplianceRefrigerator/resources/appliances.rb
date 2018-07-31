@@ -146,7 +146,10 @@ class ClothesWasher
               runner.registerError("Mains water temperature has not been set.")
               return false
           end
-          mains_temps = WeatherProcess.get_mains_temperature(site.siteWaterMainsTemperature.get, site.latitude)[1]
+          waterMainsTemperature = site.siteWaterMainsTemperature.get
+          avgOAT = UnitConversions.convert(waterMainsTemperature.annualAverageOutdoorAirTemperature.get, "C", "F")
+          maxDiffMonthlyAvgOAT = UnitConversions.convert(waterMainsTemperature.maximumDifferenceInMonthlyAverageOutdoorAirTemperatures.get, "K", "R")
+          mains_temps = WeatherProcess.calc_mains_temperatures(avgOAT, maxDiffMonthlyAvgOAT, site.latitude)[1]
       end
 
       unit_obj_name = Constants.ObjectNameClothesWasher(unit.name.to_s)
@@ -675,7 +678,7 @@ class ClothesDryer
       
           if sch.nil?
               # Create schedule
-              hr_shift = day_shift + 1.0 / 24.0
+              hr_shift = day_shift - 1.0 / 24.0
               sch = HotWaterSchedule.new(model, runner, unit_obj_name_f + " schedule", 
                                          unit_obj_name_f + " temperature schedule", nbeds, 
                                          hr_shift, "ClothesDryer", 0, measure_dir)
@@ -990,7 +993,10 @@ class Dishwasher
               runner.registerError("Mains water temperature has not been set.")
               return false
           end
-          mains_temps = WeatherProcess.get_mains_temperature(site.siteWaterMainsTemperature.get, site.latitude)[1]
+          waterMainsTemperature = site.siteWaterMainsTemperature.get
+          avgOAT = UnitConversions.convert(waterMainsTemperature.annualAverageOutdoorAirTemperature.get, "C", "F")
+          maxDiffMonthlyAvgOAT = UnitConversions.convert(waterMainsTemperature.maximumDifferenceInMonthlyAverageOutdoorAirTemperatures.get, "K", "R")
+          mains_temps = WeatherProcess.calc_mains_temperatures(avgOAT, maxDiffMonthlyAvgOAT, site.latitude)[1]
       end
 
       unit_obj_name = Constants.ObjectNameDishwasher(unit.name.to_s)

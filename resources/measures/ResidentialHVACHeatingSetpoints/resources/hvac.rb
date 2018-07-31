@@ -2110,6 +2110,43 @@ class HVAC
       return true
     end
     
+    def self.apply_ideal_air_loads(model, unit, runner)
+      thermal_zones = Geometry.get_thermal_zones_from_spaces(unit.spaces)
+
+      control_slave_zones_hash = get_control_and_slave_zones(thermal_zones)
+      control_slave_zones_hash.each do |control_zone, slave_zones|
+
+        ideal_air = OpenStudio::Model::ZoneHVACIdealLoadsAirSystem.new(model)
+        ideal_air.setMaximumHeatingSupplyAirTemperature(50)
+        ideal_air.setMinimumCoolingSupplyAirTemperature(10)
+        ideal_air.setMaximumHeatingSupplyAirHumidityRatio(0.015)
+        ideal_air.setMinimumCoolingSupplyAirHumidityRatio(0.01)
+        ideal_air.setHeatingLimit('NoLimit')
+        ideal_air.setCoolingLimit('NoLimit')
+        ideal_air.setDehumidificationControlType('None')
+        ideal_air.setHumidificationControlType('None')
+        ideal_air.addToThermalZone(control_zone)
+        
+        slave_zones.each do |slave_zone|
+        
+          ideal_air = OpenStudio::Model::ZoneHVACIdealLoadsAirSystem.new(model)
+          ideal_air.setMaximumHeatingSupplyAirTemperature(50)
+          ideal_air.setMinimumCoolingSupplyAirTemperature(10)
+          ideal_air.setMaximumHeatingSupplyAirHumidityRatio(0.015)
+          ideal_air.setMinimumCoolingSupplyAirHumidityRatio(0.01)
+          ideal_air.setHeatingLimit('NoLimit')
+          ideal_air.setCoolingLimit('NoLimit')
+          ideal_air.setDehumidificationControlType('None')
+          ideal_air.setHumidificationControlType('None')
+          ideal_air.addToThermalZone(slave_zone)
+          
+        end
+        
+      end
+    
+      return true
+    end
+    
     def self.remove_hvac_equipment(model, runner, thermal_zone, unit, new_equip)
       # TODO: Split into remove_heating and remove_cooling
       counterpart_equip = nil
@@ -3566,6 +3603,11 @@ class HVAC
         fcu = self.get_central_fan_coil(model, runner, thermal_zone)
         cooling_equipment << fcu
       end
+      if self.has_ideal_air(model, runner, thermal_zone)
+        runner.registerInfo("Found ideal air system in #{thermal_zone.name}.")
+        ideal_air = self.get_ideal_air(model, runner, thermal_zone)
+        cooling_equipment << ideal_air
+      end
       return cooling_equipment
     end
     
@@ -3618,6 +3660,11 @@ class HVAC
         runner.registerInfo("Found central fan coil in #{thermal_zone.name}.")
         fcu = self.get_central_fan_coil(model, runner, thermal_zone)
         heating_equipment << fcu
+      end
+      if self.has_ideal_air(model, runner, thermal_zone)
+        runner.registerInfo("Found ideal air system in #{thermal_zone.name}.")
+        ideal_air = self.get_ideal_air(model, runner, thermal_zone)
+        heating_equipment << ideal_air
       end
       return heating_equipment
     end
@@ -3798,6 +3845,15 @@ class HVAC
       return nil
     end
     
+    def self.get_ideal_air(model, runner, thermal_zone)
+      # Returns the ideal air loads system if available
+      model.getZoneHVACIdealLoadsAirSystems.each do |ideal_air|
+        next unless thermal_zone.handle.to_s == ideal_air.thermalZone.get.handle.to_s
+        return ideal_air
+      end
+      return nil
+    end
+    
     # Has Equipment methods
     
     def self.has_central_ac(model, runner, thermal_zone)
@@ -3933,6 +3989,14 @@ class HVAC
         return false
       end
       return true
+    end
+    
+    def self.has_ideal_air(model, runner, thermal_zone)
+      ideal_air = self.get_ideal_air(model, runner, thermal_zone)
+      if not ideal_air.nil?
+        return true
+      end
+      return false
     end
     
     def self.has_ducted_equipment(model, runner, thermal_zone)
