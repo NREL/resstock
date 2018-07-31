@@ -74,7 +74,8 @@ class SetResidentialEPWFile < OpenStudio::Measure::ModelMeasure
     end
     weather_file_path = File.join(weather_directory, weather_file_name)
     
-    success = Simulation.apply(model, runner, timesteps=6)
+    # TODO: Could break this out into a separate measure with arguments
+    success = Simulation.apply(model, runner, timesteps_per_hr=6)
     return false if not success
 
     success, weather = Location.apply(model, runner, weather_file_path, dst_start_date, dst_end_date)

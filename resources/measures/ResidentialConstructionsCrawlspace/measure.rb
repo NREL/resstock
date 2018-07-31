@@ -106,8 +106,8 @@ class ProcessConstructionsCrawlspace < OpenStudio::Measure::ModelMeasure
     
     # Apply constructions
     floors_by_type[Constants.SurfaceTypeFloorFndGrndCS].each do |floor_surface|
-        wall_surfaces = FoundationConstructions.get_walls_connected_to_floor(walls_by_type[Constants.SurfaceTypeWallFndGrndCS], 
-                                                                             floor_surface)
+        wall_surfaces = Geometry.get_walls_connected_to_floor(walls_by_type[Constants.SurfaceTypeWallFndGrndCS], 
+                                                              floor_surface)
         if not FoundationConstructions.apply_walls_and_slab(runner, model,
                                                             wall_surfaces, 
                                                             Constants.SurfaceTypeWallFndGrndCS, 
