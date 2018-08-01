@@ -29,7 +29,7 @@ dependency_dict = {
                    'stories': 'Geometry Stories',
                    'naptflrs': 'Geometry Floors',
                    'numflrs': 'Geometry Bldg Floors',
-                   'reportable_domain': 'Location Region',
+                   'reportable_domain': 'Reportable Domain',
                    'Size': 'Geometry House Size',
                    'yearmaderange': 'Vintage',
                    'equipm': 'Heating Equipment',
@@ -42,7 +42,7 @@ dependency_dict = {
                    'wwacage': 'Window AC Sys Age',
                    'sizeofgarage': 'Size of Garage',
                    'division': 'Location Census division',
-                   'region': 'Location Region',
+                   'regionc': 'Location Region',
                    'fuelheat': 'Heating Fuel',
                    'typeglass': 'Glazing Type',
                    'householder_race': 'Household Race',
@@ -51,7 +51,7 @@ dependency_dict = {
                    'heatoth': 'Heating Shared',
                    'cenachp': 'Cooling Heat Pump',
                    'FPL_BINS':  'Federal Poverty Level',
-                   'nweight': 'Weight'
+                   # 'nweight': 'Weight'
                   }
 
 bldg_typ_dict = {1: 'Mobile Home',
@@ -238,7 +238,7 @@ census_div = {1: 'New England Census Division (CT, MA, ME, NH, RI, VT)',
               8: 'Mountain North Sub-Division (CO, ID, MT, UT, WY)',
               9: 'Mountain South Sub-Division (AZ, NM, NV)',
               10: 'Pacific Census Division (AK, CA, HI, OR, WA)'}
-region_def = {1: 'C3',
+cr_def = {1: 'C3',
               2: 'C3',
               3: 'C7',
               4: 'C7',
@@ -265,6 +265,33 @@ region_def = {1: 'C3',
               25: 'C10',
               26: 'C11',
               27: 'C6'}
+region_def2 = {1: 'RD01',
+              2: 'RD02',
+              3: 'RD03',
+              4: 'RD04',
+              5: 'RD05',
+              6: 'RD06',
+              7: 'RD07',
+              8: 'RD08',
+              9: 'RD09',
+              10: 'RD10',
+              11: 'RD11',
+              12: 'RD12',
+              13: 'RD13',
+              14: 'RD14',
+              15: 'RD15',
+              16: 'RD16',
+              17: 'RD17',
+              18: 'RD18',
+              19: 'RD19',
+              20: 'RD20',
+              21: 'RD21',
+              22: 'RD22',
+              23: 'RD23',
+              24: 'RD24',
+              25: 'RD25',
+              26: 'RD26',
+              27: 'RD27'}
 cr_str = {'C1': 'CR01',
           'C2': 'CR02',
           'C3': 'CR03',
@@ -404,7 +431,8 @@ def process_data(df):
                    'Size of Garage': garage_dict,
                    'Geometry Stories': stories_dict,
                    'Geometry Floors': floors_dict,
-                   'Location Region': region_def,
+                   'Location Region': cr_def,
+                   'Reportable Domain': region_def2,
                    'Cooling Shared': shared_syst_dict,
                    'Heating Shared': shared_syst_dict,
                    'Cooling Heat Pump': heat_pump_dict,
@@ -654,14 +682,14 @@ def assign_poverty_levels(df):
 
 
 def custom_region(df):
-    df['CR'] = df['Location Region']
+    df['CR'] = df['Reportable Domain']
     df['CR'].replace(region_def, inplace=True)
     # Split out Kentucky and put in 8:
-    df.ix[(df['Location Region'] == 18) & (df['aia_zone'] == 3), 'CR'] = 8
+    df.ix[(df['Reportable Domain'] == 'RD18') & (df['aia_zone'] == 3), 'CR'] = 8
     # Split out Hawaii and put in 12:
-    df.ix[(df['Location Region'] == 27) & ((df['aia_zone'] == 5) | (df['hdd65'] < 4000)), 'CR'] = 12
+    df.ix[(df['Reportable Domain'] == 'RD27') & ((df['aia_zone'] == 5) | (df['hdd65'] < 4000)), 'CR'] = 12
     # Split out Alaska and put in 1:
-    df.ix[(df['Location Region'] == 27) & (df['hdd65'] > 6930), 'CR'] = 1  # Source for 6930 HDD: Dennis Barley
+    df.ix[(df['Reportable Domain'] == 'RD27') & (df['hdd65'] > 6930), 'CR'] = 1  # Source for 6930 HDD: Dennis Barley
     return df
 
 
@@ -745,11 +773,43 @@ def num_units(df):
     df['Geometry Number Units'] = df['Number Units']
     df.loc[(df['Number Units'] == -2),'Geometry Number Units'] = '<5'
 
-    #  for ACS bins
-    # df.loc[(df['Number Units'] >= 5) & (df['Number Units'] <= 9), 'Geometry Number Units'] = '5 to 9 Units'
-    # df.loc[(df['Number Units'] >= 10) & (df['Number Units'] <= 19), 'Geometry Number Units'] = '10 to 19 Units'
-    # df.loc[(df['Number Units'] >= 20) & (df['Number Units'] <= 49), 'Geometry Number Units'] = '20 to 49 Units'
-    # df.loc[(df['Number Units'] >= 50), 'Geometry Number Units'] = '50 or more'
+     #for ACS bins
+    df.loc[(df['Number Units'] >= 5) & (df['Number Units'] <= 9), 'Geometry Number Units'] = '5 to 9 Units'
+    df.loc[(df['Number Units'] >= 10) & (df['Number Units'] <= 19), 'Geometry Number Units'] = '10 to 19 Units'
+    df.loc[(df['Number Units'] >= 20) & (df['Number Units'] <= 49), 'Geometry Number Units'] = '20 to 49 Units'
+    df.loc[(df['Number Units'] >= 50), 'Geometry Number Units'] = '50 or more'
+    return df
+def num_units_hl(df):
+    #for ACS bins with High/low rise distinction
+    df['Geometry Number Units HL'] = df['Geometry Number Units']
+    df.loc[(df['Geometry Number Units'] ==  '5 to 9 Units') & (df['Geometry Bldg Floors'] <= 3), 'Geometry Number Units HL'] = '5 to 9 Units low'
+    df.loc[(df['Geometry Number Units'] ==  '5 to 9 Units') & (df['Geometry Bldg Floors'] >= 4), 'Geometry Number Units HL'] = '5 to 9 Units high'
+
+    df.loc[(df['Geometry Number Units'] ==  '10 to 19 Units') & (df['Geometry Bldg Floors'] <= 3), 'Geometry Number Units HL'] = '10 to 19 Units low'
+    df.loc[(df['Geometry Number Units'] ==  '10 to 19 Units') & (df['Geometry Bldg Floors'] >= 4), 'Geometry Number Units HL'] = '10 to 19 Units high'
+
+    df.loc[(df['Geometry Number Units'] ==  '20 to 49 Units') & (df['Geometry Bldg Floors'] <= 3), 'Geometry Number Units HL'] = '20 to 49 Units low'
+    df.loc[(df['Geometry Number Units'] ==  '20 to 49 Units') & (df['Geometry Bldg Floors'] >= 4), 'Geometry Number Units HL'] = '20 to 49 Units high'
+
+    df.loc[(df['Geometry Number Units'] == '50 or more') & (df['Geometry Bldg Floors'] <= 3), 'Geometry Number Units HL'] = '50 or more Units low'
+    df.loc[(df['Geometry Number Units'] == '50 or more') & (df['Geometry Bldg Floors'] >= 4), 'Geometry Number Units HL'] = '50 or more Units high'
+
+    return df
+
+def bldg_type_fpl(df):
+    df['Geometry Building Type FPL'] = df['Geometry Building Type']
+
+    #FPL format
+
+    df.loc[(df['Geometry Building Type'] == 'Single-Family Detached'), 'Geometry Building Type FPL'] = 'Single-Family Detached'
+    df.loc[(df['Geometry Building Type'] == 'Mobile Home'), 'Geometry Building Type FPL'] = 'Mobile Home'
+    df.loc[(df['Geometry Building Type'] == 'Single-Family Attached'), 'Geometry Building Type FPL'] = 'Single-Family Attached'
+    df.loc[(df['Geometry Building Type'] == 'Multi-Family with 2 - 4 Units'), 'Geometry Building Type FPL'] = '2 Unit'
+    df.loc[(df['Geometry Building Type'] == 'Multi-Family with 5+ Units') & (df['Geometry Number Units'] == '5 to 9 Units'), 'Geometry Building Type FPL'] = '5 to 9 Unit'
+    df.loc[(df['Geometry Building Type'] == 'Multi-Family with 5+ Units') & (df['Geometry Number Units'] == '10 to 19 Units'), 'Geometry Building Type FPL'] = '10 to 19 Unit'
+    df.loc[(df['Geometry Building Type'] == 'Multi-Family with 5+ Units') & (df['Geometry Number Units'] == '20 to 49 Units'), 'Geometry Building Type FPL'] = '20 to 49 Unit'
+    df.loc[(df['Geometry Building Type'] == 'Multi-Family with 5+ Units') & (df['Geometry Number Units'] == '50 or more'), 'Geometry Building Type FPL'] = '50 or more Unit'
+
     return df
 
 def corr(x, y, w):
@@ -800,6 +860,8 @@ def regenerate():
     df = shared_system(df)
     df = bin_stories(df)
     df = num_units(df)
+    df = num_units_hl(df)
+    df = bldg_type_fpl(df)
     # df = foundation_type(df)
     df = df.reset_index()
     df.to_pickle('processed_eia.recs_2009_microdata.pkl')
@@ -1214,7 +1276,11 @@ def query(df):
     #     calc_general(df, dependency=['Location Region'], options=['Building Type'], outfile='Geometry Building Type.tsv', outpath='../../../project_resstock_multifamily/housing_characteristics')
     #     calc_general(df, dependency=[ 'Location Region', 'Vintage', 'Heating Fuel', 'Shared System'], options=['Cooling Heat Pump'], outfile='HVAC System Is Combined.tsv',
     #              outpath='../../../project_resstock_multifamily/housing_characteristics')
-        df.to_csv(r'C:/Users/mpathak/Documents/Github/OpenStudio-BuildStock MF/data/recs/recs/recs_mf.csv')
+    #     df.to_csv(r'C:/Users/mpathak/Documents/Github/OpenStudio-BuildStock MF/data/recs/recs/recs_mf.csv')
+    #     calc_general(df, dependency=[ 'Geometry Building Type FPL', 'Vintage', 'Reportable Domain'], options=['Geometry Number Units HL'], outfile='Geometry Number Units HL.tsv',
+    #              outpath='../../../project_resstock_multifamily/housing_characteristics')
+        calc_general(df, dependency=[ 'Geometry Building Type FPL', 'Vintage'], options=['Geometry Number Units HL'], outfile='Geometry Number Units HL.tsv',
+                 outpath='../../../project_resstock_multifamily/housing_characteristics')
         pass
 
 
