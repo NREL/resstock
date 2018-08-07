@@ -65,6 +65,13 @@ class ProcessHVACSizing < OpenStudio::Measure::ModelMeasure
     if weather.error?
         return false
     end
+
+    # Determine e+ autosizing or not
+    if model.getSimulationControl.runSimulationforSizingPeriods
+      weather.add_design_days_for_autosizing(model)
+      runner.registerFinalCondition("Added heating/cooling design days for autosizing.")
+      return true
+    end
     
     units.each do |unit|
     
