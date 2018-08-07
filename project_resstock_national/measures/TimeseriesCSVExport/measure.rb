@@ -238,7 +238,7 @@ class TimeseriesCSVExport < OpenStudio::Measure::ReportingMeasure
         variables_to_graph << [variable_name, reporting_frequency, ""]
         runner.registerInfo("Exporting #{variable_name}")
       end
-    end    
+    end
     if inc_output_variables
       output_vars.each do |output_var|
         sql.availableKeyValues(ann_env_pd, reporting_frequency, output_var.strip).each do |key_value|

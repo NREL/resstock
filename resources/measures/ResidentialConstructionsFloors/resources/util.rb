@@ -330,33 +330,6 @@ class MathTools
     
 end
 
-class BuildingLoadVars
-
-  def self.get_space_heating_load_vars
-    return [
-            'Heating Coil Total Heating Energy',
-            'Heating Coil Air Heating Energy',
-            'Boiler Heating Energy',
-            'Baseboard Total Heating Energy',
-            'Heating Coil Heating Energy',
-           ]
-  end
-  
-  def self.get_space_cooling_load_vars
-    return [
-            'Cooling Coil Sensible Cooling Energy',
-            'Cooling Coil Latent Cooling Energy',
-           ]
-  end
-
-  def self.get_water_heating_load_vars
-    return [
-            'Water Use Connections Plant Hot Water Energy',
-           ]
-  end
-
-end
-
 class UtilityBill
 
   def self.calculate_simple(annual_energy, fixed_rate, marginal_rate)

@@ -2,8 +2,8 @@
   <schema_version>3.0</schema_version>
   <name>resilience_metrics_report</name>
   <uid>91833857-52f8-47de-8366-349bb17a8d74</uid>
-  <version_id>15581e2e-a35a-4da7-86f8-438bfa827769</version_id>
-  <version_modified>20180730T210052Z</version_modified>
+  <version_id>dcc9d93e-8c38-40b0-b039-0145ba04f883</version_id>
+  <version_modified>20180807T172825Z</version_modified>
   <xml_checksum>15BF4E57</xml_checksum>
   <class_name>ResilienceMetricsReport</class_name>
   <display_name>Resilience Metrics Report</display_name>
@@ -13,84 +13,197 @@
     <argument>
       <name>output_vars</name>
       <display_name>Output Variables</display_name>
+      <description>Output variables to request.</description>
       <type>String</type>
       <required>true</required>
       <model_dependent>false</model_dependent>
-      <default_value>Zone Mean Air Temperature, Zone Air Relative Humidity</default_value>
+      <default_value>Zone Mean Air Temperature, Zone Air Relative Humidity, Wet Bulb Globe Temperature</default_value>
     </argument>
     <argument>
       <name>min_vals</name>
       <display_name>Minimum Value</display_name>
-      <description>Lower threshold.</description>
+      <description>Lower threshold. Use 'NA' if a lower threshold is not applicable.</description>
       <type>String</type>
       <required>true</required>
       <model_dependent>false</model_dependent>
-      <default_value>60, 5</default_value>
+      <default_value>60, NA, NA</default_value>
     </argument>
     <argument>
       <name>max_vals</name>
       <display_name>Maximum Value</display_name>
-      <description>Upper threshold.</description>
+      <description>Upper threshold. Use 'NA' if an upper threshold is not applicable.</description>
       <type>String</type>
       <required>true</required>
       <model_dependent>false</model_dependent>
-      <default_value>80, 60</default_value>
+      <default_value>80, 60, 88</default_value>
     </argument>
   </arguments>
   <outputs>
     <output>
-      <name>living_zone_zone_mean_air_temperature_below</name>
-      <display_name>living_zone_zone_mean_air_temperature_below</display_name>
-      <short_name>living_zone_zone_mean_air_temperature_below</short_name>
+      <name>living_zone_zone_mean_air_temperature_below_lower_threshold</name>
+      <display_name>living_zone_zone_mean_air_temperature_below_lower_threshold</display_name>
+      <short_name>living_zone_zone_mean_air_temperature_below_lower_threshold</short_name>
       <type>Double</type>
       <model_dependent>false</model_dependent>
     </output>
     <output>
-      <name>living_zone_zone_mean_air_temperature_above</name>
-      <display_name>living_zone_zone_mean_air_temperature_above</display_name>
-      <short_name>living_zone_zone_mean_air_temperature_above</short_name>
+      <name>living_zone_zone_mean_air_temperature_above_upper_threshold</name>
+      <display_name>living_zone_zone_mean_air_temperature_above_upper_threshold</display_name>
+      <short_name>living_zone_zone_mean_air_temperature_above_upper_threshold</short_name>
       <type>Double</type>
       <model_dependent>false</model_dependent>
     </output>
     <output>
-      <name>finished_basement_zone_zone_mean_air_temperature_below</name>
-      <display_name>finished_basement_zone_zone_mean_air_temperature_below</display_name>
-      <short_name>finished_basement_zone_zone_mean_air_temperature_below</short_name>
+      <name>living_zone_zone_mean_air_temperature_until_lower_threshold</name>
+      <display_name>living_zone_zone_mean_air_temperature_until_lower_threshold</display_name>
+      <short_name>living_zone_zone_mean_air_temperature_until_lower_threshold</short_name>
       <type>Double</type>
       <model_dependent>false</model_dependent>
     </output>
     <output>
-      <name>finished_basement_zone_zone_mean_air_temperature_above</name>
-      <display_name>finished_basement_zone_zone_mean_air_temperature_above</display_name>
-      <short_name>finished_basement_zone_zone_mean_air_temperature_above</short_name>
+      <name>living_zone_zone_mean_air_temperature_until_upper_threshold</name>
+      <display_name>living_zone_zone_mean_air_temperature_until_upper_threshold</display_name>
+      <short_name>living_zone_zone_mean_air_temperature_until_upper_threshold</short_name>
       <type>Double</type>
       <model_dependent>false</model_dependent>
     </output>
     <output>
-      <name>living_zone_zone_air_relative_humidity_below</name>
-      <display_name>living_zone_zone_air_relative_humidity_below</display_name>
-      <short_name>living_zone_zone_air_relative_humidity_below</short_name>
+      <name>finished_basement_zone_zone_mean_air_temperature_below_lower_threshold</name>
+      <display_name>finished_basement_zone_zone_mean_air_temperature_below_lower_threshold</display_name>
+      <short_name>finished_basement_zone_zone_mean_air_temperature_below_lower_threshold</short_name>
       <type>Double</type>
       <model_dependent>false</model_dependent>
     </output>
     <output>
-      <name>living_zone_zone_air_relative_humidity_above</name>
-      <display_name>living_zone_zone_air_relative_humidity_above</display_name>
-      <short_name>living_zone_zone_air_relative_humidity_above</short_name>
+      <name>finished_basement_zone_zone_mean_air_temperature_above_upper_threshold</name>
+      <display_name>finished_basement_zone_zone_mean_air_temperature_above_upper_threshold</display_name>
+      <short_name>finished_basement_zone_zone_mean_air_temperature_above_upper_threshold</short_name>
       <type>Double</type>
       <model_dependent>false</model_dependent>
     </output>
     <output>
-      <name>finished_basement_zone_zone_air_relative_humidity_below</name>
-      <display_name>finished_basement_zone_zone_air_relative_humidity_below</display_name>
-      <short_name>finished_basement_zone_zone_air_relative_humidity_below</short_name>
+      <name>finished_basement_zone_zone_mean_air_temperature_until_lower_threshold</name>
+      <display_name>finished_basement_zone_zone_mean_air_temperature_until_lower_threshold</display_name>
+      <short_name>finished_basement_zone_zone_mean_air_temperature_until_lower_threshold</short_name>
       <type>Double</type>
       <model_dependent>false</model_dependent>
     </output>
     <output>
-      <name>finished_basement_zone_zone_air_relative_humidity_above</name>
-      <display_name>finished_basement_zone_zone_air_relative_humidity_above</display_name>
-      <short_name>finished_basement_zone_zone_air_relative_humidity_above</short_name>
+      <name>finished_basement_zone_zone_mean_air_temperature_until_upper_threshold</name>
+      <display_name>finished_basement_zone_zone_mean_air_temperature_until_upper_threshold</display_name>
+      <short_name>finished_basement_zone_zone_mean_air_temperature_until_upper_threshold</short_name>
+      <type>Double</type>
+      <model_dependent>false</model_dependent>
+    </output>
+    <output>
+      <name>living_zone_zone_air_relative_humidity_below_lower_threshold</name>
+      <display_name>living_zone_zone_air_relative_humidity_below_lower_threshold</display_name>
+      <short_name>living_zone_zone_air_relative_humidity_below_lower_threshold</short_name>
+      <type>Double</type>
+      <model_dependent>false</model_dependent>
+    </output>
+    <output>
+      <name>living_zone_zone_air_relative_humidity_above_upper_threshold</name>
+      <display_name>living_zone_zone_air_relative_humidity_above_upper_threshold</display_name>
+      <short_name>living_zone_zone_air_relative_humidity_above_upper_threshold</short_name>
+      <type>Double</type>
+      <model_dependent>false</model_dependent>
+    </output>
+    <output>
+      <name>living_zone_zone_air_relative_humidity_until_lower_threshold</name>
+      <display_name>living_zone_zone_air_relative_humidity_until_lower_threshold</display_name>
+      <short_name>living_zone_zone_air_relative_humidity_until_lower_threshold</short_name>
+      <type>Double</type>
+      <model_dependent>false</model_dependent>
+    </output>
+    <output>
+      <name>living_zone_zone_air_relative_humidity_until_upper_threshold</name>
+      <display_name>living_zone_zone_air_relative_humidity_until_upper_threshold</display_name>
+      <short_name>living_zone_zone_air_relative_humidity_until_upper_threshold</short_name>
+      <type>Double</type>
+      <model_dependent>false</model_dependent>
+    </output>
+    <output>
+      <name>finished_basement_zone_zone_air_relative_humidity_below_lower_threshold</name>
+      <display_name>finished_basement_zone_zone_air_relative_humidity_below_lower_threshold</display_name>
+      <short_name>finished_basement_zone_zone_air_relative_humidity_below_lower_threshold</short_name>
+      <type>Double</type>
+      <model_dependent>false</model_dependent>
+    </output>
+    <output>
+      <name>finished_basement_zone_zone_air_relative_humidity_above_upper_threshold</name>
+      <display_name>finished_basement_zone_zone_air_relative_humidity_above_upper_threshold</display_name>
+      <short_name>finished_basement_zone_zone_air_relative_humidity_above_upper_threshold</short_name>
+      <type>Double</type>
+      <model_dependent>false</model_dependent>
+    </output>
+    <output>
+      <name>finished_basement_zone_zone_air_relative_humidity_until_lower_threshold</name>
+      <display_name>finished_basement_zone_zone_air_relative_humidity_until_lower_threshold</display_name>
+      <short_name>finished_basement_zone_zone_air_relative_humidity_until_lower_threshold</short_name>
+      <type>Double</type>
+      <model_dependent>false</model_dependent>
+    </output>
+    <output>
+      <name>finished_basement_zone_zone_air_relative_humidity_until_upper_threshold</name>
+      <display_name>finished_basement_zone_zone_air_relative_humidity_until_upper_threshold</display_name>
+      <short_name>finished_basement_zone_zone_air_relative_humidity_until_upper_threshold</short_name>
+      <type>Double</type>
+      <model_dependent>false</model_dependent>
+    </output>
+    <output>
+      <name>living_zone_wet_bulb_globe_temperature_below_lower_threshold</name>
+      <display_name>living_zone_wet_bulb_globe_temperature_below_lower_threshold</display_name>
+      <short_name>living_zone_wet_bulb_globe_temperature_below_lower_threshold</short_name>
+      <type>Double</type>
+      <model_dependent>false</model_dependent>
+    </output>
+    <output>
+      <name>living_zone_wet_bulb_globe_temperature_above_upper_threshold</name>
+      <display_name>living_zone_wet_bulb_globe_temperature_above_upper_threshold</display_name>
+      <short_name>living_zone_wet_bulb_globe_temperature_above_upper_threshold</short_name>
+      <type>Double</type>
+      <model_dependent>false</model_dependent>
+    </output>
+    <output>
+      <name>living_zone_wet_bulb_globe_temperature_until_lower_threshold</name>
+      <display_name>living_zone_wet_bulb_globe_temperature_until_lower_threshold</display_name>
+      <short_name>living_zone_wet_bulb_globe_temperature_until_lower_threshold</short_name>
+      <type>Double</type>
+      <model_dependent>false</model_dependent>
+    </output>
+    <output>
+      <name>living_zone_wet_bulb_globe_temperature_until_upper_threshold</name>
+      <display_name>living_zone_wet_bulb_globe_temperature_until_upper_threshold</display_name>
+      <short_name>living_zone_wet_bulb_globe_temperature_until_upper_threshold</short_name>
+      <type>Double</type>
+      <model_dependent>false</model_dependent>
+    </output>
+    <output>
+      <name>finished_basement_zone_wet_bulb_globe_temperature_below_lower_threshold</name>
+      <display_name>finished_basement_zone_wet_bulb_globe_temperature_below_lower_threshold</display_name>
+      <short_name>finished_basement_zone_wet_bulb_globe_temperature_below_lower_threshold</short_name>
+      <type>Double</type>
+      <model_dependent>false</model_dependent>
+    </output>
+    <output>
+      <name>finished_basement_zone_wet_bulb_globe_temperature_above_upper_threshold</name>
+      <display_name>finished_basement_zone_wet_bulb_globe_temperature_above_upper_threshold</display_name>
+      <short_name>finished_basement_zone_wet_bulb_globe_temperature_above_upper_threshold</short_name>
+      <type>Double</type>
+      <model_dependent>false</model_dependent>
+    </output>
+    <output>
+      <name>finished_basement_zone_wet_bulb_globe_temperature_until_lower_threshold</name>
+      <display_name>finished_basement_zone_wet_bulb_globe_temperature_until_lower_threshold</display_name>
+      <short_name>finished_basement_zone_wet_bulb_globe_temperature_until_lower_threshold</short_name>
+      <type>Double</type>
+      <model_dependent>false</model_dependent>
+    </output>
+    <output>
+      <name>finished_basement_zone_wet_bulb_globe_temperature_until_upper_threshold</name>
+      <display_name>finished_basement_zone_wet_bulb_globe_temperature_until_upper_threshold</display_name>
+      <short_name>finished_basement_zone_wet_bulb_globe_temperature_until_upper_threshold</short_name>
       <type>Double</type>
       <model_dependent>false</model_dependent>
     </output>
@@ -111,13 +224,7 @@
       <filename>unit_conversions.rb</filename>
       <filetype>rb</filetype>
       <usage_type>resource</usage_type>
-      <checksum>91D17463</checksum>
-    </file>
-    <file>
-      <filename>resilience_metrics_report_test.rb</filename>
-      <filetype>rb</filetype>
-      <usage_type>test</usage_type>
-      <checksum>7D461602</checksum>
+      <checksum>6CB6B3D8</checksum>
     </file>
     <file>
       <version>
@@ -128,7 +235,7 @@
       <filename>measure.rb</filename>
       <filetype>rb</filetype>
       <usage_type>script</usage_type>
-      <checksum>F725A3F3</checksum>
+      <checksum>543FA444</checksum>
     </file>
   </files>
 </measure>
