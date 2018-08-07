@@ -725,6 +725,88 @@ class WallConstructions
         return true
     end
     
+    def self.apply_rim_joist(runner, model, surfaces, constr_name,
+                             cavity_r, install_grade, framing_factor, 
+                             drywall_thick_in, osb_thick_in, 
+                             rigid_r, mat_ext_finish)
+    
+        return true if surfaces.empty?
+    
+        # Validate inputs
+        if cavity_r < 0.0
+            runner.registerError("Cavity Insulation Installed R-value must be greater than or equal to 0.")
+            return false
+        end
+        if framing_factor < 0.0 or framing_factor >= 1.0
+            runner.registerError("Framing Factor must be greater than or equal to 0 and less than 1.")
+            return false
+        end
+
+        # Define materials
+        rim_joist_thick_in = 1.5
+        sill_plate_thick_in = 3.5
+        framing_thick_in = sill_plate_thick_in - rim_joist_thick_in # Extra non-continuous wood beyond rim joist thickness
+        if cavity_r > 0
+            # Insulation
+            mat_cavity = Material.new(name=nil, thick_in=framing_thick_in, mat_base=BaseMaterial.InsulationGenericDensepack, k_in=framing_thick_in / cavity_r)
+        else
+            # Empty cavity
+            mat_cavity = Material.AirCavityOpen(framing_thick_in)
+        end
+        mat_framing = Material.new(name=nil, thick_in=framing_thick_in, mat_base=BaseMaterial.Wood)
+        mat_gap = Material.AirCavityClosed(framing_thick_in)
+        mat_osb = nil
+        if osb_thick_in > 0
+            mat_osb = Material.new(name="RimJoistSheathing", thick_in=osb_thick_in, mat_base=BaseMaterial.Wood)
+        end
+        mat_rigid = nil
+        if rigid_r > 0
+            rigid_thick_in = rigid_r * BaseMaterial.InsulationRigid.k_in
+            mat_rigid = Material.new(name="RimJoistRigidIns", thick_in=rigid_thick_in, mat_base=BaseMaterial.InsulationRigid, k_in=rigid_thick_in/rigid_r)
+        end
+
+        # Set paths
+        gapFactor = get_gap_factor(install_grade, framing_factor, cavity_r)
+        path_fracs = [framing_factor, 1 - framing_factor - gapFactor, gapFactor]
+        
+        # Define construction
+        constr = Construction.new(constr_name, path_fracs)
+        if not mat_ext_finish.nil?
+            constr.add_layer(Material.AirFilmOutside)
+            constr.add_layer(mat_ext_finish)
+        else # interior wall
+            constr.add_layer(Material.AirFilmVertical)
+        end
+        if not mat_rigid.nil?
+            constr.add_layer(mat_rigid)
+        end
+        if not mat_osb.nil?
+            constr.add_layer(mat_osb)
+        end
+        constr.add_layer([mat_framing, mat_cavity, mat_gap], "RimJoistStudAndCavity") 
+        if drywall_thick_in > 0
+            constr.add_layer(Material.GypsumWall(drywall_thick_in))
+        end
+        constr.add_layer(Material.AirFilmVertical)
+
+        # Create and assign construction to surfaces
+        if not constr.create_and_assign_constructions(surfaces, runner, model)
+            return false
+        end
+        
+        # Store info for HVAC Sizing measure
+        (surfaces).each do |surface|
+            model.getBuildingUnits.each do |unit|
+                next if unit.spaces.size == 0
+                unit.setFeature(Constants.SizingInfoWallType(surface), "WoodStud")
+                unit.setFeature(Constants.SizingInfoStudWallCavityRvalue(surface), cavity_r)
+            end
+        end
+        
+        return true
+    end
+                             
+    
     def self.get_exterior_finish_materials
         mats = []
         mats << Material.ExtFinishStuccoMedDark
@@ -1442,25 +1524,6 @@ class FoundationConstructions
         surface.createSurfacePropertyExposedFoundationPerimeter("TotalExposedPerimeter", UnitConversions.convert(exposed_perimeter,"ft","m"))
         
         return true
-    end
-    
-    def self.get_walls_connected_to_floor(wall_surfaces, floor_surface)
-        adjacent_wall_surfaces = []
-        
-        # Note: Algorithm assumes that walls span an entire edge of the floor.
-        tol = 0.001
-        wall_surfaces.each do |wall_surface|
-            next if wall_surface.space.get != floor_surface.space.get
-            wall_surface.vertices.each do |v1|
-                floor_surface.vertices.each do |v2|
-                    if (v1.x - v2.x).abs < tol and (v1.y - v2.y).abs < tol
-                        adjacent_wall_surfaces << wall_surface
-                    end
-                end
-            end
-        end
-        
-        return adjacent_wall_surfaces.uniq!
     end
     
     private

@@ -214,10 +214,6 @@ class ResidentialHotWaterHeaterHeatPump < OpenStudio::Measure::ModelMeasure
             next if climateZone.institution != Constants.BuildingAmericaClimateZone
             ba_cz_name = climateZone.value.to_s
         end
-        if ba_cz_name.nil?
-            runner.registerError("No Building America climate zone has been assigned.")
-            return false
-        end
 
         location_hierarchy = Waterheater.get_location_hierarchy(ba_cz_name)
         
