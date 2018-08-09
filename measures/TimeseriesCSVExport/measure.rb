@@ -120,7 +120,7 @@ class TimeseriesCSVExport < OpenStudio::Measure::ReportingMeasure
     #make an argument for optional output variables
     arg = OpenStudio::Measure::OSArgument::makeStringArgument("output_variables", true)
     arg.setDisplayName("Output Variables")
-    arg.setDefaultValue("Zone Mean Air Temperature, Zone Mean Air Humidity Ratio, Fan Runtime Fraction")
+    arg.setDefaultValue("Zone Mean Air Temperature, Wetbulb Globe Temperature")
     args << arg
 
     return args
@@ -166,7 +166,15 @@ class TimeseriesCSVExport < OpenStudio::Measure::ReportingMeasure
     # Request the output for each output variable
     if inc_output_variables
       output_vars.each do |output_var|
-        result << OpenStudio::IdfObject.load("Output:Variable,*,#{output_var.strip},#{reporting_frequency};").get
+        output_var.strip!
+        if ["Wetbulb Globe Temperature", "Zone Indoor Air Wetbulb Temperature"].include? output_var
+          requests = wbgt_vars
+        else
+          requests = [output_var]
+        end
+        requests.each do |request|
+          result << OpenStudio::IdfObject.load("Output:Variable,*,#{request},#{reporting_frequency};").get
+        end
       end
     end
 
@@ -240,10 +248,47 @@ class TimeseriesCSVExport < OpenStudio::Measure::ReportingMeasure
       end
     end
     if inc_output_variables
+      timeseries = {}
+      key_values = []
       output_vars.each do |output_var|
-        sql.availableKeyValues(ann_env_pd, reporting_frequency, output_var.strip).each do |key_value|
-          variables_to_graph << [output_var.strip, reporting_frequency, key_value]
-          runner.registerInfo("Exporting #{key_value} #{output_var.strip}")
+        output_var.strip!
+        if ["Wetbulb Globe Temperature", "Zone Indoor Air Wetbulb Temperature"].include? output_var
+          requests = wbgt_vars
+        else
+          requests = [output_var]
+        end
+        requests.each do |request|
+          sql.availableKeyValues(ann_env_pd, reporting_frequency, request).each do |key_value|
+            unless variables_to_graph.include? [output_var, reporting_frequency, key_value]
+              if key_value != "Environment"
+                variables_to_graph << [output_var, reporting_frequency, key_value]              
+                runner.registerInfo("Exporting #{key_value} #{output_var}")
+              end
+            end            
+            if ["Wetbulb Globe Temperature", "Zone Indoor Air Wetbulb Temperature"].include? output_var
+              values = sql.timeSeries(ann_env_pd, reporting_frequency, request, key_value).get.values
+              timeserie = []
+              (0...values.length).to_a.each do |i|
+                timeserie << values[i]
+              end
+              timeseries["#{request},#{key_value}"] = timeserie
+              next if key_value == "Environment"
+              unless key_values.include? key_value
+                key_values << key_value
+              end
+            end
+          end
+        end
+      end
+      unless timeseries.empty? # we are requesting custom output vars
+        key_values.each do |key_value|
+          tdb = timeseries["Zone Mean Air Temperature,#{key_value}"]
+          w = timeseries["Zone Air Humidity Ratio,#{key_value}"]
+          pr = timeseries["Site Outdoor Air Barometric Pressure,Environment"]
+          mrt = timeseries["Zone Mean Radiant Temperature,#{key_value}"]
+          twb = OutputVariables.zone_indoor_air_wetbulb_temperature(tdb, w, pr)
+          timeseries["Zone Indoor Air Wetbulb Temperature,#{key_value}"] = twb
+          timeseries["Wetbulb Globe Temperature,#{key_value}"] = OutputVariables.wetbulb_globe_temperature(twb, mrt)
         end
       end
     end
@@ -260,16 +305,28 @@ class TimeseriesCSVExport < OpenStudio::Measure::ReportingMeasure
       kv = var_to_graph[2]
 
       # Get the y axis values
-      y_timeseries = sql.timeSeries(ann_env_pd, freq, var_name, kv)
+      if ["Wetbulb Globe Temperature", "Zone Indoor Air Wetbulb Temperature"].include? var_name
+        y_timeseries = timeseries["#{var_name},#{kv}"]
+      else        
+        y_timeseries = sql.timeSeries(ann_env_pd, freq, var_name, kv)
+      end
       if y_timeseries.empty?
         runner.registerWarning("No data found for #{freq} #{var_name} #{kv}.")
         next
       else
-        y_timeseries = y_timeseries.get
-        values = y_timeseries.values
+        if ["Wetbulb Globe Temperature", "Zone Indoor Air Wetbulb Temperature"].include? var_name
+          values = y_timeseries
+        else
+          y_timeseries = y_timeseries.get
+          values = y_timeseries.values
+        end
       end
 
-      old_units = y_timeseries.units      
+      if ["Wetbulb Globe Temperature", "Zone Indoor Air Wetbulb Temperature"].include? var_name
+        old_units = "C"
+      else
+        old_units = y_timeseries.units
+      end
       new_units = case old_units
                   when "J"
                     if var_name.include?("Electricity")
@@ -295,35 +352,39 @@ class TimeseriesCSVExport < OpenStudio::Measure::ReportingMeasure
       end
       
       y_vals = ["#{var_name} #{kv} [#{new_units}]"]
-      y_timeseries.dateTimes.each_with_index do |date_time, i|
-        if date_times.empty?
-          date_times << "Time"
-        end
-        if cols.empty?
-          if reporting_frequency == "Hourly"
-            if actual_timestamps.empty?
-              date_times << format_datetime(date_time.to_s) # timestamps from the sqlfile (TMY)
+      if not ["Wetbulb Globe Temperature", "Zone Indoor Air Wetbulb Temperature"].include? var_name
+        y_timeseries.dateTimes.each_with_index do |date_time, i|
+          if date_times.empty?
+            date_times << "Time"
+          end
+          if cols.empty?
+            if reporting_frequency == "Hourly"
+              if actual_timestamps.empty?
+                date_times << format_datetime(date_time.to_s) # timestamps from the sqlfile (TMY)
+              else
+                date_times << actual_timestamps[i] # timestamps from the epw (AMY)
+              end
             else
-              date_times << actual_timestamps[i] # timestamps from the epw (AMY)
+              date_times << i+1
             end
-          else
-            date_times << i+1
           end
-        end
-        y_val = values[i]
-        if unit_conv.nil? # these unit conversions are not scalars
-          if old_units == "C" and new_units == "F"
-            y_val = UnitConversions.convert(y_val, "C", "F") # convert C to F
+          y_val = values[i]
+          if unit_conv.nil? # these unit conversions are not scalars
+            if old_units == "C" and new_units == "F"
+              y_val = UnitConversions.convert(y_val, "C", "F") # convert C to F
+            end
+          else # these are scalars
+            y_val *= unit_conv
           end
-        else # these are scalars
-          y_val *= unit_conv
+          y_vals << y_val.round(3)
         end
-        y_vals << y_val.round(3)
+      else
+        y_vals += values.collect { |n| UnitConversions.convert(n, "C", "F").round(3) }
       end
 
       if cols.empty?
         cols << date_times
-      end      
+      end
       cols << y_vals
 
     end
@@ -346,6 +407,10 @@ class TimeseriesCSVExport < OpenStudio::Measure::ReportingMeasure
  
   end
   
+  def wbgt_vars
+    return ["Zone Mean Air Temperature", "Zone Air Humidity Ratio", "Site Outdoor Air Barometric Pressure", "Zone Mean Radiant Temperature"]
+  end
+
   def format_datetime(date_time)
     date_time = date_time.gsub("-", "/")
     date_time = date_time.gsub("Jan", "01")

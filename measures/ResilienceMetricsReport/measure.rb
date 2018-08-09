@@ -3,7 +3,9 @@
 # see the URL below for information on how to write OpenStudio measures
 # http://nrel.github.io/OpenStudio-user-documentation/reference/measure_writing_guide/
 
+require "#{File.dirname(__FILE__)}/resources/util"
 require "#{File.dirname(__FILE__)}/resources/unit_conversions"
+require "#{File.dirname(__FILE__)}/resources/psychrometrics"
 
 # start the measure
 class ResilienceMetricsReport < OpenStudio::Measure::ReportingMeasure
@@ -26,7 +28,7 @@ class ResilienceMetricsReport < OpenStudio::Measure::ReportingMeasure
     arg = OpenStudio::Measure::OSArgument::makeStringArgument("output_vars", true)
     arg.setDisplayName("Output Variables")
     arg.setDescription("Output variables to request.")
-    arg.setDefaultValue("Zone Mean Air Temperature, Zone Air Relative Humidity, Wet Bulb Globe Temperature")
+    arg.setDefaultValue("Zone Mean Air Temperature, Zone Air Relative Humidity, Wetbulb Globe Temperature")
     args << arg
 
     #make a double argument for minimum comfortable temperature
@@ -45,14 +47,10 @@ class ResilienceMetricsReport < OpenStudio::Measure::ReportingMeasure
 
     return args
   end
-  
-  def thermal_zones
-    return ["Living Zone", "Finished Basement Zone"]
-  end
 
   # define the outputs that the measure will create
   def outputs
-    output_vars = ["Zone Mean Air Temperature", "Zone Air Relative Humidity", "Wet Bulb Globe Temperature"] # possible list that the user can enter limits for; should get blank column for ones that aren't entered into output_vars arg
+    output_vars = ["Zone Mean Air Temperature", "Zone Air Relative Humidity", "Wetbulb Globe Temperature"] # possible list that the user can enter limits for; should get blank column for ones that aren't entered into output_vars arg
     buildstock_outputs = []
     output_vars.each do |output_var|
       thermal_zones.each do |zone|
@@ -85,14 +83,13 @@ class ResilienceMetricsReport < OpenStudio::Measure::ReportingMeasure
 
     output_vars.each do |output_var|
       output_var.strip!
-      if output_var == "Wet Bulb Globe Temperature"
+      if output_var == "Wetbulb Globe Temperature"
         requests = wbgt_vars
       else
         requests = [output_var]
       end
       requests.each do |request|
         result << OpenStudio::IdfObject.load("Output:Variable,*,#{request},Hourly;").get
-        runner.registerInfo("Requesting * #{request}.")
       end
     end
 
@@ -156,7 +153,7 @@ class ResilienceMetricsReport < OpenStudio::Measure::ReportingMeasure
     output_vars.each do |output_var|
 
       output_var.strip!
-      if output_var == "Wet Bulb Globe Temperature"
+      if output_var == "Wetbulb Globe Temperature"
         requests = wbgt_vars
       else
         requests = [output_var]
@@ -166,7 +163,9 @@ class ResilienceMetricsReport < OpenStudio::Measure::ReportingMeasure
 
         sql.availableKeyValues(ann_env_pd, "Hourly", request).each do |key_value|
 
-          next unless thermal_zones.any? { |zone| zone.casecmp(key_value) == 0 }
+          if key_value != "Environment"
+            next unless thermal_zones.any? { |zone| zone.casecmp(key_value) == 0 }
+          end
 
           timeserie = get_timeseries(sql, ann_env_pd, request, key_value)
           unless timeserie
@@ -175,6 +174,7 @@ class ResilienceMetricsReport < OpenStudio::Measure::ReportingMeasure
           end
 
           timeseries["#{request},#{key_value}"] = timeserie
+          next if key_value == "Environment"
           unless key_values.include? key_value
             key_values << key_value
           end
@@ -190,10 +190,13 @@ class ResilienceMetricsReport < OpenStudio::Measure::ReportingMeasure
       output_var.strip!
       key_values.each do |key_value|
         
-        if output_var == "Wet Bulb Globe Temperature"
-          t_w = timeseries["Zone Outdoor Air Wetbulb Temperature,#{key_value}"].collect { |n| n * 0.7 }
-          t_r = timeseries["Zone Mean Radiant Temperature,#{key_value}"].collect { |n| n * 0.3 }
-          values = [t_w, t_r].transpose.map {|x| x.reduce(:+)}
+        if output_var == "Wetbulb Globe Temperature"
+          tdb = timeseries["Zone Mean Air Temperature,#{key_value}"]
+          w = timeseries["Zone Air Humidity Ratio,#{key_value}"]
+          pr = timeseries["Site Outdoor Air Barometric Pressure,Environment"]
+          mrt = timeseries["Zone Mean Radiant Temperature,#{key_value}"]
+          twb = OutputVariables.zone_indoor_air_wetbulb_temperature(tdb, w, pr)
+          values = OutputVariables.wetbulb_globe_temperature(twb, mrt)
         else
           values = timeseries["#{output_var},#{key_value}"]
         end
@@ -231,14 +234,22 @@ class ResilienceMetricsReport < OpenStudio::Measure::ReportingMeasure
     return true
   end
 
+  def thermal_zones
+    return ["Living Zone", "Finished Basement Zone"]
+  end
+
+  def f_to_c_vars
+    return ["Zone Mean Air Temperature", "Wetbulb Globe Temperature"]
+  end
+
   def wbgt_vars
-    return ["Zone Outdoor Air Wetbulb Temperature", "Zone Mean Radiant Temperature"]
+    return ["Zone Mean Air Temperature", "Zone Air Humidity Ratio", "Site Outdoor Air Barometric Pressure", "Zone Mean Radiant Temperature"]
   end
 
   def convert_val(output_var, val)
     unless val == "NA"
       val = val.to_f
-      if ["Zone Mean Air Temperature", "Wet Bulb Globe Temperature"].include? output_var
+      if f_to_c_vars.include? output_var
         val = UnitConversions.convert(val, "F", "C")
       end
     end
