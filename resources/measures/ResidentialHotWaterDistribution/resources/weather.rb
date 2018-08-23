@@ -290,10 +290,11 @@ class WeatherProcess
         @header.Altitude = UnitConversions.convert(epw_file.elevation,"m","ft")
         @header.LocalPressure = Math::exp(-0.0000368 * @header.Altitude) # atm
 
+        epw_file_data = epw_file.data
+        
         @design, epwHasDesignData = get_design_info_from_epw(@design, epw_file, @header.Altitude)
 
-        # Timeseries data:
-        epw_file_data = epw_file.data
+        # Timeseries data:        
         hourdata = []
         dailydbs = []
         dailyhighdbs = []

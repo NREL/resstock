@@ -334,5 +334,10 @@ if __FILE__ == $PROGRAM_NAME
   end
 
   r = RunSampling.new
+
+  t0 = Time.now
   r.run(options[:project], options[:numdps], options[:outfile])
+  t1 = Time.now
+
+  puts "Sampling took: #{((t1 - t0)/60.0).round(1)} minutes."
 end
