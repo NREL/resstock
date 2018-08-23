@@ -265,6 +265,10 @@ class UnitConversions
         return x * 0.185
       elsif from == 'psi' and to == 'kpa'
         return x * 6.89475729
+      elsif from == 'psi' and to == 'pa'
+        return x * 6.89475729 * 1000.0
+      elsif from == 'pa' and to == 'psi'
+        return x / 6895.0
       
       # Angles
       elsif from == 'deg' and to == 'rad'
