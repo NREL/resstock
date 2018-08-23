@@ -24,6 +24,15 @@ class HVACSizing
     @finished_cool_design_temp = 75 # Indoor heating design temperature according to acca MANUAL J
     @finished_dehum_design_temp = 75
     
+    # Manual J: The default values for wind velocity are 15 mph for heating and 7.5 mph for cooling. 
+    # These velocities do not represent the most severe wind conditions that will be experienced when 
+    # the outdoor temperature is at the winter or summer design temperature, but they do represent 
+    # values that are compatible with normal weather patterns. If a location has a reputation for 
+    # wind velocities that consistently exceed these defaults during non-storm conditions, an 
+    # appropriate set of velocity values may be substituted for the default values
+    @windspeed_heating = UnitConversions.convert(15.0, "mph", "m/s")
+    @windspeed_cooling = UnitConversions.convert(7.5, "mph", "m/s")
+    
     assumed_inside_temp = 73.5 # F
     @inside_air_dens = UnitConversions.convert(weather.header.LocalPressure,"atm","Btu/ft^3") / (Gas.Air.r * (assumed_inside_temp + 460.0))
     
@@ -1080,10 +1089,6 @@ class HVACSizing
         return zone_loads
     end
     
-    dehumDesignWindSpeed = [weather.design.CoolingWindspeed, weather.design.HeatingWindspeed].max
-    ft2in = UnitConversions.convert(1.0, "ft", "in")
-    mph2m_s = UnitConversions.convert(1.0, "mph", "m/s")
-    
     # Stack Coefficient (Cs) for infiltration calculation taken from Table 5D
     # Wind Coefficient (Cw) for Shielding Classes 1-5 for infiltration calculation taken from Table 5D
     # Coefficients converted to regression equations to allow for more than 3 stories
@@ -1108,9 +1113,13 @@ class HVACSizing
     ela = get_unit_feature(runner, unit, Constants.SizingInfoZoneInfiltrationELA(thermal_zone), 'double', false)
     ela = 0 if ela.nil?
     
-    icfm_Cooling = ela * ft2in ** 2 * (c_s * mj8.ctd.abs + c_w * (weather.design.CoolingWindspeed / mph2m_s) ** 2) ** 0.5
-    icfm_Heating = ela * ft2in ** 2 * (c_s * htd.abs + c_w * (weather.design.HeatingWindspeed / mph2m_s) ** 2) ** 0.5
-    icfm_Dehumid = ela * ft2in ** 2 * (c_s * mj8.dtd.abs + c_w * (dehumDesignWindSpeed / mph2m_s) ** 2) ** 0.5
+    ela_in2 = UnitConversions.convert(ela, "ft^2", "in^2")
+    windspeed_cooling_mph = UnitConversions.convert(@windspeed_cooling, "m/s", "mph")
+    windspeed_heating_mph = UnitConversions.convert(@windspeed_heating, "m/s", "mph")
+    
+    icfm_Cooling = ela_in2 * (c_s * mj8.ctd.abs + c_w * windspeed_cooling_mph ** 2) ** 0.5
+    icfm_Heating = ela_in2 * (c_s * htd.abs + c_w * windspeed_heating_mph ** 2) ** 0.5
+    icfm_Dehumid = ela_in2 * (c_s * mj8.dtd.abs + c_w * [windspeed_cooling_mph, windspeed_heating_mph].max ** 2) ** 0.5
 
     q_unb, q_bal_Sens, q_bal_Lat = get_ventilation_rates(runner, unit)
     return nil if q_unb.nil? or q_bal_Sens.nil? or q_bal_Lat.nil?
