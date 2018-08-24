@@ -245,16 +245,29 @@ class ResilienceMetricsReport < OpenStudio::Measure::ReportingMeasure
     year_description = model.getYearDescription
     additional_properties = year_description.additionalProperties
     power_outage_start_date = additional_properties.getFeatureAsString("PowerOutageStartDate")
-    power_outage_start_hour = additional_properties.getFeatureAsInteger("PowerOutageStartHour")
-    power_outage_duration = additional_properties.getFeatureAsInteger("PowerOutageDuration")
+    power_outage_start_hour = additional_properties.getFeatureAsDouble("PowerOutageStartHour")
+    power_outage_duration = additional_properties.getFeatureAsDouble("PowerOutageDuration")
 
-    if power_outage_start_date.nil? or power_outage_start_hour.nil? or power_outage_duration.nil?
-      runner.registerError("Could not find power outage start date, start hour, and duration additional properties.")
+    unless power_outage_start_date.is_initialized
+      runner.registerError("Could not find power outage start date on additional properties object.")
       return nil, nil
     end
+    power_outage_start_date = power_outage_start_date.get
+
+    unless power_outage_start_hour.is_initialized
+      runner.registerError("Could not find power outage start hour on additional properties object.")
+      return nil, nil
+    end
+    power_outage_start_hour = power_outage_start_hour.get
+
+    unless power_outage_duration.is_initialized
+      runner.registerError("Could not find power outage duration on additional properties object.")
+      return nil, nil
+    end
+    power_outage_duration = power_outage_duration.get
 
     otg_start_date_month, otg_start_date_day = power_outage_start_date.split
-    otg_start_date_month = OpenStudio::monthOfYear(start_month)
+    otg_start_date_month = OpenStudio::monthOfYear(otg_start_date_month)
     otg_start_date_day = otg_start_date_day.to_i
     
     leap_offset = 0
@@ -272,8 +285,8 @@ class ResilienceMetricsReport < OpenStudio::Measure::ReportingMeasure
       m_idx += 1
     end
 
-    ix_outage_start = 24*outage_start_date_day + power_outage_start_hour
-    ix_outage_end = ix_outage_start + power_outage_duration
+    ix_outage_start = 24*(otg_start_date_day-1) + power_outage_start_hour.to_i
+    ix_outage_end = ix_outage_start + power_outage_duration.to_i
 
     runner.registerInfo("Found the outage start index to be #{ix_outage_start}.")
     runner.registerInfo("Found the outage end index to be #{ix_outage_end}.")
@@ -339,7 +352,7 @@ class ResilienceMetricsReport < OpenStudio::Measure::ReportingMeasure
     min_val == "NA" ? coast_time_below = nil : coast_time_below = 0
     hit_below = false
     unless coast_time_below.nil?
-      (ix_outage_start...values.length).to_a.each do |i|
+      (ix_outage_start...ix_outage_end).to_a.each do |i|
         if values[i] > min_val
           coast_time_below += 1
         elsif values[i] <= min_val
@@ -356,7 +369,7 @@ class ResilienceMetricsReport < OpenStudio::Measure::ReportingMeasure
     max_val == "NA" ? coast_time_above = nil : coast_time_above = 0
     hit_above = false
     unless coast_time_above.nil?
-      (ix_outage_start...values.length).to_a.each do |i|
+      (ix_outage_start...ix_outage_end).to_a.each do |i|
         if values[i] < max_val
           coast_time_above += 1
         elsif values[i] >= max_val
@@ -390,7 +403,7 @@ class ResilienceMetricsReport < OpenStudio::Measure::ReportingMeasure
 
   def report_output(runner, name, val)
     runner.registerValue(name, val)
-    runner.registerInfo("Registering #{val} for #{name}.")
+    runner.registerInfo("Registering #{val} hours for #{name}.")
   end
 
 end
