@@ -56,13 +56,18 @@ class ResilienceMetricsReport < OpenStudio::Measure::ReportingMeasure
       output_vars.each do |output_var|      
         buildstock_outputs << "#{OpenStudio::toUnderscoreCase(zone)}_#{OpenStudio::toUnderscoreCase(output_var)}_hours_below_lower_threshold" # hours below lower threshold
         buildstock_outputs << "#{OpenStudio::toUnderscoreCase(zone)}_#{OpenStudio::toUnderscoreCase(output_var)}_hours_above_upper_threshold" # hours above upper threshold
+        buildstock_outputs << "#{OpenStudio::toUnderscoreCase(zone)}_#{OpenStudio::toUnderscoreCase(output_var)}_degree_hours_below_lower_threshold" # degree-hours below lower threshold
+        buildstock_outputs << "#{OpenStudio::toUnderscoreCase(zone)}_#{OpenStudio::toUnderscoreCase(output_var)}_degree_hours_above_upper_threshold" # degree-hours above upper threshold
         buildstock_outputs << "#{OpenStudio::toUnderscoreCase(zone)}_#{OpenStudio::toUnderscoreCase(output_var)}_hours_until_lower_threshold" # hours until lower threshold
         buildstock_outputs << "#{OpenStudio::toUnderscoreCase(zone)}_#{OpenStudio::toUnderscoreCase(output_var)}_hours_until_upper_threshold" # hours until upper threshold
       end
-      buildstock_outputs << "#{OpenStudio::toUnderscoreCase(zone)}_#{OpenStudio::toUnderscoreCase("End Of Outage Indoor Drybulb Temperature")}"
+      # buildstock_outputs << "#{OpenStudio::toUnderscoreCase(zone)}_#{OpenStudio::toUnderscoreCase("End Of Outage Indoor Drybulb Temperature")}"
       buildstock_outputs << "#{OpenStudio::toUnderscoreCase(zone)}_#{OpenStudio::toUnderscoreCase("Maximum Wetbulb Globe Temperature During Outage")}"
       buildstock_outputs << "#{OpenStudio::toUnderscoreCase(zone)}_#{OpenStudio::toUnderscoreCase("Minimum Indoor Drybulb Temperature During Outage")}"
+      buildstock_outputs << "#{OpenStudio::toUnderscoreCase(zone)}_#{OpenStudio::toUnderscoreCase("Maximum Indoor Drybulb Temperature During Outage")}"
     end
+    buildstock_outputs << "outage_start_datetime"
+    buildstock_outputs << "outage_duration_hours"
     result = OpenStudio::Measure::OSOutputVector.new
     buildstock_outputs.each do |output|
       result << OpenStudio::Measure::OSOutput.makeDoubleOutput(output)
@@ -153,8 +158,8 @@ class ResilienceMetricsReport < OpenStudio::Measure::ReportingMeasure
 
     # Get the outage start and end indexes
     ix_outage_start, ix_outage_end = get_outage_indexes(model, runner)
-    if ix_outage_start.nil? and ix_outage_end.nil?
-      return false
+    if ix_outage_start.nil? and ix_outage_end.nil? # there is no outage
+      return true
     end
 
     timeseries = {}
@@ -220,6 +225,18 @@ class ResilienceMetricsReport < OpenStudio::Measure::ReportingMeasure
           report_output(runner, "#{key_value} #{output_var} hours above upper threshold", resilience_metric_above, "hours")
         end
 
+        # Degree-hours above or below threshold
+
+        resilience_metric_below, resilience_metric_above = calc_resilience_metric(output_var, timeseries["#{output_var},#{key_value}"], min_vals[i].strip, max_vals[i].strip, ix_outage_start, ix_outage_end, true)
+
+        unless resilience_metric_below.nil?
+          report_output(runner, "#{key_value} #{output_var} degree hours below lower threshold", resilience_metric_below, "degree-hours")
+        end
+
+        unless resilience_metric_above.nil?
+          report_output(runner, "#{key_value} #{output_var} degree hours above upper threshold", resilience_metric_above, "degree-hours")
+        end
+
         # Coast times until outage
 
         coast_time_below, coast_time_above = calc_coast_time(output_var, timeseries["#{output_var},#{key_value}"], min_vals[i].strip, max_vals[i].strip, ix_outage_start, ix_outage_end)
@@ -240,19 +257,24 @@ class ResilienceMetricsReport < OpenStudio::Measure::ReportingMeasure
     key_values.each do |key_value|
 
       # End Of Outage Indoor Drybulb Temperature
-      values = timeseries["Zone Mean Air Temperature,#{key_value}"]
-      end_of_outage_indoor_drybulb_temperature = calc_end_of_outage_val("End Of Outage Indoor Drybulb Temperature", values, ix_outage_end)
-      report_output(runner, "#{key_value} End Of Outage Indoor Drybulb Temperature", end_of_outage_indoor_drybulb_temperature, "F")
+      # values = timeseries["Zone Mean Air Temperature,#{key_value}"]
+      # end_of_outage_indoor_drybulb_temperature = calc_end_of_outage_val("End Of Outage Indoor Drybulb Temperature", values, ix_outage_end)
+      # report_output(runner, "#{key_value} End Of Outage Indoor Drybulb Temperature", end_of_outage_indoor_drybulb_temperature, "F")
 
       # Maximum Wetbulb Globe Temperature During Outage
       values = timeseries["Wetbulb Globe Temperature,#{key_value}"]
-      maximum_wetbulb_globe_temperature_during_outage = calc_maximum_wetbulb_globe_temperature_during_outage_val("Maximum Wetbulb Globe Temperature During Outage", values, ix_outage_start, ix_outage_end)
+      maximum_wetbulb_globe_temperature_during_outage = calc_maximum_during_outage_val("Maximum Wetbulb Globe Temperature During Outage", values, ix_outage_start, ix_outage_end)
       report_output(runner, "#{key_value} Maximum Wetbulb Globe Temperature During Outage", maximum_wetbulb_globe_temperature_during_outage, "F")
       
       # Minimum Indoor Drybulb Temperature During Outage
       values = timeseries["Zone Mean Air Temperature,#{key_value}"]
-      minimum_indoor_drybulb_temperature_during_outage = calc_minimum_indoor_drybulb_temperature_during_outage_val("Minimum Indoor Drybulb Temperature During Outage", values, ix_outage_start, ix_outage_end)
+      minimum_indoor_drybulb_temperature_during_outage = calc_minimum_during_outage_val("Minimum Indoor Drybulb Temperature During Outage", values, ix_outage_start, ix_outage_end)
       report_output(runner, "#{key_value} Minimum Indoor Drybulb Temperature During Outage", minimum_indoor_drybulb_temperature_during_outage, "F")
+
+      # Maximum Indoor Drybulb Temperature During Outage
+      values = timeseries["Zone Mean Air Temperature,#{key_value}"]
+      maximum_indoor_drybulb_temperature_during_outage = calc_maximum_during_outage_val("Maximum Indoor Drybulb Temperature During Outage", values, ix_outage_start, ix_outage_end)
+      report_output(runner, "#{key_value} Maximum Indoor Drybulb Temperature During Outage", maximum_indoor_drybulb_temperature_during_outage, "F")
 
     end
 
@@ -270,22 +292,29 @@ class ResilienceMetricsReport < OpenStudio::Measure::ReportingMeasure
     power_outage_duration = additional_properties.getFeatureAsDouble("PowerOutageDuration")
 
     unless power_outage_start_date.is_initialized
-      runner.registerError("Could not find power outage start date on additional properties object.")
+      runner.registerWarning("Could not find power outage start date on additional properties object. Need to apply the 'Outages' measure first.")
       return nil, nil
     end
     power_outage_start_date = power_outage_start_date.get
 
     unless power_outage_start_hour.is_initialized
-      runner.registerError("Could not find power outage start hour on additional properties object.")
+      runner.registerWarning("Could not find power outage start hour on additional properties object. Need to apply the 'Outages' measure first.")
       return nil, nil
     end
     power_outage_start_hour = power_outage_start_hour.get
 
     unless power_outage_duration.is_initialized
-      runner.registerError("Could not find power outage duration on additional properties object.")
+      runner.registerWarning("Could not find power outage duration on additional properties object. Need to apply the 'Outages' measure first.")
       return nil, nil
     end
     power_outage_duration = power_outage_duration.get
+
+    # Additional reporting metadata
+
+    report_output(runner, "Outage Start Datetime", "#{power_outage_start_date} #{power_outage_start_hour.to_i.to_s.rjust(2, "0")}:00:00", "datetime")
+    report_output(runner, "Outage Duration Hours", power_outage_duration.to_i.to_s, "hours")
+
+    # Get outage start and end indexes
 
     otg_start_date_month, otg_start_date_day = power_outage_start_date.split
     otg_start_date_month = OpenStudio::monthOfYear(otg_start_date_month)
@@ -325,7 +354,7 @@ class ResilienceMetricsReport < OpenStudio::Measure::ReportingMeasure
   end
 
   def c_to_f_vars
-    return ["End Of Outage Indoor Drybulb Temperature", "Maximum Wetbulb Globe Temperature During Outage", "Minimum Indoor Drybulb Temperature During Outage"]
+    return ["End Of Outage Indoor Drybulb Temperature", "Maximum Wetbulb Globe Temperature During Outage", "Minimum Indoor Drybulb Temperature During Outage", "Maximum Indoor Drybulb Temperature During Outage"]
   end
 
   def wbgt_vars
@@ -344,25 +373,33 @@ class ResilienceMetricsReport < OpenStudio::Measure::ReportingMeasure
     return val
   end
 
-  def calc_resilience_metric(output_var, values, min_val, max_val, ix_outage_start, ix_outage_end) # hours spend below, above specified thresholds
+  def calc_resilience_metric(output_var, values, min_val, max_val, ix_outage_start, ix_outage_end, degree_hours=false) # hours spend below, above specified thresholds
 
     min_val = convert_val(output_var, min_val)
     max_val = convert_val(output_var, max_val)
 
     min_val == "NA" ? resilience_metric_below = nil : resilience_metric_below = 0
     unless resilience_metric_below.nil?
-      (ix_outage_start...ix_outage_end).to_a.each do |i|
+      (ix_outage_start..ix_outage_end).to_a.each do |i|
         if values[i] < min_val
-          resilience_metric_below += 1
+          if not degree_hours
+            resilience_metric_below += 1
+          else
+            resilience_metric_below += min_val - values[i]
+          end
         end
       end
     end
 
     max_val == "NA" ? resilience_metric_above = nil : resilience_metric_above = 0
     unless resilience_metric_above.nil?
-      (ix_outage_start...ix_outage_end).to_a.each do |i|
+      (ix_outage_start..ix_outage_end).to_a.each do |i|
         if values[i] > max_val
-          resilience_metric_above += 1
+          if not degree_hours
+            resilience_metric_above += 1
+          else
+            resilience_metric_above += values[i] - max_val
+          end
         end
       end
     end
@@ -379,10 +416,9 @@ class ResilienceMetricsReport < OpenStudio::Measure::ReportingMeasure
     min_val == "NA" ? coast_time_below = nil : coast_time_below = 0
     hit_below = false
     unless coast_time_below.nil?
-      (ix_outage_start...ix_outage_end).to_a.each do |i|
-        if values[i] > min_val
-          coast_time_below += 1
-        elsif values[i] <= min_val
+      (ix_outage_start..ix_outage_end).to_a.each do |i|
+        coast_time_below += 1
+        if values[i] <= min_val
           hit_below = true
           break
         end
@@ -396,10 +432,9 @@ class ResilienceMetricsReport < OpenStudio::Measure::ReportingMeasure
     max_val == "NA" ? coast_time_above = nil : coast_time_above = 0
     hit_above = false
     unless coast_time_above.nil?
-      (ix_outage_start...ix_outage_end).to_a.each do |i|
-        if values[i] < max_val
-          coast_time_above += 1
-        elsif values[i] >= max_val
+      (ix_outage_start..ix_outage_end).to_a.each do |i|
+        coast_time_above += 1
+        if values[i] >= max_val
           hit_above = true
           break
         end
@@ -420,14 +455,14 @@ class ResilienceMetricsReport < OpenStudio::Measure::ReportingMeasure
     return val
   end
 
-  def calc_maximum_wetbulb_globe_temperature_during_outage_val(output_var, values, ix_outage_start, ix_outage_end)
-    values = values[ix_outage_start...ix_outage_end]
+  def calc_maximum_during_outage_val(output_var, values, ix_outage_start, ix_outage_end)
+    values = values[ix_outage_start..ix_outage_end]
     val = convert_val(output_var, values.max)
     return val
   end
 
-  def calc_minimum_indoor_drybulb_temperature_during_outage_val(output_var, values, ix_outage_start, ix_outage_end)
-    values = values[ix_outage_start...ix_outage_end]
+  def calc_minimum_during_outage_val(output_var, values, ix_outage_start, ix_outage_end)
+    values = values[ix_outage_start..ix_outage_end]
     val = convert_val(output_var, values.min)
     return val
   end
