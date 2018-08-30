@@ -143,10 +143,11 @@ class ProcessPowerOutage < OpenStudio::Measure::ModelMeasure
                 end
                 runner.registerInfo("Schedule named #{schedule.name.to_s} is getting an outage applied to it!")
                 if otg_num_days == 0
+                    day_date = OpenStudio::Date::fromDayOfYear(otg_start_date_day,assumedYear)
                     otg_rule = OpenStudio::Model::ScheduleRule.new(schedule)
-                    otg_rule.setName("#{schedule.name.to_s}" + "_outage_day_#{d}")
+                    otg_rule.setName("#{schedule.name.to_s}" + "_outage_day_#{otg_start_date_day}")
                     otg_day = otg_rule.daySchedule
-                    unmod_sched = schedule.getDaySchedules(d,d)
+                    unmod_sched = schedule.getDaySchedules(day_date,day_date)
                     for h in 1..24
                         if h < otg_hr or h >= (otg_hr + otg_len)
                             otg_day.addValue(time[h],unmod_sched[0].getValue(time[h]))
