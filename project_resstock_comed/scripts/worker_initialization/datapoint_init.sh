@@ -21,13 +21,15 @@ if ! [ -f $FILENAME ]; then
   CNT="0"
   
   # Download and extract weather files
-  echo "Retrieving weather files."
+  time=$(date +%T)
+  echo "$time Retrieving weather files."
   while [ $NUMEPWS -le "1" ]; do
   
     curl --retry 10 -O "$1"
     
     if ! [ -f $FILENAME ]; then
-      echo "ERROR: $FILENAME not successfully downloaded. Aborting..."
+      time=$(date +%T)
+      echo "$time ERROR: $FILENAME not successfully downloaded. Aborting..."
       exit 1
     fi
     
@@ -38,7 +40,8 @@ if ! [ -f $FILENAME ]; then
     CNT=$((CNT+1))
     
     if [ $CNT -eq "10" ]; then
-      echo "ERROR: Maximum number of retries ($CNT) exceeded. Aborting..."
+      time=$(date +%T)
+      echo "$time ERROR: Maximum number of retries ($CNT) exceeded. Aborting..."
       exit 1
     fi
   
@@ -50,10 +53,12 @@ if ! [ -f $FILENAME ]; then
   OUTCSV="buildstock.csv"
   if ! [ -f "lib/housing_characteristics/$OUTCSV" ]; then
   
-    echo "Generating buildstock.csv sampling results."
+    time=$(date +%T)
+    echo "$time Generating buildstock.csv sampling results."
     
     NUMDATAPOINTS=`awk -F\"maximum\": 'NF>=2 {print $2}' analysis.json | sed 's/,//g' | head -n1 | xargs` # Yes, this is gross.
-    echo "NUMDATAPOINTS is $NUMDATAPOINTS"
+    time=$(date +%T)
+    echo "$time NUMDATAPOINTS is $NUMDATAPOINTS"
 
     ruby lib/resources/run_sampling.rb -p NA -n $NUMDATAPOINTS -o $OUTCSV
 
@@ -61,7 +66,8 @@ if ! [ -f $FILENAME ]; then
     
   else
   
-    echo "Using uploaded buildstock.csv."
+    time=$(date +%T)
+    echo "$time Using uploaded buildstock.csv."
   
   fi
   
@@ -71,4 +77,5 @@ else
   
 fi
 
-echo "$NUMEPWS EPWs available."
+time=$(date +%T)
+echo "$time $NUMEPWS EPWs available."

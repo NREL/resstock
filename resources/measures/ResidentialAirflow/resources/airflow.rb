@@ -55,7 +55,7 @@ class Airflow
       elsif Geometry.is_pier_beam(thermal_zone)
         building.pierbeam = ZoneInfo.new(thermal_zone, Geometry.get_height_of_spaces(thermal_zone.spaces), UnitConversions.convert(thermal_zone.floorArea,"m^2","ft^2"), Geometry.get_zone_volume(thermal_zone, false, runner), Geometry.get_z_origin_for_zone(thermal_zone), infil.pier_beam_ach, nil)
       elsif Geometry.is_unfinished_attic(thermal_zone)
-        building.unfinished_attic = ZoneInfo.new(thermal_zone, Geometry.get_height_of_spaces(thermal_zone.spaces), UnitConversions.convert(thermal_zone.floorArea,"m^2","ft^2"), Geometry.get_zone_volume(thermal_zone, false, runner), Geometry.get_z_origin_for_zone(thermal_zone), nil, infil.unfinished_attic_sla)
+        building.unfinished_attic = ZoneInfo.new(thermal_zone, Geometry.get_height_of_spaces(thermal_zone.spaces), UnitConversions.convert(thermal_zone.floorArea,"m^2","ft^2"), Geometry.get_zone_volume(thermal_zone, false, runner), Geometry.get_z_origin_for_zone(thermal_zone), infil.unfinished_attic_const_ach, infil.unfinished_attic_sla)
       end
     end
     building.ffa = Geometry.get_finished_floor_area_from_spaces(model_spaces, true, runner)
@@ -463,10 +463,14 @@ class Airflow
     end
 
     unless building.unfinished_attic.nil?
-      building.unfinished_attic.inf_method = @infMethodSG
-      building.unfinished_attic.hor_lk_frac = 0.75 # Same as Energy Gauge USA Attic Model
-      building.unfinished_attic.neutral_level = 0.5 # DOE-2 Default
-      building.unfinished_attic.ACH = Airflow.get_infiltration_ACH_from_SLA(building.unfinished_attic.SLA, 1.0, weather)
+      if not building.unfinished_attic.SLA.nil?
+        building.unfinished_attic.inf_method = @infMethodSG
+        building.unfinished_attic.hor_lk_frac = 0.75 # Same as Energy Gauge USA Attic Model
+        building.unfinished_attic.neutral_level = 0.5 # DOE-2 Default
+        building.unfinished_attic.ACH = Airflow.get_infiltration_ACH_from_SLA(building.unfinished_attic.SLA, 1.0, weather)
+      elsif not building.unfinished_attic.ACH.nil?
+        building.unfinished_attic.inf_method = @infMethodRes
+      end
       building.unfinished_attic.inf_flow = building.unfinished_attic.ACH / UnitConversions.convert(1.0,"hr","min") * building.unfinished_attic.volume
     end
     
@@ -486,8 +490,8 @@ class Airflow
     inf_conv_factor = 776.25 # [ft/min]/[inH2O^(1/2)*ft^(3/2)/lbm^(1/2)]
     delta_pref = 0.016 # inH2O
 
-    if infil.living_ach50 > 0
-      # Living Space Infiltration
+    # Living Space Infiltration
+    if not infil.living_ach50.nil?
       unit_living.inf_method = @infMethodASHRAE
 
       # Based on "Field Validation of Algebraic Equations for Stack and
@@ -606,6 +610,13 @@ class Airflow
       # Convert living space ACH to cfm:
       unit_living.inf_flow = unit_living.ACH / UnitConversions.convert(1.0,"hr","min") * unit_living.volume # cfm
 
+    elsif not infil.living_constant_ach.nil?
+    
+      unit_living.inf_method = @infMethodRes
+      
+      unit_living.ACH = infil.living_constant_ach
+      unit_living.inf_flow = unit_living.ACH / UnitConversions.convert(1.0,"hr","min") * unit_living.volume # cfm
+      
     end
 
     unless unit_finished_basement.nil?
@@ -623,7 +634,7 @@ class Airflow
   def self.process_infiltration_for_spaces(model, spaces, wind_speed)
   
     spaces.each do |space|
-
+    
       space.f_t_SG = wind_speed.site_terrain_multiplier * ((space.height + space.coord_z) / 32.8) ** wind_speed.site_terrain_exponent / (wind_speed.terrain_multiplier * (wind_speed.height / 32.8) ** wind_speed.terrain_exponent)
 
       if space.inf_method == @infMethodSG
@@ -637,6 +648,7 @@ class Airflow
       end
       
       space.zone.spaces.each do |s|
+        next if Geometry.is_living(s)
         obj_name = "#{Constants.ObjectNameInfiltration}|#{s.name}"
         if space.inf_method == @infMethodRes and space.ACH.to_f > 0
           flow_rate = OpenStudio::Model::SpaceInfiltrationDesignFlowRate.new(model)
@@ -644,6 +656,10 @@ class Airflow
           flow_rate.setSchedule(model.alwaysOnDiscreteSchedule)
           flow_rate.setAirChangesperHour(space.ACH)
           flow_rate.setSpace(s)
+          flow_rate.setConstantTermCoefficient(1)
+          flow_rate.setTemperatureTermCoefficient(0)
+          flow_rate.setVelocityTermCoefficient(0)
+          flow_rate.setVelocitySquaredTermCoefficient(0)
         elsif space.inf_method == @infMethodSG and space.ELA.to_f > 0
           leakage_area = OpenStudio::Model::SpaceInfiltrationEffectiveLeakageArea.new(model)
           leakage_area.setName(obj_name)
@@ -1887,7 +1903,6 @@ class Airflow
     
     infil_program = OpenStudio::Model::EnergyManagementSystemProgram.new(model)
     infil_program.setName(obj_name_infil + " program")
-
     if unit_living.inf_method == @infMethodASHRAE
       if unit_living.SLA > 0
         infil_program.addLine("Set p_m = #{wind_speed.ashrae_terrain_exponent}")
@@ -2283,12 +2298,14 @@ class DuctsOutput
 end
 
 class Infiltration
-  def initialize(living_ach50, shelter_coef, garage_ach50, crawl_ach, unfinished_attic_sla, unfinished_basement_ach, finished_basement_ach, pier_beam_ach, has_flue_chimney, is_existing_home, terrain)
+  def initialize(living_ach50, living_constant_ach, shelter_coef, garage_ach50, crawl_ach, unfinished_attic_sla, unfinished_attic_const_ach, unfinished_basement_ach, finished_basement_ach, pier_beam_ach, has_flue_chimney, is_existing_home, terrain)
     @living_ach50 = living_ach50
+    @living_constant_ach = living_constant_ach
     @shelter_coef = shelter_coef
     @garage_ach50 = garage_ach50
     @crawl_ach = crawl_ach
     @unfinished_attic_sla = unfinished_attic_sla
+    @unfinished_attic_const_ach = unfinished_attic_const_ach
     @unfinished_basement_ach = unfinished_basement_ach
     @finished_basement_ach = finished_basement_ach
     @pier_beam_ach = pier_beam_ach
@@ -2296,7 +2313,7 @@ class Infiltration
     @is_existing_home = is_existing_home
     @terrain = terrain
   end
-  attr_accessor(:living_ach50, :shelter_coef, :garage_ach50, :crawl_ach, :unfinished_attic_sla, :unfinished_basement_ach, :finished_basement_ach, :pier_beam_ach, :has_flue_chimney, :is_existing_home, :terrain)
+  attr_accessor(:living_ach50, :living_constant_ach, :shelter_coef, :garage_ach50, :crawl_ach, :unfinished_attic_sla, :unfinished_attic_const_ach, :unfinished_basement_ach, :finished_basement_ach, :pier_beam_ach, :has_flue_chimney, :is_existing_home, :terrain)
 end
 
 class InfiltrationOutput

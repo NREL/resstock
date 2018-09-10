@@ -285,7 +285,7 @@ class Material
     end
 
     def self.Stud2x(thick_in)
-        return self.new(name="Stud 2x#{thick_in.to_s}", thick_in=thick_in, mat_base=BaseMaterial.Wood)
+        return self.new(name="Stud 2x #{thick_in.to_s} in.", thick_in=thick_in, mat_base=BaseMaterial.Wood)
     end
     
     def self.Stud2x4
@@ -294,6 +294,10 @@ class Material
 
     def self.Stud2x6
         return self.new(name="Stud 2x6", thick_in=5.5, mat_base=BaseMaterial.Wood)
+    end
+
+    def self.Stud2x8
+        return self.new(name="Stud 2x8", thick_in=7.25, mat_base=BaseMaterial.Wood)
     end
 
     def self.Plywood(thick_in)

@@ -46,6 +46,11 @@ class BuildExistingModel < OpenStudio::Ruleset::ModelUserScript
     sample_weight.setDescription("Number of buildings this simulation represents.")
     args << sample_weight
 
+    downselect_logic = OpenStudio::Ruleset::OSArgument.makeStringArgument("downselect_logic", false)
+    downselect_logic.setDisplayName("Downselect Logic")
+    downselect_logic.setDescription("Logic that specifies the subset of the building stock to be considered in the analysis. Specify one or more parameter|option as found in resources\\options_lookup.tsv. When multiple are included, they must be separated by '||' for OR and '&&' for AND, and using parentheses as appropriate. Prefix an option with '!' for not.")
+    args << downselect_logic
+    
     return args
   end
 
@@ -62,6 +67,7 @@ class BuildExistingModel < OpenStudio::Ruleset::ModelUserScript
     workflow_json = runner.getOptionalStringArgumentValue("workflow_json",user_arguments)
     number_of_buildings_represented = runner.getOptionalIntegerArgumentValue("number_of_buildings_represented",user_arguments)
     sample_weight = runner.getOptionalDoubleArgumentValue("sample_weight",user_arguments)
+    downselect_logic = runner.getOptionalStringArgumentValue("downselect_logic",user_arguments)
     
     # Get file/dir paths
     resources_dir = File.absolute_path(File.join(File.dirname(__FILE__), "..", "..", "lib", "resources")) # Should have been uploaded per 'Additional Analysis Files' in PAT
@@ -75,7 +81,7 @@ class BuildExistingModel < OpenStudio::Ruleset::ModelUserScript
     else
         workflow_json = nil
     end
-    
+
     # Load buildstock_file
     require File.join(File.dirname(buildstock_file), File.basename(buildstock_file, File.extname(buildstock_file)))
 
@@ -86,7 +92,7 @@ class BuildExistingModel < OpenStudio::Ruleset::ModelUserScript
 
     # Retrieve all data associated with sample number
     bldg_data = get_data_for_sample(buildstock_csv, building_id, runner)
-    
+
     # Retrieve order of parameters to run
     parameters_ordered = get_parameters_ordered_from_options_lookup_tsv(resources_dir, characteristics_dir)
 
@@ -95,16 +101,38 @@ class BuildExistingModel < OpenStudio::Ruleset::ModelUserScript
     parameters_ordered.each do |parameter_name|
         # Get measure name and arguments associated with the option
         option_name = bldg_data[parameter_name]
-        print_option_assignment(parameter_name, option_name, runner)
         register_value(runner, parameter_name, option_name)
+    end
+    
+    # Do the downselecting
+    if downselect_logic.is_initialized
+   
+      downselect_logic = downselect_logic.get
+      downselect_logic = downselect_logic.strip
+      downselected = evaluate_logic(downselect_logic, runner, past_results=false)
 
+      if downselected.nil?
+        return false
+      end
+      
+      unless downselected
+        # Not in downselection; don't run existing home simulation
+        runner.registerInfo("Sample is not in downselected parameters; will be registered as invalid.")
+        runner.haltWorkflow('Invalid')
+        return false
+      end
+
+    end
+
+    parameters_ordered.each do |parameter_name|
+        option_name = bldg_data[parameter_name]
+        print_option_assignment(parameter_name, option_name, runner)
         options_measure_args = get_measure_args_from_option_names(lookup_file, [option_name], parameter_name, runner)
         options_measure_args[option_name].each do |measure_subdir, args_hash|
             update_args_hash(measures, measure_subdir, args_hash, add_new=false)
         end
-
     end
-    
+
     if not apply_measures(measures_dir, measures, runner, model, workflow_json, "measures.osw", true)
       return false
     end
@@ -149,7 +177,7 @@ class BuildExistingModel < OpenStudio::Ruleset::ModelUserScript
     runner.registerError(msg)
     fail msg
   end
-    
+
 end
 
 # register the measure to be used by the application
