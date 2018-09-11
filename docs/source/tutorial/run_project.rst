@@ -48,9 +48,11 @@ Sometime you will need *all* the simulation results including timeseries results
 
 .. _download:
    
-.. todo::
-   
-   Only 150 datapoints are downloading right now. There's a ticket to fix that. Ry has a script to do the downloading of all datapoints. Add those instructions here.
+.. note::
+
+   From the PAT interface, only 150 datapoints are downloading right now. For downloading all datapoints, run the ``scripts/download_datapoints.rb`` script. The script requires that the ``localResults/results.csv`` be downloaded first. Supply all required arguments to the script, including project directory, server DNS, and analysis ID. A usage example is given as follows:
+   ``$ ruby scripts/download_datapoints.rb -p project_resstock_national``
+   ``-s http://ec2-107-23-165-146.compute-1.amazonaws.com -a 706c3b4a-9685-4924-bb13-c6bec77aa397``
 
 Shutting Down the OpenStudio Server Cluster
 -------------------------------------------
