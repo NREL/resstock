@@ -14,8 +14,9 @@ First, you will need some AWS credentials to allow PAT to start compute instance
 Cluster Settings and Starting the Cluster
 -----------------------------------------
 
-Leave the AMI selection at its default setting. We will leave most of the rest of the settings at their defaults, but because we're doing a small analysis here, we're going to set the number of worker nodes to zero. For guidance on cluster settings for your analysis including instance selection and worker nodes see :doc:`../aws_cluster_config`.
+Ensure that your project's AMI selection matches the `AMI currently used`_ in the provided PAT projects (e.g., project_resstock_national). We will leave most of the rest of the settings at their defaults, but because we're doing a small analysis here, we're going to set the number of worker nodes to zero. For guidance on cluster settings for your analysis including instance selection and worker nodes see :doc:`../aws_cluster_config`.
 
+.. _AMI currently used: https://github.com/NREL/OpenStudio-BuildStock/blob/fc918675dd171d1a7a43d31ab5e9873218baa1ef/project_resstock_national/pat.json#L40
 .. image:: ../images/tutorial/run_on_cloud.png
 
 Click **Save Cluster Settings** and the **Start** button next to the **Cluster Status** label. Wait for the cluster to start. The cloud icon will turn green when it is ready. It can take up to 10 minutes.
