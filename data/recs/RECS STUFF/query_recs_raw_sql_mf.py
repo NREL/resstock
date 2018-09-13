@@ -851,7 +851,7 @@ def shared_system(df):
 
 
 def regenerate():
-    # Use this to regenerate processed data if changes are made to any of the classes below
+    # Use this to regenerate processed data if changes are made to any of the classes belowf
     df = retrieve_data()
     df = assign_size_bins(df)
     df = process_data(df)
