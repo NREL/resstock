@@ -5,7 +5,7 @@ require 'csv'
 require 'openstudio'
 
 # start the measure
-class BuildExistingModel < OpenStudio::Ruleset::ModelUserScript
+class BuildExistingModel < OpenStudio::Measure::ModelMeasure
 
   # human readable name
   def name
