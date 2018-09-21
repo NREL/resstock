@@ -15,7 +15,7 @@ task :copy_beopt_files do
   if branch.empty?
     branch = "master"
   end
-  
+
   if File.exists? File.join(File.dirname(__FILE__), "#{branch}.zip")
     FileUtils.rm(File.join(File.dirname(__FILE__), "#{branch}.zip"))
   end
@@ -106,7 +106,7 @@ task :copy_beopt_files do
   end
   
   # Copy other measures to measure/ dir
-  other_measures = ["TimeseriesCSVExport"] # Still under development: "UtilityBillCalculationsSimple", "UtilityBillCalculationsDetailed"
+  other_measures = ["TimeseriesCSVExport", "ResidentialSimulationControls"] # Still under development: "UtilityBillCalculationsSimple", "UtilityBillCalculationsDetailed"
   buildstock_measures_dir = buildstock_resource_measures_dir = File.join(File.dirname(__FILE__), "measures")
   other_measures.each do |other_measure|
     puts "Copying #{other_measure} measure..."

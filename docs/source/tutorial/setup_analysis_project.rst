@@ -72,6 +72,15 @@ OpenStudio Measures
 
 Continuing on the measure selection tab, scroll down to the **OpenStudio Measures** section. This section is where you will define the parameters of the analysis including the baseline case and any upgrade scenarios.
 
+.. _simulation-controls:
+
+Simulation Controls
+^^^^^^^^^^^^^^^^^^^
+
+Using this measure you can set the simulation timesteps per hour, as well as the run period begin month/day and end month/day. By default the simulations use a 10-min timestep (i.e., the number of timesteps per hour is 6), start on January 1, and end on December 31.
+
+.. image:: ../images/tutorial/simulation_controls.png
+
 .. _build-existing-model:
 
 Build Existing Model
@@ -86,6 +95,9 @@ This measure creates the baseline scenario. Set the following inputs:
 
 **Number of Buildings Represented**
   The total number of buildings this sampling is meant to represent. This sets the weighting factors. For the U.S. single-family detached housing stock, this is 80 million homes. 
+  
+**Downselect Logic**
+  Logic that specifies the subset of the building stock to be considered in the analysis. Specify one or more ``parameter|option`` as found in the ``resources/options_lookup.tsv``. (This uses the same syntax as the "Apply Upgrade" measure, which is explained in the next section.) For example, if you wanted to only simulate California homes you could enter ``Location Region|CR11`` in this field.
 
 .. _tutorial-apply-upgrade:
 
@@ -128,7 +140,7 @@ Leave this alone.
 Timeseries CSV Export
 ^^^^^^^^^^^^^^^^^^^^^
 
-If you do not need the timeseries data for your simulations, you can skip this measure to save disk space. Otherwise, one csv file per datapoint will be written containing timeseries enduse data relevant to their model. After `downloading all datapoints <run_project.html#download>`_ to your project's localResults folder, each datapoint's ``enduse_timeseries.csv`` file will be contained in a zipped ``data_point.zip`` along with all other simulation input and output files.
+If you do not need the timeseries data for your simulations, you can skip this measure to save disk space. Otherwise, one csv file per datapoint will be written containing timeseries enduse data for their model. After `downloading all datapoints <run_project.html#download>`_ to your project's localResults folder, each datapoint's ``enduse_timeseries.csv`` file will be contained in a zipped ``data_point.zip`` file along with all other simulation input and output files.
   
 .. image:: ../images/tutorial/timeseries_csv_export.png
 
@@ -141,8 +153,7 @@ If you do not need the timeseries data for your simulations, you can skip this m
   * Monthly
   * RunPeriod
   
-  Setting the reporting frequency to "Timestep" will give you 10-min interval output because ResStock simulations use a 10-min timestep by default. You can change the number of timesteps per hour by modifying /resources/measures/ResidentialLocation/measure.rb by changing the line:
-  ``success = Simulation.apply(model, runner, timesteps_per_hr=6)`` (10-min) to ``success = Simulation.apply(model, runner, timesteps_per_hr=4)`` (15-min) or ``success = Simulation.apply(model, runner, timesteps_per_hr=12)`` (5-min).
+  Setting the reporting frequency to "Timestep" will give you interval output equal to the timestep set by the "Simulation Controls" measure. Thus by default, this measure will produce 10-min interval output.
 
 **Include End Use Subcategories**
   Select this to include end use subcategories. The default is to not include end use subcategories. End use subcategories include:
