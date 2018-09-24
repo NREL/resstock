@@ -97,8 +97,10 @@ This measure creates the baseline scenario. Set the following inputs:
   The total number of buildings this sampling is meant to represent. This sets the weighting factors. For the U.S. single-family detached housing stock, this is 80 million homes. 
   
 **Downselect Logic**
-  Logic that specifies the subset of the building stock to be considered in the analysis. Specify one or more ``parameter|option`` as found in the ``resources/options_lookup.tsv``. (This uses the same syntax as the "Apply Upgrade" measure, which is explained in the next section.) For example, if you wanted to only simulate California homes you could enter ``Location Region|CR11`` in this field.
+  Logic that specifies the subset of the building stock to be considered in the analysis. Specify one or more ``parameter|option`` as found in the ``resources/options_lookup.tsv``. (This uses the same syntax as the "Apply Upgrade" measure, which is explained in the next section.) For example, if you wanted to only simulate California homes you could enter ``Location Region|CR11`` in this field. (See the entire custom region map `here`_.)
 
+.. _here: https://github.com/NREL/OpenStudio-BuildStock/tree/master/docs/source/images/custom_region_map.png
+  
 .. _tutorial-apply-upgrade:
 
 Apply Upgrade
