@@ -45,7 +45,6 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
                           "other_fuel_water_systems_mbtu",
                           "hours_heating_setpoint_not_met",
                           "hours_cooling_setpoint_not_met",
-                          "showers_not_met",
                           "hvac_cooling_capacity_w",
                           "hvac_heating_capacity_w",
                           "hvac_heating_supp_capacity_w",
@@ -157,11 +156,6 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
     
     report_sim_output(runner, "hours_heating_setpoint_not_met", [sqlFile.hoursHeatingSetpointNotMet], nil, nil)
     report_sim_output(runner, "hours_cooling_setpoint_not_met", [sqlFile.hoursCoolingSetpointNotMet], nil, nil)
-
-    # SHOWERS NOT MET
-
-    showers_not_met = 100
-    report_sim_output(runner, "showers_not_met", [OpenStudio::OptionalDouble.new(showers_not_met)], nil, nil)
     
     # HVAC CAPACITIES
     
