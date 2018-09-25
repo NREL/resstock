@@ -15,7 +15,7 @@ task :copy_beopt_files do
   if branch.empty?
     branch = "master"
   end
-=begin
+
   if File.exists? File.join(File.dirname(__FILE__), "#{branch}.zip")
     FileUtils.rm(File.join(File.dirname(__FILE__), "#{branch}.zip"))
   end
@@ -48,7 +48,7 @@ task :copy_beopt_files do
       end
     end
   end
-=end
+
   puts "Extracting latest residential measures..."
   unzip_file = OpenStudio::UnzipFile.new(File.join(File.dirname(__FILE__), "#{branch}.zip"))
   unzip_file.extractAllFiles(OpenStudio::toPath(File.join(File.dirname(__FILE__), branch)))
