@@ -64,6 +64,7 @@ class ProcessCentralSystemPTAC < OpenStudio::Measure::ModelMeasure
       return false
     end
 
+    hot_water_loop = nil
     units.each do |unit|
       thermal_zones = Geometry.get_thermal_zones_from_spaces(unit.spaces)
       HVAC.get_control_and_slave_zones(thermal_zones).each do |control_zone, slave_zones|
@@ -72,27 +73,20 @@ class ProcessCentralSystemPTAC < OpenStudio::Measure::ModelMeasure
                                      Constants.ObjectNameCentralSystemPTAC)
         end
       end
-    end
 
-    hot_water_loop = std.model_get_or_add_hot_water_loop(model, central_boiler_fuel_type)
-
-    units.each do |unit|
-    
-      thermal_zones = []
-      unit.spaces.each do |space|
-        thermal_zone = space.thermalZone.get
-        next if thermal_zones.include? thermal_zone
-        thermal_zones << thermal_zone
+      if hot_water_loop.nil?
+        hot_water_loop = std.model_get_or_add_hot_water_loop(model, central_boiler_fuel_type)
+        runner.registerInfo("Added '#{hot_water_loop.name}' to model.")
       end
-    
-      std.model_add_ptac(model, sys_name=nil, hot_water_loop, thermal_zones, fan_type="ConstantVolume", "Water", cooling_type="Single Speed DX AC")
-    
+
+      success = HVAC.apply_central_system_ptac(model, unit, runner, std, hot_water_loop)
+
+      return false if not success
+
     end
 
     simulation_control = model.getSimulationControl
     simulation_control.setRunSimulationforSizingPeriods(true)
-
-    runner.registerInfo("Added PTAC to the building.")
 
     return true
 

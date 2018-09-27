@@ -85,50 +85,40 @@ class ProcessCentralSystemFanCoil < OpenStudio::Measure::ModelMeasure
       return false
     end
 
+    hot_water_loop = nil
+    chilled_water_loop = nil
     units.each do |unit|
       thermal_zones = Geometry.get_thermal_zones_from_spaces(unit.spaces)
       HVAC.get_control_and_slave_zones(thermal_zones).each do |control_zone, slave_zones|
         ([control_zone] + slave_zones).each do |zone|
-          HVAC.remove_hvac_equipment(model, runner, zone, unit,
-                                     Constants.ObjectNameCentralSystemFanCoil)
+          HVAC.remove_hvac_equipment(model, runner, zone, unit, 
+                                     Constants.ObjectNameCentralSystemFanCoil, fan_coil_heating, fan_coil_cooling)
+                
         end
       end
-    end
 
-    if fan_coil_heating and fan_coil_cooling
-      hot_water_loop = std.model_get_or_add_hot_water_loop(model, central_boiler_fuel_type)
-      chilled_water_loop = std.model_get_or_add_chilled_water_loop(model, "Electricity", air_cooled=true)
-      msg = "boiler/chiller with fan coil units"
-    elsif fan_coil_cooling
-      hot_water_loop = nil
-      chilled_water_loop = std.model_get_or_add_chilled_water_loop(model, "Electricity", air_cooled=true)
-      msg = "chiller with cooling-only fan coil units"
-    elsif fan_coil_heating
-      hot_water_loop = std.model_get_or_add_hot_water_loop(model, central_boiler_fuel_type)
-      msg = "boiler with heating-only zone hvac unit heaters"
-    end
+      if fan_coil_heating
+        if hot_water_loop.nil?
+          hot_water_loop = std.model_get_or_add_hot_water_loop(model, central_boiler_fuel_type)
+          runner.registerInfo("Added '#{hot_water_loop.name}' to model.")
+        end
+      end
+      
+      if fan_coil_cooling
+        if chilled_water_loop.nil?
+          chilled_water_loop = std.model_get_or_add_chilled_water_loop(model, "Electricity", air_cooled=true)
+          runner.registerInfo("Added '#{chilled_water_loop.name}' to model.")
+        end
+      end
 
-    units.each do |unit|
-    
-      thermal_zones = []
-      unit.spaces.each do |space|
-        thermal_zone = space.thermalZone.get
-        next if thermal_zones.include? thermal_zone
-        thermal_zones << thermal_zone
-      end
-    
-      if fan_coil_heating and not fan_coil_cooling
-        std.model_add_unitheater(model, sys_name=nil, thermal_zones, hvac_op_sch=nil, fan_control_type="ConstantVolume", fan_pressure_rise=OpenStudio.convert(0.2, "inH_{2}O", "Pa").get, "DistrictHeating", hot_water_loop)
-      else
-        std.model_add_four_pipe_fan_coil(model, hot_water_loop, chilled_water_loop, thermal_zones)
-      end
-    
-    end
+      success = HVAC.apply_central_system_fan_coil(model, unit, runner, std, fan_coil_heating, fan_coil_cooling, hot_water_loop, chilled_water_loop)      
+
+      return false if not success
+
+    end # unit
 
     simulation_control = model.getSimulationControl
     simulation_control.setRunSimulationforSizingPeriods(true) # indicate e+ autosizing
-
-    runner.registerInfo("Added #{msg} to the building.")
 
     return true
 
