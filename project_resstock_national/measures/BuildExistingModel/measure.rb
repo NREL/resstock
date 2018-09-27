@@ -46,6 +46,11 @@ class BuildExistingModel < OpenStudio::Ruleset::ModelUserScript
     downselect_logic.setDescription("Logic that specifies the subset of the building stock to be considered in the analysis. Specify one or more parameter|option as found in resources\\options_lookup.tsv. When multiple are included, they must be separated by '||' for OR and '&&' for AND, and using parentheses as appropriate. Prefix an option with '!' for not.")
     args << downselect_logic
     
+    sample_weight = OpenStudio::Ruleset::OSArgument.makeDoubleArgument("sample_weight", false)
+    sample_weight.setDisplayName("Sample Weight of Simulation")
+    sample_weight.setDescription("Number of buildings this simulation represents.")
+    args << sample_weight
+
     return args
   end
 
@@ -62,6 +67,7 @@ class BuildExistingModel < OpenStudio::Ruleset::ModelUserScript
     workflow_json = runner.getOptionalStringArgumentValue("workflow_json",user_arguments)
     number_of_buildings_represented = runner.getOptionalIntegerArgumentValue("number_of_buildings_represented",user_arguments)
     downselect_logic = runner.getOptionalStringArgumentValue("downselect_logic",user_arguments)
+    sample_weight = runner.getOptionalDoubleArgumentValue("sample_weight",user_arguments)
     
     # Get file/dir paths
     resources_dir = File.absolute_path(File.join(File.dirname(__FILE__), "..", "..", "lib", "resources")) # Should have been uploaded per 'Additional Analysis Files' in PAT
@@ -127,12 +133,24 @@ class BuildExistingModel < OpenStudio::Ruleset::ModelUserScript
         end
     end
 
+    # FIXME: Hack to run the correct ResStock geometry measure
+    if ["Single-Family Detached", "Mobile Home"].include? bldg_data["Geometry Building Type"]
+      measures.delete("ResidentialGeometryCreateSingleFamilyAttached")
+      measures.delete("ResidentialGeometryCreateMultifamily")
+    elsif bldg_data["Geometry Building Type"] == "Single-Family Attached"
+      measures.delete("ResidentialGeometryCreateSingleFamilyDetached")
+      measures.delete("ResidentialGeometryCreateMultifamily")
+    elsif ["Multi-Family with 2 - 4 Units", "Multi-Family with 5+ Units"].include? bldg_data["Geometry Building Type"]
+      measures.delete("ResidentialGeometryCreateSingleFamilyDetached")
+      measures.delete("ResidentialGeometryCreateSingleFamilyAttached")
+    end
+
     if not apply_measures(measures_dir, measures, runner, model, workflow_json, "measures.osw", true)
       return false
     end
     
     # Determine weight
-    if not number_of_buildings_represented.nil?
+    if number_of_buildings_represented.is_initialized
         total_samples = nil
         runner.analysis[:analysis][:problem][:workflow].each do |wf|
             next if wf[:name] != 'build_existing_model'
@@ -147,6 +165,10 @@ class BuildExistingModel < OpenStudio::Ruleset::ModelUserScript
         end
         weight = number_of_buildings_represented.get / total_samples
         register_value(runner, "weight", weight.to_s)
+    end
+
+    if sample_weight.is_initialized
+        register_value(runner, "weight", sample_weight.get.to_s)
     end
     
     if not workflow_json.nil?
