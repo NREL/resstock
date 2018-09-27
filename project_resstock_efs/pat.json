@@ -32,32 +32,32 @@
       "cluster_status": "terminated",
       "openstudio_server_version": {
         "openstudio": {
-          "version_sha": "366cbe0e3a",
-          "version_number": "2.5.0",
+          "version_sha": "8c81faf8bc",
+          "version_number": "2.6.0",
           "url_base": "https://s3.amazonaws.com/openstudio-builds/NUMBER/OpenStudio-NUMBER.SHA-Linux.deb"
         },
-        "ami": "ami-1784206a",
+        "ami": "ami-f9717686",
         "radiance": "NREL 5.0.a",
+        "name": "2.6.0",
         "workflow": {
           "repo": "nrel/openstudio-workflow-gem",
-          "ref": "1.3.2"
+          "ref": "1.3.3"
         },
-        "R": "3.4.2",
-        "standards": {
-          "repo": "nrel/openstudio-standards",
-          "ref": "0.2.0"
-        },
-        "name": "2.5.0",
-        "notes": "Official automated release of OpenStudio Server 2.5.0 by NREL",
+        "notes": null,
         "analysis": {
           "repo": "nrel/openstudio-analysis-gem",
           "ref": "1.0.0"
         },
+        "standards": {
+          "repo": "nrel/openstudio-standards",
+          "ref": "0.2.2"
+        },
+        "R": "3.4.2",
+        "energyplus": "8.9",
         "server": {
           "repo": "nrel/openstudio-server",
-          "ref": "517600bc9cee58cec2101bdc6817b06e59d6327a"
+          "ref": "1761f7e9e8fe8303c0c11ee70460548145ba0828"
         },
-        "energyplus": "8.9",
         "recommend": ""
       },
       "server": {
@@ -135,9 +135,9 @@
       "directory": "C:/OpenStudio/OpenStudio-BuildStock/measures/BuildExistingModel",
       "uid": "943cde68-f4bf-4e2e-a984-ab70cba2669c",
       "uuid": "{943cde68-f4bf-4e2e-a984-ab70cba2669c}",
-      "version_id": "128bf685-6403-4892-9315-d2f664f768dc",
-      "version_uuid": "{128bf685-6403-4892-9315-d2f664f768dc}",
-      "version_modified": "20180725T182543Z",
+      "version_id": "7e3a7efa-ae52-4a78-a7b3-8c4b4ec67d11",
+      "version_uuid": "{7e3a7efa-ae52-4a78-a7b3-8c4b4ec67d11}",
+      "version_modified": "20180927T204158Z",
       "xml_checksum": "9339BE01",
       "display_name": "Build Existing Model",
       "class_name": "BuildExistingModel",
@@ -212,7 +212,7 @@
             "variableSetting": "Pivot",
             "distribution": "Integer Sequence",
             "discreteVariables": [],
-            "maximum": 100,
+            "maximum": 350000,
             "minimum": 1,
             "mean": 0,
             "deltaX": 0,
@@ -291,6 +291,30 @@
             "stdDev": "",
             "default_value": ""
           }
+        },
+        {
+          "name": "sample_weight",
+          "display_name": "Sample Weight of Simulation",
+          "description": "Number of buildings this simulation represents.",
+          "type": "Double",
+          "required": false,
+          "model_dependent": false,
+          "variable": false,
+          "$$hashKey": "object:2633",
+          "display_name_short": "sample_weight",
+          "inputs": {
+            "relationship": null,
+            "choiceDisplayNames": [],
+            "variableSetting": "Argument",
+            "distribution": "Uniform",
+            "discreteVariables": [],
+            "maximum": 0,
+            "minimum": 0,
+            "mean": 0,
+            "deltaX": 0,
+            "stdDev": 0,
+            "default_value": 0
+          }
         }
       ],
       "edit": "",
@@ -300,13 +324,13 @@
       "add": "",
       "open": false,
       "addedToProject": true,
-      "date": "7/25/2018",
+      "date": "9/27/2018",
       "author": "",
       "type": "ModelMeasure",
       "seed": "EmptySeedModel.osm",
       "workflow_index": 0,
       "options": [],
-      "instanceId": 0.7405207501420936,
+      "instanceId": 0.7666625002248881,
       "skip": false,
       "$$hashKey": "object:2655",
       "showWarningText": false,
@@ -315,12 +339,12 @@
     {
       "measure_dir": "C:\\OpenStudio\\OpenStudio-BuildStock\\project_resstock_efs\\measures\\BuildingCharacteristicsReport",
       "name": "building_characteristics_report",
-      "directory": "C:\\OpenStudio\\OpenStudio-BuildStock\\project_resstock_efs\\measures\\BuildingCharacteristicsReport",
+      "directory": "C:/OpenStudio/OpenStudio-BuildStock/measures/BuildingCharacteristicsReport",
       "uid": "90eecbe2-d8e2-47db-9079-5d9029fb3e67",
       "uuid": "{90eecbe2-d8e2-47db-9079-5d9029fb3e67}",
-      "version_id": "1f848f10-8062-4188-b247-7d7575776506",
-      "version_uuid": "{1f848f10-8062-4188-b247-7d7575776506}",
-      "version_modified": "20180418T020018Z",
+      "version_id": "7d09e918-3b8a-413a-9d40-1562c38cd16c",
+      "version_uuid": "{7d09e918-3b8a-413a-9d40-1562c38cd16c}",
+      "version_modified": "20180726T153453Z",
       "xml_checksum": "2EA103AF",
       "display_name": "Building Characteristics Report",
       "class_name": "BuildingCharacteristicsReport",
@@ -335,7 +359,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:8229",
+          "$$hashKey": "object:3883",
           "checked": true,
           "visualize": "true"
         },
@@ -346,7 +370,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:8230",
+          "$$hashKey": "object:3884",
           "checked": true,
           "visualize": "true"
         },
@@ -357,7 +381,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:8231",
+          "$$hashKey": "object:3885",
           "checked": true,
           "visualize": "true"
         },
@@ -368,7 +392,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:8232",
+          "$$hashKey": "object:3886",
           "checked": true,
           "visualize": "true"
         },
@@ -379,7 +403,18 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:8233",
+          "$$hashKey": "object:3887",
+          "checked": true,
+          "visualize": "true"
+        },
+        {
+          "name": "vintage_fpl",
+          "display_name": "vintage_fpl",
+          "short_name": "vintage_fpl",
+          "description": "",
+          "type": "String",
+          "model_dependent": false,
+          "$$hashKey": "object:3888",
           "checked": true,
           "visualize": "true"
         },
@@ -390,7 +425,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:8234",
+          "$$hashKey": "object:3889",
           "checked": true,
           "visualize": "true"
         },
@@ -401,7 +436,62 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:8235",
+          "$$hashKey": "object:3890",
+          "checked": true,
+          "visualize": "true"
+        },
+        {
+          "name": "geometry_building_type",
+          "display_name": "geometry_building_type",
+          "short_name": "geometry_building_type",
+          "description": "",
+          "type": "String",
+          "model_dependent": false,
+          "$$hashKey": "object:3891",
+          "checked": true,
+          "visualize": "true"
+        },
+        {
+          "name": "geometry_building_type_fpl",
+          "display_name": "geometry_building_type_fpl",
+          "short_name": "geometry_building_type_fpl",
+          "description": "",
+          "type": "String",
+          "model_dependent": false,
+          "$$hashKey": "object:3892",
+          "checked": true,
+          "visualize": "true"
+        },
+        {
+          "name": "geometry_number_units",
+          "display_name": "geometry_number_units",
+          "short_name": "geometry_number_units",
+          "description": "",
+          "type": "String",
+          "model_dependent": false,
+          "$$hashKey": "object:3893",
+          "checked": true,
+          "visualize": "true"
+        },
+        {
+          "name": "geometry_building_number_units_mf",
+          "display_name": "geometry_building_number_units_mf",
+          "short_name": "geometry_building_number_units_mf",
+          "description": "",
+          "type": "String",
+          "model_dependent": false,
+          "$$hashKey": "object:3894",
+          "checked": true,
+          "visualize": "true"
+        },
+        {
+          "name": "geometry_building_number_units_sfa",
+          "display_name": "geometry_building_number_units_sfa",
+          "short_name": "geometry_building_number_units_sfa",
+          "description": "",
+          "type": "String",
+          "model_dependent": false,
+          "$$hashKey": "object:3895",
           "checked": true,
           "visualize": "true"
         },
@@ -412,7 +502,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:8236",
+          "$$hashKey": "object:3896",
           "checked": true,
           "visualize": "true"
         },
@@ -423,7 +513,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:8237",
+          "$$hashKey": "object:3897",
           "checked": true,
           "visualize": "true"
         },
@@ -434,7 +524,18 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:8238",
+          "$$hashKey": "object:3898",
+          "checked": true,
+          "visualize": "true"
+        },
+        {
+          "name": "geometry_building_floors",
+          "display_name": "geometry_building_floors",
+          "short_name": "geometry_building_floors",
+          "description": "",
+          "type": "String",
+          "model_dependent": false,
+          "$$hashKey": "object:3899",
           "checked": true,
           "visualize": "true"
         },
@@ -445,7 +546,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:8239",
+          "$$hashKey": "object:3900",
           "checked": true,
           "visualize": "true"
         },
@@ -456,7 +557,95 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:8240",
+          "$$hashKey": "object:3901",
+          "checked": true,
+          "visualize": "true"
+        },
+        {
+          "name": "geometry_shared_walls",
+          "display_name": "geometry_shared_walls",
+          "short_name": "geometry_shared_walls",
+          "description": "",
+          "type": "String",
+          "model_dependent": false,
+          "$$hashKey": "object:3902",
+          "checked": true,
+          "visualize": "true"
+        },
+        {
+          "name": "geometry_shared_walls_sfa",
+          "display_name": "geometry_shared_walls_sfa",
+          "short_name": "geometry_shared_walls_sfa",
+          "description": "",
+          "type": "String",
+          "model_dependent": false,
+          "$$hashKey": "object:3903",
+          "checked": true,
+          "visualize": "true"
+        },
+        {
+          "name": "geometry_shared_walls_mf",
+          "display_name": "geometry_shared_walls_mf",
+          "short_name": "geometry_shared_walls_mf",
+          "description": "",
+          "type": "String",
+          "model_dependent": false,
+          "$$hashKey": "object:3904",
+          "checked": true,
+          "visualize": "true"
+        },
+        {
+          "name": "geometry_nearest_neighbor_left_right",
+          "display_name": "geometry_nearest_neighbor_left_right",
+          "short_name": "geometry_nearest_neighbor_left_right",
+          "description": "",
+          "type": "String",
+          "model_dependent": false,
+          "$$hashKey": "object:3905",
+          "checked": true,
+          "visualize": "true"
+        },
+        {
+          "name": "geometry_number_units_acs_bins",
+          "display_name": "geometry_number_units_acs_bins",
+          "short_name": "geometry_number_units_acs_bins",
+          "description": "",
+          "type": "String",
+          "model_dependent": false,
+          "$$hashKey": "object:3906",
+          "checked": true,
+          "visualize": "true"
+        },
+        {
+          "name": "geometry_unit_stories_sf",
+          "display_name": "geometry_unit_stories_sf",
+          "short_name": "geometry_unit_stories_sf",
+          "description": "",
+          "type": "String",
+          "model_dependent": false,
+          "$$hashKey": "object:3907",
+          "checked": true,
+          "visualize": "true"
+        },
+        {
+          "name": "geometry_unit_stories_mf",
+          "display_name": "geometry_unit_stories_mf",
+          "short_name": "geometry_unit_stories_mf",
+          "description": "",
+          "type": "String",
+          "model_dependent": false,
+          "$$hashKey": "object:3908",
+          "checked": true,
+          "visualize": "true"
+        },
+        {
+          "name": "geometry_is_multifamily_low_rise",
+          "display_name": "geometry_is_multifamily_low_rise",
+          "short_name": "geometry_is_multifamily_low_rise",
+          "description": "",
+          "type": "String",
+          "model_dependent": false,
+          "$$hashKey": "object:3909",
           "checked": true,
           "visualize": "true"
         },
@@ -467,7 +656,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:8241",
+          "$$hashKey": "object:3910",
           "checked": true,
           "visualize": "true"
         },
@@ -478,7 +667,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:8242",
+          "$$hashKey": "object:3911",
           "checked": true,
           "visualize": "true"
         },
@@ -489,7 +678,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:8243",
+          "$$hashKey": "object:3912",
           "checked": true,
           "visualize": "true"
         },
@@ -500,7 +689,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:8244",
+          "$$hashKey": "object:3913",
           "checked": true,
           "visualize": "true"
         },
@@ -511,7 +700,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:8245",
+          "$$hashKey": "object:3914",
           "checked": true,
           "visualize": "true"
         },
@@ -522,7 +711,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:8246",
+          "$$hashKey": "object:3915",
           "checked": true,
           "visualize": "true"
         },
@@ -533,7 +722,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:8247",
+          "$$hashKey": "object:3916",
           "checked": true,
           "visualize": "true"
         },
@@ -544,7 +733,18 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:8248",
+          "$$hashKey": "object:3917",
+          "checked": true,
+          "visualize": "true"
+        },
+        {
+          "name": "insulation_finished_roof",
+          "display_name": "insulation_finished_roof",
+          "short_name": "insulation_finished_roof",
+          "description": "",
+          "type": "String",
+          "model_dependent": false,
+          "$$hashKey": "object:3918",
           "checked": true,
           "visualize": "true"
         },
@@ -555,7 +755,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:8249",
+          "$$hashKey": "object:3919",
           "checked": true,
           "visualize": "true"
         },
@@ -566,7 +766,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:8250",
+          "$$hashKey": "object:3920",
           "checked": true,
           "visualize": "true"
         },
@@ -577,7 +777,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:8251",
+          "$$hashKey": "object:3921",
           "checked": true,
           "visualize": "true"
         },
@@ -588,7 +788,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:8252",
+          "$$hashKey": "object:3922",
           "checked": true,
           "visualize": "true"
         },
@@ -599,7 +799,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:8253",
+          "$$hashKey": "object:3923",
           "checked": true,
           "visualize": "true"
         },
@@ -610,7 +810,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:8254",
+          "$$hashKey": "object:3924",
           "checked": true,
           "visualize": "true"
         },
@@ -621,7 +821,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:8255",
+          "$$hashKey": "object:3925",
           "checked": true,
           "visualize": "true"
         },
@@ -632,7 +832,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:8256",
+          "$$hashKey": "object:3926",
           "checked": true,
           "visualize": "true"
         },
@@ -643,7 +843,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:8257",
+          "$$hashKey": "object:3927",
           "checked": true,
           "visualize": "true"
         },
@@ -654,7 +854,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:8258",
+          "$$hashKey": "object:3928",
           "checked": true,
           "visualize": "true"
         },
@@ -665,7 +865,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:8259",
+          "$$hashKey": "object:3929",
           "checked": true,
           "visualize": "true"
         },
@@ -676,7 +876,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:8260",
+          "$$hashKey": "object:3930",
           "checked": true,
           "visualize": "true"
         },
@@ -687,7 +887,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:8261",
+          "$$hashKey": "object:3931",
           "checked": true,
           "visualize": "true"
         },
@@ -698,7 +898,29 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:8262",
+          "$$hashKey": "object:3932",
+          "checked": true,
+          "visualize": "true"
+        },
+        {
+          "name": "hvac_system_is_central",
+          "display_name": "hvac_system_is_central",
+          "short_name": "hvac_system_is_central",
+          "description": "",
+          "type": "String",
+          "model_dependent": false,
+          "$$hashKey": "object:3933",
+          "checked": true,
+          "visualize": "true"
+        },
+        {
+          "name": "hvac_system_central",
+          "display_name": "hvac_system_central",
+          "short_name": "hvac_system_central",
+          "description": "",
+          "type": "String",
+          "model_dependent": false,
+          "$$hashKey": "object:3934",
           "checked": true,
           "visualize": "true"
         },
@@ -709,7 +931,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:8263",
+          "$$hashKey": "object:3935",
           "checked": true,
           "visualize": "true"
         },
@@ -720,7 +942,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:8264",
+          "$$hashKey": "object:3936",
           "checked": true,
           "visualize": "true"
         },
@@ -731,7 +953,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:8265",
+          "$$hashKey": "object:3937",
           "checked": true,
           "visualize": "true"
         },
@@ -742,7 +964,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:8266",
+          "$$hashKey": "object:3938",
           "checked": true,
           "visualize": "true"
         },
@@ -753,7 +975,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:8267",
+          "$$hashKey": "object:3939",
           "checked": true,
           "visualize": "true"
         },
@@ -764,7 +986,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:8268",
+          "$$hashKey": "object:3940",
           "checked": true,
           "visualize": "true"
         },
@@ -775,7 +997,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:8269",
+          "$$hashKey": "object:3941",
           "checked": true,
           "visualize": "true"
         },
@@ -786,7 +1008,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:8270",
+          "$$hashKey": "object:3942",
           "checked": true,
           "visualize": "true"
         },
@@ -797,7 +1019,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:8271",
+          "$$hashKey": "object:3943",
           "checked": true,
           "visualize": "true"
         },
@@ -808,7 +1030,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:8272",
+          "$$hashKey": "object:3944",
           "checked": true,
           "visualize": "true"
         },
@@ -819,7 +1041,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:8273",
+          "$$hashKey": "object:3945",
           "checked": true,
           "visualize": "true"
         },
@@ -830,7 +1052,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:8274",
+          "$$hashKey": "object:3946",
           "checked": true,
           "visualize": "true"
         },
@@ -841,7 +1063,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:8275",
+          "$$hashKey": "object:3947",
           "checked": true,
           "visualize": "true"
         },
@@ -852,7 +1074,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:8276",
+          "$$hashKey": "object:3948",
           "checked": true,
           "visualize": "true"
         },
@@ -863,7 +1085,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:8277",
+          "$$hashKey": "object:3949",
           "checked": true,
           "visualize": "true"
         },
@@ -874,7 +1096,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:8278",
+          "$$hashKey": "object:3950",
           "checked": true,
           "visualize": "true"
         },
@@ -885,7 +1107,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:8279",
+          "$$hashKey": "object:3951",
           "checked": true,
           "visualize": "true"
         },
@@ -896,7 +1118,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:8280",
+          "$$hashKey": "object:3952",
           "checked": true,
           "visualize": "true"
         },
@@ -907,7 +1129,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:8281",
+          "$$hashKey": "object:3953",
           "checked": true,
           "visualize": "true"
         },
@@ -918,7 +1140,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:8282",
+          "$$hashKey": "object:3954",
           "checked": true,
           "visualize": "true"
         },
@@ -929,7 +1151,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:8283",
+          "$$hashKey": "object:3955",
           "checked": true,
           "visualize": "true"
         },
@@ -940,7 +1162,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:8284",
+          "$$hashKey": "object:3956",
           "checked": true,
           "visualize": "true"
         },
@@ -951,7 +1173,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:8285",
+          "$$hashKey": "object:3957",
           "checked": true,
           "visualize": "true"
         },
@@ -962,7 +1184,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:8286",
+          "$$hashKey": "object:3958",
           "checked": true,
           "visualize": "true"
         },
@@ -973,7 +1195,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:8287",
+          "$$hashKey": "object:3959",
           "checked": true,
           "visualize": "true"
         },
@@ -984,7 +1206,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:8288",
+          "$$hashKey": "object:3960",
           "checked": true,
           "visualize": "true"
         },
@@ -995,7 +1217,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:8289",
+          "$$hashKey": "object:3961",
           "checked": true,
           "visualize": "true"
         },
@@ -1006,7 +1228,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:8290",
+          "$$hashKey": "object:3962",
           "checked": true,
           "visualize": "true"
         },
@@ -1017,7 +1239,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:8291",
+          "$$hashKey": "object:3963",
           "checked": true,
           "visualize": "true"
         },
@@ -1028,7 +1250,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:8292",
+          "$$hashKey": "object:3964",
           "checked": true,
           "visualize": "true"
         },
@@ -1039,7 +1261,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:8293",
+          "$$hashKey": "object:3965",
           "checked": true,
           "visualize": "true"
         },
@@ -1050,7 +1272,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:8294",
+          "$$hashKey": "object:3966",
           "checked": true,
           "visualize": "true"
         },
@@ -1061,7 +1283,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:8295",
+          "$$hashKey": "object:3967",
           "checked": true,
           "visualize": "true"
         },
@@ -1072,7 +1294,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:8296",
+          "$$hashKey": "object:3968",
           "checked": true,
           "visualize": "true"
         },
@@ -1083,7 +1305,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:8297",
+          "$$hashKey": "object:3969",
           "checked": true,
           "visualize": "true"
         },
@@ -1094,7 +1316,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:8298",
+          "$$hashKey": "object:3970",
           "checked": true,
           "visualize": "true"
         },
@@ -1105,7 +1327,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:8299",
+          "$$hashKey": "object:3971",
           "checked": true,
           "visualize": "true"
         },
@@ -1116,7 +1338,18 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:8300",
+          "$$hashKey": "object:3972",
+          "checked": true,
+          "visualize": "true"
+        },
+        {
+          "name": "geometry_perimeter_footprint_ratio",
+          "display_name": "geometry_perimeter_footprint_ratio",
+          "short_name": "geometry_perimeter_footprint_ratio",
+          "description": "",
+          "type": "String",
+          "model_dependent": false,
+          "$$hashKey": "object:3973",
           "checked": true,
           "visualize": "true"
         },
@@ -1127,7 +1360,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:8301",
+          "$$hashKey": "object:3974",
           "checked": true,
           "visualize": "true"
         },
@@ -1138,7 +1371,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:8302",
+          "$$hashKey": "object:3975",
           "checked": true,
           "visualize": "true"
         },
@@ -1149,7 +1382,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:8303",
+          "$$hashKey": "object:3976",
           "checked": true,
           "visualize": "true"
         },
@@ -1160,7 +1393,29 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:8304",
+          "$$hashKey": "object:3977",
+          "checked": true,
+          "visualize": "true"
+        },
+        {
+          "name": "zones_represented",
+          "display_name": "zones_represented",
+          "short_name": "zones_represented",
+          "description": "",
+          "type": "String",
+          "model_dependent": false,
+          "$$hashKey": "object:3978",
+          "checked": true,
+          "visualize": "true"
+        },
+        {
+          "name": "zones_modeled",
+          "display_name": "zones_modeled",
+          "short_name": "zones_modeled",
+          "description": "",
+          "type": "String",
+          "model_dependent": false,
+          "$$hashKey": "object:3979",
           "checked": true,
           "visualize": "true"
         }
@@ -1185,15 +1440,15 @@
       "add": "",
       "open": false,
       "addedToProject": true,
-      "date": "4/17/2018",
+      "date": "7/26/2018",
       "author": "",
       "type": "ReportingMeasure",
       "seed": "EmptySeedModel.osm",
       "workflow_index": 1,
       "options": [],
-      "instanceId": 0.41965524140475163,
+      "instanceId": 0.6381792348255717,
       "skip": false,
-      "$$hashKey": "object:12583",
+      "$$hashKey": "object:3591",
       "outputMeasure": true,
       "userDefinedOutputs": [],
       "analysisOutputs": [
@@ -1204,7 +1459,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:8229",
+          "$$hashKey": "object:3883",
           "checked": true,
           "visualize": "true"
         },
@@ -1215,7 +1470,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:8230",
+          "$$hashKey": "object:3884",
           "checked": true,
           "visualize": "true"
         },
@@ -1226,7 +1481,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:8231",
+          "$$hashKey": "object:3885",
           "checked": true,
           "visualize": "true"
         },
@@ -1237,7 +1492,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:8232",
+          "$$hashKey": "object:3886",
           "checked": true,
           "visualize": "true"
         },
@@ -1248,7 +1503,18 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:8233",
+          "$$hashKey": "object:3887",
+          "checked": true,
+          "visualize": "true"
+        },
+        {
+          "name": "vintage_fpl",
+          "display_name": "vintage_fpl",
+          "short_name": "vintage_fpl",
+          "description": "",
+          "type": "String",
+          "model_dependent": false,
+          "$$hashKey": "object:3888",
           "checked": true,
           "visualize": "true"
         },
@@ -1259,7 +1525,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:8234",
+          "$$hashKey": "object:3889",
           "checked": true,
           "visualize": "true"
         },
@@ -1270,7 +1536,62 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:8235",
+          "$$hashKey": "object:3890",
+          "checked": true,
+          "visualize": "true"
+        },
+        {
+          "name": "geometry_building_type",
+          "display_name": "geometry_building_type",
+          "short_name": "geometry_building_type",
+          "description": "",
+          "type": "String",
+          "model_dependent": false,
+          "$$hashKey": "object:3891",
+          "checked": true,
+          "visualize": "true"
+        },
+        {
+          "name": "geometry_building_type_fpl",
+          "display_name": "geometry_building_type_fpl",
+          "short_name": "geometry_building_type_fpl",
+          "description": "",
+          "type": "String",
+          "model_dependent": false,
+          "$$hashKey": "object:3892",
+          "checked": true,
+          "visualize": "true"
+        },
+        {
+          "name": "geometry_number_units",
+          "display_name": "geometry_number_units",
+          "short_name": "geometry_number_units",
+          "description": "",
+          "type": "String",
+          "model_dependent": false,
+          "$$hashKey": "object:3893",
+          "checked": true,
+          "visualize": "true"
+        },
+        {
+          "name": "geometry_building_number_units_mf",
+          "display_name": "geometry_building_number_units_mf",
+          "short_name": "geometry_building_number_units_mf",
+          "description": "",
+          "type": "String",
+          "model_dependent": false,
+          "$$hashKey": "object:3894",
+          "checked": true,
+          "visualize": "true"
+        },
+        {
+          "name": "geometry_building_number_units_sfa",
+          "display_name": "geometry_building_number_units_sfa",
+          "short_name": "geometry_building_number_units_sfa",
+          "description": "",
+          "type": "String",
+          "model_dependent": false,
+          "$$hashKey": "object:3895",
           "checked": true,
           "visualize": "true"
         },
@@ -1281,7 +1602,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:8236",
+          "$$hashKey": "object:3896",
           "checked": true,
           "visualize": "true"
         },
@@ -1292,7 +1613,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:8237",
+          "$$hashKey": "object:3897",
           "checked": true,
           "visualize": "true"
         },
@@ -1303,7 +1624,18 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:8238",
+          "$$hashKey": "object:3898",
+          "checked": true,
+          "visualize": "true"
+        },
+        {
+          "name": "geometry_building_floors",
+          "display_name": "geometry_building_floors",
+          "short_name": "geometry_building_floors",
+          "description": "",
+          "type": "String",
+          "model_dependent": false,
+          "$$hashKey": "object:3899",
           "checked": true,
           "visualize": "true"
         },
@@ -1314,7 +1646,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:8239",
+          "$$hashKey": "object:3900",
           "checked": true,
           "visualize": "true"
         },
@@ -1325,7 +1657,95 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:8240",
+          "$$hashKey": "object:3901",
+          "checked": true,
+          "visualize": "true"
+        },
+        {
+          "name": "geometry_shared_walls",
+          "display_name": "geometry_shared_walls",
+          "short_name": "geometry_shared_walls",
+          "description": "",
+          "type": "String",
+          "model_dependent": false,
+          "$$hashKey": "object:3902",
+          "checked": true,
+          "visualize": "true"
+        },
+        {
+          "name": "geometry_shared_walls_sfa",
+          "display_name": "geometry_shared_walls_sfa",
+          "short_name": "geometry_shared_walls_sfa",
+          "description": "",
+          "type": "String",
+          "model_dependent": false,
+          "$$hashKey": "object:3903",
+          "checked": true,
+          "visualize": "true"
+        },
+        {
+          "name": "geometry_shared_walls_mf",
+          "display_name": "geometry_shared_walls_mf",
+          "short_name": "geometry_shared_walls_mf",
+          "description": "",
+          "type": "String",
+          "model_dependent": false,
+          "$$hashKey": "object:3904",
+          "checked": true,
+          "visualize": "true"
+        },
+        {
+          "name": "geometry_nearest_neighbor_left_right",
+          "display_name": "geometry_nearest_neighbor_left_right",
+          "short_name": "geometry_nearest_neighbor_left_right",
+          "description": "",
+          "type": "String",
+          "model_dependent": false,
+          "$$hashKey": "object:3905",
+          "checked": true,
+          "visualize": "true"
+        },
+        {
+          "name": "geometry_number_units_acs_bins",
+          "display_name": "geometry_number_units_acs_bins",
+          "short_name": "geometry_number_units_acs_bins",
+          "description": "",
+          "type": "String",
+          "model_dependent": false,
+          "$$hashKey": "object:3906",
+          "checked": true,
+          "visualize": "true"
+        },
+        {
+          "name": "geometry_unit_stories_sf",
+          "display_name": "geometry_unit_stories_sf",
+          "short_name": "geometry_unit_stories_sf",
+          "description": "",
+          "type": "String",
+          "model_dependent": false,
+          "$$hashKey": "object:3907",
+          "checked": true,
+          "visualize": "true"
+        },
+        {
+          "name": "geometry_unit_stories_mf",
+          "display_name": "geometry_unit_stories_mf",
+          "short_name": "geometry_unit_stories_mf",
+          "description": "",
+          "type": "String",
+          "model_dependent": false,
+          "$$hashKey": "object:3908",
+          "checked": true,
+          "visualize": "true"
+        },
+        {
+          "name": "geometry_is_multifamily_low_rise",
+          "display_name": "geometry_is_multifamily_low_rise",
+          "short_name": "geometry_is_multifamily_low_rise",
+          "description": "",
+          "type": "String",
+          "model_dependent": false,
+          "$$hashKey": "object:3909",
           "checked": true,
           "visualize": "true"
         },
@@ -1336,7 +1756,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:8241",
+          "$$hashKey": "object:3910",
           "checked": true,
           "visualize": "true"
         },
@@ -1347,7 +1767,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:8242",
+          "$$hashKey": "object:3911",
           "checked": true,
           "visualize": "true"
         },
@@ -1358,7 +1778,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:8243",
+          "$$hashKey": "object:3912",
           "checked": true,
           "visualize": "true"
         },
@@ -1369,7 +1789,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:8244",
+          "$$hashKey": "object:3913",
           "checked": true,
           "visualize": "true"
         },
@@ -1380,7 +1800,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:8245",
+          "$$hashKey": "object:3914",
           "checked": true,
           "visualize": "true"
         },
@@ -1391,7 +1811,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:8246",
+          "$$hashKey": "object:3915",
           "checked": true,
           "visualize": "true"
         },
@@ -1402,7 +1822,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:8247",
+          "$$hashKey": "object:3916",
           "checked": true,
           "visualize": "true"
         },
@@ -1413,7 +1833,18 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:8248",
+          "$$hashKey": "object:3917",
+          "checked": true,
+          "visualize": "true"
+        },
+        {
+          "name": "insulation_finished_roof",
+          "display_name": "insulation_finished_roof",
+          "short_name": "insulation_finished_roof",
+          "description": "",
+          "type": "String",
+          "model_dependent": false,
+          "$$hashKey": "object:3918",
           "checked": true,
           "visualize": "true"
         },
@@ -1424,7 +1855,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:8249",
+          "$$hashKey": "object:3919",
           "checked": true,
           "visualize": "true"
         },
@@ -1435,7 +1866,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:8250",
+          "$$hashKey": "object:3920",
           "checked": true,
           "visualize": "true"
         },
@@ -1446,7 +1877,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:8251",
+          "$$hashKey": "object:3921",
           "checked": true,
           "visualize": "true"
         },
@@ -1457,7 +1888,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:8252",
+          "$$hashKey": "object:3922",
           "checked": true,
           "visualize": "true"
         },
@@ -1468,7 +1899,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:8253",
+          "$$hashKey": "object:3923",
           "checked": true,
           "visualize": "true"
         },
@@ -1479,7 +1910,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:8254",
+          "$$hashKey": "object:3924",
           "checked": true,
           "visualize": "true"
         },
@@ -1490,7 +1921,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:8255",
+          "$$hashKey": "object:3925",
           "checked": true,
           "visualize": "true"
         },
@@ -1501,7 +1932,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:8256",
+          "$$hashKey": "object:3926",
           "checked": true,
           "visualize": "true"
         },
@@ -1512,7 +1943,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:8257",
+          "$$hashKey": "object:3927",
           "checked": true,
           "visualize": "true"
         },
@@ -1523,7 +1954,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:8258",
+          "$$hashKey": "object:3928",
           "checked": true,
           "visualize": "true"
         },
@@ -1534,7 +1965,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:8259",
+          "$$hashKey": "object:3929",
           "checked": true,
           "visualize": "true"
         },
@@ -1545,7 +1976,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:8260",
+          "$$hashKey": "object:3930",
           "checked": true,
           "visualize": "true"
         },
@@ -1556,7 +1987,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:8261",
+          "$$hashKey": "object:3931",
           "checked": true,
           "visualize": "true"
         },
@@ -1567,7 +1998,29 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:8262",
+          "$$hashKey": "object:3932",
+          "checked": true,
+          "visualize": "true"
+        },
+        {
+          "name": "hvac_system_is_central",
+          "display_name": "hvac_system_is_central",
+          "short_name": "hvac_system_is_central",
+          "description": "",
+          "type": "String",
+          "model_dependent": false,
+          "$$hashKey": "object:3933",
+          "checked": true,
+          "visualize": "true"
+        },
+        {
+          "name": "hvac_system_central",
+          "display_name": "hvac_system_central",
+          "short_name": "hvac_system_central",
+          "description": "",
+          "type": "String",
+          "model_dependent": false,
+          "$$hashKey": "object:3934",
           "checked": true,
           "visualize": "true"
         },
@@ -1578,7 +2031,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:8263",
+          "$$hashKey": "object:3935",
           "checked": true,
           "visualize": "true"
         },
@@ -1589,7 +2042,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:8264",
+          "$$hashKey": "object:3936",
           "checked": true,
           "visualize": "true"
         },
@@ -1600,7 +2053,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:8265",
+          "$$hashKey": "object:3937",
           "checked": true,
           "visualize": "true"
         },
@@ -1611,7 +2064,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:8266",
+          "$$hashKey": "object:3938",
           "checked": true,
           "visualize": "true"
         },
@@ -1622,7 +2075,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:8267",
+          "$$hashKey": "object:3939",
           "checked": true,
           "visualize": "true"
         },
@@ -1633,7 +2086,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:8268",
+          "$$hashKey": "object:3940",
           "checked": true,
           "visualize": "true"
         },
@@ -1644,7 +2097,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:8269",
+          "$$hashKey": "object:3941",
           "checked": true,
           "visualize": "true"
         },
@@ -1655,7 +2108,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:8270",
+          "$$hashKey": "object:3942",
           "checked": true,
           "visualize": "true"
         },
@@ -1666,7 +2119,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:8271",
+          "$$hashKey": "object:3943",
           "checked": true,
           "visualize": "true"
         },
@@ -1677,7 +2130,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:8272",
+          "$$hashKey": "object:3944",
           "checked": true,
           "visualize": "true"
         },
@@ -1688,7 +2141,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:8273",
+          "$$hashKey": "object:3945",
           "checked": true,
           "visualize": "true"
         },
@@ -1699,7 +2152,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:8274",
+          "$$hashKey": "object:3946",
           "checked": true,
           "visualize": "true"
         },
@@ -1710,7 +2163,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:8275",
+          "$$hashKey": "object:3947",
           "checked": true,
           "visualize": "true"
         },
@@ -1721,7 +2174,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:8276",
+          "$$hashKey": "object:3948",
           "checked": true,
           "visualize": "true"
         },
@@ -1732,7 +2185,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:8277",
+          "$$hashKey": "object:3949",
           "checked": true,
           "visualize": "true"
         },
@@ -1743,7 +2196,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:8278",
+          "$$hashKey": "object:3950",
           "checked": true,
           "visualize": "true"
         },
@@ -1754,7 +2207,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:8279",
+          "$$hashKey": "object:3951",
           "checked": true,
           "visualize": "true"
         },
@@ -1765,7 +2218,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:8280",
+          "$$hashKey": "object:3952",
           "checked": true,
           "visualize": "true"
         },
@@ -1776,7 +2229,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:8281",
+          "$$hashKey": "object:3953",
           "checked": true,
           "visualize": "true"
         },
@@ -1787,7 +2240,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:8282",
+          "$$hashKey": "object:3954",
           "checked": true,
           "visualize": "true"
         },
@@ -1798,7 +2251,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:8283",
+          "$$hashKey": "object:3955",
           "checked": true,
           "visualize": "true"
         },
@@ -1809,7 +2262,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:8284",
+          "$$hashKey": "object:3956",
           "checked": true,
           "visualize": "true"
         },
@@ -1820,7 +2273,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:8285",
+          "$$hashKey": "object:3957",
           "checked": true,
           "visualize": "true"
         },
@@ -1831,7 +2284,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:8286",
+          "$$hashKey": "object:3958",
           "checked": true,
           "visualize": "true"
         },
@@ -1842,7 +2295,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:8287",
+          "$$hashKey": "object:3959",
           "checked": true,
           "visualize": "true"
         },
@@ -1853,7 +2306,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:8288",
+          "$$hashKey": "object:3960",
           "checked": true,
           "visualize": "true"
         },
@@ -1864,7 +2317,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:8289",
+          "$$hashKey": "object:3961",
           "checked": true,
           "visualize": "true"
         },
@@ -1875,7 +2328,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:8290",
+          "$$hashKey": "object:3962",
           "checked": true,
           "visualize": "true"
         },
@@ -1886,7 +2339,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:8291",
+          "$$hashKey": "object:3963",
           "checked": true,
           "visualize": "true"
         },
@@ -1897,7 +2350,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:8292",
+          "$$hashKey": "object:3964",
           "checked": true,
           "visualize": "true"
         },
@@ -1908,7 +2361,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:8293",
+          "$$hashKey": "object:3965",
           "checked": true,
           "visualize": "true"
         },
@@ -1919,7 +2372,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:8294",
+          "$$hashKey": "object:3966",
           "checked": true,
           "visualize": "true"
         },
@@ -1930,7 +2383,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:8295",
+          "$$hashKey": "object:3967",
           "checked": true,
           "visualize": "true"
         },
@@ -1941,7 +2394,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:8296",
+          "$$hashKey": "object:3968",
           "checked": true,
           "visualize": "true"
         },
@@ -1952,7 +2405,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:8297",
+          "$$hashKey": "object:3969",
           "checked": true,
           "visualize": "true"
         },
@@ -1963,7 +2416,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:8298",
+          "$$hashKey": "object:3970",
           "checked": true,
           "visualize": "true"
         },
@@ -1974,7 +2427,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:8299",
+          "$$hashKey": "object:3971",
           "checked": true,
           "visualize": "true"
         },
@@ -1985,7 +2438,18 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:8300",
+          "$$hashKey": "object:3972",
+          "checked": true,
+          "visualize": "true"
+        },
+        {
+          "name": "geometry_perimeter_footprint_ratio",
+          "display_name": "geometry_perimeter_footprint_ratio",
+          "short_name": "geometry_perimeter_footprint_ratio",
+          "description": "",
+          "type": "String",
+          "model_dependent": false,
+          "$$hashKey": "object:3973",
           "checked": true,
           "visualize": "true"
         },
@@ -1996,7 +2460,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:8301",
+          "$$hashKey": "object:3974",
           "checked": true,
           "visualize": "true"
         },
@@ -2007,7 +2471,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:8302",
+          "$$hashKey": "object:3975",
           "checked": true,
           "visualize": "true"
         },
@@ -2018,7 +2482,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:8303",
+          "$$hashKey": "object:3976",
           "checked": true,
           "visualize": "true"
         },
@@ -2029,21 +2493,43 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:8304",
+          "$$hashKey": "object:3977",
+          "checked": true,
+          "visualize": "true"
+        },
+        {
+          "name": "zones_represented",
+          "display_name": "zones_represented",
+          "short_name": "zones_represented",
+          "description": "",
+          "type": "String",
+          "model_dependent": false,
+          "$$hashKey": "object:3978",
+          "checked": true,
+          "visualize": "true"
+        },
+        {
+          "name": "zones_modeled",
+          "display_name": "zones_modeled",
+          "short_name": "zones_modeled",
+          "description": "",
+          "type": "String",
+          "model_dependent": false,
+          "$$hashKey": "object:3979",
           "checked": true,
           "visualize": "true"
         }
       ]
     },
     {
-      "measure_dir": "C:/OpenStudio/OpenStudio-BuildStock/measures/SimulationOutputReport",
+      "measure_dir": "C:\\OpenStudio\\OpenStudio-BuildStock\\project_resstock_efs\\measures\\SimulationOutputReport",
       "name": "simulation_output_report",
       "directory": "C:/OpenStudio/OpenStudio-BuildStock/measures/SimulationOutputReport",
       "uid": "fc337100-8634-404e-8966-01243d292a79",
       "uuid": "{fc337100-8634-404e-8966-01243d292a79}",
-      "version_id": "ee0a51e2-0178-43d3-9e28-fe836a40de30",
-      "version_uuid": "{ee0a51e2-0178-43d3-9e28-fe836a40de30}",
-      "version_modified": "20180725T170910Z",
+      "version_id": "38a3f03f-2251-4b3a-badf-f3bfd96913ad",
+      "version_uuid": "{38a3f03f-2251-4b3a-badf-f3bfd96913ad}",
+      "version_modified": "20180731T150112Z",
       "xml_checksum": "2C8A3EEF",
       "display_name": "Simulation Output Report",
       "class_name": "SimulationOutputReport",
@@ -2058,7 +2544,9 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "checked": true
+          "$$hashKey": "object:6928",
+          "checked": true,
+          "visualize": "true"
         },
         {
           "name": "total_site_electricity_kwh",
@@ -2067,7 +2555,9 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "checked": true
+          "$$hashKey": "object:6929",
+          "checked": true,
+          "visualize": "true"
         },
         {
           "name": "total_site_natural_gas_therm",
@@ -2076,7 +2566,9 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "checked": true
+          "$$hashKey": "object:6930",
+          "checked": true,
+          "visualize": "true"
         },
         {
           "name": "total_site_other_fuel_mbtu",
@@ -2085,7 +2577,9 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "checked": true
+          "$$hashKey": "object:6931",
+          "checked": true,
+          "visualize": "true"
         },
         {
           "name": "net_site_energy_mbtu",
@@ -2094,7 +2588,9 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "checked": true
+          "$$hashKey": "object:6932",
+          "checked": true,
+          "visualize": "true"
         },
         {
           "name": "net_site_electricity_kwh",
@@ -2103,7 +2599,9 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "checked": true
+          "$$hashKey": "object:6933",
+          "checked": true,
+          "visualize": "true"
         },
         {
           "name": "electricity_heating_kwh",
@@ -2112,7 +2610,9 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "checked": true
+          "$$hashKey": "object:6934",
+          "checked": true,
+          "visualize": "true"
         },
         {
           "name": "electricity_cooling_kwh",
@@ -2121,7 +2621,9 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "checked": true
+          "$$hashKey": "object:6935",
+          "checked": true,
+          "visualize": "true"
         },
         {
           "name": "electricity_interior_lighting_kwh",
@@ -2130,7 +2632,9 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "checked": true
+          "$$hashKey": "object:6936",
+          "checked": true,
+          "visualize": "true"
         },
         {
           "name": "electricity_exterior_lighting_kwh",
@@ -2139,7 +2643,9 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "checked": true
+          "$$hashKey": "object:6937",
+          "checked": true,
+          "visualize": "true"
         },
         {
           "name": "electricity_interior_equipment_kwh",
@@ -2148,7 +2654,9 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "checked": true
+          "$$hashKey": "object:6938",
+          "checked": true,
+          "visualize": "true"
         },
         {
           "name": "electricity_fans_kwh",
@@ -2157,7 +2665,9 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "checked": true
+          "$$hashKey": "object:6939",
+          "checked": true,
+          "visualize": "true"
         },
         {
           "name": "electricity_pumps_kwh",
@@ -2166,7 +2676,9 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "checked": true
+          "$$hashKey": "object:6940",
+          "checked": true,
+          "visualize": "true"
         },
         {
           "name": "electricity_water_systems_kwh",
@@ -2175,7 +2687,9 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "checked": true
+          "$$hashKey": "object:6941",
+          "checked": true,
+          "visualize": "true"
         },
         {
           "name": "electricity_pv_kwh",
@@ -2184,7 +2698,9 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "checked": true
+          "$$hashKey": "object:6942",
+          "checked": true,
+          "visualize": "true"
         },
         {
           "name": "natural_gas_heating_therm",
@@ -2193,7 +2709,9 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "checked": true
+          "$$hashKey": "object:6943",
+          "checked": true,
+          "visualize": "true"
         },
         {
           "name": "natural_gas_interior_equipment_therm",
@@ -2202,7 +2720,9 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "checked": true
+          "$$hashKey": "object:6944",
+          "checked": true,
+          "visualize": "true"
         },
         {
           "name": "natural_gas_water_systems_therm",
@@ -2211,7 +2731,9 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "checked": true
+          "$$hashKey": "object:6945",
+          "checked": true,
+          "visualize": "true"
         },
         {
           "name": "other_fuel_heating_mbtu",
@@ -2220,7 +2742,9 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "checked": true
+          "$$hashKey": "object:6946",
+          "checked": true,
+          "visualize": "true"
         },
         {
           "name": "other_fuel_interior_equipment_mbtu",
@@ -2229,7 +2753,9 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "checked": true
+          "$$hashKey": "object:6947",
+          "checked": true,
+          "visualize": "true"
         },
         {
           "name": "other_fuel_water_systems_mbtu",
@@ -2238,7 +2764,9 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "checked": true
+          "$$hashKey": "object:6948",
+          "checked": true,
+          "visualize": "true"
         },
         {
           "name": "hours_heating_setpoint_not_met",
@@ -2247,7 +2775,9 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "checked": true
+          "$$hashKey": "object:6949",
+          "checked": true,
+          "visualize": "true"
         },
         {
           "name": "hours_cooling_setpoint_not_met",
@@ -2256,7 +2786,9 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "checked": true
+          "$$hashKey": "object:6950",
+          "checked": true,
+          "visualize": "true"
         },
         {
           "name": "hvac_cooling_capacity_w",
@@ -2265,7 +2797,9 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "checked": true
+          "$$hashKey": "object:6951",
+          "checked": true,
+          "visualize": "true"
         },
         {
           "name": "hvac_heating_capacity_w",
@@ -2274,7 +2808,9 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "checked": true
+          "$$hashKey": "object:6952",
+          "checked": true,
+          "visualize": "true"
         },
         {
           "name": "hvac_heating_supp_capacity_w",
@@ -2283,7 +2819,9 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "checked": true
+          "$$hashKey": "object:6953",
+          "checked": true,
+          "visualize": "true"
         },
         {
           "name": "upgrade_name",
@@ -2292,7 +2830,9 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "checked": true
+          "$$hashKey": "object:6954",
+          "checked": true,
+          "visualize": "true"
         },
         {
           "name": "upgrade_cost_usd",
@@ -2301,7 +2841,9 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "checked": true
+          "$$hashKey": "object:6955",
+          "checked": true,
+          "visualize": "true"
         },
         {
           "name": "upgrade_option_01_cost_usd",
@@ -2310,7 +2852,9 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "checked": true
+          "$$hashKey": "object:6956",
+          "checked": true,
+          "visualize": "true"
         },
         {
           "name": "upgrade_option_01_lifetime_yrs",
@@ -2319,7 +2863,9 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "checked": true
+          "$$hashKey": "object:6957",
+          "checked": true,
+          "visualize": "true"
         },
         {
           "name": "upgrade_option_02_cost_usd",
@@ -2328,7 +2874,9 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "checked": true
+          "$$hashKey": "object:6958",
+          "checked": true,
+          "visualize": "true"
         },
         {
           "name": "upgrade_option_02_lifetime_yrs",
@@ -2337,7 +2885,9 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "checked": true
+          "$$hashKey": "object:6959",
+          "checked": true,
+          "visualize": "true"
         },
         {
           "name": "upgrade_option_03_cost_usd",
@@ -2346,7 +2896,9 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "checked": true
+          "$$hashKey": "object:6960",
+          "checked": true,
+          "visualize": "true"
         },
         {
           "name": "upgrade_option_03_lifetime_yrs",
@@ -2355,7 +2907,9 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "checked": true
+          "$$hashKey": "object:6961",
+          "checked": true,
+          "visualize": "true"
         },
         {
           "name": "upgrade_option_04_cost_usd",
@@ -2364,7 +2918,9 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "checked": true
+          "$$hashKey": "object:6962",
+          "checked": true,
+          "visualize": "true"
         },
         {
           "name": "upgrade_option_04_lifetime_yrs",
@@ -2373,7 +2929,9 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "checked": true
+          "$$hashKey": "object:6963",
+          "checked": true,
+          "visualize": "true"
         },
         {
           "name": "upgrade_option_05_cost_usd",
@@ -2382,7 +2940,9 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "checked": true
+          "$$hashKey": "object:6964",
+          "checked": true,
+          "visualize": "true"
         },
         {
           "name": "upgrade_option_05_lifetime_yrs",
@@ -2391,7 +2951,9 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "checked": true
+          "$$hashKey": "object:6965",
+          "checked": true,
+          "visualize": "true"
         },
         {
           "name": "upgrade_option_06_cost_usd",
@@ -2400,7 +2962,9 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "checked": true
+          "$$hashKey": "object:6966",
+          "checked": true,
+          "visualize": "true"
         },
         {
           "name": "upgrade_option_06_lifetime_yrs",
@@ -2409,7 +2973,9 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "checked": true
+          "$$hashKey": "object:6967",
+          "checked": true,
+          "visualize": "true"
         },
         {
           "name": "upgrade_option_07_cost_usd",
@@ -2418,7 +2984,9 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "checked": true
+          "$$hashKey": "object:6968",
+          "checked": true,
+          "visualize": "true"
         },
         {
           "name": "upgrade_option_07_lifetime_yrs",
@@ -2427,7 +2995,9 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "checked": true
+          "$$hashKey": "object:6969",
+          "checked": true,
+          "visualize": "true"
         },
         {
           "name": "upgrade_option_08_cost_usd",
@@ -2436,7 +3006,9 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "checked": true
+          "$$hashKey": "object:6970",
+          "checked": true,
+          "visualize": "true"
         },
         {
           "name": "upgrade_option_08_lifetime_yrs",
@@ -2445,7 +3017,9 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "checked": true
+          "$$hashKey": "object:6971",
+          "checked": true,
+          "visualize": "true"
         },
         {
           "name": "upgrade_option_09_cost_usd",
@@ -2454,7 +3028,9 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "checked": true
+          "$$hashKey": "object:6972",
+          "checked": true,
+          "visualize": "true"
         },
         {
           "name": "upgrade_option_09_lifetime_yrs",
@@ -2463,7 +3039,9 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "checked": true
+          "$$hashKey": "object:6973",
+          "checked": true,
+          "visualize": "true"
         },
         {
           "name": "upgrade_option_10_cost_usd",
@@ -2472,7 +3050,9 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "checked": true
+          "$$hashKey": "object:6974",
+          "checked": true,
+          "visualize": "true"
         },
         {
           "name": "upgrade_option_10_lifetime_yrs",
@@ -2481,7 +3061,9 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "checked": true
+          "$$hashKey": "object:6975",
+          "checked": true,
+          "visualize": "true"
         },
         {
           "name": "weight",
@@ -2490,7 +3072,9 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "checked": true
+          "$$hashKey": "object:6976",
+          "checked": true,
+          "visualize": "true"
         }
       ],
       "attributes": [
@@ -2513,15 +3097,15 @@
       "add": "",
       "open": false,
       "addedToProject": true,
-      "date": "7/25/2018",
+      "date": "7/31/2018",
       "author": "",
       "type": "ReportingMeasure",
       "seed": "EmptySeedModel.osm",
       "workflow_index": 2,
       "options": [],
-      "instanceId": 0.3480420284565513,
+      "instanceId": 0.6563258688832416,
       "skip": false,
-      "$$hashKey": "object:39763",
+      "$$hashKey": "object:3592",
       "outputMeasure": true,
       "userDefinedOutputs": [],
       "analysisOutputs": [
@@ -2532,7 +3116,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:41797",
+          "$$hashKey": "object:6928",
           "checked": true,
           "visualize": "true"
         },
@@ -2543,7 +3127,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:41798",
+          "$$hashKey": "object:6929",
           "checked": true,
           "visualize": "true"
         },
@@ -2554,7 +3138,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:41799",
+          "$$hashKey": "object:6930",
           "checked": true,
           "visualize": "true"
         },
@@ -2565,7 +3149,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:41800",
+          "$$hashKey": "object:6931",
           "checked": true,
           "visualize": "true"
         },
@@ -2576,7 +3160,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:41801",
+          "$$hashKey": "object:6932",
           "checked": true,
           "visualize": "true"
         },
@@ -2587,7 +3171,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:41802",
+          "$$hashKey": "object:6933",
           "checked": true,
           "visualize": "true"
         },
@@ -2598,7 +3182,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:41803",
+          "$$hashKey": "object:6934",
           "checked": true,
           "visualize": "true"
         },
@@ -2609,7 +3193,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:41804",
+          "$$hashKey": "object:6935",
           "checked": true,
           "visualize": "true"
         },
@@ -2620,7 +3204,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:41805",
+          "$$hashKey": "object:6936",
           "checked": true,
           "visualize": "true"
         },
@@ -2631,7 +3215,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:41806",
+          "$$hashKey": "object:6937",
           "checked": true,
           "visualize": "true"
         },
@@ -2642,7 +3226,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:41807",
+          "$$hashKey": "object:6938",
           "checked": true,
           "visualize": "true"
         },
@@ -2653,7 +3237,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:41808",
+          "$$hashKey": "object:6939",
           "checked": true,
           "visualize": "true"
         },
@@ -2664,7 +3248,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:41809",
+          "$$hashKey": "object:6940",
           "checked": true,
           "visualize": "true"
         },
@@ -2675,7 +3259,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:41810",
+          "$$hashKey": "object:6941",
           "checked": true,
           "visualize": "true"
         },
@@ -2686,7 +3270,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:41811",
+          "$$hashKey": "object:6942",
           "checked": true,
           "visualize": "true"
         },
@@ -2697,7 +3281,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:41812",
+          "$$hashKey": "object:6943",
           "checked": true,
           "visualize": "true"
         },
@@ -2708,7 +3292,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:41813",
+          "$$hashKey": "object:6944",
           "checked": true,
           "visualize": "true"
         },
@@ -2719,7 +3303,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:41814",
+          "$$hashKey": "object:6945",
           "checked": true,
           "visualize": "true"
         },
@@ -2730,7 +3314,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:41815",
+          "$$hashKey": "object:6946",
           "checked": true,
           "visualize": "true"
         },
@@ -2741,7 +3325,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:41816",
+          "$$hashKey": "object:6947",
           "checked": true,
           "visualize": "true"
         },
@@ -2752,7 +3336,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:41817",
+          "$$hashKey": "object:6948",
           "checked": true,
           "visualize": "true"
         },
@@ -2763,7 +3347,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:41818",
+          "$$hashKey": "object:6949",
           "checked": true,
           "visualize": "true"
         },
@@ -2774,7 +3358,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:41819",
+          "$$hashKey": "object:6950",
           "checked": true,
           "visualize": "true"
         },
@@ -2785,7 +3369,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:41820",
+          "$$hashKey": "object:6951",
           "checked": true,
           "visualize": "true"
         },
@@ -2796,7 +3380,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:41821",
+          "$$hashKey": "object:6952",
           "checked": true,
           "visualize": "true"
         },
@@ -2807,7 +3391,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:41822",
+          "$$hashKey": "object:6953",
           "checked": true,
           "visualize": "true"
         },
@@ -2818,7 +3402,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:41823",
+          "$$hashKey": "object:6954",
           "checked": true,
           "visualize": "true"
         },
@@ -2829,7 +3413,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:41824",
+          "$$hashKey": "object:6955",
           "checked": true,
           "visualize": "true"
         },
@@ -2840,7 +3424,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:41825",
+          "$$hashKey": "object:6956",
           "checked": true,
           "visualize": "true"
         },
@@ -2851,7 +3435,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:41826",
+          "$$hashKey": "object:6957",
           "checked": true,
           "visualize": "true"
         },
@@ -2862,7 +3446,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:41827",
+          "$$hashKey": "object:6958",
           "checked": true,
           "visualize": "true"
         },
@@ -2873,7 +3457,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:41828",
+          "$$hashKey": "object:6959",
           "checked": true,
           "visualize": "true"
         },
@@ -2884,7 +3468,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:41829",
+          "$$hashKey": "object:6960",
           "checked": true,
           "visualize": "true"
         },
@@ -2895,7 +3479,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:41830",
+          "$$hashKey": "object:6961",
           "checked": true,
           "visualize": "true"
         },
@@ -2906,7 +3490,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:41831",
+          "$$hashKey": "object:6962",
           "checked": true,
           "visualize": "true"
         },
@@ -2917,7 +3501,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:41832",
+          "$$hashKey": "object:6963",
           "checked": true,
           "visualize": "true"
         },
@@ -2928,7 +3512,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:41833",
+          "$$hashKey": "object:6964",
           "checked": true,
           "visualize": "true"
         },
@@ -2939,7 +3523,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:41834",
+          "$$hashKey": "object:6965",
           "checked": true,
           "visualize": "true"
         },
@@ -2950,7 +3534,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:41835",
+          "$$hashKey": "object:6966",
           "checked": true,
           "visualize": "true"
         },
@@ -2961,7 +3545,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:41836",
+          "$$hashKey": "object:6967",
           "checked": true,
           "visualize": "true"
         },
@@ -2972,7 +3556,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:41837",
+          "$$hashKey": "object:6968",
           "checked": true,
           "visualize": "true"
         },
@@ -2983,7 +3567,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:41838",
+          "$$hashKey": "object:6969",
           "checked": true,
           "visualize": "true"
         },
@@ -2994,7 +3578,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:41839",
+          "$$hashKey": "object:6970",
           "checked": true,
           "visualize": "true"
         },
@@ -3005,7 +3589,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:41840",
+          "$$hashKey": "object:6971",
           "checked": true,
           "visualize": "true"
         },
@@ -3016,7 +3600,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:41841",
+          "$$hashKey": "object:6972",
           "checked": true,
           "visualize": "true"
         },
@@ -3027,7 +3611,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:41842",
+          "$$hashKey": "object:6973",
           "checked": true,
           "visualize": "true"
         },
@@ -3038,7 +3622,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:41843",
+          "$$hashKey": "object:6974",
           "checked": true,
           "visualize": "true"
         },
@@ -3049,7 +3633,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:41844",
+          "$$hashKey": "object:6975",
           "checked": true,
           "visualize": "true"
         },
@@ -3060,21 +3644,21 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:41845",
+          "$$hashKey": "object:6976",
           "checked": true,
           "visualize": "true"
         }
       ]
     },
     {
-      "measure_dir": "C:\\OpenStudio\\OpenStudio-BuildStock\\project_resstock_efs\\measures\\TimeseriesCSVExport",
+      "measure_dir": "C:/OpenStudio/OpenStudio-BuildStock/measures/TimeseriesCSVExport",
       "name": "timeseries_csv_export",
-      "directory": "C:\\OpenStudio\\OpenStudio-BuildStock\\project_resstock_efs\\measures\\TimeseriesCSVExport",
+      "directory": "C:/OpenStudio/OpenStudio-BuildStock/measures/TimeseriesCSVExport",
       "uid": "2a3442c1-944d-4e91-9e11-11e0cf368c64",
       "uuid": "{2a3442c1-944d-4e91-9e11-11e0cf368c64}",
-      "version_id": "b86af643-8c32-40ea-82cb-e799aaff1b39",
-      "version_uuid": "{b86af643-8c32-40ea-82cb-e799aaff1b39}",
-      "version_modified": "20180620T222925Z",
+      "version_id": "b123c391-c671-465f-9fcc-77d4274b3b09",
+      "version_uuid": "{b123c391-c671-465f-9fcc-77d4274b3b09}",
+      "version_modified": "20180927T204158Z",
       "xml_checksum": "15BF4E57",
       "display_name": "Timeseries CSV Export",
       "class_name": "TimeseriesCSVExport",
@@ -3217,13 +3801,13 @@
       "add": "",
       "open": false,
       "addedToProject": true,
-      "date": "6/20/2018",
+      "date": "9/27/2018",
       "author": "",
       "type": "ReportingMeasure",
       "seed": "EmptySeedModel.osm",
       "workflow_index": 3,
       "options": [],
-      "instanceId": 0.022735308236613072,
+      "instanceId": 0.3813285697124653,
       "skip": false,
       "$$hashKey": "object:4814",
       "outputMeasure": false
@@ -3270,7 +3854,7 @@
       "seed": "EmptySeedModel.osm",
       "workflow_index": 4,
       "options": [],
-      "instanceId": 0.3135983481754445,
+      "instanceId": 0.8952605921482408,
       "skip": false,
       "$$hashKey": "object:657521",
       "outputMeasure": false
@@ -3309,6 +3893,6 @@
     }
   },
   "designAlternatives": [],
-  "analysisID": "",
+  "analysisID": null,
   "datapoints": []
 }

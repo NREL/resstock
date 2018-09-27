@@ -2,10 +2,10 @@ require 'openstudio'
  
 class BuildingCharacteristicsReport < OpenStudio::Measure::ReportingMeasure
 
-  def name
+  def name 
     return "Building Characteristics Report"
   end
-  
+
   def description
     return "Reports building characteristics for each simulation."
   end
@@ -16,7 +16,7 @@ class BuildingCharacteristicsReport < OpenStudio::Measure::ReportingMeasure
 
     return args
   end
-  
+
   def outputs
     result = OpenStudio::Measure::OSOutputVector.new
     # Outputs based on parameters in options_lookup.tsv
@@ -35,6 +35,8 @@ class BuildingCharacteristicsReport < OpenStudio::Measure::ReportingMeasure
                           "location_state",
                           "location_latitude",
                           "location_longitude",
+                          "zones_represented",
+                          "zones_modeled"
                          ]
     buildstock_outputs.each do |output|
         result << OpenStudio::Measure::OSOutput.makeStringOutput(output)
@@ -64,7 +66,7 @@ class BuildingCharacteristicsReport < OpenStudio::Measure::ReportingMeasure
     runner.workflow.workflowSteps.each do |step|
         next if not step.result.is_initialized
         step_result = step.result.get
-        next if !step_result.measureName.is_initialized or step_result.measureName.get != "build_existing_model"
+        next if !step_result.measureName.is_initialized or ( step_result.measureName.get != "build_existing_model" and step_result.measureName.get != "zone_multipliers" )
         step_result.stepValues.each do |step_value|
             begin
                 # All building characteristics will be strings
