@@ -75,6 +75,7 @@ class ProcessCentralSystemBoilerBaseboards < OpenStudio::Measure::ModelMeasure
       return false
     end
     
+    hot_water_loop = nil
     units.each do |unit|
       thermal_zones = Geometry.get_thermal_zones_from_spaces(unit.spaces)
       HVAC.get_control_and_slave_zones(thermal_zones).each do |control_zone, slave_zones|
@@ -83,22 +84,17 @@ class ProcessCentralSystemBoilerBaseboards < OpenStudio::Measure::ModelMeasure
                                      Constants.ObjectNameCentralSystemBoilerBaseboards)
         end
       end
-    end
-    
-    hot_water_loop = std.model_get_or_add_hot_water_loop(model, central_boiler_fuel_type)
-    
-    units.each do |unit|
-    
-      zones = []
-      unit.spaces.each do |space|
-        zone = space.thermalZone.get
-        next if zones.include? zone
-        zones << zone
+
+      if hot_water_loop.nil?
+        hot_water_loop = std.model_get_or_add_hot_water_loop(model, central_boiler_fuel_type)
+        runner.registerInfo("Added '#{hot_water_loop.name}' to model.")
       end
 
-      std.model_add_baseboard(model, hot_water_loop, zones)
-    
-    end
+      success = HVAC.apply_central_system_boiler_baseboards(model, unit, runner, std, hot_water_loop)
+
+      return false if not success
+
+    end # unit
     
     if central_boiler_system_type == Constants.BoilerTypeSteam
       plant_loop = model.getPlantLoopByName("Hot Water Loop").get
@@ -111,8 +107,6 @@ class ProcessCentralSystemBoilerBaseboards < OpenStudio::Measure::ModelMeasure
     
     simulation_control = model.getSimulationControl
     simulation_control.setRunSimulationforSizingPeriods(true) # indicate e+ autosizing
-
-    runner.registerInfo("Added #{central_boiler_system_type} central boiler and baseboards to the building.")
     
     return true
 

@@ -2110,6 +2110,73 @@ class HVAC
       return true
     end
     
+    def self.apply_central_system_boiler_baseboards(model, unit, runner, std, 
+                                                    hot_water_loop)
+
+      zones = []
+      unit.spaces.each do |space|
+        zone = space.thermalZone.get
+        next if zones.include? zone
+        zones << zone
+      end
+
+      baseboards = std.model_add_baseboard(model, hot_water_loop, zones)
+      baseboards.each do |baseboard|
+        runner.registerInfo("Added '#{baseboard.name}' onto '#{hot_water_loop.name}' for '#{unit.name}'.")
+      end
+
+      return true
+
+    end
+
+    def self.apply_central_system_fan_coil(model, unit, runner, std, 
+                                           fan_coil_heating, fan_coil_cooling, 
+                                           hot_water_loop, chilled_water_loop)
+
+      zones = []
+      unit.spaces.each do |space|
+        zone = space.thermalZone.get
+        next if zones.include? zone
+        zones << zone
+      end
+
+      if fan_coil_heating and not fan_coil_cooling
+        unit_heaters = std.model_add_unitheater(model, sys_name=nil, zones, hvac_op_sch=nil, fan_control_type="ConstantVolume", fan_pressure_rise=OpenStudio.convert(0.2, "inH_{2}O", "Pa").get, "DistrictHeating", hot_water_loop)
+        unit_heaters.each do |unit_heater|
+          runner.registerInfo("Added '#{unit_heater.name}' onto '#{hot_water_loop.name}' for #{unit.name}.")        
+        end
+      else
+        fcus = std.model_add_four_pipe_fan_coil(model, hot_water_loop, chilled_water_loop, zones)
+        fcus.each do |fcu|
+          if hot_water_loop.nil?
+            runner.registerInfo("Added '#{fcu.name}' onto '#{chilled_water_loop.name}' for '#{unit.name}'.'")
+          else
+            runner.registerInfo("Added '#{fcu.name}' onto '#{hot_water_loop.name}' and '#{chilled_water_loop.name}' for '#{unit.name}'.")
+          end
+        end
+      end
+      
+      return true
+
+    end
+
+    def self.apply_central_system_ptac(model, unit, runner, std,
+                                       hot_water_loop)
+
+      zones = []
+      unit.spaces.each do |space|
+        zone = space.thermalZone.get
+        next if zones.include? zone
+        zones << zone
+      end
+
+      ptacs = std.model_add_ptac(model, sys_name=nil, hot_water_loop, zones, fan_type="ConstantVolume", "Water", cooling_type="Single Speed DX AC")
+      ptacs.each do |ptac|
+        runner.registerInfo("Added '#{ptac.name}' onto '#{hot_water_loop.name}' for '#{unit.name}'.")
+      end
+
+    end
+    
     def self.apply_ideal_air_loads(model, unit, runner)
       thermal_zones = Geometry.get_thermal_zones_from_spaces(unit.spaces)
 
@@ -2147,7 +2214,7 @@ class HVAC
       return true
     end
     
-    def self.remove_hvac_equipment(model, runner, thermal_zone, unit, new_equip)
+    def self.remove_hvac_equipment(model, runner, thermal_zone, unit, new_equip, heating=false, cooling=false)
       # TODO: Split into remove_heating and remove_cooling
       counterpart_equip = nil
       perf = nil
@@ -2299,12 +2366,16 @@ class HVAC
       when Constants.ObjectNameCentralSystemFanCoil
         removed_ashp = self.remove_ashp(model, runner, thermal_zone)
         removed_mshp = self.remove_mshp(model, runner, thermal_zone, unit)
-        removed_ac = self.remove_central_ac(model, runner, thermal_zone)
-        removed_room_ac = self.remove_room_ac(model, runner, thermal_zone)
-        removed_furnace = self.remove_furnace(model, runner, thermal_zone)
-        removed_boiler = self.remove_boiler(model, runner, thermal_zone)
-        removed_heater = self.remove_unit_heater(model, runner, thermal_zone)
-        removed_elec_baseboard = self.remove_electric_baseboard(model, runner, thermal_zone)
+        if cooling
+          removed_ac = self.remove_central_ac(model, runner, thermal_zone)
+          removed_room_ac = self.remove_room_ac(model, runner, thermal_zone)
+        end
+        if heating
+          removed_furnace = self.remove_furnace(model, runner, thermal_zone)
+          removed_boiler = self.remove_boiler(model, runner, thermal_zone)
+          removed_heater = self.remove_unit_heater(model, runner, thermal_zone)
+          removed_elec_baseboard = self.remove_electric_baseboard(model, runner, thermal_zone)
+        end
         removed_gshp = self.remove_gshp(model, runner, thermal_zone)
         if removed_ashp or removed_ac or removed_furnace or removed_gshp
           self.remove_air_loop(model, runner, thermal_zone)
