@@ -25,7 +25,7 @@ class UnmetShowerEnergyReport < OpenStudio::Measure::ReportingMeasure
 
   # define the outputs that the measure will create
   def outputs
-    buildstock_outputs = ["unmet_shower_energy_kbtu"]
+    buildstock_outputs = ["unmet_shower_energy_unit_1_kbtu", "unmet_shower_time_unit_1_hr", "shower_draw_time_unit_1_hr"]
     result = OpenStudio::Measure::OSOutputVector.new
     buildstock_outputs.each do |output|
       result << OpenStudio::Measure::OSOutput.makeDoubleOutput(output)
@@ -91,21 +91,14 @@ class UnmetShowerEnergyReport < OpenStudio::Measure::ReportingMeasure
       return false
     end
 
-    requests = ["Unmet Shower Energy"]
-    requests.each do |request|
-
-      sql.availableKeyValues(ann_env_pd, "Hourly", request).each do |key_value|
-
-        total_val = get_timeseries(sql, ann_env_pd, request, key_value)
-        unless total_val
-          runner.registerError("No data found for #{request}.")
-          return false
+    model.getBuildingUnits.each do |unit|
+      requests = {"Unmet Shower Energy|#{unit.name}"=>"kBtu", "Unmet Shower Time|#{unit.name}"=>"hr", "Shower Draw Time|#{unit.name}"=>"hr"}
+      requests.each do |request, units|
+        sql.availableKeyValues(ann_env_pd, "Hourly", request).each do |key_value|
+          total_val = get_timeseries(sql, ann_env_pd, request, key_value, units)
+          report_output(runner, request, total_val, units)
         end
-
-        report_output(runner, request, total_val, "kBtu")
-
       end
-
     end
 
     sql.close()
@@ -114,22 +107,18 @@ class UnmetShowerEnergyReport < OpenStudio::Measure::ReportingMeasure
   end
 
 
-  def get_timeseries(sql, ann_env_pd, request, key_value)
+  def get_timeseries(sql, ann_env_pd, request, key_value, units)
     timeseries = sql.timeSeries(ann_env_pd, "Hourly", request, key_value)
-    if timeseries.empty?
-      return false
-    else
-      values = timeseries.get.values
-    end
+    values = timeseries.get.values
     total_val = 0
     (0...values.length).to_a.each do |i|
       total_val += values[i]
     end
-    return OpenStudio::convert(total_val, timeseries.get.units, "kBtu").get
+    return UnitConversions.convert(total_val, timeseries.get.units, units)
   end
 
   def report_output(runner, name, val, units)
-    runner.registerValue("#{name}_kbtu", val)
+    runner.registerValue("#{name.gsub("|", " ")}_#{units}", val)
     runner.registerInfo("Registering #{val.round(2)} #{units} for #{name}.")
   end
 

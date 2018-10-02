@@ -125,7 +125,7 @@ class ResidentialHotWaterFixtures < OpenStudio::Measure::ModelMeasure
         location_hierarchy = [Constants.SpaceTypeBathroom,
                               Constants.SpaceTypeLiving,
                               Constants.SpaceTypeFinishedBasement]
-                          
+
         tot_sh_gpd = 0
         tot_s_gpd = 0
         tot_b_gpd = 0
@@ -271,11 +271,18 @@ class ResidentialHotWaterFixtures < OpenStudio::Measure::ModelMeasure
 
                 program = OpenStudio::Model::EnergyManagementSystemProgram.new(model)
                 program.setName("#{obj_name_sh} sag")
+                program.addLine("If #{vol_shower.name} > 0")
+                program.addLine("Set ShowerTime=1.0/#{model.getTimestep.numberOfTimestepsPerHour}")
+                program.addLine("Else")
+                program.addLine("Set ShowerTime=0")
+                program.addLine("EndIf")
                 program.addLine("If (#{vol_shower.name} > 0) && (#{mix_sp_hw.name} > #{t_out_wh.name})")
+                program.addLine("Set ShowerSag=1.0/#{model.getTimestep.numberOfTimestepsPerHour}")
                 program.addLine("Set ShowerE=#{vol_shower.name}*4141170*(#{mix_sp_hw.name}-#{t_out_wh.name})")
                 program.addLine("Else")
+                program.addLine("Set ShowerSag=0")
                 program.addLine("Set ShowerE=0")
-                program.addLine("EndIf")                
+                program.addLine("EndIf")
 
                 program_calling_manager = OpenStudio::Model::EnergyManagementSystemProgramCallingManager.new(model)
                 program_calling_manager.setName("#{obj_name_sh} sag")
@@ -283,15 +290,25 @@ class ResidentialHotWaterFixtures < OpenStudio::Measure::ModelMeasure
                 program_calling_manager.addProgram(program)
 
                 ems_output_var = OpenStudio::Model::EnergyManagementSystemOutputVariable.new(model, "ShowerE")
-                ix = ""
-                if unit_index > 0
-                  ix = " #{unit_index + 1}"
-                end
-                ems_output_var.setName("Unmet Shower Energy#{ix}")
+                ems_output_var.setName("Unmet Shower Energy|#{unit.name}")
                 ems_output_var.setTypeOfDataInVariable("Summed")
                 ems_output_var.setUpdateFrequency("SystemTimestep")
                 ems_output_var.setEMSProgramOrSubroutineName(program)
                 ems_output_var.setUnits("J")
+
+                ems_output_var = OpenStudio::Model::EnergyManagementSystemOutputVariable.new(model, "ShowerSag")
+                ems_output_var.setName("Unmet Shower Time|#{unit.name}")
+                ems_output_var.setTypeOfDataInVariable("Summed")
+                ems_output_var.setUpdateFrequency("SystemTimestep")
+                ems_output_var.setEMSProgramOrSubroutineName(program)
+                ems_output_var.setUnits("hr")
+
+                ems_output_var = OpenStudio::Model::EnergyManagementSystemOutputVariable.new(model, "ShowerTime")
+                ems_output_var.setName("Shower Draw Time|#{unit.name}")
+                ems_output_var.setTypeOfDataInVariable("Summed")
+                ems_output_var.setUpdateFrequency("SystemTimestep")
+                ems_output_var.setEMSProgramOrSubroutineName(program)
+                ems_output_var.setUnits("hr")
             end
             
             # Sinks
@@ -449,11 +466,17 @@ class ResidentialHotWaterFixtures < OpenStudio::Measure::ModelMeasure
               sensor.remove
             end
           end
+          programs = []
           model.getEnergyManagementSystemOutputVariables.each do |var|
             if var.emsProgramOrSubroutineName.to_s.start_with? obj_name.gsub(" ", "_").gsub("unit ", "").gsub("|","_")
-              var.emsProgram.get.remove
+              unless programs.include? var.emsProgram.get
+                programs << var.emsProgram.get
+              end
               var.remove
             end
+          end
+          programs.each do |program|
+            program.remove
           end
         end
     end
