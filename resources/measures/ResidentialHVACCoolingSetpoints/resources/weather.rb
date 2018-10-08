@@ -51,12 +51,14 @@ class WeatherProcess
 
     @epw_file = OpenStudio::EpwFile.new(@epw_path, true)
 
-    cached = get_cached_weather(@model)
+    unit = get_weather_building_unit(@model)
+  
+    cached = get_cached_weather(unit)
     return if cached or @error
 
     process_epw
     
-    cache_weather(@model)
+    cache_weather(unit)
       
   end
 
@@ -119,19 +121,38 @@ class WeatherProcess
     return @error
   end
   
-  def cache_weather(model)
+  def get_weather_building_unit(model)
+    unit_name = "EPWWeatherInfo"
+    
+    # Look for existing unit with weather data
+    unit = nil
+    model.getBuildingUnits.each do |u|
+      next if u.name.to_s != unit_name
+      unit = u
+    end
+    
+    if unit.nil?
+      # Create new unit to store weather data
+      unit = OpenStudio::Model::BuildingUnit.new(model)
+      unit.setBuildingUnitType("Residential")
+      unit.setName(unit_name)
+    end
+    
+    return unit
+    
+  end
   
-    wf_ap = model.weatherFile.get.additionalProperties
+  def cache_weather(unit)
     
     # Header
     WeatherHeader::ATTRS.each do |k|
       k = k.to_s
       # string
       if ['City','State','Country','DataSource','Station'].include? k
-        wf_ap.setFeature("EPWHeader#{k}", @header.send(k).to_s)
+        unit.setFeature("EPWHeader#{k}", @header.send(k).to_s)
       # double
       elsif ['Latitude','Longitude','Timezone','Altitude','LocalPressure','RecordsPerHour'].include? k
-        wf_ap.setFeature("EPWHeader#{k}", @header.send(k).to_f)
+        unit.setFeature("EPWHeader#{k}", @header.send(k).to_f)
       else
         @runner.registerError("Weather header key #{k} not handled.")
         @error = true
@@ -145,11 +166,11 @@ class WeatherProcess
       # double
       if ['AnnualAvgDrybulb','AnnualMinDrybulb','AnnualMaxDrybulb','CDD50F','CDD65F',
              'HDD50F','HDD65F','AnnualAvgWindspeed','WSF'].include? k
-        wf_ap.setFeature("EPWData#{k}", @data.send(k).to_f)
+        unit.setFeature("EPWData#{k}", @data.send(k).to_f)
       # array
       elsif ['MonthlyAvgDrybulbs','GroundMonthlyTemps',
              'MonthlyAvgDailyHighDrybulbs','MonthlyAvgDailyLowDrybulbs'].include? k
-        wf_ap.setFeature("EPWData#{k}", @data.send(k).join(","))
+        unit.setFeature("EPWData#{k}", @data.send(k).join(","))
       else
         @runner.registerError("Weather data key #{k} not handled.")
         @error = true
@@ -161,7 +182,7 @@ class WeatherProcess
     WeatherDesign::ATTRS.each do |k|
       k = k.to_s
       # double
-      wf_ap.setFeature("EPWDesign#{k}", @design.send(k).to_f)
+      unit.setFeature("EPWDesign#{k}", @design.send(k).to_f)
     end
     
   end
@@ -202,21 +223,19 @@ class WeatherProcess
         return nil
       end
   
-      def get_cached_weather(model)
-      
-        wf_ap = model.weatherFile.get.additionalProperties
+      def get_cached_weather(unit)
         
         # Header
         WeatherHeader::ATTRS.each do |k|
           k = k.to_s
           # string
           if ['City','State','Country','DataSource','Station'].include? k
-            @header.send(k+"=", wf_ap.getFeatureAsString("EPWHeader#{k}"))
+            @header.send(k+"=", unit.getFeatureAsString("EPWHeader#{k}"))
             return false if !@header.send(k).is_initialized
             @header.send(k+"=", @header.send(k).get)
           # double
           elsif ['Latitude','Longitude','Timezone','Altitude','LocalPressure','RecordsPerHour'].include? k
-            @header.send(k+"=", wf_ap.getFeatureAsDouble("EPWHeader#{k}"))
+            @header.send(k+"=", unit.getFeatureAsDouble("EPWHeader#{k}"))
             return false if !@header.send(k).is_initialized
             @header.send(k+"=", @header.send(k).get)
           else
@@ -232,13 +251,13 @@ class WeatherProcess
           # double
           if ['AnnualAvgDrybulb','AnnualMinDrybulb','AnnualMaxDrybulb','CDD50F','CDD65F',
                  'HDD50F','HDD65F','AnnualAvgWindspeed','WSF'].include? k
-            @data.send(k+"=", wf_ap.getFeatureAsDouble("EPWData#{k}"))
+            @data.send(k+"=", unit.getFeatureAsDouble("EPWData#{k}"))
             return false if !@data.send(k).is_initialized
             @data.send(k+"=", @data.send(k).get)
           # array
           elsif ['MonthlyAvgDrybulbs','GroundMonthlyTemps',
                  'MonthlyAvgDailyHighDrybulbs','MonthlyAvgDailyLowDrybulbs'].include? k
-            @data.send(k+"=", wf_ap.getFeatureAsString("EPWData#{k}"))
+            @data.send(k+"=", unit.getFeatureAsString("EPWData#{k}"))
             return false if !@data.send(k).is_initialized
             @data.send(k+"=", @data.send(k).get.split(",").map(&:to_f))
           else
@@ -252,7 +271,7 @@ class WeatherProcess
         WeatherDesign::ATTRS.each do |k|
           k = k.to_s
           # double
-          @design.send(k+"=", wf_ap.getFeatureAsDouble("EPWDesign#{k}"))
+          @design.send(k+"=", unit.getFeatureAsDouble("EPWDesign#{k}"))
           return false if !@design.send(k).is_initialized
           @design.send(k+"=", @design.send(k).get)
         end
