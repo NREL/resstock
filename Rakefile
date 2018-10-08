@@ -142,7 +142,7 @@ end
 
 def copy_other_measures(beopt_measures_dir)
   # Copy other measures to measure/ dir
-  other_measures = ["TimeseriesCSVExport", "ResidentialSimulationControls"] # Still under development: "UtilityBillCalculationsSimple", "UtilityBillCalculationsDetailed"
+  other_measures = ["TimeseriesCSVExport", "ResidentialSimulationControls", "ZoneMultipliers"] # Still under development: "UtilityBillCalculationsSimple", "UtilityBillCalculationsDetailed"
   buildstock_measures_dir = File.join(File.dirname(__FILE__), "measures")
   other_measures.each do |other_measure|
     puts "Copying #{other_measure} measure..."

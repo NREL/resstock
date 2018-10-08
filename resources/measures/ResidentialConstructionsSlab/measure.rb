@@ -139,10 +139,7 @@ class ProcessConstructionsSlab < OpenStudio::Measure::ModelMeasure
             effective_slab_Rvalue = 1000.0 # hr*ft^2*F/Btu
         end
         
-        model.getBuildingUnits.each do |unit|
-            next if unit.spaces.size == 0
-            unit.setFeature(Constants.SizingInfoSlabRvalue(surface), effective_slab_Rvalue)
-        end
+        surface.additionalProperties.setFeature(Constants.SizingInfoSlabRvalue, effective_slab_Rvalue)
     end
     
     # ==================================

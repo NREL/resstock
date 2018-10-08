@@ -181,8 +181,8 @@ class Geometry
 
   def self.get_unit_beds_baths(model, unit, runner=nil)
     # Returns a list with #beds, #baths, a list of spaces, and the unit name
-    nbeds = unit.getFeatureAsInteger(Constants.BuildingUnitFeatureNumBedrooms)
-    nbaths = unit.getFeatureAsDouble(Constants.BuildingUnitFeatureNumBathrooms)
+    nbeds = unit.additionalProperties.getFeatureAsInteger(Constants.BuildingUnitFeatureNumBedrooms)
+    nbaths = unit.additionalProperties.getFeatureAsDouble(Constants.BuildingUnitFeatureNumBathrooms)
     if not (nbeds.is_initialized or nbaths.is_initialized)
       if !runner.nil?
         runner.registerError("Could not determine number of bedrooms or bathrooms.")
@@ -193,29 +193,6 @@ class Geometry
       nbaths = nbaths.get
     end
     return [nbeds, nbaths]
-  end
-
-  def self.get_unit_dhw_sched_index(model, unit, runner=nil)
-      dhw_sched_index = unit.getFeatureAsInteger(Constants.BuildingUnitFeatureDHWSchedIndex)
-      if not dhw_sched_index.is_initialized
-          # Assign DHW schedule index values for every building unit.
-          dhw_sched_index_hash = {}
-          num_bed_options = (1..5)
-          num_bed_options.each do |num_bed_option|
-              dhw_sched_index_hash[num_bed_option.to_f] = -1 # initialize
-          end
-          units = self.get_building_units(model, runner)
-          units.each do |unit|
-              nbeds, nbaths = Geometry.get_unit_beds_baths(model, unit, runner)
-              dhw_sched_index_hash[nbeds] = (dhw_sched_index_hash[nbeds]+1) % 365
-              unit.setFeature(Constants.BuildingUnitFeatureDHWSchedIndex, dhw_sched_index_hash[nbeds])
-          end
-          dhw_sched_index = unit.getFeatureAsInteger(Constants.BuildingUnitFeatureDHWSchedIndex).get
-      else
-          # Value already assigned.
-          dhw_sched_index = dhw_sched_index.get
-      end
-      return dhw_sched_index
   end
 
   def self.get_unit_adjacent_common_spaces(unit)
@@ -549,6 +526,7 @@ class Geometry
 
   # Takes in a list of spaces and returns the average space height
   def self.spaces_avg_height(spaces)
+      return nil if spaces.size == 0
       sum_height = 0
       spaces.each do |space|
           sum_height += self.space_height(space)
@@ -648,7 +626,7 @@ class Geometry
       # Get ground edges
       if not has_foundation_walls
           # Use edges from floor surface
-          ground_edges = self.get_edges_for_surfaces(ground_floor_surfaces, false, false)
+          ground_edges = self.get_edges_for_surfaces(ground_floor_surfaces, false)
       else
           # Use top edges from foundation walls instead
           surfaces = []
@@ -666,9 +644,8 @@ class Geometry
                   surfaces << surface
               end
           end
-          ground_edges = self.get_edges_for_surfaces(surfaces, true, false)
+          ground_edges = self.get_edges_for_surfaces(surfaces, true)
       end
-      
       # Get bottom edges of exterior walls (building footprint)
       surfaces = []
       model.getSurfaces.each do |surface|
@@ -676,32 +653,46 @@ class Geometry
           next if surface.outsideBoundaryCondition.downcase != "outdoors"
           surfaces << surface
       end
-      model_edges = self.get_edges_for_surfaces(surfaces, false, true)
-      
-      # check edges for matches
+      model_edges = self.get_edges_for_surfaces(surfaces, false)
+
+      # compare edges for overlap
       ground_edges.each do |e1|
           model_edges.each do |e2|
-              next if not ((equal_vertices(e1[0], e2[1]) and equal_vertices(e1[1], e2[0])) or (equal_vertices(e1[0], e2[0]) and equal_vertices(e1[1], e2[1])))
-              point_one = OpenStudio::Point3d.new(e1[0][0],e1[0][1],e1[0][2])
-              point_two = OpenStudio::Point3d.new(e1[1][0],e1[1][1],e1[1][2])
+              next if not self.is_point_between(e2[0], e1[0], e1[1])
+              next if not self.is_point_between(e2[1], e1[0], e1[1])
+              point_one = OpenStudio::Point3d.new(e2[0][0],e2[0][1],e2[0][2])
+              point_two = OpenStudio::Point3d.new(e2[1][0],e2[1][1],e2[1][2])
               length = OpenStudio::Vector3d.new(point_one - point_two).length
               perimeter += length
-              break
           end
       end
 
       return UnitConversions.convert(perimeter, "m", "ft")
   end
 
-  def self.equal_vertices(v1, v2)
+  def self.is_point_between(p, v1, v2)
+      # Checks if point p is between points v1 and v2
+      is_between = false
       tol = 0.001
-      return false if (v1[0] - v2[0]).abs > tol
-      return false if (v1[1] - v2[1]).abs > tol
-      return false if (v1[2] - v2[2]).abs > tol
-      return true
+      if (p[2] - v1[2]).abs <= tol and (p[2] - v2[2]).abs <= tol # equal z
+          if (p[0] - v1[0]).abs <= tol and (p[0] - v2[0]).abs <= tol # equal x; vertical
+              if p[1] >= v1[1] - tol and p[1] <= v2[1] + tol
+                  is_between = true
+              elsif p[1] <= v1[1] + tol and p[1] >= v2[1] - tol
+                  is_between = true
+              end
+          elsif (p[1] - v1[1]).abs <= tol and (p[1] - v2[1]).abs <= tol # equal y; horizontal
+              if p[0] >= v1[0] - tol and p[0] <= v2[0] + tol
+                  is_between = true
+              elsif p[0] <= v1[0] + tol and p[0] >= v2[0] - tol
+                  is_between = true
+              end
+          end
+      end
+      return is_between
   end
 
-  def self.get_edges_for_surfaces(surfaces, use_top_edge, combine_adjacent=false)
+  def self.get_edges_for_surfaces(surfaces, use_top_edge)
 
       top_z = -99999
       bottom_z = 99999
@@ -709,7 +700,6 @@ class Geometry
           top_z = [self.getSurfaceZValues([surface]).max, top_z].max
           bottom_z = [self.getSurfaceZValues([surface]).min, bottom_z].min
       end
-  
       edges = []
       edge_counter = 0
       surfaces.each do |surface|
@@ -742,62 +732,41 @@ class Geometry
                 end
           end
       end
-      
-      if combine_adjacent
-          # Create combinations of adjacent edges (e.g., front wall surface split into multiple surfaces because of the door)
-          loop do
-              new_combi_edges = []
-              edges.each_with_index do |e1, i1|
-                  edges.each_with_index do |e2, i2|
-                      next if i2 <= i1
-                      next if e1[2] != e2[2] # different facades
-                      # Check if shared vertex and not overlapping
-                      new_combi_edge = nil
-                      if e1[0] == e2[1]
-                          next if not self.vertices_straddle_base_vertex?(e1[0], e1[1], e2[0], e1[2])
-                          new_combi_edge = [e1[1], e2[0], e1[2]]
-                      elsif e1[1] == e2[0]
-                          next if not self.vertices_straddle_base_vertex?(e1[1], e1[0], e2[1], e1[2])
-                          new_combi_edge = [e1[0], e2[1], e1[2]]
-                      elsif e1[1] == e2[1]
-                          next if not self.vertices_straddle_base_vertex?(e1[1], e1[0], e2[0], e1[2])
-                          new_combi_edge = [e1[0], e2[0], e1[2]]
-                      elsif e1[0] == e2[0]
-                          next if not self.vertices_straddle_base_vertex?(e1[0], e1[1], e2[1], e1[2])
-                          new_combi_edge = [e1[1], e2[1], e1[2]]
-                      end
-                      next if new_combi_edge.nil?
-                      next if edges.include?(new_combi_edge)
-                      new_combi_edges << new_combi_edge
-                  end
-              end
 
-              # Add new_combi_edges to edges
-              new_combi_edges.each do |new_combi_edge|
-                  edges << new_combi_edge
-              end
-
-              break if new_combi_edges.size == 0 # no new combinations found
-          end
-      end
-      
       return edges
   end
 
-  def self.vertices_straddle_base_vertex?(b, v1, v2, facade)
-      # Checks if v1 and v2 are on opposite sides of b
-      if [Constants.FacadeFront, Constants.FacadeBack].include?(facade)
-          if (v1[0] < b[0] and v2[0] > b[0]) or (v2[0] < b[0] and v1[0] > b[0])
-              return true
+  def self.equal_vertices(v1, v2)
+      tol = 0.001
+      return false if (v1[0] - v2[0]).abs > tol
+      return false if (v1[1] - v2[1]).abs > tol
+      return false if (v1[2] - v2[2]).abs > tol
+      return true
+  end
+  
+  def self.get_walls_connected_to_floor(wall_surfaces, floor_surface)
+      adjacent_wall_surfaces = []
+      
+      # Note: Algorithm assumes that walls span an entire edge of the floor.
+      wall_surfaces.each do |wall_surface|
+          next if wall_surface.space.get != floor_surface.space.get
+          wall_vertices = wall_surface.vertices
+          wall_vertices.each_with_index do |wv1, widx|
+              wv2 = wall_vertices[widx-1]
+              floor_vertices = floor_surface.vertices
+              floor_vertices.each_with_index do |fv1, fidx|
+                  fv2 = floor_vertices[fidx-1]
+                  # Identical edge?
+                  if self.equal_vertices([wv1.x, wv1.y, 0], [fv1.x, fv1.y, 0]) and self.equal_vertices([wv2.x, wv2.y, 0], [fv2.x, fv2.y, 0])
+                      adjacent_wall_surfaces << wall_surface
+                  elsif self.equal_vertices([wv1.x, wv1.y, 0], [fv2.x, fv2.y, 0]) and self.equal_vertices([wv2.x, wv2.y, 0], [fv1.x, fv1.y, 0])
+                      adjacent_wall_surfaces << wall_surface
+                  end
+              end
           end
-      elsif [Constants.FacadeLeft, Constants.FacadeRight].include?(facade)
-          if (v1[1] < b[1] and v2[1] > b[1]) or (v2[1] < b[1] and v1[1] > b[1])
-              return true
-          end
-      else
-          abort("Unhandled situation.")
       end
-      return false
+      
+      return adjacent_wall_surfaces.uniq!
   end
 
   def self.get_walls_connected_to_floor(wall_surfaces, floor_surface)
@@ -1365,8 +1334,8 @@ class Geometry
       num_br[unit_index] = num_br[unit_index].to_i
       num_ba[unit_index] = num_ba[unit_index].to_f
 
-      unit.setFeature(Constants.BuildingUnitFeatureNumBedrooms, num_br[unit_index])
-      unit.setFeature(Constants.BuildingUnitFeatureNumBathrooms, num_ba[unit_index])
+      unit.additionalProperties.setFeature(Constants.BuildingUnitFeatureNumBedrooms, num_br[unit_index])
+      unit.additionalProperties.setFeature(Constants.BuildingUnitFeatureNumBathrooms, num_ba[unit_index])
 
       if units.size > 1
         runner.registerInfo("Unit '#{unit_index}' has been assigned #{num_br[unit_index].to_s} bedroom(s) and #{num_ba[unit_index].round(2).to_s} bathroom(s).")
@@ -1493,6 +1462,12 @@ class Geometry
         schedules[non_bedroom_ffa_spaces] = [weekday_sch, weekend_sch, activity_per_person]
       end
 
+      # Design day schedules used when autosizing
+      winter_design_day_sch = OpenStudio::Model::ScheduleDay.new(model)
+      winter_design_day_sch.addValue(OpenStudio::Time.new(0,24,0,0), 0)
+      summer_design_day_sch = OpenStudio::Model::ScheduleDay.new(model)
+      summer_design_day_sch.addValue(OpenStudio::Time.new(0,24,0,0), 1)
+
       # Assign occupants to each space of the unit
       schedules.each do |spaces, schedule|
 
@@ -1529,7 +1504,7 @@ class Geometry
 
             if people_sch.nil?
               # Create schedule
-              people_sch = MonthWeekdayWeekendSchedule.new(model, runner, Constants.ObjectNameOccupants + " schedule", schedule[0], schedule[1], monthly_sch)
+              people_sch = MonthWeekdayWeekendSchedule.new(model, runner, Constants.ObjectNameOccupants + " schedule", schedule[0], schedule[1], monthly_sch, mult_weekday=1.0, mult_weekend=1.0, normalize_values=true, create_sch_object=true, winter_design_day_sch, summer_design_day_sch)
               if not people_sch.validated?
                 return false
               end
@@ -1844,11 +1819,6 @@ class Geometry
       return false
     end
 
-    least_x = 9e99
-    greatest_x = -9e99
-    least_y = 9e99
-    greatest_y = -9e99
-
     surfaces = model.getSurfaces
     if surfaces.size == 0
       runner.registerInfo("No surfaces found to copy for neighboring buildings.")
@@ -1872,71 +1842,72 @@ class Geometry
       return true
     end
 
-    # Get x and y minima and maxima of wall surfaces
+    # Get x, y, z minima and maxima of wall surfaces
+    least_x = 9e99
+    greatest_x = -9e99
+    least_y = 9e99
+    greatest_y = -9e99
+    greatest_z = -9e99
     surfaces.each do |surface|
-      if surface.surfaceType.downcase == "wall"
-        vertices = surface.vertices
-        vertices.each do |vertex|
-          if vertex.x > greatest_x
-            greatest_x = vertex.x
-          end
-          if vertex.x < least_x
-            least_x = vertex.x
-          end
-          if vertex.y > greatest_y
-            greatest_y = vertex.y
-          end
-          if vertex.y < least_y
-            least_y = vertex.y
-          end
+      next unless surface.surfaceType.downcase == "wall"
+      space = surface.space.get
+      surface.vertices.each do |vertex|
+        if vertex.x > greatest_x
+          greatest_x = vertex.x
+        end
+        if vertex.x < least_x
+          least_x = vertex.x
+        end
+        if vertex.y > greatest_y
+          greatest_y = vertex.y
+        end
+        if vertex.y < least_y
+          least_y = vertex.y
+        end
+        if vertex.z + space.zOrigin > greatest_z
+          greatest_z = vertex.z + space.zOrigin
         end
       end
+
     end
 
-    # This is maximum building length or width + user specified neighbor offset
-    left_offset = ((greatest_x - least_x) + left_neighbor_offset)
-    right_offset = -((greatest_x - least_x) + right_neighbor_offset)
-    back_offset = -((greatest_y - least_y) + back_neighbor_offset)
-    front_offset = ((greatest_y - least_y) + front_neighbor_offset)
-
-    directions = [[Constants.FacadeLeft, left_neighbor_offset, left_offset, 0], [Constants.FacadeRight, right_neighbor_offset, right_offset, 0], [Constants.FacadeBack, back_neighbor_offset, 0, back_offset], [Constants.FacadeFront, front_neighbor_offset, 0, front_offset]]
+    directions = [[Constants.FacadeLeft, left_neighbor_offset], [Constants.FacadeRight, right_neighbor_offset], [Constants.FacadeBack, back_neighbor_offset], [Constants.FacadeFront, front_neighbor_offset]]
 
     shading_surface_group = OpenStudio::Model::ShadingSurfaceGroup.new(model)
     shading_surface_group.setName(Constants.ObjectNameNeighbors)
 
     num_added = 0
-    directions.each do |facade, neighbor_offset, x_offset, y_offset|
-      if neighbor_offset != 0
-        model.getSpaces.each do |space|
-          space.surfaces.each do |existing_surface|
-            next if existing_surface.outsideBoundaryCondition.downcase != "outdoors" and existing_surface.outsideBoundaryCondition.downcase != "adiabatic"
-            next if existing_surface.adjacentSurface.is_initialized
-            next if existing_surface.outsideBoundaryCondition.downcase == "adiabatic" and !Geometry.is_corridor(space)
-            m = Geometry.initialize_transformation_matrix(OpenStudio::Matrix.new(4,4,0))
-            m[0,3] = -x_offset
-            m[1,3] = -y_offset
-            m[2,3] = space.zOrigin
-            transformation = OpenStudio::Transformation.new(m)
-            new_vertices = transformation * existing_surface.vertices
-            shading_surface = OpenStudio::Model::ShadingSurface.new(new_vertices, model)
-            shading_surface.setName(Constants.ObjectNameNeighbors(facade))
-            shading_surface.setShadingSurfaceGroup(shading_surface_group)
-            num_added += 1
-          end
-        end
-        model.getShadingSurfaces.each do |existing_shading_surface|
-          next unless existing_shading_surface.name.to_s.downcase.include? Constants.ObjectNameEaves
-          m = Geometry.initialize_transformation_matrix(OpenStudio::Matrix.new(4,4,0))
-          m[0,3] = -x_offset
-          m[1,3] = -y_offset
-          transformation = OpenStudio::Transformation.new(m)
-          new_vertices = transformation * existing_shading_surface.vertices
-          shading_surface = OpenStudio::Model::ShadingSurface.new(new_vertices, model)
-          shading_surface.setName(Constants.ObjectNameNeighbors(facade))
-          shading_surface.setShadingSurfaceGroup(shading_surface_group)
-          num_added += 1
-        end
+    directions.each do |facade, neighbor_offset|
+      next unless neighbor_offset > 0
+      vertices = OpenStudio::Point3dVector.new
+      m = Geometry.initialize_transformation_matrix(OpenStudio::Matrix.new(4,4,0))
+      transformation = OpenStudio::Transformation.new(m)
+      if facade == Constants.FacadeLeft
+        vertices << OpenStudio::Point3d.new(least_x - neighbor_offset, least_y, 0)
+        vertices << OpenStudio::Point3d.new(least_x - neighbor_offset, least_y, greatest_z)
+        vertices << OpenStudio::Point3d.new(least_x - neighbor_offset, greatest_y, greatest_z)
+        vertices << OpenStudio::Point3d.new(least_x - neighbor_offset, greatest_y, 0)
+      elsif facade == Constants.FacadeRight
+        vertices << OpenStudio::Point3d.new(greatest_x + neighbor_offset, greatest_y, 0)
+        vertices << OpenStudio::Point3d.new(greatest_x + neighbor_offset, greatest_y, greatest_z)
+        vertices << OpenStudio::Point3d.new(greatest_x + neighbor_offset, least_y, greatest_z)
+        vertices << OpenStudio::Point3d.new(greatest_x + neighbor_offset, least_y, 0)
+      elsif facade == Constants.FacadeFront
+        vertices << OpenStudio::Point3d.new(greatest_x, least_y - neighbor_offset, 0)
+        vertices << OpenStudio::Point3d.new(greatest_x, least_y - neighbor_offset, greatest_z)
+        vertices << OpenStudio::Point3d.new(least_x, least_y - neighbor_offset, greatest_z)
+        vertices << OpenStudio::Point3d.new(least_x, least_y - neighbor_offset, 0)
+      elsif facade == Constants.FacadeBack
+        vertices << OpenStudio::Point3d.new(least_x, greatest_y + neighbor_offset, 0)
+        vertices << OpenStudio::Point3d.new(least_x, greatest_y + neighbor_offset, greatest_z)
+        vertices << OpenStudio::Point3d.new(greatest_x, greatest_y + neighbor_offset, greatest_z)
+        vertices << OpenStudio::Point3d.new(greatest_x, greatest_y + neighbor_offset, 0)
       end
+      vertices = transformation * vertices
+      shading_surface = OpenStudio::Model::ShadingSurface.new(vertices, model)
+      shading_surface.setName(Constants.ObjectNameNeighbors(facade))
+      shading_surface.setShadingSurfaceGroup(shading_surface_group)
+      num_added += 1
     end
     
     runner.registerInfo("Added #{num_added} #{Constants.ObjectNameNeighbors} shading surfaces.")
