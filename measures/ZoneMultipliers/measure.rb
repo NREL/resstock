@@ -56,6 +56,7 @@ class ZoneMultipliers < OpenStudio::Measure::ModelMeasure
 
     if model.getBuilding.standardsBuildingType.is_initialized
 
+      units_removed = []
       if model.getBuilding.standardsBuildingType.get == Constants.BuildingTypeSingleFamilyAttached
 
         if (num_units > 3 and not has_rear_units) or (num_units > 7 and has_rear_units)
@@ -75,6 +76,11 @@ class ZoneMultipliers < OpenStudio::Measure::ModelMeasure
                   zone_names_for_multiplier_adjustment.each do |tz|
                     if thermal_zone.name.to_s == tz
                       thermal_zone.setMultiplier(num_units - 2)
+                      model.getAirLoopHVACReturnPlenums.each do |return_plenum|
+                        return_plenum = return_plenum.thermalZone.get
+                        next unless return_plenum.name.to_s.include? "_#{unit_num} "
+                        return_plenum.setMultiplier(num_units - 2)
+                      end
                     end
                   end
                 end
@@ -82,6 +88,7 @@ class ZoneMultipliers < OpenStudio::Measure::ModelMeasure
                 unit_spaces.each do |space|
                   space_names_to_remove << space.name.to_s
                 end
+                units_removed << unit_hash[unit_num].name.to_s
                 unit_hash[unit_num].remove
                 model.getSpaces.each do |space|
                   space_names_to_remove.each do |s|
@@ -111,6 +118,11 @@ class ZoneMultipliers < OpenStudio::Measure::ModelMeasure
                   zone_names_for_multiplier_adjustment.each do |tz|
                     if thermal_zone.name.to_s == tz
                       thermal_zone.setMultiplier(num_units / 2 - 2)
+                      model.getAirLoopHVACReturnPlenums.each do |return_plenum|
+                        return_plenum = return_plenum.thermalZone.get
+                        next unless return_plenum.name.to_s.include? "_#{unit_num} "
+                        return_plenum.setMultiplier(num_units / 2 - 2)
+                      end
                     end
                   end
                 end
@@ -118,6 +130,7 @@ class ZoneMultipliers < OpenStudio::Measure::ModelMeasure
                 unit_spaces.each do |space|
                   space_names_to_remove << space.name.to_s
                 end
+                units_removed << unit_hash[unit_num].name.to_s
                 unit_hash[unit_num].remove
                 model.getSpaces.each do |space|
                   space_names_to_remove.each do |s|
@@ -165,6 +178,11 @@ class ZoneMultipliers < OpenStudio::Measure::ModelMeasure
                     zone_names_for_multiplier_adjustment.each do |tz|
                       if thermal_zone.name.to_s == tz
                         thermal_zone.setMultiplier(num_units_per_floor - 2)
+                        model.getAirLoopHVACReturnPlenums.each do |return_plenum|
+                          return_plenum = return_plenum.thermalZone.get
+                          next unless return_plenum.name.to_s.include? "_#{unit_num} "
+                          return_plenum.setMultiplier(num_units_per_floor - 2)
+                        end
                       end
                     end
                   end
@@ -172,6 +190,7 @@ class ZoneMultipliers < OpenStudio::Measure::ModelMeasure
                   unit_spaces.each do |space|
                     space_names_to_remove << space.name.to_s
                   end
+                  units_removed << unit_hash[unit_num].name.to_s
                   unit_hash[unit_num].remove
                   model.getSpaces.each do |space|
                     space_names_to_remove.each do |s|
@@ -200,6 +219,11 @@ class ZoneMultipliers < OpenStudio::Measure::ModelMeasure
                     zone_names_for_multiplier_adjustment.each do |tz|
                       if thermal_zone.name.to_s == tz
                         thermal_zone.setMultiplier(num_units_per_floor / 2 - 2)
+                        model.getAirLoopHVACReturnPlenums.each do |return_plenum|
+                          return_plenum = return_plenum.thermalZone.get
+                          next unless return_plenum.name.to_s.include? "_#{unit_num} "
+                          return_plenum.setMultiplier(num_units_per_floor / 2 - 2)
+                        end
                       end
                     end
                   end
@@ -207,6 +231,7 @@ class ZoneMultipliers < OpenStudio::Measure::ModelMeasure
                   unit_spaces.each do |space|
                     space_names_to_remove << space.name.to_s
                   end
+                  units_removed << unit_hash[unit_num].name.to_s
                   unit_hash[unit_num].remove
                   model.getSpaces.each do |space|
                     space_names_to_remove.each do |s|
@@ -294,6 +319,7 @@ class ZoneMultipliers < OpenStudio::Measure::ModelMeasure
         unless water_heater.nil?
           next if water_heater.ambientTemperatureThermalZone.is_initialized
           unless plant_loops.include? plant_loop
+            water_heater.setpointTemperatureSchedule.get.remove
             plant_loops << plant_loop
           end
         end
@@ -301,6 +327,44 @@ class ZoneMultipliers < OpenStudio::Measure::ModelMeasure
     end
     plant_loops.each do |plant_loop|
       plant_loop.remove
+    end
+
+    # remove orphaned return air zones, ems global variables, ems programs, ems sensors, schedules
+    units_removed.each do |unit_name|
+      obj_name_ducts = Constants.ObjectNameDucts(unit_name.gsub("unit ", "")).gsub("|","_")
+      model.getThermalZones.each do |thermal_zone|
+        next unless thermal_zone.name.to_s == "#{obj_name_ducts} ret air zone"
+        thermal_zone.spaces.each do |space|
+          space.remove
+        end
+        thermal_zone.remove
+      end
+      model.getEnergyManagementSystemGlobalVariables.each do |global_var|
+        if global_var.name.to_s == "#{obj_name_ducts} lk sup fan equiv".gsub(" ", "_") or global_var.name.to_s == "#{obj_name_ducts} lk ret fan equiv".gsub(" ", "_")
+          global_var.remove
+        end
+      end
+      model.getEnergyManagementSystemPrograms.each do |ems_program|
+        next unless ems_program.name.to_s == "#{obj_name_ducts} program".gsub(" ", "_")
+        ems_program.remove
+      end
+      obj_name_infil = Constants.ObjectNameInfiltration(unit_name.gsub("unit ", "")).gsub("|","_")
+      model.getEnergyManagementSystemSensors.each do |ems_sensor|
+        next unless ems_sensor.name.to_s == "#{obj_name_infil} wh sch s".gsub(" ", "_")
+        ems_sensor.remove
+      end
+      obj_name_natvent = Constants.ObjectNameNaturalVentilation(unit_name.gsub("unit ", "")).gsub("|","_")
+      model.getScheduleRulesets.each do |sch|
+        if sch.name.to_s == "#{obj_name_natvent} avail schedule" or sch.name.to_s == "#{obj_name_natvent} temp schedule"
+          sch.remove
+        end
+      end
+      obj_name_mech_vent = Constants.ObjectNameMechanicalVentilation(unit_name.gsub("unit ", "")).gsub("|","_")
+      model.getScheduleRulesets.each do |sch|
+        if sch.name.to_s == "#{obj_name_mech_vent} range exhaust schedule" or sch.name.to_s == "#{obj_name_mech_vent} bath exhaust schedule"
+          sch.remove
+        end
+      end
     end
 
     # remove orphaned ems actuators
@@ -341,6 +405,39 @@ class ZoneMultipliers < OpenStudio::Measure::ModelMeasure
     model.getEnergyManagementSystemProgramCallingManagers.each do |ems_program_calling_manager|
       next unless ems_program_calling_manager.programs.empty?
       ems_program_calling_manager.remove
+    end
+
+    # remove orphaned surface property convection coefficients
+    model.getSurfacePropertyConvectionCoefficientss.each do |coef|
+     next if coef.surfaceAsSurface.is_initialized
+     coef.remove
+    end
+    
+    # remove orphaned electric equipment definitions
+    electric_equip_defs_to_remain = []
+    model.getElectricEquipments.each do |electric_equip|
+      electric_equip_defs_to_remain << electric_equip.electricEquipmentDefinition
+    end
+    model.getElectricEquipmentDefinitions.each do |electric_equip_definition|
+      next if electric_equip_defs_to_remain.include? electric_equip_definition
+      electric_equip_definition.remove
+    end
+    
+    # remove orphaned intermal mass definitions
+    internal_mass_defs_to_remain = []
+    model.getInternalMasss.each do |internal_mass|
+      internal_mass_defs_to_remain << internal_mass.internalMassDefinition
+    end
+    model.getInternalMassDefinitions.each do |internal_mass_definition|
+      next if internal_mass_defs_to_remain.include? internal_mass_definition
+      internal_mass_definition.construction.get.remove
+      internal_mass_definition.remove
+    end
+    
+    # remove orphaned thermostats
+    model.getThermostatSetpointDualSetpoints.each do |thermostat|
+      next if thermostat.thermalZone.is_initialized
+      thermostat.remove
     end
 
     runner.registerFinalCondition("Model finished with #{model.getThermalZones.length} thermal zones.")
