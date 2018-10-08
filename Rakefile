@@ -3,10 +3,23 @@ require 'rake'
 require 'rake/testtask'
 Bundler.setup
 
-desc 'Copy measures/osms from OpenStudio-BEopt repo'
+desc 'Copy files from OpenStudio-BEopt repo'
 task :copy_beopt_files do
   require 'fileutils'
-  require 'openstudio'
+
+  files = Dir[File.join(File.dirname(__FILE__), "*.zip")]
+  if files.length > 1
+    return
+  end
+  branch = File.basename(files[0]).gsub("OpenStudio-BEopt-", "").gsub(".zip", "")
+  
+  copy_beopt_files(branch)
+
+end
+
+desc 'Download and copy files from OpenStudio-BEopt repo'
+task :download_and_copy_beopt_files do
+  require 'fileutils'  
   require 'net/http'
   require 'openssl'
 
@@ -15,9 +28,9 @@ task :copy_beopt_files do
   if branch.empty?
     branch = "master"
   end
-=begin
-  if File.exists? File.join(File.dirname(__FILE__), "#{branch}.zip")
-    FileUtils.rm(File.join(File.dirname(__FILE__), "#{branch}.zip"))
+
+  if File.exists? File.join(File.dirname(__FILE__), "OpenStudio-BEopt-#{branch}.zip")
+    FileUtils.rm(File.join(File.dirname(__FILE__), "OpenStudio-BEopt-#{branch}.zip"))
   end
 
   url = URI.parse("https://codeload.github.com/NREL/OpenStudio-BEopt/zip/#{branch}")
@@ -36,7 +49,7 @@ task :copy_beopt_files do
     end
     size = 0
     progress = 0
-    open "#{branch}.zip", 'wb' do |io|
+    open "OpenStudio-BEopt-#{branch}.zip", 'wb' do |io|
       response.read_body do |chunk|
         io.write chunk
         size += chunk.size
@@ -48,14 +61,31 @@ task :copy_beopt_files do
       end
     end
   end
-=end
-  puts "Extracting latest residential measures..."
-  unzip_file = OpenStudio::UnzipFile.new(File.join(File.dirname(__FILE__), "#{branch}.zip"))
-  unzip_file.extractAllFiles(OpenStudio::toPath(File.join(File.dirname(__FILE__), branch)))
+  
+  copy_beopt_files(branch, beopt_measures_dir, buildstock_resource_measures_dir)
 
+end
+
+def copy_beopt_files(branch)
+  require 'openstudio'
   beopt_measures_dir = File.join(File.dirname(__FILE__), branch, "OpenStudio-BEopt-#{branch}", "measures")
   buildstock_resource_measures_dir = File.join(File.dirname(__FILE__), "resources", "measures")
-  
+  extract_measures(branch)
+  copy_resources(branch)
+  clean_out(buildstock_resource_measures_dir)
+  copy_measures(beopt_measures_dir, buildstock_resource_measures_dir)
+  copy_other_measures(beopt_measures_dir)
+  clean_up(branch)
+end
+
+def extract_measures(branch)
+  puts "Extracting latest residential measures..."
+  unzip_file = OpenStudio::UnzipFile.new(File.join(File.dirname(__FILE__), "OpenStudio-BEopt-#{branch}.zip"))
+  unzip_file.extractAllFiles(OpenStudio::toPath(File.join(File.dirname(__FILE__), branch)))
+  return unzip_file
+end
+
+def copy_resources(branch)
   # Copy seed osm and other needed resource files
   project_dir_names = get_all_project_dir_names()
   extra_files = [
@@ -81,7 +111,9 @@ task :copy_beopt_files do
         FileUtils.cp(beopt_file, buildstock_file)
       end
   end
-  
+end
+
+def clean_out(buildstock_resource_measures_dir)
   # Clean out resources/measures/ dir
   puts "Deleting #{buildstock_resource_measures_dir}..."
   while Dir.exist?(buildstock_resource_measures_dir)
@@ -89,7 +121,9 @@ task :copy_beopt_files do
     sleep 1
   end
   FileUtils.makedirs(buildstock_resource_measures_dir)
-  
+end
+
+def copy_measures(beopt_measures_dir, buildstock_resource_measures_dir)
   # Copy residential measures to resources/measures/
   Dir.foreach(beopt_measures_dir) do |beopt_measure|
     next if !beopt_measure.include? 'Residential'
@@ -104,10 +138,12 @@ task :copy_beopt_files do
       end
     end
   end
-  
+end
+
+def copy_other_measures(beopt_measures_dir)
   # Copy other measures to measure/ dir
-  other_measures = ["TimeseriesCSVExport", "ResidentialSimulationControls", "UnmetShowerEnergyReport"] # Still under development: "UtilityBillCalculationsSimple", "UtilityBillCalculationsDetailed"
-  buildstock_measures_dir = buildstock_resource_measures_dir = File.join(File.dirname(__FILE__), "measures")
+  other_measures = ["TimeseriesCSVExport", "ResidentialSimulationControls"] # Still under development: "UtilityBillCalculationsSimple", "UtilityBillCalculationsDetailed"
+  buildstock_measures_dir = File.join(File.dirname(__FILE__), "measures")
   other_measures.each do |other_measure|
     puts "Copying #{other_measure} measure..."
     FileUtils.cp_r(File.join(beopt_measures_dir, other_measure), buildstock_measures_dir)
@@ -124,10 +160,11 @@ task :copy_beopt_files do
       end
     end
   end
+end
 
+def clean_up(branch)
   puts "Cleaning up..."
   FileUtils.rm_rf(File.join(File.dirname(__FILE__), branch))
-
 end
 
 def remove_items_from_zip_file(dir, zip_file_name, items)
