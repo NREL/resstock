@@ -865,9 +865,8 @@ class Waterheater
                                cook_annual_therm, cook_frac_sens, 
                                cook_frac_lat, cook_fuel_type, fx_gpd,
                                fx_sens_btu, fx_lat_btu, dist_type, 
-                               dist_gpd, dist_pump_annual_kwh, dwhr_avail,
-                               dwhr_eff, dwhr_eff_adj, dwhr_iFrac,
-                               dwhr_plc, dwhr_locF, dwhr_fixF)
+                               dist_gpd, dist_pump_annual_kwh, 
+                               daily_wh_inlet_temperatures, daily_mw_fractions)
     
         # TODO: Merge with other methods
     
@@ -913,31 +912,6 @@ class Waterheater
           return false
         end
         
-        tHot = 125.0 # F, Water heater set point temperature
-        tMix = 105.0 # F, Temperature of mixed water at fixtures
-        
-        # Get daily mains temperatures
-        avgOAT = weather.data.AnnualAvgDrybulb
-        maxDiffMonthlyAvgOAT = weather.data.MonthlyAvgDrybulbs.max - weather.data.MonthlyAvgDrybulbs.min
-        tmains_daily = WeatherProcess.calc_mains_temperatures(avgOAT, maxDiffMonthlyAvgOAT, weather.header.Latitude)[2]
-        
-        # Calculate adjFmix
-        dwhr_inT = 97.0 # F
-        adjFmix = [0.0] * 365
-        dwhr_WHinT_C = []
-        if dwhr_avail
-          for day in 0..364
-            dwhr_WHinTadj = dwhr_iFrac * (dwhr_inT - tmains_daily[day]) * dwhr_eff * dwhr_eff_adj * dwhr_plc * dwhr_locF * dwhr_fixF
-            dwhr_WHinT = tmains_daily[day] + dwhr_WHinTadj
-            dwhr_WHinT_C << UnitConversions.convert(dwhr_WHinT, "F", "C")
-            adjFmix[day] = 1.0 - ((tHot - tMix) / (tHot - dwhr_WHinT))
-          end
-        else
-          for day in 0..364
-            adjFmix[day] = 1.0 - ((tHot - tMix) / (tHot - tmains_daily[day]))
-          end
-        end
-        
         # Create hot water draw profile schedule
         fractions_hw = []
         for day in 0..364
@@ -957,7 +931,7 @@ class Waterheater
         for day in 0..364
           for hr in 0..23
             for timestep in 1..(60.0/timestep_minutes)
-              fractions_mw << norm_daily_fraction[hr] * adjFmix[day]
+              fractions_mw << norm_daily_fraction[hr] * daily_mw_fractions[day]
             end
           end
         end
@@ -965,12 +939,12 @@ class Waterheater
         schedule_mw = OpenStudio::Model::ScheduleInterval.fromTimeSeries(time_series_mw, model).get
         schedule_mw.setName("Mixed Water Draw Profile")
         
-        if dwhr_avail
-          # Replace mains water temperature schedule
-          time_series_tmains = OpenStudio::TimeSeries.new(start_date, timestep_day, OpenStudio::createVector(dwhr_WHinT_C), "")
-          schedule_tmains = OpenStudio::Model::ScheduleInterval.fromTimeSeries(time_series_tmains, model).get
-          model.getSiteWaterMainsTemperature.setTemperatureSchedule(schedule_tmains)
-        end
+        # Replace mains water temperature schedule with water heater inlet temperature schedule.
+        # Unless there is a DWHR, these are identical.
+        daily_wh_inlet_temperatures_c = daily_wh_inlet_temperatures.map {|t| UnitConversions.convert(t, "F", "C")}
+        time_series_tmains = OpenStudio::TimeSeries.new(start_date, timestep_day, OpenStudio::createVector(daily_wh_inlet_temperatures_c), "")
+        schedule_tmains = OpenStudio::Model::ScheduleInterval.fromTimeSeries(time_series_tmains, model).get
+        model.getSiteWaterMainsTemperature.setTemperatureSchedule(schedule_tmains)
         
         location_hierarchy = [Constants.SpaceTypeLiving,
                               Constants.SpaceTypeFinishedBasement]

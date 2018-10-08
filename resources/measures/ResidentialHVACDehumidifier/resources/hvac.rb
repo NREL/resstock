@@ -22,8 +22,6 @@ class HVAC
       cOOL_CAP_FFLOW_SPEC = [[0.718605468, 0.410099989, -0.128705457]]
       cOOL_EIR_FFLOW_SPEC = [[1.32299905, -0.477711207, 0.154712157]]
       
-      static = UnitConversions.convert(0.5,"inH2O","Pa") # Pascal
-
       capacity_ratios = [1.0]
       fan_speed_ratios = [1.0]
       
@@ -79,11 +77,12 @@ class HVAC
         end
         
         fan = OpenStudio::Model::FanOnOff.new(model, model.alwaysOnDiscreteSchedule)
+        fan_eff = 0.75 # Overall Efficiency of the Fan, Motor and Drive
         fan.setName(obj_name + " supply fan")
         fan.setEndUseSubcategory(Constants.EndUseHVACFan)
-        fan.setFanEfficiency(dse * calculate_fan_efficiency(static, fan_power_installed))
-        fan.setPressureRise(static)
-        fan.setMotorEfficiency(dse * 1.0)
+        fan.setFanEfficiency(fan_eff)
+        fan.setPressureRise(calculate_fan_pressure_rise(fan_eff, fan_power_installed/dse))
+        fan.setMotorEfficiency(1.0)
         fan.setMotorInAirstreamFraction(1.0) 
       
         # _processSystemAir
@@ -183,8 +182,6 @@ class HVAC
       cOOL_EIR_FFLOW_SPEC = [[1.562945114, -0.791859997, 0.230030877], 
                              [1.31565404, -0.482467162, 0.166239001]]
       
-      static = UnitConversions.convert(0.5,"inH2O","Pa") # Pascal
-
       # Cooling Coil
       rated_airflow_rate = 355.2 # cfm
       cfms_ton_rated = calc_cfms_ton_rated(rated_airflow_rate, fan_speed_ratios, capacity_ratios)
@@ -235,11 +232,12 @@ class HVAC
         fan_eff_curve = create_curve_cubic(model, [0, 1, 0, 0], obj_name + " fan eff curve", 0, 1, 0.01, 1)
         
         fan = OpenStudio::Model::FanOnOff.new(model, model.alwaysOnDiscreteSchedule, fan_power_curve, fan_eff_curve)
+        fan_eff = 0.75 # Overall Efficiency of the Fan, Motor and Drive
         fan.setName(obj_name + " supply fan")
         fan.setEndUseSubcategory(Constants.EndUseHVACFan)
-        fan.setFanEfficiency(dse * calculate_fan_efficiency(static, fan_power_installed))
-        fan.setPressureRise(static)
-        fan.setMotorEfficiency(dse * 1.0)
+        fan.setFanEfficiency(fan_eff)
+        fan.setPressureRise(calculate_fan_pressure_rise(fan_eff, fan_power_installed/dse))
+        fan.setMotorEfficiency(1.0)
         fan.setMotorInAirstreamFraction(1.0)
       
         # _processSystemAir
@@ -350,8 +348,6 @@ class HVAC
       cOOL_CAP_FFLOW_SPEC = [[1, 0, 0]] * num_speeds
       cOOL_EIR_FFLOW_SPEC = [[1, 0, 0]] * num_speeds
       
-      static = UnitConversions.convert(0.5,"inH2O","Pa") # Pascal
-
       # Cooling Coil
       rated_airflow_rate = 315.8 # cfm
       cfms_ton_rated = calc_cfms_ton_rated(rated_airflow_rate, fan_speed_ratios, capacity_ratios)
@@ -402,11 +398,12 @@ class HVAC
         fan_eff_curve = create_curve_cubic(model, [0, 1, 0, 0], obj_name + " fan eff curve", 0, 1, 0.01, 1)
         
         fan = OpenStudio::Model::FanOnOff.new(model, model.alwaysOnDiscreteSchedule, fan_power_curve, fan_eff_curve)
+        fan_eff = 0.75 # Overall Efficiency of the Fan, Motor and Drive
         fan.setName(obj_name + " supply fan")
         fan.setEndUseSubcategory(Constants.EndUseHVACFan)
-        fan.setFanEfficiency(dse * calculate_fan_efficiency(static, fan_power_installed))
-        fan.setPressureRise(static)
-        fan.setMotorEfficiency(dse * 1.0)
+        fan.setFanEfficiency(fan_eff)
+        fan.setPressureRise(calculate_fan_pressure_rise(fan_eff, fan_power_installed/dse))
+        fan.setMotorEfficiency(1.0)
         fan.setMotorInAirstreamFraction(1.0)
       
         # _processSystemAir
@@ -518,8 +515,6 @@ class HVAC
       hEAT_CAP_FFLOW_SPEC = [[0.694045465, 0.474207981, -0.168253446]]
       hEAT_EIR_FFLOW_SPEC = [[2.185418751, -1.942827919, 0.757409168]]
 
-      static = UnitConversions.convert(0.5,"inH2O","Pa") # Pascal
-
       capacity_ratios = [1.0]
       fan_speed_ratios_cooling = [1.0]
       fan_speed_ratios_heating = [1.0]
@@ -599,11 +594,12 @@ class HVAC
         # _processSystemFan
 
         fan = OpenStudio::Model::FanOnOff.new(model, model.alwaysOnDiscreteSchedule)
+        fan_eff = 0.75 # Overall Efficiency of the Fan, Motor and Drive
         fan.setName(obj_name + " supply fan")
         fan.setEndUseSubcategory(Constants.EndUseHVACFan)
-        fan.setFanEfficiency(dse * calculate_fan_efficiency(static, fan_power_installed))
-        fan.setPressureRise(static)
-        fan.setMotorEfficiency(dse * 1.0)
+        fan.setFanEfficiency(fan_eff)
+        fan.setPressureRise(calculate_fan_pressure_rise(fan_eff, fan_power_installed/dse))
+        fan.setMotorEfficiency(1.0)
         fan.setMotorInAirstreamFraction(1.0)
         
         # _processSystemAir
@@ -711,8 +707,6 @@ class HVAC
       hEAT_EIR_FFLOW_SPEC = [[2.153618211, -1.737190609, 0.584269478], 
                              [2.001041353, -1.58869128, 0.587593517]]
 
-      static = UnitConversions.convert(0.5,"inH2O","Pa") # Pascal
-
       # Cooling Coil
       rated_airflow_rate_cooling = 344.1 # cfm
       cfms_ton_rated_cooling = calc_cfms_ton_rated(rated_airflow_rate_cooling, fan_speed_ratios_cooling, capacity_ratios)
@@ -787,11 +781,12 @@ class HVAC
         fan_eff_curve = create_curve_cubic(model, [0, 1, 0, 0], obj_name + " fan eff curve", 0, 1, 0.01, 1)
         
         fan = OpenStudio::Model::FanOnOff.new(model, model.alwaysOnDiscreteSchedule, fan_power_curve, fan_eff_curve)
+        fan_eff = 0.75 # Overall Efficiency of the Fan, Motor and Drive
         fan.setName(obj_name + " supply fan")
         fan.setEndUseSubcategory(Constants.EndUseHVACFan)
-        fan.setFanEfficiency(dse * calculate_fan_efficiency(static, fan_power_installed))
-        fan.setPressureRise(static)
-        fan.setMotorEfficiency(dse * 1.0)
+        fan.setFanEfficiency(fan_eff)
+        fan.setPressureRise(calculate_fan_pressure_rise(fan_eff, fan_power_installed/dse))
+        fan.setMotorEfficiency(1.0)
         fan.setMotorInAirstreamFraction(1.0)
         
         # _processSystemAir
@@ -912,8 +907,6 @@ class HVAC
       hEAT_CAP_FFLOW_SPEC = [[1, 0, 0]] * num_speeds
       hEAT_EIR_FFLOW_SPEC = [[1, 0, 0]] * num_speeds
 
-      static = UnitConversions.convert(0.5,"inH2O","Pa") # Pascal
-
       # Cooling Coil
       rated_airflow_rate_cooling = 315.8 # cfm
       cfms_ton_rated_cooling = calc_cfms_ton_rated(rated_airflow_rate_cooling, fan_speed_ratios_cooling, capacity_ratios)
@@ -989,11 +982,12 @@ class HVAC
         fan_eff_curve = create_curve_cubic(model, [0, 1, 0, 0], obj_name + " fan eff curve", 0, 1, 0.01, 1)
         
         fan = OpenStudio::Model::FanOnOff.new(model, model.alwaysOnDiscreteSchedule, fan_power_curve, fan_eff_curve)
+        fan_eff = 0.75 # Overall Efficiency of the Fan, Motor and Drive
         fan.setName(obj_name + " supply fan")
         fan.setEndUseSubcategory(Constants.EndUseHVACFan)
-        fan.setFanEfficiency(dse * calculate_fan_efficiency(static, fan_power_installed))
-        fan.setPressureRise(static)
-        fan.setMotorEfficiency(dse * 1.0)
+        fan.setFanEfficiency(fan_eff)
+        fan.setPressureRise(calculate_fan_pressure_rise(fan_eff, fan_power_installed/dse))
+        fan.setMotorEfficiency(1.0)
         fan.setMotorInAirstreamFraction(1.0)    
         
         # _processSystemAir
@@ -1095,7 +1089,6 @@ class HVAC
       
       max_defrost_temp = 40.0 # F
       min_hp_temp = -30.0 # F; Minimum temperature for Heat Pump operation
-      static = UnitConversions.convert(0.1,"inH2O","Pa") # Pascal
           
       # Performance curves
       # NOTE: These coefficients are in SI UNITS
@@ -1229,11 +1222,12 @@ class HVAC
             # _processSystemFan
 
             fan = OpenStudio::Model::FanOnOff.new(model, model.alwaysOnDiscreteSchedule)
+            fan_eff = 0.75 # Overall Efficiency of the Fan, Motor and Drive
             fan.setName(obj_name + " #{zone.name} supply fan")
             fan.setEndUseSubcategory(Constants.EndUseHVACFan)
-            fan.setFanEfficiency(dse * calculate_fan_efficiency(static, fan_power))
-            fan.setPressureRise(static)
-            fan.setMotorEfficiency(dse * 1.0)
+            fan.setFanEfficiency(fan_eff)
+            fan.setPressureRise(calculate_fan_pressure_rise(fan_eff, fan_power/dse))
+            fan.setMotorEfficiency(1.0)
             fan.setMotorInAirstreamFraction(1.0)       
             
             # _processSystemDemandSideAir
@@ -1388,9 +1382,6 @@ class HVAC
       pumpKW_Adjust = get_gshp_PumpKW_Adjust(UnitConversions.convert(3.0,"Btu/hr","ton"))
       coolingEIR = get_gshp_cooling_eir(eer, fanKW_Adjust, pumpKW_Adjust)
       
-      # Supply Fan
-      static = UnitConversions.convert(0.5,"inH2O","Pa")
-      
       # Heating Coil
       heatingEIR = get_gshp_heating_eir(cop, fanKW_Adjust, pumpKW_Adjust)
       min_hp_temp = -30.0
@@ -1530,11 +1521,12 @@ class HVAC
         plant_loop.addDemandBranchForComponent(clg_coil)
 
         fan = OpenStudio::Model::FanOnOff.new(model, model.alwaysOnDiscreteSchedule)
+        fan_eff = 0.75 # Overall Efficiency of the Fan, Motor and Drive
         fan.setName(obj_name + " #{control_zone.name} supply fan")
         fan.setEndUseSubcategory(Constants.EndUseHVACFan)
-        fan.setFanEfficiency(dse * calculate_fan_efficiency(static, fan_power))
-        fan.setPressureRise(static)
-        fan.setMotorEfficiency(dse * 1.0)
+        fan.setFanEfficiency(fan_eff)
+        fan.setPressureRise(calculate_fan_pressure_rise(fan_eff, fan_power/dse))
+        fan.setMotorEfficiency(1.0)
         fan.setMotorInAirstreamFraction(1.0)
           
         air_loop_unitary = OpenStudio::Model::AirLoopHVACUnitarySystem.new(model)
@@ -1686,18 +1678,15 @@ class HVAC
                            capacity, fan_power_installed, dse,
                            existing_objects={})
     
+      # Parasitic Electricity (Source: DOE. (2007). Technical Support Document: Energy Efficiency Program for Consumer Products: "Energy Conservation Standards for Residential Furnaces and Boilers". www.eere.energy.gov/buildings/appliance_standards/residential/furnaces_boilers.html)
+      furnaceParasiticElecDict = {Constants.FuelTypeGas=>76.0, # W during operation
+                                  Constants.FuelTypePropane=>76.0,
+                                  Constants.FuelTypeOil=>220.0,
+                                  Constants.FuelTypeElectric=>0.0}
+      aux_elec = furnaceParasiticElecDict[fuel_type]
+      
       # _processAirSystem
       
-      static = UnitConversions.convert(0.5,"inH2O","Pa") # Pascal
-
-      hir = get_furnace_hir(afue)
-
-      # Parasitic Electricity (Source: DOE. (2007). Technical Support Document: Energy Efficiency Program for Consumer Products: "Energy Conservation Standards for Residential Furnaces and Boilers". www.eere.energy.gov/buildings/appliance_standards/residential/furnaces_boilers.html)
-      #             FurnaceParasiticElecDict = {Constants.FuelTypeGas     :  76, # W during operation
-      #                                         Constants.FuelTypeOil     : 220}
-      #             aux_elec = FurnaceParasiticElecDict[fuel_type]
-      aux_elec = 0.0 # set to zero until we figure out a way to distribute to the correct end uses (DOE-2 limitation?)    
-
       obj_name = Constants.ObjectNameFurnace(fuel_type, unit.name.to_s)
     
       thermal_zones = Geometry.get_thermal_zones_from_spaces(unit.spaces)
@@ -1711,11 +1700,11 @@ class HVAC
 
         if fuel_type == Constants.FuelTypeElectric
           htg_coil = OpenStudio::Model::CoilHeatingElectric.new(model)
-          htg_coil.setEfficiency(dse / hir)
+          htg_coil.setEfficiency(dse * afue)
         else
           htg_coil = OpenStudio::Model::CoilHeatingGas.new(model)
-          htg_coil.setGasBurnerEfficiency(dse / hir)
-          htg_coil.setParasiticElectricLoad(aux_elec) # set to zero until we figure out a way to distribute to the correct end uses (DOE-2 limitation?)
+          htg_coil.setGasBurnerEfficiency(dse * afue)
+          htg_coil.setParasiticElectricLoad(aux_elec)
           htg_coil.setParasiticGasLoad(0)
           htg_coil.setFuelType(HelperMethods.eplus_fuel_map(fuel_type))
         end
@@ -1730,11 +1719,12 @@ class HVAC
         end
 
         fan = OpenStudio::Model::FanOnOff.new(model, model.alwaysOnDiscreteSchedule)
+        fan_eff = 0.75 # Overall Efficiency of the Fan, Motor and Drive
         fan.setName(obj_name + " supply fan")
         fan.setEndUseSubcategory(Constants.EndUseHVACFan)
-        fan.setFanEfficiency(dse * UnitConversions.convert(static / fan_power_installed,"cfm","m^3/s")) # Overall Efficiency of the Supply Fan, Motor and Drive
-        fan.setPressureRise(static)
-        fan.setMotorEfficiency(dse * 1.0)
+        fan.setFanEfficiency(fan_eff)
+        fan.setPressureRise(calculate_fan_pressure_rise(fan_eff, fan_power_installed/dse))
+        fan.setMotorEfficiency(1.0)
         fan.setMotorInAirstreamFraction(1.0)  
       
         # _processSystemAir
@@ -1832,9 +1822,6 @@ class HVAC
         return false
       end
       
-      # Installed equipment adjustments
-      boiler_hir = 1.0 / afue
-      
       if system_type == Constants.BoilerTypeCondensing
         # Efficiency curves are normalized using 80F return water temperature, at 0.254PLR
         condensingBlr_TE_FT_coefficients = [1.058343061, 0.052650153, 0.0087272, 0.001742217, 0.00000333715, 0.000513723]
@@ -1878,7 +1865,7 @@ class HVAC
       
       pump = OpenStudio::Model::PumpVariableSpeed.new(model)
       pump.setName(obj_name + " hydronic pump")
-      pump.setRatedPumpHead(179352)
+      pump.setRatedPumpHead(20000)
       pump.setMotorEfficiency(dse * 0.9)
       pump.setFractionofMotorInefficienciestoFluidStream(0)
       pump.setCoefficient1ofthePartLoadPerformanceCurve(0)
@@ -1900,7 +1887,7 @@ class HVAC
         plr_Design = 1.0
         boiler_DesignHWRT = UnitConversions.convert(design_temp - 20.0 - 32.0,"R","K")
         condBlr_TE_Coeff = condensingBlr_TE_FT_coefficients   # The coefficients are normalized at 80F HWRT
-        boilerEff_Norm = 1.0 / boiler_hir / (condBlr_TE_Coeff[0] - condBlr_TE_Coeff[1] * plr_Rated - condBlr_TE_Coeff[2] * plr_Rated**2 - condBlr_TE_Coeff[3] * boiler_RatedHWRT + condBlr_TE_Coeff[4] * boiler_RatedHWRT**2 + condBlr_TE_Coeff[5] * boiler_RatedHWRT * plr_Rated)
+        boilerEff_Norm = afue / (condBlr_TE_Coeff[0] - condBlr_TE_Coeff[1] * plr_Rated - condBlr_TE_Coeff[2] * plr_Rated**2 - condBlr_TE_Coeff[3] * boiler_RatedHWRT + condBlr_TE_Coeff[4] * boiler_RatedHWRT**2 + condBlr_TE_Coeff[5] * boiler_RatedHWRT * plr_Rated)
         boilerEff_Design = boilerEff_Norm * (condBlr_TE_Coeff[0] - condBlr_TE_Coeff[1] * plr_Design - condBlr_TE_Coeff[2] * plr_Design**2 - condBlr_TE_Coeff[3] * boiler_DesignHWRT + condBlr_TE_Coeff[4] * boiler_DesignHWRT**2 + condBlr_TE_Coeff[5] * boiler_DesignHWRT * plr_Design)
         boiler.setNominalThermalEfficiency(dse * boilerEff_Design)
         boiler.setEfficiencyCurveTemperatureEvaluationVariable("EnteringBoiler")
@@ -1916,7 +1903,7 @@ class HVAC
           boiler.setBoilerFlowMode("ConstantFlow")
         end
       else
-        boiler.setNominalThermalEfficiency(dse / boiler_hir)
+        boiler.setNominalThermalEfficiency(dse * afue)
         boiler.setEfficiencyCurveTemperatureEvaluationVariable("LeavingBoiler")
         boiler.setNormalizedBoilerEfficiencyCurve(boiler_eff_curve)
         boiler.setDesignWaterOutletTemperature(UnitConversions.convert(design_temp - 32.0,"R","K"))
@@ -2037,8 +2024,6 @@ class HVAC
         return false
       end
       
-      static = UnitConversions.convert(0.5,"inH2O","Pa") # Pascal
-    
       obj_name = Constants.ObjectNameUnitHeater(fuel_type, unit.name.to_s)
     
       thermal_zones = Geometry.get_thermal_zones_from_spaces(unit.spaces)
@@ -2065,16 +2050,15 @@ class HVAC
           fan.setName(obj_name + " fan")
           fan.setEndUseSubcategory(Constants.EndUseHVACFan)
           if fan_power > 0
-            fan.setFanEfficiency(UnitConversions.convert(static / fan_power,"cfm","m^3/s")) # Overall Efficiency of the Fan, Motor and Drive
-            fan.setPressureRise(static)
-            fan.setMotorEfficiency(1.0)
-            fan.setMotorInAirstreamFraction(1.0)  
+            fan_eff = 0.75 # Overall Efficiency of the Fan, Motor and Drive
+            fan.setFanEfficiency(fan_eff)
+            fan.setPressureRise(calculate_fan_pressure_rise(fan_eff, fan_power))
           else
-            fan.setFanEfficiency(1) # Overall Efficiency of the Fan, Motor and Drive
+            fan.setFanEfficiency(1)
             fan.setPressureRise(0)
-            fan.setMotorEfficiency(1.0)
-            fan.setMotorInAirstreamFraction(1.0)  
           end
+          fan.setMotorEfficiency(1.0)
+          fan.setMotorInAirstreamFraction(1.0)  
           
         
           # _processSystemAir
@@ -2091,8 +2075,6 @@ class HVAC
           unitary_system.setMaximumSupplyAirTemperature(UnitConversions.convert(120.0,"F","C"))      
           unitary_system.setSupplyAirFlowRateWhenNoCoolingorHeatingisRequired(0)
 
-          #unitary_system.addToNode(air_supply_inlet_node)
-
           runner.registerInfo("Added '#{fan.name}' to '#{unitary_system.name}''")
           runner.registerInfo("Added '#{htg_coil.name}' to '#{unitary_system.name}'")
 
@@ -2108,73 +2090,6 @@ class HVAC
       unit.setFeature(Constants.SizingInfoHVACRatedCFMperTonHeating, airflow_rate.to_s)
     
       return true
-    end
-    
-    def self.apply_central_system_boiler_baseboards(model, unit, runner, std, 
-                                                    hot_water_loop)
-
-      zones = []
-      unit.spaces.each do |space|
-        zone = space.thermalZone.get
-        next if zones.include? zone
-        zones << zone
-      end
-
-      baseboards = std.model_add_baseboard(model, hot_water_loop, zones)
-      baseboards.each do |baseboard|
-        runner.registerInfo("Added '#{baseboard.name}' onto '#{hot_water_loop.name}' for '#{unit.name}'.")
-      end
-
-      return true
-
-    end
-
-    def self.apply_central_system_fan_coil(model, unit, runner, std, 
-                                           fan_coil_heating, fan_coil_cooling, 
-                                           hot_water_loop, chilled_water_loop)
-
-      zones = []
-      unit.spaces.each do |space|
-        zone = space.thermalZone.get
-        next if zones.include? zone
-        zones << zone
-      end
-
-      if fan_coil_heating and not fan_coil_cooling
-        unit_heaters = std.model_add_unitheater(model, sys_name=nil, zones, hvac_op_sch=nil, fan_control_type="ConstantVolume", fan_pressure_rise=OpenStudio.convert(0.2, "inH_{2}O", "Pa").get, "DistrictHeating", hot_water_loop)
-        unit_heaters.each do |unit_heater|
-          runner.registerInfo("Added '#{unit_heater.name}' onto '#{hot_water_loop.name}' for #{unit.name}.")        
-        end
-      else
-        fcus = std.model_add_four_pipe_fan_coil(model, hot_water_loop, chilled_water_loop, zones)
-        fcus.each do |fcu|
-          if hot_water_loop.nil?
-            runner.registerInfo("Added '#{fcu.name}' onto '#{chilled_water_loop.name}' for '#{unit.name}'.'")
-          else
-            runner.registerInfo("Added '#{fcu.name}' onto '#{hot_water_loop.name}' and '#{chilled_water_loop.name}' for '#{unit.name}'.")
-          end
-        end
-      end
-      
-      return true
-
-    end
-
-    def self.apply_central_system_ptac(model, unit, runner, std,
-                                       hot_water_loop)
-
-      zones = []
-      unit.spaces.each do |space|
-        zone = space.thermalZone.get
-        next if zones.include? zone
-        zones << zone
-      end
-
-      ptacs = std.model_add_ptac(model, sys_name=nil, hot_water_loop, zones, fan_type="ConstantVolume", "Water", cooling_type="Single Speed DX AC")
-      ptacs.each do |ptac|
-        runner.registerInfo("Added '#{ptac.name}' onto '#{hot_water_loop.name}' for '#{unit.name}'.")
-      end
-
     end
     
     def self.apply_ideal_air_loads(model, unit, runner)
@@ -2214,7 +2129,7 @@ class HVAC
       return true
     end
     
-    def self.remove_hvac_equipment(model, runner, thermal_zone, unit, new_equip, heating=false, cooling=false)
+    def self.remove_hvac_equipment(model, runner, thermal_zone, unit, new_equip)
       # TODO: Split into remove_heating and remove_cooling
       counterpart_equip = nil
       perf = nil
@@ -2232,8 +2147,6 @@ class HVAC
         if counterpart_equip or removed_ac or removed_ashp or removed_gshp
           self.remove_air_loop(model, runner, thermal_zone)
         end
-        removed_central_system_fan_coil = self.remove_central_system_fan_coil(model, runner, thermal_zone)
-        removed_central_system_ptac = self.remove_central_system_ptac(model, runner, thermal_zone)
       when Constants.ObjectNameRoomAirConditioner
         removed_ashp = self.remove_ashp(model, runner, thermal_zone)
         removed_mshp = self.remove_mshp(model, runner, thermal_zone, unit)
@@ -2246,8 +2159,6 @@ class HVAC
         if removed_ac or removed_ashp or removed_gshp
           self.remove_air_loop(model, runner, thermal_zone)
         end
-        removed_central_system_fan_coil = self.remove_central_system_fan_coil(model, runner, thermal_zone)
-        removed_central_system_ptac = self.remove_central_system_ptac(model, runner, thermal_zone)
       when Constants.ObjectNameFurnace
         removed_ashp = self.remove_ashp(model, runner, thermal_zone)
         removed_mshp = self.remove_mshp(model, runner, thermal_zone, unit)
@@ -2264,8 +2175,6 @@ class HVAC
             perf = self.remove_air_loop(model, runner, thermal_zone, true)
           end
         end
-        removed_central_system_fan_coil = self.remove_central_system_fan_coil(model, runner, thermal_zone)
-        removed_central_system_ptac = self.remove_central_system_ptac(model, runner, thermal_zone)
       when Constants.ObjectNameBoiler
         removed_boiler = self.remove_boiler(model, runner, thermal_zone)
         removed_heater = self.remove_unit_heater(model, runner, thermal_zone)
@@ -2277,8 +2186,6 @@ class HVAC
         if removed_furnace or removed_ashp or removed_mshp or removed_gshp
           self.remove_air_loop(model, runner, thermal_zone)
         end
-        removed_central_system_fan_coil = self.remove_central_system_fan_coil(model, runner, thermal_zone)
-        removed_central_system_ptac = self.remove_central_system_ptac(model, runner, thermal_zone)
       when Constants.ObjectNameElectricBaseboard
         removed_elec_baseboard = self.remove_electric_baseboard(model, runner, thermal_zone)
         removed_furnace = self.remove_furnace(model, runner, thermal_zone)
@@ -2290,8 +2197,6 @@ class HVAC
         if removed_furnace or removed_ashp or removed_gshp
           self.remove_air_loop(model, runner, thermal_zone)
         end
-        removed_central_system_fan_coil = self.remove_central_system_fan_coil(model, runner, thermal_zone)
-        removed_central_system_ptac = self.remove_central_system_ptac(model, runner, thermal_zone)
       when Constants.ObjectNameAirSourceHeatPump
         removed_ashp = self.remove_ashp(model, runner, thermal_zone)
         removed_mshp = self.remove_mshp(model, runner, thermal_zone, unit)
@@ -2305,8 +2210,6 @@ class HVAC
         if removed_ashp or removed_ac or removed_furnace or removed_gshp
           self.remove_air_loop(model, runner, thermal_zone)
         end
-        removed_central_system_fan_coil = self.remove_central_system_fan_coil(model, runner, thermal_zone)
-        removed_central_system_ptac = self.remove_central_system_ptac(model, runner, thermal_zone)
       when Constants.ObjectNameMiniSplitHeatPump
         removed_mshp = self.remove_mshp(model, runner, thermal_zone, unit)
         removed_ashp = self.remove_ashp(model, runner, thermal_zone)
@@ -2320,8 +2223,6 @@ class HVAC
         if removed_ac or removed_furnace or removed_ashp or removed_gshp
           self.remove_air_loop(model, runner, thermal_zone)
         end
-        removed_central_system_fan_coil = self.remove_central_system_fan_coil(model, runner, thermal_zone)
-        removed_central_system_ptac = self.remove_central_system_ptac(model, runner, thermal_zone)
       when Constants.ObjectNameGroundSourceHeatPumpVerticalBore
         removed_ashp = self.remove_ashp(model, runner, thermal_zone)
         removed_mshp = self.remove_mshp(model, runner, thermal_zone, unit)
@@ -2335,8 +2236,6 @@ class HVAC
         if removed_ashp or removed_ac or removed_furnace or removed_gshp
           self.remove_air_loop(model, runner, thermal_zone)
         end
-        removed_central_system_fan_coil = self.remove_central_system_fan_coil(model, runner, thermal_zone)
-        removed_central_system_ptac = self.remove_central_system_ptac(model, runner, thermal_zone)
       when Constants.ObjectNameUnitHeater
         removed_elec_baseboard = self.remove_electric_baseboard(model, runner, thermal_zone)
         removed_furnace = self.remove_furnace(model, runner, thermal_zone)
@@ -2348,55 +2247,6 @@ class HVAC
         if removed_furnace or removed_ashp or removed_gshp
           self.remove_air_loop(model, runner, thermal_zone)
         end
-        removed_central_system_fan_coil = self.remove_central_system_fan_coil(model, runner, thermal_zone)
-        removed_central_system_ptac = self.remove_central_system_ptac(model, runner, thermal_zone)
-      when Constants.ObjectNameCentralSystemBoilerBaseboards
-        removed_boiler = self.remove_boiler(model, runner, thermal_zone)
-        removed_heater = self.remove_unit_heater(model, runner, thermal_zone)
-        removed_furnace = self.remove_furnace(model, runner, thermal_zone)
-        removed_elec_baseboard = self.remove_electric_baseboard(model, runner, thermal_zone)
-        removed_ashp = self.remove_ashp(model, runner, thermal_zone)
-        removed_mshp = self.remove_mshp(model, runner, thermal_zone, unit)
-        removed_gshp = self.remove_gshp(model, runner, thermal_zone)
-        if removed_furnace or removed_ashp or removed_mshp or removed_gshp
-          self.remove_air_loop(model, runner, thermal_zone)
-        end
-        removed_central_system_fan_coil = self.remove_central_system_fan_coil(model, runner, thermal_zone)
-        removed_central_system_ptac = self.remove_central_system_ptac(model, runner, thermal_zone)
-      when Constants.ObjectNameCentralSystemFanCoil
-        removed_ashp = self.remove_ashp(model, runner, thermal_zone)
-        removed_mshp = self.remove_mshp(model, runner, thermal_zone, unit)
-        if cooling
-          removed_ac = self.remove_central_ac(model, runner, thermal_zone)
-          removed_room_ac = self.remove_room_ac(model, runner, thermal_zone)
-        end
-        if heating
-          removed_furnace = self.remove_furnace(model, runner, thermal_zone)
-          removed_boiler = self.remove_boiler(model, runner, thermal_zone)
-          removed_heater = self.remove_unit_heater(model, runner, thermal_zone)
-          removed_elec_baseboard = self.remove_electric_baseboard(model, runner, thermal_zone)
-        end
-        removed_gshp = self.remove_gshp(model, runner, thermal_zone)
-        if removed_ashp or removed_ac or removed_furnace or removed_gshp
-          self.remove_air_loop(model, runner, thermal_zone)
-        end
-        removed_central_system_fan_coil = self.remove_central_system_fan_coil(model, runner, thermal_zone)
-        removed_central_system_ptac = self.remove_central_system_ptac(model, runner, thermal_zone)
-      when Constants.ObjectNameCentralSystemPTAC
-        removed_ashp = self.remove_ashp(model, runner, thermal_zone)
-        removed_mshp = self.remove_mshp(model, runner, thermal_zone, unit)
-        removed_ac = self.remove_central_ac(model, runner, thermal_zone)
-        removed_room_ac = self.remove_room_ac(model, runner, thermal_zone)
-        removed_furnace = self.remove_furnace(model, runner, thermal_zone)
-        removed_boiler = self.remove_boiler(model, runner, thermal_zone)
-        removed_heater = self.remove_unit_heater(model, runner, thermal_zone)
-        removed_elec_baseboard = self.remove_electric_baseboard(model, runner, thermal_zone)
-        removed_gshp = self.remove_gshp(model, runner, thermal_zone)
-        if removed_ashp or removed_ac or removed_furnace or removed_gshp
-          self.remove_air_loop(model, runner, thermal_zone)
-        end
-        removed_central_system_fan_coil = self.remove_central_system_fan_coil(model, runner, thermal_zone)
-        removed_central_system_ptac = self.remove_central_system_ptac(model, runner, thermal_zone)
       end
       return counterpart_equip, perf
     end   
@@ -2423,7 +2273,7 @@ class HVAC
         next unless sch.name.to_s == Constants.ObjectNameHeatingSeason
         sch.remove
       end
-
+      
       heating_season_schedule = MonthWeekdayWeekendSchedule.new(model, runner, Constants.ObjectNameHeatingSeason, Array.new(24, 1), Array.new(24, 1), heating_season, mult_weekday=1.0, mult_weekend=1.0, normalize_values=false)
       unless heating_season_schedule.validated?
         return false
@@ -2436,9 +2286,7 @@ class HVAC
           htg_obj = nil
           supp_htg_obj = nil
           if (htg_equip.is_a? OpenStudio::Model::AirLoopHVACUnitarySystem or
-              htg_equip.is_a? OpenStudio::Model::ZoneHVACTerminalUnitVariableRefrigerantFlow or
-              htg_equip.is_a? OpenStudio::Model::ZoneHVACPackagedTerminalAirConditioner or
-              htg_equip.is_a? OpenStudio::Model::ZoneHVACFourPipeFanCoil)
+              htg_equip.is_a? OpenStudio::Model::ZoneHVACTerminalUnitVariableRefrigerantFlow)
             clg_obj, htg_obj, supp_htg_obj = get_coils_from_hvac_equip(htg_equip)
           elsif htg_equip.to_ZoneHVACComponent.is_initialized
             htg_obj = htg_equip
@@ -2469,13 +2317,7 @@ class HVAC
         next unless sch.name.to_s == Constants.ObjectNameHeatingSetpoint
         sch.remove
       end
-
-      # Design day schedules used when autosizing
-      winter_design_day_sch = OpenStudio::Model::ScheduleDay.new(model)
-      winter_design_day_sch.addValue(OpenStudio::Time.new(0,24,0,0), UnitConversions.convert(70, "F", "C"))
-      summer_design_day_sch = OpenStudio::Model::ScheduleDay.new(model)
-      summer_design_day_sch.addValue(OpenStudio::Time.new(0,24,0,0), UnitConversions.convert(75, "F", "C"))
-
+      
       # Make the setpoint schedules
       heating_setpoint = nil
       cooling_setpoint = nil
@@ -2541,9 +2383,9 @@ class HVAC
             next unless sch.name.to_s == Constants.ObjectNameCoolingSetpoint
             sch.remove
           end
-
-          heating_setpoint = HourlyByMonthSchedule.new(model, runner, Constants.ObjectNameHeatingSetpoint, htg_wkdy_monthly, htg_wked_monthly, normalize_values=false, create_sch_object=true, winter_design_day_sch, summer_design_day_sch)
-          cooling_setpoint = HourlyByMonthSchedule.new(model, runner, Constants.ObjectNameCoolingSetpoint, clg_wkdy_monthly, clg_wked_monthly, normalize_values=false, create_sch_object=true, winter_design_day_sch, summer_design_day_sch)
+          
+          heating_setpoint = HourlyByMonthSchedule.new(model, runner, Constants.ObjectNameHeatingSetpoint, htg_wkdy_monthly, htg_wked_monthly, normalize_values=false)
+          cooling_setpoint = HourlyByMonthSchedule.new(model, runner, Constants.ObjectNameCoolingSetpoint, clg_wkdy_monthly, clg_wked_monthly, normalize_values=false)
 
           unless heating_setpoint.validated? and cooling_setpoint.validated?
             return false
@@ -2564,8 +2406,8 @@ class HVAC
             clg_monthly_sch[m-1] = Constants.NoCoolingSetpoint
           end
           
-          heating_setpoint = MonthWeekdayWeekendSchedule.new(model, runner, Constants.ObjectNameHeatingSetpoint, weekday_setpoints, weekend_setpoints, htg_monthly_sch, mult_weekday=1.0, mult_weekend=1.0, normalize_values=false, create_sch_object=true, winter_design_day_sch, summer_design_day_sch)
-          cooling_setpoint = MonthWeekdayWeekendSchedule.new(model, runner, Constants.ObjectNameCoolingSetpoint, Array.new(24, 1), Array.new(24, 1), clg_monthly_sch, mult_weekday=1.0, mult_weekend=1.0, normalize_values=false, create_sch_object=true, winter_design_day_sch, summer_design_day_sch)
+          heating_setpoint = MonthWeekdayWeekendSchedule.new(model, runner, Constants.ObjectNameHeatingSetpoint, weekday_setpoints, weekend_setpoints, htg_monthly_sch, mult_weekday=1.0, mult_weekend=1.0, normalize_values=false)
+          cooling_setpoint = MonthWeekdayWeekendSchedule.new(model, runner, Constants.ObjectNameCoolingSetpoint, Array.new(24, 1), Array.new(24, 1), clg_monthly_sch, mult_weekday=1.0, mult_weekend=1.0, normalize_values=false)
 
           unless heating_setpoint.validated? and cooling_setpoint.validated?
             return false
@@ -2664,14 +2506,8 @@ class HVAC
       model.getScheduleRulesets.each do |sch|
         next unless sch.name.to_s == Constants.ObjectNameCoolingSetpoint
         sch.remove
-      end
-
-      # Design day schedules used when autosizing
-      winter_design_day_sch = OpenStudio::Model::ScheduleDay.new(model)
-      winter_design_day_sch.addValue(OpenStudio::Time.new(0,24,0,0), UnitConversions.convert(70, "F", "C"))
-      summer_design_day_sch = OpenStudio::Model::ScheduleDay.new(model)
-      summer_design_day_sch.addValue(OpenStudio::Time.new(0,24,0,0), UnitConversions.convert(75, "F", "C"))
-
+      end    
+      
       # Make the setpoint schedules
       heating_setpoint = nil
       cooling_setpoint = nil
@@ -2738,8 +2574,8 @@ class HVAC
             sch.remove
           end        
           
-          heating_setpoint = HourlyByMonthSchedule.new(model, runner, Constants.ObjectNameHeatingSetpoint, htg_wkdy_monthly, htg_wked_monthly, normalize_values=false, create_sch_object=true, winter_design_day_sch, summer_design_day_sch)
-          cooling_setpoint = HourlyByMonthSchedule.new(model, runner, Constants.ObjectNameCoolingSetpoint, clg_wkdy_monthly, clg_wked_monthly, normalize_values=false, create_sch_object=true, winter_design_day_sch, summer_design_day_sch)
+          heating_setpoint = HourlyByMonthSchedule.new(model, runner, Constants.ObjectNameHeatingSetpoint, htg_wkdy_monthly, htg_wked_monthly, normalize_values=false)
+          cooling_setpoint = HourlyByMonthSchedule.new(model, runner, Constants.ObjectNameCoolingSetpoint, clg_wkdy_monthly, clg_wked_monthly, normalize_values=false)
 
           unless heating_setpoint.validated? and cooling_setpoint.validated?
             return false
@@ -2760,8 +2596,8 @@ class HVAC
             htg_monthly_sch[m-1] = Constants.NoHeatingSetpoint
           end
           
-          heating_setpoint = MonthWeekdayWeekendSchedule.new(model, runner, Constants.ObjectNameHeatingSetpoint, Array.new(24, 1), Array.new(24, 1), htg_monthly_sch, mult_weekday=1.0, mult_weekend=1.0, normalize_values=false, create_sch_object=true, winter_design_day_sch, summer_design_day_sch)
-          cooling_setpoint = MonthWeekdayWeekendSchedule.new(model, runner, Constants.ObjectNameCoolingSetpoint, weekday_setpoints, weekend_setpoints, clg_monthly_sch, mult_weekday=1.0, mult_weekend=1.0, normalize_values=false, create_sch_object=true, winter_design_day_sch, summer_design_day_sch)
+          heating_setpoint = MonthWeekdayWeekendSchedule.new(model, runner, Constants.ObjectNameHeatingSetpoint, Array.new(24, 1), Array.new(24, 1), htg_monthly_sch, mult_weekday=1.0, mult_weekend=1.0, normalize_values=false)
+          cooling_setpoint = MonthWeekdayWeekendSchedule.new(model, runner, Constants.ObjectNameCoolingSetpoint, weekday_setpoints, weekend_setpoints, clg_monthly_sch, mult_weekday=1.0, mult_weekend=1.0, normalize_values=false)
 
           unless heating_setpoint.validated? and cooling_setpoint.validated?
             return false
@@ -2919,8 +2755,8 @@ class HVAC
       if num_bedrooms.nil? or num_bathrooms.nil?
         return false
       end      
-      above_grade_finished_floor_area = Geometry.get_above_grade_finished_floor_area_from_spaces(unit.spaces, runner)
-      finished_floor_area = Geometry.get_finished_floor_area_from_spaces(unit.spaces, runner)
+      above_grade_finished_floor_area = Geometry.get_above_grade_finished_floor_area_from_spaces(unit.spaces, false, runner)
+      finished_floor_area = Geometry.get_finished_floor_area_from_spaces(unit.spaces, false, runner)
 
       # Determine geometry for spaces and zones that are unit specific
       living_zone = nil
@@ -3201,6 +3037,107 @@ class HVAC
           schedule.remove
         end
       end
+      
+    end
+    
+    def self.apply_eae_to_heating_fan(runner, model, eae, fuel, dse, has_furnace, has_boiler)
+      # Applies Electric Auxiliary Energy (EAE) for fuel heating equipment to fan power.
+      # TODO: Handle multiple heating systems
+      
+      if eae.nil? 
+      
+        if has_furnace # Use 301 defaults
+          # Get heating capacity
+          htg_capacity_kbtuh = 0.0
+          model.getCoilHeatingGass.each do |htg_coil|
+            htg_capacity_kbtuh += UnitConversions.convert(htg_coil.nominalCapacity.get,"W","kBtu/hr")
+          end
+        
+          # From ANSI/RESNET/ICC 301 Standard
+          if fuel == Constants.FuelTypeGas or fuel == Constants.FuelTypePropane
+            eae = 149.0 + 10.3*htg_capacity_kbtuh # kWh/yr
+          elsif fuel == Constants.FuelTypeOil
+            eae = 439.0 + 5.5*htg_capacity_kbtuh # kWh/yr
+          end
+        elsif has_boiler # Use 301 defaults
+          if fuel == Constants.FuelTypeGas or fuel == Constants.FuelTypePropane
+            eae = 170.0
+          elsif fuel == Constants.FuelTypeOil
+            eae = 330.0
+          end
+        else # Use zero
+          eae = 0.0
+        end
+        
+      end
+      
+      elec_power = eae / 2.08 # W
+      
+      if has_boiler
+      
+        set_pump = false
+        model.getPlantLoops.each do |pl|
+            pl.components.each do |plc|
+                next if not plc.to_BoilerHotWater.is_initialized
+                
+                boiler = plc.to_BoilerHotWater.get
+                boiler.setParasiticElectricLoad(0.0)
+                
+                pl.supplyComponents.each do |plc|
+                    next if not plc.to_PumpVariableSpeed.is_initialized
+                    if set_pump
+                      runner.registerError("Cannot handle multiple heating systems.")
+                      return false
+                    end
+                    
+                    pump = plc.to_PumpVariableSpeed.get
+                    pump_eff = 0.9
+                    pump_gpm = UnitConversions.convert(pump.ratedFlowRate.get,"m^3/s","gal/min")
+                    pump_w_gpm = elec_power / pump_gpm # W/gpm
+                    pump.setRatedPowerConsumption(elec_power/dse)
+                    pump.setRatedPumpHead(calculate_pump_head(pump_eff, pump_w_gpm/dse))
+                    pump.setMotorEfficiency(1.0)
+                    set_pump = true
+                    
+                end
+            end
+        end
+        
+        
+        
+      else # Furnace/WallFurnace/Stove
+
+        set_fan = false
+        model.getAirLoopHVACUnitarySystems.each do |system|
+          next if not system.heatingCoil.is_initialized
+          if set_fan
+            runner.registerError("Cannot handle multiple heating systems.")
+            return false
+          end
+          
+          htg_coil = system.heatingCoil.get.to_CoilHeatingGas.get
+          htg_coil.setParasiticElectricLoad(0.0)
+          
+          fan = system.supplyFan.get.to_FanOnOff.get
+          if elec_power > 0
+            fan_eff = 0.75 # Overall Efficiency of the Fan, Motor and Drive
+            htg_cfm = UnitConversions.convert(system.supplyAirFlowRateDuringHeatingOperation.get,"m^3/s","cfm")
+            fan_w_cfm = elec_power / htg_cfm # W/cfm
+            fan.setFanEfficiency(fan_eff)
+            fan.setPressureRise(calculate_fan_pressure_rise(fan_eff, fan_w_cfm/dse))
+          else
+            fan.setFanEfficiency(1)
+            fan.setPressureRise(0)
+          end
+          fan.setMotorEfficiency(1.0)
+          fan.setMotorInAirstreamFraction(1.0)  
+          set_fan = true
+          
+        end
+        
+      end
+      
+      return true
       
     end
     
@@ -3597,22 +3534,20 @@ class HVAC
         return create_curve_bicubic(model, [1.111720116, 0.078614078, -0.400425756, 0.0, -0.000156783, 0.009384599, 0.234257955, 1.32927e-06, -0.004446701, -1.22498e-05], "NonCondensingBoilerEff", 0.1, 1.0, 20.0, 80.0)
       end
     end
-  
-    def self.calculate_fan_efficiency(static, fan_power)
-      return UnitConversions.convert(static / fan_power,"cfm","m^3/s") # Overall Efficiency of the Supply Fan, Motor and Drive
+    
+    def self.calculate_fan_pressure_rise(fan_eff, fan_power)
+      # Calculates needed fan pressure rise to achieve a given fan power with an assumed efficiency.
+      # Previously we calculated the fan efficiency from an assumed pressure rise, which could lead to
+      # errors (fan efficiencies > 1).
+      return fan_eff * fan_power / UnitConversions.convert(1.0,"cfm","m^3/s") # Pa
     end
-
-    def self.get_furnace_hir(afue)
-      # Based on DOE2 Volume 5 Compliance Analysis manual.
-      # This is not used until we have a better way of disaggregating AFUE
-      # if afue <= 0.835:
-      #     hir = 1 / (0.2907 * afue + 0.5787)
-      # else:
-      #     hir = 1 / (1.1116 * afue - 0.098185)
-
-      hir = 1.0 / afue
-      return hir
-    end  
+    
+    def self.calculate_pump_head(pump_eff, pump_power)
+      # Calculate needed pump head to achieve a given pump power with an assumed efficiency.
+      # Previously we calculated the pump efficiency from an assumed pump head, which could lead to
+      # errors (pump efficiencies > 1).
+      return pump_eff * pump_power / UnitConversions.convert(1.0,"gal/min","m^3/s") # Pa
+    end
   
     def self.get_control_and_slave_zones(thermal_zones)
       control_slave_zones_hash = {}
@@ -3649,7 +3584,7 @@ class HVAC
       end
       if self.has_room_ac(model, runner, thermal_zone)
         runner.registerInfo("Found room air conditioner in #{thermal_zone.name}.")
-        ptac = self.get_room_ac(model, runner, thermal_zone)
+        ptac = self.get_ptac(model, runner, thermal_zone)
         cooling_equipment << ptac
       end
       if self.has_mshp(model, runner, thermal_zone)
@@ -3663,16 +3598,6 @@ class HVAC
         system, clg_coil, htg_coil, air_loop = self.get_unitary_system_air_loop(model, runner, thermal_zone)
         runner.registerInfo("Found ground source heat pump in #{thermal_zone.name}.")
         cooling_equipment << system
-      end
-      if self.has_central_ptac(model, runner, thermal_zone)
-        runner.registerInfo("Found central ptac in #{thermal_zone.name}.")
-        ptac = self.get_central_ptac(model, runner, thermal_zone)
-        cooling_equipment << ptac
-      end
-      if self.has_central_fan_coil(model, runner, thermal_zone)
-        runner.registerInfo("Found central fan coil in #{thermal_zone.name}.")
-        fcu = self.get_central_fan_coil(model, runner, thermal_zone)
-        cooling_equipment << fcu
       end
       if self.has_ideal_air(model, runner, thermal_zone)
         runner.registerInfo("Found ideal air system in #{thermal_zone.name}.")
@@ -3722,16 +3647,6 @@ class HVAC
         system, clg_coil, htg_coil = self.get_unitary_system_zone_hvac(model, runner, thermal_zone)
         heating_equipment << system
       end
-      if self.has_central_ptac(model, runner, thermal_zone)
-        runner.registerInfo("Found central ptac in #{thermal_zone.name}.")
-        ptac = self.get_central_ptac(model, runner, thermal_zone)
-        heating_equipment << ptac
-      end
-      if self.has_central_fan_coil(model, runner, thermal_zone)
-        runner.registerInfo("Found central fan coil in #{thermal_zone.name}.")
-        fcu = self.get_central_fan_coil(model, runner, thermal_zone)
-        heating_equipment << fcu
-      end
       if self.has_ideal_air(model, runner, thermal_zone)
         runner.registerInfo("Found ideal air system in #{thermal_zone.name}.")
         ideal_air = self.get_ideal_air(model, runner, thermal_zone)
@@ -3757,9 +3672,6 @@ class HVAC
       elsif hvac_equip.is_a? OpenStudio::Model::ZoneHVACPackagedTerminalAirConditioner
         htg_coil = get_coil_from_hvac_component(hvac_equip.heatingCoil)
         clg_coil = get_coil_from_hvac_component(hvac_equip.coolingCoil)
-      elsif hvac_equip.is_a? OpenStudio::Model::ZoneHVACFourPipeFanCoil
-        htg_coil = HVAC.get_coil_from_hvac_component(hvac_equip.heatingCoil)
-        clg_coil = HVAC.get_coil_from_hvac_component(hvac_equip.coolingCoil)
       end
       return clg_coil, htg_coil, supp_htg_coil
     end
@@ -3782,8 +3694,6 @@ class HVAC
         return hvac_component.to_CoilCoolingDXVariableRefrigerantFlow.get
       elsif hvac_component.to_CoilCoolingWaterToAirHeatPumpEquationFit.is_initialized
         return hvac_component.to_CoilCoolingWaterToAirHeatPumpEquationFit.get
-      elsif hvac_component.to_CoilCoolingWater.is_initialized
-        return hvac_component.to_CoilCoolingWater.get
       end
         
       # Heating coils  
@@ -3801,8 +3711,6 @@ class HVAC
         return hvac_component.to_CoilHeatingWaterBaseboard.get
       elsif hvac_component.to_CoilHeatingWaterToAirHeatPumpEquationFit.is_initialized
         return hvac_component.to_CoilHeatingWaterToAirHeatPumpEquationFit.get
-      elsif hvac_component.to_CoilHeatingWater.is_initialized
-        return hvac_component.to_CoilHeatingWater.get
       end
       return hvac_component
     end
@@ -3860,31 +3768,11 @@ class HVAC
       return nil
     end
     
-    def self.get_room_ac(model, runner, thermal_zone)
+    def self.get_ptac(model, runner, thermal_zone)
       # Returns the PTAC if available
       model.getZoneHVACPackagedTerminalAirConditioners.each do |ptac|
         next unless thermal_zone.handle.to_s == ptac.thermalZone.get.handle.to_s
-        next if ptac.heatingCoil.to_CoilHeatingWater.is_initialized
         return ptac
-      end
-      return nil
-    end
-    
-    def self.get_central_ptac(model, runner, thermal_zone)
-      # Returns the central PTAC if available
-      model.getZoneHVACPackagedTerminalAirConditioners.each do |ptac|
-        next unless thermal_zone.handle.to_s == ptac.thermalZone.get.handle.to_s
-        next unless ptac.heatingCoil.to_CoilHeatingWater.is_initialized
-        return ptac
-      end
-      return nil
-    end
-    
-    def self.get_central_fan_coil(model, runner, thermal_zone)
-      # Returns the fan coil if available
-      model.getZoneHVACFourPipeFanCoils.each do |fcu|
-        next unless thermal_zone.handle.to_s == fcu.thermalZone.get.handle.to_s
-        return fcu
       end
       return nil
     end
@@ -4007,7 +3895,7 @@ class HVAC
     end
     
     def self.has_room_ac(model, runner, thermal_zone)
-      ptac = self.get_room_ac(model, runner, thermal_zone)
+      ptac = self.get_ptac(model, runner, thermal_zone)
       if not ptac.nil?
         return true
       end
@@ -4036,22 +3924,6 @@ class HVAC
         return false
       end
       return true
-    end
-    
-    def self.has_central_ptac(model, runner, thermal_zone)
-      ptac = self.get_central_ptac(model, runner, thermal_zone)
-      if not ptac.nil?
-        return true
-      end
-      return false
-    end
-    
-    def self.has_central_fan_coil(model, runner, thermal_zone)
-      fcu = self.get_central_fan_coil(model, runner, thermal_zone)
-      if not fcu.nil?
-        return true
-      end
-      return false
     end
     
     def self.has_dehumidifier(model, runner, thermal_zone)
@@ -4183,7 +4055,7 @@ class HVAC
     def self.remove_room_ac(model, runner, thermal_zone)
       # Returns true if the object was removed
       return false if not self.has_room_ac(model, runner, thermal_zone)
-      ptac = self.get_room_ac(model, runner, thermal_zone)
+      ptac = self.get_ptac(model, runner, thermal_zone)
       runner.registerInfo("Removed '#{ptac.name}' from #{thermal_zone.name}.")
       ptac.remove
       return true
@@ -4222,26 +4094,6 @@ class HVAC
       return true
     end
     
-    def self.remove_central_system_fan_coil(model, runner, thermal_zone)
-      # Returns true if the object was removed
-      return false if not self.has_central_fan_coil(model, runner, thermal_zone)
-      self.remove_fan_coil_loops(model, runner, thermal_zone)
-      fcu = self.get_central_fan_coil(model, runner, thermal_zone)
-      runner.registerInfo("Removed '#{fcu.name}' from '#{thermal_zone.name}'.")
-      fcu.remove
-      return true
-    end
-    
-    def self.remove_central_system_ptac(model, runner, thermal_zone)
-      # Returns true if the object was removed
-      return false if not self.has_central_ptac(model, runner, thermal_zone)
-      self.remove_boiler_and_gshp_loops(model, runner, thermal_zone)
-      ptac = self.get_central_ptac(model, runner, thermal_zone)
-      runner.registerInfo("Removed '#{ptac.name}' from '#{thermal_zone.name}'.")
-      ptac.remove
-      return true
-    end
-    
     def self.remove_boiler_and_gshp_loops(model, runner, thermal_zone)
       model.getPlantLoops.each do |plant_loop|
         remove = false
@@ -4256,8 +4108,6 @@ class HVAC
             demand_coil = demand_component.to_CoilHeatingWaterToAirHeatPumpEquationFit.get
           elsif demand_component.to_CoilCoolingWaterToAirHeatPumpEquationFit.is_initialized
             demand_coil = demand_component.to_CoilCoolingWaterToAirHeatPumpEquationFit.get
-          elsif demand_component.to_CoilHeatingWater.is_initialized
-            demand_coil = demand_component.to_CoilHeatingWater.get
           end
           next if demand_coil.nil?
           if demand_coil.containingZoneHVACComponent.is_initialized
@@ -4286,49 +4136,7 @@ class HVAC
           plant_loop.remove
         end
       end
-    end
-    
-    def self.remove_fan_coil_loops(model, runner, thermal_zone)
-      model.getPlantLoops.each do |plant_loop|
-        remove = false
-        
-        # Ensure we're operating on the right plant loop
-        is_specified_zone = false
-        plant_loop.demandComponents.each do |demand_component|
-          demand_coil = nil
-          if demand_component.to_CoilHeatingWater.is_initialized
-            demand_coil = demand_component.to_CoilHeatingWater.get
-          elsif demand_component.to_CoilCoolingWater.is_initialized
-            demand_coil = demand_component.to_CoilCoolingWater.get
-          end
-          next if demand_coil.nil?
-          if demand_coil.containingZoneHVACComponent.is_initialized
-            demand_hvac = demand_coil.containingZoneHVACComponent.get
-            next if not demand_hvac.thermalZone.is_initialized or demand_hvac.thermalZone.get != thermal_zone
-            is_specified_zone = true
-          elsif demand_coil.containingHVACComponent.is_initialized
-            demand_hvac = demand_coil.containingHVACComponent.get
-            next if not demand_hvac.airLoopHVAC.is_initialized
-            demand_air_loop = demand_hvac.airLoopHVAC.get
-            demand_air_loop.thermalZones.each do |thermalZone|
-              next if thermal_zone.handle.to_s != thermalZone.handle.to_s
-              is_specified_zone = true
-            end
-          end
-        end
-        next if not is_specified_zone
-        
-        plant_loop.supplyComponents.each do |supply_component|
-          if supply_component.to_BoilerHotWater.is_initialized or supply_component.to_ChillerElectricEIR.is_initialized
-            remove = true
-          end
-        end
-        if remove
-          runner.registerInfo("Removed '#{plant_loop.name}' from model.")
-          plant_loop.remove
-        end
-      end
-    end
+    end 
     
     def self.remove_air_loop(model, runner, thermal_zone, clone_perf=false)
       # Returns the cloned perf or nil

@@ -11,9 +11,7 @@ class Airflow
 
   def self.apply(model, runner, infil, mech_vent, nat_vent, ducts, measure_dir)
   
-    @measure_dir = measure_dir
-  
-    weather = WeatherProcess.new(model, runner, File.dirname(__FILE__))
+    weather = WeatherProcess.new(model, runner, measure_dir)
     if weather.error?
       return false
     end
@@ -43,24 +41,24 @@ class Airflow
       return false
     end
     building.stories = model.getBuilding.standardsNumberOfAboveGroundStories.get
-    building.above_grade_volume = Geometry.get_above_grade_finished_volume(model)
-    building.ag_ext_wall_area = Geometry.calculate_above_grade_exterior_wall_area(model_spaces)
+    building.above_grade_volume = Geometry.get_above_grade_finished_volume(model, true)
+    building.ag_ext_wall_area = Geometry.calculate_above_grade_exterior_wall_area(model_spaces, false)
     model.getThermalZones.each do |thermal_zone|
       if Geometry.is_garage(thermal_zone)
-        building.garage = ZoneInfo.new(thermal_zone, Geometry.get_height_of_spaces(thermal_zone.spaces), UnitConversions.convert(thermal_zone.floorArea,"m^2","ft^2"), Geometry.get_zone_volume(thermal_zone, runner), Geometry.get_z_origin_for_zone(thermal_zone), nil, nil)
+        building.garage = ZoneInfo.new(thermal_zone, Geometry.get_height_of_spaces(thermal_zone.spaces), UnitConversions.convert(thermal_zone.floorArea,"m^2","ft^2"), Geometry.get_zone_volume(thermal_zone, false, runner), Geometry.get_z_origin_for_zone(thermal_zone), nil, nil)
       elsif Geometry.is_unfinished_basement(thermal_zone)
-        building.unfinished_basement = ZoneInfo.new(thermal_zone, Geometry.get_height_of_spaces(thermal_zone.spaces), UnitConversions.convert(thermal_zone.floorArea,"m^2","ft^2"), Geometry.get_zone_volume(thermal_zone, runner), Geometry.get_z_origin_for_zone(thermal_zone), infil.unfinished_basement_ach, nil)
+        building.unfinished_basement = ZoneInfo.new(thermal_zone, Geometry.get_height_of_spaces(thermal_zone.spaces), UnitConversions.convert(thermal_zone.floorArea,"m^2","ft^2"), Geometry.get_zone_volume(thermal_zone, false, runner), Geometry.get_z_origin_for_zone(thermal_zone), infil.unfinished_basement_ach, nil)
       elsif Geometry.is_crawl(thermal_zone)
-        building.crawlspace = ZoneInfo.new(thermal_zone, Geometry.get_height_of_spaces(thermal_zone.spaces), UnitConversions.convert(thermal_zone.floorArea,"m^2","ft^2"), Geometry.get_zone_volume(thermal_zone, runner), Geometry.get_z_origin_for_zone(thermal_zone), infil.crawl_ach, nil)
+        building.crawlspace = ZoneInfo.new(thermal_zone, Geometry.get_height_of_spaces(thermal_zone.spaces), UnitConversions.convert(thermal_zone.floorArea,"m^2","ft^2"), Geometry.get_zone_volume(thermal_zone, false, runner), Geometry.get_z_origin_for_zone(thermal_zone), infil.crawl_ach, nil)
       elsif Geometry.is_pier_beam(thermal_zone)
-        building.pierbeam = ZoneInfo.new(thermal_zone, Geometry.get_height_of_spaces(thermal_zone.spaces), UnitConversions.convert(thermal_zone.floorArea,"m^2","ft^2"), Geometry.get_zone_volume(thermal_zone, runner), Geometry.get_z_origin_for_zone(thermal_zone), infil.pier_beam_ach, nil)
+        building.pierbeam = ZoneInfo.new(thermal_zone, Geometry.get_height_of_spaces(thermal_zone.spaces), UnitConversions.convert(thermal_zone.floorArea,"m^2","ft^2"), Geometry.get_zone_volume(thermal_zone, false, runner), Geometry.get_z_origin_for_zone(thermal_zone), infil.pier_beam_ach, nil)
       elsif Geometry.is_unfinished_attic(thermal_zone)
-        building.unfinished_attic = ZoneInfo.new(thermal_zone, Geometry.get_height_of_spaces(thermal_zone.spaces), UnitConversions.convert(thermal_zone.floorArea,"m^2","ft^2"), Geometry.get_zone_volume(thermal_zone, runner), Geometry.get_z_origin_for_zone(thermal_zone), infil.unfinished_attic_const_ach, infil.unfinished_attic_sla)
+        building.unfinished_attic = ZoneInfo.new(thermal_zone, Geometry.get_height_of_spaces(thermal_zone.spaces), UnitConversions.convert(thermal_zone.floorArea,"m^2","ft^2"), Geometry.get_zone_volume(thermal_zone, false, runner), Geometry.get_z_origin_for_zone(thermal_zone), infil.unfinished_attic_const_ach, infil.unfinished_attic_sla)
       end
     end
-    building.ffa = Geometry.get_finished_floor_area_from_spaces(model_spaces, runner)
+    building.ffa = Geometry.get_finished_floor_area_from_spaces(model_spaces, true, runner)
     return false if building.ffa.nil?
-    building.ag_ffa = Geometry.get_above_grade_finished_floor_area_from_spaces(model_spaces, runner)
+    building.ag_ffa = Geometry.get_above_grade_finished_floor_area_from_spaces(model_spaces, true, runner)
     return false if building.ag_ffa.nil?
 
     wind_speed = process_wind_speed_correction(infil.terrain, infil.shelter_coef, Geometry.get_closest_neighbor_distance(model), building.building_height)
@@ -99,19 +97,19 @@ class Airflow
       if nbeds.nil? or nbaths.nil?
         return false
       end
-      unit_ag_ext_wall_area = Geometry.calculate_above_grade_exterior_wall_area(unit.spaces)
-      unit_ag_ffa = Geometry.get_above_grade_finished_floor_area_from_spaces(unit.spaces, runner)
-      unit_ffa = Geometry.get_finished_floor_area_from_spaces(unit.spaces, runner)
-      unit_window_area = Geometry.get_window_area_from_spaces(unit.spaces)
+      unit_ag_ext_wall_area = Geometry.calculate_above_grade_exterior_wall_area(unit.spaces, false)
+      unit_ag_ffa = Geometry.get_above_grade_finished_floor_area_from_spaces(unit.spaces, false, runner)
+      unit_ffa = Geometry.get_finished_floor_area_from_spaces(unit.spaces, false, runner)
+      unit_window_area = Geometry.get_window_area_from_spaces(unit.spaces, false)
       
       # Determine geometry for spaces and zones that are unit specific
       unit_living = nil
       unit_finished_basement = nil
       Geometry.get_thermal_zones_from_spaces(unit.spaces).each do |thermal_zone|
         if Geometry.is_finished_basement(thermal_zone)
-          unit_finished_basement = ZoneInfo.new(thermal_zone, Geometry.get_height_of_spaces(thermal_zone.spaces), UnitConversions.convert(thermal_zone.floorArea,"m^2","ft^2"), Geometry.get_zone_volume(thermal_zone, runner), Geometry.get_z_origin_for_zone(thermal_zone), infil.finished_basement_ach, nil)
+          unit_finished_basement = ZoneInfo.new(thermal_zone, Geometry.get_height_of_spaces(thermal_zone.spaces), UnitConversions.convert(thermal_zone.floorArea,"m^2","ft^2"), Geometry.get_zone_volume(thermal_zone, false, runner), Geometry.get_z_origin_for_zone(thermal_zone), infil.finished_basement_ach, nil)
         elsif Geometry.is_living(thermal_zone)
-          unit_living = ZoneInfo.new(thermal_zone, Geometry.get_height_of_spaces(thermal_zone.spaces), UnitConversions.convert(thermal_zone.floorArea,"m^2","ft^2"), Geometry.get_zone_volume(thermal_zone, runner), Geometry.get_z_origin_for_zone(thermal_zone), nil, nil)
+          unit_living = ZoneInfo.new(thermal_zone, Geometry.get_height_of_spaces(thermal_zone.spaces), UnitConversions.convert(thermal_zone.floorArea,"m^2","ft^2"), Geometry.get_zone_volume(thermal_zone, false, runner), Geometry.get_z_origin_for_zone(thermal_zone), nil, nil)
         end
       end
       
@@ -161,7 +159,7 @@ class Airflow
       
       duct_program, cfis_program, cfis_output = create_ducts_objects(model, runner, obj_name_ducts, unit_living, unit_finished_basement, ducts, mech_vent, ducts_output, tin_sensor, pbar_sensor, duct_lk_supply_fan_equiv_var, duct_lk_return_fan_equiv_var, has_forced_air_equipment, unit_has_mshp, adiabatic_const)
       
-      infil_program = create_infil_mech_vent_objects(model, runner, obj_name_infil, obj_name_mech_vent, unit_living, infil, mech_vent, wind_speed, mv_output, infil_output, tin_sensor, tout_sensor, vwind_sensor, duct_lk_supply_fan_equiv_var, duct_lk_return_fan_equiv_var, cfis_output, nbeds)
+      infil_program = create_infil_mech_vent_objects(model, runner, obj_name_infil, obj_name_mech_vent, unit_living, infil, mech_vent, wind_speed, mv_output, infil_output, tin_sensor, tout_sensor, vwind_sensor, duct_lk_supply_fan_equiv_var, duct_lk_return_fan_equiv_var, cfis_output, nbeds, measure_dir)
       
       create_ems_program_managers(model, infil_program, nv_program, cfis_program, 
                                   duct_program, obj_name_airflow, obj_name_ducts)
@@ -400,8 +398,8 @@ class Airflow
     elsif terrain == Constants.TerrainCity
       wind_speed.site_terrain_multiplier = 0.47 # Used for DOE-2's correlation
       wind_speed.site_terrain_exponent = 0.35 # Used for DOE-2's correlation
-      wind_speed.ashrae_site_terrain_thickness = 460 # Towns, city outskirs, center of large cities
-      wind_speed.ashrae_site_terrain_exponent = 0.33 # Towns, city outskirs, center of large cities
+      wind_speed.ashrae_site_terrain_thickness = 460 # Towns, city outskirts, center of large cities
+      wind_speed.ashrae_site_terrain_exponent = 0.33 # Towns, city outskirts, center of large cities
     end
 
     # Local Shielding
@@ -990,7 +988,7 @@ class Airflow
       temp_hourly_wked << ssn_schedule_wked
     end
     
-    temp_sch = HourlyByMonthSchedule.new(model, runner, obj_name_natvent + " temp schedule", temp_hourly_wkdy, temp_hourly_wked, normalize_values=false)
+    temp_sch = HourlyByMonthSchedule.new(model, runner, obj_name_natvent + " temp schedule", temp_hourly_wkdy, temp_hourly_wked, normalize_values = false)
     
     nv_output = NaturalVentilationOutput.new(area, max_flow_rate, temp_sch, c_s, c_w, season_type)
     return true, nv_output
@@ -1112,12 +1110,9 @@ class Airflow
       return_volume = 0
     end
 
-    # This can't be zero. A value of zero causes weird sizing issues in DOE-2.
-    direct_oa_supply_loss = 0.000001
-
     # Only if using the Fractional Leakage Option Type:
     if ducts.norm_leakage_25pa.nil?
-      supply_loss = (location_frac_leakage * (supply_leakage - direct_oa_supply_loss) + (ah_supply_leakage + direct_oa_supply_loss))
+      supply_loss = location_frac_leakage * supply_leakage + ah_supply_leakage
       return_loss = return_leakage + ah_return_leakage
     end
 
@@ -1134,25 +1129,22 @@ class Airflow
         # Handle the exception for if there is no leakage unbalance.
         frac_oa = 0
       elsif not unit_finished_basement.nil? and unit_finished_basement.zone == location_zone
-        frac_oa = direct_oa_supply_loss / total_unbalance
+        frac_oa = 0
       elsif not building.unfinished_basement.nil? and building.unfinished_basement.zone == location_zone
-        frac_oa = direct_oa_supply_loss / total_unbalance
+        frac_oa = 0
       elsif not building.crawlspace.nil? and building.crawlspace.zone == location_zone and building.crawlspace.ACH == 0
-        frac_oa = direct_oa_supply_loss / total_unbalance
+        frac_oa = 0
       elsif not building.pierbeam.nil? and building.pierbeam.zone == location_zone and building.pierbeam.ACH == 0
-        frac_oa = direct_oa_supply_loss / total_unbalance
+        frac_oa = 0
       elsif not building.unfinished_attic.nil? and building.unfinished_attic.zone == location_zone and building.unfinished_attic.ACH == 0
-        frac_oa = direct_oa_supply_loss / total_unbalance
+        frac_oa = 0
       else
         # Assume that all of the unbalanced make-up air is driven infiltration from outdoors.
         # This assumes that the holes for attic ventilation are much larger than any attic bypasses.
         frac_oa = 1
       end
-      # d.oa_duct_makeup =  fraction of the supply duct air loss that is made up by outside air (via return leakage)
-      oa_duct_makeup = [frac_oa * total_unbalance / [supply_loss, return_loss].max, 1].min
     else
       frac_oa = 0
-      oa_duct_makeup = 0
     end
     
     # Store info for HVAC Sizing measure
@@ -1295,34 +1287,34 @@ class Airflow
     win_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, "Zone Mean Air Humidity Ratio")
     win_sensor.setName("#{obj_name_ducts} win s")
     win_sensor.setKeyName(unit_living.zone.name.to_s)
+      
+    ra_duct_zone = OpenStudio::Model::ThermalZone.new(model)
+    ra_duct_zone.setName(obj_name_ducts + " ret air zone")
+    ra_duct_zone.setVolume(UnitConversions.convert(ducts_output.return_volume,"ft^3","m^3"))
+
+    sw_point = OpenStudio::Point3d.new(0, 74, 0)
+    nw_point = OpenStudio::Point3d.new(0, 75, 0)
+    ne_point = OpenStudio::Point3d.new(1, 75, 0)
+    se_point = OpenStudio::Point3d.new(1, 74, 0)
+    ra_duct_polygon = Geometry.make_polygon(sw_point, nw_point, ne_point, se_point)
+
+    ra_space = OpenStudio::Model::Space::fromFloorPrint(ra_duct_polygon, 1, model)
+    ra_space = ra_space.get
+    ra_space.setName(obj_name_ducts + " ret air space")
+    ra_space.setThermalZone(ra_duct_zone)
+
+    ra_space.surfaces.each do |surface|
+      surface.setConstruction(adiabatic_const)
+      surface.setOutsideBoundaryCondition("Adiabatic")
+      surface.setSunExposure("NoSun")
+      surface.setWindExposure("NoWind")
+      surface_property_convection_coefficients = OpenStudio::Model::SurfacePropertyConvectionCoefficients.new(surface)
+      surface_property_convection_coefficients.setConvectionCoefficient1Location("Inside")
+      surface_property_convection_coefficients.setConvectionCoefficient1Type("Value")
+      surface_property_convection_coefficients.setConvectionCoefficient1(999)
+    end
 
     if has_forced_air_equipment
-
-      ra_duct_zone = OpenStudio::Model::ThermalZone.new(model)
-      ra_duct_zone.setName(obj_name_ducts + " ret air zone")
-      ra_duct_zone.setVolume(UnitConversions.convert(ducts_output.return_volume,"ft^3","m^3"))
-
-      sw_point = OpenStudio::Point3d.new(0, 74, 0)
-      nw_point = OpenStudio::Point3d.new(0, 75, 0)
-      ne_point = OpenStudio::Point3d.new(1, 75, 0)
-      se_point = OpenStudio::Point3d.new(1, 74, 0)
-      ra_duct_polygon = Geometry.make_polygon(sw_point, nw_point, ne_point, se_point)
-
-      ra_space = OpenStudio::Model::Space::fromFloorPrint(ra_duct_polygon, 1, model)
-      ra_space = ra_space.get
-      ra_space.setName(obj_name_ducts + " ret air space")
-      ra_space.setThermalZone(ra_duct_zone)
-
-      ra_space.surfaces.each do |surface|
-        surface.setConstruction(adiabatic_const)
-        surface.setOutsideBoundaryCondition("Adiabatic")
-        surface.setSunExposure("NoSun")
-        surface.setWindExposure("NoWind")
-        surface_property_convection_coefficients = OpenStudio::Model::SurfacePropertyConvectionCoefficients.new(surface)
-        surface_property_convection_coefficients.setConvectionCoefficient1Location("Inside")
-        surface_property_convection_coefficients.setConvectionCoefficient1Type("Value")
-        surface_property_convection_coefficients.setConvectionCoefficient1(999)
-      end
 
       air_demand_inlet_node = nil
       supply_fan = nil
@@ -1766,32 +1758,26 @@ class Airflow
     
   end
   
-  def self.create_infil_mech_vent_objects(model, runner, obj_name_infil, obj_name_mech_vent, unit_living, infil, mech_vent, wind_speed, mv_output, infil_output, tin_sensor, tout_sensor, vwind_sensor, duct_lk_supply_fan_equiv_var, duct_lk_return_fan_equiv_var, cfis_output, nbeds)
+  def self.create_infil_mech_vent_objects(model, runner, obj_name_infil, obj_name_mech_vent, unit_living, infil, mech_vent, wind_speed, mv_output, infil_output, tin_sensor, tout_sensor, vwind_sensor, duct_lk_supply_fan_equiv_var, duct_lk_return_fan_equiv_var, cfis_output, nbeds, measure_dir)
 
-    # Design day schedules used when autosizing
-    winter_design_day_sch = OpenStudio::Model::ScheduleDay.new(model)
-    winter_design_day_sch.addValue(OpenStudio::Time.new(0,24,0,0), 0)
-    summer_design_day_sch = OpenStudio::Model::ScheduleDay.new(model)
-    summer_design_day_sch.addValue(OpenStudio::Time.new(0,24,0,0), 1)
-  
     # Sensors
   
     range_array = [0.0] * 24
     range_array[mech_vent.range_exhaust_hour - 1] = 1.0
-    range_hood_sch = HourlyByMonthSchedule.new(model, runner, obj_name_mech_vent + " range exhaust schedule", [range_array] * 12, [range_array] * 12, normalize_values=false, create_sch_object=true, winter_design_day_sch, summer_design_day_sch)
+    range_hood_sch = HourlyByMonthSchedule.new(model, runner, obj_name_mech_vent + " range exhaust schedule", [range_array] * 12, [range_array] * 12, normalize_values = false)
     range_sch_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, "Schedule Value")
     range_sch_sensor.setName("#{obj_name_infil} range sch s")
     range_sch_sensor.setKeyName(range_hood_sch.schedule.name.to_s)
 
     bathroom_array = [0.0] * 24
     bathroom_array[mech_vent.bathroom_exhaust_hour - 1] = 1.0
-    bath_exhaust_sch = HourlyByMonthSchedule.new(model, runner, obj_name_mech_vent + " bath exhaust schedule", [bathroom_array] * 12, [bathroom_array] * 12, normalize_values=false, create_sch_object=true, winter_design_day_sch, summer_design_day_sch)
+    bath_exhaust_sch = HourlyByMonthSchedule.new(model, runner, obj_name_mech_vent + " bath exhaust schedule", [bathroom_array] * 12, [bathroom_array] * 12, normalize_values = false)
     bath_sch_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, "Schedule Value")
     bath_sch_sensor.setName("#{obj_name_infil} bath sch s")
     bath_sch_sensor.setKeyName(bath_exhaust_sch.schedule.name.to_s)
 
     if mv_output.has_dryer and mech_vent.dryer_exhaust > 0
-      dryer_exhaust_sch = HotWaterSchedule.new(model, runner, obj_name_mech_vent + " dryer exhaust schedule", obj_name_mech_vent + " dryer exhaust temperature schedule", nbeds, mv_output.dryer_exhaust_day_shift, "ClothesDryerExhaust", 0, @measure_dir)
+      dryer_exhaust_sch = HotWaterSchedule.new(model, runner, obj_name_mech_vent + " dryer exhaust schedule", obj_name_mech_vent + " dryer exhaust temperature schedule", nbeds, mv_output.dryer_exhaust_day_shift, "ClothesDryerExhaust", 0, measure_dir)
       dryer_sch_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, "Schedule Value")
       dryer_sch_sensor.setName("#{obj_name_infil} dryer sch s")
       dryer_sch_sensor.setKeyName(dryer_exhaust_sch.schedule.name.to_s)

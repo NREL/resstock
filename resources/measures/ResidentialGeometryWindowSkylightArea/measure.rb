@@ -10,17 +10,17 @@ class SetResidentialWindowSkylightArea < OpenStudio::Measure::ModelMeasure
 
   # human readable name
   def name
-    return "Set Residential Window Area"
+    return "Set Residential Window/Skylight Area"
   end
 
   # human readable description
   def description
-    return "Sets the window area for the building. Doors with glazing should be set as window area. Also, sets presence/dimensions of overhangs for windows on the specified building facade(s).#{Constants.WorkflowDescription}"
+    return "Sets the window/skylight area for the building. Doors with glazing should be set as window area. Also, sets presence/dimensions of overhangs for windows on the specified building facade(s).#{Constants.WorkflowDescription}"
   end
 
   # human readable description of modeling approach
   def modeler_description
-    return "Automatically creates and positions standard residential windows based on the specified window area on each building facade. Windows are only added to surfaces between finished space and outside. Any existing windows are removed. Also, creates overhang shading surfaces for windows on the specified building facade(s) and specified depth/offset. Any existing overhang shading surfaces are removed."
+    return "Automatically creates and positions standard residential windows/skylights based on the specified window/skylight area on each building facade. Windows are only added to surfaces between finished space and outside. Any existing windows are removed. Also, creates overhang shading surfaces for windows on the specified building facade(s) and specified depth/offset. Any existing overhang shading surfaces are removed."
   end
 
   # define the arguments that the user will input
@@ -129,28 +129,28 @@ class SetResidentialWindowSkylightArea < OpenStudio::Measure::ModelMeasure
     #make a double argument for front area
     front_skylight_area = OpenStudio::Measure::OSArgument::makeDoubleArgument("front_skylight_area", true)
     front_skylight_area.setDisplayName("Skylights: Front Roof Area")
-    front_skylight_area.setDescription("The amount of skylight area on the building's front facade. Enter 0 if specifying Front Window-to-Wall Ratio instead.")
+    front_skylight_area.setDescription("The amount of skylight area on the building's front finished roof facade.")
     front_skylight_area.setDefaultValue(0)
     args << front_skylight_area
 
     #make a double argument for back area
     back_skylight_area = OpenStudio::Measure::OSArgument::makeDoubleArgument("back_skylight_area", true)
     back_skylight_area.setDisplayName("Skylights: Back Roof Area")
-    back_skylight_area.setDescription("The amount of skylight area on the building's back facade. Enter 0 if specifying Back Window-to-Wall Ratio instead.")
+    back_skylight_area.setDescription("The amount of skylight area on the building's back finished roof facade.")
     back_skylight_area.setDefaultValue(0)
     args << back_skylight_area
 
     #make a double argument for left area
     left_skylight_area = OpenStudio::Measure::OSArgument::makeDoubleArgument("left_skylight_area", true)
     left_skylight_area.setDisplayName("Skylights: Left Roof Area")
-    left_skylight_area.setDescription("The amount of skylight area on the building's left facade. Enter 0 if specifying Left Window-to-Wall Ratio instead.")
+    left_skylight_area.setDescription("The amount of skylight area on the building's left finished roof facade.")
     left_skylight_area.setDefaultValue(0)
     args << left_skylight_area
 
     #make a double argument for right area
     right_skylight_area = OpenStudio::Measure::OSArgument::makeDoubleArgument("right_skylight_area", true)
     right_skylight_area.setDisplayName("Skylights: Right Roof Area")
-    right_skylight_area.setDescription("The amount of skylight area on the building's right facade. Enter 0 if specifying Right Window-to-Wall Ratio instead.")
+    right_skylight_area.setDescription("The amount of skylight area on the building's right finished roof facade.")
     right_skylight_area.setDefaultValue(0)
     args << right_skylight_area
 
