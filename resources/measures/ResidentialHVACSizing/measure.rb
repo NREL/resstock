@@ -8,7 +8,8 @@
 # http://openstudio.nrel.gov/sites/openstudio.nrel.gov/files/nv_data/cpp_documentation_it/model/html/namespaces.html
 
 require "#{File.dirname(__FILE__)}/resources/hvac_sizing"
-require "#{File.dirname(__FILE__)}/resources/location"
+require "#{File.dirname(__FILE__)}/resources/weather"
+require "#{File.dirname(__FILE__)}/resources/constants"
 require "#{File.dirname(__FILE__)}/resources/geometry"
 
 #start the measure
@@ -67,7 +68,7 @@ class ProcessHVACSizing < OpenStudio::Measure::ModelMeasure
 
     # Determine e+ autosizing or not
     if model.getSimulationControl.runSimulationforSizingPeriods
-      weather.add_design_days_for_autosizing(model)
+      weather.add_design_days_for_autosizing
       runner.registerFinalCondition("Added heating/cooling design days for autosizing.")
       return true
     end

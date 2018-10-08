@@ -14,7 +14,7 @@ First, you will need some AWS credentials to allow PAT to start compute instance
 Cluster Settings and Starting the Cluster
 -----------------------------------------
 
-Select the ``2.2.1-ls0`` AMI. We will leave most of the rest of the defaults, but because we're doing a small analysis here, we're going to set the number of worker nodes to zero. For guidance on cluster settings for your analysis including instance selection and worker nodes see :doc:`../aws_cluster_config`.
+Ensure that your project's AMI selection matches "2.6.0" (this should also be the version of OpenStudio/PAT that you are using). We will leave most of the rest of the settings at their defaults, but because we're doing a small analysis here, we're going to set the number of worker nodes to zero. For guidance on cluster settings for your analysis including instance selection and worker nodes see :doc:`../aws_cluster_config`.
 
 .. image:: ../images/tutorial/run_on_cloud.png
 
@@ -48,9 +48,11 @@ Sometime you will need *all* the simulation results including timeseries results
 
 .. _download:
    
-.. todo::
-   
-   Only 150 datapoints are downloading right now. There's a ticket to fix that. Ry has a script to do the downloading of all datapoints. Add those instructions here.
+.. note::
+
+   From the PAT interface, only 150 datapoints are downloading right now. For downloading all datapoints, run the ``scripts/download_datapoints.rb`` script. The script requires that the ``localResults/results.csv`` be downloaded first. Supply all required arguments to the script, including project directory, server DNS, and analysis ID. A usage example is given as follows:
+   ``$ ruby scripts/download_datapoints.rb -p project_resstock_national``
+   ``-s http://ec2-107-23-165-146.compute-1.amazonaws.com -a 706c3b4a-9685-4924-bb13-c6bec77aa397``
 
 Shutting Down the OpenStudio Server Cluster
 -------------------------------------------

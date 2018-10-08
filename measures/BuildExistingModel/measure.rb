@@ -5,7 +5,7 @@ require 'csv'
 require 'openstudio'
 
 # start the measure
-class BuildExistingModel < OpenStudio::Ruleset::ModelUserScript
+class BuildExistingModel < OpenStudio::Measure::ModelMeasure
 
   # human readable name
   def name
@@ -41,6 +41,11 @@ class BuildExistingModel < OpenStudio::Ruleset::ModelUserScript
     number_of_buildings_represented.setDescription("The total number of buildings represented by the existing building models.")
     args << number_of_buildings_represented
 
+    sample_weight = OpenStudio::Ruleset::OSArgument.makeDoubleArgument("sample_weight", false)
+    sample_weight.setDisplayName("Sample Weight of Simulation")
+    sample_weight.setDescription("Number of buildings this simulation represents.")
+    args << sample_weight
+
     downselect_logic = OpenStudio::Ruleset::OSArgument.makeStringArgument("downselect_logic", false)
     downselect_logic.setDisplayName("Downselect Logic")
     downselect_logic.setDescription("Logic that specifies the subset of the building stock to be considered in the analysis. Specify one or more parameter|option as found in resources\\options_lookup.tsv. When multiple are included, they must be separated by '||' for OR and '&&' for AND, and using parentheses as appropriate. Prefix an option with '!' for not.")
@@ -66,6 +71,7 @@ class BuildExistingModel < OpenStudio::Ruleset::ModelUserScript
     building_id = runner.getIntegerArgumentValue("building_id",user_arguments)
     workflow_json = runner.getOptionalStringArgumentValue("workflow_json",user_arguments)
     number_of_buildings_represented = runner.getOptionalIntegerArgumentValue("number_of_buildings_represented",user_arguments)
+    sample_weight = runner.getOptionalDoubleArgumentValue("sample_weight",user_arguments)
     downselect_logic = runner.getOptionalStringArgumentValue("downselect_logic",user_arguments)
     sample_weight = runner.getOptionalDoubleArgumentValue("sample_weight",user_arguments)
     

@@ -158,6 +158,9 @@ class Constants
   def self.CalcTypeERIIndexAdjustmentDesign
     return 'HERS Index Adjustment Design'
   end
+  def self.CalcTypeERIIndexAdjustmentReferenceHome
+    return 'HERS Index Adjustment Reference Home'
+  end
   def self.CalcTypeStandard
     return 'Standard'
   end

@@ -3,18 +3,15 @@ Set Up the Analysis Project
 
 Open PAT and open one of the analysis project folders:
 
- - project_resstock_dsgrid
  - project_resstock_national
  - project_resstock_pnw
- - project_resstock_testing
 
 For this example we'll use the project_resstock_national analysis. Select "Open Existing Project" and choose the project_resstock_national directory in the repository you just downloaded. You may be asked if you want "mongod" to accept incoming connections. Select "Allow".
 
-You will leave the settings in **Algorithm Settings**, **Additional Analysis Files**, and **Server Scripts** alone for most analyses. 
+You will leave dropdown options for **Algorithmic Method**, **Default Seed Model**, and **Default Weather File** alone. Additionally, you will leave the settings in **Algorithm Settings**, **Additional Analysis Files**, and **Server Scripts** alone for most analyses. 
 
 .. note::
    
-   The **Algorithm Settings > Number of Samples** input is not where the number of simulations is set.
    The number of simulations per upgrade scenario is set in :ref:`build-existing-model`.
   
 Server Scripts
@@ -22,10 +19,14 @@ Server Scripts
 
 Although you will leave these settings alone for most analyses, you do have the ability to change arguments for initialization and finalization scripts that are run on the remote server. In the case you want to change the set of epw weather files used for your project, see :ref:`worker-initialization-script`.
 
+.. _server-initialization-script:
+
 Server Initialization Script
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Ignore this for now.
+
+.. _server-finalization-script:
 
 Server Finalization Script
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -59,6 +60,8 @@ To zip and upload new weather files to the S3 bucket:
 
    Changing this path from the default will most likely require additional changes to your project. Any weather file names in your ``housing_characteristics`` folder's tsv files will need to be updated to reflect those in the S3 bucket file. Any simulation on the remote server that points to an invalid weather file path will fail.
  
+.. _worker-finalization-script:
+ 
 Worker Finalization Script
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -68,6 +71,15 @@ OpenStudio Measures
 -------------------
 
 Continuing on the measure selection tab, scroll down to the **OpenStudio Measures** section. This section is where you will define the parameters of the analysis including the baseline case and any upgrade scenarios.
+
+.. _simulation-controls:
+
+Simulation Controls
+^^^^^^^^^^^^^^^^^^^
+
+Using this measure you can set the simulation timesteps per hour, as well as the run period begin month/day and end month/day. By default the simulations use a 10-min timestep (i.e., the number of timesteps per hour is 6), start on January 1, and end on December 31.
+
+.. image:: ../images/tutorial/simulation_controls.png
 
 .. _build-existing-model:
 
@@ -83,7 +95,12 @@ This measure creates the baseline scenario. Set the following inputs:
 
 **Number of Buildings Represented**
   The total number of buildings this sampling is meant to represent. This sets the weighting factors. For the U.S. single-family detached housing stock, this is 80 million homes. 
+  
+**Downselect Logic**
+  Logic that specifies the subset of the building stock to be considered in the analysis. Specify one or more ``parameter|option`` as found in the ``resources/options_lookup.tsv``. (This uses the same syntax as the :ref:`tutorial-apply-upgrade` measure.) For example, if you wanted to only simulate California homes you could enter ``Location Region|CR11`` in this field (CR refers to "Custom Region", which is based on RECS 2009 reportable domains aggregated into groups with similar climates; see the entire `custom region map`_).
 
+.. _custom region map: https://github.com/NREL/OpenStudio-BuildStock/wiki/Custom-Region-(CR)-Map
+  
 .. _tutorial-apply-upgrade:
 
 Apply Upgrade
@@ -106,65 +123,62 @@ Reporting Measures
 
 Scroll down to the bottom on the measures selection tab, and you will see the **Reporting Measures** section. This section is where you can request timeseries data and utility bills for the analysis. In general, reporting measures process data after the simulation has finished and produced results. As a note, make sure that the **Timeseries CSV Export** and **Utility Bill Calculations** measures are placed before the **Server Directory Cleanup** measure.
 
+.. _building-characteristics-report:
+
+Building Charactertistics Report
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Leave this alone.
+
+.. _simulation-output-report:
+
+Simulation Output Report
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+Leave this alone.
+
 .. _timeseries-csv-export:
 
 Timeseries CSV Export
 ^^^^^^^^^^^^^^^^^^^^^
 
-If you do not need the timeseries data for your simulations, you can skip this measure to save disk space. Otherwise, one csv file per datapoint will be written containing timeseries enduse data relevant to their model. After `downloading all datapoints <run_project.html#download>`_ to your project's localResults folder, each datapoint's ``enduse_timeseries.csv`` file will be contained in a zipped ``data_point.zip`` along with all other simulation input and output files.
+If you do not need the timeseries data for your simulations, you can skip this measure to save disk space. Otherwise, one csv file per datapoint will be written containing timeseries enduse data for their model. After `downloading all datapoints <run_project.html#download>`_ to your project's localResults folder, each datapoint's ``enduse_timeseries.csv`` file will be contained in a zipped ``data_point.zip`` file along with all other simulation input and output files.
   
 .. image:: ../images/tutorial/timeseries_csv_export.png
 
 **Reporting Frequency**
-  The timeseries data will be reported at hourly intervals unless otherwise specified. Other options include Detailed, Timestep, Daily, Monthly, and RunPeriod.
+  The timeseries data will be reported at hourly intervals unless otherwise specified. Other options include:
+
+  * Detailed
+  * Timestep
+  * Daily
+  * Monthly
+  * RunPeriod
+  
+  Setting the reporting frequency to "Timestep" will give you interval output equal to the timestep set by the "Simulation Controls" measure. Thus by default, this measure will produce 10-min interval output.
+
+**Include End Use Subcategories**
+  Select this to include end use subcategories. The default is to not include end use subcategories. End use subcategories include:
+
+  * residential misc plug loads:InteriorEquipment:Electricity  [kwh]
+  * residential refrigerator:InteriorEquipment:Electricity  [kwh]
+  * residential clothes washer:InteriorEquipment:Electricity  [kwh]
+  * residential clothes dryer electric:InteriorEquipment:Electricity  [kwh]
+  * residential mech vent fan:InteriorEquipment:Electricity  [kwh]
+  * residential dishwasher:InteriorEquipment:Electricity  [kwh]
+  * residential range electric:InteriorEquipment:Electricity  [kwh]
+  * residential clothes dryer gas:InteriorEquipment:Gas  [kbtu]
+  * residential range gas:InteriorEquipment:Gas  [kbtu]
 
 **Include Output Variables**
-  For now, ignore this argument.
+  Select this to include output variables. The default is to not include output variables.
+  
+**Output Variables**
+  If you choose to include output variables, the default output variables reported will be Zone Mean Air Temperature, Zone Mean Air Humidity Ratio, and Fan Runtime Fraction.
 
 .. _utility-bill-calculations:
 
 Utility Bill Calculations
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
-This measure calculates sets of utility bills for each datapoint included in the analysis. Utility bills can be calculated based on rates (stored in json format) from OpenEI's `Utility Rate Database`_ (URDB), state-average rates, or user-specified rates. When calculating bills based on rates from the URDB, this measure will first find the tariff whose EIAID and Label are nearest the latitude/longitude of the datapoint's weather file. Simply leaving all arguments set to their default values will cause utility bills to be calculated based on rates from the URDB.
-
-.. _Utility Rate Database: https://openei.org/wiki/Utility_Rate_Database
-
-.. image:: ../images/tutorial/utility_bill_calculations.png
-
-**Run Directory**
-  *Do not change this value.* Leave it as ``..``.
-
-**API Key**
-  Supply a URDB api key if you will be downloading rate structures that are not already contained in the **Tariff Directory**. If you do not already have an api key, you can `sign up for an api key`_.
-  
-.. _sign up for an api key: https://openei.org/services/api/signup
-
-**Tariff Directory**
-  The repository comes packaged with a set of residential tariff files. Each file in the set represents the residential rate structure for a given ``<EIAID>_<Label>`` pair. To draw from this set of rates, set this value to `../../lib/resources/tariffs`.
-
-**Tariff File Name**
-  To calculate utility bills based on a user-supplied rate structure, specify the path to your json file here.
-
-**Electricity Fixed Cost**
-  User-specified annual fixed cost of electricity.
-
-**Electricity Unit Cost**
-  User-specified price per kilowatt-hour for electricity.
-
-**Natural Gas Fixed Cost**
-  User-specified annual fixed cost of natural gas.
-
-**Natural Gas Unit Cost**
-  User-specified price per therm for natural gas.
-
-**Fuel Oil Unit Cost**
-  User-specified price per gallon for fuel oil.
-
-**Propane Unit Cost**
-  User-specified price per gallon for propane.
-
-**Average Residential Rates**
-  By default, utility bills will be calculated based on rate structures found in **Tariff Directory**. Choose this option to calculate utility bills based on state-average residential rates instead.
-
-Now switch to the Outputs tab. Select "Utility Bill Calculations" from the dropdown and click on **Add Measure**. Click on **Select Outputs**, then on **Select All**, then on **+ Add Output**, and finally on **OK**. This will ensure that the calculated utility bills are registered to the results.csv file.
+This measure is currently under construction. Do not include it in your PAT analysis.
