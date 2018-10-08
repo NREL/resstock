@@ -156,8 +156,8 @@ class Geometry
 
   def self.get_unit_beds_baths(model, unit, runner=nil)
     # Returns a list with #beds, #baths, a list of spaces, and the unit name
-    nbeds = unit.getFeatureAsInteger(Constants.BuildingUnitFeatureNumBedrooms)
-    nbaths = unit.getFeatureAsDouble(Constants.BuildingUnitFeatureNumBathrooms)
+    nbeds = unit.additionalProperties.getFeatureAsInteger(Constants.BuildingUnitFeatureNumBedrooms)
+    nbaths = unit.additionalProperties.getFeatureAsDouble(Constants.BuildingUnitFeatureNumBathrooms)
     if not (nbeds.is_initialized or nbaths.is_initialized)
       if !runner.nil?
         runner.registerError("Could not determine number of bedrooms or bathrooms.")
@@ -1318,8 +1318,8 @@ class Geometry
       num_br[unit_index] = num_br[unit_index].to_i
       num_ba[unit_index] = num_ba[unit_index].to_f
 
-      unit.setFeature(Constants.BuildingUnitFeatureNumBedrooms, num_br[unit_index])
-      unit.setFeature(Constants.BuildingUnitFeatureNumBathrooms, num_ba[unit_index])
+      unit.additionalProperties.setFeature(Constants.BuildingUnitFeatureNumBedrooms, num_br[unit_index])
+      unit.additionalProperties.setFeature(Constants.BuildingUnitFeatureNumBathrooms, num_ba[unit_index])
 
       if units.size > 1
         runner.registerInfo("Unit '#{unit_index}' has been assigned #{num_br[unit_index].to_s} bedroom(s) and #{num_ba[unit_index].round(2).to_s} bathroom(s).")

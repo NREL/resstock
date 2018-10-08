@@ -321,10 +321,6 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
       runner.registerError("Invalid corridor width entered.")
       return false
     end
-    if corridor_position == "Double-Loaded Interior" and num_units_per_floor % 2 != 0
-      runner.registerWarning("Specified a double-loaded corridor and an odd number of units per floor. Subtracting one unit per floor.")
-      num_units_per_floor -= 1
-    end
     if balcony_depth > 0 and inset_width * inset_depth == 0
       runner.registerWarning("Specified a balcony, but there is no inset.")
       balcony_depth = 0
@@ -576,9 +572,9 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
 
           # create the prototype corridor
           nw_point = OpenStudio::Point3d.new(0, interior_corridor_width, 0)
-          ne_point = OpenStudio::Point3d.new(x * (num_units_per_floor / 2), interior_corridor_width, 0)
+          ne_point = OpenStudio::Point3d.new(x * (num_units_per_floor.to_f / 2).ceil, interior_corridor_width, 0)
           sw_point = OpenStudio::Point3d.new(0, 0, 0)
-          se_point = OpenStudio::Point3d.new(x * (num_units_per_floor / 2), 0, 0)
+          se_point = OpenStudio::Point3d.new(x * (num_units_per_floor.to_f / 2).ceil, 0, 0)
           corr_polygon = Geometry.make_polygon(sw_point, nw_point, ne_point, se_point)
 
           if foundation_height > 0 and foundation_corr_polygon.nil?

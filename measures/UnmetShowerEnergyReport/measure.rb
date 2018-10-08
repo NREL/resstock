@@ -5,6 +5,7 @@
 
 # start the measure
 class UnmetShowerEnergyReport < OpenStudio::Measure::ReportingMeasure
+
   # human readable name
   def name
     # Measure name should be the title case of the class name.
@@ -40,12 +41,21 @@ class UnmetShowerEnergyReport < OpenStudio::Measure::ReportingMeasure
 
     result = OpenStudio::IdfObjectVector.new
 
-    # use the built-in error checking
-    if !runner.validateUserArguments(arguments, user_arguments)
-      return result
+    # Get the last model
+    model = runner.lastOpenStudioModel
+    if model.empty?
+      runner.registerError("Cannot find last model.")
+      return false
     end
+    model = model.get
 
-    result << OpenStudio::IdfObject.load("Output:Variable,*,Unmet Shower Energy,Hourly;").get
+    units = Geometry.get_building_units(model, runner)
+    units.each do |unit|
+      requests = {"Unmet Shower Energy|#{unit.name}"=>"kBtu", "Unmet Shower Time|#{unit.name}"=>"hr", "Shower Draw Time|#{unit.name}"=>"hr"}
+      requests.each do |request, units|
+        result << OpenStudio::IdfObject.load("Output:Variable,*,#{request},Hourly;").get
+      end
+    end
 
     return result
   end
@@ -91,7 +101,8 @@ class UnmetShowerEnergyReport < OpenStudio::Measure::ReportingMeasure
       return false
     end
 
-    model.getBuildingUnits.each do |unit|
+    units = Geometry.get_building_units(model, runner)
+    units.each do |unit|
       requests = {"Unmet Shower Energy|#{unit.name}"=>"kBtu", "Unmet Shower Time|#{unit.name}"=>"hr", "Shower Draw Time|#{unit.name}"=>"hr"}
       requests.each do |request, units|
         sql.availableKeyValues(ann_env_pd, "Hourly", request).each do |key_value|

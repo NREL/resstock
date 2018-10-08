@@ -80,7 +80,11 @@ class HourlyByMonthSchedule
         end
 
         def calcMaxval()
-            return [@weekday_month_by_hour_values.flatten.max, @weekend_month_by_hour_values.flatten.max].max
+            maxval = [@weekday_month_by_hour_values.flatten.max, @weekend_month_by_hour_values.flatten.max].max
+            if maxval == 0.0
+              maxval == 1.0 # Prevent divide by zero
+            end
+            return maxval
         end
 
         def createSchedule()
@@ -90,7 +94,7 @@ class HourlyByMonthSchedule
             year_description = @model.getYearDescription
             leap_offset = 0
             if year_description.isLeapYear
-              leap_offset = 1
+                leap_offset = 1
             end
             day_endm = [0, 31, 59+leap_offset, 90+leap_offset, 120+leap_offset, 151+leap_offset, 181+leap_offset, 212+leap_offset, 243+leap_offset, 273+leap_offset, 304+leap_offset, 334+leap_offset, 365+leap_offset]
             day_startm = [0, 1, 32, 60+leap_offset, 91+leap_offset, 121+leap_offset, 152+leap_offset, 182+leap_offset, 213+leap_offset, 244+leap_offset, 274+leap_offset, 305+leap_offset, 335+leap_offset]
@@ -112,8 +116,8 @@ class HourlyByMonthSchedule
                 wkdy_vals = []
                 wknd_vals = []
                 for h in 1..24
-                    wkdy_vals[h] = (@weekday_month_by_hour_values[m-1][h-1].to_f)/@maxval
-                    wknd_vals[h] = (@weekend_month_by_hour_values[m-1][h-1].to_f)/@maxval
+                    wkdy_vals[h] = (@weekday_month_by_hour_values[m-1][h-1])/@maxval
+                    wknd_vals[h] = (@weekend_month_by_hour_values[m-1][h-1])/@maxval
                 end
 
                 if wkdy_vals == wknd_vals
@@ -124,9 +128,7 @@ class HourlyByMonthSchedule
                     wkdy[m].setName(@sch_name + " #{Schedule.allday_name}#{m}")
                     previous_value = wkdy_vals[1]
                     for h in 1..24
-                        if h != 24
-                            next if wkdy_vals[h+1] == previous_value
-                        end
+                        next if h != 24 and wkdy_vals[h+1] == previous_value
                         wkdy[m].addValue(time[h], previous_value)
                         previous_value = wkdy_vals[h+1]
                     end
@@ -147,9 +149,7 @@ class HourlyByMonthSchedule
                     wkdy[m].setName(@sch_name + " #{Schedule.weekday_name}#{m}")
                     previous_value = wkdy_vals[1]
                     for h in 1..24
-                        if h != 24
-                            next if wkdy_vals[h+1] == previous_value
-                        end
+                        next if h != 24 and wkdy_vals[h+1] == previous_value
                         wkdy[m].addValue(time[h], previous_value)
                         previous_value = wkdy_vals[h+1]
                     end
@@ -170,9 +170,7 @@ class HourlyByMonthSchedule
                     wknd[m].setName(@sch_name + " #{Schedule.weekend_name}#{m}")
                     previous_value = wknd_vals[1]
                     for h in 1..24
-                        if h != 24
-                            next if wknd_vals[h+1] == previous_value
-                        end
+                        next if h != 24 and wknd_vals[h+1] == previous_value
                         wknd[m].addValue(time[h], previous_value)
                         previous_value = wknd_vals[h+1]
                     end
@@ -298,20 +296,30 @@ class MonthWeekdayWeekendSchedule
 
         def normalizeSumToOne(values)
             sum = values.reduce(:+).to_f
+            if sum == 0.0
+              return values
+            end
             return values.map{|val| val/sum}
         end
 
         def normalizeAvgToOne(values)
             avg = values.reduce(:+).to_f/values.size
+            if avg == 0.0
+              return values
+            end
             return values.map{|val| val/avg}
         end
 
         def calcMaxval()
             if @weekday_hourly_values.max > @weekend_hourly_values.max
-              return @monthly_values.max * @weekday_hourly_values.max * @mult_weekday
+              maxval = @monthly_values.max * @weekday_hourly_values.max * @mult_weekday
             else
-              return @monthly_values.max * @weekend_hourly_values.max * @mult_weekend
+              maxval = @monthly_values.max * @weekend_hourly_values.max * @mult_weekend
             end
+            if maxval == 0.0
+              maxval == 1.0 # Prevent divide by zero
+            end
+            return maxval
         end
 
         def calcSchadjust()
@@ -337,7 +345,7 @@ class MonthWeekdayWeekendSchedule
             year_description = @model.getYearDescription
             leap_offset = 0
             if year_description.isLeapYear
-              leap_offset = 1
+                leap_offset = 1
             end
             day_endm = [0, 31, 59+leap_offset, 90+leap_offset, 120+leap_offset, 151+leap_offset, 181+leap_offset, 212+leap_offset, 243+leap_offset, 273+leap_offset, 304+leap_offset, 334+leap_offset, 365+leap_offset]
             day_startm = [0, 1, 32, 60+leap_offset, 91+leap_offset, 121+leap_offset, 152+leap_offset, 182+leap_offset, 213+leap_offset, 244+leap_offset, 274+leap_offset, 305+leap_offset, 335+leap_offset]
@@ -359,8 +367,8 @@ class MonthWeekdayWeekendSchedule
                 wkdy_vals = []
                 wknd_vals = []
                 for h in 1..24
-                    wkdy_vals[h] = (@monthly_values[m-1].to_f*@weekday_hourly_values[h-1].to_f*@mult_weekday)/@maxval
-                    wknd_vals[h] = (@monthly_values[m-1].to_f*@weekend_hourly_values[h-1].to_f*@mult_weekend)/@maxval
+                    wkdy_vals[h] = (@monthly_values[m-1]*@weekday_hourly_values[h-1]*@mult_weekday)/@maxval
+                    wknd_vals[h] = (@monthly_values[m-1]*@weekend_hourly_values[h-1]*@mult_weekend)/@maxval
                 end
 
                 if wkdy_vals == wknd_vals
@@ -371,9 +379,7 @@ class MonthWeekdayWeekendSchedule
                     wkdy[m].setName(@sch_name + " #{Schedule.allday_name}#{m}")
                     previous_value = wkdy_vals[1]
                     for h in 1..24
-                        if h != 24
-                            next if wkdy_vals[h+1] == previous_value
-                        end
+                        next if h != 24 and wkdy_vals[h+1] == previous_value
                         wkdy[m].addValue(time[h], previous_value)
                         previous_value = wkdy_vals[h+1]
                     end
@@ -394,9 +400,7 @@ class MonthWeekdayWeekendSchedule
                     wkdy[m].setName(@sch_name + " #{Schedule.weekday_name}#{m}")
                     previous_value = wkdy_vals[1]
                     for h in 1..24
-                        if h != 24
-                            next if wkdy_vals[h+1] == previous_value
-                        end
+                        next if h != 24 and wkdy_vals[h+1] == previous_value
                         wkdy[m].addValue(time[h], previous_value)
                         previous_value = wkdy_vals[h+1]
                     end
@@ -417,9 +421,7 @@ class MonthWeekdayWeekendSchedule
                     wknd[m].setName(@sch_name + " #{Schedule.weekend_name}#{m}")
                     previous_value = wknd_vals[1]
                     for h in 1..24
-                        if h != 24
-                          next if wknd_vals[h+1] == previous_value
-                        end
+                        next if h != 24 and wknd_vals[h+1] == previous_value
                         wknd[m].addValue(time[h], previous_value)
                         previous_value = wknd_vals[h+1]
                     end

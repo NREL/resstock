@@ -286,27 +286,27 @@ class ResidentialHotWaterFixtures < OpenStudio::Measure::ModelMeasure
 
                 program_calling_manager = OpenStudio::Model::EnergyManagementSystemProgramCallingManager.new(model)
                 program_calling_manager.setName("#{obj_name_sh} sag")
-                program_calling_manager.setCallingPoint("EndOfZoneTimestepBeforeZoneReporting")
+                program_calling_manager.setCallingPoint("BeginTimestepBeforePredictor")
                 program_calling_manager.addProgram(program)
 
                 ems_output_var = OpenStudio::Model::EnergyManagementSystemOutputVariable.new(model, "ShowerE")
                 ems_output_var.setName("Unmet Shower Energy|#{unit.name}")
                 ems_output_var.setTypeOfDataInVariable("Summed")
-                ems_output_var.setUpdateFrequency("SystemTimestep")
+                ems_output_var.setUpdateFrequency("ZoneTimestep")
                 ems_output_var.setEMSProgramOrSubroutineName(program)
                 ems_output_var.setUnits("J")
 
                 ems_output_var = OpenStudio::Model::EnergyManagementSystemOutputVariable.new(model, "ShowerSag")
                 ems_output_var.setName("Unmet Shower Time|#{unit.name}")
                 ems_output_var.setTypeOfDataInVariable("Summed")
-                ems_output_var.setUpdateFrequency("SystemTimestep")
+                ems_output_var.setUpdateFrequency("ZoneTimestep")
                 ems_output_var.setEMSProgramOrSubroutineName(program)
                 ems_output_var.setUnits("hr")
 
                 ems_output_var = OpenStudio::Model::EnergyManagementSystemOutputVariable.new(model, "ShowerTime")
                 ems_output_var.setName("Shower Draw Time|#{unit.name}")
                 ems_output_var.setTypeOfDataInVariable("Summed")
-                ems_output_var.setUpdateFrequency("SystemTimestep")
+                ems_output_var.setUpdateFrequency("ZoneTimestep")
                 ems_output_var.setEMSProgramOrSubroutineName(program)
                 ems_output_var.setUnits("hr")
             end
