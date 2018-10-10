@@ -1,7 +1,7 @@
 Options Lookup
 ##############
 
-The ``options_lookup.tsv`` file specifies mappings from samples into measure arguments. Updates to this file will allow you to avoid hitting the following types of integrity check errors:
+The ``options_lookup.tsv`` file, found in the ``resources`` folder, specifies mappings from sampled options into measure arguments. Updates to this file will allow you to avoid hitting the following types of integrity check errors:
 
  - :ref:`Could not find parameter and option <could-not-find-parameter-and-option>`
  - :ref:`Required argument not provided <required-argument-not-provided>`

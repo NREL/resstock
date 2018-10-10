@@ -38,7 +38,7 @@ Ignore this for now.
 Worker Initialization Script
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
    
-Something you might want to change is the set of weather files used with your project. To update the argument for the path to the zip file containing epw weather files, open the Server Scripts box on the measure selection tab.
+Something you might want to change is the set of weather files used with your project. To update the argument for the path to the zip file containing epw weather files, open the Server Scripts box on the Measures Selection tab.
 
 .. image:: ../images/tutorial/server_scripts_open.png
 
@@ -68,7 +68,7 @@ Ignore this for now.
 OpenStudio Measures
 -------------------
 
-Continuing on the measure selection tab, scroll down to the **OpenStudio Measures** section. This section is where you will define the parameters of the analysis including the baseline case and any upgrade scenarios.
+Continuing on the Measures Selection tab, scroll down to the **OpenStudio Measures** section. This section is where you will define the parameters of the analysis including the baseline case and any upgrade scenarios.
 
 .. _simulation-controls:
 
@@ -122,7 +122,7 @@ Measures can be skipped in an analysis without losing their configuration. For t
 Reporting Measures
 ------------------
 
-Scroll down to the bottom on the measures selection tab, and you will see the **Reporting Measures** section. This section is where you can request timeseries data and utility bills for the analysis. In general, reporting measures process data after the simulation has finished and produced results. As a note, make sure that the **Timeseries CSV Export** and **Utility Bill Calculations** measures are placed before the **Server Directory Cleanup** measure.
+Scroll down to the bottom on the Measures Selection tab, and you will see the **Reporting Measures** section. This section is where you can request timeseries data and utility bills for the analysis. In general, reporting measures process data after the simulation has finished and produced results. As a note, make sure that the **Timeseries CSV Export** and **Utility Bill Calculations** measures are placed before the **Server Directory Cleanup** measure.
 
 .. _building-characteristics-report:
 
