@@ -1,7 +1,7 @@
 Advanced Tutorial
 #################
 
-This advanced tutorial describes the process for developing residential measures on a branch of the `OpenStudio-BEopt <https://github.com/NREL/OpenStudio-BEopt>`_ repository, and subsequently pulling them into the ResStock workflow for building and testing residential building models.
+This advanced tutorial describes the process for developing residential measures on a branch of the `OpenStudio-BEopt <https://github.com/NREL/OpenStudio-BEopt>`_ repository, and subsequently pulling them into the ResStock workflow for creating and testing residential building models.
 
 At this point in the tutorial, it is assumed that you have checked out a new branch that is up-to-date with the **master branch** of the `OpenStudio-BuildStock <https://github.com/NREL/OpenStudio-BuildStock>`_ repository. Optionally, you may have created a new PAT project folder (i.e., copied an existing project folder) and modified the set of tsv files in its ``housing_characteristics`` folder.
 

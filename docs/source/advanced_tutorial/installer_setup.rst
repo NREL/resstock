@@ -45,7 +45,7 @@ Run ``brew doctor``. It should give you, among other issues, a list of unexpecte
     /usr/local/lib/libz.1.dylib
     /usr/local/lib/libz.dylib
 
-Highlight and copy the list (without the header "Unexpected dylibs:). Run the following commands to move them to another location where they won't interfere.
+Highlight and copy the list (without the header "Unexpected dylibs:"). Run the following commands to move them to another location where they won't interfere.
 
 .. code:: bash
 

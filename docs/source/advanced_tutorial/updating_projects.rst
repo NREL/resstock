@@ -15,7 +15,7 @@ Once these two items have been completed, you are ready to start an AWS server a
 Check for Updates
 =================
 
-You want project-level measures to be up-to-date with top-level measures. To ensure this, click the blue "Check for Updates" button:
+You want project-level measures to be up-to-date with top-level measures (measures found in ``<project_name>/measures`` vs. those found in the top-level ``measures`` folder). To ensure this, click the blue "Check for Updates" button on the Measures Selection tab:
 
 .. image:: ../images/advanced_tutorial/check_for_updates_button.png
 
@@ -30,6 +30,6 @@ Click "Update Project" after each icon click. Click "OK" when done.
 Refresh Outputs
 ===============
 
-If you made changes to either the `Building Characteristics Report <https://github.com/NREL/OpenStudio-BuildStock/tree/master/measures/BuildingCharacteristicsReport>`_ or `Simulation Output Report <https://github.com/NREL/OpenStudio-BuildStock/tree/master/measures/SimulationOutputReport>`_ measures, you will need to make updates on the Outputs tab. To do this remove the measure(s) from the project and re-add them, while making sure they occupy the original place in the workflow order. Then navigate to the Outputs tab, select the measure(s) you've re-added, and then choose the outputs to include. Click "OK" when done.
+If you made changes to either the `Building Characteristics Report <https://github.com/NREL/OpenStudio-BuildStock/tree/master/measures/BuildingCharacteristicsReport>`_ or `Simulation Output Report <https://github.com/NREL/OpenStudio-BuildStock/tree/master/measures/SimulationOutputReport>`_ measures, you will need to make updates on the Outputs tab. To do this remove the measure(s) from the project and re-add them, while making sure they occupy the original position in the workflow order. Then navigate to the Outputs tab, select the measure(s) you've re-added, and then choose the outputs to include. Click "OK" when done. These outputs will be included in the summary results csv file.
 
 .. image:: ../images/advanced_tutorial/refresh_outputs.png
