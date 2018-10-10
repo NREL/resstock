@@ -2,13 +2,13 @@
   <schema_version>3.0</schema_version>
   <name>process_constructions_windows_skylights</name>
   <uid>648dc42f-f079-4d97-913e-6dc3e19560b1</uid>
-  <version_id>e45d4570-e780-42e9-89cf-57846fb51f3e</version_id>
-  <version_modified>20180822T022836Z</version_modified>
+  <version_id>93a9a52b-1aaf-4291-84c7-52e90a8eb8cd</version_id>
+  <version_modified>20180920T151058Z</version_modified>
   <xml_checksum>6FAFA9DE</xml_checksum>
   <class_name>ProcessConstructionsWindowsSkylights</class_name>
-  <display_name>Set Residential Window Construction</display_name>
-  <description>This measure assigns a construction to windows. This measure also creates the interior shading schedule, which is based on shade multipliers and the heating and cooling season logic defined in the Building America House Simulation Protocols. See https://github.com/NREL/OpenStudio-BEopt#workflows for supported workflows using this measure.</description>
-  <modeler_description>Calculates material layer properties of constructions for windows. Finds sub-surfaces and sets applicable constructions. Using interior heating and cooling shading multipliers and the Building America heating and cooling season logic, creates schedule rulesets for window shade and shading control.</modeler_description>
+  <display_name>Set Residential Window/Skylight Construction</display_name>
+  <description>This measure assigns a construction to windows/skylights. This measure also creates the interior shading schedule, which is based on shade multipliers and the heating and cooling season logic defined in the Building America House Simulation Protocols. See https://github.com/NREL/OpenStudio-BEopt#workflows for supported workflows using this measure.</description>
+  <modeler_description>Calculates material layer properties of constructions for windows/skylights. Finds sub-surfaces and sets applicable constructions. Using interior heating and cooling shading multipliers and the Building America heating and cooling season logic, creates schedule rulesets for window shade and shading control.</modeler_description>
   <arguments>
     <argument>
       <name>window_ufactor</name>
@@ -55,7 +55,7 @@
       <units>Btu/hr-ft^2-R</units>
       <required>true</required>
       <model_dependent>false</model_dependent>
-      <default_value>0.37</default_value>
+      <default_value>0.33</default_value>
     </argument>
     <argument>
       <name>skylight_shgc</name>
@@ -64,7 +64,7 @@
       <type>Double</type>
       <required>true</required>
       <model_dependent>false</model_dependent>
-      <default_value>0.3</default_value>
+      <default_value>0.45</default_value>
     </argument>
     <argument>
       <name>skylight_heat_shade_mult</name>
@@ -73,7 +73,7 @@
       <type>Double</type>
       <required>true</required>
       <model_dependent>false</model_dependent>
-      <default_value>0.7</default_value>
+      <default_value>1</default_value>
     </argument>
     <argument>
       <name>skylight_cool_shade_mult</name>
@@ -82,7 +82,7 @@
       <type>Double</type>
       <required>true</required>
       <model_dependent>false</model_dependent>
-      <default_value>0.7</default_value>
+      <default_value>1</default_value>
     </argument>
   </arguments>
   <outputs/>
@@ -122,23 +122,6 @@
       <checksum>208441EA</checksum>
     </file>
     <file>
-      <version>
-        <software_program>OpenStudio</software_program>
-        <identifier>1.4.0</identifier>
-        <min_compatible>2.0.4</min_compatible>
-      </version>
-      <filename>measure.rb</filename>
-      <filetype>rb</filetype>
-      <usage_type>script</usage_type>
-      <checksum>65357C10</checksum>
-    </file>
-    <file>
-      <filename>process_constructions_windows_skylights_test.rb</filename>
-      <filetype>rb</filetype>
-      <usage_type>test</usage_type>
-      <checksum>B75FB891</checksum>
-    </file>
-    <file>
       <filename>schedules.rb</filename>
       <filetype>rb</filetype>
       <usage_type>resource</usage_type>
@@ -151,22 +134,10 @@
       <checksum>4516079E</checksum>
     </file>
     <file>
-      <filename>hvac.rb</filename>
-      <filetype>rb</filetype>
-      <usage_type>resource</usage_type>
-      <checksum>1F3DDDE7</checksum>
-    </file>
-    <file>
       <filename>materials.rb</filename>
       <filetype>rb</filetype>
       <usage_type>resource</usage_type>
       <checksum>82D32FEE</checksum>
-    </file>
-    <file>
-      <filename>constants.rb</filename>
-      <filetype>rb</filetype>
-      <usage_type>resource</usage_type>
-      <checksum>3BCB1148</checksum>
     </file>
     <file>
       <filename>geometry.rb</filename>
@@ -175,40 +146,69 @@
       <checksum>3A649817</checksum>
     </file>
     <file>
-      <filename>constructions.rb</filename>
-      <filetype>rb</filetype>
-      <usage_type>resource</usage_type>
-      <checksum>D8B04DC5</checksum>
-    </file>
-    <file>
-      <filename>weather.rb</filename>
-      <filetype>rb</filetype>
-      <usage_type>resource</usage_type>
-      <checksum>AA9588B3</checksum>
-    </file>
-    <file>
       <filename>unit_conversions.rb</filename>
       <filetype>rb</filetype>
       <usage_type>resource</usage_type>
       <checksum>81550F14</checksum>
     </file>
     <file>
+      <filename>hvac.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>61214910</checksum>
+    </file>
+    <file>
+      <filename>constants.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>374E311F</checksum>
+    </file>
+    <file>
+      <version>
+        <software_program>OpenStudio</software_program>
+        <identifier>1.4.0</identifier>
+        <min_compatible>2.0.4</min_compatible>
+      </version>
+      <filename>measure.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>script</usage_type>
+      <checksum>4ECD8F3E</checksum>
+    </file>
+    <file>
+      <filename>process_constructions_windows_skylights_test.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>test</usage_type>
+      <checksum>3F737250</checksum>
+    </file>
+    <file>
+      <filename>constructions.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>49B11564</checksum>
+    </file>
+    <file>
       <filename>SFD_2000sqft_2story_SL_UA_Windows.osm</filename>
       <filetype>osm</filetype>
       <usage_type>test</usage_type>
-      <checksum>0606637E</checksum>
+      <checksum>05F06386</checksum>
     </file>
     <file>
       <filename>SFD_2000sqft_2story_SL_UA_Denver_Windows.osm</filename>
       <filetype>osm</filetype>
       <usage_type>test</usage_type>
-      <checksum>F143BBC1</checksum>
+      <checksum>A771D26D</checksum>
     </file>
     <file>
       <filename>SFD_2000sqft_2story_SL_FA_Denver_Windows_Skylights.osm</filename>
       <filetype>osm</filetype>
       <usage_type>test</usage_type>
-      <checksum>E9CD2C8A</checksum>
+      <checksum>AA80C364</checksum>
+    </file>
+    <file>
+      <filename>weather.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>F4DD18F1</checksum>
     </file>
   </files>
 </measure>

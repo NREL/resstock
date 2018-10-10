@@ -25,7 +25,8 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
                           "total_site_energy_mbtu",
                           "total_site_electricity_kwh",
                           "total_site_natural_gas_therm",
-                          "total_site_other_fuel_mbtu",
+                          "total_site_fuel_oil_mbtu",
+                          "total_site_propane_mbtu",
                           "net_site_energy_mbtu", # Incorporates PV
                           "net_site_electricity_kwh", # Incorporates PV
                           "electricity_heating_kwh",
@@ -40,9 +41,12 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
                           "natural_gas_heating_therm",
                           "natural_gas_interior_equipment_therm",
                           "natural_gas_water_systems_therm",
-                          "other_fuel_heating_mbtu",
-                          "other_fuel_interior_equipment_mbtu",
-                          "other_fuel_water_systems_mbtu",
+                          "fuel_oil_heating_mbtu",
+                          "fuel_oil_interior_equipment_mbtu",
+                          "fuel_oil_water_systems_mbtu",
+                          "propane_heating_mbtu",
+                          "propane_interior_equipment_mbtu",
+                          "propane_water_systems_mbtu",
                           "hours_heating_setpoint_not_met",
                           "hours_cooling_setpoint_not_met",
                           "hvac_cooling_capacity_w",
@@ -144,13 +148,36 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
     report_sim_output(runner, "natural_gas_heating_therm", [sqlFile.naturalGasHeating], "GJ", gas_site_units)
     report_sim_output(runner, "natural_gas_interior_equipment_therm", [sqlFile.naturalGasInteriorEquipment], "GJ", gas_site_units)
     report_sim_output(runner, "natural_gas_water_systems_therm", [sqlFile.naturalGasWaterSystems], "GJ", gas_site_units)
-    
-    # OTHER FUEL
-    
-    report_sim_output(runner, "total_site_other_fuel_mbtu", [sqlFile.otherFuelTotalEndUses], "GJ", other_fuel_site_units)
-    report_sim_output(runner, "other_fuel_heating_mbtu", [sqlFile.otherFuelHeating], "GJ", other_fuel_site_units)
-    report_sim_output(runner, "other_fuel_interior_equipment_mbtu", [sqlFile.otherFuelInteriorEquipment], "GJ", other_fuel_site_units)
-    report_sim_output(runner, "other_fuel_water_systems_mbtu", [sqlFile.otherFuelWaterSystems], "GJ", other_fuel_site_units)
+
+    # FUEL OIL
+
+    total_site_fuel_oil_query = "SELECT Value FROM TabularDataWithStrings WHERE ReportName='EnergyMeters' AND ReportForString='Entire Facility' AND TableName='Annual and Peak Values - Other' AND RowName='FuelOil#1:Facility' AND ColumnName='Annual Value' AND Units='GJ'"
+    total_site_fuel_oil = sqlFile.execAndReturnFirstDouble(total_site_fuel_oil_query)
+    fuel_oil_heating_query = "SELECT Value FROM TabularDataWithStrings WHERE ReportName='EnergyMeters' AND ReportForString='Entire Facility' AND TableName='Annual and Peak Values - Other' AND RowName='Heating:FuelOil#1' AND ColumnName='Annual Value' AND Units='GJ'"
+    fuel_oil_heating = sqlFile.execAndReturnFirstDouble(fuel_oil_heating_query)
+    fuel_oil_interior_equipment_query = "SELECT Value FROM TabularDataWithStrings WHERE ReportName='EnergyMeters' AND ReportForString='Entire Facility' AND TableName='Annual and Peak Values - Other' AND RowName='InteriorEquipment:FuelOil#1' AND ColumnName='Annual Value' AND Units='GJ'"
+    fuel_oil_interior_equipment = sqlFile.execAndReturnFirstDouble(fuel_oil_interior_equipment_query)
+    fuel_oil_water_systems_query = "SELECT Value FROM TabularDataWithStrings WHERE ReportName='EnergyMeters' AND ReportForString='Entire Facility' AND TableName='Annual and Peak Values - Other' AND RowName='WaterSystems:FuelOil#1' AND ColumnName='Annual Value' AND Units='GJ'"
+    fuel_oil_water_systems = sqlFile.execAndReturnFirstDouble(fuel_oil_water_systems_query)
+    report_sim_output(runner, "total_site_fuel_oil_mbtu", [total_site_fuel_oil], "GJ", other_fuel_site_units)
+    report_sim_output(runner, "fuel_oil_heating_mbtu", [fuel_oil_heating], "GJ", other_fuel_site_units)
+    report_sim_output(runner, "fuel_oil_interior_equipment_mbtu", [fuel_oil_interior_equipment], "GJ", other_fuel_site_units)
+    report_sim_output(runner, "fuel_oil_water_systems_mbtu", [fuel_oil_water_systems], "GJ", other_fuel_site_units)
+
+    # PROPANE
+
+    total_site_propane_query = "SELECT Value FROM TabularDataWithStrings WHERE ReportName='EnergyMeters' AND ReportForString='Entire Facility' AND TableName='Annual and Peak Values - Other' AND RowName='Propane:Facility' AND ColumnName='Annual Value' AND Units='GJ'"
+    total_site_propane = sqlFile.execAndReturnFirstDouble(total_site_propane_query)
+    propane_heating_query = "SELECT Value FROM TabularDataWithStrings WHERE ReportName='EnergyMeters' AND ReportForString='Entire Facility' AND TableName='Annual and Peak Values - Other' AND RowName='Heating:Propane' AND ColumnName='Annual Value' AND Units='GJ'"
+    propane_heating = sqlFile.execAndReturnFirstDouble(propane_heating_query)
+    propane_interior_equipment_query = "SELECT Value FROM TabularDataWithStrings WHERE ReportName='EnergyMeters' AND ReportForString='Entire Facility' AND TableName='Annual and Peak Values - Other' AND RowName='InteriorEquipment:Propane' AND ColumnName='Annual Value' AND Units='GJ'"
+    propane_interior_equipment = sqlFile.execAndReturnFirstDouble(propane_interior_equipment_query)
+    propane_water_systems_query = "SELECT Value FROM TabularDataWithStrings WHERE ReportName='EnergyMeters' AND ReportForString='Entire Facility' AND TableName='Annual and Peak Values - Other' AND RowName='WaterSystems:Propane' AND ColumnName='Annual Value' AND Units='GJ'"
+    propane_water_systems = sqlFile.execAndReturnFirstDouble(propane_water_systems_query)
+    report_sim_output(runner, "total_site_propane_mbtu", [total_site_propane], "GJ", other_fuel_site_units)
+    report_sim_output(runner, "propane_heating_mbtu", [propane_heating], "GJ", other_fuel_site_units)
+    report_sim_output(runner, "propane_interior_equipment_mbtu", [propane_interior_equipment], "GJ", other_fuel_site_units)
+    report_sim_output(runner, "propane_water_systems_mbtu", [propane_water_systems], "GJ", other_fuel_site_units)
     
     # LOADS NOT MET
     

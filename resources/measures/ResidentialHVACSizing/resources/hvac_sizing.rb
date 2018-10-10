@@ -460,7 +460,7 @@ class HVACSizing
     thermal_zones.each do |thermal_zone|
         next if not Geometry.zone_is_finished(thermal_zone)
         zone_loads = ZoneValues.new
-        zone_loads = process_load_windows(runner, mj8, thermal_zone, zone_loads, weather, htd)
+        zone_loads = process_load_windows_skylights(runner, mj8, thermal_zone, zone_loads, weather, htd)
         zone_loads = process_load_doors(runner, mj8, thermal_zone, zone_loads, weather, htd)
         zone_loads = process_load_walls(runner, mj8, unit, thermal_zone, zone_loads, weather, htd)
         zone_loads = process_load_roofs(runner, mj8, unit, thermal_zone, zone_loads, weather, htd)
@@ -507,26 +507,28 @@ class HVACSizing
     return zones_loads
   end
   
-  def self.process_load_windows(runner, mj8, thermal_zone, zone_loads, weather, htd)
+  def self.process_load_windows_skylights(runner, mj8, thermal_zone, zone_loads, weather, htd)
     '''
-    Heating, Cooling, and Dehumidification Loads: Windows
+    Heating, Cooling, and Dehumidification Loads: Windows & Skylights
     '''
     
     return nil if mj8.nil? or zone_loads.nil?
     
-    # Average cooling load factors for windows WITHOUT internal shading for surface 
+    # Average cooling load factors for windows/skylights WITHOUT internal shading for surface 
     # azimuths of 0,22.5,45, ... ,337.5,360
     # Additional values (compared to values in MJ8 Table 3D-3) have been determined by 
     # linear interpolation to avoid interpolating                    
     clf_avg_nois = [0.24, 0.295, 0.35, 0.365, 0.38, 0.39, 0.4, 0.44, 0.48, 0.44, 0.4, 0.39, 0.38, 0.365, 0.35, 0.295, 0.24]
+    clf_avg_nois_horiz = 0.68
 
-    # Average cooling load factors for windows WITH internal shading for surface 
+    # Average cooling load factors for windows/skylights WITH internal shading for surface 
     # azimuths of 0,22.5,45, ... ,337.5,360
     # Additional values (compared to values in MJ8 Table 3D-3) have been determined 
     # by linear interpolation to avoid interpolating in BMI
     clf_avg_is = [0.18, 0.235, 0.29, 0.305, 0.32, 0.32, 0.32, 0.305, 0.29, 0.305, 0.32, 0.32, 0.32, 0.305, 0.29, 0.235, 0.18]            
+    clf_avg_is_horiz = 0.52
     
-    # Hourly cooling load factor (CLF) for windows WITHOUT an internal shade taken from 
+    # Hourly cooling load factor (CLF) for windows/skylights WITHOUT an internal shade taken from 
     # ASHRAE HOF Ch.26 Table 36 (subset of data in MJ8 Table A11-5)
     # Surface Azimuth = 0 (South), 22.5, 45.0, ... ,337.5,360 and Hour = 8,9, ... ,19,20 
     clf_hr_nois = [[0.14, 0.22, 0.34, 0.48, 0.59, 0.65, 0.65, 0.59, 0.50, 0.43, 0.36, 0.28, 0.22],
@@ -546,8 +548,9 @@ class HVACSizing
                    [0.43, 0.55, 0.62, 0.63, 0.57, 0.48, 0.42, 0.37, 0.33, 0.28, 0.24, 0.19, 0.15],
                    [0.27, 0.43, 0.55, 0.63, 0.64, 0.60, 0.52, 0.45, 0.40, 0.35, 0.29, 0.23, 0.18],
                    [0.14, 0.22, 0.34, 0.48, 0.59, 0.65, 0.65, 0.59, 0.50, 0.43, 0.36, 0.28, 0.22]]
-
-    # Hourly cooling load factor (CLF) for windows WITH an internal shade taken from 
+    clf_hr_nois_horiz = [0.24, 0.36, 0.48, 0.58, 0.66, 0.72, 0.74, 0.73, 0.67, 0.59, 0.47, 0.37, 0.29]
+                   
+    # Hourly cooling load factor (CLF) for windows/skylights WITH an internal shade taken from 
     # ASHRAE HOF Ch.26 Table 39 (subset of data in MJ8 Table A11-6)
     # Surface Azimuth = 0 (South), 22.5, 45.0, ... ,337.5,360 and Hour = 8,9, ... ,19,20
     clf_hr_is = [[0.23, 0.38, 0.58, 0.75, 0.83, 0.80, 0.68, 0.50, 0.35, 0.27, 0.19, 0.11, 0.09],
@@ -567,7 +570,8 @@ class HVACSizing
                  [0.74, 0.81, 0.79, 0.68, 0.49, 0.33, 0.28, 0.25, 0.22, 0.18, 0.13, 0.08, 0.07],
                  [0.54, 0.72, 0.81, 0.81, 0.71, 0.54, 0.38, 0.32, 0.27, 0.22, 0.16, 0.09, 0.08],
                  [0.23, 0.38, 0.58, 0.75, 0.83, 0.80, 0.68, 0.50, 0.35, 0.27, 0.19, 0.11, 0.09]]
-
+    clf_hr_is_horiz = [0.44, 0.59, 0.72, 0.81, 0.85, 0.85, 0.81, 0.71, 0.58, 0.42, 0.25, 0.14, 0.12]
+                 
     # Shade Line Multipliers (SLM) for shaded windows will be calculated using the procedure 
     # described in ASHRAE HOF 1997 instead of using the SLM's from MJ8 Table 3E-1
     
@@ -599,20 +603,30 @@ class HVACSizing
            [152, 162, 172, 181, 189, 196, 202, 208, 212, 215, 217, 217],
            [ 88, 103, 120, 136, 151, 165, 177, 188, 197, 206, 213, 217],
            [ 57,  72,  91, 111, 131, 149, 165, 180, 193, 203, 211, 217]]
-                    
+    psf_horiz = [280, 277, 272, 265, 257, 247, 236, 223, 208, 193, 176, 159]
+           
+    # Hourly Temperature Adjustment Values (HTA_DR) (MJ8 Table A11-3)
+    # Low DR, Medium DR, High DR and Hour = 8,9, ... ,19,20
+    hta = [[ -6.3,  -5.0,  -3.7, -2.5, -1.5, -0.7, -0.2, 0.0, -0.2, -0.7, -1.5, -2.5,  -3.7], # Low DR
+           [-12.6, -10.0,  -7.4, -5.0, -2.9, -1.3, -0.3, 0.0, -0.3, -1.3, -2.9, -5.0,  -7.4], # Medium DR
+           [-18.9, -15.0, -11.1, -7.5, -4.4, -2.0, -0.5, 0.0, -0.5, -2.0, -4.4, -7.5, -11.1]] # High DR
+
     # Determine the PSF's for the building latitude
     psf_lat = []
+    psf_lat_horiz = nil
     latitude = weather.header.Latitude.to_f
     for cnt in 0..16
         if latitude < 20.0
             psf_lat << psf[cnt][0]
             if cnt == 0
                 runner.registerWarning('Latitude of 20 was assumed for Manual J solar load calculations.')
+                psf_lat_horiz = psf_horiz[0]
             end
         elsif latitude > 64.0
             psf_lat << psf[cnt][11]
             if cnt == 0
                 runner.registerWarning('Latitude of 64 was assumed for Manual J solar load calculations.')
+                psf_lat_horiz = psf_horiz[11]
             end
         else
             cnt_lat_s = ((latitude - 20.0) / 4.0).to_i
@@ -620,14 +634,17 @@ class HVACSizing
             lat_s = 20 + 4 * cnt_lat_s
             lat_n = lat_s + 4
             psf_lat << MathTools.interp2(latitude, lat_s, lat_n, psf[cnt][cnt_lat_s], psf[cnt][cnt_lat_n])
+            if cnt == 0
+                psf_lat_horiz = MathTools.interp2(latitude, lat_s, lat_n, psf_horiz[cnt_lat_s], psf_horiz[cnt_lat_n])
+            end
         end
     end
     
-    alp_load = 0 # Average Load Procedure (ALP) Load
-    afl_hr = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0] # Initialize Hourly Aggregate Fenestration Load (AFL)
-    
+    # Windows
     zone_loads.Heat_Windows = 0
     zone_loads.Dehumid_Windows = 0
+    alp_load = 0 # Average Load Procedure (ALP) Load
+    afl_hr = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0] # Initialize Hourly Aggregate Fenestration Load (AFL)
     
     Geometry.get_spaces_above_grade_exterior_walls(thermal_zone.spaces).each do |wall|
         wall_true_azimuth = true_azimuth(wall)
@@ -643,8 +660,8 @@ class HVACSizing
             zone_loads.Dehumid_Windows += u_window * UnitConversions.convert(window.grossArea,"m^2","ft^2") * mj8.dtd
             
             # SHGC & Internal Shading
-            shgc_with_IntGains_shade_cool, shgc_with_IntGains_shade_heat = get_window_shgc(runner, window)
-            return nil if shgc_with_IntGains_shade_cool.nil? or shgc_with_IntGains_shade_heat.nil?
+            shgc_with_interior_shade_cool, shgc_with_interior_shade_heat = get_fenestration_shgc(runner, window)
+            return nil if shgc_with_interior_shade_cool.nil? or shgc_with_interior_shade_heat.nil?
             
             windowHeight = Geometry.surface_height(window)
             windowHasIntShading = window.shadingControl.is_initialized
@@ -684,37 +701,37 @@ class HVACSizing
                 # If hr == -1: Calculate the Average Load Procedure (ALP) Load
                 # Else: Calculate the hourly Aggregate Fenestration Load (AFL)
                 
+                # clf_d: Average Cooling Load Factor for the given window direction
+                # clf_n: Average Cooling Load Factor for a window facing North (fully shaded)
                 if hr == -1
                     if windowHasIntShading
-                        # Average Cooling Load Factor for the given window direction
                         clf_d = clf_avg_is[cnt225]
-                        #Average Cooling Load Factor for a window facing North (fully shaded)
                         clf_n = clf_avg_is[8]
                     else
-                        # Average Cooling Load Factor for the given window direction
                         clf_d = clf_avg_nois[cnt225]
-                        #Average Cooling Load Factor for a window facing North (fully shaded)
                         clf_n = clf_avg_nois[8]
                     end
                 else
                     if windowHasIntShading
-                        # Average Cooling Load Factor for the given window Direction
                         clf_d = clf_hr_is[cnt225][hr]
-                        # Average Cooling Load Factor for a window facing North (fully shaded)
                         clf_n = clf_hr_is[8][hr]
                     else
-                        # Average Cooling Load Factor for the given window Direction
                         clf_d = clf_hr_nois[cnt225][hr]
-                        # Average Cooling Load Factor for a window facing North (fully shaded)
                         clf_n = clf_hr_nois[8][hr]
                     end
                 end
+                
+                ctd = mj8.ctd
+                if hr > -1
+                    # Calculate hourly CTD adjusted value for mid-summer
+                    ctd += hta[mj8.daily_range_num][hr]
+                end
         
                 # Hourly Heat Transfer Multiplier for the given window Direction
-                htm_d = psf_lat[cnt225] * clf_d * shgc_with_IntGains_shade_cool / 0.87 + u_window * mj8.ctd
+                htm_d = psf_lat[cnt225] * clf_d * shgc_with_interior_shade_cool / 0.87 + u_window * ctd
         
                 # Hourly Heat Transfer Multiplier for a window facing North (fully shaded)
-                htm_n = psf_lat[8] * clf_n * shgc_with_IntGains_shade_cool / 0.87 + u_window * mj8.ctd
+                htm_n = psf_lat[8] * clf_n * shgc_with_interior_shade_cool / 0.87 + u_window * ctd
                 
                 if wall_true_azimuth < 180
                     surf_azimuth = wall_true_azimuth
@@ -797,6 +814,99 @@ class HVACSizing
 
     # Window Cooling Load
     zone_loads.Cool_Windows = alp_load + eal
+    
+    
+    
+    # Skylights
+    zone_loads.Heat_Skylights = 0
+    zone_loads.Dehumid_Skylights = 0
+    alp_load = 0 # Average Load Procedure (ALP) Load
+    afl_hr = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0] # Initialize Hourly Aggregate Fenestration Load (AFL)
+
+    Geometry.get_spaces_above_grade_exterior_roofs(thermal_zone.spaces).each do |roof|
+        roof_true_azimuth = true_azimuth(roof)
+        cnt225 = (roof_true_azimuth / 22.5).round.to_i
+        inclination_angle = Geometry.get_roof_pitch([roof])
+        
+        roof.subSurfaces.each do |skylight|
+            next if not skylight.subSurfaceType.downcase.include?("skylight")
+            
+            # U-factor
+            u_skylight = get_surface_ufactor(runner, skylight, skylight.subSurfaceType, true)
+            return nil if u_skylight.nil?
+            zone_loads.Heat_Skylights += u_skylight * UnitConversions.convert(skylight.grossArea,"m^2","ft^2") * htd
+            zone_loads.Dehumid_Skylights += u_skylight * UnitConversions.convert(skylight.grossArea,"m^2","ft^2") * mj8.dtd
+            
+            # SHGC & Internal Shading
+            shgc_with_interior_shade_cool, shgc_with_interior_shade_heat = get_fenestration_shgc(runner, skylight)
+            return nil if shgc_with_interior_shade_cool.nil? or shgc_with_interior_shade_heat.nil?
+            
+            skylightHasIntShading = skylight.shadingControl.is_initialized
+            
+            for hr in -1..12
+            
+                # If hr == -1: Calculate the Average Load Procedure (ALP) Load
+                # Else: Calculate the hourly Aggregate Fenestration Load (AFL)
+                
+                # clf_d: Average Cooling Load Factor for the given skylight direction
+                # clf_d: Average Cooling Load Factor for horizontal
+                if hr == -1
+                    if skylightHasIntShading
+                        clf_d = clf_avg_is[cnt225]
+                        clf_horiz = clf_avg_is_horiz
+                    else
+                        clf_d = clf_avg_nois[cnt225]
+                        clf_horiz = clf_avg_nois_horiz
+                    end
+                else
+                    if skylightHasIntShading
+                        clf_d = clf_hr_is[cnt225][hr]
+                        clf_horiz = clf_hr_is_horiz[hr]
+                    else
+                        clf_d = clf_hr_nois[cnt225][hr]
+                        clf_horiz = clf_hr_nois_horiz[hr]
+                    end
+                end
+                
+                sol_h = Math::cos(inclination_angle.deg2rad) * (psf_lat_horiz * clf_horiz)
+                sol_v = Math::sin(inclination_angle.deg2rad) * (psf_lat[cnt225] * clf_d)
+        
+                ctd = mj8.ctd
+                if hr > -1
+                    # Calculate hourly CTD adjusted value for mid-summer
+                    ctd += hta[mj8.daily_range_num][hr]
+                end
+                
+                # Hourly Heat Transfer Multiplier for the given skylight Direction
+                u_curb = 0.51 # default to wood (Table 2B-3)
+                ar_curb = 0.35 # default to small (Table 2B-3)
+                u_eff_skylight = u_skylight + u_curb * ar_curb
+                htm = (sol_h + sol_v) * (shgc_with_interior_shade_cool / 0.87) + u_eff_skylight * (ctd + 15)
+        
+                if hr == -1
+                    alp_load += htm * UnitConversions.convert(skylight.grossArea,"m^2","ft^2")
+                else
+                    afl_hr[hr] += htm * UnitConversions.convert(skylight.grossArea,"m^2","ft^2")
+                end
+            end
+
+        end # skylight
+    end # roof
+    
+    # Daily Average Load (DAL)
+    dal = afl_hr.inject{ |sum, n| sum + n } / afl_hr.size
+
+    # Excursion Limit line (ELL)
+    ell = 1.3 * dal
+
+    # Peak Fenestration Load (PFL)
+    pfl = afl_hr.max
+
+    # Excursion Adjustment Load (EAL)
+    eal = [0, pfl - ell].max
+
+    # Skylight Cooling Load
+    zone_loads.Cool_Skylights = alp_load + eal
     
     return zone_loads
   end
@@ -1321,22 +1431,23 @@ class HVACSizing
         zone_loads = zones_loads[thermal_zone]
         
         # Heating
-        unit_init.Heat_Load += [zone_loads.Heat_Windows + zone_loads.Heat_Doors +
-                                zone_loads.Heat_Walls + zone_loads.Heat_Floors + 
-                                zone_loads.Heat_Roofs, 0].max + zone_loads.Heat_Infil
+        unit_init.Heat_Load += [zone_loads.Heat_Windows + zone_loads.Heat_Skylights + 
+                                zone_loads.Heat_Doors + zone_loads.Heat_Walls + 
+                                zone_loads.Heat_Floors + zone_loads.Heat_Roofs, 0].max + 
+                               zone_loads.Heat_Infil
 
         # Cooling
-        unit_init.Cool_Load_Sens += zone_loads.Cool_Windows + zone_loads.Cool_Doors +
-                                    zone_loads.Cool_Walls + zone_loads.Cool_Floors +
-                                    zone_loads.Cool_Roofs + zone_loads.Cool_Infil_Sens +
-                                    zone_loads.Cool_IntGains_Sens
+        unit_init.Cool_Load_Sens += zone_loads.Cool_Windows + zone_loads.Cool_Skylights + 
+                                    zone_loads.Cool_Doors + zone_loads.Cool_Walls + 
+                                    zone_loads.Cool_Floors + zone_loads.Cool_Roofs + 
+                                    zone_loads.Cool_Infil_Sens + zone_loads.Cool_IntGains_Sens
         unit_init.Cool_Load_Lat += zone_loads.Cool_Infil_Lat + zone_loads.Cool_IntGains_Lat
         
         # Dehumidification
-        unit_init.Dehumid_Load_Sens += zone_loads.Dehumid_Windows + zone_loads.Dehumid_Doors + 
-                                       zone_loads.Dehumid_Walls + zone_loads.Dehumid_Floors +
-                                       zone_loads.Dehumid_Roofs + zone_loads.Dehumid_Infil_Sens + 
-                                       zone_loads.Dehumid_IntGains_Sens
+        unit_init.Dehumid_Load_Sens += zone_loads.Dehumid_Windows + zone_loads.Dehumid_Skylights + 
+                                       zone_loads.Dehumid_Doors + zone_loads.Dehumid_Walls + 
+                                       zone_loads.Dehumid_Floors + zone_loads.Dehumid_Roofs + 
+                                       zone_loads.Dehumid_Infil_Sens + zone_loads.Dehumid_IntGains_Sens
         unit_init.Dehumid_Load_Lat += zone_loads.Dehumid_Infil_Lat + zone_loads.Dehumid_IntGains_Lat
     end
     
@@ -2271,9 +2382,10 @@ class HVACSizing
     
     zone_heat_loads = {}
     zones_loads.each do |thermal_zone, zone_loads|
-        zone_heat_loads[thermal_zone] = [zone_loads.Heat_Windows + zone_loads.Heat_Doors +
-                                         zone_loads.Heat_Walls + zone_loads.Heat_Floors + 
-                                         zone_loads.Heat_Roofs, 0].max + zone_loads.Heat_Infil
+        zone_heat_loads[thermal_zone] = [zone_loads.Heat_Windows + zone_loads.Heat_Skylights + 
+                                         zone_loads.Heat_Doors + zone_loads.Heat_Walls + 
+                                         zone_loads.Heat_Floors + zone_loads.Heat_Roofs, 0].max + 
+                                        zone_loads.Heat_Infil
         if !ducts.LocationSpace.nil? and thermal_zone.spaces.include?(ducts.LocationSpace)
             zone_heat_loads[thermal_zone] -= unit_final.Heat_Load_Ducts
         end
@@ -2595,11 +2707,11 @@ class HVACSizing
     return [q_unb, q_bal_Sens, q_bal_Lat]
   end
   
-  def self.get_window_shgc(runner, surface)
+  def self.get_fenestration_shgc(runner, surface)
     simple_glazing = get_window_simple_glazing(runner, surface, true)
     return nil if simple_glazing.nil?
     
-    shgc_with_IntGains_shade_heat = simple_glazing.solarHeatGainCoefficient
+    shgc_with_interior_shade_heat = simple_glazing.solarHeatGainCoefficient
     
     int_shade_heat_to_cool_ratio = 1.0
     if surface.shadingControl.is_initialized
@@ -2616,9 +2728,9 @@ class HVACSizing
         end
     end
     
-    shgc_with_IntGains_shade_cool = shgc_with_IntGains_shade_heat * int_shade_heat_to_cool_ratio
+    shgc_with_interior_shade_cool = shgc_with_interior_shade_heat * int_shade_heat_to_cool_ratio
     
-    return [shgc_with_IntGains_shade_cool, shgc_with_IntGains_shade_heat]
+    return [shgc_with_interior_shade_cool, shgc_with_interior_shade_heat]
   end
   
   def self.calc_heat_cfm(load, acf, heat_setpoint, htg_supply_air_temp)
@@ -4408,14 +4520,16 @@ class HVACSizing
         loads = zone_loads[thermal_zone]
         s = "#{unit.name.to_s} Zone Loads for #{thermal_zone.name.to_s}:"
         properties = [
-                      :Heat_Windows, :Heat_Doors,
-                      :Heat_Walls, :Heat_Roofs,
-                      :Heat_Floors, :Heat_Infil,
-                      :Cool_Windows, :Cool_Doors, 
-                      :Cool_Walls, :Cool_Roofs, 
-                      :Cool_Floors, :Cool_Infil_Sens, 
-                      :Cool_Infil_Lat, :Cool_IntGains_Sens, 
-                      :Cool_IntGains_Lat, :Dehumid_Windows, 
+                      :Heat_Windows, :Heat_Skylights, 
+                      :Heat_Doors, :Heat_Walls, 
+                      :Heat_Roofs, :Heat_Floors, 
+                      :Heat_Infil,
+                      :Cool_Windows, :Cool_Skylights,
+                      :Cool_Doors, :Cool_Walls, 
+                      :Cool_Roofs, :Cool_Floors, 
+                      :Cool_Infil_Sens, :Cool_Infil_Lat, 
+                      :Cool_IntGains_Sens, :Cool_IntGains_Lat, 
+                      :Dehumid_Windows, :Dehumid_Skylights,
                       :Dehumid_Doors, :Dehumid_Walls,
                       :Dehumid_Roofs, :Dehumid_Floors,
                       :Dehumid_Infil_Sens, :Dehumid_Infil_Lat,
@@ -4495,9 +4609,9 @@ class ZoneValues
   # Thermal zone loads
   def initialize
   end
-  attr_accessor(:Cool_Windows, :Cool_Doors, :Cool_Walls, :Cool_Roofs, :Cool_Floors,
-                :Dehumid_Windows, :Dehumid_Doors, :Dehumid_Walls, :Dehumid_Roofs, :Dehumid_Floors,
-                :Heat_Windows, :Heat_Doors, :Heat_Walls, :Heat_Roofs, :Heat_Floors,
+  attr_accessor(:Cool_Windows, :Cool_Skylights, :Cool_Doors, :Cool_Walls, :Cool_Roofs, :Cool_Floors,
+                :Dehumid_Windows, :Dehumid_Skylights, :Dehumid_Doors, :Dehumid_Walls, :Dehumid_Roofs, :Dehumid_Floors,
+                :Heat_Windows, :Heat_Skylights, :Heat_Doors, :Heat_Walls, :Heat_Roofs, :Heat_Floors,
                 :Cool_Infil_Sens, :Cool_Infil_Lat, :Cool_IntGains_Sens, :Cool_IntGains_Lat,
                 :Dehumid_Infil_Sens, :Dehumid_Infil_Lat, :Dehumid_IntGains_Sens, :Dehumid_IntGains_Lat,
                 :Heat_Infil)

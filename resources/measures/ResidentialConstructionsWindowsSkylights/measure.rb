@@ -19,15 +19,15 @@ class ProcessConstructionsWindowsSkylights < OpenStudio::Measure::ModelMeasure
   #define the name that a user will see, this method may be deprecated as
   #the display name in PAT comes from the name field in measure.xml
   def name
-    return "Set Residential Window Construction"
+    return "Set Residential Window/Skylight Construction"
   end
   
   def description
-    return "This measure assigns a construction to windows. This measure also creates the interior shading schedule, which is based on shade multipliers and the heating and cooling season logic defined in the Building America House Simulation Protocols.#{Constants.WorkflowDescription}"
+    return "This measure assigns a construction to windows/skylights. This measure also creates the interior shading schedule, which is based on shade multipliers and the heating and cooling season logic defined in the Building America House Simulation Protocols.#{Constants.WorkflowDescription}"
   end
   
   def modeler_description
-    return "Calculates material layer properties of constructions for windows. Finds sub-surfaces and sets applicable constructions. Using interior heating and cooling shading multipliers and the Building America heating and cooling season logic, creates schedule rulesets for window shade and shading control."
+    return "Calculates material layer properties of constructions for windows/skylights. Finds sub-surfaces and sets applicable constructions. Using interior heating and cooling shading multipliers and the Building America heating and cooling season logic, creates schedule rulesets for window shade and shading control."
   end   
   
   #define the arguments that the user will input
@@ -68,28 +68,28 @@ class ProcessConstructionsWindowsSkylights < OpenStudio::Measure::ModelMeasure
     skylight_ufactor.setDisplayName("Skylights: U-Factor")
     skylight_ufactor.setUnits("Btu/hr-ft^2-R")
     skylight_ufactor.setDescription("The heat transfer coefficient of the skylights.")
-    skylight_ufactor.setDefaultValue(0.37)
+    skylight_ufactor.setDefaultValue(0.33)
     args << skylight_ufactor
 
     #make an argument for entering front window shgc
     skylight_shgc = OpenStudio::Measure::OSArgument::makeDoubleArgument("skylight_shgc",true)
     skylight_shgc.setDisplayName("Skylights: SHGC")
     skylight_shgc.setDescription("The ratio of solar heat gain through a glazing system compared to that of an unobstructed opening, for skylights.")
-    skylight_shgc.setDefaultValue(0.3)
+    skylight_shgc.setDefaultValue(0.45)
     args << skylight_shgc
 
     #make an argument for entering heating shade multiplier
     skylight_heat_shade_mult = OpenStudio::Measure::OSArgument::makeDoubleArgument("skylight_heat_shade_mult",true)
     skylight_heat_shade_mult.setDisplayName("Skylights: Heating Shade Multiplier")
     skylight_heat_shade_mult.setDescription("Interior shading multiplier for heating season. 1.0 indicates no reduction in solar gain, 0.85 indicates 15% reduction, etc.")
-    skylight_heat_shade_mult.setDefaultValue(0.7)
+    skylight_heat_shade_mult.setDefaultValue(1.0)
     args << skylight_heat_shade_mult
 
     #make an argument for entering cooling shade multiplier
     skylight_cool_shade_mult = OpenStudio::Measure::OSArgument::makeDoubleArgument("skylight_cool_shade_mult",true)
     skylight_cool_shade_mult.setDisplayName("Skylights: Cooling Shade Multiplier")
     skylight_cool_shade_mult.setDescription("Interior shading multiplier for cooling season. 1.0 indicates no reduction in solar gain, 0.85 indicates 15% reduction, etc.")
-    skylight_cool_shade_mult.setDefaultValue(0.7)
+    skylight_cool_shade_mult.setDefaultValue(1.0)
     args << skylight_cool_shade_mult
     
     return args
