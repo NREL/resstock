@@ -1015,18 +1015,11 @@ class RoofConstructions
         surfaces.each do |surface|
             model.getBuildingUnits.each do |unit|
                 next if unit.spaces.size == 0
-                unit.setFeature(Constants.SizingInfoRoofCavityRvalue(surface), cavity_r)
-            end
-        end
-        
-        # Store info for HVAC Sizing measure
-        surfaces.each do |surface|
-            model.getBuildingUnits.each do |unit|
-                next if unit.spaces.size == 0
                 unit.setFeature(Constants.SizingInfoRoofColor(surface), get_roofing_material_manual_j_color(mat_roofing.name))
                 unit.setFeature(Constants.SizingInfoRoofMaterial(surface), get_roofing_material_manual_j_material(mat_roofing.name))
                 unit.setFeature(Constants.SizingInfoRoofRigidInsRvalue(surface), rigid_r)
                 unit.setFeature(Constants.SizingInfoRoofHasRadiantBarrier(surface), false)
+                unit.setFeature(Constants.SizingInfoRoofCavityRvalue(surface), cavity_r)
             end
         end
         
@@ -1073,6 +1066,7 @@ class RoofConstructions
                 unit.setFeature(Constants.SizingInfoRoofMaterial(surface), get_roofing_material_manual_j_material(mat_roofing.name))
                 unit.setFeature(Constants.SizingInfoRoofRigidInsRvalue(surface), 0.0)
                 unit.setFeature(Constants.SizingInfoRoofHasRadiantBarrier(surface), false)
+                unit.setFeature(Constants.SizingInfoRoofCavityRvalue(surface), 0.0)
             end
         end
     
@@ -1526,25 +1520,6 @@ class FoundationConstructions
         return true
     end
     
-    def self.get_walls_connected_to_floor(wall_surfaces, floor_surface)
-        adjacent_wall_surfaces = []
-        
-        # Note: Algorithm assumes that walls span an entire edge of the floor.
-        tol = 0.001
-        wall_surfaces.each do |wall_surface|
-            next if wall_surface.space.get != floor_surface.space.get
-            wall_surface.vertices.each do |v1|
-                floor_surface.vertices.each do |v2|
-                    if (v1.x - v2.x).abs < tol and (v1.y - v2.y).abs < tol
-                        adjacent_wall_surfaces << wall_surface
-                    end
-                end
-            end
-        end
-        
-        return adjacent_wall_surfaces.uniq!
-    end
-    
     private
     
     def self.calc_interior_wall_r_value(runner, cavity_depth_in, cavity_r, filled_cavity,
@@ -1839,22 +1814,12 @@ class SubsurfaceConstructions
             sm.setRightSideOpeningMultiplier(0)
             sm.setAirflowPermeability(0)
 
-            if type == "Window"
-              # WindowShadingControl
-              sc = OpenStudio::Model::ShadingControl.new(sm)
-              sc.setName("#{type}ShadingControl")
-              sc.setShadingType("InteriorShade")
-              sc.setShadingControlType("OnIfScheduleAllows")
-              sc.setSchedule(sch.schedule)
-            elsif type == "Skylight"
-              # SkylightShadingControl
-              sc = OpenStudio::Model::ShadingControl.new(sm)
-              sc.setName("#{type}ShadingControl")
-              sc.setShadingType("InteriorShade")
-              sc.setShadingControlType("AlwaysOff")
-              # sc.setSchedule(model.alwaysOffDiscreteSchedule)
-            end
-            
+            # ShadingControl
+            sc = OpenStudio::Model::ShadingControl.new(sm)
+            sc.setName("#{type}ShadingControl")
+            sc.setShadingType("InteriorShade")
+            sc.setShadingControlType("OnIfScheduleAllows")
+            sc.setSchedule(sch.schedule)
         end
 
         # Define materials

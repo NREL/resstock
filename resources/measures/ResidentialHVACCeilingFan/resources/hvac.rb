@@ -22,8 +22,6 @@ class HVAC
       cOOL_CAP_FFLOW_SPEC = [[0.718605468, 0.410099989, -0.128705457]]
       cOOL_EIR_FFLOW_SPEC = [[1.32299905, -0.477711207, 0.154712157]]
       
-      static = UnitConversions.convert(0.5,"inH2O","Pa") # Pascal
-
       capacity_ratios = [1.0]
       fan_speed_ratios = [1.0]
       
@@ -79,11 +77,12 @@ class HVAC
         end
         
         fan = OpenStudio::Model::FanOnOff.new(model, model.alwaysOnDiscreteSchedule)
+        fan_eff = 0.75 # Overall Efficiency of the Fan, Motor and Drive
         fan.setName(obj_name + " supply fan")
         fan.setEndUseSubcategory(Constants.EndUseHVACFan)
-        fan.setFanEfficiency(dse * calculate_fan_efficiency(static, fan_power_installed))
-        fan.setPressureRise(static)
-        fan.setMotorEfficiency(dse * 1.0)
+        fan.setFanEfficiency(fan_eff)
+        fan.setPressureRise(calculate_fan_pressure_rise(fan_eff, fan_power_installed/dse))
+        fan.setMotorEfficiency(1.0)
         fan.setMotorInAirstreamFraction(1.0) 
       
         # _processSystemAir
@@ -183,8 +182,6 @@ class HVAC
       cOOL_EIR_FFLOW_SPEC = [[1.562945114, -0.791859997, 0.230030877], 
                              [1.31565404, -0.482467162, 0.166239001]]
       
-      static = UnitConversions.convert(0.5,"inH2O","Pa") # Pascal
-
       # Cooling Coil
       rated_airflow_rate = 355.2 # cfm
       cfms_ton_rated = calc_cfms_ton_rated(rated_airflow_rate, fan_speed_ratios, capacity_ratios)
@@ -235,11 +232,12 @@ class HVAC
         fan_eff_curve = create_curve_cubic(model, [0, 1, 0, 0], obj_name + " fan eff curve", 0, 1, 0.01, 1)
         
         fan = OpenStudio::Model::FanOnOff.new(model, model.alwaysOnDiscreteSchedule, fan_power_curve, fan_eff_curve)
+        fan_eff = 0.75 # Overall Efficiency of the Fan, Motor and Drive
         fan.setName(obj_name + " supply fan")
         fan.setEndUseSubcategory(Constants.EndUseHVACFan)
-        fan.setFanEfficiency(dse * calculate_fan_efficiency(static, fan_power_installed))
-        fan.setPressureRise(static)
-        fan.setMotorEfficiency(dse * 1.0)
+        fan.setFanEfficiency(fan_eff)
+        fan.setPressureRise(calculate_fan_pressure_rise(fan_eff, fan_power_installed/dse))
+        fan.setMotorEfficiency(1.0)
         fan.setMotorInAirstreamFraction(1.0)
       
         # _processSystemAir
@@ -350,8 +348,6 @@ class HVAC
       cOOL_CAP_FFLOW_SPEC = [[1, 0, 0]] * num_speeds
       cOOL_EIR_FFLOW_SPEC = [[1, 0, 0]] * num_speeds
       
-      static = UnitConversions.convert(0.5,"inH2O","Pa") # Pascal
-
       # Cooling Coil
       rated_airflow_rate = 315.8 # cfm
       cfms_ton_rated = calc_cfms_ton_rated(rated_airflow_rate, fan_speed_ratios, capacity_ratios)
@@ -402,11 +398,12 @@ class HVAC
         fan_eff_curve = create_curve_cubic(model, [0, 1, 0, 0], obj_name + " fan eff curve", 0, 1, 0.01, 1)
         
         fan = OpenStudio::Model::FanOnOff.new(model, model.alwaysOnDiscreteSchedule, fan_power_curve, fan_eff_curve)
+        fan_eff = 0.75 # Overall Efficiency of the Fan, Motor and Drive
         fan.setName(obj_name + " supply fan")
         fan.setEndUseSubcategory(Constants.EndUseHVACFan)
-        fan.setFanEfficiency(dse * calculate_fan_efficiency(static, fan_power_installed))
-        fan.setPressureRise(static)
-        fan.setMotorEfficiency(dse * 1.0)
+        fan.setFanEfficiency(fan_eff)
+        fan.setPressureRise(calculate_fan_pressure_rise(fan_eff, fan_power_installed/dse))
+        fan.setMotorEfficiency(1.0)
         fan.setMotorInAirstreamFraction(1.0)
       
         # _processSystemAir
@@ -518,8 +515,6 @@ class HVAC
       hEAT_CAP_FFLOW_SPEC = [[0.694045465, 0.474207981, -0.168253446]]
       hEAT_EIR_FFLOW_SPEC = [[2.185418751, -1.942827919, 0.757409168]]
 
-      static = UnitConversions.convert(0.5,"inH2O","Pa") # Pascal
-
       capacity_ratios = [1.0]
       fan_speed_ratios_cooling = [1.0]
       fan_speed_ratios_heating = [1.0]
@@ -599,11 +594,12 @@ class HVAC
         # _processSystemFan
 
         fan = OpenStudio::Model::FanOnOff.new(model, model.alwaysOnDiscreteSchedule)
+        fan_eff = 0.75 # Overall Efficiency of the Fan, Motor and Drive
         fan.setName(obj_name + " supply fan")
         fan.setEndUseSubcategory(Constants.EndUseHVACFan)
-        fan.setFanEfficiency(dse * calculate_fan_efficiency(static, fan_power_installed))
-        fan.setPressureRise(static)
-        fan.setMotorEfficiency(dse * 1.0)
+        fan.setFanEfficiency(fan_eff)
+        fan.setPressureRise(calculate_fan_pressure_rise(fan_eff, fan_power_installed/dse))
+        fan.setMotorEfficiency(1.0)
         fan.setMotorInAirstreamFraction(1.0)
         
         # _processSystemAir
@@ -711,8 +707,6 @@ class HVAC
       hEAT_EIR_FFLOW_SPEC = [[2.153618211, -1.737190609, 0.584269478], 
                              [2.001041353, -1.58869128, 0.587593517]]
 
-      static = UnitConversions.convert(0.5,"inH2O","Pa") # Pascal
-
       # Cooling Coil
       rated_airflow_rate_cooling = 344.1 # cfm
       cfms_ton_rated_cooling = calc_cfms_ton_rated(rated_airflow_rate_cooling, fan_speed_ratios_cooling, capacity_ratios)
@@ -787,11 +781,12 @@ class HVAC
         fan_eff_curve = create_curve_cubic(model, [0, 1, 0, 0], obj_name + " fan eff curve", 0, 1, 0.01, 1)
         
         fan = OpenStudio::Model::FanOnOff.new(model, model.alwaysOnDiscreteSchedule, fan_power_curve, fan_eff_curve)
+        fan_eff = 0.75 # Overall Efficiency of the Fan, Motor and Drive
         fan.setName(obj_name + " supply fan")
         fan.setEndUseSubcategory(Constants.EndUseHVACFan)
-        fan.setFanEfficiency(dse * calculate_fan_efficiency(static, fan_power_installed))
-        fan.setPressureRise(static)
-        fan.setMotorEfficiency(dse * 1.0)
+        fan.setFanEfficiency(fan_eff)
+        fan.setPressureRise(calculate_fan_pressure_rise(fan_eff, fan_power_installed/dse))
+        fan.setMotorEfficiency(1.0)
         fan.setMotorInAirstreamFraction(1.0)
         
         # _processSystemAir
@@ -912,8 +907,6 @@ class HVAC
       hEAT_CAP_FFLOW_SPEC = [[1, 0, 0]] * num_speeds
       hEAT_EIR_FFLOW_SPEC = [[1, 0, 0]] * num_speeds
 
-      static = UnitConversions.convert(0.5,"inH2O","Pa") # Pascal
-
       # Cooling Coil
       rated_airflow_rate_cooling = 315.8 # cfm
       cfms_ton_rated_cooling = calc_cfms_ton_rated(rated_airflow_rate_cooling, fan_speed_ratios_cooling, capacity_ratios)
@@ -989,11 +982,12 @@ class HVAC
         fan_eff_curve = create_curve_cubic(model, [0, 1, 0, 0], obj_name + " fan eff curve", 0, 1, 0.01, 1)
         
         fan = OpenStudio::Model::FanOnOff.new(model, model.alwaysOnDiscreteSchedule, fan_power_curve, fan_eff_curve)
+        fan_eff = 0.75 # Overall Efficiency of the Fan, Motor and Drive
         fan.setName(obj_name + " supply fan")
         fan.setEndUseSubcategory(Constants.EndUseHVACFan)
-        fan.setFanEfficiency(dse * calculate_fan_efficiency(static, fan_power_installed))
-        fan.setPressureRise(static)
-        fan.setMotorEfficiency(dse * 1.0)
+        fan.setFanEfficiency(fan_eff)
+        fan.setPressureRise(calculate_fan_pressure_rise(fan_eff, fan_power_installed/dse))
+        fan.setMotorEfficiency(1.0)
         fan.setMotorInAirstreamFraction(1.0)    
         
         # _processSystemAir
@@ -1095,7 +1089,6 @@ class HVAC
       
       max_defrost_temp = 40.0 # F
       min_hp_temp = -30.0 # F; Minimum temperature for Heat Pump operation
-      static = UnitConversions.convert(0.1,"inH2O","Pa") # Pascal
           
       # Performance curves
       # NOTE: These coefficients are in SI UNITS
@@ -1229,11 +1222,12 @@ class HVAC
             # _processSystemFan
 
             fan = OpenStudio::Model::FanOnOff.new(model, model.alwaysOnDiscreteSchedule)
+            fan_eff = 0.75 # Overall Efficiency of the Fan, Motor and Drive
             fan.setName(obj_name + " #{zone.name} supply fan")
             fan.setEndUseSubcategory(Constants.EndUseHVACFan)
-            fan.setFanEfficiency(dse * calculate_fan_efficiency(static, fan_power))
-            fan.setPressureRise(static)
-            fan.setMotorEfficiency(dse * 1.0)
+            fan.setFanEfficiency(fan_eff)
+            fan.setPressureRise(calculate_fan_pressure_rise(fan_eff, fan_power/dse))
+            fan.setMotorEfficiency(1.0)
             fan.setMotorInAirstreamFraction(1.0)       
             
             # _processSystemDemandSideAir
@@ -1388,9 +1382,6 @@ class HVAC
       pumpKW_Adjust = get_gshp_PumpKW_Adjust(UnitConversions.convert(3.0,"Btu/hr","ton"))
       coolingEIR = get_gshp_cooling_eir(eer, fanKW_Adjust, pumpKW_Adjust)
       
-      # Supply Fan
-      static = UnitConversions.convert(0.5,"inH2O","Pa")
-      
       # Heating Coil
       heatingEIR = get_gshp_heating_eir(cop, fanKW_Adjust, pumpKW_Adjust)
       min_hp_temp = -30.0
@@ -1530,11 +1521,12 @@ class HVAC
         plant_loop.addDemandBranchForComponent(clg_coil)
 
         fan = OpenStudio::Model::FanOnOff.new(model, model.alwaysOnDiscreteSchedule)
+        fan_eff = 0.75 # Overall Efficiency of the Fan, Motor and Drive
         fan.setName(obj_name + " #{control_zone.name} supply fan")
         fan.setEndUseSubcategory(Constants.EndUseHVACFan)
-        fan.setFanEfficiency(dse * calculate_fan_efficiency(static, fan_power))
-        fan.setPressureRise(static)
-        fan.setMotorEfficiency(dse * 1.0)
+        fan.setFanEfficiency(fan_eff)
+        fan.setPressureRise(calculate_fan_pressure_rise(fan_eff, fan_power/dse))
+        fan.setMotorEfficiency(1.0)
         fan.setMotorInAirstreamFraction(1.0)
           
         air_loop_unitary = OpenStudio::Model::AirLoopHVACUnitarySystem.new(model)
@@ -1686,18 +1678,15 @@ class HVAC
                            capacity, fan_power_installed, dse,
                            existing_objects={})
     
+      # Parasitic Electricity (Source: DOE. (2007). Technical Support Document: Energy Efficiency Program for Consumer Products: "Energy Conservation Standards for Residential Furnaces and Boilers". www.eere.energy.gov/buildings/appliance_standards/residential/furnaces_boilers.html)
+      furnaceParasiticElecDict = {Constants.FuelTypeGas=>76.0, # W during operation
+                                  Constants.FuelTypePropane=>76.0,
+                                  Constants.FuelTypeOil=>220.0,
+                                  Constants.FuelTypeElectric=>0.0}
+      aux_elec = furnaceParasiticElecDict[fuel_type]
+      
       # _processAirSystem
       
-      static = UnitConversions.convert(0.5,"inH2O","Pa") # Pascal
-
-      hir = get_furnace_hir(afue)
-
-      # Parasitic Electricity (Source: DOE. (2007). Technical Support Document: Energy Efficiency Program for Consumer Products: "Energy Conservation Standards for Residential Furnaces and Boilers". www.eere.energy.gov/buildings/appliance_standards/residential/furnaces_boilers.html)
-      #             FurnaceParasiticElecDict = {Constants.FuelTypeGas     :  76, # W during operation
-      #                                         Constants.FuelTypeOil     : 220}
-      #             aux_elec = FurnaceParasiticElecDict[fuel_type]
-      aux_elec = 0.0 # set to zero until we figure out a way to distribute to the correct end uses (DOE-2 limitation?)    
-
       obj_name = Constants.ObjectNameFurnace(fuel_type, unit.name.to_s)
     
       thermal_zones = Geometry.get_thermal_zones_from_spaces(unit.spaces)
@@ -1711,11 +1700,11 @@ class HVAC
 
         if fuel_type == Constants.FuelTypeElectric
           htg_coil = OpenStudio::Model::CoilHeatingElectric.new(model)
-          htg_coil.setEfficiency(dse / hir)
+          htg_coil.setEfficiency(dse * afue)
         else
           htg_coil = OpenStudio::Model::CoilHeatingGas.new(model)
-          htg_coil.setGasBurnerEfficiency(dse / hir)
-          htg_coil.setParasiticElectricLoad(aux_elec) # set to zero until we figure out a way to distribute to the correct end uses (DOE-2 limitation?)
+          htg_coil.setGasBurnerEfficiency(dse * afue)
+          htg_coil.setParasiticElectricLoad(aux_elec)
           htg_coil.setParasiticGasLoad(0)
           htg_coil.setFuelType(HelperMethods.eplus_fuel_map(fuel_type))
         end
@@ -1730,11 +1719,12 @@ class HVAC
         end
 
         fan = OpenStudio::Model::FanOnOff.new(model, model.alwaysOnDiscreteSchedule)
+        fan_eff = 0.75 # Overall Efficiency of the Fan, Motor and Drive
         fan.setName(obj_name + " supply fan")
         fan.setEndUseSubcategory(Constants.EndUseHVACFan)
-        fan.setFanEfficiency(dse * UnitConversions.convert(static / fan_power_installed,"cfm","m^3/s")) # Overall Efficiency of the Supply Fan, Motor and Drive
-        fan.setPressureRise(static)
-        fan.setMotorEfficiency(dse * 1.0)
+        fan.setFanEfficiency(fan_eff)
+        fan.setPressureRise(calculate_fan_pressure_rise(fan_eff, fan_power_installed/dse))
+        fan.setMotorEfficiency(1.0)
         fan.setMotorInAirstreamFraction(1.0)  
       
         # _processSystemAir
@@ -1832,9 +1822,6 @@ class HVAC
         return false
       end
       
-      # Installed equipment adjustments
-      boiler_hir = 1.0 / afue
-      
       if system_type == Constants.BoilerTypeCondensing
         # Efficiency curves are normalized using 80F return water temperature, at 0.254PLR
         condensingBlr_TE_FT_coefficients = [1.058343061, 0.052650153, 0.0087272, 0.001742217, 0.00000333715, 0.000513723]
@@ -1878,7 +1865,7 @@ class HVAC
       
       pump = OpenStudio::Model::PumpVariableSpeed.new(model)
       pump.setName(obj_name + " hydronic pump")
-      pump.setRatedPumpHead(179352)
+      pump.setRatedPumpHead(20000)
       pump.setMotorEfficiency(dse * 0.9)
       pump.setFractionofMotorInefficienciestoFluidStream(0)
       pump.setCoefficient1ofthePartLoadPerformanceCurve(0)
@@ -1900,7 +1887,7 @@ class HVAC
         plr_Design = 1.0
         boiler_DesignHWRT = UnitConversions.convert(design_temp - 20.0 - 32.0,"R","K")
         condBlr_TE_Coeff = condensingBlr_TE_FT_coefficients   # The coefficients are normalized at 80F HWRT
-        boilerEff_Norm = 1.0 / boiler_hir / (condBlr_TE_Coeff[0] - condBlr_TE_Coeff[1] * plr_Rated - condBlr_TE_Coeff[2] * plr_Rated**2 - condBlr_TE_Coeff[3] * boiler_RatedHWRT + condBlr_TE_Coeff[4] * boiler_RatedHWRT**2 + condBlr_TE_Coeff[5] * boiler_RatedHWRT * plr_Rated)
+        boilerEff_Norm = afue / (condBlr_TE_Coeff[0] - condBlr_TE_Coeff[1] * plr_Rated - condBlr_TE_Coeff[2] * plr_Rated**2 - condBlr_TE_Coeff[3] * boiler_RatedHWRT + condBlr_TE_Coeff[4] * boiler_RatedHWRT**2 + condBlr_TE_Coeff[5] * boiler_RatedHWRT * plr_Rated)
         boilerEff_Design = boilerEff_Norm * (condBlr_TE_Coeff[0] - condBlr_TE_Coeff[1] * plr_Design - condBlr_TE_Coeff[2] * plr_Design**2 - condBlr_TE_Coeff[3] * boiler_DesignHWRT + condBlr_TE_Coeff[4] * boiler_DesignHWRT**2 + condBlr_TE_Coeff[5] * boiler_DesignHWRT * plr_Design)
         boiler.setNominalThermalEfficiency(dse * boilerEff_Design)
         boiler.setEfficiencyCurveTemperatureEvaluationVariable("EnteringBoiler")
@@ -1916,7 +1903,7 @@ class HVAC
           boiler.setBoilerFlowMode("ConstantFlow")
         end
       else
-        boiler.setNominalThermalEfficiency(dse / boiler_hir)
+        boiler.setNominalThermalEfficiency(dse * afue)
         boiler.setEfficiencyCurveTemperatureEvaluationVariable("LeavingBoiler")
         boiler.setNormalizedBoilerEfficiencyCurve(boiler_eff_curve)
         boiler.setDesignWaterOutletTemperature(UnitConversions.convert(design_temp - 32.0,"R","K"))
@@ -2037,8 +2024,6 @@ class HVAC
         return false
       end
       
-      static = UnitConversions.convert(0.5,"inH2O","Pa") # Pascal
-    
       obj_name = Constants.ObjectNameUnitHeater(fuel_type, unit.name.to_s)
     
       thermal_zones = Geometry.get_thermal_zones_from_spaces(unit.spaces)
@@ -2065,16 +2050,15 @@ class HVAC
           fan.setName(obj_name + " fan")
           fan.setEndUseSubcategory(Constants.EndUseHVACFan)
           if fan_power > 0
-            fan.setFanEfficiency(UnitConversions.convert(static / fan_power,"cfm","m^3/s")) # Overall Efficiency of the Fan, Motor and Drive
-            fan.setPressureRise(static)
-            fan.setMotorEfficiency(1.0)
-            fan.setMotorInAirstreamFraction(1.0)  
+            fan_eff = 0.75 # Overall Efficiency of the Fan, Motor and Drive
+            fan.setFanEfficiency(fan_eff)
+            fan.setPressureRise(calculate_fan_pressure_rise(fan_eff, fan_power))
           else
-            fan.setFanEfficiency(1) # Overall Efficiency of the Fan, Motor and Drive
+            fan.setFanEfficiency(1)
             fan.setPressureRise(0)
-            fan.setMotorEfficiency(1.0)
-            fan.setMotorInAirstreamFraction(1.0)  
           end
+          fan.setMotorEfficiency(1.0)
+          fan.setMotorInAirstreamFraction(1.0)  
           
         
           # _processSystemAir
@@ -2090,8 +2074,6 @@ class HVAC
           unitary_system.setSupplyAirFanOperatingModeSchedule(model.alwaysOffDiscreteSchedule)
           unitary_system.setMaximumSupplyAirTemperature(UnitConversions.convert(120.0,"F","C"))      
           unitary_system.setSupplyAirFlowRateWhenNoCoolingorHeatingisRequired(0)
-
-          #unitary_system.addToNode(air_supply_inlet_node)
 
           runner.registerInfo("Added '#{fan.name}' to '#{unitary_system.name}''")
           runner.registerInfo("Added '#{htg_coil.name}' to '#{unitary_system.name}'")
@@ -3058,6 +3040,107 @@ class HVAC
       
     end
     
+    def self.apply_eae_to_heating_fan(runner, model, eae, fuel, dse, has_furnace, has_boiler)
+      # Applies Electric Auxiliary Energy (EAE) for fuel heating equipment to fan power.
+      # TODO: Handle multiple heating systems
+      
+      if eae.nil? 
+      
+        if has_furnace # Use 301 defaults
+          # Get heating capacity
+          htg_capacity_kbtuh = 0.0
+          model.getCoilHeatingGass.each do |htg_coil|
+            htg_capacity_kbtuh += UnitConversions.convert(htg_coil.nominalCapacity.get,"W","kBtu/hr")
+          end
+        
+          # From ANSI/RESNET/ICC 301 Standard
+          if fuel == Constants.FuelTypeGas or fuel == Constants.FuelTypePropane
+            eae = 149.0 + 10.3*htg_capacity_kbtuh # kWh/yr
+          elsif fuel == Constants.FuelTypeOil
+            eae = 439.0 + 5.5*htg_capacity_kbtuh # kWh/yr
+          end
+        elsif has_boiler # Use 301 defaults
+          if fuel == Constants.FuelTypeGas or fuel == Constants.FuelTypePropane
+            eae = 170.0
+          elsif fuel == Constants.FuelTypeOil
+            eae = 330.0
+          end
+        else # Use zero
+          eae = 0.0
+        end
+        
+      end
+      
+      elec_power = eae / 2.08 # W
+      
+      if has_boiler
+      
+        set_pump = false
+        model.getPlantLoops.each do |pl|
+            pl.components.each do |plc|
+                next if not plc.to_BoilerHotWater.is_initialized
+                
+                boiler = plc.to_BoilerHotWater.get
+                boiler.setParasiticElectricLoad(0.0)
+                
+                pl.supplyComponents.each do |plc|
+                    next if not plc.to_PumpVariableSpeed.is_initialized
+                    if set_pump
+                      runner.registerError("Cannot handle multiple heating systems.")
+                      return false
+                    end
+                    
+                    pump = plc.to_PumpVariableSpeed.get
+                    pump_eff = 0.9
+                    pump_gpm = UnitConversions.convert(pump.ratedFlowRate.get,"m^3/s","gal/min")
+                    pump_w_gpm = elec_power / pump_gpm # W/gpm
+                    pump.setRatedPowerConsumption(elec_power/dse)
+                    pump.setRatedPumpHead(calculate_pump_head(pump_eff, pump_w_gpm/dse))
+                    pump.setMotorEfficiency(1.0)
+                    set_pump = true
+                    
+                end
+            end
+        end
+        
+        
+        
+      else # Furnace/WallFurnace/Stove
+
+        set_fan = false
+        model.getAirLoopHVACUnitarySystems.each do |system|
+          next if not system.heatingCoil.is_initialized
+          if set_fan
+            runner.registerError("Cannot handle multiple heating systems.")
+            return false
+          end
+          
+          htg_coil = system.heatingCoil.get.to_CoilHeatingGas.get
+          htg_coil.setParasiticElectricLoad(0.0)
+          
+          fan = system.supplyFan.get.to_FanOnOff.get
+          if elec_power > 0
+            fan_eff = 0.75 # Overall Efficiency of the Fan, Motor and Drive
+            htg_cfm = UnitConversions.convert(system.supplyAirFlowRateDuringHeatingOperation.get,"m^3/s","cfm")
+            fan_w_cfm = elec_power / htg_cfm # W/cfm
+            fan.setFanEfficiency(fan_eff)
+            fan.setPressureRise(calculate_fan_pressure_rise(fan_eff, fan_w_cfm/dse))
+          else
+            fan.setFanEfficiency(1)
+            fan.setPressureRise(0)
+          end
+          fan.setMotorEfficiency(1.0)
+          fan.setMotorInAirstreamFraction(1.0)  
+          set_fan = true
+          
+        end
+        
+      end
+      
+      return true
+      
+    end
+    
     private
     
     def self.backfill_schedule_values(values, no_setpoint)
@@ -3451,22 +3534,20 @@ class HVAC
         return create_curve_bicubic(model, [1.111720116, 0.078614078, -0.400425756, 0.0, -0.000156783, 0.009384599, 0.234257955, 1.32927e-06, -0.004446701, -1.22498e-05], "NonCondensingBoilerEff", 0.1, 1.0, 20.0, 80.0)
       end
     end
-  
-    def self.calculate_fan_efficiency(static, fan_power)
-      return UnitConversions.convert(static / fan_power,"cfm","m^3/s") # Overall Efficiency of the Supply Fan, Motor and Drive
+    
+    def self.calculate_fan_pressure_rise(fan_eff, fan_power)
+      # Calculates needed fan pressure rise to achieve a given fan power with an assumed efficiency.
+      # Previously we calculated the fan efficiency from an assumed pressure rise, which could lead to
+      # errors (fan efficiencies > 1).
+      return fan_eff * fan_power / UnitConversions.convert(1.0,"cfm","m^3/s") # Pa
     end
-
-    def self.get_furnace_hir(afue)
-      # Based on DOE2 Volume 5 Compliance Analysis manual.
-      # This is not used until we have a better way of disaggregating AFUE
-      # if afue <= 0.835:
-      #     hir = 1 / (0.2907 * afue + 0.5787)
-      # else:
-      #     hir = 1 / (1.1116 * afue - 0.098185)
-
-      hir = 1.0 / afue
-      return hir
-    end  
+    
+    def self.calculate_pump_head(pump_eff, pump_power)
+      # Calculate needed pump head to achieve a given pump power with an assumed efficiency.
+      # Previously we calculated the pump efficiency from an assumed pump head, which could lead to
+      # errors (pump efficiencies > 1).
+      return pump_eff * pump_power / UnitConversions.convert(1.0,"gal/min","m^3/s") # Pa
+    end
   
     def self.get_control_and_slave_zones(thermal_zones)
       control_slave_zones_hash = {}
