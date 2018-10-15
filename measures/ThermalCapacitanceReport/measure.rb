@@ -34,21 +34,40 @@ class ThermalCapacitanceReport < OpenStudio::Measure::ReportingMeasure
   # define the outputs that the measure will create
   def outputs
     buildstock_outputs = [
-                          "adiabatic_const",
-                          "floor_fnd_grnd_fin_slab",
-                          "floor_fin_unins_fin",
-                          "floor_fin_unins_fin_reversed",
-                          "footing_construction",
-                          "floor_fin_ins_unfin_attic",
-                          "floor_fin_ins_unfin_attic_reversed",
-                          "wall_ext_ins_fin",
-                          "wall_ext_unins_unfin",
-                          "wall_int_fin_unins_fin",
-                          "roof_unfin_ins_ext",
-                          "window_construction",
-                          "door",
-                          "residential_furniture_construction_living_space",
-                          "residential_furniture_construction_living_space_story_2"
+                          "floor_fin_ins_unfin_attic", # unfinished attic floor
+                          "floor_fin_ins_unfin", # interzonal or cantilevered floor
+                          "floor_fin_unins_fin", # floor between 1st/2nd story living spaces
+                          "floor_unfin_unins_unfin", # floor between garage and attic
+                          "floor_fnd_grnd_fin_b", # finished basement floor
+                          "floor_fnd_grnd_unfin_b", # unfinished basement floor
+                          "floor_fnd_grnd_fin_slab", # finished slab
+                          "floor_fnd_grnd_unfin_slab", # garage slab
+                          "floor_unfin_b_ins_fin", # unfinished basement ceiling
+                          "floor_cs_ins_fin", # crawlspace ceiling
+                          "floor_pb_ins_fin", # pier beam ceiling
+                          "floor_fnd_grnd_cs", # crawlspace floor
+                          "roof_unfin_unins_ext", # garage roof
+                          "roof_unfin_ins_ext", # unfinished attic roof
+                          "roof_fin_ins_ext", # finished attic roof
+                          "wall_ext_ins_fin", # living exterior wall
+                          "wall_ext_ins_unfin", # attic gable wall under insulated roof
+                          "wall_ext_unins_unfin", # garage exterior wall or attic gable wall under uninsulated roof
+                          "wall_fnd_grnd_fin_b", # finished basement wall
+                          "wall_fnd_grnd_unfin_b", # unfinished basement wall
+                          "wall_fnd_grnd_cs", # crawlspace wall
+                          "wall_int_fin_ins_unfin", # interzonal wall
+                          "wall_int_fin_unins_fin", # wall between two finished spaces
+                          "wall_int_unfin_unins_unfin", # wall between two unfinished spaces
+                          "adiabatic_const", # return air plenum for ducts
+                          "living_space_footing_construction", # living space footing construction
+                          "garage_space_footing_construction", # garage space footing construction
+                          "window_construction", # exterior window
+                          "door", # exterior door
+                          "residential_furniture_construction_living_space", # furniture in living
+                          "residential_furniture_construction_living_space_story_2", # furniture in living, second floor
+                          "residential_furniture_construction_unfinished_basement_space", # furniture in unfinished basement
+                          "residential_furniture_construction_finished_basement_space", # furniture in finished basement
+                          "residential_furniture_construction_garage_space" # furniture in garage
                          ]
     result = OpenStudio::Measure::OSOutputVector.new
     buildstock_outputs.each do |output|
@@ -92,7 +111,22 @@ class ThermalCapacitanceReport < OpenStudio::Measure::ReportingMeasure
         area += surface.grossArea
       end
       if area > 0
-        report_sim_output(runner, construction.name.to_s, [OpenStudio::OptionalDouble.new(area)], "units", "units")
+        report_output(runner, construction.name.to_s, [OpenStudio::OptionalDouble.new(area)], "units", "units")
+      end
+
+      # foundations
+      area = 0
+      space = nil
+      model.getFoundationKivas.each do |foundation_kiva|
+        next unless foundation_kiva.footingWallConstruction.is_initialized
+        next if foundation_kiva.footingWallConstruction.get.to_LayeredConstruction.get != construction
+        foundation_kiva.surfaces.each do |surface|
+          area += surface.grossArea
+          space = surface.space.get
+        end
+      end
+      if area > 0
+        report_output(runner, "#{space.name} footing construction", [OpenStudio::OptionalDouble.new(area)], "units", "units")
       end
 
       # sub surfaces
@@ -102,7 +136,7 @@ class ThermalCapacitanceReport < OpenStudio::Measure::ReportingMeasure
         area += sub_surface.grossArea
       end
       if area > 0
-        report_sim_output(runner, construction.name.to_s, [OpenStudio::OptionalDouble.new(area)], "units", "units")
+        report_output(runner, construction.name.to_s, [OpenStudio::OptionalDouble.new(area)], "units", "units")
       end
 
       # internal mass
@@ -114,7 +148,7 @@ class ThermalCapacitanceReport < OpenStudio::Measure::ReportingMeasure
         area += surface_area.get
       end
       if area > 0
-        report_sim_output(runner, construction.name.to_s, [OpenStudio::OptionalDouble.new(area)], "units", "units")
+        report_output(runner, construction.name.to_s, [OpenStudio::OptionalDouble.new(area)], "units", "units")
       end
 
     end
@@ -124,7 +158,7 @@ class ThermalCapacitanceReport < OpenStudio::Measure::ReportingMeasure
     return true
   end
 
-  def report_sim_output(runner, name, vals, os_units, desired_units, percent_of_val=1.0)
+  def report_output(runner, name, vals, os_units, desired_units, percent_of_val=1.0)
     total_val = 0.0
     vals.each do |val|
         next if val.empty?
