@@ -1,7 +1,5 @@
-require 'bundler'
 require 'rake'
 require 'rake/testtask'
-Bundler.setup
 
 desc 'Copy files from OpenStudio-BEopt repo'
 task :copy_beopt_files do
