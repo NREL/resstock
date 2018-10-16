@@ -108,50 +108,52 @@ class ThermalCapacitanceReport < OpenStudio::Measure::ReportingMeasure
     sqlFile = sqlFile.get
     model.setSqlFile(sqlFile)
 
+    desired_units = "kj/k"
+
     model.getConstructions.each do |construction|
 
       # surfaces
       area, name = get_surface_area(model, construction)
       if area > 0
         val = get_thermal_capacitance(construction, area)
-        report_output(runner, name, [OpenStudio::OptionalDouble.new(val)], "kj/k", "kj/k")
+        report_output(runner, name, [OpenStudio::OptionalDouble.new(val)], desired_units, desired_units)
       end
 
       # foundations
       area, name = get_foundation_area(model, construction)
       if area > 0
         val = get_thermal_capacitance(construction, area)
-        report_output(runner, name, [OpenStudio::OptionalDouble.new(val)], "kj/k", "kj/k")
+        report_output(runner, name, [OpenStudio::OptionalDouble.new(val)], desired_units, desired_units)
       end
 
       # sub surfaces
       area, name = get_sub_surface_area(model, construction)
       if area > 0
         val = get_thermal_capacitance(construction, area)
-        report_output(runner, name, [OpenStudio::OptionalDouble.new(val)], "kj/k", "kj/k")
+        report_output(runner, name, [OpenStudio::OptionalDouble.new(val)], desired_units, desired_units)
       end
 
       # internal mass
       area, name = get_internal_mass_area(model, construction)
       if area > 0
         val = get_thermal_capacitance(construction, area)
-        report_output(runner, name, [OpenStudio::OptionalDouble.new(val)], "kj/k", "kj/k")
+        report_output(runner, name, [OpenStudio::OptionalDouble.new(val)], desired_units, desired_unitss)
       end
 
     end
 
-    report_output(runner, "living_space_air", [OpenStudio::OptionalDouble.new(UnitConversions.convert(Geometry.get_above_grade_finished_volume(model, true), "ft^3", "m^3") * 1.004 * 1.225)], "kj/k", "kj/k")
+    report_output(runner, "living_space_air", [OpenStudio::OptionalDouble.new(UnitConversions.convert(Geometry.get_above_grade_finished_volume(model, true), "ft^3", "m^3") * 1.004 * 1.225)], desired_units, desired_units)
     model.getThermalZones.each do |thermal_zone|
       if Geometry.is_garage(thermal_zone)
-        report_output(runner, "garage_space_air", [OpenStudio::OptionalDouble.new(UnitConversions.convert(Geometry.get_zone_volume(thermal_zone, false, runner), "ft^3", "m^3") * 1.004 * 1.225)], "kj/k", "kj/k")
+        report_output(runner, "garage_space_air", [OpenStudio::OptionalDouble.new(UnitConversions.convert(Geometry.get_zone_volume(thermal_zone, false, runner), "ft^3", "m^3") * 1.004 * 1.225)], desired_units, desired_units)
       elsif Geometry.is_unfinished_basement(thermal_zone)
-        report_output(runner, "unfinished_basement_space_air", [OpenStudio::OptionalDouble.new(UnitConversions.convert(Geometry.get_zone_volume(thermal_zone, false, runner), "ft^3", "m^3") * 1.004 * 1.225)], "kj/k", "kj/k")
+        report_output(runner, "unfinished_basement_space_air", [OpenStudio::OptionalDouble.new(UnitConversions.convert(Geometry.get_zone_volume(thermal_zone, false, runner), "ft^3", "m^3") * 1.004 * 1.225)], desired_units, desired_units)
       elsif Geometry.is_finished_basement(thermal_zone)
-        report_output(runner, "finished_basement_space_air", [OpenStudio::OptionalDouble.new(UnitConversions.convert(Geometry.get_zone_volume(thermal_zone, false, runner), "ft^3", "m^3") * 1.004 * 1.225)], "kj/k", "kj/k")
+        report_output(runner, "finished_basement_space_air", [OpenStudio::OptionalDouble.new(UnitConversions.convert(Geometry.get_zone_volume(thermal_zone, false, runner), "ft^3", "m^3") * 1.004 * 1.225)], desired_units, desired_units)
       elsif Geometry.is_crawl(thermal_zone)
-        report_output(runner, "crawl_space_air", [OpenStudio::OptionalDouble.new(UnitConversions.convert(Geometry.get_zone_volume(thermal_zone, false, runner), "ft^3", "m^3") * 1.004 * 1.225)], "kj/k", "kj/k")
+        report_output(runner, "crawl_space_air", [OpenStudio::OptionalDouble.new(UnitConversions.convert(Geometry.get_zone_volume(thermal_zone, false, runner), "ft^3", "m^3") * 1.004 * 1.225)], desired_units, desired_units)
       elsif Geometry.is_unfinished_attic(thermal_zone)
-        report_output(runner, "unfinished_attic_space_air", [OpenStudio::OptionalDouble.new(UnitConversions.convert(Geometry.get_zone_volume(thermal_zone, false, runner), "ft^3", "m^3") * 1.004 * 1.225)], "kj/k", "kj/k")
+        report_output(runner, "unfinished_attic_space_air", [OpenStudio::OptionalDouble.new(UnitConversions.convert(Geometry.get_zone_volume(thermal_zone, false, runner), "ft^3", "m^3") * 1.004 * 1.225)], desired_units, desired_units)
       end
     end
 
@@ -165,7 +167,7 @@ class ThermalCapacitanceReport < OpenStudio::Measure::ReportingMeasure
     construction.layers.each do |layer|
       next unless layer.to_StandardOpaqueMaterial.is_initialized
       material = layer.to_StandardOpaqueMaterial.get
-      val += UnitConversions.convert(material.thickness, "ft", "m") * (UnitConversions.convert(material.specificHeat, "btu/lbm*r", "wh/kg*k") * 3.6) * UnitConversions.convert(material.density, "lbm/ft^3", "kg/m^3")
+      val += material.thickness * (material.specificHeat / 1000.0) * material.density
     end
     return val * area
   end

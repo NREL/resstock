@@ -112,7 +112,7 @@ class ResidentialDishwasher < OpenStudio::Measure::ModelMeasure
     plant_loop.setDisplayName("Plant Loop")
     plant_loop.setDescription("Select the plant loop for the dishwasher. '#{Constants.Auto}' will try to choose the plant loop associated with the specified space. For multifamily buildings, '#{Constants.Auto}' will choose the plant loop for each unit of the building.")
     plant_loop.setDefaultValue(Constants.Auto)
-	  args << plant_loop
+    args << plant_loop
     
     #make an argument for the number of days to shift the draw profile by
     schedule_day_shift = OpenStudio::Measure::OSArgument::makeIntegerArgument("schedule_day_shift",true)
@@ -196,7 +196,7 @@ class ResidentialDishwasher < OpenStudio::Measure::ModelMeasure
         tot_ann_e += ann_e
         
     end
-	
+
     # Reporting
     if msgs.size > 1
         msgs.each do |msg|
