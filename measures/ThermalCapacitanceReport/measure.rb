@@ -4,6 +4,7 @@
 # http://nrel.github.io/OpenStudio-user-documentation/reference/measure_writing_guide/
 
 require 'erb'
+require "#{File.dirname(__FILE__)}/resources/unit_conversions"
 
 # start the measure
 class ThermalCapacitanceReport < OpenStudio::Measure::ReportingMeasure
@@ -58,16 +59,21 @@ class ThermalCapacitanceReport < OpenStudio::Measure::ReportingMeasure
                           "wall_int_fin_ins_unfin", # interzonal wall
                           "wall_int_fin_unins_fin", # wall between two finished spaces
                           "wall_int_unfin_unins_unfin", # wall between two unfinished spaces
-                          "adiabatic_const", # return air plenum for ducts
                           "living_space_footing_construction", # living space footing construction
                           "garage_space_footing_construction", # garage space footing construction
-                          "window_construction", # exterior window
+                          # "window_construction", # exterior window
                           "door", # exterior door
                           "residential_furniture_construction_living_space", # furniture in living
                           "residential_furniture_construction_living_space_story_2", # furniture in living, second floor
                           "residential_furniture_construction_unfinished_basement_space", # furniture in unfinished basement
                           "residential_furniture_construction_finished_basement_space", # furniture in finished basement
-                          "residential_furniture_construction_garage_space" # furniture in garage
+                          "residential_furniture_construction_garage_space", # furniture in garage
+                          "living_space_air", # living space air
+                          "garage_space_air", # garage space air
+                          "unfinished_basement_space_air", # unfinished basement space air
+                          "finished_basement_space_air", # finished basement space air
+                          "crawl_space_air", # crawl space air
+                          "unfinished_attic_space_air" # unfinished attic space air
                          ]
     result = OpenStudio::Measure::OSOutputVector.new
     buildstock_outputs.each do |output|
@@ -105,57 +111,109 @@ class ThermalCapacitanceReport < OpenStudio::Measure::ReportingMeasure
     model.getConstructions.each do |construction|
 
       # surfaces
-      area = 0
-      model.getSurfaces.each do |surface|
-        next if surface.construction.get.to_LayeredConstruction.get != construction
-        area += surface.grossArea
-      end
+      area, name = get_surface_area(model, construction)
       if area > 0
-        report_output(runner, construction.name.to_s, [OpenStudio::OptionalDouble.new(area)], "units", "units")
+        val = get_thermal_capacitance(construction, area)
+        report_output(runner, name, [OpenStudio::OptionalDouble.new(val)], "kj/k", "kj/k")
       end
 
       # foundations
-      area = 0
-      space = nil
-      model.getFoundationKivas.each do |foundation_kiva|
-        next unless foundation_kiva.footingWallConstruction.is_initialized
-        next if foundation_kiva.footingWallConstruction.get.to_LayeredConstruction.get != construction
-        foundation_kiva.surfaces.each do |surface|
-          area += surface.grossArea
-          space = surface.space.get
-        end
-      end
+      area, name = get_foundation_area(model, construction)
       if area > 0
-        report_output(runner, "#{space.name} footing construction", [OpenStudio::OptionalDouble.new(area)], "units", "units")
+        val = get_thermal_capacitance(construction, area)
+        report_output(runner, name, [OpenStudio::OptionalDouble.new(val)], "kj/k", "kj/k")
       end
 
       # sub surfaces
-      area = 0
-      model.getSubSurfaces.each do |sub_surface|
-        next if sub_surface.construction.get.to_LayeredConstruction.get != construction
-        area += sub_surface.grossArea
-      end
+      area, name = get_sub_surface_area(model, construction)
       if area > 0
-        report_output(runner, construction.name.to_s, [OpenStudio::OptionalDouble.new(area)], "units", "units")
+        val = get_thermal_capacitance(construction, area)
+        report_output(runner, name, [OpenStudio::OptionalDouble.new(val)], "kj/k", "kj/k")
       end
 
       # internal mass
-      area = 0
-      model.getInternalMassDefinitions.each do |internal_mass_def|
-        next if internal_mass_def.construction.get.to_LayeredConstruction.get != construction
-        surface_area = internal_mass_def.surfaceArea
-        next unless surface_area.is_initialized
-        area += surface_area.get
-      end
+      area, name = get_internal_mass_area(model, construction)
       if area > 0
-        report_output(runner, construction.name.to_s, [OpenStudio::OptionalDouble.new(area)], "units", "units")
+        val = get_thermal_capacitance(construction, area)
+        report_output(runner, name, [OpenStudio::OptionalDouble.new(val)], "kj/k", "kj/k")
       end
 
+    end
+
+    report_output(runner, "living_space_air", [OpenStudio::OptionalDouble.new(UnitConversions.convert(Geometry.get_above_grade_finished_volume(model, true), "ft^3", "m^3") * 1.004 * 1.225)], "kj/k", "kj/k")
+    model.getThermalZones.each do |thermal_zone|
+      if Geometry.is_garage(thermal_zone)
+        report_output(runner, "garage_space_air", [OpenStudio::OptionalDouble.new(UnitConversions.convert(Geometry.get_zone_volume(thermal_zone, false, runner), "ft^3", "m^3") * 1.004 * 1.225)], "kj/k", "kj/k")
+      elsif Geometry.is_unfinished_basement(thermal_zone)
+        report_output(runner, "unfinished_basement_space_air", [OpenStudio::OptionalDouble.new(UnitConversions.convert(Geometry.get_zone_volume(thermal_zone, false, runner), "ft^3", "m^3") * 1.004 * 1.225)], "kj/k", "kj/k")
+      elsif Geometry.is_finished_basement(thermal_zone)
+        report_output(runner, "finished_basement_space_air", [OpenStudio::OptionalDouble.new(UnitConversions.convert(Geometry.get_zone_volume(thermal_zone, false, runner), "ft^3", "m^3") * 1.004 * 1.225)], "kj/k", "kj/k")
+      elsif Geometry.is_crawl(thermal_zone)
+        report_output(runner, "crawl_space_air", [OpenStudio::OptionalDouble.new(UnitConversions.convert(Geometry.get_zone_volume(thermal_zone, false, runner), "ft^3", "m^3") * 1.004 * 1.225)], "kj/k", "kj/k")
+      elsif Geometry.is_unfinished_attic(thermal_zone)
+        report_output(runner, "unfinished_attic_space_air", [OpenStudio::OptionalDouble.new(UnitConversions.convert(Geometry.get_zone_volume(thermal_zone, false, runner), "ft^3", "m^3") * 1.004 * 1.225)], "kj/k", "kj/k")
+      end
     end
 
     sqlFile.close()
 
     return true
+  end
+
+  def get_thermal_capacitance(construction, area)
+    val = 0
+    construction.layers.each do |layer|
+      next unless layer.to_StandardOpaqueMaterial.is_initialized
+      material = layer.to_StandardOpaqueMaterial.get
+      val += UnitConversions.convert(material.thickness, "ft", "m") * (UnitConversions.convert(material.specificHeat, "btu/lbm*r", "wh/kg*k") * 3.6) * UnitConversions.convert(material.density, "lbm/ft^3", "kg/m^3")
+    end
+    return val * area
+  end
+
+  def get_surface_area(model, construction)
+    area = 0
+    model.getSurfaces.each do |surface|
+      next if surface.construction.get.to_LayeredConstruction.get != construction
+      area += surface.grossArea
+    end
+    return area, construction.name.to_s
+  end
+
+  def get_foundation_area(model, construction)
+    area = 0
+    space = nil
+    model.getFoundationKivas.each do |foundation_kiva|
+      next unless foundation_kiva.footingWallConstruction.is_initialized
+      next if foundation_kiva.footingWallConstruction.get.to_LayeredConstruction.get != construction
+      foundation_kiva.surfaces.each do |surface|
+        area += surface.grossArea
+        space = surface.space.get
+      end
+    end
+    unless space.nil?
+      return area, "#{space.name} footing construction"
+    end
+    return area, nil
+  end
+
+  def get_sub_surface_area(model, construction)
+    area = 0
+    model.getSubSurfaces.each do |sub_surface|
+      next if sub_surface.construction.get.to_LayeredConstruction.get != construction
+      area += sub_surface.grossArea
+    end
+    return area, construction.name.to_s
+  end
+
+  def get_internal_mass_area(model, construction)
+    area = 0
+    model.getInternalMassDefinitions.each do |internal_mass_def|
+      next if internal_mass_def.construction.get.to_LayeredConstruction.get != construction
+      surface_area = internal_mass_def.surfaceArea
+      next unless surface_area.is_initialized
+      area += surface_area.get
+    end
+    return area, construction.name.to_s
   end
 
   def report_output(runner, name, vals, os_units, desired_units, percent_of_val=1.0)
