@@ -6,6 +6,7 @@ jobs:
     steps:
       - checkout
       - run: rm -f Gemfile.lock && bundle install
+      - run: rake test:regenerate_osms
       - run: rake test:all
       - store_test_results:
           path: test/reports/
