@@ -137,7 +137,7 @@ class ThermalCapacitanceReport < OpenStudio::Measure::ReportingMeasure
       area, name = get_internal_mass_area(model, construction)
       if area > 0
         val = get_thermal_capacitance(construction, area)
-        report_output(runner, name, [OpenStudio::OptionalDouble.new(val)], desired_units, desired_unitss)
+        report_output(runner, name, [OpenStudio::OptionalDouble.new(val)], desired_units, desired_units)
       end
 
     end

@@ -133,7 +133,7 @@ class UnitConversions
         return x * 4187.0
       elsif from == 'btu/(ft^3*f)' and to == 'j/(m^3*k)' # by volume
         return x * 67100.0
-      elsif from == 'btu/lbm*r' and to == 'wh/kg*k'
+      elsif from == 'btu/(lbm*r)' and to == 'wh/(kg*k)'
         return x * 1.1632
       
       # Length

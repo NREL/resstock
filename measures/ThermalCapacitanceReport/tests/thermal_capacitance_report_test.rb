@@ -9,38 +9,38 @@ class ThermalCapacitanceReportTest < MiniTest::Test
 
   def test_thermal_capacitance
     thermal_capacitances = {
-                            "floor_fin_ins_unfin_attic"=>0, # unfinished attic floor
-                            "floor_fin_ins_unfin"=>0, # interzonal or cantilevered floor
-                            "floor_fin_unins_fin"=>0, # floor between 1st/2nd story living spaces
+                            "floor_fin_ins_unfin_attic"=>2433, # unfinished attic floor
+                            "floor_fin_ins_unfin"=>1081, # interzonal or cantilevered floor
+                            "floor_fin_unins_fin"=>5449, # floor between 1st/2nd story living spaces
                             # "floor_unfin_unins_unfin"=>0, # floor between garage and attic
                             # "floor_fnd_grnd_fin_b"=>0, # finished basement floor
                             # "floor_fnd_grnd_unfin_b"=>0, # unfinished basement floor
-                            "floor_fnd_grnd_fin_slab"=>0, # finished slab
-                            "floor_fnd_grnd_unfin_slab"=>0, # garage slab
+                            "floor_fnd_grnd_fin_slab"=>24155, # finished slab
+                            "floor_fnd_grnd_unfin_slab"=>5106, # garage slab
                             # "floor_unfin_b_ins_fin"=>0, # unfinished basement ceiling
                             # "floor_cs_ins_fin"=>0, # crawlspace ceiling
                             # "floor_pb_ins_fin"=>0, # pier beam ceiling
                             # "floor_fnd_grnd_cs"=>0, # crawlspace floor
                             # "roof_unfin_unins_ext"=>0, # garage roof
-                            "roof_unfin_ins_ext"=>0, # unfinished attic roof
+                            "roof_unfin_ins_ext"=>6103, # unfinished attic roof
                             # "roof_fin_ins_ext"=>0, # finished attic roof
-                            "wall_ext_ins_fin"=>0, # living exterior wall
+                            "wall_ext_ins_fin"=>14771, # living exterior wall
                             # "wall_ext_ins_unfin"=>0, # attic gable wall under insulated roof
-                            "wall_ext_unins_unfin"=>0, # garage exterior wall or attic gable wall under uninsulated roof
+                            "wall_ext_unins_unfin"=>1056, # garage exterior wall or attic gable wall under uninsulated roof
                             # "wall_fnd_grnd_fin_b"=>0, # finished basement wall
                             # "wall_fnd_grnd_unfin_b"=>0, # unfinished basement wall
                             # "wall_fnd_grnd_cs"=>0, # crawlspace wall
-                            "wall_int_fin_ins_unfin"=>0, # interzonal wall
-                            "wall_int_fin_unins_fin"=>0, # wall between two finished spaces
+                            "wall_int_fin_ins_unfin"=>913, # interzonal wall
+                            "wall_int_fin_unins_fin"=>4867, # wall between two finished spaces
                             # "wall_int_unfin_unins_unfin"=>0, # wall between two unfinished spaces
                             # "living_space_footing_construction"=>0, # living space footing construction
                             # "garage_space_footing_construction"=>0, # garage space footing construction
-                            "door"=>0, # exterior door
-                            "residential_furniture_construction_living_space"=>0, # furniture in living
-                            "residential_furniture_construction_living_space_story_2"=>0, # furniture in living, second floor
+                            "door"=>103, # exterior door
+                            "residential_furniture_construction_living_space"=>5975, # furniture in living
+                            "residential_furniture_construction_living_space_story_2"=>7244, # furniture in living, second floor
                             # "residential_furniture_construction_unfinished_basement_space"=>0, # furniture in unfinished basement
                             # "residential_furniture_construction_finished_basement_space"=>0, # furniture in finished basement
-                            "residential_furniture_construction_garage_space"=>0, # furniture in garage
+                            "residential_furniture_construction_garage_space"=>317, # furniture in garage
                             # "living_space_air"=>0, # living space air
                             # "garage_space_air"=>0, # garage space air
                             # "unfinished_basement_space_air"=>0, # unfinished basement space air
@@ -82,7 +82,7 @@ class ThermalCapacitanceReportTest < MiniTest::Test
       area = surface_area + foundation_area + sub_surface_area + internal_mass_area
       value = measure.get_thermal_capacitance(constr, area)
       assert(!value.nil?)
-      # assert_in_epsilon(thermal_capacitance, value, 0.05)
+      assert_in_epsilon(thermal_capacitance, value, 0.05)
     end
   end
 
