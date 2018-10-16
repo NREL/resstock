@@ -2,13 +2,13 @@
   <schema_version>3.0</schema_version>
   <name>process_cooling_setpoints</name>
   <uid>2daa9d28-8891-4074-a1d1-bce3cb3d7ac6</uid>
-  <version_id>dd0c0398-7f90-4e9b-b1e8-5adec8df5d33</version_id>
-  <version_modified>20181009T215435Z</version_modified>
+  <version_id>f9eab8dc-45d6-44ad-8e87-a0827b0e90f3</version_id>
+  <version_modified>20181011T213824Z</version_modified>
   <xml_checksum>356BE47F</xml_checksum>
   <class_name>ProcessCoolingSetpoints</class_name>
   <display_name>Set Residential Cooling Setpoints and Schedules</display_name>
-  <description>This measure creates the cooling season schedules and the cooling setpoint schedules. See https://github.com/NREL/OpenStudio-BEopt#workflows for supported workflows using this measure.</description>
-  <modeler_description>This measure creates residential cooling season ruleset objects. Schedule values are either user-defined or populated based on information contained in the EPW file. This measure also creates residential cooling setpoint ruleset objects. Schedule values are populated based on information input by the user as well as contained in the residential cooling season. The cooling setpoint schedules are added to the living zone's thermostat.</modeler_description>
+  <description>This measure creates the cooling season schedules and the cooling setpoint schedules. See https://github.com/NREL/OpenStudio-BEopt#workflows for supported workflows using this measure. </description>
+  <modeler_description>This measure creates residential cooling season ruleset objects. Schedule values are either user-defined or populated based on information contained in the EPW file. This measure also creates residential cooling setpoint ruleset objects. Schedule values are populated based on information input by the user as well as contained in the residential cooling season. The cooling setpoint schedules are added to the living zone's thermostat. The cooling setpoint schedule is constructed by taking the base setpoint (or 24-hour comma-separated cooling schedule) and applying an optional offset, as specified by the offset magnitude and offset schedule. If specified as a 24-hour schedule, the base setpoint can incorporate setpoint schedule changes, but having a separately specified offset magnitude and schedule is convenient for parametric runs.</modeler_description>
   <arguments>
     <argument>
       <name>weekday_setpoint</name>
@@ -29,6 +29,46 @@
       <required>true</required>
       <model_dependent>false</model_dependent>
       <default_value>76.0</default_value>
+    </argument>
+    <argument>
+      <name>weekday_offset_magnitude</name>
+      <display_name>Weekday Offset Magnitude</display_name>
+      <description>Specify the magnitude of the cooling setpoint offset for the weekdays, which will be applied during hours specified by the offset schedule. A positive offset increases the setpoint while a negative offset decreases the setpoint.</description>
+      <type>Double</type>
+      <units>degrees F</units>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>0</default_value>
+    </argument>
+    <argument>
+      <name>weekend_offset_magnitude</name>
+      <display_name>weekend Offset Magnitude</display_name>
+      <description>Specify the magnitude of the cooling setpoint offset for the weekdays, which will be applied during hours specified by the offset schedule. A positive offset increases the setpoint while a negative offset decreases the setpoint.</description>
+      <type>Double</type>
+      <units>degrees F</units>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>0</default_value>
+    </argument>
+    <argument>
+      <name>weekday_offset_schedule</name>
+      <display_name>Weekday offset Schedule</display_name>
+      <description>Specify a 24-hour comma-separated schedule of 0s and 1s for applying the offset on weekdays.</description>
+      <type>String</type>
+      <units>degrees F</units>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0</default_value>
+    </argument>
+    <argument>
+      <name>weekend_offset_schedule</name>
+      <display_name>Weekend offset Schedule</display_name>
+      <description>Specify a 24-hour comma-separated schedule of 0s and 1s for applying the offset on weekend.</description>
+      <type>String</type>
+      <units>degrees F</units>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0</default_value>
     </argument>
     <argument>
       <name>use_auto_season</name>
@@ -239,23 +279,6 @@
       <checksum>454E14D4</checksum>
     </file>
     <file>
-      <version>
-        <software_program>OpenStudio</software_program>
-        <identifier>1.11.5</identifier>
-        <min_compatible>2.0.4</min_compatible>
-      </version>
-      <filename>measure.rb</filename>
-      <filetype>rb</filetype>
-      <usage_type>script</usage_type>
-      <checksum>5F599BF7</checksum>
-    </file>
-    <file>
-      <filename>process_cooling_setpoints_test.rb</filename>
-      <filetype>rb</filetype>
-      <usage_type>test</usage_type>
-      <checksum>B40B677D</checksum>
-    </file>
-    <file>
       <filename>hvac.rb</filename>
       <filetype>rb</filetype>
       <usage_type>resource</usage_type>
@@ -280,66 +303,6 @@
       <checksum>10A095BE</checksum>
     </file>
     <file>
-      <filename>SFD_2000sqft_2story_SL_UA_3Beds_2Baths_Denver.osm</filename>
-      <filetype>osm</filetype>
-      <usage_type>test</usage_type>
-      <checksum>42FF7954</checksum>
-    </file>
-    <file>
-      <filename>SFD_2000sqft_2story_SL_UA_3Beds_2Baths_Denver_ASHP_NoSetpoints.osm</filename>
-      <filetype>osm</filetype>
-      <usage_type>test</usage_type>
-      <checksum>8489B3CA</checksum>
-    </file>
-    <file>
-      <filename>SFD_2000sqft_2story_SL_UA_3Beds_2Baths_Denver_CentralAC_NoSetpoints.osm</filename>
-      <filetype>osm</filetype>
-      <usage_type>test</usage_type>
-      <checksum>A490690C</checksum>
-    </file>
-    <file>
-      <filename>SFD_2000sqft_2story_SL_UA_3Beds_2Baths_Denver_Furnace_CentralAC_NoClgSetpoint.osm</filename>
-      <filetype>osm</filetype>
-      <usage_type>test</usage_type>
-      <checksum>4E82A3BA</checksum>
-    </file>
-    <file>
-      <filename>SFD_2000sqft_2story_SL_UA_3Beds_2Baths_Denver_GSHPVertBore_NoSetpoints.osm</filename>
-      <filetype>osm</filetype>
-      <usage_type>test</usage_type>
-      <checksum>39AE5084</checksum>
-    </file>
-    <file>
-      <filename>SFD_2000sqft_2story_SL_UA_3Beds_2Baths_Denver_RoomAC_NoSetpoints.osm</filename>
-      <filetype>osm</filetype>
-      <usage_type>test</usage_type>
-      <checksum>0BEEB571</checksum>
-    </file>
-    <file>
-      <filename>SFD_2000sqft_2story_SL_UA.osm</filename>
-      <filetype>osm</filetype>
-      <usage_type>test</usage_type>
-      <checksum>B91BB972</checksum>
-    </file>
-    <file>
-      <filename>SFD_2000sqft_2story_SL_UA_3Beds_2Baths_Denver_MSHP_NoSetpoints.osm</filename>
-      <filetype>osm</filetype>
-      <usage_type>test</usage_type>
-      <checksum>68FF2D01</checksum>
-    </file>
-    <file>
-      <filename>SFA_4units_1story_SL_UA_3Beds_2Baths_Denver_CentralAC_NoSetpoints.osm</filename>
-      <filetype>osm</filetype>
-      <usage_type>test</usage_type>
-      <checksum>90F322D7</checksum>
-    </file>
-    <file>
-      <filename>MF_8units_1story_SL_3Beds_2Baths_Denver_CentralAC_NoSetpoints.osm</filename>
-      <filetype>osm</filetype>
-      <usage_type>test</usage_type>
-      <checksum>CE7426A7</checksum>
-    </file>
-    <file>
       <filename>SFA_4units_1story_SL_UA_3Beds_2Baths_Denver_Central_System_Fan_Coil_NoSetpoints.osm</filename>
       <filetype>osm</filetype>
       <usage_type>test</usage_type>
@@ -350,6 +313,83 @@
       <filetype>osm</filetype>
       <usage_type>test</usage_type>
       <checksum>AEDCF13A</checksum>
+    </file>
+    <file>
+      <filename>SFD_2000sqft_2story_SL_UA_3Beds_2Baths_Denver.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>FD6390FB</checksum>
+    </file>
+    <file>
+      <filename>SFD_2000sqft_2story_SL_UA_3Beds_2Baths_Denver_ASHP_NoSetpoints.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>BA5BB5DC</checksum>
+    </file>
+    <file>
+      <filename>SFD_2000sqft_2story_SL_UA_3Beds_2Baths_Denver_CentralAC_NoSetpoints.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>9B017927</checksum>
+    </file>
+    <file>
+      <filename>SFD_2000sqft_2story_SL_UA_3Beds_2Baths_Denver_Furnace_CentralAC_NoClgSetpoint.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>905AD201</checksum>
+    </file>
+    <file>
+      <filename>SFD_2000sqft_2story_SL_UA_3Beds_2Baths_Denver_GSHPVertBore_NoSetpoints.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>B707F790</checksum>
+    </file>
+    <file>
+      <filename>SFD_2000sqft_2story_SL_UA_3Beds_2Baths_Denver_RoomAC_NoSetpoints.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>1783FC58</checksum>
+    </file>
+    <file>
+      <filename>SFD_2000sqft_2story_SL_UA.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>44BCF07B</checksum>
+    </file>
+    <file>
+      <filename>SFD_2000sqft_2story_SL_UA_3Beds_2Baths_Denver_MSHP_NoSetpoints.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>DF917B0A</checksum>
+    </file>
+    <file>
+      <filename>SFA_4units_1story_SL_UA_3Beds_2Baths_Denver_CentralAC_NoSetpoints.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>AB7B2A54</checksum>
+    </file>
+    <file>
+      <filename>MF_8units_1story_SL_3Beds_2Baths_Denver_CentralAC_NoSetpoints.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>A56980D7</checksum>
+    </file>
+    <file>
+      <version>
+        <software_program>OpenStudio</software_program>
+        <identifier>1.11.5</identifier>
+        <min_compatible>2.0.4</min_compatible>
+      </version>
+      <filename>measure.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>script</usage_type>
+      <checksum>A85E4D3B</checksum>
+    </file>
+    <file>
+      <filename>process_cooling_setpoints_test.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>test</usage_type>
+      <checksum>4F97B197</checksum>
     </file>
   </files>
 </measure>

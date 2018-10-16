@@ -1121,7 +1121,7 @@ class Airflow
 
     total_unbalance = (supply_loss - return_loss).abs
 
-    if not location_name == unit_living.zone.name.to_s and not location_name == "none" and supply_loss > 0
+    if not location_name == unit_living.zone.name.to_s and not location_name == "none"
       # Calculate d.frac_oa = fraction of unbalanced make-up air that is outside air
       if total_unbalance <=  0
         # Handle the exception for if there is no leakage unbalance.
