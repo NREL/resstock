@@ -331,6 +331,38 @@ def regenerate_osms
 
 end
 
+def get_osms_listed_in_test(testrb)
+    osms = []
+    if not File.exists?(testrb)
+      return osms
+    end
+    str = File.readlines(testrb).join("\n")
+    osms = str.scan(/\w+\.osm/)
+    return osms.uniq
+end
+
+def update_and_format_osw(osw)
+  # Insert new step(s) into test osw files, if they don't already exist: {{step1=>index, step2=>index}}
+  new_steps = {}
+  json = JSON.parse(File.read(osw), :symbolize_names=>true)
+  steps = json[:steps]
+  new_steps.each do |new_step, ix|
+    insert_new_step = true
+    steps.each do |step|
+      step.each do |k, v|
+        next if k != :measure_dir_name
+        next if v != new_step.values[0] # already have this step
+        insert_new_step = false
+      end
+    end
+    next unless insert_new_step
+    json[:steps].insert(ix, new_step)
+  end
+  File.open(osw, "w") do |f|
+    f.write(JSON.pretty_generate(json)) # format nicely even if not updating the osw with new steps
+  end
+end
+
 desc 'Perform integrity check on inputs for all projects'
 task :integrity_check_all do
     get_all_project_dir_names().each do |project_dir_name|
