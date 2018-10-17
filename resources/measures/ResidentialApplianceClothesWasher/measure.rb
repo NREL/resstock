@@ -235,7 +235,7 @@ class ResidentialClothesWasher < OpenStudio::Measure::ModelMeasure
     end
     
     return true
-	
+
   end
   
 end #end the measure

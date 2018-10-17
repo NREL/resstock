@@ -77,19 +77,19 @@ class ResidentialHotWaterDistribution < OpenStudio::Measure::ModelMeasure
         dist_ins.setDefaultValue(0.0)
         args << dist_ins
 
-		return args
-	end #end the arguments method
+    return args
+  end #end the arguments method
 
-	#define what happens when the measure is run
-	def run(model, runner, user_arguments)
-		super(model, runner, user_arguments)
+  #define what happens when the measure is run
+  def run(model, runner, user_arguments)
+    super(model, runner, user_arguments)
 
-		#use the built-in error checking 
-		if not runner.validateUserArguments(arguments(model), user_arguments)
-			return false
-		end
+    #use the built-in error checking 
+    if not runner.validateUserArguments(arguments(model), user_arguments)
+      return false
+    end
 
-		#assign the user inputs to variables
+    #assign the user inputs to variables
         pipe_mat = runner.getStringArgumentValue("pipe_mat", user_arguments)
         dist_layout = runner.getStringArgumentValue("dist_layout", user_arguments)
         dist_ins = runner.getDoubleArgumentValue("dist_ins", user_arguments)
