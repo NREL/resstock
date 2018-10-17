@@ -46,7 +46,8 @@ Using the example from before, the PMF of the vintage depends on location of the
 The vintage is dependent on the EPW location.  The vintage discrete PMF that uses the Key West International Airport weather file, :math:`B_0`, is defined by the following distribution: 
 
 - 2% built before 1950, 
-- 6% in the 1950s, 9% in the 1960s, 
+- 6% in the 1950s, 
+- 9% in the 1960s, 
 - 23% in the 1970s, 
 - 37% in the 1980s, 
 - 13% in the 1900s, and 
@@ -55,7 +56,8 @@ The vintage is dependent on the EPW location.  The vintage discrete PMF that use
 While the vintage PMF that uses the Miami International Airport weather file, :math:`B_1` is defined by the following distribution:
 
 - 5% built before 1950, 
-- 13% in the 1950s, 9% in the 1960s, 
+- 13% in the 1950s, 
+- 9% in the 1960s, 
 - 13% in the 1970s, 
 - 18% in the 1980s, 
 - 17% in the 1900s, and 
