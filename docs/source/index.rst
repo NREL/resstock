@@ -11,6 +11,6 @@ ResStock Documentation
    :caption: Contents:
    
    tutorial/index
-   ResStock_dependencies_options_description
+   advanced_tutorial/index
    upgrade_scenario_config
    aws_cluster_config
