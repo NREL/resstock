@@ -48,7 +48,7 @@ You can control what set of weather files are unpacked and accessible on the rem
 
 To zip and upload new weather files:
  - First ensure that the weather files you will be using do not already exist in the S3 bucket. If they do, just point to the appropriate zip that already contains your desired weather files.
- - If they do not, on your local computer highlight all the new epw weather files and zip them. (Your zip should contain only files with either the ".epw" or ".ddy" extension.)
+ - If they do not, on your local computer highlight all the new epw weather files and compress them into a single zip file. (Your zip should contain only files with either the ".epw" or ".ddy" extension.)
  - Upload your newly zipped file that contains the weather files to your new location.
  - Go back to your project and update the argument value to the path of the newly uploaded file.
 
@@ -95,7 +95,7 @@ This measure creates the baseline scenario. It incrementally applies OpenStudio 
   The total number of buildings this sampling is meant to represent. This sets the weighting factors. For the U.S. single-family detached housing stock, this is 80 million homes. 
   
 **Sample Weight of Simulation**
-  The number of buildings each simulation represents. Total number of buildings / Number of simulations. This argument is optional, so you can leave it blank.
+  The number of buildings each simulation represents. Total number of buildings / Number of simulations. This argument is optional (it is only needed for running simulations on NREL HPC), so you can leave it blank.
   
 **Downselect Logic**
   Logic that specifies the subset of the building stock to be considered in the analysis. Specify one or more ``parameter|option`` as found in the ``resources/options_lookup.tsv``. (This uses the same syntax as the :ref:`tutorial-apply-upgrade` measure.) For example, if you wanted to only simulate California homes you could enter ``Location Region|CR11`` in this field (CR refers to "Custom Region", which is based on RECS 2009 reportable domains aggregated into groups with similar climates; see the entire `custom region map`_).

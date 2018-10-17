@@ -1,7 +1,7 @@
 Installer Setup
 ###############
 
-Download the OpenStudio installer from `openstudio.net <https://www.openstudio.net>`_. Then follow the instructions below for :ref:`windows-setup` or :ref:`mac-setup`.
+After you have downloaded the OpenStudio installer, you will want to install Ruby. This will allow you to execute rake tasks contained in the `Rakefile <https://github.com/NREL/OpenStudio-BuildStock/blob/master/Rakefile>`_. Follow the instructions below for :ref:`windows-setup` or :ref:`mac-setup`.
 
 .. _windows-setup:
 
@@ -84,9 +84,3 @@ Install bundler and the libraries that bundler installs.
 
   gem install bundler
   bundle install
-
-And finally
-
-.. code:: bash
-
-  rake update_measures
