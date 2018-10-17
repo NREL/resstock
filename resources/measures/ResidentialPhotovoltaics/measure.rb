@@ -47,6 +47,18 @@ class ResidentialPhotovoltaics < OpenStudio::Measure::ModelMeasure
     module_type.setDescription("Type of module to use for the PV simulation.")
     module_type.setDefaultValue(Constants.PVModuleTypeStandard)
     args << module_type
+    
+    #make a choice arguments for array type
+    array_types_names = OpenStudio::StringVector.new
+    array_types_names << Constants.PVArrayTypeFixedOpenRack
+    array_types_names << Constants.PVArrayTypeFixedRoofMount
+    array_types_names << Constants.PVArrayTypeFixed1Axis
+    array_types_names << Constants.PVArrayTypeFixed1AxisBacktracked
+    array_types_names << Constants.PVArrayTypeFixed2Axis
+    array_type = OpenStudio::Measure::OSArgument::makeChoiceArgument("array_type", array_types_names, true)
+    array_type.setDisplayName("Array Type")
+    array_type.setDefaultValue(Constants.PVArrayTypeFixedRoofMount)
+    args << array_type
 
     #make a double argument for system losses
     system_losses = OpenStudio::Measure::OSArgument::makeDoubleArgument("system_losses", false)
@@ -115,6 +127,7 @@ class ResidentialPhotovoltaics < OpenStudio::Measure::ModelMeasure
 
     size = runner.getDoubleArgumentValue("size",user_arguments)
     module_type = runner.getStringArgumentValue("module_type",user_arguments)
+    array_type = runner.getStringArgumentValue("array_type",user_arguments)
     system_losses = runner.getDoubleArgumentValue("system_losses",user_arguments)
     inverter_efficiency = runner.getDoubleArgumentValue("inverter_efficiency",user_arguments)
     azimuth_type = runner.getStringArgumentValue("azimuth_type",user_arguments)
@@ -143,7 +156,7 @@ class ResidentialPhotovoltaics < OpenStudio::Measure::ModelMeasure
     PV.remove(model, runner, obj_name)
     
     success = PV.apply(model, runner, obj_name, size_w, module_type, system_losses,
-                       inverter_efficiency, tilt_abs, azimuth_abs)
+                       inverter_efficiency, tilt_abs, azimuth_abs, array_type)
     return false if not success
 
     return true

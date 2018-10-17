@@ -291,11 +291,11 @@ class HVACSizing
                 next if surface.surfaceType.downcase != "roofceiling"
                 tot_roof_area += surface.netArea
 
-                roof_color = get_unit_feature(runner, unit, Constants.SizingInfoRoofColor(surface), 'string')
-                roof_material = get_unit_feature(runner, unit, Constants.SizingInfoRoofMaterial(surface), 'string')
+                roof_color = get_feature(runner, surface, Constants.SizingInfoRoofColor, 'string')
+                roof_material = get_feature(runner, surface, Constants.SizingInfoRoofMaterial, 'string')
                 return nil if roof_color.nil? or roof_material.nil?
                 
-                has_radiant_barrier = get_unit_feature(runner, unit, Constants.SizingInfoRoofHasRadiantBarrier(surface), 'boolean', false)
+                has_radiant_barrier = get_feature(runner, surface, Constants.SizingInfoRoofHasRadiantBarrier, 'boolean', false)
                 has_radiant_barrier = false if has_radiant_barrier.nil?
                 
                 if not is_vented
@@ -1066,15 +1066,15 @@ class HVACSizing
     # Roofs
     Geometry.get_spaces_above_grade_exterior_roofs(thermal_zone.spaces).each do |roof|
     
-        roof_color = get_unit_feature(runner, unit, Constants.SizingInfoRoofColor(roof), 'string')
+        roof_color = get_feature(runner, roof, Constants.SizingInfoRoofColor, 'string')
         return nil if roof_color.nil?
-        roof_material = get_unit_feature(runner, unit, Constants.SizingInfoRoofMaterial(roof), 'string')
+        roof_material = get_feature(runner, roof, Constants.SizingInfoRoofMaterial, 'string')
         return nil if roof_material.nil?
     
-        cavity_r = get_unit_feature(runner, unit, Constants.SizingInfoRoofCavityRvalue(roof), 'double')
+        cavity_r = get_feature(runner, roof, Constants.SizingInfoRoofCavityRvalue, 'double')
         return nil if cavity_r.nil?
     
-        rigid_r = get_unit_feature(runner, unit, Constants.SizingInfoRoofRigidInsRvalue(roof), 'double', false)
+        rigid_r = get_feature(runner, roof, Constants.SizingInfoRoofRigidInsRvalue, 'double', false)
         rigid_r = 0 if rigid_r.nil?
 
         total_r = cavity_r + rigid_r
@@ -1174,7 +1174,7 @@ class HVACSizing
         #TODO: Revert this some day.
         #floor_ufactor = get_surface_ufactor(runner, floor, floor.surfaceType, true)
         #return nil if floor_ufactor.nil?
-        floor_rvalue = get_unit_feature(runner, unit, Constants.SizingInfoSlabRvalue(floor), 'double')
+        floor_rvalue = get_feature(runner, floor, Constants.SizingInfoSlabRvalue, 'double')
         return nil if floor_rvalue.nil?
         floor_ufactor = 1.0/floor_rvalue
         zone_loads.Heat_Floors += floor_ufactor * UnitConversions.convert(floor.netArea,"m^2","ft^2") * (mj8.heat_setpoint - weather.data.GroundMonthlyTemps[0])
@@ -1220,7 +1220,7 @@ class HVACSizing
         return nil
     end
     
-    ela = get_unit_feature(runner, unit, Constants.SizingInfoZoneInfiltrationELA(thermal_zone), 'double', false)
+    ela = get_feature(runner, thermal_zone, Constants.SizingInfoZoneInfiltrationELA, 'double', false)
     ela = 0 if ela.nil?
     
     ela_in2 = UnitConversions.convert(ela, "ft^2", "in^2")
@@ -1515,7 +1515,7 @@ class HVACSizing
             walls_insulated, ceiling_insulated = get_foundation_walls_ceilings_insulated(runner, ducts.LocationSpace)
             return nil if walls_insulated.nil? or ceiling_insulated.nil?
 
-            infiltration_cfm = get_unit_feature(runner, unit, Constants.SizingInfoZoneInfiltrationCFM(ducts.LocationSpace.thermalZone.get), 'double', false)
+            infiltration_cfm = get_feature(runner, ducts.LocationSpace.thermalZone.get, Constants.SizingInfoZoneInfiltrationCFM, 'double', false)
             infiltration_cfm = 0 if infiltration_cfm.nil?
             
             if not ceiling_insulated
@@ -1549,7 +1549,7 @@ class HVACSizing
             walls_insulated, ceiling_insulated = get_foundation_walls_ceilings_insulated(runner, ducts.LocationSpace)
             return nil if walls_insulated.nil? or ceiling_insulated.nil?
             
-            infiltration_cfm = get_unit_feature(runner, unit, Constants.SizingInfoZoneInfiltrationCFM(ducts.LocationSpace.thermalZone.get), 'double', false)
+            infiltration_cfm = get_feature(runner, ducts.LocationSpace.thermalZone.get, Constants.SizingInfoZoneInfiltrationCFM, 'double', false)
             infiltration_cfm = 0 if infiltration_cfm.nil?
             
             if infiltration_cfm > 0
@@ -2038,7 +2038,7 @@ class HVACSizing
     elsif hvac.HasUnitHeater
         unit_final.Heat_Capacity = unit_final.Heat_Load
         
-        ratedCFMperTonHeating = get_unit_feature(runner, unit, Constants.SizingInfoHVACRatedCFMperTonHeating, 'string')
+        ratedCFMperTonHeating = get_feature(runner, unit, Constants.SizingInfoHVACRatedCFMperTonHeating, 'string')
         return nil if ratedCFMperTonHeating.nil?
         ratedCFMperTonHeating = ratedCFMperTonHeating.to_f
         if ratedCFMperTonHeating > 0
@@ -2101,11 +2101,11 @@ class HVACSizing
             unit_final.Heat_Capacity_Supp = unit_final.Heat_Capacity
         end
         
-        bore_spacing = get_unit_feature(runner, unit, Constants.SizingInfoGSHPBoreSpacing, 'double')
-        bore_holes = get_unit_feature(runner, unit, Constants.SizingInfoGSHPBoreHoles, 'string')
-        bore_depth = get_unit_feature(runner, unit, Constants.SizingInfoGSHPBoreDepth, 'string')
-        bore_config = get_unit_feature(runner, unit, Constants.SizingInfoGSHPBoreConfig, 'string')
-        spacing_type = get_unit_feature(runner, unit, Constants.SizingInfoGSHPUTubeSpacingType, 'string')
+        bore_spacing = get_feature(runner, unit, Constants.SizingInfoGSHPBoreSpacing, 'double')
+        bore_holes = get_feature(runner, unit, Constants.SizingInfoGSHPBoreHoles, 'string')
+        bore_depth = get_feature(runner, unit, Constants.SizingInfoGSHPBoreDepth, 'string')
+        bore_config = get_feature(runner, unit, Constants.SizingInfoGSHPBoreConfig, 'string')
+        spacing_type = get_feature(runner, unit, Constants.SizingInfoGSHPUTubeSpacingType, 'string')
         return nil if bore_spacing.nil? or bore_holes.nil? or bore_depth.nil? or bore_config.nil? or spacing_type.nil?
         
         ground_conductivity = UnitConversions.convert(hvac.GroundHXVertical.groundThermalConductivity.get,"W/(m*K)","Btu/(hr*ft*R)")
@@ -2678,8 +2678,8 @@ class HVACSizing
   
   def self.get_ventilation_rates(runner, unit)
   
-    mechVentType = get_unit_feature(runner, unit, Constants.SizingInfoMechVentType, 'string')
-    mechVentWholeHouseRate = get_unit_feature(runner, unit, Constants.SizingInfoMechVentWholeHouseRate, 'double')
+    mechVentType = get_feature(runner, unit, Constants.SizingInfoMechVentType, 'string')
+    mechVentWholeHouseRate = get_feature(runner, unit, Constants.SizingInfoMechVentWholeHouseRate, 'double')
     return nil if mechVentType.nil? or mechVentWholeHouseRate.nil?
   
     q_unb = 0
@@ -2691,9 +2691,9 @@ class HVACSizing
     elsif mechVentType == Constants.VentTypeSupply or mechVentType == Constants.VentTypeCFIS
         q_unb = mechVentWholeHouseRate
     elsif mechVentType == Constants.VentTypeBalanced
-        totalEfficiency = get_unit_feature(runner, unit, Constants.SizingInfoMechVentTotalEfficiency, 'double')
-        apparentSensibleEffectiveness = get_unit_feature(runner, unit, Constants.SizingInfoMechVentApparentSensibleEffectiveness, 'double')
-        latentEffectiveness = get_unit_feature(runner, unit, Constants.SizingInfoMechVentLatentEffectiveness, 'double')
+        totalEfficiency = get_feature(runner, unit, Constants.SizingInfoMechVentTotalEfficiency, 'double')
+        apparentSensibleEffectiveness = get_feature(runner, unit, Constants.SizingInfoMechVentApparentSensibleEffectiveness, 'double')
+        latentEffectiveness = get_feature(runner, unit, Constants.SizingInfoMechVentLatentEffectiveness, 'double')
         return nil if totalEfficiency.nil? or latentEffectiveness.nil? or apparentSensibleEffectiveness.nil?
         q_bal_Sens = mechVentWholeHouseRate * (1 - apparentSensibleEffectiveness)
         q_bal_Lat = mechVentWholeHouseRate * (1 - latentEffectiveness)
@@ -2873,22 +2873,22 @@ class HVACSizing
         ducts.Has = true
         ducts.NotInLiving = false # init
         
-        ducts.SupplySurfaceArea = get_unit_feature(runner, unit, Constants.SizingInfoDuctsSupplySurfaceArea, 'double')
-        ducts.ReturnSurfaceArea = get_unit_feature(runner, unit, Constants.SizingInfoDuctsReturnSurfaceArea, 'double')
+        ducts.SupplySurfaceArea = get_feature(runner, unit, Constants.SizingInfoDuctsSupplySurfaceArea, 'double')
+        ducts.ReturnSurfaceArea = get_feature(runner, unit, Constants.SizingInfoDuctsReturnSurfaceArea, 'double')
         return nil if ducts.SupplySurfaceArea.nil? or ducts.ReturnSurfaceArea.nil?
         
-        ducts.LocationFrac = get_unit_feature(runner, unit, Constants.SizingInfoDuctsLocationFrac, 'double')
+        ducts.LocationFrac = get_feature(runner, unit, Constants.SizingInfoDuctsLocationFrac, 'double')
         return nil if ducts.LocationFrac.nil?
         
-        ducts.SupplyLoss = get_unit_feature(runner, unit, Constants.SizingInfoDuctsSupplyLoss, 'double')
-        ducts.ReturnLoss = get_unit_feature(runner, unit, Constants.SizingInfoDuctsReturnLoss, 'double')
+        ducts.SupplyLoss = get_feature(runner, unit, Constants.SizingInfoDuctsSupplyLoss, 'double')
+        ducts.ReturnLoss = get_feature(runner, unit, Constants.SizingInfoDuctsReturnLoss, 'double')
         return nil if ducts.SupplyLoss.nil? or ducts.ReturnLoss.nil?
 
-        ducts.SupplyRvalue = get_unit_feature(runner, unit, Constants.SizingInfoDuctsSupplyRvalue, 'double')
-        ducts.ReturnRvalue = get_unit_feature(runner, unit, Constants.SizingInfoDuctsReturnRvalue, 'double')
+        ducts.SupplyRvalue = get_feature(runner, unit, Constants.SizingInfoDuctsSupplyRvalue, 'double')
+        ducts.ReturnRvalue = get_feature(runner, unit, Constants.SizingInfoDuctsReturnRvalue, 'double')
         return nil if ducts.SupplyRvalue.nil? or ducts.ReturnRvalue.nil?
         
-        locationZoneName = get_unit_feature(runner, unit, Constants.SizingInfoDuctsLocationZone, 'string')
+        locationZoneName = get_feature(runner, unit, Constants.SizingInfoDuctsLocationZone, 'string')
         return nil if locationZoneName.nil?
         
         # Get arbitrary space from zone
@@ -2999,7 +2999,7 @@ class HVACSizing
     has_ducted_mshp = HVAC.has_ducted_mshp(model, runner, control_zone)
     
     if hvac.HasAirSourceHeatPump or hvac.HasMiniSplitHeatPump
-        hvac.HPSizedForMaxLoad = get_unit_feature(runner, unit, Constants.SizingInfoHPSizedForMaxLoad, 'boolean', true)
+        hvac.HPSizedForMaxLoad = get_feature(runner, unit, Constants.SizingInfoHPSizedForMaxLoad, 'boolean', true)
         return nil if hvac.HPSizedForMaxLoad.nil?
     end
     
@@ -3034,7 +3034,7 @@ class HVACSizing
             hvac.NumSpeedsCooling = 1
             
             if hvac.HasRoomAirConditioner
-                coolingCFMs = get_unit_feature(runner, unit, Constants.SizingInfoHVACCoolingCFMs, 'string')
+                coolingCFMs = get_feature(runner, unit, Constants.SizingInfoHVACCoolingCFMs, 'string')
                 return nil if coolingCFMs.nil?
                 hvac.CoolingCFMs = coolingCFMs.split(",").map(&:to_f)
             end
@@ -3051,7 +3051,7 @@ class HVACSizing
             end
             
             if not hvac.HasRoomAirConditioner
-                capacityDerateFactorEER = get_unit_feature(runner, unit, Constants.SizingInfoHVACCapacityDerateFactorEER, 'string')
+                capacityDerateFactorEER = get_feature(runner, unit, Constants.SizingInfoHVACCapacityDerateFactorEER, 'string')
                 return nil if capacityDerateFactorEER.nil?
                 hvac.CapacityDerateFactorEER = capacityDerateFactorEER.split(",").map(&:to_f)
             end
@@ -3064,7 +3064,7 @@ class HVACSizing
                 hvac.OverSizeLimit = 1.3
             end
             
-            capacityRatioCooling = get_unit_feature(runner, unit, Constants.SizingInfoHVACCapacityRatioCooling, 'string')
+            capacityRatioCooling = get_feature(runner, unit, Constants.SizingInfoHVACCapacityRatioCooling, 'string')
             return nil if capacityRatioCooling.nil?
             hvac.CapacityRatioCooling = capacityRatioCooling.split(",").map(&:to_f)
             
@@ -3095,12 +3095,12 @@ class HVACSizing
                 hvac.FixedCoolingCapacity = UnitConversions.convert(stage.grossRatedTotalCoolingCapacity.get,"W","ton")
             end
             hvac.COOL_CAP_FT_SPEC = get_2d_vector_from_CAP_FT_SPEC_curves(curves, hvac.NumSpeedsCooling)
-            capacityDerateFactorEER = get_unit_feature(runner, unit, Constants.SizingInfoHVACCapacityDerateFactorEER, 'string')
+            capacityDerateFactorEER = get_feature(runner, unit, Constants.SizingInfoHVACCapacityDerateFactorEER, 'string')
             return nil if capacityDerateFactorEER.nil?
             hvac.CapacityDerateFactorEER = capacityDerateFactorEER.split(",").map(&:to_f)
             
         elsif clg_coil.is_a? OpenStudio::Model::CoilCoolingDXVariableRefrigerantFlow
-            capacityRatioCooling = get_unit_feature(runner, unit, Constants.SizingInfoHVACCapacityRatioCooling, 'string')
+            capacityRatioCooling = get_feature(runner, unit, Constants.SizingInfoHVACCapacityRatioCooling, 'string')
             return nil if capacityRatioCooling.nil?
             hvac.CapacityRatioCooling = capacityRatioCooling.split(",").map(&:to_f)
             
@@ -3115,11 +3115,11 @@ class HVACSizing
                 return nil
             end
             
-            shr_rated = get_unit_feature(runner, unit, Constants.SizingInfoHVACSHR, 'string')
+            shr_rated = get_feature(runner, unit, Constants.SizingInfoHVACSHR, 'string')
             return nil if shr_rated.nil?
             hvac.SHRRated = shr_rated.split(",").map(&:to_f)
 
-            coolingCFMs = get_unit_feature(runner, unit, Constants.SizingInfoHVACCoolingCFMs, 'string')
+            coolingCFMs = get_feature(runner, unit, Constants.SizingInfoHVACCoolingCFMs, 'string')
             return nil if coolingCFMs.nil?
             hvac.CoolingCFMs = coolingCFMs.split(",").map(&:to_f)
             
@@ -3144,15 +3144,15 @@ class HVACSizing
                                clg_coil.sensibleCoolingCapacityCoefficient6]
             hvac.COOL_SH_FT_SPEC = [HVAC.convert_curve_gshp(cOOL_SH_FT_SPEC, true)]
             
-            cOIL_BF_FT_SPEC = get_unit_feature(runner, unit, Constants.SizingInfoGSHPCoil_BF_FT_SPEC, 'string')
+            cOIL_BF_FT_SPEC = get_feature(runner, unit, Constants.SizingInfoGSHPCoil_BF_FT_SPEC, 'string')
             return nil if cOIL_BF_FT_SPEC.nil?
             hvac.COIL_BF_FT_SPEC = [cOIL_BF_FT_SPEC.split(",").map(&:to_f)]
             
-            shr_rated = get_unit_feature(runner, unit, Constants.SizingInfoHVACSHR, 'string')
+            shr_rated = get_feature(runner, unit, Constants.SizingInfoHVACSHR, 'string')
             return nil if shr_rated.nil?
             hvac.SHRRated = shr_rated.split(",").map(&:to_f)
             
-            hvac.CoilBF = get_unit_feature(runner, unit, Constants.SizingInfoGSHPCoilBF, 'double')
+            hvac.CoilBF = get_feature(runner, unit, Constants.SizingInfoGSHPCoilBF, 'double')
             return nil if hvac.CoilBF.nil?
             
             if clg_coil.ratedTotalCoolingCapacity.is_initialized
@@ -3237,7 +3237,7 @@ class HVACSizing
             if htg_coil.ratedTotalHeatingCapacity.is_initialized
                 hvac.FixedHeatingCapacity = UnitConversions.convert(htg_coil.ratedTotalHeatingCapacity.get,"W","ton")
             end
-            capacityDerateFactorCOP = get_unit_feature(runner, unit, Constants.SizingInfoHVACCapacityDerateFactorCOP, 'string')
+            capacityDerateFactorCOP = get_feature(runner, unit, Constants.SizingInfoHVACCapacityDerateFactorCOP, 'string')
             return nil if capacityDerateFactorCOP.nil?
             hvac.CapacityDerateFactorCOP = capacityDerateFactorCOP.split(",").map(&:to_f)
             
@@ -3252,12 +3252,12 @@ class HVACSizing
                 hvac.FixedHeatingCapacity = UnitConversions.convert(stage.grossRatedHeatingCapacity.get,"W","ton")
             end
             hvac.HEAT_CAP_FT_SPEC = get_2d_vector_from_CAP_FT_SPEC_curves(curves, hvac.NumSpeedsHeating)
-            capacityDerateFactorCOP = get_unit_feature(runner, unit, Constants.SizingInfoHVACCapacityDerateFactorCOP, 'string')
+            capacityDerateFactorCOP = get_feature(runner, unit, Constants.SizingInfoHVACCapacityDerateFactorCOP, 'string')
             return nil if capacityDerateFactorCOP.nil?
             hvac.CapacityDerateFactorCOP = capacityDerateFactorCOP.split(",").map(&:to_f)
             
         elsif htg_coil.is_a? OpenStudio::Model::CoilHeatingDXVariableRefrigerantFlow
-            capacityRatioHeating = get_unit_feature(runner, unit, Constants.SizingInfoHVACCapacityRatioHeating, 'string')
+            capacityRatioHeating = get_feature(runner, unit, Constants.SizingInfoHVACCapacityRatioHeating, 'string')
             return nil if capacityRatioHeating.nil?
             hvac.CapacityRatioHeating = capacityRatioHeating.split(",").map(&:to_f)
             
@@ -3268,11 +3268,11 @@ class HVACSizing
             curves = [vrf.heatingCapacityRatioModifierFunctionofLowTemperatureCurve.get]
             hvac.HEAT_CAP_FT_SPEC = get_2d_vector_from_CAP_FT_SPEC_curves(curves, hvac.NumSpeedsHeating)
             
-            heatingCFMs = get_unit_feature(runner, unit, Constants.SizingInfoHVACHeatingCFMs, 'string')
+            heatingCFMs = get_feature(runner, unit, Constants.SizingInfoHVACHeatingCFMs, 'string')
             return nil if heatingCFMs.nil?
             hvac.HeatingCFMs = heatingCFMs.split(",").map(&:to_f)
             
-            hvac.HeatingCapacityOffset = get_unit_feature(runner, unit, Constants.SizingInfoHVACHeatingCapacityOffset, 'double')
+            hvac.HeatingCapacityOffset = get_feature(runner, unit, Constants.SizingInfoHVACHeatingCapacityOffset, 'double')
             return nil if hvac.HeatingCapacityOffset.nil?
             
         elsif htg_coil.is_a? OpenStudio::Model::CoilHeatingWaterToAirHeatPumpEquationFit
@@ -3497,7 +3497,7 @@ class HVACSizing
     end
     
     # Infiltration UA
-    infiltration_cfm = get_unit_feature(runner, unit, Constants.SizingInfoZoneInfiltrationCFM(space.thermalZone.get), 'double', false)
+    infiltration_cfm = get_feature(runner, space.thermalZone.get, Constants.SizingInfoZoneInfiltrationCFM, 'double', false)
     infiltration_cfm = 0 if infiltration_cfm.nil?
     outside_air_density = UnitConversions.convert(weather.header.LocalPressure,"atm","Btu/ft^3") / (Gas.Air.r * (weather.data.AnnualAvgDrybulb + 460.0))
     space_UAs["infil"] = infiltration_cfm * outside_air_density * Gas.Air.cp * UnitConversions.convert(1.0,"hr","min")
@@ -3579,10 +3579,10 @@ class HVACSizing
   
     exteriorFinishDensity = UnitConversions.convert(wall.construction.get.to_LayeredConstruction.get.getLayer(0).to_StandardOpaqueMaterial.get.density,"kg/m^3","lbm/ft^3")
     
-    wall_type = get_unit_feature(runner, unit, Constants.SizingInfoWallType(wall), 'string')
+    wall_type = get_feature(runner, wall, Constants.SizingInfoWallType, 'string')
     return nil if wall_type.nil?
     
-    rigid_r = get_unit_feature(runner, unit, Constants.SizingInfoWallRigidInsRvalue(wall), 'double', false)
+    rigid_r = get_feature(runner, wall, Constants.SizingInfoWallRigidInsRvalue, 'double', false)
     rigid_r = 0 if rigid_r.nil?
         
     # Determine the wall Group Number (A - K = 1 - 11) for exterior walls (ie. all walls except basement walls)
@@ -3591,7 +3591,7 @@ class HVACSizing
     # The following correlations were estimated by analyzing MJ8 construction tables. This is likely a better
     # approach than including the Group Number.
     if ['WoodStud', 'SteelStud'].include?(wall_type)
-        cavity_r = get_unit_feature(runner, unit, Constants.SizingInfoStudWallCavityRvalue(wall), 'double')
+        cavity_r = get_feature(runner, wall, Constants.SizingInfoStudWallCavityRvalue, 'double')
         return nil if cavity_r.nil?
     
         wallGroup = get_wallgroup_wood_or_steel_stud(cavity_r)
@@ -3627,10 +3627,10 @@ class HVACSizing
         end
         
     elsif wall_type == 'SIP'
-        rigid_thick_in = get_unit_feature(runner, unit, Constants.SizingInfoWallRigidInsThickness(wall), 'double', false)
+        rigid_thick_in = get_feature(runner, wall, Constants.SizingInfoWallRigidInsThickness, 'double', false)
         rigid_thick_in = 0 if rigid_thick_in.nil?
         
-        sip_ins_thick_in = get_unit_feature(runner, unit, Constants.SizingInfoSIPWallInsThickness(wall), 'double')
+        sip_ins_thick_in = get_feature(runner, wall, Constants.SizingInfoSIPWallInsThickness, 'double')
         return nil if sip_ins_thick_in.nil?
         
         # Manual J refers to SIPs as Structural Foam Panel (SFP)
@@ -3646,7 +3646,7 @@ class HVACSizing
         end
         
     elsif wall_type == 'CMU'
-        cmu_furring_ins_r = get_unit_feature(runner, unit, Constants.SizingInfoCMUWallFurringInsRvalue(wall), 'double')
+        cmu_furring_ins_r = get_feature(runner, wall, Constants.SizingInfoCMUWallFurringInsRvalue, 'double')
         return nil if cmu_furring_ins_r.nil?        
     
         # Manual J uses the same wall group for filled or hollow block
@@ -4104,18 +4104,18 @@ class HVACSizing
     return wall_ins_rvalue, wall_ins_height, wall_constr_rvalue
   end
   
-  def self.get_unit_feature(runner, unit, feature, datatype, register_error=true)
+  def self.get_feature(runner, obj, feature, datatype, register_error=true)
     val = nil
     if datatype == 'string'
-        val = unit.getFeatureAsString(feature)
+        val = obj.additionalProperties.getFeatureAsString(feature)
     elsif datatype == 'double'
-        val = unit.getFeatureAsDouble(feature)
+        val = obj.additionalProperties.getFeatureAsDouble(feature)
     elsif datatype == 'boolean'
-        val = unit.getFeatureAsBoolean(feature)
+        val = obj.additionalProperties.getFeatureAsBoolean(feature)
     end
     if not val.is_initialized
         if register_error
-            runner.registerError("Could not find value for '#{feature}' with datatype #{datatype}.")
+            runner.registerError("Could not find additionalProperties value for '#{feature}' with datatype #{datatype} on object #{obj.name}.")
         end
         return nil
     end
@@ -4281,7 +4281,7 @@ class HVACSizing
         vrf = HVAC.get_vrf(model, runner, thermal_zone)
         next if vrf.nil?
 
-        mshp_indices = get_unit_feature(runner, unit, Constants.SizingInfoMSHPIndices, 'string')
+        mshp_indices = get_feature(runner, unit, Constants.SizingInfoMSHPIndices, 'string')
         return nil if mshp_indices.nil?
         mshp_indices = mshp_indices.split(",").map(&:to_i)
         mshp_index = mshp_indices[-1]
@@ -4417,11 +4417,11 @@ class HVACSizing
   
     clg_coil, htg_coil, supp_htg_coil = HVAC.get_coils_from_hvac_equip(equip)
     
-    ratedCFMperTonCooling = get_unit_feature(runner, unit, Constants.SizingInfoHVACRatedCFMperTonCooling, 'string', false)
+    ratedCFMperTonCooling = get_feature(runner, unit, Constants.SizingInfoHVACRatedCFMperTonCooling, 'string', false)
     if not ratedCFMperTonCooling.nil?
         ratedCFMperTonCooling = ratedCFMperTonCooling.split(",").map(&:to_f)
     end
-    ratedCFMperTonHeating = get_unit_feature(runner, unit, Constants.SizingInfoHVACRatedCFMperTonHeating, 'string', false)
+    ratedCFMperTonHeating = get_feature(runner, unit, Constants.SizingInfoHVACRatedCFMperTonHeating, 'string', false)
     if not ratedCFMperTonHeating.nil?
         ratedCFMperTonHeating = ratedCFMperTonHeating.split(",").map(&:to_f)
     end
