@@ -156,8 +156,8 @@ class Geometry
 
   def self.get_unit_beds_baths(model, unit, runner=nil)
     # Returns a list with #beds, #baths, a list of spaces, and the unit name
-    nbeds = unit.getFeatureAsInteger(Constants.BuildingUnitFeatureNumBedrooms)
-    nbaths = unit.getFeatureAsDouble(Constants.BuildingUnitFeatureNumBathrooms)
+    nbeds = unit.additionalProperties.getFeatureAsInteger(Constants.BuildingUnitFeatureNumBedrooms)
+    nbaths = unit.additionalProperties.getFeatureAsDouble(Constants.BuildingUnitFeatureNumBathrooms)
     if not (nbeds.is_initialized or nbaths.is_initialized)
       if !runner.nil?
         runner.registerError("Could not determine number of bedrooms or bathrooms.")
@@ -756,7 +756,6 @@ class Geometry
   def self.get_walls_connected_to_floor(wall_surfaces, floor_surface)
       adjacent_wall_surfaces = []
       
-      # Note: Algorithm assumes that walls span an entire edge of the floor.
       wall_surfaces.each do |wall_surface|
           next if wall_surface.space.get != floor_surface.space.get
           wall_vertices = wall_surface.vertices
@@ -765,17 +764,17 @@ class Geometry
               floor_vertices = floor_surface.vertices
               floor_vertices.each_with_index do |fv1, fidx|
                   fv2 = floor_vertices[fidx-1]
-                  # Identical edge?
-                  if self.equal_vertices([wv1.x, wv1.y, 0], [fv1.x, fv1.y, 0]) and self.equal_vertices([wv2.x, wv2.y, 0], [fv2.x, fv2.y, 0])
-                      adjacent_wall_surfaces << wall_surface
-                  elsif self.equal_vertices([wv1.x, wv1.y, 0], [fv2.x, fv2.y, 0]) and self.equal_vertices([wv2.x, wv2.y, 0], [fv1.x, fv1.y, 0])
-                      adjacent_wall_surfaces << wall_surface
+                  # Wall within floor edge?
+                  if self.is_point_between([wv1.x, wv1.y, wv1.z], [fv1.x, fv1.y, fv1.z], [fv2.x, fv2.y, fv2.z]) and self.is_point_between([wv2.x, wv2.y, wv2.z], [fv1.x, fv1.y, fv1.z], [fv2.x, fv2.y, fv2.z])
+                      if not adjacent_wall_surfaces.include? wall_surface
+                          adjacent_wall_surfaces << wall_surface
+                      end
                   end
               end
           end
       end
       
-      return adjacent_wall_surfaces.uniq!
+      return adjacent_wall_surfaces
   end
 
   def self.is_living(space_or_zone)
@@ -1318,8 +1317,8 @@ class Geometry
       num_br[unit_index] = num_br[unit_index].to_i
       num_ba[unit_index] = num_ba[unit_index].to_f
 
-      unit.setFeature(Constants.BuildingUnitFeatureNumBedrooms, num_br[unit_index])
-      unit.setFeature(Constants.BuildingUnitFeatureNumBathrooms, num_ba[unit_index])
+      unit.additionalProperties.setFeature(Constants.BuildingUnitFeatureNumBedrooms, num_br[unit_index])
+      unit.additionalProperties.setFeature(Constants.BuildingUnitFeatureNumBathrooms, num_ba[unit_index])
 
       if units.size > 1
         runner.registerInfo("Unit '#{unit_index}' has been assigned #{num_br[unit_index].to_s} bedroom(s) and #{num_ba[unit_index].round(2).to_s} bathroom(s).")

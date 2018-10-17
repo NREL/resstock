@@ -455,10 +455,10 @@ class ClothesWasher
           water_use_connection.addWaterUseEquipment(cw2)
           
           # Store some info for Clothes Dryer measures
-          unit.setFeature(Constants.ClothesWasherIMEF(cw), imef)
-          unit.setFeature(Constants.ClothesWasherRatedAnnualEnergy(cw), rated_annual_energy)
-          unit.setFeature(Constants.ClothesWasherDrumVolume(cw), drum_volume)
-          unit.setFeature(Constants.ClothesWasherDayShift(cw), d_sh.to_f)
+          cw.additionalProperties.setFeature(Constants.ClothesWasherIMEF, imef)
+          cw.additionalProperties.setFeature(Constants.ClothesWasherRatedAnnualEnergy, rated_annual_energy)
+          cw.additionalProperties.setFeature(Constants.ClothesWasherDrumVolume, drum_volume)
+          cw.additionalProperties.setFeature(Constants.ClothesWasherDayShift, d_sh.to_f)
           
           # Check if there's a clothes dryer that needs to be updated
           cd_unit_obj_name = Constants.ObjectNameClothesDryer(nil)
@@ -476,10 +476,10 @@ class ClothesWasher
           if not cd.nil?
           
               # Get clothes dryer properties
-              cd_cef = unit.getFeatureAsDouble(Constants.ClothesDryerCEF(cd))
-              cd_mult = unit.getFeatureAsDouble(Constants.ClothesDryerMult(cd))
-              cd_fuel_type = unit.getFeatureAsString(Constants.ClothesDryerFuelType(cd))
-              cd_fuel_split = unit.getFeatureAsDouble(Constants.ClothesDryerFuelSplit(cd))
+              cd_cef = cd.additionalProperties.getFeatureAsDouble(Constants.ClothesDryerCEF)
+              cd_mult = cd.additionalProperties.getFeatureAsDouble(Constants.ClothesDryerMult)
+              cd_fuel_type = cd.additionalProperties.getFeatureAsString(Constants.ClothesDryerFuelType)
+              cd_fuel_split = cd.additionalProperties.getFeatureAsDouble(Constants.ClothesDryerFuelSplit)
               if !cd_cef.is_initialized or !cd_mult.is_initialized or !cd_fuel_type.is_initialized or !cd_fuel_split.is_initialized
                   runner.registerError("Could not find clothes dryer properties.")
                   return false
@@ -581,10 +581,10 @@ class ClothesDryer
           runner.registerError("Could not find clothes washer equipment.")
           return false
       end
-      drum_volume = unit.getFeatureAsDouble(Constants.ClothesWasherDrumVolume(cw))
-      imef = unit.getFeatureAsDouble(Constants.ClothesWasherIMEF(cw))
-      rated_annual_energy = unit.getFeatureAsDouble(Constants.ClothesWasherRatedAnnualEnergy(cw))
-      day_shift = unit.getFeatureAsDouble(Constants.ClothesWasherDayShift(cw))
+      drum_volume = cw.additionalProperties.getFeatureAsDouble(Constants.ClothesWasherDrumVolume)
+      imef = cw.additionalProperties.getFeatureAsDouble(Constants.ClothesWasherIMEF)
+      rated_annual_energy = cw.additionalProperties.getFeatureAsDouble(Constants.ClothesWasherRatedAnnualEnergy)
+      day_shift = cw.additionalProperties.getFeatureAsDouble(Constants.ClothesWasherDayShift)
       if !drum_volume.is_initialized or !imef.is_initialized or !rated_annual_energy.is_initialized or !day_shift.is_initialized
           runner.registerError("Could not find clothes washer properties.")
           return false
@@ -733,10 +733,10 @@ class ClothesDryer
           
           end
           
-          unit.setFeature(Constants.ClothesDryerCEF(cd), cef.to_f)
-          unit.setFeature(Constants.ClothesDryerMult(cd), mult.to_f)
-          unit.setFeature(Constants.ClothesDryerFuelType(cd), fuel_type.to_s)
-          unit.setFeature(Constants.ClothesDryerFuelSplit(cd), fuel_split.to_f)
+          cd.additionalProperties.setFeature(Constants.ClothesDryerCEF, cef.to_f)
+          cd.additionalProperties.setFeature(Constants.ClothesDryerMult, mult.to_f)
+          cd.additionalProperties.setFeature(Constants.ClothesDryerFuelType, fuel_type.to_s)
+          cd.additionalProperties.setFeature(Constants.ClothesDryerFuelSplit, fuel_split.to_f)
           
       end
       
