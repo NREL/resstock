@@ -347,7 +347,7 @@ class ResidentialHotWaterFixtures < OpenStudio::Measure::ModelMeasure
         else
             runner.registerFinalCondition("No shower, sink, or bath fixtures have been assigned.")
         end
-	
+
         return true
         
     end

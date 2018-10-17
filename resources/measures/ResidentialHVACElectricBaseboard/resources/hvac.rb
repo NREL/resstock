@@ -155,8 +155,8 @@ class HVAC
       end # control_zone
       
       # Store info for HVAC Sizing measure
-      unit.setFeature(Constants.SizingInfoHVACCapacityDerateFactorEER, eer_capacity_derates.join(","))
-      unit.setFeature(Constants.SizingInfoHVACRatedCFMperTonCooling, cfms_ton_rated.join(","))
+      unit.additionalProperties.setFeature(Constants.SizingInfoHVACCapacityDerateFactorEER, eer_capacity_derates.join(","))
+      unit.additionalProperties.setFeature(Constants.SizingInfoHVACRatedCFMperTonCooling, cfms_ton_rated.join(","))
       
       return true
     
@@ -318,9 +318,9 @@ class HVAC
       end # control_zone
       
       # Store info for HVAC Sizing measure
-      unit.setFeature(Constants.SizingInfoHVACCapacityRatioCooling, capacity_ratios.join(","))
-      unit.setFeature(Constants.SizingInfoHVACCapacityDerateFactorEER, eer_capacity_derates.join(","))
-      unit.setFeature(Constants.SizingInfoHVACRatedCFMperTonCooling, cfms_ton_rated.join(","))
+      unit.additionalProperties.setFeature(Constants.SizingInfoHVACCapacityRatioCooling, capacity_ratios.join(","))
+      unit.additionalProperties.setFeature(Constants.SizingInfoHVACCapacityDerateFactorEER, eer_capacity_derates.join(","))
+      unit.additionalProperties.setFeature(Constants.SizingInfoHVACRatedCFMperTonCooling, cfms_ton_rated.join(","))
       
       return true
       
@@ -484,9 +484,9 @@ class HVAC
       end # control_zone
       
       # Store info for HVAC Sizing measure
-      unit.setFeature(Constants.SizingInfoHVACCapacityRatioCooling, capacity_ratios.join(","))
-      unit.setFeature(Constants.SizingInfoHVACCapacityDerateFactorEER, eer_capacity_derates.join(","))
-      unit.setFeature(Constants.SizingInfoHVACRatedCFMperTonCooling, cfms_ton_rated.join(","))
+      unit.additionalProperties.setFeature(Constants.SizingInfoHVACCapacityRatioCooling, capacity_ratios.join(","))
+      unit.additionalProperties.setFeature(Constants.SizingInfoHVACCapacityDerateFactorEER, eer_capacity_derates.join(","))
+      unit.additionalProperties.setFeature(Constants.SizingInfoHVACRatedCFMperTonCooling, cfms_ton_rated.join(","))
       
       return true
     end
@@ -668,11 +668,11 @@ class HVAC
       end # control_zone
       
       # Store info for HVAC Sizing measure
-      unit.setFeature(Constants.SizingInfoHVACCapacityDerateFactorEER, eer_capacity_derates.join(","))
-      unit.setFeature(Constants.SizingInfoHVACCapacityDerateFactorCOP, cop_capacity_derates.join(","))
-      unit.setFeature(Constants.SizingInfoHPSizedForMaxLoad, (heat_pump_capacity == Constants.SizingAutoMaxLoad))
-      unit.setFeature(Constants.SizingInfoHVACRatedCFMperTonHeating, cfms_ton_rated_heating.join(","))
-      unit.setFeature(Constants.SizingInfoHVACRatedCFMperTonCooling, cfms_ton_rated_cooling.join(","))
+      unit.additionalProperties.setFeature(Constants.SizingInfoHVACCapacityDerateFactorEER, eer_capacity_derates.join(","))
+      unit.additionalProperties.setFeature(Constants.SizingInfoHVACCapacityDerateFactorCOP, cop_capacity_derates.join(","))
+      unit.additionalProperties.setFeature(Constants.SizingInfoHPSizedForMaxLoad, (heat_pump_capacity == Constants.SizingAutoMaxLoad))
+      unit.additionalProperties.setFeature(Constants.SizingInfoHVACRatedCFMperTonHeating, cfms_ton_rated_heating.join(","))
+      unit.additionalProperties.setFeature(Constants.SizingInfoHVACRatedCFMperTonCooling, cfms_ton_rated_cooling.join(","))
     
       return true
     end
@@ -863,12 +863,12 @@ class HVAC
       end # control_zone
       
       # Store info for HVAC Sizing measure
-      unit.setFeature(Constants.SizingInfoHVACCapacityRatioCooling, capacity_ratios.join(","))
-      unit.setFeature(Constants.SizingInfoHVACCapacityDerateFactorEER, eer_capacity_derates.join(","))
-      unit.setFeature(Constants.SizingInfoHVACCapacityDerateFactorCOP, cop_capacity_derates.join(","))
-      unit.setFeature(Constants.SizingInfoHPSizedForMaxLoad, (heat_pump_capacity == Constants.SizingAutoMaxLoad))
-      unit.setFeature(Constants.SizingInfoHVACRatedCFMperTonHeating, cfms_ton_rated_heating.join(","))
-      unit.setFeature(Constants.SizingInfoHVACRatedCFMperTonCooling, cfms_ton_rated_cooling.join(","))
+      unit.additionalProperties.setFeature(Constants.SizingInfoHVACCapacityRatioCooling, capacity_ratios.join(","))
+      unit.additionalProperties.setFeature(Constants.SizingInfoHVACCapacityDerateFactorEER, eer_capacity_derates.join(","))
+      unit.additionalProperties.setFeature(Constants.SizingInfoHVACCapacityDerateFactorCOP, cop_capacity_derates.join(","))
+      unit.additionalProperties.setFeature(Constants.SizingInfoHPSizedForMaxLoad, (heat_pump_capacity == Constants.SizingAutoMaxLoad))
+      unit.additionalProperties.setFeature(Constants.SizingInfoHVACRatedCFMperTonHeating, cfms_ton_rated_heating.join(","))
+      unit.additionalProperties.setFeature(Constants.SizingInfoHVACRatedCFMperTonCooling, cfms_ton_rated_cooling.join(","))
     
       return true
     end
@@ -1064,12 +1064,12 @@ class HVAC
       end # control_zone
       
       # Store info for HVAC Sizing measure
-      unit.setFeature(Constants.SizingInfoHVACCapacityRatioCooling, capacity_ratios.join(","))
-      unit.setFeature(Constants.SizingInfoHVACCapacityDerateFactorEER, eer_capacity_derates.join(","))
-      unit.setFeature(Constants.SizingInfoHVACCapacityDerateFactorCOP, cop_capacity_derates.join(","))
-      unit.setFeature(Constants.SizingInfoHPSizedForMaxLoad, (heat_pump_capacity == Constants.SizingAutoMaxLoad))
-      unit.setFeature(Constants.SizingInfoHVACRatedCFMperTonHeating, cfms_ton_rated_heating.join(","))
-      unit.setFeature(Constants.SizingInfoHVACRatedCFMperTonCooling, cfms_ton_rated_cooling.join(","))
+      unit.additionalProperties.setFeature(Constants.SizingInfoHVACCapacityRatioCooling, capacity_ratios.join(","))
+      unit.additionalProperties.setFeature(Constants.SizingInfoHVACCapacityDerateFactorEER, eer_capacity_derates.join(","))
+      unit.additionalProperties.setFeature(Constants.SizingInfoHVACCapacityDerateFactorCOP, cop_capacity_derates.join(","))
+      unit.additionalProperties.setFeature(Constants.SizingInfoHPSizedForMaxLoad, (heat_pump_capacity == Constants.SizingAutoMaxLoad))
+      unit.additionalProperties.setFeature(Constants.SizingInfoHVACRatedCFMperTonHeating, cfms_ton_rated_heating.join(","))
+      unit.additionalProperties.setFeature(Constants.SizingInfoHVACRatedCFMperTonCooling, cfms_ton_rated_cooling.join(","))
       
       return true
     end
@@ -1327,18 +1327,16 @@ class HVAC
       
       end # control_zone
       
-      # Store is_ducted bool
-      unit.setFeature(Constants.DuctedInfoMiniSplitHeatPump, is_ducted)
-      
       # Store info for HVAC Sizing measure
-      unit.setFeature(Constants.SizingInfoHVACCapacityRatioCooling, capacity_ratios_cooling.join(","))
-      unit.setFeature(Constants.SizingInfoHVACCapacityRatioHeating, capacity_ratios_heating.join(","))
-      unit.setFeature(Constants.SizingInfoHVACCoolingCFMs, cfms_cooling.join(","))
-      unit.setFeature(Constants.SizingInfoHVACHeatingCFMs, cfms_heating.join(","))
-      unit.setFeature(Constants.SizingInfoHVACHeatingCapacityOffset, heating_capacity_offset)
-      unit.setFeature(Constants.SizingInfoHPSizedForMaxLoad, (heat_pump_capacity == Constants.SizingAutoMaxLoad))
-      unit.setFeature(Constants.SizingInfoHVACSHR, shrs_rated.join(","))
-      unit.setFeature(Constants.SizingInfoMSHPIndices, mshp_indices.join(","))
+      unit.additionalProperties.setFeature(Constants.SizingInfoHVACCapacityRatioCooling, capacity_ratios_cooling.join(","))
+      unit.additionalProperties.setFeature(Constants.SizingInfoHVACCapacityRatioHeating, capacity_ratios_heating.join(","))
+      unit.additionalProperties.setFeature(Constants.SizingInfoHVACCoolingCFMs, cfms_cooling.join(","))
+      unit.additionalProperties.setFeature(Constants.SizingInfoHVACHeatingCFMs, cfms_heating.join(","))
+      unit.additionalProperties.setFeature(Constants.SizingInfoHVACHeatingCapacityOffset, heating_capacity_offset)
+      unit.additionalProperties.setFeature(Constants.SizingInfoHPSizedForMaxLoad, (heat_pump_capacity == Constants.SizingAutoMaxLoad))
+      unit.additionalProperties.setFeature(Constants.SizingInfoHVACSHR, shrs_rated.join(","))
+      unit.additionalProperties.setFeature(Constants.SizingInfoMSHPIndices, mshp_indices.join(","))
+      unit.additionalProperties.setFeature(Constants.DuctedInfoMiniSplitHeatPump, is_ducted)
     
       return true
     end
@@ -1586,14 +1584,14 @@ class HVAC
       end
       
       # Store info for HVAC Sizing measure
-      unit.setFeature(Constants.SizingInfoHVACSHR, shr.to_s)
-      unit.setFeature(Constants.SizingInfoGSHPCoil_BF_FT_SPEC, cOIL_BF_FT_SPEC.join(","))
-      unit.setFeature(Constants.SizingInfoGSHPCoilBF, coilBF)
-      unit.setFeature(Constants.SizingInfoGSHPBoreSpacing, bore_spacing)
-      unit.setFeature(Constants.SizingInfoGSHPBoreHoles, bore_holes)
-      unit.setFeature(Constants.SizingInfoGSHPBoreDepth, bore_depth)
-      unit.setFeature(Constants.SizingInfoGSHPBoreConfig, bore_config)
-      unit.setFeature(Constants.SizingInfoGSHPUTubeSpacingType, u_tube_spacing_type)
+      unit.additionalProperties.setFeature(Constants.SizingInfoHVACSHR, shr.to_s)
+      unit.additionalProperties.setFeature(Constants.SizingInfoGSHPCoil_BF_FT_SPEC, cOIL_BF_FT_SPEC.join(","))
+      unit.additionalProperties.setFeature(Constants.SizingInfoGSHPCoilBF, coilBF)
+      unit.additionalProperties.setFeature(Constants.SizingInfoGSHPBoreSpacing, bore_spacing)
+      unit.additionalProperties.setFeature(Constants.SizingInfoGSHPBoreHoles, bore_holes)
+      unit.additionalProperties.setFeature(Constants.SizingInfoGSHPBoreDepth, bore_depth)
+      unit.additionalProperties.setFeature(Constants.SizingInfoGSHPBoreConfig, bore_config)
+      unit.additionalProperties.setFeature(Constants.SizingInfoGSHPUTubeSpacingType, u_tube_spacing_type)
     
       return true
     end
@@ -1668,8 +1666,8 @@ class HVAC
       end # control_zone
       
       # Store info for HVAC Sizing measure
-      unit.setFeature(Constants.SizingInfoHVACCoolingCFMs, airflow_rate.to_s)
-      unit.setFeature(Constants.SizingInfoHVACRatedCFMperTonCooling, cfms_ton_rated.join(","))
+      unit.additionalProperties.setFeature(Constants.SizingInfoHVACCoolingCFMs, airflow_rate.to_s)
+      unit.additionalProperties.setFeature(Constants.SizingInfoHVACRatedCFMperTonCooling, cfms_ton_rated.join(","))
       
       return true
     end
@@ -2087,7 +2085,7 @@ class HVAC
       
       end
       
-      unit.setFeature(Constants.SizingInfoHVACRatedCFMperTonHeating, airflow_rate.to_s)
+      unit.additionalProperties.setFeature(Constants.SizingInfoHVACRatedCFMperTonHeating, airflow_rate.to_s)
     
       return true
     end
@@ -3884,7 +3882,7 @@ class HVAC
       end
       model.getBuildingUnits.each do |unit|
         next if not Geometry.get_thermal_zones_from_spaces(unit.spaces).include?(thermal_zone)
-        is_ducted = unit.getFeatureAsBoolean(Constants.DuctedInfoMiniSplitHeatPump)
+        is_ducted = unit.additionalProperties.getFeatureAsBoolean(Constants.DuctedInfoMiniSplitHeatPump)
         if not is_ducted.is_initialized
           runner.registerError("Could not find value for '#{Constants.DuctedInfoMiniSplitHeatPump}' with datatype boolean.")
           return nil
