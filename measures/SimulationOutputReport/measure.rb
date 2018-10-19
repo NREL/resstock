@@ -138,12 +138,12 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
     report_sim_output(runner, "electricity_interior_lighting_kwh", [sqlFile.electricityInteriorLighting], "GJ", elec_site_units)
     report_sim_output(runner, "electricity_exterior_lighting_kwh", [sqlFile.electricityExteriorLighting], "GJ", elec_site_units)
     report_sim_output(runner, "electricity_interior_equipment_kwh", [sqlFile.electricityInteriorEquipment], "GJ", elec_site_units)
-    electricity_fans_heating_query = "SELECT Value FROM TabularDataWithStrings WHERE ReportName='EnergyMeters' AND ReportForString='Entire Facility' AND TableName='Annual and Peak Values - Electricity' AND RowName='res hvac heating fans:Fans:Electricity' AND ColumnName='Electricity Annual Value' AND Units='GJ'"
+    electricity_fans_heating_query = "SELECT Value FROM TabularDataWithStrings WHERE ReportName='EnergyMeters' AND ReportForString='Entire Facility' AND TableName='Annual and Peak Values - Electricity' AND RowName='res hvac heating fan:Fans:Electricity' AND ColumnName='Electricity Annual Value' AND Units='GJ'"
     electricity_fans_heating = sqlFile.execAndReturnFirstDouble(electricity_fans_heating_query)
-    electricity_fans_cooling_query = "SELECT Value FROM TabularDataWithStrings WHERE ReportName='EnergyMeters' AND ReportForString='Entire Facility' AND TableName='Annual and Peak Values - Electricity' AND RowName='res hvac cooling fans:Fans:Electricity' AND ColumnName='Electricity Annual Value' AND Units='GJ'"
+    electricity_fans_cooling_query = "SELECT Value FROM TabularDataWithStrings WHERE ReportName='EnergyMeters' AND ReportForString='Entire Facility' AND TableName='Annual and Peak Values - Electricity' AND RowName='res hvac cooling fan:Fans:Electricity' AND ColumnName='Electricity Annual Value' AND Units='GJ'"
     electricity_fans_cooling = sqlFile.execAndReturnFirstDouble(electricity_fans_cooling_query)
     report_sim_output(runner, "electricity_fans_heating_kwh", [electricity_fans_heating], "GJ", elec_site_units)
-    report_sim_output(runner, "electricity_fans_cooling_kwh", [selectricity_fans_cooling], "GJ", elec_site_units)
+    report_sim_output(runner, "electricity_fans_cooling_kwh", [electricity_fans_cooling], "GJ", elec_site_units)
     report_sim_output(runner, "electricity_pumps_kwh", [sqlFile.electricityPumps], "GJ", elec_site_units)
     report_sim_output(runner, "electricity_water_systems_kwh", [sqlFile.electricityWaterSystems], "GJ", elec_site_units)
     report_sim_output(runner, "electricity_pv_kwh", [pv_val], "GJ", elec_site_units)
