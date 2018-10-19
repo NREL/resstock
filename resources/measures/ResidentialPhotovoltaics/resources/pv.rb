@@ -10,7 +10,7 @@ class PV
     generator.setTiltAngle(tilt_abs)
     generator.setAzimuthAngle(azimuth_abs)
     generator.setArrayType(array_type)
-    
+
     electric_load_center_dist = generator.electricLoadCenterDistribution.get
     electric_load_center_dist.setName("#{obj_name} elec load center dist")
     
@@ -23,8 +23,7 @@ class PV
     
     return true
 
-  end
-  
+  end  
 
   def self.remove(model, runner, obj_name)
     # Remove existing photovoltaics

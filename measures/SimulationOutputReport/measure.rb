@@ -34,8 +34,10 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
                           "electricity_interior_lighting_kwh",
                           "electricity_exterior_lighting_kwh",
                           "electricity_interior_equipment_kwh",
-                          "electricity_fans_kwh",
-                          "electricity_pumps_kwh",
+                          "electricity_fans_heating_kwh",
+                          "electricity_fans_cooling_kwh",
+                          "electricity_pumps_heating_kwh",
+                          "electricity_pumps_cooling_kwh",
                           "electricity_water_systems_kwh",
                           "electricity_pv_kwh",
                           "natural_gas_heating_therm",
@@ -137,8 +139,12 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
     report_sim_output(runner, "electricity_interior_lighting_kwh", [sqlFile.electricityInteriorLighting], "GJ", elec_site_units)
     report_sim_output(runner, "electricity_exterior_lighting_kwh", [sqlFile.electricityExteriorLighting], "GJ", elec_site_units)
     report_sim_output(runner, "electricity_interior_equipment_kwh", [sqlFile.electricityInteriorEquipment], "GJ", elec_site_units)
-    report_sim_output(runner, "electricity_fans_kwh", [sqlFile.electricityFans], "GJ", elec_site_units)
-    report_sim_output(runner, "electricity_pumps_kwh", [sqlFile.electricityPumps], "GJ", elec_site_units)
+    # report_sim_output(runner, "electricity_fans_kwh", [sqlFile.electricityFans], "GJ", elec_site_units)
+    report_sim_output(runner, "electricity_fans_heating_kwh", [sqlFile.electricityFansHeating], "GJ", elec_site_units)
+    report_sim_output(runner, "electricity_fans_cooling_kwh", [sqlFile.electricityFansCooling], "GJ", elec_site_units)
+    # report_sim_output(runner, "electricity_pumps_kwh", [sqlFile.electricityPumps], "GJ", elec_site_units)
+    report_sim_output(runner, "electricity_pumps_heating_kwh", [sqlFile.electricityPumpsHeating], "GJ", elec_site_units)
+    report_sim_output(runner, "electricity_pumps_cooling_kwh", [sqlFile.electricityPumpsCooling], "GJ", elec_site_units)
     report_sim_output(runner, "electricity_water_systems_kwh", [sqlFile.electricityWaterSystems], "GJ", elec_site_units)
     report_sim_output(runner, "electricity_pv_kwh", [pv_val], "GJ", elec_site_units)
     

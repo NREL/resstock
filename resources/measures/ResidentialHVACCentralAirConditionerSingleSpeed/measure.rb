@@ -129,7 +129,15 @@ class ProcessSingleSpeedCentralAirConditioner < OpenStudio::Measure::ModelMeasur
     dse.setDisplayName("Distribution System Efficiency")
     dse.setDescription("Defines the energy losses associated with the delivery of energy from the equipment to the source of the load.")
     dse.setDefaultValue("NA")
-    args << dse  
+    args << dse
+
+    #make an argument for entering fraction of cool load served
+    frac_cool_load_served = OpenStudio::Measure::OSArgument::makeDoubleArgument("frac_cool_load_served",true)
+    frac_cool_load_served.setDisplayName("Fraction of Cool Load Served")
+    frac_cool_load_served.setUnits("Btu/Btu")
+    frac_cool_load_served.setDescription("The fraction of the total cool load served by this system.")
+    frac_cool_load_served.setDefaultValue(1.0)
+    args << frac_cool_load_served
     
     return args
   end #end the arguments method
@@ -166,6 +174,7 @@ class ProcessSingleSpeedCentralAirConditioner < OpenStudio::Measure::ModelMeasur
     else
       dse = 1.0
     end
+    frac_cool_load_served = runner.getDoubleArgumentValue("frac_cool_load_served",user_arguments)
     
     # Get building units
     units = Geometry.get_building_units(model, runner)
@@ -175,12 +184,10 @@ class ProcessSingleSpeedCentralAirConditioner < OpenStudio::Measure::ModelMeasur
     
     units.each do |unit|
     
-      existing_objects = {}
       thermal_zones = Geometry.get_thermal_zones_from_spaces(unit.spaces)
       HVAC.get_control_and_slave_zones(thermal_zones).each do |control_zone, slave_zones|
         ([control_zone] + slave_zones).each do |zone|
-          existing_objects[zone] = HVAC.remove_hvac_equipment(model, runner, zone, unit,
-                                                              Constants.ObjectNameCentralAirConditioner)
+          HVAC.remove_cooling(model, runner, zone, unit)
         end
       end
     
@@ -188,7 +195,7 @@ class ProcessSingleSpeedCentralAirConditioner < OpenStudio::Measure::ModelMeasur
                                              fan_power_rated, fan_power_installed,
                                              crankcase_capacity, crankcase_temp,
                                              eer_capacity_derates, capacity, dse,
-                                             existing_objects)
+                                             frac_cool_load_served)
       return false if not success
       
     end # unit

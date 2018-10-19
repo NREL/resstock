@@ -73,7 +73,15 @@ class ProcessFurnace < OpenStudio::Measure::ModelMeasure
     dse.setDisplayName("Distribution System Efficiency")
     dse.setDescription("Defines the energy losses associated with the delivery of energy from the equipment to the source of the load.")
     dse.setDefaultValue("NA")
-    args << dse  
+    args << dse
+
+    #make an argument for entering fraction of heat load served
+    frac_heat_load_served = OpenStudio::Measure::OSArgument::makeDoubleArgument("frac_heat_load_served",true)
+    frac_heat_load_served.setDisplayName("Fraction of Heat Load Served")
+    frac_heat_load_served.setUnits("Btu/Btu")
+    frac_heat_load_served.setDescription("The fraction of the total heat load served by this system.")
+    frac_heat_load_served.setDefaultValue(1.0)
+    args << frac_heat_load_served
     
     return args
   end #end the arguments method
@@ -100,6 +108,7 @@ class ProcessFurnace < OpenStudio::Measure::ModelMeasure
     else
       dse = 1.0
     end
+    frac_heat_load_served = runner.getDoubleArgumentValue("frac_heat_load_served",user_arguments)
     
     # Get building units
     units = Geometry.get_building_units(model, runner)
@@ -109,18 +118,16 @@ class ProcessFurnace < OpenStudio::Measure::ModelMeasure
     
     units.each do |unit|
     
-      existing_objects = {}
       thermal_zones = Geometry.get_thermal_zones_from_spaces(unit.spaces)
       HVAC.get_control_and_slave_zones(thermal_zones).each do |control_zone, slave_zones|
         ([control_zone] + slave_zones).each do |zone|
-          existing_objects[zone] = HVAC.remove_hvac_equipment(model, runner, zone, unit,
-                                                              Constants.ObjectNameFurnace)
+          HVAC.remove_heating(model, runner, zone, unit)
         end
       end
     
       success = HVAC.apply_furnace(model, unit, runner, fuel_type, afue,
                                    capacity, fan_power_installed, dse,
-                                   existing_objects)
+                                   frac_heat_load_served)
       return false if not success
       
     end

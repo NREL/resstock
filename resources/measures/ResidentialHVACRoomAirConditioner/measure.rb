@@ -55,7 +55,15 @@ class ProcessRoomAirConditioner < OpenStudio::Measure::ModelMeasure
     capacity.setDescription("The output cooling capacity of the air conditioner. If using '#{Constants.SizingAuto}', the autosizing algorithm will use ACCA Manual S to set the capacity.")
     capacity.setUnits("tons")
     capacity.setDefaultValue(Constants.SizingAuto)
-    args << capacity  
+    args << capacity
+
+    #make an argument for entering fraction of cool load served
+    frac_cool_load_served = OpenStudio::Measure::OSArgument::makeDoubleArgument("frac_cool_load_served",true)
+    frac_cool_load_served.setDisplayName("Fraction of Cool Load Served")
+    frac_cool_load_served.setUnits("Btu/Btu")
+    frac_cool_load_served.setDescription("The fraction of the total cool load served by this system.")
+    frac_cool_load_served.setDefaultValue(1.0)
+    args << frac_cool_load_served
 
     return args
   end
@@ -75,7 +83,8 @@ class ProcessRoomAirConditioner < OpenStudio::Measure::ModelMeasure
     capacity = runner.getStringArgumentValue("capacity",user_arguments)
     unless capacity == Constants.SizingAuto
       capacity = UnitConversions.convert(capacity.to_f,"ton","Btu/hr")
-    end     
+    end
+    frac_cool_load_served = runner.getDoubleArgumentValue("frac_cool_load_served",user_arguments)
     
     # Get building units
     units = Geometry.get_building_units(model, runner)
@@ -88,13 +97,12 @@ class ProcessRoomAirConditioner < OpenStudio::Measure::ModelMeasure
       thermal_zones = Geometry.get_thermal_zones_from_spaces(unit.spaces)
       HVAC.get_control_and_slave_zones(thermal_zones).each do |control_zone, slave_zones|
         ([control_zone] + slave_zones).each do |zone|
-          HVAC.remove_hvac_equipment(model, runner, zone, unit,
-                                     Constants.ObjectNameRoomAirConditioner)
+          HVAC.remove_cooling(model, runner, zone, unit)
         end
       end
       
       success = HVAC.apply_room_ac(model, unit, runner, eer, shr,
-                                   airflow_rate, capacity)
+                                   airflow_rate, capacity, frac_cool_load_served)
       return false if not success
       
     end # unit

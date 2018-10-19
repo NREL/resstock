@@ -224,7 +224,23 @@ class ProcessGroundSourceHeatPumpVerticalBore < OpenStudio::Measure::ModelMeasur
     dse.setDisplayName("Distribution System Efficiency")
     dse.setDescription("Defines the energy losses associated with the delivery of energy from the equipment to the source of the load.")
     dse.setDefaultValue("NA")
-    args << dse        
+    args << dse
+
+    #make an argument for entering fraction of heat load served
+    frac_heat_load_served = OpenStudio::Measure::OSArgument::makeDoubleArgument("frac_heat_load_served",true)
+    frac_heat_load_served.setDisplayName("Fraction of Heat Load Served")
+    frac_heat_load_served.setUnits("Btu/Btu")
+    frac_heat_load_served.setDescription("The fraction of the total heat load served by this system.")
+    frac_heat_load_served.setDefaultValue(1.0)
+    args << frac_heat_load_served
+
+    #make an argument for entering fraction of cool load served
+    frac_cool_load_served = OpenStudio::Measure::OSArgument::makeDoubleArgument("frac_cool_load_served",true)
+    frac_cool_load_served.setDisplayName("Fraction of Cool Load Served")
+    frac_cool_load_served.setUnits("Btu/Btu")
+    frac_cool_load_served.setDescription("The fraction of the total cool load served by this system.")
+    frac_cool_load_served.setDefaultValue(1.0)
+    args << frac_cool_load_served
     
     return args
   end
@@ -272,6 +288,8 @@ class ProcessGroundSourceHeatPumpVerticalBore < OpenStudio::Measure::ModelMeasur
     else
       dse = 1.0
     end
+    frac_heat_load_served = runner.getDoubleArgumentValue("frac_heat_load_served",user_arguments)
+    frac_cool_load_served = runner.getDoubleArgumentValue("frac_cool_load_served",user_arguments)
     
     # Ground Loop And Loop Pump
     weather = WeatherProcess.new(model, runner, File.dirname(__FILE__))
@@ -290,8 +308,8 @@ class ProcessGroundSourceHeatPumpVerticalBore < OpenStudio::Measure::ModelMeasur
       thermal_zones = Geometry.get_thermal_zones_from_spaces(unit.spaces)
       HVAC.get_control_and_slave_zones(thermal_zones).each do |control_zone, slave_zones|
         ([control_zone] + slave_zones).each do |zone|
-          HVAC.remove_hvac_equipment(model, runner, zone, unit,
-                                     Constants.ObjectNameGroundSourceHeatPumpVerticalBore)
+          HVAC.remove_heating(model, runner, zone, unit)
+          HVAC.remove_cooling(model, runner, zone, unit)
         end
       end
       
@@ -303,7 +321,8 @@ class ProcessGroundSourceHeatPumpVerticalBore < OpenStudio::Measure::ModelMeasur
                                 design_delta_t, pump_head,
                                 u_tube_leg_spacing, u_tube_spacing_type,
                                 fan_power, heat_pump_capacity, supplemental_efficiency,
-                                supplemental_capacity, dse)
+                                supplemental_capacity, dse,
+                                frac_heat_load_served, frac_cool_load_served)
       return false if not success
       
     end
