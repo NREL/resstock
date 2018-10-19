@@ -3,6 +3,8 @@
 # see the URL below for information on how to write OpenStudio measures
 # http://nrel.github.io/OpenStudio-user-documentation/reference/measure_writing_guide/
 
+require "#{File.dirname(__FILE__)}/resources/geometry"
+
 # start the measure
 class UnmetShowerEnergyReport < OpenStudio::Measure::ReportingMeasure
 
@@ -15,6 +17,10 @@ class UnmetShowerEnergyReport < OpenStudio::Measure::ReportingMeasure
   # human readable description
   def description
     return 'Reports unmet shower energy.'
+  end
+
+  def modeler_description
+    return "Reports unmet shower energy."
   end
 
   # define the arguments that the user will input
