@@ -75,6 +75,14 @@ class ProcessUnitHeater < OpenStudio::Measure::ModelMeasure
     capacity.setUnits("kBtu/hr")
     capacity.setDefaultValue(Constants.SizingAuto)
     args << capacity
+
+    #make an argument for entering fraction of heat load served
+    frac_heat_load_served = OpenStudio::Measure::OSArgument::makeDoubleArgument("frac_heat_load_served",true)
+    frac_heat_load_served.setDisplayName("Fraction of Heat Load Served")
+    frac_heat_load_served.setUnits("Btu/Btu")
+    frac_heat_load_served.setDescription("The fraction of the total heat load served by this system.")
+    frac_heat_load_served.setDefaultValue(1.0)
+    args << frac_heat_load_served
     
     return args
   end #end the arguments method
@@ -96,6 +104,7 @@ class ProcessUnitHeater < OpenStudio::Measure::ModelMeasure
     end
     fan_power = runner.getDoubleArgumentValue("fan_power",user_arguments)
     airflow_rate = runner.getDoubleArgumentValue("airflow_rate",user_arguments)
+    frac_heat_load_served = runner.getDoubleArgumentValue("frac_heat_load_served",user_arguments)
     
     # Get building units
     units = Geometry.get_building_units(model, runner)
@@ -108,14 +117,13 @@ class ProcessUnitHeater < OpenStudio::Measure::ModelMeasure
       thermal_zones = Geometry.get_thermal_zones_from_spaces(unit.spaces)
       HVAC.get_control_and_slave_zones(thermal_zones).each do |control_zone, slave_zones|
         ([control_zone] + slave_zones).each do |zone|
-          HVAC.remove_hvac_equipment(model, runner, zone, unit,
-                                     Constants.ObjectNameUnitHeater)
+          HVAC.remove_heating(model, runner, zone, unit)
         end
       end
     
       success = HVAC.apply_unit_heater(model, unit, runner, fuel_type,
                                        efficiency, capacity, fan_power,
-                                       airflow_rate)
+                                       airflow_rate, frac_heat_load_served)
       return false if not success
       
     end

@@ -141,7 +141,7 @@ class Geometry
               runner.registerWarning("No building units defined; assuming single-family detached building.")
           end
           unit = OpenStudio::Model::BuildingUnit.new(model)
-          unit.setBuildingUnitType("Residential")
+          unit.setBuildingUnitType(Constants.BuildingUnitTypeResidential)
           unit.setName(Constants.ObjectNameBuildingUnit)
           model.getSpaces.each do |space|
               space.setBuildingUnit(unit)
