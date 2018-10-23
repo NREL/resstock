@@ -4051,57 +4051,46 @@ class HVACSizing
             system, clg_coil, htg_coil, air_loop = unitary_system_air_loop
             next if system.nil?
             
-            clg_airflow = UnitConversions.convert([unit_final.Cool_Airflow, 0.00001].max,"cfm","m^3/s") # A value of 0 does not change from autosize
-            htg_airflow = UnitConversions.convert([unit_final.Heat_Airflow, 0.00001].max,"cfm","m^3/s") # A value of 0 does not change from autosize
-            
-            if not clg_coil.nil? and not htg_coil.nil?
-                fan_airflow = [unit_final.Heat_Airflow, unit_final.Cool_Airflow].max
-            elsif not clg_coil.nil?
+            # Fan Airflow
+            if system.name.to_s.start_with? Constants.ObjectNameCentralAirConditioner
                 fan_airflow = unit_final.Cool_Airflow
-            elsif not htg_coil.nil?
+            elsif system.name.to_s.start_with? Constants.ObjectNameAirSourceHeatPump or 
+                  system.name.to_s.start_with? Constants.ObjectNameGroundSourceHeatPumpVerticalBore or 
+                  system.name.to_s.start_with? Constants.ObjectNameMiniSplitHeatPump
+                fan_airflow = [unit_final.Heat_Airflow, unit_final.Cool_Airflow].max
+            elsif system.name.to_s.start_with? Constants.ObjectNameFurnace
                 fan_airflow = unit_final.Heat_Airflow
+            else
+                runner.registerError("Unexpected unitary system.")
+                return false
             end
-        
+                
             # Unitary System
             system.setSupplyAirFlowRateMethodDuringCoolingOperation("SupplyAirFlowRate")
             if not clg_coil.nil?
-                system.setSupplyAirFlowRateDuringCoolingOperation(clg_airflow)
+                system.setSupplyAirFlowRateDuringCoolingOperation(UnitConversions.convert([unit_final.Cool_Airflow, 0.00001].max,"cfm","m^3/s")) # A value of 0 does not change from autosize
             else
                 system.setSupplyAirFlowRateDuringCoolingOperation(0.00001) # A value of 0 does not change from autosize
             end
             system.setSupplyAirFlowRateMethodDuringHeatingOperation("SupplyAirFlowRate")
             if not htg_coil.nil?
-                system.setSupplyAirFlowRateDuringHeatingOperation(htg_airflow)
+                system.setSupplyAirFlowRateDuringHeatingOperation(UnitConversions.convert([unit_final.Heat_Airflow, 0.00001].max,"cfm","m^3/s")) # A value of 0 does not change from autosize
             else
                 system.setSupplyAirFlowRateDuringHeatingOperation(0.00001) # A value of 0 does not change from autosize
             end
             
             # Fan
             fanonoff = system.supplyFan.get.to_FanOnOff.get
-            if not clg_coil.nil?
-                fanonoff.setMaximumFlowRate(hvac.FanspeedRatioCooling.max * UnitConversions.convert(fan_airflow + 0.01,"cfm","m^3/s"))
-            end
-            if not htg_coil.nil?
-                fanonoff.setMaximumFlowRate(hvac.FanspeedRatioCooling.max * UnitConversions.convert(fan_airflow + 0.01,"cfm","m^3/s"))
-            end
+            fanonoff.setMaximumFlowRate(hvac.FanspeedRatioCooling.max * UnitConversions.convert(fan_airflow + 0.01,"cfm","m^3/s"))
 
-            if not air_loop.nil?
+            # Air Loop
+            air_loop.setDesignSupplyAirFlowRate(hvac.FanspeedRatioCooling.max * UnitConversions.convert(fan_airflow,"cfm","m^3/s"))
 
-                # Air Loop
-                air_loop.setDesignSupplyAirFlowRate(hvac.FanspeedRatioCooling.max * UnitConversions.convert(fan_airflow,"cfm","m^3/s"))
-
-                thermal_zone.airLoopHVACTerminals.each do |aterm|
-                    next if air_loop != aterm.airLoopHVAC.get
-                    next unless aterm.to_AirTerminalSingleDuctUncontrolled.is_initialized
-                    aterm = aterm.to_AirTerminalSingleDuctUncontrolled.get
-                    if not clg_coil.nil?
-                        aterm.setMaximumAirFlowRate(UnitConversions.convert(fan_airflow,"cfm","m^3/s") * unit_final.Zone_Ratios[thermal_zone])
-                    end
-                    if not htg_coil.nil?
-                        aterm.setMaximumAirFlowRate(UnitConversions.convert(fan_airflow,"cfm","m^3/s") * unit_final.Zone_Ratios[thermal_zone])
-                    end
-                end
-
+            thermal_zone.airLoopHVACTerminals.each do |aterm|
+                next if air_loop != aterm.airLoopHVAC.get
+                next unless aterm.to_AirTerminalSingleDuctUncontrolled.is_initialized
+                aterm = aterm.to_AirTerminalSingleDuctUncontrolled.get
+                aterm.setMaximumAirFlowRate(UnitConversions.convert(fan_airflow,"cfm","m^3/s") * unit_final.Zone_Ratios[thermal_zone])
             end
             
             # Coils
@@ -4152,13 +4141,13 @@ class HVACSizing
         unitary_system_zone_hvacs.each do |unitary_system_zone_hvac|
             system, clg_coil, htg_coil = unitary_system_zone_hvac
             next if system.nil?
-            
-            if not clg_coil.nil? and not htg_coil.nil?
-                fan_airflow = [unit_final.Heat_Airflow, unit_final.Cool_Airflow].max
-            elsif not clg_coil.nil?
-                fan_airflow = unit_final.Cool_Airflow
-            elsif not htg_coil.nil?
+
+            # Fan Airflow
+            if system.name.to_s.start_with? Constants.ObjectNameUnitHeater
                 fan_airflow = unit_final.Heat_Airflow
+            else
+                runner.registerError("Unexpected unitary system.")
+                return false
             end
             
             # Unitary System
@@ -4177,12 +4166,7 @@ class HVACSizing
             
             # Fan
             fanonoff = system.supplyFan.get.to_FanOnOff.get
-            if not clg_coil.nil?
-                fanonoff.setMaximumFlowRate(UnitConversions.convert(fan_airflow + 0.01,"cfm","m^3/s") * unit_final.Zone_Ratios[thermal_zone])
-            end
-            if not htg_coil.nil?
-                fanonoff.setMaximumFlowRate(UnitConversions.convert(fan_airflow + 0.01,"cfm","m^3/s") * unit_final.Zone_Ratios[thermal_zone])
-            end
+            fanonoff.setMaximumFlowRate(UnitConversions.convert(fan_airflow + 0.01,"cfm","m^3/s") * unit_final.Zone_Ratios[thermal_zone])
             
             # Coils
             setCoilsObjectValues(runner, unit, hvac, system, unit_final, unit_final.Zone_Ratios[thermal_zone])
@@ -4277,17 +4261,17 @@ class HVACSizing
                 # Select an Energy Factor based on ENERGY STAR requirements
                 water_removal_rate_pints = UnitConversions.convert(water_removal_rate,"L","pint")
                 if water_removal_rate_pints <= 25.0
-                energy_factor = 1.2
+                    energy_factor = 1.2
                 elsif water_removal_rate_pints <= 35.0
-                energy_factor = 1.4
+                    energy_factor = 1.4
                 elsif water_removal_rate_pints <= 45.0
-                energy_factor = 1.5
+                    energy_factor = 1.5
                 elsif water_removal_rate_pints <= 54.0
-                energy_factor = 1.6
+                    energy_factor = 1.6
                 elsif water_removal_rate_pints <= 75.0
-                energy_factor = 1.8
+                    energy_factor = 1.8
                 else
-                energy_factor = 2.5
+                    energy_factor = 2.5
                 end
                 dehum.setRatedEnergyFactor(energy_factor)
             else
@@ -4302,6 +4286,8 @@ class HVACSizing
 
         end            
     end
+    
+    return true
     
   end
   
