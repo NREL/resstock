@@ -460,7 +460,7 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
                     coil = component.to_CoilHeatingDXMultiSpeed.get
                     if coil.stages.size > 0
                         stage = coil.stages[coil.stages.size-1]
-                        capacity_ratio = get_highest_stage_capacity_ratio(model, "SizingInfoHVACCapacityRatioCooling")
+                        capacity_ratio = get_highest_stage_capacity_ratio(model, coil, "SizingInfoHVACCapacityRatioCooling")
                         if stage.grossRatedHeatingCapacity.is_initialized
                             cost_mult += OpenStudio::convert(stage.grossRatedHeatingCapacity.get/capacity_ratio, "W", "kBtu/h").get
                         end
@@ -539,7 +539,7 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
     elsif cost_mult_type == "Size, Cooling System (kBtu/h)"
         # Cooling system capacity
 
-        component = nil
+        component = nil        
 
         # Unitary system or PTAC?
         model.getAirLoopHVACUnitarySystems.each do |sys|
@@ -567,7 +567,7 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
                 coil = component.to_CoilCoolingDXMultiSpeed.get
                 if coil.stages.size > 0
                     stage = coil.stages[coil.stages.size-1]
-                    capacity_ratio = get_highest_stage_capacity_ratio(model, "SizingInfoHVACCapacityRatioCooling")
+                    capacity_ratio = get_highest_stage_capacity_ratio(model, coil, "SizingInfoHVACCapacityRatioCooling")
                     if stage.grossRatedTotalCoolingCapacity.is_initialized
                         cost_mult += OpenStudio::convert(stage.grossRatedTotalCoolingCapacity.get/capacity_ratio, "W", "kBtu/h").get
                     end
@@ -650,16 +650,17 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
     return false
   end
   
-  def get_highest_stage_capacity_ratio(model, capacity_ratio_str)
+  def get_highest_stage_capacity_ratio(model, coil, capacity_ratio_str)
     capacity_ratio = 1.0
     
     # Override capacity ratio for residential multispeed systems
-    model.getBuildingUnits.each do |unit|
-        next if unit.spaces.size == 0
-        capacity_ratio_str = unit.getFeatureAsString(capacity_ratio_str)
-        next if not capacity_ratio_str.is_initialized
-        capacity_ratio = capacity_ratio_str.get.split(",").map(&:to_f)[-1]
+    model.getAirLoopHVACUnitarySystems.each do |sys|
+      next unless sys.coolingCoil.is_initialized
+      clg_coil = sys.coolingCoil.get
+      capacity_ratio_str = sys.additionalProperties.getFeatureAsString(capacity_ratio_str)
     end
+    return if not capacity_ratio_str.is_initialized
+    capacity_ratio = capacity_ratio_str.get.split(",").map(&:to_f)[-1]
     
     return capacity_ratio
   end
