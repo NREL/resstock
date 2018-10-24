@@ -159,10 +159,6 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
         register_value(runner, "weight", sample_weight.get.to_s)
     end
     
-    if not workflow_json.nil?
-        register_value(runner, "workflow_json", workflow_json)
-    end
-
     return true
 
   end
