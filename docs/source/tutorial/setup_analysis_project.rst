@@ -17,7 +17,9 @@ You will leave dropdown options for **Algorithmic Method**, **Default Seed Model
 Server Scripts
 ------------------
 
-Although you will leave these settings alone for most analyses, you do have the ability to change arguments for initialization and finalization scripts that are run on the remote server. In the case you want to change the set of epw weather files used for your project, see :ref:`worker-initialization-script`.
+Although you will leave these settings alone for most analyses, you do have the ability to change arguments for initialization and finalization scripts that are run on the remote server. In the case you do NOT want to run savings calculations for upgrades or include additional outputs, see :ref:`server-finalization-script`. In the case you want to change the set of epw weather files used for your project, see :ref:`worker-initialization-script`.
+
+.. image:: ../images/tutorial/server_scripts_open.png
 
 .. _server-initialization-script:
 
@@ -31,7 +33,7 @@ Ignore this for now.
 Server Finalization Script
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Ignore this for now.
+This script will call a method for calculating upgrade savings and including additional outputs in the results csv (e.g., reportable domain, egrid subregion, source energy, simple payback, net present value, etc). TODO.
 
 .. _worker-initialization-script:
 
@@ -39,8 +41,6 @@ Worker Initialization Script
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
    
 Something you might want to change is the set of weather files used with your project. To update the argument for the path to the zip file containing epw weather files, open the Server Scripts box on the Measures Selection tab.
-
-.. image:: ../images/tutorial/server_scripts_open.png
 
 Look for the **Script Arguments** box corresponding to the **Worker Initialization Script**. By default, this argument value points to the set of weather files corresponding to the specific project (i.e., set of ``housing_characteristics``) you are working with. For example, the ``project_resstock_national`` project folder will by default use the set of weather files with national geographic coverage. In the illustration above, the argument value path points to a zipped file stored in the `epwweatherfiles bucket`_ on Amazon S3. You should have read-only access to objects in this bucket.
 
