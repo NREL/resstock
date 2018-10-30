@@ -12,7 +12,7 @@ sudo apt-get update
 sudo apt-get install -y python-pandas python-pyproj
 
 ANALYSISID=$(basename "$PWD")
-SERVERURL="http://ec2-18-212-144-200.compute-1.amazonaws.com" # TODO: get server url
+SERVERURL="${1##*/}" # TODO: get server url without having to supply it to server finalization argument box
 
 RESULTSCSV="results.csv"
 wget -O $RESULTSCSV "$SERVERURL/analyses/$ANALYSISID/download_data.csv?export=true"
