@@ -1,114 +1,120 @@
 {
-   "measure_paths" : [ "../../resources/measures" ],
-   "seed_file" : "../../project_resstock_national/seeds/EmptySeedModel.osm",
-   "steps" : [
-      {
-         "arguments" : {
-            "dst_end_date" : "October 26",
-            "dst_start_date" : "April 7",
-            "weather_directory" : "../../../test/osw_files/weather",
-            "weather_file_name" : "USA_CO_Denver_Intl_AP_725650_TMY3.epw"
-         },
-         "measure_dir_name" : "ResidentialLocation"
+  "measure_paths": [
+    "../../measures",
+    "../../resources/measures"
+  ],
+  "seed_file": "../../project_resstock_national/seeds/EmptySeedModel.osm",
+  "steps": [
+    {
+      "measure_dir_name": "ResidentialSimulationControls"
+    },
+    {
+      "arguments": {
+        "dst_end_date": "October 26",
+        "dst_start_date": "April 7",
+        "weather_directory": "../../../test/osw_files/weather",
+        "weather_file_name": "USA_CO_Denver_Intl_AP_725650_TMY3.epw"
       },
-      {
-         "arguments" : {
-            "aspect_ratio" : "1.8",
-            "attic_type" : "unfinished attic",
-            "foundation_height" : "8",
-            "foundation_type" : "finished basement",
-            "garage_depth" : "24",
-            "garage_position" : "Right",
-            "garage_protrusion" : "0.5",
-            "garage_width" : "12",
-            "wall_height" : "8",
-            "num_floors" : "2",
-            "roof_pitch" : "6:12",
-            "roof_type" : "gable",
-            "total_ffa" : "4500",
-            "num_bathrooms" : "3",
-            "num_bedrooms" : "4",
-            "eaves_depth" : "2",
-            "roof_structure" : "truss, cantilever",
-            "orientation" : "270"
-         },
-         "measure_dir_name" : "ResidentialGeometryCreateSingleFamilyDetached"
+      "measure_dir_name": "ResidentialLocation"
+    },
+    {
+      "arguments": {
+        "aspect_ratio": "1.8",
+        "attic_type": "unfinished attic",
+        "foundation_height": "8",
+        "foundation_type": "finished basement",
+        "garage_depth": "24",
+        "garage_position": "Right",
+        "garage_protrusion": "0.5",
+        "garage_width": "12",
+        "wall_height": "8",
+        "num_floors": "2",
+        "roof_pitch": "6:12",
+        "roof_type": "gable",
+        "total_ffa": "4500",
+        "num_bathrooms": "3",
+        "num_bedrooms": "4",
+        "eaves_depth": "2",
+        "roof_structure": "truss, cantilever",
+        "orientation": "270"
       },
-      {
-         "arguments" : {
-            "door_area" : "20"
-         },
-         "measure_dir_name" : "ResidentialGeometryDoorArea"
+      "measure_dir_name": "ResidentialGeometryCreateSingleFamilyDetached"
+    },
+    {
+      "arguments": {
+        "door_area": "20"
       },
-      {
-         "arguments" : {
-            "back_wwr" : "0.18",
-            "front_wwr" : "0.18",
-            "left_wwr" : "0.18",
-            "right_wwr" : "0.18"
-         },
-         "measure_dir_name" : "ResidentialGeometryWindowSkylightArea"
+      "measure_dir_name": "ResidentialGeometryDoorArea"
+    },
+    {
+      "arguments": {
+        "back_wwr": "0.18",
+        "front_wwr": "0.18",
+        "left_wwr": "0.18",
+        "right_wwr": "0.18"
       },
-      {
-         "measure_dir_name" : "ResidentialConstructionsUnfinishedAttic"
+      "measure_dir_name": "ResidentialGeometryWindowSkylightArea"
+    },
+    {
+      "measure_dir_name": "ResidentialConstructionsUnfinishedAttic"
+    },
+    {
+      "measure_dir_name": "ResidentialConstructionsFinishedBasement"
+    },
+    {
+      "measure_dir_name": "ResidentialConstructionsFloors"
+    },
+    {
+      "measure_dir_name": "ResidentialConstructionsWallsCMU"
+    },
+    {
+      "measure_dir_name": "ResidentialConstructionsWindowsSkylights"
+    },
+    {
+      "measure_dir_name": "ResidentialConstructionsDoors"
+    },
+    {
+      "arguments": {
+        "fuel_type": "propane",
+        "tank_volume": "40.0"
       },
-      {
-         "measure_dir_name" : "ResidentialConstructionsFinishedBasement"
+      "measure_dir_name": "ResidentialHotWaterHeaterTank"
+    },
+    {
+      "arguments": {
+        "capacity": "5.0"
       },
-      {
-         "measure_dir_name" : "ResidentialConstructionsFloors"
+      "measure_dir_name": "ResidentialHVACCentralAirConditionerSingleSpeed"
+    },
+    {
+      "arguments": {
+        "capacity": "100.0"
       },
-      {
-         "measure_dir_name" : "ResidentialConstructionsWallsCMU"
-      },
-      {
-         "measure_dir_name" : "ResidentialConstructionsWindowsSkylights"
-      },
-      {
-         "measure_dir_name" : "ResidentialConstructionsDoors"
-      },
-      {
-         "arguments" : {
-            "fuel_type" : "propane",
-            "tank_volume" : "40.0"
-         },
-         "measure_dir_name" : "ResidentialHotWaterHeaterTank"
-      },
-      {
-         "arguments" : {
-            "capacity" : "5.0"
-         },
-         "measure_dir_name" : "ResidentialHVACCentralAirConditionerSingleSpeed"
-      },
-      {
-         "arguments" : {
-            "capacity" : "100.0"
-         },
-         "measure_dir_name" : "ResidentialHVACUnitHeater"
-      },
-      {
-         "measure_dir_name" : "ResidentialHVACHeatingSetpoints"
-      },
-      {
-         "measure_dir_name" : "ResidentialHVACCoolingSetpoints"
-      },
-      {
-         "measure_dir_name" : "ResidentialApplianceRefrigerator"
-      },
-      {
-         "measure_dir_name" : "ResidentialApplianceCookingRange"
-      },
-      {
-         "measure_dir_name" : "ResidentialLighting"
-      },
-      {
-         "measure_dir_name" : "ResidentialMiscPlugLoads"
-      },
-      {
-         "measure_dir_name" : "ResidentialAirflow"
-      },
-      {
-         "measure_dir_name" : "ResidentialHVACSizing"
-      }
-   ]
+      "measure_dir_name": "ResidentialHVACUnitHeater"
+    },
+    {
+      "measure_dir_name": "ResidentialHVACHeatingSetpoints"
+    },
+    {
+      "measure_dir_name": "ResidentialHVACCoolingSetpoints"
+    },
+    {
+      "measure_dir_name": "ResidentialApplianceRefrigerator"
+    },
+    {
+      "measure_dir_name": "ResidentialApplianceCookingRange"
+    },
+    {
+      "measure_dir_name": "ResidentialLighting"
+    },
+    {
+      "measure_dir_name": "ResidentialMiscPlugLoads"
+    },
+    {
+      "measure_dir_name": "ResidentialAirflow"
+    },
+    {
+      "measure_dir_name": "ResidentialHVACSizing"
+    }
+  ]
 }

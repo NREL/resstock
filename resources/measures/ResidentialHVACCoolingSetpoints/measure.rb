@@ -37,7 +37,7 @@ class ProcessCoolingSetpoints < OpenStudio::Measure::ModelMeasure
     weekday_setpoint.setDisplayName("Weekday Setpoint")
     weekday_setpoint.setDescription("Specify a single cooling setpoint or a 24-hour comma-separated cooling schedule for the weekdays.")
     weekday_setpoint.setUnits("degrees F")
-    weekday_setpoint.setDefaultValue("#{Constants.DefaultCoolingSetpoint}")
+    weekday_setpoint.setDefaultValue("76")
     args << weekday_setpoint  
     
     #Make a string argument for 24 weekend cooling set point values
@@ -45,7 +45,7 @@ class ProcessCoolingSetpoints < OpenStudio::Measure::ModelMeasure
     weekend_setpoint.setDisplayName("Weekend Setpoint")
     weekend_setpoint.setDescription("Specify a single cooling setpoint or a 24-hour comma-separated cooling schedule for the weekend.")
     weekend_setpoint.setUnits("degrees F")
-    weekend_setpoint.setDefaultValue("#{Constants.DefaultCoolingSetpoint}")
+    weekend_setpoint.setDefaultValue("76")
     args << weekend_setpoint
 
     #Make a string argument for 24 weekday cooling set point offset magnitude
@@ -144,8 +144,7 @@ class ProcessCoolingSetpoints < OpenStudio::Measure::ModelMeasure
       return false
     end
     
-    # Convert to 24-values if a single value entered for the setpoints
-
+    # Convert to 24-values if a single value entered
     if not weekday_setpoint.include?(",")
       weekday_setpoints = Array.new(24, weekday_setpoint.to_f)
     else
@@ -153,17 +152,16 @@ class ProcessCoolingSetpoints < OpenStudio::Measure::ModelMeasure
     end
     if not weekend_setpoint.include?(",")
       weekend_setpoints = Array.new(24, weekend_setpoint.to_f)
-      
     else
       weekend_setpoints = weekend_setpoint.split(",").map(&:to_f)
     end
 
-    #  Convert the weekday and weekend offset magnitude value into a 24 valued float array
+    # Convert the string of weekday/end-offset magnitude value into a 24 valued float array
     weekday_offset_magnitude = Array.new(24, weekday_offset_magnitude)
     weekend_offset_magnitude = Array.new(24, weekend_offset_magnitude)
 
 
-	  # Convert the string of weekday and weekend offset schedule values into float arrays
+    # Convert the string of weekday and weekend offset schedule values into float arrays
     weekday_offset_schedule = weekday_offset_schedule.split(",").map(&:to_f)
     weekend_offset_schedule = weekend_offset_schedule.split(",").map(&:to_f)
 
@@ -193,12 +191,12 @@ class ProcessCoolingSetpoints < OpenStudio::Measure::ModelMeasure
     end
 
     # set the offset variables after offset_mag and offset_tod
-    weekday_offset_1 = [weekday_offset_magnitude, weekday_offset_schedule].transpose.map {|x| x.reduce(:*)}
-    weekend_offset_1 = [weekend_offset_magnitude, weekend_offset_schedule].transpose.map {|x| x.reduce(:*)}
+    weekday_offset = [weekday_offset_magnitude, weekday_offset_schedule].transpose.map {|x| x.reduce(:*)}
+    weekend_offset = [weekend_offset_magnitude, weekend_offset_schedule].transpose.map {|x| x.reduce(:*)}
 
     # Update to one 24-value float array for setpoints schedule to count for the offset_tods 
-    weekday_setpoints = [ weekday_setpoints, weekday_offset_1].transpose.map {|x| x.reduce(:+)}     
-    weekend_setpoints = [ weekend_setpoints, weekend_offset_1].transpose.map {|x| x.reduce(:+)}
+    weekday_setpoints = [ weekday_setpoints, weekday_offset].transpose.map {|x| x.reduce(:+)}     
+    weekend_setpoints = [ weekend_setpoints, weekend_offset].transpose.map {|x| x.reduce(:+)}
 
     # Convert to month int or nil
     month_map = {"Jan"=>1, "Feb"=>2, "Mar"=>3, "Apr"=>4, "May"=>5, "Jun"=>6, "Jul"=>7, "Aug"=>8, "Sep"=>9, "Oct"=>10, "Nov"=>11, "Dec"=>12}

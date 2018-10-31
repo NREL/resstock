@@ -37,7 +37,7 @@ class ProcessHeatingSetpoints < OpenStudio::Measure::ModelMeasure
     weekday_setpoint.setDisplayName("Weekday Setpoint")
     weekday_setpoint.setDescription("Specify a single heating setpoint or a 24-hour comma-separated heating schedule for the weekdays.")
     weekday_setpoint.setUnits("degrees F")
-    weekday_setpoint.setDefaultValue("#{Constants.DefaultHeatingSetpoint}")
+    weekday_setpoint.setDefaultValue("71")
     args << weekday_setpoint
 
     #Make a string argument for 24 weekend heating set point values
@@ -45,7 +45,7 @@ class ProcessHeatingSetpoints < OpenStudio::Measure::ModelMeasure
     weekend_setpoint.setDisplayName("Weekend Setpoint")
     weekend_setpoint.setDescription("Specify a single heating setpoint or a 24-hour comma-separated heating schedule for the weekend.")
     weekend_setpoint.setUnits("degrees F")
-    weekend_setpoint.setDefaultValue("#{Constants.DefaultHeatingSetpoint}")
+    weekend_setpoint.setDefaultValue("71")
     args << weekend_setpoint
 
     #Make a string argument for 24 weekday heating set point offset magnitude
@@ -156,14 +156,13 @@ class ProcessHeatingSetpoints < OpenStudio::Measure::ModelMeasure
       weekend_setpoints = weekend_setpoint.split(",").map(&:to_f)
     end
 
-    #  Convert the string of weekday/end-offset magnitude value into a 24 valued float array
+    # Convert the string of weekday/end-offset magnitude value into a 24 valued float array
     weekday_offset_magnitude = Array.new(24, weekday_offset_magnitude)
     weekend_offset_magnitude = Array.new(24, weekend_offset_magnitude)
 
-  # Convert the string of weekday-offset_tod values into float arrays
-    weekday_offset_schedule = weekday_offset_schedule.split(",").map(&:to_f)
 
-    # Convert the string of weekend-offset_tod values into float arrays
+    # Convert the string of weekday and weekend offset schedule values into float arrays
+    weekday_offset_schedule = weekday_offset_schedule.split(",").map(&:to_f)
     weekend_offset_schedule = weekend_offset_schedule.split(",").map(&:to_f)
 
     # Error-checking

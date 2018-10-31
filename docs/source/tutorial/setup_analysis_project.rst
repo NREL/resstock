@@ -38,21 +38,19 @@ Ignore this for now.
 Worker Initialization Script
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
    
-Something you might want to change is the set of weather files used with your project. To update the argument for the path to the zip file containing epw weather files, open the Server Scripts box on the measure selection tab.
+Something you might want to change is the set of weather files used with your project. To update the argument for the path to the zip file containing epw weather files, open the Server Scripts box on the Measures Selection tab.
 
 .. image:: ../images/tutorial/server_scripts_open.png
 
-Look for the **Script Arguments** box corresponding to the **Worker Initialization Script**. By default, this argument value points to the set of weather files corresponding to the specific project (i.e., set of ``housing_characteristics``) you are working with. For example, the ``project_resstock_national`` project folder will by default use the set of weather files with national geographic coverage. The path that is set as the argument value points to a zipped file stored in the (publicly accessible) `epwweatherfiles bucket`_ on Amazon S3.
-    
-By changing the argument value for this initialization script, you can control what set of weather files are unpacked and accessible on the remote server. If you wish to change this argument value to point to a different file in the S3 bucket, replace the path's basename with the path of the new file. If the desired file does not already exist in the S3 bucket, you will need to zip up a set of weather files and upload it to the S3 bucket.
+Look for the **Script Arguments** box corresponding to the **Worker Initialization Script**. By default, this argument value points to the set of weather files corresponding to the specific project (i.e., set of ``housing_characteristics``) you are working with. For example, the ``project_resstock_national`` project folder will by default use the set of weather files with national geographic coverage. In the illustration above, the argument value path points to a zipped file stored in the `epwweatherfiles bucket`_ on Amazon S3. You should have read-only access to objects in this bucket.
 
-To zip and upload new weather files to the S3 bucket:
+You can control what set of weather files are unpacked and accessible on the remote server by changing the argument value for this initialization script. If you wish to change this argument value to point to a different file in the S3 bucket, replace the path's basename with the path of the new file. If the desired file does not exist in the S3 bucket, you will need to zip up a set of weather files and upload it to some location of your choice (e.g., your own S3 bucket). Be sure to change the entire argument value path to point to this chosen file location.
+
+To zip and upload new weather files:
  - First ensure that the weather files you will be using do not already exist in the S3 bucket. If they do, just point to the appropriate zip that already contains your desired weather files.
- - If they do not, on your local computer highlight all the new epw weather files and zip them. Name the file something that pertains to the project you are working with.
- - At the `epwweatherfiles bucket`_ dashboard, click **Upload** and then **Add files**, and select your newly zipped file that contains the weather files.
- - Click **Next** and then under **Manage public permission** select "Grant public read access to this object(s)".
- - Click **Next**, then **Next**, and then **Upload**, and wait for the zip file to upload to the S3 bucket.
- - Go back to your project and update the argument value to the path of the newly uploaded item in the S3 bucket.
+ - If they do not, on your local computer highlight all the new epw weather files and compress them into a single zip file. (Your zip should contain only files with either the ".epw" or ".ddy" extension.)
+ - Upload your newly zipped file that contains the weather files to your new location.
+ - Go back to your project and update the argument value to the path of the newly uploaded file.
 
 .. _epwweatherfiles bucket: https://s3.console.aws.amazon.com/s3/buckets/epwweatherfiles/?region=us-east-1&tab=overview
 
@@ -70,7 +68,7 @@ Ignore this for now.
 OpenStudio Measures
 -------------------
 
-Continuing on the measure selection tab, scroll down to the **OpenStudio Measures** section. This section is where you will define the parameters of the analysis including the baseline case and any upgrade scenarios.
+Continuing on the Measures Selection tab, scroll down to the **OpenStudio Measures** section. This section is where you will define the parameters of the analysis including the baseline case and any upgrade scenarios.
 
 .. _simulation-controls:
 
@@ -86,7 +84,7 @@ Using this measure you can set the simulation timesteps per hour, as well as the
 Build Existing Model
 ^^^^^^^^^^^^^^^^^^^^
 
-This measure creates the baseline scenario. Set the following inputs:
+This measure creates the baseline scenario. It incrementally applies OpenStudio measures (located in the ``resources`` directory, which should be at the same level as your project directory) to create residential building models. Set the following inputs:
 
 .. image:: ../images/tutorial/build_existing_model.png
 
@@ -95,6 +93,9 @@ This measure creates the baseline scenario. Set the following inputs:
 
 **Number of Buildings Represented**
   The total number of buildings this sampling is meant to represent. This sets the weighting factors. For the U.S. single-family detached housing stock, this is 80 million homes. 
+  
+**Sample Weight of Simulation**
+  The number of buildings each simulation represents. Total number of buildings / Number of simulations. This argument is optional (it is only needed for running simulations on NREL HPC), so you can leave it blank.
   
 **Downselect Logic**
   Logic that specifies the subset of the building stock to be considered in the analysis. Specify one or more ``parameter|option`` as found in the ``resources/options_lookup.tsv``. (This uses the same syntax as the :ref:`tutorial-apply-upgrade` measure.) For example, if you wanted to only simulate California homes you could enter ``Location Region|CR11`` in this field (CR refers to "Custom Region", which is based on RECS 2009 reportable domains aggregated into groups with similar climates; see the entire `custom region map`_).
@@ -121,7 +122,7 @@ Measures can be skipped in an analysis without losing their configuration. For t
 Reporting Measures
 ------------------
 
-Scroll down to the bottom on the measures selection tab, and you will see the **Reporting Measures** section. This section is where you can request timeseries data and utility bills for the analysis. In general, reporting measures process data after the simulation has finished and produced results. As a note, make sure that the **Timeseries CSV Export** and **Utility Bill Calculations** measures are placed before the **Server Directory Cleanup** measure.
+Scroll down to the bottom on the Measures Selection tab, and you will see the **Reporting Measures** section. This section is where you can request timeseries data and utility bills for the analysis. In general, reporting measures process data after the simulation has finished and produced results. As a note, make sure that the **Timeseries CSV Export** and **Utility Bill Calculations** measures are placed before the **Server Directory Cleanup** measure.
 
 .. _building-characteristics-report:
 

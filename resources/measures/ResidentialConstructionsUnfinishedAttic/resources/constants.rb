@@ -285,6 +285,21 @@ class Constants
   def self.MaterialPEX
     return 'pex'
   end
+  def self.PVArrayTypeFixedOpenRack
+    return 'FixedOpenRack'
+  end
+  def self.PVArrayTypeFixedRoofMount
+    return 'FixedRoofMounted'
+  end
+  def self.PVArrayTypeFixed1Axis
+    return 'OneAxis'
+  end
+  def self.PVArrayTypeFixed1AxisBacktracked
+    return 'OneAxisBacktracking'
+  end
+  def self.PVArrayTypeFixed2Axis
+    return 'TwoAxis'
+  end
   def self.PVModuleTypeStandard
     return 'Standard'
   end
