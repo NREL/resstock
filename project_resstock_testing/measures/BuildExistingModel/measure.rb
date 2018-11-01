@@ -50,11 +50,6 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
     downselect_logic.setDisplayName("Downselect Logic")
     downselect_logic.setDescription("Logic that specifies the subset of the building stock to be considered in the analysis. Specify one or more parameter|option as found in resources\\options_lookup.tsv. When multiple are included, they must be separated by '||' for OR and '&&' for AND, and using parentheses as appropriate. Prefix an option with '!' for not.")
     args << downselect_logic
-    
-    sample_weight = OpenStudio::Ruleset::OSArgument.makeDoubleArgument("sample_weight", false)
-    sample_weight.setDisplayName("Sample Weight of Simulation")
-    sample_weight.setDescription("Number of buildings this simulation represents.")
-    args << sample_weight
 
     return args
   end
