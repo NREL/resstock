@@ -885,9 +885,6 @@ class Constants
   def self.SizingInfoMechVentWholeHouseRate
     return __method__.to_s
   end
-  def self.SizingInfoMSHPIndices
-    return __method__.to_s
-  end
   def self.SizingInfoRoofCavityRvalue
     return __method__.to_s
   end
