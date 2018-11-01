@@ -460,7 +460,7 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
                     coil = component.to_CoilHeatingDXMultiSpeed.get
                     if coil.stages.size > 0
                         stage = coil.stages[coil.stages.size-1]
-                        capacity_ratio = get_highest_stage_capacity_ratio(model, coil, "SizingInfoHVACCapacityRatioCooling")
+                        capacity_ratio = get_highest_stage_capacity_ratio(model, "SizingInfoHVACCapacityRatioCooling")
                         if stage.grossRatedHeatingCapacity.is_initialized
                             cost_mult += OpenStudio::convert(stage.grossRatedHeatingCapacity.get/capacity_ratio, "W", "kBtu/h").get
                         end
@@ -567,7 +567,7 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
                 coil = component.to_CoilCoolingDXMultiSpeed.get
                 if coil.stages.size > 0
                     stage = coil.stages[coil.stages.size-1]
-                    capacity_ratio = get_highest_stage_capacity_ratio(model, coil, "SizingInfoHVACCapacityRatioCooling")
+                    capacity_ratio = get_highest_stage_capacity_ratio(model, "SizingInfoHVACCapacityRatioCooling")
                     if stage.grossRatedTotalCoolingCapacity.is_initialized
                         cost_mult += OpenStudio::convert(stage.grossRatedTotalCoolingCapacity.get/capacity_ratio, "W", "kBtu/h").get
                     end
@@ -650,17 +650,15 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
     return false
   end
   
-  def get_highest_stage_capacity_ratio(model, coil, capacity_ratio_str)
+  def get_highest_stage_capacity_ratio(model, property_str)
     capacity_ratio = 1.0
     
     # Override capacity ratio for residential multispeed systems
     model.getAirLoopHVACUnitarySystems.each do |sys|
-      next unless sys.coolingCoil.is_initialized
-      clg_coil = sys.coolingCoil.get
-      capacity_ratio_str = sys.additionalProperties.getFeatureAsString(capacity_ratio_str)
+      capacity_ratio_str = sys.additionalProperties.getFeatureAsString(property_str)
+      next if not capacity_ratio_str.is_initialized
+      capacity_ratio = capacity_ratio_str.get.split(",").map(&:to_f)[-1]
     end
-    return if not capacity_ratio_str.is_initialized
-    capacity_ratio = capacity_ratio_str.get.split(",").map(&:to_f)[-1]
     
     return capacity_ratio
   end
