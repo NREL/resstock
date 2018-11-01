@@ -4,6 +4,31 @@ require "#{File.dirname(__FILE__)}/util"
 
 class Geometry
 
+  def self.has_rear_units(model, runner, units)
+
+    units.each do |unit|
+      unit.spaces.each do |space|
+        facades = []
+        space.surfaces.each do |surface|
+          next if surface.surfaceType.downcase != "wall"
+          next if surface.outsideBoundaryCondition.downcase != "outdoors"
+          facade = Geometry.get_facade_for_surface(surface)
+          unless facades.include? facade
+            facades << facade
+          end
+        end
+        next if facades.empty?
+        if facades.include? Constants.FacadeFront and facades.include? Constants.FacadeBack
+        elsif facades.include? Constants.FacadeLeft and facades.include? Constants.FacadeRight
+        else
+          return true
+        end
+      end
+    end
+    return false
+
+  end
+
   def self.get_abs_azimuth(azimuth_type, relative_azimuth, building_orientation, offset=180.0)
 
     azimuth = nil
@@ -198,39 +223,27 @@ class Geometry
     return spaces
   end
 
-  def self.get_floor_area_from_spaces(spaces, apply_multipliers=false, runner=nil)
-      floor_area = 0
-      spaces.each do |space|
-          mult = 1.0
-          if apply_multipliers
-              mult = space.multiplier.to_f
-          end
-          floor_area += UnitConversions.convert(space.floorArea * mult, "m^2", "ft^2")
-      end
-      if floor_area == 0 and not runner.nil?
-          runner.registerError("Could not find any floor area.")
-          return nil
-      end
-      return floor_area
+  def self.get_floor_area_from_spaces(spaces, runner=nil)
+    floor_area = 0
+    spaces.each do |space|
+      floor_area += UnitConversions.convert(space.floorArea, "m^2", "ft^2")
+    end
+    if floor_area == 0 and not runner.nil?
+      runner.registerError("Could not find any floor area.")
+      return nil
+    end
+    return floor_area
   end
   
-  def self.get_zone_volume(zone, apply_multipliers=false, runner=nil)
+  def self.get_zone_volume(zone, runner=nil)
     if zone.isVolumeAutocalculated or not zone.volume.is_initialized
       # Calculate volume from spaces
       volume = 0
       zone.spaces.each do |space|
-        mult = 1.0
-        if apply_multipliers
-            mult = space.multiplier.to_f
-        end
-        volume += UnitConversions.convert(space.volume * mult,"m^3","ft^3")
+        volume += UnitConversions.convert(space.volume,"m^3","ft^3")
       end
     else
-      mult = 1.0
-      if apply_multipliers
-          mult = zone.multiplier.to_f
-      end
-      volume = UnitConversions.convert(zone.volume.get * mult,"m^3","ft^3")
+      volume = UnitConversions.convert(zone.volume.get,"m^3","ft^3")
     end
     if volume <= 0 and not runner.nil?
       runner.registerError("Could not find any volume.")
@@ -239,15 +252,11 @@ class Geometry
     return volume
   end
 
-  def self.get_finished_floor_area_from_spaces(spaces, apply_multipliers=false, runner=nil)
+  def self.get_finished_floor_area_from_spaces(spaces, runner=nil)
       floor_area = 0
       spaces.each do |space|
           next if not self.space_is_finished(space)
-          mult = 1.0
-          if apply_multipliers
-              mult = space.multiplier.to_f
-          end
-          floor_area += UnitConversions.convert(space.floorArea * mult,"m^2","ft^2")
+          floor_area += UnitConversions.convert(space.floorArea,"m^2","ft^2")
       end
       if floor_area == 0 and not runner.nil?
           runner.registerError("Could not find any finished floor area.")
@@ -256,15 +265,11 @@ class Geometry
       return floor_area
   end
 
-  def self.get_above_grade_finished_floor_area_from_spaces(spaces, apply_multipliers=false, runner=nil)
+  def self.get_above_grade_finished_floor_area_from_spaces(spaces, runner=nil)
     floor_area = 0
     spaces.each do |space|
       next if not (self.space_is_finished(space) and self.space_is_above_grade(space))
-      mult = 1.0
-      if apply_multipliers
-          mult = space.multiplier.to_f
-      end
-      floor_area += UnitConversions.convert(space.floorArea * mult,"m^2","ft^2")
+      floor_area += UnitConversions.convert(space.floorArea,"m^2","ft^2")
     end
     if floor_area == 0 and not runner.nil?
         runner.registerError("Could not find any above-grade finished floor area.")
@@ -273,11 +278,11 @@ class Geometry
     return floor_area
   end
 
-  def self.get_above_grade_finished_volume(model, apply_multipliers=false, runner=nil)
+  def self.get_above_grade_finished_volume(model, runner=nil)
     volume = 0
     model.getThermalZones.each do |zone|
       next if not (self.zone_is_finished(zone) and self.zone_is_above_grade(zone))
-      volume += self.get_zone_volume(zone, apply_multipliers, runner)
+      volume += self.get_zone_volume(zone, runner)
     end
     if volume == 0 and not runner.nil?
         runner.registerError("Could not find any above-grade finished volume.")
@@ -286,17 +291,13 @@ class Geometry
     return volume
   end
 
-  def self.get_window_area_from_spaces(spaces, apply_multipliers=false)
+  def self.get_window_area_from_spaces(spaces)
     window_area = 0
     spaces.each do |space|
-      mult = 1.0
-      if apply_multipliers
-          mult = space.multiplier.to_f
-      end
       space.surfaces.each do |surface|
         surface.subSurfaces.each do |subsurface|
           next if subsurface.subSurfaceType.downcase != "fixedwindow"
-          window_area += UnitConversions.convert(subsurface.grossArea * mult,"m^2","ft^2")
+          window_area += UnitConversions.convert(subsurface.grossArea,"m^2","ft^2")
         end
       end
     end
@@ -543,35 +544,27 @@ class Geometry
   end
 
   # Takes in a list of spaces and returns the total above grade wall area
-  def self.calculate_above_grade_wall_area(spaces, apply_multipliers=false)
+  def self.calculate_above_grade_wall_area(spaces)
       wall_area = 0
       spaces.each do |space|
-          mult = 1.0
-          if apply_multipliers
-              mult = space.multiplier.to_f
-          end
           space.surfaces.each do |surface|
               next if surface.surfaceType.downcase != "wall"
               next if surface.outsideBoundaryCondition.downcase == "foundation"
-              wall_area += UnitConversions.convert(surface.grossArea * mult, "m^2", "ft^2")
+              wall_area += UnitConversions.convert(surface.grossArea, "m^2", "ft^2")
           end
       end
       return wall_area
   end
 
-  def self.calculate_above_grade_exterior_wall_area(spaces, apply_multipliers=false)
+  def self.calculate_above_grade_exterior_wall_area(spaces)
       wall_area = 0
       spaces.each do |space|
-          mult = 1.0
-          if apply_multipliers
-              mult = space.multiplier.to_f
-          end
           space.surfaces.each do |surface|
               next if surface.surfaceType.downcase != "wall"
               next if surface.outsideBoundaryCondition.downcase != "outdoors"
               next if surface.outsideBoundaryCondition.downcase == "foundation"
               next unless self.space_is_finished(surface.space.get)
-              wall_area += UnitConversions.convert(surface.grossArea * mult, "m^2", "ft^2")
+              wall_area += UnitConversions.convert(surface.grossArea, "m^2", "ft^2")
           end
       end
       return wall_area
@@ -653,7 +646,6 @@ class Geometry
           end
           ground_edges = self.get_edges_for_surfaces(surfaces, true)
       end
-
       # Get bottom edges of exterior walls (building footprint)
       surfaces = []
       model.getSurfaces.each do |surface|
@@ -708,7 +700,6 @@ class Geometry
           top_z = [self.getSurfaceZValues([surface]).max, top_z].max
           bottom_z = [self.getSurfaceZValues([surface]).min, bottom_z].min
       end
-
       edges = []
       edge_counter = 0
       surfaces.each do |surface|
@@ -734,11 +725,11 @@ class Geometry
           vertex_hash.each do |k,v|
               edge_counter += 1
               counter += 1
-              if vertex_hash.size != counter
-                  edges << [v, vertex_hash[counter+1], self.get_facade_for_surface(surface)]
-              elsif vertex_hash.size > 2 # different code for wrap around vertex (if > 2 vertices)
-                  edges << [v, vertex_hash[1], self.get_facade_for_surface(surface)]
-              end
+                if vertex_hash.size != counter
+                    edges << [v, vertex_hash[counter+1], self.get_facade_for_surface(surface)]
+                elsif vertex_hash.size > 2 # different code for wrap around vertex (if > 2 vertices)
+                    edges << [v, vertex_hash[1], self.get_facade_for_surface(surface)]
+                end
           end
       end
 
@@ -754,28 +745,28 @@ class Geometry
   end
   
   def self.get_walls_connected_to_floor(wall_surfaces, floor_surface)
-      adjacent_wall_surfaces = []
-      
-      wall_surfaces.each do |wall_surface|
-          next if wall_surface.space.get != floor_surface.space.get
-          wall_vertices = wall_surface.vertices
-          wall_vertices.each_with_index do |wv1, widx|
-              wv2 = wall_vertices[widx-1]
-              floor_vertices = floor_surface.vertices
-              floor_vertices.each_with_index do |fv1, fidx|
-                  fv2 = floor_vertices[fidx-1]
-                  # Wall within floor edge?
-                  if self.is_point_between([wv1.x, wv1.y, wv1.z], [fv1.x, fv1.y, fv1.z], [fv2.x, fv2.y, fv2.z]) and self.is_point_between([wv2.x, wv2.y, wv2.z], [fv1.x, fv1.y, fv1.z], [fv2.x, fv2.y, fv2.z])
-                      if not adjacent_wall_surfaces.include? wall_surface
-                          adjacent_wall_surfaces << wall_surface
-                      end
-                  end
-              end
-          end
-      end
-      
-      return adjacent_wall_surfaces
-  end
+    adjacent_wall_surfaces = []
+    
+    wall_surfaces.each do |wall_surface|
+        next if wall_surface.space.get != floor_surface.space.get
+        wall_vertices = wall_surface.vertices
+        wall_vertices.each_with_index do |wv1, widx|
+            wv2 = wall_vertices[widx-1]
+            floor_vertices = floor_surface.vertices
+            floor_vertices.each_with_index do |fv1, fidx|
+                fv2 = floor_vertices[fidx-1]
+                # Wall within floor edge?
+                if self.is_point_between([wv1.x, wv1.y, wv1.z], [fv1.x, fv1.y, fv1.z], [fv2.x, fv2.y, fv2.z]) and self.is_point_between([wv2.x, wv2.y, wv2.z], [fv1.x, fv1.y, fv1.z], [fv2.x, fv2.y, fv2.z])
+                    if not adjacent_wall_surfaces.include? wall_surface
+                        adjacent_wall_surfaces << wall_surface
+                    end
+                end
+            end
+        end
+    end
+    
+    return adjacent_wall_surfaces
+end
 
   def self.is_living(space_or_zone)
       return self.space_or_zone_is_of_type(space_or_zone, Constants.SpaceTypeLiving)
@@ -1422,8 +1413,8 @@ class Geometry
       non_bedroom_ffa_spaces = self.get_finished_spaces(unit.spaces) - bedroom_ffa_spaces
 
       # Get FFA
-      non_bedroom_ffa = self.get_finished_floor_area_from_spaces(non_bedroom_ffa_spaces, false, runner)
-      bedroom_ffa = self.get_finished_floor_area_from_spaces(bedroom_ffa_spaces, false)
+      non_bedroom_ffa = self.get_finished_floor_area_from_spaces(non_bedroom_ffa_spaces, runner)
+      bedroom_ffa = self.get_finished_floor_area_from_spaces(bedroom_ffa_spaces)
       bedroom_ffa = 0 if bedroom_ffa.nil?
       ffa = non_bedroom_ffa + bedroom_ffa
 
@@ -1444,6 +1435,12 @@ class Geometry
       else
         schedules[non_bedroom_ffa_spaces] = [weekday_sch, weekend_sch, activity_per_person]
       end
+
+      # Design day schedules used when autosizing
+      winter_design_day_sch = OpenStudio::Model::ScheduleDay.new(model)
+      winter_design_day_sch.addValue(OpenStudio::Time.new(0,24,0,0), 0)
+      summer_design_day_sch = OpenStudio::Model::ScheduleDay.new(model)
+      summer_design_day_sch.addValue(OpenStudio::Time.new(0,24,0,0), 1)
 
       # Assign occupants to each space of the unit
       schedules.each do |spaces, schedule|
@@ -1481,7 +1478,7 @@ class Geometry
 
             if people_sch.nil?
               # Create schedule
-              people_sch = MonthWeekdayWeekendSchedule.new(model, runner, Constants.ObjectNameOccupants + " schedule", schedule[0], schedule[1], monthly_sch)
+              people_sch = MonthWeekdayWeekendSchedule.new(model, runner, Constants.ObjectNameOccupants + " schedule", schedule[0], schedule[1], monthly_sch, mult_weekday=1.0, mult_weekend=1.0, normalize_values=true, create_sch_object=true, winter_design_day_sch, summer_design_day_sch)
               if not people_sch.validated?
                 return false
               end

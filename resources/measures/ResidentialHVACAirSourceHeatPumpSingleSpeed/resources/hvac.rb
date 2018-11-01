@@ -2100,7 +2100,7 @@ class HVAC
         zones << zone
       end
 
-      baseboards = std.model_add_baseboard(model, hot_water_loop, zones)
+      baseboards = std.model_add_baseboard(model, zones, hot_water_loop: hot_water_loop)
       baseboards.each do |baseboard|
         runner.registerInfo("Added '#{baseboard.name}' onto '#{hot_water_loop.name}' for '#{unit.name}'.")
       end
@@ -2121,12 +2121,12 @@ class HVAC
       end
 
       if fan_coil_heating and not fan_coil_cooling
-        unit_heaters = std.model_add_unitheater(model, sys_name=nil, zones, hvac_op_sch=nil, fan_control_type="ConstantVolume", fan_pressure_rise=OpenStudio.convert(0.2, "inH_{2}O", "Pa").get, "DistrictHeating", hot_water_loop)
+        unit_heaters = std.model_add_unitheater(model, zones, heating_type: "DistrictHeating", hot_water_loop: hot_water_loop)
         unit_heaters.each do |unit_heater|
           runner.registerInfo("Added '#{unit_heater.name}' onto '#{hot_water_loop.name}' for #{unit.name}.")        
         end
       else
-        fcus = std.model_add_four_pipe_fan_coil(model, hot_water_loop, chilled_water_loop, zones)
+        fcus = std.model_add_four_pipe_fan_coil(model, zones, chilled_water_loop, hot_water_loop: hot_water_loop)
         fcus.each do |fcu|
           if hot_water_loop.nil?
             runner.registerInfo("Added '#{fcu.name}' onto '#{chilled_water_loop.name}' for '#{unit.name}'.'")
@@ -2150,7 +2150,7 @@ class HVAC
         zones << zone
       end
 
-      ptacs = std.model_add_ptac(model, sys_name=nil, hot_water_loop, zones, fan_type="ConstantVolume", "Water", cooling_type="Single Speed DX AC")
+      ptacs = std.model_add_ptac(model, zones, heating_type: "Water", hot_water_loop: hot_water_loop, cooling_type: "Single Speed DX AC")
       ptacs.each do |ptac|
         runner.registerInfo("Added '#{ptac.name}' onto '#{hot_water_loop.name}' for '#{unit.name}'.")
       end

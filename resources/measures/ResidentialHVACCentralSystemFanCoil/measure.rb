@@ -106,7 +106,7 @@ class ProcessCentralSystemFanCoil < OpenStudio::Measure::ModelMeasure
       
       if fan_coil_cooling
         if chilled_water_loop.nil?
-          chilled_water_loop = std.model_get_or_add_chilled_water_loop(model, "Electricity", air_cooled=true)
+          chilled_water_loop = std.model_get_or_add_chilled_water_loop(model, "Electricity", chilled_water_loop_cooling_type: "AirCooled")
           runner.registerInfo("Added '#{chilled_water_loop.name}' to model.")
         end
       end
