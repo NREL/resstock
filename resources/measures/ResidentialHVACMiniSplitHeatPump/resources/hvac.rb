@@ -1383,8 +1383,9 @@ class HVAC
         
         perf = OpenStudio::Model::UnitarySystemPerformanceMultispeed.new(model)
         perf.setSingleModeOperation(false)
-        for speed in 1..num_speeds
-          f = OpenStudio::Model::SupplyAirflowRatioField.new(1, Constants.small) # TODO: fan_speed_ratios_heating?
+        mshp_indices.each do |mshp_index|
+          ratio = cfms_heating[mshp_index] / cfms_heating[mshp_indices[-1]] # FIXME: Need to verify
+          f = OpenStudio::Model::SupplyAirflowRatioField.new(ratio, Constants.small)
           perf.addSupplyAirflowRatioField(f)
         end
 
@@ -1537,8 +1538,9 @@ class HVAC
         
         perf = OpenStudio::Model::UnitarySystemPerformanceMultispeed.new(model)
         perf.setSingleModeOperation(false)
-        for speed in 1..num_speeds
-          f = OpenStudio::Model::SupplyAirflowRatioField.new(Constants.small, 1) # TODO: fan_speed_ratios_cooling?
+        mshp_indices.each do |mshp_index|
+          ratio = cfms_cooling[mshp_index] / cfms_cooling[mshp_indices[-1]] # FIXME: Need to verify
+          f = OpenStudio::Model::SupplyAirflowRatioField.new(Constants.small, ratio)
           perf.addSupplyAirflowRatioField(f)
         end
 
@@ -1603,15 +1605,27 @@ class HVAC
         end # slave_zone
       
         # Store info for HVAC Sizing measure
-
+        capacity_ratios_heating_4 = []
+        capacity_ratios_cooling_4 = []
+        cfms_heating_4 = []
+        cfms_cooling_4 = []
+        shrs_rated_4 = []
+        mshp_indices.each do |mshp_index|
+          capacity_ratios_heating_4 << capacity_ratios_heating[mshp_index]
+          capacity_ratios_cooling_4 << capacity_ratios_cooling[mshp_index]
+          cfms_heating_4 << cfms_heating[mshp_index]
+          cfms_cooling_4 << cfms_cooling[mshp_index]
+          shrs_rated_4 << shrs_rated[mshp_index]
+        end
         htg_air_loop_unitary.additionalProperties.setFeature(Constants.DuctedInfoMiniSplitHeatPump, is_ducted)
         clg_air_loop_unitary.additionalProperties.setFeature(Constants.DuctedInfoMiniSplitHeatPump, is_ducted)
-        clg_air_loop_unitary.additionalProperties.setFeature(Constants.SizingInfoHVACCapacityRatioCooling, capacity_ratios_cooling.join(","))
-        clg_air_loop_unitary.additionalProperties.setFeature(Constants.SizingInfoHVACCapacityDerateFactorEER, "1,1,1,1,1") # TODO: eer_capacity_derates?
-        htg_air_loop_unitary.additionalProperties.setFeature(Constants.SizingInfoHVACCapacityDerateFactorCOP, "1,1,1,1,1") # TODO: cop_capacity_derates?
+        htg_air_loop_unitary.additionalProperties.setFeature(Constants.SizingInfoHVACCapacityRatioHeating, capacity_ratios_heating_4.join(","))
+        clg_air_loop_unitary.additionalProperties.setFeature(Constants.SizingInfoHVACCapacityRatioCooling, capacity_ratios_cooling_4.join(","))
+        htg_air_loop_unitary.additionalProperties.setFeature(Constants.SizingInfoHVACHeatingCFMs, cfms_heating_4.join(","))
+        clg_air_loop_unitary.additionalProperties.setFeature(Constants.SizingInfoHVACCoolingCFMs, cfms_cooling_4.join(","))
+        htg_air_loop_unitary.additionalProperties.setFeature(Constants.SizingInfoHVACHeatingCapacityOffset, heating_capacity_offset)
         htg_air_loop_unitary.additionalProperties.setFeature(Constants.SizingInfoHPSizedForMaxLoad, (heat_pump_capacity == Constants.SizingAutoMaxLoad))
-        htg_air_loop_unitary.additionalProperties.setFeature(Constants.SizingInfoHVACRatedCFMperTonHeating, cfms_heating.join(","))
-        clg_air_loop_unitary.additionalProperties.setFeature(Constants.SizingInfoHVACRatedCFMperTonCooling, cfms_cooling.join(","))
+        clg_air_loop_unitary.additionalProperties.setFeature(Constants.SizingInfoHVACSHR, shrs_rated_4.join(","))
         htg_air_loop_unitary.additionalProperties.setFeature(Constants.SizingInfoHVACFracHeatLoadServed, frac_heat_load_served)
         clg_air_loop_unitary.additionalProperties.setFeature(Constants.SizingInfoHVACFracCoolLoadServed, frac_cool_load_served)
 
