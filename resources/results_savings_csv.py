@@ -14,13 +14,6 @@ from resources.util import CostEffectiveness
 import warnings
 warnings.filterwarnings('ignore')
 
-ref_upg_pairs = [['BASE', 'Triple-Pane Windows'], ['BASE', 'R-13 Wall Insulation']] # localResults example
-# ref_upg_pairs = [['BASE', 'Package']]
-# ref_upg_pairs = [['BASE', 'Wall R13']]
-# ref_upg_pairs = [['Furn Elec', 'ASHP 22 10 CC'], ['Furn Prop 80', 'ASHP 22 10 CC']]
-# ref_upg_pairs = [['RoomAC 10.7 50', 'RoomAC 12.0 50']]
-# ref_upg_pairs = [['SEER 13', 'SEER 18'], ['SEER 14', 'SEER 18']]
-
 def add_columns(df, cols):
   extra_columns = ExtraColumns()
   for col in cols:
@@ -31,7 +24,7 @@ def add_columns(df, cols):
 class ExtraColumns:
 
   def location(self, df):
-    epw_to_lat_lon = pd.read_csv('resources/resstock_epws.csv')
+    epw_to_lat_lon = pd.read_csv(os.path.join(os.path.dirname(__file__), 'resources/resstock_epws.csv'))
     if not 'building_characteristics_report.location_state' in df.columns:
       for epw, group in df.groupby('building_characteristics_report.location_epw'):
         df.loc[df['building_characteristics_report.location_epw']==epw, 'building_characteristics_report.location_state'] = epw_to_lat_lon[epw_to_lat_lon['filename']==epw]['state'].values[0]
@@ -199,7 +192,7 @@ def parallelize(groups, func, enduses, pair):
   list = Parallel(n_jobs=n_jobs, verbose=5)(delayed(func)(group, enduses, pair) for building_id, group in groups)
   return pd.concat(list)
 
-def savings(results_csv, results_savings_csv, extra_cols):
+def savings(results_csv, results_savings_csv, extra_cols, ref_upg_pairs):
 
   print 'Starting to process {}...'.format(os.path.basename(results_csv))
 
@@ -207,11 +200,15 @@ def savings(results_csv, results_savings_csv, extra_cols):
   
   # preprocess the savings dataframe
   results_csv = preprocess(results_csv)
-  
+
   # get the list of upgrades
   upgrade_names = results_csv['simulation_output_report.upgrade_name'].unique()
 
   # calculate and include additional columns
+  if 'egrid_subregions' in extra_cols: # egrid_subregions has dependency on location
+    extra_cols.insert(len(extra_cols), extra_cols.pop(extra_cols.index('egrid_subregions')))
+  if 'source_energy' in extra_cols: # source_energy has dependency on egrid_subregions
+    extra_cols.insert(len(extra_cols), extra_cols.pop(extra_cols.index('source_energy')))
   results_csv = add_columns(results_csv, extra_cols)
   
   # remove unused columns
@@ -246,7 +243,14 @@ def savings(results_csv, results_savings_csv, extra_cols):
 
   else: # has upgrades for which to calculate savings
 
+    if len(ref_upg_pairs) == 0: # user didn't supply any pairs, so assume all pairs are all upgrades relative to base
+      for upgrade_name in upgrade_names:
+        if upgrade_name != 'BASE':
+          ref_upg_pairs.append('[BASE,{}]'.format(upgrade_name))
+
     for pair in ref_upg_pairs:
+
+      pair = map(str, pair.strip('[]').split(','))
 
       reference_name, upgrade_name = pair
       
@@ -289,7 +293,7 @@ def savings(results_csv, results_savings_csv, extra_cols):
   # sort on the building_id and upgrade_name
   df = df.sort(['build_existing_model.building_id', 'simulation_output_report.upgrade_name'])
 
-  df = df.dropna(axis=1, how='all')
+  # df = df.dropna(axis=1, how='all')
   df.to_csv(results_savings_csv)
 
   print 'CSV export(s) of savings calculations complete.'
@@ -307,12 +311,19 @@ if __name__ == '__main__':
   parser = argparse.ArgumentParser()
   parser.add_argument('-r', '--results', default=local_results, help='Path of the results csv file.')
   parser.add_argument('-e', '--extra_cols', action='append', choices=extra_cols, help='Additional columns available to add.')
+  parser.add_argument('-u', '--ref_upg_pairs', action='append', help='Reference, upgrade pairs for calculating savings.')
   args = parser.parse_args()
+
+  if args.extra_cols == None:
+      args.extra_cols = []
+
+  if args.ref_upg_pairs == None:
+      args.ref_upg_pairs = []
 
   results_csv = args.results
   file, ext = os.path.splitext(os.path.basename(results_csv))
   results_savings_csv = os.path.join(os.path.dirname(results_csv), '{}_savings{}'.format(file, ext))
   if not os.path.exists(results_savings_csv):
-    savings(results_csv, results_savings_csv, args.extra_cols)
+    savings(results_csv, results_savings_csv, args.extra_cols, args.ref_upg_pairs)
   
   print "All done! Completed rows in {0:.2f} seconds on".format(time.time()-t0), time.strftime("%Y-%m-%d %H:%M") + "."
