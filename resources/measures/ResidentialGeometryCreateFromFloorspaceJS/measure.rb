@@ -3,9 +3,9 @@
 
 require 'json'
 
-require "#{File.dirname(__FILE__)}/resources/constants"
-require "#{File.dirname(__FILE__)}/resources/geometry"
-require "#{File.dirname(__FILE__)}/resources/schedules"
+require_relative "../HPXMLTranslator/resources/constants"
+require_relative "../HPXMLTranslator/resources/geometry"
+require_relative "../HPXMLTranslator/resources/schedules"
 
 # start the measure
 class ResidentialGeometryFromFloorspaceJS < OpenStudio::Measure::ModelMeasure

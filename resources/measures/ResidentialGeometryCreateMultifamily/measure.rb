@@ -1,10 +1,10 @@
 # see the URL below for information on how to write OpenStudio measures
 # http://nrel.github.io/OpenStudio-user-documentation/reference/measure_writing_guide/
 
-require "#{File.dirname(__FILE__)}/resources/constants"
-require "#{File.dirname(__FILE__)}/resources/geometry"
-require "#{File.dirname(__FILE__)}/resources/unit_conversions"
-require "#{File.dirname(__FILE__)}/resources/schedules"
+require_relative "../HPXMLTranslator/resources/constants"
+require_relative "../HPXMLTranslator/resources/geometry"
+require_relative "../HPXMLTranslator/resources/unit_conversions"
+require_relative "../HPXMLTranslator/resources/schedules"
 
 # start the measure
 class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure

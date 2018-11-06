@@ -7,10 +7,10 @@
 #see the URL below for access to C++ documentation on model objects (click on "model" in the main window to view model objects)
 # http://openstudio.nrel.gov/sites/openstudio.nrel.gov/files/nv_data/cpp_documentation_it/model/html/namespaces.html
 
-require "#{File.dirname(__FILE__)}/resources/hvac_sizing"
-require "#{File.dirname(__FILE__)}/resources/weather"
-require "#{File.dirname(__FILE__)}/resources/constants"
-require "#{File.dirname(__FILE__)}/resources/geometry"
+require_relative "../HPXMLTranslator/resources/hvac_sizing"
+require_relative "../HPXMLTranslator/resources/weather"
+require_relative "../HPXMLTranslator/resources/constants"
+require_relative "../HPXMLTranslator/resources/geometry"
 
 #start the measure
 class ProcessHVACSizing < OpenStudio::Measure::ModelMeasure

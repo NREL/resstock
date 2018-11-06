@@ -1,8 +1,8 @@
 # see the URL below for information on how to write OpenStudio measures
 # http://nrel.github.io/OpenStudio-user-documentation/measures/measure_writing_guide/
 
-require "#{File.dirname(__FILE__)}/resources/constants"
-require "#{File.dirname(__FILE__)}/resources/location"
+require_relative "../HPXMLTranslator/resources/constants"
+require_relative "../HPXMLTranslator/resources/location"
 
 
 # start the measure

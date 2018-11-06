@@ -1,7 +1,7 @@
-require "#{File.dirname(__FILE__)}/resources/constants"
-require "#{File.dirname(__FILE__)}/resources/geometry"
-require "#{File.dirname(__FILE__)}/resources/waterheater"
-require "#{File.dirname(__FILE__)}/resources/appliances"
+require_relative "../HPXMLTranslator/resources/constants"
+require_relative "../HPXMLTranslator/resources/geometry"
+require_relative "../HPXMLTranslator/resources/waterheater"
+require_relative "../HPXMLTranslator/resources/appliances"
 
 #start the measure
 class ResidentialClothesWasher < OpenStudio::Measure::ModelMeasure

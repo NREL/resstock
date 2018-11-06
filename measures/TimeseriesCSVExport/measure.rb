@@ -4,8 +4,8 @@
 # require 'ruby-prof'
 require 'erb'
 require 'csv'
-require "#{File.dirname(__FILE__)}/resources/weather"
-require "#{File.dirname(__FILE__)}/resources/unit_conversions"
+require_relative "../HPXMLTranslator/resources/weather"
+require_relative "../HPXMLTranslator/resources/unit_conversions"
 
 #start the measure
 class TimeseriesCSVExport < OpenStudio::Measure::ReportingMeasure

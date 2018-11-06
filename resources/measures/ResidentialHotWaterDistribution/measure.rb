@@ -1,10 +1,10 @@
-require "#{File.dirname(__FILE__)}/resources/schedules"
-require "#{File.dirname(__FILE__)}/resources/constants"
-require "#{File.dirname(__FILE__)}/resources/util"
-require "#{File.dirname(__FILE__)}/resources/weather"
-require "#{File.dirname(__FILE__)}/resources/unit_conversions"
-require "#{File.dirname(__FILE__)}/resources/geometry"
-require "#{File.dirname(__FILE__)}/resources/waterheater"
+require_relative "../HPXMLTranslator/resources/schedules"
+require_relative "../HPXMLTranslator/resources/constants"
+require_relative "../HPXMLTranslator/resources/util"
+require_relative "../HPXMLTranslator/resources/weather"
+require_relative "../HPXMLTranslator/resources/unit_conversions"
+require_relative "../HPXMLTranslator/resources/geometry"
+require_relative "../HPXMLTranslator/resources/waterheater"
 
 #start the measure
 class ResidentialHotWaterDistribution < OpenStudio::Measure::ModelMeasure

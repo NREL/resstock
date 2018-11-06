@@ -3,8 +3,8 @@
 # see the URL below for information on how to write OpenStudio measures
 # http://nrel.github.io/OpenStudio-user-documentation/reference/measure_writing_guide/
 
-require "#{File.dirname(__FILE__)}/resources/simulation"
-require "#{File.dirname(__FILE__)}/resources/constants"
+require_relative "../HPXMLTranslator/resources/simulation"
+require_relative "../HPXMLTranslator/resources/constants"
 
 # start the measure
 class ResidentialSimulationControls < OpenStudio::Measure::ModelMeasure

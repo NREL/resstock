@@ -1,9 +1,9 @@
 #see the URL below for information on how to write OpenStudio measures
 # http://nrel.github.io/OpenStudio-user-documentation/reference/measure_writing_guide/
 
-require "#{File.dirname(__FILE__)}/resources/util"
-require "#{File.dirname(__FILE__)}/resources/geometry"
-require "#{File.dirname(__FILE__)}/resources/constructions"
+require_relative "../HPXMLTranslator/resources/util"
+require_relative "../HPXMLTranslator/resources/geometry"
+require_relative "../HPXMLTranslator/resources/constructions"
 
 #start the measure
 class ProcessConstructionsUnfinishedAttic < OpenStudio::Measure::ModelMeasure

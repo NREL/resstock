@@ -1,6 +1,6 @@
-require "#{File.dirname(__FILE__)}/resources/constants"
-require "#{File.dirname(__FILE__)}/resources/geometry"
-require "#{File.dirname(__FILE__)}/resources/misc_loads"
+require_relative "../HPXMLTranslator/resources/constants"
+require_relative "../HPXMLTranslator/resources/geometry"
+require_relative "../HPXMLTranslator/resources/misc_loads"
 
 #start the measure
 class ResidentialMiscLargeUncommonLoads < OpenStudio::Measure::ModelMeasure
