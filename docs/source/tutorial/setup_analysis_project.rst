@@ -33,7 +33,22 @@ Ignore this for now.
 Server Finalization Script
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-This script will call a method for calculating upgrade savings and including additional outputs in the results csv (e.g., reportable domain, egrid subregion, source energy, simple payback, net present value, etc). TODO.
+After all datapoints have been simulated, this script calls a method for calculating savings for upgrades. You can specify the ``[<reference>,<upgrade>]`` pair(s) by updating the **Script Arguments** section. (Entering no pairs will default to calculating savings for all upgrades.) Ensure that ``<upgrade>`` matches at least one upgrade scenario "Upgrade Name" (see :ref:`tutorial-apply-upgrade`). To indicate the baseline building as the ``<reference>``, use "BASE" as shown in the example above.
+
+By default this script also attaches additional outputs to the results csv file, including:
+
+ - location
+ - reportable domain
+ - source energy
+ - total utility bill
+ - eGRID subregion (see the entire `eGRID subregion map`_)
+ - simple payback
+ - net present value
+ - savings-to-invesment ratio
+
+A new csv file, ``results_savings.csv``, containing upgrade savings and additional outputs is produced. You can retrieve this file by TODO.
+
+.. _eGRID subregion map: https://github.com/NREL/OpenStudio-BuildStock/wiki/eGRID-Subregion-Map
 
 .. _worker-initialization-script:
 
@@ -47,6 +62,7 @@ Look for the **Script Arguments** box corresponding to the **Worker Initializati
 You can control what set of weather files are unpacked and accessible on the remote server by changing the argument value for this initialization script. If you wish to change this argument value to point to a different file in the S3 bucket, replace the path's basename with the path of the new file. If the desired file does not exist in the S3 bucket, you will need to zip up a set of weather files and upload it to some location of your choice (e.g., your own S3 bucket). Be sure to change the entire argument value path to point to this chosen file location.
 
 To zip and upload new weather files:
+
  - First ensure that the weather files you will be using do not already exist in the S3 bucket. If they do, just point to the appropriate zip that already contains your desired weather files.
  - If they do not, on your local computer highlight all the new epw weather files and compress them into a single zip file. (Your zip should contain only files with either the ".epw" or ".ddy" extension.)
  - Upload your newly zipped file that contains the weather files to your new location.
