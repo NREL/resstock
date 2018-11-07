@@ -21,8 +21,8 @@ ANALYSISID=$(basename "$PWD")
 RESULTSCSV="results.csv"
 
 wget -O $RESULTSCSV "http://web/analyses/$ANALYSISID/download_data.csv?export=true"
-ARGS="-r $RESULTSCSV $REFUPGS -e egrid_subregions -e location -e net_present_value -e reportable_domain -e simple_payback -e source_energy -e total_utility_bill"
+ARGS="-r $RESULTSCSV$REFUPGS -e all"
 
-CALL="python lib/resources/results_savings_csv.py $ARGS"
+CALL="python lib/scripts/results_savings_csv.py $ARGS"
 echo "Calling: $CALL"
 eval $CALL
