@@ -178,6 +178,12 @@ class CostEffectiveness():
     
     return cash_flows
 
+  @staticmethod
+  def savings_investment_ratio(discount_rate, analysis_period):
+    sir = 0
+    # TODO
+    return sir
+
 class IncomeBins:
 
   @staticmethod

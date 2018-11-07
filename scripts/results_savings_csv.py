@@ -16,10 +16,13 @@ warnings.filterwarnings('ignore')
 
 def add_columns(df, cols):
   extra_columns = ExtraColumns()
+  new_df = df.copy()
   for col in cols:
-    print 'Adding {} ...'.format(col)
-    df = getattr(extra_columns, col)(df)
-  return df
+    df = new_df.copy()
+    new_df = getattr(extra_columns, col)(df)
+    if not new_df.equals(df):
+      print 'Adding {} ...'.format(col)
+  return new_df
 
 class ExtraColumns:
 
@@ -107,23 +110,31 @@ class ExtraColumns:
     return df
     
   def simple_payback(self, df):
-    if not 'savings_utility_bill_calculations.simple_payback' in df.columns:
+    if not 'savings_simulation_output_report.simple_payback' in df.columns:
       if 'savings_utility_bill_calculations.total_bill' in df.columns:
-        df['savings_utility_bill_calculations.simple_payback'] = df.apply(lambda x: CostEffectiveness.simple_payback(x['simulation_output_report.upgrade_cost_usd'], x['savings_utility_bill_calculations.total_bill']), axis=1)
+        df['savings_simulation_output_report.simple_payback'] = df.apply(lambda x: CostEffectiveness.simple_payback(x['simulation_output_report.upgrade_cost_usd'], x['savings_utility_bill_calculations.total_bill']), axis=1)
     return df
   
   def net_present_value(self, df):
-    if not 'savings_utility_bill_calculations.net_present_value' in df.columns:
+    if not 'savings_simulation_output_report.net_present_value' in df.columns:
       if 'savings_utility_bill_calculations.total_bill' in df.columns:
         discount_rate = 0.03
         analysis_period = 30
         npvs = []
         for i in ['01', '02', '03', '04', '05', '06', '07', '08', '09', '10']:
           col = 'simulation_output_report.upgrade_option_{}'.format(i)
-          df['savings_utility_bill_calculations.upgrade_option_{}_npv'.format(i)] = df.apply(lambda x: CostEffectiveness.net_present_value(discount_rate, analysis_period, x['{}_lifetime_yrs'.format(col)], x['simulation_output_report.incremental_cost_usd'], x['savings_utility_bill_calculations.total_bill'], 0, '1'), axis=1)
-          npvs.append('savings_utility_bill_calculations.upgrade_option_{}_npv'.format(i))
+          df['savings_simulation_output_report.upgrade_option_{}_npv'.format(i)] = df.apply(lambda x: CostEffectiveness.net_present_value(discount_rate, analysis_period, x['{}_lifetime_yrs'.format(col)], x['simulation_output_report.incremental_cost_usd'], x['savings_utility_bill_calculations.total_bill'], 0, '1'), axis=1)
+          npvs.append('savings_simulation_output_report.upgrade_option_{}_npv'.format(i))
         df['savings_simulation_output_report.net_present_value'] = df[npvs].sum(axis=1)
-    return df  
+    return df
+
+  def savings_investment_ratio(self, df):
+    if not 'savings_simulation_output_report.savings_investment_ratio' in df.columns:
+      if 'savings_utility_bill_calculations.total_bill' in df.columns:
+        discount_rate = 0.03
+        analysis_period = 30
+        df['savings_simulation_output_report.savings_investment_ratio'] = df.apply(lambda x: CostEffectiveness.savings_investment_ratio(discount_rate, analysis_period), axis=1)
+    return df
 
 def preprocess(df):
 
@@ -276,10 +287,10 @@ def savings(results_csv, results_savings_csv, extra_cols, ref_upg_pairs):
       upg_df['simulation_output_report.upgrade_name'] = '{}-{}'.format(reference_name, upgrade_name)
 
       # cost-effectiveness calculations
-      cols = []
-      cols.append('simple_payback')
-      cols.append('net_present_value') # TODO: this should be done by calculating net of present values between upgrade and reference
-      upg_df = add_columns(upg_df, cols)
+      for extra_col in extra_cols:
+        if not extra_col in ['simple_payback', 'net_present_value', 'savings_investment_ratio']:
+          extra_cols.remove(extra_col)
+      upg_df = add_columns(upg_df, extra_cols)
       
       upg_dfs.append(upg_df)
 
@@ -305,6 +316,7 @@ if __name__ == '__main__':
   extra_cols = []
   for item in inspect.getmembers(ExtraColumns, predicate=inspect.ismethod):
     extra_cols.append(item[0])
+  extra_cols.append('all')
 
   local_results = os.path.join(os.path.dirname(__file__), '../data/analysis_results/localResults/results.csv')
   
@@ -315,10 +327,14 @@ if __name__ == '__main__':
   args = parser.parse_args()
 
   if args.extra_cols == None:
-      args.extra_cols = []
+    args.extra_cols = []
+  elif 'all' in args.extra_cols:
+    args.extra_cols = []
+    for item in inspect.getmembers(ExtraColumns, predicate=inspect.ismethod):
+      args.extra_cols.append(item[0])
 
   if args.ref_upg_pairs == None:
-      args.ref_upg_pairs = []
+    args.ref_upg_pairs = []
 
   results_csv = args.results
   file, ext = os.path.splitext(os.path.basename(results_csv))
