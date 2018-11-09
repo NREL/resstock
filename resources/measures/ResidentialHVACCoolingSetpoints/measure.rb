@@ -139,7 +139,7 @@ class ProcessCoolingSetpoints < OpenStudio::Measure::ModelMeasure
     season_start_month = runner.getOptionalStringArgumentValue("season_start_month",user_arguments)
     season_end_month = runner.getOptionalStringArgumentValue("season_end_month",user_arguments)    
     
-    weather = WeatherProcess.new(model, runner, File.dirname(__FILE__))
+    weather = WeatherProcess.new(model, runner)
     if weather.error?
       return false
     end

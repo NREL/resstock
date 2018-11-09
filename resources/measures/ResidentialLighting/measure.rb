@@ -241,7 +241,7 @@ class ResidentialLighting < OpenStudio::Measure::ModelMeasure
     end
 
     # Calculate the lighting schedule
-    weather = WeatherProcess.new(model, runner, File.dirname(__FILE__))
+    weather = WeatherProcess.new(model, runner)
     if weather.error?
       return false
     end

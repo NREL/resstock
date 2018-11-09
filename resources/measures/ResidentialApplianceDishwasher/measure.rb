@@ -183,7 +183,7 @@ class ResidentialDishwasher < OpenStudio::Measure::ModelMeasure
         success, ann_e, mains_temps = Dishwasher.apply(model, unit, runner, num_settings, rated_annual_energy,
                                                        cold_inlet, has_internal_heater, cold_use, test_date,
                                                        annual_gas_cost, mult_e, mult_hw, d_sh, space, plant_loop, 
-                                                       mains_temps, File.dirname(__FILE__))
+                                                       mains_temps)
         
         if not success
             return false

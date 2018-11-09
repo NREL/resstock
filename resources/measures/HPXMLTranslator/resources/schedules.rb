@@ -444,7 +444,7 @@ end
 
 class HotWaterSchedule
 
-    def initialize(model, runner, sch_name, temperature_sch_name, num_bedrooms, days_shift, file_prefix, target_water_temperature, measure_dir, create_sch_object=true)
+    def initialize(model, runner, sch_name, temperature_sch_name, num_bedrooms, days_shift, file_prefix, target_water_temperature, create_sch_object=true)
         @validated = true
         @model = model
         @runner = runner
@@ -463,8 +463,8 @@ class HotWaterSchedule
         timestep_minutes = (60/@model.getTimestep.numberOfTimestepsPerHour).to_i
         weeks = 1 # use a single week that repeats
 
-        data = loadMinuteDrawProfileFromFile(timestep_minutes, days_shift, measure_dir, weeks)
-        @totflow, @maxflow, @ontime = loadDrawProfileStatsFromFile(measure_dir)
+        data = loadMinuteDrawProfileFromFile(timestep_minutes, days_shift, weeks)
+        @totflow, @maxflow, @ontime = loadDrawProfileStatsFromFile()
         if data.nil? or @totflow.nil? or @maxflow.nil? or @ontime.nil?
             @validated = false
             return
@@ -511,14 +511,14 @@ class HotWaterSchedule
     
     private
 
-        def loadMinuteDrawProfileFromFile(timestep_minutes, days_shift, measure_dir, weeks)
+        def loadMinuteDrawProfileFromFile(timestep_minutes, days_shift, weeks)
             data = []
             if @file_prefix.nil?
                 return data
             end
 
             # Get appropriate file
-            minute_draw_profile = "#{measure_dir}/resources/#{@file_prefix}Schedule_#{@nbeds}bed.csv"
+            minute_draw_profile = File.join(File.dirname(__FILE__), "HotWater#{@file_prefix}Schedule_#{@nbeds}bed.csv")
             if not File.file?(minute_draw_profile)
                 @runner.registerError("Unable to find file: #{minute_draw_profile}")
                 return nil
@@ -564,7 +564,7 @@ class HotWaterSchedule
             return data
         end
 
-        def loadDrawProfileStatsFromFile(measure_dir)
+        def loadDrawProfileStatsFromFile()
             totflow = 0 # daily gal/day
             maxflow = 0
             ontime = 0
@@ -575,7 +575,7 @@ class HotWaterSchedule
             maxflow_column_header = "#{column_header} Max"
             ontime_column_header = "On-time Fraction"
 
-            draw_file = "#{measure_dir}/resources/MinuteDrawProfilesMaxFlows.csv"
+            draw_file = File.join(File.dirname(__FILE__), "HotWaterMinuteDrawProfilesMaxFlows.csv")
 
             datafound = false
             skippedheader = false

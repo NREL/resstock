@@ -52,7 +52,7 @@ class Location
           weather = Marshal.load(File.binread(cache_file))
           weather.cache_weather(model)
         else
-          weather = WeatherProcess.new(model, runner, File.dirname(__FILE__))
+          weather = WeatherProcess.new(model, runner)
           if weather.error?
             return false
           end

@@ -85,7 +85,7 @@ class ClothesWasher
   def self.apply(model, unit, runner, imef, rated_annual_energy, annual_cost,
                  test_date, drum_volume, cold_cycle, thermostatic_control,
                  internal_heater, fill_sensor, mult_e, mult_hw, d_sh, cd_sch,
-                 space, plant_loop, mains_temps, measure_dir)
+                 space, plant_loop, mains_temps)
   
       #Check for valid inputs
       if imef <= 0
@@ -408,7 +408,7 @@ class ClothesWasher
           # Create schedule
           sch = HotWaterSchedule.new(model, runner, Constants.ObjectNameClothesWasher + " schedule", 
                                      Constants.ObjectNameClothesWasher + " temperature schedule", 
-                                     nbeds, d_sh, "ClothesWasher", water_temp, measure_dir)
+                                     nbeds, d_sh, "ClothesWasher", water_temp)
           if not sch.validated?
               return false
           end
@@ -493,8 +493,7 @@ class ClothesWasher
               cd_space = cd.space.get
               ClothesDryer.remove(runner, cd_space, cd_unit_obj_name, false)
               success, cd_ann_e, cd_ann_f, cd_sch = ClothesDryer.apply(model, unit, runner, cd_sch, cd_cef, cd_mult, 
-                                                                       cd_space, cd_fuel_type, cd_fuel_split,
-                                                                       measure_dir)
+                                                                       cd_space, cd_fuel_type, cd_fuel_split)
               
               if not success
                   return false
@@ -549,7 +548,7 @@ end
 
 class ClothesDryer
 
-  def self.apply(model, unit, runner, sch, cef, mult, space, fuel_type, fuel_split, measure_dir)
+  def self.apply(model, unit, runner, sch, cef, mult, space, fuel_type, fuel_split)
   
       #Check for valid inputs
       if cef <= 0
@@ -675,7 +674,7 @@ class ClothesDryer
               hr_shift = day_shift - 1.0 / 24.0
               sch = HotWaterSchedule.new(model, runner, unit_obj_name_f + " schedule", 
                                          unit_obj_name_f + " temperature schedule", nbeds, 
-                                         hr_shift, "ClothesDryer", 0, measure_dir)
+                                         hr_shift, "ClothesDryer", 0)
               if not sch.validated?
                   return false
               end
@@ -926,7 +925,7 @@ class Dishwasher
   def self.apply(model, unit, runner, num_settings, rated_annual_energy,
                  cold_inlet, has_internal_heater, cold_use, test_date,
                  annual_gas_cost, mult_e, mult_hw, d_sh, space, plant_loop, 
-                 mains_temps, measure_dir)
+                 mains_temps)
                  
       #Check for valid inputs
       if num_settings < 1
@@ -1158,7 +1157,7 @@ class Dishwasher
           # Create schedule
           sch = HotWaterSchedule.new(model, runner, Constants.ObjectNameDishwasher + " schedule", 
                                      Constants.ObjectNameDishwasher + " temperature schedule", 
-                                     nbeds, d_sh, "Dishwasher", wh_setpoint, measure_dir)
+                                     nbeds, d_sh, "Dishwasher", wh_setpoint)
           if not sch.validated?
               return false
           end

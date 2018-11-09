@@ -77,7 +77,7 @@ class Waterheater
             new_manager.addToNode(loop.supplyOutletNode)
         end
     
-        new_heater = create_new_heater(Constants.ObjectNameWaterHeater(unit.name.to_s), cap, fuel_type, vol, ef, re, t_set, space.thermalZone.get, oncycle_p, offcycle_p, ec_adj, Constants.WaterHeaterTypeTank, 0, nbeds, File.dirname(__FILE__), model, runner)
+        new_heater = create_new_heater(Constants.ObjectNameWaterHeater(unit.name.to_s), cap, fuel_type, vol, ef, re, t_set, space.thermalZone.get, oncycle_p, offcycle_p, ec_adj, Constants.WaterHeaterTypeTank, 0, nbeds, model, runner)
 
         storage_tank = get_shw_storage_tank(model, unit)
 
@@ -156,7 +156,7 @@ class Waterheater
             new_manager.addToNode(loop.supplyOutletNode)
         end
     
-        new_heater = Waterheater.create_new_heater(Constants.ObjectNameWaterHeater(unit.name.to_s), cap, fuel_type, 1, ef, 0, t_set, space.thermalZone.get, oncycle_p, offcycle_p, ec_adj, Constants.WaterHeaterTypeTankless, cd, nbeds, File.dirname(__FILE__), model, runner)
+        new_heater = Waterheater.create_new_heater(Constants.ObjectNameWaterHeater(unit.name.to_s), cap, fuel_type, 1, ef, 0, t_set, space.thermalZone.get, oncycle_p, offcycle_p, ec_adj, Constants.WaterHeaterTypeTankless, cd, nbeds, model, runner)
     
         storage_tank = Waterheater.get_shw_storage_tank(model, unit)
     
@@ -1153,7 +1153,7 @@ class Waterheater
         OpenStudio::Model::SetpointManagerScheduled.new(model, new_schedule)
     end 
     
-    def self.create_new_heater(name, cap, fuel, vol, ef, re, t_set, thermal_zone, oncycle_p, offcycle_p, ec_adj, wh_type, cyc_derate, nbeds, measure_dir, model, runner)
+    def self.create_new_heater(name, cap, fuel, vol, ef, re, t_set, thermal_zone, oncycle_p, offcycle_p, ec_adj, wh_type, cyc_derate, nbeds, model, runner)
     
         new_heater = OpenStudio::Model::WaterHeaterMixed.new(model)
         new_heater.setName(name)

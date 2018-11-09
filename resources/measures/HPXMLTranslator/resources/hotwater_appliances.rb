@@ -34,68 +34,72 @@ class HotWaterAndAppliances
     timestep_day = OpenStudio::Time.new(0, 0, 60*24)
     temp_sch_limits = model.getScheduleTypeLimitsByName("Temperature")
     
-    # Get plant loop
-    plant_loop = Waterheater.get_plant_loop_from_string(model.getPlantLoops, Constants.Auto, unit, Constants.ObjectNameWaterHeater(unit.name.to_s.gsub("unit ", "")).gsub("|","_"), runner)
-    if plant_loop.nil?
-      return false
-    end
-    water_use_connection = OpenStudio::Model::WaterUseConnections.new(model)
-    plant_loop.addDemandBranchForComponent(water_use_connection)
-    
-    # Get water heater setpoint schedule
-    setpoint_sched = Waterheater.get_water_heater_setpoint_schedule(model, plant_loop, runner)
-    if setpoint_sched.nil?
-      return false
-    end
-    
-    # Create hot water draw profile schedule
-    fractions_hw = []
-    for day in 0..364
-      for hr in 0..23
-        for timestep in 1..(60.0/timestep_minutes)
-          fractions_hw << norm_daily_fraction[hr]
+    if not dist_type.nil?
+      # Get plant loop
+      plant_loop = Waterheater.get_plant_loop_from_string(model.getPlantLoops, Constants.Auto, unit, Constants.ObjectNameWaterHeater(unit.name.to_s.gsub("unit ", "")).gsub("|","_"), runner)
+      if plant_loop.nil?
+        return false
+      end
+      water_use_connection = OpenStudio::Model::WaterUseConnections.new(model)
+      plant_loop.addDemandBranchForComponent(water_use_connection)
+      
+      # Get water heater setpoint schedule
+      setpoint_sched = Waterheater.get_water_heater_setpoint_schedule(model, plant_loop, runner)
+      if setpoint_sched.nil?
+        return false
+      end
+      
+      # Create hot water draw profile schedule
+      fractions_hw = []
+      for day in 0..364
+        for hr in 0..23
+          for timestep in 1..(60.0/timestep_minutes)
+            fractions_hw << norm_daily_fraction[hr]
+          end
         end
       end
-    end
-    sum_fractions_hw = fractions_hw.reduce(:+).to_f
-    time_series_hw = OpenStudio::TimeSeries.new(start_date, timestep_interval, OpenStudio::createVector(fractions_hw), "")
-    schedule_hw = OpenStudio::Model::ScheduleInterval.fromTimeSeries(time_series_hw, model).get
-    schedule_hw.setName("Hot Water Draw Profile")
-    
-    # Create mixed water draw profile schedule
-    dwhr_eff_adj, dwhr_iFrac, dwhr_plc, dwhr_locF, dwhr_fixF = get_dwhr_factors(nbeds, dist_type, std_pipe_length, recirc_branch_length, dwhr_is_equal_flow, dwhr_facilities_connected, has_low_flow_fixtures)
-    daily_wh_inlet_temperatures = calc_water_heater_daily_inlet_temperatures(weather, dwhr_present, dwhr_iFrac, dwhr_efficiency, dwhr_eff_adj, dwhr_plc, dwhr_locF, dwhr_fixF)
-    daily_mw_fractions = calc_mixed_water_daily_fractions(daily_wh_inlet_temperatures, setpoint_temp)
-    fractions_mw = []
-    for day in 0..364
-      for hr in 0..23
-        for timestep in 1..(60.0/timestep_minutes)
-          fractions_mw << norm_daily_fraction[hr] * daily_mw_fractions[day]
+      sum_fractions_hw = fractions_hw.reduce(:+).to_f
+      time_series_hw = OpenStudio::TimeSeries.new(start_date, timestep_interval, OpenStudio::createVector(fractions_hw), "")
+      schedule_hw = OpenStudio::Model::ScheduleInterval.fromTimeSeries(time_series_hw, model).get
+      schedule_hw.setName("Hot Water Draw Profile")
+      
+      # Create mixed water draw profile schedule
+      dwhr_eff_adj, dwhr_iFrac, dwhr_plc, dwhr_locF, dwhr_fixF = get_dwhr_factors(nbeds, dist_type, std_pipe_length, recirc_branch_length, dwhr_is_equal_flow, dwhr_facilities_connected, has_low_flow_fixtures)
+      daily_wh_inlet_temperatures = calc_water_heater_daily_inlet_temperatures(weather, dwhr_present, dwhr_iFrac, dwhr_efficiency, dwhr_eff_adj, dwhr_plc, dwhr_locF, dwhr_fixF)
+      daily_mw_fractions = calc_mixed_water_daily_fractions(daily_wh_inlet_temperatures, setpoint_temp)
+      fractions_mw = []
+      for day in 0..364
+        for hr in 0..23
+          for timestep in 1..(60.0/timestep_minutes)
+            fractions_mw << norm_daily_fraction[hr] * daily_mw_fractions[day]
+          end
         end
       end
+      time_series_mw = OpenStudio::TimeSeries.new(start_date, timestep_interval, OpenStudio::createVector(fractions_mw), "")
+      schedule_mw = OpenStudio::Model::ScheduleInterval.fromTimeSeries(time_series_mw, model).get
+      schedule_mw.setName("Mixed Water Draw Profile")
+      
+      # Replace mains water temperature schedule with water heater inlet temperature schedule.
+      # These are identical unless there is a DWHR.
+      daily_wh_inlet_temperatures_c = daily_wh_inlet_temperatures.map {|t| UnitConversions.convert(t, "F", "C")}
+      time_series_tmains = OpenStudio::TimeSeries.new(start_date, timestep_day, OpenStudio::createVector(daily_wh_inlet_temperatures_c), "")
+      schedule_tmains = OpenStudio::Model::ScheduleInterval.fromTimeSeries(time_series_tmains, model).get
+      model.getSiteWaterMainsTemperature.setTemperatureSchedule(schedule_tmains)
     end
-    time_series_mw = OpenStudio::TimeSeries.new(start_date, timestep_interval, OpenStudio::createVector(fractions_mw), "")
-    schedule_mw = OpenStudio::Model::ScheduleInterval.fromTimeSeries(time_series_mw, model).get
-    schedule_mw.setName("Mixed Water Draw Profile")
     
-    # Replace mains water temperature schedule with water heater inlet temperature schedule.
-    # These are identical unless there is a DWHR.
-    daily_wh_inlet_temperatures_c = daily_wh_inlet_temperatures.map {|t| UnitConversions.convert(t, "F", "C")}
-    time_series_tmains = OpenStudio::TimeSeries.new(start_date, timestep_day, OpenStudio::createVector(daily_wh_inlet_temperatures_c), "")
-    schedule_tmains = OpenStudio::Model::ScheduleInterval.fromTimeSeries(time_series_tmains, model).get
-    model.getSiteWaterMainsTemperature.setTemperatureSchedule(schedule_tmains)
-              
     location_hierarchy = [Constants.SpaceTypeLiving,
                           Constants.SpaceTypeFinishedBasement]
 
     # Clothes washer
-    cw_annual_kwh, cw_frac_sens, cw_frac_lat, cw_gpd = self.calc_clothes_washer_energy_gpd(eri_version, nbeds, cw_ler, cw_elec_rate, cw_gas_rate, cw_agc, cw_cap)
-    cw_name = Constants.ObjectNameClothesWasher(unit.name.to_s)
-    cw_space = Geometry.get_space_from_location(unit, Constants.Auto, location_hierarchy)
-    cw_peak_flow_gpm = cw_gpd/sum_fractions_hw/timestep_minutes*365.0
-    cw_design_level_w = UnitConversions.convert(cw_annual_kwh*60.0/(cw_gpd*365.0/cw_peak_flow_gpm), "kW", "W")
-    add_electric_equipment(model, cw_name, cw_space, cw_design_level_w, cw_frac_sens, cw_frac_lat, schedule_hw)
-    add_water_use_equipment(model, cw_name, cw_peak_flow_gpm, schedule_hw, setpoint_sched, water_use_connection)
+    if not dist_type.nil?
+      cw_annual_kwh, cw_frac_sens, cw_frac_lat, cw_gpd = self.calc_clothes_washer_energy_gpd(eri_version, nbeds, cw_ler, cw_elec_rate, cw_gas_rate, cw_agc, cw_cap)
+      cw_name = Constants.ObjectNameClothesWasher(unit.name.to_s)
+      cw_space = Geometry.get_space_from_location(unit, Constants.Auto, location_hierarchy)
+      cw_peak_flow_gpm = cw_gpd/sum_fractions_hw/timestep_minutes*365.0
+      cw_design_level_w = UnitConversions.convert(cw_annual_kwh*60.0/(cw_gpd*365.0/cw_peak_flow_gpm), "kW", "W")
+      add_electric_equipment(model, cw_name, cw_space, cw_design_level_w, cw_frac_sens, cw_frac_lat, schedule_hw)
+      add_water_use_equipment(model, cw_name, cw_peak_flow_gpm, schedule_hw, setpoint_sched, water_use_connection)
+    end
     
     # Clothes dryer
     cd_annual_kwh, cd_annual_therm, cd_frac_sens, cd_frac_lat = self.calc_clothes_dryer_energy(nbeds, cd_fuel, cd_ef, cd_control, cw_ler, cw_cap, cw_mef)
@@ -111,13 +115,15 @@ class HotWaterAndAppliances
     add_other_equipment(model, cd_name_f, cd_space, cd_design_level_f, cd_frac_sens, cd_frac_lat, cd_schedule.schedule, cd_fuel)
     
     # Dishwasher
-    dw_annual_kwh, dw_frac_sens, dw_frac_lat, dw_gpd = self.calc_dishwasher_energy_gpd(eri_version, nbeds, dw_ef, dw_cap)
-    dw_name = Constants.ObjectNameDishwasher(unit.name.to_s)
-    dw_space = Geometry.get_space_from_location(unit, Constants.Auto, location_hierarchy)
-    dw_peak_flow_gpm = dw_gpd/sum_fractions_hw/timestep_minutes*365.0
-    dw_design_level_w = UnitConversions.convert(dw_annual_kwh*60.0/(dw_gpd*365.0/dw_peak_flow_gpm), "kW", "W")
-    add_electric_equipment(model, dw_name, dw_space, dw_design_level_w, dw_frac_sens, dw_frac_lat, schedule_hw)
-    add_water_use_equipment(model, dw_name, dw_peak_flow_gpm, schedule_hw, setpoint_sched, water_use_connection)
+    if not dist_type.nil?
+      dw_annual_kwh, dw_frac_sens, dw_frac_lat, dw_gpd = self.calc_dishwasher_energy_gpd(eri_version, nbeds, dw_ef, dw_cap)
+      dw_name = Constants.ObjectNameDishwasher(unit.name.to_s)
+      dw_space = Geometry.get_space_from_location(unit, Constants.Auto, location_hierarchy)
+      dw_peak_flow_gpm = dw_gpd/sum_fractions_hw/timestep_minutes*365.0
+      dw_design_level_w = UnitConversions.convert(dw_annual_kwh*60.0/(dw_gpd*365.0/dw_peak_flow_gpm), "kW", "W")
+      add_electric_equipment(model, dw_name, dw_space, dw_design_level_w, dw_frac_sens, dw_frac_lat, schedule_hw)
+      add_water_use_equipment(model, dw_name, dw_peak_flow_gpm, schedule_hw, setpoint_sched, water_use_connection)
+    end
     
     # Refrigerator
     fridge_name = Constants.ObjectNameRefrigerator(unit.name.to_s)
@@ -141,34 +147,36 @@ class HotWaterAndAppliances
     add_electric_equipment(model, cook_name_e, cook_space, cook_design_level_e, cook_frac_sens, cook_frac_lat, cook_schedule.schedule)
     add_other_equipment(model, cook_name_f, cook_space, cook_design_level_f, cook_frac_sens, cook_frac_lat, cook_schedule.schedule, cook_fuel_type)
     
-    # Fixtures (showers, sinks, baths)
-    fx_gpd = get_fixtures_gpd(eri_version, nbeds, has_low_flow_fixtures)
-    fx_sens_btu, fx_lat_btu = get_fixtures_gains_sens_lat(nbeds)
-    fx_obj_name = Constants.ObjectNameShower(unit.name.to_s)
-    fx_obj_name_sens = "#{fx_obj_name} Sensible"
-    fx_obj_name_lat = "#{fx_obj_name} Latent"
-    fx_peak_flow_gpm = fx_gpd/sum_fractions_hw/timestep_minutes*365.0
-    fx_space = Geometry.get_space_from_location(unit, Constants.Auto, location_hierarchy)
-    fx_schedule = cd_schedule
-    fx_design_level_sens = fx_schedule.calcDesignLevelFromDailykWh(UnitConversions.convert(fx_sens_btu, "Btu", "kWh")/365.0)
-    fx_design_level_lat = fx_schedule.calcDesignLevelFromDailykWh(UnitConversions.convert(fx_lat_btu, "Btu", "kWh")/365.0)
-    add_water_use_equipment(model, fx_obj_name, fx_peak_flow_gpm, schedule_mw, setpoint_sched, water_use_connection)
-    add_other_equipment(model, fx_obj_name_sens, fx_space, fx_design_level_sens, 1.0, 0.0, fx_schedule.schedule, nil)
-    add_other_equipment(model, fx_obj_name_lat, fx_space, fx_design_level_lat, 0.0, 1.0, fx_schedule.schedule, nil)
-    
-    # Distribution losses
-    dist_gpd = get_dist_waste_gpd(eri_version, nbeds, has_uncond_bsmnt, cfa, ncfl, dist_type, pipe_r, std_pipe_length, recirc_branch_length, has_low_flow_fixtures)
-    dist_obj_name = Constants.ObjectNameHotWaterDistribution(unit.name.to_s)
-    dist_peak_flow_gpm = dist_gpd/sum_fractions_hw/timestep_minutes*365.0
-    add_water_use_equipment(model, dist_obj_name, dist_peak_flow_gpm, schedule_mw, setpoint_sched, water_use_connection)
-    
-    # Recirculation pump
-    dist_pump_annual_kwh = get_hwdist_recirc_pump_energy(dist_type, recirc_control_type, recirc_pump_power)
-    dist_pump_obj_name = Constants.ObjectNameHotWaterRecircPump(unit.name.to_s)
-    dist_pump_space = Geometry.get_space_from_location(unit, Constants.Auto, location_hierarchy)
-    dist_pump_schedule = cd_schedule
-    dist_pump_design_level = dist_pump_schedule.calcDesignLevelFromDailykWh(dist_pump_annual_kwh/365.0)
-    add_electric_equipment(model, dist_pump_obj_name, dist_pump_space, dist_pump_design_level, 0.0, 0.0, dist_pump_schedule.schedule)
+    if not dist_type.nil?
+      # Fixtures (showers, sinks, baths)
+      fx_gpd = get_fixtures_gpd(eri_version, nbeds, has_low_flow_fixtures)
+      fx_sens_btu, fx_lat_btu = get_fixtures_gains_sens_lat(nbeds)
+      fx_obj_name = Constants.ObjectNameShower(unit.name.to_s)
+      fx_obj_name_sens = "#{fx_obj_name} Sensible"
+      fx_obj_name_lat = "#{fx_obj_name} Latent"
+      fx_peak_flow_gpm = fx_gpd/sum_fractions_hw/timestep_minutes*365.0
+      fx_space = Geometry.get_space_from_location(unit, Constants.Auto, location_hierarchy)
+      fx_schedule = cd_schedule
+      fx_design_level_sens = fx_schedule.calcDesignLevelFromDailykWh(UnitConversions.convert(fx_sens_btu, "Btu", "kWh")/365.0)
+      fx_design_level_lat = fx_schedule.calcDesignLevelFromDailykWh(UnitConversions.convert(fx_lat_btu, "Btu", "kWh")/365.0)
+      add_water_use_equipment(model, fx_obj_name, fx_peak_flow_gpm, schedule_mw, setpoint_sched, water_use_connection)
+      add_other_equipment(model, fx_obj_name_sens, fx_space, fx_design_level_sens, 1.0, 0.0, fx_schedule.schedule, nil)
+      add_other_equipment(model, fx_obj_name_lat, fx_space, fx_design_level_lat, 0.0, 1.0, fx_schedule.schedule, nil)
+      
+      # Distribution losses
+      dist_gpd = get_dist_waste_gpd(eri_version, nbeds, has_uncond_bsmnt, cfa, ncfl, dist_type, pipe_r, std_pipe_length, recirc_branch_length, has_low_flow_fixtures)
+      dist_obj_name = Constants.ObjectNameHotWaterDistribution(unit.name.to_s)
+      dist_peak_flow_gpm = dist_gpd/sum_fractions_hw/timestep_minutes*365.0
+      add_water_use_equipment(model, dist_obj_name, dist_peak_flow_gpm, schedule_mw, setpoint_sched, water_use_connection)
+      
+      # Recirculation pump
+      dist_pump_annual_kwh = get_hwdist_recirc_pump_energy(dist_type, recirc_control_type, recirc_pump_power)
+      dist_pump_obj_name = Constants.ObjectNameHotWaterRecircPump(unit.name.to_s)
+      dist_pump_space = Geometry.get_space_from_location(unit, Constants.Auto, location_hierarchy)
+      dist_pump_schedule = cd_schedule
+      dist_pump_design_level = dist_pump_schedule.calcDesignLevelFromDailykWh(dist_pump_annual_kwh/365.0)
+      add_electric_equipment(model, dist_pump_obj_name, dist_pump_space, dist_pump_design_level, 0.0, 0.0, dist_pump_schedule.schedule)
+    end
 
     return true
   end

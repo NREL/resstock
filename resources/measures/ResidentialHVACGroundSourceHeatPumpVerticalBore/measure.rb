@@ -274,7 +274,7 @@ class ProcessGroundSourceHeatPumpVerticalBore < OpenStudio::Measure::ModelMeasur
     end
     
     # Ground Loop And Loop Pump
-    weather = WeatherProcess.new(model, runner, File.dirname(__FILE__))
+    weather = WeatherProcess.new(model, runner)
     if weather.error?
       return false
     end    

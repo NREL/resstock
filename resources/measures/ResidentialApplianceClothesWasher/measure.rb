@@ -201,7 +201,7 @@ class ResidentialClothesWasher < OpenStudio::Measure::ModelMeasure
         success, ann_e, cd_updated, cd_sch, mains_temps = ClothesWasher.apply(model, unit, runner, imef, rated_annual_energy, annual_cost,
                                                                               test_date, drum_volume, cold_cycle, thermostatic_control,
                                                                               internal_heater, fill_sensor, mult_e, mult_hw, d_sh, cd_sch,
-                                                                              space, plant_loop, mains_temps, File.dirname(__FILE__))
+                                                                              space, plant_loop, mains_temps)
         
         if not success
             return false

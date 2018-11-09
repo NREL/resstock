@@ -113,7 +113,7 @@ class ProcessConstructionsWindowsSkylights < OpenStudio::Measure::ModelMeasure
     skylight_heat_shade_mult = runner.getDoubleArgumentValue("skylight_heat_shade_mult",user_arguments)
     skylight_cool_shade_mult = runner.getDoubleArgumentValue("skylight_cool_shade_mult",user_arguments)
 
-    weather = WeatherProcess.new(model, runner, File.dirname(__FILE__))
+    weather = WeatherProcess.new(model, runner)
     if weather.error?
         return false
     end

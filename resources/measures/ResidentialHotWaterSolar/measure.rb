@@ -191,7 +191,7 @@ class ResidentialHotWaterSolar < OpenStudio::Measure::ModelMeasure
     shw_azimuth = SHWAzimuth.new
     shw_tilt = SHWTilt.new
     
-    weather = WeatherProcess.new(model, runner, File.dirname(__FILE__))
+    weather = WeatherProcess.new(model, runner)
     if weather.error?
       return false
     end
