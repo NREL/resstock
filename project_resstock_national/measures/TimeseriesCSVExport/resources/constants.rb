@@ -150,16 +150,16 @@ class Constants
     return 'Residential'
   end
   def self.CalcTypeERIRatedHome
-    return 'HERS Rated Home'
+    return 'ERI Rated Home'
   end
   def self.CalcTypeERIReferenceHome
-    return 'HERS Reference Home'
+    return 'ERI Reference Home'
   end
   def self.CalcTypeERIIndexAdjustmentDesign
-    return 'HERS Index Adjustment Design'
+    return 'ERI Index Adjustment Design'
   end
   def self.CalcTypeERIIndexAdjustmentReferenceHome
-    return 'HERS Index Adjustment Reference Home'
+    return 'ERI Index Adjustment Reference Home'
   end
   def self.CalcTypeStandard
     return 'Standard'
@@ -205,6 +205,9 @@ class Constants
   end
   def self.EndUseHVACHeatingFan
     return 'res hvac heating fan'
+  end
+  def self.EndUseCeilingFan
+    return 'residential ceiling fan'
   end
   def self.EndUseMechVentFan
     return 'res mech vent fan'
@@ -883,9 +886,6 @@ class Constants
     return __method__.to_s
   end
   def self.SizingInfoMechVentWholeHouseRate
-    return __method__.to_s
-  end
-  def self.SizingInfoMSHPIndices
     return __method__.to_s
   end
   def self.SizingInfoRoofCavityRvalue

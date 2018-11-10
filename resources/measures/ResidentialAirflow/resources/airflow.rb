@@ -358,6 +358,10 @@ class Airflow
   
   end
 
+  def self.get_default_shelter_coefficient()
+    return 0.5 # Table 4.2.2(1)(g)
+  end
+  
   private
   
   def self.process_wind_speed_correction(terrain, shelter_coef, neighbors_min_nonzero_offset, building_height)
@@ -413,7 +417,7 @@ class Airflow
         wind_speed.S_wo = 0.50
       end
     else
-      wind_speed.S_wo = shelter_coef.to_f
+      wind_speed.S_wo = Float(shelter_coef)
     end
 
     # S-G Shielding Coefficients are roughly 1/3 of AIM2 Shelter Coefficients
