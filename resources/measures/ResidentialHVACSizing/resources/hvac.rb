@@ -2300,8 +2300,8 @@ class HVAC
         end
       end
       
-      weekday_setpoints = weekday_setpoints.map {|i| UnitConversions.convert(i,"F","C")}
-      weekend_setpoints = weekend_setpoints.map {|i| UnitConversions.convert(i,"F","C")}   
+      weekday_setpoints = weekday_setpoints.map {|i| i.map {|j| UnitConversions.convert(j,"F","C")}}
+      weekend_setpoints = weekend_setpoints.map {|i| i.map {|j| UnitConversions.convert(j,"F","C")}} 
       
       finished_zones = []
       model.getThermalZones.each do |thermal_zone|
@@ -2360,13 +2360,13 @@ class HVAC
           clg_wked_monthly = []
           (0..11).to_a.each do |i|        
             if cooling_season[i] == 1 and heating_season[i] == 1
-              htg_wkdy_monthly << weekday_setpoints.zip(clg_wkdy).map {|h, c| c < h ? (h + c) / 2.0 : h}
-              htg_wked_monthly << weekend_setpoints.zip(clg_wked).map {|h, c| c < h ? (h + c) / 2.0 : h}
-              clg_wkdy_monthly << weekday_setpoints.zip(clg_wkdy).map {|h, c| c < h ? (h + c) / 2.0 : c}
-              clg_wked_monthly << weekend_setpoints.zip(clg_wked).map {|h, c| c < h ? (h + c) / 2.0 : c}
+              htg_wkdy_monthly << weekday_setpoints[i].zip(clg_wkdy).map {|h, c| c < h ? (h + c) / 2.0 : h}
+              htg_wked_monthly << weekend_setpoints[i].zip(clg_wked).map {|h, c| c < h ? (h + c) / 2.0 : h}
+              clg_wkdy_monthly << weekday_setpoints[i].zip(clg_wkdy).map {|h, c| c < h ? (h + c) / 2.0 : c}
+              clg_wked_monthly << weekend_setpoints[i].zip(clg_wked).map {|h, c| c < h ? (h + c) / 2.0 : c}
             elsif heating_season[i] == 1
-              htg_wkdy_monthly << weekday_setpoints
-              htg_wked_monthly << weekend_setpoints
+              htg_wkdy_monthly << weekday_setpoints[i]
+              htg_wked_monthly << weekend_setpoints[i]
               clg_wkdy_monthly << Array.new(24, Constants.NoCoolingSetpoint)
               clg_wked_monthly << Array.new(24, Constants.NoCoolingSetpoint)
             else
@@ -2391,21 +2391,24 @@ class HVAC
           
         else
           
-          htg_monthly_sch = Array.new(12, 1)
-          for m in 1..12
-            if heating_season[m-1] == 1
-              htg_monthly_sch[m-1] = 1
+          htg_wkdy_monthly = []
+          htg_wked_monthly = []
+          clg_wkdy_monthly = []
+          clg_wked_monthly = []
+          (0..11).to_a.each do |i|
+            if heating_season[i] == 1
+              htg_wkdy_monthly << weekday_setpoints[i]
+              htg_wked_monthly << weekend_setpoints[i]
             else
-              htg_monthly_sch[m-1] = Constants.NoHeatingSetpoint
+              htg_wkdy_monthly << Array.new(24, Constants.NoHeatingSetpoint)
+              htg_wked_monthly << Array.new(24, Constants.NoHeatingSetpoint)
             end
-          end        
-          clg_monthly_sch = Array.new(12, 1)
-          for m in 1..12
-            clg_monthly_sch[m-1] = Constants.NoCoolingSetpoint
+            clg_wkdy_monthly << Array.new(24, Constants.NoCoolingSetpoint)
+            clg_wked_monthly << Array.new(24, Constants.NoCoolingSetpoint)
           end
-          
-          heating_setpoint = MonthWeekdayWeekendSchedule.new(model, runner, Constants.ObjectNameHeatingSetpoint, weekday_setpoints, weekend_setpoints, htg_monthly_sch, mult_weekday=1.0, mult_weekend=1.0, normalize_values=false)
-          cooling_setpoint = MonthWeekdayWeekendSchedule.new(model, runner, Constants.ObjectNameCoolingSetpoint, Array.new(24, 1), Array.new(24, 1), clg_monthly_sch, mult_weekday=1.0, mult_weekend=1.0, normalize_values=false)
+
+          heating_setpoint = HourlyByMonthSchedule.new(model, runner, Constants.ObjectNameHeatingSetpoint, htg_wkdy_monthly, htg_wked_monthly, normalize_values=false)
+          cooling_setpoint = HourlyByMonthSchedule.new(model, runner, Constants.ObjectNameCoolingSetpoint, clg_wkdy_monthly, clg_wked_monthly, normalize_values=false)
 
           unless heating_setpoint.validated? and cooling_setpoint.validated?
             return false
@@ -2489,9 +2492,9 @@ class HVAC
           end
         end
       end
-      
-      weekday_setpoints = weekday_setpoints.map {|i| UnitConversions.convert(i,"F","C")}
-      weekend_setpoints = weekend_setpoints.map {|i| UnitConversions.convert(i,"F","C")}  
+
+      weekday_setpoints = weekday_setpoints.map {|i| i.map {|j| UnitConversions.convert(j,"F","C")}}
+      weekend_setpoints = weekend_setpoints.map {|i| i.map {|j| UnitConversions.convert(j,"F","C")}}
       
       finished_zones = []
       model.getThermalZones.each do |thermal_zone|
@@ -2550,15 +2553,15 @@ class HVAC
           clg_wked_monthly = []
           (0..11).to_a.each do |i|       
             if cooling_season[i] == 1 and heating_season[i] == 1
-              htg_wkdy_monthly << htg_wkdy.zip(weekday_setpoints).map {|h, c| c < h ? (h + c) / 2.0 : h}
-              htg_wked_monthly << htg_wked.zip(weekend_setpoints).map {|h, c| c < h ? (h + c) / 2.0 : h}
-              clg_wkdy_monthly << htg_wkdy.zip(weekday_setpoints).map {|h, c| c < h ? (h + c) / 2.0 : c}
-              clg_wked_monthly << htg_wked.zip(weekend_setpoints).map {|h, c| c < h ? (h + c) / 2.0 : c}
+              htg_wkdy_monthly << htg_wkdy.zip(weekday_setpoints[i]).map {|h, c| c < h ? (h + c) / 2.0 : h}
+              htg_wked_monthly << htg_wked.zip(weekend_setpoints[i]).map {|h, c| c < h ? (h + c) / 2.0 : h}
+              clg_wkdy_monthly << htg_wkdy.zip(weekday_setpoints[i]).map {|h, c| c < h ? (h + c) / 2.0 : c}
+              clg_wked_monthly << htg_wked.zip(weekend_setpoints[i]).map {|h, c| c < h ? (h + c) / 2.0 : c}
             elsif cooling_season[i] == 1
               htg_wkdy_monthly << Array.new(24, Constants.NoHeatingSetpoint)
               htg_wked_monthly << Array.new(24, Constants.NoHeatingSetpoint)
-              clg_wkdy_monthly << weekday_setpoints
-              clg_wked_monthly << weekend_setpoints          
+              clg_wkdy_monthly << weekday_setpoints[i]
+              clg_wked_monthly << weekend_setpoints[i]
             else
               htg_wkdy_monthly << htg_wkdy
               htg_wked_monthly << htg_wked
@@ -2581,21 +2584,24 @@ class HVAC
           
         else
           
-          clg_monthly_sch = Array.new(12, 1)
-          for m in 1..12
-            if cooling_season[m-1] == 1
-              clg_monthly_sch[m-1] = 1
+          htg_wkdy_monthly = []
+          htg_wked_monthly = []
+          clg_wkdy_monthly = []
+          clg_wked_monthly = []          
+          (0..11).to_a.each do |i|
+            if cooling_season[i] == 1
+              clg_wkdy_monthly << weekday_setpoints[i]
+              clg_wked_monthly << weekend_setpoints[i]
             else
-              clg_monthly_sch[m-1] = Constants.NoCoolingSetpoint
+              clg_wkdy_monthly << Array.new(24, Constants.NoCoolingSetpoint)
+              clg_wked_monthly << Array.new(24, Constants.NoCoolingSetpoint)
             end
-          end        
-          htg_monthly_sch = Array.new(12, 1)
-          for m in 1..12
-            htg_monthly_sch[m-1] = Constants.NoHeatingSetpoint
+            htg_wkdy_monthly << Array.new(24, Constants.NoHeatingSetpoint)
+            htg_wked_monthly << Array.new(24, Constants.NoHeatingSetpoint)
           end
-          
-          heating_setpoint = MonthWeekdayWeekendSchedule.new(model, runner, Constants.ObjectNameHeatingSetpoint, Array.new(24, 1), Array.new(24, 1), htg_monthly_sch, mult_weekday=1.0, mult_weekend=1.0, normalize_values=false)
-          cooling_setpoint = MonthWeekdayWeekendSchedule.new(model, runner, Constants.ObjectNameCoolingSetpoint, weekday_setpoints, weekend_setpoints, clg_monthly_sch, mult_weekday=1.0, mult_weekend=1.0, normalize_values=false)
+
+          heating_setpoint = HourlyByMonthSchedule.new(model, runner, Constants.ObjectNameHeatingSetpoint, htg_wkdy_monthly, htg_wked_monthly, normalize_values=false)
+          cooling_setpoint = HourlyByMonthSchedule.new(model, runner, Constants.ObjectNameCoolingSetpoint, clg_wkdy_monthly, clg_wked_monthly, normalize_values=false)
 
           unless heating_setpoint.validated? and cooling_setpoint.validated?
             return false
@@ -2638,6 +2644,36 @@ class HVAC
       end
 
       return true
+    end
+    
+    def self.get_default_heating_setpoint(control_type)
+      htg_sp = 68 # F
+      htg_setback_sp = nil
+      htg_setback_hrs_per_week = nil
+      htg_setback_start_hr = nil
+      if control_type == "programmable thermostat"
+        htg_setback_sp = 66 # F
+        htg_setback_hrs_per_week = 7*7 # 11 p.m. to 5:59 a.m., 7 days a week
+        htg_setback_start_hr = 23 # 11 p.m.
+      elsif control_type != "manual thermostat"
+        fail "Unexpected control type #{control_type}."
+      end
+      return htg_sp, htg_setback_sp, htg_setback_hrs_per_week, htg_setback_start_hr
+    end
+    
+    def self.get_default_cooling_setpoint(control_type)
+      clg_sp = 78 # F
+      clg_setup_sp = nil
+      clg_setup_hrs_per_week = nil
+      clg_setup_start_hr = nil
+      if control_type == "programmable thermostat"
+        clg_setup_sp = 80 # F
+        clg_setup_hrs_per_week = 6*7 # 9 a.m. to 2:59 p.m., 7 days a week
+        clg_setup_start_hr = 9 # 9 a.m.
+      elsif control_type != "manual thermostat"
+        fail "Unexpected control type #{control_type}."
+      end
+      return clg_sp, clg_setup_sp, clg_setup_hrs_per_week, clg_setup_start_hr
     end
     
     def self.apply_dehumidifier(model, unit, runner, energy_factor,
@@ -2990,6 +3026,50 @@ class HVAC
 
       return true, sch
 
+    end
+
+    def self.apply_eri_ceiling_fans(model, unit, runner, annual_kWh, weekday_sch, weekend_sch)
+
+      obj_name = Constants.ObjectNameCeilingFan(unit.name.to_s)
+
+      ceiling_fan_sch = MonthWeekdayWeekendSchedule.new(model, runner, obj_name + " schedule", weekday_sch, weekend_sch, [1]*12)
+      if not ceiling_fan_sch.validated?
+        return false
+      end
+
+      finished_floor_area = Geometry.get_finished_floor_area_from_spaces(unit.spaces, false, runner)
+
+      unit.spaces.each do |space|
+        next if Geometry.space_is_unfinished(space)
+
+        space_obj_name = "#{obj_name}|#{space.name.to_s}"
+
+        space_mel_ann = annual_kWh * UnitConversions.convert(space.floorArea,"m^2","ft^2") / finished_floor_area
+        space_design_level = ceiling_fan_sch.calcDesignLevelFromDailykWh(space_mel_ann / 365.0)
+
+        equip_def = OpenStudio::Model::ElectricEquipmentDefinition.new(model)
+        equip_def.setName(space_obj_name)
+        equip = OpenStudio::Model::ElectricEquipment.new(equip_def)
+        equip.setName(equip_def.name.to_s)
+        equip.setSpace(space)
+        equip_def.setDesignLevel(space_design_level)
+        equip_def.setFractionRadiant(0.558)
+        equip_def.setFractionLatent(0)
+        equip_def.setFractionLost(0)
+        equip.setEndUseSubcategory(Constants.EndUseCeilingFan)
+        equip.setSchedule(ceiling_fan_sch.schedule)
+      end
+      
+      return true
+
+    end
+    
+    def self.get_default_ceiling_fan_power()
+      return 42.6 # W
+    end
+    
+    def self.get_default_ceiling_fan_quantity(nbeds)
+      return nbeds+1
     end
     
     def self.remove_ceiling_fans(runner, model, unit)
