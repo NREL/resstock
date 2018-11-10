@@ -1524,7 +1524,23 @@ class Geometry
     return true
 
   end
-
+  
+  def self.get_occupancy_default_num(nbeds)
+    return Float(nbeds)
+  end
+  
+  def self.get_occupancy_default_values()
+    # Table 4.2.2(3). Internal Gains for Reference Homes
+    hrs_per_day = 16.5 # hrs/day
+    sens_gains = 3716.0 # Btu/person/day
+    lat_gains = 2884.0 # Btu/person/day
+    tot_gains = sens_gains + lat_gains
+    heat_gain = tot_gains/hrs_per_day # Btu/person/hr
+    sens = sens_gains/tot_gains
+    lat = lat_gains/tot_gains
+    return heat_gain, hrs_per_day, sens, lat
+  end
+  
   def self.process_eaves(model, runner, eaves_depth, roof_structure)
 
     # Error checking

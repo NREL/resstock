@@ -484,21 +484,6 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
             end
         end
         
-        # VRF?
-        if component.nil?
-            sum_value = 0.0
-            model.getZoneHVACTerminalUnitVariableRefrigerantFlows.each do |sys|
-                component = sys.heatingCoil
-                if component.is_a? OpenStudio::Model::OptionalCoilHeatingDXVariableRefrigerantFlow
-                    component = component.get
-                end
-                next if not component.ratedTotalHeatingCapacity.is_initialized
-                sum_value += component.ratedTotalHeatingCapacity.get
-            end
-            capacity_ratio = get_highest_stage_capacity_ratio(model, "SizingInfoHVACCapacityRatioHeating")
-            cost_mult += OpenStudio::convert(sum_value/capacity_ratio, "W", "kBtu/h").get
-        end
-        
         # Electric baseboard?
         if component.nil?
             max_value = 0.0
@@ -550,28 +535,11 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
                 end
             end
         end
-        
-        # VRF?
-        if component.nil?
-            sum_value = 0.0
-            model.getZoneHVACTerminalUnitVariableRefrigerantFlows.each do |sys|
-                component = sys.heatingCoil
-            end
-            if not component.nil?
-              max_value = 0.0
-              model.getZoneHVACBaseboardConvectiveElectrics.each do |sys|
-                next if not sys.nominalCapacity.is_initialized
-                next if sys.nominalCapacity.get <= max_value
-                max_value = sys.nominalCapacity.get
-              end
-              cost_mult += OpenStudio::convert(max_value, "W", "kBtu/h").get
-            end
-        end
     
     elsif cost_mult_type == "Size, Cooling System (kBtu/h)"
         # Cooling system capacity
 
-        component = nil
+        component = nil        
 
         # Unitary system or PTAC?
         model.getAirLoopHVACUnitarySystems.each do |sys|
@@ -610,21 +578,6 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
                     cost_mult += OpenStudio::convert(coil.ratedTotalCoolingCapacity.get, "W", "kBtu/h").get
                 end
             end
-        end
-        
-        # VRF?
-        if component.nil?
-            sum_value = 0.0
-            model.getZoneHVACTerminalUnitVariableRefrigerantFlows.each do |sys|
-                component = sys.coolingCoil
-                if component.is_a? OpenStudio::Model::OptionalCoilCoolingDXVariableRefrigerantFlow
-                    component = component.get
-                end
-                next if not component.ratedTotalCoolingCapacity.is_initialized
-                sum_value += component.ratedTotalCoolingCapacity.get
-            end
-            capacity_ratio = get_highest_stage_capacity_ratio(model, "SizingInfoHVACCapacityRatioCooling")
-            cost_mult += OpenStudio::convert(sum_value/capacity_ratio, "W", "kBtu/h").get
         end
         
     elsif cost_mult_type == "Size, Water Heater (gal)"
@@ -697,15 +650,14 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
     return false
   end
   
-  def get_highest_stage_capacity_ratio(model, capacity_ratio_str)
+  def get_highest_stage_capacity_ratio(model, property_str)
     capacity_ratio = 1.0
     
     # Override capacity ratio for residential multispeed systems
-    model.getBuildingUnits.each do |unit|
-        next if unit.spaces.size == 0
-        capacity_ratio_str = unit.getFeatureAsString(capacity_ratio_str)
-        next if not capacity_ratio_str.is_initialized
-        capacity_ratio = capacity_ratio_str.get.split(",").map(&:to_f)[-1]
+    model.getAirLoopHVACUnitarySystems.each do |sys|
+      capacity_ratio_str = sys.additionalProperties.getFeatureAsString(property_str)
+      next if not capacity_ratio_str.is_initialized
+      capacity_ratio = capacity_ratio_str.get.split(",").map(&:to_f)[-1]
     end
     
     return capacity_ratio

@@ -135,7 +135,7 @@ class Constants
     return 'multifamily'
   end
   def self.BuildingTypeSingleFamilyAttached
-    return 'singlefamilyttached'
+    return 'singlefamilyattached'
   end
   def self.BuildingTypeSingleFamilyDetached
     return 'singlefamilydetached'
@@ -150,16 +150,16 @@ class Constants
     return 'Residential'
   end
   def self.CalcTypeERIRatedHome
-    return 'HERS Rated Home'
+    return 'ERI Rated Home'
   end
   def self.CalcTypeERIReferenceHome
-    return 'HERS Reference Home'
+    return 'ERI Reference Home'
   end
   def self.CalcTypeERIIndexAdjustmentDesign
-    return 'HERS Index Adjustment Design'
+    return 'ERI Index Adjustment Design'
   end
   def self.CalcTypeERIIndexAdjustmentReferenceHome
-    return 'HERS Index Adjustment Reference Home'
+    return 'ERI Index Adjustment Reference Home'
   end
   def self.CalcTypeStandard
     return 'Standard'
@@ -200,11 +200,17 @@ class Constants
   def self.DuctedInfoMiniSplitHeatPump
     return __method__.to_s
   end
-  def self.EndUseHVACFan
-    return 'residential hvac fan'
+  def self.EndUseHVACCoolingFan
+    return 'res hvac cooling fan'
+  end
+  def self.EndUseHVACHeatingFan
+    return 'res hvac heating fan'
+  end
+  def self.EndUseCeilingFan
+    return 'residential ceiling fan'
   end
   def self.EndUseMechVentFan
-    return 'residential mech vent fan'
+    return 'res mech vent fan'
   end
   def self.FacadeFront
     return 'front'
@@ -248,7 +254,6 @@ class Constants
   def self.LoadVarsSpaceHeating
     return {'OpenStudio::Model::CoilHeatingDXSingleSpeed' => ['Heating Coil Heating Energy'],
             'OpenStudio::Model::CoilHeatingDXMultiSpeed' => ['Heating Coil Heating Energy'],
-            'OpenStudio::Model::CoilHeatingDXVariableRefrigerantFlow' => ['Heating Coil Heating Energy'],
             'OpenStudio::Model::CoilHeatingElectric' => ['Heating Coil Heating Energy'],
             'OpenStudio::Model::CoilHeatingGas' => ['Heating Coil Heating Energy'],
             'OpenStudio::Model::ZoneHVACBaseboardConvectiveElectric' => ['Baseboard Total Heating Energy'],
@@ -258,7 +263,6 @@ class Constants
   def self.LoadVarsSpaceCooling
     return {'OpenStudio::Model::CoilCoolingDXSingleSpeed' => ['Cooling Coil Sensible Cooling Energy','Cooling Coil Latent Cooling Energy'],
             'OpenStudio::Model::CoilCoolingDXMultiSpeed' => ['Cooling Coil Sensible Cooling Energy','Cooling Coil Latent Cooling Energy'],
-            'OpenStudio::Model::CoilCoolingDXVariableRefrigerantFlow' => ['Cooling Coil Sensible Cooling Energy','Cooling Coil Latent Cooling Energy'],
             'OpenStudio::Model::CoilCoolingWaterToAirHeatPumpEquationFit' => ['Cooling Coil Sensible Cooling Energy','Cooling Coil Latent Cooling Energy']}
   end
   def self.LoadVarsWaterHeating
@@ -330,28 +334,28 @@ class Constants
     if unit_name != self.ObjectNameBuildingUnit
       s_unit = "|#{unit_name}"
     end
-    return "residential ashp#{s_unit}"
+    return "res ashp#{s_unit}"
   end
   def self.ObjectNameBath(unit_name=self.ObjectNameBuildingUnit)
     s_unit = ""
     if unit_name != self.ObjectNameBuildingUnit
       s_unit = "|#{unit_name}"
     end
-    return "residential bath#{s_unit}"
+    return "res bath#{s_unit}"
   end
   def self.ObjectNameBathDist(unit_name=self.ObjectNameBuildingUnit)
     s_unit = ""
     if unit_name != self.ObjectNameBuildingUnit
       s_unit = "|#{unit_name}"
     end
-    return "residential bath dist#{s_unit}"
+    return "res bath dist#{s_unit}"
   end
   def self.ObjectNameBoiler(fueltype="", unit_name=self.ObjectNameBuildingUnit)
     s_unit = ""
     if unit_name != self.ObjectNameBuildingUnit
       s_unit = "|#{unit_name}"
     end
-    return "residential boiler #{fueltype}#{s_unit}"
+    return "res boiler #{fueltype}#{s_unit}"
   end  
   def self.ObjectNameBuildingUnit(unit_num=1)
     return "unit #{unit_num}"
@@ -361,21 +365,21 @@ class Constants
     if unit_name != self.ObjectNameBuildingUnit
       s_unit = "|#{unit_name}"
     end
-    return "residential ceiling fan#{s_unit}"
+    return "res ceil fan#{s_unit}"
   end
   def self.ObjectNameCentralAirConditioner(unit_name=self.ObjectNameBuildingUnit)
     s_unit = ""
     if unit_name != self.ObjectNameBuildingUnit
       s_unit = "|#{unit_name}"
     end
-    return "residential central ac#{s_unit}"
+    return "res ac#{s_unit}"
   end  
   def self.ObjectNameClothesWasher(unit_name=self.ObjectNameBuildingUnit)
     s_unit = ""
     if unit_name != self.ObjectNameBuildingUnit
       s_unit = "|#{unit_name}"
     end
-    return "residential clothes washer#{s_unit}"
+    return "res cw#{s_unit}"
   end
   def self.ObjectNameClothesDryer(fueltype, unit_name=self.ObjectNameBuildingUnit)
     s_fuel = ""
@@ -386,7 +390,7 @@ class Constants
     if unit_name != self.ObjectNameBuildingUnit
       s_unit = "|#{unit_name}"
     end
-    return "residential clothes dryer#{s_fuel}#{s_unit}"
+    return "res cd#{s_fuel}#{s_unit}"
   end
   def self.ObjectNameCookingRange(fueltype, unit_name=self.ObjectNameBuildingUnit)
     s_fuel = ""
@@ -397,140 +401,129 @@ class Constants
     if unit_name != self.ObjectNameBuildingUnit
       s_unit = "|#{unit_name}"
     end
-    return "residential range#{s_fuel}#{s_unit}"
+    return "res range#{s_fuel}#{s_unit}"
   end
   def self.ObjectNameCoolingSeason
-    return 'residential cooling season'
+    return 'res cooling season'
   end
   def self.ObjectNameCoolingSetpoint
-    return 'residential cooling setpoint'
+    return 'res cooling setpoint'
   end
   def self.ObjectNameDehumidifier(unit_name=self.ObjectNameBuildingUnit)
     s_unit = ""
     if unit_name != self.ObjectNameBuildingUnit
       s_unit = "|#{unit_name}"
     end
-    return "residential dehumidifier#{s_unit}"
+    return "res dehumid#{s_unit}"
   end
   def self.ObjectNameDishwasher(unit_name=self.ObjectNameBuildingUnit)
     s_unit = ""
     if unit_name != self.ObjectNameBuildingUnit
       s_unit = "|#{unit_name}"
     end
-    return "residential dishwasher#{s_unit}"
+    return "res dw#{s_unit}"
   end
-  def self.ObjectNameDucts(unit_name=self.ObjectNameBuildingUnit)
-    s_unit = ""
-    if unit_name != self.ObjectNameBuildingUnit
-      s_unit = "|#{unit_name}"
-    end
-    return "res ds#{s_unit}"
+  def self.ObjectNameDucts(airloop_name)
+    return "res ds #{airloop_name}"
   end  
   def self.ObjectNameEaves(facade="")
     if facade != ""
       facade = " #{facade}"
     end
-    return "residential eaves#{facade}"
+    return "res eaves#{facade}"
   end
   def self.ObjectNameElectricBaseboard(unit_name=self.ObjectNameBuildingUnit)
     s_unit = ""
     if unit_name != self.ObjectNameBuildingUnit
       s_unit = "|#{unit_name}"
     end
-    return "residential baseboard#{s_unit}"
+    return "res bb#{s_unit}"
   end    
   def self.ObjectNameExtraRefrigerator(unit_name=self.ObjectNameBuildingUnit)
     s_unit = ""
     if unit_name != self.ObjectNameBuildingUnit
       s_unit = "|#{unit_name}"
     end
-    return "residential extra refrigerator#{s_unit}"
+    return "res extra refrig#{s_unit}"
   end
   def self.ObjectNameFreezer(unit_name=self.ObjectNameBuildingUnit)
     s_unit = ""
     if unit_name != self.ObjectNameBuildingUnit
       s_unit = "|#{unit_name}"
     end
-    return "residential freezer#{s_unit}"
+    return "res freezer#{s_unit}"
   end
   def self.ObjectNameFurnace(fueltype="", unit_name=self.ObjectNameBuildingUnit)
     s_unit = ""
     if unit_name != self.ObjectNameBuildingUnit
       s_unit = "|#{unit_name}"
     end
-    return "residential furnace #{fueltype}#{s_unit}"
-  end
-  def self.ObjectNameFurnaceAndCentralAirConditioner(fueltype, unit_name=self.ObjectNameBuildingUnit)
-    s_unit = ""
-    if unit_name != self.ObjectNameBuildingUnit
-      s_unit = "|#{unit_name}"
-    end
-    return "residential furnace #{fueltype} and central ac#{s_unit}"
-  end  
+    return "res fur #{fueltype}#{s_unit}"
+  end 
   def self.ObjectNameFurniture
-    return 'residential furniture'
+    return "res furniture"
   end
   def self.ObjectNameGasFireplace(unit_name=self.ObjectNameBuildingUnit)
     s_unit = ""
     if unit_name != self.ObjectNameBuildingUnit
       s_unit = "|#{unit_name}"
     end
-    return "residential gas fireplace#{s_unit}"
+    return "res gas fireplace#{s_unit}"
   end
   def self.ObjectNameGasGrill(unit_name=self.ObjectNameBuildingUnit)
     s_unit = ""
     if unit_name != self.ObjectNameBuildingUnit
       s_unit = "|#{unit_name}"
     end
-    return "residential gas grill#{s_unit}"
+    return "res gas grill#{s_unit}"
   end
   def self.ObjectNameGasLighting(unit_name=self.ObjectNameBuildingUnit)
     s_unit = ""
     if unit_name != self.ObjectNameBuildingUnit
       s_unit = "|#{unit_name}"
     end
-    return "residential gas lighting#{s_unit}"
+    return "res gas lighting#{s_unit}"
   end
   def self.ObjectNameGroundSourceHeatPumpVerticalBore(unit_name=self.ObjectNameBuildingUnit)
     s_unit = ""
     if unit_name != self.ObjectNameBuildingUnit
       s_unit = "|#{unit_name}"
     end
-    return "residential gshp vert bore#{s_unit}"
+    return "res gshp vert bore#{s_unit}"
   end
   def self.ObjectNameHeatingSeason
-    return 'residential heating season'
+    return 'res heating season'
   end
   def self.ObjectNameHeatingSetpoint
-    return 'residential heating setpoint'
+    return 'res heating setpoint'
   end
   def self.ObjectNameHotTubHeater(fueltype, unit_name=self.ObjectNameBuildingUnit)
     s_unit = ""
     if unit_name != self.ObjectNameBuildingUnit
       s_unit = "|#{unit_name}"
     end
-    return "residential hot tub heater #{fueltype}#{s_unit}"
+    return "res hot tub heater #{fueltype}#{s_unit}"
   end
   def self.ObjectNameHotTubPump(unit_name=self.ObjectNameBuildingUnit)
     s_unit = ""
     if unit_name != self.ObjectNameBuildingUnit
       s_unit = "|#{unit_name}"
     end
-    return "residential hot tub pump#{s_unit}"
+    return "res hot tub pump#{s_unit}"
   end
   def self.ObjectNameHotWaterRecircPump(unit_name=self.ObjectNameBuildingUnit)
     s_unit = ""
     if unit_name != self.ObjectNameBuildingUnit
       s_unit = "|#{unit_name}"
     end
-    return "residential hot water recirc pump#{s_unit}"
+    return "res hot water recirc pump#{s_unit}"
   end
   def self.ObjectNameHotWaterDistribution(unit_name=self.ObjectNameBuildingUnit)
     s_unit = ""
     if unit_name != self.ObjectNameBuildingUnit
       s_unit = "|#{unit_name}"
     end
-    return "residential hot water distribution#{s_unit}"
+    return "res hot water distribution#{s_unit}"
   end
   def self.ObjectNameInfiltration(unit_name=self.ObjectNameBuildingUnit)
     s_unit = ""
@@ -544,7 +537,7 @@ class Constants
     if unit_name != self.ObjectNameBuildingUnit
       s_unit = "|#{unit_name}"
     end
-    return "residential lighting#{s_unit}"
+    return "res lighting#{s_unit}"
   end
   def self.ObjectNameMechanicalVentilation(unit_name=self.ObjectNameBuildingUnit)
     s_unit = ""
@@ -558,21 +551,21 @@ class Constants
     if unit_name != self.ObjectNameBuildingUnit
       s_unit = "|#{unit_name}"
     end
-    return "residential mshp#{s_unit}"
+    return "res ms#{s_unit}"
   end
   def self.ObjectNameMiscPlugLoads(unit_name=self.ObjectNameBuildingUnit)
     s_unit = ""
     if unit_name != self.ObjectNameBuildingUnit
       s_unit = "|#{unit_name}"
     end
-    return "residential misc plug loads#{s_unit}"
+    return "res misc plug loads#{s_unit}"
   end
   def self.ObjectNameMiscTelevision(unit_name=self.ObjectNameBuildingUnit)
     s_unit = ""
     if unit_name != self.ObjectNameBuildingUnit
       s_unit = "|#{unit_name}"
     end
-    return "residential misc television#{s_unit}"
+    return "res misc television#{s_unit}"
   end
   def self.ObjectNameNaturalVentilation(unit_name=self.ObjectNameBuildingUnit)
     s_unit = ""
@@ -585,90 +578,90 @@ class Constants
     if facade != ""
       facade = " #{facade}"
     end
-    return "residential neighbors#{facade}"
+    return "res neighbors#{facade}"
   end  
   def self.ObjectNameOccupants(unit_name=self.ObjectNameBuildingUnit)
     s_unit = ""
     if unit_name != self.ObjectNameBuildingUnit
       s_unit = "|#{unit_name}"
     end
-    return "residential occupants#{s_unit}"
+    return "res occupants#{s_unit}"
   end
   def self.ObjectNameOverhangs(facade="")
     if facade != ""
       facade = " #{facade}"
     end
-    return "residential overhangs#{facade}"
+    return "res overhangs#{facade}"
   end
   def self.ObjectNamePhotovoltaics(unit_name=self.ObjectNameBuildingUnit)
     s_unit = ""
     if unit_name != self.ObjectNameBuildingUnit
       s_unit = "|#{unit_name}"
     end
-    return "residential photovoltaics#{s_unit}"
+    return "res photovoltaics#{s_unit}"
   end
   def self.ObjectNamePoolHeater(fueltype, unit_name=self.ObjectNameBuildingUnit)
     s_unit = ""
     if unit_name != self.ObjectNameBuildingUnit
       s_unit = "|#{unit_name}"
     end
-    return "residential pool heater #{fueltype}#{s_unit}"
+    return "res pool heater #{fueltype}#{s_unit}"
   end
   def self.ObjectNamePoolPump(unit_name=self.ObjectNameBuildingUnit)
     s_unit = ""
     if unit_name != self.ObjectNameBuildingUnit
       s_unit = "|#{unit_name}"
     end
-    return "residential pool pump#{s_unit}"
+    return "res pool pump#{s_unit}"
   end
   def self.ObjectNameRefrigerator(unit_name=self.ObjectNameBuildingUnit)
     s_unit = ""
     if unit_name != self.ObjectNameBuildingUnit
       s_unit = "|#{unit_name}"
     end
-    return "residential refrigerator#{s_unit}"
+    return "res refrig#{s_unit}"
   end
   def self.ObjectNameRelativeHumiditySetpoint(unit_name=self.ObjectNameBuildingUnit)
     s_unit = ""
     if unit_name != self.ObjectNameBuildingUnit
       s_unit = "|#{unit_name}"
     end
-    return "residential rh setpoint#{s_unit}"
+    return "res rh setpoint#{s_unit}"
   end
   def self.ObjectNameRoomAirConditioner(unit_name=self.ObjectNameBuildingUnit)
     s_unit = ""
     if unit_name != self.ObjectNameBuildingUnit
       s_unit = "|#{unit_name}"
     end
-    return "residential room ac#{s_unit}"
+    return "res room ac#{s_unit}"
   end  
   def self.ObjectNameShower(unit_name=self.ObjectNameBuildingUnit)
     s_unit = ""
     if unit_name != self.ObjectNameBuildingUnit
       s_unit = "|#{unit_name}"
     end
-    return "residential shower#{s_unit}"
+    return "res shower#{s_unit}"
   end
   def self.ObjectNameShowerDist(unit_name=self.ObjectNameBuildingUnit)
     s_unit = ""
     if unit_name != self.ObjectNameBuildingUnit
       s_unit = "|#{unit_name}"
     end
-    return "residential shower dist#{s_unit}"
+    return "res shower dist#{s_unit}"
   end
   def self.ObjectNameSink(unit_name=self.ObjectNameBuildingUnit)
     s_unit = ""
     if unit_name != self.ObjectNameBuildingUnit
       s_unit = "|#{unit_name}"
     end
-    return "residential sink#{s_unit}"
+    return "res sink#{s_unit}"
   end
   def self.ObjectNameSinkDist(unit_name=self.ObjectNameBuildingUnit)
     s_unit = ""
     if unit_name != self.ObjectNameBuildingUnit
       s_unit = "|#{unit_name}"
     end
-    return "residential sink dist#{s_unit}"
+    return "res sink dist#{s_unit}"
   end
   def self.ObjectNameSolarHotWater(unit_name=self.ObjectNameBuildingUnit)
     s_unit = ""
@@ -682,7 +675,7 @@ class Constants
     if unit_name != self.ObjectNameBuildingUnit
       s_unit = "|#{unit_name}"
     end
-    return "residential unit heater #{fueltype}#{s_unit}"
+    return "res unit heater #{fueltype}#{s_unit}"
   end
   def self.ObjectNameWaterHeater(unit_name=self.ObjectNameBuildingUnit)
     s_unit = ""
@@ -696,7 +689,7 @@ class Constants
     if unit_name != self.ObjectNameBuildingUnit
       s_unit = "|#{unit_name}"
     end
-    return "residential well pump#{s_unit}"
+    return "res well pump#{s_unit}"
   end
   def self.OptionTypeLightingFractions
     return 'Lamp Fractions'
@@ -793,13 +786,6 @@ class Constants
   def self.SizingAutoMaxLoad
     return 'autosize for max load'
   end
-  def self.SizingInfo(property, obj=nil)
-    s_obj = ''
-    if not obj.nil?
-        s_obj = "|#{obj.handle.to_s}"
-    end
-    return "#{property}#{s_obj}"
-  end
   def self.SizingInfoCMUWallFurringInsRvalue
     return __method__.to_s
   end
@@ -825,6 +811,12 @@ class Constants
     return __method__.to_s
   end
   def self.SizingInfoDuctsSupplySurfaceArea
+    return __method__.to_s
+  end
+  def self.SizingInfoHVACFracHeatLoadServed
+    return __method__.to_s
+  end
+  def self.SizingInfoHVACFracCoolLoadServed
     return __method__.to_s
   end
   def self.SizingInfoGSHPBoreConfig
@@ -894,9 +886,6 @@ class Constants
     return __method__.to_s
   end
   def self.SizingInfoMechVentWholeHouseRate
-    return __method__.to_s
-  end
-  def self.SizingInfoMSHPIndices
     return __method__.to_s
   end
   def self.SizingInfoRoofCavityRvalue
@@ -1107,6 +1096,15 @@ class Constants
             self.SpaceTypePierBeam,
             self.SpaceTypeUnfinishedAttic,
             self.SpaceTypeUnfinishedBasement]
-  end 
+  end
+  def self.ZoneHVACPriorityList
+     return ["ZoneHVACEnergyRecoveryVentilator",
+             "AirLoopHVACUnitarySystem",
+             "ZoneHVACBaseboardConvectiveElectric", 
+             "ZoneHVACBaseboardConvectiveWater", 
+             "AirTerminalSingleDuctUncontrolled", 
+             "ZoneHVACDehumidifierDX", 
+             "ZoneHVACPackagedTerminalAirConditioner"] 
+  end
   
 end
