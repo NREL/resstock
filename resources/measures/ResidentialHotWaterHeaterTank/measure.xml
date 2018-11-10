@@ -2,8 +2,8 @@
   <schema_version>3.0</schema_version>
   <name>residential_hot_water_heater_tank</name>
   <uid>0f2214ac-12ca-4350-9942-8d1fb1277608</uid>
-  <version_id>a690c276-b762-467d-abed-f81051470e51</version_id>
-  <version_modified>20181015T212944Z</version_modified>
+  <version_id>5623b811-79c5-4ed1-9ee1-727c0aedd754</version_id>
+  <version_modified>20181109T231552Z</version_modified>
   <xml_checksum>9882CBDB</xml_checksum>
   <class_name>ResidentialHotWaterHeaterTank</class_name>
   <display_name>Set Residential Tank Water Heater</display_name>
@@ -48,14 +48,51 @@
       <default_value>auto</default_value>
     </argument>
     <argument>
+      <name>setpoint_type</name>
+      <display_name>Setpoint type</display_name>
+      <description>The water heater setpoint type. Constant will use a constant value for the whole year, while scheduled will use 8760 values in a schedule file.</description>
+      <type>Choice</type>
+      <required>true</required>
+      <model_dependent>true</model_dependent>
+      <default_value>Constant</default_value>
+      <choices>
+        <choice>
+          <value>Constant</value>
+          <display_name>Constant</display_name>
+        </choice>
+        <choice>
+          <value>Scheduled</value>
+          <display_name>Scheduled</display_name>
+        </choice>
+      </choices>
+    </argument>
+    <argument>
       <name>setpoint_temp</name>
       <display_name>Setpoint</display_name>
-      <description>Water heater setpoint temperature.</description>
+      <description>Water heater setpoint temperature. This value will be ignored if the setpoint type is Scheduled</description>
       <type>Double</type>
       <units>F</units>
       <required>true</required>
       <model_dependent>false</model_dependent>
       <default_value>125</default_value>
+    </argument>
+    <argument>
+      <name>schedules_directory</name>
+      <display_name>Setpoint and Operating Mode Schedule Directory</display_name>
+      <description>Absolute (or relative) directory to schedule files. This argument will be ignored if a constant setpoint type is used instead.</description>
+      <type>String</type>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>./resources</default_value>
+    </argument>
+    <argument>
+      <name>setpoint_schedule</name>
+      <display_name>Setpoint Schedule File Name</display_name>
+      <description>Name of the hourly setpoint schedule. Setpoint should be defined (in F) for every hour. The operating mode schedule must also be located in the same location.</description>
+      <type>String</type>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>hourly_setpoint_schedule.csv</default_value>
     </argument>
     <argument>
       <name>location</name>
@@ -121,6 +158,25 @@
       <model_dependent>false</model_dependent>
       <default_value>0</default_value>
     </argument>
+    <argument>
+      <name>tank_model_type</name>
+      <display_name>Tank type</display_name>
+      <description>Type of tank model to use. Stratified tanks generally provide more accurate results, but may significantly increase run time.</description>
+      <type>Choice</type>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>Mixed</default_value>
+      <choices>
+        <choice>
+          <value>Mixed</value>
+          <display_name>Mixed</display_name>
+        </choice>
+        <choice>
+          <value>Stratified</value>
+          <display_name>Stratified</display_name>
+        </choice>
+      </choices>
+    </argument>
   </arguments>
   <outputs/>
   <provenances/>
@@ -159,16 +215,16 @@
       <checksum>208441EA</checksum>
     </file>
     <file>
-      <filename>ResidentialWaterHeaterTank_Test.rb</filename>
-      <filetype>rb</filetype>
-      <usage_type>test</usage_type>
-      <checksum>69E9E6D8</checksum>
-    </file>
-    <file>
       <filename>MinuteDrawProfilesMaxFlows.csv</filename>
       <filetype>csv</filetype>
       <usage_type>resource</usage_type>
       <checksum>0E1048A3</checksum>
+    </file>
+    <file>
+      <filename>materials.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>82D32FEE</checksum>
     </file>
     <file>
       <version>
@@ -179,31 +235,19 @@
       <filename>measure.rb</filename>
       <filetype>rb</filetype>
       <usage_type>script</usage_type>
-      <checksum>51555F72</checksum>
+      <checksum>E9A5394D</checksum>
     </file>
     <file>
       <filename>util.rb</filename>
       <filetype>rb</filetype>
       <usage_type>resource</usage_type>
-      <checksum>4516079E</checksum>
+      <checksum>B8804B95</checksum>
     </file>
     <file>
-      <filename>materials.rb</filename>
+      <filename>geometry.rb</filename>
       <filetype>rb</filetype>
       <usage_type>resource</usage_type>
-      <checksum>82D32FEE</checksum>
-    </file>
-    <file>
-      <filename>unit_conversions.rb</filename>
-      <filetype>rb</filetype>
-      <usage_type>resource</usage_type>
-      <checksum>81550F14</checksum>
-    </file>
-    <file>
-      <filename>waterheater.rb</filename>
-      <filetype>rb</filetype>
-      <usage_type>resource</usage_type>
-      <checksum>310029B2</checksum>
+      <checksum>AB2185AD</checksum>
     </file>
     <file>
       <filename>weather.rb</filename>
@@ -212,64 +256,88 @@
       <checksum>454E14D4</checksum>
     </file>
     <file>
-      <filename>schedules.rb</filename>
+      <filename>unit_conversions.rb</filename>
       <filetype>rb</filetype>
       <usage_type>resource</usage_type>
-      <checksum>4C000237</checksum>
-    </file>
-    <file>
-      <filename>geometry.rb</filename>
-      <filetype>rb</filetype>
-      <usage_type>resource</usage_type>
-      <checksum>62B9E41C</checksum>
-    </file>
-    <file>
-      <filename>constants.rb</filename>
-      <filetype>rb</filetype>
-      <usage_type>resource</usage_type>
-      <checksum>623A924C</checksum>
+      <checksum>7161039B</checksum>
     </file>
     <file>
       <filename>SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver_WHTank_SHW.osm</filename>
       <filetype>osm</filetype>
       <usage_type>test</usage_type>
-      <checksum>579A14D9</checksum>
+      <checksum>8B430E47</checksum>
     </file>
     <file>
       <filename>SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths.osm</filename>
       <filetype>osm</filetype>
       <usage_type>test</usage_type>
-      <checksum>8D47E594</checksum>
+      <checksum>E55D74CD</checksum>
     </file>
     <file>
       <filename>SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver.osm</filename>
       <filetype>osm</filetype>
       <usage_type>test</usage_type>
-      <checksum>A5FC1A5D</checksum>
+      <checksum>5DEDAA3C</checksum>
     </file>
     <file>
       <filename>SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver_HPWH.osm</filename>
       <filetype>osm</filetype>
       <usage_type>test</usage_type>
-      <checksum>C9422E6B</checksum>
+      <checksum>35333902</checksum>
     </file>
     <file>
       <filename>SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver_WHTankless.osm</filename>
       <filetype>osm</filetype>
       <usage_type>test</usage_type>
-      <checksum>73C465FA</checksum>
+      <checksum>C6B42ADB</checksum>
     </file>
     <file>
       <filename>SFA_4units_1story_FB_UA_3Beds_2Baths_Denver.osm</filename>
       <filetype>osm</filetype>
       <usage_type>test</usage_type>
-      <checksum>F8A1CCD2</checksum>
+      <checksum>82551AE7</checksum>
     </file>
     <file>
       <filename>MF_8units_1story_SL_3Beds_2Baths_Denver.osm</filename>
       <filetype>osm</filetype>
       <usage_type>test</usage_type>
-      <checksum>17F8930C</checksum>
+      <checksum>5E64B55D</checksum>
+    </file>
+    <file>
+      <filename>schedules.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>8A6CF7A4</checksum>
+    </file>
+    <file>
+      <filename>constants.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>F8C62BCA</checksum>
+    </file>
+    <file>
+      <filename>ResidentialWaterHeaterTank_Test.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>test</usage_type>
+      <checksum>A21611EA</checksum>
+    </file>
+    <file>
+      <filename>waterheater.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>4D6683F7</checksum>
+    </file>
+    <file>
+      <filename>hourly_operating_mode_schedule.csv</filename>
+      <filetype>csv</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>EC9FDDCE</checksum>
+    </file>
+    <file>
+      <filename>hourly_setpoint_schedule.csv</filename>
+      <filetype>csv</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>997C4FF8</checksum>
     </file>
   </files>
 </measure>

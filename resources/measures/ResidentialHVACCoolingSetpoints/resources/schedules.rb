@@ -442,6 +442,74 @@ class MonthWeekdayWeekendSchedule
 
 end
 
+#Generic class for handling an hourly schedule (saved as a csv) with 8760 values. Currently used by water heater models.
+class HourlySchedule
+
+    def initialize(model, runner, sch_name, file, offset, convert_temp)
+        @validated = true
+        @model = model
+        @runner = runner
+        @sch_name = sch_name
+        @schedule = nil
+        @offset = offset
+        @schedule = createHourlyScheduleFromFile(runner,file,offset,convert_temp)
+        @convert_temp = convert_temp
+        if @schedule.nil?
+            @validated = false
+            return
+        end
+        schedule = @schedule
+    end
+
+    def validated?
+        return @validated
+    end
+    
+    def schedule
+        return @schedule
+    end
+    
+    private
+    
+        def createHourlyScheduleFromFile(runner,file,offset,convert_temp)
+            data = []
+
+            # Get appropriate file
+            hourly_schedule = "#{file}"
+            if not File.file?(hourly_schedule)
+                @runner.registerError("Unable to find file: #{hourly_schedule}")
+                return nil
+            end
+            
+            # Read data into hourly array
+            hour = 0
+            data = [0] * 8760
+            File.open(file).each do |line|
+                linedata = line.strip.split(',')
+                if convert_temp == true
+                    value = UnitConversions.convert((linedata[0].to_f + offset),"F","C") 
+                else
+                    value = linedata[0].to_f + offset
+                end
+                data[hour] = value
+                hour += 1
+            end
+            
+            year_description = @model.getYearDescription
+            start_date = year_description.makeDate(1,1)
+            interval = OpenStudio::Time.new(0,1,0,0)
+
+            time_series = OpenStudio::TimeSeries.new(start_date, interval, OpenStudio::createVector(data), "")
+            
+            schedule = OpenStudio::Model::ScheduleFixedInterval.fromTimeSeries(time_series, @model).get
+            schedule.setName(@sch_name)
+
+            return schedule
+
+        end
+        
+end
+
 class HotWaterSchedule
 
     def initialize(model, runner, sch_name, temperature_sch_name, num_bedrooms, days_shift, file_prefix, target_water_temperature, measure_dir, create_sch_object=true)
