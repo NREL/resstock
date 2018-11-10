@@ -150,16 +150,16 @@ class Constants
     return 'Residential'
   end
   def self.CalcTypeERIRatedHome
-    return 'HERS Rated Home'
+    return 'ERI Rated Home'
   end
   def self.CalcTypeERIReferenceHome
-    return 'HERS Reference Home'
+    return 'ERI Reference Home'
   end
   def self.CalcTypeERIIndexAdjustmentDesign
-    return 'HERS Index Adjustment Design'
+    return 'ERI Index Adjustment Design'
   end
   def self.CalcTypeERIIndexAdjustmentReferenceHome
-    return 'HERS Index Adjustment Reference Home'
+    return 'ERI Index Adjustment Reference Home'
   end
   def self.CalcTypeStandard
     return 'Standard'
@@ -199,6 +199,9 @@ class Constants
   end
   def self.DuctedInfoMiniSplitHeatPump
     return __method__.to_s
+  end
+  def self.EndUseCeilingFan
+    return 'residential ceiling fan'
   end
   def self.EndUseHVACFan
     return 'residential hvac fan'

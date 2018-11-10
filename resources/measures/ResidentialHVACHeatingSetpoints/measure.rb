@@ -211,7 +211,7 @@ class ProcessHeatingSetpoints < OpenStudio::Measure::ModelMeasure
       season_end_month = month_map[season_end_month.get]
     end
     
-    success = HVAC.apply_heating_setpoints(model, runner, weather, weekday_setpoints, weekend_setpoints,
+    success = HVAC.apply_heating_setpoints(model, runner, weather, [weekday_setpoints]*12, [weekend_setpoints]*12,
                                            use_auto_season, season_start_month, season_end_month)
     return false if not success
     
