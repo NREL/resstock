@@ -1840,6 +1840,12 @@ class SubsurfaceConstructions
         return true
     end
 
+    def self.get_default_interior_shading_factors()
+      summer = 0.70
+      winter = 0.85
+      return summer, winter
+    end
+    
 end
 
 class ThermalMassConstructions

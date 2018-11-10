@@ -484,3 +484,20 @@ class UtilityBill
   end
   
 end
+
+class OutputVariables
+
+  def self.zone_indoor_air_wetbulb_temperature(tdb, w, pr)
+    tdb = tdb.collect { |n| UnitConversions.convert(n, "C", "F" )} # degF
+    pr = pr.collect { |n| UnitConversions.convert(n, "pa", "psi") } # psi
+    twb = [tdb, w, pr].transpose.collect { |x, y, z| Psychrometrics.Twb_fT_w_P(x, y, z) } # degF
+    twb = twb.collect { |n| UnitConversions.convert(n, "F", "C") } # degC
+    return twb # degC
+  end
+
+  def self.wetbulb_globe_temperature(twb, mrt)
+    twbg = [twb.collect { |n| n * 0.7 }, mrt.collect { |n| n * 0.3 }].transpose.map {|x| x.reduce(:+)} # degC
+    return twbg # degC
+  end
+
+end
