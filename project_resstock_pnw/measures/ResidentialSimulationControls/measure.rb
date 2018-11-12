@@ -3,8 +3,18 @@
 # see the URL below for information on how to write OpenStudio measures
 # http://nrel.github.io/OpenStudio-user-documentation/reference/measure_writing_guide/
 
-require "#{File.dirname(__FILE__)}/resources/simulation"
-require "#{File.dirname(__FILE__)}/resources/constants"
+resstock_aws_path = "../../lib/resources/measures/HPXMLtoOpenStudio/resources"
+resstock_local_path = "../../resources/measures/HPXMLtoOpenStudio/resources"
+if File.exists? File.absolute_path(File.join(File.dirname(__FILE__), resstock_aws_path)) # Hack to run ResStock on AWS
+  require_relative File.join(resstock_aws_path, "constants")
+  require_relative File.join(resstock_aws_path, "simulation")
+elsif File.exists? File.absolute_path(File.join(File.dirname(__FILE__), resstock_local_path)) # Hack to run ResStock unit tests locally
+  require_relative File.join(resstock_local_path, "constants")
+  require_relative File.join(resstock_local_path, "simulation")
+else
+  require_relative "../HPXMLtoOpenStudio/resources/constants"
+  require_relative "../HPXMLtoOpenStudio/resources/simulation"
+end
 
 # start the measure
 class ResidentialSimulationControls < OpenStudio::Measure::ModelMeasure
