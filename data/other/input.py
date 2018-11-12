@@ -6,11 +6,136 @@ import numpy as np
 import itertools
 import pandas as pd
 
+def _get_heating_set_point_auto(hdd, home_during_day=True, use_constant_average=True, smart_tstat=False):
+    # Regression of heating setpoints vs HDD from RECS 2009
+    T_home = round(-0.00037811*hdd + 71.185, 1) # deg F
+    T_away = round(-0.00025154*hdd + 67.496, 1) # deg F
+    T_night = round(-0.00044849*hdd + 69.375, 1) # deg F
+    if use_constant_average: # Use weighted average of three values
+        T_constant_average = ((T_night*6 + T_home*3 + T_away*8 + T_home*6 + T_night*1) + (T_night*6 + T_home*17 + T_night*1)) / 48
+        if smart_tstat:
+            T_setback = T_constant_average - 4 # Average night/away setback for Nest users (https://nest.com/downloads/press/documents/energy-savings-white-paper.pdf)
+            weekday = [T_setback]*6 + [T_constant_average]*3 + [T_setback]*8 + [T_constant_average]*6 + [T_setback]*1
+            weekend = [T_setback]*6 + [T_constant_average]*17 + [T_setback]*1            
+        else:
+            weekday = [T_constant_average]*24
+            weekend = [T_constant_average]*24
+    else: # Use the three values as a changing setpoint
+        weekday = [T_night]*6 + [T_home]*3 + [T_away]*8 + [T_home]*6 + [T_night]*1
+        weekend = [T_night]*6 + [T_home]*17 + [T_night]*1
+    if not home_during_day:
+        return weekday + weekend
+    else:
+        return weekend*2
+
+def _get_cooling_set_point_auto(cdd, home_during_day=True, use_constant_average=True, smart_tstat=False):
+    # Regression of cooling setpoints vs CDD from RECS 2009
+    T_home = round(0.00115506*cdd + 71.351, 1) # deg F
+    T_away = round(0.00137800*cdd + 72.714, 1) # deg F
+    T_night = round(0.00097444*cdd + 71.446, 1) # deg F
+    if use_constant_average: # Use weighted average of three values
+        T_constant_average = ((T_night*6 + T_home*3 + T_away*8 + T_home*6 + T_night*1)*5 + (T_night*6 + T_home*17 + T_night*1)*2) / (24*7)
+        if smart_tstat:
+            T_setback = T_constant_average + 4 # Average away setup for Nest users--assume same as for heating (https://nest.com/downloads/press/documents/energy-savings-white-paper.pdf)
+            weekday = [T_constant_average]*6 + [T_constant_average]*3 + [T_setback]*8 + [T_constant_average]*6 + [T_constant_average]*1
+            weekend = [T_constant_average]*6 + [T_constant_average]*17 + [T_constant_average]*1            
+        else:
+            weekday = [T_constant_average]*24
+            weekend = [T_constant_average]*24
+    else: # Use the three values as a changing setpoint
+        weekday = [T_night]*6 + [T_home]*3 + [T_away]*8 + [T_home]*6 + [T_night]*1
+        weekend = [T_night]*6 + [T_home]*17 + [T_night]*1
+    if not home_during_day:
+        return weekday + weekend
+    else:
+        return weekend*2
+        
+def _calc_degree_days(epwfile, base_temp_f, is_heating):
+    '''Calculates and returns degree days from a base temperature for either
+    heating or cooling'''
+    
+    daily_dbs = _get_daily_dbs(epwfile)
+    
+    base_temp_c = (base_temp_f - 32.)/1.8
+    if is_heating:
+        deg_days = sum([(base_temp_c-x) for x in daily_dbs if x < base_temp_c])
+    else:
+        deg_days = sum([(x-base_temp_c) for x in daily_dbs if x > base_temp_c])
+    return deg_days * 1.8
+    
+def _get_daily_dbs(epwfile):
+    '''This snippet of code taken from BEopt's weather.py for retrieving daily dry-bulb temperatures'''
+
+    f = open(epwfile, 'r')
+    epwlines = f.readlines()
+
+    epwlines = _remove_non_hourly_lines(epwlines)
+
+    # Read data:
+    hourdata = []
+    dailydbs = []
+    for hournum, epwline in enumerate(epwlines):
+
+        data = epwline.strip().split(",")
+        hourdict = {}
+        hourdict['db'] = float(data[6])
+
+        hourdata.append(hourdict)
+
+        if (hournum+1) % 24 == 0:
+            dailydbs.append(sum([x['db'] for x in hourdata][-24:])/24.0)
+            
+    return dailydbs
+        
+def _remove_non_hourly_lines(epwlines):
+    '''Strips header lines until we get to the hourly data'''
+    for epwline in epwlines:
+        data = epwline.strip().split(",")
+        if len(data) <= 4:
+            epwlines = epwlines[1:]
+        elif not (data[1] in ('1','01') and data[2] in ('1','01') and data[3] in ('1','01')):
+            epwlines = epwlines[1:]
+        else:
+            break
+    return epwlines[0:8760] # Exclude any text beyond the 8760th line
+        
 class Create_DFs():
     
     def __init__(self, file):
         self.session = pd.read_csv(file, index_col=['WMO'])
 
+    def heating_setpoint(self):
+        df = pd.read_csv('by_usaf.csv', usecols=['EPW'])
+        df = df.rename(columns={'EPW': 'Dependency=Location EPW'})
+        df['hdd'] = df['Dependency=Location EPW'].apply(lambda x: _calc_degree_days(x, 65, True))
+        df['setpoint'] = df['hdd'].apply(lambda x: '{}F'.format(int(round(_get_heating_set_point_auto(x)[0]))))
+        df['TotalSFD'] = 1
+        df, cols = categories_to_columns(df, 'setpoint', False)
+        df = df.set_index('Dependency=Location EPW')
+        del df['hdd']
+        del df['setpoint']
+        del df['TotalSFD']
+        del df['Weight']
+        df = add_option_prefix(df)
+        df = df[['Option=66F', 'Option=67F', 'Option=68F', 'Option=69F', 'Option=70F']]
+        return df
+
+    def cooling_setpoint(self):
+        df = pd.read_csv('by_usaf.csv', usecols=['EPW'])
+        df = df.rename(columns={'EPW': 'Dependency=Location EPW'})
+        df['cdd'] = df['Dependency=Location EPW'].apply(lambda x: _calc_degree_days(x, 65, False))
+        df['setpoint'] = df['cdd'].apply(lambda x: '{}F'.format(int(round(_get_cooling_set_point_auto(x)[0]))))
+        df['TotalSFD'] = 1
+        df, cols = categories_to_columns(df, 'setpoint', False)
+        df = df.set_index('Dependency=Location EPW')
+        del df['cdd']
+        del df['setpoint']
+        del df['TotalSFD']
+        del df['Weight']
+        df = add_option_prefix(df)
+        df = df[['Option=72F', 'Option=73F', 'Option=74F', 'Option=75F', 'Option=76F', 'Option=77F']]
+        return df
+        
     def location_iecc_epw(self):
         df = self.session
         df = df.rename(columns={'IECC ZONE': 'Dependency=Climate Zone'})
@@ -23,7 +148,7 @@ class Create_DFs():
         df = sum_cols(df, cols)
         df['Count'] = count
         df['Weight'] = weight
-        df = add_option_prefix(df)        
+        df = add_option_prefix(df)
         return df
 
     def location_ba_epw(self):
@@ -132,7 +257,8 @@ if __name__ == '__main__':
 
     dfs = Create_DFs('Zones.csv')
 
-    for category in ['Location Census Division', 'Location IECC EPW', 'Location BA EPW', 'Location NSRDB']:
+    # for category in ['Heating Setpoint', 'Cooling Setpoint', 'Location Census Division', 'Location IECC EPW', 'Location BA EPW', 'Location NSRDB']:
+    for category in ['Heating Setpoint', 'Cooling Setpoint']:
         print category
         method = getattr(dfs, category.lower().replace(' ', '_'))
         df = method()

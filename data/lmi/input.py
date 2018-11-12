@@ -57,7 +57,7 @@ class Create_DFs():
         sub['Dependency=Vintage'] = sub['Dependency=Vintage'].map({vintage: '1980s'})
       df = df.append([sub])
 
-    df['Dependency=Vintage'] = df['Dependency=Vintage'].map({5: '<1940', '<1950': '<1950', 4: '1950s', '1960s': '1960s', 3: '1970s', '1980s': '1980s', 2: '1990s', 1: '2000s', 2: '2010s'})
+    df['Dependency=Vintage'] = df['Dependency=Vintage'].map({5: '<1940', '<1950': '<1950', 4: '1950s', '1960s': '1960s', 3: '1970s', '1980s': '1980s', 2: '1990s', 1: '2000s', 0: '2010s'})
 
     for col in df.columns:
       if 'owner' in col or 'renter' in col:
