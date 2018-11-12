@@ -88,7 +88,7 @@ def copy_resources(branch)
   project_dir_names = get_all_project_dir_names()
   extra_files = [
                  File.join("workflows", "measure-info.json"),
-                 File.join("resources", "meta_measure.rb") # Needed by buildstock.rb
+                 File.join("measures", "HPXMLtoOpenStudio", "resources", "meta_measure.rb") # Needed by buildstock.rb
                 ]
   extra_files.each do |extra_file|
       puts "Copying #{extra_file}..."
@@ -124,7 +124,7 @@ end
 def copy_measures(beopt_measures_dir, buildstock_resource_measures_dir)
   # Copy residential measures to resources/measures/
   Dir.foreach(beopt_measures_dir) do |beopt_measure|
-    next if !beopt_measure.include? 'Residential'
+    next if !beopt_measure.include? 'Residential' and beopt_measure != "HPXMLtoOpenStudio"
     beopt_measure_dir = File.join(beopt_measures_dir, beopt_measure)
     next if not Dir.exist?(beopt_measure_dir)
     puts "Copying #{beopt_measure} measure..."
@@ -139,7 +139,7 @@ def copy_measures(beopt_measures_dir, buildstock_resource_measures_dir)
 end
 
 def copy_other_measures(beopt_measures_dir)
-  # Copy other measures to measure/ dir
+  # Copy other measures to measures/ dir
   other_measures = ["TimeseriesCSVExport", "ResidentialSimulationControls"] # Still under development: "UtilityBillCalculationsSimple", "UtilityBillCalculationsDetailed"
   buildstock_measures_dir = File.join(File.dirname(__FILE__), "measures")
   other_measures.each do |other_measure|
