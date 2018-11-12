@@ -1,448 +1,112 @@
 {
-   "created_at" : "20171110T174840Z",
-   "measure_paths" : [ "../../resources/measures" ],
-   "seed_file" : "../../project_resstock_national/seeds/EmptySeedModel.osm",
-   "steps" : [
-      {
-         "arguments" : {
-            "dst_end_date" : "October 26",
-            "dst_start_date" : "April 7",
-            "weather_directory" : "../../../test/osw_files/weather",
-            "weather_file_name" : "USA_CO_Denver_Intl_AP_725650_TMY3.epw"
-         },
-         "measure_dir_name" : "ResidentialLocation"
+  "measure_paths": [
+    "../../measures",
+    "../../resources/measures"
+  ],
+  "seed_file": "../../project_resstock_national/seeds/EmptySeedModel.osm",
+  "steps": [
+    {
+      "measure_dir_name": "ResidentialSimulationControls"
+    },
+    {
+      "arguments": {
+        "dst_end_date": "October 26",
+        "dst_start_date": "April 7",
+        "weather_directory": "../../../test/osw_files/weather",
+        "weather_file_name": "USA_CO_Denver_Intl_AP_725650_TMY3.epw"
       },
-      {
-         "arguments" : {
-            "aspect_ratio" : "1.8",
-            "attic_type" : "unfinished attic",
-            "foundation_height" : "0",
-            "foundation_type" : "slab",
-            "garage_depth" : "24",
-            "garage_pos" : "Right",
-            "garage_protrusion" : "0.5",
-            "garage_width" : "12",
-            "living_height" : "8",
-            "num_floors" : "2",
-            "roof_pitch" : "6:12",
-            "roof_type" : "gable",
-            "total_ffa" : "3000"
-         },
-         "measure_dir_name" : "ResidentialGeometrySingleFamilyDetached"
+      "measure_dir_name": "ResidentialLocation"
+    },
+    {
+      "arguments": {
+        "aspect_ratio": "1.8",
+        "attic_type": "unfinished attic",
+        "foundation_height": "0",
+        "foundation_type": "slab",
+        "garage_depth": "24",
+        "garage_position": "Right",
+        "garage_protrusion": "0.5",
+        "garage_width": "12",
+        "wall_height": "8",
+        "num_floors": "2",
+        "roof_pitch": "6:12",
+        "roof_type": "gable",
+        "total_ffa": "3000",
+        "num_bathrooms": "2.5",
+        "num_bedrooms": "4",
+        "orientation": "0"
       },
-      {
-         "arguments" : {
-            "num_bathrooms" : "2.5",
-            "num_bedrooms" : "4"
-         },
-         "measure_dir_name" : "ResidentialGeometryNumBedsAndBaths"
+      "measure_dir_name": "ResidentialGeometryCreateSingleFamilyDetached"
+    },
+    {
+      "arguments": {
+        "door_area": "40"
       },
-      {
-         "arguments" : {
-            "lat_frac" : "0.427",
-            "monthly_sch" : "1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0",
-            "num_occ" : "auto",
-            "occ_gain" : "384.0",
-            "sens_frac" : "0.573",
-            "weekday_sch" : "1.00000, 1.00000, 1.00000, 1.00000, 1.00000, 1.00000, 1.00000, 0.88310, 0.40861, 0.24189, 0.24189, 0.24189, 0.24189, 0.24189, 0.24189, 0.24189, 0.29498, 0.55310, 0.89693, 0.89693, 0.89693, 1.00000, 1.00000, 1.00000",
-            "weekend_sch" : "1.00000, 1.00000, 1.00000, 1.00000, 1.00000, 1.00000, 1.00000, 0.88310, 0.40861, 0.24189, 0.24189, 0.24189, 0.24189, 0.24189, 0.24189, 0.24189, 0.29498, 0.55310, 0.89693, 0.89693, 0.89693, 1.00000, 1.00000, 1.00000"
-         },
-         "measure_dir_name" : "ResidentialGeometryNumOccupants"
+      "measure_dir_name": "ResidentialGeometryDoorArea"
+    },
+    {
+      "arguments": {
+        "back_wwr": "0.12",
+        "front_wwr": "0.12",
+        "left_wwr": "0.12",
+        "right_wwr": "0.12"
       },
-      {
-         "arguments" : {
-            "orientation" : "0"
-         },
-         "measure_dir_name" : "ResidentialGeometryOrientation"
+      "measure_dir_name": "ResidentialGeometryWindowSkylightArea"
+    },
+    {
+      "measure_dir_name": "ResidentialConstructionsUnfinishedAttic"
+    },
+    {
+      "measure_dir_name": "ResidentialConstructionsSlab"
+    },
+    {
+      "measure_dir_name": "ResidentialConstructionsFloors"
+    },
+    {
+      "measure_dir_name": "ResidentialConstructionsWallsDoubleWoodStud"
+    },
+    {
+      "measure_dir_name": "ResidentialConstructionsWindowsSkylights"
+    },
+    {
+      "measure_dir_name": "ResidentialConstructionsDoors"
+    },
+    {
+      "arguments": {
+        "fuel_type": "gas"
       },
-      {
-         "arguments" : {
-            "door_area" : "40"
-         },
-         "measure_dir_name" : "ResidentialGeometryDoorArea"
+      "measure_dir_name": "ResidentialHotWaterHeaterTankless"
+    },
+    {
+      "measure_dir_name": "ResidentialHotWaterSolar"
+    },
+    {
+      "arguments": {
+        "heat_pump_capacity": "5.0",
+        "supplemental_capacity": "100.0"
       },
-      {
-         "arguments" : {
-            "aspect_ratio" : "1.333",
-            "back_area" : "0",
-            "back_wwr" : "0.12",
-            "front_area" : "0",
-            "front_wwr" : "0.12",
-            "left_area" : "0",
-            "left_wwr" : "0.12",
-            "right_area" : "0",
-            "right_wwr" : "0.12"
-         },
-         "measure_dir_name" : "ResidentialGeometryWindowArea"
-      },
-      {
-         "arguments" : {
-            "back_facade" : "true",
-            "depth" : "2",
-            "front_facade" : "false",
-            "left_facade" : "false",
-            "offset" : "0.5",
-            "right_facade" : "false"
-         },
-         "measure_dir_name" : "ResidentialGeometryOverhangs"
-      },
-      {
-         "arguments" : {
-            "back_offset" : "0",
-            "front_offset" : "0",
-            "left_offset" : "15",
-            "right_offset" : "0"
-         },
-         "measure_dir_name" : "ResidentialGeometryNeighbors"
-      },
-      {
-         "arguments" : {},
-         "measure_dir_name" : "ResidentialConstructionsUninsulatedSurfaces"
-      },
-      {
-         "arguments" : {
-            "ceil_ff" : "0.07",
-            "ceil_grade" : "I",
-            "ceil_ins_thick_in" : "0",
-            "ceil_joist_height" : "3.5",
-            "ceil_r" : "0",
-            "roof_cavity_grade" : "I",
-            "roof_cavity_ins_thick_in" : "6.25",
-            "roof_cavity_r" : "49",
-            "roof_ff" : "0.07",
-            "roof_fram_thick_in" : "7.25"
-         },
-         "measure_dir_name" : "ResidentialConstructionsCeilingsRoofsUnfinishedAttic"
-      },
-      {
-         "arguments" : {
-            "osb_thick_in" : "0.75",
-            "rigid_r" : "0",
-            "rigid_thick_in" : "0"
-         },
-         "measure_dir_name" : "ResidentialConstructionsCeilingsRoofsSheathing"
-      },
-      {
-         "arguments" : {
-            "color" : "white",
-            "emissivity" : "0.91",
-            "material" : "asphalt shingles",
-            "solar_abs" : "0.75"
-         },
-         "measure_dir_name" : "ResidentialConstructionsCeilingsRoofsRoofingMaterial"
-      },
-      {
-         "arguments" : {
-            "cond1" : "1.1112",
-            "dens1" : "50",
-            "specheat1" : "0.2",
-            "thick_in1" : "0.5"
-         },
-         "measure_dir_name" : "ResidentialConstructionsCeilingsRoofsThermalMass"
-      },
-      {
-         "arguments" : {
-            "exposed_perim" : "auto",
-            "ext_depth" : "0",
-            "ext_r" : "0",
-            "gap_r" : "5",
-            "mass_conductivity" : "9.1",
-            "mass_density" : "140.0",
-            "mass_specific_heat" : "0.2",
-            "mass_thick_in" : "4.0",
-            "perim_r" : "0",
-            "perim_width" : "0",
-            "whole_r" : "10"
-         },
-         "measure_dir_name" : "ResidentialConstructionsFoundationsFloorsSlab"
-      },
-      {
-         "arguments" : {
-            "cavity_r" : "19",
-            "framing_factor" : "0.13",
-            "install_grade" : "I"
-         },
-         "measure_dir_name" : "ResidentialConstructionsFoundationsFloorsInterzonalFloors"
-      },
-      {
-         "arguments" : {
-            "covering_frac" : "1",
-            "covering_r" : "2.08"
-         },
-         "measure_dir_name" : "ResidentialConstructionsFoundationsFloorsCovering"
-      },
-      {
-         "arguments" : {
-            "osb_thick_in" : "0.75",
-            "rigid_r" : "0",
-            "rigid_thick_in" : "0"
-         },
-         "measure_dir_name" : "ResidentialConstructionsFoundationsFloorsSheathing"
-      },
-      {
-         "arguments" : {
-            "cond" : "4.75",
-            "dens" : "100",
-            "specheat" : "0.223",
-            "thick_in" : "2"
-         },
-         "measure_dir_name" : "ResidentialConstructionsFoundationsFloorsThermalMass"
-      },
-      {
-         "arguments" : {
-            "cavity_r" : "33",
-            "framing_factor" : "0.22",
-            "framing_spacing" : "24",
-            "gap_depth" : "3.5",
-            "install_grade" : "I",
-            "is_staggered" : "false",
-            "stud_depth" : "3.5"
-         },
-         "measure_dir_name" : "ResidentialConstructionsWallsExteriorDoubleWoodStud"
-      },
-      {
-         "arguments" : {
-            "cavity_depth" : "5.5",
-            "cavity_r" : "33",
-            "framing_factor" : "0.22",
-            "ins_fills_cavity" : "true",
-            "install_grade" : "I"
-         },
-         "measure_dir_name" : "ResidentialConstructionsWallsInterzonal"
-      },
-      {
-         "arguments" : {
-            "osb_thick_in" : "0.5",
-            "rigid_r" : "15",
-            "rigid_thick_in" : "3"
-         },
-         "measure_dir_name" : "ResidentialConstructionsWallsSheathing"
-      },
-      {
-         "arguments" : {
-            "conductivity" : "0.62",
-            "density" : "11.1",
-            "emissivity" : "0.9",
-            "solar_abs" : "0.75",
-            "specific_heat" : "0.25",
-            "thick_in" : "0.375"
-         },
-         "measure_dir_name" : "ResidentialConstructionsWallsExteriorFinish"
-      },
-      {
-         "arguments" : {
-            "cond1" : "1.1112",
-            "cond2" : "1.1112",
-            "dens1" : "50.0",
-            "dens2" : "50",
-            "specheat1" : "0.2",
-            "specheat2" : "0.2",
-            "thick_in1" : "0.625",
-            "thick_in2" : "0.625"
-         },
-         "measure_dir_name" : "ResidentialConstructionsWallsExteriorThermalMass"
-      },
-      {
-         "arguments" : {
-            "cond1" : "1.1112",
-            "dens1" : "50",
-            "frac" : "1.0",
-            "specheat1" : "0.2",
-            "thick_in1" : "0.625"
-         },
-         "measure_dir_name" : "ResidentialConstructionsWallsPartitionThermalMass"
-      },
-      {
-         "arguments" : {
-            "cooling_shade_mult" : "0.7",
-            "heating_shade_mult" : "0.7",
-            "shgc" : "0.67",
-            "ufactor" : "0.76"
-         },
-         "measure_dir_name" : "ResidentialConstructionsWindows"
-      },
-      {
-         "arguments" : {
-            "door_ufactor" : "0.2"
-         },
-         "measure_dir_name" : "ResidentialConstructionsDoors"
-      },
-      {
-         "arguments" : {
-            "capacity" : "199",
-            "cycling_derate" : "0.08",
-            "energy_factor" : "0.96",
-            "fuel_type" : "gas",
-            "location" : "auto",
-            "offcyc_power" : "5",
-            "oncyc_power" : "65",
-            "setpoint_temp" : "125"
-         },
-         "measure_dir_name" : "ResidentialHotWaterHeaterTanklessFuel"
-      },
-      {
-         "arguments" : {
-            "azimuth" : "180",
-            "azimuth_type" : "relative",
-            "collector_area" : "40",
-            "fluid_type" : "propylene-glycol",
-            "frta" : "0.77",
-            "frul" : "0.793",
-            "heat_ex_eff" : "0.7",
-            "iam" : "0.1",
-            "pump_power" : "0.8",
-            "storage_vol" : "auto",
-            "tank_r" : "10",
-            "tilt" : "-15",
-            "tilt_type" : "latitude"
-         },
-         "measure_dir_name" : "ResidentialHotWaterSolar"
-      },
-      {
-         "arguments" : {
-            "cop" : "3.05",
-            "cop_capacity_derate_1ton" : "1.0",
-            "cop_capacity_derate_2ton" : "1.0",
-            "cop_capacity_derate_3ton" : "1.0",
-            "cop_capacity_derate_4ton" : "1.0",
-            "cop_capacity_derate_5ton" : "1.0",
-            "crankcase_capacity" : "0.02",
-            "crankcase_max_temp" : "55.0",
-            "eer" : "11.4",
-            "eer_capacity_derate_1ton" : "1.0",
-            "eer_capacity_derate_2ton" : "1.0",
-            "eer_capacity_derate_3ton" : "1.0",
-            "eer_capacity_derate_4ton" : "1.0",
-            "eer_capacity_derate_5ton" : "1.0",
-            "fan_power_installed" : "0.5",
-            "fan_power_rated" : "0.365",
-            "heat_pump_capacity" : "5.0",
-            "hspf" : "7.7",
-            "min_temp" : "0.0",
-            "seer" : "13.0",
-            "shr" : "0.73",
-            "supplemental_capacity" : "100.0",
-            "supplemental_efficiency" : "1.0"
-         },
-         "measure_dir_name" : "ResidentialHVACAirSourceHeatPumpSingleSpeed"
-      },
-      {
-         "arguments" : {
-            "season_end_month" : "Dec",
-            "season_start_month" : "Jan",
-            "use_auto_season" : "false",
-            "weekday_setpoint" : "63",
-            "weekend_setpoint" : "63"
-         },
-         "measure_dir_name" : "ResidentialHVACHeatingSetpoints"
-      },
-      {
-         "arguments" : {
-            "season_end_month" : "Dec",
-            "season_start_month" : "Jan",
-            "use_auto_season" : "false",
-            "weekday_setpoint" : "69",
-            "weekend_setpoint" : "69"
-         },
-         "measure_dir_name" : "ResidentialHVACCoolingSetpoints"
-      },
-      {
-         "arguments" : {
-            "fridge_E" : "434",
-            "monthly_sch" : "0.837, 0.835, 1.084, 1.084, 1.084, 1.096, 1.096, 1.096, 1.096, 0.931, 0.925, 0.837",
-            "mult" : "0.95",
-            "space" : "auto",
-            "weekday_sch" : "0.040, 0.039, 0.038, 0.037, 0.036, 0.036, 0.038, 0.040, 0.041, 0.041, 0.040, 0.040, 0.042, 0.042, 0.042, 0.041, 0.044, 0.048, 0.050, 0.048, 0.047, 0.046, 0.044, 0.041",
-            "weekend_sch" : "0.040, 0.039, 0.038, 0.037, 0.036, 0.036, 0.038, 0.040, 0.041, 0.041, 0.040, 0.040, 0.042, 0.042, 0.042, 0.041, 0.044, 0.048, 0.050, 0.048, 0.047, 0.046, 0.044, 0.041"
-         },
-         "measure_dir_name" : "ResidentialApplianceRefrigerator"
-      },
-      {
-         "arguments" : {
-            "c_ef" : "0.74",
-            "monthly_sch" : "1.097, 1.097, 0.991, 0.987, 0.991, 0.890, 0.896, 0.896, 0.890, 1.085, 1.085, 1.097",
-            "mult" : "1.2",
-            "o_ef" : "0.11",
-            "space" : "auto",
-            "weekday_sch" : "0.007, 0.007, 0.004, 0.004, 0.007, 0.011, 0.025, 0.042, 0.046, 0.048, 0.042, 0.050, 0.057, 0.046, 0.057, 0.044, 0.092, 0.150, 0.117, 0.060, 0.035, 0.025, 0.016, 0.011",
-            "weekend_sch" : "0.007, 0.007, 0.004, 0.004, 0.007, 0.011, 0.025, 0.042, 0.046, 0.048, 0.042, 0.050, 0.057, 0.046, 0.057, 0.044, 0.092, 0.150, 0.117, 0.060, 0.035, 0.025, 0.016, 0.011"
-         },
-         "measure_dir_name" : "ResidentialApplianceCookingRangeElectric"
-      },
-      {
-         "arguments" : {
-            "cfl_eff" : "55",
-            "energy_use_exterior" : "300",
-            "energy_use_garage" : "100",
-            "energy_use_interior" : "900",
-            "hw_cfl" : "0.6",
-            "hw_led" : "0",
-            "hw_lfl" : "0",
-            "in_eff" : "15",
-            "led_eff" : "80",
-            "lfl_eff" : "88",
-            "option_type" : "Lamp Fractions",
-            "pg_cfl" : "0.34",
-            "pg_led" : "0",
-            "pg_lfl" : "0"
-         },
-         "measure_dir_name" : "ResidentialLighting"
-      },
-      {
-         "arguments" : {
-            "clothes_dryer_exhaust" : "100",
-            "crawl_ach" : "0",
-            "duct_ah_return_frac" : "0.267",
-            "duct_ah_supply_frac" : "0.067",
-            "duct_location" : "auto",
-            "duct_location_frac" : "auto",
-            "duct_num_returns" : "auto",
-            "duct_r" : "8",
-            "duct_return_area_mult" : "1",
-            "duct_return_frac" : "0.067",
-            "duct_supply_area_mult" : "1",
-            "duct_supply_frac" : "0.6",
-            "duct_total_leakage" : "0.2",
-            "finished_basement_ach" : "0",
-            "garage_ach50" : "25",
-            "has_fireplace_chimney" : "true",
-            "has_hvac_flue" : "false",
-            "has_water_heater_flue" : "false",
-            "is_existing_home" : "true",
-            "living_ach50" : "25",
-            "mech_vent_ashrae_std" : "2010",
-            "mech_vent_fan_power" : "0.3",
-            "mech_vent_frac_62_2" : "1",
-            "mech_vent_infil_credit" : "true",
-            "mech_vent_sensible_efficiency" : "0",
-            "mech_vent_total_efficiency" : "0",
-            "mech_vent_type" : "exhaust",
-            "nat_vent_clg_offset" : "1",
-            "nat_vent_clg_season" : "false",
-            "nat_vent_frac_window_area_openable" : "0.2",
-            "nat_vent_frac_windows_open" : "0.33",
-            "nat_vent_htg_offset" : "1",
-            "nat_vent_htg_season" : "false",
-            "nat_vent_max_oa_hr" : "0.0115",
-            "nat_vent_max_oa_rh" : "0.7",
-            "nat_vent_num_weekdays" : "5",
-            "nat_vent_num_weekends" : "2",
-            "nat_vent_ovlp_offset" : "1",
-            "nat_vent_ovlp_season" : "false",
-            "pier_beam_ach" : "100",
-            "shelter_coef" : "auto",
-            "terrain" : "suburban",
-            "unfinished_attic_sla" : "0",
-            "unfinished_basement_ach" : "0.1"
-         },
-         "measure_dir_name" : "ResidentialAirflow"
-      },
-      {
-         "arguments" : {
-            "show_debug_info" : "false"
-         },
-         "measure_dir_name" : "ResidentialHVACSizing"
-      }
-   ],
-   "updated_at" : "20171110T174840Z"
+      "measure_dir_name": "ResidentialHVACAirSourceHeatPumpSingleSpeed"
+    },
+    {
+      "measure_dir_name": "ResidentialHVACHeatingSetpoints"
+    },
+    {
+      "measure_dir_name": "ResidentialHVACCoolingSetpoints"
+    },
+    {
+      "measure_dir_name": "ResidentialApplianceRefrigerator"
+    },
+    {
+      "measure_dir_name": "ResidentialApplianceCookingRange"
+    },
+    {
+      "measure_dir_name": "ResidentialLighting"
+    },
+    {
+      "measure_dir_name": "ResidentialAirflow"
+    },
+    {
+      "measure_dir_name": "ResidentialHVACSizing"
+    }
+  ]
 }

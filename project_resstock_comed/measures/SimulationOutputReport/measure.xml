@@ -2,8 +2,8 @@
   <schema_version>3.0</schema_version>
   <name>simulation_output_report</name>
   <uid>fc337100-8634-404e-8966-01243d292a79</uid>
-  <version_id>1abffb85-bcc5-4558-8106-861a39acedb0</version_id>
-  <version_modified>20171111T135834Z</version_modified>
+  <version_id>1d5293ee-7288-4ab2-a3e1-5149e33772e3</version_id>
+  <version_modified>20181017T165216Z</version_modified>
   <xml_checksum>2C8A3EEF</xml_checksum>
   <class_name>SimulationOutputReport</class_name>
   <display_name>Simulation Output Report</display_name>
@@ -33,9 +33,16 @@
       <model_dependent>false</model_dependent>
     </output>
     <output>
-      <name>total_site_other_fuel_mbtu</name>
-      <display_name>total_site_other_fuel_mbtu</display_name>
-      <short_name>total_site_other_fuel_mbtu</short_name>
+      <name>total_site_fuel_oil_mbtu</name>
+      <display_name>total_site_fuel_oil_mbtu</display_name>
+      <short_name>total_site_fuel_oil_mbtu</short_name>
+      <type>Double</type>
+      <model_dependent>false</model_dependent>
+    </output>
+    <output>
+      <name>total_site_propane_mbtu</name>
+      <display_name>total_site_propane_mbtu</display_name>
+      <short_name>total_site_propane_mbtu</short_name>
       <type>Double</type>
       <model_dependent>false</model_dependent>
     </output>
@@ -138,23 +145,44 @@
       <model_dependent>false</model_dependent>
     </output>
     <output>
-      <name>other_fuel_heating_mbtu</name>
-      <display_name>other_fuel_heating_mbtu</display_name>
-      <short_name>other_fuel_heating_mbtu</short_name>
+      <name>fuel_oil_heating_mbtu</name>
+      <display_name>fuel_oil_heating_mbtu</display_name>
+      <short_name>fuel_oil_heating_mbtu</short_name>
       <type>Double</type>
       <model_dependent>false</model_dependent>
     </output>
     <output>
-      <name>other_fuel_interior_equipment_mbtu</name>
-      <display_name>other_fuel_interior_equipment_mbtu</display_name>
-      <short_name>other_fuel_interior_equipment_mbtu</short_name>
+      <name>fuel_oil_interior_equipment_mbtu</name>
+      <display_name>fuel_oil_interior_equipment_mbtu</display_name>
+      <short_name>fuel_oil_interior_equipment_mbtu</short_name>
       <type>Double</type>
       <model_dependent>false</model_dependent>
     </output>
     <output>
-      <name>other_fuel_water_systems_mbtu</name>
-      <display_name>other_fuel_water_systems_mbtu</display_name>
-      <short_name>other_fuel_water_systems_mbtu</short_name>
+      <name>fuel_oil_water_systems_mbtu</name>
+      <display_name>fuel_oil_water_systems_mbtu</display_name>
+      <short_name>fuel_oil_water_systems_mbtu</short_name>
+      <type>Double</type>
+      <model_dependent>false</model_dependent>
+    </output>
+    <output>
+      <name>propane_heating_mbtu</name>
+      <display_name>propane_heating_mbtu</display_name>
+      <short_name>propane_heating_mbtu</short_name>
+      <type>Double</type>
+      <model_dependent>false</model_dependent>
+    </output>
+    <output>
+      <name>propane_interior_equipment_mbtu</name>
+      <display_name>propane_interior_equipment_mbtu</display_name>
+      <short_name>propane_interior_equipment_mbtu</short_name>
+      <type>Double</type>
+      <model_dependent>false</model_dependent>
+    </output>
+    <output>
+      <name>propane_water_systems_mbtu</name>
+      <display_name>propane_water_systems_mbtu</display_name>
+      <short_name>propane_water_systems_mbtu</short_name>
       <type>Double</type>
       <model_dependent>false</model_dependent>
     </output>
@@ -187,6 +215,13 @@
       <model_dependent>false</model_dependent>
     </output>
     <output>
+      <name>hvac_heating_supp_capacity_w</name>
+      <display_name>hvac_heating_supp_capacity_w</display_name>
+      <short_name>hvac_heating_supp_capacity_w</short_name>
+      <type>Double</type>
+      <model_dependent>false</model_dependent>
+    </output>
+    <output>
       <name>upgrade_name</name>
       <display_name>upgrade_name</display_name>
       <short_name>upgrade_name</short_name>
@@ -197,6 +232,146 @@
       <name>upgrade_cost_usd</name>
       <display_name>upgrade_cost_usd</display_name>
       <short_name>upgrade_cost_usd</short_name>
+      <type>Double</type>
+      <model_dependent>false</model_dependent>
+    </output>
+    <output>
+      <name>upgrade_option_01_cost_usd</name>
+      <display_name>upgrade_option_01_cost_usd</display_name>
+      <short_name>upgrade_option_01_cost_usd</short_name>
+      <type>Double</type>
+      <model_dependent>false</model_dependent>
+    </output>
+    <output>
+      <name>upgrade_option_01_lifetime_yrs</name>
+      <display_name>upgrade_option_01_lifetime_yrs</display_name>
+      <short_name>upgrade_option_01_lifetime_yrs</short_name>
+      <type>Double</type>
+      <model_dependent>false</model_dependent>
+    </output>
+    <output>
+      <name>upgrade_option_02_cost_usd</name>
+      <display_name>upgrade_option_02_cost_usd</display_name>
+      <short_name>upgrade_option_02_cost_usd</short_name>
+      <type>Double</type>
+      <model_dependent>false</model_dependent>
+    </output>
+    <output>
+      <name>upgrade_option_02_lifetime_yrs</name>
+      <display_name>upgrade_option_02_lifetime_yrs</display_name>
+      <short_name>upgrade_option_02_lifetime_yrs</short_name>
+      <type>Double</type>
+      <model_dependent>false</model_dependent>
+    </output>
+    <output>
+      <name>upgrade_option_03_cost_usd</name>
+      <display_name>upgrade_option_03_cost_usd</display_name>
+      <short_name>upgrade_option_03_cost_usd</short_name>
+      <type>Double</type>
+      <model_dependent>false</model_dependent>
+    </output>
+    <output>
+      <name>upgrade_option_03_lifetime_yrs</name>
+      <display_name>upgrade_option_03_lifetime_yrs</display_name>
+      <short_name>upgrade_option_03_lifetime_yrs</short_name>
+      <type>Double</type>
+      <model_dependent>false</model_dependent>
+    </output>
+    <output>
+      <name>upgrade_option_04_cost_usd</name>
+      <display_name>upgrade_option_04_cost_usd</display_name>
+      <short_name>upgrade_option_04_cost_usd</short_name>
+      <type>Double</type>
+      <model_dependent>false</model_dependent>
+    </output>
+    <output>
+      <name>upgrade_option_04_lifetime_yrs</name>
+      <display_name>upgrade_option_04_lifetime_yrs</display_name>
+      <short_name>upgrade_option_04_lifetime_yrs</short_name>
+      <type>Double</type>
+      <model_dependent>false</model_dependent>
+    </output>
+    <output>
+      <name>upgrade_option_05_cost_usd</name>
+      <display_name>upgrade_option_05_cost_usd</display_name>
+      <short_name>upgrade_option_05_cost_usd</short_name>
+      <type>Double</type>
+      <model_dependent>false</model_dependent>
+    </output>
+    <output>
+      <name>upgrade_option_05_lifetime_yrs</name>
+      <display_name>upgrade_option_05_lifetime_yrs</display_name>
+      <short_name>upgrade_option_05_lifetime_yrs</short_name>
+      <type>Double</type>
+      <model_dependent>false</model_dependent>
+    </output>
+    <output>
+      <name>upgrade_option_06_cost_usd</name>
+      <display_name>upgrade_option_06_cost_usd</display_name>
+      <short_name>upgrade_option_06_cost_usd</short_name>
+      <type>Double</type>
+      <model_dependent>false</model_dependent>
+    </output>
+    <output>
+      <name>upgrade_option_06_lifetime_yrs</name>
+      <display_name>upgrade_option_06_lifetime_yrs</display_name>
+      <short_name>upgrade_option_06_lifetime_yrs</short_name>
+      <type>Double</type>
+      <model_dependent>false</model_dependent>
+    </output>
+    <output>
+      <name>upgrade_option_07_cost_usd</name>
+      <display_name>upgrade_option_07_cost_usd</display_name>
+      <short_name>upgrade_option_07_cost_usd</short_name>
+      <type>Double</type>
+      <model_dependent>false</model_dependent>
+    </output>
+    <output>
+      <name>upgrade_option_07_lifetime_yrs</name>
+      <display_name>upgrade_option_07_lifetime_yrs</display_name>
+      <short_name>upgrade_option_07_lifetime_yrs</short_name>
+      <type>Double</type>
+      <model_dependent>false</model_dependent>
+    </output>
+    <output>
+      <name>upgrade_option_08_cost_usd</name>
+      <display_name>upgrade_option_08_cost_usd</display_name>
+      <short_name>upgrade_option_08_cost_usd</short_name>
+      <type>Double</type>
+      <model_dependent>false</model_dependent>
+    </output>
+    <output>
+      <name>upgrade_option_08_lifetime_yrs</name>
+      <display_name>upgrade_option_08_lifetime_yrs</display_name>
+      <short_name>upgrade_option_08_lifetime_yrs</short_name>
+      <type>Double</type>
+      <model_dependent>false</model_dependent>
+    </output>
+    <output>
+      <name>upgrade_option_09_cost_usd</name>
+      <display_name>upgrade_option_09_cost_usd</display_name>
+      <short_name>upgrade_option_09_cost_usd</short_name>
+      <type>Double</type>
+      <model_dependent>false</model_dependent>
+    </output>
+    <output>
+      <name>upgrade_option_09_lifetime_yrs</name>
+      <display_name>upgrade_option_09_lifetime_yrs</display_name>
+      <short_name>upgrade_option_09_lifetime_yrs</short_name>
+      <type>Double</type>
+      <model_dependent>false</model_dependent>
+    </output>
+    <output>
+      <name>upgrade_option_10_cost_usd</name>
+      <display_name>upgrade_option_10_cost_usd</display_name>
+      <short_name>upgrade_option_10_cost_usd</short_name>
+      <type>Double</type>
+      <model_dependent>false</model_dependent>
+    </output>
+    <output>
+      <name>upgrade_option_10_lifetime_yrs</name>
+      <display_name>upgrade_option_10_lifetime_yrs</display_name>
+      <short_name>upgrade_option_10_lifetime_yrs</short_name>
       <type>Double</type>
       <model_dependent>false</model_dependent>
     </output>
@@ -229,67 +404,7 @@
       <filename>simulation_output_report_test.rb</filename>
       <filetype>rb</filetype>
       <usage_type>test</usage_type>
-      <checksum>1E1EA874</checksum>
-    </file>
-    <file>
-      <filename>SFD_1story_FB_UA_GRG_MSHP_FuelTanklessWH.osm</filename>
-      <filetype>osm</filetype>
-      <usage_type>test</usage_type>
-      <checksum>14D80F39</checksum>
-    </file>
-    <file>
-      <filename>SFD_1story_FB_UA_GRG_RoomAC_ElecBoiler_FuelTanklessWH.osm</filename>
-      <filetype>osm</filetype>
-      <usage_type>test</usage_type>
-      <checksum>68A40992</checksum>
-    </file>
-    <file>
-      <filename>SFD_1story_UB_UA_ASHP2_HPWH.osm</filename>
-      <filetype>osm</filetype>
-      <usage_type>test</usage_type>
-      <checksum>8BC04B9E</checksum>
-    </file>
-    <file>
-      <filename>SFD_1story_UB_UA_GRG_ACV_FuelFurnace_HPWH.osm</filename>
-      <filetype>osm</filetype>
-      <usage_type>test</usage_type>
-      <checksum>B1DF90C4</checksum>
-    </file>
-    <file>
-      <filename>SFD_2story_CS_UA_AC2_FuelBoiler_FuelTankWH.osm</filename>
-      <filetype>osm</filetype>
-      <usage_type>test</usage_type>
-      <checksum>EB82D905</checksum>
-    </file>
-    <file>
-      <filename>SFD_2story_CS_UA_GRG_ASHPV_FuelTanklessWH.osm</filename>
-      <filetype>osm</filetype>
-      <usage_type>test</usage_type>
-      <checksum>9CC2EB09</checksum>
-    </file>
-    <file>
-      <filename>SFD_2story_FB_UA_GRG_AC1_ElecBaseboard_FuelTankWH.osm</filename>
-      <filetype>osm</filetype>
-      <usage_type>test</usage_type>
-      <checksum>77A7FB56</checksum>
-    </file>
-    <file>
-      <filename>SFD_2story_FB_UA_GRG_GSHP_ElecTanklessWH.osm</filename>
-      <filetype>osm</filetype>
-      <usage_type>test</usage_type>
-      <checksum>BD1E181E</checksum>
-    </file>
-    <file>
-      <filename>SFD_2story_PB_UA_ElecFurnace_ElecTankWH.osm</filename>
-      <filetype>osm</filetype>
-      <usage_type>test</usage_type>
-      <checksum>9E750A3F</checksum>
-    </file>
-    <file>
-      <filename>SFD_2story_S_UA_GRG_ASHP1_FuelTanklessWH.osm</filename>
-      <filetype>osm</filetype>
-      <usage_type>test</usage_type>
-      <checksum>B2BBF40A</checksum>
+      <checksum>E53683F1</checksum>
     </file>
     <file>
       <version>
@@ -300,7 +415,73 @@
       <filename>measure.rb</filename>
       <filetype>rb</filetype>
       <usage_type>script</usage_type>
-      <checksum>188B5512</checksum>
+      <checksum>00899931</checksum>
+    </file>
+    <file>
+      <filename>SFD_1story_FB_UA_GRG_MSHP_FuelTanklessWH.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>E6B28AA0</checksum>
+    </file>
+    <file>
+      <filename>SFD_1story_FB_UA_GRG_RoomAC_ElecBoiler_FuelTanklessWH.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>21B01FF5</checksum>
+    </file>
+    <file>
+      <filename>SFD_1story_UB_UA_ASHP2_HPWH.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>B551F1EE</checksum>
+    </file>
+    <file>
+      <filename>SFD_1story_UB_UA_GRG_ACV_FuelFurnace_HPWH.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>F2B49D13</checksum>
+    </file>
+    <file>
+      <filename>SFD_2story_CS_UA_AC2_FuelBoiler_FuelTankWH.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>BDB280C8</checksum>
+    </file>
+    <file>
+      <filename>SFD_2story_CS_UA_GRG_ASHPV_FuelTanklessWH.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>B3A03B54</checksum>
+    </file>
+    <file>
+      <filename>SFD_2story_FB_UA_GRG_AC1_ElecBaseboard_FuelTankWH.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>EB757DF4</checksum>
+    </file>
+    <file>
+      <filename>SFD_2story_FB_UA_GRG_GSHP_ElecTanklessWH.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>58517E6B</checksum>
+    </file>
+    <file>
+      <filename>SFD_2story_PB_UA_ElecFurnace_ElecTankWH.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>9605A744</checksum>
+    </file>
+    <file>
+      <filename>SFD_2story_S_UA_GRG_ASHP1_FuelTanklessWH.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>9253D608</checksum>
+    </file>
+    <file>
+      <filename>SFD_2story_FB_UA_GRG_AC1_UnitHeater_FuelTankWH.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>84708F6C</checksum>
     </file>
   </files>
 </measure>

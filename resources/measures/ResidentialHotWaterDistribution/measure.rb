@@ -77,19 +77,19 @@ class ResidentialHotWaterDistribution < OpenStudio::Measure::ModelMeasure
         dist_ins.setDefaultValue(0.0)
         args << dist_ins
 
-		return args
-	end #end the arguments method
+    return args
+  end #end the arguments method
 
-	#define what happens when the measure is run
-	def run(model, runner, user_arguments)
-		super(model, runner, user_arguments)
+  #define what happens when the measure is run
+  def run(model, runner, user_arguments)
+    super(model, runner, user_arguments)
 
-		#use the built-in error checking 
-		if not runner.validateUserArguments(arguments(model), user_arguments)
-			return false
-		end
+    #use the built-in error checking 
+    if not runner.validateUserArguments(arguments(model), user_arguments)
+      return false
+    end
 
-		#assign the user inputs to variables
+    #assign the user inputs to variables
         pipe_mat = runner.getStringArgumentValue("pipe_mat", user_arguments)
         dist_layout = runner.getStringArgumentValue("dist_layout", user_arguments)
         dist_ins = runner.getDoubleArgumentValue("dist_ins", user_arguments)
@@ -113,7 +113,11 @@ class ResidentialHotWaterDistribution < OpenStudio::Measure::ModelMeasure
             runner.registerError("Mains water temperature has not been set.")
             return false
         end
-        mainsMonthlyTemps = WeatherProcess.get_mains_temperature(site.siteWaterMainsTemperature.get, site.latitude)[1]
+        
+        waterMainsTemperature = site.siteWaterMainsTemperature.get
+        avgOAT = UnitConversions.convert(waterMainsTemperature.annualAverageOutdoorAirTemperature.get, "C", "F")
+        maxDiffMonthlyAvgOAT = UnitConversions.convert(waterMainsTemperature.maximumDifferenceInMonthlyAverageOutdoorAirTemperatures.get, "K", "R")
+        mainsMonthlyTemps = WeatherProcess.calc_mains_temperatures(avgOAT, maxDiffMonthlyAvgOAT, site.latitude)[1]
         
         tot_pump_e_ann = 0
         msgs = []
@@ -123,13 +127,9 @@ class ResidentialHotWaterDistribution < OpenStudio::Measure::ModelMeasure
             if nbeds.nil? or nbaths.nil?
                 return false
             end
-            sch_unit_index = Geometry.get_unit_dhw_sched_index(model, unit, runner)
-            if sch_unit_index.nil?
-                return false
-            end
             
             # Get plant loop
-            plant_loop = Waterheater.get_plant_loop_from_string(model.getPlantLoops, Constants.Auto, unit.spaces, Constants.ObjectNameWaterHeater(unit.name.to_s.gsub("unit", "u")).gsub("|","_"), runner)
+            plant_loop = Waterheater.get_plant_loop_from_string(model.getPlantLoops, Constants.Auto, unit, Constants.ObjectNameWaterHeater(unit.name.to_s.gsub("unit ", "")).gsub("|","_"), runner)
             if plant_loop.nil?
                 return false
             end
@@ -215,10 +215,10 @@ class ResidentialHotWaterDistribution < OpenStudio::Measure::ModelMeasure
             end
         
             # Create temporary HotWaterSchedule objects solely to calculate daily gpm
-            #Since this is only used to calculate the gpm, it doesn't need to have the corrrect day shift
-            sch_sh = HotWaterSchedule.new(model, runner, "", "", nbeds, sch_unit_index, 0, "Shower", Constants.MixedUseT, File.dirname(__FILE__), false)
-            sch_s = HotWaterSchedule.new(model, runner, "",  "", nbeds, sch_unit_index, 0, "Sink", Constants.MixedUseT, File.dirname(__FILE__), false)
-            sch_b = HotWaterSchedule.new(model, runner, "",  "", nbeds, sch_unit_index, 0, "Bath", Constants.MixedUseT, File.dirname(__FILE__), false)
+            #Since this is only used to calculate the gpm, it doesn't need to have the correct day shift
+            sch_sh = HotWaterSchedule.new(model, runner, "", "", nbeds, 0, "Shower", Constants.MixedUseT, File.dirname(__FILE__), false)
+            sch_s = HotWaterSchedule.new(model, runner, "",  "", nbeds, 0, "Sink", Constants.MixedUseT, File.dirname(__FILE__), false)
+            sch_b = HotWaterSchedule.new(model, runner, "",  "", nbeds, 0, "Bath", Constants.MixedUseT, File.dirname(__FILE__), false)
             if not sch_sh.validated? or not sch_s.validated? or not sch_b.validated?
                 return false
             end
@@ -423,7 +423,7 @@ class ResidentialHotWaterDistribution < OpenStudio::Measure::ModelMeasure
                 daily_shower_inc += Constants.MonthNumDays[m] * daily_shower_increase[m] / water_mix_to_h[m] / 365.0
                 daily_sink_inc += Constants.MonthNumDays[m] * daily_sink_increase[m] / water_mix_to_h[m] / 365.0
                 daily_bath_inc += Constants.MonthNumDays[m] * daily_bath_increase[m] / water_mix_to_h[m] / 365.0
-                ann_int_gain += OpenStudio.convert(monthly_internal_gain[m], "Btu", "kWh").get
+                ann_int_gain += UnitConversions.convert(monthly_internal_gain[m], "Btu", "kWh")
             end
             shower_dist_hw = recovery_load_inc + daily_shower_inc
             sink_dist_hw = recovery_load_inc + daily_sink_inc

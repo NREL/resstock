@@ -1,0 +1,15 @@
+version: 2
+jobs:
+  build:
+    docker:
+      - image: nrel/openstudio:2.7.0
+    steps:
+      - checkout
+      - run: rm -f Gemfile.lock && bundle install
+      - run: rake test:regenerate_osms
+      - run: rake test:all
+      - store_test_results:
+          path: test/reports/
+notify:
+  webhooks:
+    - url: https://coveralls.io/webhook?repo_token=OuCYZyLc5DuZdoeoz5wcBZyjTJe6horEn    
