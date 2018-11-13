@@ -1,0 +1,9 @@
+version: 2
+jobs:
+  build:
+    docker:
+      - image: nrel/openstudio:2.7.0
+    steps:
+      - checkout
+      - run: ruby tests/hpxml_translator_test.rb
+
