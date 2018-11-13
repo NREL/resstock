@@ -7,9 +7,10 @@
 #see the URL below for access to C++ documentation on model objects (click on "model" in the main window to view model objects)
 # http://openstudio.nrel.gov/sites/openstudio.nrel.gov/files/nv_data/cpp_documentation_it/model/html/namespaces.html
 
-require "#{File.dirname(__FILE__)}/resources/hvac_sizing"
-require "#{File.dirname(__FILE__)}/resources/location"
-require "#{File.dirname(__FILE__)}/resources/geometry"
+require_relative "../HPXMLtoOpenStudio/resources/hvac_sizing"
+require_relative "../HPXMLtoOpenStudio/resources/weather"
+require_relative "../HPXMLtoOpenStudio/resources/constants"
+require_relative "../HPXMLtoOpenStudio/resources/geometry"
 
 #start the measure
 class ProcessHVACSizing < OpenStudio::Measure::ModelMeasure
@@ -60,7 +61,7 @@ class ProcessHVACSizing < OpenStudio::Measure::ModelMeasure
     end
     
     # Get the weather data
-    weather = WeatherProcess.new(model, runner, File.dirname(__FILE__))
+    weather = WeatherProcess.new(model, runner)
     if weather.error?
         return false
     end
