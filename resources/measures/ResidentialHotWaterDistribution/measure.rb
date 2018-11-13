@@ -1,10 +1,10 @@
-require "#{File.dirname(__FILE__)}/resources/schedules"
-require "#{File.dirname(__FILE__)}/resources/constants"
-require "#{File.dirname(__FILE__)}/resources/util"
-require "#{File.dirname(__FILE__)}/resources/weather"
-require "#{File.dirname(__FILE__)}/resources/unit_conversions"
-require "#{File.dirname(__FILE__)}/resources/geometry"
-require "#{File.dirname(__FILE__)}/resources/waterheater"
+require_relative "../HPXMLtoOpenStudio/resources/schedules"
+require_relative "../HPXMLtoOpenStudio/resources/constants"
+require_relative "../HPXMLtoOpenStudio/resources/util"
+require_relative "../HPXMLtoOpenStudio/resources/weather"
+require_relative "../HPXMLtoOpenStudio/resources/unit_conversions"
+require_relative "../HPXMLtoOpenStudio/resources/geometry"
+require_relative "../HPXMLtoOpenStudio/resources/waterheater"
 
 #start the measure
 class ResidentialHotWaterDistribution < OpenStudio::Measure::ModelMeasure
@@ -216,9 +216,9 @@ class ResidentialHotWaterDistribution < OpenStudio::Measure::ModelMeasure
         
             # Create temporary HotWaterSchedule objects solely to calculate daily gpm
             #Since this is only used to calculate the gpm, it doesn't need to have the correct day shift
-            sch_sh = HotWaterSchedule.new(model, runner, "", "", nbeds, 0, "Shower", Constants.MixedUseT, File.dirname(__FILE__), false)
-            sch_s = HotWaterSchedule.new(model, runner, "",  "", nbeds, 0, "Sink", Constants.MixedUseT, File.dirname(__FILE__), false)
-            sch_b = HotWaterSchedule.new(model, runner, "",  "", nbeds, 0, "Bath", Constants.MixedUseT, File.dirname(__FILE__), false)
+            sch_sh = HotWaterSchedule.new(model, runner, "", "", nbeds, 0, "Shower", Constants.MixedUseT, false)
+            sch_s = HotWaterSchedule.new(model, runner, "",  "", nbeds, 0, "Sink", Constants.MixedUseT, false)
+            sch_b = HotWaterSchedule.new(model, runner, "",  "", nbeds, 0, "Bath", Constants.MixedUseT, false)
             if not sch_sh.validated? or not sch_s.validated? or not sch_b.validated?
                 return false
             end

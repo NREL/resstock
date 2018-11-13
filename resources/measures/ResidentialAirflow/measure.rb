@@ -1,9 +1,9 @@
 # see the URL below for information on how to write OpenStudio measures
 # http://nrel.github.io/OpenStudio-user-documentation/reference/measure_writing_guide/
 
-require "#{File.dirname(__FILE__)}/resources/constants"
-require "#{File.dirname(__FILE__)}/resources/geometry"
-require "#{File.dirname(__FILE__)}/resources/airflow"
+require_relative "../HPXMLtoOpenStudio/resources/constants"
+require_relative "../HPXMLtoOpenStudio/resources/geometry"
+require_relative "../HPXMLtoOpenStudio/resources/airflow"
 
 # start the measure
 class ResidentialAirflow < OpenStudio::Measure::ModelMeasure
@@ -519,7 +519,7 @@ class ResidentialAirflow < OpenStudio::Measure::ModelMeasure
 
     duct_systems = {ducts=>model.getAirLoopHVACs}
 
-    if not Airflow.apply(model, runner, infil, mech_vent, nat_vent, duct_systems, File.dirname(__FILE__))
+    if not Airflow.apply(model, runner, infil, mech_vent, nat_vent, duct_systems)
       return false
     end
 
