@@ -4,8 +4,18 @@
 # require 'ruby-prof'
 require 'erb'
 require 'csv'
-require "#{File.dirname(__FILE__)}/resources/weather"
-require "#{File.dirname(__FILE__)}/resources/unit_conversions"
+resstock_aws_path = "../../lib/resources/measures/HPXMLtoOpenStudio/resources"
+resstock_local_path = "../../resources/measures/HPXMLtoOpenStudio/resources"
+if File.exists? File.absolute_path(File.join(File.dirname(__FILE__), resstock_aws_path)) # Hack to run ResStock on AWS
+  require_relative File.join(resstock_aws_path, "weather")
+  require_relative File.join(resstock_aws_path, "unit_conversions")
+elsif File.exists? File.absolute_path(File.join(File.dirname(__FILE__), resstock_local_path)) # Hack to run ResStock unit tests locally
+  require_relative File.join(resstock_local_path, "weather")
+  require_relative File.join(resstock_local_path, "unit_conversions")
+else
+  require_relative "../HPXMLtoOpenStudio/resources/weather"
+  require_relative "../HPXMLtoOpenStudio/resources/unit_conversions"
+end
 
 #start the measure
 class TimeseriesCSVExport < OpenStudio::Measure::ReportingMeasure
@@ -249,7 +259,10 @@ class TimeseriesCSVExport < OpenStudio::Measure::ReportingMeasure
     end
 
     # Get the timestamps for actual year epw file, and the number of intervals per hour
-    weather = WeatherProcess.new(model, runner, File.dirname(__FILE__))
+    weather = WeatherProcess.new(model, runner)
+    if weather.error?
+      return false
+    end
     actual_year_timestamps = weather.actual_year_timestamps
     records_per_hour = weather.header.RecordsPerHour
     
