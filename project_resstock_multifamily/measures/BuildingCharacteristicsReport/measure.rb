@@ -92,7 +92,7 @@ class BuildingCharacteristicsReport < OpenStudio::Measure::ReportingMeasure
     end
     model = model.get
 
-    weather = WeatherProcess.new(model, runner, File.dirname(__FILE__))
+    weather = WeatherProcess.new(model, runner)
     if !weather.error?
       runner.registerInfo("Registering #{weather.header.City} for location_city.")
       runner.registerValue("location_city", weather.header.City)

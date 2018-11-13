@@ -1,10 +1,10 @@
 # see the URL below for information on how to write OpenStudio measures
 # http://nrel.github.io/OpenStudio-user-documentation/reference/measure_writing_guide/
 
-require "#{File.dirname(__FILE__)}/resources/constants"
-require "#{File.dirname(__FILE__)}/resources/geometry"
-require "#{File.dirname(__FILE__)}/resources/hvac"
-require "#{File.dirname(__FILE__)}/resources/weather"
+require_relative "../HPXMLtoOpenStudio/resources/constants"
+require_relative "../HPXMLtoOpenStudio/resources/geometry"
+require_relative "../HPXMLtoOpenStudio/resources/hvac"
+require_relative "../HPXMLtoOpenStudio/resources/weather"
 
 # start the measure
 class ProcessGroundSourceHeatPumpVerticalBore < OpenStudio::Measure::ModelMeasure
@@ -274,7 +274,7 @@ class ProcessGroundSourceHeatPumpVerticalBore < OpenStudio::Measure::ModelMeasur
     end
     
     # Ground Loop And Loop Pump
-    weather = WeatherProcess.new(model, runner, File.dirname(__FILE__))
+    weather = WeatherProcess.new(model, runner)
     if weather.error?
       return false
     end    
