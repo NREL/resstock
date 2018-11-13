@@ -1,7 +1,7 @@
-require "#{File.dirname(__FILE__)}/resources/constants"
-require "#{File.dirname(__FILE__)}/resources/geometry"
-require "#{File.dirname(__FILE__)}/resources/waterheater"
-require "#{File.dirname(__FILE__)}/resources/appliances"
+require_relative "../HPXMLtoOpenStudio/resources/constants"
+require_relative "../HPXMLtoOpenStudio/resources/geometry"
+require_relative "../HPXMLtoOpenStudio/resources/waterheater"
+require_relative "../HPXMLtoOpenStudio/resources/appliances"
 
 #start the measure
 class ResidentialDishwasher < OpenStudio::Measure::ModelMeasure
@@ -183,7 +183,7 @@ class ResidentialDishwasher < OpenStudio::Measure::ModelMeasure
         success, ann_e, mains_temps = Dishwasher.apply(model, unit, runner, num_settings, rated_annual_energy,
                                                        cold_inlet, has_internal_heater, cold_use, test_date,
                                                        annual_gas_cost, mult_e, mult_hw, d_sh, space, plant_loop, 
-                                                       mains_temps, File.dirname(__FILE__))
+                                                       mains_temps)
         
         if not success
             return false

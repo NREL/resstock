@@ -7,9 +7,9 @@
 #see the URL below for access to C++ documentation on model objects (click on "model" in the main window to view model objects)
 # http://openstudio.nrel.gov/sites/openstudio.nrel.gov/files/nv_data/cpp_documentation_it/model/html/namespaces.html
 
-require "#{File.dirname(__FILE__)}/resources/constants"
-require "#{File.dirname(__FILE__)}/resources/weather"
-require "#{File.dirname(__FILE__)}/resources/hvac"
+require_relative "../HPXMLtoOpenStudio/resources/constants"
+require_relative "../HPXMLtoOpenStudio/resources/weather"
+require_relative "../HPXMLtoOpenStudio/resources/hvac"
 
 #start the measure
 class ProcessHeatingSetpoints < OpenStudio::Measure::ModelMeasure
@@ -139,7 +139,7 @@ class ProcessHeatingSetpoints < OpenStudio::Measure::ModelMeasure
     season_start_month = runner.getOptionalStringArgumentValue("season_start_month",user_arguments)
     season_end_month = runner.getOptionalStringArgumentValue("season_end_month",user_arguments)    
     
-    weather = WeatherProcess.new(model, runner, File.dirname(__FILE__))
+    weather = WeatherProcess.new(model, runner)
     if weather.error?
       return false
     end
