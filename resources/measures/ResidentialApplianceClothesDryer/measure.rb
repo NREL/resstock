@@ -1,7 +1,7 @@
-require "#{File.dirname(__FILE__)}/resources/constants"
-require "#{File.dirname(__FILE__)}/resources/geometry"
-require "#{File.dirname(__FILE__)}/resources/unit_conversions"
-require "#{File.dirname(__FILE__)}/resources/appliances"
+require_relative "../HPXMLtoOpenStudio/resources/constants"
+require_relative "../HPXMLtoOpenStudio/resources/geometry"
+require_relative "../HPXMLtoOpenStudio/resources/unit_conversions"
+require_relative "../HPXMLtoOpenStudio/resources/appliances"
 
 #start the measure
 class ResidentialClothesDryer < OpenStudio::Measure::ModelMeasure
@@ -116,8 +116,7 @@ class ResidentialClothesDryer < OpenStudio::Measure::ModelMeasure
         next if space.nil?
         
         success, ann_e, ann_f, sch = ClothesDryer.apply(model, unit, runner, sch, cef, mult, 
-                                                        space, fuel_type, fuel_split,
-                                                        File.dirname(__FILE__))
+                                                        space, fuel_type, fuel_split)
         
         if not success
             return false
