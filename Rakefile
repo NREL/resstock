@@ -154,7 +154,7 @@ def copy_other_measures(beopt_measures_dir)
     if ["UtilityBillCalculations"].include? other_measure
       ["resources"].each do |subdir|
         buildstock_measure_subdir = File.join(buildstock_measures_dir, other_measure, subdir)
-        remove_items_from_zip_file(buildstock_measure_subdir, "sam-sdk-2017-1-17-r1.zip", ["osx64", "win32", "win64"])
+        remove_items_from_zip_file(buildstock_measure_subdir, "sam-sdk-2017-9-5-r4.zip", ["osx64", "win32", "win64"])
       end
     end
   end
