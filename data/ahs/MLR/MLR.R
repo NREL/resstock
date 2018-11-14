@@ -7,15 +7,24 @@ library(plyr)
 
 df = read.csv('ahs.csv', na.strings='')
 
-df = subset(df, select=c('NUNIT2', 'ROOMS', 'BEDRMS', 'size', 'vintage', 'heatingfuel', 'actype', 'ZINC2', 'POOR', 'WEIGHT', 'smsa', 'cmsa', 'metro3', 'division'))
+df = subset(df, select=c('NUNIT2', 'ROOMS', 'BEDRMS', 'size', 'vintage', 'heatingtype', 'heatingfuel', 'actype', 'ZINC2', 'POOR', 'WEIGHT', 'smsa', 'cmsa', 'metro3', 'division', 'location'))
 df$NUNIT2 = as.numeric(gsub("'", "", df$NUNIT2))
 df = rename(df, c('ZINC2'='income', 'POOR'='fpl'))
 
-x.vars.con = c('income')
+x.vars.con = c()
 
-y.vars.con = c('fpl')
+y.vars.con = c('income')
+# y.vars.con = c('fpl')
 
-x.vars.cat = c('vintage', 'size', 'heatingfuel', 'actype', 'metro3', 'division')
+x.vars.cat = c('vintage', 'size', 'heatingtype', 'heatingfuel', 'actype', 'division')
+# x.vars.cat = c('vintage', 'size', 'heatingtype', 'heatingfuel', 'actype', 'smsa')
+# x.vars.cat = c('vintage') # 0.030
+# x.vars.cat = c('size') # 0.105
+# x.vars.cat = c('heatingtype') # 0.019
+# x.vars.cat = c('heatingfuel') # 0.009
+# x.vars.cat = c('actype') # 0.014
+# x.vars.cat = c('division') # 0.012
+# x.vars.cat = c('smsa') # 0.023
 
 y.vars.cat = c()
 
@@ -23,16 +32,32 @@ df$values = 'actual'
 
 df[c(x.vars.cat, y.vars.cat)] = lapply(df[c(x.vars.cat, y.vars.cat)], factor) # apply factor to each of the categorical vars
 df = na.omit(df) # this removes rows with at least one NA
+df = df[df$size!='Blank', ]
 
 dep_vars = c(y.vars.con, y.vars.cat)
 indep_vars = c(x.vars.con, x.vars.cat)
+
+# change the reference factors
+df$vintage = relevel(df$vintage, ref='<1950') # income, division
+# df$vintage = relevel(df$vintage, ref='1960s') # income, smsa
+df$actype = relevel(df$actype, ref='Room')
+df$heatingtype = relevel(df$heatingtype, ref='Cooking stove')
+df$division = relevel(df$division, ref='South Atlantic - East South Central')
+# df$smsa = relevel(df$smsa, ref='Hartford, CT')
 
 # FIRST PASS
 attach(df)
 df.lm1 = lm(paste(dep_vars, paste(indep_vars, collapse=' + '), sep=' ~ '), weights=WEIGHT, data=df, x=T)
 detach(df)
 summary(df.lm1)
-write.csv(summary(df.lm1)$coefficients, 'lm1.csv') # write out first pass to csv
+table = as.data.frame.matrix(summary(df.lm1)$coefficients)
+table = table[order(table[['Pr(>|t|)']]), ]
+table[['Pr(>|t|)']] = formatC(table[['Pr(>|t|)']], format='e', digits=5)
+table[['Estimate']] = round(table[['Estimate']], 5)
+table[['Std. Error']] = round(table[['Std. Error']], 5)
+table[['t value']] = round(table[['t value']], 5)
+write.csv(table, 'lm1.csv') # write out first pass to csv
+write.csv(data.frame("R^2"=summary(df.lm1)$r.squared[1], "Adj-R^2"=summary(df.lm1)$adj.r.squared[1]), "stat1.csv", row.names=F)
 ###
 
 sig_indep_vars_factors = rownames(data.frame(summary(df.lm1)$coefficients)[data.frame(summary(df.lm1)$coefficients)$'Pr...t..' <= 0.05, ]) # remove insignificant vars
@@ -53,8 +78,17 @@ attach(df)
 df.lm2 = lm(paste(dep_vars, paste(sig_indep_vars, collapse=' + '), sep=' ~ '), weights=WEIGHT, data=df, x=T)
 detach(df)
 summary(df.lm2)
-write.csv(summary(df.lm2)$coefficients, 'lm2.csv') # write out first pass to csv
+table = as.data.frame.matrix(summary(df.lm2)$coefficients)
+table = table[order(table[['Pr(>|t|)']]), ]
+table[['Pr(>|t|)']] = formatC(table[['Pr(>|t|)']], format='e', digits=5)
+table[['Estimate']] = round(table[['Estimate']], 5)
+table[['Std. Error']] = round(table[['Std. Error']], 5)
+table[['t value']] = round(table[['t value']], 5)
+write.csv(table, 'lm2.csv') # write out second pass to csv
+write.csv(data.frame("R^2"=summary(df.lm2)$r.squared[1], "Adj-R^2"=summary(df.lm2)$adj.r.squared[1]), "stat2.csv", row.names=F)
 ###
+
+stop()
 
 df2 = df
 df2$values = 'predict'

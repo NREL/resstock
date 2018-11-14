@@ -24,8 +24,8 @@ def retrieve_data(table):
     if not os.path.exists(os.path.join(pkls, '{}.pkl'.format(table))):
       con = pg.connect(con_string)
       # sql = """SELECT {} FROM pums_2011.{} where unitsstr='3' order by random() limit 1000;""".format(",".join(cols), table)
-      sql = """SELECT {} FROM pums_2011.{} where unitsstr='3' limit 50000;""".format(",".join(cols), table)
-      # sql = """SELECT {} FROM pums_2011.{};""".format(",".join(cols), table)
+      # sql = """SELECT {} FROM pums_2011.{} where unitsstr='3' limit 50000;""".format(",".join(cols), table)
+      sql = """SELECT {} FROM pums_2011.{};""".format(",".join(cols), table)
       try:
         df = pd.read_sql(sql, con)
         df.to_pickle(os.path.join(pkls, '{}.pkl'.format(table)))
