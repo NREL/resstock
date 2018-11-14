@@ -345,7 +345,7 @@ class UtilityBill
     return timeseries
   end
   
-  def self.calculate_simple_electric(load, gen, ur_monthly_fixed_charge, ur_flat_buy_rate, pv_compensation_type, pv_sellback_rate, pv_tariff_rate)
+  def self.calculate_simple_electric(load, gen, ur_monthly_fixed_charge, ur_flat_buy_rate, pv_compensation_type, pv_annual_excess_sellback_rate_type, pv_sellback_rate, pv_tariff_rate, test_name)
   
     analysis_period = 1
     degradation = [0]
@@ -354,9 +354,13 @@ class UtilityBill
     ur_flat_sell_rate = 0
     ur_nm_yearend_sell_rate = 0
     ur_enable_net_metering = 1
-    if pv_compensation_type == Constants.PVNetMetering
+    ur_excess_monthly_energy_or_dollars = 0
+    if pv_annual_excess_sellback_rate_type == Constants.PVNetMeteringExcessRetailElectricityCost
+      pv_sellback_rate = ur_flat_buy_rate
+    end
+    if pv_compensation_type == Constants.PVTypeNetMetering
       ur_nm_yearend_sell_rate = pv_sellback_rate.to_f
-    elsif pv_compensation_type == Constants.PVFeedInTariff
+    elsif pv_compensation_type == Constants.PVTypeFeedInTariff
       ur_enable_net_metering = 0
       ur_flat_sell_rate = pv_tariff_rate.to_f
     end
@@ -373,6 +377,7 @@ class UtilityBill
     SscApi.set_number(p_data, "ur_enable_net_metering", ur_enable_net_metering)
     SscApi.set_number(p_data, "ur_nm_yearend_sell_rate", ur_nm_yearend_sell_rate)
     SscApi.set_number(p_data, "ur_monthly_fixed_charge", ur_monthly_fixed_charge)
+    SscApi.set_number(p_data, "ur_excess_monthly_energy_or_dollars", ur_excess_monthly_energy_or_dollars)
     
     p_mod = SscApi.create_module("utilityrate3")
     SscApi.execute_module(p_mod, p_data)
@@ -380,11 +385,21 @@ class UtilityBill
     utility_bills = SscApi.get_array(p_data, "utility_bill_w_sys")
     total_bill = utility_bills[1]
     
+    unless test_name.nil?
+      hourly = SscApi.get_array(p_data, "year1_hourly_ec_with_system")
+      CSV.open("./measures/UtilityBillCalculations/tests/#{test_name}.csv", "w") do |csv|
+        csv << ["year1_hourly_ec_with_system"]
+        hourly.each do |val|
+          csv << [val]
+        end
+      end
+    end
+    
     return total_bill
   
   end
   
-  def self.calculate_detailed_electric(load, gen, pv_compensation_type, pv_sellback_rate, pv_tariff_rate, tariff)
+  def self.calculate_detailed_electric(load, gen, pv_compensation_type, pv_annual_excess_sellback_rate_type, pv_sellback_rate, pv_tariff_rate, tariff, test_name)
   
     analysis_period = 1
     degradation = [0]
@@ -394,9 +409,11 @@ class UtilityBill
     ur_flat_sell_rate = 0
     ur_nm_yearend_sell_rate = 0
     ur_enable_net_metering = 1
-    if pv_compensation_type == Constants.PVNetMetering
-      ur_nm_yearend_sell_rate = pv_sellback_rate.to_f
-    elsif pv_compensation_type == Constants.PVFeedInTariff
+    ur_excess_monthly_energy_or_dollars = 1
+    if pv_annual_excess_sellback_rate_type == Constants.PVNetMeteringExcessUserSpecified
+      pv_sellback_rate = pv_sellback_rate.to_f
+    end
+    if pv_compensation_type == Constants.PVTypeFeedInTariff
       ur_enable_net_metering = 0
       ur_flat_sell_rate = pv_tariff_rate.to_f
     end
@@ -412,14 +429,27 @@ class UtilityBill
     SscApi.set_number(p_data, "ur_flat_sell_rate", ur_flat_sell_rate)
     SscApi.set_number(p_data, "ur_enable_net_metering", ur_enable_net_metering)
     SscApi.set_number(p_data, "ur_nm_yearend_sell_rate", ur_nm_yearend_sell_rate)
+    SscApi.set_number(p_data, "ur_excess_monthly_energy_or_dollars", ur_excess_monthly_energy_or_dollars)
 
     unless tariff[:fixedmonthlycharge].nil?
       SscApi.set_number(p_data, "ur_monthly_fixed_charge", tariff[:fixedmonthlycharge])
     end
-    
+
+    energyweekdayschedule = tariff[:energyweekdayschedule]
+    energyweekdayschedule.each_with_index do |day_sch, i|
+      shifted_day_sch = day_sch[1..-1] + [day_sch[0]]
+      energyweekdayschedule[i] = shifted_day_sch
+    end
+
+    energyweekendschedule = tariff[:energyweekendschedule]
+    energyweekendschedule.each_with_index do |day_sch, i|
+      shifted_day_sch = day_sch[1..-1] + [day_sch[0]]
+      energyweekendschedule[i] = shifted_day_sch
+    end
+
     SscApi.set_number(p_data, "ur_ec_enable", 1)
-    SscApi.set_matrix(p_data, "ur_ec_sched_weekday", Matrix.rows(tariff[:energyweekdayschedule]) + Matrix.rows(Array.new(12, Array.new(24, 1))))
-    SscApi.set_matrix(p_data, "ur_ec_sched_weekend", Matrix.rows(tariff[:energyweekendschedule]) + Matrix.rows(Array.new(12, Array.new(24, 1))))
+    SscApi.set_matrix(p_data, "ur_ec_sched_weekday", Matrix.rows(energyweekdayschedule) + Matrix.rows(Array.new(12, Array.new(24, 1))))
+    SscApi.set_matrix(p_data, "ur_ec_sched_weekend", Matrix.rows(energyweekendschedule) + Matrix.rows(Array.new(12, Array.new(24, 1))))
     tariff[:energyratestructure].each_with_index do |period, i|
       period_num = i + 1
       period.each_with_index do |tier, j|
@@ -432,8 +462,8 @@ class UtilityBill
           rate += tier[:adj]
         end
         SscApi.set_number(p_data, "ur_ec_p#{period_num}_t#{tier_num}_br", rate)
-        unless tier[:sell].nil?
-          SscApi.set_number(p_data, "ur_ec_p#{period_num}_t#{tier_num}_sr", tier[:sell])
+        if pv_annual_excess_sellback_rate_type == Constants.PVNetMeteringExcessRetailElectricityCost
+          SscApi.set_number(p_data, "ur_ec_p#{period_num}_t#{tier_num}_sr", rate)
         end
         max = 1000000000.0
         unless tier[:max].nil?
@@ -446,7 +476,7 @@ class UtilityBill
     unless tariff[:demandratestructure].nil?
       SscApi.set_number(p_data, "ur_dc_enable", 1)
       SscApi.set_matrix(p_data, "ur_dc_sched_weekday", Matrix.rows(tariff[:demandweekdayschedule]))
-      SscApi.set_matrix(p_data, "ur_dc_sched_weekend", Matrix.rows(tariff[:demandweekendschedule]))      
+      SscApi.set_matrix(p_data, "ur_dc_sched_weekend", Matrix.rows(tariff[:demandweekendschedule]))
       tariff[:demandratestructure].each_with_index do |period, i|
         period_num = i + 1
         period.each_with_index do |tier, j|
@@ -470,6 +500,38 @@ class UtilityBill
 
     utility_bills = SscApi.get_array(p_data, "utility_bill_w_sys")
     total_bill = utility_bills[1]
+    
+    unless test_name.nil?
+      hourly = SscApi.get_array(p_data, "year1_hourly_ec_with_system")
+      CSV.open("./measures/UtilityBillCalculations/tests/#{test_name}.csv", "w") do |csv|
+        csv << ["year1_hourly_ec_with_system"]
+        hourly.each do |val|
+          csv << [val]
+        end
+      end
+    end
+    
+    return total_bill
+  
+  end
+  
+  def self.calculate_realtime_electric(load, gen, tariffs, test_name)
+  
+    rates = tariffs[:realtimepricing].split(",").collect{|i| i.to_f}
+    net_facility = load.zip(gen).map{|x, y| x - y}
+    hourly = net_facility.zip(rates).map{|x, y| x * y}
+    marginal = hourly.inject(0){|sum, x| sum + x}
+    fixed = tariffs[:fixedmonthlycharge].to_f * 12.0
+    total_bill = marginal + fixed
+    
+    unless test_name.nil?
+      CSV.open("./measures/UtilityBillCalculations/tests/#{test_name}.csv", "w") do |csv|
+        csv << ["year1_hourly_ec_with_system"]
+        hourly.each do |val|
+          csv << [val]
+        end
+      end
+    end
     
     return total_bill
   
