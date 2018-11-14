@@ -288,6 +288,9 @@ class Constants
   def self.MaterialPEX
     return 'pex'
   end
+  def self.MonthNames
+    return ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+  end
   def self.PVArrayTypeFixedOpenRack
     return 'FixedOpenRack'
   end
@@ -312,14 +315,17 @@ class Constants
   def self.PVModuleTypeThinFilm
     return 'ThinFilm'
   end
-  def self.PVNetMetering
-    return 'Net Metering'
+  def self.PVNetMeteringExcessRetailElectricityCost
+    return 'retail electricity cost'
   end
-  def self.PVFeedInTariff
+  def self.PVNetMeteringExcessUserSpecified
+    return 'user-specified'
+  end
+  def self.PVTypeFeedInTariff
     return 'Feed-In Tariff'
   end  
-  def self.MonthNames
-    return ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+  def self.PVTypeNetMetering
+    return 'Net Metering'
   end
   def self.ObjectNameAirflow(unit_name=self.ObjectNameBuildingUnit)
     s_unit = ""
