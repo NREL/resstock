@@ -88,7 +88,7 @@ def copy_resources(branch)
   project_dir_names = get_all_project_dir_names()
   extra_files = [
                  File.join("workflows", "measure-info.json"),
-                 File.join("resources", "meta_measure.rb") # Needed by buildstock.rb
+                 File.join("measures", "HPXMLtoOpenStudio", "resources", "meta_measure.rb") # Needed by buildstock.rb
                 ]
   extra_files.each do |extra_file|
       puts "Copying #{extra_file}..."
@@ -124,7 +124,7 @@ end
 def copy_measures(beopt_measures_dir, buildstock_resource_measures_dir)
   # Copy residential measures to resources/measures/
   Dir.foreach(beopt_measures_dir) do |beopt_measure|
-    next if !beopt_measure.include? 'Residential'
+    next if !beopt_measure.include? 'Residential' and beopt_measure != "HPXMLtoOpenStudio"
     beopt_measure_dir = File.join(beopt_measures_dir, beopt_measure)
     next if not Dir.exist?(beopt_measure_dir)
     puts "Copying #{beopt_measure} measure..."
@@ -139,8 +139,8 @@ def copy_measures(beopt_measures_dir, buildstock_resource_measures_dir)
 end
 
 def copy_other_measures(beopt_measures_dir)
-  # Copy other measures to measure/ dir
-  other_measures = ["TimeseriesCSVExport", "ResidentialSimulationControls"] # Still under development: "UtilityBillCalculationsSimple", "UtilityBillCalculationsDetailed"
+  # Copy other measures to measures/ dir
+  other_measures = ["TimeseriesCSVExport", "ResidentialSimulationControls"] # Still under development or one-off: "UtilityBillCalculations", "Outages", "ResilienceMetricsReport", "ConstructionPropertiesReport"
   buildstock_measures_dir = File.join(File.dirname(__FILE__), "measures")
   other_measures.each do |other_measure|
     puts "Copying #{other_measure} measure..."
@@ -151,7 +151,7 @@ def copy_other_measures(beopt_measures_dir)
         FileUtils.rm_rf("#{buildstock_measure_subdir}/.", secure: true)
       end
     end
-    if ["UtilityBillCalculationsSimple", "UtilityBillCalculationsDetailed"].include? other_measure
+    if ["UtilityBillCalculations"].include? other_measure
       ["resources"].each do |subdir|
         buildstock_measure_subdir = File.join(buildstock_measures_dir, other_measure, subdir)
         remove_items_from_zip_file(buildstock_measure_subdir, "sam-sdk-2017-1-17-r1.zip", ["osx64", "win32", "win64"])

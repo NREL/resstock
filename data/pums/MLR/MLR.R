@@ -5,59 +5,24 @@ library(leaps)
 library(reshape2)
 library(plyr)
 
-# recs vintage + heatingfuel + bedrooms + rooms ~ totsqft
-df = read.csv('../../recs/MLR/recs.csv')
-df = subset(df, select=c('yearmaderange', 'fuelheat', 'bedrooms', 'totrooms', 'tothsqft', 'totcsqft', 'nweight'))
-df = transform(df, totsqft=pmax(tothsqft, totcsqft))
-df = df[df$totsqft > 0, ]
-levels(df$yearmaderange) = c(levels(df$yearmaderange), '<1950')
-df[df$yearmaderange=='1950-pre', 'yearmaderange'] = '<1950'
-df$yearmaderange = as.factor(df$yearmaderange)
-df$bedrooms = as.factor(df$bedrooms)
-df$totrooms = as.factor(df$totrooms)
-df = rename(df, c('yearmaderange'='vintage', 'totrooms'='rooms', 'fuelheat'='heatingfuel'))
-attach(df)
-df.lm0 = lm(totsqft ~ vintage + heatingfuel + bedrooms + rooms, weights=nweight, data=df, x=T)
-detach(df)
-summary(df.lm0)
-
-# state = 'CA'
-state = 'all'
-
 x.vars.con = c()
 
 y.vars.con = c('hhincome')
 
-x.vars.cat = c('vintage', 'size')
+x.vars.cat = c('vintage', 'heatingfuel', 'rooms')
+# x.vars.cat = c('heatingfuel') # 0.009
+# x.vars.cat = c('rooms') # 0.126
 
 y.vars.cat = c()
 
 df = read.csv('pums.csv')
-df[df$rooms==1, 'rooms'] = 2 # change all pums rooms=1 to rooms=2 since recs doesn't have totrooms=1
-df$bedrooms = as.factor(df$bedrooms)
-df$rooms = as.factor(df$rooms)
-df$totsqft = predict(df.lm0, newdata=df)
-df[df$totsqft < 1500, 'size'] = '0-1499'
-df[df$totsqft >= 1500 & df$totsqft < 2500, 'size'] = '1500-2499'
-df[df$totsqft >= 2500 & df$totsqft < 3500, 'size'] = '2500-3499'
-df[df$totsqft >= 3500, 'size'] = '3500+'
-df$size = as.factor(df$size)
-
-# nfams: 1 vs 2 vs 3 vs ...
-table(df$nfams)*100.0/length(df$nfams)
-sum(unlist(table(df$nfams)/length(df$nfams), use.names=FALSE))
-
-write.csv(df, 'pums_size.csv', row.names=F)
 
 # filters
+df = df[df$unitsstr==3, ]
 df = df[df$hhincome>=0, ]
 df = df[df$nfams==1, ]
 
-if (state != 'all'){
-  df = df[df$state_abbr==state, ]
-}
-
-df = subset(df, select=c(x.vars.con, y.vars.con, x.vars.cat, y.vars.cat, c('hhwt', 'state_abbr')))
+df = subset(df, select=c(x.vars.con, y.vars.con, x.vars.cat, y.vars.cat, c('hhwt')))
 
 df$values = 'actual'
 
@@ -67,12 +32,23 @@ df = na.omit(df) # this removes rows with at least one NA
 dep_vars = c(y.vars.con, y.vars.cat)
 indep_vars = c(x.vars.con, x.vars.cat)
 
+# change the reference factors
+df$heatingfuel = relevel(df$heatingfuel, ref='Other Fuel')
+df$rooms = relevel(df$rooms, ref='2')
+
 # FIRST PASS
 attach(df)
 df.lm1 = lm(paste(dep_vars, paste(indep_vars, collapse=' + '), sep=' ~ '), weights=hhwt, data=df, x=T)
 detach(df)
 summary(df.lm1)
-write.csv(summary(df.lm1)$coefficients, 'lm1.csv') # write out first pass to csv
+table = as.data.frame.matrix(summary(df.lm1)$coefficients)
+table = table[order(table[['Pr(>|t|)']]), ]
+table[['Pr(>|t|)']] = formatC(table[['Pr(>|t|)']], format='e', digits=5)
+table[['Estimate']] = round(table[['Estimate']], 5)
+table[['Std. Error']] = round(table[['Std. Error']], 5)
+table[['t value']] = round(table[['t value']], 5)
+write.csv(table, 'lm1.csv') # write out first pass to csv
+write.csv(data.frame("R^2"=summary(df.lm1)$r.squared[1], "Adj-R^2"=summary(df.lm1)$adj.r.squared[1]), "stat1.csv", row.names=F)
 ###
 
 sig_indep_vars_factors = rownames(data.frame(summary(df.lm1)$coefficients)[data.frame(summary(df.lm1)$coefficients)$'Pr...t..' <= 0.05, ]) # remove insignificant vars
@@ -93,8 +69,17 @@ attach(df)
 df.lm2 = lm(paste(dep_vars, paste(sig_indep_vars, collapse=' + '), sep=' ~ '), weights=hhwt, data=df, x=T)
 detach(df)
 summary(df.lm2)
-write.csv(summary(df.lm2)$coefficients, 'lm2.csv') # write out first pass to csv
+table = as.data.frame.matrix(summary(df.lm2)$coefficients)
+table = table[order(table[['Pr(>|t|)']]), ]
+table[['Pr(>|t|)']] = formatC(table[['Pr(>|t|)']], format='e', digits=5)
+table[['Estimate']] = round(table[['Estimate']], 5)
+table[['Std. Error']] = round(table[['Std. Error']], 5)
+table[['t value']] = round(table[['t value']], 5)
+write.csv(table, 'lm2.csv') # write out second pass to csv
+write.csv(data.frame("R^2"=summary(df.lm2)$r.squared[1], "Adj-R^2"=summary(df.lm2)$adj.r.squared[1]), "stat2.csv", row.names=F)
 ###
+
+stop()
 
 df2 = df
 df2$values = 'predict'
