@@ -133,22 +133,41 @@ class CostEffectiveness():
   def net_present_value(discount_rate, analysis_period, measure_life, measure_cost, annual_bill_savings, tax_credit, tax_scenario):
     import numpy as np
     npv = 0
-    if measure_life == np.nan:
+    if np.isnan(measure_life):
       npv = np.nan
     else:
-      cash_flows = CostEffectiveness.cash_flows(analysis_period, measure_life, measure_cost, annual_bill_savings, tax_credit, tax_scenario)
+      savings, costs = CostEffectiveness.cash_flows(analysis_period, measure_life, measure_cost, annual_bill_savings, tax_credit, tax_scenario)
+      cash_flows = list(np.array(savings) - np.array(costs))
       for year in range(0,analysis_period + 1):
         npv += (1/(1 + discount_rate) ** year) * cash_flows[year]
     return npv
 
   @staticmethod
+  def savings_investment_ratio(discount_rate, analysis_period, measure_life, measure_cost, annual_bill_savings, tax_credit, tax_scenario):
+    import numpy as np
+    sir = 0
+    if np.isnan(measure_life):
+      sir = np.nan
+    else:
+      savings, costs = CostEffectiveness.cash_flows(analysis_period, measure_life, measure_cost, annual_bill_savings, tax_credit, tax_scenario)
+      discounts = []
+      for year in range(0,analysis_period + 1):
+        discounts.append(1/(1 + discount_rate) ** year)
+      savings = sum(np.array(discounts) * np.array(savings)) 
+      costs = sum(np.array(discounts) * np.array(costs))
+      sir = savings / costs
+    return sir
+
+  @staticmethod
   def cash_flows(analysis_period, measure_life, measure_cost, annual_bill_savings, tax_credit, tax_scenario):
 
     # Construct list of cash flow values
-    cash_flows = []
+    savings = []
+    costs = []
 
     # Initialize
-    cash_flows.append(-measure_cost)
+    savings.append(0)
+    costs.append(measure_cost)
     measure_age = 0
     year = 0
     
@@ -157,10 +176,12 @@ class CostEffectiveness():
       measure_age += 1
       if measure_age == measure_life:
         # Replace equipment
-        cash_flows.append(-measure_cost + annual_bill_savings)
+        savings.append(annual_bill_savings)
+        costs.append(measure_cost)
         measure_age = 0
       else:
-        cash_flows.append(annual_bill_savings)
+        savings.append(annual_bill_savings)
+        costs.append(0)
     
     # Final year with Residual value
     year += 1
@@ -169,20 +190,15 @@ class CostEffectiveness():
       residual_value = measure_cost
     else:
       residual_value = (measure_cost * (measure_life - measure_age)/measure_life)
-    cash_flows.append(annual_bill_savings + residual_value)
+    savings.append(annual_bill_savings + residual_value)
+    costs.append(0)
     if tax_scenario in ['1', '2a', '2b']:
-      cash_flows[1] += tax_credit # apply tax credit to year 1
+      savings[1] += tax_credit
     elif tax_scenario in ['3a', '3b']:
       for i in range(1, 11):
-        cash_flows[i] += tax_credit # apply tax credit to years 1-10
+        savings[i] += tax_credit # apply tax credit to years 1-10        
     
-    return cash_flows
-
-  @staticmethod
-  def savings_investment_ratio(discount_rate, analysis_period):
-    sir = 0
-    # TODO
-    return sir
+    return savings, costs
 
 class IncomeBins:
 

@@ -123,7 +123,7 @@ class ExtraColumns:
         npvs = []
         for i in ['01', '02', '03', '04', '05', '06', '07', '08', '09', '10']:
           col = 'simulation_output_report.upgrade_option_{}'.format(i)
-          df['savings_simulation_output_report.upgrade_option_{}_npv'.format(i)] = df.apply(lambda x: CostEffectiveness.net_present_value(discount_rate, analysis_period, x['{}_lifetime_yrs'.format(col)], x['simulation_output_report.incremental_cost_usd'], x['savings_utility_bill_calculations.total_bill'], 0, '1'), axis=1)
+          df['savings_simulation_output_report.upgrade_option_{}_npv'.format(i)] = df.apply(lambda x: CostEffectiveness.net_present_value(discount_rate, analysis_period, x['{}_lifetime_yrs'.format(col)], x['{}_cost_usd'.format(col)], x['savings_utility_bill_calculations.total_bill'], 0, '1'), axis=1)
           npvs.append('savings_simulation_output_report.upgrade_option_{}_npv'.format(i))
         df['savings_simulation_output_report.net_present_value'] = df[npvs].sum(axis=1)
     return df
@@ -133,7 +133,12 @@ class ExtraColumns:
       if 'savings_utility_bill_calculations.total_bill' in df.columns:
         discount_rate = 0.03
         analysis_period = 30
-        df['savings_simulation_output_report.savings_investment_ratio'] = df.apply(lambda x: CostEffectiveness.savings_investment_ratio(discount_rate, analysis_period), axis=1)
+        sirs = []
+        for i in ['01', '02', '03', '04', '05', '06', '07', '08', '09', '10']:
+          col = 'simulation_output_report.upgrade_option_{}'.format(i)
+          df['savings_simulation_output_report.upgrade_option_{}_sir'.format(i)] = df.apply(lambda x: CostEffectiveness.savings_investment_ratio(discount_rate, analysis_period, x['{}_lifetime_yrs'.format(col)], x['{}_cost_usd'.format(col)], x['savings_utility_bill_calculations.total_bill'], 0, '1'), axis=1)
+          sirs.append('savings_simulation_output_report.upgrade_option_{}_sir'.format(i))
+        df['savings_simulation_output_report.savings_investment_ratio'] = df[sirs].sum(axis=1)
     return df
 
 def preprocess(df):
@@ -155,6 +160,13 @@ def preprocess(df):
   for col in [col for col in df.columns if 'building_characteristics_report' in col]:
     if pd.isnull(df[col]).all():
       del df[col]
+
+  # forward fill location to upgrade rows
+  for name, group in df.groupby('build_existing_model.building_id'):
+    lat = group['building_characteristics_report.location_latitude'].dropna().values[0]
+    lon = group['building_characteristics_report.location_longitude'].dropna().values[0]
+    df.loc[df['build_existing_model.building_id']==name, 'building_characteristics_report.location_latitude'] = lat
+    df.loc[df['build_existing_model.building_id']==name, 'building_characteristics_report.location_longitude'] = lon
 
   return df
 
