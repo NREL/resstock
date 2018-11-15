@@ -26,3 +26,10 @@ ARGS="-r $RESULTSCSV$REFUPGS -e all"
 CALL="python lib/scripts/results_savings_csv.py $ARGS"
 echo "Calling: $CALL"
 eval $CALL
+
+cd ../../assets/analyses/$ANALYSISID/original
+cp /mnt/openstudio/server/analyses/$ANALYSISID/results_savings.csv .
+SEED=$(echo *.zip)
+ZIP="zip $SEED results_savings.csv"
+echo "Zipping: $ZIP"
+eval $ZIP
