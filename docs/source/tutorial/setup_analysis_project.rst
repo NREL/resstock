@@ -37,16 +37,16 @@ After all datapoints have been simulated, this script calls a method for calcula
 
 By default this script also attaches additional outputs to the results csv file, including:
 
- - location
- - reportable domain
- - source energy
- - total utility bill
+ - location state, latitude, longitude
+ - reportable domain (according to RECS 2009)
+ - source energy (using conversion factors from BSR/ASHRAE Standard 105-2013)
  - eGRID subregion (see the entire `eGRID subregion map`_)
- - simple payback
- - net present value
- - savings-to-invesment ratio
+ - total utility bill (requires :ref:`utility-bill-calculations`) 
+ - simple payback (requires total utility bill)
+ - net present value (requires total utility bill)
+ - savings-to-invesment ratio (requires total utility bill)
 
-A new csv file, ``results_savings.csv``, containing upgrade savings and additional outputs is produced. You can retrieve this file by TODO.
+A new csv file, ``results_savings.csv``, containing upgrade savings and additional outputs is produced. You can retrieve this file by downloading the **Seed Zip File** from the OpenStudio Cloud Management Console analysis page.
 
 .. _eGRID subregion map: https://github.com/NREL/OpenStudio-BuildStock/wiki/eGRID-Subregion-Map
 
