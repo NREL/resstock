@@ -33,7 +33,7 @@ Ignore this for now.
 Server Finalization Script
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-After all datapoints have been simulated, this script calls a method for calculating savings for upgrades. You can specify the ``[<reference>,<upgrade>]`` pair(s) by updating the **Script Arguments** section. (Entering no pairs will default to calculating savings for all upgrades.) Ensure that ``<upgrade>`` matches at least one upgrade scenario "Upgrade Name" (see :ref:`tutorial-apply-upgrade`). To indicate the baseline building as the ``<reference>``, use "BASE" as shown in the example above.
+After all datapoints have been simulated, this script calls a method for calculating savings for upgrades. You can specify the ``[reference,upgrade]`` pair(s) by updating the **Script Arguments** section. (Entering no pairs will default to calculating savings for all upgrades relative to the baseline building.) Ensure that ``upgrade`` matches at least one upgrade scenario "Upgrade Name" (see :ref:`tutorial-apply-upgrade`). To indicate the baseline building as the ``reference``, use "BASE" as shown in the example above. If you want to calculate savings for a reference scenario that is different from the "do nothing" baseline (e.g., when a SEER 8 AC is replaced at wear out, calculate the incremental savings and cost of upgrading it to SEER 18 compared to a SEER 14 AC [U.S. federal minimum available in southern states]), then you may specify the reference scenario explicitly using the script argument where the strings exactly match upgrade names defined in the Apply Upgrade measures. Note that if you specify one scenario in this way, then you must explicitly define all scenario pairs, even cases where the reference is the baseline (using [BASE,upgrade]).
 
 By default this script also attaches additional outputs to the results csv file, including:
 
@@ -41,12 +41,11 @@ By default this script also attaches additional outputs to the results csv file,
  - reportable domain (according to RECS 2009)
  - source energy (using conversion factors from BSR/ASHRAE Standard 105-2013)
  - eGRID subregion (see the entire `eGRID subregion map`_)
- - total utility bill (requires :ref:`utility-bill-calculations`) 
- - simple payback (requires total utility bill)
- - net present value (requires total utility bill)
- - savings-to-invesment ratio (requires total utility bill)
+ - Additional outputs coming soon: total utility bill, simple payback, net present value, savings-to-invesment ratio
 
-A new csv file, ``results_savings.csv``, containing upgrade savings and additional outputs is produced. You can retrieve this file by downloading the **Seed Zip File** from the OpenStudio Cloud Management Console analysis page.
+A new csv file, ``results_savings.csv``, containing upgrade savings and additional outputs is produced. You can retrieve this file by downloading the **Seed Zip File** from the OpenStudio Cloud Management Console analysis page:
+
+.. image:: ../images/tutorial/seed_zip_file.png
 
 .. _eGRID subregion map: https://github.com/NREL/OpenStudio-BuildStock/wiki/eGRID-Subregion-Map
 
