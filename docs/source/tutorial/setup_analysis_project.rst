@@ -51,9 +51,6 @@ Savings are calculated as follows:
     .. image:: https://latex.codecogs.com/svg.latex?\Delta&space;InitialCost&space;=&space;InitialCost_{upgrade}&space;-&space;InitialCost_{reference} 
     \
     
-    .. image:: https://latex.codecogs.com/svg.latex?NetPresentValue&space;=&space;PresentValue_{upgrade}&space;-&space;PresentValue_{reference} 
-    \
-    
     etc.
     
 
