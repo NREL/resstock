@@ -17,7 +17,9 @@ You will leave dropdown options for **Algorithmic Method**, **Default Seed Model
 Server Scripts
 ------------------
 
-Although you will leave these settings alone for most analyses, you do have the ability to change arguments for initialization and finalization scripts that are run on the remote server. In the case you want to change the set of epw weather files used for your project, see :ref:`worker-initialization-script`.
+Although you will leave these settings alone for most analyses, you do have the ability to change arguments for initialization and finalization scripts that are run on the remote server. In the case you do NOT want to run savings calculations for upgrades or include additional outputs, see :ref:`server-finalization-script`. In the case you want to change the set of epw weather files used for your project, see :ref:`worker-initialization-script`.
+
+.. image:: ../images/tutorial/server_scripts_open.png
 
 .. _server-initialization-script:
 
@@ -31,7 +33,40 @@ Ignore this for now.
 Server Finalization Script
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Ignore this for now.
+After all datapoints have been simulated, this script calls a method for calculating the incremental cost and savings for upgrades. You can specify the ``[reference,upgrade]`` pair(s) by updating the **Script Arguments** section. 
+
+    ``upgrade`` indicates the upgrade scenario for calculating savings, and should exactly match the "Upgrade Name" string for one of the upgrade measures (see :ref:`tutorial-apply-upgrade`). 
+    
+    ``reference`` indicates the upgrade scenario to be used as the reference. Enter "BASE" to use the "as is" existing housing stock baseline as the reference (typical for envelope upgrades; see example above). Enter an "Upgrade Name" string for one of the upgrade measures to use an upgrade scenario as the reference savings and costs to be subtracted from the ``upgrade`` scenario to calculate incremental savings and costs (typical for equipment upgrades where there exists a minimum efficiency standard).
+ 
+An example of this latter situation is when an old SEER 8 AC is replaced at wear out, and a user wishes to calculate the incremental savings and cost of upgrading it to SEER 18 compared to a SEER 14 AC (U.S. federal minimum efficiency in southern states).
+
+Entering no pairs will default to calculating savings for all upgrades relative to the baseline building. Note that if you specify one scenario in this way, then you must explicitly define all scenario pairs, even cases where the reference is the baseline (using [BASE,upgrade]).
+
+Savings are calculated as follows:
+
+    .. image:: https://latex.codecogs.com/svg.latex?\Delta&space;Energy&space;=&space;Energy_{upgrade}&space;-&space;Energy_{reference} 
+    \
+    
+    .. image:: https://latex.codecogs.com/svg.latex?\Delta&space;InitialCost&space;=&space;InitialCost_{upgrade}&space;-&space;InitialCost_{reference} 
+    \
+    
+    etc.
+    
+
+By default this script also attaches additional outputs to the results csv file, including:
+
+ - location state, latitude, longitude
+ - reportable domain (according to RECS 2009)
+ - source energy (using conversion factors from BSR/ASHRAE Standard 105-2013)
+ - eGRID subregion (see the entire `eGRID subregion map`_)
+ - Additional outputs coming soon: total utility bill, simple payback, net present value, savings-to-invesment ratio
+
+A new csv file, ``results_savings.csv``, containing upgrade savings and additional outputs is produced. You can retrieve this file by downloading the **Seed Zip File** from the OpenStudio Cloud Management Console analysis page:
+
+.. image:: ../images/tutorial/seed_zip_file.png
+
+.. _eGRID subregion map: https://github.com/NREL/OpenStudio-BuildStock/wiki/eGRID-Subregion-Map
 
 .. _worker-initialization-script:
 
@@ -40,13 +75,12 @@ Worker Initialization Script
    
 Something you might want to change is the set of weather files used with your project. To update the argument for the path to the zip file containing epw weather files, open the Server Scripts box on the Measures Selection tab.
 
-.. image:: ../images/tutorial/server_scripts_open.png
-
 Look for the **Script Arguments** box corresponding to the **Worker Initialization Script**. By default, this argument value points to the set of weather files corresponding to the specific project (i.e., set of ``housing_characteristics``) you are working with. For example, the ``project_resstock_national`` project folder will by default use the set of weather files with national geographic coverage. In the illustration above, the argument value path points to a zipped file stored in the `epwweatherfiles bucket`_ on Amazon S3. You should have read-only access to objects in this bucket.
 
 You can control what set of weather files are unpacked and accessible on the remote server by changing the argument value for this initialization script. If you wish to change this argument value to point to a different file in the S3 bucket, replace the path's basename with the path of the new file. If the desired file does not exist in the S3 bucket, you will need to zip up a set of weather files and upload it to some location of your choice (e.g., your own S3 bucket). Be sure to change the entire argument value path to point to this chosen file location.
 
 To zip and upload new weather files:
+
  - First ensure that the weather files you will be using do not already exist in the S3 bucket. If they do, just point to the appropriate zip that already contains your desired weather files.
  - If they do not, on your local computer highlight all the new epw weather files and compress them into a single zip file. (Your zip should contain only files with either the ".epw" or ".ddy" extension.)
  - Upload your newly zipped file that contains the weather files to your new location.
