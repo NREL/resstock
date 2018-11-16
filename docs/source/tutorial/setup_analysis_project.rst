@@ -33,7 +33,29 @@ Ignore this for now.
 Server Finalization Script
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-After all datapoints have been simulated, this script calls a method for calculating savings for upgrades. You can specify the ``[reference,upgrade]`` pair(s) by updating the **Script Arguments** section. (Entering no pairs will default to calculating savings for all upgrades relative to the baseline building.) Ensure that ``upgrade`` matches at least one upgrade scenario "Upgrade Name" (see :ref:`tutorial-apply-upgrade`). To indicate the baseline building as the ``reference``, use "BASE" as shown in the example above. If you want to calculate savings for a reference scenario that is different from the "do nothing" baseline (e.g., when a SEER 8 AC is replaced at wear out, calculate the incremental savings and cost of upgrading it to SEER 18 compared to a SEER 14 AC [U.S. federal minimum available in southern states]), then you may specify the reference scenario explicitly using the script argument where the strings exactly match upgrade names defined in the Apply Upgrade measures. Note that if you specify one scenario in this way, then you must explicitly define all scenario pairs, even cases where the reference is the baseline (using [BASE,upgrade]).
+After all datapoints have been simulated, this script calls a method for calculating the incremental cost and savings for upgrades. You can specify the ``[reference,upgrade]`` pair(s) by updating the **Script Arguments** section. 
+
+    ``upgrade`` indicates the upgrade scenario for calculating savings, and should exactly match the "Upgrade Name" string for one of the upgrade measures (see :ref:`tutorial-apply-upgrade`). 
+    
+    ``reference`` indicates the upgrade scenario to be used as the reference. Enter "BASE" to use the "as is" existing housing stock baseline as the reference (typical for envelope upgrades; see example above). Enter an "Upgrade Name" string for one of the upgrade measures to use an upgrade scenario as the reference savings and costs to be subtracted from the ``upgrade`` scenario to calculate incremental savings and costs (typical for equipment upgrades where there exists a minimum efficiency standard).
+ 
+An example of this latter situation is when an old SEER 8 AC is replaced at wear out, and a user wishes to calculate the incremental savings and cost of upgrading it to SEER 18 compared to a SEER 14 AC (U.S. federal minimum efficiency in southern states).
+
+Entering no pairs will default to calculating savings for all upgrades relative to the baseline building. Note that if you specify one scenario in this way, then you must explicitly define all scenario pairs, even cases where the reference is the baseline (using [BASE,upgrade]).
+
+Savings are calculated as follows:
+
+    .. image:: https://latex.codecogs.com/svg.latex?\Delta&space;Energy&space;=&space;Energy_{upgrade}&space;-&space;Energy_{reference} 
+    \
+    
+    .. image:: https://latex.codecogs.com/svg.latex?\Delta&space;InitialCost&space;=&space;InitialCost_{upgrade}&space;-&space;InitialCost_{reference} 
+    \
+    
+    .. image:: https://latex.codecogs.com/svg.latex?NetPresentValue&space;=&space;PresentValue_{upgrade}&space;-&space;PresentValue_{reference} 
+    \
+    
+    etc.
+    
 
 By default this script also attaches additional outputs to the results csv file, including:
 
