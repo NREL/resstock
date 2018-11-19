@@ -9,7 +9,8 @@ group :test do
   gem 'rubocop', '~> 0.49.0'
   gem 'rubocop-checkstyle_formatter', '~> 0.1.1'
   gem 'ci_reporter_minitest', '~> 1.0.0'
-  gem 'coveralls'
+  gem 'simplecov'
+  gem 'codecov'
   gem 'minitest-reporters'
   gem 'minitest-ci', :git => 'https://github.com/circleci/minitest-ci.git' # For CircleCI Automatic test metadata collection
 end
