@@ -1,5 +1,5 @@
 require 'simplecov'
-require 'coveralls'
+require 'codecov'
 
 # save to CircleCI's artifacts directory if we're on CircleCI
 if ENV['CIRCLE_ARTIFACTS']
