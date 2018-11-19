@@ -1,42 +1,18 @@
 require 'simplecov'
-require 'coveralls'
+require 'codecov'
 
-# Get the code coverage in html for local viewing
-# and in JSON for coveralls
-SimpleCov.formatter = SimpleCov::Formatter::MultiFormatter.new([
-  SimpleCov::Formatter::HTMLFormatter,
-  Coveralls::SimpleCov::Formatter
-])
-
-# Ignore some of the code in coverage testing
-SimpleCov.start do
-  add_filter do |src_file|
-    exclude_file(src_file.filename)
-  end
+# save to CircleCI's artifacts directory if we're on CircleCI
+if ENV['CIRCLE_ARTIFACTS']
+  dir = File.join(ENV['CIRCLE_ARTIFACTS'], "coverage")
+  SimpleCov.coverage_dir(dir)
 end
-
-def exclude_file(f)
-  exclude = false
-  if f.include?('tests')
-    exclude = true
-  elsif f.include?('resources')
-    allowances = {
-                  '301EnergyRatingIndexRuleset'=>['301.rb','hpxml.rb']
-                 }
-    exclude = true
-    allowances.keys.each do |m|
-      next if not (f.include?(m) and allowances[m].include?(File.basename(f)))
-      exclude = false
-    end
-  end
-  return exclude
-end
+SimpleCov.formatter = SimpleCov::Formatter::Codecov
+SimpleCov.start
 
 require 'minitest/autorun'
 require 'minitest/reporters'
 
 Minitest::Reporters.use! Minitest::Reporters::SpecReporter.new # spec-like progress
-
 
 # Helper methods below for unit tests
 
