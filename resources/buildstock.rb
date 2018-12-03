@@ -109,6 +109,11 @@ class TsvFile
                 rowvals[option_name] = row[option_col].to_f
             end
             
+            # Check positivity of the probability values
+            if rowvals.values.min < 0
+                register_error("Probability value in #{@filename.to_s} is less than zero.", @runner)
+            end
+            
             # Sum of values within 2% of 100%?
             sum_rowvals = rowvals.values.reduce(:+)
             if sum_rowvals < 0.98 or sum_rowvals > 1.02
