@@ -374,28 +374,10 @@ task :integrity_check_resstock_national do
     integrity_check_options_lookup_tsv('project_resstock_national')
 end # rake task
 
-desc 'Perform integrity check on inputs for project_resstock_pnw'
-task :integrity_check_resstock_pnw do
-    integrity_check('project_resstock_pnw')
-    integrity_check_options_lookup_tsv('project_resstock_pnw')
-end # rake task
-
 desc 'Perform integrity check on inputs for project_resstock_testing'
 task :integrity_check_resstock_testing do
     integrity_check('project_resstock_testing')
     integrity_check_options_lookup_tsv('project_resstock_testing')
-end # rake task
-
-desc 'Perform integrity check on inputs for project_resstock_comed'
-task :integrity_check_resstock_comed do
-    integrity_check('project_resstock_comed')
-    integrity_check_options_lookup_tsv('project_resstock_comed')
-end # rake task
-
-desc 'Perform integrity check on inputs for project_resstock_efs'
-task :integrity_check_resstock_efs do
-    integrity_check('project_resstock_efs')
-    integrity_check_options_lookup_tsv('project_resstock_efs')
 end # rake task
 
 def integrity_check(project_dir_name)
