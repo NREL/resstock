@@ -1,12 +1,12 @@
 Set Up the Analysis Project
 ===========================
 
-Open PAT and open one of the analysis project folders:
+At the top level of the ResStock repository you just downloaded, you will see two analysis project folders:
 
  - project_resstock_national
- - project_resstock_pnw
+ - project_resstock_testing
 
-For this example we'll use the project_resstock_national analysis. Select "Open Existing Project" and choose the project_resstock_national directory in the repository you just downloaded. You may be asked if you want "mongod" to accept incoming connections. Select "Allow".
+Open PAT, select "Open Existing Project", and choose the ``project_resstock_national`` directory. You may be asked if you want "mongod" to accept incoming connections. Select "Allow".
 
 You will leave dropdown options for **Algorithmic Method**, **Default Seed Model**, and **Default Weather File** alone. Additionally, you will leave the settings in **Algorithm Settings**, **Additional Analysis Files**, and **Server Scripts** alone for most analyses. 
 
@@ -54,7 +54,7 @@ Savings are calculated as follows:
     etc.
     
 
-By default this script also attaches additional outputs to the results csv file, including:
+By default this script also attaches additional outputs to the `results.csv <run_project.html#download-results>`_ file, including:
 
  - location state, latitude, longitude
  - reportable domain (according to RECS 2009)
@@ -177,7 +177,7 @@ Leave this alone.
 Timeseries CSV Export
 ^^^^^^^^^^^^^^^^^^^^^
 
-If you do not need the timeseries data for your simulations, you can skip this measure to save disk space. Otherwise, one csv file per datapoint will be written containing timeseries enduse data for their model. After `downloading all datapoints <run_project.html#download>`_ to your project's localResults folder, each datapoint's ``enduse_timeseries.csv`` file will be contained in a zipped ``data_point.zip`` file along with all other simulation input and output files.
+If you do not need the timeseries data for your simulations, you can skip this measure to save disk space. Otherwise, one csv file per datapoint will be written containing timeseries data for their model. After `downloading all datapoints <run_project.html#download>`_ to your project's localResults folder, each datapoint's ``enduse_timeseries.csv`` file will be contained in a zipped ``data_point.zip`` file along with all other simulation input and output files.
   
 .. image:: ../images/tutorial/timeseries_csv_export.png
 
