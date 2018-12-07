@@ -12,9 +12,9 @@ elsif File.exists? File.absolute_path(File.join(File.dirname(__FILE__), resstock
 else
   require_relative "../HPXMLtoOpenStudio/resources/geometry"
 end
+
 # start the measure
 class UnmetShowerEnergyReport < OpenStudio::Measure::ReportingMeasure
-
   # human readable name
   def name
     # Measure name should be the title case of the class name.
@@ -46,7 +46,7 @@ class UnmetShowerEnergyReport < OpenStudio::Measure::ReportingMeasure
     end
     return result
   end
-  
+
   # return a vector of IdfObject's to request EnergyPlus objects needed by the run method
   # Warning: Do not change the name of this method to be snake_case. The method must be lowerCamelCase.
   def energyPlusOutputRequests(runner, user_arguments)
@@ -64,7 +64,7 @@ class UnmetShowerEnergyReport < OpenStudio::Measure::ReportingMeasure
 
     units = Geometry.get_building_units(model, runner)
     units.each do |unit|
-      requests = {"Unmet Shower Energy|#{unit.name}"=>"kBtu", "Unmet Shower Time|#{unit.name}"=>"hr", "Shower Draw Time|#{unit.name}"=>"hr"}
+      requests = { "Unmet Shower Energy|#{unit.name}" => "kBtu", "Unmet Shower Time|#{unit.name}" => "hr", "Shower Draw Time|#{unit.name}" => "hr" }
       requests.each do |request, units|
         result << OpenStudio::IdfObject.load("Output:Variable,*,#{request},Hourly;").get
       end
@@ -89,7 +89,7 @@ class UnmetShowerEnergyReport < OpenStudio::Measure::ReportingMeasure
       return false
     end
     model = model.get
-    
+
     # Get the last sql file
     sql = runner.lastEnergyPlusSqlFile
     if sql.empty?
@@ -116,7 +116,7 @@ class UnmetShowerEnergyReport < OpenStudio::Measure::ReportingMeasure
 
     units = Geometry.get_building_units(model, runner)
     units.each do |unit|
-      requests = {"Unmet Shower Energy|#{unit.name}"=>"kBtu", "Unmet Shower Time|#{unit.name}"=>"hr", "Shower Draw Time|#{unit.name}"=>"hr"}
+      requests = { "Unmet Shower Energy|#{unit.name}" => "kBtu", "Unmet Shower Time|#{unit.name}" => "hr", "Shower Draw Time|#{unit.name}" => "hr" }
       requests.each do |request, units|
         sql.availableKeyValues(ann_env_pd, "Hourly", request).each do |key_value|
           total_val = get_timeseries(sql, ann_env_pd, request, key_value, units)
@@ -129,7 +129,6 @@ class UnmetShowerEnergyReport < OpenStudio::Measure::ReportingMeasure
 
     return true
   end
-
 
   def get_timeseries(sql, ann_env_pd, request, key_value, units)
     timeseries = sql.timeSeries(ann_env_pd, "Hourly", request, key_value)
@@ -145,7 +144,6 @@ class UnmetShowerEnergyReport < OpenStudio::Measure::ReportingMeasure
     runner.registerValue("#{name.gsub("|", " ")}_#{units}", val)
     runner.registerInfo("Registering #{val.round(2)} #{units} for #{name}.")
   end
-
 end
 
 # register the measure to be used by the application

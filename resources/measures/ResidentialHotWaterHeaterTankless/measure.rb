@@ -6,229 +6,224 @@ require_relative "../HPXMLtoOpenStudio/resources/constants"
 require_relative "../HPXMLtoOpenStudio/resources/geometry"
 require_relative "../HPXMLtoOpenStudio/resources/unit_conversions"
 
-#start the measure
+# start the measure
 class ResidentialHotWaterHeaterTankless < OpenStudio::Measure::ModelMeasure
+  # define the name that a user will see, this method may be deprecated as
+  # the display name in PAT comes from the name field in measure.xml
+  def name
+    return "Set Residential Tankless Water Heater"
+  end
 
-    #define the name that a user will see, this method may be deprecated as
-    #the display name in PAT comes from the name field in measure.xml
-    def name
-        return "Set Residential Tankless Water Heater"
+  def description
+    return "This measure adds a new residential tankless water heater to the model based on user inputs. If there is already an existing residential water heater in the model, it is replaced. For multifamily buildings, the water heater can be set for all units of the building.#{Constants.WorkflowDescription}"
+  end
+
+  def modeler_description
+    return "The measure will create a new instance of the OS:WaterHeater:Mixed object representing a tankless water heater. The water heater will be placed on the plant loop 'Domestic Hot Water Loop'. If this loop already exists, any water heater on that loop will be removed and replaced with a water heater consistent with this measure. If it doesn't exist, it will be created."
+  end
+
+  # define the arguments that the user will input
+  def arguments(model)
+    ruleset = OpenStudio::Measure
+
+    osargument = ruleset::OSArgument
+
+    args = ruleset::OSArgumentVector.new
+
+    # make a string argument for furnace fuel type
+    fuel_display_names = OpenStudio::StringVector.new
+    fuel_display_names << Constants.FuelTypeGas
+    fuel_display_names << Constants.FuelTypePropane
+    fuel_display_names << Constants.FuelTypeElectric
+    fuel_type = OpenStudio::Measure::OSArgument::makeChoiceArgument("fuel_type", fuel_display_names, true)
+    fuel_type.setDisplayName("Fuel Type")
+    fuel_type.setDescription("Type of fuel used for water heating.")
+    fuel_type.setDefaultValue(Constants.FuelTypeGas)
+    args << fuel_type
+
+    # make an argument for setpoint type (constant or variable)
+    setpoint_type_args = OpenStudio::StringVector.new
+    setpoint_type_args << Constants.Constant
+    setpoint_type_args << Constants.Scheduled
+    setpoint_type = OpenStudio::Measure::OSArgument::makeChoiceArgument("setpoint_type", setpoint_type_args, true, true)
+    setpoint_type.setDisplayName("Setpoint type")
+    setpoint_type.setDescription("The water heater setpoint type. Constant will use a constant value for the whole year, while scheduled will use 8760 values in a schedule file.")
+    setpoint_type.setDefaultValue(Constants.Constant)
+    args << setpoint_type
+
+    # make an argument for hot water setpoint temperature
+    setpoint_temp = osargument::makeDoubleArgument("setpoint_temp", true)
+    setpoint_temp.setDisplayName("Setpoint")
+    setpoint_temp.setDescription("Water heater setpoint temperature. This value will be ignored if the setpoint type is Scheduled.")
+    setpoint_temp.setUnits("F")
+    setpoint_temp.setDefaultValue(125)
+    args << setpoint_temp
+
+    # make an argument for the directory that contains the hourly schedules
+    sp_dir = OpenStudio::Measure::OSArgument.makeStringArgument("schedules_directory", true)
+    sp_dir.setDisplayName("Setpoint and Operating Mode Schedule Directory")
+    sp_dir.setDescription("Absolute (or relative) directory to schedule files. This argument will be ignored if a constant setpoint type is used instead.")
+    sp_dir.setDefaultValue("./resources")
+    args << sp_dir
+
+    # make an argument for the 8760 hourly setpoint schedule
+    sp_sch = OpenStudio::Measure::OSArgument.makeStringArgument("setpoint_schedule", true)
+    sp_sch.setDisplayName("Setpoint Schedule File Name")
+    sp_sch.setDescription("Name of the hourly setpoint schedule. Setpoint should be defined (in F) for every hour. The operating mode schedule must also be located in the same location.")
+    sp_sch.setDefaultValue("hourly_setpoint_schedule.csv")
+    args << sp_sch
+
+    # make a choice argument for location
+    location_args = OpenStudio::StringVector.new
+    location_args << Constants.Auto
+    Geometry.get_model_locations(model).each do |loc|
+      location_args << loc
     end
-  
-    def description
-        return "This measure adds a new residential tankless water heater to the model based on user inputs. If there is already an existing residential water heater in the model, it is replaced. For multifamily buildings, the water heater can be set for all units of the building.#{Constants.WorkflowDescription}"
+    location = OpenStudio::Measure::OSArgument::makeChoiceArgument("location", location_args, true, true)
+    location.setDisplayName("Location")
+    location.setDescription("The space type for the location. '#{Constants.Auto}' will automatically choose a space type based on the space types found in the model.")
+    location.setDefaultValue(Constants.Auto)
+    args << location
+
+    # make an argument for capacity
+    capacity = osargument::makeDoubleArgument("capacity", true)
+    capacity.setDisplayName("Input Capacity")
+    capacity.setDescription("The maximum energy input rating of the water heater.")
+    capacity.setUnits("kBtu/hr")
+    capacity.setDefaultValue(100000000.0)
+    args << capacity
+
+    # make an argument for the rated energy factor
+    energy_factor = osargument::makeDoubleArgument("energy_factor", true)
+    energy_factor.setDisplayName("Rated Energy Factor")
+    energy_factor.setDescription("Ratio of useful energy output from the water heater to the total amount of energy delivered from the water heater.")
+    energy_factor.setDefaultValue(0.82)
+    args << energy_factor
+
+    # make an argument for cycling_derate
+    cycling_derate = osargument::makeDoubleArgument("cycling_derate", true)
+    cycling_derate.setDisplayName("Cycling Derate")
+    cycling_derate.setDescription("Annual energy derate for cycling inefficiencies -- accounts for the impact of thermal cycling and small hot water draws on the heat exchanger. CEC's 2008 Title24 implemented an 8% derate for tankless water heaters. ")
+    cycling_derate.setUnits("Frac")
+    cycling_derate.setDefaultValue(0.08)
+    args << cycling_derate
+
+    # make an argument on cycle electricity consumption
+    offcyc_power = osargument::makeDoubleArgument("offcyc_power", true)
+    offcyc_power.setDisplayName("Parasitic Electric Power")
+    offcyc_power.setDescription("Off cycle electric power draw for controls, etc. Only used for non-electric water heaters.")
+    offcyc_power.setUnits("W")
+    offcyc_power.setDefaultValue(5.0)
+    args << offcyc_power
+
+    # make an argument on cycle electricity consumption
+    oncyc_power = osargument::makeDoubleArgument("oncyc_power", true)
+    oncyc_power.setDisplayName("Forced Draft Fan Power")
+    oncyc_power.setDescription("On cycle electric power draw from the forced draft fan motor. Only used for non-electric water heaters.")
+    oncyc_power.setUnits("W")
+    oncyc_power.setDefaultValue(65.0)
+    args << oncyc_power
+
+    return args
+  end # end the arguments method
+
+  # define what happens when the measure is run
+  def run(model, runner, user_arguments)
+    super(model, runner, user_arguments)
+
+    # Assign user inputs to variables
+    fuel_type = runner.getStringArgumentValue("fuel_type", user_arguments)
+    capacity = runner.getDoubleArgumentValue("capacity", user_arguments)
+    energy_factor = runner.getDoubleArgumentValue("energy_factor", user_arguments)
+    cycling_derate = runner.getDoubleArgumentValue("cycling_derate", user_arguments)
+    location = runner.getStringArgumentValue("location", user_arguments)
+    setpoint_type = runner.getStringArgumentValue("setpoint_type", user_arguments)
+    setpoint_temp = runner.getDoubleArgumentValue("setpoint_temp", user_arguments).to_f
+    schedule_directory = runner.getStringArgumentValue("schedules_directory", user_arguments)
+    setpoint_schedule = runner.getStringArgumentValue("setpoint_schedule", user_arguments)
+    oncycle_power = runner.getDoubleArgumentValue("oncyc_power", user_arguments)
+    offcycle_power = runner.getDoubleArgumentValue("offcyc_power", user_arguments)
+
+    # Validate inputs
+    if not runner.validateUserArguments(arguments(model), user_arguments)
+      return false
     end
-  
-    def modeler_description
-        return "The measure will create a new instance of the OS:WaterHeater:Mixed object representing a tankless water heater. The water heater will be placed on the plant loop 'Domestic Hot Water Loop'. If this loop already exists, any water heater on that loop will be removed and replaced with a water heater consistent with this measure. If it doesn't exist, it will be created."
+
+    # Get building units
+    units = Geometry.get_building_units(model, runner)
+    if units.nil?
+      return false
     end
 
-    #define the arguments that the user will input
-    def arguments(model)
-        ruleset = OpenStudio::Measure
-    
-        osargument = ruleset::OSArgument
-    
-        args = ruleset::OSArgumentVector.new
-
-        #make a string argument for furnace fuel type
-        fuel_display_names = OpenStudio::StringVector.new
-        fuel_display_names << Constants.FuelTypeGas
-        fuel_display_names << Constants.FuelTypePropane
-        fuel_display_names << Constants.FuelTypeElectric
-        fuel_type = OpenStudio::Measure::OSArgument::makeChoiceArgument("fuel_type", fuel_display_names, true)
-        fuel_type.setDisplayName("Fuel Type")
-        fuel_type.setDescription("Type of fuel used for water heating.")
-        fuel_type.setDefaultValue(Constants.FuelTypeGas)
-        args << fuel_type
-        
-        # make an argument for setpoint type (constant or variable)
-        setpoint_type_args = OpenStudio::StringVector.new
-        setpoint_type_args << Constants.Constant
-        setpoint_type_args << Constants.Scheduled
-        setpoint_type = OpenStudio::Measure::OSArgument::makeChoiceArgument("setpoint_type", setpoint_type_args, true, true)
-        setpoint_type.setDisplayName("Setpoint type")
-        setpoint_type.setDescription("The water heater setpoint type. Constant will use a constant value for the whole year, while scheduled will use 8760 values in a schedule file.")
-        setpoint_type.setDefaultValue(Constants.Constant)
-        args << setpoint_type
-
-        # make an argument for hot water setpoint temperature
-        setpoint_temp = osargument::makeDoubleArgument("setpoint_temp", true)
-        setpoint_temp.setDisplayName("Setpoint")
-        setpoint_temp.setDescription("Water heater setpoint temperature. This value will be ignored if the setpoint type is Scheduled.")
-        setpoint_temp.setUnits("F")
-        setpoint_temp.setDefaultValue(125)
-        args << setpoint_temp
-        
-        # make an argument for the directory that contains the hourly schedules
-        sp_dir = OpenStudio::Measure::OSArgument.makeStringArgument("schedules_directory", true)
-        sp_dir.setDisplayName("Setpoint and Operating Mode Schedule Directory")
-        sp_dir.setDescription("Absolute (or relative) directory to schedule files. This argument will be ignored if a constant setpoint type is used instead.")
-        sp_dir.setDefaultValue("./resources")
-        args << sp_dir
-        
-        # make an argument for the 8760 hourly setpoint schedule
-        sp_sch = OpenStudio::Measure::OSArgument.makeStringArgument("setpoint_schedule", true)
-        sp_sch.setDisplayName("Setpoint Schedule File Name")
-        sp_sch.setDescription("Name of the hourly setpoint schedule. Setpoint should be defined (in F) for every hour. The operating mode schedule must also be located in the same location.")
-        sp_sch.setDefaultValue("hourly_setpoint_schedule.csv")
-        args << sp_sch
-    
-        #make a choice argument for location
-        location_args = OpenStudio::StringVector.new
-        location_args << Constants.Auto
-        Geometry.get_model_locations(model).each do |loc|
-            location_args << loc
-        end
-        location = OpenStudio::Measure::OSArgument::makeChoiceArgument("location", location_args, true, true)
-        location.setDisplayName("Location")
-        location.setDescription("The space type for the location. '#{Constants.Auto}' will automatically choose a space type based on the space types found in the model.")
-        location.setDefaultValue(Constants.Auto)
-        args << location
-
-        # make an argument for capacity
-        capacity = osargument::makeDoubleArgument("capacity", true)
-        capacity.setDisplayName("Input Capacity")
-        capacity.setDescription("The maximum energy input rating of the water heater.")
-        capacity.setUnits("kBtu/hr")
-        capacity.setDefaultValue(100000000.0)
-        args << capacity
-
-        # make an argument for the rated energy factor
-        energy_factor = osargument::makeDoubleArgument("energy_factor", true)
-        energy_factor.setDisplayName("Rated Energy Factor")
-        energy_factor.setDescription("Ratio of useful energy output from the water heater to the total amount of energy delivered from the water heater.")
-        energy_factor.setDefaultValue(0.82)
-        args << energy_factor
-
-        # make an argument for cycling_derate
-        cycling_derate = osargument::makeDoubleArgument("cycling_derate", true)
-        cycling_derate.setDisplayName("Cycling Derate")
-        cycling_derate.setDescription("Annual energy derate for cycling inefficiencies -- accounts for the impact of thermal cycling and small hot water draws on the heat exchanger. CEC's 2008 Title24 implemented an 8% derate for tankless water heaters. ")
-        cycling_derate.setUnits("Frac")
-        cycling_derate.setDefaultValue(0.08)
-        args << cycling_derate
-    
-        # make an argument on cycle electricity consumption
-        offcyc_power = osargument::makeDoubleArgument("offcyc_power", true)
-        offcyc_power.setDisplayName("Parasitic Electric Power")
-        offcyc_power.setDescription("Off cycle electric power draw for controls, etc. Only used for non-electric water heaters.")
-        offcyc_power.setUnits("W")
-        offcyc_power.setDefaultValue(5.0)
-        args << offcyc_power
-    
-        # make an argument on cycle electricity consumption
-        oncyc_power = osargument::makeDoubleArgument("oncyc_power", true)
-        oncyc_power.setDisplayName("Forced Draft Fan Power")
-        oncyc_power.setDescription("On cycle electric power draw from the forced draft fan motor. Only used for non-electric water heaters.")
-        oncyc_power.setUnits("W")
-        oncyc_power.setDefaultValue(65.0)
-        args << oncyc_power
-    
-        return args
-    end #end the arguments method
-
-    #define what happens when the measure is run
-    def run(model, runner, user_arguments)
-        super(model, runner, user_arguments)
-
-    
-        #Assign user inputs to variables
-        fuel_type = runner.getStringArgumentValue("fuel_type",user_arguments)
-        capacity = runner.getDoubleArgumentValue("capacity",user_arguments)
-        energy_factor = runner.getDoubleArgumentValue("energy_factor",user_arguments)
-        cycling_derate = runner.getDoubleArgumentValue("cycling_derate",user_arguments)
-        location = runner.getStringArgumentValue("location",user_arguments)
-        setpoint_type = runner.getStringArgumentValue("setpoint_type",user_arguments)
-        setpoint_temp = runner.getDoubleArgumentValue("setpoint_temp",user_arguments).to_f
-        schedule_directory = runner.getStringArgumentValue("schedules_directory",user_arguments)
-        setpoint_schedule = runner.getStringArgumentValue("setpoint_schedule",user_arguments)
-        oncycle_power = runner.getDoubleArgumentValue("oncyc_power",user_arguments)
-        offcycle_power = runner.getDoubleArgumentValue("offcyc_power",user_arguments)
-        
-        #Validate inputs
-        if not runner.validateUserArguments(arguments(model), user_arguments)
-            return false
-        end
-    
-        # Get building units
-        units = Geometry.get_building_units(model, runner)
-        if units.nil?
-            return false
-        end
-
-        #Check if mains temperature has been set
-        if !model.getSite.siteWaterMainsTemperature.is_initialized
-            runner.registerError("Mains water temperature has not been set.")
-            return false
-        end
-        
-        # Get Building America climate zone
-        ba_cz_name = nil
-        model.getClimateZones.climateZones.each do |climateZone|
-            next if climateZone.institution != Constants.BuildingAmericaClimateZone
-            ba_cz_name = climateZone.value.to_s
-        end
-        
-        location_hierarchy = Waterheater.get_location_hierarchy(ba_cz_name)
-        
-        if setpoint_type == Constants.Scheduled
-            unless (Pathname.new schedule_directory).absolute?
-                schedule_directory = File.expand_path(File.join(File.dirname(__FILE__), schedule_directory))
-            end
-            setpoint_schedule_file = File.join(schedule_directory, setpoint_schedule)
-            
-            if not File.exists?(setpoint_schedule_file)
-              runner.registerError("'#{setpoint_schedule_file}' does not exist.")
-              return false
-            end
-        end
-
-        Waterheater.remove(model, runner)
-        
-        units.each_with_index do |unit, unit_index|
-        
-            # Get space
-            space = Geometry.get_space_from_location(unit, location, location_hierarchy)
-            next if space.nil?
-            
-            success = Waterheater.apply_tankless(model, unit, runner, space, fuel_type, 
-                                                 capacity, energy_factor, cycling_derate,
-                                                 setpoint_type, setpoint_temp, 
-                                                 setpoint_schedule_file, oncycle_power, 
-                                                 offcycle_power, 1.0)
-            return false if not success
-            
-        end
-            
-        final_condition = list_water_heaters(model, runner).join("\n")
-        runner.registerFinalCondition(final_condition)
-  
-        return true
- 
-    end #end the run method
-
-    def list_water_heaters(model, runner)
-        water_heaters = []
-
-        existing_heaters = model.getWaterHeaterMixeds
-        for heater in existing_heaters do
-            heatername = heater.name.get
-            loopname = heater.plantLoop.get.name.get
-
-            capacity_si = heater.getHeaterMaximumCapacity.get
-            capacity = UnitConversions.convert(capacity_si.value, "W", "kBtu/hr")
-            volume_si = heater.getTankVolume.get
-            volume = UnitConversions.convert(volume_si.value, "m^3", "gal")
-            te = heater.getHeaterThermalEfficiency.get.value
-          
-            water_heaters << "Water heater '#{heatername}' added to plant loop '#{loopname}', with a capacity of #{capacity.round(1)} kBtu/hr" +
-            " and a burner efficiency of  #{te.round(2)}."
-        end
-        water_heaters
+    # Check if mains temperature has been set
+    if !model.getSite.siteWaterMainsTemperature.is_initialized
+      runner.registerError("Mains water temperature has not been set.")
+      return false
     end
-    
-end #end the measure
 
-#this allows the measure to be use by the application
+    # Get Building America climate zone
+    ba_cz_name = nil
+    model.getClimateZones.climateZones.each do |climateZone|
+      next if climateZone.institution != Constants.BuildingAmericaClimateZone
+
+      ba_cz_name = climateZone.value.to_s
+    end
+
+    location_hierarchy = Waterheater.get_location_hierarchy(ba_cz_name)
+
+    if setpoint_type == Constants.Scheduled
+      unless (Pathname.new schedule_directory).absolute?
+        schedule_directory = File.expand_path(File.join(File.dirname(__FILE__), schedule_directory))
+      end
+      setpoint_schedule_file = File.join(schedule_directory, setpoint_schedule)
+
+      if not File.exists?(setpoint_schedule_file)
+        runner.registerError("'#{setpoint_schedule_file}' does not exist.")
+        return false
+      end
+    end
+
+    Waterheater.remove(model, runner)
+
+    units.each_with_index do |unit, unit_index|
+      # Get space
+      space = Geometry.get_space_from_location(unit, location, location_hierarchy)
+      next if space.nil?
+
+      success = Waterheater.apply_tankless(model, unit, runner, space, fuel_type,
+                                           capacity, energy_factor, cycling_derate,
+                                           setpoint_type, setpoint_temp,
+                                           setpoint_schedule_file, oncycle_power,
+                                           offcycle_power, 1.0)
+      return false if not success
+    end
+
+    final_condition = list_water_heaters(model, runner).join("\n")
+    runner.registerFinalCondition(final_condition)
+
+    return true
+  end # end the run method
+
+  def list_water_heaters(model, runner)
+    water_heaters = []
+
+    existing_heaters = model.getWaterHeaterMixeds
+    for heater in existing_heaters do
+      heatername = heater.name.get
+      loopname = heater.plantLoop.get.name.get
+
+      capacity_si = heater.getHeaterMaximumCapacity.get
+      capacity = UnitConversions.convert(capacity_si.value, "W", "kBtu/hr")
+      volume_si = heater.getTankVolume.get
+      volume = UnitConversions.convert(volume_si.value, "m^3", "gal")
+      te = heater.getHeaterThermalEfficiency.get.value
+
+      water_heaters << "Water heater '#{heatername}' added to plant loop '#{loopname}', with a capacity of #{capacity.round(1)} kBtu/hr" +
+                       " and a burner efficiency of  #{te.round(2)}."
+    end
+    water_heaters
+  end
+end # end the measure
+
+# this allows the measure to be use by the application
 ResidentialHotWaterHeaterTankless.new.registerWithApplication

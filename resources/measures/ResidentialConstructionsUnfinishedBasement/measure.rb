@@ -1,4 +1,4 @@
-#see the URL below for information on how to write OpenStudio measures
+# see the URL below for information on how to write OpenStudio measures
 # http://nrel.github.io/OpenStudio-user-documentation/reference/measure_writing_guide/
 
 require_relative "../HPXMLtoOpenStudio/resources/util"
@@ -6,28 +6,27 @@ require_relative "../HPXMLtoOpenStudio/resources/constants"
 require_relative "../HPXMLtoOpenStudio/resources/geometry"
 require_relative "../HPXMLtoOpenStudio/resources/constructions"
 
-#start the measure
+# start the measure
 class ProcessConstructionsUnfinishedBasement < OpenStudio::Measure::ModelMeasure
-  
-  #define the name that a user will see, this method may be deprecated as
-  #the display name in PAT comes from the name field in measure.xml
+  # define the name that a user will see, this method may be deprecated as
+  # the display name in PAT comes from the name field in measure.xml
   def name
     return "Set Residential Unfinished Basement Constructions"
   end
-  
+
   def description
     return "This measure assigns constructions to the unfinished basement ceilings, walls, and floors.#{Constants.WorkflowDescription}"
   end
-  
+
   def modeler_description
     return "Calculates and assigns material layer properties of constructions for unfinished basement: 1) ceilings, 2) walls, and 3) floors. Any existing constructions for these surfaces will be removed."
-  end  
-  
-  #define the arguments that the user will input
+  end
+
+  # define the arguments that the user will input
   def arguments(model)
     args = OpenStudio::Measure::OSArgumentVector.new
 
-    #make a double argument for wall insulation height
+    # make a double argument for wall insulation height
     wall_ins_height = OpenStudio::Measure::OSArgument::makeDoubleArgument("wall_ins_height", true)
     wall_ins_height.setDisplayName("Wall Insulation Height")
     wall_ins_height.setUnits("ft")
@@ -35,7 +34,7 @@ class ProcessConstructionsUnfinishedBasement < OpenStudio::Measure::ModelMeasure
     wall_ins_height.setDefaultValue(8)
     args << wall_ins_height
 
-    #make a double argument for wall cavity R-value
+    # make a double argument for wall cavity R-value
     wall_cavity_r = OpenStudio::Measure::OSArgument::makeDoubleArgument("wall_cavity_r", true)
     wall_cavity_r.setDisplayName("Wall Cavity Insulation Installed R-value")
     wall_cavity_r.setUnits("h-ft^2-R/Btu")
@@ -43,7 +42,7 @@ class ProcessConstructionsUnfinishedBasement < OpenStudio::Measure::ModelMeasure
     wall_cavity_r.setDefaultValue(0)
     args << wall_cavity_r
 
-    #make a choice argument for wall cavity insulation installation grade
+    # make a choice argument for wall cavity insulation installation grade
     installgrade_display_names = OpenStudio::StringVector.new
     installgrade_display_names << "1"
     installgrade_display_names << "2"
@@ -54,7 +53,7 @@ class ProcessConstructionsUnfinishedBasement < OpenStudio::Measure::ModelMeasure
     wall_install_grade.setDefaultValue("1")
     args << wall_install_grade
 
-    #make a double argument for wall cavity depth
+    # make a double argument for wall cavity depth
     wall_cavity_depth_in = OpenStudio::Measure::OSArgument::makeDoubleArgument("wall_cavity_depth_in", true)
     wall_cavity_depth_in.setDisplayName("Wall Cavity Depth")
     wall_cavity_depth_in.setUnits("in")
@@ -62,30 +61,30 @@ class ProcessConstructionsUnfinishedBasement < OpenStudio::Measure::ModelMeasure
     wall_cavity_depth_in.setDefaultValue(0)
     args << wall_cavity_depth_in
 
-    #make a bool argument for whether the cavity insulation fills the wall cavity
+    # make a bool argument for whether the cavity insulation fills the wall cavity
     wall_filled_cavity = OpenStudio::Measure::OSArgument::makeBoolArgument("wall_filled_cavity", true)
     wall_filled_cavity.setDisplayName("Wall Insulation Fills Cavity")
     wall_filled_cavity.setDescription("When the insulation does not completely fill the depth of the cavity, air film resistances are added to the insulation R-value.")
     wall_filled_cavity.setDefaultValue(false)
     args << wall_filled_cavity
 
-    #make a double argument for wall framing factor
+    # make a double argument for wall framing factor
     wall_framing_factor = OpenStudio::Measure::OSArgument::makeDoubleArgument("wall_framing_factor", true)
     wall_framing_factor.setDisplayName("Wall Framing Factor")
     wall_framing_factor.setUnits("frac")
     wall_framing_factor.setDescription("The fraction of a basement wall assembly that is comprised of structural framing.")
     wall_framing_factor.setDefaultValue(0)
     args << wall_framing_factor
-    
-    #make a double argument for wall continuous insulation R-value
+
+    # make a double argument for wall continuous insulation R-value
     wall_rigid_r = OpenStudio::Measure::OSArgument::makeDoubleArgument("wall_rigid_r", true)
     wall_rigid_r.setDisplayName("Wall Continuous Insulation Nominal R-value")
     wall_rigid_r.setUnits("hr-ft^2-R/Btu")
     wall_rigid_r.setDescription("The R-value of the continuous insulation.")
     wall_rigid_r.setDefaultValue(10.0)
     args << wall_rigid_r
-    
-    #make a double argument for wall drywall thickness
+
+    # make a double argument for wall drywall thickness
     wall_drywall_thick_in = OpenStudio::Measure::OSArgument::makeDoubleArgument("wall_drywall_thick_in", true)
     wall_drywall_thick_in.setDisplayName("Wall Drywall Thickness")
     wall_drywall_thick_in.setUnits("in")
@@ -93,7 +92,7 @@ class ProcessConstructionsUnfinishedBasement < OpenStudio::Measure::ModelMeasure
     wall_drywall_thick_in.setDefaultValue(0)
     args << wall_drywall_thick_in
 
-    #make a double argument for ceiling cavity R-value
+    # make a double argument for ceiling cavity R-value
     ceiling_cavity_r = OpenStudio::Measure::OSArgument::makeDoubleArgument("ceiling_cavity_r", true)
     ceiling_cavity_r.setDisplayName("Ceiling Cavity Insulation Nominal R-value")
     ceiling_cavity_r.setUnits("h-ft^2-R/Btu")
@@ -101,14 +100,14 @@ class ProcessConstructionsUnfinishedBasement < OpenStudio::Measure::ModelMeasure
     ceiling_cavity_r.setDefaultValue(0)
     args << ceiling_cavity_r
 
-    #make a choice argument for ceiling cavity insulation installation grade
+    # make a choice argument for ceiling cavity insulation installation grade
     ceiling_install_grade = OpenStudio::Measure::OSArgument::makeChoiceArgument("ceiling_install_grade", installgrade_display_names, true)
     ceiling_install_grade.setDisplayName("Ceiling Cavity Install Grade")
     ceiling_install_grade.setDescription("Installation grade as defined by RESNET standard. 5% of the cavity is considered missing insulation for Grade 3, 2% for Grade 2, and 0% for Grade 1.")
     ceiling_install_grade.setDefaultValue("1")
     args << ceiling_install_grade
 
-    #make a choice argument for ceiling framing factor
+    # make a choice argument for ceiling framing factor
     ceiling_framing_factor = OpenStudio::Measure::OSArgument::makeDoubleArgument("ceiling_framing_factor", true)
     ceiling_framing_factor.setDisplayName("Ceiling Framing Factor")
     ceiling_framing_factor.setUnits("frac")
@@ -116,15 +115,15 @@ class ProcessConstructionsUnfinishedBasement < OpenStudio::Measure::ModelMeasure
     ceiling_framing_factor.setDefaultValue(0.13)
     args << ceiling_framing_factor
 
-    #make a choice argument for ceiling joist height
+    # make a choice argument for ceiling joist height
     ceiling_joist_height_in = OpenStudio::Measure::OSArgument::makeDoubleArgument("ceiling_joist_height_in", true)
     ceiling_joist_height_in.setDisplayName("Ceiling Joist Height")
     ceiling_joist_height_in.setUnits("in")
     ceiling_joist_height_in.setDescription("Height of the joist member.")
     ceiling_joist_height_in.setDefaultValue(9.25)
-    args << ceiling_joist_height_in    
-    
-    #make a double argument for slab insulation R-value
+    args << ceiling_joist_height_in
+
+    # make a double argument for slab insulation R-value
     slab_whole_r = OpenStudio::Measure::OSArgument::makeDoubleArgument("slab_whole_r", true)
     slab_whole_r.setDisplayName("Whole Slab Insulation Nominal R-value")
     slab_whole_r.setUnits("h-ft^2-R/Btu")
@@ -133,54 +132,54 @@ class ProcessConstructionsUnfinishedBasement < OpenStudio::Measure::ModelMeasure
     args << slab_whole_r
 
     return args
-  end #end the arguments method
+  end # end the arguments method
 
-  #define what happens when the measure is run
+  # define what happens when the measure is run
   def run(model, runner, user_arguments)
     super(model, runner, user_arguments)
-    
-    #use the built-in error checking 
+
+    # use the built-in error checking
     if not runner.validateUserArguments(arguments(model), user_arguments)
       return false
     end
 
     walls_by_type = SurfaceTypes.get_walls(model, runner)
     floors_by_type = SurfaceTypes.get_floors(model, runner)
-    
+
     # Get Inputs
-    wall_ins_height = runner.getDoubleArgumentValue("wall_ins_height",user_arguments)
-    wall_cavity_r = runner.getDoubleArgumentValue("wall_cavity_r",user_arguments)
-    wall_install_grade = runner.getStringArgumentValue("wall_install_grade",user_arguments).to_i
-    wall_cavity_depth_in = runner.getDoubleArgumentValue("wall_cavity_depth_in",user_arguments)
-    wall_filled_cavity = runner.getBoolArgumentValue("wall_filled_cavity",user_arguments)
-    wall_framing_factor = runner.getDoubleArgumentValue("wall_framing_factor",user_arguments)
-    wall_rigid_r = runner.getDoubleArgumentValue("wall_rigid_r",user_arguments)
-    wall_drywall_thick_in = runner.getDoubleArgumentValue("wall_drywall_thick_in",user_arguments)
-    ceiling_cavity_r = runner.getDoubleArgumentValue("ceiling_cavity_r",user_arguments)
-    ceiling_install_grade = runner.getStringArgumentValue("ceiling_install_grade",user_arguments).to_i
-    ceiling_framing_factor = runner.getDoubleArgumentValue("ceiling_framing_factor",user_arguments)
-    ceiling_joist_height_in = runner.getDoubleArgumentValue("ceiling_joist_height_in",user_arguments)
-    slab_whole_r = runner.getDoubleArgumentValue("slab_whole_r",user_arguments)
+    wall_ins_height = runner.getDoubleArgumentValue("wall_ins_height", user_arguments)
+    wall_cavity_r = runner.getDoubleArgumentValue("wall_cavity_r", user_arguments)
+    wall_install_grade = runner.getStringArgumentValue("wall_install_grade", user_arguments).to_i
+    wall_cavity_depth_in = runner.getDoubleArgumentValue("wall_cavity_depth_in", user_arguments)
+    wall_filled_cavity = runner.getBoolArgumentValue("wall_filled_cavity", user_arguments)
+    wall_framing_factor = runner.getDoubleArgumentValue("wall_framing_factor", user_arguments)
+    wall_rigid_r = runner.getDoubleArgumentValue("wall_rigid_r", user_arguments)
+    wall_drywall_thick_in = runner.getDoubleArgumentValue("wall_drywall_thick_in", user_arguments)
+    ceiling_cavity_r = runner.getDoubleArgumentValue("ceiling_cavity_r", user_arguments)
+    ceiling_install_grade = runner.getStringArgumentValue("ceiling_install_grade", user_arguments).to_i
+    ceiling_framing_factor = runner.getDoubleArgumentValue("ceiling_framing_factor", user_arguments)
+    ceiling_joist_height_in = runner.getDoubleArgumentValue("ceiling_joist_height_in", user_arguments)
+    slab_whole_r = runner.getDoubleArgumentValue("slab_whole_r", user_arguments)
 
     spaces = Geometry.get_unfinished_basement_spaces(model.getSpaces)
     basement_height = Geometry.spaces_avg_height(spaces)
-    
+
     # Apply constructions
     floors_by_type[Constants.SurfaceTypeFloorFndGrndUnfinB].each do |floor_surface|
-        wall_surfaces = Geometry.get_walls_connected_to_floor(walls_by_type[Constants.SurfaceTypeWallFndGrndUnfinB], 
-                                                              floor_surface)
-        if not FoundationConstructions.apply_walls_and_slab(runner, model,
-                                                            wall_surfaces, 
-                                                            Constants.SurfaceTypeWallFndGrndUnfinB, 
-                                                            wall_ins_height, wall_cavity_r, wall_install_grade,
-                                                            wall_cavity_depth_in, wall_filled_cavity, wall_framing_factor, 
-                                                            wall_rigid_r, wall_drywall_thick_in, 8.0,
-                                                            basement_height,
-                                                            floor_surface,
-                                                            Constants.SurfaceTypeFloorFndGrndUnfinB,
-                                                            slab_whole_r, 4.0)
-            return false
-        end
+      wall_surfaces = Geometry.get_walls_connected_to_floor(walls_by_type[Constants.SurfaceTypeWallFndGrndUnfinB],
+                                                            floor_surface)
+      if not FoundationConstructions.apply_walls_and_slab(runner, model,
+                                                          wall_surfaces,
+                                                          Constants.SurfaceTypeWallFndGrndUnfinB,
+                                                          wall_ins_height, wall_cavity_r, wall_install_grade,
+                                                          wall_cavity_depth_in, wall_filled_cavity, wall_framing_factor,
+                                                          wall_rigid_r, wall_drywall_thick_in, 8.0,
+                                                          basement_height,
+                                                          floor_surface,
+                                                          Constants.SurfaceTypeFloorFndGrndUnfinB,
+                                                          slab_whole_r, 4.0)
+        return false
+      end
     end
 
     if not FloorConstructions.apply_foundation_ceiling(runner, model,
@@ -189,26 +188,24 @@ class ProcessConstructionsUnfinishedBasement < OpenStudio::Measure::ModelMeasure
                                                        ceiling_cavity_r, ceiling_install_grade,
                                                        ceiling_framing_factor, ceiling_joist_height_in,
                                                        0.75, Material.FloorWood, Material.CoveringBare)
-        return false
+      return false
     end
-    
+
     floors_by_type[Constants.SurfaceTypeFloorFndGrndUnfinSlab].each do |surface|
-        if not FoundationConstructions.apply_slab(runner, model, 
-                                                  surface,
-                                                  Constants.SurfaceTypeFloorFndGrndUnfinSlab,
-                                                  0, 0, 0, 0, 0, 0, 4.0, nil, false, nil, nil)
-            return false
-        end
+      if not FoundationConstructions.apply_slab(runner, model,
+                                                surface,
+                                                Constants.SurfaceTypeFloorFndGrndUnfinSlab,
+                                                0, 0, 0, 0, 0, 0, 4.0, nil, false, nil, nil)
+        return false
+      end
     end
-    
+
     # Remove any constructions/materials that aren't used
     HelperMethods.remove_unused_constructions_and_materials(model, runner)
-    
-    return true
- 
-  end #end the run method
-  
-end #end the measure
 
-#this allows the measure to be use by the application
+    return true
+  end # end the run method
+end # end the measure
+
+# this allows the measure to be use by the application
 ProcessConstructionsUnfinishedBasement.new.registerWithApplication
