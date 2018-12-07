@@ -135,6 +135,17 @@ This measure creates the baseline scenario. It incrementally applies OpenStudio 
   Logic that specifies the subset of the building stock to be considered in the analysis. Specify one or more ``parameter|option`` as found in the ``resources/options_lookup.tsv``. (This uses the same syntax as the :ref:`tutorial-apply-upgrade` measure.) For example, if you wanted to only simulate California homes you could enter ``Location Region|CR11`` in this field (CR refers to "Custom Region", which is based on RECS 2009 reportable domains aggregated into groups with similar climates; see the entire `custom region map`_).
 
 .. _custom region map: https://github.com/NREL/OpenStudio-BuildStock/wiki/Custom-Region-(CR)-Map
+
+.. note::
+   
+   **Manual Sampling** To run the sampling script yourself, just browse to the resources directory and run, e.g.:
+   ```
+   ruby run_sampling.rb -p project_resstock_national -n 10000 -o buildstock.csv`
+   ```
+ 
+   If a custom `buildstock.csv` file is located in the `housing_characteristics` directory when you run the PAT project, it will automatically be used to generate simulations. If it’s not found, the `run_sampling.rb` script will be run automatically on OpenStudio-Server to create one. You’ll also want to make sure that the number of buildings in the sampling csv file matches the max value for the Building ID argument in the Build Existing Model, as that tells OpenStudio how many datapoints to run. (For each datapoint, the measure will then look up its building description from the sampling csv.) 
+   
+   You can use this manual sampling process to downselect which simulations you want to run. For example, you can use the command above to generate a `buildstock.csv` for the entire U.S. and then open up this file in Excel and delete all of the rows that you don't want to simulate (e.g., all rows that aren't in New York).
   
 .. _tutorial-apply-upgrade:
 
