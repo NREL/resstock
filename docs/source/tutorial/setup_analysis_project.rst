@@ -138,15 +138,11 @@ This measure creates the baseline scenario. It incrementally applies OpenStudio 
 
 .. note::
    
-   **Manual Sampling** To run the sampling script yourself, just browse to the resources directory and run, e.g.:
+   **Manual Sampling**: To run the sampling script yourself, from the command line execute, e.g. ``ruby resources/run_sampling.rb -p project_resstock_national -n 10000 -o buildstock.csv``, and a file ``buildstock.csv`` will be created in the ``resources`` directory. 
    
-   ```
-   ruby run_sampling.rb -p project_resstock_national -n 10000 -o buildstock.csv`
-   ```
- 
-   If a custom `buildstock.csv` file is located in the `housing_characteristics` directory when you run the PAT project, it will automatically be used to generate simulations. If it’s not found, the `run_sampling.rb` script will be run automatically on OpenStudio-Server to create one. You’ll also want to make sure that the number of buildings in the sampling csv file matches the max value for the Building ID argument in the Build Existing Model, as that tells OpenStudio how many datapoints to run. (For each datapoint, the measure will then look up its building description from the sampling csv.) 
+   If a custom ``buildstock.csv`` file is located in a project's ``housing_characteristics`` directory when you run the PAT project, it will automatically be used to generate simulations. If it’s not found, the ``run_sampling.rb`` script will be run automatically on OpenStudio-Server to create one. You’ll also want to make sure that the number of buildings in the sampling csv file matches the max value for the Building ID argument in the Build Existing Model, as that tells OpenStudio how many datapoints to run. (For each datapoint, the measure will then look up its building description from the sampling csv.) 
    
-   You can use this manual sampling process to downselect which simulations you want to run. For example, you can use the command above to generate a `buildstock.csv` for the entire U.S. and then open up this file in Excel and delete all of the rows that you don't want to simulate (e.g., all rows that aren't in New York).
+   You can use this manual sampling process to downselect which simulations you want to run. For example, you can use the command above to generate a ``buildstock.csv`` for the entire U.S. and then open up this file in Excel and delete all of the rows that you don't want to simulate (e.g., all rows that aren't in New York). Keep in mind that if you do this, you will need to re-enumerate the "Building" column as "1" through the number of rows.
   
 .. _tutorial-apply-upgrade:
 
