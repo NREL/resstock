@@ -139,6 +139,7 @@ This measure creates the baseline scenario. It incrementally applies OpenStudio 
 .. note::
    
    **Manual Sampling** To run the sampling script yourself, just browse to the resources directory and run, e.g.:
+   
    ```
    ruby run_sampling.rb -p project_resstock_national -n 10000 -o buildstock.csv`
    ```
