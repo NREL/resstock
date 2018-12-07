@@ -7,6 +7,8 @@ This project is a <b>work-in-progress</b>.
 
 Unit Test Status: [![CircleCI](https://circleci.com/gh/NREL/OpenStudio-BuildStock/tree/master.svg?style=svg)](https://circleci.com/gh/NREL/OpenStudio-BuildStock/tree/master)
 
+Code Coverage: [![codecov](https://codecov.io/gh/NREL/OpenStudio-BuildStock/branch/master/graph/badge.svg)](https://codecov.io/gh/NREL/OpenStudio-BuildStock)
+
 For more information, please visit the [documentation](http://resstock.readthedocs.io/en/latest/).
 
 ![BuildStock workflow](https://user-images.githubusercontent.com/5861765/32569254-da2895c8-c47d-11e7-93cb-05fb4c8806d7.png)

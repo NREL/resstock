@@ -121,8 +121,10 @@ if __name__ == '__main__':
     count = df.sum(axis=1)
     df = df.div(df.sum(axis=1), axis=0)
     df['Count'] = count
-      
+
     if not df.empty:
-      df = df.fillna(0)
+      options = [col for col in df.columns if 'Option=' in col]
+      df['Count'] = df['Count'].fillna(0)
+      df[options] = df[options].fillna(1.0 / len(options)) # we don't want any zero rows; so assign equal prob
       df.to_csv(os.path.join(datafiles_dir, '{} {}.tsv'.format(category, st)), sep='\t')
         
