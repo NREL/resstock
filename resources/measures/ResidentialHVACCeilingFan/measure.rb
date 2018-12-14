@@ -7,7 +7,6 @@ require_relative "../HPXMLtoOpenStudio/resources/hvac"
 
 # start the measure
 class ProcessCeilingFan < OpenStudio::Measure::ModelMeasure
-
   # human readable name
   def name
     return "Set Residential Ceiling Fan"
@@ -27,7 +26,7 @@ class ProcessCeilingFan < OpenStudio::Measure::ModelMeasure
   def arguments(model)
     args = OpenStudio::Measure::OSArgumentVector.new
 
-    #make a string argument for coverage
+    # make a string argument for coverage
     coverage = OpenStudio::Measure::OSArgument::makeStringArgument("coverage", true)
     coverage.setDisplayName("Coverage")
     coverage.setUnits("frac")
@@ -35,23 +34,23 @@ class ProcessCeilingFan < OpenStudio::Measure::ModelMeasure
     coverage.setDefaultValue("NA")
     args << coverage
 
-    #make a string argument for specified number
+    # make a string argument for specified number
     specified_num = OpenStudio::Measure::OSArgument::makeStringArgument("specified_num", true)
     specified_num.setDisplayName("Specified Number")
     specified_num.setUnits("#/unit")
     specified_num.setDescription("Total number of fans.")
     specified_num.setDefaultValue("1")
     args << specified_num
-    
-    #make a double argument for power
+
+    # make a double argument for power
     power = OpenStudio::Measure::OSArgument::makeDoubleArgument("power", true)
     power.setDisplayName("Power")
     power.setUnits("W")
     power.setDescription("Power consumption per fan assuming it runs at medium speed.")
     power.setDefaultValue(45.0)
     args << power
-    
-    #make choice arguments for control
+
+    # make choice arguments for control
     control_names = OpenStudio::StringVector.new
     control_names << Constants.CeilingFanControlTypical
     control_names << Constants.CeilingFanControlSmart
@@ -59,51 +58,51 @@ class ProcessCeilingFan < OpenStudio::Measure::ModelMeasure
     control.setDisplayName("Control")
     control.setDescription("'typical' indicates half of the fans will be on whenever the interior temperature is above the cooling setpoint; 'smart' indicates 50% of the energy consumption of 'typical.'")
     control.setDefaultValue(Constants.CeilingFanControlTypical)
-    args << control 
-    
-    #make a bool argument for using benchmark energy
+    args << control
+
+    # make a bool argument for using benchmark energy
     use_benchmark_energy = OpenStudio::Measure::OSArgument::makeBoolArgument("use_benchmark_energy", true)
     use_benchmark_energy.setDisplayName("Use Benchmark Energy")
     use_benchmark_energy.setDescription("Use the energy value specified in the BA Benchmark: 77.3 + 0.0403 x FFA kWh/yr, where FFA is Finished Floor Area.")
     use_benchmark_energy.setDefaultValue(true)
     args << use_benchmark_energy
-    
-    #make a double argument for BA Benchamrk multiplier
+
+    # make a double argument for BA Benchamrk multiplier
     mult = OpenStudio::Measure::OSArgument::makeDoubleArgument("mult")
     mult.setDisplayName("Building America Benchmark Multiplier")
     mult.setDefaultValue(1)
     mult.setDescription("A multiplier on the national average energy use. Only applies if 'Use Benchmark Energy' is set to True.")
     args << mult
-    
-    #make a double argument for cooling setpoint offset
+
+    # make a double argument for cooling setpoint offset
     cooling_setpoint_offset = OpenStudio::Measure::OSArgument::makeDoubleArgument("cooling_setpoint_offset", true)
     cooling_setpoint_offset.setDisplayName("Cooling Setpoint Offset")
     cooling_setpoint_offset.setUnits("degrees F")
     cooling_setpoint_offset.setDescription("Increase in cooling set point due to fan usage.")
     cooling_setpoint_offset.setDefaultValue(0)
-    args << cooling_setpoint_offset    
-    
-    #Make a string argument for 24 weekday schedule values
+    args << cooling_setpoint_offset
+
+    # Make a string argument for 24 weekday schedule values
     weekday_sch = OpenStudio::Measure::OSArgument::makeStringArgument("weekday_sch", true)
     weekday_sch.setDisplayName("Weekday schedule")
     weekday_sch.setDescription("Specify the 24-hour weekday schedule.")
     weekday_sch.setDefaultValue("0.04, 0.037, 0.037, 0.036, 0.033, 0.036, 0.043, 0.047, 0.034, 0.023, 0.024, 0.025, 0.024, 0.028, 0.031, 0.032, 0.039, 0.053, 0.063, 0.067, 0.071, 0.069, 0.059, 0.05")
     args << weekday_sch
-      
-    #Make a string argument for 24 weekend schedule values
+
+    # Make a string argument for 24 weekend schedule values
     weekend_sch = OpenStudio::Measure::OSArgument::makeStringArgument("weekend_sch", true)
     weekend_sch.setDisplayName("Weekend schedule")
     weekend_sch.setDescription("Specify the 24-hour weekend schedule.")
     weekend_sch.setDefaultValue("0.04, 0.037, 0.037, 0.036, 0.033, 0.036, 0.043, 0.047, 0.034, 0.023, 0.024, 0.025, 0.024, 0.028, 0.031, 0.032, 0.039, 0.053, 0.063, 0.067, 0.071, 0.069, 0.059, 0.05")
     args << weekend_sch
 
-    #Make a string argument for 12 monthly schedule values
+    # Make a string argument for 12 monthly schedule values
     monthly_sch = OpenStudio::Measure::OSArgument::makeStringArgument("monthly_sch", true)
     monthly_sch.setDisplayName("Month schedule")
     monthly_sch.setDescription("Specify the 12-month schedule.")
     monthly_sch.setDefaultValue("1.248, 1.257, 0.993, 0.989, 0.993, 0.827, 0.821, 0.821, 0.827, 0.99, 0.987, 1.248")
-    args << monthly_sch    
-    
+    args << monthly_sch
+
     return args
   end
 
@@ -116,56 +115,52 @@ class ProcessCeilingFan < OpenStudio::Measure::ModelMeasure
       return false
     end
 
-    coverage = runner.getStringArgumentValue("coverage",user_arguments)
+    coverage = runner.getStringArgumentValue("coverage", user_arguments)
     unless coverage == "NA"
       coverage = coverage.to_f
     else
       coverage = nil
     end
-    specified_num = runner.getStringArgumentValue("specified_num",user_arguments)
+    specified_num = runner.getStringArgumentValue("specified_num", user_arguments)
     unless specified_num == "NA"
       specified_num = specified_num.to_f
     else
       specified_num = nil
-    end    
-    power = runner.getDoubleArgumentValue("power",user_arguments)
-    control = runner.getStringArgumentValue("control",user_arguments)
-    use_benchmark_energy = runner.getBoolArgumentValue("use_benchmark_energy",user_arguments)
-    cooling_setpoint_offset = runner.getDoubleArgumentValue("cooling_setpoint_offset",user_arguments)
-    mult = runner.getDoubleArgumentValue("mult",user_arguments)
-    weekday_sch = runner.getStringArgumentValue("weekday_sch",user_arguments)
-    weekend_sch = runner.getStringArgumentValue("weekend_sch",user_arguments)
-    monthly_sch = runner.getStringArgumentValue("monthly_sch",user_arguments)    
-    
+    end
+    power = runner.getDoubleArgumentValue("power", user_arguments)
+    control = runner.getStringArgumentValue("control", user_arguments)
+    use_benchmark_energy = runner.getBoolArgumentValue("use_benchmark_energy", user_arguments)
+    cooling_setpoint_offset = runner.getDoubleArgumentValue("cooling_setpoint_offset", user_arguments)
+    mult = runner.getDoubleArgumentValue("mult", user_arguments)
+    weekday_sch = runner.getStringArgumentValue("weekday_sch", user_arguments)
+    weekend_sch = runner.getStringArgumentValue("weekend_sch", user_arguments)
+    monthly_sch = runner.getStringArgumentValue("monthly_sch", user_arguments)
+
     if use_benchmark_energy
       coverage = nil
       specified_num = nil
       power = nil
       control = nil
     end
-    
+
     # get building units
     units = Geometry.get_building_units(model, runner)
     if units.nil?
       return false
     end
-    
+
     sch = nil
     units.each do |unit|
-    
       HVAC.remove_ceiling_fans(runner, model, unit)
-    
+
       success, sch = HVAC.apply_ceiling_fans(model, unit, runner, coverage, specified_num, power,
                                              control, use_benchmark_energy, cooling_setpoint_offset,
                                              mult, weekday_sch, weekend_sch, monthly_sch, sch)
       return false if not success
-
     end # units
-    
-    return true
 
+    return true
   end
-  
 end
 
 # register the measure to be used by the application
