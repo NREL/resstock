@@ -68,7 +68,7 @@ By default this script also attaches additional outputs to the results csv file,
  - reportable domain (according to RECS 2009)
  - source energy (using conversion factors from BSR/ASHRAE Standard 105-2013)
  - eGRID subregion (see the entire `eGRID subregion map`_)
- - utility bill calculations
+ - utility bill calculations (for now using simple average flat rates for each state)
  - simple payback
  - net present value
  - savings-to-investment ratio
