@@ -9,7 +9,6 @@ require_relative "../HPXMLtoOpenStudio/resources/pv"
 
 # start the measure
 class ResidentialPhotovoltaics < OpenStudio::Measure::ModelMeasure
-
   # human readable name
   def name
     return "Set Residential Photovoltaics"
@@ -29,7 +28,7 @@ class ResidentialPhotovoltaics < OpenStudio::Measure::ModelMeasure
   def arguments(model)
     args = OpenStudio::Measure::OSArgumentVector.new
 
-    #make a double argument for size
+    # make a double argument for size
     size = OpenStudio::Measure::OSArgument::makeDoubleArgument("size", false)
     size.setDisplayName("Size")
     size.setUnits("kW")
@@ -37,7 +36,7 @@ class ResidentialPhotovoltaics < OpenStudio::Measure::ModelMeasure
     size.setDefaultValue(2.5)
     args << size
 
-    #make a choice arguments for module type
+    # make a choice arguments for module type
     module_types_names = OpenStudio::StringVector.new
     module_types_names << Constants.PVModuleTypeStandard
     module_types_names << Constants.PVModuleTypePremium
@@ -47,8 +46,8 @@ class ResidentialPhotovoltaics < OpenStudio::Measure::ModelMeasure
     module_type.setDescription("Type of module to use for the PV simulation.")
     module_type.setDefaultValue(Constants.PVModuleTypeStandard)
     args << module_type
-    
-    #make a choice arguments for array type
+
+    # make a choice arguments for array type
     array_types_names = OpenStudio::StringVector.new
     array_types_names << Constants.PVArrayTypeFixedOpenRack
     array_types_names << Constants.PVArrayTypeFixedRoofMount
@@ -60,7 +59,7 @@ class ResidentialPhotovoltaics < OpenStudio::Measure::ModelMeasure
     array_type.setDefaultValue(Constants.PVArrayTypeFixedRoofMount)
     args << array_type
 
-    #make a double argument for system losses
+    # make a double argument for system losses
     system_losses = OpenStudio::Measure::OSArgument::makeDoubleArgument("system_losses", false)
     system_losses.setDisplayName("System Losses")
     system_losses.setUnits("frac")
@@ -68,7 +67,7 @@ class ResidentialPhotovoltaics < OpenStudio::Measure::ModelMeasure
     system_losses.setDefaultValue(0.14)
     args << system_losses
 
-    #make a double argument for inverter efficiency
+    # make a double argument for inverter efficiency
     inverter_efficiency = OpenStudio::Measure::OSArgument::makeDoubleArgument("inverter_efficiency", false)
     inverter_efficiency.setDisplayName("Inverter Efficiency")
     inverter_efficiency.setUnits("frac")
@@ -76,7 +75,7 @@ class ResidentialPhotovoltaics < OpenStudio::Measure::ModelMeasure
     inverter_efficiency.setDefaultValue(0.96)
     args << inverter_efficiency
 
-    #make a choice arguments for azimuth type
+    # make a choice arguments for azimuth type
     azimuth_types_names = OpenStudio::StringVector.new
     azimuth_types_names << Constants.CoordRelative
     azimuth_types_names << Constants.CoordAbsolute
@@ -86,7 +85,7 @@ class ResidentialPhotovoltaics < OpenStudio::Measure::ModelMeasure
     azimuth_type.setDefaultValue(Constants.CoordRelative)
     args << azimuth_type
 
-    #make a double argument for azimuth
+    # make a double argument for azimuth
     azimuth = OpenStudio::Measure::OSArgument::makeDoubleArgument("azimuth", false)
     azimuth.setDisplayName("Azimuth")
     azimuth.setUnits("degrees")
@@ -94,7 +93,7 @@ class ResidentialPhotovoltaics < OpenStudio::Measure::ModelMeasure
     azimuth.setDefaultValue(180.0)
     args << azimuth
 
-    #make a choice arguments for tilt type
+    # make a choice arguments for tilt type
     tilt_types_names = OpenStudio::StringVector.new
     tilt_types_names << Constants.TiltPitch
     tilt_types_names << Constants.CoordAbsolute
@@ -105,7 +104,7 @@ class ResidentialPhotovoltaics < OpenStudio::Measure::ModelMeasure
     tilt_type.setDefaultValue(Constants.TiltPitch)
     args << tilt_type
 
-    #make a double argument for tilt
+    # make a double argument for tilt
     tilt = OpenStudio::Measure::OSArgument::makeDoubleArgument("tilt", false)
     tilt.setDisplayName("Tilt")
     tilt.setUnits("degrees")
@@ -125,15 +124,15 @@ class ResidentialPhotovoltaics < OpenStudio::Measure::ModelMeasure
       return false
     end
 
-    size = runner.getDoubleArgumentValue("size",user_arguments)
-    module_type = runner.getStringArgumentValue("module_type",user_arguments)
-    array_type = runner.getStringArgumentValue("array_type",user_arguments)
-    system_losses = runner.getDoubleArgumentValue("system_losses",user_arguments)
-    inverter_efficiency = runner.getDoubleArgumentValue("inverter_efficiency",user_arguments)
-    azimuth_type = runner.getStringArgumentValue("azimuth_type",user_arguments)
-    azimuth = runner.getDoubleArgumentValue("azimuth",user_arguments)
-    tilt_type = runner.getStringArgumentValue("tilt_type",user_arguments)
-    tilt = runner.getDoubleArgumentValue("tilt",user_arguments)
+    size = runner.getDoubleArgumentValue("size", user_arguments)
+    module_type = runner.getStringArgumentValue("module_type", user_arguments)
+    array_type = runner.getStringArgumentValue("array_type", user_arguments)
+    system_losses = runner.getDoubleArgumentValue("system_losses", user_arguments)
+    inverter_efficiency = runner.getDoubleArgumentValue("inverter_efficiency", user_arguments)
+    azimuth_type = runner.getStringArgumentValue("azimuth_type", user_arguments)
+    azimuth = runner.getDoubleArgumentValue("azimuth", user_arguments)
+    tilt_type = runner.getStringArgumentValue("tilt_type", user_arguments)
+    tilt = runner.getDoubleArgumentValue("tilt", user_arguments)
 
     if azimuth > 360 or azimuth < 0
       runner.registerError("Invalid azimuth entered.")
@@ -152,17 +151,15 @@ class ResidentialPhotovoltaics < OpenStudio::Measure::ModelMeasure
     azimuth_abs = Geometry.get_abs_azimuth(azimuth_type, azimuth, model.getBuilding.northAxis)
 
     obj_name = Constants.ObjectNamePhotovoltaics
-    
+
     PV.remove(model, runner, obj_name)
-    
+
     success = PV.apply(model, runner, obj_name, size_w, module_type, system_losses,
                        inverter_efficiency, tilt_abs, azimuth_abs, array_type)
     return false if not success
 
     return true
-
   end
-
 end
 
 # register the measure to be used by the application

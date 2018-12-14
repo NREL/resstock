@@ -7,7 +7,6 @@ require_relative "../HPXMLtoOpenStudio/resources/hvac"
 
 # start the measure
 class ProcessRoomAirConditioner < OpenStudio::Measure::ModelMeasure
-
   # human readable name
   def name
     return "Set Residential Room Air Conditioner"
@@ -27,43 +26,35 @@ class ProcessRoomAirConditioner < OpenStudio::Measure::ModelMeasure
   def arguments(model)
     args = OpenStudio::Measure::OSArgumentVector.new
 
-    #make a double argument for room ac eer
+    # make a double argument for room ac eer
     eer = OpenStudio::Measure::OSArgument::makeDoubleArgument("eer", true)
     eer.setDisplayName("EER")
     eer.setUnits("Btu/W-h")
     eer.setDescription("This is a measure of the instantaneous energy efficiency of the cooling equipment.")
     eer.setDefaultValue(8.5)
-    args << eer         
-    
-    #make a double argument for room ac shr
+    args << eer
+
+    # make a double argument for room ac shr
     shr = OpenStudio::Measure::OSArgument::makeDoubleArgument("shr", true)
     shr.setDisplayName("Rated SHR")
     shr.setDescription("The sensible heat ratio (ratio of the sensible portion of the load to the total load) at the nominal rated capacity.")
     shr.setDefaultValue(0.65)
     args << shr
 
-    #make a double argument for room ac airflow
+    # make a double argument for room ac airflow
     airflow_rate = OpenStudio::Measure::OSArgument::makeDoubleArgument("airflow_rate", true)
     airflow_rate.setDisplayName("Airflow")
     airflow_rate.setUnits("cfm/ton")
     airflow_rate.setDefaultValue(350.0)
     args << airflow_rate
-    
-    #make a choice argument for room ac cooling output capacity
+
+    # make a choice argument for room ac cooling output capacity
     capacity = OpenStudio::Measure::OSArgument::makeStringArgument("capacity", true)
     capacity.setDisplayName("Cooling Capacity")
     capacity.setDescription("The output cooling capacity of the air conditioner. If using '#{Constants.SizingAuto}', the autosizing algorithm will use ACCA Manual S to set the capacity.")
     capacity.setUnits("tons")
     capacity.setDefaultValue(Constants.SizingAuto)
     args << capacity
-
-    #make an argument for entering fraction of cool load served
-    frac_cool_load_served = OpenStudio::Measure::OSArgument::makeDoubleArgument("frac_cool_load_served",true)
-    frac_cool_load_served.setDisplayName("Fraction of Cool Load Served")
-    frac_cool_load_served.setUnits("Btu/Btu")
-    frac_cool_load_served.setDescription("The fraction of the total cool load served by this system.")
-    frac_cool_load_served.setDefaultValue(1.0)
-    args << frac_cool_load_served
 
     return args
   end
@@ -76,41 +67,37 @@ class ProcessRoomAirConditioner < OpenStudio::Measure::ModelMeasure
     if !runner.validateUserArguments(arguments(model), user_arguments)
       return false
     end
-    
-    eer = runner.getDoubleArgumentValue("eer",user_arguments)
-    shr = runner.getDoubleArgumentValue("shr",user_arguments)
-    airflow_rate = runner.getDoubleArgumentValue("airflow_rate",user_arguments)
-    capacity = runner.getStringArgumentValue("capacity",user_arguments)
+
+    eer = runner.getDoubleArgumentValue("eer", user_arguments)
+    shr = runner.getDoubleArgumentValue("shr", user_arguments)
+    airflow_rate = runner.getDoubleArgumentValue("airflow_rate", user_arguments)
+    capacity = runner.getStringArgumentValue("capacity", user_arguments)
     unless capacity == Constants.SizingAuto
-      capacity = UnitConversions.convert(capacity.to_f,"ton","Btu/hr")
+      capacity = UnitConversions.convert(capacity.to_f, "ton", "Btu/hr")
     end
-    frac_cool_load_served = runner.getDoubleArgumentValue("frac_cool_load_served",user_arguments)
-    
+    frac_cool_load_served = 1.0
+
     # Get building units
     units = Geometry.get_building_units(model, runner)
     if units.nil?
       return false
     end
-    
+
     units.each do |unit|
-      
       thermal_zones = Geometry.get_thermal_zones_from_spaces(unit.spaces)
       HVAC.get_control_and_slave_zones(thermal_zones).each do |control_zone, slave_zones|
         ([control_zone] + slave_zones).each do |zone|
           HVAC.remove_cooling(model, runner, zone, unit)
         end
       end
-      
+
       success = HVAC.apply_room_ac(model, unit, runner, eer, shr,
                                    airflow_rate, capacity, frac_cool_load_served)
       return false if not success
-      
     end # unit
-    
-    return true
 
+    return true
   end
-  
 end
 
 # register the measure to be used by the application

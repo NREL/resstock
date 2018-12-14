@@ -2,8 +2,17 @@ version: 2
 jobs:
   build:
     docker:
-      - image: nrel/openstudio:2.7.0
+      - image: nrel/openstudio:2.7.1
     steps:
       - checkout
-      - run: ruby tests/hpxml_translator_test.rb
-
+      - run: 
+          name: Install gems
+          command: |
+            rm -f Gemfile.lock && bundle install
+      - run: 
+          name: Run tests
+          command: |
+            ruby tests/hpxml_translator_test.rb
+      - store_artifacts:
+          path: tests/results
+          destination: results
