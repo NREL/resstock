@@ -42,7 +42,7 @@ Ignore this for now.
 Server Finalization Script
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-After all datapoints have been simulated, this script calls a method for calculating the incremental cost and savings for upgrades. You can specify the ``[reference,upgrade]`` pair(s) by updating the **Script Arguments** section. 
+After all datapoints have been simulated, this script calls a method for calculating the incremental cost and savings for upgrades. You can specify the ``"reference", "upgrade"`` (each enclosed in double quotation marks and separated by a comma) pair(s) by updating the **Script Arguments** section (see image above). 
 
     ``upgrade`` indicates the upgrade scenario for calculating savings, and should exactly match the "Upgrade Name" string for one of the upgrade measures (see :ref:`tutorial-apply-upgrade`). 
     
@@ -50,7 +50,7 @@ After all datapoints have been simulated, this script calls a method for calcula
  
 An example of this latter situation is when an old SEER 8 AC is replaced at wear out, and a user wishes to calculate the incremental savings and cost of upgrading it to SEER 18 compared to a SEER 14 AC (U.S. federal minimum efficiency in southern states).
 
-Entering no pairs will default to calculating savings for all upgrades relative to the baseline building. Note that if you specify one scenario in this way, then you must explicitly define all scenario pairs, even cases where the reference is the baseline (using [BASE,upgrade]).
+Entering no pairs will default to calculating savings for all upgrades relative to the baseline building. Note that if you specify one scenario in this way, then you must explicitly define all scenario pairs, even cases where the reference is the baseline (using "BASE", "upgrade").
 
 Savings are calculated as follows:
 
@@ -65,11 +65,13 @@ Savings are calculated as follows:
 
 By default this script also attaches additional outputs to the results csv file, including:
 
- - location state, latitude, longitude
  - reportable domain (according to RECS 2009)
  - source energy (using conversion factors from BSR/ASHRAE Standard 105-2013)
  - eGRID subregion (see the entire `eGRID subregion map`_)
- - Additional outputs coming soon: total utility bill, simple payback, net present value, savings-to-invesment ratio
+ - utility bill calculations
+ - simple payback
+ - net present value
+ - savings-to-investment ratio
 
 A new csv file, ``results_savings.csv``, containing upgrade savings and additional outputs is produced. You can retrieve this file by downloading the **Seed Zip File** from the OpenStudio Cloud Management Console analysis page:
 
