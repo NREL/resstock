@@ -8,11 +8,20 @@ Open PAT and open one of the analysis project folders:
 
 For this example we'll use the project_resstock_national analysis. Select "Open Existing Project" and choose the project_resstock_national directory in the repository you just downloaded. You may be asked if you want "mongod" to accept incoming connections. Select "Allow".
 
-You will leave dropdown options for **Algorithmic Method**, **Default Seed Model**, and **Default Weather File** alone. Additionally, you will leave the settings in **Algorithm Settings**, **Additional Analysis Files**, and **Server Scripts** alone for most analyses. 
+You will leave dropdown options for **Algorithmic Method**, **Default Seed Model**, and **Default Weather File** alone. Additionally, you will leave the settings in **Algorithm Settings**, **Additional Analysis Files**, and **Server Scripts** alone for most analyses.
 
 .. note::
    
    The number of simulations per upgrade scenario is set in :ref:`build-existing-model`.
+
+.. _additional-analysis-files:
+
+Additional Analysis Files
+-------------------------
+
+Ensure that you have the following directories included to be uploaded to the server:
+
+.. image:: ../images/tutorial/additional_analysis_files_open.png
   
 Server Scripts
 ------------------
