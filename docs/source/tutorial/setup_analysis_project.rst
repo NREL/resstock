@@ -8,11 +8,20 @@ Open PAT and open one of the analysis project folders:
 
 For this example we'll use the project_resstock_national analysis. Select "Open Existing Project" and choose the project_resstock_national directory in the repository you just downloaded. You may be asked if you want "mongod" to accept incoming connections. Select "Allow".
 
-You will leave dropdown options for **Algorithmic Method**, **Default Seed Model**, and **Default Weather File** alone. Additionally, you will leave the settings in **Algorithm Settings**, **Additional Analysis Files**, and **Server Scripts** alone for most analyses. 
+You will leave dropdown options for **Algorithmic Method**, **Default Seed Model**, and **Default Weather File** alone. Additionally, you will leave the settings in **Algorithm Settings**, **Additional Analysis Files**, and **Server Scripts** alone for most analyses.
 
 .. note::
    
    The number of simulations per upgrade scenario is set in :ref:`build-existing-model`.
+
+.. _additional-analysis-files:
+
+Additional Analysis Files
+-------------------------
+
+Ensure that you have the following directories included to be uploaded to the server:
+
+.. image:: ../images/tutorial/additional_analysis_files_open.png
   
 Server Scripts
 ------------------
@@ -33,7 +42,7 @@ Ignore this for now.
 Server Finalization Script
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-After all datapoints have been simulated, this script calls a method for calculating the incremental cost and savings for upgrades. You can specify the ``[reference,upgrade]`` pair(s) by updating the **Script Arguments** section. 
+After all datapoints have been simulated, this script calls a method for calculating the incremental cost and savings for upgrades. You can specify one or more reference scenarios for the cost and energy subtraction by entering ``"reference", "upgrade"`` (each enclosed in double quotation marks and separated by a comma) pair(s) (one argument for each pair) in the **Script Arguments** section (see image above). 
 
     ``upgrade`` indicates the upgrade scenario for calculating savings, and should exactly match the "Upgrade Name" string for one of the upgrade measures (see :ref:`tutorial-apply-upgrade`). 
     
@@ -41,7 +50,7 @@ After all datapoints have been simulated, this script calls a method for calcula
  
 An example of this latter situation is when an old SEER 8 AC is replaced at wear out, and a user wishes to calculate the incremental savings and cost of upgrading it to SEER 18 compared to a SEER 14 AC (U.S. federal minimum efficiency in southern states).
 
-Entering no pairs will default to calculating savings for all upgrades relative to the baseline building. Note that if you specify one scenario in this way, then you must explicitly define all scenario pairs, even cases where the reference is the baseline (using [BASE,upgrade]).
+Entering no pairs will default to calculating savings for all upgrades relative to the baseline building. Note that if you specify one scenario in this way, then you must explicitly define all scenario pairs, even cases where the reference is the baseline (using "BASE", "upgrade").
 
 Savings are calculated as follows:
 
@@ -56,11 +65,13 @@ Savings are calculated as follows:
 
 By default this script also attaches additional outputs to the results csv file, including:
 
- - location state, latitude, longitude
  - reportable domain (according to RECS 2009)
  - source energy (using conversion factors from BSR/ASHRAE Standard 105-2013)
  - eGRID subregion (see the entire `eGRID subregion map`_)
- - Additional outputs coming soon: total utility bill, simple payback, net present value, savings-to-invesment ratio
+ - utility bill calculations (for now using simple average flat rates for each state)
+ - simple payback
+ - net present value
+ - savings-to-investment ratio
 
 A new csv file, ``results_savings.csv``, containing upgrade savings and additional outputs is produced. You can retrieve this file by downloading the **Seed Zip File** from the OpenStudio Cloud Management Console analysis page:
 
