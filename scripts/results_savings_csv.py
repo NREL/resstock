@@ -37,7 +37,7 @@ class ExtraColumns:
 
   def egrid_subregions(self, df):
     if not 'egrid' in ['egrid' for col in df.columns if 'egrid' in col]:
-      egrid = pd.read_csv('../data/resources/egrid.csv', index_col='grid_gid')
+      egrid = pd.read_csv(os.path.join(os.path.dirname(__file__), 'resources/egrid.csv'), index_col='grid_gid')
       egrid.rename(columns={'egrid_subregion': 'building_characteristics_report.egrid_subregion'}, inplace=True)
 
       latlonalt_proj = pyproj.Proj(proj='latlong', ellps='WGS84', datum='WGS84')
@@ -125,7 +125,7 @@ class ExtraColumns:
     if not 'savings_simulation_output_report.savings_investment_ratio' in df.columns:
       if 'savings_utility_bill_calculations.total_bill' in df.columns:
         import json
-        with open('resources/projected_fuel_price_indices.json') as f:
+        with open(os.path.join(os.path.dirname(__file__), 'resources/projected_fuel_price_indices.json')) as f:
           fuel_price_indices = json.load(f)
         discount_rate = 0.03
         analysis_period = 30
@@ -158,6 +158,13 @@ def preprocess(df):
   for col in [col for col in df.columns if 'building_characteristics_report' in col]:
     if pd.isnull(df[col]).all():
       del df[col]
+
+  # forward fill location to upgrade rows
+  for name, group in df.groupby('build_existing_model.building_id'):
+    df.loc[df['build_existing_model.building_id']==name, 'building_characteristics_report.location_city'] = group['building_characteristics_report.location_city'].dropna().values[0]
+    df.loc[df['build_existing_model.building_id']==name, 'building_characteristics_report.location_state'] = group['building_characteristics_report.location_state'].dropna().values[0]
+    df.loc[df['build_existing_model.building_id']==name, 'building_characteristics_report.location_latitude'] = group['building_characteristics_report.location_latitude'].dropna().values[0]
+    df.loc[df['build_existing_model.building_id']==name, 'building_characteristics_report.location_longitude'] = group['building_characteristics_report.location_longitude'].dropna().values[0]
 
   return df
 
@@ -306,7 +313,7 @@ def savings(results_csv, results_savings_csv, extra_cols, ref_upg_pairs):
     df = pd.concat([ref_df] + upg_dfs)
   
   # sort on the building_id and upgrade_name
-  df = df.sort_values(['build_existing_model.building_id', 'simulation_output_report.upgrade_name'])
+  df = df.sort(['build_existing_model.building_id', 'simulation_output_report.upgrade_name'])
 
   df = df.dropna(axis=1, how='all')
   df.to_csv(results_savings_csv)
