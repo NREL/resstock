@@ -143,17 +143,25 @@ class CostEffectiveness():
     return npv
 
   @staticmethod
-  def savings_investment_ratio(discount_rate, analysis_period, measure_life, measure_cost, annual_bill_savings, tax_credit, tax_scenario):
+  def savings_investment_ratio(discount_rate, analysis_period, measure_life, measure_cost, state, fuel_price_indices, annual_bill_savings_electricity, annual_bill_savings_natural_gas, annual_bill_savings_fuel_oil, annual_bill_savings_propane, tax_credit, tax_scenario):
+    import pandas as pd
     import numpy as np
     sir = 0
-    if np.isnan(measure_life):
+    if np.isnan(measure_life) or pd.isnull(state):
       sir = np.nan
     else:
-      savings, costs = CostEffectiveness.cash_flows(analysis_period, measure_life, measure_cost, annual_bill_savings, tax_credit, tax_scenario)
+      savings_electricity, costs = CostEffectiveness.cash_flows(analysis_period, measure_life, measure_cost, annual_bill_savings_electricity, tax_credit, tax_scenario)
+      savings_natural_gas, costs = CostEffectiveness.cash_flows(analysis_period, measure_life, measure_cost, annual_bill_savings_natural_gas, tax_credit, tax_scenario)
+      savings_fuel_oil, costs = CostEffectiveness.cash_flows(analysis_period, measure_life, measure_cost, annual_bill_savings_fuel_oil, tax_credit, tax_scenario)
+      savings_propane, costs = CostEffectiveness.cash_flows(analysis_period, measure_life, measure_cost, annual_bill_savings_propane, tax_credit, tax_scenario)
       discounts = []
       for year in range(0,analysis_period + 1):
         discounts.append(1/(1 + discount_rate) ** year)
-      savings = sum(np.array(discounts) * np.array(savings)) 
+      savings_electricity = sum(np.array(discounts) * np.array(savings_electricity) * np.array(get_fuel_price_indices_for_state_and_fuel_type(fuel_price_indices, state, 'electricity'))) 
+      savings_natural_gas = sum(np.array(discounts) * np.array(savings_natural_gas) * np.array(get_fuel_price_indices_for_state_and_fuel_type(fuel_price_indices, state, 'natural_gas')))
+      savings_fuel_oil = sum(np.array(discounts) * np.array(savings_fuel_oil) * np.array(get_fuel_price_indices_for_state_and_fuel_type(fuel_price_indices, state, 'fuel_oil')))
+      savings_propane = sum(np.array(discounts) * np.array(savings_propane) * np.array(get_fuel_price_indices_for_state_and_fuel_type(fuel_price_indices, state, 'propane')))
+      savings = savings_electricity + savings_natural_gas + savings_fuel_oil + savings_propane
       costs = sum(np.array(discounts) * np.array(costs))
       sir = savings / costs
     return sir
@@ -199,6 +207,14 @@ class CostEffectiveness():
         savings[i] += tax_credit # apply tax credit to years 1-10        
     
     return savings, costs
+
+def get_fuel_price_indices_for_state_and_fuel_type(json, state, fuel_type):
+  fuel_type_indices = json[fuel_type]
+  for states_indices in fuel_type_indices:
+    states = states_indices['states']
+    if state in states:
+      indices = [1.0] + states_indices['indices']
+      return indices
 
 class IncomeBins:
 
@@ -272,3 +288,117 @@ class IncomeBins:
           '<120': ['Owner 0-30', 'Owner 30-50', 'Owner 50-80', 'Owner 80-100', 'Owner 100-120', 'Renter 0-30', 'Renter 30-50', 'Renter 50-80', 'Renter 80-100', 'Renter 100-120'],
           'all': ['Owner 0-30', 'Owner 30-50', 'Owner 50-80', 'Owner 80-100', 'Owner 100-120', 'Owner 120+', 'Renter 0-30', 'Renter 30-50', 'Renter 50-80', 'Renter 80-100', 'Renter 100-120', 'Renter 120+']
           }
+
+class UtilityBillCalculations():
+
+  @staticmethod
+  def state_level_rates(df):
+    import os
+    import pandas as pd
+
+    elec_rates = pd.read_csv(os.path.join(os.path.dirname(__file__), 'Electricity.csv'))
+    elec_rates = elec_rates[pd.notnull(elec_rates['Location'])]
+    elec_rates = elec_rates[pd.notnull(elec_rates['Unadjusted'])]
+    elec_rates = elec_rates.rename(columns={'Location': 'building_characteristics_report.location_state', 'Unadjusted': 'average_elec_rate', 'Household': 'kwh_per_home_per_yr'})
+    elec_rates = elec_rates[['building_characteristics_report.location_state', 'average_elec_rate', 'kwh_per_home_per_yr']]
+    elec_rates = elec_rates.set_index('building_characteristics_report.location_state')
+
+    gas_rates = pd.read_csv(os.path.join(os.path.dirname(__file__), 'Natural gas.csv'))
+    gas_rates = gas_rates[pd.notnull(gas_rates['Location'])]
+    gas_rates = gas_rates[pd.notnull(gas_rates['Unadjusted'])]
+    gas_rates = gas_rates.rename(columns={'Location': 'building_characteristics_report.location_state', 'Unadjusted': 'average_gas_rate', 'Household': 'therm_per_home_per_yr'})
+    gas_rates = gas_rates[['building_characteristics_report.location_state', 'average_gas_rate', 'therm_per_home_per_yr']]
+    gas_rates = gas_rates.set_index('building_characteristics_report.location_state')
+
+    oil_rates = pd.read_csv(os.path.join(os.path.dirname(__file__), 'Oil.csv'))
+    oil_rates = oil_rates[pd.notnull(oil_rates['Location'])]
+    oil_rates = oil_rates[pd.notnull(oil_rates['Price'])]
+    oil_rates = oil_rates.rename(columns={'Location': 'building_characteristics_report.location_state', 'Price': 'average_oil_rate'})
+    oil_rates = oil_rates[['building_characteristics_report.location_state', 'average_oil_rate']]
+    oil_rates = oil_rates.set_index('building_characteristics_report.location_state')
+
+    prop_rates = pd.read_csv(os.path.join(os.path.dirname(__file__), 'Propane.csv'))
+    prop_rates = prop_rates[pd.notnull(prop_rates['Location'])]
+    prop_rates = prop_rates[pd.notnull(prop_rates['Price'])]
+    prop_rates = prop_rates.rename(columns={'Location': 'building_characteristics_report.location_state', 'Price': 'average_prop_rate'})
+    prop_rates = prop_rates[['building_characteristics_report.location_state', 'average_prop_rate']]
+    prop_rates = prop_rates.set_index('building_characteristics_report.location_state')
+
+    rates = pd.concat([elec_rates, gas_rates, oil_rates, prop_rates], axis=1)
+    rates = rates.reset_index()
+    for col in rates.columns:
+      if 'state' in col:
+        continue
+      rates[col] = rates[col].astype(float)
+    df = df.reset_index()
+    df = pd.merge(df, rates, how='left', on='building_characteristics_report.location_state')
+    df = df.set_index('_id')
+
+    fixed_elec_rate = 8.0 # $/month
+    df['marginal_elec_rate'] = df['average_elec_rate'] - 12.0 * fixed_elec_rate / df['kwh_per_home_per_yr'] # convert average rate to marginal rate
+    df['utility_bill_calculations.electricity'] = 12.0 * fixed_elec_rate + df['simulation_output_report.total_site_electricity_kwh'] * df['marginal_elec_rate']
+
+    fixed_gas_rate = 8.0 # $/month
+    df['marginal_gas_rate'] = df['average_gas_rate'] - 12.0 * fixed_gas_rate / df['therm_per_home_per_yr'] # convert average rate to marginal rate
+    df['utility_bill_calculations.natural_gas'] = 12.0 * fixed_elec_rate + df['simulation_output_report.total_site_natural_gas_therm'] * df['marginal_gas_rate']
+
+    df['utility_bill_calculations.fuel_oil'] = ( df['simulation_output_report.total_site_fuel_oil_mbtu'] * 1e6 / 139000 ) * df['average_oil_rate']
+
+    df['utility_bill_calculations.propane'] = ( df['simulation_output_report.total_site_propane_mbtu'] * 1e6 / 91600 ) * df['average_prop_rate']
+
+    del df['average_elec_rate']
+    del df['average_gas_rate']
+    del df['average_oil_rate']
+    del df['average_prop_rate']
+
+    del df['kwh_per_home_per_yr']
+    del df['marginal_elec_rate']
+    del df['therm_per_home_per_yr']
+    del df['marginal_gas_rate']
+
+    return df
+
+  @staticmethod
+  def county_level_rates(df, upgrade):
+    import pandas as pd
+
+    fixed_elec_rate = 8.0 # $/month
+    t = df[['simulation_output_report.total_site_electricity_kwh', 'weight', 'Dependency=Location County']]
+    t['simulation_output_report.total_site_electricity_kwh'] *= t['weight']
+    t = t.groupby('Dependency=Location County').sum()
+    t['kwh_per_home_per_yr'] = t['simulation_output_report.total_site_electricity_kwh'] / t['weight']
+    del t['simulation_output_report.total_site_electricity_kwh']
+    del t['weight']
+    t = t.reset_index()
+    df = pd.merge(df, t, on='Dependency=Location County')    
+    df['marginal_elec_rate'] = df['average_elec_rate'] - 12.0 * fixed_elec_rate / df['kwh_per_home_per_yr'] # convert average rate to marginal rate
+    df['utility_bill_calculations.electricity'] = 12.0 * fixed_elec_rate + df['simulation_output_report.total_site_electricity_kwh'] * df['marginal_elec_rate']
+    if upgrade:
+      df['savings_utility_bill_calculations.electricity'] = df['savings_simulation_output_report.total_site_electricity_kwh'] * df['marginal_elec_rate']
+    del df['marginal_elec_rate']
+    del df['kwh_per_home_per_yr']
+
+    fixed_gas_rate = 8.0 # $/month
+    df['marginal_gas_rate'] = df['average_gas_rate'] - 12.0 * fixed_gas_rate / df['therm_per_home_per_yr'] # convert average rate to marginal rate
+    df['utility_bill_calculations.natural_gas'] = 12.0 * fixed_gas_rate + df['simulation_output_report.total_site_natural_gas_therm'] * df['marginal_gas_rate']
+    if upgrade:
+      df['savings_utility_bill_calculations.natural_gas'] = df['savings_simulation_output_report.total_site_natural_gas_therm'] * df['marginal_gas_rate']
+    del df['marginal_gas_rate']
+    del df['therm_per_home_per_yr']
+
+    df['utility_bill_calculations.fuel_oil'] = ( df['simulation_output_report.total_site_fuel_oil_mbtu'] * 1e6 / 139000 ) * df['average_oil_rate']
+    if upgrade:
+      df['savings_utility_bill_calculations.fuel_oil'] = ( df['savings_simulation_output_report.total_site_fuel_oil_mbtu'] * 1e6 / 139000 ) * df['average_oil_rate']
+
+    df['utility_bill_calculations.propane'] = ( df['simulation_output_report.total_site_propane_mbtu'] * 1e6 / 91600 ) * df['average_prop_rate']
+    if upgrade:
+      df['savings_utility_bill_calculations.propane'] = ( df['savings_simulation_output_report.total_site_propane_mbtu'] * 1e6 / 91600 ) * df['average_prop_rate']
+
+    df['utility_bill_calculations.total_bill'] = df['utility_bill_calculations.electricity'] + df['utility_bill_calculations.natural_gas'] + df['utility_bill_calculations.fuel_oil'] + df['utility_bill_calculations.propane']
+
+    del df['average_elec_rate']
+    del df['average_gas_rate']
+    del df['average_oil_rate']
+    del df['average_prop_rate']
+
+    return df
