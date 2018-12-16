@@ -42,7 +42,7 @@ Ignore this for now.
 Server Finalization Script
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-After all datapoints have been simulated, this script calls a method for calculating the incremental cost and savings for upgrades. You can specify the ``"reference", "upgrade"`` (each enclosed in double quotation marks and separated by a comma) pair(s) by updating the **Script Arguments** section (see image above). 
+After all datapoints have been simulated, this script calls a method for calculating the incremental cost and savings for upgrades. You can specify one or more reference scenarios for the cost and energy subtraction by entering ``"reference", "upgrade"`` (each enclosed in double quotation marks and separated by a comma) pair(s) (one argument for each pair) in the **Script Arguments** section (see image above). 
 
     ``upgrade`` indicates the upgrade scenario for calculating savings, and should exactly match the "Upgrade Name" string for one of the upgrade measures (see :ref:`tutorial-apply-upgrade`). 
     
@@ -68,7 +68,7 @@ By default this script also attaches additional outputs to the results csv file,
  - reportable domain (according to RECS 2009)
  - source energy (using conversion factors from BSR/ASHRAE Standard 105-2013)
  - eGRID subregion (see the entire `eGRID subregion map`_)
- - utility bill calculations
+ - utility bill calculations (for now using simple average flat rates for each state)
  - simple payback
  - net present value
  - savings-to-investment ratio
