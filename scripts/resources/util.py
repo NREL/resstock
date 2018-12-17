@@ -293,31 +293,42 @@ class UtilityBillCalculations():
 
   @staticmethod
   def state_level_rates(df):
+    """
+    Optionally called by the results_savings_csv script. This method assigns utility rates based on epw state for each simulation.
+    For electricity and natural gas, marginal rates are first calculated using average rates, a fixed $/month rate, and average annual household consumptions.
+
+    Parameters:
+      df (dataframe): A pandas dataframe (results csv file) without any utility_bill_calculations columns.
+
+    Returns:
+      df (dataframe): A pandas dataframe with calculated utility bill columns (electricity, gas, oil, propane).
+
+    """
     import os
     import pandas as pd
 
-    elec_rates = pd.read_csv(os.path.join(os.path.dirname(__file__), 'Electricity.csv'))
+    elec_rates = pd.read_csv(os.path.join(os.path.dirname(__file__), 'electricity_rates_state_average.csv'))
     elec_rates = elec_rates[pd.notnull(elec_rates['Location'])]
     elec_rates = elec_rates[pd.notnull(elec_rates['Unadjusted'])]
     elec_rates = elec_rates.rename(columns={'Location': 'building_characteristics_report.location_state', 'Unadjusted': 'average_elec_rate', 'Household': 'kwh_per_home_per_yr'})
     elec_rates = elec_rates[['building_characteristics_report.location_state', 'average_elec_rate', 'kwh_per_home_per_yr']]
     elec_rates = elec_rates.set_index('building_characteristics_report.location_state')
 
-    gas_rates = pd.read_csv(os.path.join(os.path.dirname(__file__), 'Natural gas.csv'))
+    gas_rates = pd.read_csv(os.path.join(os.path.dirname(__file__), 'natural_gas_rates_state_average.csv'))
     gas_rates = gas_rates[pd.notnull(gas_rates['Location'])]
     gas_rates = gas_rates[pd.notnull(gas_rates['Unadjusted'])]
     gas_rates = gas_rates.rename(columns={'Location': 'building_characteristics_report.location_state', 'Unadjusted': 'average_gas_rate', 'Household': 'therm_per_home_per_yr'})
     gas_rates = gas_rates[['building_characteristics_report.location_state', 'average_gas_rate', 'therm_per_home_per_yr']]
     gas_rates = gas_rates.set_index('building_characteristics_report.location_state')
 
-    oil_rates = pd.read_csv(os.path.join(os.path.dirname(__file__), 'Oil.csv'))
+    oil_rates = pd.read_csv(os.path.join(os.path.dirname(__file__), 'oil_rates_state_average.csv'))
     oil_rates = oil_rates[pd.notnull(oil_rates['Location'])]
     oil_rates = oil_rates[pd.notnull(oil_rates['Price'])]
     oil_rates = oil_rates.rename(columns={'Location': 'building_characteristics_report.location_state', 'Price': 'average_oil_rate'})
     oil_rates = oil_rates[['building_characteristics_report.location_state', 'average_oil_rate']]
     oil_rates = oil_rates.set_index('building_characteristics_report.location_state')
 
-    prop_rates = pd.read_csv(os.path.join(os.path.dirname(__file__), 'Propane.csv'))
+    prop_rates = pd.read_csv(os.path.join(os.path.dirname(__file__), 'propane_rates_state_average.csv'))
     prop_rates = prop_rates[pd.notnull(prop_rates['Location'])]
     prop_rates = prop_rates[pd.notnull(prop_rates['Price'])]
     prop_rates = prop_rates.rename(columns={'Location': 'building_characteristics_report.location_state', 'Price': 'average_prop_rate'})
@@ -360,6 +371,17 @@ class UtilityBillCalculations():
 
   @staticmethod
   def county_level_rates(df, upgrade):
+    """
+    Optionally called by the income_bin_disaggregation script. This method assigns utility rates based on counties (nsrdb_utility_weights resource file).
+    For electricity and natural gas, marginal rates are first calculated using average rates, a fixed $/month rate, and average annual household consumptions.
+
+    Parameters:
+      df (dataframe): A pandas dataframe (results csv file) without any utility_bill_calculations columns.
+
+    Returns:
+      df (dataframe): A pandas dataframe with calculated utility bill columns (electricity, gas, oil, propane).
+
+    """
     import pandas as pd
 
     fixed_elec_rate = 8.0 # $/month
@@ -383,8 +405,7 @@ class UtilityBillCalculations():
     df['utility_bill_calculations.natural_gas'] = 12.0 * fixed_gas_rate + df['simulation_output_report.total_site_natural_gas_therm'] * df['marginal_gas_rate']
     if upgrade:
       df['savings_utility_bill_calculations.natural_gas'] = df['savings_simulation_output_report.total_site_natural_gas_therm'] * df['marginal_gas_rate']
-    del df['marginal_gas_rate']
-    del df['therm_per_home_per_yr']
+    del df['marginal_gas_rate']    
 
     df['utility_bill_calculations.fuel_oil'] = ( df['simulation_output_report.total_site_fuel_oil_mbtu'] * 1e6 / 139000 ) * df['average_oil_rate']
     if upgrade:
@@ -395,10 +416,5 @@ class UtilityBillCalculations():
       df['savings_utility_bill_calculations.propane'] = ( df['savings_simulation_output_report.total_site_propane_mbtu'] * 1e6 / 91600 ) * df['average_prop_rate']
 
     df['utility_bill_calculations.total_bill'] = df['utility_bill_calculations.electricity'] + df['utility_bill_calculations.natural_gas'] + df['utility_bill_calculations.fuel_oil'] + df['utility_bill_calculations.propane']
-
-    del df['average_elec_rate']
-    del df['average_gas_rate']
-    del df['average_oil_rate']
-    del df['average_prop_rate']
 
     return df
