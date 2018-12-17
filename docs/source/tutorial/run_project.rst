@@ -29,6 +29,8 @@ When the cluster is running, start the analysis by clicking the **Run Entire Wor
 
 Leave the PAT application open while your analysis runs. It could take a while.
 
+.. _download-results:
+
 Download results
 ----------------
 
@@ -50,7 +52,7 @@ Sometime you will need *all* the simulation results including timeseries results
    
 .. note::
 
-   To download all datapoints, including the timeseries csv output for each simulation, run the ``scripts/download_datapoints.rb`` script. The script requires that the ``localResults/results.csv`` file be downloaded first. Supply all required arguments to the script, including project directory, server DNS, and analysis ID. A usage example is given as follows:
+   To download all datapoints, including the timeseries csv output for each simulation, run the ``scripts/download_datapoints.rb`` script. The script requires that the :ref:`timeseries-csv-export` reporting measure be included in your PAT project. Supply all required arguments to the script, including project directory, server DNS, and analysis ID. A usage example is given as follows:
    ``$ ruby scripts/download_datapoints.rb -p project_resstock_national``
    ``-s http://ec2-107-23-165-146.compute-1.amazonaws.com -a 706c3b4a-9685-4924-bb13-c6bec77aa397``
 
