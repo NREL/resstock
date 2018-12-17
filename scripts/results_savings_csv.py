@@ -11,6 +11,7 @@ from scipy.spatial import cKDTree
 from resources.util import StateAbbrev
 from resources.util import ReportableDomain
 from resources.util import CostEffectiveness
+from resources.util import UtilityBillCalculations
 import warnings
 warnings.filterwarnings('ignore')
 
@@ -19,25 +20,13 @@ def add_columns(df, cols):
   new_df = df.copy()
   for col in cols:
     df = new_df.copy()
+    len_df_columns = len(df.columns)
     new_df = getattr(extra_columns, col)(df)
-    if not new_df.equals(df):
+    if len(new_df.columns) != len_df_columns:
       print 'Adding {} ...'.format(col)
   return new_df
 
 class ExtraColumns:
-
-  def location(self, df):
-    epw_to_lat_lon = pd.read_csv(os.path.join(os.path.dirname(__file__), 'resources/resstock_epws.csv'))
-    if not 'building_characteristics_report.location_state' in df.columns:
-      for epw, group in df.groupby('building_characteristics_report.location_epw'):
-        df.loc[df['building_characteristics_report.location_epw']==epw, 'building_characteristics_report.location_state'] = epw_to_lat_lon[epw_to_lat_lon['filename']==epw]['state'].values[0]
-    if not 'building_characteristics_report.location_latitude' in df.columns:
-      for epw, group in df.groupby('building_characteristics_report.location_epw'):
-        df.loc[df['building_characteristics_report.location_epw']==epw, 'building_characteristics_report.location_latitude'] = epw_to_lat_lon[epw_to_lat_lon['filename']==epw]['latitude'].values[0]
-    if not 'building_characteristics_report.location_longitude' in df.columns:
-      for epw, group in df.groupby('building_characteristics_report.location_epw'):
-        df.loc[df['building_characteristics_report.location_epw']==epw, 'building_characteristics_report.location_longitude'] = epw_to_lat_lon[epw_to_lat_lon['filename']==epw]['longitude'].values[0]
-    return df
 
   def reportable_domain(self, df):
     state_to_reportabledomain = ReportableDomain.statename_to_reportabledomain()
@@ -48,7 +37,7 @@ class ExtraColumns:
 
   def egrid_subregions(self, df):
     if not 'egrid' in ['egrid' for col in df.columns if 'egrid' in col]:
-      egrid = pd.read_csv(os.path.join(os.path.dirname(__file__), 'resources/egrid.csv'), index_col='grid_gid')
+      egrid = pd.read_csv('../data/resources/egrid.csv', index_col='grid_gid')
       egrid.rename(columns={'egrid_subregion': 'building_characteristics_report.egrid_subregion'}, inplace=True)
 
       latlonalt_proj = pyproj.Proj(proj='latlong', ellps='WGS84', datum='WGS84')
@@ -78,6 +67,13 @@ class ExtraColumns:
       del egrid['z']
 
       df = pd.merge(df, egrid, left_on='building_characteristics_report.grid_gid', right_index=True, how='left')
+
+      del df['state_name']
+      del df['county_name']
+      del df['nsrdb_gid_old']
+      del df['nsrdb_gid_new']
+      del df['nsrdb_cent_lat']
+      del df['nsrdb_cent_long']
     return df
     
   def source_energy(self, df):
@@ -93,20 +89,15 @@ class ExtraColumns:
       df['simulation_output_report.total_source_energy_mbtu'] = total_source_electricity_mbtu + total_source_natural_gas_mbtu + total_source_other_fuel_mbtu
     return df
   
-  # def energy_use_intensity(self, df):
-  #   df['simulation_output_report.energy_use_intensity'] = df.apply(lambda x: x['simulation_output_report.total_source_energy_mbtu'] / {'0-1499': 1000, '1500-2499': 2000, '2500-3499': 3000, '3500+': 4500, np.nan: np.nan}[x['building_characteristics_report.geometry_house_size']], axis=1)
-  #   for name, group in df.groupby('simulation_output_report.upgrade_name'):
-  #     df.loc[df['simulation_output_report.upgrade_name']==name, 'simulation_output_report.portfolio_eui'] = group['simulation_output_report.total_source_energy_mbtu'].sum() / group['building_characteristics_report.geometry_house_size'].apply(lambda x: {'0-1499': 1000, '1500-2499': 2000, '2500-3499': 3000, '3500+': 4500, np.nan: np.nan}[x]).sum()
-  #     df.loc[df['simulation_output_report.upgrade_name']==name, 'simulation_output_report.average_eui'] = group['simulation_output_report.energy_use_intensity'].sum() / len(group['building_characteristics_report.geometry_house_size'])
-  #   return df
-  
   def total_utility_bill(self, df):
     if 'utility_bill_calculations' in ['utility_bill_calculations' for col in df.columns if 'utility_bill_calculations' in col]:
       df['utility_bill_calculations.electricity'] = df['utility_bill_calculations.electricity'].fillna(0)
       df['utility_bill_calculations.natural_gas'] = df['utility_bill_calculations.natural_gas'].fillna(0)
       df['utility_bill_calculations.fuel_oil'] = df['utility_bill_calculations.fuel_oil'].fillna(0)
       df['utility_bill_calculations.propane'] = df['utility_bill_calculations.propane'].fillna(0)
-      df['utility_bill_calculations.total_bill'] = df[['utility_bill_calculations.electricity', 'utility_bill_calculations.natural_gas', 'utility_bill_calculations.fuel_oil', 'utility_bill_calculations.propane']].sum(axis=1)
+    else: # calculated with state-level rates
+      df = UtilityBillCalculations.state_level_rates(df)
+    df['utility_bill_calculations.total_bill'] = df[['utility_bill_calculations.electricity', 'utility_bill_calculations.natural_gas', 'utility_bill_calculations.fuel_oil', 'utility_bill_calculations.propane']].sum(axis=1)
     return df
     
   def simple_payback(self, df):
@@ -126,19 +117,26 @@ class ExtraColumns:
           df['savings_simulation_output_report.upgrade_option_{}_npv'.format(i)] = df.apply(lambda x: CostEffectiveness.net_present_value(discount_rate, analysis_period, x['{}_lifetime_yrs'.format(col)], x['{}_cost_usd'.format(col)], x['savings_utility_bill_calculations.total_bill'], 0, '1'), axis=1)
           npvs.append('savings_simulation_output_report.upgrade_option_{}_npv'.format(i))
         df['savings_simulation_output_report.net_present_value'] = df[npvs].sum(axis=1)
+        for i in ['01', '02', '03', '04', '05', '06', '07', '08', '09', '10']:
+          del df['savings_simulation_output_report.upgrade_option_{}_npv'.format(i)]
     return df
 
   def savings_investment_ratio(self, df):
     if not 'savings_simulation_output_report.savings_investment_ratio' in df.columns:
       if 'savings_utility_bill_calculations.total_bill' in df.columns:
+        import json
+        with open('resources/projected_fuel_price_indices.json') as f:
+          fuel_price_indices = json.load(f)
         discount_rate = 0.03
         analysis_period = 30
         sirs = []
         for i in ['01', '02', '03', '04', '05', '06', '07', '08', '09', '10']:
           col = 'simulation_output_report.upgrade_option_{}'.format(i)
-          df['savings_simulation_output_report.upgrade_option_{}_sir'.format(i)] = df.apply(lambda x: CostEffectiveness.savings_investment_ratio(discount_rate, analysis_period, x['{}_lifetime_yrs'.format(col)], x['{}_cost_usd'.format(col)], x['savings_utility_bill_calculations.total_bill'], 0, '1'), axis=1)
+          df['savings_simulation_output_report.upgrade_option_{}_sir'.format(i)] = df.apply(lambda x: CostEffectiveness.savings_investment_ratio(discount_rate, analysis_period, x['{}_lifetime_yrs'.format(col)], x['{}_cost_usd'.format(col)], x['building_characteristics_report.location_state'], fuel_price_indices, x['savings_utility_bill_calculations.electricity'], x['savings_utility_bill_calculations.natural_gas'], x['savings_utility_bill_calculations.fuel_oil'], x['savings_utility_bill_calculations.propane'], 0, '1'), axis=1)
           sirs.append('savings_simulation_output_report.upgrade_option_{}_sir'.format(i))
         df['savings_simulation_output_report.savings_investment_ratio'] = df[sirs].sum(axis=1)
+        for i in ['01', '02', '03', '04', '05', '06', '07', '08', '09', '10']:
+          del df['savings_simulation_output_report.upgrade_option_{}_sir'.format(i)]
     return df
 
 def preprocess(df):
@@ -161,13 +159,6 @@ def preprocess(df):
     if pd.isnull(df[col]).all():
       del df[col]
 
-  # forward fill location to upgrade rows
-  for name, group in df.groupby('build_existing_model.building_id'):
-    lat = group['building_characteristics_report.location_latitude'].dropna().values[0]
-    lon = group['building_characteristics_report.location_longitude'].dropna().values[0]
-    df.loc[df['build_existing_model.building_id']==name, 'building_characteristics_report.location_latitude'] = lat
-    df.loc[df['build_existing_model.building_id']==name, 'building_characteristics_report.location_longitude'] = lon
-
   return df
 
 def get_enduses(df):  
@@ -179,9 +170,9 @@ def get_enduses(df):
   enduses = [col for col in enduses if not '_capacity_w' in col]
   return enduses
 
-def deltas(df, enduses, pair):
+def deltas(df, enduses, reference_name, upgrade_name):
 
-  reference_name, upgrade_name = pair
+  # reference_name, upgrade_name = pair
     
   # reference rows for this building_id
   ref_df = df.loc[df['simulation_output_report.upgrade_name']==reference_name]
@@ -209,10 +200,10 @@ def deltas(df, enduses, pair):
 
   return df
 
-def parallelize(groups, func, enduses, pair):
+def parallelize(groups, func, enduses, reference_name, upgrade_name):
   n_jobs = multiprocessing.cpu_count()
   print 'Using {} parallel processes...'.format(n_jobs)
-  list = Parallel(n_jobs=n_jobs, verbose=5)(delayed(func)(group, enduses, pair) for building_id, group in groups)
+  list = Parallel(n_jobs=n_jobs, verbose=5)(delayed(func)(group, enduses, reference_name, upgrade_name) for building_id, group in groups)
   return pd.concat(list)
 
 def savings(results_csv, results_savings_csv, extra_cols, ref_upg_pairs):
@@ -269,15 +260,16 @@ def savings(results_csv, results_savings_csv, extra_cols, ref_upg_pairs):
     if len(ref_upg_pairs) == 0: # user didn't supply any pairs, so assume all pairs are all upgrades relative to base
       for upgrade_name in upgrade_names:
         if upgrade_name != 'BASE':
-          ref_upg_pairs.append('[BASE,{}]'.format(upgrade_name))
+          ref_upg_pairs.append('"BASE", "{}"'.format(upgrade_name))
 
     for pair in ref_upg_pairs:
 
-      pair = map(str, pair.strip('[]').split(','))
-
-      reference_name, upgrade_name = pair
+      ref_upg_quote_split = pair.split('"')
+      ref_upg_sep = '"{}"'.format(ref_upg_quote_split[2])
+      ref_upg_comma_split = pair.split(ref_upg_sep)
+      reference_name, upgrade_name = [x.replace('"', '').replace("'", '').strip() for x in ref_upg_comma_split]
       
-      print '\t... {}'.format(pair)
+      print '\t... {}, {}'.format(reference_name, upgrade_name)
       if not reference_name in upgrade_names or not upgrade_name in upgrade_names:
         print '\t\t... Skip'
         continue
@@ -293,7 +285,7 @@ def savings(results_csv, results_savings_csv, extra_cols, ref_upg_pairs):
       upg_df = upg_df[upg_df['build_existing_model.building_id'].isin(ref_df['build_existing_model.building_id'])] # only upgrades for which there is a reference
       ref_upg_df = pd.concat([ref_df, upg_df])
 
-      ref_upg_df = parallelize(ref_upg_df.groupby('build_existing_model.building_id'), deltas, enduses, pair)
+      ref_upg_df = parallelize(ref_upg_df.groupby('build_existing_model.building_id'), deltas, enduses, reference_name, upgrade_name)
       
       upg_df = ref_upg_df[ref_upg_df['simulation_output_report.upgrade_name']==upgrade_name]
       upg_df['simulation_output_report.upgrade_name'] = '{}-{}'.format(reference_name, upgrade_name)
@@ -314,9 +306,9 @@ def savings(results_csv, results_savings_csv, extra_cols, ref_upg_pairs):
     df = pd.concat([ref_df] + upg_dfs)
   
   # sort on the building_id and upgrade_name
-  df = df.sort(['build_existing_model.building_id', 'simulation_output_report.upgrade_name'])
+  df = df.sort_values(['build_existing_model.building_id', 'simulation_output_report.upgrade_name'])
 
-  # df = df.dropna(axis=1, how='all')
+  df = df.dropna(axis=1, how='all')
   df.to_csv(results_savings_csv)
 
   print 'CSV export(s) of savings calculations complete.'
