@@ -16,6 +16,16 @@ import warnings
 warnings.filterwarnings('ignore')
 
 def add_columns(df, cols):
+  """
+  Call the methods in the ExtraColumns class.
+
+  Parameters:
+    cols (list): Array of additional columns to attach to dataframe.
+
+  Returns:
+    new_df (dataframe): A pandas dataframe with new column(s).
+
+  """
   extra_columns = ExtraColumns()
   new_df = df.copy()
   for col in cols:
@@ -27,7 +37,16 @@ def add_columns(df, cols):
   return new_df
 
 class ExtraColumns:
+  """
+  Methods for calculating and attaching additional columns onto the results csv file.
 
+  Parameters:
+    df (dataframe): A pandas dataframe originally parsed from the results csv file.
+
+  Returns:
+    df (dataframe): A pandas dataframe with the attached additional column(s).
+
+  """
   def reportable_domain(self, df):
     state_to_reportabledomain = ReportableDomain.statename_to_reportabledomain()
     state_to_reportabledomain.update(ReportableDomain.stateabbrev_to_reportabledomain())
@@ -140,7 +159,16 @@ class ExtraColumns:
     return df
 
 def preprocess(df):
+  """
+  Method for preprocessing the results csv file: field filling, subsetting, etc.
 
+  Parameters:
+    df (dataframe): The original results csv file.
+
+  Returns:
+    df (dataframe): The filled, subsetted, etc. pandas dataframe.
+
+  """
   # if there are no upgrade columns, add them with null values  
   for col in ['simulation_output_report.upgrade_name', 'simulation_output_report.upgrade_cost_usd']:
     if not col in df.columns:
@@ -159,7 +187,7 @@ def preprocess(df):
     if pd.isnull(df[col]).all():
       del df[col]
 
-  # forward fill location to upgrade rows
+  # fill location columns for upgrade rows
   for name, group in df.groupby('build_existing_model.building_id'):
     df.loc[df['build_existing_model.building_id']==name, 'building_characteristics_report.location_city'] = group['building_characteristics_report.location_city'].dropna().values[0]
     df.loc[df['build_existing_model.building_id']==name, 'building_characteristics_report.location_state'] = group['building_characteristics_report.location_state'].dropna().values[0]
@@ -168,7 +196,17 @@ def preprocess(df):
 
   return df
 
-def get_enduses(df):  
+def get_enduses(df):
+  """
+  Retrieve the list of enduses to calculate savings for.
+
+  Parameters:
+    df (dataframe): A pandas dataframe created from the results csv file.
+  
+  Returns:
+    enduses (list): All of the dataframe columns for which we want to calculate savings.
+
+  """
   enduses = [col for col in df.columns if 'simulation_output_report' in col or 'utility_bill_calculations' in col]
   enduses = [col for col in enduses if not '.weight' in col]
   enduses = [col for col in enduses if not '.upgrade_cost_usd' in col]
@@ -178,9 +216,18 @@ def get_enduses(df):
   return enduses
 
 def deltas(df, enduses, reference_name, upgrade_name):
+  """
+  Calculate the delta (savings) between the upgrade and reference dataframes.
 
-  # reference_name, upgrade_name = pair
-    
+  Parameters:
+    enduses (list):
+    reference_name (str): The name of the reference scenario.
+    upgrade_name (str): The name of the upgrade scenario.
+
+  Returns:
+    df (dataframe): A pandas dataframe with new attached savings columns.
+
+  """    
   # reference rows for this building_id
   ref_df = df.loc[df['simulation_output_report.upgrade_name']==reference_name]
 
@@ -214,7 +261,16 @@ def parallelize(groups, func, enduses, reference_name, upgrade_name):
   return pd.concat(list)
 
 def savings(results_csv, results_savings_csv, extra_cols, ref_upg_pairs):
+  """
+  Produce results savings csv file from results csv file. Also add cost-effectiveness, etc. columns.
 
+  Parameters:
+    results_csv (str): Relative path of the results csv file.
+    results_savings_csv (str): Relative path of the results savings csv file.
+    extra_cols (list): Additional columns to add to the results csv file.
+    ref_upg_pairs (list): Reference, upgrade pairs for calculating savings.
+
+  """
   print 'Starting to process {}...'.format(os.path.basename(results_csv))
 
   results_csv = pd.read_csv(results_csv, index_col=['_id'])
