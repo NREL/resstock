@@ -34,8 +34,7 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
                           "electricity_interior_lighting_kwh",
                           "electricity_exterior_lighting_kwh",
                           "electricity_interior_equipment_kwh",
-                          "electricity_fans_heating_kwh",
-                          "electricity_fans_cooling_kwh",
+                          "electricity_fans_kwh",
                           "electricity_pumps_kwh",
                           "electricity_water_systems_kwh",
                           "electricity_pv_kwh",
@@ -138,12 +137,7 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
     report_sim_output(runner, "electricity_interior_lighting_kwh", [sqlFile.electricityInteriorLighting], "GJ", elec_site_units)
     report_sim_output(runner, "electricity_exterior_lighting_kwh", [sqlFile.electricityExteriorLighting], "GJ", elec_site_units)
     report_sim_output(runner, "electricity_interior_equipment_kwh", [sqlFile.electricityInteriorEquipment], "GJ", elec_site_units)
-    electricity_fans_heating_query = "SELECT Value FROM TabularDataWithStrings WHERE ReportName='EnergyMeters' AND ReportForString='Entire Facility' AND TableName='Annual and Peak Values - Electricity' AND RowName='res hvac heating fan:Fans:Electricity' AND ColumnName='Electricity Annual Value' AND Units='GJ'"
-    electricity_fans_heating = sqlFile.execAndReturnFirstDouble(electricity_fans_heating_query)
-    electricity_fans_cooling_query = "SELECT Value FROM TabularDataWithStrings WHERE ReportName='EnergyMeters' AND ReportForString='Entire Facility' AND TableName='Annual and Peak Values - Electricity' AND RowName='res hvac cooling fan:Fans:Electricity' AND ColumnName='Electricity Annual Value' AND Units='GJ'"
-    electricity_fans_cooling = sqlFile.execAndReturnFirstDouble(electricity_fans_cooling_query)
-    report_sim_output(runner, "electricity_fans_heating_kwh", [electricity_fans_heating], "GJ", elec_site_units)
-    report_sim_output(runner, "electricity_fans_cooling_kwh", [electricity_fans_cooling], "GJ", elec_site_units)
+    report_sim_output(runner, "electricity_fans_kwh", [sqlFile.electricityFans], "GJ", elec_site_units)
     report_sim_output(runner, "electricity_pumps_kwh", [sqlFile.electricityPumps], "GJ", elec_site_units)
     report_sim_output(runner, "electricity_water_systems_kwh", [sqlFile.electricityWaterSystems], "GJ", elec_site_units)
     report_sim_output(runner, "electricity_pv_kwh", [pv_val], "GJ", elec_site_units)
@@ -484,6 +478,21 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
             end
         end
         
+        # VRF?
+        if component.nil?
+            sum_value = 0.0
+            model.getZoneHVACTerminalUnitVariableRefrigerantFlows.each do |sys|
+                component = sys.heatingCoil
+                if component.is_a? OpenStudio::Model::OptionalCoilHeatingDXVariableRefrigerantFlow
+                    component = component.get
+                end
+                next if not component.ratedTotalHeatingCapacity.is_initialized
+                sum_value += component.ratedTotalHeatingCapacity.get
+            end
+            capacity_ratio = get_highest_stage_capacity_ratio(model, "SizingInfoHVACCapacityRatioHeating")
+            cost_mult += OpenStudio::convert(sum_value/capacity_ratio, "W", "kBtu/h").get
+        end
+        
         # Electric baseboard?
         if component.nil?
             max_value = 0.0
@@ -535,11 +544,28 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
                 end
             end
         end
+        
+        # VRF?
+        if component.nil?
+            sum_value = 0.0
+            model.getZoneHVACTerminalUnitVariableRefrigerantFlows.each do |sys|
+                component = sys.heatingCoil
+            end
+            if not component.nil?
+              max_value = 0.0
+              model.getZoneHVACBaseboardConvectiveElectrics.each do |sys|
+                next if not sys.nominalCapacity.is_initialized
+                next if sys.nominalCapacity.get <= max_value
+                max_value = sys.nominalCapacity.get
+              end
+              cost_mult += OpenStudio::convert(max_value, "W", "kBtu/h").get
+            end
+        end
     
     elsif cost_mult_type == "Size, Cooling System (kBtu/h)"
         # Cooling system capacity
 
-        component = nil        
+        component = nil
 
         # Unitary system or PTAC?
         model.getAirLoopHVACUnitarySystems.each do |sys|
@@ -578,6 +604,21 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
                     cost_mult += OpenStudio::convert(coil.ratedTotalCoolingCapacity.get, "W", "kBtu/h").get
                 end
             end
+        end
+        
+        # VRF?
+        if component.nil?
+            sum_value = 0.0
+            model.getZoneHVACTerminalUnitVariableRefrigerantFlows.each do |sys|
+                component = sys.coolingCoil
+                if component.is_a? OpenStudio::Model::OptionalCoilCoolingDXVariableRefrigerantFlow
+                    component = component.get
+                end
+                next if not component.ratedTotalCoolingCapacity.is_initialized
+                sum_value += component.ratedTotalCoolingCapacity.get
+            end
+            capacity_ratio = get_highest_stage_capacity_ratio(model, "SizingInfoHVACCapacityRatioCooling")
+            cost_mult += OpenStudio::convert(sum_value/capacity_ratio, "W", "kBtu/h").get
         end
         
     elsif cost_mult_type == "Size, Water Heater (gal)"
@@ -650,14 +691,15 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
     return false
   end
   
-  def get_highest_stage_capacity_ratio(model, property_str)
+  def get_highest_stage_capacity_ratio(model, capacity_ratio_str)
     capacity_ratio = 1.0
     
     # Override capacity ratio for residential multispeed systems
-    model.getAirLoopHVACUnitarySystems.each do |sys|
-      capacity_ratio_str = sys.additionalProperties.getFeatureAsString(property_str)
-      next if not capacity_ratio_str.is_initialized
-      capacity_ratio = capacity_ratio_str.get.split(",").map(&:to_f)[-1]
+    model.getBuildingUnits.each do |unit|
+        next if unit.spaces.size == 0
+        capacity_ratio_str = unit.getFeatureAsString(capacity_ratio_str)
+        next if not capacity_ratio_str.is_initialized
+        capacity_ratio = capacity_ratio_str.get.split(",").map(&:to_f)[-1]
     end
     
     return capacity_ratio
