@@ -2,17 +2,18 @@
   <schema_version>3.0</schema_version>
   <name>timeseries_csv_export</name>
   <uid>2a3442c1-944d-4e91-9e11-11e0cf368c64</uid>
-  <version_id>8cc6a722-be59-4c7e-8b0f-1ec3913a2334</version_id>
-  <version_modified>20181114T202020Z</version_modified>
+  <version_id>5044575f-faa2-41d9-a37b-94b2a42f348c</version_id>
+  <version_modified>20181218T231911Z</version_modified>
   <xml_checksum>15BF4E57</xml_checksum>
   <class_name>TimeseriesCSVExport</class_name>
   <display_name>Timeseries CSV Export</display_name>
-  <description>Exports all available hourly timeseries enduses to csv.</description>
-  <modeler_description>Exports all available hourly timeseries enduses to csv.</modeler_description>
+  <description>Exports timeseries output data to csv.</description>
+  <modeler_description>Exports all available timeseries enduses, subcategories, and output variables to csv file(s).</modeler_description>
   <arguments>
     <argument>
       <name>reporting_frequency</name>
       <display_name>Reporting Frequency</display_name>
+      <description>The frequency at which to report timeseries output data.</description>
       <type>Choice</type>
       <required>true</required>
       <model_dependent>false</model_dependent>
@@ -45,26 +46,9 @@
       </choices>
     </argument>
     <argument>
-      <name>inc_end_use_subcategories</name>
+      <name>include_enduse_subcategories</name>
       <display_name>Include End Use Subcategories</display_name>
-      <type>Boolean</type>
-      <required>true</required>
-      <model_dependent>false</model_dependent>
-      <default_value>false</default_value>
-      <choices>
-        <choice>
-          <value>true</value>
-          <display_name>true</display_name>
-        </choice>
-        <choice>
-          <value>false</value>
-          <display_name>false</display_name>
-        </choice>
-      </choices>
-    </argument>
-    <argument>
-      <name>inc_output_variables</name>
-      <display_name>Include Output Variables</display_name>
+      <description>Whether to report appliance-level enduses: refrigerator, clothes dryer, plug loads, etc.</description>
       <type>Boolean</type>
       <required>true</required>
       <model_dependent>false</model_dependent>
@@ -83,10 +67,11 @@
     <argument>
       <name>output_variables</name>
       <display_name>Output Variables</display_name>
+      <description>Specify a comma-separated list of output variables to report. (See EnergyPlus's rdd file for available output variables.)</description>
       <type>String</type>
       <required>true</required>
       <model_dependent>false</model_dependent>
-      <default_value>Zone Mean Air Temperature, Zone Mean Air Humidity Ratio, Fan Runtime Fraction</default_value>
+      <default_value></default_value>
     </argument>
   </arguments>
   <outputs/>
@@ -111,7 +96,7 @@
       <filename>measure.rb</filename>
       <filetype>rb</filetype>
       <usage_type>script</usage_type>
-      <checksum>7B68102F</checksum>
+      <checksum>09725E91</checksum>
     </file>
   </files>
 </measure>
