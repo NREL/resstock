@@ -179,6 +179,7 @@ def preprocess(df):
   df['simulation_output_report.upgrade_cost_usd'] = df['simulation_output_report.upgrade_cost_usd'].fillna(0)
 
   # if there is a status_message column, only retain the "completed normal" rows
+  
   if 'status_message' in df.columns:
     df = df[df['status_message']=='completed normal']
   
@@ -188,11 +189,17 @@ def preprocess(df):
       del df[col]
 
   # fill location columns for upgrade rows
-  for name, group in df.groupby('build_existing_model.building_id'):
-    df.loc[df['build_existing_model.building_id']==name, 'building_characteristics_report.location_city'] = group['building_characteristics_report.location_city'].dropna().values[0]
-    df.loc[df['build_existing_model.building_id']==name, 'building_characteristics_report.location_state'] = group['building_characteristics_report.location_state'].dropna().values[0]
-    df.loc[df['build_existing_model.building_id']==name, 'building_characteristics_report.location_latitude'] = group['building_characteristics_report.location_latitude'].dropna().values[0]
-    df.loc[df['build_existing_model.building_id']==name, 'building_characteristics_report.location_longitude'] = group['building_characteristics_report.location_longitude'].dropna().values[0]
+  df = df.reset_index()
+  df = df.set_index('build_existing_model.building_id')
+  if 'status_message' in df.columns:
+    base = df[(df['simulation_output_report.upgrade_name']=='BASE') & (df['status_message']=='completed normal')]
+  else:
+    base = df[df['simulation_output_report.upgrade_name']=='BASE']
+  base = base[[col for col in df.columns if 'building_characteristics_report' in col]]
+  upgrades = df[[col for col in df.columns if not 'building_characteristics_report' in col]]
+  df = base.join(upgrades)
+  df = df.reset_index()
+  df = df.set_index('_id')
 
   return df
 
