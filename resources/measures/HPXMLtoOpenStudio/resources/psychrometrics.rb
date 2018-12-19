@@ -1,10 +1,9 @@
-require "#{File.dirname(__FILE__)}/constants"
-require "#{File.dirname(__FILE__)}/unit_conversions"
-require "#{File.dirname(__FILE__)}/materials"
-require "#{File.dirname(__FILE__)}/util"
+require_relative "constants"
+require_relative "unit_conversions"
+require_relative "materials"
+require_relative "util"
 
 class Psychrometrics
-
   def self.H_fg_fT(t)
     '''
     Description:
@@ -32,7 +31,7 @@ class Psychrometrics
     --------
         H_fg    float      latent heat of vaporization (Btu/lbm)
     '''
-    h_fg = 1083 - 0.6585*t + 21.07
+    h_fg = 1083 - 0.6585 * t + 21.07
 
     return h_fg
   end
@@ -69,14 +68,14 @@ class Psychrometrics
     c12 = -2.4780681e-9
     c13 = 6.5459673
 
-    t_abs = UnitConversions.convert(tdb,"F","R")
-    t_frz_abs = UnitConversions.convert(Liquid.H2O_l.t_frz,"F","R")
+    t_abs = UnitConversions.convert(tdb, "F", "R")
+    t_frz_abs = UnitConversions.convert(Liquid.H2O_l.t_frz, "F", "R")
 
-    # If below freezing, calculate saturation pressure over ice
     if t_abs < t_frz_abs
+      # If below freezing, calculate saturation pressure over ice
       psat = Math.exp(c1 / t_abs + c2 + t_abs * (c3 + t_abs * (c4 + t_abs * (c5 + c6 * t_abs))) + c7 * Math.log(t_abs))
-    # If above freezing, calculate saturation pressure over liquid water
-    elsif
+    else
+      # If above freezing, calculate saturation pressure over liquid water
       psat = Math.exp(c8 / t_abs + c9 + t_abs * (c10 + t_abs * (c11 + c12 * t_abs)) + c13 * Math.log(t_abs))
     end
     return psat
@@ -109,28 +108,28 @@ class Psychrometrics
     error1 = error # (psia)
     error2 = error # (psia)
 
-    itmax = 50  # maximum iterations
+    itmax = 50 # maximum iterations
     cvg = false
 
     for i in 1..itmax
 
-        error = p - self.Psat_fT(tsat) # (psia)
+      error = p - self.Psat_fT(tsat) # (psia)
 
-        tsat,cvg,tsat1,error1,tsat2,error2 = MathTools.Iterate(tsat,error,tsat1,error1,tsat2,error2,i,cvg)
+      tsat, cvg, tsat1, error1, tsat2, error2 = MathTools.Iterate(tsat, error, tsat1, error1, tsat2, error2, i, cvg)
 
-        if cvg
-            break
-        end
-        
+      if cvg
+        break
+      end
+
     end
 
     if not cvg
-        puts 'Warning: Tsat_fP failed to converge'
+      puts 'Warning: Tsat_fP failed to converge'
     end
 
     return tsat
   end
-  
+
   def self.Tsat_fh_P(h, p)
     '''
     Description:
@@ -156,32 +155,32 @@ class Psychrometrics
     tdb1 = tdb # (degF)
     tdb2 = tdb # (degF)
 
-    error = h - self.hsat_fT_P(tdb,p) # (Btu/lbm)
+    error = h - self.hsat_fT_P(tdb, p) # (Btu/lbm)
     error1 = error
     error2 = error
 
-    itmax = 50  # maximum iterations
+    itmax = 50 # maximum iterations
     cvg = false
 
     for i in 1..itmax
 
-        error = h - self.hsat_fT_P(tdb,p) # (Btu/lbm)
+      error = h - self.hsat_fT_P(tdb, p) # (Btu/lbm)
 
-        tdb,cvg,tdb1,error1,tdb2,error2 = MathTools.Iterate(tdb,error,tdb1,error1,tdb2,error2,i,cvg)
+      tdb, cvg, tdb1, error1, tdb2, error2 = MathTools.Iterate(tdb, error, tdb1, error1, tdb2, error2, i, cvg)
 
-        if cvg
-            break
-        end
-        
+      if cvg
+        break
+      end
+
     end
 
     if not cvg
-        puts 'Warning: Tsat_fh_P failed to converge'
+      puts 'Warning: Tsat_fh_P failed to converge'
     end
 
     return tdb
   end
-  
+
   def self.rhoD_fT_w_P(tdb, w, p)
     '''
     Description:
@@ -204,10 +203,9 @@ class Psychrometrics
         rhoD    float      density of dry air    (lbm/ft3)
     '''
     pair = Gas.PsychMassRat * p / (Gas.PsychMassRat + w) # (psia)
-    rhoD = UnitConversions.convert(pair,"psi","Btu/ft^3") / Gas.Air.r / (UnitConversions.convert(tdb,"F","R")) # (lbm/ft3)
+    rhoD = UnitConversions.convert(pair, "psi", "Btu/ft^3") / Gas.Air.r / (UnitConversions.convert(tdb, "F", "R")) # (lbm/ft3)
 
     return rhoD
-
   end
 
   def self.h_fT_w_SI(tdb, w)
@@ -277,7 +275,7 @@ class Psychrometrics
         Pstd    float        barometric pressure (psia)
     '''
 
-    pstd = 14.696 * ((1 - 6.8754e-6 * z) ** 5.2559)
+    pstd = 14.696 * ((1 - 6.8754e-6 * z)**5.2559)
     return pstd
   end
 
@@ -306,48 +304,48 @@ class Psychrometrics
     '''
     # Initialize
     tboil = self.Tsat_fP(p) # (degF)
-    twb = [[tdb,tboil-0.1].min,0.0].max # (degF)
+    twb = [[tdb, tboil - 0.1].min, 0.0].max # (degF)
 
     twb1 = twb # (degF)
     twb2 = twb # (degF)
 
     psat_star = self.Psat_fT(twb) # (psia)
-    w_star = self.w_fP(p,psat_star) # (lbm/lbm)
-    w_new = ((Liquid.H2O_l.h_fg - (Liquid.H2O_l.cp - Gas.H2O_v.cp)*twb)*w_star - Gas.Air.cp*(tdb - twb))/(Liquid.H2O_l.h_fg + Gas.H2O_v.cp*tdb - Liquid.H2O_l.cp*twb) # (lbm/lbm)
+    w_star = self.w_fP(p, psat_star) # (lbm/lbm)
+    w_new = ((Liquid.H2O_l.h_fg - (Liquid.H2O_l.cp - Gas.H2O_v.cp) * twb) * w_star - Gas.Air.cp * (tdb - twb)) / (Liquid.H2O_l.h_fg + Gas.H2O_v.cp * tdb - Liquid.H2O_l.cp * twb) # (lbm/lbm)
 
     error = w - w_new
     error1 = error
     error2 = error
 
-    itmax = 50  # maximum iterations
+    itmax = 50 # maximum iterations
     cvg = false
 
     for i in 1..itmax
 
-        psat_star = self.Psat_fT(twb) # (psia)
-        w_star = self.w_fP(p,psat_star) # (lbm/lbm)
-        w_new = ((Liquid.H2O_l.h_fg - (Liquid.H2O_l.cp - Gas.H2O_v.cp)*twb)*w_star - Gas.Air.cp*(tdb - twb))/(Liquid.H2O_l.h_fg + Gas.H2O_v.cp*tdb - Liquid.H2O_l.cp*twb) # (lbm/lbm)
+      psat_star = self.Psat_fT(twb) # (psia)
+      w_star = self.w_fP(p, psat_star) # (lbm/lbm)
+      w_new = ((Liquid.H2O_l.h_fg - (Liquid.H2O_l.cp - Gas.H2O_v.cp) * twb) * w_star - Gas.Air.cp * (tdb - twb)) / (Liquid.H2O_l.h_fg + Gas.H2O_v.cp * tdb - Liquid.H2O_l.cp * twb) # (lbm/lbm)
 
-        error = w - w_new
+      error = w - w_new
 
-        twb,cvg,twb1,error1,twb2,error2 = MathTools.Iterate(twb,error,twb1,error1,twb2,error2,i,cvg)
+      twb, cvg, twb1, error1, twb2, error2 = MathTools.Iterate(twb, error, twb1, error1, twb2, error2, i, cvg)
 
-        if cvg
-            break
-        end
+      if cvg
+        break
+      end
     end
 
     if not cvg
-        puts 'Warning: Twb_fT_w_P failed to converge'
+      puts 'Warning: Twb_fT_w_P failed to converge'
     end
 
     if twb > tdb
-        twb = tdb # (degF)
+      twb = tdb # (degF)
     end
 
     return twb
   end
-  
+
   def self.w_fP(p, pw)
     '''
     Description:
@@ -371,12 +369,12 @@ class Psychrometrics
     return w
   end
 
-  def self.CoilAoFactor(dBin, wBin, p, qdot, cfm, shr)                   
+  def self.CoilAoFactor(dBin, wBin, p, qdot, cfm, shr)
     '''
     Description:
     ------------
         Find the coil Ao factor at the given incoming air state (entering drybubl and wetbulb) and CFM,
-        total capacity and SHR            
+        total capacity and SHR
 
 
     Source:
@@ -395,21 +393,21 @@ class Psychrometrics
     --------
         Ao    float    Coil Ao Factor
     '''
-    
-    bf = self.CoilBypassFactor(dBin, wBin, p, qdot, cfm, shr)        
-    mfr = UnitConversions.convert(self.CalculateMassflowRate(dBin, wBin, p, cfm),"lbm/min","kg/s")
-    
+
+    bf = self.CoilBypassFactor(dBin, wBin, p, qdot, cfm, shr)
+    mfr = UnitConversions.convert(self.CalculateMassflowRate(dBin, wBin, p, cfm), "lbm/min", "kg/s")
+
     ntu = -1.0 * Math.log(bf)
     ao = ntu * mfr
     return ao
   end
-  
+
   def self.CoilBypassFactor(dBin, wBin, p, qdot, cfm, shr)
     '''
     Description:
     ------------
         Find the coil bypass factor at the given incoming air state (entering drybubl and wetbulb) and CFM,
-        total capacity and SHR            
+        total capacity and SHR
 
 
     Source:
@@ -428,97 +426,97 @@ class Psychrometrics
     --------
         CBF    float    Coil Bypass Factor
     '''
-        
-    mfr = UnitConversions.convert(self.CalculateMassflowRate(dBin, wBin, p, cfm),"lbm/min","kg/s")
 
-    tin = UnitConversions.convert(dBin,"F","C")
+    mfr = UnitConversions.convert(self.CalculateMassflowRate(dBin, wBin, p, cfm), "lbm/min", "kg/s")
+
+    tin = UnitConversions.convert(dBin, "F", "C")
     win = self.w_fT_Twb_P(dBin, wBin, p)
-    p = UnitConversions.convert(p,"psi","kPa")
-                    
-    dH = UnitConversions.convert(qdot,"kBtu/hr","W") / mfr
+    p = UnitConversions.convert(p, "psi", "kPa")
+
+    dH = UnitConversions.convert(qdot, "kBtu/hr", "W") / mfr
     hin = self.h_fT_w_SI(tin, win)
-    h_Tin_Wout = hin - (1-shr)*dH
-    wout = self.w_fT_h_SI(tin,h_Tin_Wout)
+    h_Tin_Wout = hin - (1 - shr) * dH
+    wout = self.w_fT_h_SI(tin, h_Tin_Wout)
     dW = win - wout
     hout = hin - dH
-    tout = self.T_fw_h_SI(wout, hout)                    
+    tout = self.T_fw_h_SI(wout, hout)
     rH_out = self.R_fT_w_P_SI(tout, wout, p)
-    
+
     if rH_out > 1
-        puts 'Error: Conditions passed to CoilBypassFactor result in outlet RH > 100%'
+      puts 'Error: Conditions passed to CoilBypassFactor result in outlet RH > 100%'
     end
-                
-    dT = tin - tout   
-    m_c = dW / dT        
-    
-    t_ADP = self.Tdp_fP_w_SI(p, wout)  # Initial guess for iteration
-    
-    if shr == 1           
-        w_ADP = self.w_fT_Twb_P_SI(t_ADP, t_ADP, p)
-        h_ADP = self.h_fT_w_SI(t_ADP, w_ADP)
-        bF = (hout - h_ADP) / (hin - h_ADP)
-        return [bF, 0.01].max
+
+    dT = tin - tout
+    m_c = dW / dT
+
+    t_ADP = self.Tdp_fP_w_SI(p, wout) # Initial guess for iteration
+
+    if shr == 1
+      w_ADP = self.w_fT_Twb_P_SI(t_ADP, t_ADP, p)
+      h_ADP = self.h_fT_w_SI(t_ADP, w_ADP)
+      bF = (hout - h_ADP) / (hin - h_ADP)
+      return [bF, 0.01].max
     end
-    
+
     cnt = 0
     tol = 1.0
     errorLast = 100
     d_T_ADP = 5.0
-    
-    while cnt < 100 and tol > 0.001       
-        # for i in range(1,itmax+1):
-                    
-        if cnt > 0
-            t_ADP = t_ADP + d_T_ADP
-        end
-        
-        w_ADP = self.w_fT_Twb_P_SI(t_ADP, t_ADP, p)
-       
-        m = (win - w_ADP) / (tin - t_ADP)
-        error = (m - m_c) / m_c
 
-        if error > 0 and errorLast < 0
-            d_T_ADP = -1.0*d_T_ADP/2.0
-        end
-        
-        if error < 0 and errorLast > 0
-            d_T_ADP = -1.0*d_T_ADP/2.0
-        end
-       
-        errorLast = error
-        tol = error.abs.to_f
-        cnt = cnt + 1
-    end        
+    while cnt < 100 and tol > 0.001
+      # for i in range(1,itmax+1):
+
+      if cnt > 0
+        t_ADP = t_ADP + d_T_ADP
+      end
+
+      w_ADP = self.w_fT_Twb_P_SI(t_ADP, t_ADP, p)
+
+      m = (win - w_ADP) / (tin - t_ADP)
+      error = (m - m_c) / m_c
+
+      if error > 0 and errorLast < 0
+        d_T_ADP = -1.0 * d_T_ADP / 2.0
+      end
+
+      if error < 0 and errorLast > 0
+        d_T_ADP = -1.0 * d_T_ADP / 2.0
+      end
+
+      errorLast = error
+      tol = error.abs.to_f
+      cnt = cnt + 1
+    end
 
     h_ADP = self.h_fT_w_SI(t_ADP, w_ADP)
-    
+
     bF = (hout - h_ADP) / (hin - h_ADP)
     return [bF, 0.01].max
   end
-  
+
   def self.CalculateMassflowRate(dBin, wBin, p, cfm)
     '''
     Description:
     ------------
-        Calculate the mass flow rate at the given incoming air state (entering drybubl and wetbulb) and CFM            
+        Calculate the mass flow rate at the given incoming air state (entering drybubl and wetbulb) and CFM
 
     Source:
     -------
-        
+
 
     Inputs:
     -------
         Tdb    float    Entering Dry Bulb (degF)
         Twb    float    Entering Wet Bulb (degF)
-        P      float    Barometric pressure (psi)            
-        cfm    float    Volumetric flow rate of unit (CFM)            
+        P      float    Barometric pressure (psi)
+        cfm    float    Volumetric flow rate of unit (CFM)
     Outputs:
     --------
-        mfr    float    mass flow rate (lbm/min)            
-    '''    
-    win= self.w_fT_Twb_P(dBin, wBin, p)
-    rho_in = self.rhoD_fT_w_P(dBin, win, p)        
-    mfr = cfm*rho_in
+        mfr    float    mass flow rate (lbm/min)
+    '''
+    win = self.w_fT_Twb_P(dBin, wBin, p)
+    rho_in = self.rhoD_fT_w_P(dBin, win, p)
+    mfr = cfm * rho_in
     return mfr
   end
 
@@ -541,12 +539,12 @@ class Psychrometrics
     Outputs:
     --------
         T       float      drybulb temperature  (degC)
-    '''        
-                        
-    t = (h/1000 - w*2501) / (1.006 + w*1.86)            
+    '''
+
+    t = (h / 1000 - w * 2501) / (1.006 + w * 1.86)
     return t
-  end        
-  
+  end
+
   def self.R_fT_w_P_SI(tdb, w, p)
     '''
     Description:
@@ -568,9 +566,9 @@ class Psychrometrics
     --------
         R       float      relative humidity     (1/1)
     '''
-    return self.R_fT_w_P(UnitConversions.convert(tdb,"C","F"), w, UnitConversions.convert(p,"kPa","psi"))     
+    return self.R_fT_w_P(UnitConversions.convert(tdb, "C", "F"), w, UnitConversions.convert(p, "kPa", "psi"))
   end
-  
+
   def self.Tdp_fP_w_SI(p, w)
     '''
     Description:
@@ -595,11 +593,11 @@ class Psychrometrics
 
     Outputs:
     --------
-        Tdp     float      dewpoint temperature  (degC)            
+        Tdp     float      dewpoint temperature  (degC)
     '''
-    return UnitConversions.convert(self.Tdp_fP_w(UnitConversions.convert(p,"kPa","psi"), w),"F","C")
-  end        
-  
+    return UnitConversions.convert(self.Tdp_fP_w(UnitConversions.convert(p, "kPa", "psi"), w), "F", "C")
+  end
+
   def self.w_fT_Twb_P_SI(tdb, twb, p)
     '''
     Description:
@@ -621,10 +619,10 @@ class Psychrometrics
     --------
         w       float      humidity ratio        (g/g)
     '''
-        
-    return self.w_fT_Twb_P(UnitConversions.convert(tdb,"C","F"), UnitConversions.convert(twb,"C","F"), UnitConversions.convert(p,"kPa","psi"))      
-  end        
-  
+
+    return self.w_fT_Twb_P(UnitConversions.convert(tdb, "C", "F"), UnitConversions.convert(twb, "C", "F"), UnitConversions.convert(p, "kPa", "psi"))
+  end
+
   def self.w_fT_Twb_P(tdb, twb, p)
     '''
     Description:
@@ -646,13 +644,13 @@ class Psychrometrics
     --------
         w       float      humidity ratio        (lbm/lbm)
     '''
-    w_star = self.w_fP(p,self.Psat_fT(twb))
+    w_star = self.w_fP(p, self.Psat_fT(twb))
 
-    w = ((Liquid.H2O_l.h_fg - (Liquid.H2O_l.cp - Gas.H2O_v.cp)*twb)*w_star - Gas.Air.cp*(tdb - twb))/(Liquid.H2O_l.h_fg + Gas.H2O_v.cp*tdb - Liquid.H2O_l.cp*twb) # (lbm/lbm)
+    w = ((Liquid.H2O_l.h_fg - (Liquid.H2O_l.cp - Gas.H2O_v.cp) * twb) * w_star - Gas.Air.cp * (tdb - twb)) / (Liquid.H2O_l.h_fg + Gas.H2O_v.cp * tdb - Liquid.H2O_l.cp * twb) # (lbm/lbm)
 
     return w
-  end        
-  
+  end
+
   def self.R_fT_w_P(tdb, w, p)
     '''
     Description:
@@ -674,11 +672,11 @@ class Psychrometrics
     --------
         R       float      relative humidity     (1/1)
     '''
-    pw = self.Pw_fP_w(p,w)
-    r = pw/self.Psat_fT(tdb)
+    pw = self.Pw_fP_w(p, w)
+    r = pw / self.Psat_fT(tdb)
     return r
-  end        
-  
+  end
+
   def self.Pw_fP_w(p, w)
     '''
     Description:
@@ -700,10 +698,10 @@ class Psychrometrics
         Pw      float      partial pressure      (psia)
     '''
 
-    pw = p*w/(Gas.PsychMassRat + w)
+    pw = p * w / (Gas.PsychMassRat + w)
     return pw
-  end        
-    
+  end
+
   def self.Tdp_fP_w(p, w)
     '''
     Description:
@@ -735,42 +733,42 @@ class Psychrometrics
 
     if calcMethod == 1
 
-        c14 = 100.45
-        c15 = 33.193
-        c16 = 2.319
-        c17 = 0.17074
-        c18 = 1.2063
+      c14 = 100.45
+      c15 = 33.193
+      c16 = 2.319
+      c17 = 0.17074
+      c18 = 1.2063
 
-        pw = self.Pw_fP_w(p,w) # (psia)
-        alpha = Math.log(pw)
-        tdp1 = c14 + c15*alpha + c16*alpha**2 + c17*alpha**3 + c18*pw**0.1984
-        tdp2 = 90.12 + 26.142*alpha + 0.8927*alpha**2
-        if tdp1 >= Liquid.H2O_l.t_frz
-            tdp = tdp1
-        else
-            tdp = tdp2
-        end
+      pw = self.Pw_fP_w(p, w) # (psia)
+      alpha = Math.log(pw)
+      tdp1 = c14 + c15 * alpha + c16 * alpha**2 + c17 * alpha**3 + c18 * pw**0.1984
+      tdp2 = 90.12 + 26.142 * alpha + 0.8927 * alpha**2
+      if tdp1 >= Liquid.H2O_l.t_frz
+        tdp = tdp1
+      else
+        tdp = tdp2
+      end
 
     else
 
-        # based on DEWPOINT f77 code in ResAC (Brandemuehl)
-        if w < Constants.small
-            tdp = -999.0
-        else
-            pw = self.Pw_fP_w(p,w)
-            tdp = self.Tsat_fP(pw)
-        end
-            
+      # based on DEWPOINT f77 code in ResAC (Brandemuehl)
+      if w < Constants.small
+        tdp = -999.0
+      else
+        pw = self.Pw_fP_w(p, w)
+        tdp = self.Tsat_fP(pw)
+      end
+
     end
     return tdp
-  end        
-  
+  end
+
   def self.CalculateSHR(dBin, wBin, p, q, cfm, ao)
     '''
     Description:
     ------------
         Calculate the coil SHR at the given incoming air state, CFM, total capacity, and coil
-        Ao factor                        
+        Ao factor
 
     Source:
     -------
@@ -788,20 +786,20 @@ class Psychrometrics
     --------
         SHR    float    Sensible Heat Ratio
     '''
-        
-    mfr = UnitConversions.convert(self.CalculateMassflowRate(dBin, wBin, p, cfm),"lbm/min","kg/s")
-    bf = Math.exp(-1.0*ao/mfr)
-    
+
+    mfr = UnitConversions.convert(self.CalculateMassflowRate(dBin, wBin, p, cfm), "lbm/min", "kg/s")
+    bf = Math.exp(-1.0 * ao / mfr)
+
     win = self.w_fT_Twb_P(dBin, wBin, p)
-    p = UnitConversions.convert(p,"psi","kPa")
-    tin = UnitConversions.convert(dBin,"F","C")
+    p = UnitConversions.convert(p, "psi", "kPa")
+    tin = UnitConversions.convert(dBin, "F", "C")
     hin = self.h_fT_w_SI(tin, win)
-    dH = UnitConversions.convert(q,"kBtu/hr","W") / mfr
-    h_ADP = hin - dH / (1-bf)
-    
+    dH = UnitConversions.convert(q, "kBtu/hr", "W") / mfr
+    h_ADP = hin - dH / (1 - bf)
+
     # T_ADP = self.Tsat_fh_P_SI(H_ADP, P)
     # W_ADP = self.w_fT_h_SI(T_ADP, H_ADP)
-    
+
     # Initialize
     t_ADP = self.Tdp_fP_w_SI(p, win)
     t_ADP_1 = t_ADP # (degC)
@@ -811,35 +809,34 @@ class Psychrometrics
     error1 = error
     error2 = error
 
-    itmax = 50  # maximum iterations
+    itmax = 50 # maximum iterations
     cvg = false
 
-    (1...itmax+1).each do |i|
+    (1...itmax + 1).each do |i|
+      w_ADP = self.w_fT_R_P_SI(t_ADP, 1.0, p)
+      error = h_ADP - self.h_fT_w_SI(t_ADP, w_ADP)
 
-        w_ADP = self.w_fT_R_P_SI(t_ADP, 1.0, p)    
-        error = h_ADP - self.h_fT_w_SI(t_ADP, w_ADP)
+      t_ADP, cvg, t_ADP_1, error1, t_ADP_2, error2 = MathTools.Iterate(t_ADP, error, t_ADP_1, error1, t_ADP_2, error2, i, cvg)
 
-        t_ADP,cvg,t_ADP_1,error1,t_ADP_2,error2 = MathTools.Iterate(t_ADP,error,t_ADP_1,error1,t_ADP_2,error2,i,cvg)
-
-        if cvg
-            break
-        end
+      if cvg
+        break
+      end
     end
 
     if not cvg
-        puts 'Warning: Tsat_fh_P failed to converge'        
+      puts 'Warning: Tsat_fh_P failed to converge'
     end
-    
+
     h_Tin_Wadp = self.h_fT_w_SI(tin, w_ADP)
-    
+
     if (hin - h_ADP != 0)
-        shr = [(h_Tin_Wadp-h_ADP) / (hin - h_ADP),1.0].min
+      shr = [(h_Tin_Wadp - h_ADP) / (hin - h_ADP), 1.0].min
     else
-        shr = 1
-    end        
+      shr = 1
+    end
     return shr
-  end        
-    
+  end
+
   def self.w_fT_R_P(tdb, r, p)
     '''
     Description:
@@ -864,10 +861,10 @@ class Psychrometrics
     pws = self.Psat_fT(tdb)
     pw = r * pws
     w = 0.62198 * pw / (p - pw)
-       
+
     return w
   end
-    
+
   def self.w_fT_R_P_SI(tdb, r, p)
     '''
     Description:
@@ -889,11 +886,11 @@ class Psychrometrics
     --------
         w       float      humidity ratio        (g/g)
     '''
-    pws = UnitConversions.convert(self.Psat_fT(UnitConversions.convert(tdb,"C","F")),"psi","kPa")
+    pws = UnitConversions.convert(self.Psat_fT(UnitConversions.convert(tdb, "C", "F")), "psi", "kPa")
     pw = r * pws
     w = 0.62198 * pw / (p - pw)
     return w
-  end      
+  end
 
   def self.Twb_fT_R_P(tdb, r, p)
     '''
@@ -921,5 +918,4 @@ class Psychrometrics
     twb = self.Twb_fT_w_P(tdb, w, p)
     return twb
   end
-    
 end

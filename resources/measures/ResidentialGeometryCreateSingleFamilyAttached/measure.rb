@@ -8,7 +8,6 @@ require_relative "../HPXMLtoOpenStudio/resources/schedules"
 
 # start the measure
 class CreateResidentialSingleFamilyAttachedGeometry < OpenStudio::Measure::ModelMeasure
-
   # human readable name
   def name
     return "Create Residential Single-Family Attached Geometry"
@@ -28,47 +27,47 @@ class CreateResidentialSingleFamilyAttachedGeometry < OpenStudio::Measure::Model
   def arguments(model)
     args = OpenStudio::Measure::OSArgumentVector.new
 
-    #make an argument for unit living space floor area
-    unit_ffa = OpenStudio::Measure::OSArgument::makeDoubleArgument("unit_ffa",true)
+    # make an argument for unit living space floor area
+    unit_ffa = OpenStudio::Measure::OSArgument::makeDoubleArgument("unit_ffa", true)
     unit_ffa.setDisplayName("Unit Finished Floor Area")
     unit_ffa.setUnits("ft^2")
     unit_ffa.setDescription("Unit floor area of the finished space (including any finished basement floor area).")
     unit_ffa.setDefaultValue(900.0)
     args << unit_ffa
 
-    #make an argument for living space height
-    wall_height = OpenStudio::Measure::OSArgument::makeDoubleArgument("wall_height",true)
+    # make an argument for living space height
+    wall_height = OpenStudio::Measure::OSArgument::makeDoubleArgument("wall_height", true)
     wall_height.setDisplayName("Wall Height (Per Floor)")
     wall_height.setUnits("ft")
     wall_height.setDescription("The height of the living space walls.")
     wall_height.setDefaultValue(8.0)
     args << wall_height
 
-    #make an argument for total number of floors
-    num_floors = OpenStudio::Measure::OSArgument::makeIntegerArgument("num_floors",true)
+    # make an argument for total number of floors
+    num_floors = OpenStudio::Measure::OSArgument::makeIntegerArgument("num_floors", true)
     num_floors.setDisplayName("Building Num Floors")
     num_floors.setUnits("#")
     num_floors.setDescription("The number of floors above grade.")
     num_floors.setDefaultValue(1)
     args << num_floors
 
-    #make an argument for number of units
-    num_units = OpenStudio::Measure::OSArgument::makeIntegerArgument("num_units",true)
+    # make an argument for number of units
+    num_units = OpenStudio::Measure::OSArgument::makeIntegerArgument("num_units", true)
     num_units.setDisplayName("Num Units")
     num_units.setUnits("#")
     num_units.setDescription("The number of units.")
     num_units.setDefaultValue(2)
     args << num_units
 
-    #make an argument for unit aspect ratio
-    unit_aspect_ratio = OpenStudio::Measure::OSArgument::makeDoubleArgument("unit_aspect_ratio",true)
+    # make an argument for unit aspect ratio
+    unit_aspect_ratio = OpenStudio::Measure::OSArgument::makeDoubleArgument("unit_aspect_ratio", true)
     unit_aspect_ratio.setDisplayName("Unit Aspect Ratio")
     unit_aspect_ratio.setUnits("FB/LR")
     unit_aspect_ratio.setDescription("The ratio of the front/back wall length to the left/right wall length.")
     unit_aspect_ratio.setDefaultValue(2.0)
     args << unit_aspect_ratio
 
-    #make an argument for unit offset
+    # make an argument for unit offset
     offset = OpenStudio::Measure::OSArgument::makeDoubleArgument("offset", true)
     offset.setDisplayName("Offset Depth")
     offset.setUnits("ft")
@@ -76,61 +75,61 @@ class CreateResidentialSingleFamilyAttachedGeometry < OpenStudio::Measure::Model
     offset.setDefaultValue(0.0)
     args << offset
 
-    #make an argument for units in back
+    # make an argument for units in back
     has_rear_units = OpenStudio::Measure::OSArgument::makeBoolArgument("has_rear_units", true)
     has_rear_units.setDisplayName("Has Rear Units?")
     has_rear_units.setDescription("Whether the building has rear adjacent units.")
     has_rear_units.setDefaultValue(false)
     args << has_rear_units
 
-    #make a choice argument for model objects
+    # make a choice argument for model objects
     foundation_display_names = OpenStudio::StringVector.new
     foundation_display_names << "slab"
     foundation_display_names << "crawlspace"
     foundation_display_names << "unfinished basement"
     foundation_display_names << "finished basement"
 
-    #make a choice argument for foundation type
+    # make a choice argument for foundation type
     foundation_type = OpenStudio::Measure::OSArgument::makeChoiceArgument("foundation_type", foundation_display_names, true)
     foundation_type.setDisplayName("Foundation Type")
     foundation_type.setDescription("The foundation type of the building.")
     foundation_type.setDefaultValue("slab")
     args << foundation_type
 
-    #make an argument for crawlspace height
-    foundation_height = OpenStudio::Measure::OSArgument::makeDoubleArgument("foundation_height",true)
+    # make an argument for crawlspace height
+    foundation_height = OpenStudio::Measure::OSArgument::makeDoubleArgument("foundation_height", true)
     foundation_height.setDisplayName("Foundation Height")
     foundation_height.setUnits("ft")
     foundation_height.setDescription("The height of the foundation (e.g., 3ft for crawlspace, 8ft for basement).")
     foundation_height.setDefaultValue(3.0)
     args << foundation_height
 
-    #make a choice argument for model objects
+    # make a choice argument for model objects
     attic_type_display_names = OpenStudio::StringVector.new
     attic_type_display_names << "unfinished attic"
     attic_type_display_names << "finished attic"
 
-    #make a choice argument for attic type
+    # make a choice argument for attic type
     attic_type = OpenStudio::Measure::OSArgument::makeChoiceArgument("attic_type", attic_type_display_names, true)
     attic_type.setDisplayName("Attic Type")
     attic_type.setDescription("The attic type of the building. Ignored if the building has a flat roof.")
     attic_type.setDefaultValue("unfinished attic")
     args << attic_type
 
-    #make a choice argument for model objects
+    # make a choice argument for model objects
     roof_type_display_names = OpenStudio::StringVector.new
     roof_type_display_names << Constants.RoofTypeGable
     roof_type_display_names << Constants.RoofTypeHip
     roof_type_display_names << Constants.RoofTypeFlat
 
-    #make a choice argument for roof type
+    # make a choice argument for roof type
     roof_type = OpenStudio::Measure::OSArgument::makeChoiceArgument("roof_type", roof_type_display_names, true)
     roof_type.setDisplayName("Roof Type")
     roof_type.setDescription("The roof type of the building.")
     roof_type.setDefaultValue(Constants.RoofTypeGable)
     args << roof_type
 
-    #make a choice argument for model objects
+    # make a choice argument for model objects
     roof_pitch_display_names = OpenStudio::StringVector.new
     roof_pitch_display_names << "1:12"
     roof_pitch_display_names << "2:12"
@@ -145,84 +144,84 @@ class CreateResidentialSingleFamilyAttachedGeometry < OpenStudio::Measure::Model
     roof_pitch_display_names << "11:12"
     roof_pitch_display_names << "12:12"
 
-    #make a choice argument for roof pitch
+    # make a choice argument for roof pitch
     roof_pitch = OpenStudio::Measure::OSArgument::makeChoiceArgument("roof_pitch", roof_pitch_display_names, true)
     roof_pitch.setDisplayName("Roof Pitch")
     roof_pitch.setDescription("The roof pitch of the attic. Ignored if the building has a flat roof.")
     roof_pitch.setDefaultValue("6:12")
     args << roof_pitch
 
-    #make a choice argument for model objects
+    # make a choice argument for model objects
     roof_structure_display_names = OpenStudio::StringVector.new
     roof_structure_display_names << Constants.RoofStructureTrussCantilever
     roof_structure_display_names << Constants.RoofStructureRafter
 
-    #make a choice argument for roof type
+    # make a choice argument for roof type
     roof_structure = OpenStudio::Measure::OSArgument::makeChoiceArgument("roof_structure", roof_structure_display_names, true)
     roof_structure.setDisplayName("Roof Structure")
     roof_structure.setDescription("The roof structure of the building.")
     roof_structure.setDefaultValue(Constants.RoofStructureTrussCantilever)
     args << roof_structure
 
-    #make a choice argument for eaves depth
+    # make a choice argument for eaves depth
     eaves_depth = OpenStudio::Measure::OSArgument::makeDoubleArgument("eaves_depth", true)
     eaves_depth.setDisplayName("Eaves Depth")
     eaves_depth.setUnits("ft")
     eaves_depth.setDescription("The eaves depth of the roof.")
     eaves_depth.setDefaultValue(2.0)
     args << eaves_depth
-    
-    #TODO: Needs more testing
-    #make an argument for using zone multipliers
-    #use_zone_mult = OpenStudio::Measure::OSArgument::makeBoolArgument("use_zone_mult", true)
-    #use_zone_mult.setDisplayName("Use Zone Multipliers?")
-    #use_zone_mult.setDescription("Model only one interior unit with its thermal zone multiplier equal to the number of interior units.")
-    #use_zone_mult.setDefaultValue(false)
-    #args << use_zone_mult
 
-    #make a string argument for number of bedrooms
+    # TODO: Needs more testing
+    # make an argument for using zone multipliers
+    # use_zone_mult = OpenStudio::Measure::OSArgument::makeBoolArgument("use_zone_mult", true)
+    # use_zone_mult.setDisplayName("Use Zone Multipliers?")
+    # use_zone_mult.setDescription("Model only one interior unit with its thermal zone multiplier equal to the number of interior units.")
+    # use_zone_mult.setDefaultValue(false)
+    # args << use_zone_mult
+
+    # make a string argument for number of bedrooms
     num_br = OpenStudio::Measure::OSArgument::makeStringArgument("num_bedrooms", false)
     num_br.setDisplayName("Number of Bedrooms")
     num_br.setDescription("Specify the number of bedrooms. Used to determine the energy usage of appliances and plug loads, hot water usage, mechanical ventilation rate, etc.")
     num_br.setDefaultValue("3")
     args << num_br
 
-    #make a string argument for number of bathrooms
+    # make a string argument for number of bathrooms
     num_ba = OpenStudio::Measure::OSArgument::makeStringArgument("num_bathrooms", false)
     num_ba.setDisplayName("Number of Bathrooms")
     num_ba.setDescription("Specify the number of bathrooms. Used to determine the hot water usage, etc.")
     num_ba.setDefaultValue("2")
     args << num_ba
 
-    #Make a string argument for occupants (auto or number)
+    # Make a string argument for occupants (auto or number)
     num_occupants = OpenStudio::Measure::OSArgument::makeStringArgument("num_occupants", true)
     num_occupants.setDisplayName("Number of Occupants")
     num_occupants.setDescription("Specify the number of occupants. A value of '#{Constants.Auto}' will calculate the average number of occupants from the number of bedrooms. Used to specify the internal gains from people only.")
     num_occupants.setDefaultValue(Constants.Auto)
     args << num_occupants
 
-    #Make a string argument for 24 weekday schedule values
+    # Make a string argument for 24 weekday schedule values
     occupants_weekday_sch = OpenStudio::Measure::OSArgument::makeStringArgument("occupants_weekday_sch", true)
     occupants_weekday_sch.setDisplayName("Occupants Weekday schedule")
     occupants_weekday_sch.setDescription("Specify the 24-hour weekday schedule.")
     occupants_weekday_sch.setDefaultValue("1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 0.88, 0.41, 0.24, 0.24, 0.24, 0.24, 0.24, 0.24, 0.24, 0.29, 0.55, 0.90, 0.90, 0.90, 1.00, 1.00, 1.00")
     args << occupants_weekday_sch
 
-    #Make a string argument for 24 weekend schedule values
+    # Make a string argument for 24 weekend schedule values
     occupants_weekend_sch = OpenStudio::Measure::OSArgument::makeStringArgument("occupants_weekend_sch", true)
     occupants_weekend_sch.setDisplayName("Occupants Weekend schedule")
     occupants_weekend_sch.setDescription("Specify the 24-hour weekend schedule.")
     occupants_weekend_sch.setDefaultValue("1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 0.88, 0.41, 0.24, 0.24, 0.24, 0.24, 0.24, 0.24, 0.24, 0.29, 0.55, 0.90, 0.90, 0.90, 1.00, 1.00, 1.00")
     args << occupants_weekend_sch
 
-    #Make a string argument for 12 monthly schedule values
+    # Make a string argument for 12 monthly schedule values
     occupants_monthly_sch = OpenStudio::Measure::OSArgument::makeStringArgument("occupants_monthly_sch", true)
     occupants_monthly_sch.setDisplayName("Occupants Month schedule")
     occupants_monthly_sch.setDescription("Specify the 12-month schedule.")
     occupants_monthly_sch.setDefaultValue("1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0")
     args << occupants_monthly_sch
 
-    #make a double argument for left neighbor offset
+    # make a double argument for left neighbor offset
     left_neighbor_offset = OpenStudio::Measure::OSArgument::makeDoubleArgument("neighbor_left_offset", false)
     left_neighbor_offset.setDisplayName("Neighbor Left Offset")
     left_neighbor_offset.setUnits("ft")
@@ -230,7 +229,7 @@ class CreateResidentialSingleFamilyAttachedGeometry < OpenStudio::Measure::Model
     left_neighbor_offset.setDefaultValue(10.0)
     args << left_neighbor_offset
 
-    #make a double argument for right neighbor offset
+    # make a double argument for right neighbor offset
     right_neighbor_offset = OpenStudio::Measure::OSArgument::makeDoubleArgument("neighbor_right_offset", false)
     right_neighbor_offset.setDisplayName("Neighbor Right Offset")
     right_neighbor_offset.setUnits("ft")
@@ -238,7 +237,7 @@ class CreateResidentialSingleFamilyAttachedGeometry < OpenStudio::Measure::Model
     right_neighbor_offset.setDefaultValue(10.0)
     args << right_neighbor_offset
 
-    #make a double argument for back neighbor offset
+    # make a double argument for back neighbor offset
     back_neighbor_offset = OpenStudio::Measure::OSArgument::makeDoubleArgument("neighbor_back_offset", false)
     back_neighbor_offset.setDisplayName("Neighbor Back Offset")
     back_neighbor_offset.setUnits("ft")
@@ -246,7 +245,7 @@ class CreateResidentialSingleFamilyAttachedGeometry < OpenStudio::Measure::Model
     back_neighbor_offset.setDefaultValue(0.0)
     args << back_neighbor_offset
 
-    #make a double argument for front neighbor offset
+    # make a double argument for front neighbor offset
     front_neighbor_offset = OpenStudio::Measure::OSArgument::makeDoubleArgument("neighbor_front_offset", false)
     front_neighbor_offset.setDisplayName("Neighbor Front Offset")
     front_neighbor_offset.setUnits("ft")
@@ -254,7 +253,7 @@ class CreateResidentialSingleFamilyAttachedGeometry < OpenStudio::Measure::Model
     front_neighbor_offset.setDefaultValue(0.0)
     args << front_neighbor_offset
 
-    #make a double argument for orientation
+    # make a double argument for orientation
     orientation = OpenStudio::Measure::OSArgument::makeDoubleArgument("orientation", true)
     orientation.setDisplayName("Azimuth")
     orientation.setUnits("degrees")
@@ -274,32 +273,32 @@ class CreateResidentialSingleFamilyAttachedGeometry < OpenStudio::Measure::Model
       return false
     end
 
-    unit_ffa = UnitConversions.convert(runner.getDoubleArgumentValue("unit_ffa",user_arguments),"ft^2","m^2")
-    wall_height = UnitConversions.convert(runner.getDoubleArgumentValue("wall_height",user_arguments),"ft","m")
-    num_floors = runner.getIntegerArgumentValue("num_floors",user_arguments)
-    num_units = runner.getIntegerArgumentValue("num_units",user_arguments)
-    unit_aspect_ratio = runner.getDoubleArgumentValue("unit_aspect_ratio",user_arguments)
-    offset = UnitConversions.convert(runner.getDoubleArgumentValue("offset",user_arguments),"ft","m")
-    has_rear_units = runner.getBoolArgumentValue("has_rear_units",user_arguments)
-    foundation_type = runner.getStringArgumentValue("foundation_type",user_arguments)
-    foundation_height = runner.getDoubleArgumentValue("foundation_height",user_arguments)
-    attic_type = runner.getStringArgumentValue("attic_type",user_arguments)
-    roof_type = runner.getStringArgumentValue("roof_type",user_arguments)
-    roof_pitch = {"1:12"=>1.0/12.0, "2:12"=>2.0/12.0, "3:12"=>3.0/12.0, "4:12"=>4.0/12.0, "5:12"=>5.0/12.0, "6:12"=>6.0/12.0, "7:12"=>7.0/12.0, "8:12"=>8.0/12.0, "9:12"=>9.0/12.0, "10:12"=>10.0/12.0, "11:12"=>11.0/12.0, "12:12"=>12.0/12.0}[runner.getStringArgumentValue("roof_pitch",user_arguments)]
-    roof_structure = runner.getStringArgumentValue("roof_structure",user_arguments)
-    eaves_depth = UnitConversions.convert(runner.getDoubleArgumentValue("eaves_depth",user_arguments),"ft","m")
-    use_zone_mult = false #runner.getBoolArgumentValue("use_zone_mult",user_arguments)
+    unit_ffa = UnitConversions.convert(runner.getDoubleArgumentValue("unit_ffa", user_arguments), "ft^2", "m^2")
+    wall_height = UnitConversions.convert(runner.getDoubleArgumentValue("wall_height", user_arguments), "ft", "m")
+    num_floors = runner.getIntegerArgumentValue("num_floors", user_arguments)
+    num_units = runner.getIntegerArgumentValue("num_units", user_arguments)
+    unit_aspect_ratio = runner.getDoubleArgumentValue("unit_aspect_ratio", user_arguments)
+    offset = UnitConversions.convert(runner.getDoubleArgumentValue("offset", user_arguments), "ft", "m")
+    has_rear_units = runner.getBoolArgumentValue("has_rear_units", user_arguments)
+    foundation_type = runner.getStringArgumentValue("foundation_type", user_arguments)
+    foundation_height = runner.getDoubleArgumentValue("foundation_height", user_arguments)
+    attic_type = runner.getStringArgumentValue("attic_type", user_arguments)
+    roof_type = runner.getStringArgumentValue("roof_type", user_arguments)
+    roof_pitch = { "1:12" => 1.0 / 12.0, "2:12" => 2.0 / 12.0, "3:12" => 3.0 / 12.0, "4:12" => 4.0 / 12.0, "5:12" => 5.0 / 12.0, "6:12" => 6.0 / 12.0, "7:12" => 7.0 / 12.0, "8:12" => 8.0 / 12.0, "9:12" => 9.0 / 12.0, "10:12" => 10.0 / 12.0, "11:12" => 11.0 / 12.0, "12:12" => 12.0 / 12.0 }[runner.getStringArgumentValue("roof_pitch", user_arguments)]
+    roof_structure = runner.getStringArgumentValue("roof_structure", user_arguments)
+    eaves_depth = UnitConversions.convert(runner.getDoubleArgumentValue("eaves_depth", user_arguments), "ft", "m")
+    use_zone_mult = false # runner.getBoolArgumentValue("use_zone_mult",user_arguments)
     num_br = runner.getStringArgumentValue("num_bedrooms", user_arguments).split(",").map(&:strip)
     num_ba = runner.getStringArgumentValue("num_bathrooms", user_arguments).split(",").map(&:strip)
-    num_occupants = runner.getStringArgumentValue("num_occupants",user_arguments)
-    occupants_weekday_sch = runner.getStringArgumentValue("occupants_weekday_sch",user_arguments)
-    occupants_weekend_sch = runner.getStringArgumentValue("occupants_weekend_sch",user_arguments)
-    occupants_monthly_sch = runner.getStringArgumentValue("occupants_monthly_sch",user_arguments)
-    left_neighbor_offset = UnitConversions.convert(runner.getDoubleArgumentValue("neighbor_left_offset",user_arguments),"ft","m")
-    right_neighbor_offset = UnitConversions.convert(runner.getDoubleArgumentValue("neighbor_right_offset",user_arguments),"ft","m")
-    back_neighbor_offset = UnitConversions.convert(runner.getDoubleArgumentValue("neighbor_back_offset",user_arguments),"ft","m")
-    front_neighbor_offset = UnitConversions.convert(runner.getDoubleArgumentValue("neighbor_front_offset",user_arguments),"ft","m")
-    orientation = runner.getDoubleArgumentValue("orientation",user_arguments)
+    num_occupants = runner.getStringArgumentValue("num_occupants", user_arguments)
+    occupants_weekday_sch = runner.getStringArgumentValue("occupants_weekday_sch", user_arguments)
+    occupants_weekend_sch = runner.getStringArgumentValue("occupants_weekend_sch", user_arguments)
+    occupants_monthly_sch = runner.getStringArgumentValue("occupants_monthly_sch", user_arguments)
+    left_neighbor_offset = UnitConversions.convert(runner.getDoubleArgumentValue("neighbor_left_offset", user_arguments), "ft", "m")
+    right_neighbor_offset = UnitConversions.convert(runner.getDoubleArgumentValue("neighbor_right_offset", user_arguments), "ft", "m")
+    back_neighbor_offset = UnitConversions.convert(runner.getDoubleArgumentValue("neighbor_back_offset", user_arguments), "ft", "m")
+    front_neighbor_offset = UnitConversions.convert(runner.getDoubleArgumentValue("neighbor_front_offset", user_arguments), "ft", "m")
+    orientation = runner.getDoubleArgumentValue("orientation", user_arguments)
 
     if foundation_type == "slab"
       foundation_height = 0.0
@@ -320,7 +319,7 @@ class CreateResidentialSingleFamilyAttachedGeometry < OpenStudio::Measure::Model
     end
 
     # Convert to SI
-    foundation_height = UnitConversions.convert(foundation_height,"ft","m")
+    foundation_height = UnitConversions.convert(foundation_height, "ft", "m")
 
     # starting spaces
     runner.registerInitialCondition("The building started with #{model.getSpaces.size} spaces.")
@@ -374,18 +373,16 @@ class CreateResidentialSingleFamilyAttachedGeometry < OpenStudio::Measure::Model
 
     # additional floors
     (2..num_floors).to_a.each do |story|
-
       new_living_space = living_space.clone.to_Space.get
       new_living_space.setName("living space|story #{story}")
       new_living_space.setSpaceType(living_space_type)
 
-      m = Geometry.initialize_transformation_matrix(OpenStudio::Matrix.new(4,4,0))
-      m[2,3] = wall_height * (story - 1)
+      m = Geometry.initialize_transformation_matrix(OpenStudio::Matrix.new(4, 4, 0))
+      m[2, 3] = wall_height * (story - 1)
       new_living_space.setTransformation(OpenStudio::Transformation.new(m))
       new_living_space.setThermalZone(living_zone)
 
       living_spaces_front << new_living_space
-
     end
 
     # attic
@@ -436,18 +433,16 @@ class CreateResidentialSingleFamilyAttachedGeometry < OpenStudio::Measure::Model
 
       # additional floors
       (2..num_floors).to_a.each do |story|
-
         new_living_space = living_space.clone.to_Space.get
         new_living_space.setName("living space|#{Constants.ObjectNameBuildingUnit(2)}|story #{story}")
         new_living_space.setSpaceType(living_space_type)
 
-        m = Geometry.initialize_transformation_matrix(OpenStudio::Matrix.new(4,4,0))
-        m[2,3] = wall_height * (story - 1)
+        m = Geometry.initialize_transformation_matrix(OpenStudio::Matrix.new(4, 4, 0))
+        m[2, 3] = wall_height * (story - 1)
         new_living_space.setTransformation(OpenStudio::Transformation.new(m))
         new_living_space.setThermalZone(living_zone)
 
         living_spaces_back << new_living_space
-
       end
 
       # attic
@@ -469,7 +464,6 @@ class CreateResidentialSingleFamilyAttachedGeometry < OpenStudio::Measure::Model
 
       pos = 0
       (3..num_units).to_a.each do |unit_num|
-
         # front or back unit
         if unit_num % 2 != 0 # odd unit number
           living_spaces = living_spaces_front
@@ -483,19 +477,18 @@ class CreateResidentialSingleFamilyAttachedGeometry < OpenStudio::Measure::Model
 
         new_living_spaces = []
         living_spaces.each_with_index do |living_space, story|
-
           new_living_space = living_space.clone.to_Space.get
           if story == num_floors
             new_living_space.setName("finished attic space|#{Constants.ObjectNameBuildingUnit(unit_num)}")
           else
-            new_living_space.setName("living space|#{Constants.ObjectNameBuildingUnit(unit_num)}|story #{story+1}")
+            new_living_space.setName("living space|#{Constants.ObjectNameBuildingUnit(unit_num)}|story #{story + 1}")
           end
           new_living_space.setSpaceType(living_space_type)
 
-          m = Geometry.initialize_transformation_matrix(OpenStudio::Matrix.new(4,4,0))
-          m[0,3] = -pos * x
+          m = Geometry.initialize_transformation_matrix(OpenStudio::Matrix.new(4, 4, 0))
+          m[0, 3] = -pos * x
           if (pos + 1) % 2 == 0
-            m[1,3] = -offset
+            m[1, 3] = -offset
           end
           new_living_space.changeTransformation(OpenStudio::Transformation.new(m))
           new_living_space.setXOrigin(0)
@@ -504,7 +497,6 @@ class CreateResidentialSingleFamilyAttachedGeometry < OpenStudio::Measure::Model
           new_living_space.setThermalZone(living_zone)
 
           new_living_spaces << new_living_space
-
         end
 
         # attic
@@ -519,10 +511,10 @@ class CreateResidentialSingleFamilyAttachedGeometry < OpenStudio::Measure::Model
 
             new_attic_space = attic_space.clone.to_Space.get
 
-            m = Geometry.initialize_transformation_matrix(OpenStudio::Matrix.new(4,4,0))
-            m[0,3] = -pos * x
+            m = Geometry.initialize_transformation_matrix(OpenStudio::Matrix.new(4, 4, 0))
+            m[0, 3] = -pos * x
             if (pos + 1) % 2 == 0
-              m[1,3] = -offset
+              m[1, 3] = -offset
             end
             new_attic_space.changeTransformation(OpenStudio::Transformation.new(m))
             new_attic_space.setXOrigin(0)
@@ -535,14 +527,12 @@ class CreateResidentialSingleFamilyAttachedGeometry < OpenStudio::Measure::Model
         end
 
         unit_spaces_hash[unit_num] = new_living_spaces
-
       end
 
     else # units only in front
 
       pos = 0
       (2..num_units).to_a.each do |unit_num|
-
         living_spaces = living_spaces_front
         pos += 1
 
@@ -551,20 +541,19 @@ class CreateResidentialSingleFamilyAttachedGeometry < OpenStudio::Measure::Model
 
         new_living_spaces = []
         living_spaces.each_with_index do |living_space, story|
-
           new_living_space = living_space.clone.to_Space.get
 
           if story == num_floors
             new_living_space.setName("finished attic space|#{Constants.ObjectNameBuildingUnit(unit_num)}")
           else
-            new_living_space.setName("living space|#{Constants.ObjectNameBuildingUnit(unit_num)}|story #{story+1}")
+            new_living_space.setName("living space|#{Constants.ObjectNameBuildingUnit(unit_num)}|story #{story + 1}")
           end
           new_living_space.setSpaceType(living_space_type)
 
-          m = Geometry.initialize_transformation_matrix(OpenStudio::Matrix.new(4,4,0))
-          m[0,3] = -pos * x
+          m = Geometry.initialize_transformation_matrix(OpenStudio::Matrix.new(4, 4, 0))
+          m[0, 3] = -pos * x
           if (pos + 1) % 2 == 0
-            m[1,3] = -offset
+            m[1, 3] = -offset
           end
           new_living_space.changeTransformation(OpenStudio::Transformation.new(m))
           new_living_space.setXOrigin(0)
@@ -573,7 +562,6 @@ class CreateResidentialSingleFamilyAttachedGeometry < OpenStudio::Measure::Model
           new_living_space.setThermalZone(living_zone)
 
           new_living_spaces << new_living_space
-
         end
 
         # attic
@@ -584,10 +572,10 @@ class CreateResidentialSingleFamilyAttachedGeometry < OpenStudio::Measure::Model
 
             new_attic_space = attic_space.clone.to_Space.get
 
-            m = Geometry.initialize_transformation_matrix(OpenStudio::Matrix.new(4,4,0))
-            m[0,3] = -pos * x
+            m = Geometry.initialize_transformation_matrix(OpenStudio::Matrix.new(4, 4, 0))
+            m[0, 3] = -pos * x
             if (pos + 1) % 2 == 0
-              m[1,3] = -offset
+              m[1, 3] = -offset
             end
             new_attic_space.changeTransformation(OpenStudio::Transformation.new(m))
             new_attic_space.setXOrigin(0)
@@ -600,7 +588,6 @@ class CreateResidentialSingleFamilyAttachedGeometry < OpenStudio::Measure::Model
         end
 
         unit_spaces_hash[unit_num] = new_living_spaces
-
       end
 
     end
@@ -614,8 +601,8 @@ class CreateResidentialSingleFamilyAttachedGeometry < OpenStudio::Measure::Model
       foundation_space_front = []
       foundation_space = OpenStudio::Model::Space::fromFloorPrint(foundation_front_polygon, foundation_height, model)
       foundation_space = foundation_space.get
-      m = Geometry.initialize_transformation_matrix(OpenStudio::Matrix.new(4,4,0))
-      m[2,3] = foundation_height
+      m = Geometry.initialize_transformation_matrix(OpenStudio::Matrix.new(4, 4, 0))
+      m[2, 3] = foundation_height
       foundation_space.changeTransformation(OpenStudio::Transformation.new(m))
       foundation_space.setXOrigin(0)
       foundation_space.setYOrigin(0)
@@ -644,8 +631,8 @@ class CreateResidentialSingleFamilyAttachedGeometry < OpenStudio::Measure::Model
         foundation_space_back = []
         foundation_space = OpenStudio::Model::Space::fromFloorPrint(foundation_back_polygon, foundation_height, model)
         foundation_space = foundation_space.get
-        m = Geometry.initialize_transformation_matrix(OpenStudio::Matrix.new(4,4,0))
-        m[2,3] = foundation_height
+        m = Geometry.initialize_transformation_matrix(OpenStudio::Matrix.new(4, 4, 0))
+        m[2, 3] = foundation_height
         foundation_space.changeTransformation(OpenStudio::Transformation.new(m))
         foundation_space.setXOrigin(0)
         foundation_space.setYOrigin(0)
@@ -669,7 +656,6 @@ class CreateResidentialSingleFamilyAttachedGeometry < OpenStudio::Measure::Model
 
         pos = 0
         (3..num_units).to_a.each do |unit_num|
-
           # front or back unit
           if unit_num % 2 != 0 # odd unit number
             fnd_spaces = foundation_space_front
@@ -684,17 +670,16 @@ class CreateResidentialSingleFamilyAttachedGeometry < OpenStudio::Measure::Model
           end
 
           fnd_spaces.each do |fnd_space|
-
             new_fnd_space = fnd_space.clone.to_Space.get
             if foundation_type == "finished basement"
               new_fnd_space.setName("finished basement space|#{Constants.ObjectNameBuildingUnit(unit_num)}")
               new_fnd_space.setSpaceType(foundation_space_type)
             end
 
-            m = Geometry.initialize_transformation_matrix(OpenStudio::Matrix.new(4,4,0))
-            m[0,3] = -pos * x
+            m = Geometry.initialize_transformation_matrix(OpenStudio::Matrix.new(4, 4, 0))
+            m[0, 3] = -pos * x
             if (pos + 1) % 2 == 0
-              m[1,3] = -offset
+              m[1, 3] = -offset
             end
             new_fnd_space.changeTransformation(OpenStudio::Transformation.new(m))
             new_fnd_space.setXOrigin(0)
@@ -709,16 +694,13 @@ class CreateResidentialSingleFamilyAttachedGeometry < OpenStudio::Measure::Model
             if foundation_type == "finished basement"
               unit_spaces_hash[unit_num] << new_fnd_space
             end
-
           end
-
         end
 
       else # units only in front
 
         pos = 0
         (2..num_units).to_a.each do |unit_num|
-
           fnd_spaces = foundation_space_front
           pos += 1
 
@@ -728,17 +710,16 @@ class CreateResidentialSingleFamilyAttachedGeometry < OpenStudio::Measure::Model
           end
 
           fnd_spaces.each do |fnd_space|
-
             new_fnd_space = fnd_space.clone.to_Space.get
             if foundation_type == "finished basement"
               new_fnd_space.setName("finished basement space|#{Constants.ObjectNameBuildingUnit(unit_num)}")
               new_fnd_space.setSpaceType(foundation_space_type)
             end
 
-            m = Geometry.initialize_transformation_matrix(OpenStudio::Matrix.new(4,4,0))
-            m[0,3] = -pos * x
+            m = Geometry.initialize_transformation_matrix(OpenStudio::Matrix.new(4, 4, 0))
+            m[0, 3] = -pos * x
             if (pos + 1) % 2 == 0
-              m[1,3] = -offset
+              m[1, 3] = -offset
             end
             new_fnd_space.changeTransformation(OpenStudio::Transformation.new(m))
             new_fnd_space.setXOrigin(0)
@@ -753,9 +734,7 @@ class CreateResidentialSingleFamilyAttachedGeometry < OpenStudio::Measure::Model
             if foundation_type == "finished basement"
               unit_spaces_hash[unit_num] << new_fnd_space
             end
-
           end
-
         end
 
       end
@@ -794,10 +773,11 @@ class CreateResidentialSingleFamilyAttachedGeometry < OpenStudio::Measure::Model
       # set foundation walls to ground
       spaces = model.getSpaces
       spaces.each do |space|
-        if Geometry.get_space_floor_z(space) + UnitConversions.convert(space.zOrigin,"m","ft") < 0
+        if Geometry.get_space_floor_z(space) + UnitConversions.convert(space.zOrigin, "m", "ft") < 0
           surfaces = space.surfaces
           surfaces.each do |surface|
             next if surface.surfaceType.downcase != "wall"
+
             surface.setOutsideBoundaryCondition("Foundation")
           end
         end
@@ -862,7 +842,6 @@ class CreateResidentialSingleFamilyAttachedGeometry < OpenStudio::Measure::Model
     # Apply zone multiplier
     if use_zone_mult and ((num_units > 3 and not has_rear_units) or (num_units > 7 and has_rear_units))
       (2..num_units).to_a.each do |unit_num|
-
         if not has_rear_units
 
           zone_names_for_multiplier_adjustment = []
@@ -935,19 +914,20 @@ class CreateResidentialSingleFamilyAttachedGeometry < OpenStudio::Measure::Model
           end
 
         end
-
       end
     end
 
     model.getSurfaces.each do |surface|
       next unless surface.outsideBoundaryCondition.downcase == "surface"
       next if surface.adjacentSurface.is_initialized
+
       surface.setOutsideBoundaryCondition("Adiabatic")
     end
 
     # set foundation outside boundary condition to Kiva "foundation"
     model.getSurfaces.each do |surface|
       next if surface.outsideBoundaryCondition.downcase != "ground"
+
       surface.setOutsideBoundaryCondition("Foundation")
     end
 
@@ -972,7 +952,7 @@ class CreateResidentialSingleFamilyAttachedGeometry < OpenStudio::Measure::Model
       return false
     end
 
-    result = Geometry.process_occupants(model, runner, num_occupants, occ_gain=384.0, sens_frac=0.573, lat_frac=0.427, occupants_weekday_sch, occupants_weekend_sch, occupants_monthly_sch)
+    result = Geometry.process_occupants(model, runner, num_occupants, occ_gain = 384.0, sens_frac = 0.573, lat_frac = 0.427, occupants_weekday_sch, occupants_weekend_sch, occupants_monthly_sch)
     unless result
       return false
     end
@@ -991,16 +971,14 @@ class CreateResidentialSingleFamilyAttachedGeometry < OpenStudio::Measure::Model
     unless result
       return false
     end
-    
+
     # reporting final condition of model
     runner.registerFinalCondition("The building finished with #{model.getSpaces.size} spaces.")
 
     return true
-
   end
 
-  def get_attic_space(model, x, y, wall_height, num_floors, roof_pitch, roof_type, has_rear_units=false)
-
+  def get_attic_space(model, x, y, wall_height, num_floors, roof_pitch, roof_type, has_rear_units = false)
     y_rear = 0
     if has_rear_units
       y_rear = y
@@ -1122,9 +1100,7 @@ class CreateResidentialSingleFamilyAttachedGeometry < OpenStudio::Measure::Model
     surface_n_wall.setSpace(attic_space)
 
     return attic_space
-
   end
-
 end
 
 # register the measure to be used by the application
