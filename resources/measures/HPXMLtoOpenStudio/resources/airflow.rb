@@ -1951,7 +1951,7 @@ class Airflow
     equip_def.setFractionLatent(0)
     equip_def.setFractionLost(1.0 - mv_output.frac_fan_heat)
     equip.setSchedule(model.alwaysOnDiscreteSchedule)
-    equip.setEndUseSubcategory(Constants.EndUseMechVentFan)
+    equip.setEndUseSubcategory(obj_name_mech_vent + " house fan")
     whole_house_fan_actuator = OpenStudio::Model::EnergyManagementSystemActuator.new(equip, "ElectricEquipment", "Electric Power Level")
     whole_house_fan_actuator.setName("#{equip.name} act")
 
@@ -1964,7 +1964,7 @@ class Airflow
     equip_def.setFractionLatent(0)
     equip_def.setFractionLost(1)
     equip.setSchedule(model.alwaysOnDiscreteSchedule)
-    equip.setEndUseSubcategory(Constants.EndUseMechVentFan)
+    equip.setEndUseSubcategory(obj_name_mech_vent + " range fan")
     range_hood_fan_actuator = OpenStudio::Model::EnergyManagementSystemActuator.new(equip, "ElectricEquipment", "Electric Power Level")
     range_hood_fan_actuator.setName("#{equip.name} act")
 
@@ -1977,7 +1977,7 @@ class Airflow
     equip_def.setFractionLatent(0)
     equip_def.setFractionLost(1)
     equip.setSchedule(model.alwaysOnDiscreteSchedule)
-    equip.setEndUseSubcategory(Constants.EndUseMechVentFan)
+    equip.setEndUseSubcategory(obj_name_mech_vent + " bath fan")
     bath_exhaust_sch_fan_actuator = OpenStudio::Model::EnergyManagementSystemActuator.new(equip, "ElectricEquipment", "Electric Power Level")
     bath_exhaust_sch_fan_actuator.setName("#{equip.name} act")
 

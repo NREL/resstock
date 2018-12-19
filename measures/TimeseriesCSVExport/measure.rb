@@ -382,9 +382,44 @@ class TimeseriesCSVExport < OpenStudio::Measure::ReportingMeasure
     # Write the enduse timeseries rows out to csv
     unless enduse_timeseries.empty?
       rows = enduse_timeseries.transpose
+
+      # Sum across units for end use subcategories
+      new_subcategories = {}
+      rows[0].each_with_index do |col, i|
+        next unless col.start_with? "res" # only end use subcategory columns
+
+        end_use_subcategory, end_use, fuel_type = col.split(":")
+        if end_use_subcategory.include? "unit"
+          end_use_subcategory = end_use_subcategory.split("|")[0]
+        else # res_infil
+          end_use_subcategory = end_use_subcategory.tr("0-9", "").gsub("_", "")
+        end
+        new_subcategory = "#{end_use_subcategory}:#{end_use}:#{fuel_type}"
+        if not new_subcategories.keys.include? new_subcategory
+          new_subcategories[new_subcategory] = [i]
+        else
+          new_subcategories[new_subcategory] << i
+        end
+      end
+
+      new_subcategories.each do |new_subcategory, indexes|
+        rows[0] << new_subcategory
+        rows[1..-1].each do |row|
+          total = 0.0
+          indexes.each do |index|
+            total += row[index]
+          end
+          row << total
+        end
+      end
+
+      cols_to_remove = new_subcategories.values.flatten.sort.reverse
       csv_path = File.expand_path("../enduse_timeseries.csv")
       CSV.open(csv_path, "wb") do |csv|
         rows.each do |row|
+          cols_to_remove.each do |i|
+            row.delete_at(i)
+          end
           csv << row
         end
       end

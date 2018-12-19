@@ -2981,11 +2981,11 @@ class OSModel
 
       sys_id = htgsys.elements["SystemIdentifier"].attributes["id"]
 
-      loop_hvac = nil
-      zone_hvac = nil
-      loop_hvac_cool = nil
+      eae_loop_hvac = nil
+      eae_zone_hvacs = nil
+      eae_loop_hvac_cool = nil
       if loop_hvacs.keys.include? sys_id
-        loop_hvac = loop_hvacs[sys_id][0]
+        eae_loop_hvac = loop_hvacs[sys_id][0]
         has_furnace = (htg_type == "Furnace")
         has_boiler = (htg_type == "Boiler")
 
@@ -2997,15 +2997,15 @@ class OSModel
             next if htgdist.nil? or clgdist.nil?
             next if clgdist.attributes["idref"] != htgdist.attributes["idref"]
 
-            loop_hvac_cool = loop_hvacs[clgsys.elements["SystemIdentifier"].attributes["id"]][0]
+            eae_loop_hvac_cool = loop_hvacs[clgsys.elements["SystemIdentifier"].attributes["id"]][0]
           end
         end
       elsif zone_hvacs.keys.include? sys_id
-        zone_hvac = zone_hvacs[sys_id][0]
+        eae_zone_hvacs = zone_hvacs[sys_id]
       end
 
-      success = HVAC.apply_eae_to_heating_fan(runner, loop_hvac, zone_hvac, fuel_eae, fuel, dse_heat,
-                                              has_furnace, has_boiler, load_frac, loop_hvac_cool)
+      success = HVAC.apply_eae_to_heating_fan(runner, eae_loop_hvac, eae_zone_hvacs, fuel_eae, fuel, dse_heat,
+                                              has_furnace, has_boiler, load_frac, eae_loop_hvac_cool)
       return false if not success
     end
 
@@ -3489,26 +3489,6 @@ class OSModel
     return interior_adjacent_to
   end
 
-  def self.get_ac_num_speeds(seer)
-    if seer <= 15
-      return "1-Speed"
-    elsif seer <= 21
-      return "2-Speed"
-    else
-      return "Variable-Speed"
-    end
-  end
-
-  def self.get_ashp_num_speeds(seer)
-    if seer <= 15
-      num_speeds = "1-Speed"
-    elsif seer <= 21
-      num_speeds = "2-Speed"
-    else
-      num_speeds = "Variable-Speed"
-    end
-  end
-
   def self.get_attached_to_multispeed_ac(htgsys, building)
     attached_to_multispeed_ac = false
     building.elements.each("BuildingDetails/Systems/HVAC/HVACPlant/CoolingSystem") do |clgsys|
@@ -3670,6 +3650,26 @@ def is_adjacent_to_conditioned(adjacent_to)
   end
 
   fail "Unexpected adjacent_to (#{adjacent_to})."
+end
+
+def get_ac_num_speeds(seer)
+  if seer <= 15
+    return "1-Speed"
+  elsif seer <= 21
+    return "2-Speed"
+  else
+    return "Variable-Speed"
+  end
+end
+
+def get_ashp_num_speeds(seer)
+  if seer <= 15
+    num_speeds = "1-Speed"
+  elsif seer <= 21
+    num_speeds = "2-Speed"
+  else
+    num_speeds = "Variable-Speed"
+  end
 end
 
 # register the measure to be used by the application

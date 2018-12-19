@@ -4240,7 +4240,7 @@ class HVACSizing
       ptacs = HVAC.get_ptacs(model, runner, thermal_zone)
       ptacs.each do |ptac|
         # PTAC
-        ptac.setSupplyAirFlowRateDuringCoolingOperation(UnitConversions.convert(unit_final.Cool_Airflow, "cfm", "m^3/s"))
+        ptac.setSupplyAirFlowRateDuringCoolingOperation(UnitConversions.convert(unit_final.Cool_Airflow * unit_final.Zone_Ratios[thermal_zone], "cfm", "m^3/s"))
         ptac.setSupplyAirFlowRateDuringHeatingOperation(0.00001)
         ptac.setSupplyAirFlowRateWhenNoCoolingorHeatingisNeeded(0.0)
         ptac.setOutdoorAirFlowRateDuringCoolingOperation(0.0)
@@ -4249,10 +4249,10 @@ class HVACSizing
 
         # Fan
         fanonoff = ptac.supplyAirFan.to_FanOnOff.get
-        fanonoff.setMaximumFlowRate(UnitConversions.convert(unit_final.Cool_Airflow, "cfm", "m^3/s"))
+        fanonoff.setMaximumFlowRate(UnitConversions.convert(unit_final.Cool_Airflow * unit_final.Zone_Ratios[thermal_zone], "cfm", "m^3/s"))
 
         # Coils
-        setCoilsObjectValues(runner, unit, hvac, ptac, unit_final, 1.0)
+        setCoilsObjectValues(runner, unit, hvac, ptac, unit_final, unit_final.Zone_Ratios[thermal_zone])
 
         # Heating Coil override
         ptac_htg_coil = ptac.heatingCoil.to_CoilHeatingElectric.get
@@ -4264,7 +4264,7 @@ class HVACSizing
     thermal_zones.each do |thermal_zone|
       baseboards = HVAC.get_baseboard_electrics(model, runner, thermal_zone)
       baseboards.each do |baseboard|
-        baseboard.setNominalCapacity(UnitConversions.convert(unit_final.Heat_Capacity, "Btu/hr", "W"))
+        baseboard.setNominalCapacity(UnitConversions.convert(unit_final.Heat_Capacity * unit_final.Zone_Ratios[thermal_zone], "Btu/hr", "W"))
       end
     end
 
@@ -4352,19 +4352,19 @@ class HVACSizing
 
     # Cooling coil
     if clg_coil.is_a? OpenStudio::Model::CoilCoolingDXSingleSpeed
-      clg_coil.setRatedTotalCoolingCapacity(UnitConversions.convert(unit_final.Cool_Capacity, "Btu/hr", "W"))
-      clg_coil.setRatedAirFlowRate(UnitConversions.convert(unit_final.Cool_Capacity, "Btu/hr", "ton") * UnitConversions.convert(hvac.RatedCFMperTonCooling[0], "cfm", "m^3/s"))
+      clg_coil.setRatedTotalCoolingCapacity(zone_ratio * UnitConversions.convert(unit_final.Cool_Capacity, "Btu/hr", "W"))
+      clg_coil.setRatedAirFlowRate(zone_ratio * UnitConversions.convert(unit_final.Cool_Capacity, "Btu/hr", "ton") * UnitConversions.convert(hvac.RatedCFMperTonCooling[0], "cfm", "m^3/s"))
 
       # Adjust COP as appropriate
       clg_coil.setRatedCOP(OpenStudio::OptionalDouble.new(clg_coil.ratedCOP.get * unit_final.EER_Multiplier))
 
     elsif clg_coil.is_a? OpenStudio::Model::CoilCoolingDXMultiSpeed
       clg_coil.stages.each_with_index do |stage, speed|
-        stage.setGrossRatedTotalCoolingCapacity(UnitConversions.convert(unit_final.Cool_Capacity, "Btu/hr", "W") * hvac.CapacityRatioCooling[speed])
+        stage.setGrossRatedTotalCoolingCapacity(zone_ratio * UnitConversions.convert(unit_final.Cool_Capacity, "Btu/hr", "W") * hvac.CapacityRatioCooling[speed])
         if clg_coil.name.to_s.start_with? Constants.ObjectNameAirSourceHeatPump or clg_coil.name.to_s.start_with? Constants.ObjectNameCentralAirConditioner
-          stage.setRatedAirFlowRate(UnitConversions.convert(unit_final.Cool_Capacity, "Btu/hr", "ton") * UnitConversions.convert(hvac.RatedCFMperTonCooling[speed], "cfm", "m^3/s") * hvac.CapacityRatioCooling[speed])
+          stage.setRatedAirFlowRate(zone_ratio * UnitConversions.convert(unit_final.Cool_Capacity, "Btu/hr", "ton") * UnitConversions.convert(hvac.RatedCFMperTonCooling[speed], "cfm", "m^3/s") * hvac.CapacityRatioCooling[speed])
         elsif clg_coil.name.to_s.start_with? Constants.ObjectNameMiniSplitHeatPump
-          stage.setRatedAirFlowRate(UnitConversions.convert(unit_final.Cool_Capacity, "Btu/hr", "ton") * UnitConversions.convert(hvac.CoolingCFMs[speed], "cfm", "m^3/s"))
+          stage.setRatedAirFlowRate(zone_ratio * UnitConversions.convert(unit_final.Cool_Capacity, "Btu/hr", "ton") * UnitConversions.convert(hvac.CoolingCFMs[speed], "cfm", "m^3/s"))
         end
 
         # Adjust COP as appropriate
@@ -4372,10 +4372,10 @@ class HVACSizing
       end
 
     elsif clg_coil.is_a? OpenStudio::Model::CoilCoolingWaterToAirHeatPumpEquationFit
-      clg_coil.setRatedAirFlowRate(UnitConversions.convert(unit_final.Cool_Airflow, "cfm", "m^3/s"))
-      clg_coil.setRatedWaterFlowRate(UnitConversions.convert(unit_final.GSHP_Loop_flow, "gal/min", "m^3/s"))
-      clg_coil.setRatedTotalCoolingCapacity(UnitConversions.convert(unit_final.Cool_Capacity, "Btu/hr", "W"))
-      clg_coil.setRatedSensibleCoolingCapacity(UnitConversions.convert(unit_final.Cool_Capacity_Sens, "Btu/hr", "W"))
+      clg_coil.setRatedAirFlowRate(zone_ratio * UnitConversions.convert(unit_final.Cool_Airflow, "cfm", "m^3/s"))
+      clg_coil.setRatedWaterFlowRate(zone_ratio * UnitConversions.convert(unit_final.GSHP_Loop_flow, "gal/min", "m^3/s"))
+      clg_coil.setRatedTotalCoolingCapacity(zone_ratio * UnitConversions.convert(unit_final.Cool_Capacity, "Btu/hr", "W"))
+      clg_coil.setRatedSensibleCoolingCapacity(zone_ratio * UnitConversions.convert(unit_final.Cool_Capacity_Sens, "Btu/hr", "W"))
 
     end
 
@@ -4389,19 +4389,19 @@ class HVACSizing
       htg_coil.setNominalCapacity(zone_ratio * UnitConversions.convert(unit_final.Heat_Capacity, "Btu/hr", "W"))
 
     elsif htg_coil.is_a? OpenStudio::Model::CoilHeatingDXSingleSpeed
-      htg_coil.setRatedTotalHeatingCapacity(UnitConversions.convert(unit_final.Heat_Capacity, "Btu/hr", "W"))
-      htg_coil.setRatedAirFlowRate(UnitConversions.convert(unit_final.Heat_Capacity, "Btu/hr", "ton") * UnitConversions.convert(hvac.RatedCFMperTonHeating[0], "cfm", "m^3/s"))
+      htg_coil.setRatedTotalHeatingCapacity(zone_ratio * UnitConversions.convert(unit_final.Heat_Capacity, "Btu/hr", "W"))
+      htg_coil.setRatedAirFlowRate(zone_ratio * UnitConversions.convert(unit_final.Heat_Capacity, "Btu/hr", "ton") * UnitConversions.convert(hvac.RatedCFMperTonHeating[0], "cfm", "m^3/s"))
 
       # Adjust COP as appropriate
       htg_coil.setRatedCOP(htg_coil.ratedCOP * unit_final.COP_Multiplier)
 
     elsif htg_coil.is_a? OpenStudio::Model::CoilHeatingDXMultiSpeed
       htg_coil.stages.each_with_index do |stage, speed|
-        stage.setGrossRatedHeatingCapacity(UnitConversions.convert(unit_final.Heat_Capacity, "Btu/hr", "W") * hvac.CapacityRatioHeating[speed])
+        stage.setGrossRatedHeatingCapacity(zone_ratio * UnitConversions.convert(unit_final.Heat_Capacity, "Btu/hr", "W") * hvac.CapacityRatioHeating[speed])
         if htg_coil.name.to_s.start_with? Constants.ObjectNameAirSourceHeatPump
-          stage.setRatedAirFlowRate(UnitConversions.convert(unit_final.Heat_Capacity, "Btu/hr", "ton") * UnitConversions.convert(hvac.RatedCFMperTonHeating[speed], "cfm", "m^3/s") * hvac.CapacityRatioHeating[speed])
+          stage.setRatedAirFlowRate(zone_ratio * UnitConversions.convert(unit_final.Heat_Capacity, "Btu/hr", "ton") * UnitConversions.convert(hvac.RatedCFMperTonHeating[speed], "cfm", "m^3/s") * hvac.CapacityRatioHeating[speed])
         elsif htg_coil.name.to_s.start_with? Constants.ObjectNameMiniSplitHeatPump
-          stage.setRatedAirFlowRate(UnitConversions.convert(unit_final.Heat_Capacity, "Btu/hr", "ton") * UnitConversions.convert(hvac.HeatingCFMs[speed], "cfm", "m^3/s"))
+          stage.setRatedAirFlowRate(zone_ratio * UnitConversions.convert(unit_final.Heat_Capacity, "Btu/hr", "ton") * UnitConversions.convert(hvac.HeatingCFMs[speed], "cfm", "m^3/s"))
         end
 
         # Adjust COP as appropriate
@@ -4409,9 +4409,9 @@ class HVACSizing
       end
 
     elsif htg_coil.is_a? OpenStudio::Model::CoilHeatingWaterToAirHeatPumpEquationFit
-      htg_coil.setRatedAirFlowRate(OpenStudio::OptionalDouble.new(UnitConversions.convert(unit_final.Heat_Airflow, "cfm", "m^3/s")))
-      htg_coil.setRatedWaterFlowRate(OpenStudio::OptionalDouble.new(UnitConversions.convert(unit_final.GSHP_Loop_flow, "gal/min", "m^3/s")))
-      htg_coil.setRatedHeatingCapacity(OpenStudio::OptionalDouble.new(UnitConversions.convert(unit_final.Heat_Capacity, "Btu/hr", "W")))
+      htg_coil.setRatedAirFlowRate(OpenStudio::OptionalDouble.new(zone_ratio * UnitConversions.convert(unit_final.Heat_Airflow, "cfm", "m^3/s")))
+      htg_coil.setRatedWaterFlowRate(OpenStudio::OptionalDouble.new(zone_ratio * UnitConversions.convert(unit_final.GSHP_Loop_flow, "gal/min", "m^3/s")))
+      htg_coil.setRatedHeatingCapacity(OpenStudio::OptionalDouble.new(zone_ratio * UnitConversions.convert(unit_final.Heat_Capacity, "Btu/hr", "W")))
 
     end
 
