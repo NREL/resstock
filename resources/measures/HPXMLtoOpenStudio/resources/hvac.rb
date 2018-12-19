@@ -68,7 +68,7 @@ class HVAC
       fan = OpenStudio::Model::FanOnOff.new(model, model.alwaysOnDiscreteSchedule)
       fan_eff = 0.75 # Overall Efficiency of the Fan, Motor and Drive
       fan.setName(obj_name + " clg supply fan")
-      fan.setEndUseSubcategory(Constants.EndUseHVACCoolingFan)
+      fan.setEndUseSubcategory(obj_name + " clg supply fan")
       fan.setFanEfficiency(fan_eff)
       fan.setPressureRise(calculate_fan_pressure_rise(fan_eff, fan_power_installed / dse))
       fan.setMotorEfficiency(1.0)
@@ -202,7 +202,7 @@ class HVAC
       fan = OpenStudio::Model::FanOnOff.new(model, model.alwaysOnDiscreteSchedule, fan_power_curve, fan_eff_curve)
       fan_eff = 0.75 # Overall Efficiency of the Fan, Motor and Drive
       fan.setName(obj_name + " clg supply fan")
-      fan.setEndUseSubcategory(Constants.EndUseHVACCoolingFan)
+      fan.setEndUseSubcategory(obj_name + " clg supply fan")
       fan.setFanEfficiency(fan_eff)
       fan.setPressureRise(calculate_fan_pressure_rise(fan_eff, fan_power_installed / dse))
       fan.setMotorEfficiency(1.0)
@@ -347,7 +347,7 @@ class HVAC
       fan = OpenStudio::Model::FanOnOff.new(model, model.alwaysOnDiscreteSchedule, fan_power_curve, fan_eff_curve)
       fan_eff = 0.75 # Overall Efficiency of the Fan, Motor and Drive
       fan.setName(obj_name + " clg supply fan")
-      fan.setEndUseSubcategory(Constants.EndUseHVACCoolingFan)
+      fan.setEndUseSubcategory(obj_name + " clg supply fan")
       fan.setFanEfficiency(fan_eff)
       fan.setPressureRise(calculate_fan_pressure_rise(fan_eff, fan_power_installed / dse))
       fan.setMotorEfficiency(1.0)
@@ -514,7 +514,7 @@ class HVAC
       fan = OpenStudio::Model::FanOnOff.new(model, model.alwaysOnDiscreteSchedule)
       fan_eff = 0.75 # Overall Efficiency of the Fan, Motor and Drive
       fan.setName(obj_name + " htg supply fan")
-      fan.setEndUseSubcategory(Constants.EndUseHVACHeatingFan)
+      fan.setEndUseSubcategory(obj_name + " htg supply fan")
       fan.setFanEfficiency(fan_eff)
       fan.setPressureRise(calculate_fan_pressure_rise(fan_eff, fan_power_installed / dse))
       fan.setMotorEfficiency(1.0)
@@ -605,7 +605,7 @@ class HVAC
       fan = OpenStudio::Model::FanOnOff.new(model, model.alwaysOnDiscreteSchedule)
       fan_eff = 0.75 # Overall Efficiency of the Fan, Motor and Drive
       fan.setName(obj_name + " clg supply fan")
-      fan.setEndUseSubcategory(Constants.EndUseHVACCoolingFan)
+      fan.setEndUseSubcategory(obj_name + " clg supply fan")
       fan.setFanEfficiency(fan_eff)
       fan.setPressureRise(calculate_fan_pressure_rise(fan_eff, fan_power_installed / dse))
       fan.setMotorEfficiency(1.0)
@@ -771,7 +771,7 @@ class HVAC
       fan = OpenStudio::Model::FanOnOff.new(model, model.alwaysOnDiscreteSchedule, fan_power_curve, fan_eff_curve)
       fan_eff = 0.75 # Overall Efficiency of the Fan, Motor and Drive
       fan.setName(obj_name + " htg supply fan")
-      fan.setEndUseSubcategory(Constants.EndUseHVACHeatingFan)
+      fan.setEndUseSubcategory(obj_name + " htg supply fan")
       fan.setFanEfficiency(fan_eff)
       fan.setPressureRise(calculate_fan_pressure_rise(fan_eff, fan_power_installed / dse))
       fan.setMotorEfficiency(1.0)
@@ -869,7 +869,7 @@ class HVAC
       fan = OpenStudio::Model::FanOnOff.new(model, model.alwaysOnDiscreteSchedule, fan_power_curve, fan_eff_curve)
       fan_eff = 0.75 # Overall Efficiency of the Fan, Motor and Drive
       fan.setName(obj_name + " clg supply fan")
-      fan.setEndUseSubcategory(Constants.EndUseHVACCoolingFan)
+      fan.setEndUseSubcategory(obj_name + " clg supply fan")
       fan.setFanEfficiency(fan_eff)
       fan.setPressureRise(calculate_fan_pressure_rise(fan_eff, fan_power_installed / dse))
       fan.setMotorEfficiency(1.0)
@@ -1050,7 +1050,7 @@ class HVAC
       fan = OpenStudio::Model::FanOnOff.new(model, model.alwaysOnDiscreteSchedule, fan_power_curve, fan_eff_curve)
       fan_eff = 0.75 # Overall Efficiency of the Fan, Motor and Drive
       fan.setName(obj_name + " htg supply fan")
-      fan.setEndUseSubcategory(Constants.EndUseHVACHeatingFan)
+      fan.setEndUseSubcategory(obj_name + " htg supply fan")
       fan.setFanEfficiency(fan_eff)
       fan.setPressureRise(calculate_fan_pressure_rise(fan_eff, fan_power_installed / dse))
       fan.setMotorEfficiency(1.0)
@@ -1148,7 +1148,7 @@ class HVAC
       fan = OpenStudio::Model::FanOnOff.new(model, model.alwaysOnDiscreteSchedule, fan_power_curve, fan_eff_curve)
       fan_eff = 0.75 # Overall Efficiency of the Fan, Motor and Drive
       fan.setName(obj_name + " clg supply fan")
-      fan.setEndUseSubcategory(Constants.EndUseHVACCoolingFan)
+      fan.setEndUseSubcategory(obj_name + " clg supply fan")
       fan.setFanEfficiency(fan_eff)
       fan.setPressureRise(calculate_fan_pressure_rise(fan_eff, fan_power_installed / dse))
       fan.setMotorEfficiency(1.0)
@@ -1348,7 +1348,7 @@ class HVAC
       fan = OpenStudio::Model::FanOnOff.new(model, model.alwaysOnDiscreteSchedule, fan_power_curve, fan_eff_curve)
       fan_eff = UnitConversions.convert(UnitConversions.convert(0.1, "inH2O", "Pa") / fan_power, "cfm", "m^3/s") # Overall Efficiency of the Fan, Motor and Drive
       fan.setName(obj_name + " htg supply fan")
-      fan.setEndUseSubcategory(Constants.EndUseHVACHeatingFan)
+      fan.setEndUseSubcategory(obj_name + " htg supply fan")
       fan.setFanEfficiency(fan_eff)
       fan.setPressureRise(calculate_fan_pressure_rise(fan_eff, fan_power / dse))
       fan.setMotorEfficiency(1.0)
@@ -1502,7 +1502,7 @@ class HVAC
       fan = OpenStudio::Model::FanOnOff.new(model, model.alwaysOnDiscreteSchedule, fan_power_curve, fan_eff_curve)
       fan_eff = UnitConversions.convert(UnitConversions.convert(0.1, "inH2O", "Pa") / fan_power, "cfm", "m^3/s") # Overall Efficiency of the Fan, Motor and Drive
       fan.setName(obj_name + " clg supply fan")
-      fan.setEndUseSubcategory(Constants.EndUseHVACCoolingFan)
+      fan.setEndUseSubcategory(obj_name + " clg supply fan")
       fan.setFanEfficiency(fan_eff)
       fan.setPressureRise(calculate_fan_pressure_rise(fan_eff, fan_power / dse))
       fan.setMotorEfficiency(1.0)
@@ -1752,7 +1752,7 @@ class HVAC
       fan = OpenStudio::Model::FanOnOff.new(model, model.alwaysOnDiscreteSchedule)
       fan_eff = 0.75 # Overall Efficiency of the Fan, Motor and Drive
       fan.setName(obj_name + " #{control_zone.name} htg supply fan")
-      fan.setEndUseSubcategory(Constants.EndUseHVACHeatingFan)
+      fan.setEndUseSubcategory(obj_name + " htg supply fan")
       fan.setFanEfficiency(fan_eff)
       fan.setPressureRise(calculate_fan_pressure_rise(fan_eff, fan_power / dse))
       fan.setMotorEfficiency(1.0)
@@ -1843,7 +1843,7 @@ class HVAC
       fan = OpenStudio::Model::FanOnOff.new(model, model.alwaysOnDiscreteSchedule)
       fan_eff = 0.75 # Overall Efficiency of the Fan, Motor and Drive
       fan.setName(obj_name + " #{control_zone.name} clg supply fan")
-      fan.setEndUseSubcategory(Constants.EndUseHVACCoolingFan)
+      fan.setEndUseSubcategory(obj_name + " clg supply fan")
       fan.setFanEfficiency(fan_eff)
       fan.setPressureRise(calculate_fan_pressure_rise(fan_eff, fan_power / dse))
       fan.setMotorEfficiency(1.0)
@@ -1940,49 +1940,45 @@ class HVAC
 
     control_slave_zones_hash = get_control_and_slave_zones(thermal_zones)
     control_slave_zones_hash.each do |control_zone, slave_zones|
-      next unless Geometry.zone_is_above_grade(control_zone)
+      ([control_zone] + slave_zones).each do |zone|
+        # _processSystemRoomAC
 
-      # _processSystemRoomAC
+        clg_coil = OpenStudio::Model::CoilCoolingDXSingleSpeed.new(model, model.alwaysOnDiscreteSchedule, roomac_cap_ft_curve, roomac_cap_fff_curve, roomac_eir_ft_curve, roomcac_eir_fff_curve, roomac_plf_fplr_curve)
+        clg_coil.setName(obj_name + " cooling coil")
+        if capacity != Constants.SizingAuto
+          clg_coil.setRatedTotalCoolingCapacity(UnitConversions.convert(capacity, "Btu/hr", "W")) # Used by HVACSizing measure
+        end
+        clg_coil.setRatedSensibleHeatRatio(shr)
+        clg_coil.setRatedCOP(OpenStudio::OptionalDouble.new(UnitConversions.convert(eer, "Btu/hr", "W")))
+        clg_coil.setRatedEvaporatorFanPowerPerVolumeFlowRate(OpenStudio::OptionalDouble.new(773.3))
+        clg_coil.setEvaporativeCondenserEffectiveness(OpenStudio::OptionalDouble.new(0.9))
+        clg_coil.setMaximumOutdoorDryBulbTemperatureForCrankcaseHeaterOperation(OpenStudio::OptionalDouble.new(10))
+        clg_coil.setBasinHeaterSetpointTemperature(OpenStudio::OptionalDouble.new(2))
 
-      clg_coil = OpenStudio::Model::CoilCoolingDXSingleSpeed.new(model, model.alwaysOnDiscreteSchedule, roomac_cap_ft_curve, roomac_cap_fff_curve, roomac_eir_ft_curve, roomcac_eir_fff_curve, roomac_plf_fplr_curve)
-      clg_coil.setName(obj_name + " cooling coil")
-      if capacity != Constants.SizingAuto
-        clg_coil.setRatedTotalCoolingCapacity(UnitConversions.convert(capacity, "Btu/hr", "W")) # Used by HVACSizing measure
-      end
-      clg_coil.setRatedSensibleHeatRatio(shr)
-      clg_coil.setRatedCOP(OpenStudio::OptionalDouble.new(UnitConversions.convert(eer, "Btu/hr", "W")))
-      clg_coil.setRatedEvaporatorFanPowerPerVolumeFlowRate(OpenStudio::OptionalDouble.new(773.3))
-      clg_coil.setEvaporativeCondenserEffectiveness(OpenStudio::OptionalDouble.new(0.9))
-      clg_coil.setMaximumOutdoorDryBulbTemperatureForCrankcaseHeaterOperation(OpenStudio::OptionalDouble.new(10))
-      clg_coil.setBasinHeaterSetpointTemperature(OpenStudio::OptionalDouble.new(2))
+        fan = OpenStudio::Model::FanOnOff.new(model, model.alwaysOnDiscreteSchedule)
+        fan.setName(obj_name + " #{zone.name} clg supply fan")
+        fan.setEndUseSubcategory(obj_name + " clg supply fan")
+        fan.setFanEfficiency(1)
+        fan.setPressureRise(0)
+        fan.setMotorEfficiency(1)
+        fan.setMotorInAirstreamFraction(0)
 
-      fan = OpenStudio::Model::FanOnOff.new(model, model.alwaysOnDiscreteSchedule)
-      fan.setName(obj_name + " clg supply fan")
-      fan.setEndUseSubcategory(Constants.EndUseHVACCoolingFan)
-      fan.setFanEfficiency(1)
-      fan.setPressureRise(0)
-      fan.setMotorEfficiency(1)
-      fan.setMotorInAirstreamFraction(0)
+        htg_coil = OpenStudio::Model::CoilHeatingElectric.new(model, model.alwaysOffDiscreteSchedule())
+        htg_coil.setName(obj_name + " always off heating coil")
 
-      htg_coil = OpenStudio::Model::CoilHeatingElectric.new(model, model.alwaysOffDiscreteSchedule())
-      htg_coil.setName(obj_name + " always off heating coil")
+        ptac = OpenStudio::Model::ZoneHVACPackagedTerminalAirConditioner.new(model, model.alwaysOnDiscreteSchedule, fan, htg_coil, clg_coil)
+        ptac.setName(obj_name + " zone ptac")
+        ptac.setSupplyAirFanOperatingModeSchedule(model.alwaysOffDiscreteSchedule)
+        ptac.addToThermalZone(zone)
+        runner.registerInfo("Added '#{ptac.name}' to '#{zone.name}' of #{unit.name}")
 
-      ptac = OpenStudio::Model::ZoneHVACPackagedTerminalAirConditioner.new(model, model.alwaysOnDiscreteSchedule, fan, htg_coil, clg_coil)
-      ptac.setName(obj_name + " zone ptac")
-      ptac.setSupplyAirFanOperatingModeSchedule(model.alwaysOffDiscreteSchedule)
-      ptac.addToThermalZone(control_zone)
-      runner.registerInfo("Added '#{ptac.name}' to '#{control_zone.name}' of #{unit.name}")
+        prioritize_zone_hvac(model, runner, zone)
 
-      prioritize_zone_hvac(model, runner, control_zone)
-
-      slave_zones.each do |slave_zone|
-        prioritize_zone_hvac(model, runner, slave_zone)
-      end # slave_zone
-
-      # Store info for HVAC Sizing measure
-      ptac.additionalProperties.setFeature(Constants.SizingInfoHVACCoolingCFMs, airflow_rate.to_s)
-      ptac.additionalProperties.setFeature(Constants.SizingInfoHVACRatedCFMperTonCooling, cfms_ton_rated.join(","))
-      ptac.additionalProperties.setFeature(Constants.SizingInfoHVACFracCoolLoadServed, frac_cool_load_served)
+        # Store info for HVAC Sizing measure
+        ptac.additionalProperties.setFeature(Constants.SizingInfoHVACCoolingCFMs, airflow_rate.to_s)
+        ptac.additionalProperties.setFeature(Constants.SizingInfoHVACRatedCFMperTonCooling, cfms_ton_rated.join(","))
+        ptac.additionalProperties.setFeature(Constants.SizingInfoHVACFracCoolLoadServed, frac_cool_load_served)
+      end # zone
     end # control_zone
 
     return true
@@ -2036,7 +2032,7 @@ class HVAC
       end
       fan_eff = 0.75 # Overall Efficiency of the Fan, Motor and Drive
       fan.setName(obj_name + " htg supply fan")
-      fan.setEndUseSubcategory(Constants.EndUseHVACHeatingFan)
+      fan.setEndUseSubcategory(obj_name + " htg supply fan")
       fan.setFanEfficiency(fan_eff)
       fan.setPressureRise(calculate_fan_pressure_rise(fan_eff, fan_power_installed / dse))
       fan.setMotorEfficiency(1.0)
@@ -2314,8 +2310,8 @@ class HVAC
         htg_coil.setFuelType(HelperMethods.eplus_fuel_map(fuel_type))
 
         fan = OpenStudio::Model::FanOnOff.new(model, model.alwaysOnDiscreteSchedule)
-        fan.setName(obj_name + " htg fan")
-        fan.setEndUseSubcategory(Constants.EndUseHVACHeatingFan)
+        fan.setName(obj_name + " htg supply fan")
+        fan.setEndUseSubcategory(obj_name + " htg supply fan")
         if fan_power > 0
           fan_eff = 0.75 # Overall Efficiency of the Fan, Motor and Drive
           fan.setFanEfficiency(fan_eff)
@@ -3214,7 +3210,7 @@ class HVAC
       equip_def.setFractionRadiant(0.558)
       equip_def.setFractionLatent(0)
       equip_def.setFractionLost(0)
-      equip.setEndUseSubcategory(Constants.EndUseCeilingFan)
+      equip.setEndUseSubcategory(obj_name)
       equip.setSchedule(ceiling_fan_sch.schedule)
     end
 
@@ -3281,7 +3277,7 @@ class HVAC
     end
   end
 
-  def self.apply_eae_to_heating_fan(runner, loop_hvac, zone_hvac, eae, fuel, dse, has_furnace, has_boiler, load_frac, loop_hvac_cool)
+  def self.apply_eae_to_heating_fan(runner, loop_hvac, zone_hvacs, eae, fuel, dse, has_furnace, has_boiler, load_frac, loop_hvac_cool)
     # Applies Electric Auxiliary Energy (EAE) for fuel heating equipment to fan power.
 
     if has_boiler
@@ -3310,13 +3306,13 @@ class HVAC
 
     else # Furnace/WallFurnace/Stove
 
-      htg_unitary_system = nil
+      htg_unitary_systems = []
       clg_unitary_system = nil
       if has_furnace
         loop_hvac.supplyComponents.each do |supply_component|
           next unless supply_component.to_AirLoopHVACUnitarySystem.is_initialized
 
-          htg_unitary_system = supply_component.to_AirLoopHVACUnitarySystem.get
+          htg_unitary_systems << supply_component.to_AirLoopHVACUnitarySystem.get
         end
 
         # Cooling system with the same supply fan
@@ -3328,36 +3324,40 @@ class HVAC
           end
         end
       else
-        htg_unitary_system = zone_hvac.to_AirLoopHVACUnitarySystem.get
-      end
-
-      if eae.nil?
-        htg_coil = htg_unitary_system.heatingCoil.get.to_CoilHeatingGas.get
-        htg_capacity = UnitConversions.convert(htg_coil.nominalCapacity.get, "W", "kBtu/hr")
-        eae = get_default_eae(has_boiler, has_furnace, fuel, load_frac, htg_capacity)
-      end
-      elec_power = eae / 2.08 # W
-
-      htg_coil = htg_unitary_system.heatingCoil.get.to_CoilHeatingGas.get
-      htg_coil.setParasiticElectricLoad(0.0)
-
-      htg_cfm = UnitConversions.convert(htg_unitary_system.supplyAirFlowRateDuringHeatingOperation.get, "m^3/s", "cfm")
-
-      [htg_unitary_system, clg_unitary_system].each do |unitary_system|
-        next if unitary_system.nil?
-
-        fan = unitary_system.supplyFan.get.to_FanOnOff.get
-        if elec_power > 0
-          fan_eff = 0.75 # Overall Efficiency of the Fan, Motor and Drive
-          fan_w_cfm = elec_power / htg_cfm # W/cfm
-          fan.setFanEfficiency(fan_eff)
-          fan.setPressureRise(calculate_fan_pressure_rise(fan_eff, fan_w_cfm / dse))
-        else
-          fan.setFanEfficiency(1)
-          fan.setPressureRise(0)
+        zone_hvacs.each do |zone_hvac|
+          htg_unitary_systems << zone_hvac.to_AirLoopHVACUnitarySystem.get
         end
-        fan.setMotorEfficiency(1.0)
-        fan.setMotorInAirstreamFraction(1.0)
+      end
+
+      htg_unitary_systems.each do |htg_unitary_system|
+        if eae.nil?
+          htg_coil = htg_unitary_system.heatingCoil.get.to_CoilHeatingGas.get
+          htg_capacity = UnitConversions.convert(htg_coil.nominalCapacity.get, "W", "kBtu/hr")
+          eae = get_default_eae(has_boiler, has_furnace, fuel, load_frac, htg_capacity)
+        end
+        elec_power = eae / 2.08 # W
+
+        htg_coil = htg_unitary_system.heatingCoil.get.to_CoilHeatingGas.get
+        htg_coil.setParasiticElectricLoad(0.0)
+
+        htg_cfm = UnitConversions.convert(htg_unitary_system.supplyAirFlowRateDuringHeatingOperation.get, "m^3/s", "cfm")
+
+        [htg_unitary_system, clg_unitary_system].each do |unitary_system|
+          next if unitary_system.nil?
+
+          fan = unitary_system.supplyFan.get.to_FanOnOff.get
+          if elec_power > 0
+            fan_eff = 0.75 # Overall Efficiency of the Fan, Motor and Drive
+            fan_w_cfm = elec_power / htg_cfm # W/cfm
+            fan.setFanEfficiency(fan_eff)
+            fan.setPressureRise(calculate_fan_pressure_rise(fan_eff, fan_w_cfm / dse))
+          else
+            fan.setFanEfficiency(1)
+            fan.setPressureRise(0)
+          end
+          fan.setMotorEfficiency(1.0)
+          fan.setMotorInAirstreamFraction(1.0)
+        end
       end
 
     end

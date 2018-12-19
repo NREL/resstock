@@ -486,29 +486,23 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
         
         # Electric baseboard?
         if component.nil?
-            max_value = 0.0
             model.getZoneHVACBaseboardConvectiveElectrics.each do |sys|
                 component = sys
                 next if not component.nominalCapacity.is_initialized
-                next if component.nominalCapacity.get <= max_value
-                max_value = component.nominalCapacity.get
+                cost_mult += OpenStudio::convert(component.nominalCapacity.get, "W", "kBtu/h").get
             end
-            cost_mult += OpenStudio::convert(max_value, "W", "kBtu/h").get
         end
         
         # Boiler?
         if component.nil?
-            max_value = 0.0
             model.getPlantLoops.each do |pl|
                 pl.components.each do |plc|
                     next if not plc.to_BoilerHotWater.is_initialized
                     component = plc.to_BoilerHotWater.get
                     next if not component.nominalCapacity.is_initialized
-                    next if component.nominalCapacity.get <= max_value
-                    max_value = component.nominalCapacity.get
+                    cost_mult += OpenStudio::convert(component.nominalCapacity.get, "W", "kBtu/h").get
                 end
             end
-            cost_mult += OpenStudio::convert(max_value, "W", "kBtu/h").get
         end
         
     elsif cost_mult_type == "Size, Heating Supplemental System (kBtu/h)"
@@ -539,25 +533,17 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
     elsif cost_mult_type == "Size, Cooling System (kBtu/h)"
         # Cooling system capacity
 
-        component = nil        
+        components = []
 
         # Unitary system or PTAC?
         model.getAirLoopHVACUnitarySystems.each do |sys|
             next if not sys.coolingCoil.is_initialized
-            if not component.nil?
-                runner.registerError("Multiple cooling systems found. This code should be reevaluated for correctness.")
-                return nil
-            end
-            component = sys.coolingCoil.get
+            components << sys.coolingCoil.get
         end
         model.getZoneHVACPackagedTerminalAirConditioners.each do |sys|
-            if not component.nil?
-                runner.registerError("Multiple cooling systems found. This code should be reevaluated for correctness.")
-                return nil
-            end
-            component = sys.coolingCoil
+            components << sys.coolingCoil
         end
-        if not component.nil?
+        components.each do |component|
             if component.to_CoilCoolingDXSingleSpeed.is_initialized
                 coil = component.to_CoilCoolingDXSingleSpeed.get
                 if coil.ratedTotalCoolingCapacity.is_initialized
