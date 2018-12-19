@@ -3,7 +3,7 @@ require 'minitest/autorun'
 $LOAD_PATH.unshift File.join(File.dirname(__FILE__), "..", "..")
 load 'Rakefile'
 
-class TestResStockNational < MiniTest::Test
+class TestResStockHeterogenity < MiniTest::Test
 
   def test_housing_characteristics
   
