@@ -9,7 +9,6 @@ require_relative "../HPXMLtoOpenStudio/resources/schedules"
 
 # start the measure
 class ResidentialGeometryFromFloorspaceJS < OpenStudio::Measure::ModelMeasure
-
   # human readable name
   def name
     return "Residential Geometry from FloorspaceJS"
@@ -36,42 +35,42 @@ class ResidentialGeometryFromFloorspaceJS < OpenStudio::Measure::ModelMeasure
     arg.setDefaultValue(File.join(File.dirname(__FILE__), "tests", "SFD_Multizone.json"))
     args << arg
 
-    #make a string argument for number of bedrooms
+    # make a string argument for number of bedrooms
     num_br = OpenStudio::Measure::OSArgument::makeStringArgument("num_bedrooms", false)
     num_br.setDisplayName("Number of Bedrooms")
     num_br.setDescription("Specify the number of bedrooms. Used to determine the energy usage of appliances and plug loads, hot water usage, mechanical ventilation rate, etc.")
     num_br.setDefaultValue("3")
     args << num_br
 
-    #make a string argument for number of bathrooms
+    # make a string argument for number of bathrooms
     num_ba = OpenStudio::Measure::OSArgument::makeStringArgument("num_bathrooms", false)
     num_ba.setDisplayName("Number of Bathrooms")
     num_ba.setDescription("Specify the number of bathrooms. Used to determine the hot water usage, etc.")
     num_ba.setDefaultValue("2")
     args << num_ba
 
-    #Make a string argument for occupants (auto or number)
+    # Make a string argument for occupants (auto or number)
     num_occupants = OpenStudio::Measure::OSArgument::makeStringArgument("num_occupants", true)
     num_occupants.setDisplayName("Number of Occupants")
     num_occupants.setDescription("Specify the number of occupants. A value of '#{Constants.Auto}' will calculate the average number of occupants from the number of bedrooms. Used to specify the internal gains from people only.")
     num_occupants.setDefaultValue(Constants.Auto)
     args << num_occupants
 
-    #Make a string argument for 24 weekday schedule values
+    # Make a string argument for 24 weekday schedule values
     occupants_weekday_sch = OpenStudio::Measure::OSArgument::makeStringArgument("occupants_weekday_sch", true)
     occupants_weekday_sch.setDisplayName("Occupants Weekday schedule")
     occupants_weekday_sch.setDescription("Specify the 24-hour weekday schedule.")
     occupants_weekday_sch.setDefaultValue("1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 0.88, 0.41, 0.24, 0.24, 0.24, 0.24, 0.24, 0.24, 0.24, 0.29, 0.55, 0.90, 0.90, 0.90, 1.00, 1.00, 1.00")
     args << occupants_weekday_sch
 
-    #Make a string argument for 24 weekend schedule values
+    # Make a string argument for 24 weekend schedule values
     occupants_weekend_sch = OpenStudio::Measure::OSArgument::makeStringArgument("occupants_weekend_sch", true)
     occupants_weekend_sch.setDisplayName("Occupants Weekend schedule")
     occupants_weekend_sch.setDescription("Specify the 24-hour weekend schedule.")
     occupants_weekend_sch.setDefaultValue("1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 0.88, 0.41, 0.24, 0.24, 0.24, 0.24, 0.24, 0.24, 0.24, 0.29, 0.55, 0.90, 0.90, 0.90, 1.00, 1.00, 1.00")
     args << occupants_weekend_sch
 
-    #Make a string argument for 12 monthly schedule values
+    # Make a string argument for 12 monthly schedule values
     occupants_monthly_sch = OpenStudio::Measure::OSArgument::makeStringArgument("occupants_monthly_sch", true)
     occupants_monthly_sch.setDisplayName("Occupants Month schedule")
     occupants_monthly_sch.setDescription("Specify the 12-month schedule.")
@@ -94,10 +93,10 @@ class ResidentialGeometryFromFloorspaceJS < OpenStudio::Measure::ModelMeasure
     floorplan_path = runner.getStringArgumentValue("floorplan_path", user_arguments)
     num_br = runner.getStringArgumentValue("num_bedrooms", user_arguments).split(",").map(&:strip)
     num_ba = runner.getStringArgumentValue("num_bathrooms", user_arguments).split(",").map(&:strip)
-    num_occupants = runner.getStringArgumentValue("num_occupants",user_arguments)
-    occupants_weekday_sch = runner.getStringArgumentValue("occupants_weekday_sch",user_arguments)
-    occupants_weekend_sch = runner.getStringArgumentValue("occupants_weekend_sch",user_arguments)
-    occupants_monthly_sch = runner.getStringArgumentValue("occupants_monthly_sch",user_arguments)
+    num_occupants = runner.getStringArgumentValue("num_occupants", user_arguments)
+    occupants_weekday_sch = runner.getStringArgumentValue("occupants_weekday_sch", user_arguments)
+    occupants_weekend_sch = runner.getStringArgumentValue("occupants_weekend_sch", user_arguments)
+    occupants_monthly_sch = runner.getStringArgumentValue("occupants_monthly_sch", user_arguments)
 
     # check the floorplan_path for reasonableness
     if floorplan_path.empty?
@@ -163,6 +162,7 @@ class ResidentialGeometryFromFloorspaceJS < OpenStudio::Measure::ModelMeasure
     json["space_types"].each do |st|
       model.getSpaceTypes.each do |space_type|
         next unless st["name"] == space_type.name.to_s
+
         space_type.setStandardsSpaceType(st["name"])
       end
     end
@@ -177,6 +177,7 @@ class ResidentialGeometryFromFloorspaceJS < OpenStudio::Measure::ModelMeasure
     # permit only expected space type names
     model.getSpaceTypes.each do |space_type|
       next if Constants.ExpectedSpaceTypes.include? space_type.standardsSpaceType.get
+
       runner.registerError("Unexpected space type '#{space_type.standardsSpaceType.get}'. Supported space types are: '#{Constants.ExpectedSpaceTypes.join("', '")}'.")
       return false
     end
@@ -198,7 +199,7 @@ class ResidentialGeometryFromFloorspaceJS < OpenStudio::Measure::ModelMeasure
         thermal_zone.remove
         next
       end
-      unless thermal_zone.spaces.map {|space| Geometry.space_is_finished(space)}.uniq.size == 1
+      unless thermal_zone.spaces.map { |space| Geometry.space_is_finished(space) }.uniq.size == 1
         runner.registerError("'#{thermal_zone.name}' has a mix of finished and unfinished spaces.")
         return false
       end
@@ -208,7 +209,7 @@ class ResidentialGeometryFromFloorspaceJS < OpenStudio::Measure::ModelMeasure
     if model.getBuildingUnits.length == 1
       model.getBuilding.setStandardsBuildingType(Constants.BuildingTypeSingleFamilyDetached)
     else # SFA or MF
-      if model.getBuildingUnits.select{ |building_unit| Geometry.get_building_stories(building_unit.spaces) > 1 }.any?
+      if model.getBuildingUnits.select { |building_unit| Geometry.get_building_stories(building_unit.spaces) > 1 }.any?
         model.getBuilding.setStandardsBuildingType(Constants.BuildingTypeSingleFamilyAttached)
       else
         model.getBuilding.setStandardsBuildingType(Constants.BuildingTypeMultifamily)
@@ -219,6 +220,7 @@ class ResidentialGeometryFromFloorspaceJS < OpenStudio::Measure::ModelMeasure
     # make all surfaces adjacent to corridor spaces into adiabatic surfaces
     model.getSpaces.each do |space|
       next unless Geometry.is_corridor(space)
+
       space.surfaces.each do |surface|
         if surface.adjacentSurface.is_initialized
           surface.adjacentSurface.get.setOutsideBoundaryCondition("Adiabatic")
@@ -230,6 +232,7 @@ class ResidentialGeometryFromFloorspaceJS < OpenStudio::Measure::ModelMeasure
     model.getSurfaces.each do |surface|
       next unless surface.outsideBoundaryCondition.downcase == "surface"
       next if surface.adjacentSurface.is_initialized
+
       surface.setOutsideBoundaryCondition("Adiabatic")
     end
 
@@ -238,7 +241,7 @@ class ResidentialGeometryFromFloorspaceJS < OpenStudio::Measure::ModelMeasure
       return false
     end
 
-    result = Geometry.process_occupants(model, runner, num_occupants, occ_gain=384.0, sens_frac=0.573, lat_frac=0.427, occupants_weekday_sch, occupants_weekend_sch, occupants_monthly_sch)
+    result = Geometry.process_occupants(model, runner, num_occupants, occ_gain = 384.0, sens_frac = 0.573, lat_frac = 0.427, occupants_weekday_sch, occupants_weekend_sch, occupants_monthly_sch)
     unless result
       return false
     end
@@ -247,9 +250,7 @@ class ResidentialGeometryFromFloorspaceJS < OpenStudio::Measure::ModelMeasure
     runner.registerFinalCondition("Final model has #{model.getPlanarSurfaceGroups.size} planar surface groups.")
 
     return true
-
   end
-
 end
 
 # register the measure to be used by the application

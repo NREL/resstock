@@ -1,11 +1,11 @@
 <measure>
   <schema_version>3.0</schema_version>
-  <name>process_vrf_minisplit</name>
+  <name>process_mini_split_heat_pump</name>
   <uid>402b168f-ed99-46bb-b367-103937011e91</uid>
-  <version_id>7efa0489-3a69-4b9a-ba43-025f9406a622</version_id>
-  <version_modified>20181113T060900Z</version_modified>
+  <version_id>ad858bc6-a461-41f2-9042-808bf91123ef</version_id>
+  <version_modified>20181218T225844Z</version_modified>
   <xml_checksum>470FC630</xml_checksum>
-  <class_name>ProcessVRFMinisplit</class_name>
+  <class_name>ProcessMiniSplitHeatPump</class_name>
   <display_name>Set Residential Mini-Split Heat Pump</display_name>
   <description>This measure removes any existing HVAC components from the building and adds a mini-split heat pump. For multifamily buildings, the mini-split heat pump can be set for all units of the building. See https://github.com/NREL/OpenStudio-BEopt#workflows for supported workflows using this measure.</description>
   <modeler_description>Any supply components or baseboard convective electrics/waters are removed from any existing air/plant loops or zones. Any existing air/plant loops are also removed. A heating DX coil, cooling DX coil, and an on/off supply fan are added to a variable refrigerant flow terminal unit.</modeler_description>
@@ -170,25 +170,6 @@
       <default_value>0.07</default_value>
     </argument>
     <argument>
-      <name>is_ducted</name>
-      <display_name>Is Ducted</display_name>
-      <description>Specified whether the mini-split heat pump is ducted or ductless.</description>
-      <type>Boolean</type>
-      <required>true</required>
-      <model_dependent>false</model_dependent>
-      <default_value>false</default_value>
-      <choices>
-        <choice>
-          <value>true</value>
-          <display_name>true</display_name>
-        </choice>
-        <choice>
-          <value>false</value>
-          <display_name>false</display_name>
-        </choice>
-      </choices>
-    </argument>
-    <argument>
       <name>heat_pump_capacity</name>
       <display_name>Heat Pump Capacity</display_name>
       <description>The output cooling capacity of the heat pump. If using 'autosize', the autosizing algorithm will use ACCA Manual S to set the heat pump capacity based on the cooling load, with up to 1.3x oversizing allowed for variable-speed equipment in colder climates when the heating load exceeds the cooling load. If using 'autosize for max load', the autosizing algorithm will override ACCA Manual S and use the maximum of the heating and cooling loads to set the heat pump capacity, based on the heating/cooling capacities under design conditions.</description>
@@ -217,6 +198,25 @@
       <required>true</required>
       <model_dependent>false</model_dependent>
       <default_value>autosize</default_value>
+    </argument>
+    <argument>
+      <name>is_ducted</name>
+      <display_name>Is Ducted</display_name>
+      <description>Specified whether the mini-split heat pump is ducted or ductless.</description>
+      <type>Boolean</type>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>false</default_value>
+      <choices>
+        <choice>
+          <value>true</value>
+          <display_name>true</display_name>
+        </choice>
+        <choice>
+          <value>false</value>
+          <display_name>false</display_name>
+        </choice>
+      </choices>
     </argument>
     <argument>
       <name>dse</name>
@@ -257,12 +257,6 @@
   </attributes>
   <files>
     <file>
-      <filename>process_mini_split_heat_pump_test.rb</filename>
-      <filetype>rb</filetype>
-      <usage_type>test</usage_type>
-      <checksum>76839440</checksum>
-    </file>
-    <file>
       <version>
         <software_program>OpenStudio</software_program>
         <identifier>1.12.4</identifier>
@@ -271,7 +265,19 @@
       <filename>measure.rb</filename>
       <filetype>rb</filetype>
       <usage_type>script</usage_type>
-      <checksum>BD7C48AD</checksum>
+      <checksum>1754B290</checksum>
+    </file>
+    <file>
+      <filename>process_mini_split_heat_pump_test.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>test</usage_type>
+      <checksum>54233A11</checksum>
+    </file>
+    <file>
+      <filename>process_mini_split_heat_pump_test.rb.bak</filename>
+      <filetype>bak</filetype>
+      <usage_type>test</usage_type>
+      <checksum>56B734F9</checksum>
     </file>
   </files>
 </measure>
