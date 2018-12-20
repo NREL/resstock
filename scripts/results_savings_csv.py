@@ -188,7 +188,8 @@ def preprocess(df):
     if pd.isnull(df[col]).all():
       del df[col]
 
-  # fill location columns for upgrade rows
+  # fill building characteristics columns for upgrade rows
+  print 'Filling in characteristics for upgrade rows...'
   df = df.reset_index()
   df = df.set_index('build_existing_model.building_id')
   if 'status_message' in df.columns:
