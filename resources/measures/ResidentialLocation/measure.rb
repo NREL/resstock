@@ -4,10 +4,8 @@
 require_relative "../HPXMLtoOpenStudio/resources/constants"
 require_relative "../HPXMLtoOpenStudio/resources/location"
 
-
 # start the measure
 class SetResidentialEPWFile < OpenStudio::Measure::ModelMeasure
-
   # human readable name
   def name
     return "Set Residential Location"
@@ -68,7 +66,7 @@ class SetResidentialEPWFile < OpenStudio::Measure::ModelMeasure
     weather_file_name = runner.getStringArgumentValue("weather_file_name", user_arguments)
     dst_start_date = runner.getStringArgumentValue("dst_start_date", user_arguments)
     dst_end_date = runner.getStringArgumentValue("dst_end_date", user_arguments)
-    
+
     unless (Pathname.new weather_directory).absolute?
       weather_directory = File.expand_path(File.join(File.dirname(__FILE__), weather_directory))
     end
@@ -84,11 +82,9 @@ class SetResidentialEPWFile < OpenStudio::Measure::ModelMeasure
     else
       runner.registerFinalCondition("The weather file has not been set.")
     end
-    
+
     return true
-
   end
-
 end
 
 # register the measure to be used by the application
