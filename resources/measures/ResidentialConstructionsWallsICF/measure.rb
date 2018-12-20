@@ -8,7 +8,6 @@ require_relative "../HPXMLtoOpenStudio/resources/constructions"
 
 # start the measure
 class ProcessConstructionsWallsICF < OpenStudio::Measure::ModelMeasure
-
   # human readable name
   def name
     return "Set Residential Walls - ICF Construction"
@@ -28,7 +27,7 @@ class ProcessConstructionsWallsICF < OpenStudio::Measure::ModelMeasure
   def arguments(model)
     args = OpenStudio::Measure::OSArgumentVector.new
 
-    #make a double argument for nominal R-value of the icf insulation
+    # make a double argument for nominal R-value of the icf insulation
     icf_r = OpenStudio::Measure::OSArgument::makeDoubleArgument("icf_r", true)
     icf_r.setDisplayName("Nominal Insulation R-value")
     icf_r.setUnits("hr-ft^2-R/Btu")
@@ -36,15 +35,15 @@ class ProcessConstructionsWallsICF < OpenStudio::Measure::ModelMeasure
     icf_r.setDefaultValue(10.0)
     args << icf_r
 
-    #make a double argument for thickness of the icf insulation
+    # make a double argument for thickness of the icf insulation
     ins_thick_in = OpenStudio::Measure::OSArgument::makeDoubleArgument("ins_thick_in", true)
     ins_thick_in.setDisplayName("Insulation Thickness")
     ins_thick_in.setUnits("in")
     ins_thick_in.setDescription("Thickness of each insulating layer of the form.")
     ins_thick_in.setDefaultValue(2.0)
-    args << ins_thick_in 
+    args << ins_thick_in
 
-    #make a double argument for thickness of the concrete
+    # make a double argument for thickness of the concrete
     concrete_thick_in = OpenStudio::Measure::OSArgument::makeDoubleArgument("concrete_thick_in", true)
     concrete_thick_in.setDisplayName("Concrete Thickness")
     concrete_thick_in.setUnits("in")
@@ -52,39 +51,39 @@ class ProcessConstructionsWallsICF < OpenStudio::Measure::ModelMeasure
     concrete_thick_in.setDefaultValue(4.0)
     args << concrete_thick_in
 
-    #make a double argument for framing factor
+    # make a double argument for framing factor
     framing_factor = OpenStudio::Measure::OSArgument::makeDoubleArgument("framing_factor", true)
     framing_factor.setDisplayName("Framing Factor")
     framing_factor.setUnits("frac")
     framing_factor.setDescription("Total fraction of the wall that is framing for windows or doors.")
     framing_factor.setDefaultValue(0.076)
-    args << framing_factor 
-    
-    #make a double argument for drywall thickness
+    args << framing_factor
+
+    # make a double argument for drywall thickness
     drywall_thick_in = OpenStudio::Measure::OSArgument::makeDoubleArgument("drywall_thick_in", true)
     drywall_thick_in.setDisplayName("Drywall Thickness")
     drywall_thick_in.setUnits("in")
     drywall_thick_in.setDescription("Thickness of the drywall material.")
     drywall_thick_in.setDefaultValue(0.5)
     args << drywall_thick_in
-    
-    #make a double argument for OSB/Plywood Thickness
-    osb_thick_in = OpenStudio::Measure::OSArgument::makeDoubleArgument("osb_thick_in",true)
+
+    # make a double argument for OSB/Plywood Thickness
+    osb_thick_in = OpenStudio::Measure::OSArgument::makeDoubleArgument("osb_thick_in", true)
     osb_thick_in.setDisplayName("OSB/Plywood Thickness")
     osb_thick_in.setUnits("in")
     osb_thick_in.setDescription("Specifies the thickness of the walls' OSB/plywood sheathing. Enter 0 for no sheathing (if the wall has other means to handle the shear load on the wall such as cross-bracing).")
     osb_thick_in.setDefaultValue(0.5)
     args << osb_thick_in
-    
-    #make a double argument for Rigid Insulation R-value
-    rigid_r = OpenStudio::Measure::OSArgument::makeDoubleArgument("rigid_r",true)
+
+    # make a double argument for Rigid Insulation R-value
+    rigid_r = OpenStudio::Measure::OSArgument::makeDoubleArgument("rigid_r", true)
     rigid_r.setDisplayName("Continuous Insulation Nominal R-value")
     rigid_r.setUnits("h-ft^2-R/Btu")
     rigid_r.setDescription("The R-value of the continuous insulation.")
     rigid_r.setDefaultValue(0.0)
     args << rigid_r
 
-    #make a choice argument for exterior finish material
+    # make a choice argument for exterior finish material
     finishes = OpenStudio::StringVector.new
     WallConstructions.get_exterior_finish_materials.each do |mat|
       finishes << mat.name
@@ -94,7 +93,7 @@ class ProcessConstructionsWallsICF < OpenStudio::Measure::ModelMeasure
     exterior_finish.setDescription("The exterior finish material.")
     exterior_finish.setDefaultValue(Material.ExtFinishVinylLight.name)
     args << exterior_finish
-        
+
     return args
   end
 
@@ -106,64 +105,62 @@ class ProcessConstructionsWallsICF < OpenStudio::Measure::ModelMeasure
     if !runner.validateUserArguments(arguments(model), user_arguments)
       return false
     end
-    
+
     walls_by_type = SurfaceTypes.get_walls(model, runner)
-    
+
     # Get inputs
-    icf_r = runner.getDoubleArgumentValue("icf_r",user_arguments)
-    ins_thick_in = runner.getDoubleArgumentValue("ins_thick_in",user_arguments)
-    concrete_thick_in = runner.getDoubleArgumentValue("concrete_thick_in",user_arguments)
-    framing_factor = runner.getDoubleArgumentValue("framing_factor",user_arguments)
-    drywall_thick_in = runner.getDoubleArgumentValue("drywall_thick_in",user_arguments)
-    osb_thick_in = runner.getDoubleArgumentValue("osb_thick_in",user_arguments)
-    rigid_r = runner.getDoubleArgumentValue("rigid_r",user_arguments)
-    mat_ext_finish = WallConstructions.get_exterior_finish_material(runner.getStringArgumentValue("exterior_finish",user_arguments))
+    icf_r = runner.getDoubleArgumentValue("icf_r", user_arguments)
+    ins_thick_in = runner.getDoubleArgumentValue("ins_thick_in", user_arguments)
+    concrete_thick_in = runner.getDoubleArgumentValue("concrete_thick_in", user_arguments)
+    framing_factor = runner.getDoubleArgumentValue("framing_factor", user_arguments)
+    drywall_thick_in = runner.getDoubleArgumentValue("drywall_thick_in", user_arguments)
+    osb_thick_in = runner.getDoubleArgumentValue("osb_thick_in", user_arguments)
+    rigid_r = runner.getDoubleArgumentValue("rigid_r", user_arguments)
+    mat_ext_finish = WallConstructions.get_exterior_finish_material(runner.getStringArgumentValue("exterior_finish", user_arguments))
 
     # Apply constructions
     if not WallConstructions.apply_icf(runner, model,
-                                       walls_by_type[Constants.SurfaceTypeWallExtInsFin], 
+                                       walls_by_type[Constants.SurfaceTypeWallExtInsFin],
                                        Constants.SurfaceTypeWallExtInsFin,
                                        icf_r, ins_thick_in, concrete_thick_in, framing_factor,
                                        drywall_thick_in, osb_thick_in, rigid_r,
                                        mat_ext_finish)
-        return false
+      return false
     end
-    
+
     if not WallConstructions.apply_icf(runner, model,
-                                       walls_by_type[Constants.SurfaceTypeWallExtInsUnfin], 
+                                       walls_by_type[Constants.SurfaceTypeWallExtInsUnfin],
                                        Constants.SurfaceTypeWallExtInsUnfin,
                                        icf_r, ins_thick_in, concrete_thick_in, framing_factor,
                                        0, osb_thick_in, rigid_r,
                                        mat_ext_finish)
-        return false
+      return false
     end
-    
+
     if not WallConstructions.apply_icf(runner, model,
-                                       walls_by_type[Constants.SurfaceTypeWallIntFinInsUnfin], 
+                                       walls_by_type[Constants.SurfaceTypeWallIntFinInsUnfin],
                                        Constants.SurfaceTypeWallIntFinInsUnfin,
                                        icf_r, ins_thick_in, concrete_thick_in, framing_factor,
                                        0, osb_thick_in, rigid_r,
                                        nil)
-        return false
+      return false
     end
-    
+
     if not WallConstructions.apply_uninsulated(runner, model, walls_by_type,
                                                osb_thick_in, drywall_thick_in, mat_ext_finish)
-        return false
+      return false
     end
-    
+
     if not ThermalMassConstructions.apply(runner, model, walls_by_type,
                                           drywall_thick_in)
-        return false
+      return false
     end
-    
+
     # Remove any constructions/materials that aren't used
     HelperMethods.remove_unused_constructions_and_materials(model, runner)
 
     return true
-
   end
-  
 end
 
 # register the measure to be used by the application
