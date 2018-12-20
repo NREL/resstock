@@ -9,6 +9,20 @@
         "objective_function_target": null,
         "objective_function_group": null,
         "scaling_factor": null,
+        "display_name": "location_aia",
+        "display_name_short": "location_aia",
+        "metadata_id": null,
+        "name": "building_characteristics_report.location_aia",
+        "visualize": true,
+        "export": true,
+        "variable_type": "string"
+      },
+      {
+        "objective_function": false,
+        "objective_function_index": null,
+        "objective_function_target": null,
+        "objective_function_group": null,
+        "scaling_factor": null,
         "display_name": "location_region",
         "display_name_short": "location_region",
         "metadata_id": null,
@@ -629,6 +643,90 @@
         "display_name_short": "hvac_system_cooling_type",
         "metadata_id": null,
         "name": "building_characteristics_report.hvac_system_cooling_type",
+        "visualize": true,
+        "export": true,
+        "variable_type": "string"
+      },
+      {
+        "objective_function": false,
+        "objective_function_index": null,
+        "objective_function_target": null,
+        "objective_function_group": null,
+        "scaling_factor": null,
+        "display_name": "has_cooling_setpoint_offset",
+        "display_name_short": "has_cooling_setpoint_offset",
+        "metadata_id": null,
+        "name": "building_characteristics_report.has_cooling_setpoint_offset",
+        "visualize": true,
+        "export": true,
+        "variable_type": "string"
+      },
+      {
+        "objective_function": false,
+        "objective_function_index": null,
+        "objective_function_target": null,
+        "objective_function_group": null,
+        "scaling_factor": null,
+        "display_name": "has_heating_setpoint_offset",
+        "display_name_short": "has_heating_setpoint_offset",
+        "metadata_id": null,
+        "name": "building_characteristics_report.has_heating_setpoint_offset",
+        "visualize": true,
+        "export": true,
+        "variable_type": "string"
+      },
+      {
+        "objective_function": false,
+        "objective_function_index": null,
+        "objective_function_target": null,
+        "objective_function_group": null,
+        "scaling_factor": null,
+        "display_name": "cooling_setpoint_offset_magnitude",
+        "display_name_short": "cooling_setpoint_offset_magnitude",
+        "metadata_id": null,
+        "name": "building_characteristics_report.cooling_setpoint_offset_magnitude",
+        "visualize": true,
+        "export": true,
+        "variable_type": "string"
+      },
+      {
+        "objective_function": false,
+        "objective_function_index": null,
+        "objective_function_target": null,
+        "objective_function_group": null,
+        "scaling_factor": null,
+        "display_name": "cooling_setpoint_offset_period",
+        "display_name_short": "cooling_setpoint_offset_period",
+        "metadata_id": null,
+        "name": "building_characteristics_report.cooling_setpoint_offset_period",
+        "visualize": true,
+        "export": true,
+        "variable_type": "string"
+      },
+      {
+        "objective_function": false,
+        "objective_function_index": null,
+        "objective_function_target": null,
+        "objective_function_group": null,
+        "scaling_factor": null,
+        "display_name": "heating_setpoint_offset_magnitude",
+        "display_name_short": "heating_setpoint_offset_magnitude",
+        "metadata_id": null,
+        "name": "building_characteristics_report.heating_setpoint_offset_magnitude",
+        "visualize": true,
+        "export": true,
+        "variable_type": "string"
+      },
+      {
+        "objective_function": false,
+        "objective_function_index": null,
+        "objective_function_target": null,
+        "objective_function_group": null,
+        "scaling_factor": null,
+        "display_name": "heating_setpoint_offset_period",
+        "display_name_short": "heating_setpoint_offset_period",
+        "metadata_id": null,
+        "name": "building_characteristics_report.heating_setpoint_offset_period",
         "visualize": true,
         "export": true,
         "variable_type": "string"
@@ -1706,7 +1804,7 @@
           "measure_type": "RubyMeasure",
           "measure_definition_class_name": "ResidentialSimulationControls",
           "measure_definition_directory": "./measures/ResidentialSimulationControls",
-          "measure_definition_directory_local": "C:\\Users\\mpathak\\Documents\\Github\\OpenStudio-BuildStock\\project_resstock_heterogeneity3\\measures\\ResidentialSimulationControls",
+          "measure_definition_directory_local": "/Users/ewilson/Documents/code/OpenStudio-BuildStock/project_resstock_heterogeneity/measures/ResidentialSimulationControls",
           "measure_definition_display_name": "Set Residential Simulation Controls",
           "measure_definition_name": "residential_simulation_controls",
           "measure_definition_name_xml": null,
@@ -1767,7 +1865,7 @@
           "measure_type": "RubyMeasure",
           "measure_definition_class_name": "BuildExistingModel",
           "measure_definition_directory": "./measures/BuildExistingModel",
-          "measure_definition_directory_local": "C:\\Users\\mpathak\\Documents\\Github\\OpenStudio-BuildStock\\project_resstock_heterogeneity3\\measures\\BuildExistingModel",
+          "measure_definition_directory_local": "/Users/ewilson/Documents/code/OpenStudio-BuildStock/project_resstock_heterogeneity/measures/BuildExistingModel",
           "measure_definition_display_name": "Build Existing Model",
           "measure_definition_name": "build_existing_model",
           "measure_definition_name_xml": null,
@@ -1799,8 +1897,8 @@
               "display_name_short": "sample_weight",
               "name": "sample_weight",
               "value_type": "double",
-              "default_value": 0,
-              "value": 0
+              "default_value": 1,
+              "value": 1
             }
           ],
           "variables": [
@@ -1817,7 +1915,7 @@
               "display_name_short": "building_id",
               "variable_type": "pivot",
               "minimum": 1,
-              "maximum": 10,
+              "maximum": 10000,
               "static_value": 0,
               "uuid": "",
               "version_uuid": "",
@@ -1831,7 +1929,7 @@
                   },
                   {
                     "name": "upper_bounds",
-                    "value": 10
+                    "value": 10000
                   },
                   {
                     "name": "modes",
@@ -1858,7 +1956,7 @@
           "measure_type": "RubyMeasure",
           "measure_definition_class_name": "ApplyUpgrade",
           "measure_definition_directory": "./measures/ApplyUpgrade",
-          "measure_definition_directory_local": "C:\\Users\\mpathak\\Documents\\Github\\OpenStudio-BuildStock\\project_resstock_heterogeneity3\\measures\\ApplyUpgrade",
+          "measure_definition_directory_local": "/Users/ewilson/Documents/code/OpenStudio-BuildStock/project_resstock_heterogeneity/measures/ApplyUpgrade",
           "measure_definition_display_name": "Heating (Gas Furnace)",
           "measure_definition_name": "apply_upgrade_5_5",
           "measure_definition_name_xml": null,
@@ -2314,7 +2412,7 @@
           "measure_type": "RubyMeasure",
           "measure_definition_class_name": "ApplyUpgrade",
           "measure_definition_directory": "./measures/ApplyUpgrade",
-          "measure_definition_directory_local": "C:\\Users\\mpathak\\Documents\\Github\\OpenStudio-BuildStock\\project_resstock_heterogeneity3\\measures\\ApplyUpgrade",
+          "measure_definition_directory_local": "/Users/ewilson/Documents/code/OpenStudio-BuildStock/project_resstock_heterogeneity/measures/ApplyUpgrade",
           "measure_definition_display_name": "Heating (Gas Boiler)",
           "measure_definition_name": "apply_upgrade_5_4",
           "measure_definition_name_xml": null,
@@ -2770,7 +2868,7 @@
           "measure_type": "RubyMeasure",
           "measure_definition_class_name": "ApplyUpgrade",
           "measure_definition_directory": "./measures/ApplyUpgrade",
-          "measure_definition_directory_local": "C:\\Users\\mpathak\\Documents\\Github\\OpenStudio-BuildStock\\project_resstock_heterogeneity3\\measures\\ApplyUpgrade",
+          "measure_definition_directory_local": "/Users/ewilson/Documents/code/OpenStudio-BuildStock/project_resstock_heterogeneity/measures/ApplyUpgrade",
           "measure_definition_display_name": "Heating (Gas Furnace) Baseline",
           "measure_definition_name": "apply_upgrade_5_3",
           "measure_definition_name_xml": null,
@@ -3234,7 +3332,7 @@
           "measure_type": "RubyMeasure",
           "measure_definition_class_name": "ApplyUpgrade",
           "measure_definition_directory": "./measures/ApplyUpgrade",
-          "measure_definition_directory_local": "C:\\Users\\mpathak\\Documents\\Github\\OpenStudio-BuildStock\\project_resstock_heterogeneity3\\measures\\ApplyUpgrade",
+          "measure_definition_directory_local": "/Users/ewilson/Documents/code/OpenStudio-BuildStock/project_resstock_heterogeneity/measures/ApplyUpgrade",
           "measure_definition_display_name": "Heating (Gas Boiler) Baseline",
           "measure_definition_name": "apply_upgrade_5_3_2",
           "measure_definition_name_xml": null,
@@ -3706,7 +3804,7 @@
           "measure_type": "RubyMeasure",
           "measure_definition_class_name": "ApplyUpgrade",
           "measure_definition_directory": "./measures/ApplyUpgrade",
-          "measure_definition_directory_local": "C:\\Users\\mpathak\\Documents\\Github\\OpenStudio-BuildStock\\project_resstock_heterogeneity3\\measures\\ApplyUpgrade",
+          "measure_definition_directory_local": "/Users/ewilson/Documents/code/OpenStudio-BuildStock/project_resstock_heterogeneity/measures/ApplyUpgrade",
           "measure_definition_display_name": "Heating (Propane Furnace)",
           "measure_definition_name": "apply_upgrade_5_2",
           "measure_definition_name_xml": null,
@@ -4178,7 +4276,7 @@
           "measure_type": "RubyMeasure",
           "measure_definition_class_name": "ApplyUpgrade",
           "measure_definition_directory": "./measures/ApplyUpgrade",
-          "measure_definition_directory_local": "C:\\Users\\mpathak\\Documents\\Github\\OpenStudio-BuildStock\\project_resstock_heterogeneity3\\measures\\ApplyUpgrade",
+          "measure_definition_directory_local": "/Users/ewilson/Documents/code/OpenStudio-BuildStock/project_resstock_heterogeneity/measures/ApplyUpgrade",
           "measure_definition_display_name": "Heating (Propane Boiler)",
           "measure_definition_name": "apply_upgrade_5_2_4",
           "measure_definition_name_xml": null,
@@ -4650,7 +4748,7 @@
           "measure_type": "RubyMeasure",
           "measure_definition_class_name": "ApplyUpgrade",
           "measure_definition_directory": "./measures/ApplyUpgrade",
-          "measure_definition_directory_local": "C:\\Users\\mpathak\\Documents\\Github\\OpenStudio-BuildStock\\project_resstock_heterogeneity3\\measures\\ApplyUpgrade",
+          "measure_definition_directory_local": "/Users/ewilson/Documents/code/OpenStudio-BuildStock/project_resstock_heterogeneity/measures/ApplyUpgrade",
           "measure_definition_display_name": "Heating (Propane Furnace) Baseline",
           "measure_definition_name": "apply_upgrade_5_2_3",
           "measure_definition_name_xml": null,
@@ -5138,7 +5236,7 @@
           "measure_type": "RubyMeasure",
           "measure_definition_class_name": "ApplyUpgrade",
           "measure_definition_directory": "./measures/ApplyUpgrade",
-          "measure_definition_directory_local": "C:\\Users\\mpathak\\Documents\\Github\\OpenStudio-BuildStock\\project_resstock_heterogeneity3\\measures\\ApplyUpgrade",
+          "measure_definition_directory_local": "/Users/ewilson/Documents/code/OpenStudio-BuildStock/project_resstock_heterogeneity/measures/ApplyUpgrade",
           "measure_definition_display_name": "Heating (Propane Boiler) Baseline",
           "measure_definition_name": "apply_upgrade_5_2_3_2",
           "measure_definition_name_xml": null,
@@ -5626,7 +5724,7 @@
           "measure_type": "RubyMeasure",
           "measure_definition_class_name": "ApplyUpgrade",
           "measure_definition_directory": "./measures/ApplyUpgrade",
-          "measure_definition_directory_local": "C:\\Users\\mpathak\\Documents\\Github\\OpenStudio-BuildStock\\project_resstock_heterogeneity3\\measures\\ApplyUpgrade",
+          "measure_definition_directory_local": "/Users/ewilson/Documents/code/OpenStudio-BuildStock/project_resstock_heterogeneity/measures/ApplyUpgrade",
           "measure_definition_display_name": "Heating (Oil Furnace)",
           "measure_definition_name": "apply_upgrade_5_2_2",
           "measure_definition_name_xml": null,
@@ -6050,7 +6148,7 @@
           "measure_type": "RubyMeasure",
           "measure_definition_class_name": "ApplyUpgrade",
           "measure_definition_directory": "./measures/ApplyUpgrade",
-          "measure_definition_directory_local": "C:\\Users\\mpathak\\Documents\\Github\\OpenStudio-BuildStock\\project_resstock_heterogeneity3\\measures\\ApplyUpgrade",
+          "measure_definition_directory_local": "/Users/ewilson/Documents/code/OpenStudio-BuildStock/project_resstock_heterogeneity/measures/ApplyUpgrade",
           "measure_definition_display_name": "Heating (Oil Boiler)",
           "measure_definition_name": "apply_upgrade_5_2_2_3",
           "measure_definition_name_xml": null,
@@ -6474,7 +6572,7 @@
           "measure_type": "RubyMeasure",
           "measure_definition_class_name": "ApplyUpgrade",
           "measure_definition_directory": "./measures/ApplyUpgrade",
-          "measure_definition_directory_local": "C:\\Users\\mpathak\\Documents\\Github\\OpenStudio-BuildStock\\project_resstock_heterogeneity3\\measures\\ApplyUpgrade",
+          "measure_definition_directory_local": "/Users/ewilson/Documents/code/OpenStudio-BuildStock/project_resstock_heterogeneity/measures/ApplyUpgrade",
           "measure_definition_display_name": "Heating (Oil Furnace) Baseline",
           "measure_definition_name": "apply_upgrade_5_2_2_2",
           "measure_definition_name_xml": null,
@@ -6914,7 +7012,7 @@
           "measure_type": "RubyMeasure",
           "measure_definition_class_name": "ApplyUpgrade",
           "measure_definition_directory": "./measures/ApplyUpgrade",
-          "measure_definition_directory_local": "C:\\Users\\mpathak\\Documents\\Github\\OpenStudio-BuildStock\\project_resstock_heterogeneity3\\measures\\ApplyUpgrade",
+          "measure_definition_directory_local": "/Users/ewilson/Documents/code/OpenStudio-BuildStock/project_resstock_heterogeneity/measures/ApplyUpgrade",
           "measure_definition_display_name": "Heating (Oil Boiler) Baseline",
           "measure_definition_name": "apply_upgrade_5_2_2_2_2",
           "measure_definition_name_xml": null,
@@ -7354,7 +7452,7 @@
           "measure_type": "RubyMeasure",
           "measure_definition_class_name": "ApplyUpgrade",
           "measure_definition_directory": "./measures/ApplyUpgrade",
-          "measure_definition_directory_local": "C:\\Users\\mpathak\\Documents\\Github\\OpenStudio-BuildStock\\project_resstock_heterogeneity3\\measures\\ApplyUpgrade",
+          "measure_definition_directory_local": "/Users/ewilson/Documents/code/OpenStudio-BuildStock/project_resstock_heterogeneity/measures/ApplyUpgrade",
           "measure_definition_display_name": "Cooling",
           "measure_definition_name": "apply_upgrade_4",
           "measure_definition_name_xml": null,
@@ -7837,12 +7935,436 @@
           "workflow_index": 14
         },
         {
+          "name": "apply_upgrade_3",
+          "display_name": "Air Leakage",
+          "measure_type": "RubyMeasure",
+          "measure_definition_class_name": "ApplyUpgrade",
+          "measure_definition_directory": "./measures/ApplyUpgrade",
+          "measure_definition_directory_local": "/Users/ewilson/Documents/code/OpenStudio-BuildStock/project_resstock_heterogeneity/measures/ApplyUpgrade",
+          "measure_definition_display_name": "Air Leakage",
+          "measure_definition_name": "apply_upgrade_3",
+          "measure_definition_name_xml": null,
+          "measure_definition_uuid": "33f1654c-f734-43d1-b35d-9d2856e41b5a",
+          "measure_definition_version_uuid": "c57fb504-f56b-41b6-9f40-07901f241787",
+          "uuid": "33f1654c-f734-43d1-b35d-9d2856e41b5a",
+          "version_uuid": "c57fb504-f56b-41b6-9f40-07901f241787",
+          "description": "Measure that applies an upgrade (one or more child measures) to a building model based on the specified logic.",
+          "taxonomy": "Whole Building.Space Types",
+          "arguments": [
+            {
+              "display_name": "Upgrade Name",
+              "display_name_short": "upgrade_name",
+              "name": "upgrade_name",
+              "value_type": "string",
+              "default_value": "My Upgrade",
+              "value": "Air Leakage 25% reduction"
+            },
+            {
+              "display_name": "Option 1",
+              "display_name_short": "option_1",
+              "name": "option_1",
+              "value_type": "string",
+              "default_value": "Infiltration|18.5 ACH50",
+              "value": "Infiltration|18.5 ACH50"
+            },
+            {
+              "display_name": "Option 1 Apply Logic",
+              "display_name_short": "option_1_apply_logic",
+              "name": "option_1_apply_logic",
+              "value_type": "string",
+              "default_value": "Infiltration|25 ACH50",
+              "value": "Infiltration|25 ACH50"
+            },
+            {
+              "display_name": "Option 1 Cost 1 Value",
+              "display_name_short": "option_1_cost_1_value",
+              "name": "option_1_cost_1_value",
+              "value_type": "double",
+              "default_value": 1.488,
+              "value": 1.488
+            },
+            {
+              "display_name": "Option 1 Cost 1 Multiplier",
+              "display_name_short": "option_1_cost_1_multiplier",
+              "name": "option_1_cost_1_multiplier",
+              "value_type": "string",
+              "default_value": "Floor Area, Conditioned (ft^2)",
+              "value": "Floor Area, Conditioned (ft^2)"
+            },
+            {
+              "display_name": "Option 1 Cost 2 Value",
+              "display_name_short": "option_1_cost_2_value",
+              "name": "option_1_cost_2_value",
+              "value_type": "double",
+              "default_value": 0,
+              "value": 0
+            },
+            {
+              "display_name": "Option 1 Lifetime",
+              "display_name_short": "option_1_lifetime",
+              "name": "option_1_lifetime",
+              "value_type": "double",
+              "default_value": 999,
+              "value": 999
+            },
+            {
+              "display_name": "Option 2",
+              "display_name_short": "option_2",
+              "name": "option_2",
+              "value_type": "string",
+              "default_value": "Infiltration|15 ACH50",
+              "value": "Infiltration|15 ACH50"
+            },
+            {
+              "display_name": "Option 2 Apply Logic",
+              "display_name_short": "option_2_apply_logic",
+              "name": "option_2_apply_logic",
+              "value_type": "string",
+              "default_value": "Infiltration|20 ACH50",
+              "value": "Infiltration|20 ACH50"
+            },
+            {
+              "display_name": "Option 2 Cost 1 Value",
+              "display_name_short": "option_2_cost_1_value",
+              "name": "option_2_cost_1_value",
+              "value_type": "double",
+              "default_value": 1.2,
+              "value": 1.2
+            },
+            {
+              "display_name": "Option 2 Cost 1 Multiplier",
+              "display_name_short": "option_2_cost_1_multiplier",
+              "name": "option_2_cost_1_multiplier",
+              "value_type": "string",
+              "default_value": "Floor Area, Conditioned (ft^2)",
+              "value": "Floor Area, Conditioned (ft^2)"
+            },
+            {
+              "display_name": "Option 2 Cost 2 Value",
+              "display_name_short": "option_2_cost_2_value",
+              "name": "option_2_cost_2_value",
+              "value_type": "double",
+              "default_value": 0,
+              "value": 0
+            },
+            {
+              "display_name": "Option 2 Lifetime",
+              "display_name_short": "option_2_lifetime",
+              "name": "option_2_lifetime",
+              "value_type": "double",
+              "default_value": 999,
+              "value": 999
+            },
+            {
+              "display_name": "Option 3",
+              "display_name_short": "option_3",
+              "name": "option_3",
+              "value_type": "string",
+              "default_value": "Infiltration|11.25 ACH50",
+              "value": "Infiltration|11.25 ACH50"
+            },
+            {
+              "display_name": "Option 3 Apply Logic",
+              "display_name_short": "option_3_apply_logic",
+              "name": "option_3_apply_logic",
+              "value_type": "string",
+              "default_value": "Infiltration|15 ACH50",
+              "value": "Infiltration|15 ACH50"
+            },
+            {
+              "display_name": "Option 3 Cost 1 Value",
+              "display_name_short": "option_3_cost_1_value",
+              "name": "option_3_cost_1_value",
+              "value_type": "double",
+              "default_value": 0.9,
+              "value": 0.9
+            },
+            {
+              "display_name": "Option 3 Cost 1 Multiplier",
+              "display_name_short": "option_3_cost_1_multiplier",
+              "name": "option_3_cost_1_multiplier",
+              "value_type": "string",
+              "default_value": "Floor Area, Conditioned (ft^2)",
+              "value": "Floor Area, Conditioned (ft^2)"
+            },
+            {
+              "display_name": "Option 3 Cost 2 Value",
+              "display_name_short": "option_3_cost_2_value",
+              "name": "option_3_cost_2_value",
+              "value_type": "double",
+              "default_value": 0,
+              "value": 0
+            },
+            {
+              "display_name": "Option 3 Lifetime",
+              "display_name_short": "option_3_lifetime",
+              "name": "option_3_lifetime",
+              "value_type": "double",
+              "default_value": 0,
+              "value": 0
+            },
+            {
+              "display_name": "Option 4",
+              "display_name_short": "option_4",
+              "name": "option_4",
+              "value_type": "string",
+              "default_value": "Infiltration|7.5 ACH50",
+              "value": "Infiltration|7.5 ACH50"
+            },
+            {
+              "display_name": "Option 4 Apply Logic",
+              "display_name_short": "option_4_apply_logic",
+              "name": "option_4_apply_logic",
+              "value_type": "string",
+              "default_value": "Infiltration|10 ACH50",
+              "value": "Infiltration|10 ACH50"
+            },
+            {
+              "display_name": "Option 4 Cost 1 Value",
+              "display_name_short": "option_4_cost_1_value",
+              "name": "option_4_cost_1_value",
+              "value_type": "double",
+              "default_value": 0.625,
+              "value": 0.625
+            },
+            {
+              "display_name": "Option 4 Cost 1 Multiplier",
+              "display_name_short": "option_4_cost_1_multiplier",
+              "name": "option_4_cost_1_multiplier",
+              "value_type": "string",
+              "default_value": "Floor Area, Conditioned (ft^2)",
+              "value": "Floor Area, Conditioned (ft^2)"
+            },
+            {
+              "display_name": "Option 4 Cost 2 Value",
+              "display_name_short": "option_4_cost_2_value",
+              "name": "option_4_cost_2_value",
+              "value_type": "double",
+              "default_value": 0,
+              "value": 0
+            },
+            {
+              "display_name": "Option 4 Lifetime",
+              "display_name_short": "option_4_lifetime",
+              "name": "option_4_lifetime",
+              "value_type": "double",
+              "default_value": 0,
+              "value": 0
+            },
+            {
+              "display_name": "Option 5 Cost 1 Value",
+              "display_name_short": "option_5_cost_1_value",
+              "name": "option_5_cost_1_value",
+              "value_type": "double",
+              "default_value": 0,
+              "value": 0
+            },
+            {
+              "display_name": "Option 5 Cost 2 Value",
+              "display_name_short": "option_5_cost_2_value",
+              "name": "option_5_cost_2_value",
+              "value_type": "double",
+              "default_value": 0,
+              "value": 0
+            },
+            {
+              "display_name": "Option 5 Lifetime",
+              "display_name_short": "option_5_lifetime",
+              "name": "option_5_lifetime",
+              "value_type": "double",
+              "default_value": 0,
+              "value": 0
+            },
+            {
+              "display_name": "Option 6 Cost 1 Value",
+              "display_name_short": "option_6_cost_1_value",
+              "name": "option_6_cost_1_value",
+              "value_type": "double",
+              "default_value": 0,
+              "value": 0
+            },
+            {
+              "display_name": "Option 6 Cost 2 Value",
+              "display_name_short": "option_6_cost_2_value",
+              "name": "option_6_cost_2_value",
+              "value_type": "double",
+              "default_value": 0,
+              "value": 0
+            },
+            {
+              "display_name": "Option 6 Lifetime",
+              "display_name_short": "option_6_lifetime",
+              "name": "option_6_lifetime",
+              "value_type": "double",
+              "default_value": 0,
+              "value": 0
+            },
+            {
+              "display_name": "Option 7 Cost 1 Value",
+              "display_name_short": "option_7_cost_1_value",
+              "name": "option_7_cost_1_value",
+              "value_type": "double",
+              "default_value": 0,
+              "value": 0
+            },
+            {
+              "display_name": "Option 7 Cost 2 Value",
+              "display_name_short": "option_7_cost_2_value",
+              "name": "option_7_cost_2_value",
+              "value_type": "double",
+              "default_value": 0,
+              "value": 0
+            },
+            {
+              "display_name": "Option 7 Lifetime",
+              "display_name_short": "option_7_lifetime",
+              "name": "option_7_lifetime",
+              "value_type": "double",
+              "default_value": 0,
+              "value": 0
+            },
+            {
+              "display_name": "Option 8 Cost 1 Value",
+              "display_name_short": "option_8_cost_1_value",
+              "name": "option_8_cost_1_value",
+              "value_type": "double",
+              "default_value": 0,
+              "value": 0
+            },
+            {
+              "display_name": "Option 8 Cost 2 Value",
+              "display_name_short": "option_8_cost_2_value",
+              "name": "option_8_cost_2_value",
+              "value_type": "double",
+              "default_value": 0,
+              "value": 0
+            },
+            {
+              "display_name": "Option 8 Lifetime",
+              "display_name_short": "option_8_lifetime",
+              "name": "option_8_lifetime",
+              "value_type": "double",
+              "default_value": 0,
+              "value": 0
+            },
+            {
+              "display_name": "Option 9 Cost 1 Value",
+              "display_name_short": "option_9_cost_1_value",
+              "name": "option_9_cost_1_value",
+              "value_type": "double",
+              "default_value": 0,
+              "value": 0
+            },
+            {
+              "display_name": "Option 9 Cost 2 Value",
+              "display_name_short": "option_9_cost_2_value",
+              "name": "option_9_cost_2_value",
+              "value_type": "double",
+              "default_value": 0,
+              "value": 0
+            },
+            {
+              "display_name": "Option 9 Lifetime",
+              "display_name_short": "option_9_lifetime",
+              "name": "option_9_lifetime",
+              "value_type": "double",
+              "default_value": 0,
+              "value": 0
+            },
+            {
+              "display_name": "Option 10 Cost 1 Value",
+              "display_name_short": "option_10_cost_1_value",
+              "name": "option_10_cost_1_value",
+              "value_type": "double",
+              "default_value": 0,
+              "value": 0
+            },
+            {
+              "display_name": "Option 10 Cost 2 Value",
+              "display_name_short": "option_10_cost_2_value",
+              "name": "option_10_cost_2_value",
+              "value_type": "double",
+              "default_value": 0,
+              "value": 0
+            },
+            {
+              "display_name": "Option 10 Lifetime",
+              "display_name_short": "option_10_lifetime",
+              "name": "option_10_lifetime",
+              "value_type": "double",
+              "default_value": 0,
+              "value": 0
+            }
+          ],
+          "variables": [
+            {
+              "argument": {
+                "display_name": "Run Measure",
+                "display_name_short": "run_measure",
+                "name": "run_measure",
+                "value_type": "integer",
+                "default_value": 1,
+                "value": 1
+              },
+              "display_name": "Run Measure",
+              "display_name_short": "run_measure",
+              "variable_type": "variable",
+              "minimum": 1,
+              "maximum": 1,
+              "static_value": 1,
+              "uuid": "",
+              "version_uuid": "",
+              "variable": true,
+              "uncertainty_description": {
+                "type": "discrete",
+                "attributes": [
+                  {
+                    "name": "discrete",
+                    "values_and_weights": [
+                      {
+                        "value": 0,
+                        "weight": 0.5
+                      },
+                      {
+                        "value": 1,
+                        "weight": 0.5
+                      }
+                    ]
+                  },
+                  {
+                    "name": "lower_bounds",
+                    "value": 1
+                  },
+                  {
+                    "name": "upper_bounds",
+                    "value": 1
+                  },
+                  {
+                    "name": "modes",
+                    "value": 1
+                  },
+                  {
+                    "name": "delta_x",
+                    "value": 1
+                  },
+                  {
+                    "name": "stddev",
+                    "value": 1
+                  }
+                ]
+              },
+              "workflow_index": 0
+            }
+          ],
+          "workflow_index": 15
+        },
+        {
           "name": "apply_upgrade_2_2",
           "display_name": "Attic Insulation",
           "measure_type": "RubyMeasure",
           "measure_definition_class_name": "ApplyUpgrade",
           "measure_definition_directory": "./measures/ApplyUpgrade",
-          "measure_definition_directory_local": "C:\\Users\\mpathak\\Documents\\Github\\OpenStudio-BuildStock\\project_resstock_heterogeneity3\\measures\\ApplyUpgrade",
+          "measure_definition_directory_local": "/Users/ewilson/Documents/code/OpenStudio-BuildStock/project_resstock_heterogeneity/measures/ApplyUpgrade",
           "measure_definition_display_name": "Attic Insulation",
           "measure_definition_name": "apply_upgrade_2_2",
           "measure_definition_name_xml": null,
@@ -8314,7 +8836,7 @@
               "workflow_index": 0
             }
           ],
-          "workflow_index": 15
+          "workflow_index": 16
         },
         {
           "name": "apply_upgrade_2",
@@ -8322,7 +8844,7 @@
           "measure_type": "RubyMeasure",
           "measure_definition_class_name": "ApplyUpgrade",
           "measure_definition_directory": "./measures/ApplyUpgrade",
-          "measure_definition_directory_local": "C:\\Users\\mpathak\\Documents\\Github\\OpenStudio-BuildStock\\project_resstock_heterogeneity3\\measures\\ApplyUpgrade",
+          "measure_definition_directory_local": "/Users/ewilson/Documents/code/OpenStudio-BuildStock/project_resstock_heterogeneity/measures/ApplyUpgrade",
           "measure_definition_display_name": "Wall Insulation",
           "measure_definition_name": "apply_upgrade_2",
           "measure_definition_name_xml": null,
@@ -8666,7 +9188,7 @@
               "workflow_index": 0
             }
           ],
-          "workflow_index": 16
+          "workflow_index": 17
         },
         {
           "name": "building_characteristics_report",
@@ -8674,19 +9196,19 @@
           "measure_type": "ReportingMeasure",
           "measure_definition_class_name": "BuildingCharacteristicsReport",
           "measure_definition_directory": "./measures/BuildingCharacteristicsReport",
-          "measure_definition_directory_local": "C:\\Users\\mpathak\\Documents\\Github\\OpenStudio-BuildStock\\project_resstock_heterogeneity3\\measures\\BuildingCharacteristicsReport",
+          "measure_definition_directory_local": "/Users/ewilson/Documents/code/OpenStudio-BuildStock/project_resstock_heterogeneity/measures/BuildingCharacteristicsReport",
           "measure_definition_display_name": "Building Characteristics Report",
           "measure_definition_name": "building_characteristics_report",
           "measure_definition_name_xml": null,
           "measure_definition_uuid": "90eecbe2-d8e2-47db-9079-5d9029fb3e67",
-          "measure_definition_version_uuid": "f123b5f1-327e-45ac-81e7-3201016455fe",
+          "measure_definition_version_uuid": "85ef5933-9002-4e00-9dc0-f460f5316eac",
           "uuid": "90eecbe2-d8e2-47db-9079-5d9029fb3e67",
-          "version_uuid": "f123b5f1-327e-45ac-81e7-3201016455fe",
+          "version_uuid": "85ef5933-9002-4e00-9dc0-f460f5316eac",
           "description": "Reports building characteristics for each simulation.",
           "taxonomy": "Whole Building.Space Types",
           "arguments": [],
           "variables": [],
-          "workflow_index": 17
+          "workflow_index": 18
         },
         {
           "name": "simulation_output_report",
@@ -8694,7 +9216,7 @@
           "measure_type": "ReportingMeasure",
           "measure_definition_class_name": "SimulationOutputReport",
           "measure_definition_directory": "./measures/SimulationOutputReport",
-          "measure_definition_directory_local": "C:\\Users\\mpathak\\Documents\\Github\\OpenStudio-BuildStock\\project_resstock_heterogeneity3\\measures\\SimulationOutputReport",
+          "measure_definition_directory_local": "/Users/ewilson/Documents/code/OpenStudio-BuildStock/project_resstock_heterogeneity/measures/SimulationOutputReport",
           "measure_definition_display_name": "Simulation Output Report",
           "measure_definition_name": "simulation_output_report",
           "measure_definition_name_xml": null,
@@ -8706,7 +9228,7 @@
           "taxonomy": "Reporting.QAQC",
           "arguments": [],
           "variables": [],
-          "workflow_index": 18
+          "workflow_index": 19
         },
         {
           "name": "timeseries_csv_export",
@@ -8714,7 +9236,7 @@
           "measure_type": "ReportingMeasure",
           "measure_definition_class_name": "TimeseriesCSVExport",
           "measure_definition_directory": "./measures/TimeseriesCSVExport",
-          "measure_definition_directory_local": "C:\\Users\\mpathak\\Documents\\Github\\OpenStudio-BuildStock\\project_resstock_heterogeneity3\\measures\\TimeseriesCSVExport",
+          "measure_definition_directory_local": "/Users/ewilson/Documents/code/OpenStudio-BuildStock/project_resstock_heterogeneity/measures/TimeseriesCSVExport",
           "measure_definition_display_name": "Timeseries CSV Export",
           "measure_definition_name": "timeseries_csv_export",
           "measure_definition_name_xml": null,
@@ -8724,9 +9246,42 @@
           "version_uuid": "8cc6a722-be59-4c7e-8b0f-1ec3913a2334",
           "description": "Exports all available hourly timeseries enduses to csv.",
           "taxonomy": "Reporting.QAQC",
-          "arguments": [],
+          "arguments": [
+            {
+              "display_name": "Reporting Frequency",
+              "display_name_short": "reporting_frequency",
+              "name": "reporting_frequency",
+              "value_type": "string",
+              "default_value": "Hourly",
+              "value": "Hourly"
+            },
+            {
+              "display_name": "Include End Use Subcategories",
+              "display_name_short": "inc_end_use_subcategories",
+              "name": "inc_end_use_subcategories",
+              "value_type": "boolean",
+              "default_value": false,
+              "value": true
+            },
+            {
+              "display_name": "Include Output Variables",
+              "display_name_short": "inc_output_variables",
+              "name": "inc_output_variables",
+              "value_type": "boolean",
+              "default_value": false,
+              "value": false
+            },
+            {
+              "display_name": "Output Variables",
+              "display_name_short": "output_variables",
+              "name": "output_variables",
+              "value_type": "string",
+              "default_value": "Zone Mean Air Temperature, Zone Mean Air Humidity Ratio, Fan Runtime Fraction",
+              "value": "Zone Mean Air Temperature, Zone Mean Air Humidity Ratio, Fan Runtime Fraction"
+            }
+          ],
           "variables": [],
-          "workflow_index": 19
+          "workflow_index": 20
         },
         {
           "name": "server_directory_cleanup",
@@ -8734,7 +9289,7 @@
           "measure_type": "ReportingMeasure",
           "measure_definition_class_name": "ServerDirectoryCleanup",
           "measure_definition_directory": "./measures/ServerDirectoryCleanup",
-          "measure_definition_directory_local": "C:\\Users\\mpathak\\Documents\\Github\\OpenStudio-BuildStock\\project_resstock_heterogeneity3\\measures\\ServerDirectoryCleanup",
+          "measure_definition_directory_local": "/Users/ewilson/Documents/code/OpenStudio-BuildStock/project_resstock_heterogeneity/measures/ServerDirectoryCleanup",
           "measure_definition_display_name": "Server Directory Cleanup",
           "measure_definition_name": "server_directory_cleanup",
           "measure_definition_name_xml": null,
@@ -8746,7 +9301,7 @@
           "taxonomy": "Calibration",
           "arguments": [],
           "variables": [],
-          "workflow_index": 20
+          "workflow_index": 21
         }
       ],
       "algorithm": {
