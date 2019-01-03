@@ -196,39 +196,61 @@ Leave this alone.
 Timeseries CSV Export
 ^^^^^^^^^^^^^^^^^^^^^
 
-If you do not need the timeseries data for your simulations, you can skip this measure to save disk space. Otherwise, one csv file per datapoint will be written containing timeseries data for their model. After `downloading all datapoints <run_project.html#download>`_ to your project's localResults folder, each datapoint's ``enduse_timeseries.csv`` file will be contained in a zipped ``data_point.zip`` file along with all other simulation input and output files.
+If you do not need the timeseries data for your simulations, you can skip this measure to save disk space. Otherwise, one csv file per datapoint will be written containing end use timeseries data for their model. After `downloading all datapoints <run_project.html#download>`_ to your project's localResults folder, each datapoint's ``enduse_timeseries.csv`` file will be contained in a zipped ``data_point.zip`` file along with all other simulation input and output files.
   
 .. image:: ../images/tutorial/timeseries_csv_export.png
 
-**Reporting Frequency**
-  The timeseries data will be reported at hourly intervals unless otherwise specified. Other options include:
+End uses include:
 
-  * Detailed
-  * Timestep
-  * Daily
-  * Monthly
-  * RunPeriod
+  * heating [electric/gas/propane/oil] [kWh/kBtu/kBtu/kBtu]
+  * cooling [kWh]
+  * interior lights [kWh]
+  * exterior lights [kWh]
+  * interior equipment [electric/gas/propane/oil] [kWh/kBtu/kBtu/kBtu]
+  * fans [kWh]
+  * pumps [kWh]
+  * water heating [electric/gas/propane/oil] [kWh/kBtu/kBtu/kBtu]
+  * water [gal]
+  * pv [kWh]
+
+**Reporting Frequency**
+  The timeseries data will be reported at hourly intervals unless otherwise specified. Alternative reporting frequencies include:
+
+  * detailed
+  * timestep
+  * daily
+  * monthly
+  * run period
   
-  Setting the reporting frequency to "Timestep" will give you interval output equal to the timestep set by the "Simulation Controls" measure. Thus by default, this measure will produce 10-min interval output.
+  Setting the reporting frequency to "detailed" will give you interval output equal to the HVAC system timestep. Setting the reporting frequency to "timestep" will give you interval output equal to the zone timestep set by the "Simulation Controls" measure. Thus, this measure will produce 10-min interval output when you select "timestep" and leave the "Simulation Controls" measure at its default settings.
 
 **Include End Use Subcategories**
   Select this to include end use subcategories. The default is to not include end use subcategories. End use subcategories include:
-
-  * residential misc plug loads:InteriorEquipment:Electricity  [kwh]
-  * residential refrigerator:InteriorEquipment:Electricity  [kwh]
-  * residential clothes washer:InteriorEquipment:Electricity  [kwh]
-  * residential clothes dryer electric:InteriorEquipment:Electricity  [kwh]
-  * residential mech vent fan:InteriorEquipment:Electricity  [kwh]
-  * residential dishwasher:InteriorEquipment:Electricity  [kwh]
-  * residential range electric:InteriorEquipment:Electricity  [kwh]
-  * residential clothes dryer gas:InteriorEquipment:Gas  [kbtu]
-  * residential range gas:InteriorEquipment:Gas  [kbtu]
-
-**Include Output Variables**
-  Select this to include output variables. The default is to not include output variables.
+  
+  * refrigerator [kWh]
+  * dishwasher [kWh]
+  * cooking range [electric/gas/propane] [kWh/kBtu/kBtu]
+  * clothes washer [kWh]
+  * clothes dryer [electric/gas/propane] [kWh/kBtu/kBtu]
+  * mech vent house fan [kWh]
+  * mech vent range fan [kWh]
+  * mech vent bath fan [kWh]
+  * heating supply fan [kWh]
+  * cooling supply fan [kWh]
+  * misc plug loads [kWh]
+  * extra refrigerator [kWh]
+  * freezer [kWh]
+  * pool heater [electric/gas] [kWh/kBtu]
+  * pool pump [kWh]
+  * hot tub heater [electric/gas] [kWh/kBtu]
+  * hot tub pump [kWh]
+  * well pump [kWh]
+  * gas fireplace [kBtu]
+  * gas grill [kBtu]
+  * gas lighting [kBtu]
   
 **Output Variables**
-  If you choose to include output variables, the default output variables reported will be Zone Mean Air Temperature, Zone Mean Air Humidity Ratio, and Fan Runtime Fraction.
+  If you choose to report any output variables (e.g., "Zone Air Temperature" or "Site Outdoor Air Humidity Ratio"), enter a comma-separated list of output variable names. A list of available output variables can be viewed in EnergyPlus's ``.rdd`` file. One csv file, appropriately called "output_variables.csv", will be downloaded alongside the "enduse_timeseries.csv" file.
 
 .. _utility-bill-calculations:
 
