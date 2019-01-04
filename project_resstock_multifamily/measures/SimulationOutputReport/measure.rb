@@ -474,7 +474,7 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
                       coil = component.to_CoilHeatingDXMultiSpeed.get
                       if coil.stages.size > 0
                           stage = coil.stages[coil.stages.size-1]
-                          capacity_ratio = get_highest_stage_capacity_ratio(model, unit.spaces, "SizingInfoHVACCapacityRatioCooling")
+                          capacity_ratio = get_highest_stage_capacity_ratio(model, "SizingInfoHVACCapacityRatioCooling")
                           if stage.grossRatedHeatingCapacity.is_initialized
                               cost_mult += OpenStudio::convert(stage.grossRatedHeatingCapacity.get/capacity_ratio, "W", "kBtu/h").get
                           end
@@ -505,10 +505,8 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
                   next unless conditioned_zones.include? sys.thermalZone.get
                   component = sys
                   next if not component.nominalCapacity.is_initialized
-                  next if component.nominalCapacity.get <= max_value
-                  max_value = component.nominalCapacity.get
-              end
-              cost_mult += OpenStudio::convert(max_value, "W", "kBtu/h").get
+                  cost_mult += OpenStudio::convert(component.nominalCapacity.get, "W", "kBtu/h").get
+              end              
           end
           
           # Boiler?
@@ -606,7 +604,7 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
                     coil = component.to_CoilCoolingDXMultiSpeed.get
                     if coil.stages.size > 0
                         stage = coil.stages[coil.stages.size-1]
-                        capacity_ratio = get_highest_stage_capacity_ratio(model, unit.spaces, "SizingInfoHVACCapacityRatioCooling")
+                        capacity_ratio = get_highest_stage_capacity_ratio(model, "SizingInfoHVACCapacityRatioCooling")
                         if stage.grossRatedTotalCoolingCapacity.is_initialized
                             cost_mult += OpenStudio::convert(stage.grossRatedTotalCoolingCapacity.get/capacity_ratio, "W", "kBtu/h").get
                         end
@@ -624,17 +622,13 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
           if component.nil?
             model.getZoneHVACPackagedTerminalAirConditioners.each do |sys|
                 next unless conditioned_zones.include? sys.thermalZone.get
-                if not component.nil?
-                    runner.registerError("Multiple cooling systems found. This code should be reevaluated for correctness.")
-                    return nil
-                end
                 component = sys.coolingCoil
-            end
-            if not component.nil?
-                if component.to_CoilCoolingDXSingleSpeed.is_initialized
-                    coil = component.to_CoilCoolingDXSingleSpeed.get
-                    if coil.ratedTotalCoolingCapacity.is_initialized
-                        cost_mult += OpenStudio::convert(coil.ratedTotalCoolingCapacity.get, "W", "kBtu/h").get
+                if not component.nil?
+                    if component.to_CoilCoolingDXSingleSpeed.is_initialized
+                        coil = component.to_CoilCoolingDXSingleSpeed.get
+                        if coil.ratedTotalCoolingCapacity.is_initialized
+                            cost_mult += OpenStudio::convert(coil.ratedTotalCoolingCapacity.get, "W", "kBtu/h").get
+                        end
                     end
                 end
             end
@@ -702,21 +696,17 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
     return false
   end
 
-  def get_highest_stage_capacity_ratio(model, unit_spaces, capacity_ratio)
-    capacity_ratio_f = 1.0
-
+  def get_highest_stage_capacity_ratio(model, property_str)
+    capacity_ratio = 1.0
+    
     # Override capacity ratio for residential multispeed systems
-    model.getBuildingUnits.each do |unit|
-        next if unit.spaces.size == 0
-        unit.spaces.each do |space|
-            next unless unit_spaces.include? space # you have the right unit
-        end
-        capacity_ratio_str = unit.getFeatureAsString(capacity_ratio)
-        next if not capacity_ratio_str.is_initialized
-        capacity_ratio_f = capacity_ratio_str.get.split(",").map(&:to_f)[-1]
+    model.getAirLoopHVACUnitarySystems.each do |sys|
+      capacity_ratio_str = sys.additionalProperties.getFeatureAsString(property_str)
+      next if not capacity_ratio_str.is_initialized
+      capacity_ratio = capacity_ratio_str.get.split(",").map(&:to_f)[-1]
     end
     
-    return capacity_ratio_f
+    return capacity_ratio
   end
   
 end #end the measure
