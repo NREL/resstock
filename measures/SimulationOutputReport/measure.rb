@@ -474,7 +474,7 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
                       coil = component.to_CoilHeatingDXMultiSpeed.get
                       if coil.stages.size > 0
                           stage = coil.stages[coil.stages.size-1]
-                          capacity_ratio = get_highest_stage_capacity_ratio(model, unit.spaces, "SizingInfoHVACCapacityRatioCooling")
+                          capacity_ratio = get_highest_stage_capacity_ratio(model, "SizingInfoHVACCapacityRatioCooling")
                           if stage.grossRatedHeatingCapacity.is_initialized
                               cost_mult += OpenStudio::convert(stage.grossRatedHeatingCapacity.get/capacity_ratio, "W", "kBtu/h").get
                           end
@@ -505,10 +505,8 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
                   next unless conditioned_zones.include? sys.thermalZone.get
                   component = sys
                   next if not component.nominalCapacity.is_initialized
-                  next if component.nominalCapacity.get <= max_value
-                  max_value = component.nominalCapacity.get
-              end
-              cost_mult += OpenStudio::convert(max_value, "W", "kBtu/h").get
+                  cost_mult += OpenStudio::convert(component.nominalCapacity.get, "W", "kBtu/h").get
+              end              
           end
           
           # Boiler?
@@ -585,67 +583,77 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
 
           component = nil
 
-          # Unitary system or PTAC?
-          model.getAirLoopHVACUnitarySystems.each do |sys|
-            next if not sys.coolingCoil.is_initialized
-            components << sys.coolingCoil.get
+          # Unitary system?
+          if component.nil?
+            model.getAirLoopHVACUnitarySystems.each do |sys|
+                next unless conditioned_zones.include? sys.controllingZoneorThermostatLocation.get
+                next if not sys.coolingCoil.is_initialized
+                if not component.nil?
+                    runner.registerError("Multiple cooling systems found. This code should be reevaluated for correctness.")
+                    return nil
+                end
+                component = sys.coolingCoil.get
+            end
+            if not component.nil?
+                if component.to_CoilCoolingDXSingleSpeed.is_initialized
+                    coil = component.to_CoilCoolingDXSingleSpeed.get
+                    if coil.ratedTotalCoolingCapacity.is_initialized
+                        cost_mult += OpenStudio::convert(coil.ratedTotalCoolingCapacity.get, "W", "kBtu/h").get
+                    end
+                elsif component.to_CoilCoolingDXMultiSpeed.is_initialized
+                    coil = component.to_CoilCoolingDXMultiSpeed.get
+                    if coil.stages.size > 0
+                        stage = coil.stages[coil.stages.size-1]
+                        capacity_ratio = get_highest_stage_capacity_ratio(model, "SizingInfoHVACCapacityRatioCooling")
+                        if stage.grossRatedTotalCoolingCapacity.is_initialized
+                            cost_mult += OpenStudio::convert(stage.grossRatedTotalCoolingCapacity.get/capacity_ratio, "W", "kBtu/h").get
+                        end
+                    end
+                elsif component.to_CoilCoolingWaterToAirHeatPumpEquationFit.is_initialized
+                    coil = component.to_CoilCoolingWaterToAirHeatPumpEquationFit.get
+                    if coil.ratedTotalCoolingCapacity.is_initialized
+                        cost_mult += OpenStudio::convert(coil.ratedTotalCoolingCapacity.get, "W", "kBtu/h").get
+                    end
+                end
+            end
           end
-          model.getZoneHVACPackagedTerminalAirConditioners.each do |sys|
-              components << sys.coolingCoil
-          end
-          components.each do |component|
-              if component.to_CoilCoolingDXSingleSpeed.is_initialized
-                  coil = component.to_CoilCoolingDXSingleSpeed.get
-                  if coil.ratedTotalCoolingCapacity.is_initialized
-                      cost_mult += OpenStudio::convert(coil.ratedTotalCoolingCapacity.get, "W", "kBtu/h").get
-                  end
-              elsif component.to_CoilCoolingDXMultiSpeed.is_initialized
-                  coil = component.to_CoilCoolingDXMultiSpeed.get
-                  if coil.stages.size > 0
-                      stage = coil.stages[coil.stages.size-1]
-                      capacity_ratio = get_highest_stage_capacity_ratio(model, "SizingInfoHVACCapacityRatioCooling")
-                      if stage.grossRatedTotalCoolingCapacity.is_initialized
-                          cost_mult += OpenStudio::convert(stage.grossRatedTotalCoolingCapacity.get/capacity_ratio, "W", "kBtu/h").get
-                      end
-                  end
-              elsif component.to_CoilCoolingWaterToAirHeatPumpEquationFit.is_initialized
-                  coil = component.to_CoilCoolingWaterToAirHeatPumpEquationFit.get
-                  if coil.ratedTotalCoolingCapacity.is_initialized
-                      cost_mult += OpenStudio::convert(coil.ratedTotalCoolingCapacity.get, "W", "kBtu/h").get
-                  end
-              end
+          
+          # PTAC?
+          if component.nil?
+            model.getZoneHVACPackagedTerminalAirConditioners.each do |sys|
+                next unless conditioned_zones.include? sys.thermalZone.get
+                component = sys.coolingCoil
+                if not component.nil?
+                    if component.to_CoilCoolingDXSingleSpeed.is_initialized
+                        coil = component.to_CoilCoolingDXSingleSpeed.get
+                        if coil.ratedTotalCoolingCapacity.is_initialized
+                            cost_mult += OpenStudio::convert(coil.ratedTotalCoolingCapacity.get, "W", "kBtu/h").get
+                        end
+                    end
+                end
+            end
           end
 
         end
         
     elsif cost_mult_type == "Size, Water Heater (gal)"
         # Water heater tank volume
-        wh_tank = nil
-        model.getWaterHeaterMixeds.each do |wh|
-            if not wh_tank.nil?
-                runner.registerError("Multiple water heaters found. This code should be reevaluated for correctness.")
-                return nil
-            end
-            wh_tank = wh
-        end
-        model.getWaterHeaterHeatPumpWrappedCondensers.each do |wh|
-            if not wh_tank.nil?
-                runner.registerError("Multiple water heaters found. This code should be reevaluated for correctness.")
-                return nil
-            end
-            wh_tank = wh.tank.to_WaterHeaterStratified.get
-        end
-        if wh_tank.tankVolume.is_initialized
-            volume = OpenStudio::convert(wh_tank.tankVolume.get, "m^3", "gal").get
-            if volume >= 1.0 # skip tankless
-                # FIXME: Remove actual->nominal size logic by storing nominal size in the OSM
-                if wh_tank.heaterFuelType.downcase == "electricity"
-                    cost_mult += volume / 0.9
-                else
-                    cost_mult += volume / 0.95
-                end
-            end
-        end
+        (model.getWaterHeaterMixeds + model.getWaterHeaterHeatPumpWrappedCondensers).each do |wh|
+          if wh.to_WaterHeaterHeatPumpWrappedCondenser.is_initialized
+            wh = wh.tank.to_WaterHeaterStratified.get
+          end
+          if wh.tankVolume.is_initialized
+              volume = OpenStudio::convert(wh.tankVolume.get, "m^3", "gal").get
+              if volume >= 1.0 # skip tankless
+                  # FIXME: Remove actual->nominal size logic by storing nominal size in the OSM
+                  if wh.heaterFuelType.downcase == "electricity"
+                      cost_mult += volume / 0.9
+                  else
+                      cost_mult += volume / 0.95
+                  end
+              end
+          end
+      end
 
     elsif cost_mult_type != ""
         runner.registerError("Unhandled cost multiplier: #{cost_mult_type.to_s}. Aborting...")
@@ -699,9 +707,6 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
     end
     
     return capacity_ratio
-  end
-    
-    return capacity_ratio_f
   end
   
 end #end the measure
