@@ -140,7 +140,7 @@ end
 
 def copy_other_measures(beopt_measures_dir)
   # Copy other measures to measures/ dir
-  other_measures = ["TimeseriesCSVExport", "ResidentialSimulationControls", "ZoneMultipliers"] # Still under development: "UtilityBillCalculationsSimple", "UtilityBillCalculationsDetailed"
+  other_measures = ["TimeseriesCSVExport", "ResidentialSimulationControls"] # Still under development or one-off: "UtilityBillCalculations", "Outages", "ResilienceMetricsReport", "ConstructionPropertiesReport"
   buildstock_measures_dir = File.join(File.dirname(__FILE__), "measures")
   other_measures.each do |other_measure|
     puts "Copying #{other_measure} measure..."
@@ -151,7 +151,7 @@ def copy_other_measures(beopt_measures_dir)
         FileUtils.rm_rf("#{buildstock_measure_subdir}/.", secure: true)
       end
     end
-    if ["UtilityBillCalculationsSimple", "UtilityBillCalculationsDetailed"].include? other_measure
+    if ["UtilityBillCalculations"].include? other_measure
       ["resources"].each do |subdir|
         buildstock_measure_subdir = File.join(buildstock_measures_dir, other_measure, subdir)
         remove_items_from_zip_file(buildstock_measure_subdir, "sam-sdk-2017-1-17-r1.zip", ["osx64", "win32", "win64"])
@@ -374,28 +374,10 @@ task :integrity_check_resstock_national do
     integrity_check_options_lookup_tsv('project_resstock_national')
 end # rake task
 
-desc 'Perform integrity check on inputs for project_resstock_pnw'
-task :integrity_check_resstock_pnw do
-    integrity_check('project_resstock_pnw')
-    integrity_check_options_lookup_tsv('project_resstock_pnw')
-end # rake task
-
 desc 'Perform integrity check on inputs for project_resstock_testing'
 task :integrity_check_resstock_testing do
     integrity_check('project_resstock_testing')
     integrity_check_options_lookup_tsv('project_resstock_testing')
-end # rake task
-
-desc 'Perform integrity check on inputs for project_resstock_comed'
-task :integrity_check_resstock_comed do
-    integrity_check('project_resstock_comed')
-    integrity_check_options_lookup_tsv('project_resstock_comed')
-end # rake task
-
-desc 'Perform integrity check on inputs for project_resstock_efs'
-task :integrity_check_resstock_efs do
-    integrity_check('project_resstock_efs')
-    integrity_check_options_lookup_tsv('project_resstock_efs')
 end # rake task
 
 desc 'Perform integrity check on inputs for project_resstock_multifamily'

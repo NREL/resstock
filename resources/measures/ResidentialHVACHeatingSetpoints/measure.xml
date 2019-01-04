@@ -2,13 +2,13 @@
   <schema_version>3.0</schema_version>
   <name>process_heating_setpoints</name>
   <uid>2b167665-f760-462d-8c9d-1d909da7b628</uid>
-  <version_id>398504ee-9c25-4384-ae52-c21967937e63</version_id>
-  <version_modified>20181113T200451Z</version_modified>
+  <version_id>af8d40a5-7b2c-479b-bcea-8d4b3310682c</version_id>
+  <version_modified>20181115T220709Z</version_modified>
   <xml_checksum>2C877DEB</xml_checksum>
   <class_name>ProcessHeatingSetpoints</class_name>
   <display_name>Set Residential Heating Setpoints and Schedules</display_name>
   <description>This measure creates the heating season schedules and the heating setpoint schedules. See https://github.com/NREL/OpenStudio-BEopt#workflows for supported workflows using this measure.</description>
-  <modeler_description>This measure creates residential heating season ruleset objects. Schedule values are either user-defined or populated based on information contained in the EPW file. This measure also creates residential heating setpoint ruleset objects. Schedule values are populated based on information input by the user as well as contained in the residential heating season. The heating setpoint schedules are added to the living zone's thermostat. The heating setpoint schedules are added to the living zone's thermostat. The heating setpoint schedule is constructed by taking the base setpoint (or 24-hour comma-separated heating schedule) and applying an optional offset, as specified by the offset magnitude and offset schedule. If specified as a 24-hour schedule, the base setpoint can incorporate setpoint schedule changes, but having a separately specified offset magnitude and schedule is convenient for parametric runs.</modeler_description>
+  <modeler_description>This measure creates res heating season ruleset objects. Schedule values are either user-defined or populated based on information contained in the EPW file. This measure also creates res heating setpoint ruleset objects. Schedule values are populated based on information input by the user as well as contained in the res heating season. The heating setpoint schedules are added to the living zone's thermostat. The heating setpoint schedules are added to the living zone's thermostat. The heating setpoint schedule is constructed by taking the base setpoint (or 24-hour comma-separated heating schedule) and applying an optional offset, as specified by the offset magnitude and offset schedule. If specified as a 24-hour schedule, the base setpoint can incorporate setpoint schedule changes, but having a separately specified offset magnitude and schedule is convenient for parametric runs.</modeler_description>
   <arguments>
     <argument>
       <name>weekday_setpoint</name>
@@ -18,7 +18,7 @@
       <units>degrees F</units>
       <required>true</required>
       <model_dependent>false</model_dependent>
-      <default_value>71.0</default_value>
+      <default_value>71</default_value>
     </argument>
     <argument>
       <name>weekend_setpoint</name>
@@ -28,7 +28,7 @@
       <units>degrees F</units>
       <required>true</required>
       <model_dependent>false</model_dependent>
-      <default_value>71.0</default_value>
+      <default_value>71</default_value>
     </argument>
     <argument>
       <name>weekday_offset_magnitude</name>
@@ -230,7 +230,7 @@
       <filename>process_heating_setpoints_test.rb</filename>
       <filetype>rb</filetype>
       <usage_type>test</usage_type>
-      <checksum>6068932E</checksum>
+      <checksum>AF86555A</checksum>
     </file>
     <file>
       <version>
@@ -241,7 +241,7 @@
       <filename>measure.rb</filename>
       <filetype>rb</filetype>
       <usage_type>script</usage_type>
-      <checksum>A14F514D</checksum>
+      <checksum>809BE8B8</checksum>
     </file>
   </files>
 </measure>
