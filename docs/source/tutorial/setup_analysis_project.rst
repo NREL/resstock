@@ -216,13 +216,13 @@ End uses include:
 **Reporting Frequency**
   The timeseries data will be reported at hourly intervals unless otherwise specified. Alternative reporting frequencies include:
 
-  * detailed
   * timestep
+  * detailed
   * daily
   * monthly
   * run period
   
-  Setting the reporting frequency to "detailed" will give you interval output equal to the HVAC system timestep. Setting the reporting frequency to "timestep" will give you interval output equal to the zone timestep set by the "Simulation Controls" measure. Thus, this measure will produce 10-min interval output when you select "timestep" and leave the "Simulation Controls" measure at its default settings.
+  Setting the reporting frequency to "timestep" will give you interval output equal to the zone timestep set by the "Simulation Controls" measure. Thus, this measure will produce 10-min interval output when you select "timestep" and leave the "Simulation Controls" measure at its default settings. Setting the reporting frequency to "detailed" will give you interval output equal to the calculation step (i.e., either zone timestep or HVAC system timestep).
 
 **Include End Use Subcategories**
   Select this to include end use subcategories. The default is to not include end use subcategories. End use subcategories include:
