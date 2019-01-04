@@ -8,7 +8,6 @@ require_relative "../HPXMLtoOpenStudio/resources/hvac"
 
 # start the measure
 class ProcessCentralSystemFanCoil < OpenStudio::Measure::ModelMeasure
-
   # human readable name
   def name
     return "ResidentialHVACCentralSystemFanCoil"
@@ -28,21 +27,21 @@ class ProcessCentralSystemFanCoil < OpenStudio::Measure::ModelMeasure
   def arguments(model)
     args = OpenStudio::Measure::OSArgumentVector.new
 
-    #make a bool argument for whether there is heating
+    # make a bool argument for whether there is heating
     fan_coil_heating = OpenStudio::Measure::OSArgument::makeBoolArgument("fan_coil_heating", true)
     fan_coil_heating.setDisplayName("Fan Coil Provides Heating")
     fan_coil_heating.setDescription("When the fan coil provides heating in addition to cooling, a four pipe fan coil system is modeled.")
     fan_coil_heating.setDefaultValue(true)
     args << fan_coil_heating
-    
-    #make a bool argument for whether there is cooling
+
+    # make a bool argument for whether there is cooling
     fan_coil_cooling = OpenStudio::Measure::OSArgument::makeBoolArgument("fan_coil_cooling", true)
     fan_coil_cooling.setDisplayName("Fan Coil Provides Cooling")
     fan_coil_cooling.setDescription("When the fan coil provides cooling in addition to heating, a four pipe fan coil system is modeled.")
     fan_coil_cooling.setDefaultValue(true)
     args << fan_coil_cooling
-    
-    #make a string argument for central boiler fuel type
+
+    # make a string argument for central boiler fuel type
     central_boiler_fuel_type_names = OpenStudio::StringVector.new
     central_boiler_fuel_type_names << Constants.FuelTypeElectric
     central_boiler_fuel_type_names << Constants.FuelTypeGas
@@ -68,9 +67,9 @@ class ProcessCentralSystemFanCoil < OpenStudio::Measure::ModelMeasure
 
     require "openstudio-standards"
 
-    fan_coil_heating = runner.getBoolArgumentValue("fan_coil_heating",user_arguments)
-    fan_coil_cooling = runner.getBoolArgumentValue("fan_coil_cooling",user_arguments)
-    central_boiler_fuel_type = HelperMethods.eplus_fuel_map(runner.getStringArgumentValue("central_boiler_fuel_type",user_arguments))
+    fan_coil_heating = runner.getBoolArgumentValue("fan_coil_heating", user_arguments)
+    fan_coil_cooling = runner.getBoolArgumentValue("fan_coil_cooling", user_arguments)
+    central_boiler_fuel_type = HelperMethods.eplus_fuel_map(runner.getStringArgumentValue("central_boiler_fuel_type", user_arguments))
 
     if not fan_coil_heating and not fan_coil_cooling
       runner.registerError("Must specify at least heating or cooling.")
@@ -91,9 +90,12 @@ class ProcessCentralSystemFanCoil < OpenStudio::Measure::ModelMeasure
       thermal_zones = Geometry.get_thermal_zones_from_spaces(unit.spaces)
       HVAC.get_control_and_slave_zones(thermal_zones).each do |control_zone, slave_zones|
         ([control_zone] + slave_zones).each do |zone|
-          HVAC.remove_hvac_equipment(model, runner, zone, unit, 
-                                     Constants.ObjectNameCentralSystemFanCoil, fan_coil_heating, fan_coil_cooling)
-                
+          if fan_coil_heating
+            HVAC.remove_heating(model, runner, zone, unit)
+          end
+          if fan_coil_cooling
+            HVAC.remove_cooling(model, runner, zone, unit)
+          end
         end
       end
 
@@ -103,7 +105,7 @@ class ProcessCentralSystemFanCoil < OpenStudio::Measure::ModelMeasure
           runner.registerInfo("Added '#{hot_water_loop.name}' to model.")
         end
       end
-      
+
       if fan_coil_cooling
         if chilled_water_loop.nil?
           chilled_water_loop = std.model_get_or_add_chilled_water_loop(model, "Electricity", chilled_water_loop_cooling_type: "AirCooled")
@@ -111,19 +113,16 @@ class ProcessCentralSystemFanCoil < OpenStudio::Measure::ModelMeasure
         end
       end
 
-      success = HVAC.apply_central_system_fan_coil(model, unit, runner, std, fan_coil_heating, fan_coil_cooling, hot_water_loop, chilled_water_loop)      
+      success = HVAC.apply_central_system_fan_coil(model, unit, runner, std, fan_coil_heating, fan_coil_cooling, hot_water_loop, chilled_water_loop)
 
       return false if not success
-
     end # unit
 
     simulation_control = model.getSimulationControl
     simulation_control.setRunSimulationforSizingPeriods(true) # indicate e+ autosizing
 
     return true
-
   end
-
 end
 
 # register the measure to be used by the application

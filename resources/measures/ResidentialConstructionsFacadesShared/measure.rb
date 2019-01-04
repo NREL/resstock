@@ -6,7 +6,6 @@ require_relative "../HPXMLtoOpenStudio/resources/constructions"
 
 # start the measure
 class ProcessConstructionsFacadesShared < OpenStudio::Measure::ModelMeasure
-
   # human readable name
   def name
     return "ResidentialConstructionsFacadesShared"
@@ -26,7 +25,7 @@ class ProcessConstructionsFacadesShared < OpenStudio::Measure::ModelMeasure
   def arguments(model)
     args = OpenStudio::Measure::OSArgumentVector.new
 
-    #make a choice argument for model objects
+    # make a choice argument for model objects
     building_facades = OpenStudio::StringVector.new
     building_facades << Constants.FacadeNone
     building_facades << Constants.FacadeBack
@@ -37,7 +36,7 @@ class ProcessConstructionsFacadesShared < OpenStudio::Measure::ModelMeasure
     building_facades << "#{Constants.FacadeBack}, #{Constants.FacadeRight}"
     building_facades << "#{Constants.FacadeLeft}, #{Constants.FacadeRight}, #{Constants.FacadeBack}"
 
-    #make an argument for shared building facade
+    # make an argument for shared building facade
     shared_building_facades = OpenStudio::Measure::OSArgument::makeChoiceArgument("shared_building_facades", building_facades, true)
     shared_building_facades.setDisplayName("Shared Building Facade(s)")
     shared_building_facades.setDescription("The facade(s) of the building that are shared. Surfaces on these facades become adiabatic.")
@@ -55,19 +54,17 @@ class ProcessConstructionsFacadesShared < OpenStudio::Measure::ModelMeasure
     if !runner.validateUserArguments(arguments(model), user_arguments)
       return false
     end
-    
-    shared_building_facades = runner.getStringArgumentValue("shared_building_facades",user_arguments)
+
+    shared_building_facades = runner.getStringArgumentValue("shared_building_facades", user_arguments)
 
     return true if shared_building_facades == Constants.FacadeNone
-    
+
     if not WallConstructions.apply_adiabatic(runner, model, shared_building_facades)
       return false
     end
 
     return true
-
   end
-
 end
 
 # register the measure to be used by the application
