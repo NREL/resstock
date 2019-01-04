@@ -7,9 +7,13 @@
 # see the URL below for access to C++ documentation on model objects (click on "model" in the main window to view model objects)
 # http://openstudio.nrel.gov/sites/openstudio.nrel.gov/files/nv_data/cpp_documentation_it/model/html/namespaces.html
 
-require_relative "../HPXMLtoOpenStudio/resources/constants"
-require_relative "../HPXMLtoOpenStudio/resources/weather"
-require_relative "../HPXMLtoOpenStudio/resources/hvac"
+resources_path = File.absolute_path(File.join(File.dirname(__FILE__), "../HPXMLtoOpenStudio/resources"))
+unless File.exists? resources_path
+  resources_path = File.join(OpenStudio::BCLMeasure::userMeasuresDir.to_s, "HPXMLtoOpenStudio/resources") # Hack to run measures in the OS App since applied measures are copied off into a temporary directory
+end
+require File.join(resources_path, "constants")
+require File.join(resources_path, "weather")
+require File.join(resources_path, "hvac")
 
 # start the measure
 class ProcessCoolingSetpoints < OpenStudio::Measure::ModelMeasure
@@ -36,7 +40,7 @@ class ProcessCoolingSetpoints < OpenStudio::Measure::ModelMeasure
     weekday_setpoint.setDisplayName("Weekday Setpoint")
     weekday_setpoint.setDescription("Specify a single cooling setpoint or a 24-hour comma-separated cooling schedule for the weekdays.")
     weekday_setpoint.setUnits("degrees F")
-    weekday_setpoint.setDefaultValue("76")
+    weekday_setpoint.setDefaultValue("#{Constants.DefaultCoolingSetpoint}")
     args << weekday_setpoint
 
     # Make a string argument for 24 weekend cooling set point values
@@ -44,7 +48,7 @@ class ProcessCoolingSetpoints < OpenStudio::Measure::ModelMeasure
     weekend_setpoint.setDisplayName("Weekend Setpoint")
     weekend_setpoint.setDescription("Specify a single cooling setpoint or a 24-hour comma-separated cooling schedule for the weekend.")
     weekend_setpoint.setUnits("degrees F")
-    weekend_setpoint.setDefaultValue("76")
+    weekend_setpoint.setDefaultValue("#{Constants.DefaultCoolingSetpoint}")
     args << weekend_setpoint
 
     # Make a string argument for 24 weekday cooling set point offset magnitude

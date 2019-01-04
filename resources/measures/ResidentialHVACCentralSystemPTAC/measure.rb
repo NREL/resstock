@@ -8,7 +8,6 @@ require_relative "../HPXMLtoOpenStudio/resources/hvac"
 
 # start the measure
 class ProcessCentralSystemPTAC < OpenStudio::Measure::ModelMeasure
-
   # human readable name
   def name
     return "ResidentialHVACCentralSystemPTAC"
@@ -27,8 +26,8 @@ class ProcessCentralSystemPTAC < OpenStudio::Measure::ModelMeasure
   # define the arguments that the user will input
   def arguments(model)
     args = OpenStudio::Measure::OSArgumentVector.new
-    
-    #make a string argument for central boiler fuel type
+
+    # make a string argument for central boiler fuel type
     central_boiler_fuel_type_names = OpenStudio::StringVector.new
     central_boiler_fuel_type_names << Constants.FuelTypeElectric
     central_boiler_fuel_type_names << Constants.FuelTypeGas
@@ -39,7 +38,7 @@ class ProcessCentralSystemPTAC < OpenStudio::Measure::ModelMeasure
     central_boiler_fuel_type.setDescription("The fuel type of the central boiler used for heating.")
     central_boiler_fuel_type.setDefaultValue(Constants.FuelTypeGas)
     args << central_boiler_fuel_type
-    
+
     return args
   end
 
@@ -54,7 +53,7 @@ class ProcessCentralSystemPTAC < OpenStudio::Measure::ModelMeasure
 
     require "openstudio-standards"
 
-    central_boiler_fuel_type = HelperMethods.eplus_fuel_map(runner.getStringArgumentValue("central_boiler_fuel_type",user_arguments))
+    central_boiler_fuel_type = HelperMethods.eplus_fuel_map(runner.getStringArgumentValue("central_boiler_fuel_type", user_arguments))
 
     std = Standard.build("90.1-2013")
 
@@ -69,8 +68,8 @@ class ProcessCentralSystemPTAC < OpenStudio::Measure::ModelMeasure
       thermal_zones = Geometry.get_thermal_zones_from_spaces(unit.spaces)
       HVAC.get_control_and_slave_zones(thermal_zones).each do |control_zone, slave_zones|
         ([control_zone] + slave_zones).each do |zone|
-          HVAC.remove_hvac_equipment(model, runner, zone, unit,
-                                     Constants.ObjectNameCentralSystemPTAC)
+          HVAC.remove_heating(model, runner, zone, unit)
+          HVAC.remove_cooling(model, runner, zone, unit)
         end
       end
 
@@ -82,16 +81,13 @@ class ProcessCentralSystemPTAC < OpenStudio::Measure::ModelMeasure
       success = HVAC.apply_central_system_ptac(model, unit, runner, std, hot_water_loop)
 
       return false if not success
-
     end
 
     simulation_control = model.getSimulationControl
     simulation_control.setRunSimulationforSizingPeriods(true)
 
     return true
-
   end
-
 end
 
 # register the measure to be used by the application

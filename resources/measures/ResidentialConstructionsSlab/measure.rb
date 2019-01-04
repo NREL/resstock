@@ -1,9 +1,13 @@
 # see the URL below for information on how to write OpenStudio measures
 # http://nrel.github.io/OpenStudio-user-documentation/reference/measure_writing_guide/
 
-require_relative "../HPXMLtoOpenStudio/resources/util"
-require_relative "../HPXMLtoOpenStudio/resources/geometry"
-require_relative "../HPXMLtoOpenStudio/resources/constructions"
+resources_path = File.absolute_path(File.join(File.dirname(__FILE__), "../HPXMLtoOpenStudio/resources"))
+unless File.exists? resources_path
+  resources_path = File.join(OpenStudio::BCLMeasure::userMeasuresDir.to_s, "HPXMLtoOpenStudio/resources") # Hack to run measures in the OS App since applied measures are copied off into a temporary directory
+end
+require File.join(resources_path, "util")
+require File.join(resources_path, "geometry")
+require File.join(resources_path, "constructions")
 
 # start the measure
 class ProcessConstructionsSlab < OpenStudio::Measure::ModelMeasure
@@ -130,7 +134,7 @@ class ProcessConstructionsSlab < OpenStudio::Measure::ModelMeasure
     slab_perimeter_conduction = slabCarpetPerimeterConduction * carpetFloorFraction + slabBarePerimeterConduction * (1 - carpetFloorFraction)
 
     surfaces.each do |surface|
-      slabExtPerimeter = Geometry.calculate_exposed_perimeter(model, [surface])
+      slabExtPerimeter = Geometry.calculate_exposed_perimeter(model, [surface], false)
 
       if slabExtPerimeter > 0
         effective_slab_Rvalue = slabArea / (slabExtPerimeter * slab_perimeter_conduction)

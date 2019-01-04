@@ -8,7 +8,6 @@ require_relative "../HPXMLtoOpenStudio/resources/hvac"
 
 # start the measure
 class ProcessCentralSystemBoilerBaseboards < OpenStudio::Measure::ModelMeasure
-
   # human readable name
   def name
     return "ResidentialHVACCentralSystemBoilerBaseboards"
@@ -28,7 +27,7 @@ class ProcessCentralSystemBoilerBaseboards < OpenStudio::Measure::ModelMeasure
   def arguments(model)
     args = OpenStudio::Measure::OSArgumentVector.new
 
-    #make a string argument for central boiler system type
+    # make a string argument for central boiler system type
     central_boiler_system_type_names = OpenStudio::StringVector.new
     central_boiler_system_type_names << Constants.BoilerTypeForcedDraft
     central_boiler_system_type_names << Constants.BoilerTypeSteam
@@ -38,7 +37,7 @@ class ProcessCentralSystemBoilerBaseboards < OpenStudio::Measure::ModelMeasure
     central_boiler_system_type.setDefaultValue(Constants.BoilerTypeForcedDraft)
     args << central_boiler_system_type
 
-    #make a string argument for central boiler fuel type
+    # make a string argument for central boiler fuel type
     central_boiler_fuel_type_names = OpenStudio::StringVector.new
     central_boiler_fuel_type_names << Constants.FuelTypeElectric
     central_boiler_fuel_type_names << Constants.FuelTypeGas
@@ -49,7 +48,7 @@ class ProcessCentralSystemBoilerBaseboards < OpenStudio::Measure::ModelMeasure
     central_boiler_fuel_type.setDescription("The fuel type of the central boiler used for heating.")
     central_boiler_fuel_type.setDefaultValue(Constants.FuelTypeGas)
     args << central_boiler_fuel_type
-    
+
     return args
   end
 
@@ -64,8 +63,8 @@ class ProcessCentralSystemBoilerBaseboards < OpenStudio::Measure::ModelMeasure
 
     require "openstudio-standards"
 
-    central_boiler_system_type = runner.getStringArgumentValue("central_boiler_system_type",user_arguments)
-    central_boiler_fuel_type = HelperMethods.eplus_fuel_map(runner.getStringArgumentValue("central_boiler_fuel_type",user_arguments))
+    central_boiler_system_type = runner.getStringArgumentValue("central_boiler_system_type", user_arguments)
+    central_boiler_fuel_type = HelperMethods.eplus_fuel_map(runner.getStringArgumentValue("central_boiler_fuel_type", user_arguments))
 
     std = Standard.build("90.1-2013")
 
@@ -74,14 +73,13 @@ class ProcessCentralSystemBoilerBaseboards < OpenStudio::Measure::ModelMeasure
     if units.nil?
       return false
     end
-    
+
     hot_water_loop = nil
     units.each do |unit|
       thermal_zones = Geometry.get_thermal_zones_from_spaces(unit.spaces)
       HVAC.get_control_and_slave_zones(thermal_zones).each do |control_zone, slave_zones|
         ([control_zone] + slave_zones).each do |zone|
-          HVAC.remove_hvac_equipment(model, runner, zone, unit,
-                                     Constants.ObjectNameCentralSystemBoilerBaseboards)
+          HVAC.remove_heating(model, runner, zone, unit)
         end
       end
 
@@ -93,25 +91,23 @@ class ProcessCentralSystemBoilerBaseboards < OpenStudio::Measure::ModelMeasure
       success = HVAC.apply_central_system_boiler_baseboards(model, unit, runner, std, hot_water_loop)
 
       return false if not success
-
     end # unit
-    
+
     if central_boiler_system_type == Constants.BoilerTypeSteam
       plant_loop = model.getPlantLoopByName("Hot Water Loop").get
       plant_loop.supplyComponents.each do |supply_component|
         next unless supply_component.to_PumpVariableSpeed.is_initialized
+
         pump = supply_component.to_PumpVariableSpeed.get
         # TODO: how to zero out the pumping energy?
       end
     end
-    
+
     simulation_control = model.getSimulationControl
     simulation_control.setRunSimulationforSizingPeriods(true) # indicate e+ autosizing
-    
+
     return true
-
   end
-
 end
 
 # register the measure to be used by the application
