@@ -29,6 +29,8 @@ When the cluster is running, start the analysis by clicking the **Run Entire Wor
 
 Leave the PAT application open while your analysis runs. It could take a while.
 
+.. _download-results:
+
 Download results
 ----------------
 
@@ -40,7 +42,7 @@ Eventually PAT will show in the status bar "Analysis completed". And the OpenStu
 
 Clicking the **View Results** button in PAT will open the results.csv file for your analysis. It contains a row for every sampled building including all options selected for that building and annual energy simulation results. Often this is the only results you will need. That file is saved in your project in ``localResults/results.csv``. 
 
-Sometime you will need *all* the simulation results including timeseries results if you requested them. Clicking the **Results (cloud, down arrow)** button will pull down all of the simulation results from the server and save them to your project. Each result data point will be stored in a ``localResults/[GUID]`` folder in your project. 
+Sometimes you will need *all* the simulation results including timeseries results if you requested them. Clicking the **Results (cloud, down arrow)** button will pull down all of the simulation results from the server and save them to your project. Each result datapoint will be stored in a ``localResults/[GUID]`` folder in your project. 
 
 .. warning::
    
@@ -50,7 +52,7 @@ Sometime you will need *all* the simulation results including timeseries results
    
 .. note::
 
-   From the PAT interface, only 150 datapoints are downloading right now. For downloading all datapoints, run the ``scripts/download_datapoints.rb`` script. The script requires that the ``localResults/results.csv`` be downloaded first. Supply all required arguments to the script, including project directory, server DNS, and analysis ID. A usage example is given as follows:
+   To download all datapoints, including the timeseries csv output for each simulation, run the ``scripts/download_datapoints.rb`` script. The script requires that the :ref:`timeseries-csv-export` reporting measure be included in your PAT project. Supply all required arguments to the script, including project directory, server DNS, and analysis ID. A usage example is given as follows:
    ``$ ruby scripts/download_datapoints.rb -p project_resstock_national``
    ``-s http://ec2-107-23-165-146.compute-1.amazonaws.com -a 706c3b4a-9685-4924-bb13-c6bec77aa397``
 

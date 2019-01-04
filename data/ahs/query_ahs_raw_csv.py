@@ -4,7 +4,7 @@ import pandas as pd
 import numpy as np
 import random
 
-cols = {'newhouse.csv': ['CONTROL', 'STATUS', 'NUNIT2', 'ZINC2', 'ROOMS', 'BEDRMS', 'UNITSF', 'BUILT', 'HFUEL', 'FLOORS', 'GASPIP', 'SMSA', 'CMSA', 'REGION', 'DIVISION', 'METRO3', 'POOR', 'AIRSYS', 'NUMAIR', 'TENURE', 'WEIGHT'],
+cols = {'newhouse.csv': ['CONTROL', 'STATUS', 'NUNIT2', 'ZINC2', 'ROOMS', 'BEDRMS', 'UNITSF', 'BUILT', 'HEQUIP', 'HFUEL', 'FLOORS', 'GASPIP', 'SMSA', 'CMSA', 'REGION', 'DIVISION', 'METRO3', 'POOR', 'AIRSYS', 'NUMAIR', 'TENURE', 'WEIGHT'],
         'ahs2015n.csv': ['CONTROL', 'INTSTATUS', 'WEIGHT', 'DIVISION', 'TENURE', 'BLD', 'YRBUILT', 'FOUNDTYPE', 'UNITSIZE', 'STORIES', 'HEATTYPE', 'HEATFUEL', 'ACPRIMARY', 'NUMPEOPLE', 'HINCP', 'FINCP', 'PERPOVLVL', 'TOTROOMS']}
 
 def retrieve_data(files):
@@ -44,6 +44,42 @@ def assign_vintage(df):
       return '2000s' # TODO: 2010s?
 
   df['vintage'] = df['BUILT'].apply(lambda x: vintage(x))
+  
+  return df
+  
+def assign_heating_type(df):
+
+  def type(type):
+    if type == 1:
+      return 'Warm-air furnace'
+    elif type == 2:
+      return 'Steam or hot water system'
+    elif type == 3:
+      return 'Electric heat pump'
+    elif type == 4:
+      return 'Built-in electric units'
+    elif type == 5:
+      return 'Floor, wall, or other built-in hot-air units without ducts'
+    elif type == 6:
+      return 'Room heaters with flue'
+    elif type == 7:
+      return 'Room heaters without flue'
+    elif type == 8:
+      return 'Portable electric heaters'
+    elif type == 9:
+      return 'Stoves'
+    elif type == 10:
+      return 'Fireplaces with inserts'
+    elif type == 11:
+      return 'Fireplaces wihtout inserts'
+    elif type == 14:
+      return 'Cooking stove'
+    elif type == 12:
+      return 'Other'
+    elif type == 13:
+      return 'None'
+
+  df['heatingtype'] = df.apply(lambda x: type(x.HEQUIP), axis=1)
   
   return df
   
@@ -389,6 +425,7 @@ if __name__ == '__main__':
     
   df = retrieve_data(files)
   df = assign_vintage(df)
+  df = assign_heating_type(df)
   df = assign_heating_fuel(df)
   df = assign_size(df)
   df = assign_location(df)

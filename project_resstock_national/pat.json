@@ -1,6 +1,6 @@
 {
   "projectName": "project_resstock_national",
-  "projectDir": "C:\\GitHub\\OpenStudio-BuildStock\\project_resstock_national",
+  "projectDir": "C:\\OpenStudio\\OpenStudio-BuildStock\\project_resstock_national",
   "analysisName": "project_resstock_national",
   "seed": "EmptySeedModel.osm",
   "weatherFile": "Placeholder.epw",
@@ -8,7 +8,7 @@
   "remoteSettings": {
     "open": true,
     "remoteType": "Amazon Cloud",
-    "remoteServerURL": "http://ec2-54-209-72-227.compute-1.amazonaws.com/",
+    "remoteServerURL": "http://ec2-184-73-144-35.compute-1.amazonaws.com/",
     "aws": {
       "cluster_name": "resstock",
       "connected": false,
@@ -131,14 +131,20 @@
   "openstudioMD5": "",
   "measures": [
     {
-      "measure_dir": "C:/GitHub/OpenStudio-BuildStock/measures/ResidentialSimulationControls",
+      "measure_dir": "C:\\OpenStudio\\OpenStudio-BuildStock\\project_resstock_national\\measures\\ResidentialSimulationControls",
       "name": "residential_simulation_controls",
-      "directory": "C:/GitHub/OpenStudio-BuildStock/measures/ResidentialSimulationControls",
+      "directory": "C:/OpenStudio/OpenStudio-BuildStock/measures/ResidentialSimulationControls",
       "uid": "874f921e-8f3c-458a-a82f-01b7d51a547e",
       "uuid": "{874f921e-8f3c-458a-a82f-01b7d51a547e}",
+<<<<<<< HEAD
       "version_id": "4e219fcc-6ec0-42ba-a69a-8ad9814f0bc0",
       "version_uuid": "{4e219fcc-6ec0-42ba-a69a-8ad9814f0bc0}",
       "version_modified": "20181113T201406Z",
+=======
+      "version_id": "fe64b4d7-9dec-41d4-99ae-09ec8803645f",
+      "version_uuid": "{fe64b4d7-9dec-41d4-99ae-09ec8803645f}",
+      "version_modified": "20181220T163125Z",
+>>>>>>> master
       "xml_checksum": "2C38F48B",
       "display_name": "Set Residential Simulation Controls",
       "class_name": "ResidentialSimulationControls",
@@ -153,7 +159,128 @@
           "value": "ModelMeasure"
         }
       ],
-      "arguments": [],
+      "arguments": [
+        {
+          "name": "timesteps_per_hr",
+          "display_name": "Simulation Timesteps Per Hour",
+          "description": "",
+          "type": "Integer",
+          "required": true,
+          "model_dependent": false,
+          "default_value": 6,
+          "display_name_short": "timesteps_per_hr",
+          "inputs": {
+            "relationship": null,
+            "choiceDisplayNames": [],
+            "variableSetting": "Argument",
+            "distribution": "Uniform",
+            "discreteVariables": [],
+            "maximum": 6,
+            "minimum": 6,
+            "mean": 6,
+            "deltaX": 6,
+            "stdDev": 6,
+            "default_value": 6
+          },
+          "$$hashKey": "object:17344"
+        },
+        {
+          "name": "begin_month",
+          "display_name": "Run Period Begin Month",
+          "description": "",
+          "type": "Integer",
+          "required": true,
+          "model_dependent": false,
+          "default_value": 1,
+          "display_name_short": "begin_month",
+          "inputs": {
+            "relationship": null,
+            "choiceDisplayNames": [],
+            "variableSetting": "Argument",
+            "distribution": "Uniform",
+            "discreteVariables": [],
+            "maximum": 1,
+            "minimum": 1,
+            "mean": 1,
+            "deltaX": 1,
+            "stdDev": 1,
+            "default_value": 1
+          },
+          "$$hashKey": "object:17345"
+        },
+        {
+          "name": "begin_day_of_month",
+          "display_name": "Run Period Begin Day of Month",
+          "description": "",
+          "type": "Integer",
+          "required": true,
+          "model_dependent": false,
+          "default_value": 1,
+          "display_name_short": "begin_day_of_month",
+          "inputs": {
+            "relationship": null,
+            "choiceDisplayNames": [],
+            "variableSetting": "Argument",
+            "distribution": "Uniform",
+            "discreteVariables": [],
+            "maximum": 1,
+            "minimum": 1,
+            "mean": 1,
+            "deltaX": 1,
+            "stdDev": 1,
+            "default_value": 1
+          },
+          "$$hashKey": "object:17346"
+        },
+        {
+          "name": "end_month",
+          "display_name": "Run Period End Month",
+          "description": "",
+          "type": "Integer",
+          "required": true,
+          "model_dependent": false,
+          "default_value": 12,
+          "display_name_short": "end_month",
+          "inputs": {
+            "relationship": null,
+            "choiceDisplayNames": [],
+            "variableSetting": "Argument",
+            "distribution": "Uniform",
+            "discreteVariables": [],
+            "maximum": 12,
+            "minimum": 12,
+            "mean": 12,
+            "deltaX": 12,
+            "stdDev": 12,
+            "default_value": 12
+          },
+          "$$hashKey": "object:17347"
+        },
+        {
+          "name": "end_day_of_month",
+          "display_name": "Run Period End Day of Month",
+          "description": "",
+          "type": "Integer",
+          "required": true,
+          "model_dependent": false,
+          "default_value": 31,
+          "display_name_short": "end_day_of_month",
+          "inputs": {
+            "relationship": null,
+            "choiceDisplayNames": [],
+            "variableSetting": "Argument",
+            "distribution": "Uniform",
+            "discreteVariables": [],
+            "maximum": 31,
+            "minimum": 31,
+            "mean": 31,
+            "deltaX": 31,
+            "stdDev": 31,
+            "default_value": 31
+          },
+          "$$hashKey": "object:17348"
+        }
+      ],
       "edit": "",
       "status": "",
       "bcl_update": false,
@@ -161,21 +288,24 @@
       "add": "",
       "open": false,
       "addedToProject": true,
-      "date": "11/13/2018",
+      "date": "12/20/2018",
       "author": "",
       "type": "ModelMeasure",
       "seed": "EmptySeedModel.osm",
       "workflow_index": 0,
       "options": [],
+<<<<<<< HEAD
       "instanceId": 0.21911218990574288,
+=======
+      "instanceId": 0.46653985851367796,
+>>>>>>> master
       "skip": false,
-      "$$hashKey": "object:21697",
-      "outputMeasure": false
+      "$$hashKey": "object:17301"
     },
     {
-      "measure_dir": "C:\\GitHub\\OpenStudio-BuildStock\\project_resstock_national\\measures\\BuildExistingModel",
+      "measure_dir": "C:\\OpenStudio\\OpenStudio-BuildStock\\project_resstock_national\\measures\\BuildExistingModel",
       "name": "build_existing_model",
-      "directory": "C:\\GitHub\\OpenStudio-BuildStock\\project_resstock_national\\measures\\BuildExistingModel",
+      "directory": "C:\\OpenStudio\\OpenStudio-BuildStock\\project_resstock_national\\measures\\BuildExistingModel",
       "uid": "dedf59bb-3b88-4f16-8755-2c1ff5519cbf",
       "uuid": "{dedf59bb-3b88-4f16-8755-2c1ff5519cbf}",
       "version_id": "750910c3-9b79-49df-a43d-6f44cc535f7c",
@@ -326,16 +456,20 @@
       "seed": "EmptySeedModel.osm",
       "workflow_index": 1,
       "options": [],
+<<<<<<< HEAD
       "instanceId": 0.24197036787165271,
+=======
+      "instanceId": 0.3542800238115058,
+>>>>>>> master
       "skip": false,
       "$$hashKey": "object:34492",
       "showWarningText": false,
       "outputMeasure": false
     },
     {
-      "measure_dir": "C:\\GitHub\\OpenStudio-BuildStock\\project_resstock_national\\measures\\ApplyUpgrade",
+      "measure_dir": "C:\\OpenStudio\\OpenStudio-BuildStock\\project_resstock_national\\measures\\ApplyUpgrade",
       "name": "apply_upgrade",
-      "directory": "C:\\GitHub\\OpenStudio-BuildStock\\project_resstock_national\\measures\\ApplyUpgrade",
+      "directory": "C:\\OpenStudio\\OpenStudio-BuildStock\\project_resstock_national\\measures\\ApplyUpgrade",
       "uid": "33f1654c-f734-43d1-b35d-9d2856e41b5a",
       "uuid": "{33f1654c-f734-43d1-b35d-9d2856e41b5a}",
       "version_id": "c57fb504-f56b-41b6-9f40-07901f241787",
@@ -3158,16 +3292,20 @@
       "seed": "EmptySeedModel.osm",
       "workflow_index": 2,
       "options": [],
+<<<<<<< HEAD
       "instanceId": 0.12428395839332085,
+=======
+      "instanceId": 0.08779581246629342,
+>>>>>>> master
       "skip": false,
       "$$hashKey": "object:31044",
       "showWarningText": false,
       "outputMeasure": false
     },
     {
-      "measure_dir": "C:\\GitHub\\OpenStudio-BuildStock\\project_resstock_national\\measures\\ApplyUpgrade",
+      "measure_dir": "C:\\OpenStudio\\OpenStudio-BuildStock\\project_resstock_national\\measures\\ApplyUpgrade",
       "name": "apply_upgrade_2",
-      "directory": "C:\\GitHub\\OpenStudio-BuildStock\\project_resstock_national\\measures\\ApplyUpgrade",
+      "directory": "C:\\OpenStudio\\OpenStudio-BuildStock\\project_resstock_national\\measures\\ApplyUpgrade",
       "uid": "33f1654c-f734-43d1-b35d-9d2856e41b5a",
       "uuid": "{33f1654c-f734-43d1-b35d-9d2856e41b5a}",
       "version_id": "c57fb504-f56b-41b6-9f40-07901f241787",
@@ -5990,13 +6128,18 @@
       "seed": "EmptySeedModel.osm",
       "workflow_index": 3,
       "options": [],
+<<<<<<< HEAD
       "instanceId": 0.37690096948459795,
+=======
+      "instanceId": 0.9407086415873935,
+>>>>>>> master
       "skip": false,
       "showWarningText": false,
       "$$hashKey": "object:33811",
       "outputMeasure": false
     },
     {
+<<<<<<< HEAD
       "measure_dir": "C:/GitHub/OpenStudio-BuildStock/measures/BuildingCharacteristicsReport",
       "name": "building_characteristics_report",
       "directory": "C:/GitHub/OpenStudio-BuildStock/measures/BuildingCharacteristicsReport",
@@ -6005,6 +6148,16 @@
       "version_id": "da24017a-26b2-437b-9457-3101d2ee366d",
       "version_uuid": "{da24017a-26b2-437b-9457-3101d2ee366d}",
       "version_modified": "20181113T201406Z",
+=======
+      "measure_dir": "C:/OpenStudio/OpenStudio-BuildStock/measures/BuildingCharacteristicsReport",
+      "name": "building_characteristics_report",
+      "directory": "C:/OpenStudio/OpenStudio-BuildStock/measures/BuildingCharacteristicsReport",
+      "uid": "90eecbe2-d8e2-47db-9079-5d9029fb3e67",
+      "uuid": "{90eecbe2-d8e2-47db-9079-5d9029fb3e67}",
+      "version_id": "6ebf6a45-ae5e-4d35-b5b0-2dfe35a85bbd",
+      "version_uuid": "{6ebf6a45-ae5e-4d35-b5b0-2dfe35a85bbd}",
+      "version_modified": "20181211T201922Z",
+>>>>>>> master
       "xml_checksum": "2EA103AF",
       "display_name": "Building Characteristics Report",
       "class_name": "BuildingCharacteristicsReport",
@@ -6031,22 +6184,28 @@
           "checked": true
         },
         {
-          "name": "location_cooling_region",
-          "display_name": "location_cooling_region",
-          "short_name": "location_cooling_region",
+          "name": "location",
+          "display_name": "location",
+          "short_name": "location",
           "description": "",
           "type": "String",
-          "model_dependent": false,
-          "checked": true
+          "model_dependent": false
         },
         {
-          "name": "location_epw",
-          "display_name": "location_epw",
-          "short_name": "location_epw",
+          "name": "location_weather_filename",
+          "display_name": "location_weather_filename",
+          "short_name": "location_weather_filename",
           "description": "",
           "type": "String",
-          "model_dependent": false,
-          "checked": true
+          "model_dependent": false
+        },
+        {
+          "name": "location_weather_year",
+          "display_name": "location_weather_year",
+          "short_name": "location_weather_year",
+          "description": "",
+          "type": "String",
+          "model_dependent": false
         },
         {
           "name": "vintage",
@@ -6891,13 +7050,21 @@
       "add": "",
       "open": false,
       "addedToProject": true,
+<<<<<<< HEAD
       "date": "11/13/2018",
+=======
+      "date": "12/11/2018",
+>>>>>>> master
       "author": "",
       "type": "ReportingMeasure",
       "seed": "EmptySeedModel.osm",
       "workflow_index": 4,
       "options": [],
+<<<<<<< HEAD
       "instanceId": 0.25916254416600215,
+=======
+      "instanceId": 0.3141620662924445,
+>>>>>>> master
       "skip": false,
       "$$hashKey": "object:12818",
       "outputMeasure": true,
@@ -6925,34 +7092,6 @@
           "type": "String",
           "model_dependent": false,
           "$$hashKey": "object:18959",
-          "checked": true,
-          "visualize": "true",
-          "measure_name": "building_characteristics_report",
-          "measure_class_name": "BuildingCharacteristicsReport",
-          "measure_uid": "90eecbe2-d8e2-47db-9079-5d9029fb3e67"
-        },
-        {
-          "name": "location_cooling_region",
-          "display_name": "location_cooling_region",
-          "short_name": "location_cooling_region",
-          "description": "",
-          "type": "String",
-          "model_dependent": false,
-          "$$hashKey": "object:18960",
-          "checked": true,
-          "visualize": "true",
-          "measure_name": "building_characteristics_report",
-          "measure_class_name": "BuildingCharacteristicsReport",
-          "measure_uid": "90eecbe2-d8e2-47db-9079-5d9029fb3e67"
-        },
-        {
-          "name": "location_epw",
-          "display_name": "location_epw",
-          "short_name": "location_epw",
-          "description": "",
-          "type": "String",
-          "model_dependent": false,
-          "$$hashKey": "object:18961",
           "checked": true,
           "visualize": "true",
           "measure_name": "building_characteristics_report",
@@ -7942,6 +8081,7 @@
       ]
     },
     {
+<<<<<<< HEAD
       "measure_dir": "C:/GitHub/OpenStudio-BuildStock/measures/SimulationOutputReport",
       "name": "simulation_output_report",
       "directory": "C:/GitHub/OpenStudio-BuildStock/measures/SimulationOutputReport",
@@ -7950,6 +8090,16 @@
       "version_id": "23bacb9d-83b7-41c9-892c-0ca36c41ae10",
       "version_uuid": "{23bacb9d-83b7-41c9-892c-0ca36c41ae10}",
       "version_modified": "20181113T201407Z",
+=======
+      "measure_dir": "C:/OpenStudio/OpenStudio-BuildStock/measures/SimulationOutputReport",
+      "name": "simulation_output_report",
+      "directory": "C:/OpenStudio/OpenStudio-BuildStock/measures/SimulationOutputReport",
+      "uid": "fc337100-8634-404e-8966-01243d292a79",
+      "uuid": "{fc337100-8634-404e-8966-01243d292a79}",
+      "version_id": "d7c0f9d8-b3d8-41de-bf9b-ded3608d34d9",
+      "version_uuid": "{d7c0f9d8-b3d8-41de-bf9b-ded3608d34d9}",
+      "version_modified": "20181220T163125Z",
+>>>>>>> master
       "xml_checksum": "2C8A3EEF",
       "display_name": "Simulation Output Report",
       "class_name": "SimulationOutputReport",
@@ -8066,13 +8216,20 @@
           "checked": true
         },
         {
-          "name": "electricity_fans_kwh",
-          "display_name": "electricity_fans_kwh",
-          "short_name": "electricity_fans_kwh",
+          "name": "electricity_fans_heating_kwh",
+          "display_name": "electricity_fans_heating_kwh",
+          "short_name": "electricity_fans_heating_kwh",
           "description": "",
           "type": "Double",
-          "model_dependent": false,
-          "checked": true
+          "model_dependent": false
+        },
+        {
+          "name": "electricity_fans_cooling_kwh",
+          "display_name": "electricity_fans_cooling_kwh",
+          "short_name": "electricity_fans_cooling_kwh",
+          "description": "",
+          "type": "Double",
+          "model_dependent": false
         },
         {
           "name": "electricity_pumps_kwh",
@@ -8455,13 +8612,21 @@
       "add": "",
       "open": false,
       "addedToProject": true,
+<<<<<<< HEAD
       "date": "11/13/2018",
+=======
+      "date": "12/20/2018",
+>>>>>>> master
       "author": "",
       "type": "ReportingMeasure",
       "seed": "EmptySeedModel.osm",
       "workflow_index": 5,
       "options": [],
+<<<<<<< HEAD
       "instanceId": 0.382591544840857,
+=======
+      "instanceId": 0.8465264447416687,
+>>>>>>> master
       "skip": false,
       "$$hashKey": "object:15382",
       "outputMeasure": true,
@@ -8629,20 +8794,6 @@
           "type": "Double",
           "model_dependent": false,
           "$$hashKey": "object:17427",
-          "checked": true,
-          "visualize": "true",
-          "measure_name": "simulation_output_report",
-          "measure_class_name": "SimulationOutputReport",
-          "measure_uid": "fc337100-8634-404e-8966-01243d292a79"
-        },
-        {
-          "name": "electricity_fans_kwh",
-          "display_name": "electricity_fans_kwh",
-          "short_name": "electricity_fans_kwh",
-          "description": "",
-          "type": "Double",
-          "model_dependent": false,
-          "$$hashKey": "object:17428",
           "checked": true,
           "visualize": "true",
           "measure_name": "simulation_output_report",
@@ -9212,19 +9363,25 @@
       ]
     },
     {
-      "measure_dir": "C:/GitHub/OpenStudio-BuildStock/measures/TimeseriesCSVExport",
+      "measure_dir": "C:\\OpenStudio\\OpenStudio-BuildStock\\project_resstock_national\\measures\\TimeseriesCSVExport",
       "name": "timeseries_csv_export",
-      "directory": "C:/GitHub/OpenStudio-BuildStock/measures/TimeseriesCSVExport",
+      "directory": "C:/OpenStudio/OpenStudio-BuildStock/measures/TimeseriesCSVExport",
       "uid": "2a3442c1-944d-4e91-9e11-11e0cf368c64",
       "uuid": "{2a3442c1-944d-4e91-9e11-11e0cf368c64}",
+<<<<<<< HEAD
       "version_id": "180aa4de-33c4-49b8-8db7-8efed7add008",
       "version_uuid": "{180aa4de-33c4-49b8-8db7-8efed7add008}",
       "version_modified": "20181113T201407Z",
+=======
+      "version_id": "5e142c21-e212-49e5-83c7-68b4547879ee",
+      "version_uuid": "{5e142c21-e212-49e5-83c7-68b4547879ee}",
+      "version_modified": "20181220T163125Z",
+>>>>>>> master
       "xml_checksum": "15BF4E57",
       "display_name": "Timeseries CSV Export",
       "class_name": "TimeseriesCSVExport",
-      "description": "Exports all available hourly timeseries enduses to csv.",
-      "modeler_description": "Exports all available hourly timeseries enduses to csv.",
+      "description": "Exports timeseries output data to csv.",
+      "modeler_description": "Exports all available timeseries enduses, subcategories, and output variables to csv file(s).",
       "tags": "Reporting.QAQC",
       "outputs": [],
       "attributes": [
@@ -9234,7 +9391,103 @@
           "value": "ReportingMeasure"
         }
       ],
-      "arguments": [],
+      "arguments": [
+        {
+          "name": "reporting_frequency",
+          "display_name": "Reporting Frequency",
+          "description": "The frequency at which to report timeseries output data.",
+          "type": "Choice",
+          "required": true,
+          "model_dependent": false,
+          "default_value": "Hourly",
+          "choice_values": [
+            "Detailed",
+            "Timestep",
+            "Hourly",
+            "Daily",
+            "Monthly",
+            "Runperiod"
+          ],
+          "choice_display_names": [
+            "Detailed",
+            "Timestep",
+            "Hourly",
+            "Daily",
+            "Monthly",
+            "Runperiod"
+          ],
+          "display_name_short": "reporting_frequency",
+          "inputs": {
+            "relationship": null,
+            "choiceDisplayNames": [
+              "Detailed",
+              "Timestep",
+              "Hourly",
+              "Daily",
+              "Monthly",
+              "Runperiod"
+            ],
+            "variableSetting": "Argument",
+            "distribution": "Uniform",
+            "discreteVariables": [],
+            "maximum": "Hourly",
+            "minimum": "Hourly",
+            "mean": "Hourly",
+            "deltaX": "Hourly",
+            "stdDev": "Hourly",
+            "default_value": "Hourly"
+          },
+          "$$hashKey": "object:7771"
+        },
+        {
+          "name": "include_enduse_subcategories",
+          "display_name": "Include End Use Subcategories",
+          "description": "Whether to report appliance-level enduses: refrigerator, clothes dryer, plug loads, etc.",
+          "type": "Boolean",
+          "required": true,
+          "model_dependent": false,
+          "default_value": false,
+          "display_name_short": "include_enduse_subcategories",
+          "inputs": {
+            "relationship": null,
+            "choiceDisplayNames": [],
+            "variableSetting": "Argument",
+            "distribution": "Uniform",
+            "discreteVariables": [],
+            "maximum": false,
+            "minimum": false,
+            "mean": false,
+            "deltaX": false,
+            "stdDev": false,
+            "default_value": false
+          },
+          "$$hashKey": "object:7772"
+        },
+        {
+          "name": "output_variables",
+          "display_name": "Output Variables",
+          "description": "Specify a comma-separated list of output variables to report. (See EnergyPlus's rdd file for available output variables.)",
+          "type": "String",
+          "required": true,
+          "model_dependent": false,
+          "default_value": "",
+          "display_name_short": "output_variables",
+          "inputs": {
+            "relationship": null,
+            "choiceDisplayNames": [],
+            "variableSetting": "Argument",
+            "distribution": "Uniform",
+            "discreteVariables": [],
+            "maximum": "",
+            "minimum": "",
+            "mean": "",
+            "deltaX": "",
+            "stdDev": "",
+            "default_value": ""
+          },
+          "$$hashKey": "object:7773"
+        }
+      ],
       "edit": "",
       "status": "",
       "bcl_update": false,
@@ -9242,21 +9495,25 @@
       "add": "",
       "open": false,
       "addedToProject": true,
-      "date": "11/13/2018",
+      "date": "12/20/2018",
       "author": "",
       "type": "ReportingMeasure",
       "seed": "EmptySeedModel.osm",
       "workflow_index": 6,
       "options": [],
+<<<<<<< HEAD
       "instanceId": 0.5312115364592582,
+=======
+      "instanceId": 0.7267029640565856,
+>>>>>>> master
       "skip": false,
-      "$$hashKey": "object:15284",
+      "$$hashKey": "object:7728",
       "outputMeasure": false
     },
     {
-      "measure_dir": "C:\\GitHub\\OpenStudio-BuildStock\\project_resstock_national\\measures\\ServerDirectoryCleanup",
+      "measure_dir": "C:\\OpenStudio\\OpenStudio-BuildStock\\project_resstock_national\\measures\\ServerDirectoryCleanup",
       "name": "server_directory_cleanup",
-      "directory": "C:\\GitHub\\OpenStudio-BuildStock\\project_resstock_national\\measures\\ServerDirectoryCleanup",
+      "directory": "C:\\OpenStudio\\OpenStudio-BuildStock\\project_resstock_national\\measures\\ServerDirectoryCleanup",
       "uid": "ec7d04ad-0b7b-495b-825a-e1b6d28d1d3f",
       "uuid": "{ec7d04ad-0b7b-495b-825a-e1b6d28d1d3f}",
       "version_id": "9d0335bf-8823-468f-971e-3a53fe35248d",
@@ -9295,7 +9552,11 @@
       "seed": "EmptySeedModel.osm",
       "workflow_index": 7,
       "options": [],
+<<<<<<< HEAD
       "instanceId": 0.6820158277067567,
+=======
+      "instanceId": 0.8788228016093702,
+>>>>>>> master
       "skip": false,
       "$$hashKey": "object:663249",
       "outputMeasure": false
@@ -9311,6 +9572,11 @@
       "dirToInclude": "housing_characteristics",
       "unpackDirName": "housing_characteristics",
       "$$hashKey": "object:5748"
+    },
+    {
+      "dirToInclude": "..\\scripts",
+      "unpackDirName": "scripts",
+      "$$hashKey": "object:20763"
     }
   ],
   "serverScripts": {
@@ -9319,7 +9585,7 @@
       "arguments": []
     },
     "server_finalization": {
-      "file": null,
+      "file": "finalize.sh",
       "arguments": []
     },
     "worker_initialization": {

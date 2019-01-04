@@ -8,7 +8,6 @@ require_relative "../HPXMLtoOpenStudio/resources/constructions"
 
 # start the measure
 class ProcessConstructionsWallsSIP < OpenStudio::Measure::ModelMeasure
-
   # human readable name
   def name
     return "Set Residential Walls - SIP Construction"
@@ -28,7 +27,7 @@ class ProcessConstructionsWallsSIP < OpenStudio::Measure::ModelMeasure
   def arguments(model)
     args = OpenStudio::Measure::OSArgumentVector.new
 
-    #make a double argument for nominal R-value of the sip insulation
+    # make a double argument for nominal R-value of the sip insulation
     sip_r = OpenStudio::Measure::OSArgument::makeDoubleArgument("sip_r", true)
     sip_r.setDisplayName("Nominal Insulation R-value")
     sip_r.setUnits("hr-ft^2-R/Btu")
@@ -36,23 +35,23 @@ class ProcessConstructionsWallsSIP < OpenStudio::Measure::ModelMeasure
     sip_r.setDefaultValue(17.5)
     args << sip_r
 
-    #make a double argument for thickness of the sip insulation
+    # make a double argument for thickness of the sip insulation
     thick_in = OpenStudio::Measure::OSArgument::makeDoubleArgument("thick_in", true)
     thick_in.setDisplayName("Insulation Thickness")
     thick_in.setUnits("in")
     thick_in.setDescription("Thickness of the insulating core of the SIP.")
     thick_in.setDefaultValue(3.625)
-    args << thick_in 
+    args << thick_in
 
-    #make a double argument for framing factor
+    # make a double argument for framing factor
     framing_factor = OpenStudio::Measure::OSArgument::makeDoubleArgument("framing_factor", true)
     framing_factor.setDisplayName("Framing Factor")
     framing_factor.setUnits("frac")
     framing_factor.setDescription("Total fraction of the wall that is framing for windows or doors.")
     framing_factor.setDefaultValue(0.156)
-    args << framing_factor 
-    
-    #make a string argument for interior sheathing type
+    args << framing_factor
+
+    # make a string argument for interior sheathing type
     intsheathing_display_names = OpenStudio::StringVector.new
     intsheathing_display_names << Constants.MaterialOSB
     intsheathing_display_names << Constants.MaterialGypsum
@@ -61,41 +60,41 @@ class ProcessConstructionsWallsSIP < OpenStudio::Measure::ModelMeasure
     sheathing_type.setDisplayName("Interior Sheathing Type")
     sheathing_type.setDescription("The interior sheathing type of the SIP wall.")
     sheathing_type.setDefaultValue(Constants.MaterialOSB)
-    args << sheathing_type   
-    
-    #make a double argument for thickness of the interior sheathing
+    args << sheathing_type
+
+    # make a double argument for thickness of the interior sheathing
     sheathing_thick_in = OpenStudio::Measure::OSArgument::makeDoubleArgument("sheathing_thick_in", true)
     sheathing_thick_in.setDisplayName("Interior Sheathing Thickness")
     sheathing_thick_in.setUnits("in")
     sheathing_thick_in.setDescription("The thickness of the interior sheathing.")
     sheathing_thick_in.setDefaultValue(0.44)
     args << sheathing_thick_in
-    
-    #make a double argument for drywall thickness
+
+    # make a double argument for drywall thickness
     drywall_thick_in = OpenStudio::Measure::OSArgument::makeDoubleArgument("drywall_thick_in", true)
     drywall_thick_in.setDisplayName("Drywall Thickness")
     drywall_thick_in.setUnits("in")
     drywall_thick_in.setDescription("Thickness of the drywall material.")
     drywall_thick_in.setDefaultValue(0.5)
     args << drywall_thick_in
-    
-    #make a double argument for OSB/Plywood Thickness
-    osb_thick_in = OpenStudio::Measure::OSArgument::makeDoubleArgument("osb_thick_in",true)
+
+    # make a double argument for OSB/Plywood Thickness
+    osb_thick_in = OpenStudio::Measure::OSArgument::makeDoubleArgument("osb_thick_in", true)
     osb_thick_in.setDisplayName("OSB/Plywood Thickness")
     osb_thick_in.setUnits("in")
     osb_thick_in.setDescription("Specifies the thickness of the walls' OSB/plywood sheathing. Enter 0 for no sheathing (if the wall has other means to handle the shear load on the wall such as cross-bracing).")
     osb_thick_in.setDefaultValue(0.5)
     args << osb_thick_in
-    
-    #make a double argument for Rigid Insulation R-value
-    rigid_r = OpenStudio::Measure::OSArgument::makeDoubleArgument("rigid_r",true)
+
+    # make a double argument for Rigid Insulation R-value
+    rigid_r = OpenStudio::Measure::OSArgument::makeDoubleArgument("rigid_r", true)
     rigid_r.setDisplayName("Continuous Insulation Nominal R-value")
     rigid_r.setUnits("h-ft^2-R/Btu")
     rigid_r.setDescription("The R-value of the continuous insulation.")
     rigid_r.setDefaultValue(0.0)
     args << rigid_r
 
-    #make a choice argument for exterior finish material
+    # make a choice argument for exterior finish material
     finishes = OpenStudio::StringVector.new
     WallConstructions.get_exterior_finish_materials.each do |mat|
       finishes << mat.name
@@ -117,68 +116,66 @@ class ProcessConstructionsWallsSIP < OpenStudio::Measure::ModelMeasure
     if !runner.validateUserArguments(arguments(model), user_arguments)
       return false
     end
-    
+
     walls_by_type = SurfaceTypes.get_walls(model, runner)
-    
+
     # Get inputs
-    sip_r = runner.getDoubleArgumentValue("sip_r",user_arguments)
-    thick_in = runner.getDoubleArgumentValue("thick_in",user_arguments)
-    framing_factor = runner.getDoubleArgumentValue("framing_factor",user_arguments)
-    sheathing_type = runner.getStringArgumentValue("sheathing_type",user_arguments)
-    sheathing_thick_in = runner.getDoubleArgumentValue("sheathing_thick_in",user_arguments)
-    drywall_thick_in = runner.getDoubleArgumentValue("drywall_thick_in",user_arguments)
-    osb_thick_in = runner.getDoubleArgumentValue("osb_thick_in",user_arguments)
-    rigid_r = runner.getDoubleArgumentValue("rigid_r",user_arguments)
-    mat_ext_finish = WallConstructions.get_exterior_finish_material(runner.getStringArgumentValue("exterior_finish",user_arguments))
-    
+    sip_r = runner.getDoubleArgumentValue("sip_r", user_arguments)
+    thick_in = runner.getDoubleArgumentValue("thick_in", user_arguments)
+    framing_factor = runner.getDoubleArgumentValue("framing_factor", user_arguments)
+    sheathing_type = runner.getStringArgumentValue("sheathing_type", user_arguments)
+    sheathing_thick_in = runner.getDoubleArgumentValue("sheathing_thick_in", user_arguments)
+    drywall_thick_in = runner.getDoubleArgumentValue("drywall_thick_in", user_arguments)
+    osb_thick_in = runner.getDoubleArgumentValue("osb_thick_in", user_arguments)
+    rigid_r = runner.getDoubleArgumentValue("rigid_r", user_arguments)
+    mat_ext_finish = WallConstructions.get_exterior_finish_material(runner.getStringArgumentValue("exterior_finish", user_arguments))
+
     # Apply constructions
     if not WallConstructions.apply_sip(runner, model,
-                                       walls_by_type[Constants.SurfaceTypeWallExtInsFin], 
+                                       walls_by_type[Constants.SurfaceTypeWallExtInsFin],
                                        Constants.SurfaceTypeWallExtInsFin,
                                        sip_r, thick_in, framing_factor,
-                                       sheathing_type, sheathing_thick_in, 
+                                       sheathing_type, sheathing_thick_in,
                                        drywall_thick_in, osb_thick_in, rigid_r,
                                        mat_ext_finish)
-        return false
+      return false
     end
-    
+
     if not WallConstructions.apply_sip(runner, model,
-                                       walls_by_type[Constants.SurfaceTypeWallExtInsUnfin], 
+                                       walls_by_type[Constants.SurfaceTypeWallExtInsUnfin],
                                        Constants.SurfaceTypeWallExtInsUnfin,
                                        sip_r, thick_in, framing_factor,
-                                       sheathing_type, sheathing_thick_in, 
+                                       sheathing_type, sheathing_thick_in,
                                        0, osb_thick_in, rigid_r,
                                        mat_ext_finish)
-        return false
+      return false
     end
-    
-    if not WallConstructions.apply_sip(runner, model, 
-                                       walls_by_type[Constants.SurfaceTypeWallIntFinInsUnfin], 
+
+    if not WallConstructions.apply_sip(runner, model,
+                                       walls_by_type[Constants.SurfaceTypeWallIntFinInsUnfin],
                                        Constants.SurfaceTypeWallIntFinInsUnfin,
                                        sip_r, thick_in, framing_factor,
-                                       sheathing_type, sheathing_thick_in, 
+                                       sheathing_type, sheathing_thick_in,
                                        0, osb_thick_in, rigid_r,
                                        nil)
-        return false
+      return false
     end
-    
+
     if not WallConstructions.apply_uninsulated(runner, model, walls_by_type,
                                                osb_thick_in, drywall_thick_in, mat_ext_finish)
-        return false
+      return false
     end
-    
+
     if not ThermalMassConstructions.apply(runner, model, walls_by_type,
                                           drywall_thick_in)
-        return false
+      return false
     end
-    
+
     # Remove any constructions/materials that aren't used
     HelperMethods.remove_unused_constructions_and_materials(model, runner)
 
     return true
-
   end
-
 end
 
 # register the measure to be used by the application
