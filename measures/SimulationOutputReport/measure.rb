@@ -124,6 +124,18 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
     pv_query = "SELECT -1*Value FROM TabularDataWithStrings WHERE ReportName='AnnualBuildingUtilityPerformanceSummary' AND ReportForString='Entire Facility' AND TableName='Electric Loads Satisfied' AND RowName='Total On-Site Electric Sources' AND ColumnName='Electricity' AND Units='GJ'"
     pv_val = sqlFile.execAndReturnFirstDouble(pv_query)
            
+    # Get supply fan enduse subcategories
+    htg_supply_fan = nil
+    clg_supply_fan = nil
+    model.getFanOnOffs.each do |fan|
+      next if fan.endUseSubcategory.empty?
+      if fan.endUseSubcategory.to_s.include? "htg"
+        htg_supply_fan = "#{fan.endUseSubcategory}"
+      elsif fan.endUseSubcategory.to_s.include? "clg"
+        clg_supply_fan = "#{fan.endUseSubcategory}"
+      end
+    end
+
     # TOTAL
     
     report_sim_output(runner, "total_site_energy_mbtu", [sqlFile.totalSiteEnergy], "GJ", total_site_units)
@@ -138,9 +150,9 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
     report_sim_output(runner, "electricity_interior_lighting_kwh", [sqlFile.electricityInteriorLighting], "GJ", elec_site_units)
     report_sim_output(runner, "electricity_exterior_lighting_kwh", [sqlFile.electricityExteriorLighting], "GJ", elec_site_units)
     report_sim_output(runner, "electricity_interior_equipment_kwh", [sqlFile.electricityInteriorEquipment], "GJ", elec_site_units)
-    electricity_fans_heating_query = "SELECT Value FROM TabularDataWithStrings WHERE ReportName='EnergyMeters' AND ReportForString='Entire Facility' AND TableName='Annual and Peak Values - Electricity' AND RowName='res hvac heating fan:Fans:Electricity' AND ColumnName='Electricity Annual Value' AND Units='GJ'"
+    electricity_fans_heating_query = "SELECT Value FROM TabularDataWithStrings WHERE ReportName='EnergyMeters' AND ReportForString='Entire Facility' AND TableName='Annual and Peak Values - Electricity' AND RowName='#{htg_supply_fan}:Fans:Electricity' AND ColumnName='Electricity Annual Value' AND Units='GJ'"
     electricity_fans_heating = sqlFile.execAndReturnFirstDouble(electricity_fans_heating_query)
-    electricity_fans_cooling_query = "SELECT Value FROM TabularDataWithStrings WHERE ReportName='EnergyMeters' AND ReportForString='Entire Facility' AND TableName='Annual and Peak Values - Electricity' AND RowName='res hvac cooling fan:Fans:Electricity' AND ColumnName='Electricity Annual Value' AND Units='GJ'"
+    electricity_fans_cooling_query = "SELECT Value FROM TabularDataWithStrings WHERE ReportName='EnergyMeters' AND ReportForString='Entire Facility' AND TableName='Annual and Peak Values - Electricity' AND RowName='#{clg_supply_fan}:Fans:Electricity' AND ColumnName='Electricity Annual Value' AND Units='GJ'"
     electricity_fans_cooling = sqlFile.execAndReturnFirstDouble(electricity_fans_cooling_query)
     report_sim_output(runner, "electricity_fans_heating_kwh", [electricity_fans_heating], "GJ", elec_site_units)
     report_sim_output(runner, "electricity_fans_cooling_kwh", [electricity_fans_cooling], "GJ", elec_site_units)

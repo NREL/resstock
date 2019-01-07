@@ -4,17 +4,17 @@
 # require 'ruby-prof'
 require 'erb'
 require 'csv'
-resstock_aws_path = "../../lib/resources/measures/HPXMLtoOpenStudio/resources"
-resstock_local_path = "../../resources/measures/HPXMLtoOpenStudio/resources"
-if File.exists? File.absolute_path(File.join(File.dirname(__FILE__), resstock_aws_path)) # Hack to run ResStock on AWS
-  resources_path = resstock_aws_path
-elsif File.exists? File.absolute_path(File.join(File.dirname(__FILE__), resstock_local_path)) # Hack to run ResStock unit tests locally
-  resources_path = resstock_local_path
+if File.exists? File.absolute_path(File.join(File.dirname(__FILE__), "../../lib/resources/measures/HPXMLtoOpenStudio/resources")) # Hack to run ResStock on AWS
+  resources_path = File.absolute_path(File.join(File.dirname(__FILE__), "../../lib/resources/measures/HPXMLtoOpenStudio/resources"))
+elsif File.exists? File.absolute_path(File.join(File.dirname(__FILE__), "../../resources/measures/HPXMLtoOpenStudio/resources")) # Hack to run ResStock unit tests locally
+  resources_path = File.absolute_path(File.join(File.dirname(__FILE__), "../../resources/measures/HPXMLtoOpenStudio/resources"))
+elsif File.exists? File.join(OpenStudio::BCLMeasure::userMeasuresDir.to_s, "HPXMLtoOpenStudio/resources") # Hack to run measures in the OS App since applied measures are copied off into a temporary directory
+  resources_path = File.join(OpenStudio::BCLMeasure::userMeasuresDir.to_s, "HPXMLtoOpenStudio/resources")
 else
-  resources_path = "../HPXMLtoOpenStudio/resources"
+  resources_path = File.absolute_path(File.join(File.dirname(__FILE__), "../HPXMLtoOpenStudio/resources"))
 end
-require_relative File.join(resources_path, "weather")
-require_relative File.join(resources_path, "unit_conversions")
+require File.join(resources_path, "weather")
+require File.join(resources_path, "unit_conversions")
 
 # start the measure
 class TimeseriesCSVExport < OpenStudio::Measure::ReportingMeasure
@@ -97,6 +97,15 @@ class TimeseriesCSVExport < OpenStudio::Measure::ReportingMeasure
         next if end_use_subcategories.include? variable_name
 
         end_use_subcategories << variable_name
+      end
+    end
+    model.getFanOnOffs.each do |fan|
+      next if fan.endUseSubcategory.empty?
+
+      end_uses.each do |end_use|
+        next if end_use_subcategories.include? "#{fan.endUseSubcategory}:#{end_use}:Electricity"
+
+        end_use_subcategories << "#{fan.endUseSubcategory}:#{end_use}:Electricity"
       end
     end
     return end_use_subcategories
