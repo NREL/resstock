@@ -586,15 +586,25 @@
 	</xs:simpleType>
 	<xs:simpleType name="AdjacentTo">
 		<xs:restriction base="xs:string">
-			<xs:enumeration value="ambient"/>
-			<xs:enumeration value="garage"/>
 			<xs:enumeration value="attic"/>
+			<xs:enumeration value="attic - conditioned"/>
+			<xs:enumeration value="attic - unvented"/>
+			<xs:enumeration value="attic - vented"/>
+			<xs:enumeration value="basement"/>
+			<xs:enumeration value="basement - conditioned"/>
+			<xs:enumeration value="basement - unconditioned"/>
 			<xs:enumeration value="crawlspace"/>
+			<xs:enumeration value="crawlspace - conditioned"/>
+			<xs:enumeration value="crawlspace - unvented"/>
+			<xs:enumeration value="crawlspace - vented"/>
+			<xs:enumeration value="garage"/>
+			<xs:enumeration value="garage - conditioned"/>
+			<xs:enumeration value="garage - unconditioned"/>
 			<xs:enumeration value="ground"/>
 			<xs:enumeration value="living space"/>
-			<xs:enumeration value="unconditioned basement"/>
-			<xs:enumeration value="other housing unit"/>
 			<xs:enumeration value="other"/>
+			<xs:enumeration value="other housing unit"/>
+			<xs:enumeration value="outside"/>
 		</xs:restriction>
 	</xs:simpleType>
 	<xs:simpleType name="StudSize">
@@ -1021,16 +1031,24 @@
 	</xs:simpleType>
 	<xs:simpleType name="DuctLocation">
 		<xs:restriction base="xs:string">
-			<xs:enumeration value="conditioned space"/>
-			<xs:enumeration value="unconditioned space"/>
-			<xs:enumeration value="unconditioned basement"/>
-			<xs:enumeration value="unvented crawlspace"/>
-			<xs:enumeration value="vented crawlspace"/>
+			<xs:enumeration value="attic"/>
+			<xs:enumeration value="attic - conditioned"/>
+			<xs:enumeration value="attic - unvented"/>
+			<xs:enumeration value="attic - vented"/>
+			<xs:enumeration value="basement"/>
+			<xs:enumeration value="basement - conditioned"/>
+			<xs:enumeration value="basement - unconditioned"/>
 			<xs:enumeration value="crawlspace"/>
-			<xs:enumeration value="unconditioned attic"/>
-			<xs:enumeration value="interstitial space"/>
+			<xs:enumeration value="crawlspace - conditioned"/>
+			<xs:enumeration value="crawlspace - unvented"/>
+			<xs:enumeration value="crawlspace - vented"/>
 			<xs:enumeration value="garage"/>
+			<xs:enumeration value="garage - conditioned"/>
+			<xs:enumeration value="garage - unconditioned"/>
+			<xs:enumeration value="interstitial space"/>
+			<xs:enumeration value="living space"/>
 			<xs:enumeration value="outside"/>
+			<xs:enumeration value="unconditioned space"/>
 		</xs:restriction>
 	</xs:simpleType>
 	<xs:simpleType name="DuctLeakageTestMethod">
@@ -1103,15 +1121,21 @@
 	</xs:simpleType>
 	<xs:simpleType name="UnitLocation">
 		<xs:restriction base="xs:string">
+			<xs:enumeration value="attic"/>
 			<xs:enumeration value="attic - conditioned"/>
-			<xs:enumeration value="attic - unconditioned"/>
+			<xs:enumeration value="attic - unvented"/>
+			<xs:enumeration value="attic - vented"/>
+			<xs:enumeration value="basement"/>
 			<xs:enumeration value="basement - conditioned"/>
 			<xs:enumeration value="basement - unconditioned"/>
-			<xs:enumeration value="conditioned space"/>
-			<xs:enumeration value="crawlspace - vented"/>
+			<xs:enumeration value="crawlspace"/>
+			<xs:enumeration value="crawlspace - conditioned"/>
 			<xs:enumeration value="crawlspace - unvented"/>
+			<xs:enumeration value="crawlspace - vented"/>
+			<xs:enumeration value="garage"/>
 			<xs:enumeration value="garage - conditioned"/>
 			<xs:enumeration value="garage - unconditioned"/>
+			<xs:enumeration value="living space"/>
 			<xs:enumeration value="mechanical closet"/>
 			<xs:enumeration value="other interior"/>
 			<xs:enumeration value="other exterior"/>
@@ -1493,10 +1517,16 @@
 	</xs:simpleType>
 	<xs:simpleType name="LaundryMachineLocation">
 		<xs:restriction base="xs:string">
+			<xs:enumeration value="basement"/>
+			<xs:enumeration value="basement - conditioned"/>
+			<xs:enumeration value="basement - unconditioned"/>
+			<xs:enumeration value="garage"/>
+			<xs:enumeration value="garage - conditioned"/>
+			<xs:enumeration value="garage - unconditioned"/>
 			<xs:enumeration value="laundry room"/>
 			<xs:enumeration value="living space"/>
-			<xs:enumeration value="basement"/>
 			<xs:enumeration value="other"/>
+			<xs:enumeration value="unconditioned space"/>
 		</xs:restriction>
 	</xs:simpleType>
 	<xs:simpleType name="FreezerStyle">
@@ -1525,11 +1555,16 @@
 	</xs:simpleType>
 	<xs:simpleType name="RefrigeratorLocation">
 		<xs:restriction base="xs:string">
+			<xs:enumeration value="basement"/>
+			<xs:enumeration value="basement - conditioned"/>
+			<xs:enumeration value="basement - unconditioned"/>
+			<xs:enumeration value="garage"/>
+			<xs:enumeration value="garage - conditioned"/>
+			<xs:enumeration value="garage - unconditioned"/>
 			<xs:enumeration value="kitchen"/>
 			<xs:enumeration value="living space"/>
-			<xs:enumeration value="basement"/>
-			<xs:enumeration value="garage"/>
 			<xs:enumeration value="other"/>
+			<xs:enumeration value="unconditioned space"/>
 		</xs:restriction>
 	</xs:simpleType>
 	<xs:simpleType name="DehumidifierLocation">
@@ -1833,9 +1868,11 @@
 	</xs:simpleType>
 	<xs:simpleType name="SpotVentilationLocation">
 		<xs:restriction base="xs:string">
-			<xs:enumeration value="kitchen"/>
 			<xs:enumeration value="bath"/>
 			<xs:enumeration value="garage"/>
+			<xs:enumeration value="garage - conditioned"/>
+			<xs:enumeration value="garage - unconditioned"/>
+			<xs:enumeration value="kitchen"/>
 			<xs:enumeration value="other"/>
 		</xs:restriction>
 	</xs:simpleType>
@@ -1865,9 +1902,11 @@
 	<xs:simpleType name="VentilationFanLocation">
 		<xs:restriction base="xs:string">
 			<xs:enumeration value="bath"/>
-			<xs:enumeration value="kitchen"/>
-			<xs:enumeration value="hallway"/>
 			<xs:enumeration value="garage"/>
+			<xs:enumeration value="garage - conditioned"/>
+			<xs:enumeration value="garage - unconditioned"/>
+			<xs:enumeration value="hallway"/>
+			<xs:enumeration value="kitchen"/>
 			<xs:enumeration value="other"/>
 		</xs:restriction>
 	</xs:simpleType>

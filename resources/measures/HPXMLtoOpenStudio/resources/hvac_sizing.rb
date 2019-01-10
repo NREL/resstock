@@ -1500,10 +1500,10 @@ class HVACSizing
     unit_final = process_duct_loads_heating(runner, mj8, unit_final, weather, hvac, unit_init.Heat_Load, ducts)
     unit_init, unit_final = process_duct_loads_cool_dehum(runner, mj8, unit, zones_loads, unit_init, unit_final, weather, hvac, ducts)
     unit_final = process_cooling_equipment_adjustments(runner, mj8, unit, unit_init, unit_final, weather, hvac)
+    unit_final = process_slave_zone_flow_ratios(runner, zones_loads, ducts, unit_final)
     unit_final = process_fixed_equipment(runner, unit_final, hvac)
     unit_final = process_finalize(runner, mj8, unit, zones_loads, unit_init, unit_final, weather, hvac, ducts, nbeds, unit_ffa, unit_shelter_class)
-    unit_final = process_slave_zone_flow_ratios(runner, zones_loads, ducts, unit_final)
-    unit_final = process_efficient_capacity_derate(runner, hvac, unit_final)
+    unit_final = process_efficiency_capacity_derate(runner, hvac, unit_final)
     unit_final = process_dehumidifier_sizing(runner, mj8, unit_init, unit_final, weather, hvac)
     return unit_init, unit_final
   end
@@ -2420,7 +2420,7 @@ class HVACSizing
     return unit_final
   end
 
-  def self.process_efficient_capacity_derate(runner, hvac, unit_final)
+  def self.process_efficiency_capacity_derate(runner, hvac, unit_final)
     '''
     AC & HP Efficiency Capacity Derate
     '''
@@ -2962,6 +2962,8 @@ class HVACSizing
     hvac.GSHPBoreDepth = nil
     hvac.GSHPBoreConfig = nil
     hvac.GSHPSpacingType = nil
+    hvac.HeatingLoadFraction = 0
+    hvac.CoolingLoadFraction = 0
 
     clg_equips = []
     htg_equips = []
@@ -3018,6 +3020,9 @@ class HVACSizing
         if not ratedCFMperTonCooling.nil?
           hvac.RatedCFMperTonCooling = ratedCFMperTonCooling.split(",").map(&:to_f)
         end
+
+        hvac.CoolingLoadFraction = get_feature(runner, clg_equip, Constants.SizingInfoHVACFracCoolLoadServed, 'double')
+        return nil if hvac.CoolingLoadFraction.nil?
 
         # Cooling coil
         if clg_coil.is_a? OpenStudio::Model::CoilCoolingDXSingleSpeed
@@ -3175,6 +3180,9 @@ class HVACSizing
         if not ratedCFMperTonHeating.nil?
           hvac.RatedCFMperTonHeating = ratedCFMperTonHeating.split(",").map(&:to_f)
         end
+
+        hvac.HeatingLoadFraction = get_feature(runner, htg_equip, Constants.SizingInfoHVACFracHeatLoadServed, 'double')
+        return nil if hvac.HeatingLoadFraction.nil?
 
         # Heating coil
         if htg_coil.is_a? OpenStudio::Model::CoilHeatingElectric
@@ -4356,7 +4364,7 @@ class HVACSizing
       clg_coil.setRatedAirFlowRate(zone_ratio * UnitConversions.convert(unit_final.Cool_Capacity, "Btu/hr", "ton") * UnitConversions.convert(hvac.RatedCFMperTonCooling[0], "cfm", "m^3/s"))
 
       # Adjust COP as appropriate
-      clg_coil.setRatedCOP(OpenStudio::OptionalDouble.new(clg_coil.ratedCOP.get * unit_final.EER_Multiplier))
+      clg_coil.setRatedCOP(clg_coil.ratedCOP.get * unit_final.EER_Multiplier)
 
     elsif clg_coil.is_a? OpenStudio::Model::CoilCoolingDXMultiSpeed
       clg_coil.stages.each_with_index do |stage, speed|
@@ -4409,9 +4417,9 @@ class HVACSizing
       end
 
     elsif htg_coil.is_a? OpenStudio::Model::CoilHeatingWaterToAirHeatPumpEquationFit
-      htg_coil.setRatedAirFlowRate(OpenStudio::OptionalDouble.new(zone_ratio * UnitConversions.convert(unit_final.Heat_Airflow, "cfm", "m^3/s")))
-      htg_coil.setRatedWaterFlowRate(OpenStudio::OptionalDouble.new(zone_ratio * UnitConversions.convert(unit_final.GSHP_Loop_flow, "gal/min", "m^3/s")))
-      htg_coil.setRatedHeatingCapacity(OpenStudio::OptionalDouble.new(zone_ratio * UnitConversions.convert(unit_final.Heat_Capacity, "Btu/hr", "W")))
+      htg_coil.setRatedAirFlowRate(zone_ratio * UnitConversions.convert(unit_final.Heat_Airflow, "cfm", "m^3/s"))
+      htg_coil.setRatedWaterFlowRate(zone_ratio * UnitConversions.convert(unit_final.GSHP_Loop_flow, "gal/min", "m^3/s"))
+      htg_coil.setRatedHeatingCapacity(zone_ratio * UnitConversions.convert(unit_final.Heat_Capacity, "Btu/hr", "W"))
 
     end
 
@@ -4570,7 +4578,7 @@ class HVACInfo
                 :HXDTDesign, :HXCHWDesign, :HXHWDesign,
                 :RatedCFMperTonCooling, :RatedCFMperTonHeating,
                 :GSHPBoreSpacing, :GSHPBoreHoles, :GSHPBoreDepth,
-                :GSHPBoreConfig, :GSHPSpacingType)
+                :GSHPBoreConfig, :GSHPSpacingType, :HeatingLoadFraction, :CoolingLoadFraction)
 end
 
 class DuctsInfo
