@@ -1089,12 +1089,11 @@ class Airflow
 
     if unit_has_mshp # has mshp
       miniSplitHPIsDucted = HVAC.has_ducted_mshp(model, runner, unit_living.zone)
-      if ducts.location != "none" and not miniSplitHPIsDucted # if not ducted but specified ducts, override
+      if ducts.location != "none" and not miniSplitHPIsDucted # if not ducted but specified ducts, warning and override
         runner.registerWarning("No ducted HVAC equipment was found but ducts were specified. Overriding duct specification.")
         ducts.location = "none"
-      elsif ducts.location == "none" and miniSplitHPIsDucted # if ducted but specified no ducts, error
-        runner.registerError("Ducted mini-split heat pump selected but no ducts were selected.")
-        return false
+      elsif ducts.location == "none" and miniSplitHPIsDucted # if ducted but specified no ducts, warning
+        runner.registerWarning("A ducted mini-split heat pump was found but no ducts were specified.")
       end
     end
 
