@@ -70,7 +70,7 @@ def unzip_archive(archive, dest)
   # Adapted from examples at...
   # https://github.com/rubyzip/rubyzip
   # http://seenuvasan.wordpress.com/2010/09/21/unzip-files-using-ruby/
-  Zip::File.open(archive) do |zf|
+  Zip::ZipFile.open(archive) do |zf|
     zf.each do |f|
       f_path = File.join(dest, f.name)
       FileUtils.mkdir_p(File.dirname(f_path))
