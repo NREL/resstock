@@ -3,7 +3,6 @@ source 'http://rubygems.org'
 gem 'rake', '~> 11.2.2'
 gem 'colored', '~> 1.2'
 gem 'git', require: false
-gem 'rubyzip'
 
 group :test do
   gem 'minitest', '~> 5.9'
