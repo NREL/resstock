@@ -1,23 +1,12 @@
 #!/usr/bin/env ruby
-# CLI tool to allow for recreate the localResults directory
-# This provides a critical workaround for BuildStock PAT projects
-# Written by Henry R Horsey III (henry.horsey@nrel.gov)
-# Created September 8th, 2017
-# Last updated on January 5th, 2018 (J Robertson)
-# Copywrite the Alliance for Sustainable Energy LLC
-# License: BSD3+1
 
 require 'optparse'
-require 'fileutils'
-require 'zip'
 require 'net/http'
 require 'openssl'
 require 'csv'
 require 'parallel'
 
 # Download the results csv if it doesn't already exist
-#
-# @param local_result_dir [::String] path to the localResults directory
 def retrieve_results_csv(local_results_dir, server_dns=nil, analysis_id=nil)
   # Verify localResults directory
   unless File.basename(local_results_dir) == 'localResults'
@@ -43,7 +32,7 @@ def retrieve_results_csv(local_results_dir, server_dns=nil, analysis_id=nil)
   http.request request do |response|
     total = response.header["Content-Length"].to_i
     if total == 0
-      fail "Did not successfully download zip file."
+      fail "Did not successfully download #{dest}."
     end
     size = 0
     progress = 0
@@ -60,23 +49,10 @@ def retrieve_results_csv(local_results_dir, server_dns=nil, analysis_id=nil)
     end
   end
 
-end
-
-# Unzip an archive to a destination directory using Rubyzip gem
-#
-# @param archive [:string] archive path for extraction
-# @param dest [:string] path for archived file to be extracted to
-def unzip_archive(archive, dest)
-  # Adapted from examples at...
-  # https://github.com/rubyzip/rubyzip
-  # http://seenuvasan.wordpress.com/2010/09/21/unzip-files-using-ruby/
-  Zip::ZipFile.open(archive) do |zf|
-    zf.each do |f|
-      f_path = File.join(dest, f.name)
-      FileUtils.mkdir_p(File.dirname(f_path))
-      zf.extract(f, f_path) unless File.exist?(f_path) # No overwrite
-    end
+  unless File.exist? dest
+    fail "ERROR: Unable to download #{dest}."
   end
+
 end
 
 def retrieve_dps(local_results_dir)
@@ -85,6 +61,7 @@ def retrieve_dps(local_results_dir)
     rows = CSV.read(item, {:encoding=>'ISO-8859-1'})
     rows.each_with_index do |row, i|
       next if i == 0
+      next unless row[4] == 'completed'
       dps << {:_id => row[1]}
     end    
   end
@@ -92,10 +69,7 @@ def retrieve_dps(local_results_dir)
 end
 
 # Download any datapoint that is not already in the localResults directory
-#
-# @param local_result_dir [::String] path to the localResults directory
-# @return [logical] Indicates if any errors were caught
-def retrieve_dp_data(local_results_dir, server_dns=nil, unzip=false)
+def retrieve_dp_data(local_results_dir, server_dns=nil)
   # Verify localResults directory
   unless File.basename(local_results_dir) == 'localResults'
     fail "ERROR: input #{local_results_dir} does not point to localResults"
@@ -104,7 +78,7 @@ def retrieve_dp_data(local_results_dir, server_dns=nil, unzip=false)
   # Ensure there are datapoints to download
   dps = retrieve_dps(local_results_dir)
   if dps.empty?
-    fail "ERROR: No datapoints were found. Unable to download the results csv."
+    fail "ERROR: No datapoints were found."
   end
   
   # Only download datapoints which do not already exist
@@ -128,7 +102,7 @@ def retrieve_dp_data(local_results_dir, server_dns=nil, unzip=false)
     begin
       http.request request do |response|
         next unless response.kind_of? Net::HTTPSuccess
-        if not File.exist? dest
+        unless File.exist? dest
           Dir.mkdir dest
         end
         open dp[:file], 'wb' do |io|
@@ -136,11 +110,6 @@ def retrieve_dp_data(local_results_dir, server_dns=nil, unzip=false)
             io.write chunk
           end
           puts "Worker #{Parallel.worker_number}, DOWNLOADED: #{dp[:file]}"
-        end
-        
-        if unzip
-          unzip_archive(dp[:file], dest)
-          File.delete(dp[:file])
         end
         
       end
@@ -187,11 +156,6 @@ optparse = OptionParser.new do |opts|
   opts.on('-a', '--analysis_id <id>', 'specified analysis ID') do |id|
     options[:analysis_id] = id
   end
-
-  options[:unzip] = false
-  opts.on('-u', '--unzip', 'extract data_point.zip contents') do |zip|
-    options[:unzip] = true
-  end
   
   opts.on_tail('-h', '--help', 'display help') do
     puts opts
@@ -215,4 +179,4 @@ end
 
 # Retrieve the datapoints and indicate success
 retrieve_results_csv(local_results_dir, options[:server_dns], options[:analysis_id])
-retrieve_dp_data(local_results_dir, options[:server_dns], options[:unzip])
+retrieve_dp_data(local_results_dir, options[:server_dns])
