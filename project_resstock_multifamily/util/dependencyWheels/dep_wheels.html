@@ -24,17 +24,7 @@ src="http://www.maths.nottingham.ac.uk/personal/drw/LaTeXMathML.js">
   <div class="container">
     <h1>An Interactive Visualization of the Housing Characteristic Dependencies in ResStock</h1>
 
-    <p class="lead">ResStock is built upon the conditional probabilites of the housing characteristics.  Each housing characteristic has a set of dependencies and dependants. In this dependency wheel, each chord in the disc represents a dependency.  The thin part of the cord represents a dependency to the thicker part of the cord. Try hovering on packages to mask other dependencies. The Dependency Wheel is a graph produced from the <a href="https://github.com/fzaninotto/DependencyWheel">fzaninotto/DependencyWheel</a> repository. Built with <a href="https://github.com/mbostock/d3">d3.js</a></p>
-
-<h2>Dependency Wheel: Dependencies</h2>
-
-    <p class="lead">The thick part of the cord represents a dependency to the thinner part of the cord. Try hovering on packages to mask other dependencies.</p>
-
-    <div id="chart_forward"></div>
-    
-<h2>Dependency Wheel: Dependents</h2>
-
-<p class="lead">The thin part of the cord represents a dependency to the thicker part of the cord. Try hovering on packages to mask other dependencies.</p>
+    <p class="lead">ResStock is built upon the conditional probabilites of the housing characteristics.  Each housing characteristic has a set of dependencies and dependants. In this dependency wheel, each chord in the disc represents a dependency.  The thin part of the cord represents a dependency to the thicker part of the cord. Try hovering on packages to mask other dependencies. The Dependency Wheel is a graph produced from the <a href="https://github.com/fzaninotto/DependencyWheel">fzaninotto/DependencyWheel</a> repository. Built with <a href="https://github.com/mbostock/d3">d3.js.</a> The thin part of the cord represents a dependency to the thicker part of the cord. Try hovering on packages to mask other dependencies.</p>
 
     <div id="chart_backward"></div>
 
@@ -73,16 +63,6 @@ d3.json('data/composer_backward.lock', function(composerlock) {
     .call(chart);
 });
 });
-
-d3.json('data/composer_forward.json', function(composerjson) {
-d3.json('data/composer_forward.lock', function(composerlock) {
-var data = buildMatrixFromComposerJsonAndLock(composerjson, composerlock);
-d3.select('#chart_forward')
-.datum(data)
-.call(chart);
-});
-});
-
 
 </script>
 <script type="text/javascript">
