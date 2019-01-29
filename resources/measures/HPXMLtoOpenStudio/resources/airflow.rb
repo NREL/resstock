@@ -887,57 +887,44 @@ class Airflow
     thermostatsetpointdualsetpoint = unit_living.zone.thermostatSetpointDualSetpoint
 
     # Get heating setpoints
-    heatingSetpointWeekday = Array.new(24, Constants.NoHeatingSetpoint)
-    heatingSetpointWeekend = Array.new(24, Constants.NoHeatingSetpoint)
+    heatingSetpointWeekday = Array.new
+    heatingSetpointWeekend = Array.new
+    coolingSetpointWeekday = Array.new
+    coolingSetpointWeekend = Array.new
     if thermostatsetpointdualsetpoint.is_initialized
-      thermostatsetpointdualsetpoint.get.heatingSetpointTemperatureSchedule.get.to_Schedule.get.to_ScheduleRuleset.get.scheduleRules.each do |rule|
-        if rule.applyMonday and rule.applyTuesday and rule.applyWednesday and rule.applyThursday and rule.applyFriday
-          rule.daySchedule.values.each_with_index do |value, hour|
-            if value > heatingSetpointWeekday[hour]
-              heatingSetpointWeekday[hour] = UnitConversions.convert(value, "C", "F")
-            end
-          end
-        end
-        if rule.applySaturday and rule.applySunday
-          rule.daySchedule.values.each_with_index do |value, hour|
-            if value > heatingSetpointWeekend[hour]
-              heatingSetpointWeekend[hour] = UnitConversions.convert(value, "C", "F")
-            end
-          end
-        end
+      thermostatsetpointdualsetpoint = thermostatsetpointdualsetpoint.get
+
+      heatingSetpointWeekday = HVAC.get_setpoint_schedule(thermostatsetpointdualsetpoint.heatingSetpointTemperatureSchedule.get.to_Schedule.get.to_ScheduleRuleset.get, 'weekday', runner)
+      heatingSetpointWeekend = HVAC.get_setpoint_schedule(thermostatsetpointdualsetpoint.heatingSetpointTemperatureSchedule.get.to_Schedule.get.to_ScheduleRuleset.get, 'weekend', runner)
+      if heatingSetpointWeekday.nil? or heatingSetpointWeekend.nil?
+        return false
       end
+
+      heatingSetpointWeekday = heatingSetpointWeekday[0].map { |j| UnitConversions.convert(j, "C", "F") } # get january hourly setpoints
+      heatingSetpointWeekend = heatingSetpointWeekend[0].map { |j| UnitConversions.convert(j, "C", "F") } # get january hourly setpoints
+
+      coolingSetpointWeekday = HVAC.get_setpoint_schedule(thermostatsetpointdualsetpoint.coolingSetpointTemperatureSchedule.get.to_Schedule.get.to_ScheduleRuleset.get, 'weekday', runner)
+      coolingSetpointWeekend = HVAC.get_setpoint_schedule(thermostatsetpointdualsetpoint.coolingSetpointTemperatureSchedule.get.to_Schedule.get.to_ScheduleRuleset.get, 'weekend', runner)
+      if coolingSetpointWeekday.nil? or coolingSetpointWeekend.nil?
+        return false
+      end
+
+      coolingSetpointWeekday = coolingSetpointWeekday[6].map { |j| UnitConversions.convert(j, "C", "F") } # get july hourly setpoints
+      coolingSetpointWeekend = coolingSetpointWeekend[6].map { |j| UnitConversions.convert(j, "C", "F") } # get july hourly setpoints
     end
 
-    # Get cooling setpoints
-    coolingSetpointWeekday = Array.new(24, Constants.NoCoolingSetpoint)
-    coolingSetpointWeekend = Array.new(24, Constants.NoCoolingSetpoint)
-    if thermostatsetpointdualsetpoint.is_initialized
-      thermostatsetpointdualsetpoint.get.coolingSetpointTemperatureSchedule.get.to_Schedule.get.to_ScheduleRuleset.get.scheduleRules.each do |rule|
-        if rule.applyMonday and rule.applyTuesday and rule.applyWednesday and rule.applyThursday and rule.applyFriday
-          rule.daySchedule.values.each_with_index do |value, hour|
-            if value < coolingSetpointWeekday[hour]
-              coolingSetpointWeekday[hour] = UnitConversions.convert(value, "C", "F")
-            end
-          end
-        end
-        if rule.applySaturday and rule.applySunday
-          rule.daySchedule.values.each_with_index do |value, hour|
-            if value < coolingSetpointWeekend[hour]
-              coolingSetpointWeekend[hour] = UnitConversions.convert(value, "C", "F")
-            end
-          end
-        end
-      end
-    end
-
-    if heatingSetpointWeekday.all? { |x| x == Constants.NoHeatingSetpoint }
+    if heatingSetpointWeekday.empty?
       runner.registerWarning("No heating setpoint schedule found. Assuming #{Constants.DefaultHeatingSetpoint} F for natural ventilation calculations.")
       ovlp_ssn_hourly_temp = Array.new(24, UnitConversions.convert(Constants.DefaultHeatingSetpoint + nat_vent.ovlp_offset, "F", "C"))
+      heatingSetpointWeekday = Array.new(24, Constants.DefaultHeatingSetpoint)
+      heatingSetpointWeekend = Array.new(24, Constants.DefaultHeatingSetpoint)
     else
       ovlp_ssn_hourly_temp = Array.new(24, UnitConversions.convert([heatingSetpointWeekday.max, heatingSetpointWeekend.max].max + nat_vent.ovlp_offset, "F", "C"))
     end
-    if coolingSetpointWeekday.all? { |x| x == Constants.NoCoolingSetpoint }
+    if coolingSetpointWeekday.empty?
       runner.registerWarning("No cooling setpoint schedule found. Assuming #{Constants.DefaultCoolingSetpoint} F for natural ventilation calculations.")
+      coolingSetpointWeekday = Array.new(24, Constants.DefaultCoolingSetpoint)
+      coolingSetpointWeekend = Array.new(24, Constants.DefaultCoolingSetpoint)
     end
     ovlp_ssn_hourly_weekend_temp = ovlp_ssn_hourly_temp
 
@@ -950,36 +937,20 @@ class Airflow
     # Specify an array of hourly lower-temperature-limits for natural ventilation
     htg_ssn_hourly_temp = Array.new
     coolingSetpointWeekday.each do |x|
-      if x == Constants.NoCoolingSetpoint
-        htg_ssn_hourly_temp << UnitConversions.convert(Constants.DefaultCoolingSetpoint - nat_vent.htg_offset, "F", "C")
-      else
-        htg_ssn_hourly_temp << UnitConversions.convert(x - nat_vent.htg_offset, "F", "C")
-      end
+      htg_ssn_hourly_temp << UnitConversions.convert(x - nat_vent.htg_offset, "F", "C")
     end
     htg_ssn_hourly_weekend_temp = Array.new
     coolingSetpointWeekend.each do |x|
-      if x == Constants.NoCoolingSetpoint
-        htg_ssn_hourly_weekend_temp << UnitConversions.convert(Constants.DefaultCoolingSetpoint - nat_vent.htg_offset, "F", "C")
-      else
-        htg_ssn_hourly_weekend_temp << UnitConversions.convert(x - nat_vent.htg_offset, "F", "C")
-      end
+      htg_ssn_hourly_weekend_temp << UnitConversions.convert(x - nat_vent.htg_offset, "F", "C")
     end
 
     clg_ssn_hourly_temp = Array.new
     heatingSetpointWeekday.each do |x|
-      if x == Constants.NoHeatingSetpoint
-        clg_ssn_hourly_temp << UnitConversions.convert(Constants.DefaultHeatingSetpoint + nat_vent.clg_offset, "F", "C")
-      else
-        clg_ssn_hourly_temp << UnitConversions.convert(x + nat_vent.clg_offset, "F", "C")
-      end
+      clg_ssn_hourly_temp << UnitConversions.convert(x + nat_vent.clg_offset, "F", "C")
     end
     clg_ssn_hourly_weekend_temp = Array.new
     heatingSetpointWeekend.each do |x|
-      if x == Constants.NoHeatingSetpoint
-        clg_ssn_hourly_weekend_temp << UnitConversions.convert(Constants.DefaultHeatingSetpoint + nat_vent.clg_offset, "F", "C")
-      else
-        clg_ssn_hourly_weekend_temp << UnitConversions.convert(x + nat_vent.clg_offset, "F", "C")
-      end
+      clg_ssn_hourly_weekend_temp << UnitConversions.convert(x + nat_vent.clg_offset, "F", "C")
     end
 
     # Explanation for FRAC-VENT-AREA equation:

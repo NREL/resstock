@@ -1293,6 +1293,9 @@ class Geometry
       overhang = sub_surface.addOverhang(depth, offset)
       overhang.get.setName("#{sub_surface.name} - #{Constants.ObjectNameOverhangs}")
       num_added += 1
+
+      sub_surface.additionalProperties.setFeature(Constants.SizingInfoWindowOverhangDepth, depth)
+      sub_surface.additionalProperties.setFeature(Constants.SizingInfoWindowOverhangOffset, offset)
     end
 
     unless num_added > 0

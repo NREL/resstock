@@ -233,7 +233,15 @@ class ResidentialHotWaterHeaterHeatPump < OpenStudio::Measure::ModelMeasure
       space = Geometry.get_space_from_location(unit, location, location_hierarchy)
       next if space.nil?
 
-      success = Waterheater.apply_heatpump(model, unit, runner, space, weather,
+      # Get loop if it exists
+      loop = nil
+      model.getPlantLoops.each do |pl|
+        next if pl.name.to_s != Constants.PlantLoopDomesticWater(unit.name.to_s)
+
+        loop = pl
+      end
+
+      success = Waterheater.apply_heatpump(model, unit, runner, loop, space, weather,
                                            e_cap, vol, t_set, min_temp, max_temp,
                                            cap, cop, shr, airflow_rate, fan_power,
                                            parasitics, tank_ua, int_factor, temp_depress,
