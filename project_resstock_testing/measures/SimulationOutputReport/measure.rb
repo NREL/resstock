@@ -20,6 +20,66 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
     return args
   end #end the arguments method
   
+  # return a vector of IdfObject's to request EnergyPlus objects needed by the run method
+  def energyPlusOutputRequests(runner, user_arguments)
+    super(runner, user_arguments)
+
+    results = OpenStudio::IdfObjectVector.new
+
+    # get the last model and sql file
+    model = runner.lastOpenStudioModel
+    if model.empty?
+      runner.registerError("Cannot find last model.")
+      return false
+    end
+    model = model.get
+
+    # Fans
+    electricity_fans_heating = []
+    electricity_fans_cooling = []
+    model.getFanOnOffs.each do |fan|
+      if fan.name.to_s.include? "htg"
+        electricity_fans_heating << ["#{fan.name}", "Fan Electric Energy"]
+      elsif fan.name.to_s.include? "clg"
+        electricity_fans_cooling << ["#{fan.name}", "Fan Electric Energy"]
+      end      
+    end
+
+    results = create_custom_meter(results, "Fans:ElectricityHeating", electricity_fans_heating)
+    results = create_custom_meter(results, "Fans:ElectricityCooling", electricity_fans_cooling)
+
+    # Pumps
+    electricity_pumps_heating = []
+    electricity_pumps_cooling = []
+    (model.getPumpVariableSpeeds + model.getPumpConstantSpeeds).each do |pump|
+      if pump.name.to_s.include? "htg"
+        electricity_pumps_heating << ["#{pump.name}", "Pump Electric Energy"]
+      elsif pump.name.to_s.include? "clg"
+        electricity_pumps_cooling << ["#{pump.name}", "Pump Electric Energy"]
+      end      
+    end
+
+    results = create_custom_meter(results, "Pumps:ElectricityHeating", electricity_pumps_heating)
+    results = create_custom_meter(results, "Pumps:ElectricityCooling", electricity_pumps_cooling)
+
+    return results
+
+  end
+
+  def create_custom_meter(results, name, key_var_groups, fuel_type = "Electricity")
+    unless key_var_groups.empty?
+      meter_custom = "Meter:Custom,#{name},#{fuel_type}"
+      key_var_groups.each do |key_var_group|
+        key, var = key_var_group
+        meter_custom += ",#{key},#{var}"
+      end
+      meter_custom += ";"
+      results << OpenStudio::IdfObject.load(meter_custom).get
+      results << OpenStudio::IdfObject.load("Output:Meter,#{name};").get
+    end
+    return results
+  end
+
   def outputs
     buildstock_outputs = [
                           "total_site_energy_mbtu",
@@ -36,7 +96,8 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
                           "electricity_interior_equipment_kwh",
                           "electricity_fans_heating_kwh",
                           "electricity_fans_cooling_kwh",
-                          "electricity_pumps_kwh",
+                          "electricity_pumps_heating_kwh",
+                          "electricity_pumps_cooling_kwh",
                           "electricity_water_systems_kwh",
                           "electricity_pv_kwh",
                           "natural_gas_heating_therm",
@@ -123,18 +184,6 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
     # Get PV electricity produced
     pv_query = "SELECT -1*Value FROM TabularDataWithStrings WHERE ReportName='AnnualBuildingUtilityPerformanceSummary' AND ReportForString='Entire Facility' AND TableName='Electric Loads Satisfied' AND RowName='Total On-Site Electric Sources' AND ColumnName='Electricity' AND Units='GJ'"
     pv_val = sqlFile.execAndReturnFirstDouble(pv_query)
-           
-    # Get supply fan enduse subcategories
-    htg_supply_fan = nil
-    clg_supply_fan = nil
-    model.getFanOnOffs.each do |fan|
-      next if fan.endUseSubcategory.empty?
-      if fan.endUseSubcategory.to_s.include? "htg"
-        htg_supply_fan = "#{fan.endUseSubcategory}"
-      elsif fan.endUseSubcategory.to_s.include? "clg"
-        clg_supply_fan = "#{fan.endUseSubcategory}"
-      end
-    end
 
     # TOTAL
     
@@ -150,13 +199,18 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
     report_sim_output(runner, "electricity_interior_lighting_kwh", [sqlFile.electricityInteriorLighting], "GJ", elec_site_units)
     report_sim_output(runner, "electricity_exterior_lighting_kwh", [sqlFile.electricityExteriorLighting], "GJ", elec_site_units)
     report_sim_output(runner, "electricity_interior_equipment_kwh", [sqlFile.electricityInteriorEquipment], "GJ", elec_site_units)
-    electricity_fans_heating_query = "SELECT Value FROM TabularDataWithStrings WHERE ReportName='EnergyMeters' AND ReportForString='Entire Facility' AND TableName='Annual and Peak Values - Electricity' AND RowName='#{htg_supply_fan}:Fans:Electricity' AND ColumnName='Electricity Annual Value' AND Units='GJ'"
+    electricity_fans_heating_query = "SELECT Value FROM TabularDataWithStrings WHERE ReportName='EnergyMeters' AND ReportForString='Entire Facility' AND TableName='Annual and Peak Values - Electricity' AND RowName='FANS:ELECTRICITYHEATING' AND ColumnName='Electricity Annual Value' AND Units='GJ'"
     electricity_fans_heating = sqlFile.execAndReturnFirstDouble(electricity_fans_heating_query)
-    electricity_fans_cooling_query = "SELECT Value FROM TabularDataWithStrings WHERE ReportName='EnergyMeters' AND ReportForString='Entire Facility' AND TableName='Annual and Peak Values - Electricity' AND RowName='#{clg_supply_fan}:Fans:Electricity' AND ColumnName='Electricity Annual Value' AND Units='GJ'"
-    electricity_fans_cooling = sqlFile.execAndReturnFirstDouble(electricity_fans_cooling_query)
     report_sim_output(runner, "electricity_fans_heating_kwh", [electricity_fans_heating], "GJ", elec_site_units)
+    electricity_fans_cooling_query = "SELECT Value FROM TabularDataWithStrings WHERE ReportName='EnergyMeters' AND ReportForString='Entire Facility' AND TableName='Annual and Peak Values - Electricity' AND RowName='FANS:ELECTRICITYCOOLING' AND ColumnName='Electricity Annual Value' AND Units='GJ'"
+    electricity_fans_cooling = sqlFile.execAndReturnFirstDouble(electricity_fans_cooling_query)    
     report_sim_output(runner, "electricity_fans_cooling_kwh", [electricity_fans_cooling], "GJ", elec_site_units)
-    report_sim_output(runner, "electricity_pumps_kwh", [sqlFile.electricityPumps], "GJ", elec_site_units)
+    electricity_pumps_heating_query = "SELECT Value FROM TabularDataWithStrings WHERE ReportName='EnergyMeters' AND ReportForString='Entire Facility' AND TableName='Annual and Peak Values - Electricity' AND RowName='PUMPS:ELECTRICITYHEATING' AND ColumnName='Electricity Annual Value' AND Units='GJ'"
+    electricity_pumps_heating = sqlFile.execAndReturnFirstDouble(electricity_pumps_heating_query)
+    report_sim_output(runner, "electricity_pumps_heating_kwh", [electricity_pumps_heating], "GJ", elec_site_units)
+    electricity_pumps_cooling_query = "SELECT Value FROM TabularDataWithStrings WHERE ReportName='EnergyMeters' AND ReportForString='Entire Facility' AND TableName='Annual and Peak Values - Electricity' AND RowName='PUMPS:ELECTRICITYCOOLING' AND ColumnName='Electricity Annual Value' AND Units='GJ'"
+    electricity_pumps_cooling = sqlFile.execAndReturnFirstDouble(electricity_pumps_cooling_query)
+    report_sim_output(runner, "electricity_pumps_cooling_kwh", [electricity_pumps_cooling], "GJ", elec_site_units)
     report_sim_output(runner, "electricity_water_systems_kwh", [sqlFile.electricityWaterSystems], "GJ", elec_site_units)
     report_sim_output(runner, "electricity_pv_kwh", [pv_val], "GJ", elec_site_units)
     
