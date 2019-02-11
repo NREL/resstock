@@ -330,7 +330,7 @@ class BaseMaterial
   end
 
   def self.Concrete
-    return self.new(rho = 140.0, cp = 0.2, k_in = 9.0912)
+    return self.new(rho = 140.0, cp = 0.2, k_in = 12.5)
   end
 
   def self.Gypcrete

@@ -35,8 +35,8 @@ class BuildingCharacteristicsReport < OpenStudio::Measure::ReportingMeasure
                           "location_state",
                           "location_latitude",
                           "location_longitude",
-                          "zones_represented",
-                          "zones_modeled"
+                          "units_represented",
+                          "units_modeled"
                          ]
     buildstock_outputs.each do |output|
         result << OpenStudio::Measure::OSOutput.makeStringOutput(output)
@@ -83,7 +83,7 @@ class BuildingCharacteristicsReport < OpenStudio::Measure::ReportingMeasure
         runner.registerValue(k,v)
     end
     
-    # Report some additional location characteristics
+    # Report some additional location and model characteristics
     
     model = runner.lastOpenStudioModel
     if model.empty?
@@ -103,6 +103,13 @@ class BuildingCharacteristicsReport < OpenStudio::Measure::ReportingMeasure
       runner.registerInfo("Registering #{weather.header.Longitude} for location_longitude.")
       runner.registerValue("location_longitude", weather.header.Longitude)
     end
+
+    units_represented = model.getBuilding.additionalProperties.getFeatureAsInteger("Total Units Represented")
+    runner.registerInfo("Registering #{units_represented} for units_represented.")
+    runner.registerValue("units_represented", "#{units_represented.get}")
+    units_modeled = model.getBuilding.additionalProperties.getFeatureAsInteger("Total Units Modeled")
+    runner.registerInfo("Registering #{units_modeled} for units_modeled.")
+    runner.registerValue("units_modeled", "#{units_modeled.get}")
     
     runner.registerFinalCondition("Report generated successfully.")
 
