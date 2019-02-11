@@ -1494,7 +1494,7 @@
 									<xs:element minOccurs="0" name="AttachedToWaterHeatingSystem"
 										type="LocalReference">
 										<xs:annotation>
-											<xs:documentation>The water heating system that his distribution system serves.</xs:documentation>
+											<xs:documentation>The water heating system that this distribution system serves.</xs:documentation>
 										</xs:annotation>
 									</xs:element>
 									<xs:element minOccurs="0" name="SystemType">
@@ -3067,6 +3067,7 @@ http://www.epa.gov/compliance/monitoring/programs/caa/woodheaters.html</xs:docum
 			<xs:extension base="HVACSystemInfo">
 				<xs:sequence minOccurs="0">
 					<xs:element name="HeatPumpType" type="HeatPumpType" minOccurs="0"/>
+					<xs:element minOccurs="0" name="HeatPumpFuel" type="FuelType"/>
 					<xs:element name="HeatingCapacity" type="Capacity" minOccurs="0">
 						<xs:annotation>
 							<xs:documentation>[Btuh] Typically the nameplate capacity at 47F.</xs:documentation>
@@ -4848,7 +4849,7 @@ https://hpxml.nrel.gov/wiki/WallTypes</xs:documentation>
 	</xs:complexType>
 	<xs:complexType name="WeatherStation">
 		<xs:sequence>
-			<xs:element ref="SystemIdentifiersInfo"/>
+      <xs:group ref="SystemInfo"/>
 			<xs:element name="Name" type="xs:string"/>
 			<xs:element minOccurs="0" name="City" nillable="true" type="xs:string"/>
 			<xs:element minOccurs="0" name="State" type="StateCode"/>
