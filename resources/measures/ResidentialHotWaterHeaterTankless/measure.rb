@@ -155,7 +155,15 @@ class ResidentialHotWaterHeaterTankless < OpenStudio::Measure::ModelMeasure
       space = Geometry.get_space_from_location(unit, location, location_hierarchy)
       next if space.nil?
 
-      success = Waterheater.apply_tankless(model, unit, runner, space, fuel_type,
+      # Get loop if it exists
+      loop = nil
+      model.getPlantLoops.each do |pl|
+        next if pl.name.to_s != Constants.PlantLoopDomesticWater(unit.name.to_s)
+
+        loop = pl
+      end
+
+      success = Waterheater.apply_tankless(model, unit, runner, loop, space, fuel_type,
                                            capacity, energy_factor, cycling_derate,
                                            setpoint_temp, oncycle_power, offcycle_power, 1.0)
       return false if not success

@@ -75,6 +75,11 @@ class HPXMLTranslator < OpenStudio::Measure::ModelMeasure
     arg.setDefaultValue(false)
     args << arg
 
+    arg = OpenStudio::Measure::OSArgument.makeStringArgument("map_tsv_dir", false)
+    arg.setDisplayName("Map TSV Directory")
+    arg.setDescription("Creates TSV files in the specified directory that map some HPXML object names to EnergyPlus object names. Required for ERI calculation.")
+    args << arg
+
     return args
   end
 
@@ -94,6 +99,7 @@ class HPXMLTranslator < OpenStudio::Measure::ModelMeasure
     epw_output_path = runner.getOptionalStringArgumentValue("epw_output_path", user_arguments)
     osm_output_path = runner.getOptionalStringArgumentValue("osm_output_path", user_arguments)
     skip_validation = runner.getBoolArgumentValue("skip_validation", user_arguments)
+    map_tsv_dir = runner.getOptionalStringArgumentValue("map_tsv_dir", user_arguments)
 
     unless (Pathname.new hpxml_path).absolute?
       hpxml_path = File.expand_path(File.join(File.dirname(__FILE__), hpxml_path))
@@ -144,7 +150,7 @@ class HPXMLTranslator < OpenStudio::Measure::ModelMeasure
       return false if not success
 
       # Create OpenStudio model
-      if not OSModel.create(hpxml_doc, runner, model, weather)
+      if not OSModel.create(hpxml_doc, runner, model, weather, map_tsv_dir)
         runner.registerError("Unsuccessful creation of OpenStudio model.")
         return false
       end
@@ -165,75 +171,7 @@ class HPXMLTranslator < OpenStudio::Measure::ModelMeasure
       runner.registerInfo("Wrote file: #{osm_output_path.get}")
     end
 
-    # Add output variables for building loads
-    if not generate_building_loads(model, runner, hpxml_doc)
-      return false
-    end
-
     return true
-  end
-
-  def generate_building_loads(model, runner, hpxml_doc)
-    # Note: Duct losses are included the heating/cooling energy values. For the
-    # Reference Home, the effect of DSE is removed during post-processing.
-
-    # FIXME: Are HW distribution losses included in the HW energy values?
-    # FIXME: Handle fan/pump energy (requires EMS or timeseries output to split apart heating/cooling)
-    # FIXME: Need to request supplemental heating coils too?
-
-    clg_objs = []
-    htg_objs = []
-    model.getThermalZones.each do |zone|
-      HVAC.existing_cooling_equipment(model, runner, zone).each do |clg_equip|
-        if clg_equip.is_a? OpenStudio::Model::AirLoopHVACUnitarySystem
-          clg_objs << HVAC.get_coil_from_hvac_component(clg_equip.coolingCoil.get)
-        elsif clg_equip.to_ZoneHVACComponent.is_initialized
-          if clg_equip.is_a? OpenStudio::Model::ZoneHVACTerminalUnitVariableRefrigerantFlow
-            next unless clg_equip.coolingCoil.is_initialized
-          end
-          clg_objs << HVAC.get_coil_from_hvac_component(clg_equip.coolingCoil)
-        end
-      end
-      HVAC.existing_heating_equipment(model, runner, zone).each do |htg_equip|
-        if htg_equip.is_a? OpenStudio::Model::AirLoopHVACUnitarySystem
-          htg_objs << HVAC.get_coil_from_hvac_component(htg_equip.heatingCoil.get)
-        elsif htg_equip.to_ZoneHVACComponent.is_initialized
-          if htg_equip.is_a? OpenStudio::Model::ZoneHVACBaseboardConvectiveElectric or htg_equip.is_a? OpenStudio::Model::ZoneHVACBaseboardConvectiveWater
-            htg_objs << htg_equip
-          else
-            if htg_equip.is_a? OpenStudio::Model::ZoneHVACTerminalUnitVariableRefrigerantFlow
-              next unless htg_equip.heatingCoil.is_initialized
-            end
-            htg_objs << HVAC.get_coil_from_hvac_component(htg_equip.heatingCoil)
-          end
-        end
-      end
-    end
-
-    # TODO: Make variables specific to the equipment
-    add_output_variables(model, Constants.LoadVarsSpaceHeating, htg_objs)
-    add_output_variables(model, Constants.LoadVarsSpaceCooling, clg_objs)
-    add_output_variables(model, Constants.LoadVarsWaterHeating, nil)
-
-    return true
-  end
-
-  def add_output_variables(model, vars, objects)
-    if objects.nil?
-      vars[nil].each do |object_var|
-        outputVariable = OpenStudio::Model::OutputVariable.new(object_var, model)
-        outputVariable.setReportingFrequency('runperiod')
-        outputVariable.setKeyValue('*')
-      end
-    else
-      objects.each do |object|
-        vars[object.class.to_s].each do |object_var|
-          outputVariable = OpenStudio::Model::OutputVariable.new(object_var, model)
-          outputVariable.setReportingFrequency('runperiod')
-          outputVariable.setKeyValue(object.name.to_s)
-        end
-      end
-    end
   end
 
   def validate_hpxml(runner, hpxml_path, hpxml_doc, schemas_dir)
@@ -276,7 +214,7 @@ class HPXMLTranslator < OpenStudio::Measure::ModelMeasure
 end
 
 class OSModel
-  def self.create(hpxml_doc, runner, model, weather)
+  def self.create(hpxml_doc, runner, model, weather, map_tsv_dir)
     # Simulation parameters
     success = add_simulation_params(runner, model)
     return false if not success
@@ -292,9 +230,21 @@ class OSModel
     @has_uncond_bsmnt = (not building.elements["BuildingDetails/Enclosure/Foundations/FoundationType/Basement[Conditioned='false']"].nil?)
     @iecc_zone_2006 = XMLHelper.get_value(building, "BuildingDetails/ClimateandRiskZones/ClimateZoneIECC[Year='2006']/ClimateZone")
 
+    loop_hvacs = {} # mapping between HPXML HVAC systems and model air/plant loops
+    zone_hvacs = {} # mapping between HPXML HVAC systems and model zonal HVACs
+    loop_dhws = {}  # mapping between HPXML Water Heating systems and plant loops
+
+    use_only_ideal_air = XMLHelper.get_value(building, "BuildingDetails/Systems/HVAC/extension/UseOnlyIdealAirSystem")
+    if use_only_ideal_air.nil?
+      use_only_ideal_air = false
+    else
+      use_only_ideal_air = Boolean(use_only_ideal_air)
+    end
+
     # Geometry/Envelope
 
-    success, spaces, unit = add_geometry_envelope(runner, model, building, weather)
+    spaces = {}
+    success, unit = add_geometry_envelope(runner, model, building, weather, spaces)
     return false if not success
 
     # Bedrooms, Occupants
@@ -304,26 +254,24 @@ class OSModel
 
     # Hot Water
 
-    success = add_hot_water_and_appliances(runner, model, building, unit, weather, spaces)
+    success = add_hot_water_and_appliances(runner, model, building, unit, weather, spaces, loop_dhws)
     return false if not success
 
     # HVAC
 
-    loop_hvacs = {} # mapping between HPXML HVAC systems and model air/plant loops
-    zone_hvacs = {} # mapping between HPXML HVAC systems and model zonal HVACs
-    success = add_cooling_system(runner, model, building, unit, loop_hvacs, zone_hvacs)
+    success = add_cooling_system(runner, model, building, unit, loop_hvacs, zone_hvacs, use_only_ideal_air)
     return false if not success
 
-    success = add_heating_system(runner, model, building, unit, loop_hvacs, zone_hvacs)
+    success = add_heating_system(runner, model, building, unit, loop_hvacs, zone_hvacs, use_only_ideal_air)
     return false if not success
 
-    success = add_heat_pump(runner, model, building, unit, weather, loop_hvacs, zone_hvacs)
+    success = add_heat_pump(runner, model, building, unit, weather, loop_hvacs, zone_hvacs, use_only_ideal_air)
+    return false if not success
+
+    success = add_residual_hvac(runner, model, building, unit, use_only_ideal_air)
     return false if not success
 
     success = add_setpoints(runner, model, building, weather)
-    return false if not success
-
-    success = add_dehumidifier(runner, model, building, unit)
     return false if not success
 
     success = add_ceiling_fans(runner, model, building, unit)
@@ -347,7 +295,7 @@ class OSModel
 
     # Plug Loads & Lighting
 
-    success = add_mels(runner, model, building, unit, spaces[Constants.SpaceTypeLiving])
+    success = add_mels(runner, model, building, unit, spaces)
     return false if not success
 
     success = add_lighting(runner, model, building, unit, weather)
@@ -365,6 +313,9 @@ class OSModel
     return false if not success
 
     success = add_photovoltaics(runner, model, building)
+    return false if not success
+
+    success = add_building_output_variables(runner, model, loop_hvacs, zone_hvacs, loop_dhws, map_tsv_dir)
     return false if not success
 
     return true
@@ -398,37 +349,34 @@ class OSModel
     return true
   end
 
-  def self.add_geometry_envelope(runner, model, building, weather)
+  def self.add_geometry_envelope(runner, model, building, weather, spaces)
+    subsurface_areas = get_subsurface_areas(building)
+
     heating_season, cooling_season = HVAC.calc_heating_and_cooling_seasons(model, weather, runner)
     return false if heating_season.nil? or cooling_season.nil?
-
-    spaces = create_all_spaces_and_zones(model, building)
-    return false if spaces.empty?
 
     success, unit = add_building_info(model, building)
     return false if not success
 
-    fenestration_areas = {}
-
-    success = add_windows(runner, model, building, spaces, fenestration_areas, weather, cooling_season)
+    success = add_foundations(runner, model, building, spaces, subsurface_areas)
     return false if not success
 
-    success = add_skylights(runner, model, building, spaces, fenestration_areas, weather, cooling_season)
-    return false if not success
-
-    success = add_doors(runner, model, building, spaces, fenestration_areas)
-    return false if not success
-
-    success = add_foundations(runner, model, building, spaces, fenestration_areas, unit) # TODO: Don't need to pass unit once slab hvac sizing is updated
-    return false if not success
-
-    success = add_walls(runner, model, building, spaces, fenestration_areas)
+    success = add_walls(runner, model, building, spaces, subsurface_areas)
     return false if not success
 
     success = add_rim_joists(runner, model, building, spaces)
     return false if not success
 
-    success = add_attics(runner, model, building, spaces, fenestration_areas)
+    success = add_windows(runner, model, building, spaces, subsurface_areas, weather, cooling_season)
+    return false if not success
+
+    success = add_doors(runner, model, building, spaces, subsurface_areas)
+    return false if not success
+
+    success = add_skylights(runner, model, building, spaces, subsurface_areas, weather, cooling_season)
+    return false if not success
+
+    success = add_attics(runner, model, building, spaces, subsurface_areas)
     return false if not success
 
     success = add_finished_floor_area(runner, model, building, spaces)
@@ -437,13 +385,16 @@ class OSModel
     success = add_thermal_mass(runner, model, building)
     return false if not success
 
+    success = check_for_errors(runner, model)
+    return false if not success
+
     success = set_zone_volumes(runner, model, building)
     return false if not success
 
     success = explode_surfaces(runner, model)
     return false if not success
 
-    return true, spaces, unit
+    return true, unit
   end
 
   def self.set_zone_volumes(runner, model, building)
@@ -460,6 +411,10 @@ class OSModel
         zones_updated += 1
 
         zone_volume = Geometry.get_height_of_spaces(thermal_zone.spaces) * Geometry.get_floor_area_from_spaces(thermal_zone.spaces)
+        if zone_volume <= 0
+          fail "Calculated volume for #{thermal_zone.name} zone (#{zone_volume}) is not greater than zero."
+        end
+
         thermal_zone.setVolume(UnitConversions.convert(zone_volume, "ft^3", "m^3"))
 
         if Geometry.is_finished_basement(thermal_zone)
@@ -475,11 +430,10 @@ class OSModel
         zones_updated += 1
 
         if living_volume <= 0
-          fail "Calculated volume for living zone #{living_volume} is not greater than zero."
+          fail "Calculated volume for living zone (#{living_volume}) is not greater than zero."
         end
 
         thermal_zone.setVolume(UnitConversions.convert(living_volume, "ft^3", "m^3"))
-
       end
     end
 
@@ -499,14 +453,8 @@ class OSModel
         zone_area = Geometry.get_floor_area_from_spaces(thermal_zone.spaces)
         zone_length = zone_area**0.5
         zone_height = Math.tan(UnitConversions.convert(Geometry.get_roof_pitch(zone_surfaces), "deg", "rad")) * zone_length / 2.0
-        zone_volume = zone_area * zone_height / 3.0
-
-        if zone_volume <= 0
-          fail "Calculated volume for attic zone #{zone_volume} is not greater than zero."
-        end
-
+        zone_volume = [zone_area * zone_height / 3.0, 0.01].max
         thermal_zone.setVolume(UnitConversions.convert(zone_volume, "ft^3", "m^3"))
-
       end
     end
 
@@ -518,90 +466,131 @@ class OSModel
   end
 
   def self.explode_surfaces(runner, model)
-    # Re-position surfaces so as to not shade each other.
+    # Re-position surfaces so as to not shade each other and to make it easier to visualize the building.
     # FUTURE: Might be able to use the new self-shading options in E+ 8.9 ShadowCalculation object?
 
-    # Explode the walls
-    wall_offset = 10.0
-    surfaces_moved = []
-    model.getSurfaces.sort.each do |surface|
-      next unless surface.surfaceType.downcase == "wall"
-      next if surface.subSurfaces.any? { |subsurface| ["fixedwindow", "skylight"].include? subsurface.subSurfaceType.downcase }
+    gap_distance = UnitConversions.convert(10.0, "ft", "m") # distance between surfaces of the same azimuth
+    rad90 = UnitConversions.convert(90, "deg", "rad")
 
+    # Determine surfaces to shift and distance with which to explode surfaces horizontally outward
+    surfaces = []
+    azimuth_lengths = {}
+    model.getSurfaces.sort.each do |surface|
+      next unless ["wall", "roofceiling"].include? surface.surfaceType.downcase
+      next unless ["outdoors", "foundation"].include? surface.outsideBoundaryCondition.downcase
+
+      surfaces << surface
+      azimuth = surface.additionalProperties.getFeatureAsDouble("Azimuth").get
+      if azimuth_lengths[azimuth].nil?
+        azimuth_lengths[azimuth] = 0.0
+      end
+      azimuth_lengths[azimuth] += surface.additionalProperties.getFeatureAsDouble("Length").get + gap_distance
+    end
+    max_azimuth_length = azimuth_lengths.values.max
+
+    # Initial distance of shifts at 90-degrees to horizontal outward
+    azimuth_side_shifts = {}
+    azimuth_lengths.each do |key, value|
+      azimuth_side_shifts[key] = max_azimuth_length / 2.0
+    end
+
+    # Explode walls, windows, doors, roofs, and skylights
+    surfaces_moved = []
+
+    surfaces.sort.each do |surface|
       if surface.adjacentSurface.is_initialized
         next if surfaces_moved.include? surface.adjacentSurface.get
       end
 
-      transformation = get_surface_transformation(wall_offset, surface.outwardNormal.x, surface.outwardNormal.y, 0)
+      azimuth = surface.additionalProperties.getFeatureAsDouble("Azimuth").get
+      azimuth_rad = UnitConversions.convert(azimuth, "deg", "rad")
 
+      # Push out horizontally
+      distance = max_azimuth_length
+      if surface.surfaceType.downcase == "roofceiling"
+        # Ensure pitched surfaces are positioned outward justified with walls, etc.
+        roof_tilt = surface.additionalProperties.getFeatureAsDouble("Tilt").get
+        roof_width = surface.additionalProperties.getFeatureAsDouble("Width").get
+        distance -= 0.5 * Math.cos(Math.atan(roof_tilt)) * roof_width
+      end
+      transformation = get_surface_transformation(distance, Math::sin(azimuth_rad), Math::cos(azimuth_rad), 0)
+
+      surface.setVertices(transformation * surface.vertices)
       if surface.adjacentSurface.is_initialized
         surface.adjacentSurface.get.setVertices(transformation * surface.adjacentSurface.get.vertices)
       end
-      surface.setVertices(transformation * surface.vertices)
-
       surface.subSurfaces.each do |subsurface|
-        next unless subsurface.subSurfaceType.downcase == "door"
-
         subsurface.setVertices(transformation * subsurface.vertices)
-      end
+        next unless subsurface.subSurfaceType.downcase == "fixedwindow"
 
-      wall_offset += 2.5
-
-      surfaces_moved << surface
-    end
-
-    # Explode the above-grade floors
-    # FIXME: Need to fix heights for airflow measure
-    floor_offset = 0.5
-    surfaces_moved = []
-    model.getSurfaces.sort.each do |surface|
-      next unless surface.surfaceType.downcase == "floor" or surface.surfaceType.downcase == "roofceiling"
-      next if surface.outsideBoundaryCondition.downcase == "foundation"
-
-      if surface.adjacentSurface.is_initialized
-        next if surfaces_moved.include? surface.adjacentSurface.get
-      end
-
-      transformation = get_surface_transformation(floor_offset, 0, 0, surface.outwardNormal.z)
-
-      if surface.adjacentSurface.is_initialized
-        surface.adjacentSurface.get.setVertices(transformation * surface.adjacentSurface.get.vertices)
-      end
-      surface.setVertices(transformation * surface.vertices)
-
-      surface.subSurfaces.each do |subsurface|
-        next unless subsurface.subSurfaceType.downcase == "skylight"
-
-        subsurface.setVertices(transformation * subsurface.vertices)
-      end
-
-      floor_offset += 2.5
-
-      surfaces_moved << surface
-    end
-
-    # Explode the windows/skylights TODO: calculate glazing_offset dynamically
-    glazing_offset = 50.0
-    model.getSubSurfaces.sort.each do |sub_surface|
-      next unless ["fixedwindow", "skylight"].include? sub_surface.subSurfaceType.downcase
-
-      transformation = get_surface_transformation(glazing_offset, sub_surface.outwardNormal.x, sub_surface.outwardNormal.y, 0)
-
-      surface = sub_surface.surface.get
-      sub_surface.setVertices(transformation * sub_surface.vertices)
-      if surface.adjacentSurface.is_initialized
-        surface.adjacentSurface.get.setVertices(transformation * surface.adjacentSurface.get.vertices)
-      end
-      surface.setVertices(transformation * surface.vertices)
-
-      # Overhangs
-      sub_surface.shadingSurfaceGroups.each do |overhang_group|
-        overhang_group.shadingSurfaces.each do |overhang|
-          overhang.setVertices(transformation * overhang.vertices)
+        subsurface.shadingSurfaceGroups.each do |overhang_group|
+          overhang_group.shadingSurfaces.each do |overhang|
+            overhang.setVertices(transformation * overhang.vertices)
+          end
         end
       end
 
-      glazing_offset += 2.5
+      # Shift at 90-degrees to previous transformation
+      azimuth_side_shifts[azimuth] -= surface.additionalProperties.getFeatureAsDouble("Length").get / 2.0
+      transformation_shift = get_surface_transformation(azimuth_side_shifts[azimuth], Math::sin(azimuth_rad + rad90), Math::cos(azimuth_rad + rad90), 0)
+
+      surface.setVertices(transformation_shift * surface.vertices)
+      if surface.adjacentSurface.is_initialized
+        surface.adjacentSurface.get.setVertices(transformation_shift * surface.adjacentSurface.get.vertices)
+      end
+      surface.subSurfaces.each do |subsurface|
+        subsurface.setVertices(transformation_shift * subsurface.vertices)
+        next unless subsurface.subSurfaceType.downcase == "fixedwindow"
+
+        subsurface.shadingSurfaceGroups.each do |overhang_group|
+          overhang_group.shadingSurfaces.each do |overhang|
+            overhang.setVertices(transformation_shift * overhang.vertices)
+          end
+        end
+      end
+
+      azimuth_side_shifts[azimuth] -= (surface.additionalProperties.getFeatureAsDouble("Length").get / 2.0 + gap_distance)
+
+      surfaces_moved << surface
+    end
+
+    return true
+  end
+
+  def self.check_for_errors(runner, model)
+    # Check every thermal zone has:
+    # 1. At least one floor surface
+    # 2. At least one roofceiling surface
+    # 3. At least one surface adjacent to outside/ground
+    model.getThermalZones.each do |zone|
+      n_floors = 0
+      n_roofceilings = 0
+      n_exteriors = 0
+      zone.spaces.each do |space|
+        space.surfaces.each do |surface|
+          if ["outdoors", "foundation"].include? surface.outsideBoundaryCondition.downcase
+            n_exteriors += 1
+          end
+          if surface.surfaceType.downcase == "floor"
+            n_floors += 1
+          elsif surface.surfaceType.downcase == "roofceiling"
+            n_roofceilings += 1
+          end
+        end
+      end
+
+      if n_floors == 0
+        runner.registerError("Thermal zone '#{zone.name}' must have at least one floor surface.")
+      end
+      if n_roofceilings == 0
+        runner.registerError("Thermal zone '#{zone.name}' must have at least one roof/ceiling surface.")
+      end
+      if n_exteriors == 0
+        runner.registerError("Thermal zone '#{zone.name}' must have at least one surface adjacent to outside/ground.")
+      end
+      if n_floors == 0 or n_roofceilings == 0 or n_exteriors == 0
+        return false
+      end
     end
 
     return true
@@ -615,6 +604,10 @@ class OSModel
       space = OpenStudio::Model::Space.new(model)
       space.setName(space_type)
 
+      model.getBuildingUnits.each do |unit|
+        space.setBuildingUnit(unit)
+      end
+
       st = OpenStudio::Model::SpaceType.new(model)
       st.setStandardsSpaceType(space_type)
       space.setSpaceType(st)
@@ -624,109 +617,11 @@ class OSModel
     end
   end
 
-  # FIXME: Remove this method and create spaces/zones on the fly.
-  def self.create_all_spaces_and_zones(model, building)
-    spaces = {}
-
-    building.elements.each("BuildingDetails/Enclosure/AtticAndRoof/Attics/Attic") do |attic|
-      attic_type = XMLHelper.get_value(attic, "AtticType")
-      if ["vented attic", "unvented attic"].include? attic_type
-        create_space_and_zone(model, spaces, Constants.SpaceTypeUnfinishedAttic)
-      elsif attic_type == "cape cod"
-        create_space_and_zone(model, spaces, Constants.SpaceTypeLiving)
-      elsif attic_type != "flat roof" and attic_type != "cathedral ceiling"
-        fail "Unhandled value (#{attic_type})."
-      end
-
-      attic.elements.each("Floors/Floor") do |floor|
-        exterior_adjacent_to = XMLHelper.get_value(floor, "extension/ExteriorAdjacentTo")
-        if exterior_adjacent_to == "living space"
-          create_space_and_zone(model, spaces, Constants.SpaceTypeLiving)
-        elsif exterior_adjacent_to == "garage"
-          create_space_and_zone(model, spaces, Constants.SpaceTypeGarage)
-        elsif exterior_adjacent_to != "ambient" and exterior_adjacent_to != "ground"
-          fail "Unhandled value (#{exterior_adjacent_to})."
-        end
-      end
-
-      attic.elements.each("Walls/Wall") do |wall|
-        exterior_adjacent_to = XMLHelper.get_value(wall, "extension/ExteriorAdjacentTo")
-        if exterior_adjacent_to == "living space"
-          create_space_and_zone(model, spaces, Constants.SpaceTypeLiving)
-        elsif exterior_adjacent_to == "garage"
-          create_space_and_zone(model, spaces, Constants.SpaceTypeGarage)
-        elsif exterior_adjacent_to != "ambient" and exterior_adjacent_to != "ground"
-          fail "Unhandled value (#{exterior_adjacent_to})."
-        end
-      end
-    end
-
-    building.elements.each("BuildingDetails/Enclosure/Foundations/Foundation") do |foundation|
-      foundation_space_type = foundation.elements["FoundationType"]
-      if foundation_space_type.elements["Basement/Conditioned/text()='true'"]
-        create_space_and_zone(model, spaces, Constants.SpaceTypeFinishedBasement)
-      elsif foundation_space_type.elements["Basement/Conditioned/text()='false'"]
-        create_space_and_zone(model, spaces, Constants.SpaceTypeUnfinishedBasement)
-      elsif foundation_space_type.elements["Crawlspace"]
-        create_space_and_zone(model, spaces, Constants.SpaceTypeCrawl)
-      elsif not foundation_space_type.elements["SlabOnGrade"] and not foundation_space_type.elements["Ambient"]
-        fail "Unhandled value (#{foundation_space_type})."
-      end
-
-      foundation.elements.each("FrameFloor") do |frame_floor|
-        exterior_adjacent_to = XMLHelper.get_value(frame_floor, "extension/ExteriorAdjacentTo")
-        if exterior_adjacent_to == "living space"
-          create_space_and_zone(model, spaces, Constants.SpaceTypeLiving)
-        elsif exterior_adjacent_to != "ambient" and exterior_adjacent_to != "ground"
-          fail "Unhandled value (#{exterior_adjacent_to})."
-        end
-      end
-
-      foundation.elements.each("FoundationWall") do |foundation_wall|
-        exterior_adjacent_to = XMLHelper.get_value(foundation_wall, "extension/ExteriorAdjacentTo")
-        if exterior_adjacent_to == "unconditioned basement"
-          create_space_and_zone(model, spaces, Constants.SpaceTypeUnfinishedBasement)
-        elsif exterior_adjacent_to == "conditioned basement"
-          create_space_and_zone(model, spaces, Constants.SpaceTypeFinishedBasement)
-        elsif exterior_adjacent_to == "crawlspace"
-          create_space_and_zone(model, spaces, Constants.SpaceTypeCrawl)
-        elsif exterior_adjacent_to != "ambient" and exterior_adjacent_to != "ground"
-          fail "Unhandled value (#{exterior_adjacent_to})."
-        end
-      end
-    end
-
-    building.elements.each("BuildingDetails/Enclosure/Walls/Wall") do |wall|
-      interior_adjacent_to = XMLHelper.get_value(wall, "extension/InteriorAdjacentTo")
-      if interior_adjacent_to == "living space"
-        create_space_and_zone(model, spaces, Constants.SpaceTypeLiving)
-      elsif interior_adjacent_to == "garage"
-        create_space_and_zone(model, spaces, Constants.SpaceTypeGarage)
-      else
-        fail "Unhandled value (#{interior_adjacent_to})."
-      end
-
-      exterior_adjacent_to = XMLHelper.get_value(wall, "extension/ExteriorAdjacentTo")
-      if exterior_adjacent_to == "garage"
-        create_space_and_zone(model, spaces, Constants.SpaceTypeGarage)
-      elsif exterior_adjacent_to == "living space"
-        create_space_and_zone(model, spaces, Constants.SpaceTypeLiving)
-      elsif exterior_adjacent_to != "ambient" and exterior_adjacent_to != "ground"
-        fail "Unhandled value (#{exterior_adjacent_to})."
-      end
-    end
-
-    return spaces
-  end
-
   def self.add_building_info(model, building)
     # Store building unit information
     unit = OpenStudio::Model::BuildingUnit.new(model)
     unit.setBuildingUnitType(Constants.BuildingUnitTypeResidential)
     unit.setName(Constants.ObjectNameBuildingUnit)
-    model.getSpaces.each do |space|
-      space.setBuildingUnit(unit)
-    end
 
     # Store number of units
     model.getBuilding.setStandardsNumberOfLivingUnits(1)
@@ -746,6 +641,10 @@ class OSModel
   end
 
   def self.get_surface_transformation(offset, x, y, z)
+    x = UnitConversions.convert(x, "ft", "m")
+    y = UnitConversions.convert(y, "ft", "m")
+    z = UnitConversions.convert(z, "ft", "m")
+
     m = OpenStudio::Matrix.new(4, 4, 0)
     m[0, 0] = 1
     m[1, 1] = 1
@@ -759,6 +658,10 @@ class OSModel
   end
 
   def self.add_floor_polygon(x, y, z)
+    x = UnitConversions.convert(x, "ft", "m")
+    y = UnitConversions.convert(y, "ft", "m")
+    z = UnitConversions.convert(z, "ft", "m")
+
     vertices = OpenStudio::Point3dVector.new
     vertices << OpenStudio::Point3d.new(0 - x / 2, 0 - y / 2, z)
     vertices << OpenStudio::Point3d.new(0 - x / 2, y / 2, z)
@@ -769,17 +672,23 @@ class OSModel
   end
 
   def self.add_wall_polygon(x, y, z, azimuth = 0, offsets = [0] * 4)
+    x = UnitConversions.convert(x, "ft", "m")
+    y = UnitConversions.convert(y, "ft", "m")
+    z = UnitConversions.convert(z, "ft", "m")
+
     vertices = OpenStudio::Point3dVector.new
     vertices << OpenStudio::Point3d.new(0 - (x / 2) - offsets[1], 0, z - offsets[0])
     vertices << OpenStudio::Point3d.new(0 - (x / 2) - offsets[1], 0, z + y + offsets[2])
     vertices << OpenStudio::Point3d.new(x - (x / 2) + offsets[3], 0, z + y + offsets[2])
     vertices << OpenStudio::Point3d.new(x - (x / 2) + offsets[3], 0, z - offsets[0])
 
+    # Rotate about the z axis
+    azimuth_rad = UnitConversions.convert(azimuth, "deg", "rad")
     m = OpenStudio::Matrix.new(4, 4, 0)
-    m[0, 0] = Math::cos(-azimuth * Math::PI / 180.0)
-    m[1, 1] = Math::cos(-azimuth * Math::PI / 180.0)
-    m[0, 1] = -Math::sin(-azimuth * Math::PI / 180.0)
-    m[1, 0] = Math::sin(-azimuth * Math::PI / 180.0)
+    m[0, 0] = Math::cos(-azimuth_rad)
+    m[1, 1] = Math::cos(-azimuth_rad)
+    m[0, 1] = -Math::sin(-azimuth_rad)
+    m[1, 0] = Math::sin(-azimuth_rad)
     m[2, 2] = 1
     m[3, 3] = 1
     transformation = OpenStudio::Transformation.new(m)
@@ -788,11 +697,15 @@ class OSModel
   end
 
   def self.add_roof_polygon(x, y, z, azimuth = 0, tilt = 0.5)
+    x = UnitConversions.convert(x, "ft", "m")
+    y = UnitConversions.convert(y, "ft", "m")
+    z = UnitConversions.convert(z, "ft", "m")
+
     vertices = OpenStudio::Point3dVector.new
-    vertices << OpenStudio::Point3d.new(x / 2, -y / 2, z)
-    vertices << OpenStudio::Point3d.new(x / 2, y / 2, z)
-    vertices << OpenStudio::Point3d.new(-x / 2, y / 2, z)
-    vertices << OpenStudio::Point3d.new(-x / 2, -y / 2, z)
+    vertices << OpenStudio::Point3d.new(x / 2, -y / 2, 0)
+    vertices << OpenStudio::Point3d.new(x / 2, y / 2, 0)
+    vertices << OpenStudio::Point3d.new(-x / 2, y / 2, 0)
+    vertices << OpenStudio::Point3d.new(-x / 2, -y / 2, 0)
 
     # Rotate about the x axis
     m = OpenStudio::Matrix.new(4, 4, 0)
@@ -806,26 +719,34 @@ class OSModel
     vertices = transformation * vertices
 
     # Rotate about the z axis
+    azimuth_rad = UnitConversions.convert(azimuth, "deg", "rad")
+    rad180 = UnitConversions.convert(180, "deg", "rad")
     m = OpenStudio::Matrix.new(4, 4, 0)
-    m[0, 0] = Math::cos(UnitConversions.convert(azimuth, "deg", "rad"))
-    m[1, 1] = Math::cos(UnitConversions.convert(azimuth, "deg", "rad"))
-    m[0, 1] = -Math::sin(UnitConversions.convert(azimuth, "deg", "rad"))
-    m[1, 0] = Math::sin(UnitConversions.convert(azimuth, "deg", "rad"))
+    m[0, 0] = Math::cos(rad180 - azimuth_rad)
+    m[1, 1] = Math::cos(rad180 - azimuth_rad)
+    m[0, 1] = -Math::sin(rad180 - azimuth_rad)
+    m[1, 0] = Math::sin(rad180 - azimuth_rad)
     m[2, 2] = 1
     m[3, 3] = 1
     transformation = OpenStudio::Transformation.new(m)
     vertices = transformation * vertices
 
-    return vertices
+    # Shift up by z
+    new_vertices = OpenStudio::Point3dVector.new
+    vertices.each do |vertex|
+      new_vertices << OpenStudio::Point3d.new(vertex.x, vertex.y, vertex.z + z)
+    end
+
+    return new_vertices
   end
 
   def self.add_ceiling_polygon(x, y, z)
     return OpenStudio::reverse(add_floor_polygon(x, y, z))
   end
 
-  def self.net_wall_area(gross_wall_area, wall_fenestration_areas, wall_id)
-    if wall_fenestration_areas.keys.include? wall_id
-      return gross_wall_area - wall_fenestration_areas[wall_id]
+  def self.net_wall_area(gross_wall_area, wall_subsurface_areas, wall_id)
+    if wall_subsurface_areas.keys.include? wall_id
+      return gross_wall_area - wall_subsurface_areas[wall_id]
     end
 
     return gross_wall_area
@@ -845,28 +766,80 @@ class OSModel
     else
       num_occ = Float(num_occ)
     end
-    occ_gain, hrs_per_day, sens_frac, lat_frac = Geometry.get_occupancy_default_values()
-    weekday_sch = "1.00000, 1.00000, 1.00000, 1.00000, 1.00000, 1.00000, 1.00000, 0.88310, 0.40861, 0.24189, 0.24189, 0.24189, 0.24189, 0.24189, 0.24189, 0.24189, 0.29498, 0.55310, 0.89693, 0.89693, 0.89693, 1.00000, 1.00000, 1.00000" # TODO: Normalize schedule based on hrs_per_day
-    weekend_sch = weekday_sch
-    monthly_sch = "1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0"
-    success = Geometry.process_occupants(model, runner, num_occ.to_s, occ_gain, sens_frac, lat_frac, weekday_sch, weekend_sch, monthly_sch)
-    return false if not success
+    if num_occ > 0
+      occ_gain, hrs_per_day, sens_frac, lat_frac = Geometry.get_occupancy_default_values()
+      weekday_sch = "1.00000, 1.00000, 1.00000, 1.00000, 1.00000, 1.00000, 1.00000, 0.88310, 0.40861, 0.24189, 0.24189, 0.24189, 0.24189, 0.24189, 0.24189, 0.24189, 0.29498, 0.55310, 0.89693, 0.89693, 0.89693, 1.00000, 1.00000, 1.00000" # TODO: Normalize schedule based on hrs_per_day
+      weekend_sch = weekday_sch
+      monthly_sch = "1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0"
+      success = Geometry.process_occupants(model, runner, num_occ.to_s, occ_gain, sens_frac, lat_frac, weekday_sch, weekend_sch, monthly_sch)
+      return false if not success
+    end
 
     return true
   end
 
-  def self.add_foundations(runner, model, building, spaces, fenestration_areas, unit)
+  def self.get_subsurface_areas(building)
+    subsurface_areas = {}
+
+    # Windows
+    building.elements.each("BuildingDetails/Enclosure/Windows/Window") do |window|
+      wall_id = window.elements["AttachedToWall"].attributes["idref"]
+      if not subsurface_areas.keys.include? wall_id
+        subsurface_areas[wall_id] = 0
+      end
+      window_area = Float(XMLHelper.get_value(window, "Area"))
+      subsurface_areas[wall_id] += window_area
+    end
+
+    # Skylights
+    building.elements.each("BuildingDetails/Enclosure/Skylights/Skylight") do |skylight|
+      roof_id = skylight.elements["AttachedToRoof"].attributes["idref"]
+      if not subsurface_areas.keys.include? roof_id
+        subsurface_areas[roof_id] = 0
+      end
+      skylight_area = Float(XMLHelper.get_value(skylight, "Area"))
+      subsurface_areas[roof_id] += skylight_area
+    end
+
+    # Doors
+    building.elements.each("BuildingDetails/Enclosure/Doors/Door") do |door|
+      wall_id = door.elements["AttachedToWall"].attributes["idref"]
+      if not subsurface_areas.keys.include? wall_id
+        subsurface_areas[wall_id] = 0
+      end
+      door_area = XMLHelper.get_value(door, "Area")
+      if not door_area.nil?
+        door_area = Float(door_area)
+      else
+        door_area = SubsurfaceConstructions.get_default_door_area()
+      end
+      subsurface_areas[wall_id] += door_area
+    end
+
+    return subsurface_areas
+  end
+
+  def self.create_or_get_space(model, spaces, spacetype)
+    if spaces[spacetype].nil?
+      create_space_and_zone(model, spaces, spacetype)
+    end
+    return spaces[spacetype]
+  end
+
+  def self.add_foundations(runner, model, building, spaces, subsurface_areas)
     building.elements.each("BuildingDetails/Enclosure/Foundations/Foundation") do |foundation|
+      foundation_id = foundation.elements["SystemIdentifier"].attributes["id"]
       foundation_type = foundation.elements["FoundationType"]
-      interior_adjacent_to = get_foundation_interior_adjacent_to(foundation_type)
+      interior_adjacent_to = get_foundation_adjacent_to(foundation_type)
 
       # Foundation slab surfaces
-
       slab_surface = nil
       perim_exp = 0.0
       slab_ext_r, slab_ext_depth, slab_perim_r, slab_perim_width, slab_gap_r = nil
       slab_whole_r, slab_concrete_thick_in = nil
+      num_slabs = 0
       foundation.elements.each("Slab") do |fnd_slab|
+        num_slabs += 1
         slab_id = fnd_slab.elements["SystemIdentifier"].attributes["id"]
 
         slab_perim = Float(XMLHelper.get_value(fnd_slab, "ExposedPerimeter"))
@@ -882,28 +855,16 @@ class OSModel
           slab_width = slab_perim / 4.0 - Math.sqrt(sqrt_term) / 4.0
         end
 
-        z_origin = 0
-        unless fnd_slab.elements["DepthBelowGrade"].nil?
-          z_origin = -1 * Float(XMLHelper.get_value(fnd_slab, "DepthBelowGrade"))
-        end
+        z_origin = -1 * Float(XMLHelper.get_value(fnd_slab, "DepthBelowGrade"))
 
-        surface = OpenStudio::Model::Surface.new(add_floor_polygon(UnitConversions.convert(slab_length, "ft", "m"),
-                                                                   UnitConversions.convert(slab_width, "ft", "m"),
-                                                                   UnitConversions.convert(z_origin, "ft", "m")), model)
+        surface = OpenStudio::Model::Surface.new(add_floor_polygon(slab_length, slab_width, z_origin), model)
+
         surface.setName(slab_id)
         surface.setSurfaceType("Floor")
         surface.setOutsideBoundaryCondition("Foundation")
-        if foundation_type.elements["Basement/Conditioned/text()='true'"]
-          surface.setSpace(spaces[Constants.SpaceTypeFinishedBasement])
-        elsif foundation_type.elements["Basement/Conditioned/text()='false'"]
-          surface.setSpace(spaces[Constants.SpaceTypeUnfinishedBasement])
-        elsif foundation_type.elements["Crawlspace"]
-          surface.setSpace(spaces[Constants.SpaceTypeCrawl])
-        elsif foundation_type.elements["SlabOnGrade"]
-          surface.setSpace(spaces[Constants.SpaceTypeLiving])
-        else
-          fail "Unhandled foundation type #{foundation_type}."
-        end
+        set_surface_interior(model, spaces, surface, slab_id, interior_adjacent_to)
+        surface.setSunExposure("NoSun")
+        surface.setWindExposure("NoWind")
         slab_surface = surface
 
         slab_gap_r = 0.0 # FIXME
@@ -938,6 +899,9 @@ class OSModel
           slab_perim_width = 0
         end
       end
+      if num_slabs > 1
+        fail "Cannot currently handle multiple Foundation/Slab elements." # FIXME
+      end
 
       # Foundation wall surfaces
 
@@ -946,14 +910,16 @@ class OSModel
       wall_height, wall_cav_r, wall_cav_depth, wall_grade, wall_ff, wall_cont_height, wall_cont_r = nil
       wall_cont_depth, walls_filled_cavity, walls_drywall_thick_in, walls_concrete_thick_in = nil
       wall_assembly_r, wall_film_r = nil
+      num_walls = 0
       foundation.elements.each("FoundationWall") do |fnd_wall|
+        num_walls += 1
         wall_id = fnd_wall.elements["SystemIdentifier"].attributes["id"]
 
-        exterior_adjacent_to = XMLHelper.get_value(fnd_wall, "extension/ExteriorAdjacentTo")
+        exterior_adjacent_to = XMLHelper.get_value(fnd_wall, "AdjacentTo")
 
-        wall_height = Float(XMLHelper.get_value(fnd_wall, "Height")) # FIXME: Need to handle above-grade portion
+        wall_height = Float(XMLHelper.get_value(fnd_wall, "Height"))
         wall_gross_area = Float(XMLHelper.get_value(fnd_wall, "Area"))
-        wall_net_area = net_wall_area(wall_gross_area, fenestration_areas, fnd_id)
+        wall_net_area = net_wall_area(wall_gross_area, subsurface_areas, fnd_id)
         if wall_net_area <= 0
           fail "Calculated a negative net surface area for Wall '#{wall_id}'."
         end
@@ -962,25 +928,22 @@ class OSModel
 
         z_origin = -1 * Float(XMLHelper.get_value(fnd_wall, "DepthBelowGrade"))
 
-        surface = OpenStudio::Model::Surface.new(add_wall_polygon(UnitConversions.convert(wall_length, "ft", "m"),
-                                                                  UnitConversions.convert(wall_height, "ft", "m"),
-                                                                  UnitConversions.convert(z_origin, "ft", "m")), model)
+        wall_azimuth = XMLHelper.get_value(fnd_wall, "Azimuth")
+        if not wall_azimuth.nil?
+          wall_azimuth = Float(wall_azimuth)
+        else
+          wall_azimuth = 0.0 # TODO
+        end
+
+        surface = OpenStudio::Model::Surface.new(add_wall_polygon(wall_length, wall_height, z_origin,
+                                                                  wall_azimuth), model)
+
+        surface.additionalProperties.setFeature("Length", wall_length)
+        surface.additionalProperties.setFeature("Azimuth", wall_azimuth)
         surface.setName(wall_id)
         surface.setSurfaceType("Wall")
-        if exterior_adjacent_to == "ground"
-          surface.setOutsideBoundaryCondition("Foundation")
-        else
-          fail "Unhandled value (#{exterior_adjacent_to})."
-        end
-        if foundation_type.elements["Basement/Conditioned/text()='true'"]
-          surface.setSpace(spaces[Constants.SpaceTypeFinishedBasement])
-        elsif foundation_type.elements["Basement/Conditioned/text()='false'"]
-          surface.setSpace(spaces[Constants.SpaceTypeUnfinishedBasement])
-        elsif foundation_type.elements["Crawlspace"]
-          surface.setSpace(spaces[Constants.SpaceTypeCrawl])
-        else
-          fail "Unhandled foundation type #{foundation_type}."
-        end
+        set_surface_interior(model, spaces, surface, wall_id, interior_adjacent_to)
+        set_surface_exterior(model, spaces, surface, wall_id, exterior_adjacent_to)
         wall_surface = surface
 
         if is_external_thermal_boundary(interior_adjacent_to, exterior_adjacent_to)
@@ -1003,7 +966,14 @@ class OSModel
         wall_ff = 0.0
         wall_cont_height = Float(XMLHelper.get_value(fnd_wall, "Height"))
         wall_cont_r = wall_assembly_r - Material.Concrete(walls_concrete_thick_in).rvalue - Material.GypsumWall(walls_drywall_thick_in).rvalue - wall_film_r
+        if wall_cont_r < 0 # Try without drywall
+          walls_drywall_thick_in = 0.0
+          wall_cont_r = wall_assembly_r - Material.Concrete(walls_concrete_thick_in).rvalue - Material.GypsumWall(walls_drywall_thick_in).rvalue - wall_film_r
+        end
         wall_cont_depth = 1.0
+      end
+      if num_walls > 1
+        fail "Cannot currently handle multiple Foundation/FoundationWall elements." # FIXME
       end
 
       # Foundation ceiling surfaces
@@ -1015,35 +985,35 @@ class OSModel
       foundation.elements.each("FrameFloor") do |fnd_floor|
         floor_id = fnd_floor.elements["SystemIdentifier"].attributes["id"]
 
+        exterior_adjacent_to = XMLHelper.get_value(fnd_floor, "AdjacentTo")
+
         framefloor_area = Float(XMLHelper.get_value(fnd_floor, "Area"))
         framefloor_width = Math::sqrt(framefloor_area)
         framefloor_length = framefloor_area / framefloor_width
 
-        z_origin = 0 # FIXME
-
-        surface = OpenStudio::Model::Surface.new(add_ceiling_polygon(UnitConversions.convert(framefloor_length, "ft", "m"),
-                                                                     UnitConversions.convert(framefloor_width, "ft", "m"),
-                                                                     UnitConversions.convert(z_origin, "ft", "m")), model)
-        surface.setName(floor_id)
-        if foundation_type.elements["Basement/Conditioned/text()='true'"]
-          surface.setSurfaceType("RoofCeiling")
-          surface.setSpace(spaces[Constants.SpaceTypeFinishedBasement])
-          surface.createAdjacentSurface(spaces[Constants.SpaceTypeLiving])
-        elsif foundation_type.elements["Basement/Conditioned/text()='false'"]
-          surface.setSurfaceType("RoofCeiling")
-          surface.setSpace(spaces[Constants.SpaceTypeUnfinishedBasement])
-          surface.createAdjacentSurface(spaces[Constants.SpaceTypeLiving])
-        elsif foundation_type.elements["Crawlspace"]
-          surface.setSurfaceType("RoofCeiling")
-          surface.setSpace(spaces[Constants.SpaceTypeCrawl])
-          surface.createAdjacentSurface(spaces[Constants.SpaceTypeLiving])
-        elsif foundation_type.elements["Ambient"]
-          surface.setSurfaceType("Floor")
-          surface.setSpace(spaces[Constants.SpaceTypeLiving])
-          surface.setOutsideBoundaryCondition("Outdoors")
-        else
-          fail "Unhandled foundation type #{foundation_type}."
+        if foundation_type.elements["Ambient"]
+          z_origin = 2.0
+        elsif foundation_type.elements["SlabOnGrade"]
+          z_origin = 0.0
+        elsif foundation_type.elements["Basement"] or foundation_type.elements["Crawlspace"]
+          z_origin = -1 * Float(XMLHelper.get_value(foundation, "FoundationWall/DepthBelowGrade")) +
+                     Float(XMLHelper.get_value(foundation, "FoundationWall/Height"))
         end
+
+        surface = OpenStudio::Model::Surface.new(add_floor_polygon(framefloor_length, framefloor_width, z_origin), model)
+
+        surface.setName(floor_id)
+        if interior_adjacent_to == "outside" # pier & beam foundation
+          surface.setSurfaceType("Floor")
+          set_surface_interior(model, spaces, surface, floor_id, exterior_adjacent_to)
+          set_surface_exterior(model, spaces, surface, floor_id, interior_adjacent_to)
+        else
+          surface.setSurfaceType("RoofCeiling")
+          set_surface_interior(model, spaces, surface, floor_id, interior_adjacent_to)
+          set_surface_exterior(model, spaces, surface, floor_id, exterior_adjacent_to)
+        end
+        surface.setSunExposure("NoSun")
+        surface.setWindExposure("NoWind")
         ceiling_surfaces << surface
 
         floor_film_r = 2.0 * Material.AirFilmFloorReduced.rvalue
@@ -1056,8 +1026,8 @@ class OSModel
         end
         constr_sets = [
           WoodStudConstructionSet.new(Material.Stud2x6, 0.10, 0.0, 0.75, 0.0, Material.CoveringBare), # 2x6, 24" o.c.
-          WoodStudConstructionSet.new(Material.Stud2x4, 0.13, 0.0, 0.5, 0.0, Material.CoveringBare), # 2x4, 16" o.c.
-          WoodStudConstructionSet.new(Material.Stud2x4, 0.01, 0.0, 0.0, 0.0, nil), # Fallback
+          WoodStudConstructionSet.new(Material.Stud2x4, 0.13, 0.0, 0.5, 0.0, Material.CoveringBare),  # 2x4, 16" o.c.
+          WoodStudConstructionSet.new(Material.Stud2x4, 0.01, 0.0, 0.0, 0.0, nil),                    # Fallback
         ]
         floor_constr_set, floor_cav_r = pick_wood_stud_construction_set(floor_assembly_r, constr_sets, floor_film_r, "foundation framefloor #{floor_id}")
 
@@ -1131,6 +1101,7 @@ class OSModel
     ffa = Float(XMLHelper.get_value(building, "BuildingDetails/BuildingSummary/BuildingConstruction/ConditionedFloorArea")).round(1)
 
     # First check if we need to add a finished basement ceiling
+    foundation_top = get_foundation_top(model)
 
     model.getThermalZones.each do |zone|
       next if not Geometry.is_finished_basement(zone)
@@ -1150,15 +1121,16 @@ class OSModel
 
         finishedfloor_width = Math::sqrt(addtl_ffa)
         finishedfloor_length = addtl_ffa / finishedfloor_width
-        z_origin = 0
+        z_origin = foundation_top
 
-        surface = OpenStudio::Model::Surface.new(add_ceiling_polygon(-UnitConversions.convert(finishedfloor_width, "ft", "m"),
-                                                                     -UnitConversions.convert(finishedfloor_length, "ft", "m"),
-                                                                     UnitConversions.convert(z_origin, "ft", "m")), model)
+        surface = OpenStudio::Model::Surface.new(add_ceiling_polygon(-finishedfloor_width, -finishedfloor_length, z_origin), model)
+
+        surface.setSunExposure("NoSun")
+        surface.setWindExposure("NoWind")
         surface.setName("inferred finished basement ceiling")
         surface.setSurfaceType("RoofCeiling")
         surface.setSpace(zone.spaces[0])
-        surface.createAdjacentSurface(spaces[Constants.SpaceTypeLiving])
+        surface.createAdjacentSurface(create_or_get_space(model, spaces, Constants.SpaceTypeLiving))
 
         # Apply Construction
         success = apply_adiabatic_construction(runner, model, [surface], "floor")
@@ -1170,6 +1142,7 @@ class OSModel
 
     # Calculate ffa already added to model
     model_ffa = Geometry.get_finished_floor_area_from_spaces(model.getSpaces).round(1)
+    nstories_ag = Float(XMLHelper.get_value(building, "BuildingDetails/BuildingSummary/BuildingConstruction/NumberofConditionedFloorsAboveGrade"))
 
     if model_ffa > ffa
       runner.registerError("Sum of conditioned floor surface areas #{model_ffa.to_s} is greater than ConditionedFloorArea specified #{ffa.to_s}.")
@@ -1183,14 +1156,15 @@ class OSModel
 
     finishedfloor_width = Math::sqrt(addtl_ffa)
     finishedfloor_length = addtl_ffa / finishedfloor_width
-    z_origin = 0
+    z_origin = foundation_top + 8.0 * (nstories_ag - 1)
 
-    surface = OpenStudio::Model::Surface.new(add_floor_polygon(-UnitConversions.convert(finishedfloor_width, "ft", "m"),
-                                                               -UnitConversions.convert(finishedfloor_length, "ft", "m"),
-                                                               UnitConversions.convert(z_origin, "ft", "m")), model)
+    surface = OpenStudio::Model::Surface.new(add_floor_polygon(-finishedfloor_width, -finishedfloor_length, z_origin), model)
+
+    surface.setSunExposure("NoSun")
+    surface.setWindExposure("NoWind")
     surface.setName("inferred finished floor")
     surface.setSurfaceType("Floor")
-    surface.setSpace(spaces[Constants.SpaceTypeLiving])
+    surface.setSpace(create_or_get_space(model, spaces, Constants.SpaceTypeLiving))
     surface.setOutsideBoundaryCondition("Adiabatic")
 
     # Apply Construction
@@ -1220,49 +1194,44 @@ class OSModel
     return true
   end
 
-  def self.add_walls(runner, model, building, spaces, fenestration_areas)
+  def self.add_walls(runner, model, building, spaces, subsurface_areas)
+    foundation_top = get_foundation_top(model)
+    nstories_ag = Float(XMLHelper.get_value(building, "BuildingDetails/BuildingSummary/BuildingConstruction/NumberofConditionedFloorsAboveGrade"))
+
     building.elements.each("BuildingDetails/Enclosure/Walls/Wall") do |wall|
-      interior_adjacent_to = XMLHelper.get_value(wall, "extension/InteriorAdjacentTo")
-      exterior_adjacent_to = XMLHelper.get_value(wall, "extension/ExteriorAdjacentTo")
+      interior_adjacent_to = XMLHelper.get_value(wall, "InteriorAdjacentTo")
+      exterior_adjacent_to = XMLHelper.get_value(wall, "ExteriorAdjacentTo")
 
       wall_id = wall.elements["SystemIdentifier"].attributes["id"]
 
       wall_gross_area = Float(XMLHelper.get_value(wall, "Area"))
-      wall_net_area = net_wall_area(wall_gross_area, fenestration_areas, wall_id)
+      wall_net_area = net_wall_area(wall_gross_area, subsurface_areas, wall_id)
       if wall_net_area <= 0
         fail "Calculated a negative net surface area for Wall '#{wall_id}'."
       end
 
-      wall_height = 8.0
+      wall_height = 8.0 * nstories_ag
       wall_length = wall_net_area / wall_height
-      z_origin = 0
+      z_origin = foundation_top
+      wall_azimuth = XMLHelper.get_value(wall, "Azimuth")
+      if not wall_azimuth.nil?
+        wall_azimuth = Float(wall_azimuth)
+      else
+        wall_azimuth = 0.0 # TODO
+      end
 
-      surface = OpenStudio::Model::Surface.new(add_wall_polygon(UnitConversions.convert(wall_length, "ft", "m"),
-                                                                UnitConversions.convert(wall_height, "ft", "m"),
-                                                                UnitConversions.convert(z_origin, "ft", "m")), model)
+      surface = OpenStudio::Model::Surface.new(add_wall_polygon(wall_length, wall_height, z_origin,
+                                                                wall_azimuth), model)
+
+      surface.additionalProperties.setFeature("Length", wall_length)
+      surface.additionalProperties.setFeature("Azimuth", wall_azimuth)
       surface.setName(wall_id)
       surface.setSurfaceType("Wall")
-      if ["living space"].include? interior_adjacent_to
-        surface.setSpace(spaces[Constants.SpaceTypeLiving])
-      elsif ["garage"].include? interior_adjacent_to
-        surface.setSpace(spaces[Constants.SpaceTypeGarage])
-      elsif ["unvented attic", "vented attic"].include? interior_adjacent_to
-        surface.setSpace(spaces[Constants.SpaceTypeUnfinishedAttic])
-      elsif ["cape cod"].include? interior_adjacent_to
-        surface.setSpace(spaces[Constants.SpaceTypeFinishedAttic])
-      else
-        fail "Unhandled value (#{interior_adjacent_to})."
-      end
-      if ["ambient"].include? exterior_adjacent_to
-        surface.setOutsideBoundaryCondition("Outdoors")
-      elsif ["garage"].include? exterior_adjacent_to
-        surface.createAdjacentSurface(spaces[Constants.SpaceTypeGarage])
-      elsif ["unvented attic", "vented attic"].include? exterior_adjacent_to
-        surface.createAdjacentSurface(spaces[Constants.SpaceTypeUnfinishedAttic])
-      elsif ["cape cod"].include? exterior_adjacent_to
-        surface.createAdjacentSurface(spaces[Constants.SpaceTypeFinishedAttic])
-      elsif exterior_adjacent_to != "ambient" and exterior_adjacent_to != "ground"
-        fail "Unhandled value (#{exterior_adjacent_to})."
+      set_surface_interior(model, spaces, surface, wall_id, interior_adjacent_to)
+      set_surface_exterior(model, spaces, surface, wall_id, exterior_adjacent_to)
+      if exterior_adjacent_to != "outside"
+        surface.setSunExposure("NoSun")
+        surface.setWindExposure("NoWind")
       end
 
       # Apply construction
@@ -1274,7 +1243,7 @@ class OSModel
       else
         drywall_thick_in = 0.0
       end
-      if exterior_adjacent_to == "ambient"
+      if exterior_adjacent_to == "outside"
         film_r = Material.AirFilmVertical.rvalue + Material.AirFilmOutside.rvalue
         mat_ext_finish = Material.ExtFinishWoodLight
       else
@@ -1294,6 +1263,8 @@ class OSModel
   end
 
   def self.add_rim_joists(runner, model, building, spaces)
+    foundation_top = get_foundation_top(model)
+
     building.elements.each("BuildingDetails/Enclosure/RimJoists/RimJoist") do |rim_joist|
       interior_adjacent_to = XMLHelper.get_value(rim_joist, "InteriorAdjacentTo")
       exterior_adjacent_to = XMLHelper.get_value(rim_joist, "ExteriorAdjacentTo")
@@ -1301,35 +1272,28 @@ class OSModel
       rim_joist_id = rim_joist.elements["SystemIdentifier"].attributes["id"]
 
       rim_joist_area = Float(XMLHelper.get_value(rim_joist, "Area"))
-      rim_joist_height = 7.5
+      rim_joist_height = 1.0
       rim_joist_length = rim_joist_area / rim_joist_height
-      z_origin = 0
-      surface = OpenStudio::Model::Surface.new(add_wall_polygon(UnitConversions.convert(rim_joist_length, "ft", "m"),
-                                                                UnitConversions.convert(rim_joist_height, "ft", "m"),
-                                                                UnitConversions.convert(z_origin, "ft", "m")), model)
+      z_origin = foundation_top
+      rim_joist_azimuth = XMLHelper.get_value(rim_joist, "Azimuth")
+      if not rim_joist_azimuth.nil?
+        rim_joist_azimuth = Float(rim_joist_azimuth)
+      else
+        rim_joist_azimuth = 0.0 # TODO
+      end
+
+      surface = OpenStudio::Model::Surface.new(add_wall_polygon(rim_joist_length, rim_joist_height, z_origin,
+                                                                rim_joist_azimuth), model)
+
+      surface.additionalProperties.setFeature("Length", rim_joist_length)
+      surface.additionalProperties.setFeature("Azimuth", rim_joist_azimuth)
       surface.setName(rim_joist_id)
       surface.setSurfaceType("Wall")
-      if ["living space"].include? interior_adjacent_to
-        surface.setSpace(spaces[Constants.SpaceTypeLiving])
-      elsif ["garage"].include? interior_adjacent_to
-        surface.setSpace(spaces[Constants.SpaceTypeGarage])
-      elsif ["unvented attic", "vented attic"].include? interior_adjacent_to
-        surface.setSpace(spaces[Constants.SpaceTypeUnfinishedAttic])
-      elsif ["cape cod"].include? interior_adjacent_to
-        surface.setSpace(spaces[Constants.SpaceTypeFinishedAttic])
-      else
-        fail "Unhandled value (#{interior_adjacent_to})."
-      end
-      if ["ambient"].include? exterior_adjacent_to
-        surface.setOutsideBoundaryCondition("Outdoors")
-      elsif ["garage"].include? exterior_adjacent_to
-        surface.createAdjacentSurface(spaces[Constants.SpaceTypeGarage])
-      elsif ["unvented attic", "vented attic"].include? exterior_adjacent_to
-        surface.createAdjacentSurface(spaces[Constants.SpaceTypeUnfinishedAttic])
-      elsif ["cape cod"].include? exterior_adjacent_to
-        surface.createAdjacentSurface(spaces[Constants.SpaceTypeFinishedAttic])
-      elsif exterior_adjacent_to != "ambient" and exterior_adjacent_to != "ground"
-        fail "Unhandled value (#{exterior_adjacent_to})."
+      set_surface_interior(model, spaces, surface, rim_joist_id, interior_adjacent_to)
+      set_surface_exterior(model, spaces, surface, rim_joist_id, exterior_adjacent_to)
+      if exterior_adjacent_to != "outside"
+        surface.setSunExposure("NoSun")
+        surface.setWindExposure("NoWind")
       end
 
       # Apply construction
@@ -1339,7 +1303,7 @@ class OSModel
       else
         drywall_thick_in = 0.0
       end
-      if exterior_adjacent_to == "ambient"
+      if exterior_adjacent_to == "outside"
         film_r = Material.AirFilmVertical.rvalue + Material.AirFilmOutside.rvalue
         mat_ext_finish = Material.ExtFinishWoodLight
       else
@@ -1352,7 +1316,7 @@ class OSModel
       assembly_r = Float(XMLHelper.get_value(rim_joist, "Insulation/AssemblyEffectiveRValue"))
 
       constr_sets = [
-        WoodStudConstructionSet.new(Material.Stud2x(2.0), 0.17, 10.0, 2.0, drywall_thick_in, mat_ext_finish), # 2x4 + R10
+        WoodStudConstructionSet.new(Material.Stud2x(2.0), 0.17, 10.0, 2.0, drywall_thick_in, mat_ext_finish),  # 2x4 + R10
         WoodStudConstructionSet.new(Material.Stud2x(2.0), 0.17, 5.0, 2.0, drywall_thick_in, mat_ext_finish),   # 2x4 + R5
         WoodStudConstructionSet.new(Material.Stud2x(2.0), 0.17, 0.0, 2.0, drywall_thick_in, mat_ext_finish),   # 2x4
         WoodStudConstructionSet.new(Material.Stud2x(2.0), 0.01, 0.0, 0.0, 0.0, nil),                           # Fallback
@@ -1370,47 +1334,36 @@ class OSModel
       check_surface_assembly_rvalue(surface, film_r, assembly_r)
 
       apply_solar_abs_emittance_to_construction(surface, solar_abs, emitt)
-
-      return true
     end
 
     return true
   end
 
-  def self.add_attics(runner, model, building, spaces, fenestration_areas)
-    building.elements.each("BuildingDetails/Enclosure/AtticAndRoof/Attics/Attic") do |attic|
+  def self.add_attics(runner, model, building, spaces, subsurface_areas)
+    walls_top = get_walls_top(model)
+
+    building.elements.each("BuildingDetails/Enclosure/Attics/Attic") do |attic|
       attic_type = XMLHelper.get_value(attic, "AtticType")
-      interior_adjacent_to = attic_type
+      interior_adjacent_to = get_attic_adjacent_to(attic_type)
 
       # Attic floors
       attic.elements.each("Floors/Floor") do |floor|
         floor_id = floor.elements["SystemIdentifier"].attributes["id"]
-        exterior_adjacent_to = XMLHelper.get_value(floor, "extension/ExteriorAdjacentTo")
+        exterior_adjacent_to = XMLHelper.get_value(floor, "AdjacentTo")
 
         floor_area = Float(XMLHelper.get_value(floor, "Area"))
         floor_width = Math::sqrt(floor_area)
         floor_length = floor_area / floor_width
-        z_origin = 0
+        z_origin = walls_top
 
-        surface = OpenStudio::Model::Surface.new(add_floor_polygon(UnitConversions.convert(floor_length, "ft", "m"),
-                                                                   UnitConversions.convert(floor_width, "ft", "m"),
-                                                                   UnitConversions.convert(z_origin, "ft", "m")), model)
+        surface = OpenStudio::Model::Surface.new(add_floor_polygon(floor_length, floor_width, z_origin), model)
+
+        surface.setSunExposure("NoSun")
+        surface.setWindExposure("NoWind")
         surface.setName(floor_id)
         surface.setSurfaceType("Floor")
-        if ["vented attic", "unvented attic"].include? interior_adjacent_to
-          surface.setSpace(spaces[Constants.SpaceTypeUnfinishedAttic])
-        elsif ["cape cod"].include? interior_adjacent_to
-          surface.setSpace(spaces[Constants.SpaceTypeFinishedAttic])
-        elsif interior_adjacent_to != "flat roof" and interior_adjacent_to != "cathedral ceiling"
-          fail "Unhandled value (#{interior_adjacent_to})."
-        end
-        if ["living space"].include? exterior_adjacent_to
-          surface.createAdjacentSurface(spaces[Constants.SpaceTypeLiving])
-        elsif ["garage"].include? exterior_adjacent_to
-          surface.createAdjacentSurface(spaces[Constants.SpaceTypeGarage])
-        elsif exterior_adjacent_to != "ambient" and exterior_adjacent_to != "ground"
-          fail "Unhandled value (#{exterior_adjacent_to})."
-        end
+        set_surface_interior(model, spaces, surface, floor_id, interior_adjacent_to)
+        set_surface_exterior(model, spaces, surface, floor_id, exterior_adjacent_to)
 
         # Apply construction
 
@@ -1430,7 +1383,7 @@ class OSModel
         constr_sets = [
           WoodStudConstructionSet.new(Material.Stud2x6, 0.11, 0.0, 0.0, drywall_thick_in, nil), # 2x6, 24" o.c.
           WoodStudConstructionSet.new(Material.Stud2x4, 0.24, 0.0, 0.0, drywall_thick_in, nil), # 2x4, 16" o.c.
-          WoodStudConstructionSet.new(Material.Stud2x4, 0.01, 0.0, 0.0, 0.0, nil), # Fallback
+          WoodStudConstructionSet.new(Material.Stud2x4, 0.01, 0.0, 0.0, 0.0, nil),              # Fallback
         ]
 
         constr_set, ceiling_r = pick_wood_stud_construction_set(assembly_r, constr_sets, film_r, "attic floor #{floor_id}")
@@ -1457,30 +1410,36 @@ class OSModel
         roof_id = roof.elements["SystemIdentifier"].attributes["id"]
 
         roof_gross_area = Float(XMLHelper.get_value(roof, "Area"))
-        roof_net_area = net_wall_area(roof_gross_area, fenestration_areas, roof_id)
+        roof_net_area = net_wall_area(roof_gross_area, subsurface_areas, roof_id)
+        if roof_net_area <= 0
+          fail "Calculated a negative net surface area for Roof '#{roof_id}'."
+        end
+
         roof_width = Math::sqrt(roof_net_area)
         roof_length = roof_net_area / roof_width
-        z_origin = 0
         roof_tilt = Float(XMLHelper.get_value(roof, "Pitch")) / 12.0
+        z_origin = walls_top + 0.5 * Math.sin(Math.atan(roof_tilt)) * roof_width
+        roof_azimuth = XMLHelper.get_value(roof, "Azimuth")
+        if not roof_azimuth.nil?
+          roof_azimuth = Float(roof_azimuth)
+        else
+          roof_azimuth = 0.0 # TODO
+        end
 
-        surface = OpenStudio::Model::Surface.new(add_roof_polygon(UnitConversions.convert(roof_length, "ft", "m"),
-                                                                  UnitConversions.convert(roof_width, "ft", "m"),
-                                                                  UnitConversions.convert(z_origin, "ft", "m"),
-                                                                  0.0, roof_tilt), model)
+        surface = OpenStudio::Model::Surface.new(add_roof_polygon(roof_length, roof_width, z_origin,
+                                                                  roof_azimuth, roof_tilt), model)
 
+        surface.additionalProperties.setFeature("Length", roof_length)
+        surface.additionalProperties.setFeature("Width", roof_width)
+        surface.additionalProperties.setFeature("Tilt", roof_tilt)
+        surface.additionalProperties.setFeature("Azimuth", roof_azimuth)
         surface.setName(roof_id)
         surface.setSurfaceType("RoofCeiling")
         surface.setOutsideBoundaryCondition("Outdoors")
-        if ["unvented attic", "vented attic"].include? interior_adjacent_to
-          surface.setSpace(spaces[Constants.SpaceTypeUnfinishedAttic])
-        elsif ["flat roof", "cathedral ceiling"].include? interior_adjacent_to
-          surface.setSpace(spaces[Constants.SpaceTypeLiving])
-        elsif ["cape cod"].include? interior_adjacent_to
-          surface.setSpace(spaces[Constants.SpaceTypeFinishedAttic])
-        end
+        set_surface_interior(model, spaces, surface, roof_id, interior_adjacent_to)
 
         # Apply construction
-        if is_external_thermal_boundary(interior_adjacent_to, "ambient")
+        if is_external_thermal_boundary(interior_adjacent_to, "outside")
           drywall_thick_in = 0.5
         else
           drywall_thick_in = 0.0
@@ -1495,9 +1454,9 @@ class OSModel
           WoodStudConstructionSet.new(Material.Stud2x(8.0), 0.07, 10.0, 0.75, drywall_thick_in, mat_roofing), # 2x8, 24" o.c. + R10
           WoodStudConstructionSet.new(Material.Stud2x(8.0), 0.07, 5.0, 0.75, drywall_thick_in, mat_roofing),  # 2x8, 24" o.c. + R5
           WoodStudConstructionSet.new(Material.Stud2x(8.0), 0.07, 0.0, 0.75, drywall_thick_in, mat_roofing),  # 2x8, 24" o.c.
-          WoodStudConstructionSet.new(Material.Stud2x6, 0.07, 0.0, 0.75, drywall_thick_in, mat_roofing),  # 2x6, 24" o.c.
-          WoodStudConstructionSet.new(Material.Stud2x4, 0.07, 0.0, 0.5, drywall_thick_in, mat_roofing),   # 2x4, 16" o.c.
-          WoodStudConstructionSet.new(Material.Stud2x4, 0.01, 0.0, 0.0, 0.0, nil),                        # Fallback
+          WoodStudConstructionSet.new(Material.Stud2x6, 0.07, 0.0, 0.75, drywall_thick_in, mat_roofing),      # 2x6, 24" o.c.
+          WoodStudConstructionSet.new(Material.Stud2x4, 0.07, 0.0, 0.5, drywall_thick_in, mat_roofing),       # 2x4, 16" o.c.
+          WoodStudConstructionSet.new(Material.Stud2x4, 0.01, 0.0, 0.0, 0.0, mat_roofing),                    # Fallback
         ]
         constr_set, roof_cavity_r = pick_wood_stud_construction_set(assembly_r, constr_sets, film_r, "attic roof #{roof_id}")
 
@@ -1511,9 +1470,9 @@ class OSModel
                                                           true, constr_set.framing_factor,
                                                           constr_set.drywall_thick_in,
                                                           constr_set.osb_thick_in, constr_set.rigid_r,
-                                                          mat_roofing)
+                                                          constr_set.exterior_material)
         else
-          has_radiant_barrier = false
+          has_radiant_barrier = false # TODO
           success = RoofConstructions.apply_unfinished_attic(runner, model, [surface],
                                                              "RoofConstruction",
                                                              roof_cavity_r, roof_install_grade,
@@ -1521,7 +1480,7 @@ class OSModel
                                                              constr_set.framing_factor,
                                                              constr_set.stud.thick_in,
                                                              constr_set.osb_thick_in, constr_set.rigid_r,
-                                                             mat_roofing, has_radiant_barrier)
+                                                             constr_set.exterior_material, has_radiant_barrier)
           return false if not success
         end
 
@@ -1532,44 +1491,38 @@ class OSModel
 
       # Attic walls
       attic.elements.each("Walls/Wall") do |wall|
-        exterior_adjacent_to = XMLHelper.get_value(wall, "extension/ExteriorAdjacentTo")
+        exterior_adjacent_to = XMLHelper.get_value(wall, "AdjacentTo")
 
         wall_id = wall.elements["SystemIdentifier"].attributes["id"]
 
         wall_gross_area = Float(XMLHelper.get_value(wall, "Area"))
-        wall_net_area = net_wall_area(wall_gross_area, fenestration_areas, wall_id)
+        wall_net_area = net_wall_area(wall_gross_area, subsurface_areas, wall_id)
         if wall_net_area <= 0
           fail "Calculated a negative net surface area for Wall '#{wall_id}'."
         end
 
         wall_height = 8.0
         wall_length = wall_net_area / wall_height
-        z_origin = 0
+        z_origin = walls_top
+        wall_azimuth = XMLHelper.get_value(wall, "Azimuth")
+        if not wall_azimuth.nil?
+          wall_azimuth = Float(wall_azimuth)
+        else
+          wall_azimuth = 0.0 # TODO
+        end
 
-        surface = OpenStudio::Model::Surface.new(add_wall_polygon(UnitConversions.convert(wall_length, "ft", "m"),
-                                                                  UnitConversions.convert(wall_height, "ft", "m"),
-                                                                  UnitConversions.convert(z_origin, "ft", "m")), model)
+        surface = OpenStudio::Model::Surface.new(add_wall_polygon(wall_length, wall_height, z_origin,
+                                                                  wall_azimuth), model)
+
+        surface.additionalProperties.setFeature("Length", wall_length)
+        surface.additionalProperties.setFeature("Azimuth", wall_azimuth)
         surface.setName(wall_id)
         surface.setSurfaceType("Wall")
-        if ["unvented attic", "vented attic"].include? interior_adjacent_to
-          surface.setSpace(spaces[Constants.SpaceTypeUnfinishedAttic])
-        elsif ["flat roof", "cathedral ceiling"].include? interior_adjacent_to
-          surface.setSpace(spaces[Constants.SpaceTypeLiving])
-        elsif ["cape cod"].include? interior_adjacent_to
-          surface.setSpace(spaces[Constants.SpaceTypeFinishedAttic])
-        end
-        if ["ambient"].include? exterior_adjacent_to
-          surface.setOutsideBoundaryCondition("Outdoors")
-        elsif ["garage"].include? exterior_adjacent_to
-          surface.createAdjacentSurface(spaces[Constants.SpaceTypeGarage])
-        elsif ["unvented attic", "vented attic"].include? exterior_adjacent_to
-          surface.createAdjacentSurface(spaces[Constants.SpaceTypeUnfinishedAttic])
-        elsif ["cape cod"].include? exterior_adjacent_to
-          surface.createAdjacentSurface(spaces[Constants.SpaceTypeFinishedAttic])
-        elsif ["living space"].include? exterior_adjacent_to
-          surface.createAdjacentSurface(spaces[Constants.SpaceTypeLiving])
-        elsif exterior_adjacent_to != "ambient" and exterior_adjacent_to != "ground"
-          fail "Unhandled value (#{exterior_adjacent_to})."
+        set_surface_interior(model, spaces, surface, wall_id, interior_adjacent_to)
+        set_surface_exterior(model, spaces, surface, wall_id, exterior_adjacent_to)
+        if exterior_adjacent_to != "outside"
+          surface.setSunExposure("NoSun")
+          surface.setWindExposure("NoWind")
         end
 
         # Apply construction
@@ -1579,7 +1532,7 @@ class OSModel
         else
           drywall_thick_in = 0.0
         end
-        if exterior_adjacent_to == "ambient"
+        if exterior_adjacent_to == "outside"
           film_r = Material.AirFilmVertical.rvalue + Material.AirFilmOutside.rvalue
           mat_ext_finish = Material.ExtFinishWoodLight
         else
@@ -1599,7 +1552,9 @@ class OSModel
     return true
   end
 
-  def self.add_windows(runner, model, building, spaces, fenestration_areas, weather, cooling_season)
+  def self.add_windows(runner, model, building, spaces, subsurface_areas, weather, cooling_season)
+    foundation_top = get_foundation_top(model)
+
     surfaces = []
     building.elements.each("BuildingDetails/Enclosure/Windows/Window") do |window|
       window_id = window.elements["SystemIdentifier"].attributes["id"]
@@ -1615,46 +1570,32 @@ class OSModel
 
       window_area = Float(XMLHelper.get_value(window, "Area"))
       window_width = window_area / window_height
+      z_origin = foundation_top
       window_azimuth = Float(XMLHelper.get_value(window, "Azimuth"))
-      z_origin = 0
 
-      if not fenestration_areas.keys.include? window.elements["AttachedToWall"].attributes["idref"]
-        fenestration_areas[window.elements["AttachedToWall"].attributes["idref"]] = window_area
-      else
-        fenestration_areas[window.elements["AttachedToWall"].attributes["idref"]] += window_area
-      end
+      surface = OpenStudio::Model::Surface.new(add_wall_polygon(window_width, window_height, z_origin,
+                                                                window_azimuth, [0, 0.001, 0.001 * 2, 0.001]), model) # offsets B, L, T, R
 
-      surface = OpenStudio::Model::Surface.new(add_wall_polygon(UnitConversions.convert(window_width, "ft", "m"),
-                                                                UnitConversions.convert(window_height, "ft", "m"),
-                                                                UnitConversions.convert(z_origin, "ft", "m"),
-                                                                window_azimuth,
-                                                                [0, 0.001, 0.001 * 2, 0.001]), model) # offsets B, L, T, R
+      surface.additionalProperties.setFeature("Length", window_width)
+      surface.additionalProperties.setFeature("Azimuth", window_azimuth)
       surface.setName("surface #{window_id}")
       surface.setSurfaceType("Wall")
+      surface_space = nil
       building.elements.each("BuildingDetails/Enclosure/Walls/Wall") do |wall|
         next unless wall.elements["SystemIdentifier"].attributes["id"] == window.elements["AttachedToWall"].attributes["idref"]
 
-        interior_adjacent_to = XMLHelper.get_value(wall, "extension/InteriorAdjacentTo")
-        if interior_adjacent_to == "living space"
-          surface.setSpace(spaces[Constants.SpaceTypeLiving])
-        elsif interior_adjacent_to == "garage"
-          surface.setSpace(spaces[Constants.SpaceTypeGarage])
-        elsif interior_adjacent_to == "vented attic" or interior_adjacent_to == "unvented attic"
-          surface.setSpace(spaces[Constants.SpaceTypeUnfinishedAttic])
-        elsif interior_adjacent_to == "cape cod"
-          surface.setSpace(spaces[Constants.SpaceTypeFinishedAttic])
-        else
-          fail "Unhandled value (#{interior_adjacent_to})."
-        end
+        interior_adjacent_to = XMLHelper.get_value(wall, "InteriorAdjacentTo")
+        set_surface_interior(model, spaces, surface, window_id, interior_adjacent_to)
       end
+      if not surface.space.is_initialized
+        fail "Attached wall '#{window.elements['AttachedToWall'].attributes['idref']}' not found for window '#{window_id}'."
+      end
+
       surface.setOutsideBoundaryCondition("Outdoors") # cannot be adiabatic or OS won't create subsurface
       surfaces << surface
 
-      sub_surface = OpenStudio::Model::SubSurface.new(add_wall_polygon(UnitConversions.convert(window_width, "ft", "m"),
-                                                                       UnitConversions.convert(window_height, "ft", "m"),
-                                                                       UnitConversions.convert(z_origin, "ft", "m"),
-                                                                       window_azimuth,
-                                                                       [-0.001, 0, 0.001, 0]), model) # offsets B, L, T, R
+      sub_surface = OpenStudio::Model::SubSurface.new(add_wall_polygon(window_width, window_height, z_origin,
+                                                                       window_azimuth, [-0.001, 0, 0.001, 0]), model) # offsets B, L, T, R
       sub_surface.setName(window_id)
       sub_surface.setSurface(surface)
       sub_surface.setSubSurfaceType("FixedWindow")
@@ -1662,6 +1603,9 @@ class OSModel
       if not overhang_depth.nil?
         overhang = sub_surface.addOverhang(UnitConversions.convert(overhang_depth, "ft", "m"), UnitConversions.convert(overhang_distance_to_top, "ft", "m"))
         overhang.get.setName("#{sub_surface.name} - #{Constants.ObjectNameOverhangs}")
+
+        sub_surface.additionalProperties.setFeature(Constants.SizingInfoWindowOverhangDepth, overhang_depth)
+        sub_surface.additionalProperties.setFeature(Constants.SizingInfoWindowOverhangOffset, overhang_distance_to_top)
       end
 
       # Apply construction
@@ -1693,22 +1637,16 @@ class OSModel
     return true
   end
 
-  def self.add_skylights(runner, model, building, spaces, fenestration_areas, weather, cooling_season)
+  def self.add_skylights(runner, model, building, spaces, subsurface_areas, weather, cooling_season)
+    walls_top = get_walls_top(model)
+
     surfaces = []
     building.elements.each("BuildingDetails/Enclosure/Skylights/Skylight") do |skylight|
       skylight_id = skylight.elements["SystemIdentifier"].attributes["id"]
-      skylight_area = Float(XMLHelper.get_value(skylight, "Area"))
-      skylight_height = 5.0 # FIXME
-      skylight_width = skylight_area / skylight_height
-      skylight_azimuth = Float(XMLHelper.get_value(skylight, "Azimuth"))
-      z_origin = 0
-      if not fenestration_areas.keys.include? skylight.elements["AttachedToRoof"].attributes["idref"]
-        fenestration_areas[skylight.elements["AttachedToRoof"].attributes["idref"]] = skylight_area
-      else
-        fenestration_areas[skylight.elements["AttachedToRoof"].attributes["idref"]] += skylight_area
-      end
+
+      # Obtain skylight tilt from attached roof
       skylight_tilt = nil
-      building.elements.each("BuildingDetails/Enclosure/AtticAndRoof/Attics/Attic") do |attic|
+      building.elements.each("BuildingDetails/Enclosure/Attics/Attic") do |attic|
         attic_type = XMLHelper.get_value(attic, "AtticType")
         attic.elements.each("Roofs/Roof") do |roof|
           next unless roof.elements["SystemIdentifier"].attributes["id"] == skylight.elements["AttachedToRoof"].attributes["idref"]
@@ -1716,18 +1654,30 @@ class OSModel
           skylight_tilt = Float(XMLHelper.get_value(roof, "Pitch")) / 12.0
         end
       end
-      surface = OpenStudio::Model::Surface.new(add_roof_polygon(UnitConversions.convert(skylight_width, "ft", "m") + 0.0001, # base surface must be at least slightly larger than subsurface
-                                                                UnitConversions.convert(skylight_height, "ft", "m") + 0.0001, # base surface must be at least slightly larger than subsurface
-                                                                UnitConversions.convert(z_origin, "ft", "m"),
-                                                                skylight_azimuth, skylight_tilt), model)
+      if skylight_tilt.nil?
+        fail "Attached roof '#{skylight.elements['AttachedToRoof'].attributes['idref']}' not found for skylight '#{skylight_id}'."
+      end
+
+      skylight_area = Float(XMLHelper.get_value(skylight, "Area"))
+      skylight_height = Math::sqrt(skylight_area)
+      skylight_width = skylight_area / skylight_height
+      z_origin = walls_top + 0.5 * Math.sin(Math.atan(skylight_tilt)) * skylight_height
+      skylight_azimuth = Float(XMLHelper.get_value(skylight, "Azimuth"))
+
+      surface = OpenStudio::Model::Surface.new(add_roof_polygon(skylight_width + 0.001, skylight_height + 0.001, z_origin,
+                                                                skylight_azimuth, skylight_tilt), model) # base surface must be at least slightly larger than subsurface
+
+      surface.additionalProperties.setFeature("Length", skylight_width)
+      surface.additionalProperties.setFeature("Width", skylight_height)
+      surface.additionalProperties.setFeature("Tilt", skylight_tilt)
+      surface.additionalProperties.setFeature("Azimuth", skylight_azimuth)
       surface.setName("surface #{skylight_id}")
       surface.setSurfaceType("RoofCeiling")
-      surface.setSpace(spaces[Constants.SpaceTypeLiving]) # Ensures it is included in Manual J sizing
+      surface.setSpace(create_or_get_space(model, spaces, Constants.SpaceTypeLiving)) # Ensures it is included in Manual J sizing
       surface.setOutsideBoundaryCondition("Outdoors") # cannot be adiabatic or OS won't create subsurface
       surfaces << surface
-      sub_surface = OpenStudio::Model::SubSurface.new(add_roof_polygon(UnitConversions.convert(skylight_width, "ft", "m"),
-                                                                       UnitConversions.convert(skylight_height, "ft", "m"),
-                                                                       UnitConversions.convert(z_origin, "ft", "m"),
+
+      sub_surface = OpenStudio::Model::SubSurface.new(add_roof_polygon(skylight_width, skylight_height, z_origin,
                                                                        skylight_azimuth, skylight_tilt), model)
       sub_surface.setName(skylight_id)
       sub_surface.setSurface(surface)
@@ -1751,7 +1701,9 @@ class OSModel
     return true
   end
 
-  def self.add_doors(runner, model, building, spaces, fenestration_areas)
+  def self.add_doors(runner, model, building, spaces, subsurface_areas)
+    foundation_top = get_foundation_top(model)
+
     surfaces = []
     building.elements.each("BuildingDetails/Enclosure/Doors/Door") do |door|
       door_id = door.elements["SystemIdentifier"].attributes["id"]
@@ -1765,52 +1717,32 @@ class OSModel
 
       door_height = 6.67 # ft
       door_width = door_area / door_height
-      z_origin = 0
+      z_origin = foundation_top
+      door_azimuth = Float(XMLHelper.get_value(door, "Azimuth"))
 
-      door_azimuth = XMLHelper.get_value(door, "Azimuth")
-      if not door_azimuth.nil?
-        door_azimuth = Float(door_azimuth)
-      else
-        door_azimuth = SubsurfaceConstructions.get_default_door_azimuth()
-      end
+      surface = OpenStudio::Model::Surface.new(add_wall_polygon(door_width, door_height, z_origin,
+                                                                door_azimuth, [0, 0.001, 0.001, 0.001]), model) # offsets B, L, T, R
 
-      if not fenestration_areas.keys.include? door.elements["AttachedToWall"].attributes["idref"]
-        fenestration_areas[door.elements["AttachedToWall"].attributes["idref"]] = door_area
-      else
-        fenestration_areas[door.elements["AttachedToWall"].attributes["idref"]] += door_area
-      end
-
-      surface = OpenStudio::Model::Surface.new(add_wall_polygon(UnitConversions.convert(door_width, "ft", "m"),
-                                                                UnitConversions.convert(door_height, "ft", "m"),
-                                                                UnitConversions.convert(z_origin, "ft", "m"),
-                                                                door_azimuth,
-                                                                [0, 0.001, 0.001, 0.001]), model) # offsets B, L, T, R
+      surface.additionalProperties.setFeature("Length", door_width)
+      surface.additionalProperties.setFeature("Azimuth", door_azimuth)
       surface.setName("surface #{door_id}")
       surface.setSurfaceType("Wall")
+      surface_space = nil
       building.elements.each("BuildingDetails/Enclosure/Walls/Wall") do |wall|
         next unless wall.elements["SystemIdentifier"].attributes["id"] == door.elements["AttachedToWall"].attributes["idref"]
 
-        interior_adjacent_to = XMLHelper.get_value(wall, "extension/InteriorAdjacentTo")
-        if interior_adjacent_to == "living space"
-          surface.setSpace(spaces[Constants.SpaceTypeLiving])
-        elsif interior_adjacent_to == "garage"
-          surface.setSpace(spaces[Constants.SpaceTypeGarage])
-        elsif interior_adjacent_to == "vented attic" or interior_adjacent_to == "unvented attic"
-          surface.setSpace(spaces[Constants.SpaceTypeUnfinishedAttic])
-        elsif interior_adjacent_to == "cape cod"
-          surface.setSpace(spaces[Constants.SpaceTypeFinishedAttic])
-        else
-          fail "Unhandled value (#{interior_adjacent_to})."
-        end
+        interior_adjacent_to = XMLHelper.get_value(wall, "InteriorAdjacentTo")
+        set_surface_interior(model, spaces, surface, door_id, interior_adjacent_to)
       end
+      if not surface.space.is_initialized
+        fail "Attached wall '#{door.elements['AttachedToWall'].attributes['idref']}' not found for door '#{door_id}'."
+      end
+
       surface.setOutsideBoundaryCondition("Outdoors") # cannot be adiabatic or OS won't create subsurface
       surfaces << surface
 
-      sub_surface = OpenStudio::Model::SubSurface.new(add_wall_polygon(UnitConversions.convert(door_width, "ft", "m"),
-                                                                       UnitConversions.convert(door_height, "ft", "m"),
-                                                                       UnitConversions.convert(z_origin, "ft", "m"),
-                                                                       door_azimuth,
-                                                                       [0, 0, 0, 0]), model) # offsets B, L, T, R
+      sub_surface = OpenStudio::Model::SubSurface.new(add_wall_polygon(door_width, door_height, z_origin,
+                                                                       door_azimuth, [0, 0, 0, 0]), model) # offsets B, L, T, R
       sub_surface.setName(door_id)
       sub_surface.setSurface(surface)
       sub_surface.setSubSurfaceType("Door")
@@ -1884,88 +1816,112 @@ class OSModel
     return true
   end
 
-  def self.add_hot_water_and_appliances(runner, model, building, unit, weather, spaces)
+  def self.add_hot_water_and_appliances(runner, model, building, unit, weather, spaces, loop_dhws)
     wh = building.elements["BuildingDetails/Systems/WaterHeating"]
-    appl = building.elements["BuildingDetails/Appliances"]
 
     # Clothes Washer
-    cw = appl.elements["ClothesWasher"]
-    cw_mef = XMLHelper.get_value(cw, "ModifiedEnergyFactor")
-    cw_imef = XMLHelper.get_value(cw, "IntegratedModifiedEnergyFactor")
-    if cw_mef.nil? and cw_imef.nil?
-      cw_mef = HotWaterAndAppliances.get_clothes_washer_reference_mef()
-      cw_ler = HotWaterAndAppliances.get_clothes_washer_reference_ler()
-      cw_elec_rate = HotWaterAndAppliances.get_clothes_washer_reference_elec_rate()
-      cw_gas_rate = HotWaterAndAppliances.get_clothes_washer_reference_gas_rate()
-      cw_agc = HotWaterAndAppliances.get_clothes_washer_reference_agc()
-      cw_cap = HotWaterAndAppliances.get_clothes_washer_reference_cap()
-
-    else
-      if not cw_mef.nil?
-        cw_mef = Float(cw_mef)
-      elsif not cw_imef.nil?
-        cw_mef = HotWaterAndAppliances.calc_clothes_washer_mef_from_imef(Float(cw_imef))
+    cw = building.elements["BuildingDetails/Appliances/ClothesWasher"]
+    if not cw.nil?
+      cw_location = XMLHelper.get_value(cw, "Location")
+      cw_space = get_space_from_location(cw_location, "ClothesWasher", model, spaces)
+      cw_mef = XMLHelper.get_value(cw, "ModifiedEnergyFactor")
+      cw_imef = XMLHelper.get_value(cw, "IntegratedModifiedEnergyFactor")
+      if cw_mef.nil? and cw_imef.nil?
+        cw_mef = HotWaterAndAppliances.get_clothes_washer_reference_mef()
+        cw_ler = HotWaterAndAppliances.get_clothes_washer_reference_ler()
+        cw_elec_rate = HotWaterAndAppliances.get_clothes_washer_reference_elec_rate()
+        cw_gas_rate = HotWaterAndAppliances.get_clothes_washer_reference_gas_rate()
+        cw_agc = HotWaterAndAppliances.get_clothes_washer_reference_agc()
+        cw_cap = HotWaterAndAppliances.get_clothes_washer_reference_cap()
+      else
+        if not cw_mef.nil?
+          cw_mef = Float(cw_mef)
+        elsif not cw_imef.nil?
+          cw_mef = HotWaterAndAppliances.calc_clothes_washer_mef_from_imef(Float(cw_imef))
+        end
+        cw_ler = Float(XMLHelper.get_value(cw, "RatedAnnualkWh"))
+        cw_elec_rate = Float(XMLHelper.get_value(cw, "LabelElectricRate"))
+        cw_gas_rate = Float(XMLHelper.get_value(cw, "LabelGasRate"))
+        cw_agc = Float(XMLHelper.get_value(cw, "LabelAnnualGasCost"))
+        cw_cap = Float(XMLHelper.get_value(cw, "Capacity"))
       end
-      cw_ler = Float(XMLHelper.get_value(cw, "RatedAnnualkWh"))
-      cw_elec_rate = Float(XMLHelper.get_value(cw, "LabelElectricRate"))
-      cw_gas_rate = Float(XMLHelper.get_value(cw, "LabelGasRate"))
-      cw_agc = Float(XMLHelper.get_value(cw, "LabelAnnualGasCost"))
-      cw_cap = Float(XMLHelper.get_value(cw, "Capacity"))
+    else
+      cw_mef = cw_ler = cw_elec_rate = cw_gas_rate = cw_agc = cw_cap = nil
     end
 
     # Clothes Dryer
-    cd = appl.elements["ClothesDryer"]
-    cd_fuel = to_beopt_fuel(XMLHelper.get_value(cd, "FuelType"))
-    cd_ef = XMLHelper.get_value(cd, "EnergyFactor")
-    cd_cef = XMLHelper.get_value(cd, "CombinedEnergyFactor")
-    if cd_ef.nil? and cd_cef.nil?
-      cd_ef = HotWaterAndAppliances.get_clothes_dryer_reference_ef(cd_fuel)
-      cd_control = HotWaterAndAppliances.get_clothes_dryer_reference_control()
-    else
-      if not cd_ef.nil?
-        cd_ef = Float(cd_ef)
-      elsif not cd_cef.nil?
-        cd_ef = HotWaterAndAppliances.calc_clothes_dryer_ef_from_cef(Float(cd_cef))
+    cd = building.elements["BuildingDetails/Appliances/ClothesDryer"]
+    if not cd.nil?
+      cd_location = XMLHelper.get_value(cd, "Location")
+      cd_space = get_space_from_location(cd_location, "ClothesDryer", model, spaces)
+      cd_fuel = to_beopt_fuel(XMLHelper.get_value(cd, "FuelType"))
+      cd_ef = XMLHelper.get_value(cd, "EnergyFactor")
+      cd_cef = XMLHelper.get_value(cd, "CombinedEnergyFactor")
+      if cd_ef.nil? and cd_cef.nil?
+        cd_ef = HotWaterAndAppliances.get_clothes_dryer_reference_ef(cd_fuel)
+        cd_control = HotWaterAndAppliances.get_clothes_dryer_reference_control()
+      else
+        if not cd_ef.nil?
+          cd_ef = Float(cd_ef)
+        elsif not cd_cef.nil?
+          cd_ef = HotWaterAndAppliances.calc_clothes_dryer_ef_from_cef(Float(cd_cef))
+        end
+        cd_control = XMLHelper.get_value(cd, "ControlType")
       end
-      cd_control = XMLHelper.get_value(cd, "ControlType")
+    else
+      cd_ef = cd_control = cd_fuel = nil
     end
 
     # Dishwasher
-    dw = appl.elements["Dishwasher"]
-    dw_ef = XMLHelper.get_value(dw, "EnergyFactor")
-    dw_annual_kwh = XMLHelper.get_value(dw, "RatedAnnualkWh")
-    if dw_ef.nil? and dw_annual_kwh.nil?
-      dw_ef = HotWaterAndAppliances.get_dishwasher_reference_ef()
-      dw_cap = HotWaterAndAppliances.get_dishwasher_reference_cap()
-    else
-      if not dw_ef.nil?
-        dw_ef = Float(dw_ef)
-      elsif not dw_annual_kwh.nil?
-        dw_ef = HotWaterAndAppliances.calc_dishwasher_ef_from_annual_kwh(Float(dw_annual_kwh))
+    dw = building.elements["BuildingDetails/Appliances/Dishwasher"]
+    if not dw.nil?
+      dw_ef = XMLHelper.get_value(dw, "EnergyFactor")
+      dw_annual_kwh = XMLHelper.get_value(dw, "RatedAnnualkWh")
+      if dw_ef.nil? and dw_annual_kwh.nil?
+        dw_ef = HotWaterAndAppliances.get_dishwasher_reference_ef()
+        dw_cap = HotWaterAndAppliances.get_dishwasher_reference_cap()
+      else
+        if not dw_ef.nil?
+          dw_ef = Float(dw_ef)
+        elsif not dw_annual_kwh.nil?
+          dw_ef = HotWaterAndAppliances.calc_dishwasher_ef_from_annual_kwh(Float(dw_annual_kwh))
+        end
+        dw_cap = Float(XMLHelper.get_value(dw, "PlaceSettingCapacity"))
       end
-      dw_cap = Float(XMLHelper.get_value(dw, "PlaceSettingCapacity"))
+    else
+      dw_ef = dw_cap = nil
     end
 
     # Refrigerator
-    fridge = appl.elements["Refrigerator"]
-    fridge_annual_kwh = XMLHelper.get_value(fridge, "RatedAnnualkWh")
-    if fridge_annual_kwh.nil?
-      fridge_annual_kwh = HotWaterAndAppliances.get_refrigerator_reference_annual_kwh(@nbeds)
+    fridge = building.elements["BuildingDetails/Appliances/Refrigerator"]
+    if not fridge.nil?
+      fridge_location = XMLHelper.get_value(fridge, "Location")
+      fridge_space = get_space_from_location(fridge_location, "Refrigerator", model, spaces)
+      fridge_annual_kwh = XMLHelper.get_value(fridge, "RatedAnnualkWh")
+      if fridge_annual_kwh.nil?
+        fridge_annual_kwh = HotWaterAndAppliances.get_refrigerator_reference_annual_kwh(@nbeds)
+      else
+        fridge_annual_kwh = Float(fridge_annual_kwh)
+      end
     else
-      fridge_annual_kwh = Float(fridge_annual_kwh)
+      fridge_annual_kwh = nil
     end
 
     # Cooking Range/Oven
-    cook = appl.elements["CookingRange"]
-    oven = appl.elements["Oven"]
-    cook_fuel_type = to_beopt_fuel(XMLHelper.get_value(cook, "FuelType"))
-    cook_is_induction = XMLHelper.get_value(cook, "IsInduction")
-    if cook_is_induction.nil?
-      cook_is_induction = HotWaterAndAppliances.get_range_oven_reference_is_induction()
-      oven_is_convection = HotWaterAndAppliances.get_range_oven_reference_is_convection()
+    cook = building.elements["BuildingDetails/Appliances/CookingRange"]
+    oven = building.elements["BuildingDetails/Appliances/Oven"]
+    if not cook.nil? and not oven.nil?
+      cook_fuel_type = to_beopt_fuel(XMLHelper.get_value(cook, "FuelType"))
+      cook_is_induction = XMLHelper.get_value(cook, "IsInduction")
+      if cook_is_induction.nil?
+        cook_is_induction = HotWaterAndAppliances.get_range_oven_reference_is_induction()
+        oven_is_convection = HotWaterAndAppliances.get_range_oven_reference_is_convection()
+      else
+        cook_is_induction = Boolean(cook_is_induction)
+        oven_is_convection = Boolean(XMLHelper.get_value(oven, "IsConvection"))
+      end
     else
-      cook_is_induction = Boolean(cook_is_induction)
-      oven_is_convection = Boolean(XMLHelper.get_value(oven, "IsConvection"))
+      cook_fuel_type = cook_is_induction = oven_is_convection = nil
     end
 
     # Fixtures
@@ -2027,127 +1983,120 @@ class OSModel
     end
 
     # Water Heater
+    dhw_loop_fracs = {}
     if not wh.nil?
-      dhw = wh.elements["WaterHeatingSystem"]
-      location = XMLHelper.get_value(dhw, "Location")
-      setpoint_temp = XMLHelper.get_value(dhw, "HotWaterTemperature")
-      if setpoint_temp.nil?
+      wh.elements.each("WaterHeatingSystem") do |dhw|
+        orig_plant_loops = model.getPlantLoops
+
+        location = XMLHelper.get_value(dhw, "Location")
+        space = get_space_from_location(location, "WaterHeatingSystem", model, spaces)
         setpoint_temp = Waterheater.get_default_hot_water_temperature(@eri_version)
-      else
-        setpoint_temp = Float(setpoint_temp)
-      end
-      wh_type = XMLHelper.get_value(dhw, "WaterHeaterType")
-      fuel = XMLHelper.get_value(dhw, "FuelType")
+        wh_type = XMLHelper.get_value(dhw, "WaterHeaterType")
+        fuel = XMLHelper.get_value(dhw, "FuelType")
 
-      if location == 'conditioned space'
-        space = spaces[Constants.SpaceTypeLiving]
-      elsif location == 'basement - unconditioned'
-        space = spaces[Constants.SpaceTypeUnfinishedBasement]
-      elsif location == 'attic - unconditioned'
-        space = spaces[Constants.SpaceTypeUnfinishedAttic]
-      elsif location == 'garage - unconditioned'
-        space = spaces[Constants.SpaceTypeGarage]
-      elsif location == 'crawlspace - unvented' or location == 'crawlspace - vented'
-        space = spaces[Constants.SpaceTypeCrawl]
-      else
-        fail "Unhandled water heater space: #{location}."
-      end
-      if space.nil?
-        fail "Water heater location was #{location} but building does not have this space type."
-      end
-
-      ef = XMLHelper.get_value(dhw, "EnergyFactor")
-      if ef.nil?
-        uef = Float(XMLHelper.get_value(dhw, "UniformEnergyFactor"))
-        ef = Waterheater.calc_ef_from_uef(uef, to_beopt_wh_type(wh_type), to_beopt_fuel(fuel))
-      else
-        ef = Float(ef)
-      end
-      ef_adj = XMLHelper.get_value(dhw, "extension/EnergyFactorMultiplier")
-      if ef_adj.nil?
-        ef_adj = Waterheater.get_ef_multiplier(to_beopt_wh_type(wh_type))
-      else
-        ef_adj = Float(ef_adj)
-      end
-      ec_adj = HotWaterAndAppliances.get_dist_energy_consumption_adjustment(@has_uncond_bsmnt, @cfa, @ncfl,
-                                                                            dist_type, recirc_control_type,
-                                                                            pipe_r, std_pipe_length, recirc_loop_length)
-
-      if wh_type == "storage water heater"
-
-        tank_vol = Float(XMLHelper.get_value(dhw, "TankVolume"))
-        if fuel != "electricity"
-          re = Float(XMLHelper.get_value(dhw, "RecoveryEfficiency"))
+        ef = XMLHelper.get_value(dhw, "EnergyFactor")
+        if ef.nil?
+          uef = Float(XMLHelper.get_value(dhw, "UniformEnergyFactor"))
+          ef = Waterheater.calc_ef_from_uef(uef, to_beopt_wh_type(wh_type), to_beopt_fuel(fuel))
         else
-          re = 0.98
+          ef = Float(ef)
         end
-        capacity_kbtuh = Float(XMLHelper.get_value(dhw, "HeatingCapacity")) / 1000.0
-        oncycle_power = 0.0
-        offcycle_power = 0.0
-        success = Waterheater.apply_tank(model, unit, runner, space, to_beopt_fuel(fuel),
-                                         capacity_kbtuh, tank_vol, ef * ef_adj, re, setpoint_temp,
-                                         oncycle_power, offcycle_power, ec_adj)
-        return false if not success
+        ef_adj = XMLHelper.get_value(dhw, "extension/EnergyFactorMultiplier")
+        if ef_adj.nil?
+          ef_adj = Waterheater.get_ef_multiplier(to_beopt_wh_type(wh_type))
+        else
+          ef_adj = Float(ef_adj)
+        end
+        ec_adj = HotWaterAndAppliances.get_dist_energy_consumption_adjustment(@has_uncond_bsmnt, @cfa, @ncfl,
+                                                                              dist_type, recirc_control_type,
+                                                                              pipe_r, std_pipe_length, recirc_loop_length)
 
-      elsif wh_type == "instantaneous water heater"
+        dhw_load_frac = Float(XMLHelper.get_value(dhw, "FractionDHWLoadServed"))
 
-        capacity_kbtuh = 100000000.0
-        oncycle_power = 0.0
-        offcycle_power = 0.0
-        success = Waterheater.apply_tankless(model, unit, runner, space, to_beopt_fuel(fuel),
-                                             capacity_kbtuh, ef, ef_adj,
-                                             setpoint_temp, oncycle_power, offcycle_power, ec_adj)
-        return false if not success
+        if wh_type == "storage water heater"
 
-      elsif wh_type == "heat pump water heater"
+          tank_vol = Float(XMLHelper.get_value(dhw, "TankVolume"))
+          if fuel != "electricity"
+            re = Float(XMLHelper.get_value(dhw, "RecoveryEfficiency"))
+          else
+            re = 0.98
+          end
+          capacity_kbtuh = Float(XMLHelper.get_value(dhw, "HeatingCapacity")) / 1000.0
+          oncycle_power = 0.0
+          offcycle_power = 0.0
+          success = Waterheater.apply_tank(model, unit, runner, nil, space, to_beopt_fuel(fuel),
+                                           capacity_kbtuh, tank_vol, ef * ef_adj, re, setpoint_temp,
+                                           oncycle_power, offcycle_power, ec_adj)
+          return false if not success
 
-        tank_vol = Float(XMLHelper.get_value(dhw, "TankVolume"))
-        e_cap = 4.5 # FIXME
-        min_temp = 45.0 # FIXME
-        max_temp = 120.0 # FIXME
-        cap = 0.5 # FIXME
-        cop = 2.8 # FIXME
-        shr = 0.88 # FIXME
-        airflow_rate = 181.0 # FIXME
-        fan_power = 0.0462 # FIXME
-        parasitics = 3.0 # FIXME
-        tank_ua = 3.9 # FIXME
-        int_factor = 1.0 # FIXME
-        temp_depress = 0.0 # FIXME
-        ducting = "none"
-        # FIXME: Use ef, ef_adj, ec_adj
-        success = Waterheater.apply_heatpump(model, unit, runner, space, weather,
-                                             e_cap, tank_vol, setpoint_temp, min_temp, max_temp,
-                                             cap, cop, shr, airflow_rate, fan_power,
-                                             parasitics, tank_ua, int_factor, temp_depress,
-                                             ducting, 0)
-        return false if not success
+        elsif wh_type == "instantaneous water heater"
 
-      else
+          capacity_kbtuh = 100000000.0
+          oncycle_power = 0.0
+          offcycle_power = 0.0
+          cycling_derate = 1.0 - ef_adj
+          success = Waterheater.apply_tankless(model, unit, runner, nil, space, to_beopt_fuel(fuel),
+                                               capacity_kbtuh, ef, cycling_derate,
+                                               setpoint_temp, oncycle_power, offcycle_power, ec_adj)
+          return false if not success
 
-        fail "Unhandled water heater (#{wh_type})."
+        elsif wh_type == "heat pump water heater"
 
+          tank_vol = Float(XMLHelper.get_value(dhw, "TankVolume"))
+          e_cap = 4.5 # FIXME
+          min_temp = 45.0 # FIXME
+          max_temp = 120.0 # FIXME
+          cap = 0.5 # FIXME
+          cop = 2.8 # FIXME
+          shr = 0.88 # FIXME
+          airflow_rate = 181.0 # FIXME
+          fan_power = 0.0462 # FIXME
+          parasitics = 3.0 # FIXME
+          tank_ua = 3.9 # FIXME
+          int_factor = 1.0 # FIXME
+          temp_depress = 0.0 # FIXME
+          ducting = "none"
+          # FIXME: Use ef, ef_adj, ec_adj
+          success = Waterheater.apply_heatpump(model, unit, runner, nil, space, weather,
+                                               e_cap, tank_vol, setpoint_temp, min_temp, max_temp,
+                                               cap, cop, shr, airflow_rate, fan_power,
+                                               parasitics, tank_ua, int_factor, temp_depress,
+                                               ducting, 0)
+          return false if not success
+
+        else
+
+          fail "Unhandled water heater (#{wh_type})."
+
+        end
+
+        new_plant_loop = (model.getPlantLoops - orig_plant_loops)[0]
+        dhw_loop_fracs[new_plant_loop] = dhw_load_frac
+
+        update_loop_dhws(loop_dhws, model, dhw, orig_plant_loops)
       end
     end
 
     success = HotWaterAndAppliances.apply(model, unit, runner, weather,
                                           @cfa, @nbeds, @ncfl, @has_uncond_bsmnt,
                                           cw_mef, cw_ler, cw_elec_rate, cw_gas_rate,
-                                          cw_agc, cw_cap, cd_fuel, cd_ef, cd_control,
-                                          dw_ef, dw_cap, fridge_annual_kwh, cook_fuel_type,
-                                          cook_is_induction, oven_is_convection,
+                                          cw_agc, cw_cap, cw_space, cd_fuel, cd_ef, cd_control,
+                                          cd_space, dw_ef, dw_cap, fridge_annual_kwh, fridge_space,
+                                          cook_fuel_type, cook_is_induction, oven_is_convection,
                                           has_low_flow_fixtures, dist_type, pipe_r,
                                           std_pipe_length, recirc_loop_length,
                                           recirc_branch_length, recirc_control_type,
                                           recirc_pump_power, dwhr_present,
                                           dwhr_facilities_connected, dwhr_is_equal_flow,
-                                          dwhr_efficiency, setpoint_temp, @eri_version)
+                                          dwhr_efficiency, dhw_loop_fracs, @eri_version)
     return false if not success
 
     return true
   end
 
-  def self.add_cooling_system(runner, model, building, unit, loop_hvacs, zone_hvacs)
+  def self.add_cooling_system(runner, model, building, unit, loop_hvacs, zone_hvacs, use_only_ideal_air)
+    return true if use_only_ideal_air
+
     building.elements.each("BuildingDetails/Systems/HVAC/HVACPlant/CoolingSystem") do |clgsys|
       clg_type = XMLHelper.get_value(clgsys, "CoolingSystemType")
 
@@ -2244,7 +2193,9 @@ class OSModel
     return true
   end
 
-  def self.add_heating_system(runner, model, building, unit, loop_hvacs, zone_hvacs)
+  def self.add_heating_system(runner, model, building, unit, loop_hvacs, zone_hvacs, use_only_ideal_air)
+    return true if use_only_ideal_air
+
     building.elements.each("BuildingDetails/Systems/HVAC/HVACPlant/HeatingSystem") do |htgsys|
       fuel = to_beopt_fuel(XMLHelper.get_value(htgsys, "HeatingSystemFuel"))
 
@@ -2325,7 +2276,9 @@ class OSModel
     return true
   end
 
-  def self.add_heat_pump(runner, model, building, unit, weather, loop_hvacs, zone_hvacs)
+  def self.add_heat_pump(runner, model, building, unit, weather, loop_hvacs, zone_hvacs, use_only_ideal_air)
+    return true if use_only_ideal_air
+
     building.elements.each("BuildingDetails/Systems/HVAC/HVACPlant/HeatPump") do |hp|
       hp_type = XMLHelper.get_value(hp, "HeatPumpType")
 
@@ -2520,20 +2473,57 @@ class OSModel
     return true
   end
 
+  def self.add_residual_hvac(runner, model, building, unit, use_only_ideal_air)
+    if use_only_ideal_air
+      success = HVAC.apply_ideal_air_loads_heating(model, unit, runner, 1)
+      return false if not success
+
+      success = HVAC.apply_ideal_air_loads_cooling(model, unit, runner, 1)
+      return false if not success
+
+      return true
+    end
+
+    # Residual heating
+    htg_load_frac = building.elements["sum(BuildingDetails/Systems/HVAC/HVACPlant/HeatingSystem/FractionHeatLoadServed)"]
+    htg_load_frac += building.elements["sum(BuildingDetails/Systems/HVAC/HVACPlant/HeatPump/FractionHeatLoadServed)"]
+    residual_htg_load_frac = 1.0 - htg_load_frac
+    if residual_htg_load_frac > 0.02 and residual_htg_load_frac < 1 # TODO: Ensure that E+ will re-normalize if == 0.01
+      success = HVAC.apply_ideal_air_loads_heating(model, unit, runner, residual_htg_load_frac)
+      return false if not success
+    end
+
+    # Residual cooling
+    clg_load_frac = building.elements["sum(BuildingDetails/Systems/HVAC/HVACPlant/CoolingSystem/FractionCoolLoadServed)"]
+    clg_load_frac += building.elements["sum(BuildingDetails/Systems/HVAC/HVACPlant/HeatPump/FractionCoolLoadServed)"]
+    residual_clg_load_frac = 1.0 - clg_load_frac
+    if residual_clg_load_frac > 0.02 and residual_clg_load_frac < 1 # TODO: Ensure that E+ will re-normalize if == 0.01
+      success = HVAC.apply_ideal_air_loads_cooling(model, unit, runner, residual_clg_load_frac)
+      return false if not success
+    end
+
+    return true
+  end
+
   def self.add_setpoints(runner, model, building, weather)
     control = building.elements["BuildingDetails/Systems/HVAC/HVACControl"]
     return true if control.nil?
 
     control_type = XMLHelper.get_value(control, "ControlType")
 
-    htg_sp, htg_setback_sp, htg_setback_hrs_per_week, htg_setback_start_hr = HVAC.get_default_heating_setpoint(control_type)
-    if htg_setback_sp.nil?
-      htg_weekday_setpoints = [[htg_sp] * 24] * 12
-    else
-      htg_weekday_setpoints = [[htg_sp] * 24] * 12
-      (0..11).to_a.each do |m|
-        for hr in htg_setback_start_hr..htg_setback_start_hr + Integer(htg_setback_hrs_per_week / 7.0) - 1
-          htg_weekday_setpoints[m][hr % 24] = htg_setback_sp
+    heating_temp = XMLHelper.get_value(control, "SetpointTempHeatingSeason")
+    if not heating_temp.nil? # Use provided value
+      htg_weekday_setpoints = [[Float(heating_temp)] * 24] * 12
+    else # Use ERI default
+      htg_sp, htg_setback_sp, htg_setback_hrs_per_week, htg_setback_start_hr = HVAC.get_default_heating_setpoint(control_type)
+      if htg_setback_sp.nil?
+        htg_weekday_setpoints = [[htg_sp] * 24] * 12
+      else
+        htg_weekday_setpoints = [[htg_sp] * 24] * 12
+        (0..11).to_a.each do |m|
+          for hr in htg_setback_start_hr..htg_setback_start_hr + Integer(htg_setback_hrs_per_week / 7.0) - 1
+            htg_weekday_setpoints[m][hr % 24] = htg_setback_sp
+          end
         end
       end
     end
@@ -2545,14 +2535,19 @@ class OSModel
                                            htg_use_auto_season, htg_season_start_month, htg_season_end_month)
     return false if not success
 
-    clg_sp, clg_setup_sp, clg_setup_hrs_per_week, clg_setup_start_hr = HVAC.get_default_cooling_setpoint(control_type)
-    if clg_setup_sp.nil?
-      clg_weekday_setpoints = [[clg_sp] * 24] * 12
-    else
-      clg_weekday_setpoints = [[clg_sp] * 24] * 12
-      (0..11).to_a.each do |m|
-        for hr in clg_setup_start_hr..clg_setup_start_hr + Integer(clg_setup_hrs_per_week / 7.0) - 1
-          clg_weekday_setpoints[m][hr % 24] = clg_setup_sp
+    cooling_temp = XMLHelper.get_value(control, "SetpointTempCoolingSeason")
+    if not cooling_temp.nil? # Use provided value
+      clg_weekday_setpoints = [[Float(cooling_temp)] * 24] * 12
+    else # Use ERI default
+      clg_sp, clg_setup_sp, clg_setup_hrs_per_week, clg_setup_start_hr = HVAC.get_default_cooling_setpoint(control_type)
+      if clg_setup_sp.nil?
+        clg_weekday_setpoints = [[clg_sp] * 24] * 12
+      else
+        clg_weekday_setpoints = [[clg_sp] * 24] * 12
+        (0..11).to_a.each do |m|
+          for hr in clg_setup_start_hr..clg_setup_start_hr + Integer(clg_setup_hrs_per_week / 7.0) - 1
+            clg_weekday_setpoints[m][hr % 24] = clg_setup_sp
+          end
         end
       end
     end
@@ -2572,21 +2567,6 @@ class OSModel
     clg_season_end_month = 12
     success = HVAC.apply_cooling_setpoints(model, runner, weather, clg_weekday_setpoints, clg_weekend_setpoints,
                                            clg_use_auto_season, clg_season_start_month, clg_season_end_month)
-    return false if not success
-
-    return true
-  end
-
-  def self.add_dehumidifier(runner, model, building, unit)
-    dehumidifier = building.elements["BuildingDetails/Systems/HVAC/extension/Dehumidifier"]
-    return true if dehumidifier.nil?
-
-    energy_factor = XMLHelper.get_value(dehumidifier, "EnergyFactor")
-    water_removal_rate = XMLHelper.get_value(dehumidifier, "WaterRemovalRrate")
-    air_flow_rate = XMLHelper.get_value(dehumidifier, "AirFlowRate")
-    humidity_setpoint = XMLHelper.get_value(dehumidifier, "HumiditySetpoint")
-    success = HVAC.apply_dehumidifier(model, unit, runner, energy_factor,
-                                      water_removal_rate, air_flow_rate, humidity_setpoint)
     return false if not success
 
     return true
@@ -2649,6 +2629,8 @@ class OSModel
     zone_hvacs = []
     model.getThermalZones.each do |zone|
       zone.equipment.each do |zone_hvac|
+        next unless zone_hvac.to_ZoneHVACComponent.is_initialized
+
         zone_hvacs << zone_hvac
       end
     end
@@ -2691,26 +2673,91 @@ class OSModel
     end
   end
 
-  def self.add_mels(runner, model, building, unit, living_space)
+  def self.update_loop_dhws(loop_dhws, model, sys, orig_plant_loops)
+    sys_id = sys.elements["SystemIdentifier"].attributes["id"]
+    loop_dhws[sys_id] = []
+
+    model.getPlantLoops.each do |plant_loop|
+      next if orig_plant_loops.include? plant_loop # Only include newly added plant loops
+
+      loop_dhws[sys_id] << plant_loop
+    end
+
+    loop_dhws.each do |sys_id, loops|
+      next if not loops.empty?
+
+      loop_dhws.delete(sys_id)
+    end
+  end
+
+  def self.add_mels(runner, model, building, unit, spaces)
+    living_space = create_or_get_space(model, spaces, Constants.SpaceTypeLiving)
+
     # Misc
-    annual_kwh, sens_frac, lat_frac = MiscLoads.get_residual_mels_values(@cfa)
-    weekday_sch = "0.04, 0.037, 0.037, 0.036, 0.033, 0.036, 0.043, 0.047, 0.034, 0.023, 0.024, 0.025, 0.024, 0.028, 0.031, 0.032, 0.039, 0.053, 0.063, 0.067, 0.071, 0.069, 0.059, 0.05"
-    weekend_sch = "0.04, 0.037, 0.037, 0.036, 0.033, 0.036, 0.043, 0.047, 0.034, 0.023, 0.024, 0.025, 0.024, 0.028, 0.031, 0.032, 0.039, 0.053, 0.063, 0.067, 0.071, 0.069, 0.059, 0.05"
-    monthly_sch = "1.248, 1.257, 0.993, 0.989, 0.993, 0.827, 0.821, 0.821, 0.827, 0.99, 0.987, 1.248"
-    success, sch = MiscLoads.apply_plug(model, unit, runner, annual_kwh,
-                                        sens_frac, lat_frac, weekday_sch,
-                                        weekend_sch, monthly_sch, nil)
-    return false if not success
+    misc = building.elements["BuildingDetails/MiscLoads/PlugLoad[PlugLoadType='other']"]
+    if not misc.nil?
+      misc_annual_kwh = XMLHelper.get_value(building, "BuildingDetails/MiscLoads/PlugLoad[PlugLoadType='other']/Load[Units='kWh/year']/Value")
+      if misc_annual_kwh.nil?
+        misc_annual_kwh = MiscLoads.get_residual_mels_values(@cfa)[0]
+      else
+        misc_annual_kwh = Float(misc_annual_kwh)
+      end
+
+      misc_sens_frac = XMLHelper.get_value(building, "BuildingDetails/MiscLoads/PlugLoad[PlugLoadType='other']/extension/FracSensible")
+      if misc_sens_frac.nil?
+        misc_sens_frac = MiscLoads.get_residual_mels_values(@cfa)[1]
+      else
+        misc_sens_frac = Float(misc_sens_frac)
+      end
+
+      misc_lat_frac = XMLHelper.get_value(building, "BuildingDetails/MiscLoads/PlugLoad[PlugLoadType='other']/extension/FracLatent")
+      if misc_lat_frac.nil?
+        misc_lat_frac = MiscLoads.get_residual_mels_values(@cfa)[2]
+      else
+        misc_lat_frac = Float(misc_lat_frac)
+      end
+
+      misc_weekday_sch = XMLHelper.get_value(building, "BuildingDetails/MiscLoads/extension/WeekdayScheduleFractions")
+      if misc_weekday_sch.nil?
+        misc_weekday_sch = "0.04, 0.037, 0.037, 0.036, 0.033, 0.036, 0.043, 0.047, 0.034, 0.023, 0.024, 0.025, 0.024, 0.028, 0.031, 0.032, 0.039, 0.053, 0.063, 0.067, 0.071, 0.069, 0.059, 0.05"
+      end
+
+      misc_weekend_sch = XMLHelper.get_value(building, "BuildingDetails/MiscLoads/extension/WeekendScheduleFractions")
+      if misc_weekend_sch.nil?
+        misc_weekend_sch = "0.04, 0.037, 0.037, 0.036, 0.033, 0.036, 0.043, 0.047, 0.034, 0.023, 0.024, 0.025, 0.024, 0.028, 0.031, 0.032, 0.039, 0.053, 0.063, 0.067, 0.071, 0.069, 0.059, 0.05"
+      end
+
+      misc_monthly_sch = XMLHelper.get_value(building, "BuildingDetails/MiscLoads/extension/MonthlyScheduleMultipliers")
+      if misc_monthly_sch.nil?
+        misc_monthly_sch = "1.248, 1.257, 0.993, 0.989, 0.993, 0.827, 0.821, 0.821, 0.827, 0.99, 0.987, 1.248"
+      end
+
+      success, sch = MiscLoads.apply_plug(model, unit, runner, misc_annual_kwh,
+                                          misc_sens_frac, misc_lat_frac, misc_weekday_sch,
+                                          misc_weekend_sch, misc_monthly_sch, nil)
+      return false if not success
+    end
 
     # Television
-    annual_kwh, sens_frac, lat_frac = MiscLoads.get_televisions_values(@cfa, @nbeds)
-    success = MiscLoads.apply_tv(model, unit, runner, annual_kwh, sch, living_space)
-    return false if not success
+    tv = building.elements["BuildingDetails/MiscLoads/PlugLoad[PlugLoadType='TV other']"]
+    if not tv.nil?
+      tv_annual_kwh = XMLHelper.get_value(building, "BuildingDetails/MiscLoads/PlugLoad[PlugLoadType='TV other']/Load[Units='kWh/year']/Value")
+      if tv_annual_kwh.nil?
+        tv_annual_kwh, tv_sens_frac, tv_lat_frac = MiscLoads.get_televisions_values(@cfa, @nbeds)
+      else
+        tv_annual_kwh = Float(tv_annual_kwh)
+      end
+
+      success = MiscLoads.apply_tv(model, unit, runner, tv_annual_kwh, sch, living_space)
+      return false if not success
+    end
 
     return true
   end
 
   def self.add_lighting(runner, model, building, unit, weather)
+    return true if building.elements["BuildingDetails/Lighting"].nil?
+
     lighting_fractions = building.elements["BuildingDetails/Lighting/LightingFractions"]
     if lighting_fractions.nil?
       fFI_int, fFI_ext, fFI_grg, fFII_int, fFII_ext, fFII_grg = Lighting.get_reference_fractions()
@@ -2739,13 +2786,19 @@ class OSModel
   def self.add_airflow(runner, model, building, unit, loop_hvacs)
     # Infiltration
     infiltration = building.elements["BuildingDetails/Enclosure/AirInfiltration"]
-    infil_ach50 = Float(XMLHelper.get_value(infiltration, "AirInfiltrationMeasurement[HousePressure='50']/BuildingAirLeakage[UnitofMeasure='ACH']/AirLeakage"))
+    infil_ach50 = XMLHelper.get_value(infiltration, "AirInfiltrationMeasurement[HousePressure='50']/BuildingAirLeakage[UnitofMeasure='ACH']/AirLeakage")
+    infil_const_ach = XMLHelper.get_value(infiltration, "AirInfiltrationMeasurement/extension/ConstantACHnatural")
+    if not infil_ach50.nil?
+      infil_ach50 = Float(infil_ach50)
+    elsif not infil_const_ach.nil?
+      infil_const_ach = Float(infil_const_ach)
+    end
 
     # Vented crawl SLA
     vented_crawl_area = 0.0
     vented_crawl_sla_area = 0.0
     building.elements.each("BuildingDetails/Enclosure/Foundations/Foundation[FoundationType/Crawlspace[Vented='true']]") do |vented_crawl|
-      area = REXML::XPath.first(vented_crawl, "sum(FrameFloor/Area/text())")
+      area = REXML::XPath.first(vented_crawl, "sum(FrameFloor/Area)")
       vented_crawl_sla = XMLHelper.get_value(vented_crawl, "extension/CrawlspaceSpecificLeakageArea")
       if not vented_crawl_sla.nil?
         vented_crawl_sla = Float(vented_crawl_sla)
@@ -2764,24 +2817,35 @@ class OSModel
     # Vented attic SLA
     vented_attic_area = 0.0
     vented_attic_sla_area = 0.0
-    building.elements.each("BuildingDetails/Enclosure/AtticAndRoof/Attics/Attic[AtticType='vented attic']") do |vented_attic|
-      area = REXML::XPath.first(vented_attic, "sum(Floors/Floor/Area/text())")
+    vented_attic_const_ach = nil
+    building.elements.each("BuildingDetails/Enclosure/Attics/Attic[AtticType='vented attic']") do |vented_attic|
+      area = REXML::XPath.first(vented_attic, "sum(Floors/Floor/Area)")
       vented_attic_sla = XMLHelper.get_value(vented_attic, "extension/AtticSpecificLeakageArea")
+      vented_attic_const_ach = XMLHelper.get_value(vented_attic, "extension/AtticConstantACHnatural")
       if not vented_attic_sla.nil?
         vented_attic_sla = Float(vented_attic_sla)
+        vented_attic_sla_area += (vented_attic_sla * area)
+      elsif not vented_attic_const_ach.nil?
+        vented_attic_const_ach = Float(vented_attic_const_ach)
       else
         vented_attic_sla = Airflow.get_default_vented_attic_sla()
+        vented_attic_sla_area += (vented_attic_sla * area)
       end
-      vented_attic_sla_area += (vented_attic_sla * area)
       vented_attic_area += area
     end
-    if vented_attic_area > 0
+    if vented_attic_area == 0
+      attic_sla = 0
+      attic_const_ach = nil
+    elsif vented_attic_sla_area > 0
       attic_sla = vented_attic_sla_area / vented_attic_area
+      attic_const_ach = nil
     else
-      attic_sla = 0.0
+      attic_sla = nil
+      attic_const_ach = vented_attic_const_ach
     end
 
     living_ach50 = infil_ach50
+    living_constant_ach = infil_const_ach
     garage_ach50 = infil_ach50
     finished_basement_ach = 0 # TODO: Need to handle above-grade basement
     unfinished_basement_ach = 0.1 # TODO: Need to handle above-grade basement
@@ -2796,7 +2860,7 @@ class OSModel
     has_flue_chimney = false
     is_existing_home = false
     terrain = Constants.TerrainSuburban
-    infil = Infiltration.new(living_ach50, nil, shelter_coef, garage_ach50, crawl_ach, attic_sla, nil, unfinished_basement_ach,
+    infil = Infiltration.new(living_ach50, living_constant_ach, shelter_coef, garage_ach50, crawl_ach, attic_sla, attic_const_ach, unfinished_basement_ach,
                              finished_basement_ach, pier_beam_ach, has_flue_chimney, is_existing_home, terrain)
 
     # Mechanical Ventilation
@@ -2854,18 +2918,34 @@ class OSModel
     cfis_systems = { cfis => model.getAirLoopHVACs }
 
     # Natural Ventilation
-    nat_vent_htg_offset = 1.0
-    nat_vent_clg_offset = 1.0
-    nat_vent_ovlp_offset = 1.0
-    nat_vent_htg_season = true
-    nat_vent_clg_season = true
-    nat_vent_ovlp_season = true
-    nat_vent_num_weekdays = 5
-    nat_vent_num_weekends = 2
-    nat_vent_frac_windows_open = 0.33
-    nat_vent_frac_window_area_openable = 0.2
-    nat_vent_max_oa_hr = 0.0115
-    nat_vent_max_oa_rh = 0.7
+    disable_nat_vent = XMLHelper.get_value(building, "BuildingDetails/Enclosure/extension/DisableNaturalVentilation")
+    if not disable_nat_vent.nil? and Boolean(disable_nat_vent)
+      nat_vent_htg_offset = 0
+      nat_vent_clg_offset = 0
+      nat_vent_ovlp_offset = 0
+      nat_vent_htg_season = false
+      nat_vent_clg_season = false
+      nat_vent_ovlp_season = false
+      nat_vent_num_weekdays = 0
+      nat_vent_num_weekends = 0
+      nat_vent_frac_windows_open = 0
+      nat_vent_frac_window_area_openable = 0
+      nat_vent_max_oa_hr = 0.0115
+      nat_vent_max_oa_rh = 0.7
+    else
+      nat_vent_htg_offset = 1.0
+      nat_vent_clg_offset = 1.0
+      nat_vent_ovlp_offset = 1.0
+      nat_vent_htg_season = true
+      nat_vent_clg_season = true
+      nat_vent_ovlp_season = true
+      nat_vent_num_weekdays = 5
+      nat_vent_num_weekends = 2
+      nat_vent_frac_windows_open = 0.33
+      nat_vent_frac_window_area_openable = 0.2
+      nat_vent_max_oa_hr = 0.0115
+      nat_vent_max_oa_rh = 0.7
+    end
     nat_vent = NaturalVentilation.new(nat_vent_htg_offset, nat_vent_clg_offset, nat_vent_ovlp_offset, nat_vent_htg_season,
                                       nat_vent_clg_season, nat_vent_ovlp_season, nat_vent_num_weekdays,
                                       nat_vent_num_weekends, nat_vent_frac_windows_open, nat_vent_frac_window_area_openable,
@@ -2873,25 +2953,34 @@ class OSModel
 
     # Ducts
     duct_systems = {}
+    location_map = { 'living space' => Constants.SpaceTypeLiving,
+                     'basement - conditioned' => Constants.SpaceTypeFinishedBasement,
+                     'basement - unconditioned' => Constants.SpaceTypeUnfinishedBasement,
+                     'crawlspace - vented' => Constants.SpaceTypeCrawl,
+                     'crawlspace - unvented' => Constants.SpaceTypeCrawl,
+                     'attic - vented' => Constants.SpaceTypeUnfinishedAttic,
+                     'attic - unvented' => Constants.SpaceTypeUnfinishedAttic,
+                     'attic - conditioned' => Constants.SpaceTypeLiving,
+                     'garage' => Constants.SpaceTypeGarage }
     building.elements.each("BuildingDetails/Systems/HVAC/HVACDistribution") do |hvac_distribution|
       air_distribution = hvac_distribution.elements["DistributionSystemType/AirDistribution"]
       next if air_distribution.nil?
 
       # Ducts
+      # FIXME: Values below
       supply_cfm25 = Float(XMLHelper.get_value(air_distribution, "DuctLeakageMeasurement[DuctType='supply']/DuctLeakage[Units='CFM25' and TotalOrToOutside='to outside']/Value"))
       return_cfm25 = Float(XMLHelper.get_value(air_distribution, "DuctLeakageMeasurement[DuctType='return']/DuctLeakage[Units='CFM25' and TotalOrToOutside='to outside']/Value"))
       supply_r = Float(XMLHelper.get_value(air_distribution, "Ducts[DuctType='supply']/DuctInsulationRValue"))
       return_r = Float(XMLHelper.get_value(air_distribution, "Ducts[DuctType='return']/DuctInsulationRValue"))
       supply_area = Float(XMLHelper.get_value(air_distribution, "Ducts[DuctType='supply']/DuctSurfaceArea"))
       return_area = Float(XMLHelper.get_value(air_distribution, "Ducts[DuctType='return']/DuctSurfaceArea"))
-      # FIXME: Values below
-      duct_location = Constants.Auto
+      duct_location = location_map[XMLHelper.get_value(air_distribution, "Ducts[DuctType='supply']/DuctLocation")]
       duct_total_leakage = 0.3
       duct_supply_frac = 0.6
       duct_return_frac = 0.067
       duct_ah_supply_frac = 0.067
       duct_ah_return_frac = 0.267
-      duct_location_frac = Constants.Auto
+      duct_location_frac = 1.0
       duct_num_returns = 1
       duct_supply_area_mult = supply_area / 100.0
       duct_return_area_mult = return_area / 100.0
@@ -2905,9 +2994,9 @@ class OSModel
       # Connect AirLoopHVACs to ducts
       systems_for_this_duct = []
       duct_id = hvac_distribution.elements["SystemIdentifier"].attributes["id"]
-      building.elements.each("BuildingDetails/Systems/HVAC/HVACPlant/HeatingSystem |
-                              BuildingDetails/Systems/HVAC/HVACPlant/CoolingSystem |
-                              BuildingDetails/Systems/HVAC/HVACPlant/HeatPump") do |sys|
+      building.elements.each("BuildingDetails/Systems/HVAC/HVACPlant/HeatingSystem[FractionHeatLoadServed > 0] |
+                              BuildingDetails/Systems/HVAC/HVACPlant/CoolingSystem[FractionCoolLoadServed > 0] |
+                              BuildingDetails/Systems/HVAC/HVACPlant/HeatPump[FractionHeatLoadServed > 0 && FractionCoolLoadServed > 0]") do |sys|
         next if sys.elements["DistributionSystem"].nil? or duct_id != sys.elements["DistributionSystem"].attributes["idref"]
 
         sys_id = sys.elements["SystemIdentifier"].attributes["id"]
@@ -2963,7 +3052,7 @@ class OSModel
   def self.add_fuel_heating_eae(runner, model, building, loop_hvacs, zone_hvacs)
     # Needs to come after HVAC sizing (needs heating capacity and airflow rate)
 
-    building.elements.each("BuildingDetails/Systems/HVAC/HVACPlant/HeatingSystem") do |htgsys|
+    building.elements.each("BuildingDetails/Systems/HVAC/HVACPlant/HeatingSystem[FractionHeatLoadServed > 0]") do |htgsys|
       htg_type = XMLHelper.get_child_name(htgsys, "HeatingSystemType")
       next if not ["Furnace", "WallFurnace", "Stove", "Boiler"].include? htg_type
 
@@ -2992,7 +3081,7 @@ class OSModel
         if has_furnace
           # Check for cooling system on the same supply fan
           htgdist = htgsys.elements["DistributionSystem"]
-          building.elements.each("BuildingDetails/Systems/HVAC/HVACPlant/CoolingSystem") do |clgsys|
+          building.elements.each("BuildingDetails/Systems/HVAC/HVACPlant/CoolingSystem[FractionCoolLoadServed > 0]") do |clgsys|
             clgdist = clgsys.elements["DistributionSystem"]
             next if htgdist.nil? or clgdist.nil?
             next if clgdist.attributes["idref"] != htgdist.attributes["idref"]
@@ -3041,6 +3130,190 @@ class OSModel
     end
 
     return true
+  end
+
+  def self.add_building_output_variables(runner, model, loop_hvacs, zone_hvacs, loop_dhws, map_tsv_dir)
+    htg_mapping = {}
+    clg_mapping = {}
+    dhw_mapping = {}
+
+    # AirLoopHVAC systems
+    loop_hvacs.each do |sys_id, loops|
+      htg_mapping[sys_id] = []
+      clg_mapping[sys_id] = []
+      loops.each do |loop|
+        next unless loop.is_a? OpenStudio::Model::AirLoopHVAC
+
+        loop.supplyComponents.each do |comp|
+          next unless comp.to_AirLoopHVACUnitarySystem.is_initialized
+
+          unitary_system = comp.to_AirLoopHVACUnitarySystem.get
+          if unitary_system.coolingCoil.is_initialized
+            # Cooling system: Cooling coil, supply fan
+            clg_mapping[sys_id] << HVAC.get_coil_from_hvac_component(unitary_system.coolingCoil.get)
+            clg_mapping[sys_id] << unitary_system.supplyFan.get.to_FanOnOff.get
+          elsif unitary_system.heatingCoil.is_initialized
+            # Heating system: Heating coil, supply fan, supplemental coil
+            htg_mapping[sys_id] << HVAC.get_coil_from_hvac_component(unitary_system.heatingCoil.get)
+            htg_mapping[sys_id] << unitary_system.supplyFan.get.to_FanOnOff.get
+            if unitary_system.supplementalHeatingCoil.is_initialized
+              htg_mapping[sys_id] << HVAC.get_coil_from_hvac_component(unitary_system.supplementalHeatingCoil.get)
+            end
+          end
+        end
+      end
+    end
+
+    zone_hvacs.each do |sys_id, hvacs|
+      htg_mapping[sys_id] = []
+      clg_mapping[sys_id] = []
+      hvacs.each do |hvac|
+        next unless hvac.to_ZoneHVACComponent.is_initialized
+
+        if hvac.to_AirLoopHVACUnitarySystem.is_initialized
+
+          unitary_system = hvac.to_AirLoopHVACUnitarySystem.get
+          if unitary_system.coolingCoil.is_initialized
+            # Cooling system: Cooling coil, supply fan
+            clg_mapping[sys_id] << HVAC.get_coil_from_hvac_component(unitary_system.coolingCoil.get)
+            clg_mapping[sys_id] << unitary_system.supplyFan.get.to_FanOnOff.get
+          elsif unitary_system.heatingCoil.is_initialized
+            # Heating system: Heating coil, supply fan
+            htg_mapping[sys_id] << HVAC.get_coil_from_hvac_component(unitary_system.heatingCoil.get)
+            htg_mapping[sys_id] << unitary_system.supplyFan.get.to_FanOnOff.get
+          end
+
+        elsif hvac.to_ZoneHVACPackagedTerminalAirConditioner.is_initialized
+
+          ptac = hvac.to_ZoneHVACPackagedTerminalAirConditioner.get
+          clg_mapping[sys_id] << HVAC.get_coil_from_hvac_component(ptac.coolingCoil)
+
+        elsif hvac.to_ZoneHVACBaseboardConvectiveElectric.is_initialized
+
+          htg_mapping[sys_id] << hvac.to_ZoneHVACBaseboardConvectiveElectric.get
+
+        elsif hvac.to_ZoneHVACBaseboardConvectiveWater.is_initialized
+
+          baseboard = hvac.to_ZoneHVACBaseboardConvectiveWater.get
+          baseboard.heatingCoil.plantLoop.get.components.each do |comp|
+            next unless comp.to_BoilerHotWater.is_initialized
+
+            htg_mapping[sys_id] << comp.to_BoilerHotWater.get
+          end
+
+        end
+      end
+    end
+
+    loop_dhws.each do |sys_id, loops|
+      dhw_mapping[sys_id] = []
+      loops.each do |loop|
+        loop.supplyComponents.each do |comp|
+          if comp.to_WaterHeaterMixed.is_initialized
+
+            water_heater = comp.to_WaterHeaterMixed.get
+            dhw_mapping[sys_id] << water_heater
+
+          elsif comp.to_WaterHeaterStratified.is_initialized
+
+            hpwh_tank = comp.to_WaterHeaterStratified.get
+            dhw_mapping[sys_id] << hpwh_tank
+
+            model.getWaterHeaterHeatPumpWrappedCondensers.each do |hpwh|
+              next if hpwh.tank.name.to_s != hpwh_tank.name.to_s
+
+              water_heater_coil = hpwh.dXCoil.to_CoilWaterHeatingAirToWaterHeatPumpWrapped.get
+              dhw_mapping[sys_id] << water_heater_coil
+            end
+
+          end
+        end
+
+        recirc_pump_name = loop.additionalProperties.getFeatureAsString("PlantLoopRecircPump")
+        if recirc_pump_name.is_initialized
+          recirc_pump_name = recirc_pump_name.get
+          model.getElectricEquipments.each do |ee|
+            next unless ee.name.to_s == recirc_pump_name
+
+            dhw_mapping[sys_id] << ee
+          end
+        end
+
+        loop.demandComponents.each do |comp|
+          if comp.to_WaterUseConnections.is_initialized
+
+            water_use_connections = comp.to_WaterUseConnections.get
+            dhw_mapping[sys_id] << water_use_connections
+
+          end
+        end
+      end
+    end
+
+    htg_mapping.each do |sys_id, htg_equip_list|
+      add_output_variables(model, OutputVars.SpaceHeatingElectricity, htg_equip_list)
+      add_output_variables(model, OutputVars.SpaceHeatingFuel, htg_equip_list)
+      add_output_variables(model, OutputVars.SpaceHeatingLoad, htg_equip_list)
+    end
+    clg_mapping.each do |sys_id, clg_equip_list|
+      add_output_variables(model, OutputVars.SpaceCoolingElectricity, clg_equip_list)
+      add_output_variables(model, OutputVars.SpaceCoolingLoad, clg_equip_list)
+    end
+    dhw_mapping.each do |sys_id, dhw_equip_list|
+      add_output_variables(model, OutputVars.WaterHeatingElectricity, dhw_equip_list)
+      add_output_variables(model, OutputVars.WaterHeatingElectricityRecircPump, dhw_equip_list)
+      add_output_variables(model, OutputVars.WaterHeatingFuel, dhw_equip_list)
+      add_output_variables(model, OutputVars.WaterHeatingLoad, dhw_equip_list)
+    end
+
+    if map_tsv_dir.is_initialized
+      map_tsv_dir = map_tsv_dir.get
+      write_mapping(htg_mapping, File.join(map_tsv_dir, "map_hvac_heating.tsv"))
+      write_mapping(clg_mapping, File.join(map_tsv_dir, "map_hvac_cooling.tsv"))
+      write_mapping(dhw_mapping, File.join(map_tsv_dir, "map_water_heating.tsv"))
+    end
+
+    return true
+  end
+
+  def self.add_output_variables(model, vars, objects)
+    if objects.nil?
+      vars[nil].each do |object_var|
+        outputVariable = OpenStudio::Model::OutputVariable.new(object_var, model)
+        outputVariable.setReportingFrequency('runperiod')
+        outputVariable.setKeyValue('*')
+      end
+    else
+      objects.each do |object|
+        if vars[object.class.to_s].nil?
+          fail "Unexpected object type #{object.class.to_s}."
+        end
+
+        vars[object.class.to_s].each do |object_var|
+          outputVariable = OpenStudio::Model::OutputVariable.new(object_var, model)
+          outputVariable.setReportingFrequency('runperiod')
+          outputVariable.setKeyValue(object.name.to_s)
+        end
+      end
+    end
+  end
+
+  def self.write_mapping(mapping, map_tsv_path)
+    # Write simple mapping TSV file for use by ERI calculation. Mapping file correlates
+    # EnergyPlus object name to a HPXML object name.
+
+    CSV.open(map_tsv_path, 'w', col_sep: "\t") do |tsv|
+      # Header
+      tsv << ["HPXML Name", "E+ Name(s)"]
+
+      mapping.each do |sys_id, objects|
+        out_data = [sys_id]
+        objects.each do |object|
+          out_data << object.name.to_s
+        end
+        tsv << out_data if out_data.size > 1
+      end
+    end
   end
 
   def self.calc_non_cavity_r(film_r, constr_set)
@@ -3440,55 +3713,6 @@ class OSModel
     end
   end
 
-  def self.is_external_thermal_boundary(interior_adjacent_to, exterior_adjacent_to)
-    interior_conditioned = is_adjacent_to_conditioned(interior_adjacent_to)
-    exterior_conditioned = is_adjacent_to_conditioned(exterior_adjacent_to)
-    return (interior_conditioned != exterior_conditioned)
-  end
-
-  def self.is_adjacent_to_conditioned(adjacent_to)
-    if adjacent_to == "living space"
-      return true
-    elsif adjacent_to == "garage"
-      return false
-    elsif adjacent_to == "vented attic"
-      return false
-    elsif adjacent_to == "unvented attic"
-      return false
-    elsif adjacent_to == "cape cod"
-      return true
-    elsif adjacent_to == "cathedral ceiling"
-      return true
-    elsif adjacent_to == "unconditioned basement"
-      return false
-    elsif adjacent_to == "conditioned basement"
-      return true
-    elsif adjacent_to == "crawlspace"
-      return false
-    elsif adjacent_to == "ambient"
-      return false
-    elsif adjacent_to == "ground"
-      return false
-    end
-
-    fail "Unexpected adjacent_to (#{adjacent_to})."
-  end
-
-  def self.get_foundation_interior_adjacent_to(fnd_type)
-    if fnd_type.elements["Basement[Conditioned='true']"]
-      interior_adjacent_to = "conditioned basement"
-    elsif fnd_type.elements["Basement[Conditioned='false']"]
-      interior_adjacent_to = "unconditioned basement"
-    elsif fnd_type.elements["Crawlspace"]
-      interior_adjacent_to = "crawlspace"
-    elsif fnd_type.elements["SlabOnGrade"]
-      interior_adjacent_to = "living space"
-    elsif fnd_type.elements["Ambient"]
-      interior_adjacent_to = "ambient"
-    end
-    return interior_adjacent_to
-  end
-
   def self.get_attached_to_multispeed_ac(htgsys, building)
     attached_to_multispeed_ac = false
     building.elements.each("BuildingDetails/Systems/HVAC/HVACPlant/CoolingSystem") do |clgsys|
@@ -3500,6 +3724,131 @@ class OSModel
     end
 
     return attached_to_multispeed_ac
+  end
+
+  def self.set_surface_interior(model, spaces, surface, surface_id, interior_adjacent_to)
+    if ["living space"].include? interior_adjacent_to
+      surface.setSpace(create_or_get_space(model, spaces, Constants.SpaceTypeLiving))
+    elsif ["garage"].include? interior_adjacent_to
+      surface.setSpace(create_or_get_space(model, spaces, Constants.SpaceTypeGarage))
+    elsif ["basement - unconditioned"].include? interior_adjacent_to
+      surface.setSpace(create_or_get_space(model, spaces, Constants.SpaceTypeUnfinishedBasement))
+    elsif ["basement - conditioned"].include? interior_adjacent_to
+      surface.setSpace(create_or_get_space(model, spaces, Constants.SpaceTypeFinishedBasement))
+    elsif ["crawlspace - vented", "crawlspace - unvented"].include? interior_adjacent_to
+      surface.setSpace(create_or_get_space(model, spaces, Constants.SpaceTypeCrawl))
+    elsif ["attic - unvented", "attic - vented"].include? interior_adjacent_to
+      surface.setSpace(create_or_get_space(model, spaces, Constants.SpaceTypeUnfinishedAttic))
+    elsif ["attic - conditioned"].include? interior_adjacent_to
+      surface.setSpace(create_or_get_space(model, spaces, Constants.SpaceTypeFinishedAttic))
+    elsif ["flat roof", "cathedral ceiling"].include? interior_adjacent_to
+      surface.setSpace(create_or_get_space(model, spaces, Constants.SpaceTypeLiving))
+    else
+      fail "Unhandled AdjacentTo value (#{interior_adjacent_to}) for surface '#{surface_id}'."
+    end
+  end
+
+  def self.set_surface_exterior(model, spaces, surface, surface_id, exterior_adjacent_to)
+    if ["outside"].include? exterior_adjacent_to
+      surface.setOutsideBoundaryCondition("Outdoors")
+    elsif ["ground"].include? exterior_adjacent_to
+      surface.setOutsideBoundaryCondition("Foundation")
+    elsif ["living space"].include? exterior_adjacent_to
+      surface.createAdjacentSurface(create_or_get_space(model, spaces, Constants.SpaceTypeLiving))
+    elsif ["garage"].include? exterior_adjacent_to
+      surface.createAdjacentSurface(create_or_get_space(model, spaces, Constants.SpaceTypeGarage))
+    elsif ["basement - unconditioned"].include? exterior_adjacent_to
+      surface.createAdjacentSurface(create_or_get_space(model, spaces, Constants.SpaceTypeUnfinishedBasement))
+    elsif ["basement - conditioned"].include? interior_adjacent_to
+      surface.createAdjacentSurface(create_or_get_space(model, spaces, Constants.SpaceTypeFinishedBasement))
+    elsif ["crawlspace - vented", "crawlspace - unvented"].include? exterior_adjacent_to
+      surface.createAdjacentSurface(create_or_get_space(model, spaces, Constants.SpaceTypeCrawl))
+    elsif ["attic - unvented", "attic - vented"].include? exterior_adjacent_to
+      surface.createAdjacentSurface(create_or_get_space(model, spaces, Constants.SpaceTypeUnfinishedAttic))
+    elsif ["attic - conditioned"].include? exterior_adjacent_to
+      surface.createAdjacentSurface(create_or_get_space(model, spaces, Constants.SpaceTypeFinishedAttic))
+    else
+      fail "Unhandled AdjacentTo value (#{exterior_adjacent_to}) for surface '#{surface_id}'."
+    end
+  end
+
+  def self.get_foundation_top(model)
+    # Get top of foundation surfaces
+    foundation_top = -9999
+    model.getSpaces.each do |space|
+      next unless Geometry.space_is_below_grade(space)
+
+      space.surfaces.each do |surface|
+        surface.vertices.each do |v|
+          next if v.z < foundation_top
+
+          foundation_top = v.z
+        end
+      end
+    end
+
+    if foundation_top == -9999
+      foundation_top = 9999
+      # Pier & beam foundation; get lowest floor vertex
+      model.getSpaces.each do |space|
+        space.surfaces.each do |surface|
+          next unless surface.surfaceType.downcase == "floor"
+
+          surface.vertices.each do |v|
+            next if v.z > foundation_top
+
+            foundation_top = v.z
+          end
+        end
+      end
+    end
+
+    if foundation_top == 9999
+      fail "Could not calculate foundation top."
+    end
+
+    return UnitConversions.convert(foundation_top, "m", "ft")
+  end
+
+  def self.get_walls_top(model)
+    # Get top of wall surfaces
+    walls_top = -9999
+    model.getSpaces.each do |space|
+      space.surfaces.each do |surface|
+        next unless surface.surfaceType.downcase == "wall"
+        next unless surface.subSurfaces.size == 0
+
+        surface.vertices.each do |v|
+          next if v.z < walls_top
+
+          walls_top = v.z
+        end
+      end
+    end
+
+    if walls_top == -9999
+      fail "Could not calculate walls top."
+    end
+
+    return UnitConversions.convert(walls_top, "m", "ft")
+  end
+
+  def self.get_space_from_location(location, object_name, model, spaces)
+    if location.nil? or location == 'living space'
+      return create_or_get_space(model, spaces, Constants.SpaceTypeLiving)
+    elsif location == 'basement - conditioned'
+      return create_or_get_space(model, spaces, Constants.SpaceTypeFinishedBasement)
+    elsif location == 'basement - unconditioned'
+      return create_or_get_space(model, spaces, Constants.SpaceTypeUnfinishedBasement)
+    elsif location == 'garage'
+      return create_or_get_space(model, spaces, Constants.SpaceTypeGarage)
+    elsif location == 'attic - unvented' or location == 'attic - vented'
+      return create_or_get_space(model, spaces, Constants.SpaceTypeUnfinishedAttic)
+    elsif location == 'crawlspace - unvented' or location == 'crawlspace - vented'
+      return create_or_get_space(model, spaces, Constants.SpaceTypeCrawl)
+    end
+
+    fail "Unhandled #{object_name} location: #{location}."
   end
 end
 
@@ -3603,19 +3952,38 @@ def to_beopt_wh_type(type)
            'heat pump water heater' => Constants.WaterHeaterTypeHeatPump }[type]
 end
 
-def get_foundation_interior_adjacent_to(fnd_type)
+def get_foundation_adjacent_to(fnd_type)
   if fnd_type.elements["Basement[Conditioned='true']"]
-    interior_adjacent_to = "conditioned basement"
+    return "basement - conditioned"
   elsif fnd_type.elements["Basement[Conditioned='false']"]
-    interior_adjacent_to = "unconditioned basement"
-  elsif fnd_type.elements["Crawlspace"]
-    interior_adjacent_to = "crawlspace"
+    return "basement - unconditioned"
+  elsif fnd_type.elements["Crawlspace[Vented='true']"]
+    return "crawlspace - vented"
+  elsif fnd_type.elements["Crawlspace[Vented='false']"]
+    return "crawlspace - unvented"
   elsif fnd_type.elements["SlabOnGrade"]
-    interior_adjacent_to = "living space"
+    return "living space"
   elsif fnd_type.elements["Ambient"]
-    interior_adjacent_to = "ambient"
+    return "outside"
   end
-  return interior_adjacent_to
+
+  fail "Unexpected foundation type."
+end
+
+def get_attic_adjacent_to(attic_type)
+  if attic_type == "unvented attic"
+    return "attic - unvented"
+  elsif attic_type == "vented attic"
+    return "attic - vented"
+  elsif attic_type == "cape cod"
+    return "attic - conditioned"
+  elsif attic_type == "cathedral ceiling"
+    return "living space"
+  elsif attic_type == "flat roof"
+    return "living space"
+  end
+
+  fail "Unexpected attic type."
 end
 
 def is_external_thermal_boundary(interior_adjacent_to, exterior_adjacent_to)
@@ -3629,21 +3997,21 @@ def is_adjacent_to_conditioned(adjacent_to)
     return true
   elsif adjacent_to == "garage"
     return false
-  elsif adjacent_to == "vented attic"
+  elsif adjacent_to == "attic - vented"
     return false
-  elsif adjacent_to == "unvented attic"
+  elsif adjacent_to == "attic - unvented"
     return false
-  elsif adjacent_to == "cape cod"
+  elsif adjacent_to == "attic - conditioned"
     return true
-  elsif adjacent_to == "cathedral ceiling"
-    return true
-  elsif adjacent_to == "unconditioned basement"
+  elsif adjacent_to == "basement - unconditioned"
     return false
-  elsif adjacent_to == "conditioned basement"
+  elsif adjacent_to == "basement - conditioned"
     return true
-  elsif adjacent_to == "crawlspace"
+  elsif adjacent_to == "crawlspace - vented"
     return false
-  elsif adjacent_to == "ambient"
+  elsif adjacent_to == "crawlspace - unvented"
+    return false
+  elsif adjacent_to == "outside"
     return false
   elsif adjacent_to == "ground"
     return false
@@ -3669,6 +4037,87 @@ def get_ashp_num_speeds(seer)
     num_speeds = "2-Speed"
   else
     num_speeds = "Variable-Speed"
+  end
+end
+
+class OutputVars
+  def self.SpaceHeatingElectricity
+    return { 'OpenStudio::Model::CoilHeatingDXSingleSpeed' => ['Heating Coil Electric Energy', 'Heating Coil Crankcase Heater Electric Energy', 'Heating Coil Defrost Electric Energy'],
+             'OpenStudio::Model::CoilHeatingDXMultiSpeed' => ['Heating Coil Electric Energy', 'Heating Coil Crankcase Heater Electric Energy', 'Heating Coil Defrost Electric Energy'],
+             'OpenStudio::Model::CoilHeatingElectric' => ['Heating Coil Electric Energy', 'Heating Coil Crankcase Heater Electric Energy', 'Heating Coil Defrost Electric Energy'],
+             'OpenStudio::Model::CoilHeatingWaterToAirHeatPumpEquationFit' => ['Heating Coil Electric Energy', 'Heating Coil Crankcase Heater Electric Energy', 'Heating Coil Defrost Electric Energy'],
+             'OpenStudio::Model::CoilHeatingGas' => [],
+             'OpenStudio::Model::ZoneHVACBaseboardConvectiveElectric' => ['Baseboard Electric Energy'],
+             'OpenStudio::Model::BoilerHotWater' => ['Boiler Electric Energy'],
+             'OpenStudio::Model::FanOnOff' => ['Fan Electric Energy'] }
+  end
+
+  def self.SpaceHeatingFuel
+    return { 'OpenStudio::Model::CoilHeatingDXSingleSpeed' => [],
+             'OpenStudio::Model::CoilHeatingDXMultiSpeed' => [],
+             'OpenStudio::Model::CoilHeatingElectric' => [],
+             'OpenStudio::Model::CoilHeatingWaterToAirHeatPumpEquationFit' => [],
+             'OpenStudio::Model::CoilHeatingGas' => ['Heating Coil Gas Energy', 'Heating Coil Propane Energy', 'Heating Coil FuelOil#1 Energy'],
+             'OpenStudio::Model::ZoneHVACBaseboardConvectiveElectric' => ['Baseboard Gas Energy', 'Baseboard Propane Energy', 'Baseboard FuelOil#1 Energy'],
+             'OpenStudio::Model::BoilerHotWater' => ['Boiler Gas Energy', 'Boiler Propane Energy', 'Boiler FuelOil#1 Energy'],
+             'OpenStudio::Model::FanOnOff' => [] }
+  end
+
+  def self.SpaceHeatingLoad
+    return { 'OpenStudio::Model::CoilHeatingDXSingleSpeed' => ['Heating Coil Heating Energy'],
+             'OpenStudio::Model::CoilHeatingDXMultiSpeed' => ['Heating Coil Heating Energy'],
+             'OpenStudio::Model::CoilHeatingElectric' => ['Heating Coil Heating Energy'],
+             'OpenStudio::Model::CoilHeatingWaterToAirHeatPumpEquationFit' => ['Heating Coil Heating Energy'],
+             'OpenStudio::Model::CoilHeatingGas' => ['Heating Coil Heating Energy'],
+             'OpenStudio::Model::ZoneHVACBaseboardConvectiveElectric' => ['Baseboard Total Heating Energy'],
+             'OpenStudio::Model::BoilerHotWater' => ['Boiler Heating Energy'],
+             'OpenStudio::Model::FanOnOff' => ['Fan Electric Energy'] }
+  end
+
+  def self.SpaceCoolingElectricity
+    return { 'OpenStudio::Model::CoilCoolingDXSingleSpeed' => ['Cooling Coil Electric Energy', 'Cooling Coil Crankcase Heater Electric Energy'],
+             'OpenStudio::Model::CoilCoolingDXMultiSpeed' => ['Cooling Coil Electric Energy', 'Cooling Coil Crankcase Heater Electric Energy'],
+             'OpenStudio::Model::CoilCoolingWaterToAirHeatPumpEquationFit' => ['Cooling Coil Electric Energy', 'Cooling Coil Crankcase Heater Electric Energy'],
+             'OpenStudio::Model::FanOnOff' => ['Fan Electric Energy'] }
+  end
+
+  def self.SpaceCoolingLoad
+    return { 'OpenStudio::Model::CoilCoolingDXSingleSpeed' => ['Cooling Coil Total Cooling Energy'],
+             'OpenStudio::Model::CoilCoolingDXMultiSpeed' => ['Cooling Coil Total Cooling Energy'],
+             'OpenStudio::Model::CoilCoolingWaterToAirHeatPumpEquationFit' => ['Cooling Coil Total Cooling Energy'],
+             'OpenStudio::Model::FanOnOff' => ['Fan Electric Energy'] }
+  end
+
+  def self.WaterHeatingElectricity
+    return { 'OpenStudio::Model::WaterHeaterMixed' => ['Water Heater Electric Energy', 'Water Heater Off Cycle Parasitic Electric Energy', 'Water Heater On Cycle Parasitic Electric Energy'],
+             'OpenStudio::Model::WaterHeaterStratified' => ['Water Heater Electric Energy', 'Water Heater Off Cycle Parasitic Electric Energy', 'Water Heater On Cycle Parasitic Electric Energy'],
+             'OpenStudio::Model::CoilWaterHeatingAirToWaterHeatPumpWrapped' => ['Cooling Coil Water Heating Electric Energy'],
+             'OpenStudio::Model::WaterUseConnections' => [],
+             'OpenStudio::Model::ElectricEquipment' => [] }
+  end
+
+  def self.WaterHeatingElectricityRecircPump
+    return { 'OpenStudio::Model::WaterHeaterMixed' => [],
+             'OpenStudio::Model::WaterHeaterStratified' => [],
+             'OpenStudio::Model::CoilWaterHeatingAirToWaterHeatPumpWrapped' => [],
+             'OpenStudio::Model::WaterUseConnections' => [],
+             'OpenStudio::Model::ElectricEquipment' => ['Electric Equipment Electric Energy'] }
+  end
+
+  def self.WaterHeatingFuel
+    return { 'OpenStudio::Model::WaterHeaterMixed' => ['Water Heater Gas Energy', 'Water Heater Propane Energy', 'Water Heater FuelOil#1 Energy'],
+             'OpenStudio::Model::WaterHeaterStratified' => ['Water Heater Gas Energy', 'Water Heater Propane Energy', 'Water Heater FuelOil#1 Energy'],
+             'OpenStudio::Model::CoilWaterHeatingAirToWaterHeatPumpWrapped' => [],
+             'OpenStudio::Model::WaterUseConnections' => [],
+             'OpenStudio::Model::ElectricEquipment' => [] }
+  end
+
+  def self.WaterHeatingLoad
+    return { 'OpenStudio::Model::WaterHeaterMixed' => [],
+             'OpenStudio::Model::WaterHeaterStratified' => [],
+             'OpenStudio::Model::CoilWaterHeatingAirToWaterHeatPumpWrapped' => [],
+             'OpenStudio::Model::WaterUseConnections' => ['Water Use Connections Plant Hot Water Energy'],
+             'OpenStudio::Model::ElectricEquipment' => [] }
   end
 end
 

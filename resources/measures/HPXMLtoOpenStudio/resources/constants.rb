@@ -315,26 +315,6 @@ class Constants
     return 'wood'
   end
 
-  def self.LoadVarsSpaceHeating
-    return { 'OpenStudio::Model::CoilHeatingDXSingleSpeed' => ['Heating Coil Heating Energy'],
-             'OpenStudio::Model::CoilHeatingDXMultiSpeed' => ['Heating Coil Heating Energy'],
-             'OpenStudio::Model::CoilHeatingElectric' => ['Heating Coil Heating Energy'],
-             'OpenStudio::Model::CoilHeatingGas' => ['Heating Coil Heating Energy'],
-             'OpenStudio::Model::ZoneHVACBaseboardConvectiveElectric' => ['Baseboard Total Heating Energy'],
-             'OpenStudio::Model::ZoneHVACBaseboardConvectiveWater' => ['Baseboard Total Heating Energy'],
-             'OpenStudio::Model::CoilHeatingWaterToAirHeatPumpEquationFit' => ['Heating Coil Heating Energy'] }
-  end
-
-  def self.LoadVarsSpaceCooling
-    return { 'OpenStudio::Model::CoilCoolingDXSingleSpeed' => ['Cooling Coil Sensible Cooling Energy', 'Cooling Coil Latent Cooling Energy'],
-             'OpenStudio::Model::CoilCoolingDXMultiSpeed' => ['Cooling Coil Sensible Cooling Energy', 'Cooling Coil Latent Cooling Energy'],
-             'OpenStudio::Model::CoilCoolingWaterToAirHeatPumpEquationFit' => ['Cooling Coil Sensible Cooling Energy', 'Cooling Coil Latent Cooling Energy'] }
-  end
-
-  def self.LoadVarsWaterHeating
-    return { nil => ['Water Use Connections Plant Hot Water Energy'] }
-  end
-
   def self.LocationInterior
     return 'interior'
   end
@@ -1165,6 +1145,18 @@ class Constants
   end
 
   def self.SizingInfoWallRigidInsThickness
+    return __method__.to_s
+  end
+
+  def self.SizingInfoWindowHasOverhang
+    return __method__.to_s
+  end
+
+  def self.SizingInfoWindowOverhangDepth
+    return __method__.to_s
+  end
+
+  def self.SizingInfoWindowOverhangOffset
     return __method__.to_s
   end
 

@@ -165,6 +165,14 @@ class ResidentialHotWaterHeaterTank < OpenStudio::Measure::ModelMeasure
       space = Geometry.get_space_from_location(unit, location, location_hierarchy)
       next if space.nil?
 
+      # Get loop if it exists
+      loop = nil
+      model.getPlantLoops.each do |pl|
+        next if pl.name.to_s != Constants.PlantLoopDomesticWater(unit.name.to_s)
+
+        loop = pl
+      end
+
       # Get unit beds/baths
       nbeds, nbaths = Geometry.get_unit_beds_baths(model, unit, runner)
       if nbeds.nil? or nbaths.nil?
@@ -176,7 +184,7 @@ class ResidentialHotWaterHeaterTank < OpenStudio::Measure::ModelMeasure
       tank_volume = calc_nom_tankvol(tank_volume, fuel_type, nbeds, nbaths)
       energy_factor = calc_ef(energy_factor, tank_volume, fuel_type)
 
-      success = Waterheater.apply_tank(model, unit, runner, space, fuel_type,
+      success = Waterheater.apply_tank(model, unit, runner, loop, space, fuel_type,
                                        capacity, tank_volume, energy_factor,
                                        recovery_efficiency, setpoint_temp,
                                        oncycle_power, offcycle_power, 1.0)
