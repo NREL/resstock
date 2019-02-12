@@ -926,6 +926,8 @@ class CreateResidentialSingleFamilyDetachedGeometry < OpenStudio::Measure::Model
 
       space.setBuildingUnit(unit)
     end
+    model.getBuilding.additionalProperties.setFeature("Total Units Represented", 1)
+    model.getBuilding.additionalProperties.setFeature("Total Units Modeled", 1)
 
     # Store number of units
     model.getBuilding.setStandardsNumberOfLivingUnits(1)

@@ -8,7 +8,7 @@ require_relative "unit_conversions"
 require_relative "psychrometrics"
 
 class Waterheater
-  def self.apply_tank(model, unit, runner, space, fuel_type, cap, vol, ef,
+  def self.apply_tank(model, unit, runner, loop, space, fuel_type, cap, vol, ef,
                       re, t_set, oncycle_p, offcycle_p, ec_adj)
 
     # Validate inputs
@@ -53,14 +53,6 @@ class Waterheater
       return false
     end
 
-    # Check if a DHW plant loop already exists, if not add it
-    loop = nil
-    model.getPlantLoops.each do |pl|
-      next if pl.name.to_s != Constants.PlantLoopDomesticWater(unit.name.to_s)
-
-      loop = pl
-    end
-
     if loop.nil?
       runner.registerInfo("A new plant loop for DHW will be added to the model")
       runner.registerInitialCondition("No water heater model currently exists")
@@ -92,12 +84,12 @@ class Waterheater
     return true
   end
 
-  def self.apply_tankless(model, unit, runner, space, fuel_type, cap, ef,
+  def self.apply_tankless(model, unit, runner, loop, space, fuel_type, cap, ef,
                           cd, t_set, oncycle_p, offcycle_p, ec_adj)
 
     # Validate inputs
-    if ef >= 1 or ef <= 0
-      runner.registerError("Rated energy factor must be greater than 0 and less than 1.")
+    if ef > 1 or ef <= 0
+      runner.registerError("Rated energy factor must be greater than 0 and less than or equal to 1.")
       return false
     end
     if t_set <= 0 or t_set >= 212
@@ -132,14 +124,6 @@ class Waterheater
       return false
     end
 
-    # Check if a DHW plant loop already exists, if not add it
-    loop = nil
-    model.getPlantLoops.each do |pl|
-      next if pl.name.to_s != Constants.PlantLoopDomesticWater(unit.name.to_s)
-
-      loop = pl
-    end
-
     if loop.nil?
       runner.registerInfo("A new plant loop for DHW will be added to the model")
       runner.registerInitialCondition("No water heater model currently exists")
@@ -171,7 +155,7 @@ class Waterheater
     return true
   end
 
-  def self.apply_heatpump(model, unit, runner, space, weather,
+  def self.apply_heatpump(model, unit, runner, loop, space, weather,
                           e_cap, vol, t_set, min_temp, max_temp,
                           cap, cop, shr, airflow_rate, fan_power,
                           parasitics, tank_ua, int_factor, temp_depress,
@@ -245,14 +229,6 @@ class Waterheater
 
     alt = weather.header.Altitude
     water_heater_tz = space.thermalZone.get
-
-    # Check if a DHW plant loop already exists, if not add it
-    loop = nil
-    model.getPlantLoops.each do |pl|
-      next if pl.name.to_s != Constants.PlantLoopDomesticWater(unit.name.to_s)
-
-      loop = pl
-    end
 
     if loop.nil?
       runner.registerInfo("A new plant loop for DHW will be added to the model")
@@ -1030,62 +1006,20 @@ class Waterheater
     return nil
   end
 
-  def self.get_plant_loop_from_string(plant_loops, plantloop_s, unit, obj_name_hpwh, runner = nil)
+  def self.get_plant_loop_from_string(model, runner, plantloop_s, unit)
     if plantloop_s == Constants.Auto
-      return get_plant_loop_for_spaces(plant_loops, unit, obj_name_hpwh, runner)
-    end
-
-    plant_loop = nil
-    plant_loops.each do |pl|
-      if pl.name.to_s == plantloop_s
-        plant_loop = pl
-        break
+      model.getPlantLoops.each do |plant_loop|
+        next if plant_loop.name.to_s != Constants.PlantLoopDomesticWater(unit.name.to_s)
+        return plant_loop
       end
     end
-    if plant_loop.nil? and !runner
-      runner.registerError("Could not find plant loop with the name '#{plantloop_s}'.")
+
+    model.getPlantLoops.each do |plant_loop|
+      next if pl.name.to_s != plantloop_s
+      return plant_loop
     end
-    return plant_loop
-  end
 
-  def self.get_plant_loop_for_spaces(plant_loops, unit, obj_name_hpwh, runner = nil)
-    spaces = unit.spaces + Geometry.get_unit_adjacent_common_spaces(unit)
-    # We obtain the plant loop for a given set of space by comparing
-    # their associated thermal zones to the thermal zone that each plant
-    # loop water heater is located in.
-    spaces.each do |space|
-      next if !space.thermalZone.is_initialized
-
-      zone = space.thermalZone.get
-      plant_loops.each do |pl|
-        pl.supplyComponents.each do |wh|
-          if wh.to_WaterHeaterMixed.is_initialized
-            waterHeater = wh.to_WaterHeaterMixed.get
-            next if !waterHeater.ambientTemperatureThermalZone.is_initialized
-            next if waterHeater.ambientTemperatureThermalZone.get.name.to_s != zone.name.to_s
-
-            return pl
-          elsif wh.to_WaterHeaterStratified.is_initialized
-            if not wh.to_WaterHeaterStratified.get.secondaryPlantLoop.is_initialized
-              waterHeater = wh.to_WaterHeaterStratified.get
-              # Check if the water heater has a thermal zone attached to it, if not check if it has a schedule and the schedule name matches what we expect
-              if waterHeater.ambientTemperatureThermalZone.is_initialized
-                next if waterHeater.ambientTemperatureThermalZone.get.name.to_s != zone.name.to_s
-
-                return pl
-              elsif waterHeater.ambientTemperatureSchedule.is_initialized
-                if waterHeater.ambientTemperatureSchedule.get.name.to_s == "#{obj_name_hpwh} Tamb act" or waterHeater.ambientTemperatureSchedule.get.name.to_s == "#{obj_name_hpwh} Tamb act2"
-                  return pl
-                end
-              end
-            end
-          end
-        end
-      end
-    end
-    if !runner.nil?
-      runner.registerError("Could not find plant loop.")
-    end
+    runner.registerError("Could not find plant loop with the name '#{plantloop_s}'.")
     return nil
   end
 
@@ -1232,6 +1166,7 @@ class Waterheater
     ua_w_k = UnitConversions.convert(ua, "Btu/(hr*F)", "W/K")
     new_heater.setOnCycleLossCoefficienttoAmbientTemperature(ua_w_k)
     new_heater.setOffCycleLossCoefficienttoAmbientTemperature(ua_w_k)
+    new_heater.setEndUseSubcategory(name)
 
     return new_heater
   end

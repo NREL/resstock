@@ -672,31 +672,14 @@ class HVACSizing
 
         # Determine window overhang properties
         windowHasOverhang = false
-        windowOverhangDepth = 0
-        windowOverhangOffset = 0
+        windowOverhangDepth = nil
+        windowOverhangOffset = nil
         window.shadingSurfaceGroups.each do |ssg|
           ssg.shadingSurfaces.each do |ss|
-            length, width, height = Geometry.get_surface_dimensions(ss)
-            if height > 0
-              runner.registerWarning("Shading surface '#{}' is not horizontal; assumed to not be a window overhang.")
-              next
-            else
-              facade = Geometry.get_facade_for_surface(wall)
-              if facade.nil?
-                runner.registerError("Unknown facade for wall '#{wall.name.to_s}'.")
-                return nil
-              end
-              if [Constants.FacadeFront, Constants.FacadeBack].include?(facade)
-                windowOverhangDepth = UnitConversions.convert(width, "m", "ft")
-              else
-                windowOverhangDepth = UnitConversions.convert(length, "m", "ft")
-              end
-              overhangZ = Geometry.getSurfaceZValues([ss])[0]
-              windowTopZ = Geometry.getSurfaceZValues([window]).max
-              windowOverhangOffset = overhangZ - windowTopZ
-              windowHasOverhang = true
-              break
-            end
+            windowHasOverhang = true
+            windowOverhangDepth = get_feature(runner, window, Constants.SizingInfoWindowOverhangDepth, 'double')
+            windowOverhangOffset = get_feature(runner, window, Constants.SizingInfoWindowOverhangOffset, 'double')
+            return nil if windowOverhangDepth.nil? or windowOverhangOffset.nil?
           end
         end
 
