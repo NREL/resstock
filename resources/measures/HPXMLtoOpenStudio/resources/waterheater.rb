@@ -1006,62 +1006,20 @@ class Waterheater
     return nil
   end
 
-  def self.get_plant_loop_from_string(plant_loops, plantloop_s, unit, obj_name_hpwh, runner = nil)
+  def self.get_plant_loop_from_string(model, runner, plantloop_s, unit)
     if plantloop_s == Constants.Auto
-      return get_plant_loop_for_spaces(plant_loops, unit, obj_name_hpwh, runner)
-    end
-
-    plant_loop = nil
-    plant_loops.each do |pl|
-      if pl.name.to_s == plantloop_s
-        plant_loop = pl
-        break
+      model.getPlantLoops.each do |plant_loop|
+        next if plant_loop.name.to_s != Constants.PlantLoopDomesticWater(unit.name.to_s)
+        return plant_loop
       end
     end
-    if plant_loop.nil? and !runner
-      runner.registerError("Could not find plant loop with the name '#{plantloop_s}'.")
+
+    model.getPlantLoops.each do |plant_loop|
+      next if pl.name.to_s != plantloop_s
+      return plant_loop
     end
-    return plant_loop
-  end
 
-  def self.get_plant_loop_for_spaces(plant_loops, unit, obj_name_hpwh, runner = nil)
-    spaces = unit.spaces + Geometry.get_unit_adjacent_common_spaces(unit)
-    # We obtain the plant loop for a given set of space by comparing
-    # their associated thermal zones to the thermal zone that each plant
-    # loop water heater is located in.
-    spaces.each do |space|
-      next if !space.thermalZone.is_initialized
-
-      zone = space.thermalZone.get
-      plant_loops.each do |pl|
-        pl.supplyComponents.each do |wh|
-          if wh.to_WaterHeaterMixed.is_initialized
-            waterHeater = wh.to_WaterHeaterMixed.get
-            next if !waterHeater.ambientTemperatureThermalZone.is_initialized
-            next if waterHeater.ambientTemperatureThermalZone.get.name.to_s != zone.name.to_s
-
-            return pl
-          elsif wh.to_WaterHeaterStratified.is_initialized
-            if not wh.to_WaterHeaterStratified.get.secondaryPlantLoop.is_initialized
-              waterHeater = wh.to_WaterHeaterStratified.get
-              # Check if the water heater has a thermal zone attached to it, if not check if it has a schedule and the schedule name matches what we expect
-              if waterHeater.ambientTemperatureThermalZone.is_initialized
-                next if waterHeater.ambientTemperatureThermalZone.get.name.to_s != zone.name.to_s
-
-                return pl
-              elsif waterHeater.ambientTemperatureSchedule.is_initialized
-                if waterHeater.ambientTemperatureSchedule.get.name.to_s == "#{obj_name_hpwh} Tamb act" or waterHeater.ambientTemperatureSchedule.get.name.to_s == "#{obj_name_hpwh} Tamb act2"
-                  return pl
-                end
-              end
-            end
-          end
-        end
-      end
-    end
-    if !runner.nil?
-      runner.registerError("Could not find plant loop.")
-    end
+    runner.registerError("Could not find plant loop with the name '#{plantloop_s}'.")
     return nil
   end
 
@@ -1208,6 +1166,7 @@ class Waterheater
     ua_w_k = UnitConversions.convert(ua, "Btu/(hr*F)", "W/K")
     new_heater.setOnCycleLossCoefficienttoAmbientTemperature(ua_w_k)
     new_heater.setOffCycleLossCoefficienttoAmbientTemperature(ua_w_k)
+    new_heater.setEndUseSubcategory(name)
 
     return new_heater
   end
