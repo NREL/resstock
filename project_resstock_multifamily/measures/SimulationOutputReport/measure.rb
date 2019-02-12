@@ -1072,113 +1072,35 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
 
     electricityTotalEndUses = electricityHeating + electricityCooling + electricityInteriorLighting + electricityExteriorLighting + electricityInteriorEquipment + electricityFansHeating + electricityFansCooling + electricityPumpsHeating + electricityPumpsCooling + electricityWaterSystems
 
-    result = validate_total(runner, "total_site_electricity_kwh", [sqlFile.electricityTotalEndUses], electricityTotalEndUses)
-    return false unless result
-
     report_sim_output(runner, "total_site_electricity_kwh", electricityTotalEndUses, "GJ", elec_site_units)
-
     report_sim_output(runner, "net_site_electricity_kwh", electricityTotalEndUses + pv_val, "GJ", elec_site_units)
-
-    result = validate_total(runner, "electricity_heating_kwh", [sqlFile.electricityHeating], electricityHeating)
-    return false unless result
-
     report_sim_output(runner, "electricity_heating_kwh", electricityHeating, "GJ", elec_site_units)
-
-    result = validate_total(runner, "electricity_cooling_kwh", [sqlFile.electricityCooling], electricityCooling)
-    return false unless result
-
     report_sim_output(runner, "electricity_cooling_kwh", electricityCooling, "GJ", elec_site_units)
-
-    result = validate_total(runner, "electricity_interior_lighting_kwh", [sqlFile.electricityInteriorLighting], electricityInteriorLighting)
-    return false unless result
-
     report_sim_output(runner, "electricity_interior_lighting_kwh", electricityInteriorLighting, "GJ", elec_site_units)
-
-    result = validate_total(runner, "electricity_exterior_lighting_kwh", [sqlFile.electricityExteriorLighting], electricityExteriorLighting)
-    return false unless result
-
     report_sim_output(runner, "electricity_exterior_lighting_kwh", electricityExteriorLighting, "GJ", elec_site_units)
-
-    result = validate_total(runner, "electricity_interior_equipment_kwh", [sqlFile.electricityInteriorEquipment], electricityInteriorEquipment)
-    return false unless result
-
     report_sim_output(runner, "electricity_interior_equipment_kwh", electricityInteriorEquipment, "GJ", elec_site_units)
-
-    result = validate_total(runner, "electricity_fans_kwh", [sqlFile.electricityFans], electricityFansHeating + electricityFansCooling)
-    return false unless result
-
     report_sim_output(runner, "electricity_fans_heating_kwh", electricityFansHeating, "GJ", elec_site_units)
     report_sim_output(runner, "electricity_fans_cooling_kwh", electricityFansCooling, "GJ", elec_site_units)
-
-    result = validate_total(runner, "electricity_pumps_kwh", [sqlFile.electricityPumps], electricityPumpsHeating + electricityPumpsCooling)
-    return false unless result
-
     report_sim_output(runner, "electricity_pumps_heating_kwh", electricityPumpsHeating, "GJ", elec_site_units)
     report_sim_output(runner, "electricity_pumps_cooling_kwh", electricityPumpsCooling, "GJ", elec_site_units)
-
-    result = validate_total(runner, "electricity_water_systems_kwh", [sqlFile.electricityWaterSystems], electricityWaterSystems)
-    return false unless result
-
     report_sim_output(runner, "electricity_water_systems_kwh", electricityWaterSystems, "GJ", elec_site_units)
 
     # NATURAL GAS
 
     naturalGasTotalEndUses = naturalGasHeating + naturalGasInteriorEquipment + naturalGasWaterSystems
 
-    result = validate_total(runner, "total_site_natural_gas_therm", [sqlFile.naturalGasTotalEndUses], naturalGasTotalEndUses)
-    return false unless result
-
     report_sim_output(runner, "total_site_natural_gas_therm", naturalGasTotalEndUses, "GJ", gas_site_units)
-
-    result = validate_total(runner, "natural_gas_heating_therm", [sqlFile.naturalGasHeating], naturalGasHeating)
-    return false unless result
-
     report_sim_output(runner, "natural_gas_heating_therm", naturalGasHeating, "GJ", gas_site_units)
-
-    result = validate_total(runner, "natural_gas_interior_equipment_therm", [sqlFile.naturalGasInteriorEquipment], naturalGasInteriorEquipment)
-    return false unless result
-
     report_sim_output(runner, "natural_gas_interior_equipment_therm", naturalGasInteriorEquipment, "GJ", gas_site_units)
-
-    result = validate_total(runner, "natural_gas_water_systems_therm", [sqlFile.naturalGasWaterSystems], naturalGasWaterSystems)
-    return false unless result
-
     report_sim_output(runner, "natural_gas_water_systems_therm", naturalGasWaterSystems, "GJ", gas_site_units)
 
     # FUEL OIL
 
     fuelOilTotalEndUses = fuelOilHeating + fuelOilInteriorEquipment + fuelOilWaterSystems
 
-    sqlfile_total_site_fuel_oil_query = "SELECT Value FROM TabularDataWithStrings WHERE ReportName='EnergyMeters' AND ReportForString='Entire Facility' AND TableName='Annual and Peak Values - Other' AND RowName='FuelOil#1:Facility' AND ColumnName='Annual Value' AND Units='GJ'"
-    unless sqlFile.execAndReturnFirstDouble(sqlfile_total_site_fuel_oil_query).empty?
-      sqlFile_fuelOilTotalEndUses = sqlFile.execAndReturnFirstDouble(sqlfile_total_site_fuel_oil_query)
-      result = validate_total(runner, "total_site_fuel_oil_mbtu", [sqlFile_fuelOilTotalEndUses], fuelOilTotalEndUses)
-      return false unless result
-    end
     report_sim_output(runner, "total_site_fuel_oil_mbtu", fuelOilTotalEndUses, "GJ", other_fuel_site_units)
-
-    sqlfile_fuel_oil_heating_query = "SELECT Value FROM TabularDataWithStrings WHERE ReportName='EnergyMeters' AND ReportForString='Entire Facility' AND TableName='Annual and Peak Values - Other' AND RowName='Heating:FuelOil#1' AND ColumnName='Annual Value' AND Units='GJ'"
-    unless sqlFile.execAndReturnFirstDouble(sqlfile_fuel_oil_heating_query).empty?
-      sqlFile_fuelOilHeating = sqlFile.execAndReturnFirstDouble(sqlfile_fuel_oil_heating_query)
-      result = validate_total(runner, "fuel_oil_heating_mbtu", [sqlFile_fuelOilHeating], fuelOilHeating)
-      return false unless result
-    end
     report_sim_output(runner, "fuel_oil_heating_mbtu", fuelOilHeating, "GJ", other_fuel_site_units)
-
-    sqlfile_fuel_oil_interior_equipment_query = "SELECT Value FROM TabularDataWithStrings WHERE ReportName='EnergyMeters' AND ReportForString='Entire Facility' AND TableName='Annual and Peak Values - Other' AND RowName='InteriorEquipment:FuelOil#1' AND ColumnName='Annual Value' AND Units='GJ'"
-    unless sqlFile.execAndReturnFirstDouble(sqlfile_fuel_oil_interior_equipment_query).empty?
-      sqlFile_fuelOilInteriorEquipment = sqlFile.execAndReturnFirstDouble(sqlfile_fuel_oil_interior_equipment_query)
-      result = validate_total(runner, "fuel_oil_interior_equipment_mbtu", [sqlFile_fuelOilInteriorEquipment], fuelOilInteriorEquipment)
-      return false unless result
-    end
     report_sim_output(runner, "fuel_oil_interior_equipment_mbtu", fuelOilInteriorEquipment, "GJ", other_fuel_site_units)
-
-    sqlfile_fuel_oil_water_systems_query = "SELECT Value FROM TabularDataWithStrings WHERE ReportName='EnergyMeters' AND ReportForString='Entire Facility' AND TableName='Annual and Peak Values - Other' AND RowName='WaterSystems:FuelOil#1' AND ColumnName='Annual Value' AND Units='GJ'"
-    unless sqlFile.execAndReturnFirstDouble(sqlfile_fuel_oil_water_systems_query).empty?
-      sqlFile_fuelOilWaterSystems = sqlFile.execAndReturnFirstDouble(sqlfile_fuel_oil_water_systems_query)
-      result = validate_total(runner, "fuel_oil_water_systems_mbtu", [sqlFile_fuelOilWaterSystems], fuelOilWaterSystems)
-      return false unless result
-    end
     report_sim_output(runner, "fuel_oil_water_systems_mbtu", fuelOilWaterSystems, "GJ", other_fuel_site_units)
 
     # PROPANE
@@ -1186,46 +1108,17 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
     propaneTotalEndUses = propaneHeating + propaneInteriorEquipment + propaneWaterSystems
 
     sqlfile_total_site_propane_query = "SELECT Value FROM TabularDataWithStrings WHERE ReportName='EnergyMeters' AND ReportForString='Entire Facility' AND TableName='Annual and Peak Values - Other' AND RowName='Propane:Facility' AND ColumnName='Annual Value' AND Units='GJ'"
-    unless sqlFile.execAndReturnFirstDouble(sqlfile_total_site_propane_query).empty?
-      sqlFile_propaneTotalEndUses = sqlFile.execAndReturnFirstDouble(sqlfile_total_site_propane_query)
-      result = validate_total(runner, "total_site_propane_mbtu", [sqlFile_propaneTotalEndUses], propaneTotalEndUses)
-      return false unless result
-    end
+
     report_sim_output(runner, "total_site_propane_mbtu", propaneTotalEndUses, "GJ", other_fuel_site_units)
-
-    sqlfile_propane_heating_query = "SELECT Value FROM TabularDataWithStrings WHERE ReportName='EnergyMeters' AND ReportForString='Entire Facility' AND TableName='Annual and Peak Values - Other' AND RowName='Heating:Propane' AND ColumnName='Annual Value' AND Units='GJ'"
-    unless sqlFile.execAndReturnFirstDouble(sqlfile_propane_heating_query).empty?
-      sqlFile_propaneHeating = sqlFile.execAndReturnFirstDouble(sqlfile_propane_heating_query)
-      result = validate_total(runner, "propane_heating_mbtu", [sqlFile_propaneHeating], propaneHeating)
-      return false unless result
-    end
     report_sim_output(runner, "propane_heating_mbtu", propaneHeating, "GJ", other_fuel_site_units)
-
-    sqlfile_propane_interior_equipment_query = "SELECT Value FROM TabularDataWithStrings WHERE ReportName='EnergyMeters' AND ReportForString='Entire Facility' AND TableName='Annual and Peak Values - Other' AND RowName='InteriorEquipment:Propane' AND ColumnName='Annual Value' AND Units='GJ'"
-    unless sqlFile.execAndReturnFirstDouble(sqlfile_propane_interior_equipment_query).empty?
-      sqlFile_propaneInteriorEquipment = sqlFile.execAndReturnFirstDouble(sqlfile_propane_interior_equipment_query)
-      result = validate_total(runner, "propane_interior_equipment_mbtu", [sqlFile_propaneInteriorEquipment], propaneInteriorEquipment)
-      return false unless result
-    end
     report_sim_output(runner, "propane_interior_equipment_mbtu", propaneInteriorEquipment, "GJ", other_fuel_site_units)
-
-    sqlfile_propane_water_systems_query = "SELECT Value FROM TabularDataWithStrings WHERE ReportName='EnergyMeters' AND ReportForString='Entire Facility' AND TableName='Annual and Peak Values - Other' AND RowName='WaterSystems:Propane' AND ColumnName='Annual Value' AND Units='GJ'"
-    unless sqlFile.execAndReturnFirstDouble(sqlfile_propane_water_systems_query).empty?
-      sqlFile_propaneWaterSystems = sqlFile.execAndReturnFirstDouble(sqlfile_propane_water_systems_query)
-      result = validate_total(runner, "propane_water_systems_mbtu", [sqlFile_propaneWaterSystems], propaneWaterSystems)
-      return false unless result
-    end
     report_sim_output(runner, "propane_water_systems_mbtu", propaneWaterSystems, "GJ", other_fuel_site_units)
 
     # TOTAL
 
     totalSiteEnergy = electricityTotalEndUses + naturalGasTotalEndUses + fuelOilTotalEndUses + propaneTotalEndUses
 
-    result = validate_total(runner, "total_site_energy_mbtu", [sqlFile.totalSiteEnergy], totalSiteEnergy)
-    return false unless result
-
     report_sim_output(runner, "total_site_energy_mbtu", totalSiteEnergy, "GJ", total_site_units)
-
     report_sim_output(runner, "net_site_energy_mbtu", totalSiteEnergy + pv_val, "GJ", total_site_units)
 
     # LOADS NOT MET
@@ -1339,17 +1232,6 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
 
     return true
   end # end the run method
-
-  def validate_total(runner, name, vals, units_val)
-    total_val = 0.0
-    vals.each do |val|
-      next if val.empty?
-
-      total_val += val.get
-    end
-    puts "Building value #{total_val} differs from units total value #{units_val} for #{name}."
-    return true
-  end
 
   def report_sim_output(runner, name, total_val, os_units, desired_units, percent_of_val = 1.0)
     total_val = total_val * percent_of_val
