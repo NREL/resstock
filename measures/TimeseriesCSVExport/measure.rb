@@ -138,10 +138,9 @@ class TimeseriesCSVExport < OpenStudio::Measure::ReportingMeasure
     args << arg
 
     # make an argument for optional output variables
-    arg = OpenStudio::Measure::OSArgument::makeStringArgument("output_variables", true)
+    arg = OpenStudio::Measure::OSArgument::makeStringArgument("output_variables", false)
     arg.setDisplayName("Output Variables")
     arg.setDescription("Specify a comma-separated list of output variables to report. (See EnergyPlus's rdd file for available output variables.)")
-    arg.setDefaultValue("")
     args << arg
 
     return args
@@ -155,7 +154,14 @@ class TimeseriesCSVExport < OpenStudio::Measure::ReportingMeasure
 
     reporting_frequency = runner.getStringArgumentValue("reporting_frequency", user_arguments)
     include_enduse_subcategories = runner.getBoolArgumentValue("include_enduse_subcategories", user_arguments)
-    output_vars = runner.getStringArgumentValue("output_variables", user_arguments).split(",")
+    output_vars = runner.getOptionalStringArgumentValue("output_variables", user_arguments)
+    if output_vars.is_initialized
+      output_vars = output_vars.get
+      output_vars = output_vars.split(",")
+      output_vars = output_vars.collect { |x| x.strip }
+    else
+      output_vars = []
+    end
 
     # Request the output for each enduse/fuel type combination
     end_uses.each do |end_use|
@@ -206,12 +212,13 @@ class TimeseriesCSVExport < OpenStudio::Measure::ReportingMeasure
     # Assign the user inputs to variables
     reporting_frequency = runner.getStringArgumentValue("reporting_frequency", user_arguments)
     include_enduse_subcategories = runner.getBoolArgumentValue("include_enduse_subcategories", user_arguments)
-    output_variables = runner.getStringArgumentValue("output_variables", user_arguments)
-
-    # Clean output variables
-    output_vars = []
-    output_variables.split(",").each do |output_var|
-      output_vars << output_var.strip
+    output_vars = runner.getOptionalStringArgumentValue("output_variables", user_arguments)
+    if output_vars.is_initialized
+      output_vars = output_vars.get
+      output_vars = output_vars.split(",")
+      output_vars = output_vars.collect { |x| x.strip }
+    else
+      output_vars = []
     end
 
     # Get the last model
