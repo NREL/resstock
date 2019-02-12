@@ -729,7 +729,7 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
       end
       meter_custom += ";"
       results << OpenStudio::IdfObject.load(meter_custom).get
-      results << OpenStudio::IdfObject.load("Output:Meter,#{name};").get
+      results << OpenStudio::IdfObject.load("Output:Meter,#{name},Annual;").get
     end
     return results
   end
@@ -1059,50 +1059,6 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
         end
       end
     end
-
-    total_units_represented = 1
-    if model.getBuilding.additionalProperties.getFeatureAsInteger("Total Units Represented").is_initialized
-      total_units_represented = model.getBuilding.additionalProperties.getFeatureAsInteger("Total Units Represented").get
-    end
-    num_whs_in_common_space = 0.0
-    model.getSpaces.each do |space|
-      next if space.buildingUnit.is_initialized
-
-      thermal_zones = []
-      thermal_zone = space.thermalZone.get
-      unless thermal_zones.include? thermal_zone
-        thermal_zones << thermal_zone
-      end      
-
-      model.getWaterHeaterMixeds.each do |wh|
-        thermal_zone = wh.ambientTemperatureThermalZone.get
-        next unless thermal_zones.include? thermal_zone
-        num_whs_in_common_space += 1
-      end
-    end
-
-    if num_whs_in_common_space > 0
-      electricity_water_systems_query = "SELECT Value from tabulardatawithstrings where (reportname = 'AnnualBuildingUtilityPerformanceSummary') and (ReportForString = 'Entire Facility') and (TableName = 'End Uses'  ) and (ColumnName ='Electricity') and (RowName ='Water Systems') and (Units = 'GJ')"
-      unless sqlFile.execAndReturnFirstDouble(electricity_water_systems_query).empty?
-        electricityWaterSystems = (total_units_represented / num_whs_in_common_space) * sqlFile.execAndReturnFirstDouble(electricity_water_systems_query).get
-      end
-
-      natural_gas_water_systems_query = "SELECT Value from tabulardatawithstrings where (reportname = 'AnnualBuildingUtilityPerformanceSummary') and (ReportForString = 'Entire Facility') and (TableName = 'End Uses'  ) and (ColumnName ='Natural Gas') and (RowName ='Water Systems') and (Units = 'GJ')"
-      unless sqlFile.execAndReturnFirstDouble(natural_gas_water_systems_query).empty?
-        naturalGasWaterSystems = (total_units_represented / num_whs_in_common_space) * sqlFile.execAndReturnFirstDouble(natural_gas_water_systems_query).get
-      end
-
-      fuel_oil_water_systems_query = "SELECT Value FROM TabularDataWithStrings WHERE ReportName='EnergyMeters' AND ReportForString='Entire Facility' AND TableName='Annual and Peak Values - Other' AND RowName='WaterSystems:FuelOil#1' AND ColumnName='Annual Value' AND Units='GJ'"
-      unless sqlFile.execAndReturnFirstDouble(fuel_oil_water_systems_query).empty?
-        fuelOilWaterSystems = (total_units_represented / num_whs_in_common_space) * sqlFile.execAndReturnFirstDouble(fuel_oil_water_systems_query).get
-      end
-
-      propane_water_systems_query = "SELECT Value FROM TabularDataWithStrings WHERE ReportName='EnergyMeters' AND ReportForString='Entire Facility' AND TableName='Annual and Peak Values - Other' AND RowName='WaterSystems:Propane' AND ColumnName='Annual Value' AND Units='GJ'"
-      unless sqlFile.execAndReturnFirstDouble(propane_water_systems_query).empty?
-        propaneWaterSystems = (total_units_represented / num_whs_in_common_space) * sqlFile.execAndReturnFirstDouble(propane_water_systems_query).get
-      end
-    end
-    
 
     # ELECTRICITY
 

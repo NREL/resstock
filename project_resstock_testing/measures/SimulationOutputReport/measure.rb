@@ -217,14 +217,6 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
 
       results = create_custom_meter(results, "#{unit.name}:ElectricityInteriorLighting", electricity_interior_lighting)
 
-      # Electricity Interior Equipment
-      electricity_interior_equipment = []
-      thermal_zones.each do |thermal_zone|
-        electricity_interior_equipment << ["", "InteriorEquipment:Electricity:Zone:#{thermal_zone.name}"]
-      end
-
-      results = create_custom_meter(results, "#{unit.name}:ElectricityInteriorEquipment", electricity_interior_equipment)
-
       # Electricity Fans Heating
       electricity_fans_heating = []
       thermal_zones.each do |thermal_zone|
@@ -502,14 +494,6 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
       results = create_custom_meter(results, "#{unit.name}:NaturalGasHeating", natural_gas_heating, "NaturalGas")
       results = create_custom_meter(results, "Central:NaturalGasHeating", central_natural_gas_heating, "NaturalGas")
 
-      # Natural Gas Interior Equipment
-      natural_gas_interior_equipment = []
-      thermal_zones.each do |thermal_zone|
-        natural_gas_interior_equipment << ["", "InteriorEquipment:Gas:Zone:#{thermal_zone.name}"]
-      end
-
-      results = create_custom_meter(results, "#{unit.name}:NaturalGasInteriorEquipment", natural_gas_interior_equipment, "NaturalGas")
-
       # Natural Gas Water Systems
       natural_gas_water_systems = []
       model.getPlantLoops.each do |plant_loop|
@@ -612,14 +596,6 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
 
       results = create_custom_meter(results, "#{unit.name}:FuelOilHeating", fuel_oil_heating, "FuelOil#1")
       results = create_custom_meter(results, "Central:FuelOilHeating", central_fuel_oil_heating, "FuelOil#1")
-
-      # Fuel Oil Interior Equipment
-      fuel_oil_interior_equipment = []
-      thermal_zones.each do |thermal_zone|
-        fuel_oil_interior_equipment << ["", "InteriorEquipment:FuelOil#1:Zone:#{thermal_zone.name}"]
-      end
-
-      results = create_custom_meter(results, "#{unit.name}:FuelOilInteriorEquipment", fuel_oil_interior_equipment, "FuelOil#1")
 
       # Fuel Oil Water Systems
       fuel_oil_water_systems = []
@@ -724,14 +700,6 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
       results = create_custom_meter(results, "#{unit.name}:PropaneHeating", propane_heating, "PropaneGas")
       results = create_custom_meter(results, "Central:PropaneHeating", central_propane_heating, "PropaneGas")
 
-      # Propane Interior Equipment
-      propane_interior_equipment = []
-      thermal_zones.each do |thermal_zone|
-        propane_interior_equipment << ["", "InteriorEquipment:Propane:Zone:#{thermal_zone.name}"]
-      end
-
-      results = create_custom_meter(results, "#{unit.name}:PropaneInteriorEquipment", propane_interior_equipment, "PropaneGas")
-
       # Propane Water Systems
       propane_water_systems = []
       model.getPlantLoops.each do |plant_loop|
@@ -761,7 +729,7 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
       end
       meter_custom += ";"
       results << OpenStudio::IdfObject.load(meter_custom).get
-      results << OpenStudio::IdfObject.load("Output:Meter,#{name};").get
+      results << OpenStudio::IdfObject.load("Output:Meter,#{name},Annual;").get
     end
     return results
   end
@@ -867,7 +835,7 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
     gas_site_units = "therm"
     other_fuel_site_units = "MBtu"
 
-    # Get meters that aren't tied to units
+    # Get meters that aren't tied to units (i.e., get apportioned evenly across units)
     centralElectricityHeating = 0.0
     centralElectricityCooling = 0.0
     centralElectricityPumpsHeating = 0.0
@@ -876,6 +844,10 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
     centralFuelOilHeating = 0.0
     centralPropaneHeating = 0.0
     centralElectricityExteriorLighting = 0.0
+    centralElectricityInteriorEquipment = 0.0
+    centralNaturalGasInteriorEquipment = 0.0
+    centralFuelOilInteriorEquipment = 0.0
+    centralPropaneInteriorEquipment = 0.0
 
     central_electricity_heating_query = "SELECT Value FROM TabularDataWithStrings WHERE ReportName='EnergyMeters' AND ReportForString='Entire Facility' AND TableName='Annual and Peak Values - Electricity' AND RowName='CENTRAL:ELECTRICITYHEATING' AND ColumnName='Electricity Annual Value' AND Units='GJ'"
     unless sqlFile.execAndReturnFirstDouble(central_electricity_heating_query).empty?
@@ -917,6 +889,26 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
       centralElectricityExteriorLighting = sqlFile.execAndReturnFirstDouble(central_electricity_exterior_lighting_query).get
     end
 
+    central_electricity_interior_equipment_query = "SELECT Value from tabulardatawithstrings where (reportname = 'AnnualBuildingUtilityPerformanceSummary') and (ReportForString = 'Entire Facility') and (TableName = 'End Uses'  ) and (ColumnName ='Electricity') and (RowName = 'Interior Equipment') and (Units = 'GJ')"
+    unless sqlFile.execAndReturnFirstDouble(central_electricity_interior_equipment_query).empty?
+      centralElectricityInteriorEquipment = sqlFile.execAndReturnFirstDouble(central_electricity_interior_equipment_query).get
+    end
+
+    central_natural_gas_interior_equipment_query = "SELECT Value from tabulardatawithstrings where (reportname = 'AnnualBuildingUtilityPerformanceSummary') and (ReportForString = 'Entire Facility') and (TableName = 'End Uses'  ) and (ColumnName ='Natural Gas') and (RowName = 'Interior Equipment') and (Units = 'GJ')"
+    unless sqlFile.execAndReturnFirstDouble(central_natural_gas_interior_equipment_query).empty?
+      centralNaturalGasInteriorEquipment = sqlFile.execAndReturnFirstDouble(central_natural_gas_interior_equipment_query).get
+    end
+
+    central_fuel_oil_interior_equipment_query = "SELECT Value FROM TabularDataWithStrings WHERE ReportName='EnergyMeters' AND ReportForString='Entire Facility' AND TableName='Annual and Peak Values - Other' AND RowName='InteriorEquipment:FuelOil#1' AND ColumnName='Annual Value' AND Units='GJ'"
+    unless sqlFile.execAndReturnFirstDouble(central_fuel_oil_interior_equipment_query).empty?
+      centralFuelOilInteriorEquipment = sqlFile.execAndReturnFirstDouble(central_fuel_oil_interior_equipment_query).get
+    end
+
+    central_propane_interior_equipment_query = "SELECT Value FROM TabularDataWithStrings WHERE ReportName='EnergyMeters' AND ReportForString='Entire Facility' AND TableName='Annual and Peak Values - Other' AND RowName='InteriorEquipment:Propane' AND ColumnName='Annual Value' AND Units='GJ'"
+    unless sqlFile.execAndReturnFirstDouble(central_propane_interior_equipment_query).empty?
+      centralPropaneInteriorEquipment = sqlFile.execAndReturnFirstDouble(central_propane_interior_equipment_query).get
+    end
+
     # Get building units
     units = Geometry.get_building_units(model, runner)
     if units.nil?
@@ -929,6 +921,9 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
     electricityInteriorLighting = 0.0
     electricityExteriorLighting = 0.0
     electricityInteriorEquipment = 0.0
+    naturalGasInteriorEquipment = 0.0
+    fuelOilInteriorEquipment = 0.0
+    propaneInteriorEquipment = 0.0
     electricityFansHeating = 0.0
     electricityFansCooling = 0.0
     electricityPumpsHeating = 0.0
@@ -983,10 +978,7 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
 
       electricityExteriorLighting += units_represented * (centralElectricityExteriorLighting / units.length)
 
-      electricity_interior_equipment_query = "SELECT Value FROM TabularDataWithStrings WHERE ReportName='EnergyMeters' AND ReportForString='Entire Facility' AND TableName='Annual and Peak Values - Electricity' AND RowName='#{unit_name}:ELECTRICITYINTERIOREQUIPMENT' AND ColumnName='Electricity Annual Value' AND Units='GJ'"
-      unless sqlFile.execAndReturnFirstDouble(electricity_interior_equipment_query).empty?
-        electricityInteriorEquipment += units_represented * sqlFile.execAndReturnFirstDouble(electricity_interior_equipment_query).get
-      end
+      electricityInteriorEquipment += units_represented * (centralElectricityInteriorEquipment / units.length)
 
       electricity_fans_heating_query = "SELECT Value FROM TabularDataWithStrings WHERE ReportName='EnergyMeters' AND ReportForString='Entire Facility' AND TableName='Annual and Peak Values - Electricity' AND RowName='#{unit_name}:ELECTRICITYFANSHEATING' AND ColumnName='Electricity Annual Value' AND Units='GJ'"
       unless sqlFile.execAndReturnFirstDouble(electricity_fans_heating_query).empty?
@@ -1021,10 +1013,7 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
       end
       naturalGasHeating += units_represented * (centralNaturalGasHeating / units.length)
 
-      natural_gas_interior_equipment_query = "SELECT Value FROM TabularDataWithStrings WHERE ReportName='EnergyMeters' AND ReportForString='Entire Facility' AND TableName='Annual and Peak Values - Gas' AND RowName='#{unit_name}:NATURALGASINTERIOREQUIPMENT' AND ColumnName='Gas Annual Value' AND Units='GJ'"
-      unless sqlFile.execAndReturnFirstDouble(natural_gas_interior_equipment_query).empty?
-        naturalGasInteriorEquipment += units_represented * sqlFile.execAndReturnFirstDouble(natural_gas_interior_equipment_query).get
-      end
+      naturalGasInteriorEquipment += units_represented * (centralNaturalGasInteriorEquipment / units.length)
 
       natural_gas_water_systems_query = "SELECT Value FROM TabularDataWithStrings WHERE ReportName='EnergyMeters' AND ReportForString='Entire Facility' AND TableName='Annual and Peak Values - Gas' AND RowName='#{unit_name}:NATURALGASWATERSYSTEMS' AND ColumnName='Gas Annual Value' AND Units='GJ'"
       unless sqlFile.execAndReturnFirstDouble(natural_gas_water_systems_query).empty?
@@ -1037,10 +1026,7 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
       end
       fuelOilHeating += units_represented * (centralFuelOilHeating / units.length)
 
-      fuel_oil_interior_equipment_query = "SELECT Value FROM TabularDataWithStrings WHERE ReportName='EnergyMeters' AND ReportForString='Entire Facility' AND TableName='Annual and Peak Values - Other' AND RowName='#{unit_name}:FUELOILINTERIOREQUIPMENT' AND ColumnName='Annual Value' AND Units='GJ'"
-      unless sqlFile.execAndReturnFirstDouble(fuel_oil_interior_equipment_query).empty?
-        fuelOilInteriorEquipment += units_represented * sqlFile.execAndReturnFirstDouble(fuel_oil_interior_equipment_query).get
-      end
+      fuelOilInteriorEquipment += units_represented * (centralFuelOilInteriorEquipment / units.length)
 
       fuel_oil_water_systems_query = "SELECT Value FROM TabularDataWithStrings WHERE ReportName='EnergyMeters' AND ReportForString='Entire Facility' AND TableName='Annual and Peak Values - Other' AND RowName='#{unit_name}:FUELOILWATERSYSTEMS' AND ColumnName='Annual Value' AND Units='GJ'"
       unless sqlFile.execAndReturnFirstDouble(fuel_oil_water_systems_query).empty?
@@ -1053,10 +1039,7 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
       end
       propaneHeating += units_represented * (centralPropaneHeating / units.length)
 
-      propane_interior_equipment_query = "SELECT Value FROM TabularDataWithStrings WHERE ReportName='EnergyMeters' AND ReportForString='Entire Facility' AND TableName='Annual and Peak Values - Other' AND RowName='#{unit_name}:PROPANEINTERIOREQUIPMENT' AND ColumnName='Annual Value' AND Units='GJ'"
-      unless sqlFile.execAndReturnFirstDouble(propane_interior_equipment_query).empty?
-        propaneInteriorEquipment += units_represented * sqlFile.execAndReturnFirstDouble(propane_interior_equipment_query).get
-      end
+      propaneInteriorEquipment += units_represented * (centralPropaneInteriorEquipment / units.length)
 
       propane_water_systems_query = "SELECT Value FROM TabularDataWithStrings WHERE ReportName='EnergyMeters' AND ReportForString='Entire Facility' AND TableName='Annual and Peak Values - Other' AND RowName='#{unit_name}:PROPANEWATERSYSTEMS' AND ColumnName='Annual Value' AND Units='GJ'"
       unless sqlFile.execAndReturnFirstDouble(propane_water_systems_query).empty?
