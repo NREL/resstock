@@ -257,6 +257,13 @@ class CreateResidentialSingleFamilyAttachedGeometry < OpenStudio::Measure::Model
     orientation.setDefaultValue(180.0)
     args << orientation
 
+    # make a bool argument for minimal collapsed building
+    minimal_collapsed = OpenStudio::Measure::OSArgument::makeBoolArgument("minimal_collapsed", true)
+    minimal_collapsed.setDisplayName("Minimal Collapsed Building")
+    minimal_collapsed.setDescription("Collapse the building down into only corner, end, and/or middle units.")
+    minimal_collapsed.setDefaultValue(false)
+    args << minimal_collapsed
+
     return args
   end
 
@@ -294,6 +301,10 @@ class CreateResidentialSingleFamilyAttachedGeometry < OpenStudio::Measure::Model
     back_neighbor_offset = UnitConversions.convert(runner.getDoubleArgumentValue("neighbor_back_offset", user_arguments), "ft", "m")
     front_neighbor_offset = UnitConversions.convert(runner.getDoubleArgumentValue("neighbor_front_offset", user_arguments), "ft", "m")
     orientation = runner.getDoubleArgumentValue("orientation", user_arguments)
+    minimal_collapsed = runner.getBoolArgumentValue("minimal_collapsed", user_arguments)
+
+    num_units_actual = num_units
+    num_floors_actual = num_floors
 
     if foundation_type == "slab"
       foundation_height = 0.0
@@ -323,7 +334,23 @@ class CreateResidentialSingleFamilyAttachedGeometry < OpenStudio::Measure::Model
       return false
     end
 
-    # Convert to SI
+    # minimal collapsed
+    num_middle = 1
+    if minimal_collapsed
+      if has_rear_units
+        if num_units >= 8 # can be collapsed
+          num_middle = (num_units / 2) - 2
+          num_units = 6
+        end
+      else # front only
+        if num_units >= 4 # can be collapsed
+          num_middle = num_units - 2
+          num_units = 3
+        end
+      end
+    end
+
+    # convert to si
     foundation_height = UnitConversions.convert(foundation_height, "ft", "m")
 
     # starting spaces
@@ -406,7 +433,7 @@ class CreateResidentialSingleFamilyAttachedGeometry < OpenStudio::Measure::Model
 
     # create the unit
     unit_spaces_hash = {}
-    unit_spaces_hash[1] = living_spaces_front
+    unit_spaces_hash[1] = [living_spaces_front, 1]
 
     if has_rear_units # units in front and back
 
@@ -465,7 +492,7 @@ class CreateResidentialSingleFamilyAttachedGeometry < OpenStudio::Measure::Model
       end
 
       # create the back unit
-      unit_spaces_hash[2] = living_spaces_back
+      unit_spaces_hash[2] = [living_spaces_back, 1]
 
       pos = 0
       (3..num_units).to_a.each do |unit_num|
@@ -531,7 +558,11 @@ class CreateResidentialSingleFamilyAttachedGeometry < OpenStudio::Measure::Model
           end
         end
 
-        unit_spaces_hash[unit_num] = new_living_spaces
+        units_represented = 1
+        if pos == 1 # not on the ends
+          units_represented = num_middle
+        end
+        unit_spaces_hash[unit_num] = [new_living_spaces, units_represented]
       end
 
     else # units only in front
@@ -592,7 +623,11 @@ class CreateResidentialSingleFamilyAttachedGeometry < OpenStudio::Measure::Model
           end
         end
 
-        unit_spaces_hash[unit_num] = new_living_spaces
+        units_represented = 1
+        if pos == 1 # not on the ends
+          units_represented = num_middle
+        end
+        unit_spaces_hash[unit_num] = [new_living_spaces, units_represented]
       end
 
     end
@@ -627,7 +662,7 @@ class CreateResidentialSingleFamilyAttachedGeometry < OpenStudio::Measure::Model
       foundation_spaces << foundation_space
 
       if foundation_type == "finished basement"
-        unit_spaces_hash[1] << foundation_space
+        unit_spaces_hash[1][0] << foundation_space
       end
 
       if has_rear_units # units in front and back
@@ -656,7 +691,7 @@ class CreateResidentialSingleFamilyAttachedGeometry < OpenStudio::Measure::Model
 
         # create the unit
         if foundation_type == "finished basement"
-          unit_spaces_hash[2] << foundation_space
+          unit_spaces_hash[2][0] << foundation_space
         end
 
         pos = 0
@@ -697,7 +732,7 @@ class CreateResidentialSingleFamilyAttachedGeometry < OpenStudio::Measure::Model
             foundation_spaces << new_fnd_space
 
             if foundation_type == "finished basement"
-              unit_spaces_hash[unit_num] << new_fnd_space
+              unit_spaces_hash[unit_num][0] << new_fnd_space
             end
           end
         end
@@ -737,7 +772,7 @@ class CreateResidentialSingleFamilyAttachedGeometry < OpenStudio::Measure::Model
             foundation_spaces << new_fnd_space
 
             if foundation_type == "finished basement"
-              unit_spaces_hash[unit_num] << new_fnd_space
+              unit_spaces_hash[unit_num][0] << new_fnd_space
             end
           end
         end
@@ -822,15 +857,27 @@ class CreateResidentialSingleFamilyAttachedGeometry < OpenStudio::Measure::Model
       attic_space.setSpaceType(attic_space_type)
     end
 
-    unit_spaces_hash.each do |unit_num, spaces|
+    total_units_represented = 0
+    unit_spaces_hash.each do |unit_num, unit_info|
+      spaces, units_represented = unit_info
+
       # Store building unit information
       unit = OpenStudio::Model::BuildingUnit.new(model)
       unit.setBuildingUnitType(Constants.BuildingUnitTypeResidential)
       unit.setName(Constants.ObjectNameBuildingUnit(unit_num))
+      unit.additionalProperties.setFeature("Units Represented", units_represented)
+      total_units_represented += units_represented
       spaces.each do |space|
         space.setBuildingUnit(unit)
       end
     end
+    if total_units_represented != num_units_actual
+      runner.registerError("The specified number of building units does not equal the number of building units represented in the model.")
+      return false
+    end
+    model.getBuilding.additionalProperties.setFeature("Total Units Represented", num_units_actual)
+    model.getBuilding.additionalProperties.setFeature("Total Units Modeled", num_units)
+    runner.registerInfo("The #{num_units_actual}-unit building will be modeled using #{num_units} building units.")
 
     # put all of the spaces in the model into a vector
     spaces = OpenStudio::Model::SpaceVector.new

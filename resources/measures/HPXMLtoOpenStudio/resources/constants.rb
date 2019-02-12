@@ -1199,6 +1199,18 @@ class Constants
     return __method__.to_s
   end
 
+  def self.SizingInfoWindowHasOverhang
+    return __method__.to_s
+  end
+
+  def self.SizingInfoWindowOverhangDepth
+    return __method__.to_s
+  end
+
+  def self.SizingInfoWindowOverhangOffset
+    return __method__.to_s
+  end
+
   def self.SizingInfoZoneInfiltrationCFM
     return __method__.to_s
   end
