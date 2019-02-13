@@ -55,6 +55,13 @@ def retrieve_results_csv(local_results_dir, server_dns=nil, analysis_id=nil)
 
 end
 
+def unzip_archive(archive)
+  filename = OpenStudio::toPath(archive)
+  output_path = OpenStudio::toPath(archive.gsub(".zip", ""))
+  unzip_file = OpenStudio::UnzipFile.new(filename)
+  unzip_file.extractAllFiles(output_path)
+end
+
 def retrieve_dps(local_results_dir)
   dps = []
   Dir["#{local_results_dir}/*.csv"].each do |item|
@@ -69,7 +76,7 @@ def retrieve_dps(local_results_dir)
 end
 
 # Download any datapoint that is not already in the localResults directory
-def retrieve_dp_data(local_results_dir, server_dns=nil)
+def retrieve_dp_data(local_results_dir, server_dns=nil, unzip=false)
   # Verify localResults directory
   unless File.basename(local_results_dir) == 'localResults'
     fail "ERROR: input #{local_results_dir} does not point to localResults"
@@ -111,7 +118,7 @@ def retrieve_dp_data(local_results_dir, server_dns=nil)
           end
           puts "Worker #{Parallel.worker_number}, DOWNLOADED: #{dp[:file]}"
         end
-        
+        unzip_archive(dp[:file]) if unzip        
       end
     rescue => error
       puts "Datapoint #{File.basename(File.dirname(dp[:file]))}, ERROR:"
@@ -139,6 +146,7 @@ options = {}
 # -p --project_dir [string]
 # -s --server_dns [string]
 # -a --analysis_id [string]
+# -u --unzip [bool]
 optparse = OptionParser.new do |opts|
   opts.banner = 'Usage:    download_datapoints [-p] <project_dir> [-s] <server_dns> [-a] <analysis_id> [-u] [-h]'
 
@@ -155,6 +163,11 @@ optparse = OptionParser.new do |opts|
   options[:analysis_id] = nil
   opts.on('-a', '--analysis_id <id>', 'specified analysis ID') do |id|
     options[:analysis_id] = id
+  end
+
+  options[:unzip] = false
+  opts.on('-u', '--unzip', 'extract data_point.zip contents') do |zip|
+    options[:unzip] = true
   end
   
   opts.on_tail('-h', '--help', 'display help') do
@@ -179,4 +192,4 @@ end
 
 # Retrieve the datapoints and indicate success
 retrieve_results_csv(local_results_dir, options[:server_dns], options[:analysis_id])
-retrieve_dp_data(local_results_dir, options[:server_dns])
+retrieve_dp_data(local_results_dir, options[:server_dns], options[:unzip])
