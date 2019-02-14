@@ -133,8 +133,15 @@ class TimeseriesCSVExport < OpenStudio::Measure::ReportingMeasure
     # make an argument for including optional end use subcategories
     arg = OpenStudio::Measure::OSArgument::makeBoolArgument("include_enduse_subcategories", true)
     arg.setDisplayName("Include End Use Subcategories")
-    arg.setDescription("Whether to report appliance-level enduses: refrigerator, clothes dryer, plug loads, etc.")
+    arg.setDescription("Whether to report end use subcategories: fan, refrigerator, clothes dryer, plug loads, etc.")
     arg.setDefaultValue(false)
+    args << arg
+
+    # make an argument for summing subcategories across units
+    arg = OpenStudio::Measure::OSArgument::makeBoolArgument("units_aggregated_subcategories", true)
+    arg.setDisplayName("Aggregate End Use Subcategories Across Building Units")
+    arg.setDescription("Whether to sum end use subcategories across building units.")
+    arg.setDefaultValue(true)
     args << arg
 
     # make an argument for optional output variables
@@ -187,6 +194,11 @@ class TimeseriesCSVExport < OpenStudio::Measure::ReportingMeasure
         return false
       end
       model = model.get
+      model.getEnergyManagementSystemOutputVariables.each do |ems_output_var|
+        next unless ems_output_var.name.to_s.include? "Pumps:Electricity"
+
+        result << OpenStudio::IdfObject.load("Output:Variable,*,#{ems_output_var.name},#{reporting_frequency};").get
+      end
       end_use_subcategories(model).each do |variable_name|
         result << OpenStudio::IdfObject.load("Output:Meter,#{variable_name},#{reporting_frequency};").get
       end
@@ -212,6 +224,7 @@ class TimeseriesCSVExport < OpenStudio::Measure::ReportingMeasure
     # Assign the user inputs to variables
     reporting_frequency = runner.getStringArgumentValue("reporting_frequency", user_arguments)
     include_enduse_subcategories = runner.getBoolArgumentValue("include_enduse_subcategories", user_arguments)
+    units_aggregated_subcategories = runner.getBoolArgumentValue("units_aggregated_subcategories", user_arguments)
     output_vars = runner.getOptionalStringArgumentValue("output_variables", user_arguments)
     if output_vars.is_initialized
       output_vars = output_vars.get
@@ -266,6 +279,13 @@ class TimeseriesCSVExport < OpenStudio::Measure::ReportingMeasure
       end
     end
     if include_enduse_subcategories
+      model.getEnergyManagementSystemOutputVariables.each do |ems_output_var|
+        next unless ems_output_var.name.to_s.include? "Pumps:Electricity"
+
+        sql.availableKeyValues(ann_env_pd, reporting_frequency_map[reporting_frequency], ems_output_var.name.to_s).each do |key_value|
+          variables_to_report << [ems_output_var.name.to_s, reporting_frequency[reporting_frequency], key_value]
+        end
+      end
       end_use_subcategories(model).each do |variable_name|
         variables_to_report << [variable_name, reporting_frequency_map[reporting_frequency], ""]
       end
@@ -371,7 +391,7 @@ class TimeseriesCSVExport < OpenStudio::Measure::ReportingMeasure
         else # these are scalars
           y_val *= unit_conv
         end
-        y_vals << y_val.round(3)
+        y_vals << y_val.round(4)
       end
 
       if output_vars.include? var_name
@@ -401,31 +421,29 @@ class TimeseriesCSVExport < OpenStudio::Measure::ReportingMeasure
 
       # Sum across units for end use subcategories
       new_subcategories = {}
-      rows[0].each_with_index do |col, i|
-        next unless col.start_with? "res" # only end use subcategory columns
+      if units_aggregated_subcategories
+        rows[0].each_with_index do |col, i|
+          next unless col.start_with? "res" # only end use subcategory columns
 
-        end_use_subcategory, end_use, fuel_type = col.split(":")
-        if end_use_subcategory.include? "unit"
-          end_use_subcategory = end_use_subcategory.split("|")[0]
-        else # res_infil
-          end_use_subcategory = end_use_subcategory.tr("0-9", "").gsub("_", "")
-        end
-        new_subcategory = "#{end_use_subcategory}:#{end_use}:#{fuel_type}"
-        if not new_subcategories.keys.include? new_subcategory
-          new_subcategories[new_subcategory] = [i]
-        else
-          new_subcategories[new_subcategory] << i
-        end
-      end
-
-      new_subcategories.each do |new_subcategory, indexes|
-        rows[0] << new_subcategory
-        rows[1..-1].each do |row|
-          total = 0.0
-          indexes.each do |index|
-            total += row[index]
+          end_use_subcategory, end_use, fuel_type = col.split(":")
+          end_use_subcategory = end_use_subcategory.gsub("_", "").gsub("|", "").gsub("unit ", "").tr("0-9", "")
+          new_subcategory = "#{end_use_subcategory}:#{end_use}:#{fuel_type}"
+          if not new_subcategories.keys.include? new_subcategory
+            new_subcategories[new_subcategory] = [i]
+          else
+            new_subcategories[new_subcategory] << i
           end
-          row << total
+        end
+
+        new_subcategories.each do |new_subcategory, indexes|
+          rows[0] << new_subcategory
+          rows[1..-1].each do |row|
+            total = 0.0
+            indexes.each do |index|
+              total += row[index]
+            end
+            row << total
+          end
         end
       end
 
