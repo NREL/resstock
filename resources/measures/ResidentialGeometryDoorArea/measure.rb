@@ -1,13 +1,9 @@
 # see the URL below for information on how to write OpenStudio measures
 # http://nrel.github.io/OpenStudio-user-documentation/measures/measure_writing_guide/
 
-resources_path = File.absolute_path(File.join(File.dirname(__FILE__), "../HPXMLtoOpenStudio/resources"))
-unless File.exists? resources_path
-  resources_path = File.join(OpenStudio::BCLMeasure::userMeasuresDir.to_s, "HPXMLtoOpenStudio/resources") # Hack to run measures in the OS App since applied measures are copied off into a temporary directory
-end
-require File.join(resources_path, "constants")
-require File.join(resources_path, "geometry")
-require File.join(resources_path, "unit_conversions")
+require "#{File.dirname(__FILE__)}/resources/constants"
+require "#{File.dirname(__FILE__)}/resources/geometry"
+require "#{File.dirname(__FILE__)}/resources/unit_conversions"
 
 # start the measure
 class CreateResidentialDoorArea < OpenStudio::Measure::ModelMeasure
@@ -52,6 +48,13 @@ class CreateResidentialDoorArea < OpenStudio::Measure::ModelMeasure
 
     door_area = runner.getDoubleArgumentValue("door_area", user_arguments)
 
+	
+	model.getSpaces.each do |space|
+	  if space.additionalProperties.getFeatureAsBoolean("has_rear_units")
+	    door_area = 0
+	  end
+	end
+	
     construction = nil
     warn_msg = nil
     model.getSubSurfaces.each do |sub_surface|

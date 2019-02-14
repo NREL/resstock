@@ -1,6 +1,16 @@
 # see the URL below for information on how to write OpenStudio measures
 # http://nrel.github.io/OpenStudio-user-documentation/reference/measure_writing_guide/
 
+require "#{File.dirname(__FILE__)}/resources/constants"
+require "#{File.dirname(__FILE__)}/resources/geometry"
+require "#{File.dirname(__FILE__)}/resources/unit_conversions"
+require "#{File.dirname(__FILE__)}/resources/schedules"
+
+# insert your copyright here
+
+# see the URL below for information on how to write OpenStudio measures
+# http://nrel.github.io/OpenStudio-user-documentation/reference/measure_writing_guide/
+
 resources_path = File.absolute_path(File.join(File.dirname(__FILE__), "../HPXMLtoOpenStudio/resources"))
 unless File.exists? resources_path
   resources_path = File.join(OpenStudio::BCLMeasure::userMeasuresDir.to_s, "HPXMLtoOpenStudio/resources") # Hack to run measures in the OS App since applied measures are copied off into a temporary directory
@@ -14,24 +24,25 @@ require File.join(resources_path, "schedules")
 class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
   # human readable name
   def name
-    return "Create Residential Multifamily Geometry"
+    # Measure name should be the title case of the class name.
+    return 'CreateResidentialMultifamilyGeometry'
   end
 
   # human readable description
   def description
-    return "Sets the basic geometry for the multifamily building, where all units are 1 story and stacked if the building is multiple stories. Sets the number of bedrooms, bathrooms, and occupants in the building.#{Constants.WorkflowDescription}"
+    return "Sets the geometry for a single unit in a multifamily building based on the user-specified location of the unit. Sets the number of bedrooms, bathrooms, and occupants in the unit.#{Constants.WorkflowDescription}"
   end
 
   # human readable description of modeling approach
   def modeler_description
-    return "Creates multifamily geometry. Also, sets (or replaces) BuildingUnit objects that store the number of bedrooms and bathrooms associated with the model. Sets (or replaces) the People object for each finished space in the model."
+    return "Creates multifamily geometry for a single unit. Also, sets (or replaces) BuildingUnit objects that store the number of bedrooms and bathrooms associated with the model. Sets (or replaces) the People object for each finished space in the model."
   end
 
   # define the arguments that the user will input
   def arguments(model)
     args = OpenStudio::Measure::OSArgumentVector.new
 
-    # make an argument for unit living space floor area
+# make an argument for unit living space floor area
     unit_ffa = OpenStudio::Measure::OSArgument::makeDoubleArgument("unit_ffa", true)
     unit_ffa.setDisplayName("Unit Finished Floor Area")
     unit_ffa.setUnits("ft^2")
@@ -237,6 +248,35 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
     orientation.setDescription("The house's azimuth is measured clockwise from due south when viewed from above (e.g., South=0, West=90, North=180, East=270).")
     orientation.setDefaultValue(180.0)
     args << orientation
+	
+	
+	# make a string argument for unit level
+	level = OpenStudio::Measure::OSArgument::makeStringArgument("level", true)
+    level.setDisplayName("Unit Level")
+    level.setDescription("The level of the unit (top, middle, bottom)")
+    level.setDefaultValue("Bottom")
+    args << level
+	
+	# make a string argument for unit horizontal location
+	horz_location = OpenStudio::Measure::OSArgument::makeStringArgument("horz_location", true)
+    horz_location.setDisplayName("Horizontal Location of the Unit")
+    horz_location.setDescription("The horizontal location of the unit when viewwing the front of the building (left, middle, right)")
+    horz_location.setDefaultValue("Left")
+    args << horz_location
+	
+	# make a bool argument for multi story building
+	# multi_story = OpenStudio::Measure::OSArgument::makeBoolArgument("multi_story", true)
+    # multi_story.setDisplayName("Multi story boolean")
+    # multi_story.setDescription("Indicates if the building has more than one story")
+    # multi_story.setDefaultValue(true)
+    # args << multi_story
+	
+	# make a bool argument for back units
+	has_rear_units = OpenStudio::Measure::OSArgument::makeBoolArgument("has_rear_units", true)
+    has_rear_units.setDisplayName("Rear units boolean")
+    has_rear_units.setDescription("Indicates if the unit has another unit behind it")
+    has_rear_units.setDefaultValue(true)
+    args << has_rear_units
 
     return args
   end
@@ -254,8 +294,6 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
 
     unit_ffa = UnitConversions.convert(runner.getDoubleArgumentValue("unit_ffa", user_arguments), "ft^2", "m^2")
     wall_height = UnitConversions.convert(runner.getDoubleArgumentValue("wall_height", user_arguments), "ft", "m")
-    num_floors = runner.getIntegerArgumentValue("num_floors", user_arguments)
-    num_units = runner.getIntegerArgumentValue("num_units", user_arguments)
     unit_aspect_ratio = runner.getDoubleArgumentValue("unit_aspect_ratio", user_arguments)
     corridor_position = runner.getStringArgumentValue("corridor_position", user_arguments)
     corridor_width = UnitConversions.convert(runner.getDoubleArgumentValue("corridor_width", user_arguments), "ft", "m")
@@ -277,6 +315,12 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
     back_neighbor_offset = UnitConversions.convert(runner.getDoubleArgumentValue("neighbor_back_offset", user_arguments), "ft", "m")
     front_neighbor_offset = UnitConversions.convert(runner.getDoubleArgumentValue("neighbor_front_offset", user_arguments), "ft", "m")
     orientation = runner.getDoubleArgumentValue("orientation", user_arguments)
+	
+	level = runner.getStringArgumentValue("level", user_arguments)
+	horz_location = runner.getStringArgumentValue("horz_location", user_arguments)
+	has_rear_units = runner.getBoolArgumentValue("has_rear_units", user_arguments)
+	num_units = 1
+	num_floors = 1
 
     if foundation_type == "slab"
       foundation_height = 0.0
@@ -295,14 +339,10 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
       runner.registerError("The crawlspace height can be set between 1.5 and 5 ft.")
       return false
     end
-    if num_units % num_floors != 0
-      runner.registerError("The number of units must be divisible by the number of floors.")
-      return false
-    end
-    if num_units_per_floor == 1 and (corridor_position == "Double-Loaded Interior" or corridor_position == "Double Exterior")
-      runner.registerWarning("Specified building as having rear units; setting corridor position to 'Single Exterior (Front)'.")
-      corridor_position = "Single Exterior (Front)"
-    end
+    # if num_units_per_floor == 1 and (corridor_position == "Double-Loaded Interior" or corridor_position == "Double Exterior")
+      # runner.registerWarning("Specified building as having rear units; setting corridor position to 'Single Exterior (Front)'.")
+      # corridor_position = "Single Exterior (Front)"
+    # end
     if unit_aspect_ratio < 0
       runner.registerError("Invalid aspect ratio entered.")
       return false
@@ -324,10 +364,7 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
 
     # Convert to SI
     foundation_height = UnitConversions.convert(foundation_height, "ft", "m")
-
     space_types_hash = {}
-
-    num_units = num_units_per_floor * num_floors
 
     # starting spaces
     runner.registerInitialCondition("The building started with #{model_spaces.size} spaces.")
@@ -346,49 +383,17 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
     ne_point = OpenStudio::Point3d.new(x, 0, 0)
     sw_point = OpenStudio::Point3d.new(0, -y, 0)
     se_point = OpenStudio::Point3d.new(x, -y, 0)
-    if inset_width * inset_depth > 0
-      if inset_position == "Right"
-        # unit footprint
-        inset_point = OpenStudio::Point3d.new(x - inset_width, inset_depth - y, 0)
-        front_point = OpenStudio::Point3d.new(x - inset_width, -y, 0)
-        side_point = OpenStudio::Point3d.new(x, inset_depth - y, 0)
-        living_polygon = Geometry.make_polygon(sw_point, nw_point, ne_point, side_point, inset_point, front_point)
-        # unit balcony
-        if balcony_depth > 0
-          inset_point = OpenStudio::Point3d.new(x - inset_width, inset_depth - y, wall_height)
-          side_point = OpenStudio::Point3d.new(x, inset_depth - y, wall_height)
-          se_point = OpenStudio::Point3d.new(x, inset_depth - y - balcony_depth, wall_height)
-          front_point = OpenStudio::Point3d.new(x - inset_width, inset_depth - y - balcony_depth, wall_height)
-          shading_surface = OpenStudio::Model::ShadingSurface.new(OpenStudio::Point3dVector.new([front_point, se_point, side_point, inset_point]), model)
-        end
-      else
-        # unit footprint
-        inset_point = OpenStudio::Point3d.new(inset_width, inset_depth - y, 0)
-        front_point = OpenStudio::Point3d.new(inset_width, -y, 0)
-        side_point = OpenStudio::Point3d.new(0, inset_depth - y, 0)
-        living_polygon = Geometry.make_polygon(side_point, nw_point, ne_point, se_point, front_point, inset_point)
-        # unit balcony
-        if balcony_depth > 0
-          inset_point = OpenStudio::Point3d.new(inset_width, inset_depth - y, wall_height)
-          side_point = OpenStudio::Point3d.new(0, inset_depth - y, wall_height)
-          sw_point = OpenStudio::Point3d.new(0, inset_depth - y - balcony_depth, wall_height)
-          front_point = OpenStudio::Point3d.new(inset_width, inset_depth - y - balcony_depth, wall_height)
-          shading_surface = OpenStudio::Model::ShadingSurface.new(OpenStudio::Point3dVector.new([front_point, sw_point, side_point, inset_point]), model)
-        end
-      end
-    else
-      living_polygon = Geometry.make_polygon(sw_point, nw_point, ne_point, se_point)
-    end
-
+    living_polygon = Geometry.make_polygon(sw_point, nw_point, ne_point, se_point)
     # foundation
     if foundation_height > 0 and foundation_front_polygon.nil?
+	  puts(foundation_height)
       foundation_front_polygon = living_polygon
     end
-
+  
     # create living zone
     living_zone = OpenStudio::Model::ThermalZone.new(model)
     living_zone.setName("living zone")
-
+  
     # first floor front
     living_spaces_front = []
     living_space = OpenStudio::Model::Space::fromFloorPrint(living_polygon, wall_height, model)
@@ -403,6 +408,43 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
     end
     living_space.setSpaceType(living_space_type)
     living_space.setThermalZone(living_zone)
+	
+	
+	##############################################################################################
+	##############################################################################################
+	# Map unit location to adiabatic surfaces
+	horz_hash = {"Left"=>["right"], "Right"=>["left"], "Middle"=>["left", "right"], "None"=>[]}
+	level_hash = {"Bottom"=>["RoofCeiling"], "Top"=>["Floor"], "Middle"=>["RoofCeiling","Floor"], "None"=>[]} 	
+	
+	if has_rear_units == true
+	  adb_facade = ["back"]
+	else
+	  adb_facade = []
+	end
+	
+	adiabatic_surf = adb_facade + horz_hash[horz_location] + level_hash[level]
+	
+	# Make surfaces adiabatic
+	model.getSpaces.each do |space|
+	  # Store has_rear_units to call in the door geometry measure
+	  space.additionalProperties.setFeature("has_rear_units", has_rear_units)
+    space.surfaces.each do |surface|
+        os_facade = Geometry.get_facade_for_surface(surface)
+		if surface.surfaceType == "Wall"
+		  if adiabatic_surf.include? os_facade
+		    surface.setOutsideBoundaryCondition("Adiabatic")
+		    puts("----------", os_facade, "=", surface)
+		  end
+		else
+		  if (adiabatic_surf.include? surface.surfaceType)
+		    surface.setOutsideBoundaryCondition("Adiabatic")
+			puts("---------", surface.surfaceType, "=", surface)
+		  end
+		end
+	end
+	end	
+	##############################################################################################
+	##############################################################################################
 
     # add the balcony
     if balcony_depth > 0
@@ -410,304 +452,97 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
       shading_surface_group.setSpace(living_space)
       shading_surface.setShadingSurfaceGroup(shading_surface_group)
     end
-
     living_spaces_front << living_space
 
     # create the unit
     unit_spaces_hash = {}
     unit_spaces_hash[1] = living_spaces_front
-
-    has_rear_units = false
-
-    # create back units
-    if corridor_position == "Double-Loaded Interior" or corridor_position == "Double Exterior" # units in front and back
-
-      has_rear_units = true
-
-      if corridor_position == "Double-Loaded Interior"
-        interior_corridor_width = corridor_width
-      else
-        interior_corridor_width = 0
-      end
-
-      # create the back prototype unit
-      nw_point = OpenStudio::Point3d.new(0, y + interior_corridor_width, 0)
-      ne_point = OpenStudio::Point3d.new(x, y + interior_corridor_width, 0)
-      sw_point = OpenStudio::Point3d.new(0, interior_corridor_width, 0)
-      se_point = OpenStudio::Point3d.new(x, interior_corridor_width, 0)
-      if inset_width * inset_depth > 0
-        if inset_position == "Left"
-          # unit footprint
-          inset_point = OpenStudio::Point3d.new(x - inset_width, y - inset_depth + interior_corridor_width, 0)
-          front_point = OpenStudio::Point3d.new(x - inset_width, y + interior_corridor_width, 0)
-          side_point = OpenStudio::Point3d.new(x, y - inset_depth + interior_corridor_width, 0)
-          living_polygon = Geometry.make_polygon(sw_point, nw_point, front_point, inset_point, side_point, se_point)
-          # unit balcony
-          if balcony_depth > 0
-            inset_point = OpenStudio::Point3d.new(x - inset_width, y - inset_depth + interior_corridor_width, wall_height)
-            side_point = OpenStudio::Point3d.new(x, y - inset_depth + interior_corridor_width, wall_height)
-            ne_point = OpenStudio::Point3d.new(x, y - inset_depth + balcony_depth + interior_corridor_width, wall_height)
-            front_point = OpenStudio::Point3d.new(x - inset_width, y - inset_depth + balcony_depth + interior_corridor_width, wall_height)
-            shading_surface = OpenStudio::Model::ShadingSurface.new(OpenStudio::Point3dVector.new([side_point, ne_point, front_point, inset_point]), model)
-          end
-        else
-          # unit footprint
-          inset_point = OpenStudio::Point3d.new(inset_width, y - inset_depth + interior_corridor_width, 0)
-          front_point = OpenStudio::Point3d.new(inset_width, y + interior_corridor_width, 0)
-          side_point = OpenStudio::Point3d.new(0, y - inset_depth + interior_corridor_width, 0)
-          living_polygon = Geometry.make_polygon(side_point, inset_point, front_point, ne_point, se_point, sw_point)
-          # unit balcony
-          if balcony_depth > 0
-            inset_point = OpenStudio::Point3d.new(inset_width, y - inset_depth + interior_corridor_width, wall_height)
-            side_point = OpenStudio::Point3d.new(0, y - inset_depth + interior_corridor_width, wall_height)
-            nw_point = OpenStudio::Point3d.new(0, y - inset_depth + balcony_depth + interior_corridor_width, wall_height)
-            front_point = OpenStudio::Point3d.new(inset_width, y - inset_depth + balcony_depth + interior_corridor_width, wall_height)
-            shading_surface = OpenStudio::Model::ShadingSurface.new(OpenStudio::Point3dVector.new([side_point, nw_point, front_point, inset_point]), model)
-          end
-        end
-      else
-        living_polygon = Geometry.make_polygon(sw_point, nw_point, ne_point, se_point)
-      end
-
-      # foundation
-      if foundation_height > 0 and foundation_back_polygon.nil?
-        foundation_back_polygon = living_polygon
-      end
-
-      # create living zone
-      living_zone = OpenStudio::Model::ThermalZone.new(model)
-      living_zone.setName("living zone|#{Constants.ObjectNameBuildingUnit(2)}")
-
-      # first floor back
-      living_spaces_back = []
-      living_space = OpenStudio::Model::Space::fromFloorPrint(living_polygon, wall_height, model)
-      living_space = living_space.get
-      living_space.setName("living space|#{Constants.ObjectNameBuildingUnit(2)}")
-      if space_types_hash.keys.include? Constants.SpaceTypeLiving
-        living_space_type = space_types_hash[Constants.SpaceTypeLiving]
-      else
-        living_space_type = OpenStudio::Model::SpaceType.new(model)
-        living_space_type.setStandardsSpaceType(Constants.SpaceTypeLiving)
-        space_types_hash[Constants.SpaceTypeLiving] = living_space_type
-      end
-      living_space.setSpaceType(living_space_type)
-      living_space.setThermalZone(living_zone)
-
-      # add the balcony
-      if balcony_depth > 0
-        shading_surface_group = OpenStudio::Model::ShadingSurfaceGroup.new(model)
-        shading_surface_group.setSpace(living_space)
-        shading_surface.setShadingSurfaceGroup(shading_surface_group)
-      end
-
-      living_spaces_back << living_space
-
-      # create the back unit
-      unit_spaces_hash[2] = living_spaces_back
-
-      floor = 0
-      pos = 0
-      front_unit = true
-      (3..num_units).to_a.each do |unit_num|
-        if not num_units_per_floor > 2 and unit_num == 3
-          pos = -1
-          floor = wall_height
-        end
-
-        # front or back unit
-        if front_unit
-          living_spaces = living_spaces_front
-          pos += 1
-          front_unit = false
-        else
-          living_spaces = living_spaces_back
-          front_unit = true
-        end
-
-        living_zone = OpenStudio::Model::ThermalZone.new(model)
-        living_zone.setName("living zone|#{Constants.ObjectNameBuildingUnit(unit_num)}")
-
-        new_living_spaces = []
-        living_spaces.each_with_index do |living_space, story|
-          new_living_space = living_space.clone.to_Space.get
-          new_living_space.setName("living space|#{Constants.ObjectNameBuildingUnit(unit_num)}|story #{story + 1}")
-          new_living_space.setSpaceType(living_space_type)
-
-          m = Geometry.initialize_transformation_matrix(OpenStudio::Matrix.new(4, 4, 0))
-          m[0, 3] = -pos * x
-          m[2, 3] = -floor
-          new_living_space.changeTransformation(OpenStudio::Transformation.new(m))
-          new_living_space.setXOrigin(0)
-          new_living_space.setYOrigin(0)
-          new_living_space.setZOrigin(0)
-          new_living_space.setThermalZone(living_zone)
-
-          new_living_spaces << new_living_space
-        end
-
-        unit_spaces_hash[unit_num] = new_living_spaces
-
-        if unit_num % num_units_per_floor == 0
-
-          # which floor
-          floor += wall_height
-          pos = -1
-          front_unit = true
-
-        end
-      end
-
+	
+	# (rear_units == false) & 
+	
+    if (corridor_position == "Double-Loaded Interior")
+      interior_corridor_width = corridor_width
       # corridors
       if corridor_width > 0
+        # create the prototype corridor
+        nw_point = OpenStudio::Point3d.new(0, interior_corridor_width, 0)
+        ne_point = OpenStudio::Point3d.new(x, interior_corridor_width, 0)
+        sw_point = OpenStudio::Point3d.new(0, 0, 0)
+        se_point = OpenStudio::Point3d.new(x, 0, 0)
+        corr_polygon = Geometry.make_polygon(sw_point, nw_point, ne_point, se_point)
 
-        if corridor_position == "Double-Loaded Interior"
+        if foundation_height > 0 and foundation_corr_polygon.nil?
+          foundation_corr_polygon = corr_polygon
+        end
 
-          # create the prototype corridor
-          nw_point = OpenStudio::Point3d.new(0, interior_corridor_width, 0)
-          ne_point = OpenStudio::Point3d.new(x * (num_units_per_floor.to_f / 2).ceil, interior_corridor_width, 0)
-          sw_point = OpenStudio::Point3d.new(0, 0, 0)
-          se_point = OpenStudio::Point3d.new(x * (num_units_per_floor.to_f / 2).ceil, 0, 0)
-          corr_polygon = Geometry.make_polygon(sw_point, nw_point, ne_point, se_point)
-
-          if foundation_height > 0 and foundation_corr_polygon.nil?
-            foundation_corr_polygon = corr_polygon
-          end
-
-          # create corridor zone
-          corridor_zone = OpenStudio::Model::ThermalZone.new(model)
-          corridor_zone.setName("corridor zone")
-
-          # first floor corridor
-          corridor_space = OpenStudio::Model::Space::fromFloorPrint(corr_polygon, wall_height, model)
-          corridor_space = corridor_space.get
-          corridor_space_name = "corridor space"
-          corridor_space.setName(corridor_space_name)
-          if space_types_hash.keys.include? Constants.SpaceTypeCorridor
-            corridor_space_type = space_types_hash[Constants.SpaceTypeCorridor]
-          else
-            corridor_space_type = OpenStudio::Model::SpaceType.new(model)
-            corridor_space_type.setStandardsSpaceType(Constants.SpaceTypeCorridor)
-            space_types_hash[Constants.SpaceTypeCorridor] = corridor_space_type
-          end
-          corridor_space.setSpaceType(corridor_space_type)
-          corridor_space.setThermalZone(corridor_zone)
-
-          (1...num_floors).to_a.each do |floor|
-            new_corridor_space = corridor_space.clone.to_Space.get
-            m = Geometry.initialize_transformation_matrix(OpenStudio::Matrix.new(4, 4, 0))
-            m[2, 3] = -floor * wall_height
-            new_corridor_space.changeTransformation(OpenStudio::Transformation.new(m))
-            new_corridor_space.setZOrigin(0)
-            new_corridor_space.setThermalZone(corridor_zone)
-            corridor_space_name = "corridor space|story #{floor + 1}"
-            new_corridor_space.setName(corridor_space_name)
-            corridor_space.setSpaceType(corridor_space_type)
-          end
-
+        # create corridor zone
+        corridor_zone = OpenStudio::Model::ThermalZone.new(model)
+        corridor_zone.setName("corridor zone")
+        corridor_space = OpenStudio::Model::Space::fromFloorPrint(corr_polygon, wall_height, model)
+        corridor_space = corridor_space.get
+        corridor_space_name = "corridor space"
+        corridor_space.setName(corridor_space_name)
+        if space_types_hash.keys.include? Constants.SpaceTypeCorridor
+          corridor_space_type = space_types_hash[Constants.SpaceTypeCorridor]
         else
-
-          # front access
-          (1..num_floors).to_a.each do |floor|
-            nw_point = OpenStudio::Point3d.new(0, -y, floor * wall_height)
-            sw_point = OpenStudio::Point3d.new(0, -y - corridor_width, floor * wall_height)
-            ne_point = OpenStudio::Point3d.new(x * (num_units_per_floor / 2), -y, floor * wall_height)
-            se_point = OpenStudio::Point3d.new(x * (num_units_per_floor / 2), -y - corridor_width, floor * wall_height)
-            if num_units_per_floor_actual % 2 != 0
-              ne_point = OpenStudio::Point3d.new(x * ((num_units_per_floor + 1) / 2), -y, floor * wall_height)
-              se_point = OpenStudio::Point3d.new(x * ((num_units_per_floor + 1) / 2), -y - corridor_width, floor * wall_height)
-            end
-
-            shading_surface = OpenStudio::Model::ShadingSurface.new(OpenStudio::Point3dVector.new([sw_point, se_point, ne_point, nw_point]), model)
-
-            shading_surface_group = OpenStudio::Model::ShadingSurfaceGroup.new(model)
-            shading_surface.setShadingSurfaceGroup(shading_surface_group)
-          end
-
-          # rear access
-          (1..num_floors).to_a.each do |floor|
-            nw_point = OpenStudio::Point3d.new(0, y + corridor_width, floor * wall_height)
-            sw_point = OpenStudio::Point3d.new(0, y, floor * wall_height)
-            ne_point = OpenStudio::Point3d.new(x * (num_units_per_floor / 2), y + corridor_width, floor * wall_height)
-            se_point = OpenStudio::Point3d.new(x * (num_units_per_floor / 2), y, floor * wall_height)
-
-            shading_surface = OpenStudio::Model::ShadingSurface.new(OpenStudio::Point3dVector.new([sw_point, se_point, ne_point, nw_point]), model)
-
-            shading_surface_group = OpenStudio::Model::ShadingSurfaceGroup.new(model)
-            shading_surface.setShadingSurfaceGroup(shading_surface_group)
-          end
-
+          corridor_space_type = OpenStudio::Model::SpaceType.new(model)
+          corridor_space_type.setStandardsSpaceType(Constants.SpaceTypeCorridor)
+          space_types_hash[Constants.SpaceTypeCorridor] = corridor_space_type
         end
+        corridor_space.setSpaceType(corridor_space_type)
+        corridor_space.setThermalZone(corridor_zone)
+		
+		# Make back wall of corridor adiabatic if there are rear units
+		if has_rear_units == true  
+		  corridor_space.surfaces.each do |surface|
+			os_facade = Geometry.get_facade_for_surface(surface)
+			puts(os_facade)
+			if (surface.surfaceType == "Wall") and (adiabatic_surf.include? os_facade)
+			  surface.setOutsideBoundaryCondition("Adiabatic")
+			  puts("corridor space ===== ", surface)
+			else
+			  if (adiabatic_surf.include? surface.surfaceType)
+		        surface.setOutsideBoundaryCondition("Adiabatic")
+				puts("corridor space ===== ", surface)
+			  end
+			end
+		  end
+		end
+		
+	  end
+	end
+	
+	
+    if corridor_position == "Double Exterior"
+	  interior_corridor_width = 0
+      # front access
+      nw_point = OpenStudio::Point3d.new(0, -y, wall_height)
+      sw_point = OpenStudio::Point3d.new(0, -y - corridor_width, wall_height)
+      ne_point = OpenStudio::Point3d.new(x, -y, wall_height)
+      se_point = OpenStudio::Point3d.new(x, -y - corridor_width, wall_height)
 
-      end
+      shading_surface = OpenStudio::Model::ShadingSurface.new(OpenStudio::Point3dVector.new([sw_point, se_point, ne_point, nw_point]), model)
 
-    else # units only in front
+      shading_surface_group = OpenStudio::Model::ShadingSurfaceGroup.new(model)
+      shading_surface.setShadingSurfaceGroup(shading_surface_group)
+	  shading_surface.setName("Double Exterior Corridor Front")
+      # rear access
+      nw_point = OpenStudio::Point3d.new(0, y + corridor_width, wall_height)
+      sw_point = OpenStudio::Point3d.new(0, y, wall_height)
+      ne_point = OpenStudio::Point3d.new(x, y + corridor_width, wall_height)
+      se_point = OpenStudio::Point3d.new(x, y, wall_height)
 
-      floor = 0
-      pos = 0
-      (2..num_units).to_a.each do |unit_num|
-        if not num_units_per_floor > 1 and unit_num == 2
-          pos = -1
-          floor = wall_height
-        end
+      shading_surface = OpenStudio::Model::ShadingSurface.new(OpenStudio::Point3dVector.new([sw_point, se_point, ne_point, nw_point]), model)
 
-        living_spaces = living_spaces_front
-        pos += 1
-
-        living_zone = OpenStudio::Model::ThermalZone.new(model)
-        living_zone.setName("living zone|#{Constants.ObjectNameBuildingUnit(unit_num)}")
-
-        new_living_spaces = []
-        living_spaces.each_with_index do |living_space, story|
-          new_living_space = living_space.clone.to_Space.get
-          new_living_space.setName("living space|#{Constants.ObjectNameBuildingUnit(unit_num)}|story #{story + 1}")
-          new_living_space.setSpaceType(living_space_type)
-
-          m = Geometry.initialize_transformation_matrix(OpenStudio::Matrix.new(4, 4, 0))
-          m[0, 3] = -pos * x
-          m[2, 3] = -floor
-          new_living_space.changeTransformation(OpenStudio::Transformation.new(m))
-          new_living_space.setXOrigin(0)
-          new_living_space.setYOrigin(0)
-          new_living_space.setZOrigin(0)
-          new_living_space.setThermalZone(living_zone)
-
-          new_living_spaces << new_living_space
-        end
-
-        unit_spaces_hash[unit_num] = new_living_spaces
-
-        if unit_num % num_units_per_floor == 0
-
-          # which floor
-          floor += wall_height
-          pos = -1
-
-        end
-      end
-
-      if corridor_width > 0
-
-        (1..num_floors).to_a.each do |floor|
-          nw_point = OpenStudio::Point3d.new(0, -y, floor * wall_height)
-          ne_point = OpenStudio::Point3d.new(x * num_units_per_floor, -y, floor * wall_height)
-          sw_point = OpenStudio::Point3d.new(0, -y - corridor_width, floor * wall_height)
-          se_point = OpenStudio::Point3d.new(x * num_units_per_floor, -y - corridor_width, floor * wall_height)
-
-          shading_surface = OpenStudio::Model::ShadingSurface.new(OpenStudio::Point3dVector.new([sw_point, se_point, ne_point, nw_point]), model)
-
-          shading_surface_group = OpenStudio::Model::ShadingSurfaceGroup.new(model)
-          shading_surface.setShadingSurfaceGroup(shading_surface_group)
-        end
-
-      end
-
-    end
-
+      shading_surface_group = OpenStudio::Model::ShadingSurfaceGroup.new(model)
+      shading_surface.setShadingSurfaceGroup(shading_surface_group)
+	  puts("making Corridor SHading")
+	  shading_surface.setName("Double Exterior Corridor Rear")
+    end	
+	
     # foundation
     if foundation_height > 0
-
       foundation_spaces = []
-
       # foundation corridor
       if corridor_width > 0 and corridor_position == "Double-Loaded Interior"
         corridor_space = OpenStudio::Model::Space::fromFloorPrint(foundation_corr_polygon, foundation_height, model)
@@ -736,80 +571,17 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
       foundation_space_front << foundation_space
       foundation_spaces << foundation_space
 
-      if corridor_position == "Double-Loaded Interior" or corridor_position == "Double Exterior" # units in front and back
-
-        # foundation back
-        foundation_space_back = []
-        foundation_space = OpenStudio::Model::Space::fromFloorPrint(foundation_back_polygon, foundation_height, model)
-        foundation_space = foundation_space.get
-        m = Geometry.initialize_transformation_matrix(OpenStudio::Matrix.new(4, 4, 0))
-        m[2, 3] = foundation_height
-        foundation_space.changeTransformation(OpenStudio::Transformation.new(m))
-        foundation_space.setXOrigin(0)
-        foundation_space.setYOrigin(0)
-        foundation_space.setZOrigin(0)
-
-        foundation_space_back << foundation_space
-        foundation_spaces << foundation_space
-
-        pos = 0
-        (3..num_units_per_floor).to_a.each do |unit_num|
-          # front or back unit
-          if unit_num % 2 != 0 # odd unit number
-            living_spaces = foundation_space_front
-            pos += 1
-          else # even unit number
-            living_spaces = foundation_space_back
-          end
-
-          living_spaces.each do |living_space|
-            new_living_space = living_space.clone.to_Space.get
-
-            m = Geometry.initialize_transformation_matrix(OpenStudio::Matrix.new(4, 4, 0))
-            m[0, 3] = -pos * x
-            new_living_space.changeTransformation(OpenStudio::Transformation.new(m))
-            new_living_space.setXOrigin(0)
-            new_living_space.setYOrigin(0)
-            new_living_space.setZOrigin(0)
-
-            foundation_spaces << new_living_space
-          end
-        end
-
-      else # units only in front
-
-        pos = 0
-        (2..num_units_per_floor).to_a.each do |unit_num|
-          living_spaces = foundation_space_front
-          pos += 1
-
-          living_spaces.each do |living_space|
-            new_living_space = living_space.clone.to_Space.get
-
-            m = Geometry.initialize_transformation_matrix(OpenStudio::Matrix.new(4, 4, 0))
-            m[0, 3] = -pos * x
-            new_living_space.changeTransformation(OpenStudio::Transformation.new(m))
-            new_living_space.setXOrigin(0)
-            new_living_space.setYOrigin(0)
-            new_living_space.setZOrigin(0)
-
-            foundation_spaces << new_living_space
-          end
-        end
-
-      end
-
       # put all of the spaces in the model into a vector
       spaces = OpenStudio::Model::SpaceVector.new
       model.getSpaces.each do |space|
         spaces << space
       end
-
+	
       # intersect and match surfaces for each space in the vector
       OpenStudio::Model.intersectSurfaces(spaces)
       OpenStudio::Model.matchSurfaces(spaces)
-
-      if ["crawlspace", "unfinished basement"].include? foundation_type
+      
+	  if ["crawlspace", "unfinished basement"].include? foundation_type
         foundation_space = Geometry.make_one_space_from_multiple_spaces(model, foundation_spaces)
         if foundation_type == "crawlspace"
           foundation_space.setName("crawl space")
@@ -833,7 +605,7 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
         end
         foundation_space.setSpaceType(foundation_space_type)
       end
-
+	  
       # set foundation walls to ground
       spaces = model.getSpaces
       spaces.each do |space|
@@ -841,14 +613,13 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
           surfaces = space.surfaces
           surfaces.each do |surface|
             next if surface.surfaceType.downcase != "wall"
-
             surface.setOutsideBoundaryCondition("Foundation")
           end
         end
       end
 
     end
-
+	
     unit_spaces_hash.each do |unit_num, spaces|
       # Store building unit information
       unit = OpenStudio::Model::BuildingUnit.new(model)
@@ -868,13 +639,16 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
     # intersect and match surfaces for each space in the vector
     OpenStudio::Model.intersectSurfaces(spaces)
     OpenStudio::Model.matchSurfaces(spaces)
-
+	
     # make all surfaces adjacent to corridor spaces into adiabatic surfaces
     model.getSpaces.each do |space|
+	  space.surfaces.each do |surface|
+	  end
       next unless Geometry.is_corridor(space)
 
       space.surfaces.each do |surface|
         if surface.adjacentSurface.is_initialized # only set to adiabatic if the corridor surface is adjacent to another surface
+		  puts("########   ", surface)
           surface.adjacentSurface.get.setOutsideBoundaryCondition("Adiabatic")
           surface.setOutsideBoundaryCondition("Adiabatic")
         end
@@ -884,7 +658,6 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
     # set foundation outside boundary condition to Kiva "foundation"
     model.getSurfaces.each do |surface|
       next if surface.outsideBoundaryCondition.downcase != "ground"
-
       surface.setOutsideBoundaryCondition("Foundation")
     end
 
