@@ -8,17 +8,16 @@ require "#{File.dirname(__FILE__)}/resources/schedules"
 
 # insert your copyright here
 
-# see the URL below for information on how to write OpenStudio measures
-# http://nrel.github.io/OpenStudio-user-documentation/reference/measure_writing_guide/
 
 resources_path = File.absolute_path(File.join(File.dirname(__FILE__), "../HPXMLtoOpenStudio/resources"))
 unless File.exists? resources_path
   resources_path = File.join(OpenStudio::BCLMeasure::userMeasuresDir.to_s, "HPXMLtoOpenStudio/resources") # Hack to run measures in the OS App since applied measures are copied off into a temporary directory
 end
-require File.join(resources_path, "constants")
-require File.join(resources_path, "geometry")
-require File.join(resources_path, "unit_conversions")
-require File.join(resources_path, "schedules")
+
+# require File.join(resources_path, "constants")
+# require File.join(resources_path, "geometry")
+# require File.join(resources_path, "unit_conversions")
+# require File.join(resources_path, "schedules")
 
 # start the measure
 class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
@@ -416,31 +415,34 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
 	horz_hash = {"Left"=>["right"], "Right"=>["left"], "Middle"=>["left", "right"], "None"=>[]}
 	level_hash = {"Bottom"=>["RoofCeiling"], "Top"=>["Floor"], "Middle"=>["RoofCeiling","Floor"], "None"=>[]} 	
 	
-	if has_rear_units == true
+	if (has_rear_units == true)
 	  adb_facade = ["back"]
 	else
 	  adb_facade = []
 	end
+		
+	adb_facade = adb_facade + horz_hash[horz_location]
+	adb_level = level_hash[level]
 	
 	adiabatic_surf = adb_facade + horz_hash[horz_location] + level_hash[level]
-	
 	# Make surfaces adiabatic
 	model.getSpaces.each do |space|
 	  # Store has_rear_units to call in the door geometry measure
 	  space.additionalProperties.setFeature("has_rear_units", has_rear_units)
-    space.surfaces.each do |surface|
+      space.surfaces.each do |surface|
         os_facade = Geometry.get_facade_for_surface(surface)
 		if surface.surfaceType == "Wall"
-		  if adiabatic_surf.include? os_facade
+		  if adb_facade.include? os_facade
 		    surface.setOutsideBoundaryCondition("Adiabatic")
-		    puts("----------", os_facade, "=", surface)
+		    # puts("----------", surface)
 		  end
 		else
-		  if (adiabatic_surf.include? surface.surfaceType)
+		  if (adb_level.include? surface.surfaceType)
 		    surface.setOutsideBoundaryCondition("Adiabatic")
-			puts("---------", surface.surfaceType, "=", surface)
+			# puts("---------", surface)
 		  end
-		end
+		end		
+		
 	end
 	end	
 	##############################################################################################
@@ -496,22 +498,11 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
 		if has_rear_units == true  
 		  corridor_space.surfaces.each do |surface|
 			os_facade = Geometry.get_facade_for_surface(surface)
-			puts(os_facade)
-			if (surface.surfaceType == "Wall") and (adiabatic_surf.include? os_facade)
-			  surface.setOutsideBoundaryCondition("Adiabatic")
-			  puts("corridor space ===== ", surface)
-			else
-			  if (adiabatic_surf.include? surface.surfaceType)
-		        surface.setOutsideBoundaryCondition("Adiabatic")
-				puts("corridor space ===== ", surface)
-			  end
-			end
 		  end
 		end
 		
 	  end
 	end
-	
 	
     if corridor_position == "Double Exterior"
 	  interior_corridor_width = 0
@@ -648,10 +639,10 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
 
       space.surfaces.each do |surface|
         if surface.adjacentSurface.is_initialized # only set to adiabatic if the corridor surface is adjacent to another surface
-		  puts("########   ", surface)
           surface.adjacentSurface.get.setOutsideBoundaryCondition("Adiabatic")
           surface.setOutsideBoundaryCondition("Adiabatic")
         end
+		
       end
     end
 
