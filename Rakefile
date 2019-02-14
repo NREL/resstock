@@ -386,6 +386,12 @@ task :integrity_check_resstock_multifamily do
     integrity_check_options_lookup_tsv('project_resstock_multifamily')
 end # rake task
 
+desc 'Perform integrity check on inputs for project_resstock_multifamily_singleunit'
+task :integrity_check_resstock_multifamily_singleunit do
+    integrity_check('project_resstock_multifamily_singleunit')
+    integrity_check_options_lookup_tsv('project_resstock_multifamily_singleunit')
+end # rake task
+
 def integrity_check(project_dir_name)
   # Load helper file and sampling file
   resources_dir = File.join(File.dirname(__FILE__), 'resources')
