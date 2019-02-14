@@ -2,8 +2,8 @@
   <schema_version>3.0</schema_version>
   <name>timeseries_csv_export</name>
   <uid>2a3442c1-944d-4e91-9e11-11e0cf368c64</uid>
-  <version_id>3b80e906-c1f0-466a-88db-86f34305503f</version_id>
-  <version_modified>20190110T221141Z</version_modified>
+  <version_id>f37b9df1-8601-49a4-9166-4d27c62c6fb5</version_id>
+  <version_modified>20190214T202043Z</version_modified>
   <xml_checksum>15BF4E57</xml_checksum>
   <class_name>TimeseriesCSVExport</class_name>
   <display_name>Timeseries CSV Export</display_name>
@@ -65,6 +65,25 @@
       </choices>
     </argument>
     <argument>
+      <name>units_aggregated_subcategories</name>
+      <display_name>Aggregate End Use Subcategories Across Building Units</display_name>
+      <description>Whether to sum appliance-level enduses across building units.</description>
+      <type>Boolean</type>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>true</default_value>
+      <choices>
+        <choice>
+          <value>true</value>
+          <display_name>true</display_name>
+        </choice>
+        <choice>
+          <value>false</value>
+          <display_name>false</display_name>
+        </choice>
+      </choices>
+    </argument>
+    <argument>
       <name>output_variables</name>
       <display_name>Output Variables</display_name>
       <description>Specify a comma-separated list of output variables to report. (See EnergyPlus's rdd file for available output variables.)</description>
@@ -87,6 +106,24 @@
   </attributes>
   <files>
     <file>
+      <filename>USA_CO_Denver_Intl_AP_725650_TMY3.epw</filename>
+      <filetype>epw</filetype>
+      <usage_type>test</usage_type>
+      <checksum>E23378AA</checksum>
+    </file>
+    <file>
+      <filename>DuPage_17043_725300_880860.epw</filename>
+      <filetype>epw</filetype>
+      <usage_type>test</usage_type>
+      <checksum>335AE046</checksum>
+    </file>
+    <file>
+      <filename>timeseries_csv_export_test.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>test</usage_type>
+      <checksum>42FF58F4</checksum>
+    </file>
+    <file>
       <version>
         <software_program>OpenStudio</software_program>
         <identifier>2.0.5</identifier>
@@ -95,7 +132,7 @@
       <filename>measure.rb</filename>
       <filetype>rb</filetype>
       <usage_type>script</usage_type>
-      <checksum>7EEB4411</checksum>
+      <checksum>36361775</checksum>
     </file>
   </files>
 </measure>
