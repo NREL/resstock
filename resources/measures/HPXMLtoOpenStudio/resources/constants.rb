@@ -347,57 +347,6 @@ class Constants
     return ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
   end
 
-  def self.OutputVarsSpaceHeatingElectricity
-    return { 'OpenStudio::Model::CoilHeatingDXSingleSpeed' => ['Heating Coil Electric Energy', 'Heating Coil Crankcase Heater Electric Energy', 'Heating Coil Defrost Electric Energy'],
-             'OpenStudio::Model::CoilHeatingDXMultiSpeed' => ['Heating Coil Electric Energy', 'Heating Coil Crankcase Heater Electric Energy', 'Heating Coil Defrost Electric Energy'],
-             'OpenStudio::Model::CoilHeatingElectric' => ['Heating Coil Electric Energy', 'Heating Coil Crankcase Heater Electric Energy', 'Heating Coil Defrost Electric Energy'],
-             'OpenStudio::Model::CoilHeatingWaterToAirHeatPumpEquationFit' => ['Heating Coil Electric Energy', 'Heating Coil Crankcase Heater Electric Energy', 'Heating Coil Defrost Electric Energy'],
-             'OpenStudio::Model::CoilHeatingGas' => [],
-             'OpenStudio::Model::ZoneHVACBaseboardConvectiveElectric' => ['Baseboard Electric Energy'],
-             'OpenStudio::Model::BoilerHotWater' => ['Boiler Electric Energy'],
-             'OpenStudio::Model::FanOnOff' => ['Fan Electric Energy'] }
-  end
-
-  def self.OutputVarsSpaceHeatingFuel
-    return { 'OpenStudio::Model::CoilHeatingDXSingleSpeed' => [],
-             'OpenStudio::Model::CoilHeatingDXMultiSpeed' => [],
-             'OpenStudio::Model::CoilHeatingElectric' => [],
-             'OpenStudio::Model::CoilHeatingWaterToAirHeatPumpEquationFit' => [],
-             'OpenStudio::Model::CoilHeatingGas' => ['Heating Coil Gas Energy', 'Heating Coil Propane Energy', 'Heating Coil FuelOil#1 Energy'],
-             'OpenStudio::Model::ZoneHVACBaseboardConvectiveElectric' => ['Baseboard Gas Energy', 'Baseboard Propane Energy', 'Baseboard FuelOil#1 Energy'],
-             'OpenStudio::Model::BoilerHotWater' => ['Boiler Gas Energy', 'Boiler Propane Energy', 'Boiler FuelOil#1 Energy'],
-             'OpenStudio::Model::FanOnOff' => [] }
-  end
-
-  def self.OutputVarsSpaceHeatingLoad
-    return { 'OpenStudio::Model::CoilHeatingDXSingleSpeed' => ['Heating Coil Heating Energy'],
-             'OpenStudio::Model::CoilHeatingDXMultiSpeed' => ['Heating Coil Heating Energy'],
-             'OpenStudio::Model::CoilHeatingElectric' => ['Heating Coil Heating Energy'],
-             'OpenStudio::Model::CoilHeatingWaterToAirHeatPumpEquationFit' => ['Heating Coil Heating Energy'],
-             'OpenStudio::Model::CoilHeatingGas' => ['Heating Coil Heating Energy'],
-             'OpenStudio::Model::ZoneHVACBaseboardConvectiveElectric' => ['Baseboard Total Heating Energy'],
-             'OpenStudio::Model::BoilerHotWater' => ['Boiler Heating Energy'],
-             'OpenStudio::Model::FanOnOff' => ['Fan Electric Energy'] }
-  end
-
-  def self.OutputVarsSpaceCoolingElectricity
-    return { 'OpenStudio::Model::CoilCoolingDXSingleSpeed' => ['Cooling Coil Electric Energy', 'Cooling Coil Crankcase Heater Electric Energy'],
-             'OpenStudio::Model::CoilCoolingDXMultiSpeed' => ['Cooling Coil Electric Energy', 'Cooling Coil Crankcase Heater Electric Energy'],
-             'OpenStudio::Model::CoilCoolingWaterToAirHeatPumpEquationFit' => ['Cooling Coil Electric Energy', 'Cooling Coil Crankcase Heater Electric Energy'],
-             'OpenStudio::Model::FanOnOff' => ['Fan Electric Energy'] }
-  end
-
-  def self.OutputVarsSpaceCoolingLoad
-    return { 'OpenStudio::Model::CoilCoolingDXSingleSpeed' => ['Cooling Coil Total Cooling Energy'],
-             'OpenStudio::Model::CoilCoolingDXMultiSpeed' => ['Cooling Coil Total Cooling Energy'],
-             'OpenStudio::Model::CoilCoolingWaterToAirHeatPumpEquationFit' => ['Cooling Coil Total Cooling Energy'],
-             'OpenStudio::Model::FanOnOff' => ['Fan Electric Energy'] }
-  end
-
-  def self.OutputVarsWaterHeatingLoad
-    return { nil => ['Water Use Connections Plant Hot Water Energy'] }
-  end
-
   def self.PVArrayTypeFixedOpenRack
     return 'FixedOpenRack'
   end
@@ -1172,6 +1121,18 @@ class Constants
   end
 
   def self.SizingInfoWallRigidInsThickness
+    return __method__.to_s
+  end
+
+  def self.SizingInfoWindowHasOverhang
+    return __method__.to_s
+  end
+
+  def self.SizingInfoWindowOverhangDepth
+    return __method__.to_s
+  end
+
+  def self.SizingInfoWindowOverhangOffset
     return __method__.to_s
   end
 
