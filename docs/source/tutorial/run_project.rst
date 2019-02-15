@@ -52,9 +52,10 @@ Sometimes you will need *all* the simulation results including timeseries result
    
 .. note::
 
-   To download all datapoints, including the timeseries csv output for each simulation, run the ``scripts/download_datapoints.rb`` script. The script requires that the :ref:`timeseries-csv-export` reporting measure be included in your PAT project. Supply all required arguments to the script, including project directory, server DNS, and analysis ID. A usage example is given as follows:
-   ``$ ruby scripts/download_datapoints.rb -p project_resstock_national``
+   To download all datapoints, including the timeseries csv output for each simulation, run the ``scripts/download_datapoints.rb`` script using the OpenStudio CLI. The script requires that the :ref:`timeseries-csv-export` reporting measure be included in your PAT project. Supply all required arguments to the script, including project directory, server DNS, and analysis ID. A usage example is given as follows:
+   ``$ /c/openstudio-2.7.0/bin/openstudio.exe scripts/download_datapoints.rb -p project_resstock_national``
    ``-s http://ec2-107-23-165-146.compute-1.amazonaws.com -a 706c3b4a-9685-4924-bb13-c6bec77aa397``
+   Additionally, the script has an optional argument to unzip each datapoint zip file on the fly.
 
 Shutting Down the OpenStudio Server Cluster
 -------------------------------------------
