@@ -1010,16 +1010,18 @@ class Waterheater
     if plantloop_s == Constants.Auto
       model.getPlantLoops.each do |plant_loop|
         next if plant_loop.name.to_s != Constants.PlantLoopDomesticWater(unit.name.to_s)
+
         return plant_loop
       end
     end
 
     model.getPlantLoops.each do |plant_loop|
       next if pl.name.to_s != plantloop_s
+
       return plant_loop
     end
 
-    runner.registerError("Could not find plant loop with the name '#{plantloop_s}'.")
+    runner.registerError("Could not find plant loop.")
     return nil
   end
 

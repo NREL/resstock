@@ -64,7 +64,7 @@ class ProcessConstructionsFinishedRoof < OpenStudio::Measure::ModelMeasure
     args << filled_cavity
 
     # make a choice argument for finished roof framing factor
-    framing_factor = OpenStudio::Measure::OSArgument::makeDoubleArgument("framing_factor", false)
+    framing_factor = OpenStudio::Measure::OSArgument::makeDoubleArgument("framing_factor", true)
     framing_factor.setDisplayName("Framing Factor")
     framing_factor.setUnits("frac")
     framing_factor.setDescription("The framing factor of the finished roof.")

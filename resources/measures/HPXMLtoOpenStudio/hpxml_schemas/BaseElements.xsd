@@ -175,6 +175,7 @@
 	<xs:complexType name="InsulationInfo">
 		<xs:sequence>
 			<xs:group ref="SystemInfo"/>
+			<xs:element minOccurs="0" name="InsulationPresent" type="xs:boolean"/>
 			<xs:element minOccurs="0" name="InsulationGrade" type="InsulationGrade"/>
 			<xs:element minOccurs="0" name="InsulationCondition" type="InsulationCondition"/>
 			<xs:element minOccurs="0" name="InsulationLocation" type="InsulationLocation"/>
@@ -584,7 +585,7 @@
 											<xs:documentation>The space over which this attic is</xs:documentation>
 										</xs:annotation>
 									</xs:element>
-									<xs:element name="AtticType" type="AtticType" minOccurs="0"/>
+									<xs:element name="AtticType" type="AtticType" minOccurs="1"/>
 									<xs:element minOccurs="0" name="Roofs">
 										<xs:complexType>
 											<xs:sequence>
@@ -718,11 +719,6 @@
 												</xs:element>
 											</xs:sequence>
 										</xs:complexType>
-									</xs:element>
-									<xs:element name="Area" type="SurfaceArea" minOccurs="0">
-										<xs:annotation>
-											<xs:documentation>[sq.ft.] Area of the floor of the attic. DO WE STILL NEED THIS?</xs:documentation>
-										</xs:annotation>
 									</xs:element>
 									<xs:element name="AnnualEnergyUse" minOccurs="0">
 										<xs:complexType>
@@ -1108,6 +1104,8 @@
 										type="xs:boolean"/>
 									<xs:element name="StormDoor" type="xs:boolean" minOccurs="0"/>
 									<xs:element name="RValue" type="RValue" minOccurs="0"/>
+									<xs:element minOccurs="0" name="LeakinessDescription"
+										type="BuildingLeakiness"/>
 									<xs:element maxOccurs="unbounded" minOccurs="0"
 										name="ThirdPartyCertification"
 										type="DoorThirdPartyCertifications"/>
@@ -1441,12 +1439,6 @@
 												</xs:sequence>
 												</xs:complexType>
 												</xs:element>
-												<xs:element minOccurs="0" name="Pipe"
-												type="PipeInsulationType">
-												<xs:annotation>
-												<xs:documentation>DEPRECATED. This will be removed in v3.0. Use HotWaterDistribution element instead.</xs:documentation>
-												</xs:annotation>
-												</xs:element>
 											</xs:sequence>
 										</xs:complexType>
 									</xs:element>
@@ -1642,11 +1634,7 @@
 										</xs:annotation>
 									</xs:element>
 									<xs:element minOccurs="0" name="CollectorLoopType"
-										type="SolarThermalCollectorLoopType">
-										<xs:annotation>
-											<xs:documentation>"batch heater" enumeration is deprecated. It will be removed in a future version. See #272.</xs:documentation>
-										</xs:annotation>
-									</xs:element>
+										type="SolarThermalCollectorLoopType"/>
 									<xs:element minOccurs="0" name="CollectorType"
 										type="SolarThermalCollectorType"/>
 									<xs:element minOccurs="0" name="CollectorOrientation"
@@ -1726,6 +1714,8 @@
 											<xs:documentation>[sq.ft.]</xs:documentation>
 										</xs:annotation>
 									</xs:element>
+									<xs:element minOccurs="0" name="NumberOfPanels"
+										type="IntegerGreaterThanZero"/>
 									<xs:element minOccurs="0" name="InverterEfficiency"
 										type="Efficiency"/>
 									<xs:element minOccurs="0" name="SystemLossesFraction"
@@ -1856,6 +1846,11 @@
 						<xs:element minOccurs="0" ref="AttachedToSpace"/>
 						<xs:element minOccurs="0" name="Location" type="LightingLocation"/>
 						<xs:element name="NumberofUnits" type="xs:integer" minOccurs="0"/>
+						<xs:element minOccurs="0" name="FractionofUnitsInLocation" type="Fraction">
+							<xs:annotation>
+								<xs:documentation>The fraction of lighting units in the specified Location, where all the fractions for the Location sum to 1. If a Location is not specified, fractions apply to the entire building.</xs:documentation>
+							</xs:annotation>
+						</xs:element>
 						<xs:element minOccurs="0" name="LightingType" type="LightingType"/>
 						<xs:element minOccurs="0" name="AverageLumens" type="xs:double">
 							<xs:annotation>
@@ -1916,6 +1911,9 @@
 				</xs:complexType>
 			</xs:element>
 			<xs:element minOccurs="0" name="LightingFractions">
+				<xs:annotation>
+					<xs:documentation>DEPRECATED - Please use LightingGroup/FractionofUnitInLocation</xs:documentation>
+				</xs:annotation>
 				<xs:complexType>
 					<xs:sequence>
 						<xs:element minOccurs="0" name="FractionIncandescent" type="Fraction">
@@ -2165,12 +2163,6 @@
 												type="xs:double">
 												<xs:annotation>
 												<xs:documentation>A multiplier applied to the rated horsepower of a pump motor to indicate the percent above nameplate horsepower at which the motor can operate continuously without exceeding its allowable insulation class temperature limit, provided that other design parameters, such rated voltage, frequency and ambient temperature, are within limits. A 1.5 hp pump with a 1.65 service factor produces 2.475 hp (total horsepower) at the maximum service factor point (ANSI/APSP/ICC-15 2011).</xs:documentation>
-												</xs:annotation>
-												</xs:element>
-												<xs:element minOccurs="0" name="HoursPerDay"
-												type="HoursPerDay">
-												<xs:annotation>
-												<xs:documentation>DEPRECATED - Please use PumpSpeed/HoursPerDay</xs:documentation>
 												</xs:annotation>
 												</xs:element>
 												<xs:element maxOccurs="unbounded" minOccurs="0"
@@ -2971,15 +2963,28 @@ NOTE: This is for ALL measures that may create entry points for vermin. For exam
 			<xs:element name="Furnace">
 				<xs:complexType>
 					<xs:sequence>
+						<xs:element minOccurs="0" name="FurnaceType">
+							<xs:simpleType>
+								<xs:restriction base="xs:string">
+									<xs:enumeration value="forced air"/>
+									<xs:enumeration value="gravity"/>
+								</xs:restriction>
+							</xs:simpleType>
+						</xs:element>
 						<xs:element minOccurs="0" name="SealedCombustion" type="xs:boolean"/>
 						<xs:element name="CondensingSystem" type="xs:boolean" minOccurs="0"/>
 						<xs:element minOccurs="0" name="AtmosphericBurner" type="xs:boolean"/>
 						<xs:element minOccurs="0" name="PowerBurner" type="xs:boolean"/>
+						<xs:element minOccurs="0" name="AutomaticVentDamper" type="xs:boolean"/>
+						<xs:element minOccurs="0" name="PilotLight" type="xs:boolean"/>
+						<xs:element minOccurs="0" name="IntermittentIgnitionDevice"
+							type="xs:boolean"/>
+						<xs:element minOccurs="0" name="RetentionHead" type="xs:boolean"/>
 						<xs:element minOccurs="0" ref="extension"/>
 					</xs:sequence>
 				</xs:complexType>
 			</xs:element>
-			<xs:element name="WallFurnace" type="WallAndFloorFurnace"> </xs:element>
+			<xs:element name="WallFurnace" type="WallAndFloorFurnace"/>
 			<xs:element name="FloorFurnace" type="WallAndFloorFurnace"/>
 			<xs:element name="Boiler">
 				<xs:complexType>
@@ -2990,6 +2995,11 @@ NOTE: This is for ALL measures that may create entry points for vermin. For exam
 						<xs:element minOccurs="0" name="AtmosphericBurner" type="xs:boolean"/>
 						<xs:element minOccurs="0" name="PowerBurner" type="xs:boolean"/>
 						<xs:element minOccurs="0" name="RotaryCup" type="xs:boolean"/>
+						<xs:element minOccurs="0" name="AutomaticVentDamper" type="xs:boolean"/>
+						<xs:element minOccurs="0" name="PilotLight" type="xs:boolean"/>
+						<xs:element minOccurs="0" name="IntermittentIgnitionDevice"
+							type="xs:boolean"/>
+						<xs:element minOccurs="0" name="RetentionHead" type="xs:boolean"/>
 						<xs:element minOccurs="0" ref="extension"/>
 					</xs:sequence>
 				</xs:complexType>
@@ -3102,7 +3112,8 @@ http://www.epa.gov/compliance/monitoring/programs/caa/woodheaters.html</xs:docum
 						</xs:annotation>
 					</xs:element>
 					<xs:element name="BackupSystemFuel" type="FuelType" minOccurs="0"/>
-					<xs:element minOccurs="0" name="BackupAFUE" type="AFUE"/>
+					<xs:element name="BackupAnnualHeatingEfficiency" minOccurs="0"
+						type="HeatingEfficiencyType" maxOccurs="unbounded"> </xs:element>
 					<xs:element minOccurs="0" name="BackupHeatingCapacity" type="Capacity">
 						<xs:annotation>
 							<xs:documentation>[Btuh]</xs:documentation>
@@ -3206,6 +3217,7 @@ http://www.epa.gov/compliance/monitoring/programs/caa/woodheaters.html</xs:docum
 					<xs:sequence>
 						<xs:element name="DuctType" type="DuctType" minOccurs="0"/>
 						<xs:element name="DuctMaterial" type="DuctMaterial" minOccurs="0"/>
+						<xs:element minOccurs="0" name="DuctInsulationPresent" type="xs:boolean"/>
 						<xs:element name="DuctInsulationRValue" type="RValue" minOccurs="0"/>
 						<xs:element minOccurs="0" name="DuctInsulationThickness"
 							type="LengthMeasurement">
@@ -4285,6 +4297,7 @@ master meter with sub-metering = tenant sub-metered by building owner</xs:docume
 					<xs:documentation>Rigid opaque foam panels (permanently installed or not) or cellular shades that provide insulation. </xs:documentation>
 				</xs:annotation>
 			</xs:element>
+			<xs:element minOccurs="0" name="LeakinessDescription" type="BuildingLeakiness"/>
 		</xs:sequence>
 	</xs:group>
 	<xs:complexType name="AssociationsType">
@@ -4366,6 +4379,11 @@ master meter with sub-metering = tenant sub-metered by building owner</xs:docume
 					<xs:documentation>[sq.in.] The Effective Leakage Area is defined as the area of a special nozzle-shaped hole (similar to the inlet of a blower door fan) that would leak the same amount of air as the building does at a pressure of 4 Pascals.</xs:documentation>
 				</xs:annotation>
 			</xs:element>
+			<xs:element minOccurs="0" name="InfiltrationVolume" type="xs:double">
+				<xs:annotation>
+					<xs:documentation>[sq. ft.] The volume of the building that is applicable to the air infiltration measurement test. The volume can be defined as the conditioned building volume plus the volume of crawlspaces, attics, and/or basements that are connected to the building's conditioned space via open doors or hatches.</xs:documentation>
+				</xs:annotation>
+			</xs:element>
 			<xs:element ref="extension" minOccurs="0"/>
 		</xs:sequence>
 	</xs:complexType>
@@ -4395,6 +4413,8 @@ master meter with sub-metering = tenant sub-metered by building owner</xs:docume
 					<xs:sequence>
 						<xs:element minOccurs="0" name="Vented" type="xs:boolean"/>
 						<xs:element minOccurs="0" name="Conditioned" type="xs:boolean"/>
+						<xs:element minOccurs="0" name="SpecificLeakageArea"
+							type="SpecificLeakageAreaType"/>
 						<xs:element minOccurs="0" ref="extension"/>
 					</xs:sequence>
 				</xs:complexType>
@@ -4849,7 +4869,7 @@ https://hpxml.nrel.gov/wiki/WallTypes</xs:documentation>
 	</xs:complexType>
 	<xs:complexType name="WeatherStation">
 		<xs:sequence>
-      <xs:group ref="SystemInfo"/>
+			<xs:group ref="SystemInfo"/>
 			<xs:element name="Name" type="xs:string"/>
 			<xs:element minOccurs="0" name="City" nillable="true" type="xs:string"/>
 			<xs:element minOccurs="0" name="State" type="StateCode"/>
@@ -4895,6 +4915,10 @@ https://hpxml.nrel.gov/wiki/WallTypes</xs:documentation>
 			<xs:element minOccurs="0" name="SealedCombustion" type="xs:boolean"/>
 			<xs:element minOccurs="0" name="AtmosphericBurner" type="xs:boolean"/>
 			<xs:element minOccurs="0" name="PowerBurner" type="xs:boolean"/>
+			<xs:element minOccurs="0" name="AutomaticVentDamper" type="xs:boolean"/>
+			<xs:element minOccurs="0" name="PilotLight" type="xs:boolean"/>
+			<xs:element minOccurs="0" name="IntermittentIgnitionDevice" type="xs:boolean"/>
+			<xs:element minOccurs="0" name="RetentionHead" type="xs:boolean"/>
 			<xs:element minOccurs="0" ref="extension"/>
 		</xs:sequence>
 	</xs:complexType>
@@ -4920,4 +4944,41 @@ https://hpxml.nrel.gov/wiki/WallTypes</xs:documentation>
 			<xs:attribute name="id" use="required"/>
 		</xs:complexType>
 	</xs:element>
+	<xs:complexType name="AtticType">
+		<xs:choice>
+			<xs:element name="Attic">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element minOccurs="0" name="Vented" type="xs:boolean"/>
+						<xs:element minOccurs="0" name="Conditioned" type="xs:boolean"/>
+						<xs:element minOccurs="0" name="CapeCod" type="xs:boolean"/>
+						<xs:element minOccurs="0" name="SpecificLeakageArea"
+							type="SpecificLeakageAreaType"/>
+						<xs:element minOccurs="0" ref="extension"/>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+			<xs:element name="CathedralCeiling">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element minOccurs="0" ref="extension"/>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+			<xs:element name="FlatRoof">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element minOccurs="0" ref="extension"/>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+			<xs:element name="Other">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element minOccurs="0" ref="extension"/>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+		</xs:choice>
+	</xs:complexType>
 </xs:schema>
