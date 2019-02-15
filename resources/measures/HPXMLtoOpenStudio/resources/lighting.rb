@@ -118,7 +118,7 @@ class Lighting
 
     # Get unit ffa and finished spaces
     unit_finished_spaces = Geometry.get_finished_spaces(unit.spaces)
-    ffa = Geometry.get_finished_floor_area_from_spaces(unit.spaces, false, runner)
+    ffa = Geometry.get_finished_floor_area_from_spaces(unit.spaces, runner)
     if ffa.nil?
       return false
     end
