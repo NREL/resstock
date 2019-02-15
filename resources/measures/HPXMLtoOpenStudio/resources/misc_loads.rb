@@ -158,7 +158,11 @@ class MiscLoads
       load.setEndUseSubcategory(unit_obj_name)
       if space.nil?
         # Use arbitrary space with FractionLost=1
-        load.setSpace(model.getSpaces[0])
+        unit.spaces.each do |space|
+          next unless Geometry.is_living(space)
+
+          load.setSpace(space)
+        end
         load_def.setFractionLost(1)
       else
         load.setSpace(space)
@@ -237,7 +241,11 @@ class MiscLoads
       load.setEndUseSubcategory(unit_obj_name)
       if space.nil?
         # Use arbitrary space with FractionLost=1
-        load.setSpace(model.getSpaces[0])
+        unit.spaces.each do |space|
+          next unless Geometry.is_living(space)
+
+          load.setSpace(space)
+        end
         load_def.setFractionLost(1)
       else
         load.setSpace(space)

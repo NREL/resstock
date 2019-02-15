@@ -33,7 +33,7 @@ class ResidentialPhotovoltaics < OpenStudio::Measure::ModelMeasure
     args = OpenStudio::Measure::OSArgumentVector.new
 
     # make a double argument for size
-    size = OpenStudio::Measure::OSArgument::makeDoubleArgument("size", false)
+    size = OpenStudio::Measure::OSArgument::makeDoubleArgument("size", true)
     size.setDisplayName("Size")
     size.setUnits("kW")
     size.setDescription("Size (power) per unit of the photovoltaic array in kW DC.")
@@ -64,7 +64,7 @@ class ResidentialPhotovoltaics < OpenStudio::Measure::ModelMeasure
     args << array_type
 
     # make a double argument for system losses
-    system_losses = OpenStudio::Measure::OSArgument::makeDoubleArgument("system_losses", false)
+    system_losses = OpenStudio::Measure::OSArgument::makeDoubleArgument("system_losses", true)
     system_losses.setDisplayName("System Losses")
     system_losses.setUnits("frac")
     system_losses.setDescription("Difference between theoretical module-level and actual PV system performance due to wiring resistance losses, dust, module mismatch, etc.")
@@ -72,7 +72,7 @@ class ResidentialPhotovoltaics < OpenStudio::Measure::ModelMeasure
     args << system_losses
 
     # make a double argument for inverter efficiency
-    inverter_efficiency = OpenStudio::Measure::OSArgument::makeDoubleArgument("inverter_efficiency", false)
+    inverter_efficiency = OpenStudio::Measure::OSArgument::makeDoubleArgument("inverter_efficiency", true)
     inverter_efficiency.setDisplayName("Inverter Efficiency")
     inverter_efficiency.setUnits("frac")
     inverter_efficiency.setDescription("The efficiency of the inverter.")
@@ -90,7 +90,7 @@ class ResidentialPhotovoltaics < OpenStudio::Measure::ModelMeasure
     args << azimuth_type
 
     # make a double argument for azimuth
-    azimuth = OpenStudio::Measure::OSArgument::makeDoubleArgument("azimuth", false)
+    azimuth = OpenStudio::Measure::OSArgument::makeDoubleArgument("azimuth", true)
     azimuth.setDisplayName("Azimuth")
     azimuth.setUnits("degrees")
     azimuth.setDescription("The azimuth angle is measured clockwise, based on the azimuth type specified.")
@@ -109,7 +109,7 @@ class ResidentialPhotovoltaics < OpenStudio::Measure::ModelMeasure
     args << tilt_type
 
     # make a double argument for tilt
-    tilt = OpenStudio::Measure::OSArgument::makeDoubleArgument("tilt", false)
+    tilt = OpenStudio::Measure::OSArgument::makeDoubleArgument("tilt", true)
     tilt.setDisplayName("Tilt")
     tilt.setUnits("degrees")
     tilt.setDescription("Angle of the tilt.")
