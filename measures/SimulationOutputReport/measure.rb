@@ -36,7 +36,8 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
                           "electricity_interior_equipment_kwh",
                           "electricity_fans_heating_kwh",
                           "electricity_fans_cooling_kwh",
-                          "electricity_pumps_kwh",
+                          "electricity_pumps_heating_kwh",
+                          "electricity_pumps_cooling_kwh",
                           "electricity_water_systems_kwh",
                           "electricity_pv_kwh",
                           "natural_gas_heating_therm",
@@ -109,6 +110,21 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
     end
     sqlFile = sqlFile.get
     model.setSqlFile(sqlFile)
+
+    # Get the weather file run period (as opposed to design day run period)
+    ann_env_pd = nil
+    sqlFile.availableEnvPeriods.each do |env_pd|
+      env_type = sqlFile.environmentType(env_pd)
+      if env_type.is_initialized
+        if env_type.get == OpenStudio::EnvironmentType.new("WeatherRunPeriod")
+          ann_env_pd = env_pd
+        end
+      end
+    end
+    if ann_env_pd == false
+      runner.registerError("Can't find a weather runperiod, make sure you ran an annual simulation, not just the design days.")
+      return false
+    end
     
     # Load buildstock_file
     resources_dir = File.absolute_path(File.join(File.dirname(__FILE__), "..", "..", "lib", "resources")) # Should have been uploaded per 'Other Library Files' in analysis spreadsheet
@@ -136,6 +152,24 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
       end
     end
 
+    # Get pump enduse subcategories
+    electricityPumpsHeating = 0
+    electricityPumpsCooling = 0
+    model.getEnergyManagementSystemOutputVariables.each do |ems_output_var|
+      next unless ems_output_var.name.to_s.include? "Pumps:Electricity"
+
+      sqlFile.availableKeyValues(ann_env_pd, "Hourly", ems_output_var.name.to_s).each do |key_value|
+        timeseries = sqlFile.timeSeries(ann_env_pd, "Hourly", ems_output_var.name.to_s, key_value).get
+        timeseries.dateTimes.each_with_index do |val, i|
+          if ems_output_var.name.to_s.include? "htg"
+            electricityPumpsHeating += timeseries.values[i]
+          elsif ems_output_var.name.to_s.include? "clg"
+            electricityPumpsCooling += timeseries.values[i]
+          end
+        end
+      end
+    end
+
     # TOTAL
     
     report_sim_output(runner, "total_site_energy_mbtu", [sqlFile.totalSiteEnergy], "GJ", total_site_units)
@@ -156,7 +190,8 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
     electricity_fans_cooling = sqlFile.execAndReturnFirstDouble(electricity_fans_cooling_query)
     report_sim_output(runner, "electricity_fans_heating_kwh", [electricity_fans_heating], "GJ", elec_site_units)
     report_sim_output(runner, "electricity_fans_cooling_kwh", [electricity_fans_cooling], "GJ", elec_site_units)
-    report_sim_output(runner, "electricity_pumps_kwh", [sqlFile.electricityPumps], "GJ", elec_site_units)
+    report_sim_output(runner, "electricity_pumps_heating_kwh", [OpenStudio::OptionalDouble.new(electricityPumpsHeating)], "GJ", elec_site_units)
+    report_sim_output(runner, "electricity_pumps_cooling_kwh", [OpenStudio::OptionalDouble.new(electricityPumpsCooling)], "GJ", elec_site_units)
     report_sim_output(runner, "electricity_water_systems_kwh", [sqlFile.electricityWaterSystems], "GJ", elec_site_units)
     report_sim_output(runner, "electricity_pv_kwh", [pv_val], "GJ", elec_site_units)
     
