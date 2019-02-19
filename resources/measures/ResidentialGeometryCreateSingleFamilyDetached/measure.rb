@@ -190,14 +190,14 @@ class CreateResidentialSingleFamilyDetachedGeometry < OpenStudio::Measure::Model
     args << eaves_depth
 
     # make a string argument for number of bedrooms
-    num_br = OpenStudio::Measure::OSArgument::makeStringArgument("num_bedrooms", false)
+    num_br = OpenStudio::Measure::OSArgument::makeStringArgument("num_bedrooms", true)
     num_br.setDisplayName("Number of Bedrooms")
     num_br.setDescription("Specify the number of bedrooms. Used to determine the energy usage of appliances and plug loads, hot water usage, mechanical ventilation rate, etc.")
     num_br.setDefaultValue("3")
     args << num_br
 
     # make a string argument for number of bathrooms
-    num_ba = OpenStudio::Measure::OSArgument::makeStringArgument("num_bathrooms", false)
+    num_ba = OpenStudio::Measure::OSArgument::makeStringArgument("num_bathrooms", true)
     num_ba.setDisplayName("Number of Bathrooms")
     num_ba.setDescription("Specify the number of bathrooms. Used to determine the hot water usage, etc.")
     num_ba.setDefaultValue("2")
@@ -232,7 +232,7 @@ class CreateResidentialSingleFamilyDetachedGeometry < OpenStudio::Measure::Model
     args << occupants_monthly_sch
 
     # make a double argument for left neighbor offset
-    neighbor_left_offset = OpenStudio::Measure::OSArgument::makeDoubleArgument("neighbor_left_offset", false)
+    neighbor_left_offset = OpenStudio::Measure::OSArgument::makeDoubleArgument("neighbor_left_offset", true)
     neighbor_left_offset.setDisplayName("Neighbor Left Offset")
     neighbor_left_offset.setUnits("ft")
     neighbor_left_offset.setDescription("The minimum distance between the simulated house and the neighboring house to the left (not including eaves). A value of zero indicates no neighbors.")
@@ -240,7 +240,7 @@ class CreateResidentialSingleFamilyDetachedGeometry < OpenStudio::Measure::Model
     args << neighbor_left_offset
 
     # make a double argument for right neighbor offset
-    neighbor_right_offset = OpenStudio::Measure::OSArgument::makeDoubleArgument("neighbor_right_offset", false)
+    neighbor_right_offset = OpenStudio::Measure::OSArgument::makeDoubleArgument("neighbor_right_offset", true)
     neighbor_right_offset.setDisplayName("Neighbor Right Offset")
     neighbor_right_offset.setUnits("ft")
     neighbor_right_offset.setDescription("The minimum distance between the simulated house and the neighboring house to the right (not including eaves). A value of zero indicates no neighbors.")
@@ -248,7 +248,7 @@ class CreateResidentialSingleFamilyDetachedGeometry < OpenStudio::Measure::Model
     args << neighbor_right_offset
 
     # make a double argument for back neighbor offset
-    neighbor_back_offset = OpenStudio::Measure::OSArgument::makeDoubleArgument("neighbor_back_offset", false)
+    neighbor_back_offset = OpenStudio::Measure::OSArgument::makeDoubleArgument("neighbor_back_offset", true)
     neighbor_back_offset.setDisplayName("Neighbor Back Offset")
     neighbor_back_offset.setUnits("ft")
     neighbor_back_offset.setDescription("The minimum distance between the simulated house and the neighboring house to the back (not including eaves). A value of zero indicates no neighbors.")
@@ -256,7 +256,7 @@ class CreateResidentialSingleFamilyDetachedGeometry < OpenStudio::Measure::Model
     args << neighbor_back_offset
 
     # make a double argument for front neighbor offset
-    neighbor_front_offset = OpenStudio::Measure::OSArgument::makeDoubleArgument("neighbor_front_offset", false)
+    neighbor_front_offset = OpenStudio::Measure::OSArgument::makeDoubleArgument("neighbor_front_offset", true)
     neighbor_front_offset.setDisplayName("Neighbor Front Offset")
     neighbor_front_offset.setUnits("ft")
     neighbor_front_offset.setDescription("The minimum distance between the simulated house and the neighboring house to the front (not including eaves). A value of zero indicates no neighbors.")
