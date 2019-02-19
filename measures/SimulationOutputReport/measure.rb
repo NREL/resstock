@@ -190,8 +190,8 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
     electricity_fans_cooling = sqlFile.execAndReturnFirstDouble(electricity_fans_cooling_query)
     report_sim_output(runner, "electricity_fans_heating_kwh", [electricity_fans_heating], "GJ", elec_site_units)
     report_sim_output(runner, "electricity_fans_cooling_kwh", [electricity_fans_cooling], "GJ", elec_site_units)
-    report_sim_output(runner, "electricity_pumps_heating_kwh", [OpenStudio::OptionalDouble.new(electricityPumpsHeating)], "GJ", elec_site_units)
-    report_sim_output(runner, "electricity_pumps_cooling_kwh", [OpenStudio::OptionalDouble.new(electricityPumpsCooling)], "GJ", elec_site_units)
+    report_sim_output(runner, "electricity_pumps_heating_kwh", [OpenStudio::OptionalDouble.new(electricityPumpsHeating)], "J", elec_site_units)
+    report_sim_output(runner, "electricity_pumps_cooling_kwh", [OpenStudio::OptionalDouble.new(electricityPumpsCooling)], "J", elec_site_units)
     report_sim_output(runner, "electricity_water_systems_kwh", [sqlFile.electricityWaterSystems], "GJ", elec_site_units)
     report_sim_output(runner, "electricity_pv_kwh", [pv_val], "GJ", elec_site_units)
     
