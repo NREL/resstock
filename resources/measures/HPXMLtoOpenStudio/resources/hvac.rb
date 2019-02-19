@@ -2001,12 +2001,20 @@ class HVAC
     pump_output_var.setEMSProgramOrSubroutineName(pump_program)
     pump_output_var.setUnits("J")
 
+    output_var = OpenStudio::Model::OutputVariable.new(pump_output_var.name.to_s, model)
+    output_var.setKeyValue("*")
+    output_var.setReportingFrequency("Hourly")
+
     pump_output_var = OpenStudio::Model::EnergyManagementSystemOutputVariable.new(model, "#{unit.name.to_s.gsub(" ", "_")}_pumps_c")
     pump_output_var.setName("#{obj_name} clg pump:Pumps:Electricity")
     pump_output_var.setTypeOfDataInVariable("Summed")
     pump_output_var.setUpdateFrequency("SystemTimestep")
     pump_output_var.setEMSProgramOrSubroutineName(pump_program)
     pump_output_var.setUnits("J")
+
+    output_var = OpenStudio::Model::OutputVariable.new(pump_output_var.name.to_s, model)
+    output_var.setKeyValue("*")
+    output_var.setReportingFrequency("Hourly")
 
     pump_program_calling_manager = OpenStudio::Model::EnergyManagementSystemProgramCallingManager.new(model)
     pump_program_calling_manager.setName("#{obj_name} pump program calling manager")
@@ -2374,6 +2382,10 @@ class HVAC
     pump_output_var.setUpdateFrequency("SystemTimestep")
     pump_output_var.setEMSProgramOrSubroutineName(pump_program)
     pump_output_var.setUnits("J")
+
+    output_var = OpenStudio::Model::OutputVariable.new(pump_output_var.name.to_s, model)
+    output_var.setKeyValue("*")
+    output_var.setReportingFrequency("Hourly")
 
     pump_program_calling_manager = OpenStudio::Model::EnergyManagementSystemProgramCallingManager.new(model)
     pump_program_calling_manager.setName("#{obj_name} pump program calling manager")
@@ -4542,6 +4554,7 @@ class HVAC
     obj_name = Constants.ObjectNameGroundSourceHeatPumpVerticalBore(unit.name.to_s)
     model.getEnergyManagementSystemSensors.each do |sensor|
       next if sensor.name.to_s != "#{obj_name} pump s".gsub(" ", "_").gsub("|", "_") and sensor.name.to_s != "#{obj_name} heating coil s".gsub(" ", "_").gsub("|", "_") and sensor.name.to_s != "#{obj_name} cooling coil s".gsub(" ", "_").gsub("|", "_")
+
       sensor.remove
     end
     model.getEnergyManagementSystemOutputVariables.each do |output_var|
@@ -4558,6 +4571,11 @@ class HVAC
       next unless program_calling_manager.name.to_s == "#{obj_name} pump program calling manager"
 
       program_calling_manager.remove
+    end
+    model.getOutputVariables.each do |output_var|
+      next if output_var.variableName != "#{obj_name} htg pump:Pumps:Electricity" and output_var.variableName != "#{obj_name} clg pump:Pumps:Electricity"
+
+      output_var.remove
     end
     return true
   end
@@ -4666,22 +4684,28 @@ class HVAC
       obj_name = Constants.ObjectNameBoiler(fuel_type, unit.name.to_s)
       model.getEnergyManagementSystemSensors.each do |sensor|
         next unless sensor.name.to_s == "#{obj_name} hydronic pump s".gsub(" ", "_").gsub("|", "_")
+
         sensor.remove
       end
       model.getEnergyManagementSystemOutputVariables.each do |output_var|
         next unless output_var.name.to_s == "#{obj_name} htg pump:Pumps:Electricity"
-  
+
         output_var.remove
       end
       model.getEnergyManagementSystemPrograms.each do |program|
         next unless program.name.to_s == "#{obj_name} pumps program".gsub(" ", "_")
-  
+
         program.remove
       end
       model.getEnergyManagementSystemProgramCallingManagers.each do |program_calling_manager|
         next unless program_calling_manager.name.to_s == "#{obj_name} pump program calling manager"
-  
+
         program_calling_manager.remove
+      end
+      model.getOutputVariables.each do |output_var|
+        next if output_var.variableName != "#{obj_name} htg pump:Pumps:Electricity" and output_var.variableName != "#{obj_name} clg pump:Pumps:Electricity"
+
+        output_var.remove
       end
     end
     return true
