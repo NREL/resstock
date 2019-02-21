@@ -1699,77 +1699,83 @@ class HVAC
 
     obj_name = Constants.ObjectNameGroundSourceHeatPumpVerticalBore(unit.name.to_s)
 
+    ground_heat_exch_vert = OpenStudio::Model::GroundHeatExchangerVertical.new(model)
+    ground_heat_exch_vert.setName(obj_name + " exchanger")
+    ground_heat_exch_vert.setBoreHoleRadius(UnitConversions.convert(bore_diameter / 2.0, "in", "m"))
+    ground_heat_exch_vert.setGroundThermalConductivity(UnitConversions.convert(ground_conductivity, "Btu/(hr*ft*R)", "W/(m*K)"))
+    ground_heat_exch_vert.setGroundThermalHeatCapacity(UnitConversions.convert(ground_conductivity / ground_diffusivity, "Btu/(ft^3*F)", "J/(m^3*K)"))
+    ground_heat_exch_vert.setGroundTemperature(UnitConversions.convert(weather.data.AnnualAvgDrybulb, "F", "C"))
+    ground_heat_exch_vert.setGroutThermalConductivity(UnitConversions.convert(grout_conductivity, "Btu/(hr*ft*R)", "W/(m*K)"))
+    ground_heat_exch_vert.setPipeThermalConductivity(UnitConversions.convert(pipe_cond, "Btu/(hr*ft*R)", "W/(m*K)"))
+    ground_heat_exch_vert.setPipeOutDiameter(UnitConversions.convert(pipe_od, "in", "m"))
+    ground_heat_exch_vert.setUTubeDistance(UnitConversions.convert(u_tube_leg_spacing, "in", "m"))
+    ground_heat_exch_vert.setPipeThickness(UnitConversions.convert((pipe_od - pipe_id) / 2.0, "in", "m"))
+    ground_heat_exch_vert.setMaximumLengthofSimulation(1)
+    ground_heat_exch_vert.setGFunctionReferenceRatio(0.0005)
+
+    plant_loop = OpenStudio::Model::PlantLoop.new(model)
+    plant_loop.setName(obj_name + " condenser loop")
+    if fluid_type == Constants.FluidWater
+      plant_loop.setFluidType('Water')
+    else
+      plant_loop.setFluidType({ Constants.FluidPropyleneGlycol => 'PropyleneGlycol', Constants.FluidEthyleneGlycol => 'EthyleneGlycol' }[fluid_type])
+      plant_loop.setGlycolConcentration((frac_glycol * 100).to_i)
+    end
+    plant_loop.setMaximumLoopTemperature(48.88889)
+    plant_loop.setMinimumLoopTemperature(UnitConversions.convert(hw_design, "F", "C"))
+    plant_loop.setMinimumLoopFlowRate(0)
+    plant_loop.setLoadDistributionScheme('SequentialLoad')
+    runner.registerInfo("Added '#{plant_loop.name}' to model.")
+
+    sizing_plant = plant_loop.sizingPlant
+    sizing_plant.setLoopType('Condenser')
+    sizing_plant.setDesignLoopExitTemperature(UnitConversions.convert(chw_design, "F", "C"))
+    sizing_plant.setLoopDesignTemperatureDifference(UnitConversions.convert(design_delta_t, "R", "K"))
+
+    setpoint_mgr_follow_ground_temp = OpenStudio::Model::SetpointManagerFollowGroundTemperature.new(model)
+    setpoint_mgr_follow_ground_temp.setName(obj_name + " condenser loop temp")
+    setpoint_mgr_follow_ground_temp.setControlVariable('Temperature')
+    setpoint_mgr_follow_ground_temp.setMaximumSetpointTemperature(48.88889)
+    setpoint_mgr_follow_ground_temp.setMinimumSetpointTemperature(UnitConversions.convert(hw_design, "F", "C"))
+    setpoint_mgr_follow_ground_temp.setReferenceGroundTemperatureObjectType('Site:GroundTemperature:Deep')
+    setpoint_mgr_follow_ground_temp.addToNode(plant_loop.supplyOutletNode)
+
+    pump = OpenStudio::Model::PumpVariableSpeed.new(model)
+    pump.setName(obj_name + " pump")
+    pump.setRatedPumpHead(pump_head)
+    pump.setMotorEfficiency(dse * 0.77 * 0.6)
+    pump.setFractionofMotorInefficienciestoFluidStream(0)
+    pump.setCoefficient1ofthePartLoadPerformanceCurve(0)
+    pump.setCoefficient2ofthePartLoadPerformanceCurve(1)
+    pump.setCoefficient3ofthePartLoadPerformanceCurve(0)
+    pump.setCoefficient4ofthePartLoadPerformanceCurve(0)
+    pump.setMinimumFlowRate(0)
+    pump.setPumpControlType('Intermittent')
+    pump.addToNode(plant_loop.supplyInletNode)
+
+    pump_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, "Pump Electric Energy")
+    pump_sensor.setName("#{pump.name.to_s.gsub("|", "_")} s")
+    pump_sensor.setKeyName(pump.name.to_s)
+
+    plant_loop.addSupplyBranchForComponent(ground_heat_exch_vert)
+
+    chiller_bypass_pipe = OpenStudio::Model::PipeAdiabatic.new(model)
+    plant_loop.addSupplyBranchForComponent(chiller_bypass_pipe)
+    coil_bypass_pipe = OpenStudio::Model::PipeAdiabatic.new(model)
+    plant_loop.addDemandBranchForComponent(coil_bypass_pipe)
+    supply_outlet_pipe = OpenStudio::Model::PipeAdiabatic.new(model)
+    supply_outlet_pipe.addToNode(plant_loop.supplyOutletNode)
+    demand_inlet_pipe = OpenStudio::Model::PipeAdiabatic.new(model)
+    demand_inlet_pipe.addToNode(plant_loop.demandInletNode)
+    demand_outlet_pipe = OpenStudio::Model::PipeAdiabatic.new(model)
+    demand_outlet_pipe.addToNode(plant_loop.demandOutletNode)
+
     thermal_zones = Geometry.get_thermal_zones_from_spaces(unit.spaces)
 
+    htg_coil_sensor = nil
+    clg_coil_sensor = nil
     control_slave_zones_hash = get_control_and_slave_zones(thermal_zones)
     control_slave_zones_hash.each do |control_zone, slave_zones|
-      ground_heat_exch_vert = OpenStudio::Model::GroundHeatExchangerVertical.new(model)
-      ground_heat_exch_vert.setName(obj_name + " htg exchanger")
-      ground_heat_exch_vert.setBoreHoleRadius(UnitConversions.convert(bore_diameter / 2.0, "in", "m"))
-      ground_heat_exch_vert.setGroundThermalConductivity(UnitConversions.convert(ground_conductivity, "Btu/(hr*ft*R)", "W/(m*K)"))
-      ground_heat_exch_vert.setGroundThermalHeatCapacity(UnitConversions.convert(ground_conductivity / ground_diffusivity, "Btu/(ft^3*F)", "J/(m^3*K)"))
-      ground_heat_exch_vert.setGroundTemperature(UnitConversions.convert(weather.data.AnnualAvgDrybulb, "F", "C"))
-      ground_heat_exch_vert.setGroutThermalConductivity(UnitConversions.convert(grout_conductivity, "Btu/(hr*ft*R)", "W/(m*K)"))
-      ground_heat_exch_vert.setPipeThermalConductivity(UnitConversions.convert(pipe_cond, "Btu/(hr*ft*R)", "W/(m*K)"))
-      ground_heat_exch_vert.setPipeOutDiameter(UnitConversions.convert(pipe_od, "in", "m"))
-      ground_heat_exch_vert.setUTubeDistance(UnitConversions.convert(u_tube_leg_spacing, "in", "m"))
-      ground_heat_exch_vert.setPipeThickness(UnitConversions.convert((pipe_od - pipe_id) / 2.0, "in", "m"))
-      ground_heat_exch_vert.setMaximumLengthofSimulation(1)
-      ground_heat_exch_vert.setGFunctionReferenceRatio(0.0005)
-
-      plant_loop = OpenStudio::Model::PlantLoop.new(model)
-      plant_loop.setName(obj_name + " htg condenser loop")
-      if fluid_type == Constants.FluidWater
-        plant_loop.setFluidType('Water')
-      else
-        plant_loop.setFluidType({ Constants.FluidPropyleneGlycol => 'PropyleneGlycol', Constants.FluidEthyleneGlycol => 'EthyleneGlycol' }[fluid_type])
-        plant_loop.setGlycolConcentration((frac_glycol * 100).to_i)
-      end
-      plant_loop.setMaximumLoopTemperature(48.88889)
-      plant_loop.setMinimumLoopTemperature(UnitConversions.convert(hw_design, "F", "C"))
-      plant_loop.setMinimumLoopFlowRate(0)
-      plant_loop.setLoadDistributionScheme('SequentialLoad')
-      runner.registerInfo("Added '#{plant_loop.name}' to model.")
-
-      sizing_plant = plant_loop.sizingPlant
-      sizing_plant.setLoopType('Condenser')
-      sizing_plant.setDesignLoopExitTemperature(UnitConversions.convert(chw_design, "F", "C"))
-      sizing_plant.setLoopDesignTemperatureDifference(UnitConversions.convert(design_delta_t, "R", "K"))
-
-      setpoint_mgr_follow_ground_temp = OpenStudio::Model::SetpointManagerFollowGroundTemperature.new(model)
-      setpoint_mgr_follow_ground_temp.setName(obj_name + " htg condenser loop temp")
-      setpoint_mgr_follow_ground_temp.setControlVariable('Temperature')
-      setpoint_mgr_follow_ground_temp.setMaximumSetpointTemperature(48.88889)
-      setpoint_mgr_follow_ground_temp.setMinimumSetpointTemperature(UnitConversions.convert(hw_design, "F", "C"))
-      setpoint_mgr_follow_ground_temp.setReferenceGroundTemperatureObjectType('Site:GroundTemperature:Deep')
-      setpoint_mgr_follow_ground_temp.addToNode(plant_loop.supplyOutletNode)
-
-      pump = OpenStudio::Model::PumpVariableSpeed.new(model)
-      pump.setName(obj_name + " htg pump")
-      pump.setRatedPumpHead(pump_head)
-      pump.setMotorEfficiency(dse * 0.77 * 0.6)
-      pump.setFractionofMotorInefficienciestoFluidStream(0)
-      pump.setCoefficient1ofthePartLoadPerformanceCurve(0)
-      pump.setCoefficient2ofthePartLoadPerformanceCurve(1)
-      pump.setCoefficient3ofthePartLoadPerformanceCurve(0)
-      pump.setCoefficient4ofthePartLoadPerformanceCurve(0)
-      pump.setMinimumFlowRate(0)
-      pump.setPumpControlType('Intermittent')
-      pump.addToNode(plant_loop.supplyInletNode)
-
-      plant_loop.addSupplyBranchForComponent(ground_heat_exch_vert)
-
-      chiller_bypass_pipe = OpenStudio::Model::PipeAdiabatic.new(model)
-      plant_loop.addSupplyBranchForComponent(chiller_bypass_pipe)
-      coil_bypass_pipe = OpenStudio::Model::PipeAdiabatic.new(model)
-      plant_loop.addDemandBranchForComponent(coil_bypass_pipe)
-      supply_outlet_pipe = OpenStudio::Model::PipeAdiabatic.new(model)
-      supply_outlet_pipe.addToNode(plant_loop.supplyOutletNode)
-      demand_inlet_pipe = OpenStudio::Model::PipeAdiabatic.new(model)
-      demand_inlet_pipe.addToNode(plant_loop.demandInletNode)
-      demand_outlet_pipe = OpenStudio::Model::PipeAdiabatic.new(model)
-      demand_outlet_pipe.addToNode(plant_loop.demandOutletNode)
-
       gshp_HEAT_CAP_fT_coeff = convert_curve_gshp(hEAT_CAP_FT_SEC, false)
       gshp_HEAT_POWER_fT_coeff = convert_curve_gshp(hEAT_POWER_FT_SPEC, false)
 
@@ -1789,6 +1795,10 @@ class HVAC
       htg_coil.setHeatingPowerConsumptionCoefficient3(gshp_HEAT_POWER_fT_coeff[2])
       htg_coil.setHeatingPowerConsumptionCoefficient4(gshp_HEAT_POWER_fT_coeff[3])
       htg_coil.setHeatingPowerConsumptionCoefficient5(gshp_HEAT_POWER_fT_coeff[4])
+
+      htg_coil_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, "Heating Coil Electric Energy")
+      htg_coil_sensor.setName("#{htg_coil.name.to_s.gsub("|", "_")} s")
+      htg_coil_sensor.setKeyName(htg_coil.name.to_s)
 
       plant_loop.addDemandBranchForComponent(htg_coil)
 
@@ -1863,73 +1873,6 @@ class HVAC
         prioritize_zone_hvac(model, runner, slave_zone)
       end
 
-      ground_heat_exch_vert = OpenStudio::Model::GroundHeatExchangerVertical.new(model)
-      ground_heat_exch_vert.setName(obj_name + " clg exchanger")
-      ground_heat_exch_vert.setBoreHoleRadius(UnitConversions.convert(bore_diameter / 2.0, "in", "m"))
-      ground_heat_exch_vert.setGroundThermalConductivity(UnitConversions.convert(ground_conductivity, "Btu/(hr*ft*R)", "W/(m*K)"))
-      ground_heat_exch_vert.setGroundThermalHeatCapacity(UnitConversions.convert(ground_conductivity / ground_diffusivity, "Btu/(ft^3*F)", "J/(m^3*K)"))
-      ground_heat_exch_vert.setGroundTemperature(UnitConversions.convert(weather.data.AnnualAvgDrybulb, "F", "C"))
-      ground_heat_exch_vert.setGroutThermalConductivity(UnitConversions.convert(grout_conductivity, "Btu/(hr*ft*R)", "W/(m*K)"))
-      ground_heat_exch_vert.setPipeThermalConductivity(UnitConversions.convert(pipe_cond, "Btu/(hr*ft*R)", "W/(m*K)"))
-      ground_heat_exch_vert.setPipeOutDiameter(UnitConversions.convert(pipe_od, "in", "m"))
-      ground_heat_exch_vert.setUTubeDistance(UnitConversions.convert(u_tube_leg_spacing, "in", "m"))
-      ground_heat_exch_vert.setPipeThickness(UnitConversions.convert((pipe_od - pipe_id) / 2.0, "in", "m"))
-      ground_heat_exch_vert.setMaximumLengthofSimulation(1)
-      ground_heat_exch_vert.setGFunctionReferenceRatio(0.0005)
-
-      plant_loop = OpenStudio::Model::PlantLoop.new(model)
-      plant_loop.setName(obj_name + " clg condenser loop")
-      if fluid_type == Constants.FluidWater
-        plant_loop.setFluidType('Water')
-      else
-        plant_loop.setFluidType({ Constants.FluidPropyleneGlycol => 'PropyleneGlycol', Constants.FluidEthyleneGlycol => 'EthyleneGlycol' }[fluid_type])
-        plant_loop.setGlycolConcentration((frac_glycol * 100).to_i)
-      end
-      plant_loop.setMaximumLoopTemperature(48.88889)
-      plant_loop.setMinimumLoopTemperature(UnitConversions.convert(hw_design, "F", "C"))
-      plant_loop.setMinimumLoopFlowRate(0)
-      plant_loop.setLoadDistributionScheme('SequentialLoad')
-      runner.registerInfo("Added '#{plant_loop.name}' to model.")
-
-      sizing_plant = plant_loop.sizingPlant
-      sizing_plant.setLoopType('Condenser')
-      sizing_plant.setDesignLoopExitTemperature(UnitConversions.convert(chw_design, "F", "C"))
-      sizing_plant.setLoopDesignTemperatureDifference(UnitConversions.convert(design_delta_t, "R", "K"))
-
-      setpoint_mgr_follow_ground_temp = OpenStudio::Model::SetpointManagerFollowGroundTemperature.new(model)
-      setpoint_mgr_follow_ground_temp.setName(obj_name + " clg condenser loop temp")
-      setpoint_mgr_follow_ground_temp.setControlVariable('Temperature')
-      setpoint_mgr_follow_ground_temp.setMaximumSetpointTemperature(48.88889)
-      setpoint_mgr_follow_ground_temp.setMinimumSetpointTemperature(UnitConversions.convert(hw_design, "F", "C"))
-      setpoint_mgr_follow_ground_temp.setReferenceGroundTemperatureObjectType('Site:GroundTemperature:Deep')
-      setpoint_mgr_follow_ground_temp.addToNode(plant_loop.supplyOutletNode)
-
-      pump = OpenStudio::Model::PumpVariableSpeed.new(model)
-      pump.setName(obj_name + " clg pump")
-      pump.setRatedPumpHead(pump_head)
-      pump.setMotorEfficiency(dse * 0.77 * 0.6)
-      pump.setFractionofMotorInefficienciestoFluidStream(0)
-      pump.setCoefficient1ofthePartLoadPerformanceCurve(0)
-      pump.setCoefficient2ofthePartLoadPerformanceCurve(1)
-      pump.setCoefficient3ofthePartLoadPerformanceCurve(0)
-      pump.setCoefficient4ofthePartLoadPerformanceCurve(0)
-      pump.setMinimumFlowRate(0)
-      pump.setPumpControlType('Intermittent')
-      pump.addToNode(plant_loop.supplyInletNode)
-
-      plant_loop.addSupplyBranchForComponent(ground_heat_exch_vert)
-
-      chiller_bypass_pipe = OpenStudio::Model::PipeAdiabatic.new(model)
-      plant_loop.addSupplyBranchForComponent(chiller_bypass_pipe)
-      coil_bypass_pipe = OpenStudio::Model::PipeAdiabatic.new(model)
-      plant_loop.addDemandBranchForComponent(coil_bypass_pipe)
-      supply_outlet_pipe = OpenStudio::Model::PipeAdiabatic.new(model)
-      supply_outlet_pipe.addToNode(plant_loop.supplyOutletNode)
-      demand_inlet_pipe = OpenStudio::Model::PipeAdiabatic.new(model)
-      demand_inlet_pipe.addToNode(plant_loop.demandInletNode)
-      demand_outlet_pipe = OpenStudio::Model::PipeAdiabatic.new(model)
-      demand_outlet_pipe.addToNode(plant_loop.demandOutletNode)
-
       gshp_COOL_CAP_fT_coeff = convert_curve_gshp(cOOL_CAP_FT_SPEC, false)
       gshp_COOL_POWER_fT_coeff = convert_curve_gshp(cOOL_POWER_FT_SPEC, false)
       gshp_COOL_SH_fT_coeff = convert_curve_gshp(cOOL_SH_FT_SPEC, false)
@@ -1958,6 +1901,10 @@ class HVAC
       clg_coil.setCoolingPowerConsumptionCoefficient5(gshp_COOL_POWER_fT_coeff[4])
       clg_coil.setNominalTimeforCondensateRemovaltoBegin(1000)
       clg_coil.setRatioofInitialMoistureEvaporationRateandSteadyStateLatentCapacity(1.5)
+
+      clg_coil_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, "Cooling Coil Electric Energy")
+      clg_coil_sensor.setName("#{clg_coil.name.to_s.gsub("|", "_")} s")
+      clg_coil_sensor.setKeyName(clg_coil.name.to_s)
 
       plant_loop.addDemandBranchForComponent(clg_coil)
 
@@ -2036,6 +1983,34 @@ class HVAC
       clg_air_loop_unitary.additionalProperties.setFeature(Constants.SizingInfoGSHPBoreConfig, bore_config)
       clg_air_loop_unitary.additionalProperties.setFeature(Constants.SizingInfoGSHPUTubeSpacingType, u_tube_spacing_type)
     end
+
+    # Disaggregate electric pump energy
+    pump_program = OpenStudio::Model::EnergyManagementSystemProgram.new(model)
+    pump_program.setName("#{obj_name} pumps program")
+    pump_program.addLine("If #{htg_coil_sensor.name} > 0")
+    pump_program.addLine("  Set #{unit.name.to_s.gsub(" ", "_")}_pumps_h = #{pump_sensor.name}")
+    pump_program.addLine("ElseIf #{clg_coil_sensor.name} > 0")
+    pump_program.addLine("  Set #{unit.name.to_s.gsub(" ", "_")}_pumps_c = #{pump_sensor.name}")
+    pump_program.addLine("EndIf")
+
+    pump_output_var = OpenStudio::Model::EnergyManagementSystemOutputVariable.new(model, "#{unit.name.to_s.gsub(" ", "_")}_pumps_h")
+    pump_output_var.setName("#{obj_name} htg pump:Pumps:Electricity")
+    pump_output_var.setTypeOfDataInVariable("Summed")
+    pump_output_var.setUpdateFrequency("SystemTimestep")
+    pump_output_var.setEMSProgramOrSubroutineName(pump_program)
+    pump_output_var.setUnits("J")
+
+    pump_output_var = OpenStudio::Model::EnergyManagementSystemOutputVariable.new(model, "#{unit.name.to_s.gsub(" ", "_")}_pumps_c")
+    pump_output_var.setName("#{obj_name} clg pump:Pumps:Electricity")
+    pump_output_var.setTypeOfDataInVariable("Summed")
+    pump_output_var.setUpdateFrequency("SystemTimestep")
+    pump_output_var.setEMSProgramOrSubroutineName(pump_program)
+    pump_output_var.setUnits("J")
+
+    pump_program_calling_manager = OpenStudio::Model::EnergyManagementSystemProgramCallingManager.new(model)
+    pump_program_calling_manager.setName("#{obj_name} pump program calling manager")
+    pump_program_calling_manager.setCallingPoint("EndOfSystemTimestepBeforeHVACReporting")
+    pump_program_calling_manager.addProgram(pump_program)
 
     return true
   end
@@ -2290,6 +2265,10 @@ class HVAC
     pump.setCoefficient4ofthePartLoadPerformanceCurve(0)
     pump.setPumpControlType("Intermittent")
 
+    pump_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, "Pump Electric Energy")
+    pump_sensor.setName("#{pump.name.to_s.gsub("|", "_")} s")
+    pump_sensor.setKeyName(pump.name.to_s)
+
     boiler = OpenStudio::Model::BoilerHotWater.new(model)
     boiler.setName(obj_name)
     boiler.setFuelType(HelperMethods.eplus_fuel_map(fuel_type))
@@ -2380,6 +2359,23 @@ class HVAC
         baseboard_heater.additionalProperties.setFeature(Constants.SizingInfoHVACFracHeatLoadServed, frac_heat_load_served)
       end
     end
+
+    # Disaggregate electric pump energy
+    pump_program = OpenStudio::Model::EnergyManagementSystemProgram.new(model)
+    pump_program.setName("#{obj_name} pumps program")
+    pump_program.addLine("Set #{unit.name.to_s.gsub(" ", "_")}_pumps_h = #{pump_sensor.name}")
+
+    pump_output_var = OpenStudio::Model::EnergyManagementSystemOutputVariable.new(model, "#{unit.name.to_s.gsub(" ", "_")}_pumps_h")
+    pump_output_var.setName("#{obj_name} htg pump:Pumps:Electricity")
+    pump_output_var.setTypeOfDataInVariable("Summed")
+    pump_output_var.setUpdateFrequency("SystemTimestep")
+    pump_output_var.setEMSProgramOrSubroutineName(pump_program)
+    pump_output_var.setUnits("J")
+
+    pump_program_calling_manager = OpenStudio::Model::EnergyManagementSystemProgramCallingManager.new(model)
+    pump_program_calling_manager.setName("#{obj_name} pump program calling manager")
+    pump_program_calling_manager.setCallingPoint("EndOfSystemTimestepBeforeHVACReporting")
+    pump_program_calling_manager.addProgram(pump_program)
 
     return true
   end
@@ -2618,12 +2614,12 @@ class HVAC
 
   def self.remove_heating(model, runner, thermal_zone, unit)
     removed_furnace = remove_furnace(model, runner, thermal_zone)
-    removed_boiler = remove_boiler(model, runner, thermal_zone)
+    removed_boiler = remove_boiler(model, runner, thermal_zone, unit)
     removed_heater = remove_unit_heater(model, runner, thermal_zone)
     removed_elec_baseboard = remove_electric_baseboard(model, runner, thermal_zone)
     removed_ashp = remove_ashp(model, runner, thermal_zone)
     removed_mshp = remove_mshp(model, runner, thermal_zone, unit)
-    removed_gshp = remove_gshp(model, runner, thermal_zone)
+    removed_gshp = remove_gshp(model, runner, thermal_zone, unit)
     removed_central_fan_coil = remove_central_system_fan_coil(model, runner, thermal_zone)
     removed_central_ptac = remove_central_system_ptac(model, runner, thermal_zone)
   end
@@ -2636,7 +2632,7 @@ class HVAC
     if removed_mshp
       removed_elec_baseboard = remove_electric_baseboard(model, runner, thermal_zone)
     end
-    removed_gshp = remove_gshp(model, runner, thermal_zone)
+    removed_gshp = remove_gshp(model, runner, thermal_zone, unit)
     removed_central_fan_coil = remove_central_system_fan_coil(model, runner, thermal_zone)
     removed_central_ptac = remove_central_system_ptac(model, runner, thermal_zone)
   end
@@ -4680,7 +4676,7 @@ class HVAC
     return true
   end
 
-  def self.remove_gshp(model, runner, thermal_zone)
+  def self.remove_gshp(model, runner, thermal_zone, unit)
     # Returns true if the object was removed
     return false if not self.has_gshp(model, runner, thermal_zone)
 
@@ -4703,6 +4699,32 @@ class HVAC
       system.supplyFan.get.remove
       air_loop.remove
       runner.registerInfo("Removed '#{air_loop.name}' from #{thermal_zone.name}.")
+    end
+    obj_name = Constants.ObjectNameGroundSourceHeatPumpVerticalBore(unit.name.to_s)
+    model.getEnergyManagementSystemSensors.each do |sensor|
+      next if sensor.name.to_s != "#{obj_name} pump s".gsub(" ", "_").gsub("|", "_") and sensor.name.to_s != "#{obj_name} heating coil s".gsub(" ", "_").gsub("|", "_") and sensor.name.to_s != "#{obj_name} cooling coil s".gsub(" ", "_").gsub("|", "_")
+
+      sensor.remove
+    end
+    model.getEnergyManagementSystemOutputVariables.each do |output_var|
+      next if output_var.name.to_s != "#{obj_name} htg pump:Pumps:Electricity" and output_var.name.to_s != "#{obj_name} clg pump:Pumps:Electricity"
+
+      output_var.remove
+    end
+    model.getEnergyManagementSystemPrograms.each do |program|
+      next unless program.name.to_s == "#{obj_name} pumps program".gsub(" ", "_")
+
+      program.remove
+    end
+    model.getEnergyManagementSystemProgramCallingManagers.each do |program_calling_manager|
+      next unless program_calling_manager.name.to_s == "#{obj_name} pump program calling manager"
+
+      program_calling_manager.remove
+    end
+    model.getOutputVariables.each do |output_var|
+      next if output_var.variableName != "#{obj_name} htg pump:Pumps:Electricity" and output_var.variableName != "#{obj_name} clg pump:Pumps:Electricity"
+
+      output_var.remove
     end
     return true
   end
@@ -4797,7 +4819,7 @@ class HVAC
     return true
   end
 
-  def self.remove_boiler(model, runner, thermal_zone)
+  def self.remove_boiler(model, runner, thermal_zone, unit)
     # Returns true if the object was removed
     return false if not self.has_boiler(model, runner, thermal_zone)
 
@@ -4806,6 +4828,34 @@ class HVAC
     baseboards.each do |baseboard|
       runner.registerInfo("Removed '#{baseboard.name}' from #{thermal_zone.name}.")
       baseboard.remove
+    end
+    [Constants.FuelTypeGas, Constants.FuelTypeOil, Constants.FuelTypePropane, Constants.FuelTypeElectric].each do |fuel_type|
+      obj_name = Constants.ObjectNameBoiler(fuel_type, unit.name.to_s)
+      model.getEnergyManagementSystemSensors.each do |sensor|
+        next if sensor.name.to_s != "#{obj_name} hydronic pump s".gsub(" ", "_").gsub("|", "_") and sensor.name.to_s != "Central pump s".gsub(" ", "_").gsub("|", "_")
+
+        sensor.remove
+      end
+      model.getEnergyManagementSystemOutputVariables.each do |output_var|
+        next if output_var.name.to_s != "#{obj_name} htg pump:Pumps:Electricity" and output_var.name.to_s != "Central htg pump:Pumps:Electricity"
+
+        output_var.remove
+      end
+      model.getEnergyManagementSystemPrograms.each do |program|
+        next if program.name.to_s != "#{obj_name} pumps program".gsub(" ", "_") and program.name.to_s != "Central pumps program".gsub(" ", "_")
+
+        program.remove
+      end
+      model.getEnergyManagementSystemProgramCallingManagers.each do |program_calling_manager|
+        next if program_calling_manager.name.to_s != "#{obj_name} pump program calling manager" and program_calling_manager.name.to_s != "Central pump program calling manager"
+
+        program_calling_manager.remove
+      end
+      model.getOutputVariables.each do |output_var|
+        next if output_var.variableName != "#{obj_name} htg pump:Pumps:Electricity" and output_var.variableName != "Central htg pump:Pumps:Electricity"
+
+        output_var.remove
+      end
     end
     return true
   end
@@ -4900,6 +4950,31 @@ class HVAC
       runner.registerInfo("Removed '#{fcu.name}' from '#{thermal_zone.name}'.")
       fcu.remove
     end
+    model.getEnergyManagementSystemSensors.each do |sensor|
+      next if sensor.name.to_s != "Central htg pump s".gsub(" ", "_").gsub("|", "_") and sensor.name.to_s != "Central clg pump s".gsub(" ", "_").gsub("|", "_")
+
+      sensor.remove
+    end
+    model.getEnergyManagementSystemOutputVariables.each do |output_var|
+      next if output_var.name.to_s != "Central htg pump:Pumps:Electricity" and output_var.name.to_s != "Central clg pump:Pumps:Electricity"
+
+      output_var.remove
+    end
+    model.getEnergyManagementSystemPrograms.each do |program|
+      next unless program.name.to_s == "Central pumps program".gsub(" ", "_")
+
+      program.remove
+    end
+    model.getEnergyManagementSystemProgramCallingManagers.each do |program_calling_manager|
+      next unless program_calling_manager.name.to_s == "Central pump program calling manager"
+
+      program_calling_manager.remove
+    end
+    model.getOutputVariables.each do |output_var|
+      next if output_var.variableName != "Central htg pump:Pumps:Electricity" and output_var.variableName != "Central clg pump:Pumps:Electricity"
+
+      output_var.remove
+    end
     return true
   end
 
@@ -4912,6 +4987,31 @@ class HVAC
     ptacs.each do |ptac|
       runner.registerInfo("Removed '#{ptac.name}' from '#{thermal_zone.name}'.")
       ptac.remove
+    end
+    model.getEnergyManagementSystemSensors.each do |sensor|
+      next if sensor.name.to_s != "Central pump s".gsub(" ", "_").gsub("|", "_")
+
+      sensor.remove
+    end
+    model.getEnergyManagementSystemOutputVariables.each do |output_var|
+      next if output_var.name.to_s != "Central htg pump:Pumps:Electricity"
+
+      output_var.remove
+    end
+    model.getEnergyManagementSystemPrograms.each do |program|
+      next unless program.name.to_s == "Central pumps program".gsub(" ", "_")
+
+      program.remove
+    end
+    model.getEnergyManagementSystemProgramCallingManagers.each do |program_calling_manager|
+      next unless program_calling_manager.name.to_s == "Central pump program calling manager"
+
+      program_calling_manager.remove
+    end
+    model.getOutputVariables.each do |output_var|
+      next if output_var.variableName != "Central htg pump:Pumps:Electricity"
+
+      output_var.remove
     end
     return true
   end
