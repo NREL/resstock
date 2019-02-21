@@ -270,48 +270,15 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
       # Electricity Pumps Heating
       electricity_pumps_heating = []
       central_electricity_pumps_heating = []
-      thermal_zones.each do |thermal_zone|
-        model.getPlantLoops.each do |plant_loop|
-          is_specified_zone = false
-          units_served = []
-          plant_loop.demandComponents.each do |demand_component|
-            thermal_zone_served = nil
-            if demand_component.to_CoilHeatingWaterBaseboard.is_initialized
-              demand_coil = demand_component.to_CoilHeatingWaterBaseboard.get
-              thermal_zone_served = demand_coil.containingZoneHVACComponent.get.thermalZone.get
-            elsif demand_component.to_CoilHeatingWaterToAirHeatPumpEquationFit.is_initialized
-              demand_coil = demand_component.to_CoilHeatingWaterToAirHeatPumpEquationFit.get
-              thermal_zone_served = demand_coil.containingHVACComponent.get.to_AirLoopHVACUnitarySystem.get.controllingZoneorThermostatLocation.get
-            elsif demand_component.to_CoilHeatingWater.is_initialized
-              demand_coil = demand_component.to_CoilHeatingWater.get
-              thermal_zone_served = demand_coil.containingZoneHVACComponent.get.thermalZone.get
-            elsif demand_component.to_WaterHeaterStratified.is_initialized
-              demand_coil = demand_component.to_WaterHeaterStratified.get
-              thermal_zone_served = demand_coil.ambientTemperatureThermalZone.get
-            else
-              next
-            end
-            thermal_zone_served.spaces.each do |space_served|
-              unit_served = space_served.buildingUnit.get
-              next if units_served.include? unit_served
+      model.getEnergyManagementSystemOutputVariables.each do |ems_output_var|
+        if ems_output_var.name.to_s.include? "Central htg pump:Pumps:Electricity"
 
-              units_served << unit_served
-            end
-            next if thermal_zone_served != thermal_zone
+          central_electricity_pumps_heating << ["", "#{ems_output_var.name}"]
 
-            is_specified_zone = true
-          end
-          next unless is_specified_zone
+        elsif ems_output_var.name.to_s.include? "htg pump:Pumps:Electricity" and ems_output_var.emsVariableName.include? unit.name.to_s.gsub(" ", "_")
 
-          plant_loop.supplyComponents.each do |supply_component|
-            next unless supply_component.to_PumpVariableSpeed.is_initialized or supply_component.to_PumpConstantSpeed.is_initialized
+          electricity_pumps_heating << ["", "#{ems_output_var.name}"]
 
-            if units_served.length != 1 # this is a central system
-              central_electricity_pumps_heating << ["#{supply_component.name}", "Pump Electric Energy"]
-            else
-              electricity_pumps_heating << ["#{supply_component.name}", "Pump Electric Energy"]
-            end
-          end
         end
       end
 
@@ -321,42 +288,15 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
       # Electricity Pumps Cooling
       electricity_pumps_cooling = []
       central_electricity_pumps_cooling = []
-      thermal_zones.each do |thermal_zone|
-        model.getPlantLoops.each do |plant_loop|
-          is_specified_zone = false
-          units_served = []
-          plant_loop.demandComponents.each do |demand_component|
-            thermal_zone_served = nil
-            if demand_component.to_CoilCoolingWaterToAirHeatPumpEquationFit.is_initialized
-              demand_coil = demand_component.to_CoilCoolingWaterToAirHeatPumpEquationFit.get
-              thermal_zone_served = demand_coil.containingHVACComponent.get.to_AirLoopHVACUnitarySystem.get.controllingZoneorThermostatLocation.get
-            elsif demand_component.to_CoilCoolingWater.is_initialized
-              demand_coil = demand_component.to_CoilCoolingWater.get
-              thermal_zone_served = demand_coil.containingZoneHVACComponent.get.thermalZone.get
-            else
-              next
-            end
-            thermal_zone_served.spaces.each do |space_served|
-              unit_served = space_served.buildingUnit.get
-              next if units_served.include? unit_served
+      model.getEnergyManagementSystemOutputVariables.each do |ems_output_var|
+        if ems_output_var.name.to_s.include? "Central clg pump:Pumps:Electricity"
 
-              units_served << unit_served
-            end
-            next if thermal_zone_served != thermal_zone
+          central_electricity_pumps_cooling << ["", "#{ems_output_var.name}"]
 
-            is_specified_zone = true
-          end
-          next unless is_specified_zone
+        elsif ems_output_var.name.to_s.include? "clg pump:Pumps:Electricity" and ems_output_var.emsVariableName.include? unit.name.to_s.gsub(" ", "_")
 
-          plant_loop.supplyComponents.each do |supply_component|
-            next unless supply_component.to_PumpVariableSpeed.is_initialized or supply_component.to_PumpConstantSpeed.is_initialized
+          electricity_pumps_cooling << ["", "#{ems_output_var.name}"]
 
-            if units_served.length != 1 # this is a central system
-              central_electricity_pumps_cooling << ["#{supply_component.name}", "Pump Electric Energy"]
-            else
-              electricity_pumps_cooling << ["#{supply_component.name}", "Pump Electric Energy"]
-            end
-          end
         end
       end
 
@@ -597,6 +537,18 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
       results = create_custom_meter(results, "#{unit.name}:FuelOilHeating", fuel_oil_heating, "FuelOil#1")
       results = create_custom_meter(results, "Central:FuelOilHeating", central_fuel_oil_heating, "FuelOil#1")
 
+      # Fuel Oil Interior Equipment
+      fuel_oil_interior_equipment = []
+      unit.spaces.each do |space|
+        space.otherEquipment.each do |equip|
+          next if equip.fuelType != "FuelOil#1"
+
+          fuel_oil_interior_equipment << ["#{equip.name}", "Other Equipment FuelOil#1 Energy"]
+        end
+      end
+
+      results = create_custom_meter(results, "#{unit.name}:FuelOilInteriorEquipment", fuel_oil_interior_equipment, "FuelOil#1")
+
       # Fuel Oil Water Systems
       fuel_oil_water_systems = []
       model.getPlantLoops.each do |plant_loop|
@@ -699,6 +651,18 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
 
       results = create_custom_meter(results, "#{unit.name}:PropaneHeating", propane_heating, "PropaneGas")
       results = create_custom_meter(results, "Central:PropaneHeating", central_propane_heating, "PropaneGas")
+
+      # Propane Interior Equipment
+      propane_interior_equipment = []
+      unit.spaces.each do |space|
+        space.otherEquipment.each do |equip|
+          next if equip.fuelType != "PropaneGas"
+
+          propane_interior_equipment << ["#{equip.name}", "Other Equipment Propane Energy"]
+        end
+      end
+
+      results = create_custom_meter(results, "#{unit.name}:PropaneInteriorEquipment", propane_interior_equipment, "PropaneGas")
 
       # Propane Water Systems
       propane_water_systems = []
@@ -809,7 +773,6 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
     end
 
     # get the last model and sql file
-
     model = runner.lastOpenStudioModel
     if model.empty?
       runner.registerError("Cannot find last model.")
@@ -846,40 +809,38 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
     centralElectricityExteriorLighting = 0.0
     centralElectricityInteriorEquipment = 0.0
     centralNaturalGasInteriorEquipment = 0.0
-    centralFuelOilInteriorEquipment = 0.0
-    centralPropaneInteriorEquipment = 0.0
 
-    central_electricity_heating_query = "SELECT Value FROM TabularDataWithStrings WHERE ReportName='EnergyMeters' AND ReportForString='Entire Facility' AND TableName='Annual and Peak Values - Electricity' AND RowName='CENTRAL:ELECTRICITYHEATING' AND ColumnName='Electricity Annual Value' AND Units='GJ'"
+    central_electricity_heating_query = "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('CENTRAL:ELECTRICITYHEATING') AND ReportingFrequency='Annual' AND VariableUnits='J')"
     unless sqlFile.execAndReturnFirstDouble(central_electricity_heating_query).empty?
       centralElectricityHeating = sqlFile.execAndReturnFirstDouble(central_electricity_heating_query).get
     end
 
-    central_electricity_cooling_query = "SELECT Value FROM TabularDataWithStrings WHERE ReportName='EnergyMeters' AND ReportForString='Entire Facility' AND TableName='Annual and Peak Values - Electricity' AND RowName='CENTRAL:ELECTRICITYCOOLING' AND ColumnName='Electricity Annual Value' AND Units='GJ'"
+    central_electricity_cooling_query = "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('CENTRAL:ELECTRICITYCOOLING') AND ReportingFrequency='Annual' AND VariableUnits='J')"
     unless sqlFile.execAndReturnFirstDouble(central_electricity_cooling_query).empty?
       centralElectricityCooling = sqlFile.execAndReturnFirstDouble(central_electricity_cooling_query).get
     end
 
-    central_electricity_pumps_heating_query = "SELECT Value FROM TabularDataWithStrings WHERE ReportName='EnergyMeters' AND ReportForString='Entire Facility' AND TableName='Annual and Peak Values - Electricity' AND RowName='CENTRAL:ELECTRICITYPUMPSHEATING' AND ColumnName='Electricity Annual Value' AND Units='GJ'"
+    central_electricity_pumps_heating_query = "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('CENTRAL:ELECTRICITYPUMPSHEATING') AND ReportingFrequency='Annual' AND VariableUnits='J')"
     unless sqlFile.execAndReturnFirstDouble(central_electricity_pumps_heating_query).empty?
       centralElectricityPumpsHeating = sqlFile.execAndReturnFirstDouble(central_electricity_pumps_heating_query).get
     end
 
-    central_electricity_pumps_cooling_query = "SELECT Value FROM TabularDataWithStrings WHERE ReportName='EnergyMeters' AND ReportForString='Entire Facility' AND TableName='Annual and Peak Values - Electricity' AND RowName='CENTRAL:ELECTRICITYPUMPSCOOLING' AND ColumnName='Electricity Annual Value' AND Units='GJ'"
+    central_electricity_pumps_cooling_query = "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('CENTRAL:ELECTRICITYPUMPSCOOLING') AND ReportingFrequency='Annual' AND VariableUnits='J')"
     unless sqlFile.execAndReturnFirstDouble(central_electricity_pumps_cooling_query).empty?
       centralElectricityPumpsCooling = sqlFile.execAndReturnFirstDouble(central_electricity_pumps_cooling_query).get
     end
 
-    central_natural_gas_heating_query = "SELECT Value FROM TabularDataWithStrings WHERE ReportName='EnergyMeters' AND ReportForString='Entire Facility' AND TableName='Annual and Peak Values - Gas' AND RowName='CENTRAL:NATURALGASHEATING' AND ColumnName='Gas Annual Value' AND Units='GJ'"
+    central_natural_gas_heating_query = "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('CENTRAL:NATURALGASHEATING') AND ReportingFrequency='Annual' AND VariableUnits='J')"
     unless sqlFile.execAndReturnFirstDouble(central_natural_gas_heating_query).empty?
       centralNaturalGasHeating = sqlFile.execAndReturnFirstDouble(central_natural_gas_heating_query).get
     end
 
-    central_fuel_oil_heating_query = "SELECT Value FROM TabularDataWithStrings WHERE ReportName='EnergyMeters' AND ReportForString='Entire Facility' AND TableName='Annual and Peak Values - Other' AND RowName='CENTRAL:FUELOILHEATING' AND ColumnName='Annual Value' AND Units='GJ'"
+    central_fuel_oil_heating_query = "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('CENTRAL:FUELOILHEATING') AND ReportingFrequency='Annual' AND VariableUnits='J')"
     unless sqlFile.execAndReturnFirstDouble(central_fuel_oil_heating_query).empty?
       centralFuelOilHeating = sqlFile.execAndReturnFirstDouble(central_fuel_oil_heating_query).get
     end
 
-    central_propane_heating_query = "SELECT Value FROM TabularDataWithStrings WHERE ReportName='EnergyMeters' AND ReportForString='Entire Facility' AND TableName='Annual and Peak Values - Other' AND RowName='CENTRAL:PROPANEHEATING' AND ColumnName='Annual Value' AND Units='GJ'"
+    central_propane_heating_query = "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('CENTRAL:PROPANEHEATING') AND ReportingFrequency='Annual' AND VariableUnits='J')"
     unless sqlFile.execAndReturnFirstDouble(central_propane_heating_query).empty?
       centralPropaneHeating = sqlFile.execAndReturnFirstDouble(central_propane_heating_query).get
     end
@@ -897,16 +858,6 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
     central_natural_gas_interior_equipment_query = "SELECT Value from tabulardatawithstrings where (reportname = 'AnnualBuildingUtilityPerformanceSummary') and (ReportForString = 'Entire Facility') and (TableName = 'End Uses'  ) and (ColumnName ='Natural Gas') and (RowName = 'Interior Equipment') and (Units = 'GJ')"
     unless sqlFile.execAndReturnFirstDouble(central_natural_gas_interior_equipment_query).empty?
       centralNaturalGasInteriorEquipment = sqlFile.execAndReturnFirstDouble(central_natural_gas_interior_equipment_query).get
-    end
-
-    central_fuel_oil_interior_equipment_query = "SELECT Value FROM TabularDataWithStrings WHERE ReportName='EnergyMeters' AND ReportForString='Entire Facility' AND TableName='Annual and Peak Values - Other' AND RowName='InteriorEquipment:FuelOil#1' AND ColumnName='Annual Value' AND Units='GJ'"
-    unless sqlFile.execAndReturnFirstDouble(central_fuel_oil_interior_equipment_query).empty?
-      centralFuelOilInteriorEquipment = sqlFile.execAndReturnFirstDouble(central_fuel_oil_interior_equipment_query).get
-    end
-
-    central_propane_interior_equipment_query = "SELECT Value FROM TabularDataWithStrings WHERE ReportName='EnergyMeters' AND ReportForString='Entire Facility' AND TableName='Annual and Peak Values - Other' AND RowName='InteriorEquipment:Propane' AND ColumnName='Annual Value' AND Units='GJ'"
-    unless sqlFile.execAndReturnFirstDouble(central_propane_interior_equipment_query).empty?
-      centralPropaneInteriorEquipment = sqlFile.execAndReturnFirstDouble(central_propane_interior_equipment_query).get
     end
 
     # Get building units
@@ -959,19 +910,19 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
         units_represented = unit.additionalProperties.getFeatureAsInteger("Units Represented").get
       end
 
-      electricity_heating_query = "SELECT Value FROM TabularDataWithStrings WHERE ReportName='EnergyMeters' AND ReportForString='Entire Facility' AND TableName='Annual and Peak Values - Electricity' AND RowName='#{unit_name}:ELECTRICITYHEATING' AND ColumnName='Electricity Annual Value' AND Units='GJ'"
+      electricity_heating_query = "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('#{unit_name}:ELECTRICITYHEATING') AND ReportingFrequency='Annual' AND VariableUnits='J')"
       unless sqlFile.execAndReturnFirstDouble(electricity_heating_query).empty?
         electricityHeating += units_represented * sqlFile.execAndReturnFirstDouble(electricity_heating_query).get
       end
       electricityHeating += units_represented * (centralElectricityHeating / units.length)
 
-      electricity_cooling_query = "SELECT Value FROM TabularDataWithStrings WHERE ReportName='EnergyMeters' AND ReportForString='Entire Facility' AND TableName='Annual and Peak Values - Electricity' AND RowName='#{unit_name}:ELECTRICITYCOOLING' AND ColumnName='Electricity Annual Value' AND Units='GJ'"
+      electricity_cooling_query = "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('#{unit_name}:ELECTRICITYCOOLING') AND ReportingFrequency='Annual' AND VariableUnits='J')"
       unless sqlFile.execAndReturnFirstDouble(electricity_cooling_query).empty?
         electricityCooling += units_represented * sqlFile.execAndReturnFirstDouble(electricity_cooling_query).get
       end
       electricityCooling += units_represented * (centralElectricityCooling / units.length)
 
-      electricity_interior_lighting_query = "SELECT Value FROM TabularDataWithStrings WHERE ReportName='EnergyMeters' AND ReportForString='Entire Facility' AND TableName='Annual and Peak Values - Electricity' AND RowName='#{unit_name}:ELECTRICITYINTERIORLIGHTING' AND ColumnName='Electricity Annual Value' AND Units='GJ'"
+      electricity_interior_lighting_query = "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('#{unit_name}:ELECTRICITYINTERIORLIGHTING') AND ReportingFrequency='Annual' AND VariableUnits='J')"
       unless sqlFile.execAndReturnFirstDouble(electricity_interior_lighting_query).empty?
         electricityInteriorLighting += units_represented * sqlFile.execAndReturnFirstDouble(electricity_interior_lighting_query).get
       end
@@ -980,34 +931,34 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
 
       electricityInteriorEquipment += units_represented * (centralElectricityInteriorEquipment / units.length)
 
-      electricity_fans_heating_query = "SELECT Value FROM TabularDataWithStrings WHERE ReportName='EnergyMeters' AND ReportForString='Entire Facility' AND TableName='Annual and Peak Values - Electricity' AND RowName='#{unit_name}:ELECTRICITYFANSHEATING' AND ColumnName='Electricity Annual Value' AND Units='GJ'"
+      electricity_fans_heating_query = "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('#{unit_name}:ELECTRICITYFANSHEATING') AND ReportingFrequency='Annual' AND VariableUnits='J')"
       unless sqlFile.execAndReturnFirstDouble(electricity_fans_heating_query).empty?
         electricityFansHeating += units_represented * sqlFile.execAndReturnFirstDouble(electricity_fans_heating_query).get
       end
 
-      electricity_fans_cooling_query = "SELECT Value FROM TabularDataWithStrings WHERE ReportName='EnergyMeters' AND ReportForString='Entire Facility' AND TableName='Annual and Peak Values - Electricity' AND RowName='#{unit_name}:ELECTRICITYFANSCOOLING' AND ColumnName='Electricity Annual Value' AND Units='GJ'"
+      electricity_fans_cooling_query = "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('#{unit_name}:ELECTRICITYFANSCOOLING') AND ReportingFrequency='Annual' AND VariableUnits='J')"
       unless sqlFile.execAndReturnFirstDouble(electricity_fans_cooling_query).empty?
         electricityFansCooling += units_represented * sqlFile.execAndReturnFirstDouble(electricity_fans_cooling_query).get
       end
 
-      electricity_pumps_heating_query = "SELECT Value FROM TabularDataWithStrings WHERE ReportName='EnergyMeters' AND ReportForString='Entire Facility' AND TableName='Annual and Peak Values - Electricity' AND RowName='#{unit_name}:ELECTRICITYPUMPSHEATING' AND ColumnName='Electricity Annual Value' AND Units='GJ'"
+      electricity_pumps_heating_query = "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('#{unit_name}:ELECTRICITYPUMPSHEATING') AND ReportingFrequency='Annual' AND VariableUnits='J')"
       unless sqlFile.execAndReturnFirstDouble(electricity_pumps_heating_query).empty?
         electricityPumpsHeating += units_represented * sqlFile.execAndReturnFirstDouble(electricity_pumps_heating_query).get
       end
       electricityPumpsHeating += units_represented * (centralElectricityPumpsHeating / units.length)
 
-      electricity_pumps_cooling_query = "SELECT Value FROM TabularDataWithStrings WHERE ReportName='EnergyMeters' AND ReportForString='Entire Facility' AND TableName='Annual and Peak Values - Electricity' AND RowName='#{unit_name}:ELECTRICITYPUMPSCOOLING' AND ColumnName='Electricity Annual Value' AND Units='GJ'"
+      electricity_pumps_cooling_query = "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('#{unit_name}:ELECTRICITYPUMPSCOOLING') AND ReportingFrequency='Annual' AND VariableUnits='J')"
       unless sqlFile.execAndReturnFirstDouble(electricity_pumps_cooling_query).empty?
         electricityPumpsCooling += units_represented * sqlFile.execAndReturnFirstDouble(electricity_pumps_cooling_query).get
       end
       electricityPumpsCooling += units_represented * (centralElectricityPumpsCooling / units.length)
 
-      electricity_water_systems_query = "SELECT Value FROM TabularDataWithStrings WHERE ReportName='EnergyMeters' AND ReportForString='Entire Facility' AND TableName='Annual and Peak Values - Electricity' AND RowName='#{unit_name}:ELECTRICITYWATERSYSTEMS' AND ColumnName='Electricity Annual Value' AND Units='GJ'"
+      electricity_water_systems_query = "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('#{unit_name}:ELECTRICITYWATERSYSTEMS') AND ReportingFrequency='Annual' AND VariableUnits='J')"
       unless sqlFile.execAndReturnFirstDouble(electricity_water_systems_query).empty?
         electricityWaterSystems += units_represented * sqlFile.execAndReturnFirstDouble(electricity_water_systems_query).get
       end
 
-      natural_gas_heating_query = "SELECT Value FROM TabularDataWithStrings WHERE ReportName='EnergyMeters' AND ReportForString='Entire Facility' AND TableName='Annual and Peak Values - Gas' AND RowName='#{unit_name}:NATURALGASHEATING' AND ColumnName='Gas Annual Value' AND Units='GJ'"
+      natural_gas_heating_query = "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('#{unit_name}:NATURALGASHEATING') AND ReportingFrequency='Annual' AND VariableUnits='J')"
       unless sqlFile.execAndReturnFirstDouble(natural_gas_heating_query).empty?
         naturalGasHeating += units_represented * sqlFile.execAndReturnFirstDouble(natural_gas_heating_query).get
       end
@@ -1015,33 +966,39 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
 
       naturalGasInteriorEquipment += units_represented * (centralNaturalGasInteriorEquipment / units.length)
 
-      natural_gas_water_systems_query = "SELECT Value FROM TabularDataWithStrings WHERE ReportName='EnergyMeters' AND ReportForString='Entire Facility' AND TableName='Annual and Peak Values - Gas' AND RowName='#{unit_name}:NATURALGASWATERSYSTEMS' AND ColumnName='Gas Annual Value' AND Units='GJ'"
+      natural_gas_water_systems_query = "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('#{unit_name}:NATURALGASWATERSYSTEMS') AND ReportingFrequency='Annual' AND VariableUnits='J')"
       unless sqlFile.execAndReturnFirstDouble(natural_gas_water_systems_query).empty?
         naturalGasWaterSystems += units_represented * sqlFile.execAndReturnFirstDouble(natural_gas_water_systems_query).get
       end
 
-      fuel_oil_heating_query = "SELECT Value FROM TabularDataWithStrings WHERE ReportName='EnergyMeters' AND ReportForString='Entire Facility' AND TableName='Annual and Peak Values - Other' AND RowName='#{unit_name}:FUELOILHEATING' AND ColumnName='Annual Value' AND Units='GJ'"
+      fuel_oil_heating_query = "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('#{unit_name}:FUELOILHEATING') AND ReportingFrequency='Annual' AND VariableUnits='J')"
       unless sqlFile.execAndReturnFirstDouble(fuel_oil_heating_query).empty?
         fuelOilHeating += units_represented * sqlFile.execAndReturnFirstDouble(fuel_oil_heating_query).get
       end
       fuelOilHeating += units_represented * (centralFuelOilHeating / units.length)
 
-      fuelOilInteriorEquipment += units_represented * (centralFuelOilInteriorEquipment / units.length)
+      fuel_oil_interior_equipment_query = "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('#{unit_name}:FUELOILINTERIOREQUIPMENT') AND ReportingFrequency='Annual' AND VariableUnits='J')"
+      unless sqlFile.execAndReturnFirstDouble(fuel_oil_interior_equipment_query).empty?
+        fuelOilInteriorEquipment += units_represented * sqlFile.execAndReturnFirstDouble(fuel_oil_interior_equipment_query).get
+      end
 
-      fuel_oil_water_systems_query = "SELECT Value FROM TabularDataWithStrings WHERE ReportName='EnergyMeters' AND ReportForString='Entire Facility' AND TableName='Annual and Peak Values - Other' AND RowName='#{unit_name}:FUELOILWATERSYSTEMS' AND ColumnName='Annual Value' AND Units='GJ'"
+      fuel_oil_water_systems_query = "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('#{unit_name}:FUELOILWATERSYSTEMS') AND ReportingFrequency='Annual' AND VariableUnits='J')"
       unless sqlFile.execAndReturnFirstDouble(fuel_oil_water_systems_query).empty?
         fuelOilWaterSystems += units_represented * sqlFile.execAndReturnFirstDouble(fuel_oil_water_systems_query).get
       end
 
-      propane_heating_query = "SELECT Value FROM TabularDataWithStrings WHERE ReportName='EnergyMeters' AND ReportForString='Entire Facility' AND TableName='Annual and Peak Values - Other' AND RowName='#{unit_name}:PROPANEHEATING' AND ColumnName='Annual Value' AND Units='GJ'"
+      propane_heating_query = "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('#{unit_name}:PROPANEHEATING') AND ReportingFrequency='Annual' AND VariableUnits='J')"
       unless sqlFile.execAndReturnFirstDouble(propane_heating_query).empty?
         propaneHeating += units_represented * sqlFile.execAndReturnFirstDouble(propane_heating_query).get
       end
       propaneHeating += units_represented * (centralPropaneHeating / units.length)
 
-      propaneInteriorEquipment += units_represented * (centralPropaneInteriorEquipment / units.length)
+      propane_interior_equipment_query = "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('#{unit_name}:PROPANEINTERIOREQUIPMENT') AND ReportingFrequency='Annual' AND VariableUnits='J')"
+      unless sqlFile.execAndReturnFirstDouble(propane_interior_equipment_query).empty?
+        propaneInteriorEquipment += units_represented * sqlFile.execAndReturnFirstDouble(propane_interior_equipment_query).get
+      end
 
-      propane_water_systems_query = "SELECT Value FROM TabularDataWithStrings WHERE ReportName='EnergyMeters' AND ReportForString='Entire Facility' AND TableName='Annual and Peak Values - Other' AND RowName='#{unit_name}:PROPANEWATERSYSTEMS' AND ColumnName='Annual Value' AND Units='GJ'"
+      propane_water_systems_query = "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('#{unit_name}:PROPANEWATERSYSTEMS') AND ReportingFrequency='Annual' AND VariableUnits='J')"
       unless sqlFile.execAndReturnFirstDouble(propane_water_systems_query).empty?
         propaneWaterSystems += units_represented * sqlFile.execAndReturnFirstDouble(propane_water_systems_query).get
       end
@@ -1106,8 +1063,6 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
     # PROPANE
 
     propaneTotalEndUses = propaneHeating + propaneInteriorEquipment + propaneWaterSystems
-
-    sqlfile_total_site_propane_query = "SELECT Value FROM TabularDataWithStrings WHERE ReportName='EnergyMeters' AND ReportForString='Entire Facility' AND TableName='Annual and Peak Values - Other' AND RowName='Propane:Facility' AND ColumnName='Annual Value' AND Units='GJ'"
 
     report_sim_output(runner, "total_site_propane_mbtu", propaneTotalEndUses, "GJ", other_fuel_site_units)
     report_sim_output(runner, "propane_heating_mbtu", propaneHeating, "GJ", other_fuel_site_units)
