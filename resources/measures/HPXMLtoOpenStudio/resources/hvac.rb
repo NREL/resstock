@@ -1770,13 +1770,10 @@ class HVAC
     demand_outlet_pipe = OpenStudio::Model::PipeAdiabatic.new(model)
     demand_outlet_pipe.addToNode(plant_loop.demandOutletNode)
 
-    pump_program = OpenStudio::Model::EnergyManagementSystemProgram.new(model)
-    pump_program.setName("#{obj_name} pumps program")
-    pump_program.addLine("Set #{unit.name.to_s.gsub(" ", "_")}_pumps_h = 0")
-    pump_program.addLine("Set #{unit.name.to_s.gsub(" ", "_")}_pumps_c = 0")
-
     thermal_zones = Geometry.get_thermal_zones_from_spaces(unit.spaces)
 
+    htg_coil_sensor = nil
+    clg_coil_sensor = nil
     control_slave_zones_hash = get_control_and_slave_zones(thermal_zones)
     control_slave_zones_hash.each do |control_zone, slave_zones|
       gshp_HEAT_CAP_fT_coeff = convert_curve_gshp(hEAT_CAP_FT_SEC, false)
@@ -1985,14 +1982,16 @@ class HVAC
       clg_air_loop_unitary.additionalProperties.setFeature(Constants.SizingInfoGSHPBoreDepth, bore_depth)
       clg_air_loop_unitary.additionalProperties.setFeature(Constants.SizingInfoGSHPBoreConfig, bore_config)
       clg_air_loop_unitary.additionalProperties.setFeature(Constants.SizingInfoGSHPUTubeSpacingType, u_tube_spacing_type)
-
-      # Disaggregate electric pump energy
-      pump_program.addLine("If #{htg_coil_sensor.name} > 0")
-      pump_program.addLine("  Set #{unit.name.to_s.gsub(" ", "_")}_pumps_h = #{unit.name.to_s.gsub(" ", "_")}_pumps_h + #{pump_sensor.name}")
-      pump_program.addLine("ElseIf #{clg_coil_sensor.name} > 0")
-      pump_program.addLine("  Set #{unit.name.to_s.gsub(" ", "_")}_pumps_c = #{unit.name.to_s.gsub(" ", "_")}_pumps_c + #{pump_sensor.name}")
-      pump_program.addLine("EndIf")
     end
+
+    # Disaggregate electric pump energy
+    pump_program = OpenStudio::Model::EnergyManagementSystemProgram.new(model)
+    pump_program.setName("#{obj_name} pumps program")
+    pump_program.addLine("If #{htg_coil_sensor.name} > 0")
+    pump_program.addLine("  Set #{unit.name.to_s.gsub(" ", "_")}_pumps_h = #{pump_sensor.name}")
+    pump_program.addLine("ElseIf #{clg_coil_sensor.name} > 0")
+    pump_program.addLine("  Set #{unit.name.to_s.gsub(" ", "_")}_pumps_c = #{pump_sensor.name}")
+    pump_program.addLine("EndIf")
 
     pump_output_var = OpenStudio::Model::EnergyManagementSystemOutputVariable.new(model, "#{unit.name.to_s.gsub(" ", "_")}_pumps_h")
     pump_output_var.setName("#{obj_name} htg pump:Pumps:Electricity")
@@ -2001,20 +2000,12 @@ class HVAC
     pump_output_var.setEMSProgramOrSubroutineName(pump_program)
     pump_output_var.setUnits("J")
 
-    output_var = OpenStudio::Model::OutputVariable.new(pump_output_var.name.to_s, model)
-    output_var.setKeyValue("*")
-    output_var.setReportingFrequency("Hourly")
-
     pump_output_var = OpenStudio::Model::EnergyManagementSystemOutputVariable.new(model, "#{unit.name.to_s.gsub(" ", "_")}_pumps_c")
     pump_output_var.setName("#{obj_name} clg pump:Pumps:Electricity")
     pump_output_var.setTypeOfDataInVariable("Summed")
     pump_output_var.setUpdateFrequency("SystemTimestep")
     pump_output_var.setEMSProgramOrSubroutineName(pump_program)
     pump_output_var.setUnits("J")
-
-    output_var = OpenStudio::Model::OutputVariable.new(pump_output_var.name.to_s, model)
-    output_var.setKeyValue("*")
-    output_var.setReportingFrequency("Hourly")
 
     pump_program_calling_manager = OpenStudio::Model::EnergyManagementSystemProgramCallingManager.new(model)
     pump_program_calling_manager.setName("#{obj_name} pump program calling manager")
@@ -2343,10 +2334,6 @@ class HVAC
     pipe_demand_inlet.addToNode(plant_loop.demandInletNode)
     pipe_demand_outlet.addToNode(plant_loop.demandOutletNode)
 
-    pump_program = OpenStudio::Model::EnergyManagementSystemProgram.new(model)
-    pump_program.setName("#{obj_name} pumps program")
-    pump_program.addLine("Set #{unit.name.to_s.gsub(" ", "_")}_pumps_h = 0")
-
     thermal_zones = Geometry.get_thermal_zones_from_spaces(unit.spaces)
 
     control_slave_zones_hash = get_control_and_slave_zones(thermal_zones)
@@ -2371,10 +2358,12 @@ class HVAC
         # Store info for HVAC Sizing measure
         baseboard_heater.additionalProperties.setFeature(Constants.SizingInfoHVACFracHeatLoadServed, frac_heat_load_served)
       end
-
-      # Disaggregate electric pump energy
-      pump_program.addLine("Set #{unit.name.to_s.gsub(" ", "_")}_pumps_h = #{unit.name.to_s.gsub(" ", "_")}_pumps_h + #{pump_sensor.name}")
     end
+
+    # Disaggregate electric pump energy
+    pump_program = OpenStudio::Model::EnergyManagementSystemProgram.new(model)
+    pump_program.setName("#{obj_name} pumps program")
+    pump_program.addLine("Set #{unit.name.to_s.gsub(" ", "_")}_pumps_h = #{pump_sensor.name}")
 
     pump_output_var = OpenStudio::Model::EnergyManagementSystemOutputVariable.new(model, "#{unit.name.to_s.gsub(" ", "_")}_pumps_h")
     pump_output_var.setName("#{obj_name} htg pump:Pumps:Electricity")
@@ -2382,10 +2371,6 @@ class HVAC
     pump_output_var.setUpdateFrequency("SystemTimestep")
     pump_output_var.setEMSProgramOrSubroutineName(pump_program)
     pump_output_var.setUnits("J")
-
-    output_var = OpenStudio::Model::OutputVariable.new(pump_output_var.name.to_s, model)
-    output_var.setKeyValue("*")
-    output_var.setReportingFrequency("Hourly")
 
     pump_program_calling_manager = OpenStudio::Model::EnergyManagementSystemProgramCallingManager.new(model)
     pump_program_calling_manager.setName("#{obj_name} pump program calling manager")
