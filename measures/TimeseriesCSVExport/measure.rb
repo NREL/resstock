@@ -108,6 +108,11 @@ class TimeseriesCSVExport < OpenStudio::Measure::ReportingMeasure
         end_use_subcategories << "#{fan.endUseSubcategory}:#{end_use}:Electricity"
       end
     end
+    model.getEnergyManagementSystemOutputVariables.each do |ems_output_var|
+      next unless ems_output_var.name.to_s.include? "Pumps:Electricity"
+
+      end_use_subcategories << "#{ems_output_var.name}"
+    end
     return end_use_subcategories
   end
 
@@ -194,13 +199,12 @@ class TimeseriesCSVExport < OpenStudio::Measure::ReportingMeasure
         return false
       end
       model = model.get
-      model.getEnergyManagementSystemOutputVariables.each do |ems_output_var|
-        next unless ems_output_var.name.to_s.include? "Pumps:Electricity"
-
-        result << OpenStudio::IdfObject.load("Output:Variable,*,#{ems_output_var.name},#{reporting_frequency};").get
-      end
       end_use_subcategories(model).each do |variable_name|
-        result << OpenStudio::IdfObject.load("Output:Meter,#{variable_name},#{reporting_frequency};").get
+        if variable_name.include? "Pumps"
+          result << OpenStudio::IdfObject.load("Output:Variable,*,#{variable_name},#{reporting_frequency};").get
+        else
+          result << OpenStudio::IdfObject.load("Output:Meter,#{variable_name},#{reporting_frequency};").get
+        end
       end
     end
 
@@ -279,15 +283,12 @@ class TimeseriesCSVExport < OpenStudio::Measure::ReportingMeasure
       end
     end
     if include_enduse_subcategories
-      model.getEnergyManagementSystemOutputVariables.each do |ems_output_var|
-        next unless ems_output_var.name.to_s.include? "Pumps:Electricity"
-
-        sql.availableKeyValues(ann_env_pd, reporting_frequency_map[reporting_frequency], ems_output_var.name.to_s).each do |key_value|
-          variables_to_report << [ems_output_var.name.to_s, reporting_frequency[reporting_frequency], key_value]
-        end
-      end
       end_use_subcategories(model).each do |variable_name|
-        variables_to_report << [variable_name, reporting_frequency_map[reporting_frequency], ""]
+        if variable_name.include? "Pumps"
+          variables_to_report << [variable_name, reporting_frequency_map[reporting_frequency], "EMS"]
+        else
+          variables_to_report << [variable_name, reporting_frequency_map[reporting_frequency], ""]
+        end
       end
     end
     output_vars.each do |output_var|
