@@ -1036,8 +1036,20 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
     report_sim_output(runner, "electricity_interior_lighting_kwh", electricityInteriorLighting, "GJ", elec_site_units)
     report_sim_output(runner, "electricity_exterior_lighting_kwh", electricityExteriorLighting, "GJ", elec_site_units)
     report_sim_output(runner, "electricity_interior_equipment_kwh", electricityInteriorEquipment, "GJ", elec_site_units)
+    unless sqlFile.electricityFans.empty?
+      unless (sqlFile.electricityFans.get - (electricityFansHeating + electricityFansCooling)).abs < 0.01
+        runner.registerError("Disaggregated fan energy relative to building fan energy: #{((electricityFansHeating+electricityFansCooling)-sqlFile.electricityFans.get)*100.0/sqlFile.electricityFans.get}%.")
+        return false
+      end
+    end
     report_sim_output(runner, "electricity_fans_heating_kwh", electricityFansHeating, "GJ", elec_site_units)
     report_sim_output(runner, "electricity_fans_cooling_kwh", electricityFansCooling, "GJ", elec_site_units)
+    unless sqlFile.electricityPumps.empty?
+      unless (sqlFile.electricityPumps.get - (electricityPumpsHeating + electricityPumpsCooling)).abs < 0.01
+        runner.registerError("Disaggregated pump energy relative to building pump energy: #{((electricityPumpsHeating+electricityPumpsCooling)-sqlFile.electricityPumps.get)*100.0/sqlFile.electricityPumps.get}%.")
+        return false
+      end
+    end
     report_sim_output(runner, "electricity_pumps_heating_kwh", electricityPumpsHeating, "GJ", elec_site_units)
     report_sim_output(runner, "electricity_pumps_cooling_kwh", electricityPumpsCooling, "GJ", elec_site_units)
     report_sim_output(runner, "electricity_water_systems_kwh", electricityWaterSystems, "GJ", elec_site_units)
@@ -1073,6 +1085,12 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
 
     totalSiteEnergy = electricityTotalEndUses + naturalGasTotalEndUses + fuelOilTotalEndUses + propaneTotalEndUses
 
+    unless sqlFile.totalSiteEnergy.empty?
+      unless (sqlFile.totalSiteEnergy.get - totalSiteEnergy).abs < 0.01
+        runner.registerError("Disaggregated total site energy relative to building total site energy: #{(totalSiteEnergy-sqlFile.totalSiteEnergy.get)*100.0/sqlFile.totalSiteEnergy.get}%.")
+        return false
+      end
+    end
     report_sim_output(runner, "total_site_energy_mbtu", totalSiteEnergy, "GJ", total_site_units)
     report_sim_output(runner, "net_site_energy_mbtu", totalSiteEnergy + pv_val, "GJ", total_site_units)
 
