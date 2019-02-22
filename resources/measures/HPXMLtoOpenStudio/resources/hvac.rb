@@ -1987,6 +1987,8 @@ class HVAC
     # Disaggregate electric pump energy
     pump_program = OpenStudio::Model::EnergyManagementSystemProgram.new(model)
     pump_program.setName("#{obj_name} pumps program")
+    pump_program.addLine("Set #{unit.name.to_s.gsub(" ", "_")}_pumps_h = 0")
+    pump_program.addLine("Set #{unit.name.to_s.gsub(" ", "_")}_pumps_c = 0")
     pump_program.addLine("If #{htg_coil_sensor.name} > 0")
     pump_program.addLine("  Set #{unit.name.to_s.gsub(" ", "_")}_pumps_h = #{pump_sensor.name}")
     pump_program.addLine("ElseIf #{clg_coil_sensor.name} > 0")
