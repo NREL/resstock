@@ -254,16 +254,12 @@ class Geometry
     return volume
   end
 
-  def self.get_finished_floor_area_from_spaces(spaces, runner = nil, apply_mult = false)
+  def self.get_finished_floor_area_from_spaces(spaces, runner = nil)
     floor_area = 0
     spaces.each do |space|
       next if not self.space_is_finished(space)
 
-      mult = 1.0
-      if apply_mult
-        mult = space.multiplier.to_f
-      end
-      floor_area += UnitConversions.convert(space.floorArea * mult, "m^2", "ft^2")
+      floor_area += UnitConversions.convert(space.floorArea, "m^2", "ft^2")
     end
     if floor_area == 0 and not runner.nil?
       runner.registerError("Could not find any finished floor area.")

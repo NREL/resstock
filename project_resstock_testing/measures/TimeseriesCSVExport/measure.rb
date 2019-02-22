@@ -108,11 +108,6 @@ class TimeseriesCSVExport < OpenStudio::Measure::ReportingMeasure
         end_use_subcategories << "#{fan.endUseSubcategory}:#{end_use}:Electricity"
       end
     end
-    model.getEnergyManagementSystemOutputVariables.each do |ems_output_var|
-      next unless ems_output_var.name.to_s.include? "Pumps:Electricity"
-
-      end_use_subcategories << "#{ems_output_var.name}"
-    end
     return end_use_subcategories
   end
 
@@ -138,14 +133,14 @@ class TimeseriesCSVExport < OpenStudio::Measure::ReportingMeasure
     # make an argument for including optional end use subcategories
     arg = OpenStudio::Measure::OSArgument::makeBoolArgument("include_enduse_subcategories", true)
     arg.setDisplayName("Include End Use Subcategories")
-    arg.setDescription("Whether to report end use subcategories: fan, refrigerator, clothes dryer, plug loads, etc.")
+    arg.setDescription("Whether to report appliance-level enduses: refrigerator, clothes dryer, plug loads, etc.")
     arg.setDefaultValue(false)
     args << arg
 
     # make an argument for summing subcategories across units
     arg = OpenStudio::Measure::OSArgument::makeBoolArgument("units_aggregated_subcategories", true)
     arg.setDisplayName("Aggregate End Use Subcategories Across Building Units")
-    arg.setDescription("Whether to sum end use subcategories across building units.")
+    arg.setDescription("Whether to sum appliance-level enduses across building units.")
     arg.setDefaultValue(true)
     args << arg
 
@@ -200,11 +195,7 @@ class TimeseriesCSVExport < OpenStudio::Measure::ReportingMeasure
       end
       model = model.get
       end_use_subcategories(model).each do |variable_name|
-        if variable_name.include? "Pumps"
-          result << OpenStudio::IdfObject.load("Output:Variable,*,#{variable_name},#{reporting_frequency};").get
-        else
-          result << OpenStudio::IdfObject.load("Output:Meter,#{variable_name},#{reporting_frequency};").get
-        end
+        result << OpenStudio::IdfObject.load("Output:Meter,#{variable_name},#{reporting_frequency};").get
       end
     end
 
@@ -284,11 +275,7 @@ class TimeseriesCSVExport < OpenStudio::Measure::ReportingMeasure
     end
     if include_enduse_subcategories
       end_use_subcategories(model).each do |variable_name|
-        if variable_name.include? "Pumps"
-          variables_to_report << [variable_name, reporting_frequency_map[reporting_frequency], "EMS"]
-        else
-          variables_to_report << [variable_name, reporting_frequency_map[reporting_frequency], ""]
-        end
+        variables_to_report << [variable_name, reporting_frequency_map[reporting_frequency], ""]
       end
     end
     output_vars.each do |output_var|
