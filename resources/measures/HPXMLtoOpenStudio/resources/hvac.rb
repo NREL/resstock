@@ -4191,6 +4191,11 @@ class HVAC
       heating_equipment << fcu
     end
 
+    unit_heaters = self.get_central_fan_coil_unit_heaters(model, runner, thermal_zone)
+    unit_heaters.each do |unit_heater|  
+      heating_equipment << unit_heater
+    end
+
     if self.has_ideal_air_heating(model, runner, thermal_zone)
       runner.registerInfo("Found ideal air system in #{thermal_zone.name}.")
       ideal_air = self.get_ideal_air_heating(model, runner, thermal_zone)
@@ -4337,6 +4342,17 @@ class HVAC
     return fcus
   end
 
+  def self.get_central_fan_coil_unit_heaters(model, runner, thermal_zone)
+    # Returns the fan coil(s) if available
+    unit_heaters = []
+    model.getZoneHVACUnitHeaters.each do |unit_heater|
+      next unless thermal_zone.handle.to_s == unit_heater.thermalZone.get.handle.to_s
+
+      unit_heaters << unit_heater
+    end
+    return unit_heaters
+  end
+
   def self.get_baseboard_waters(model, runner, thermal_zone)
     # Returns the water baseboard if available
     baseboards = []
@@ -4475,7 +4491,7 @@ class HVAC
   end
 
   def self.num_central_fan_coil(model, runner, thermal_zone)
-    return self.get_central_fan_coils(model, runner, thermal_zone).length
+    return self.get_central_fan_coils(model, runner, thermal_zone).length + self.get_central_fan_coil_unit_heaters(model, runner, thermal_zone).length
   end
 
   def self.num_air_loop_hvac_unitary_system_clg_coils(model, runner, thermal_zone)
@@ -4723,11 +4739,6 @@ class HVAC
 
       program_calling_manager.remove
     end
-    model.getOutputVariables.each do |output_var|
-      next if output_var.variableName != "#{obj_name} htg pump:Pumps:Electricity" and output_var.variableName != "#{obj_name} clg pump:Pumps:Electricity"
-
-      output_var.remove
-    end
     return true
   end
 
@@ -4853,11 +4864,6 @@ class HVAC
 
         program_calling_manager.remove
       end
-      model.getOutputVariables.each do |output_var|
-        next if output_var.variableName != "#{obj_name} htg pump:Pumps:Electricity" and output_var.variableName != "Central htg pump:Pumps:Electricity"
-
-        output_var.remove
-      end
     end
     return true
   end
@@ -4952,6 +4958,11 @@ class HVAC
       runner.registerInfo("Removed '#{fcu.name}' from '#{thermal_zone.name}'.")
       fcu.remove
     end
+    unit_heaters = self.get_central_fan_coil_unit_heaters(model, runner, thermal_zone)
+    unit_heaters.each do |unit_heater|
+      runner.registerInfo("Removed '#{unit_heater.name}' from '#{thermal_zone.name}'.")
+      unit_heater.remove
+    end
     model.getEnergyManagementSystemSensors.each do |sensor|
       next if sensor.name.to_s != "Central htg pump s".gsub(" ", "_").gsub("|", "_") and sensor.name.to_s != "Central clg pump s".gsub(" ", "_").gsub("|", "_")
 
@@ -4971,11 +4982,6 @@ class HVAC
       next unless program_calling_manager.name.to_s == "Central pump program calling manager"
 
       program_calling_manager.remove
-    end
-    model.getOutputVariables.each do |output_var|
-      next if output_var.variableName != "Central htg pump:Pumps:Electricity" and output_var.variableName != "Central clg pump:Pumps:Electricity"
-
-      output_var.remove
     end
     return true
   end
@@ -5009,11 +5015,6 @@ class HVAC
       next unless program_calling_manager.name.to_s == "Central pump program calling manager"
 
       program_calling_manager.remove
-    end
-    model.getOutputVariables.each do |output_var|
-      next if output_var.variableName != "Central htg pump:Pumps:Electricity"
-
-      output_var.remove
     end
     return true
   end
