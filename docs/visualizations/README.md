@@ -27,7 +27,7 @@ The scripts use a Jupyter interactive python notebook (ipynb).  Follow direction
 
 ## Regenerating the visualizations
 
-The projects will change over time. To regenerate the visualizations for all projects, run the `regenerate_visualizations.ipynb`.  This script will execute all the visualization scripts in this folder.
+The projects will change over time. To regenerate the visualizations for all projects, run `regenerate_visualizations.ipynb`.  This script will execute all the visualization scripts in this folder.
 
 ### Visualization scripts:
 
