@@ -1987,6 +1987,8 @@ class HVAC
     # Disaggregate electric pump energy
     pump_program = OpenStudio::Model::EnergyManagementSystemProgram.new(model)
     pump_program.setName("#{obj_name} pumps program")
+    pump_program.addLine("Set #{unit.name.to_s.gsub(" ", "_")}_pumps_h = 0")
+    pump_program.addLine("Set #{unit.name.to_s.gsub(" ", "_")}_pumps_c = 0")
     pump_program.addLine("If #{htg_coil_sensor.name} > 0")
     pump_program.addLine("  Set #{unit.name.to_s.gsub(" ", "_")}_pumps_h = #{pump_sensor.name}")
     pump_program.addLine("ElseIf #{clg_coil_sensor.name} > 0")
@@ -4557,11 +4559,6 @@ class HVAC
 
       program_calling_manager.remove
     end
-    model.getOutputVariables.each do |output_var|
-      next if output_var.variableName != "#{obj_name} htg pump:Pumps:Electricity" and output_var.variableName != "#{obj_name} clg pump:Pumps:Electricity"
-
-      output_var.remove
-    end
     return true
   end
 
@@ -4686,11 +4683,6 @@ class HVAC
         next unless program_calling_manager.name.to_s == "#{obj_name} pump program calling manager"
 
         program_calling_manager.remove
-      end
-      model.getOutputVariables.each do |output_var|
-        next if output_var.variableName != "#{obj_name} htg pump:Pumps:Electricity" and output_var.variableName != "#{obj_name} clg pump:Pumps:Electricity"
-
-        output_var.remove
       end
     end
     return true
