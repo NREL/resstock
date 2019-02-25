@@ -103,6 +103,11 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
 
       end
     end
+    model.getPumpConstantSpeeds.each do |pump| # shw pump
+      next unless pump.name.to_s.include? Constants.ObjectNameSolarHotWater
+
+      electricity_pumps_heating << ["#{pump.name}", "Pump Electric Energy"]
+    end
 
     results = create_custom_meter(results, "ElectricityPumpsHeating", electricity_pumps_heating)
     results = create_custom_meter(results, "ElectricityPumpsCooling", electricity_pumps_cooling)
@@ -261,12 +266,12 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
     electricityFansHeating = 0.0
     electricity_fans_heating_query = "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('ELECTRICITYFANSHEATING') AND ReportingFrequency='Annual' AND VariableUnits='J')"
     unless sqlFile.execAndReturnFirstDouble(electricity_fans_heating_query).empty?
-      electricityFansHeating = sqlFile.execAndReturnFirstDouble(electricity_fans_heating_query).get
+      electricityFansHeating = sqlFile.execAndReturnFirstDouble(electricity_fans_heating_query).get.round(2)
     end
     electricityFansCooling = 0.0
     electricity_fans_cooling_query = "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('ELECTRICITYFANSCOOLING') AND ReportingFrequency='Annual' AND VariableUnits='J')"
     unless sqlFile.execAndReturnFirstDouble(electricity_fans_cooling_query).empty?
-      electricityFansCooling = sqlFile.execAndReturnFirstDouble(electricity_fans_cooling_query).get
+      electricityFansCooling = sqlFile.execAndReturnFirstDouble(electricity_fans_cooling_query).get.round(2)
     end
     electricityFans = 0.0
     unless sqlFile.electricityFans.empty?
@@ -282,16 +287,16 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
     electricityPumpsHeating = 0.0
     electricity_pumps_heating_query = "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('ELECTRICITYPUMPSHEATING') AND ReportingFrequency='Annual' AND VariableUnits='J')"
     unless sqlFile.execAndReturnFirstDouble(electricity_pumps_heating_query).empty?
-      electricityPumpsHeating = sqlFile.execAndReturnFirstDouble(electricity_pumps_heating_query).get
+      electricityPumpsHeating = sqlFile.execAndReturnFirstDouble(electricity_pumps_heating_query).get.round(2)
     end    
     electricityPumpsCooling = 0.0
     electricity_pumps_cooling_query = "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('ELECTRICITYPUMPSCOOLING') AND ReportingFrequency='Annual' AND VariableUnits='J')"
     unless sqlFile.execAndReturnFirstDouble(electricity_pumps_cooling_query).empty?
-      electricityPumpsCooling = sqlFile.execAndReturnFirstDouble(electricity_pumps_cooling_query).get
+      electricityPumpsCooling = sqlFile.execAndReturnFirstDouble(electricity_pumps_cooling_query).get.round(2)
     end
     electricityPumps = 0.0
     unless sqlFile.electricityPumps.empty?
-      eletricityPumps = sqlFile.electricityPumps.get
+      electricityPumps = sqlFile.electricityPumps.get
     end
     err = (electricityPumpsHeating + electricityPumpsCooling) - electricityPumps
     if err.abs > 0.2
