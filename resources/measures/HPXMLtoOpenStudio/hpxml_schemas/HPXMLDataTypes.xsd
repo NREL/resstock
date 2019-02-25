@@ -717,6 +717,7 @@
 		<xs:restriction base="xs:string">
 			<xs:enumeration value="interior"/>
 			<xs:enumeration value="exterior"/>
+			<xs:enumeration value="garage"/>
 			<xs:enumeration value="common area"/>
 		</xs:restriction>
 	</xs:simpleType>
@@ -745,7 +746,14 @@
 	<xs:simpleType name="LightingThirdPartyCertification">
 		<xs:restriction base="xs:string">
 			<xs:enumeration value="Energy Star"/>
+			<xs:enumeration value="Energy Star Most Efficient"/>
+			<xs:enumeration value="CEE Tier 1"/>
+			<xs:enumeration value="CEE Tier 2"/>
+			<xs:enumeration value="CEE Tier 3"/>
+			<xs:enumeration value="ERI Tier I"/>
+			<xs:enumeration value="ERI Tier II"/>
 			<xs:enumeration value="other"/>
+			<xs:enumeration value="unknown"/>
 		</xs:restriction>
 	</xs:simpleType>
 	<xs:simpleType name="LightingDailyHours">
@@ -1365,8 +1373,6 @@
 	<xs:simpleType name="WaterType">
 		<xs:restriction base="xs:string">
 			<xs:enumeration value="indoor and outdoor water"/>
-			<xs:enumeration value="indoor water "/>
-			<!-- deprecated -->
 			<xs:enumeration value="indoor water"/>
 			<xs:enumeration value="outdoor water"/>
 			<xs:enumeration value="wastewater/sewer"/>
@@ -1695,17 +1701,6 @@
 		</xs:annotation>
 		<xs:restriction base="xs:double">
 			<xs:minInclusive value="0"/>
-		</xs:restriction>
-	</xs:simpleType>
-	<xs:simpleType name="AtticType">
-		<xs:restriction base="xs:string">
-			<xs:enumeration value="cape cod"/>
-			<xs:enumeration value="cathedral ceiling"/>
-			<xs:enumeration value="flat roof"/>
-			<xs:enumeration value="unvented attic"/>
-			<xs:enumeration value="vented attic"/>
-			<xs:enumeration value="venting unknown attic"/>
-			<xs:enumeration value="other"/>
 		</xs:restriction>
 	</xs:simpleType>
 	<xs:simpleType name="AtticWallType">
@@ -2111,6 +2106,8 @@
 			<xs:enumeration value="CEE Tier 1"/>
 			<xs:enumeration value="CEE Tier 2"/>
 			<xs:enumeration value="CEE Tier 3"/>
+			<xs:enumeration value="ERI Tier I"/>
+			<xs:enumeration value="ERI Tier II"/>
 			<xs:enumeration value="other"/>
 			<xs:enumeration value="unknown"/>
 		</xs:restriction>
@@ -2158,5 +2155,11 @@
 			<xs:minInclusive value="0"/>
 			<xs:maxInclusive value="1"/>
 		</xs:restriction>
+    </xs:simpleType>
+	<xs:simpleType name="SpecificLeakageAreaType">
+		<xs:annotation>
+			<xs:documentation>Specific Leakage Area (SLA) is defined as the Effective Leakage Area (ELA) divided by the floor area.</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:double"/>
 	</xs:simpleType>
 </xs:schema>
