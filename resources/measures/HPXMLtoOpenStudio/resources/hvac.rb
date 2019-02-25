@@ -2506,9 +2506,9 @@ class HVAC
   def self.apply_heating_setpoints(model, runner, weather, htg_wkdy_monthly, htg_wked_monthly,
                                    use_auto_season, season_start_month, season_end_month)
 
-    # Get heating and cooling seasons
+    # Get heating season
     if use_auto_season
-      heating_season, cooling_season = calc_heating_and_cooling_seasons(model, weather, runner)
+      heating_season, _ = calc_heating_and_cooling_seasons(model, weather, runner)
     else
       if season_start_month <= season_end_month
         heating_season = Array.new(season_start_month - 1, 0) + Array.new(season_end_month - season_start_month + 1, 1) + Array.new(12 - season_end_month, 0)
@@ -2520,7 +2520,7 @@ class HVAC
       return false
     end
 
-    cooling_season = get_cooling_season(model, weather, runner)
+    cooling_season = get_season(model, weather, runner, Constants.ObjectNameCoolingSeason)
 
     # Remove existing heating season schedule
     model.getScheduleRulesets.each do |sch|
@@ -2532,28 +2532,6 @@ class HVAC
     heating_season_schedule = MonthWeekdayWeekendSchedule.new(model, runner, Constants.ObjectNameHeatingSeason, Array.new(24, 1), Array.new(24, 1), heating_season, mult_weekday = 1.0, mult_weekend = 1.0, normalize_values = false)
     unless heating_season_schedule.validated?
       return false
-    end
-
-    # assign the availability schedules to the equipment objects
-    model.getThermalZones.each do |thermal_zone|
-      heating_equipment = existing_heating_equipment(model, runner, thermal_zone)
-      heating_equipment.each do |htg_equip|
-        htg_obj = nil
-        supp_htg_obj = nil
-        if htg_equip.is_a? OpenStudio::Model::AirLoopHVACUnitarySystem
-          clg_obj, htg_obj, supp_htg_obj = get_coils_from_hvac_equip(htg_equip)
-        elsif htg_equip.to_ZoneHVACComponent.is_initialized
-          htg_obj = htg_equip
-        end
-        unless htg_obj.nil? or htg_obj.to_CoilHeatingWaterToAirHeatPumpEquationFit.is_initialized
-          htg_equip.setAvailabilitySchedule(heating_season_schedule.schedule)
-          runner.registerInfo("Added availability schedule to #{htg_equip.name}.")
-        end
-        unless supp_htg_obj.nil?
-          supp_htg_obj.setAvailabilitySchedule(heating_season_schedule.schedule)
-          runner.registerInfo("Added availability schedule to #{supp_htg_obj.name}.")
-        end
-      end
     end
 
     htg_wkdy_monthly = htg_wkdy_monthly.map { |i| i.map { |j| UnitConversions.convert(j, "F", "C") } }
@@ -2670,9 +2648,9 @@ class HVAC
   def self.apply_cooling_setpoints(model, runner, weather, clg_wkdy_monthly, clg_wked_monthly,
                                    use_auto_season, season_start_month, season_end_month)
 
-    # Get heating and cooling seasons
+    # Get cooling season
     if use_auto_season
-      heating_season, cooling_season = calc_heating_and_cooling_seasons(model, weather, runner)
+      _, cooling_season = calc_heating_and_cooling_seasons(model, weather, runner)
     else
       if season_start_month <= season_end_month
         cooling_season = Array.new(season_start_month - 1, 0) + Array.new(season_end_month - season_start_month + 1, 1) + Array.new(12 - season_end_month, 0)
@@ -2684,7 +2662,7 @@ class HVAC
       return false
     end
 
-    heating_season = get_heating_season(model, weather, runner)
+    heating_season = get_season(model, weather, runner, Constants.ObjectNameHeatingSeason)
 
     # Remove existing cooling season schedule
     model.getScheduleRulesets.each do |sch|
@@ -2696,18 +2674,6 @@ class HVAC
     cooling_season_sch = MonthWeekdayWeekendSchedule.new(model, runner, Constants.ObjectNameCoolingSeason, Array.new(24, 1), Array.new(24, 1), cooling_season, mult_weekday = 1.0, mult_weekend = 1.0, normalize_values = false)
     unless cooling_season_sch.validated?
       return false
-    end
-
-    # assign the availability schedules to the equipment objects
-    model.getThermalZones.each do |thermal_zone|
-      cooling_equipment = existing_cooling_equipment(model, runner, thermal_zone)
-      cooling_equipment.each do |clg_equip|
-        clg_coil, htg_coil, supp_htg_coil = get_coils_from_hvac_equip(clg_equip)
-        unless clg_coil.nil? or clg_coil.to_CoilCoolingWaterToAirHeatPumpEquationFit.is_initialized
-          clg_equip.setAvailabilitySchedule(cooling_season_sch.schedule)
-          runner.registerInfo("Added availability schedule to #{clg_equip.name}.")
-        end
-      end
     end
 
     clg_wkdy_monthly = clg_wkdy_monthly.map { |i| i.map { |j| UnitConversions.convert(j, "F", "C") } }
@@ -2866,36 +2832,25 @@ class HVAC
     return values
   end
 
-  def self.get_heating_season(model, weather, runner)
-    heating_season = []
+  def self.get_season(model, weather, runner, sch_name)
+    season = []
     model.getScheduleRulesets.each do |sch|
-      next unless sch.name.to_s == Constants.ObjectNameHeatingSeason
-
-      sch.scheduleRules.each do |rule|
-        ix = rule.startDate.get.monthOfYear.value.to_i - 1
-        heating_season[ix] = rule.daySchedule.values[0]
+      if sch.name.to_s == sch_name
+        sch.scheduleRules.each do |rule|
+          ix = rule.startDate.get.monthOfYear.value.to_i - 1
+          season[ix] = rule.daySchedule.values[0]
+        end
       end
     end
-    if heating_season.empty?
+    if season.empty?
       heating_season, cooling_season = calc_heating_and_cooling_seasons(model, weather, runner)
-    end
-    return heating_season
-  end
-
-  def self.get_cooling_season(model, weather, runner)
-    cooling_season = []
-    model.getScheduleRulesets.each do |sch|
-      next unless sch.name.to_s == Constants.ObjectNameCoolingSeason
-
-      sch.scheduleRules.each do |rule|
-        ix = rule.startDate.get.monthOfYear.value.to_i - 1
-        cooling_season[ix] = rule.daySchedule.values[0]
+      if sch_name == Constants.ObjectNameHeatingSeason
+        season = heating_season
+      else
+        season = cooling_season
       end
     end
-    if cooling_season.empty?
-      heating_season, cooling_season = calc_heating_and_cooling_seasons(model, weather, runner)
-    end
-    return cooling_season
+    return season
   end
 
   def self.get_default_heating_setpoint(control_type)
@@ -3125,8 +3080,9 @@ class HVAC
 
       thermostatsetpointdualsetpoint.get.coolingSetpointTemperatureSchedule.get.to_Schedule.get.to_ScheduleRuleset.get.scheduleRules.each do |rule|
         month = rule.startDate.get.monthOfYear.value.to_i - 1
-        next if htg_wkdy_monthly[month].zip(clg_wkdy_monthly[month]).any? { |h, c| c < h}
-        next if htg_wked_monthly[month].zip(clg_wked_monthly[month]).any? { |h, c| c < h}
+        next if htg_wkdy_monthly[month].zip(clg_wkdy_monthly[month]).any? { |h, c| c < h }
+        next if htg_wked_monthly[month].zip(clg_wked_monthly[month]).any? { |h, c| c < h }
+
         rule.daySchedule.clearValues
         if weekday_or_weekend_rule(rule).include? 'weekday'
           clg_wkdy_monthly[month].each_with_index do |value, hour|
