@@ -33,3 +33,5 @@ The projects will change over time. To regenerate the visualizations for all pro
 
 - Dependency wheels
 - Dependency graphs
+
+Please note that the `dependencyWheels/dep_wheel_blank_template.html` file is a blank template that is copied to the `<project_directory>/util/` folder and renamed to `dep_wheel.html` when the `dependencyWheels/createDependencyWheelData.ipynb` is run.  To see the dependency wheels and dependcy graphs, go to the `<project_directory>/util/` after the visualizations have been created or updated with the `regenerate_visualizations.ipynb` notebook.
