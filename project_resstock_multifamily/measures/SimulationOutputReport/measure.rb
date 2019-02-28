@@ -1019,21 +1019,25 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
     report_sim_output(runner, "electricity_interior_lighting_kwh", electricityInteriorLighting, "GJ", elec_site_units)
     report_sim_output(runner, "electricity_exterior_lighting_kwh", electricityExteriorLighting, "GJ", elec_site_units)
     report_sim_output(runner, "electricity_interior_equipment_kwh", electricityInteriorEquipment, "GJ", elec_site_units)
+    electricityFans = 0.0
     unless sqlFile.electricityFans.empty?
-      err = (buildingElectricityFansHeating + buildingElectricityFansCooling) - sqlFile.electricityFans.get
-      if err.abs > 0.2
-        runner.registerError("Disaggregated fan energy (#{buildingElectricityFansHeating + buildingElectricityFansCooling} GJ) relative to building fan energy (#{sqlFile.electricityFans.get} GJ): #{err} GJ.")
-        return false
-      end
+      electricityFans = sqlFile.electricityFans.get
+    end
+    err = (buildingElectricityFansHeating + buildingElectricityFansCooling) - electricityFans
+    if err.abs > 0.2
+      runner.registerError("Disaggregated fan energy (#{buildingElectricityFansHeating + buildingElectricityFansCooling} GJ) relative to building fan energy (#{electricityFans} GJ): #{err} GJ.")
+      return false
     end
     report_sim_output(runner, "electricity_fans_heating_kwh", electricityFansHeating, "GJ", elec_site_units)
     report_sim_output(runner, "electricity_fans_cooling_kwh", electricityFansCooling, "GJ", elec_site_units)
+    electricityPumps = 0.0
     unless sqlFile.electricityPumps.empty?
-      err = (centralElectricityPumpsHeating + centralElectricityPumpsCooling + buildingElectricityPumpsHeating + buildingElectricityPumpsCooling) - sqlFile.electricityPumps.get
-      if err.abs > 0.2
-        runner.registerError("Disaggregated pump energy (#{centralElectricityPumpsHeating + centralElectricityPumpsCooling + buildingElectricityPumpsHeating + buildingElectricityPumpsCooling} GJ) relative to building pump energy (#{sqlFile.electricityPumps.get} GJ): #{err} GJ.")
-        return false
-      end
+      electricityPumps = sqlFile.electricityPumps.get
+    end
+    err = (centralElectricityPumpsHeating + centralElectricityPumpsCooling + buildingElectricityPumpsHeating + buildingElectricityPumpsCooling) - electricityPumps
+    if err.abs > 0.2
+      runner.registerError("Disaggregated pump energy (#{centralElectricityPumpsHeating + centralElectricityPumpsCooling + buildingElectricityPumpsHeating + buildingElectricityPumpsCooling} GJ) relative to building pump energy (#{electricityPumps} GJ): #{err} GJ.")
+      return false
     end
     report_sim_output(runner, "electricity_pumps_heating_kwh", electricityPumpsHeating, "GJ", elec_site_units)
     report_sim_output(runner, "electricity_pumps_cooling_kwh", electricityPumpsCooling, "GJ", elec_site_units)
