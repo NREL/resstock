@@ -55,7 +55,6 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
           clg_coil, htg_coil, supp_htg_coil = HVAC.get_coils_from_hvac_equip(htg_equip)
 
           if htg_equip.is_a? OpenStudio::Model::AirLoopHVACUnitarySystem
-
             electricity_heating << ["#{htg_coil.name}", "Heating Coil Electric Energy"]
             electricity_heating << ["#{htg_equip.name}", "Unitary System Heating Ancillary Electric Energy"]
 
@@ -159,6 +158,8 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
 
           if clg_equip.is_a? OpenStudio::Model::AirLoopHVACUnitarySystem
             electricity_cooling << ["#{clg_coil.name}", "Cooling Coil Electric Energy"]
+            electricity_cooling << ["#{clg_equip.name}", "Unitary System Cooling Ancillary Electric Energy"]
+
             unless clg_coil.is_a? OpenStudio::Model::CoilCoolingWaterToAirHeatPumpEquationFit
               electricity_cooling << ["#{clg_coil.name}", "Cooling Coil Crankcase Heater Electric Energy"]
             end
@@ -199,6 +200,10 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
             end
 
           end
+        end
+        dehumidifiers = HVAC.get_dehumidifiers(model, runner, thermal_zone)
+        dehumidifiers.each do |dehumidifier|
+          electricity_cooling << ["#{dehumidifier.name}", "Zone Dehumidifier Electric Energy"]
         end
       end
 
@@ -270,6 +275,14 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
 
         elsif ems_output_var.name.to_s.include? "htg pump:Pumps:Electricity" and ems_output_var.emsVariableName.include? unit.name.to_s.gsub(" ", "_")
           electricity_pumps_heating << ["", "#{ems_output_var.name}"]
+
+        end
+      end
+      model.getPumpConstantSpeeds.each do |pump| # shw pump
+        next unless pump.name.to_s.include? Constants.ObjectNameSolarHotWater
+
+        if ( unit.name.to_s == "unit 1" and not pump.name.to_s.include? "unit" ) or pump.name.to_s.end_with? "#{unit.name.to_s} pump"
+          electricity_pumps_heating << ["#{pump.name}", "Pump Electric Energy"]
 
         end
       end
@@ -576,7 +589,7 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
 
               plant_loop.supplyComponents.each do |supply_component|
                 next unless supply_component.to_BoilerHotWater.is_initialized
-                next if supply_component.to_BoilerHotWater.get.fuelType != "Propane"
+                next if supply_component.to_BoilerHotWater.get.fuelType != "PropaneGas"
 
                 if units_served.length != 1 # this is a central system
                   central_propane_heating << ["#{supply_component.name}", "Boiler Propane Energy"]
