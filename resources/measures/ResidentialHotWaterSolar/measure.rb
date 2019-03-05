@@ -133,7 +133,7 @@ class ResidentialHotWaterSolar < OpenStudio::Measure::ModelMeasure
     args << arg
 
     # make a double argument for azimuth
-    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument("azimuth", false)
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument("azimuth", true)
     arg.setDisplayName("Azimuth")
     arg.setUnits("degrees")
     arg.setDescription("The azimuth angle is measured clockwise.")
@@ -152,7 +152,7 @@ class ResidentialHotWaterSolar < OpenStudio::Measure::ModelMeasure
     args << arg
 
     # make a double argument for tilt
-    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument("tilt", false)
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument("tilt", true)
     arg.setDisplayName("Tilt")
     arg.setUnits("degrees")
     arg.setDescription("Angle of the tilt.")
