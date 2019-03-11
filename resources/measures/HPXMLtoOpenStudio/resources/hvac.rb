@@ -4192,7 +4192,7 @@ class HVAC
     end
 
     unit_heaters = self.get_central_fan_coil_unit_heaters(model, runner, thermal_zone)
-    unit_heaters.each do |unit_heater|  
+    unit_heaters.each do |unit_heater|
       heating_equipment << unit_heater
     end
 
