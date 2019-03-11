@@ -1,8 +1,6 @@
 # see the URL below for information on how to write OpenStudio measures
 # http://nrel.github.io/OpenStudio-user-documentation/reference/measure_writing_guide/
 
-# require 'ruby-prof'
-require 'erb'
 require 'csv'
 if File.exists? File.absolute_path(File.join(File.dirname(__FILE__), "../../lib/resources/measures/HPXMLtoOpenStudio/resources")) # Hack to run ResStock on AWS
   resources_path = File.absolute_path(File.join(File.dirname(__FILE__), "../../lib/resources/measures/HPXMLtoOpenStudio/resources"))
@@ -15,6 +13,9 @@ else
 end
 require File.join(resources_path, "weather")
 require File.join(resources_path, "unit_conversions")
+require File.join(resources_path, "geometry")
+require File.join(resources_path, "hvac")
+require File.join(resources_path, "waterheater")
 
 # start the measure
 class TimeseriesCSVExport < OpenStudio::Measure::ReportingMeasure
@@ -28,96 +29,8 @@ class TimeseriesCSVExport < OpenStudio::Measure::ReportingMeasure
     return "Exports timeseries output data to csv."
   end
 
-  # human readable description of modeling approach
-  def modeler_description
-    return "Exports all available timeseries enduses, subcategories, and output variables to csv file(s)."
-  end
-
-  def fuel_types
-    fuel_types = [
-      "Electricity",
-      "Gas",
-      "DistrictCooling",
-      "DistrictHeating",
-      "Water",
-      "FuelOil#1",
-      "Propane",
-      "ElectricityProduced"
-    ]
-    return fuel_types
-  end
-
-  def end_uses
-    end_uses = [
-      "Heating",
-      "Cooling",
-      "InteriorLights",
-      "ExteriorLights",
-      "InteriorEquipment",
-      "ExteriorEquipment",
-      "Fans",
-      "Pumps",
-      "HeatRejection",
-      "Humidifier",
-      "HeatRecovery",
-      "WaterSystems",
-      "Refrigeration",
-      "Facility"
-    ]
-    return end_uses
-  end
-
-  def end_use_subcategories(model)
-    end_use_subcategories = []
-    model.getElectricEquipments.each do |equip|
-      next if equip.endUseSubcategory.empty?
-
-      end_uses.each do |end_use|
-        next if end_use_subcategories.include? "#{equip.endUseSubcategory}:#{end_use}:Electricity"
-
-        end_use_subcategories << "#{equip.endUseSubcategory}:#{end_use}:Electricity"
-      end
-    end
-    model.getGasEquipments.each do |equip|
-      next if equip.endUseSubcategory.empty?
-
-      end_uses.each do |end_use|
-        next if end_use_subcategories.include? "#{equip.endUseSubcategory}:#{end_use}:Gas"
-
-        end_use_subcategories << "#{equip.endUseSubcategory}:#{end_use}:Gas"
-      end
-    end
-    model.getOtherEquipments.each do |equip|
-      next if equip.endUseSubcategory.empty?
-      next if equip.fuelType.empty? or equip.fuelType == "None"
-
-      end_uses.each do |end_use|
-        variable_name = "#{equip.endUseSubcategory}:#{end_use}:#{equip.fuelType}"
-        variable_name = variable_name.gsub("NaturalGas", "Gas").gsub("PropaneGas", "Propane")
-        next if end_use_subcategories.include? variable_name
-
-        end_use_subcategories << variable_name
-      end
-    end
-    model.getFanOnOffs.each do |fan|
-      next if fan.endUseSubcategory.empty?
-
-      end_uses.each do |end_use|
-        next if end_use_subcategories.include? "#{fan.endUseSubcategory}:#{end_use}:Electricity"
-
-        end_use_subcategories << "#{fan.endUseSubcategory}:#{end_use}:Electricity"
-      end
-    end
-    model.getEnergyManagementSystemOutputVariables.each do |ems_output_var|
-      next unless ems_output_var.name.to_s.include? "Pumps:Electricity"
-
-      end_use_subcategories << "#{ems_output_var.name}"
-    end
-    return end_use_subcategories
-  end
-
   def reporting_frequency_map # idf => osm
-    return { "Detailed" => "HVAC System Timestep", "Timestep" => "Zone Timestep", "Hourly" => "Hourly", "Daily" => "Daily", "Monthly" => "Monthly", "Runperiod" => "Run Period" }
+    return { "Timestep" => "Zone Timestep", "Hourly" => "Hourly", "Daily" => "Daily", "Monthly" => "Monthly", "Runperiod" => "Run Period" }
   end
 
   # define the arguments that the user will input
@@ -138,21 +51,8 @@ class TimeseriesCSVExport < OpenStudio::Measure::ReportingMeasure
     # make an argument for including optional end use subcategories
     arg = OpenStudio::Measure::OSArgument::makeBoolArgument("include_enduse_subcategories", true)
     arg.setDisplayName("Include End Use Subcategories")
-    arg.setDescription("Whether to report end use subcategories: fan, refrigerator, clothes dryer, plug loads, etc.")
+    arg.setDescription("Whether to report end use subcategories: refrigerator, clothes dryer, plug loads, etc.")
     arg.setDefaultValue(false)
-    args << arg
-
-    # make an argument for summing subcategories across units
-    arg = OpenStudio::Measure::OSArgument::makeBoolArgument("units_aggregated_subcategories", true)
-    arg.setDisplayName("Aggregate End Use Subcategories Across Building Units")
-    arg.setDescription("Whether to sum end use subcategories across building units.")
-    arg.setDefaultValue(true)
-    args << arg
-
-    # make an argument for optional output variables
-    arg = OpenStudio::Measure::OSArgument::makeStringArgument("output_variables", false)
-    arg.setDisplayName("Output Variables")
-    arg.setDescription("Specify a comma-separated list of output variables to report. (See EnergyPlus's rdd file for available output variables.)")
     args << arg
 
     return args
@@ -162,83 +62,10 @@ class TimeseriesCSVExport < OpenStudio::Measure::ReportingMeasure
   def energyPlusOutputRequests(runner, user_arguments)
     super(runner, user_arguments)
 
-    result = OpenStudio::IdfObjectVector.new
-
     reporting_frequency = runner.getStringArgumentValue("reporting_frequency", user_arguments)
     include_enduse_subcategories = runner.getBoolArgumentValue("include_enduse_subcategories", user_arguments)
-    output_vars = runner.getOptionalStringArgumentValue("output_variables", user_arguments)
-    if output_vars.is_initialized
-      output_vars = output_vars.get
-      output_vars = output_vars.split(",")
-      output_vars = output_vars.collect { |x| x.strip }
-    else
-      output_vars = []
-    end
 
-    # Request the output for each enduse/fuel type combination
-    end_uses.each do |end_use|
-      fuel_types.each do |fuel_type|
-        variable_name = "#{end_use}:#{fuel_type}"
-        if end_use == "Facility"
-          variable_name = "#{fuel_type}:#{end_use}"
-        end
-        if reporting_frequency == "Detailed"
-          result << OpenStudio::IdfObject.load("Output:Meter,#{variable_name},Timestep;").get
-        else
-          result << OpenStudio::IdfObject.load("Output:Meter,#{variable_name},#{reporting_frequency};").get
-        end
-      end
-    end
-
-    # Request the output for each electric equipment object
-    if include_enduse_subcategories
-      # get the last model and sql file
-      model = runner.lastOpenStudioModel
-      if model.empty?
-        runner.registerError("Cannot find last model.")
-        return false
-      end
-      model = model.get
-      end_use_subcategories(model).each do |variable_name|
-        if variable_name.include? "Pumps"
-          result << OpenStudio::IdfObject.load("Output:Variable,*,#{variable_name},#{reporting_frequency};").get
-        else
-          result << OpenStudio::IdfObject.load("Output:Meter,#{variable_name},#{reporting_frequency};").get
-        end
-      end
-    end
-
-    # Request the output for each output variable
-    output_vars.each do |output_var|
-      result << OpenStudio::IdfObject.load("Output:Variable,*,#{output_var.strip},#{reporting_frequency};").get
-    end
-
-    return result
-  end
-
-  # define what happens when the measure is run
-  def run(runner, user_arguments)
-    super(runner, user_arguments)
-
-    # use the built-in error checking
-    if !runner.validateUserArguments(arguments(), user_arguments)
-      return false
-    end
-
-    # Assign the user inputs to variables
-    reporting_frequency = runner.getStringArgumentValue("reporting_frequency", user_arguments)
-    include_enduse_subcategories = runner.getBoolArgumentValue("include_enduse_subcategories", user_arguments)
-    units_aggregated_subcategories = runner.getBoolArgumentValue("units_aggregated_subcategories", user_arguments)
-    output_vars = runner.getOptionalStringArgumentValue("output_variables", user_arguments)
-    if output_vars.is_initialized
-      output_vars = output_vars.get
-      output_vars = output_vars.split(",")
-      output_vars = output_vars.collect { |x| x.strip }
-    else
-      output_vars = []
-    end
-
-    # Get the last model
+    # get the last model and sql file
     model = runner.lastOpenStudioModel
     if model.empty?
       runner.registerError("Cannot find last model.")
@@ -246,19 +73,44 @@ class TimeseriesCSVExport < OpenStudio::Measure::ReportingMeasure
     end
     model = model.get
 
-    # Get the last sql file
-    sql = runner.lastEnergyPlusSqlFile
-    if sql.empty?
+    results = OutputMeters.create_custom_building_unit_meters(model, runner, reporting_frequency, include_enduse_subcategories)
+    results << OpenStudio::IdfObject.load("Output:Meter,Electricity:Facility,#{reporting_frequency};").get
+    return results
+  end
+
+  # define what happens when the measure is run
+  def run(runner, user_arguments)
+    super(runner, user_arguments)
+
+    # use the built-in error checking
+    if not runner.validateUserArguments(arguments(), user_arguments)
+      return false
+    end
+
+    # Assign the user inputs to variables
+    reporting_frequency = runner.getStringArgumentValue("reporting_frequency", user_arguments)
+    include_enduse_subcategories = runner.getBoolArgumentValue("include_enduse_subcategories", user_arguments)
+
+    # Get the last model and sql file
+    model = runner.lastOpenStudioModel
+    if model.empty?
+      runner.registerError("Cannot find last model.")
+      return false
+    end
+    model = model.get
+
+    sqlFile = runner.lastEnergyPlusSqlFile
+    if sqlFile.empty?
       runner.registerError("Cannot find last sql file.")
       return false
     end
-    sql = sql.get
-    model.setSqlFile(sql)
+    sqlFile = sqlFile.get
+    model.setSqlFile(sqlFile)
 
-    # Get the weather file run period (as opposed to design day run period)
+    # Get datetimes
     ann_env_pd = nil
-    sql.availableEnvPeriods.each do |env_pd|
-      env_type = sql.environmentType(env_pd)
+    sqlFile.availableEnvPeriods.each do |env_pd|
+      env_type = sqlFile.environmentType(env_pd)
       if env_type.is_initialized
         if env_type.get == OpenStudio::EnvironmentType.new("WeatherRunPeriod")
           ann_env_pd = env_pd
@@ -270,30 +122,311 @@ class TimeseriesCSVExport < OpenStudio::Measure::ReportingMeasure
       return false
     end
 
-    # Create an array of arrays of variables
-    variables_to_report = []
-    end_uses.each do |end_use|
-      fuel_types.each do |fuel_type|
-        if end_use == "Facility"
-          variable_name = "#{fuel_type}:#{end_use}"
-        else
-          variable_name = "#{end_use}:#{fuel_type}"
-        end
-        variables_to_report << [variable_name, reporting_frequency_map[reporting_frequency], ""]
-      end
+    env_period_ix_query = "SELECT EnvironmentPeriodIndex FROM EnvironmentPeriods WHERE EnvironmentName='#{ann_env_pd}'"
+    env_period_ix = sqlFile.execAndReturnFirstInt(env_period_ix_query).get
+
+    datetimes = []
+    timeseries = sqlFile.timeSeries(ann_env_pd, reporting_frequency_map[reporting_frequency], "Electricity:Facility", "").get # assume every house consumes some electricity
+    timeseries.dateTimes.each do |datetime|
+      datetimes << format_datetime(datetime.to_s)
     end
-    if include_enduse_subcategories
-      end_use_subcategories(model).each do |variable_name|
-        if variable_name.include? "Pumps"
-          variables_to_report << [variable_name, reporting_frequency_map[reporting_frequency], "EMS"]
-        else
-          variables_to_report << [variable_name, reporting_frequency_map[reporting_frequency], ""]
+    num_ts = datetimes.length
+
+    total_site_units = "MBtu"
+    elec_site_units = "kWh"
+    gas_site_units = "therm"
+    other_fuel_site_units = "MBtu"
+
+    # Get meters that aren't tied to units (i.e., get apportioned evenly across units)
+    centralElectricityHeating = [0] * num_ts
+    centralElectricityCooling = [0] * num_ts
+    centralElectricityExteriorLighting = [0] * num_ts
+    centralElectricityPumpsHeating = [0] * num_ts
+    centralElectricityPumpsCooling = [0] * num_ts
+    centralElectricityInteriorEquipment = [0] * num_ts
+    centralElectricityPhotovoltaics = [0] * num_ts
+    centralNaturalGasHeating = [0] * num_ts
+    centralFuelOilHeating = [0] * num_ts
+    centralPropaneHeating = [0] * num_ts
+
+    central_electricity_heating_query = "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('CENTRAL:ELECTRICITYHEATING') AND ReportingFrequency='#{reporting_frequency_map[reporting_frequency]}' AND VariableUnits='J') AND TimeIndex IN (SELECT TimeIndex FROM Time WHERE EnvironmentPeriodIndex='#{env_period_ix}')"
+    unless sqlFile.execAndReturnVectorOfDouble(central_electricity_heating_query).get.empty?
+      centralElectricityHeating = sqlFile.execAndReturnVectorOfDouble(central_electricity_heating_query).get
+    end
+
+    central_electricity_cooling_query = "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('CENTRAL:ELECTRICITYCOOLING') AND ReportingFrequency='#{reporting_frequency_map[reporting_frequency]}' AND VariableUnits='J') AND TimeIndex IN (SELECT TimeIndex FROM Time WHERE EnvironmentPeriodIndex='#{env_period_ix}')"
+    unless sqlFile.execAndReturnVectorOfDouble(central_electricity_cooling_query).get.empty?
+      centralElectricityCooling = sqlFile.execAndReturnVectorOfDouble(central_electricity_cooling_query).get
+    end
+
+    central_electricity_exterior_lighting_query = "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('CENTRAL:ELECTRICITYEXTERIORLIGHTING') AND ReportingFrequency='#{reporting_frequency_map[reporting_frequency]}' AND VariableUnits='J') AND TimeIndex IN (SELECT TimeIndex FROM Time WHERE EnvironmentPeriodIndex='#{env_period_ix}')"
+    unless sqlFile.execAndReturnVectorOfDouble(central_electricity_exterior_lighting_query).get.empty?
+      centralElectricityExteriorLighting = sqlFile.execAndReturnVectorOfDouble(central_electricity_exterior_lighting_query).get
+    end
+
+    central_electricity_pumps_heating_query = "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('CENTRAL:ELECTRICITYPUMPSHEATING') AND ReportingFrequency='#{reporting_frequency_map[reporting_frequency]}' AND VariableUnits='J') AND TimeIndex IN (SELECT TimeIndex FROM Time WHERE EnvironmentPeriodIndex='#{env_period_ix}')"
+    unless sqlFile.execAndReturnVectorOfDouble(central_electricity_pumps_heating_query).get.empty?
+      centralElectricityPumpsHeating = sqlFile.execAndReturnVectorOfDouble(central_electricity_pumps_heating_query).get
+    end
+
+    central_electricity_pumps_cooling_query = "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('CENTRAL:ELECTRICITYPUMPSCOOLING') AND ReportingFrequency='#{reporting_frequency_map[reporting_frequency]}' AND VariableUnits='J') AND TimeIndex IN (SELECT TimeIndex FROM Time WHERE EnvironmentPeriodIndex='#{env_period_ix}')"
+    unless sqlFile.execAndReturnVectorOfDouble(central_electricity_pumps_cooling_query).get.empty?
+      centralElectricityPumpsCooling = sqlFile.execAndReturnVectorOfDouble(central_electricity_pumps_cooling_query).get
+    end
+
+    central_electricity_interior_equipment_query = "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('CENTRAL:ELECTRICITYINTERIOREQUIPMENT') AND ReportingFrequency='#{reporting_frequency_map[reporting_frequency]}' AND VariableUnits='J') AND TimeIndex IN (SELECT TimeIndex FROM Time WHERE EnvironmentPeriodIndex='#{env_period_ix}')"
+    unless sqlFile.execAndReturnVectorOfDouble(central_electricity_interior_equipment_query).get.empty?
+      centralElectricityInteriorEquipment = sqlFile.execAndReturnVectorOfDouble(central_electricity_interior_equipment_query).get
+    end
+
+    central_electricity_photovoltaics_query = "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('CENTRAL:ELECTRICITYPHOTOVOLTAICS') AND ReportingFrequency='#{reporting_frequency_map[reporting_frequency]}' AND VariableUnits='J') AND TimeIndex IN (SELECT TimeIndex FROM Time WHERE EnvironmentPeriodIndex='#{env_period_ix}')"
+    unless sqlFile.execAndReturnVectorOfDouble(central_electricity_photovoltaics_query).get.empty?
+      centralElectricityPhotovoltaics = sqlFile.execAndReturnVectorOfDouble(central_electricity_photovoltaics_query).get
+    end
+
+    central_natural_gas_heating_query = "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('CENTRAL:NATURALGASHEATING') AND ReportingFrequency='#{reporting_frequency_map[reporting_frequency]}' AND VariableUnits='J') AND TimeIndex IN (SELECT TimeIndex FROM Time WHERE EnvironmentPeriodIndex='#{env_period_ix}')"
+    unless sqlFile.execAndReturnVectorOfDouble(central_natural_gas_heating_query).get.empty?
+      centralNaturalGasHeating = sqlFile.execAndReturnVectorOfDouble(central_natural_gas_heating_query).get
+    end
+
+    central_fuel_oil_heating_query = "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('CENTRAL:FUELOILHEATING') AND ReportingFrequency='#{reporting_frequency_map[reporting_frequency]}' AND VariableUnits='J') AND TimeIndex IN (SELECT TimeIndex FROM Time WHERE EnvironmentPeriodIndex='#{env_period_ix}')"
+    unless sqlFile.execAndReturnVectorOfDouble(central_fuel_oil_heating_query).get.empty?
+      centralFuelOilHeating = sqlFile.execAndReturnVectorOfDouble(central_fuel_oil_heating_query).get
+    end
+
+    central_propane_heating_query = "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('CENTRAL:PROPANEHEATING') AND ReportingFrequency='#{reporting_frequency_map[reporting_frequency]}' AND VariableUnits='J') AND TimeIndex IN (SELECT TimeIndex FROM Time WHERE EnvironmentPeriodIndex='#{env_period_ix}')"
+    unless sqlFile.execAndReturnVectorOfDouble(central_propane_heating_query).get.empty?
+      centralPropaneHeating = sqlFile.execAndReturnVectorOfDouble(central_propane_heating_query).get
+    end
+
+    # Get meters that are tied to units
+    electricityTotalEndUses = [0] * num_ts
+    electricityHeating = [0] * num_ts
+    electricityCooling = [0] * num_ts
+    electricityInteriorLighting = [0] * num_ts
+    electricityExteriorLighting = [0] * num_ts
+    electricityInteriorEquipment = [0] * num_ts
+    electricityFansHeating = [0] * num_ts
+    electricityFansCooling = [0] * num_ts
+    electricityPumpsHeating = [0] * num_ts
+    electricityPumpsCooling = [0] * num_ts
+    electricityWaterSystems = [0] * num_ts
+    electricityPhotovoltaics = [0] * num_ts
+    naturalGasTotalEndUses = [0] * num_ts
+    naturalGasHeating = [0] * num_ts
+    naturalGasInteriorEquipment = [0] * num_ts
+    naturalGasWaterSystems = [0] * num_ts
+    fuelOilTotalEndUses = [0] * num_ts
+    fuelOilHeating = [0] * num_ts
+    fuelOilInteriorEquipment = [0] * num_ts
+    fuelOilWaterSystems = [0] * num_ts
+    propaneTotalEndUses = [0] * num_ts
+    propaneHeating = [0] * num_ts
+    propaneInteriorEquipment = [0] * num_ts
+    propaneWaterSystems = [0] * num_ts
+    electricityRefrigerator = [0] * num_ts
+    electricityClothesWasher = [0] * num_ts
+    electricityClothesDryer = [0] * num_ts
+    naturalGasClothesDryer = [0] * num_ts
+    propaneClothesDryer = [0] * num_ts
+    electricityCookingRange = [0] * num_ts
+    naturalGasCookingRange = [0] * num_ts
+    propaneCookingRange = [0] * num_ts
+    electricityDishwasher = [0] * num_ts
+    electricityPlugLoads = [0] * num_ts
+    electricityHouseFan = [0] * num_ts
+    electricityRangeFan = [0] * num_ts
+    electricityBathFan = [0] * num_ts
+
+    # Get building units
+    units = Geometry.get_building_units(model, runner)
+    if units.nil?
+      return false
+    end
+
+    total_units_represented = 0
+    units.each do |unit|
+      unit_name = unit.name.to_s.upcase
+
+      thermal_zones = []
+      unit.spaces.each do |space|
+        thermal_zone = space.thermalZone.get
+        unless thermal_zones.include? thermal_zone
+          thermal_zones << thermal_zone
         end
       end
-    end
-    output_vars.each do |output_var|
-      sql.availableKeyValues(ann_env_pd, reporting_frequency_map[reporting_frequency], output_var.strip).each do |key_value|
-        variables_to_report << [output_var.strip, reporting_frequency[reporting_frequency], key_value]
+
+      units_represented = 1
+      if unit.additionalProperties.getFeatureAsInteger("Units Represented").is_initialized
+        units_represented = unit.additionalProperties.getFeatureAsInteger("Units Represented").get
+      end
+      total_units_represented += units_represented
+
+      electricity_heating_query = "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('#{unit_name}:ELECTRICITYHEATING') AND ReportingFrequency='#{reporting_frequency_map[reporting_frequency]}' AND VariableUnits='J') AND TimeIndex IN (SELECT TimeIndex FROM Time WHERE EnvironmentPeriodIndex='#{env_period_ix}')"
+      unless sqlFile.execAndReturnVectorOfDouble(electricity_heating_query).get.empty?
+        electricityHeating = array_sum(electricityHeating, sqlFile.execAndReturnVectorOfDouble(electricity_heating_query).get, units_represented)
+      end
+      electricityHeating = array_sum(electricityHeating, centralElectricityHeating, units_represented, units.length)
+
+      electricity_cooling_query = "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('#{unit_name}:ELECTRICITYCOOLING') AND ReportingFrequency='#{reporting_frequency_map[reporting_frequency]}' AND VariableUnits='J') AND TimeIndex IN (SELECT TimeIndex FROM Time WHERE EnvironmentPeriodIndex='#{env_period_ix}')"
+      unless sqlFile.execAndReturnVectorOfDouble(electricity_cooling_query).get.empty?
+        electricityCooling = array_sum(electricityCooling, sqlFile.execAndReturnVectorOfDouble(electricity_cooling_query).get, units_represented)
+      end
+      electricityCooling = array_sum(electricityCooling, centralElectricityCooling, units_represented, units.length)
+
+      electricity_interior_lighting_query = "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('#{unit_name}:ELECTRICITYINTERIORLIGHTING') AND ReportingFrequency='#{reporting_frequency_map[reporting_frequency]}' AND VariableUnits='J') AND TimeIndex IN (SELECT TimeIndex FROM Time WHERE EnvironmentPeriodIndex='#{env_period_ix}')"
+      unless sqlFile.execAndReturnVectorOfDouble(electricity_interior_lighting_query).get.empty?
+        electricityInteriorLighting = array_sum(electricityInteriorLighting, sqlFile.execAndReturnVectorOfDouble(electricity_interior_lighting_query).get, units_represented)
+      end
+
+      electricityExteriorLighting = array_sum(electricityExteriorLighting, centralElectricityExteriorLighting, units_represented, units.length)
+
+      electricity_interior_equipment_query = "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('#{unit_name}:ELECTRICITYINTERIOREQUIPMENT') AND ReportingFrequency='#{reporting_frequency_map[reporting_frequency]}' AND VariableUnits='J') AND TimeIndex IN (SELECT TimeIndex FROM Time WHERE EnvironmentPeriodIndex='#{env_period_ix}')"
+      unless sqlFile.execAndReturnVectorOfDouble(electricity_interior_equipment_query).get.empty?
+        electricityInteriorEquipment = array_sum(electricityInteriorEquipment, sqlFile.execAndReturnVectorOfDouble(electricity_interior_equipment_query).get, units_represented)
+      end
+      electricityInteriorEquipment = array_sum(electricityInteriorEquipment, centralElectricityInteriorEquipment, units_represented, units.length)
+
+      electricity_fans_heating_query = "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('#{unit_name}:ELECTRICITYFANSHEATING') AND ReportingFrequency='#{reporting_frequency_map[reporting_frequency]}' AND VariableUnits='J') AND TimeIndex IN (SELECT TimeIndex FROM Time WHERE EnvironmentPeriodIndex='#{env_period_ix}')"
+      unless sqlFile.execAndReturnVectorOfDouble(electricity_fans_heating_query).get.empty?
+        electricityFansHeating = array_sum(electricityFansHeating, sqlFile.execAndReturnVectorOfDouble(electricity_fans_heating_query).get, units_represented)
+      end
+
+      electricity_fans_cooling_query = "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('#{unit_name}:ELECTRICITYFANSCOOLING') AND ReportingFrequency='#{reporting_frequency_map[reporting_frequency]}' AND VariableUnits='J') AND TimeIndex IN (SELECT TimeIndex FROM Time WHERE EnvironmentPeriodIndex='#{env_period_ix}')"
+      unless sqlFile.execAndReturnVectorOfDouble(electricity_fans_cooling_query).get.empty?
+        electricityFansCooling = array_sum(electricityFansCooling, sqlFile.execAndReturnVectorOfDouble(electricity_fans_cooling_query).get, units_represented)
+      end
+
+      electricity_pumps_heating_query = "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('#{unit_name}:ELECTRICITYPUMPSHEATING') AND ReportingFrequency='#{reporting_frequency_map[reporting_frequency]}' AND VariableUnits='J') AND TimeIndex IN (SELECT TimeIndex FROM Time WHERE EnvironmentPeriodIndex='#{env_period_ix}')"
+      unless sqlFile.execAndReturnVectorOfDouble(electricity_pumps_heating_query).get.empty?
+        electricityPumpsHeating = array_sum(electricityPumpsHeating, sqlFile.execAndReturnVectorOfDouble(electricity_pumps_heating_query).get, units_represented)
+      end
+      electricityPumpsHeating = array_sum(electricityPumpsHeating, centralElectricityPumpsHeating, units_represented, units.length)
+
+      electricity_pumps_cooling_query = "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('#{unit_name}:ELECTRICITYPUMPSCOOLING') AND ReportingFrequency='#{reporting_frequency_map[reporting_frequency]}' AND VariableUnits='J') AND TimeIndex IN (SELECT TimeIndex FROM Time WHERE EnvironmentPeriodIndex='#{env_period_ix}')"
+      unless sqlFile.execAndReturnVectorOfDouble(electricity_pumps_cooling_query).get.empty?
+        electricityPumpsCooling = array_sum(electricityPumpsCooling, sqlFile.execAndReturnVectorOfDouble(electricity_pumps_cooling_query).get, units_represented)
+      end
+      electricityPumpsCooling = array_sum(electricityPumpsCooling, centralElectricityPumpsCooling, units_represented, units.length)
+
+      electricity_water_systems_query = "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('#{unit_name}:ELECTRICITYWATERSYSTEMS') AND ReportingFrequency='#{reporting_frequency_map[reporting_frequency]}' AND VariableUnits='J') AND TimeIndex IN (SELECT TimeIndex FROM Time WHERE EnvironmentPeriodIndex='#{env_period_ix}')"
+      unless sqlFile.execAndReturnVectorOfDouble(electricity_water_systems_query).get.empty?
+        electricityWaterSystems = array_sum(electricityWaterSystems, sqlFile.execAndReturnVectorOfDouble(electricity_water_systems_query).get, units_represented)
+      end
+
+      natural_gas_heating_query = "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('#{unit_name}:NATURALGASHEATING') AND ReportingFrequency='#{reporting_frequency_map[reporting_frequency]}' AND VariableUnits='J') AND TimeIndex IN (SELECT TimeIndex FROM Time WHERE EnvironmentPeriodIndex='#{env_period_ix}')"
+      unless sqlFile.execAndReturnVectorOfDouble(natural_gas_heating_query).get.empty?
+        naturalGasHeating = array_sum(naturalGasHeating, sqlFile.execAndReturnVectorOfDouble(natural_gas_heating_query).get, units_represented)
+      end
+      naturalGasHeating = array_sum(naturalGasHeating, centralNaturalGasHeating, units_represented, units.length)
+
+      natural_gas_interior_equipment_query = "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('#{unit_name}:NATURALGASINTERIOREQUIPMENT') AND ReportingFrequency='#{reporting_frequency_map[reporting_frequency]}' AND VariableUnits='J') AND TimeIndex IN (SELECT TimeIndex FROM Time WHERE EnvironmentPeriodIndex='#{env_period_ix}')"
+      unless sqlFile.execAndReturnVectorOfDouble(natural_gas_interior_equipment_query).get.empty?
+        naturalGasInteriorEquipment = array_sum(naturalGasInteriorEquipment, sqlFile.execAndReturnVectorOfDouble(natural_gas_interior_equipment_query).get, units_represented)
+      end
+
+      natural_gas_water_systems_query = "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('#{unit_name}:NATURALGASWATERSYSTEMS') AND ReportingFrequency='#{reporting_frequency_map[reporting_frequency]}' AND VariableUnits='J') AND TimeIndex IN (SELECT TimeIndex FROM Time WHERE EnvironmentPeriodIndex='#{env_period_ix}')"
+      unless sqlFile.execAndReturnVectorOfDouble(natural_gas_water_systems_query).get.empty?
+        naturalGasWaterSystems = array_sum(naturalGasWaterSystems, sqlFile.execAndReturnVectorOfDouble(natural_gas_water_systems_query).get, units_represented)
+      end
+
+      fuel_oil_heating_query = "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('#{unit_name}:FUELOILHEATING') AND ReportingFrequency='#{reporting_frequency_map[reporting_frequency]}' AND VariableUnits='J') AND TimeIndex IN (SELECT TimeIndex FROM Time WHERE EnvironmentPeriodIndex='#{env_period_ix}')"
+      unless sqlFile.execAndReturnVectorOfDouble(fuel_oil_heating_query).get.empty?
+        fuelOilHeating = array_sum(fuelOilHeating, sqlFile.execAndReturnVectorOfDouble(fuel_oil_heating_query).get, units_represented)
+      end
+      fuelOilHeating = array_sum(fuelOilHeating, centralFuelOilHeating, units_represented, units.length)
+
+      fuel_oil_interior_equipment_query = "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('#{unit_name}:FUELOILINTERIOREQUIPMENT') AND ReportingFrequency='#{reporting_frequency_map[reporting_frequency]}' AND VariableUnits='J') AND TimeIndex IN (SELECT TimeIndex FROM Time WHERE EnvironmentPeriodIndex='#{env_period_ix}')"
+      unless sqlFile.execAndReturnVectorOfDouble(fuel_oil_interior_equipment_query).get.empty?
+        fuelOilInteriorEquipment = array_sum(fuelOilInteriorEquipment, sqlFile.execAndReturnVectorOfDouble(fuel_oil_interior_equipment_query).get, units_represented)
+      end
+
+      fuel_oil_water_systems_query = "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('#{unit_name}:FUELOILWATERSYSTEMS') AND ReportingFrequency='#{reporting_frequency_map[reporting_frequency]}' AND VariableUnits='J') AND TimeIndex IN (SELECT TimeIndex FROM Time WHERE EnvironmentPeriodIndex='#{env_period_ix}')"
+      unless sqlFile.execAndReturnVectorOfDouble(fuel_oil_water_systems_query).get.empty?
+        fuelOilWaterSystems = array_sum(fuelOilWaterSystems, sqlFile.execAndReturnVectorOfDouble(fuel_oil_water_systems_query).get, units_represented)
+      end
+
+      propane_heating_query = "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('#{unit_name}:PROPANEHEATING') AND ReportingFrequency='#{reporting_frequency_map[reporting_frequency]}' AND VariableUnits='J') AND TimeIndex IN (SELECT TimeIndex FROM Time WHERE EnvironmentPeriodIndex='#{env_period_ix}')"
+      unless sqlFile.execAndReturnVectorOfDouble(propane_heating_query).get.empty?
+        propaneHeating = array_sum(propaneHeating, sqlFile.execAndReturnVectorOfDouble(propane_heating_query).get, units_represented)
+      end
+      propaneHeating = array_sum(propaneHeating, centralPropaneHeating, units_represented, units.length)
+
+      propane_interior_equipment_query = "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('#{unit_name}:PROPANEINTERIOREQUIPMENT') AND ReportingFrequency='#{reporting_frequency_map[reporting_frequency]}' AND VariableUnits='J') AND TimeIndex IN (SELECT TimeIndex FROM Time WHERE EnvironmentPeriodIndex='#{env_period_ix}')"
+      unless sqlFile.execAndReturnVectorOfDouble(propane_interior_equipment_query).get.empty?
+        propaneInteriorEquipment = array_sum(propaneInteriorEquipment, sqlFile.execAndReturnVectorOfDouble(propane_interior_equipment_query).get, units_represented)
+      end
+
+      propane_water_systems_query = "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('#{unit_name}:PROPANEWATERSYSTEMS') AND ReportingFrequency='#{reporting_frequency_map[reporting_frequency]}' AND VariableUnits='J') AND TimeIndex IN (SELECT TimeIndex FROM Time WHERE EnvironmentPeriodIndex='#{env_period_ix}')"
+      unless sqlFile.execAndReturnVectorOfDouble(propane_water_systems_query).get.empty?
+        propaneWaterSystems = array_sum(propaneWaterSystems, sqlFile.execAndReturnVectorOfDouble(propane_water_systems_query).get, units_represented)
+      end
+
+      if include_enduse_subcategories
+        electricity_refrgerator_query = "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('#{unit_name}:ELECTRICITYREFRIGERATOR') AND ReportingFrequency='#{reporting_frequency_map[reporting_frequency]}' AND VariableUnits='J') AND TimeIndex IN (SELECT TimeIndex FROM Time WHERE EnvironmentPeriodIndex='#{env_period_ix}')"
+        unless sqlFile.execAndReturnVectorOfDouble(electricity_refrgerator_query).get.empty?
+          electricityRefrigerator = array_sum(electricityRefrigerator, sqlFile.execAndReturnVectorOfDouble(electricity_refrgerator_query).get, units_represented)
+        end
+
+        electricity_clothes_washer_query = "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('#{unit_name}:ELECTRICITYCLOTHESWASHER') AND ReportingFrequency='#{reporting_frequency_map[reporting_frequency]}' AND VariableUnits='J') AND TimeIndex IN (SELECT TimeIndex FROM Time WHERE EnvironmentPeriodIndex='#{env_period_ix}')"
+        unless sqlFile.execAndReturnVectorOfDouble(electricity_clothes_washer_query).get.empty?
+          electricityClothesWasher = array_sum(electricityClothesWasher, sqlFile.execAndReturnVectorOfDouble(electricity_clothes_washer_query).get, units_represented)
+        end
+
+        electricity_clothes_dryer_query = "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('#{unit_name}:ELECTRICITYCLOTHESDRYER') AND ReportingFrequency='#{reporting_frequency_map[reporting_frequency]}' AND VariableUnits='J') AND TimeIndex IN (SELECT TimeIndex FROM Time WHERE EnvironmentPeriodIndex='#{env_period_ix}')"
+        unless sqlFile.execAndReturnVectorOfDouble(electricity_clothes_dryer_query).get.empty?
+          electricityClothesDryer = array_sum(electricityClothesDryer, sqlFile.execAndReturnVectorOfDouble(electricity_clothes_dryer_query).get, units_represented)
+        end
+
+        natural_gas_clothes_dryer_query = "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('#{unit_name}:NATURALGASCLOTHESDRYER') AND ReportingFrequency='#{reporting_frequency_map[reporting_frequency]}' AND VariableUnits='J') AND TimeIndex IN (SELECT TimeIndex FROM Time WHERE EnvironmentPeriodIndex='#{env_period_ix}')"
+        unless sqlFile.execAndReturnVectorOfDouble(natural_gas_clothes_dryer_query).get.empty?
+          naturalGasClothesDryer = array_sum(naturalGasClothesDryer, sqlFile.execAndReturnVectorOfDouble(natural_gas_clothes_dryer_query).get, units_represented)
+        end
+
+        propane_clothes_dryer_query = "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('#{unit_name}:PROPANECLOTHESDRYER') AND ReportingFrequency='#{reporting_frequency_map[reporting_frequency]}' AND VariableUnits='J') AND TimeIndex IN (SELECT TimeIndex FROM Time WHERE EnvironmentPeriodIndex='#{env_period_ix}')"
+        unless sqlFile.execAndReturnVectorOfDouble(propane_clothes_dryer_query).get.empty?
+          propaneClothesDryer = array_sum(propaneClothesDryer, sqlFile.execAndReturnVectorOfDouble(propane_clothes_dryer_query).get, units_represented)
+        end
+
+        electricity_cooking_range_query = "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('#{unit_name}:ELECTRICITYCOOKINGRANGE') AND ReportingFrequency='#{reporting_frequency_map[reporting_frequency]}' AND VariableUnits='J') AND TimeIndex IN (SELECT TimeIndex FROM Time WHERE EnvironmentPeriodIndex='#{env_period_ix}')"
+        unless sqlFile.execAndReturnVectorOfDouble(electricity_cooking_range_query).get.empty?
+          electricityCookingRange = array_sum(electricityCookingRange, sqlFile.execAndReturnVectorOfDouble(electricity_cooking_range_query).get, units_represented)
+        end
+
+        natural_gas_cooking_range_query = "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('#{unit_name}:NATURALGASCOOKINGRANGE') AND ReportingFrequency='#{reporting_frequency_map[reporting_frequency]}' AND VariableUnits='J') AND TimeIndex IN (SELECT TimeIndex FROM Time WHERE EnvironmentPeriodIndex='#{env_period_ix}')"
+        unless sqlFile.execAndReturnVectorOfDouble(natural_gas_cooking_range_query).get.empty?
+          naturalGasCookingRange = array_sum(naturalGasCookingRange, sqlFile.execAndReturnVectorOfDouble(natural_gas_cooking_range_query).get, units_represented)
+        end
+
+        propane_cooking_range_query = "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('#{unit_name}:PROPANECOOKINGRANGE') AND ReportingFrequency='#{reporting_frequency_map[reporting_frequency]}' AND VariableUnits='J') AND TimeIndex IN (SELECT TimeIndex FROM Time WHERE EnvironmentPeriodIndex='#{env_period_ix}')"
+        unless sqlFile.execAndReturnVectorOfDouble(propane_cooking_range_query).get.empty?
+          propaneCookingRange = array_sum(propaneCookingRange, sqlFile.execAndReturnVectorOfDouble(propane_cooking_range_query).get, units_represented)
+        end
+
+        electricity_dishwasher_query = "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('#{unit_name}:ELECTRICITYDISHWASHER') AND ReportingFrequency='#{reporting_frequency_map[reporting_frequency]}' AND VariableUnits='J') AND TimeIndex IN (SELECT TimeIndex FROM Time WHERE EnvironmentPeriodIndex='#{env_period_ix}')"
+        unless sqlFile.execAndReturnVectorOfDouble(electricity_dishwasher_query).get.empty?
+          electricityDishwasher = array_sum(electricityDishwasher, sqlFile.execAndReturnVectorOfDouble(electricity_dishwasher_query).get, units_represented)
+        end
+
+        electricity_plug_loads_query = "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('#{unit_name}:ELECTRICITYPLUGLOADS') AND ReportingFrequency='#{reporting_frequency_map[reporting_frequency]}' AND VariableUnits='J') AND TimeIndex IN (SELECT TimeIndex FROM Time WHERE EnvironmentPeriodIndex='#{env_period_ix}')"
+        unless sqlFile.execAndReturnVectorOfDouble(electricity_plug_loads_query).get.empty?
+          electricityPlugLoads = array_sum(electricityPlugLoads, sqlFile.execAndReturnVectorOfDouble(electricity_plug_loads_query).get, units_represented)
+        end
+
+        electricity_house_fan_query = "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('#{unit_name}:ELECTRICITYHOUSEFAN') AND ReportingFrequency='#{reporting_frequency_map[reporting_frequency]}' AND VariableUnits='J') AND TimeIndex IN (SELECT TimeIndex FROM Time WHERE EnvironmentPeriodIndex='#{env_period_ix}')"
+        unless sqlFile.execAndReturnVectorOfDouble(electricity_house_fan_query).get.empty?
+          electricityHouseFan = array_sum(electricityHouseFan, sqlFile.execAndReturnVectorOfDouble(electricity_house_fan_query).get, units_represented)
+        end
+
+        electricity_range_fan_query = "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('#{unit_name}:ELECTRICITYRANGEFAN') AND ReportingFrequency='#{reporting_frequency_map[reporting_frequency]}' AND VariableUnits='J') AND TimeIndex IN (SELECT TimeIndex FROM Time WHERE EnvironmentPeriodIndex='#{env_period_ix}')"
+        unless sqlFile.execAndReturnVectorOfDouble(electricity_range_fan_query).get.empty?
+          electricityRangeFan = array_sum(electricityRangeFan, sqlFile.execAndReturnVectorOfDouble(electricity_range_fan_query).get, units_represented)
+        end
+
+        electricity_bath_fan_query = "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('#{unit_name}:ELECTRICITYBATHFAN') AND ReportingFrequency='#{reporting_frequency_map[reporting_frequency]}' AND VariableUnits='J') AND TimeIndex IN (SELECT TimeIndex FROM Time WHERE EnvironmentPeriodIndex='#{env_period_ix}')"
+        unless sqlFile.execAndReturnVectorOfDouble(electricity_bath_fan_query).get.empty?
+          electricityBathFan = array_sum(electricityBathFan, sqlFile.execAndReturnVectorOfDouble(electricity_bath_fan_query).get, units_represented)
+        end
       end
     end
 
@@ -306,192 +439,131 @@ class TimeseriesCSVExport < OpenStudio::Measure::ReportingMeasure
     actual_year_timestamps = weather.actual_year_timestamps
     records_per_hour = weather.header.RecordsPerHour
 
-    enduse_date_times = []
-    enduse_timeseries = []
-    output_vars_date_times = []
-    output_vars_timeseries = []
-    variables_to_report.each_with_index do |var_to_report, j|
-      var_name = var_to_report[0]
-      freq = var_to_report[1]
-      kv = var_to_report[2]
-
-      # Get the y axis values
-      if not output_vars.include? var_name and freq == "HVAC System Timestep"
-        freq = "Zone Timestep"
-      end
-      y_timeseries = sql.timeSeries(ann_env_pd, freq, var_name, kv)
-      if y_timeseries.empty?
-        next
+    # Initialize timeseries hash which will be exported to csv
+    timeseries = {}
+    timeseries["Time"] = datetimes # timestamps from the sqlfile (TMY)
+    unless actual_year_timestamps.empty?
+      if (reporting_frequency == "Hourly" and records_per_hour == 1) or (reporting_frequency == "Timestep" and records_per_hour != 1)
+        timeseries["Time"] = actual_year_timestamps
       else
-        runner.registerInfo("Exporting #{freq} #{var_name} #{kv}.")
-        y_timeseries = y_timeseries.get
-        values = y_timeseries.values
-      end
-
-      old_units = y_timeseries.units
-      new_units = old_units
-      case old_units
-      when "J"
-        new_units = "kBtu"
-        if var_name.include? "Electricity"
-          new_units = "kWh"
-        end
-      when "m3"
-        old_units = "m^3"
-        new_units = "gal"
-      when "C"
-        new_units = "F"
-      end
-      unit_conv = nil
-      if ["J", "m^3"].include? old_units
-        unit_conv = UnitConversions.convert(1.0, old_units, new_units)
-      elsif not (old_units == "C" and new_units == "F")
-        unless old_units.empty?
-          runner.registerInfo("Have not yet defined a conversion from #{old_units} to other units.")
-        end
-      end
-
-      y_vals = ["#{var_name} #{kv} [#{new_units}]"]
-      y_timeseries.dateTimes.each_with_index do |date_time, i|
-        if output_vars.include? var_name
-          if output_vars_date_times.empty?
-            output_vars_date_times << "Time"
-          end
-          if output_vars_timeseries.empty?
-            if actual_year_timestamps.empty? # weather file is a TMY (i.e., year is always 2009)
-              output_vars_date_times << format_datetime(date_time.to_s) # timestamps from the sqlfile (TMY)
-            else
-              if (freq == "Hourly" and records_per_hour == 1) or (freq == "Zone Timestep" and records_per_hour != 1)
-                output_vars_date_times << actual_year_timestamps[i] # timestamps from the epw (AMY)
-              else
-                output_vars_date_times << i + 1 # TODO: change from reporting integers to appropriate timestamps
-              end
-            end
-          end
-        else # not an output variable
-          if enduse_date_times.empty?
-            enduse_date_times << "Time"
-          end
-          if enduse_timeseries.empty?
-            if actual_year_timestamps.empty? # weather file is a TMY (i.e., year is always 2009)
-              enduse_date_times << format_datetime(date_time.to_s) # timestamps from the sqlfile (TMY)
-            else
-              if (freq == "Hourly" and records_per_hour == 1) or (freq == "Zone Timestep" and records_per_hour != 1)
-                enduse_date_times << actual_year_timestamps[i] # timestamps from the epw (AMY)
-              else
-                enduse_date_times << i + 1 # TODO: change from reporting integers to appropriate timestamps
-              end
-            end
-          end
-        end
-        y_val = values[i]
-        if unit_conv.nil? # these unit conversions are not scalars
-          if old_units == "C" and new_units == "F"
-            y_val = UnitConversions.convert(y_val, "C", "F") # convert C to F
-          end
-        else # these are scalars
-          y_val *= unit_conv
-        end
-        y_vals << y_val.round(3)
-      end
-
-      if output_vars.include? var_name
-        if output_vars_timeseries.empty?
-          output_vars_timeseries << output_vars_date_times
-        end
-        if y_vals.length == output_vars_timeseries[0].length
-          output_vars_timeseries << y_vals
-        else
-          runner.registerWarning("The length of #{y_vals[0]} is not #{output_vars_timeseries[0].length}. Not reporting this.")
-        end
-      else # not an output variable
-        if enduse_timeseries.empty?
-          enduse_timeseries << enduse_date_times
-        end
-        if y_vals.length == enduse_timeseries[0].length
-          enduse_timeseries << y_vals
-        else
-          runner.registerWarning("The length of #{y_vals[0]} is not #{enduse_timeseries[0].length}. Not reporting this.")
+        timeseries["Time"].each_with_index do |ts, i|
+          timeseries["Time"][i] = timeseries["Time"][i].gsub("2009", "#{model.getYearDescription.calendarYear.get}")
         end
       end
     end
 
-    # Write the enduse timeseries rows out to csv
-    unless enduse_timeseries.empty?
-      rows = enduse_timeseries.transpose
+    # ELECTRICITY
 
-      # Sum across units for end use subcategories
-      new_subcategories = {}
-      if units_aggregated_subcategories
-        rows[0].each_with_index do |col, i|
-          next unless col.start_with? "res" # only end use subcategory columns
+    electricityTotalEndUses = [electricityHeating, electricityCooling, electricityInteriorLighting, electricityExteriorLighting, electricityInteriorEquipment, electricityFansHeating, electricityFansCooling, electricityPumpsHeating, electricityPumpsCooling, electricityWaterSystems].transpose.collect { |e1, e2, e3, e4, e5, e6, e7, e8, e9, e10| e1 + e2 + e3 + e4 + e5 + e6 + e7 + e8 + e9 + e10 }
 
-          end_use_subcategory, end_use, fuel_type = col.split(":")
-          end_use_subcategory = end_use_subcategory.gsub("_", "").gsub("|", "").gsub("unit ", "").tr("0-9", "")
-          new_subcategory = "#{end_use_subcategory}:#{end_use}:#{fuel_type}"
-          if not new_subcategories.keys.include? new_subcategory
-            new_subcategories[new_subcategory] = [i]
-          else
-            new_subcategories[new_subcategory] << i
-          end
-        end
+    report_ts_output(runner, timeseries, "total_site_electricity_kwh", electricityTotalEndUses, "GJ", elec_site_units)
+    report_ts_output(runner, timeseries, "net_site_electricity_kwh", [electricityTotalEndUses, centralElectricityPhotovoltaics].transpose.collect { |e1, e2| e1 - e2 }, "GJ", elec_site_units)
+    report_ts_output(runner, timeseries, "electricity_heating_kwh", electricityHeating, "GJ", elec_site_units)
+    report_ts_output(runner, timeseries, "electricity_cooling_kwh", electricityCooling, "GJ", elec_site_units)
+    report_ts_output(runner, timeseries, "electricity_interior_lighting_kwh", electricityInteriorLighting, "GJ", elec_site_units)
+    report_ts_output(runner, timeseries, "electricity_exterior_lighting_kwh", electricityExteriorLighting, "GJ", elec_site_units)
+    report_ts_output(runner, timeseries, "electricity_interior_equipment_kwh", electricityInteriorEquipment, "GJ", elec_site_units)
+    report_ts_output(runner, timeseries, "electricity_fans_heating_kwh", electricityFansHeating, "GJ", elec_site_units)
+    report_ts_output(runner, timeseries, "electricity_fans_cooling_kwh", electricityFansCooling, "GJ", elec_site_units)
+    report_ts_output(runner, timeseries, "electricity_pumps_heating_kwh", electricityPumpsHeating, "GJ", elec_site_units)
+    report_ts_output(runner, timeseries, "electricity_pumps_cooling_kwh", electricityPumpsCooling, "GJ", elec_site_units)
+    report_ts_output(runner, timeseries, "electricity_water_systems_kwh", electricityWaterSystems, "GJ", elec_site_units)
+    report_ts_output(runner, timeseries, "electricity_pv_kwh", centralElectricityPhotovoltaics, "GJ", elec_site_units)
 
-        new_subcategories.each do |new_subcategory, indexes|
-          rows[0] << new_subcategory
-          rows[1..-1].each do |row|
-            total = 0.0
-            indexes.each do |index|
-              total += row[index]
-            end
-            row << total
-          end
-        end
-      end
+    # NATURAL GAS
 
-      cols_to_remove = new_subcategories.values.flatten.sort.reverse
-      csv_path = File.expand_path("../enduse_timeseries.csv")
-      CSV.open(csv_path, "wb") do |csv|
-        rows.each do |row|
-          cols_to_remove.each do |i|
-            row.delete_at(i)
-          end
-          csv << row
-        end
-      end
+    naturalGasTotalEndUses = [naturalGasHeating, naturalGasInteriorEquipment, naturalGasWaterSystems].transpose.collect { |n1, n2, n3| n1 + n2 + n3 }
+
+    report_ts_output(runner, timeseries, "total_site_natural_gas_therm", naturalGasTotalEndUses, "GJ", gas_site_units)
+    report_ts_output(runner, timeseries, "natural_gas_heating_therm", naturalGasHeating, "GJ", gas_site_units)
+    report_ts_output(runner, timeseries, "natural_gas_interior_equipment_therm", naturalGasInteriorEquipment, "GJ", gas_site_units)
+    report_ts_output(runner, timeseries, "natural_gas_water_systems_therm", naturalGasWaterSystems, "GJ", gas_site_units)
+
+    # FUEL OIL
+
+    fuelOilTotalEndUses = [fuelOilHeating, fuelOilInteriorEquipment, fuelOilWaterSystems].transpose.collect { |f1, f2, f3| f1 + f2 + f3 }
+
+    report_ts_output(runner, timeseries, "total_site_fuel_oil_mbtu", fuelOilTotalEndUses, "GJ", other_fuel_site_units)
+    report_ts_output(runner, timeseries, "fuel_oil_heating_mbtu", fuelOilHeating, "GJ", other_fuel_site_units)
+    report_ts_output(runner, timeseries, "fuel_oil_interior_equipment_mbtu", fuelOilInteriorEquipment, "GJ", other_fuel_site_units)
+    report_ts_output(runner, timeseries, "fuel_oil_water_systems_mbtu", fuelOilWaterSystems, "GJ", other_fuel_site_units)
+
+    # PROPANE
+
+    propaneTotalEndUses = [propaneHeating, propaneInteriorEquipment, propaneWaterSystems].transpose.collect { |p1, p2, p3| p1 + p2 + p3 }
+
+    report_ts_output(runner, timeseries, "total_site_propane_mbtu", propaneTotalEndUses, "GJ", other_fuel_site_units)
+    report_ts_output(runner, timeseries, "propane_heating_mbtu", propaneHeating, "GJ", other_fuel_site_units)
+    report_ts_output(runner, timeseries, "propane_interior_equipment_mbtu", propaneInteriorEquipment, "GJ", other_fuel_site_units)
+    report_ts_output(runner, timeseries, "propane_water_systems_mbtu", propaneWaterSystems, "GJ", other_fuel_site_units)
+
+    # TOTAL
+
+    totalSiteEnergy = [electricityTotalEndUses, naturalGasTotalEndUses, fuelOilTotalEndUses, propaneTotalEndUses].transpose.collect { |t1, t2, t3, t4| t1 + t2 + t3 + t4 }
+
+    report_ts_output(runner, timeseries, "total_site_energy_mbtu", totalSiteEnergy, "GJ", total_site_units)
+    report_ts_output(runner, timeseries, "net_site_energy_mbtu", [totalSiteEnergy, centralElectricityPhotovoltaics].transpose.collect { |e1, e2| e1 - e2 }, "GJ", total_site_units)
+
+    # END USE SUBCATEGORIES
+
+    if include_enduse_subcategories
+      report_ts_output(runner, timeseries, "electricity_refrigerator_kwh", electricityRefrigerator, "GJ", elec_site_units)
+      report_ts_output(runner, timeseries, "electricity_clothes_washer_kwh", electricityClothesWasher, "GJ", elec_site_units)
+      report_ts_output(runner, timeseries, "electricity_clothes_dryer_kwh", electricityClothesDryer, "GJ", elec_site_units)
+      report_ts_output(runner, timeseries, "natural_gas_clothes_dryer_therm", naturalGasClothesDryer, "GJ", gas_site_units)
+      report_ts_output(runner, timeseries, "propane_clothes_dryer_mbtu", propaneClothesDryer, "GJ", other_fuel_site_units)
+      report_ts_output(runner, timeseries, "electricity_cooking_range_kwh", electricityCookingRange, "GJ", elec_site_units)
+      report_ts_output(runner, timeseries, "natural_gas_cooking_range_therm", naturalGasCookingRange, "GJ", gas_site_units)
+      report_ts_output(runner, timeseries, "propane_cooking_range_mbtu", propaneCookingRange, "GJ", other_fuel_site_units)
+      report_ts_output(runner, timeseries, "electricity_diswasher_kwh", electricityDishwasher, "GJ", elec_site_units)
+      report_ts_output(runner, timeseries, "electricity_plug_loads_kwh", electricityPlugLoads, "GJ", elec_site_units)
+      report_ts_output(runner, timeseries, "electricity_house_fan_kwh", electricityHouseFan, "GJ", elec_site_units)
+      report_ts_output(runner, timeseries, "electricity_range_fan_kwh", electricityRangeFan, "GJ", elec_site_units)
+      report_ts_output(runner, timeseries, "electricity_bath_fan_kwh", electricityBathFan, "GJ", elec_site_units)
     end
 
-    # Write the output vars timeseries rows out to csv
-    unless output_vars_timeseries.empty?
-      rows = output_vars_timeseries.transpose
-      csv_path = File.expand_path("../output_variables.csv")
-      CSV.open(csv_path, "wb") do |csv|
-        rows.each do |row|
-          csv << row
-        end
+    sqlFile.close()
+
+    csv_path = File.expand_path("../enduse_timeseries.csv")
+    CSV.open(csv_path, "wb") do |csv|
+      csv << timeseries.keys
+      rows = timeseries.values.transpose
+      rows.each do |row|
+        csv << row
       end
     end
-
-    # close the sql file
-    sql.close()
 
     return true
+  end # end the run method
+
+  def report_ts_output(runner, timeseries, name, vals, os_units, desired_units)
+    timeseries[name] = []
+    vals.each do |val|
+      timeseries[name] << UnitConversions.convert(val, os_units, desired_units)
+    end
+    runner.registerInfo("Exporting #{name}.")
   end
 
   def format_datetime(date_time)
-    date_time = date_time.gsub("-", "/")
-    date_time = date_time.gsub("Jan", "01")
-    date_time = date_time.gsub("Feb", "02")
-    date_time = date_time.gsub("Mar", "03")
-    date_time = date_time.gsub("Apr", "04")
-    date_time = date_time.gsub("May", "05")
-    date_time = date_time.gsub("Jun", "06")
-    date_time = date_time.gsub("Jul", "07")
-    date_time = date_time.gsub("Aug", "08")
-    date_time = date_time.gsub("Sep", "09")
-    date_time = date_time.gsub("Oct", "10")
-    date_time = date_time.gsub("Nov", "11")
-    date_time = date_time.gsub("Dec", "12")
+    date_time.gsub!("-", "/")
+    date_time.gsub!("Jan", "01")
+    date_time.gsub!("Feb", "02")
+    date_time.gsub!("Mar", "03")
+    date_time.gsub!("Apr", "04")
+    date_time.gsub!("May", "05")
+    date_time.gsub!("Jun", "06")
+    date_time.gsub!("Jul", "07")
+    date_time.gsub!("Aug", "08")
+    date_time.gsub!("Sep", "09")
+    date_time.gsub!("Oct", "10")
+    date_time.gsub!("Nov", "11")
+    date_time.gsub!("Dec", "12")
     return date_time
+  end
+
+  def array_sum(array1, array2, units_represented = 1, num_units = 1)
+    array = [array1, array2].transpose.collect { |a1, a2| a1 + units_represented * (a2 / num_units) }
+    return array
   end
 end
 

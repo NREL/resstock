@@ -2,8 +2,8 @@
   <schema_version>3.0</schema_version>
   <name>create_residential_multifamily_geometry</name>
   <uid>9bc07973-98a4-46fc-b643-e280628817c5</uid>
-  <version_id>eeadf987-a53b-42fb-aa2c-a00cee653ea0</version_id>
-  <version_modified>20190214T232231Z</version_modified>
+  <version_id>9b2b5581-0987-4a2e-be31-72b99fffecc9</version_id>
+  <version_modified>20190215T185340Z</version_modified>
   <xml_checksum>2AF3A68E</xml_checksum>
   <class_name>CreateResidentialMultifamilyGeometry</class_name>
   <display_name>Create Residential Multifamily Geometry</display_name>
@@ -41,9 +41,9 @@
       <default_value>1</default_value>
     </argument>
     <argument>
-      <name>num_units_per_floor</name>
-      <display_name>Num Units Per Floor</display_name>
-      <description>The number of units per floor.</description>
+      <name>num_units</name>
+      <display_name>Num Units</display_name>
+      <description>The number of units. This must be divisible by the number of floors.</description>
       <type>Integer</type>
       <units>#</units>
       <required>true</required>
@@ -293,6 +293,25 @@
       <model_dependent>false</model_dependent>
       <default_value>180</default_value>
     </argument>
+    <argument>
+      <name>minimal_collapsed</name>
+      <display_name>Minimal Collapsed Building</display_name>
+      <description>Collapse the building down into only corner, end, and/or middle units.</description>
+      <type>Boolean</type>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>false</default_value>
+      <choices>
+        <choice>
+          <value>true</value>
+          <display_name>true</display_name>
+        </choice>
+        <choice>
+          <value>false</value>
+          <display_name>false</display_name>
+        </choice>
+      </choices>
+    </argument>
   </arguments>
   <outputs/>
   <provenances/>
@@ -326,7 +345,7 @@
       <filename>create_residential_multifamily_geometry_test.rb</filename>
       <filetype>rb</filetype>
       <usage_type>test</usage_type>
-      <checksum>E644FB84</checksum>
+      <checksum>D64505D0</checksum>
     </file>
     <file>
       <version>
@@ -337,7 +356,7 @@
       <filename>measure.rb</filename>
       <filetype>rb</filetype>
       <usage_type>script</usage_type>
-      <checksum>2E1D378B</checksum>
+      <checksum>E9015CAC</checksum>
     </file>
   </files>
 </measure>

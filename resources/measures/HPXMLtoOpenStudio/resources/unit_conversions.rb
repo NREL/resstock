@@ -29,6 +29,10 @@ class UnitConversions
       return x * 0.9478171203133172
     elsif from == 'gj' and to == 'mbtu'
       return x * 0.9478171203133172
+    elsif from == 'gj' and to == 'kwh'
+      return x * 277.778
+    elsif from == 'gj' and to == 'therm'
+      return x * 9.48043
     elsif from == 'kwh' and to == 'btu'
       return x * 3412.141633127942
     elsif from == 'kwh' and to == 'j'
