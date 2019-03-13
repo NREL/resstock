@@ -86,7 +86,7 @@ class ProcessHeatingSetpoints < OpenStudio::Measure::ModelMeasure
     # make a bool argument for using hsp season or not
     use_auto_season = OpenStudio::Measure::OSArgument::makeBoolArgument("use_auto_season", true)
     use_auto_season.setDisplayName("Use Auto Heating Season")
-    use_auto_season.setDescription("Specifies whether to automatically define the heating season based on the weather file. User-defined heating season start/end months will be ignored if this is selected")
+    use_auto_season.setDescription("Specifies whether to automatically define the heating season based on the weather file. If the cooling setpoint is less than the heating setpoint during the heating-only season, the cooling setpoint will be set to the heating setpoint. If the cooling setpoint is less than the heating setpoint during the overlap season, the heating and cooling setpoints will be set to their average value. User-defined heating season start/end months will be ignored if this is selected.")
     use_auto_season.setDefaultValue(false)
     args << use_auto_season
 
