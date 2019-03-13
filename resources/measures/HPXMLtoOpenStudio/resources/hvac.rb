@@ -2579,8 +2579,8 @@ class HVAC
         end
       else # no thermostat in model yet
 
-        clg_wkdy_monthly = htg_wkdy_monthly
-        clg_wked_monthly = htg_wked_monthly
+        clg_wkdy_monthly = [[UnitConversions.convert(Constants.DefaultCoolingSetpoint, "F", "C")] * 24] * 12
+        clg_wked_monthly = [[UnitConversions.convert(Constants.DefaultCoolingSetpoint, "F", "C")] * 24] * 12
 
       end
       break # assume all finished zones have the same schedules
@@ -2592,17 +2592,26 @@ class HVAC
         htg_wked = htg_wked_monthly[i].zip(clg_wked_monthly[i]).map { |h, c| c < h ? (h + c) / 2.0 : h }
         clg_wkdy = htg_wkdy_monthly[i].zip(clg_wkdy_monthly[i]).map { |h, c| c < h ? (h + c) / 2.0 : c }
         clg_wked = htg_wked_monthly[i].zip(clg_wked_monthly[i]).map { |h, c| c < h ? (h + c) / 2.0 : c }
-        htg_wkdy_monthly[i] = htg_wkdy
-        htg_wked_monthly[i] = htg_wked
-        clg_wkdy_monthly[i] = clg_wkdy
-        clg_wked_monthly[i] = clg_wked
-      elsif heating_season[i] == 1 # heating only seasons
-        clg_wkdy_monthly[i] = htg_wkdy_monthly[i] # no cooling, so set cooling setpoint to heating setpoint
-        clg_wked_monthly[i] = htg_wked_monthly[i] # no cooling, so set cooling setpoint to heating setpoint
-      else # no heating season
-        htg_wkdy_monthly[i] = clg_wkdy_monthly[i] # no heating, so set heating setpoint to cooling setpoint
-        htg_wked_monthly[i] = clg_wked_monthly[i] # no heating, so set heating setpoint to cooling setpoint
+      elsif heating_season[i] == 1 # heating only seasons; cooling has minimum of heating
+        htg_wkdy = htg_wkdy_monthly[i].zip(clg_wkdy_monthly[i]).map { |h, c| c < h ? h : h }
+        htg_wked = htg_wked_monthly[i].zip(clg_wked_monthly[i]).map { |h, c| c < h ? h : h }
+        clg_wkdy = htg_wkdy_monthly[i].zip(clg_wkdy_monthly[i]).map { |h, c| c < h ? h : c }
+        clg_wked = htg_wked_monthly[i].zip(clg_wked_monthly[i]).map { |h, c| c < h ? h : c }
+      elsif cooling_season[i] == 1 # cooling only seasons; heating has maximum of cooling
+        htg_wkdy = htg_wkdy_monthly[i].zip(clg_wkdy_monthly[i]).map { |h, c| c < h ? c : h }
+        htg_wked = htg_wked_monthly[i].zip(clg_wked_monthly[i]).map { |h, c| c < h ? c : h }
+        clg_wkdy = htg_wkdy_monthly[i].zip(clg_wkdy_monthly[i]).map { |h, c| c < h ? c : c }
+        clg_wked = htg_wked_monthly[i].zip(clg_wked_monthly[i]).map { |h, c| c < h ? c : c }
+      else
+        htg_wkdy = [UnitConversions.convert(Constants.DefaultHeatingSetpoint, "F", "C")] * 24
+        htg_wked = [UnitConversions.convert(Constants.DefaultHeatingSetpoint, "F", "C")] * 24
+        clg_wkdy = [UnitConversions.convert(Constants.DefaultCoolingSetpoint, "F", "C")] * 24
+        clg_wked = [UnitConversions.convert(Constants.DefaultCoolingSetpoint, "F", "C")] * 24
       end
+      htg_wkdy_monthly[i] = htg_wkdy
+      htg_wked_monthly[i] = htg_wked
+      clg_wkdy_monthly[i] = clg_wkdy
+      clg_wked_monthly[i] = clg_wked
     end
 
     heating_setpoint = HourlyByMonthSchedule.new(model, runner, Constants.ObjectNameHeatingSetpoint, htg_wkdy_monthly, htg_wked_monthly, normalize_values = false)
@@ -2721,30 +2730,39 @@ class HVAC
         end
       else # no thermostat in model yet
 
-        htg_wkdy_monthly = clg_wkdy_monthly
-        htg_wked_monthly = clg_wked_monthly
+        htg_wkdy_monthly = [[UnitConversions.convert(Constants.DefaultHeatingSetpoint, "F", "C")] * 24] * 12
+        htg_wked_monthly = [[UnitConversions.convert(Constants.DefaultHeatingSetpoint, "F", "C")] * 24] * 12
 
       end
       break # assume all finished zones have the same schedules
     end
 
     (0..11).to_a.each do |i|
-      if cooling_season[i] == 1 and heating_season[i] == 1 # overlap seasons
+      if heating_season[i] == 1 and cooling_season[i] == 1 # overlap seasons
         htg_wkdy = htg_wkdy_monthly[i].zip(clg_wkdy_monthly[i]).map { |h, c| c < h ? (h + c) / 2.0 : h }
         htg_wked = htg_wked_monthly[i].zip(clg_wked_monthly[i]).map { |h, c| c < h ? (h + c) / 2.0 : h }
         clg_wkdy = htg_wkdy_monthly[i].zip(clg_wkdy_monthly[i]).map { |h, c| c < h ? (h + c) / 2.0 : c }
         clg_wked = htg_wked_monthly[i].zip(clg_wked_monthly[i]).map { |h, c| c < h ? (h + c) / 2.0 : c }
-        htg_wkdy_monthly[i] = htg_wkdy
-        htg_wked_monthly[i] = htg_wked
-        clg_wkdy_monthly[i] = clg_wkdy
-        clg_wked_monthly[i] = clg_wked
-      elsif cooling_season[i] == 1 # cooling only seasons
-        htg_wkdy_monthly[i] = clg_wkdy_monthly[i] # no heating, so set heating setpoint to cooling setpoint
-        htg_wked_monthly[i] = clg_wked_monthly[i] # no heating, so set heating setpoint to cooling setpoint
-      else # no cooling season
-        clg_wkdy_monthly[i] = htg_wkdy_monthly[i] # no cooling, so set cooling setpoint to heating setpoint
-        clg_wked_monthly[i] = htg_wked_monthly[i] # no cooling, so set cooling setpoint to heating setpoint
+      elsif heating_season[i] == 1 # heating only seasons; cooling has minimum of heating
+        htg_wkdy = htg_wkdy_monthly[i].zip(clg_wkdy_monthly[i]).map { |h, c| c < h ? h : h }
+        htg_wked = htg_wked_monthly[i].zip(clg_wked_monthly[i]).map { |h, c| c < h ? h : h }
+        clg_wkdy = htg_wkdy_monthly[i].zip(clg_wkdy_monthly[i]).map { |h, c| c < h ? h : c }
+        clg_wked = htg_wked_monthly[i].zip(clg_wked_monthly[i]).map { |h, c| c < h ? h : c }
+      elsif cooling_season[i] == 1 # cooling only seasons; heating has maximum of cooling
+        htg_wkdy = htg_wkdy_monthly[i].zip(clg_wkdy_monthly[i]).map { |h, c| c < h ? c : h }
+        htg_wked = htg_wked_monthly[i].zip(clg_wked_monthly[i]).map { |h, c| c < h ? c : h }
+        clg_wkdy = htg_wkdy_monthly[i].zip(clg_wkdy_monthly[i]).map { |h, c| c < h ? c : c }
+        clg_wked = htg_wked_monthly[i].zip(clg_wked_monthly[i]).map { |h, c| c < h ? c : c }
+      else
+        htg_wkdy = [UnitConversions.convert(Constants.DefaultHeatingSetpoint, "F", "C")] * 24
+        htg_wked = [UnitConversions.convert(Constants.DefaultHeatingSetpoint, "F", "C")] * 24
+        clg_wkdy = [UnitConversions.convert(Constants.DefaultCoolingSetpoint, "F", "C")] * 24
+        clg_wked = [UnitConversions.convert(Constants.DefaultCoolingSetpoint, "F", "C")] * 24
       end
+      htg_wkdy_monthly[i] = htg_wkdy
+      htg_wked_monthly[i] = htg_wked
+      clg_wkdy_monthly[i] = clg_wkdy
+      clg_wked_monthly[i] = clg_wked
     end
 
     heating_setpoint = HourlyByMonthSchedule.new(model, runner, Constants.ObjectNameHeatingSetpoint, htg_wkdy_monthly, htg_wked_monthly, normalize_values = false)

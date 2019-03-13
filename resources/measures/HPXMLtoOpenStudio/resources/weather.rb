@@ -104,7 +104,6 @@ class WeatherProcess
           epw_time = epw_time.strftime("%Y/%m/%d %H:%M:00")
           timestamps << epw_time
         end
-
       end
     end
     return timestamps
