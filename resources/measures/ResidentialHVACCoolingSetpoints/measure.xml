@@ -2,8 +2,8 @@
   <schema_version>3.0</schema_version>
   <name>process_cooling_setpoints</name>
   <uid>2daa9d28-8891-4074-a1d1-bce3cb3d7ac6</uid>
-  <version_id>5c5d48bd-8c61-45c9-97bf-a6a5fe5db3c7</version_id>
-  <version_modified>20190312T174514Z</version_modified>
+  <version_id>92182650-e6bf-45aa-8791-7ce12ef2429d</version_id>
+  <version_modified>20190321T185707Z</version_modified>
   <xml_checksum>356BE47F</xml_checksum>
   <class_name>ProcessCoolingSetpoints</class_name>
   <display_name>Set Residential Cooling Setpoints and Schedules</display_name>
@@ -73,7 +73,7 @@
     <argument>
       <name>use_auto_season</name>
       <display_name>Use Auto Cooling Season</display_name>
-      <description>Specifies whether to automatically define the cooling season based on the weather file. User-defined cooling season start/end months will be ignored if this is selected.</description>
+      <description>Specifies whether to automatically define the cooling season based on the weather file. If the cooling setpoint is less than the heating setpoint during the cooling-only season, the heating setpoint will be set to the cooling setpoint. If the cooling setpoint is less than the heating setpoint during the overlap season, the heating and cooling setpoints will be set to their average value. User-defined cooling season start/end months will be ignored if this is selected.</description>
       <type>Boolean</type>
       <required>true</required>
       <model_dependent>false</model_dependent>
@@ -237,6 +237,12 @@
   </attributes>
   <files>
     <file>
+      <filename>process_cooling_setpoints_test.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>test</usage_type>
+      <checksum>1CADFD21</checksum>
+    </file>
+    <file>
       <version>
         <software_program>OpenStudio</software_program>
         <identifier>1.11.5</identifier>
@@ -245,13 +251,7 @@
       <filename>measure.rb</filename>
       <filetype>rb</filetype>
       <usage_type>script</usage_type>
-      <checksum>B4414E7A</checksum>
-    </file>
-    <file>
-      <filename>process_cooling_setpoints_test.rb</filename>
-      <filetype>rb</filetype>
-      <usage_type>test</usage_type>
-      <checksum>1CADFD21</checksum>
+      <checksum>722B883C</checksum>
     </file>
   </files>
 </measure>
