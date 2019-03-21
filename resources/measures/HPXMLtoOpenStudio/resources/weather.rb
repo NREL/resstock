@@ -89,21 +89,98 @@ class WeatherProcess
     cooling_design_day.setSolarModelIndicator("ASHRAEClearSky")
   end
 
-  def actual_year_timestamps
+  def actual_year_timestamps(reporting_frequency)
+    start_actual_year = @epw_file.startDateActualYear
+    end_actual_year = @epw_file.endDateActualYear
+
     timestamps = []
-    if @epw_file.startDateActualYear.is_initialized
+    if start_actual_year.is_initialized and end_actual_year.is_initialized
+      start_actual_year = start_actual_year.get
+      end_actual_year = end_actual_year.get
+      is_leap_year = { true => 1, false => 0 }[@model.getYearDescription.isLeapYear]
 
       run_period = @model.getRunPeriod
-      begin_time = Time.new(@epw_file.startDateActualYear.get, run_period.getBeginMonth, run_period.getBeginDayOfMonth, 1)
-      end_time = Time.new(@epw_file.startDateActualYear.get, run_period.getEndMonth, run_period.getEndDayOfMonth, 23)
+      start_time = Time.new(start_actual_year, run_period.getBeginMonth, run_period.getBeginDayOfMonth, 0, 1)
+      end_time = Time.new(end_actual_year, run_period.getEndMonth, run_period.getEndDayOfMonth, 24)
 
-      @epw_file.data.each do |epw_data_row|
-        epw_time = Time.new(epw_data_row.year, epw_data_row.month, epw_data_row.day, epw_data_row.hour, epw_data_row.minute)
+      if reporting_frequency == "Timestep"
+        tstep = @model.getTimestep.numberOfTimestepsPerHour
+        (start_actual_year..(end_actual_year + 1)).to_a.each do |year|
+          (1..12).to_a.each do |month|
+            if [1, 3, 5, 7, 8, 10, 12].include? month
+              days = (1..31)
+            elsif [4, 6, 9, 11].include? month
+              days = (1..30)
+            elsif [2].include? month
+              days = (1..(28 + is_leap_year))
+            end
+            days.to_a.each do |day|
+              (0..23).to_a.each do |hour|
+                (0..60 - (60 / tstep)).step(60 / tstep).to_a.each do |minute|
+                  ts = Time.new(year, month, day, hour, minute)
+                  next if ts < start_time or ts > end_time
 
-        if epw_time >= begin_time and epw_time <= (end_time + 60 * 60)
-          epw_time = epw_time.strftime("%Y/%m/%d %H:%M:00")
-          timestamps << epw_time
+                  ts = ts.strftime("%Y/%m/%d %H:%M:00")
+                  timestamps << ts
+                end
+              end
+            end
+          end
         end
+      elsif reporting_frequency == "Hourly"
+        (start_actual_year..end_actual_year).to_a.each do |year|
+          (1..12).to_a.each do |month|
+            if [1, 3, 5, 7, 8, 10, 12].include? month
+              days = (1..31)
+            elsif [4, 6, 9, 11].include? month
+              days = (1..30)
+            elsif [2].include? month
+              days = (1..(28 + is_leap_year))
+            end
+            days.to_a.each do |day|
+              (1..24).to_a.each do |hour|
+                ts = Time.new(year, month, day, hour)
+                next if ts < start_time or ts > end_time
+
+                ts = ts.strftime("%Y/%m/%d %H:00:00")
+                timestamps << ts
+              end
+            end
+          end
+        end
+      elsif reporting_frequency == "Daily"
+        (start_actual_year..end_actual_year + 1).to_a.each do |year|
+          (1..12).to_a.each do |month|
+            if [1, 3, 5, 7, 8, 10, 12].include? month
+              days = (1..31)
+            elsif [4, 6, 9, 11].include? month
+              days = (1..30)
+            elsif [2].include? month
+              days = (1..(28 + is_leap_year))
+            end
+            days.to_a.each do |day|
+              ts = Time.new(year, month, day)
+              next if ts < start_time or ts > end_time
+
+              ts = ts.strftime("%Y/%m/%d 00:00:00")
+              timestamps << ts
+            end
+          end
+        end
+      elsif reporting_frequency == "Monthly"
+        (start_actual_year..end_actual_year + 1).to_a.each do |year|
+          (1..12).to_a.each do |month|
+            ts = Time.new(year, month)
+            next if ts < start_time or ts > end_time
+
+            ts = ts.strftime("%Y/%m/01 00:00:00")
+            timestamps << ts
+          end
+        end
+      elsif reporting_frequency == "Runperiod"
+        ts = Time.new(end_actual_year + 1)
+        ts = ts.strftime("%Y/01/01 00:00:00")
+        timestamps << ts
       end
     end
     return timestamps

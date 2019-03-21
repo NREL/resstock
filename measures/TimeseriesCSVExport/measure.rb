@@ -436,20 +436,13 @@ class TimeseriesCSVExport < OpenStudio::Measure::ReportingMeasure
       return false
     end
 
-    actual_year_timestamps = weather.actual_year_timestamps
-    records_per_hour = weather.header.RecordsPerHour
+    actual_year_timestamps = weather.actual_year_timestamps(reporting_frequency)
 
     # Initialize timeseries hash which will be exported to csv
     timeseries = {}
     timeseries["Time"] = datetimes # timestamps from the sqlfile (TMY)
     unless actual_year_timestamps.empty?
-      if (reporting_frequency == "Hourly" and records_per_hour == 1) or (reporting_frequency == "Timestep" and records_per_hour != 1)
-        timeseries["Time"] = actual_year_timestamps
-      else
-        timeseries["Time"].each_with_index do |ts, i|
-          timeseries["Time"][i] = timeseries["Time"][i].gsub("2009", "#{model.getYearDescription.calendarYear.get}")
-        end
-      end
+      timeseries["Time"] = actual_year_timestamps # timestamps constructed using run period and Time class (AMY)
     end
 
     # ELECTRICITY
