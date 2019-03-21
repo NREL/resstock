@@ -1753,6 +1753,10 @@ class HVAC
     pump.setPumpControlType('Intermittent')
     pump.addToNode(plant_loop.supplyInletNode)
 
+    pump_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, "Pump Electric Energy")
+    pump_sensor.setName("#{pump.name.to_s.gsub("|", "_")} s")
+    pump_sensor.setKeyName(pump.name.to_s)
+
     plant_loop.addSupplyBranchForComponent(ground_heat_exch_vert)
 
     chiller_bypass_pipe = OpenStudio::Model::PipeAdiabatic.new(model)
@@ -1768,6 +1772,8 @@ class HVAC
 
     thermal_zones = Geometry.get_thermal_zones_from_spaces(unit.spaces)
 
+    htg_coil_sensor = nil
+    clg_coil_sensor = nil
     control_slave_zones_hash = get_control_and_slave_zones(thermal_zones)
     control_slave_zones_hash.each do |control_zone, slave_zones|
       gshp_HEAT_CAP_fT_coeff = convert_curve_gshp(hEAT_CAP_FT_SEC, false)
@@ -1789,6 +1795,10 @@ class HVAC
       htg_coil.setHeatingPowerConsumptionCoefficient3(gshp_HEAT_POWER_fT_coeff[2])
       htg_coil.setHeatingPowerConsumptionCoefficient4(gshp_HEAT_POWER_fT_coeff[3])
       htg_coil.setHeatingPowerConsumptionCoefficient5(gshp_HEAT_POWER_fT_coeff[4])
+
+      htg_coil_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, "Heating Coil Electric Energy")
+      htg_coil_sensor.setName("#{htg_coil.name.to_s.gsub("|", "_")} s")
+      htg_coil_sensor.setKeyName(htg_coil.name.to_s)
 
       plant_loop.addDemandBranchForComponent(htg_coil)
 
@@ -1892,6 +1902,10 @@ class HVAC
       clg_coil.setNominalTimeforCondensateRemovaltoBegin(1000)
       clg_coil.setRatioofInitialMoistureEvaporationRateandSteadyStateLatentCapacity(1.5)
 
+      clg_coil_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, "Cooling Coil Electric Energy")
+      clg_coil_sensor.setName("#{clg_coil.name.to_s.gsub("|", "_")} s")
+      clg_coil_sensor.setKeyName(clg_coil.name.to_s)
+
       plant_loop.addDemandBranchForComponent(clg_coil)
 
       fan = OpenStudio::Model::FanOnOff.new(model, model.alwaysOnDiscreteSchedule)
@@ -1969,6 +1983,36 @@ class HVAC
       clg_air_loop_unitary.additionalProperties.setFeature(Constants.SizingInfoGSHPBoreConfig, bore_config)
       clg_air_loop_unitary.additionalProperties.setFeature(Constants.SizingInfoGSHPUTubeSpacingType, u_tube_spacing_type)
     end
+
+    # Disaggregate electric pump energy
+    pump_program = OpenStudio::Model::EnergyManagementSystemProgram.new(model)
+    pump_program.setName("#{obj_name} pumps program")
+    pump_program.addLine("Set #{unit.name.to_s.gsub(" ", "_")}_pumps_h = 0")
+    pump_program.addLine("Set #{unit.name.to_s.gsub(" ", "_")}_pumps_c = 0")
+    pump_program.addLine("If #{htg_coil_sensor.name} > 0")
+    pump_program.addLine("  Set #{unit.name.to_s.gsub(" ", "_")}_pumps_h = #{pump_sensor.name}")
+    pump_program.addLine("ElseIf #{clg_coil_sensor.name} > 0")
+    pump_program.addLine("  Set #{unit.name.to_s.gsub(" ", "_")}_pumps_c = #{pump_sensor.name}")
+    pump_program.addLine("EndIf")
+
+    pump_output_var = OpenStudio::Model::EnergyManagementSystemOutputVariable.new(model, "#{unit.name.to_s.gsub(" ", "_")}_pumps_h")
+    pump_output_var.setName("#{obj_name} htg pump:Pumps:Electricity")
+    pump_output_var.setTypeOfDataInVariable("Summed")
+    pump_output_var.setUpdateFrequency("SystemTimestep")
+    pump_output_var.setEMSProgramOrSubroutineName(pump_program)
+    pump_output_var.setUnits("J")
+
+    pump_output_var = OpenStudio::Model::EnergyManagementSystemOutputVariable.new(model, "#{unit.name.to_s.gsub(" ", "_")}_pumps_c")
+    pump_output_var.setName("#{obj_name} clg pump:Pumps:Electricity")
+    pump_output_var.setTypeOfDataInVariable("Summed")
+    pump_output_var.setUpdateFrequency("SystemTimestep")
+    pump_output_var.setEMSProgramOrSubroutineName(pump_program)
+    pump_output_var.setUnits("J")
+
+    pump_program_calling_manager = OpenStudio::Model::EnergyManagementSystemProgramCallingManager.new(model)
+    pump_program_calling_manager.setName("#{obj_name} pump program calling manager")
+    pump_program_calling_manager.setCallingPoint("EndOfSystemTimestepBeforeHVACReporting")
+    pump_program_calling_manager.addProgram(pump_program)
 
     return true
   end
@@ -2223,6 +2267,10 @@ class HVAC
     pump.setCoefficient4ofthePartLoadPerformanceCurve(0)
     pump.setPumpControlType("Intermittent")
 
+    pump_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, "Pump Electric Energy")
+    pump_sensor.setName("#{pump.name.to_s.gsub("|", "_")} s")
+    pump_sensor.setKeyName(pump.name.to_s)
+
     boiler = OpenStudio::Model::BoilerHotWater.new(model)
     boiler.setName(obj_name)
     boiler.setFuelType(HelperMethods.eplus_fuel_map(fuel_type))
@@ -2313,6 +2361,23 @@ class HVAC
         baseboard_heater.additionalProperties.setFeature(Constants.SizingInfoHVACFracHeatLoadServed, frac_heat_load_served)
       end
     end
+
+    # Disaggregate electric pump energy
+    pump_program = OpenStudio::Model::EnergyManagementSystemProgram.new(model)
+    pump_program.setName("#{obj_name} pumps program")
+    pump_program.addLine("Set #{unit.name.to_s.gsub(" ", "_")}_pumps_h = #{pump_sensor.name}")
+
+    pump_output_var = OpenStudio::Model::EnergyManagementSystemOutputVariable.new(model, "#{unit.name.to_s.gsub(" ", "_")}_pumps_h")
+    pump_output_var.setName("#{obj_name} htg pump:Pumps:Electricity")
+    pump_output_var.setTypeOfDataInVariable("Summed")
+    pump_output_var.setUpdateFrequency("SystemTimestep")
+    pump_output_var.setEMSProgramOrSubroutineName(pump_program)
+    pump_output_var.setUnits("J")
+
+    pump_program_calling_manager = OpenStudio::Model::EnergyManagementSystemProgramCallingManager.new(model)
+    pump_program_calling_manager.setName("#{obj_name} pump program calling manager")
+    pump_program_calling_manager.setCallingPoint("EndOfSystemTimestepBeforeHVACReporting")
+    pump_program_calling_manager.addProgram(pump_program)
 
     return true
   end
@@ -2484,12 +2549,12 @@ class HVAC
 
   def self.remove_heating(model, runner, thermal_zone, unit)
     removed_furnace = remove_furnace(model, runner, thermal_zone)
-    removed_boiler = remove_boiler(model, runner, thermal_zone)
+    removed_boiler = remove_boiler(model, runner, thermal_zone, unit)
     removed_heater = remove_unit_heater(model, runner, thermal_zone)
     removed_elec_baseboard = remove_electric_baseboard(model, runner, thermal_zone)
     removed_ashp = remove_ashp(model, runner, thermal_zone)
     removed_mshp = remove_mshp(model, runner, thermal_zone, unit)
-    removed_gshp = remove_gshp(model, runner, thermal_zone)
+    removed_gshp = remove_gshp(model, runner, thermal_zone, unit)
   end
 
   def self.remove_cooling(model, runner, thermal_zone, unit)
@@ -2500,7 +2565,7 @@ class HVAC
     if removed_mshp
       removed_elec_baseboard = remove_electric_baseboard(model, runner, thermal_zone)
     end
-    removed_gshp = remove_gshp(model, runner, thermal_zone)
+    removed_gshp = remove_gshp(model, runner, thermal_zone, unit)
   end
 
   def self.apply_heating_setpoints(model, runner, weather, htg_wkdy_monthly, htg_wked_monthly,
@@ -4403,7 +4468,7 @@ class HVAC
     return true
   end
 
-  def self.remove_gshp(model, runner, thermal_zone)
+  def self.remove_gshp(model, runner, thermal_zone, unit)
     # Returns true if the object was removed
     return false if not self.has_gshp(model, runner, thermal_zone)
 
@@ -4426,6 +4491,27 @@ class HVAC
       system.supplyFan.get.remove
       air_loop.remove
       runner.registerInfo("Removed '#{air_loop.name}' from #{thermal_zone.name}.")
+    end
+    obj_name = Constants.ObjectNameGroundSourceHeatPumpVerticalBore(unit.name.to_s)
+    model.getEnergyManagementSystemSensors.each do |sensor|
+      next if sensor.name.to_s != "#{obj_name} pump s".gsub(" ", "_").gsub("|", "_") and sensor.name.to_s != "#{obj_name} heating coil s".gsub(" ", "_").gsub("|", "_") and sensor.name.to_s != "#{obj_name} cooling coil s".gsub(" ", "_").gsub("|", "_")
+
+      sensor.remove
+    end
+    model.getEnergyManagementSystemOutputVariables.each do |output_var|
+      next if output_var.name.to_s != "#{obj_name} htg pump:Pumps:Electricity" and output_var.name.to_s != "#{obj_name} clg pump:Pumps:Electricity"
+
+      output_var.remove
+    end
+    model.getEnergyManagementSystemPrograms.each do |program|
+      next unless program.name.to_s == "#{obj_name} pumps program".gsub(" ", "_")
+
+      program.remove
+    end
+    model.getEnergyManagementSystemProgramCallingManagers.each do |program_calling_manager|
+      next unless program_calling_manager.name.to_s == "#{obj_name} pump program calling manager"
+
+      program_calling_manager.remove
     end
     return true
   end
@@ -4520,7 +4606,7 @@ class HVAC
     return true
   end
 
-  def self.remove_boiler(model, runner, thermal_zone)
+  def self.remove_boiler(model, runner, thermal_zone, unit)
     # Returns true if the object was removed
     return false if not self.has_boiler(model, runner, thermal_zone)
 
@@ -4529,6 +4615,29 @@ class HVAC
     baseboards.each do |baseboard|
       runner.registerInfo("Removed '#{baseboard.name}' from #{thermal_zone.name}.")
       baseboard.remove
+    end
+    [Constants.FuelTypeGas, Constants.FuelTypeOil, Constants.FuelTypePropane, Constants.FuelTypeElectric].each do |fuel_type|
+      obj_name = Constants.ObjectNameBoiler(fuel_type, unit.name.to_s)
+      model.getEnergyManagementSystemSensors.each do |sensor|
+        next unless sensor.name.to_s == "#{obj_name} hydronic pump s".gsub(" ", "_").gsub("|", "_")
+
+        sensor.remove
+      end
+      model.getEnergyManagementSystemOutputVariables.each do |output_var|
+        next unless output_var.name.to_s == "#{obj_name} htg pump:Pumps:Electricity"
+
+        output_var.remove
+      end
+      model.getEnergyManagementSystemPrograms.each do |program|
+        next unless program.name.to_s == "#{obj_name} pumps program".gsub(" ", "_")
+
+        program.remove
+      end
+      model.getEnergyManagementSystemProgramCallingManagers.each do |program_calling_manager|
+        next unless program_calling_manager.name.to_s == "#{obj_name} pump program calling manager"
+
+        program_calling_manager.remove
+      end
     end
     return true
   end
