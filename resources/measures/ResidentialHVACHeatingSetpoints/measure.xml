@@ -2,8 +2,8 @@
   <schema_version>3.0</schema_version>
   <name>process_heating_setpoints</name>
   <uid>2b167665-f760-462d-8c9d-1d909da7b628</uid>
-  <version_id>b95bf829-f8fd-4a64-8551-b958166beceb</version_id>
-  <version_modified>20190103T214702Z</version_modified>
+  <version_id>4bf4cb40-05f7-494e-a5ef-e6feaab72d18</version_id>
+  <version_modified>20190321T185707Z</version_modified>
   <xml_checksum>2C877DEB</xml_checksum>
   <class_name>ProcessHeatingSetpoints</class_name>
   <display_name>Set Residential Heating Setpoints and Schedules</display_name>
@@ -18,7 +18,7 @@
       <units>degrees F</units>
       <required>true</required>
       <model_dependent>false</model_dependent>
-      <default_value>71</default_value>
+      <default_value>71.0</default_value>
     </argument>
     <argument>
       <name>weekend_setpoint</name>
@@ -28,7 +28,7 @@
       <units>degrees F</units>
       <required>true</required>
       <model_dependent>false</model_dependent>
-      <default_value>71</default_value>
+      <default_value>71.0</default_value>
     </argument>
     <argument>
       <name>weekday_offset_magnitude</name>
@@ -73,7 +73,7 @@
     <argument>
       <name>use_auto_season</name>
       <display_name>Use Auto Heating Season</display_name>
-      <description>Specifies whether to automatically define the heating season based on the weather file. User-defined heating season start/end months will be ignored if this is selected</description>
+      <description>Specifies whether to automatically define the heating season based on the weather file. If the cooling setpoint is less than the heating setpoint during the heating-only season, the cooling setpoint will be set to the heating setpoint. If the cooling setpoint is less than the heating setpoint during the overlap season, the heating and cooling setpoints will be set to their average value. User-defined heating season start/end months will be ignored if this is selected.</description>
       <type>Boolean</type>
       <required>true</required>
       <model_dependent>false</model_dependent>
@@ -230,7 +230,7 @@
       <filename>process_heating_setpoints_test.rb</filename>
       <filetype>rb</filetype>
       <usage_type>test</usage_type>
-      <checksum>AF86555A</checksum>
+      <checksum>95C29DA2</checksum>
     </file>
     <file>
       <version>
@@ -241,7 +241,7 @@
       <filename>measure.rb</filename>
       <filetype>rb</filetype>
       <usage_type>script</usage_type>
-      <checksum>5DB22C57</checksum>
+      <checksum>FC3EFD50</checksum>
     </file>
   </files>
 </measure>

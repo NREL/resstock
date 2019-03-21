@@ -92,19 +92,17 @@ class WeatherProcess
   def actual_year_timestamps
     timestamps = []
     if @epw_file.startDateActualYear.is_initialized
+
       run_period = @model.getRunPeriod
-      begin_month = run_period.getBeginMonth
-      begin_day_of_month = run_period.getBeginDayOfMonth
-      end_month = run_period.getEndMonth
-      end_day_of_month = run_period.getEndDayOfMonth
+      begin_time = Time.new(@epw_file.startDateActualYear.get, run_period.getBeginMonth, run_period.getBeginDayOfMonth)
+      end_time = Time.new(@epw_file.startDateActualYear.get, run_period.getEndMonth, run_period.getEndDayOfMonth, 23)
+
       @epw_file.data.each do |epw_data_row|
-        epw_year = epw_data_row.year
-        epw_month = epw_data_row.month
-        epw_day = epw_data_row.day
-        epw_hour = epw_data_row.hour
-        epw_minute = epw_data_row.minute
-        if epw_month >= begin_month and epw_day >= begin_day_of_month and epw_month <= end_month and epw_day <= end_day_of_month # epw timestamp is in the run period
-          timestamps << "#{epw_year.to_s.rjust(2, "0")}/#{epw_month.to_s.rjust(2, "0")}/#{epw_day.to_s.rjust(2, "0")} #{epw_hour.to_s.rjust(2, "0")}:#{epw_minute.to_s.rjust(2, "0")}:00"
+        epw_time = Time.new(epw_data_row.year, epw_data_row.month, epw_data_row.day, epw_data_row.hour, epw_data_row.minute)
+
+        if epw_time >= begin_time and epw_time <= (end_time + 60 * 60)
+          epw_time = epw_time.strftime("%Y/%m/%d %H:%M:00")
+          timestamps << epw_time
         end
       end
     end
