@@ -604,6 +604,7 @@ class OutputMeters
         electricity_house_fan(custom_meter_infos, model, runner, unit, thermal_zones)
         electricity_range_fan(custom_meter_infos, model, runner, unit, thermal_zones)
         electricity_bath_fan(custom_meter_infos, model, runner, unit, thermal_zones)
+        electricity_ceiling_fan(custom_meter_infos, model, runner, unit, thermal_zones)
       end
     end
 
@@ -1425,6 +1426,17 @@ class OutputMeters
         next unless equip.endUseSubcategory.include? "bath fan"
 
         custom_meter_infos["#{unit.name}:ElectricityBathFan"]["key_var_groups"] << ["#{equip.name}", "Electric Equipment Electric Energy"]
+      end
+    end
+  end
+
+  def self.electricity_ceiling_fan(custom_meter_infos, model, runner, unit, thermal_zones)
+    custom_meter_infos["#{unit.name}:ElectricityCeilingFan"] = { "fuel_type" => "Electricity", "key_var_groups" => [] }
+    unit.spaces.each do |space|
+      space.electricEquipment.each do |equip|
+        next unless equip.endUseSubcategory.include? "ceil fan"
+
+        custom_meter_infos["#{unit.name}:ElectricityCeilingFan"]["key_var_groups"] << ["#{equip.name}", "Electric Equipment Electric Energy"]
       end
     end
   end
