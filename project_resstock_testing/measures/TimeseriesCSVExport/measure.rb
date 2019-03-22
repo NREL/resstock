@@ -237,6 +237,7 @@ class TimeseriesCSVExport < OpenStudio::Measure::ReportingMeasure
     electricityHouseFan = [0] * num_ts
     electricityRangeFan = [0] * num_ts
     electricityBathFan = [0] * num_ts
+    electricityCeilingFan = [0] * num_ts
 
     # Get building units
     units = Geometry.get_building_units(model, runner)
@@ -427,6 +428,11 @@ class TimeseriesCSVExport < OpenStudio::Measure::ReportingMeasure
         unless sqlFile.execAndReturnVectorOfDouble(electricity_bath_fan_query).get.empty?
           electricityBathFan = array_sum(electricityBathFan, sqlFile.execAndReturnVectorOfDouble(electricity_bath_fan_query).get, units_represented)
         end
+
+        electricity_ceiling_fan_query = "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('#{unit_name}:ELECTRICITYCEILINGFAN') AND ReportingFrequency='#{reporting_frequency_map[reporting_frequency]}' AND VariableUnits='J') AND TimeIndex IN (SELECT TimeIndex FROM Time WHERE EnvironmentPeriodIndex='#{env_period_ix}')"
+        unless sqlFile.execAndReturnVectorOfDouble(electricity_ceiling_fan_query).get.empty?
+          electricityCeilingFan = array_sum(electricityCeilingFan, sqlFile.execAndReturnVectorOfDouble(electricity_ceiling_fan_query).get, units_represented)
+        end
       end
     end
 
@@ -508,11 +514,12 @@ class TimeseriesCSVExport < OpenStudio::Measure::ReportingMeasure
       report_ts_output(runner, timeseries, "electricity_cooking_range_kwh", electricityCookingRange, "GJ", elec_site_units)
       report_ts_output(runner, timeseries, "natural_gas_cooking_range_therm", naturalGasCookingRange, "GJ", gas_site_units)
       report_ts_output(runner, timeseries, "propane_cooking_range_mbtu", propaneCookingRange, "GJ", other_fuel_site_units)
-      report_ts_output(runner, timeseries, "electricity_diswasher_kwh", electricityDishwasher, "GJ", elec_site_units)
+      report_ts_output(runner, timeseries, "electricity_dishwasher_kwh", electricityDishwasher, "GJ", elec_site_units)
       report_ts_output(runner, timeseries, "electricity_plug_loads_kwh", electricityPlugLoads, "GJ", elec_site_units)
       report_ts_output(runner, timeseries, "electricity_house_fan_kwh", electricityHouseFan, "GJ", elec_site_units)
       report_ts_output(runner, timeseries, "electricity_range_fan_kwh", electricityRangeFan, "GJ", elec_site_units)
       report_ts_output(runner, timeseries, "electricity_bath_fan_kwh", electricityBathFan, "GJ", elec_site_units)
+      report_ts_output(runner, timeseries, "electricity_ceiling_fan_kwh", electricityCeilingFan, "GJ", elec_site_units)
     end
 
     sqlFile.close()
