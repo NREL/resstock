@@ -56,23 +56,30 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
       "net_site_energy_mbtu", # Incorporates PV
       "net_site_electricity_kwh", # Incorporates PV
       "electricity_heating_kwh",
+      "electricity_central_system_heating_kwh",
       "electricity_cooling_kwh",
+      "electricity_central_system_cooling_kwh",
       "electricity_interior_lighting_kwh",
       "electricity_exterior_lighting_kwh",
       "electricity_interior_equipment_kwh",
       "electricity_fans_heating_kwh",
       "electricity_fans_cooling_kwh",
       "electricity_pumps_heating_kwh",
+      "electricity_central_system_pumps_heating_kwh",
       "electricity_pumps_cooling_kwh",
+      "electricity_central_system_pumps_cooling_kwh",
       "electricity_water_systems_kwh",
       "electricity_pv_kwh",
       "natural_gas_heating_therm",
+      "natural_gas_central_system_heating_therm",
       "natural_gas_interior_equipment_therm",
       "natural_gas_water_systems_therm",
       "fuel_oil_heating_mbtu",
+      "fuel_oil_central_system_heating_mbtu",
       "fuel_oil_interior_equipment_mbtu",
       "fuel_oil_water_systems_mbtu",
       "propane_heating_mbtu",
+      "propane_central_system_heating_mbtu",
       "propane_interior_equipment_mbtu",
       "propane_water_systems_mbtu",
       "hours_heating_setpoint_not_met",
@@ -163,81 +170,96 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
     gas_site_units = "therm"
     other_fuel_site_units = "MBtu"
 
-    # Get meters that aren't tied to units (i.e., get apportioned evenly across units)
-    centralElectricityHeating = 0.0
-    centralElectricityCooling = 0.0
-    centralElectricityExteriorLighting = 0.0
-    centralElectricityPumpsHeating = 0.0
-    centralElectricityPumpsCooling = 0.0
-    centralElectricityInteriorEquipment = 0.0
-    centralNaturalGasHeating = 0.0
-    centralNaturalGasInteriorEquipment = 0.0
-    centralFuelOilHeating = 0.0
-    centralFuelOilInteriorEquipment = 0.0
-    centralPropaneHeating = 0.0
-    centralPropaneInteriorEquipment = 0.0
+    # Get meters that aren't tied to units (i.e., are metered at the building level)
+    modeledCentralElectricityHeating = 0.0
+    modeledCentralElectricityCooling = 0.0
+    modeledCentralElectricityExteriorLighting = 0.0
+    modeledCentralElectricityPumpsHeating = 0.0
+    modeledCentralElectricityPumpsCooling = 0.0
+    modeledCentralElectricityInteriorEquipment = 0.0
+    modeledCentralNaturalGasHeating = 0.0
+    modeledCentralNaturalGasInteriorEquipment = 0.0
+    modeledCentralFuelOilHeating = 0.0
+    modeledCentralFuelOilInteriorEquipment = 0.0
+    modeledCentralPropaneHeating = 0.0
+    modeledCentralPropaneInteriorEquipment = 0.0
 
     central_electricity_heating_query = "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('CENTRAL:ELECTRICITYHEATING') AND ReportingFrequency='Run Period' AND VariableUnits='J') AND TimeIndex IN (SELECT TimeIndex FROM Time WHERE EnvironmentPeriodIndex='#{env_period_ix}')"
     unless sqlFile.execAndReturnFirstDouble(central_electricity_heating_query).empty?
-      centralElectricityHeating = sqlFile.execAndReturnFirstDouble(central_electricity_heating_query).get.round(2)
+      modeledCentralElectricityHeating = sqlFile.execAndReturnFirstDouble(central_electricity_heating_query).get.round(2)
     end
 
     central_electricity_cooling_query = "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('CENTRAL:ELECTRICITYCOOLING') AND ReportingFrequency='Run Period' AND VariableUnits='J') AND TimeIndex IN (SELECT TimeIndex FROM Time WHERE EnvironmentPeriodIndex='#{env_period_ix}')"
     unless sqlFile.execAndReturnFirstDouble(central_electricity_cooling_query).empty?
-      centralElectricityCooling = sqlFile.execAndReturnFirstDouble(central_electricity_cooling_query).get.round(2)
+      modeledCentralElectricityCooling = sqlFile.execAndReturnFirstDouble(central_electricity_cooling_query).get.round(2)
     end
 
     central_electricity_exterior_lighting_query = "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('CENTRAL:ELECTRICITYEXTERIORLIGHTING') AND ReportingFrequency='Run Period' AND VariableUnits='J') AND TimeIndex IN (SELECT TimeIndex FROM Time WHERE EnvironmentPeriodIndex='#{env_period_ix}')"
     unless sqlFile.execAndReturnFirstDouble(central_electricity_exterior_lighting_query).empty?
-      centralElectricityExteriorLighting = sqlFile.execAndReturnFirstDouble(central_electricity_exterior_lighting_query).get.round(2)
+      modeledCentralElectricityExteriorLighting = sqlFile.execAndReturnFirstDouble(central_electricity_exterior_lighting_query).get.round(2)
     end
 
     central_electricity_pumps_heating_query = "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('CENTRAL:ELECTRICITYPUMPSHEATING') AND ReportingFrequency='Run Period' AND VariableUnits='J') AND TimeIndex IN (SELECT TimeIndex FROM Time WHERE EnvironmentPeriodIndex='#{env_period_ix}')"
     unless sqlFile.execAndReturnFirstDouble(central_electricity_pumps_heating_query).empty?
-      centralElectricityPumpsHeating = sqlFile.execAndReturnFirstDouble(central_electricity_pumps_heating_query).get.round(2)
+      modeledCentralElectricityPumpsHeating = sqlFile.execAndReturnFirstDouble(central_electricity_pumps_heating_query).get.round(2)
     end
 
     central_electricity_pumps_cooling_query = "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('CENTRAL:ELECTRICITYPUMPSCOOLING') AND ReportingFrequency='Run Period' AND VariableUnits='J') AND TimeIndex IN (SELECT TimeIndex FROM Time WHERE EnvironmentPeriodIndex='#{env_period_ix}')"
     unless sqlFile.execAndReturnFirstDouble(central_electricity_pumps_cooling_query).empty?
-      centralElectricityPumpsCooling = sqlFile.execAndReturnFirstDouble(central_electricity_pumps_cooling_query).get.round(2)
+      modeledCentralElectricityPumpsCooling = sqlFile.execAndReturnFirstDouble(central_electricity_pumps_cooling_query).get.round(2)
     end
 
     central_electricity_interior_equipment_query = "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('CENTRAL:ELECTRICITYINTERIOREQUIPMENT') AND ReportingFrequency='Run Period' AND VariableUnits='J') AND TimeIndex IN (SELECT TimeIndex FROM Time WHERE EnvironmentPeriodIndex='#{env_period_ix}')"
     unless sqlFile.execAndReturnFirstDouble(central_electricity_interior_equipment_query).empty?
-      centralElectricityInteriorEquipment = sqlFile.execAndReturnFirstDouble(central_electricity_interior_equipment_query).get.round(2)
+      modeledCentralElectricityInteriorEquipment = sqlFile.execAndReturnFirstDouble(central_electricity_interior_equipment_query).get.round(2)
     end
 
     central_natural_gas_heating_query = "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('CENTRAL:NATURALGASHEATING') AND ReportingFrequency='Run Period' AND VariableUnits='J') AND TimeIndex IN (SELECT TimeIndex FROM Time WHERE EnvironmentPeriodIndex='#{env_period_ix}')"
     unless sqlFile.execAndReturnFirstDouble(central_natural_gas_heating_query).empty?
-      centralNaturalGasHeating = sqlFile.execAndReturnFirstDouble(central_natural_gas_heating_query).get.round(2)
+      modeledCentralNaturalGasHeating = sqlFile.execAndReturnFirstDouble(central_natural_gas_heating_query).get.round(2)
     end
 
     central_natural_gas_interior_equipment_query = "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('CENTRAL:NATURALGASINTERIOREQUIPMENT') AND ReportingFrequency='Run Period' AND VariableUnits='J') AND TimeIndex IN (SELECT TimeIndex FROM Time WHERE EnvironmentPeriodIndex='#{env_period_ix}')"
     unless sqlFile.execAndReturnFirstDouble(central_natural_gas_interior_equipment_query).empty?
-      centralNaturalGasInteriorEquipment = sqlFile.execAndReturnFirstDouble(central_natural_gas_interior_equipment_query).get.round(2)
+      modeledCentralNaturalGasInteriorEquipment = sqlFile.execAndReturnFirstDouble(central_natural_gas_interior_equipment_query).get.round(2)
     end
 
     central_fuel_oil_heating_query = "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('CENTRAL:FUELOILHEATING') AND ReportingFrequency='Run Period' AND VariableUnits='J') AND TimeIndex IN (SELECT TimeIndex FROM Time WHERE EnvironmentPeriodIndex='#{env_period_ix}')"
     unless sqlFile.execAndReturnFirstDouble(central_fuel_oil_heating_query).empty?
-      centralFuelOilHeating = sqlFile.execAndReturnFirstDouble(central_fuel_oil_heating_query).get.round(2)
+      modeledCentralFuelOilHeating = sqlFile.execAndReturnFirstDouble(central_fuel_oil_heating_query).get.round(2)
     end
 
     central_fuel_oil_interior_equipment_query = "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('CENTRAL:FUELOILINTERIOREQUIPMENT') AND ReportingFrequency='Run Period' AND VariableUnits='J') AND TimeIndex IN (SELECT TimeIndex FROM Time WHERE EnvironmentPeriodIndex='#{env_period_ix}')"
     unless sqlFile.execAndReturnFirstDouble(central_fuel_oil_interior_equipment_query).empty?
-      centralFuelOilInteriorEquipment = sqlFile.execAndReturnFirstDouble(central_fuel_oil_interior_equipment_query).get.round(2)
+      modeledCentralFuelOilInteriorEquipment = sqlFile.execAndReturnFirstDouble(central_fuel_oil_interior_equipment_query).get.round(2)
     end
 
     central_propane_heating_query = "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('CENTRAL:PROPANEHEATING') AND ReportingFrequency='Run Period' AND VariableUnits='J') AND TimeIndex IN (SELECT TimeIndex FROM Time WHERE EnvironmentPeriodIndex='#{env_period_ix}')"
     unless sqlFile.execAndReturnFirstDouble(central_propane_heating_query).empty?
-      centralPropaneHeating = sqlFile.execAndReturnFirstDouble(central_propane_heating_query).get.round(2)
+      modeledCentralPropaneHeating = sqlFile.execAndReturnFirstDouble(central_propane_heating_query).get.round(2)
     end
 
     central_propane_interior_equipment_query = "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('CENTRAL:PROPANEINTERIOREQUIPMENT') AND ReportingFrequency='Run Period' AND VariableUnits='J') AND TimeIndex IN (SELECT TimeIndex FROM Time WHERE EnvironmentPeriodIndex='#{env_period_ix}')"
     unless sqlFile.execAndReturnFirstDouble(central_propane_interior_equipment_query).empty?
-      centralPropaneInteriorEquipment = sqlFile.execAndReturnFirstDouble(central_propane_interior_equipment_query).get.round(2)
+      modeledCentralPropaneInteriorEquipment = sqlFile.execAndReturnFirstDouble(central_propane_interior_equipment_query).get.round(2)
     end
 
-    # Get meters that are tied to units
+    # Initialize variables to check against sql file totals
+    modeledElectricityFansHeating = 0.0
+    modeledElectricityFansCooling = 0.0
+    modeledElectricityPumpsHeating = modeledCentralElectricityPumpsHeating
+    modeledElectricityPumpsCooling = modeledCentralElectricityPumpsCooling
+
+    # Separate these from non central systems
+    centralElectricityHeating = 0.0
+    centralElectricityCooling = 0.0
+    centralElectricityPumpsHeating = 0.0
+    centralElectricityPumpsCooling = 0.0
+    centralNaturalGasHeating = 0.0
+    centralFuelOilHeating = 0.0
+    centralPropaneHeating = 0.0
+
+    # Get meters that are tied to units, and apportion building level meters to these
     electricityTotalEndUses = 0.0
     electricityHeating = 0.0
     electricityCooling = 0.0
@@ -270,11 +292,6 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
       return false
     end
 
-    buildingElectricityFansHeating = 0.0
-    buildingElectricityFansCooling = 0.0
-    buildingElectricityPumpsHeating = 0.0
-    buildingElectricityPumpsCooling = 0.0
-
     total_units_represented = 0
     units.each do |unit|
       unit_name = unit.name.to_s.upcase
@@ -297,52 +314,56 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
       unless sqlFile.execAndReturnFirstDouble(electricity_heating_query).empty?
         electricityHeating += units_represented * sqlFile.execAndReturnFirstDouble(electricity_heating_query).get.round(2)
       end
-      electricityHeating += units_represented * (centralElectricityHeating / units.length)
+
+      centralElectricityHeating += units_represented * (modeledCentralElectricityHeating / units.length)
 
       electricity_cooling_query = "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('#{unit_name}:ELECTRICITYCOOLING') AND ReportingFrequency='Run Period' AND VariableUnits='J') AND TimeIndex IN (SELECT TimeIndex FROM Time WHERE EnvironmentPeriodIndex='#{env_period_ix}')"
       unless sqlFile.execAndReturnFirstDouble(electricity_cooling_query).empty?
         electricityCooling += units_represented * sqlFile.execAndReturnFirstDouble(electricity_cooling_query).get.round(2)
       end
-      electricityCooling += units_represented * (centralElectricityCooling / units.length)
+
+      centralElectricityCooling += units_represented * (modeledCentralElectricityCooling / units.length)
 
       electricity_interior_lighting_query = "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('#{unit_name}:ELECTRICITYINTERIORLIGHTING') AND ReportingFrequency='Run Period' AND VariableUnits='J') AND TimeIndex IN (SELECT TimeIndex FROM Time WHERE EnvironmentPeriodIndex='#{env_period_ix}')"
       unless sqlFile.execAndReturnFirstDouble(electricity_interior_lighting_query).empty?
         electricityInteriorLighting += units_represented * sqlFile.execAndReturnFirstDouble(electricity_interior_lighting_query).get.round(2)
       end
 
-      electricityExteriorLighting += units_represented * (centralElectricityExteriorLighting / units.length)
+      electricityExteriorLighting += units_represented * (modeledCentralElectricityExteriorLighting / units.length)
 
       electricity_interior_equipment_query = "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('#{unit_name}:ELECTRICITYINTERIOREQUIPMENT') AND ReportingFrequency='Run Period' AND VariableUnits='J') AND TimeIndex IN (SELECT TimeIndex FROM Time WHERE EnvironmentPeriodIndex='#{env_period_ix}')"
       unless sqlFile.execAndReturnFirstDouble(electricity_interior_equipment_query).empty?
         electricityInteriorEquipment += units_represented * sqlFile.execAndReturnFirstDouble(electricity_interior_equipment_query).get.round(2)
       end
-      electricityInteriorEquipment += units_represented * (centralElectricityInteriorEquipment / units.length)
+      electricityInteriorEquipment += units_represented * (modeledCentralElectricityInteriorEquipment / units.length)
 
       electricity_fans_heating_query = "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('#{unit_name}:ELECTRICITYFANSHEATING') AND ReportingFrequency='Run Period' AND VariableUnits='J') AND TimeIndex IN (SELECT TimeIndex FROM Time WHERE EnvironmentPeriodIndex='#{env_period_ix}')"
       unless sqlFile.execAndReturnFirstDouble(electricity_fans_heating_query).empty?
         electricityFansHeating += units_represented * sqlFile.execAndReturnFirstDouble(electricity_fans_heating_query).get.round(2)
-        buildingElectricityFansHeating += sqlFile.execAndReturnFirstDouble(electricity_fans_heating_query).get.round(2)
+        modeledElectricityFansHeating += sqlFile.execAndReturnFirstDouble(electricity_fans_heating_query).get.round(2)
       end
 
       electricity_fans_cooling_query = "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('#{unit_name}:ELECTRICITYFANSCOOLING') AND ReportingFrequency='Run Period' AND VariableUnits='J') AND TimeIndex IN (SELECT TimeIndex FROM Time WHERE EnvironmentPeriodIndex='#{env_period_ix}')"
       unless sqlFile.execAndReturnFirstDouble(electricity_fans_cooling_query).empty?
         electricityFansCooling += units_represented * sqlFile.execAndReturnFirstDouble(electricity_fans_cooling_query).get.round(2)
-        buildingElectricityFansCooling += sqlFile.execAndReturnFirstDouble(electricity_fans_cooling_query).get.round(2)
+        modeledElectricityFansCooling += sqlFile.execAndReturnFirstDouble(electricity_fans_cooling_query).get.round(2)
       end
 
       electricity_pumps_heating_query = "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('#{unit_name}:ELECTRICITYPUMPSHEATING') AND ReportingFrequency='Run Period' AND VariableUnits='J') AND TimeIndex IN (SELECT TimeIndex FROM Time WHERE EnvironmentPeriodIndex='#{env_period_ix}')"
       unless sqlFile.execAndReturnFirstDouble(electricity_pumps_heating_query).empty?
         electricityPumpsHeating += units_represented * sqlFile.execAndReturnFirstDouble(electricity_pumps_heating_query).get.round(2)
-        buildingElectricityPumpsHeating += sqlFile.execAndReturnFirstDouble(electricity_pumps_heating_query).get.round(2)
+        modeledElectricityPumpsHeating += sqlFile.execAndReturnFirstDouble(electricity_pumps_heating_query).get.round(2)
       end
-      electricityPumpsHeating += units_represented * (centralElectricityPumpsHeating / units.length)
+
+      centralElectricityPumpsHeating += units_represented * (modeledCentralElectricityPumpsHeating / units.length)
 
       electricity_pumps_cooling_query = "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('#{unit_name}:ELECTRICITYPUMPSCOOLING') AND ReportingFrequency='Run Period' AND VariableUnits='J') AND TimeIndex IN (SELECT TimeIndex FROM Time WHERE EnvironmentPeriodIndex='#{env_period_ix}')"
       unless sqlFile.execAndReturnFirstDouble(electricity_pumps_cooling_query).empty?
         electricityPumpsCooling += units_represented * sqlFile.execAndReturnFirstDouble(electricity_pumps_cooling_query).get.round(2)
-        buildingElectricityPumpsCooling += sqlFile.execAndReturnFirstDouble(electricity_pumps_cooling_query).get.round(2)
+        modeledElectricityPumpsCooling += sqlFile.execAndReturnFirstDouble(electricity_pumps_cooling_query).get.round(2)
       end
-      electricityPumpsCooling += units_represented * (centralElectricityPumpsCooling / units.length)
+
+      centralElectricityPumpsCooling += units_represented * (modeledCentralElectricityPumpsCooling / units.length)
 
       electricity_water_systems_query = "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('#{unit_name}:ELECTRICITYWATERSYSTEMS') AND ReportingFrequency='Run Period' AND VariableUnits='J') AND TimeIndex IN (SELECT TimeIndex FROM Time WHERE EnvironmentPeriodIndex='#{env_period_ix}')"
       unless sqlFile.execAndReturnFirstDouble(electricity_water_systems_query).empty?
@@ -353,13 +374,14 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
       unless sqlFile.execAndReturnFirstDouble(natural_gas_heating_query).empty?
         naturalGasHeating += units_represented * sqlFile.execAndReturnFirstDouble(natural_gas_heating_query).get.round(2)
       end
-      naturalGasHeating += units_represented * (centralNaturalGasHeating / units.length)
+
+      centralNaturalGasHeating += units_represented * (modeledCentralNaturalGasHeating / units.length)
 
       natural_gas_interior_equipment_query = "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('#{unit_name}:NATURALGASINTERIOREQUIPMENT') AND ReportingFrequency='Run Period' AND VariableUnits='J') AND TimeIndex IN (SELECT TimeIndex FROM Time WHERE EnvironmentPeriodIndex='#{env_period_ix}')"
       unless sqlFile.execAndReturnFirstDouble(natural_gas_interior_equipment_query).empty?
         naturalGasInteriorEquipment += units_represented * sqlFile.execAndReturnFirstDouble(natural_gas_interior_equipment_query).get.round(2)
       end
-      naturalGasInteriorEquipment += units_represented * (centralNaturalGasInteriorEquipment / units.length)
+      naturalGasInteriorEquipment += units_represented * (modeledCentralNaturalGasInteriorEquipment / units.length)
 
       natural_gas_water_systems_query = "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('#{unit_name}:NATURALGASWATERSYSTEMS') AND ReportingFrequency='Run Period' AND VariableUnits='J') AND TimeIndex IN (SELECT TimeIndex FROM Time WHERE EnvironmentPeriodIndex='#{env_period_ix}')"
       unless sqlFile.execAndReturnFirstDouble(natural_gas_water_systems_query).empty?
@@ -370,13 +392,14 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
       unless sqlFile.execAndReturnFirstDouble(fuel_oil_heating_query).empty?
         fuelOilHeating += units_represented * sqlFile.execAndReturnFirstDouble(fuel_oil_heating_query).get.round(2)
       end
-      fuelOilHeating += units_represented * (centralFuelOilHeating / units.length)
+
+      centralFuelOilHeating += units_represented * (modeledCentralFuelOilHeating / units.length)
 
       fuel_oil_interior_equipment_query = "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('#{unit_name}:FUELOILINTERIOREQUIPMENT') AND ReportingFrequency='Run Period' AND VariableUnits='J') AND TimeIndex IN (SELECT TimeIndex FROM Time WHERE EnvironmentPeriodIndex='#{env_period_ix}')"
       unless sqlFile.execAndReturnFirstDouble(fuel_oil_interior_equipment_query).empty?
         fuelOilInteriorEquipment += units_represented * sqlFile.execAndReturnFirstDouble(fuel_oil_interior_equipment_query).get.round(2)
       end
-      fuelOilInteriorEquipment += units_represented * (centralFuelOilInteriorEquipment / units.length)
+      fuelOilInteriorEquipment += units_represented * (modeledCentralFuelOilInteriorEquipment / units.length)
 
       fuel_oil_water_systems_query = "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('#{unit_name}:FUELOILWATERSYSTEMS') AND ReportingFrequency='Run Period' AND VariableUnits='J') AND TimeIndex IN (SELECT TimeIndex FROM Time WHERE EnvironmentPeriodIndex='#{env_period_ix}')"
       unless sqlFile.execAndReturnFirstDouble(fuel_oil_water_systems_query).empty?
@@ -387,13 +410,14 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
       unless sqlFile.execAndReturnFirstDouble(propane_heating_query).empty?
         propaneHeating += units_represented * sqlFile.execAndReturnFirstDouble(propane_heating_query).get.round(2)
       end
-      propaneHeating += units_represented * (centralPropaneHeating / units.length)
+
+      centralPropaneHeating += units_represented * (modeledCentralPropaneHeating / units.length)
 
       propane_interior_equipment_query = "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('#{unit_name}:PROPANEINTERIOREQUIPMENT') AND ReportingFrequency='Run Period' AND VariableUnits='J') AND TimeIndex IN (SELECT TimeIndex FROM Time WHERE EnvironmentPeriodIndex='#{env_period_ix}')"
       unless sqlFile.execAndReturnFirstDouble(propane_interior_equipment_query).empty?
         propaneInteriorEquipment += units_represented * sqlFile.execAndReturnFirstDouble(propane_interior_equipment_query).get.round(2)
       end
-      propaneInteriorEquipment += units_represented * (centralPropaneInteriorEquipment / units.length)
+      propaneInteriorEquipment += units_represented * (modeledCentralPropaneInteriorEquipment / units.length)
 
       propane_water_systems_query = "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('#{unit_name}:PROPANEWATERSYSTEMS') AND ReportingFrequency='Run Period' AND VariableUnits='J') AND TimeIndex IN (SELECT TimeIndex FROM Time WHERE EnvironmentPeriodIndex='#{env_period_ix}')"
       unless sqlFile.execAndReturnFirstDouble(propane_water_systems_query).empty?
@@ -424,12 +448,14 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
     end
     report_sim_output(runner, "electricity_pv_kwh", pv_val, "GJ", elec_site_units)
 
-    electricityTotalEndUses = electricityHeating + electricityCooling + electricityInteriorLighting + electricityExteriorLighting + electricityInteriorEquipment + electricityFansHeating + electricityFansCooling + electricityPumpsHeating + electricityPumpsCooling + electricityWaterSystems
+    electricityTotalEndUses = electricityHeating + centralElectricityHeating + electricityCooling + centralElectricityCooling + electricityInteriorLighting + electricityExteriorLighting + electricityInteriorEquipment + electricityFansHeating + electricityFansCooling + electricityPumpsHeating + centralElectricityPumpsHeating + electricityPumpsCooling + centralElectricityPumpsCooling + electricityWaterSystems
 
     report_sim_output(runner, "total_site_electricity_kwh", electricityTotalEndUses, "GJ", elec_site_units)
     report_sim_output(runner, "net_site_electricity_kwh", electricityTotalEndUses + pv_val, "GJ", elec_site_units)
     report_sim_output(runner, "electricity_heating_kwh", electricityHeating, "GJ", elec_site_units)
+    report_sim_output(runner, "electricity_central_system_heating_kwh", centralElectricityHeating, "GJ", elec_site_units)
     report_sim_output(runner, "electricity_cooling_kwh", electricityCooling, "GJ", elec_site_units)
+    report_sim_output(runner, "electricity_central_system_cooling_kwh", centralElectricityCooling, "GJ", elec_site_units)
     report_sim_output(runner, "electricity_interior_lighting_kwh", electricityInteriorLighting, "GJ", elec_site_units)
     report_sim_output(runner, "electricity_exterior_lighting_kwh", electricityExteriorLighting, "GJ", elec_site_units)
     report_sim_output(runner, "electricity_interior_equipment_kwh", electricityInteriorEquipment, "GJ", elec_site_units)
@@ -437,9 +463,9 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
     unless sqlFile.electricityFans.empty?
       electricityFans = sqlFile.electricityFans.get
     end
-    err = (buildingElectricityFansHeating + buildingElectricityFansCooling) - electricityFans
+    err = (modeledElectricityFansHeating + modeledElectricityFansCooling) - electricityFans
     if err.abs > 0.2
-      runner.registerError("Disaggregated fan energy (#{buildingElectricityFansHeating + buildingElectricityFansCooling} GJ) relative to building fan energy (#{electricityFans} GJ): #{err} GJ.")
+      runner.registerError("Disaggregated fan energy (#{modeledElectricityFansHeating + modeledElectricityFansCooling} GJ) relative to building fan energy (#{electricityFans} GJ): #{err} GJ.")
       return false
     end
     report_sim_output(runner, "electricity_fans_heating_kwh", electricityFansHeating, "GJ", elec_site_units)
@@ -448,39 +474,44 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
     unless sqlFile.electricityPumps.empty?
       electricityPumps = sqlFile.electricityPumps.get
     end
-    err = (centralElectricityPumpsHeating + centralElectricityPumpsCooling + buildingElectricityPumpsHeating + buildingElectricityPumpsCooling) - electricityPumps
+    err = (modeledElectricityPumpsHeating + modeledElectricityPumpsCooling) - electricityPumps
     if err.abs > 0.2
-      runner.registerError("Disaggregated pump energy (#{centralElectricityPumpsHeating + centralElectricityPumpsCooling + buildingElectricityPumpsHeating + buildingElectricityPumpsCooling} GJ) relative to building pump energy (#{electricityPumps} GJ): #{err} GJ.")
+      runner.registerError("Disaggregated pump energy (#{modeledElectricityPumpsHeating + modeledElectricityPumpsCooling} GJ) relative to building pump energy (#{electricityPumps} GJ): #{err} GJ.")
       return false
     end
     report_sim_output(runner, "electricity_pumps_heating_kwh", electricityPumpsHeating, "GJ", elec_site_units)
+    report_sim_output(runner, "electricity_central_system_pumps_heating_kwh", centralElectricityPumpsHeating, "GJ", elec_site_units)
     report_sim_output(runner, "electricity_pumps_cooling_kwh", electricityPumpsCooling, "GJ", elec_site_units)
+    report_sim_output(runner, "electricity_central_system_pumps_cooling_kwh", centralElectricityPumpsCooling, "GJ", elec_site_units)
     report_sim_output(runner, "electricity_water_systems_kwh", electricityWaterSystems, "GJ", elec_site_units)
 
     # NATURAL GAS
 
-    naturalGasTotalEndUses = naturalGasHeating + naturalGasInteriorEquipment + naturalGasWaterSystems
+    naturalGasTotalEndUses = naturalGasHeating + centralNaturalGasHeating + naturalGasInteriorEquipment + naturalGasWaterSystems
 
     report_sim_output(runner, "total_site_natural_gas_therm", naturalGasTotalEndUses, "GJ", gas_site_units)
     report_sim_output(runner, "natural_gas_heating_therm", naturalGasHeating, "GJ", gas_site_units)
+    report_sim_output(runner, "natural_gas_central_system_heating_therm", centralNaturalGasHeating, "GJ", gas_site_units)
     report_sim_output(runner, "natural_gas_interior_equipment_therm", naturalGasInteriorEquipment, "GJ", gas_site_units)
     report_sim_output(runner, "natural_gas_water_systems_therm", naturalGasWaterSystems, "GJ", gas_site_units)
 
     # FUEL OIL
 
-    fuelOilTotalEndUses = fuelOilHeating + fuelOilInteriorEquipment + fuelOilWaterSystems
+    fuelOilTotalEndUses = fuelOilHeating + centralFuelOilHeating + fuelOilInteriorEquipment + fuelOilWaterSystems
 
     report_sim_output(runner, "total_site_fuel_oil_mbtu", fuelOilTotalEndUses, "GJ", other_fuel_site_units)
     report_sim_output(runner, "fuel_oil_heating_mbtu", fuelOilHeating, "GJ", other_fuel_site_units)
+    report_sim_output(runner, "fuel_oil_central_system_heating_mbtu", centralFuelOilHeating, "GJ", other_fuel_site_units)
     report_sim_output(runner, "fuel_oil_interior_equipment_mbtu", fuelOilInteriorEquipment, "GJ", other_fuel_site_units)
     report_sim_output(runner, "fuel_oil_water_systems_mbtu", fuelOilWaterSystems, "GJ", other_fuel_site_units)
 
     # PROPANE
 
-    propaneTotalEndUses = propaneHeating + propaneInteriorEquipment + propaneWaterSystems
+    propaneTotalEndUses = propaneHeating + centralPropaneHeating + propaneInteriorEquipment + propaneWaterSystems
 
     report_sim_output(runner, "total_site_propane_mbtu", propaneTotalEndUses, "GJ", other_fuel_site_units)
     report_sim_output(runner, "propane_heating_mbtu", propaneHeating, "GJ", other_fuel_site_units)
+    report_sim_output(runner, "propane_central_system_heating_mbtu", centralPropaneHeating, "GJ", other_fuel_site_units)
     report_sim_output(runner, "propane_interior_equipment_mbtu", propaneInteriorEquipment, "GJ", other_fuel_site_units)
     report_sim_output(runner, "propane_water_systems_mbtu", propaneWaterSystems, "GJ", other_fuel_site_units)
 
