@@ -466,10 +466,14 @@ class TimeseriesCSVExport < OpenStudio::Measure::ReportingMeasure
     unless actual_year_timestamps.empty?
       timeseries["Time"] = actual_year_timestamps # timestamps constructed using run period and Time class (AMY)
     end
+    if timeseries["Time"].length != num_ts
+      runner.registerError("The timestamps array length does not equal that of the sqlfile timeseries. You may be ignoring leap days in your AMY weather file.")
+      return false
+    end
 
     # ELECTRICITY
 
-    electricityTotalEndUses = [electricityHeating, centralElectricityHeating, electricityCooling, centralElectricityCooling, electricityInteriorLighting, electricityExteriorLighting, electricityInteriorEquipment, electricityFansHeating, electricityFansCooling, electricityPumpsHeating, centralElectricityPumpsHeating, electricityPumpsCooling, centralElectricityPumpsCooling, electricityWaterSystems].transpose.collect { |e1, e2, e3, e4, e5, e6, e7, e8, e9, e10, e11, e12, e13, e14| e1 + e2 + e3 + e4 + e5 + e6 + e7 + e8 + e9 + e10 + e11 + e12 + e13 + e14}
+    electricityTotalEndUses = [electricityHeating, centralElectricityHeating, electricityCooling, centralElectricityCooling, electricityInteriorLighting, electricityExteriorLighting, electricityInteriorEquipment, electricityFansHeating, electricityFansCooling, electricityPumpsHeating, centralElectricityPumpsHeating, electricityPumpsCooling, centralElectricityPumpsCooling, electricityWaterSystems].transpose.collect { |e1, e2, e3, e4, e5, e6, e7, e8, e9, e10, e11, e12, e13, e14| e1 + e2 + e3 + e4 + e5 + e6 + e7 + e8 + e9 + e10 + e11 + e12 + e13 + e14 }
 
     report_ts_output(runner, timeseries, "total_site_electricity_kwh", electricityTotalEndUses, "GJ", elec_site_units)
     report_ts_output(runner, timeseries, "net_site_electricity_kwh", [electricityTotalEndUses, modeledCentralElectricityPhotovoltaics].transpose.collect { |e1, e2| e1 - e2 }, "GJ", elec_site_units)
@@ -491,7 +495,7 @@ class TimeseriesCSVExport < OpenStudio::Measure::ReportingMeasure
 
     # NATURAL GAS
 
-    naturalGasTotalEndUses = [naturalGasHeating, centralNaturalGasHeating, naturalGasInteriorEquipment, naturalGasWaterSystems].transpose.collect { |n1, n2, n3, n4| n1 + n2 + n3 + n4}
+    naturalGasTotalEndUses = [naturalGasHeating, centralNaturalGasHeating, naturalGasInteriorEquipment, naturalGasWaterSystems].transpose.collect { |n1, n2, n3, n4| n1 + n2 + n3 + n4 }
 
     report_ts_output(runner, timeseries, "total_site_natural_gas_therm", naturalGasTotalEndUses, "GJ", gas_site_units)
     report_ts_output(runner, timeseries, "natural_gas_heating_therm", naturalGasHeating, "GJ", gas_site_units)
@@ -501,7 +505,7 @@ class TimeseriesCSVExport < OpenStudio::Measure::ReportingMeasure
 
     # FUEL OIL
 
-    fuelOilTotalEndUses = [fuelOilHeating, centralFuelOilHeating, fuelOilInteriorEquipment, fuelOilWaterSystems].transpose.collect { |f1, f2, f3, f4| f1 + f2 + f3 + f4}
+    fuelOilTotalEndUses = [fuelOilHeating, centralFuelOilHeating, fuelOilInteriorEquipment, fuelOilWaterSystems].transpose.collect { |f1, f2, f3, f4| f1 + f2 + f3 + f4 }
 
     report_ts_output(runner, timeseries, "total_site_fuel_oil_mbtu", fuelOilTotalEndUses, "GJ", other_fuel_site_units)
     report_ts_output(runner, timeseries, "fuel_oil_heating_mbtu", fuelOilHeating, "GJ", other_fuel_site_units)
@@ -511,7 +515,7 @@ class TimeseriesCSVExport < OpenStudio::Measure::ReportingMeasure
 
     # PROPANE
 
-    propaneTotalEndUses = [propaneHeating, centralPropaneHeating, propaneInteriorEquipment, propaneWaterSystems].transpose.collect { |p1, p2, p3, p4| p1 + p2 + p3 + p4}
+    propaneTotalEndUses = [propaneHeating, centralPropaneHeating, propaneInteriorEquipment, propaneWaterSystems].transpose.collect { |p1, p2, p3, p4| p1 + p2 + p3 + p4 }
 
     report_ts_output(runner, timeseries, "total_site_propane_mbtu", propaneTotalEndUses, "GJ", other_fuel_site_units)
     report_ts_output(runner, timeseries, "propane_heating_mbtu", propaneHeating, "GJ", other_fuel_site_units)
