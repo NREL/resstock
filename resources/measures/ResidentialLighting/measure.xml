@@ -2,8 +2,8 @@
   <schema_version>3.0</schema_version>
   <name>residential_lighting</name>
   <uid>82efbdfd-258d-421a-8c32-ff4636bea099</uid>
-  <version_id>7c5a42d4-e39b-4425-8ebc-19a9db30cce7</version_id>
-  <version_modified>20190402T205934Z</version_modified>
+  <version_id>50da9236-1428-40f1-8129-91dab449c489</version_id>
+  <version_modified>20190403T211105Z</version_modified>
   <xml_checksum>2DDDDD82</xml_checksum>
   <class_name>ResidentialLighting</class_name>
   <display_name>Set Residential Lighting</display_name>
@@ -57,15 +57,6 @@
       <default_value>0</default_value>
     </argument>
     <argument>
-      <name>frac_hw</name>
-      <display_name>Lamp Fractions: Fraction of Hardwired Lamps Used</display_name>
-      <description>Of all the lamps (interior, garage, and exterior), the fraction that is used hardwired lamps.</description>
-      <type>Double</type>
-      <required>true</required>
-      <model_dependent>false</model_dependent>
-      <default_value>0.8</default_value>
-    </argument>
-    <argument>
       <name>pg_cfl</name>
       <display_name>Lamp Fractions: Plugin Fraction CFL</display_name>
       <description>Fraction of all plugin lamps that are compact fluorescent. Plugin lighting not specified as CFL, LED, or LFL is assumed to be incandescent.</description>
@@ -93,13 +84,13 @@
       <default_value>0</default_value>
     </argument>
     <argument>
-      <name>frac_pg</name>
-      <display_name>Lamp Fractions: Fraction of Plugin Lamps Used</display_name>
-      <description>Of all the plugin lamps (interior, garage, and exterior), the fraction that is used plugin lamps.</description>
+      <name>mult</name>
+      <display_name>Lamp Fractions: Multiplier</display_name>
+      <description>A multiplier on the national average lighting energy. 0.75 indicates a 25% reduction in the lighting energy, 1.0 indicates the same lighting energy as the national average, 1.25 indicates a 25% increase in the lighting energy, etc.</description>
       <type>Double</type>
       <required>true</required>
       <model_dependent>false</model_dependent>
-      <default_value>0.2</default_value>
+      <default_value>1</default_value>
     </argument>
     <argument>
       <name>in_eff</name>
@@ -194,7 +185,7 @@
       <filename>ResidentialLighting_Test.rb</filename>
       <filetype>rb</filetype>
       <usage_type>test</usage_type>
-      <checksum>074FA722</checksum>
+      <checksum>F03CD959</checksum>
     </file>
     <file>
       <version>
@@ -205,7 +196,7 @@
       <filename>measure.rb</filename>
       <filetype>rb</filetype>
       <usage_type>script</usage_type>
-      <checksum>FD6BBC51</checksum>
+      <checksum>E02EF907</checksum>
     </file>
   </files>
 </measure>
