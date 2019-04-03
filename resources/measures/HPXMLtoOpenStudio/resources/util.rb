@@ -1270,12 +1270,12 @@ class OutputMeters
         custom_meter_infos["#{unit.name}:PropaneInteriorEquipment"]["key_var_groups"] << ["#{equip.name}", "Other Equipment Propane Energy"]
       end
     end
-    custom_meter_infos["Central:PropaneInteriorEquipment"] = { "fuel_type" => "Propane", "key_var_groups" => [] }
+    custom_meter_infos["Central:PropaneInteriorEquipment"] = { "fuel_type" => "PropaneGas", "key_var_groups" => [] }
     model.getSpaces.each do |space|
       next if space.buildingUnit.is_initialized
 
       space.otherEquipment.each do |equip|
-        next if equip.fuelType != "Propane"
+        next if equip.fuelType != "PropaneGas"
 
         custom_meter_infos["Central:PropaneInteriorEquipment"]["key_var_groups"] << ["#{equip.name}", "Other Equipment Propane Energy"]
       end
@@ -1341,7 +1341,7 @@ class OutputMeters
   end
 
   def self.propane_clothes_dryer(custom_meter_infos, model, runner, unit, thermal_zones)
-    custom_meter_infos["#{unit.name}:PropaneClothesDryer"] = { "fuel_type" => "Propane", "key_var_groups" => [] }
+    custom_meter_infos["#{unit.name}:PropaneClothesDryer"] = { "fuel_type" => "PropaneGas", "key_var_groups" => [] }
     unit.spaces.each do |space|
       space.otherEquipment.each do |equip|
         next unless equip.fuelType == "PropaneGas"
