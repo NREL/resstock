@@ -605,6 +605,18 @@ class OutputMeters
         electricity_range_fan(custom_meter_infos, model, runner, unit, thermal_zones)
         electricity_bath_fan(custom_meter_infos, model, runner, unit, thermal_zones)
         electricity_ceiling_fan(custom_meter_infos, model, runner, unit, thermal_zones)
+        electricity_extra_refrigerator(custom_meter_infos, model, runner, unit, thermal_zones)
+        electricity_freezer(custom_meter_infos, model, runner, unit, thermal_zones)
+        electricity_pool_heater(custom_meter_infos, model, runner, unit, thermal_zones)
+        natural_gas_pool_heater(custom_meter_infos, model, runner, unit, thermal_zones)
+        electricity_pool_pump(custom_meter_infos, model, runner, unit, thermal_zones)
+        electricity_hot_tub_heater(custom_meter_infos, model, runner, unit, thermal_zones)
+        natural_gas_hot_tub_heater(custom_meter_infos, model, runner, unit, thermal_zones)
+        electricity_hot_tub_pump(custom_meter_infos, model, runner, unit, thermal_zones)
+        natural_gas_grill(custom_meter_infos, model, runner, unit, thermal_zones)
+        natural_gas_lighting(custom_meter_infos, model, runner, unit, thermal_zones)
+        natural_gas_fireplace(custom_meter_infos, model, runner, unit, thermal_zones)
+        electricity_well_pump(custom_meter_infos, model, runner, unit, thermal_zones)
       end
     end
 
@@ -1258,12 +1270,12 @@ class OutputMeters
         custom_meter_infos["#{unit.name}:PropaneInteriorEquipment"]["key_var_groups"] << ["#{equip.name}", "Other Equipment Propane Energy"]
       end
     end
-    custom_meter_infos["Central:PropaneInteriorEquipment"] = { "fuel_type" => "Propane", "key_var_groups" => [] }
+    custom_meter_infos["Central:PropaneInteriorEquipment"] = { "fuel_type" => "PropaneGas", "key_var_groups" => [] }
     model.getSpaces.each do |space|
       next if space.buildingUnit.is_initialized
 
       space.otherEquipment.each do |equip|
-        next if equip.fuelType != "Propane"
+        next if equip.fuelType != "PropaneGas"
 
         custom_meter_infos["Central:PropaneInteriorEquipment"]["key_var_groups"] << ["#{equip.name}", "Other Equipment Propane Energy"]
       end
@@ -1329,7 +1341,7 @@ class OutputMeters
   end
 
   def self.propane_clothes_dryer(custom_meter_infos, model, runner, unit, thermal_zones)
-    custom_meter_infos["#{unit.name}:PropaneClothesDryer"] = { "fuel_type" => "Propane", "key_var_groups" => [] }
+    custom_meter_infos["#{unit.name}:PropaneClothesDryer"] = { "fuel_type" => "PropaneGas", "key_var_groups" => [] }
     unit.spaces.each do |space|
       space.otherEquipment.each do |equip|
         next unless equip.fuelType == "PropaneGas"
@@ -1434,9 +1446,196 @@ class OutputMeters
     custom_meter_infos["#{unit.name}:ElectricityCeilingFan"] = { "fuel_type" => "Electricity", "key_var_groups" => [] }
     unit.spaces.each do |space|
       space.electricEquipment.each do |equip|
-        next unless equip.endUseSubcategory.include? "ceil fan"
+        next unless equip.endUseSubcategory.include? Constants.ObjectNameCeilingFan
 
         custom_meter_infos["#{unit.name}:ElectricityCeilingFan"]["key_var_groups"] << ["#{equip.name}", "Electric Equipment Electric Energy"]
+      end
+    end
+  end
+
+  def self.electricity_extra_refrigerator(custom_meter_infos, model, runner, unit, thermal_zones)
+    custom_meter_infos["#{unit.name}:ElectricityExtraRefrigerator"] = { "fuel_type" => "Electricity", "key_var_groups" => [] }
+    unit.spaces.each do |space|
+      space.electricEquipment.each do |equip|
+        next unless equip.endUseSubcategory.include? Constants.ObjectNameExtraRefrigerator
+
+        custom_meter_infos["#{unit.name}:ElectricityExtraRefrigerator"]["key_var_groups"] << ["#{equip.name}", "Electric Equipment Electric Energy"]
+      end
+    end
+
+    custom_meter_infos["Central:ElectricityExtraRefrigerator"] = { "fuel_type" => "Electricity", "key_var_groups" => [] }
+    model.getSpaces.each do |space|
+      next if space.buildingUnit.is_initialized
+
+      space.electricEquipment.each do |equip|
+        next unless equip.endUseSubcategory.include? Constants.ObjectNameExtraRefrigerator
+
+        custom_meter_infos["Central:ElectricityExtraRefrigerator"]["key_var_groups"] << ["#{equip.name}", "Electric Equipment Electric Energy"]
+      end
+    end
+  end
+
+  def self.electricity_freezer(custom_meter_infos, model, runner, unit, thermal_zones)
+    custom_meter_infos["#{unit.name}:ElectricityFreezer"] = { "fuel_type" => "Electricity", "key_var_groups" => [] }
+    unit.spaces.each do |space|
+      space.electricEquipment.each do |equip|
+        next unless equip.endUseSubcategory.include? Constants.ObjectNameFreezer
+
+        custom_meter_infos["#{unit.name}:ElectricityFreezer"]["key_var_groups"] << ["#{equip.name}", "Electric Equipment Electric Energy"]
+      end
+    end
+
+    custom_meter_infos["Central:ElectricityFreezer"] = { "fuel_type" => "Electricity", "key_var_groups" => [] }
+    model.getSpaces.each do |space|
+      next if space.buildingUnit.is_initialized
+
+      space.electricEquipment.each do |equip|
+        next unless equip.endUseSubcategory.include? Constants.ObjectNameFreezer
+
+        custom_meter_infos["Central:ElectricityFreezer"]["key_var_groups"] << ["#{equip.name}", "Electric Equipment Electric Energy"]
+      end
+    end
+  end
+
+  def self.electricity_pool_heater(custom_meter_infos, model, runner, unit, thermal_zones)
+    custom_meter_infos["#{unit.name}:ElectricityPoolHeater"] = { "fuel_type" => "Electricity", "key_var_groups" => [] }
+    unit.spaces.each do |space|
+      space.electricEquipment.each do |equip|
+        next unless equip.endUseSubcategory.include? Constants.ObjectNamePoolHeater(Constants.FuelTypeElectric)
+
+        custom_meter_infos["#{unit.name}:ElectricityPoolHeater"]["key_var_groups"] << ["#{equip.name}", "Electric Equipment Electric Energy"]
+      end
+    end
+  end
+
+  def self.natural_gas_pool_heater(custom_meter_infos, model, runner, unit, thermal_zones)
+    custom_meter_infos["#{unit.name}:NaturalGasPoolHeater"] = { "fuel_type" => "NaturalGas", "key_var_groups" => [] }
+    unit.spaces.each do |space|
+      space.gasEquipment.each do |equip|
+        next unless equip.endUseSubcategory.include? Constants.ObjectNamePoolHeater(Constants.FuelTypeGas)
+
+        custom_meter_infos["#{unit.name}:NaturalGasPoolHeater"]["key_var_groups"] << ["#{equip.name}", "Gas Equipment Gas Energy"]
+      end
+    end
+  end
+
+  def self.electricity_pool_pump(custom_meter_infos, model, runner, unit, thermal_zones)
+    custom_meter_infos["#{unit.name}:ElectricityPoolPump"] = { "fuel_type" => "Electricity", "key_var_groups" => [] }
+    unit.spaces.each do |space|
+      space.electricEquipment.each do |equip|
+        next unless equip.endUseSubcategory.include? Constants.ObjectNamePoolPump
+
+        custom_meter_infos["#{unit.name}:ElectricityPoolPump"]["key_var_groups"] << ["#{equip.name}", "Electric Equipment Electric Energy"]
+      end
+    end
+  end
+
+  def self.electricity_hot_tub_heater(custom_meter_infos, model, runner, unit, thermal_zones)
+    custom_meter_infos["#{unit.name}:ElectricityHotTubHeater"] = { "fuel_type" => "Electricity", "key_var_groups" => [] }
+    unit.spaces.each do |space|
+      space.electricEquipment.each do |equip|
+        next unless equip.endUseSubcategory.include? Constants.ObjectNameHotTubHeater(Constants.FuelTypeElectric)
+
+        custom_meter_infos["#{unit.name}:ElectricityHotTubHeater"]["key_var_groups"] << ["#{equip.name}", "Electric Equipment Electric Energy"]
+      end
+    end
+  end
+
+  def self.natural_gas_hot_tub_heater(custom_meter_infos, model, runner, unit, thermal_zones)
+    custom_meter_infos["#{unit.name}:NaturalGasHotTubHeater"] = { "fuel_type" => "NaturalGas", "key_var_groups" => [] }
+    unit.spaces.each do |space|
+      space.gasEquipment.each do |equip|
+        next unless equip.endUseSubcategory.include? Constants.ObjectNameHotTubHeater(Constants.FuelTypeGas)
+
+        custom_meter_infos["#{unit.name}:NaturalGasHotTubHeater"]["key_var_groups"] << ["#{equip.name}", "Gas Equipment Gas Energy"]
+      end
+    end
+  end
+
+  def self.electricity_hot_tub_pump(custom_meter_infos, model, runner, unit, thermal_zones)
+    custom_meter_infos["#{unit.name}:ElectricityHotTubPump"] = { "fuel_type" => "Electricity", "key_var_groups" => [] }
+    unit.spaces.each do |space|
+      space.electricEquipment.each do |equip|
+        next unless equip.endUseSubcategory.include? Constants.ObjectNameHotTubPump
+
+        custom_meter_infos["#{unit.name}:ElectricityHotTubPump"]["key_var_groups"] << ["#{equip.name}", "Electric Equipment Electric Energy"]
+      end
+    end
+  end
+
+  def self.natural_gas_grill(custom_meter_infos, model, runner, unit, thermal_zones)
+    custom_meter_infos["#{unit.name}:NaturalGasGrill"] = { "fuel_type" => "NaturalGas", "key_var_groups" => [] }
+    unit.spaces.each do |space|
+      space.gasEquipment.each do |equip|
+        next unless equip.endUseSubcategory.include? Constants.ObjectNameGasGrill
+
+        custom_meter_infos["#{unit.name}:NaturalGasGrill"]["key_var_groups"] << ["#{equip.name}", "Gas Equipment Gas Energy"]
+      end
+    end
+
+    custom_meter_infos["Central:NaturalGasGrill"] = { "fuel_type" => "NaturalGas", "key_var_groups" => [] }
+    model.getSpaces.each do |space|
+      next if space.buildingUnit.is_initialized
+
+      space.gasEquipment.each do |equip|
+        next unless equip.endUseSubcategory.include? Constants.ObjectNameGasGrill
+
+        custom_meter_infos["Central:NaturalGasGrill"]["key_var_groups"] << ["#{equip.name}", "Gas Equipment Gas Energy"]
+      end
+    end
+  end
+
+  def self.natural_gas_lighting(custom_meter_infos, model, runner, unit, thermal_zones)
+    custom_meter_infos["#{unit.name}:NaturalGasLighting"] = { "fuel_type" => "NaturalGas", "key_var_groups" => [] }
+    unit.spaces.each do |space|
+      space.gasEquipment.each do |equip|
+        next unless equip.endUseSubcategory.include? Constants.ObjectNameGasLighting
+
+        custom_meter_infos["#{unit.name}:NaturalGasLighting"]["key_var_groups"] << ["#{equip.name}", "Gas Equipment Gas Energy"]
+      end
+    end
+
+    custom_meter_infos["Central:NaturalGasLighting"] = { "fuel_type" => "NaturalGas", "key_var_groups" => [] }
+    model.getSpaces.each do |space|
+      next if space.buildingUnit.is_initialized
+
+      space.gasEquipment.each do |equip|
+        next unless equip.endUseSubcategory.include? Constants.ObjectNameGasLighting
+
+        custom_meter_infos["Central:NaturalGasLighting"]["key_var_groups"] << ["#{equip.name}", "Gas Equipment Gas Energy"]
+      end
+    end
+  end
+
+  def self.natural_gas_fireplace(custom_meter_infos, model, runner, unit, thermal_zones)
+    custom_meter_infos["#{unit.name}:NaturalGasFireplace"] = { "fuel_type" => "NaturalGas", "key_var_groups" => [] }
+    unit.spaces.each do |space|
+      space.gasEquipment.each do |equip|
+        next unless equip.endUseSubcategory.include? Constants.ObjectNameGasFireplace
+
+        custom_meter_infos["#{unit.name}:NaturalGasFireplace"]["key_var_groups"] << ["#{equip.name}", "Gas Equipment Gas Energy"]
+      end
+    end
+
+    custom_meter_infos["Central:NaturalGasFireplace"] = { "fuel_type" => "NaturalGas", "key_var_groups" => [] }
+    model.getSpaces.each do |space|
+      next if space.buildingUnit.is_initialized
+
+      space.gasEquipment.each do |equip|
+        next unless equip.endUseSubcategory.include? Constants.ObjectNameGasFireplace
+
+        custom_meter_infos["Central:NaturalGasFireplace"]["key_var_groups"] << ["#{equip.name}", "Gas Equipment Gas Energy"]
+      end
+    end
+  end
+
+  def self.electricity_well_pump(custom_meter_infos, model, runner, unit, thermal_zones)
+    custom_meter_infos["#{unit.name}:ElectricityWellPump"] = { "fuel_type" => "Electricity", "key_var_groups" => [] }
+    unit.spaces.each do |space|
+      space.electricEquipment.each do |equip|
+        next unless equip.endUseSubcategory.include? Constants.ObjectNameWellPump
+
+        custom_meter_infos["#{unit.name}:ElectricityWellPump"]["key_var_groups"] << ["#{equip.name}", "Electric Equipment Electric Energy"]
       end
     end
   end
