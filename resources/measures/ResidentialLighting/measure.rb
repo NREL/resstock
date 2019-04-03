@@ -67,13 +67,6 @@ class ResidentialLighting < OpenStudio::Measure::ModelMeasure
     hw_lfl.setDefaultValue(0)
     args << hw_lfl
 
-    # make a double argument for fraction of hardwired used
-    frac_hw = OpenStudio::Measure::OSArgument::makeDoubleArgument("frac_hw", true)
-    frac_hw.setDisplayName("#{Constants.OptionTypeLightingFractions}: Fraction of Hardwired Lamps Used")
-    frac_hw.setDescription("Of all the lamps (interior, garage, and exterior), the fraction that is used hardwired lamps.")
-    frac_hw.setDefaultValue(0.8)
-    args << frac_hw
-
     # make a double argument for Plugin CFL fraction
     pg_cfl = OpenStudio::Measure::OSArgument::makeDoubleArgument("pg_cfl", true)
     pg_cfl.setDisplayName("#{Constants.OptionTypeLightingFractions}: Plugin Fraction CFL")
@@ -95,12 +88,12 @@ class ResidentialLighting < OpenStudio::Measure::ModelMeasure
     pg_lfl.setDefaultValue(0)
     args << pg_lfl
 
-    # make a double argument for fraction of plugin used
-    frac_pg = OpenStudio::Measure::OSArgument::makeDoubleArgument("frac_pg", true)
-    frac_pg.setDisplayName("#{Constants.OptionTypeLightingFractions}: Fraction of Plugin Lamps Used")
-    frac_pg.setDescription("Of all the plugin lamps (interior, garage, and exterior), the fraction that is used plugin lamps.")
-    frac_pg.setDefaultValue(0.2)
-    args << frac_pg
+    # make a double argument for BA Benchmark multiplier
+    mult = OpenStudio::Measure::OSArgument::makeDoubleArgument("mult", true)
+    mult.setDisplayName("#{Constants.OptionTypeLightingFractions}: Multiplier")
+    mult.setDescription("A multiplier on the national average lighting energy. 0.75 indicates a 25% reduction in the lighting energy, 1.0 indicates the same lighting energy as the national average, 1.25 indicates a 25% increase in the lighting energy, etc.")
+    mult.setDefaultValue(1)
+    args << mult
 
     # make a double argument for Incandescent Efficacy
     in_eff = OpenStudio::Measure::OSArgument::makeDoubleArgument("in_eff", true)
@@ -175,11 +168,10 @@ class ResidentialLighting < OpenStudio::Measure::ModelMeasure
     hw_cfl = runner.getDoubleArgumentValue("hw_cfl", user_arguments)
     hw_led = runner.getDoubleArgumentValue("hw_led", user_arguments)
     hw_lfl = runner.getDoubleArgumentValue("hw_lfl", user_arguments)
-    frac_hw = runner.getDoubleArgumentValue("frac_hw", user_arguments)
     pg_cfl = runner.getDoubleArgumentValue("pg_cfl", user_arguments)
     pg_led = runner.getDoubleArgumentValue("pg_led", user_arguments)
     pg_lfl = runner.getDoubleArgumentValue("pg_lfl", user_arguments)
-    frac_pg = runner.getDoubleArgumentValue("frac_pg", user_arguments)
+    mult = runner.getDoubleArgumentValue("mult", user_arguments)
     in_eff = runner.getDoubleArgumentValue("in_eff", user_arguments)
     cfl_eff = runner.getDoubleArgumentValue("cfl_eff", user_arguments)
     led_eff = runner.getDoubleArgumentValue("led_eff", user_arguments)
@@ -206,10 +198,6 @@ class ResidentialLighting < OpenStudio::Measure::ModelMeasure
         runner.registerError("Sum of CFL, LED, and LFL Hardwired Fractions must be less than or equal to 1.")
         return false
       end
-      if frac_hw < 0 or frac_hw > 1
-        runner.registerError("Fraction of Hardwired Lamps Used must be greater than or equal to 0 and less than or equal to 1.")
-        return false
-      end
       if pg_cfl < 0 or pg_cfl > 1
         runner.registerError("Plugin Fraction CFL must be greater than or equal to 0 and less than or equal to 1.")
         return false
@@ -226,12 +214,8 @@ class ResidentialLighting < OpenStudio::Measure::ModelMeasure
         runner.registerError("Sum of CFL, LED, and LFL Plugin Fractions must be less than or equal to 1.")
         return false
       end
-      if frac_pg < 0 or frac_pg > 1
-        runner.registerError("Fraction of Plugin Lamps Used must be greater than or equal to 0 and less than or equal to 1.")
-        return false
-      end
-      if frac_hw + frac_pg > 1
-        runner.registerError("Sum of Fractions of Hardwired/Plugin Lamps Used must be less than or equal to 1.")
+      if mult < 0
+        runner.registerError("Lamps used multiplier must be greater than or equal to 0.")
         return false
       end
       if in_eff <= 0
@@ -277,6 +261,10 @@ class ResidentialLighting < OpenStudio::Measure::ModelMeasure
       return false
     end
 
+    # Fractions hardwired vs plugin
+    frac_hw = 0.8
+    frac_pg = 0.2
+
     bab_frac_inc = 0.66
     bab_frac_cfl = 0.34
     bab_frac_led = 0.00
@@ -319,8 +307,8 @@ class ResidentialLighting < OpenStudio::Measure::ModelMeasure
       if option_type == Constants.OptionTypeLightingEnergyUses
         interior_ann = energy_use_interior
       elsif option_type == Constants.OptionTypeLightingFractions
-        bm_hw_e = frac_hw * (ffa * 0.542 + 334)
-        bm_pg_e = frac_pg * (ffa * 0.542 + 334)
+        bm_hw_e = mult * frac_hw * (ffa * 0.542 + 334)
+        bm_pg_e = mult * frac_pg * (ffa * 0.542 + 334)
         int_hw_e = (bm_hw_e * (((hw_inc * er_inc + (1 - bab_frac_inc) * bab_er_inc) + (hw_cfl * er_cfl - bab_frac_cfl * bab_er_cfl) + (hw_led * er_led - bab_frac_led * bab_er_led) + (hw_lfl * er_lfl - bab_frac_lfl * bab_er_lfl)) * smrt_replace_f * 0.9 + 0.1))
         int_pg_e = (bm_pg_e * (((pg_inc * er_inc + (1 - bab_frac_inc) * bab_er_inc) + (pg_cfl * er_cfl - bab_frac_cfl * bab_er_cfl) + (pg_led * er_led - bab_frac_led * bab_er_led) + (pg_lfl * er_lfl - bab_frac_lfl * bab_er_lfl)) * smrt_replace_f * 0.9 + 0.1))
         interior_ann = int_hw_e + int_pg_e
@@ -339,7 +327,7 @@ class ResidentialLighting < OpenStudio::Measure::ModelMeasure
     if option_type == Constants.OptionTypeLightingEnergyUses
       garage_ann = energy_use_garage
     elsif option_type == Constants.OptionTypeLightingFractions
-      common_bm_garage_e = (frac_hw / 0.8) * (0.08 * gfa + 8 * units.size)
+      common_bm_garage_e = mult * (0.08 * gfa + 8 * units.size)
       garage_ann = (common_bm_garage_e * (((hw_inc * er_inc + (1 - bab_frac_inc) * bab_er_inc) + (hw_cfl * er_cfl - bab_frac_cfl * bab_er_cfl) + (hw_led * er_led - bab_frac_led * bab_er_led) + (hw_lfl * er_lfl - bab_frac_lfl * bab_er_lfl)) * smrt_replace_f * 0.9 + 0.1))
     end
 
@@ -355,7 +343,7 @@ class ResidentialLighting < OpenStudio::Measure::ModelMeasure
       exterior_ann = energy_use_exterior
     elsif option_type == Constants.OptionTypeLightingFractions
       total_ffa = Geometry.get_finished_floor_area_from_spaces(model.getSpaces, runner)
-      bm_outside_e = (frac_hw / 0.8) * (0.145 * total_ffa)
+      bm_outside_e = mult * (0.145 * total_ffa)
       exterior_ann = (bm_outside_e * (((hw_inc * er_inc + (1 - bab_frac_inc) * bab_er_inc) + (hw_cfl * er_cfl - bab_frac_cfl * bab_er_cfl) + (hw_led * er_led - bab_frac_led * bab_er_led) + (hw_lfl * er_lfl - bab_frac_lfl * bab_er_lfl)) * smrt_replace_f * 0.9 + 0.1))
     end
 
