@@ -1,14 +1,14 @@
 <measure>
   <schema_version>3.0</schema_version>
-  <name>timeseries_csv_export</name>
-  <uid>2a3442c1-944d-4e91-9e11-11e0cf368c64</uid>
-  <version_id>19c42533-4c6f-40d6-b80d-991e64f7ab1e</version_id>
-  <version_modified>20190404T222652Z</version_modified>
+  <name>output_variables_csv_export</name>
+  <uid>43192d87-c654-4996-b0c1-ab2d5f93f6e2</uid>
+  <version_id>1cec30e1-63be-4b68-b01a-2ac9a12f7c38</version_id>
+  <version_modified>20190404T222911Z</version_modified>
   <xml_checksum>15BF4E57</xml_checksum>
-  <class_name>TimeseriesCSVExport</class_name>
-  <display_name>Timeseries CSV Export</display_name>
-  <description>Exports timeseries output data to csv.</description>
-  <modeler_description>Exports all available timeseries enduses, subcategories, and output variables to csv file(s).</modeler_description>
+  <class_name>OutputVariablesCSVExport</class_name>
+  <display_name>Output Variables CSV Export</display_name>
+  <description>Exports output variables data to csv.</description>
+  <modeler_description>Test</modeler_description>
   <arguments>
     <argument>
       <name>reporting_frequency</name>
@@ -42,23 +42,12 @@
       </choices>
     </argument>
     <argument>
-      <name>include_enduse_subcategories</name>
-      <display_name>Include End Use Subcategories</display_name>
-      <description>Whether to report end use subcategories: refrigerator, clothes dryer, plug loads, etc.</description>
-      <type>Boolean</type>
-      <required>true</required>
+      <name>output_variables</name>
+      <display_name>Output Variables</display_name>
+      <description>Specify a comma-separated list of output variables to report. (See EnergyPlus's rdd file for available output variables.)</description>
+      <type>String</type>
+      <required>false</required>
       <model_dependent>false</model_dependent>
-      <default_value>false</default_value>
-      <choices>
-        <choice>
-          <value>true</value>
-          <display_name>true</display_name>
-        </choice>
-        <choice>
-          <value>false</value>
-          <display_name>false</display_name>
-        </choice>
-      </choices>
     </argument>
   </arguments>
   <outputs/>
@@ -77,13 +66,13 @@
     <file>
       <version>
         <software_program>OpenStudio</software_program>
-        <identifier>2.0.5</identifier>
-        <min_compatible>2.0.5</min_compatible>
+        <identifier>2.7.0</identifier>
+        <min_compatible>2.7.0</min_compatible>
       </version>
       <filename>measure.rb</filename>
       <filetype>rb</filetype>
       <usage_type>script</usage_type>
-      <checksum>7181C40F</checksum>
+      <checksum>890210E4</checksum>
     </file>
   </files>
 </measure>
