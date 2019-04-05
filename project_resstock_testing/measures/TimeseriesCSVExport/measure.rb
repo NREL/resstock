@@ -306,14 +306,6 @@ class TimeseriesCSVExport < OpenStudio::Measure::ReportingMeasure
     units.each do |unit|
       unit_name = unit.name.to_s.upcase
 
-      thermal_zones = []
-      unit.spaces.each do |space|
-        thermal_zone = space.thermalZone.get
-        unless thermal_zones.include? thermal_zone
-          thermal_zones << thermal_zone
-        end
-      end
-
       units_represented = 1
       if unit.additionalProperties.getFeatureAsInteger("Units Represented").is_initialized
         units_represented = unit.additionalProperties.getFeatureAsInteger("Units Represented").get
