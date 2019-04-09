@@ -16,7 +16,7 @@ analysis_id = 'abc123'
 
 # get variables from the variables object now instead of using the "superset_of_input_variables"
 analysis = Analysis.find(analysis_id)
-variables, data = AnalysesController.new.send(:get_analysis_data, analysis, nil, false, {export: true})
+variables, data = AnalysesController.new.send(:get_analysis_data, analysis, nil, false, { export: true })
 static_fields = %w(name _id run_start_time run_end_time status status_message)
 
 filename = "#{analysis.name}.csv"
