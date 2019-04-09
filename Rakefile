@@ -129,7 +129,7 @@ def copy_measures(beopt_measures_dir, buildstock_resource_measures_dir)
     next if not Dir.exist?(beopt_measure_dir)
     puts "Copying #{beopt_measure} measure..."
     FileUtils.cp_r(beopt_measure_dir, buildstock_resource_measures_dir)
-    ["coverage","tests"].each do |subdir|
+    ["coverage"].each do |subdir|
       buildstock_resource_measures_subdir = File.join(buildstock_resource_measures_dir, beopt_measure, subdir)
       if Dir.exist?(buildstock_resource_measures_subdir)
         FileUtils.rm_rf("#{buildstock_resource_measures_subdir}/.", secure: true)
@@ -140,12 +140,12 @@ end
 
 def copy_other_measures(beopt_measures_dir)
   # Copy other measures to measures/ dir
-  other_measures = ["TimeseriesCSVExport", "OutputVariablesCSVExport", "ResidentialSimulationControls"] # Still under development or one-off: "UtilityBillCalculations", "Outages", "ResilienceMetricsReport", "ConstructionPropertiesReport"
+  other_measures = ["TimeseriesCSVExport", "ResidentialSimulationControls"] # Still under development or one-off: "UtilityBillCalculations", "Outages", "ResilienceMetricsReport", "ConstructionPropertiesReport"
   buildstock_measures_dir = File.join(File.dirname(__FILE__), "measures")
   other_measures.each do |other_measure|
     puts "Copying #{other_measure} measure..."
     FileUtils.cp_r(File.join(beopt_measures_dir, other_measure), buildstock_measures_dir)
-    ["coverage","tests"].each do |subdir|
+    ["coverage"].each do |subdir|
       buildstock_measure_subdir = File.join(buildstock_measures_dir, other_measure, subdir)
       if Dir.exist?(buildstock_measure_subdir)
         FileUtils.rm_rf("#{buildstock_measure_subdir}/.", secure: true)
