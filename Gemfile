@@ -17,3 +17,11 @@ end
 
 # Specify the JSON dependency so that rubocop and other gem do not try to install it
 gem 'json', '~> 1.8'
+
+gem 'ffi', '~> 1.9.18'
+
+gem 'openstudio-standards', '0.2.6'
+gem 'aes', '~> 0.5.0'
+gem 'geocoder', '~> 1.4.4'
+gem 'highline'
+gem 'launchy'
