@@ -7,7 +7,7 @@ require 'csv'
 require 'parallel'
 
 # Download the results csv if it doesn't already exist
-def retrieve_results_csv(local_results_dir, server_dns=nil, analysis_id=nil)
+def retrieve_results_csv(local_results_dir, server_dns = nil, analysis_id = nil)
   # Verify localResults directory
   unless File.basename(local_results_dir) == 'localResults'
     fail "ERROR: input #{local_results_dir} does not point to localResults"
@@ -19,6 +19,7 @@ def retrieve_results_csv(local_results_dir, server_dns=nil, analysis_id=nil)
   end
 
   return unless dest.nil?
+
   dest = File.join local_results_dir, "results.csv"
 
   url = URI.parse("#{server_dns}/analyses/#{analysis_id}/download_data.csv?")
@@ -34,6 +35,7 @@ def retrieve_results_csv(local_results_dir, server_dns=nil, analysis_id=nil)
     if total == 0
       fail "Did not successfully download #{dest}."
     end
+
     size = 0
     progress = 0
     open dest, 'wb' do |io|
@@ -52,7 +54,6 @@ def retrieve_results_csv(local_results_dir, server_dns=nil, analysis_id=nil)
   unless File.exist? dest
     fail "ERROR: Unable to download #{dest}."
   end
-
 end
 
 def unzip_archive(archive)
@@ -65,18 +66,19 @@ end
 def retrieve_dps(local_results_dir)
   dps = []
   Dir["#{local_results_dir}/*.csv"].each do |item|
-    rows = CSV.read(item, {:encoding=>'ISO-8859-1'})
+    rows = CSV.read(item, { :encoding => 'ISO-8859-1' })
     rows.each_with_index do |row, i|
       next if i == 0
       next unless row[4] == 'completed'
-      dps << {:_id => row[1]}
-    end    
+
+      dps << { :_id => row[1] }
+    end
   end
   return dps
 end
 
 # Download any datapoint that is not already in the localResults directory
-def retrieve_dp_data(local_results_dir, server_dns=nil, unzip=false)
+def retrieve_dp_data(local_results_dir, server_dns = nil, unzip = false)
   # Verify localResults directory
   unless File.basename(local_results_dir) == 'localResults'
     fail "ERROR: input #{local_results_dir} does not point to localResults"
@@ -87,28 +89,28 @@ def retrieve_dp_data(local_results_dir, server_dns=nil, unzip=false)
   if dps.empty?
     fail "ERROR: No datapoints were found."
   end
-  
+
   # Only download datapoints which do not already exist
   interval = 1
   report_at = interval
   timestep = Time.now
   num_parallel = Etc.nprocessors
   Parallel.each_with_index(dps, in_threads: num_parallel) do |dp, i|
-
     dest = File.join local_results_dir, dp[:_id]
     dp[:file] = File.join(dest, 'data_point.zip')
     next if File.exist? dp[:file]
-      
+
     url = URI.parse("#{server_dns}/data_points/#{dp[:_id]}/download_result_file?")
     http = Net::HTTP.new(url.host, url.port)
 
     params = { 'filename' => 'data_point.zip' }
     url.query = URI.encode_www_form(params)
     request = Net::HTTP::Get.new(url.request_uri)
-    
+
     begin
       http.request request do |response|
         next unless response.kind_of? Net::HTTPSuccess
+
         unless File.exist? dest
           Dir.mkdir dest
         end
@@ -118,7 +120,7 @@ def retrieve_dp_data(local_results_dir, server_dns=nil, unzip=false)
           end
           puts "Worker #{Parallel.worker_number}, DOWNLOADED: #{dp[:file]}"
         end
-        unzip_archive(dp[:file]) if unzip        
+        unzip_archive(dp[:file]) if unzip
       end
     rescue => error
       puts "Datapoint #{File.basename(File.dirname(dp[:file]))}, ERROR:"
@@ -127,16 +129,14 @@ def retrieve_dp_data(local_results_dir, server_dns=nil, unzip=false)
       end
       next
     end
-    
+
     # Report out progress
     if i.to_f * 100 / dps.length >= report_at
       puts "INFO: Completed #{report_at}%; #{(Time.now - timestep).round}s"
       report_at += interval
       timestep = Time.now
     end
-    
   end
-
 end
 
 # Initialize optionsParser ARGV hash
@@ -169,7 +169,7 @@ optparse = OptionParser.new do |opts|
   opts.on('-u', '--unzip', 'extract data_point.zip contents') do |zip|
     options[:unzip] = true
   end
-  
+
   opts.on_tail('-h', '--help', 'display help') do
     puts opts
     exit

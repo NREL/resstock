@@ -7,12 +7,10 @@
 # Copywrite the Alliance for Sustainable Energy LLC
 # License: BSD3+1
 
-
 require 'optparse'
 require 'openstudio-analysis'
 require 'fileutils'
 require 'zip'
-
 
 # Unzip an archive to a destination directory using Rubyzip gem
 #
@@ -31,14 +29,13 @@ def unzip_archive(archive, dest)
   end
 end
 
-
 # Download any datapoint that is not already in the localResults directory
 #
 # @param local_result_dir [::String] path to the localResults directory
 # @param server_api [::OpenStudio::Analysis::ServerApi] API to serve zips
 # @param interval [::Fixnum] Percent interval to report progress to STDOUT
 # @return [logical] Indicates if any errors were caught
-def retrieve_dp_data(local_results_dir, server_api, interval=5, analysis_id=nil, unzip=false)
+def retrieve_dp_data(local_results_dir, server_api, interval = 5, analysis_id = nil, unzip = false)
   # Verify localResults directory
   unless File.basename(local_results_dir) == 'localResults'
     fail "ERROR: input #{local_results_dir} does not point to localResults"
@@ -86,7 +83,6 @@ def retrieve_dp_data(local_results_dir, server_api, interval=5, analysis_id=nil,
   dps_error_count
 end
 
-
 # Initialize optionsParser ARGV hash
 options = {}
 
@@ -115,7 +111,7 @@ optparse = OptionParser.new do |opts|
   opts.on('-u', '--unzip', 'extract data_point.zip contents') do |zip|
     options[:unzip] = true
   end
-  
+
   opts.on_tail('-h', '--help', 'display help') do
     puts opts
     exit
@@ -149,5 +145,6 @@ end
 Zip.warn_invalid_date = false
 failed_dps = retrieve_dp_data(local_results_dir, server_api, 1, options[:a_id], options[:unzip])
 fail "ERROR: Retrieval failed #{failed_dps} times" if failed_dps != 0
+
 puts 'SUCCESS: Exiting'
 exit 0
