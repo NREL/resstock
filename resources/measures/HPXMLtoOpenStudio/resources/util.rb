@@ -550,3 +550,1093 @@ class OutputVariables
     return twbg # degC
   end
 end
+
+class OutputMeters
+  def self.create_custom_building_unit_meters(model, runner, reporting_frequency, include_enduse_subcategories = false)
+    # Initialize custom meter hash containing meter names and key/var groups
+    custom_meter_infos = {}
+
+    # Get building units
+    units = Geometry.get_building_units(model, runner)
+
+    units.each do |unit|
+      # Get all zones in unit
+      thermal_zones = []
+      unit.spaces.each do |space|
+        thermal_zone = space.thermalZone.get
+        unless thermal_zones.include? thermal_zone
+          thermal_zones << thermal_zone
+        end
+      end
+
+      electricity_heating(custom_meter_infos, model, runner, unit, thermal_zones)
+      electricity_cooling(custom_meter_infos, model, runner, unit, thermal_zones)
+      electricity_interior_lighting(custom_meter_infos, model, runner, unit, thermal_zones)
+      electricity_exterior_lighting(custom_meter_infos, model, runner, unit, thermal_zones)
+      electricity_interior_equipment(custom_meter_infos, model, runner, unit, thermal_zones)
+      electricity_fans_heating(custom_meter_infos, model, runner, unit, thermal_zones)
+      electricity_fans_cooling(custom_meter_infos, model, runner, unit, thermal_zones)
+      electricity_pumps_heating(custom_meter_infos, model, runner, unit, thermal_zones)
+      electricity_pumps_cooling(custom_meter_infos, model, runner, unit, thermal_zones)
+      electricity_water_systems(custom_meter_infos, model, runner, unit, thermal_zones)
+      electricity_photovoltaics(custom_meter_infos, model, runner, unit, thermal_zones)
+      natural_gas_heating(custom_meter_infos, model, runner, unit, thermal_zones)
+      natural_gas_interior_equipment(custom_meter_infos, model, runner, unit, thermal_zones)
+      natural_gas_water_systems(custom_meter_infos, model, runner, unit, thermal_zones)
+      fuel_oil_heating(custom_meter_infos, model, runner, unit, thermal_zones)
+      fuel_oil_interior_equipment(custom_meter_infos, model, runner, unit, thermal_zones)
+      fuel_oil_water_systems(custom_meter_infos, model, runner, unit, thermal_zones)
+      propane_heating(custom_meter_infos, model, runner, unit, thermal_zones)
+      propane_interior_equipment(custom_meter_infos, model, runner, unit, thermal_zones)
+      propane_water_systems(custom_meter_infos, model, runner, unit, thermal_zones)
+
+      if include_enduse_subcategories
+        electricity_refrigerator(custom_meter_infos, model, runner, unit, thermal_zones)
+        electricity_clothes_washer(custom_meter_infos, model, runner, unit, thermal_zones)
+        electricity_clothes_dryer(custom_meter_infos, model, runner, unit, thermal_zones)
+        natural_gas_clothes_dryer(custom_meter_infos, model, runner, unit, thermal_zones)
+        propane_clothes_dryer(custom_meter_infos, model, runner, unit, thermal_zones)
+        electricity_cooking_range(custom_meter_infos, model, runner, unit, thermal_zones)
+        natural_gas_cooking_range(custom_meter_infos, model, runner, unit, thermal_zones)
+        propane_cooking_range(custom_meter_infos, model, runner, unit, thermal_zones)
+        electricity_dishwasher(custom_meter_infos, model, runner, unit, thermal_zones)
+        electricity_plug_loads(custom_meter_infos, model, runner, unit, thermal_zones)
+        electricity_house_fan(custom_meter_infos, model, runner, unit, thermal_zones)
+        electricity_range_fan(custom_meter_infos, model, runner, unit, thermal_zones)
+        electricity_bath_fan(custom_meter_infos, model, runner, unit, thermal_zones)
+        electricity_ceiling_fan(custom_meter_infos, model, runner, unit, thermal_zones)
+        electricity_extra_refrigerator(custom_meter_infos, model, runner, unit, thermal_zones)
+        electricity_freezer(custom_meter_infos, model, runner, unit, thermal_zones)
+        electricity_pool_heater(custom_meter_infos, model, runner, unit, thermal_zones)
+        natural_gas_pool_heater(custom_meter_infos, model, runner, unit, thermal_zones)
+        electricity_pool_pump(custom_meter_infos, model, runner, unit, thermal_zones)
+        electricity_hot_tub_heater(custom_meter_infos, model, runner, unit, thermal_zones)
+        natural_gas_hot_tub_heater(custom_meter_infos, model, runner, unit, thermal_zones)
+        electricity_hot_tub_pump(custom_meter_infos, model, runner, unit, thermal_zones)
+        natural_gas_grill(custom_meter_infos, model, runner, unit, thermal_zones)
+        natural_gas_lighting(custom_meter_infos, model, runner, unit, thermal_zones)
+        natural_gas_fireplace(custom_meter_infos, model, runner, unit, thermal_zones)
+        electricity_well_pump(custom_meter_infos, model, runner, unit, thermal_zones)
+      end
+    end
+
+    results = OpenStudio::IdfObjectVector.new
+    custom_meter_infos.each do |meter_name, custom_meter_info|
+      next if custom_meter_info["key_var_groups"].empty?
+
+      custom_meter = create_custom_meter(meter_name: meter_name,
+                                         fuel_type: custom_meter_info["fuel_type"],
+                                         key_var_groups: custom_meter_info["key_var_groups"])
+      results << OpenStudio::IdfObject.load(custom_meter).get
+      results << OpenStudio::IdfObject.load("Output:Meter,#{meter_name},#{reporting_frequency};").get
+    end
+
+    return results
+  end
+
+  def self.create_custom_meter(meter_name:,
+                               fuel_type:,
+                               key_var_groups:)
+    custom_meter = "Meter:Custom,#{meter_name},#{fuel_type}"
+    key_var_groups.each do |key_var_group|
+      key, var = key_var_group
+      custom_meter += ",#{key},#{var}"
+    end
+    custom_meter += ";"
+    return custom_meter
+  end
+
+  def self.electricity_heating(custom_meter_infos, model, runner, unit, thermal_zones)
+    custom_meter_infos["#{unit.name}:ElectricityHeating"] = { "fuel_type" => "Electricity", "key_var_groups" => [] }
+    custom_meter_infos["Central:ElectricityHeating"] = { "fuel_type" => "Electricity", "key_var_groups" => [] }
+    thermal_zones.each do |thermal_zone|
+      heating_equipment = HVAC.existing_heating_equipment(model, runner, thermal_zone)
+      heating_equipment.each do |htg_equip|
+        clg_coil, htg_coil, supp_htg_coil = HVAC.get_coils_from_hvac_equip(htg_equip)
+        if htg_equip.is_a? OpenStudio::Model::AirLoopHVACUnitarySystem
+          custom_meter_infos["#{unit.name}:ElectricityHeating"]["key_var_groups"] << ["#{htg_coil.name}", "Heating Coil Electric Energy"]
+          custom_meter_infos["#{unit.name}:ElectricityHeating"]["key_var_groups"] << ["#{htg_equip.name}", "Unitary System Heating Ancillary Electric Energy"]
+          unless htg_coil.is_a? OpenStudio::Model::CoilCoolingWaterToAirHeatPumpEquationFit
+            custom_meter_infos["#{unit.name}:ElectricityHeating"]["key_var_groups"] << ["#{htg_coil.name}", "Heating Coil Defrost Electric Energy"]
+            custom_meter_infos["#{unit.name}:ElectricityHeating"]["key_var_groups"] << ["#{htg_coil.name}", "Heating Coil Crankcase Heater Electric Energy"]
+          end
+          unless supp_htg_coil.nil?
+            custom_meter_infos["#{unit.name}:ElectricityHeating"]["key_var_groups"] << ["#{supp_htg_coil.name}", "Heating Coil Electric Energy"]
+          end
+        elsif htg_equip.is_a? OpenStudio::Model::ZoneHVACBaseboardConvectiveWater
+
+          model.getPlantLoops.each do |plant_loop|
+            is_specified_zone = false
+            units_served = []
+            plant_loop.demandComponents.each do |demand_component|
+              next unless demand_component.to_CoilHeatingWaterBaseboard.is_initialized
+
+              demand_coil = demand_component.to_CoilHeatingWaterBaseboard.get
+              thermal_zone_served = demand_coil.containingZoneHVACComponent.get.thermalZone.get
+              thermal_zone_served.spaces.each do |space_served|
+                unit_served = space_served.buildingUnit.get
+                next if units_served.include? unit_served
+
+                units_served << unit_served
+              end
+              next if thermal_zone_served != thermal_zone
+
+              is_specified_zone = true
+            end
+            next unless is_specified_zone
+
+            plant_loop.supplyComponents.each do |supply_component|
+              next unless supply_component.to_BoilerHotWater.is_initialized
+
+              if units_served.length != 1 # this is a central system
+                custom_meter_infos["Central:ElectricityHeating"]["key_var_groups"] << ["#{supply_component.name}", "Boiler Electric Energy"]
+                custom_meter_infos["Central:ElectricityHeating"]["key_var_groups"] << ["#{supply_component.name}", "Boiler Ancillary Electric Energy"]
+              else
+                custom_meter_infos["#{unit.name}:ElectricityHeating"]["key_var_groups"] << ["#{supply_component.name}", "Boiler Electric Energy"]
+                custom_meter_infos["#{unit.name}:ElectricityHeating"]["key_var_groups"] << ["#{supply_component.name}", "Boiler Ancillary Electric Energy"]
+              end
+            end
+          end
+
+        elsif htg_equip.is_a? OpenStudio::Model::ZoneHVACBaseboardConvectiveElectric
+          custom_meter_infos["#{unit.name}:ElectricityHeating"]["key_var_groups"] << ["#{htg_equip.name}", "Baseboard Electric Energy"]
+
+        elsif htg_equip.is_a? OpenStudio::Model::ZoneHVACFourPipeFanCoil or htg_equip.is_a? OpenStudio::Model::ZoneHVACPackagedTerminalAirConditioner
+
+          model.getPlantLoops.each do |plant_loop|
+            is_specified_zone = false
+            units_served = []
+            plant_loop.demandComponents.each do |demand_component|
+              next unless demand_component.to_CoilHeatingWater.is_initialized
+
+              demand_coil = demand_component.to_CoilHeatingWater.get
+              thermal_zone_served = demand_coil.containingZoneHVACComponent.get.thermalZone.get
+              thermal_zone_served.spaces.each do |space_served|
+                unit_served = space_served.buildingUnit.get
+                next if units_served.include? unit_served
+
+                units_served << unit_served
+              end
+              next if thermal_zone_served != thermal_zone
+
+              is_specified_zone = true
+            end
+            next unless is_specified_zone
+
+            plant_loop.supplyComponents.each do |supply_component|
+              next unless supply_component.to_BoilerHotWater.is_initialized
+
+              if units_served.length != 1 # this is a central system
+                custom_meter_infos["Central:ElectricityHeating"]["key_var_groups"] << ["#{supply_component.name}", "Boiler Electric Energy"]
+                custom_meter_infos["Central:ElectricityHeating"]["key_var_groups"] << ["#{supply_component.name}", "Boiler Ancillary Electric Energy"]
+              else
+                custom_meter_infos["#{unit.name}:ElectricityHeating"]["key_var_groups"] << ["#{supply_component.name}", "Boiler Electric Energy"]
+                custom_meter_infos["#{unit.name}:ElectricityHeating"]["key_var_groups"] << ["#{supply_component.name}", "Boiler Ancillary Electric Energy"]
+              end
+            end
+          end
+
+        end
+      end
+    end
+  end
+
+  def self.electricity_cooling(custom_meter_infos, model, runner, unit, thermal_zones)
+    custom_meter_infos["#{unit.name}:ElectricityCooling"] = { "fuel_type" => "Electricity", "key_var_groups" => [] }
+    custom_meter_infos["Central:ElectricityCooling"] = { "fuel_type" => "Electricity", "key_var_groups" => [] }
+    thermal_zones.each do |thermal_zone|
+      cooling_equipment = HVAC.existing_cooling_equipment(model, runner, thermal_zone)
+      cooling_equipment.each do |clg_equip|
+        clg_coil, htg_coil, supp_htg_coil = HVAC.get_coils_from_hvac_equip(clg_equip)
+
+        if clg_equip.is_a? OpenStudio::Model::AirLoopHVACUnitarySystem
+          custom_meter_infos["#{unit.name}:ElectricityCooling"]["key_var_groups"] << ["#{clg_coil.name}", "Cooling Coil Electric Energy"]
+          custom_meter_infos["#{unit.name}:ElectricityCooling"]["key_var_groups"] << ["#{clg_equip.name}", "Unitary System Cooling Ancillary Electric Energy"]
+          unless clg_coil.is_a? OpenStudio::Model::CoilCoolingWaterToAirHeatPumpEquationFit
+            custom_meter_infos["#{unit.name}:ElectricityCooling"]["key_var_groups"] << ["#{clg_coil.name}", "Cooling Coil Crankcase Heater Electric Energy"]
+          end
+        elsif clg_equip.is_a? OpenStudio::Model::ZoneHVACPackagedTerminalAirConditioner
+          custom_meter_infos["#{unit.name}:ElectricityCooling"]["key_var_groups"] << ["#{clg_coil.name}", "Cooling Coil Electric Energy"]
+        elsif clg_equip.is_a? OpenStudio::Model::ZoneHVACFourPipeFanCoil
+          model.getPlantLoops.each do |plant_loop|
+            is_specified_zone = false
+            units_served = []
+            plant_loop.demandComponents.each do |demand_component|
+              next unless demand_component.to_CoilCoolingWater.is_initialized
+
+              demand_coil = demand_component.to_CoilCoolingWater.get
+              thermal_zone_served = demand_coil.containingZoneHVACComponent.get.thermalZone.get
+              thermal_zone_served.spaces.each do |space_served|
+                unit_served = space_served.buildingUnit.get
+                next if units_served.include? unit_served
+
+                units_served << unit_served
+              end
+              next if thermal_zone_served != thermal_zone
+
+              is_specified_zone = true
+            end
+            next unless is_specified_zone
+
+            plant_loop.supplyComponents.each do |supply_component|
+              next unless supply_component.to_ChillerElectricEIR.is_initialized
+
+              if units_served.length != 1 # this is a central system
+                custom_meter_infos["Central:ElectricityCooling"]["key_var_groups"] << ["#{supply_component.name}", "Chiller Electric Energy"]
+              else
+                custom_meter_infos["#{unit.name}:ElectricityCooling"]["key_var_groups"] << ["#{supply_component.name}", "Chiller Electric Energy"]
+              end
+            end
+          end
+
+        end
+      end
+      dehumidifiers = HVAC.get_dehumidifiers(model, runner, thermal_zone)
+      dehumidifiers.each do |dehumidifier|
+        custom_meter_infos["#{unit.name}:ElectricityCooling"]["key_var_groups"] << ["#{dehumidifier.name}", "Zone Dehumidifier Electric Energy"]
+      end
+    end
+  end
+
+  def self.electricity_interior_lighting(custom_meter_infos, model, runner, unit, thermal_zones)
+    custom_meter_infos["#{unit.name}:ElectricityInteriorLighting"] = { "fuel_type" => "Electricity", "key_var_groups" => [] }
+    thermal_zones.each do |thermal_zone|
+      custom_meter_infos["#{unit.name}:ElectricityInteriorLighting"]["key_var_groups"] << ["", "InteriorLights:Electricity:Zone:#{thermal_zone.name}"]
+    end
+  end
+
+  def self.electricity_exterior_lighting(custom_meter_infos, model, runner, unit, thermal_zones)
+    custom_meter_infos["Central:ElectricityExteriorLighting"] = { "fuel_type" => "Electricity", "key_var_groups" => [] }
+    model.getExteriorLightss.each do |exterior_lights|
+      custom_meter_infos["Central:ElectricityExteriorLighting"]["key_var_groups"] << ["#{exterior_lights.name}", "Exterior Lights Electric Energy"]
+    end
+  end
+
+  def self.electricity_interior_equipment(custom_meter_infos, model, runner, unit, thermal_zones)
+    custom_meter_infos["#{unit.name}:ElectricityInteriorEquipment"] = { "fuel_type" => "Electricity", "key_var_groups" => [] }
+    unit.spaces.each do |space|
+      space.electricEquipment.each do |equip|
+        custom_meter_infos["#{unit.name}:ElectricityInteriorEquipment"]["key_var_groups"] << ["#{equip.name}", "Electric Equipment Electric Energy"]
+      end
+    end
+    custom_meter_infos["Central:ElectricityInteriorEquipment"] = { "fuel_type" => "Electricity", "key_var_groups" => [] }
+    model.getSpaces.each do |space|
+      next if space.buildingUnit.is_initialized
+
+      space.electricEquipment.each do |equip|
+        custom_meter_infos["Central:ElectricityInteriorEquipment"]["key_var_groups"] << ["#{equip.name}", "Electric Equipment Electric Energy"]
+      end
+    end
+  end
+
+  def self.electricity_fans_heating(custom_meter_infos, model, runner, unit, thermal_zones)
+    custom_meter_infos["#{unit.name}:ElectricityFansHeating"] = { "fuel_type" => "Electricity", "key_var_groups" => [] }
+    thermal_zones.each do |thermal_zone|
+      heating_equipment = HVAC.existing_heating_equipment(model, runner, thermal_zone)
+      heating_equipment.each do |htg_equip|
+        clg_coil, htg_coil, supp_htg_coil = HVAC.get_coils_from_hvac_equip(htg_equip)
+        if htg_equip.is_a? OpenStudio::Model::AirLoopHVACUnitarySystem
+          custom_meter_infos["#{unit.name}:ElectricityFansHeating"]["key_var_groups"] << ["#{htg_equip.supplyFan.get.name}", "Fan Electric Energy"]
+        elsif htg_equip.is_a? OpenStudio::Model::ZoneHVACUnitHeater
+          custom_meter_infos["#{unit.name}:ElectricityFansHeating"]["key_var_groups"] << ["#{htg_equip.supplyAirFan.to_FanConstantVolume.get.name}", "Fan Electric Energy"]
+        end
+      end
+    end
+    model.getPlantLoops.each do |plant_loop|
+      if plant_loop.name.to_s == Constants.PlantLoopDomesticWater(unit.name.to_s)
+        water_heater = Waterheater.get_water_heater(model, plant_loop, runner)
+        if water_heater.is_a? OpenStudio::Model::WaterHeaterHeatPumpWrappedCondenser
+          custom_meter_infos["#{unit.name}:ElectricityFansHeating"]["key_var_groups"] << ["#{water_heater.fan.name}", "Fan Electric Energy"]
+        end
+      end
+    end
+  end
+
+  def self.electricity_fans_cooling(custom_meter_infos, model, runner, unit, thermal_zones)
+    custom_meter_infos["#{unit.name}:ElectricityFansCooling"] = { "fuel_type" => "Electricity", "key_var_groups" => [] }
+    thermal_zones.each do |thermal_zone|
+      cooling_equipment = HVAC.existing_cooling_equipment(model, runner, thermal_zone)
+      cooling_equipment.each do |clg_equip|
+        clg_coil, htg_coil, supp_htg_coil = HVAC.get_coils_from_hvac_equip(clg_equip)
+        if clg_equip.is_a? OpenStudio::Model::AirLoopHVACUnitarySystem
+          custom_meter_infos["#{unit.name}:ElectricityFansCooling"]["key_var_groups"] << ["#{clg_equip.supplyFan.get.name}", "Fan Electric Energy"]
+        elsif clg_equip.is_a? OpenStudio::Model::ZoneHVACPackagedTerminalAirConditioner or clg_equip.is_a? OpenStudio::Model::ZoneHVACFourPipeFanCoil
+          custom_meter_infos["#{unit.name}:ElectricityFansCooling"]["key_var_groups"] << ["#{clg_equip.supplyAirFan.name}", "Fan Electric Energy"] # FIXME: all fan coil fan energy is assigned to fan cooling
+        end
+      end
+    end
+  end
+
+  def self.electricity_pumps_heating(custom_meter_infos, model, runner, unit, thermal_zones)
+    custom_meter_infos["#{unit.name}:ElectricityPumpsHeating"] = { "fuel_type" => "Electricity", "key_var_groups" => [] }
+    custom_meter_infos["Central:ElectricityPumpsHeating"] = { "fuel_type" => "Electricity", "key_var_groups" => [] }
+    model.getEnergyManagementSystemOutputVariables.each do |ems_output_var|
+      if ems_output_var.name.to_s.include? "Central htg pump:Pumps:Electricity"
+        custom_meter_infos["Central:ElectricityPumpsHeating"]["key_var_groups"] << ["", "#{ems_output_var.name}"]
+      elsif ems_output_var.name.to_s.include? "htg pump:Pumps:Electricity" and ems_output_var.emsVariableName.include? unit.name.to_s.gsub(" ", "_")
+        custom_meter_infos["#{unit.name}:ElectricityPumpsHeating"]["key_var_groups"] << ["", "#{ems_output_var.name}"]
+      end
+    end
+    model.getPumpConstantSpeeds.each do |pump| # shw pump
+      next unless pump.name.to_s.include? Constants.ObjectNameSolarHotWater
+
+      if (unit.name.to_s == "unit 1" and not pump.name.to_s.include? "unit") or pump.name.to_s.end_with? "#{unit.name.to_s} pump"
+        custom_meter_infos["#{unit.name}:ElectricityPumpsHeating"]["key_var_groups"] << ["#{pump.name}", "Pump Electric Energy"]
+      end
+    end
+  end
+
+  def self.electricity_pumps_cooling(custom_meter_infos, model, runner, unit, thermal_zones)
+    custom_meter_infos["#{unit.name}:ElectricityPumpsCooling"] = { "fuel_type" => "Electricity", "key_var_groups" => [] }
+    custom_meter_infos["Central:ElectricityPumpsCooling"] = { "fuel_type" => "Electricity", "key_var_groups" => [] }
+    model.getEnergyManagementSystemOutputVariables.each do |ems_output_var|
+      if ems_output_var.name.to_s.include? "Central clg pump:Pumps:Electricity"
+        custom_meter_infos["Central:ElectricityPumpsCooling"]["key_var_groups"] << ["", "#{ems_output_var.name}"]
+      elsif ems_output_var.name.to_s.include? "clg pump:Pumps:Electricity" and ems_output_var.emsVariableName.include? unit.name.to_s.gsub(" ", "_")
+        custom_meter_infos["#{unit.name}:ElectricityPumpsCooling"]["key_var_groups"] << ["", "#{ems_output_var.name}"]
+      end
+    end
+  end
+
+  def self.electricity_water_systems(custom_meter_infos, model, runner, unit, thermal_zones)
+    custom_meter_infos["#{unit.name}:ElectricityWaterSystems"] = { "fuel_type" => "Electricity", "key_var_groups" => [] }
+    model.getPlantLoops.each do |plant_loop|
+      if plant_loop.name.to_s == Constants.PlantLoopDomesticWater(unit.name.to_s)
+        water_heater = Waterheater.get_water_heater(model, plant_loop, runner)
+
+        if water_heater.is_a? OpenStudio::Model::WaterHeaterMixed
+          custom_meter_infos["#{unit.name}:ElectricityWaterSystems"]["key_var_groups"] << ["#{water_heater.name}", "Water Heater Off Cycle Parasitic Electric Energy"]
+          custom_meter_infos["#{unit.name}:ElectricityWaterSystems"]["key_var_groups"] << ["#{water_heater.name}", "Water Heater On Cycle Parasitic Electric Energy"]
+          next if water_heater.heaterFuelType != "Electricity"
+
+          custom_meter_infos["#{unit.name}:ElectricityWaterSystems"]["key_var_groups"] << ["#{water_heater.name}", "Water Heater Electric Energy"]
+        elsif water_heater.is_a? OpenStudio::Model::WaterHeaterHeatPumpWrappedCondenser
+          custom_meter_infos["#{unit.name}:ElectricityWaterSystems"]["key_var_groups"] << ["#{water_heater.name}", "Water Heater Off Cycle Ancillary Electric Energy"]
+          custom_meter_infos["#{unit.name}:ElectricityWaterSystems"]["key_var_groups"] << ["#{water_heater.name}", "Water Heater On Cycle Ancillary Electric Energy"]
+
+          tank = water_heater.tank.to_WaterHeaterStratified.get
+          custom_meter_infos["#{unit.name}:ElectricityWaterSystems"]["key_var_groups"] << ["#{tank.name}", "Water Heater Electric Energy"]
+          custom_meter_infos["#{unit.name}:ElectricityWaterSystems"]["key_var_groups"] << ["#{tank.name}", "Water Heater Off Cycle Parasitic Electric Energy"]
+          custom_meter_infos["#{unit.name}:ElectricityWaterSystems"]["key_var_groups"] << ["#{tank.name}", "Water Heater On Cycle Parasitic Electric Energy"]
+
+          coil = water_heater.dXCoil.to_CoilWaterHeatingAirToWaterHeatPumpWrapped.get
+          custom_meter_infos["#{unit.name}:ElectricityWaterSystems"]["key_var_groups"] << ["#{coil.name}", "Cooling Coil Crankcase Heater Electric Energy"]
+          custom_meter_infos["#{unit.name}:ElectricityWaterSystems"]["key_var_groups"] << ["#{coil.name}", "Cooling Coil Water Heating Electric Energy"]
+        end
+      end
+    end
+    shw_tank = Waterheater.get_shw_storage_tank(model, unit)
+    unless shw_tank.nil?
+      custom_meter_infos["#{unit.name}:ElectricityWaterSystems"]["key_var_groups"] << ["#{shw_tank.name}", "Water Heater Electric Energy"]
+      custom_meter_infos["#{unit.name}:ElectricityWaterSystems"]["key_var_groups"] << ["#{shw_tank.name}", "Water Heater Off Cycle Parasitic Electric Energy"]
+      custom_meter_infos["#{unit.name}:ElectricityWaterSystems"]["key_var_groups"] << ["#{shw_tank.name}", "Water Heater On Cycle Parasitic Electric Energy"]
+    end
+  end
+
+  def self.electricity_photovoltaics(custom_meter_infos, model, runner, unit, thermal_zones)
+    custom_meter_infos["Central:ElectricityPhotovoltaics"] = { "fuel_type" => "Electricity", "key_var_groups" => [] }
+    model.getGeneratorPVWattss.each do |generator_pvwatts|
+      custom_meter_infos["Central:ElectricityPhotovoltaics"]["key_var_groups"] << ["#{generator_pvwatts.name}", "Generator Produced DC Electric Energy"]
+    end
+    model.getElectricLoadCenterInverterPVWattss.each do |electric_load_center_inverter_pvwatts|
+      custom_meter_infos["Central:ElectricityPhotovoltaics"]["key_var_groups"] << ["#{electric_load_center_inverter_pvwatts.name}", "Inverter Conversion Loss Decrement Energy"]
+    end
+  end
+
+  def self.natural_gas_heating(custom_meter_infos, model, runner, unit, thermal_zones)
+    custom_meter_infos["#{unit.name}:NaturalGasHeating"] = { "fuel_type" => "NaturalGas", "key_var_groups" => [] }
+    custom_meter_infos["Central:NaturalGasHeating"] = { "fuel_type" => "NaturalGas", "key_var_groups" => [] }
+    thermal_zones.each do |thermal_zone|
+      heating_equipment = HVAC.existing_heating_equipment(model, runner, thermal_zone)
+      heating_equipment.each do |htg_equip|
+        clg_coil, htg_coil, supp_htg_coil = HVAC.get_coils_from_hvac_equip(htg_equip)
+
+        if htg_equip.is_a? OpenStudio::Model::AirLoopHVACUnitarySystem
+          custom_meter_infos["#{unit.name}:NaturalGasHeating"]["key_var_groups"] << ["#{htg_coil.name}", "Heating Coil Gas Energy"]
+          custom_meter_infos["#{unit.name}:NaturalGasHeating"]["key_var_groups"] << ["#{htg_coil.name}", "Heating Coil Ancillary Gas Energy"]
+
+        elsif htg_equip.is_a? OpenStudio::Model::ZoneHVACBaseboardConvectiveWater
+          model.getPlantLoops.each do |plant_loop|
+            is_specified_zone = false
+            units_served = []
+            plant_loop.demandComponents.each do |demand_component|
+              next unless demand_component.to_CoilHeatingWaterBaseboard.is_initialized
+
+              demand_coil = demand_component.to_CoilHeatingWaterBaseboard.get
+              thermal_zone_served = demand_coil.containingZoneHVACComponent.get.thermalZone.get
+              thermal_zone_served.spaces.each do |space_served|
+                unit_served = space_served.buildingUnit.get
+                next if units_served.include? unit_served
+
+                units_served << unit_served
+              end
+              next if thermal_zone_served != thermal_zone
+
+              is_specified_zone = true
+            end
+            next unless is_specified_zone
+
+            plant_loop.supplyComponents.each do |supply_component|
+              next unless supply_component.to_BoilerHotWater.is_initialized
+              next if supply_component.to_BoilerHotWater.get.fuelType != "NaturalGas"
+
+              if units_served.length != 1 # this is a central system
+                custom_meter_infos["Central:NaturalGasHeating"]["key_var_groups"] << ["#{supply_component.name}", "Boiler Gas Energy"]
+              else
+                custom_meter_infos["#{unit.name}:NaturalGasHeating"]["key_var_groups"] << ["#{supply_component.name}", "Boiler Gas Energy"]
+              end
+            end
+          end
+
+        elsif htg_equip.is_a? OpenStudio::Model::ZoneHVACFourPipeFanCoil or htg_equip.is_a? OpenStudio::Model::ZoneHVACPackagedTerminalAirConditioner
+          model.getPlantLoops.each do |plant_loop|
+            is_specified_zone = false
+            units_served = []
+            plant_loop.demandComponents.each do |demand_component|
+              next unless demand_component.to_CoilHeatingWater.is_initialized
+
+              demand_coil = demand_component.to_CoilHeatingWater.get
+              thermal_zone_served = demand_coil.containingZoneHVACComponent.get.thermalZone.get
+              thermal_zone_served.spaces.each do |space_served|
+                unit_served = space_served.buildingUnit.get
+                next if units_served.include? unit_served
+
+                units_served << unit_served
+              end
+              next if thermal_zone_served != thermal_zone
+
+              is_specified_zone = true
+            end
+            next unless is_specified_zone
+
+            plant_loop.supplyComponents.each do |supply_component|
+              next unless supply_component.to_BoilerHotWater.is_initialized
+
+              if units_served.length != 1 # this is a central system
+                custom_meter_infos["Central:NaturalGasHeating"]["key_var_groups"] << ["#{supply_component.name}", "Boiler Gas Energy"]
+              else
+                custom_meter_infos["#{unit.name}:NaturalGasHeating"]["key_var_groups"] << ["#{supply_component.name}", "Boiler Gas Energy"]
+              end
+            end
+          end
+        end
+      end
+    end
+  end
+
+  def self.natural_gas_interior_equipment(custom_meter_infos, model, runner, unit, thermal_zones)
+    custom_meter_infos["#{unit.name}:NaturalGasInteriorEquipment"] = { "fuel_type" => "NaturalGas", "key_var_groups" => [] }
+    unit.spaces.each do |space|
+      space.gasEquipment.each do |equip|
+        custom_meter_infos["#{unit.name}:NaturalGasInteriorEquipment"]["key_var_groups"] << ["#{equip.name}", "Gas Equipment Gas Energy"]
+      end
+      space.otherEquipment.each do |equip|
+        next if equip.fuelType != "NaturalGas"
+
+        custom_meter_infos["#{unit.name}:NaturalGasInteriorEquipment"]["key_var_groups"] << ["#{equip.name}", "Other Equipment Gas Energy"]
+      end
+    end
+    custom_meter_infos["Central:NaturalGasInteriorEquipment"] = { "fuel_type" => "NaturalGas", "key_var_groups" => [] }
+    model.getSpaces.each do |space|
+      next if space.buildingUnit.is_initialized
+
+      space.gasEquipment.each do |equip|
+        custom_meter_infos["Central:NaturalGasInteriorEquipment"]["key_var_groups"] << ["#{equip.name}", "Gas Equipment Gas Energy"]
+      end
+      space.otherEquipment.each do |equip|
+        next if equip.fuelType != "NaturalGas"
+
+        custom_meter_infos["Central:NaturalGasInteriorEquipment"]["key_var_groups"] << ["#{equip.name}", "Other Equipment Gas Energy"]
+      end
+    end
+  end
+
+  def self.natural_gas_water_systems(custom_meter_infos, model, runner, unit, thermal_zones)
+    custom_meter_infos["#{unit.name}:NaturalGasWaterSystems"] = { "fuel_type" => "NaturalGas", "key_var_groups" => [] }
+    model.getPlantLoops.each do |plant_loop|
+      if plant_loop.name.to_s == Constants.PlantLoopDomesticWater(unit.name.to_s)
+        water_heater = Waterheater.get_water_heater(model, plant_loop, runner)
+        next unless water_heater.is_a? OpenStudio::Model::WaterHeaterMixed
+        next if water_heater.heaterFuelType != "NaturalGas"
+
+        custom_meter_infos["#{unit.name}:NaturalGasWaterSystems"]["key_var_groups"] << ["#{water_heater.name}", "Water Heater Gas Energy"]
+      end
+    end
+  end
+
+  def self.fuel_oil_heating(custom_meter_infos, model, runner, unit, thermal_zones)
+    custom_meter_infos["#{unit.name}:FuelOilHeating"] = { "fuel_type" => "FuelOil#1", "key_var_groups" => [] }
+    custom_meter_infos["Central:FuelOilHeating"] = { "fuel_type" => "FuelOil#1", "key_var_groups" => [] }
+    thermal_zones.each do |thermal_zone|
+      heating_equipment = HVAC.existing_heating_equipment(model, runner, thermal_zone)
+      heating_equipment.each do |htg_equip|
+        clg_coil, htg_coil, supp_htg_coil = HVAC.get_coils_from_hvac_equip(htg_equip)
+
+        if htg_equip.is_a? OpenStudio::Model::AirLoopHVACUnitarySystem
+          custom_meter_infos["#{unit.name}:FuelOilHeating"]["key_var_groups"] << ["#{htg_coil.name}", "Heating Coil FuelOil#1 Energy"]
+          custom_meter_infos["#{unit.name}:FuelOilHeating"]["key_var_groups"] << ["#{htg_coil.name}", "Heating Coil Ancillary FuelOil#1 Energy"]
+
+        elsif htg_equip.is_a? OpenStudio::Model::ZoneHVACBaseboardConvectiveWater
+          model.getPlantLoops.each do |plant_loop|
+            is_specified_zone = false
+            units_served = []
+            plant_loop.demandComponents.each do |demand_component|
+              next unless demand_component.to_CoilHeatingWaterBaseboard.is_initialized
+
+              demand_coil = demand_component.to_CoilHeatingWaterBaseboard.get
+              thermal_zone_served = demand_coil.containingZoneHVACComponent.get.thermalZone.get
+              thermal_zone_served.spaces.each do |space_served|
+                unit_served = space_served.buildingUnit.get
+                next if units_served.include? unit_served
+
+                units_served << unit_served
+              end
+              next if thermal_zone_served != thermal_zone
+
+              is_specified_zone = true
+            end
+            next unless is_specified_zone
+
+            plant_loop.supplyComponents.each do |supply_component|
+              next unless supply_component.to_BoilerHotWater.is_initialized
+              next if supply_component.to_BoilerHotWater.get.fuelType != "FuelOil#1"
+
+              if units_served.length != 1 # this is a central system
+                custom_meter_infos["Central:FuelOilHeating"]["key_var_groups"] << ["#{supply_component.name}", "Boiler FuelOil#1 Energy"]
+              else
+                custom_meter_infos["#{unit.name}:FuelOilHeating"]["key_var_groups"] << ["#{supply_component.name}", "Boiler FuelOil#1 Energy"]
+              end
+            end
+          end
+
+        elsif htg_equip.is_a? OpenStudio::Model::ZoneHVACFourPipeFanCoil or htg_equip.is_a? OpenStudio::Model::ZoneHVACPackagedTerminalAirConditioner
+          model.getPlantLoops.each do |plant_loop|
+            is_specified_zone = false
+            units_served = []
+            plant_loop.demandComponents.each do |demand_component|
+              next unless demand_component.to_CoilHeatingWater.is_initialized
+
+              demand_coil = demand_component.to_CoilHeatingWater.get
+              thermal_zone_served = demand_coil.containingZoneHVACComponent.get.thermalZone.get
+              thermal_zone_served.spaces.each do |space_served|
+                unit_served = space_served.buildingUnit.get
+                next if units_served.include? unit_served
+
+                units_served << unit_served
+              end
+              next if thermal_zone_served != thermal_zone
+
+              is_specified_zone = true
+            end
+            next unless is_specified_zone
+
+            plant_loop.supplyComponents.each do |supply_component|
+              next unless supply_component.to_BoilerHotWater.is_initialized
+
+              if units_served.length != 1 # this is a central system
+                custom_meter_infos["Central:FuelOilHeating"]["key_var_groups"] << ["#{supply_component.name}", "Boiler FuelOil#1 Energy"]
+              else
+                custom_meter_infos["#{unit.name}:FuelOilHeating"]["key_var_groups"] << ["#{supply_component.name}", "Boiler FuelOil#1 Energy"]
+              end
+            end
+          end
+
+        end
+      end
+    end
+  end
+
+  def self.fuel_oil_interior_equipment(custom_meter_infos, model, runner, unit, thermal_zones)
+    custom_meter_infos["#{unit.name}:FuelOilInteriorEquipment"] = { "fuel_type" => "FuelOil#1", "key_var_groups" => [] }
+    unit.spaces.each do |space|
+      space.otherEquipment.each do |equip|
+        next if equip.fuelType != "FuelOil#1"
+
+        custom_meter_infos["#{unit.name}:FuelOilInteriorEquipment"]["key_var_groups"] << ["#{equip.name}", "Other Equipment FuelOil#1 Energy"]
+      end
+    end
+    custom_meter_infos["Central:FuelOilInteriorEquipment"] = { "fuel_type" => "FuelOil#1", "key_var_groups" => [] }
+    model.getSpaces.each do |space|
+      next if space.buildingUnit.is_initialized
+
+      space.otherEquipment.each do |equip|
+        next if equip.fuelType != "FuelOil#1"
+
+        custom_meter_infos["Central:FuelOilInteriorEquipment"]["key_var_groups"] << ["#{equip.name}", "Other Equipment FuelOil#1 Energy"]
+      end
+    end
+  end
+
+  def self.fuel_oil_water_systems(custom_meter_infos, model, runner, unit, thermal_zones)
+    custom_meter_infos["#{unit.name}:FuelOilWaterSystems"] = { "fuel_type" => "FuelOil#1", "key_var_groups" => [] }
+    model.getPlantLoops.each do |plant_loop|
+      if plant_loop.name.to_s == Constants.PlantLoopDomesticWater(unit.name.to_s)
+        water_heater = Waterheater.get_water_heater(model, plant_loop, runner)
+        next unless water_heater.is_a? OpenStudio::Model::WaterHeaterMixed
+        next if water_heater.heaterFuelType != "FuelOil#1"
+
+        custom_meter_infos["#{unit.name}:FuelOilWaterSystems"]["key_var_groups"] << ["#{water_heater.name}", "Water Heater FuelOil#1 Energy"]
+      end
+    end
+  end
+
+  def self.propane_heating(custom_meter_infos, model, runner, unit, thermal_zones)
+    custom_meter_infos["#{unit.name}:PropaneHeating"] = { "fuel_type" => "PropaneGas", "key_var_groups" => [] }
+    custom_meter_infos["Central:PropaneHeating"] = { "fuel_type" => "PropaneGas", "key_var_groups" => [] }
+    thermal_zones.each do |thermal_zone|
+      heating_equipment = HVAC.existing_heating_equipment(model, runner, thermal_zone)
+      heating_equipment.each do |htg_equip|
+        clg_coil, htg_coil, supp_htg_coil = HVAC.get_coils_from_hvac_equip(htg_equip)
+
+        if htg_equip.is_a? OpenStudio::Model::AirLoopHVACUnitarySystem
+          custom_meter_infos["#{unit.name}:PropaneHeating"]["key_var_groups"] << ["#{htg_coil.name}", "Heating Coil Propane Energy"]
+          custom_meter_infos["#{unit.name}:PropaneHeating"]["key_var_groups"] << ["#{htg_coil.name}", "Heating Coil Ancillary Propane Energy"]
+
+        elsif htg_equip.is_a? OpenStudio::Model::ZoneHVACBaseboardConvectiveWater
+          model.getPlantLoops.each do |plant_loop|
+            is_specified_zone = false
+            units_served = []
+            plant_loop.demandComponents.each do |demand_component|
+              next unless demand_component.to_CoilHeatingWaterBaseboard.is_initialized
+
+              demand_coil = demand_component.to_CoilHeatingWaterBaseboard.get
+              thermal_zone_served = demand_coil.containingZoneHVACComponent.get.thermalZone.get
+              thermal_zone_served.spaces.each do |space_served|
+                unit_served = space_served.buildingUnit.get
+                next if units_served.include? unit_served
+
+                units_served << unit_served
+              end
+              next if thermal_zone_served != thermal_zone
+
+              is_specified_zone = true
+            end
+            next unless is_specified_zone
+
+            plant_loop.supplyComponents.each do |supply_component|
+              next unless supply_component.to_BoilerHotWater.is_initialized
+              next if supply_component.to_BoilerHotWater.get.fuelType != "PropaneGas"
+
+              if units_served.length != 1 # this is a central system
+                custom_meter_infos["Central:PropaneHeating"]["key_var_groups"] << ["#{supply_component.name}", "Boiler Propane Energy"]
+              else
+                custom_meter_infos["#{unit.name}:PropaneHeating"]["key_var_groups"] << ["#{supply_component.name}", "Boiler Propane Energy"]
+              end
+            end
+          end
+
+        elsif htg_equip.is_a? OpenStudio::Model::ZoneHVACFourPipeFanCoil or htg_equip.is_a? OpenStudio::Model::ZoneHVACPackagedTerminalAirConditioner
+          model.getPlantLoops.each do |plant_loop|
+            is_specified_zone = false
+            units_served = []
+            plant_loop.demandComponents.each do |demand_component|
+              next unless demand_component.to_CoilHeatingWater.is_initialized
+
+              demand_coil = demand_component.to_CoilHeatingWater.get
+              thermal_zone_served = demand_coil.containingZoneHVACComponent.get.thermalZone.get
+              thermal_zone_served.spaces.each do |space_served|
+                unit_served = space_served.buildingUnit.get
+                next if units_served.include? unit_served
+
+                units_served << unit_served
+              end
+              next if thermal_zone_served != thermal_zone
+
+              is_specified_zone = true
+            end
+            next unless is_specified_zone
+
+            plant_loop.supplyComponents.each do |supply_component|
+              next unless supply_component.to_BoilerHotWater.is_initialized
+
+              if units_served.length != 1 # this is a central system
+                custom_meter_infos["Central:PropaneHeating"]["key_var_groups"] << ["#{supply_component.name}", "Boiler Propane Energy"]
+              else
+                custom_meter_infos["#{unit.name}:PropaneHeating"]["key_var_groups"] << ["#{supply_component.name}", "Boiler Propane Energy"]
+              end
+            end
+          end
+        end
+      end
+    end
+  end
+
+  def self.propane_interior_equipment(custom_meter_infos, model, runner, unit, thermal_zones)
+    custom_meter_infos["#{unit.name}:PropaneInteriorEquipment"] = { "fuel_type" => "PropaneGas", "key_var_groups" => [] }
+    unit.spaces.each do |space|
+      space.otherEquipment.each do |equip|
+        next if equip.fuelType != "PropaneGas"
+
+        custom_meter_infos["#{unit.name}:PropaneInteriorEquipment"]["key_var_groups"] << ["#{equip.name}", "Other Equipment Propane Energy"]
+      end
+    end
+    custom_meter_infos["Central:PropaneInteriorEquipment"] = { "fuel_type" => "PropaneGas", "key_var_groups" => [] }
+    model.getSpaces.each do |space|
+      next if space.buildingUnit.is_initialized
+
+      space.otherEquipment.each do |equip|
+        next if equip.fuelType != "PropaneGas"
+
+        custom_meter_infos["Central:PropaneInteriorEquipment"]["key_var_groups"] << ["#{equip.name}", "Other Equipment Propane Energy"]
+      end
+    end
+  end
+
+  def self.propane_water_systems(custom_meter_infos, model, runner, unit, thermal_zones)
+    custom_meter_infos["#{unit.name}:PropaneWaterSystems"] = { "fuel_type" => "PropaneGas", "key_var_groups" => [] }
+    model.getPlantLoops.each do |plant_loop|
+      if plant_loop.name.to_s == Constants.PlantLoopDomesticWater(unit.name.to_s)
+        water_heater = Waterheater.get_water_heater(model, plant_loop, runner)
+        next unless water_heater.is_a? OpenStudio::Model::WaterHeaterMixed
+        next if water_heater.heaterFuelType != "PropaneGas"
+
+        custom_meter_infos["#{unit.name}:PropaneWaterSystems"]["key_var_groups"] << ["#{water_heater.name}", "Water Heater Propane Energy"]
+      end
+    end
+  end
+
+  def self.electricity_refrigerator(custom_meter_infos, model, runner, unit, thermal_zones)
+    custom_meter_infos["#{unit.name}:ElectricityRefrigerator"] = { "fuel_type" => "Electricity", "key_var_groups" => [] }
+    unit.spaces.each do |space|
+      space.electricEquipment.each do |equip|
+        next unless equip.endUseSubcategory.include? Constants.ObjectNameRefrigerator
+
+        custom_meter_infos["#{unit.name}:ElectricityRefrigerator"]["key_var_groups"] << ["#{equip.name}", "Electric Equipment Electric Energy"]
+      end
+    end
+  end
+
+  def self.electricity_clothes_washer(custom_meter_infos, model, runner, unit, thermal_zones)
+    custom_meter_infos["#{unit.name}:ElectricityClothesWasher"] = { "fuel_type" => "Electricity", "key_var_groups" => [] }
+    unit.spaces.each do |space|
+      space.electricEquipment.each do |equip|
+        next unless equip.endUseSubcategory.include? Constants.ObjectNameClothesWasher
+
+        custom_meter_infos["#{unit.name}:ElectricityClothesWasher"]["key_var_groups"] << ["#{equip.name}", "Electric Equipment Electric Energy"]
+      end
+    end
+  end
+
+  def self.electricity_clothes_dryer(custom_meter_infos, model, runner, unit, thermal_zones)
+    custom_meter_infos["#{unit.name}:ElectricityClothesDryer"] = { "fuel_type" => "Electricity", "key_var_groups" => [] }
+    unit.spaces.each do |space|
+      space.electricEquipment.each do |equip|
+        next unless equip.endUseSubcategory.include? Constants.ObjectNameClothesDryer(nil)
+
+        custom_meter_infos["#{unit.name}:ElectricityClothesDryer"]["key_var_groups"] << ["#{equip.name}", "Electric Equipment Electric Energy"]
+      end
+    end
+  end
+
+  def self.natural_gas_clothes_dryer(custom_meter_infos, model, runner, unit, thermal_zones)
+    custom_meter_infos["#{unit.name}:NaturalGasClothesDryer"] = { "fuel_type" => "NaturalGas", "key_var_groups" => [] }
+    unit.spaces.each do |space|
+      space.otherEquipment.each do |equip|
+        next unless equip.fuelType == "NaturalGas"
+        next unless equip.endUseSubcategory.include? Constants.ObjectNameClothesDryer(nil)
+
+        custom_meter_infos["#{unit.name}:NaturalGasClothesDryer"]["key_var_groups"] << ["#{equip.name}", "Other Equipment Gas Energy"]
+      end
+    end
+  end
+
+  def self.propane_clothes_dryer(custom_meter_infos, model, runner, unit, thermal_zones)
+    custom_meter_infos["#{unit.name}:PropaneClothesDryer"] = { "fuel_type" => "PropaneGas", "key_var_groups" => [] }
+    unit.spaces.each do |space|
+      space.otherEquipment.each do |equip|
+        next unless equip.fuelType == "PropaneGas"
+        next unless equip.endUseSubcategory.include? Constants.ObjectNameClothesDryer(nil)
+
+        custom_meter_infos["#{unit.name}:PropaneClothesDryer"]["key_var_groups"] << ["#{equip.name}", "Other Equipment Propane Energy"]
+      end
+    end
+  end
+
+  def self.electricity_cooking_range(custom_meter_infos, model, runner, unit, thermal_zones)
+    custom_meter_infos["#{unit.name}:ElectricityCookingRange"] = { "fuel_type" => "Electricity", "key_var_groups" => [] }
+    unit.spaces.each do |space|
+      space.electricEquipment.each do |equip|
+        next unless equip.endUseSubcategory.include? Constants.ObjectNameCookingRange(nil)
+
+        custom_meter_infos["#{unit.name}:ElectricityCookingRange"]["key_var_groups"] << ["#{equip.name}", "Electric Equipment Electric Energy"]
+      end
+    end
+  end
+
+  def self.natural_gas_cooking_range(custom_meter_infos, model, runner, unit, thermal_zones)
+    custom_meter_infos["#{unit.name}:NaturalGasCookingRange"] = { "fuel_type" => "NaturalGas", "key_var_groups" => [] }
+    unit.spaces.each do |space|
+      space.otherEquipment.each do |equip|
+        next unless equip.fuelType == "NaturalGas"
+        next unless equip.endUseSubcategory.include? Constants.ObjectNameCookingRange(nil)
+
+        custom_meter_infos["#{unit.name}:NaturalGasCookingRange"]["key_var_groups"] << ["#{equip.name}", "Other Equipment Gas Energy"]
+      end
+    end
+  end
+
+  def self.propane_cooking_range(custom_meter_infos, model, runner, unit, thermal_zones)
+    custom_meter_infos["#{unit.name}:PropaneCookingRange"] = { "fuel_type" => "PropaneGas", "key_var_groups" => [] }
+    unit.spaces.each do |space|
+      space.otherEquipment.each do |equip|
+        next unless equip.fuelType == "PropaneGas"
+        next unless equip.endUseSubcategory.include? Constants.ObjectNameCookingRange(nil)
+
+        custom_meter_infos["#{unit.name}:PropaneCookingRange"]["key_var_groups"] << ["#{equip.name}", "Other Equipment Propane Energy"]
+      end
+    end
+  end
+
+  def self.electricity_dishwasher(custom_meter_infos, model, runner, unit, thermal_zones)
+    custom_meter_infos["#{unit.name}:ElectricityDishwasher"] = { "fuel_type" => "Electricity", "key_var_groups" => [] }
+    unit.spaces.each do |space|
+      space.electricEquipment.each do |equip|
+        next unless equip.endUseSubcategory.include? Constants.ObjectNameDishwasher
+
+        custom_meter_infos["#{unit.name}:ElectricityDishwasher"]["key_var_groups"] << ["#{equip.name}", "Electric Equipment Electric Energy"]
+      end
+    end
+  end
+
+  def self.electricity_plug_loads(custom_meter_infos, model, runner, unit, thermal_zones)
+    custom_meter_infos["#{unit.name}:ElectricityPlugLoads"] = { "fuel_type" => "Electricity", "key_var_groups" => [] }
+    unit.spaces.each do |space|
+      space.electricEquipment.each do |equip|
+        next unless equip.endUseSubcategory.include? Constants.ObjectNameMiscPlugLoads
+
+        custom_meter_infos["#{unit.name}:ElectricityPlugLoads"]["key_var_groups"] << ["#{equip.name}", "Electric Equipment Electric Energy"]
+      end
+    end
+  end
+
+  def self.electricity_house_fan(custom_meter_infos, model, runner, unit, thermal_zones)
+    custom_meter_infos["#{unit.name}:ElectricityHouseFan"] = { "fuel_type" => "Electricity", "key_var_groups" => [] }
+    unit.spaces.each do |space|
+      space.electricEquipment.each do |equip|
+        next unless equip.endUseSubcategory.include? "house fan"
+
+        custom_meter_infos["#{unit.name}:ElectricityHouseFan"]["key_var_groups"] << ["#{equip.name}", "Electric Equipment Electric Energy"]
+      end
+    end
+  end
+
+  def self.electricity_range_fan(custom_meter_infos, model, runner, unit, thermal_zones)
+    custom_meter_infos["#{unit.name}:ElectricityRangeFan"] = { "fuel_type" => "Electricity", "key_var_groups" => [] }
+    unit.spaces.each do |space|
+      space.electricEquipment.each do |equip|
+        next unless equip.endUseSubcategory.include? "range fan"
+
+        custom_meter_infos["#{unit.name}:ElectricityRangeFan"]["key_var_groups"] << ["#{equip.name}", "Electric Equipment Electric Energy"]
+      end
+    end
+  end
+
+  def self.electricity_bath_fan(custom_meter_infos, model, runner, unit, thermal_zones)
+    custom_meter_infos["#{unit.name}:ElectricityBathFan"] = { "fuel_type" => "Electricity", "key_var_groups" => [] }
+    unit.spaces.each do |space|
+      space.electricEquipment.each do |equip|
+        next unless equip.endUseSubcategory.include? "bath fan"
+
+        custom_meter_infos["#{unit.name}:ElectricityBathFan"]["key_var_groups"] << ["#{equip.name}", "Electric Equipment Electric Energy"]
+      end
+    end
+  end
+
+  def self.electricity_ceiling_fan(custom_meter_infos, model, runner, unit, thermal_zones)
+    custom_meter_infos["#{unit.name}:ElectricityCeilingFan"] = { "fuel_type" => "Electricity", "key_var_groups" => [] }
+    unit.spaces.each do |space|
+      space.electricEquipment.each do |equip|
+        next unless equip.endUseSubcategory.include? Constants.ObjectNameCeilingFan
+
+        custom_meter_infos["#{unit.name}:ElectricityCeilingFan"]["key_var_groups"] << ["#{equip.name}", "Electric Equipment Electric Energy"]
+      end
+    end
+  end
+
+  def self.electricity_extra_refrigerator(custom_meter_infos, model, runner, unit, thermal_zones)
+    custom_meter_infos["#{unit.name}:ElectricityExtraRefrigerator"] = { "fuel_type" => "Electricity", "key_var_groups" => [] }
+    unit.spaces.each do |space|
+      space.electricEquipment.each do |equip|
+        next unless equip.endUseSubcategory.include? Constants.ObjectNameExtraRefrigerator
+
+        custom_meter_infos["#{unit.name}:ElectricityExtraRefrigerator"]["key_var_groups"] << ["#{equip.name}", "Electric Equipment Electric Energy"]
+      end
+    end
+
+    custom_meter_infos["Central:ElectricityExtraRefrigerator"] = { "fuel_type" => "Electricity", "key_var_groups" => [] }
+    model.getSpaces.each do |space|
+      next if space.buildingUnit.is_initialized
+
+      space.electricEquipment.each do |equip|
+        next unless equip.endUseSubcategory.include? Constants.ObjectNameExtraRefrigerator
+
+        custom_meter_infos["Central:ElectricityExtraRefrigerator"]["key_var_groups"] << ["#{equip.name}", "Electric Equipment Electric Energy"]
+      end
+    end
+  end
+
+  def self.electricity_freezer(custom_meter_infos, model, runner, unit, thermal_zones)
+    custom_meter_infos["#{unit.name}:ElectricityFreezer"] = { "fuel_type" => "Electricity", "key_var_groups" => [] }
+    unit.spaces.each do |space|
+      space.electricEquipment.each do |equip|
+        next unless equip.endUseSubcategory.include? Constants.ObjectNameFreezer
+
+        custom_meter_infos["#{unit.name}:ElectricityFreezer"]["key_var_groups"] << ["#{equip.name}", "Electric Equipment Electric Energy"]
+      end
+    end
+
+    custom_meter_infos["Central:ElectricityFreezer"] = { "fuel_type" => "Electricity", "key_var_groups" => [] }
+    model.getSpaces.each do |space|
+      next if space.buildingUnit.is_initialized
+
+      space.electricEquipment.each do |equip|
+        next unless equip.endUseSubcategory.include? Constants.ObjectNameFreezer
+
+        custom_meter_infos["Central:ElectricityFreezer"]["key_var_groups"] << ["#{equip.name}", "Electric Equipment Electric Energy"]
+      end
+    end
+  end
+
+  def self.electricity_pool_heater(custom_meter_infos, model, runner, unit, thermal_zones)
+    custom_meter_infos["#{unit.name}:ElectricityPoolHeater"] = { "fuel_type" => "Electricity", "key_var_groups" => [] }
+    unit.spaces.each do |space|
+      space.electricEquipment.each do |equip|
+        next unless equip.endUseSubcategory.include? Constants.ObjectNamePoolHeater(Constants.FuelTypeElectric)
+
+        custom_meter_infos["#{unit.name}:ElectricityPoolHeater"]["key_var_groups"] << ["#{equip.name}", "Electric Equipment Electric Energy"]
+      end
+    end
+  end
+
+  def self.natural_gas_pool_heater(custom_meter_infos, model, runner, unit, thermal_zones)
+    custom_meter_infos["#{unit.name}:NaturalGasPoolHeater"] = { "fuel_type" => "NaturalGas", "key_var_groups" => [] }
+    unit.spaces.each do |space|
+      space.gasEquipment.each do |equip|
+        next unless equip.endUseSubcategory.include? Constants.ObjectNamePoolHeater(Constants.FuelTypeGas)
+
+        custom_meter_infos["#{unit.name}:NaturalGasPoolHeater"]["key_var_groups"] << ["#{equip.name}", "Gas Equipment Gas Energy"]
+      end
+    end
+  end
+
+  def self.electricity_pool_pump(custom_meter_infos, model, runner, unit, thermal_zones)
+    custom_meter_infos["#{unit.name}:ElectricityPoolPump"] = { "fuel_type" => "Electricity", "key_var_groups" => [] }
+    unit.spaces.each do |space|
+      space.electricEquipment.each do |equip|
+        next unless equip.endUseSubcategory.include? Constants.ObjectNamePoolPump
+
+        custom_meter_infos["#{unit.name}:ElectricityPoolPump"]["key_var_groups"] << ["#{equip.name}", "Electric Equipment Electric Energy"]
+      end
+    end
+  end
+
+  def self.electricity_hot_tub_heater(custom_meter_infos, model, runner, unit, thermal_zones)
+    custom_meter_infos["#{unit.name}:ElectricityHotTubHeater"] = { "fuel_type" => "Electricity", "key_var_groups" => [] }
+    unit.spaces.each do |space|
+      space.electricEquipment.each do |equip|
+        next unless equip.endUseSubcategory.include? Constants.ObjectNameHotTubHeater(Constants.FuelTypeElectric)
+
+        custom_meter_infos["#{unit.name}:ElectricityHotTubHeater"]["key_var_groups"] << ["#{equip.name}", "Electric Equipment Electric Energy"]
+      end
+    end
+  end
+
+  def self.natural_gas_hot_tub_heater(custom_meter_infos, model, runner, unit, thermal_zones)
+    custom_meter_infos["#{unit.name}:NaturalGasHotTubHeater"] = { "fuel_type" => "NaturalGas", "key_var_groups" => [] }
+    unit.spaces.each do |space|
+      space.gasEquipment.each do |equip|
+        next unless equip.endUseSubcategory.include? Constants.ObjectNameHotTubHeater(Constants.FuelTypeGas)
+
+        custom_meter_infos["#{unit.name}:NaturalGasHotTubHeater"]["key_var_groups"] << ["#{equip.name}", "Gas Equipment Gas Energy"]
+      end
+    end
+  end
+
+  def self.electricity_hot_tub_pump(custom_meter_infos, model, runner, unit, thermal_zones)
+    custom_meter_infos["#{unit.name}:ElectricityHotTubPump"] = { "fuel_type" => "Electricity", "key_var_groups" => [] }
+    unit.spaces.each do |space|
+      space.electricEquipment.each do |equip|
+        next unless equip.endUseSubcategory.include? Constants.ObjectNameHotTubPump
+
+        custom_meter_infos["#{unit.name}:ElectricityHotTubPump"]["key_var_groups"] << ["#{equip.name}", "Electric Equipment Electric Energy"]
+      end
+    end
+  end
+
+  def self.natural_gas_grill(custom_meter_infos, model, runner, unit, thermal_zones)
+    custom_meter_infos["#{unit.name}:NaturalGasGrill"] = { "fuel_type" => "NaturalGas", "key_var_groups" => [] }
+    unit.spaces.each do |space|
+      space.gasEquipment.each do |equip|
+        next unless equip.endUseSubcategory.include? Constants.ObjectNameGasGrill
+
+        custom_meter_infos["#{unit.name}:NaturalGasGrill"]["key_var_groups"] << ["#{equip.name}", "Gas Equipment Gas Energy"]
+      end
+    end
+
+    custom_meter_infos["Central:NaturalGasGrill"] = { "fuel_type" => "NaturalGas", "key_var_groups" => [] }
+    model.getSpaces.each do |space|
+      next if space.buildingUnit.is_initialized
+
+      space.gasEquipment.each do |equip|
+        next unless equip.endUseSubcategory.include? Constants.ObjectNameGasGrill
+
+        custom_meter_infos["Central:NaturalGasGrill"]["key_var_groups"] << ["#{equip.name}", "Gas Equipment Gas Energy"]
+      end
+    end
+  end
+
+  def self.natural_gas_lighting(custom_meter_infos, model, runner, unit, thermal_zones)
+    custom_meter_infos["#{unit.name}:NaturalGasLighting"] = { "fuel_type" => "NaturalGas", "key_var_groups" => [] }
+    unit.spaces.each do |space|
+      space.gasEquipment.each do |equip|
+        next unless equip.endUseSubcategory.include? Constants.ObjectNameGasLighting
+
+        custom_meter_infos["#{unit.name}:NaturalGasLighting"]["key_var_groups"] << ["#{equip.name}", "Gas Equipment Gas Energy"]
+      end
+    end
+
+    custom_meter_infos["Central:NaturalGasLighting"] = { "fuel_type" => "NaturalGas", "key_var_groups" => [] }
+    model.getSpaces.each do |space|
+      next if space.buildingUnit.is_initialized
+
+      space.gasEquipment.each do |equip|
+        next unless equip.endUseSubcategory.include? Constants.ObjectNameGasLighting
+
+        custom_meter_infos["Central:NaturalGasLighting"]["key_var_groups"] << ["#{equip.name}", "Gas Equipment Gas Energy"]
+      end
+    end
+  end
+
+  def self.natural_gas_fireplace(custom_meter_infos, model, runner, unit, thermal_zones)
+    custom_meter_infos["#{unit.name}:NaturalGasFireplace"] = { "fuel_type" => "NaturalGas", "key_var_groups" => [] }
+    unit.spaces.each do |space|
+      space.gasEquipment.each do |equip|
+        next unless equip.endUseSubcategory.include? Constants.ObjectNameGasFireplace
+
+        custom_meter_infos["#{unit.name}:NaturalGasFireplace"]["key_var_groups"] << ["#{equip.name}", "Gas Equipment Gas Energy"]
+      end
+    end
+
+    custom_meter_infos["Central:NaturalGasFireplace"] = { "fuel_type" => "NaturalGas", "key_var_groups" => [] }
+    model.getSpaces.each do |space|
+      next if space.buildingUnit.is_initialized
+
+      space.gasEquipment.each do |equip|
+        next unless equip.endUseSubcategory.include? Constants.ObjectNameGasFireplace
+
+        custom_meter_infos["Central:NaturalGasFireplace"]["key_var_groups"] << ["#{equip.name}", "Gas Equipment Gas Energy"]
+      end
+    end
+  end
+
+  def self.electricity_well_pump(custom_meter_infos, model, runner, unit, thermal_zones)
+    custom_meter_infos["#{unit.name}:ElectricityWellPump"] = { "fuel_type" => "Electricity", "key_var_groups" => [] }
+    unit.spaces.each do |space|
+      space.electricEquipment.each do |equip|
+        next unless equip.endUseSubcategory.include? Constants.ObjectNameWellPump
+
+        custom_meter_infos["#{unit.name}:ElectricityWellPump"]["key_var_groups"] << ["#{equip.name}", "Electric Equipment Electric Energy"]
+      end
+    end
+  end
+end
