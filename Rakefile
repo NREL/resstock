@@ -8,11 +8,12 @@ require 'pp'
 require 'colored'
 require 'json'
 
+desc 'perform tasks related to unit tests'
 namespace :test do
   desc 'Run unit tests for all projects/measures'
   Rake::TestTask.new('all') do |t|
     t.libs << 'test'
-    t.test_files = Dir['project_*/tests/*.rb'] + Dir['measures/*/tests/*.rb'] + Dir['resources/measures/*/tests/*.rb']
+    t.test_files = Dir['project_*/tests/*.rb'] + Dir['measures/*/tests/*.rb'] + Dir['resources/measures/*/tests/*.rb'] + Dir['workflows/tests/*.rb'] - Dir['measures/HPXMLtoOpenStudio/tests/*.rb'] # HPXMLtoOpenStudio is tested upstream
     t.warning = false
     t.verbose = true
   end
