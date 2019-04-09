@@ -9,7 +9,10 @@ else
   resources_path = File.absolute_path(File.join(File.dirname(__FILE__), "../HPXMLtoOpenStudio/resources"))
 end
 require File.join(resources_path, "unit_conversions")
+<<<<<<< HEAD
 require File.join(resources_path, "waterheater")
+=======
+>>>>>>> master
 
 # start the measure
 class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
@@ -28,12 +31,21 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
     args = OpenStudio::Ruleset::OSArgumentVector.new
 
     return args
+<<<<<<< HEAD
   end # end the arguments method
+=======
+  end #end the arguments method
+>>>>>>> master
 
   # return a vector of IdfObject's to request EnergyPlus objects needed by the run method
   def energyPlusOutputRequests(runner, user_arguments)
     super(runner, user_arguments)
 
+<<<<<<< HEAD
+=======
+    results = OpenStudio::IdfObjectVector.new
+
+>>>>>>> master
     # get the last model and sql file
     model = runner.lastOpenStudioModel
     if model.empty?
@@ -42,6 +54,7 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
     end
     model = model.get
 
+<<<<<<< HEAD
     results = OutputMeters.create_custom_building_unit_meters(model, runner, "RunPeriod")
     return results
   end
@@ -111,6 +124,161 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
       "upgrade_option_10_lifetime_yrs",
       "weight"
     ]
+=======
+    # Get building units
+    units = Geometry.get_building_units(model, runner)
+
+    # Electricity Fans Heating / Cooling
+    electricity_fans_heating = []
+    electricity_fans_cooling = []
+    units.each do |unit|
+      # Get all zones in unit
+      thermal_zones = []
+      unit.spaces.each do |space|
+        thermal_zone = space.thermalZone.get
+        unless thermal_zones.include? thermal_zone
+          thermal_zones << thermal_zone
+        end
+      end
+      
+      thermal_zones.each do |thermal_zone|
+        heating_equipment = HVAC.existing_heating_equipment(model, runner, thermal_zone)
+        heating_equipment.each do |htg_equip|
+          clg_coil, htg_coil, supp_htg_coil = HVAC.get_coils_from_hvac_equip(htg_equip)
+
+          if htg_equip.is_a? OpenStudio::Model::AirLoopHVACUnitarySystem
+            electricity_fans_heating << ["#{htg_equip.supplyFan.get.name}", "Fan Electric Energy"]
+
+          end
+        end
+      end
+      model.getPlantLoops.each do |plant_loop|
+        if plant_loop.name.to_s == Constants.PlantLoopDomesticWater(unit.name.to_s)
+          water_heater = Waterheater.get_water_heater(model, plant_loop, runner)
+
+          if water_heater.is_a? OpenStudio::Model::WaterHeaterHeatPumpWrappedCondenser
+            electricity_fans_heating << ["#{water_heater.fan.name}", "Fan Electric Energy"]
+
+          end
+        end
+      end
+      
+      thermal_zones.each do |thermal_zone|
+        cooling_equipment = HVAC.existing_cooling_equipment(model, runner, thermal_zone)
+        cooling_equipment.each do |clg_equip|
+          clg_coil, htg_coil, supp_htg_coil = HVAC.get_coils_from_hvac_equip(clg_equip)
+
+          if clg_equip.is_a? OpenStudio::Model::AirLoopHVACUnitarySystem
+            electricity_fans_cooling << ["#{clg_equip.supplyFan.get.name}", "Fan Electric Energy"]
+
+          elsif clg_equip.is_a? OpenStudio::Model::ZoneHVACPackagedTerminalAirConditioner
+            electricity_fans_cooling << ["#{clg_equip.supplyAirFan.name}", "Fan Electric Energy"]
+
+          end
+        end
+      end
+    end
+
+    results = create_custom_meter(results, "ElectricityFansHeating", electricity_fans_heating)
+    results = create_custom_meter(results, "ElectricityFansCooling", electricity_fans_cooling)
+
+    # Electricity Pumps Heating / Cooling
+    electricity_pumps_heating = []
+    electricity_pumps_cooling = []
+    model.getEnergyManagementSystemOutputVariables.each do |ems_output_var|
+      if ems_output_var.name.to_s.include? "htg pump:Pumps:Electricity"
+        electricity_pumps_heating << ["", "#{ems_output_var.name}"]
+
+      elsif ems_output_var.name.to_s.include? "clg pump:Pumps:Electricity"
+        electricity_pumps_cooling << ["", "#{ems_output_var.name}"]
+
+      end
+    end
+    model.getPumpConstantSpeeds.each do |pump| # shw pump
+      next unless pump.name.to_s.include? Constants.ObjectNameSolarHotWater
+
+      electricity_pumps_heating << ["#{pump.name}", "Pump Electric Energy"]
+    end
+
+    results = create_custom_meter(results, "ElectricityPumpsHeating", electricity_pumps_heating)
+    results = create_custom_meter(results, "ElectricityPumpsCooling", electricity_pumps_cooling)
+
+    return results
+  end
+
+  def create_custom_meter(results, name, key_var_groups, fuel_type = "Electricity")
+    unless key_var_groups.empty?
+      meter_custom = "Meter:Custom,#{name},#{fuel_type}"
+      key_var_groups.each do |key_var_group|
+        key, var = key_var_group
+        meter_custom += ",#{key},#{var}"
+      end
+      meter_custom += ";"
+      results << OpenStudio::IdfObject.load(meter_custom).get
+      results << OpenStudio::IdfObject.load("Output:Meter,#{name},Annual;").get
+    end
+    return results
+  end
+  
+  def outputs
+    buildstock_outputs = [
+                          "total_site_energy_mbtu",
+                          "total_site_electricity_kwh",
+                          "total_site_natural_gas_therm",
+                          "total_site_fuel_oil_mbtu",
+                          "total_site_propane_mbtu",
+                          "net_site_energy_mbtu", # Incorporates PV
+                          "net_site_electricity_kwh", # Incorporates PV
+                          "electricity_heating_kwh",
+                          "electricity_cooling_kwh",
+                          "electricity_interior_lighting_kwh",
+                          "electricity_exterior_lighting_kwh",
+                          "electricity_interior_equipment_kwh",
+                          "electricity_fans_heating_kwh",
+                          "electricity_fans_cooling_kwh",
+                          "electricity_pumps_heating_kwh",
+                          "electricity_pumps_cooling_kwh",
+                          "electricity_water_systems_kwh",
+                          "electricity_pv_kwh",
+                          "natural_gas_heating_therm",
+                          "natural_gas_interior_equipment_therm",
+                          "natural_gas_water_systems_therm",
+                          "fuel_oil_heating_mbtu",
+                          "fuel_oil_interior_equipment_mbtu",
+                          "fuel_oil_water_systems_mbtu",
+                          "propane_heating_mbtu",
+                          "propane_interior_equipment_mbtu",
+                          "propane_water_systems_mbtu",
+                          "hours_heating_setpoint_not_met",
+                          "hours_cooling_setpoint_not_met",
+                          "hvac_cooling_capacity_w",
+                          "hvac_heating_capacity_w",
+                          "hvac_heating_supp_capacity_w",
+                          "upgrade_name",
+                          "upgrade_cost_usd",
+                          "upgrade_option_01_cost_usd",
+                          "upgrade_option_01_lifetime_yrs",
+                          "upgrade_option_02_cost_usd",
+                          "upgrade_option_02_lifetime_yrs",
+                          "upgrade_option_03_cost_usd",
+                          "upgrade_option_03_lifetime_yrs",
+                          "upgrade_option_04_cost_usd",
+                          "upgrade_option_04_lifetime_yrs",
+                          "upgrade_option_05_cost_usd",
+                          "upgrade_option_05_lifetime_yrs",
+                          "upgrade_option_06_cost_usd",
+                          "upgrade_option_06_lifetime_yrs",
+                          "upgrade_option_07_cost_usd",
+                          "upgrade_option_07_lifetime_yrs",
+                          "upgrade_option_08_cost_usd",
+                          "upgrade_option_08_lifetime_yrs",
+                          "upgrade_option_09_cost_usd",
+                          "upgrade_option_09_lifetime_yrs",
+                          "upgrade_option_10_cost_usd",
+                          "upgrade_option_10_lifetime_yrs",
+                          "weight"
+                         ]
+>>>>>>> master
     result = OpenStudio::Measure::OSOutputVector.new
     buildstock_outputs.each do |output|
       result << OpenStudio::Measure::OSOutput.makeDoubleOutput(output)
@@ -143,6 +311,10 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
     sqlFile = sqlFile.get
     model.setSqlFile(sqlFile)
 
+<<<<<<< HEAD
+=======
+    # Get the weather file run period (as opposed to design day run period)
+>>>>>>> master
     ann_env_pd = nil
     sqlFile.availableEnvPeriods.each do |env_pd|
       env_type = sqlFile.environmentType(env_pd)
@@ -156,10 +328,14 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
       runner.registerError("Can't find a weather runperiod, make sure you ran an annual simulation, not just the design days.")
       return false
     end
+<<<<<<< HEAD
 
     env_period_ix_query = "SELECT EnvironmentPeriodIndex FROM EnvironmentPeriods WHERE EnvironmentName='#{ann_env_pd}'"
     env_period_ix = sqlFile.execAndReturnFirstInt(env_period_ix_query).get
 
+=======
+    
+>>>>>>> master
     # Load buildstock_file
     resources_dir = File.absolute_path(File.join(File.dirname(__FILE__), "..", "..", "lib", "resources")) # Should have been uploaded per 'Other Library Files' in analysis spreadsheet
     buildstock_file = File.join(resources_dir, "buildstock.rb")
@@ -169,6 +345,7 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
     elec_site_units = "kWh"
     gas_site_units = "therm"
     other_fuel_site_units = "MBtu"
+<<<<<<< HEAD
 
     # Get meters that aren't tied to units (i.e., are metered at the building level)
     modeledCentralElectricityHeating = 0.0
@@ -459,10 +636,42 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
     report_sim_output(runner, "electricity_interior_lighting_kwh", electricityInteriorLighting, "GJ", elec_site_units)
     report_sim_output(runner, "electricity_exterior_lighting_kwh", electricityExteriorLighting, "GJ", elec_site_units)
     report_sim_output(runner, "electricity_interior_equipment_kwh", electricityInteriorEquipment, "GJ", elec_site_units)
+=======
+    
+    # Get PV electricity produced
+    pv_query = "SELECT -1*Value FROM TabularDataWithStrings WHERE ReportName='AnnualBuildingUtilityPerformanceSummary' AND ReportForString='Entire Facility' AND TableName='Electric Loads Satisfied' AND RowName='Total On-Site Electric Sources' AND ColumnName='Electricity' AND Units='GJ'"
+    pv_val = sqlFile.execAndReturnFirstDouble(pv_query)
+
+    # TOTAL
+
+    report_sim_output(runner, "total_site_energy_mbtu", [sqlFile.totalSiteEnergy], "GJ", total_site_units)
+    report_sim_output(runner, "net_site_energy_mbtu", [sqlFile.totalSiteEnergy, pv_val], "GJ", total_site_units)
+    
+    # ELECTRICITY
+    
+    report_sim_output(runner, "total_site_electricity_kwh", [sqlFile.electricityTotalEndUses], "GJ", elec_site_units)
+    report_sim_output(runner, "net_site_electricity_kwh", [sqlFile.electricityTotalEndUses, pv_val], "GJ", elec_site_units)
+    report_sim_output(runner, "electricity_heating_kwh", [sqlFile.electricityHeating], "GJ", elec_site_units)
+    report_sim_output(runner, "electricity_cooling_kwh", [sqlFile.electricityCooling], "GJ", elec_site_units)
+    report_sim_output(runner, "electricity_interior_lighting_kwh", [sqlFile.electricityInteriorLighting], "GJ", elec_site_units)
+    report_sim_output(runner, "electricity_exterior_lighting_kwh", [sqlFile.electricityExteriorLighting], "GJ", elec_site_units)
+    report_sim_output(runner, "electricity_interior_equipment_kwh", [sqlFile.electricityInteriorEquipment], "GJ", elec_site_units)
+    electricityFansHeating = 0.0
+    electricity_fans_heating_query = "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('ELECTRICITYFANSHEATING') AND ReportingFrequency='Annual' AND VariableUnits='J')"
+    unless sqlFile.execAndReturnFirstDouble(electricity_fans_heating_query).empty?
+      electricityFansHeating = sqlFile.execAndReturnFirstDouble(electricity_fans_heating_query).get.round(2)
+    end
+    electricityFansCooling = 0.0
+    electricity_fans_cooling_query = "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('ELECTRICITYFANSCOOLING') AND ReportingFrequency='Annual' AND VariableUnits='J')"
+    unless sqlFile.execAndReturnFirstDouble(electricity_fans_cooling_query).empty?
+      electricityFansCooling = sqlFile.execAndReturnFirstDouble(electricity_fans_cooling_query).get.round(2)
+    end
+>>>>>>> master
     electricityFans = 0.0
     unless sqlFile.electricityFans.empty?
       electricityFans = sqlFile.electricityFans.get
     end
+<<<<<<< HEAD
     err = (modeledElectricityFansHeating + modeledElectricityFansCooling) - electricityFans
     if err.abs > 0.2
       runner.registerError("Disaggregated fan energy (#{modeledElectricityFansHeating + modeledElectricityFansCooling} GJ) relative to building fan energy (#{electricityFans} GJ): #{err} GJ.")
@@ -470,10 +679,30 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
     end
     report_sim_output(runner, "electricity_fans_heating_kwh", electricityFansHeating, "GJ", elec_site_units)
     report_sim_output(runner, "electricity_fans_cooling_kwh", electricityFansCooling, "GJ", elec_site_units)
+=======
+    err = (electricityFansHeating + electricityFansCooling) - electricityFans
+    if err.abs > 0.2
+      runner.registerError("Disaggregated fan energy (#{electricityFansHeating + electricityFansCooling} GJ) relative to building fan energy (#{electricityFans} GJ): #{err} GJ.")
+      return false
+    end
+    report_sim_output(runner, "electricity_fans_heating_kwh", [OpenStudio::OptionalDouble.new(electricityFansHeating)], "GJ", elec_site_units)
+    report_sim_output(runner, "electricity_fans_cooling_kwh", [OpenStudio::OptionalDouble.new(electricityFansCooling)], "GJ", elec_site_units)
+    electricityPumpsHeating = 0.0
+    electricity_pumps_heating_query = "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('ELECTRICITYPUMPSHEATING') AND ReportingFrequency='Annual' AND VariableUnits='J')"
+    unless sqlFile.execAndReturnFirstDouble(electricity_pumps_heating_query).empty?
+      electricityPumpsHeating = sqlFile.execAndReturnFirstDouble(electricity_pumps_heating_query).get.round(2)
+    end    
+    electricityPumpsCooling = 0.0
+    electricity_pumps_cooling_query = "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('ELECTRICITYPUMPSCOOLING') AND ReportingFrequency='Annual' AND VariableUnits='J')"
+    unless sqlFile.execAndReturnFirstDouble(electricity_pumps_cooling_query).empty?
+      electricityPumpsCooling = sqlFile.execAndReturnFirstDouble(electricity_pumps_cooling_query).get.round(2)
+    end
+>>>>>>> master
     electricityPumps = 0.0
     unless sqlFile.electricityPumps.empty?
       electricityPumps = sqlFile.electricityPumps.get
     end
+<<<<<<< HEAD
     err = (modeledElectricityPumpsHeating + modeledElectricityPumpsCooling) - electricityPumps
     if err.abs > 0.2
       runner.registerError("Disaggregated pump energy (#{modeledElectricityPumpsHeating + modeledElectricityPumpsCooling} GJ) relative to building pump energy (#{electricityPumps} GJ): #{err} GJ.")
@@ -485,6 +714,18 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
     report_sim_output(runner, "electricity_central_system_pumps_cooling_kwh", centralElectricityPumpsCooling, "GJ", elec_site_units)
     report_sim_output(runner, "electricity_water_systems_kwh", electricityWaterSystems, "GJ", elec_site_units)
 
+=======
+    err = (electricityPumpsHeating + electricityPumpsCooling) - electricityPumps
+    if err.abs > 0.2
+      runner.registerError("Disaggregated pump energy (#{electricityPumpsHeating + electricityPumpsCooling} GJ) relative to building pump energy (#{electricityPumps} GJ): #{err} GJ.")
+      return false
+    end
+    report_sim_output(runner, "electricity_pumps_heating_kwh", [OpenStudio::OptionalDouble.new(electricityPumpsHeating)], "GJ", elec_site_units)
+    report_sim_output(runner, "electricity_pumps_cooling_kwh", [OpenStudio::OptionalDouble.new(electricityPumpsCooling)], "GJ", elec_site_units)
+    report_sim_output(runner, "electricity_water_systems_kwh", [sqlFile.electricityWaterSystems], "GJ", elec_site_units)
+    report_sim_output(runner, "electricity_pv_kwh", [pv_val], "GJ", elec_site_units)
+    
+>>>>>>> master
     # NATURAL GAS
 
     naturalGasTotalEndUses = naturalGasHeating + centralNaturalGasHeating + naturalGasInteriorEquipment + naturalGasWaterSystems
@@ -539,6 +780,7 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
     conditioned_zones = get_conditioned_zones(model)
     hvac_cooling_capacity_kbtuh = get_cost_multiplier("Size, Cooling System (kBtu/h)", model, runner, conditioned_zones)
     return false if hvac_cooling_capacity_kbtuh.nil?
+<<<<<<< HEAD
 
     report_sim_output(runner, "hvac_cooling_capacity_w", hvac_cooling_capacity_kbtuh, "kBtu/hr", "W")
     hvac_heating_capacity_kbtuh = get_cost_multiplier("Size, Heating System (kBtu/h)", model, runner, conditioned_zones)
@@ -550,6 +792,16 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
 
     report_sim_output(runner, "hvac_heating_supp_capacity_w", hvac_heating_supp_capacity_kbtuh, "kBtu/hr", "W")
 
+=======
+    report_sim_output(runner, "hvac_cooling_capacity_w", [OpenStudio::OptionalDouble.new(hvac_cooling_capacity_kbtuh)], "kBtu/hr", "W")
+    hvac_heating_capacity_kbtuh = get_cost_multiplier("Size, Heating System (kBtu/h)", model, runner, conditioned_zones)
+    return false if hvac_heating_capacity_kbtuh.nil?
+    report_sim_output(runner, "hvac_heating_capacity_w", [OpenStudio::OptionalDouble.new(hvac_heating_capacity_kbtuh)], "kBtu/hr", "W")
+    hvac_heating_supp_capacity_kbtuh = get_cost_multiplier("Size, Heating Supplemental System (kBtu/h)", model, runner, conditioned_zones)
+    return false if hvac_heating_supp_capacity_kbtuh.nil?
+    report_sim_output(runner, "hvac_heating_supp_capacity_w", [OpenStudio::OptionalDouble.new(hvac_heating_supp_capacity_kbtuh)], "kBtu/hr", "W")
+    
+>>>>>>> master
     sqlFile.close()
 
     # WEIGHT
@@ -646,7 +898,11 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
     if os_units.nil? or desired_units.nil? or os_units == desired_units
       valInUnits = total_val
     else
+<<<<<<< HEAD
       valInUnits = UnitConversions.convert(total_val, os_units, desired_units)
+=======
+        valInUnits = UnitConversions.convert(total_val, os_units, desired_units)
+>>>>>>> master
     end
     runner.registerValue(name, valInUnits)
     runner.registerInfo("Registering #{valInUnits.round(2)} for #{name}.")
@@ -659,6 +915,7 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
       cost_mult = 1.0
 
     elsif cost_mult_type == "Wall Area, Above-Grade, Conditioned (ft^2)"
+<<<<<<< HEAD
       # Walls between conditioned space and 1) outdoors or 2) unconditioned space
       model.getSurfaces.each do |surface|
         next if surface.surfaceType.downcase != "wall"
@@ -670,10 +927,24 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
           cost_mult += UnitConversions.convert(surface.grossArea, "m^2", "ft^2")
         elsif !adjacent_space.nil? and not is_space_conditioned(adjacent_space, conditioned_zones)
           cost_mult += UnitConversions.convert(surface.grossArea, "m^2", "ft^2")
+=======
+        # Walls between conditioned space and 1) outdoors or 2) unconditioned space
+        model.getSurfaces.each do |surface|
+            next if surface.surfaceType.downcase != "wall"
+            next if not surface.space.is_initialized
+            next if not is_space_conditioned(surface.space.get, conditioned_zones)
+            adjacent_space = get_adjacent_space(surface)
+            if surface.outsideBoundaryCondition.downcase == "outdoors"
+                cost_mult += UnitConversions.convert(surface.grossArea,"m^2","ft^2")
+            elsif !adjacent_space.nil? and not is_space_conditioned(adjacent_space, conditioned_zones)
+                cost_mult += UnitConversions.convert(surface.grossArea,"m^2","ft^2")
+            end
+>>>>>>> master
         end
       end
 
     elsif cost_mult_type == "Wall Area, Above-Grade, Exterior (ft^2)"
+<<<<<<< HEAD
       # Walls adjacent to outdoors
       model.getSurfaces.each do |surface|
         next if surface.surfaceType.downcase != "wall"
@@ -745,10 +1016,75 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
           next if not sub_surface.subSurfaceType.downcase.include? "window"
 
           cost_mult += UnitConversions.convert(sub_surface.grossArea, "m^2", "ft^2")
+=======
+        # Walls adjacent to outdoors
+        model.getSurfaces.each do |surface|
+            next if surface.surfaceType.downcase != "wall"
+            next if surface.outsideBoundaryCondition.downcase != "outdoors"
+            cost_mult += UnitConversions.convert(surface.grossArea,"m^2","ft^2")
+        end
+        
+    elsif cost_mult_type == "Wall Area, Below-Grade (ft^2)"
+        # Walls adjacent to ground
+        model.getSurfaces.each do |surface|
+            next if surface.surfaceType.downcase != "wall"
+            next if surface.outsideBoundaryCondition.downcase != "ground" and surface.outsideBoundaryCondition.downcase != "foundation"
+            cost_mult += UnitConversions.convert(surface.grossArea,"m^2","ft^2")
+        end
+        
+    elsif cost_mult_type == "Floor Area, Conditioned (ft^2)"
+        # Floors of conditioned zone
+        model.getSurfaces.each do |surface|
+            next if surface.surfaceType.downcase != "floor"
+            next if not surface.space.is_initialized
+            next if not is_space_conditioned(surface.space.get, conditioned_zones)
+            cost_mult += UnitConversions.convert(surface.grossArea,"m^2","ft^2")
+        end
+        
+    elsif cost_mult_type == "Floor Area, Attic (ft^2)"
+        # Floors under sloped surfaces and above conditioned space
+        model.getSurfaces.each do |surface|
+            next if surface.surfaceType.downcase != "floor"
+            next if not surface.space.is_initialized
+            space = surface.space.get
+            next if not has_sloped_roof_surfaces(space)
+            adjacent_space = get_adjacent_space(surface)
+            next if adjacent_space.nil?
+            next if not is_space_conditioned(adjacent_space, conditioned_zones)
+            cost_mult += UnitConversions.convert(surface.grossArea,"m^2","ft^2")
+        end
+        
+    elsif cost_mult_type == "Floor Area, Lighting (ft^2)"
+        # Floors with lighting objects
+        model.getSurfaces.each do |surface|
+            next if surface.surfaceType.downcase != "floor"
+            next if not surface.space.is_initialized
+            next if surface.space.get.lights.size == 0
+            cost_mult += UnitConversions.convert(surface.grossArea,"m^2","ft^2")
+        end
+        
+    elsif cost_mult_type == "Roof Area (ft^2)"
+        # Roofs adjacent to outdoors
+        model.getSurfaces.each do |surface|
+            next if surface.surfaceType.downcase != "roofceiling"
+            next if surface.outsideBoundaryCondition.downcase != "outdoors"
+            cost_mult += UnitConversions.convert(surface.grossArea,"m^2","ft^2")
+        end
+        
+    elsif cost_mult_type == "Window Area (ft^2)"
+        # Window subsurfaces
+        model.getSurfaces.each do |surface|
+            next if surface.surfaceType.downcase != "wall"
+            surface.subSurfaces.each do |sub_surface|
+                next if not sub_surface.subSurfaceType.downcase.include? "window"
+                cost_mult += UnitConversions.convert(sub_surface.grossArea,"m^2","ft^2")
+            end
+>>>>>>> master
         end
       end
 
     elsif cost_mult_type == "Door Area (ft^2)"
+<<<<<<< HEAD
       # Door subsurfaces
       model.getSurfaces.each do |surface|
         next if surface.surfaceType.downcase != "wall"
@@ -757,6 +1093,15 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
           next if not sub_surface.subSurfaceType.downcase.include? "door"
 
           cost_mult += UnitConversions.convert(sub_surface.grossArea, "m^2", "ft^2")
+=======
+        # Door subsurfaces
+        model.getSurfaces.each do |surface|
+            next if surface.surfaceType.downcase != "wall"
+            surface.subSurfaces.each do |sub_surface|
+                next if not sub_surface.subSurfaceType.downcase.include? "door"
+                cost_mult += UnitConversions.convert(sub_surface.grossArea,"m^2","ft^2")
+            end
+>>>>>>> master
         end
       end
 
@@ -805,6 +1150,7 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
 
         # Unit heater?
         if component.nil?
+<<<<<<< HEAD
           conditioned_zones.each do |zone|
             zone.equipment.each do |equipment|
               next unless equipment.to_AirLoopHVACUnitarySystem.is_initialized
@@ -820,6 +1166,19 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
               next if not coil.nominalCapacity.is_initialized
 
               cost_mult += UnitConversions.convert(coil.nominalCapacity.get, "W", "kBtu/hr")
+=======
+            model.getThermalZones.each do |zone|
+                zone.equipment.each do |equipment|
+                    next unless equipment.to_AirLoopHVACUnitarySystem.is_initialized
+                    sys = equipment.to_AirLoopHVACUnitarySystem.get
+                    next if not sys.heatingCoil.is_initialized
+                    component = sys.heatingCoil.get
+                    next if not component.to_CoilHeatingGas.is_initialized
+                    coil = component.to_CoilHeatingGas.get
+                    next if not coil.nominalCapacity.is_initialized
+                    cost_mult += UnitConversions.convert(coil.nominalCapacity.get, "W", "kBtu/hr")
+                end
+>>>>>>> master
             end
           end
         end
@@ -831,6 +1190,7 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
             next if not sys.heatingCoil.is_initialized
 
             if not component.nil?
+<<<<<<< HEAD
               runner.registerError("Multiple heating systems found. This code should be reevaluated for correctness.")
               return nil
             end
@@ -849,6 +1209,37 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
                 capacity_ratio = get_highest_stage_capacity_ratio(model, "SizingInfoHVACCapacityRatioCooling")
                 if stage.grossRatedHeatingCapacity.is_initialized
                   cost_mult += UnitConversions.convert(stage.grossRatedHeatingCapacity.get / capacity_ratio, "W", "kBtu/hr")
+=======
+                if component.to_CoilHeatingDXSingleSpeed.is_initialized
+                    coil = component.to_CoilHeatingDXSingleSpeed.get
+                    if coil.ratedTotalHeatingCapacity.is_initialized
+                        cost_mult += UnitConversions.convert(coil.ratedTotalHeatingCapacity.get, "W", "kBtu/hr")
+                    end
+                elsif component.to_CoilHeatingDXMultiSpeed.is_initialized
+                    coil = component.to_CoilHeatingDXMultiSpeed.get
+                    if coil.stages.size > 0
+                        stage = coil.stages[coil.stages.size-1]
+                        capacity_ratio = get_highest_stage_capacity_ratio(model, "SizingInfoHVACCapacityRatioCooling")
+                        if stage.grossRatedHeatingCapacity.is_initialized
+                            cost_mult += UnitConversions.convert(stage.grossRatedHeatingCapacity.get/capacity_ratio, "W", "kBtu/hr")
+                        end
+                    end
+                elsif component.to_CoilHeatingGas.is_initialized
+                    coil = component.to_CoilHeatingGas.get
+                    if coil.nominalCapacity.is_initialized
+                        cost_mult += UnitConversions.convert(coil.nominalCapacity.get, "W", "kBtu/hr")
+                    end
+                elsif component.to_CoilHeatingElectric.is_initialized
+                    coil = component.to_CoilHeatingElectric.get
+                    if coil.nominalCapacity.is_initialized
+                        cost_mult += UnitConversions.convert(coil.nominalCapacity.get, "W", "kBtu/hr")
+                    end
+                elsif component.to_CoilHeatingWaterToAirHeatPumpEquationFit.is_initialized
+                    coil = component.to_CoilHeatingWaterToAirHeatPumpEquationFit.get
+                    if coil.ratedHeatingCapacity.is_initialized
+                        cost_mult += UnitConversions.convert(coil.ratedHeatingCapacity.get, "W", "kBtu/hr")
+                    end
+>>>>>>> master
                 end
               end
             elsif component.to_CoilHeatingGas.is_initialized
@@ -872,6 +1263,7 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
 
         # Electric baseboard?
         if component.nil?
+<<<<<<< HEAD
           max_value = 0.0
           model.getZoneHVACBaseboardConvectiveElectrics.each do |sys|
             next unless conditioned_zones.include? sys.thermalZone.get
@@ -881,10 +1273,18 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
 
             cost_mult += UnitConversions.convert(component.nominalCapacity.get, "W", "kBtu/hr")
           end
+=======
+            model.getZoneHVACBaseboardConvectiveElectrics.each do |sys|
+                component = sys
+                next if not component.nominalCapacity.is_initialized
+                cost_mult += UnitConversions.convert(component.nominalCapacity.get, "W", "kBtu/hr")
+            end
+>>>>>>> master
         end
 
         # Boiler?
         if component.nil?
+<<<<<<< HEAD
           max_value = 0.0
           model.getPlantLoops.each do |pl|
             pl.components.each do |plc|
@@ -895,6 +1295,15 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
               next if component.nominalCapacity.get <= max_value
 
               max_value = component.nominalCapacity.get
+=======
+            model.getPlantLoops.each do |pl|
+                pl.components.each do |plc|
+                    next if not plc.to_BoilerHotWater.is_initialized
+                    component = plc.to_BoilerHotWater.get
+                    next if not component.nominalCapacity.is_initialized
+                    cost_mult += UnitConversions.convert(component.nominalCapacity.get, "W", "kBtu/hr")
+                end
+>>>>>>> master
             end
           end
           cost_mult += UnitConversions.convert(max_value, "W", "kBtu/hr")
@@ -934,8 +1343,17 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
             next if not sys.supplementalHeatingCoil.is_initialized
 
             if not component.nil?
+<<<<<<< HEAD
               runner.registerError("Multiple supplemental heating systems found. This code should be reevaluated for correctness.")
               return nil
+=======
+                if component.to_CoilHeatingElectric.is_initialized
+                    coil = component.to_CoilHeatingElectric.get
+                    if coil.nominalCapacity.is_initialized
+                        cost_mult += UnitConversions.convert(coil.nominalCapacity.get, "W", "kBtu/hr")
+                    end
+                end
+>>>>>>> master
             end
             component = sys.supplementalHeatingCoil.get
           end
@@ -990,6 +1408,7 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
           end
           if not component.nil?
             if component.to_CoilCoolingDXSingleSpeed.is_initialized
+<<<<<<< HEAD
               coil = component.to_CoilCoolingDXSingleSpeed.get
               if coil.ratedTotalCoolingCapacity.is_initialized
                 cost_mult += UnitConversions.convert(coil.ratedTotalCoolingCapacity.get, "W", "kBtu/hr")
@@ -1001,6 +1420,20 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
                 capacity_ratio = get_highest_stage_capacity_ratio(model, "SizingInfoHVACCapacityRatioCooling")
                 if stage.grossRatedTotalCoolingCapacity.is_initialized
                   cost_mult += UnitConversions.convert(stage.grossRatedTotalCoolingCapacity.get / capacity_ratio, "W", "kBtu/hr")
+=======
+                coil = component.to_CoilCoolingDXSingleSpeed.get
+                if coil.ratedTotalCoolingCapacity.is_initialized
+                    cost_mult += UnitConversions.convert(coil.ratedTotalCoolingCapacity.get, "W", "kBtu/hr")
+                end
+            elsif component.to_CoilCoolingDXMultiSpeed.is_initialized
+                coil = component.to_CoilCoolingDXMultiSpeed.get
+                if coil.stages.size > 0
+                    stage = coil.stages[coil.stages.size-1]
+                    capacity_ratio = get_highest_stage_capacity_ratio(model, "SizingInfoHVACCapacityRatioCooling")
+                    if stage.grossRatedTotalCoolingCapacity.is_initialized
+                        cost_mult += UnitConversions.convert(stage.grossRatedTotalCoolingCapacity.get/capacity_ratio, "W", "kBtu/hr")
+                    end
+>>>>>>> master
                 end
               end
             elsif component.to_CoilCoolingWaterToAirHeatPumpEquationFit.is_initialized
@@ -1022,7 +1455,11 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
               if component.to_CoilCoolingDXSingleSpeed.is_initialized
                 coil = component.to_CoilCoolingDXSingleSpeed.get
                 if coil.ratedTotalCoolingCapacity.is_initialized
+<<<<<<< HEAD
                   cost_mult += UnitConversions.convert(coil.ratedTotalCoolingCapacity.get, "W", "kBtu/hr")
+=======
+                    cost_mult += UnitConversions.convert(coil.ratedTotalCoolingCapacity.get, "W", "kBtu/hr")
+>>>>>>> master
                 end
               end
             end
@@ -1038,6 +1475,7 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
         if wh.to_WaterHeaterHeatPumpWrappedCondenser.is_initialized
           wh = wh.tank.to_WaterHeaterStratified.get
         end
+<<<<<<< HEAD
         if wh.tankVolume.is_initialized
           volume = UnitConversions.convert(wh.tankVolume.get, "m^3", "gal")
           if volume >= 1.0 # skip tankless
@@ -1046,6 +1484,24 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
               cost_mult += volume / 0.9
             else
               cost_mult += volume / 0.95
+=======
+        model.getWaterHeaterHeatPumpWrappedCondensers.each do |wh|
+            if not wh_tank.nil?
+                runner.registerError("Multiple water heaters found. This code should be reevaluated for correctness.")
+                return nil
+            end
+            wh_tank = wh.tank.to_WaterHeaterStratified.get
+        end
+        if wh_tank.tankVolume.is_initialized
+            volume = UnitConversions.convert(wh_tank.tankVolume.get, "m^3", "gal")
+            if volume >= 1.0 # skip tankless
+                # FIXME: Remove actual->nominal size logic by storing nominal size in the OSM
+                if wh_tank.heaterFuelType.downcase == "electricity"
+                    cost_mult += volume / 0.9
+                else
+                    cost_mult += volume / 0.95
+                end
+>>>>>>> master
             end
           end
         end
