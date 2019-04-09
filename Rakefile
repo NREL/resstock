@@ -385,7 +385,7 @@ task :update_measures do
     # Update measure xmls
     cli_path = OpenStudio.getOpenStudioCLI
     command = "\"#{cli_path}\" --no-ssl measure --update_all #{measures_dir} >> log"
-    puts "Updating measure.xml files..."
+    puts "Updating measure.xml files in #{measures_dir}..."
     system(command)
   end
 
@@ -451,6 +451,7 @@ def generate_example_osws(data_hash, include_measures, exclude_measures,
 
   workflowJSON = OpenStudio::WorkflowJSON.new
   workflowJSON.setOswPath(osw_path)
+  workflowJSON.addMeasurePath("../measures")
   workflowJSON.addMeasurePath("../resources/measures")
 
   steps = OpenStudio::WorkflowStepVector.new
@@ -488,9 +489,13 @@ def generate_example_osws(data_hash, include_measures, exclude_measures,
         next
       end
 
-      measure_path = File.expand_path(File.join("../resources/measures", measure), workflowJSON.oswDir.to_s)
-
-      measure_instance = get_measure_instance("#{measure_path}/measure.rb")
+      begin
+        measure_path = File.expand_path(File.join("../resources/measures", measure), workflowJSON.oswDir.to_s)
+        measure_instance = get_measure_instance("#{measure_path}/measure.rb")
+      rescue
+        measure_path = File.expand_path(File.join("../measures", measure), workflowJSON.oswDir.to_s)
+        measure_instance = get_measure_instance("#{measure_path}/measure.rb")
+      end
       measure_args = measure_instance.arguments(model).sort_by { |arg| arg.name }
 
       step = OpenStudio::MeasureStep.new(measure)
@@ -582,9 +587,10 @@ def get_and_proof_measure_order_json()
   #
   # @return {data_hash} of measure-info.json
 
-  # List all measures in measures/ folder
-  beopt_measure_folder = File.expand_path("../resources/measures/", __FILE__)
-  all_measures = Dir.entries(beopt_measure_folder).select { |entry| entry.start_with?('Residential') }
+  # List all measures in measures/ folders
+  measure_folder = File.expand_path("../measures/", __FILE__)
+  resources_measure_folder = File.expand_path("../resources/measures/", __FILE__)
+  all_measures = Dir.entries(measure_folder).select { |entry| entry.start_with?('Residential') } + Dir.entries(resources_measure_folder).select { |entry| entry.start_with?('Residential') }
 
   # Load json, and get all measures in there
   json_file = "workflows/measure-info.json"
