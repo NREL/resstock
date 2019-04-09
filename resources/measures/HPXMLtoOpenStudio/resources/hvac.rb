@@ -2632,11 +2632,6 @@ class HVAC
           return false
         end
 
-        if not clg_wkdy_monthly.uniq.length == 1 or not clg_wked_monthly.uniq.length == 1
-          runner.registerError("Found monthly variation in cooling setpoint schedule.")
-          return false
-        end
-
         model.getScheduleRulesets.each do |sch|
           next unless sch.name.to_s == Constants.ObjectNameCoolingSetpoint
 
@@ -2780,11 +2775,6 @@ class HVAC
         htg_wkdy_monthly = get_setpoint_schedule(thermostat_setpoint.heatingSetpointTemperatureSchedule.get.to_Schedule.get.to_ScheduleRuleset.get, 'weekday', runner)
         htg_wked_monthly = get_setpoint_schedule(thermostat_setpoint.heatingSetpointTemperatureSchedule.get.to_Schedule.get.to_ScheduleRuleset.get, 'weekend', runner)
         if htg_wkdy_monthly.nil? or htg_wked_monthly.nil?
-          return false
-        end
-
-        if not htg_wkdy_monthly.uniq.length == 1 or not htg_wked_monthly.uniq.length == 1
-          runner.registerError("Found monthly variation in heating setpoint schedule.")
           return false
         end
 
