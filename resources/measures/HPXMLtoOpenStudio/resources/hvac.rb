@@ -2622,11 +2622,8 @@ class HVAC
     removed_ashp = remove_ashp(model, runner, thermal_zone)
     removed_mshp = remove_mshp(model, runner, thermal_zone, unit)
     removed_gshp = remove_gshp(model, runner, thermal_zone, unit)
-<<<<<<< HEAD
     removed_central_fan_coil = remove_central_system_fan_coil(model, runner, thermal_zone)
     removed_central_ptac = remove_central_system_ptac(model, runner, thermal_zone)
-=======
->>>>>>> master
   end
 
   def self.remove_cooling(model, runner, thermal_zone, unit)
@@ -2638,11 +2635,8 @@ class HVAC
       removed_elec_baseboard = remove_electric_baseboard(model, runner, thermal_zone)
     end
     removed_gshp = remove_gshp(model, runner, thermal_zone, unit)
-<<<<<<< HEAD
     removed_central_fan_coil = remove_central_system_fan_coil(model, runner, thermal_zone)
     removed_central_ptac = remove_central_system_ptac(model, runner, thermal_zone)
-=======
->>>>>>> master
   end
 
   def self.apply_heating_setpoints(model, runner, weather, htg_wkdy_monthly, htg_wked_monthly,
@@ -4793,38 +4787,22 @@ class HVAC
     [Constants.FuelTypeGas, Constants.FuelTypeOil, Constants.FuelTypePropane, Constants.FuelTypeElectric].each do |fuel_type|
       obj_name = Constants.ObjectNameBoiler(fuel_type, unit.name.to_s)
       model.getEnergyManagementSystemSensors.each do |sensor|
-<<<<<<< HEAD
         next if sensor.name.to_s != "#{obj_name} hydronic pump s".gsub(" ", "_").gsub("|", "_") and sensor.name.to_s != "Central pump s".gsub(" ", "_").gsub("|", "_")
-=======
-        next unless sensor.name.to_s == "#{obj_name} hydronic pump s".gsub(" ", "_").gsub("|", "_")
->>>>>>> master
 
         sensor.remove
       end
       model.getEnergyManagementSystemOutputVariables.each do |output_var|
-<<<<<<< HEAD
         next if output_var.name.to_s != "#{obj_name} htg pump:Pumps:Electricity" and output_var.name.to_s != "Central htg pump:Pumps:Electricity"
-=======
-        next unless output_var.name.to_s == "#{obj_name} htg pump:Pumps:Electricity"
->>>>>>> master
 
         output_var.remove
       end
       model.getEnergyManagementSystemPrograms.each do |program|
-<<<<<<< HEAD
         next if program.name.to_s != "#{obj_name} pumps program".gsub(" ", "_") and program.name.to_s != "Central pumps program".gsub(" ", "_")
-=======
-        next unless program.name.to_s == "#{obj_name} pumps program".gsub(" ", "_")
->>>>>>> master
 
         program.remove
       end
       model.getEnergyManagementSystemProgramCallingManagers.each do |program_calling_manager|
-<<<<<<< HEAD
         next if program_calling_manager.name.to_s != "#{obj_name} pump program calling manager" and program_calling_manager.name.to_s != "Central pump program calling manager"
-=======
-        next unless program_calling_manager.name.to_s == "#{obj_name} pump program calling manager"
->>>>>>> master
 
         program_calling_manager.remove
       end
