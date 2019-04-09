@@ -14,3 +14,6 @@ group :test do
   gem 'minitest-reporters'
   gem 'minitest-ci', :git => 'https://github.com/circleci/minitest-ci.git' # For CircleCI Automatic test metadata collection
 end
+
+# Specify the JSON dependency so that rubocop and other gem do not try to install it
+gem 'json', '~> 1.8'
