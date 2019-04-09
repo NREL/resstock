@@ -1,0 +1,3076 @@
+!- NOTE: Auto-generated from /test/osw_files/SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver_WHTank_ClothesWasher.osw
+
+OS:Version,
+  {e0e518d6-37cf-4123-83ed-be65eded3ea2}, !- Handle
+  2.7.1;                                  !- Version Identifier
+
+OS:Building,
+  {1ff571be-418f-4e4d-a650-7ef6b7f42cb1}, !- Handle
+  Building 1,                             !- Name
+  ,                                       !- Building Sector Type
+  0,                                      !- North Axis {deg}
+  ,                                       !- Nominal Floor to Floor Height {m}
+  ,                                       !- Space Type Name
+  ,                                       !- Default Construction Set Name
+  ,                                       !- Default Schedule Set Name
+  3,                                      !- Standards Number of Stories
+  2,                                      !- Standards Number of Above Ground Stories
+  ,                                       !- Standards Template
+  singlefamilydetached,                   !- Standards Building Type
+  1;                                      !- Standards Number of Living Units
+
+OS:Facility,
+  {88e250ec-8935-4d6e-9f13-7bcd76301ff6}; !- Handle
+
+OS:Site,
+  {9036400a-8cb3-4de9-8b03-a5202f853c00}, !- Handle
+  Denver Intl Ap_CO_USA,                  !- Name
+  39.83,                                  !- Latitude {deg}
+  -104.65,                                !- Longitude {deg}
+  -7,                                     !- Time Zone {hr}
+  1650,                                   !- Elevation {m}
+  ;                                       !- Terrain
+
+OS:SimulationControl,
+  {448e945d-9b5f-4bb2-87ee-b3d759595d39}, !- Handle
+  ,                                       !- Do Zone Sizing Calculation
+  ,                                       !- Do System Sizing Calculation
+  ,                                       !- Do Plant Sizing Calculation
+  No;                                     !- Run Simulation for Sizing Periods
+
+OS:Sizing:Parameters,
+  {f2fc0fe7-3109-4e3c-88d8-3aa6b252c421}, !- Handle
+  1.25,                                   !- Heating Sizing Factor
+  1.15;                                   !- Cooling Sizing Factor
+
+OS:Timestep,
+  {8c0c0778-0ec4-46dc-9a28-579e12dd37a8}, !- Handle
+  6;                                      !- Number of Timesteps per Hour
+
+OS:ShadowCalculation,
+  {bf9de189-ef1d-423a-b011-6d928c550d59}, !- Handle
+  20,                                     !- Calculation Frequency
+  200;                                    !- Maximum Figures in Shadow Overlap Calculations
+
+OS:HeatBalanceAlgorithm,
+  {5046d523-ea04-4e10-8620-99dfa9948722}, !- Handle
+  ConductionTransferFunction,             !- Algorithm
+  200;                                    !- Surface Temperature Upper Limit {C}
+
+OS:RunPeriod,
+  {118e233c-3fcc-41ac-8ae6-6fa54acf0b6d}, !- Handle
+  Run Period 1,                           !- Name
+  1,                                      !- Begin Month
+  1,                                      !- Begin Day of Month
+  12,                                     !- End Month
+  31,                                     !- End Day of Month
+  ,                                       !- Use Weather File Holidays and Special Days
+  ,                                       !- Use Weather File Daylight Saving Period
+  ,                                       !- Apply Weekend Holiday Rule
+  ,                                       !- Use Weather File Rain Indicators
+  ,                                       !- Use Weather File Snow Indicators
+  ;                                       !- Number of Times Runperiod to be Repeated
+
+OS:LifeCycleCost:Parameters,
+  {5d4f085e-60f8-4748-9af4-6973d738e649}, !- Handle
+  ,                                       !- Analysis Type
+  ,                                       !- Discounting Convention
+  ,                                       !- Inflation Approach
+  ,                                       !- Real Discount Rate
+  ,                                       !- Nominal Discount Rate
+  ,                                       !- Inflation
+  ,                                       !- Base Date Month
+  ,                                       !- Base Date Year
+  ,                                       !- Service Date Month
+  ,                                       !- Service Date Year
+  ;                                       !- Length of Study Period in Years
+
+OS:SurfaceConvectionAlgorithm:Outside,
+  {758b47ff-0b70-4062-be14-2046d3883a12}, !- Handle
+  DOE-2;                                  !- Algorithm
+
+OS:SurfaceConvectionAlgorithm:Inside,
+  {1a08ba65-e5c2-4c4d-8eaa-ddd034e6ab20}, !- Handle
+  TARP;                                   !- Algorithm
+
+OS:ZoneCapacitanceMultiplier:ResearchSpecial,
+  {5c4297bd-2e32-4794-8863-dba16b3e0f5b}, !- Handle
+  ,                                       !- Temperature Capacity Multiplier
+  15,                                     !- Humidity Capacity Multiplier
+  ;                                       !- Carbon Dioxide Capacity Multiplier
+
+OS:ThermalZone,
+  {ea408532-9796-44be-8b34-c9f1fccfc268}, !- Handle
+  living zone,                            !- Name
+  ,                                       !- Multiplier
+  ,                                       !- Ceiling Height {m}
+  ,                                       !- Volume {m3}
+  ,                                       !- Floor Area {m2}
+  ,                                       !- Zone Inside Convection Algorithm
+  ,                                       !- Zone Outside Convection Algorithm
+  ,                                       !- Zone Conditioning Equipment List Name
+  {67bff70a-3f21-496f-8a48-6fa730946f60}, !- Zone Air Inlet Port List
+  {bb8f16a2-7e86-450b-b6be-f6bc7a3aee51}, !- Zone Air Exhaust Port List
+  {689c9b09-f3d6-492a-aa5c-f95b3c26394b}, !- Zone Air Node Name
+  {88872a0f-a98e-4727-bd10-740455704ab6}, !- Zone Return Air Port List
+  ,                                       !- Primary Daylighting Control Name
+  ,                                       !- Fraction of Zone Controlled by Primary Daylighting Control
+  ,                                       !- Secondary Daylighting Control Name
+  ,                                       !- Fraction of Zone Controlled by Secondary Daylighting Control
+  ,                                       !- Illuminance Map Name
+  ,                                       !- Group Rendering Name
+  ,                                       !- Thermostat Name
+  No;                                     !- Use Ideal Air Loads
+
+OS:Node,
+  {c18de0d5-cd00-4e21-b856-5e8de8f47b12}, !- Handle
+  Node 1,                                 !- Name
+  {689c9b09-f3d6-492a-aa5c-f95b3c26394b}, !- Inlet Port
+  ;                                       !- Outlet Port
+
+OS:Connection,
+  {689c9b09-f3d6-492a-aa5c-f95b3c26394b}, !- Handle
+  {e5a4ac7b-795a-4ca6-905a-04ad899397cb}, !- Name
+  {ea408532-9796-44be-8b34-c9f1fccfc268}, !- Source Object
+  11,                                     !- Outlet Port
+  {c18de0d5-cd00-4e21-b856-5e8de8f47b12}, !- Target Object
+  2;                                      !- Inlet Port
+
+OS:PortList,
+  {67bff70a-3f21-496f-8a48-6fa730946f60}, !- Handle
+  {76f52adb-369d-4c86-b017-4f1078d08a85}, !- Name
+  {ea408532-9796-44be-8b34-c9f1fccfc268}; !- HVAC Component
+
+OS:PortList,
+  {bb8f16a2-7e86-450b-b6be-f6bc7a3aee51}, !- Handle
+  {034cead6-bb2b-4c6b-9d83-2f7367eeb9f4}, !- Name
+  {ea408532-9796-44be-8b34-c9f1fccfc268}; !- HVAC Component
+
+OS:PortList,
+  {88872a0f-a98e-4727-bd10-740455704ab6}, !- Handle
+  {a2eee61f-f049-4cc4-8fe0-f2f86597472e}, !- Name
+  {ea408532-9796-44be-8b34-c9f1fccfc268}; !- HVAC Component
+
+OS:Sizing:Zone,
+  {30dafbaa-bdad-4f95-ae6a-a31a2e16d91a}, !- Handle
+  {ea408532-9796-44be-8b34-c9f1fccfc268}, !- Zone or ZoneList Name
+  SupplyAirTemperature,                   !- Zone Cooling Design Supply Air Temperature Input Method
+  14,                                     !- Zone Cooling Design Supply Air Temperature {C}
+  11.11,                                  !- Zone Cooling Design Supply Air Temperature Difference {deltaC}
+  SupplyAirTemperature,                   !- Zone Heating Design Supply Air Temperature Input Method
+  40,                                     !- Zone Heating Design Supply Air Temperature {C}
+  11.11,                                  !- Zone Heating Design Supply Air Temperature Difference {deltaC}
+  0.0085,                                 !- Zone Cooling Design Supply Air Humidity Ratio {kg-H2O/kg-air}
+  0.008,                                  !- Zone Heating Design Supply Air Humidity Ratio {kg-H2O/kg-air}
+  ,                                       !- Zone Heating Sizing Factor
+  ,                                       !- Zone Cooling Sizing Factor
+  DesignDay,                              !- Cooling Design Air Flow Method
+  ,                                       !- Cooling Design Air Flow Rate {m3/s}
+  ,                                       !- Cooling Minimum Air Flow per Zone Floor Area {m3/s-m2}
+  ,                                       !- Cooling Minimum Air Flow {m3/s}
+  ,                                       !- Cooling Minimum Air Flow Fraction
+  DesignDay,                              !- Heating Design Air Flow Method
+  ,                                       !- Heating Design Air Flow Rate {m3/s}
+  ,                                       !- Heating Maximum Air Flow per Zone Floor Area {m3/s-m2}
+  ,                                       !- Heating Maximum Air Flow {m3/s}
+  ,                                       !- Heating Maximum Air Flow Fraction
+  ,                                       !- Design Zone Air Distribution Effectiveness in Cooling Mode
+  ,                                       !- Design Zone Air Distribution Effectiveness in Heating Mode
+  No,                                     !- Account for Dedicated Outdoor Air System
+  NeutralSupplyAir,                       !- Dedicated Outdoor Air System Control Strategy
+  autosize,                               !- Dedicated Outdoor Air Low Setpoint Temperature for Design {C}
+  autosize;                               !- Dedicated Outdoor Air High Setpoint Temperature for Design {C}
+
+OS:ZoneHVAC:EquipmentList,
+  {a34bde1e-678e-49c1-99e9-a12c6748ee7e}, !- Handle
+  Zone HVAC Equipment List 1,             !- Name
+  {ea408532-9796-44be-8b34-c9f1fccfc268}; !- Thermal Zone
+
+OS:ThermalZone,
+  {67adf670-3b9b-42d7-97d9-387f062cf4da}, !- Handle
+  garage zone,                            !- Name
+  ,                                       !- Multiplier
+  ,                                       !- Ceiling Height {m}
+  ,                                       !- Volume {m3}
+  ,                                       !- Floor Area {m2}
+  ,                                       !- Zone Inside Convection Algorithm
+  ,                                       !- Zone Outside Convection Algorithm
+  ,                                       !- Zone Conditioning Equipment List Name
+  {f673591a-72e3-4321-9be1-f3ceb23dee98}, !- Zone Air Inlet Port List
+  {a6a3956e-fb8c-4899-a9dc-c64feeab6854}, !- Zone Air Exhaust Port List
+  {f2ef7df6-8f48-4216-9b83-0ca3eff1397d}, !- Zone Air Node Name
+  {54cc180e-7afc-47f1-a3a5-c86d5f909b85}, !- Zone Return Air Port List
+  ,                                       !- Primary Daylighting Control Name
+  ,                                       !- Fraction of Zone Controlled by Primary Daylighting Control
+  ,                                       !- Secondary Daylighting Control Name
+  ,                                       !- Fraction of Zone Controlled by Secondary Daylighting Control
+  ,                                       !- Illuminance Map Name
+  ,                                       !- Group Rendering Name
+  ,                                       !- Thermostat Name
+  No;                                     !- Use Ideal Air Loads
+
+OS:Node,
+  {fa1e57ab-3e33-40ce-add6-b624e91b016f}, !- Handle
+  Node 2,                                 !- Name
+  {f2ef7df6-8f48-4216-9b83-0ca3eff1397d}, !- Inlet Port
+  ;                                       !- Outlet Port
+
+OS:Connection,
+  {f2ef7df6-8f48-4216-9b83-0ca3eff1397d}, !- Handle
+  {e1dc3451-af2a-4c12-95f6-cec008dbd9c7}, !- Name
+  {67adf670-3b9b-42d7-97d9-387f062cf4da}, !- Source Object
+  11,                                     !- Outlet Port
+  {fa1e57ab-3e33-40ce-add6-b624e91b016f}, !- Target Object
+  2;                                      !- Inlet Port
+
+OS:PortList,
+  {f673591a-72e3-4321-9be1-f3ceb23dee98}, !- Handle
+  {e120cc1e-0c0b-45a1-9c19-4e27ecb81eae}, !- Name
+  {67adf670-3b9b-42d7-97d9-387f062cf4da}; !- HVAC Component
+
+OS:PortList,
+  {a6a3956e-fb8c-4899-a9dc-c64feeab6854}, !- Handle
+  {a39f3661-6494-43b7-9df6-5d0c834fbceb}, !- Name
+  {67adf670-3b9b-42d7-97d9-387f062cf4da}; !- HVAC Component
+
+OS:PortList,
+  {54cc180e-7afc-47f1-a3a5-c86d5f909b85}, !- Handle
+  {4dd7a9b3-1d23-43ff-bbae-9bed6ad42860}, !- Name
+  {67adf670-3b9b-42d7-97d9-387f062cf4da}; !- HVAC Component
+
+OS:Sizing:Zone,
+  {1c0ded48-1078-4d7e-a416-1023ac15b7da}, !- Handle
+  {67adf670-3b9b-42d7-97d9-387f062cf4da}, !- Zone or ZoneList Name
+  SupplyAirTemperature,                   !- Zone Cooling Design Supply Air Temperature Input Method
+  14,                                     !- Zone Cooling Design Supply Air Temperature {C}
+  11.11,                                  !- Zone Cooling Design Supply Air Temperature Difference {deltaC}
+  SupplyAirTemperature,                   !- Zone Heating Design Supply Air Temperature Input Method
+  40,                                     !- Zone Heating Design Supply Air Temperature {C}
+  11.11,                                  !- Zone Heating Design Supply Air Temperature Difference {deltaC}
+  0.0085,                                 !- Zone Cooling Design Supply Air Humidity Ratio {kg-H2O/kg-air}
+  0.008,                                  !- Zone Heating Design Supply Air Humidity Ratio {kg-H2O/kg-air}
+  ,                                       !- Zone Heating Sizing Factor
+  ,                                       !- Zone Cooling Sizing Factor
+  DesignDay,                              !- Cooling Design Air Flow Method
+  ,                                       !- Cooling Design Air Flow Rate {m3/s}
+  ,                                       !- Cooling Minimum Air Flow per Zone Floor Area {m3/s-m2}
+  ,                                       !- Cooling Minimum Air Flow {m3/s}
+  ,                                       !- Cooling Minimum Air Flow Fraction
+  DesignDay,                              !- Heating Design Air Flow Method
+  ,                                       !- Heating Design Air Flow Rate {m3/s}
+  ,                                       !- Heating Maximum Air Flow per Zone Floor Area {m3/s-m2}
+  ,                                       !- Heating Maximum Air Flow {m3/s}
+  ,                                       !- Heating Maximum Air Flow Fraction
+  ,                                       !- Design Zone Air Distribution Effectiveness in Cooling Mode
+  ,                                       !- Design Zone Air Distribution Effectiveness in Heating Mode
+  No,                                     !- Account for Dedicated Outdoor Air System
+  NeutralSupplyAir,                       !- Dedicated Outdoor Air System Control Strategy
+  autosize,                               !- Dedicated Outdoor Air Low Setpoint Temperature for Design {C}
+  autosize;                               !- Dedicated Outdoor Air High Setpoint Temperature for Design {C}
+
+OS:ZoneHVAC:EquipmentList,
+  {1baf093a-e3e9-4d7d-b4fc-2f5490fea754}, !- Handle
+  Zone HVAC Equipment List 2,             !- Name
+  {67adf670-3b9b-42d7-97d9-387f062cf4da}; !- Thermal Zone
+
+OS:Space,
+  {b2820a5c-a8f5-480a-9858-62a7150ca512}, !- Handle
+  garage space,                           !- Name
+  {6f7300a8-bef3-49d2-baa7-03eaf1472908}, !- Space Type Name
+  ,                                       !- Default Construction Set Name
+  ,                                       !- Default Schedule Set Name
+  -0,                                     !- Direction of Relative North {deg}
+  0,                                      !- X Origin {m}
+  0,                                      !- Y Origin {m}
+  0,                                      !- Z Origin {m}
+  ,                                       !- Building Story Name
+  {67adf670-3b9b-42d7-97d9-387f062cf4da}; !- Thermal Zone Name
+
+OS:Surface,
+  {6c7ed642-8d22-48e5-9a0f-27359bba8a1c}, !- Handle
+  Surface 1,                              !- Name
+  Floor,                                  !- Surface Type
+  ,                                       !- Construction Name
+  {b2820a5c-a8f5-480a-9858-62a7150ca512}, !- Space Name
+  Foundation,                             !- Outside Boundary Condition
+  ,                                       !- Outside Boundary Condition Object
+  NoSun,                                  !- Sun Exposure
+  NoWind,                                 !- Wind Exposure
+  ,                                       !- View Factor to Ground
+  ,                                       !- Number of Vertices
+  5.57695129776527, -3.048, 0,            !- X,Y,Z Vertex 1 {m}
+  5.57695129776527, 3.048, 0,             !- X,Y,Z Vertex 2 {m}
+  11.6729512977653, 3.048, 0,             !- X,Y,Z Vertex 3 {m}
+  11.6729512977653, -3.048, 0;            !- X,Y,Z Vertex 4 {m}
+
+OS:Surface,
+  {c3f0974a-9a36-421f-aa4e-241ae47fe4d6}, !- Handle
+  Surface 2,                              !- Name
+  Wall,                                   !- Surface Type
+  ,                                       !- Construction Name
+  {b2820a5c-a8f5-480a-9858-62a7150ca512}, !- Space Name
+  Surface,                                !- Outside Boundary Condition
+  {44b8e8a2-fcc7-43b9-8914-0bde143d0c2f}, !- Outside Boundary Condition Object
+  NoSun,                                  !- Sun Exposure
+  NoWind,                                 !- Wind Exposure
+  ,                                       !- View Factor to Ground
+  ,                                       !- Number of Vertices
+  5.57695129776527, 3.048, 2.4384,        !- X,Y,Z Vertex 1 {m}
+  5.57695129776527, 3.048, 0,             !- X,Y,Z Vertex 2 {m}
+  5.57695129776527, 0, 0,                 !- X,Y,Z Vertex 3 {m}
+  5.57695129776527, 0, 2.4384;            !- X,Y,Z Vertex 4 {m}
+
+OS:Surface,
+  {c1cdf650-ea74-41d0-8789-ee2c59a72a08}, !- Handle
+  Surface 3,                              !- Name
+  Wall,                                   !- Surface Type
+  ,                                       !- Construction Name
+  {b2820a5c-a8f5-480a-9858-62a7150ca512}, !- Space Name
+  Surface,                                !- Outside Boundary Condition
+  {dc105826-bb78-415a-b71d-4f9fe34af0b0}, !- Outside Boundary Condition Object
+  NoSun,                                  !- Sun Exposure
+  NoWind,                                 !- Wind Exposure
+  ,                                       !- View Factor to Ground
+  ,                                       !- Number of Vertices
+  11.6729512977653, 3.048, 2.4384,        !- X,Y,Z Vertex 1 {m}
+  11.6729512977653, 3.048, 0,             !- X,Y,Z Vertex 2 {m}
+  5.57695129776527, 3.048, 0,             !- X,Y,Z Vertex 3 {m}
+  5.57695129776527, 3.048, 2.4384;        !- X,Y,Z Vertex 4 {m}
+
+OS:Surface,
+  {06683290-d007-4df7-8fa5-a21157544898}, !- Handle
+  Surface 4,                              !- Name
+  Wall,                                   !- Surface Type
+  ,                                       !- Construction Name
+  {b2820a5c-a8f5-480a-9858-62a7150ca512}, !- Space Name
+  Outdoors,                               !- Outside Boundary Condition
+  ,                                       !- Outside Boundary Condition Object
+  SunExposed,                             !- Sun Exposure
+  WindExposed,                            !- Wind Exposure
+  ,                                       !- View Factor to Ground
+  ,                                       !- Number of Vertices
+  11.6729512977653, -3.048, 2.4384,       !- X,Y,Z Vertex 1 {m}
+  11.6729512977653, -3.048, 0,            !- X,Y,Z Vertex 2 {m}
+  11.6729512977653, 3.048, 0,             !- X,Y,Z Vertex 3 {m}
+  11.6729512977653, 3.048, 2.4384;        !- X,Y,Z Vertex 4 {m}
+
+OS:Surface,
+  {772335f1-8a9c-4a9f-b9bd-723a9245bb1f}, !- Handle
+  Surface 5,                              !- Name
+  Wall,                                   !- Surface Type
+  ,                                       !- Construction Name
+  {b2820a5c-a8f5-480a-9858-62a7150ca512}, !- Space Name
+  Outdoors,                               !- Outside Boundary Condition
+  ,                                       !- Outside Boundary Condition Object
+  SunExposed,                             !- Sun Exposure
+  WindExposed,                            !- Wind Exposure
+  ,                                       !- View Factor to Ground
+  ,                                       !- Number of Vertices
+  5.57695129776527, -3.048, 2.4384,       !- X,Y,Z Vertex 1 {m}
+  5.57695129776527, -3.048, 0,            !- X,Y,Z Vertex 2 {m}
+  11.6729512977653, -3.048, 0,            !- X,Y,Z Vertex 3 {m}
+  11.6729512977653, -3.048, 2.4384;       !- X,Y,Z Vertex 4 {m}
+
+OS:Surface,
+  {d248d560-4fdd-49c9-b871-a460bb95d910}, !- Handle
+  Surface 6,                              !- Name
+  RoofCeiling,                            !- Surface Type
+  ,                                       !- Construction Name
+  {b2820a5c-a8f5-480a-9858-62a7150ca512}, !- Space Name
+  Surface,                                !- Outside Boundary Condition
+  {8c5a37e6-c6a5-46f0-8c17-5a9aa217ab65}, !- Outside Boundary Condition Object
+  NoSun,                                  !- Sun Exposure
+  NoWind,                                 !- Wind Exposure
+  ,                                       !- View Factor to Ground
+  ,                                       !- Number of Vertices
+  11.6729512977653, -3.048, 2.4384,       !- X,Y,Z Vertex 1 {m}
+  11.6729512977653, 3.048, 2.4384,        !- X,Y,Z Vertex 2 {m}
+  5.57695129776527, 3.048, 2.4384,        !- X,Y,Z Vertex 3 {m}
+  5.57695129776527, -3.048, 2.4384;       !- X,Y,Z Vertex 4 {m}
+
+OS:SpaceType,
+  {6f7300a8-bef3-49d2-baa7-03eaf1472908}, !- Handle
+  Space Type 1,                           !- Name
+  ,                                       !- Default Construction Set Name
+  ,                                       !- Default Schedule Set Name
+  ,                                       !- Group Rendering Name
+  ,                                       !- Design Specification Outdoor Air Object Name
+  ,                                       !- Standards Template
+  ,                                       !- Standards Building Type
+  garage;                                 !- Standards Space Type
+
+OS:Space,
+  {6c305960-539c-468d-8ac3-51bb194adb47}, !- Handle
+  living space,                           !- Name
+  {9b2550fa-a46c-4a02-a2c2-5f645b7f2de2}, !- Space Type Name
+  ,                                       !- Default Construction Set Name
+  ,                                       !- Default Schedule Set Name
+  -0,                                     !- Direction of Relative North {deg}
+  0,                                      !- X Origin {m}
+  0,                                      !- Y Origin {m}
+  0,                                      !- Z Origin {m}
+  ,                                       !- Building Story Name
+  {ea408532-9796-44be-8b34-c9f1fccfc268}, !- Thermal Zone Name
+  ,                                       !- Part of Total Floor Area
+  ,                                       !- Design Specification Outdoor Air Object Name
+  {7d067c76-5df5-44b5-8ebc-5a441035b57b}; !- Building Unit Name
+
+OS:Surface,
+  {1d619985-2a0e-4df9-87d0-086e39dbdffe}, !- Handle
+  Surface 7,                              !- Name
+  Floor,                                  !- Surface Type
+  ,                                       !- Construction Name
+  {6c305960-539c-468d-8ac3-51bb194adb47}, !- Space Name
+  Surface,                                !- Outside Boundary Condition
+  {d2172933-6df8-409d-b017-e2a7c741abdb}, !- Outside Boundary Condition Object
+  NoSun,                                  !- Sun Exposure
+  NoWind,                                 !- Wind Exposure
+  ,                                       !- View Factor to Ground
+  ,                                       !- Number of Vertices
+  0, 0, 0,                                !- X,Y,Z Vertex 1 {m}
+  0, 5.83647564888264, 0,                 !- X,Y,Z Vertex 2 {m}
+  11.6729512977653, 5.83647564888264, 0,  !- X,Y,Z Vertex 3 {m}
+  11.6729512977653, 3.048, 0,             !- X,Y,Z Vertex 4 {m}
+  5.57695129776527, 3.048, 0,             !- X,Y,Z Vertex 5 {m}
+  5.57695129776527, 0, 0;                 !- X,Y,Z Vertex 6 {m}
+
+OS:Surface,
+  {5e7171f7-6b14-4813-9b5e-156870b20178}, !- Handle
+  Surface 8,                              !- Name
+  Wall,                                   !- Surface Type
+  ,                                       !- Construction Name
+  {6c305960-539c-468d-8ac3-51bb194adb47}, !- Space Name
+  Outdoors,                               !- Outside Boundary Condition
+  ,                                       !- Outside Boundary Condition Object
+  SunExposed,                             !- Sun Exposure
+  WindExposed,                            !- Wind Exposure
+  ,                                       !- View Factor to Ground
+  ,                                       !- Number of Vertices
+  0, 5.83647564888264, 2.4384,            !- X,Y,Z Vertex 1 {m}
+  0, 5.83647564888264, 0,                 !- X,Y,Z Vertex 2 {m}
+  0, 0, 0,                                !- X,Y,Z Vertex 3 {m}
+  0, 0, 2.4384;                           !- X,Y,Z Vertex 4 {m}
+
+OS:Surface,
+  {96d74924-3545-4325-abaa-2663214e076a}, !- Handle
+  Surface 9,                              !- Name
+  Wall,                                   !- Surface Type
+  ,                                       !- Construction Name
+  {6c305960-539c-468d-8ac3-51bb194adb47}, !- Space Name
+  Outdoors,                               !- Outside Boundary Condition
+  ,                                       !- Outside Boundary Condition Object
+  SunExposed,                             !- Sun Exposure
+  WindExposed,                            !- Wind Exposure
+  ,                                       !- View Factor to Ground
+  ,                                       !- Number of Vertices
+  11.6729512977653, 5.83647564888264, 2.4384, !- X,Y,Z Vertex 1 {m}
+  11.6729512977653, 5.83647564888264, 0,  !- X,Y,Z Vertex 2 {m}
+  0, 5.83647564888264, 0,                 !- X,Y,Z Vertex 3 {m}
+  0, 5.83647564888264, 2.4384;            !- X,Y,Z Vertex 4 {m}
+
+OS:Surface,
+  {37301290-9582-4185-90fb-14770732e7bc}, !- Handle
+  Surface 10,                             !- Name
+  Wall,                                   !- Surface Type
+  ,                                       !- Construction Name
+  {6c305960-539c-468d-8ac3-51bb194adb47}, !- Space Name
+  Outdoors,                               !- Outside Boundary Condition
+  ,                                       !- Outside Boundary Condition Object
+  SunExposed,                             !- Sun Exposure
+  WindExposed,                            !- Wind Exposure
+  ,                                       !- View Factor to Ground
+  ,                                       !- Number of Vertices
+  11.6729512977653, 3.048, 2.4384,        !- X,Y,Z Vertex 1 {m}
+  11.6729512977653, 3.048, 0,             !- X,Y,Z Vertex 2 {m}
+  11.6729512977653, 5.83647564888264, 0,  !- X,Y,Z Vertex 3 {m}
+  11.6729512977653, 5.83647564888264, 2.4384; !- X,Y,Z Vertex 4 {m}
+
+OS:Surface,
+  {dc105826-bb78-415a-b71d-4f9fe34af0b0}, !- Handle
+  Surface 11,                             !- Name
+  Wall,                                   !- Surface Type
+  ,                                       !- Construction Name
+  {6c305960-539c-468d-8ac3-51bb194adb47}, !- Space Name
+  Surface,                                !- Outside Boundary Condition
+  {c1cdf650-ea74-41d0-8789-ee2c59a72a08}, !- Outside Boundary Condition Object
+  NoSun,                                  !- Sun Exposure
+  NoWind,                                 !- Wind Exposure
+  ,                                       !- View Factor to Ground
+  ,                                       !- Number of Vertices
+  5.57695129776527, 3.048, 2.4384,        !- X,Y,Z Vertex 1 {m}
+  5.57695129776527, 3.048, 0,             !- X,Y,Z Vertex 2 {m}
+  11.6729512977653, 3.048, 0,             !- X,Y,Z Vertex 3 {m}
+  11.6729512977653, 3.048, 2.4384;        !- X,Y,Z Vertex 4 {m}
+
+OS:Surface,
+  {44b8e8a2-fcc7-43b9-8914-0bde143d0c2f}, !- Handle
+  Surface 12,                             !- Name
+  Wall,                                   !- Surface Type
+  ,                                       !- Construction Name
+  {6c305960-539c-468d-8ac3-51bb194adb47}, !- Space Name
+  Surface,                                !- Outside Boundary Condition
+  {c3f0974a-9a36-421f-aa4e-241ae47fe4d6}, !- Outside Boundary Condition Object
+  NoSun,                                  !- Sun Exposure
+  NoWind,                                 !- Wind Exposure
+  ,                                       !- View Factor to Ground
+  ,                                       !- Number of Vertices
+  5.57695129776527, 0, 2.4384,            !- X,Y,Z Vertex 1 {m}
+  5.57695129776527, 0, 0,                 !- X,Y,Z Vertex 2 {m}
+  5.57695129776527, 3.048, 0,             !- X,Y,Z Vertex 3 {m}
+  5.57695129776527, 3.048, 2.4384;        !- X,Y,Z Vertex 4 {m}
+
+OS:Surface,
+  {7a9965bb-0861-4f0c-8d6c-4ffddd29e856}, !- Handle
+  Surface 13,                             !- Name
+  Wall,                                   !- Surface Type
+  ,                                       !- Construction Name
+  {6c305960-539c-468d-8ac3-51bb194adb47}, !- Space Name
+  Outdoors,                               !- Outside Boundary Condition
+  ,                                       !- Outside Boundary Condition Object
+  SunExposed,                             !- Sun Exposure
+  WindExposed,                            !- Wind Exposure
+  ,                                       !- View Factor to Ground
+  ,                                       !- Number of Vertices
+  0, 0, 2.4384,                           !- X,Y,Z Vertex 1 {m}
+  0, 0, 0,                                !- X,Y,Z Vertex 2 {m}
+  5.57695129776527, 0, 0,                 !- X,Y,Z Vertex 3 {m}
+  5.57695129776527, 0, 2.4384;            !- X,Y,Z Vertex 4 {m}
+
+OS:Surface,
+  {ebb4c38d-ae52-4120-ae8c-6449a35a60b9}, !- Handle
+  Surface 14,                             !- Name
+  RoofCeiling,                            !- Surface Type
+  ,                                       !- Construction Name
+  {6c305960-539c-468d-8ac3-51bb194adb47}, !- Space Name
+  Surface,                                !- Outside Boundary Condition
+  {ad978cba-f1f3-4850-adf1-bb6a07645f59}, !- Outside Boundary Condition Object
+  NoSun,                                  !- Sun Exposure
+  NoWind,                                 !- Wind Exposure
+  ,                                       !- View Factor to Ground
+  ,                                       !- Number of Vertices
+  5.57695129776527, 0, 2.4384,            !- X,Y,Z Vertex 1 {m}
+  5.57695129776527, 3.048, 2.4384,        !- X,Y,Z Vertex 2 {m}
+  11.6729512977653, 3.048, 2.4384,        !- X,Y,Z Vertex 3 {m}
+  11.6729512977653, 5.83647564888264, 2.4384, !- X,Y,Z Vertex 4 {m}
+  0, 5.83647564888264, 2.4384,            !- X,Y,Z Vertex 5 {m}
+  0, 0, 2.4384;                           !- X,Y,Z Vertex 6 {m}
+
+OS:SpaceType,
+  {9b2550fa-a46c-4a02-a2c2-5f645b7f2de2}, !- Handle
+  Space Type 2,                           !- Name
+  ,                                       !- Default Construction Set Name
+  ,                                       !- Default Schedule Set Name
+  ,                                       !- Group Rendering Name
+  ,                                       !- Design Specification Outdoor Air Object Name
+  ,                                       !- Standards Template
+  ,                                       !- Standards Building Type
+  living;                                 !- Standards Space Type
+
+OS:Space,
+  {793b4802-41a8-444f-8919-ae546d4f027d}, !- Handle
+  living space|story 2,                   !- Name
+  {9b2550fa-a46c-4a02-a2c2-5f645b7f2de2}, !- Space Type Name
+  ,                                       !- Default Construction Set Name
+  ,                                       !- Default Schedule Set Name
+  -0,                                     !- Direction of Relative North {deg}
+  0,                                      !- X Origin {m}
+  0,                                      !- Y Origin {m}
+  2.4384,                                 !- Z Origin {m}
+  ,                                       !- Building Story Name
+  {ea408532-9796-44be-8b34-c9f1fccfc268}, !- Thermal Zone Name
+  ,                                       !- Part of Total Floor Area
+  ,                                       !- Design Specification Outdoor Air Object Name
+  {7d067c76-5df5-44b5-8ebc-5a441035b57b}; !- Building Unit Name
+
+OS:Surface,
+  {8c5a37e6-c6a5-46f0-8c17-5a9aa217ab65}, !- Handle
+  Surface 15,                             !- Name
+  Floor,                                  !- Surface Type
+  ,                                       !- Construction Name
+  {793b4802-41a8-444f-8919-ae546d4f027d}, !- Space Name
+  Surface,                                !- Outside Boundary Condition
+  {d248d560-4fdd-49c9-b871-a460bb95d910}, !- Outside Boundary Condition Object
+  NoSun,                                  !- Sun Exposure
+  NoWind,                                 !- Wind Exposure
+  ,                                       !- View Factor to Ground
+  ,                                       !- Number of Vertices
+  11.6729512977653, 3.048, 0,             !- X,Y,Z Vertex 1 {m}
+  11.6729512977653, -3.048, 0,            !- X,Y,Z Vertex 2 {m}
+  5.57695129776527, -3.048, 0,            !- X,Y,Z Vertex 3 {m}
+  5.57695129776527, 3.048, 0;             !- X,Y,Z Vertex 4 {m}
+
+OS:Surface,
+  {658b4da5-6e3d-4280-a45f-3a7673f8ba7b}, !- Handle
+  Surface 16,                             !- Name
+  Wall,                                   !- Surface Type
+  ,                                       !- Construction Name
+  {793b4802-41a8-444f-8919-ae546d4f027d}, !- Space Name
+  Outdoors,                               !- Outside Boundary Condition
+  ,                                       !- Outside Boundary Condition Object
+  SunExposed,                             !- Sun Exposure
+  WindExposed,                            !- Wind Exposure
+  ,                                       !- View Factor to Ground
+  ,                                       !- Number of Vertices
+  0, 5.83647564888264, 2.4384,            !- X,Y,Z Vertex 1 {m}
+  0, 5.83647564888264, 0,                 !- X,Y,Z Vertex 2 {m}
+  0, 0, 0,                                !- X,Y,Z Vertex 3 {m}
+  0, 0, 2.4384;                           !- X,Y,Z Vertex 4 {m}
+
+OS:Surface,
+  {28502571-7290-4d15-8f24-f788f81a825b}, !- Handle
+  Surface 17,                             !- Name
+  Wall,                                   !- Surface Type
+  ,                                       !- Construction Name
+  {793b4802-41a8-444f-8919-ae546d4f027d}, !- Space Name
+  Outdoors,                               !- Outside Boundary Condition
+  ,                                       !- Outside Boundary Condition Object
+  SunExposed,                             !- Sun Exposure
+  WindExposed,                            !- Wind Exposure
+  ,                                       !- View Factor to Ground
+  ,                                       !- Number of Vertices
+  11.6729512977653, 5.83647564888264, 2.4384, !- X,Y,Z Vertex 1 {m}
+  11.6729512977653, 5.83647564888264, 0,  !- X,Y,Z Vertex 2 {m}
+  0, 5.83647564888264, 0,                 !- X,Y,Z Vertex 3 {m}
+  0, 5.83647564888264, 2.4384;            !- X,Y,Z Vertex 4 {m}
+
+OS:Surface,
+  {e74f2994-20d7-4aec-93dc-6322dd23f591}, !- Handle
+  Surface 18,                             !- Name
+  Wall,                                   !- Surface Type
+  ,                                       !- Construction Name
+  {793b4802-41a8-444f-8919-ae546d4f027d}, !- Space Name
+  Outdoors,                               !- Outside Boundary Condition
+  ,                                       !- Outside Boundary Condition Object
+  SunExposed,                             !- Sun Exposure
+  WindExposed,                            !- Wind Exposure
+  ,                                       !- View Factor to Ground
+  ,                                       !- Number of Vertices
+  11.6729512977653, -3.048, 2.4384,       !- X,Y,Z Vertex 1 {m}
+  11.6729512977653, -3.048, 0,            !- X,Y,Z Vertex 2 {m}
+  11.6729512977653, 5.83647564888264, 0,  !- X,Y,Z Vertex 3 {m}
+  11.6729512977653, 5.83647564888264, 2.4384; !- X,Y,Z Vertex 4 {m}
+
+OS:Surface,
+  {88ea4211-ddf1-44e8-b99f-e78d01a2b0e6}, !- Handle
+  Surface 19,                             !- Name
+  Wall,                                   !- Surface Type
+  ,                                       !- Construction Name
+  {793b4802-41a8-444f-8919-ae546d4f027d}, !- Space Name
+  Outdoors,                               !- Outside Boundary Condition
+  ,                                       !- Outside Boundary Condition Object
+  SunExposed,                             !- Sun Exposure
+  WindExposed,                            !- Wind Exposure
+  ,                                       !- View Factor to Ground
+  ,                                       !- Number of Vertices
+  5.57695129776527, -3.048, 2.4384,       !- X,Y,Z Vertex 1 {m}
+  5.57695129776527, -3.048, 0,            !- X,Y,Z Vertex 2 {m}
+  11.6729512977653, -3.048, 0,            !- X,Y,Z Vertex 3 {m}
+  11.6729512977653, -3.048, 2.4384;       !- X,Y,Z Vertex 4 {m}
+
+OS:Surface,
+  {cd2c5451-e7c5-44a2-ab5d-1b55072ab451}, !- Handle
+  Surface 20,                             !- Name
+  Wall,                                   !- Surface Type
+  ,                                       !- Construction Name
+  {793b4802-41a8-444f-8919-ae546d4f027d}, !- Space Name
+  Outdoors,                               !- Outside Boundary Condition
+  ,                                       !- Outside Boundary Condition Object
+  SunExposed,                             !- Sun Exposure
+  WindExposed,                            !- Wind Exposure
+  ,                                       !- View Factor to Ground
+  ,                                       !- Number of Vertices
+  5.57695129776527, 0, 2.4384,            !- X,Y,Z Vertex 1 {m}
+  5.57695129776527, 0, 0,                 !- X,Y,Z Vertex 2 {m}
+  5.57695129776527, -3.048, 0,            !- X,Y,Z Vertex 3 {m}
+  5.57695129776527, -3.048, 2.4384;       !- X,Y,Z Vertex 4 {m}
+
+OS:Surface,
+  {8aeaef52-eb23-4823-ac24-69a9e7592f0b}, !- Handle
+  Surface 21,                             !- Name
+  Wall,                                   !- Surface Type
+  ,                                       !- Construction Name
+  {793b4802-41a8-444f-8919-ae546d4f027d}, !- Space Name
+  Outdoors,                               !- Outside Boundary Condition
+  ,                                       !- Outside Boundary Condition Object
+  SunExposed,                             !- Sun Exposure
+  WindExposed,                            !- Wind Exposure
+  ,                                       !- View Factor to Ground
+  ,                                       !- Number of Vertices
+  0, 0, 2.4384,                           !- X,Y,Z Vertex 1 {m}
+  0, 0, 0,                                !- X,Y,Z Vertex 2 {m}
+  5.57695129776527, 0, 0,                 !- X,Y,Z Vertex 3 {m}
+  5.57695129776527, 0, 2.4384;            !- X,Y,Z Vertex 4 {m}
+
+OS:Surface,
+  {6e9ba96f-b710-497b-a3cb-caf3c0799c39}, !- Handle
+  Surface 22,                             !- Name
+  RoofCeiling,                            !- Surface Type
+  ,                                       !- Construction Name
+  {793b4802-41a8-444f-8919-ae546d4f027d}, !- Space Name
+  Surface,                                !- Outside Boundary Condition
+  {48b3539c-2d50-44d2-86ce-530e8a2c09f4}, !- Outside Boundary Condition Object
+  NoSun,                                  !- Sun Exposure
+  NoWind,                                 !- Wind Exposure
+  ,                                       !- View Factor to Ground
+  ,                                       !- Number of Vertices
+  11.6729512977653, 0, 2.4384,            !- X,Y,Z Vertex 1 {m}
+  11.6729512977653, 5.83647564888264, 2.4384, !- X,Y,Z Vertex 2 {m}
+  0, 5.83647564888264, 2.4384,            !- X,Y,Z Vertex 3 {m}
+  0, 0, 2.4384;                           !- X,Y,Z Vertex 4 {m}
+
+OS:Surface,
+  {48b3539c-2d50-44d2-86ce-530e8a2c09f4}, !- Handle
+  Surface 23,                             !- Name
+  Floor,                                  !- Surface Type
+  ,                                       !- Construction Name
+  {12c49f3c-8b1f-497d-b08d-8ea28f54c167}, !- Space Name
+  Surface,                                !- Outside Boundary Condition
+  {6e9ba96f-b710-497b-a3cb-caf3c0799c39}, !- Outside Boundary Condition Object
+  NoSun,                                  !- Sun Exposure
+  NoWind,                                 !- Wind Exposure
+  ,                                       !- View Factor to Ground
+  ,                                       !- Number of Vertices
+  11.6729512977653, 5.83647564888264, 0,  !- X,Y,Z Vertex 1 {m}
+  11.6729512977653, 0, 0,                 !- X,Y,Z Vertex 2 {m}
+  0, 0, 0,                                !- X,Y,Z Vertex 3 {m}
+  0, 5.83647564888264, 0;                 !- X,Y,Z Vertex 4 {m}
+
+OS:Surface,
+  {0f0dcde9-7d46-48a6-8e27-ae88dbcd211e}, !- Handle
+  Surface 25,                             !- Name
+  RoofCeiling,                            !- Surface Type
+  ,                                       !- Construction Name
+  {12c49f3c-8b1f-497d-b08d-8ea28f54c167}, !- Space Name
+  Outdoors,                               !- Outside Boundary Condition
+  ,                                       !- Outside Boundary Condition Object
+  SunExposed,                             !- Sun Exposure
+  WindExposed,                            !- Wind Exposure
+  ,                                       !- View Factor to Ground
+  ,                                       !- Number of Vertices
+  0, 2.91823782444132, 1.45911891222066,  !- X,Y,Z Vertex 1 {m}
+  11.6729512977653, 2.91823782444132, 1.45911891222066, !- X,Y,Z Vertex 2 {m}
+  11.6729512977653, 5.83647564888264, 0,  !- X,Y,Z Vertex 3 {m}
+  0, 5.83647564888264, 0;                 !- X,Y,Z Vertex 4 {m}
+
+OS:Surface,
+  {2e369e6e-f86d-4dce-a094-c63c1ddb2b3a}, !- Handle
+  Surface 26,                             !- Name
+  Wall,                                   !- Surface Type
+  ,                                       !- Construction Name
+  {12c49f3c-8b1f-497d-b08d-8ea28f54c167}, !- Space Name
+  Outdoors,                               !- Outside Boundary Condition
+  ,                                       !- Outside Boundary Condition Object
+  SunExposed,                             !- Sun Exposure
+  WindExposed,                            !- Wind Exposure
+  ,                                       !- View Factor to Ground
+  ,                                       !- Number of Vertices
+  0, 2.91823782444132, 1.45911891222066,  !- X,Y,Z Vertex 1 {m}
+  0, 5.83647564888264, 0,                 !- X,Y,Z Vertex 2 {m}
+  0, 0, 0;                                !- X,Y,Z Vertex 3 {m}
+
+OS:Surface,
+  {9795f6b7-01ae-4fdc-86de-fcb5a346abbd}, !- Handle
+  Surface 27,                             !- Name
+  Wall,                                   !- Surface Type
+  ,                                       !- Construction Name
+  {12c49f3c-8b1f-497d-b08d-8ea28f54c167}, !- Space Name
+  Outdoors,                               !- Outside Boundary Condition
+  ,                                       !- Outside Boundary Condition Object
+  SunExposed,                             !- Sun Exposure
+  WindExposed,                            !- Wind Exposure
+  ,                                       !- View Factor to Ground
+  ,                                       !- Number of Vertices
+  11.6729512977653, 2.91823782444132, 1.45911891222066, !- X,Y,Z Vertex 1 {m}
+  11.6729512977653, 0, 0,                 !- X,Y,Z Vertex 2 {m}
+  11.6729512977653, 5.83647564888264, 0;  !- X,Y,Z Vertex 3 {m}
+
+OS:Space,
+  {12c49f3c-8b1f-497d-b08d-8ea28f54c167}, !- Handle
+  unfinished attic space,                 !- Name
+  {1f93adc5-2d4e-4d46-93b8-7f43f3136260}, !- Space Type Name
+  ,                                       !- Default Construction Set Name
+  ,                                       !- Default Schedule Set Name
+  -0,                                     !- Direction of Relative North {deg}
+  0,                                      !- X Origin {m}
+  0,                                      !- Y Origin {m}
+  4.8768,                                 !- Z Origin {m}
+  ,                                       !- Building Story Name
+  {d2aaef5e-7591-452a-8242-5e66566dc360}; !- Thermal Zone Name
+
+OS:ThermalZone,
+  {d2aaef5e-7591-452a-8242-5e66566dc360}, !- Handle
+  unfinished attic zone,                  !- Name
+  ,                                       !- Multiplier
+  ,                                       !- Ceiling Height {m}
+  ,                                       !- Volume {m3}
+  ,                                       !- Floor Area {m2}
+  ,                                       !- Zone Inside Convection Algorithm
+  ,                                       !- Zone Outside Convection Algorithm
+  ,                                       !- Zone Conditioning Equipment List Name
+  {cb8b9e55-9efa-4c53-b139-22130e945824}, !- Zone Air Inlet Port List
+  {dd87c947-a94e-4ce7-bc75-e84559de6fc6}, !- Zone Air Exhaust Port List
+  {48aa61f9-75df-4ce9-bb55-464bdb8ac5b5}, !- Zone Air Node Name
+  {b0cd9995-c103-406e-8fd3-6c3c47a7fa05}, !- Zone Return Air Port List
+  ,                                       !- Primary Daylighting Control Name
+  ,                                       !- Fraction of Zone Controlled by Primary Daylighting Control
+  ,                                       !- Secondary Daylighting Control Name
+  ,                                       !- Fraction of Zone Controlled by Secondary Daylighting Control
+  ,                                       !- Illuminance Map Name
+  ,                                       !- Group Rendering Name
+  ,                                       !- Thermostat Name
+  No;                                     !- Use Ideal Air Loads
+
+OS:Node,
+  {13786dfc-011c-46dc-a2bd-f64b035403b2}, !- Handle
+  Node 3,                                 !- Name
+  {48aa61f9-75df-4ce9-bb55-464bdb8ac5b5}, !- Inlet Port
+  ;                                       !- Outlet Port
+
+OS:Connection,
+  {48aa61f9-75df-4ce9-bb55-464bdb8ac5b5}, !- Handle
+  {c62b0c18-7e62-435e-a3dd-03cd30ba2f05}, !- Name
+  {d2aaef5e-7591-452a-8242-5e66566dc360}, !- Source Object
+  11,                                     !- Outlet Port
+  {13786dfc-011c-46dc-a2bd-f64b035403b2}, !- Target Object
+  2;                                      !- Inlet Port
+
+OS:PortList,
+  {cb8b9e55-9efa-4c53-b139-22130e945824}, !- Handle
+  {65aff103-d31a-4ec5-8199-ca3bf987654c}, !- Name
+  {d2aaef5e-7591-452a-8242-5e66566dc360}; !- HVAC Component
+
+OS:PortList,
+  {dd87c947-a94e-4ce7-bc75-e84559de6fc6}, !- Handle
+  {2a259eb4-2e6c-4099-b66b-65be71af8b5a}, !- Name
+  {d2aaef5e-7591-452a-8242-5e66566dc360}; !- HVAC Component
+
+OS:PortList,
+  {b0cd9995-c103-406e-8fd3-6c3c47a7fa05}, !- Handle
+  {6ca5b065-01cc-47a1-b5c7-5ca8fcef3a6e}, !- Name
+  {d2aaef5e-7591-452a-8242-5e66566dc360}; !- HVAC Component
+
+OS:Sizing:Zone,
+  {7a0c8d4d-ec52-49de-b979-18c9bdde8079}, !- Handle
+  {d2aaef5e-7591-452a-8242-5e66566dc360}, !- Zone or ZoneList Name
+  SupplyAirTemperature,                   !- Zone Cooling Design Supply Air Temperature Input Method
+  14,                                     !- Zone Cooling Design Supply Air Temperature {C}
+  11.11,                                  !- Zone Cooling Design Supply Air Temperature Difference {deltaC}
+  SupplyAirTemperature,                   !- Zone Heating Design Supply Air Temperature Input Method
+  40,                                     !- Zone Heating Design Supply Air Temperature {C}
+  11.11,                                  !- Zone Heating Design Supply Air Temperature Difference {deltaC}
+  0.0085,                                 !- Zone Cooling Design Supply Air Humidity Ratio {kg-H2O/kg-air}
+  0.008,                                  !- Zone Heating Design Supply Air Humidity Ratio {kg-H2O/kg-air}
+  ,                                       !- Zone Heating Sizing Factor
+  ,                                       !- Zone Cooling Sizing Factor
+  DesignDay,                              !- Cooling Design Air Flow Method
+  ,                                       !- Cooling Design Air Flow Rate {m3/s}
+  ,                                       !- Cooling Minimum Air Flow per Zone Floor Area {m3/s-m2}
+  ,                                       !- Cooling Minimum Air Flow {m3/s}
+  ,                                       !- Cooling Minimum Air Flow Fraction
+  DesignDay,                              !- Heating Design Air Flow Method
+  ,                                       !- Heating Design Air Flow Rate {m3/s}
+  ,                                       !- Heating Maximum Air Flow per Zone Floor Area {m3/s-m2}
+  ,                                       !- Heating Maximum Air Flow {m3/s}
+  ,                                       !- Heating Maximum Air Flow Fraction
+  ,                                       !- Design Zone Air Distribution Effectiveness in Cooling Mode
+  ,                                       !- Design Zone Air Distribution Effectiveness in Heating Mode
+  No,                                     !- Account for Dedicated Outdoor Air System
+  NeutralSupplyAir,                       !- Dedicated Outdoor Air System Control Strategy
+  autosize,                               !- Dedicated Outdoor Air Low Setpoint Temperature for Design {C}
+  autosize;                               !- Dedicated Outdoor Air High Setpoint Temperature for Design {C}
+
+OS:ZoneHVAC:EquipmentList,
+  {91cedc51-9137-448d-9cc5-cc3b29f7bb57}, !- Handle
+  Zone HVAC Equipment List 3,             !- Name
+  {d2aaef5e-7591-452a-8242-5e66566dc360}; !- Thermal Zone
+
+OS:SpaceType,
+  {1f93adc5-2d4e-4d46-93b8-7f43f3136260}, !- Handle
+  Space Type 3,                           !- Name
+  ,                                       !- Default Construction Set Name
+  ,                                       !- Default Schedule Set Name
+  ,                                       !- Group Rendering Name
+  ,                                       !- Design Specification Outdoor Air Object Name
+  ,                                       !- Standards Template
+  ,                                       !- Standards Building Type
+  unfinished attic;                       !- Standards Space Type
+
+OS:ThermalZone,
+  {83312b9b-e916-4ad8-be99-75d08c992fe9}, !- Handle
+  finished basement zone,                 !- Name
+  ,                                       !- Multiplier
+  ,                                       !- Ceiling Height {m}
+  ,                                       !- Volume {m3}
+  ,                                       !- Floor Area {m2}
+  ,                                       !- Zone Inside Convection Algorithm
+  ,                                       !- Zone Outside Convection Algorithm
+  ,                                       !- Zone Conditioning Equipment List Name
+  {1a5c1282-f77c-4a5b-9d16-baeb8dd9c694}, !- Zone Air Inlet Port List
+  {b58053eb-3468-4fab-966d-9154fa243e25}, !- Zone Air Exhaust Port List
+  {3e12c46a-dfa6-4384-9b7e-d3aac99bbd3e}, !- Zone Air Node Name
+  {899ba611-d60b-443a-a08c-2b9bc71b4032}, !- Zone Return Air Port List
+  ,                                       !- Primary Daylighting Control Name
+  ,                                       !- Fraction of Zone Controlled by Primary Daylighting Control
+  ,                                       !- Secondary Daylighting Control Name
+  ,                                       !- Fraction of Zone Controlled by Secondary Daylighting Control
+  ,                                       !- Illuminance Map Name
+  ,                                       !- Group Rendering Name
+  ,                                       !- Thermostat Name
+  No;                                     !- Use Ideal Air Loads
+
+OS:Node,
+  {2b887153-4c95-4067-8654-6ea757891865}, !- Handle
+  Node 4,                                 !- Name
+  {3e12c46a-dfa6-4384-9b7e-d3aac99bbd3e}, !- Inlet Port
+  ;                                       !- Outlet Port
+
+OS:Connection,
+  {3e12c46a-dfa6-4384-9b7e-d3aac99bbd3e}, !- Handle
+  {4c66adb3-afa6-499d-9b7f-8e6faeb108e1}, !- Name
+  {83312b9b-e916-4ad8-be99-75d08c992fe9}, !- Source Object
+  11,                                     !- Outlet Port
+  {2b887153-4c95-4067-8654-6ea757891865}, !- Target Object
+  2;                                      !- Inlet Port
+
+OS:PortList,
+  {1a5c1282-f77c-4a5b-9d16-baeb8dd9c694}, !- Handle
+  {f821316e-a8ea-49bd-ae9e-154a18d286ec}, !- Name
+  {83312b9b-e916-4ad8-be99-75d08c992fe9}; !- HVAC Component
+
+OS:PortList,
+  {b58053eb-3468-4fab-966d-9154fa243e25}, !- Handle
+  {38ef14ce-e991-44c9-93c7-404f4836daa8}, !- Name
+  {83312b9b-e916-4ad8-be99-75d08c992fe9}; !- HVAC Component
+
+OS:PortList,
+  {899ba611-d60b-443a-a08c-2b9bc71b4032}, !- Handle
+  {10c2b4b1-961c-4533-a67f-6bdd007bf79a}, !- Name
+  {83312b9b-e916-4ad8-be99-75d08c992fe9}; !- HVAC Component
+
+OS:Sizing:Zone,
+  {b47a5a66-319b-4da9-baca-c7ca81ccb929}, !- Handle
+  {83312b9b-e916-4ad8-be99-75d08c992fe9}, !- Zone or ZoneList Name
+  SupplyAirTemperature,                   !- Zone Cooling Design Supply Air Temperature Input Method
+  14,                                     !- Zone Cooling Design Supply Air Temperature {C}
+  11.11,                                  !- Zone Cooling Design Supply Air Temperature Difference {deltaC}
+  SupplyAirTemperature,                   !- Zone Heating Design Supply Air Temperature Input Method
+  40,                                     !- Zone Heating Design Supply Air Temperature {C}
+  11.11,                                  !- Zone Heating Design Supply Air Temperature Difference {deltaC}
+  0.0085,                                 !- Zone Cooling Design Supply Air Humidity Ratio {kg-H2O/kg-air}
+  0.008,                                  !- Zone Heating Design Supply Air Humidity Ratio {kg-H2O/kg-air}
+  ,                                       !- Zone Heating Sizing Factor
+  ,                                       !- Zone Cooling Sizing Factor
+  DesignDay,                              !- Cooling Design Air Flow Method
+  ,                                       !- Cooling Design Air Flow Rate {m3/s}
+  ,                                       !- Cooling Minimum Air Flow per Zone Floor Area {m3/s-m2}
+  ,                                       !- Cooling Minimum Air Flow {m3/s}
+  ,                                       !- Cooling Minimum Air Flow Fraction
+  DesignDay,                              !- Heating Design Air Flow Method
+  ,                                       !- Heating Design Air Flow Rate {m3/s}
+  ,                                       !- Heating Maximum Air Flow per Zone Floor Area {m3/s-m2}
+  ,                                       !- Heating Maximum Air Flow {m3/s}
+  ,                                       !- Heating Maximum Air Flow Fraction
+  ,                                       !- Design Zone Air Distribution Effectiveness in Cooling Mode
+  ,                                       !- Design Zone Air Distribution Effectiveness in Heating Mode
+  No,                                     !- Account for Dedicated Outdoor Air System
+  NeutralSupplyAir,                       !- Dedicated Outdoor Air System Control Strategy
+  autosize,                               !- Dedicated Outdoor Air Low Setpoint Temperature for Design {C}
+  autosize;                               !- Dedicated Outdoor Air High Setpoint Temperature for Design {C}
+
+OS:ZoneHVAC:EquipmentList,
+  {3a2eedbc-5c84-4589-852c-70a3698621f9}, !- Handle
+  Zone HVAC Equipment List 4,             !- Name
+  {83312b9b-e916-4ad8-be99-75d08c992fe9}; !- Thermal Zone
+
+OS:Space,
+  {4abb77ca-f843-47dc-9beb-1e6b2787ba6e}, !- Handle
+  finished basement space,                !- Name
+  {82d04edf-43cd-46c9-9edc-78f7a22be261}, !- Space Type Name
+  ,                                       !- Default Construction Set Name
+  ,                                       !- Default Schedule Set Name
+  -0,                                     !- Direction of Relative North {deg}
+  0,                                      !- X Origin {m}
+  0,                                      !- Y Origin {m}
+  -2.4384,                                !- Z Origin {m}
+  ,                                       !- Building Story Name
+  {83312b9b-e916-4ad8-be99-75d08c992fe9}, !- Thermal Zone Name
+  ,                                       !- Part of Total Floor Area
+  ,                                       !- Design Specification Outdoor Air Object Name
+  {7d067c76-5df5-44b5-8ebc-5a441035b57b}; !- Building Unit Name
+
+OS:Surface,
+  {f21bd245-c92c-469a-ae46-8f0749dba115}, !- Handle
+  Surface 28,                             !- Name
+  Floor,                                  !- Surface Type
+  ,                                       !- Construction Name
+  {4abb77ca-f843-47dc-9beb-1e6b2787ba6e}, !- Space Name
+  Foundation,                             !- Outside Boundary Condition
+  ,                                       !- Outside Boundary Condition Object
+  NoSun,                                  !- Sun Exposure
+  NoWind,                                 !- Wind Exposure
+  ,                                       !- View Factor to Ground
+  ,                                       !- Number of Vertices
+  0, 0, 0,                                !- X,Y,Z Vertex 1 {m}
+  0, 5.83647564888264, 0,                 !- X,Y,Z Vertex 2 {m}
+  11.6729512977653, 5.83647564888264, 0,  !- X,Y,Z Vertex 3 {m}
+  11.6729512977653, 3.048, 0,             !- X,Y,Z Vertex 4 {m}
+  5.57695129776527, 3.048, 0,             !- X,Y,Z Vertex 5 {m}
+  5.57695129776527, 0, 0;                 !- X,Y,Z Vertex 6 {m}
+
+OS:Surface,
+  {f12487c6-a059-4345-bd9e-34417ab20f17}, !- Handle
+  Surface 29,                             !- Name
+  Wall,                                   !- Surface Type
+  ,                                       !- Construction Name
+  {4abb77ca-f843-47dc-9beb-1e6b2787ba6e}, !- Space Name
+  Foundation,                             !- Outside Boundary Condition
+  ,                                       !- Outside Boundary Condition Object
+  NoSun,                                  !- Sun Exposure
+  NoWind,                                 !- Wind Exposure
+  ,                                       !- View Factor to Ground
+  ,                                       !- Number of Vertices
+  0, 5.83647564888264, 2.4384,            !- X,Y,Z Vertex 1 {m}
+  0, 5.83647564888264, 0,                 !- X,Y,Z Vertex 2 {m}
+  0, 0, 0,                                !- X,Y,Z Vertex 3 {m}
+  0, 0, 2.4384;                           !- X,Y,Z Vertex 4 {m}
+
+OS:Surface,
+  {e43e8066-8020-42b9-ae32-b4bcfdad84ca}, !- Handle
+  Surface 30,                             !- Name
+  Wall,                                   !- Surface Type
+  ,                                       !- Construction Name
+  {4abb77ca-f843-47dc-9beb-1e6b2787ba6e}, !- Space Name
+  Foundation,                             !- Outside Boundary Condition
+  ,                                       !- Outside Boundary Condition Object
+  NoSun,                                  !- Sun Exposure
+  NoWind,                                 !- Wind Exposure
+  ,                                       !- View Factor to Ground
+  ,                                       !- Number of Vertices
+  11.6729512977653, 5.83647564888264, 2.4384, !- X,Y,Z Vertex 1 {m}
+  11.6729512977653, 5.83647564888264, 0,  !- X,Y,Z Vertex 2 {m}
+  0, 5.83647564888264, 0,                 !- X,Y,Z Vertex 3 {m}
+  0, 5.83647564888264, 2.4384;            !- X,Y,Z Vertex 4 {m}
+
+OS:Surface,
+  {8760038c-b139-4ff9-a86a-f3ebefea5d86}, !- Handle
+  Surface 31,                             !- Name
+  Wall,                                   !- Surface Type
+  ,                                       !- Construction Name
+  {4abb77ca-f843-47dc-9beb-1e6b2787ba6e}, !- Space Name
+  Foundation,                             !- Outside Boundary Condition
+  ,                                       !- Outside Boundary Condition Object
+  NoSun,                                  !- Sun Exposure
+  NoWind,                                 !- Wind Exposure
+  ,                                       !- View Factor to Ground
+  ,                                       !- Number of Vertices
+  11.6729512977653, 3.048, 2.4384,        !- X,Y,Z Vertex 1 {m}
+  11.6729512977653, 3.048, 0,             !- X,Y,Z Vertex 2 {m}
+  11.6729512977653, 5.83647564888264, 0,  !- X,Y,Z Vertex 3 {m}
+  11.6729512977653, 5.83647564888264, 2.4384; !- X,Y,Z Vertex 4 {m}
+
+OS:Surface,
+  {17ef17ef-37a4-4eaa-84d9-087c10b1dcfe}, !- Handle
+  Surface 32,                             !- Name
+  Wall,                                   !- Surface Type
+  ,                                       !- Construction Name
+  {4abb77ca-f843-47dc-9beb-1e6b2787ba6e}, !- Space Name
+  Foundation,                             !- Outside Boundary Condition
+  ,                                       !- Outside Boundary Condition Object
+  NoSun,                                  !- Sun Exposure
+  NoWind,                                 !- Wind Exposure
+  ,                                       !- View Factor to Ground
+  ,                                       !- Number of Vertices
+  5.57695129776527, 3.048, 2.4384,        !- X,Y,Z Vertex 1 {m}
+  5.57695129776527, 3.048, 0,             !- X,Y,Z Vertex 2 {m}
+  11.6729512977653, 3.048, 0,             !- X,Y,Z Vertex 3 {m}
+  11.6729512977653, 3.048, 2.4384;        !- X,Y,Z Vertex 4 {m}
+
+OS:Surface,
+  {cf3c6f01-eca2-465d-bef6-1ed472c12646}, !- Handle
+  Surface 33,                             !- Name
+  Wall,                                   !- Surface Type
+  ,                                       !- Construction Name
+  {4abb77ca-f843-47dc-9beb-1e6b2787ba6e}, !- Space Name
+  Foundation,                             !- Outside Boundary Condition
+  ,                                       !- Outside Boundary Condition Object
+  NoSun,                                  !- Sun Exposure
+  NoWind,                                 !- Wind Exposure
+  ,                                       !- View Factor to Ground
+  ,                                       !- Number of Vertices
+  5.57695129776527, 0, 2.4384,            !- X,Y,Z Vertex 1 {m}
+  5.57695129776527, 0, 0,                 !- X,Y,Z Vertex 2 {m}
+  5.57695129776527, 3.048, 0,             !- X,Y,Z Vertex 3 {m}
+  5.57695129776527, 3.048, 2.4384;        !- X,Y,Z Vertex 4 {m}
+
+OS:Surface,
+  {3e59a69e-4d9c-4c56-b9bd-4c86666f602e}, !- Handle
+  Surface 34,                             !- Name
+  Wall,                                   !- Surface Type
+  ,                                       !- Construction Name
+  {4abb77ca-f843-47dc-9beb-1e6b2787ba6e}, !- Space Name
+  Foundation,                             !- Outside Boundary Condition
+  ,                                       !- Outside Boundary Condition Object
+  NoSun,                                  !- Sun Exposure
+  NoWind,                                 !- Wind Exposure
+  ,                                       !- View Factor to Ground
+  ,                                       !- Number of Vertices
+  0, 0, 2.4384,                           !- X,Y,Z Vertex 1 {m}
+  0, 0, 0,                                !- X,Y,Z Vertex 2 {m}
+  5.57695129776527, 0, 0,                 !- X,Y,Z Vertex 3 {m}
+  5.57695129776527, 0, 2.4384;            !- X,Y,Z Vertex 4 {m}
+
+OS:Surface,
+  {d2172933-6df8-409d-b017-e2a7c741abdb}, !- Handle
+  Surface 35,                             !- Name
+  RoofCeiling,                            !- Surface Type
+  ,                                       !- Construction Name
+  {4abb77ca-f843-47dc-9beb-1e6b2787ba6e}, !- Space Name
+  Surface,                                !- Outside Boundary Condition
+  {1d619985-2a0e-4df9-87d0-086e39dbdffe}, !- Outside Boundary Condition Object
+  NoSun,                                  !- Sun Exposure
+  NoWind,                                 !- Wind Exposure
+  ,                                       !- View Factor to Ground
+  ,                                       !- Number of Vertices
+  5.57695129776527, 0, 2.4384,            !- X,Y,Z Vertex 1 {m}
+  5.57695129776527, 3.048, 2.4384,        !- X,Y,Z Vertex 2 {m}
+  11.6729512977653, 3.048, 2.4384,        !- X,Y,Z Vertex 3 {m}
+  11.6729512977653, 5.83647564888264, 2.4384, !- X,Y,Z Vertex 4 {m}
+  0, 5.83647564888264, 2.4384,            !- X,Y,Z Vertex 5 {m}
+  0, 0, 2.4384;                           !- X,Y,Z Vertex 6 {m}
+
+OS:SpaceType,
+  {82d04edf-43cd-46c9-9edc-78f7a22be261}, !- Handle
+  Space Type 4,                           !- Name
+  ,                                       !- Default Construction Set Name
+  ,                                       !- Default Schedule Set Name
+  ,                                       !- Group Rendering Name
+  ,                                       !- Design Specification Outdoor Air Object Name
+  ,                                       !- Standards Template
+  ,                                       !- Standards Building Type
+  finished basement;                      !- Standards Space Type
+
+OS:Surface,
+  {7603365c-3905-4e77-ac08-86fb11416989}, !- Handle
+  Surface 36,                             !- Name
+  Wall,                                   !- Surface Type
+  ,                                       !- Construction Name
+  {b2820a5c-a8f5-480a-9858-62a7150ca512}, !- Space Name
+  Outdoors,                               !- Outside Boundary Condition
+  ,                                       !- Outside Boundary Condition Object
+  SunExposed,                             !- Sun Exposure
+  WindExposed,                            !- Wind Exposure
+  ,                                       !- View Factor to Ground
+  ,                                       !- Number of Vertices
+  5.57695129776527, 0, 2.4384,            !- X,Y,Z Vertex 1 {m}
+  5.57695129776527, 0, 0,                 !- X,Y,Z Vertex 2 {m}
+  5.57695129776527, -3.048, 0,            !- X,Y,Z Vertex 3 {m}
+  5.57695129776527, -3.048, 2.4384;       !- X,Y,Z Vertex 4 {m}
+
+OS:Surface,
+  {ad978cba-f1f3-4850-adf1-bb6a07645f59}, !- Handle
+  Surface 37,                             !- Name
+  Floor,                                  !- Surface Type
+  ,                                       !- Construction Name
+  {793b4802-41a8-444f-8919-ae546d4f027d}, !- Space Name
+  Surface,                                !- Outside Boundary Condition
+  {ebb4c38d-ae52-4120-ae8c-6449a35a60b9}, !- Outside Boundary Condition Object
+  NoSun,                                  !- Sun Exposure
+  NoWind,                                 !- Wind Exposure
+  ,                                       !- View Factor to Ground
+  ,                                       !- Number of Vertices
+  11.6729512977653, 5.83647564888264, 0,  !- X,Y,Z Vertex 1 {m}
+  11.6729512977653, 3.048, 0,             !- X,Y,Z Vertex 2 {m}
+  5.57695129776527, 3.048, 0,             !- X,Y,Z Vertex 3 {m}
+  5.57695129776527, 0, 0,                 !- X,Y,Z Vertex 4 {m}
+  0, 0, 0,                                !- X,Y,Z Vertex 5 {m}
+  0, 5.83647564888264, 0;                 !- X,Y,Z Vertex 6 {m}
+
+OS:Surface,
+  {68428a86-cb96-4c05-ade3-aefdba922104}, !- Handle
+  Surface 38,                             !- Name
+  RoofCeiling,                            !- Surface Type
+  ,                                       !- Construction Name
+  {793b4802-41a8-444f-8919-ae546d4f027d}, !- Space Name
+  Surface,                                !- Outside Boundary Condition
+  {6a50485d-fdc0-4924-81d3-3ee0cd9555a6}, !- Outside Boundary Condition Object
+  NoSun,                                  !- Sun Exposure
+  NoWind,                                 !- Wind Exposure
+  ,                                       !- View Factor to Ground
+  ,                                       !- Number of Vertices
+  11.6729512977653, -3.048, 2.4384,       !- X,Y,Z Vertex 1 {m}
+  11.6729512977653, 0, 2.4384,            !- X,Y,Z Vertex 2 {m}
+  5.57695129776527, 0, 2.4384,            !- X,Y,Z Vertex 3 {m}
+  5.57695129776527, -3.048, 2.4384;       !- X,Y,Z Vertex 4 {m}
+
+OS:Surface,
+  {d48b1a0f-b742-43f9-8180-b5c7152cd762}, !- Handle
+  Surface 39,                             !- Name
+  RoofCeiling,                            !- Surface Type
+  ,                                       !- Construction Name
+  {5b3a18a4-1402-4123-a8f7-2eec52301801}, !- Space Name
+  Outdoors,                               !- Outside Boundary Condition
+  ,                                       !- Outside Boundary Condition Object
+  SunExposed,                             !- Sun Exposure
+  WindExposed,                            !- Wind Exposure
+  ,                                       !- View Factor to Ground
+  ,                                       !- Number of Vertices
+  5.57695129776527, 0, 4.8768,            !- X,Y,Z Vertex 1 {m}
+  5.57695129776527, -3.048, 4.8768,       !- X,Y,Z Vertex 2 {m}
+  8.62495129776529, -3.048, 6.32591891222066, !- X,Y,Z Vertex 3 {m}
+  8.62495129776529, 2.89823782444132, 6.32591891222066; !- X,Y,Z Vertex 4 {m}
+
+OS:Surface,
+  {415ac7a3-3b61-4378-a6c4-26c449fcce83}, !- Handle
+  Surface 40,                             !- Name
+  RoofCeiling,                            !- Surface Type
+  ,                                       !- Construction Name
+  {5b3a18a4-1402-4123-a8f7-2eec52301801}, !- Space Name
+  Outdoors,                               !- Outside Boundary Condition
+  ,                                       !- Outside Boundary Condition Object
+  SunExposed,                             !- Sun Exposure
+  WindExposed,                            !- Wind Exposure
+  ,                                       !- View Factor to Ground
+  ,                                       !- Number of Vertices
+  11.6729512977653, 0, 4.8768,            !- X,Y,Z Vertex 1 {m}
+  8.62495129776529, 2.89823782444132, 6.32591891222066, !- X,Y,Z Vertex 2 {m}
+  8.62495129776529, -3.048, 6.32591891222066, !- X,Y,Z Vertex 3 {m}
+  11.6729512977653, -3.048, 4.8768;       !- X,Y,Z Vertex 4 {m}
+
+OS:Surface,
+  {eeb66748-e7f1-4e65-9075-b988a212cb60}, !- Handle
+  Surface 42,                             !- Name
+  Wall,                                   !- Surface Type
+  ,                                       !- Construction Name
+  {5b3a18a4-1402-4123-a8f7-2eec52301801}, !- Space Name
+  Outdoors,                               !- Outside Boundary Condition
+  ,                                       !- Outside Boundary Condition Object
+  SunExposed,                             !- Sun Exposure
+  WindExposed,                            !- Wind Exposure
+  ,                                       !- View Factor to Ground
+  ,                                       !- Number of Vertices
+  5.57695129776527, -3.048, 4.8768,       !- X,Y,Z Vertex 1 {m}
+  11.6729512977653, -3.048, 4.8768,       !- X,Y,Z Vertex 2 {m}
+  8.62495129776529, -3.048, 6.32591891222066; !- X,Y,Z Vertex 3 {m}
+
+OS:Space,
+  {5b3a18a4-1402-4123-a8f7-2eec52301801}, !- Handle
+  garage attic space,                     !- Name
+  {1f93adc5-2d4e-4d46-93b8-7f43f3136260}, !- Space Type Name
+  ,                                       !- Default Construction Set Name
+  ,                                       !- Default Schedule Set Name
+  ,                                       !- Direction of Relative North {deg}
+  ,                                       !- X Origin {m}
+  ,                                       !- Y Origin {m}
+  ,                                       !- Z Origin {m}
+  ,                                       !- Building Story Name
+  {d2aaef5e-7591-452a-8242-5e66566dc360}; !- Thermal Zone Name
+
+OS:Surface,
+  {6a50485d-fdc0-4924-81d3-3ee0cd9555a6}, !- Handle
+  Surface 38 Reversed,                    !- Name
+  Floor,                                  !- Surface Type
+  ,                                       !- Construction Name
+  {5b3a18a4-1402-4123-a8f7-2eec52301801}, !- Space Name
+  Surface,                                !- Outside Boundary Condition
+  {68428a86-cb96-4c05-ade3-aefdba922104}, !- Outside Boundary Condition Object
+  NoSun,                                  !- Sun Exposure
+  NoWind,                                 !- Wind Exposure
+  ,                                       !- View Factor to Ground
+  ,                                       !- Number of Vertices
+  5.57695129776527, -3.048, 4.8768,       !- X,Y,Z Vertex 1 {m}
+  5.57695129776527, 0, 4.8768,            !- X,Y,Z Vertex 2 {m}
+  11.6729512977653, 0, 4.8768,            !- X,Y,Z Vertex 3 {m}
+  11.6729512977653, -3.048, 4.8768;       !- X,Y,Z Vertex 4 {m}
+
+OS:Surface,
+  {88bd64a6-7930-48fb-98b5-5411a65b41ee}, !- Handle
+  Surface 43,                             !- Name
+  RoofCeiling,                            !- Surface Type
+  ,                                       !- Construction Name
+  {12c49f3c-8b1f-497d-b08d-8ea28f54c167}, !- Space Name
+  Outdoors,                               !- Outside Boundary Condition
+  ,                                       !- Outside Boundary Condition Object
+  SunExposed,                             !- Sun Exposure
+  WindExposed,                            !- Wind Exposure
+  ,                                       !- View Factor to Ground
+  ,                                       !- Number of Vertices
+  0, 2.91823782444132, 1.45911891222066,  !- X,Y,Z Vertex 1 {m}
+  0, -2.22044604925031e-016, 0,           !- X,Y,Z Vertex 2 {m}
+  5.57695129776527, -2.22044604925031e-016, 0, !- X,Y,Z Vertex 3 {m}
+  8.62495129776529, 2.89823782444132, 1.44911891222066, !- X,Y,Z Vertex 4 {m}
+  11.6729512977653, -2.22044604925031e-016, 0, !- X,Y,Z Vertex 5 {m}
+  11.6729512977653, 2.91823782444132, 1.45911891222066; !- X,Y,Z Vertex 6 {m}
+
+OS:BuildingUnit,
+  {7d067c76-5df5-44b5-8ebc-5a441035b57b}, !- Handle
+  unit 1,                                 !- Name
+  ,                                       !- Rendering Color
+  Residential;                            !- Building Unit Type
+
+OS:AdditionalProperties,
+  {35a3bbd5-29d6-4ef1-a5fe-5b2f282e2ff9}, !- Handle
+  {1ff571be-418f-4e4d-a650-7ef6b7f42cb1}, !- Object Name
+  Total Units Represented,                !- Feature Name 1
+  Integer,                                !- Feature Data Type 1
+  1,                                      !- Feature Value 1
+  Total Units Modeled,                    !- Feature Name 2
+  Integer,                                !- Feature Data Type 2
+  1;                                      !- Feature Value 2
+
+OS:AdditionalProperties,
+  {12d3d9c6-52a9-470a-84d8-d256b6bd9547}, !- Handle
+  {7d067c76-5df5-44b5-8ebc-5a441035b57b}, !- Object Name
+  NumberOfBedrooms,                       !- Feature Name 1
+  Integer,                                !- Feature Data Type 1
+  3,                                      !- Feature Value 1
+  NumberOfBathrooms,                      !- Feature Name 2
+  Double,                                 !- Feature Data Type 2
+  2;                                      !- Feature Value 2
+
+OS:Schedule:Day,
+  {652bf31f-1f7c-494d-9c15-a9bad77f93dc}, !- Handle
+  Schedule Day 1,                         !- Name
+  ,                                       !- Schedule Type Limits Name
+  ,                                       !- Interpolate to Timestep
+  24,                                     !- Hour 1
+  0,                                      !- Minute 1
+  0;                                      !- Value Until Time 1
+
+OS:Schedule:Day,
+  {7e4c63d6-30e1-4fd3-bf8b-533d15a10986}, !- Handle
+  Schedule Day 2,                         !- Name
+  ,                                       !- Schedule Type Limits Name
+  ,                                       !- Interpolate to Timestep
+  24,                                     !- Hour 1
+  0,                                      !- Minute 1
+  1;                                      !- Value Until Time 1
+
+OS:WeatherFile,
+  {63fcbc24-a866-466f-a88b-b42661081fe6}, !- Handle
+  Denver Intl Ap,                         !- City
+  CO,                                     !- State Province Region
+  USA,                                    !- Country
+  TMY3,                                   !- Data Source
+  725650,                                 !- WMO Number
+  39.83,                                  !- Latitude {deg}
+  -104.65,                                !- Longitude {deg}
+  -7,                                     !- Time Zone {hr}
+  1650,                                   !- Elevation {m}
+  file:../weather/USA_CO_Denver.Intl.AP.725650_TMY3.epw, !- Url
+  E23378AA;                               !- Checksum
+
+OS:AdditionalProperties,
+  {c9995960-b7d7-48f6-8981-571f4fb6f317}, !- Handle
+  {63fcbc24-a866-466f-a88b-b42661081fe6}, !- Object Name
+  EPWHeaderCity,                          !- Feature Name 1
+  String,                                 !- Feature Data Type 1
+  Denver Intl Ap,                         !- Feature Value 1
+  EPWHeaderState,                         !- Feature Name 2
+  String,                                 !- Feature Data Type 2
+  CO,                                     !- Feature Value 2
+  EPWHeaderCountry,                       !- Feature Name 3
+  String,                                 !- Feature Data Type 3
+  USA,                                    !- Feature Value 3
+  EPWHeaderDataSource,                    !- Feature Name 4
+  String,                                 !- Feature Data Type 4
+  TMY3,                                   !- Feature Value 4
+  EPWHeaderStation,                       !- Feature Name 5
+  String,                                 !- Feature Data Type 5
+  725650,                                 !- Feature Value 5
+  EPWHeaderLatitude,                      !- Feature Name 6
+  Double,                                 !- Feature Data Type 6
+  39.829999999999998,                     !- Feature Value 6
+  EPWHeaderLongitude,                     !- Feature Name 7
+  Double,                                 !- Feature Data Type 7
+  -104.65000000000001,                    !- Feature Value 7
+  EPWHeaderTimezone,                      !- Feature Name 8
+  Double,                                 !- Feature Data Type 8
+  -7,                                     !- Feature Value 8
+  EPWHeaderAltitude,                      !- Feature Name 9
+  Double,                                 !- Feature Data Type 9
+  5413.3858267716532,                     !- Feature Value 9
+  EPWHeaderLocalPressure,                 !- Feature Name 10
+  Double,                                 !- Feature Data Type 10
+  0.81937567683596546,                    !- Feature Value 10
+  EPWHeaderRecordsPerHour,                !- Feature Name 11
+  Double,                                 !- Feature Data Type 11
+  0,                                      !- Feature Value 11
+  EPWDataAnnualAvgDrybulb,                !- Feature Name 12
+  Double,                                 !- Feature Data Type 12
+  51.575616438356228,                     !- Feature Value 12
+  EPWDataAnnualMinDrybulb,                !- Feature Name 13
+  Double,                                 !- Feature Data Type 13
+  -2.9200000000000017,                    !- Feature Value 13
+  EPWDataAnnualMaxDrybulb,                !- Feature Name 14
+  Double,                                 !- Feature Data Type 14
+  104,                                    !- Feature Value 14
+  EPWDataCDD50F,                          !- Feature Name 15
+  Double,                                 !- Feature Data Type 15
+  3072.2925000000005,                     !- Feature Value 15
+  EPWDataCDD65F,                          !- Feature Name 16
+  Double,                                 !- Feature Data Type 16
+  883.62000000000035,                     !- Feature Value 16
+  EPWDataHDD50F,                          !- Feature Name 17
+  Double,                                 !- Feature Data Type 17
+  2497.1925000000001,                     !- Feature Value 17
+  EPWDataHDD65F,                          !- Feature Name 18
+  Double,                                 !- Feature Data Type 18
+  5783.5200000000013,                     !- Feature Value 18
+  EPWDataAnnualAvgWindspeed,              !- Feature Name 19
+  Double,                                 !- Feature Data Type 19
+  3.9165296803649667,                     !- Feature Value 19
+  EPWDataMonthlyAvgDrybulbs,              !- Feature Name 20
+  String,                                 !- Feature Data Type 20
+  33.4191935483871&#4431.90142857142857&#4443.02620967741937&#4442.48624999999999&#4459.877741935483854&#4473.57574999999997&#4472.07975806451608&#4472.70008064516134&#4466.49200000000006&#4450.079112903225806&#4437.218250000000005&#4434.582177419354835, !- Feature Value 20
+  EPWDataGroundMonthlyTemps,              !- Feature Name 21
+  String,                                 !- Feature Data Type 21
+  44.08306285945173&#4440.89570904991865&#4440.64045432632048&#4442.153016571250646&#4448.225111118704206&#4454.268919273837525&#4459.508577937551024&#4462.82777283423508&#4463.10975667174995&#4460.41014950381947&#4455.304105212311526&#4449.445696474514364, !- Feature Value 21
+  EPWDataWSF,                             !- Feature Name 22
+  Double,                                 !- Feature Data Type 22
+  0.58999999999999997,                    !- Feature Value 22
+  EPWDataMonthlyAvgDailyHighDrybulbs,     !- Feature Name 23
+  String,                                 !- Feature Data Type 23
+  47.41032258064516&#4446.58642857142857&#4455.15032258064517&#4453.708&#4472.80193548387098&#4488.67600000000002&#4486.1858064516129&#4485.87225806451613&#4482.082&#4463.18064516129033&#4448.73400000000001&#4448.87935483870968, !- Feature Value 23
+  EPWDataMonthlyAvgDailyLowDrybulbs,      !- Feature Name 24
+  String,                                 !- Feature Data Type 24
+  19.347741935483874&#4419.856428571428573&#4430.316129032258065&#4431.112&#4447.41612903225806&#4457.901999999999994&#4459.063870967741934&#4460.956774193548384&#4452.352000000000004&#4438.41612903225806&#4427.002000000000002&#4423.02903225806451, !- Feature Value 24
+  EPWDesignHeatingDrybulb,                !- Feature Name 25
+  Double,                                 !- Feature Data Type 25
+  12.02,                                  !- Feature Value 25
+  EPWDesignHeatingWindspeed,              !- Feature Name 26
+  Double,                                 !- Feature Data Type 26
+  2.8062500000000004,                     !- Feature Value 26
+  EPWDesignCoolingDrybulb,                !- Feature Name 27
+  Double,                                 !- Feature Data Type 27
+  91.939999999999998,                     !- Feature Value 27
+  EPWDesignCoolingWetbulb,                !- Feature Name 28
+  Double,                                 !- Feature Data Type 28
+  59.95131430195849,                      !- Feature Value 28
+  EPWDesignCoolingHumidityRatio,          !- Feature Name 29
+  Double,                                 !- Feature Data Type 29
+  0.0059161086834698092,                  !- Feature Value 29
+  EPWDesignCoolingWindspeed,              !- Feature Name 30
+  Double,                                 !- Feature Data Type 30
+  3.7999999999999989,                     !- Feature Value 30
+  EPWDesignDailyTemperatureRange,         !- Feature Name 31
+  Double,                                 !- Feature Data Type 31
+  24.915483870967748,                     !- Feature Value 31
+  EPWDesignDehumidDrybulb,                !- Feature Name 32
+  Double,                                 !- Feature Data Type 32
+  67.996785714285721,                     !- Feature Value 32
+  EPWDesignDehumidHumidityRatio,          !- Feature Name 33
+  Double,                                 !- Feature Data Type 33
+  0.012133744170488724,                   !- Feature Value 33
+  EPWDesignCoolingDirectNormal,           !- Feature Name 34
+  Double,                                 !- Feature Data Type 34
+  985,                                    !- Feature Value 34
+  EPWDesignCoolingDiffuseHorizontal,      !- Feature Name 35
+  Double,                                 !- Feature Data Type 35
+  84;                                     !- Feature Value 35
+
+OS:YearDescription,
+  {4f0e17e1-a6e3-4af1-a59c-273b11a06d96}, !- Handle
+  ,                                       !- Calendar Year
+  Monday;                                 !- Day of Week for Start Day
+
+OS:ClimateZones,
+  {40db3702-9a75-41ff-81e2-f84abad417c1}, !- Handle
+  ,                                       !- Active Institution
+  ,                                       !- Active Year
+  ,                                       !- Climate Zone Institution Name 1
+  ,                                       !- Climate Zone Document Name 1
+  ,                                       !- Climate Zone Document Year 1
+  ,                                       !- Climate Zone Value 1
+  Building America,                       !- Climate Zone Institution Name 2
+  ,                                       !- Climate Zone Document Name 2
+  0,                                      !- Climate Zone Document Year 2
+  Cold;                                   !- Climate Zone Value 2
+
+OS:Site:WaterMainsTemperature,
+  {0dfbdf23-16b1-47b2-bf6b-bb804ddc3ba9}, !- Handle
+  Correlation,                            !- Calculation Method
+  ,                                       !- Temperature Schedule Name
+  10.8753424657535,                       !- Annual Average Outdoor Air Temperature {C}
+  23.1524007936508;                       !- Maximum Difference In Monthly Average Outdoor Air Temperatures {deltaC}
+
+OS:RunPeriodControl:DaylightSavingTime,
+  {9eff18ee-b83a-44e2-8f06-ce86af398a7f}, !- Handle
+  4/7,                                    !- Start Date
+  10/26;                                  !- End Date
+
+OS:Site:GroundTemperature:Deep,
+  {0324699a-4491-48b6-9c98-0593d8181a6d}, !- Handle
+  10.8753424657535,                       !- January Deep Ground Temperature {C}
+  10.8753424657535,                       !- February Deep Ground Temperature {C}
+  10.8753424657535,                       !- March Deep Ground Temperature {C}
+  10.8753424657535,                       !- April Deep Ground Temperature {C}
+  10.8753424657535,                       !- May Deep Ground Temperature {C}
+  10.8753424657535,                       !- June Deep Ground Temperature {C}
+  10.8753424657535,                       !- July Deep Ground Temperature {C}
+  10.8753424657535,                       !- August Deep Ground Temperature {C}
+  10.8753424657535,                       !- September Deep Ground Temperature {C}
+  10.8753424657535,                       !- October Deep Ground Temperature {C}
+  10.8753424657535,                       !- November Deep Ground Temperature {C}
+  10.8753424657535;                       !- December Deep Ground Temperature {C}
+
+OS:PlantLoop,
+  {e7982d39-85cc-4e59-8ede-95791fc3ced5}, !- Handle
+  Domestic Hot Water Loop,                !- Name
+  ,                                       !- Fluid Type
+  0,                                      !- Glycol Concentration
+  ,                                       !- User Defined Fluid Type
+  ,                                       !- Plant Equipment Operation Heating Load
+  ,                                       !- Plant Equipment Operation Cooling Load
+  ,                                       !- Primary Plant Equipment Operation Scheme
+  {20a37a41-324a-4eae-a1e3-da169cf35149}, !- Loop Temperature Setpoint Node Name
+  ,                                       !- Maximum Loop Temperature {C}
+  ,                                       !- Minimum Loop Temperature {C}
+  0.01,                                   !- Maximum Loop Flow Rate {m3/s}
+  ,                                       !- Minimum Loop Flow Rate {m3/s}
+  0.003,                                  !- Plant Loop Volume {m3}
+  {6bc52986-9866-4eca-be29-b3c29ebc9a16}, !- Plant Side Inlet Node Name
+  {6dc8c0fc-6560-4fde-93a9-31e8b042c87f}, !- Plant Side Outlet Node Name
+  ,                                       !- Plant Side Branch List Name
+  {0a735318-7225-493a-99e4-0d31adabac35}, !- Demand Side Inlet Node Name
+  {d210f75e-29c9-42a2-a080-bf9ce0afd854}, !- Demand Side Outlet Node Name
+  ,                                       !- Demand Side Branch List Name
+  ,                                       !- Demand Side Connector List Name
+  Optimal,                                !- Load Distribution Scheme
+  {b8b3791a-b633-4b18-bd45-7c9e668fa419}, !- Availability Manager List Name
+  ,                                       !- Plant Loop Demand Calculation Scheme
+  ,                                       !- Common Pipe Simulation
+  ,                                       !- Pressure Simulation Type
+  ,                                       !- Plant Equipment Operation Heating Load Schedule
+  ,                                       !- Plant Equipment Operation Cooling Load Schedule
+  ,                                       !- Primary Plant Equipment Operation Scheme Schedule
+  ,                                       !- Component Setpoint Operation Scheme Schedule
+  {1686936d-7e84-4029-8f42-c6e7534f5e7b}, !- Demand Mixer Name
+  {c3b340ed-bdb5-4a53-a003-6fedf063c3c4}, !- Demand Splitter Name
+  {bc630fd5-37e8-4274-85a1-488cd3501892}, !- Supply Mixer Name
+  {972ee10d-5a3b-4d03-ad5e-7a64a1594dab}; !- Supply Splitter Name
+
+OS:Node,
+  {ce4c1cd1-0f5f-4695-b9c8-e81e2d1d0c80}, !- Handle
+  Node 5,                                 !- Name
+  {6bc52986-9866-4eca-be29-b3c29ebc9a16}, !- Inlet Port
+  {f53baa33-87a7-4487-ad51-9bee8b7f334e}; !- Outlet Port
+
+OS:Node,
+  {20a37a41-324a-4eae-a1e3-da169cf35149}, !- Handle
+  Node 6,                                 !- Name
+  {5a1b8eb0-0449-482a-a96e-d8186bd503c7}, !- Inlet Port
+  {6dc8c0fc-6560-4fde-93a9-31e8b042c87f}; !- Outlet Port
+
+OS:Node,
+  {d0dc245f-1384-4ef0-a4ea-ac117f0004f8}, !- Handle
+  Node 7,                                 !- Name
+  {d11adb52-f4d4-49de-ad21-aa048021dd03}, !- Inlet Port
+  {cf823c96-8771-417b-9ac7-92bf70c8e82e}; !- Outlet Port
+
+OS:Connector:Mixer,
+  {bc630fd5-37e8-4274-85a1-488cd3501892}, !- Handle
+  Connector Mixer 1,                      !- Name
+  {3ac8dba6-c864-4224-b2a0-f43754c809c2}, !- Outlet Branch Name
+  {f9bffff1-8a90-4821-bc55-6b61dd6f778b}, !- Inlet Branch Name 1
+  {f13bf086-8866-4864-b752-889a9f4819b6}; !- Inlet Branch Name 2
+
+OS:Connector:Splitter,
+  {972ee10d-5a3b-4d03-ad5e-7a64a1594dab}, !- Handle
+  Connector Splitter 1,                   !- Name
+  {0b2b8cd2-4647-43e3-8934-372343f6e411}, !- Inlet Branch Name
+  {d11adb52-f4d4-49de-ad21-aa048021dd03}, !- Outlet Branch Name 1
+  {4ce8dbea-399d-465c-a83b-b1ba0b5c1200}; !- Outlet Branch Name 2
+
+OS:Connection,
+  {6bc52986-9866-4eca-be29-b3c29ebc9a16}, !- Handle
+  {34af815d-d7d9-4b50-be07-fd68e6272b09}, !- Name
+  {e7982d39-85cc-4e59-8ede-95791fc3ced5}, !- Source Object
+  14,                                     !- Outlet Port
+  {ce4c1cd1-0f5f-4695-b9c8-e81e2d1d0c80}, !- Target Object
+  2;                                      !- Inlet Port
+
+OS:Connection,
+  {d11adb52-f4d4-49de-ad21-aa048021dd03}, !- Handle
+  {f4ca5adc-f06f-4795-9f33-7912661472cf}, !- Name
+  {972ee10d-5a3b-4d03-ad5e-7a64a1594dab}, !- Source Object
+  3,                                      !- Outlet Port
+  {d0dc245f-1384-4ef0-a4ea-ac117f0004f8}, !- Target Object
+  2;                                      !- Inlet Port
+
+OS:Connection,
+  {6dc8c0fc-6560-4fde-93a9-31e8b042c87f}, !- Handle
+  {a04608ff-7b67-4454-876b-fae698bc69d8}, !- Name
+  {20a37a41-324a-4eae-a1e3-da169cf35149}, !- Source Object
+  3,                                      !- Outlet Port
+  {e7982d39-85cc-4e59-8ede-95791fc3ced5}, !- Target Object
+  15;                                     !- Inlet Port
+
+OS:Node,
+  {ba64af19-4313-48ba-a8c1-c53409dc47df}, !- Handle
+  Node 8,                                 !- Name
+  {0a735318-7225-493a-99e4-0d31adabac35}, !- Inlet Port
+  {51f64254-4fd3-4aa2-8489-f29aa55908c4}; !- Outlet Port
+
+OS:Node,
+  {03bf34a3-db6f-4536-926d-f0d96480dee1}, !- Handle
+  Node 9,                                 !- Name
+  {71fa53d6-d809-4ab5-968c-e58c1b4ec8d9}, !- Inlet Port
+  {d210f75e-29c9-42a2-a080-bf9ce0afd854}; !- Outlet Port
+
+OS:Node,
+  {5d146b7f-9808-4c79-9d8c-5a3f26e02119}, !- Handle
+  Node 10,                                !- Name
+  {77c7e544-d36a-42d0-9e60-fd4baf1bf796}, !- Inlet Port
+  {55bbda0f-c30a-4472-977f-17349d5f206b}; !- Outlet Port
+
+OS:Connector:Mixer,
+  {1686936d-7e84-4029-8f42-c6e7534f5e7b}, !- Handle
+  Connector Mixer 2,                      !- Name
+  {71fa53d6-d809-4ab5-968c-e58c1b4ec8d9}, !- Outlet Branch Name
+  {84a8f562-7abc-494b-a72a-727c19da2144}; !- Inlet Branch Name 1
+
+OS:Connector:Splitter,
+  {c3b340ed-bdb5-4a53-a003-6fedf063c3c4}, !- Handle
+  Connector Splitter 2,                   !- Name
+  {51f64254-4fd3-4aa2-8489-f29aa55908c4}, !- Inlet Branch Name
+  {77c7e544-d36a-42d0-9e60-fd4baf1bf796}; !- Outlet Branch Name 1
+
+OS:Connection,
+  {0a735318-7225-493a-99e4-0d31adabac35}, !- Handle
+  {1ab43443-dd4a-429b-8cf4-82f5c09fc738}, !- Name
+  {e7982d39-85cc-4e59-8ede-95791fc3ced5}, !- Source Object
+  17,                                     !- Outlet Port
+  {ba64af19-4313-48ba-a8c1-c53409dc47df}, !- Target Object
+  2;                                      !- Inlet Port
+
+OS:Connection,
+  {51f64254-4fd3-4aa2-8489-f29aa55908c4}, !- Handle
+  {e37e0beb-a309-4477-b6f1-8ec580856615}, !- Name
+  {ba64af19-4313-48ba-a8c1-c53409dc47df}, !- Source Object
+  3,                                      !- Outlet Port
+  {c3b340ed-bdb5-4a53-a003-6fedf063c3c4}, !- Target Object
+  2;                                      !- Inlet Port
+
+OS:Connection,
+  {77c7e544-d36a-42d0-9e60-fd4baf1bf796}, !- Handle
+  {c6a47d0b-3610-4be8-a1be-068d109146f6}, !- Name
+  {c3b340ed-bdb5-4a53-a003-6fedf063c3c4}, !- Source Object
+  3,                                      !- Outlet Port
+  {5d146b7f-9808-4c79-9d8c-5a3f26e02119}, !- Target Object
+  2;                                      !- Inlet Port
+
+OS:Connection,
+  {71fa53d6-d809-4ab5-968c-e58c1b4ec8d9}, !- Handle
+  {1b5127f8-2f01-4515-9d32-d1d76852dac5}, !- Name
+  {1686936d-7e84-4029-8f42-c6e7534f5e7b}, !- Source Object
+  2,                                      !- Outlet Port
+  {03bf34a3-db6f-4536-926d-f0d96480dee1}, !- Target Object
+  2;                                      !- Inlet Port
+
+OS:Connection,
+  {d210f75e-29c9-42a2-a080-bf9ce0afd854}, !- Handle
+  {21d4ff6f-59f4-43ba-842a-8310ba243159}, !- Name
+  {03bf34a3-db6f-4536-926d-f0d96480dee1}, !- Source Object
+  3,                                      !- Outlet Port
+  {e7982d39-85cc-4e59-8ede-95791fc3ced5}, !- Target Object
+  18;                                     !- Inlet Port
+
+OS:Sizing:Plant,
+  {ad4a053c-0ffd-4eea-a9fa-b26abf453dac}, !- Handle
+  {e7982d39-85cc-4e59-8ede-95791fc3ced5}, !- Plant or Condenser Loop Name
+  Heating,                                !- Loop Type
+  52.6666666666667,                       !- Design Loop Exit Temperature {C}
+  5.55555555555556,                       !- Loop Design Temperature Difference {deltaC}
+  NonCoincident,                          !- Sizing Option
+  1,                                      !- Zone Timesteps in Averaging Window
+  None;                                   !- Coincident Sizing Factor Mode
+
+OS:AvailabilityManagerAssignmentList,
+  {b8b3791a-b633-4b18-bd45-7c9e668fa419}, !- Handle
+  Plant Loop 1 AvailabilityManagerAssignmentList; !- Name
+
+OS:Pipe:Adiabatic,
+  {65a92928-18ca-43cb-a2a5-fc9caf75781d}, !- Handle
+  Pipe Adiabatic 1,                       !- Name
+  {cf823c96-8771-417b-9ac7-92bf70c8e82e}, !- Inlet Node Name
+  {1f1cfdae-6cf3-4ec6-84e5-eb7fb3162359}; !- Outlet Node Name
+
+OS:Pipe:Adiabatic,
+  {401366d7-f8b4-4d6c-b331-8fb7eb98c000}, !- Handle
+  Pipe Adiabatic 2,                       !- Name
+  {18ddf88f-70ff-4878-8ab5-6f3d639de623}, !- Inlet Node Name
+  {5a1b8eb0-0449-482a-a96e-d8186bd503c7}; !- Outlet Node Name
+
+OS:Node,
+  {f9fbb2d4-8ad7-45af-8bdc-f11a1651f552}, !- Handle
+  Node 11,                                !- Name
+  {1f1cfdae-6cf3-4ec6-84e5-eb7fb3162359}, !- Inlet Port
+  {f9bffff1-8a90-4821-bc55-6b61dd6f778b}; !- Outlet Port
+
+OS:Connection,
+  {cf823c96-8771-417b-9ac7-92bf70c8e82e}, !- Handle
+  {00c2c90e-82e9-4686-8407-e880744aba01}, !- Name
+  {d0dc245f-1384-4ef0-a4ea-ac117f0004f8}, !- Source Object
+  3,                                      !- Outlet Port
+  {65a92928-18ca-43cb-a2a5-fc9caf75781d}, !- Target Object
+  2;                                      !- Inlet Port
+
+OS:Connection,
+  {1f1cfdae-6cf3-4ec6-84e5-eb7fb3162359}, !- Handle
+  {9c943628-13e6-407d-acc8-023ff98fab98}, !- Name
+  {65a92928-18ca-43cb-a2a5-fc9caf75781d}, !- Source Object
+  3,                                      !- Outlet Port
+  {f9fbb2d4-8ad7-45af-8bdc-f11a1651f552}, !- Target Object
+  2;                                      !- Inlet Port
+
+OS:Connection,
+  {f9bffff1-8a90-4821-bc55-6b61dd6f778b}, !- Handle
+  {cd25c23e-2c11-47ec-9682-c81f6f4f32fa}, !- Name
+  {f9fbb2d4-8ad7-45af-8bdc-f11a1651f552}, !- Source Object
+  3,                                      !- Outlet Port
+  {bc630fd5-37e8-4274-85a1-488cd3501892}, !- Target Object
+  3;                                      !- Inlet Port
+
+OS:Node,
+  {e24c9027-f241-4e23-8222-9ca56eaa73c7}, !- Handle
+  Node 12,                                !- Name
+  {3ac8dba6-c864-4224-b2a0-f43754c809c2}, !- Inlet Port
+  {18ddf88f-70ff-4878-8ab5-6f3d639de623}; !- Outlet Port
+
+OS:Connection,
+  {3ac8dba6-c864-4224-b2a0-f43754c809c2}, !- Handle
+  {c8e039bc-7a84-4403-b8de-158c79b08e73}, !- Name
+  {bc630fd5-37e8-4274-85a1-488cd3501892}, !- Source Object
+  2,                                      !- Outlet Port
+  {e24c9027-f241-4e23-8222-9ca56eaa73c7}, !- Target Object
+  2;                                      !- Inlet Port
+
+OS:Connection,
+  {18ddf88f-70ff-4878-8ab5-6f3d639de623}, !- Handle
+  {5f348ca6-01bc-4935-b1bc-556dbf7ac1c3}, !- Name
+  {e24c9027-f241-4e23-8222-9ca56eaa73c7}, !- Source Object
+  3,                                      !- Outlet Port
+  {401366d7-f8b4-4d6c-b331-8fb7eb98c000}, !- Target Object
+  2;                                      !- Inlet Port
+
+OS:Connection,
+  {5a1b8eb0-0449-482a-a96e-d8186bd503c7}, !- Handle
+  {2167a8f5-d2bd-4cdd-bf2d-6fbebe778d87}, !- Name
+  {401366d7-f8b4-4d6c-b331-8fb7eb98c000}, !- Source Object
+  3,                                      !- Outlet Port
+  {20a37a41-324a-4eae-a1e3-da169cf35149}, !- Target Object
+  2;                                      !- Inlet Port
+
+OS:Pump:VariableSpeed,
+  {cd243fc1-720a-4538-a6dc-2a71a14a0015}, !- Handle
+  Pump Variable Speed 1,                  !- Name
+  {f53baa33-87a7-4487-ad51-9bee8b7f334e}, !- Inlet Node Name
+  {3dcb7b5b-1cde-4141-8173-1514c9ba01fb}, !- Outlet Node Name
+  0.01,                                   !- Rated Flow Rate {m3/s}
+  1,                                      !- Rated Pump Head {Pa}
+  0,                                      !- Rated Power Consumption {W}
+  1,                                      !- Motor Efficiency
+  0,                                      !- Fraction of Motor Inefficiencies to Fluid Stream
+  0,                                      !- Coefficient 1 of the Part Load Performance Curve
+  1,                                      !- Coefficient 2 of the Part Load Performance Curve
+  0,                                      !- Coefficient 3 of the Part Load Performance Curve
+  0,                                      !- Coefficient 4 of the Part Load Performance Curve
+  ,                                       !- Minimum Flow Rate {m3/s}
+  Intermittent,                           !- Pump Control Type
+  ,                                       !- Pump Flow Rate Schedule Name
+  ,                                       !- Pump Curve Name
+  ,                                       !- Impeller Diameter {m}
+  ,                                       !- VFD Control Type
+  ,                                       !- Pump rpm Schedule Name
+  ,                                       !- Minimum Pressure Schedule {Pa}
+  ,                                       !- Maximum Pressure Schedule {Pa}
+  ,                                       !- Minimum RPM Schedule {Rotations Per Minute}
+  ,                                       !- Maximum RPM Schedule {Rotations Per Minute}
+  ,                                       !- Zone Name
+  0.5,                                    !- Skin Loss Radiative Fraction
+  PowerPerFlowPerPressure,                !- Design Power Sizing Method
+  348701.1,                               !- Design Electric Power per Unit Flow Rate {W/(m3/s)}
+  1.282051282,                            !- Design Shaft Power per Unit Flow Rate per Unit Head {W-s/m3-Pa}
+  0;                                      !- Design Minimum Flow Rate Fraction
+
+OS:Node,
+  {1d67c0c6-a2c1-45e7-a212-5a3a16e92e8f}, !- Handle
+  Node 13,                                !- Name
+  {3dcb7b5b-1cde-4141-8173-1514c9ba01fb}, !- Inlet Port
+  {0b2b8cd2-4647-43e3-8934-372343f6e411}; !- Outlet Port
+
+OS:Connection,
+  {f53baa33-87a7-4487-ad51-9bee8b7f334e}, !- Handle
+  {bcb1054f-f358-417c-9108-23b99e920a64}, !- Name
+  {ce4c1cd1-0f5f-4695-b9c8-e81e2d1d0c80}, !- Source Object
+  3,                                      !- Outlet Port
+  {cd243fc1-720a-4538-a6dc-2a71a14a0015}, !- Target Object
+  2;                                      !- Inlet Port
+
+OS:Connection,
+  {3dcb7b5b-1cde-4141-8173-1514c9ba01fb}, !- Handle
+  {b11d2616-a5e1-4934-a837-9b244da1b30f}, !- Name
+  {cd243fc1-720a-4538-a6dc-2a71a14a0015}, !- Source Object
+  3,                                      !- Outlet Port
+  {1d67c0c6-a2c1-45e7-a212-5a3a16e92e8f}, !- Target Object
+  2;                                      !- Inlet Port
+
+OS:Connection,
+  {0b2b8cd2-4647-43e3-8934-372343f6e411}, !- Handle
+  {3af6118b-94a8-4e3b-b2c8-60f54bc7953b}, !- Name
+  {1d67c0c6-a2c1-45e7-a212-5a3a16e92e8f}, !- Source Object
+  3,                                      !- Outlet Port
+  {972ee10d-5a3b-4d03-ad5e-7a64a1594dab}, !- Target Object
+  2;                                      !- Inlet Port
+
+OS:Schedule:Constant,
+  {ca86783e-566a-4035-a4be-45efe72f1644}, !- Handle
+  dhw temp,                               !- Name
+  {5d27ab5e-f6b2-481a-b6ab-1131216ba2de}, !- Schedule Type Limits Name
+  52.6666666666667;                       !- Value
+
+OS:SetpointManager:Scheduled,
+  {8f9e74fb-80ca-42f6-88de-8c05bd27da20}, !- Handle
+  Setpoint Manager Scheduled 1,           !- Name
+  Temperature,                            !- Control Variable
+  {ca86783e-566a-4035-a4be-45efe72f1644}, !- Schedule Name
+  {20a37a41-324a-4eae-a1e3-da169cf35149}; !- Setpoint Node or NodeList Name
+
+OS:ScheduleTypeLimits,
+  {5d27ab5e-f6b2-481a-b6ab-1131216ba2de}, !- Handle
+  Temperature,                            !- Name
+  ,                                       !- Lower Limit Value
+  ,                                       !- Upper Limit Value
+  Continuous,                             !- Numeric Type
+  Temperature;                            !- Unit Type
+
+OS:WaterHeater:Mixed,
+  {6f28bfae-0168-4f6b-9993-bdd4d9becc82}, !- Handle
+  res wh,                                 !- Name
+  0.143845647790854,                      !- Tank Volume {m3}
+  {be8c63e7-f9df-47c6-a357-1e76a016a889}, !- Setpoint Temperature Schedule Name
+  2,                                      !- Deadband Temperature Difference {deltaC}
+  99,                                     !- Maximum Temperature Limit {C}
+  Cycle,                                  !- Heater Control Type
+  11722.8428068889,                       !- Heater Maximum Capacity {W}
+  0,                                      !- Heater Minimum Capacity {W}
+  ,                                       !- Heater Ignition Minimum Flow Rate {m3/s}
+  ,                                       !- Heater Ignition Delay {s}
+  NaturalGas,                             !- Heater Fuel Type
+  0.773298241318794,                      !- Heater Thermal Efficiency
+  ,                                       !- Part Load Factor Curve Name
+  0,                                      !- Off Cycle Parasitic Fuel Consumption Rate {W}
+  Electricity,                            !- Off Cycle Parasitic Fuel Type
+  0,                                      !- Off Cycle Parasitic Heat Fraction to Tank
+  0,                                      !- On Cycle Parasitic Fuel Consumption Rate {W}
+  Electricity,                            !- On Cycle Parasitic Fuel Type
+  0,                                      !- On Cycle Parasitic Heat Fraction to Tank
+  ThermalZone,                            !- Ambient Temperature Indicator
+  ,                                       !- Ambient Temperature Schedule Name
+  {83312b9b-e916-4ad8-be99-75d08c992fe9}, !- Ambient Temperature Thermal Zone Name
+  ,                                       !- Ambient Temperature Outdoor Air Node Name
+  4.15693173076374,                       !- Off Cycle Loss Coefficient to Ambient Temperature {W/K}
+  0.64,                                   !- Off Cycle Loss Fraction to Thermal Zone
+  4.15693173076374,                       !- On Cycle Loss Coefficient to Ambient Temperature {W/K}
+  1,                                      !- On Cycle Loss Fraction to Thermal Zone
+  ,                                       !- Peak Use Flow Rate {m3/s}
+  ,                                       !- Use Flow Rate Fraction Schedule Name
+  ,                                       !- Cold Water Supply Temperature Schedule Name
+  {98ebbb8b-ba6a-4d27-a7f0-1a39b9b3cb2e}, !- Use Side Inlet Node Name
+  {53dcdf20-d1a6-441d-ae50-ef1164d0d876}, !- Use Side Outlet Node Name
+  1,                                      !- Use Side Effectiveness
+  ,                                       !- Source Side Inlet Node Name
+  ,                                       !- Source Side Outlet Node Name
+  1,                                      !- Source Side Effectiveness
+  autosize,                               !- Use Side Design Flow Rate {m3/s}
+  autosize,                               !- Source Side Design Flow Rate {m3/s}
+  1.5,                                    !- Indirect Water Heating Recovery Time {hr}
+  IndirectHeatPrimarySetpoint,            !- Source Side Flow Control Mode
+  ,                                       !- Indirect Alternate Setpoint Temperature Schedule Name
+  res wh;                                 !- End-Use Subcategory
+
+OS:Schedule:Constant,
+  {be8c63e7-f9df-47c6-a357-1e76a016a889}, !- Handle
+  WH Setpoint Temp,                       !- Name
+  {5d27ab5e-f6b2-481a-b6ab-1131216ba2de}, !- Schedule Type Limits Name
+  52.6666666666667;                       !- Value
+
+OS:Node,
+  {4be0b893-d6b6-483f-bc82-4e0881097047}, !- Handle
+  Node 14,                                !- Name
+  {4ce8dbea-399d-465c-a83b-b1ba0b5c1200}, !- Inlet Port
+  {98ebbb8b-ba6a-4d27-a7f0-1a39b9b3cb2e}; !- Outlet Port
+
+OS:Connection,
+  {4ce8dbea-399d-465c-a83b-b1ba0b5c1200}, !- Handle
+  {cf2b0ba0-b200-4830-a7ca-a04084496ae5}, !- Name
+  {972ee10d-5a3b-4d03-ad5e-7a64a1594dab}, !- Source Object
+  4,                                      !- Outlet Port
+  {4be0b893-d6b6-483f-bc82-4e0881097047}, !- Target Object
+  2;                                      !- Inlet Port
+
+OS:Node,
+  {6a46071f-7b10-4b60-a88d-e14dfe04651e}, !- Handle
+  Node 15,                                !- Name
+  {53dcdf20-d1a6-441d-ae50-ef1164d0d876}, !- Inlet Port
+  {f13bf086-8866-4864-b752-889a9f4819b6}; !- Outlet Port
+
+OS:Connection,
+  {98ebbb8b-ba6a-4d27-a7f0-1a39b9b3cb2e}, !- Handle
+  {c9c6c602-ab9f-49c3-bd2a-58b84a1c28f0}, !- Name
+  {4be0b893-d6b6-483f-bc82-4e0881097047}, !- Source Object
+  3,                                      !- Outlet Port
+  {6f28bfae-0168-4f6b-9993-bdd4d9becc82}, !- Target Object
+  31;                                     !- Inlet Port
+
+OS:Connection,
+  {53dcdf20-d1a6-441d-ae50-ef1164d0d876}, !- Handle
+  {793b1262-e7b6-40f1-9138-2bad6250153a}, !- Name
+  {6f28bfae-0168-4f6b-9993-bdd4d9becc82}, !- Source Object
+  32,                                     !- Outlet Port
+  {6a46071f-7b10-4b60-a88d-e14dfe04651e}, !- Target Object
+  2;                                      !- Inlet Port
+
+OS:Connection,
+  {f13bf086-8866-4864-b752-889a9f4819b6}, !- Handle
+  {04f7cacb-ff99-4554-a07f-f53e048eadfb}, !- Name
+  {6a46071f-7b10-4b60-a88d-e14dfe04651e}, !- Source Object
+  3,                                      !- Outlet Port
+  {bc630fd5-37e8-4274-85a1-488cd3501892}, !- Target Object
+  4;                                      !- Inlet Port
+
+OS:Schedule:Ruleset,
+  {f7c83307-b0a9-4474-9b5f-e00039279564}, !- Handle
+  res cw schedule,                        !- Name
+  {10bcba05-8f23-4971-b901-90ac83ba082e}, !- Schedule Type Limits Name
+  {15904fea-e9b9-4117-83db-cecdbfaa45a8}; !- Default Day Schedule Name
+
+OS:Schedule:Day,
+  {15904fea-e9b9-4117-83db-cecdbfaa45a8}, !- Handle
+  Schedule Day 3,                         !- Name
+  {10bcba05-8f23-4971-b901-90ac83ba082e}, !- Schedule Type Limits Name
+  ,                                       !- Interpolate to Timestep
+  24,                                     !- Hour 1
+  0,                                      !- Minute 1
+  0;                                      !- Value Until Time 1
+
+OS:Schedule:Rule,
+  {d90c46d1-ef80-4e7c-a844-e1d5e822c2dd}, !- Handle
+  res cw schedule allday ruleset1,        !- Name
+  {f7c83307-b0a9-4474-9b5f-e00039279564}, !- Schedule Ruleset Name
+  6,                                      !- Rule Order
+  {523c580e-d703-4106-95bb-118335be4b88}, !- Day Schedule Name
+  Yes,                                    !- Apply Sunday
+  Yes,                                    !- Apply Monday
+  Yes,                                    !- Apply Tuesday
+  Yes,                                    !- Apply Wednesday
+  Yes,                                    !- Apply Thursday
+  Yes,                                    !- Apply Friday
+  Yes,                                    !- Apply Saturday
+  ,                                       !- Apply Holiday
+  SpecificDates,                          !- Date Specification Type
+  ,                                       !- Start Month
+  ,                                       !- Start Day
+  ,                                       !- End Month
+  ,                                       !- End Day
+  1,                                      !- Specific Month 1
+  1,                                      !- Specific Day 1
+  1,                                      !- Specific Month 2
+  8,                                      !- Specific Day 2
+  1,                                      !- Specific Month 3
+  15,                                     !- Specific Day 3
+  1,                                      !- Specific Month 4
+  22,                                     !- Specific Day 4
+  1,                                      !- Specific Month 5
+  29,                                     !- Specific Day 5
+  2,                                      !- Specific Month 6
+  5,                                      !- Specific Day 6
+  2,                                      !- Specific Month 7
+  12,                                     !- Specific Day 7
+  2,                                      !- Specific Month 8
+  19,                                     !- Specific Day 8
+  2,                                      !- Specific Month 9
+  26,                                     !- Specific Day 9
+  3,                                      !- Specific Month 10
+  5,                                      !- Specific Day 10
+  3,                                      !- Specific Month 11
+  12,                                     !- Specific Day 11
+  3,                                      !- Specific Month 12
+  19,                                     !- Specific Day 12
+  3,                                      !- Specific Month 13
+  26,                                     !- Specific Day 13
+  4,                                      !- Specific Month 14
+  2,                                      !- Specific Day 14
+  4,                                      !- Specific Month 15
+  9,                                      !- Specific Day 15
+  4,                                      !- Specific Month 16
+  16,                                     !- Specific Day 16
+  4,                                      !- Specific Month 17
+  23,                                     !- Specific Day 17
+  4,                                      !- Specific Month 18
+  30,                                     !- Specific Day 18
+  5,                                      !- Specific Month 19
+  7,                                      !- Specific Day 19
+  5,                                      !- Specific Month 20
+  14,                                     !- Specific Day 20
+  5,                                      !- Specific Month 21
+  21,                                     !- Specific Day 21
+  5,                                      !- Specific Month 22
+  28,                                     !- Specific Day 22
+  6,                                      !- Specific Month 23
+  4,                                      !- Specific Day 23
+  6,                                      !- Specific Month 24
+  11,                                     !- Specific Day 24
+  6,                                      !- Specific Month 25
+  18,                                     !- Specific Day 25
+  6,                                      !- Specific Month 26
+  25,                                     !- Specific Day 26
+  7,                                      !- Specific Month 27
+  2,                                      !- Specific Day 27
+  7,                                      !- Specific Month 28
+  9,                                      !- Specific Day 28
+  7,                                      !- Specific Month 29
+  16,                                     !- Specific Day 29
+  7,                                      !- Specific Month 30
+  23,                                     !- Specific Day 30
+  7,                                      !- Specific Month 31
+  30,                                     !- Specific Day 31
+  8,                                      !- Specific Month 32
+  6,                                      !- Specific Day 32
+  8,                                      !- Specific Month 33
+  13,                                     !- Specific Day 33
+  8,                                      !- Specific Month 34
+  20,                                     !- Specific Day 34
+  8,                                      !- Specific Month 35
+  27,                                     !- Specific Day 35
+  9,                                      !- Specific Month 36
+  3,                                      !- Specific Day 36
+  9,                                      !- Specific Month 37
+  10,                                     !- Specific Day 37
+  9,                                      !- Specific Month 38
+  17,                                     !- Specific Day 38
+  9,                                      !- Specific Month 39
+  24,                                     !- Specific Day 39
+  10,                                     !- Specific Month 40
+  1,                                      !- Specific Day 40
+  10,                                     !- Specific Month 41
+  8,                                      !- Specific Day 41
+  10,                                     !- Specific Month 42
+  15,                                     !- Specific Day 42
+  10,                                     !- Specific Month 43
+  22,                                     !- Specific Day 43
+  10,                                     !- Specific Month 44
+  29,                                     !- Specific Day 44
+  11,                                     !- Specific Month 45
+  5,                                      !- Specific Day 45
+  11,                                     !- Specific Month 46
+  12,                                     !- Specific Day 46
+  11,                                     !- Specific Month 47
+  19,                                     !- Specific Day 47
+  11,                                     !- Specific Month 48
+  26,                                     !- Specific Day 48
+  12,                                     !- Specific Month 49
+  3,                                      !- Specific Day 49
+  12,                                     !- Specific Month 50
+  10,                                     !- Specific Day 50
+  12,                                     !- Specific Month 51
+  17,                                     !- Specific Day 51
+  12,                                     !- Specific Month 52
+  24,                                     !- Specific Day 52
+  12,                                     !- Specific Month 53
+  31;                                     !- Specific Day 53
+
+OS:Schedule:Day,
+  {523c580e-d703-4106-95bb-118335be4b88}, !- Handle
+  res cw schedule allday1,                !- Name
+  {10bcba05-8f23-4971-b901-90ac83ba082e}, !- Schedule Type Limits Name
+  ,                                       !- Interpolate to Timestep
+  8,                                      !- Hour 1
+  0,                                      !- Minute 1
+  0,                                      !- Value Until Time 1
+  8,                                      !- Hour 2
+  10,                                     !- Minute 2
+  0.0422513,                              !- Value Until Time 2
+  8,                                      !- Hour 3
+  20,                                     !- Minute 3
+  0.139377,                               !- Value Until Time 3
+  15,                                     !- Hour 4
+  40,                                     !- Minute 4
+  0,                                      !- Value Until Time 4
+  15,                                     !- Hour 5
+  50,                                     !- Minute 5
+  0.0351558,                              !- Value Until Time 5
+  24,                                     !- Hour 6
+  0,                                      !- Minute 6
+  0;                                      !- Value Until Time 6
+
+OS:Schedule:Rule,
+  {0403669b-4983-4eaf-b52d-87cd32fa0467}, !- Handle
+  res cw schedule allday ruleset2,        !- Name
+  {f7c83307-b0a9-4474-9b5f-e00039279564}, !- Schedule Ruleset Name
+  5,                                      !- Rule Order
+  {e988050f-1b86-4c07-9838-2b7b544c903e}, !- Day Schedule Name
+  Yes,                                    !- Apply Sunday
+  Yes,                                    !- Apply Monday
+  Yes,                                    !- Apply Tuesday
+  Yes,                                    !- Apply Wednesday
+  Yes,                                    !- Apply Thursday
+  Yes,                                    !- Apply Friday
+  Yes,                                    !- Apply Saturday
+  ,                                       !- Apply Holiday
+  SpecificDates,                          !- Date Specification Type
+  ,                                       !- Start Month
+  ,                                       !- Start Day
+  ,                                       !- End Month
+  ,                                       !- End Day
+  1,                                      !- Specific Month 1
+  2,                                      !- Specific Day 1
+  1,                                      !- Specific Month 2
+  9,                                      !- Specific Day 2
+  1,                                      !- Specific Month 3
+  16,                                     !- Specific Day 3
+  1,                                      !- Specific Month 4
+  23,                                     !- Specific Day 4
+  1,                                      !- Specific Month 5
+  30,                                     !- Specific Day 5
+  2,                                      !- Specific Month 6
+  6,                                      !- Specific Day 6
+  2,                                      !- Specific Month 7
+  13,                                     !- Specific Day 7
+  2,                                      !- Specific Month 8
+  20,                                     !- Specific Day 8
+  2,                                      !- Specific Month 9
+  27,                                     !- Specific Day 9
+  3,                                      !- Specific Month 10
+  6,                                      !- Specific Day 10
+  3,                                      !- Specific Month 11
+  13,                                     !- Specific Day 11
+  3,                                      !- Specific Month 12
+  20,                                     !- Specific Day 12
+  3,                                      !- Specific Month 13
+  27,                                     !- Specific Day 13
+  4,                                      !- Specific Month 14
+  3,                                      !- Specific Day 14
+  4,                                      !- Specific Month 15
+  10,                                     !- Specific Day 15
+  4,                                      !- Specific Month 16
+  17,                                     !- Specific Day 16
+  4,                                      !- Specific Month 17
+  24,                                     !- Specific Day 17
+  5,                                      !- Specific Month 18
+  1,                                      !- Specific Day 18
+  5,                                      !- Specific Month 19
+  8,                                      !- Specific Day 19
+  5,                                      !- Specific Month 20
+  15,                                     !- Specific Day 20
+  5,                                      !- Specific Month 21
+  22,                                     !- Specific Day 21
+  5,                                      !- Specific Month 22
+  29,                                     !- Specific Day 22
+  6,                                      !- Specific Month 23
+  5,                                      !- Specific Day 23
+  6,                                      !- Specific Month 24
+  12,                                     !- Specific Day 24
+  6,                                      !- Specific Month 25
+  19,                                     !- Specific Day 25
+  6,                                      !- Specific Month 26
+  26,                                     !- Specific Day 26
+  7,                                      !- Specific Month 27
+  3,                                      !- Specific Day 27
+  7,                                      !- Specific Month 28
+  10,                                     !- Specific Day 28
+  7,                                      !- Specific Month 29
+  17,                                     !- Specific Day 29
+  7,                                      !- Specific Month 30
+  24,                                     !- Specific Day 30
+  7,                                      !- Specific Month 31
+  31,                                     !- Specific Day 31
+  8,                                      !- Specific Month 32
+  7,                                      !- Specific Day 32
+  8,                                      !- Specific Month 33
+  14,                                     !- Specific Day 33
+  8,                                      !- Specific Month 34
+  21,                                     !- Specific Day 34
+  8,                                      !- Specific Month 35
+  28,                                     !- Specific Day 35
+  9,                                      !- Specific Month 36
+  4,                                      !- Specific Day 36
+  9,                                      !- Specific Month 37
+  11,                                     !- Specific Day 37
+  9,                                      !- Specific Month 38
+  18,                                     !- Specific Day 38
+  9,                                      !- Specific Month 39
+  25,                                     !- Specific Day 39
+  10,                                     !- Specific Month 40
+  2,                                      !- Specific Day 40
+  10,                                     !- Specific Month 41
+  9,                                      !- Specific Day 41
+  10,                                     !- Specific Month 42
+  16,                                     !- Specific Day 42
+  10,                                     !- Specific Month 43
+  23,                                     !- Specific Day 43
+  10,                                     !- Specific Month 44
+  30,                                     !- Specific Day 44
+  11,                                     !- Specific Month 45
+  6,                                      !- Specific Day 45
+  11,                                     !- Specific Month 46
+  13,                                     !- Specific Day 46
+  11,                                     !- Specific Month 47
+  20,                                     !- Specific Day 47
+  11,                                     !- Specific Month 48
+  27,                                     !- Specific Day 48
+  12,                                     !- Specific Month 49
+  4,                                      !- Specific Day 49
+  12,                                     !- Specific Month 50
+  11,                                     !- Specific Day 50
+  12,                                     !- Specific Month 51
+  18,                                     !- Specific Day 51
+  12,                                     !- Specific Month 52
+  25;                                     !- Specific Day 52
+
+OS:Schedule:Day,
+  {e988050f-1b86-4c07-9838-2b7b544c903e}, !- Handle
+  res cw schedule allday2,                !- Name
+  {10bcba05-8f23-4971-b901-90ac83ba082e}, !- Schedule Type Limits Name
+  ,                                       !- Interpolate to Timestep
+  24,                                     !- Hour 1
+  0,                                      !- Minute 1
+  0;                                      !- Value Until Time 1
+
+OS:Schedule:Rule,
+  {b64371b4-50ac-46a2-8d4d-b1938a5e0d6e}, !- Handle
+  res cw schedule allday ruleset3,        !- Name
+  {f7c83307-b0a9-4474-9b5f-e00039279564}, !- Schedule Ruleset Name
+  4,                                      !- Rule Order
+  {6f5ddc95-d309-4bc9-9ad8-9320f494ea7b}, !- Day Schedule Name
+  Yes,                                    !- Apply Sunday
+  Yes,                                    !- Apply Monday
+  Yes,                                    !- Apply Tuesday
+  Yes,                                    !- Apply Wednesday
+  Yes,                                    !- Apply Thursday
+  Yes,                                    !- Apply Friday
+  Yes,                                    !- Apply Saturday
+  ,                                       !- Apply Holiday
+  SpecificDates,                          !- Date Specification Type
+  ,                                       !- Start Month
+  ,                                       !- Start Day
+  ,                                       !- End Month
+  ,                                       !- End Day
+  1,                                      !- Specific Month 1
+  3,                                      !- Specific Day 1
+  1,                                      !- Specific Month 2
+  10,                                     !- Specific Day 2
+  1,                                      !- Specific Month 3
+  17,                                     !- Specific Day 3
+  1,                                      !- Specific Month 4
+  24,                                     !- Specific Day 4
+  1,                                      !- Specific Month 5
+  31,                                     !- Specific Day 5
+  2,                                      !- Specific Month 6
+  7,                                      !- Specific Day 6
+  2,                                      !- Specific Month 7
+  14,                                     !- Specific Day 7
+  2,                                      !- Specific Month 8
+  21,                                     !- Specific Day 8
+  2,                                      !- Specific Month 9
+  28,                                     !- Specific Day 9
+  3,                                      !- Specific Month 10
+  7,                                      !- Specific Day 10
+  3,                                      !- Specific Month 11
+  14,                                     !- Specific Day 11
+  3,                                      !- Specific Month 12
+  21,                                     !- Specific Day 12
+  3,                                      !- Specific Month 13
+  28,                                     !- Specific Day 13
+  4,                                      !- Specific Month 14
+  4,                                      !- Specific Day 14
+  4,                                      !- Specific Month 15
+  11,                                     !- Specific Day 15
+  4,                                      !- Specific Month 16
+  18,                                     !- Specific Day 16
+  4,                                      !- Specific Month 17
+  25,                                     !- Specific Day 17
+  5,                                      !- Specific Month 18
+  2,                                      !- Specific Day 18
+  5,                                      !- Specific Month 19
+  9,                                      !- Specific Day 19
+  5,                                      !- Specific Month 20
+  16,                                     !- Specific Day 20
+  5,                                      !- Specific Month 21
+  23,                                     !- Specific Day 21
+  5,                                      !- Specific Month 22
+  30,                                     !- Specific Day 22
+  6,                                      !- Specific Month 23
+  6,                                      !- Specific Day 23
+  6,                                      !- Specific Month 24
+  13,                                     !- Specific Day 24
+  6,                                      !- Specific Month 25
+  20,                                     !- Specific Day 25
+  6,                                      !- Specific Month 26
+  27,                                     !- Specific Day 26
+  7,                                      !- Specific Month 27
+  4,                                      !- Specific Day 27
+  7,                                      !- Specific Month 28
+  11,                                     !- Specific Day 28
+  7,                                      !- Specific Month 29
+  18,                                     !- Specific Day 29
+  7,                                      !- Specific Month 30
+  25,                                     !- Specific Day 30
+  8,                                      !- Specific Month 31
+  1,                                      !- Specific Day 31
+  8,                                      !- Specific Month 32
+  8,                                      !- Specific Day 32
+  8,                                      !- Specific Month 33
+  15,                                     !- Specific Day 33
+  8,                                      !- Specific Month 34
+  22,                                     !- Specific Day 34
+  8,                                      !- Specific Month 35
+  29,                                     !- Specific Day 35
+  9,                                      !- Specific Month 36
+  5,                                      !- Specific Day 36
+  9,                                      !- Specific Month 37
+  12,                                     !- Specific Day 37
+  9,                                      !- Specific Month 38
+  19,                                     !- Specific Day 38
+  9,                                      !- Specific Month 39
+  26,                                     !- Specific Day 39
+  10,                                     !- Specific Month 40
+  3,                                      !- Specific Day 40
+  10,                                     !- Specific Month 41
+  10,                                     !- Specific Day 41
+  10,                                     !- Specific Month 42
+  17,                                     !- Specific Day 42
+  10,                                     !- Specific Month 43
+  24,                                     !- Specific Day 43
+  10,                                     !- Specific Month 44
+  31,                                     !- Specific Day 44
+  11,                                     !- Specific Month 45
+  7,                                      !- Specific Day 45
+  11,                                     !- Specific Month 46
+  14,                                     !- Specific Day 46
+  11,                                     !- Specific Month 47
+  21,                                     !- Specific Day 47
+  11,                                     !- Specific Month 48
+  28,                                     !- Specific Day 48
+  12,                                     !- Specific Month 49
+  5,                                      !- Specific Day 49
+  12,                                     !- Specific Month 50
+  12,                                     !- Specific Day 50
+  12,                                     !- Specific Month 51
+  19,                                     !- Specific Day 51
+  12,                                     !- Specific Month 52
+  26;                                     !- Specific Day 52
+
+OS:Schedule:Day,
+  {6f5ddc95-d309-4bc9-9ad8-9320f494ea7b}, !- Handle
+  res cw schedule allday3,                !- Name
+  {10bcba05-8f23-4971-b901-90ac83ba082e}, !- Schedule Type Limits Name
+  ,                                       !- Interpolate to Timestep
+  24,                                     !- Hour 1
+  0,                                      !- Minute 1
+  0;                                      !- Value Until Time 1
+
+OS:Schedule:Rule,
+  {55836377-7263-48b4-a252-5312b3e1839d}, !- Handle
+  res cw schedule allday ruleset4,        !- Name
+  {f7c83307-b0a9-4474-9b5f-e00039279564}, !- Schedule Ruleset Name
+  3,                                      !- Rule Order
+  {9b74c276-2c74-46fa-9287-647d9957c2d0}, !- Day Schedule Name
+  Yes,                                    !- Apply Sunday
+  Yes,                                    !- Apply Monday
+  Yes,                                    !- Apply Tuesday
+  Yes,                                    !- Apply Wednesday
+  Yes,                                    !- Apply Thursday
+  Yes,                                    !- Apply Friday
+  Yes,                                    !- Apply Saturday
+  ,                                       !- Apply Holiday
+  SpecificDates,                          !- Date Specification Type
+  ,                                       !- Start Month
+  ,                                       !- Start Day
+  ,                                       !- End Month
+  ,                                       !- End Day
+  1,                                      !- Specific Month 1
+  4,                                      !- Specific Day 1
+  1,                                      !- Specific Month 2
+  11,                                     !- Specific Day 2
+  1,                                      !- Specific Month 3
+  18,                                     !- Specific Day 3
+  1,                                      !- Specific Month 4
+  25,                                     !- Specific Day 4
+  2,                                      !- Specific Month 5
+  1,                                      !- Specific Day 5
+  2,                                      !- Specific Month 6
+  8,                                      !- Specific Day 6
+  2,                                      !- Specific Month 7
+  15,                                     !- Specific Day 7
+  2,                                      !- Specific Month 8
+  22,                                     !- Specific Day 8
+  3,                                      !- Specific Month 9
+  1,                                      !- Specific Day 9
+  3,                                      !- Specific Month 10
+  8,                                      !- Specific Day 10
+  3,                                      !- Specific Month 11
+  15,                                     !- Specific Day 11
+  3,                                      !- Specific Month 12
+  22,                                     !- Specific Day 12
+  3,                                      !- Specific Month 13
+  29,                                     !- Specific Day 13
+  4,                                      !- Specific Month 14
+  5,                                      !- Specific Day 14
+  4,                                      !- Specific Month 15
+  12,                                     !- Specific Day 15
+  4,                                      !- Specific Month 16
+  19,                                     !- Specific Day 16
+  4,                                      !- Specific Month 17
+  26,                                     !- Specific Day 17
+  5,                                      !- Specific Month 18
+  3,                                      !- Specific Day 18
+  5,                                      !- Specific Month 19
+  10,                                     !- Specific Day 19
+  5,                                      !- Specific Month 20
+  17,                                     !- Specific Day 20
+  5,                                      !- Specific Month 21
+  24,                                     !- Specific Day 21
+  5,                                      !- Specific Month 22
+  31,                                     !- Specific Day 22
+  6,                                      !- Specific Month 23
+  7,                                      !- Specific Day 23
+  6,                                      !- Specific Month 24
+  14,                                     !- Specific Day 24
+  6,                                      !- Specific Month 25
+  21,                                     !- Specific Day 25
+  6,                                      !- Specific Month 26
+  28,                                     !- Specific Day 26
+  7,                                      !- Specific Month 27
+  5,                                      !- Specific Day 27
+  7,                                      !- Specific Month 28
+  12,                                     !- Specific Day 28
+  7,                                      !- Specific Month 29
+  19,                                     !- Specific Day 29
+  7,                                      !- Specific Month 30
+  26,                                     !- Specific Day 30
+  8,                                      !- Specific Month 31
+  2,                                      !- Specific Day 31
+  8,                                      !- Specific Month 32
+  9,                                      !- Specific Day 32
+  8,                                      !- Specific Month 33
+  16,                                     !- Specific Day 33
+  8,                                      !- Specific Month 34
+  23,                                     !- Specific Day 34
+  8,                                      !- Specific Month 35
+  30,                                     !- Specific Day 35
+  9,                                      !- Specific Month 36
+  6,                                      !- Specific Day 36
+  9,                                      !- Specific Month 37
+  13,                                     !- Specific Day 37
+  9,                                      !- Specific Month 38
+  20,                                     !- Specific Day 38
+  9,                                      !- Specific Month 39
+  27,                                     !- Specific Day 39
+  10,                                     !- Specific Month 40
+  4,                                      !- Specific Day 40
+  10,                                     !- Specific Month 41
+  11,                                     !- Specific Day 41
+  10,                                     !- Specific Month 42
+  18,                                     !- Specific Day 42
+  10,                                     !- Specific Month 43
+  25,                                     !- Specific Day 43
+  11,                                     !- Specific Month 44
+  1,                                      !- Specific Day 44
+  11,                                     !- Specific Month 45
+  8,                                      !- Specific Day 45
+  11,                                     !- Specific Month 46
+  15,                                     !- Specific Day 46
+  11,                                     !- Specific Month 47
+  22,                                     !- Specific Day 47
+  11,                                     !- Specific Month 48
+  29,                                     !- Specific Day 48
+  12,                                     !- Specific Month 49
+  6,                                      !- Specific Day 49
+  12,                                     !- Specific Month 50
+  13,                                     !- Specific Day 50
+  12,                                     !- Specific Month 51
+  20,                                     !- Specific Day 51
+  12,                                     !- Specific Month 52
+  27;                                     !- Specific Day 52
+
+OS:Schedule:Day,
+  {9b74c276-2c74-46fa-9287-647d9957c2d0}, !- Handle
+  res cw schedule allday4,                !- Name
+  {10bcba05-8f23-4971-b901-90ac83ba082e}, !- Schedule Type Limits Name
+  ,                                       !- Interpolate to Timestep
+  24,                                     !- Hour 1
+  0,                                      !- Minute 1
+  0;                                      !- Value Until Time 1
+
+OS:Schedule:Rule,
+  {e1f715c0-9ed1-4517-9bec-3dd3a08c61f1}, !- Handle
+  res cw schedule allday ruleset5,        !- Name
+  {f7c83307-b0a9-4474-9b5f-e00039279564}, !- Schedule Ruleset Name
+  2,                                      !- Rule Order
+  {1ede7dc7-de77-498b-b811-5f22db39b957}, !- Day Schedule Name
+  Yes,                                    !- Apply Sunday
+  Yes,                                    !- Apply Monday
+  Yes,                                    !- Apply Tuesday
+  Yes,                                    !- Apply Wednesday
+  Yes,                                    !- Apply Thursday
+  Yes,                                    !- Apply Friday
+  Yes,                                    !- Apply Saturday
+  ,                                       !- Apply Holiday
+  SpecificDates,                          !- Date Specification Type
+  ,                                       !- Start Month
+  ,                                       !- Start Day
+  ,                                       !- End Month
+  ,                                       !- End Day
+  1,                                      !- Specific Month 1
+  5,                                      !- Specific Day 1
+  1,                                      !- Specific Month 2
+  12,                                     !- Specific Day 2
+  1,                                      !- Specific Month 3
+  19,                                     !- Specific Day 3
+  1,                                      !- Specific Month 4
+  26,                                     !- Specific Day 4
+  2,                                      !- Specific Month 5
+  2,                                      !- Specific Day 5
+  2,                                      !- Specific Month 6
+  9,                                      !- Specific Day 6
+  2,                                      !- Specific Month 7
+  16,                                     !- Specific Day 7
+  2,                                      !- Specific Month 8
+  23,                                     !- Specific Day 8
+  3,                                      !- Specific Month 9
+  2,                                      !- Specific Day 9
+  3,                                      !- Specific Month 10
+  9,                                      !- Specific Day 10
+  3,                                      !- Specific Month 11
+  16,                                     !- Specific Day 11
+  3,                                      !- Specific Month 12
+  23,                                     !- Specific Day 12
+  3,                                      !- Specific Month 13
+  30,                                     !- Specific Day 13
+  4,                                      !- Specific Month 14
+  6,                                      !- Specific Day 14
+  4,                                      !- Specific Month 15
+  13,                                     !- Specific Day 15
+  4,                                      !- Specific Month 16
+  20,                                     !- Specific Day 16
+  4,                                      !- Specific Month 17
+  27,                                     !- Specific Day 17
+  5,                                      !- Specific Month 18
+  4,                                      !- Specific Day 18
+  5,                                      !- Specific Month 19
+  11,                                     !- Specific Day 19
+  5,                                      !- Specific Month 20
+  18,                                     !- Specific Day 20
+  5,                                      !- Specific Month 21
+  25,                                     !- Specific Day 21
+  6,                                      !- Specific Month 22
+  1,                                      !- Specific Day 22
+  6,                                      !- Specific Month 23
+  8,                                      !- Specific Day 23
+  6,                                      !- Specific Month 24
+  15,                                     !- Specific Day 24
+  6,                                      !- Specific Month 25
+  22,                                     !- Specific Day 25
+  6,                                      !- Specific Month 26
+  29,                                     !- Specific Day 26
+  7,                                      !- Specific Month 27
+  6,                                      !- Specific Day 27
+  7,                                      !- Specific Month 28
+  13,                                     !- Specific Day 28
+  7,                                      !- Specific Month 29
+  20,                                     !- Specific Day 29
+  7,                                      !- Specific Month 30
+  27,                                     !- Specific Day 30
+  8,                                      !- Specific Month 31
+  3,                                      !- Specific Day 31
+  8,                                      !- Specific Month 32
+  10,                                     !- Specific Day 32
+  8,                                      !- Specific Month 33
+  17,                                     !- Specific Day 33
+  8,                                      !- Specific Month 34
+  24,                                     !- Specific Day 34
+  8,                                      !- Specific Month 35
+  31,                                     !- Specific Day 35
+  9,                                      !- Specific Month 36
+  7,                                      !- Specific Day 36
+  9,                                      !- Specific Month 37
+  14,                                     !- Specific Day 37
+  9,                                      !- Specific Month 38
+  21,                                     !- Specific Day 38
+  9,                                      !- Specific Month 39
+  28,                                     !- Specific Day 39
+  10,                                     !- Specific Month 40
+  5,                                      !- Specific Day 40
+  10,                                     !- Specific Month 41
+  12,                                     !- Specific Day 41
+  10,                                     !- Specific Month 42
+  19,                                     !- Specific Day 42
+  10,                                     !- Specific Month 43
+  26,                                     !- Specific Day 43
+  11,                                     !- Specific Month 44
+  2,                                      !- Specific Day 44
+  11,                                     !- Specific Month 45
+  9,                                      !- Specific Day 45
+  11,                                     !- Specific Month 46
+  16,                                     !- Specific Day 46
+  11,                                     !- Specific Month 47
+  23,                                     !- Specific Day 47
+  11,                                     !- Specific Month 48
+  30,                                     !- Specific Day 48
+  12,                                     !- Specific Month 49
+  7,                                      !- Specific Day 49
+  12,                                     !- Specific Month 50
+  14,                                     !- Specific Day 50
+  12,                                     !- Specific Month 51
+  21,                                     !- Specific Day 51
+  12,                                     !- Specific Month 52
+  28;                                     !- Specific Day 52
+
+OS:Schedule:Day,
+  {1ede7dc7-de77-498b-b811-5f22db39b957}, !- Handle
+  res cw schedule allday5,                !- Name
+  {10bcba05-8f23-4971-b901-90ac83ba082e}, !- Schedule Type Limits Name
+  ,                                       !- Interpolate to Timestep
+  5,                                      !- Hour 1
+  0,                                      !- Minute 1
+  0,                                      !- Value Until Time 1
+  5,                                      !- Hour 2
+  10,                                     !- Minute 2
+  0.0062714,                              !- Value Until Time 2
+  5,                                      !- Hour 3
+  20,                                     !- Minute 3
+  0.086794,                               !- Value Until Time 3
+  5,                                      !- Hour 4
+  30,                                     !- Minute 4
+  0.0340302,                              !- Value Until Time 4
+  10,                                     !- Hour 5
+  0,                                      !- Minute 5
+  0,                                      !- Value Until Time 5
+  10,                                     !- Hour 6
+  10,                                     !- Minute 6
+  0.0069146,                              !- Value Until Time 6
+  10,                                     !- Hour 7
+  20,                                     !- Minute 7
+  0.1094272,                              !- Value Until Time 7
+  19,                                     !- Hour 8
+  0,                                      !- Minute 8
+  0,                                      !- Value Until Time 8
+  19,                                     !- Hour 9
+  10,                                     !- Minute 9
+  0.0524824,                              !- Value Until Time 9
+  20,                                     !- Hour 10
+  10,                                     !- Minute 10
+  0,                                      !- Value Until Time 10
+  20,                                     !- Hour 11
+  20,                                     !- Minute 11
+  0.0193769,                              !- Value Until Time 11
+  21,                                     !- Hour 12
+  30,                                     !- Minute 12
+  0,                                      !- Value Until Time 12
+  21,                                     !- Hour 13
+  40,                                     !- Minute 13
+  0.0743518,                              !- Value Until Time 13
+  24,                                     !- Hour 14
+  0,                                      !- Minute 14
+  0;                                      !- Value Until Time 14
+
+OS:Schedule:Rule,
+  {cd6efbe4-238b-4eae-98ea-3f48693d8ced}, !- Handle
+  res cw schedule allday ruleset6,        !- Name
+  {f7c83307-b0a9-4474-9b5f-e00039279564}, !- Schedule Ruleset Name
+  1,                                      !- Rule Order
+  {3d3c0876-66ce-4f42-af18-4024001c9bfb}, !- Day Schedule Name
+  Yes,                                    !- Apply Sunday
+  Yes,                                    !- Apply Monday
+  Yes,                                    !- Apply Tuesday
+  Yes,                                    !- Apply Wednesday
+  Yes,                                    !- Apply Thursday
+  Yes,                                    !- Apply Friday
+  Yes,                                    !- Apply Saturday
+  ,                                       !- Apply Holiday
+  SpecificDates,                          !- Date Specification Type
+  ,                                       !- Start Month
+  ,                                       !- Start Day
+  ,                                       !- End Month
+  ,                                       !- End Day
+  1,                                      !- Specific Month 1
+  6,                                      !- Specific Day 1
+  1,                                      !- Specific Month 2
+  13,                                     !- Specific Day 2
+  1,                                      !- Specific Month 3
+  20,                                     !- Specific Day 3
+  1,                                      !- Specific Month 4
+  27,                                     !- Specific Day 4
+  2,                                      !- Specific Month 5
+  3,                                      !- Specific Day 5
+  2,                                      !- Specific Month 6
+  10,                                     !- Specific Day 6
+  2,                                      !- Specific Month 7
+  17,                                     !- Specific Day 7
+  2,                                      !- Specific Month 8
+  24,                                     !- Specific Day 8
+  3,                                      !- Specific Month 9
+  3,                                      !- Specific Day 9
+  3,                                      !- Specific Month 10
+  10,                                     !- Specific Day 10
+  3,                                      !- Specific Month 11
+  17,                                     !- Specific Day 11
+  3,                                      !- Specific Month 12
+  24,                                     !- Specific Day 12
+  3,                                      !- Specific Month 13
+  31,                                     !- Specific Day 13
+  4,                                      !- Specific Month 14
+  7,                                      !- Specific Day 14
+  4,                                      !- Specific Month 15
+  14,                                     !- Specific Day 15
+  4,                                      !- Specific Month 16
+  21,                                     !- Specific Day 16
+  4,                                      !- Specific Month 17
+  28,                                     !- Specific Day 17
+  5,                                      !- Specific Month 18
+  5,                                      !- Specific Day 18
+  5,                                      !- Specific Month 19
+  12,                                     !- Specific Day 19
+  5,                                      !- Specific Month 20
+  19,                                     !- Specific Day 20
+  5,                                      !- Specific Month 21
+  26,                                     !- Specific Day 21
+  6,                                      !- Specific Month 22
+  2,                                      !- Specific Day 22
+  6,                                      !- Specific Month 23
+  9,                                      !- Specific Day 23
+  6,                                      !- Specific Month 24
+  16,                                     !- Specific Day 24
+  6,                                      !- Specific Month 25
+  23,                                     !- Specific Day 25
+  6,                                      !- Specific Month 26
+  30,                                     !- Specific Day 26
+  7,                                      !- Specific Month 27
+  7,                                      !- Specific Day 27
+  7,                                      !- Specific Month 28
+  14,                                     !- Specific Day 28
+  7,                                      !- Specific Month 29
+  21,                                     !- Specific Day 29
+  7,                                      !- Specific Month 30
+  28,                                     !- Specific Day 30
+  8,                                      !- Specific Month 31
+  4,                                      !- Specific Day 31
+  8,                                      !- Specific Month 32
+  11,                                     !- Specific Day 32
+  8,                                      !- Specific Month 33
+  18,                                     !- Specific Day 33
+  8,                                      !- Specific Month 34
+  25,                                     !- Specific Day 34
+  9,                                      !- Specific Month 35
+  1,                                      !- Specific Day 35
+  9,                                      !- Specific Month 36
+  8,                                      !- Specific Day 36
+  9,                                      !- Specific Month 37
+  15,                                     !- Specific Day 37
+  9,                                      !- Specific Month 38
+  22,                                     !- Specific Day 38
+  9,                                      !- Specific Month 39
+  29,                                     !- Specific Day 39
+  10,                                     !- Specific Month 40
+  6,                                      !- Specific Day 40
+  10,                                     !- Specific Month 41
+  13,                                     !- Specific Day 41
+  10,                                     !- Specific Month 42
+  20,                                     !- Specific Day 42
+  10,                                     !- Specific Month 43
+  27,                                     !- Specific Day 43
+  11,                                     !- Specific Month 44
+  3,                                      !- Specific Day 44
+  11,                                     !- Specific Month 45
+  10,                                     !- Specific Day 45
+  11,                                     !- Specific Month 46
+  17,                                     !- Specific Day 46
+  11,                                     !- Specific Month 47
+  24,                                     !- Specific Day 47
+  12,                                     !- Specific Month 48
+  1,                                      !- Specific Day 48
+  12,                                     !- Specific Month 49
+  8,                                      !- Specific Day 49
+  12,                                     !- Specific Month 50
+  15,                                     !- Specific Day 50
+  12,                                     !- Specific Month 51
+  22,                                     !- Specific Day 51
+  12,                                     !- Specific Month 52
+  29;                                     !- Specific Day 52
+
+OS:Schedule:Day,
+  {3d3c0876-66ce-4f42-af18-4024001c9bfb}, !- Handle
+  res cw schedule allday6,                !- Name
+  {10bcba05-8f23-4971-b901-90ac83ba082e}, !- Schedule Type Limits Name
+  ,                                       !- Interpolate to Timestep
+  24,                                     !- Hour 1
+  0,                                      !- Minute 1
+  0;                                      !- Value Until Time 1
+
+OS:Schedule:Rule,
+  {a3949d50-d78e-4da0-b99b-2cd2f6f4887f}, !- Handle
+  res cw schedule allday ruleset7,        !- Name
+  {f7c83307-b0a9-4474-9b5f-e00039279564}, !- Schedule Ruleset Name
+  0,                                      !- Rule Order
+  {dd63af2d-f843-4677-b376-d5479a3d8471}, !- Day Schedule Name
+  Yes,                                    !- Apply Sunday
+  Yes,                                    !- Apply Monday
+  Yes,                                    !- Apply Tuesday
+  Yes,                                    !- Apply Wednesday
+  Yes,                                    !- Apply Thursday
+  Yes,                                    !- Apply Friday
+  Yes,                                    !- Apply Saturday
+  ,                                       !- Apply Holiday
+  SpecificDates,                          !- Date Specification Type
+  ,                                       !- Start Month
+  ,                                       !- Start Day
+  ,                                       !- End Month
+  ,                                       !- End Day
+  1,                                      !- Specific Month 1
+  7,                                      !- Specific Day 1
+  1,                                      !- Specific Month 2
+  14,                                     !- Specific Day 2
+  1,                                      !- Specific Month 3
+  21,                                     !- Specific Day 3
+  1,                                      !- Specific Month 4
+  28,                                     !- Specific Day 4
+  2,                                      !- Specific Month 5
+  4,                                      !- Specific Day 5
+  2,                                      !- Specific Month 6
+  11,                                     !- Specific Day 6
+  2,                                      !- Specific Month 7
+  18,                                     !- Specific Day 7
+  2,                                      !- Specific Month 8
+  25,                                     !- Specific Day 8
+  3,                                      !- Specific Month 9
+  4,                                      !- Specific Day 9
+  3,                                      !- Specific Month 10
+  11,                                     !- Specific Day 10
+  3,                                      !- Specific Month 11
+  18,                                     !- Specific Day 11
+  3,                                      !- Specific Month 12
+  25,                                     !- Specific Day 12
+  4,                                      !- Specific Month 13
+  1,                                      !- Specific Day 13
+  4,                                      !- Specific Month 14
+  8,                                      !- Specific Day 14
+  4,                                      !- Specific Month 15
+  15,                                     !- Specific Day 15
+  4,                                      !- Specific Month 16
+  22,                                     !- Specific Day 16
+  4,                                      !- Specific Month 17
+  29,                                     !- Specific Day 17
+  5,                                      !- Specific Month 18
+  6,                                      !- Specific Day 18
+  5,                                      !- Specific Month 19
+  13,                                     !- Specific Day 19
+  5,                                      !- Specific Month 20
+  20,                                     !- Specific Day 20
+  5,                                      !- Specific Month 21
+  27,                                     !- Specific Day 21
+  6,                                      !- Specific Month 22
+  3,                                      !- Specific Day 22
+  6,                                      !- Specific Month 23
+  10,                                     !- Specific Day 23
+  6,                                      !- Specific Month 24
+  17,                                     !- Specific Day 24
+  6,                                      !- Specific Month 25
+  24,                                     !- Specific Day 25
+  7,                                      !- Specific Month 26
+  1,                                      !- Specific Day 26
+  7,                                      !- Specific Month 27
+  8,                                      !- Specific Day 27
+  7,                                      !- Specific Month 28
+  15,                                     !- Specific Day 28
+  7,                                      !- Specific Month 29
+  22,                                     !- Specific Day 29
+  7,                                      !- Specific Month 30
+  29,                                     !- Specific Day 30
+  8,                                      !- Specific Month 31
+  5,                                      !- Specific Day 31
+  8,                                      !- Specific Month 32
+  12,                                     !- Specific Day 32
+  8,                                      !- Specific Month 33
+  19,                                     !- Specific Day 33
+  8,                                      !- Specific Month 34
+  26,                                     !- Specific Day 34
+  9,                                      !- Specific Month 35
+  2,                                      !- Specific Day 35
+  9,                                      !- Specific Month 36
+  9,                                      !- Specific Day 36
+  9,                                      !- Specific Month 37
+  16,                                     !- Specific Day 37
+  9,                                      !- Specific Month 38
+  23,                                     !- Specific Day 38
+  9,                                      !- Specific Month 39
+  30,                                     !- Specific Day 39
+  10,                                     !- Specific Month 40
+  7,                                      !- Specific Day 40
+  10,                                     !- Specific Month 41
+  14,                                     !- Specific Day 41
+  10,                                     !- Specific Month 42
+  21,                                     !- Specific Day 42
+  10,                                     !- Specific Month 43
+  28,                                     !- Specific Day 43
+  11,                                     !- Specific Month 44
+  4,                                      !- Specific Day 44
+  11,                                     !- Specific Month 45
+  11,                                     !- Specific Day 45
+  11,                                     !- Specific Month 46
+  18,                                     !- Specific Day 46
+  11,                                     !- Specific Month 47
+  25,                                     !- Specific Day 47
+  12,                                     !- Specific Month 48
+  2,                                      !- Specific Day 48
+  12,                                     !- Specific Month 49
+  9,                                      !- Specific Day 49
+  12,                                     !- Specific Month 50
+  16,                                     !- Specific Day 50
+  12,                                     !- Specific Month 51
+  23,                                     !- Specific Day 51
+  12,                                     !- Specific Month 52
+  30;                                     !- Specific Day 52
+
+OS:Schedule:Day,
+  {dd63af2d-f843-4677-b376-d5479a3d8471}, !- Handle
+  res cw schedule allday7,                !- Name
+  {10bcba05-8f23-4971-b901-90ac83ba082e}, !- Schedule Type Limits Name
+  ,                                       !- Interpolate to Timestep
+  12,                                     !- Hour 1
+  10,                                     !- Minute 1
+  0,                                      !- Value Until Time 1
+  12,                                     !- Hour 2
+  20,                                     !- Minute 2
+  0.0228141,                              !- Value Until Time 2
+  13,                                     !- Hour 3
+  30,                                     !- Minute 3
+  0,                                      !- Value Until Time 3
+  13,                                     !- Hour 4
+  40,                                     !- Minute 4
+  0.0017487,                              !- Value Until Time 4
+  24,                                     !- Hour 5
+  0,                                      !- Minute 5
+  0;                                      !- Value Until Time 5
+
+OS:WaterUse:Connections,
+  {c8d66312-498c-40bc-b629-3ab3b1d782d9}, !- Handle
+  Water Use Connections 1,                !- Name
+  {55bbda0f-c30a-4472-977f-17349d5f206b}, !- Inlet Node Name
+  {babc2131-3c6b-468d-be24-6847a31e2174}, !- Outlet Node Name
+  ,                                       !- Supply Water Storage Tank Name
+  ,                                       !- Reclamation Water Storage Tank Name
+  ,                                       !- Hot Water Supply Temperature Schedule Name
+  ,                                       !- Cold Water Supply Temperature Schedule Name
+  ,                                       !- Drain Water Heat Exchanger Type
+  ,                                       !- Drain Water Heat Exchanger Destination
+  ,                                       !- Drain Water Heat Exchanger U-Factor Times Area {W/K}
+  {95116c07-3fe0-47f9-8a9b-5d87f117d3d2}; !- Water Use Equipment Name 1
+
+OS:Node,
+  {9efb622b-f57e-444b-a24a-a79f597c9267}, !- Handle
+  Node 16,                                !- Name
+  {babc2131-3c6b-468d-be24-6847a31e2174}, !- Inlet Port
+  {84a8f562-7abc-494b-a72a-727c19da2144}; !- Outlet Port
+
+OS:Connection,
+  {55bbda0f-c30a-4472-977f-17349d5f206b}, !- Handle
+  {e2a20fa7-7b9c-46b1-ba0e-eacc20b1d127}, !- Name
+  {5d146b7f-9808-4c79-9d8c-5a3f26e02119}, !- Source Object
+  3,                                      !- Outlet Port
+  {c8d66312-498c-40bc-b629-3ab3b1d782d9}, !- Target Object
+  2;                                      !- Inlet Port
+
+OS:Connection,
+  {babc2131-3c6b-468d-be24-6847a31e2174}, !- Handle
+  {90d1882f-29b5-4244-b680-567fda904b6c}, !- Name
+  {c8d66312-498c-40bc-b629-3ab3b1d782d9}, !- Source Object
+  3,                                      !- Outlet Port
+  {9efb622b-f57e-444b-a24a-a79f597c9267}, !- Target Object
+  2;                                      !- Inlet Port
+
+OS:Connection,
+  {84a8f562-7abc-494b-a72a-727c19da2144}, !- Handle
+  {fdc27758-6b2b-4d6b-8ea5-8d0496d5db9e}, !- Name
+  {9efb622b-f57e-444b-a24a-a79f597c9267}, !- Source Object
+  3,                                      !- Outlet Port
+  {1686936d-7e84-4029-8f42-c6e7534f5e7b}, !- Target Object
+  3;                                      !- Inlet Port
+
+OS:ElectricEquipment:Definition,
+  {5cfcd741-a822-40b0-82bc-d2d0ee780130}, !- Handle
+  res cw,                                 !- Name
+  EquipmentLevel,                         !- Design Level Calculation Method
+  7800.89665805964,                       !- Design Level {W}
+  ,                                       !- Watts per Space Floor Area {W/m2}
+  ,                                       !- Watts per Person {W/person}
+  0,                                      !- Fraction Latent
+  0.48,                                   !- Fraction Radiant
+  0.2;                                    !- Fraction Lost
+
+OS:ElectricEquipment,
+  {dfa08afa-4c6f-48c5-8229-4988b83bc6ee}, !- Handle
+  res cw,                                 !- Name
+  {5cfcd741-a822-40b0-82bc-d2d0ee780130}, !- Electric Equipment Definition Name
+  {6c305960-539c-468d-8ac3-51bb194adb47}, !- Space or SpaceType Name
+  {f7c83307-b0a9-4474-9b5f-e00039279564}, !- Schedule Name
+  ,                                       !- Multiplier
+  res cw;                                 !- End-Use Subcategory
+
+OS:ScheduleTypeLimits,
+  {10bcba05-8f23-4971-b901-90ac83ba082e}, !- Handle
+  Fractional,                             !- Name
+  0,                                      !- Lower Limit Value
+  1,                                      !- Upper Limit Value
+  Continuous;                             !- Numeric Type
+
+OS:WaterUse:Equipment:Definition,
+  {a2a89af6-3bb9-466c-aad3-e117a5de3878}, !- Handle
+  res cw,                                 !- Name
+  res cw,                                 !- End-Use Subcategory
+  0.00069711761379102,                    !- Peak Flow Rate {m3/s}
+  {14c64b5d-77ee-4fec-b263-691b6ec73832}; !- Target Temperature Schedule Name
+
+OS:WaterUse:Equipment,
+  {95116c07-3fe0-47f9-8a9b-5d87f117d3d2}, !- Handle
+  res cw,                                 !- Name
+  {a2a89af6-3bb9-466c-aad3-e117a5de3878}, !- Water Use Equipment Definition Name
+  {6c305960-539c-468d-8ac3-51bb194adb47}, !- Space Name
+  {f7c83307-b0a9-4474-9b5f-e00039279564}; !- Flow Rate Fraction Schedule Name
+
+OS:Schedule:Constant,
+  {724cf27b-7f5a-4a17-a11e-8edcd91a300d}, !- Handle
+  Always On Discrete,                     !- Name
+  {4d38a03e-beb2-40e7-a042-2b6e7474dc3a}, !- Schedule Type Limits Name
+  1;                                      !- Value
+
+OS:ScheduleTypeLimits,
+  {4d38a03e-beb2-40e7-a042-2b6e7474dc3a}, !- Handle
+  OnOff,                                  !- Name
+  0,                                      !- Lower Limit Value
+  1,                                      !- Upper Limit Value
+  Discrete,                               !- Numeric Type
+  Availability;                           !- Unit Type
+
+OS:Schedule:Constant,
+  {14c64b5d-77ee-4fec-b263-691b6ec73832}, !- Handle
+  res cw temperature schedule,            !- Name
+  ,                                       !- Schedule Type Limits Name
+  33.6111111111111;                       !- Value
+
+OS:AdditionalProperties,
+  {ab3fe0fa-3777-406f-ab4f-0c8beee362ea}, !- Handle
+  {dfa08afa-4c6f-48c5-8229-4988b83bc6ee}, !- Object Name
+  ClothesWasherIMEF,                      !- Feature Name 1
+  Double,                                 !- Feature Data Type 1
+  0.94999999999999996,                    !- Feature Value 1
+  ClothesWasherRatedAnnualEnergy,         !- Feature Name 2
+  Double,                                 !- Feature Data Type 2
+  387,                                    !- Feature Value 2
+  ClothesWasherDrumVolume,                !- Feature Name 3
+  Double,                                 !- Feature Data Type 3
+  3.5,                                    !- Feature Value 3
+  ClothesWasherDayShift,                  !- Feature Name 4
+  Double,                                 !- Feature Data Type 4
+  0;                                      !- Feature Value 4
+
