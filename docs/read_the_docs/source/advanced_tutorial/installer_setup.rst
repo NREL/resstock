@@ -11,7 +11,7 @@ Windows Setup
 1. Install `Ruby <http://rubyinstaller.org/downloads/archives>`_. Follow the installation instructions `here <http://nrel.github.io/OpenStudio-user-documentation/getting_started/getting_started/#installation-steps>`_ ("Optional - Install Ruby").
 2. Run ``gem install bundler``. (If you get an error, you may have to issue the following: ``gem sources -r https://rubygems.org/`` followed by ``gem sources -a http://rubygems.org/``.)
 3. Download the DevKit at http://rubyinstaller.org/downloads/. Choose either the 32-bit or 64-bit version depending on which version of Ruby you installed. Run the installer and extract to a directory (e.g., C:\RubyDevKit). Go to this directory, run ``ruby dk.rb init``, modify the config.yml file as needed, and finally run ``ruby dk.rb install``.
-4. Run ``bundler`` from the OpenStudio-BEopt directory. (If you get an error, the problem may be that ``git`` is not in your ``PATH``.)
+4. Run ``bundler`` from the OpenStudio-BuildStock directory. (If you get an error, the problem may be that ``git`` is not in your ``PATH``.)
 
 .. _mac-setup:
 

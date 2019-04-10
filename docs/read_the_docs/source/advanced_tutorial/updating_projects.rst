@@ -3,7 +3,7 @@ Updating Projects
 
 Once you have successfully run the rake tests described in :doc:`rake_tasks`, you are ready to update your PAT project(s) and run ResStock analyses.
 
-Because copying residential files from the `OpenStudio-BEopt <https://github.com/NREL/OpenStudio-BEopt>`_ may have resulted in discrepancies between top-level measures and project-level measures, you will need to:
+Discrepancies may exist between top-level measures and project-level measures, you will need to:
 
  - :ref:`Check for Updates <check-for-updates>`
  - :ref:`Refresh Outputs <refresh-outputs>`

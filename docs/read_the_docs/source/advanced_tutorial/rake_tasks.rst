@@ -22,23 +22,6 @@ Run ``rake -T`` to see the list of possible rake tasks. The ``-T`` is replaced w
   rake update_measures                      # update all measures
   rake update_tariffs                       # update urdb tariffs
 
-.. _copy-residential-files:
-
-Copying Residential Files
-=========================
-
-To copy a set of residential measures and resource files to this repository's ``resources/measures`` folder, run ``rake download_and_copy_beopt_files``. You will be prompted to supply the branch name containing the set of residential measures of interest.
-
-.. code:: ruby
-
-  $ rake download_and_copy_beopt_files
-  Enter branch of repo(<ENTER> for master):
-  <branch_name>
-
-If you get any SSL or otherwise -related errors preventing your branch download, use an Internet browser to manually download the desired branch zip file (``https://codeload.github.com/NREL/OpenStudio-BEopt/zip/<branch_name>``). Move the downloaded zip file into the top level of this repository. Then run ``rake copy_beopt_files``. You will not be prompted to supply a branch name.
-
-Be sure to delete the zip file once all files have been extracted and copied.
-
 .. _integrity-checks:
 
 Integrity Checks
