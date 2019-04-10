@@ -4,6 +4,7 @@ Set Up the Analysis Project
 At the top level of the ResStock repository you just downloaded, you will see two analysis project folders:
 
  - project_resstock_national
+ - project_resstock_multifamily
  - project_resstock_testing
 
 Open PAT, select "Open Existing Project", and choose the ``project_resstock_national`` directory. You may be asked if you want "mongod" to accept incoming connections. Select "Allow".
@@ -217,7 +218,6 @@ End uses include:
   The timeseries data will be reported at hourly intervals unless otherwise specified. Alternative reporting frequencies include:
 
   * timestep
-  * detailed
   * daily
   * monthly
   * run period
@@ -232,6 +232,7 @@ End uses include:
   * cooking range [electric/gas/propane] [kWh/kBtu/kBtu]
   * clothes washer [kWh]
   * clothes dryer [electric/gas/propane] [kWh/kBtu/kBtu]
+  * ceiling fan [kWh]
   * mech vent house fan [kWh]
   * mech vent range fan [kWh]
   * mech vent bath fan [kWh]
