@@ -15,11 +15,7 @@ For more information, please visit the [documentation](http://resstock.readthedo
 
 ## ResStock for Multifamily Low-Rise
 
-A beta release of ResStock with Multifamily Low-Rise capabilities is now available!
-
-Repository: https://github.com/NREL/OpenStudio-BuildStock/tree/multifamily
-
-Project folder: https://github.com/NREL/OpenStudio-BuildStock/tree/multifamily/project_resstock_multifamily
+A [pre-release](https://github.com/NREL/OpenStudio-BuildStock/releases/tag/v0.0.2) of ResStock with Multifamily Low-Rise capabilities is now available!
 
 This dependency graph illustrates the relationship between the conditional probability distributions used to describe the U.S. residential building stock. Blue color indicates the parameters and dependencies added to represent for the low-rise multifamily sector.
 ![image](https://user-images.githubusercontent.com/1276021/40512741-fa539b58-5f60-11e8-8423-36efd677b81d.png)
