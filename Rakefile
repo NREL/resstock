@@ -141,6 +141,12 @@ task :integrity_check_resstock_national do
   integrity_check_options_lookup_tsv('project_resstock_national')
 end # rake task
 
+desc 'Perform integrity check on inputs for project_resstock_multifamily'
+task :integrity_check_resstock_multifamily do
+  integrity_check('project_resstock_multifamily')
+  integrity_check_options_lookup_tsv('project_resstock_multifamily')
+end # rake task
+
 desc 'Perform integrity check on inputs for project_resstock_testing'
 task :integrity_check_resstock_testing do
   integrity_check('project_resstock_testing')
@@ -489,13 +495,12 @@ def generate_example_osws(data_hash, include_measures, exclude_measures,
         next
       end
 
-      begin
-        measure_path = File.expand_path(File.join("../resources/measures", measure), workflowJSON.oswDir.to_s)
-        measure_instance = get_measure_instance("#{measure_path}/measure.rb")
-      rescue
-        measure_path = File.expand_path(File.join("../measures", measure), workflowJSON.oswDir.to_s)
-        measure_instance = get_measure_instance("#{measure_path}/measure.rb")
+      measure_path = File.expand_path(File.join("../resources/measures", measure), workflowJSON.oswDir.to_s)
+      unless File.exist? measure_path
+        measure_path = File.expand_path(File.join("../measures", measure), workflowJSON.oswDir.to_s) # for ResidentialSimulationControls
       end
+      measure_instance = get_measure_instance("#{measure_path}/measure.rb")
+
       measure_args = measure_instance.arguments(model).sort_by { |arg| arg.name }
 
       step = OpenStudio::MeasureStep.new(measure)
