@@ -26,7 +26,7 @@ The measures can be run via the standard OpenStudio approaches: the user interfa
 
 If interested in programatically driving the simulations, you will likely find it easiest to use the Command Line Interface approach. The Command Line Interface is a self-contained executable that can run an OpenStudio Workflow file, which defines a series of OpenStudio measures to apply.
 
-An example OpenStudio Workflow [(example_single_family_detached.osw)](https://github.com/NREL/OpenStudio-BEopt/blob/master/workflows/example_single_family_detached.osw) is provided with a pre-populated selection of residential measures and arguments. It can be modified as needed and then run like so:
+An example OpenStudio Workflow [(example_single_family_detached.osw)](https://github.com/NREL/OpenStudio-BuildStock/blob/master/workflows/example_single_family_detached.osw) is provided with a pre-populated selection of residential measures and arguments. It can be modified as needed and then run like so:
 
 `openstudio.exe run -w example_single_family_detached.osw`
 
@@ -34,7 +34,7 @@ This will apply the measures, run the EnergyPlus simulation, and produce output.
 
 ### Measure Order
 
-The order in which these measures are called is important. For example, the Window Constructions measure must be called after windows have been added to the building. The table below documents the intended order of using these measures, and was automatically generated from a [JSON file](https://github.com/NREL/OpenStudio-BEopt/blob/master/workflows/measure-info.json).
+The order in which these measures are called is important. For example, the Window Constructions measure must be called after windows have been added to the building. The table below documents the intended order of using these measures, and was automatically generated from a [JSON file](https://github.com/NREL/OpenStudio-BuildStock/blob/master/workflows/measure-info.json).
 
 <nowiki>*</nowiki> Note: Nearly every measure is dependent on having the geometry defined first so this is not included in the table for readability purposes.
 
@@ -75,7 +75,3 @@ The order in which these measures are called is important. For example, the Wind
 |11. Sizing|1. HVAC Sizing|(lots of measures...)|
 |12. Photovoltaics|1. Photovoltaics||
 <!--- MEASURE_WORKFLOW_END -->
-
-## Development
-
-See the [wiki page](https://github.com/NREL/OpenStudio-BEopt/wiki/Development) for getting setup as a developer. Also reference the [OpenStudio Measure Writer's Guide](http://nrel.github.io/OpenStudio-user-documentation/reference/measure_writing_guide/) for in-depth resources on authoring and testing measures.
