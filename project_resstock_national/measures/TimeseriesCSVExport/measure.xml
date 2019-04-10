@@ -2,8 +2,8 @@
   <schema_version>3.0</schema_version>
   <name>timeseries_csv_export</name>
   <uid>2a3442c1-944d-4e91-9e11-11e0cf368c64</uid>
-  <version_id>71214a7f-8de7-4f93-9c9c-7f6fd4770399</version_id>
-  <version_modified>20190409T212202Z</version_modified>
+  <version_id>a408b27c-fd72-4619-a601-abd7432c6f1c</version_id>
+  <version_modified>20190222T175819Z</version_modified>
   <xml_checksum>15BF4E57</xml_checksum>
   <class_name>TimeseriesCSVExport</class_name>
   <display_name>Timeseries CSV Export</display_name>
@@ -19,6 +19,10 @@
       <model_dependent>false</model_dependent>
       <default_value>Hourly</default_value>
       <choices>
+        <choice>
+          <value>Detailed</value>
+          <display_name>Detailed</display_name>
+        </choice>
         <choice>
           <value>Timestep</value>
           <display_name>Timestep</display_name>
@@ -44,11 +48,30 @@
     <argument>
       <name>include_enduse_subcategories</name>
       <display_name>Include End Use Subcategories</display_name>
-      <description>Whether to report end use subcategories: appliances, plug loads, fans, large uncommon loads.</description>
+      <description>Whether to report end use subcategories: fan, refrigerator, clothes dryer, plug loads, etc.</description>
       <type>Boolean</type>
       <required>true</required>
       <model_dependent>false</model_dependent>
       <default_value>false</default_value>
+      <choices>
+        <choice>
+          <value>true</value>
+          <display_name>true</display_name>
+        </choice>
+        <choice>
+          <value>false</value>
+          <display_name>false</display_name>
+        </choice>
+      </choices>
+    </argument>
+    <argument>
+      <name>units_aggregated_subcategories</name>
+      <display_name>Aggregate End Use Subcategories Across Building Units</display_name>
+      <description>Whether to sum end use subcategories across building units.</description>
+      <type>Boolean</type>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>true</default_value>
       <choices>
         <choice>
           <value>true</value>
@@ -83,24 +106,6 @@
   </attributes>
   <files>
     <file>
-      <filename>USA_CO_Denver_Intl_AP_725650_TMY3.epw</filename>
-      <filetype>epw</filetype>
-      <usage_type>test</usage_type>
-      <checksum>E23378AA</checksum>
-    </file>
-    <file>
-      <filename>DuPage_17043_725300_880860.epw</filename>
-      <filetype>epw</filetype>
-      <usage_type>test</usage_type>
-      <checksum>335AE046</checksum>
-    </file>
-    <file>
-      <filename>CT_BRIDGEPORT-SIKORSKY-MEM_725040_18.epw</filename>
-      <filetype>epw</filetype>
-      <usage_type>test</usage_type>
-      <checksum>7279F742</checksum>
-    </file>
-    <file>
       <version>
         <software_program>OpenStudio</software_program>
         <identifier>2.0.5</identifier>
@@ -109,13 +114,7 @@
       <filename>measure.rb</filename>
       <filetype>rb</filetype>
       <usage_type>script</usage_type>
-      <checksum>6A174502</checksum>
-    </file>
-    <file>
-      <filename>timeseries_csv_export_test.rb</filename>
-      <filetype>rb</filetype>
-      <usage_type>test</usage_type>
-      <checksum>08950FAF</checksum>
+      <checksum>124E8A1F</checksum>
     </file>
   </files>
 </measure>

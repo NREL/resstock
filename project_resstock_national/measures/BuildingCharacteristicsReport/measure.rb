@@ -1,7 +1,8 @@
 require 'openstudio'
-
+ 
 class BuildingCharacteristicsReport < OpenStudio::Measure::ReportingMeasure
-  def name
+
+  def name 
     return "Building Characteristics Report"
   end
 
@@ -9,7 +10,7 @@ class BuildingCharacteristicsReport < OpenStudio::Measure::ReportingMeasure
     return "Reports building characteristics for each simulation."
   end
 
-  # define the arguments that the user will input
+  #define the arguments that the user will input
   def arguments
     args = OpenStudio::Ruleset::OSArgumentVector.new
 
@@ -26,66 +27,64 @@ class BuildingCharacteristicsReport < OpenStudio::Measure::ReportingMeasure
     require File.join(File.dirname(buildstock_file), File.basename(buildstock_file, File.extname(buildstock_file)))
     parameters = get_parameters_ordered_from_options_lookup_tsv(resources_dir)
     parameters.each do |parameter|
-      result << OpenStudio::Measure::OSOutput.makeStringOutput(OpenStudio::toUnderscoreCase(parameter))
+        result << OpenStudio::Measure::OSOutput.makeStringOutput(OpenStudio::toUnderscoreCase(parameter))
     end
     # Additional hard-coded outputs
     buildstock_outputs = [
-      "location_city",
-      "location_state",
-      "location_latitude",
-      "location_longitude",
-      "units_represented",
-      "units_modeled"
-    ]
+                          "location_city",
+                          "location_state",
+                          "location_latitude",
+                          "location_longitude",
+                          "units_represented",
+                          "units_modeled"
+                         ]
     buildstock_outputs.each do |output|
-      result << OpenStudio::Measure::OSOutput.makeStringOutput(output)
+        result << OpenStudio::Measure::OSOutput.makeStringOutput(output)
     end
     return result
   end
 
-  # define what happens when the measure is run
+  #define what happens when the measure is run
   def run(runner, user_arguments)
     super(runner, user_arguments)
 
-    # use the built-in error checking
+    #use the built-in error checking
     unless runner.validateUserArguments(arguments, user_arguments)
       return false
     end
 
     characteristics = {}
-
+    
     # Exit if this is an upgrade datapoint
     upgrade_name = get_value_from_runner_past_results(runner, "upgrade_name", "apply_upgrade", false)
     if not upgrade_name.nil?
-      runner.registerInfo("Upgrade datapoint, no building characteristics will be reported.")
-      return true
+        runner.registerInfo("Upgrade datapoint, no building characteristics will be reported.")
+        return true
     end
-
+    
     # Get existing building characteristics
     runner.workflow.workflowSteps.each do |step|
-      next if not step.result.is_initialized
-
-      step_result = step.result.get
-      next if !step_result.measureName.is_initialized or (step_result.measureName.get != "build_existing_model" and step_result.measureName.get != "zone_multipliers")
-
-      step_result.stepValues.each do |step_value|
-        begin
-          # All building characteristics will be strings
-          characteristics[step_value.name] = step_value.valueAsString
-        rescue
-          runner.registerInfo("Skipping #{step_value.name}.")
+        next if not step.result.is_initialized
+        step_result = step.result.get
+        next if !step_result.measureName.is_initialized or ( step_result.measureName.get != "build_existing_model" and step_result.measureName.get != "zone_multipliers" )
+        step_result.stepValues.each do |step_value|
+            begin
+                # All building characteristics will be strings
+                characteristics[step_value.name] = step_value.valueAsString
+            rescue
+                runner.registerInfo("Skipping #{step_value.name}.")
+            end
         end
-      end
     end
-
+    
     # Report building characteristics
-    characteristics.each do |k, v|
-      runner.registerInfo("Registering #{v} for #{k}.")
-      runner.registerValue(k, v)
+    characteristics.each do |k,v|
+        runner.registerInfo("Registering #{v} for #{k}.")
+        runner.registerValue(k,v)
     end
-
+    
     # Report some additional location and model characteristics
-
+    
     model = runner.lastOpenStudioModel
     if model.empty?
       runner.registerError("Cannot find last model.")
@@ -111,12 +110,14 @@ class BuildingCharacteristicsReport < OpenStudio::Measure::ReportingMeasure
     units_modeled = model.getBuilding.additionalProperties.getFeatureAsInteger("Total Units Modeled")
     runner.registerInfo("Registering #{units_modeled} for units_modeled.")
     runner.registerValue("units_modeled", "#{units_modeled.get}")
-
+    
     runner.registerFinalCondition("Report generated successfully.")
 
     return true
-  end # end the run method
-end # end the measure
 
-# this allows the measure to be use by the application
+  end #end the run method
+
+end #end the measure
+
+#this allows the measure to be use by the application
 BuildingCharacteristicsReport.new.registerWithApplication
