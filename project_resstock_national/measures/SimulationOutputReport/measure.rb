@@ -1,15 +1,4 @@
 require 'openstudio'
-if File.exists? File.absolute_path(File.join(File.dirname(__FILE__), "../../lib/resources/measures/HPXMLtoOpenStudio/resources")) # Hack to run ResStock on AWS
-  resources_path = File.absolute_path(File.join(File.dirname(__FILE__), "../../lib/resources/measures/HPXMLtoOpenStudio/resources"))
-elsif File.exists? File.absolute_path(File.join(File.dirname(__FILE__), "../../resources/measures/HPXMLtoOpenStudio/resources")) # Hack to run ResStock unit tests locally
-  resources_path = File.absolute_path(File.join(File.dirname(__FILE__), "../../resources/measures/HPXMLtoOpenStudio/resources"))
-elsif File.exists? File.join(OpenStudio::BCLMeasure::userMeasuresDir.to_s, "HPXMLtoOpenStudio/resources") # Hack to run measures in the OS App since applied measures are copied off into a temporary directory
-  resources_path = File.join(OpenStudio::BCLMeasure::userMeasuresDir.to_s, "HPXMLtoOpenStudio/resources")
-else
-  resources_path = File.absolute_path(File.join(File.dirname(__FILE__), "../HPXMLtoOpenStudio/resources"))
-end
-require File.join(resources_path, "unit_conversions")
-require File.join(resources_path, "waterheater")
 
 # start the measure
 class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
@@ -34,6 +23,8 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
   def energyPlusOutputRequests(runner, user_arguments)
     super(runner, user_arguments)
 
+    results = OpenStudio::IdfObjectVector.new
+
     # get the last model and sql file
     model = runner.lastOpenStudioModel
     if model.empty?
@@ -42,7 +33,639 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
     end
     model = model.get
 
-    results = OutputMeters.create_custom_building_unit_meters(model, runner, "RunPeriod")
+    # Get building units
+    units = Geometry.get_building_units(model, runner)
+
+    units.each do |unit|
+      # Get all zones in unit
+      thermal_zones = []
+      unit.spaces.each do |space|
+        thermal_zone = space.thermalZone.get
+        unless thermal_zones.include? thermal_zone
+          thermal_zones << thermal_zone
+        end
+      end
+
+      # Electricity Heating
+      electricity_heating = []
+      central_electricity_heating = []
+      thermal_zones.each do |thermal_zone|
+        heating_equipment = HVAC.existing_heating_equipment(model, runner, thermal_zone)
+        heating_equipment.each do |htg_equip|
+          clg_coil, htg_coil, supp_htg_coil = HVAC.get_coils_from_hvac_equip(htg_equip)
+
+          if htg_equip.is_a? OpenStudio::Model::AirLoopHVACUnitarySystem
+
+            electricity_heating << ["#{htg_coil.name}", "Heating Coil Electric Energy"]
+            electricity_heating << ["#{htg_equip.name}", "Unitary System Heating Ancillary Electric Energy"]
+
+            unless htg_coil.is_a? OpenStudio::Model::CoilCoolingWaterToAirHeatPumpEquationFit
+              electricity_heating << ["#{htg_coil.name}", "Heating Coil Defrost Electric Energy"]
+              electricity_heating << ["#{htg_coil.name}", "Heating Coil Crankcase Heater Electric Energy"]
+            end
+
+            unless supp_htg_coil.nil?
+              electricity_heating << ["#{supp_htg_coil.name}", "Heating Coil Electric Energy"]
+            end
+
+          elsif htg_equip.is_a? OpenStudio::Model::ZoneHVACBaseboardConvectiveWater
+
+            model.getPlantLoops.each do |plant_loop|
+              is_specified_zone = false
+              units_served = []
+              plant_loop.demandComponents.each do |demand_component|
+                next unless demand_component.to_CoilHeatingWaterBaseboard.is_initialized
+
+                demand_coil = demand_component.to_CoilHeatingWaterBaseboard.get
+                thermal_zone_served = demand_coil.containingZoneHVACComponent.get.thermalZone.get
+                thermal_zone_served.spaces.each do |space_served|
+                  unit_served = space_served.buildingUnit.get
+                  next if units_served.include? unit_served
+
+                  units_served << unit_served
+                end
+                next if thermal_zone_served != thermal_zone
+
+                is_specified_zone = true
+              end
+              next unless is_specified_zone
+
+              plant_loop.supplyComponents.each do |supply_component|
+                next unless supply_component.to_BoilerHotWater.is_initialized
+
+                if units_served.length != 1 # this is a central system
+                  central_electricity_heating << ["#{supply_component.name}", "Boiler Electric Energy"]
+                  central_electricity_heating << ["#{supply_component.name}", "Boiler Ancillary Electric Energy"]
+                else
+                  electricity_heating << ["#{supply_component.name}", "Boiler Electric Energy"]
+                  electricity_heating << ["#{supply_component.name}", "Boiler Ancillary Electric Energy"]
+                end
+              end
+            end
+
+          elsif htg_equip.is_a? OpenStudio::Model::ZoneHVACBaseboardConvectiveElectric
+
+            electricity_heating << ["#{htg_equip.name}", "Baseboard Electric Energy"]
+
+          elsif htg_equip.is_a? OpenStudio::Model::ZoneHVACFourPipeFanCoil or htg_equip.is_a? OpenStudio::Model::ZoneHVACPackagedTerminalAirConditioner
+
+            model.getPlantLoops.each do |plant_loop|
+              is_specified_zone = false
+              units_served = []
+              plant_loop.demandComponents.each do |demand_component|
+                next unless demand_component.to_CoilHeatingWater.is_initialized
+
+                demand_coil = demand_component.to_CoilHeatingWater.get
+                thermal_zone_served = demand_coil.containingZoneHVACComponent.get.thermalZone.get
+                thermal_zone_served.spaces.each do |space_served|
+                  unit_served = space_served.buildingUnit.get
+                  next if units_served.include? unit_served
+
+                  units_served << unit_served
+                end
+                next if thermal_zone_served != thermal_zone
+
+                is_specified_zone = true
+              end
+              next unless is_specified_zone
+
+              plant_loop.supplyComponents.each do |supply_component|
+                next unless supply_component.to_BoilerHotWater.is_initialized
+
+                if units_served.length != 1 # this is a central system
+                  central_electricity_heating << ["#{supply_component.name}", "Boiler Electric Energy"]
+                  central_electricity_heating << ["#{supply_component.name}", "Boiler Ancillary Electric Energy"]
+                else
+                  electricity_heating << ["#{supply_component.name}", "Boiler Electric Energy"]
+                  electricity_heating << ["#{supply_component.name}", "Boiler Ancillary Electric Energy"]
+                end
+              end
+            end
+
+          end
+        end
+      end
+
+      results = create_custom_meter(results, "#{unit.name}:ElectricityHeating", electricity_heating)
+      results = create_custom_meter(results, "Central:ElectricityHeating", central_electricity_heating)
+
+      # Electricity Cooling
+      electricity_cooling = []
+      central_electricity_cooling = []
+      thermal_zones.each do |thermal_zone|
+        cooling_equipment = HVAC.existing_cooling_equipment(model, runner, thermal_zone)
+        cooling_equipment.each do |clg_equip|
+          clg_coil, htg_coil, supp_htg_coil = HVAC.get_coils_from_hvac_equip(clg_equip)
+
+          if clg_equip.is_a? OpenStudio::Model::AirLoopHVACUnitarySystem
+            electricity_cooling << ["#{clg_coil.name}", "Cooling Coil Electric Energy"]
+            unless clg_coil.is_a? OpenStudio::Model::CoilCoolingWaterToAirHeatPumpEquationFit
+              electricity_cooling << ["#{clg_coil.name}", "Cooling Coil Crankcase Heater Electric Energy"]
+            end
+
+          elsif clg_equip.is_a? OpenStudio::Model::ZoneHVACPackagedTerminalAirConditioner
+            electricity_cooling << ["#{clg_coil.name}", "Cooling Coil Electric Energy"]
+
+          elsif clg_equip.is_a? OpenStudio::Model::ZoneHVACFourPipeFanCoil
+            model.getPlantLoops.each do |plant_loop|
+              is_specified_zone = false
+              units_served = []
+              plant_loop.demandComponents.each do |demand_component|
+                next unless demand_component.to_CoilCoolingWater.is_initialized
+
+                demand_coil = demand_component.to_CoilCoolingWater.get
+                thermal_zone_served = demand_coil.containingZoneHVACComponent.get.thermalZone.get
+                thermal_zone_served.spaces.each do |space_served|
+                  unit_served = space_served.buildingUnit.get
+                  next if units_served.include? unit_served
+
+                  units_served << unit_served
+                end
+                next if thermal_zone_served != thermal_zone
+
+                is_specified_zone = true
+              end
+              next unless is_specified_zone
+
+              plant_loop.supplyComponents.each do |supply_component|
+                next unless supply_component.to_ChillerElectricEIR.is_initialized
+
+                if units_served.length != 1 # this is a central system
+                  central_electricity_cooling << ["#{supply_component.name}", "Chiller Electric Energy"]
+                else
+                  electricity_cooling << ["#{supply_component.name}", "Chiller Electric Energy"]
+                end
+              end
+            end
+
+          end
+        end
+      end
+
+      results = create_custom_meter(results, "#{unit.name}:ElectricityCooling", electricity_cooling)
+      results = create_custom_meter(results, "Central:ElectricityCooling", central_electricity_cooling)
+
+      # Electricity Interior Lighting
+      electricity_interior_lighting = []
+      thermal_zones.each do |thermal_zone|
+        electricity_interior_lighting << ["", "InteriorLights:Electricity:Zone:#{thermal_zone.name}"]
+      end
+
+      results = create_custom_meter(results, "#{unit.name}:ElectricityInteriorLighting", electricity_interior_lighting)
+
+      # Electricity Fans Heating
+      electricity_fans_heating = []
+      thermal_zones.each do |thermal_zone|
+        heating_equipment = HVAC.existing_heating_equipment(model, runner, thermal_zone)
+        heating_equipment.each do |htg_equip|
+          clg_coil, htg_coil, supp_htg_coil = HVAC.get_coils_from_hvac_equip(htg_equip)
+
+          if htg_equip.is_a? OpenStudio::Model::AirLoopHVACUnitarySystem
+            electricity_fans_heating << ["#{htg_equip.supplyFan.get.name}", "Fan Electric Energy"]
+
+          elsif htg_equip.is_a? OpenStudio::Model::ZoneHVACUnitHeater
+            electricity_fans_heating << ["#{htg_equip.supplyAirFan.to_FanConstantVolume.get.name}", "Fan Electric Energy"]
+
+          end
+        end
+      end
+      model.getPlantLoops.each do |plant_loop|
+        if plant_loop.name.to_s == Constants.PlantLoopDomesticWater(unit.name.to_s)
+          water_heater = Waterheater.get_water_heater(model, plant_loop, runner)
+
+          if water_heater.is_a? OpenStudio::Model::WaterHeaterHeatPumpWrappedCondenser
+            electricity_fans_heating << ["#{water_heater.fan.name}", "Fan Electric Energy"]
+
+          end
+        end
+      end
+
+      results = create_custom_meter(results, "#{unit.name}:ElectricityFansHeating", electricity_fans_heating)
+
+      # Electricity Fans Cooling
+      electricity_fans_cooling = []
+      thermal_zones.each do |thermal_zone|
+        cooling_equipment = HVAC.existing_cooling_equipment(model, runner, thermal_zone)
+        cooling_equipment.each do |clg_equip|
+          clg_coil, htg_coil, supp_htg_coil = HVAC.get_coils_from_hvac_equip(clg_equip)
+
+          if clg_equip.is_a? OpenStudio::Model::AirLoopHVACUnitarySystem
+            electricity_fans_cooling << ["#{clg_equip.supplyFan.get.name}", "Fan Electric Energy"]
+
+          elsif clg_equip.is_a? OpenStudio::Model::ZoneHVACPackagedTerminalAirConditioner or clg_equip.is_a? OpenStudio::Model::ZoneHVACFourPipeFanCoil
+            electricity_fans_cooling << ["#{clg_equip.supplyAirFan.name}", "Fan Electric Energy"] # FIXME: all fan coil fan energy is assigned to fan cooling
+
+          end
+        end
+      end
+
+      results = create_custom_meter(results, "#{unit.name}:ElectricityFansCooling", electricity_fans_cooling)
+
+      # Electricity Pumps Heating
+      electricity_pumps_heating = []
+      central_electricity_pumps_heating = []
+      model.getEnergyManagementSystemOutputVariables.each do |ems_output_var|
+        if ems_output_var.name.to_s.include? "Central htg pump:Pumps:Electricity"
+          central_electricity_pumps_heating << ["", "#{ems_output_var.name}"]
+
+        elsif ems_output_var.name.to_s.include? "htg pump:Pumps:Electricity" and ems_output_var.emsVariableName.include? unit.name.to_s.gsub(" ", "_")
+          electricity_pumps_heating << ["", "#{ems_output_var.name}"]
+
+        end
+      end
+
+      results = create_custom_meter(results, "#{unit.name}:ElectricityPumpsHeating", electricity_pumps_heating)
+      results = create_custom_meter(results, "Central:ElectricityPumpsHeating", central_electricity_pumps_heating)
+
+      # Electricity Pumps Cooling
+      electricity_pumps_cooling = []
+      central_electricity_pumps_cooling = []
+      model.getEnergyManagementSystemOutputVariables.each do |ems_output_var|
+        if ems_output_var.name.to_s.include? "Central clg pump:Pumps:Electricity"
+          central_electricity_pumps_cooling << ["", "#{ems_output_var.name}"]
+
+        elsif ems_output_var.name.to_s.include? "clg pump:Pumps:Electricity" and ems_output_var.emsVariableName.include? unit.name.to_s.gsub(" ", "_")
+          electricity_pumps_cooling << ["", "#{ems_output_var.name}"]
+
+        end
+      end
+
+      results = create_custom_meter(results, "#{unit.name}:ElectricityPumpsCooling", electricity_pumps_cooling)
+      results = create_custom_meter(results, "Central:ElectricityPumpsCooling", central_electricity_pumps_cooling)
+
+      # Electricity Water Systems
+      electricity_water_systems = []
+      model.getPlantLoops.each do |plant_loop|
+        if plant_loop.name.to_s == Constants.PlantLoopDomesticWater(unit.name.to_s)
+          water_heater = Waterheater.get_water_heater(model, plant_loop, runner)
+
+          if water_heater.is_a? OpenStudio::Model::WaterHeaterMixed
+            electricity_water_systems << ["#{water_heater.name}", "Water Heater Off Cycle Parasitic Electric Energy"]
+            electricity_water_systems << ["#{water_heater.name}", "Water Heater On Cycle Parasitic Electric Energy"]
+            next if water_heater.heaterFuelType != "Electricity"
+
+            electricity_water_systems << ["#{water_heater.name}", "Water Heater Electric Energy"]
+
+          elsif water_heater.is_a? OpenStudio::Model::WaterHeaterHeatPumpWrappedCondenser
+            electricity_water_systems << ["#{water_heater.name}", "Water Heater Off Cycle Ancillary Electric Energy"]
+            electricity_water_systems << ["#{water_heater.name}", "Water Heater On Cycle Ancillary Electric Energy"]
+
+            tank = water_heater.tank.to_WaterHeaterStratified.get
+            electricity_water_systems << ["#{tank.name}", "Water Heater Electric Energy"]
+            electricity_water_systems << ["#{tank.name}", "Water Heater Off Cycle Parasitic Electric Energy"]
+            electricity_water_systems << ["#{tank.name}", "Water Heater On Cycle Parasitic Electric Energy"]
+
+            coil = water_heater.dXCoil.to_CoilWaterHeatingAirToWaterHeatPumpWrapped.get
+            electricity_water_systems << ["#{coil.name}", "Cooling Coil Crankcase Heater Electric Energy"]
+            electricity_water_systems << ["#{coil.name}", "Cooling Coil Water Heating Electric Energy"]
+
+          end
+        end
+      end
+      shw_tank = Waterheater.get_shw_storage_tank(model, unit)
+      unless shw_tank.nil?
+        electricity_water_systems << ["#{shw_tank.name}", "Water Heater Electric Energy"]
+        electricity_water_systems << ["#{shw_tank.name}", "Water Heater Off Cycle Parasitic Electric Energy"]
+        electricity_water_systems << ["#{shw_tank.name}", "Water Heater On Cycle Parasitic Electric Energy"]
+
+      end
+
+      results = create_custom_meter(results, "#{unit.name}:ElectricityWaterSystems", electricity_water_systems)
+
+      # Natural Gas Heating
+      natural_gas_heating = []
+      central_natural_gas_heating = []
+      thermal_zones.each do |thermal_zone|
+        heating_equipment = HVAC.existing_heating_equipment(model, runner, thermal_zone)
+        heating_equipment.each do |htg_equip|
+          clg_coil, htg_coil, supp_htg_coil = HVAC.get_coils_from_hvac_equip(htg_equip)
+
+          if htg_equip.is_a? OpenStudio::Model::AirLoopHVACUnitarySystem
+            natural_gas_heating << ["#{htg_coil.name}", "Heating Coil Gas Energy"]
+            natural_gas_heating << ["#{htg_coil.name}", "Heating Coil Ancillary Gas Energy"]
+
+          elsif htg_equip.is_a? OpenStudio::Model::ZoneHVACBaseboardConvectiveWater
+            model.getPlantLoops.each do |plant_loop|
+              is_specified_zone = false
+              units_served = []
+              plant_loop.demandComponents.each do |demand_component|
+                next unless demand_component.to_CoilHeatingWaterBaseboard.is_initialized
+
+                demand_coil = demand_component.to_CoilHeatingWaterBaseboard.get
+                thermal_zone_served = demand_coil.containingZoneHVACComponent.get.thermalZone.get
+                thermal_zone_served.spaces.each do |space_served|
+                  unit_served = space_served.buildingUnit.get
+                  next if units_served.include? unit_served
+
+                  units_served << unit_served
+                end
+                next if thermal_zone_served != thermal_zone
+
+                is_specified_zone = true
+              end
+              next unless is_specified_zone
+
+              plant_loop.supplyComponents.each do |supply_component|
+                next unless supply_component.to_BoilerHotWater.is_initialized
+                next if supply_component.to_BoilerHotWater.get.fuelType != "NaturalGas"
+
+                if units_served.length != 1 # this is a central system
+                  central_natural_gas_heating << ["#{supply_component.name}", "Boiler Gas Energy"]
+                else
+                  natural_gas_heating << ["#{supply_component.name}", "Boiler Gas Energy"]
+                end
+              end
+            end
+
+          elsif htg_equip.is_a? OpenStudio::Model::ZoneHVACFourPipeFanCoil or htg_equip.is_a? OpenStudio::Model::ZoneHVACPackagedTerminalAirConditioner
+            model.getPlantLoops.each do |plant_loop|
+              is_specified_zone = false
+              units_served = []
+              plant_loop.demandComponents.each do |demand_component|
+                next unless demand_component.to_CoilHeatingWater.is_initialized
+
+                demand_coil = demand_component.to_CoilHeatingWater.get
+                thermal_zone_served = demand_coil.containingZoneHVACComponent.get.thermalZone.get
+                thermal_zone_served.spaces.each do |space_served|
+                  unit_served = space_served.buildingUnit.get
+                  next if units_served.include? unit_served
+
+                  units_served << unit_served
+                end
+                next if thermal_zone_served != thermal_zone
+
+                is_specified_zone = true
+              end
+              next unless is_specified_zone
+
+              plant_loop.supplyComponents.each do |supply_component|
+                next unless supply_component.to_BoilerHotWater.is_initialized
+
+                if units_served.length != 1 # this is a central system
+                  central_natural_gas_heating << ["#{supply_component.name}", "Boiler Gas Energy"]
+                else
+                  natural_gas_heating << ["#{supply_component.name}", "Boiler Gas Energy"]
+                end
+              end
+            end
+          end
+        end
+      end
+
+      results = create_custom_meter(results, "#{unit.name}:NaturalGasHeating", natural_gas_heating, "NaturalGas")
+      results = create_custom_meter(results, "Central:NaturalGasHeating", central_natural_gas_heating, "NaturalGas")
+
+      # Natural Gas Water Systems
+      natural_gas_water_systems = []
+      model.getPlantLoops.each do |plant_loop|
+        if plant_loop.name.to_s == Constants.PlantLoopDomesticWater(unit.name.to_s)
+          water_heater = Waterheater.get_water_heater(model, plant_loop, runner)
+          next unless water_heater.is_a? OpenStudio::Model::WaterHeaterMixed
+          next if water_heater.heaterFuelType != "NaturalGas"
+
+          natural_gas_water_systems << ["#{water_heater.name}", "Water Heater Gas Energy"]
+
+        end
+      end
+
+      results = create_custom_meter(results, "#{unit.name}:NaturalGasWaterSystems", natural_gas_water_systems, "NaturalGas")
+
+      # Fuel Oil Heating
+      fuel_oil_heating = []
+      central_fuel_oil_heating = []
+      thermal_zones.each do |thermal_zone|
+        heating_equipment = HVAC.existing_heating_equipment(model, runner, thermal_zone)
+        heating_equipment.each do |htg_equip|
+          clg_coil, htg_coil, supp_htg_coil = HVAC.get_coils_from_hvac_equip(htg_equip)
+
+          if htg_equip.is_a? OpenStudio::Model::AirLoopHVACUnitarySystem
+            fuel_oil_heating << ["#{htg_coil.name}", "Heating Coil FuelOil#1 Energy"]
+            fuel_oil_heating << ["#{htg_coil.name}", "Heating Coil Ancillary FuelOil#1 Energy"]
+
+          elsif htg_equip.is_a? OpenStudio::Model::ZoneHVACBaseboardConvectiveWater
+            model.getPlantLoops.each do |plant_loop|
+              is_specified_zone = false
+              units_served = []
+              plant_loop.demandComponents.each do |demand_component|
+                next unless demand_component.to_CoilHeatingWaterBaseboard.is_initialized
+
+                demand_coil = demand_component.to_CoilHeatingWaterBaseboard.get
+                thermal_zone_served = demand_coil.containingZoneHVACComponent.get.thermalZone.get
+                thermal_zone_served.spaces.each do |space_served|
+                  unit_served = space_served.buildingUnit.get
+                  next if units_served.include? unit_served
+
+                  units_served << unit_served
+                end
+                next if thermal_zone_served != thermal_zone
+
+                is_specified_zone = true
+              end
+              next unless is_specified_zone
+
+              plant_loop.supplyComponents.each do |supply_component|
+                next unless supply_component.to_BoilerHotWater.is_initialized
+                next if supply_component.to_BoilerHotWater.get.fuelType != "FuelOil#1"
+
+                if units_served.length != 1 # this is a central system
+                  central_fuel_oil_heating << ["#{supply_component.name}", "Boiler FuelOil#1 Energy"]
+                else
+                  fuel_oil_heating << ["#{supply_component.name}", "Boiler FuelOil#1 Energy"]
+                end
+              end
+            end
+
+          elsif htg_equip.is_a? OpenStudio::Model::ZoneHVACFourPipeFanCoil or htg_equip.is_a? OpenStudio::Model::ZoneHVACPackagedTerminalAirConditioner
+            model.getPlantLoops.each do |plant_loop|
+              is_specified_zone = false
+              units_served = []
+              plant_loop.demandComponents.each do |demand_component|
+                next unless demand_component.to_CoilHeatingWater.is_initialized
+
+                demand_coil = demand_component.to_CoilHeatingWater.get
+                thermal_zone_served = demand_coil.containingZoneHVACComponent.get.thermalZone.get
+                thermal_zone_served.spaces.each do |space_served|
+                  unit_served = space_served.buildingUnit.get
+                  next if units_served.include? unit_served
+
+                  units_served << unit_served
+                end
+                next if thermal_zone_served != thermal_zone
+
+                is_specified_zone = true
+              end
+              next unless is_specified_zone
+
+              plant_loop.supplyComponents.each do |supply_component|
+                next unless supply_component.to_BoilerHotWater.is_initialized
+
+                if units_served.length != 1 # this is a central system
+                  central_fuel_oil_heating << ["#{supply_component.name}", "Boiler FuelOil#1 Energy"]
+                else
+                  fuel_oil_heating << ["#{supply_component.name}", "Boiler FuelOil#1 Energy"]
+                end
+              end
+            end
+
+          end
+        end
+      end
+
+      results = create_custom_meter(results, "#{unit.name}:FuelOilHeating", fuel_oil_heating, "FuelOil#1")
+      results = create_custom_meter(results, "Central:FuelOilHeating", central_fuel_oil_heating, "FuelOil#1")
+
+      # Fuel Oil Interior Equipment
+      fuel_oil_interior_equipment = []
+      unit.spaces.each do |space|
+        space.otherEquipment.each do |equip|
+          next if equip.fuelType != "FuelOil#1"
+
+          fuel_oil_interior_equipment << ["#{equip.name}", "Other Equipment FuelOil#1 Energy"]
+        end
+      end
+
+      results = create_custom_meter(results, "#{unit.name}:FuelOilInteriorEquipment", fuel_oil_interior_equipment, "FuelOil#1")
+
+      # Fuel Oil Water Systems
+      fuel_oil_water_systems = []
+      model.getPlantLoops.each do |plant_loop|
+        if plant_loop.name.to_s == Constants.PlantLoopDomesticWater(unit.name.to_s)
+          water_heater = Waterheater.get_water_heater(model, plant_loop, runner)
+          next unless water_heater.is_a? OpenStudio::Model::WaterHeaterMixed
+          next if water_heater.heaterFuelType != "FuelOil#1"
+
+          fuel_oil_water_systems << ["#{water_heater.name}", "Water Heater FuelOil#1 Energy"]
+
+        end
+      end
+
+      results = create_custom_meter(results, "#{unit.name}:FuelOilWaterSystems", fuel_oil_water_systems, "FuelOil#1")
+
+      # Propane Heating
+      propane_heating = []
+      central_propane_heating = []
+      thermal_zones.each do |thermal_zone|
+        heating_equipment = HVAC.existing_heating_equipment(model, runner, thermal_zone)
+        heating_equipment.each do |htg_equip|
+          clg_coil, htg_coil, supp_htg_coil = HVAC.get_coils_from_hvac_equip(htg_equip)
+
+          if htg_equip.is_a? OpenStudio::Model::AirLoopHVACUnitarySystem
+            propane_heating << ["#{htg_coil.name}", "Heating Coil Propane Energy"]
+            propane_heating << ["#{htg_coil.name}", "Heating Coil Ancillary Propane Energy"]
+
+          elsif htg_equip.is_a? OpenStudio::Model::ZoneHVACBaseboardConvectiveWater
+            model.getPlantLoops.each do |plant_loop|
+              is_specified_zone = false
+              units_served = []
+              plant_loop.demandComponents.each do |demand_component|
+                next unless demand_component.to_CoilHeatingWaterBaseboard.is_initialized
+
+                demand_coil = demand_component.to_CoilHeatingWaterBaseboard.get
+                thermal_zone_served = demand_coil.containingZoneHVACComponent.get.thermalZone.get
+                thermal_zone_served.spaces.each do |space_served|
+                  unit_served = space_served.buildingUnit.get
+                  next if units_served.include? unit_served
+
+                  units_served << unit_served
+                end
+                next if thermal_zone_served != thermal_zone
+
+                is_specified_zone = true
+              end
+              next unless is_specified_zone
+
+              plant_loop.supplyComponents.each do |supply_component|
+                next unless supply_component.to_BoilerHotWater.is_initialized
+                next if supply_component.to_BoilerHotWater.get.fuelType != "Propane"
+
+                if units_served.length != 1 # this is a central system
+                  central_propane_heating << ["#{supply_component.name}", "Boiler Propane Energy"]
+                else
+                  propane_heating << ["#{supply_component.name}", "Boiler Propane Energy"]
+                end
+              end
+            end
+
+          elsif htg_equip.is_a? OpenStudio::Model::ZoneHVACFourPipeFanCoil or htg_equip.is_a? OpenStudio::Model::ZoneHVACPackagedTerminalAirConditioner
+            model.getPlantLoops.each do |plant_loop|
+              is_specified_zone = false
+              units_served = []
+              plant_loop.demandComponents.each do |demand_component|
+                next unless demand_component.to_CoilHeatingWater.is_initialized
+
+                demand_coil = demand_component.to_CoilHeatingWater.get
+                thermal_zone_served = demand_coil.containingZoneHVACComponent.get.thermalZone.get
+                thermal_zone_served.spaces.each do |space_served|
+                  unit_served = space_served.buildingUnit.get
+                  next if units_served.include? unit_served
+
+                  units_served << unit_served
+                end
+                next if thermal_zone_served != thermal_zone
+
+                is_specified_zone = true
+              end
+              next unless is_specified_zone
+
+              plant_loop.supplyComponents.each do |supply_component|
+                next unless supply_component.to_BoilerHotWater.is_initialized
+
+                if units_served.length != 1 # this is a central system
+                  central_propane_heating << ["#{supply_component.name}", "Boiler Propane Energy"]
+                else
+                  propane_heating << ["#{supply_component.name}", "Boiler Propane Energy"]
+                end
+              end
+            end
+          end
+        end
+      end
+
+      results = create_custom_meter(results, "#{unit.name}:PropaneHeating", propane_heating, "PropaneGas")
+      results = create_custom_meter(results, "Central:PropaneHeating", central_propane_heating, "PropaneGas")
+
+      # Propane Interior Equipment
+      propane_interior_equipment = []
+      unit.spaces.each do |space|
+        space.otherEquipment.each do |equip|
+          next if equip.fuelType != "PropaneGas"
+
+          propane_interior_equipment << ["#{equip.name}", "Other Equipment Propane Energy"]
+        end
+      end
+
+      results = create_custom_meter(results, "#{unit.name}:PropaneInteriorEquipment", propane_interior_equipment, "PropaneGas")
+
+      # Propane Water Systems
+      propane_water_systems = []
+      model.getPlantLoops.each do |plant_loop|
+        if plant_loop.name.to_s == Constants.PlantLoopDomesticWater(unit.name.to_s)
+          water_heater = Waterheater.get_water_heater(model, plant_loop, runner)
+          next unless water_heater.is_a? OpenStudio::Model::WaterHeaterMixed
+          next if water_heater.heaterFuelType != "PropaneGas"
+
+          propane_water_systems << ["#{water_heater.name}", "Water Heater Propane Energy"]
+
+        end
+      end
+
+      results = create_custom_meter(results, "#{unit.name}:PropaneWaterSystems", propane_water_systems, "PropaneGas")
+    end
+
+    return results
+  end
+
+  def create_custom_meter(results, name, key_var_groups, fuel_type = "Electricity")
+    unless key_var_groups.empty?
+      meter_custom = "Meter:Custom,#{name},#{fuel_type}"
+      key_var_groups.each do |key_var_group|
+        key, var = key_var_group
+        meter_custom += ",#{key},#{var}"
+      end
+      meter_custom += ";"
+      results << OpenStudio::IdfObject.load(meter_custom).get
+      results << OpenStudio::IdfObject.load("Output:Meter,#{name},Annual;").get
+    end
     return results
   end
 
@@ -56,30 +679,23 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
       "net_site_energy_mbtu", # Incorporates PV
       "net_site_electricity_kwh", # Incorporates PV
       "electricity_heating_kwh",
-      "electricity_central_system_heating_kwh",
       "electricity_cooling_kwh",
-      "electricity_central_system_cooling_kwh",
       "electricity_interior_lighting_kwh",
       "electricity_exterior_lighting_kwh",
       "electricity_interior_equipment_kwh",
       "electricity_fans_heating_kwh",
       "electricity_fans_cooling_kwh",
       "electricity_pumps_heating_kwh",
-      "electricity_central_system_pumps_heating_kwh",
       "electricity_pumps_cooling_kwh",
-      "electricity_central_system_pumps_cooling_kwh",
       "electricity_water_systems_kwh",
       "electricity_pv_kwh",
       "natural_gas_heating_therm",
-      "natural_gas_central_system_heating_therm",
       "natural_gas_interior_equipment_therm",
       "natural_gas_water_systems_therm",
       "fuel_oil_heating_mbtu",
-      "fuel_oil_central_system_heating_mbtu",
       "fuel_oil_interior_equipment_mbtu",
       "fuel_oil_water_systems_mbtu",
       "propane_heating_mbtu",
-      "propane_central_system_heating_mbtu",
       "propane_interior_equipment_mbtu",
       "propane_water_systems_mbtu",
       "hours_heating_setpoint_not_met",
@@ -143,23 +759,6 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
     sqlFile = sqlFile.get
     model.setSqlFile(sqlFile)
 
-    ann_env_pd = nil
-    sqlFile.availableEnvPeriods.each do |env_pd|
-      env_type = sqlFile.environmentType(env_pd)
-      if env_type.is_initialized
-        if env_type.get == OpenStudio::EnvironmentType.new("WeatherRunPeriod")
-          ann_env_pd = env_pd
-        end
-      end
-    end
-    if ann_env_pd == false
-      runner.registerError("Can't find a weather runperiod, make sure you ran an annual simulation, not just the design days.")
-      return false
-    end
-
-    env_period_ix_query = "SELECT EnvironmentPeriodIndex FROM EnvironmentPeriods WHERE EnvironmentName='#{ann_env_pd}'"
-    env_period_ix = sqlFile.execAndReturnFirstInt(env_period_ix_query).get
-
     # Load buildstock_file
     resources_dir = File.absolute_path(File.join(File.dirname(__FILE__), "..", "..", "lib", "resources")) # Should have been uploaded per 'Other Library Files' in analysis spreadsheet
     buildstock_file = File.join(resources_dir, "buildstock.rb")
@@ -170,87 +769,7 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
     gas_site_units = "therm"
     other_fuel_site_units = "MBtu"
 
-    # Get meters that aren't tied to units (i.e., are metered at the building level)
-    modeledCentralElectricityHeating = 0.0
-    modeledCentralElectricityCooling = 0.0
-    modeledCentralElectricityExteriorLighting = 0.0
-    modeledCentralElectricityPumpsHeating = 0.0
-    modeledCentralElectricityPumpsCooling = 0.0
-    modeledCentralElectricityInteriorEquipment = 0.0
-    modeledCentralNaturalGasHeating = 0.0
-    modeledCentralNaturalGasInteriorEquipment = 0.0
-    modeledCentralFuelOilHeating = 0.0
-    modeledCentralFuelOilInteriorEquipment = 0.0
-    modeledCentralPropaneHeating = 0.0
-    modeledCentralPropaneInteriorEquipment = 0.0
-
-    central_electricity_heating_query = "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('CENTRAL:ELECTRICITYHEATING') AND ReportingFrequency='Run Period' AND VariableUnits='J') AND TimeIndex IN (SELECT TimeIndex FROM Time WHERE EnvironmentPeriodIndex='#{env_period_ix}')"
-    unless sqlFile.execAndReturnFirstDouble(central_electricity_heating_query).empty?
-      modeledCentralElectricityHeating = sqlFile.execAndReturnFirstDouble(central_electricity_heating_query).get.round(2)
-    end
-
-    central_electricity_cooling_query = "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('CENTRAL:ELECTRICITYCOOLING') AND ReportingFrequency='Run Period' AND VariableUnits='J') AND TimeIndex IN (SELECT TimeIndex FROM Time WHERE EnvironmentPeriodIndex='#{env_period_ix}')"
-    unless sqlFile.execAndReturnFirstDouble(central_electricity_cooling_query).empty?
-      modeledCentralElectricityCooling = sqlFile.execAndReturnFirstDouble(central_electricity_cooling_query).get.round(2)
-    end
-
-    central_electricity_exterior_lighting_query = "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('CENTRAL:ELECTRICITYEXTERIORLIGHTING') AND ReportingFrequency='Run Period' AND VariableUnits='J') AND TimeIndex IN (SELECT TimeIndex FROM Time WHERE EnvironmentPeriodIndex='#{env_period_ix}')"
-    unless sqlFile.execAndReturnFirstDouble(central_electricity_exterior_lighting_query).empty?
-      modeledCentralElectricityExteriorLighting = sqlFile.execAndReturnFirstDouble(central_electricity_exterior_lighting_query).get.round(2)
-    end
-
-    central_electricity_pumps_heating_query = "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('CENTRAL:ELECTRICITYPUMPSHEATING') AND ReportingFrequency='Run Period' AND VariableUnits='J') AND TimeIndex IN (SELECT TimeIndex FROM Time WHERE EnvironmentPeriodIndex='#{env_period_ix}')"
-    unless sqlFile.execAndReturnFirstDouble(central_electricity_pumps_heating_query).empty?
-      modeledCentralElectricityPumpsHeating = sqlFile.execAndReturnFirstDouble(central_electricity_pumps_heating_query).get.round(2)
-    end
-
-    central_electricity_pumps_cooling_query = "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('CENTRAL:ELECTRICITYPUMPSCOOLING') AND ReportingFrequency='Run Period' AND VariableUnits='J') AND TimeIndex IN (SELECT TimeIndex FROM Time WHERE EnvironmentPeriodIndex='#{env_period_ix}')"
-    unless sqlFile.execAndReturnFirstDouble(central_electricity_pumps_cooling_query).empty?
-      modeledCentralElectricityPumpsCooling = sqlFile.execAndReturnFirstDouble(central_electricity_pumps_cooling_query).get.round(2)
-    end
-
-    central_electricity_interior_equipment_query = "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('CENTRAL:ELECTRICITYINTERIOREQUIPMENT') AND ReportingFrequency='Run Period' AND VariableUnits='J') AND TimeIndex IN (SELECT TimeIndex FROM Time WHERE EnvironmentPeriodIndex='#{env_period_ix}')"
-    unless sqlFile.execAndReturnFirstDouble(central_electricity_interior_equipment_query).empty?
-      modeledCentralElectricityInteriorEquipment = sqlFile.execAndReturnFirstDouble(central_electricity_interior_equipment_query).get.round(2)
-    end
-
-    central_natural_gas_heating_query = "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('CENTRAL:NATURALGASHEATING') AND ReportingFrequency='Run Period' AND VariableUnits='J') AND TimeIndex IN (SELECT TimeIndex FROM Time WHERE EnvironmentPeriodIndex='#{env_period_ix}')"
-    unless sqlFile.execAndReturnFirstDouble(central_natural_gas_heating_query).empty?
-      modeledCentralNaturalGasHeating = sqlFile.execAndReturnFirstDouble(central_natural_gas_heating_query).get.round(2)
-    end
-
-    central_natural_gas_interior_equipment_query = "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('CENTRAL:NATURALGASINTERIOREQUIPMENT') AND ReportingFrequency='Run Period' AND VariableUnits='J') AND TimeIndex IN (SELECT TimeIndex FROM Time WHERE EnvironmentPeriodIndex='#{env_period_ix}')"
-    unless sqlFile.execAndReturnFirstDouble(central_natural_gas_interior_equipment_query).empty?
-      modeledCentralNaturalGasInteriorEquipment = sqlFile.execAndReturnFirstDouble(central_natural_gas_interior_equipment_query).get.round(2)
-    end
-
-    central_fuel_oil_heating_query = "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('CENTRAL:FUELOILHEATING') AND ReportingFrequency='Run Period' AND VariableUnits='J') AND TimeIndex IN (SELECT TimeIndex FROM Time WHERE EnvironmentPeriodIndex='#{env_period_ix}')"
-    unless sqlFile.execAndReturnFirstDouble(central_fuel_oil_heating_query).empty?
-      modeledCentralFuelOilHeating = sqlFile.execAndReturnFirstDouble(central_fuel_oil_heating_query).get.round(2)
-    end
-
-    central_fuel_oil_interior_equipment_query = "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('CENTRAL:FUELOILINTERIOREQUIPMENT') AND ReportingFrequency='Run Period' AND VariableUnits='J') AND TimeIndex IN (SELECT TimeIndex FROM Time WHERE EnvironmentPeriodIndex='#{env_period_ix}')"
-    unless sqlFile.execAndReturnFirstDouble(central_fuel_oil_interior_equipment_query).empty?
-      modeledCentralFuelOilInteriorEquipment = sqlFile.execAndReturnFirstDouble(central_fuel_oil_interior_equipment_query).get.round(2)
-    end
-
-    central_propane_heating_query = "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('CENTRAL:PROPANEHEATING') AND ReportingFrequency='Run Period' AND VariableUnits='J') AND TimeIndex IN (SELECT TimeIndex FROM Time WHERE EnvironmentPeriodIndex='#{env_period_ix}')"
-    unless sqlFile.execAndReturnFirstDouble(central_propane_heating_query).empty?
-      modeledCentralPropaneHeating = sqlFile.execAndReturnFirstDouble(central_propane_heating_query).get.round(2)
-    end
-
-    central_propane_interior_equipment_query = "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('CENTRAL:PROPANEINTERIOREQUIPMENT') AND ReportingFrequency='Run Period' AND VariableUnits='J') AND TimeIndex IN (SELECT TimeIndex FROM Time WHERE EnvironmentPeriodIndex='#{env_period_ix}')"
-    unless sqlFile.execAndReturnFirstDouble(central_propane_interior_equipment_query).empty?
-      modeledCentralPropaneInteriorEquipment = sqlFile.execAndReturnFirstDouble(central_propane_interior_equipment_query).get.round(2)
-    end
-
-    # Initialize variables to check against sql file totals
-    modeledElectricityFansHeating = 0.0
-    modeledElectricityFansCooling = 0.0
-    modeledElectricityPumpsHeating = modeledCentralElectricityPumpsHeating
-    modeledElectricityPumpsCooling = modeledCentralElectricityPumpsCooling
-
-    # Separate these from non central systems
+    # Get meters that aren't tied to units (i.e., get apportioned evenly across units)
     centralElectricityHeating = 0.0
     centralElectricityCooling = 0.0
     centralElectricityPumpsHeating = 0.0
@@ -258,14 +777,75 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
     centralNaturalGasHeating = 0.0
     centralFuelOilHeating = 0.0
     centralPropaneHeating = 0.0
+    centralElectricityExteriorLighting = 0.0
+    centralElectricityInteriorEquipment = 0.0
+    centralNaturalGasInteriorEquipment = 0.0
 
-    # Get meters that are tied to units, and apportion building level meters to these
+    central_electricity_heating_query = "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('CENTRAL:ELECTRICITYHEATING') AND ReportingFrequency='Annual' AND VariableUnits='J')"
+    unless sqlFile.execAndReturnFirstDouble(central_electricity_heating_query).empty?
+      centralElectricityHeating = sqlFile.execAndReturnFirstDouble(central_electricity_heating_query).get.round(2)
+    end
+
+    central_electricity_cooling_query = "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('CENTRAL:ELECTRICITYCOOLING') AND ReportingFrequency='Annual' AND VariableUnits='J')"
+    unless sqlFile.execAndReturnFirstDouble(central_electricity_cooling_query).empty?
+      centralElectricityCooling = sqlFile.execAndReturnFirstDouble(central_electricity_cooling_query).get.round(2)
+    end
+
+    central_electricity_pumps_heating_query = "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('CENTRAL:ELECTRICITYPUMPSHEATING') AND ReportingFrequency='Annual' AND VariableUnits='J')"
+    unless sqlFile.execAndReturnFirstDouble(central_electricity_pumps_heating_query).empty?
+      centralElectricityPumpsHeating = sqlFile.execAndReturnFirstDouble(central_electricity_pumps_heating_query).get.round(2)
+    end
+
+    central_electricity_pumps_cooling_query = "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('CENTRAL:ELECTRICITYPUMPSCOOLING') AND ReportingFrequency='Annual' AND VariableUnits='J')"
+    unless sqlFile.execAndReturnFirstDouble(central_electricity_pumps_cooling_query).empty?
+      centralElectricityPumpsCooling = sqlFile.execAndReturnFirstDouble(central_electricity_pumps_cooling_query).get.round(2)
+    end
+
+    central_natural_gas_heating_query = "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('CENTRAL:NATURALGASHEATING') AND ReportingFrequency='Annual' AND VariableUnits='J')"
+    unless sqlFile.execAndReturnFirstDouble(central_natural_gas_heating_query).empty?
+      centralNaturalGasHeating = sqlFile.execAndReturnFirstDouble(central_natural_gas_heating_query).get.round(2)
+    end
+
+    central_fuel_oil_heating_query = "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('CENTRAL:FUELOILHEATING') AND ReportingFrequency='Annual' AND VariableUnits='J')"
+    unless sqlFile.execAndReturnFirstDouble(central_fuel_oil_heating_query).empty?
+      centralFuelOilHeating = sqlFile.execAndReturnFirstDouble(central_fuel_oil_heating_query).get.round(2)
+    end
+
+    central_propane_heating_query = "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('CENTRAL:PROPANEHEATING') AND ReportingFrequency='Annual' AND VariableUnits='J')"
+    unless sqlFile.execAndReturnFirstDouble(central_propane_heating_query).empty?
+      centralPropaneHeating = sqlFile.execAndReturnFirstDouble(central_propane_heating_query).get.round(2)
+    end
+
+    central_electricity_exterior_lighting_query = "SELECT Value from tabulardatawithstrings where (reportname = 'AnnualBuildingUtilityPerformanceSummary') and (ReportForString = 'Entire Facility') and (TableName = 'End Uses'  ) and (ColumnName ='Electricity') and (RowName = 'Exterior Lighting') and (Units = 'GJ')"
+    unless sqlFile.execAndReturnFirstDouble(central_electricity_exterior_lighting_query).empty?
+      centralElectricityExteriorLighting = sqlFile.execAndReturnFirstDouble(central_electricity_exterior_lighting_query).get
+    end
+
+    central_electricity_interior_equipment_query = "SELECT Value from tabulardatawithstrings where (reportname = 'AnnualBuildingUtilityPerformanceSummary') and (ReportForString = 'Entire Facility') and (TableName = 'End Uses'  ) and (ColumnName ='Electricity') and (RowName = 'Interior Equipment') and (Units = 'GJ')"
+    unless sqlFile.execAndReturnFirstDouble(central_electricity_interior_equipment_query).empty?
+      centralElectricityInteriorEquipment = sqlFile.execAndReturnFirstDouble(central_electricity_interior_equipment_query).get
+    end
+
+    central_natural_gas_interior_equipment_query = "SELECT Value from tabulardatawithstrings where (reportname = 'AnnualBuildingUtilityPerformanceSummary') and (ReportForString = 'Entire Facility') and (TableName = 'End Uses'  ) and (ColumnName ='Natural Gas') and (RowName = 'Interior Equipment') and (Units = 'GJ')"
+    unless sqlFile.execAndReturnFirstDouble(central_natural_gas_interior_equipment_query).empty?
+      centralNaturalGasInteriorEquipment = sqlFile.execAndReturnFirstDouble(central_natural_gas_interior_equipment_query).get
+    end
+
+    # Get building units
+    units = Geometry.get_building_units(model, runner)
+    if units.nil?
+      return false
+    end
+
     electricityTotalEndUses = 0.0
     electricityHeating = 0.0
     electricityCooling = 0.0
     electricityInteriorLighting = 0.0
     electricityExteriorLighting = 0.0
     electricityInteriorEquipment = 0.0
+    naturalGasInteriorEquipment = 0.0
+    fuelOilInteriorEquipment = 0.0
+    propaneInteriorEquipment = 0.0
     electricityFansHeating = 0.0
     electricityFansCooling = 0.0
     electricityPumpsHeating = 0.0
@@ -286,11 +866,10 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
     hoursHeatingSetpointNotMet = 0.0
     hoursCoolingSetpointNotMet = 0.0
 
-    # Get building units
-    units = Geometry.get_building_units(model, runner)
-    if units.nil?
-      return false
-    end
+    buildingElectricityFansHeating = 0.0
+    buildingElectricityFansCooling = 0.0
+    buildingElectricityPumpsHeating = 0.0
+    buildingElectricityPumpsCooling = 0.0
 
     total_units_represented = 0
     units.each do |unit|
@@ -310,116 +889,99 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
       end
       total_units_represented += units_represented
 
-      electricity_heating_query = "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('#{unit_name}:ELECTRICITYHEATING') AND ReportingFrequency='Run Period' AND VariableUnits='J') AND TimeIndex IN (SELECT TimeIndex FROM Time WHERE EnvironmentPeriodIndex='#{env_period_ix}')"
+      electricity_heating_query = "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('#{unit_name}:ELECTRICITYHEATING') AND ReportingFrequency='Annual' AND VariableUnits='J')"
       unless sqlFile.execAndReturnFirstDouble(electricity_heating_query).empty?
         electricityHeating += units_represented * sqlFile.execAndReturnFirstDouble(electricity_heating_query).get.round(2)
       end
+      electricityHeating += units_represented * (centralElectricityHeating / units.length)
 
-      centralElectricityHeating += units_represented * (modeledCentralElectricityHeating / units.length)
-
-      electricity_cooling_query = "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('#{unit_name}:ELECTRICITYCOOLING') AND ReportingFrequency='Run Period' AND VariableUnits='J') AND TimeIndex IN (SELECT TimeIndex FROM Time WHERE EnvironmentPeriodIndex='#{env_period_ix}')"
+      electricity_cooling_query = "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('#{unit_name}:ELECTRICITYCOOLING') AND ReportingFrequency='Annual' AND VariableUnits='J')"
       unless sqlFile.execAndReturnFirstDouble(electricity_cooling_query).empty?
         electricityCooling += units_represented * sqlFile.execAndReturnFirstDouble(electricity_cooling_query).get.round(2)
       end
+      electricityCooling += units_represented * (centralElectricityCooling / units.length)
 
-      centralElectricityCooling += units_represented * (modeledCentralElectricityCooling / units.length)
-
-      electricity_interior_lighting_query = "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('#{unit_name}:ELECTRICITYINTERIORLIGHTING') AND ReportingFrequency='Run Period' AND VariableUnits='J') AND TimeIndex IN (SELECT TimeIndex FROM Time WHERE EnvironmentPeriodIndex='#{env_period_ix}')"
+      electricity_interior_lighting_query = "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('#{unit_name}:ELECTRICITYINTERIORLIGHTING') AND ReportingFrequency='Annual' AND VariableUnits='J')"
       unless sqlFile.execAndReturnFirstDouble(electricity_interior_lighting_query).empty?
         electricityInteriorLighting += units_represented * sqlFile.execAndReturnFirstDouble(electricity_interior_lighting_query).get.round(2)
       end
 
-      electricityExteriorLighting += units_represented * (modeledCentralElectricityExteriorLighting / units.length)
+      electricityExteriorLighting += units_represented * (centralElectricityExteriorLighting / units.length)
 
-      electricity_interior_equipment_query = "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('#{unit_name}:ELECTRICITYINTERIOREQUIPMENT') AND ReportingFrequency='Run Period' AND VariableUnits='J') AND TimeIndex IN (SELECT TimeIndex FROM Time WHERE EnvironmentPeriodIndex='#{env_period_ix}')"
-      unless sqlFile.execAndReturnFirstDouble(electricity_interior_equipment_query).empty?
-        electricityInteriorEquipment += units_represented * sqlFile.execAndReturnFirstDouble(electricity_interior_equipment_query).get.round(2)
-      end
-      electricityInteriorEquipment += units_represented * (modeledCentralElectricityInteriorEquipment / units.length)
+      electricityInteriorEquipment += units_represented * (centralElectricityInteriorEquipment / units.length)
 
-      electricity_fans_heating_query = "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('#{unit_name}:ELECTRICITYFANSHEATING') AND ReportingFrequency='Run Period' AND VariableUnits='J') AND TimeIndex IN (SELECT TimeIndex FROM Time WHERE EnvironmentPeriodIndex='#{env_period_ix}')"
+      electricity_fans_heating_query = "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('#{unit_name}:ELECTRICITYFANSHEATING') AND ReportingFrequency='Annual' AND VariableUnits='J')"
       unless sqlFile.execAndReturnFirstDouble(electricity_fans_heating_query).empty?
         electricityFansHeating += units_represented * sqlFile.execAndReturnFirstDouble(electricity_fans_heating_query).get.round(2)
-        modeledElectricityFansHeating += sqlFile.execAndReturnFirstDouble(electricity_fans_heating_query).get.round(2)
+        buildingElectricityFansHeating += sqlFile.execAndReturnFirstDouble(electricity_fans_heating_query).get.round(2)
       end
 
-      electricity_fans_cooling_query = "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('#{unit_name}:ELECTRICITYFANSCOOLING') AND ReportingFrequency='Run Period' AND VariableUnits='J') AND TimeIndex IN (SELECT TimeIndex FROM Time WHERE EnvironmentPeriodIndex='#{env_period_ix}')"
+      electricity_fans_cooling_query = "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('#{unit_name}:ELECTRICITYFANSCOOLING') AND ReportingFrequency='Annual' AND VariableUnits='J')"
       unless sqlFile.execAndReturnFirstDouble(electricity_fans_cooling_query).empty?
         electricityFansCooling += units_represented * sqlFile.execAndReturnFirstDouble(electricity_fans_cooling_query).get.round(2)
-        modeledElectricityFansCooling += sqlFile.execAndReturnFirstDouble(electricity_fans_cooling_query).get.round(2)
+        buildingElectricityFansCooling += sqlFile.execAndReturnFirstDouble(electricity_fans_cooling_query).get.round(2)
       end
 
-      electricity_pumps_heating_query = "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('#{unit_name}:ELECTRICITYPUMPSHEATING') AND ReportingFrequency='Run Period' AND VariableUnits='J') AND TimeIndex IN (SELECT TimeIndex FROM Time WHERE EnvironmentPeriodIndex='#{env_period_ix}')"
+      electricity_pumps_heating_query = "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('#{unit_name}:ELECTRICITYPUMPSHEATING') AND ReportingFrequency='Annual' AND VariableUnits='J')"
       unless sqlFile.execAndReturnFirstDouble(electricity_pumps_heating_query).empty?
         electricityPumpsHeating += units_represented * sqlFile.execAndReturnFirstDouble(electricity_pumps_heating_query).get.round(2)
-        modeledElectricityPumpsHeating += sqlFile.execAndReturnFirstDouble(electricity_pumps_heating_query).get.round(2)
+        buildingElectricityPumpsHeating += sqlFile.execAndReturnFirstDouble(electricity_pumps_heating_query).get.round(2)
       end
+      electricityPumpsHeating += units_represented * (centralElectricityPumpsHeating / units.length)
 
-      centralElectricityPumpsHeating += units_represented * (modeledCentralElectricityPumpsHeating / units.length)
-
-      electricity_pumps_cooling_query = "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('#{unit_name}:ELECTRICITYPUMPSCOOLING') AND ReportingFrequency='Run Period' AND VariableUnits='J') AND TimeIndex IN (SELECT TimeIndex FROM Time WHERE EnvironmentPeriodIndex='#{env_period_ix}')"
+      electricity_pumps_cooling_query = "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('#{unit_name}:ELECTRICITYPUMPSCOOLING') AND ReportingFrequency='Annual' AND VariableUnits='J')"
       unless sqlFile.execAndReturnFirstDouble(electricity_pumps_cooling_query).empty?
         electricityPumpsCooling += units_represented * sqlFile.execAndReturnFirstDouble(electricity_pumps_cooling_query).get.round(2)
-        modeledElectricityPumpsCooling += sqlFile.execAndReturnFirstDouble(electricity_pumps_cooling_query).get.round(2)
+        buildingElectricityPumpsCooling += sqlFile.execAndReturnFirstDouble(electricity_pumps_cooling_query).get.round(2)
       end
+      electricityPumpsCooling += units_represented * (centralElectricityPumpsCooling / units.length)
 
-      centralElectricityPumpsCooling += units_represented * (modeledCentralElectricityPumpsCooling / units.length)
-
-      electricity_water_systems_query = "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('#{unit_name}:ELECTRICITYWATERSYSTEMS') AND ReportingFrequency='Run Period' AND VariableUnits='J') AND TimeIndex IN (SELECT TimeIndex FROM Time WHERE EnvironmentPeriodIndex='#{env_period_ix}')"
+      electricity_water_systems_query = "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('#{unit_name}:ELECTRICITYWATERSYSTEMS') AND ReportingFrequency='Annual' AND VariableUnits='J')"
       unless sqlFile.execAndReturnFirstDouble(electricity_water_systems_query).empty?
         electricityWaterSystems += units_represented * sqlFile.execAndReturnFirstDouble(electricity_water_systems_query).get.round(2)
       end
 
-      natural_gas_heating_query = "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('#{unit_name}:NATURALGASHEATING') AND ReportingFrequency='Run Period' AND VariableUnits='J') AND TimeIndex IN (SELECT TimeIndex FROM Time WHERE EnvironmentPeriodIndex='#{env_period_ix}')"
+      natural_gas_heating_query = "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('#{unit_name}:NATURALGASHEATING') AND ReportingFrequency='Annual' AND VariableUnits='J')"
       unless sqlFile.execAndReturnFirstDouble(natural_gas_heating_query).empty?
         naturalGasHeating += units_represented * sqlFile.execAndReturnFirstDouble(natural_gas_heating_query).get.round(2)
       end
+      naturalGasHeating += units_represented * (centralNaturalGasHeating / units.length)
 
-      centralNaturalGasHeating += units_represented * (modeledCentralNaturalGasHeating / units.length)
+      naturalGasInteriorEquipment += units_represented * (centralNaturalGasInteriorEquipment / units.length)
 
-      natural_gas_interior_equipment_query = "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('#{unit_name}:NATURALGASINTERIOREQUIPMENT') AND ReportingFrequency='Run Period' AND VariableUnits='J') AND TimeIndex IN (SELECT TimeIndex FROM Time WHERE EnvironmentPeriodIndex='#{env_period_ix}')"
-      unless sqlFile.execAndReturnFirstDouble(natural_gas_interior_equipment_query).empty?
-        naturalGasInteriorEquipment += units_represented * sqlFile.execAndReturnFirstDouble(natural_gas_interior_equipment_query).get.round(2)
-      end
-      naturalGasInteriorEquipment += units_represented * (modeledCentralNaturalGasInteriorEquipment / units.length)
-
-      natural_gas_water_systems_query = "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('#{unit_name}:NATURALGASWATERSYSTEMS') AND ReportingFrequency='Run Period' AND VariableUnits='J') AND TimeIndex IN (SELECT TimeIndex FROM Time WHERE EnvironmentPeriodIndex='#{env_period_ix}')"
+      natural_gas_water_systems_query = "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('#{unit_name}:NATURALGASWATERSYSTEMS') AND ReportingFrequency='Annual' AND VariableUnits='J')"
       unless sqlFile.execAndReturnFirstDouble(natural_gas_water_systems_query).empty?
         naturalGasWaterSystems += units_represented * sqlFile.execAndReturnFirstDouble(natural_gas_water_systems_query).get.round(2)
       end
 
-      fuel_oil_heating_query = "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('#{unit_name}:FUELOILHEATING') AND ReportingFrequency='Run Period' AND VariableUnits='J') AND TimeIndex IN (SELECT TimeIndex FROM Time WHERE EnvironmentPeriodIndex='#{env_period_ix}')"
+      fuel_oil_heating_query = "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('#{unit_name}:FUELOILHEATING') AND ReportingFrequency='Annual' AND VariableUnits='J')"
       unless sqlFile.execAndReturnFirstDouble(fuel_oil_heating_query).empty?
         fuelOilHeating += units_represented * sqlFile.execAndReturnFirstDouble(fuel_oil_heating_query).get.round(2)
       end
+      fuelOilHeating += units_represented * (centralFuelOilHeating / units.length)
 
-      centralFuelOilHeating += units_represented * (modeledCentralFuelOilHeating / units.length)
-
-      fuel_oil_interior_equipment_query = "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('#{unit_name}:FUELOILINTERIOREQUIPMENT') AND ReportingFrequency='Run Period' AND VariableUnits='J') AND TimeIndex IN (SELECT TimeIndex FROM Time WHERE EnvironmentPeriodIndex='#{env_period_ix}')"
+      fuel_oil_interior_equipment_query = "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('#{unit_name}:FUELOILINTERIOREQUIPMENT') AND ReportingFrequency='Annual' AND VariableUnits='J')"
       unless sqlFile.execAndReturnFirstDouble(fuel_oil_interior_equipment_query).empty?
         fuelOilInteriorEquipment += units_represented * sqlFile.execAndReturnFirstDouble(fuel_oil_interior_equipment_query).get.round(2)
       end
-      fuelOilInteriorEquipment += units_represented * (modeledCentralFuelOilInteriorEquipment / units.length)
 
-      fuel_oil_water_systems_query = "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('#{unit_name}:FUELOILWATERSYSTEMS') AND ReportingFrequency='Run Period' AND VariableUnits='J') AND TimeIndex IN (SELECT TimeIndex FROM Time WHERE EnvironmentPeriodIndex='#{env_period_ix}')"
+      fuel_oil_water_systems_query = "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('#{unit_name}:FUELOILWATERSYSTEMS') AND ReportingFrequency='Annual' AND VariableUnits='J')"
       unless sqlFile.execAndReturnFirstDouble(fuel_oil_water_systems_query).empty?
         fuelOilWaterSystems += units_represented * sqlFile.execAndReturnFirstDouble(fuel_oil_water_systems_query).get.round(2)
       end
 
-      propane_heating_query = "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('#{unit_name}:PROPANEHEATING') AND ReportingFrequency='Run Period' AND VariableUnits='J') AND TimeIndex IN (SELECT TimeIndex FROM Time WHERE EnvironmentPeriodIndex='#{env_period_ix}')"
+      propane_heating_query = "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('#{unit_name}:PROPANEHEATING') AND ReportingFrequency='Annual' AND VariableUnits='J')"
       unless sqlFile.execAndReturnFirstDouble(propane_heating_query).empty?
         propaneHeating += units_represented * sqlFile.execAndReturnFirstDouble(propane_heating_query).get.round(2)
       end
+      propaneHeating += units_represented * (centralPropaneHeating / units.length)
 
-      centralPropaneHeating += units_represented * (modeledCentralPropaneHeating / units.length)
-
-      propane_interior_equipment_query = "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('#{unit_name}:PROPANEINTERIOREQUIPMENT') AND ReportingFrequency='Run Period' AND VariableUnits='J') AND TimeIndex IN (SELECT TimeIndex FROM Time WHERE EnvironmentPeriodIndex='#{env_period_ix}')"
+      propane_interior_equipment_query = "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('#{unit_name}:PROPANEINTERIOREQUIPMENT') AND ReportingFrequency='Annual' AND VariableUnits='J')"
       unless sqlFile.execAndReturnFirstDouble(propane_interior_equipment_query).empty?
         propaneInteriorEquipment += units_represented * sqlFile.execAndReturnFirstDouble(propane_interior_equipment_query).get.round(2)
       end
-      propaneInteriorEquipment += units_represented * (modeledCentralPropaneInteriorEquipment / units.length)
 
-      propane_water_systems_query = "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('#{unit_name}:PROPANEWATERSYSTEMS') AND ReportingFrequency='Run Period' AND VariableUnits='J') AND TimeIndex IN (SELECT TimeIndex FROM Time WHERE EnvironmentPeriodIndex='#{env_period_ix}')"
+      propane_water_systems_query = "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('#{unit_name}:PROPANEWATERSYSTEMS') AND ReportingFrequency='Annual' AND VariableUnits='J')"
       unless sqlFile.execAndReturnFirstDouble(propane_water_systems_query).empty?
         propaneWaterSystems += units_represented * sqlFile.execAndReturnFirstDouble(propane_water_systems_query).get.round(2)
       end
@@ -448,14 +1010,12 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
     end
     report_sim_output(runner, "electricity_pv_kwh", pv_val, "GJ", elec_site_units)
 
-    electricityTotalEndUses = electricityHeating + centralElectricityHeating + electricityCooling + centralElectricityCooling + electricityInteriorLighting + electricityExteriorLighting + electricityInteriorEquipment + electricityFansHeating + electricityFansCooling + electricityPumpsHeating + centralElectricityPumpsHeating + electricityPumpsCooling + centralElectricityPumpsCooling + electricityWaterSystems
+    electricityTotalEndUses = electricityHeating + electricityCooling + electricityInteriorLighting + electricityExteriorLighting + electricityInteriorEquipment + electricityFansHeating + electricityFansCooling + electricityPumpsHeating + electricityPumpsCooling + electricityWaterSystems
 
     report_sim_output(runner, "total_site_electricity_kwh", electricityTotalEndUses, "GJ", elec_site_units)
     report_sim_output(runner, "net_site_electricity_kwh", electricityTotalEndUses + pv_val, "GJ", elec_site_units)
     report_sim_output(runner, "electricity_heating_kwh", electricityHeating, "GJ", elec_site_units)
-    report_sim_output(runner, "electricity_central_system_heating_kwh", centralElectricityHeating, "GJ", elec_site_units)
     report_sim_output(runner, "electricity_cooling_kwh", electricityCooling, "GJ", elec_site_units)
-    report_sim_output(runner, "electricity_central_system_cooling_kwh", centralElectricityCooling, "GJ", elec_site_units)
     report_sim_output(runner, "electricity_interior_lighting_kwh", electricityInteriorLighting, "GJ", elec_site_units)
     report_sim_output(runner, "electricity_exterior_lighting_kwh", electricityExteriorLighting, "GJ", elec_site_units)
     report_sim_output(runner, "electricity_interior_equipment_kwh", electricityInteriorEquipment, "GJ", elec_site_units)
@@ -463,9 +1023,9 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
     unless sqlFile.electricityFans.empty?
       electricityFans = sqlFile.electricityFans.get
     end
-    err = (modeledElectricityFansHeating + modeledElectricityFansCooling) - electricityFans
+    err = (buildingElectricityFansHeating + buildingElectricityFansCooling) - electricityFans
     if err.abs > 0.2
-      runner.registerError("Disaggregated fan energy (#{modeledElectricityFansHeating + modeledElectricityFansCooling} GJ) relative to building fan energy (#{electricityFans} GJ): #{err} GJ.")
+      runner.registerError("Disaggregated fan energy (#{buildingElectricityFansHeating + buildingElectricityFansCooling} GJ) relative to building fan energy (#{electricityFans} GJ): #{err} GJ.")
       return false
     end
     report_sim_output(runner, "electricity_fans_heating_kwh", electricityFansHeating, "GJ", elec_site_units)
@@ -474,44 +1034,39 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
     unless sqlFile.electricityPumps.empty?
       electricityPumps = sqlFile.electricityPumps.get
     end
-    err = (modeledElectricityPumpsHeating + modeledElectricityPumpsCooling) - electricityPumps
+    err = (centralElectricityPumpsHeating + centralElectricityPumpsCooling + buildingElectricityPumpsHeating + buildingElectricityPumpsCooling) - electricityPumps
     if err.abs > 0.2
-      runner.registerError("Disaggregated pump energy (#{modeledElectricityPumpsHeating + modeledElectricityPumpsCooling} GJ) relative to building pump energy (#{electricityPumps} GJ): #{err} GJ.")
+      runner.registerError("Disaggregated pump energy (#{centralElectricityPumpsHeating + centralElectricityPumpsCooling + buildingElectricityPumpsHeating + buildingElectricityPumpsCooling} GJ) relative to building pump energy (#{electricityPumps} GJ): #{err} GJ.")
       return false
     end
     report_sim_output(runner, "electricity_pumps_heating_kwh", electricityPumpsHeating, "GJ", elec_site_units)
-    report_sim_output(runner, "electricity_central_system_pumps_heating_kwh", centralElectricityPumpsHeating, "GJ", elec_site_units)
     report_sim_output(runner, "electricity_pumps_cooling_kwh", electricityPumpsCooling, "GJ", elec_site_units)
-    report_sim_output(runner, "electricity_central_system_pumps_cooling_kwh", centralElectricityPumpsCooling, "GJ", elec_site_units)
     report_sim_output(runner, "electricity_water_systems_kwh", electricityWaterSystems, "GJ", elec_site_units)
 
     # NATURAL GAS
 
-    naturalGasTotalEndUses = naturalGasHeating + centralNaturalGasHeating + naturalGasInteriorEquipment + naturalGasWaterSystems
+    naturalGasTotalEndUses = naturalGasHeating + naturalGasInteriorEquipment + naturalGasWaterSystems
 
     report_sim_output(runner, "total_site_natural_gas_therm", naturalGasTotalEndUses, "GJ", gas_site_units)
     report_sim_output(runner, "natural_gas_heating_therm", naturalGasHeating, "GJ", gas_site_units)
-    report_sim_output(runner, "natural_gas_central_system_heating_therm", centralNaturalGasHeating, "GJ", gas_site_units)
     report_sim_output(runner, "natural_gas_interior_equipment_therm", naturalGasInteriorEquipment, "GJ", gas_site_units)
     report_sim_output(runner, "natural_gas_water_systems_therm", naturalGasWaterSystems, "GJ", gas_site_units)
 
     # FUEL OIL
 
-    fuelOilTotalEndUses = fuelOilHeating + centralFuelOilHeating + fuelOilInteriorEquipment + fuelOilWaterSystems
+    fuelOilTotalEndUses = fuelOilHeating + fuelOilInteriorEquipment + fuelOilWaterSystems
 
     report_sim_output(runner, "total_site_fuel_oil_mbtu", fuelOilTotalEndUses, "GJ", other_fuel_site_units)
     report_sim_output(runner, "fuel_oil_heating_mbtu", fuelOilHeating, "GJ", other_fuel_site_units)
-    report_sim_output(runner, "fuel_oil_central_system_heating_mbtu", centralFuelOilHeating, "GJ", other_fuel_site_units)
     report_sim_output(runner, "fuel_oil_interior_equipment_mbtu", fuelOilInteriorEquipment, "GJ", other_fuel_site_units)
     report_sim_output(runner, "fuel_oil_water_systems_mbtu", fuelOilWaterSystems, "GJ", other_fuel_site_units)
 
     # PROPANE
 
-    propaneTotalEndUses = propaneHeating + centralPropaneHeating + propaneInteriorEquipment + propaneWaterSystems
+    propaneTotalEndUses = propaneHeating + propaneInteriorEquipment + propaneWaterSystems
 
     report_sim_output(runner, "total_site_propane_mbtu", propaneTotalEndUses, "GJ", other_fuel_site_units)
     report_sim_output(runner, "propane_heating_mbtu", propaneHeating, "GJ", other_fuel_site_units)
-    report_sim_output(runner, "propane_central_system_heating_mbtu", centralPropaneHeating, "GJ", other_fuel_site_units)
     report_sim_output(runner, "propane_interior_equipment_mbtu", propaneInteriorEquipment, "GJ", other_fuel_site_units)
     report_sim_output(runner, "propane_water_systems_mbtu", propaneWaterSystems, "GJ", other_fuel_site_units)
 
@@ -540,15 +1095,15 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
     hvac_cooling_capacity_kbtuh = get_cost_multiplier("Size, Cooling System (kBtu/h)", model, runner, conditioned_zones)
     return false if hvac_cooling_capacity_kbtuh.nil?
 
-    report_sim_output(runner, "hvac_cooling_capacity_w", hvac_cooling_capacity_kbtuh, "kBtu/hr", "W")
+    report_sim_output(runner, "hvac_cooling_capacity_w", hvac_cooling_capacity_kbtuh, "kBtu/h", "W")
     hvac_heating_capacity_kbtuh = get_cost_multiplier("Size, Heating System (kBtu/h)", model, runner, conditioned_zones)
     return false if hvac_heating_capacity_kbtuh.nil?
 
-    report_sim_output(runner, "hvac_heating_capacity_w", hvac_heating_capacity_kbtuh, "kBtu/hr", "W")
+    report_sim_output(runner, "hvac_heating_capacity_w", hvac_heating_capacity_kbtuh, "kBtu/h", "W")
     hvac_heating_supp_capacity_kbtuh = get_cost_multiplier("Size, Heating Supplemental System (kBtu/h)", model, runner, conditioned_zones)
     return false if hvac_heating_supp_capacity_kbtuh.nil?
 
-    report_sim_output(runner, "hvac_heating_supp_capacity_w", hvac_heating_supp_capacity_kbtuh, "kBtu/hr", "W")
+    report_sim_output(runner, "hvac_heating_supp_capacity_w", hvac_heating_supp_capacity_kbtuh, "kBtu/h", "W")
 
     sqlFile.close()
 
@@ -646,7 +1201,7 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
     if os_units.nil? or desired_units.nil? or os_units == desired_units
       valInUnits = total_val
     else
-      valInUnits = UnitConversions.convert(total_val, os_units, desired_units)
+      valInUnits = OpenStudio::convert(total_val, os_units, desired_units).get
     end
     runner.registerValue(name, valInUnits)
     runner.registerInfo("Registering #{valInUnits.round(2)} for #{name}.")
@@ -667,9 +1222,9 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
 
         adjacent_space = get_adjacent_space(surface)
         if surface.outsideBoundaryCondition.downcase == "outdoors"
-          cost_mult += UnitConversions.convert(surface.grossArea, "m^2", "ft^2")
+          cost_mult += OpenStudio::convert(surface.grossArea, "m^2", "ft^2").get
         elsif !adjacent_space.nil? and not is_space_conditioned(adjacent_space, conditioned_zones)
-          cost_mult += UnitConversions.convert(surface.grossArea, "m^2", "ft^2")
+          cost_mult += OpenStudio::convert(surface.grossArea, "m^2", "ft^2").get
         end
       end
 
@@ -679,7 +1234,7 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
         next if surface.surfaceType.downcase != "wall"
         next if surface.outsideBoundaryCondition.downcase != "outdoors"
 
-        cost_mult += UnitConversions.convert(surface.grossArea, "m^2", "ft^2")
+        cost_mult += OpenStudio::convert(surface.grossArea, "m^2", "ft^2").get
       end
 
     elsif cost_mult_type == "Wall Area, Below-Grade (ft^2)"
@@ -688,7 +1243,7 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
         next if surface.surfaceType.downcase != "wall"
         next if surface.outsideBoundaryCondition.downcase != "ground" and surface.outsideBoundaryCondition.downcase != "foundation"
 
-        cost_mult += UnitConversions.convert(surface.grossArea, "m^2", "ft^2")
+        cost_mult += OpenStudio::convert(surface.grossArea, "m^2", "ft^2").get
       end
 
     elsif cost_mult_type == "Floor Area, Conditioned (ft^2)"
@@ -698,7 +1253,7 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
         next if not surface.space.is_initialized
         next if not is_space_conditioned(surface.space.get, conditioned_zones)
 
-        cost_mult += UnitConversions.convert(surface.grossArea, "m^2", "ft^2")
+        cost_mult += OpenStudio::convert(surface.grossArea, "m^2", "ft^2").get
       end
 
     elsif cost_mult_type == "Floor Area, Attic (ft^2)"
@@ -714,7 +1269,7 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
         next if adjacent_space.nil?
         next if not is_space_conditioned(adjacent_space, conditioned_zones)
 
-        cost_mult += UnitConversions.convert(surface.grossArea, "m^2", "ft^2")
+        cost_mult += OpenStudio::convert(surface.grossArea, "m^2", "ft^2").get
       end
 
     elsif cost_mult_type == "Floor Area, Lighting (ft^2)"
@@ -724,7 +1279,7 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
         next if not surface.space.is_initialized
         next if surface.space.get.lights.size == 0
 
-        cost_mult += UnitConversions.convert(surface.grossArea, "m^2", "ft^2")
+        cost_mult += OpenStudio::convert(surface.grossArea, "m^2", "ft^2").get
       end
 
     elsif cost_mult_type == "Roof Area (ft^2)"
@@ -733,7 +1288,7 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
         next if surface.surfaceType.downcase != "roofceiling"
         next if surface.outsideBoundaryCondition.downcase != "outdoors"
 
-        cost_mult += UnitConversions.convert(surface.grossArea, "m^2", "ft^2")
+        cost_mult += OpenStudio::convert(surface.grossArea, "m^2", "ft^2").get
       end
 
     elsif cost_mult_type == "Window Area (ft^2)"
@@ -744,7 +1299,7 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
         surface.subSurfaces.each do |sub_surface|
           next if not sub_surface.subSurfaceType.downcase.include? "window"
 
-          cost_mult += UnitConversions.convert(sub_surface.grossArea, "m^2", "ft^2")
+          cost_mult += OpenStudio::convert(sub_surface.grossArea, "m^2", "ft^2").get
         end
       end
 
@@ -756,7 +1311,7 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
         surface.subSurfaces.each do |sub_surface|
           next if not sub_surface.subSurfaceType.downcase.include? "door"
 
-          cost_mult += UnitConversions.convert(sub_surface.grossArea, "m^2", "ft^2")
+          cost_mult += OpenStudio::convert(sub_surface.grossArea, "m^2", "ft^2").get
         end
       end
 
@@ -819,7 +1374,7 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
               coil = component.to_CoilHeatingGas.get
               next if not coil.nominalCapacity.is_initialized
 
-              cost_mult += UnitConversions.convert(coil.nominalCapacity.get, "W", "kBtu/hr")
+              cost_mult += OpenStudio::convert(coil.nominalCapacity.get, "W", "kBtu/h").get
             end
           end
         end
@@ -840,7 +1395,7 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
             if component.to_CoilHeatingDXSingleSpeed.is_initialized
               coil = component.to_CoilHeatingDXSingleSpeed.get
               if coil.ratedTotalHeatingCapacity.is_initialized
-                cost_mult += UnitConversions.convert(coil.ratedTotalHeatingCapacity.get, "W", "kBtu/hr")
+                cost_mult += OpenStudio::convert(coil.ratedTotalHeatingCapacity.get, "W", "kBtu/h").get
               end
             elsif component.to_CoilHeatingDXMultiSpeed.is_initialized
               coil = component.to_CoilHeatingDXMultiSpeed.get
@@ -848,23 +1403,23 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
                 stage = coil.stages[coil.stages.size - 1]
                 capacity_ratio = get_highest_stage_capacity_ratio(model, "SizingInfoHVACCapacityRatioCooling")
                 if stage.grossRatedHeatingCapacity.is_initialized
-                  cost_mult += UnitConversions.convert(stage.grossRatedHeatingCapacity.get / capacity_ratio, "W", "kBtu/hr")
+                  cost_mult += OpenStudio::convert(stage.grossRatedHeatingCapacity.get / capacity_ratio, "W", "kBtu/h").get
                 end
               end
             elsif component.to_CoilHeatingGas.is_initialized
               coil = component.to_CoilHeatingGas.get
               if coil.nominalCapacity.is_initialized
-                cost_mult += UnitConversions.convert(coil.nominalCapacity.get, "W", "kBtu/hr")
+                cost_mult += OpenStudio::convert(coil.nominalCapacity.get, "W", "kBtu/h").get
               end
             elsif component.to_CoilHeatingElectric.is_initialized
               coil = component.to_CoilHeatingElectric.get
               if coil.nominalCapacity.is_initialized
-                cost_mult += UnitConversions.convert(coil.nominalCapacity.get, "W", "kBtu/hr")
+                cost_mult += OpenStudio::convert(coil.nominalCapacity.get, "W", "kBtu/h").get
               end
             elsif component.to_CoilHeatingWaterToAirHeatPumpEquationFit.is_initialized
               coil = component.to_CoilHeatingWaterToAirHeatPumpEquationFit.get
               if coil.ratedHeatingCapacity.is_initialized
-                cost_mult += UnitConversions.convert(coil.ratedHeatingCapacity.get, "W", "kBtu/hr")
+                cost_mult += OpenStudio::convert(coil.ratedHeatingCapacity.get, "W", "kBtu/h").get
               end
             end
           end
@@ -879,7 +1434,7 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
             component = sys
             next if not component.nominalCapacity.is_initialized
 
-            cost_mult += UnitConversions.convert(component.nominalCapacity.get, "W", "kBtu/hr")
+            cost_mult += OpenStudio::convert(component.nominalCapacity.get, "W", "kBtu/h").get
           end
         end
 
@@ -897,7 +1452,7 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
               max_value = component.nominalCapacity.get
             end
           end
-          cost_mult += UnitConversions.convert(max_value, "W", "kBtu/hr")
+          cost_mult += OpenStudio::convert(max_value, "W", "kBtu/h").get
         end
 
         cost_mult *= units_represented
@@ -943,7 +1498,7 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
             if component.to_CoilHeatingElectric.is_initialized
               coil = component.to_CoilHeatingElectric.get
               if coil.nominalCapacity.is_initialized
-                cost_mult += UnitConversions.convert(coil.nominalCapacity.get, "W", "kBtu/hr")
+                cost_mult += OpenStudio::convert(coil.nominalCapacity.get, "W", "kBtu/h").get
               end
             end
           end
@@ -992,7 +1547,7 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
             if component.to_CoilCoolingDXSingleSpeed.is_initialized
               coil = component.to_CoilCoolingDXSingleSpeed.get
               if coil.ratedTotalCoolingCapacity.is_initialized
-                cost_mult += UnitConversions.convert(coil.ratedTotalCoolingCapacity.get, "W", "kBtu/hr")
+                cost_mult += OpenStudio::convert(coil.ratedTotalCoolingCapacity.get, "W", "kBtu/h").get
               end
             elsif component.to_CoilCoolingDXMultiSpeed.is_initialized
               coil = component.to_CoilCoolingDXMultiSpeed.get
@@ -1000,13 +1555,13 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
                 stage = coil.stages[coil.stages.size - 1]
                 capacity_ratio = get_highest_stage_capacity_ratio(model, "SizingInfoHVACCapacityRatioCooling")
                 if stage.grossRatedTotalCoolingCapacity.is_initialized
-                  cost_mult += UnitConversions.convert(stage.grossRatedTotalCoolingCapacity.get / capacity_ratio, "W", "kBtu/hr")
+                  cost_mult += OpenStudio::convert(stage.grossRatedTotalCoolingCapacity.get / capacity_ratio, "W", "kBtu/h").get
                 end
               end
             elsif component.to_CoilCoolingWaterToAirHeatPumpEquationFit.is_initialized
               coil = component.to_CoilCoolingWaterToAirHeatPumpEquationFit.get
               if coil.ratedTotalCoolingCapacity.is_initialized
-                cost_mult += UnitConversions.convert(coil.ratedTotalCoolingCapacity.get, "W", "kBtu/hr")
+                cost_mult += OpenStudio::convert(coil.ratedTotalCoolingCapacity.get, "W", "kBtu/h").get
               end
             end
           end
@@ -1022,7 +1577,7 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
               if component.to_CoilCoolingDXSingleSpeed.is_initialized
                 coil = component.to_CoilCoolingDXSingleSpeed.get
                 if coil.ratedTotalCoolingCapacity.is_initialized
-                  cost_mult += UnitConversions.convert(coil.ratedTotalCoolingCapacity.get, "W", "kBtu/hr")
+                  cost_mult += OpenStudio::convert(coil.ratedTotalCoolingCapacity.get, "W", "kBtu/h").get
                 end
               end
             end
@@ -1039,7 +1594,7 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
           wh = wh.tank.to_WaterHeaterStratified.get
         end
         if wh.tankVolume.is_initialized
-          volume = UnitConversions.convert(wh.tankVolume.get, "m^3", "gal")
+          volume = OpenStudio::convert(wh.tankVolume.get, "m^3", "gal").get
           if volume >= 1.0 # skip tankless
             # FIXME: Remove actual->nominal size logic by storing nominal size in the OSM
             if wh.heaterFuelType.downcase == "electricity"
