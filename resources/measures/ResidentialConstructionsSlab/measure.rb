@@ -134,7 +134,7 @@ class ProcessConstructionsSlab < OpenStudio::Measure::ModelMeasure
     slab_perimeter_conduction = slabCarpetPerimeterConduction * carpetFloorFraction + slabBarePerimeterConduction * (1 - carpetFloorFraction)
 
     surfaces.each do |surface|
-      slabExtPerimeter = Geometry.calculate_exposed_perimeter(model, [surface])
+      slabExtPerimeter = Geometry.calculate_exposed_perimeter(model, [surface], false)
 
       if slabExtPerimeter > 0
         effective_slab_Rvalue = slabArea / (slabExtPerimeter * slab_perimeter_conduction)

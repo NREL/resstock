@@ -20,6 +20,12 @@ class Refrigerator
 
     unit_obj_name = Constants.ObjectNameRefrigerator(unit.name.to_s)
 
+    # Design day schedules used when autosizing
+    winter_design_day_sch = OpenStudio::Model::ScheduleDay.new(model)
+    winter_design_day_sch.addValue(OpenStudio::Time.new(0, 24, 0, 0), 0)
+    summer_design_day_sch = OpenStudio::Model::ScheduleDay.new(model)
+    summer_design_day_sch.addValue(OpenStudio::Time.new(0, 24, 0, 0), 1)
+
     # Calculate fridge daily energy use
     ann_e = rated_annual_energy * mult
 
@@ -27,7 +33,7 @@ class Refrigerator
 
       if sch.nil?
         # Create schedule
-        sch = MonthWeekdayWeekendSchedule.new(model, runner, Constants.ObjectNameRefrigerator + " schedule", weekday_sch, weekend_sch, monthly_sch)
+        sch = MonthWeekdayWeekendSchedule.new(model, runner, Constants.ObjectNameRefrigerator + " schedule", weekday_sch, weekend_sch, monthly_sch, mult_weekday = 1.0, mult_weekend = 1.0, normalize_values = true, create_sch_object = true, winter_design_day_sch, summer_design_day_sch)
         if not sch.validated?
           return false
         end
@@ -802,6 +808,12 @@ class CookingRange
 
     unit_obj_name = Constants.ObjectNameCookingRange(fuel_type, unit.name.to_s)
 
+    # Design day schedules used when autosizing
+    winter_design_day_sch = OpenStudio::Model::ScheduleDay.new(model)
+    winter_design_day_sch.addValue(OpenStudio::Time.new(0, 24, 0, 0), 0)
+    summer_design_day_sch = OpenStudio::Model::ScheduleDay.new(model)
+    summer_design_day_sch.addValue(OpenStudio::Time.new(0, 24, 0, 0), 1)
+
     # Calculate range daily energy use
     if fuel_type == Constants.FuelTypeElectric
       ann_e = ((86.5 + 28.9 * nbeds) / cooktop_ef + (14.6 + 4.9 * nbeds) / oven_ef) * mult # kWh/yr
@@ -821,7 +833,7 @@ class CookingRange
 
       if sch.nil?
         # Create schedule
-        sch = MonthWeekdayWeekendSchedule.new(model, runner, Constants.ObjectNameCookingRange(fuel_type, false) + " schedule", weekday_sch, weekend_sch, monthly_sch)
+        sch = MonthWeekdayWeekendSchedule.new(model, runner, Constants.ObjectNameCookingRange(fuel_type, false) + " schedule", weekday_sch, weekend_sch, monthly_sch, mult_weekday = 1.0, mult_weekend = 1.0, normalize_values = true, create_sch_object = true, winter_design_day_sch, summer_design_day_sch)
         if not sch.validated?
           return false
         end

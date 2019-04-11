@@ -88,6 +88,13 @@ class ResidentialLighting < OpenStudio::Measure::ModelMeasure
     pg_lfl.setDefaultValue(0)
     args << pg_lfl
 
+    # make a double argument for BA Benchmark multiplier
+    mult = OpenStudio::Measure::OSArgument::makeDoubleArgument("mult", true)
+    mult.setDisplayName("#{Constants.OptionTypeLightingFractions}: Multiplier")
+    mult.setDescription("A multiplier on the national average lighting energy. 0.75 indicates a 25% reduction in the lighting energy, 1.0 indicates the same lighting energy as the national average, 1.25 indicates a 25% increase in the lighting energy, etc.")
+    mult.setDefaultValue(1)
+    args << mult
+
     # make a double argument for Incandescent Efficacy
     in_eff = OpenStudio::Measure::OSArgument::makeDoubleArgument("in_eff", true)
     in_eff.setDisplayName("#{Constants.OptionTypeLightingFractions}: Incandescent Efficacy")
@@ -164,6 +171,7 @@ class ResidentialLighting < OpenStudio::Measure::ModelMeasure
     pg_cfl = runner.getDoubleArgumentValue("pg_cfl", user_arguments)
     pg_led = runner.getDoubleArgumentValue("pg_led", user_arguments)
     pg_lfl = runner.getDoubleArgumentValue("pg_lfl", user_arguments)
+    mult = runner.getDoubleArgumentValue("mult", user_arguments)
     in_eff = runner.getDoubleArgumentValue("in_eff", user_arguments)
     cfl_eff = runner.getDoubleArgumentValue("cfl_eff", user_arguments)
     led_eff = runner.getDoubleArgumentValue("led_eff", user_arguments)
@@ -204,6 +212,10 @@ class ResidentialLighting < OpenStudio::Measure::ModelMeasure
       end
       if pg_cfl + pg_led + pg_lfl > 1
         runner.registerError("Sum of CFL, LED, and LFL Plugin Fractions must be less than or equal to 1.")
+        return false
+      end
+      if mult < 0
+        runner.registerError("Lamps used multiplier must be greater than or equal to 0.")
         return false
       end
       if in_eff <= 0
@@ -295,8 +307,8 @@ class ResidentialLighting < OpenStudio::Measure::ModelMeasure
       if option_type == Constants.OptionTypeLightingEnergyUses
         interior_ann = energy_use_interior
       elsif option_type == Constants.OptionTypeLightingFractions
-        bm_hw_e = frac_hw * (ffa * 0.542 + 334)
-        bm_pg_e = frac_pg * (ffa * 0.542 + 334)
+        bm_hw_e = mult * frac_hw * (ffa * 0.542 + 334)
+        bm_pg_e = mult * frac_pg * (ffa * 0.542 + 334)
         int_hw_e = (bm_hw_e * (((hw_inc * er_inc + (1 - bab_frac_inc) * bab_er_inc) + (hw_cfl * er_cfl - bab_frac_cfl * bab_er_cfl) + (hw_led * er_led - bab_frac_led * bab_er_led) + (hw_lfl * er_lfl - bab_frac_lfl * bab_er_lfl)) * smrt_replace_f * 0.9 + 0.1))
         int_pg_e = (bm_pg_e * (((pg_inc * er_inc + (1 - bab_frac_inc) * bab_er_inc) + (pg_cfl * er_cfl - bab_frac_cfl * bab_er_cfl) + (pg_led * er_led - bab_frac_led * bab_er_led) + (pg_lfl * er_lfl - bab_frac_lfl * bab_er_lfl)) * smrt_replace_f * 0.9 + 0.1))
         interior_ann = int_hw_e + int_pg_e
@@ -315,7 +327,7 @@ class ResidentialLighting < OpenStudio::Measure::ModelMeasure
     if option_type == Constants.OptionTypeLightingEnergyUses
       garage_ann = energy_use_garage
     elsif option_type == Constants.OptionTypeLightingFractions
-      common_bm_garage_e = 0.08 * gfa + 8 * units.size
+      common_bm_garage_e = mult * (0.08 * gfa + 8 * units.size)
       garage_ann = (common_bm_garage_e * (((hw_inc * er_inc + (1 - bab_frac_inc) * bab_er_inc) + (hw_cfl * er_cfl - bab_frac_cfl * bab_er_cfl) + (hw_led * er_led - bab_frac_led * bab_er_led) + (hw_lfl * er_lfl - bab_frac_lfl * bab_er_lfl)) * smrt_replace_f * 0.9 + 0.1))
     end
 
@@ -331,7 +343,7 @@ class ResidentialLighting < OpenStudio::Measure::ModelMeasure
       exterior_ann = energy_use_exterior
     elsif option_type == Constants.OptionTypeLightingFractions
       total_ffa = Geometry.get_finished_floor_area_from_spaces(model.getSpaces, runner)
-      bm_outside_e = 0.145 * total_ffa
+      bm_outside_e = mult * (0.145 * total_ffa)
       exterior_ann = (bm_outside_e * (((hw_inc * er_inc + (1 - bab_frac_inc) * bab_er_inc) + (hw_cfl * er_cfl - bab_frac_cfl * bab_er_cfl) + (hw_led * er_led - bab_frac_led * bab_er_led) + (hw_lfl * er_lfl - bab_frac_lfl * bab_er_lfl)) * smrt_replace_f * 0.9 + 0.1))
     end
 

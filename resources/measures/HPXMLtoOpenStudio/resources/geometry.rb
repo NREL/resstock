@@ -3,6 +3,31 @@ require_relative "unit_conversions"
 require_relative "util"
 
 class Geometry
+  def self.has_rear_units(model, runner, units)
+    units.each do |unit|
+      unit.spaces.each do |space|
+        facades = []
+        space.surfaces.each do |surface|
+          next if surface.surfaceType.downcase != "wall"
+          next if surface.outsideBoundaryCondition.downcase != "outdoors"
+
+          facade = Geometry.get_facade_for_surface(surface)
+          unless facades.include? facade
+            facades << facade
+          end
+        end
+        next if facades.empty?
+
+        if facades.include? Constants.FacadeFront and facades.include? Constants.FacadeBack
+        elsif facades.include? Constants.FacadeLeft and facades.include? Constants.FacadeRight
+        else
+          return true
+        end
+      end
+    end
+    return false
+  end
+
   def self.get_abs_azimuth(azimuth_type, relative_azimuth, building_orientation, offset = 180.0)
     azimuth = nil
     if azimuth_type == Constants.CoordRelative
@@ -229,12 +254,16 @@ class Geometry
     return volume
   end
 
-  def self.get_finished_floor_area_from_spaces(spaces, runner = nil)
+  def self.get_finished_floor_area_from_spaces(spaces, runner = nil, apply_mult = false)
     floor_area = 0
     spaces.each do |space|
       next if not self.space_is_finished(space)
 
-      floor_area += UnitConversions.convert(space.floorArea, "m^2", "ft^2")
+      mult = 1.0
+      if apply_mult
+        mult = space.multiplier.to_f
+      end
+      floor_area += UnitConversions.convert(space.floorArea * mult, "m^2", "ft^2")
     end
     if floor_area == 0 and not runner.nil?
       runner.registerError("Could not find any finished floor area.")
@@ -648,7 +677,6 @@ class Geometry
       end
       ground_edges = self.get_edges_for_surfaces(surfaces, true)
     end
-
     # Get bottom edges of exterior walls (building footprint)
     surfaces = []
     model.getSurfaces.each do |surface|
@@ -704,7 +732,6 @@ class Geometry
       top_z = [self.getSurfaceZValues([surface]).max, top_z].max
       bottom_z = [self.getSurfaceZValues([surface]).min, bottom_z].min
     end
-
     edges = []
     edge_counter = 0
     surfaces.each do |surface|
@@ -750,11 +777,15 @@ class Geometry
     return true
   end
 
-  def self.get_walls_connected_to_floor(wall_surfaces, floor_surface)
+  def self.get_walls_connected_to_floor(wall_surfaces, floor_surface, same_space = true)
     adjacent_wall_surfaces = []
 
     wall_surfaces.each do |wall_surface|
-      next if wall_surface.space.get != floor_surface.space.get
+      if same_space
+        next if wall_surface.space.get != floor_surface.space.get
+      else
+        next if wall_surface.space.get == floor_surface.space.get
+      end
 
       wall_vertices = wall_surface.vertices
       wall_vertices.each_with_index do |wv1, widx|
@@ -1469,6 +1500,12 @@ class Geometry
         schedules[non_bedroom_ffa_spaces] = [weekday_sch, weekend_sch, activity_per_person]
       end
 
+      # Design day schedules used when autosizing
+      winter_design_day_sch = OpenStudio::Model::ScheduleDay.new(model)
+      winter_design_day_sch.addValue(OpenStudio::Time.new(0, 24, 0, 0), 0)
+      summer_design_day_sch = OpenStudio::Model::ScheduleDay.new(model)
+      summer_design_day_sch.addValue(OpenStudio::Time.new(0, 24, 0, 0), 1)
+
       # Assign occupants to each space of the unit
       schedules.each do |spaces, schedule|
         spaces.each do |space|
@@ -1503,7 +1540,7 @@ class Geometry
 
             if people_sch.nil?
               # Create schedule
-              people_sch = MonthWeekdayWeekendSchedule.new(model, runner, Constants.ObjectNameOccupants + " schedule", schedule[0], schedule[1], monthly_sch)
+              people_sch = MonthWeekdayWeekendSchedule.new(model, runner, Constants.ObjectNameOccupants + " schedule", schedule[0], schedule[1], monthly_sch, mult_weekday = 1.0, mult_weekend = 1.0, normalize_values = true, create_sch_object = true, winter_design_day_sch, summer_design_day_sch)
               if not people_sch.validated?
                 return false
               end

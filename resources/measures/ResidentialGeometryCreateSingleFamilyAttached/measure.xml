@@ -2,12 +2,12 @@
   <schema_version>3.0</schema_version>
   <name>create_residential_single_family_attached_geometry</name>
   <uid>fb4e4db8-1b29-4cbf-abcd-6af194ad945c</uid>
-  <version_id>3a29bb86-1cf8-4f6a-b76e-b986fb0f4b2f</version_id>
-  <version_modified>20190214T232231Z</version_modified>
+  <version_id>1decdc3a-6935-4705-aaeb-56652d5bfbc4</version_id>
+  <version_modified>20190410T155629Z</version_modified>
   <xml_checksum>2AF3A68E</xml_checksum>
   <class_name>CreateResidentialSingleFamilyAttachedGeometry</class_name>
   <display_name>Create Residential Single-Family Attached Geometry</display_name>
-  <description>Sets the basic geometry for the single-family attached building, where all units span the building's number of stories and are not stacked. Sets the number of bedrooms, bathrooms, and occupants in the building. See https://github.com/NREL/OpenStudio-BEopt#workflows for supported workflows using this measure.</description>
+  <description>Sets the basic geometry for the single-family attached building, where all units span the building's number of stories and are not stacked. Sets the number of bedrooms, bathrooms, and occupants in the building. See https://github.com/NREL/OpenStudio-BuildStock#workflows for supported workflows using this measure.</description>
   <modeler_description>Creates single-family attached geometry. Also, sets (or replaces) BuildingUnit objects that store the number of bedrooms and bathrooms associated with the model. Sets (or replaces) the People object for each finished space in the model.</modeler_description>
   <arguments>
     <argument>
@@ -360,6 +360,25 @@
       <model_dependent>false</model_dependent>
       <default_value>180</default_value>
     </argument>
+    <argument>
+      <name>minimal_collapsed</name>
+      <display_name>Minimal Collapsed Building</display_name>
+      <description>Collapse the building down into only corner, end, and/or middle units.</description>
+      <type>Boolean</type>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>false</default_value>
+      <choices>
+        <choice>
+          <value>true</value>
+          <display_name>true</display_name>
+        </choice>
+        <choice>
+          <value>false</value>
+          <display_name>false</display_name>
+        </choice>
+      </choices>
+    </argument>
   </arguments>
   <outputs/>
   <provenances/>
@@ -390,12 +409,6 @@
   </attributes>
   <files>
     <file>
-      <filename>create_residential_single_family_attached_geometry_test.rb</filename>
-      <filetype>rb</filetype>
-      <usage_type>test</usage_type>
-      <checksum>38AE550E</checksum>
-    </file>
-    <file>
       <version>
         <software_program>OpenStudio</software_program>
         <identifier>1.12.2</identifier>
@@ -404,7 +417,13 @@
       <filename>measure.rb</filename>
       <filetype>rb</filetype>
       <usage_type>script</usage_type>
-      <checksum>4196A4AF</checksum>
+      <checksum>1578CF2F</checksum>
+    </file>
+    <file>
+      <filename>create_residential_single_family_attached_geometry_test.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>test</usage_type>
+      <checksum>9A3D13B0</checksum>
     </file>
   </files>
 </measure>

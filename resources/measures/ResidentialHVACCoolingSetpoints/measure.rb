@@ -40,7 +40,7 @@ class ProcessCoolingSetpoints < OpenStudio::Measure::ModelMeasure
     weekday_setpoint.setDisplayName("Weekday Setpoint")
     weekday_setpoint.setDescription("Specify a single cooling setpoint or a 24-hour comma-separated cooling schedule for the weekdays.")
     weekday_setpoint.setUnits("degrees F")
-    weekday_setpoint.setDefaultValue(Constants.DefaultCoolingSetpoint.to_s)
+    weekday_setpoint.setDefaultValue("#{Constants.DefaultCoolingSetpoint}")
     args << weekday_setpoint
 
     # Make a string argument for 24 weekend cooling set point values
@@ -48,7 +48,7 @@ class ProcessCoolingSetpoints < OpenStudio::Measure::ModelMeasure
     weekend_setpoint.setDisplayName("Weekend Setpoint")
     weekend_setpoint.setDescription("Specify a single cooling setpoint or a 24-hour comma-separated cooling schedule for the weekend.")
     weekend_setpoint.setUnits("degrees F")
-    weekend_setpoint.setDefaultValue(Constants.DefaultCoolingSetpoint.to_s)
+    weekend_setpoint.setDefaultValue("#{Constants.DefaultCoolingSetpoint}")
     args << weekend_setpoint
 
     # Make a string argument for 24 weekday cooling set point offset magnitude

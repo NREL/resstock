@@ -1981,6 +1981,7 @@ class HVACSizing
                                    (1 + (1 - hvac.CoilBF * unit_final.BypassFactor_CurveValue) *
                                    (80 - mj8.cool_setpoint) / (mj8.cool_setpoint - unit_init.LAT)))
         unit_final.Cool_Airflow = (cool_Load_SensCap_Design / (1.1 * mj8.acf * (mj8.cool_setpoint - unit_init.LAT)))
+
       else
 
         runner.registerError("Unexpected cooling system.")

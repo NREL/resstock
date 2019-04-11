@@ -2,12 +2,12 @@
   <schema_version>3.0</schema_version>
   <name>residential_lighting</name>
   <uid>82efbdfd-258d-421a-8c32-ff4636bea099</uid>
-  <version_id>20b6a8fb-2557-4a44-9aaa-e83eb90f9658</version_id>
-  <version_modified>20190201T182937Z</version_modified>
+  <version_id>e8c1c622-0297-4d68-9a34-3009a79ca120</version_id>
+  <version_modified>20190410T155632Z</version_modified>
   <xml_checksum>2DDDDD82</xml_checksum>
   <class_name>ResidentialLighting</class_name>
   <display_name>Set Residential Lighting</display_name>
-  <description>Sets (or replaces) the lighting energy use, based on fractions of CFLs, LFLs, and LEDs, for finished spaces, the garage, and outside. For multifamily buildings, the lighting can be set for all units of the building. See https://github.com/NREL/OpenStudio-BEopt#workflows for supported workflows using this measure.</description>
+  <description>Sets (or replaces) the lighting energy use, based on fractions of CFLs, LFLs, and LEDs, for finished spaces, the garage, and outside. For multifamily buildings, the lighting can be set for all units of the building. See https://github.com/NREL/OpenStudio-BuildStock#workflows for supported workflows using this measure.</description>
   <modeler_description>Assigns a lighting energy use and schedule to finished spaces, the garage, and outside. The lighting schedule is calculated for the latitude/longitude of the weather location specified in the model.</modeler_description>
   <arguments>
     <argument>
@@ -82,6 +82,15 @@
       <required>true</required>
       <model_dependent>false</model_dependent>
       <default_value>0</default_value>
+    </argument>
+    <argument>
+      <name>mult</name>
+      <display_name>Lamp Fractions: Multiplier</display_name>
+      <description>A multiplier on the national average lighting energy. 0.75 indicates a 25% reduction in the lighting energy, 1.0 indicates the same lighting energy as the national average, 1.25 indicates a 25% increase in the lighting energy, etc.</description>
+      <type>Double</type>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>1</default_value>
     </argument>
     <argument>
       <name>in_eff</name>
@@ -173,12 +182,6 @@
   </attributes>
   <files>
     <file>
-      <filename>ResidentialLighting_Test.rb</filename>
-      <filetype>rb</filetype>
-      <usage_type>test</usage_type>
-      <checksum>03E42837</checksum>
-    </file>
-    <file>
       <version>
         <software_program>OpenStudio</software_program>
         <identifier>1.4.0</identifier>
@@ -187,7 +190,13 @@
       <filename>measure.rb</filename>
       <filetype>rb</filetype>
       <usage_type>script</usage_type>
-      <checksum>9FC0799D</checksum>
+      <checksum>E02EF907</checksum>
+    </file>
+    <file>
+      <filename>ResidentialLighting_Test.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>test</usage_type>
+      <checksum>83495DB8</checksum>
     </file>
   </files>
 </measure>

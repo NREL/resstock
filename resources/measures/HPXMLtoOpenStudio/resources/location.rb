@@ -163,4 +163,28 @@ class Location
 
     return ba_zone
   end
+
+  def self.get_climate_zone_iecc(wmo)
+    iecc_zone = "NA"
+
+    zones_csv = File.join(File.dirname(__FILE__), "climate_zones.csv")
+    if not File.exists?(zones_csv)
+      return iecc_zone
+    end
+
+    require "csv"
+    CSV.foreach(zones_csv) do |row|
+      if row[0].to_s == wmo.to_s
+        iecc_zone = row[6].to_s
+        break
+      end
+    end
+
+    if iecc_zone.length == 1
+      iecc_zone += "A" # for 7 and 8, A and B don't matter in terms of autosizing
+    end
+    iecc_zone = "ASHRAE 169-2006-#{iecc_zone}"
+
+    return iecc_zone
+  end
 end
