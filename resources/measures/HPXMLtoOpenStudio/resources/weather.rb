@@ -89,6 +89,16 @@ class WeatherProcess
     cooling_design_day.setSolarModelIndicator("ASHRAEClearSky")
   end
 
+  def get_days_for_month(month, is_leap_year)
+    if [1, 3, 5, 7, 8, 10, 12].include? month
+      days = (1..31)
+    elsif [4, 6, 9, 11].include? month
+      days = (1..30)
+    elsif [2].include? month
+      days = (1..(28 + is_leap_year))
+    end
+  end
+
   def actual_year_timestamps(reporting_frequency)
     start_actual_year = @epw_file.startDateActualYear
     end_actual_year = @epw_file.endDateActualYear
@@ -107,13 +117,7 @@ class WeatherProcess
         tstep = @model.getTimestep.numberOfTimestepsPerHour
         (start_actual_year..(end_actual_year + 1)).to_a.each do |year|
           (1..12).to_a.each do |month|
-            if [1, 3, 5, 7, 8, 10, 12].include? month
-              days = (1..31)
-            elsif [4, 6, 9, 11].include? month
-              days = (1..30)
-            elsif [2].include? month
-              days = (1..(28 + is_leap_year))
-            end
+            days = get_days_for_month(month, is_leap_year)
             days.to_a.each do |day|
               (0..23).to_a.each do |hour|
                 (0..60 - (60 / tstep)).step(60 / tstep).to_a.each do |minute|
@@ -130,13 +134,7 @@ class WeatherProcess
       elsif reporting_frequency == "Hourly"
         (start_actual_year..end_actual_year).to_a.each do |year|
           (1..12).to_a.each do |month|
-            if [1, 3, 5, 7, 8, 10, 12].include? month
-              days = (1..31)
-            elsif [4, 6, 9, 11].include? month
-              days = (1..30)
-            elsif [2].include? month
-              days = (1..(28 + is_leap_year))
-            end
+            days = get_days_for_month(month, is_leap_year)
             days.to_a.each do |day|
               (1..24).to_a.each do |hour|
                 ts = Time.new(year, month, day, hour)
@@ -151,13 +149,7 @@ class WeatherProcess
       elsif reporting_frequency == "Daily"
         (start_actual_year..end_actual_year + 1).to_a.each do |year|
           (1..12).to_a.each do |month|
-            if [1, 3, 5, 7, 8, 10, 12].include? month
-              days = (1..31)
-            elsif [4, 6, 9, 11].include? month
-              days = (1..30)
-            elsif [2].include? month
-              days = (1..(28 + is_leap_year))
-            end
+            days = get_days_for_month(month, is_leap_year)
             days.to_a.each do |day|
               ts = Time.new(year, month, day)
               next if ts < start_time or ts > end_time
