@@ -930,7 +930,7 @@ class CreateResidentialSingleFamilyDetachedGeometry < OpenStudio::Measure::Model
       garage_space.surfaces.each do |surface|
         next if surface.surfaceType.downcase != "floor"
 
-        adjacent_wall_surfaces = Geometry.get_walls_adjacent_to_floor(foundation_walls, surface)
+        adjacent_wall_surfaces = Geometry.get_walls_connected_to_floor(foundation_walls, surface, false)
         adjacent_wall_surfaces.each do |adjacent_wall_surface|
           adjacent_wall_surface.setOutsideBoundaryCondition("Adiabatic")
         end
