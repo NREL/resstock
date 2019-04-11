@@ -40,7 +40,7 @@ class Airflow
       return false
     end
     building.stories = model.getBuilding.standardsNumberOfAboveGroundStories.get
-    building.above_grade_volume = Geometry.get_above_grade_finished_volume(model)
+    building.above_grade_volume = Geometry.get_above_grade_finished_volume(model, runner)
     building.ag_ext_wall_area = Geometry.calculate_above_grade_exterior_wall_area(model_spaces)
     model.getThermalZones.each do |thermal_zone|
       if Geometry.is_garage(thermal_zone)
@@ -55,9 +55,6 @@ class Airflow
         building.unfinished_attic = ZoneInfo.new(thermal_zone, Geometry.get_height_of_spaces(thermal_zone.spaces), UnitConversions.convert(thermal_zone.floorArea, "m^2", "ft^2"), Geometry.get_zone_volume(thermal_zone, runner), Geometry.get_z_origin_for_zone(thermal_zone), infil.unfinished_attic_const_ach, infil.unfinished_attic_sla)
       end
     end
-    building.ffa = Geometry.get_finished_floor_area_from_spaces(model_spaces, runner)
-    return false if building.ffa.nil?
-
     building.ag_ffa = Geometry.get_above_grade_finished_floor_area_from_spaces(model_spaces, runner)
     return false if building.ag_ffa.nil?
 
@@ -1829,18 +1826,24 @@ class Airflow
   end
 
   def self.create_infil_mech_vent_objects(model, runner, obj_name_infil, obj_name_mech_vent, unit_living, infil, mech_vent, wind_speed, mv_output, infil_output, tin_sensor, tout_sensor, vwind_sensor, duct_lks, cfis_programs, nbeds)
+    # Design day schedules used when autosizing
+    winter_design_day_sch = OpenStudio::Model::ScheduleDay.new(model)
+    winter_design_day_sch.addValue(OpenStudio::Time.new(0, 24, 0, 0), 0)
+    summer_design_day_sch = OpenStudio::Model::ScheduleDay.new(model)
+    summer_design_day_sch.addValue(OpenStudio::Time.new(0, 24, 0, 0), 1)
+
     # Sensors
 
     range_array = [0.0] * 24
     range_array[mech_vent.range_exhaust_hour - 1] = 1.0
-    range_hood_sch = HourlyByMonthSchedule.new(model, runner, obj_name_mech_vent + " range exhaust schedule", [range_array] * 12, [range_array] * 12, normalize_values = false)
+    range_hood_sch = HourlyByMonthSchedule.new(model, runner, obj_name_mech_vent + " range exhaust schedule", [range_array] * 12, [range_array] * 12, normalize_values = false, create_sch_object = true, winter_design_day_sch, summer_design_day_sch)
     range_sch_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, "Schedule Value")
     range_sch_sensor.setName("#{obj_name_infil} range sch s")
     range_sch_sensor.setKeyName(range_hood_sch.schedule.name.to_s)
 
     bathroom_array = [0.0] * 24
     bathroom_array[mech_vent.bathroom_exhaust_hour - 1] = 1.0
-    bath_exhaust_sch = HourlyByMonthSchedule.new(model, runner, obj_name_mech_vent + " bath exhaust schedule", [bathroom_array] * 12, [bathroom_array] * 12, normalize_values = false)
+    bath_exhaust_sch = HourlyByMonthSchedule.new(model, runner, obj_name_mech_vent + " bath exhaust schedule", [bathroom_array] * 12, [bathroom_array] * 12, normalize_values = false, create_sch_object = true, winter_design_day_sch, summer_design_day_sch)
     bath_sch_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, "Schedule Value")
     bath_sch_sensor.setName("#{obj_name_infil} bath sch s")
     bath_sch_sensor.setKeyName(bath_exhaust_sch.schedule.name.to_s)

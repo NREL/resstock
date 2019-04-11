@@ -447,6 +447,30 @@ class Constants
     return "res ac#{s_unit}"
   end
 
+  def self.ObjectNameCentralSystemBoilerBaseboards(unit_name = self.ObjectNameBuildingUnit)
+    s_unit = ""
+    if unit_name != self.ObjectNameBuildingUnit
+      s_unit = "|#{unit_name}"
+    end
+    return "res central system boiler baseboards#{s_unit}"
+  end
+
+  def self.ObjectNameCentralSystemFanCoil(unit_name = self.ObjectNameBuildingUnit)
+    s_unit = ""
+    if unit_name != self.ObjectNameBuildingUnit
+      s_unit = "|#{unit_name}"
+    end
+    return "res central system fan coil#{s_unit}"
+  end
+
+  def self.ObjectNameCentralSystemPTAC(unit_name = self.ObjectNameBuildingUnit)
+    s_unit = ""
+    if unit_name != self.ObjectNameBuildingUnit
+      s_unit = "|#{unit_name}"
+    end
+    return "res central system ptac#{s_unit}"
+  end
+
   def self.ObjectNameClothesWasher(unit_name = self.ObjectNameBuildingUnit)
     s_unit = ""
     if unit_name != self.ObjectNameBuildingUnit
@@ -1184,6 +1208,10 @@ class Constants
     return 'unfinished basement'
   end
 
+  def self.SurfaceTypeAdiabatic # adiabatic construction instead of adiabatic outside boundary condition
+    return 'Adiabatic'
+  end
+
   def self.SurfaceTypeFloorFinInsUnfinAttic # unfinished attic floor
     return 'FloorFinInsUnfinAttic'
   end
@@ -1341,7 +1369,7 @@ class Constants
   end
 
   def self.WorkflowDescription
-    return ' See https://github.com/NREL/OpenStudio-BEopt#workflows for supported workflows using this measure.'
+    return ' See https://github.com/NREL/OpenStudio-BuildStock#workflows for supported workflows using this measure.'
   end
 
   def self.ExpectedSpaceTypes

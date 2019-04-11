@@ -5,7 +5,7 @@ import psycopg2 as pg
 
 con_string = "host={} port={} dbname={} user={} password={}".format(os.environ['GIS_HOST'], os.environ['GIS_PORT'], os.environ['GIS_DBNAME'], os.environ['GIS_USER'], os.environ['GIS_PASSWORD'])
 
-cols = ['serial', 'unitsstr', 'hhincome', 'repwt', 'hhwt', 'builtyr2', 'rooms', 'fuelheat', 'bedrooms', 'hhtype', 'region', 'stateicp', 'statefip', 'vacancy', 'state_abbr', 'nfams', 'famsize', 'ftotinc']
+cols = ['serial', 'unitsstr', 'hhincome', 'repwt', 'hhwt', 'builtyr2', 'rooms', 'fuelheat', 'bedrooms', 'hhtype', 'vacancy', 'state_abbr', 'nfams', 'numprec']
 
 def retrieve_tables():
     con = pg.connect(con_string)
@@ -113,10 +113,9 @@ if __name__ == '__main__':
     if df is None:
       continue
     df = df.drop_duplicates()
-    df = df.groupby(['serial', 'unitsstr', 'hhincome', 'repwt', 'hhwt', 'builtyr2', 'rooms', 'fuelheat', 'bedrooms', 'hhtype', 'region', 'stateicp', 'statefip', 'vacancy', 'state_abbr', 'nfams']).sum().reset_index() # for each unique structure, sum / famsize / ftotinc
     df = assign_vintage(df)
     df = assign_heating_fuel(df)
-    df = assign_federal_poverty_level(df)
+    # df = assign_federal_poverty_level(df)
     dfs.append(df)
     
   pd.concat(dfs).to_csv(os.path.join(os.path.dirname(__file__), 'MLR', 'pums.csv'), index=False)

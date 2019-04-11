@@ -917,6 +917,26 @@ class CreateResidentialSingleFamilyDetachedGeometry < OpenStudio::Measure::Model
       surface.setOutsideBoundaryCondition("Foundation")
     end
 
+    # set foundation walls adjacent to garage to adiabatic
+    foundation_walls = []
+    model.getSurfaces.each do |surface|
+      next if surface.surfaceType.downcase != "wall"
+      next if surface.outsideBoundaryCondition.downcase != "foundation"
+
+      foundation_walls << surface
+    end
+    garage_spaces = Geometry.get_garage_spaces(model.getSpaces)
+    garage_spaces.each do |garage_space|
+      garage_space.surfaces.each do |surface|
+        next if surface.surfaceType.downcase != "floor"
+
+        adjacent_wall_surfaces = Geometry.get_walls_connected_to_floor(foundation_walls, surface, false)
+        adjacent_wall_surfaces.each do |adjacent_wall_surface|
+          adjacent_wall_surface.setOutsideBoundaryCondition("Adiabatic")
+        end
+      end
+    end
+
     # Store building unit information
     unit = OpenStudio::Model::BuildingUnit.new(model)
     unit.setBuildingUnitType(Constants.BuildingUnitTypeResidential)
@@ -926,6 +946,8 @@ class CreateResidentialSingleFamilyDetachedGeometry < OpenStudio::Measure::Model
 
       space.setBuildingUnit(unit)
     end
+    model.getBuilding.additionalProperties.setFeature("Total Units Represented", 1)
+    model.getBuilding.additionalProperties.setFeature("Total Units Modeled", 1)
 
     # Store number of units
     model.getBuilding.setStandardsNumberOfLivingUnits(1)

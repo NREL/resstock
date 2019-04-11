@@ -2487,6 +2487,73 @@ class HVAC
     return true
   end
 
+  def self.apply_central_system_boiler_baseboards(model, unit, runner, std,
+                                                  hot_water_loop)
+
+    zones = []
+    unit.spaces.each do |space|
+      zone = space.thermalZone.get
+      next if zones.include? zone
+
+      zones << zone
+    end
+
+    baseboards = std.model_add_baseboard(model, zones, hot_water_loop: hot_water_loop)
+    baseboards.each do |baseboard|
+      runner.registerInfo("Added '#{baseboard.name}' onto '#{hot_water_loop.name}' for '#{unit.name}'.")
+    end
+
+    return true
+  end
+
+  def self.apply_central_system_fan_coil(model, unit, runner, std,
+                                         fan_coil_heating, fan_coil_cooling,
+                                         hot_water_loop, chilled_water_loop)
+
+    zones = []
+    unit.spaces.each do |space|
+      zone = space.thermalZone.get
+      next if zones.include? zone
+
+      zones << zone
+    end
+
+    if fan_coil_heating and not fan_coil_cooling
+      unit_heaters = std.model_add_unitheater(model, zones, heating_type: "DistrictHeating", hot_water_loop: hot_water_loop)
+      unit_heaters.each do |unit_heater|
+        runner.registerInfo("Added '#{unit_heater.name}' onto '#{hot_water_loop.name}' for #{unit.name}.")
+      end
+    else
+      fcus = std.model_add_four_pipe_fan_coil(model, zones, chilled_water_loop, hot_water_loop: hot_water_loop)
+      fcus.each do |fcu|
+        if hot_water_loop.nil?
+          runner.registerInfo("Added '#{fcu.name}' onto '#{chilled_water_loop.name}' for '#{unit.name}'.'")
+        else
+          runner.registerInfo("Added '#{fcu.name}' onto '#{hot_water_loop.name}' and '#{chilled_water_loop.name}' for '#{unit.name}'.")
+        end
+      end
+    end
+
+    return true
+  end
+
+  def self.apply_central_system_ptac(model, unit, runner, std,
+                                     hot_water_loop)
+
+    zones = []
+    unit.spaces.each do |space|
+      zone = space.thermalZone.get
+      next if zones.include? zone
+
+      zones << zone
+    end
+
+    ptacs = std.model_add_ptac(model, zones, heating_type: "Water", hot_water_loop: hot_water_loop, cooling_type: "Single Speed DX AC")
+    ptacs.each do |ptac|
+      runner.registerInfo("Added '#{ptac.name}' onto '#{hot_water_loop.name}' for '#{unit.name}'.")
+    end
+  end
+
   def self.apply_ideal_air_loads_cooling(model, unit, runner, frac_cool_load_served)
     return true if frac_cool_load_served <= 0
 
@@ -2555,6 +2622,8 @@ class HVAC
     removed_ashp = remove_ashp(model, runner, thermal_zone)
     removed_mshp = remove_mshp(model, runner, thermal_zone, unit)
     removed_gshp = remove_gshp(model, runner, thermal_zone, unit)
+    removed_central_fan_coil = remove_central_system_fan_coil(model, runner, thermal_zone)
+    removed_central_ptac = remove_central_system_ptac(model, runner, thermal_zone)
   end
 
   def self.remove_cooling(model, runner, thermal_zone, unit)
@@ -2566,6 +2635,8 @@ class HVAC
       removed_elec_baseboard = remove_electric_baseboard(model, runner, thermal_zone)
     end
     removed_gshp = remove_gshp(model, runner, thermal_zone, unit)
+    removed_central_fan_coil = remove_central_system_fan_coil(model, runner, thermal_zone)
+    removed_central_ptac = remove_central_system_ptac(model, runner, thermal_zone)
   end
 
   def self.apply_heating_setpoints(model, runner, weather, htg_wkdy_monthly, htg_wked_monthly,
@@ -2674,8 +2745,14 @@ class HVAC
       clg_wked_monthly[i] = clg_wked
     end
 
-    heating_setpoint = HourlyByMonthSchedule.new(model, runner, Constants.ObjectNameHeatingSetpoint, htg_wkdy_monthly, htg_wked_monthly, normalize_values = false)
-    cooling_setpoint = HourlyByMonthSchedule.new(model, runner, Constants.ObjectNameCoolingSetpoint, clg_wkdy_monthly, clg_wked_monthly, normalize_values = false)
+    # Design day schedules used when autosizing
+    winter_design_day_sch = OpenStudio::Model::ScheduleDay.new(model)
+    winter_design_day_sch.addValue(OpenStudio::Time.new(0, 24, 0, 0), UnitConversions.convert(70, "F", "C"))
+    summer_design_day_sch = OpenStudio::Model::ScheduleDay.new(model)
+    summer_design_day_sch.addValue(OpenStudio::Time.new(0, 24, 0, 0), UnitConversions.convert(75, "F", "C"))
+
+    heating_setpoint = HourlyByMonthSchedule.new(model, runner, Constants.ObjectNameHeatingSetpoint, htg_wkdy_monthly, htg_wked_monthly, normalize_values = false, create_sch_object = true, winter_design_day_sch, summer_design_day_sch)
+    cooling_setpoint = HourlyByMonthSchedule.new(model, runner, Constants.ObjectNameCoolingSetpoint, clg_wkdy_monthly, clg_wked_monthly, normalize_values = false, create_sch_object = true, winter_design_day_sch, summer_design_day_sch)
 
     unless heating_setpoint.validated? and cooling_setpoint.validated?
       return false
@@ -2820,8 +2897,14 @@ class HVAC
       clg_wked_monthly[i] = clg_wked
     end
 
-    heating_setpoint = HourlyByMonthSchedule.new(model, runner, Constants.ObjectNameHeatingSetpoint, htg_wkdy_monthly, htg_wked_monthly, normalize_values = false)
-    cooling_setpoint = HourlyByMonthSchedule.new(model, runner, Constants.ObjectNameCoolingSetpoint, clg_wkdy_monthly, clg_wked_monthly, normalize_values = false)
+    # Design day schedules used when autosizing
+    winter_design_day_sch = OpenStudio::Model::ScheduleDay.new(model)
+    winter_design_day_sch.addValue(OpenStudio::Time.new(0, 24, 0, 0), UnitConversions.convert(70, "F", "C"))
+    summer_design_day_sch = OpenStudio::Model::ScheduleDay.new(model)
+    summer_design_day_sch.addValue(OpenStudio::Time.new(0, 24, 0, 0), UnitConversions.convert(75, "F", "C"))
+
+    heating_setpoint = HourlyByMonthSchedule.new(model, runner, Constants.ObjectNameHeatingSetpoint, htg_wkdy_monthly, htg_wked_monthly, normalize_values = false, create_sch_object = true, winter_design_day_sch, summer_design_day_sch)
+    cooling_setpoint = HourlyByMonthSchedule.new(model, runner, Constants.ObjectNameCoolingSetpoint, clg_wkdy_monthly, clg_wked_monthly, normalize_values = false, create_sch_object = true, winter_design_day_sch, summer_design_day_sch)
 
     unless heating_setpoint.validated? and cooling_setpoint.validated?
       return false
@@ -3943,6 +4026,12 @@ class HVAC
     if self.has_mshp(model, runner, thermal_zone)
       runner.registerInfo("Found mini split heat pump providing cooling in #{thermal_zone.name}.")
     end
+    if self.has_central_ptac(model, runner, thermal_zone)
+      runner.registerInfo("Found central ptac in #{thermal_zone.name}.")
+    end
+    if self.has_central_fan_coil(model, runner, thermal_zone)
+      runner.registerInfo("Found central fan coil in #{thermal_zone.name}.")
+    end
 
     unitary_system_air_loops = self.get_unitary_system_air_loops(model, runner, thermal_zone)
     unitary_system_air_loops.each do |unitary_system_air_loop|
@@ -3955,6 +4044,16 @@ class HVAC
     ptacs = self.get_ptacs(model, runner, thermal_zone)
     ptacs.each do |ptac|
       cooling_equipment << ptac
+    end
+
+    ptacs = self.get_central_ptacs(model, runner, thermal_zone)
+    ptacs.each do |ptac|
+      cooling_equipment << ptac
+    end
+
+    fcus = self.get_central_fan_coils(model, runner, thermal_zone)
+    fcus.each do |fcu|
+      cooling_equipment << fcu
     end
 
     if self.has_ideal_air_cooling(model, runner, thermal_zone)
@@ -3991,6 +4090,12 @@ class HVAC
     if self.has_unit_heater(model, runner, thermal_zone)
       runner.registerInfo("Found unit heater in #{thermal_zone.name}.")
     end
+    if self.has_central_ptac(model, runner, thermal_zone)
+      runner.registerInfo("Found central ptac in #{thermal_zone.name}.")
+    end
+    if self.has_central_fan_coil(model, runner, thermal_zone)
+      runner.registerInfo("Found central fan coil in #{thermal_zone.name}.")
+    end
 
     unitary_system_air_loops = self.get_unitary_system_air_loops(model, runner, thermal_zone)
     unitary_system_air_loops.each do |unitary_system_air_loop|
@@ -4018,6 +4123,21 @@ class HVAC
       heating_equipment << system
     end
 
+    ptacs = self.get_central_ptacs(model, runner, thermal_zone)
+    ptacs.each do |ptac|
+      heating_equipment << ptac
+    end
+
+    fcus = self.get_central_fan_coils(model, runner, thermal_zone)
+    fcus.each do |fcu|
+      heating_equipment << fcu
+    end
+
+    unit_heaters = self.get_central_fan_coil_unit_heaters(model, runner, thermal_zone)
+    unit_heaters.each do |unit_heater|
+      heating_equipment << unit_heater
+    end
+
     if self.has_ideal_air_heating(model, runner, thermal_zone)
       runner.registerInfo("Found ideal air system in #{thermal_zone.name}.")
       ideal_air = self.get_ideal_air_heating(model, runner, thermal_zone)
@@ -4041,6 +4161,9 @@ class HVAC
     elsif hvac_equip.is_a? OpenStudio::Model::ZoneHVACPackagedTerminalAirConditioner
       htg_coil = get_coil_from_hvac_component(hvac_equip.heatingCoil)
       clg_coil = get_coil_from_hvac_component(hvac_equip.coolingCoil)
+    elsif hvac_equip.is_a? OpenStudio::Model::ZoneHVACFourPipeFanCoil
+      htg_coil = HVAC.get_coil_from_hvac_component(hvac_equip.heatingCoil)
+      clg_coil = HVAC.get_coil_from_hvac_component(hvac_equip.coolingCoil)
     end
     return clg_coil, htg_coil, supp_htg_coil
   end
@@ -4060,6 +4183,8 @@ class HVAC
       return hvac_component.to_CoilCoolingDXMultiSpeed.get
     elsif hvac_component.to_CoilCoolingWaterToAirHeatPumpEquationFit.is_initialized
       return hvac_component.to_CoilCoolingWaterToAirHeatPumpEquationFit.get
+    elsif hvac_component.to_CoilCoolingWater.is_initialized
+      return hvac_component.to_CoilCoolingWater.get
     end
 
     # Heating coils
@@ -4075,6 +4200,8 @@ class HVAC
       return hvac_component.to_CoilHeatingWaterBaseboard.get
     elsif hvac_component.to_CoilHeatingWaterToAirHeatPumpEquationFit.is_initialized
       return hvac_component.to_CoilHeatingWaterToAirHeatPumpEquationFit.get
+    elsif hvac_component.to_CoilHeatingWater.is_initialized
+      return hvac_component.to_CoilHeatingWater.get
     end
 
     return hvac_component
@@ -4127,10 +4254,45 @@ class HVAC
     ptacs = []
     model.getZoneHVACPackagedTerminalAirConditioners.each do |ptac|
       next unless thermal_zone.handle.to_s == ptac.thermalZone.get.handle.to_s
+      next if ptac.heatingCoil.to_CoilHeatingWater.is_initialized # exclude central PTAC
 
       ptacs << ptac
     end
     return ptacs
+  end
+
+  def self.get_central_ptacs(model, runner, thermal_zone)
+    # Returns the central PTAC(s) if available
+    ptacs = []
+    model.getZoneHVACPackagedTerminalAirConditioners.each do |ptac|
+      next unless thermal_zone.handle.to_s == ptac.thermalZone.get.handle.to_s
+      next unless ptac.heatingCoil.to_CoilHeatingWater.is_initialized
+
+      ptacs << ptac
+    end
+    return ptacs
+  end
+
+  def self.get_central_fan_coils(model, runner, thermal_zone)
+    # Returns the fan coil(s) if available
+    fcus = []
+    model.getZoneHVACFourPipeFanCoils.each do |fcu|
+      next unless thermal_zone.handle.to_s == fcu.thermalZone.get.handle.to_s
+
+      fcus << fcu
+    end
+    return fcus
+  end
+
+  def self.get_central_fan_coil_unit_heaters(model, runner, thermal_zone)
+    # Returns the fan coil(s) if available
+    unit_heaters = []
+    model.getZoneHVACUnitHeaters.each do |unit_heater|
+      next unless thermal_zone.handle.to_s == unit_heater.thermalZone.get.handle.to_s
+
+      unit_heaters << unit_heater
+    end
+    return unit_heaters
   end
 
   def self.get_baseboard_waters(model, runner, thermal_zone)
@@ -4266,6 +4428,14 @@ class HVAC
     return self.get_unitary_system_zone_hvacs(model, runner, thermal_zone).length
   end
 
+  def self.num_central_ptac(model, runner, thermal_zone)
+    return self.get_central_ptacs(model, runner, thermal_zone).length
+  end
+
+  def self.num_central_fan_coil(model, runner, thermal_zone)
+    return self.get_central_fan_coils(model, runner, thermal_zone).length + self.get_central_fan_coil_unit_heaters(model, runner, thermal_zone).length
+  end
+
   def self.num_air_loop_hvac_unitary_system_clg_coils(model, runner, thermal_zone)
     clg_coils = []
     unitary_system_air_loops = self.get_unitary_system_air_loops(model, runner, thermal_zone)
@@ -4366,6 +4536,14 @@ class HVAC
 
   def self.has_unit_heater(model, runner, thermal_zone)
     return self.num_unit_heater(model, runner, thermal_zone) > 0
+  end
+
+  def self.has_central_ptac(model, runner, thermal_zone)
+    return self.num_central_ptac(model, runner, thermal_zone) > 0
+  end
+
+  def self.has_central_fan_coil(model, runner, thermal_zone)
+    return self.num_central_fan_coil(model, runner, thermal_zone) > 0
   end
 
   def self.has_dehumidifier(model, runner, thermal_zone)
@@ -4609,22 +4787,22 @@ class HVAC
     [Constants.FuelTypeGas, Constants.FuelTypeOil, Constants.FuelTypePropane, Constants.FuelTypeElectric].each do |fuel_type|
       obj_name = Constants.ObjectNameBoiler(fuel_type, unit.name.to_s)
       model.getEnergyManagementSystemSensors.each do |sensor|
-        next unless sensor.name.to_s == "#{obj_name} hydronic pump s".gsub(" ", "_").gsub("|", "_")
+        next if sensor.name.to_s != "#{obj_name} hydronic pump s".gsub(" ", "_").gsub("|", "_") and sensor.name.to_s != "Central pump s".gsub(" ", "_").gsub("|", "_")
 
         sensor.remove
       end
       model.getEnergyManagementSystemOutputVariables.each do |output_var|
-        next unless output_var.name.to_s == "#{obj_name} htg pump:Pumps:Electricity"
+        next if output_var.name.to_s != "#{obj_name} htg pump:Pumps:Electricity" and output_var.name.to_s != "Central htg pump:Pumps:Electricity"
 
         output_var.remove
       end
       model.getEnergyManagementSystemPrograms.each do |program|
-        next unless program.name.to_s == "#{obj_name} pumps program".gsub(" ", "_")
+        next if program.name.to_s != "#{obj_name} pumps program".gsub(" ", "_") and program.name.to_s != "Central pumps program".gsub(" ", "_")
 
         program.remove
       end
       model.getEnergyManagementSystemProgramCallingManagers.each do |program_calling_manager|
-        next unless program_calling_manager.name.to_s == "#{obj_name} pump program calling manager"
+        next if program_calling_manager.name.to_s != "#{obj_name} pump program calling manager" and program_calling_manager.name.to_s != "Central pump program calling manager"
 
         program_calling_manager.remove
       end
@@ -4676,6 +4854,8 @@ class HVAC
           demand_coil = demand_component.to_CoilHeatingWaterToAirHeatPumpEquationFit.get
         elsif demand_component.to_CoilCoolingWaterToAirHeatPumpEquationFit.is_initialized
           demand_coil = demand_component.to_CoilCoolingWaterToAirHeatPumpEquationFit.get
+        elsif demand_component.to_CoilHeatingWater.is_initialized
+          demand_coil = demand_component.to_CoilHeatingWater.get
         end
         next if demand_coil.nil?
 
@@ -4700,6 +4880,123 @@ class HVAC
 
       plant_loop.supplyComponents.each do |supply_component|
         if supply_component.to_BoilerHotWater.is_initialized or supply_component.to_GroundHeatExchangerVertical.is_initialized or supply_component.to_GroundHeatExchangerHorizontalTrench.is_initialized
+          remove = true
+        end
+      end
+      if remove
+        runner.registerInfo("Removed '#{plant_loop.name}' from model.")
+        plant_loop.remove
+      end
+    end
+  end
+
+  def self.remove_central_system_fan_coil(model, runner, thermal_zone)
+    # Returns true if the object was removed
+    return false if not self.has_central_fan_coil(model, runner, thermal_zone)
+
+    self.remove_fan_coil_loops(model, runner, thermal_zone)
+    fcus = self.get_central_fan_coils(model, runner, thermal_zone)
+    fcus.each do |fcu|
+      runner.registerInfo("Removed '#{fcu.name}' from '#{thermal_zone.name}'.")
+      fcu.remove
+    end
+    unit_heaters = self.get_central_fan_coil_unit_heaters(model, runner, thermal_zone)
+    unit_heaters.each do |unit_heater|
+      runner.registerInfo("Removed '#{unit_heater.name}' from '#{thermal_zone.name}'.")
+      unit_heater.remove
+    end
+    model.getEnergyManagementSystemSensors.each do |sensor|
+      next if sensor.name.to_s != "Central htg pump s".gsub(" ", "_").gsub("|", "_") and sensor.name.to_s != "Central clg pump s".gsub(" ", "_").gsub("|", "_")
+
+      sensor.remove
+    end
+    model.getEnergyManagementSystemOutputVariables.each do |output_var|
+      next if output_var.name.to_s != "Central htg pump:Pumps:Electricity" and output_var.name.to_s != "Central clg pump:Pumps:Electricity"
+
+      output_var.remove
+    end
+    model.getEnergyManagementSystemPrograms.each do |program|
+      next unless program.name.to_s == "Central pumps program".gsub(" ", "_")
+
+      program.remove
+    end
+    model.getEnergyManagementSystemProgramCallingManagers.each do |program_calling_manager|
+      next unless program_calling_manager.name.to_s == "Central pump program calling manager"
+
+      program_calling_manager.remove
+    end
+    return true
+  end
+
+  def self.remove_central_system_ptac(model, runner, thermal_zone)
+    # Returns true if the object was removed
+    return false if not self.has_central_ptac(model, runner, thermal_zone)
+
+    self.remove_boiler_and_gshp_loops(model, runner, thermal_zone)
+    ptacs = self.get_central_ptacs(model, runner, thermal_zone)
+    ptacs.each do |ptac|
+      runner.registerInfo("Removed '#{ptac.name}' from '#{thermal_zone.name}'.")
+      ptac.remove
+    end
+    model.getEnergyManagementSystemSensors.each do |sensor|
+      next if sensor.name.to_s != "Central pump s".gsub(" ", "_").gsub("|", "_")
+
+      sensor.remove
+    end
+    model.getEnergyManagementSystemOutputVariables.each do |output_var|
+      next if output_var.name.to_s != "Central htg pump:Pumps:Electricity"
+
+      output_var.remove
+    end
+    model.getEnergyManagementSystemPrograms.each do |program|
+      next unless program.name.to_s == "Central pumps program".gsub(" ", "_")
+
+      program.remove
+    end
+    model.getEnergyManagementSystemProgramCallingManagers.each do |program_calling_manager|
+      next unless program_calling_manager.name.to_s == "Central pump program calling manager"
+
+      program_calling_manager.remove
+    end
+    return true
+  end
+
+  def self.remove_fan_coil_loops(model, runner, thermal_zone)
+    model.getPlantLoops.each do |plant_loop|
+      remove = false
+
+      # Ensure we're operating on the right plant loop
+      is_specified_zone = false
+      plant_loop.demandComponents.each do |demand_component|
+        demand_coil = nil
+        if demand_component.to_CoilHeatingWater.is_initialized
+          demand_coil = demand_component.to_CoilHeatingWater.get
+        elsif demand_component.to_CoilCoolingWater.is_initialized
+          demand_coil = demand_component.to_CoilCoolingWater.get
+        end
+        next if demand_coil.nil?
+
+        if demand_coil.containingZoneHVACComponent.is_initialized
+          demand_hvac = demand_coil.containingZoneHVACComponent.get
+          next if not demand_hvac.thermalZone.is_initialized or demand_hvac.thermalZone.get != thermal_zone
+
+          is_specified_zone = true
+        elsif demand_coil.containingHVACComponent.is_initialized
+          demand_hvac = demand_coil.containingHVACComponent.get
+          next if not demand_hvac.airLoopHVAC.is_initialized
+
+          demand_air_loop = demand_hvac.airLoopHVAC.get
+          demand_air_loop.thermalZones.each do |thermalZone|
+            next if thermal_zone.handle.to_s != thermalZone.handle.to_s
+
+            is_specified_zone = true
+          end
+        end
+      end
+      next if not is_specified_zone
+
+      plant_loop.supplyComponents.each do |supply_component|
+        if supply_component.to_BoilerHotWater.is_initialized or supply_component.to_ChillerElectricEIR.is_initialized
           remove = true
         end
       end
