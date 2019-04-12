@@ -388,9 +388,9 @@ class UtilityBillCalculations < OpenStudio::Measure::ReportingMeasure
         if fuel == Constants.FuelTypeElectric and not timeseries["Electricity:Facility"].empty?
 
           if ["Simple", "Detailed"].include? electric_bill_type
-            if !File.directory? "#{File.dirname(__FILE__)}/resources/sam-sdk-2017-9-5-r4"
-              unzip_file = OpenStudio::UnzipFile.new("#{File.dirname(__FILE__)}/resources/sam-sdk-2017-9-5-r4.zip")
-              unzip_file.extractAllFiles(OpenStudio::toPath("#{File.dirname(__FILE__)}/resources/sam-sdk-2017-9-5-r4"))
+            if !File.directory? "#{File.dirname(__FILE__)}/resources/sam-sdk-200_2018.11.11"
+              unzip_file = OpenStudio::UnzipFile.new("#{File.dirname(__FILE__)}/resources/sam-sdk-200_2018.11.11.zip")
+              unzip_file.extractAllFiles(OpenStudio::toPath("#{File.dirname(__FILE__)}/resources/sam-sdk-200_2018.11.11"))
             end
             require "#{File.dirname(__FILE__)}/resources/ssc_api"
           end
