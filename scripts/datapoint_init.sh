@@ -79,3 +79,48 @@ fi
 
 time=$(date +%T)
 echo "$time $NUMEPWS EPWs available."
+
+ANALYSISID=$(basename "$PWD")
+GEMFILEUPDATE="/var/oscli/$ANALYSISID.lock"
+if [ -e $GEMFILEUPDATE ]
+then
+  echo "***The gem bundle has already been updated"
+  exit
+fi
+
+# Gemfile for OpenStudio
+GEMFILE='/var/oscli/Gemfile'
+GEMFILEDIR='/var/oscli'
+
+# Modify the reference Gemfile in place
+cp /usr/local/openstudio-$OPENSTUDIO_VERSION/Ruby/Gemfile $GEMFILEDIR
+
+NEWGEM="gem 'aws-sdk-s3', '~> 1'"
+echo $NEWGEM >> $GEMFILE
+
+# Pull the wfg from develop because otherwise `require 'openstudio-workflow'` fails
+WFG="gem 'openstudio-workflow'"
+NEWWFG="gem 'openstudio-workflow', github: 'NREL/openstudio-workflow-gem', branch: 'develop'"
+sed -i -e "s|$WFG.*|$NEWWFG|g" $GEMFILE
+
+# Show the modified Gemfile contents in the log
+cd $GEMFILEDIR
+dos2unix $GEMFILE
+echo "***Here is the modified Gemfile:"
+cat $GEMFILE
+
+# Set & unset the required env vars
+for evar in $(env | cut -d '=' -f 1 | grep ^BUNDLE); do unset $evar; done
+for evar in $(env | cut -d '=' -f 1 | grep ^GEM); do unset $evar; done
+for evar in $(env | cut -d '=' -f 1 | grep ^RUBY); do unset $evar; done
+export HOME=/root
+export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+export RUBYLIB=/usr/local/openstudio-$OPENSTUDIO_VERSION/Ruby:/usr/Ruby
+
+# Update the specified gem in the bundle
+echo "***Updating the specified gem:"
+rm Gemfile.lock
+bundle _1.14.4_ install --path gems
+
+# Note that the bundle has been updated
+echo >> $GEMFILEUPDATE
