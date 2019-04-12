@@ -1,4 +1,4 @@
-require_relative '../../../test/minitest_helper'
+require_relative '../../../../test/minitest_helper'
 require 'openstudio'
 require 'openstudio/measure/ShowRunnerOutput'
 require 'minitest/autorun'
