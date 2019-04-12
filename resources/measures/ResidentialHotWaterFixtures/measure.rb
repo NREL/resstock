@@ -73,6 +73,16 @@ class ResidentialHotWaterFixtures < OpenStudio::Measure::ModelMeasure
     schedule_day_shift.setDefaultValue(0)
     args << schedule_day_shift
 
+    # make an argument for whether to use smooth or realistic draw profiles
+    draw_profile_types = OpenStudio::StringVector.new
+    draw_profile_types << Constants.WaterHeaterDrawProfileTypeRealistic
+    draw_profile_types << Constants.WaterHeaterDrawProfileTypeSmooth
+    draw_profile_type = OpenStudio::Measure::OSArgument::makeChoiceArgument("draw_profile_type", draw_profile_types, true, true)
+    draw_profile_type.setDisplayName("Draw Profile Type")
+    draw_profile_type.setDescription("The '#{Constants.WaterHeaterDrawProfileTypeSmooth}' option uses the BA HSP smooth 24 hour curves, and the '#{Constants.WaterHeaterDrawProfileTypeRealistic}' uses the DHWESG draw profiles.")
+    draw_profile_type.setDefaultValue(Constants.WaterHeaterDrawProfileTypeRealistic)
+    args << draw_profile_type
+
     return args
   end # end the arguments method
 
@@ -91,6 +101,7 @@ class ResidentialHotWaterFixtures < OpenStudio::Measure::ModelMeasure
     b_mult = runner.getDoubleArgumentValue("bath_mult", user_arguments)
     plant_loop_s = runner.getStringArgumentValue("plant_loop", user_arguments)
     d_sh = runner.getIntegerArgumentValue("schedule_day_shift", user_arguments)
+    prof_type = runner.getStringArgumentValue("draw_profile_type", user_arguments)
 
     # Check for valid and reasonable inputs
     if sh_mult < 0
@@ -121,7 +132,7 @@ class ResidentialHotWaterFixtures < OpenStudio::Measure::ModelMeasure
                  Constants.ObjectNameSink,
                  Constants.ObjectNameBath]
     model.getSpaces.each do |space|
-      remove_existing(runner, space, obj_names)
+      remove_existing(model, runner, space, obj_names)
     end
 
     location_hierarchy = [Constants.SpaceTypeBathroom,
@@ -202,7 +213,7 @@ class ResidentialHotWaterFixtures < OpenStudio::Measure::ModelMeasure
       if sh_gpd > 0
 
         # Create schedule
-        sch_sh = HotWaterSchedule.new(model, runner, Constants.ObjectNameShower + " schedule", Constants.ObjectNameShower + " temperature schedule", nbeds, d_sh, "Shower", mixed_use_t)
+        sch_sh = HotWaterSchedule.new(model, runner, Constants.ObjectNameShower + " schedule", Constants.ObjectNameShower + " temperature schedule", nbeds, d_sh, "Shower", mixed_use_t, prof_type)
         if not sch_sh.validated?
           return false
         end
@@ -255,13 +266,77 @@ class ResidentialHotWaterFixtures < OpenStudio::Measure::ModelMeasure
         end
 
         tot_sh_gpd += sh_gpd
+
+        # Unmet Shower Energy
+        obj_name_sh = obj_name_sh.gsub("unit ", "").gsub("|", "_")
+
+        vol_shower = OpenStudio::Model::EnergyManagementSystemSensor.new(model, "Water Use Equipment Hot Water Volume")
+        vol_shower.setName("#{obj_name_sh} vol")
+        vol_shower.setKeyName(sh_wu.name.to_s)
+
+        t_out_wh = OpenStudio::Model::EnergyManagementSystemSensor.new(model, "Water Heater Use Side Outlet Temperature")
+        t_out_wh.setName("#{obj_name_sh} tout")
+        model.getPlantLoops.each do |pl|
+          next if not pl.name.to_s.start_with? Constants.PlantLoopDomesticWater
+
+          wh = Waterheater.get_water_heater(model, pl, runner)
+          if wh.is_a? OpenStudio::Model::WaterHeaterHeatPumpWrappedCondenser
+            wh = wh.tank
+          end
+          t_out_wh.setKeyName(wh.name.to_s)
+        end
+
+        mix_sp_hw = OpenStudio::Model::EnergyManagementSystemSensor.new(model, "Schedule Value")
+        mix_sp_hw.setName("#{obj_name_sh} mixsp")
+        mix_sp_hw.setKeyName(sh_wu_def.targetTemperatureSchedule.get.name.to_s)
+
+        program = OpenStudio::Model::EnergyManagementSystemProgram.new(model)
+        program.setName("#{obj_name_sh} sag")
+        program.addLine("If #{vol_shower.name} > 0")
+        program.addLine("Set ShowerTime=SystemTimeStep")
+        program.addLine("Else")
+        program.addLine("Set ShowerTime=0")
+        program.addLine("EndIf")
+        program.addLine("If (#{vol_shower.name} > 0) && (#{mix_sp_hw.name} > #{t_out_wh.name})")
+        program.addLine("Set ShowerSag=SystemTimeStep")
+        program.addLine("Set ShowerE=#{vol_shower.name}*4141170*(#{mix_sp_hw.name}-#{t_out_wh.name})")
+        program.addLine("Else")
+        program.addLine("Set ShowerSag=0")
+        program.addLine("Set ShowerE=0")
+        program.addLine("EndIf")
+
+        program_calling_manager = OpenStudio::Model::EnergyManagementSystemProgramCallingManager.new(model)
+        program_calling_manager.setName("#{obj_name_sh} sag")
+        program_calling_manager.setCallingPoint("EndOfSystemTimestepAfterHVACReporting")
+        program_calling_manager.addProgram(program)
+
+        ems_output_var = OpenStudio::Model::EnergyManagementSystemOutputVariable.new(model, "ShowerE")
+        ems_output_var.setName("Unmet Shower Energy|#{unit.name}")
+        ems_output_var.setTypeOfDataInVariable("Summed")
+        ems_output_var.setUpdateFrequency("SystemTimestep")
+        ems_output_var.setEMSProgramOrSubroutineName(program)
+        ems_output_var.setUnits("J")
+
+        ems_output_var = OpenStudio::Model::EnergyManagementSystemOutputVariable.new(model, "ShowerSag")
+        ems_output_var.setName("Unmet Shower Time|#{unit.name}")
+        ems_output_var.setTypeOfDataInVariable("Summed")
+        ems_output_var.setUpdateFrequency("SystemTimestep")
+        ems_output_var.setEMSProgramOrSubroutineName(program)
+        ems_output_var.setUnits("hr")
+
+        ems_output_var = OpenStudio::Model::EnergyManagementSystemOutputVariable.new(model, "ShowerTime")
+        ems_output_var.setName("Shower Draw Time|#{unit.name}")
+        ems_output_var.setTypeOfDataInVariable("Summed")
+        ems_output_var.setUpdateFrequency("SystemTimestep")
+        ems_output_var.setEMSProgramOrSubroutineName(program)
+        ems_output_var.setUnits("hr")
       end
 
       # Sinks
       if s_gpd > 0
 
         # Create schedule
-        sch_s = HotWaterSchedule.new(model, runner, Constants.ObjectNameSink + " schedule", Constants.ObjectNameSink + " temperature schedule", nbeds, d_sh, "Sink", mixed_use_t)
+        sch_s = HotWaterSchedule.new(model, runner, Constants.ObjectNameSink + " schedule", Constants.ObjectNameSink + " temperature schedule", nbeds, d_sh, "Sink", mixed_use_t, prof_type)
         if not sch_s.validated?
           return false
         end
@@ -300,7 +375,7 @@ class ResidentialHotWaterFixtures < OpenStudio::Measure::ModelMeasure
       if b_gpd > 0
 
         # Create schedule
-        sch_b = HotWaterSchedule.new(model, runner, Constants.ObjectNameBath + " schedule", Constants.ObjectNameBath + " temperature schedule", nbeds, d_sh, "Bath", mixed_use_t)
+        sch_b = HotWaterSchedule.new(model, runner, Constants.ObjectNameBath + " schedule", Constants.ObjectNameBath + " temperature schedule", nbeds, d_sh, "Bath", mixed_use_t, prof_type)
         if not sch_b.validated?
           return false
         end
@@ -355,7 +430,7 @@ class ResidentialHotWaterFixtures < OpenStudio::Measure::ModelMeasure
     return true
   end
 
-  def remove_existing(runner, space, obj_names)
+  def remove_existing(model, runner, space, obj_names)
     # Remove any existing ssb
     objects_to_remove = []
     space.otherEquipment.each do |space_equipment|
@@ -401,6 +476,30 @@ class ResidentialHotWaterFixtures < OpenStudio::Measure::ModelMeasure
         object.remove
       rescue
         # no op
+      end
+    end
+    obj_names.each do |obj_name|
+      model.getEnergyManagementSystemProgramCallingManagers.each do |pcm|
+        if pcm.name.to_s.start_with? obj_name
+          pcm.remove
+        end
+      end
+      model.getEnergyManagementSystemSensors.each do |sensor|
+        if sensor.name.to_s.start_with? obj_name.gsub(" ", "_").gsub("unit ", "").gsub("|", "_")
+          sensor.remove
+        end
+      end
+      programs = []
+      model.getEnergyManagementSystemOutputVariables.each do |var|
+        if var.emsProgramOrSubroutineName.to_s.start_with? obj_name.gsub(" ", "_").gsub("unit ", "").gsub("|", "_")
+          unless programs.include? var.emsProgram.get
+            programs << var.emsProgram.get
+          end
+          var.remove
+        end
+      end
+      programs.each do |program|
+        program.remove
       end
     end
   end

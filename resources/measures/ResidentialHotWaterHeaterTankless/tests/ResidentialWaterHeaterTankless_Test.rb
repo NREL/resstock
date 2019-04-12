@@ -15,6 +15,16 @@ class ResidentialHotWaterHeaterTanklessTest < MiniTest::Test
     _test_measure("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 1)
   end
 
+  def test_new_construction_standard_gas_scheduled_setpoint
+    args_hash = {}
+    args_hash["fuel_type"] = Constants.FuelTypeGas
+    args_hash["setpoint_type"] = Constants.WaterHeaterSetpointTypeScheduled
+    expected_num_del_objects = {}
+    expected_num_new_objects = { "WaterHeaterMixed" => 1, "PlantLoop" => 1, "PumpVariableSpeed" => 1, "ScheduleFixedInterval" => 2 }
+    expected_values = { "InputCapacity" => 29307107, "ThermalEfficiency" => 0.754, "Setpoint" => 125, "OnCycle" => 7.38, "OffCycle" => 7.38, "FuelType" => Constants.FuelTypeGas }
+    _test_measure("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 1)
+  end
+
   def test_new_construction_standard_elec
     args_hash = {}
     expected_num_del_objects = {}
@@ -326,7 +336,7 @@ class ResidentialHotWaterHeaterTanklessTest < MiniTest::Test
         next if not new_object.respond_to?("to_#{obj_type}")
 
         new_object = new_object.public_send("to_#{obj_type}").get
-        if obj_type == "WaterHeaterMixed" or obj_type == "WaterHeaterStratified"
+        if obj_type == "WaterHeaterMixed"
           actual_values["TankVolume"] += UnitConversions.convert(new_object.tankVolume.get, "m^3", "gal")
           actual_values["InputCapacity"] += UnitConversions.convert(new_object.heaterMaximumCapacity.get, "W", "kW")
           actual_values["ThermalEfficiency"] += new_object.heaterThermalEfficiency.get

@@ -138,6 +138,16 @@ class ResidentialClothesWasher < OpenStudio::Measure::ModelMeasure
     schedule_day_shift.setDefaultValue(0)
     args << schedule_day_shift
 
+    # make an argument for whether to use smooth or realistic draw profiles
+    draw_profile_types = OpenStudio::StringVector.new
+    draw_profile_types << Constants.WaterHeaterDrawProfileTypeRealistic
+    draw_profile_types << Constants.WaterHeaterDrawProfileTypeSmooth
+    draw_profile_type = OpenStudio::Measure::OSArgument::makeChoiceArgument("draw_profile_type", draw_profile_types, true, true)
+    draw_profile_type.setDisplayName("Draw Profile Type")
+    draw_profile_type.setDescription("The '#{Constants.WaterHeaterDrawProfileTypeSmooth}' option uses the BA HSP smooth 24 hour curves, and the '#{Constants.WaterHeaterDrawProfileTypeRealistic}' uses the DHWESG draw profiles.")
+    draw_profile_type.setDefaultValue(Constants.WaterHeaterDrawProfileTypeRealistic)
+    args << draw_profile_type
+
     return args
   end # end the arguments method
 
@@ -165,6 +175,7 @@ class ResidentialClothesWasher < OpenStudio::Measure::ModelMeasure
     location = runner.getStringArgumentValue("location", user_arguments)
     plant_loop_s = runner.getStringArgumentValue("plant_loop", user_arguments)
     d_sh = runner.getIntegerArgumentValue("schedule_day_shift", user_arguments)
+    prof_type = runner.getStringArgumentValue("draw_profile_type", user_arguments)
 
     # Get building units
     units = Geometry.get_building_units(model, runner)
@@ -203,7 +214,7 @@ class ResidentialClothesWasher < OpenStudio::Measure::ModelMeasure
       success, ann_e, cd_updated, cd_sch, mains_temps = ClothesWasher.apply(model, unit, runner, imef, rated_annual_energy, annual_cost,
                                                                             test_date, drum_volume, cold_cycle, thermostatic_control,
                                                                             internal_heater, fill_sensor, mult_e, mult_hw, d_sh, cd_sch,
-                                                                            space, plant_loop, mains_temps)
+                                                                            space, plant_loop, mains_temps, prof_type)
 
       if not success
         return false

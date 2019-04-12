@@ -475,8 +475,83 @@ class MonthWeekdayWeekendSchedule
   end
 end
 
+# Generic class for handling an hourly schedule (saved as a csv) with 8760 values. Currently used by water heater models.
+class HourlySchedule
+  def initialize(model, runner, sch_name, file, offset, convert_temp, validation_values)
+    @validated = true
+    @model = model
+    @runner = runner
+    @sch_name = sch_name
+    @schedule = nil
+    @offset = offset
+    @convert_temp = convert_temp
+    @validation_values = validation_values
+    @schedule = createHourlyScheduleFromFile(runner, file, offset, convert_temp, validation_values)
+    if @schedule.nil?
+      @validated = false
+      return
+    end
+    schedule = @schedule
+  end
+
+  def validated?
+    return @validated
+  end
+
+  def schedule
+    return @schedule
+  end
+
+  private
+
+  def createHourlyScheduleFromFile(runner, file, offset, convert_temp, validation_values)
+    data = []
+
+    # Get appropriate file
+    hourly_schedule = "#{file}"
+    if not File.file?(hourly_schedule)
+      @runner.registerError("Unable to find file: #{hourly_schedule}")
+      return nil
+    end
+
+    # Read data into hourly array
+    hour = 0
+    data = [0] * 8760
+    File.open(file).each do |line|
+      linedata = line.strip.split(',')
+      if validation_values.empty?
+        if convert_temp == true
+          value = UnitConversions.convert((linedata[0].to_f + offset), "F", "C")
+        else
+          value = linedata[0].to_f + offset
+        end
+        data[hour] = value
+      else
+        if validation_values.include? linedata[0]
+          value = validation_values.find_index(linedata[0]).to_f / (validation_values.length.to_f - 1.0)
+          data[hour] = value
+        else
+          runner.registerError("Invalid value included in the hourly schedule file. The invalid data occurs at hour #{hour}")
+        end
+      end
+      hour += 1
+    end
+
+    year_description = @model.getYearDescription
+    start_date = year_description.makeDate(1, 1)
+    interval = OpenStudio::Time.new(0, 1, 0, 0)
+
+    time_series = OpenStudio::TimeSeries.new(start_date, interval, OpenStudio::createVector(data), "")
+
+    schedule = OpenStudio::Model::ScheduleFixedInterval.fromTimeSeries(time_series, @model).get
+    schedule.setName(@sch_name)
+
+    return schedule
+  end
+end
+
 class HotWaterSchedule
-  def initialize(model, runner, sch_name, temperature_sch_name, num_bedrooms, days_shift, file_prefix, target_water_temperature, create_sch_object = true)
+  def initialize(model, runner, sch_name, temperature_sch_name, num_bedrooms, days_shift, file_prefix, target_water_temperature, prof_type = Constants.WaterHeaterDrawProfileTypeRealistic, create_sch_object = true)
     @validated = true
     @model = model
     @runner = runner
@@ -495,8 +570,15 @@ class HotWaterSchedule
     timestep_minutes = (60 / @model.getTimestep.numberOfTimestepsPerHour).to_i
     weeks = 1 # use a single week that repeats
 
-    data = loadMinuteDrawProfileFromFile(timestep_minutes, days_shift, weeks)
-    @totflow, @maxflow, @ontime = loadDrawProfileStatsFromFile()
+    if prof_type == Constants.WaterHeaterDrawProfileTypeRealistic
+      data = loadMinuteDrawProfileFromFile(timestep_minutes, days_shift, weeks)
+      @totflow, @maxflow, @ontime = loadDrawProfileStatsFromFile()
+    elsif prof_type == Constants.WaterHeaterDrawProfileTypeSmooth
+      # TODO: new methods for smooth draw profiles below
+      data = loadMinuteDrawProfileFromFile(timestep_minutes, days_shift, weeks)
+      @totflow, @maxflow, @ontime = loadDrawProfileStatsFromFile()
+    end
+
     if data.nil? or @totflow.nil? or @maxflow.nil? or @ontime.nil?
       @validated = false
       return
