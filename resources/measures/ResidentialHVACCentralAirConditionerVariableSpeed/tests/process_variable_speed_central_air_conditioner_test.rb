@@ -189,7 +189,7 @@ class ProcessVariableSpeedCentralAirConditionerTest < MiniTest::Test
     args_hash = {}
     expected_num_del_objects = {}
     expected_num_new_objects = { "AirLoopHVACUnitarySystem" => num_units, "AirLoopHVAC" => num_units, "CoilCoolingDXMultiSpeed" => num_units, "FanOnOff" => num_units, "AirTerminalSingleDuctConstantVolumeNoReheat" => num_units, "CoilCoolingDXMultiSpeedStageData" => num_units * 4, "UnitarySystemPerformanceMultispeed" => num_units }
-    expected_values = { "COP" => [6.29, 5.97, 5.33, 4.67], "MaximumSupplyAirTemperature" => 48.88, "hvac_priority" => 2 }
+    expected_values = { "COP" => [6.29, 5.97, 5.33, 4.67], "MaximumSupplyAirTemperature" => 48.88 }
     _test_measure("SFA_4units_1story_SL_UA_3Beds_2Baths_Denver_Central_System_Boiler_Baseboards.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, num_units * 3)
   end
 
@@ -207,7 +207,7 @@ class ProcessVariableSpeedCentralAirConditionerTest < MiniTest::Test
     args_hash = {}
     expected_num_del_objects = { "PlantLoop" => 1, "PumpVariableSpeed" => 1, "BoilerHotWater" => 1, "ControllerWaterCoil" => num_units, "CoilHeatingWater" => num_units, "FanConstantVolume" => num_units, "CoilCoolingDXSingleSpeed" => num_units, "ZoneHVACPackagedTerminalAirConditioner" => num_units, "SetpointManagerScheduled" => 1, "EnergyManagementSystemSensor" => 1, "EnergyManagementSystemProgram" => 1, "EnergyManagementSystemOutputVariable" => 1, "EnergyManagementSystemProgramCallingManager" => 1 }
     expected_num_new_objects = { "AirLoopHVACUnitarySystem" => num_units, "AirLoopHVAC" => num_units, "CoilCoolingDXMultiSpeed" => num_units, "FanOnOff" => num_units, "AirTerminalSingleDuctConstantVolumeNoReheat" => num_units, "CoilCoolingDXMultiSpeedStageData" => num_units * 4, "UnitarySystemPerformanceMultispeed" => num_units }
-    expected_values = { "COP" => [6.29, 5.97, 5.33, 4.67], "MaximumSupplyAirTemperature" => 48.88, "hvac_priority" => 1 }
+    expected_values = { "COP" => [6.29, 5.97, 5.33, 4.67], "MaximumSupplyAirTemperature" => 48.88 }
     _test_measure("SFA_4units_1story_SL_UA_3Beds_2Baths_Denver_Central_System_PTAC.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, num_units * 4 + 1)
   end
 

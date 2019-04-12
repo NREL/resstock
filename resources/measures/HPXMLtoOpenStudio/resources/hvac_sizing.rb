@@ -2242,6 +2242,17 @@ class HVACSizing
       unit_final.Heat_Airflow = 0
     end
 
+    if hvac.HasCentralAirConditioner
+      unless hvac.ActualAirFlowRate.nil?
+        unit_final.Cool_Airflow = hvac.ActualAirFlowRate * UnitConversions.convert(unit_final.Cool_Capacity, "Btu/hr", "ton") # cfm
+      end
+    elsif hvac.HasAirSourceHeatPump
+      unless hvac.ActualAirFlowRate.nil?
+        unit_final.Cool_Airflow = hvac.ActualAirFlowRate * UnitConversions.convert(unit_final.Cool_Capacity, "Btu/hr", "ton") # cfm
+        unit_final.Heat_Airflow = unit_final.Cool_Airflow # cfm
+      end
+    end
+
     return unit_final
   end
 
@@ -3035,6 +3046,10 @@ class HVACSizing
             return nil if capacityDerateFactorEER.nil?
 
             hvac.CapacityDerateFactorEER = capacityDerateFactorEER.split(",").map(&:to_f)
+          end
+
+          if hvac.HasCentralAirConditioner or hvac.HasAirSourceHeatPump
+            hvac.ActualAirFlowRate = get_feature(runner, unit, Constants.SizingInfoHVACActualCFMperTonCooling, 'double')
           end
 
         elsif clg_coil.is_a? OpenStudio::Model::CoilCoolingDXMultiSpeed

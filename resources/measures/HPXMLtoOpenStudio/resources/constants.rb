@@ -654,6 +654,14 @@ class Constants
     return "res infil#{s_unit}"
   end
 
+  def self.ObjectNameInstallationQualityFault(unit_name = self.ObjectNameBuildingUnit)
+    s_unit = ""
+    if unit_name != self.ObjectNameBuildingUnit
+      s_unit = "|#{unit_name}"
+    end
+    return "res install quality fault#{s_unit}"
+  end
+
   def self.ObjectNameLighting(unit_name = self.ObjectNameBuildingUnit)
     s_unit = ""
     if unit_name != self.ObjectNameBuildingUnit
@@ -958,6 +966,10 @@ class Constants
 
   def self.SizingAutoMaxLoad
     return 'autosize for max load'
+  end
+
+  def self.SizingInfoHVACActualCFMperTonCooling
+    return __method__.to_s
   end
 
   def self.SizingInfoCMUWallFurringInsRvalue

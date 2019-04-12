@@ -199,7 +199,7 @@ class ProcessVariableSpeedAirSourceHeatPumpTest < MiniTest::Test
     args_hash = {}
     expected_num_del_objects = { "PlantLoop" => 2, "PumpVariableSpeed" => 2, "BoilerHotWater" => 1, "ChillerElectricEIR" => 1, "ControllerWaterCoil" => 2 * num_units, "CoilCoolingWater" => num_units, "CoilHeatingWater" => num_units, "FanOnOff" => num_units, "ZoneHVACFourPipeFanCoil" => num_units, "SetpointManagerScheduled" => 2, "EnergyManagementSystemSensor" => 2, "EnergyManagementSystemProgram" => 1, "EnergyManagementSystemOutputVariable" => 2, "EnergyManagementSystemProgramCallingManager" => 1 }
     expected_num_new_objects = { "AirLoopHVACUnitarySystem" => num_units * 2, "AirLoopHVAC" => num_units * 2, "CoilCoolingDXMultiSpeed" => num_units, "FanOnOff" => num_units * 2, "AirTerminalSingleDuctConstantVolumeNoReheat" => num_units * 2, "CoilHeatingElectric" => num_units, "CoilHeatingDXMultiSpeed" => num_units, "CoilCoolingDXMultiSpeedStageData" => num_units * 4, "CoilHeatingDXMultiSpeedStageData" => num_units * 4, "UnitarySystemPerformanceMultispeed" => num_units * 2 }
-    expected_values = { "CoolingCOP" => [5.65, 5.44, 4.57, 4.13], "HeatingCOP" => [5.13, 4.83, 4.08, 4.11], "MaximumSupplyAirTemperature" => 76.66, "hvac_priority" => 1 }
+    expected_values = { "CoolingCOP" => [5.65, 5.44, 4.57, 4.13], "HeatingCOP" => [5.13, 4.83, 4.08, 4.11], "MaximumSupplyAirTemperature" => 76.66 }
     _test_measure("SFA_4units_1story_SL_UA_3Beds_2Baths_Denver_Central_System_Fan_Coil.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, num_units * 8 + 2)
   end
 
@@ -208,7 +208,7 @@ class ProcessVariableSpeedAirSourceHeatPumpTest < MiniTest::Test
     args_hash = {}
     expected_num_del_objects = { "PlantLoop" => 1, "PumpVariableSpeed" => 1, "BoilerHotWater" => 1, "ControllerWaterCoil" => num_units, "CoilHeatingWater" => num_units, "FanConstantVolume" => num_units, "CoilCoolingDXSingleSpeed" => num_units, "ZoneHVACPackagedTerminalAirConditioner" => num_units, "SetpointManagerScheduled" => 1, "EnergyManagementSystemSensor" => 1, "EnergyManagementSystemProgram" => 1, "EnergyManagementSystemOutputVariable" => 1, "EnergyManagementSystemProgramCallingManager" => 1 }
     expected_num_new_objects = { "AirLoopHVACUnitarySystem" => num_units * 2, "AirLoopHVAC" => num_units * 2, "CoilCoolingDXMultiSpeed" => num_units, "FanOnOff" => num_units * 2, "AirTerminalSingleDuctConstantVolumeNoReheat" => num_units * 2, "CoilHeatingElectric" => num_units, "CoilHeatingDXMultiSpeed" => num_units, "CoilCoolingDXMultiSpeedStageData" => num_units * 4, "CoilHeatingDXMultiSpeedStageData" => num_units * 4, "UnitarySystemPerformanceMultispeed" => num_units * 2 }
-    expected_values = { "CoolingCOP" => [5.65, 5.44, 4.57, 4.13], "HeatingCOP" => [5.13, 4.83, 4.08, 4.11], "MaximumSupplyAirTemperature" => 76.66, "hvac_priority" => 1 }
+    expected_values = { "CoolingCOP" => [5.65, 5.44, 4.57, 4.13], "HeatingCOP" => [5.13, 4.83, 4.08, 4.11], "MaximumSupplyAirTemperature" => 76.66 }
     _test_measure("SFA_4units_1story_SL_UA_3Beds_2Baths_Denver_Central_System_PTAC.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, num_units * 8 + 1)
   end
 

@@ -134,6 +134,29 @@ class ProcessSingleSpeedCentralAirConditioner < OpenStudio::Measure::ModelMeasur
     dse.setDefaultValue("NA")
     args << dse
 
+    # make a double argument for ashp rated cfm per ton
+    rated_cfm_per_ton = OpenStudio::Measure::OSArgument::makeDoubleArgument("rated_cfm_per_ton", true)
+    rated_cfm_per_ton.setDisplayName("Rated CFM Per Ton")
+    rated_cfm_per_ton.setUnits("cfm/ton")
+    rated_cfm_per_ton.setDescription("TODO.")
+    rated_cfm_per_ton.setDefaultValue(400.0)
+    args << rated_cfm_per_ton
+
+    # make a double argument for ashp actual cfm per ton
+    actual_cfm_per_ton = OpenStudio::Measure::OSArgument::makeDoubleArgument("actual_cfm_per_ton", true)
+    actual_cfm_per_ton.setDisplayName("Actual CFM Per Ton")
+    actual_cfm_per_ton.setUnits("cfm/ton")
+    actual_cfm_per_ton.setDescription("TODO.")
+    actual_cfm_per_ton.setDefaultValue(400.0)
+    args << actual_cfm_per_ton
+
+    # make a double argument for ashp fraction of manufacturer recommended charge
+    frac_manufacturer_charge = OpenStudio::Measure::OSArgument::makeDoubleArgument("frac_manufacturer_charge", true)
+    frac_manufacturer_charge.setDisplayName("Fraction of Manufacturer Recommended Charge")
+    frac_manufacturer_charge.setDescription("TODO.")
+    frac_manufacturer_charge.setDefaultValue(1.0)
+    args << frac_manufacturer_charge
+
     return args
   end # end the arguments method
 
@@ -169,7 +192,28 @@ class ProcessSingleSpeedCentralAirConditioner < OpenStudio::Measure::ModelMeasur
     else
       dse = 1.0
     end
+    rated_cfm_per_ton = runner.getDoubleArgumentValue("rated_cfm_per_ton", user_arguments)
+    actual_cfm_per_ton = runner.getDoubleArgumentValue("actual_cfm_per_ton", user_arguments)
+    frac_manufacturer_charge = runner.getDoubleArgumentValue("frac_manufacturer_charge", user_arguments)
     frac_cool_load_served = 1.0
+
+    # Error checking
+    if (rated_cfm_per_ton < 150 or actual_cfm_per_ton < 150) or (rated_cfm_per_ton > 750 or actual_cfm_per_ton > 750)
+      runner.registerError("Air flow rate input(s) are outside the valid range.")
+      return false
+    end
+    if (rated_cfm_per_ton < 200 or actual_cfm_per_ton < 200) or (rated_cfm_per_ton > 600 or actual_cfm_per_ton > 600)
+      runner.registerWarning("Air flow rate input(s) are almost outside the valid range.")
+    end
+    if (frac_manufacturer_charge < 0.70) or (frac_manufacturer_charge > 1.30)
+      runner.registerError("Fraction of manufacturer charge is outside the valid range.")
+    end
+    if (frac_manufacturer_charge < 0.75) or (frac_manufacturer_charge > 1.25)
+      runner.registerWarning("Fraction of manufacturer charge is almost outside the valid range.")
+    end
+
+    # Remove any existing installation quality fault programs
+    HVAC.remove_fault_ems(model, Constants.ObjectNameInstallationQualityFault)
 
     # Get building units
     units = Geometry.get_building_units(model, runner)
@@ -189,8 +233,21 @@ class ProcessSingleSpeedCentralAirConditioner < OpenStudio::Measure::ModelMeasur
                                              fan_power_rated, fan_power_installed,
                                              crankcase_capacity, crankcase_temp,
                                              eer_capacity_derates, capacity, dse,
-                                             frac_cool_load_served)
+                                             frac_cool_load_served,
+                                             rated_cfm_per_ton)
       return false if not success
+
+      if rated_cfm_per_ton != actual_cfm_per_ton or frac_manufacturer_charge != 1.0
+
+        HVAC.get_control_and_slave_zones(thermal_zones).each do |control_zone, slave_zones|
+         success = HVAC.write_fault_ems(model, unit, runner, control_zone,
+                                        rated_cfm_per_ton, actual_cfm_per_ton, frac_manufacturer_charge)
+         return false if not success
+       end
+
+      end
+
+      unit.setFeature(Constants.SizingInfoHVACActualCFMperTonCooling, actual_cfm_per_ton)
     end # unit
 
     return true

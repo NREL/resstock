@@ -6,11 +6,243 @@ require_relative "psychrometrics"
 require_relative "schedules"
 
 class HVAC
+  def self.write_fault_ems(model, unit, runner, control_zone, rated_airflow_rate, installed_airflow_rate, frac_manufacturer_charge)
+    obj_name = Constants.ObjectNameInstallationQualityFault(unit.name.to_s.gsub("unit ", "")).gsub("|", "_")
+
+    thermal_zones = Geometry.get_thermal_zones_from_spaces(unit.spaces)
+
+    unit_living = nil
+    thermal_zones.each do |thermal_zone|
+      if Geometry.is_living(thermal_zone)
+        unit_living = thermal_zone
+      end
+    end
+
+    tin_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, "Zone Mean Air Temperature")
+    tin_sensor.setName("#{obj_name} tin s")
+    tin_sensor.setKeyName(unit_living.name.to_s)
+
+    tout_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, "Zone Outdoor Air Drybulb Temperature")
+    tout_sensor.setName("#{obj_name} tt s")
+    tout_sensor.setKeyName(unit_living.name.to_s)
+
+    htg_coils = []
+    clg_coils = []
+    unitary_system_air_loops = get_unitary_system_air_loops(model, runner, control_zone)
+    unitary_system_air_loops.each do |unitary_system_air_loop|
+      system, clg_coil, htg_coil, air_loop = unitary_system_air_loop
+ 
+      unless clg_coil.nil?
+        clg_coil = get_coil_from_hvac_component(clg_coil)
+
+        if clg_coil.to_CoilCoolingDXMultiSpeed.is_initialized
+          runner.registerWarning("Currently can only apply fault program to single-speed equipment.")
+          return true    
+        end
+
+        clg_coils << clg_coil
+      end
+
+      unless htg_coil.nil?
+        htg_coil = get_coil_from_hvac_component(htg_coil)
+
+        if htg_coil.to_CoilHeatingDXMultiSpeed.is_initialized
+          runner.registerWarning("Currently can only apply fault program to single-speed equipment.")
+          return true    
+        end
+
+        htg_coils << htg_coil
+      end
+    end
+
+    unless clg_coils.empty?
+      if clg_coils.length > 1
+        runner.registerError("Found multiple cooling coils.")
+        return false
+      end
+      clg_coil = clg_coils[0]
+
+      cool_cap_fff_curve = clg_coil.totalCoolingCapacityFunctionOfFlowFractionCurve
+      cool_eir_fff_curve = clg_coil.energyInputRatioFunctionOfFlowFractionCurve
+  
+      cool_cap_fff_act = OpenStudio::Model::EnergyManagementSystemActuator.new(cool_cap_fff_curve, "Curve", "Curve Result")
+      cool_cap_fff_act.setName("#{obj_name} cap clg act")
+  
+      cool_eir_fff_act = OpenStudio::Model::EnergyManagementSystemActuator.new(cool_eir_fff_curve, "Curve", "Curve Result")
+      cool_eir_fff_act.setName("#{obj_name} eir clg act")
+  
+      fault_program = OpenStudio::Model::EnergyManagementSystemProgram.new(model)
+      fault_program.setName("#{obj_name} prog")
+  
+      f_af = installed_airflow_rate / rated_airflow_rate - 1.0
+      f_chg = frac_manufacturer_charge - 1.0
+  
+      fault_program.addLine("Set F_AF = #{f_af.round(3)}")
+      fault_program.addLine("Set a1_AF_Qgr_c = 0.295")
+      fault_program.addLine("Set a2_AF_Qgr_c = -0.00117")
+      fault_program.addLine("Set a3_AF_Qgr_c = -0.00157")
+      fault_program.addLine("Set a4_AF_Qgr_c = 0.0692")
+      fault_program.addLine("Set q0_AF = a1_AF_Qgr_c")
+      fault_program.addLine("Set q1_AF = a2_AF_Qgr_c*#{tin_sensor.name}")
+      fault_program.addLine("Set q2_AF = a3_AF_Qgr_c*#{tout_sensor.name}")
+      fault_program.addLine("Set q3_AF = a4_AF_Qgr_c*F_AF")
+      fault_program.addLine("Set Y_AF_Q_R_c = 1 + ((q0_AF+(q1_AF)+(q2_AF)+(q3_AF))*F_AF)")
+  
+      fault_program.addLine("Set a1_AF_Wodu_c = -0.103")
+      fault_program.addLine("Set a2_AF_Wodu_c = 0.00412")
+      fault_program.addLine("Set a3_AF_Wodu_c = 0.00238")
+      fault_program.addLine("Set a4_AF_Wodu_c = 0.21")
+      fault_program.addLine("Set w1_AF = a1_AF_Wodu_c")
+      fault_program.addLine("Set w2_AF = a2_AF_Wodu_c*#{tin_sensor.name}")
+      fault_program.addLine("Set w3_AF = a3_AF_Wodu_c*#{tout_sensor.name}")
+      fault_program.addLine("Set w4_AF = a4_AF_Wodu_c*F_AF")
+      fault_program.addLine("Set Y_AF_OD_c = 1 + ((w1_AF+(w2_AF)+(w3_AF)+(w4_AF))*F_AF)")
+  
+      fault_program.addLine("Set F_CH = #{f_chg.round(3)}")
+      if f_chg <= 0
+        fault_program.addLine("Set a1_CH_Qgr_c = -9.46E-01")
+        fault_program.addLine("Set a2_CH_Qgr_c = 4.93E-02")
+        fault_program.addLine("Set a3_CH_Qgr_c = -1.18E-03")
+        fault_program.addLine("Set a4_CH_Qgr_c = -1.15E+00")
+  
+        fault_program.addLine("Set a1_CH_Wod_c = -3.13E-01")
+        fault_program.addLine("Set a2_CH_Wod_c = 1.15E-02")
+        fault_program.addLine("Set a3_CH_Wod_c = 2.66E-03")
+        fault_program.addLine("Set a4_CH_Wod_c = -1.16E-01")
+      else
+        fault_program.addLine("Set a1_CH_Qgr_c = -1.63E-01")
+        fault_program.addLine("Set a2_CH_Qgr_c = 1.14E-02")
+        fault_program.addLine("Set a3_CH_Qgr_c = -2.10E-04")
+        fault_program.addLine("Set a4_CH_Qgr_c = -1.40E-01")
+  
+        fault_program.addLine("Set a1_CH_Wod_c = 2.19E-01")
+        fault_program.addLine("Set a2_CH_Wod_c = -5.01E-03")
+        fault_program.addLine("Set a3_CH_Wod_c = 9.89E-04")
+        fault_program.addLine("Set a4_CH_Wod_c = 2.84E-01")
+      end
+  
+      fault_program.addLine("Set q0_CH = a1_CH_Qgr_c")
+      fault_program.addLine("Set q1_CH = a2_CH_Qgr_c*#{tin_sensor.name}")
+      fault_program.addLine("Set q2_CH = a3_CH_Qgr_c*#{tout_sensor.name}")
+      fault_program.addLine("Set q3_CH = a4_CH_Qgr_c*F_CH")
+      fault_program.addLine("Set Y_CH_Q_R_c = 1 + ((q0_CH+(q1_CH)+(q2_CH)+(q3_CH))*F_CH)")
+  
+      fault_program.addLine("Set w1_CH = a1_CH_Wod_c")
+      fault_program.addLine("Set w2_CH = a2_CH_Wod_c*#{tin_sensor.name}")
+      fault_program.addLine("Set w3_CH = a3_CH_Wod_c*#{tout_sensor.name}")
+      fault_program.addLine("Set w4_CH = a4_CH_Wod_c*F_CH")
+      fault_program.addLine("Set Y_CH_OD_c = 1 + ((w1_CH+(w2_CH)+(w3_CH)+(w4_CH))*F_CH)")
+  
+      fault_program.addLine("Set #{cool_cap_fff_act.name} = (Y_AF_Q_R_c*Y_CH_Q_R_c)")
+      fault_program.addLine("Set #{cool_eir_fff_act.name} = ((Y_AF_OD_c*Y_CH_OD_c)/(Y_AF_Q_R_c*Y_CH_Q_R_c))")
+    end
+
+    unless htg_coils.empty?
+      if htg_coils.length > 1
+        runner.registerError("Found multiple heating coils.")
+        return false
+      end
+      htg_coil = htg_coils[0]
+
+      hp_heat_cap_fff_curve = htg_coil.totalHeatingCapacityFunctionofFlowFractionCurve
+      hp_heat_eir_fff_curve = htg_coil.energyInputRatioFunctionofFlowFractionCurve
+
+      hp_heat_cap_fff_act = OpenStudio::Model::EnergyManagementSystemActuator.new(hp_heat_cap_fff_curve, "Curve", "Curve Result")
+      hp_heat_cap_fff_act.setName("#{obj_name} cap htg act")
+
+      hp_heat_eir_fff_act = OpenStudio::Model::EnergyManagementSystemActuator.new(hp_heat_eir_fff_curve, "Curve", "Curve Result")
+      hp_heat_eir_fff_act.setName("#{obj_name} eir htg act")
+
+      fault_program.addLine("Set a1_AF_Qgr_h = 0.0009404")
+      fault_program.addLine("Set a2_AF_Qgr_h = 0.0065171")
+      fault_program.addLine("Set a3_AF_Qgr_h = -0.3464391")
+      fault_program.addLine("Set qh1_AF = a1_AF_Qgr_h")
+      fault_program.addLine("Set qh2_AF = a2_AF_Qgr_h*#{tout_sensor.name}")
+      fault_program.addLine("Set qh3_AF = a3_AF_Qgr_h*F_AF")
+      fault_program.addLine("Set Y_AF_Q_R_h = 1 + ((qh1_AF+(qh2_AF)+(qh3_AF))*F_AF)")
+
+      fault_program.addLine("Set a1_AF_Wodu_h = -0.177359")
+      fault_program.addLine("Set a2_AF_Wodu_h = -0.0125111")
+      fault_program.addLine("Set a3_AF_Wodu_h = 0.4784914")
+      fault_program.addLine("Set wh1_AF = a1_AF_Wodu_h")
+      fault_program.addLine("Set wh2_AF = a2_AF_Wodu_h*#{tout_sensor.name}")
+      fault_program.addLine("Set wh3_AF = a3_AF_Wodu_h*F_AF")
+      fault_program.addLine("Set Y_AF_OD_h = 1 + ((wh1_AF+(wh2_AF)+(wh3_AF))*F_AF)")
+
+      if f_chg <= 0
+        fault_program.addLine("Set a1_CH_Qgr_h = -0.0338595")
+        fault_program.addLine("Set a2_CH_Qgr_h = 0.0202827")
+        fault_program.addLine("Set a3_CH_Qgr_h = -2.6226343")
+
+        fault_program.addLine("Set a1_CH_Wod_h = 0.0615649")
+        fault_program.addLine("Set a2_CH_Wod_h = 0.0044554")
+        fault_program.addLine("Set a3_CH_Wod_h = -0.2598507")
+      else
+        fault_program.addLine("Set a1_CH_Qgr_h = -0.0029514")
+        fault_program.addLine("Set a2_CH_Qgr_h = 0.0007379")
+        fault_program.addLine("Set a3_CH_Qgr_h = -0.0064112")
+
+        fault_program.addLine("Set a1_CH_Wod_h = -0.0594134")
+        fault_program.addLine("Set a2_CH_Wod_h = 0.0159205")
+        fault_program.addLine("Set a3_CH_Wod_h = 1.8872153")
+      end
+
+      fault_program.addLine("Set qh1_CH = a1_CH_Qgr_h")
+      fault_program.addLine("Set qh2_CH = a2_CH_Qgr_h*#{tout_sensor.name}")
+      fault_program.addLine("Set qh3_CH = a3_CH_Qgr_h*F_CH")
+      fault_program.addLine("Set Y_CH_Q_R_h = 1 + ((qh1_CH+(qh2_CH)+(qh3_CH))*F_CH)")
+
+      fault_program.addLine("Set wh1_CH = a1_CH_Wod_h")
+      fault_program.addLine("Set wh2_CH = a2_CH_Wod_h*#{tout_sensor.name}")
+      fault_program.addLine("Set wh3_CH = a3_CH_Wod_h*F_CH")
+      fault_program.addLine("Set Y_CH_OD_h = 1 + ((wh1_CH+(wh2_CH)+(wh3_CH))*F_CH)")
+
+      fault_program.addLine("Set #{hp_heat_cap_fff_act.name} = (Y_AF_Q_R_h*Y_CH_Q_R_h)")
+      fault_program.addLine("Set #{hp_heat_eir_fff_act.name} = (Y_AF_OD_h*Y_CH_OD_h) / (Y_AF_Q_R_h*Y_CH_Q_R_h)")
+    end
+
+    program_calling_manager = OpenStudio::Model::EnergyManagementSystemProgramCallingManager.new(model)
+    program_calling_manager.setName("#{obj_name} prog man")
+    program_calling_manager.setCallingPoint("InsideHVACSystemIterationLoop")
+    program_calling_manager.addProgram(fault_program)
+
+    return true
+  end
+
+  def self.remove_fault_ems(model, obj_name)
+    # Remove existing EMS
+
+    model.getEnergyManagementSystemProgramCallingManagers.each do |pcm|
+      next unless pcm.name.to_s.start_with? obj_name
+
+      pcm.remove
+    end
+
+    model.getEnergyManagementSystemSensors.each do |sensor|
+      next unless sensor.name.to_s.start_with? obj_name.gsub(" ", "_")
+
+      sensor.remove
+    end
+
+    model.getEnergyManagementSystemActuators.each do |actuator|
+      next unless actuator.name.to_s.start_with? obj_name.gsub(" ", "_")
+
+      actuator.remove
+    end
+
+    model.getEnergyManagementSystemPrograms.each do |program|
+      next unless program.name.to_s.start_with? obj_name.gsub(" ", "_")
+
+      program.remove
+    end
+ end
+
   def self.apply_central_ac_1speed(model, unit, runner, seer, eers, shrs,
                                    fan_power_rated, fan_power_installed,
                                    crankcase_capacity, crankcase_temp,
                                    eer_capacity_derates, capacity, dse,
-                                   frac_cool_load_served)
+                                   frac_cool_load_served,
+                                   rated_airflow_rate)
 
     return true if frac_cool_load_served <= 0
 
@@ -28,7 +260,6 @@ class HVAC
     fan_speed_ratios = [1.0]
 
     # Cooling Coil
-    rated_airflow_rate = 386.1 # cfm
     cfms_ton_rated = calc_cfms_ton_rated(rated_airflow_rate, fan_speed_ratios, capacity_ratios)
     cooling_eirs = calc_cooling_eirs(num_speeds, eers, fan_power_rated)
     shrs_rated_gross = calc_shrs_rated_gross(num_speeds, shrs, fan_power_rated, cfms_ton_rated)
@@ -440,7 +671,8 @@ class HVAC
                                      eer_capacity_derates, cop_capacity_derates,
                                      heat_pump_capacity, supplemental_efficiency,
                                      supplemental_capacity, dse,
-                                     frac_heat_load_served, frac_cool_load_served)
+                                     frac_heat_load_served, frac_cool_load_served,
+                                     rated_airflow_rate)
 
     if heat_pump_capacity == Constants.SizingAutoMaxLoad
       runner.registerWarning("Using #{Constants.SizingAutoMaxLoad} is not recommended for single-speed heat pumps. When sized larger than the cooling load, this can lead to humidity concerns due to reduced dehumidification performance by the heat pump.")
@@ -465,15 +697,13 @@ class HVAC
     fan_speed_ratios_heating = [1.0]
 
     # Cooling Coil
-    rated_airflow_rate_cooling = 394.2 # cfm
-    cfms_ton_rated_cooling = calc_cfms_ton_rated(rated_airflow_rate_cooling, fan_speed_ratios_cooling, capacity_ratios)
+    cfms_ton_rated_cooling = calc_cfms_ton_rated(rated_airflow_rate, fan_speed_ratios_cooling, capacity_ratios)
     cooling_eirs = calc_cooling_eirs(num_speeds, eers, fan_power_rated)
     shrs_rated_gross = calc_shrs_rated_gross(num_speeds, shrs, fan_power_rated, cfms_ton_rated_cooling)
     cOOL_CLOSS_FPLR_SPEC = [calc_plr_coefficients_cooling(num_speeds, seer)]
 
     # Heating Coil
-    rated_airflow_rate_heating = 384.1 # cfm
-    cfms_ton_rated_heating = calc_cfms_ton_rated(rated_airflow_rate_heating, fan_speed_ratios_heating, capacity_ratios)
+    cfms_ton_rated_heating = calc_cfms_ton_rated(rated_airflow_rate, fan_speed_ratios_heating, capacity_ratios)
     heating_eirs = calc_heating_eirs(num_speeds, cops, fan_power_rated)
     hEAT_CLOSS_FPLR_SPEC = [calc_plr_coefficients_heating(num_speeds, hspf)]
 
