@@ -7,9 +7,10 @@ class TsvFile
     @filename = File.basename(full_path)
     @runner = runner
     @rows, @option_cols, @dependency_cols, @full_header, @header = get_file_data()
+    @rows_keys_s = construct_rows_keys_s()
   end
 
-  attr_accessor :dependency_cols, :rows, :option_cols, :header, :filename
+  attr_accessor :dependency_cols, :rows, :option_cols, :header, :filename, :rows_keys_s
 
   def get_file_data()
     option_key = "Option="
@@ -56,6 +57,19 @@ class TsvFile
 
     return rows, option_cols, dependency_cols, full_header, header
   end
+  
+  def construct_rows_keys_s
+    # Caches data for faster tsv lookups
+    rows_keys_s = []
+    @rows.each_with_index do |row, rownum|
+      row_key_values = {}
+      @dependency_cols.each do |dep, dep_col|
+        row_key_values[dep] = row[@dependency_cols[dep]].downcase
+      end
+      rows_keys_s << hash_to_string(row_key_values).downcase
+    end
+    return rows_keys_s
+  end
 
   def get_option_name_from_sample_number(sample_value, dependency_values)
     # Retrieve option name from probability file based on sample value
@@ -64,91 +78,72 @@ class TsvFile
     matched_row_num = nil
 
     if dependency_values.nil?
-      dependency_values = []
+      dependency_values = {}
     end
 
-    deps_s = hash_to_string(dependency_values)
-
-    @rows.each_with_index do |row, rownum|
-      # Find appropriate row by matching dependency values
-      found_row = false
-      if dependency_values.size == 0
-        found_row = true
+    key_s = hash_to_string(dependency_values)
+    key_s_downcase = key_s.downcase
+    
+    num_matches = @rows_keys_s.count(key_s_downcase)
+    if num_matches > 1
+      if key_s.size > 0
+        register_error("Multiple rows found in #{@filename.to_s} with dependencies: #{key_s.to_s}.", @runner)
       else
-        num_deps_matched = 0
-        dependency_values.each do |dep, dep_val|
-          next if row[@dependency_cols[dep]].nil?
-
-          if row[@dependency_cols[dep]].downcase == dep_val.downcase
-            num_deps_matched += 1
-            if num_deps_matched == dependency_values.size
-              found_row = true
-              break
-            end
-          end
-        end
+        register_error("Multiple rows found in #{@filename.to_s}.", @runner)
       end
-      next if not found_row
-
-      # Is this our second match?
-      if not matched_row_num.nil?
-        if deps_s.size > 0
-          register_error("Multiple rows (#{matched_row_num + 2}, #{rownum + 2}) found in #{@filename.to_s} with dependencies: #{deps_s.to_s}.", @runner)
-        else
-          register_error("Multiple rows (#{matched_row_num + 2}, #{rownum + 2}) found in #{@filename.to_s}.", @runner)
-        end
-      end
-
-      # Convert data to numeric row values
-      rowvals = {}
-      @option_cols.each do |option_name, option_col|
-        if not row[option_col].is_number?
-          register_error("Field '#{row[option_col].to_s}' in #{@filename.to_s} must be numeric.", @runner)
-        end
-        rowvals[option_name] = row[option_col].to_f
-      end
-
-      # Check positivity of the probability values
-      if rowvals.values.min < 0
-        register_error("Probability value in #{@filename.to_s} is less than zero.", @runner)
-      end
-
-      # Sum of values within 2% of 100%?
-      sum_rowvals = rowvals.values.reduce(:+)
-      if sum_rowvals < 0.98 or sum_rowvals > 1.02
-        register_error("Values in #{@filename.to_s} incorrectly sum to #{sum_rowvals.to_s}.", @runner)
-      end
-
-      # If values don't exactly sum to 1, normalize them
-      if sum_rowvals != 1.0
-        rowvals.each do |option_name, rowval|
-          rowvals[option_name] = rowval / sum_rowvals
-        end
-      end
-
-      # Find appropriate value
-      rowsum = 0
-      @option_cols.each_with_index do |(option_name, option_col), index|
-        rowsum += rowvals[option_name]
-        if rowsum >= sample_value or (index == @option_cols.size - 1 and rowsum + 0.00001 >= sample_value)
-          matched_option_name = option_name
-          matched_row_num = rownum
-          break
-        end
-      end
-    end
-
-    if matched_option_name.nil? or matched_option_name.size == 0
-      if deps_s.size > 0
-        register_error("Could not determine appropriate option in #{@filename.to_s} for sample value #{sample_value.to_s} with dependencies: #{deps_s.to_s}.", @runner)
+    elsif num_matches == 0
+      if key_s.size > 0
+        register_error("Could not determine appropriate option in #{@filename.to_s} for sample value #{sample_value.to_s} with dependencies: #{key_s.to_s}.", @runner)
       else
         register_error("Could not determine appropriate option in #{@filename.to_s} for sample value #{sample_value.to_s}.", @runner)
       end
-      return matched_option_name
+    end
+    
+    rownum = @rows_keys_s.index(key_s_downcase)
+
+    row = @rows[rownum]
+
+    # Convert data to numeric row values
+    rowvals = {}
+    @option_cols.each do |option_name, option_col|
+      if not row[option_col].is_number?
+        register_error("Field '#{row[option_col].to_s}' in #{@filename.to_s} must be numeric.", @runner)
+      end
+      rowvals[option_name] = row[option_col].to_f
     end
 
+    # Check positivity of the probability values
+    if rowvals.values.min < 0
+      register_error("Probability value in #{@filename.to_s} is less than zero.", @runner)
+    end
+
+    # Sum of values within 2% of 100%?
+    sum_rowvals = rowvals.values.reduce(:+)
+    if sum_rowvals < 0.98 or sum_rowvals > 1.02
+      register_error("Values in #{@filename.to_s} incorrectly sum to #{sum_rowvals.to_s}.", @runner)
+    end
+
+    # If values don't exactly sum to 1, normalize them
+    if sum_rowvals != 1.0
+      rowvals.each do |option_name, rowval|
+        rowvals[option_name] = rowval / sum_rowvals
+      end
+    end
+
+    # Find appropriate value
+    rowsum = 0
+    @option_cols.each_with_index do |(option_name, option_col), index|
+      rowsum += rowvals[option_name]
+      if rowsum >= sample_value or (index == @option_cols.size - 1 and rowsum + 0.00001 >= sample_value)
+        matched_option_name = option_name
+        matched_row_num = rownum
+        break
+      end
+    end
+    
     return matched_option_name, matched_row_num
   end
+
 end
 
 def get_parameters_ordered_from_options_lookup_tsv(resources_dir, characteristics_dir = nil)

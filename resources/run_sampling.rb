@@ -156,20 +156,15 @@ class RunSampling
     if dep_hash.nil?
       return tsvfile.rows[0]
     end
-
-    tsvfile.rows.each_with_index do |tsvrow, index|
-      row_matched = true
-      tsvfile.dependency_cols.each do |dep_name, dep_col|
-        next if tsvrow[dep_col] == dep_hash[dep_name]
-
-        row_matched = false
-        break
-      end
-      if row_matched
-        return tsvrow
-      end
+    
+    key_s_downcase = hash_to_string(dep_hash).downcase
+    rownum = tsvfile.rows_keys_s.index(key_s_downcase)
+    
+    if rownum.nil?
+      register_error("Could not find row in #{tsvfile.filename} with dependency values: #{dep_hash.to_s}.", nil)
     end
-    register_error("Could not find row in #{tsvfile.filename} with dependency values: #{dep_hash.to_s}.", nil)
+
+    return tsvfile.rows[rownum]
   end
 
   def binary_search(arr, value)
