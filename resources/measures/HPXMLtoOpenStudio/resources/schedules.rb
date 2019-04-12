@@ -6,7 +6,8 @@ class HourlyByMonthSchedule
   # weekday_month_by_hour_values must be a 12-element array of 24-element arrays of numbers.
   # weekend_month_by_hour_values must be a 12-element array of 24-element arrays of numbers.
   def initialize(model, runner, sch_name, weekday_month_by_hour_values, weekend_month_by_hour_values,
-                 normalize_values = true, create_sch_object = true)
+                 normalize_values = true, create_sch_object = true,
+                 winter_design_day_sch = nil, summer_design_day_sch = nil)
     @validated = true
     @model = model
     @runner = runner
@@ -23,6 +24,8 @@ class HourlyByMonthSchedule
     else
       @maxval = 1.0
     end
+    @winter_design_day_sch = winter_design_day_sch
+    @summer_design_day_sch = summer_design_day_sch
     if create_sch_object
       @schedule = createSchedule()
     end
@@ -43,7 +46,7 @@ class HourlyByMonthSchedule
   def maxval
     return @maxval
   end
-  
+
   private
 
   def validateValues(vals, num_outter_values, num_inner_values)
@@ -187,6 +190,16 @@ class HourlyByMonthSchedule
         wknd_rule.setStartDate(date_s)
         wknd_rule.setEndDate(date_e)
       end
+
+    end
+
+    unless @winter_design_day_sch.nil?
+      schedule.setWinterDesignDaySchedule(@winter_design_day_sch)
+      schedule.winterDesignDaySchedule.setName("#{@sch_name} winter design")
+    end
+    unless @summer_design_day_sch.nil?
+      schedule.setSummerDesignDaySchedule(@summer_design_day_sch)
+      schedule.summerDesignDaySchedule.setName("#{@sch_name} summer design")
     end
 
     return schedule
@@ -199,7 +212,8 @@ class MonthWeekdayWeekendSchedule
   # weekend_hourly_values can either be a comma-separated string of 24 numbers or a 24-element array of numbers.
   # monthly_values can either be a comma-separated string of 12 numbers or a 12-element array of numbers.
   def initialize(model, runner, sch_name, weekday_hourly_values, weekend_hourly_values, monthly_values,
-                 mult_weekday = 1.0, mult_weekend = 1.0, normalize_values = true, create_sch_object = true)
+                 mult_weekday = 1.0, mult_weekend = 1.0, normalize_values = true, create_sch_object = true,
+                 winter_design_day_sch = nil, summer_design_day_sch = nil)
     @validated = true
     @model = model
     @runner = runner
@@ -224,6 +238,8 @@ class MonthWeekdayWeekendSchedule
       @maxval = 1.0
       @schadjust = 1.0
     end
+    @winter_design_day_sch = winter_design_day_sch
+    @summer_design_day_sch = summer_design_day_sch
     if create_sch_object
       @schedule = createSchedule()
     end
@@ -443,6 +459,16 @@ class MonthWeekdayWeekendSchedule
         wknd_rule.setStartDate(date_s)
         wknd_rule.setEndDate(date_e)
       end
+
+    end
+
+    unless @winter_design_day_sch.nil?
+      schedule.setWinterDesignDaySchedule(@winter_design_day_sch)
+      schedule.winterDesignDaySchedule.setName("#{@sch_name} winter design")
+    end
+    unless @summer_design_day_sch.nil?
+      schedule.setSummerDesignDaySchedule(@summer_design_day_sch)
+      schedule.summerDesignDaySchedule.setName("#{@sch_name} summer design")
     end
 
     return schedule
@@ -530,7 +556,7 @@ class HourlySchedule
 end
 
 class HotWaterSchedule
-  def initialize(model, runner, sch_name, temperature_sch_name, num_bedrooms, days_shift, file_prefix, target_water_temperature, prof_type = Constants.WaterHeaterDrawProfileTypeRealistic, create_sch_object = true)
+  def initialize(model, runner, sch_name, temperature_sch_name, num_bedrooms, days_shift, file_prefix, target_water_temperature, create_sch_object = true)
     @validated = true
     @model = model
     @runner = runner
@@ -549,14 +575,8 @@ class HotWaterSchedule
     timestep_minutes = (60 / @model.getTimestep.numberOfTimestepsPerHour).to_i
     weeks = 1 # use a single week that repeats
 
-    if prof_type == Constants.WaterHeaterDrawProfileTypeRealistic
-      data = loadMinuteDrawProfileFromFile(timestep_minutes, days_shift, weeks)
-      @totflow, @maxflow, @ontime = loadDrawProfileStatsFromFile()
-    elsif prof_type == Constants.WaterHeaterDrawProfileTypeSmooth
-      # TODO: new methods for smooth draw profiles below
-      data = loadMinuteDrawProfileFromFile(timestep_minutes, days_shift, weeks)
-      @totflow, @maxflow, @ontime = loadDrawProfileStatsFromFile()
-    end
+    data = loadMinuteDrawProfileFromFile(timestep_minutes, days_shift, weeks)
+    @totflow, @maxflow, @ontime = loadDrawProfileStatsFromFile()
     if data.nil? or @totflow.nil? or @maxflow.nil? or @ontime.nil?
       @validated = false
       return
