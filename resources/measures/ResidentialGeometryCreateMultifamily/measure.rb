@@ -245,6 +245,18 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
     minimal_collapsed.setDefaultValue(false)
     args << minimal_collapsed
 
+    # make an argument for first floor commercial space
+    commercial_building_type_chs = OpenStudio::StringVector.new
+    commercial_building_type_chs << Constants.SpaceTypeOffice
+    commercial_building_type_chs << Constants.SpaceTypeRetail
+    commercial_building_type_chs << "none"
+
+    commercial_building_type = OpenStudio::Measure::OSArgument::makeChoiceArgument("commercial_building_type", commercial_building_type_chs, true)
+    commercial_building_type.setDisplayName("First Floor Commercial Space")
+    commercial_building_type.setDescription("The commercial building type occupying the first floor.")
+    commercial_building_type.setDefaultValue("none")
+    args << commercial_building_type
+
     return args
   end
 
@@ -283,6 +295,7 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
     front_neighbor_offset = UnitConversions.convert(runner.getDoubleArgumentValue("neighbor_front_offset", user_arguments), "ft", "m")
     orientation = runner.getDoubleArgumentValue("orientation", user_arguments)
     minimal_collapsed = runner.getBoolArgumentValue("minimal_collapsed", user_arguments)
+    commercial_building_type = runner.getStringArgumentValue("commercial_building_type", user_arguments)
 
     num_units_actual = num_units
     num_floors_actual = num_floors
@@ -355,6 +368,11 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
         num_floors = 3
       end
       num_interior = num_middle_x * num_middle_z
+    end
+
+    # first floor commercial space
+    if commercial_building_type != "none"
+      num_floors += 1
     end
 
     # convert to si
@@ -908,6 +926,47 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
 
     end
 
+    # first floor commercial space
+    if commercial_building_type != "none"
+
+      # put all of the spaces in the model into a vector
+      spaces = OpenStudio::Model::SpaceVector.new
+      model.getSpaces.each do |space|
+        spaces << space
+      end
+
+      # intersect and match surfaces for each space in the vector
+      OpenStudio::Model.intersectSurfaces(spaces)
+      OpenStudio::Model.matchSurfaces(spaces)
+
+      first_floor_spaces = []
+      model.getSpaces.each do |space|
+        next if Geometry.get_space_floor_z(space) != 0
+
+        unit_spaces_hash.each do |unit_num, unit_info|
+          spaces, units_represented = unit_info
+          next unless spaces.include? space
+
+          unit_spaces_hash.delete(unit_num)
+        end
+        first_floor_spaces << space
+      end
+      commercial_space = Geometry.make_one_space_from_multiple_spaces(model, first_floor_spaces)
+      commercial_space.setName(commercial_building_type)
+      commercial_zone = OpenStudio::Model::ThermalZone.new(model)
+      commercial_zone.setName(commercial_building_type)
+      commercial_space.setThermalZone(commercial_zone)
+      commercial_space_type = OpenStudio::Model::SpaceType.new(model)
+      commercial_space_type.setStandardsSpaceType(commercial_building_type)
+      commercial_space.setSpaceType(commercial_space_type)
+
+      model.getThermalZones.each do |thermal_zone|
+        next unless thermal_zone.spaces.length == 0
+
+        thermal_zone.remove
+      end
+    end
+
     total_units_represented = 0
     unit_spaces_hash.each do |unit_num, unit_info|
       spaces, units_represented = unit_info
@@ -942,12 +1001,12 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
     OpenStudio::Model.intersectSurfaces(spaces)
     OpenStudio::Model.matchSurfaces(spaces)
 
-    # make all surfaces adjacent to corridor spaces into adiabatic surfaces
+    # make all surfaces adjacent to corridor, retail, or office spaces into adiabatic surfaces
     model.getSpaces.each do |space|
-      next unless Geometry.is_corridor(space)
+      next unless Geometry.is_corridor(space) or Geometry.is_retail(space) or Geometry.is_office(space)
 
       space.surfaces.each do |surface|
-        if surface.adjacentSurface.is_initialized # only set to adiabatic if the corridor surface is adjacent to another surface
+        if surface.adjacentSurface.is_initialized # only set to adiabatic if the surface is adjacent to another surface
           surface.adjacentSurface.get.setOutsideBoundaryCondition("Adiabatic")
           surface.setOutsideBoundaryCondition("Adiabatic")
         end
@@ -972,7 +1031,11 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
     model.getBuilding.setStandardsNumberOfStories(num_floors)
 
     # Store the building type
-    model.getBuilding.setStandardsBuildingType(Constants.BuildingTypeMultifamily)
+    if commercial_building_type == "none"
+      model.getBuilding.setStandardsBuildingType(Constants.BuildingTypeMultifamily)
+    else
+      model.getBuilding.setStandardsBuildingType(Constants.BuildingTypeMixedUseMultifamily)
+    end
 
     result = Geometry.process_beds_and_baths(model, runner, num_br, num_ba)
     unless result

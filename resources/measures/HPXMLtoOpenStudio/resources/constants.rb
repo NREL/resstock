@@ -175,6 +175,10 @@ class Constants
     return 'singlefamilydetached'
   end
 
+  def self.BuildingTypeMixedUseMultifamily
+    return 'mixeduse-multifamily'
+  end
+
   def self.BuildingUnitFeatureNumBathrooms
     return 'NumberOfBathrooms'
   end
@@ -1196,8 +1200,16 @@ class Constants
     return 'living'
   end
 
+  def self.SpaceTypeOffice
+    return 'office'
+  end
+
   def self.SpaceTypePierBeam
     return 'pier and beam'
+  end
+
+  def self.SpaceTypeRetail
+    return 'retail'
   end
 
   def self.SpaceTypeUnfinishedAttic

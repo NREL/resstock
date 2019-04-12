@@ -404,6 +404,18 @@ class CreateResidentialMultifamilyGeometryTest < MiniTest::Test
     _test_measure(nil, args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, __method__)
   end
 
+  def test_has_first_floor_commercial_space
+    num_finished_spaces = 18 + 3 + 1 # units, corridor, commercial space
+    args_hash = {}
+    args_hash["num_floors"] = "3"
+    args_hash["num_units"] = "18"
+    args_hash["commercial_building_type"] = Constants.SpaceTypeRetail
+    expected_num_del_objects = {}
+    expected_num_new_objects = { "Surface" => 164, "Space" => num_finished_spaces, "SpaceType" => 3, "ThermalZone" => num_finished_spaces - 2, "BuildingUnit" => num_finished_spaces - 4, "PeopleDefinition" => num_finished_spaces - 4, "People" => num_finished_spaces - 4, "ScheduleRuleset" => 2, "ShadingSurfaceGroup" => 2, "ShadingSurface" => 14 }
+    expected_values = { "FinishedFloorArea" => 900 * (num_finished_spaces - 4), "BuildingHeight" => 8 * (3 + 1), "Beds" => 3.0, "Baths" => 2.0, "NumOccupants" => 3.39 * (num_finished_spaces - 4), "EavesDepth" => 2, "NumAdiabaticSurfaces" => 54 }
+    _test_measure(nil, args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, __method__)
+  end
+
   private
 
   def _test_error(osm_file_or_model, args_hash)
