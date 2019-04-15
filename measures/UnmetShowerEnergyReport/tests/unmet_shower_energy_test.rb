@@ -22,7 +22,7 @@ class UnmetShowerEnergyReportTest < MiniTest::Test
     args_hash = {}
     expected_num_del_objects = {}
     expected_num_new_objects = {}
-    expected_values = { "unmet_shower_energy_kbtu" => 1.572, "unmet_shower_time_hr" => 1.444, "shower_draw_time_hr" => 278.0 }
+    expected_values = { "unmet_shower_energy_kbtu" => 1.579, "unmet_shower_time_hr" => 1.528, "shower_draw_time_hr" => 278.0 }
     _test_measure("MF_Successful_EnergyPlus_Run_TMY_Fixtures_PV.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, __method__, "USA_CO_Denver_Intl_AP_725650_TMY3.epw", 3, 0, 3 * num_units)
   end
 
