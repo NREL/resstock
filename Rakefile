@@ -598,7 +598,7 @@ def get_and_proof_measure_order_json()
   all_measures = Dir.entries(measure_folder).select { |entry| entry.start_with?('Residential') } + Dir.entries(resources_measure_folder).select { |entry| entry.start_with?('Residential') }
 
   # Load json, and get all measures in there
-  json_file = "workflows/measure-info.json"
+  json_file = "resources/measure-info.json"
   json_path = File.expand_path("../#{json_file}", __FILE__)
   data_hash = JSON.parse(File.read(json_path))
 
