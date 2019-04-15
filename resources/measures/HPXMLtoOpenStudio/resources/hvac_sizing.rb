@@ -4577,7 +4577,8 @@ class HVACInfo
                 :HXDTDesign, :HXCHWDesign, :HXHWDesign,
                 :RatedCFMperTonCooling, :RatedCFMperTonHeating,
                 :GSHPBoreSpacing, :GSHPBoreHoles, :GSHPBoreDepth,
-                :GSHPBoreConfig, :GSHPSpacingType, :HeatingLoadFraction, :CoolingLoadFraction)
+                :GSHPBoreConfig, :GSHPSpacingType, :HeatingLoadFraction, :CoolingLoadFraction,
+                :ActualAirFlowRate)
 end
 
 class DuctsInfo

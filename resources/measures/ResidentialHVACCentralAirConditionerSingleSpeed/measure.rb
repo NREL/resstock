@@ -240,10 +240,10 @@ class ProcessSingleSpeedCentralAirConditioner < OpenStudio::Measure::ModelMeasur
       if rated_cfm_per_ton != actual_cfm_per_ton or frac_manufacturer_charge != 1.0
 
         HVAC.get_control_and_slave_zones(thermal_zones).each do |control_zone, slave_zones|
-         success = HVAC.write_fault_ems(model, unit, runner, control_zone,
-                                        rated_cfm_per_ton, actual_cfm_per_ton, frac_manufacturer_charge)
-         return false if not success
-       end
+          success = HVAC.write_fault_ems(model, unit, runner, control_zone,
+                                         rated_cfm_per_ton, actual_cfm_per_ton, frac_manufacturer_charge)
+          return false if not success
+        end
 
       end
 
