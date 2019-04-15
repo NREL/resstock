@@ -7,8 +7,8 @@
   "analysis_type": "Algorithmic",
   "remoteSettings": {
     "open": true,
-    "remoteType": "Amazon Cloud",
-    "remoteServerURL": "http://ec2-54-91-171-120.compute-1.amazonaws.com/",
+    "remoteType": "Existing Remote Server",
+    "remoteServerURL": "http://ec2-107-23-5-228.compute-1.amazonaws.com/",
     "aws": {
       "cluster_name": "resstock",
       "connected": false,
@@ -27,7 +27,7 @@
         "cost": "$1.68/hr"
       },
       "user_id": "jrobert1",
-      "worker_node_number": 3,
+      "worker_node_number": 2,
       "aws_tags": [],
       "cluster_status": "terminated",
       "openstudio_server_version": {
@@ -57,7 +57,8 @@
           "repo": "nrel/openstudio-server"
         },
         "R": "3.5.2",
-        "ami": "ami-0a46fdd7375a856f2"
+        "ami": "ami-0a46fdd7375a856f2",
+        "recommend": ""
       },
       "server": {
         "dns": null
@@ -287,9 +288,10 @@
       "seed": "EmptySeedModel.osm",
       "workflow_index": 0,
       "options": [],
-      "instanceId": 0.8261216239938753,
+      "instanceId": 0.030254251200430238,
       "skip": false,
-      "$$hashKey": "object:6784"
+      "$$hashKey": "object:6784",
+      "outputMeasure": false
     },
     {
       "measure_dir": "C:\\OpenStudio\\OpenStudio-BuildStock\\project_resstock_testing\\measures\\BuildExistingModel",
@@ -445,7 +447,7 @@
       "seed": "EmptySeedModel.osm",
       "workflow_index": 1,
       "options": [],
-      "instanceId": 0.560455585130982,
+      "instanceId": 0.929962223268141,
       "skip": false,
       "$$hashKey": "object:6713",
       "showWarningText": false,
@@ -3277,7 +3279,7 @@
       "seed": "EmptySeedModel.osm",
       "workflow_index": 2,
       "options": [],
-      "instanceId": 0.28754824932207335,
+      "instanceId": 0.5680687679908101,
       "skip": false,
       "$$hashKey": "object:7751",
       "showWarningText": false,
@@ -6109,7 +6111,7 @@
       "seed": "EmptySeedModel.osm",
       "workflow_index": 3,
       "options": [],
-      "instanceId": 0.5521235548035932,
+      "instanceId": 0.9709111952229725,
       "skip": false,
       "$$hashKey": "object:10502",
       "showWarningText": false,
@@ -7065,7 +7067,7 @@
       "seed": "EmptySeedModel.osm",
       "workflow_index": 4,
       "options": [],
-      "instanceId": 0.7908145742111254,
+      "instanceId": 0.5827511328892028,
       "skip": false,
       "$$hashKey": "object:12818",
       "outputMeasure": true,
@@ -9034,7 +9036,7 @@
       "seed": "EmptySeedModel.osm",
       "workflow_index": 5,
       "options": [],
-      "instanceId": 0.6697077973751417,
+      "instanceId": 0.7490905051506764,
       "skip": false,
       "$$hashKey": "object:41564",
       "outputMeasure": true,
@@ -9911,9 +9913,139 @@
       ]
     },
     {
+      "measure_dir": "C:\\OpenStudio\\OpenStudio-BuildStock\\project_resstock_testing\\measures\\UnmetShowerEnergyReport",
+      "name": "unmet_shower_energy_report",
+      "directory": "C:\\OpenStudio\\OpenStudio-BuildStock\\project_resstock_testing\\measures\\UnmetShowerEnergyReport",
+      "uid": "f3058bf2-b32f-4ea0-bc1b-b778a7514b16",
+      "uuid": "{f3058bf2-b32f-4ea0-bc1b-b778a7514b16}",
+      "version_id": "c0667155-2ac6-4701-85ce-1fe9a4408084",
+      "version_uuid": "{c0667155-2ac6-4701-85ce-1fe9a4408084}",
+      "version_modified": "20190415T153522Z",
+      "xml_checksum": "C0C64550",
+      "display_name": "Unmet Shower Energy Report",
+      "class_name": "UnmetShowerEnergyReport",
+      "description": "Reports unmet shower energy.",
+      "modeler_description": "Reports unmet shower energy.",
+      "tags": "Service Water Heating.Water Use",
+      "outputs": [
+        {
+          "name": "unmet_shower_energy_kbtu",
+          "display_name": "unmet_shower_energy_kbtu",
+          "short_name": "unmet_shower_energy_kbtu",
+          "description": "",
+          "type": "Double",
+          "model_dependent": false,
+          "$$hashKey": "object:10358",
+          "checked": true,
+          "visualize": "true",
+          "measure_name": "unmet_shower_energy_report",
+          "measure_class_name": "UnmetShowerEnergyReport",
+          "measure_uid": "f3058bf2-b32f-4ea0-bc1b-b778a7514b16"
+        },
+        {
+          "name": "unmet_shower_time_hr",
+          "display_name": "unmet_shower_time_hr",
+          "short_name": "unmet_shower_time_hr",
+          "description": "",
+          "type": "Double",
+          "model_dependent": false,
+          "$$hashKey": "object:10359",
+          "checked": true,
+          "visualize": "true",
+          "measure_name": "unmet_shower_energy_report",
+          "measure_class_name": "UnmetShowerEnergyReport",
+          "measure_uid": "f3058bf2-b32f-4ea0-bc1b-b778a7514b16"
+        },
+        {
+          "name": "shower_draw_time_hr",
+          "display_name": "shower_draw_time_hr",
+          "short_name": "shower_draw_time_hr",
+          "description": "",
+          "type": "Double",
+          "model_dependent": false,
+          "$$hashKey": "object:10360",
+          "checked": true,
+          "visualize": "true",
+          "measure_name": "unmet_shower_energy_report",
+          "measure_class_name": "UnmetShowerEnergyReport",
+          "measure_uid": "f3058bf2-b32f-4ea0-bc1b-b778a7514b16"
+        }
+      ],
+      "attributes": [
+        {
+          "name": "Measure Type",
+          "display_name": "Measure Type",
+          "value": "ReportingMeasure"
+        }
+      ],
+      "arguments": [],
+      "edit": "",
+      "status": "",
+      "bcl_update": false,
+      "location": "my",
+      "add": "",
+      "open": false,
+      "addedToProject": true,
+      "date": "4/15/2019",
+      "author": "",
+      "type": "ReportingMeasure",
+      "seed": "EmptySeedModel.osm",
+      "workflow_index": 6,
+      "options": [],
+      "instanceId": 0.16613709817668876,
+      "skip": false,
+      "$$hashKey": "object:6818",
+      "outputMeasure": true,
+      "userDefinedOutputs": [],
+      "analysisOutputs": [
+        {
+          "name": "unmet_shower_energy_kbtu",
+          "display_name": "unmet_shower_energy_kbtu",
+          "short_name": "unmet_shower_energy_kbtu",
+          "description": "",
+          "type": "Double",
+          "model_dependent": false,
+          "$$hashKey": "object:10358",
+          "checked": true,
+          "visualize": "true",
+          "measure_name": "unmet_shower_energy_report",
+          "measure_class_name": "UnmetShowerEnergyReport",
+          "measure_uid": "f3058bf2-b32f-4ea0-bc1b-b778a7514b16"
+        },
+        {
+          "name": "unmet_shower_time_hr",
+          "display_name": "unmet_shower_time_hr",
+          "short_name": "unmet_shower_time_hr",
+          "description": "",
+          "type": "Double",
+          "model_dependent": false,
+          "$$hashKey": "object:10359",
+          "checked": true,
+          "visualize": "true",
+          "measure_name": "unmet_shower_energy_report",
+          "measure_class_name": "UnmetShowerEnergyReport",
+          "measure_uid": "f3058bf2-b32f-4ea0-bc1b-b778a7514b16"
+        },
+        {
+          "name": "shower_draw_time_hr",
+          "display_name": "shower_draw_time_hr",
+          "short_name": "shower_draw_time_hr",
+          "description": "",
+          "type": "Double",
+          "model_dependent": false,
+          "$$hashKey": "object:10360",
+          "checked": true,
+          "visualize": "true",
+          "measure_name": "unmet_shower_energy_report",
+          "measure_class_name": "UnmetShowerEnergyReport",
+          "measure_uid": "f3058bf2-b32f-4ea0-bc1b-b778a7514b16"
+        }
+      ]
+    },
+    {
       "measure_dir": "C:\\OpenStudio\\OpenStudio-BuildStock\\project_resstock_testing\\measures\\TimeseriesCSVExport",
       "name": "timeseries_csv_export",
-      "directory": "C:/OpenStudio/OpenStudio-BuildStock/measures/TimeseriesCSVExport",
+      "directory": "C:\\OpenStudio\\OpenStudio-BuildStock\\project_resstock_testing\\measures\\TimeseriesCSVExport",
       "uid": "2a3442c1-944d-4e91-9e11-11e0cf368c64",
       "uuid": "{2a3442c1-944d-4e91-9e11-11e0cf368c64}",
       "version_id": "54994468-9f9b-44ab-ab4c-0be80a10caa5",
@@ -10037,11 +10169,12 @@
       "author": "",
       "type": "ReportingMeasure",
       "seed": "EmptySeedModel.osm",
-      "workflow_index": 6,
+      "workflow_index": 7,
       "options": [],
-      "instanceId": 0.033297385547003344,
+      "instanceId": 0.8125395215113731,
       "skip": false,
-      "$$hashKey": "object:7725"
+      "$$hashKey": "object:7725",
+      "outputMeasure": false
     },
     {
       "measure_dir": "C:\\OpenStudio\\OpenStudio-BuildStock\\project_resstock_testing\\measures\\ServerDirectoryCleanup",
@@ -10083,9 +10216,9 @@
       "author": "",
       "type": "ReportingMeasure",
       "seed": "EmptySeedModel.osm",
-      "workflow_index": 7,
+      "workflow_index": 8,
       "options": [],
-      "instanceId": 0.532451025951965,
+      "instanceId": 0.4133169957073797,
       "skip": false,
       "$$hashKey": "object:512021",
       "outputMeasure": false
