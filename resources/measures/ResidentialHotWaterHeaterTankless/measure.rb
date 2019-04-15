@@ -58,7 +58,7 @@ class ResidentialHotWaterHeaterTankless < OpenStudio::Measure::ModelMeasure
     # make an argument for hot water setpoint temperature
     setpoint_temp = osargument::makeDoubleArgument("setpoint_temp", true)
     setpoint_temp.setDisplayName("Setpoint")
-    ssetpoint_temp.setDescription("Water heater setpoint temperature. This value will be ignored if the setpoint type is Scheduled.")
+    setpoint_temp.setDescription("Water heater setpoint temperature. This value will be ignored if the setpoint type is Scheduled.")
     setpoint_temp.setUnits("F")
     setpoint_temp.setDefaultValue(125)
     args << setpoint_temp

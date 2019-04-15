@@ -1,13 +1,9 @@
 <measure>
   <schema_version>3.0</schema_version>
-  <error>C:/OpenStudio/OpenStudio-BuildStock/resources/measures/HPXMLtoOpenStudio/resources/waterheater.rb:15: syntax error, unexpected keyword_if, expecting ')'
-    if vol &lt;= 0&#xd;
-      ^
-C:/OpenStudio/OpenStudio-BuildStock/resources/measures/HPXMLtoOpenStudio/resources/waterheater.rb:1534: syntax error, unexpected keyword_end, expecting end-of-input</error>
   <name>residential_hot_water_heater_tankless</name>
   <uid>caf92375-4c0c-47d1-9fe1-7aa5d3b1a734</uid>
-  <version_id>3ed4e699-4447-4d9b-9ecc-438fb2d0c69c</version_id>
-  <version_modified>20190412T220039Z</version_modified>
+  <version_id>ce22ed9e-4ff3-41ff-a1f7-dcf5ff0b9fe6</version_id>
+  <version_modified>20190415T145903Z</version_modified>
   <xml_checksum>9882CBDB</xml_checksum>
   <class_name>ResidentialHotWaterHeaterTankless</class_name>
   <display_name>Set Residential Tankless Water Heater</display_name>
@@ -38,14 +34,51 @@ C:/OpenStudio/OpenStudio-BuildStock/resources/measures/HPXMLtoOpenStudio/resourc
       </choices>
     </argument>
     <argument>
+      <name>setpoint_type</name>
+      <display_name>Setpoint type</display_name>
+      <description>The water heater setpoint type. The 'constant' option will use a constant value for the whole year, while 'scheduled' will use 8760 values in a schedule file.</description>
+      <type>Choice</type>
+      <required>true</required>
+      <model_dependent>true</model_dependent>
+      <default_value>constant</default_value>
+      <choices>
+        <choice>
+          <value>constant</value>
+          <display_name>constant</display_name>
+        </choice>
+        <choice>
+          <value>scheduled</value>
+          <display_name>scheduled</display_name>
+        </choice>
+      </choices>
+    </argument>
+    <argument>
       <name>setpoint_temp</name>
       <display_name>Setpoint</display_name>
-      <description>Water heater setpoint temperature.</description>
+      <description>Water heater setpoint temperature. This value will be ignored if the setpoint type is Scheduled.</description>
       <type>Double</type>
       <units>F</units>
       <required>true</required>
       <model_dependent>false</model_dependent>
       <default_value>125</default_value>
+    </argument>
+    <argument>
+      <name>schedules_directory</name>
+      <display_name>Setpoint and Operating Mode Schedule Directory</display_name>
+      <description>Absolute (or relative) directory to schedule files. This argument will be ignored if a constant setpoint type is used instead.</description>
+      <type>String</type>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>./resources</default_value>
+    </argument>
+    <argument>
+      <name>setpoint_schedule</name>
+      <display_name>Setpoint Schedule File Name</display_name>
+      <description>Name of the hourly setpoint schedule. Setpoint should be defined (in F) for every hour. The operating mode schedule must also be located in the same location.</description>
+      <type>String</type>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>hourly_setpoint_schedule.csv</default_value>
     </argument>
     <argument>
       <name>location</name>
@@ -131,17 +164,6 @@ C:/OpenStudio/OpenStudio-BuildStock/resources/measures/HPXMLtoOpenStudio/resourc
   </attributes>
   <files>
     <file>
-      <version>
-        <software_program>OpenStudio</software_program>
-        <identifier>1.4.1</identifier>
-        <min_compatible>2.0.4</min_compatible>
-      </version>
-      <filename>measure.rb</filename>
-      <filetype>rb</filetype>
-      <usage_type>script</usage_type>
-      <checksum>2FB4E925</checksum>
-    </file>
-    <file>
       <filename>ResidentialWaterHeaterTankless_Test.rb</filename>
       <filetype>rb</filetype>
       <usage_type>test</usage_type>
@@ -152,6 +174,17 @@ C:/OpenStudio/OpenStudio-BuildStock/resources/measures/HPXMLtoOpenStudio/resourc
       <filetype>csv</filetype>
       <usage_type>resource</usage_type>
       <checksum>997C4FF8</checksum>
+    </file>
+    <file>
+      <version>
+        <software_program>OpenStudio</software_program>
+        <identifier>1.4.1</identifier>
+        <min_compatible>2.0.4</min_compatible>
+      </version>
+      <filename>measure.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>script</usage_type>
+      <checksum>486699ED</checksum>
     </file>
   </files>
 </measure>
