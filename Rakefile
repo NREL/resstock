@@ -433,9 +433,6 @@ task :update_measures do
   #                      include_measures,
   #                      exclude_measures,
   #                      "example_from_floorspacejs.osw")
-
-  # Update README.md
-  update_readme(data_hash)
 end
 
 def generate_example_osws(data_hash, include_measures, exclude_measures,
@@ -535,54 +532,6 @@ def generate_example_osws(data_hash, include_measures, exclude_measures,
   data_hash.delete("created_at")
   data_hash.delete("updated_at")
   File.write(osw_path, JSON.pretty_generate(data_hash))
-end
-
-def update_readme(data_hash)
-  # This method updates the "Measure Order" table in the README.md
-
-  puts "Updating README measure order..."
-
-  table_flag_start = "MEASURE_WORKFLOW_START"
-  table_flag_end = "MEASURE_WORKFLOW_END"
-
-  readme_path = "README.md"
-
-  # Create table
-  table_lines = []
-  table_lines << "|Group|Measure|Dependencies*|\n"
-  table_lines << "|:---|:---|:---|\n"
-  data_hash.each do |group|
-    new_group = true
-    group["group_steps"].each do |group_step|
-      grp = ""
-      if new_group
-        grp = group["group_name"]
-      end
-      name = group_step['name']
-      deps = group_step['dependencies']
-      table_lines << "|#{grp}|#{name}|#{deps}|\n"
-      new_group = false
-    end
-  end
-
-  # Embed table in README text
-  in_lines = IO.readlines(readme_path)
-  out_lines = []
-  inside_table = false
-  in_lines.each do |in_line|
-    if in_line.include? table_flag_start
-      inside_table = true
-      out_lines << in_line
-      out_lines << table_lines
-    elsif in_line.include? table_flag_end
-      inside_table = false
-      out_lines << in_line
-    elsif not inside_table
-      out_lines << in_line
-    end
-  end
-
-  File.write(readme_path, out_lines.join(""))
 end
 
 def get_and_proof_measure_order_json()
