@@ -288,7 +288,7 @@ def integrity_check_options_lookup_tsv(project_dir_name)
     tsvpath = File.join(project_dir_name, "housing_characteristics", "#{parameter_name}.tsv")
     next if not File.exist?(tsvpath) # Not every parameter used by every project
 
-    option_names = get_options_for_parameter_from_options_lookup_tsv(resources_dir, parameter_name)
+    option_names = get_options_for_parameter_from_tsv_file(project_dir_name, parameter_name)
     options_measure_args = get_measure_args_from_option_names(lookup_file, option_names, parameter_name, nil)
     option_names.each do |option_name|
       # Check for (parameter, option) names
@@ -316,6 +316,12 @@ def integrity_check_options_lookup_tsv(project_dir_name)
       end
     end
   end
+
+  bldg_data = {}
+  if project_dir_name.include? "national"
+    bldg_data["Geometry Building Type"] = "Single-Family Detached"
+  end
+  hack_to_run_the_correct_resstock_geometry_measure(measures, bldg_data) # FIXME
 
   max_checks = 1000
   measures.keys.each do |measure_subdir|

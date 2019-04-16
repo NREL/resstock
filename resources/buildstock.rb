@@ -169,22 +169,25 @@ def get_parameters_ordered_from_options_lookup_tsv(resources_dir, characteristic
   return params
 end
 
-def get_options_for_parameter_from_options_lookup_tsv(resources_dir, parameter_name)
-  lookup_file = File.join(resources_dir, 'options_lookup.tsv')
-  if not File.exist?(lookup_file)
-    fail "ERROR: Cannot find #{lookup_file}."
+def get_options_for_parameter_from_tsv_file(project_dir_name, parameter_name)
+  tsvpath = File.join(project_dir_name, "housing_characteristics", "#{parameter_name}.tsv")
+  return [] if not File.exist?(tsvpath) # Not every parameter used by every project
+
+  tsvfile = TsvFile.new(tsvpath, nil)
+  return tsvfile.option_cols.keys
+end
+
+def hack_to_run_the_correct_resstock_geometry_measure(measures, bldg_data) # FIXME
+  if ["Single-Family Detached", "Mobile Home"].include? bldg_data["Geometry Building Type"]
+    measures.delete("ResidentialGeometryCreateSingleFamilyAttached")
+    measures.delete("ResidentialGeometryCreateMultifamily")
+  elsif bldg_data["Geometry Building Type"] == "Single-Family Attached"
+    measures.delete("ResidentialGeometryCreateSingleFamilyDetached")
+    measures.delete("ResidentialGeometryCreateMultifamily")
+  elsif ["Multi-Family with 2 - 4 Units", "Multi-Family with 5+ Units"].include? bldg_data["Geometry Building Type"]
+    measures.delete("ResidentialGeometryCreateSingleFamilyDetached")
+    measures.delete("ResidentialGeometryCreateSingleFamilyAttached")
   end
-
-  options = []
-  CSV.foreach(lookup_file, { :col_sep => "\t" }) do |row|
-    next if row.size < 2
-    next if row[0].nil? or row[0].downcase == "parameter name" or row[1].nil?
-    next if row[0].downcase != parameter_name.downcase
-
-    options << row[1]
-  end
-
-  return options
 end
 
 def get_combination_hashes(tsvfiles, dependencies)
