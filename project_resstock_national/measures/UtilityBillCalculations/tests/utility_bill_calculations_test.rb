@@ -267,6 +267,7 @@ class UtilityBillCalculationsTest < MiniTest::Test
   end
 
   def test_detailed_calculations_0kW_pv_net_metering_custom_tariff_tou
+    skip
     args_hash = {}
     args_hash["electric_bill_type"] = "Detailed"
     args_hash["tariff_label"] = "Custom Tariff"
@@ -341,6 +342,7 @@ class UtilityBillCalculationsTest < MiniTest::Test
   end
 
   def test_detailed_calculations_1kW_pv_feed_in_tariff_custom_tariff_tou
+    skip
     args_hash = {}
     args_hash["electric_bill_type"] = "Detailed"
     args_hash["tariff_label"] = "Custom Tariff"
@@ -358,6 +360,7 @@ class UtilityBillCalculationsTest < MiniTest::Test
   end
 
   def test_detailed_calculations_10kW_pv_feed_in_tariff_custom_tariff_tou
+    skip
     args_hash = {}
     args_hash["electric_bill_type"] = "Detailed"
     args_hash["tariff_label"] = "Custom Tariff"
@@ -375,6 +378,7 @@ class UtilityBillCalculationsTest < MiniTest::Test
   end
 
   def test_detailed_calculations_0kW_pv_net_metering_custom_tariff_tiered_tou
+    skip
     args_hash = {}
     args_hash["electric_bill_type"] = "Detailed"
     args_hash["tariff_label"] = "Custom Tariff"
@@ -449,6 +453,7 @@ class UtilityBillCalculationsTest < MiniTest::Test
   end
 
   def test_detailed_calculations_1kW_pv_feed_in_tariff_custom_tariff_tiered_tou
+    skip
     args_hash = {}
     args_hash["electric_bill_type"] = "Detailed"
     args_hash["tariff_label"] = "Custom Tariff"
@@ -466,6 +471,7 @@ class UtilityBillCalculationsTest < MiniTest::Test
   end
 
   def test_detailed_calculations_10kW_pv_feed_in_tariff_custom_tariff_tiered_tou
+    skip
     args_hash = {}
     args_hash["electric_bill_type"] = "Detailed"
     args_hash["tariff_label"] = "Custom Tariff"
