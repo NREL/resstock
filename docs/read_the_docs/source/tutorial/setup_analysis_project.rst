@@ -222,7 +222,7 @@ End uses include:
   * monthly
   * run period
   
-  Setting the reporting frequency to "timestep" will give you interval output equal to the zone timestep set by the "Simulation Controls" measure. Thus, this measure will produce 10-min interval output when you select "timestep" and leave the "Simulation Controls" measure at its default settings. Setting the reporting frequency to "detailed" will give you interval output equal to the calculation step (i.e., either zone timestep or HVAC system timestep).
+  Setting the reporting frequency to 'timestep' will give you interval output equal to the zone timestep set by the "Simulation Controls" measure. Thus, this measure will produce 10-min interval output when you select 'timestep' and leave the "Simulation Controls" measure at its default settings. Setting the reporting frequency to "detailed" will give you interval output equal to the calculation step (i.e., either zone timestep or HVAC system timestep).
 
 **Include End Use Subcategories**
   Select this to include end use subcategories. The default is to not include end use subcategories. End use subcategories include:
@@ -258,4 +258,85 @@ End uses include:
 Utility Bill Calculations
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
-This measure is currently under construction. Do not include it in your PAT analysis.
+If you do not need to calculate utility bills for your simulations, you can skip this measure. Otherwise, this reporting measure calculates utility bills and reports them in the results csv file.
+
+Utility bills include:
+
+  * Electricity
+    * based on monthly fixed charge and marginal rate, or 
+    * based on tariff from the OpenEI Utility Rate Database (URDB)
+  * Natural Gas
+    * based on monthly fixed charge and marginal rate
+  * Fuel Oil
+    * based on marginal rate
+  * Propane
+    * based on marginal rate
+
+.. image:: ../images/tutorial/utility_bill_calculations.png
+
+**Electricity: Simple or Detailed**
+
+  * Simple
+  * Detailed
+
+  If 'Simple' is selected, electric utility bills are calculated based on user-defined fixed charge and marginal rate. If 'Detailed' is selected, electric utility bills are calculated based on either: a tariff from the OpenEI Utility Rate Database (URDB), or a real-time pricing rate.
+
+**Electricity: Tariff**
+
+  * Autoselect Tariff(s)
+  * Custom Tariff
+  * Custom Real-Time Pricing Rate
+  * Sample Real-Time Pricing Rate
+  * List of tariffs from the OpenEI Utility Rate Database (URDB)
+
+**Electricity: Custom Tariff or Real-Time Pricing Rate File Location**
+
+  If 'Custom Tariff' or 'Custom Real-Time Pricing Rate' is selected above, you would enter an absolute path to the rate file here.
+
+**Electricity: Fixed Charge**
+
+  This is the monthly fixed charge for electricity. Default value is $12/month.
+
+**Electricity: Marginal Rate**
+
+  This is the $/kWh for electricity. Default value is 'auto' (state-average value from EIA).
+
+**Natural Gas: Fixed Charge**
+
+  This is the monthly fixed charge for natural gas. Default value is $8/month.
+
+**Natural Gas: Marginal Rate**
+
+  This is the $/therm for natural gas. Default value is 'auto' (state-average value from EIA).
+
+**Oil: Marginal Rate**
+
+  This is the $/gallon for fuel oil. Default value is 'auto' (state-average value from EIA).
+
+**Propane: Marginal Rate**
+
+  This is the $/gallon for propane. Default value is 'auto' (state-average value from EIA).
+
+Additionally, you can set values for PV-related arguments:
+
+.. image:: ../images/tutorial/utility_bill_calculations_2.png
+
+**PV: Compensation Type**
+
+  The default type of compensation for PV is 'Net Metering'. Otherwise, you can select:
+
+  * Feed-In Tariff
+
+**PV: Net Metering Annual Excess Sellback Rate Type**
+
+  The default type of annual excess sellback rate for PV is 'user-specified'. Otherwise, you can select:
+  
+  * retail electricity cost
+
+**PV: Net Metering Annual Excess Sellback Rate**
+
+  This is the annual excess sellback rate for PV. Default value is $0.03/kWh.
+
+**Feed-In Tariff Rate**
+
+  This is the annual full/gross tariff rate for PV. Default value is $0.12/kWh.
