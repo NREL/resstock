@@ -329,7 +329,7 @@ def integrity_check_options_lookup_tsv(project_dir_name)
     param_names = measures[measure_subdir].keys()
     options_array = []
     param_names.each do |parameter_name|
-      if ["Bathroom Spot Vent Hour", "Clothes Dryer Spot Vent Hour", "Range Spot Vent Hour"].include? parameter_name
+      if ["Bathroom Spot Vent Hour", "Range Spot Vent Hour"].include? parameter_name
         # Prevent "too big to product" error for airflow measure by just
         # using first option for these parameters.
         options_array << [measures[measure_subdir][parameter_name].keys()[0]]
