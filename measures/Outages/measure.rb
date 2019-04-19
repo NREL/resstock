@@ -100,7 +100,7 @@ class ProcessPowerOutage < OpenStudio::Measure::ModelMeasure
     run_period_hrs = (run_period_end - run_period_start) / 3600.0
 
     # get the outage period
-    months = {"January"=>1, "February"=>2, "March"=>3, "April"=>4, "May"=>5, "June"=>6, "July"=>7, "August"=>8, "September"=>9, "October"=>10, "November"=>11, "December"=>12}
+    months = { "January" => 1, "February" => 2, "March" => 3, "April" => 4, "May" => 5, "June" => 6, "July" => 7, "August" => 8, "September" => 9, "October" => 10, "November" => 11, "December" => 12 }
     otg_start_date_month = months[otg_date.split[0]]
     otg_start_date_day = otg_date.split[1].to_i
     begin
@@ -121,7 +121,7 @@ class ProcessPowerOutage < OpenStudio::Measure::ModelMeasure
       return false
     end
 
-    # get months and leap year offset    
+    # get months and leap year offset
     leap_offset = { true => 1, false => 0 }[year_description.isLeapYear]
     startday_m = [0, 31, 59 + leap_offset, 90 + leap_offset, 120 + leap_offset, 151 + leap_offset, 181 + leap_offset, 212 + leap_offset, 243 + leap_offset, 273 + leap_offset, 304 + leap_offset, 334 + leap_offset, 365 + leap_offset]
 
