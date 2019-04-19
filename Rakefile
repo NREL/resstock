@@ -317,7 +317,6 @@ def integrity_check_options_lookup_tsv(project_dir_name)
     end
   end
 
-  max_checks = 1000
   measures.keys.each do |measure_subdir|
     puts "Checking for issues with #{measure_subdir} measure..."
 
@@ -325,27 +324,28 @@ def integrity_check_options_lookup_tsv(project_dir_name)
     check_file_exists(measurerb_path, nil)
     measure_instance = get_measure_instance(measurerb_path)
 
-    # Validate measure arguments for each combination of options
+    # Validate measure arguments for combinations of options
     param_names = measures[measure_subdir].keys()
     options_array = []
+    max_param_size = 0
     param_names.each do |parameter_name|
-      if ["Bathroom Spot Vent Hour", "Clothes Dryer Spot Vent Hour", "Range Spot Vent Hour"].include? parameter_name
-        # Prevent "too big to product" error for airflow measure by just
-        # using first option for these parameters.
-        options_array << [measures[measure_subdir][parameter_name].keys()[0]]
-      else
-        options_array << measures[measure_subdir][parameter_name].keys()
+      options_array << measures[measure_subdir][parameter_name].keys()
+      max_param_size = [max_param_size, options_array[-1].size].max
+    end
+
+    option_combinations = []
+    options_array.each_with_index do |option_array, idx|
+      for n in 0..max_param_size-1
+        if idx == 0
+          option_combinations << []
+        end
+        option_combinations[n] << option_array[n % option_array.size]
       end
     end
-    option_combinations = options_array.first.product(*options_array[1..-1])
 
     all_measure_args = []
     max_checks_reached = false
-    option_combinations.shuffle.each_with_index do |option_combination, combo_num|
-      if combo_num > max_checks
-        max_checks_reached = true
-        break
-      end
+    option_combinations.each_with_index do |option_combination, combo_num|
       measure_args = {}
       option_combination.each_with_index do |option_name, idx|
         measures[measure_subdir][param_names[idx]][option_name].each do |k, v|
@@ -359,10 +359,6 @@ def integrity_check_options_lookup_tsv(project_dir_name)
 
     all_measure_args.shuffle.each_with_index do |measure_args, idx|
       validate_measure_args(measure_instance.arguments(model), measure_args, lookup_file, measure_subdir, nil)
-    end
-
-    if max_checks_reached
-      puts "Max number of checks (#{max_checks}) reached. Continuing..."
     end
   end
 end
