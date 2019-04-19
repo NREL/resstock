@@ -23,8 +23,9 @@ class BuildingCharacteristicsReport < OpenStudio::Measure::ReportingMeasure
     #       for a given project can be removed via a server finalization script.
     resources_dir = File.absolute_path(File.join(File.dirname(__FILE__), "..", "..", "resources"))
     buildstock_file = File.join(resources_dir, "buildstock.rb")
+    lookup_file = File.join(resources_dir, "options_lookup.tsv")
     require File.join(File.dirname(buildstock_file), File.basename(buildstock_file, File.extname(buildstock_file)))
-    parameters = get_parameters_ordered_from_options_lookup_tsv(resources_dir)
+    parameters = get_parameters_ordered_from_options_lookup_tsv(lookup_file)
     parameters.each do |parameter|
       result << OpenStudio::Measure::OSOutput.makeStringOutput(OpenStudio::toUnderscoreCase(parameter))
     end

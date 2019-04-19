@@ -273,7 +273,7 @@ class ApplyUpgrade < OpenStudio::Ruleset::ModelUserScript
       end
 
       # Add measure arguments from existing building if needed
-      parameters = get_parameters_ordered_from_options_lookup_tsv(resources_dir, characteristics_dir)
+      parameters = get_parameters_ordered_from_options_lookup_tsv(lookup_file, characteristics_dir)
       measures.keys.each do |measure_subdir|
         parameters.each do |parameter_name|
           existing_option_name = get_value_from_runner_past_results(runner, parameter_name, "build_existing_model")
