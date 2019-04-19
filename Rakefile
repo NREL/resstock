@@ -13,7 +13,7 @@ namespace :test do
   desc 'Run unit tests for all projects/measures'
   Rake::TestTask.new('all') do |t|
     t.libs << 'test'
-    t.test_files = Dir['project_*/tests/*.rb'] + Dir['measures/*/tests/*.rb'] + Dir['resources/measures/*/tests/*.rb'] + Dir['workflows/tests/*.rb'] - Dir['measures/HPXMLtoOpenStudio/tests/*.rb'] # HPXMLtoOpenStudio is tested upstream
+    t.test_files = Dir['project_*/tests/*.rb'] + Dir['test/test_integrity_checks.rb'] + Dir['measures/*/tests/*.rb'] + Dir['resources/measures/*/tests/*.rb'] + Dir['workflows/tests/*.rb'] - Dir['measures/HPXMLtoOpenStudio/tests/*.rb'] # HPXMLtoOpenStudio is tested upstream
     t.warning = false
     t.verbose = true
   end
@@ -128,39 +128,56 @@ def update_and_format_osw(osw)
 end
 
 desc 'Perform integrity check on inputs for all projects'
-task :integrity_check_all do
-  get_all_project_dir_names().each do |project_dir_name|
-    integrity_check(project_dir_name)
-    integrity_check_options_lookup_tsv(project_dir_name)
-  end
+Rake::TestTask.new('integrity_check_all') do |t|
+  t.libs << 'test'
+  t.test_files = Dir['project_*/tests/*.rb']
+  t.warning = false
+  t.verbose = true
 end # rake task
 
 desc 'Perform integrity check on inputs for project_resstock_national'
-task :integrity_check_resstock_national do
-  integrity_check('project_resstock_national')
-  integrity_check_options_lookup_tsv('project_resstock_national')
+Rake::TestTask.new('integrity_check_resstock_national') do |t|
+  desc 'Run unit tests for all projects/measures'
+  t.libs << 'test'
+  t.test_files = Dir['project_resstock_national/tests/*.rb']
+  t.warning = false
+  t.verbose = true
 end # rake task
 
 desc 'Perform integrity check on inputs for project_resstock_multifamily'
-task :integrity_check_resstock_multifamily do
-  integrity_check('project_resstock_multifamily')
-  integrity_check_options_lookup_tsv('project_resstock_multifamily')
+Rake::TestTask.new('integrity_check_resstock_multifamily') do |t|
+  t.libs << 'test'
+  t.test_files = Dir['project_resstock_multifamily/tests/*.rb']
+  t.warning = false
+  t.verbose = true
 end # rake task
 
 desc 'Perform integrity check on inputs for project_resstock_testing'
-task :integrity_check_resstock_testing do
-  integrity_check('project_resstock_testing')
-  integrity_check_options_lookup_tsv('project_resstock_testing')
+Rake::TestTask.new('integrity_check_resstock_testing') do |t|
+  t.libs << 'test'
+  t.test_files = Dir['project_resstock_testing/tests/*.rb']
+  t.warning = false
+  t.verbose = true
 end # rake task
 
-def integrity_check(project_dir_name)
+desc 'Perform unit tests on integrity checks'
+Rake::TestTask.new('integrity_check_unit_tests') do |t|
+  t.libs << 'test'
+  t.test_files = Dir['test/test_integrity_checks.rb']
+  t.warning = false
+  t.verbose = true
+end # rake task
+
+def integrity_check(project_dir_name, housing_characteristics_dir="housing_characteristics", lookup_file=nil)
   # Load helper file and sampling file
   resources_dir = File.join(File.dirname(__FILE__), 'resources')
   require File.join(resources_dir, 'buildstock')
   require File.join(resources_dir, 'run_sampling')
 
   # Setup
-  lookup_file = File.join(resources_dir, 'options_lookup.tsv')
+  if lookup_file.nil?
+    lookup_file = File.join(resources_dir, 'options_lookup.tsv')
+  end
   check_file_exists(lookup_file, nil)
 
   # Perform various checks on each probability distribution file
@@ -169,8 +186,8 @@ def integrity_check(project_dir_name)
   last_size = -1
 
   parameter_names = []
-  get_parameters_ordered_from_options_lookup_tsv(resources_dir).each do |parameter_name|
-    tsvpath = File.join(project_dir_name, "housing_characteristics", "#{parameter_name}.tsv")
+  get_parameters_ordered_from_options_lookup_tsv(lookup_file).each do |parameter_name|
+    tsvpath = File.join(project_dir_name, housing_characteristics_dir, "#{parameter_name}.tsv")
     next if not File.exist?(tsvpath) # Not every parameter used by every project
 
     parameter_names << parameter_name
@@ -184,7 +201,7 @@ def integrity_check(project_dir_name)
       err = "ERROR: Unable to process these parameters: #{unprocessed_parameters.join(', ')}."
       deps = []
       unprocessed_parameters.each do |p|
-        tsvpath = File.join(project_dir_name, "housing_characteristics", "#{p}.tsv")
+        tsvpath = File.join(project_dir_name, housing_characteristics_dir, "#{p}.tsv")
         tsvfile = TsvFile.new(tsvpath, nil)
         tsvfile.dependency_cols.keys.each do |d|
           next if deps.include?(d)
@@ -196,7 +213,7 @@ def integrity_check(project_dir_name)
       # Check if undefined deps exist but are undefined simply because they're not in options_lookup.tsv
       undefined_deps_exist = true
       undefined_deps.each do |undefined_dep|
-        tsvpath = File.join(project_dir_name, "housing_characteristics", "#{undefined_dep}.tsv")
+        tsvpath = File.join(project_dir_name, housing_characteristics_dir, "#{undefined_dep}.tsv")
         next if File.exist?(tsvpath)
 
         undefined_deps_exist = false
@@ -214,7 +231,7 @@ def integrity_check(project_dir_name)
       # Already processed? Skip
       next if parameters_processed.include?(parameter_name)
 
-      tsvpath = File.join(project_dir_name, "housing_characteristics", "#{parameter_name}.tsv")
+      tsvpath = File.join(project_dir_name, housing_characteristics_dir, "#{parameter_name}.tsv")
       check_file_exists(tsvpath, nil)
       tsvfile = TsvFile.new(tsvpath, nil)
       tsvfiles[parameter_name] = tsvfile
@@ -249,14 +266,14 @@ def integrity_check(project_dir_name)
 
   # Test sampling
   r = RunSampling.new
-  output_file = r.run(project_dir_name, 1000, 'buildstock.csv')
+  output_file = r.run(project_dir_name, 1000, 'buildstock.csv', housing_characteristics_dir, lookup_file)
   if File.exist?(output_file)
     File.delete(output_file) # Clean up
   end
 
   # Unused TSVs?
   err = ""
-  Dir[File.join(project_dir_name, "housing_characteristics", "*.tsv")].each do |tsvpath|
+  Dir[File.join(project_dir_name, housing_characteristics_dir, "*.tsv")].each do |tsvpath|
     parameter_name = File.basename(tsvpath, ".*")
     if not parameter_names.include? parameter_name
       err += "ERROR: TSV file #{tsvpath} not used in options_lookup.tsv.\n"
@@ -267,7 +284,7 @@ def integrity_check(project_dir_name)
   end
 end
 
-def integrity_check_options_lookup_tsv(project_dir_name)
+def integrity_check_options_lookup_tsv(project_dir_name, housing_characteristics_dir="housing_characteristics", lookup_file=nil)
   require 'openstudio'
 
   # Load helper file and sampling file
@@ -275,7 +292,9 @@ def integrity_check_options_lookup_tsv(project_dir_name)
   require File.join(resources_dir, 'buildstock')
 
   # Setup
-  lookup_file = File.join(resources_dir, 'options_lookup.tsv')
+  if lookup_file.nil?
+    lookup_file = File.join(resources_dir, 'options_lookup.tsv')
+  end
   check_file_exists(lookup_file, nil)
 
   # Integrity checks for option_lookup.tsv
@@ -283,12 +302,12 @@ def integrity_check_options_lookup_tsv(project_dir_name)
   model = OpenStudio::Model::Model.new
 
   # Gather all options/arguments
-  parameter_names = get_parameters_ordered_from_options_lookup_tsv(resources_dir)
+  parameter_names = get_parameters_ordered_from_options_lookup_tsv(lookup_file)
   parameter_names.each do |parameter_name|
-    tsvpath = File.join(project_dir_name, "housing_characteristics", "#{parameter_name}.tsv")
+    tsvpath = File.join(project_dir_name, housing_characteristics_dir, "#{parameter_name}.tsv")
     next if not File.exist?(tsvpath) # Not every parameter used by every project
 
-    option_names = get_options_for_parameter_from_options_lookup_tsv(resources_dir, parameter_name)
+    option_names = get_options_for_parameter_from_options_lookup_tsv(lookup_file, parameter_name)
     options_measure_args = get_measure_args_from_option_names(lookup_file, option_names, parameter_name, nil)
     option_names.each do |option_name|
       # Check for (parameter, option) names
@@ -371,7 +390,7 @@ def get_all_project_dir_names()
   project_dir_names = []
   Dir.entries(File.dirname(__FILE__)).each do |entry|
     next if not Dir.exist?(entry)
-    next if not entry.start_with?("project_")
+    next if not entry.start_with?("project_") and entry != "test"
 
     project_dir_names << entry
   end
