@@ -94,7 +94,7 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
     bldg_data = get_data_for_sample(buildstock_csv, building_id, runner)
 
     # Retrieve order of parameters to run
-    parameters_ordered = get_parameters_ordered_from_options_lookup_tsv(resources_dir, characteristics_dir)
+    parameters_ordered = get_parameters_ordered_from_options_lookup_tsv(lookup_file, characteristics_dir)
 
     # Obtain measures and arguments to be called
     measures = {}
