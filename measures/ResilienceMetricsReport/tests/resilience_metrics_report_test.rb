@@ -65,7 +65,7 @@ class ResilienceMetricsReportTest < MiniTest::Test
     expected_num_del_objects = {}
     expected_num_new_objects = {}
     expected_values = {}
-    _test_measure("SFD_Successful_EnergyPlus_Run_TMY_Outages_PV.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, __method__, "USA_CO_Denver_Intl_AP_725650_TMY3.epw", 12, 0, 5)
+    _test_measure("SFD_Successful_EnergyPlus_Run_TMY_Outages.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, __method__, "USA_CO_Denver_Intl_AP_725650_TMY3.epw", 12, 0, 5)
   end
 
   private
@@ -247,7 +247,7 @@ class ResilienceMetricsReportTest < MiniTest::Test
     return model
   end
 
-  def _test_measure(osm_file_or_model, args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, test_name, epw_name, num_infos = 0, num_warnings = 0, num_output_requests = 0, debug = false)
+  def _test_measure(osm_file_or_model, args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, test_name, epw_name, num_infos = 0, num_warnings = 0, num_output_requests = 0)
     # create an instance of the measure
     measure = ResilienceMetricsReport.new
 
