@@ -144,10 +144,7 @@ class SetResidentialEPWFileTest < MiniTest::Test
         if obj_type == "RunPeriodControlDaylightSavingTime"
           assert(new_object.startDate.to_s.include?(expected_values["StartDate"]))
           assert(new_object.endDate.to_s.include?(expected_values["EndDate"]))
-        elsif obj_type == "YearDescription"
-          assert_equal(expected_values["Year"], new_object.calendarYear.to_s)
         elsif obj_type == "SiteWaterMainsTemperature"
-          puts expected_values.to_s
           assert_in_epsilon(expected_values["HotWaterAnnualTemp"], new_object.annualAverageOutdoorAirTemperature.get, 0.01)
           assert_in_epsilon(expected_values["HotWaterMaxDiffTemp"], new_object.maximumDifferenceInMonthlyAverageOutdoorAirTemperatures.get, 0.01)
         end

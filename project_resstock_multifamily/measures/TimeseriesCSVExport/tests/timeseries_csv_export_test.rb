@@ -17,12 +17,42 @@ class TimeseriesCSVExportTest < MiniTest::Test
     _test_measure("SFD_Successful_EnergyPlus_Run_AMY_PV.osm", args_hash, expected_values, __method__, "DuPage_17043_725300_880860.epw", num_output_requests)
   end
 
-  def test_amy_short_run_period
+  def test_amy_short_run_period_hourly
     num_output_requests = 25 + 1
     measure = TimeseriesCSVExport.new
     args_hash = {}
     args_hash["output_variables"] = "Zone People Occupant Count"
     expected_values = { "EnduseTimeseriesLength" => 2 * 24, "EnduseTimeseriesWidth" => 34 + 1 }
+    _test_measure("SFD_Successful_EnergyPlus_Run_AMY_PV_TwoDays.osm", args_hash, expected_values, __method__, "CT_BRIDGEPORT-SIKORSKY-MEM_725040_18.epw", num_output_requests)
+  end
+
+  def test_amy_short_run_period_daily
+    num_output_requests = 25 + 1
+    measure = TimeseriesCSVExport.new
+    args_hash = {}
+    args_hash["reporting_frequency"] = "Daily"
+    args_hash["output_variables"] = "Zone People Occupant Count"
+    expected_values = { "EnduseTimeseriesLength" => 2 * 1, "EnduseTimeseriesWidth" => 34 + 1 }
+    _test_measure("SFD_Successful_EnergyPlus_Run_AMY_PV_TwoDays.osm", args_hash, expected_values, __method__, "CT_BRIDGEPORT-SIKORSKY-MEM_725040_18.epw", num_output_requests)
+  end
+
+  def test_amy_short_run_period_monthly
+    num_output_requests = 25 + 1
+    measure = TimeseriesCSVExport.new
+    args_hash = {}
+    args_hash["reporting_frequency"] = "Monthly"
+    args_hash["output_variables"] = "Zone People Occupant Count"
+    expected_values = { "EnduseTimeseriesLength" => 1, "EnduseTimeseriesWidth" => 34 + 1 }
+    _test_measure("SFD_Successful_EnergyPlus_Run_AMY_PV_TwoDays.osm", args_hash, expected_values, __method__, "CT_BRIDGEPORT-SIKORSKY-MEM_725040_18.epw", num_output_requests)
+  end
+
+  def test_amy_short_run_period_runperiod
+    num_output_requests = 25 + 1
+    measure = TimeseriesCSVExport.new
+    args_hash = {}
+    args_hash["reporting_frequency"] = "Runperiod"
+    args_hash["output_variables"] = "Zone People Occupant Count"
+    expected_values = { "EnduseTimeseriesLength" => 1, "EnduseTimeseriesWidth" => 34 + 1 }
     _test_measure("SFD_Successful_EnergyPlus_Run_AMY_PV_TwoDays.osm", args_hash, expected_values, __method__, "CT_BRIDGEPORT-SIKORSKY-MEM_725040_18.epw", num_output_requests)
   end
 

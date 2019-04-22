@@ -203,55 +203,62 @@ If you do not need the timeseries data for your simulations, you can skip this m
 
 End uses include:
 
-  * heating [electric/gas/propane/oil] [kWh/kBtu/kBtu/kBtu]
+  * total site energy [MBtu]
+  * net site energy [MBtu]
+  * total site [electric/gas/oil/propane] [kWh/therm/MBtu/MBtu]
+  * net site [electric] [kWh]
+  * heating [electric/gas/oil/propane] [kWh/therm/MBtu/MBtu]
   * cooling [kWh]
-  * interior lights [kWh]
-  * exterior lights [kWh]
-  * interior equipment [electric/gas/propane/oil] [kWh/kBtu/kBtu/kBtu]
-  * fans [kWh]
-  * pumps [kWh]
-  * water heating [electric/gas/propane/oil] [kWh/kBtu/kBtu/kBtu]
-  * water [gal]
+  * central system heating [electric/gas/oil/propane] [kWh/therm/MBtu/MBtu]
+  * central system cooling [electric] [kWh]
+  * interior lighting [kWh]
+  * exterior lighting [kWh]
+  * interior equipment [electric/gas/oil/propane] [kWh/therm/MBtu/MBtu]
+  * fans heating [kWh]
+  * fans cooling [kWh]
+  * pumps heating [kWh]
+  * pumps cooling [kWh]
+  * central system pumps heating [electric] [kWh]
+  * central system pumps cooling [electric] [kWh]
+  * water heating [electric/gas/oil/propane] [kWh/therm/MBtu/MBtu]
   * pv [kWh]
 
 **Reporting Frequency**
   The timeseries data will be reported at hourly intervals unless otherwise specified. Alternative reporting frequencies include:
 
-  * timestep
-  * daily
-  * monthly
-  * run period
+  * Timestep
+  * Daily
+  * Monthly
+  * Runperiod
   
-  Setting the reporting frequency to "timestep" will give you interval output equal to the zone timestep set by the "Simulation Controls" measure. Thus, this measure will produce 10-min interval output when you select "timestep" and leave the "Simulation Controls" measure at its default settings. Setting the reporting frequency to "detailed" will give you interval output equal to the calculation step (i.e., either zone timestep or HVAC system timestep).
+  Setting the reporting frequency to 'Timestep' will give you interval output equal to the zone timestep set by the :ref:`simulation-controls` measure. Thus, this measure will produce 10-min interval output when you select 'Timestep' and leave the :ref:`simulation-controls` measure at its default settings.
 
 **Include End Use Subcategories**
   Select this to include end use subcategories. The default is to not include end use subcategories. End use subcategories include:
   
   * refrigerator [kWh]
-  * dishwasher [kWh]
-  * cooking range [electric/gas/propane] [kWh/kBtu/kBtu]
   * clothes washer [kWh]
-  * clothes dryer [electric/gas/propane] [kWh/kBtu/kBtu]
+  * clothes dryer [electric/gas/propane] [kWh/therm/MBtu]
+  * cooking range [electric/gas/propane] [kWh/therm/MBtu]
+  * dishwasher [kWh]
+  * plug loads [kWh]
+  * house fan [kWh]
+  * range fan [kWh]
+  * bath fan [kWh]
   * ceiling fan [kWh]
-  * mech vent house fan [kWh]
-  * mech vent range fan [kWh]
-  * mech vent bath fan [kWh]
-  * heating supply fan [kWh]
-  * cooling supply fan [kWh]
-  * misc plug loads [kWh]
   * extra refrigerator [kWh]
   * freezer [kWh]
-  * pool heater [electric/gas] [kWh/kBtu]
+  * pool heater [electric/gas] [kWh/therm]
   * pool pump [kWh]
-  * hot tub heater [electric/gas] [kWh/kBtu]
+  * hot tub heater [electric/gas] [kWh/therm]
   * hot tub pump [kWh]
+  * gas grill [therm]
+  * gas lighting [therm]
+  * gas fireplace [therm]
   * well pump [kWh]
-  * gas fireplace [kBtu]
-  * gas grill [kBtu]
-  * gas lighting [kBtu]
   
 **Output Variables**
-  If you choose to report any output variables (e.g., "Zone Air Temperature" or "Site Outdoor Air Humidity Ratio"), enter a comma-separated list of output variable names. A list of available output variables can be viewed in EnergyPlus's ``.rdd`` file. One csv file, appropriately called "output_variables.csv", will be downloaded alongside the "enduse_timeseries.csv" file.
+  If you choose to report any output variables (e.g., "Zone Air Temperature" or "Site Outdoor Air Humidity Ratio"), enter a comma-separated list of output variable names. A list of available output variables can be viewed in EnergyPlus's ``.rdd`` file.
 
 .. _utility-bill-calculations:
 
