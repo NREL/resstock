@@ -57,7 +57,7 @@ class TsvFile
 
     return rows, option_cols, dependency_cols, full_header, header
   end
-  
+
   def construct_rows_keys_s
     # Caches data for faster tsv lookups
     rows_keys_s = []
@@ -83,7 +83,7 @@ class TsvFile
 
     key_s = hash_to_string(dependency_values)
     key_s_downcase = key_s.downcase
-    
+
     num_matches = @rows_keys_s.count(key_s_downcase)
     if num_matches > 1
       if key_s.size > 0
@@ -98,7 +98,7 @@ class TsvFile
         register_error("Could not determine appropriate option in #{@filename.to_s} for sample value #{sample_value.to_s}.", @runner)
       end
     end
-    
+
     rownum = @rows_keys_s.index(key_s_downcase)
 
     row = @rows[rownum]
@@ -140,10 +140,9 @@ class TsvFile
         break
       end
     end
-    
+
     return matched_option_name, matched_row_num
   end
-
 end
 
 def get_parameters_ordered_from_options_lookup_tsv(lookup_file, characteristics_dir = nil)

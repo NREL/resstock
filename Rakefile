@@ -448,9 +448,6 @@ task :update_measures do
   #                      include_measures,
   #                      exclude_measures,
   #                      "example_from_floorspacejs.osw")
-
-  # Update README.md
-  update_readme(data_hash)
 end
 
 def generate_example_osws(data_hash, include_measures, exclude_measures,
@@ -552,54 +549,6 @@ def generate_example_osws(data_hash, include_measures, exclude_measures,
   File.write(osw_path, JSON.pretty_generate(data_hash))
 end
 
-def update_readme(data_hash)
-  # This method updates the "Measure Order" table in the README.md
-
-  puts "Updating README measure order..."
-
-  table_flag_start = "MEASURE_WORKFLOW_START"
-  table_flag_end = "MEASURE_WORKFLOW_END"
-
-  readme_path = "README.md"
-
-  # Create table
-  table_lines = []
-  table_lines << "|Group|Measure|Dependencies*|\n"
-  table_lines << "|:---|:---|:---|\n"
-  data_hash.each do |group|
-    new_group = true
-    group["group_steps"].each do |group_step|
-      grp = ""
-      if new_group
-        grp = group["group_name"]
-      end
-      name = group_step['name']
-      deps = group_step['dependencies']
-      table_lines << "|#{grp}|#{name}|#{deps}|\n"
-      new_group = false
-    end
-  end
-
-  # Embed table in README text
-  in_lines = IO.readlines(readme_path)
-  out_lines = []
-  inside_table = false
-  in_lines.each do |in_line|
-    if in_line.include? table_flag_start
-      inside_table = true
-      out_lines << in_line
-      out_lines << table_lines
-    elsif in_line.include? table_flag_end
-      inside_table = false
-      out_lines << in_line
-    elsif not inside_table
-      out_lines << in_line
-    end
-  end
-
-  File.write(readme_path, out_lines.join(""))
-end
-
 def get_and_proof_measure_order_json()
   # This function will check that all measure folders (in measures/)
   # are listed in the /resources/measure-info.json and vice versa
@@ -613,7 +562,7 @@ def get_and_proof_measure_order_json()
   all_measures = Dir.entries(measure_folder).select { |entry| entry.start_with?('Residential') } + Dir.entries(resources_measure_folder).select { |entry| entry.start_with?('Residential') }
 
   # Load json, and get all measures in there
-  json_file = "workflows/measure-info.json"
+  json_file = "resources/measure-info.json"
   json_path = File.expand_path("../#{json_file}", __FILE__)
   data_hash = JSON.parse(File.read(json_path))
 
@@ -637,99 +586,4 @@ def get_and_proof_measure_order_json()
   end
 
   return data_hash
-end
-
-desc 'update urdb tariffs'
-task :update_tariffs do
-  require 'csv'
-  require 'net/https'
-  require 'zip'
-
-  tariffs_path = "./resources/tariffs"
-  tariffs_zip = "#{tariffs_path}.zip"
-
-  if not File.exists?(tariffs_path)
-    FileUtils.mkdir_p("./resources/tariffs")
-  end
-
-  if File.exists?(tariffs_zip)
-    Zip::File.open(tariffs_zip) do |zip_file|
-      zip_file.each do |entry|
-        next unless entry.file?
-
-        entry_path = File.join(tariffs_path, entry.name)
-        zip_file.extract(entry, entry_path) unless File.exists?(entry_path)
-      end
-    end
-    FileUtils.rm_rf(tariffs_zip)
-  end
-
-  result = get_tariff_json_files(tariffs_path)
-
-  if result
-    Zip::File.open(tariffs_zip, Zip::File::CREATE) do |zip_file|
-      Dir[File.join(tariffs_path, "*")].each do |entry|
-        zip_file.add(entry.sub(tariffs_path + "/", ""), entry)
-      end
-    end
-    FileUtils.rm_rf(tariffs_path)
-  end
-end
-
-def get_tariff_json_files(tariffs_path)
-  require 'parallel'
-
-  STDOUT.puts "Enter API Key:"
-  api_key = STDIN.gets.strip
-  return false if api_key.empty?
-
-  url = URI.parse("https://api.openei.org/utility_rates?")
-  http = Net::HTTP.new(url.host, url.port)
-  http.use_ssl = true
-  http.verify_mode = OpenSSL::SSL::VERIFY_NONE
-
-  rows = CSV.read("./resources/utilities.csv", { :encoding => 'ISO-8859-1' })
-  rows = rows[1..-1] # ignore header
-  interval = 1
-  report_at = interval
-  timestep = Time.now
-  num_parallel = 1 # FIXME: segfault when num_parallel > 1
-  Parallel.each_with_index(rows, in_threads: num_parallel) do |row, i|
-    utility, eiaid, name, label = row
-
-    params = { 'version' => 3, 'format' => 'json', 'detail' => 'full', 'getpage' => label, 'api_key' => api_key }
-    url.query = URI.encode_www_form(params)
-    request = Net::HTTP::Get.new(url.request_uri)
-    response = http.request(request)
-    response = JSON.parse(response.body, :symbolize_names => true)
-
-    if response.keys.include? :error
-      puts "#{response[:error][:message]}."
-      if response[:error][:message].include? "exceeded your rate limit"
-        false
-      end
-      next
-    end
-
-    entry_path = File.join(tariffs_path, "#{label}.json")
-
-    if response[:items].empty?
-      puts "Skipping #{entry_path}: empty tariff."
-      next
-    end
-
-    File.open(entry_path, "w") do |f|
-      f.write(response.to_json)
-    end
-    puts "Added #{entry_path}."
-
-    # Report out progress
-    if i.to_f * 100 / rows.length >= report_at
-      puts "INFO: Completed #{report_at}%; #{(Time.now - timestep).round}s"
-      report_at += interval
-      timestep = Time.now
-    end
-  end
-
-  return true
 end
