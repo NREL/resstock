@@ -131,17 +131,5 @@ class TestResStockErrors < MiniTest::Test
       flunk "Should have caused an error but didn't."
     end
   end
-
-  def test_housing_characteristics_none_option_missing
-    begin
-      housing_characteristics_dir = "housing_characteristics_none_option_missing"
-      integrity_check(@project_dir_name, housing_characteristics_dir, @lookup_file)
-      integrity_check_options_lookup_tsv(@project_dir_name, housing_characteristics_dir, @lookup_file)
-    rescue Exception => e
-      puts "HERE"
-    else
-      flunk "Should have caused an error but didn't."
-    end
-  end
   
 end
