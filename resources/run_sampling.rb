@@ -8,14 +8,18 @@ require 'optparse'
 require_relative '../resources/buildstock'
 
 class RunSampling
-  def run(project_dir_name, num_samples, outfile)
+  def run(project_dir_name, num_samples, outfile, housing_characteristics_dir="housing_characteristics", lookup_file=nil)
     resources_dir = File.absolute_path(File.join(File.dirname(__FILE__), '..', 'resources')) # Should have been uploaded per 'Additional Analysis Files' in PAT
-    characteristics_dir = File.absolute_path(File.join(File.dirname(__FILE__), '..', 'housing_characteristics')) # Should have been uploaded per 'Additional Analysis Files' in PAT
+    characteristics_dir = File.absolute_path(File.join(File.dirname(__FILE__), '..', housing_characteristics_dir)) # Should have been uploaded per 'Additional Analysis Files' in PAT
     if not File.exists?(characteristics_dir)
-      characteristics_dir = File.absolute_path(File.join(File.dirname(__FILE__), '..', project_dir_name, 'housing_characteristics')) # Being run locally?
+      characteristics_dir = File.absolute_path(File.join(File.dirname(__FILE__), '..', project_dir_name, housing_characteristics_dir)) # Being run locally?
+    end
+    
+    if lookup_file.nil?
+      lookup_file = File.join(resources_dir, "options_lookup.tsv")
     end
 
-    params = get_parameters_ordered_from_options_lookup_tsv(resources_dir)
+    params = get_parameters_ordered_from_options_lookup_tsv(lookup_file)
 
     tsvfiles = {}
     params.each do |param|
