@@ -8,13 +8,13 @@ require 'optparse'
 require_relative '../resources/buildstock'
 
 class RunSampling
-  def run(project_dir_name, num_samples, outfile, housing_characteristics_dir="housing_characteristics", lookup_file=nil)
+  def run(project_dir_name, num_samples, outfile, housing_characteristics_dir = "housing_characteristics", lookup_file = nil)
     resources_dir = File.absolute_path(File.join(File.dirname(__FILE__), '..', 'resources')) # Should have been uploaded per 'Additional Analysis Files' in PAT
     characteristics_dir = File.absolute_path(File.join(File.dirname(__FILE__), '..', housing_characteristics_dir)) # Should have been uploaded per 'Additional Analysis Files' in PAT
     if not File.exists?(characteristics_dir)
       characteristics_dir = File.absolute_path(File.join(File.dirname(__FILE__), '..', project_dir_name, housing_characteristics_dir)) # Being run locally?
     end
-    
+
     if lookup_file.nil?
       lookup_file = File.join(resources_dir, "options_lookup.tsv")
     end
