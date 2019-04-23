@@ -25,7 +25,7 @@ pip install nxpd # Drawing Network Graphs
 pip install nbformat # Jupyter Notebook Format
 ```
 
-If you're on Windows, add the graphviz bin folder (e.g., C:\Program Files (x86)\Graphviz2.38\bin) to your PATH environment variable.
+If you're on Windows, first install [Graphviz 2.38](https://graphviz.gitlab.io/_pages/Download/Download_windows.html) and then add the graphviz bin folder (e.g., C:\Program Files (x86)\Graphviz2.38\bin) to your PATH environment variable.
 
 ### Jupyter notebook
 
