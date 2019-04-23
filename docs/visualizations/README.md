@@ -1,6 +1,6 @@
 # Create visualizations
 
-The scripts on this folder help create different visualizations of a ResStock project.  As the projects evolve, these scripts work directly off the housing characteristics and can simply be regenerated.  Find below the necessary prerequisites and regeneration information.
+The scripts on this folder help create different visualizations of a ResStock project. As the projects evolve, these scripts work directly off the housing characteristics and can simply be regenerated. Find below the necessary prerequisites and regeneration information.
 
 ## Install prerequisites
 
@@ -14,6 +14,7 @@ The visualization script run using python 2.7.
 
 ```
 conda create -n myenv python=2.7
+source activate myenv
 conda install -c conda-forge python-graphviz
 conda install ipykernel
 python -m ipykernel install --user --name myenv --display-name "myenv"
