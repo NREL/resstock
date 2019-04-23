@@ -37,8 +37,12 @@ class Constants
     return 110 # F
   end
 
-  def self.MonthNumDays
-    return [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
+  def self.MonthNumDays(is_leap_year = false)
+    month_num_days = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
+    if is_leap_year
+      month_num_days[1] += 1
+    end
+    return month_num_days
   end
 
   def self.Patm
@@ -842,6 +846,14 @@ class Constants
 
   def self.OptionTypeLightingEnergyUses
     return 'Annual Energy Uses'
+  end
+
+  def self.OptionTypeLightingScheduleCalculated
+    return 'Calculated Lighting Schedule'
+  end
+
+  def self.OptionTypeLightingScheduleUserSpecified
+    return 'User-Specified Lighting Schedule'
   end
 
   def self.OptionTypePlugLoadsMultiplier

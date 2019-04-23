@@ -3,7 +3,12 @@ require_relative "geometry"
 require_relative "unit_conversions"
 
 class Lighting
-  def self.apply_interior(model, unit, runner, weather, sch, interior_ann)
+  # TODO: move algorithm off into its own method
+  # TODO: apply_interior calls this method
+  # TODO: apply_garage optionally calls this method, returns sch
+  # TODO: apply_exterior still gets the same sch as apply_garage
+
+  def self.get_lighting_sch(model, weather, sch_option_type, monthly_sch)
     lat = weather.header.Latitude
     long = weather.header.Longitude
     tz = weather.header.Timezone
@@ -95,15 +100,23 @@ class Lighting
       wtd_avg_monthly_kwh_per_day = wtd_avg_monthly_kwh_per_day + monthly_kwh_per_day[month] * days_m[month] / 365.0
     end
 
-    # Calculate normalized monthly lighting fractions
+    # Get the seasonal multipliers
     seasonal_multiplier = []
+    if sch_option_type == Constants.OptionTypeLightingScheduleCalculated
+      for month in 0..11
+        seasonal_multiplier[month] = (monthly_kwh_per_day[month] / wtd_avg_monthly_kwh_per_day)
+      end
+    elsif sch_option_type == Constants.OptionTypeLightingScheduleUserSpecified
+      seasonal_multiplier = monthly_sch
+    end
+
+    # Calculate normalized monthly lighting fractions
     sumproduct_seasonal_multiplier = 0
-    normalized_monthly_lighting = seasonal_multiplier
     for month in 0..11
-      seasonal_multiplier[month] = (monthly_kwh_per_day[month] / wtd_avg_monthly_kwh_per_day)
       sumproduct_seasonal_multiplier += seasonal_multiplier[month] * days_m[month]
     end
 
+    normalized_monthly_lighting = seasonal_multiplier
     for month in 0..11
       normalized_monthly_lighting[month] = seasonal_multiplier[month] * days_m[month] / sumproduct_seasonal_multiplier
     end
@@ -115,6 +128,12 @@ class Lighting
         lighting_sch[month][hour] = normalized_monthly_lighting[month] * normalized_hourly_lighting[month][hour] / days_m[month]
       end
     end
+
+    return lighting_sch
+  end
+
+  def self.apply_interior(model, unit, runner, weather, sch, interior_ann, sch_option_type, monthly_sch)
+    lighting_sch = get_lighting_sch(model, weather, sch_option_type, monthly_sch)
 
     # Get unit ffa and finished spaces
     unit_finished_spaces = Geometry.get_finished_spaces(unit.spaces)
@@ -162,11 +181,34 @@ class Lighting
     return true, sch
   end
 
-  def self.apply_garage(model, runner, sch, garage_ann)
+  def self.apply_garage(model, runner, weather, sch, garage_ann, sch_option_type, weekday_sch, weekend_sch, monthly_sch)
+    lighting_sch = nil
+    if sch_option_type == Constants.OptionTypeLightingScheduleCalculated
+      lighting_sch = get_lighting_sch(model, weather, sch_option_type, monthly_sch)
+    end
+
+    # Design day schedules used when autosizing
+    winter_design_day_sch = OpenStudio::Model::ScheduleDay.new(model)
+    winter_design_day_sch.addValue(OpenStudio::Time.new(0, 24, 0, 0), 0)
+    summer_design_day_sch = OpenStudio::Model::ScheduleDay.new(model)
+    summer_design_day_sch.addValue(OpenStudio::Time.new(0, 24, 0, 0), 1)
+
     garage_spaces = Geometry.get_garage_spaces(model.getSpaces)
     gfa = Geometry.get_floor_area_from_spaces(garage_spaces)
     garage_spaces.each do |garage_space|
       space_obj_name = "#{Constants.ObjectNameLighting} #{garage_space.name.to_s}"
+
+      if sch.nil?
+        # Create schedule
+        if lighting_sch.nil?
+          sch = MonthWeekdayWeekendSchedule.new(model, runner, Constants.ObjectNameMiscPlugLoads + " schedule", weekday_sch, weekend_sch, monthly_sch, mult_weekday = 1.0, mult_weekend = 1.0, normalize_values = true, create_sch_object = true, winter_design_day_sch, summer_design_day_sch)
+        else
+          sch = HourlyByMonthSchedule.new(model, runner, Constants.ObjectNameLighting + " schedule", lighting_sch, lighting_sch, normalize_values = true, create_sch_object = true, winter_design_day_sch, summer_design_day_sch)
+        end
+        if not sch.validated?
+          return false
+        end
+      end
 
       space_ltg_ann = garage_ann * UnitConversions.convert(garage_space.floorArea, "m^2", "ft^2") / gfa
       space_design_level = sch.calcDesignLevel(sch.maxval * space_ltg_ann)
@@ -184,10 +226,33 @@ class Lighting
       ltg.setSchedule(sch.schedule)
     end
 
-    return true
+    return true, sch
   end
 
-  def self.apply_exterior(model, runner, sch, exterior_ann)
+  def self.apply_exterior(model, runner, weather, sch, exterior_ann, sch_option_type, weekday_sch, weekend_sch, monthly_sch)
+    lighting_sch = nil
+    if sch_option_type == Constants.OptionTypeLightingScheduleCalculated
+      lighting_sch = get_lighting_sch(model, weather, sch_option_type, monthly_sch)
+    end
+
+    # Design day schedules used when autosizing
+    winter_design_day_sch = OpenStudio::Model::ScheduleDay.new(model)
+    winter_design_day_sch.addValue(OpenStudio::Time.new(0, 24, 0, 0), 0)
+    summer_design_day_sch = OpenStudio::Model::ScheduleDay.new(model)
+    summer_design_day_sch.addValue(OpenStudio::Time.new(0, 24, 0, 0), 1)
+
+    if sch.nil?
+      # Create schedule
+      if lighting_sch.nil?
+        sch = MonthWeekdayWeekendSchedule.new(model, runner, Constants.ObjectNameMiscPlugLoads + " schedule", weekday_sch, weekend_sch, monthly_sch, mult_weekday = 1.0, mult_weekend = 1.0, normalize_values = true, create_sch_object = true, winter_design_day_sch, summer_design_day_sch)
+      else
+        sch = HourlyByMonthSchedule.new(model, runner, Constants.ObjectNameLighting + " schedule", lighting_sch, lighting_sch, normalize_values = true, create_sch_object = true, winter_design_day_sch, summer_design_day_sch)
+      end
+      if not sch.validated?
+        return false
+      end
+    end
+
     space_design_level = sch.calcDesignLevel(sch.maxval * exterior_ann)
     space_obj_name = "#{Constants.ObjectNameLighting} exterior"
 
@@ -202,7 +267,30 @@ class Lighting
     return true
   end
 
-  def self.remove(model, runner)
+  def self.remove_interior(model, runner)
+    objects_to_remove = []
+    model.getLightss.each do |light|
+      next if light.name.to_s.downcase.include? Constants.SpaceTypeGarage
+
+      objects_to_remove << light
+      objects_to_remove << light.lightsDefinition
+      if light.schedule.is_initialized
+        objects_to_remove << light.schedule.get
+      end
+    end
+    if objects_to_remove.size > 0
+      runner.registerInfo("Removed existing interior lighting from the model.")
+    end
+    objects_to_remove.uniq.each do |object|
+      begin
+        object.remove
+      rescue
+        # no op
+      end
+    end
+  end
+
+  def self.remove_other(model, runner)
     objects_to_remove = []
     model.getExteriorLightss.each do |exterior_light|
       objects_to_remove << exterior_light
@@ -212,6 +300,8 @@ class Lighting
       end
     end
     model.getLightss.each do |light|
+      next if light.name.to_s.downcase.include? Constants.SpaceTypeLiving
+
       objects_to_remove << light
       objects_to_remove << light.lightsDefinition
       if light.schedule.is_initialized
@@ -219,7 +309,7 @@ class Lighting
       end
     end
     if objects_to_remove.size > 0
-      runner.registerInfo("Removed existing interior/exterior lighting from the model.")
+      runner.registerInfo("Removed existing garage/exterior lighting from the model.")
     end
     objects_to_remove.uniq.each do |object|
       begin
