@@ -291,6 +291,22 @@ class ResidentialLightingInteriorTest < MiniTest::Test
     assert_equal(result.errors.map { |x| x.logMessage }[0], "#{Constants.OptionTypeLightingEnergyUses}: Interior must be greater than or equal to 0.")
   end
 
+  def test_argument_error_monthly_sch_wrong_number_of_values
+    args_hash = {}
+    args_hash["sch_option_type"] = Constants.OptionTypeLightingScheduleUserSpecified
+    args_hash["monthly_sch"] = "1,1"
+    result = _test_error("SFD_2000sqft_2story_FB_GRG_UA_Denver.osm", args_hash)
+    assert_equal(result.errors.map { |x| x.logMessage }[0], "A comma-separated string of 12 numbers must be entered for the monthly schedule.")
+  end
+
+  def test_argument_error_monthly_sch_not_number
+    args_hash = {}
+    args_hash["sch_option_type"] = Constants.OptionTypeLightingScheduleUserSpecified
+    args_hash["monthly_sch"] = "str,1,1,1,1,1,1,1,1,1,1,1"
+    result = _test_error("SFD_2000sqft_2story_FB_GRG_UA_Denver.osm", args_hash)
+    assert_equal(result.errors.map { |x| x.logMessage }[0], "A comma-separated string of 12 numbers must be entered for the monthly schedule.")
+  end
+
   def test_error_missing_geometry
     args_hash = {}
     result = _test_error(nil, args_hash)

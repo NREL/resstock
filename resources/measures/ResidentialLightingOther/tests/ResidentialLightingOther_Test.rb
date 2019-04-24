@@ -288,7 +288,7 @@ class ResidentialLightingOtherTest < MiniTest::Test
     args_hash["option_type"] = Constants.OptionTypeLightingEnergyUses
     args_hash["energy_use_garage"] = -1.0
     result = _test_error("SFD_2000sqft_2story_FB_GRG_UA_Denver.osm", args_hash)
-    assert_equal(result.errors.map { |x| x.logMessage }[0], "#{Constants.OptionTypeLightingEnergyUses}: Interior must be greater than or equal to 0.")
+    assert_equal(result.errors.map { |x| x.logMessage }[0], "#{Constants.OptionTypeLightingEnergyUses}: Garage must be greater than or equal to 0.")
   end
 
   def test_argument_error_energy_use_exterior_lt_0
@@ -296,7 +296,55 @@ class ResidentialLightingOtherTest < MiniTest::Test
     args_hash["option_type"] = Constants.OptionTypeLightingEnergyUses
     args_hash["energy_use_exterior"] = -1.0
     result = _test_error("SFD_2000sqft_2story_FB_GRG_UA_Denver.osm", args_hash)
-    assert_equal(result.errors.map { |x| x.logMessage }[0], "#{Constants.OptionTypeLightingEnergyUses}: Interior must be greater than or equal to 0.")
+    assert_equal(result.errors.map { |x| x.logMessage }[0], "#{Constants.OptionTypeLightingEnergyUses}: Exterior must be greater than or equal to 0.")
+  end
+
+  def test_argument_error_weekday_sch_wrong_number_of_values
+    args_hash = {}
+    args_hash["sch_option_type"] = Constants.OptionTypeLightingScheduleUserSpecified
+    args_hash["weekday_sch"] = "1,1"
+    result = _test_error("SFD_2000sqft_2story_FB_GRG_UA_Denver.osm", args_hash)
+    assert_equal(result.errors.map { |x| x.logMessage }[0], "A comma-separated string of 24 numbers must be entered for the weekday schedule.")
+  end
+
+  def test_argument_error_weekday_sch_not_number
+    args_hash = {}
+    args_hash["sch_option_type"] = Constants.OptionTypeLightingScheduleUserSpecified
+    args_hash["weekday_sch"] = "str,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1"
+    result = _test_error("SFD_2000sqft_2story_FB_GRG_UA_Denver.osm", args_hash)
+    assert_equal(result.errors.map { |x| x.logMessage }[0], "A comma-separated string of 24 numbers must be entered for the weekday schedule.")
+  end
+
+  def test_argument_error_weekend_sch_wrong_number_of_values
+    args_hash = {}
+    args_hash["sch_option_type"] = Constants.OptionTypeLightingScheduleUserSpecified
+    args_hash["weekend_sch"] = "1,1"
+    result = _test_error("SFD_2000sqft_2story_FB_GRG_UA_Denver.osm", args_hash)
+    assert_equal(result.errors.map { |x| x.logMessage }[0], "A comma-separated string of 24 numbers must be entered for the weekend schedule.")
+  end
+
+  def test_argument_error_weekend_sch_not_number
+    args_hash = {}
+    args_hash["sch_option_type"] = Constants.OptionTypeLightingScheduleUserSpecified
+    args_hash["weekend_sch"] = "str,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1"
+    result = _test_error("SFD_2000sqft_2story_FB_GRG_UA_Denver.osm", args_hash)
+    assert_equal(result.errors.map { |x| x.logMessage }[0], "A comma-separated string of 24 numbers must be entered for the weekend schedule.")
+  end
+
+  def test_argument_error_monthly_sch_wrong_number_of_values
+    args_hash = {}
+    args_hash["sch_option_type"] = Constants.OptionTypeLightingScheduleUserSpecified
+    args_hash["monthly_sch"] = "1,1"
+    result = _test_error("SFD_2000sqft_2story_FB_GRG_UA_Denver.osm", args_hash)
+    assert_equal(result.errors.map { |x| x.logMessage }[0], "A comma-separated string of 12 numbers must be entered for the monthly schedule.")
+  end
+
+  def test_argument_error_monthly_sch_not_number
+    args_hash = {}
+    args_hash["sch_option_type"] = Constants.OptionTypeLightingScheduleUserSpecified
+    args_hash["monthly_sch"] = "str,1,1,1,1,1,1,1,1,1,1,1"
+    result = _test_error("SFD_2000sqft_2story_FB_GRG_UA_Denver.osm", args_hash)
+    assert_equal(result.errors.map { |x| x.logMessage }[0], "A comma-separated string of 12 numbers must be entered for the monthly schedule.")
   end
 
   def test_error_missing_geometry
