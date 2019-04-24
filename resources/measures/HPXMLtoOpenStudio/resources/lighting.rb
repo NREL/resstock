@@ -3,11 +3,6 @@ require_relative "geometry"
 require_relative "unit_conversions"
 
 class Lighting
-  # TODO: move algorithm off into its own method
-  # TODO: apply_interior calls this method
-  # TODO: apply_garage optionally calls this method, returns sch
-  # TODO: apply_exterior still gets the same sch as apply_garage
-
   def self.get_lighting_sch(model, runner, weather, sch_option_type, monthly_sch)
     lat = weather.header.Latitude
     long = weather.header.Longitude
