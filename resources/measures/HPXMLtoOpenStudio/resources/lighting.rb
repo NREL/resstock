@@ -8,7 +8,7 @@ class Lighting
   # TODO: apply_garage optionally calls this method, returns sch
   # TODO: apply_exterior still gets the same sch as apply_garage
 
-  def self.get_lighting_sch(model, weather, sch_option_type, monthly_sch)
+  def self.get_lighting_sch(model, runner, weather, sch_option_type, monthly_sch)
     lat = weather.header.Latitude
     long = weather.header.Longitude
     tz = weather.header.Timezone
@@ -107,8 +107,19 @@ class Lighting
         seasonal_multiplier[month] = (monthly_kwh_per_day[month] / wtd_avg_monthly_kwh_per_day)
       end
     elsif sch_option_type == Constants.OptionTypeLightingScheduleUserSpecified
-      monthly_sch = monthly_sch.split(",")
-      seasonal_multiplier = monthly_sch.map { |i| i.to_f }
+      vals = monthly_sch.split(",")
+      vals.each do |val|
+        begin Float(val)
+        rescue
+          runner.registerError("A comma-separated string of 12 numbers must be entered for the monthly schedule.")
+          return false
+        end
+      end
+      seasonal_multiplier = vals.map { |i| i.to_f }
+      if seasonal_multiplier.length != 12
+        runner.registerError("A comma-separated string of 12 numbers must be entered for the monthly schedule.")
+        return false
+      end
     end
 
     # Calculate normalized monthly lighting fractions
@@ -134,7 +145,8 @@ class Lighting
   end
 
   def self.apply_interior(model, unit, runner, weather, sch, interior_ann, sch_option_type, monthly_sch)
-    lighting_sch = get_lighting_sch(model, weather, sch_option_type, monthly_sch)
+    lighting_sch = get_lighting_sch(model, runner, weather, sch_option_type, monthly_sch)
+    return false unless lighting_sch
 
     # Get unit ffa and finished spaces
     unit_finished_spaces = Geometry.get_finished_spaces(unit.spaces)
@@ -185,7 +197,7 @@ class Lighting
   def self.apply_garage(model, runner, weather, sch, garage_ann, sch_option_type, weekday_sch, weekend_sch, monthly_sch)
     lighting_sch = nil
     if sch_option_type == Constants.OptionTypeLightingScheduleCalculated
-      lighting_sch = get_lighting_sch(model, weather, sch_option_type, monthly_sch)
+      lighting_sch = get_lighting_sch(model, runner, weather, sch_option_type, monthly_sch)
     end
 
     # Design day schedules used when autosizing
@@ -238,7 +250,7 @@ class Lighting
   def self.apply_exterior(model, runner, weather, sch, exterior_ann, sch_option_type, weekday_sch, weekend_sch, monthly_sch)
     lighting_sch = nil
     if sch_option_type == Constants.OptionTypeLightingScheduleCalculated
-      lighting_sch = get_lighting_sch(model, weather, sch_option_type, monthly_sch)
+      lighting_sch = get_lighting_sch(model, runner, weather, sch_option_type, monthly_sch)
     end
 
     # Design day schedules used when autosizing
