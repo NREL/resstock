@@ -107,7 +107,8 @@ class Lighting
         seasonal_multiplier[month] = (monthly_kwh_per_day[month] / wtd_avg_monthly_kwh_per_day)
       end
     elsif sch_option_type == Constants.OptionTypeLightingScheduleUserSpecified
-      seasonal_multiplier = monthly_sch
+      monthly_sch = monthly_sch.split(",")
+      seasonal_multiplier = monthly_sch.map { |i| i.to_f }
     end
 
     # Calculate normalized monthly lighting fractions
@@ -197,6 +198,7 @@ class Lighting
     gfa = Geometry.get_floor_area_from_spaces(garage_spaces)
     garage_spaces.each do |garage_space|
       space_obj_name = "#{Constants.ObjectNameLighting} #{garage_space.name.to_s}"
+      space_ltg_ann = garage_ann * UnitConversions.convert(garage_space.floorArea, "m^2", "ft^2") / gfa
 
       if sch.nil?
         # Create schedule
@@ -210,8 +212,12 @@ class Lighting
         end
       end
 
-      space_ltg_ann = garage_ann * UnitConversions.convert(garage_space.floorArea, "m^2", "ft^2") / gfa
-      space_design_level = sch.calcDesignLevel(sch.maxval * space_ltg_ann)
+      space_design_level = nil
+      if sch_option_type == Constants.OptionTypeLightingScheduleCalculated
+        space_design_level = sch.calcDesignLevel(sch.maxval * space_ltg_ann)
+      elsif sch_option_type == Constants.OptionTypeLightingScheduleUserSpecified
+        space_design_level = sch.calcDesignLevelFromDailykWh(space_ltg_ann / 365.0)
+      end
 
       # Add lighting
       ltg_def = OpenStudio::Model::LightsDefinition.new(model)
@@ -241,6 +247,8 @@ class Lighting
     summer_design_day_sch = OpenStudio::Model::ScheduleDay.new(model)
     summer_design_day_sch.addValue(OpenStudio::Time.new(0, 24, 0, 0), 1)
 
+    space_obj_name = "#{Constants.ObjectNameLighting} exterior"
+
     if sch.nil?
       # Create schedule
       if lighting_sch.nil?
@@ -253,8 +261,12 @@ class Lighting
       end
     end
 
-    space_design_level = sch.calcDesignLevel(sch.maxval * exterior_ann)
-    space_obj_name = "#{Constants.ObjectNameLighting} exterior"
+    space_design_level = nil
+    if sch_option_type == Constants.OptionTypeLightingScheduleCalculated
+      space_design_level = sch.calcDesignLevel(sch.maxval * exterior_ann)
+    elsif sch_option_type == Constants.OptionTypeLightingScheduleUserSpecified
+      space_design_level = sch.calcDesignLevelFromDailykWh(exterior_ann / 365.0)
+    end
 
     # Add exterior lighting
     ltg_def = OpenStudio::Model::ExteriorLightsDefinition.new(model)
