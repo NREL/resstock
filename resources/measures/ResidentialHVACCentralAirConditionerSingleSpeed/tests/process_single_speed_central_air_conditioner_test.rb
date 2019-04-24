@@ -305,39 +305,6 @@ class ProcessSingleSpeedCentralAirConditionerTest < MiniTest::Test
 
   private
 
-  def _test_error(osm_file_or_model, args_hash)
-    # create an instance of the measure
-    measure = ProcessSingleSpeedCentralAirConditioner.new
-
-    # create an instance of a runner
-    runner = OpenStudio::Measure::OSRunner.new(OpenStudio::WorkflowJSON.new)
-
-    model = get_model(File.dirname(__FILE__), osm_file_or_model)
-
-    # get arguments
-    arguments = measure.arguments(model)
-    argument_map = OpenStudio::Measure.convertOSArgumentVectorToMap(arguments)
-
-    # populate argument with specified hash value if specified
-    arguments.each do |arg|
-      temp_arg_var = arg.clone
-      if args_hash.has_key?(arg.name)
-        assert(temp_arg_var.setValue(args_hash[arg.name]))
-      end
-      argument_map[arg.name] = temp_arg_var
-    end
-
-    # run the measure
-    measure.run(model, runner, argument_map)
-    result = runner.result
-
-    # assert that it didn't run
-    assert_equal("Fail", result.value.valueName)
-    assert(result.errors.size == 1)
-
-    return result
-  end
-
   def _test_measure(osm_file_or_model, args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, num_infos = 0, num_warnings = 0, debug = false)
     # create an instance of the measure
     measure = ProcessSingleSpeedCentralAirConditioner.new
