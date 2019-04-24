@@ -867,6 +867,10 @@ class Geometry
         if space.spaceType.get.standardsSpaceType.is_initialized
           return true if space.spaceType.get.standardsSpaceType.get == space_type
         end
+        # alternate check for commercial space types that use standards building type and space type
+        if space.spaceType.get.standardsBuildingType.is_initialized && space.spaceType.get.standardsSpaceType.is_initialized
+          return true if "#{space.spaceType.get.standardsBuildingType.get},#{space.spaceType.get.standardsSpaceType.get}" == space_type
+        end
       end
     end
     return false

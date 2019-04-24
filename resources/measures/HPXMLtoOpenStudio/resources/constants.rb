@@ -1201,7 +1201,7 @@ class Constants
   end
 
   def self.SpaceTypeOffice
-    return 'office'
+    return 'SmallOffice,WholeBuilding - Sm Office'
   end
 
   def self.SpaceTypePierBeam
@@ -1209,7 +1209,7 @@ class Constants
   end
 
   def self.SpaceTypeRetail
-    return 'retail'
+    return 'StripMall,Strip mall - type 3'
   end
 
   def self.SpaceTypeUnfinishedAttic

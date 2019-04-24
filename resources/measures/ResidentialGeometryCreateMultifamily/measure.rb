@@ -951,13 +951,16 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
         end
         first_floor_spaces << space
       end
+      com_bldg_type = commercial_building_type.split(",").first
+      com_space_type = commercial_building_type.split(",").last
       commercial_space = Geometry.make_one_space_from_multiple_spaces(model, first_floor_spaces)
-      commercial_space.setName(commercial_building_type)
+      commercial_space.setName(com_bldg_type)
       commercial_zone = OpenStudio::Model::ThermalZone.new(model)
-      commercial_zone.setName(commercial_building_type)
+      commercial_zone.setName(com_bldg_type)
       commercial_space.setThermalZone(commercial_zone)
       commercial_space_type = OpenStudio::Model::SpaceType.new(model)
-      commercial_space_type.setStandardsSpaceType(commercial_building_type)
+      commercial_space_type.setStandardsBuildingType(com_bldg_type)
+      commercial_space_type.setStandardsSpaceType(com_space_type)
       commercial_space.setSpaceType(commercial_space_type)
 
       model.getThermalZones.each do |thermal_zone|
