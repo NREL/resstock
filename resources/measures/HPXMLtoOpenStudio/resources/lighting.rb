@@ -167,7 +167,7 @@ class Lighting
 
       if sch.nil?
         # Create schedule
-        sch = HourlyByMonthSchedule.new(model, runner, Constants.ObjectNameLighting + " schedule", lighting_sch, lighting_sch, normalize_values = true, create_sch_object = true, winter_design_day_sch, summer_design_day_sch)
+        sch = HourlyByMonthSchedule.new(model, runner, Constants.ObjectNameLighting + " interior schedule", lighting_sch, lighting_sch, normalize_values = true, create_sch_object = true, winter_design_day_sch, summer_design_day_sch)
         if not sch.validated?
           return false
         end
@@ -215,9 +215,9 @@ class Lighting
       if sch.nil?
         # Create schedule
         if lighting_sch.nil?
-          sch = MonthWeekdayWeekendSchedule.new(model, runner, Constants.ObjectNameMiscPlugLoads + " schedule", weekday_sch, weekend_sch, monthly_sch, mult_weekday = 1.0, mult_weekend = 1.0, normalize_values = true, create_sch_object = true, winter_design_day_sch, summer_design_day_sch)
+          sch = MonthWeekdayWeekendSchedule.new(model, runner, Constants.ObjectNameLighting + " other schedule", weekday_sch, weekend_sch, monthly_sch, mult_weekday = 1.0, mult_weekend = 1.0, normalize_values = true, create_sch_object = true, winter_design_day_sch, summer_design_day_sch)
         else
-          sch = HourlyByMonthSchedule.new(model, runner, Constants.ObjectNameLighting + " schedule", lighting_sch, lighting_sch, normalize_values = true, create_sch_object = true, winter_design_day_sch, summer_design_day_sch)
+          sch = HourlyByMonthSchedule.new(model, runner, Constants.ObjectNameLighting + " other schedule", lighting_sch, lighting_sch, normalize_values = true, create_sch_object = true, winter_design_day_sch, summer_design_day_sch)
         end
         if not sch.validated?
           return false
@@ -264,9 +264,9 @@ class Lighting
     if sch.nil?
       # Create schedule
       if lighting_sch.nil?
-        sch = MonthWeekdayWeekendSchedule.new(model, runner, Constants.ObjectNameMiscPlugLoads + " schedule", weekday_sch, weekend_sch, monthly_sch, mult_weekday = 1.0, mult_weekend = 1.0, normalize_values = true, create_sch_object = true, winter_design_day_sch, summer_design_day_sch)
+        sch = MonthWeekdayWeekendSchedule.new(model, runner, Constants.ObjectNameLighting + " other schedule", weekday_sch, weekend_sch, monthly_sch, mult_weekday = 1.0, mult_weekend = 1.0, normalize_values = true, create_sch_object = true, winter_design_day_sch, summer_design_day_sch)
       else
-        sch = HourlyByMonthSchedule.new(model, runner, Constants.ObjectNameLighting + " schedule", lighting_sch, lighting_sch, normalize_values = true, create_sch_object = true, winter_design_day_sch, summer_design_day_sch)
+        sch = HourlyByMonthSchedule.new(model, runner, Constants.ObjectNameLighting + " other schedule", lighting_sch, lighting_sch, normalize_values = true, create_sch_object = true, winter_design_day_sch, summer_design_day_sch)
       end
       if not sch.validated?
         return false
@@ -294,7 +294,7 @@ class Lighting
   def self.remove_interior(model, runner)
     objects_to_remove = []
     model.getLightss.each do |light|
-      next if light.name.to_s.downcase.include? Constants.SpaceTypeGarage
+      next unless Geometry.space_is_finished(light.space.get)
 
       objects_to_remove << light
       objects_to_remove << light.lightsDefinition
@@ -324,7 +324,7 @@ class Lighting
       end
     end
     model.getLightss.each do |light|
-      next if light.name.to_s.downcase.include? Constants.SpaceTypeLiving
+      next if Geometry.space_is_finished(light.space.get)
 
       objects_to_remove << light
       objects_to_remove << light.lightsDefinition

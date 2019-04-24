@@ -332,8 +332,10 @@ class ResidentialLightingOther < OpenStudio::Measure::ModelMeasure
     success, sch = Lighting.apply_garage(model, runner, weather, sch, garage_ann, sch_option_type, weekday_sch, weekend_sch, monthly_sch)
     return false if not success
 
-    msgs << "Lighting with #{garage_ann.round} kWhs annual energy consumption has been assigned to the garage(s)."
-    tot_ltg_e += garage_ann
+    if garage_spaces.length > 0
+      msgs << "Lighting with #{garage_ann.round} kWhs annual energy consumption has been assigned to the garage(s)."
+      tot_ltg_e += garage_ann
+    end
 
     # Exterior Lighting
     exterior_ann = 0
