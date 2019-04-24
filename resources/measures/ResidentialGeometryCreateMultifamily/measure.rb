@@ -1065,6 +1065,47 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
       return false
     end
 
+    # code to assign stories from AssignSpacesToStories measures
+    # todo - this could be sped up if stories are properly assigned as spaces are created or cloned.
+    # find the first story with z coordinate, create one if needed
+    def getStoryForNominalZCoordinate(model, minz)
+      model.getBuildingStorys.each do |story|
+        z = story.nominalZCoordinate
+        if !z.empty?
+          if minz.round(2) == z.get.round(2)
+            return story
+          end
+        end
+      end
+      story = OpenStudio::Model::BuildingStory.new(model)
+      story.setNominalZCoordinate(minz)
+      return story
+    end
+    # make has of spaces and minz values
+    sorted_spaces = {}
+    model.getSpaces.each do |space|
+      # loop through space surfaces to find min z value
+      z_points = []
+      space.surfaces.each do |surface|
+        surface.vertices.each do |vertex|
+          z_points << vertex.z
+        end
+      end
+      minz = z_points.min + space.zOrigin
+      sorted_spaces[space] = minz
+    end
+    # pre-sort spaces
+    sorted_spaces = sorted_spaces.sort_by { |a| a[1] }
+    # this should take the sorted list and make and assign stories
+    sorted_spaces.each do |space|
+      space_obj = space[0]
+      space_minz = space[1]
+      if space_obj.buildingStory.empty?
+        story = getStoryForNominalZCoordinate(model, space_minz)
+        space_obj.setBuildingStory(story)
+      end
+    end
+
     # reporting final condition of model
     runner.registerFinalCondition("The building finished with #{model.getSpaces.size} spaces.")
 
