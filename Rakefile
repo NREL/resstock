@@ -135,27 +135,27 @@ Rake::TestTask.new('integrity_check_all') do |t|
   t.verbose = true
 end # rake task
 
-desc 'Perform integrity check on inputs for project_resstock_national'
-Rake::TestTask.new('integrity_check_resstock_national') do |t|
+desc 'Perform integrity check on inputs for project_singlefamilydetached'
+Rake::TestTask.new('integrity_check_singlefamilydetached') do |t|
   desc 'Run unit tests for all projects/measures'
   t.libs << 'test'
-  t.test_files = Dir['project_resstock_national/tests/*.rb']
+  t.test_files = Dir['project_singlefamilydetached/tests/*.rb']
   t.warning = false
   t.verbose = true
 end # rake task
 
-desc 'Perform integrity check on inputs for project_resstock_multifamily'
-Rake::TestTask.new('integrity_check_resstock_multifamily') do |t|
+desc 'Perform integrity check on inputs for project_multifamily_beta'
+Rake::TestTask.new('integrity_check_multifamily_beta') do |t|
   t.libs << 'test'
-  t.test_files = Dir['project_resstock_multifamily/tests/*.rb']
+  t.test_files = Dir['project_multifamily_beta/tests/*.rb']
   t.warning = false
   t.verbose = true
 end # rake task
 
-desc 'Perform integrity check on inputs for project_resstock_testing'
-Rake::TestTask.new('integrity_check_resstock_testing') do |t|
+desc 'Perform integrity check on inputs for project_testing'
+Rake::TestTask.new('integrity_check_testing') do |t|
   t.libs << 'test'
-  t.test_files = Dir['project_resstock_testing/tests/*.rb']
+  t.test_files = Dir['project_testing/tests/*.rb']
   t.warning = false
   t.verbose = true
 end # rake task
