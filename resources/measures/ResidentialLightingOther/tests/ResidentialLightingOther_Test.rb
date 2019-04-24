@@ -137,6 +137,15 @@ class ResidentialLightingOtherTest < MiniTest::Test
     _test_measure(model, args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 3)
   end
 
+  def test_new_construction_lighting_schedule_specified
+    args_hash = {}
+    args_hash["sch_option_type"] = Constants.OptionTypeLightingScheduleUserSpecified
+    expected_num_del_objects = {}
+    expected_num_new_objects = { "LightsDefinition" => 1, "Lights" => 1, "ExteriorLightsDefinition" => 1, "ExteriorLights" => 1, "ScheduleRuleset" => 1 }
+    expected_values = { "Annual_kwh" => 330 }
+    _test_measure("SFD_2000sqft_2story_FB_GRG_UA_Denver.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 2)
+  end
+
   def test_argument_error_hw_cfl_lt_0
     args_hash = {}
     args_hash["hw_cfl"] = -1.0
@@ -272,6 +281,22 @@ class ResidentialLightingOtherTest < MiniTest::Test
     args_hash["pg_led"] = 0.4
     result = _test_error("SFD_2000sqft_2story_FB_GRG_UA_Denver.osm", args_hash)
     assert_equal(result.errors.map { |x| x.logMessage }[0], "Sum of CFL, LED, and LFL Plugin Fractions must be less than or equal to 1.")
+  end
+
+  def test_argument_error_energy_use_garage_lt_0
+    args_hash = {}
+    args_hash["option_type"] = Constants.OptionTypeLightingEnergyUses
+    args_hash["energy_use_garage"] = -1.0
+    result = _test_error("SFD_2000sqft_2story_FB_GRG_UA_Denver.osm", args_hash)
+    assert_equal(result.errors.map { |x| x.logMessage }[0], "#{Constants.OptionTypeLightingEnergyUses}: Interior must be greater than or equal to 0.")
+  end
+
+  def test_argument_error_energy_use_exterior_lt_0
+    args_hash = {}
+    args_hash["option_type"] = Constants.OptionTypeLightingEnergyUses
+    args_hash["energy_use_exterior"] = -1.0
+    result = _test_error("SFD_2000sqft_2story_FB_GRG_UA_Denver.osm", args_hash)
+    assert_equal(result.errors.map { |x| x.logMessage }[0], "#{Constants.OptionTypeLightingEnergyUses}: Interior must be greater than or equal to 0.")
   end
 
   def test_error_missing_geometry
