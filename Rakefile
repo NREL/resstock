@@ -168,7 +168,7 @@ Rake::TestTask.new('integrity_check_unit_tests') do |t|
   t.verbose = true
 end # rake task
 
-def integrity_check(project_dir_name, housing_characteristics_dir="housing_characteristics", lookup_file=nil)
+def integrity_check(project_dir_name, housing_characteristics_dir = "housing_characteristics", lookup_file = nil)
   # Load helper file and sampling file
   resources_dir = File.join(File.dirname(__FILE__), 'resources')
   require File.join(resources_dir, 'buildstock')
@@ -284,7 +284,7 @@ def integrity_check(project_dir_name, housing_characteristics_dir="housing_chara
   end
 end
 
-def integrity_check_options_lookup_tsv(project_dir_name, housing_characteristics_dir="housing_characteristics", lookup_file=nil)
+def integrity_check_options_lookup_tsv(project_dir_name, housing_characteristics_dir = "housing_characteristics", lookup_file = nil)
   require 'openstudio'
 
   # Load helper file and sampling file
@@ -354,7 +354,7 @@ def integrity_check_options_lookup_tsv(project_dir_name, housing_characteristics
 
     option_combinations = []
     options_array.each_with_index do |option_array, idx|
-      for n in 0..max_param_size-1
+      for n in 0..max_param_size - 1
         if idx == 0
           option_combinations << []
         end
