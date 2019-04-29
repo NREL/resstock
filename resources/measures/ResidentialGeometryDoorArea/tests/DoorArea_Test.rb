@@ -203,18 +203,4 @@ class DoorAreaTest < MiniTest::Test
 
     return model
   end
-
-  def _get_doors(model)
-    doors = []
-    model.getSpaces.each do |space|
-      space.surfaces.each do |surface|
-        surface.subSurfaces.each do |sub_surface|
-          next if sub_surface.subSurfaceType.downcase != "door"
-
-          doors << door
-        end
-      end
-    end
-    return doors
-  end
 end
