@@ -2656,7 +2656,7 @@ class HVAC
     finished_zones.each do |finished_zone|
       thermostat_setpoint = finished_zone.thermostatSetpointDualSetpoint
       if thermostat_setpoint.is_initialized
-        thermostat_setpoint = thermostat_setpoint.get    
+        thermostat_setpoint = thermostat_setpoint.get 
         thermostat_setpoint.additionalProperties.setFeature("htg_wkdy", "#{htg_wkdy_monthly[0].join(",")}")
         thermostat_setpoint.additionalProperties.setFeature("htg_wked", "#{htg_wked_monthly[0].join(",")}")
         thermostat_setpoint.additionalProperties.setFeature("clg_wkdy", "#{clg_wkdy_monthly[0].join(",")}")

@@ -31,7 +31,7 @@ class DemandResponseSchedule < OpenStudio::Measure::ModelMeasure
   end
 
   def modeler_description
-    return "This measure creates #{Constants.ObjectNameHeatingSeason} ruleset objects. Schedule values are either user-defined or populated based on information contained in the EPW file. This measure also creates #{Constants.ObjectNameHeatingSetpoint} ruleset objects. Schedule values are populated based on information input by the user as well as contained in the #{Constants.ObjectNameHeatingSeason}. The heating setpoint schedules are added to the living zone's thermostat. The heating setpoint schedules are added to the living zone's thermostat. The heating setpoint schedule is constructed by taking the base setpoint (or 24-hour comma-separated heating schedule) and applying an optional offset, as specified by the offset magnitude and offset schedule. If specified as a 24-hour schedule, the base setpoint can incorporate setpoint schedule changes, but having a separately specified offset magnitude and schedule is convenient for parametric runs."
+    return "This measure applies hourly demand response controls to existing heating and cooling temperature setpoint schedules. Up to two user-defined DR schedules are inputted as csvs for heating and/or cooling to indicate specific hours of setup and setback. The csvs should contain a value of -1, 0, or 1 for every hour of the year. Offset magnitudes for heating and cooling are also specified by the user, which is multiplied by each row of the DR schedules to generate an hourly offset schedule on the fly. The existing cooling and heating setpoint schedules are fetched from the model object, restructured as an hourly schedule for a full year, and summed with their respective hourly offset schedules. These new hourly setpoint schedules are assigned to the thermostat object in every zone. Future development of this measure may include on/off DR schedules for appliances."
   end
   
   # define the arguments that the user will input
@@ -41,36 +41,36 @@ class DemandResponseSchedule < OpenStudio::Measure::ModelMeasure
 	# make an argument for 8760 DR schedule directory
 	dr_directory = OpenStudio::Measure::OSArgument::makeStringArgument("dr_directory", true)
     dr_directory.setDisplayName("Demand Response Schedule Directory")
-    dr_directory.setDescription("Absolute (or relative) directory to DR files. This argument will be ignored if a constant setpoint type is used instead.")
+    dr_directory.setDescription("Absolute or relative directory that contains the DR csv files")
     dr_directory.setDefaultValue("../HPXMLtoOpenStudio/resources")
     args << dr_directory
 	
 	# make an argument for 8760 DR schedule csv file
 	dr_schedule_heat = OpenStudio::Measure::OSArgument::makeStringArgument("dr_schedule_heat", true)
-    dr_schedule_heat.setDisplayName("Demand Response Heating Setpoint Schedule File Name")
-    dr_schedule_heat.setDescription("Name of the hourly setpoint schedule. Setpoint should be defined (in F) for every hour. The operating mode schedule must also be located in the same location.")
+    dr_schedule_heat.setDisplayName("Heating Setpoint DR Schedule File Name")
+    dr_schedule_heat.setDescription("File name of the csv that contains hourly DR signals of -1, 0, or 1 for the heating setpoint schedule.")
     dr_schedule_heat.setDefaultValue("")
     args << dr_schedule_heat	
 	
 	# MAke a string argument for offset magnitude for temperature setpoint DR events
     offset_magnitude_heat = OpenStudio::Measure::OSArgument::makeDoubleArgument("offset_magnitude_heat", true)
-    offset_magnitude_heat.setDisplayName("DR Offset Magnitude")
-    offset_magnitude_heat.setDescription("Specify the magnitude of the heating setpoint offset, which will be applied during hours specified by the DR schedule. The offset should be positive")
+    offset_magnitude_heat.setDisplayName("Heating DR Offset Magnitude")
+    offset_magnitude_heat.setDescription("The magnitude of the heating setpoint offset, which is applied to non-zero hours specified in the DR schedule. The offset should be positive")
     offset_magnitude_heat.setUnits("degrees F")
     offset_magnitude_heat.setDefaultValue(0)
     args << offset_magnitude_heat
     
 	# make an argument for 8760 DR schedule csv file
 	dr_schedule_cool = OpenStudio::Measure::OSArgument::makeStringArgument("dr_schedule_cool", true)
-    dr_schedule_cool.setDisplayName("Demand Response Cooling Setpoint Schedule File Name")
-    dr_schedule_cool.setDescription("Name of the hourly setpoint schedule. Setpoint should be defined (in F) for every hour. The operating mode schedule must also be located in the same location.")
+    dr_schedule_cool.setDisplayName("Cooling Setpoint DR Schedule File Name")
+    dr_schedule_cool.setDescription("File name of the csv that contains hourly DR signals of -1, 0, or 1 for the cooling setpoint schedule.")
     dr_schedule_cool.setDefaultValue("")
     args << dr_schedule_cool	
 	
 	# MAke a string argument for offset magnitude for temperature setpoint DR events
     offset_magnitude_cool = OpenStudio::Measure::OSArgument::makeDoubleArgument("offset_magnitude_cool", true)
-    offset_magnitude_cool.setDisplayName("DR Offset Magnitude")
-    offset_magnitude_cool.setDescription("Specify the magnitude of the cooling setpoint offset, which will be applied during hours specified by the DR schedule. The offset should be positive")
+    offset_magnitude_cool.setDisplayName("Cooling DR Offset Magnitude")
+    offset_magnitude_cool.setDescription("The magnitude of the heating setpoint offset, which is applied to non-zero hours specified in the DR schedule. The offset should be positive")
     offset_magnitude_cool.setUnits("degrees F")
     offset_magnitude_cool.setDefaultValue(0)
     args << offset_magnitude_cool	
@@ -149,15 +149,13 @@ class DemandResponseSchedule < OpenStudio::Measure::ModelMeasure
     # Import user DR schedule and run checks
     dr_hrly_htg = []
     dr_hrly_clg = []    
-    if offset_heat !=0 or offset_cool !=0
-      dr_hrly_clg = import_DR_sched(dr_dir, dr_sch_clg, "DR Cooling Schedule", offset_cool, model, runner)
-      dr_hrly_htg = import_DR_sched(dr_dir, dr_sch_htg, "DR Heating Schedule", offset_heat, model, runner)
-      #Check if file exists
-      if dr_hrly_htg == nil
-        return false
-      elsif dr_hrly_clg == nil 
-        return false
-      end
+    dr_hrly_clg = import_DR_sched(dr_dir, dr_sch_clg, "DR Cooling Schedule", offset_cool, model, runner)
+    dr_hrly_htg = import_DR_sched(dr_dir, dr_sch_htg, "DR Heating Schedule", offset_heat, model, runner)
+    #Check if file exists
+    if dr_hrly_htg == nil
+      return false
+    elsif dr_hrly_clg == nil 
+      return false
     end
     
     # Check attributes of imported DR schedules
@@ -182,38 +180,29 @@ class DemandResponseSchedule < OpenStudio::Measure::ModelMeasure
       
       return true      
     end
-    
-    def check_true_DR_sched(dr_list, model, runner)     
-      # Check for array of zeros
-      ct = 0
-      dr_list.each do |dr_hrly|
-	    if ((dr_hrly.to_a.max() == 0) & (dr_hrly.to_a.min() == 0))
-          ct += 1
-          if ct == dr_list.length
-            runner.registerInfo("DR schedule contains only zeros, return true")
-            return true
-          end
-	    end
-      end
-      return false
-    end
-        
-    # List containing non-empty DR schedules
+   
+    # Check DR schedule length
     dr_list = []
     offset_list = [dr_hrly_htg, dr_hrly_clg]
     offset_list.each do |dr|
       if dr != []
         dr_list << dr
+        if not check_DR_sched(dr, model, runner)
+          return false
+        end
       end
     end
-    # Run checks on DR schedules
-    dr_list.each do |dr|
-      if not check_DR_sched(dr, model, runner)
-        return false
-      end
-    end 
-    if check_true_DR_sched(dr_list, model, runner)
-        return true
+    
+    #Check if DR schedules contain only zeros
+    ct = 0
+    dr_list.each do |dr_hrly|
+	  if ((dr_hrly.to_a.max() == 0) & (dr_hrly.to_a.min() == 0))
+        ct += 1
+        if ct == dr_list.length
+          runner.registerInfo("DR schedule(s) contain only zeros, return true")
+          return true
+        end
+	  end
     end
     
     # Generates existing 8760 schedules
@@ -232,9 +221,10 @@ class DemandResponseSchedule < OpenStudio::Measure::ModelMeasure
           elsif sched_type == "cool"
             prefix = "clg"
           end   
+                    
           wked_monthly = [thermostat_setpoint.additionalProperties.getFeatureAsString(prefix+"_wked").get.split(",").map{|i| i.to_f}]*12
           wkdy_monthly = [thermostat_setpoint.additionalProperties.getFeatureAsString(prefix+"_wkdy").get.split(",").map{|i| i.to_f}]*12   
-          break #All zones have same schedule
+          break #All zones assumed have same schedule
         end
       end
     
@@ -278,7 +268,7 @@ class DemandResponseSchedule < OpenStudio::Measure::ModelMeasure
       return sched_hrly
     end
     
-    # Adjust for inverted setpoint after DR applied
+    # Adjust for inverted setpoint AFTER DR applied
     def fix_setpoint_inversion(htg_hrly, clg_hrly, hvac, weather, model, runner)
       cooling_season = hvac.get_season(model, weather, runner, Constants.ObjectNameCoolingSeason)
       heating_season = hvac.get_season(model, weather, runner, Constants.ObjectNameHeatingSeason)
@@ -312,40 +302,46 @@ class DemandResponseSchedule < OpenStudio::Measure::ModelMeasure
           end
       end
     end    
-   
-    # Assign schedules to OpenStudio object
-    def assign_OS_schedule(sched_hrly, finished_zones, sched_type, var_name, model, runner)
+    
+    def create_OS_sched(sched_hrly, var_name, model, runner)
       year_description = model.getYearDescription
       start_date = year_description.makeDate(1, 1)
       interval = OpenStudio::Time.new(0, 1, 0, 0)
+      time_series = OpenStudio::TimeSeries.new(start_date, interval, OpenStudio::createVector(sched_hrly), "")		
+      schedule = OpenStudio::Model::ScheduleFixedInterval.fromTimeSeries(time_series, model).get
+      schedule.setName(var_name)	
+      
+      return schedule      
+    end
+    
+    # Assign schedules to OpenStudio object
+    def assign_OS_schedule(schedule, finished_zones, sched_type, var_name, model, runner)
       thermostat_setpoint = nil
       finished_zones.each do |finished_zone|
         thermostat_setpoint = finished_zone.thermostatSetpointDualSetpoint
         if thermostat_setpoint.is_initialized
           thermostat_setpoint = thermostat_setpoint.get    
-          break
         end
-      end  
+       
+        # if sched_type == "heat"
+          # thermostat_setpoint.heatingSetpointTemperatureSchedule.get.to_Schedule.get.remove
+        # elsif sched_type == "cool"
+          # thermostat_setpoint.coolingSetpointTemperatureSchedule.get.to_Schedule.get.remove
+        # end
       
-      if sched_type == "heat"
-        thermostat_setpoint.heatingSetpointTemperatureSchedule.get.to_Schedule.get.remove
-      elsif sched_type == "cool"
-        thermostat_setpoint.coolingSetpointTemperatureSchedule.get.to_Schedule.get.remove
+        if sched_type == "heat"
+          thermostat_setpoint.setHeatingSetpointTemperatureSchedule(schedule)	
+        elsif sched_type == "cool"
+          thermostat_setpoint.setCoolingSetpointTemperatureSchedule(schedule)	
+        end
+        runner.registerInfo("Set #{var_name} schedule for #{thermostat_setpoint.name}.")
       end
       
-      # Set schedule
-      time_series = OpenStudio::TimeSeries.new(start_date, interval, OpenStudio::createVector(sched_hrly), "")		
-      schedule = OpenStudio::Model::ScheduleFixedInterval.fromTimeSeries(time_series, model).get
-      schedule.setName(var_name)	
-      if sched_type == "heat"
-        thermostat_setpoint.setHeatingSetpointTemperatureSchedule(schedule)	
-      elsif sched_type == "cool"
-        thermostat_setpoint.setCoolingSetpointTemperatureSchedule(schedule)	
-      end
-      runner.registerInfo("Set #{var_name} schedule for #{thermostat_setpoint.name}.")
       return
     end
     
+  
+    # Run functions and apply new schedules
     htg_hrly_base = get_existing_sched(finished_zones, "heat", model, runner)
     clg_hrly_base = get_existing_sched(finished_zones, "cool", model, runner)
         
@@ -354,10 +350,12 @@ class DemandResponseSchedule < OpenStudio::Measure::ModelMeasure
    
     fix_setpoint_inversion(htg_hrly, clg_hrly, HVAC, weather, model, runner)
    
+    htg_hrly = create_OS_sched(htg_hrly, "HeatingTSP", model, runner)
+    clg_hrly = create_OS_sched(clg_hrly, "CoolingTSP", model, runner)
+    
     assign_OS_schedule(clg_hrly, finished_zones, "cool", "CoolingTSP", model, runner)
     assign_OS_schedule(htg_hrly, finished_zones, "heat", "HeatingTSP", model, runner)
-    
-    
+   
     return true 
   end
 end
