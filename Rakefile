@@ -46,7 +46,7 @@ def regenerate_osms
   cli_path = OpenStudio.getOpenStudioCLI
 
   num_osws = osw_files.size  
-  
+   
   osw_files.each do |osw|
     # Generate osm from osw
     num_tot += 1
