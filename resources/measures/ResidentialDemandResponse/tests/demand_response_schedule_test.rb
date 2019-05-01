@@ -182,25 +182,6 @@ class DemandResponseScheduleTest < MiniTest::Test
     #84 assertions: 2 DR sched found, 2 Thermostat found, 40 setting cooling TSP, 40 setting heating TSP
   end  
   
-  def test_normal_tsp_MF
-    args_hash = {}
-	args_hash["offset_magnitude_heat"] = 4
-    args_hash["offset_magnitude_cool"] = 3
-    args_hash["dr_directory"] = "./tests"
-	args_hash["dr_schedule_heat"] = "DR_schedule_h.csv"
-    args_hash["dr_schedule_cool"] = "DR_schedule_c.csv"
-    expected_num_new_objects = {"ScheduleFixedInterval" => 4}  # DR sched 2x, heat TSP, cool TSP
-    expected_num_del_objects = {} 
-    expected_values = {"heat_tsp_non_dr" => 71,     #default
-                       "heat_tsp_dr_plus" => 75,
-                       "heat_tsp_dr_minus" => 67,
-                       "cool_tsp_non_dr" => 76,     #default
-                       "cool_tsp_dr_plus" => 79,
-                       "cool_tsp_dr_minus" => 73}
-    _test_measure("MF_40units_4story_SL_3Beds_2Baths_Denver_Furnace_CentralAC.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 84)
-    #84 assertions: 2 DR sched found, 2 Thermostat found, 40 setting cooling TSP, 40 setting heating TSP
-  end  
-  
   def test_normal_tsp_basement
     args_hash = {}
 	args_hash["offset_magnitude_heat"] = 4
@@ -220,7 +201,8 @@ class DemandResponseScheduleTest < MiniTest::Test
     #8 assertions: 2 DR sched found, 2 Thermostat found, 2 setting cooling TSP, 2 setting heating TSP
   end  
   
-  def test_weekend_offset
+  # Test case that uses weekday_offset argument in `ResidentialHVACHeatingSetpoints`
+  def test_weekday_offset
     args_hash = {}
 	args_hash["offset_magnitude_heat"] = 4
     args_hash["offset_magnitude_cool"] = 4
@@ -229,13 +211,9 @@ class DemandResponseScheduleTest < MiniTest::Test
     args_hash["dr_schedule_cool"] = "DR_schedule_const.csv"
     expected_num_new_objects = {"ScheduleFixedInterval" => 4}  # DR sched 2x, heat TSP, cool TSP
     expected_num_del_objects = {} 
-    expected_values = {"heat_tsp_non_dr" => 70,     
-                       "heat_tsp_dr_plus" => 74,  
-                       "heat_tsp_dr_minus" => 66,   #no minus, same as plus
-                       "cool_tsp_non_dr" => 75,     
-                       "cool_tsp_dr_plus" => 78,
-                       "cool_tsp_dr_minus" => 72}   #no minus, same as plus
-    _test_measure("SFD_70heat_75cool_2wked_offset_12mo_seasons.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 6)
+    expected_values = {"wkday_offset" => 76,        # +2 wkday offset, +4 DR offset
+                       "wkday_no_offset" => 74}     # +4 DR offset 
+    _test_measure("SFD_70heat_75cool_2wkdy_offset_12mo_seasons.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 6)
     #8 assertions: 2 DR sched found, 2 Thermostat found, 2 setting cooling TSP, 2 setting heating TSP
   
   end
@@ -350,10 +328,10 @@ class DemandResponseScheduleTest < MiniTest::Test
       new_objects.each do |new_object|
         next if not new_object.respond_to?("to_#{obj_type}")
         
-        if osm_file_or_model == "SFD_70heat_75cool_2wked_offset_12mo_seasons.osm"
-        puts(".")
+        if osm_file_or_model == "SFD_70heat_75cool_2wkdy_offset_12mo_seasons.osm"
           if new_object.name.get == "HeatingTSP"
-            print(new_object.to_ScheduleFixedInterval.get.timeSeries.values)
+            assert_in_epsilon(expected_values["wkday_offset"], UnitConversions.convert(new_object.to_ScheduleFixedInterval.get.timeSeries.values[0], "C", "F"), 0.01)
+            assert_in_epsilon(expected_values["wkday_no_offset"], UnitConversions.convert(new_object.to_ScheduleFixedInterval.get.timeSeries.values[1], "C", "F"), 0.01)
           end
           next
         end
