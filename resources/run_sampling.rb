@@ -8,14 +8,18 @@ require 'optparse'
 require_relative '../resources/buildstock'
 
 class RunSampling
-  def run(project_dir_name, num_samples, outfile)
+  def run(project_dir_name, num_samples, outfile, housing_characteristics_dir="housing_characteristics", lookup_file=nil)
     resources_dir = File.absolute_path(File.join(File.dirname(__FILE__), '..', 'resources')) # Should have been uploaded per 'Additional Analysis Files' in PAT
-    characteristics_dir = File.absolute_path(File.join(File.dirname(__FILE__), '..', 'housing_characteristics')) # Should have been uploaded per 'Additional Analysis Files' in PAT
+    characteristics_dir = File.absolute_path(File.join(File.dirname(__FILE__), '..', housing_characteristics_dir)) # Should have been uploaded per 'Additional Analysis Files' in PAT
     if not File.exists?(characteristics_dir)
-      characteristics_dir = File.absolute_path(File.join(File.dirname(__FILE__), '..', project_dir_name, 'housing_characteristics')) # Being run locally?
+      characteristics_dir = File.absolute_path(File.join(File.dirname(__FILE__), '..', project_dir_name, housing_characteristics_dir)) # Being run locally?
+    end
+    
+    if lookup_file.nil?
+      lookup_file = File.join(resources_dir, "options_lookup.tsv")
     end
 
-    params = get_parameters_ordered_from_options_lookup_tsv(resources_dir)
+    params = get_parameters_ordered_from_options_lookup_tsv(lookup_file)
 
     tsvfiles = {}
     params.each do |param|
@@ -157,19 +161,14 @@ class RunSampling
       return tsvfile.rows[0]
     end
 
-    tsvfile.rows.each_with_index do |tsvrow, index|
-      row_matched = true
-      tsvfile.dependency_cols.each do |dep_name, dep_col|
-        next if tsvrow[dep_col] == dep_hash[dep_name]
+    key_s_downcase = hash_to_string(dep_hash).downcase
+    rownum = tsvfile.rows_keys_s.index(key_s_downcase)
 
-        row_matched = false
-        break
-      end
-      if row_matched
-        return tsvrow
-      end
+    if rownum.nil?
+      register_error("Could not find row in #{tsvfile.filename} with dependency values: #{dep_hash.to_s}.", nil)
     end
-    register_error("Could not find row in #{tsvfile.filename} with dependency values: #{dep_hash.to_s}.", nil)
+
+    return tsvfile.rows[rownum]
   end
 
   def binary_search(arr, value)
@@ -314,7 +313,7 @@ end
 if __FILE__ == $PROGRAM_NAME
   options = {}
   OptionParser.new do |opts|
-    opts.banner = "Usage: #{File.basename(__FILE__)} -p project_name -n num_datapoints -o outfile\n e.g., #{File.basename(__FILE__)} -p project_resstock_national -n 10000 -o buildstock.csv"
+    opts.banner = "Usage: #{File.basename(__FILE__)} -p project_name -n num_datapoints -o outfile\n e.g., #{File.basename(__FILE__)} -p project_singlefamilydetached -n 10000 -o buildstock.csv"
 
     opts.on('-p', '--project <STRING>', 'Project Name') do |t|
       options[:project] = t
