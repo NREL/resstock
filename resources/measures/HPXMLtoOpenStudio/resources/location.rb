@@ -165,7 +165,7 @@ class Location
   end
 
   def self.get_climate_zone_iecc(wmo)
-    iecc_zone = "NA"
+    iecc_zone = nil
 
     zones_csv = File.join(File.dirname(__FILE__), "climate_zones.csv")
     if not File.exists?(zones_csv)
