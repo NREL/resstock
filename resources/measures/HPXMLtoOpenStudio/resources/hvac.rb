@@ -2939,13 +2939,11 @@ class HVAC
     finished_zones.each do |finished_zone|
       thermostat_setpoint = finished_zone.thermostatSetpointDualSetpoint
       if thermostat_setpoint.is_initialized
-
         thermostat_setpoint = thermostat_setpoint.get
         thermostat_setpoint.setHeatingSetpointTemperatureSchedule(heating_setpoint.schedule)
         thermostat_setpoint.setCoolingSetpointTemperatureSchedule(cooling_setpoint.schedule)
-
+        
       else
-
         thermostat_setpoint = OpenStudio::Model::ThermostatSetpointDualSetpoint.new(model)
         thermostat_setpoint.setName("#{finished_zone.name} temperature setpoint")
         runner.registerInfo("Created new thermostat #{thermostat_setpoint.name} for #{finished_zone.name}.")
@@ -2953,7 +2951,6 @@ class HVAC
         thermostat_setpoint.setCoolingSetpointTemperatureSchedule(cooling_setpoint.schedule)
         finished_zone.setThermostatSetpointDualSetpoint(thermostat_setpoint)
         runner.registerInfo("Set a dummy heating setpoint schedule for #{thermostat_setpoint.name}.")
-
       end
 
       runner.registerInfo("Set the cooling setpoint schedule for #{thermostat_setpoint.name}.")
