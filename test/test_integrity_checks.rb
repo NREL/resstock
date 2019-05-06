@@ -8,7 +8,7 @@ class TestResStockErrors < MiniTest::Test
     @project_dir_name = File.basename(File.dirname(__FILE__))
     @lookup_file = File.join(File.dirname(__FILE__), '..', 'resources', 'test_options_lookup.tsv')
   end
-  
+
   def test_housing_characteristics_sum_not_one
     begin
       housing_characteristics_dir = "housing_characteristics_sum_not_one"
@@ -20,7 +20,7 @@ class TestResStockErrors < MiniTest::Test
       flunk "Should have caused an error but didn't."
     end
   end
-  
+
   def test_housing_characteristics_duplicate_rows
     begin
       housing_characteristics_dir = "housing_characteristics_duplicate_rows"
@@ -56,7 +56,7 @@ class TestResStockErrors < MiniTest::Test
       flunk "Should have caused an error but didn't."
     end
   end
-  
+
   def test_housing_characteristics_missing_parent
     begin
       housing_characteristics_dir = "housing_characteristics_missing_parent"
@@ -68,7 +68,7 @@ class TestResStockErrors < MiniTest::Test
       flunk "Should have caused an error but didn't."
     end
   end
-  
+
   def test_housing_characteristics_unused_tsv
     begin
       housing_characteristics_dir = "housing_characteristics_unused_tsv"
@@ -80,7 +80,7 @@ class TestResStockErrors < MiniTest::Test
       flunk "Should have caused an error but didn't."
     end
   end
-  
+
   def test_housing_characteristics_measure_missing_argument
     begin
       housing_characteristics_dir = "housing_characteristics_measure_missing_argument"
@@ -93,7 +93,7 @@ class TestResStockErrors < MiniTest::Test
       flunk "Should have caused an error but didn't."
     end
   end
-  
+
   def test_housing_characteristics_measure_extra_argument
     begin
       housing_characteristics_dir = "housing_characteristics_measure_extra_argument"
@@ -106,7 +106,7 @@ class TestResStockErrors < MiniTest::Test
       flunk "Should have caused an error but didn't."
     end
   end
-  
+
   def test_housing_characteristics_measure_bad_argument_value
     begin
       housing_characteristics_dir = "housing_characteristics_measure_bad_argument_value"
@@ -118,7 +118,7 @@ class TestResStockErrors < MiniTest::Test
       flunk "Should have caused an error but didn't."
     end
   end
-  
+
   def test_housing_characteristics_measure_missing
     begin
       housing_characteristics_dir = "housing_characteristics_measure_missing"
@@ -131,5 +131,4 @@ class TestResStockErrors < MiniTest::Test
       flunk "Should have caused an error but didn't."
     end
   end
-  
 end
