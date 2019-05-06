@@ -626,42 +626,44 @@ end
 
 desc 'update urdb tariffs'
 task :update_tariffs do
-  require 'csv'
-  require 'net/https'
-  require 'zip'
+  require 'openstudio'
 
-  tariffs_path = "./resources/tariffs"
+  tariffs_path = "./measures/UtilityBillCalculations/resources/tariffs"
   tariffs_zip = "#{tariffs_path}.zip"
 
-  if not File.exists?(tariffs_path)
-    FileUtils.mkdir_p("./resources/tariffs")
+  unless File.exists?(tariffs_path)
+    FileUtils.mkdir_p("#{tariffs_path}")
   end
 
   if File.exists?(tariffs_zip)
-    Zip::File.open(tariffs_zip) do |zip_file|
-      zip_file.each do |entry|
-        next unless entry.file?
-
-        entry_path = File.join(tariffs_path, entry.name)
-        zip_file.extract(entry, entry_path) unless File.exists?(entry_path)
-      end
-    end
-    FileUtils.rm_rf(tariffs_zip)
+    zip_file = OpenStudio::UnzipFile.new(tariffs_zip)
+    puts "Extracting #{tariffs_zip}..."
+    zip_file.extractAllFiles(tariffs_path)
   end
 
   result = get_tariff_json_files(tariffs_path)
 
   if result
-    Zip::File.open(tariffs_zip, Zip::File::CREATE) do |zip_file|
-      Dir[File.join(tariffs_path, "*")].each do |entry|
-        zip_file.add(entry.sub(tariffs_path + "/", ""), entry)
-      end
+    zip_file = OpenStudio::ZipFile.new(tariffs_zip, false)
+    Dir[File.join(tariffs_path, "*")].each do |tariff|
+      format_tariff(tariff)
+      zip_file.addFile(tariff.to_s, File.basename(tariff))
     end
     FileUtils.rm_rf(tariffs_path)
   end
 end
 
+def format_tariff(tariff)
+  json = JSON.parse(File.read(tariff), :symbolize_names => true)
+  File.open(tariff, "w") do |f|
+    f.write(JSON.pretty_generate(json)) # format nicely
+  end
+end
+
 def get_tariff_json_files(tariffs_path)
+  require 'csv'
+  require 'net/https'
+  require 'openssl'
   require 'parallel'
 
   STDOUT.puts "Enter API Key:"
@@ -673,7 +675,7 @@ def get_tariff_json_files(tariffs_path)
   http.use_ssl = true
   http.verify_mode = OpenSSL::SSL::VERIFY_NONE
 
-  rows = CSV.read("./resources/utilities.csv", { :encoding => 'ISO-8859-1' })
+  rows = CSV.read("./measures/UtilityBillCalculations/resources/utilities.csv", { :encoding => 'ISO-8859-1' })
   rows = rows[1..-1] # ignore header
   interval = 1
   report_at = interval
@@ -691,7 +693,7 @@ def get_tariff_json_files(tariffs_path)
     if response.keys.include? :error
       puts "#{response[:error][:message]}."
       if response[:error][:message].include? "exceeded your rate limit"
-        false
+        return false
       end
       next
     end
@@ -704,7 +706,7 @@ def get_tariff_json_files(tariffs_path)
     end
 
     File.open(entry_path, "w") do |f|
-      f.write(response.to_json)
+      f.write(JSON.pretty_generate(response.to_json))
     end
     puts "Added #{entry_path}."
 
