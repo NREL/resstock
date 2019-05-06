@@ -13,7 +13,7 @@ namespace :test do
   desc 'Run unit tests for all projects/measures'
   Rake::TestTask.new('all') do |t|
     t.libs << 'test'
-    t.test_files = Dir['project_*/tests/*.rb'] + Dir['measures/*/tests/*.rb'] + Dir['resources/measures/*/tests/*.rb'] + Dir['workflows/tests/*.rb'] - Dir['measures/HPXMLtoOpenStudio/tests/*.rb'] # HPXMLtoOpenStudio is tested upstream
+    t.test_files = Dir['project_*/tests/*.rb'] + Dir['test/test_integrity_checks.rb'] + Dir['measures/*/tests/*.rb'] + Dir['resources/measures/*/tests/*.rb'] + Dir['workflows/tests/*.rb'] - Dir['measures/HPXMLtoOpenStudio/tests/*.rb'] # HPXMLtoOpenStudio is tested upstream
     t.warning = false
     t.verbose = true
   end
@@ -128,39 +128,56 @@ def update_and_format_osw(osw)
 end
 
 desc 'Perform integrity check on inputs for all projects'
-task :integrity_check_all do
-  get_all_project_dir_names().each do |project_dir_name|
-    integrity_check(project_dir_name)
-    integrity_check_options_lookup_tsv(project_dir_name)
-  end
+Rake::TestTask.new('integrity_check_all') do |t|
+  t.libs << 'test'
+  t.test_files = Dir['project_*/tests/*.rb']
+  t.warning = false
+  t.verbose = true
 end # rake task
 
-desc 'Perform integrity check on inputs for project_resstock_national'
-task :integrity_check_resstock_national do
-  integrity_check('project_resstock_national')
-  integrity_check_options_lookup_tsv('project_resstock_national')
+desc 'Perform integrity check on inputs for project_singlefamilydetached'
+Rake::TestTask.new('integrity_check_singlefamilydetached') do |t|
+  desc 'Run unit tests for all projects/measures'
+  t.libs << 'test'
+  t.test_files = Dir['project_singlefamilydetached/tests/*.rb']
+  t.warning = false
+  t.verbose = true
 end # rake task
 
-desc 'Perform integrity check on inputs for project_resstock_multifamily'
-task :integrity_check_resstock_multifamily do
-  integrity_check('project_resstock_multifamily')
-  integrity_check_options_lookup_tsv('project_resstock_multifamily')
+desc 'Perform integrity check on inputs for project_multifamily_beta'
+Rake::TestTask.new('integrity_check_multifamily_beta') do |t|
+  t.libs << 'test'
+  t.test_files = Dir['project_multifamily_beta/tests/*.rb']
+  t.warning = false
+  t.verbose = true
 end # rake task
 
-desc 'Perform integrity check on inputs for project_resstock_testing'
-task :integrity_check_resstock_testing do
-  integrity_check('project_resstock_testing')
-  integrity_check_options_lookup_tsv('project_resstock_testing')
+desc 'Perform integrity check on inputs for project_testing'
+Rake::TestTask.new('integrity_check_testing') do |t|
+  t.libs << 'test'
+  t.test_files = Dir['project_testing/tests/*.rb']
+  t.warning = false
+  t.verbose = true
 end # rake task
 
-def integrity_check(project_dir_name)
+desc 'Perform unit tests on integrity checks'
+Rake::TestTask.new('integrity_check_unit_tests') do |t|
+  t.libs << 'test'
+  t.test_files = Dir['test/test_integrity_checks.rb']
+  t.warning = false
+  t.verbose = true
+end # rake task
+
+def integrity_check(project_dir_name, housing_characteristics_dir = "housing_characteristics", lookup_file = nil)
   # Load helper file and sampling file
   resources_dir = File.join(File.dirname(__FILE__), 'resources')
   require File.join(resources_dir, 'buildstock')
   require File.join(resources_dir, 'run_sampling')
 
   # Setup
-  lookup_file = File.join(resources_dir, 'options_lookup.tsv')
+  if lookup_file.nil?
+    lookup_file = File.join(resources_dir, 'options_lookup.tsv')
+  end
   check_file_exists(lookup_file, nil)
 
   # Perform various checks on each probability distribution file
@@ -169,8 +186,8 @@ def integrity_check(project_dir_name)
   last_size = -1
 
   parameter_names = []
-  get_parameters_ordered_from_options_lookup_tsv(resources_dir).each do |parameter_name|
-    tsvpath = File.join(project_dir_name, "housing_characteristics", "#{parameter_name}.tsv")
+  get_parameters_ordered_from_options_lookup_tsv(lookup_file).each do |parameter_name|
+    tsvpath = File.join(project_dir_name, housing_characteristics_dir, "#{parameter_name}.tsv")
     next if not File.exist?(tsvpath) # Not every parameter used by every project
 
     parameter_names << parameter_name
@@ -184,7 +201,7 @@ def integrity_check(project_dir_name)
       err = "ERROR: Unable to process these parameters: #{unprocessed_parameters.join(', ')}."
       deps = []
       unprocessed_parameters.each do |p|
-        tsvpath = File.join(project_dir_name, "housing_characteristics", "#{p}.tsv")
+        tsvpath = File.join(project_dir_name, housing_characteristics_dir, "#{p}.tsv")
         tsvfile = TsvFile.new(tsvpath, nil)
         tsvfile.dependency_cols.keys.each do |d|
           next if deps.include?(d)
@@ -196,7 +213,7 @@ def integrity_check(project_dir_name)
       # Check if undefined deps exist but are undefined simply because they're not in options_lookup.tsv
       undefined_deps_exist = true
       undefined_deps.each do |undefined_dep|
-        tsvpath = File.join(project_dir_name, "housing_characteristics", "#{undefined_dep}.tsv")
+        tsvpath = File.join(project_dir_name, housing_characteristics_dir, "#{undefined_dep}.tsv")
         next if File.exist?(tsvpath)
 
         undefined_deps_exist = false
@@ -214,7 +231,7 @@ def integrity_check(project_dir_name)
       # Already processed? Skip
       next if parameters_processed.include?(parameter_name)
 
-      tsvpath = File.join(project_dir_name, "housing_characteristics", "#{parameter_name}.tsv")
+      tsvpath = File.join(project_dir_name, housing_characteristics_dir, "#{parameter_name}.tsv")
       check_file_exists(tsvpath, nil)
       tsvfile = TsvFile.new(tsvpath, nil)
       tsvfiles[parameter_name] = tsvfile
@@ -249,14 +266,14 @@ def integrity_check(project_dir_name)
 
   # Test sampling
   r = RunSampling.new
-  output_file = r.run(project_dir_name, 1000, 'buildstock.csv')
+  output_file = r.run(project_dir_name, 1000, 'buildstock.csv', housing_characteristics_dir, lookup_file)
   if File.exist?(output_file)
     File.delete(output_file) # Clean up
   end
 
   # Unused TSVs?
   err = ""
-  Dir[File.join(project_dir_name, "housing_characteristics", "*.tsv")].each do |tsvpath|
+  Dir[File.join(project_dir_name, housing_characteristics_dir, "*.tsv")].each do |tsvpath|
     parameter_name = File.basename(tsvpath, ".*")
     if not parameter_names.include? parameter_name
       err += "ERROR: TSV file #{tsvpath} not used in options_lookup.tsv.\n"
@@ -267,7 +284,7 @@ def integrity_check(project_dir_name)
   end
 end
 
-def integrity_check_options_lookup_tsv(project_dir_name)
+def integrity_check_options_lookup_tsv(project_dir_name, housing_characteristics_dir = "housing_characteristics", lookup_file = nil)
   require 'openstudio'
 
   # Load helper file and sampling file
@@ -275,7 +292,9 @@ def integrity_check_options_lookup_tsv(project_dir_name)
   require File.join(resources_dir, 'buildstock')
 
   # Setup
-  lookup_file = File.join(resources_dir, 'options_lookup.tsv')
+  if lookup_file.nil?
+    lookup_file = File.join(resources_dir, 'options_lookup.tsv')
+  end
   check_file_exists(lookup_file, nil)
 
   # Integrity checks for option_lookup.tsv
@@ -283,12 +302,12 @@ def integrity_check_options_lookup_tsv(project_dir_name)
   model = OpenStudio::Model::Model.new
 
   # Gather all options/arguments
-  parameter_names = get_parameters_ordered_from_options_lookup_tsv(resources_dir)
+  parameter_names = get_parameters_ordered_from_options_lookup_tsv(lookup_file)
   parameter_names.each do |parameter_name|
-    tsvpath = File.join(project_dir_name, "housing_characteristics", "#{parameter_name}.tsv")
+    tsvpath = File.join(project_dir_name, housing_characteristics_dir, "#{parameter_name}.tsv")
     next if not File.exist?(tsvpath) # Not every parameter used by every project
 
-    option_names = get_options_for_parameter_from_options_lookup_tsv(resources_dir, parameter_name)
+    option_names = get_options_for_parameter_from_options_lookup_tsv(lookup_file, parameter_name)
     options_measure_args = get_measure_args_from_option_names(lookup_file, option_names, parameter_name, nil)
     option_names.each do |option_name|
       # Check for (parameter, option) names
@@ -317,7 +336,6 @@ def integrity_check_options_lookup_tsv(project_dir_name)
     end
   end
 
-  max_checks = 1000
   measures.keys.each do |measure_subdir|
     puts "Checking for issues with #{measure_subdir} measure..."
 
@@ -325,27 +343,28 @@ def integrity_check_options_lookup_tsv(project_dir_name)
     check_file_exists(measurerb_path, nil)
     measure_instance = get_measure_instance(measurerb_path)
 
-    # Validate measure arguments for each combination of options
+    # Validate measure arguments for combinations of options
     param_names = measures[measure_subdir].keys()
     options_array = []
+    max_param_size = 0
     param_names.each do |parameter_name|
-      if ["Bathroom Spot Vent Hour", "Clothes Dryer Spot Vent Hour", "Range Spot Vent Hour"].include? parameter_name
-        # Prevent "too big to product" error for airflow measure by just
-        # using first option for these parameters.
-        options_array << [measures[measure_subdir][parameter_name].keys()[0]]
-      else
-        options_array << measures[measure_subdir][parameter_name].keys()
+      options_array << measures[measure_subdir][parameter_name].keys()
+      max_param_size = [max_param_size, options_array[-1].size].max
+    end
+
+    option_combinations = []
+    options_array.each_with_index do |option_array, idx|
+      for n in 0..max_param_size - 1
+        if idx == 0
+          option_combinations << []
+        end
+        option_combinations[n] << option_array[n % option_array.size]
       end
     end
-    option_combinations = options_array.first.product(*options_array[1..-1])
 
     all_measure_args = []
     max_checks_reached = false
-    option_combinations.shuffle.each_with_index do |option_combination, combo_num|
-      if combo_num > max_checks
-        max_checks_reached = true
-        break
-      end
+    option_combinations.each_with_index do |option_combination, combo_num|
       measure_args = {}
       option_combination.each_with_index do |option_name, idx|
         measures[measure_subdir][param_names[idx]][option_name].each do |k, v|
@@ -360,10 +379,6 @@ def integrity_check_options_lookup_tsv(project_dir_name)
     all_measure_args.shuffle.each_with_index do |measure_args, idx|
       validate_measure_args(measure_instance.arguments(model), measure_args, lookup_file, measure_subdir, nil)
     end
-
-    if max_checks_reached
-      puts "Max number of checks (#{max_checks}) reached. Continuing..."
-    end
   end
 end
 
@@ -371,7 +386,7 @@ def get_all_project_dir_names()
   project_dir_names = []
   Dir.entries(File.dirname(__FILE__)).each do |entry|
     next if not Dir.exist?(entry)
-    next if not entry.start_with?("project_")
+    next if not entry.start_with?("project_") and entry != "test"
 
     project_dir_names << entry
   end
@@ -433,9 +448,6 @@ task :update_measures do
   #                      include_measures,
   #                      exclude_measures,
   #                      "example_from_floorspacejs.osw")
-
-  # Update README.md
-  update_readme(data_hash)
 end
 
 def generate_example_osws(data_hash, include_measures, exclude_measures,
@@ -537,54 +549,6 @@ def generate_example_osws(data_hash, include_measures, exclude_measures,
   File.write(osw_path, JSON.pretty_generate(data_hash))
 end
 
-def update_readme(data_hash)
-  # This method updates the "Measure Order" table in the README.md
-
-  puts "Updating README measure order..."
-
-  table_flag_start = "MEASURE_WORKFLOW_START"
-  table_flag_end = "MEASURE_WORKFLOW_END"
-
-  readme_path = "README.md"
-
-  # Create table
-  table_lines = []
-  table_lines << "|Group|Measure|Dependencies*|\n"
-  table_lines << "|:---|:---|:---|\n"
-  data_hash.each do |group|
-    new_group = true
-    group["group_steps"].each do |group_step|
-      grp = ""
-      if new_group
-        grp = group["group_name"]
-      end
-      name = group_step['name']
-      deps = group_step['dependencies']
-      table_lines << "|#{grp}|#{name}|#{deps}|\n"
-      new_group = false
-    end
-  end
-
-  # Embed table in README text
-  in_lines = IO.readlines(readme_path)
-  out_lines = []
-  inside_table = false
-  in_lines.each do |in_line|
-    if in_line.include? table_flag_start
-      inside_table = true
-      out_lines << in_line
-      out_lines << table_lines
-    elsif in_line.include? table_flag_end
-      inside_table = false
-      out_lines << in_line
-    elsif not inside_table
-      out_lines << in_line
-    end
-  end
-
-  File.write(readme_path, out_lines.join(""))
-end
-
 def get_and_proof_measure_order_json()
   # This function will check that all measure folders (in measures/)
   # are listed in the /resources/measure-info.json and vice versa
@@ -598,7 +562,7 @@ def get_and_proof_measure_order_json()
   all_measures = Dir.entries(measure_folder).select { |entry| entry.start_with?('Residential') } + Dir.entries(resources_measure_folder).select { |entry| entry.start_with?('Residential') }
 
   # Load json, and get all measures in there
-  json_file = "workflows/measure-info.json"
+  json_file = "resources/measure-info.json"
   json_path = File.expand_path("../#{json_file}", __FILE__)
   data_hash = JSON.parse(File.read(json_path))
 
