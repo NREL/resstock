@@ -605,16 +605,18 @@ task :update_tariffs do
     zip_file.extractAllFiles(tariffs_path)
   end
 
-  result = get_tariff_json_files(tariffs_path)
+  get_tariff_json_files(tariffs_path)
 
-  if result
-    zip_file = OpenStudio::ZipFile.new(tariffs_zip, false)
-    Dir[File.join(tariffs_path, "*")].each do |tariff|
-      format_tariff(tariff)
-      zip_file.addFile(tariff.to_s, File.basename(tariff))
-    end
-    FileUtils.rm_rf(tariffs_path)
+  zip_file = OpenStudio::ZipFile.new(tariffs_zip, false)
+  tariffs = Dir[File.join(tariffs_path, "*")]
+  puts "Adding #{tariffs.size} tariff files..."
+  tariffs.each do |tariff|
+    print "."
+    format_tariff(tariff)
+    zip_file.addFile(tariff.to_s, File.basename(tariff))
   end
+  puts "\nDone."
+  FileUtils.rm_rf(tariffs_path)
 end
 
 def format_tariff(tariff)
@@ -656,9 +658,8 @@ def get_tariff_json_files(tariffs_path)
 
     if response.keys.include? :error
       puts "#{response[:error][:message]}."
-      if response[:error][:message].include? "exceeded your rate limit"
-        return false
-      end
+      return if response[:error][:message].include? "exceeded your rate limit"
+
       next
     end
 
@@ -670,7 +671,7 @@ def get_tariff_json_files(tariffs_path)
     end
 
     File.open(entry_path, "w") do |f|
-      f.write(JSON.pretty_generate(response.to_json))
+      f.write(response.to_json)
     end
     puts "Added #{entry_path}."
 
@@ -681,6 +682,4 @@ def get_tariff_json_files(tariffs_path)
       timestep = Time.now
     end
   end
-
-  return true
 end
