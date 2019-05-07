@@ -55,7 +55,7 @@ class OutageTest < MiniTest::Test
     args_hash["otg_hr"] = 8
     args_hash["otg_len"] = 8
     expected_num_del_objects = {}
-    expected_num_new_objects = { "ScheduleRule" => 20, "ScheduleDay" => 20 }
+    expected_num_new_objects = { "ScheduleRule" => 21, "ScheduleDay" => 21 }
     expected_values = {}
     _test_measure("SFD_Successful_EnergyPlus_Run_TMY.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values)
   end
@@ -66,7 +66,7 @@ class OutageTest < MiniTest::Test
     args_hash["otg_hr"] = 8
     args_hash["otg_len"] = 24
     expected_num_del_objects = {}
-    expected_num_new_objects = { "ScheduleRule" => 40, "ScheduleDay" => 40 }
+    expected_num_new_objects = { "ScheduleRule" => 42, "ScheduleDay" => 42 }
     expected_values = {}
     _test_measure("SFD_Successful_EnergyPlus_Run_TMY.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values)
   end
@@ -77,7 +77,7 @@ class OutageTest < MiniTest::Test
     args_hash["otg_hr"] = 8
     args_hash["otg_len"] = 48
     expected_num_del_objects = {}
-    expected_num_new_objects = { "ScheduleRule" => 60, "ScheduleDay" => 60 }
+    expected_num_new_objects = { "ScheduleRule" => 63, "ScheduleDay" => 63 }
     expected_values = {}
     _test_measure("SFD_Successful_EnergyPlus_Run_TMY.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values)
   end
@@ -88,7 +88,7 @@ class OutageTest < MiniTest::Test
     args_hash["otg_hr"] = 8
     args_hash["otg_len"] = 8
     expected_num_del_objects = {}
-    expected_num_new_objects = { "ScheduleRule" => 20, "ScheduleDay" => 20 }
+    expected_num_new_objects = { "ScheduleRule" => 21, "ScheduleDay" => 21 }
     expected_values = {}
     _test_measure("SFD_Successful_EnergyPlus_Run_TMY.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values)
   end
@@ -99,7 +99,7 @@ class OutageTest < MiniTest::Test
     args_hash["otg_hr"] = 8
     args_hash["otg_len"] = 24
     expected_num_del_objects = {}
-    expected_num_new_objects = { "ScheduleRule" => 40, "ScheduleDay" => 40 }
+    expected_num_new_objects = { "ScheduleRule" => 42, "ScheduleDay" => 42 }
     expected_values = {}
     _test_measure("SFD_Successful_EnergyPlus_Run_TMY.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values)
   end
@@ -110,7 +110,7 @@ class OutageTest < MiniTest::Test
     args_hash["otg_hr"] = 8
     args_hash["otg_len"] = 48
     expected_num_del_objects = {}
-    expected_num_new_objects = { "ScheduleRule" => 60, "ScheduleDay" => 60 }
+    expected_num_new_objects = { "ScheduleRule" => 63, "ScheduleDay" => 63 }
     expected_values = {}
     _test_measure("SFD_Successful_EnergyPlus_Run_TMY.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values)
   end
