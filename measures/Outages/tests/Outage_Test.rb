@@ -121,7 +121,7 @@ class OutageTest < MiniTest::Test
     args_hash["otg_hr"] = 8
     args_hash["otg_len"] = 8
     expected_num_del_objects = {}
-    expected_num_new_objects = { "ScheduleRule" => 31, "ScheduleDay" => 31 }
+    expected_num_new_objects = { "ScheduleRule" => 32, "ScheduleDay" => 32 }
     expected_values = {}
     _test_measure("MF_Successful_EnergyPlus_Run_TMY.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values)
   end
