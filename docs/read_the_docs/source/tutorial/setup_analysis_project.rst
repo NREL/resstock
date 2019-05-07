@@ -3,11 +3,11 @@ Set Up the Analysis Project
 
 At the top level of the ResStock repository you just downloaded, you will see two analysis project folders:
 
- - project_resstock_national
- - project_resstock_multifamily
- - project_resstock_testing
+ - project_singlefamilydetached
+ - project_multifamily_beta
+ - project_testing
 
-Open PAT, select "Open Existing Project", and choose the ``project_resstock_national`` directory. You may be asked if you want "mongod" to accept incoming connections. Select "Allow".
+Open PAT, select "Open Existing Project", and choose the ``project_singlefamilydetached`` directory. You may be asked if you want "mongod" to accept incoming connections. Select "Allow".
 
 You will leave dropdown options for **Algorithmic Method**, **Default Seed Model**, and **Default Weather File** alone. Additionally, you will leave the settings in **Algorithm Settings**, **Additional Analysis Files**, and **Server Scripts** alone for most analyses.
 
@@ -87,7 +87,7 @@ Worker Initialization Script
    
 Something you might want to change is the set of weather files used with your project. To update the argument for the path to the zip file containing epw weather files, open the Server Scripts box on the Measures Selection tab.
 
-Look for the **Script Arguments** box corresponding to the **Worker Initialization Script**. By default, this argument value points to the set of weather files corresponding to the specific project (i.e., set of ``housing_characteristics``) you are working with. For example, the ``project_resstock_national`` project folder will by default use the set of weather files with national geographic coverage. In the illustration above, the argument value path points to a zipped file stored in the `epwweatherfiles bucket`_ on Amazon S3. You should have read-only access to objects in this bucket.
+Look for the **Script Arguments** box corresponding to the **Worker Initialization Script**. By default, this argument value points to the set of weather files corresponding to the specific project (i.e., set of ``housing_characteristics``) you are working with. For example, the ``project_singlefamilydetached`` project folder will by default use the set of weather files with national geographic coverage. In the illustration above, the argument value path points to a zipped file stored in the `epwweatherfiles bucket`_ on Amazon S3. You should have read-only access to objects in this bucket.
 
 You can control what set of weather files are unpacked and accessible on the remote server by changing the argument value for this initialization script. If you wish to change this argument value to point to a different file in the S3 bucket, replace the path's basename with the path of the new file. If the desired file does not exist in the S3 bucket, you will need to zip up a set of weather files and upload it to some location of your choice (e.g., your own S3 bucket). Be sure to change the entire argument value path to point to this chosen file location.
 
@@ -150,7 +150,7 @@ This measure creates the baseline scenario. It incrementally applies OpenStudio 
 
 .. note::
    
-   **Manual Sampling**: To run the sampling script yourself, from the command line execute, e.g. ``ruby resources/run_sampling.rb -p project_resstock_national -n 10000 -o buildstock.csv``, and a file ``buildstock.csv`` will be created in the ``resources`` directory. 
+   **Manual Sampling**: To run the sampling script yourself, from the command line execute, e.g. ``ruby resources/run_sampling.rb -p project_singlefamilydetached -n 10000 -o buildstock.csv``, and a file ``buildstock.csv`` will be created in the ``resources`` directory. 
    
    If a custom ``buildstock.csv`` file is located in a project's ``housing_characteristics`` directory when you run the PAT project, it will automatically be used to generate simulations. If it’s not found, the ``run_sampling.rb`` script will be run automatically on OpenStudio-Server to create one. You’ll also want to make sure that the number of buildings in the sampling csv file matches the max value for the Building ID argument in the Build Existing Model, as that tells OpenStudio how many datapoints to run. (For each datapoint, the measure will then look up its building description from the sampling csv.) 
    
@@ -203,55 +203,62 @@ If you do not need the timeseries data for your simulations, you can skip this m
 
 End uses include:
 
-  * heating [electric/gas/propane/oil] [kWh/kBtu/kBtu/kBtu]
+  * total site energy [MBtu]
+  * net site energy [MBtu]
+  * total site [electric/gas/oil/propane] [kWh/therm/MBtu/MBtu]
+  * net site [electric] [kWh]
+  * heating [electric/gas/oil/propane] [kWh/therm/MBtu/MBtu]
   * cooling [kWh]
-  * interior lights [kWh]
-  * exterior lights [kWh]
-  * interior equipment [electric/gas/propane/oil] [kWh/kBtu/kBtu/kBtu]
-  * fans [kWh]
-  * pumps [kWh]
-  * water heating [electric/gas/propane/oil] [kWh/kBtu/kBtu/kBtu]
-  * water [gal]
+  * central system heating [electric/gas/oil/propane] [kWh/therm/MBtu/MBtu]
+  * central system cooling [electric] [kWh]
+  * interior lighting [kWh]
+  * exterior lighting [kWh]
+  * interior equipment [electric/gas/oil/propane] [kWh/therm/MBtu/MBtu]
+  * fans heating [kWh]
+  * fans cooling [kWh]
+  * pumps heating [kWh]
+  * pumps cooling [kWh]
+  * central system pumps heating [electric] [kWh]
+  * central system pumps cooling [electric] [kWh]
+  * water heating [electric/gas/oil/propane] [kWh/therm/MBtu/MBtu]
   * pv [kWh]
 
 **Reporting Frequency**
   The timeseries data will be reported at hourly intervals unless otherwise specified. Alternative reporting frequencies include:
 
-  * timestep
-  * daily
-  * monthly
-  * run period
+  * Timestep
+  * Daily
+  * Monthly
+  * Runperiod
   
-  Setting the reporting frequency to "timestep" will give you interval output equal to the zone timestep set by the "Simulation Controls" measure. Thus, this measure will produce 10-min interval output when you select "timestep" and leave the "Simulation Controls" measure at its default settings. Setting the reporting frequency to "detailed" will give you interval output equal to the calculation step (i.e., either zone timestep or HVAC system timestep).
+  Setting the reporting frequency to 'Timestep' will give you interval output equal to the zone timestep set by the :ref:`simulation-controls` measure. Thus, this measure will produce 10-min interval output when you select 'Timestep' and leave the :ref:`simulation-controls` measure at its default settings.
 
 **Include End Use Subcategories**
   Select this to include end use subcategories. The default is to not include end use subcategories. End use subcategories include:
   
   * refrigerator [kWh]
-  * dishwasher [kWh]
-  * cooking range [electric/gas/propane] [kWh/kBtu/kBtu]
   * clothes washer [kWh]
-  * clothes dryer [electric/gas/propane] [kWh/kBtu/kBtu]
+  * clothes dryer [electric/gas/propane] [kWh/therm/MBtu]
+  * cooking range [electric/gas/propane] [kWh/therm/MBtu]
+  * dishwasher [kWh]
+  * plug loads [kWh]
+  * house fan [kWh]
+  * range fan [kWh]
+  * bath fan [kWh]
   * ceiling fan [kWh]
-  * mech vent house fan [kWh]
-  * mech vent range fan [kWh]
-  * mech vent bath fan [kWh]
-  * heating supply fan [kWh]
-  * cooling supply fan [kWh]
-  * misc plug loads [kWh]
   * extra refrigerator [kWh]
   * freezer [kWh]
-  * pool heater [electric/gas] [kWh/kBtu]
+  * pool heater [electric/gas] [kWh/therm]
   * pool pump [kWh]
-  * hot tub heater [electric/gas] [kWh/kBtu]
+  * hot tub heater [electric/gas] [kWh/therm]
   * hot tub pump [kWh]
+  * gas grill [therm]
+  * gas lighting [therm]
+  * gas fireplace [therm]
   * well pump [kWh]
-  * gas fireplace [kBtu]
-  * gas grill [kBtu]
-  * gas lighting [kBtu]
   
 **Output Variables**
-  If you choose to report any output variables (e.g., "Zone Air Temperature" or "Site Outdoor Air Humidity Ratio"), enter a comma-separated list of output variable names. A list of available output variables can be viewed in EnergyPlus's ``.rdd`` file. One csv file, appropriately called "output_variables.csv", will be downloaded alongside the "enduse_timeseries.csv" file.
+  If you choose to report any output variables (e.g., "Zone Air Temperature" or "Site Outdoor Air Humidity Ratio"), enter a comma-separated list of output variable names. A list of available output variables can be viewed in EnergyPlus's ``.rdd`` file.
 
 .. _utility-bill-calculations:
 

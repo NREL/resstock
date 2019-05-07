@@ -145,13 +145,8 @@ class TsvFile
   end
 end
 
-def get_parameters_ordered_from_options_lookup_tsv(resources_dir, characteristics_dir = nil)
+def get_parameters_ordered_from_options_lookup_tsv(lookup_file, characteristics_dir = nil)
   # Obtain full list of parameters and their order
-  lookup_file = File.join(resources_dir, 'options_lookup.tsv')
-  if not File.exist?(lookup_file)
-    fail "ERROR: Cannot find #{lookup_file}."
-  end
-
   params = []
   CSV.foreach(lookup_file, { :col_sep => "\t" }) do |row|
     next if row.size < 2
@@ -168,12 +163,7 @@ def get_parameters_ordered_from_options_lookup_tsv(resources_dir, characteristic
   return params
 end
 
-def get_options_for_parameter_from_options_lookup_tsv(resources_dir, parameter_name)
-  lookup_file = File.join(resources_dir, 'options_lookup.tsv')
-  if not File.exist?(lookup_file)
-    fail "ERROR: Cannot find #{lookup_file}."
-  end
-
+def get_options_for_parameter_from_options_lookup_tsv(lookup_file, parameter_name)
   options = []
   CSV.foreach(lookup_file, { :col_sep => "\t" }) do |row|
     next if row.size < 2
