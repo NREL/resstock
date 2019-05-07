@@ -1,8 +1,19 @@
 {
   "measure_paths": [
+    "../../measures",
     "../../resources/measures"
   ],
   "steps": [
+    {
+      "arguments": {
+        "begin_day_of_month": "1",
+        "begin_month": "2",
+        "end_day_of_month": "28",
+        "end_month": "2",
+        "timesteps_per_hr": "6"
+      },
+      "measure_dir_name": "ResidentialSimulationControls"
+    },
     {
       "arguments": {
         "dst_end_date": "October 26",
@@ -129,10 +140,10 @@
     },
     {
       "arguments": {
-        "skylight_cool_shade_mult": "0.7",
-        "skylight_heat_shade_mult": "0.7",
-        "skylight_shgc": "0.3",
-        "skylight_ufactor": "0.37",
+        "skylight_cool_shade_mult": "1",
+        "skylight_heat_shade_mult": "1",
+        "skylight_shgc": "0.45",
+        "skylight_ufactor": "0.33",
         "window_cool_shade_mult": "0.7",
         "window_heat_shade_mult": "0.7",
         "window_shgc": "0.3",
@@ -145,6 +156,12 @@
         "ufactor": "0.2"
       },
       "measure_dir_name": "ResidentialConstructionsDoors"
+    },
+    {
+      "arguments": {
+        "shared_building_facades": "none"
+      },
+      "measure_dir_name": "ResidentialConstructionsFacadesShared"
     },
     {
       "arguments": {
@@ -214,8 +231,12 @@
         "season_end_month": "Dec",
         "season_start_month": "Jan",
         "use_auto_season": "false",
-        "weekday_setpoint": "71",
-        "weekend_setpoint": "71"
+        "weekday_offset_magnitude": "0",
+        "weekday_offset_schedule": "0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0",
+        "weekday_setpoint": "71.0",
+        "weekend_offset_magnitude": "0",
+        "weekend_offset_schedule": "0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0",
+        "weekend_setpoint": "71.0"
       },
       "measure_dir_name": "ResidentialHVACHeatingSetpoints"
     },
@@ -224,8 +245,12 @@
         "season_end_month": "Dec",
         "season_start_month": "Jan",
         "use_auto_season": "false",
-        "weekday_setpoint": "76",
-        "weekend_setpoint": "76"
+        "weekday_offset_magnitude": "0",
+        "weekday_offset_schedule": "0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0",
+        "weekday_setpoint": "76.0",
+        "weekend_offset_magnitude": "0",
+        "weekend_offset_schedule": "0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0",
+        "weekend_setpoint": "76.0"
       },
       "measure_dir_name": "ResidentialHVACCoolingSetpoints"
     },
@@ -303,8 +328,6 @@
     {
       "arguments": {
         "cfl_eff": "55",
-        "energy_use_exterior": "300",
-        "energy_use_garage": "100",
         "energy_use_interior": "900",
         "hw_cfl": "0.34",
         "hw_led": "0",
@@ -312,12 +335,38 @@
         "in_eff": "15",
         "led_eff": "80",
         "lfl_eff": "88",
+        "monthly_sch": "1.248, 1.257, 0.993, 0.989, 0.993, 0.827, 0.821, 0.821, 0.827, 0.99, 0.987, 1.248",
+        "mult": "1",
         "option_type": "Lamp Fractions",
         "pg_cfl": "0.34",
         "pg_led": "0",
-        "pg_lfl": "0"
+        "pg_lfl": "0",
+        "sch_option_type": "Calculated Lighting Schedule"
       },
-      "measure_dir_name": "ResidentialLighting"
+      "measure_dir_name": "ResidentialLightingInterior"
+    },
+    {
+      "arguments": {
+        "cfl_eff": "55",
+        "energy_use_exterior": "300",
+        "energy_use_garage": "100",
+        "hw_cfl": "0.34",
+        "hw_led": "0",
+        "hw_lfl": "0",
+        "in_eff": "15",
+        "led_eff": "80",
+        "lfl_eff": "88",
+        "monthly_sch": "1.248, 1.257, 0.993, 0.989, 0.993, 0.827, 0.821, 0.821, 0.827, 0.99, 0.987, 1.248",
+        "mult": "1",
+        "option_type": "Lamp Fractions",
+        "pg_cfl": "0.34",
+        "pg_led": "0",
+        "pg_lfl": "0",
+        "sch_option_type": "Calculated Lighting Schedule",
+        "weekday_sch": "0.035, 0.033, 0.032, 0.031, 0.032, 0.033, 0.037, 0.042, 0.043, 0.043, 0.043, 0.044, 0.045, 0.045, 0.044, 0.046, 0.048, 0.052, 0.053, 0.05, 0.047, 0.045, 0.04, 0.036",
+        "weekend_sch": "0.035, 0.033, 0.032, 0.031, 0.032, 0.033, 0.037, 0.042, 0.043, 0.043, 0.043, 0.044, 0.045, 0.045, 0.044, 0.046, 0.048, 0.052, 0.053, 0.05, 0.047, 0.045, 0.04, 0.036"
+      },
+      "measure_dir_name": "ResidentialLightingOther"
     },
     {
       "arguments": {
@@ -393,16 +442,7 @@
     },
     {
       "arguments": {
-        "timesteps_per_hr": "6",
-        "begin_month": "2",
-        "begin_day_of_month": "1",
-        "end_month": "2",
-        "end_day_of_month": "28"
-      },
-      "measure_dir_name": "ResidentialSimulationControls"
-    },
-    {
-      "arguments": {
+        "array_type": "FixedRoofMounted",
         "azimuth": "180",
         "azimuth_type": "relative",
         "inverter_efficiency": "0.96",
