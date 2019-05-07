@@ -392,7 +392,8 @@ class DemandResponseSchedule < OpenStudio::Measure::ModelMeasure
         # end
         
         thermostat_setpoint.setHeatingSetpointTemperatureSchedule(htg_hrly)	
-          thermostat_setpoint.setCoolingSetpointTemperatureSchedule(clg_hrly)	
+        thermostat_setpoint.setCoolingSetpointTemperatureSchedule(clg_hrly)	
+        puts("NEW ====== ", thermostat_setpoint)
         # break
       end
     end
