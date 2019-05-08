@@ -662,7 +662,7 @@ class OutputMeters
     model.getEnergyManagementSystemOutputVariables.each do |ems_output_var|
       if ems_output_var.name.to_s.include? "Central htg pump:Pumps:Electricity"
         custom_meter_infos["Central:ElectricityPumpsHeating"]["key_var_groups"] << ["", "#{ems_output_var.name}"]
-      elsif ems_output_var.name.to_s.include? "htg pump:Pumps:Electricity" and ems_output_var.emsVariableName.include? unit.name.to_s.gsub(" ", "_")
+      elsif ems_output_var.name.to_s.include? "htg pump:Pumps:Electricity" and ems_output_var.emsVariableName.to_s == "#{unit.name}_pumps_h".gsub(" ", "_")
         custom_meter_infos["#{unit.name}:ElectricityPumpsHeating"]["key_var_groups"] << ["", "#{ems_output_var.name}"]
       end
     end
@@ -681,7 +681,7 @@ class OutputMeters
     model.getEnergyManagementSystemOutputVariables.each do |ems_output_var|
       if ems_output_var.name.to_s.include? "Central clg pump:Pumps:Electricity"
         custom_meter_infos["Central:ElectricityPumpsCooling"]["key_var_groups"] << ["", "#{ems_output_var.name}"]
-      elsif ems_output_var.name.to_s.include? "clg pump:Pumps:Electricity" and ems_output_var.emsVariableName.include? unit.name.to_s.gsub(" ", "_")
+      elsif ems_output_var.name.to_s.include? "clg pump:Pumps:Electricity" and ems_output_var.emsVariableName.to_s == "#{unit.name}_pumps_c".gsub(" ", "_")
         custom_meter_infos["#{unit.name}:ElectricityPumpsCooling"]["key_var_groups"] << ["", "#{ems_output_var.name}"]
       end
     end
