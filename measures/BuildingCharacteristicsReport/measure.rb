@@ -111,7 +111,7 @@ class BuildingCharacteristicsReport < OpenStudio::Measure::ReportingMeasure
       unless climate_zone_ba.nil?
         runner.registerInfo("Registering #{climate_zone_ba} for climate_zone_ba.")
         runner.registerValue("climate_zone_ba", climate_zone_ba)
-      end      
+      end
       unless climate_zone_iecc.nil?
         runner.registerInfo("Registering #{climate_zone_iecc} for climate_zone_iecc.")
         runner.registerValue("climate_zone_iecc", climate_zone_iecc)
