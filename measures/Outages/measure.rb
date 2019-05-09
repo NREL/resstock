@@ -19,6 +19,7 @@ end
 require File.join(resources_path, "weather")
 require File.join(resources_path, "constants")
 require File.join(resources_path, "geometry")
+require File.join(resources_path, "hvac")
 
 # start the measure
 class ProcessPowerOutage < OpenStudio::Measure::ModelMeasure
@@ -44,7 +45,7 @@ class ProcessPowerOutage < OpenStudio::Measure::ModelMeasure
     arg = OpenStudio::Measure::OSArgument.makeStringArgument("otg_date", true)
     arg.setDisplayName("Outage Start Date")
     arg.setDescription("Date of the start of the outage.")
-    arg.setDefaultValue("April 1")
+    arg.setDefaultValue("January 1")
     args << arg
 
     # make a double argument for hour of outage start
@@ -91,6 +92,11 @@ class ProcessPowerOutage < OpenStudio::Measure::ModelMeasure
       return false
     end
 
+    # get daylight saving info to use to modify the schedules as appropriate
+    dst = model.getRunPeriodControlDaylightSavingTime
+    dst_start_day = dst.startDate.dayOfYear
+    dst_end_day = dst.endDate.dayOfYear
+
     # get the run period
     year_description = model.getYearDescription
     assumed_year = year_description.assumedYear
@@ -99,6 +105,10 @@ class ProcessPowerOutage < OpenStudio::Measure::ModelMeasure
     run_period_end = Time.new(assumed_year, run_period.getEndMonth, run_period.getEndDayOfMonth, 24)
     run_period_hrs = (run_period_end - run_period_start) / 3600.0
 
+    # make openstudio dates for run period
+    run_period_start_date = OpenStudio::Date.new(OpenStudio::MonthOfYear.new(run_period_start.month), run_period_start.day, run_period_start.year)
+    run_period_end_date = OpenStudio::Date.new(OpenStudio::MonthOfYear.new(run_period_end.month), run_period_end.day, run_period_end.year)
+
     # get the outage period
     months = { "January" => 1, "February" => 2, "March" => 3, "April" => 4, "May" => 5, "June" => 6, "July" => 7, "August" => 8, "September" => 9, "October" => 10, "November" => 11, "December" => 12 }
     otg_start_date_month = months[otg_date.split[0]]
@@ -106,172 +116,144 @@ class ProcessPowerOutage < OpenStudio::Measure::ModelMeasure
     begin
       otg_period_start = Time.new(assumed_year, otg_start_date_month, otg_start_date_day, otg_hr)
     rescue
-      runner.registerError("Invalid start date specified.")
+      runner.registerError("Invalid outage start date specified.")
       return false
     end
     otg_period_end = otg_period_start + otg_len * 3600.0
-    otg_period_hrs = (otg_period_end - otg_period_start) / 3600.0
 
     # check that inputs make sense
     if otg_period_start < run_period_start
-      runner.registerError("Outage period start is before the run period starts.")
+      runner.registerError("Outage period starts before the run period starts.")
       return false
     elsif otg_period_end > run_period_end
-      runner.registerError("Outage period end is after the run period ends.")
+      runner.registerError("Outage period ends after the run period ends.")
       return false
     end
 
-    # get months and leap year offset
-    leap_offset = { true => 1, false => 0 }[year_description.isLeapYear]
-    startday_m = [0, 31, 59 + leap_offset, 90 + leap_offset, 120 + leap_offset, 151 + leap_offset, 181 + leap_offset, 212 + leap_offset, 243 + leap_offset, 273 + leap_offset, 304 + leap_offset, 334 + leap_offset, 365 + leap_offset]
+    # get outage start and end days of the year
+    otg_start_date_day = ((otg_period_start - Time.new(assumed_year, 1, 1)) / 3600.0 / 24.0 + 1).floor
+    otg_end_date_day = ((otg_period_end - Time.new(assumed_year, 1, 1)) / 3600.0 / 24.0 + 1).floor
 
-    # calculate how many days the outage goes on for, the hour it starts on the first day and the hour it ends on the last day
-    otg_num_days = 0
-    otg_netxday_check = otg_hr + otg_len
-    if otg_netxday_check > 24
-      otg_num_days += 1
-    end
+    # get outage period run period hour start, duration hours, and duration days
+    otg_start_hour_of_run_period = ((otg_period_start - run_period_start) / 3600.0).to_i
+    otg_end_hour_of_run_period = ((otg_period_end - run_period_start) / 3600.0).to_i
+    otg_period_num_hrs = (otg_period_end - otg_period_start) / 3600.0
+    otg_period_num_days = otg_period_num_hrs / 24.0
 
-    otg_num_days += (otg_len.to_i - 1) / 24
-    otg_end_hr = (otg_hr + otg_len) % 24
+    # make openstudio dates for outage period
+    otg_start_date = OpenStudio::Date.new(OpenStudio::MonthOfYear.new(otg_period_start.month), otg_period_start.day, otg_period_start.year)
+    otg_end_date = OpenStudio::Date.new(OpenStudio::MonthOfYear.new(otg_period_end.month), otg_period_end.day, otg_period_end.year)
 
-    otg_start_date_day += startday_m[otg_start_date_month - 1]
-    otg_end_date_day = otg_start_date_day + otg_num_days
-
-    otg_start_date = OpenStudio::Date::fromDayOfYear(otg_start_date_day, assumed_year)
-    otg_end_date = OpenStudio::Date::fromDayOfYear(otg_end_date_day, assumed_year)
-
-    # get DST info to use to modify the schedules as appropriate
-    dst = model.getRunPeriodControlDaylightSavingTime
-    dst_start_day = dst.startDate.dayOfYear
-    dst_end_day = dst.endDate.dayOfYear
-
-    time = []
-    for h in 1..24
-      time << OpenStudio::Time.new(0, h, 0, 0)
-    end
-
-    model.getScheduleRulesets.each do |schedule|
-      next if schedule.name.to_s.include? "shading" or schedule.name.to_s.include? "Schedule Ruleset" or schedule.name.to_s.include? Constants.ObjectNameOccupants
+    model.getScheduleRulesets.each do |schedule_ruleset|
+      next if schedule_ruleset.name.to_s.include? "shading" or schedule_ruleset.name.to_s.include? "Schedule Ruleset" or schedule_ruleset.name.to_s.include? Constants.ObjectNameOccupants or schedule_ruleset.name.to_s.include? Constants.ObjectNameHeatingSetpoint or schedule_ruleset.name.to_s.include? Constants.ObjectNameCoolingSetpoint
 
       otg_val = 0
-      if schedule.name.to_s.include? Constants.ObjectNameHeatingSetpoint
-        otg_val = -10000
-      elsif schedule.name.to_s.include? Constants.ObjectNameCoolingSetpoint
-        otg_val = 10000
-      end
-
-      if otg_num_days == 0 # occurs within one calendar day
-        otg_rule = OpenStudio::Model::ScheduleRule.new(schedule)
-        otg_rule.setName("#{schedule.name.to_s}" + "_outage_day_#{otg_start_date_day}")
+      if otg_period_num_days <= 1 # occurs within one calendar day
+        otg_rule = OpenStudio::Model::ScheduleRule.new(schedule_ruleset)
+        otg_rule.setName("#{schedule_ruleset.name} Outage Day #{otg_start_date_day}")
         otg_day = otg_rule.daySchedule
-        unmod_sched = schedule.getDaySchedules(otg_start_date, otg_start_date)
-        for h in 0..23
-          if h < otg_hr or h > ((otg_hr + otg_len) - 1)
-            otg_day.addValue(time[h], unmod_sched[0].getValue(time[h]))
+        unmod_sched = schedule_ruleset.getDaySchedules(otg_start_date, otg_start_date)
+        unmod_sched = unmod_sched[0]
+        for hour in 0..23
+          time = OpenStudio::Time.new(0, hour + 1, 0, 0)
+          if hour < otg_hr or hour > ((otg_hr + otg_len) - 1)
+            otg_day.addValue(time, unmod_sched.getValue(time))
           else
-            otg_day.addValue(time[h], otg_val)
+            otg_day.addValue(time, otg_val)
           end
         end
-        otg_rule.setApplySunday(true)
-        otg_rule.setApplyMonday(true)
-        otg_rule.setApplyTuesday(true)
-        otg_rule.setApplyWednesday(true)
-        otg_rule.setApplyThursday(true)
-        otg_rule.setApplyFriday(true)
-        otg_rule.setApplySaturday(true)
-        otg_rule.setStartDate(otg_start_date)
-        otg_rule.setEndDate(otg_start_date)
-      else
-        for d in otg_start_date_day..otg_end_date_day
-          day_date = OpenStudio::Date::fromDayOfYear(d, assumed_year)
-          # add a rule to the schedule for the outage
-          if d == otg_start_date_day # first day of the outage
-            otg_rule = OpenStudio::Model::ScheduleRule.new(schedule)
-            otg_rule.setName("#{schedule.name.to_s}" + "_outage_day_#{d}")
-            otg_day = otg_rule.daySchedule
-            unmod_sched = schedule.getDaySchedules(day_date, day_date)
-            if d >= dst_start_day and d <= dst_end_day
-              for h in 0..23
-                if h == 1
-                  otg_day.addValue(time[h], otg_val)
-                elsif h < otg_hr or h > ((otg_hr + otg_len) - 1)
-                  otg_day.addValue(time[h], unmod_sched[0].getValue(time[h]))
+        set_rule_days_and_dates(otg_rule, otg_start_date, otg_start_date)
+      else # does not occur within on calendar day
+        (otg_start_date_day..otg_end_date_day).each do |day|
+          day_date = OpenStudio::Date::fromDayOfYear(day, assumed_year)
+          otg_rule = OpenStudio::Model::ScheduleRule.new(schedule_ruleset)
+          otg_rule.setName("#{schedule_ruleset.name.to_s} Outage Day #{day}")
+          otg_day = otg_rule.daySchedule
+          unmod_sched = schedule_ruleset.getDaySchedules(day_date, day_date)
+          unmod_sched = unmod_sched[0]
+          if day == otg_start_date_day # first day of the outage
+            if day >= dst_start_day and day <= dst_end_day
+              for hour in 0..23
+                time = OpenStudio::Time.new(0, hour + 1, 0, 0)
+                if hour == 0
+                  otg_day.addValue(time, otg_val)
+                elsif hour < otg_hr or hour > ((otg_hr + otg_len) - 1)
+                  otg_day.addValue(time, unmod_sched.getValue(time))
                 else
-                  otg_day.addValue(time[h], otg_val)
+                  otg_day.addValue(time, otg_val)
                 end
               end
             else
-              for h in 0..23
-                if h < otg_hr or h > ((otg_hr + otg_len) - 1)
-                  otg_day.addValue(time[h], unmod_sched[0].getValue(time[h]))
+              for hour in 0..23
+                time = OpenStudio::Time.new(0, hour + 1, 0, 0)
+                if hour < otg_hr or hour > ((otg_hr + otg_len) - 1)
+                  otg_day.addValue(time, unmod_sched.getValue(time))
                 else
-                  otg_day.addValue(time[h], otg_val)
+                  otg_day.addValue(time, otg_val)
                 end
               end
             end
-            otg_rule.setApplySunday(true)
-            otg_rule.setApplyMonday(true)
-            otg_rule.setApplyTuesday(true)
-            otg_rule.setApplyWednesday(true)
-            otg_rule.setApplyThursday(true)
-            otg_rule.setApplyFriday(true)
-            otg_rule.setApplySaturday(true)
-            otg_rule.setStartDate(day_date)
-            otg_rule.setEndDate(day_date)
-          elsif d == otg_end_date_day # last day of the outage
-            otg_rule = OpenStudio::Model::ScheduleRule.new(schedule)
-            otg_rule.setName("#{schedule.name.to_s}" + "_outage_day_#{d}")
-            otg_day = otg_rule.daySchedule
-            unmod_sched = schedule.getDaySchedules(day_date, day_date)
-            if d >= dst_start_day and d <= dst_end_day
-              for h in 0..23
-                if h == 1
-                  otg_day.addValue(time[h], unmod_sched[0].getValue(time[1]))
-                elsif h < otg_end_hr
-                  otg_day.addValue(time[h], otg_val)
+            set_rule_days_and_dates(otg_rule, day_date, day_date)
+          elsif day == otg_end_date_day # last day of the outage
+            if day >= dst_start_day and day <= dst_end_day
+              for hour in 0..23
+                time = OpenStudio::Time.new(0, hour + 1, 0, 0)
+                if hour == 0
+                  otg_day.addValue(time, unmod_sched.getValue(time))
+                elsif hour < otg_period_end.hour
+                  otg_day.addValue(time, otg_val)
                 else
-                  otg_day.addValue(time[h], unmod_sched[0].getValue(time[h]))
+                  otg_day.addValue(time, unmod_sched.getValue(time))
                 end
               end
             else
-              for h in 0..23
-                if h < otg_end_hr
-                  otg_day.addValue(time[h], otg_val)
+              for hour in 0..23
+                time = OpenStudio::Time.new(0, hour + 1, 0, 0)
+                if hour < otg_period_end.hour
+                  otg_day.addValue(time, otg_val)
                 else
-                  otg_day.addValue(time[h], unmod_sched[0].getValue(time[h]))
+                  otg_day.addValue(time, unmod_sched.getValue(time))
                 end
               end
             end
-            otg_rule.setApplySunday(true)
-            otg_rule.setApplyMonday(true)
-            otg_rule.setApplyTuesday(true)
-            otg_rule.setApplyWednesday(true)
-            otg_rule.setApplyThursday(true)
-            otg_rule.setApplyFriday(true)
-            otg_rule.setApplySaturday(true)
-            otg_rule.setStartDate(day_date)
-            otg_rule.setEndDate(day_date)
+            set_rule_days_and_dates(otg_rule, day_date, day_date)
           else # any middle days of the outage
-            otg_rule = OpenStudio::Model::ScheduleRule.new(schedule)
-            otg_rule.setName("#{schedule.name.to_s}" + "_outage_day_#{d}")
-            otg_day = otg_rule.daySchedule
-            unmod_sched = schedule.getDaySchedules(day_date, day_date)
-            for h in 0..23
-              otg_day.addValue(time[h], otg_val)
+            for hour in 0..23
+              time = OpenStudio::Time.new(0, hour + 1, 0, 0)
+              otg_day.addValue(time, otg_val)
             end
-            otg_rule.setApplySunday(true)
-            otg_rule.setApplyMonday(true)
-            otg_rule.setApplyTuesday(true)
-            otg_rule.setApplyWednesday(true)
-            otg_rule.setApplyThursday(true)
-            otg_rule.setApplyFriday(true)
-            otg_rule.setApplySaturday(true)
-            otg_rule.setStartDate(day_date)
-            otg_rule.setEndDate(day_date)
+            set_rule_days_and_dates(otg_rule, day_date, day_date)
           end
         end
       end
+      runner.registerInfo("Modified the schedule '#{schedule_ruleset.name}'.")
+    end
+
+    # make an outage availability schedule
+    otg_availability = [1] * run_period_hrs
+    (otg_start_hour_of_run_period...otg_end_hour_of_run_period).each do |hour|
+      otg_availability[hour] = 0
+    end
+    timeseries = OpenStudio::TimeSeries.new(run_period_start_date, OpenStudio::Time.new(0, 1, 0, 0), OpenStudio::createVector(otg_availability), "")
+    otg_availability_schedule = OpenStudio::Model::ScheduleInterval.fromTimeSeries(timeseries, model)
+    otg_availability_schedule = otg_availability_schedule.get
+    otg_availability_schedule.setName("Outage Availability Schedule")
+
+    # set outage availability schedule on all hvac objects
+    model.getThermalZones.each do |thermal_zone|
+      equipments = HVAC.existing_heating_equipment(model, runner, thermal_zone) + HVAC.existing_cooling_equipment(model, runner, thermal_zone)
+      equipments.each do |equipment|
+        equipment.setAvailabilitySchedule(otg_availability_schedule)
+        runner.registerInfo("Modified the availability schedule for '#{equipment.name}''.")
+      end
+    end
+
+    # set the outage availability schedule on res_infil_1_wh_sch_s (so house fan zeroes out)
+    model.getEnergyManagementSystemSensors.each do |ems_sensor|
+      next unless ems_sensor.name.to_s.include? "_wh_sch_s"
+
+      ems_sensor.setKeyName("Outage Availability Schedule")
+      runner.registerInfo("Modified the key name for '#{ems_sensor.name}''.")
     end
 
     # add additional properties object with the date of the outage for use by reporting measures
@@ -284,6 +266,18 @@ class ProcessPowerOutage < OpenStudio::Measure::ModelMeasure
 
     return true
   end # end the run method
+
+  def set_rule_days_and_dates(rule, state_date, end_date)
+    rule.setApplySunday(true)
+    rule.setApplyMonday(true)
+    rule.setApplyTuesday(true)
+    rule.setApplyWednesday(true)
+    rule.setApplyThursday(true)
+    rule.setApplyFriday(true)
+    rule.setApplySaturday(true)
+    rule.setStartDate(state_date)
+    rule.setEndDate(end_date)
+  end
 end # end the measure
 
 # this allows the measure to be use by the application
