@@ -350,8 +350,10 @@ class ResidentialLightingOther < OpenStudio::Measure::ModelMeasure
             
       # Add Corridors to Exterior Lighting (LPD is hard coded = 0.5 W/ft2)
       common_spaces = Geometry.get_common_spaces(model)
-      corridor_area = Geometry.get_floor_area_from_spaces(common_spaces, runner) #ft2
-      exterior_ann += corridor_LPD*corridor_area      
+      if common_spaces.any?
+        corridor_area = Geometry.get_floor_area_from_spaces(common_spaces, runner) #ft2
+        exterior_ann += corridor_LPD*corridor_area     
+      end
     end
     
     success = Lighting.apply_exterior(model, runner, weather, sch, exterior_ann, sch_option_type, weekday_sch, weekend_sch, monthly_sch)
