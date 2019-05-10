@@ -258,14 +258,7 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
     horz_location.setDescription("The horizontal location of the unit when viewing the front of the building (Left, Middle, Right)")
     horz_location.setDefaultValue("Left")
     args << horz_location
-	
-	# make a bool argument for multi story building
-	# multi_story = OpenStudio::Measure::OSArgument::makeBoolArgument("multi_story", true)
-    # multi_story.setDisplayName("Multi story boolean")
-    # multi_story.setDescription("Indicates if the building has more than one story")
-    # multi_story.setDefaultValue(true)
-    # args << multi_story
-	
+		
 	# make a bool argument for back units
 	has_rear_units = OpenStudio::Measure::OSArgument::makeBoolArgument("has_rear_units", true)
     has_rear_units.setDisplayName("Rear units boolean")
@@ -289,6 +282,8 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
 
     unit_ffa = UnitConversions.convert(runner.getDoubleArgumentValue("unit_ffa", user_arguments), "ft^2", "m^2")
     wall_height = UnitConversions.convert(runner.getDoubleArgumentValue("wall_height", user_arguments), "ft", "m")
+    num_floors = runner.getIntegerArgumentValue("num_floors", user_arguments)
+    num_units = runner.getIntegerArgumentValue("num_units", user_arguments)
     unit_aspect_ratio = runner.getDoubleArgumentValue("unit_aspect_ratio", user_arguments)
     corridor_position = runner.getStringArgumentValue("corridor_position", user_arguments)
     corridor_width = UnitConversions.convert(runner.getDoubleArgumentValue("corridor_width", user_arguments), "ft", "m")
@@ -314,8 +309,6 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
 	level = runner.getStringArgumentValue("level", user_arguments)
 	horz_location = runner.getStringArgumentValue("horz_location", user_arguments)
 	has_rear_units = runner.getBoolArgumentValue("has_rear_units", user_arguments)
-	num_units = 1
-	num_floors = 1
 
     if foundation_type == "slab"
       foundation_height = 0.0
@@ -324,6 +317,13 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
     end
     num_units_per_floor = num_units / num_floors
     num_units_per_floor_actual = num_units_per_floor
+    if (((num_units_per_floor == 1) or (num_units_per_floor % 2 != 0))) or (has_rear_units == false) #no rear units
+      unit_depth = 1
+      unit_width = num_units_per_floor
+    elsif has_rear_units == true
+      unit_depth = 2
+      unit_width = num_units_per_floor/2
+    end 
 
     # error checking
     if model_spaces.size > 0
@@ -334,10 +334,21 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
       runner.registerError("The crawlspace height can be set between 1.5 and 5 ft.")
       return false
     end
-    # if num_units_per_floor == 1 and (corridor_position == "Double-Loaded Interior" or corridor_position == "Double Exterior")
-      # runner.registerWarning("Specified building as having rear units; setting corridor position to 'Single Exterior (Front)'.")
-      # corridor_position = "Single Exterior (Front)"
-    # end
+    if num_units % num_floors != 0
+      runner.registerError("The number of units must be divisible by the number of floors.")
+      return false
+    end
+    if (unit_depth == 1) and (corridor_position == "Double-Loaded Interior" or corridor_position == "Double Exterior") 
+      runner.registerWarning("Specified incompatible corridor; setting corridor position to 'Single Exterior (Front)' and adjacent rear units to 'false'.")
+      corridor_position = "Single Exterior (Front)"
+      has_rear_units = false
+    end
+    if (unit_depth == 1) and (has_rear_units == true) 
+      runner.registerWarning("Specified incompatible rear adjacency option; setting adjacent rear units to 'false'.")
+      has_rear_units = false
+      unit_depth = 1
+      unit_width = num_units_per_floor
+    end
     if unit_aspect_ratio < 0
       runner.registerError("Invalid aspect ratio entered.")
       return false
@@ -355,6 +366,10 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
     if balcony_depth > 0 and inset_width * inset_depth == 0
       runner.registerWarning("Specified a balcony, but there is no inset.")
       balcony_depth = 0
+    end
+    if unit_width < 3 and horz_location == "Middle"
+      runner.registerError("No middle horizontal location exists.")
+      return false
     end
 
     # Convert to SI
@@ -381,7 +396,6 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
     living_polygon = Geometry.make_polygon(sw_point, nw_point, ne_point, se_point)
     # foundation
     if foundation_height > 0 and foundation_front_polygon.nil?
-	  puts(foundation_height)
       foundation_front_polygon = living_polygon
     end
   
@@ -410,16 +424,21 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
 	# Map unit location to adiabatic surfaces
 	horz_hash = {"Left"=>["right"], "Right"=>["left"], "Middle"=>["left", "right"], "None"=>[]}
 	level_hash = {"Bottom"=>["RoofCeiling"], "Top"=>["Floor"], "Middle"=>["RoofCeiling","Floor"], "None"=>[]} 	
-	
-	if (has_rear_units == true)
-	  adb_facade = ["back"]
-	else
-	  adb_facade = []
-	end
-		
-	adb_facade = adb_facade + horz_hash[horz_location]
+	adb_facade = horz_hash[horz_location]
 	adb_level = level_hash[level]
-	
+   
+    # Check levels
+	if num_floors == 1
+      adb_level = []
+    end
+    # Check for exposed left and right facades
+    if num_units_per_floor == 1 or (num_units_per_floor == 2 and has_rear_units == true)
+      adb_facade = []
+    end
+    if (has_rear_units == true)
+	  adb_facade += ["back"]
+	end        
+    
 	adiabatic_surf = adb_facade + horz_hash[horz_location] + level_hash[level]
 	# Make surfaces adiabatic
 	model.getSpaces.each do |space|
@@ -455,9 +474,7 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
     # create the unit
     unit_spaces_hash = {}
     unit_spaces_hash[1] = living_spaces_front
-	
-	# (rear_units == false) & 
-	
+		
     if (corridor_position == "Double-Loaded Interior")
       interior_corridor_width = corridor_width
       # corridors
@@ -523,9 +540,23 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
 
       shading_surface_group = OpenStudio::Model::ShadingSurfaceGroup.new(model)
       shading_surface.setShadingSurfaceGroup(shading_surface_group)
-	  puts("making Corridor SHading")
 	  shading_surface.setName("Double Exterior Corridor Rear")
     end	
+    
+    if corridor_position == "Single Exterior (Front)"
+      nw_point = OpenStudio::Point3d.new(0, -y, wall_height)
+      ne_point = OpenStudio::Point3d.new(x, -y, wall_height)
+      sw_point = OpenStudio::Point3d.new(0, -y - corridor_width, wall_height)
+      se_point = OpenStudio::Point3d.new(x, -y - corridor_width, wall_height)
+
+      shading_surface = OpenStudio::Model::ShadingSurface.new(OpenStudio::Point3dVector.new([sw_point, se_point, ne_point, nw_point]), model)
+
+      shading_surface_group = OpenStudio::Model::ShadingSurfaceGroup.new(model)
+      shading_surface.setShadingSurfaceGroup(shading_surface_group)    
+      shading_surface.setName("Single Exterior Corridor Front")
+    end
+    
+    
 	
     # foundation
     if foundation_height > 0
@@ -622,7 +653,7 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
     model.getSpaces.each do |space|
       spaces << space
     end
-
+    
     # intersect and match surfaces for each space in the vector
     OpenStudio::Model.intersectSurfaces(spaces)
     OpenStudio::Model.matchSurfaces(spaces)
