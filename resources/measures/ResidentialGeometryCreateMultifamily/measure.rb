@@ -443,7 +443,7 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
 	# Make surfaces adiabatic
 	model.getSpaces.each do |space|
 	  # Store has_rear_units to call in the door geometry measure
-	  space.additionalProperties.setFeature("has_rear_units", has_rear_units)
+	  # space.additionalProperties.setFeature("has_rear_units", has_rear_units)
       space.surfaces.each do |surface|
         os_facade = Geometry.get_facade_for_surface(surface)
 		if surface.surfaceType == "Wall"
@@ -476,7 +476,8 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
     unit_spaces_hash[1] = living_spaces_front
 		
     if (corridor_position == "Double-Loaded Interior")
-      interior_corridor_width = corridor_width
+      interior_corridor_width = corridor_width/2 #Only half the lighting load is included with this unit
+      
       # corridors
       if corridor_width > 0
         # create the prototype corridor
