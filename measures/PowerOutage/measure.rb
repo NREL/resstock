@@ -26,7 +26,7 @@ class ProcessPowerOutage < OpenStudio::Measure::ModelMeasure
   # define the name that a user will see, this method may be deprecated as
   # the display name in PAT comes from the name field in measure.xml
   def name
-    return "Set Residential Outages"
+    return "Set Residential Power Outage"
   end
 
   def description
@@ -103,11 +103,6 @@ class ProcessPowerOutage < OpenStudio::Measure::ModelMeasure
     run_period = model.getRunPeriod
     run_period_start = Time.new(assumed_year, run_period.getBeginMonth, run_period.getBeginDayOfMonth)
     run_period_end = Time.new(assumed_year, run_period.getEndMonth, run_period.getEndDayOfMonth, 24)
-    run_period_hrs = (run_period_end - run_period_start) / 3600.0
-
-    # make openstudio dates for run period
-    run_period_start_date = OpenStudio::Date.new(OpenStudio::MonthOfYear.new(run_period_start.month), run_period_start.day, run_period_start.year)
-    run_period_end_date = OpenStudio::Date.new(OpenStudio::MonthOfYear.new(run_period_end.month), run_period_end.day, run_period_end.year)
 
     # get the outage period
     months = { "January" => 1, "February" => 2, "March" => 3, "April" => 4, "May" => 5, "June" => 6, "July" => 7, "August" => 8, "September" => 9, "October" => 10, "November" => 11, "December" => 12 }
@@ -131,14 +126,11 @@ class ProcessPowerOutage < OpenStudio::Measure::ModelMeasure
     end
 
     # get outage start and end days of the year
-    otg_start_date_day = ((otg_period_start - Time.new(assumed_year, 1, 1)) / 3600.0 / 24.0 + 1).floor
-    otg_end_date_day = ((otg_period_end - Time.new(assumed_year, 1, 1)) / 3600.0 / 24.0 + 1).floor
+    otg_start_date_day = ((otg_period_start - Time.new(assumed_year)) / 3600.0 / 24.0 + 1).floor
+    otg_end_date_day = ((otg_period_end - Time.new(assumed_year)) / 3600.0 / 24.0 + 1).floor
 
-    # get outage period run period hour start, duration hours, and duration days
-    otg_start_hour_of_run_period = ((otg_period_start - run_period_start) / 3600.0).to_i
-    otg_end_hour_of_run_period = ((otg_period_end - run_period_start) / 3600.0).to_i
-    otg_period_num_hrs = (otg_period_end - otg_period_start) / 3600.0
-    otg_period_num_days = otg_period_num_hrs / 24.0
+    # get outage period duration days
+    otg_period_num_days = (otg_period_end.to_date - otg_period_start.to_date).to_i + 1
 
     # make openstudio dates for outage period
     otg_start_date = OpenStudio::Date.new(OpenStudio::MonthOfYear.new(otg_period_start.month), otg_period_start.day, otg_period_start.year)
@@ -230,11 +222,15 @@ class ProcessPowerOutage < OpenStudio::Measure::ModelMeasure
     end
 
     # make an outage availability schedule
-    otg_availability = [1] * run_period_hrs
-    (otg_start_hour_of_run_period...otg_end_hour_of_run_period).each do |hour|
+    annual_hrs = (Time.new(assumed_year + 1) - Time.new(assumed_year)) / 3600.0
+    otg_availability = [1] * annual_hrs
+    otg_start_hour_of_year = ((otg_period_start - Time.new(assumed_year)) / 3600.0).to_i
+    otg_end_hour_of_year = ((otg_period_end - Time.new(assumed_year)) / 3600.0).to_i
+    (otg_start_hour_of_year...otg_end_hour_of_year).each do |hour|
       otg_availability[hour] = 0
     end
-    timeseries = OpenStudio::TimeSeries.new(run_period_start_date, OpenStudio::Time.new(0, 1, 0, 0), OpenStudio::createVector(otg_availability), "")
+    year_start_date = OpenStudio::Date.new(OpenStudio::MonthOfYear.new(1), 1, assumed_year)
+    timeseries = OpenStudio::TimeSeries.new(year_start_date, OpenStudio::Time.new(0, 1, 0, 0), OpenStudio::createVector(otg_availability), "")
     otg_availability_schedule = OpenStudio::Model::ScheduleInterval.fromTimeSeries(timeseries, model)
     otg_availability_schedule = otg_availability_schedule.get
     otg_availability_schedule.setName("Outage Availability Schedule")
@@ -244,7 +240,7 @@ class ProcessPowerOutage < OpenStudio::Measure::ModelMeasure
       equipments = HVAC.existing_heating_equipment(model, runner, thermal_zone) + HVAC.existing_cooling_equipment(model, runner, thermal_zone)
       equipments.each do |equipment|
         equipment.setAvailabilitySchedule(otg_availability_schedule)
-        runner.registerInfo("Modified the availability schedule for '#{equipment.name}''.")
+        runner.registerInfo("Modified the availability schedule for '#{equipment.name}'.")
       end
     end
 
@@ -253,7 +249,7 @@ class ProcessPowerOutage < OpenStudio::Measure::ModelMeasure
       next unless ems_sensor.name.to_s.include? "_wh_sch_s"
 
       ems_sensor.setKeyName("Outage Availability Schedule")
-      runner.registerInfo("Modified the key name for '#{ems_sensor.name}''.")
+      runner.registerInfo("Modified the key name for '#{ems_sensor.name}'.")
     end
 
     # add additional properties object with the date of the outage for use by reporting measures
@@ -262,7 +258,7 @@ class ProcessPowerOutage < OpenStudio::Measure::ModelMeasure
     additional_properties.setFeature("PowerOutageStartHour", otg_hr)
     additional_properties.setFeature("PowerOutageDuration", otg_len)
 
-    runner.registerFinalCondition("A power outage has been added, starting on #{otg_date} at hour #{otg_hr.to_i} and lasting for #{otg_len.to_i} hours")
+    runner.registerFinalCondition("A power outage has been added, starting on #{otg_date} at hour #{otg_hr.to_i} and lasting for #{otg_len.to_i} hours.")
 
     return true
   end # end the run method
