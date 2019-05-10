@@ -206,6 +206,8 @@ class ResidentialLightingOther < OpenStudio::Measure::ModelMeasure
     weekend_sch = runner.getStringArgumentValue("weekend_sch", user_arguments)
     monthly_sch = runner.getStringArgumentValue("monthly_sch", user_arguments)
 
+    corridor_LPD = 0.5 # W/sq ft
+
     # Check for valid inputs
     if option_type == Constants.OptionTypeLightingFractions
       if hw_cfl < 0 or hw_cfl > 1
@@ -345,8 +347,13 @@ class ResidentialLightingOther < OpenStudio::Measure::ModelMeasure
       total_ffa = Geometry.get_finished_floor_area_from_spaces(model.getSpaces, runner)
       bm_outside_e = mult * (0.145 * total_ffa)
       exterior_ann = (bm_outside_e * (((hw_inc * er_inc + (1 - bab_frac_inc) * bab_er_inc) + (hw_cfl * er_cfl - bab_frac_cfl * bab_er_cfl) + (hw_led * er_led - bab_frac_led * bab_er_led) + (hw_lfl * er_lfl - bab_frac_lfl * bab_er_lfl)) * smrt_replace_f * 0.9 + 0.1))
+            
+      # Add Corridors to Exterior Lighting (LPD is hard coded = 0.5 W/ft2)
+      common_spaces = Geometry.get_common_spaces(model)
+      corridor_area = Geometry.get_floor_area_from_spaces(common_spaces, runner) #ft2
+      exterior_ann += corridor_LPD*corridor_area      
     end
-
+    
     success = Lighting.apply_exterior(model, runner, weather, sch, exterior_ann, sch_option_type, weekday_sch, weekend_sch, monthly_sch)
     return false if not success
 
