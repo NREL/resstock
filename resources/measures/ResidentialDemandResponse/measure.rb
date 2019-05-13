@@ -384,6 +384,9 @@ class DemandResponseSchedule < OpenStudio::Measure::ModelMeasure
       if thermostat_setpoint.is_initialized
         thermostat_setpoint = thermostat_setpoint.get     
         
+        thermostat_setpoint.resetHeatingSetpointTemperatureSchedule()
+        thermostat_setpoint.resetCoolingSetpointTemperatureSchedule()
+        
         puts("ORIGINAL ---- ", thermostat_setpoint)
         # if("living zone temperature setpoint"==thermostat_setpoint.name.get)
           # thermostat_setpoint.setHeatingSetpointTemperatureSchedule(htg_hrly)	
@@ -393,7 +396,7 @@ class DemandResponseSchedule < OpenStudio::Measure::ModelMeasure
         
         thermostat_setpoint.setHeatingSetpointTemperatureSchedule(htg_hrly)	
         thermostat_setpoint.setCoolingSetpointTemperatureSchedule(clg_hrly)	
-        puts("NEW ====== ", thermostat_setpoint)
+        puts("NEW ====== ", thermostat_setpoint.getHeatingSchedule)
         # break
       end
     end
