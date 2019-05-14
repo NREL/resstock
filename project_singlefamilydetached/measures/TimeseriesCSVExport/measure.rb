@@ -165,12 +165,14 @@ class TimeseriesCSVExport < OpenStudio::Measure::ReportingMeasure
     modeledCentralElectricityHeating = [0] * num_ts
     modeledCentralElectricityCooling = [0] * num_ts
     modeledCentralElectricityExteriorLighting = [0] * num_ts
+    modeledCentralElectricityExteriorHolidayLighting = [0] * num_ts
     modeledCentralElectricityPumpsHeating = [0] * num_ts
     modeledCentralElectricityPumpsCooling = [0] * num_ts
     modeledCentralElectricityInteriorEquipment = [0] * num_ts
     modeledCentralElectricityPhotovoltaics = [0] * num_ts
     modeledCentralElectricityExtraRefrigerator = [0] * num_ts
     modeledCentralElectricityFreezer = [0] * num_ts
+    modeledCentralElectricityGarageLighting = [0] * num_ts
     modeledCentralNaturalGasHeating = [0] * num_ts
     modeledCentralNaturalGasInteriorEquipment = [0] * num_ts
     modeledCentralNaturalGasGrill = [0] * num_ts
@@ -192,6 +194,11 @@ class TimeseriesCSVExport < OpenStudio::Measure::ReportingMeasure
     central_electricity_exterior_lighting_query = "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('CENTRAL:ELECTRICITYEXTERIORLIGHTING') AND ReportingFrequency='#{reporting_frequency_map[reporting_frequency]}' AND VariableUnits='J') AND TimeIndex IN (SELECT TimeIndex FROM Time WHERE EnvironmentPeriodIndex='#{env_period_ix}')"
     unless sqlFile.execAndReturnVectorOfDouble(central_electricity_exterior_lighting_query).get.empty?
       modeledCentralElectricityExteriorLighting = sqlFile.execAndReturnVectorOfDouble(central_electricity_exterior_lighting_query).get
+    end
+
+    central_electricity_exterior_holiday_lighting_query = "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('CENTRAL:ELECTRICITYEXTERIORHOLIDAYLIGHTING') AND ReportingFrequency='#{reporting_frequency_map[reporting_frequency]}' AND VariableUnits='J') AND TimeIndex IN (SELECT TimeIndex FROM Time WHERE EnvironmentPeriodIndex='#{env_period_ix}')"
+    unless sqlFile.execAndReturnVectorOfDouble(central_electricity_exterior_holiday_lighting_query).get.empty?
+      modeledCentralElectricityExteriorHolidayLighting = sqlFile.execAndReturnVectorOfDouble(central_electricity_exterior_holiday_lighting_query).get
     end
 
     central_electricity_pumps_heating_query = "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('CENTRAL:ELECTRICITYPUMPSHEATING') AND ReportingFrequency='#{reporting_frequency_map[reporting_frequency]}' AND VariableUnits='J') AND TimeIndex IN (SELECT TimeIndex FROM Time WHERE EnvironmentPeriodIndex='#{env_period_ix}')"
@@ -222,6 +229,11 @@ class TimeseriesCSVExport < OpenStudio::Measure::ReportingMeasure
     central_electricity_freezer_query = "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('CENTRAL:ELECTRICITYFREEZER') AND ReportingFrequency='#{reporting_frequency_map[reporting_frequency]}' AND VariableUnits='J') AND TimeIndex IN (SELECT TimeIndex FROM Time WHERE EnvironmentPeriodIndex='#{env_period_ix}')"
     unless sqlFile.execAndReturnVectorOfDouble(central_electricity_freezer_query).get.empty?
       modeledCentralElectricityFreezer = sqlFile.execAndReturnVectorOfDouble(central_electricity_freezer_query).get
+    end
+
+    central_electricity_garage_lighting_query = "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('CENTRAL:ELECTRICITYGARAGELIGHTING') AND ReportingFrequency='#{reporting_frequency_map[reporting_frequency]}' AND VariableUnits='J') AND TimeIndex IN (SELECT TimeIndex FROM Time WHERE EnvironmentPeriodIndex='#{env_period_ix}')"
+    unless sqlFile.execAndReturnVectorOfDouble(central_electricity_garage_lighting_query).get.empty?
+      modeledCentralElectricityGarageLighting = sqlFile.execAndReturnVectorOfDouble(central_electricity_garage_lighting_query).get
     end
 
     central_natural_gas_heating_query = "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('CENTRAL:NATURALGASHEATING') AND ReportingFrequency='#{reporting_frequency_map[reporting_frequency]}' AND VariableUnits='J') AND TimeIndex IN (SELECT TimeIndex FROM Time WHERE EnvironmentPeriodIndex='#{env_period_ix}')"
@@ -274,6 +286,7 @@ class TimeseriesCSVExport < OpenStudio::Measure::ReportingMeasure
     electricityCooling = [0] * num_ts
     electricityInteriorLighting = [0] * num_ts
     electricityExteriorLighting = [0] * num_ts
+    electricityExteriorHolidayLighting = modeledCentralElectricityExteriorHolidayLighting
     electricityInteriorEquipment = [0] * num_ts
     electricityFansHeating = [0] * num_ts
     electricityFansCooling = [0] * num_ts
@@ -316,6 +329,7 @@ class TimeseriesCSVExport < OpenStudio::Measure::ReportingMeasure
     naturalGasHotTubHeater = [0] * num_ts
     electricityHotTubPump = [0] * num_ts
     electricityWellPump = [0] * num_ts
+    electricityGarageLighting = [0] * num_ts
     naturalGasGrill = [0] * num_ts
     naturalGasLighting = [0] * num_ts
     naturalGasFireplace = [0] * num_ts
@@ -326,7 +340,6 @@ class TimeseriesCSVExport < OpenStudio::Measure::ReportingMeasure
       return false
     end
 
-    total_units_represented = 0
     units.each do |unit|
       unit_name = unit.name.to_s.upcase
 
@@ -334,7 +347,6 @@ class TimeseriesCSVExport < OpenStudio::Measure::ReportingMeasure
       if unit.additionalProperties.getFeatureAsInteger("Units Represented").is_initialized
         units_represented = unit.additionalProperties.getFeatureAsInteger("Units Represented").get
       end
-      total_units_represented += units_represented
 
       electricity_heating_query = "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('#{unit_name}:ELECTRICITYHEATING') AND ReportingFrequency='#{reporting_frequency_map[reporting_frequency]}' AND VariableUnits='J') AND TimeIndex IN (SELECT TimeIndex FROM Time WHERE EnvironmentPeriodIndex='#{env_period_ix}')"
       unless sqlFile.execAndReturnVectorOfDouble(electricity_heating_query).get.empty?
@@ -552,6 +564,8 @@ class TimeseriesCSVExport < OpenStudio::Measure::ReportingMeasure
           electricityWellPump = array_sum(electricityWellPump, sqlFile.execAndReturnVectorOfDouble(electricity_well_pump_query).get, units_represented)
         end
 
+        electricityGarageLighting = array_sum(electricityGarageLighting, modeledCentralElectricityGarageLighting, units_represented, units.length)
+
         natural_gas_pool_heater_query = "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('#{unit_name}:NATURALGASPOOLHEATER') AND ReportingFrequency='#{reporting_frequency_map[reporting_frequency]}' AND VariableUnits='J') AND TimeIndex IN (SELECT TimeIndex FROM Time WHERE EnvironmentPeriodIndex='#{env_period_ix}')"
         unless sqlFile.execAndReturnVectorOfDouble(natural_gas_pool_heater_query).get.empty?
           naturalGasPoolHeater = array_sum(naturalGasPoolHeater, sqlFile.execAndReturnVectorOfDouble(natural_gas_pool_heater_query).get, units_represented)
@@ -603,7 +617,7 @@ class TimeseriesCSVExport < OpenStudio::Measure::ReportingMeasure
 
     # ELECTRICITY
 
-    electricityTotalEndUses = [electricityHeating, centralElectricityHeating, electricityCooling, centralElectricityCooling, electricityInteriorLighting, electricityExteriorLighting, electricityInteriorEquipment, electricityFansHeating, electricityFansCooling, electricityPumpsHeating, centralElectricityPumpsHeating, electricityPumpsCooling, centralElectricityPumpsCooling, electricityWaterSystems].transpose.collect { |e1, e2, e3, e4, e5, e6, e7, e8, e9, e10, e11, e12, e13, e14| e1 + e2 + e3 + e4 + e5 + e6 + e7 + e8 + e9 + e10 + e11 + e12 + e13 + e14 }
+    electricityTotalEndUses = [electricityHeating, centralElectricityHeating, electricityCooling, centralElectricityCooling, electricityInteriorLighting, electricityExteriorLighting, electricityExteriorHolidayLighting, electricityInteriorEquipment, electricityFansHeating, electricityFansCooling, electricityPumpsHeating, centralElectricityPumpsHeating, electricityPumpsCooling, centralElectricityPumpsCooling, electricityWaterSystems].transpose.collect { |e1, e2, e3, e4, e5, e6, e7, e8, e9, e10, e11, e12, e13, e14, e15| e1 + e2 + e3 + e4 + e5 + e6 + e7 + e8 + e9 + e10 + e11 + e12 + e13 + e14 + e15 }
 
     report_ts_output(runner, timeseries, "total_site_electricity_kwh", electricityTotalEndUses, "GJ", elec_site_units)
     report_ts_output(runner, timeseries, "net_site_electricity_kwh", [electricityTotalEndUses, modeledCentralElectricityPhotovoltaics].transpose.collect { |e1, e2| e1 - e2 }, "GJ", elec_site_units)
@@ -612,7 +626,7 @@ class TimeseriesCSVExport < OpenStudio::Measure::ReportingMeasure
     report_ts_output(runner, timeseries, "electricity_cooling_kwh", electricityCooling, "GJ", elec_site_units)
     report_ts_output(runner, timeseries, "electricity_central_system_cooling_kwh", centralElectricityCooling, "GJ", elec_site_units)
     report_ts_output(runner, timeseries, "electricity_interior_lighting_kwh", electricityInteriorLighting, "GJ", elec_site_units)
-    report_ts_output(runner, timeseries, "electricity_exterior_lighting_kwh", electricityExteriorLighting, "GJ", elec_site_units)
+    report_ts_output(runner, timeseries, "electricity_exterior_lighting_kwh", [electricityExteriorLighting, electricityExteriorHolidayLighting].transpose.collect { |e1, e2| e1 + e2 }, "GJ", elec_site_units)
     report_ts_output(runner, timeseries, "electricity_interior_equipment_kwh", electricityInteriorEquipment, "GJ", elec_site_units)
     report_ts_output(runner, timeseries, "electricity_fans_heating_kwh", electricityFansHeating, "GJ", elec_site_units)
     report_ts_output(runner, timeseries, "electricity_fans_cooling_kwh", electricityFansCooling, "GJ", elec_site_units)
@@ -689,6 +703,8 @@ class TimeseriesCSVExport < OpenStudio::Measure::ReportingMeasure
       report_ts_output(runner, timeseries, "natural_gas_lighting_therm", naturalGasLighting, "GJ", gas_site_units)
       report_ts_output(runner, timeseries, "natural_gas_fireplace_therm", naturalGasFireplace, "GJ", gas_site_units)
       report_ts_output(runner, timeseries, "electricity_well_pump_kwh", electricityWellPump, "GJ", elec_site_units)
+      report_ts_output(runner, timeseries, "electricity_garage_lighting_kwh", electricityGarageLighting, "GJ", elec_site_units)
+      report_ts_output(runner, timeseries, "electricity_exterior_holiday_lighting_kwh", electricityExteriorHolidayLighting, "GJ", elec_site_units)
     end
 
     output_vars.each do |output_var|
