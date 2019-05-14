@@ -158,11 +158,11 @@ class Lighting
 
     # Finished spaces for the unit
     unit_finished_spaces.each do |space|
-      space_obj_name = "#{Constants.ObjectNameLighting(unit.name.to_s)} #{space.name.to_s}"
+      space_obj_name = "#{Constants.ObjectNameLightingInterior(unit.name.to_s)} #{space.name.to_s}"
 
       if sch.nil?
         # Create schedule
-        sch = HourlyByMonthSchedule.new(model, runner, Constants.ObjectNameLighting + " interior schedule", lighting_sch, lighting_sch, normalize_values = true, create_sch_object = true, winter_design_day_sch, summer_design_day_sch)
+        sch = HourlyByMonthSchedule.new(model, runner, Constants.ObjectNameLightingInterior, lighting_sch, lighting_sch, normalize_values = true, create_sch_object = true, winter_design_day_sch, summer_design_day_sch)
         if not sch.validated?
           return false
         end
@@ -184,6 +184,7 @@ class Lighting
       ltg_def.setFractionVisible(0.2)
       ltg_def.setReturnAirFraction(0.0)
       ltg.setSchedule(sch.schedule)
+      ltg.setEndUseSubcategory(space_obj_name)
     end
 
     return true, sch
@@ -204,15 +205,15 @@ class Lighting
     garage_spaces = Geometry.get_garage_spaces(model.getSpaces)
     gfa = Geometry.get_floor_area_from_spaces(garage_spaces)
     garage_spaces.each do |garage_space|
-      space_obj_name = "#{Constants.ObjectNameLighting} #{garage_space.name.to_s}"
+      space_obj_name = "#{Constants.ObjectNameLightingGarage} #{garage_space.name.to_s}"
       space_ltg_ann = garage_ann * UnitConversions.convert(garage_space.floorArea, "m^2", "ft^2") / gfa
 
       if sch.nil?
         # Create schedule
         if lighting_sch.nil?
-          sch = MonthWeekdayWeekendSchedule.new(model, runner, Constants.ObjectNameLighting + " garage schedule", weekday_sch, weekend_sch, monthly_sch, mult_weekday = 1.0, mult_weekend = 1.0, normalize_values = true, create_sch_object = true, winter_design_day_sch, summer_design_day_sch)
+          sch = MonthWeekdayWeekendSchedule.new(model, runner, Constants.ObjectNameLightingGarage, weekday_sch, weekend_sch, monthly_sch, mult_weekday = 1.0, mult_weekend = 1.0, normalize_values = true, create_sch_object = true, winter_design_day_sch, summer_design_day_sch)
         else
-          sch = HourlyByMonthSchedule.new(model, runner, Constants.ObjectNameLighting + " garage schedule", lighting_sch, lighting_sch, normalize_values = true, create_sch_object = true, winter_design_day_sch, summer_design_day_sch)
+          sch = HourlyByMonthSchedule.new(model, runner, Constants.ObjectNameLightingGarage, lighting_sch, lighting_sch, normalize_values = true, create_sch_object = true, winter_design_day_sch, summer_design_day_sch)
         end
         if not sch.validated?
           return false
@@ -237,6 +238,7 @@ class Lighting
       ltg_def.setFractionVisible(0.2)
       ltg_def.setReturnAirFraction(0.0)
       ltg.setSchedule(sch.schedule)
+      ltg.setEndUseSubcategory(space_obj_name)
     end
 
     return true
@@ -254,14 +256,14 @@ class Lighting
     summer_design_day_sch = OpenStudio::Model::ScheduleDay.new(model)
     summer_design_day_sch.addValue(OpenStudio::Time.new(0, 24, 0, 0), 1)
 
-    obj_name = "#{Constants.ObjectNameLighting} exterior"
+    obj_name = Constants.ObjectNameLightingExterior
 
     if sch.nil?
       # Create schedule
       if lighting_sch.nil?
-        sch = MonthWeekdayWeekendSchedule.new(model, runner, "#{obj_name} schedule", weekday_sch, weekend_sch, monthly_sch, mult_weekday = 1.0, mult_weekend = 1.0, normalize_values = true, create_sch_object = true, winter_design_day_sch, summer_design_day_sch)
+        sch = MonthWeekdayWeekendSchedule.new(model, runner, obj_name, weekday_sch, weekend_sch, monthly_sch, mult_weekday = 1.0, mult_weekend = 1.0, normalize_values = true, create_sch_object = true, winter_design_day_sch, summer_design_day_sch)
       else
-        sch = HourlyByMonthSchedule.new(model, runner, "#{obj_name} schedule", lighting_sch, lighting_sch, normalize_values = true, create_sch_object = true, winter_design_day_sch, summer_design_day_sch)
+        sch = HourlyByMonthSchedule.new(model, runner, obj_name, lighting_sch, lighting_sch, normalize_values = true, create_sch_object = true, winter_design_day_sch, summer_design_day_sch)
       end
       if not sch.validated?
         return false
@@ -282,11 +284,12 @@ class Lighting
     ltg_def.setName(obj_name)
     ltg_def.setDesignLevel(design_level)
     ltg.setSchedule(sch.schedule)
+    ltg.setEndUseSubcategory(obj_name)
 
     return true
   end
 
-  def self.apply_holiday_exterior(model, runner, daily_exterior_ann, holiday_periods, holiday_sch)
+  def self.apply_exterior_holiday(model, runner, daily_exterior_ann, holiday_periods, holiday_sch)
     vals = holiday_sch.split(",")
     vals.each do |val|
       begin Float(val)
@@ -307,10 +310,15 @@ class Lighting
     summer_design_day_sch = OpenStudio::Model::ScheduleDay.new(model)
     summer_design_day_sch.addValue(OpenStudio::Time.new(0, 24, 0, 0), 1)
 
-    obj_name = "#{Constants.ObjectNameLighting} holiday exterior"
+    obj_name = Constants.ObjectNameLightingExteriorHoliday
 
     sch = OpenStudio::Model::ScheduleRuleset.new(model, 0)
-    sch.setName("#{obj_name} schedule")
+    sch.setName(obj_name)
+
+    sch.setWinterDesignDaySchedule(winter_design_day_sch)
+    sch.winterDesignDaySchedule.setName("#{sch.name} winter design")
+    sch.setSummerDesignDaySchedule(summer_design_day_sch)
+    sch.summerDesignDaySchedule.setName("#{sch.name} summer design")
 
     holiday_periods.each do |holiday_period|
       holiday_start_date, holiday_end_date = holiday_period
@@ -342,6 +350,7 @@ class Lighting
     ltg_def.setName(obj_name)
     ltg_def.setDesignLevel(design_level)
     ltg.setSchedule(sch)
+    ltg.setEndUseSubcategory(obj_name)
 
     return true
   end
