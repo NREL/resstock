@@ -210,9 +210,9 @@ class Lighting
       if sch.nil?
         # Create schedule
         if lighting_sch.nil?
-          sch = MonthWeekdayWeekendSchedule.new(model, runner, Constants.ObjectNameLighting + " other schedule", weekday_sch, weekend_sch, monthly_sch, mult_weekday = 1.0, mult_weekend = 1.0, normalize_values = true, create_sch_object = true, winter_design_day_sch, summer_design_day_sch)
+          sch = MonthWeekdayWeekendSchedule.new(model, runner, Constants.ObjectNameLighting + " garage schedule", weekday_sch, weekend_sch, monthly_sch, mult_weekday = 1.0, mult_weekend = 1.0, normalize_values = true, create_sch_object = true, winter_design_day_sch, summer_design_day_sch)
         else
-          sch = HourlyByMonthSchedule.new(model, runner, Constants.ObjectNameLighting + " other schedule", lighting_sch, lighting_sch, normalize_values = true, create_sch_object = true, winter_design_day_sch, summer_design_day_sch)
+          sch = HourlyByMonthSchedule.new(model, runner, Constants.ObjectNameLighting + " garage schedule", lighting_sch, lighting_sch, normalize_values = true, create_sch_object = true, winter_design_day_sch, summer_design_day_sch)
         end
         if not sch.validated?
           return false
@@ -223,7 +223,7 @@ class Lighting
       if sch_option_type == Constants.OptionTypeLightingScheduleCalculated
         space_design_level = sch.calcDesignLevel(sch.maxval * space_ltg_ann)
       elsif sch_option_type == Constants.OptionTypeLightingScheduleUserSpecified
-        space_design_level = sch.calcDesignLevelFromDailykWh(space_ltg_ann / 365.0)
+        space_design_level = sch.calcDesignLevelFromDailykWh(space_ltg_ann / Schedule.last_day_of_year(model.getYearDescription))
       end
 
       # Add lighting
@@ -239,7 +239,7 @@ class Lighting
       ltg.setSchedule(sch.schedule)
     end
 
-    return true, sch
+    return true
   end
 
   def self.apply_exterior(model, runner, weather, sch, exterior_ann, sch_option_type, weekday_sch, weekend_sch, monthly_sch)
@@ -254,34 +254,94 @@ class Lighting
     summer_design_day_sch = OpenStudio::Model::ScheduleDay.new(model)
     summer_design_day_sch.addValue(OpenStudio::Time.new(0, 24, 0, 0), 1)
 
-    space_obj_name = "#{Constants.ObjectNameLighting} exterior"
+    obj_name = "#{Constants.ObjectNameLighting} exterior"
 
     if sch.nil?
       # Create schedule
       if lighting_sch.nil?
-        sch = MonthWeekdayWeekendSchedule.new(model, runner, Constants.ObjectNameLighting + " other schedule", weekday_sch, weekend_sch, monthly_sch, mult_weekday = 1.0, mult_weekend = 1.0, normalize_values = true, create_sch_object = true, winter_design_day_sch, summer_design_day_sch)
+        sch = MonthWeekdayWeekendSchedule.new(model, runner, "#{obj_name} schedule", weekday_sch, weekend_sch, monthly_sch, mult_weekday = 1.0, mult_weekend = 1.0, normalize_values = true, create_sch_object = true, winter_design_day_sch, summer_design_day_sch)
       else
-        sch = HourlyByMonthSchedule.new(model, runner, Constants.ObjectNameLighting + " other schedule", lighting_sch, lighting_sch, normalize_values = true, create_sch_object = true, winter_design_day_sch, summer_design_day_sch)
+        sch = HourlyByMonthSchedule.new(model, runner, "#{obj_name} schedule", lighting_sch, lighting_sch, normalize_values = true, create_sch_object = true, winter_design_day_sch, summer_design_day_sch)
       end
       if not sch.validated?
         return false
       end
     end
 
-    space_design_level = nil
+    design_level = nil
     if sch_option_type == Constants.OptionTypeLightingScheduleCalculated
-      space_design_level = sch.calcDesignLevel(sch.maxval * exterior_ann)
+      design_level = sch.calcDesignLevel(sch.maxval * exterior_ann)
     elsif sch_option_type == Constants.OptionTypeLightingScheduleUserSpecified
-      space_design_level = sch.calcDesignLevelFromDailykWh(exterior_ann / 365.0)
+      design_level = sch.calcDesignLevelFromDailykWh(exterior_ann / Schedule.last_day_of_year(model.getYearDescription))
     end
 
     # Add exterior lighting
     ltg_def = OpenStudio::Model::ExteriorLightsDefinition.new(model)
     ltg = OpenStudio::Model::ExteriorLights.new(ltg_def)
-    ltg.setName(space_obj_name)
-    ltg_def.setName(space_obj_name)
-    ltg_def.setDesignLevel(space_design_level)
+    ltg.setName(obj_name)
+    ltg_def.setName(obj_name)
+    ltg_def.setDesignLevel(design_level)
     ltg.setSchedule(sch.schedule)
+
+    return true
+  end
+
+  def self.apply_holiday_exterior(model, runner, daily_exterior_ann, holiday_periods, holiday_sch)
+    vals = holiday_sch.split(",")
+    vals.each do |val|
+      begin Float(val)
+      rescue
+        runner.registerError("A comma-separated string of 24 numbers must be entered for the holiday schedule.")
+        return false
+      end
+    end
+    holiday_sch = vals.map { |i| i.to_f }
+    if holiday_sch.length != 24
+      runner.registerError("A comma-separated string of 24 numbers must be entered for the holiday schedule.")
+      return false
+    end
+
+    # Design day schedules used when autosizing
+    winter_design_day_sch = OpenStudio::Model::ScheduleDay.new(model)
+    winter_design_day_sch.addValue(OpenStudio::Time.new(0, 24, 0, 0), 0)
+    summer_design_day_sch = OpenStudio::Model::ScheduleDay.new(model)
+    summer_design_day_sch.addValue(OpenStudio::Time.new(0, 24, 0, 0), 1)
+
+    obj_name = "#{Constants.ObjectNameLighting} holiday exterior"
+
+    sch = OpenStudio::Model::ScheduleRuleset.new(model, 0)
+    sch.setName("#{obj_name} schedule")
+
+    holiday_periods.each do |holiday_period|
+      holiday_start_date, holiday_end_date = holiday_period
+
+      holiday_rule = OpenStudio::Model::ScheduleRule.new(sch)
+      holiday_day = holiday_rule.daySchedule
+
+      (0..23).each do |hour|
+        holiday_day.addValue(OpenStudio::Time.new(0, hour + 1, 0, 0), holiday_sch[hour] / holiday_sch.max)
+      end
+
+      holiday_rule.setApplySunday(true)
+      holiday_rule.setApplyMonday(true)
+      holiday_rule.setApplyTuesday(true)
+      holiday_rule.setApplyWednesday(true)
+      holiday_rule.setApplyThursday(true)
+      holiday_rule.setApplyFriday(true)
+      holiday_rule.setApplySaturday(true)
+      holiday_rule.setStartDate(holiday_start_date)
+      holiday_rule.setEndDate(holiday_end_date)
+    end
+
+    design_level = daily_exterior_ann * holiday_sch.max * 1000
+
+    # Add exterior lighting
+    ltg_def = OpenStudio::Model::ExteriorLightsDefinition.new(model)
+    ltg = OpenStudio::Model::ExteriorLights.new(ltg_def)
+    ltg.setName(obj_name)
+    ltg_def.setName(obj_name)
+    ltg_def.setDesignLevel(design_level)
+    ltg.setSchedule(sch)
 
     return true
   end
