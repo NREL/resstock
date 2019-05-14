@@ -406,6 +406,7 @@ class OutputMeters
         natural_gas_lighting(custom_meter_infos, model, runner, unit, thermal_zones)
         natural_gas_fireplace(custom_meter_infos, model, runner, unit, thermal_zones)
         electricity_well_pump(custom_meter_infos, model, runner, unit, thermal_zones)
+        electricity_garage_lighting(custom_meter_infos, model, runner, unit, thermal_zones)
       end
     end
 
@@ -596,8 +597,13 @@ class OutputMeters
 
   def self.electricity_exterior_lighting(custom_meter_infos, model, runner, unit, thermal_zones)
     custom_meter_infos["Central:ElectricityExteriorLighting"] = { "fuel_type" => "Electricity", "key_var_groups" => [] }
+    custom_meter_infos["Central:ElectricityExteriorHolidayLighting"] = { "fuel_type" => "Electricity", "key_var_groups" => [] }
     model.getExteriorLightss.each do |exterior_lights|
-      custom_meter_infos["Central:ElectricityExteriorLighting"]["key_var_groups"] << ["#{exterior_lights.name}", "Exterior Lights Electric Energy"]
+      if exterior_lights.endUseSubcategory.include? Constants.ObjectNameLightingExteriorHoliday
+        custom_meter_infos["Central:ElectricityExteriorHolidayLighting"]["key_var_groups"] << ["#{exterior_lights.name}", "Exterior Lights Electric Energy"]
+      else
+        custom_meter_infos["Central:ElectricityExteriorLighting"]["key_var_groups"] << ["#{exterior_lights.name}", "Exterior Lights Electric Energy"]
+      end
     end
   end
 
@@ -1426,6 +1432,15 @@ class OutputMeters
 
         custom_meter_infos["#{unit.name}:ElectricityWellPump"]["key_var_groups"] << ["#{equip.name}", "Electric Equipment Electric Energy"]
       end
+    end
+  end
+
+  def self.electricity_garage_lighting(custom_meter_infos, model, runner, unit, thermal_zones)
+    custom_meter_infos["Central:ElectricityGarageLighting"] = { "fuel_type" => "Electricity", "key_var_groups" => [] }
+    model.getLightss.each do |lights|
+      next unless lights.endUseSubcategory.include? Constants.ObjectNameLightingGarage
+
+      custom_meter_infos["Central:ElectricityGarageLighting"]["key_var_groups"] << ["#{lights.name}", "Lights Electric Energy"]
     end
   end
 end

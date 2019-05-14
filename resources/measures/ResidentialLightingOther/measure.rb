@@ -191,8 +191,8 @@ class ResidentialLightingOther < OpenStudio::Measure::ModelMeasure
 
     # make a string argument for end date of the holiday period
     holiday_end_date = OpenStudio::Measure::OSArgument.makeStringArgument("holiday_end_date", true)
-    holiday_end_date.setDisplayName("Holiday Period Start Date")
-    holiday_end_date.setDescription("Date of the start of the holiday period.")
+    holiday_end_date.setDisplayName("Holiday Period End Date")
+    holiday_end_date.setDescription("Date of the end of the holiday period.")
     holiday_end_date.setDefaultValue("January 6")
     args << holiday_end_date
 
@@ -403,8 +403,8 @@ class ResidentialLightingOther < OpenStudio::Measure::ModelMeasure
         runner.registerError("Invalid holiday period month(s) entered.")
         return false
       end
-      
-      holiday_start_day = holiday_start_date.split[1].to_i        
+
+      holiday_start_day = holiday_start_date.split[1].to_i
       holiday_end_day = holiday_end_date.split[1].to_i
 
       begin
@@ -419,23 +419,23 @@ class ResidentialLightingOther < OpenStudio::Measure::ModelMeasure
       if holiday_start < holiday_end # contiguous holiday
         num_holiday_seconds = (holiday_end - holiday_start)
 
-        holiday_start_date = OpenStudio::Date.new(OpenStudio::MonthOfYear.new(holiday_start.month), holiday_start.day, holiday_start.year)
-        holiday_end_date = OpenStudio::Date.new(OpenStudio::MonthOfYear.new(holiday_end.month), holiday_end.day, holiday_end.year)
-        holiday_periods << [holiday_start_date, holiday_end_date]
+        holiday_s = OpenStudio::Date.new(OpenStudio::MonthOfYear.new(holiday_start.month), holiday_start.day, holiday_start.year)
+        holiday_e = OpenStudio::Date.new(OpenStudio::MonthOfYear.new(holiday_end.month), holiday_end.day, holiday_end.year)
+        holiday_periods << [holiday_s, holiday_e]
       else # non contiguous holiday
         num_holiday_seconds = (holiday_end - Time.new(assumed_year)) + (Time.new(assumed_year + 1) - holiday_start)
 
-        holiday_start_date = OpenStudio::Date.new(OpenStudio::MonthOfYear.new(1), 1, assumed_year)
-        holiday_end_date = OpenStudio::Date.new(OpenStudio::MonthOfYear.new(holiday_end.month), holiday_end.day, holiday_end.year)
-        holiday_periods << [holiday_start_date, holiday_end_date]
+        holiday_s = OpenStudio::Date.new(OpenStudio::MonthOfYear.new(1), 1, assumed_year)
+        holiday_e = OpenStudio::Date.new(OpenStudio::MonthOfYear.new(holiday_end.month), holiday_end.day, holiday_end.year)
+        holiday_periods << [holiday_s, holiday_e]
 
-        holiday_start_date = OpenStudio::Date.new(OpenStudio::MonthOfYear.new(holiday_start.month), holiday_start.day, holiday_start.year)
-        holiday_end_date = OpenStudio::Date.new(OpenStudio::MonthOfYear.new(12), 31, assumed_year)
-        holiday_periods << [holiday_start_date, holiday_end_date]
+        holiday_s = OpenStudio::Date.new(OpenStudio::MonthOfYear.new(holiday_start.month), holiday_start.day, holiday_start.year)
+        holiday_e = OpenStudio::Date.new(OpenStudio::MonthOfYear.new(12), 31, assumed_year)
+        holiday_periods << [holiday_s, holiday_e]
       end
       num_holiday_days = (num_holiday_seconds / 3600 / 24).to_i + 1
 
-      success = Lighting.apply_holiday_exterior(model, runner, holiday_daily_energy_use_exterior, holiday_periods, holiday_sch)
+      success = Lighting.apply_exterior_holiday(model, runner, holiday_daily_energy_use_exterior, holiday_periods, holiday_sch)
       return false if not success
 
       msgs << "Holiday lighting with #{(num_holiday_days * holiday_daily_energy_use_exterior).round} kWhs annual energy consumption has been assigned to the exterior from #{holiday_start_date} until #{holiday_end_date}."

@@ -658,12 +658,24 @@ class Constants
     return "res infil#{s_unit}"
   end
 
-  def self.ObjectNameLighting(unit_name = self.ObjectNameBuildingUnit)
+  def self.ObjectNameLightingInterior(unit_name = self.ObjectNameBuildingUnit)
     s_unit = ""
     if unit_name != self.ObjectNameBuildingUnit
       s_unit = "|#{unit_name}"
     end
-    return "res lighting#{s_unit}"
+    return "res lighting interior#{s_unit}"
+  end
+
+  def self.ObjectNameLightingGarage
+    return "res lighting garage"
+  end
+
+  def self.ObjectNameLightingExterior
+    return "res lighting exterior"
+  end
+
+  def self.ObjectNameLightingExteriorHoliday
+    return "res lighting exterior holiday"
   end
 
   def self.ObjectNameMechanicalVentilation(unit_name = self.ObjectNameBuildingUnit)
