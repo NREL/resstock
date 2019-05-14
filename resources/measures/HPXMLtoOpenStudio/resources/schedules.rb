@@ -511,7 +511,7 @@ class HotWaterSchedule
   end
 
   def calcDesignLevelFromDailykWh(daily_kWh)
-    return UnitConversions.convert(daily_kWh * 365 * 60 / (365 * @totflow / @maxflow), "kW", "W")
+    return UnitConversions.convert(daily_kWh * Schedule.last_day_of_year(@model.getYearDescription) * 60 / (Schedule.last_day_of_year(@model.getYearDescription) * @totflow / @maxflow), "kW", "W")
   end
 
   def calcPeakFlowFromDailygpm(daily_water)
@@ -654,9 +654,6 @@ class HotWaterSchedule
     year_description = @model.getYearDescription
     assumed_year = year_description.assumedYear
 
-    last_day_of_year = 365
-    last_day_of_year += 1 if year_description.isLeapYear
-
     time = []
     (timestep_minutes..24 * 60).step(timestep_minutes).to_a.each_with_index do |m, i|
       time[i] = OpenStudio::Time.new(0, 0, m, 0)
@@ -667,7 +664,7 @@ class HotWaterSchedule
 
     schedule_rules = []
     for d in 1..7 * weeks # how many unique day schedules
-      next if d > last_day_of_year
+      next if d > Schedule.last_day_of_year(year_description)
 
       rule = OpenStudio::Model::ScheduleRule.new(schedule)
       rule.setName(@sch_name + " #{Schedule.allday_name} ruleset#{d}")
@@ -689,7 +686,7 @@ class HotWaterSchedule
       rule.setApplyFriday(true)
       rule.setApplySaturday(true)
       for w in 0..52 # max num of weeks
-        next if d + (w * 7 * weeks) > last_day_of_year
+        next if d + (w * 7 * weeks) > Schedule.last_day_of_year(year_description)
 
         date_s = OpenStudio::Date::fromDayOfYear(d + (w * 7 * weeks), assumed_year)
         rule.addSpecificDate(date_s)
@@ -837,5 +834,11 @@ class Schedule
     end
 
     return annual_flh
+  end
+
+  def self.last_day_of_year(year_description)
+    num_days = 365
+    num_days += 1 if year_description.isLeapYear
+    return num_days
   end
 end
