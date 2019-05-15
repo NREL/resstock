@@ -7,7 +7,8 @@ class HourlyByMonthSchedule
   # weekend_month_by_hour_values must be a 12-element array of 24-element arrays of numbers.
   def initialize(model, runner, sch_name, weekday_month_by_hour_values, weekend_month_by_hour_values,
                  normalize_values = true, create_sch_object = true,
-                 winter_design_day_sch = nil, summer_design_day_sch = nil)
+                 winter_design_day_sch = nil, summer_design_day_sch = nil,
+                 lower_limit_value = nil, upper_limit_value = nil, numeric_type = nil, unit_type = nil)
     @validated = true
     @model = model
     @runner = runner
@@ -28,6 +29,7 @@ class HourlyByMonthSchedule
     @summer_design_day_sch = summer_design_day_sch
     if create_sch_object
       @schedule = createSchedule()
+      Schedule.createScheduleTypeLimits(@model, @schedule, lower_limit_value, upper_limit_value, numeric_type, unit_type)
     end
   end
 
@@ -136,13 +138,8 @@ class HourlyByMonthSchedule
           wkdy[m].addValue(time[h], previous_value)
           previous_value = wkdy_vals[h + 1]
         end
-        wkdy_rule.setApplySunday(true)
-        wkdy_rule.setApplyMonday(true)
-        wkdy_rule.setApplyTuesday(true)
-        wkdy_rule.setApplyWednesday(true)
-        wkdy_rule.setApplyThursday(true)
-        wkdy_rule.setApplyFriday(true)
-        wkdy_rule.setApplySaturday(true)
+        Schedule.set_weekday_rule(wkdy_rule)
+        Schedule.set_weekend_rule(wkdy_rule)
         wkdy_rule.setStartDate(date_s)
         wkdy_rule.setEndDate(date_e)
       else
@@ -158,13 +155,7 @@ class HourlyByMonthSchedule
           wkdy[m].addValue(time[h], previous_value)
           previous_value = wkdy_vals[h + 1]
         end
-        wkdy_rule.setApplySunday(false)
-        wkdy_rule.setApplyMonday(true)
-        wkdy_rule.setApplyTuesday(true)
-        wkdy_rule.setApplyWednesday(true)
-        wkdy_rule.setApplyThursday(true)
-        wkdy_rule.setApplyFriday(true)
-        wkdy_rule.setApplySaturday(false)
+        Schedule.set_weekday_rule(wkdy_rule)
         wkdy_rule.setStartDate(date_s)
         wkdy_rule.setEndDate(date_e)
 
@@ -180,13 +171,7 @@ class HourlyByMonthSchedule
           wknd[m].addValue(time[h], previous_value)
           previous_value = wknd_vals[h + 1]
         end
-        wknd_rule.setApplySunday(true)
-        wknd_rule.setApplyMonday(false)
-        wknd_rule.setApplyTuesday(false)
-        wknd_rule.setApplyWednesday(false)
-        wknd_rule.setApplyThursday(false)
-        wknd_rule.setApplyFriday(false)
-        wknd_rule.setApplySaturday(true)
+        Schedule.set_weekend_rule(wknd_rule)
         wknd_rule.setStartDate(date_s)
         wknd_rule.setEndDate(date_e)
       end
@@ -213,7 +198,8 @@ class MonthWeekdayWeekendSchedule
   # monthly_values can either be a comma-separated string of 12 numbers or a 12-element array of numbers.
   def initialize(model, runner, sch_name, weekday_hourly_values, weekend_hourly_values, monthly_values,
                  mult_weekday = 1.0, mult_weekend = 1.0, normalize_values = true, create_sch_object = true,
-                 winter_design_day_sch = nil, summer_design_day_sch = nil)
+                 winter_design_day_sch = nil, summer_design_day_sch = nil,
+                 lower_limit_value = nil, upper_limit_value = nil, numeric_type = nil, unit_type = nil)
     @validated = true
     @model = model
     @runner = runner
@@ -242,6 +228,7 @@ class MonthWeekdayWeekendSchedule
     @summer_design_day_sch = summer_design_day_sch
     if create_sch_object
       @schedule = createSchedule()
+      Schedule.createScheduleTypeLimits(@model, @schedule, lower_limit_value, upper_limit_value, numeric_type, unit_type)
     end
   end
 
@@ -405,13 +392,8 @@ class MonthWeekdayWeekendSchedule
           wkdy[m].addValue(time[h], previous_value)
           previous_value = wkdy_vals[h + 1]
         end
-        wkdy_rule.setApplySunday(true)
-        wkdy_rule.setApplyMonday(true)
-        wkdy_rule.setApplyTuesday(true)
-        wkdy_rule.setApplyWednesday(true)
-        wkdy_rule.setApplyThursday(true)
-        wkdy_rule.setApplyFriday(true)
-        wkdy_rule.setApplySaturday(true)
+        Schedule.set_weekday_rule(wkdy_rule)
+        Schedule.set_weekend_rule(wkdy_rule)
         wkdy_rule.setStartDate(date_s)
         wkdy_rule.setEndDate(date_e)
       else
@@ -427,13 +409,7 @@ class MonthWeekdayWeekendSchedule
           wkdy[m].addValue(time[h], previous_value)
           previous_value = wkdy_vals[h + 1]
         end
-        wkdy_rule.setApplySunday(false)
-        wkdy_rule.setApplyMonday(true)
-        wkdy_rule.setApplyTuesday(true)
-        wkdy_rule.setApplyWednesday(true)
-        wkdy_rule.setApplyThursday(true)
-        wkdy_rule.setApplyFriday(true)
-        wkdy_rule.setApplySaturday(false)
+        Schedule.set_weekday_rule(wkdy_rule)
         wkdy_rule.setStartDate(date_s)
         wkdy_rule.setEndDate(date_e)
 
@@ -449,13 +425,7 @@ class MonthWeekdayWeekendSchedule
           wknd[m].addValue(time[h], previous_value)
           previous_value = wknd_vals[h + 1]
         end
-        wknd_rule.setApplySunday(true)
-        wknd_rule.setApplyMonday(false)
-        wknd_rule.setApplyTuesday(false)
-        wknd_rule.setApplyWednesday(false)
-        wknd_rule.setApplyThursday(false)
-        wknd_rule.setApplyFriday(false)
-        wknd_rule.setApplySaturday(true)
+        Schedule.set_weekend_rule(wknd_rule)
         wknd_rule.setStartDate(date_s)
         wknd_rule.setEndDate(date_e)
       end
@@ -476,7 +446,9 @@ class MonthWeekdayWeekendSchedule
 end
 
 class HotWaterSchedule
-  def initialize(model, runner, sch_name, temperature_sch_name, num_bedrooms, days_shift, file_prefix, target_water_temperature, create_sch_object = true)
+  def initialize(model, runner, sch_name, temperature_sch_name, num_bedrooms, days_shift,
+                 file_prefix, target_water_temperature, create_sch_object = true,
+                 lower_limit_value = nil, upper_limit_value = nil, numeric_type = nil, unit_type = nil)
     @validated = true
     @model = model
     @runner = runner
@@ -503,6 +475,7 @@ class HotWaterSchedule
     end
     if create_sch_object
       @schedule = createSchedule(data, timestep_minutes, weeks)
+      Schedule.createScheduleTypeLimits(@model, @schedule, lower_limit_value, upper_limit_value, numeric_type, unit_type)
     end
   end
 
@@ -534,6 +507,7 @@ class HotWaterSchedule
     temperature_sch = OpenStudio::Model::ScheduleConstant.new(@model)
     temperature_sch.setValue(@target_water_temperature)
     temperature_sch.setName(@temperature_sch_name)
+    Schedule.createScheduleTypeLimits(@model, temperature_sch, nil, nil, "Continuous")
     return temperature_sch
   end
 
@@ -678,13 +652,8 @@ class HotWaterSchedule
         day_schedule.addValue(m, previous_value)
         previous_value = data[i + 1 + (d - 1) * 24 * 60 / timestep_minutes]
       end
-      rule.setApplySunday(true)
-      rule.setApplyMonday(true)
-      rule.setApplyTuesday(true)
-      rule.setApplyWednesday(true)
-      rule.setApplyThursday(true)
-      rule.setApplyFriday(true)
-      rule.setApplySaturday(true)
+      Schedule.set_weekday_rule(rule)
+      Schedule.set_weekend_rule(rule)
       for w in 0..52 # max num of weeks
         next if d + (w * 7 * weeks) > Schedule.last_day_of_year(year_description)
 
@@ -840,5 +809,30 @@ class Schedule
     num_days = 365
     num_days += 1 if year_description.isLeapYear
     return num_days
+  end
+
+  def self.createScheduleTypeLimits(model, schedule, lower_limit_value = nil, upper_limit_value = nil, numeric_type = nil, unit_type = nil)
+    if not lower_limit_value.nil? or not upper_limit_value.nil? or not numeric_type.nil? or not unit_type.nil?
+      schedule_type_limits = OpenStudio::Model::ScheduleTypeLimits.new(model)
+      schedule_type_limits.setName(schedule.name.to_s)
+      schedule_type_limits.setLowerLimitValue(lower_limit_value) unless lower_limit_value.nil?
+      schedule_type_limits.setUpperLimitValue(upper_limit_value) unless upper_limit_value.nil?
+      schedule_type_limits.setNumericType(numeric_type) unless numeric_type.nil?
+      schedule_type_limits.setUnitType(unit_type) unless unit_type.nil?
+      schedule.setScheduleTypeLimits(schedule_type_limits)
+    end
+  end
+
+  def self.set_weekday_rule(rule)
+    rule.setApplyMonday(true)
+    rule.setApplyTuesday(true)
+    rule.setApplyWednesday(true)
+    rule.setApplyThursday(true)
+    rule.setApplyFriday(true)
+  end
+
+  def self.set_weekend_rule(rule)
+    rule.setApplySaturday(true)
+    rule.setApplySunday(true)
   end
 end

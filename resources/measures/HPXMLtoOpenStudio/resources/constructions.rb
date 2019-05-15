@@ -1844,15 +1844,8 @@ class SubsurfaceConstructions
       day_startm = [0, 1, 32, 60, 91, 121, 152, 182, 213, 244, 274, 305, 335]
       day_endm = [0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334, 365]
 
-      # WindowShadingSchedule
-      sched_type = OpenStudio::Model::ScheduleTypeLimits.new(model)
-      sched_type.setName("FRACTION")
-      sched_type.setLowerLimitValue(0)
-      sched_type.setUpperLimitValue(1)
-      sched_type.setNumericType("Continuous")
-
       # Interior Shading Schedule
-      sch = MonthWeekdayWeekendSchedule.new(model, runner, "#{type} shading schedule", Array.new(24, 1), Array.new(24, 1), cooling_season)
+      sch = MonthWeekdayWeekendSchedule.new(model, runner, "#{type} shading schedule", Array.new(24, 1), Array.new(24, 1), cooling_season, mult_weekday = 1.0, mult_weekend = 1.0, normalized_values = true, create_sch_object = true, winter_design_day_sch = nil, summer_design_day_sch = nil, lower_limit_value = 0, upper_limit_value = 1, numeric_type = "Continuous")
       if not sch.validated?
         return false
       end
