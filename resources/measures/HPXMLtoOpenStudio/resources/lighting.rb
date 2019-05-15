@@ -162,7 +162,7 @@ class Lighting
 
       if sch.nil?
         # Create schedule
-        sch = HourlyByMonthSchedule.new(model, runner, Constants.ObjectNameLightingInterior, lighting_sch, lighting_sch, normalize_values = true, create_sch_object = true, winter_design_day_sch, summer_design_day_sch)
+        sch = HourlyByMonthSchedule.new(model, runner, Constants.ObjectNameLightingInterior, lighting_sch, lighting_sch, normalize_values = true, create_sch_object = true, winter_design_day_sch = winter_design_day_sch, summer_design_day_sch = summer_design_day_sch, lower_limit_value = 0, upper_limit_value = 1, numeric_type = "Continuous")
         if not sch.validated?
           return false
         end
