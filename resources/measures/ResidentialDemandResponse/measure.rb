@@ -105,10 +105,10 @@ class DemandResponseSchedule < OpenStudio::Measure::ModelMeasure
     end
     
 	# Check for setpoint offset
-	if offset_heat==0 and offset_cool==0
-	  runner.registerInfo("DR offset magnitude set to 0")
-	  return true
-	end	
+	# if offset_heat==0 and offset_cool==0
+	  # runner.registerInfo("DR offset magnitude set to 0")
+	  # return true
+	# end	
     
 	# Check if thermostat exists
 	finished_zones.each do |finished_zone|
@@ -121,13 +121,21 @@ class DemandResponseSchedule < OpenStudio::Measure::ModelMeasure
     	
 	# Import DR Schedule
     def import_DR_sched(dr_dir, dr_sch, sch_name, offset, model, runner)
+        winter_design_day_sch = OpenStudio::Model::ScheduleDay.new(model)
+        winter_design_day_sch.addValue(OpenStudio::Time.new(0, 24, 0, 0), UnitConversions.convert(70, "F", "C"))
+        summer_design_day_sch = OpenStudio::Model::ScheduleDay.new(model)
+        summer_design_day_sch.addValue(OpenStudio::Time.new(0, 24, 0, 0), UnitConversions.convert(75, "F", "C"))
+    
+    
+    
         path_err = dr_dir + "/" + dr_sch
         unless (Pathname.new dr_dir).absolute?
           dr_dir = File.expand_path(File.join(File.dirname(__FILE__), dr_dir))
         end
         dr_schedule_file = File.join(dr_dir, dr_sch)
         if File.file?(dr_schedule_file)
-          dr_hrly = HourlySchedule.new(model, runner, sch_name, dr_schedule_file, 0, false, []).schedule_array
+          dr_hrly = HourlySchedule.new(model, runner, sch_name, dr_schedule_file, 0, false, [], winter_design_day_sch, summer_design_day_sch).schedule_array
+          
           runner.registerInfo("Imported hourly '#{sch_name}' schedule from #{dr_schedule_file}")	
           dr_hrly = dr_hrly.map{|x| x.to_i}
           return dr_hrly
@@ -376,7 +384,6 @@ class DemandResponseSchedule < OpenStudio::Measure::ModelMeasure
     # assign_OS_schedule(clg_hrly, finished_zones, "cool", "CoolingTSP", model, runner)
     # assign_OS_schedule(htg_hrly, finished_zones, "heat", "HeatingTSP", model, runner)
    
-    ct = 0
     finished_zones.each do |finished_zone|
       print(finished_zone)
       thermostat_setpoint = finished_zone.thermostatSetpointDualSetpoint
@@ -384,8 +391,8 @@ class DemandResponseSchedule < OpenStudio::Measure::ModelMeasure
       if thermostat_setpoint.is_initialized
         thermostat_setpoint = thermostat_setpoint.get     
         
-        thermostat_setpoint.resetHeatingSetpointTemperatureSchedule()
-        thermostat_setpoint.resetCoolingSetpointTemperatureSchedule()
+        # thermostat_setpoint.resetHeatingSetpointTemperatureSchedule()
+        # thermostat_setpoint.resetCoolingSetpointTemperatureSchedule()
         
         puts("ORIGINAL ---- ", thermostat_setpoint)
         # if("living zone temperature setpoint"==thermostat_setpoint.name.get)
