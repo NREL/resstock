@@ -2,7 +2,7 @@ class UnitConversions
   # As there is a performance penalty to using OpenStudio's built-in unit convert()
   # method, we use, our own methods here.
 
-  def self.convert(x, from, to, fuel_type = nil)
+  def self.convert(x, from, to, fuel_type = nil, is_leap_year = false)
     from.downcase!
     to.downcase!
 
@@ -234,21 +234,21 @@ class UnitConversions
     elsif from == 'day' and to == 'hr'
       return x * 24.0
     elsif from == 'day' and to == 'yr'
-      return x / 365.0
+      return x / Constants.NumDaysInYear(is_leap_year)
     elsif from == 'hr' and to == 'min'
       return x * 60.0
     elsif from == 'hr' and to == 's'
       return x * 3600.0
     elsif from == 'hr' and to == 'yr'
-      return x / 8760.0
+      return x / Constants.NumHoursInYear(is_leap_year)
     elsif from == 'min' and to == 'hr'
       return x / 60.0
     elsif from == 'min' and to == 's'
       return x * 60.0
     elsif from == 'yr' and to == 'day'
-      return x * 365.0
+      return x * Constants.NumDaysInYear(is_leap_year)
     elsif from == 'yr' and to == 'hr'
-      return x * 8760.0
+      return x * Constants.NumHoursInYear(is_leap_year)
 
     # Velocity
     elsif from == 'knots' and to == 'm/s'

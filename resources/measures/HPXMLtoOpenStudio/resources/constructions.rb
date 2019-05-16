@@ -1841,9 +1841,6 @@ class SubsurfaceConstructions
       total_shade_abs = 0.00001
       total_shade_ref = 1 - total_shade_trans - total_shade_abs
 
-      day_startm = [0, 1, 32, 60, 91, 121, 152, 182, 213, 244, 274, 305, 335]
-      day_endm = [0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334, 365]
-
       # Interior Shading Schedule
       sch = MonthWeekdayWeekendSchedule.new(model, runner, "#{type} shading schedule", Array.new(24, 1), Array.new(24, 1), cooling_season, mult_weekday = 1.0, mult_weekend = 1.0, normalized_values = true, create_sch_object = true, winter_design_day_sch = nil, summer_design_day_sch = nil, lower_limit_value = 0, upper_limit_value = 1, numeric_type = "Continuous")
       if not sch.validated?

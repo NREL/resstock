@@ -139,6 +139,9 @@ class MiscLoads
     summer_design_day_sch = OpenStudio::Model::ScheduleDay.new(model)
     summer_design_day_sch.addValue(OpenStudio::Time.new(0, 24, 0, 0), 1)
 
+    year_description = model.getYearDescription
+    num_days_in_year = Constants.NumDaysInYear(year_description.isLeapYear)
+
     if ann_e > 0
 
       if sch.nil?
@@ -149,7 +152,7 @@ class MiscLoads
         end
       end
 
-      design_level = sch.calcDesignLevelFromDailykWh(ann_e / 365.0)
+      design_level = sch.calcDesignLevelFromDailykWh(ann_e / num_days_in_year)
 
       # Add electric equipment for the load
       load_def = OpenStudio::Model::ElectricEquipmentDefinition.new(model)
@@ -222,6 +225,9 @@ class MiscLoads
     summer_design_day_sch = OpenStudio::Model::ScheduleDay.new(model)
     summer_design_day_sch.addValue(OpenStudio::Time.new(0, 24, 0, 0), 1)
 
+    year_description = model.getYearDescription
+    num_days_in_year = Constants.NumDaysInYear(year_description.isLeapYear)
+
     if ann_g > 0
 
       if sch.nil?
@@ -232,7 +238,7 @@ class MiscLoads
         end
       end
 
-      design_level = sch.calcDesignLevelFromDailyTherm(ann_g / 365.0)
+      design_level = sch.calcDesignLevelFromDailyTherm(ann_g / num_days_in_year)
 
       # Add gas equipment for the load
       load_def = OpenStudio::Model::GasEquipmentDefinition.new(model)
@@ -308,8 +314,11 @@ class MiscLoads
   end
 
   def self.apply_tv(model, unit, runner, annual_energy, sch, space)
+    year_description = model.getYearDescription
+    num_days_in_year = Constants.NumDaysInYear(year_description.isLeapYear)
+
     name = Constants.ObjectNameMiscTelevision(unit.name.to_s)
-    design_level = sch.calcDesignLevelFromDailykWh(annual_energy / 365.0)
+    design_level = sch.calcDesignLevelFromDailykWh(annual_energy / num_days_in_year)
     sens_frac = 1.0
     lat_frac = 0.0
 
@@ -327,29 +336,5 @@ class MiscLoads
     mel.setSchedule(sch.schedule)
 
     return true
-  end
-
-  def self.get_residual_mels_values(cfa)
-    # Table 4.2.2.5(1) Lighting, Appliance and Miscellaneous Electric Loads in electric Reference Homes
-    annual_kwh = 0.91 * cfa
-
-    # Table 4.2.2(3). Internal Gains for Reference Homes
-    load_sens = 7.27 * cfa # Btu/day
-    load_lat = 0.38 * cfa # Btu/day
-    total = UnitConversions.convert(annual_kwh, "kWh", "Btu") / 365.0 # Btu/day
-
-    return annual_kwh, load_sens / total, load_lat / total
-  end
-
-  def self.get_televisions_values(cfa, nbeds)
-    # Table 4.2.2.5(1) Lighting, Appliance and Miscellaneous Electric Loads in electric Reference Homes
-    annual_kwh = 413.0 + 0.0 * cfa + 69.0 * nbeds
-
-    # Table 4.2.2(3). Internal Gains for Reference Homes
-    load_sens = 3861.0 + 645.0 * nbeds # Btu/day
-    load_lat = 0.0 # Btu/day
-    total = UnitConversions.convert(annual_kwh, "kWh", "Btu") / 365.0 # Btu/day
-
-    return annual_kwh, load_sens / total, load_lat / total
   end
 end
