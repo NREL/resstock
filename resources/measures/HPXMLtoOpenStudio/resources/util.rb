@@ -443,7 +443,10 @@ class OutputMeters
       heating_equipment = HVAC.existing_heating_equipment(model, runner, thermal_zone)
       heating_equipment.each do |htg_equip|
         clg_coil, htg_coil, supp_htg_coil = HVAC.get_coils_from_hvac_equip(htg_equip)
+
         if htg_equip.is_a? OpenStudio::Model::AirLoopHVACUnitarySystem
+          next if htg_coil.fuelType != "Electricity"
+
           custom_meter_infos["#{unit.name}:ElectricityHeating"]["key_var_groups"] << ["#{htg_coil.name}", "Heating Coil Electric Energy"]
           custom_meter_infos["#{unit.name}:ElectricityHeating"]["key_var_groups"] << ["#{htg_equip.name}", "Unitary System Heating Ancillary Electric Energy"]
           unless htg_coil.is_a? OpenStudio::Model::CoilCoolingWaterToAirHeatPumpEquationFit
@@ -747,6 +750,8 @@ class OutputMeters
         clg_coil, htg_coil, supp_htg_coil = HVAC.get_coils_from_hvac_equip(htg_equip)
 
         if htg_equip.is_a? OpenStudio::Model::AirLoopHVACUnitarySystem
+          next if htg_coil.fuelType != "NaturalGas"
+
           custom_meter_infos["#{unit.name}:NaturalGasHeating"]["key_var_groups"] << ["#{htg_coil.name}", "Heating Coil Gas Energy"]
           custom_meter_infos["#{unit.name}:NaturalGasHeating"]["key_var_groups"] << ["#{htg_coil.name}", "Heating Coil Ancillary Gas Energy"]
 
@@ -868,6 +873,8 @@ class OutputMeters
         clg_coil, htg_coil, supp_htg_coil = HVAC.get_coils_from_hvac_equip(htg_equip)
 
         if htg_equip.is_a? OpenStudio::Model::AirLoopHVACUnitarySystem
+          next if htg_coil.fuelType != "FuelOil#1"
+
           custom_meter_infos["#{unit.name}:FuelOilHeating"]["key_var_groups"] << ["#{htg_coil.name}", "Heating Coil FuelOil#1 Energy"]
           custom_meter_infos["#{unit.name}:FuelOilHeating"]["key_var_groups"] << ["#{htg_coil.name}", "Heating Coil Ancillary FuelOil#1 Energy"]
 
@@ -984,6 +991,8 @@ class OutputMeters
         clg_coil, htg_coil, supp_htg_coil = HVAC.get_coils_from_hvac_equip(htg_equip)
 
         if htg_equip.is_a? OpenStudio::Model::AirLoopHVACUnitarySystem
+          next if htg_coil.fuelType != "PropaneGas"
+
           custom_meter_infos["#{unit.name}:PropaneHeating"]["key_var_groups"] << ["#{htg_coil.name}", "Heating Coil Propane Energy"]
           custom_meter_infos["#{unit.name}:PropaneHeating"]["key_var_groups"] << ["#{htg_coil.name}", "Heating Coil Ancillary Propane Energy"]
 
