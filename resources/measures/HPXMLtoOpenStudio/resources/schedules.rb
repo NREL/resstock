@@ -97,12 +97,8 @@ class HourlyByMonthSchedule
     wknd = []
 
     year_description = @model.getYearDescription
-    leap_offset = 0
-    if year_description.isLeapYear
-      leap_offset = 1
-    end
-    day_endm = [0, 31, 59 + leap_offset, 90 + leap_offset, 120 + leap_offset, 151 + leap_offset, 181 + leap_offset, 212 + leap_offset, 243 + leap_offset, 273 + leap_offset, 304 + leap_offset, 334 + leap_offset, 365 + leap_offset]
-    day_startm = [0, 1, 32, 60 + leap_offset, 91 + leap_offset, 121 + leap_offset, 152 + leap_offset, 182 + leap_offset, 213 + leap_offset, 244 + leap_offset, 274 + leap_offset, 305 + leap_offset, 335 + leap_offset]
+    assumed_year = year_description.assumedYear
+    num_days_in_months = Constants.NumDaysInMonths(year_description.isLeapYear)
 
     time = []
     for h in 1..24
@@ -112,11 +108,9 @@ class HourlyByMonthSchedule
     schedule = OpenStudio::Model::ScheduleRuleset.new(@model)
     schedule.setName(@sch_name)
 
-    assumedYear = year_description.assumedYear # prevent excessive OS warnings about 'UseWeatherFile'
-
     for m in 1..12
-      date_s = OpenStudio::Date::fromDayOfYear(day_startm[m], assumedYear)
-      date_e = OpenStudio::Date::fromDayOfYear(day_endm[m], assumedYear)
+      date_s = OpenStudio::Date.new(OpenStudio::MonthOfYear.new(m), 1, assumed_year)
+      date_e = OpenStudio::Date.new(OpenStudio::MonthOfYear.new(m), num_days_in_months[m - 1], assumed_year)
 
       wkdy_vals = []
       wknd_vals = []
@@ -351,12 +345,8 @@ class MonthWeekdayWeekendSchedule
     wknd = []
 
     year_description = @model.getYearDescription
-    leap_offset = 0
-    if year_description.isLeapYear
-      leap_offset = 1
-    end
-    day_endm = [0, 31, 59 + leap_offset, 90 + leap_offset, 120 + leap_offset, 151 + leap_offset, 181 + leap_offset, 212 + leap_offset, 243 + leap_offset, 273 + leap_offset, 304 + leap_offset, 334 + leap_offset, 365 + leap_offset]
-    day_startm = [0, 1, 32, 60 + leap_offset, 91 + leap_offset, 121 + leap_offset, 152 + leap_offset, 182 + leap_offset, 213 + leap_offset, 244 + leap_offset, 274 + leap_offset, 305 + leap_offset, 335 + leap_offset]
+    assumed_year = year_description.assumedYear
+    num_days_in_months = Constants.NumDaysInMonths(year_description.isLeapYear)
 
     time = []
     for h in 1..24
@@ -366,11 +356,9 @@ class MonthWeekdayWeekendSchedule
     schedule = OpenStudio::Model::ScheduleRuleset.new(@model)
     schedule.setName(@sch_name)
 
-    assumedYear = year_description.assumedYear # prevent excessive OS warnings about 'UseWeatherFile'
-
     for m in 1..12
-      date_s = OpenStudio::Date::fromDayOfYear(day_startm[m], assumedYear)
-      date_e = OpenStudio::Date::fromDayOfYear(day_endm[m], assumedYear)
+      date_s = OpenStudio::Date.new(OpenStudio::MonthOfYear.new(m), 1, assumed_year)
+      date_e = OpenStudio::Date.new(OpenStudio::MonthOfYear.new(m), num_days_in_months[m - 1], assumed_year)
 
       wkdy_vals = []
       wknd_vals = []
@@ -484,7 +472,7 @@ class HotWaterSchedule
   end
 
   def calcDesignLevelFromDailykWh(daily_kWh)
-    return UnitConversions.convert(daily_kWh * Schedule.last_day_of_year(@model.getYearDescription) * 60 / (Schedule.last_day_of_year(@model.getYearDescription) * @totflow / @maxflow), "kW", "W")
+    return UnitConversions.convert(daily_kWh * Constants.NumDaysInYear(@model.getYearDescription.isLeapYear) * 60 / (Constants.NumDaysInYear(@model.getYearDescription.isLeapYear) * @totflow / @maxflow), "kW", "W")
   end
 
   def calcPeakFlowFromDailygpm(daily_water)
@@ -627,6 +615,7 @@ class HotWaterSchedule
 
     year_description = @model.getYearDescription
     assumed_year = year_description.assumedYear
+    num_days_in_year = Constants.NumDaysInYear(year_description.isLeapYear)
 
     time = []
     (timestep_minutes..24 * 60).step(timestep_minutes).to_a.each_with_index do |m, i|
@@ -638,7 +627,7 @@ class HotWaterSchedule
 
     schedule_rules = []
     for d in 1..7 * weeks # how many unique day schedules
-      next if d > Schedule.last_day_of_year(year_description)
+      next if d > num_days_in_year
 
       rule = OpenStudio::Model::ScheduleRule.new(schedule)
       rule.setName(@sch_name + " #{Schedule.allday_name} ruleset#{d}")
@@ -655,7 +644,7 @@ class HotWaterSchedule
       Schedule.set_weekday_rule(rule)
       Schedule.set_weekend_rule(rule)
       for w in 0..52 # max num of weeks
-        next if d + (w * 7 * weeks) > Schedule.last_day_of_year(year_description)
+        next if d + (w * 7 * weeks) > num_days_in_year
 
         date_s = OpenStudio::Date::fromDayOfYear(d + (w * 7 * weeks), assumed_year)
         rule.addSpecificDate(date_s)
@@ -717,10 +706,10 @@ class Schedule
   end
 
   # return [Double] The total number of full load hours for this schedule.
-  def self.annual_equivalent_full_load_hrs(modelYear, schedule)
+  def self.annual_equivalent_full_load_hrs(year_description, schedule)
     if schedule.to_ScheduleInterval.is_initialized
       timeSeries = schedule.to_ScheduleInterval.get.timeSeries
-      annual_flh = timeSeries.averageValue * 8760
+      annual_flh = timeSeries.averageValue * Constants.NumHoursInYear(year_description.isLeapYear)
       return annual_flh
     end
 
@@ -731,17 +720,18 @@ class Schedule
     schedule = schedule.to_ScheduleRuleset.get
 
     # Define the start and end date
-    year_start_date = OpenStudio::Date.new(OpenStudio::MonthOfYear.new("January"), 1, modelYear)
-    year_end_date = OpenStudio::Date.new(OpenStudio::MonthOfYear.new("December"), 31, modelYear)
+    assumed_year = year_description.assumedYear
+    year_start_date = OpenStudio::Date.new(OpenStudio::MonthOfYear.new(1), 1, assumed_year)
+    year_end_date = OpenStudio::Date.new(OpenStudio::MonthOfYear.new(12), 31, assumed_year)
 
     # Get the ordered list of all the day schedules
     # that are used by this schedule ruleset
     day_schs = schedule.getDaySchedules(year_start_date, year_end_date)
 
-    # Get a 365-value array of which schedule is used on each day of the year,
+    # Get a 365/366-value array of which schedule is used on each day of the year,
     day_schs_used_each_day = schedule.getActiveRuleIndices(year_start_date, year_end_date)
-    if !day_schs_used_each_day.length == 365
-      OpenStudio::logFree(OpenStudio::Error, "openstudio.standards.ScheduleRuleset", "#{schedule.name} does not have 365 daily schedules accounted for, cannot accurately calculate annual EFLH.")
+    if ![365, 366].include? day_schs_used_each_day.length
+      OpenStudio::logFree(OpenStudio::Error, "openstudio.standards.ScheduleRuleset", "#{schedule.name} does not have 365/366 daily schedules accounted for, cannot accurately calculate annual EFLH.")
       return 0
     end
 
@@ -803,12 +793,6 @@ class Schedule
     end
 
     return annual_flh
-  end
-
-  def self.last_day_of_year(year_description)
-    num_days = 365
-    num_days += 1 if year_description.isLeapYear
-    return num_days
   end
 
   def self.createScheduleTypeLimits(model, schedule, lower_limit_value = nil, upper_limit_value = nil, numeric_type = nil, unit_type = nil)

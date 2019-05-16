@@ -26,6 +26,10 @@ class Refrigerator
     summer_design_day_sch = OpenStudio::Model::ScheduleDay.new(model)
     summer_design_day_sch.addValue(OpenStudio::Time.new(0, 24, 0, 0), 1)
 
+    # Get number of days in months/year
+    year_description = model.getYearDescription
+    num_days_in_year = Constants.NumDaysInYear(year_description.isLeapYear)
+
     # Calculate fridge daily energy use
     ann_e = rated_annual_energy * mult
 
@@ -39,7 +43,7 @@ class Refrigerator
         end
       end
 
-      design_level = sch.calcDesignLevelFromDailykWh(ann_e / 365.0)
+      design_level = sch.calcDesignLevelFromDailykWh(ann_e / num_days_in_year)
 
       # Add electric equipment for the fridge
       frg_def = OpenStudio::Model::ElectricEquipmentDefinition.new(model)
@@ -136,6 +140,11 @@ class ClothesWasher
       return false
     end
 
+    # Get number of days in months/year
+    year_description = model.getYearDescription
+    num_days_in_months = Constants.NumDaysInMonths(year_description.isLeapYear)
+    num_days_in_year = Constants.NumDaysInYear(year_description.isLeapYear)
+
     if mains_temps.nil?
       # Get mains monthly temperatures
       site = model.getSite
@@ -146,7 +155,7 @@ class ClothesWasher
       waterMainsTemperature = site.siteWaterMainsTemperature.get
       avgOAT = UnitConversions.convert(waterMainsTemperature.annualAverageOutdoorAirTemperature.get, "C", "F")
       maxDiffMonthlyAvgOAT = UnitConversions.convert(waterMainsTemperature.maximumDifferenceInMonthlyAverageOutdoorAirTemperatures.get, "K", "R")
-      mains_temps = WeatherProcess.calc_mains_temperatures(avgOAT, maxDiffMonthlyAvgOAT, site.latitude)[1]
+      mains_temps = WeatherProcess.calc_mains_temperatures(avgOAT, maxDiffMonthlyAvgOAT, site.latitude, num_days_in_year)[1]
     end
 
     unit_obj_name = Constants.ObjectNameClothesWasher(unit.name.to_s)
@@ -267,7 +276,7 @@ class ClothesWasher
                                 (12.5 / test_load)) # cycles/year
 
     total_daily_water_use = (actual_total_per_cycle_water_use * actual_cycles_per_year /
-                               365) # gal/day
+                             num_days_in_year) # gal/day
 
     # Calculate actual DHW use and elecricity use.
     # First calculate per-cycle usages.
@@ -390,18 +399,18 @@ class ClothesWasher
       # Calculate monthly totals
       monthly_dhw[i] = ((actual_dhw_use_per_cycle *
                          actual_cycles_per_year *
-                         Constants.MonthNumDays[i] / 365)) # gal/month
+                         num_days_in_months[i] / num_days_in_year)) # gal/month
       monthly_energy[i] = ((actual_elec_use_per_cycle *
                             actual_cycles_per_year *
-                            Constants.MonthNumDays[i] / 365)) # kWh/month
+                            num_days_in_months[i] / num_days_in_year)) # kWh/month
     end
 
-    daily_energy = monthly_energy.inject(:+) / 365
+    daily_energy = monthly_energy.inject(:+) / num_days_in_year
 
     daily_energy = daily_energy * mult_e
     total_daily_water_use = total_daily_water_use * mult_hw
 
-    ann_e = daily_energy * 365
+    ann_e = daily_energy * num_days_in_year
 
     cd_updated = false
 
@@ -575,6 +584,10 @@ class ClothesDryer
       return false
     end
 
+    # Get number of days in months/year
+    year_description = model.getYearDescription
+    num_days_in_year = Constants.NumDaysInYear(year_description.isLeapYear)
+
     # Get clothes washer properties
     cw = nil
     model.getElectricEquipments.each do |ee|
@@ -662,15 +675,15 @@ class ClothesDryer
     # eq. 15 of Eastment and Hendron, NREL/CP-550-39769, 2006
     actual_cd_cycles_per_year = dryer_usage_factor * actual_cycles_per_year # cycles/year
 
-    daily_energy_elec = actual_cd_cycles_per_year * actual_cd_elec_use_per_cycle / 365 # kWh/day
+    daily_energy_elec = actual_cd_cycles_per_year * actual_cd_elec_use_per_cycle / num_days_in_year # kWh/day
     daily_energy_elec = daily_energy_elec * mult
-    ann_e = daily_energy_elec * 365.0 # kWh/yr
+    ann_e = daily_energy_elec * num_days_in_year # kWh/yr
 
     ann_f = 0
     if fuel_type != Constants.FuelTypeElectric
-      daily_energy_fuel = actual_cd_cycles_per_year * actual_cd_fuel_use_per_cycle / 365 # kWh/day
+      daily_energy_fuel = actual_cd_cycles_per_year * actual_cd_fuel_use_per_cycle / num_days_in_year # kWh/day
       daily_energy_fuel = UnitConversions.convert(daily_energy_fuel * mult, "kWh", "therm") # therm/day
-      ann_f = daily_energy_fuel * 365.0 # therms/yr
+      ann_f = daily_energy_fuel * num_days_in_year # therms/yr
     end
 
     if ann_e > 0 or ann_f > 0
@@ -816,6 +829,10 @@ class CookingRange
     summer_design_day_sch = OpenStudio::Model::ScheduleDay.new(model)
     summer_design_day_sch.addValue(OpenStudio::Time.new(0, 24, 0, 0), 1)
 
+    # Get number of days in months/year
+    year_description = model.getYearDescription
+    num_days_in_year = Constants.NumDaysInYear(year_description.isLeapYear)
+
     # Calculate range daily energy use
     if fuel_type == Constants.FuelTypeElectric
       ann_e = ((86.5 + 28.9 * nbeds) / cooktop_ef + (14.6 + 4.9 * nbeds) / oven_ef) * mult # kWh/yr
@@ -845,8 +862,8 @@ class CookingRange
 
     if ann_f > 0
 
-      design_level_f = sch.calcDesignLevelFromDailyTherm(ann_f / 365.0)
-      design_level_i = sch.calcDesignLevelFromDailykWh(ann_i / 365.0)
+      design_level_f = sch.calcDesignLevelFromDailyTherm(ann_f / num_days_in_year)
+      design_level_i = sch.calcDesignLevelFromDailykWh(ann_i / num_days_in_year)
 
       # Add equipment for the range
       if has_elec_ignition == true
@@ -879,7 +896,7 @@ class CookingRange
       rng.setSchedule(sch.schedule)
 
     elsif ann_e > 0
-      design_level_e = sch.calcDesignLevelFromDailykWh(ann_e / 365.0)
+      design_level_e = sch.calcDesignLevelFromDailykWh(ann_e / num_days_in_year)
 
       # Add equipment for the range
       rng_def = OpenStudio::Model::ElectricEquipmentDefinition.new(model)
@@ -985,6 +1002,11 @@ class Dishwasher
       return false
     end
 
+    # Get number of days in months/year
+    year_description = model.getYearDescription
+    num_days_in_months = Constants.NumDaysInMonths(year_description.isLeapYear)
+    num_days_in_year = Constants.NumDaysInYear(year_description.isLeapYear)
+
     if cold_inlet and mains_temps.nil?
       # Get mains monthly temperatures if needed
       site = model.getSite
@@ -995,7 +1017,7 @@ class Dishwasher
       waterMainsTemperature = site.siteWaterMainsTemperature.get
       avgOAT = UnitConversions.convert(waterMainsTemperature.annualAverageOutdoorAirTemperature.get, "C", "F")
       maxDiffMonthlyAvgOAT = UnitConversions.convert(waterMainsTemperature.maximumDifferenceInMonthlyAverageOutdoorAirTemperatures.get, "K", "R")
-      mains_temps = WeatherProcess.calc_mains_temperatures(avgOAT, maxDiffMonthlyAvgOAT, site.latitude)[1]
+      mains_temps = WeatherProcess.calc_mains_temperatures(avgOAT, maxDiffMonthlyAvgOAT, site.latitude, num_days_in_year)[1]
     end
 
     unit_obj_name = Constants.ObjectNameDishwasher(unit.name.to_s)
@@ -1096,7 +1118,7 @@ class Dishwasher
     # (eq. 16 Eastment and Hendron, NREL/CP-550-39769, 2006)
     actual_cycles_per_year = 215 * (0.5 + nbeds / 6) * (8 / num_settings) # cycles/year
 
-    daily_dishwasher_dhw = actual_cycles_per_year * test_dhw_use_per_cycle / 365 # gal/day (hot water)
+    daily_dishwasher_dhw = actual_cycles_per_year * test_dhw_use_per_cycle / num_days_in_year # gal/day (hot water)
 
     # Calculate total (hot or cold) daily water usage.
     if cold_inlet
@@ -1125,12 +1147,12 @@ class Dishwasher
                                                  (water_dens * water_sh * UnitConversions.convert(1, "Btu", "kWh") /
                                                  UnitConversions.convert(1, "ft^3", "gal")) # kWh/cycle
         monthly_energy[i] = (actual_rated_annual_elec_use_per_cycle * \
-                                        Constants.MonthNumDays[i] * \
+                                        num_days_in_months[i] * \
                                         actual_cycles_per_year / \
-                                        365) # kWh/month
+                                        num_days_in_year) # kWh/month
       end
 
-      daily_energy = monthly_energy.inject(:+) / 365 # kWh/day
+      daily_energy = monthly_energy.inject(:+) / num_days_in_year # kWh/day
 
     elsif has_internal_heater
 
@@ -1143,21 +1165,21 @@ class Dishwasher
                                                 UnitConversions.convert(1, "Btu", "kWh") /
                                                 UnitConversions.convert(1, "ft^3", "gal")) # kWh/cycle
       daily_energy = actual_rated_annual_elec_use_per_cycle * \
-                     actual_cycles_per_year / 365 # kWh/day
+                     actual_cycles_per_year / num_days_in_year # kWh/day
 
     else
 
       # Dishwasher has no internal heater
       actual_rated_annual_elec_use_per_cycle = test_rated_annual_elec_use_per_cycle # kWh/cycle
       daily_energy = actual_rated_annual_elec_use_per_cycle * \
-                     actual_cycles_per_year / 365 # kWh/day
+                     actual_cycles_per_year / num_days_in_year # kWh/day
 
     end
 
     daily_energy = daily_energy * mult_e
     daily_water = daily_water * mult_hw
 
-    ann_e = daily_energy * 365
+    ann_e = daily_energy * num_days_in_year
 
     if daily_energy < 0
       runner.registerError("The inputs for the dishwasher resulted in a negative amount of energy consumption.")

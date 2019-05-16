@@ -2583,6 +2583,9 @@ class OSModel
     weekend_sch = weekday_sch
     hrs_per_day = weekday_sch.inject { |sum, n| sum + n }
 
+    year_description = model.getYearDescription
+    num_days_in_year = Constants.NumDaysInYear(year_description.isLeapYear)
+
     cfm_per_w = ceiling_fan_values[:efficiency]
     if cfm_per_w.nil?
       fan_power_w = HVAC.get_default_ceiling_fan_power()
@@ -2592,7 +2595,7 @@ class OSModel
     if quantity.nil?
       quantity = HVAC.get_default_ceiling_fan_quantity(@nbeds)
     end
-    annual_kwh = UnitConversions.convert(quantity * medium_cfm / cfm_per_w * hrs_per_day * 365.0, "Wh", "kWh")
+    annual_kwh = UnitConversions.convert(quantity * medium_cfm / cfm_per_w * hrs_per_day * num_days_in_year, "Wh", "kWh")
 
     success = HVAC.apply_eri_ceiling_fans(model, unit, runner, annual_kwh, weekday_sch, weekend_sch)
     return false if not success

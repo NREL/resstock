@@ -1185,8 +1185,9 @@ class Airflow
     schedule_type_limits.setNumericType("Discrete")
     avail_sch.setScheduleTypeLimits(schedule_type_limits)
 
-    day_endm = [0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334, 365]
-    day_startm = [0, 1, 32, 60, 91, 121, 152, 182, 213, 244, 274, 305, 335]
+    year_description = model.getYearDescription
+    assumed_year = year_description.assumedYear
+    num_days_in_months = Constants.NumDaysInMonths(year_description.isLeapYear)
 
     time = []
     for h in 1..24
@@ -1194,8 +1195,8 @@ class Airflow
     end
 
     (1..12).to_a.each do |m|
-      date_s = OpenStudio::Date::fromDayOfYear(day_startm[m])
-      date_e = OpenStudio::Date::fromDayOfYear(day_endm[m])
+      date_s = OpenStudio::Date.new(OpenStudio::MonthOfYear.new(m), 1, assumed_year)
+      date_e = OpenStudio::Date.new(OpenStudio::MonthOfYear.new(m), num_days_in_months[m - 1], assumed_year)
 
       if ((nv_output.season_type[m - 1] == Constants.SeasonHeating and nat_vent.htg_season) or (nv_output.season_type[m - 1] == Constants.SeasonCooling and nat_vent.clg_season) or (nv_output.season_type[m - 1] == Constants.SeasonOverlap and nat_vent.ovlp_season)) and (nat_vent.num_weekdays + nat_vent.num_weekends != 0)
         on_rule = OpenStudio::Model::ScheduleRule.new(avail_sch)
@@ -1236,13 +1237,8 @@ class Airflow
         for h in 1..24
           off_rule_day.addValue(time[h], 0)
         end
-        off_rule.setApplyMonday(true)
-        off_rule.setApplyTuesday(true)
-        off_rule.setApplyWednesday(true)
-        off_rule.setApplyThursday(true)
-        off_rule.setApplyFriday(true)
-        off_rule.setApplySaturday(true)
-        off_rule.setApplySunday(true)
+        Schedule.set_weekday_rule(off_rule)
+        Schedule.set_weekend_rule(off_rule)
         off_rule.setStartDate(date_s)
         off_rule.setEndDate(date_e)
       end

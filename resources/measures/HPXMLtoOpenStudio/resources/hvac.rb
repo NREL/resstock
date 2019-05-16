@@ -3154,6 +3154,10 @@ class HVAC
     above_grade_finished_floor_area = Geometry.get_above_grade_finished_floor_area_from_spaces(unit.spaces, runner)
     finished_floor_area = Geometry.get_finished_floor_area_from_spaces(unit.spaces, runner)
 
+    # Get number of days in months/year
+    year_description = model.getYearDescription
+    num_days_in_year = Constants.NumDaysInYear(year_description.isLeapYear)
+
     # Determine geometry for spaces and zones that are unit specific
     living_zone = nil
     finished_basement_zone = nil
@@ -3364,7 +3368,7 @@ class HVAC
         end
 
         space_mel_ann = mel_ann * UnitConversions.convert(space.floorArea, "m^2", "ft^2") / finished_floor_area
-        space_design_level = sch.calcDesignLevelFromDailykWh(space_mel_ann / 365.0)
+        space_design_level = sch.calcDesignLevelFromDailykWh(space_mel_ann / num_days_in_year)
 
         mel_def = OpenStudio::Model::ElectricEquipmentDefinition.new(model)
         mel = OpenStudio::Model::ElectricEquipment.new(mel_def)
@@ -3382,40 +3386,6 @@ class HVAC
     end # unit spaces
 
     return true, sch
-  end
-
-  def self.apply_eri_ceiling_fans(model, unit, runner, annual_kWh, weekday_sch, weekend_sch)
-    obj_name = Constants.ObjectNameCeilingFan(unit.name.to_s)
-
-    ceiling_fan_sch = MonthWeekdayWeekendSchedule.new(model, runner, obj_name + " schedule", weekday_sch, weekend_sch, [1] * 12)
-    if not ceiling_fan_sch.validated?
-      return false
-    end
-
-    finished_floor_area = Geometry.get_finished_floor_area_from_spaces(unit.spaces, runner)
-
-    unit.spaces.each do |space|
-      next if Geometry.space_is_unfinished(space)
-
-      space_obj_name = "#{obj_name}|#{space.name.to_s}"
-
-      space_mel_ann = annual_kWh * UnitConversions.convert(space.floorArea, "m^2", "ft^2") / finished_floor_area
-      space_design_level = ceiling_fan_sch.calcDesignLevelFromDailykWh(space_mel_ann / 365.0)
-
-      equip_def = OpenStudio::Model::ElectricEquipmentDefinition.new(model)
-      equip_def.setName(space_obj_name)
-      equip = OpenStudio::Model::ElectricEquipment.new(equip_def)
-      equip.setName(equip_def.name.to_s)
-      equip.setSpace(space)
-      equip_def.setDesignLevel(space_design_level)
-      equip_def.setFractionRadiant(0.558)
-      equip_def.setFractionLatent(0)
-      equip_def.setFractionLost(0)
-      equip.setEndUseSubcategory(obj_name)
-      equip.setSchedule(ceiling_fan_sch.schedule)
-    end
-
-    return true
   end
 
   def self.get_default_ceiling_fan_power()
