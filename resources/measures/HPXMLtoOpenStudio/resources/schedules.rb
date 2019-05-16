@@ -443,7 +443,6 @@ class HotWaterSchedule
     @sch_name = sch_name
     @schedule = nil
     @temperature_sch_name = temperature_sch_name
-    @days_shift = days_shift
     @nbeds = ([num_bedrooms, 5].min).to_i
     @target_water_temperature = UnitConversions.convert(target_water_temperature, "F", "C")
     if file_prefix == "ClothesDryer"

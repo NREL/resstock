@@ -3285,7 +3285,7 @@ class HVAC
       end
     end
 
-    ceiling_fan_sch = MonthWeekdayWeekendSchedule.new(model, runner, obj_name + " schedule", ceiling_fans_hourly_weekday, ceiling_fans_hourly_weekend, Array.new(12, 1), mult_weekday = 1.0, mult_weekend = 1.0, normalize_values = false, create_sch_object = true, lower_limit_value = 0, upper_limit_value = 1, numeric_type = "Continuous")
+    ceiling_fan_sch = MonthWeekdayWeekendSchedule.new(model, runner, obj_name + " schedule", ceiling_fans_hourly_weekday, ceiling_fans_hourly_weekend, Array.new(12, 1), mult_weekday = 1.0, mult_weekend = 1.0, normalize_values = false, create_sch_object = true, winter_design_day_sch = nil, summer_design_day_sch = nil, lower_limit_value = 0, upper_limit_value = 1, numeric_type = "Continuous")
 
     unless ceiling_fan_sch.validated?
       return false
