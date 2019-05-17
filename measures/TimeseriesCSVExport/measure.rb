@@ -86,8 +86,12 @@ class TimeseriesCSVExport < OpenStudio::Measure::ReportingMeasure
     end
     model = model.get
 
+    # request output meters
     results = OutputMeters.create_custom_building_unit_meters(model, runner, reporting_frequency, include_enduse_subcategories)
-    output_vars.each do |output_var|
+
+    # request output variables
+    output_vars += ["Heating Coil Runtime Fraction", "Cooling Coil Runtime Fraction", "Water Heater Runtime Fraction"] 
+    output_vars.uniq.each do |output_var|
       results << OpenStudio::IdfObject.load("Output:Variable,*,#{output_var},#{reporting_frequency};").get
     end
     results << OpenStudio::IdfObject.load("Output:Meter,Electricity:Facility,#{reporting_frequency};").get
@@ -617,7 +621,7 @@ class TimeseriesCSVExport < OpenStudio::Measure::ReportingMeasure
 
     # ELECTRICITY
 
-    electricityTotalEndUses = [electricityHeating, centralElectricityHeating, electricityCooling, centralElectricityCooling, electricityInteriorLighting, electricityExteriorLighting, electricityExteriorHolidayLighting, electricityInteriorEquipment, electricityFansHeating, electricityFansCooling, electricityPumpsHeating, centralElectricityPumpsHeating, electricityPumpsCooling, centralElectricityPumpsCooling, electricityWaterSystems].transpose.collect { |e1, e2, e3, e4, e5, e6, e7, e8, e9, e10, e11, e12, e13, e14, e15| e1 + e2 + e3 + e4 + e5 + e6 + e7 + e8 + e9 + e10 + e11 + e12 + e13 + e14 + e15 }
+    electricityTotalEndUses = [electricityHeating, centralElectricityHeating, electricityCooling, centralElectricityCooling, electricityInteriorLighting, electricityExteriorLighting, electricityExteriorHolidayLighting, electricityInteriorEquipment, electricityFansHeating, electricityFansCooling, electricityPumpsHeating, centralElectricityPumpsHeating, electricityPumpsCooling, centralElectricityPumpsCooling, electricityWaterSystems].transpose.map { |e| e.reduce(:+) }
 
     report_ts_output(runner, timeseries, "total_site_electricity_kwh", electricityTotalEndUses, "GJ", elec_site_units)
     report_ts_output(runner, timeseries, "net_site_electricity_kwh", [electricityTotalEndUses, modeledCentralElectricityPhotovoltaics].transpose.collect { |e1, e2| e1 - e2 }, "GJ", elec_site_units)
@@ -626,7 +630,7 @@ class TimeseriesCSVExport < OpenStudio::Measure::ReportingMeasure
     report_ts_output(runner, timeseries, "electricity_cooling_kwh", electricityCooling, "GJ", elec_site_units)
     report_ts_output(runner, timeseries, "electricity_central_system_cooling_kwh", centralElectricityCooling, "GJ", elec_site_units)
     report_ts_output(runner, timeseries, "electricity_interior_lighting_kwh", electricityInteriorLighting, "GJ", elec_site_units)
-    report_ts_output(runner, timeseries, "electricity_exterior_lighting_kwh", [electricityExteriorLighting, electricityExteriorHolidayLighting].transpose.collect { |e1, e2| e1 + e2 }, "GJ", elec_site_units)
+    report_ts_output(runner, timeseries, "electricity_exterior_lighting_kwh", [electricityExteriorLighting, electricityExteriorHolidayLighting].transpose.map { |e| e.reduce(:+) }, "GJ", elec_site_units)
     report_ts_output(runner, timeseries, "electricity_interior_equipment_kwh", electricityInteriorEquipment, "GJ", elec_site_units)
     report_ts_output(runner, timeseries, "electricity_fans_heating_kwh", electricityFansHeating, "GJ", elec_site_units)
     report_ts_output(runner, timeseries, "electricity_fans_cooling_kwh", electricityFansCooling, "GJ", elec_site_units)
@@ -639,7 +643,7 @@ class TimeseriesCSVExport < OpenStudio::Measure::ReportingMeasure
 
     # NATURAL GAS
 
-    naturalGasTotalEndUses = [naturalGasHeating, centralNaturalGasHeating, naturalGasInteriorEquipment, naturalGasWaterSystems].transpose.collect { |n1, n2, n3, n4| n1 + n2 + n3 + n4 }
+    naturalGasTotalEndUses = [naturalGasHeating, centralNaturalGasHeating, naturalGasInteriorEquipment, naturalGasWaterSystems].transpose.map { |n| n.reduce(:+) }
 
     report_ts_output(runner, timeseries, "total_site_natural_gas_therm", naturalGasTotalEndUses, "GJ", gas_site_units)
     report_ts_output(runner, timeseries, "natural_gas_heating_therm", naturalGasHeating, "GJ", gas_site_units)
@@ -649,7 +653,7 @@ class TimeseriesCSVExport < OpenStudio::Measure::ReportingMeasure
 
     # FUEL OIL
 
-    fuelOilTotalEndUses = [fuelOilHeating, centralFuelOilHeating, fuelOilInteriorEquipment, fuelOilWaterSystems].transpose.collect { |f1, f2, f3, f4| f1 + f2 + f3 + f4 }
+    fuelOilTotalEndUses = [fuelOilHeating, centralFuelOilHeating, fuelOilInteriorEquipment, fuelOilWaterSystems].transpose.map { |f| f.reduce(:+) }
 
     report_ts_output(runner, timeseries, "total_site_fuel_oil_mbtu", fuelOilTotalEndUses, "GJ", other_fuel_site_units)
     report_ts_output(runner, timeseries, "fuel_oil_heating_mbtu", fuelOilHeating, "GJ", other_fuel_site_units)
@@ -659,7 +663,7 @@ class TimeseriesCSVExport < OpenStudio::Measure::ReportingMeasure
 
     # PROPANE
 
-    propaneTotalEndUses = [propaneHeating, centralPropaneHeating, propaneInteriorEquipment, propaneWaterSystems].transpose.collect { |p1, p2, p3, p4| p1 + p2 + p3 + p4 }
+    propaneTotalEndUses = [propaneHeating, centralPropaneHeating, propaneInteriorEquipment, propaneWaterSystems].transpose.map { |p| p.reduce(:+) }
 
     report_ts_output(runner, timeseries, "total_site_propane_mbtu", propaneTotalEndUses, "GJ", other_fuel_site_units)
     report_ts_output(runner, timeseries, "propane_heating_mbtu", propaneHeating, "GJ", other_fuel_site_units)
@@ -669,7 +673,7 @@ class TimeseriesCSVExport < OpenStudio::Measure::ReportingMeasure
 
     # TOTAL
 
-    totalSiteEnergy = [electricityTotalEndUses, naturalGasTotalEndUses, fuelOilTotalEndUses, propaneTotalEndUses].transpose.collect { |t1, t2, t3, t4| t1 + t2 + t3 + t4 }
+    totalSiteEnergy = [electricityTotalEndUses, naturalGasTotalEndUses, fuelOilTotalEndUses, propaneTotalEndUses].transpose.map { |t| t.reduce(:+) }
 
     report_ts_output(runner, timeseries, "total_site_energy_mbtu", totalSiteEnergy, "GJ", total_site_units)
     report_ts_output(runner, timeseries, "net_site_energy_mbtu", [totalSiteEnergy, modeledCentralElectricityPhotovoltaics].transpose.collect { |e1, e2| e1 - e2 }, "GJ", total_site_units)
@@ -707,13 +711,44 @@ class TimeseriesCSVExport < OpenStudio::Measure::ReportingMeasure
       report_ts_output(runner, timeseries, "electricity_exterior_holiday_lighting_kwh", electricityExteriorHolidayLighting, "GJ", elec_site_units)
     end
 
-    output_vars.each do |output_var|
+    runtimeFractionHeating = [0] * num_ts
+    runtimeFractionCooling = [0] * num_ts
+    runtimeFractionWaterHeater = [0] * num_ts
+
+    output_vars += ["Heating Coil Runtime Fraction", "Cooling Coil Runtime Fraction", "Water Heater Runtime Fraction"] 
+    output_vars.uniq.each do |output_var|
       sqlFile.availableKeyValues(ann_env_pd, reporting_frequency_map[reporting_frequency], output_var).each do |key_value|
         request = sqlFile.timeSeries(ann_env_pd, reporting_frequency_map[reporting_frequency], output_var, key_value)
         next if request.empty?
 
         request = request.get
-        vals = request.values
+
+        vals = []
+        timeseries["Time"].each_with_index do |ts, i|
+          vals << request.values[i]
+        end
+
+        if output_var.include? "Runtime Fraction"
+          units_represented = 1
+
+          model.getBuildingUnits.each do |unit|
+            next unless key_value.to_s.downcase.include? unit.name.to_s.downcase
+            
+            if unit.additionalProperties.getFeatureAsInteger("Units Represented").is_initialized
+              units_represented = unit.additionalProperties.getFeatureAsInteger("Units Represented").get
+            end
+          end
+
+          if output_var == "Heating Coil Runtime Fraction"
+            runtimeFractionHeating = array_sum(runtimeFractionHeating, vals, units_represented)
+          elsif output_var == "Cooling Coil Runtime Fraction"
+            runtimeFractionCooling = array_sum(runtimeFractionCooling, vals, units_represented)
+          elsif output_var == "Water Heater Runtime Fraction"
+            runtimeFractionWaterHeater = array_sum(runtimeFractionWaterHeater, vals, units_represented)
+          end
+          next
+        end
+
         old_units = request.units
         new_units = old_units
         if old_units == "C"
@@ -726,6 +761,12 @@ class TimeseriesCSVExport < OpenStudio::Measure::ReportingMeasure
         report_ts_output(runner, timeseries, name, vals, old_units, new_units)
       end
     end
+
+    total_units_represented = model.getBuilding.additionalProperties.getFeatureAsInteger("Total Units Represented").get
+
+    report_ts_output(runner, timeseries, "runtime_fraction_heating", runtimeFractionHeating.collect { |r| r / total_units_represented }, "", "")
+    report_ts_output(runner, timeseries, "runtime_fraction_cooling", runtimeFractionCooling.collect { |r| r / total_units_represented }, "", "")
+    report_ts_output(runner, timeseries, "runtime_fraction_water_heater", runtimeFractionWaterHeater.collect { |r| r / total_units_represented }, "", "")
 
     sqlFile.close()
 
