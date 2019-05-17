@@ -475,6 +475,7 @@ class MonthWeekdayWeekendSchedule
   end
 end
 
+
 # Generic class for handling an hourly schedule (saved as a csv) with 8760 values. Currently used by water heater models.
 class HourlySchedule
   def initialize(model, runner, sch_name, file, offset, convert_temp, validation_values)
@@ -918,4 +919,70 @@ class Schedule
 
     return annual_flh
   end
+
+  def self.create_ruleset_from_fixinterval(model, hrly_sched, sch_name, winter_design_day_sch, summer_design_day_sch)
+    wkdy = []
+    wknd = []
+    
+    hrly_sched = hrly_sched.timeSeries.values        
+    year_description = model.getYearDescription
+    
+    hrs = 8760
+    days = 365
+    if year_description.isLeapYear
+      hrs = 8760 + 24
+      days = 366
+    end
+
+    time = []
+    for h in 1..24
+      time[h] = OpenStudio::Time.new(0, h, 0, 0)
+    end
+
+    schedule = OpenStudio::Model::ScheduleRuleset.new(model)
+    schedule.setName(sch_name + "RuleSet")
+    assumedYear = year_description.assumedYear # prevent excessive OS warnings about 'UseWeatherFile'
+    previous_value = hrly_sched[0]
+    
+    puts("TIME", time)
+    for i in 1..24
+      puts(time[i])
+    end
+    
+    
+    for day in 1..days
+      test_rule = OpenStudio::Model::ScheduleRule.new(schedule)
+      test_rule.setName("My test rule")
+      one_val = test_rule.daySchedule
+      for h in 1..24
+        hr = (day-1)*24 + h - 1
+        next if h != 24 and hrly_sched[hr] == previous_value
+        one_val.addValue(time[h], hrly_sched[hr-1])
+        one_val.setName(sch_name)
+        previous_value = hrly_sched[hr]
+      end
+    end
+    
+    test_rule.setApplySunday(true)
+    test_rule.setApplyMonday(true)
+    test_rule.setApplyTuesday(true)
+    test_rule.setApplyWednesday(true)
+    test_rule.setApplyThursday(true)
+    test_rule.setApplyFriday(true)
+    test_rule.setApplySaturday(true)
+    
+
+    unless winter_design_day_sch.nil?
+      schedule.setWinterDesignDaySchedule(winter_design_day_sch)
+      schedule.winterDesignDaySchedule.setName("#{sch_name} winter design EDIT")
+    end
+    unless summer_design_day_sch.nil?
+      schedule.setSummerDesignDaySchedule(summer_design_day_sch)
+      schedule.summerDesignDaySchedule.setName("#{sch_name} summer design EDIT")
+    end
+
+    return schedule
+    end
+
+
 end
