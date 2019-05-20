@@ -970,6 +970,18 @@ class Constants
     return 'hip'
   end
 
+  def self.ScheduleTypeLimitsFraction
+    return 'Fractional'
+  end
+
+   def self.ScheduleTypeLimitsOnOff
+    return 'OnOff'
+  end
+
+   def self.ScheduleTypeLimitsTemperature
+    return 'Temperature'
+  end
+
   def self.SeasonHeating
     return 'Heating'
   end

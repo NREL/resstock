@@ -1842,7 +1842,7 @@ class SubsurfaceConstructions
       total_shade_ref = 1 - total_shade_trans - total_shade_abs
 
       # Interior Shading Schedule
-      sch = MonthWeekdayWeekendSchedule.new(model, runner, "#{type} shading schedule", Array.new(24, 1), Array.new(24, 1), cooling_season, mult_weekday = 1.0, mult_weekend = 1.0, normalized_values = true, create_sch_object = true, winter_design_day_sch = nil, summer_design_day_sch = nil, lower_limit_value = 0, upper_limit_value = 1, numeric_type = "Continuous")
+      sch = MonthWeekdayWeekendSchedule.new(model, runner, "#{type} shading schedule", Array.new(24, 1), Array.new(24, 1), cooling_season, mult_weekday = 1.0, mult_weekend = 1.0, normalized_values = true, create_sch_object = true, winter_design_day_sch = nil, summer_design_day_sch = nil, schedule_type_limits_name = Constants.ScheduleTypeLimitsFraction)
       if not sch.validated?
         return false
       end
