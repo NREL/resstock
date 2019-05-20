@@ -502,7 +502,16 @@ class Constants
     end
     return "res range#{s_fuel}#{s_unit}"
   end
-
+  
+  # Todo WHF: define whole house fan object for a given building unit?? 
+  def self.ObjectNameWholeHouseFan(unit_name = self.ObjectNameBuildingUnit)
+    s_unit = ""
+    if unit_name != self.ObjectNameBuildingUnit
+      s_unit = "|#{unit_name}"
+    end
+    return "res whole house fan#{s_unit}"
+  end
+      
   def self.ObjectNameCoolingSeason
     return 'res cooling season'
   end
