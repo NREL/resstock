@@ -105,10 +105,10 @@ class DemandResponseSchedule < OpenStudio::Measure::ModelMeasure
     end
     
 	# Check for setpoint offset
-	# if offset_heat==0 and offset_cool==0
-	  # runner.registerInfo("DR offset magnitude set to 0")
-	  # return true
-	# end	
+	if offset_heat==0 and offset_cool==0
+	  runner.registerInfo("DR offset magnitude set to 0")
+	  return true
+	end	
     
 	# Check if thermostat exists
 	finished_zones.each do |finished_zone|
@@ -127,11 +127,12 @@ class DemandResponseSchedule < OpenStudio::Measure::ModelMeasure
         end
         dr_schedule_file = File.join(dr_dir, dr_sch)
         if File.file?(dr_schedule_file)
-          dr_hrly = HourlySchedule.new(model, runner, sch_name, dr_schedule_file, 0, false, []).schedule_array
-          
+          dr_hrly = HourlySchedule.new(model, runner, sch_name, dr_schedule_file, 0, false, [])
           runner.registerInfo("Imported hourly '#{sch_name}' schedule from #{dr_schedule_file}")	
-          dr_hrly = dr_hrly.map{|x| x.to_i}
-          return dr_hrly
+          dr_hrly_array = dr_hrly.schedule_array.map{|x| x.to_i}          
+          dr_hrly.schedule.remove
+          
+          return dr_hrly_array
         elsif offset == 0 or dr_sch == "none"
           year_description = model.getYearDescription
 	      leap_offset = 0
@@ -219,8 +220,10 @@ class DemandResponseSchedule < OpenStudio::Measure::ModelMeasure
          
           if sched_type == "heat"
             prefix = "htg"
+            thermostat_setpoint.heatingSetpointTemperatureSchedule.get.remove
           elsif sched_type == "cool"
             prefix = "clg"
+            thermostat_setpoint.coolingSetpointTemperatureSchedule.get.remove
           end   
                     
           wked_monthly = [thermostat_setpoint.additionalProperties.getFeatureAsString(prefix+"_wked").get.split(",").map{|i| i.to_f}]*12
@@ -257,7 +260,10 @@ class DemandResponseSchedule < OpenStudio::Measure::ModelMeasure
         end
       end
       hrly_base = hrly_base.map {|i| UnitConversions.convert(i, "C", "F") }
-      # puts(hrly_base)
+      
+      
+      
+      
       return(hrly_base)
     end
     
@@ -315,53 +321,6 @@ class DemandResponseSchedule < OpenStudio::Measure::ModelMeasure
       return schedule      
     end
     
-    # Assign schedules to OpenStudio object
-    def assign_OS_schedule(schedule, finished_zones, sched_type, var_name, model, runner)
-      # thermostat_setpoint = nil
-      # finished_zones.each do |finished_zone|
-        # thermostat_setpoint = finished_zone.thermostatSetpointDualSetpoint
-        # if thermostat_setpoint.is_initialized
-          # thermostat_setpoint = thermostat_setpoint.get    
-          
-          # if sched_type == "heat"
-            # if thermostat_setpoint.heatingSetpointTemperatureSchedule.is_initialized
-              # thermostat_setpoint.heatingSetpointTemperatureSchedule.get.to_Schedule.get.remove
-            # end
-          # elsif sched_type == "cool"
-            # if thermostat_setpoint.coolingSetpointTemperatureSchedule.is_initialized
-              # thermostat_setpoint.coolingSetpointTemperatureSchedule.get.to_Schedule.get.remove
-            # end
-          # end
-          
-        # end
-      # end
-      
-      finished_zones.each do |finished_zone|
-        thermostat_setpoint = finished_zone.thermostatSetpointDualSetpoint
-        if thermostat_setpoint.is_initialized
-          thermostat_setpoint = thermostat_setpoint.get     
-        
-        puts(sched_type)
-        puts("ORIGINAL ---- ", thermostat_setpoint)
-      
-        if sched_type == "heat"
-          thermostat_setpoint.setHeatingSetpointTemperatureSchedule(schedule)	
-          nothing = 0
-        elsif sched_type == "cool"
-          thermostat_setpoint.setCoolingSetpointTemperatureSchedule(schedule)	
-          nothing=0
-        end
-        
-        puts("NEW ====== ", thermostat_setpoint)
-        puts(finished_zone)
-        # break
-        # runner.registerInfo("Set #{var_name} schedule for #{thermostat_setpoint.name}.")
-        end
-      end
-      
-      return
-    end
-    
     # Run functions and apply new schedules
     htg_hrly_base = get_existing_sched(finished_zones, "heat", model, runner)
     clg_hrly_base = get_existing_sched(finished_zones, "cool", model, runner)
@@ -374,47 +333,40 @@ class DemandResponseSchedule < OpenStudio::Measure::ModelMeasure
     htg_hrly = create_OS_sched(htg_hrly, "HeatingTSP", model, runner)
     clg_hrly = create_OS_sched(clg_hrly, "CoolingTSP", model, runner)
     
-    # assign_OS_schedule(clg_hrly, finished_zones, "cool", "CoolingTSP", model, runner)
-    # assign_OS_schedule(htg_hrly, finished_zones, "heat", "HeatingTSP", model, runner)
     
-    
+    #Convert back to ruleset and apply to dual thermostat
     winter_design_day_sch = OpenStudio::Model::ScheduleDay.new(model)
     winter_design_day_sch.addValue(OpenStudio::Time.new(0, 24, 0, 0), UnitConversions.convert(70, "F", "C"))
     summer_design_day_sch = OpenStudio::Model::ScheduleDay.new(model)
     summer_design_day_sch.addValue(OpenStudio::Time.new(0, 24, 0, 0), UnitConversions.convert(75, "F", "C"))
+    rule_sched_h = []
+    rule_sched_c = []
    
     finished_zones.each do |finished_zone|
-      print(finished_zone.name)
       thermostat_setpoint = finished_zone.thermostatSetpointDualSetpoint
-      
       if thermostat_setpoint.is_initialized
         thermostat_setpoint = thermostat_setpoint.get     
-        
-        # thermostat_setpoint.resetHeatingSetpointTemperatureSchedule()
-        # thermostat_setpoint.resetCoolingSetpointTemperatureSchedule()
-        
-        
-        puts("ORIGINAL ---- ", thermostat_setpoint)
-        # if("living zone temperature setpoint"==thermostat_setpoint.name.get)
-          # thermostat_setpoint.setHeatingSetpointTemperatureSchedule(htg_hrly)	
-          # thermostat_setpoint.setCoolingSetpointTemperatureSchedule(clg_hrly)	
-          # puts("NEW ====== ", thermostat_setpoint)
+        thermostat_setpoint.resetHeatingSetpointTemperatureSchedule()
+        thermostat_setpoint.resetCoolingSetpointTemperatureSchedule()
 
-        rule_sched_h = Schedule.create_ruleset_from_fixinterval(model, htg_hrly, "test_htg_sch",winter_design_day_sch, summer_design_day_sch)
+        rule_sched_h = Schedule.ruleset_from_fixinterval(model, htg_hrly, "heating temperature setpoint",winter_design_day_sch, summer_design_day_sch)
+        rule_sched_c = Schedule.ruleset_from_fixinterval(model, clg_hrly, "cooling temperature setpoint", winter_design_day_sch, summer_design_day_sch)
         
-        
-        
-        rule_sched_c = Schedule.create_ruleset_from_fixinterval(model, clg_hrly, "test_clg_sch", winter_design_day_sch, summer_design_day_sch)
-        
-        
-        thermostat_setpoint.setHeatingSetpointTemperatureSchedule(rule_sched_h)	
-        thermostat_setpoint.setCoolingSetpointTemperatureSchedule(rule_sched_c)	
-        puts("NEW ====== ", thermostat_setpoint)
-        # break
-        
+        htg_hrly.remove
+        clg_hrly.remove
+        break        
       end
     end
-
+    
+    finished_zones.each do |finished_zone|
+      thermostat_setpoint = finished_zone.thermostatSetpointDualSetpoint
+      if thermostat_setpoint.is_initialized
+        thermostat_setpoint = thermostat_setpoint.get  
+        thermostat_setpoint.setHeatingSetpointTemperatureSchedule(rule_sched_h)	
+        thermostat_setpoint.setCoolingSetpointTemperatureSchedule(rule_sched_c)	
+      end
+    end
+   
   end
 end
   
