@@ -37,7 +37,7 @@ class Refrigerator
 
       if sch.nil?
         # Create schedule
-        sch = MonthWeekdayWeekendSchedule.new(model, runner, Constants.ObjectNameRefrigerator + " schedule", weekday_sch, weekend_sch, monthly_sch, mult_weekday = 1.0, mult_weekend = 1.0, normalize_values = true, create_sch_object = true, winter_design_day_sch = winter_design_day_sch, summer_design_day_sch = summer_design_day_sch, lower_limit_value = 0, upper_limit_value = 1, numeric_type = "Continuous")
+        sch = MonthWeekdayWeekendSchedule.new(model, runner, Constants.ObjectNameRefrigerator + " schedule", weekday_sch, weekend_sch, monthly_sch, mult_weekday = 1.0, mult_weekend = 1.0, normalize_values = true, create_sch_object = true, winter_design_day_sch = winter_design_day_sch, summer_design_day_sch = summer_design_day_sch, schedule_type_limits_name = Constants.ScheduleTypeLimitsFraction)
         if not sch.validated?
           return false
         end
@@ -420,7 +420,7 @@ class ClothesWasher
       sch = HotWaterSchedule.new(model, runner, Constants.ObjectNameClothesWasher + " schedule",
                                  Constants.ObjectNameClothesWasher + " temperature schedule",
                                  nbeds, d_sh, "ClothesWasher", water_temp,
-                                 create_sch_object = true, lower_limit_value = 0, upper_limit_value = 1, numeric_type = "Continuous")
+                                 create_sch_object = true, schedule_type_limits_name = Constants.ScheduleTypeLimitsFraction)
       if not sch.validated?
         return false
       end
@@ -694,7 +694,7 @@ class ClothesDryer
         sch = HotWaterSchedule.new(model, runner, unit_obj_name_f + " schedule",
                                    unit_obj_name_f + " temperature schedule", nbeds,
                                    hr_shift, "ClothesDryer", 0,
-                                   create_sch_object = true, lower_limit_value = 0, upper_limit_value = 1, numeric_type = "Continuous")
+                                   create_sch_object = true, schedule_type_limits_name = Constants.ScheduleTypeLimitsFraction)
         if not sch.validated?
           return false
         end
@@ -852,7 +852,7 @@ class CookingRange
 
       if sch.nil?
         # Create schedule
-        sch = MonthWeekdayWeekendSchedule.new(model, runner, Constants.ObjectNameCookingRange(fuel_type, false) + " schedule", weekday_sch, weekend_sch, monthly_sch, mult_weekday = 1.0, mult_weekend = 1.0, normalize_values = true, create_sch_object = true, winter_design_day_sch = winter_design_day_sch, summer_design_day_sch = summer_design_day_sch, lower_limit_value = 0, upper_limit_value = 1, numeric_type = "Continuous")
+        sch = MonthWeekdayWeekendSchedule.new(model, runner, Constants.ObjectNameCookingRange(fuel_type, false) + " schedule", weekday_sch, weekend_sch, monthly_sch, mult_weekday = 1.0, mult_weekend = 1.0, normalize_values = true, create_sch_object = true, winter_design_day_sch = winter_design_day_sch, summer_design_day_sch = summer_design_day_sch, schedule_type_limits_name = Constants.ScheduleTypeLimitsFraction)
         if not sch.validated?
           return false
         end
@@ -1192,7 +1192,7 @@ class Dishwasher
       sch = HotWaterSchedule.new(model, runner, Constants.ObjectNameDishwasher + " schedule",
                                  Constants.ObjectNameDishwasher + " temperature schedule",
                                  nbeds, d_sh, "Dishwasher", wh_setpoint,
-                                 create_sch_object = true, lower_limit_value = 0, upper_limit_value = 1, numeric_type = "Continuous")
+                                 create_sch_object = true, schedule_type_limits_name = Constants.ScheduleTypeLimitsFraction)
       if not sch.validated?
         return false
       end
