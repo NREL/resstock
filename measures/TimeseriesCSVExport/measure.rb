@@ -90,7 +90,7 @@ class TimeseriesCSVExport < OpenStudio::Measure::ReportingMeasure
     results = OutputMeters.create_custom_building_unit_meters(model, runner, reporting_frequency, include_enduse_subcategories)
 
     # request output variables
-    output_vars += ["Heating Coil Runtime Fraction", "Cooling Coil Runtime Fraction", "Water Heater Runtime Fraction"] 
+    output_vars += ["Heating Coil Runtime Fraction", "Cooling Coil Runtime Fraction", "Water Heater Runtime Fraction"]
     output_vars.uniq.each do |output_var|
       results << OpenStudio::IdfObject.load("Output:Variable,*,#{output_var},#{reporting_frequency};").get
     end
@@ -344,6 +344,7 @@ class TimeseriesCSVExport < OpenStudio::Measure::ReportingMeasure
       return false
     end
 
+    total_units_represented = 0
     units.each do |unit|
       unit_name = unit.name.to_s.upcase
 
@@ -351,6 +352,7 @@ class TimeseriesCSVExport < OpenStudio::Measure::ReportingMeasure
       if unit.additionalProperties.getFeatureAsInteger("Units Represented").is_initialized
         units_represented = unit.additionalProperties.getFeatureAsInteger("Units Represented").get
       end
+      total_units_represented += units_represented
 
       electricity_heating_query = "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('#{unit_name}:ELECTRICITYHEATING') AND ReportingFrequency='#{reporting_frequency_map[reporting_frequency]}' AND VariableUnits='J') AND TimeIndex IN (SELECT TimeIndex FROM Time WHERE EnvironmentPeriodIndex='#{env_period_ix}')"
       unless sqlFile.execAndReturnVectorOfDouble(electricity_heating_query).get.empty?
@@ -715,25 +717,26 @@ class TimeseriesCSVExport < OpenStudio::Measure::ReportingMeasure
     runtimeFractionCooling = [0] * num_ts
     runtimeFractionWaterHeater = [0] * num_ts
 
-    output_vars += ["Heating Coil Runtime Fraction", "Cooling Coil Runtime Fraction", "Water Heater Runtime Fraction"] 
+    output_vars += ["Heating Coil Runtime Fraction", "Cooling Coil Runtime Fraction", "Water Heater Runtime Fraction"]
     output_vars.uniq.each do |output_var|
       sqlFile.availableKeyValues(ann_env_pd, reporting_frequency_map[reporting_frequency], output_var).each do |key_value|
         request = sqlFile.timeSeries(ann_env_pd, reporting_frequency_map[reporting_frequency], output_var, key_value)
         next if request.empty?
 
         request = request.get
-
-        vals = []
-        timeseries["Time"].each_with_index do |ts, i|
-          vals << request.values[i]
-        end
+        request_values = request.values
 
         if output_var.include? "Runtime Fraction"
+          vals = []
+          timeseries["Time"].each_with_index do |ts, i|
+            vals << request_values[i]
+          end
+
           units_represented = 1
 
           model.getBuildingUnits.each do |unit|
             next unless key_value.to_s.downcase.include? unit.name.to_s.downcase
-            
+
             if unit.additionalProperties.getFeatureAsInteger("Units Represented").is_initialized
               units_represented = unit.additionalProperties.getFeatureAsInteger("Units Represented").get
             end
@@ -758,11 +761,9 @@ class TimeseriesCSVExport < OpenStudio::Measure::ReportingMeasure
         unless new_units.empty?
           name += " [#{new_units}]"
         end
-        report_ts_output(runner, timeseries, name, vals, old_units, new_units)
+        report_ts_output(runner, timeseries, name, request_values, old_units, new_units)
       end
     end
-
-    total_units_represented = model.getBuilding.additionalProperties.getFeatureAsInteger("Total Units Represented").get
 
     report_ts_output(runner, timeseries, "runtime_fraction_heating", runtimeFractionHeating.collect { |r| r / total_units_represented }, "", "")
     report_ts_output(runner, timeseries, "runtime_fraction_cooling", runtimeFractionCooling.collect { |r| r / total_units_represented }, "", "")
