@@ -431,6 +431,7 @@ class MonthWeekdayWeekendSchedule
       schedule.summerDesignDaySchedule.setName("#{@sch_name} summer design")
     end
 
+    puts schedule.name
     Schedule.set_schedule_type_limits(@model, schedule, @schedule_type_limits_name)
 
     return schedule
@@ -812,6 +813,7 @@ class Schedule
     end
 
     if schedule_type_limits.nil?
+      schedule_type_limits = OpenStudio::Model::ScheduleTypeLimits.new(model)
       schedule_type_limits.setName(schedule_type_limits_name)
       if schedule_type_limits_name == Constants.ScheduleTypeLimitsFraction
         schedule_type_limits.setLowerLimitValue(0)
