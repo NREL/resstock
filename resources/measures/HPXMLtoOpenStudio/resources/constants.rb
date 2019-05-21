@@ -974,11 +974,11 @@ class Constants
     return 'Fractional'
   end
 
-   def self.ScheduleTypeLimitsOnOff
+  def self.ScheduleTypeLimitsOnOff
     return 'OnOff'
   end
 
-   def self.ScheduleTypeLimitsTemperature
+  def self.ScheduleTypeLimitsTemperature
     return 'Temperature'
   end
 

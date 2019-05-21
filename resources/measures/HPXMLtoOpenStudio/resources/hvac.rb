@@ -191,7 +191,6 @@ class HVAC
       clg_coil.setApplyLatentDegradationtoSpeedsGreaterthan1(false)
       clg_coil.setCrankcaseHeaterCapacity(UnitConversions.convert(crankcase_capacity, "kW", "W"))
       clg_coil.setMaximumOutdoorDryBulbTemperatureforCrankcaseHeaterOperation(UnitConversions.convert(crankcase_temp, "F", "C"))
-
       clg_coil.setFuelType("Electricity")
 
       clg_coil_stage_data.each do |stage|
@@ -338,7 +337,6 @@ class HVAC
       clg_coil.setApplyLatentDegradationtoSpeedsGreaterthan1(false)
       clg_coil.setCrankcaseHeaterCapacity(UnitConversions.convert(crankcase_capacity, "kW", "W"))
       clg_coil.setMaximumOutdoorDryBulbTemperatureforCrankcaseHeaterOperation(UnitConversions.convert(crankcase_temp, "F", "C"))
-
       clg_coil.setFuelType("Electricity")
 
       clg_coil_stage_data.each do |stage|
