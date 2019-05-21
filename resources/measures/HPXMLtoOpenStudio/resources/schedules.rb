@@ -431,7 +431,6 @@ class MonthWeekdayWeekendSchedule
       schedule.summerDesignDaySchedule.setName("#{@sch_name} summer design")
     end
 
-    puts schedule.name
     Schedule.set_schedule_type_limits(@model, schedule, @schedule_type_limits_name)
 
     return schedule
