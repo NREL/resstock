@@ -329,11 +329,10 @@ class DemandResponseSchedule < OpenStudio::Measure::ModelMeasure
     clg_hrly = create_new_sched(dr_hrly_clg, clg_hrly_base, offset_cool)
    
     fix_setpoint_inversion(htg_hrly, clg_hrly, HVAC, weather, model, runner)
-    
+
     htg_hrly = create_OS_sched(htg_hrly, "HeatingTSP", model, runner)
     clg_hrly = create_OS_sched(clg_hrly, "CoolingTSP", model, runner)
-    
-    
+
     #Convert back to ruleset and apply to dual thermostat
     winter_design_day_sch = OpenStudio::Model::ScheduleDay.new(model)
     winter_design_day_sch.addValue(OpenStudio::Time.new(0, 24, 0, 0), UnitConversions.convert(70, "F", "C"))
