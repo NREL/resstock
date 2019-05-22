@@ -5,6 +5,18 @@ jobs:
       - image: nrel/openstudio:2.8.0
     steps:
       - checkout
-      - run: rm -f Gemfile.lock && bundle install
-      - run: rake test:regenerate_osms
-      - run: rake test:all
+      - run: 
+          name: Install gems
+          command: |
+            rm -f Gemfile.lock && bundle install
+      - run: 
+          name: Regenerate test osm files
+          command: |
+            rake test:regenerate_osms
+      - run: 
+          name: Run tests
+          command: |
+            rake test:all
+      - store_artifacts:
+            path: workflows/results
+            destination: results
