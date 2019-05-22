@@ -13,7 +13,7 @@ namespace :test do
   desc 'Run unit tests for all projects/measures'
   Rake::TestTask.new('all') do |t|
     t.libs << 'test'
-    t.test_files = Dir['project_*/tests/*.rb'] + Dir['test/test_integrity_checks.rb'] + Dir['measures/*/tests/*.rb'] + Dir['resources/measures/*/tests/*.rb'] + Dir['workflows/tests/*.rb'] - Dir['measures/HPXMLtoOpenStudio/tests/*.rb'] # HPXMLtoOpenStudio is tested upstream
+    t.test_files = Dir['project_*/tests/*.rb'] + Dir['test/test_integrity_checks.rb'] + Dir['measures/*/tests/*.rb'] + Dir['resources/measures/*/tests/*.rb'] + Dir['workflows/tests/*.rb'] - Dir['resources/measures/HPXMLtoOpenStudio/tests/*.rb'] # HPXMLtoOpenStudio is tested upstream
     t.warning = false
     t.verbose = true
   end
@@ -492,7 +492,7 @@ def generate_example_osws(data_hash, include_measures, exclude_measures,
 
   data_hash.each do |group|
     group["group_steps"].each do |group_step|
-      # Default o first measure in step
+      # Default to first measure in step
       measure = group_step["measures"][0]
 
       # Override with include measure?
@@ -509,11 +509,15 @@ def generate_example_osws(data_hash, include_measures, exclude_measures,
 
       measure_path = File.expand_path(File.join("../resources/measures", measure), workflowJSON.oswDir.to_s)
       unless File.exist? measure_path
-        measure_path = File.expand_path(File.join("../measures", measure), workflowJSON.oswDir.to_s) # for ResidentialSimulationControls
+        measure_path = File.expand_path(File.join("../measures", measure), workflowJSON.oswDir.to_s) # for ResidentialSimulationControls, TimeseriesCSVExport
       end
       measure_instance = get_measure_instance("#{measure_path}/measure.rb")
 
-      measure_args = measure_instance.arguments(model).sort_by { |arg| arg.name }
+      begin
+        measure_args = measure_instance.arguments(model).sort_by { |arg| arg.name }
+      rescue
+        measure_args = measure_instance.arguments.sort_by { |arg| arg.name } # for reporting measures
+      end
 
       step = OpenStudio::MeasureStep.new(measure)
       if not simplify
