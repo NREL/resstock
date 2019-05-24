@@ -29,6 +29,9 @@ end
 
 def regenerate_osms
   require 'openstudio'
+  require_relative 'resources/meta_measure'
+
+  OpenStudio::Logger.instance.standardOutLogger.setLogLevel(OpenStudio::Error)
 
   start_time = Time.now
   num_tot = 0
@@ -37,14 +40,7 @@ def regenerate_osms
   osw_path = File.expand_path("../test/osw_files/", __FILE__)
   osm_path = File.expand_path("../test/osm_files/", __FILE__)
 
-  osw_files = Dir.entries(osw_path).select { |entry| entry.end_with?(".osw") and entry != "out.osw" }
-
-  if File.exists?(File.expand_path("../log", __FILE__))
-    FileUtils.rm(File.expand_path("../log", __FILE__))
-  end
-
-  cli_path = OpenStudio.getOpenStudioCLI
-
+  osw_files = Dir.entries(osw_path).select { |entry| entry.end_with?(".osw") }
   num_osws = osw_files.size
 
   osw_files.each do |osw|
@@ -54,15 +50,27 @@ def regenerate_osms
     puts "[#{num_tot}/#{num_osws}] Regenerating osm from #{osw}..."
     osw = File.expand_path("../test/osw_files/#{osw}", __FILE__)
     update_and_format_osw(osw)
-    osm = File.expand_path("../test/osw_files/run/in.osm", __FILE__)
-    command = "\"#{cli_path}\" --no-ssl run -w #{osw} -m >> log"
-    for _retry in 1..3
-      system(command)
-      break if File.exists?(osm)
+    osw_hash = JSON.parse(File.read(osw))
+
+    # Create measures hashes for top-level measures and other residential measures
+    measures = {}
+    resources_measures = {}
+    osw_hash["steps"].each do |step|
+      if ["ResidentialSimulationControls", "Outages"].include? step["measure_dir_name"]
+        measures[step["measure_dir_name"]] = [step["arguments"]]
+      else
+        resources_measures[step["measure_dir_name"]] = [step["arguments"]]
+      end
     end
-    if not File.exists?(osm)
-      fail "  ERROR: Could not generate osm."
-    end
+
+    # Apply measures
+    model = OpenStudio::Model::Model.new
+    runner = OpenStudio::Measure::OSRunner.new(OpenStudio::WorkflowJSON.new)
+    success = apply_measures(File.expand_path("../measures/", __FILE__), measures, runner, model)
+    success = apply_measures(File.expand_path("../resources/measures", __FILE__), resources_measures, runner, model)
+
+    osm = File.expand_path("../test/osw_files/in.osm", __FILE__)
+    File.open(osm, 'w') { |f| f << model.to_s }
 
     # Add auto-generated message to top of file
     # Update EPW file paths to be relative for the CircleCI machine
@@ -86,17 +94,8 @@ def regenerate_osms
 
     # Copy to osm dir
     osm_new = File.join(osm_path, File.basename(osw).gsub(".osw", ".osm"))
-    FileUtils.cp(osm, osm_new)
+    FileUtils.mv(osm, osm_new)
     num_success += 1
-
-    # Clean up
-    run_dir = File.expand_path("../test/osw_files/run", __FILE__)
-    if Dir.exists?(run_dir)
-      FileUtils.rmtree(run_dir)
-    end
-    if File.exists?(File.expand_path("../test/osw_files/out.osw", __FILE__))
-      FileUtils.rm(File.expand_path("../test/osw_files/out.osw", __FILE__))
-    end
   end
 
   puts "Completed. #{num_success} of #{num_tot} osm files were regenerated successfully (#{Time.now - start_time} seconds)."
@@ -564,6 +563,7 @@ def get_and_proof_measure_order_json()
   measure_folder = File.expand_path("../measures/", __FILE__)
   resources_measure_folder = File.expand_path("../resources/measures/", __FILE__)
   all_measures = Dir.entries(measure_folder).select { |entry| entry.start_with?('Residential') } + Dir.entries(resources_measure_folder).select { |entry| entry.start_with?('Residential') }
+  all_measures += ['TimeseriesCSVExport']
 
   # Load json, and get all measures in there
   json_file = "resources/measure-info.json"
