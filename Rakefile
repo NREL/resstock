@@ -42,7 +42,7 @@ def regenerate_osms
 
   osw_files = Dir.entries(osw_path).select { |entry| entry.end_with?(".osw") }
   num_osws = osw_files.size
-  osw_files = osw_files[71..-1]
+
   osw_files.each do |osw|
     # Generate osm from osw
     num_tot += 1
@@ -56,7 +56,7 @@ def regenerate_osms
     measures = {}
     resources_measures = {}
     osw_hash["steps"].each do |step|
-      if ["ResidentialSimulationControls"].include? step["measure_dir_name"]
+      if ["ResidentialSimulationControls", "Outages"].include? step["measure_dir_name"]
         measures[step["measure_dir_name"]] = [step["arguments"]]
       else
         resources_measures[step["measure_dir_name"]] = [step["arguments"]]
