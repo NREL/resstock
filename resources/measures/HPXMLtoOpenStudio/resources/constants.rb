@@ -37,12 +37,22 @@ class Constants
     return 110 # F
   end
 
-  def self.MonthNumDays(is_leap_year = false)
-    month_num_days = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
-    if is_leap_year
-      month_num_days[1] += 1
-    end
-    return month_num_days
+  def self.NumDaysInMonths(is_leap_year = false)
+    num_days_in_months = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
+    num_days_in_months[1] += 1 if is_leap_year
+    return num_days_in_months
+  end
+
+  def self.NumDaysInYear(is_leap_year = false)
+    num_days_in_months = NumDaysInMonths(is_leap_year)
+    num_days_in_year = num_days_in_months.reduce(:+)
+    return num_days_in_year.to_f
+  end
+
+  def self.NumHoursInYear(is_leap_year = false)
+    num_days_in_year = NumDaysInYear(is_leap_year)
+    num_hours_in_year = num_days_in_year * 24
+    return num_hours_in_year.to_f
   end
 
   def self.Patm
@@ -958,6 +968,18 @@ class Constants
 
   def self.RoofTypeHip
     return 'hip'
+  end
+
+  def self.ScheduleTypeLimitsFraction
+    return 'Fractional'
+  end
+
+  def self.ScheduleTypeLimitsOnOff
+    return 'OnOff'
+  end
+
+  def self.ScheduleTypeLimitsTemperature
+    return 'Temperature'
   end
 
   def self.SeasonHeating

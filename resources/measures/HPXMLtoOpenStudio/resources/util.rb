@@ -443,6 +443,7 @@ class OutputMeters
       heating_equipment = HVAC.existing_heating_equipment(model, runner, thermal_zone)
       heating_equipment.each do |htg_equip|
         clg_coil, htg_coil, supp_htg_coil = HVAC.get_coils_from_hvac_equip(htg_equip)
+
         if htg_equip.is_a? OpenStudio::Model::AirLoopHVACUnitarySystem
           custom_meter_infos["#{unit.name}:ElectricityHeating"]["key_var_groups"] << ["#{htg_coil.name}", "Heating Coil Electric Energy"]
           custom_meter_infos["#{unit.name}:ElectricityHeating"]["key_var_groups"] << ["#{htg_equip.name}", "Unitary System Heating Ancillary Electric Energy"]
@@ -747,6 +748,12 @@ class OutputMeters
         clg_coil, htg_coil, supp_htg_coil = HVAC.get_coils_from_hvac_equip(htg_equip)
 
         if htg_equip.is_a? OpenStudio::Model::AirLoopHVACUnitarySystem
+          next if htg_coil.is_a? OpenStudio::Model::CoilHeatingElectric or htg_coil.is_a? OpenStudio::Model::CoilHeatingDXSingleSpeed or htg_coil.is_a? OpenStudio::Model::CoilHeatingDXMultiSpeed
+
+          if htg_coil.is_a? OpenStudio::Model::CoilHeatingGas
+            next if htg_coil.fuelType != "NaturalGas"
+          end
+
           custom_meter_infos["#{unit.name}:NaturalGasHeating"]["key_var_groups"] << ["#{htg_coil.name}", "Heating Coil Gas Energy"]
           custom_meter_infos["#{unit.name}:NaturalGasHeating"]["key_var_groups"] << ["#{htg_coil.name}", "Heating Coil Ancillary Gas Energy"]
 
@@ -868,6 +875,12 @@ class OutputMeters
         clg_coil, htg_coil, supp_htg_coil = HVAC.get_coils_from_hvac_equip(htg_equip)
 
         if htg_equip.is_a? OpenStudio::Model::AirLoopHVACUnitarySystem
+          next if htg_coil.is_a? OpenStudio::Model::CoilHeatingElectric or htg_coil.is_a? OpenStudio::Model::CoilHeatingDXSingleSpeed or htg_coil.is_a? OpenStudio::Model::CoilHeatingDXMultiSpeed
+
+          if htg_coil.is_a? OpenStudio::Model::CoilHeatingGas
+            next if htg_coil.fuelType != "FuelOil#1"
+          end
+
           custom_meter_infos["#{unit.name}:FuelOilHeating"]["key_var_groups"] << ["#{htg_coil.name}", "Heating Coil FuelOil#1 Energy"]
           custom_meter_infos["#{unit.name}:FuelOilHeating"]["key_var_groups"] << ["#{htg_coil.name}", "Heating Coil Ancillary FuelOil#1 Energy"]
 
@@ -984,6 +997,12 @@ class OutputMeters
         clg_coil, htg_coil, supp_htg_coil = HVAC.get_coils_from_hvac_equip(htg_equip)
 
         if htg_equip.is_a? OpenStudio::Model::AirLoopHVACUnitarySystem
+          next if htg_coil.is_a? OpenStudio::Model::CoilHeatingElectric or htg_coil.is_a? OpenStudio::Model::CoilHeatingDXSingleSpeed or htg_coil.is_a? OpenStudio::Model::CoilHeatingDXMultiSpeed
+
+          if htg_coil.is_a? OpenStudio::Model::CoilHeatingGas
+            next if htg_coil.fuelType != "PropaneGas"
+          end
+
           custom_meter_infos["#{unit.name}:PropaneHeating"]["key_var_groups"] << ["#{htg_coil.name}", "Heating Coil Propane Energy"]
           custom_meter_infos["#{unit.name}:PropaneHeating"]["key_var_groups"] << ["#{htg_coil.name}", "Heating Coil Ancillary Propane Energy"]
 

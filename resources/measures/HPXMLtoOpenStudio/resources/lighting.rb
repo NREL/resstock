@@ -10,6 +10,11 @@ class Lighting
     std_long = -tz * 15
     pi = Math::PI
 
+    # Get number of days in months/year
+    year_description = model.getYearDescription
+    num_days_in_months = Constants.NumDaysInMonths(year_description.isLeapYear)
+    num_days_in_year = Constants.NumDaysInYear(year_description.isLeapYear)
+
     # Sunrise and sunset hours
     sunrise_hour = []
     sunset_hour = []
@@ -48,7 +53,6 @@ class Lighting
     stdDevCons2 = 2.36567663279954
 
     monthly_kwh_per_day = []
-    days_m = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
     wtd_avg_monthly_kwh_per_day = 0
     for monthNum in 1..12
       month = monthNum - 1
@@ -92,7 +96,7 @@ class Lighting
         normalized_hourly_lighting[month][hour] = ltg_hour / sum_kWh
         monthly_kwh_per_day[month] = sum_kWh / 2.0
      end
-      wtd_avg_monthly_kwh_per_day = wtd_avg_monthly_kwh_per_day + monthly_kwh_per_day[month] * days_m[month] / 365.0
+      wtd_avg_monthly_kwh_per_day = wtd_avg_monthly_kwh_per_day + monthly_kwh_per_day[month] * num_days_in_months[month] / num_days_in_year
     end
 
     # Get the seasonal multipliers
@@ -120,19 +124,19 @@ class Lighting
     # Calculate normalized monthly lighting fractions
     sumproduct_seasonal_multiplier = 0
     for month in 0..11
-      sumproduct_seasonal_multiplier += seasonal_multiplier[month] * days_m[month]
+      sumproduct_seasonal_multiplier += seasonal_multiplier[month] * num_days_in_months[month]
     end
 
     normalized_monthly_lighting = seasonal_multiplier
     for month in 0..11
-      normalized_monthly_lighting[month] = seasonal_multiplier[month] * days_m[month] / sumproduct_seasonal_multiplier
+      normalized_monthly_lighting[month] = seasonal_multiplier[month] * num_days_in_months[month] / sumproduct_seasonal_multiplier
     end
 
     # Calc schedule values
     lighting_sch = [[], [], [], [], [], [], [], [], [], [], [], []]
     for month in 0..11
       for hour in 0..23
-        lighting_sch[month][hour] = normalized_monthly_lighting[month] * normalized_hourly_lighting[month][hour] / days_m[month]
+        lighting_sch[month][hour] = normalized_monthly_lighting[month] * normalized_hourly_lighting[month][hour] / num_days_in_months[month]
       end
     end
 
@@ -162,7 +166,7 @@ class Lighting
 
       if sch.nil?
         # Create schedule
-        sch = HourlyByMonthSchedule.new(model, runner, Constants.ObjectNameLightingInterior, lighting_sch, lighting_sch, normalize_values = true, create_sch_object = true, winter_design_day_sch, summer_design_day_sch)
+        sch = HourlyByMonthSchedule.new(model, runner, Constants.ObjectNameLightingInterior, lighting_sch, lighting_sch, normalize_values = true, create_sch_object = true, winter_design_day_sch = winter_design_day_sch, summer_design_day_sch = summer_design_day_sch, schedule_type_limits_name = Constants.ScheduleTypeLimitsFraction)
         if not sch.validated?
           return false
         end
@@ -202,6 +206,9 @@ class Lighting
     summer_design_day_sch = OpenStudio::Model::ScheduleDay.new(model)
     summer_design_day_sch.addValue(OpenStudio::Time.new(0, 24, 0, 0), 1)
 
+    year_description = model.getYearDescription
+    num_days_in_year = Constants.NumDaysInYear(year_description.isLeapYear)
+
     garage_spaces = Geometry.get_garage_spaces(model.getSpaces)
     gfa = Geometry.get_floor_area_from_spaces(garage_spaces)
     garage_spaces.each do |garage_space|
@@ -224,7 +231,7 @@ class Lighting
       if sch_option_type == Constants.OptionTypeLightingScheduleCalculated
         space_design_level = sch.calcDesignLevel(sch.maxval * space_ltg_ann)
       elsif sch_option_type == Constants.OptionTypeLightingScheduleUserSpecified
-        space_design_level = sch.calcDesignLevelFromDailykWh(space_ltg_ann / Schedule.last_day_of_year(model.getYearDescription))
+        space_design_level = sch.calcDesignLevelFromDailykWh(space_ltg_ann / num_days_in_year)
       end
 
       # Add lighting
@@ -256,6 +263,9 @@ class Lighting
     summer_design_day_sch = OpenStudio::Model::ScheduleDay.new(model)
     summer_design_day_sch.addValue(OpenStudio::Time.new(0, 24, 0, 0), 1)
 
+    year_description = model.getYearDescription
+    num_days_in_year = Constants.NumDaysInYear(year_description.isLeapYear)
+
     obj_name = Constants.ObjectNameLightingExterior
 
     if sch.nil?
@@ -274,7 +284,7 @@ class Lighting
     if sch_option_type == Constants.OptionTypeLightingScheduleCalculated
       design_level = sch.calcDesignLevel(sch.maxval * exterior_ann)
     elsif sch_option_type == Constants.OptionTypeLightingScheduleUserSpecified
-      design_level = sch.calcDesignLevelFromDailykWh(exterior_ann / Schedule.last_day_of_year(model.getYearDescription))
+      design_level = sch.calcDesignLevelFromDailykWh(exterior_ann / num_days_in_year)
     end
 
     # Add exterior lighting

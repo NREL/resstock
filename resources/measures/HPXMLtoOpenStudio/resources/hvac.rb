@@ -191,7 +191,6 @@ class HVAC
       clg_coil.setApplyLatentDegradationtoSpeedsGreaterthan1(false)
       clg_coil.setCrankcaseHeaterCapacity(UnitConversions.convert(crankcase_capacity, "kW", "W"))
       clg_coil.setMaximumOutdoorDryBulbTemperatureforCrankcaseHeaterOperation(UnitConversions.convert(crankcase_temp, "F", "C"))
-
       clg_coil.setFuelType("Electricity")
 
       clg_coil_stage_data.each do |stage|
@@ -338,7 +337,6 @@ class HVAC
       clg_coil.setApplyLatentDegradationtoSpeedsGreaterthan1(false)
       clg_coil.setCrankcaseHeaterCapacity(UnitConversions.convert(crankcase_capacity, "kW", "W"))
       clg_coil.setMaximumOutdoorDryBulbTemperatureforCrankcaseHeaterOperation(UnitConversions.convert(crankcase_temp, "F", "C"))
-
       clg_coil.setFuelType("Electricity")
 
       clg_coil_stage_data.each do |stage|
@@ -2665,8 +2663,8 @@ class HVAC
       sch.remove
     end
 
-    heating_season_schedule = MonthWeekdayWeekendSchedule.new(model, runner, Constants.ObjectNameHeatingSeason, Array.new(24, 1), Array.new(24, 1), heating_season, mult_weekday = 1.0, mult_weekend = 1.0, normalize_values = false)
-    unless heating_season_schedule.validated?
+    heating_season_sch = MonthWeekdayWeekendSchedule.new(model, runner, Constants.ObjectNameHeatingSeason, Array.new(24, 1), Array.new(24, 1), heating_season, mult_weekday = 1.0, mult_weekend = 1.0, normalize_values = false, create_sch_object = true, winter_design_day_sch = nil, summer_design_day_sch = nil, schedule_type_limits_name = Constants.ScheduleTypeLimitsOnOff)
+    unless heating_season_sch.validated?
       return false
     end
 
@@ -2751,8 +2749,8 @@ class HVAC
     summer_design_day_sch = OpenStudio::Model::ScheduleDay.new(model)
     summer_design_day_sch.addValue(OpenStudio::Time.new(0, 24, 0, 0), UnitConversions.convert(75, "F", "C"))
 
-    heating_setpoint = HourlyByMonthSchedule.new(model, runner, Constants.ObjectNameHeatingSetpoint, htg_wkdy_monthly, htg_wked_monthly, normalize_values = false, create_sch_object = true, winter_design_day_sch, summer_design_day_sch)
-    cooling_setpoint = HourlyByMonthSchedule.new(model, runner, Constants.ObjectNameCoolingSetpoint, clg_wkdy_monthly, clg_wked_monthly, normalize_values = false, create_sch_object = true, winter_design_day_sch, summer_design_day_sch)
+    heating_setpoint = HourlyByMonthSchedule.new(model, runner, Constants.ObjectNameHeatingSetpoint, htg_wkdy_monthly, htg_wked_monthly, normalize_values = false, create_sch_object = true, winter_design_day_sch = winter_design_day_sch, summer_design_day_sch = summer_design_day_sch)
+    cooling_setpoint = HourlyByMonthSchedule.new(model, runner, Constants.ObjectNameCoolingSetpoint, clg_wkdy_monthly, clg_wked_monthly, normalize_values = false, create_sch_object = true, winter_design_day_sch = winter_design_day_sch, summer_design_day_sch = summer_design_day_sch)
 
     unless heating_setpoint.validated? and cooling_setpoint.validated?
       return false
@@ -2817,7 +2815,7 @@ class HVAC
       sch.remove
     end
 
-    cooling_season_sch = MonthWeekdayWeekendSchedule.new(model, runner, Constants.ObjectNameCoolingSeason, Array.new(24, 1), Array.new(24, 1), cooling_season, mult_weekday = 1.0, mult_weekend = 1.0, normalize_values = false)
+    cooling_season_sch = MonthWeekdayWeekendSchedule.new(model, runner, Constants.ObjectNameCoolingSeason, Array.new(24, 1), Array.new(24, 1), cooling_season, mult_weekday = 1.0, mult_weekend = 1.0, normalize_values = false, create_sch_object = true, winter_design_day_sch = nil, summer_design_day_sch = nil, schedule_type_limits_name = Constants.ScheduleTypeLimitsOnOff)
     unless cooling_season_sch.validated?
       return false
     end
@@ -2903,8 +2901,8 @@ class HVAC
     summer_design_day_sch = OpenStudio::Model::ScheduleDay.new(model)
     summer_design_day_sch.addValue(OpenStudio::Time.new(0, 24, 0, 0), UnitConversions.convert(75, "F", "C"))
 
-    heating_setpoint = HourlyByMonthSchedule.new(model, runner, Constants.ObjectNameHeatingSetpoint, htg_wkdy_monthly, htg_wked_monthly, normalize_values = false, create_sch_object = true, winter_design_day_sch, summer_design_day_sch)
-    cooling_setpoint = HourlyByMonthSchedule.new(model, runner, Constants.ObjectNameCoolingSetpoint, clg_wkdy_monthly, clg_wked_monthly, normalize_values = false, create_sch_object = true, winter_design_day_sch, summer_design_day_sch)
+    heating_setpoint = HourlyByMonthSchedule.new(model, runner, Constants.ObjectNameHeatingSetpoint, htg_wkdy_monthly, htg_wked_monthly, normalize_values = false, create_sch_object = true, winter_design_day_sch = winter_design_day_sch, summer_design_day_sch = summer_design_day_sch)
+    cooling_setpoint = HourlyByMonthSchedule.new(model, runner, Constants.ObjectNameCoolingSetpoint, clg_wkdy_monthly, clg_wked_monthly, normalize_values = false, create_sch_object = true, winter_design_day_sch = winter_design_day_sch, summer_design_day_sch = summer_design_day_sch)
 
     unless heating_setpoint.validated? and cooling_setpoint.validated?
       return false
@@ -3154,6 +3152,10 @@ class HVAC
     above_grade_finished_floor_area = Geometry.get_above_grade_finished_floor_area_from_spaces(unit.spaces, runner)
     finished_floor_area = Geometry.get_finished_floor_area_from_spaces(unit.spaces, runner)
 
+    # Get number of days in months/year
+    year_description = model.getYearDescription
+    num_days_in_year = Constants.NumDaysInYear(year_description.isLeapYear)
+
     # Determine geometry for spaces and zones that are unit specific
     living_zone = nil
     finished_basement_zone = nil
@@ -3281,7 +3283,7 @@ class HVAC
       end
     end
 
-    ceiling_fan_sch = MonthWeekdayWeekendSchedule.new(model, runner, obj_name + " schedule", ceiling_fans_hourly_weekday, ceiling_fans_hourly_weekend, Array.new(12, 1), mult_weekday = 1.0, mult_weekend = 1.0, normalize_values = false)
+    ceiling_fan_sch = MonthWeekdayWeekendSchedule.new(model, runner, obj_name + " schedule", ceiling_fans_hourly_weekday, ceiling_fans_hourly_weekend, Array.new(12, 1), mult_weekday = 1.0, mult_weekend = 1.0, normalize_values = false, create_sch_object = true, winter_design_day_sch = nil, summer_design_day_sch = nil, schedule_type_limits_name = Constants.ScheduleTypeLimitsFraction)
 
     unless ceiling_fan_sch.validated?
       return false
@@ -3364,7 +3366,7 @@ class HVAC
         end
 
         space_mel_ann = mel_ann * UnitConversions.convert(space.floorArea, "m^2", "ft^2") / finished_floor_area
-        space_design_level = sch.calcDesignLevelFromDailykWh(space_mel_ann / 365.0)
+        space_design_level = sch.calcDesignLevelFromDailykWh(space_mel_ann / num_days_in_year)
 
         mel_def = OpenStudio::Model::ElectricEquipmentDefinition.new(model)
         mel = OpenStudio::Model::ElectricEquipment.new(mel_def)
@@ -3382,40 +3384,6 @@ class HVAC
     end # unit spaces
 
     return true, sch
-  end
-
-  def self.apply_eri_ceiling_fans(model, unit, runner, annual_kWh, weekday_sch, weekend_sch)
-    obj_name = Constants.ObjectNameCeilingFan(unit.name.to_s)
-
-    ceiling_fan_sch = MonthWeekdayWeekendSchedule.new(model, runner, obj_name + " schedule", weekday_sch, weekend_sch, [1] * 12)
-    if not ceiling_fan_sch.validated?
-      return false
-    end
-
-    finished_floor_area = Geometry.get_finished_floor_area_from_spaces(unit.spaces, runner)
-
-    unit.spaces.each do |space|
-      next if Geometry.space_is_unfinished(space)
-
-      space_obj_name = "#{obj_name}|#{space.name.to_s}"
-
-      space_mel_ann = annual_kWh * UnitConversions.convert(space.floorArea, "m^2", "ft^2") / finished_floor_area
-      space_design_level = ceiling_fan_sch.calcDesignLevelFromDailykWh(space_mel_ann / 365.0)
-
-      equip_def = OpenStudio::Model::ElectricEquipmentDefinition.new(model)
-      equip_def.setName(space_obj_name)
-      equip = OpenStudio::Model::ElectricEquipment.new(equip_def)
-      equip.setName(equip_def.name.to_s)
-      equip.setSpace(space)
-      equip_def.setDesignLevel(space_design_level)
-      equip_def.setFractionRadiant(0.558)
-      equip_def.setFractionLatent(0)
-      equip_def.setFractionLost(0)
-      equip.setEndUseSubcategory(obj_name)
-      equip.setSchedule(ceiling_fan_sch.schedule)
-    end
-
-    return true
   end
 
   def self.get_default_ceiling_fan_power()
