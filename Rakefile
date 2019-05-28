@@ -13,7 +13,7 @@ namespace :test do
   desc 'Run unit tests for all projects/measures'
   Rake::TestTask.new('all') do |t|
     t.libs << 'test'
-    t.test_files = Dir['project_*/tests/*.rb'] + Dir['test/test_integrity_checks.rb'] + Dir['measures/*/tests/*.rb'] + Dir['resources/measures/*/tests/*.rb'] + Dir['workflows/tests/*.rb'] - Dir['measures/HPXMLtoOpenStudio/tests/*.rb'] # HPXMLtoOpenStudio is tested upstream
+    t.test_files = Dir['project_*/tests/*.rb'] + Dir['test/test_integrity_checks.rb'] + Dir['measures/*/tests/*.rb'] + Dir['resources/measures/*/tests/*.rb'] + Dir['workflows/tests/*.rb'] - Dir['resources/measures/HPXMLtoOpenStudio/tests/*.rb'] # HPXMLtoOpenStudio is tested upstream
     t.warning = false
     t.verbose = true
   end
@@ -29,6 +29,9 @@ end
 
 def regenerate_osms
   require 'openstudio'
+  require_relative 'resources/meta_measure'
+
+  OpenStudio::Logger.instance.standardOutLogger.setLogLevel(OpenStudio::Error)
 
   start_time = Time.now
   num_tot = 0
@@ -37,14 +40,7 @@ def regenerate_osms
   osw_path = File.expand_path("../test/osw_files/", __FILE__)
   osm_path = File.expand_path("../test/osm_files/", __FILE__)
 
-  osw_files = Dir.entries(osw_path).select { |entry| entry.end_with?(".osw") and entry != "out.osw" }
-
-  if File.exists?(File.expand_path("../log", __FILE__))
-    FileUtils.rm(File.expand_path("../log", __FILE__))
-  end
-
-  cli_path = OpenStudio.getOpenStudioCLI
-
+  osw_files = Dir.entries(osw_path).select { |entry| entry.end_with?(".osw") }
   num_osws = osw_files.size
 
   osw_files.each do |osw|
@@ -54,15 +50,27 @@ def regenerate_osms
     puts "[#{num_tot}/#{num_osws}] Regenerating osm from #{osw}..."
     osw = File.expand_path("../test/osw_files/#{osw}", __FILE__)
     update_and_format_osw(osw)
-    osm = File.expand_path("../test/osw_files/run/in.osm", __FILE__)
-    command = "\"#{cli_path}\" --no-ssl run -w #{osw} -m >> log"
-    for _retry in 1..3
-      system(command)
-      break if File.exists?(osm)
+    osw_hash = JSON.parse(File.read(osw))
+
+    # Create measures hashes for top-level measures and other residential measures
+    measures = {}
+    resources_measures = {}
+    osw_hash["steps"].each do |step|
+      if ["ResidentialSimulationControls", "Outages"].include? step["measure_dir_name"]
+        measures[step["measure_dir_name"]] = [step["arguments"]]
+      else
+        resources_measures[step["measure_dir_name"]] = [step["arguments"]]
+      end
     end
-    if not File.exists?(osm)
-      fail "  ERROR: Could not generate osm."
-    end
+
+    # Apply measures
+    model = OpenStudio::Model::Model.new
+    runner = OpenStudio::Measure::OSRunner.new(OpenStudio::WorkflowJSON.new)
+    success = apply_measures(File.expand_path("../measures/", __FILE__), measures, runner, model)
+    success = apply_measures(File.expand_path("../resources/measures", __FILE__), resources_measures, runner, model)
+
+    osm = File.expand_path("../test/osw_files/in.osm", __FILE__)
+    File.open(osm, 'w') { |f| f << model.to_s }
 
     # Add auto-generated message to top of file
     # Update EPW file paths to be relative for the CircleCI machine
@@ -86,17 +94,8 @@ def regenerate_osms
 
     # Copy to osm dir
     osm_new = File.join(osm_path, File.basename(osw).gsub(".osw", ".osm"))
-    FileUtils.cp(osm, osm_new)
+    FileUtils.mv(osm, osm_new)
     num_success += 1
-
-    # Clean up
-    run_dir = File.expand_path("../test/osw_files/run", __FILE__)
-    if Dir.exists?(run_dir)
-      FileUtils.rmtree(run_dir)
-    end
-    if File.exists?(File.expand_path("../test/osw_files/out.osw", __FILE__))
-      FileUtils.rm(File.expand_path("../test/osw_files/out.osw", __FILE__))
-    end
   end
 
   puts "Completed. #{num_success} of #{num_tot} osm files were regenerated successfully (#{Time.now - start_time} seconds)."
@@ -168,7 +167,7 @@ Rake::TestTask.new('integrity_check_unit_tests') do |t|
   t.verbose = true
 end # rake task
 
-def integrity_check(project_dir_name, housing_characteristics_dir="housing_characteristics", lookup_file=nil)
+def integrity_check(project_dir_name, housing_characteristics_dir = "housing_characteristics", lookup_file = nil)
   # Load helper file and sampling file
   resources_dir = File.join(File.dirname(__FILE__), 'resources')
   require File.join(resources_dir, 'buildstock')
@@ -284,7 +283,7 @@ def integrity_check(project_dir_name, housing_characteristics_dir="housing_chara
   end
 end
 
-def integrity_check_options_lookup_tsv(project_dir_name, housing_characteristics_dir="housing_characteristics", lookup_file=nil)
+def integrity_check_options_lookup_tsv(project_dir_name, housing_characteristics_dir = "housing_characteristics", lookup_file = nil)
   require 'openstudio'
 
   # Load helper file and sampling file
@@ -354,7 +353,7 @@ def integrity_check_options_lookup_tsv(project_dir_name, housing_characteristics
 
     option_combinations = []
     options_array.each_with_index do |option_array, idx|
-      for n in 0..max_param_size-1
+      for n in 0..max_param_size - 1
         if idx == 0
           option_combinations << []
         end
@@ -421,37 +420,43 @@ task :update_measures do
                       "ResidentialHVACDehumidifier",
                       "ResidentialMiscLargeUncommonLoads"]
 
-  # SFD
-  include_measures = ["ResidentialGeometryCreateSingleFamilyDetached"]
-  generate_example_osws(data_hash,
-                        include_measures,
-                        exclude_measures,
-                        "example_single_family_detached.osw")
+  example_osws = { 'TMY' => 'USA_CO_Denver.Intl.AP.725650_TMY3.epw', 'AMY2012' => '0465925_US_CO_Boulder_8013_0-20000-0-72469_40.13_-105.22_NSRDB_2.0.1_AMY_2012.epw', 'AMY2014' => '0465925_US_CO_Boulder_8013_0-20000-0-72469_40.13_-105.22_NSRDB_2.0.1_AMY_2014.epw' }
+  example_osws.each do |weather_year, weather_file|
+    # SFD
+    include_measures = ["ResidentialGeometryCreateSingleFamilyDetached"]
+    generate_example_osws(data_hash,
+                          include_measures,
+                          exclude_measures,
+                          "example_single_family_detached_#{weather_year}.osw",
+                          weather_file)
 
-  # SFA
-  include_measures = ["ResidentialGeometryCreateSingleFamilyAttached"]
-  generate_example_osws(data_hash,
-                        include_measures,
-                        exclude_measures,
-                        "example_single_family_attached.osw")
+    # SFA
+    include_measures = ["ResidentialGeometryCreateSingleFamilyAttached"]
+    generate_example_osws(data_hash,
+                          include_measures,
+                          exclude_measures,
+                          "example_single_family_attached_#{weather_year}.osw",
+                          weather_file)
 
-  # MF
-  include_measures = ["ResidentialGeometryCreateMultifamily", "ResidentialConstructionsFinishedRoof"]
-  generate_example_osws(data_hash,
-                        include_measures,
-                        exclude_measures,
-                        "example_multifamily.osw")
+    # MF
+    include_measures = ["ResidentialGeometryCreateMultifamily", "ResidentialConstructionsFinishedRoof"]
+    generate_example_osws(data_hash,
+                          include_measures,
+                          exclude_measures,
+                          "example_multifamily_#{weather_year}.osw",
+                          weather_file)
 
-  # FloorspaceJS
-  # include_measures = ["ResidentialGeometryCreateFromFloorspaceJS"]
-  # generate_example_osws(data_hash,
-  #                      include_measures,
-  #                      exclude_measures,
-  #                      "example_from_floorspacejs.osw")
+    # FloorspaceJS
+    # include_measures = ["ResidentialGeometryCreateFromFloorspaceJS"]
+    # generate_example_osws(data_hash,
+    #                      include_measures,
+    #                      exclude_measures,
+    #                      "example_from_floorspacejs.osw")
+  end
 end
 
 def generate_example_osws(data_hash, include_measures, exclude_measures,
-                          osw_filename, simplify = true)
+                          osw_filename, weather_file, simplify = true)
   # This function will generate OpenStudio OSWs
   # with all the measures in it, in the order specified in /resources/measure-info.json
 
@@ -492,7 +497,7 @@ def generate_example_osws(data_hash, include_measures, exclude_measures,
 
   data_hash.each do |group|
     group["group_steps"].each do |group_step|
-      # Default o first measure in step
+      # Default to first measure in step
       measure = group_step["measures"][0]
 
       # Override with include measure?
@@ -509,11 +514,15 @@ def generate_example_osws(data_hash, include_measures, exclude_measures,
 
       measure_path = File.expand_path(File.join("../resources/measures", measure), workflowJSON.oswDir.to_s)
       unless File.exist? measure_path
-        measure_path = File.expand_path(File.join("../measures", measure), workflowJSON.oswDir.to_s) # for ResidentialSimulationControls
+        measure_path = File.expand_path(File.join("../measures", measure), workflowJSON.oswDir.to_s) # for ResidentialSimulationControls, TimeseriesCSVExport
       end
       measure_instance = get_measure_instance("#{measure_path}/measure.rb")
 
-      measure_args = measure_instance.arguments(model).sort_by { |arg| arg.name }
+      begin
+        measure_args = measure_instance.arguments(model).sort_by { |arg| arg.name }
+      rescue
+        measure_args = measure_instance.arguments.sort_by { |arg| arg.name } # for reporting measures
+      end
 
       step = OpenStudio::MeasureStep.new(measure)
       if not simplify
@@ -525,7 +534,9 @@ def generate_example_osws(data_hash, include_measures, exclude_measures,
       # Loop on each argument
       measure_args.each do |arg|
         if arg.hasDefaultValue
-          step.setArgument(arg.name, arg.defaultValueAsString)
+          arg_value = arg.defaultValueAsString
+          arg_value = weather_file if measure == "ResidentialLocation" and arg.name == "weather_file_name"
+          step.setArgument(arg.name, arg_value)
         elsif arg.required
           puts "Error: No default value provided for #{measure} argument '#{arg.name}'."
           exit
@@ -560,6 +571,7 @@ def get_and_proof_measure_order_json()
   measure_folder = File.expand_path("../measures/", __FILE__)
   resources_measure_folder = File.expand_path("../resources/measures/", __FILE__)
   all_measures = Dir.entries(measure_folder).select { |entry| entry.start_with?('Residential') } + Dir.entries(resources_measure_folder).select { |entry| entry.start_with?('Residential') }
+  all_measures += ['TimeseriesCSVExport']
 
   # Load json, and get all measures in there
   json_file = "resources/measure-info.json"

@@ -413,10 +413,13 @@ class WeatherProcess
       end
     end
 
+    year_description = @model.getYearDescription
+    num_days_in_months = Constants.NumDaysInMonths(year_description.isLeapYear)
+
     calc_annual_drybulbs(rowdata)
     calc_monthly_drybulbs(rowdata)
     calc_heat_cool_degree_days(rowdata, dailydbs)
-    calc_avg_highs_lows(dailyhighdbs, dailylowdbs)
+    calc_avg_highs_lows(dailyhighdbs, dailylowdbs, num_days_in_months)
     calc_avg_windspeed(rowdata)
     calc_ground_temperatures
     @data.WSF = get_ashrae_622_wsf
@@ -455,7 +458,7 @@ class WeatherProcess
   def calc_monthly_drybulbs(hd)
     # Calculates and stores monthly average drybulbs
     @data.MonthlyAvgDrybulbs = []
-    (1...13).to_a.each do |month|
+    (1..12).to_a.each do |month|
       y = []
       hd.each do |x|
         if x['month'] == month
@@ -512,16 +515,16 @@ class WeatherProcess
     return 1.8 * deg_days
   end
 
-  def calc_avg_highs_lows(daily_high_dbs, daily_low_dbs)
+  def calc_avg_highs_lows(daily_high_dbs, daily_low_dbs, num_days_in_months)
     # Calculates and stores avg daily highs and lows for each month
     @data.MonthlyAvgDailyHighDrybulbs = []
     @data.MonthlyAvgDailyLowDrybulbs = []
 
     first_day = 0
     for month in 1..12
-      ndays = Constants.MonthNumDays[month - 1] # Number of days in current month
+      ndays = num_days_in_months[month - 1] # Number of days in current month
       if month > 1
-        first_day += Constants.MonthNumDays[month - 2] # Number of days in previous month
+        first_day += num_days_in_months[month - 2] # Number of days in previous month
       end
       avg_high = daily_high_dbs[first_day, ndays].inject { |sum, n| sum + n } / ndays.to_f
       avg_low = daily_low_dbs[first_day, ndays].inject { |sum, n| sum + n } / ndays.to_f
@@ -698,16 +701,16 @@ class WeatherProcess
     bo = (data.MonthlyAvgDrybulbs.max - data.MonthlyAvgDrybulbs.min) * 0.5
 
     @data.GroundMonthlyTemps = []
-    (0...12).to_a.each do |i|
+    (0..11).to_a.each do |i|
       theta = amon[i] * 24.0
       @data.GroundMonthlyTemps << UnitConversions.convert(data.AnnualAvgDrybulb - bo * Math::cos(2.0 * Math::PI / p * theta - po - phi) * gm + 460.0, "R", "F")
     end
   end
 
-  def self.calc_mains_temperatures(avgOAT, maxDiffMonthlyAvgOAT, latitude)
+  def self.calc_mains_temperatures(avgOAT, maxDiffMonthlyAvgOAT, latitude, num_days_in_year)
     pi = Math::PI
     deg_rad = pi / 180
-    mainsDailyTemps = Array.new(365, 0)
+    mainsDailyTemps = Array.new(num_days_in_year, 0)
     mainsMonthlyTemps = Array.new(12, 0)
     mainsAvgTemp = 0
 
@@ -720,9 +723,9 @@ class WeatherProcess
     end
 
     # Calculate daily and annual
-    for d in 1..365
+    for d in 1..num_days_in_year
       mainsDailyTemps[d - 1] = avgOAT + 6 + tmains_ratio * maxDiffMonthlyAvgOAT / 2 * Math.sin(deg_rad * (0.986 * (d - 15 - tmains_lag) + sign * 90))
-      mainsAvgTemp += mainsDailyTemps[d - 1] / 365.0
+      mainsAvgTemp += mainsDailyTemps[d - 1] / num_days_in_year
     end
     # Calculate monthly
     for m in 1..12

@@ -7,8 +7,8 @@ require_relative "constructions"
 
 class HVACSizing
   def self.apply(model, unit, runner, weather, show_debug_info)
-    # Get year of model
-    @modelYear = model.yearDescription.get.assumedYear
+    # Get year description of model
+    @year_description = model.getYearDescription
 
     @northAxis = model.getBuilding.northAxis
     @minCoolingCapacity = 1 # Btu/hr
@@ -1263,7 +1263,8 @@ class HVACSizing
       gains.push(*space.otherEquipment)
     end
 
-    july_1 = OpenStudio::Date.new(OpenStudio::MonthOfYear.new('July'), 1, @modelYear)
+    assumed_year = @year_description.assumedYear
+    july_1 = OpenStudio::Date.new(OpenStudio::MonthOfYear.new('July'), 1, assumed_year)
 
     int_Sens_Hr = [0] * 24
     int_Lat_Hr = [0] * 24
@@ -1363,8 +1364,8 @@ class HVACSizing
         end
         if not max_mult.nil?
           # Calculate daily load
-          annual_energy = Schedule.annual_equivalent_full_load_hrs(@modelYear, sched) * design_level_w * gain.multiplier # Wh
-          daily_load = UnitConversions.convert(annual_energy, "Wh", "Btu") / 365.0 # Btu/day
+          annual_energy = Schedule.annual_equivalent_full_load_hrs(@year_description, sched) * design_level_w * gain.multiplier # Wh
+          daily_load = UnitConversions.convert(annual_energy, "Wh", "Btu") / Constants.NumDaysInYear(@year_description.isLeapYear) # Btu/day
           # Calculate design level in Btu/hr
           design_level = sched_values.max * daily_load * max_mult # Btu/hr
           # Normalize schedule values to be max=1 from sum=1

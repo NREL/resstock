@@ -35,6 +35,8 @@ class BuildingCharacteristicsReport < OpenStudio::Measure::ReportingMeasure
       "location_state",
       "location_latitude",
       "location_longitude",
+      "climate_zone_ba",
+      "climate_zone_iecc",
       "units_represented",
       "units_modeled"
     ]
@@ -104,6 +106,19 @@ class BuildingCharacteristicsReport < OpenStudio::Measure::ReportingMeasure
       runner.registerValue("location_latitude", weather.header.Latitude)
       runner.registerInfo("Registering #{weather.header.Longitude} for location_longitude.")
       runner.registerValue("location_longitude", weather.header.Longitude)
+      climate_zone_ba = Location.get_climate_zone_ba(weather.header.Station)
+      climate_zone_iecc = Location.get_climate_zone_iecc(weather.header.Station)
+      unless climate_zone_ba.nil?
+        runner.registerInfo("Registering #{climate_zone_ba} for climate_zone_ba.")
+        runner.registerValue("climate_zone_ba", climate_zone_ba)
+      end
+      unless climate_zone_iecc.nil?
+        runner.registerInfo("Registering #{climate_zone_iecc} for climate_zone_iecc.")
+        runner.registerValue("climate_zone_iecc", climate_zone_iecc)
+      end
+      if climate_zone_ba.nil? and climate_zone_iecc.nil?
+        runner.registerInfo("The weather station WMO has not been set appropriately in the EPW weather file header.")
+      end
     end
 
     units_represented = model.getBuilding.additionalProperties.getFeatureAsInteger("Total Units Represented")
