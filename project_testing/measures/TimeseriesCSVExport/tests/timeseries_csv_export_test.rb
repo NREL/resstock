@@ -7,7 +7,7 @@ require 'fileutils'
 
 class TimeseriesCSVExportTest < MiniTest::Test
   def test_leap_year_timestep_and_subcategories
-    num_output_requests = 31 + 2
+    num_output_requests = 27 + 2
     measure = TimeseriesCSVExport.new
     args_hash = {}
     args_hash["reporting_frequency"] = "Timestep"
@@ -18,7 +18,7 @@ class TimeseriesCSVExportTest < MiniTest::Test
   end
 
   def test_amy_short_run_period_hourly
-    num_output_requests = 25 + 1
+    num_output_requests = 21 + 1
     measure = TimeseriesCSVExport.new
     args_hash = {}
     args_hash["output_variables"] = "Zone People Occupant Count"
@@ -27,7 +27,7 @@ class TimeseriesCSVExportTest < MiniTest::Test
   end
 
   def test_amy_short_run_period_daily
-    num_output_requests = 25 + 1
+    num_output_requests = 21 + 1
     measure = TimeseriesCSVExport.new
     args_hash = {}
     args_hash["reporting_frequency"] = "Daily"
@@ -37,7 +37,7 @@ class TimeseriesCSVExportTest < MiniTest::Test
   end
 
   def test_amy_short_run_period_monthly
-    num_output_requests = 25 + 1
+    num_output_requests = 21 + 1
     measure = TimeseriesCSVExport.new
     args_hash = {}
     args_hash["reporting_frequency"] = "Monthly"
@@ -47,7 +47,7 @@ class TimeseriesCSVExportTest < MiniTest::Test
   end
 
   def test_amy_short_run_period_runperiod
-    num_output_requests = 25 + 1
+    num_output_requests = 21 + 1
     measure = TimeseriesCSVExport.new
     args_hash = {}
     args_hash["reporting_frequency"] = "Runperiod"
