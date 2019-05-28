@@ -420,37 +420,43 @@ task :update_measures do
                       "ResidentialHVACDehumidifier",
                       "ResidentialMiscLargeUncommonLoads"]
 
-  # SFD
-  include_measures = ["ResidentialGeometryCreateSingleFamilyDetached"]
-  generate_example_osws(data_hash,
-                        include_measures,
-                        exclude_measures,
-                        "example_single_family_detached.osw")
+  example_osws = { 'TMY' => 'USA_CO_Denver.Intl.AP.725650_TMY3.epw', 'AMY2012' => '0465925_US_CO_Boulder_8013_0-20000-0-72469_40.13_-105.22_NSRDB_2.0.1_AMY_2012.epw', 'AMY2014' => '0465925_US_CO_Boulder_8013_0-20000-0-72469_40.13_-105.22_NSRDB_2.0.1_AMY_2014.epw' }
+  example_osws.each do |weather_year, weather_file|
+    # SFD
+    include_measures = ["ResidentialGeometryCreateSingleFamilyDetached"]
+    generate_example_osws(data_hash,
+                          include_measures,
+                          exclude_measures,
+                          "example_single_family_detached_#{weather_year}.osw",
+                          weather_file)
 
-  # SFA
-  include_measures = ["ResidentialGeometryCreateSingleFamilyAttached"]
-  generate_example_osws(data_hash,
-                        include_measures,
-                        exclude_measures,
-                        "example_single_family_attached.osw")
+    # SFA
+    include_measures = ["ResidentialGeometryCreateSingleFamilyAttached"]
+    generate_example_osws(data_hash,
+                          include_measures,
+                          exclude_measures,
+                          "example_single_family_attached_#{weather_year}.osw",
+                          weather_file)
 
-  # MF
-  include_measures = ["ResidentialGeometryCreateMultifamily", "ResidentialConstructionsFinishedRoof"]
-  generate_example_osws(data_hash,
-                        include_measures,
-                        exclude_measures,
-                        "example_multifamily.osw")
+    # MF
+    include_measures = ["ResidentialGeometryCreateMultifamily", "ResidentialConstructionsFinishedRoof"]
+    generate_example_osws(data_hash,
+                          include_measures,
+                          exclude_measures,
+                          "example_multifamily_#{weather_year}.osw",
+                          weather_file)
 
-  # FloorspaceJS
-  # include_measures = ["ResidentialGeometryCreateFromFloorspaceJS"]
-  # generate_example_osws(data_hash,
-  #                      include_measures,
-  #                      exclude_measures,
-  #                      "example_from_floorspacejs.osw")
+    # FloorspaceJS
+    # include_measures = ["ResidentialGeometryCreateFromFloorspaceJS"]
+    # generate_example_osws(data_hash,
+    #                      include_measures,
+    #                      exclude_measures,
+    #                      "example_from_floorspacejs.osw")
+  end
 end
 
 def generate_example_osws(data_hash, include_measures, exclude_measures,
-                          osw_filename, simplify = true)
+                          osw_filename, weather_file, simplify = true)
   # This function will generate OpenStudio OSWs
   # with all the measures in it, in the order specified in /resources/measure-info.json
 
@@ -528,7 +534,9 @@ def generate_example_osws(data_hash, include_measures, exclude_measures,
       # Loop on each argument
       measure_args.each do |arg|
         if arg.hasDefaultValue
-          step.setArgument(arg.name, arg.defaultValueAsString)
+          arg_value = arg.defaultValueAsString
+          arg_value = weather_file if measure == "ResidentialLocation" and arg.name == "weather_file_name"
+          step.setArgument(arg.name, arg_value)
         elsif arg.required
           puts "Error: No default value provided for #{measure} argument '#{arg.name}'."
           exit
