@@ -5087,18 +5087,11 @@ class HVAC
       next if not is_specified_zone
 
       plant_loop.supplyComponents.each do |supply_component|
-        if heating and cooling
-          if supply_component.to_BoilerHotWater.is_initialized or supply_component.to_ChillerElectricEIR.is_initialized
-            remove = true
-          end
-        elsif heating
-          if supply_component.to_BoilerHotWater.is_initialized
-            remove = true
-          end
-        elsif cooling
-          if supply_component.to_ChillerElectricEIR.is_initialized
-            remove = true
-          end
+        if heating and supply_component.to_BoilerHotWater.is_initialized
+          remove = true
+        end
+        if cooling and supply_component.to_ChillerElectricEIR.is_initialized
+          remove = true
         end
       end
       if remove
