@@ -480,10 +480,14 @@ class OutputMeters
               next unless supply_component.to_BoilerHotWater.is_initialized
 
               if units_served.length != 1 # this is a central system
-                custom_meter_infos["Central:ElectricityHeating"]["key_var_groups"] << ["#{supply_component.name}", "Boiler Electric Energy"]
+                if supply_component.to_BoilerHotWater.get.fuelType == "Electricity"
+                  custom_meter_infos["Central:ElectricityHeating"]["key_var_groups"] << ["#{supply_component.name}", "Boiler Electric Energy"]
+                end
                 custom_meter_infos["Central:ElectricityHeating"]["key_var_groups"] << ["#{supply_component.name}", "Boiler Ancillary Electric Energy"]
               else
-                custom_meter_infos["#{unit.name}:ElectricityHeating"]["key_var_groups"] << ["#{supply_component.name}", "Boiler Electric Energy"]
+                if supply_component.to_BoilerHotWater.get.fuelType == "Electricity"
+                  custom_meter_infos["#{unit.name}:ElectricityHeating"]["key_var_groups"] << ["#{supply_component.name}", "Boiler Electric Energy"]
+                end
                 custom_meter_infos["#{unit.name}:ElectricityHeating"]["key_var_groups"] << ["#{supply_component.name}", "Boiler Ancillary Electric Energy"]
               end
             end
@@ -492,7 +496,7 @@ class OutputMeters
         elsif htg_equip.is_a? OpenStudio::Model::ZoneHVACBaseboardConvectiveElectric
           custom_meter_infos["#{unit.name}:ElectricityHeating"]["key_var_groups"] << ["#{htg_equip.name}", "Baseboard Electric Energy"]
 
-        elsif htg_equip.is_a? OpenStudio::Model::ZoneHVACFourPipeFanCoil or htg_equip.is_a? OpenStudio::Model::ZoneHVACPackagedTerminalAirConditioner
+        elsif htg_equip.is_a? OpenStudio::Model::ZoneHVACFourPipeFanCoil or htg_equip.is_a? OpenStudio::Model::ZoneHVACPackagedTerminalAirConditioner or htg_equip.is_a? OpenStudio::Model::ZoneHVACUnitHeater
 
           model.getPlantLoops.each do |plant_loop|
             is_specified_zone = false
@@ -518,10 +522,14 @@ class OutputMeters
               next unless supply_component.to_BoilerHotWater.is_initialized
 
               if units_served.length != 1 # this is a central system
-                custom_meter_infos["Central:ElectricityHeating"]["key_var_groups"] << ["#{supply_component.name}", "Boiler Electric Energy"]
+                if supply_component.to_BoilerHotWater.get.fuelType == "Electricity"
+                  custom_meter_infos["Central:ElectricityHeating"]["key_var_groups"] << ["#{supply_component.name}", "Boiler Electric Energy"]
+                end
                 custom_meter_infos["Central:ElectricityHeating"]["key_var_groups"] << ["#{supply_component.name}", "Boiler Ancillary Electric Energy"]
               else
-                custom_meter_infos["#{unit.name}:ElectricityHeating"]["key_var_groups"] << ["#{supply_component.name}", "Boiler Electric Energy"]
+                if supply_component.to_BoilerHotWater.get.fuelType == "Electricity"
+                  custom_meter_infos["#{unit.name}:ElectricityHeating"]["key_var_groups"] << ["#{supply_component.name}", "Boiler Electric Energy"]
+                end
                 custom_meter_infos["#{unit.name}:ElectricityHeating"]["key_var_groups"] << ["#{supply_component.name}", "Boiler Ancillary Electric Energy"]
               end
             end
@@ -790,7 +798,7 @@ class OutputMeters
             end
           end
 
-        elsif htg_equip.is_a? OpenStudio::Model::ZoneHVACFourPipeFanCoil or htg_equip.is_a? OpenStudio::Model::ZoneHVACPackagedTerminalAirConditioner
+        elsif htg_equip.is_a? OpenStudio::Model::ZoneHVACFourPipeFanCoil or htg_equip.is_a? OpenStudio::Model::ZoneHVACPackagedTerminalAirConditioner or htg_equip.is_a? OpenStudio::Model::ZoneHVACUnitHeater
           model.getPlantLoops.each do |plant_loop|
             is_specified_zone = false
             units_served = []
@@ -813,6 +821,7 @@ class OutputMeters
 
             plant_loop.supplyComponents.each do |supply_component|
               next unless supply_component.to_BoilerHotWater.is_initialized
+              next if supply_component.to_BoilerHotWater.get.fuelType != "NaturalGas"
 
               if units_served.length != 1 # this is a central system
                 custom_meter_infos["Central:NaturalGasHeating"]["key_var_groups"] << ["#{supply_component.name}", "Boiler Gas Energy"]
@@ -917,7 +926,7 @@ class OutputMeters
             end
           end
 
-        elsif htg_equip.is_a? OpenStudio::Model::ZoneHVACFourPipeFanCoil or htg_equip.is_a? OpenStudio::Model::ZoneHVACPackagedTerminalAirConditioner
+        elsif htg_equip.is_a? OpenStudio::Model::ZoneHVACFourPipeFanCoil or htg_equip.is_a? OpenStudio::Model::ZoneHVACPackagedTerminalAirConditioner or htg_equip.is_a? OpenStudio::Model::ZoneHVACUnitHeater
           model.getPlantLoops.each do |plant_loop|
             is_specified_zone = false
             units_served = []
@@ -940,6 +949,7 @@ class OutputMeters
 
             plant_loop.supplyComponents.each do |supply_component|
               next unless supply_component.to_BoilerHotWater.is_initialized
+              next if supply_component.to_BoilerHotWater.get.fuelType != "FuelOil#1"
 
               if units_served.length != 1 # this is a central system
                 custom_meter_infos["Central:FuelOilHeating"]["key_var_groups"] << ["#{supply_component.name}", "Boiler FuelOil#1 Energy"]
@@ -1039,7 +1049,7 @@ class OutputMeters
             end
           end
 
-        elsif htg_equip.is_a? OpenStudio::Model::ZoneHVACFourPipeFanCoil or htg_equip.is_a? OpenStudio::Model::ZoneHVACPackagedTerminalAirConditioner
+        elsif htg_equip.is_a? OpenStudio::Model::ZoneHVACFourPipeFanCoil or htg_equip.is_a? OpenStudio::Model::ZoneHVACPackagedTerminalAirConditioner or htg_equip.is_a? OpenStudio::Model::ZoneHVACUnitHeater
           model.getPlantLoops.each do |plant_loop|
             is_specified_zone = false
             units_served = []
@@ -1062,6 +1072,7 @@ class OutputMeters
 
             plant_loop.supplyComponents.each do |supply_component|
               next unless supply_component.to_BoilerHotWater.is_initialized
+              next if supply_component.to_BoilerHotWater.get.fuelType != "PropaneGas"
 
               if units_served.length != 1 # this is a central system
                 custom_meter_infos["Central:PropaneHeating"]["key_var_groups"] << ["#{supply_component.name}", "Boiler Propane Energy"]
