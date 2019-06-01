@@ -4934,7 +4934,7 @@ class HVAC
       end
     end
 
-    self.remove_pump_ems(model, fan_coil_heating, fan_coil_cooling)
+    self.remove_central_pump_ems(model, heating_or_cooling = "htg")
   end
 
   def self.remove_central_system_fan_coil_cooling(model, runner, thermal_zone)
@@ -4969,54 +4969,30 @@ class HVAC
       end
     end
 
-    self.remove_pump_ems(model, fan_coil_heating, fan_coil_cooling)
+    self.remove_central_pump_ems(model, heating_or_cooling = "clg")
   end
 
-  def self.remove_pump_ems(model, heating = true, cooling = true)
-    if heating
-      model.getEnergyManagementSystemSensors.each do |sensor|
-        next if sensor.name.to_s != "Central htg pump s".gsub(" ", "_").gsub("|", "_")
+  def self.remove_central_pump_ems(model, heating_or_cooling)
+    model.getEnergyManagementSystemSensors.each do |sensor|
+      next if sensor.name.to_s != "Central #{heating_or_cooling} pump s".gsub(" ", "_").gsub("|", "_")
 
-        sensor.remove
-      end
-      model.getEnergyManagementSystemOutputVariables.each do |output_var|
-        next if output_var.name.to_s != "Central htg pump:Pumps:Electricity"
-
-        output_var.remove
-      end
-      model.getEnergyManagementSystemPrograms.each do |program|
-        next unless program.name.to_s == "Central pumps htg program".gsub(" ", "_")
-
-        program.remove
-      end
-      model.getEnergyManagementSystemProgramCallingManagers.each do |program_calling_manager|
-        next unless program_calling_manager.name.to_s == "Central pump htg program calling manager"
-
-        program_calling_manager.remove
-      end
+      sensor.remove
     end
-    if cooling
-      model.getEnergyManagementSystemSensors.each do |sensor|
-        next if sensor.name.to_s != "Central clg pump s".gsub(" ", "_").gsub("|", "_")
+    model.getEnergyManagementSystemOutputVariables.each do |output_var|
+      next if output_var.name.to_s != "Central #{heating_or_cooling} pump:Pumps:Electricity"
 
-        sensor.remove
-      end
-      model.getEnergyManagementSystemOutputVariables.each do |output_var|
-        next if output_var.name.to_s != "Central clg pump:Pumps:Electricity"
-
-        output_var.remove
-      end
-      model.getEnergyManagementSystemPrograms.each do |program|
-        next unless program.name.to_s == "Central pumps clg program".gsub(" ", "_")
-
-        program.remove
-      end
-      model.getEnergyManagementSystemProgramCallingManagers.each do |program_calling_manager|
-        next unless program_calling_manager.name.to_s == "Central pump clg program calling manager"
-
-        program_calling_manager.remove
-      end
+      output_var.remove
     end
+    model.getEnergyManagementSystemPrograms.each do |program|
+      next unless program.name.to_s == "Central pumps #{heating_or_cooling} program".gsub(" ", "_")
+
+      program.remove
+    end
+    model.getEnergyManagementSystemProgramCallingManagers.each do |program_calling_manager|
+      next unless program_calling_manager.name.to_s == "Central pump #{heating_or_cooling} program calling manager"
+
+      program_calling_manager.remove
+    end  
   end
 
   def self.remove_central_system_ptac(model, runner, thermal_zone)
