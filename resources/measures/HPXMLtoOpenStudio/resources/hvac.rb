@@ -4925,6 +4925,8 @@ class HVAC
         runner.registerInfo("Removed '#{fcu.name}' from '#{thermal_zone.name}'.")
         fcu.remove
       end
+      self.remove_central_pump_ems(model, heating_or_cooling = "htg")
+      self.remove_central_pump_ems(model, heating_or_cooling = "clg")
     elsif fan_coil_heating
       self.remove_fan_coil_loops(model, runner, thermal_zone, fan_coil_heating, fan_coil_cooling)
       unit_heaters = self.get_central_fan_coil_unit_heaters(model, runner, thermal_zone)
@@ -4932,9 +4934,8 @@ class HVAC
         runner.registerInfo("Removed '#{unit_heater.name}' from '#{thermal_zone.name}'.")
         unit_heater.remove
       end
-    end
-
-    self.remove_central_pump_ems(model, heating_or_cooling = "htg")
+      self.remove_central_pump_ems(model, heating_or_cooling = "htg")
+    end    
   end
 
   def self.remove_central_system_fan_coil_cooling(model, runner, thermal_zone)
@@ -4960,16 +4961,24 @@ class HVAC
       fan_coil_heating = true
     end
 
-    if fan_coil_cooling
+    if fan_coil_heating and fan_coil_cooling
       self.remove_fan_coil_loops(model, runner, thermal_zone, fan_coil_heating, fan_coil_cooling)
       fcus = self.get_central_fan_coils(model, runner, thermal_zone)
       fcus.each do |fcu|
         runner.registerInfo("Removed '#{fcu.name}' from '#{thermal_zone.name}'.")
         fcu.remove
       end
+      self.remove_central_pump_ems(model, heating_or_cooling = "htg")
+      self.remove_central_pump_ems(model, heating_or_cooling = "clg")
+    elsif fan_coil_cooling
+      self.remove_fan_coil_loops(model, runner, thermal_zone, fan_coil_heating, fan_coil_cooling)
+      fcus = self.get_central_fan_coils(model, runner, thermal_zone)
+      fcus.each do |fcu|
+        runner.registerInfo("Removed '#{fcu.name}' from '#{thermal_zone.name}'.")
+        fcu.remove
+      end
+      self.remove_central_pump_ems(model, heating_or_cooling = "clg")
     end
-
-    self.remove_central_pump_ems(model, heating_or_cooling = "clg")
   end
 
   def self.remove_central_pump_ems(model, heating_or_cooling)

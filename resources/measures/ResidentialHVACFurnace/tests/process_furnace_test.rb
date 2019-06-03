@@ -224,7 +224,7 @@ class ProcessFurnaceTest < MiniTest::Test
   def test_retrofit_replace_central_system_fan_coil_cooling_only
     num_units = 4
     args_hash = {}
-    expected_num_del_objects = { "EnergyManagementSystemSensor" => 1, "EnergyManagementSystemProgram" => 1, "EnergyManagementSystemOutputVariable" => 1, "EnergyManagementSystemProgramCallingManager" => 1 }
+    expected_num_del_objects = {}
     expected_num_new_objects = { "AirLoopHVACUnitarySystem" => num_units, "AirLoopHVAC" => num_units, "CoilHeatingGas" => num_units, "FanOnOff" => num_units, "AirTerminalSingleDuctConstantVolumeNoReheat" => num_units }
     expected_values = { "Efficiency" => 0.78, "MaximumSupplyAirTemperature" => 48.88, "FuelType" => Constants.FuelTypeGas }
     _test_measure("SFA_4units_1story_SL_UA_3Beds_2Baths_Denver_Central_System_Fan_Coil_Cooling_Only.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, num_units * 3)
