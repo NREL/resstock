@@ -496,7 +496,7 @@ class OutputMeters
         elsif htg_equip.is_a? OpenStudio::Model::ZoneHVACBaseboardConvectiveElectric
           custom_meter_infos["#{unit.name}:ElectricityHeating"]["key_var_groups"] << ["#{htg_equip.name}", "Baseboard Electric Energy"]
 
-        elsif htg_equip.is_a? OpenStudio::Model::ZoneHVACFourPipeFanCoil or htg_equip.is_a? OpenStudio::Model::ZoneHVACPackagedTerminalAirConditioner or htg_equip.is_a? OpenStudio::Model::ZoneHVACUnitHeater
+        elsif htg_equip.is_a? OpenStudio::Model::ZoneHVACFourPipeFanCoil or htg_equip.is_a? OpenStudio::Model::ZoneHVACPackagedTerminalAirConditioner
 
           model.getPlantLoops.each do |plant_loop|
             is_specified_zone = false
@@ -641,8 +641,6 @@ class OutputMeters
         clg_coil, htg_coil, supp_htg_coil = HVAC.get_coils_from_hvac_equip(htg_equip)
         if htg_equip.is_a? OpenStudio::Model::AirLoopHVACUnitarySystem
           custom_meter_infos["#{unit.name}:ElectricityFansHeating"]["key_var_groups"] << ["#{htg_equip.supplyFan.get.name}", "Fan Electric Energy"]
-        elsif htg_equip.is_a? OpenStudio::Model::ZoneHVACUnitHeater
-          custom_meter_infos["#{unit.name}:ElectricityFansHeating"]["key_var_groups"] << ["#{htg_equip.supplyAirFan.to_FanConstantVolume.get.name}", "Fan Electric Energy"]
         end
       end
     end
@@ -798,7 +796,7 @@ class OutputMeters
             end
           end
 
-        elsif htg_equip.is_a? OpenStudio::Model::ZoneHVACFourPipeFanCoil or htg_equip.is_a? OpenStudio::Model::ZoneHVACPackagedTerminalAirConditioner or htg_equip.is_a? OpenStudio::Model::ZoneHVACUnitHeater
+        elsif htg_equip.is_a? OpenStudio::Model::ZoneHVACFourPipeFanCoil or htg_equip.is_a? OpenStudio::Model::ZoneHVACPackagedTerminalAirConditioner
           model.getPlantLoops.each do |plant_loop|
             is_specified_zone = false
             units_served = []
@@ -926,7 +924,7 @@ class OutputMeters
             end
           end
 
-        elsif htg_equip.is_a? OpenStudio::Model::ZoneHVACFourPipeFanCoil or htg_equip.is_a? OpenStudio::Model::ZoneHVACPackagedTerminalAirConditioner or htg_equip.is_a? OpenStudio::Model::ZoneHVACUnitHeater
+        elsif htg_equip.is_a? OpenStudio::Model::ZoneHVACFourPipeFanCoil or htg_equip.is_a? OpenStudio::Model::ZoneHVACPackagedTerminalAirConditioner
           model.getPlantLoops.each do |plant_loop|
             is_specified_zone = false
             units_served = []
@@ -1049,7 +1047,7 @@ class OutputMeters
             end
           end
 
-        elsif htg_equip.is_a? OpenStudio::Model::ZoneHVACFourPipeFanCoil or htg_equip.is_a? OpenStudio::Model::ZoneHVACPackagedTerminalAirConditioner or htg_equip.is_a? OpenStudio::Model::ZoneHVACUnitHeater
+        elsif htg_equip.is_a? OpenStudio::Model::ZoneHVACFourPipeFanCoil or htg_equip.is_a? OpenStudio::Model::ZoneHVACPackagedTerminalAirConditioner
           model.getPlantLoops.each do |plant_loop|
             is_specified_zone = false
             units_served = []

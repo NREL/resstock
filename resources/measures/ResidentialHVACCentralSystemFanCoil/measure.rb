@@ -15,12 +15,12 @@ class ProcessCentralSystemFanCoil < OpenStudio::Measure::ModelMeasure
 
   # human readable description
   def description
-    return "Adds either: (1) a central boiler/chiller with fan coil units to the model, (2) a central chiller with cooling-only fan coil units to the model, or (3) a central boiler with heating-only unit heaters to the model."
+    return "Adds either: (1) a central boiler/chiller with fan coil units to the model or (2) a central chiller with cooling-only fan coil units to the model."
   end
 
   # human readable description of modeling approach
   def modeler_description
-    return "Adds either: (1) hot water boiler and electric chiller with variable-speed pumps to two plant loops, along with coil heating/cooling water objects on zone hvac four pipe fan coil objects, (2) an electric chiller with variable-speed pump to a single plant loop, along with coil cooling water objects on cooling-only zone hvac four pipe fan coil objects, or (3) a hot water boiler with variable-speed pump to a single plant loop, along with coil heating water objects on heating-only zone hvac unit heater objects."
+    return "Adds either: (1) hot water boiler and electric chiller with variable-speed pumps to two plant loops, along with coil heating/cooling water objects on zone hvac four pipe fan coil objects, or (2) an electric chiller with variable-speed pump to a single plant loop, along with coil cooling water objects on cooling-only zone hvac four pipe fan coil objects."
   end
 
   # define the arguments that the user will input
@@ -33,13 +33,6 @@ class ProcessCentralSystemFanCoil < OpenStudio::Measure::ModelMeasure
     fan_coil_heating.setDescription("When the fan coil provides heating in addition to cooling, a four pipe fan coil system is modeled.")
     fan_coil_heating.setDefaultValue(true)
     args << fan_coil_heating
-
-    # make a bool argument for whether there is cooling
-    fan_coil_cooling = OpenStudio::Measure::OSArgument::makeBoolArgument("fan_coil_cooling", true)
-    fan_coil_cooling.setDisplayName("Fan Coil Provides Cooling")
-    fan_coil_cooling.setDescription("When the fan coil provides cooling in addition to heating, a four pipe fan coil system is modeled.")
-    fan_coil_cooling.setDefaultValue(true)
-    args << fan_coil_cooling
 
     # make a string argument for central boiler fuel type
     central_boiler_fuel_type_names = OpenStudio::StringVector.new
@@ -68,13 +61,7 @@ class ProcessCentralSystemFanCoil < OpenStudio::Measure::ModelMeasure
     require "openstudio-standards"
 
     fan_coil_heating = runner.getBoolArgumentValue("fan_coil_heating", user_arguments)
-    fan_coil_cooling = runner.getBoolArgumentValue("fan_coil_cooling", user_arguments)
     central_boiler_fuel_type = HelperMethods.eplus_fuel_map(runner.getStringArgumentValue("central_boiler_fuel_type", user_arguments))
-
-    if not fan_coil_heating and not fan_coil_cooling
-      runner.registerError("Must specify at least heating or cooling.")
-      return false
-    end
 
     std = Standard.build("90.1-2013")
 
@@ -93,9 +80,7 @@ class ProcessCentralSystemFanCoil < OpenStudio::Measure::ModelMeasure
           if fan_coil_heating
             HVAC.remove_heating(model, runner, zone, unit)
           end
-          if fan_coil_cooling
-            HVAC.remove_cooling(model, runner, zone, unit)
-          end
+          HVAC.remove_cooling(model, runner, zone, unit)
         end
       end
 
@@ -106,14 +91,12 @@ class ProcessCentralSystemFanCoil < OpenStudio::Measure::ModelMeasure
         end
       end
 
-      if fan_coil_cooling
-        if chilled_water_loop.nil?
-          chilled_water_loop = std.model_get_or_add_chilled_water_loop(model, "Electricity", chilled_water_loop_cooling_type: "AirCooled")
-          runner.registerInfo("Added '#{chilled_water_loop.name}' to model.")
-        end
+      if chilled_water_loop.nil?
+        chilled_water_loop = std.model_get_or_add_chilled_water_loop(model, "Electricity", chilled_water_loop_cooling_type: "AirCooled")
+        runner.registerInfo("Added '#{chilled_water_loop.name}' to model.")
       end
 
-      success = HVAC.apply_central_system_fan_coil(model, unit, runner, std, fan_coil_heating, fan_coil_cooling, hot_water_loop, chilled_water_loop)
+      success = HVAC.apply_central_system_fan_coil(model, unit, runner, std, fan_coil_heating, hot_water_loop, chilled_water_loop)
 
       return false if not success
     end # unit
@@ -148,35 +131,33 @@ class ProcessCentralSystemFanCoil < OpenStudio::Measure::ModelMeasure
       pump_htg_pcm.addProgram(pump_htg_program)
     end
 
-    unless chilled_water_loop.nil?
-      pump_clg_program = OpenStudio::Model::EnergyManagementSystemProgram.new(model)
-      pump_clg_program.setName("Central pumps clg program")
+    pump_clg_program = OpenStudio::Model::EnergyManagementSystemProgram.new(model)
+    pump_clg_program.setName("Central pumps clg program")
 
-      chilled_water_loop.supplyComponents.each do |supply_component|
-        next unless supply_component.to_PumpVariableSpeed.is_initialized
+    chilled_water_loop.supplyComponents.each do |supply_component|
+      next unless supply_component.to_PumpVariableSpeed.is_initialized
 
-        pump = supply_component.to_PumpVariableSpeed.get
-        pump.setName("Central clg pump")
+      pump = supply_component.to_PumpVariableSpeed.get
+      pump.setName("Central clg pump")
 
-        clg_pump_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, "Pump Electric Energy")
-        clg_pump_sensor.setName("#{pump.name.to_s.gsub("|", "_")} s")
-        clg_pump_sensor.setKeyName(pump.name.to_s)
+      clg_pump_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, "Pump Electric Energy")
+      clg_pump_sensor.setName("#{pump.name.to_s.gsub("|", "_")} s")
+      clg_pump_sensor.setKeyName(pump.name.to_s)
 
-        pump_clg_program.addLine("Set central_pumps_c = #{clg_pump_sensor.name}")
+      pump_clg_program.addLine("Set central_pumps_c = #{clg_pump_sensor.name}")
 
-        pump_output_var = OpenStudio::Model::EnergyManagementSystemOutputVariable.new(model, "central_pumps_c")
-        pump_output_var.setName("Central clg pump:Pumps:Electricity")
-        pump_output_var.setTypeOfDataInVariable("Summed")
-        pump_output_var.setUpdateFrequency("SystemTimestep")
-        pump_output_var.setEMSProgramOrSubroutineName(pump_clg_program)
-        pump_output_var.setUnits("J")
-      end
-
-      pump_clg_pcm = OpenStudio::Model::EnergyManagementSystemProgramCallingManager.new(model)
-      pump_clg_pcm.setName("Central pump clg program calling manager")
-      pump_clg_pcm.setCallingPoint("EndOfSystemTimestepBeforeHVACReporting")
-      pump_clg_pcm.addProgram(pump_clg_program)
+      pump_output_var = OpenStudio::Model::EnergyManagementSystemOutputVariable.new(model, "central_pumps_c")
+      pump_output_var.setName("Central clg pump:Pumps:Electricity")
+      pump_output_var.setTypeOfDataInVariable("Summed")
+      pump_output_var.setUpdateFrequency("SystemTimestep")
+      pump_output_var.setEMSProgramOrSubroutineName(pump_clg_program)
+      pump_output_var.setUnits("J")
     end
+
+    pump_clg_pcm = OpenStudio::Model::EnergyManagementSystemProgramCallingManager.new(model)
+    pump_clg_pcm.setName("Central pump clg program calling manager")
+    pump_clg_pcm.setCallingPoint("EndOfSystemTimestepBeforeHVACReporting")
+    pump_clg_pcm.addProgram(pump_clg_program)
 
     simulation_control = model.getSimulationControl
     simulation_control.setRunSimulationforSizingPeriods(true) # indicate e+ autosizing
