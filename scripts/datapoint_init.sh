@@ -60,9 +60,7 @@ if ! [ -f $FILENAME ]; then
     time=$(date +%T)
     echo "$time NUMDATAPOINTS is $NUMDATAPOINTS"
 
-    ruby lib/resources/run_sampling.rb -p NA -n $NUMDATAPOINTS -o $OUTCSV
-
-    cp "lib/resources/$OUTCSV" "lib/housing_characteristics/$OUTCSV"
+    ruby lib/resources/run_sampling.rb -p NA -n $NUMDATAPOINTS -o "../housing_characteristics/$OUTCSV"
     
   else
   

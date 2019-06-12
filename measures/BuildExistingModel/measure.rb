@@ -60,6 +60,11 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
     downselect_logic.setDescription("Logic that specifies the subset of the building stock to be considered in the analysis. Specify one or more parameter|option as found in resources\\options_lookup.tsv. When multiple are included, they must be separated by '||' for OR and '&&' for AND, and using parentheses as appropriate. Prefix an option with '!' for not.")
     args << downselect_logic
 
+    characteristics_directory = OpenStudio::Ruleset::OSArgument.makeStringArgument("characteristics_directory", false)
+    characteristics_directory.setDisplayName("Housing Characteristics Directory")
+    characteristics_directory.setDescription("Absolute (or relative) directory to housing characteristics.")
+    args << characteristics_directory
+
     return args
   end
 
@@ -78,10 +83,17 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
     sample_weight = runner.getOptionalDoubleArgumentValue("sample_weight", user_arguments)
     downselect_logic = runner.getOptionalStringArgumentValue("downselect_logic", user_arguments)
     sample_weight = runner.getOptionalDoubleArgumentValue("sample_weight", user_arguments)
+    characteristics_directory = runner.getOptionalStringArgumentValue("characteristics_directory", user_arguments)
 
     # Get file/dir paths
     resources_dir = File.absolute_path(File.join(File.dirname(__FILE__), "..", "..", "lib", "resources")) # Should have been uploaded per 'Additional Analysis Files' in PAT
     characteristics_dir = File.absolute_path(File.join(File.dirname(__FILE__), "..", "..", "lib", "housing_characteristics")) # Should have been uploaded per 'Additional Analysis Files' in PAT
+    if characteristics_directory.is_initialized
+      characteristics_dir = characteristics_directory.get
+      unless (Pathname.new characteristics_dir).absolute?
+        characteristics_dir = File.expand_path(File.join(File.dirname(__FILE__), characteristics_dir))
+      end
+    end
     buildstock_file = File.join(resources_dir, "buildstock.rb")
     measures_dir = File.join(resources_dir, "measures")
     lookup_file = File.join(resources_dir, "options_lookup.tsv")
