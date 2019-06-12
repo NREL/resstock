@@ -148,6 +148,9 @@ This measure creates the baseline scenario. It incrementally applies OpenStudio 
 
 .. _custom region map: https://github.com/NREL/OpenStudio-BuildStock/wiki/Custom-Region-(CR)-Map
 
+**Housing Characteristics**
+  Optional argument for specifying the absolute (or relative) directory to the housing characteristics folder.
+
 .. note::
    
    **Manual Sampling**: To run the sampling script yourself, from the command line execute, e.g. ``ruby resources/run_sampling.rb -p project_singlefamilydetached -n 10000 -o buildstock.csv``, and a file ``buildstock.csv`` will be created in the ``resources`` directory. 
