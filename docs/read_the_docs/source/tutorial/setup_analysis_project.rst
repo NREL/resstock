@@ -3,11 +3,11 @@ Set Up the Analysis Project
 
 At the top level of the ResStock repository you just downloaded, you will see two analysis project folders:
 
- - project_resstock_national
- - project_resstock_multifamily
- - project_resstock_testing
+ - project_singlefamilydetached
+ - project_multifamily_beta
+ - project_testing
 
-Open PAT, select "Open Existing Project", and choose the ``project_resstock_national`` directory. You may be asked if you want "mongod" to accept incoming connections. Select "Allow".
+Open PAT, select "Open Existing Project", and choose the ``project_singlefamilydetached`` directory. You may be asked if you want "mongod" to accept incoming connections. Select "Allow".
 
 You will leave dropdown options for **Algorithmic Method**, **Default Seed Model**, and **Default Weather File** alone. Additionally, you will leave the settings in **Algorithm Settings**, **Additional Analysis Files**, and **Server Scripts** alone for most analyses.
 
@@ -87,7 +87,7 @@ Worker Initialization Script
    
 Something you might want to change is the set of weather files used with your project. To update the argument for the path to the zip file containing epw weather files, open the Server Scripts box on the Measures Selection tab.
 
-Look for the **Script Arguments** box corresponding to the **Worker Initialization Script**. By default, this argument value points to the set of weather files corresponding to the specific project (i.e., set of ``housing_characteristics``) you are working with. For example, the ``project_resstock_national`` project folder will by default use the set of weather files with national geographic coverage. In the illustration above, the argument value path points to a zipped file stored in the `epwweatherfiles bucket`_ on Amazon S3. You should have read-only access to objects in this bucket.
+Look for the **Script Arguments** box corresponding to the **Worker Initialization Script**. By default, this argument value points to the set of weather files corresponding to the specific project (i.e., set of ``housing_characteristics``) you are working with. For example, the ``project_singlefamilydetached`` project folder will by default use the set of weather files with national geographic coverage. In the illustration above, the argument value path points to a zipped file stored in the `epwweatherfiles bucket`_ on Amazon S3. You should have read-only access to objects in this bucket.
 
 You can control what set of weather files are unpacked and accessible on the remote server by changing the argument value for this initialization script. If you wish to change this argument value to point to a different file in the S3 bucket, replace the path's basename with the path of the new file. If the desired file does not exist in the S3 bucket, you will need to zip up a set of weather files and upload it to some location of your choice (e.g., your own S3 bucket). Be sure to change the entire argument value path to point to this chosen file location.
 
@@ -150,7 +150,7 @@ This measure creates the baseline scenario. It incrementally applies OpenStudio 
 
 .. note::
    
-   **Manual Sampling**: To run the sampling script yourself, from the command line execute, e.g. ``ruby resources/run_sampling.rb -p project_resstock_national -n 10000 -o buildstock.csv``, and a file ``buildstock.csv`` will be created in the ``resources`` directory. 
+   **Manual Sampling**: To run the sampling script yourself, from the command line execute, e.g. ``ruby resources/run_sampling.rb -p project_singlefamilydetached -n 10000 -o buildstock.csv``, and a file ``buildstock.csv`` will be created in the ``resources`` directory. 
    
    If a custom ``buildstock.csv`` file is located in a project's ``housing_characteristics`` directory when you run the PAT project, it will automatically be used to generate simulations. If it’s not found, the ``run_sampling.rb`` script will be run automatically on OpenStudio-Server to create one. You’ll also want to make sure that the number of buildings in the sampling csv file matches the max value for the Building ID argument in the Build Existing Model, as that tells OpenStudio how many datapoints to run. (For each datapoint, the measure will then look up its building description from the sampling csv.) 
    
@@ -256,6 +256,8 @@ End uses include:
   * gas lighting [therm]
   * gas fireplace [therm]
   * well pump [kWh]
+  * garage lighting [kWh]
+  * exterior holiday lighting [kWh]
   
 **Output Variables**
   If you choose to report any output variables (e.g., "Zone Air Temperature" or "Site Outdoor Air Humidity Ratio"), enter a comma-separated list of output variable names. A list of available output variables can be viewed in EnergyPlus's ``.rdd`` file.

@@ -37,8 +37,22 @@ class Constants
     return 110 # F
   end
 
-  def self.MonthNumDays
-    return [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
+  def self.NumDaysInMonths(is_leap_year = false)
+    num_days_in_months = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
+    num_days_in_months[1] += 1 if is_leap_year
+    return num_days_in_months
+  end
+
+  def self.NumDaysInYear(is_leap_year = false)
+    num_days_in_months = NumDaysInMonths(is_leap_year)
+    num_days_in_year = num_days_in_months.reduce(:+)
+    return num_days_in_year.to_f
+  end
+
+  def self.NumHoursInYear(is_leap_year = false)
+    num_days_in_year = NumDaysInYear(is_leap_year)
+    num_hours_in_year = num_days_in_year * 24
+    return num_hours_in_year.to_f
   end
 
   def self.Patm
@@ -663,12 +677,24 @@ class Constants
     return "res infil#{s_unit}"
   end
 
-  def self.ObjectNameLighting(unit_name = self.ObjectNameBuildingUnit)
+  def self.ObjectNameLightingInterior(unit_name = self.ObjectNameBuildingUnit)
     s_unit = ""
     if unit_name != self.ObjectNameBuildingUnit
       s_unit = "|#{unit_name}"
     end
-    return "res lighting#{s_unit}"
+    return "res lighting interior#{s_unit}"
+  end
+
+  def self.ObjectNameLightingGarage
+    return "res lighting garage"
+  end
+
+  def self.ObjectNameLightingExterior
+    return "res lighting exterior"
+  end
+
+  def self.ObjectNameLightingExteriorHoliday
+    return "res lighting exterior holiday"
   end
 
   def self.ObjectNameMechanicalVentilation(unit_name = self.ObjectNameBuildingUnit)
@@ -853,6 +879,14 @@ class Constants
     return 'Annual Energy Uses'
   end
 
+  def self.OptionTypeLightingScheduleCalculated
+    return 'Calculated Lighting Schedule'
+  end
+
+  def self.OptionTypeLightingScheduleUserSpecified
+    return 'User-Specified Lighting Schedule'
+  end
+
   def self.OptionTypePlugLoadsMultiplier
     return 'Multiplier'
   end
@@ -943,6 +977,18 @@ class Constants
 
   def self.RoofTypeHip
     return 'hip'
+  end
+
+  def self.ScheduleTypeLimitsFraction
+    return 'Fractional'
+  end
+
+  def self.ScheduleTypeLimitsOnOff
+    return 'OnOff'
+  end
+
+  def self.ScheduleTypeLimitsTemperature
+    return 'Temperature'
   end
 
   def self.SeasonHeating
