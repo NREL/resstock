@@ -756,8 +756,8 @@ class Airflow
     range_hood_exhaust_operation = 60.0 # min/day, per HSP
 
     # Whole House Fan details
-    # whf_fan_power = 0.4 # W/cfm/fan, per CEC appliance complinace sheet's max value
-    whf_fan_power = 0.3 # W/cfm/fan, per HSP 
+    # whf_fan_power = 0.4 # W/cfm/fan, per CEC appliance compliance sheet's max value
+    whf_fan_power = 0.3 # W/cfm/fan, per HSP
     # whf_fan_power = 0.22 # W/cfm/fan, per CEC appliance compliance sheet's max value after removing outliers
     # whf_fan_power = 0.12 # W/cfm/fan, per CEC appliance compliance sheet's mean/median value
     whf_exhaust_operation = 24 * 60.0 # min/day, all day operation
@@ -815,10 +815,13 @@ class Airflow
     	runner.registerWarning("No whole house fan object was found in #{unit.name.to_s} but the whole house fan exhaust specified is non-zero. Overriding whole house fan exhaust to be zero.")
     end
 
+    if has_whf and mech_vent.whf_exhaust == 0
+      whf_exhaust = unit_living.ACH * UnitConversions.convert(unit_living.volume, "ft^3", "m^3") / UnitConversions.convert(1.0, "hr", "min")
+    end
+
     bathroom_hour_avg_exhaust = mech_vent.bathroom_exhaust * nbaths * bath_exhaust_sch_operation / 60.0 # cfm
     range_hood_hour_avg_exhaust = mech_vent.range_exhaust * range_hood_exhaust_operation / 60.0 # cfm
-    whf_avg_exhaust_cfm = mech_vent.whf_exhaust * whf_exhaust_operation / 24 * 60 # cfm # todo: ask Joe about the 60 or 24 * 60? 
-
+    whf_avg_exhaust = mech_vent.
     #--- Calculate HRV/ERV effectiveness values. Calculated here for use in sizing routines.
 
     apparent_sensible_effectiveness = 0.0
