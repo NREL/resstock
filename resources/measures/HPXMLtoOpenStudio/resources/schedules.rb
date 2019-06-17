@@ -959,12 +959,19 @@ class Schedule
           previous_value = hrly_sched[hr+1]
         end        
       end
-            
+      
+      #
       if (day_sched_prev.values != day_sched.values) or (day_sched_prev.times != day_sched.times)
         sdate = OpenStudio::Date.fromDayOfYear(day)
         edate = OpenStudio::Date.fromDayOfYear(day)
         day_rule.setStartDate(sdate)
         day_rule.setEndDate(edate)
+        
+        if day == 1
+          day_sched_prev.remove
+          day_rule_prev.remove
+        end
+        
       else
         sdate = day_rule_prev.startDate.get
         edate = OpenStudio::Date.fromDayOfYear(day)

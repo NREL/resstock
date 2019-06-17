@@ -51,8 +51,8 @@ class DemandResponseScheduleTest < MiniTest::Test
     args_hash["dr_directory"] = "./tests"
 	args_hash["dr_schedule_heat"] = "DR_schedule_h.csv"
     args_hash["dr_schedule_cool"] = "DR_schedule_c.csv"
-    expected_num_new_objects = { "ScheduleFixedInterval" => 4}  # DR sched 2x, heat TSP, cool TSP
-    expected_num_del_objects = {} 
+    expected_num_new_objects = {"ScheduleRuleset"=>2, "ScheduleRule" => 4}  #Cool/Heat rulesets 1x, Cool/Heat 2 schedule rule days each
+    expected_num_del_objects = {"ScheduleRuleset"=>2, "ScheduleRule"=>24} #Cool/Heat original rulesets 2x; Cool/Heat 12 original schedule rule days each
     expected_values = {"heat_tsp_non_dr" => 70,
                        "heat_tsp_dr_plus" => 74,
                        "heat_tsp_dr_minus" => 66,
@@ -70,8 +70,8 @@ class DemandResponseScheduleTest < MiniTest::Test
     args_hash["dr_directory"] = "./tests"
 	args_hash["dr_schedule_heat"] = "DR_schedule_h.csv"
     args_hash["dr_schedule_cool"] = "DR_schedule_c.csv"
-    expected_num_new_objects = { "ScheduleFixedInterval" => 4}  # DR sched 2x, heat TSP, cool TSP
-    expected_num_del_objects = {} 
+    expected_num_new_objects = {"ScheduleRuleset"=>2, "ScheduleRule" => 4}  #Cool/Heat rulesets 1x, Cool/Heat 2 schedule rule days each
+    expected_num_del_objects = {"ScheduleRuleset"=>2, "ScheduleRule"=>24} #Cool/Heat original rulesets 2x; Cool/Heat 12 original schedule rule days each
     expected_values = {"heat_tsp_non_dr" => 70,
                        "heat_tsp_dr_plus" => 74,
                        "heat_tsp_dr_minus" => 66,
@@ -90,8 +90,8 @@ class DemandResponseScheduleTest < MiniTest::Test
     args_hash["dr_directory"] = "./tests"
 	args_hash["dr_schedule_heat"] = "DR_schedule_h.csv"
     args_hash["dr_schedule_cool"] = "DR_schedule_c.csv"
-    expected_num_new_objects = {"ScheduleFixedInterval" => 4}  # DR sched 2x, heat TSP, cool TSP
-    expected_num_del_objects = {} 
+    expected_num_new_objects = {"ScheduleRuleset"=>2, "ScheduleRule" => 4}  #Cool/Heat rulesets 1x, Cool/Heat 2 schedule rule days each
+    expected_num_del_objects = {"ScheduleRuleset"=>2, "ScheduleRule"=>24} #Cool/Heat original rulesets 2x; Cool/Heat 12 original schedule rule days each 
     expected_values = {"heat_tsp_non_dr" => 69,     #averaged
                        "heat_tsp_dr_plus" => 71,    #+DR --> averaged
                        "heat_tsp_dr_minus" => 66,   #-DR (not inverted)
@@ -109,8 +109,8 @@ class DemandResponseScheduleTest < MiniTest::Test
     args_hash["dr_directory"] = "./tests"
 	args_hash["dr_schedule_heat"] = "DR_schedule_h.csv"
     args_hash["dr_schedule_cool"] = "DR_schedule_c.csv"
-    expected_num_new_objects = {"ScheduleFixedInterval" => 4}  # DR sched 2x, heat TSP, cool TSP
-    expected_num_del_objects = {} 
+    expected_num_new_objects = {"ScheduleRuleset"=>2, "ScheduleRule" => 12}  #Cool/Heat rulesets 1x, Cool/Heat 1 each w/ DR, 2 overlapping seasons each, 3 non-overlapping seasons each
+    expected_num_del_objects = {"ScheduleRuleset"=>2, "ScheduleRule"=>24} #Cool/Heat original rulesets 2x; Cool/Heat 12 original schedule rule days each 
     expected_values = {"heat_tsp_non_dr" => 70,     
                        "heat_tsp_dr_plus" => 74,    
                        "heat_tsp_dr_minus" => 66,
@@ -128,8 +128,8 @@ class DemandResponseScheduleTest < MiniTest::Test
     args_hash["dr_directory"] = "./tests"
 	args_hash["dr_schedule_heat"] = "DR_schedule_overlap.csv"
     args_hash["dr_schedule_cool"] = "DR_schedule_overlap.csv"
-    expected_num_new_objects = { "ScheduleFixedInterval" => 4}  # DR sched 2x, heat TSP, cool TSP
-    expected_num_del_objects = {} 
+    expected_num_new_objects = {"ScheduleRuleset"=>2, "ScheduleRule" => 4}  #Cool/Heat rulesets 1x, Cool/Heat 2 schedule rule days each
+    expected_num_del_objects = {"ScheduleRuleset"=>2, "ScheduleRule"=>24} #Cool/Heat original rulesets 2x; Cool/Heat 12 original schedule rule days each
     expected_values = {"heat_tsp_non_dr" => 70,
                        "heat_tsp_dr_plus" => 74,
                        "heat_tsp_dr_minus" => 66,
@@ -147,7 +147,7 @@ class DemandResponseScheduleTest < MiniTest::Test
 	args_hash["dr_schedule_heat"] = "DR_schedule_zeros.csv"
     args_hash["dr_schedule_cool"] = "DR_schedule_zeros.csv"
     expected_num_del_objects = {}
-    expected_num_new_objects = { "ScheduleFixedInterval" => 2}  #DR sched
+    expected_num_new_objects = {} 
     expected_values = {}
     _test_measure("SFD_2000sqft_2story_CS_UA_3Beds_2Baths_Denver_Furnace_CentralAC.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 3)
   end
@@ -170,8 +170,8 @@ class DemandResponseScheduleTest < MiniTest::Test
     args_hash["dr_directory"] = "./tests"
 	args_hash["dr_schedule_heat"] = "DR_schedule_h.csv"
     args_hash["dr_schedule_cool"] = "DR_schedule_c.csv"
-    expected_num_new_objects = {"ScheduleFixedInterval" => 4}  # DR sched 2x, heat TSP, cool TSP
-    expected_num_del_objects = {} 
+    expected_num_new_objects = {"ScheduleRuleset"=>2, "ScheduleRule"=>4}  #Cool/Heat rulesets 2x, Cool/Heat 2 schedule rule days each
+    expected_num_del_objects = {"ScheduleRuleset"=>2, "ScheduleRule"=>24} #Cool/Heat original rulesets 2x; Cool/Heat 12 original schedule rule days each
     expected_values = {"heat_tsp_non_dr" => 71,     #default
                        "heat_tsp_dr_plus" => 75,
                        "heat_tsp_dr_minus" => 67,
@@ -189,8 +189,8 @@ class DemandResponseScheduleTest < MiniTest::Test
     args_hash["dr_directory"] = "./tests"
 	args_hash["dr_schedule_heat"] = "DR_schedule_h.csv"
     args_hash["dr_schedule_cool"] = "DR_schedule_c.csv"
-    expected_num_new_objects = {"ScheduleFixedInterval" => 4}  # DR sched 2x, heat TSP, cool TSP
-    expected_num_del_objects = {} 
+    expected_num_new_objects = {"ScheduleRuleset"=>2, "ScheduleRule"=>4}  #Cool/Heat rulesets 2x, Cool/Heat 2 schedule rule days each
+    expected_num_del_objects = {"ScheduleRuleset"=>2, "ScheduleRule"=>24} #Cool/Heat original rulesets 2x; Cool/Heat 12 original schedule rule days each
     expected_values = {"heat_tsp_non_dr" => 70,     
                        "heat_tsp_dr_plus" => 74,
                        "heat_tsp_dr_minus" => 66,
@@ -209,8 +209,8 @@ class DemandResponseScheduleTest < MiniTest::Test
     args_hash["dr_directory"] = "./tests"
 	args_hash["dr_schedule_heat"] = "DR_schedule_const.csv"
     args_hash["dr_schedule_cool"] = "DR_schedule_const.csv"
-    expected_num_new_objects = {"ScheduleFixedInterval" => 4}  # DR sched 2x, heat TSP, cool TSP
-    expected_num_del_objects = {} 
+    expected_num_new_objects = {"ScheduleRuleset"=>2, "ScheduleRule"=>106}  #Cool/Heat rulesets 1x, 104 heat schedule rule days, 2 cool schedule rule days each
+    expected_num_del_objects = {"ScheduleRuleset"=>2, "ScheduleRule"=>36} #Cool/Heat original rulesets 2x; 24 original heat schedule rule, 12 original cool schedule rule days each
     expected_values = {"wkday_offset" => 76,        # +2 wkday offset, +4 DR offset
                        "wkday_no_offset" => 74}     # +4 DR offset 
     _test_measure("SFD_70heat_75cool_2wkdy_offset_12mo_seasons.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 6)

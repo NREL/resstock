@@ -362,7 +362,9 @@ class DemandResponseSchedule < OpenStudio::Measure::ModelMeasure
       if thermostat_setpoint.is_initialized
         thermostat_setpoint = thermostat_setpoint.get  
         thermostat_setpoint.setHeatingSetpointTemperatureSchedule(rule_sched_h)	
+        runner.registerInfo("Set the heating setpoint schedule for #{thermostat_setpoint.name}.")
         thermostat_setpoint.setCoolingSetpointTemperatureSchedule(rule_sched_c)	
+        runner.registerInfo("Set the cooling setpoint schedule for #{thermostat_setpoint.name}.")         
       end
     end
    
