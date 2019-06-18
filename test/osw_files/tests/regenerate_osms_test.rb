@@ -11,7 +11,7 @@ class TestRegenerateTestOSMs < MiniTest::Test
       flunk e
 
       # Need a backtrace? Uncomment below
-      # flunk "#{e}\n#{e.backtrace.join('\n')}"
+      flunk "#{e}\n#{e.backtrace.join('\n')}"
     end
   end
 end
