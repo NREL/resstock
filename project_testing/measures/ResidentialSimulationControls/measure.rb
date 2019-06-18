@@ -103,10 +103,8 @@ class ResidentialSimulationControls < OpenStudio::Measure::ModelMeasure
 
     { begin_month => begin_day_of_month, end_month => end_day_of_month }.each_with_index do |(month, day), i|
       leap_day = 0
-      if month == 2 # february
-        leap_day = 1
-      end
-      day_of_month_valid = (1..Constants.MonthNumDays[month - 1] + leap_day).to_a.include? day # accommodate leap day
+      leap_day += 1 if month == 2 # february
+      day_of_month_valid = (1..Constants.NumDaysInMonths[month - 1] + leap_day).to_a.include? day # accommodate leap day
       unless day_of_month_valid
         if i == 0
           runner.registerError("Invalid begin day of month (#{begin_day_of_month}) entered.")

@@ -9,9 +9,16 @@ Windows Setup
 =============
 
 1. Install `Ruby <http://rubyinstaller.org/downloads/archives>`_. Follow the installation instructions `here <http://nrel.github.io/OpenStudio-user-documentation/getting_started/getting_started/#installation-steps>`_ ("Optional - Install Ruby").
-2. Run ``gem install bundler``. (If you get an error, you may have to issue the following: ``gem sources -r https://rubygems.org/`` followed by ``gem sources -a http://rubygems.org/``.)
+2. Run ``gem install bundler``. 
+
+.. note::
+
+  If you get an error, you may have to issue the following: ``gem sources -r https://rubygems.org/`` followed by ``gem sources -a http://rubygems.org/``. If you still get an error, manually update your gem sources list by including a `.gemrc` config file in your home directory (.e.g, /c/Users/<USERNAME>):
+
+.. literalinclude:: .gemrc
+
 3. Download the DevKit at http://rubyinstaller.org/downloads/. Choose either the 32-bit or 64-bit version depending on which version of Ruby you installed. Run the installer and extract to a directory (e.g., C:\RubyDevKit). Go to this directory, run ``ruby dk.rb init``, modify the config.yml file as needed, and finally run ``ruby dk.rb install``.
-4. Run ``bundler`` from the OpenStudio-BuildStock directory. (If you get an error, the problem may be that ``git`` is not in your ``PATH``.)
+4. Run ``bundle install`` from the OpenStudio-BuildStock directory. (If you get an error, the problem may be that ``git`` is not in your ``PATH``.)
 
 .. _mac-setup:
 
@@ -75,8 +82,8 @@ Add the path to the install ruby libraries top the bottom of your ``~/.bash_prof
 
 .. code:: bash
 
-  echo "export RUBYLIB=/Applications/OpenStudio-2.0.5/Ruby" >> ~/.bash_profile
-  echo "export ENERGYPLUS_EXE_PATH=\"/Applications/OpenStudio-2.1.0/EnergyPlus/energyplus-8.7.0\""
+  echo "export RUBYLIB=/Applications/OpenStudio-2.8.0/Ruby" >> ~/.bash_profile
+  echo "export ENERGYPLUS_EXE_PATH=\"/Applications/OpenStudio-2.8.0/EnergyPlus/energyplus-9.1.0\""
 
 Install bundler and the libraries that bundler installs.
 

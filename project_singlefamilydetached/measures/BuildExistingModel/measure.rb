@@ -3,6 +3,16 @@
 
 require 'csv'
 require 'openstudio'
+if File.exists? File.absolute_path(File.join(File.dirname(__FILE__), "../../lib/resources/measures/HPXMLtoOpenStudio/resources")) # Hack to run ResStock on AWS
+  resources_path = File.absolute_path(File.join(File.dirname(__FILE__), "../../lib/resources/measures/HPXMLtoOpenStudio/resources"))
+elsif File.exists? File.absolute_path(File.join(File.dirname(__FILE__), "../../resources/measures/HPXMLtoOpenStudio/resources")) # Hack to run ResStock unit tests locally
+  resources_path = File.absolute_path(File.join(File.dirname(__FILE__), "../../resources/measures/HPXMLtoOpenStudio/resources"))
+elsif File.exists? File.join(OpenStudio::BCLMeasure::userMeasuresDir.to_s, "HPXMLtoOpenStudio/resources") # Hack to run measures in the OS App since applied measures are copied off into a temporary directory
+  resources_path = File.join(OpenStudio::BCLMeasure::userMeasuresDir.to_s, "HPXMLtoOpenStudio/resources")
+else
+  resources_path = File.absolute_path(File.join(File.dirname(__FILE__), "../HPXMLtoOpenStudio/resources"))
+end
+require File.join(resources_path, "weather")
 
 # start the measure
 class BuildExistingModel < OpenStudio::Measure::ModelMeasure
@@ -148,6 +158,28 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
     if not apply_measures(measures_dir, measures, runner, model, workflow_json, "measures.osw", true)
       return false
     end
+
+    # Report some additional location and model characteristics
+    weather = WeatherProcess.new(model, runner)
+    if !weather.error?
+      register_value(runner, "location_city", weather.header.City)
+      register_value(runner, "location_state", weather.header.State)
+      register_value(runner, "location_latitude", "#{weather.header.Latitude}")
+      register_value(runner, "location_longitude", "#{weather.header.Longitude}")
+      climate_zone_ba = Location.get_climate_zone_ba(weather.header.Station)
+      climate_zone_iecc = Location.get_climate_zone_iecc(weather.header.Station)
+      unless climate_zone_ba.nil?
+        register_value(runner, "climate_zone_ba", climate_zone_ba)
+      end
+      unless climate_zone_iecc.nil?
+        register_value(runner, "climate_zone_iecc", climate_zone_iecc)
+      end
+      if climate_zone_ba.nil? and climate_zone_iecc.nil?
+        runner.registerInfo("The weather station WMO has not been set appropriately in the EPW weather file header.")
+      end
+    end
+    register_value(runner, "units_represented", "#{model.getBuilding.additionalProperties.getFeatureAsInteger("Total Units Represented").get}")
+    register_value(runner, "units_modeled", "#{model.getBuilding.additionalProperties.getFeatureAsInteger("Total Units Modeled").get}")
 
     # Determine weight
     if number_of_buildings_represented.is_initialized

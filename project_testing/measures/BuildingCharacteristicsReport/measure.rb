@@ -29,7 +29,6 @@ class BuildingCharacteristicsReport < OpenStudio::Measure::ReportingMeasure
     parameters.each do |parameter|
       result << OpenStudio::Measure::OSOutput.makeStringOutput(OpenStudio::toUnderscoreCase(parameter))
     end
-    # Additional hard-coded outputs
     buildstock_outputs = [
       "location_city",
       "location_state",
@@ -69,7 +68,7 @@ class BuildingCharacteristicsReport < OpenStudio::Measure::ReportingMeasure
       next if not step.result.is_initialized
 
       step_result = step.result.get
-      next if !step_result.measureName.is_initialized or (step_result.measureName.get != "build_existing_model" and step_result.measureName.get != "zone_multipliers")
+      next if !step_result.measureName.is_initialized or step_result.measureName.get != "build_existing_model"
 
       step_result.stepValues.each do |step_value|
         begin
@@ -86,47 +85,6 @@ class BuildingCharacteristicsReport < OpenStudio::Measure::ReportingMeasure
       runner.registerInfo("Registering #{v} for #{k}.")
       runner.registerValue(k, v)
     end
-
-    # Report some additional location and model characteristics
-
-    model = runner.lastOpenStudioModel
-    if model.empty?
-      runner.registerError("Cannot find last model.")
-      return false
-    end
-    model = model.get
-
-    weather = WeatherProcess.new(model, runner)
-    if !weather.error?
-      runner.registerInfo("Registering #{weather.header.City} for location_city.")
-      runner.registerValue("location_city", weather.header.City)
-      runner.registerInfo("Registering #{weather.header.State} for location_state.")
-      runner.registerValue("location_state", weather.header.State)
-      runner.registerInfo("Registering #{weather.header.Latitude} for location_latitude.")
-      runner.registerValue("location_latitude", weather.header.Latitude)
-      runner.registerInfo("Registering #{weather.header.Longitude} for location_longitude.")
-      runner.registerValue("location_longitude", weather.header.Longitude)
-      climate_zone_ba = Location.get_climate_zone_ba(weather.header.Station)
-      climate_zone_iecc = Location.get_climate_zone_iecc(weather.header.Station)
-      unless climate_zone_ba.nil?
-        runner.registerInfo("Registering #{climate_zone_ba} for climate_zone_ba.")
-        runner.registerValue("climate_zone_ba", climate_zone_ba)
-      end      
-      unless climate_zone_iecc.nil?
-        runner.registerInfo("Registering #{climate_zone_iecc} for climate_zone_iecc.")
-        runner.registerValue("climate_zone_iecc", climate_zone_iecc)
-      end
-      if climate_zone_ba.nil? and climate_zone_iecc.nil?
-        runner.registerInfo("The weather station WMO has not been set appropriately in the EPW weather file header.")
-      end
-    end
-
-    units_represented = model.getBuilding.additionalProperties.getFeatureAsInteger("Total Units Represented")
-    runner.registerInfo("Registering #{units_represented} for units_represented.")
-    runner.registerValue("units_represented", "#{units_represented.get}")
-    units_modeled = model.getBuilding.additionalProperties.getFeatureAsInteger("Total Units Modeled")
-    runner.registerInfo("Registering #{units_modeled} for units_modeled.")
-    runner.registerValue("units_modeled", "#{units_modeled.get}")
 
     runner.registerFinalCondition("Report generated successfully.")
 
