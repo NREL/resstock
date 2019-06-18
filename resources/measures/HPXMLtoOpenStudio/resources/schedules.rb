@@ -920,22 +920,26 @@ class Schedule
     return annual_flh
   end
 
-  def self.ruleset_from_fixinterval(model, hrly_sched, sch_name, winter_design_day_sch, summer_design_day_sch)  
-    hrly_sched = hrly_sched.timeSeries.values        
+  def self.ruleset_from_fixedinterval(model, hrly_sched, sch_name, winter_design_day_sch, summer_design_day_sch)
+  
+    #Returns schedule rules from a fixed interval object (60 min interval only)    
     year_description = model.getYearDescription
-    if year_description.isLeapYear
-      hrs = 8760 + 24
-      days = 366
-    else
-      hrs = 8760
-      days = 365
-    end
-
+    leap_offset = 0
+	  if year_description.isLeapYear
+	    leap_offset = 1
+	  end
+	day_startm = [1, 32, 60 + leap_offset, 91 + leap_offset, 121 + leap_offset, 152 + leap_offset, 182 + leap_offset, 213 + leap_offset, 244 + 	leap_offset, 274 + leap_offset, 305 + leap_offset, 335 + leap_offset]	
+    
+    start_day = day_startm[hrly_sched.startMonth-1] + hrly_sched.startDay - 1    
+    hrly_sched = hrly_sched.timeSeries.values                
+    hrs = hrly_sched.length
+    days = hrs/24
     time = []
     for h in 1..24
       time[h] = OpenStudio::Time.new(0, h, 0, 0)
     end
-
+    
+    assumed_year = year_description.assumedYear
     schedule = OpenStudio::Model::ScheduleRuleset.new(model)
     schedule.setName(sch_name + " ruleset")
     previous_value = hrly_sched[0]  
@@ -944,15 +948,16 @@ class Schedule
     day_sched_prev = day_rule_prev.daySchedule
     day_sched_prev.setName("DUMMY")
     
-    for day in 1..days
+    for day in start_day..start_day+days-1
       day_rule = OpenStudio::Model::ScheduleRule.new(schedule)
       day_rule.setName("#{sch_name} rule day #{day}")
       day_sched = day_rule.daySchedule
       day_sched.setName("#{sch_name} day schedule")
-      previous_value = hrly_sched[(day-1)*24]
+      day_ct = day - start_day + 1
+      previous_value = hrly_sched[(day_ct-1)*24]
       
       for h in 1..24
-        hr = (day-1)*24 + h - 1
+        hr = (day_ct-1)*24 + h - 1
         next if h != 24 and hrly_sched[hr+1] == previous_value
         day_sched.addValue(time[h], previous_value)
         if hr != hrs-1
@@ -960,18 +965,16 @@ class Schedule
         end        
       end
       
-      #
       if (day_sched_prev.values != day_sched.values) or (day_sched_prev.times != day_sched.times)
-        sdate = OpenStudio::Date.fromDayOfYear(day)
-        edate = OpenStudio::Date.fromDayOfYear(day)
+        sdate = OpenStudio::Date.fromDayOfYear(day, assumed_year)
+        edate = OpenStudio::Date.fromDayOfYear(day, assumed_year)
         day_rule.setStartDate(sdate)
         day_rule.setEndDate(edate)
         
-        if day == 1
+        if day_ct == 1
           day_sched_prev.remove
           day_rule_prev.remove
         end
-        
       else
         sdate = day_rule_prev.startDate.get
         edate = OpenStudio::Date.fromDayOfYear(day)
@@ -988,7 +991,7 @@ class Schedule
       day_rule.setApplyThursday(true)
       day_rule.setApplyFriday(true)
       day_rule.setApplySaturday(true)
-      
+     
       day_sched_prev = day_sched
       day_rule_prev = day_rule
     end

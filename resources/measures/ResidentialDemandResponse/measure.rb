@@ -31,7 +31,7 @@ class DemandResponseSchedule < OpenStudio::Measure::ModelMeasure
   end
 
   def modeler_description
-    return "This measure applies hourly demand response controls to existing heating and cooling temperature setpoint schedules. Up to two user-defined DR schedules are inputted as csvs for heating and/or cooling to indicate specific hours of setup and setback. The csvs should contain a value of -1, 0, or 1 for every hour of the year. Offset magnitudes for heating and cooling are also specified by the user, which is multiplied by each row of the DR schedules to generate an hourly offset schedule on the fly. The existing cooling and heating setpoint schedules are fetched from the model object, restructured as an hourly schedule for a full year, and summed with their respective hourly offset schedules. These new hourly setpoint schedules are assigned to the thermostat object in every zone. Future development of this measure may include on/off DR schedules for appliances."
+    return "This measure applies hourly demand response controls to existing heating and cooling temperature setpoint schedules. Up to two user-defined DR schedules are inputted as csvs for heating and/or cooling to indicate specific hours of setup and setback. The csvs should contain a value of -1, 0, or 1 for every hour of the year. Offset magnitudes for heating and cooling are also specified by the user, which is multiplied by each row of the DR schedules to generate an hourly offset schedule on-the-fly. The existing cooling and heating setpoint schedules are fetched from the model object, restructured as an hourly schedule for a full year, and summed with their respective hourly offset schedules. These new hourly setpoint schedules are assigned to the thermostat object in every zone. Future development of this measure may include on/off DR schedules for appliances or use with water heaters."
   end
   
   # define the arguments that the user will input
@@ -153,7 +153,7 @@ class DemandResponseSchedule < OpenStudio::Measure::ModelMeasure
     dr_hrly_clg = []    
     dr_hrly_clg = import_DR_sched(dr_dir, dr_sch_clg, "DR Cooling Schedule", offset_cool, model, runner)
     dr_hrly_htg = import_DR_sched(dr_dir, dr_sch_htg, "DR Heating Schedule", offset_heat, model, runner)
-    #Check if file exists
+    #Check if file exists (error message in import_DR_sched())
     if dr_hrly_htg == nil
       return false
     elsif dr_hrly_clg == nil 
@@ -183,7 +183,6 @@ class DemandResponseSchedule < OpenStudio::Measure::ModelMeasure
       return true      
     end
    
-    # Check DR schedule length
     dr_list = []
     offset_list = [dr_hrly_htg, dr_hrly_clg]
     offset_list.each do |dr|
@@ -260,10 +259,7 @@ class DemandResponseSchedule < OpenStudio::Measure::ModelMeasure
         end
       end
       hrly_base = hrly_base.map {|i| UnitConversions.convert(i, "C", "F") }
-      
-      
-      
-      
+
       return(hrly_base)
     end
     
@@ -285,7 +281,6 @@ class DemandResponseSchedule < OpenStudio::Measure::ModelMeasure
 	  if year_description.isLeapYear
 	    leap_offset = 1
 	  end
-      
       day_endm = [31, 59 + leap_offset, 90 + leap_offset, 120 + leap_offset, 151 + leap_offset, 181 + leap_offset, 212 +  leap_offset, 243 +     leap_offset, 273 + leap_offset, 304 + leap_offset, 334 +leap_offset, 365 + leap_offset]
 	  day_startm = [1, 32, 60 + leap_offset, 91 + leap_offset, 121 + leap_offset, 152 + leap_offset, 182 + leap_offset, 213 + leap_offset, 244 + 	leap_offset, 274 + leap_offset, 305 + leap_offset, 335 + leap_offset]		      
       
@@ -315,23 +310,23 @@ class DemandResponseSchedule < OpenStudio::Measure::ModelMeasure
       start_date = year_description.makeDate(1, 1)
       interval = OpenStudio::Time.new(0, 1, 0, 0)
       time_series = OpenStudio::TimeSeries.new(start_date, interval, OpenStudio::createVector(sched_hrly), "")		
-      schedule = OpenStudio::Model::ScheduleFixedInterval.fromTimeSeries(time_series, model).get
-      schedule.setName(var_name)	
-      
+      schedule = OpenStudio::Model::ScheduleFixedInterval.new(model)      
+      schedule.setTimeSeries(time_series)
+      schedule.setName(var_name)
       return schedule      
     end
     
     # Run functions and apply new schedules
-    htg_hrly_base = get_existing_sched(finished_zones, "heat", model, runner)
+    htg_hrly_base = get_existing_sched(finished_zones, "heat", model, runner)   ## Existing schedule as 12x24
     clg_hrly_base = get_existing_sched(finished_zones, "cool", model, runner)
         
-    htg_hrly = create_new_sched(dr_hrly_htg, htg_hrly_base, offset_heat)
+    htg_hrly = create_new_sched(dr_hrly_htg, htg_hrly_base, offset_heat)        ## New schedule as 8760
     clg_hrly = create_new_sched(dr_hrly_clg, clg_hrly_base, offset_cool)
    
-    fix_setpoint_inversion(htg_hrly, clg_hrly, HVAC, weather, model, runner)
+    fix_setpoint_inversion(htg_hrly, clg_hrly, HVAC, weather, model, runner)    ## Fix setpoint inversions in new schedules
 
-    htg_hrly = create_OS_sched(htg_hrly, "HeatingTSP", model, runner)
-    clg_hrly = create_OS_sched(clg_hrly, "CoolingTSP", model, runner)
+    htg_hrly = create_OS_sched(htg_hrly, "HeatingTSP", model, runner)           ## Create fixed interval schedule using new 8760 schedules
+    clg_hrly = create_OS_sched(clg_hrly, "CoolingTSP", model, runner)           
 
     #Convert back to ruleset and apply to dual thermostat
     winter_design_day_sch = OpenStudio::Model::ScheduleDay.new(model)
@@ -348,8 +343,8 @@ class DemandResponseSchedule < OpenStudio::Measure::ModelMeasure
         thermostat_setpoint.resetHeatingSetpointTemperatureSchedule()
         thermostat_setpoint.resetCoolingSetpointTemperatureSchedule()
 
-        rule_sched_h = Schedule.ruleset_from_fixinterval(model, htg_hrly, "heating temperature setpoint",winter_design_day_sch, summer_design_day_sch)
-        rule_sched_c = Schedule.ruleset_from_fixinterval(model, clg_hrly, "cooling temperature setpoint", winter_design_day_sch, summer_design_day_sch)
+        rule_sched_h = Schedule.ruleset_from_fixedinterval(model, htg_hrly, "heating temperature setpoint",winter_design_day_sch, summer_design_day_sch)
+        rule_sched_c = Schedule.ruleset_from_fixedinterval(model, clg_hrly, "cooling temperature setpoint", winter_design_day_sch, summer_design_day_sch)
         
         htg_hrly.remove
         clg_hrly.remove
@@ -357,6 +352,7 @@ class DemandResponseSchedule < OpenStudio::Measure::ModelMeasure
       end
     end
     
+    #Set heating/cooling setpoint schedules
     finished_zones.each do |finished_zone|
       thermostat_setpoint = finished_zone.thermostatSetpointDualSetpoint
       if thermostat_setpoint.is_initialized
