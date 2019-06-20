@@ -82,8 +82,8 @@ Add the path to the install ruby libraries top the bottom of your ``~/.bash_prof
 
 .. code:: bash
 
-  echo "export RUBYLIB=/Applications/OpenStudio-2.8.0/Ruby" >> ~/.bash_profile
-  echo "export ENERGYPLUS_EXE_PATH=\"/Applications/OpenStudio-2.8.0/EnergyPlus/energyplus-9.1.0\""
+  echo "export RUBYLIB=/Applications/OpenStudio-2.8.1/Ruby" >> ~/.bash_profile
+  echo "export ENERGYPLUS_EXE_PATH=\"/Applications/OpenStudio-2.8.1/EnergyPlus/energyplus-9.1.0\""
 
 Install bundler and the libraries that bundler installs.
 

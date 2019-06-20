@@ -25,7 +25,7 @@ class ApplyUpgrade < OpenStudio::Ruleset::ModelUserScript
   end
 
   def num_options
-    return 10 # Sync with SimulationOutputReport measure
+    return 20 # Sync with SimulationOutputReport measure
   end
 
   def num_costs_per_option
