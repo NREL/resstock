@@ -24,14 +24,16 @@ class DemandResponseScheduleTest < MiniTest::Test
     assert_includes(result.errors.map { |x| x.logMessage }, "File doesnt_exist.csv does not exist")
   end
 
-  def test_error_wrong_DR_schedule_length
+  def test_wrong_DR_schedule_length
     # 8760 or 8784 schedules
     args_hash = {}
     args_hash["offset_magnitude_heat"] = 4
     args_hash["dr_directory"] = "./tests"
     args_hash["dr_schedule_heat"] = "DR_schedule_wrong_number.csv"
-    result = _test_error("SFD_2000sqft_2story_CS_UA_3Beds_2Baths_Denver_Furnace_CentralAC.osm", args_hash)
-    assert_includes(result.errors.map { |x| x.logMessage }, "DR schedule is too long")
+    expected_num_del_objects = {}
+    expected_num_new_objects = {}
+    expected_values = {}
+    _test_measure("SFD_2000sqft_2story_CS_UA_3Beds_2Baths_Denver_Furnace_CentralAC.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 2)
   end
 
   def test_no_offset
