@@ -168,18 +168,22 @@ class DemandResponseSchedule < OpenStudio::Measure::ModelMeasure
         return false
       end
 
-      # Check length of DR schedule
+      return true
+    end
+
+    # Check length of DR schedule
+    def check_DR_length(dr_hrly, model, runner)
       year_description = model.getYearDescription
       if year_description.isLeapYear
         if dr_hrly.length != 8760 + 24
-          runner.registerError("DR schedule is too long")
+          runner.registerInfo("DR schedule is the incorrect length")
           return false
         end
       elsif dr_hrly.length != 8760
-        runner.registerError("DR schedule is too long")
-        return false
+        runner.registerInfo("DR schedule is the incorrect length")
+          return false
       end
-
+      
       return true
     end
 
@@ -190,6 +194,10 @@ class DemandResponseSchedule < OpenStudio::Measure::ModelMeasure
         dr_list << dr
         if not check_DR_sched(dr, model, runner)
           return false
+        end
+        
+        if not check_DR_length(dr, model, runner)
+          return true
         end
       end
     end
