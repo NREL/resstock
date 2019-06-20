@@ -41,8 +41,8 @@ def regenerate_osms
   osm_path = File.expand_path("../test/osm_files/", __FILE__)
 
   osw_files = Dir.entries(osw_path).select { |entry| entry.end_with?(".osw") }
-  num_osws = osw_files.size     
-   
+  num_osws = osw_files.size
+
   osw_files.each do |osw|
     # Generate osm from osw
     num_tot += 1
@@ -60,7 +60,7 @@ def regenerate_osms
         measures[step["measure_dir_name"]] = [step["arguments"]]
       else
         resources_measures[step["measure_dir_name"]] = [step["arguments"]]
-    end
+      end
     end
 
     # Apply measures
@@ -96,7 +96,7 @@ def regenerate_osms
     osm_new = File.join(osm_path, File.basename(osw).gsub(".osw", ".osm"))
     FileUtils.mv(osm, osm_new)
     num_success += 1
-    end
+  end
 
   puts "Completed. #{num_success} of #{num_tot} osm files were regenerated successfully (#{Time.now - start_time} seconds)."
 end
@@ -422,36 +422,36 @@ task :update_measures do
 
   example_osws = { 'TMY' => 'USA_CO_Denver.Intl.AP.725650_TMY3.epw', 'AMY2012' => '0465925_US_CO_Boulder_8013_0-20000-0-72469_40.13_-105.22_NSRDB_2.0.1_AMY_2012.epw', 'AMY2014' => '0465925_US_CO_Boulder_8013_0-20000-0-72469_40.13_-105.22_NSRDB_2.0.1_AMY_2014.epw' }
   example_osws.each do |weather_year, weather_file|
-  # SFD
-  include_measures = ["ResidentialGeometryCreateSingleFamilyDetached"]
-  generate_example_osws(data_hash,
-                        include_measures,
-                        exclude_measures,
+    # SFD
+    include_measures = ["ResidentialGeometryCreateSingleFamilyDetached"]
+    generate_example_osws(data_hash,
+                          include_measures,
+                          exclude_measures,
                           "example_single_family_detached_#{weather_year}.osw",
                           weather_file)
 
-  # SFA
-  include_measures = ["ResidentialGeometryCreateSingleFamilyAttached"]
-  generate_example_osws(data_hash,
-                        include_measures,
-                        exclude_measures,
+    # SFA
+    include_measures = ["ResidentialGeometryCreateSingleFamilyAttached"]
+    generate_example_osws(data_hash,
+                          include_measures,
+                          exclude_measures,
                           "example_single_family_attached_#{weather_year}.osw",
                           weather_file)
 
-  # MF
-  include_measures = ["ResidentialGeometryCreateMultifamily", "ResidentialConstructionsFinishedRoof"]
-  generate_example_osws(data_hash,
-                        include_measures,
-                        exclude_measures,
+    # MF
+    include_measures = ["ResidentialGeometryCreateMultifamily", "ResidentialConstructionsFinishedRoof"]
+    generate_example_osws(data_hash,
+                          include_measures,
+                          exclude_measures,
                           "example_multifamily_#{weather_year}.osw",
                           weather_file)
 
-  # FloorspaceJS
-  # include_measures = ["ResidentialGeometryCreateFromFloorspaceJS"]
-  # generate_example_osws(data_hash,
-  #                      include_measures,
-  #                      exclude_measures,
-  #                      "example_from_floorspacejs.osw")
+    # FloorspaceJS
+    # include_measures = ["ResidentialGeometryCreateFromFloorspaceJS"]
+    # generate_example_osws(data_hash,
+    #                      include_measures,
+    #                      exclude_measures,
+    #                      "example_from_floorspacejs.osw")
   end
 end
 
@@ -519,7 +519,7 @@ def generate_example_osws(data_hash, include_measures, exclude_measures,
       measure_instance = get_measure_instance("#{measure_path}/measure.rb")
 
       begin
-      measure_args = measure_instance.arguments(model).sort_by { |arg| arg.name }
+        measure_args = measure_instance.arguments(model).sort_by { |arg| arg.name }
       rescue
         measure_args = measure_instance.arguments.sort_by { |arg| arg.name } # for reporting measures
       end
