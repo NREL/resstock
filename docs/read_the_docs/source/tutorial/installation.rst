@@ -4,7 +4,7 @@ Installation
 Install OpenStudio and PAT
 ==========================
 
-Download the latest stable software version of OpenStudio (2.8.0) from the `OpenStudio developer website <https://www.openstudio.net/developers>`_.
+Download the latest stable software version of OpenStudio (2.8.1) from the `OpenStudio developer website <https://www.openstudio.net/developers>`_.
 This is necessary because the latest critical changes to run ResStock projects are only available in the latest version.
 Do a default install including Parametric Analysis Tool (PAT). 
 
