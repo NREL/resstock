@@ -54,7 +54,7 @@ master_doc = 'index'
 # General information about the project.
 project = u'ResStock'
 copyright = u'2017, NREL'
-author = u'Noel Merket'
+author = u'NREL'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -151,7 +151,7 @@ latex_elements = {
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
     (master_doc, 'BuildStock.tex', u'BuildStock Documentation',
-     u'Noel Merket', 'manual'),
+     u'NREL', 'manual'),
 ]
 
 
