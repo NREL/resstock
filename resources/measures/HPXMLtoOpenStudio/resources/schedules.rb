@@ -484,7 +484,8 @@ class HourlySchedule
 
     # Read data into hourly array
     hour = 0
-    data = [0] * 8760
+    # data = [0] * 8760
+    data = [] # Generalize for any length
     File.open(file).each do |line|
       linedata = line.strip.split(',')
       if validation_values.empty?
@@ -884,15 +885,11 @@ class Schedule
   def self.ruleset_from_fixedinterval(model, hrly_sched, sch_name, winter_design_day_sch, summer_design_day_sch)
     # Returns schedule rules from a fixed interval object (60 min interval only)
     year_description = model.getYearDescription
-    day_startm = []
-    total_days = 0
-    for d in Constants.NumDaysInMonths(year_description.isLeapYear)
-      total_days += d
-      d_start = total_days - d + 1
-      day_startm.push(d_start)
-    end
+    assumed_year = year_description.assumedYear
+    run_period = model.getRunPeriod
+    run_period_start = Time.new(assumed_year, run_period.getBeginMonth, run_period.getBeginDayOfMonth)
+    start_day = run_period_start.yday
 
-    start_day = day_startm[hrly_sched.startMonth - 1] + hrly_sched.startDay - 1
     hrly_sched = hrly_sched.timeSeries.values
     hrs = hrly_sched.length
     days = hrs / 24
@@ -901,7 +898,6 @@ class Schedule
       time[h] = OpenStudio::Time.new(0, h, 0, 0)
     end
 
-    assumed_year = year_description.assumedYear
     schedule = OpenStudio::Model::ScheduleRuleset.new(model)
     schedule.setName(sch_name + " ruleset")
     previous_value = hrly_sched[0]
@@ -940,7 +936,7 @@ class Schedule
         end
       else
         sdate = day_rule_prev.startDate.get
-        edate = OpenStudio::Date.fromDayOfYear(day)
+        edate = OpenStudio::Date.fromDayOfYear(day, assumed_year)
         day_rule.setStartDate(sdate)
         day_rule.setEndDate(edate)
         day_sched_prev.remove
