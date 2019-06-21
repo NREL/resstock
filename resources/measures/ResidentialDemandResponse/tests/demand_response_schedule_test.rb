@@ -25,7 +25,6 @@ class DemandResponseScheduleTest < MiniTest::Test
   end
 
   def test_wrong_DR_schedule_length
-    # 8760 or 8784 schedules
     args_hash = {}
     args_hash["offset_magnitude_heat"] = 4
     args_hash["dr_directory"] = "./tests"
@@ -81,6 +80,25 @@ class DemandResponseScheduleTest < MiniTest::Test
                         "cool_tsp_dr_plus" => 78,
                         "cool_tsp_dr_minus" => 72 }
     _test_measure("SFD_70heat_75cool_auto_seasons.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 6)
+    # 6 assertions: 2 DR sched found, 2 Thermostat found, 2 setting thermostat
+  end
+
+  def test_short_period
+    args_hash = {}
+    args_hash["offset_magnitude_heat"] = 4
+    args_hash["offset_magnitude_cool"] = 3
+    args_hash["dr_directory"] = "./tests"
+    args_hash["dr_schedule_heat"] = "DR_schedule_h_feb.csv"
+    args_hash["dr_schedule_cool"] = "DR_schedule_c_feb.csv"
+    expected_num_new_objects = { "ScheduleRuleset" => 2, "ScheduleRule" => 4 } # Cool/Heat rulesets 1x, Cool/Heat 2 schedule rule days each
+    expected_num_del_objects = { "ScheduleRuleset" => 2, "ScheduleRule" => 24 } # Cool/Heat original rulesets 2x; Cool/Heat 12 original schedule rule days each
+    expected_values = { "heat_tsp_non_dr" => 70,
+                        "heat_tsp_dr_plus" => 74,
+                        "heat_tsp_dr_minus" => 66,
+                        "cool_tsp_non_dr" => 75,
+                        "cool_tsp_dr_plus" => 78,
+                        "cool_tsp_dr_minus" => 72 }
+    _test_measure("example_single_family_detached_FebruaryRunPeriod.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 6)
     # 6 assertions: 2 DR sched found, 2 Thermostat found, 2 setting thermostat
   end
 

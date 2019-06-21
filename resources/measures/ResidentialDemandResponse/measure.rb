@@ -38,14 +38,14 @@ class DemandResponseSchedule < OpenStudio::Measure::ModelMeasure
   def arguments(model)
     args = OpenStudio::Measure::OSArgumentVector.new
 
-    # make an argument for 8760 DR schedule directory
+    # make an argument for hourly DR schedule directory
     dr_directory = OpenStudio::Measure::OSArgument::makeStringArgument("dr_directory", true)
     dr_directory.setDisplayName("Demand Response Schedule Directory")
     dr_directory.setDescription("Absolute or relative directory that contains the DR csv files")
     dr_directory.setDefaultValue("../HPXMLtoOpenStudio/resources")
     args << dr_directory
 
-    # make an argument for 8760 DR schedule csv file
+    # make an argument for hourly DR schedule csv file (must be same length as simulation period)
     dr_schedule_heat = OpenStudio::Measure::OSArgument::makeStringArgument("dr_schedule_heat", true)
     dr_schedule_heat.setDisplayName("Heating Setpoint DR Schedule File Name")
     dr_schedule_heat.setDescription("File name of the csv that contains hourly DR signals of -1, 0, or 1 for the heating setpoint schedule.")
@@ -60,7 +60,7 @@ class DemandResponseSchedule < OpenStudio::Measure::ModelMeasure
     offset_magnitude_heat.setDefaultValue(0)
     args << offset_magnitude_heat
 
-    # make an argument for 8760 DR schedule csv file
+    # make an argument for hourly DR schedule csv file
     dr_schedule_cool = OpenStudio::Measure::OSArgument::makeStringArgument("dr_schedule_cool", true)
     dr_schedule_cool.setDisplayName("Cooling Setpoint DR Schedule File Name")
     dr_schedule_cool.setDescription("File name of the csv that contains hourly DR signals of -1, 0, or 1 for the cooling setpoint schedule.")
@@ -119,8 +119,15 @@ class DemandResponseSchedule < OpenStudio::Measure::ModelMeasure
       end
     end
 
+    year_description = model.getYearDescription
+    assumed_year = year_description.assumedYear
+    run_period = model.getRunPeriod
+    run_period_start = Time.new(assumed_year, run_period.getBeginMonth, run_period.getBeginDayOfMonth)
+    run_period_end = Time.new(assumed_year, run_period.getEndMonth, run_period.getEndDayOfMonth, 24)
+    sim_hours = (run_period_end - run_period_start) / 3600
+
     # Import DR Schedule
-    def import_DR_sched(dr_dir, dr_sch, sch_name, offset, model, runner)
+    def import_DR_sched(dr_dir, dr_sch, sch_name, offset, sim_hours, model, runner)
       path_err = dr_dir + "/" + dr_sch
       unless (Pathname.new dr_dir).absolute?
         dr_dir = File.expand_path(File.join(File.dirname(__FILE__), dr_dir))
@@ -133,14 +140,9 @@ class DemandResponseSchedule < OpenStudio::Measure::ModelMeasure
         dr_hrly.schedule.remove
 
         return dr_hrly_array
+
       elsif offset == 0 or dr_sch == "none"
-        year_description = model.getYearDescription
-        leap_offset = 0
-        if year_description.isLeapYear
-          return Array.new(8760 + 24, 0)
-        else
-          return Array.new(8760, 0)
-        end
+        return Array.new(sim_hours, 0)
       else
         err_msg = "File #{dr_sch} does not exist"
         runner.registerError(err_msg)
@@ -151,8 +153,8 @@ class DemandResponseSchedule < OpenStudio::Measure::ModelMeasure
     # Import user DR schedule and run checks
     dr_hrly_htg = []
     dr_hrly_clg = []
-    dr_hrly_clg = import_DR_sched(dr_dir, dr_sch_clg, "DR Cooling Schedule", offset_cool, model, runner)
-    dr_hrly_htg = import_DR_sched(dr_dir, dr_sch_htg, "DR Heating Schedule", offset_heat, model, runner)
+    dr_hrly_clg = import_DR_sched(dr_dir, dr_sch_clg, "DR Cooling Schedule", offset_cool, sim_hours, model, runner)
+    dr_hrly_htg = import_DR_sched(dr_dir, dr_sch_htg, "DR Heating Schedule", offset_heat, sim_hours, model, runner)
     # Check if file exists (error message in import_DR_sched())
     if dr_hrly_htg == nil
       return false
@@ -172,18 +174,11 @@ class DemandResponseSchedule < OpenStudio::Measure::ModelMeasure
     end
 
     # Check length of DR schedule
-    def check_DR_length(dr_hrly, model, runner)
-      year_description = model.getYearDescription
-      if year_description.isLeapYear
-        if dr_hrly.length != 8760 + 24
-          runner.registerInfo("DR schedule is the incorrect length")
-          return false
-        end
-      elsif dr_hrly.length != 8760
-        runner.registerInfo("DR schedule is the incorrect length")
-          return false
+    def check_DR_length(dr_hrly, sim_hours, model, runner)
+      if dr_hrly.length != sim_hours
+        runner.registerInfo("DR schedule length differs from simulation period")
+        return false
       end
-      
       return true
     end
 
@@ -195,8 +190,8 @@ class DemandResponseSchedule < OpenStudio::Measure::ModelMeasure
         if not check_DR_sched(dr, model, runner)
           return false
         end
-        
-        if not check_DR_length(dr, model, runner)
+
+        if not check_DR_length(dr, sim_hours, model, runner)
           return true
         end
       end
@@ -214,7 +209,7 @@ class DemandResponseSchedule < OpenStudio::Measure::ModelMeasure
       end
     end
 
-    # Generates existing 8760 schedules
+    # Generates existing hourly schedules
     def get_existing_sched(finished_zones, sched_type, model, runner)
       # Get monthly weekend/weekday 24-hour schedules prior to setpoint inversion fix
       thermostat_setpoint = nil
@@ -239,7 +234,7 @@ class DemandResponseSchedule < OpenStudio::Measure::ModelMeasure
         end
       end
 
-      # Generate base 8760 schedule
+      # Generate base hourly schedule
       year_description = model.getYearDescription
       day_startm = [0]
       day_endm = [0]
@@ -273,6 +268,14 @@ class DemandResponseSchedule < OpenStudio::Measure::ModelMeasure
       end
       hrly_base = hrly_base.map { |i| UnitConversions.convert(i, "C", "F") }
 
+      year_description = model.getYearDescription
+      assumed_year = year_description.assumedYear
+      run_period = model.getRunPeriod
+      run_period_start = Time.new(assumed_year, run_period.getBeginMonth, run_period.getBeginDayOfMonth)
+      run_period_end = Time.new(assumed_year, run_period.getEndMonth, run_period.getEndDayOfMonth, 24)
+      hr_start = run_period_start.yday * 24 - 24
+      hr_end = (run_period_end - 1).yday * 24 - 1
+      hrly_base = hrly_base[hr_start..hr_end]
       return(hrly_base)
     end
 
@@ -290,22 +293,18 @@ class DemandResponseSchedule < OpenStudio::Measure::ModelMeasure
       heating_season = hvac.get_season(model, weather, runner, Constants.ObjectNameHeatingSeason)
 
       year_description = model.getYearDescription
-      day_startm = []
-      day_endm = []
-      total_days = 0
-      for d in Constants.NumDaysInMonths(year_description.isLeapYear)
-        total_days += d
-        d_start = total_days - d + 1
-        d_end = total_days
-        day_startm.push(d_start)
-        day_endm.push(d_end)
-      end
+      run_period = model.getRunPeriod
+      start_month = run_period.getBeginMonth - 1
+      end_month = run_period.getEndMonth - 1
 
-      (0..11).to_a.each do |i|
-        day_s = day_startm[i] - 1
-        day_e = day_endm[i]
-        hr1 = day_s * 24
+      day_e = 0
+      days_in_month = Constants.NumDaysInMonths(year_description.isLeapYear)
+      (start_month..end_month).to_a.each do |i|
+        day_s = day_e + 1
+        day_e = day_s + days_in_month[i] - 1
+        hr1 = (day_s - 1) * 24
         hr2 = day_e * 24 - 1
+
         htg_hrly_month = htg_hrly[hr1..hr2]
         clg_hrly_month = clg_hrly[hr1..hr2]
 
@@ -324,12 +323,16 @@ class DemandResponseSchedule < OpenStudio::Measure::ModelMeasure
 
     def create_OS_sched(sched_hrly, var_name, model, runner)
       year_description = model.getYearDescription
-      start_date = year_description.makeDate(1, 1)
+      assumed_year = year_description.assumedYear
+      run_period = model.getRunPeriod
+      run_period_start = Time.new(assumed_year, run_period.getBeginMonth, run_period.getBeginDayOfMonth)
+      start_date = year_description.makeDate(run_period_start.month, run_period_start.day)
       interval = OpenStudio::Time.new(0, 1, 0, 0)
       time_series = OpenStudio::TimeSeries.new(start_date, interval, OpenStudio::createVector(sched_hrly), "")
       schedule = OpenStudio::Model::ScheduleFixedInterval.new(model)
       schedule.setTimeSeries(time_series)
       schedule.setName(var_name)
+
       return schedule
     end
 
@@ -337,12 +340,12 @@ class DemandResponseSchedule < OpenStudio::Measure::ModelMeasure
     htg_hrly_base = get_existing_sched(finished_zones, "heat", model, runner)   ## Existing schedule as 12x24
     clg_hrly_base = get_existing_sched(finished_zones, "cool", model, runner)
 
-    htg_hrly = create_new_sched(dr_hrly_htg, htg_hrly_base, offset_heat)        ## New schedule as 8760
+    htg_hrly = create_new_sched(dr_hrly_htg, htg_hrly_base, offset_heat)        ## New hourly schedule
     clg_hrly = create_new_sched(dr_hrly_clg, clg_hrly_base, offset_cool)
 
     fix_setpoint_inversion(htg_hrly, clg_hrly, HVAC, weather, model, runner)    ## Fix setpoint inversions in new schedules
 
-    htg_hrly = create_OS_sched(htg_hrly, "HeatingTSP", model, runner)           ## Create fixed interval schedule using new 8760 schedules
+    htg_hrly = create_OS_sched(htg_hrly, "HeatingTSP", model, runner)           ## Create fixed interval schedule using new hourly schedules
     clg_hrly = create_OS_sched(clg_hrly, "CoolingTSP", model, runner)
 
     # Convert back to ruleset and apply to dual thermostat
