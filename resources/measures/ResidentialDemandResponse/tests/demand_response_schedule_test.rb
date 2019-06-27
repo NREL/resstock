@@ -80,7 +80,7 @@ class DemandResponseScheduleTest < MiniTest::Test
                         "cool_tsp_non_dr" => 75,
                         "cool_tsp_dr_plus" => 78,
                         "cool_tsp_dr_minus" => 72,
-                        "cool_tsp_coolseason" => 75}
+                        "cool_tsp_coolseason" => 75 }
     _test_measure("SFD_70heat_75cool_auto_seasons.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 6)
     # 6 assertions: 2 DR sched found, 2 Thermostat found, 2 setting thermostat
   end
@@ -103,9 +103,9 @@ class DemandResponseScheduleTest < MiniTest::Test
     _test_measure("example_single_family_detached_FebruaryRunPeriod.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 6)
     # 6 assertions: 2 DR sched found, 2 Thermostat found, 2 setting thermostat
   end
-  
+
   def test_short_period_8760_DR
-    #Simulation period of 28 days with a 365-day DR schedule
+    # Simulation period of 28 days with a 365-day DR schedule
     args_hash = {}
     args_hash["offset_magnitude_heat"] = 4
     args_hash["offset_magnitude_cool"] = 3
@@ -156,11 +156,11 @@ class DemandResponseScheduleTest < MiniTest::Test
     expected_values = { "heat_tsp_non_dr" => 70,
                         "heat_tsp_dr_plus" => 74,
                         "heat_tsp_dr_minus" => 66,
-                        "heat_tsp_coolseason" => 68, #match clg
+                        "heat_tsp_coolseason" => 68, # match clg
                         "cool_tsp_non_dr" => 70,     # match htg
                         "cool_tsp_dr_plus" => 72,    #+DR
-                        "cool_tsp_dr_minus" => 70,   #match htg
-                        "cool_tsp_coolseason" => 68} 
+                        "cool_tsp_dr_minus" => 70,   # match htg
+                        "cool_tsp_coolseason" => 68 }
     _test_measure("SFD_70heat_68cool_auto_seasons.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 6)
   end
 
@@ -257,7 +257,7 @@ class DemandResponseScheduleTest < MiniTest::Test
     expected_num_del_objects = { "ScheduleRuleset" => 2, "ScheduleRule" => 36 } # Cool/Heat original rulesets 2x; 24 original heat schedule rule, 12 original cool schedule rule days each
     expected_values = { "wkday_offset_ht" => 76, # +2 wkday offset, +4 DR offset
                         "wkday_no_offset_ht" => 74, # +4 DR offset
-                        "wknd_ht" => 74}
+                        "wknd_ht" => 74 }
     _test_measure("SFD_70heat_75cool_2wkdy_offset_12mo_seasons.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 6)
     # 8 assertions: 2 DR sched found, 2 Thermostat found, 2 setting cooling TSP, 2 setting heating TSP
   end
@@ -348,19 +348,19 @@ class DemandResponseScheduleTest < MiniTest::Test
     # check we have the expected number of new/deleted objects
     check_num_objects(all_new_objects, expected_num_new_objects, "added")
     check_num_objects(all_del_objects, expected_num_del_objects, "deleted")
-    
+
     dr_day = 1
     no_dr = 0
-    if( (args_hash["dr_schedule_heat"] == "DR_schedule_h_feb.csv") or
+    if ((args_hash["dr_schedule_heat"] == "DR_schedule_h_feb.csv") or
         (args_hash["dr_schedule_cool"] == "DR_schedule_c_feb.csv") or
         (args_hash["dr_schedule_heat"] == "DR_schedule_h_feb_8760.csv") or
-        (args_hash["dr_schedule_cool"] == "DR_schedule_c_feb_8760.csv") )
+        (args_hash["dr_schedule_cool"] == "DR_schedule_c_feb_8760.csv"))
       dr_month = 2
     else
       dr_month = 1
     end
-    if( (args_hash["dr_schedule_heat"] == "DR_schedule_overlap.csv") or 
-        (args_hash["dr_schedule_cool"] == "DR_schedule_overlap.csv") )
+    if ((args_hash["dr_schedule_heat"] == "DR_schedule_overlap.csv") or
+        (args_hash["dr_schedule_cool"] == "DR_schedule_overlap.csv"))
       ht_dr_plus = 1
       ht_dr_minus = 2
       cl_dr_plus = 1
@@ -370,7 +370,7 @@ class DemandResponseScheduleTest < MiniTest::Test
       ht_dr_minus = 2
       cl_dr_plus = 3
       cl_dr_minus = 4
-    end    
+    end
     if osm_file_or_model == "SFD_70heat_75cool_2wkdy_offset_12mo_seasons.osm"
       check_month = 1
       wkday = 1
@@ -383,7 +383,7 @@ class DemandResponseScheduleTest < MiniTest::Test
       new_objects.each do |new_object|
         next unless obj_type == "ScheduleRule"
         next if not new_object.respond_to?("to_#{obj_type}")
-                
+
         new_object = new_object.public_send("to_#{obj_type}").get
         actual_values = []
         step = 0
@@ -394,50 +394,49 @@ class DemandResponseScheduleTest < MiniTest::Test
           end
           step = h
         end
-        
+
         if osm_file_or_model == "SFD_70heat_75cool_2wkdy_offset_12mo_seasons.osm"
           if new_object.name.to_s.start_with? Constants.ObjectNameHeatingSetpoint
-            #Offset
+            # Offset
             if (new_object.startDate.get.monthOfYear.value == check_month) and
-               (new_object.startDate.get.dayOfMonth == wkday)    
-              assert_in_epsilon(expected_values["wkday_offset_ht"], actual_values[offset_hour],  0.01)  
-              assert_in_epsilon(expected_values["wkday_no_offset_ht"], actual_values[no_offset_hour],  0.01)  
-            #No offset
+               (new_object.startDate.get.dayOfMonth == wkday)
+              assert_in_epsilon(expected_values["wkday_offset_ht"], actual_values[offset_hour], 0.01)
+              assert_in_epsilon(expected_values["wkday_no_offset_ht"], actual_values[no_offset_hour], 0.01)
+            # No offset
             elsif (new_object.startDate.get.monthOfYear.value == check_month) and
-               (new_object.startDate.get.dayOfMonth == wknd_day)    
-              assert_in_epsilon(expected_values["wknd_ht"], actual_values[no_offset_hour],  0.01)  
+                  (new_object.startDate.get.dayOfMonth == wknd_day)
+              assert_in_epsilon(expected_values["wknd_ht"], actual_values[no_offset_hour], 0.01)
             end
           end
           next
         end
-        
-        #DR period:
+
+        # DR period:
         if (new_object.startDate.get.monthOfYear.value == dr_month) and
-           (new_object.startDate.get.dayOfMonth == dr_day)    
+           (new_object.startDate.get.dayOfMonth == dr_day)
           if new_object.name.to_s.start_with? Constants.ObjectNameHeatingSetpoint
-            assert_in_epsilon(expected_values["heat_tsp_non_dr"], actual_values[no_dr],  0.01)
-            assert_in_epsilon(expected_values["heat_tsp_dr_plus"], actual_values[ht_dr_plus],  0.01)
+            assert_in_epsilon(expected_values["heat_tsp_non_dr"], actual_values[no_dr], 0.01)
+            assert_in_epsilon(expected_values["heat_tsp_dr_plus"], actual_values[ht_dr_plus], 0.01)
             assert_in_epsilon(expected_values["heat_tsp_dr_minus"], actual_values[ht_dr_minus], 0.01)
           elsif new_object.name.to_s.start_with? Constants.ObjectNameCoolingSetpoint
-            assert_in_epsilon(expected_values["cool_tsp_non_dr"], actual_values[no_dr],  0.01)
-            assert_in_epsilon(expected_values["cool_tsp_dr_plus"], actual_values[cl_dr_plus],  0.01)
+            assert_in_epsilon(expected_values["cool_tsp_non_dr"], actual_values[no_dr], 0.01)
+            assert_in_epsilon(expected_values["cool_tsp_dr_plus"], actual_values[cl_dr_plus], 0.01)
             assert_in_epsilon(expected_values["cool_tsp_dr_minus"], actual_values[cl_dr_minus], 0.01)
           end
-        #No DR:
-        elsif new_object.startDate.get.monthOfYear.value == 7 #Cooling season
+        # No DR:
+        elsif new_object.startDate.get.monthOfYear.value == 7 # Cooling season
           if new_object.name.to_s.start_with? Constants.ObjectNameHeatingSetpoint
             assert_in_epsilon(expected_values["heat_tsp_coolseason"], actual_values[no_dr],  0.01)
           elsif new_object.name.to_s.start_with? Constants.ObjectNameCoolingSetpoint
             assert_in_epsilon(expected_values["cool_tsp_coolseason"], actual_values[no_dr],  0.01)
           end
-        elsif new_object.startDate.get.monthOfYear.value == 1 #Heating season
+        elsif new_object.startDate.get.monthOfYear.value == 1 # Heating season
           if new_object.name.to_s.start_with? Constants.ObjectNameHeatingSetpoint
             assert_in_epsilon(expected_values["heat_tsp_non_dr"], actual_values[no_dr],  0.01)
           elsif new_object.name.to_s.start_with? Constants.ObjectNameCoolingSetpoint
             assert_in_epsilon(expected_values["cool_tsp_non_dr"], actual_values[no_dr],  0.01)
           end
         end
-       
       end
     end
 
