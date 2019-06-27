@@ -133,7 +133,7 @@ class DemandResponseSchedule < OpenStudio::Measure::ModelMeasure
       unless (Pathname.new dr_dir).absolute?
         dr_dir = File.expand_path(File.join(File.dirname(__FILE__), dr_dir))
       end
-      
+
       year_description = model.getYearDescription
       assumed_year = year_description.assumedYear
       yr_hrs = Constants.NumHoursInYear(year_description.isLeapYear)
@@ -142,19 +142,19 @@ class DemandResponseSchedule < OpenStudio::Measure::ModelMeasure
       run_period_end = Time.new(assumed_year, run_period.getEndMonth, run_period.getEndDayOfMonth, 24)
       sim_hours = (run_period_end - run_period_start) / 3600
       dr_schedule_file = File.join(dr_dir, dr_sch)
-      
+
       if File.file?(dr_schedule_file)
         dr_hrly = HourlySchedule.new(model, runner, sch_name, dr_schedule_file, 0, false, [])
         runner.registerInfo("Imported hourly '#{sch_name}' schedule from #{dr_schedule_file}")
         dr_hrly_array = dr_hrly.schedule_array.map { |x| x.to_i }
         dr_hrly.schedule.remove
-        
+
         if (dr_hrly_array.length == yr_hrs) & (sim_hours != yr_hrs)
-          hr_start = run_period_start.yday*24-24
-          hr_end = (run_period_end.yday-1)*24-1
+          hr_start = run_period_start.yday * 24 - 24
+          hr_end = (run_period_end.yday - 1) * 24 - 1
           dr_hrly_array = dr_hrly_array[hr_start..hr_end]
         end
-    
+
         return dr_hrly_array
 
       elsif offset == 0 or dr_sch == "none"
@@ -193,8 +193,8 @@ class DemandResponseSchedule < OpenStudio::Measure::ModelMeasure
     def check_DR_length(dr_hrly, sim_hours, model, runner)
       year_description = model.getYearDescription
       n_days = Constants.NumDaysInYear(year_description.isLeapYear)
-      if (dr_hrly.length != sim_hours) and (dr_hrly.length != n_days*24)
-            runner.registerInfo("Hourly DR schedule length must equal to simulation period or a full year, no thermostat DR applied")
+      if (dr_hrly.length != sim_hours) and (dr_hrly.length != n_days * 24)
+        runner.registerInfo("Hourly DR schedule length must equal to simulation period or a full year, no thermostat DR applied")
         return false
       end
       return true
@@ -294,7 +294,7 @@ class DemandResponseSchedule < OpenStudio::Measure::ModelMeasure
       hr_start = run_period_start.yday * 24 - 24
       hr_end = (run_period_end - 1).yday * 24 - 1
       hrly_base = hrly_base[hr_start..hr_end]
-            
+
       return(hrly_base)
     end
 
