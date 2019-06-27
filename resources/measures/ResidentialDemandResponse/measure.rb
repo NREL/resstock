@@ -49,7 +49,7 @@ class DemandResponseSchedule < OpenStudio::Measure::ModelMeasure
     dr_schedule_heat = OpenStudio::Measure::OSArgument::makeStringArgument("dr_schedule_heat", true)
     dr_schedule_heat.setDisplayName("Heating Setpoint DR Schedule File Name")
     dr_schedule_heat.setDescription("File name of the csv that contains hourly DR signals of -1, 0, or 1 for the heating setpoint schedule.")
-    dr_schedule_heat.setDefaultValue("none")
+    dr_schedule_heat.setDefaultValue("DR_ScheduleHeatSetback.csv")
     args << dr_schedule_heat
 
     # MAke a string argument for offset magnitude for temperature setpoint DR events
@@ -64,7 +64,7 @@ class DemandResponseSchedule < OpenStudio::Measure::ModelMeasure
     dr_schedule_cool = OpenStudio::Measure::OSArgument::makeStringArgument("dr_schedule_cool", true)
     dr_schedule_cool.setDisplayName("Cooling Setpoint DR Schedule File Name")
     dr_schedule_cool.setDescription("File name of the csv that contains hourly DR signals of -1, 0, or 1 for the cooling setpoint schedule.")
-    dr_schedule_cool.setDefaultValue("none")
+    dr_schedule_cool.setDefaultValue("DR_ScheduleCoolSetup.csv")
     args << dr_schedule_cool
 
     # MAke a string argument for offset magnitude for temperature setpoint DR events
@@ -106,7 +106,7 @@ class DemandResponseSchedule < OpenStudio::Measure::ModelMeasure
 
     # Check for setpoint offset
     if offset_heat == 0 and offset_cool == 0
-      runner.registerInfo("User specified DR offset magnitudes of zero, skipping measure")
+      runner.registerInfo("DR offset magnitudes are set to zero, no thermostat DR applied")
       return true
     end
 
@@ -114,8 +114,9 @@ class DemandResponseSchedule < OpenStudio::Measure::ModelMeasure
     finished_zones.each do |finished_zone|
       thermostat_setpoint = finished_zone.thermostatSetpointDualSetpoint
       if !thermostat_setpoint.is_initialized
-        runner.registerInfo("No thermostat setpoint defined and cannot apply DR, skipping measure")
+        runner.registerInfo("No thermostat setpoint defined, skipping demand response applied")
         return true
+        break
       end
     end
 
@@ -132,13 +133,28 @@ class DemandResponseSchedule < OpenStudio::Measure::ModelMeasure
       unless (Pathname.new dr_dir).absolute?
         dr_dir = File.expand_path(File.join(File.dirname(__FILE__), dr_dir))
       end
+      
+      year_description = model.getYearDescription
+      assumed_year = year_description.assumedYear
+      yr_hrs = Constants.NumHoursInYear(year_description.isLeapYear)
+      run_period = model.getRunPeriod
+      run_period_start = Time.new(assumed_year, run_period.getBeginMonth, run_period.getBeginDayOfMonth)
+      run_period_end = Time.new(assumed_year, run_period.getEndMonth, run_period.getEndDayOfMonth, 24)
+      sim_hours = (run_period_end - run_period_start) / 3600
       dr_schedule_file = File.join(dr_dir, dr_sch)
+      
       if File.file?(dr_schedule_file)
         dr_hrly = HourlySchedule.new(model, runner, sch_name, dr_schedule_file, 0, false, [])
         runner.registerInfo("Imported hourly '#{sch_name}' schedule from #{dr_schedule_file}")
         dr_hrly_array = dr_hrly.schedule_array.map { |x| x.to_i }
         dr_hrly.schedule.remove
-
+        
+        if (dr_hrly_array.length == yr_hrs) & (sim_hours != yr_hrs)
+          hr_start = run_period_start.yday*24-24
+          hr_end = (run_period_end.yday-1)*24-1
+          dr_hrly_array = dr_hrly_array[hr_start..hr_end]
+        end
+    
         return dr_hrly_array
 
       elsif offset == 0 or dr_sch == "none"
@@ -175,8 +191,10 @@ class DemandResponseSchedule < OpenStudio::Measure::ModelMeasure
 
     # Check length of DR schedule
     def check_DR_length(dr_hrly, sim_hours, model, runner)
-      if dr_hrly.length != sim_hours
-        runner.registerInfo("DR schedule length differs from simulation period")
+      year_description = model.getYearDescription
+      n_days = Constants.NumDaysInYear(year_description.isLeapYear)
+      if (dr_hrly.length != sim_hours) and (dr_hrly.length != n_days*24)
+            runner.registerInfo("Hourly DR schedule length must equal to simulation period or a full year, no thermostat DR applied")
         return false
       end
       return true
@@ -203,7 +221,7 @@ class DemandResponseSchedule < OpenStudio::Measure::ModelMeasure
       if ((dr_hrly.to_a.max() == 0) & (dr_hrly.to_a.min() == 0))
         ct += 1
         if ct == dr_list.length
-          runner.registerInfo("DR schedules contain only zeros, skipping measure")
+          runner.registerInfo("DR schedules contain only zeros, no thermostat DR applied")
           return true
         end
       end
@@ -276,6 +294,7 @@ class DemandResponseSchedule < OpenStudio::Measure::ModelMeasure
       hr_start = run_period_start.yday * 24 - 24
       hr_end = (run_period_end - 1).yday * 24 - 1
       hrly_base = hrly_base[hr_start..hr_end]
+            
       return(hrly_base)
     end
 
@@ -363,8 +382,8 @@ class DemandResponseSchedule < OpenStudio::Measure::ModelMeasure
         thermostat_setpoint.resetHeatingSetpointTemperatureSchedule()
         thermostat_setpoint.resetCoolingSetpointTemperatureSchedule()
 
-        rule_sched_h = Schedule.ruleset_from_fixedinterval(model, htg_hrly, "heating temperature setpoint", winter_design_day_sch, summer_design_day_sch)
-        rule_sched_c = Schedule.ruleset_from_fixedinterval(model, clg_hrly, "cooling temperature setpoint", winter_design_day_sch, summer_design_day_sch)
+        rule_sched_h = Schedule.ruleset_from_fixedinterval(model, htg_hrly, Constants.ObjectNameHeatingSetpoint, winter_design_day_sch, summer_design_day_sch)
+        rule_sched_c = Schedule.ruleset_from_fixedinterval(model, clg_hrly, Constants.ObjectNameCoolingSetpoint, winter_design_day_sch, summer_design_day_sch)
 
         htg_hrly.remove
         clg_hrly.remove
