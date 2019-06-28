@@ -1,0 +1,7 @@
+__title__ = 'ResStock'
+__description__ = 'Executing BuildStock projects on batch infrastructure.'
+__url__ = 'http://github.com/NREL/OpenStudio-BuildStock'
+__version__ = '2.0.0'
+__author__ = 'National Renewable Energy Laboratory'
+__license__ = 'BSD-3'
+__copyright__ = 'Copyright (c) 2016-2019, Alliance for Sustainable Energy, LLC.'
