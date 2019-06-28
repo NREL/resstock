@@ -13,12 +13,12 @@ namespace :test do
   desc 'Run unit tests for all projects/measures'
   Rake::TestTask.new('all') do |t|
     t.libs << 'test'
-    t.test_files = Dir['project_*/tests/*.rb'] + Dir['test/test_*.rb'] + Dir['measures/*/tests/*.rb'] + Dir['resources/measures/*/tests/*.rb'] + Dir['workflows/tests/*.rb'] - Dir['resources/measures/HPXMLtoOpenStudio/tests/*.rb'] # HPXMLtoOpenStudio is tested upstream
+    t.test_files = Dir['project_*/tests/*.rb'] + Dir['test/test_integrity_checks.rb'] + Dir['measures/*/tests/*.rb'] + Dir['resources/measures/*/tests/*.rb'] + Dir['workflows/tests/*.rb'] - Dir['resources/measures/HPXMLtoOpenStudio/tests/*.rb'] # HPXMLtoOpenStudio is tested upstream
     t.warning = false
     t.verbose = true
   end
 
-  desc 'regenerate test osm files from osw files'
+  desc 'Regenerate test osm files from osw files'
   Rake::TestTask.new('regenerate_osms') do |t|
     t.libs << 'test'
     t.test_files = Dir['test/osw_files/tests/*.rb']
@@ -391,8 +391,15 @@ def get_all_project_dir_names()
   return project_dir_names
 end
 
-desc 'update all measures'
-task :update_measures do
+desc 'Apply rubocop, update all measure xmls, and regenerate example osws'
+Rake::TestTask.new('update_measures') do |t|
+  t.libs << 'test'
+  t.test_files = Dir['test/test_update_measures.rb']
+  t.warning = false
+  t.verbose = true
+end
+
+def update_measures
   require 'openstudio'
 
   # Apply rubocop
