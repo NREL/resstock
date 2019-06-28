@@ -9,12 +9,16 @@ jobs:
           name: Install gems
           command: |
             rm -f Gemfile.lock && bundle install
+      - run:
+          name: Update all measures
+          command: |
+            rake update_measures
       - run: 
-          name: Regenerate test osm files
+          name: Regenerate test osms
           command: |
             rake test:regenerate_osms
       - run: 
-          name: Run tests
+          name: Run all tests
           command: |
             rake test:all
       - store_artifacts:
