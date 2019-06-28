@@ -15,7 +15,7 @@ To investigate the issues behind failed datapoints, click "View" for any datapoi
 
 .. image:: ../images/advanced_tutorial/sdp_log_file_example.png
 
-Search the log's text for the error. Diagnose the problem and fix it. Depending on where the issue originates, you may need to address problems upstream in the OpenStudio-BEopt's ``measures`` directory. If that's the case, you'll probably want to start this entire development process over beginning with :doc:`rake_tasks`. Bummer.
+Search the log's text for the error. Diagnose the problem and fix it. Depending on where the issue originates, you may need to address problems in the ``resources/measures`` directory.
 
 .. _run-simulations-locally:
 

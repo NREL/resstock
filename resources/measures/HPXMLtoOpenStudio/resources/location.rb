@@ -7,7 +7,7 @@ class Location
     success, weather, epw_file = apply_weather_file(model, runner, weather_file_path)
     return false if not success
 
-    success = apply_year(model, runner, epw_file)
+    success = apply_year(model, epw_file)
     return false if not success
 
     success = apply_site(model, runner, epw_file)
@@ -58,6 +58,17 @@ class Location
     return true, weather, epw_file
   end
 
+  def self.apply_year(model, epw_file)
+    year_description = model.getYearDescription
+    if epw_file.startDateActualYear.is_initialized # AMY
+      year_description.setCalendarYear(epw_file.startDateActualYear.get)
+    else # TMY, 2007
+      year_description.setDayofWeekforStartDay('Monday') # this is consistent with SAM utilityrate3
+    end
+
+    return true
+  end
+
   def self.apply_site(model, runner, epw_file)
     site = model.getSite
     site.setName("#{epw_file.city}_#{epw_file.stateProvinceRegion}_#{epw_file.country}")
@@ -92,22 +103,11 @@ class Location
 
     # Calc annual average mains temperature to report
     swmt = model.getSiteWaterMainsTemperature
-    swmt.setCalculationMethod "Correlation"
-    swmt.setAnnualAverageOutdoorAirTemperature avgOAT
-    swmt.setMaximumDifferenceInMonthlyAverageOutdoorAirTemperatures maxDiffOAT
+    swmt.setCalculationMethod("Correlation")
+    swmt.setAnnualAverageOutdoorAirTemperature(avgOAT)
+    swmt.setMaximumDifferenceInMonthlyAverageOutdoorAirTemperatures(maxDiffOAT)
 
     runner.registerInfo("Setting mains water temperature profile.")
-
-    return true
-  end
-
-  def self.apply_year(model, runner, epw_file)
-    year_description = model.getYearDescription
-    if epw_file.startDateActualYear.is_initialized # AMY
-      year_description.setCalendarYear(epw_file.startDateActualYear.get)
-    else # TMY
-      year_description.setDayofWeekforStartDay('Monday') # For consistency with SAM utility bill calculations
-    end
 
     return true
   end
@@ -123,6 +123,7 @@ class Location
         dst = model.getRunPeriodControlDaylightSavingTime
         dst.setStartDate(dst_start_date_month, dst_start_date_day)
         dst.setEndDate(dst_end_date_month, dst_end_date_day)
+
         runner.registerInfo("Set daylight saving time from #{dst.startDate.to_s} to #{dst.endDate.to_s}.")
       rescue
         runner.registerError("Invalid daylight saving date specified.")
@@ -145,41 +146,36 @@ class Location
     return true
   end
 
-  def self.get_climate_zone_ba(wmo)
-    ba_zone = nil
-
+  def self.get_climate_zones
     zones_csv = File.join(File.dirname(__FILE__), "climate_zones.csv")
     if not File.exists?(zones_csv)
-      return ba_zone
+      return nil
     end
+
+    return zones_csv
+  end
+
+  def self.get_climate_zone_ba(wmo)
+    zones_csv = get_climate_zones
+    return nil if zones_csv.nil?
 
     require "csv"
     CSV.foreach(zones_csv) do |row|
-      if row[0].to_s == wmo.to_s
-        ba_zone = row[5].to_s
-        break
-      end
+      return row[5].to_s if row[0].to_s == wmo.to_s
     end
 
-    return ba_zone
+    return nil
   end
 
   def self.get_climate_zone_iecc(wmo)
-    iecc_zone = nil
-
-    zones_csv = File.join(File.dirname(__FILE__), "climate_zones.csv")
-    if not File.exists?(zones_csv)
-      return iecc_zone
-    end
+    zones_csv = get_climate_zones
+    return nil if zones_csv.nil?
 
     require "csv"
     CSV.foreach(zones_csv) do |row|
-      if row[0].to_s == wmo.to_s
-        iecc_zone = row[6].to_s
-        break
-      end
+      return row[6].to_s if row[0].to_s == wmo.to_s
     end
 
-    return iecc_zone
+    return nil
   end
 end

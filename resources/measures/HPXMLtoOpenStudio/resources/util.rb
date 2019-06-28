@@ -617,6 +617,7 @@ class OutputMeters
         natural_gas_lighting(custom_meter_infos, model, runner, unit, thermal_zones)
         natural_gas_fireplace(custom_meter_infos, model, runner, unit, thermal_zones)
         electricity_well_pump(custom_meter_infos, model, runner, unit, thermal_zones)
+        electricity_garage_lighting(custom_meter_infos, model, runner, unit, thermal_zones)
       end
     end
 
@@ -653,6 +654,7 @@ class OutputMeters
       heating_equipment = HVAC.existing_heating_equipment(model, runner, thermal_zone)
       heating_equipment.each do |htg_equip|
         clg_coil, htg_coil, supp_htg_coil = HVAC.get_coils_from_hvac_equip(htg_equip)
+
         if htg_equip.is_a? OpenStudio::Model::AirLoopHVACUnitarySystem
           custom_meter_infos["#{unit.name}:ElectricityHeating"]["key_var_groups"] << ["#{htg_coil.name}", "Heating Coil Electric Energy"]
           custom_meter_infos["#{unit.name}:ElectricityHeating"]["key_var_groups"] << ["#{htg_equip.name}", "Unitary System Heating Ancillary Electric Energy"]
@@ -689,10 +691,14 @@ class OutputMeters
               next unless supply_component.to_BoilerHotWater.is_initialized
 
               if units_served.length != 1 # this is a central system
-                custom_meter_infos["Central:ElectricityHeating"]["key_var_groups"] << ["#{supply_component.name}", "Boiler Electric Energy"]
+                if supply_component.to_BoilerHotWater.get.fuelType == "Electricity"
+                  custom_meter_infos["Central:ElectricityHeating"]["key_var_groups"] << ["#{supply_component.name}", "Boiler Electric Energy"]
+                end
                 custom_meter_infos["Central:ElectricityHeating"]["key_var_groups"] << ["#{supply_component.name}", "Boiler Ancillary Electric Energy"]
               else
-                custom_meter_infos["#{unit.name}:ElectricityHeating"]["key_var_groups"] << ["#{supply_component.name}", "Boiler Electric Energy"]
+                if supply_component.to_BoilerHotWater.get.fuelType == "Electricity"
+                  custom_meter_infos["#{unit.name}:ElectricityHeating"]["key_var_groups"] << ["#{supply_component.name}", "Boiler Electric Energy"]
+                end
                 custom_meter_infos["#{unit.name}:ElectricityHeating"]["key_var_groups"] << ["#{supply_component.name}", "Boiler Ancillary Electric Energy"]
               end
             end
@@ -727,10 +733,14 @@ class OutputMeters
               next unless supply_component.to_BoilerHotWater.is_initialized
 
               if units_served.length != 1 # this is a central system
-                custom_meter_infos["Central:ElectricityHeating"]["key_var_groups"] << ["#{supply_component.name}", "Boiler Electric Energy"]
+                if supply_component.to_BoilerHotWater.get.fuelType == "Electricity"
+                  custom_meter_infos["Central:ElectricityHeating"]["key_var_groups"] << ["#{supply_component.name}", "Boiler Electric Energy"]
+                end
                 custom_meter_infos["Central:ElectricityHeating"]["key_var_groups"] << ["#{supply_component.name}", "Boiler Ancillary Electric Energy"]
               else
-                custom_meter_infos["#{unit.name}:ElectricityHeating"]["key_var_groups"] << ["#{supply_component.name}", "Boiler Electric Energy"]
+                if supply_component.to_BoilerHotWater.get.fuelType == "Electricity"
+                  custom_meter_infos["#{unit.name}:ElectricityHeating"]["key_var_groups"] << ["#{supply_component.name}", "Boiler Electric Energy"]
+                end
                 custom_meter_infos["#{unit.name}:ElectricityHeating"]["key_var_groups"] << ["#{supply_component.name}", "Boiler Ancillary Electric Energy"]
               end
             end
@@ -807,8 +817,13 @@ class OutputMeters
 
   def self.electricity_exterior_lighting(custom_meter_infos, model, runner, unit, thermal_zones)
     custom_meter_infos["Central:ElectricityExteriorLighting"] = { "fuel_type" => "Electricity", "key_var_groups" => [] }
+    custom_meter_infos["Central:ElectricityExteriorHolidayLighting"] = { "fuel_type" => "Electricity", "key_var_groups" => [] }
     model.getExteriorLightss.each do |exterior_lights|
-      custom_meter_infos["Central:ElectricityExteriorLighting"]["key_var_groups"] << ["#{exterior_lights.name}", "Exterior Lights Electric Energy"]
+      if exterior_lights.endUseSubcategory.include? Constants.ObjectNameLightingExteriorHoliday
+        custom_meter_infos["Central:ElectricityExteriorHolidayLighting"]["key_var_groups"] << ["#{exterior_lights.name}", "Exterior Lights Electric Energy"]
+      else
+        custom_meter_infos["Central:ElectricityExteriorLighting"]["key_var_groups"] << ["#{exterior_lights.name}", "Exterior Lights Electric Energy"]
+      end
     end
   end
 
@@ -837,8 +852,6 @@ class OutputMeters
         clg_coil, htg_coil, supp_htg_coil = HVAC.get_coils_from_hvac_equip(htg_equip)
         if htg_equip.is_a? OpenStudio::Model::AirLoopHVACUnitarySystem
           custom_meter_infos["#{unit.name}:ElectricityFansHeating"]["key_var_groups"] << ["#{htg_equip.supplyFan.get.name}", "Fan Electric Energy"]
-        elsif htg_equip.is_a? OpenStudio::Model::ZoneHVACUnitHeater
-          custom_meter_infos["#{unit.name}:ElectricityFansHeating"]["key_var_groups"] << ["#{htg_equip.supplyAirFan.to_FanConstantVolume.get.name}", "Fan Electric Energy"]
         end
       end
     end
@@ -873,7 +886,7 @@ class OutputMeters
     model.getEnergyManagementSystemOutputVariables.each do |ems_output_var|
       if ems_output_var.name.to_s.include? "Central htg pump:Pumps:Electricity"
         custom_meter_infos["Central:ElectricityPumpsHeating"]["key_var_groups"] << ["", "#{ems_output_var.name}"]
-      elsif ems_output_var.name.to_s.include? "htg pump:Pumps:Electricity" and ems_output_var.emsVariableName.include? unit.name.to_s.gsub(" ", "_")
+      elsif ems_output_var.name.to_s.include? "htg pump:Pumps:Electricity" and ems_output_var.emsVariableName.to_s == "#{unit.name}_pumps_h".gsub(" ", "_")
         custom_meter_infos["#{unit.name}:ElectricityPumpsHeating"]["key_var_groups"] << ["", "#{ems_output_var.name}"]
       end
     end
@@ -892,7 +905,7 @@ class OutputMeters
     model.getEnergyManagementSystemOutputVariables.each do |ems_output_var|
       if ems_output_var.name.to_s.include? "Central clg pump:Pumps:Electricity"
         custom_meter_infos["Central:ElectricityPumpsCooling"]["key_var_groups"] << ["", "#{ems_output_var.name}"]
-      elsif ems_output_var.name.to_s.include? "clg pump:Pumps:Electricity" and ems_output_var.emsVariableName.include? unit.name.to_s.gsub(" ", "_")
+      elsif ems_output_var.name.to_s.include? "clg pump:Pumps:Electricity" and ems_output_var.emsVariableName.to_s == "#{unit.name}_pumps_c".gsub(" ", "_")
         custom_meter_infos["#{unit.name}:ElectricityPumpsCooling"]["key_var_groups"] << ["", "#{ems_output_var.name}"]
       end
     end
@@ -952,6 +965,12 @@ class OutputMeters
         clg_coil, htg_coil, supp_htg_coil = HVAC.get_coils_from_hvac_equip(htg_equip)
 
         if htg_equip.is_a? OpenStudio::Model::AirLoopHVACUnitarySystem
+          next if htg_coil.is_a? OpenStudio::Model::CoilHeatingElectric or htg_coil.is_a? OpenStudio::Model::CoilHeatingDXSingleSpeed or htg_coil.is_a? OpenStudio::Model::CoilHeatingDXMultiSpeed
+
+          if htg_coil.is_a? OpenStudio::Model::CoilHeatingGas
+            next if htg_coil.fuelType != "NaturalGas"
+          end
+
           custom_meter_infos["#{unit.name}:NaturalGasHeating"]["key_var_groups"] << ["#{htg_coil.name}", "Heating Coil Gas Energy"]
           custom_meter_infos["#{unit.name}:NaturalGasHeating"]["key_var_groups"] << ["#{htg_coil.name}", "Heating Coil Ancillary Gas Energy"]
 
@@ -1011,6 +1030,7 @@ class OutputMeters
 
             plant_loop.supplyComponents.each do |supply_component|
               next unless supply_component.to_BoilerHotWater.is_initialized
+              next if supply_component.to_BoilerHotWater.get.fuelType != "NaturalGas"
 
               if units_served.length != 1 # this is a central system
                 custom_meter_infos["Central:NaturalGasHeating"]["key_var_groups"] << ["#{supply_component.name}", "Boiler Gas Energy"]
@@ -1073,6 +1093,12 @@ class OutputMeters
         clg_coil, htg_coil, supp_htg_coil = HVAC.get_coils_from_hvac_equip(htg_equip)
 
         if htg_equip.is_a? OpenStudio::Model::AirLoopHVACUnitarySystem
+          next if htg_coil.is_a? OpenStudio::Model::CoilHeatingElectric or htg_coil.is_a? OpenStudio::Model::CoilHeatingDXSingleSpeed or htg_coil.is_a? OpenStudio::Model::CoilHeatingDXMultiSpeed
+
+          if htg_coil.is_a? OpenStudio::Model::CoilHeatingGas
+            next if htg_coil.fuelType != "FuelOil#1"
+          end
+
           custom_meter_infos["#{unit.name}:FuelOilHeating"]["key_var_groups"] << ["#{htg_coil.name}", "Heating Coil FuelOil#1 Energy"]
           custom_meter_infos["#{unit.name}:FuelOilHeating"]["key_var_groups"] << ["#{htg_coil.name}", "Heating Coil Ancillary FuelOil#1 Energy"]
 
@@ -1132,6 +1158,7 @@ class OutputMeters
 
             plant_loop.supplyComponents.each do |supply_component|
               next unless supply_component.to_BoilerHotWater.is_initialized
+              next if supply_component.to_BoilerHotWater.get.fuelType != "FuelOil#1"
 
               if units_served.length != 1 # this is a central system
                 custom_meter_infos["Central:FuelOilHeating"]["key_var_groups"] << ["#{supply_component.name}", "Boiler FuelOil#1 Energy"]
@@ -1189,6 +1216,12 @@ class OutputMeters
         clg_coil, htg_coil, supp_htg_coil = HVAC.get_coils_from_hvac_equip(htg_equip)
 
         if htg_equip.is_a? OpenStudio::Model::AirLoopHVACUnitarySystem
+          next if htg_coil.is_a? OpenStudio::Model::CoilHeatingElectric or htg_coil.is_a? OpenStudio::Model::CoilHeatingDXSingleSpeed or htg_coil.is_a? OpenStudio::Model::CoilHeatingDXMultiSpeed
+
+          if htg_coil.is_a? OpenStudio::Model::CoilHeatingGas
+            next if htg_coil.fuelType != "PropaneGas"
+          end
+
           custom_meter_infos["#{unit.name}:PropaneHeating"]["key_var_groups"] << ["#{htg_coil.name}", "Heating Coil Propane Energy"]
           custom_meter_infos["#{unit.name}:PropaneHeating"]["key_var_groups"] << ["#{htg_coil.name}", "Heating Coil Ancillary Propane Energy"]
 
@@ -1248,6 +1281,7 @@ class OutputMeters
 
             plant_loop.supplyComponents.each do |supply_component|
               next unless supply_component.to_BoilerHotWater.is_initialized
+              next if supply_component.to_BoilerHotWater.get.fuelType != "PropaneGas"
 
               if units_served.length != 1 # this is a central system
                 custom_meter_infos["Central:PropaneHeating"]["key_var_groups"] << ["#{supply_component.name}", "Boiler Propane Energy"]
@@ -1637,6 +1671,15 @@ class OutputMeters
 
         custom_meter_infos["#{unit.name}:ElectricityWellPump"]["key_var_groups"] << ["#{equip.name}", "Electric Equipment Electric Energy"]
       end
+    end
+  end
+
+  def self.electricity_garage_lighting(custom_meter_infos, model, runner, unit, thermal_zones)
+    custom_meter_infos["Central:ElectricityGarageLighting"] = { "fuel_type" => "Electricity", "key_var_groups" => [] }
+    model.getLightss.each do |lights|
+      next unless lights.endUseSubcategory.include? Constants.ObjectNameLightingGarage
+
+      custom_meter_infos["Central:ElectricityGarageLighting"]["key_var_groups"] << ["#{lights.name}", "Lights Electric Energy"]
     end
   end
 end

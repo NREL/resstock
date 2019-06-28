@@ -11,7 +11,7 @@ class SimulationOutputReportTest < MiniTest::Test
       "Fixed (1)" => 1,
       "Wall Area, Above-Grade, Conditioned (ft^2)" => 1633.82,
       "Wall Area, Above-Grade, Exterior (ft^2)" => 2176.31,
-      "Wall Area, Below-Grade (ft^2)" => 1633.82,
+      "Wall Area, Below-Grade (ft^2)" => 1633.82 - 192.0,
       "Floor Area, Conditioned (ft^2)" => 4500,
       "Floor Area, Attic (ft^2)" => 2250,
       "Floor Area, Lighting (ft^2)" => 4788,
@@ -32,7 +32,7 @@ class SimulationOutputReportTest < MiniTest::Test
       "Fixed (1)" => 1,
       "Wall Area, Above-Grade, Conditioned (ft^2)" => 1129.42,
       "Wall Area, Above-Grade, Exterior (ft^2)" => 1498.30,
-      "Wall Area, Below-Grade (ft^2)" => 1129.42,
+      "Wall Area, Below-Grade (ft^2)" => 1129.42 - 192.0,
       "Floor Area, Conditioned (ft^2)" => 2000,
       "Floor Area, Attic (ft^2)" => 1000,
       "Floor Area, Lighting (ft^2)" => 2288,
@@ -74,7 +74,7 @@ class SimulationOutputReportTest < MiniTest::Test
       "Fixed (1)" => 1,
       "Wall Area, Above-Grade, Conditioned (ft^2)" => 2275.56,
       "Wall Area, Above-Grade, Exterior (ft^2)" => 3130.55,
-      "Wall Area, Below-Grade (ft^2)" => 2275.56,
+      "Wall Area, Below-Grade (ft^2)" => 2275.56 - 192.0,
       "Floor Area, Conditioned (ft^2)" => 4500,
       "Floor Area, Attic (ft^2)" => 4500,
       "Floor Area, Lighting (ft^2)" => 4788,
@@ -116,7 +116,7 @@ class SimulationOutputReportTest < MiniTest::Test
       "Fixed (1)" => 1,
       "Wall Area, Above-Grade, Conditioned (ft^2)" => 2778.52,
       "Wall Area, Above-Grade, Exterior (ft^2)" => 3196.86,
-      "Wall Area, Below-Grade (ft^2)" => 646.63,
+      "Wall Area, Below-Grade (ft^2)" => 646.63 - 96.0,
       "Floor Area, Conditioned (ft^2)" => 3000,
       "Floor Area, Attic (ft^2)" => 1644,
       "Floor Area, Lighting (ft^2)" => 3288,
@@ -137,7 +137,7 @@ class SimulationOutputReportTest < MiniTest::Test
       "Fixed (1)" => 1,
       "Wall Area, Above-Grade, Conditioned (ft^2)" => 2819.59,
       "Wall Area, Above-Grade, Exterior (ft^2)" => 3244.58,
-      "Wall Area, Below-Grade (ft^2)" => 1313.79,
+      "Wall Area, Below-Grade (ft^2)" => 1313.79 - 192.0,
       "Floor Area, Conditioned (ft^2)" => 4500,
       "Floor Area, Attic (ft^2)" => 1692,
       "Floor Area, Lighting (ft^2)" => 4788,
@@ -158,7 +158,7 @@ class SimulationOutputReportTest < MiniTest::Test
       "Fixed (1)" => 1,
       "Wall Area, Above-Grade, Conditioned (ft^2)" => 2819.59,
       "Wall Area, Above-Grade, Exterior (ft^2)" => 3244.58,
-      "Wall Area, Below-Grade (ft^2)" => 1313.79,
+      "Wall Area, Below-Grade (ft^2)" => 1313.79 - 192.0,
       "Floor Area, Conditioned (ft^2)" => 4500,
       "Floor Area, Attic (ft^2)" => 1692,
       "Floor Area, Lighting (ft^2)" => 4788,
@@ -179,7 +179,7 @@ class SimulationOutputReportTest < MiniTest::Test
       "Fixed (1)" => 1,
       "Wall Area, Above-Grade, Conditioned (ft^2)" => 2819.58,
       "Wall Area, Above-Grade, Exterior (ft^2)" => 3244.58,
-      "Wall Area, Below-Grade (ft^2)" => 1313.79,
+      "Wall Area, Below-Grade (ft^2)" => 1313.79 - 192.0,
       "Floor Area, Conditioned (ft^2)" => 4500,
       "Floor Area, Attic (ft^2)" => 1692,
       "Floor Area, Lighting (ft^2)" => 4788,
@@ -361,11 +361,7 @@ class SimulationOutputReportTest < MiniTest::Test
 
   def _test_cost_multipliers(osm_file, cost_multipliers)
     # load the test model
-    translator = OpenStudio::OSVersion::VersionTranslator.new
-    path = OpenStudio::Path.new(File.join(File.dirname(__FILE__), osm_file))
-    model = translator.loadModel(path)
-    assert((not model.empty?))
-    model = model.get
+    model = get_model(File.dirname(__FILE__), osm_file)
 
     # create an instance of the measure
     measure = SimulationOutputReport.new
