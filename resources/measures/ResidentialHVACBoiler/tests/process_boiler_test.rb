@@ -298,6 +298,9 @@ class ProcessBoilerTest < MiniTest::Test
     measure.run(model, runner, argument_map)
     result = runner.result
 
+    # show the output
+    show_output(result) unless result.value.valueName == 'Fail'
+
     # assert that it didn't run
     assert_equal("Fail", result.value.valueName)
     assert(result.errors.size == 1)

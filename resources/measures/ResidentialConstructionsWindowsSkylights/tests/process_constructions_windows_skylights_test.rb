@@ -115,6 +115,9 @@ class ProcessConstructionsWindowsSkylightsTest < MiniTest::Test
     measure.run(model, runner, argument_map)
     result = runner.result
 
+    # show the output
+    show_output(result) unless result.value.valueName == 'Fail'
+
     return result
   end
 

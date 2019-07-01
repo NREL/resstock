@@ -17,7 +17,7 @@ namespace :test do
     t.warning = false
     t.verbose = true
   end
-  
+
   desc 'Run regression tests for all example osws'
   Rake::TestTask.new('regression_tests') do |t|
     t.libs << 'test'
