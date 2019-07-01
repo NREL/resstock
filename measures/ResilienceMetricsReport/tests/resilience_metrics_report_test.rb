@@ -172,7 +172,8 @@ class ResilienceMetricsReportTest < MiniTest::Test
     measure.run(runner, argument_map)
     result = runner.result
 
-    show_output(result) unless result.value.valueName == 'Success'
+    # show the output
+    show_output(result) unless result.value.valueName == 'Fail'
 
     # assert that it didn't run
     assert_equal("Fail", result.value.valueName)
