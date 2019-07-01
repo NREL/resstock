@@ -65,7 +65,7 @@ class ResilienceMetricsReportTest < MiniTest::Test
     expected_num_del_objects = {}
     expected_num_new_objects = {}
     expected_values = {}
-    _test_measure("SFD_Successful_EnergyPlus_Run_TMY_Outages_PV.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, __method__, "USA_CO_Denver_Intl_AP_725650_TMY3.epw", 12, 0, 5)
+    _test_measure("SFD_Successful_EnergyPlus_Run_TMY_Outages_PV.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, __method__, "USA_CO_Denver.Intl.AP.725650_TMY3.epw", 11, 0, 5)
   end
 
   private
@@ -172,7 +172,8 @@ class ResilienceMetricsReportTest < MiniTest::Test
     measure.run(runner, argument_map)
     result = runner.result
 
-    # show_output(result)
+    # show the output
+    show_output(result) unless result.value.valueName == 'Fail'
 
     # assert that it didn't run
     assert_equal("Fail", result.value.valueName)
@@ -188,7 +189,7 @@ class ResilienceMetricsReportTest < MiniTest::Test
   def epw_path_default(epw_name)
     # make sure we have a weather data location
     epw = nil
-    epw = OpenStudio::Path.new("#{File.dirname(__FILE__)}/#{epw_name}")
+    epw = OpenStudio::Path.new("#{File.dirname(__FILE__)}/../../../resources/measures/HPXMLtoOpenStudio/weather/#{epw_name}")
     assert(File.exist?(epw.to_s))
     return epw.to_s
   end
@@ -310,7 +311,7 @@ class ResilienceMetricsReportTest < MiniTest::Test
       # run the measure
       measure.run(runner, argument_map)
       result = runner.result
-      # show_output(result)
+      show_output(result) unless result.value.valueName == 'Success'
     ensure
       Dir.chdir(start_dir)
     end

@@ -1755,7 +1755,7 @@ class ResidentialMiscLargeUncommonLoadsTest < MiniTest::Test
     result = runner.result
 
     # show the output
-    # show_output(result)
+    show_output(result) unless result.value.valueName == 'Fail'
 
     # assert that it didn't run
     assert_equal("Fail", result.value.valueName)
@@ -1799,7 +1799,7 @@ class ResidentialMiscLargeUncommonLoadsTest < MiniTest::Test
     result = runner.result
 
     # show the output
-    # show_output(result)
+    show_output(result) unless result.value.valueName == 'Success'
 
     # assert that it ran correctly
     assert_equal("Success", result.value.valueName)
@@ -1826,7 +1826,7 @@ class ResidentialMiscLargeUncommonLoadsTest < MiniTest::Test
 
         new_object = new_object.public_send("to_#{obj_type}").get
         if obj_type == "ElectricEquipment"
-          full_load_hrs = Schedule.annual_equivalent_full_load_hrs(model.yearDescription.get.assumedYear, new_object.schedule.get)
+          full_load_hrs = Schedule.annual_equivalent_full_load_hrs(model.getYearDescription, new_object.schedule.get)
           actual_values["Annual_kwh"] += UnitConversions.convert(full_load_hrs * new_object.designLevel.get * new_object.multiplier, "Wh", "kWh")
           if new_object.name.to_s.start_with? Constants.ObjectNameExtraRefrigerator
             actual_values["fridge_location"] << new_object.space.get.spaceType.get.standardsSpaceType.get
@@ -1834,7 +1834,7 @@ class ResidentialMiscLargeUncommonLoadsTest < MiniTest::Test
             actual_values["freezer_location"] << new_object.space.get.spaceType.get.standardsSpaceType.get
           end
         elsif obj_type == "GasEquipment"
-          full_load_hrs = Schedule.annual_equivalent_full_load_hrs(model.yearDescription.get.assumedYear, new_object.schedule.get)
+          full_load_hrs = Schedule.annual_equivalent_full_load_hrs(model.getYearDescription, new_object.schedule.get)
           actual_values["Annual_therm"] += UnitConversions.convert(full_load_hrs * new_object.designLevel.get * new_object.multiplier, "Wh", "therm")
           if new_object.name.to_s.start_with? Constants.ObjectNameGasFireplace
             actual_values["gas_fireplace_location"] << new_object.space.get.spaceType.get.standardsSpaceType.get
