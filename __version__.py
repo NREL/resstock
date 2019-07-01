@@ -1,5 +1,5 @@
 __title__ = 'ResStock'
-__description__ = 'Executing BuildStock projects on batch infrastructure.'
+__description__ = 'Modeling the existing building stock (residential and commercial) using OpenStudio/EnergyPlus.'
 __url__ = 'http://github.com/NREL/OpenStudio-BuildStock'
 __version__ = '2.0.0'
 __author__ = 'National Renewable Energy Laboratory'
