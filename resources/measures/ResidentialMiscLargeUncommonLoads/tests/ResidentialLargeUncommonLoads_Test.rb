@@ -1755,7 +1755,7 @@ class ResidentialMiscLargeUncommonLoadsTest < MiniTest::Test
     result = runner.result
 
     # show the output
-    # show_output(result)
+    show_output(result) unless result.value.valueName == 'Success'
 
     # assert that it didn't run
     assert_equal("Fail", result.value.valueName)
@@ -1799,7 +1799,7 @@ class ResidentialMiscLargeUncommonLoadsTest < MiniTest::Test
     result = runner.result
 
     # show the output
-    # show_output(result)
+    show_output(result) unless result.value.valueName == 'Success'
 
     # assert that it ran correctly
     assert_equal("Success", result.value.valueName)
