@@ -2,13 +2,13 @@
   <schema_version>3.0</schema_version>
   <name>create_residential_multifamily_geometry</name>
   <uid>9bc07973-98a4-46fc-b643-e280628817c5</uid>
-  <version_id>1dc51bc7-d91f-4c3b-8d60-44d79a91c072</version_id>
-  <version_modified>20190103T214700Z</version_modified>
+  <version_id>57418f4c-8699-4ebe-aa3c-0e709c23ced7</version_id>
+  <version_modified>20190701T173018Z</version_modified>
   <xml_checksum>2AF3A68E</xml_checksum>
   <class_name>CreateResidentialMultifamilyGeometry</class_name>
-  <display_name>Create Residential Multifamily Geometry</display_name>
-  <description>Sets the basic geometry for the multifamily building, where all units are 1 story and stacked if the building is multiple stories. Sets the number of bedrooms, bathrooms, and occupants in the building. See https://github.com/NREL/OpenStudio-BEopt#workflows for supported workflows using this measure.</description>
-  <modeler_description>Creates multifamily geometry. Also, sets (or replaces) BuildingUnit objects that store the number of bedrooms and bathrooms associated with the model. Sets (or replaces) the People object for each finished space in the model.</modeler_description>
+  <display_name>CreateResidentialMultifamilyGeometry</display_name>
+  <description>Sets the geometry for a single unit in a multifamily building based on the user-specified location of the unit. Sets the number of bedrooms, bathrooms, and occupants in the unit. See https://github.com/NREL/OpenStudio-BEopt#workflows for supported workflows using this measure.</description>
+  <modeler_description>Creates multifamily geometry for a single unit. Also, sets (or replaces) BuildingUnit objects that store the number of bedrooms and bathrooms associated with the model. Sets (or replaces) the People object for each finished space in the model.</modeler_description>
   <arguments>
     <argument>
       <name>unit_ffa</name>
@@ -41,9 +41,9 @@
       <default_value>1</default_value>
     </argument>
     <argument>
-      <name>num_units_per_floor</name>
-      <display_name>Num Units Per Floor</display_name>
-      <description>The number of units per floor.</description>
+      <name>num_units</name>
+      <display_name>Num Units</display_name>
+      <description>The number of units. This must be divisible by the number of floors.</description>
       <type>Integer</type>
       <units>#</units>
       <required>true</required>
@@ -293,6 +293,62 @@
       <model_dependent>false</model_dependent>
       <default_value>180</default_value>
     </argument>
+    <argument>
+      <name>level</name>
+      <display_name>Unit Level</display_name>
+      <description>The level of the unit (top, middle, bottom)</description>
+      <type>String</type>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>Bottom</default_value>
+    </argument>
+    <argument>
+      <name>horz_location</name>
+      <display_name>Horizontal Location of the Unit</display_name>
+      <description>The horizontal location of the unit when viewwing the front of the building (left, middle, right)</description>
+      <type>String</type>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>Left</default_value>
+    </argument>
+    <argument>
+      <name>multi_story</name>
+      <display_name>Multi story boolean</display_name>
+      <description>Indicates if the building has more than one story</description>
+      <type>Boolean</type>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>true</default_value>
+      <choices>
+        <choice>
+          <value>true</value>
+          <display_name>true</display_name>
+        </choice>
+        <choice>
+          <value>false</value>
+          <display_name>false</display_name>
+        </choice>
+      </choices>
+    </argument>
+    <argument>
+      <name>has_rear_units</name>
+      <display_name>Rear units boolean</display_name>
+      <description>Indicates if the unit has another unit behind it</description>
+      <type>Boolean</type>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>true</default_value>
+      <choices>
+        <choice>
+          <value>true</value>
+          <display_name>true</display_name>
+        </choice>
+        <choice>
+          <value>false</value>
+          <display_name>false</display_name>
+        </choice>
+      </choices>
+    </argument>
   </arguments>
   <outputs/>
   <provenances/>
@@ -323,21 +379,55 @@
   </attributes>
   <files>
     <file>
-      <filename>create_residential_multifamily_geometry_test.rb</filename>
-      <filetype>rb</filetype>
+      <filename>LICENSE.md</filename>
+      <filetype>md</filetype>
+      <usage_type>license</usage_type>
+      <checksum>CD7F5672</checksum>
+    </file>
+    <file>
+      <filename>README.md.erb</filename>
+      <filetype>erb</filetype>
+      <usage_type>readmeerb</usage_type>
+      <checksum>703C9964</checksum>
+    </file>
+    <file>
+      <filename>.gitkeep</filename>
+      <filetype>gitkeep</filetype>
+      <usage_type>doc</usage_type>
+      <checksum>00000000</checksum>
+    </file>
+    <file>
+      <filename>example_model.osm</filename>
+      <filetype>osm</filetype>
       <usage_type>test</usage_type>
-      <checksum>E644FB84</checksum>
+      <checksum>53D14E69</checksum>
     </file>
     <file>
       <version>
         <software_program>OpenStudio</software_program>
-        <identifier>1.12.2</identifier>
-        <min_compatible>2.0.4</min_compatible>
+        <identifier>2.7.0</identifier>
+        <min_compatible>2.7.0</min_compatible>
       </version>
       <filename>measure.rb</filename>
       <filetype>rb</filetype>
       <usage_type>script</usage_type>
-      <checksum>8A4474BB</checksum>
+      <checksum>06008287</checksum>
+    </file>
+    <file>
+      <filename>residential_geometry_create_single_unit_test.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>test</usage_type>
+<<<<<<< HEAD
+      <checksum>727124DE</checksum>
+    </file>
+    <file>
+      <filename>README.md</filename>
+      <filetype>md</filetype>
+      <usage_type>readme</usage_type>
+      <checksum>10920DCE</checksum>
+=======
+      <checksum>F9BEFD4B</checksum>
+>>>>>>> master
     </file>
   </files>
 </measure>
