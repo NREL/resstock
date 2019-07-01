@@ -18,8 +18,9 @@ Run ``rake -T`` to see the list of possible rake tasks. The ``-T`` is replaced w
   rake integrity_check_singlefamilydetached  # Run tests for integrity_check_...
   rake integrity_check_testing               # Run tests for integrity_check_...
   rake integrity_check_unit_tests            # Run tests for integrity_check_...
-  rake test:all                              # Run tests for all
   rake test:regenerate_osms                  # Run tests for regenerate_osms
+  rake test:regression_tests                 # Run tests for regression_tests
+  rake test:unit_tests                       # Run tests for unit_tests
   rake update_measures                       # Run tests for update_measures
 
 .. _integrity-checks:
